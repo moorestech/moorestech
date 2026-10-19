@@ -57,7 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             // Ctrl の意図はこのフレームに1回だけ読み、箱となぞりで共有する
             // Read the Ctrl intent once this frame and share it between the box and the stroke
-            var heldIntent = HybridInput.IsControlOrCommandHeld() ? DeleteSelectionIntent.Remove : DeleteSelectionIntent.Add;
+            var heldIntent = DeleteSelectionModifierKey.ReadIntent();
 
             // 解放フレームは副作用が失敗しても終結する
             // End the release frame even when a presentation side effect fails

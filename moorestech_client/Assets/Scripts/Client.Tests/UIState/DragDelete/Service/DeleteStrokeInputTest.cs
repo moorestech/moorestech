@@ -1,6 +1,5 @@
 using System;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
-using Client.Input;
 using NUnit.Framework;
 using UnityEngine.InputSystem;
 
@@ -17,12 +16,12 @@ namespace Client.Tests.UIState.DragDelete.Service
             Selection.ApplyBoxTargets(new[] { first, second }, DeleteSelectionIntent.Add);
             AimAt(first);
             Frame(true, new[] { modifier });
-            Assert.IsTrue(HybridInput.IsControlOrCommandHeld());
+            Assert.AreEqual(DeleteSelectionIntent.Remove, DeleteSelectionModifierKey.ReadIntent());
             Service.Update(0, false);
             Assert.IsFalse(Selection.IsSelected(first));
             AimAt(second);
             Frame(true, Array.Empty<Key>());
-            Assert.IsFalse(HybridInput.IsControlOrCommandHeld());
+            Assert.AreEqual(DeleteSelectionIntent.Add, DeleteSelectionModifierKey.ReadIntent());
             Service.Update(0, false);
             Assert.IsFalse(Selection.IsSelected(second));
             Assert.AreEqual(1, second.Target.ResetCount);

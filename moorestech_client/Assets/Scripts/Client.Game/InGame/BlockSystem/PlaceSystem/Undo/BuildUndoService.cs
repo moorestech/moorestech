@@ -33,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 
             static bool IsUndoKeyPressed()
             {
-                var modifierHeld = HybridInput.IsControlOrCommandHeld();
+                var modifierHeld = HybridInput.GetKey(KeyCode.LeftControl) || HybridInput.GetKey(KeyCode.LeftCommand);
                 return modifierHeld && HybridInput.GetKeyDown(KeyCode.Z);
             }
 
