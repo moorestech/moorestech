@@ -4,7 +4,7 @@
 
 **Goal:** 削除ツールの F 長押し満了時間を選択件数で 0.75／1.25／1.75 秒の3段にし、Ctrl を押して始めたなぞり・箱で削除候補を選択から外せるようにする。
 
-**Architecture:** 長押し対象 `DeleteHoldSubject` が件数を運び、`DeleteHoldConfirm` が `DeleteHoldDuration.SecondsFor(件数)` で満了時間を引く（件数は選択側から購読でプッシュ済みの subject に乗る）。選択モデル `DeleteSelection` の内部集合を `DeleteSelectedTargetSet` へ切り出して除外（赤戻し・変更通知）を足す。なぞり・箱の「追加か除外か」は押下瞬間の Ctrl を `DeleteSelectionIntent` として選択モデルの入口（`BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)`）へ渡し、意図による分岐は選択モデルに閉じる。Ctrl はサービスが1フレーム1回だけ読む。箱の対象解決 `DeleteBoxTargetResolver` は撤去可能な対象を返す1本の問い合わせのまま、除外の箱ではそのうち選択済みだけに絞る。箱の意図ごとの表示（文言キー・色・名前）は `DeleteBoxIntentView` にまとめる。
+**Architecture:** 長押し対象 `DeleteHoldSubject` が件数を運び、`DeleteHoldConfirm` が `DeleteHoldDuration.SecondsFor(件数)` で満了時間を引く（件数は選択側から購読でプッシュ済みの subject に乗る）。選択モデル `DeleteSelection` の内部集合を `DeleteSelectedTargetSet` へ切り出して除外（赤戻し・変更通知）を足す。なぞり・箱の「追加か除外か」は押下瞬間の Ctrl を `DeleteSelectionIntent` として選択モデルの入口（`BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)`）へ渡し、選択集合への反映の分岐は選択モデルに閉じる（意図で分かれるのは、ほかに箱の表示の選び分け `DeleteBoxInput.ViewFor` と、箱の解決で除外のとき選択済みに絞る1行だけ）。Ctrl はサービスが1フレーム1回だけ読む。箱の対象解決 `DeleteBoxTargetResolver` は撤去可能な対象を返す1本の問い合わせのまま、除外の箱ではそのうち選択済みだけに絞る。箱の意図ごとの表示（文言キー・色・名前）は `DeleteBoxIntentView` にまとめる。
 
 **Tech Stack:** Unity (C#)、UniRx、Unity InputSystem（`HybridInput`）、NUnit EditMode（`Client.Tests`）、unity-playmode-recorded-playtest（プレイテスト DSL）。
 
@@ -32,8 +32,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件 / なぞりと箱で意図の分岐が呼び出し側に分散→選択モデルの入口 `BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)` に集約
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強2・弱5・第3バケツ1 / 強: 件数の型はこのまま（前提宣言）・除外の箱の判定は ADR に揃える（ユーザー裁定）、弱: ①②④を直す（ユーザー裁定）、第3バケツ: Ctrl||Command 判定の共通化を PR 外提案へ
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件（再検査 違反0） / なぞりと箱で意図の分岐が呼び出し側に分散→選択モデルの入口 `BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)` に集約
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 初回 強2・弱5・第3バケツ1、再検査 強0・弱2・第3バケツ0 / 強: 件数の型はこのまま（前提宣言）・除外の箱の判定は ADR に揃える（ユーザー裁定）、弱: ①②④を直す（ユーザー裁定）、第3バケツ: Ctrl||Command 判定の共通化を PR 外提案へ。再検査の弱: 押下中の始点表示を押下時の意図に揃える・分岐の文面を実態に合わせる（ユーザー裁定）
 
 ---
 
@@ -1199,7 +1199,7 @@ index 2d26679..6bdda7c 100644
                  }
                  var diagnostic = $"[DeleteBox] skipped non-removable target key={target.GetDeleteTargetKey()} reason={denyReason?.Key ?? "(none)"}";
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs
-index d9832a2..7736385 100644
+index d9832a2..eeb2eca 100644
 --- a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs
 +++ b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs
 @@ -1,11 +1,11 @@
@@ -1320,8 +1320,8 @@ index d9832a2..7736385 100644
  
 -            // 始点を実際に表示するときだけ可視化オブジェクトを作る
 -            // Create the visualizer only when the start marker is actually shown
-+            // 押す前の始点表示は今押している Ctrl の意図で描く
-+            // Before the press, the start marker follows the Ctrl intent currently held
++            // 押す前は今の Ctrl、押してから離すまでは押した瞬間の Ctrl の意図で始点を描く（確定と同じ意図を見せる）
++            // Draw the start with the current Ctrl before the press, and with the press-time intent until release, matching what will be confirmed
              void ShowStart(Vector3Int cell)
              {
 -                GetVisualizer().ShowSelectingStart(cell);
@@ -1330,7 +1330,7 @@ index d9832a2..7736385 100644
 -            CellRangeBoxVisualizer GetVisualizer()
 -            {
 -                return _visualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
-+                var view = ViewFor(heldIntent);
++                var view = ViewFor(_isPressRegistered ? _pressIntent : heldIntent);
 +                HideViewsExcept(view);
 +                view.GetVisualizer().ShowSelectingStart(cell);
              }
@@ -1627,6 +1627,7 @@ git commit -m "test: 削除ツールのCtrl除外とF長押し段階の録画シ
 - 意図による分岐は選択モデルの入口に集める: なぞりは `BeginStroke(DeleteSelectionIntent)`（旧 `BeginStroke()` を廃し既存テスト 13 ファイルを一括置換）、箱は `ApplyBoxTargets(targets, intent)`。サービスと箱入力は意図を渡すだけ。出所: agent前提（配置検査の違反是正。ADR 0079「選択モデルがストロークを所有」・AGENTS.md「同種の条件分岐は一箇所へ」）。
 - 除外の箱は追加の箱と同じ解決（撤去可能）のうち選択済みだけを外す。出所: ユーザー裁定 2026-10-19 選択「撤去できる物だけ外す」。
 - 型閉包検査の弱い指摘は ①Ctrl を1フレーム1回だけ読む（サービスが読み、箱へ `heldIntent` で渡す）②箱の意図ごとの表示を `DeleteBoxIntentView` にまとめ、選び分けを `DeleteBoxInput.ViewFor` 1か所にする ④`Add` 内の `Contains` を `IsSelected` に寄せる、を直す。③（長押し対象の式2回）⑤（外すなぞりの失敗理由が bool）は据え置く。出所: ユーザー裁定 2026-10-19 選択「①②④を直す」。
+- 再検査の弱い指摘: 箱の始点表示は、押してから離すまでは押した瞬間の意図（`_pressIntent`）で描き、確定と同じ意図を見せる。意図の分岐が選択モデル外（箱の表示の選び分け・箱の解決の絞り込み）にも残る点は、役割が違うので残し、Architecture の文面を実態に合わせる。出所: ユーザー裁定 2026-10-19 選択「②を直し①は文面を合わせる」。
 - `DeleteSelection` は 197 行で除外を足すと 200 行を超えるため、内部集合（Dictionary・設置演出の赤復元購読・赤戻し待ちキュー・Revision 通知）を `DeleteSelectedTargetSet` へ切り出した。出所: agent前提（200行規約）。
 - 除外の箱は `MaterialConst.PlaceableColor`（青）、GameObject 名接頭辞 `DeleteDeselectBox`。始点マーカーは既存どおり赤。出所: agent前提（追加の赤と見分ける最小の手段）。
 - Ctrl 単独押下中のツールチップ案内・除外の箱専用キーヒントは足さない（ADR 0084「キーヒントは Ctrl+左ドラッグ 1件」）。出所: agent前提。
