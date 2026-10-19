@@ -7,13 +7,23 @@ using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using MessagePack;
 using NUnit.Framework;
+using Server.Boot;
 using Server.Protocol.PacketResponse;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Client.Tests.UIState.DragDelete.Completion
 {
     public class LateRemovalResponseTest
     {
+        [SetUp]
+        public void SetUp()
+        {
+            // 通信APIが参照するサーバー依存を先に構築する
+            // Initialize server dependencies before constructing the network API
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
+
         [TestCase(0, true)] [TestCase(0, false)]
         [TestCase(1, true)] [TestCase(1, false)]
         [TestCase(2, true)] [TestCase(2, false)]

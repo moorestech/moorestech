@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System.Collections.Generic;
 using Client.Tests.BuildUndo;
 using Client.Game.Common;
@@ -19,7 +20,7 @@ namespace Client.Tests.UIState
         {
             var selection = Create();
             var target = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.AreEqual(DeleteAddKind.Added, selection.TryAddTarget(target).Kind);
             Assert.AreEqual(1, target.SetPreviewCount);
             Assert.AreEqual(1, selection.Count);
@@ -30,7 +31,7 @@ namespace Client.Tests.UIState
         {
             var selection = Create();
             var target = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(target);
             var revision = selection.Revision;
             var wrapper = new FakeDeleteTarget { Removable = true, Key = target };
@@ -47,7 +48,7 @@ namespace Client.Tests.UIState
         {
             var selection = Create();
             var target = new FakeDeleteTarget { Removable = false, DenyReason = LocalizationKeys.Ui.Delete.StationInternalRail };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             var outcome = selection.TryAddTarget(target);
             selection.CommitDelete();
             Assert.AreEqual(DeleteAddKind.NotRemovable, outcome.Kind);
@@ -61,7 +62,7 @@ namespace Client.Tests.UIState
         {
             var selection = Create();
             var target = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(target);
             selection.CancelSelection();
             Assert.AreEqual(1, target.ResetCount);
@@ -74,7 +75,7 @@ namespace Client.Tests.UIState
         {
             var selection = Create();
             var target = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(target);
             selection.CommitDelete();
             selection.CommitDelete();
@@ -86,10 +87,10 @@ namespace Client.Tests.UIState
         public void BeginStrokeAfterCancelRevivesStroke()
         {
             var selection = Create();
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(new FakeDeleteTarget { Removable = true });
             selection.CancelSelection();
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
         }
 
         [Test]
@@ -98,7 +99,7 @@ namespace Client.Tests.UIState
             var selection = Create();
             var line = new FakeDeleteTarget { Removable = true, Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
             var block = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(line);
             var mismatch = selection.TryAddTarget(block);
             Assert.AreEqual(DeleteAddKind.CategoryMismatch, mismatch.Kind);
@@ -106,7 +107,7 @@ namespace Client.Tests.UIState
             Assert.IsTrue(selection.AimFilter.IsCategoryRequired);
             selection.EndStroke();
             Assert.IsFalse(selection.AimFilter.IsCategoryRequired);
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(block).IsAdded);
             Assert.AreEqual(2, selection.Count);
         }
@@ -116,16 +117,16 @@ namespace Client.Tests.UIState
         {
             var selection = Create();
             var line = new FakeDeleteTarget { Removable = true, Category = BlockMasterElementExtension.ConnectionLineDestructionCategory };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(line);
             var block = new FakeDeleteTarget { Removable = true };
             var wrapper = new FakeDeleteTarget { Removable = true, Key = block };
-            var added = selection.AddBoxTargets(new List<IDeleteTarget> { block, wrapper, line });
+            var added = selection.ApplyBoxTargets(new List<IDeleteTarget> { block, wrapper, line }, DeleteSelectionIntent.Add);
             Assert.AreEqual(1, added);
             Assert.AreEqual(2, selection.Count);
             Assert.AreEqual(1, block.SetPreviewCount);
             var revision = selection.Revision;
-            Assert.AreEqual(0, selection.AddBoxTargets(new[] { wrapper }));
+            Assert.AreEqual(0, selection.ApplyBoxTargets(new[] { wrapper }, DeleteSelectionIntent.Add));
             Assert.AreEqual(revision, selection.Revision);
             selection.CommitDelete();
             Assert.AreEqual(1, block.DeleteCount + wrapper.DeleteCount);
@@ -137,7 +138,7 @@ namespace Client.Tests.UIState
             var selection = Create();
             var selected = new FakeDeleteTarget { Removable = true };
             var other = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(selected);
             selection.SetHoverPreview(selected);
             selection.SetHoverPreview(other);
@@ -168,7 +169,7 @@ namespace Client.Tests.UIState
             var selection = Create();
             var target = new FakeDeleteTarget { Removable = true };
             var r0 = selection.Revision;
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(target);
             var r1 = selection.Revision;
             selection.TryAddTarget(target);

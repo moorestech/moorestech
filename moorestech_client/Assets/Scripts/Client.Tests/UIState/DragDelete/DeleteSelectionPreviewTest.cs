@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -30,7 +31,7 @@ namespace Client.Tests.UIState.DragDelete
             LogAssert.Expect(LogType.Warning, "[DragDelete] hovered target was destroyed before reset");
 
             var added = 0;
-            Assert.DoesNotThrow(() => added = selection.AddBoxTargets(new[] { selected }));
+            Assert.DoesNotThrow(() => added = selection.ApplyBoxTargets(new[] { selected }, DeleteSelectionIntent.Add));
             Assert.AreEqual(1, added);
             Assert.AreEqual(1, selection.Count);
             Assert.IsNull(selection.HoverPreview);
@@ -51,10 +52,10 @@ namespace Client.Tests.UIState.DragDelete
             // 箱となぞりの両方で実際の要求者を引き継ぐ
             // Transfer the actual requester for both box and stroke selection
             selection.SetHoverPreview(hovered);
-            if (box) selection.AddBoxTargets(new[] { selected });
+            if (box) selection.ApplyBoxTargets(new[] { selected }, DeleteSelectionIntent.Add);
             else
             {
-                selection.BeginStroke();
+                selection.BeginStroke(DeleteSelectionIntent.Add);
                 selection.TryAddTarget(selected);
             }
             Assert.AreEqual(1, hovered.ResetCount);

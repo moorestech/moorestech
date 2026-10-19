@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
@@ -24,7 +25,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             var selection = new DeleteSelection(history, sender, new DeletePreviewResetRecovery());
             var success = TargetWithLine(1);
             var rejected = TargetWithLine(2);
-            selection.AddBoxTargets(new[] { success, rejected });
+            selection.ApplyBoxTargets(new[] { success, rejected }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
             Assert.IsFalse(history.TryPop(out _));
             rejected.Complete(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.InventoryFull);
@@ -46,7 +47,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             var car = new FakeDeleteTarget { Removable = true, CompleteImmediately = false };
             var results = new List<DeleteCompletion>();
             selection.OnDeleteCompleted.Subscribe(results.Add);
-            selection.AddBoxTargets(new[] { recorded, car });
+            selection.ApplyBoxTargets(new[] { recorded, car }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
             car.Complete(DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld);
             recorded.Complete(DeleteCompletionKind.Succeeded, null);
@@ -64,7 +65,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             var target = TargetWithLine(1);
             var results = new List<DeleteCompletion>();
             selection.OnDeleteCompleted.Subscribe(results.Add);
-            selection.AddBoxTargets(new[] { target });
+            selection.ApplyBoxTargets(new[] { target }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
             target.Complete(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.InventoryFull);
             Assert.IsFalse(history.TryPop(out _));
@@ -79,7 +80,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             var changes = new List<int>();
             selection.OnSelectionChanged.Subscribe(changes.Add);
             var target = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.TryAddTarget(target);
             selection.TryAddTarget(target);
             Assert.AreEqual(1, changes.Count);
@@ -92,15 +93,15 @@ namespace Client.Tests.UIState.DragDelete.Completion
         {
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = TargetWithLine(1);
-            selection.AddBoxTargets(new[] { target });
+            selection.ApplyBoxTargets(new[] { target }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.DeleteRequestPending, selection.TryAddTarget(target).DenyReason);
-            Assert.AreEqual(0, selection.AddBoxTargets(new[] { target }));
+            Assert.AreEqual(0, selection.ApplyBoxTargets(new[] { target }, DeleteSelectionIntent.Add));
             selection.CommitDelete();
             Assert.AreEqual(1, target.DeleteCount);
             target.Complete(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.InventoryFull);
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
         }
 

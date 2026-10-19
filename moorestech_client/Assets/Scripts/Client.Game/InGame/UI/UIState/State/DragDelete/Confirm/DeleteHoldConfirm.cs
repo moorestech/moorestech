@@ -3,13 +3,15 @@ using Client.Game.InGame.UI.ProgressBar;
 namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
 {
     /// <summary>
-    ///     F長押しによる削除確定の進捗。件数に関係なく一定時間で満了し、採掘と同じ進捗バーへ流す
-    ///     Hold-to-confirm progress for deletion: a fixed duration regardless of count, shown on the mining progress bar
+    ///     - F長押しで削除を確定
+    ///     - 対象件数で満了時間を決定
+    ///     - 採掘と共通の進捗バーへ反映
+    ///     - Confirm deletion by holding F
+    ///     - Determine duration by target count
+    ///     - Present progress on the shared mining bar
     /// </summary>
     public class DeleteHoldConfirm
     {
-        private const float HoldSeconds = 2f;
-
         private readonly ProgressBarState _progressBar;
         private DeleteHoldSubject _subject = DeleteHoldSubject.None;
         private float _heldSeconds;
@@ -37,9 +39,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
 
             if (!_isHolding) Begin();
 
+            var holdSeconds = DeleteHoldDuration.SecondsFor(_subject.TargetCount);
             _heldSeconds += deltaTime;
-            _progressBar.SetProgress(_heldSeconds / HoldSeconds);
-            if (_heldSeconds < HoldSeconds) return false;
+            _progressBar.SetProgress(_heldSeconds / holdSeconds);
+            if (_heldSeconds < holdSeconds) return false;
 
             Reset();
             _awaitRelease = true;

@@ -5,13 +5,14 @@ using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.Train.View.Object.Core;
 using Game.Block.Interface.Extension;
 using Game.Blueprint;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
 {
     /// <summary>
-    ///     AABBに入る撤去可能な削除対象（ブロック・レール edge・列車車両）の列を返す1本の問い合わせ。撤去不可は件数と理由をログして除く。接続線は端点ブロックの撤去に巻き込まれるので含めない
-    ///     One query returning the removable delete targets (blocks, rail edges, train cars) inside an AABB; non-removable ones are logged and dropped, connection lines ride on their endpoint blocks
+    ///     AABBに入る撤去可能な削除対象（ブロック・レール edge・列車車両）の列を返す1本の問い合わせ。撤去不可は件数と理由をログして除き、除外の箱はそのうち選択済みだけを返す。接続線は端点ブロックの撤去に巻き込まれるので含めない
+    ///     One query returning the removable delete targets (blocks, rail edges, train cars) inside an AABB; non-removable ones are logged and dropped, a remove box keeps only the selected ones, connection lines ride on their endpoint blocks
     /// </summary>
     public class DeleteBoxTargetResolver
     {
@@ -29,7 +30,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         // Report each diagnostic once per box operation, then allow it for the next box
         internal void ClearDiagnostics() => _reportedDiagnostics.Clear();
 
-        internal IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max, DeleteSelection selection)
+        internal IReadOnlyList<IDeleteTarget> Resolve(Vector3Int min, Vector3Int max, DeleteSelection selection, DeleteSelectionIntent intent)
         {
             var targets = new List<IDeleteTarget>();
             var newlyReportedSkipped = 0;
@@ -55,7 +56,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                         LogWarningOnce($"[DeleteBox] block has no BlockGameObjectChild: {block.BlockPosInfo.OriginalPos}");
                         continue;
                     }
-                    AddIfRemovable(child);
+                    AddIfMatchesIntent(child);
                 }
             }
 
@@ -71,7 +72,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                         continue;
                     }
                     if (!chain.IntersectsCellBox(min, max)) continue;
-                    AddIfRemovable(rail);
+                    AddIfMatchesIntent(rail);
                 }
             }
 
@@ -86,17 +87,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                         LogWarningOnce($"[DeleteBox] train car has no TrainCarEntityChildrenObject: {car.TrainCarInstanceId}");
                         continue;
                     }
-                    AddIfRemovable(child);
+                    AddIfMatchesIntent(child);
                 }
             }
 
-            // 撤去不可は理由をログして除く（表示件数・0件拒否・追加が同じ列を使う）
-            // Drop non-removable targets with their reason logged so count, empty-check and add share one list
-            void AddIfRemovable(IDeleteTarget target)
+            // 撤去不可は理由をログして除き、除外の箱はさらに選択済みだけに絞る（表示件数・0件拒否・反映が同じ列を使う）
+            // Drop non-removable targets with their reason logged and keep only selected ones for a remove box, so count, empty-check and apply share one list
+            void AddIfMatchesIntent(IDeleteTarget target)
             {
                 if (selection.IsTargetSelectable(target, out var denyReason))
                 {
-                    targets.Add(target);
+                    if (intent == DeleteSelectionIntent.Add || selection.IsSelected(target)) targets.Add(target); // silent-ok: 除外の箱で未選択は外す物が無い / 範囲内の選択済み件数のツールチップで見える
                     return;
                 }
                 var diagnostic = $"[DeleteBox] skipped non-removable target key={target.GetDeleteTargetKey()} reason={denyReason?.Key ?? "(none)"}";

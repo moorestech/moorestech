@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
@@ -72,7 +73,7 @@ namespace Client.Tests.UIState
             var first = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             var second = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
             var hovered = new FakeDeleteTarget { ThrowOnReset = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(first).IsAdded);
             Assert.IsTrue(selection.TryAddTarget(second).IsAdded);
             hover.Hover(hovered);

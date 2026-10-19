@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.RangeBox;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using Client.Input;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
@@ -20,8 +20,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
     }
 
     /// <summary>
-    ///     Shift+左クリックで始点、次の左クリックで終点を取る箱選択の入力・セル解決・可視化。終点確定時に選択へ直接足す。高さは設置モードと共用のオフセット
-    ///     Box-selection input (Shift+click start, click end), cell resolution and visuals; adds to the selection directly on end confirm. Height shares the placement offset
+    ///     Shift+左クリックで始点、次の左クリックで終点を取る箱選択の入力・セル解決・可視化。終点確定時に選択へ直接反映する（始点押下で Ctrl なら選択から外す）。高さは設置モードと共用のオフセット
+    ///     Box-selection input (Shift+click start, click end), cell resolution and visuals; applies to the selection on end confirm (removes when Ctrl was held at the start press). Height shares the placement offset
     /// </summary>
     public class DeleteBoxInput
     {
@@ -29,8 +29,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
         private readonly DeleteBoxTargetResolver _resolver;
         private readonly PlacementHeightOffset _heightOffset;
         private readonly DeleteBoxSelection _selection = new();
-        private CellRangeBoxVisualizer _visualizer;
+        private readonly DeleteBoxIntentView _addView = DeleteBoxIntentView.CreateAdd();
+        private readonly DeleteBoxIntentView _removeView = DeleteBoxIntentView.CreateRemove();
         private bool _isPressRegistered;
+        private DeleteSelectionIntent _pressIntent = DeleteSelectionIntent.Add;
 
         private bool IsSelectingEnd => _selection.Phase == DeleteBoxPhase.SelectingEnd;
 
@@ -48,7 +50,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             return IsSelectingEnd || HybridInput.GetKey(KeyCode.LeftShift);
         }
 
-        internal void Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi)
+        // heldIntent は呼び出し側がこのフレームに1回読んだ Ctrl の意図
+        // heldIntent is the Ctrl intent the caller read once this frame
+        internal void Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi, DeleteSelectionIntent heldIntent)
         {
             PlacementHeightKeyInput.Apply(_heightOffset);
             var isShiftHeld = HybridInput.GetKey(KeyCode.LeftShift);
@@ -60,7 +64,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             if (!hasCursorCell)
             {
                 if (isClicked) Debug.Log("[DeleteBox] click refused: cursor has no placement surface");
-                if (!IsSelectingEnd) { _visualizer?.HideAll(); return; } // silent-ok: 始点未選択で指す面なし / 始点表示を隠して未選択を示す
+                if (!IsSelectingEnd) { HideViewsExcept(null); return; } // silent-ok: 始点未選択で指す面なし / 始点表示を隠して未選択を示す
                 tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceGroundNotFound));
                 isClicked = false;
             }
@@ -75,7 +79,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             // Fold a press the box owns (ClaimsLeftPress) and a release outside UI into one click; a release over UI is dropped with a reason
             DeleteBoxClick ConsumeClick()
             {
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !isPointerOverUi && ClaimsLeftPress()) _isPressRegistered = true;
+                // 追加か除外かは押下の瞬間の Ctrl で決める
+                // Ctrl at the press decides add or remove
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !isPointerOverUi && ClaimsLeftPress())
+                {
+                    _isPressRegistered = true;
+                    _pressIntent = heldIntent;
+                }
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyUp || !_isPressRegistered) return DeleteBoxClick.None;
                 _isPressRegistered = false;
                 return isPointerOverUi ? DeleteBoxClick.ReleasedOverUi : DeleteBoxClick.Confirmed;
@@ -86,10 +96,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 // Shift中だけ始点候補を表示
                 // Show the start candidate only while Shift is held
                 if (isShiftHeld) ShowStart(cursorCell);
-                else _visualizer?.HideAll();
+                else HideViewsExcept(null);
                 if (isClicked)
                 {
-                    _selection.SelectStart(cursorCell);
+                    _selection.SelectStart(cursorCell, _pressIntent);
                     isClicked = false;
                     UpdateSelectingEnd();
                 }
@@ -98,35 +108,42 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             void UpdateSelectingEnd()
             {
                 var (min, max) = CellRangeBox.Calc(_selection.StartCell, _selection.EndCell);
-                var targets = _resolver.Resolve(min, max, deleteSelection);
-                tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange, new[] { targets.Count.ToString() }));
-                if (targets.Count == 0) tooltipLines.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxEmptyRange));
-                GetVisualizer().ShowSelectingEnd(_selection.StartCell, _selection.EndCell, min, max);
+                var intent = _selection.Intent;
+                var view = ViewFor(intent);
+                var targets = _resolver.Resolve(min, max, deleteSelection, intent);
+                tooltipLines.Add(new TooltipLine(view.CountKey, new[] { targets.Count.ToString() }));
+                if (targets.Count == 0) tooltipLines.Add(new TooltipLine(view.EmptyRangeKey));
+                HideViewsExcept(view);
+                view.GetVisualizer().ShowSelectingEnd(_selection.StartCell, _selection.EndCell, min, max);
                 if (!isClicked) return;
 
                 // 空範囲拒否を表示とログへ記録
                 // Record empty-range refusal in the tooltip and log
                 if (targets.Count == 0)
                 {
-                    Debug.Log($"[DeleteBox] end click refused: no removable targets in {min}-{max}");
+                    Debug.Log($"[DeleteBox] end click refused: no {view.TargetLabelForLog} targets in {min}-{max}");
                     return;
                 }
-                var added = deleteSelection.AddBoxTargets(targets);
-                Debug.Log($"[DeleteBox] added={added} of {targets.Count} selected={deleteSelection.Count}");
-                Clear();
+                // 論理局面を先に閉じ、表示解除は例外時も行う
+                // Close the logical phase first and release visuals even on failure
+                _selection.Clear();
+                _isPressRegistered = false;
+                try { deleteSelection.ApplyBoxTargets(targets, intent); }
+                finally { Clear(); }
             }
 
-            // 始点を実際に表示するときだけ可視化オブジェクトを作る
-            // Create the visualizer only when the start marker is actually shown
+            // 押す前は今の Ctrl、押してから離すまでは押した瞬間の Ctrl の意図で始点を描く（確定と同じ意図を見せる）
+            // Draw the start with the current Ctrl before the press, and with the press-time intent until release, matching what will be confirmed
             void ShowStart(Vector3Int cell)
             {
-                GetVisualizer().ShowSelectingStart(cell);
+                var view = ViewFor(_isPressRegistered ? _pressIntent : heldIntent);
+                HideViewsExcept(view);
+                view.GetVisualizer().ShowSelectingStart(cell);
             }
 
-            CellRangeBoxVisualizer GetVisualizer()
-            {
-                return _visualizer ??= new CellRangeBoxVisualizer("DeleteBox", MaterialConst.NotPlaceableColor);
-            }
+            // 意図による表示の選び分けはここ1か所
+            // The only place that picks presentation by intent
+            DeleteBoxIntentView ViewFor(DeleteSelectionIntent intent) => intent == DeleteSelectionIntent.Remove ? _removeView : _addView;
 
             #endregion
         }
@@ -149,7 +166,15 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             _resolver.ClearDiagnostics();
             _heightOffset.ResetToGround();
             _isPressRegistered = false;
-            _visualizer?.HideAll();
+            HideViewsExcept(null);
+        }
+
+        // 指定以外の意図の表示を隠す（null で両方）
+        // Hide every intent's visuals except the given one (null hides both)
+        private void HideViewsExcept(DeleteBoxIntentView kept)
+        {
+            if (!ReferenceEquals(_addView, kept)) _addView.Hide();
+            if (!ReferenceEquals(_removeView, kept)) _removeView.Hide();
         }
     }
 }
