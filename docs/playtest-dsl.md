@@ -102,7 +102,7 @@ await p.ExitToGameScreen();
 
 - 設置原点の照準は`PlaytestUiOps.PlaceAimPoint`（`Client.Playtest.Operations.Ui`名前空間）がCalcPlacePointを逆算（接地面上のフットプリント中心）
 - 足場は上面がy=32ちょうど（`SetupFlatGround`が保証）。プレビューの`Floor(hit.y)`がブロックグリッドと一致する条件
-- 等価性シナリオ: スキル同梱の `scenarios/belt-line-via-ui.cs`（belt-line.csと同一ライン・同一assertをUI経路のみで構築）
+- UI経路の手本シナリオ: スキル同梱の `scenarios/connect/gear-chain-pole-via-ui.cs`（ホットバー駆動）。ベルト構築の手本は direct 版 `scenarios/building/belt-segment-flow.cs`
 
 ## ハマりどころ（今回実際に踏んだもの） / Pitfalls actually hit
 

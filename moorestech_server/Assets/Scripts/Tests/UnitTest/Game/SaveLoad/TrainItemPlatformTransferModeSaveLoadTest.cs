@@ -69,7 +69,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var loadedBlock = loadEnvironment.WorldBlockDatastore.GetBlock(Vector3Int.zero);
             Assert.IsNotNull(loadedBlock, "ロード後に貨物プラットフォームが見つかりません。");
-            Assert.IsTrue(loadedBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var loadedInventory), "ロード後の貨物インベントリ取得に失敗しました。");
+            Assert.IsTrue(loadedBlock.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var loadedInventory), "ロード後の貨物インベントリ取得に失敗しました。");
             
             var loadedTrain = loadEnvironment.GetITrainLookupDatastore().GetRegisteredTrains().Single();
             var loadedCar = loadedTrain.Cars[0];

@@ -41,8 +41,8 @@ namespace Tests.CombinedTest.Game
             var pos = new Vector3Int(0, 0, 0);
             world.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
 
-            // 予約→1tick進行のみで、TickEndUpdates経由の一括反映が破壊を確定させる
-            // Reserve, then advance one tick; the batch application via TickEndUpdates commits the destruction
+            // 予約→1tick進行のみで、MasterTickUpdater末尾の一括反映が破壊を確定させる
+            // Reserve, then advance one tick; the batch application at the end of MasterTickUpdater commits the destruction
             provider.GetRequiredService<IBlockRemovalReservationService>().ReserveRemoval(block.BlockInstanceId, BlockRemoveReason.Broken);
             GameUpdater.RunFrames(1);
 

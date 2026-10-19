@@ -31,13 +31,17 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
         public readonly uint ServerTrainHash;
         public readonly uint LocalRailHash;
         public readonly uint ServerRailHash;
+        public readonly uint LocalBeltHash;
+        public readonly uint ServerBeltHash;
 
-        internal TrainSynchronizationHashComparison(uint localTrain, uint serverTrain, uint localRail, uint serverRail)
+        internal TrainSynchronizationHashComparison(uint localTrain, uint serverTrain, uint localRail, uint serverRail, uint localBelt, uint serverBelt)
         {
             LocalTrainHash = localTrain;
             ServerTrainHash = serverTrain;
             LocalRailHash = localRail;
             ServerRailHash = serverRail;
+            LocalBeltHash = localBelt;
+            ServerBeltHash = serverBelt;
         }
     }
 

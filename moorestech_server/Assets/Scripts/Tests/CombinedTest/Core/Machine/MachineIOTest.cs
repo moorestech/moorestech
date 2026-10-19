@@ -52,9 +52,10 @@ namespace Tests.CombinedTest.Core.Machine
             var blockMachineComponent = block.GetComponent<VanillaMachineProcessorComponent>();
             
             // レシピが完了するまで十分な時間エネルギー供給＋アップデートを継続
-            var craftTime = DateTime.Now.AddSeconds(recipe.Time);
-            //最大クラフト時間を超過するまでクラフトする
-            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            // レシピ時間 + 余裕を tick 数で回す(壁時計の待ちを tick 数へ置き換え)
+            // Run the recipe time plus a margin, counted in ticks (replaces the wall-clock wait)
+            var craftTicks = GameUpdater.SecondsToTicks(recipe.Time + 0.2);
+            for (var tick = 0; tick < craftTicks; tick++)
             {
                 blockMachineComponent.SupplyExternalPower(10000);
                 GameUpdater.UpdateOneTick();
@@ -106,8 +107,10 @@ namespace Tests.CombinedTest.Core.Machine
             var blockMachineComponent = block.GetComponent<VanillaMachineProcessorComponent>();
             
             // 処理完了まで十分な時間エネルギー供給＋アップデートを回す
-            var craftTime = DateTime.Now.AddSeconds(recipe.Time);
-            while (craftTime.AddSeconds(0.2).CompareTo(DateTime.Now) == 1)
+            // レシピ時間 + 余裕を tick 数で回す(壁時計の待ちを tick 数へ置き換え)
+            // Run the recipe time plus a margin, counted in ticks (replaces the wall-clock wait)
+            var craftTicks = GameUpdater.SecondsToTicks(recipe.Time + 0.2);
+            for (var tick = 0; tick < craftTicks; tick++)
             {
                 blockMachineComponent.SupplyExternalPower(10000);
                 GameUpdater.UpdateOneTick();
@@ -166,8 +169,10 @@ namespace Tests.CombinedTest.Core.Machine
             var inputSlotCount = GetInputSlotCount(blockInventory);
             blockInventory.SetItem(inputSlotCount, itemStackFactory.Create(outputItemId, maxStack));
 
-            var craftTime = DateTime.Now.AddSeconds(recipe.Time);
-            while (craftTime.AddSeconds(0.5).CompareTo(DateTime.Now) == 1)
+            // レシピ時間 + 余裕を tick 数で回す(壁時計の待ちを tick 数へ置き換え)
+            // Run the recipe time plus a margin, counted in ticks (replaces the wall-clock wait)
+            var craftTicks = GameUpdater.SecondsToTicks(recipe.Time + 0.5);
+            for (var tick = 0; tick < craftTicks; tick++)
             {
                 blockMachineComponent.SupplyExternalPower(10000);
                 GameUpdater.UpdateOneTick();

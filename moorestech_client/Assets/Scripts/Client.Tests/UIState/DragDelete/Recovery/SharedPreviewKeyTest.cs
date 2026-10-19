@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
@@ -30,7 +31,7 @@ namespace Client.Tests.UIState
             hover.Hover(other);
             hover.Hover(first);
             Assert.IsNull(hover.Current);
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(other).IsAdded);
             if (commit) selection.CommitDelete();
             else selection.CancelSelection();
@@ -47,7 +48,7 @@ namespace Client.Tests.UIState
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), recovery);
             var view = new object();
             var selected = new FakeDeleteTarget { PreviewResetKey = view, Removable = true, ThrowOnReset = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(selected).IsAdded);
             Assert.Throws<InvalidOperationException>(() => selection.CommitDelete());
 

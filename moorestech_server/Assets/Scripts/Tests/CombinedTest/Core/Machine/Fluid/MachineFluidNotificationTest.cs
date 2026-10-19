@@ -25,6 +25,10 @@ namespace Tests.CombinedTest.Core.Machine
 {
     public class MachineFluidNotificationTest
     {
+        // 流体の速度モデルが落ち着くのに十分な tick 数(ゲーム内 60 秒)
+        // Enough ticks for the fluid velocity model to settle (60 in-game seconds)
+        private static readonly uint FluidSettleTicks = GameUpdater.SecondsToTicks(60);
+
         [Test]
         public void FluidInventoryStateChangeNotificationTest()
         {
@@ -65,17 +69,9 @@ namespace Tests.CombinedTest.Core.Machine
             var previousCount = stateChangeCount;
             Debug.Log("Starting fluid transfer from pipe to machine...");
             // 液体が転送されるまでアップデート
-            var startTime = DateTime.Now;
-            while (true)
-            {
-                GameUpdater.UpdateOneTick();
-                var elapsedTime = DateTime.Now - startTime;
-                if (5 < elapsedTime.TotalSeconds) break;
-                if (fluidPipe1.GetAmount() < fluidAmount1)
-                {
-                    Debug.Log($"Fluid is transferring. Pipe amount: {fluidPipe1.GetAmount()}");
-                }
-            }
+            // 液体が流れ切るまで tick を進める。壁時計の待ちは速い PC でも秒数ぶん必ず払うので tick 数に置き換えた
+            // Advance ticks until the fluid has flowed through; the wall-clock wait cost its full seconds even on a fast PC, so it is counted in ticks
+            GameUpdater.RunFrames(FluidSettleTicks);
             Assert.Greater(stateChangeCount, previousCount, "液体転送時にOnChangeBlockStateが発火していません");
             var afterTransferDetails = stateObservable.GetBlockStateDetails();
             var afterTransferState = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(afterTransferDetails[0].Value);
@@ -89,17 +85,9 @@ namespace Tests.CombinedTest.Core.Machine
             outputContainers[0].AddLiquid(new FluidStack(outputFluidAmount, FluidId2));
             previousCount = stateChangeCount;
             // 出力処理を実行
-            startTime = DateTime.Now;
-            while (true)
-            {
-                GameUpdater.UpdateOneTick();
-                var elapsedTime = DateTime.Now - startTime;
-                if (5 < elapsedTime.TotalSeconds) break;
-                if (outputContainers[0].Amount < outputFluidAmount)
-                {
-                    Debug.Log($"Fluid is outputting. Tank amount: {outputContainers[0].Amount}");
-                }
-            }
+            // 液体が流れ切るまで tick を進める。壁時計の待ちは速い PC でも秒数ぶん必ず払うので tick 数に置き換えた
+            // Advance ticks until the fluid has flowed through; the wall-clock wait cost its full seconds even on a fast PC, so it is counted in ticks
+            GameUpdater.RunFrames(FluidSettleTicks);
             Assert.Greater(stateChangeCount, previousCount, "液体出力時にOnChangeBlockStateが発火していません");
             var finalDetails = stateObservable.GetBlockStateDetails();
             var finalState = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(finalDetails[0].Value);

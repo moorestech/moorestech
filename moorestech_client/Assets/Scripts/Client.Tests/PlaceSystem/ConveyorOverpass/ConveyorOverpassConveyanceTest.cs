@@ -4,8 +4,6 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Core.Master;
 using Core.Update;
-using Game.Block.Blocks.BeltConveyor;
-using Game.Block.Blocks.Gear;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.Component;
@@ -23,6 +21,11 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
     // Verify the real auto-overpass placement generates a belt run stepping over obstacles and items flow across it.
     public class ConveyorOverpassConveyanceTest
     {
+        // 斜面を含む5マスは1つのsegmentになる。速度36・進入距離1で出口まで5*360-1=1799。49tick後に残り35、50tick目に渡る
+        // The five cells including slopes form one segment; at speed 36 entering at length 1 leaves 5*360-1=1799, 35 away after 49 ticks, handed over on tick 50
+        private const int ExpectedArrivalTick = 50;
+        private const int MaxTransportTicks = 200;
+
         // 単一障害物(2,0,0)を跨いで終端まで搬送する
         // Step over a single obstacle at (2,0,0) and convey to the far belt.
         [Test]
@@ -67,25 +70,56 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             Debug.Log($"overpass plan: {plan}");
             Assert.AreEqual(expectedMiddleY, placeInfos.First(p => p.Position.x == middleX).Position.y, $"中央セル高さが想定外 / unexpected middle cell height. {plan}");
 
-            // 立体交差プロファイル通りに全ブロックを設置できることを確認する（gearベルトの動力搬送はGearBeltConveyorTestでカバー）
-            // Confirm every block can be placed along the overpass profile (powered gear-belt conveyance is covered by GearBeltConveyorTest)
+            // 立体交差プロファイル通りに全ブロックを設置し、両端にチェストを置いてアイテムを流す
+            // Place every block along the overpass profile, put chests at both ends and send an item through
             PlaceComputedBelts();
+            // 歯車ベルコンは回転数0だと止まるので、中央の水平マスの横に発電機を置き、坂の歯車連結を通して列全体を基準回転数(10)で駆動する
+            // Gear belts stop at zero RPM, so put a generator beside the middle flat cell and drive the whole line at the base RPM (10) through the slope gear links
+            Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(middleX, expectedMiddleY, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
+            var itemId = new ItemId(1);
+            var source = PlaceChest(start - Vector3Int.right);
+            var output = PlaceChest(end + Vector3Int.right);
+            source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 1));
+
+            // 歯車ベルトは動力なしでもマスタ固定速度で流れる。到着tickを計測し、1segmentとしての到着tickと一致することを確認する
+            // Gear belts run at the fixed master speed without power; measure the arrival tick and check it matches a single segment's arrival tick
+            var arrivalTick = 0;
+            for (var tick = 1; tick <= MaxTransportTicks && arrivalTick == 0; tick++)
+            {
+                GameUpdater.UpdateOneTick();
+                if (CountOf(output, itemId) == 1) arrivalTick = tick;
+            }
+            Debug.Log($"overpass arrival tick: {arrivalTick}");
+            Assert.AreNotEqual(0, arrivalTick, $"立体交差を越えて終端チェストへ届かない / item did not reach the far chest. {plan}");
+            Assert.AreEqual(ExpectedArrivalTick, arrivalTick, $"立体交差が1segmentになっていない / the overpass is not a single segment. {plan}");
+            Assert.AreEqual(0, CountOf(source, itemId));
 
             #region Internal
 
-            List<(VanillaBeltConveyorComponent belt, GearBeltConveyorComponent gear)> PlaceComputedBelts()
+            void PlaceComputedBelts()
             {
                 // 本番(PlaceBlockProtocol)のうち縦方向override→TryAddBlock部分を再現する（プロトコル全体は経由しない）
                 // Reproduce production's (PlaceBlockProtocol) vertical-override -> TryAddBlock step (not the full protocol).
-                var result = new List<(VanillaBeltConveyorComponent, GearBeltConveyorComponent)>();
                 foreach (var info in placeInfos)
                 {
                     if (!info.Placeable) continue;
                     var blockId = ResolveVerticalBlockId(info.VerticalDirection);
-                    Assert.IsTrue(world.TryAddBlock(blockId, info.Position, info.Direction, Array.Empty<BlockCreateParam>(), out var block), $"設置失敗 / placement failed at {info.Position}");
-                    result.Add((block.GetComponent<VanillaBeltConveyorComponent>(), block.GetComponent<GearBeltConveyorComponent>()));
+                    Assert.IsTrue(world.TryAddBlock(blockId, info.Position, info.Direction, Array.Empty<BlockCreateParam>(), out _), $"設置失敗 / placement failed at {info.Position}");
                 }
-                return result;
+            }
+
+            IOpenableBlockInventoryComponent PlaceChest(Vector3Int position)
+            {
+                Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.ChestId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest));
+                return chest.GetComponent<IOpenableBlockInventoryComponent>();
+            }
+
+            int CountOf(IOpenableBlockInventoryComponent inventory, ItemId targetItemId)
+            {
+                var count = 0;
+                for (var i = 0; i < inventory.GetSlotSize(); i++)
+                    if (inventory.GetItem(i).Id == targetItemId) count += inventory.GetItem(i).Count;
+                return count;
             }
 
             // 斜面ブロックから向き別BlockIdを解決（水平は元のまま）

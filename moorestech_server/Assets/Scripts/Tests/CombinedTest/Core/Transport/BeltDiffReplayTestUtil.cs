@@ -1,0 +1,64 @@
+using Core.Item.Interface;
+using Core.Update;
+using Game.Block.Blocks.BeltConveyor.Sync.Diff;
+using Game.Block.Blocks.BeltConveyor.Sync.Replica;
+using Game.Block.Blocks.BeltConveyor.Sync.State;
+using Game.Block.Blocks.BeltConveyor.Transport;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Context;
+using NUnit.Framework;
+using UniRx;
+
+namespace Tests.CombinedTest.Core.Transport
+{
+    // 実tickで進むサーバーの搬送と、全量＋差分だけで進む複製を並べて比べる補助
+    // Helpers that run the server transport through real ticks next to a replica driven only by the full state and diffs
+    internal static class BeltDiffReplayTestUtil
+    {
+        internal static BeltTransportDatastore Datastore()
+        {
+            return ServerContext.GetService<BeltTransportDatastore>();
+        }
+
+        // 現在の組の全量から複製を組む。クライアントの初回同期に当たる
+        // Assemble a replica from the current assembly's full state; the client's initial sync
+        internal static BeltTransportReplica StartReplica()
+        {
+            return BeltTransportReplicaAssembler.Assemble(Datastore().CaptureFullState());
+        }
+
+        // 実tickを1回進め、搬送直後の報告からそのtickの差分を受け取る
+        // Advance one real tick and receive that tick's diff from the post-transport report
+        internal static BeltTickDiff TickServer()
+        {
+            var diff = BeltTickDiff.Empty;
+            using (ServerContext.GetService<BeltTransportTickUpdater>().OnTransportTickCompleted.Subscribe(report => diff = report.Diff)) GameUpdater.UpdateOneTick();
+            return diff;
+        }
+
+        // 差分を複製で再生し、食い違いが無くハッシュがサーバーと一致することを確かめる
+        // Replay the diff on the replica and check it stays consistent and its hash matches the server
+        internal static void ReplayAndAssert(BeltTransportReplica replica, BeltTickDiff diff, int tick)
+        {
+            Assert.IsTrue(replica.Tick(diff), $"replica consistent at tick {tick}");
+            Assert.AreEqual(ServerHash(), BeltTransportStateHash.Compute(replica.CaptureFullState()), $"hash at tick {tick}");
+        }
+
+        internal static uint ServerHash()
+        {
+            return Datastore().ComputeStateHash();
+        }
+
+        // 機械(チェスト)からの押し込みと同じ文脈で、ベルコンの搬入口へ1個押し込む。入ったらtrue
+        // Push one item into the belt inlet with the same context a machine (chest) push carries; true when it entered
+        // 実tickの押し込みはblock更新中だけなので、先にtick先頭の再構築まで進めてその区間に入る
+        // Real-tick pushes happen only during block updates, so first advance to the tick-head rebuild to enter that window
+        internal static bool PushThroughInlet(IBlockInventory inlet, IBlock machine, IItemStack stack)
+        {
+            Tests.Util.BeltWorldTestUtil.EnterMachinePushWindow();
+            var context = new InsertItemContext(machine.BlockInstanceId, null, null);
+            return inlet.InsertItem(stack, context).Count == stack.Count - 1;
+        }
+    }
+}

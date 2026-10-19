@@ -43,7 +43,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2750780202867129520}
   - component: {fileID: 5796275189895486739}
-  - component: {fileID: 3503854007706983760}
   - component: {fileID: 1920843585219452797}
   - component: {fileID: 2028982629869620035}
   - component: {fileID: 262843560083246913}
@@ -103,31 +102,6 @@ LODGroup:
     - renderer: {fileID: 4141793577411731335}
     - renderer: {fileID: 8968419511143168381}
   m_Enabled: 1
---- !u!114 &3503854007706983760
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1069051896562662691}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a87480b01aedd4404aa94ddce067f59a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor.BeltConveyorItemPath
-  paths:
-  - startGuid: b06a8962-b1d1-42c1-be9f-e4946c56799b
-    goalGuid: c4d6ba53-a148-4541-aa24-826960e4b806
-    bezierPath:
-      startPoint: {x: 0.5, y: 0.35, z: 0}
-      startControlPoint: {x: 0, y: 0, z: 0.3}
-      endControlPoint: {x: 0, y: 0, z: -0.3}
-      endPoint: {x: 0.5, y: 0.35, z: 1}
-  defaultPath:
-    startPoint: {x: 0.5, y: 0.35, z: 0}
-    startControlPoint: {x: 0, y: 0, z: 0.3}
-    endControlPoint: {x: 0, y: 0, z: -0.3}
-    endPoint: {x: 0.5, y: 0.35, z: 1}
 --- !u!114 &1920843585219452797
 MonoBehaviour:
   m_ObjectHideFlags: 0

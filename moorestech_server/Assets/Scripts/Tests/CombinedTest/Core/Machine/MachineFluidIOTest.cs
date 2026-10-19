@@ -24,6 +24,10 @@ namespace Tests.CombinedTest.Core.Machine
 {
     public class MachineFluidIOTest
     {
+        // 流体の速度モデルが落ち着くのに十分な tick 数(ゲーム内 60 秒)
+        // Enough ticks for the fluid velocity model to settle (60 in-game seconds)
+        private static readonly uint FluidSettleTicks = GameUpdater.SecondsToTicks(60);
+
         public static FluidId FluidId1 => MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000001"));
         public static FluidId FluidId2 => MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000002"));
         public static FluidId FluidId3 => MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000003"));
@@ -64,13 +68,9 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(1, fluidPipeBlock2.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>>>().ConnectedTargets.Count);
             Assert.AreEqual(1, fluidPipeBlock3.GetComponent<BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>>>().ConnectedTargets.Count);
             // アップデート（液体が流れるのを待つ）
-            var startTime = DateTime.Now;
-            while (true)
-            {
-                GameUpdater.UpdateOneTick();
-                var elapsedTime = DateTime.Now - startTime;
-                if (10 < elapsedTime.TotalSeconds) break; // 10秒待機
-            }
+            // 液体が流れ切るまで tick を進める。壁時計の待ちは速い PC でも秒数ぶん必ず払うので tick 数に置き換えた
+            // Advance ticks until the fluid has flowed through; the wall-clock wait cost its full seconds even on a fast PC, so it is counted in ticks
+            GameUpdater.RunFrames(FluidSettleTicks);
             // 束縛済みタンク(0・1)は転送済み、束縛外タンク2向けのfluid3はパイプに残ることを確認
             // Bound tanks (0, 1) finish transferring; fluid3 for the unbound tank 2 stays in its pipe
             Assert.AreEqual(0, fluidPipe1.GetAmount(), 0.01f);

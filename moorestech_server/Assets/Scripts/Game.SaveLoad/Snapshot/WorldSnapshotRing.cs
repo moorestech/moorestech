@@ -116,8 +116,8 @@ namespace Game.SaveLoad.Snapshot
             return SnapshotCaptureRequestResult.FromAccepted(id);
         }
 
-        // FinalTickEndUpdates から毎tick呼ばれる。完了通知の排出→取り込み判定の順
-        // Called every tick from FinalTickEndUpdates: drain completions, then decide whether to capture
+        // MasterTickUpdaterがセーブの直後に毎tick呼ぶ。完了通知の排出→取り込み判定の順
+        // Called every tick by MasterTickUpdater right after the save step: drain completions, then decide whether to capture
         public void Update()
         {
             lock (_tickStateLock)

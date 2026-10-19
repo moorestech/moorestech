@@ -133,6 +133,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public static readonly IReadOnlyList<KeyHint> Hints = new[]
         {
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Text.DragSelect),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.CtrlLeftDrag, LocalizationKeys.Ui.KeyHint.Text.DeselectDrag),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick, LocalizationKeys.Ui.KeyHint.Text.BoxSelect),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Q, LocalizationKeys.Ui.KeyHint.Text.LowerBoxHeight),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Text.RaiseBoxHeight),

@@ -45,12 +45,10 @@ namespace Client.Network.API
     public class WorldDataResponse
     {
         public readonly List<BlockInfo> Blocks;
-        public readonly List<EntityResponse> Entities;
         
-        public WorldDataResponse(List<BlockInfo> blocks, List<EntityResponse> entities)
+        public WorldDataResponse(List<BlockInfo> blocks)
         {
             Blocks = blocks;
-            Entities = entities;
         }
     }
     
@@ -67,23 +65,6 @@ namespace Client.Network.API
             BlockId = blockDataMessagePack.BlockId;
             BlockDirection = blockDataMessagePack.BlockDirection;
             BlockInstanceId = blockDataMessagePack.BlockInstanceId;
-        }
-    }
-    
-    public class EntityResponse
-    {
-        public readonly long InstanceId;
-        public readonly Vector3 Position;
-        public readonly string Type;
-        
-        public readonly byte[] EntityData;
-        
-        public EntityResponse(EntityMessagePack entityMessagePack)
-        {
-            InstanceId = entityMessagePack.InstanceId;
-            Type = entityMessagePack.Type;
-            Position = entityMessagePack.Position;
-            EntityData = entityMessagePack.EntityData;
         }
     }
     

@@ -26,14 +26,9 @@ namespace Game.Block.Blocks.BeltConveyor.Connection
                 foreach (var outward in GetWorldDirections(port, position, isInput))
                 {
                     var cell = position.ConvertBlockLocalToWorldCell(port.Offset);
-                    // 外向きの側面だけが隣接ベルトと共有edgeを作る
-                    // Only outward side faces form shared edges with adjacent belts
-                    if (!IsExposedFace(position, cell, outward))
-                    {
-                        if (port.Directions != null || !Contains(position, cell))
-                            Debug.Log($"Inventory port has no external horizontal face: {port.ConnectorGuid} at {cell}, direction {outward}.");
-                        continue;
-                    }
+                    // 外向きの側面だけが共有edgeを作る。上下や内向きのportは機械同士用の正当な定義なのでログなしで飛ばす
+                    // Only outward side faces form shared edges; vertical or inward ports are valid machine-to-machine definitions, so skip silently
+                    if (!IsExposedFace(position, cell, outward)) continue;
                     var edge = new BeltEdge(cell, outward, cell.y);
                     if (!edges.Contains(edge)) edges.Add(edge);
                 }

@@ -68,9 +68,9 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var stationSegmentLength = stationABlock!.BlockPositionInfo.BlockSize.z;
 
-            Assert.IsTrue(stationABlock!.ComponentManager.TryGetComponent<IBlockInventory>(out var inventoryA),
+            Assert.IsTrue(stationABlock!.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var inventoryA),
                 "Station A のインベントリ取得に失敗しました。");
-            Assert.IsTrue(stationBBlock!.ComponentManager.TryGetComponent<IBlockInventory>(out var inventoryB),
+            Assert.IsTrue(stationBBlock!.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var inventoryB),
                 "Station B のインベントリ取得に失敗しました。");
             
             var trainPlatformItemTransferComponentStationA = stationABlock.GetComponent<TrainPlatformItemContainerComponent>();

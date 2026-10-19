@@ -177,7 +177,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました");
 
             var inputChestPos = new Vector3Int(-1, 0, 2);
-            var (_, inputInventory) = TrainTestHelper.PlaceBlockWithComponent<IBlockInventory>(
+            var (_, inputInventory) = TrainTestHelper.PlaceBlockWithComponent<IOpenableBlockInventoryComponent>(
                 env,
                 ForUnitTestModBlockId.ChestId,
                 inputChestPos,
@@ -190,7 +190,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(new ItemId(1), insertedStack.Id, "チェストへの挿入に失敗しました");
             Assert.AreEqual(10, insertedStack.Count, "チェスト内のアイテム数が一致しません");
 
-            var stationInventory = stationBlock.GetComponent<IBlockInventory>();
+            var stationInventory = stationBlock.GetComponent<IOpenableBlockInventoryComponent>();
             Assert.IsNotNull(stationInventory, "Stationのインベントリが取得できません");
 
             for (int i = 0; i < 10; i++)
@@ -220,13 +220,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loadedStationComponent = loadedStationBlock.GetComponent<TrainStationComponent>();
             Assert.IsNotNull(loadedStationComponent, "ロード後のStationComponentが見つかりません");
 
-            var loadedStationInventory = loadedStationBlock.GetComponent<IBlockInventory>();
+            var loadedStationInventory = loadedStationBlock.GetComponent<IOpenableBlockInventoryComponent>();
             var stationStack = loadedStationInventory.GetItem(0);
             Assert.AreEqual(new ItemId(1), stationStack.Id, "ロード後のStationインベントリにアイテムが存在しません");
             Assert.IsTrue(stationStack.Count > 0, "ロード後のStationインベントリ数が0です");
 
             var outputChestPos = new Vector3Int(-1, 0, 5);
-            var (_, outputInventory) = TrainTestHelper.PlaceBlockWithComponent<IBlockInventory>(
+            var (_, outputInventory) = TrainTestHelper.PlaceBlockWithComponent<IOpenableBlockInventoryComponent>(
                 loadEnv,
                 ForUnitTestModBlockId.ChestId,
                 outputChestPos,
@@ -256,7 +256,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var stationComponent = stationBlock.GetComponent<TrainStationComponent>();
             Assert.IsNotNull(stationComponent, "StationComponentの取得に失敗しました。");
-            Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var stationInventory), "駅インベントリの取得に失敗しました。");
+            Assert.IsTrue(stationBlock.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var stationInventory), "駅インベントリの取得に失敗しました。");
 
             var stationParam = (TrainStationBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestTrainStation).BlockParam;
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId1);
@@ -291,7 +291,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var loadedBlock = loadEnvironment.WorldBlockDatastore.GetBlock(Vector3Int.zero);
             Assert.IsNotNull(loadedBlock, "ロード後に駅ブロックが見つかりません。");
-            Assert.IsTrue(loadedBlock.ComponentManager.TryGetComponent<IBlockInventory>(out var loadedInventory), "ロード後の駅インベントリ取得に失敗しました。");
+            Assert.IsTrue(loadedBlock.ComponentManager.TryGetComponent<IOpenableBlockInventoryComponent>(out var loadedInventory), "ロード後の駅インベントリ取得に失敗しました。");
 
             var loadedTrain = loadEnvironment.GetITrainLookupDatastore().GetRegisteredTrains().Single();
             

@@ -146,13 +146,9 @@
                 "then": {
                   "type": "object",
                   "properties": {
-                    "beltConveyorItemCount": {
-                      "type": "integer",
-                      "default": 1
-                    },
-                    "timeOfItemEnterToExit": {
+                    "beltSpeedPerSecond": {
                       "type": "number",
-                      "default": 1
+                      "default": 2.5
                     },
                     "slopeType": {
                       "type": "string",
@@ -561,13 +557,13 @@
                 "then": {
                   "type": "object",
                   "properties": {
-                    "beltConveyorItemCount": {
-                      "type": "integer",
-                      "default": 4
-                    },
                     "beltConveyorSpeed": {
                       "type": "number",
                       "default": 2
+                    },
+                    "beltSpeedPerSecond": {
+                      "type": "number",
+                      "default": 1.25
                     },
                     "requireTorquePerRpm": {
                       "type": "number",

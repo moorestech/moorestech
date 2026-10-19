@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal;
@@ -27,7 +28,7 @@ namespace Client.Tests.BuildUndo
 
             // 確定で消えても先に記録した線を復元
             // Restore the captured line even if commit erases the target
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             selection.CommitDelete();
             Assert.AreEqual(1, target.DeleteCount);
@@ -44,7 +45,7 @@ namespace Client.Tests.BuildUndo
         {
             var history = new BuildOperationHistory();
             var selection = new DeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(new FakeDeleteTarget { Removable = true }).IsAdded);
             selection.CommitDelete();
             Assert.IsFalse(history.TryPop(out _));

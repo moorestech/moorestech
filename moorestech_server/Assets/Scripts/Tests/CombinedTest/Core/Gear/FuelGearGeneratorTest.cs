@@ -227,7 +227,7 @@ namespace Tests.CombinedTest.Core.Gear
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FuelGearGeneratorId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var steamGeneratorBlock);
             
             var generatorComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorComponent>();
-            var inventory = steamGeneratorBlock.GetComponent<IBlockInventory>();
+            var inventory = steamGeneratorBlock.GetComponent<IOpenableBlockInventoryComponent>();
             var openableInventory = (IOpenableInventory)inventory;
             var fluidComponent = steamGeneratorBlock.GetComponent<FuelGearGeneratorFluidComponent>();
             

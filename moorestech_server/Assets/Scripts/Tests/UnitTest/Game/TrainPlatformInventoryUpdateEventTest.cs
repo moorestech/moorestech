@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game
             var platformBlock = TrainTestHelper.PlaceBlock(env, ForUnitTestModBlockId.TestTrainItemPlatform, Vector3Int.zero, BlockDirection.North);
             Assert.IsNotNull(platformBlock, "貨物プラットフォームの設置に失敗しました。");
 
-            var blockInventory = platformBlock.GetComponent<IBlockInventory>();
+            var blockInventory = platformBlock.GetComponent<IOpenableBlockInventoryComponent>();
             var (receivedEvents, subscription) = SubscribeBlockInventoryEvents(platformBlock.BlockInstanceId);
             using (subscription)
             {
@@ -67,7 +67,7 @@ namespace Tests.UnitTest.Game
             var stationBlock = TrainTestHelper.PlaceBlock(env, ForUnitTestModBlockId.TestTrainStation, Vector3Int.zero, BlockDirection.North);
             Assert.IsNotNull(stationBlock, "駅ブロックの設置に失敗しました。");
 
-            var blockInventory = stationBlock.GetComponent<IBlockInventory>();
+            var blockInventory = stationBlock.GetComponent<IOpenableBlockInventoryComponent>();
             var (receivedEvents, subscription) = SubscribeBlockInventoryEvents(stationBlock.BlockInstanceId);
             using (subscription)
             {
@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Game
             var env = TrainTestHelper.CreateEnvironment();
             var platformBlock = TrainTestHelper.PlaceBlock(env, ForUnitTestModBlockId.TestTrainItemPlatform, Vector3Int.zero, BlockDirection.North);
 
-            var blockInventory = platformBlock.GetComponent<IBlockInventory>();
+            var blockInventory = platformBlock.GetComponent<IOpenableBlockInventoryComponent>();
             var (receivedEvents, subscription) = SubscribeBlockInventoryEvents(platformBlock.BlockInstanceId);
             using (subscription)
             {
@@ -117,7 +117,7 @@ namespace Tests.UnitTest.Game
 
             var trainPlatformItemTransferComponent = cargoPlatformBlock.GetComponent<TrainPlatformItemContainerComponent>();
             var trainPlatformDockingComponent = cargoPlatformBlock.GetComponent<TrainPlatformDockingComponent>();
-            var cargoInventory = cargoPlatformBlock.GetComponent<IBlockInventory>();
+            var cargoInventory = cargoPlatformBlock.GetComponent<IOpenableBlockInventoryComponent>();
 
             // 事前に積んでおく（SetItem時点で1回イベントが出るが、ここでは別の検証）
             // Pre-load one slot (this raises one event but we re-create the receiver right after)

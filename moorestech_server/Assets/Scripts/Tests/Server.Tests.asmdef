@@ -6,6 +6,7 @@
         "UnityEditor.TestRunner",
         "ClassLibrary",
         "Core.Block",
+        "Core.BeltTransport",
         "Core.ConfigJson",
         "Core.Const",
         "Game.EnergySystem",

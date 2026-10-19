@@ -96,12 +96,9 @@ properties:
             - when: BeltConveyor
               type: object
               properties:
-                - key: beltConveyorItemCount
-                  type: integer
-                  default: 1
-                - key: timeOfItemEnterToExit
+                - key: beltSpeedPerSecond
                   type: number
-                  default: 1
+                  default: 2.5
                 - key: slopeType
                   type: enum
                   options:
@@ -325,12 +322,12 @@ properties:
             - when: GearBeltConveyor
               type: object
               properties:
-                - key: beltConveyorItemCount
-                  type: integer
-                  default: 4
                 - key: beltConveyorSpeed
                   type: number
                   default: 2
+                - key: beltSpeedPerSecond
+                  type: number
+                  default: 1.25
                 - key: requireTorquePerRpm
                   type: number
                   default: 2

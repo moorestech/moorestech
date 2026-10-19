@@ -62,7 +62,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8963477831894855548}
-  - component: {fileID: -1638471998465328765}
   m_Layer: 7
   m_Name: itemshooter straight
   m_TagString: Untagged
@@ -88,24 +87,6 @@ Transform:
   - {fileID: 980780237036065013}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-1638471998465328765
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3768646863689960170}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a87480b01aedd4404aa94ddce067f59a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.BeltConveyor.BeltConveyorItemPath
-  paths: []
-  defaultPath:
-    startPoint: {x: 0.5, y: 0.35, z: 0}
-    startControlPoint: {x: 0, y: 0, z: 0.3}
-    endControlPoint: {x: 0, y: 0, z: -0.3}
-    endPoint: {x: 0.5, y: 0.35, z: 1}
 --- !u!1001 &33545006544981868
 PrefabInstance:
   m_ObjectHideFlags: 0

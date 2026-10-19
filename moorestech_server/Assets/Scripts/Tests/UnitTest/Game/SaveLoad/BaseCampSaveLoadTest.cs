@@ -34,10 +34,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
+            var baseCampInventory = baseCampBlock.GetComponent<IOpenableBlockInventoryComponent>();
             
             Assert.IsNotNull(baseCampComponent, "BaseCampComponent should not be null");
-            Assert.IsNotNull(baseCampInventory, "IBlockInventory should not be null");
+            Assert.IsNotNull(baseCampInventory, "IOpenableBlockInventoryComponent should not be null");
             
             // 部分的にアイテムを納品
             var requiredItemId = new ItemId(1);
@@ -71,7 +71,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // 納品状態の確認
             var loadedBaseCampComponent = loadedBlock.GetComponent<BaseCampComponent>();
-            var loadedBaseCampInventory = loadedBlock.GetComponent<IBlockInventory>();
+            var loadedBaseCampInventory = loadedBlock.GetComponent<IOpenableBlockInventoryComponent>();
             
             Assert.AreEqual(progress, loadedBaseCampComponent.GetProgress(), 0.01f);
             
@@ -96,7 +96,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.South, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
+            var baseCampInventory = baseCampBlock.GetComponent<IOpenableBlockInventoryComponent>();
             
             // 複数アイテムの部分納品
             baseCampInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 2), InsertItemContext.Empty);
@@ -138,7 +138,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.TryAddBlock(baseCampBlockId, position, BlockDirection.East, Array.Empty<BlockCreateParam>(), out var baseCampBlock);
             
             var baseCampComponent = baseCampBlock.GetComponent<BaseCampComponent>();
-            var baseCampInventory = baseCampBlock.GetComponent<IBlockInventory>();
+            var baseCampInventory = baseCampBlock.GetComponent<IOpenableBlockInventoryComponent>();
             
             // すべてのアイテムを納品（変換直前の状態）
             var requiredItemId = new ItemId(1);
@@ -167,7 +167,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(1.0f, loadedBaseCampComponent.GetProgress(), 0.01f);
         }
         
-        private List<IItemStack> GetDeliveredItems(IBlockInventory inventory)
+        private List<IItemStack> GetDeliveredItems(IOpenableBlockInventoryComponent inventory)
         {
             // インベントリから全アイテムを取得（空でないものだけ）
             var items = new List<IItemStack>();

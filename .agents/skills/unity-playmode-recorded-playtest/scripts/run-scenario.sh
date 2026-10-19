@@ -112,7 +112,10 @@ else
     BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode($MASTER_LITERAL, true);"
 fi
 SESSION_DIR=$(edc "$BOOT_CODE" | json_get Result)
-if [[ "$SESSION_DIR" != /* ]]; then
+# Windows(git bash)ではUnityが "C:\..." 形式の絶対パスを返すので、ドライブ文字始まりも絶対パスとして扱う
+# On Windows (git bash) Unity returns "C:\..."-style absolute paths, so a drive-letter prefix also counts as absolute
+is_absolute_path() { case "$1" in /*|[A-Za-z]:*) return 0;; *) return 1;; esac; }
+if ! is_absolute_path "$SESSION_DIR"; then
     echo "NG: boot failed: $SESSION_DIR"
     exit 1
 fi
@@ -134,7 +137,7 @@ echo "ready after ~${WAITED}s"
 echo "== inject scenario: $SCENARIO_FILE =="
 SCENARIO_RESPONSE=$(edc "$(cat "$SCENARIO_FILE")")
 RUN_DIR=$(echo "$SCENARIO_RESPONSE" | json_get Result)
-if [[ "$RUN_DIR" != /* ]]; then
+if ! is_absolute_path "$RUN_DIR"; then
     echo "NG: scenario injection failed:"
     echo "$SCENARIO_RESPONSE"
     exit 1
@@ -158,7 +161,7 @@ cat "$RUN_DIR/result.json"
 # 失敗時はライブ診断（EDCでの状態確認）のために意図的に残し、停止コマンドを案内する。
 # Auto-stop play mode on success (prevents port squatting and state carry-over into the next run).
 # On failure, keep play mode alive on purpose for live EDC diagnosis and print how to stop it.
-if python3 -c "import sys,json; sys.exit(0 if json.load(open('$RUN_DIR/result.json'))['Success'] else 1)"; then
+if python3 -c "import sys,json; sys.exit(0 if json.load(open(sys.argv[1], encoding='utf-8'))['Success'] else 1)" "$RUN_DIR/result.json"; then
     echo "== stop play mode =="
     uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1 && echo "play mode stopped"
     exit 0

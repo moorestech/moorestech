@@ -51,9 +51,10 @@ namespace Tests.CombinedTest.Core.Machine
             // クラフト実行
             // Perform the crafting
             var blockMachineComponent = block.GetComponent<VanillaMachineProcessorComponent>();
-            var startTime = DateTime.Now;
-            var endTime = startTime.AddSeconds(recipe.Time + 0.2); // レシピ時間 + 余裕時間
-            while (DateTime.Now < endTime)
+            // レシピ時間 + 余裕を tick 数で回す(壁時計の待ちを tick 数へ置き換え)
+            // Run the recipe time plus a margin, counted in ticks (replaces the wall-clock wait)
+            var craftTicks = GameUpdater.SecondsToTicks(recipe.Time + 0.2);
+            for (var tick = 0; tick < craftTicks; tick++)
             {
                 blockMachineComponent.SupplyExternalPower(10000);
                 GameUpdater.UpdateOneTick();

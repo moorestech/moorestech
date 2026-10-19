@@ -17,14 +17,17 @@ namespace Game.Train.Unit
         private const double TickSeconds = GameUpdater.SecondsPerTick;
         public const double HashBroadcastIntervalSeconds = TickSeconds;
         private static readonly uint TrainUnitHashBroadcastIntervalTicks = Math.Max(4u, (uint)Math.Ceiling(HashBroadcastIntervalSeconds / TickSeconds));
-        private uint _executedTick;
+        // 最初のtickは1。tickの番号は境界(CompleteTick)で進む
+        // The first tick is 1; the tick number advances at the boundary (CompleteTick)
+        private const uint FirstTick = 1;
+        private uint _executedTick = FirstTick;
         private uint _tickSequenceId;
 
         private readonly Subject<HashStateEventData> _onHashEvent = new();
         private readonly Subject<(uint, IReadOnlyList<TrainTickDiffData>)> _onPreSimulationDiffEvent = new();
 
-        // 駆動はMasterTickUpdaterの固定順序がUpdateTrainsを呼ぶ（購読による暗黙順序を持たない）
-        // Driven by MasterTickUpdater's fixed order calling UpdateTrains; no implicit subscription ordering
+        // 駆動はMasterTickUpdaterの固定順序がUpdateTrainsを呼び、tick末尾(操作適用の後・セーブの前)にCompleteTickが呼ばれる（購読による暗黙順序を持たない）
+        // Driven by MasterTickUpdater's fixed order calling UpdateTrains, with CompleteTick called at tick end (after applying input, before save); no implicit subscription ordering
         public TrainUpdateService(
             IRailGraphDatastore railGraphDatastore,
             ITrainUnitLookupDatastore trainUnitLookupDatastore,
@@ -44,21 +47,14 @@ namespace Game.Train.Unit
             return _tickSequenceId;
         }
         public uint GetCurrentTickSequenceId() => _tickSequenceId;
+        // 本物のハッシュを送るtickか。他系統(ベルト)も同じtickにだけハッシュを計算する
+        // Whether this tick carries a real hash; other systems (belt) compute their hash only on these ticks
+        public static bool IsHashBroadcastTick(uint tick) => tick % TrainUnitHashBroadcastIntervalTicks == 0;
         public IObservable<HashStateEventData> OnHashEvent => _onHashEvent;
         public IObservable<(uint, IReadOnlyList<TrainTickDiffData>)> OnPreSimulationDiffEvent => _onPreSimulationDiffEvent;
 
         public void UpdateTrains()
         {
-            // hash計算タイミングはTrainUpdateService側で管理し、間引き時はdummyを送る
-            // TrainUpdateService owns hash timing and emits dummy on skipped ticks.
-            var hashState = BuildHashStateEventData(_executedTick);
-            _onHashEvent.OnNext(hashState);
-
-            _executedTick++;
-            // tickが進んだら同tick内順序のカウンタを初期化する
-            // Reset per-tick ordering counter when tick advances.
-            _tickSequenceId = 0;
-
             // 乗車入力をtickごとに一括集計し、各TrainUnitへ適用する。
             // Aggregate riding inputs once per tick and apply them to each TrainUnit.
             var manualCommands = _trainCarRidingManualCommandResolver.ResolveAll(_executedTick);
@@ -77,23 +73,6 @@ namespace Game.Train.Unit
             return;
 
             #region Internal
-            HashStateEventData BuildHashStateEventData(uint hashTick)
-            {
-                if (hashTick % TrainUnitHashBroadcastIntervalTicks != 0)
-                {
-                    return new HashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
-                }
-
-                var bundles = new List<TrainUnitSnapshotBundle>();
-                foreach (var train in _trainUnitLookupDatastore.GetRegisteredTrains())
-                {
-                    bundles.Add(TrainUnitSnapshotFactory.CreateSnapshot(train));
-                }
-                var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
-                var railGraphHash = _railGraphDatastore.GetConnectNodesHash();
-                return new HashStateEventData(hashTick, unitsHash, railGraphHash);
-            }
-
             // 全TrainUnitの差分を集約し、差分があるユニットのみ通知する
             // Aggregate per-unit diffs and publish only changed units.
             void NotifyPreSimulationDiff(uint tick)
@@ -120,9 +99,39 @@ namespace Game.Train.Unit
             #endregion
         }
 
+        // tickの境界。操作の適用まで終えたこのtickの状態でハッシュを出し(間引きtickはダミー)、tick番号を進めて連番を0へ戻す
+        // The tick boundary: emits this tick's hash from the state after input was applied (a dummy on skipped ticks), advances the tick number and resets the sequence counter
+        public void CompleteTick()
+        {
+            _onHashEvent.OnNext(BuildHashStateEventData(_executedTick));
+            _executedTick++;
+            _tickSequenceId = 0;
+
+            #region Internal
+
+            HashStateEventData BuildHashStateEventData(uint hashTick)
+            {
+                if (!IsHashBroadcastTick(hashTick))
+                {
+                    return new HashStateEventData(hashTick, uint.MaxValue, uint.MaxValue);
+                }
+
+                var bundles = new List<TrainUnitSnapshotBundle>();
+                foreach (var train in _trainUnitLookupDatastore.GetRegisteredTrains())
+                {
+                    bundles.Add(TrainUnitSnapshotFactory.CreateSnapshot(train));
+                }
+                var unitsHash = TrainUnitSnapshotHashCalculator.Compute(bundles);
+                var railGraphHash = _railGraphDatastore.GetConnectNodesHash();
+                return new HashStateEventData(hashTick, unitsHash, railGraphHash);
+            }
+
+            #endregion
+        }
+
         public void ResetTick()
         {
-            _executedTick = 0;
+            _executedTick = FirstTick;
             _tickSequenceId = 0;
         }
 

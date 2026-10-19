@@ -83,6 +83,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialView.cs", Category.Excluded, "3D配置previewの表示体"),
             new Rule("Client.Game/InGame/Tutorial/PlacementGuide", Category.Excluded, "3D配置previewの鎖・相対・鉱脈限定ガイド"),
             new Rule("Client.Game/Skit/SkitWorldObjectControlGroup.cs", Category.Excluded, "ワールド表示物の切替でスクリーンUIを持たない"),
+            new Rule("Client.Game/Skit/SkitEntityObjectControlGroup.cs", Category.Excluded, "エンティティ表示の切替でスクリーンUIを持たない"),
             new Rule("Client.Game/Skit/SkitVisibilityLedger.cs", Category.Excluded, "スキットが消したワールド表示の復元台帳でスクリーンUIを持たない"),
             new Rule("Client.Game/Skit/SkitUiRestoreResult.cs", Category.Excluded, "会話UI復帰要求の帰結を表すenumでスクリーンUIを持たない"),
             new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootを常時抑止"),

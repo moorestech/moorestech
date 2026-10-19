@@ -40,6 +40,7 @@ namespace Client.Tests.UIState
             var expected = new[]
             {
                 (LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Text.DragSelect),
+                (LocalizationKeys.Ui.KeyHint.Key.CtrlLeftDrag, LocalizationKeys.Ui.KeyHint.Text.DeselectDrag),
                 (LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick, LocalizationKeys.Ui.KeyHint.Text.BoxSelect),
                 (LocalizationKeys.Ui.KeyHint.Key.Q, LocalizationKeys.Ui.KeyHint.Text.LowerBoxHeight),
                 (LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Text.RaiseBoxHeight),
@@ -76,7 +77,7 @@ namespace Client.Tests.UIState
         public void EveryScreenHintCountMatchesAdr()
         {
             Assert.AreEqual(10, PlaceBlockStateHints.Hints.Count);
-            Assert.AreEqual(11, DeleteObjectStateHints.Hints.Count);
+            Assert.AreEqual(12, DeleteObjectStateHints.Hints.Count);
             Assert.AreEqual(6, PlayerInventoryStateHints.Hints.Count);
             Assert.AreEqual(5, SubInventoryStateHints.Hints.Count);
             Assert.AreEqual(2, ResearchTreeStateHints.Hints.Count);
@@ -102,7 +103,7 @@ namespace Client.Tests.UIState
                 LocalizationKeys.Ui.KeyHint.Key.CtrlZ, LocalizationKeys.Ui.KeyHint.Key.DriveKeys,
                 LocalizationKeys.Ui.KeyHint.Key.BranchKeys, LocalizationKeys.Ui.KeyHint.Key.LeftAltHold,
                 LocalizationKeys.Ui.KeyHint.Key.MiddleClick,
-                LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Key.FHold, LocalizationKeys.Ui.KeyHint.Key.RightClick,
+                LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Key.CtrlLeftDrag, LocalizationKeys.Ui.KeyHint.Key.FHold, LocalizationKeys.Ui.KeyHint.Key.RightClick,
                 LocalizationKeys.Ui.KeyHint.Key.DoubleClick, LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick,
             }.Select(key => key.Key).ToArray();
 
