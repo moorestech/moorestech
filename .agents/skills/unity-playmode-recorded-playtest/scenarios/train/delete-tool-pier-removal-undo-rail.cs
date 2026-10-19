@@ -104,7 +104,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
 
     #region Internal
 
-    // 選択後にFを2秒長押しして撤去を確定する
+    // 選択後にFを長押し（件数で最大1.75秒）して撤去を確定する
     // Hold F for two seconds to confirm deletion after selecting
     async UniTask HoldDeleteConfirm()
     {
