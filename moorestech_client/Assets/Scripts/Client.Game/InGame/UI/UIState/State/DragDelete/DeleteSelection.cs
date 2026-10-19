@@ -75,9 +75,11 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         // Deselect stroke: remove only selected targets and lock the category on the first removal; true when removed
         public bool TryRemoveStrokeTarget(IDeleteTarget target)
         {
-            if (_strokeCanceled || !AimFilter.Accepts(target) || !_selectedTargets.TryRemove(target)) return false; // silent-ok: 取消済み・別カテゴリー・未選択は外さない / 選択件数のツールチップが変わらないことで見える
+            if (_strokeCanceled || !AimFilter.Accepts(target) || !IsSelected(target)) return false; // silent-ok: 取消済み・別カテゴリー・未選択は外さない / 選択件数のツールチップが変わらないことで見える
+            // 赤戻しが失敗する前にストロークのカテゴリーを固定する
+            // Lock the stroke category before the preview reset can fail
             if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
-            return true;
+            return _selectedTargets.TryRemove(target);
         }
         // 箱の対象を意図どおり足すか外し、変わった件数を返す（意図による分岐はここ1か所）
         // Add or remove box targets per intent and return how many changed (the only intent branch for boxes)

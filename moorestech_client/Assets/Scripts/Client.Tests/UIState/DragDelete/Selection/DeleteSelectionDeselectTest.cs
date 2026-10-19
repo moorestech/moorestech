@@ -15,6 +15,36 @@ namespace Client.Tests.UIState.DragDelete.Selection
         private static DeleteSelection Create() => new(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
 
         [Test]
+        public void 最初の除外の赤戻しが失敗してもカテゴリー固定と論理解除を保つ()
+        {
+            var selection = Create();
+            var broken = new FakeDeleteTarget { Removable = true, ThrowOnReset = true, Category = "first" };
+            var other = new FakeDeleteTarget { Removable = true, Category = "other" };
+            selection.ApplyBoxTargets(new[] { broken, other }, DeleteSelectionIntent.Add);
+            var revision = selection.Revision;
+            selection.BeginStroke(DeleteSelectionIntent.Remove);
+
+            // 赤戻しの失敗前に選択解除とカテゴリー固定が完了する
+            // Deselect and lock the category before the preview reset can fail
+            Assert.Throws<System.InvalidOperationException>(() => selection.TryRemoveStrokeTarget(broken));
+            Assert.IsFalse(selection.IsSelected(broken));
+            Assert.AreNotEqual(revision, selection.Revision);
+            Assert.IsTrue(selection.AimFilter.IsCategoryRequired);
+            Assert.IsTrue(selection.AimFilter.Accepts(broken));
+            Assert.IsFalse(selection.TryRemoveStrokeTarget(other));
+            Assert.IsTrue(selection.IsSelected(other));
+            Assert.AreEqual(1, broken.ResetCount);
+
+            // 次のストロークは別カテゴリーを外せて失敗対象へ再接触しない
+            // A new stroke can remove the other category without retrying the failed target
+            selection.EndStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Remove);
+            Assert.IsTrue(selection.TryRemoveStrokeTarget(other));
+            Assert.AreEqual(1, broken.ResetCount);
+            Assert.AreEqual(0, selection.Count);
+        }
+
+        [Test]
         public void ストローク更新は開始時に固定した意図で追加と除外を行う()
         {
             var selection = Create();
