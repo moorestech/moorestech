@@ -26,15 +26,40 @@ namespace Game.Train.Unit
             // 進入方向を基準に候補ノードを左から右へ並べる。
             // Sort candidate nodes from left to right by the incoming travel direction.
             var candidates = BuildBranchCandidates(justPassedNode, junctionNode, connectedNodes);
-            var straightIndex = ResolveStraightCandidateIndex(candidates);
+            return candidates[ResolveSelectedCandidatePosition(candidates, branchSelectionIndex)].Node;
+        }
 
-            // 正のindexは左、負のindexは右へずらし、端でclampする。
-            // Positive index shifts left, negative shifts right, and clamps at the edge.
-            if (branchSelectionIndex != 0)
+        // 選択中の候補が左から何番目か(0始まり)を返す
+        // Returns the 0-based left-to-right position of the selected candidate
+        public static int ResolveManualBranchPosition(IRailNode justPassedNode, IRailNode junctionNode, IReadOnlyList<IRailNode> connectedNodes, int branchSelectionIndex)
+        {
+            if (connectedNodes.Count <= 1)
             {
-                return SelectCandidateByOffset(candidates, straightIndex, -branchSelectionIndex);
+                return 0;
             }
-            return candidates[straightIndex].Node;
+            var candidates = BuildBranchCandidates(justPassedNode, junctionNode, connectedNodes);
+            return ResolveSelectedCandidatePosition(candidates, branchSelectionIndex);
+        }
+
+        // 選択indexをこの分岐で選べる範囲(左端〜右端)へ収める
+        // Clamp the selection index into the range selectable at this junction (left edge to right edge)
+        public static int ClampManualBranchSelectionIndex(IRailNode justPassedNode, IRailNode junctionNode, IReadOnlyList<IRailNode> connectedNodes, int branchSelectionIndex)
+        {
+            if (connectedNodes.Count <= 1)
+            {
+                return 0;
+            }
+            var candidates = BuildBranchCandidates(justPassedNode, junctionNode, connectedNodes);
+            var straightIndex = ResolveStraightCandidateIndex(candidates);
+            return Mathf.Clamp(branchSelectionIndex, straightIndex - (candidates.Count - 1), straightIndex);
+        }
+
+        // 正のindexは直進から左、負のindexは右へずらし、端でclampする。
+        // Positive index shifts left from straight, negative shifts right, and clamps at the edge.
+        private static int ResolveSelectedCandidatePosition(IReadOnlyList<BranchCandidate> candidates, int branchSelectionIndex)
+        {
+            var straightIndex = ResolveStraightCandidateIndex(candidates);
+            return Mathf.Clamp(straightIndex - branchSelectionIndex, 0, candidates.Count - 1);
         }
 
         private static List<BranchCandidate> BuildBranchCandidates(IRailNode justPassedNode, IRailNode junctionNode, IReadOnlyList<IRailNode> connectedNodes)
@@ -147,12 +172,6 @@ namespace Game.Train.Unit
             // 直進角が同じなら、表示順と同じ tie-break でサーバー決定を固定する。
             // If straightness ties, reuse display-order tie-breaks for deterministic server selection.
             return CompareBranchCandidate(left, right);
-        }
-
-        private static IRailNode SelectCandidateByOffset(IReadOnlyList<BranchCandidate> candidates, int straightIndex, int offset)
-        {
-            var selectedIndex = Mathf.Clamp(straightIndex + offset, 0, candidates.Count - 1);
-            return candidates[selectedIndex].Node;
         }
 
         private static int CompareBranchCandidate(BranchCandidate left, BranchCandidate right)

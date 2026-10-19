@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.RailGraph;
@@ -100,8 +101,12 @@ namespace Tests.UnitTest.Game
         [Test]
         public void ManualBranchSelection_EmitsTickDiffOnce()
         {
-            var fixture = CreateTwoCarFixture();
-            fixture.TrainUnit.Update(new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, 1));
+            // 2分岐の左端から右端へ動かすと、差分は1だけ1回出る
+            // Moving from the left edge to the right edge of a 2-way branch emits a diff of 1 exactly once
+            var fixture = CreateTwoCarFixtureWithBranchAhead();
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, -10));
+            fixture.TrainUnit.GetTickDiff();
+            fixture.TrainUnit.Update(new TrainUnitManualCommand(false, TrainUnitMasconCommand.Neutral, 10));
 
             var firstDiff = fixture.TrainUnit.GetTickDiff();
             var secondDiff = fixture.TrainUnit.GetTickDiff();
@@ -217,6 +222,27 @@ namespace Tests.UnitTest.Game
             var distance = railB.FrontNode.GetDistanceToNode(railA.FrontNode);
             Assert.Greater(distance, 0, "テスト用レール間の距離が正しく計算できていません。");
 
+            var carLength = Mathf.Max(1, distance / 1024 / 20);
+            var frontCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 5000, 0, carLength, true).trainCar;
+            var rearCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 2500, 0, carLength, false).trainCar;
+            var trainUnit = CreateTrainUnit(environment, new List<TrainCar> { frontCar, rearCar }, railA.FrontNode, railB.FrontNode, distance);
+
+            return new TrainFixture(trainUnit, frontCar, rearCar, railA.FrontNode);
+        }
+
+        // 先頭が近づくnodeから2本に分かれる編成を作る
+        // Build a formation whose approaching node splits into two routes
+        private static TrainFixture CreateTwoCarFixtureWithBranchAhead()
+        {
+            var environment = TrainTestHelper.CreateEnvironment();
+            var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
+            var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 0), BlockDirection.North);
+            var railC = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 100), BlockDirection.North);
+            ConnectRailsBidirectional(railA, railB);
+            railB.FrontNode.ConnectNode(railC.FrontNode);
+            Assert.AreEqual(2, railB.FrontNode.ConnectedNodes.Count(), "テスト用の分岐が作れていません。");
+
+            var distance = railB.FrontNode.GetDistanceToNode(railA.FrontNode);
             var carLength = Mathf.Max(1, distance / 1024 / 20);
             var frontCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 5000, 0, carLength, true).trainCar;
             var rearCar = TrainTestCarFactory.CreateTrainCarWithItemContainer(1, 2500, 0, carLength, false).trainCar;
