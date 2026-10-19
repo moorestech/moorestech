@@ -12,6 +12,14 @@ namespace Game.Train.Event
         public IObservable<TrainCarInstanceId> OnTrainCarRemoved => _removedSubject;
         private readonly Subject<TrainCarInstanceId> _removedSubject = new();
         
+        public IObservable<TrainCarInstanceId> OnContentRefreshRequested => _refreshSubject;
+        private readonly Subject<TrainCarInstanceId> _refreshSubject = new();
+
+        internal void InvokeContentRefresh(TrainCarInstanceId id)
+        {
+            _refreshSubject.OnNext(id);
+        }
+
         public void InvokeInventoryUpdate(TrainInventoryUpdateEventProperties properties)
         {
             _inventorySubject.OnNext(properties);

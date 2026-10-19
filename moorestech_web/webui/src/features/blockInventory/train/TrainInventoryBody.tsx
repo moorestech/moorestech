@@ -7,6 +7,7 @@ import { dispatchAction } from "@/bridge";
 import type { BlockInventoryData } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { ModeSwitch, type ModeSwitchOption } from "@/shared/ui";
+import FluidInventoryContents from "../fluid/FluidInventoryContents";
 import BlockItemGrid from "../BlockItemGrid";
 import TrainTimetableSection from "./TrainTimetableSection";
 
@@ -36,7 +37,9 @@ export default function TrainInventoryBody({ data }: { data: TrainData }) {
     <div className={styles.body}>
       <ModeSwitch role="tablist" value={tab} options={tabs} onChange={setTab} testId="train-tabs" />
       <ScrollArea className={styles.scroll} type="auto">
-        {tab === "inventory" && <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />}
+        {tab === "inventory" && (data.fluidSlots.length > 0
+          ? <FluidInventoryContents fluids={data.fluidSlots} testId="train-inventory-fluids" />
+          : <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />)}
         {tab === "timetable" && timetable.kind === "loading" && (
           <Text size="sm" data-testid="train-timetable-loading">{t(L.ui.blockInventory.timetableLoading)}</Text>
         )}

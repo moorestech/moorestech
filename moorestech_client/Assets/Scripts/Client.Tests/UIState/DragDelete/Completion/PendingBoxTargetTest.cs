@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.Block;
@@ -48,19 +49,19 @@ namespace Client.Tests.UIState.DragDelete.Completion
             entities.Add(car.TrainCarInstanceId, car);
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var pending = new FakeDeleteTarget { Key = car.TrainCarInstanceId, Removable = true, CompleteImmediately = false };
-            selection.AddBoxTargets(new[] { pending });
+            selection.ApplyBoxTargets(new[] { pending }, DeleteSelectionIntent.Add);
             selection.CommitDelete();
             pending.Complete(kind, null);
 
             // 実resolverの箱件数とモデルの追加/ホバーが同じ保留規則を使う
             // The real resolver count and model addition/hover share the pending rule
             var resolver = new DeleteBoxTargetResolver(blocks, cars);
-            Assert.AreEqual(0, resolver.Resolve(Vector3Int.zero, Vector3Int.one, selection).Count);
-            Assert.AreEqual(0, selection.AddBoxTargets(new[] { pending }));
+            Assert.AreEqual(0, resolver.Resolve(Vector3Int.zero, Vector3Int.one, selection, DeleteSelectionIntent.Add).Count);
+            Assert.AreEqual(0, selection.ApplyBoxTargets(new[] { pending }, DeleteSelectionIntent.Add));
             Assert.AreEqual(DeleteHoldSubjectKind.None, selection.UpdateHoverPreview(pending, out var reason).Kind);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.DeleteRequestPending, reason);
             pending.Complete(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.InventoryFull);
-            Assert.AreEqual(1, resolver.Resolve(Vector3Int.zero, Vector3Int.one, selection).Count);
+            Assert.AreEqual(1, resolver.Resolve(Vector3Int.zero, Vector3Int.one, selection, DeleteSelectionIntent.Add).Count);
             Assert.AreEqual(DeleteHoldSubjectKind.Hovered, selection.UpdateHoverPreview(pending, out _).Kind);
         }
     }

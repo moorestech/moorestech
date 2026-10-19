@@ -26,7 +26,7 @@ export default function BlockInventoryPanel() {
   // blockType に対応するコンポーネントを解決（未登録は GenericBlockInventory にフォールバック）
   // Resolve the component for blockType (unregistered falls back to GenericBlockInventory)
   const Body = data.source === "block" ? resolveBlockComponent(data.blockType) : null;
-  const trainError = data.source === "train" && data.error
+  const inventoryError = data.error
     ? t(resolveTrainErrorKey(data.error))
     : null;
   const title = data.source === "train"
@@ -58,11 +58,11 @@ export default function BlockInventoryPanel() {
             : { paddingRight: "var(--block-panel-right-safe-area)" }),
         }}
       >
-        {data.source === "train" && trainError && <div data-testid="train-inventory-error">{trainError}</div>}
-        {data.source === "train" && !trainError && <TrainInventoryBody key={data.identifier} data={data} />}
+        {inventoryError && <div data-testid={data.source === "train" ? "train-inventory-error" : "block-inventory-error"}>{inventoryError}</div>}
+        {data.source === "train" && !inventoryError && <TrainInventoryBody key={data.identifier} data={data} />}
         {/* identifierでkey付与。同一フレーム内でホストのpublishデバウンスにより閉/開が畳まれても、別ブロックの再マウントを保証する */}
         {/* Keyed by identifier so a different block always remounts even when the host's publish debounce collapses close/open into one frame */}
-        {data.source === "block" && Body && <Body key={data.identifier} data={data} fillsPanelHeight={isLargeMachinePanel} />}
+        {data.source === "block" && !inventoryError && Body && <Body key={data.identifier} data={data} fillsPanelHeight={isLargeMachinePanel} />}
       </GamePanel>
       {/* uGUIのEsc/Tab相当のマウス閉じ操作。GameScreenへの遷移をhostへ要求する */}
       {/* Mouse-driven close, like uGUI Esc/Tab; asks the host to transit to GameScreen */}
@@ -84,7 +84,7 @@ type TrainError = NonNullable<Extract<BlockInventoryData, { source: "train" }>["
 const TrainErrorKeys: Record<TrainError, TranslationKey> = {
   containerMissing: L.ui.blockInventory.trainNoItemContainer,
   trainCarMissing: L.ui.blockInventory.trainNotFound,
-  openFailed: L.ui.blockInventory.trainOpenFailed,
+  openFailed: L.ui.blockInventory.inventoryOpenFailed,
 };
 
 function resolveTrainErrorKey(error: TrainError): TranslationKey {

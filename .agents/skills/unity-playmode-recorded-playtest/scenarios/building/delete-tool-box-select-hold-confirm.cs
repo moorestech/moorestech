@@ -1,5 +1,5 @@
-// 削除ツールの新方式: なぞり選択は離しても残り、F長押し(2秒)で確定。Shift+クリック2点の箱で範囲選択。ESCで全解除。Ctrl+Zで復元
-// New delete-tool flow: stroke selection survives release, F hold (2s) confirms; Shift+click two-point box selects a range; ESC clears; Ctrl+Z restores
+// 削除ツールの新方式: なぞり選択は離しても残り、F長押し(件数で0.75〜1.75秒)で確定。Shift+クリック2点の箱で範囲選択。ESCで全解除。Ctrl+Zで復元
+// New delete-tool flow: stroke selection survives release, F hold (0.75-1.75s by count) confirms; Shift+click two-point box selects a range; ESC clears; Ctrl+Z restores
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Confirm;
 using Client.Playtest;
@@ -17,6 +17,7 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
+    await p.SkipOpeningSkit();
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.WarpPlayer(new Vector3(2.5f, 33.5f, -2f));
 
@@ -52,11 +53,11 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
 
     // Step 2: F長押しで確定
     // Step 2: F hold confirms
-    p.Note("Step 2: F長押し2秒で選択を削除");
+    p.Note("Step 2: F長押し0.75秒（1件）で選択を削除");
     SemanticInput.KeyDown(Key.F);
-    await p.WaitSeconds(2f * 0.5f);
+    await p.WaitSeconds(0.75f * 0.5f);
     await p.Screenshot("03-holding");
-    await p.WaitSeconds(2f * 0.5f + 0.3f);
+    await p.WaitSeconds(0.75f * 0.5f + 0.3f);
     SemanticInput.KeyUp(Key.F);
     await p.Until(() => p.GetBlock(cells[0]) == null, 15f, "Step2: F長押し満了でチェスト1が撤去される");
     p.Assert(p.GetBlock(cells[1]) != null, "Step2: 選択があるとき別のホバー対象を消さない");

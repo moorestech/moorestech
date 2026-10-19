@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using Client.Tests.BuildUndo;
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
@@ -29,7 +30,7 @@ namespace Client.Tests.UIState
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = false, DenyReason = null };
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             var outcome = selection.TryAddTarget(target);
             var added = outcome.IsAdded;
             var denyReason = outcome.DenyReason;
@@ -49,7 +50,7 @@ namespace Client.Tests.UIState
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             var target = new FakeDeleteTarget { Removable = true };
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             selection.CancelSelection();
             var outcome = selection.TryAddTarget(target);
             var added = outcome.IsAdded;
@@ -72,7 +73,7 @@ namespace Client.Tests.UIState
                 DenyReason = LocalizationKeys.Ui.Delete.RailHasVehicle,
             };
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             var outcome = selection.TryAddTarget(target);
             var added = outcome.IsAdded;
             var denyReason = outcome.DenyReason;

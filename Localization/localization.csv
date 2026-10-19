@@ -18,7 +18,7 @@ ui.error.renderFailed,There was a problem rendering the screen. Please reload.,T
 ui.error.reload,Reload,Reload,再読み込み,Neu laden,새로고침
 ui.blockInventory.trainNoItemContainer,This train has no item container,This train has no item container,この列車にはアイテムコンテナがありません,Dieser Zug hat keinen Gegenstandsbehälter,이 열차에는 아이템 컨테이너가 없습니다
 ui.blockInventory.trainNotFound,Train not found,Train not found,列車が見つかりません,Zug nicht gefunden,열차를 찾을 수 없습니다
-ui.blockInventory.trainOpenFailed,Could not open train inventory,Could not open train inventory,列車のインベントリを開けませんでした,Zuginventar konnte nicht geöffnet werden,열차 인벤토리를 열 수 없습니다
+ui.blockInventory.inventoryOpenFailed,Could not load inventory,Could not load inventory,インベントリを取得できませんでした,Inventar konnte nicht geladen werden,인벤토리를 불러올 수 없습니다
 ui.blockInventory.trainInventory,Train Inventory,Train Inventory,列車インベントリ,Zuginventar,열차 인벤토리
 ui.blockInventory.gearConsumedTorque,Consumed torque {value},Consumed torque {value},消費トルク {value},Verbrauchtes Drehmoment {value},소비 토크 {value}
 ui.blockInventory.gearGeneratedTorque,Generated torque {value},Generated torque {value},発生トルク {value},Erzeugtes Drehmoment {value},발생 토크 {value}
@@ -44,7 +44,6 @@ ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrie
 ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨
 ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen,적재
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し,Entladen,하역
-ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity},容量: {capacity},Kapazität: {capacity},용량: {capacity}
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze,업그레이드 슬롯
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute,분당 생산량
 ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden,{seconds}초
@@ -213,6 +212,7 @@ ui.keyHint.key.branchKeys,A/D,A/D,A/D,A/D,A/D
 ui.keyHint.key.leftAltHold,Left Alt (Hold),Left Alt (Hold),左Alt（長押し）,Alt links (halten),왼쪽 Alt (길게 누르기)
 ui.keyHint.key.middleClick,Middle Click,Middle Click,中クリック,Mittelklick,마우스 가운데 버튼 클릭
 ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ,Mit links ziehen,왼쪽 드래그
+ui.keyHint.key.ctrlLeftDrag,Ctrl + Left Drag,Ctrl + Left Drag,Ctrl+左ドラッグ,Strg + mit links ziehen,Ctrl + 왼쪽 드래그
 ui.keyHint.key.rightClick,Right Click,Right Click,右クリック,Rechtsklick,오른쪽 클릭
 ui.keyHint.key.doubleClick,Double Click,Double Click,ダブルクリック,Doppelklick,더블 클릭
 ui.keyHint.key.fHold,F (Hold),F (Hold),F（長押し）,F (halten),F (길게 누르기)
@@ -237,6 +237,7 @@ ui.keyHint.text.raiseHeight,Raise Placement Height,Raise Placement Height,設置
 ui.keyHint.text.undo,Undo,Undo,元に戻す,Rückgängig,실행 취소
 ui.keyHint.text.dragSelect,Select Together,Select Together,まとめて選択,Gemeinsam auswählen,함께 선택
 ui.keyHint.text.boxSelect,Box Select,Box Select,範囲選択,Bereich auswählen,범위 선택
+ui.keyHint.text.deselectDrag,Remove from Selection,Remove from Selection,選択から外す,Aus Auswahl entfernen,선택에서 제외
 ui.keyHint.text.lowerBoxHeight,Lower Range Height,Lower Range Height,範囲の高さを下げる,Bereichshöhe senken,범위 높이 낮추기
 ui.keyHint.text.raiseBoxHeight,Raise Range Height,Raise Range Height,範囲の高さを上げる,Bereichshöhe erhöhen,범위 높이 높이기
 ui.keyHint.text.deleteSelected,Delete Selected,Delete Selected,選択を削除,Auswahl entfernen,선택 삭제
@@ -357,6 +358,8 @@ ui.tooltip.blueprintCopyBlocksInRange,Blocks in range: {p0},Blocks in range: {p0
 ui.tooltip.blueprintCopyEmptyRange,No blocks in range,No blocks in range,範囲にブロックがありません,Keine Blöcke im Bereich,범위에 블록이 없습니다
 ui.tooltip.deleteBoxTargetsInRange,Targets in range: {p0},Targets in range: {p0},範囲内の対象: {p0},Ziele im Bereich: {p0},범위 내 대상: {p0}
 ui.tooltip.deleteBoxEmptyRange,No targets in range,No targets in range,範囲に対象がありません,Keine Ziele im Bereich,범위에 대상이 없습니다
+ui.tooltip.deleteBoxSelectedInRange,Selected in range: {p0},Selected in range: {p0},範囲内の選択済み: {p0}件,Ausgewählt im Bereich: {p0},범위 내 선택됨: {p0}개
+ui.tooltip.deleteBoxNoSelectedInRange,No selected targets in range,No selected targets in range,範囲に選択済みの対象がありません,Keine ausgewählten Ziele im Bereich,범위에 선택된 대상이 없습니다
 ui.tooltip.deleteSelectedCount,Selected: {p0},Selected: {p0},選択中: {p0}件,Ausgewählt: {p0},선택 중: {p0}개
 ui.tooltip.holdToDelete,Hold F to delete,Hold F to delete,F長押しで削除,F gedrückt halten zum Entfernen,F를 길게 눌러 삭제
 ui.notification.blueprintCreateRequestFailed,Blueprint could not be created because the request failed,Blueprint could not be created because the request failed,通信に失敗したためブループリントを作成できませんでした,Der Bauplan konnte wegen eines Verbindungsfehlers nicht erstellt werden,요청에 실패하여 설계도를 만들지 못했습니다

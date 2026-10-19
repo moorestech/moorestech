@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Client.Network.API;
 using Core.Item.Interface;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface.State;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 
@@ -31,8 +33,17 @@ namespace Client.Network.API.Requests
         public async UniTask<InventoryResponse> GetInventory(InventoryIdentifierMessagePack identifier, CancellationToken ct)
         {
             var request = new InventoryRequestProtocol.RequestInventoryRequestProtocolMessagePack(identifier);
-            var response = await _packetExchangeManager.GetPacketResponse<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
-            return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Result);
+            var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(request, ct);
+            ct.ThrowIfCancellationRequested();
+            // 通信失敗を画面まで運び、古い在庫を正常表示しない
+            // Carry transport failures to the screen instead of keeping stale inventory
+            if (reason != PacketWaitCompletionReason.Received)
+            {
+                var result = reason == PacketWaitCompletionReason.Timeout ? InventoryRequestResult.Timeout : InventoryRequestResult.DeserializeFailed;
+                UnityEngine.Debug.LogWarning($"Inventory request failed: {result}");
+                return new InventoryResponse(identifier, new List<IItemStack>(), new List<FluidMessagePack>(), result);
+            }
+            return new InventoryResponse(response.Identifier, CreateStacks(response.Items), response.Fluids.ToList(), response.Result);
 
             #region Internal
 

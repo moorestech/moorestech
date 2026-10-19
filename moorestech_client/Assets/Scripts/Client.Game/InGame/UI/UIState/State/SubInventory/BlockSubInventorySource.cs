@@ -69,6 +69,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public SubInventoryModel CreateModel(InventoryResponse inventoryResponse)
         {
             var model = new SubInventoryModel(new BlockInventorySubInventoryIdentifier(_originalPos));
+            model.SetResult(inventoryResponse.Result);
             if (inventoryResponse.Result != InventoryRequestResult.Success)
             {
                 Debug.Log($"ブロックインベントリの取得に失敗しました。結果:{inventoryResponse.Result} 位置:{InventoryIdentifier.BlockPosition.Vector3Int}");

@@ -1,3 +1,4 @@
+using Game.Fluid;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
@@ -61,11 +62,50 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.AreEqual(InventoryType.Train, data.InventoryType); // inventory type
             Assert.AreEqual(InventoryRequestResult.Success, data.Result); // request result
+            Assert.AreEqual(0, data.Fluids.Length);
             Assert.AreEqual(3, data.Items.Length); // slot count
             Assert.AreEqual(1, data.Items[0].Id.AsPrimitive());
             Assert.AreEqual(7, data.Items[0].Count);
             Assert.AreEqual(2, data.Items[1].Id.AsPrimitive());
             Assert.AreEqual(3, data.Items[1].Count);
+        }
+
+        [Test]
+        public void TrainInventoryRequestWithFluidContainer()
+        {
+            var environment = TrainTestHelper.CreateEnvironment();
+            var railA = TrainTestHelper.PlaceRail(environment, new Vector3Int(0, 0, 0), BlockDirection.North);
+            var railB = TrainTestHelper.PlaceRail(environment, new Vector3Int(100, 0, 0), BlockDirection.North);
+
+            railA.FrontNode.ConnectNode(railB.FrontNode, 10);
+            railB.BackNode.ConnectNode(railA.BackNode, 10);
+            railB.FrontNode.ConnectNode(railA.FrontNode, 10);
+            railA.BackNode.ConnectNode(railB.BackNode, 10);
+
+            // 列車とインベントリを準備
+            // Prepare train and its inventory
+            var frontNode = railB.FrontNode;
+            var backNode = railA.FrontNode;
+            var distance = Mathf.Max(1, frontNode.GetDistanceToNode(backNode));
+            var railPosition = new RailPosition(new List<IRailNode> { frontNode, backNode }, distance, 0);
+            var (trainCar, fluidContainer) = TrainTestCarFactory.CreateTrainCarWithFluidContainer(0, 400000, 1000, distance, true);
+            var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { trainCar }, environment.GetTrainRailPositionManager(), environment.GetTrainDiagramManager());
+
+            environment.GetITrainUnitMutationDatastore().RegisterTrain(trainUnit);
+
+            var waterId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("00000000-0000-0000-1234-000000000001"));
+            fluidContainer.Container.AddLiquid(new FluidStack(300, waterId));
+
+            var responseBytes = environment.PacketResponseCreator.GetPacketResponse(RequestTrain(trainCar.TrainCarInstanceId), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1))[0];
+            var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(responseBytes);
+
+            Assert.AreEqual(InventoryType.Train, data.InventoryType);
+            Assert.AreEqual(InventoryRequestResult.Success, data.Result);
+            Assert.AreEqual(0, data.Items.Length);
+            Assert.AreEqual(1, data.Fluids.Length);
+            Assert.AreEqual(waterId.AsPrimitive(), data.Fluids[0].FluidId);
+            Assert.AreEqual(300, data.Fluids[0].Amount);
+            Assert.AreEqual(1000, data.Fluids[0].MaxCapacity);
         }
 
         [Test]

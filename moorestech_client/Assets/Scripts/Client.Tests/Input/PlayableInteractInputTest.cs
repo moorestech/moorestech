@@ -52,14 +52,14 @@ namespace Client.Tests.Input
             InputSystem.Update();
             Press(keyboard.fKey);
             InputSystem.Update();
-            hold.SetSubject(DeleteHoldSubject.Selection(1));
+            hold.SetSubject(DeleteHoldSubject.Selection(1, 1));
             if (cancelled) hold.Cancel(true);
             else Assert.IsTrue(hold.Advance(true, 2f));
 
             // 実解放のないモード再入場では、満了・取消の待機を維持する
             // Re-entering without a physical release preserves completion and cancellation latches
             hold.Reset();
-            hold.SetSubject(DeleteHoldSubject.Selection(2));
+            hold.SetSubject(DeleteHoldSubject.Selection(2, 1));
             Assert.IsFalse(hold.Advance(true, 3f));
             WebUiInputExclusivity.SetState(false, true);
             Release(keyboard.fKey);
@@ -75,7 +75,7 @@ namespace Client.Tests.Input
             // After leaving text input, the held key can start the next confirmation
             WebUiInputExclusivity.SetState(false, false);
             Assert.IsTrue(interact.GetKey);
-            hold.SetSubject(DeleteHoldSubject.Selection(2));
+            hold.SetSubject(DeleteHoldSubject.Selection(2, 1));
             Assert.IsTrue(hold.Advance(interact.GetKey, 2f));
         }
 

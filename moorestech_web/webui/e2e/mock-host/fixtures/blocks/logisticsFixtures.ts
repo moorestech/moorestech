@@ -51,8 +51,8 @@ export const blockTrainPlatform = {
   trainPlatform: { mode: "loadToTrain", itemSlotCount: 2 },
 } satisfies BlockInventoryWireData;
 
-// B2 液体PFのマスタ容量
-// B2 fluid platform: the same master capacity shown by uGUI
+// 液体PFの在庫と切り替えモード
+// Fluid platform inventory and transfer mode
 export const blockTrainFluidPlatform = {
   open: true,
   source: "block",
@@ -60,6 +60,6 @@ export const blockTrainFluidPlatform = {
   identifier: "block:12",
   blockGuid: BlockGuids.TRAIN_FLUID_PLATFORM_BLOCK_GUID,
   itemSlots: [],
-  fluidSlots: [],
-  trainPlatform: { mode: "unloadToPlatform", fluidCapacity: 1000 },
+  fluidSlots: [{ fluidId: 1, amount: 250, capacity: 1000, fluidGuid: WATER_FLUID_GUID }],
+  trainPlatform: { mode: "unloadToPlatform" },
 } satisfies BlockInventoryWireData;

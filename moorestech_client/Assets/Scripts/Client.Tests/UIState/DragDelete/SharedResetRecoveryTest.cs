@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System;
 using System.Reflection;
 using Client.Game.InGame.UI.Tooltip;
@@ -38,7 +39,7 @@ namespace Client.Tests.UIState
             var selection = (DeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
             var preview = (SingleHoverDeletePreview)typeof(DeleteSelection).GetField("_hoverPreview", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(selection);
             var target = new FakeDeleteTarget { Removable = true, ThrowOnReset = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
 
             // キャンセルと確定のどちらの失敗もホバーと共有する
@@ -59,7 +60,7 @@ namespace Client.Tests.UIState
 
             // 再ドラッグからも失敗済みResetを実行しない
             // A later drag must not repeat the failed reset either
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             Assert.DoesNotThrow(() => service.ClearAll());
             Assert.AreEqual(1, target.ResetCount);
@@ -76,7 +77,7 @@ namespace Client.Tests.UIState
             preview.Hover(target);
             Assert.Throws<InvalidOperationException>(() => service.ClearAll());
 
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             LogAssert.Expect(LogType.Warning, "[DragDelete] delete preview suppressed because the target's previous reset did not complete");
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             Assert.DoesNotThrow(() => service.ClearAll());
@@ -92,7 +93,7 @@ namespace Client.Tests.UIState
             var selection = (DeleteSelection)typeof(DeleteObjectService).GetField("_selection", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(service);
             var preview = (SingleHoverDeletePreview)typeof(DeleteSelection).GetField("_hoverPreview", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(selection);
             var target = new FakeDeleteTarget { Removable = true };
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             service.ClearAll();
 
@@ -101,7 +102,7 @@ namespace Client.Tests.UIState
             preview.Hover(target);
             Assert.AreSame(target, preview.Current);
             preview.Release();
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             service.ClearAll();
             Assert.AreEqual(3, target.ResetCount);

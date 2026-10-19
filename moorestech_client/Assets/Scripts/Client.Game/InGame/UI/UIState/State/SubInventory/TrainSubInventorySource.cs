@@ -48,6 +48,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public SubInventoryModel CreateModel(InventoryResponse inventoryResponse)
         {
             var model = new SubInventoryModel(new TrainInventorySubInventoryIdentifier(TrainCarInstanceId));
+            model.SetResult(inventoryResponse.Result);
             switch (inventoryResponse.Result)
             {
                 // 成功応答は前回の失敗理由を持ち越さない（エラー種別付きでアイテムが並ぶ矛盾を防ぐ）
@@ -55,6 +56,7 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
                 case InventoryRequestResult.Success:
                     LastOpenMessage = null;
                     model.SetItems(inventoryResponse.Items);
+                    model.SetFluids(inventoryResponse.Fluids);
                     return model;
                 case InventoryRequestResult.ContainerNotFound:
                     LastOpenMessage = TrainInventoryMessageType.ContainerMissing;

@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
 using System;
 using UniRx;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
@@ -44,7 +45,7 @@ namespace Client.Tests.UIState
             var selection = new DeleteSelection(history, new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             UnityEngine.Object.DestroyImmediate(_selectedObject);
 
@@ -61,7 +62,7 @@ namespace Client.Tests.UIState
             var selection = new DeleteSelection(new BuildOperationHistory(), new FakeRemovalRestoreSender(), new DeletePreviewResetRecovery());
             _selectedObject = new GameObject("SelectedRail");
             var target = _selectedObject.AddComponent<DestroyableDeleteTarget>();
-            selection.BeginStroke();
+            selection.BeginStroke(DeleteSelectionIntent.Add);
             Assert.IsTrue(selection.TryAddTarget(target).IsAdded);
             UnityEngine.Object.DestroyImmediate(_selectedObject);
 

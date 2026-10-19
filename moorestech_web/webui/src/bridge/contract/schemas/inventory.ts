@@ -125,7 +125,6 @@ export const TrainPlatformModeSchema = z.enum(["loadToTrain", "unloadToPlatform"
 export const TrainPlatformDataSchema = z.object({
   mode: TrainPlatformModeSchema,
   itemSlotCount: z.number().int().nonnegative().optional(),
-  fluidCapacity: z.number().nonnegative().optional(),
 });
 
 // 時刻表は駅ブロック座標で対象を固定し、表示名は独立して保持する
@@ -155,6 +154,7 @@ const TrainStationDetailSchema = z.object({ name: z.string() });
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("block"),
+  error: z.literal("openFailed").optional(),
   blockType: z.string(),
   identifier: z.string(),
   blockGuid: GuidSchema,

@@ -38,6 +38,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     // Disable free placement to observe consumption and refunds
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { FreeBlockPlacement = false, SpawnPosition = new Vector3(8f, 33.5f, -6f) });
     await p.SkipOpeningSkitIfPlaying();
+    await p.WaitUiState(UIStateEnum.GameScreen, 15f);
 
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     foreach (var tool in new[] { "電線", "歯車チェーン" }) p.Hotbar.UnlockConnectTool(tool);
@@ -122,7 +123,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
 
     #region Internal
 
-    // 選択後にFを2秒長押しして撤去を確定する
+    // 選択後にFを長押し（件数で最大1.75秒）して撤去を確定する
     // Hold F for two seconds to confirm deletion after selecting
     async UniTask HoldDeleteConfirm()
     {

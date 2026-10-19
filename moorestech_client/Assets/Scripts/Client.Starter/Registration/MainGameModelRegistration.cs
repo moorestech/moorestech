@@ -2,6 +2,7 @@ using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BeltTransport.Network;
+using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.LastSession;
@@ -94,6 +95,8 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<WorldDataHandler>();
             builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
+            builder.Register<BlockPreviewRadiusCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
+            builder.RegisterEntryPoint<BlockPreviewRadiusRegisterService>();
             builder.RegisterEntryPoint<PlayerPositionSender>().AsSelf();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();

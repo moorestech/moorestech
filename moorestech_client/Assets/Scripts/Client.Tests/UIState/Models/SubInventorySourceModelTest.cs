@@ -1,4 +1,6 @@
+using Game.Block.Interface.State;
 using System.Collections.Generic;
+using Game.Fluid;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Train;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -32,13 +34,28 @@ namespace Client.Tests.UIState.Models
         public void 列車ソースはコンテナ無し応答をエラー種別へ写す()
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
-            var response = new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound);
+            var response = new InventoryResponse(identifier, new List<IItemStack>(), new List<FluidMessagePack>(), InventoryRequestResult.ContainerNotFound);
             var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
 
             var model = source.CreateModel(response);
 
             Assert.AreEqual(TrainInventoryMessageType.ContainerMissing, source.LastOpenMessage);
             Assert.AreEqual(0, model.Count);
+        }
+
+        [TestCase(InventoryRequestResult.Timeout)]
+        [TestCase(InventoryRequestResult.DeserializeFailed)]
+        public void 通信失敗は両ソースの表示モデルへ残る(InventoryRequestResult result)
+        {
+            var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
+            var response = new InventoryResponse(source.InventoryIdentifier, new List<IItemStack>(), new List<FluidMessagePack>(), result);
+            var model = source.CreateModel(response);
+            Assert.AreEqual(result, model.Result);
+            Assert.AreEqual(TrainInventoryMessageType.OpenFailed, source.LastOpenMessage);
+            var block = new BlockSubInventorySource(null, Vector3Int.zero);
+            var blockModel = block.CreateModel(response);
+            Assert.AreEqual(result, blockModel.Result);
+            Assert.AreEqual(0, blockModel.Count);
         }
 
         [Test]
@@ -48,7 +65,7 @@ namespace Client.Tests.UIState.Models
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty(), ServerContext.ItemStackFactory.CreatEmpty() };
             var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
 
-            var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));
+            var model = source.CreateModel(new InventoryResponse(identifier, items, new List<FluidMessagePack>(), InventoryRequestResult.Success));
 
             Assert.IsNull(source.LastOpenMessage);
             Assert.AreEqual(2, model.Count);
@@ -60,9 +77,9 @@ namespace Client.Tests.UIState.Models
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty() };
             var source = new TrainSubInventorySource(new TrainCarInstanceId(7), _trainCarViewRegistry);
-            source.CreateModel(new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound));
+            source.CreateModel(new InventoryResponse(identifier, new List<IItemStack>(), new List<FluidMessagePack>(), InventoryRequestResult.ContainerNotFound));
 
-            var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));
+            var model = source.CreateModel(new InventoryResponse(identifier, items, new List<FluidMessagePack>(), InventoryRequestResult.Success));
 
             Assert.IsNull(source.LastOpenMessage);
             Assert.AreEqual(1, model.Count);

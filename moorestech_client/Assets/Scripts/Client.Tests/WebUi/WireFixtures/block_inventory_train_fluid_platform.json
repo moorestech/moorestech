@@ -7,7 +7,6 @@
   "itemSlots": [],
   "fluidSlots": [],
   "trainPlatform": {
-    "mode": "unloadToPlatform",
-    "fluidCapacity": 1000.0
+    "mode": "unloadToPlatform"
   }
 }

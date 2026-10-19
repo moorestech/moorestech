@@ -9,8 +9,15 @@ vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
   useI18n: () => ({ t: (key: string, params?: Record<string, unknown>) => `${key}|${JSON.stringify(params)}` }),
 }));
+vi.mock("@/bridge", async (original) => ({
+  ...(await original<typeof import("@/bridge")>()),
+  useFluidMaster: () => new Map([["water", { color: "#0088ff" }]]),
+  useConnectionStatus: () => "connected",
+}));
 vi.mock("@mantine/core", () => ({
+  Tooltip: ({ children }: { children: unknown }) => children,
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
+  Group: ({ children, ...props }: { children: unknown }) => createElement("mock-group", props, children as never),
   Text: ({ children, ...props }: { children: unknown }) => createElement("mock-text", props, children as never),
 }));
 vi.mock("../../BlockItemGrid", () => ({
@@ -19,7 +26,6 @@ vi.mock("../../BlockItemGrid", () => ({
 vi.mock("@/shared/ui", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/ui")>()),
   HoverTooltip: ({ children }: { children: unknown }) => createElement("mock-hover-tooltip", null, children as never),
-  FluidSlotRow: ({ testId, progress }: { testId: string; progress: number | null }) => createElement("aside", { "data-testid": testId, progress }),
 }));
 
 import SectionStackView from "../SectionStackView";
@@ -31,7 +37,7 @@ function render(data: BlockInventoryOpen) {
 }
 
 function dataFor(blockType: string, itemSlots: BlockInventoryOpen["itemSlots"]): BlockInventoryOpen {
-  return { open: true, source: "block", blockType, identifier: "block:1", blockGuid: "g", itemSlots, fluidSlots: [], progress: 0.4 } as unknown as BlockInventoryOpen;
+  return { open: true, source: "block", blockType, identifier: "block:1", blockGuid: "g", itemSlots, fluidSlots: [{ kind: "empty", capacity: 100 }], progress: 0.4 } as unknown as BlockInventoryOpen;
 }
 
 describe("SectionStackView", () => {
@@ -49,15 +55,40 @@ describe("SectionStackView", () => {
     ["unknown", "generic-block-grid", "generic-block-fluids", false, true],
   ])("%s の既存表示を保つ", (blockType, itemGridTestId, fluidRowTestId, renderEmptyGrid, showFluidProgress) => {
     const tree = render(dataFor(blockType, []));
-    const emptyGrids = tree.root.findAll((n) => n.type === "div");
+    const emptyGrids = tree.root.findAll((n) => n.type === "div" && n.props["data-testid"] !== undefined && n.props["data-testid"] !== "fluid-slot" && n.props["data-testid"] !== "progress-arrow-bar");
     expect(emptyGrids.map((n) => n.props["data-testid"])).toEqual(renderEmptyGrid ? [itemGridTestId] : []);
-    const fluids = tree.root.findAll((n) => n.type === "aside");
+    const fluids = tree.root.findAll((n) => String(n.type) === "mock-group" && n.props["data-testid"] !== undefined);
     expect(fluids.map((n) => n.props["data-testid"])).toEqual(fluidRowTestId ? [fluidRowTestId] : []);
-    if (fluidRowTestId) expect(fluids[0].props.progress).toBe(showFluidProgress ? 0.4 : null);
+    if (fluidRowTestId) expect(tree.root.findAllByProps({ "data-testid": "progress-arrow-bar" })).toHaveLength(showFluidProgress ? 1 : 0);
     act(() => { tree.unmount(); });
     const populated = render(dataFor(blockType, [{ itemId: 1, count: 1 }]));
-    expect(populated.root.findAll((n) => n.type === "div").map((n) => n.props["data-testid"])).toEqual(itemGridTestId ? [itemGridTestId] : []);
+    expect(populated.root.findAll((n) => n.type === "div" && n.props["data-testid"] !== undefined && n.props["data-testid"] !== "fluid-slot" && n.props["data-testid"] !== "progress-arrow-bar").map((n) => n.props["data-testid"])).toEqual(itemGridTestId ? [itemGridTestId] : []);
     act(() => { populated.unmount(); });
+  });
+
+  it("パイプは液体だけを進捗なしで描画する", () => {
+    const data = dataFor("FluidPipe", []);
+    data.fluidSlots = [{ kind: "filled", fluidGuid: "water", amount: 40, capacity: 100 }];
+    const tree = render(data);
+    expect(tree.root.findAllByProps({ "data-testid": "progress-arrow-bar" })).toHaveLength(0);
+    expect(tree.root.findByType("img").props.src).toBe("/api/fluid-icons/water.png");
+    expect(tree.root.findAll((n) => String(n.type) === "mock-text").map((n) => Array.isArray(n.props.children) ? n.props.children.join("") : n.props.children)).toEqual(["fluid.water.name|undefined", "40 / 100"]);
+    expect(tree.root.findAllByProps({ "data-testid": "generic-block-grid" })).toHaveLength(0);
+    act(() => { tree.update(createElement(SectionStackView, { data: { ...data, fluidSlots: [{ kind: "filled", fluidGuid: "water", amount: 60, capacity: 100 }] }, fillsPanelHeight: false })); });
+    expect(tree.root.findByProps({ "data-testid": "fluid-slot" }).findByType("span").props.children).toBe("60");
+    expect(tree.root.findAll((n) => String(n.type) === "mock-text").map((n) => n.props.children)).toContain("60 / 100");
+    act(() => { tree.unmount(); });
+  });
+
+  it("空のパイプは名前や容量を表示せず空スロットを残す", () => {
+    const data = dataFor("FluidPipe", []);
+    data.fluidSlots = [{ kind: "empty", capacity: 100 }];
+    const tree = render(data);
+    expect(tree.root.findByProps({ "data-testid": "fluid-pipe-fluid-slots-slot-0" })).toBeDefined();
+    expect(tree.root.findAll((n) => String(n.type) === "mock-text")).toHaveLength(0);
+    expect(tree.root.findAllByProps({ "data-testid": "fluid-slot" })).toHaveLength(1);
+    expect(tree.root.findAllByType("img")).toHaveLength(0);
+    act(() => { tree.unmount(); });
   });
 
   it("親から状態・供給・歯車・電力網・歯車網を順に描画する", () => {
@@ -74,7 +105,7 @@ describe("SectionStackView", () => {
     ]);
     expect(tree.root.findByProps({ "data-testid": "gear-to-electric-state" }).props.children).toBe("ui.blockInventory.gearToElectricStateGenerating|undefined");
     expect(tree.root.findByProps({ "data-testid": "gear-to-electric-supplied-power" }).props.children).toBe('ui.blockInventory.gearToElectricSuppliedPower|{"current":"72","max":"100"}');
-    expect(tree.root.findAll((n) => n.type === "div" && n.props["data-testid"] !== undefined)).toHaveLength(0);
+    expect(tree.root.findAll((n) => n.type === "div" && n.props["data-testid"] !== undefined && n.props["data-testid"] !== "fluid-slot" && n.props["data-testid"] !== "progress-arrow-bar" && n.props["data-testid"] !== undefined)).toHaveLength(0);
     act(() => { tree.unmount(); });
   });
 });

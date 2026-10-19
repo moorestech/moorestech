@@ -1,6 +1,6 @@
 import { Stack } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
-import { FluidSlotRow } from "@/shared/ui";
+import FluidInventoryContents from "../fluid/FluidInventoryContents";
 import BlockItemGrid from "../BlockItemGrid";
 import TrainPlatformSection from "../details/TrainPlatformSection";
 
@@ -19,7 +19,7 @@ export default function TrainPlatformInventory({ data }: { data: BlockInventoryO
         <BlockItemGrid itemSlots={data.itemSlots} testId={ITEM_SLOTS_TEST_ID} />
       ) : null}
       {data.fluidSlots.length > 0 ? (
-        <FluidSlotRow fluids={data.fluidSlots.map((fluid) => ({ fluid }))} progress={null} testId={FLUID_SLOTS_TEST_ID} />
+        <FluidInventoryContents fluids={data.fluidSlots} testId={FLUID_SLOTS_TEST_ID} />
       ) : null}
       <TrainPlatformSection data={data} />
     </Stack>
