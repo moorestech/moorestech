@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.UI.UIState.State;
+using Game.Block.Interface;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Box;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Selection;
@@ -113,6 +116,46 @@ namespace Client.Tests.UIState.DragDelete.Service
             Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange)));
             Assert.AreEqual(0, Selection.Count);
             Assert.IsFalse(Selection.IsSelected(unselected));
+        }
+
+        [Test]
+        public void 実Resolverが選択中に撤去不可となった対象を残し0件の終点を拒否する()
+        {
+            var block = CreateComponent<BlockGameObject>("SelectedDeniedBlock");
+            var child = block.gameObject.AddComponent<BlockGameObjectChild>();
+            child.Init(block);
+            var min = new Vector3Int(10000, 0, 10000);
+            TestReflection.SetField(block, "<BlockPosInfo>k__BackingField", new BlockPositionInfo(min, BlockDirection.North, Vector3Int.one));
+            TestReflection.SetField(block, "<DeleteTarget>k__BackingField", child);
+            var blocks = TestReflection.GetField<BlockGameObjectDataStore>(Resolver, "_blockGameObjectDataStore");
+            TestReflection.GetField<Dictionary<BlockInstanceId, BlockGameObject>>(blocks, "_blockObjectsByInstanceIdDictionary").Add(new BlockInstanceId(1), block);
+            // 表示だけ代役にし、実resolverの対象と同じキーを選択する
+            // Substitute only the preview while selecting the real resolver target's key
+            Assert.IsTrue(child.IsRemovable(out _));
+            Assert.Contains(child, new List<IDeleteTarget>(Resolver.Resolve(min, min + Vector3Int.one, Selection, DeleteSelectionIntent.Add)));
+            var selected = new FakeDeleteTarget { Key = block, Removable = true };
+            Selection.ApplyBoxTargets(new[] { selected }, DeleteSelectionIntent.Add);
+            Assert.IsTrue(Selection.IsSelected(child));
+            TestReflection.SetField(child, "_removeDeniedReason", (LocalizationKey?)LocalizationKeys.Ui.Delete.InventoryFull);
+            TestReflection.SetField(child, "_removeDeniedReasonUntil", float.PositiveInfinity);
+            // 選択を保持したまま撤去不可へ遷移させる
+            // Become non-removable while keeping the selection intact
+            selected.Removable = false;
+            Assert.IsFalse(child.IsRemovable(out _));
+            Assert.AreEqual(0, Resolver.Resolve(min, min + Vector3Int.one, Selection, DeleteSelectionIntent.Remove).Count);
+            StartRemoveBox();
+            var lines = new List<TooltipLine>();
+            Frame(true, Array.Empty<Key>());
+            Box.Update(Selection, lines, false, DeleteSelectionIntent.Remove);
+            Frame(false, Array.Empty<Key>());
+            lines.Clear();
+            Box.Update(Selection, lines, false, DeleteSelectionIntent.Remove);
+            Assert.AreEqual(DeleteBoxPhase.SelectingEnd, Model().Phase);
+            Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange)));
+            Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange) && line.TextParams.Count == 1 && line.TextParams[0] == "0"));
+            Assert.AreEqual(1, Selection.Count);
+            Assert.IsTrue(Selection.IsSelected(child));
+            Assert.AreEqual(0, selected.ResetCount);
         }
 
         private void StartRemoveBox()
