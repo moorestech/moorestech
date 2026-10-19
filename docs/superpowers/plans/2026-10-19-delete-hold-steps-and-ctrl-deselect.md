@@ -1646,7 +1646,7 @@ git commit -m "test: 削除ツールのCtrl除外とF長押し段階の録画シ
 
 ### Task 6: PR 作成
 
-- [ ] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に ADR 0084・録画のスクショ/動画パスと「本PR外のリファクタ提案」節（下記）を載せる。PR を出したら worktree は `moores-wt rm delete-hold-steps-and-ctrl-deselect` で畳む。
+- [x] セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える。PR本文に ADR 0084・録画のスクショ/動画パスと「本PR外のリファクタ提案」節（下記）を載せる。PR を出したら worktree は `moores-wt rm delete-hold-steps-and-ctrl-deselect` で畳む。
 
 ## 本PR外のリファクタ提案
 
@@ -1667,3 +1667,5 @@ git commit -m "test: 削除ツールのCtrl除外とF長押し段階の録画シ
 - 除外の箱は `MaterialConst.PlaceableColor`（青）、GameObject 名接頭辞 `DeleteDeselectBox`。始点マーカーは既存どおり赤。出所: agent前提（追加の赤と見分ける最小の手段）。
 - Ctrl 単独押下中のツールチップ案内・除外の箱専用キーヒントは足さない（ADR 0084「キーヒントは Ctrl+左ドラッグ 1件」）。出所: agent前提。
 - ランタイム挙動（入力・UI）に触れるため unityプレイ録画テスト（Task 4）を含める。
+
+PR作成結果: PR #1533、報告ページ（画像7枚・動画8本）公開済み、MERGEABLE確認済み。最終Web build（tsc含む）成功。worktree整理はコントローラーが実施する。
