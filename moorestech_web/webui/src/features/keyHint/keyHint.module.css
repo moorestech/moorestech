@@ -1,9 +1,10 @@
 /* 左下へ操作ヒントを固定する。文字様式は共有の keyHintText が持つ（§7） */
 /* Fix the key hints to the bottom-left; the shared keyHintText class owns the text style (§7) */
 .keyHints {
+  --key-hint-bottom-gap: 8px;
   position: absolute;
   left: 7px;
-  bottom: 8px;
+  bottom: var(--key-hint-bottom-gap);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -14,7 +15,7 @@
 /* 削除警告帯の上に既存の底余白を確保する */
 /* Keep the existing bottom gap above the deletion warning band */
 .keyHints[data-delete-mode="true"] {
-  bottom: calc(var(--delete-mode-warning-band-height) + 8px);
+  bottom: calc(var(--delete-mode-warning-band-height) + var(--key-hint-bottom-gap));
 }
 
 .hint {

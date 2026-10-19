@@ -14,15 +14,15 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Selection
         // 論理削除キーで重複排除する（同一機械の複数メッシュ子などを1件に集約）
         // Dedupe by logical delete key so multiple mesh children of one machine collapse into one
         private readonly Dictionary<object, IDeleteTarget> _targets = new();
-        private readonly CompositeDisposable _placeAnimationSubscriptions = new();
+        private readonly Dictionary<object, IDisposable> _placeAnimationSubscriptions = new();
         private readonly DeletePreviewResetRecovery _resetRecovery;
         private readonly DeletePreviewReleaseQueue _pendingResets;
-        private readonly Subject<int> _changed = new();
+        private readonly Subject<int> _selectionChanged = new();
 
         internal int Count => _targets.Count;
         internal IEnumerable<IDeleteTarget> Values => _targets.Values;
         internal int Revision { get; private set; }
-        internal IObservable<int> OnChanged => _changed;
+        internal IObservable<int> OnSelectionChanged => _selectionChanged;
 
         internal DeleteSelectedTargetSet(DeletePreviewResetRecovery resetRecovery)
         {
@@ -40,25 +40,33 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Selection
             // Restore red after placement animation only while selection still owns the target
             if (target is BlockGameObjectChild child)
             {
-                child.BlockGameObject.OnFinishedPlaceAnimation.Take(1).Subscribe(_ =>
+                _placeAnimationSubscriptions.Add(key, child.BlockGameObject.OnFinishedPlaceAnimation.Take(1).Subscribe(_ =>
                 {
                     if (_targets.TryGetValue(key, out var selected) && ReferenceEquals(selected, target) &&
                         DeleteTargetLiveness.IsAliveOrWarn(target, "[DragDelete] selected target destroyed after placement") && _resetRecovery.CanPreview(target)) target.SetRemovePreviewing();
-                }).AddTo(_placeAnimationSubscriptions);
+                }));
             }
-            NotifyChanged();
+            NotifySelectionChanged();
         }
 
         // 選択済みなら外して赤を戻す。未選択は外す物が無いので false
         // Remove and un-red a selected target; false when it was not selected
         internal bool TryRemove(IDeleteTarget target)
         {
-            if (!_targets.Remove(target.GetDeleteTargetKey(), out var removed)) return false; // silent-ok: 未選択の対象は外す物が無い / 選択件数のツールチップが変わらないことで見える
-            // 論理状態と通知を先に済ませ、赤戻しが失敗しても選択から外れた状態を保つ
-            // Update logical state and notify first so a failing un-red still leaves the target deselected
-            _pendingResets.Enqueue(new[] { removed });
-            NotifyChanged();
+            if (!RemoveLogicalTarget(target)) return false; // silent-ok: 未選択は変更不要 / 選択件数に反映済み
             _pendingResets.Drain("[DragDelete] selected target was destroyed before deselect");
+            return true;
+        }
+
+        private bool RemoveLogicalTarget(IDeleteTarget target)
+        {
+            var key = target.GetDeleteTargetKey();
+            if (!_targets.Remove(key, out var removed)) return false; // silent-ok: 未選択は変更不要 / 選択件数に反映済み
+            // 表示より先に論理解除と購読解放を終える
+            // Finish logical removal and subscription disposal before presentation
+            if (_placeAnimationSubscriptions.Remove(key, out var subscription)) subscription.Dispose();
+            _pendingResets.Enqueue(new[] { removed });
+            NotifySelectionChanged();
             return true;
         }
 
@@ -67,8 +75,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Selection
             var removed = 0;
             foreach (var target in targets)
             {
-                if (TryRemove(target)) removed++;
+                if (RemoveLogicalTarget(target)) removed++;
             }
+            _pendingResets.Drain("[DragDelete] selected target was destroyed before deselect");
             return removed;
         }
 
@@ -78,16 +87,17 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Selection
         {
             _pendingResets.Enqueue(_targets.Values);
             _targets.Clear();
+            foreach (var subscription in _placeAnimationSubscriptions.Values) subscription.Dispose();
             _placeAnimationSubscriptions.Clear();
-            NotifyChanged();
+            NotifySelectionChanged();
         }
 
         internal void DrainReleases(string destroyedWarning) => _pendingResets.Drain(destroyedWarning);
 
-        private void NotifyChanged()
+        private void NotifySelectionChanged()
         {
             Revision++;
-            _changed.OnNext(Revision);
+            _selectionChanged.OnNext(Revision);
         }
     }
 }

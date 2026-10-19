@@ -26,12 +26,12 @@ namespace Client.Tests.UIState.DragDelete.Selection
 
             // 赤戻しの失敗前に選択解除とカテゴリー固定が完了する
             // Deselect and lock the category before the preview reset can fail
-            Assert.Throws<System.InvalidOperationException>(() => selection.TryRemoveStrokeTarget(broken));
+            Assert.Throws<System.InvalidOperationException>(() => selection.UpdateStroke(DeleteAimResult.Found(broken)));
             Assert.IsFalse(selection.IsSelected(broken));
             Assert.AreNotEqual(revision, selection.Revision);
             Assert.IsTrue(selection.AimFilter.IsCategoryRequired);
             Assert.IsTrue(selection.AimFilter.Accepts(broken));
-            Assert.IsFalse(selection.TryRemoveStrokeTarget(other));
+            selection.UpdateStroke(DeleteAimResult.Found(other));
             Assert.IsTrue(selection.IsSelected(other));
             Assert.AreEqual(1, broken.ResetCount);
 
@@ -39,7 +39,7 @@ namespace Client.Tests.UIState.DragDelete.Selection
             // A new stroke can remove the other category without retrying the failed target
             selection.EndStroke();
             selection.BeginStroke(DeleteSelectionIntent.Remove);
-            Assert.IsTrue(selection.TryRemoveStrokeTarget(other));
+            Assert.IsNull(selection.UpdateStroke(DeleteAimResult.Found(other)));
             Assert.AreEqual(1, broken.ResetCount);
             Assert.AreEqual(0, selection.Count);
         }
@@ -70,7 +70,7 @@ namespace Client.Tests.UIState.DragDelete.Selection
             selection.ApplyBoxTargets(new List<IDeleteTarget> { kept, removed }, DeleteSelectionIntent.Add);
             var revision = selection.Revision;
             selection.BeginStroke(DeleteSelectionIntent.Remove);
-            Assert.IsTrue(selection.TryRemoveStrokeTarget(removed));
+            Assert.IsNull(selection.UpdateStroke(DeleteAimResult.Found(removed)));
             Assert.AreEqual(1, selection.Count);
             Assert.AreEqual(1, removed.ResetCount);
             Assert.AreEqual(0, kept.ResetCount);
@@ -88,7 +88,7 @@ namespace Client.Tests.UIState.DragDelete.Selection
             var unselected = new FakeDeleteTarget { Removable = true };
             var revision = selection.Revision;
             selection.BeginStroke(DeleteSelectionIntent.Remove);
-            Assert.IsFalse(selection.TryRemoveStrokeTarget(unselected));
+            selection.UpdateStroke(DeleteAimResult.Found(unselected));
             Assert.AreEqual(revision, selection.Revision);
             Assert.AreEqual(0, unselected.ResetCount);
             Assert.AreEqual(1, selection.Count);
@@ -104,11 +104,12 @@ namespace Client.Tests.UIState.DragDelete.Selection
             selection.TryAddTarget(line);
             selection.ApplyBoxTargets(new List<IDeleteTarget> { block }, DeleteSelectionIntent.Add);
             selection.BeginStroke(DeleteSelectionIntent.Remove);
-            Assert.IsTrue(selection.TryRemoveStrokeTarget(line));
-            Assert.IsFalse(selection.TryRemoveStrokeTarget(block), "a deselect stroke stays in the first category");
+            Assert.IsNull(selection.UpdateStroke(DeleteAimResult.Found(line)));
+            selection.UpdateStroke(DeleteAimResult.Found(block));
+            Assert.IsTrue(selection.IsSelected(block), "a deselect stroke stays in the first category");
             selection.EndStroke();
             selection.BeginStroke(DeleteSelectionIntent.Remove);
-            Assert.IsTrue(selection.TryRemoveStrokeTarget(block));
+            Assert.IsNull(selection.UpdateStroke(DeleteAimResult.Found(block)));
             Assert.IsFalse(selection.HasSelection());
         }
 
@@ -119,7 +120,7 @@ namespace Client.Tests.UIState.DragDelete.Selection
             var block = new FakeDeleteTarget { Removable = true };
             selection.ApplyBoxTargets(new List<IDeleteTarget> { block }, DeleteSelectionIntent.Add);
             selection.BeginStroke(DeleteSelectionIntent.Remove);
-            Assert.IsTrue(selection.TryRemoveStrokeTarget(new FakeDeleteTarget { Removable = true, Key = block }));
+            Assert.IsNull(selection.UpdateStroke(DeleteAimResult.Found(new FakeDeleteTarget { Removable = true, Key = block })));
             Assert.AreEqual(1, block.ResetCount, "the selected instance is un-redded");
         }
 
@@ -156,7 +157,7 @@ namespace Client.Tests.UIState.DragDelete.Selection
             var target = new FakeDeleteTarget { Removable = true };
             selection.ApplyBoxTargets(new List<IDeleteTarget> { target }, DeleteSelectionIntent.Add);
             selection.BeginStroke(DeleteSelectionIntent.Remove);
-            selection.TryRemoveStrokeTarget(target);
+            selection.UpdateStroke(DeleteAimResult.Found(target));
             Assert.IsFalse(selection.TryCancelSelection());
             Assert.AreEqual(1, target.ResetCount);
         }

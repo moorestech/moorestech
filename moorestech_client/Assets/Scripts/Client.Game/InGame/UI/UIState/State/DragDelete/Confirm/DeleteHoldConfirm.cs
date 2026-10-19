@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.UI.ProgressBar;
 
 namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
@@ -8,6 +9,22 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
     /// </summary>
     public class DeleteHoldConfirm
     {
+        private const int MediumTierMinCount = 5;
+        private const int LargeTierMinCount = 20;
+        private const float SmallTierSeconds = 0.75f;
+        private const float MediumTierSeconds = 1.25f;
+        private const float LargeTierSeconds = 1.75f;
+
+        private static float SecondsFor(int targetCount)
+        {
+            // 対象なしの長押しは進捗を始めないので0件はここに来ない
+            // A hold without targets never starts progress, so zero never reaches here
+            if (targetCount < 1) throw new ArgumentOutOfRangeException(nameof(targetCount), targetCount, "hold duration needs at least one target");
+            if (LargeTierMinCount <= targetCount) return LargeTierSeconds;
+            if (MediumTierMinCount <= targetCount) return MediumTierSeconds;
+            return SmallTierSeconds;
+        }
+
         private readonly ProgressBarState _progressBar;
         private DeleteHoldSubject _subject = DeleteHoldSubject.None;
         private float _heldSeconds;
@@ -35,7 +52,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Confirm
 
             if (!_isHolding) Begin();
 
-            var holdSeconds = DeleteHoldDuration.SecondsFor(_subject.TargetCount);
+            var holdSeconds = SecondsFor(_subject.TargetCount);
             _heldSeconds += deltaTime;
             _progressBar.SetProgress(_heldSeconds / holdSeconds);
             if (_heldSeconds < holdSeconds) return false;

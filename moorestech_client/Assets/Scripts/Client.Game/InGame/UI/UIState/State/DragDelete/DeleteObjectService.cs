@@ -57,18 +57,25 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             // Ctrl の意図はこのフレームに1回だけ読み、箱となぞりで共有する
             // Read the Ctrl intent once this frame and share it between the box and the stroke
-            var heldIntent = DeleteSelectionModifierKey.ReadIntent();
+            var heldIntent = HybridInput.IsControlOrCommandHeld() ? DeleteSelectionIntent.Remove : DeleteSelectionIntent.Add;
 
-            // 箱は終点確定のフレームに選択へ直接反映する
-            // The box applies to the selection itself on the frame the end point is confirmed
-            _box.Update(_selection, _lines, isPointerOverUi, heldIntent);
-
-            HandleStrokeStart();
-            if (_isStroking) AddDenyLine(_selection.UpdateStroke(aim));
-            var subject = _selection.UpdateHoverPreview(isPointerOverUi || _isStroking ? null : hovered, out var hoverReason);
-            AddDenyLine(hoverReason);
-            if (!_selection.HasSelection()) _hold.SetSubject(subject);
-            if (InputManager.Playable.ScreenLeftClick.GetKeyUp) EndStroke();
+            // 解放フレームは副作用が失敗しても終結する
+            // End the release frame even when a presentation side effect fails
+            var released = InputManager.Playable.ScreenLeftClick.GetKeyUp;
+            var subject = DeleteHoldSubject.None;
+            try
+            {
+                _box.Update(_selection, _lines, isPointerOverUi, heldIntent);
+                HandleStrokeStart();
+                if (_isStroking) AddDenyLine(_selection.UpdateStroke(aim));
+                subject = _selection.UpdateHoverPreview(isPointerOverUi || _isStroking ? null : hovered, out var hoverReason);
+                AddDenyLine(hoverReason);
+                if (!_selection.HasSelection()) _hold.SetSubject(subject);
+            }
+            finally
+            {
+                if (released) EndStroke();
+            }
 
             UpdateHoldConfirm();
 

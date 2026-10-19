@@ -54,6 +54,8 @@ namespace Client.Input
             return Suppress(pressed, InputSuppressionScope.Keyboard);
         }
 
+        public static bool IsControlOrCommandHeld() => GetKey(KeyCode.LeftControl) || GetKey(KeyCode.LeftCommand);
+
         public static bool GetKey(KeyCode keyCode)
         {
             var key = ToInputSystemKey(keyCode);

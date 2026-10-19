@@ -124,9 +124,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                     Debug.Log($"[DeleteBox] end click refused: no {view.TargetLabelForLog} targets in {min}-{max}");
                     return;
                 }
-                var changed = deleteSelection.ApplyBoxTargets(targets, intent);
-                Debug.Log($"[DeleteBox] {intent} changed={changed} of {targets.Count} selected={deleteSelection.Count}");
-                Clear();
+                // 論理局面を先に閉じ、表示解除は例外時も行う
+                // Close the logical phase first and release visuals even on failure
+                _selection.Clear();
+                _isPressRegistered = false;
+                try { deleteSelection.ApplyBoxTargets(targets, intent); }
+                finally { Clear(); }
             }
 
             // 押す前は今の Ctrl、押してから離すまでは押した瞬間の Ctrl の意図で始点を描く（確定と同じ意図を見せる）
@@ -137,6 +140,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 HideViewsExcept(view);
                 view.GetVisualizer().ShowSelectingStart(cell);
             }
+
+            // 意図による表示の選び分けはここ1か所
+            // The only place that picks presentation by intent
+            DeleteBoxIntentView ViewFor(DeleteSelectionIntent intent) => intent == DeleteSelectionIntent.Remove ? _removeView : _addView;
 
             #endregion
         }
@@ -161,10 +168,6 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
             _isPressRegistered = false;
             HideViewsExcept(null);
         }
-
-        // 意図による表示の選び分けはここ1か所
-        // The only place that picks presentation by intent
-        private DeleteBoxIntentView ViewFor(DeleteSelectionIntent intent) => intent == DeleteSelectionIntent.Remove ? _removeView : _addView;
 
         // 指定以外の意図の表示を隠す（null で両方）
         // Hide every intent's visuals except the given one (null hides both)

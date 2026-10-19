@@ -1,10 +1,17 @@
 # 削除ツールのF長押し段階化とCtrlによる選択からの除外 Implementation Plan
 
+## レビュー反映後の最終構造
+- 件数から満了時間への変換は `DeleteHoldConfirm` 内の private static `SecondsFor` が所有する。独立した `DeleteHoldDuration` 型は置かない。境界テストは `SetSubject` / `Advance` から実際の満了を観測する。
+- Ctrl/Command の共通読取は既存 `HybridInput.IsControlOrCommandHeld()` に置き、Undoと削除サービスが利用する。削除サービスでのみ `DeleteSelectionIntent` に変換する。独立した `DeleteSelectionModifierKey` 型は置かない。
+- `AddBoxTargets` と `TryRemoveStrokeTarget` はそれぞれ `ApplyBoxTargets` と `UpdateStroke` 内のローカル関数にする。テストは実際の操作入口を通す。
+- 下のタスクdiffは実装時点の記録であり、上記の構造整理を適用した形を最終成果物とする。件数境界・キー仕様・押下時の意図固定の裁定は維持する。
+
+
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
 **Goal:** 削除ツールの F 長押し満了時間を選択件数で 0.75／1.25／1.75 秒の3段にし、Ctrl を押して始めたなぞり・箱で削除候補を選択から外せるようにする。
 
-**Architecture:** 長押し対象 `DeleteHoldSubject` が件数を運び、`DeleteHoldConfirm` が `DeleteHoldDuration.SecondsFor(件数)` で満了時間を引く（件数は選択側から購読でプッシュ済みの subject に乗る）。選択モデル `DeleteSelection` の内部集合を `DeleteSelectedTargetSet` へ切り出して除外（赤戻し・変更通知）を足す。なぞり・箱の「追加か除外か」は押下瞬間の Ctrl を `DeleteSelectionIntent` として選択モデルの入口（`BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)`）へ渡し、選択集合への反映の分岐は選択モデルに閉じる（意図で分かれるのは、ほかに箱の表示の選び分け `DeleteBoxInput.ViewFor` と、箱の解決で除外のとき選択済みに絞る1行だけ）。Ctrl はサービスが1フレーム1回だけ読む。箱の対象解決 `DeleteBoxTargetResolver` は撤去可能な対象を返す1本の問い合わせのまま、除外の箱ではそのうち選択済みだけに絞る。箱の意図ごとの表示（文言キー・色・名前）は `DeleteBoxIntentView` にまとめる。
+**Architecture:** 長押し対象 `DeleteHoldSubject` が件数を運び、`DeleteHoldConfirm` が内部の `SecondsFor(件数)` で満了時間を引く（件数は選択側から購読でプッシュ済みの subject に乗る）。選択モデル `DeleteSelection` の内部集合を `DeleteSelectedTargetSet` へ切り出して除外（赤戻し・変更通知）を足す。なぞり・箱の「追加か除外か」は押下瞬間の Ctrl を `DeleteSelectionIntent` として選択モデルの入口（`BeginStroke(intent)`・`ApplyBoxTargets(targets, intent)`）へ渡し、選択集合への反映の分岐は選択モデルに閉じる（意図で分かれるのは、ほかに箱の表示の選び分け `DeleteBoxInput.ViewFor` と、箱の解決で除外のとき選択済みに絞る1行だけ）。Ctrl はサービスが1フレーム1回だけ読む。箱の対象解決 `DeleteBoxTargetResolver` は撤去可能な対象を返す1本の問い合わせのまま、除外の箱ではそのうち選択済みだけに絞る。箱の意図ごとの表示（文言キー・色・名前）は `DeleteBoxIntentView` にまとめる。
 
 **Tech Stack:** Unity (C#)、UniRx、Unity InputSystem（`HybridInput`）、NUnit EditMode（`Client.Tests`）、unity-playmode-recorded-playtest（プレイテスト DSL）。
 

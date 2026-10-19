@@ -22,7 +22,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
         private readonly DeleteResultTracker _results = new();
         private readonly Subject<DeleteCompletion> _deleteCompleted = new();
         public IObservable<DeleteCompletion> OnDeleteCompleted => _deleteCompleted;
-        public IObservable<int> OnSelectionChanged => _selectedTargets.OnChanged;
+        public IObservable<int> OnSelectionChanged => _selectedTargets.OnSelectionChanged;
         public DeleteAimFilter AimFilter { get; private set; } = DeleteAimFilter.Frontmost;
         public int Revision => _selectedTargets.Revision;
         public int Count => _selectedTargets.Count;
@@ -60,32 +60,24 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
             return Add(target) ? DeleteAddOutcome.Added : DeleteAddOutcome.AlreadySelected;
         }
-        // 箱の対象（撤去可否は Resolver が判定済み）をカテゴリーを問わず足す。足した件数を返す
-        // Add box targets (already filtered for removability by the resolver) regardless of category; returns how many were added
-        private int AddBoxTargets(IReadOnlyList<IDeleteTarget> targets)
-        {
-            var added = 0;
-            foreach (var target in targets)
-            {
-                if (Add(target)) added++;
-            }
-            return added;
-        }
-        // 除外のなぞり: 選択済みだけ外し、最初に外した対象のカテゴリーへ固定する。外したら true
-        // Deselect stroke: remove only selected targets and lock the category on the first removal; true when removed
-        public bool TryRemoveStrokeTarget(IDeleteTarget target)
-        {
-            if (_strokeCanceled || !AimFilter.Accepts(target) || !IsSelected(target)) return false; // silent-ok: 取消済み・別カテゴリー・未選択は外さない / 選択件数のツールチップが変わらないことで見える
-            // 赤戻しが失敗する前にストロークのカテゴリーを固定する
-            // Lock the stroke category before the preview reset can fail
-            if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
-            return _selectedTargets.TryRemove(target);
-        }
         // 箱の対象を意図どおり足すか外し、変わった件数を返す（意図による分岐はここ1か所）
         // Add or remove box targets per intent and return how many changed (the only intent branch for boxes)
         public int ApplyBoxTargets(IReadOnlyList<IDeleteTarget> targets, DeleteSelectionIntent intent)
         {
-            return intent == DeleteSelectionIntent.Remove ? _selectedTargets.RemoveAll(targets) : AddBoxTargets(targets);
+            return intent == DeleteSelectionIntent.Remove ? _selectedTargets.RemoveAll(targets) : AddBoxTargets();
+            #region Internal
+            // 箱の対象（撤去可否は Resolver が判定済み）をカテゴリーを問わず足す。足した件数を返す
+            // Add box targets (already filtered for removability by the resolver) regardless of category; returns how many were added
+            int AddBoxTargets()
+            {
+                var added = 0;
+                foreach (var target in targets)
+                {
+                    if (Add(target)) added++;
+                }
+                return added;
+            }
+            #endregion
         }
         // ホバー替え: 旧ホバーが選択済みでなければ赤を戻し、新ホバーを赤にする（null で解除）
         // Hover swap: un-red the previous hover unless it is selected, then red the new one (null clears)
@@ -137,6 +129,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             if (_strokeIntent == DeleteSelectionIntent.Add) return TryAddTarget(aim.Target).DenyReason;
             TryRemoveStrokeTarget(aim.Target);
             return null;
+            #region Internal
+            // 除外のなぞり: 選択済みだけ外し、最初に外した対象のカテゴリーへ固定する。外したら true
+            // Deselect stroke: remove only selected targets and lock the category on the first removal; true when removed
+            bool TryRemoveStrokeTarget(IDeleteTarget target)
+            {
+                if (_strokeCanceled || !AimFilter.Accepts(target) || !IsSelected(target)) return false; // silent-ok: 取消済み・別カテゴリー・未選択は外さない / 選択件数のツールチップが変わらないことで見える
+                // 赤戻しが失敗する前にストロークのカテゴリーを固定する
+                // Lock the stroke category before the preview reset can fail
+                if (!AimFilter.IsCategoryRequired) AimFilter = DeleteAimFilter.Category(target.GetDestructionCategory());
+                return _selectedTargets.TryRemove(target);
+            }
+            #endregion
         }
         internal DeleteHoldSubject UpdateHoverPreview(IDeleteTarget target, out LocalizationKey? reason)
         {
