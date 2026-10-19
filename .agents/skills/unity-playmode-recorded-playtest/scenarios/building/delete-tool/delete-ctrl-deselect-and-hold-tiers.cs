@@ -51,7 +51,7 @@ return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRun
     await p.Screenshot("01-five-selected");
     // 操作ログの被覆と本番ヒントの収まりを分けて記録する
     // Separate overlay occlusion from production hint layout
-    var overlay = Object.FindFirstObjectByType<Client.Playtest.Overlay.PlaytestOverlayView>();
+    var overlay = UnityEngine.Object.FindFirstObjectByType<Client.Playtest.Overlay.PlaytestOverlayView>();
     overlay.enabled = false;
     await p.Screenshot("01b-key-hints-no-overlay");
     overlay.enabled = true;
