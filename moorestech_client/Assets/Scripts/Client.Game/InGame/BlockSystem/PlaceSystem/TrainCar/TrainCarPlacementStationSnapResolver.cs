@@ -62,7 +62,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             }
 
             stationSnapRoutes.AddRange(filteredRoutes);
-            snapFromCenterForward = stationSnapFromCenterForward;
+            // 駅スナップは初期向きを逆にする（看板のあるEntry端を向かせる）
+            // Station snap starts reversed so the car faces the signed entry end
+            snapFromCenterForward = !stationSnapFromCenterForward;
             return true;
         }
     }
