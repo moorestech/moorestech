@@ -42,7 +42,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             InputManager.Playable.Interact.OnGetKeyUp += () => _hold.Advance(false, 0f);
             _tooltip = tooltip;
             _selection.OnDeleteCompleted.Subscribe(_results.Receive);
-            _selection.OnSelectionChanged.Subscribe(_ => _hold.SetSubject(_selection.HasSelection() ? DeleteHoldSubject.Selection(_selection.Revision) : DeleteHoldSubject.None));
+            _selection.OnSelectionChanged.Subscribe(_ => _hold.SetSubject(_selection.HasSelection() ? SelectionHoldSubject() : DeleteHoldSubject.None));
         }
 
         public void Update(float deltaTime, bool isPointerOverUi)
@@ -104,7 +104,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             void UpdateHoldConfirm()
             {
                 if (!_hold.Advance(InputManager.Playable.Interact.GetKey, deltaTime)) return;
-                var confirmedSubject = _selection.HasSelection() ? DeleteHoldSubject.Selection(_selection.Revision) : subject;
+                var confirmedSubject = _selection.HasSelection() ? SelectionHoldSubject() : subject;
                 _isStroking = false;
                 if (!_selection.TryCommit(confirmedSubject, out var reason)) AddDenyLine(reason);
             }
@@ -117,6 +117,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
             #endregion
         }
+
+        // 選択件数を満了時間へ渡す
+        // Pass the selection count to the hold duration
+        private DeleteHoldSubject SelectionHoldSubject() => DeleteHoldSubject.Selection(_selection.Revision, _selection.Count);
 
         // ESC/右短押し: 長押しを戻し、終点待ちの箱 → 選択の全解除 の順に1段だけ畳む。畳む物が無ければ false（呼び出し側がモード終了を判断）
         // ESC / right short press: reset the hold, then fold the pending box, else clear the selection; false when nothing to fold (caller decides to exit)
