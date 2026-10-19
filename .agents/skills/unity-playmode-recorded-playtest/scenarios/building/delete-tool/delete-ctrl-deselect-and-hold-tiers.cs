@@ -136,6 +136,7 @@ return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRun
     await p.Until(() => p.GetBlock(cells[2]) == null && p.GetBlock(cells[3]) == null && p.GetBlock(cells[4]) == null, 15f, "Step5: 選択中の3件が撤去される");
     SemanticInput.KeyUp(Key.F);
     p.Assert(p.GetBlock(cells[0]) != null && p.GetBlock(cells[1]) != null, "Step5: 選択から外した2件は残る");
+    await AimAtGround(p, new Vector3Int(2, 200, 7));
     await p.Screenshot("05-three-deleted");
 
     await p.PressKey(Key.Escape);
