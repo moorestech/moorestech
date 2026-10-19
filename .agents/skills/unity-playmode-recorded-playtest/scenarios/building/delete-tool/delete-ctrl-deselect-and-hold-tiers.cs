@@ -80,8 +80,12 @@ return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRun
     await AimAtCell(p, cells[0]);
     SemanticInput.KeyDown(Key.LeftCtrl);
     await UniTask.DelayFrame(3);
-    await Click();
+    SemanticInput.MouseButtonDown(0);
+    await UniTask.DelayFrame(3);
     SemanticInput.KeyUp(Key.LeftCtrl);
+    await UniTask.DelayFrame(3);
+    SemanticInput.MouseButtonUp(0);
+    await p.WaitSeconds(0.5f);
     // ホバー赤と区別するため照準を空き地へ外してから見る
     // Aim at empty ground first so the hover red does not mask the un-redded chest
     await AimAtGround(p, new Vector3Int(2, 200, 7));
