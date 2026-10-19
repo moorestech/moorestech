@@ -55,9 +55,13 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             var aim = DeleteTargetRaycaster.AimAt(_selection.AimFilter);
             var hovered = aim.Target;
 
-            // 箱は終点確定のフレームに選択へ直接足す
-            // The box adds to the selection itself on the frame the end point is confirmed
-            _box.Update(_selection, _lines, isPointerOverUi);
+            // Ctrl の意図はこのフレームに1回だけ読み、箱となぞりで共有する
+            // Read the Ctrl intent once this frame and share it between the box and the stroke
+            var heldIntent = DeleteSelectionModifierKey.ReadIntent();
+
+            // 箱は終点確定のフレームに選択へ直接反映する
+            // The box applies to the selection itself on the frame the end point is confirmed
+            _box.Update(_selection, _lines, isPointerOverUi, heldIntent);
 
             HandleStrokeStart();
             if (_isStroking) AddDenyLine(_selection.UpdateStroke(aim));
@@ -90,7 +94,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 // ホバーの赤は選択側が引き継ぐ（追加時に再び赤になる）
                 // The selection takes over the hover red (adding re-reds it)
                 _selection.SetHoverPreview(null);
-                _selection.BeginStroke(DeleteSelectionIntent.Add);
+                _selection.BeginStroke(heldIntent);
                 _isStroking = true;
             }
 

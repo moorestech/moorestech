@@ -454,7 +454,7 @@ git commit -m "feat: 削除のF長押しを選択件数で0.75/1.25/1.75秒の3�
 - Consumes: なし（Task 1 と独立）
 - Produces: `public enum DeleteSelectionIntent { Add, Remove }`（namespace `Client.Game.InGame.UI.UIState.State.DragDelete.Selection`）／`internal static DeleteSelectionIntent DeleteSelectionModifierKey.ReadIntent()`／`public void DeleteSelection.BeginStroke(DeleteSelectionIntent intent)`（旧 `BeginStroke()` は削除）／`public bool DeleteSelection.TryRemoveStrokeTarget(IDeleteTarget target)`／`public int DeleteSelection.ApplyBoxTargets(IReadOnlyList<IDeleteTarget> targets, DeleteSelectionIntent intent)`（`AddBoxTargets` は private にし、テストは `ApplyBoxTargets(X, DeleteSelectionIntent.Add)` へ置換）／`internal bool DeleteSelection.IsSelected(IDeleteTarget target)`。`UpdateStroke(DeleteAimResult)` は `BeginStroke(Remove)` 後なら除外する。`Revision`・`OnSelectionChanged` の外形は不変（中身は集合へ委譲）。
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 ```diff
 diff --git a/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection/DeleteSelectionDeselectTest.cs b/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection/DeleteSelectionDeselectTest.cs
@@ -582,7 +582,7 @@ index 0000000..572fb0a
 +}
 ```
 
-- [ ] **Step 2: 実装を書く**
+- [x] **Step 2: 実装を書く**
 
 ```diff
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection/DeleteSelectedTargetSet.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection/DeleteSelectedTargetSet.cs
@@ -903,7 +903,7 @@ index b069464..d2aba59 100644
 
 注意: `ClearSelectionState` は「論理状態を先に空にしてから赤戻し」の順を保つ（`_selectedTargets.Clear()` が解除キューへ積み通知まで済ませ、`ReleasePreviews` が `DrainReleases` する）。`TryRemove` も通知を赤戻しより先に行う。
 
-- [ ] **Step 3: 既存の `BeginStroke()`・`AddBoxTargets(...)` 呼び出しを一括で新シグネチャにする**
+- [x] **Step 3: 既存の `BeginStroke()`・`AddBoxTargets(...)` 呼び出しを一括で新シグネチャにする**
 
 `AddBoxTargets` は本番の外部呼び出しが無くなるので private にした（テスト専用 public を残さない）。worktree ルートで次を実行する（`BeginStroke()` を `BeginStroke(DeleteSelectionIntent.Add)` に、テストの `AddBoxTargets(X)` を `ApplyBoxTargets(X, DeleteSelectionIntent.Add)` に置き換え、名前空間の using を足す）:
 
@@ -934,12 +934,12 @@ PY
 ```
 Expected: `BeginStroke()` の 13 テストファイル、`AddBoxTargets` だけを使う `UIState/DragDelete/Completion/PendingBoxTargetTest.cs`、`DeleteObjectService.cs` の計15ファイルが出力される。`grep -rn "BeginStroke()" moorestech_client/Assets/Scripts` が0件、`grep -rn "AddBoxTargets(" moorestech_client/Assets/Scripts/Client.Tests` が0件になる（`DeleteBoxInput.cs` の `AddBoxTargets` 呼び出しは Task 3 で `ApplyBoxTargets` に置き換わる。Task 2 の時点でコンパイルを通すため、`DeleteBoxInput.cs:114` の `deleteSelection.AddBoxTargets(targets)` を `deleteSelection.ApplyBoxTargets(targets, DeleteSelectionIntent.Add)` にし using を足す）。
 
-- [ ] **Step 4: コンパイルしテストを実行する**
+- [x] **Step 4: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteSelection|DragDelete|RemoveOperationHistoryTest|CascadePreviewRedTest|UIStateControlTest"`
 Expected: ErrorCount 0 / 全 PASS（既存の選択・プレビュー・回復テストが呼び出しの置換だけで通ること）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Selection moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteSelection.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/DeleteObjectService.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxInput.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/Selection
