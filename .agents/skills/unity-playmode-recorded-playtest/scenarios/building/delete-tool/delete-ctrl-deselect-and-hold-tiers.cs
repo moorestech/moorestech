@@ -19,15 +19,18 @@ return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRun
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkit();
-    p.WarpPlayer(new Vector3(4.5f, 33.5f, -2f));
+    // 既存地形がカメラを覆わない上空へ足場とfixtureを揃える
+    // Align the scaffold and fixture above terrain that would occlude the camera
+    PlaytestSetup.CreateFlatGround().transform.position = new Vector3(0f, 198f, 0f);
+    p.WarpPlayer(new Vector3(4.5f, 201.5f, -2f));
     var progress = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ProgressBarState>();
 
     // 準備: 木のチェストを5つ一列に直置き
     // Setup: place five wooden chests in a row directly
-    var cells = new[] { new Vector3Int(2, 32, 4), new Vector3Int(4, 32, 4), new Vector3Int(6, 32, 4), new Vector3Int(8, 32, 4), new Vector3Int(10, 32, 4) };
+    var cells = new[] { new Vector3Int(2, 200, 4), new Vector3Int(4, 200, 4), new Vector3Int(6, 200, 4), new Vector3Int(8, 200, 4), new Vector3Int(10, 200, 4) };
     for (var x = 1; x <= 11; x++)
     for (var z = 1; z <= 8; z++)
-        p.Assert(p.GetBlock(new Vector3Int(x, 32, z)) == null, $"準備: fixture範囲({x},32,{z})は空いている");
+        p.Assert(p.GetBlock(new Vector3Int(x, 200, z)) == null, $"準備: fixture範囲({x},200,{z})は空いている");
     foreach (var cell in cells)
     {
         PlaytestBlockOps.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
@@ -40,12 +43,18 @@ return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRun
     // Step 1: 箱で5件選ぶ
     // Step 1: box-select five chests
     p.Note("Step 1: Shift+クリック2点の箱で5件選ぶ");
-    await Start(p, new Vector3Int(1, 32, 3));
-    await AimAtGround(p, new Vector3Int(11, 32, 5));
+    await Start(p, new Vector3Int(1, 200, 3));
+    await AimAtGround(p, new Vector3Int(11, 200, 5));
     await p.Until(() => ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteBoxTargetsInRange) == 5, 5f, $"Step1: 範囲内5件 実際:{TooltipText()}");
     await Click();
     await p.Until(() => ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 5, 5f, $"Step1: 選択中5件 実際:{TooltipText()}");
     await p.Screenshot("01-five-selected");
+    // 操作ログの被覆と本番ヒントの収まりを分けて記録する
+    // Separate overlay occlusion from production hint layout
+    var overlay = Object.FindFirstObjectByType<Client.Playtest.Overlay.PlaytestOverlayView>();
+    overlay.enabled = false;
+    await p.Screenshot("01b-key-hints-no-overlay");
+    overlay.enabled = true;
 
     // Step 2: 5件は1.25秒なので1秒押しても消えない（離すと進捗は戻る）
     // Step 2: five targets take 1.25s, so a 1s hold deletes nothing (release resets progress)
@@ -75,21 +84,21 @@ return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRun
     SemanticInput.KeyUp(Key.LeftCtrl);
     // ホバー赤と区別するため照準を空き地へ外してから見る
     // Aim at empty ground first so the hover red does not mask the un-redded chest
-    await AimAtGround(p, new Vector3Int(2, 32, 7));
+    await AimAtGround(p, new Vector3Int(2, 200, 7));
     await p.Until(() => ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 4, 5f, $"Step3: 選択中4件 実際:{TooltipText()}");
     await p.Screenshot("03-ctrl-click-deselected");
 
     // Step 4: Ctrl+Shift の箱でもう1件外す（青い箱・範囲内の選択済み件数）
     // Step 4: a Ctrl+Shift box removes another target (blue box, selected-in-range count)
     p.Note("Step 4: Ctrl+Shift+クリック2点の箱でチェスト2を選択から外す");
-    await AimAtGround(p, new Vector3Int(3, 32, 3));
+    await AimAtGround(p, new Vector3Int(3, 200, 3));
     SemanticInput.KeyDown(Key.LeftCtrl);
     SemanticInput.KeyDown(Key.LeftShift);
     await UniTask.DelayFrame(3);
     await Click();
     SemanticInput.KeyUp(Key.LeftShift);
     SemanticInput.KeyUp(Key.LeftCtrl);
-    await AimAtGround(p, new Vector3Int(5, 32, 5));
+    await AimAtGround(p, new Vector3Int(5, 200, 5));
     await p.Until(() => HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange) && ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange) == 1, 5f, $"Step4: 範囲内の選択済み1件 実際:{TooltipText()}");
     p.Assert(GameObject.Find("DeleteDeselectBoxRangeBox") != null && GameObject.Find("DeleteDeselectBoxRangeBox").activeSelf, "Step4: 除外の箱が表示される");
     await p.Screenshot("04-ctrl-shift-box");
@@ -99,14 +108,14 @@ return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRun
 
     // 未選択だけの箱は終点を拒否して既存選択を守る
     // Refuse a box containing only unselected targets and preserve the selection
-    await AimAtGround(p, new Vector3Int(1, 32, 3));
+    await AimAtGround(p, new Vector3Int(1, 200, 3));
     SemanticInput.KeyDown(Key.LeftCtrl);
     SemanticInput.KeyDown(Key.LeftShift);
     await UniTask.DelayFrame(3);
     await Click();
     SemanticInput.KeyUp(Key.LeftShift);
     SemanticInput.KeyUp(Key.LeftCtrl);
-    await AimAtGround(p, new Vector3Int(3, 32, 5));
+    await AimAtGround(p, new Vector3Int(3, 200, 5));
     await p.Until(() => HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange), 5f, "除外対象0件の拒否理由が表示される");
     await Click();
     p.Assert(HasTooltipLine(LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange) && ReadRequiredTooltipCount(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount) == 3, "0件終点を拒否して選択3件と箱待ちが残る");
