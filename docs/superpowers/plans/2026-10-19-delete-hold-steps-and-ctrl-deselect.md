@@ -962,7 +962,7 @@ git commit -m "feat: 削除ツールの選択モデルに追加と除外の意�
 - Consumes: Task 2 の `DeleteSelectionIntent`・`DeleteSelectionModifierKey.ReadIntent()`・`BeginStroke(DeleteSelectionIntent)`・`ApplyBoxTargets(...)`・`IsSelected(...)`、Task 1 の `SelectionHoldSubject()`
 - Produces: `public void DeleteBoxSelection.SelectStart(Vector3Int cell, DeleteSelectionIntent intent)`／`public DeleteSelectionIntent DeleteBoxSelection.Intent { get; private set; }`／`internal IReadOnlyList<IDeleteTarget> DeleteBoxTargetResolver.Resolve(Vector3Int min, Vector3Int max, DeleteSelection selection, DeleteSelectionIntent intent)`（撤去可能な対象。Remove のときはそのうち選択済みだけ）／`internal void DeleteBoxInput.Update(DeleteSelection deleteSelection, List<TooltipLine> tooltipLines, bool isPointerOverUi, DeleteSelectionIntent heldIntent)`／`internal sealed class DeleteBoxIntentView`（`CreateAdd()`・`CreateRemove()`・`CountKey`・`EmptyRangeKey`・`TargetLabelForLog`・`GetVisualizer()`・`Hide()`）／ローカライズキー `LocalizationKeys.Ui.KeyHint.Key.CtrlLeftDrag`・`LocalizationKeys.Ui.KeyHint.Text.DeselectDrag`・`LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange`・`LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange`／除外の箱の GameObject 名接頭辞 `DeleteDeselectBox`（`DeleteDeselectBoxRangeBox` 等。録画が参照）
 
-- [ ] **Step 1: ローカライズ行を足して再生成する**
+- [x] **Step 1: ローカライズ行を足して再生成する**
 
 `Localization/localization.csv` の `ui.keyHint.key.leftDrag` 行の直後に1行、`ui.keyHint.text.boxSelect` 行の直後に1行、`ui.tooltip.deleteBoxEmptyRange` 行の直後に2行を足す:
 
@@ -980,7 +980,7 @@ ui.tooltip.deleteBoxNoSelectedInRange,No selected targets in range,No selected t
 Run: `uloop compile --project-path ./moorestech_client --force-recompile` → `cd moorestech_web/webui && npm run gen:i18n`
 Expected: `LocalizationKeys.Ui.KeyHint.Key.CtrlLeftDrag` 等が生成され、`localizationKeys.ts` に4キーが増える
 
-- [ ] **Step 2: テストを更新する**
+- [x] **Step 2: テストを更新する**
 
 ```diff
 diff --git a/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs b/moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs
@@ -1064,7 +1064,7 @@ index 06a9ee8..bbf0d32 100644
              Assert.AreEqual(2, ResearchTreeStateHints.Hints.Count);
 ```
 
-- [ ] **Step 3: 実装を書く（箱の意図・解決・表示一式・入力・サービス・キーヒント）**
+- [x] **Step 3: 実装を書く（箱の意図・解決・表示一式・入力・サービス・キーヒント）**
 
 ```diff
 diff --git a/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxIntentView.cs b/moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete/Box/DeleteBoxIntentView.cs
@@ -1465,7 +1465,7 @@ index d0bab8d..fd5f9b9 100644
 
 `DeleteObjectService.cs` のパッチは plan 作成時点の HEAD からの全差分（Task 1 Step 3・Task 2 Step 3 の分を含む）。Task 1・2 で入れた分は除き、`heldIntent` を1回読んで `_box.Update(..., heldIntent)` と `_selection.BeginStroke(heldIntent)` に渡す差分だけを当てる。
 
-- [ ] **Step 4: ADR 0032 の表を更新する**
+- [x] **Step 4: ADR 0032 の表を更新する**
 
 `docs/adr/0032-key-hint-hud-owned-by-ui-state.md` の破壊モード行を次へ置き換える:
 
@@ -1473,12 +1473,12 @@ index d0bab8d..fd5f9b9 100644
 | 破壊モード | 左ドラッグ まとめて選択／Ctrl+左ドラッグ 選択から外す／Shift+左クリック 範囲選択／Q 範囲の高さを下げる／E 範囲の高さを上げる／F（長押し） 選択を削除／G 破壊モード終了／B ビルドメニュー／Tab インベントリ／中クリック 設置物をスポイト／Ctrl+Z 元に戻す／V 視点切替 |
 ```
 
-- [ ] **Step 5: コンパイルしテストを実行する**
+- [x] **Step 5: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DeleteBox|DeleteSelection|DragDelete|DeleteHold|UIStateKeyHintCatalogTest|RightShortPressTransitionTest|UIStateFocusRestorationTest|UIStateControlTest"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DragDelete moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts docs/adr/0032-key-hint-hud-owned-by-ui-state.md moorestech_client/Assets/Scripts/Client.Tests/UIState/DragDelete/DeleteBoxSelectionTest.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs
@@ -1495,7 +1495,7 @@ git commit -m "feat: Ctrl+なぞり・Ctrl+Shift箱で削除候補を選択か�
 - Consumes: Task 1〜3 の挙動、`DeleteBoxScenarioInput`（`Start`/`Click`/`AimAtGround`/`AimAtCell`/`ReadRequiredTooltipCount`/`HasTooltipLine`/`TooltipText`）、GameObject 名 `DeleteDeselectBoxRangeBox`
 - Produces: 録画 mp4・result.json（報告に添付）
 
-- [ ] **Step 1: 新規シナリオを書く**
+- [x] **Step 1: 新規シナリオを書く**
 
 ```diff
 diff --git a/.agents/skills/unity-playmode-recorded-playtest/scenarios/building/delete-tool/delete-ctrl-deselect-and-hold-tiers.cs b/.agents/skills/unity-playmode-recorded-playtest/scenarios/building/delete-tool/delete-ctrl-deselect-and-hold-tiers.cs
@@ -1611,13 +1611,13 @@ index 0000000..ee4906c
 
 時間の検査は下限だけを実時間で見る（録画負荷で fps が落ちると `Time.deltaTime` の上限で実時間の方が長くなるため、上限は `Until` の最終到達で見る）。5件の1秒で消えないこと＝1件の段（0.75秒）でないことの観測になる。
 
-- [ ] **Step 2: 既存シナリオの「2秒」表記を直す**
+- [x] **Step 2: 既存シナリオの「2秒」表記を直す**
 
 - `delete-tool-box-select-hold-confirm.cs:1-2` のコメントの `F長押し(2秒)`／`F hold (2s)` を `F長押し(件数で0.75〜1.75秒)`／`F hold (0.75-1.75s by count)` にする。
 - 同 `:55` の Note を `"Step 2: F長押し0.75秒（1件）で選択を削除"`、`:57` を `await p.WaitSeconds(0.75f * 0.5f);`、`:59` を `await p.WaitSeconds(0.75f * 0.5f + 0.3f);` にする（`03-holding` のスクショが満了前に撮れるように）。
 - `delete-tool-pier-removal-undo-rail.cs:107` と `delete-tool-cut-and-undo-connection-lines.cs:125` のコメント `Fを2秒長押し` を `Fを長押し（件数で最大1.75秒）` にする（待ち `2f + 0.3f` は最大段より長いので据え置き）。
 
-- [ ] **Step 3: 録画を実行する**
+- [x] **Step 3: 録画を実行する**
 
 Run（worktree ルートで。master ピンは run-scenario.sh が自動解決）:
 ```bash
@@ -1626,7 +1626,7 @@ for s in building/delete-tool/delete-ctrl-deselect-and-hold-tiers building/delet
 ```
 Expected: 8本とも result.json が成功。新規シナリオの録画で、Step 2 の1秒時点で5件が残り進捗バーが出ていること、Step 3 で外したチェスト1の赤が戻っていること（照準は空き地へ外してある）、Step 4 で青い箱と「範囲内の選択済み: 1件」が出ていること、Step 5 で外した2件だけが残ることを目視で確かめ、スクショのパスを報告へ書く。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios
