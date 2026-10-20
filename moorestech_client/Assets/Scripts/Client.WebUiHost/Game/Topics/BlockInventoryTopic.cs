@@ -51,8 +51,8 @@ namespace Client.WebUiHost.Game.Topics
         {
             _trainUnitClientCache = trainUnitClientCache;
             _beltCache = beltCache;
-            // 搬出統計の45tickブロックが完成するたびに、開いているベルトの詳細を出し直す
-            // Republish the open belt's detail each time a 45-tick block of the exit statistics completes
+            // 搬出統計の5tickブロックが完成するたびに、開いているベルトの詳細を出し直す
+            // Republish the open belt's detail each time a 5-tick block of the exit statistics completes
             _beltWindowSubscription = beltCache.ExitStatistics.OnWindowAdvanced.Subscribe(_ =>
             {
                 if (_republishOnBeltWindow) SchedulePublish();

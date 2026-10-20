@@ -5,22 +5,23 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BeltTransport.Statistics
 {
-    // 全segmentの搬出数を、5→3→3→2→2→2→2→2→2→2の層で畳む統計。層の中身はsegmentごとに約33バイトで、添字はsegment番号
-    // Exit counts of every segment folded through 5→3→3→2→2→2→2→2→2→2 layers; about 33 bytes per segment, indexed by segment number
-    // 最下層は5tickぶんの個数(0〜5)、次の2層は3スロットを4bitずつ詰め、45tick以上の層は2スロットのushort。窓は上の層の2スロットの和
-    // The lowest layer counts a 5-tick block (0..5), the next two pack three 4-bit slots, layers of 45 ticks and up hold two ushort slots; a window is the sum of a layer's two slots
-    // スロット位置はsegmentごとに持たず、リセットからの経過tickだけで全segment共通に決める。境界tickに連続配列を頭から走査して上へ押し上げる
-    // Slot positions are not stored per segment; the ticks since reset decide them for all segments alike, and boundary ticks stream the arrays to push sums upward
+    // 全segmentの搬出数の統計。5tickブロック36個のリング(180tick)と、その上に180tickブロックを2つずつ束ねる5層。segmentあたり約53バイト、添字はsegment番号
+    // Exit counts of every segment: a ring of 36 five-tick blocks (180 ticks) plus five layers pairing 180-tick blocks above it; about 53 bytes per segment, indexed by segment number
+    // 90・180の窓はリングの直近スロットの和を読む時に足す(開いているsegmentだけ)。360以上は層の2スロットの和で、窓の半分ごとに更新される
+    // The 90 and 180 windows add up the ring's latest slots at read time (only for the open segment); 360 and up are a layer's two slots, refreshed every half window
+    // リングの添字も層の境界も経過tickだけで全segment共通に決める。5tick境界にリングへ1バイト書き、180tick境界にだけ層を押し上げる
+    // The ring index and the layer boundaries are decided for all segments alike by the elapsed ticks; a 5-tick boundary writes one byte into the ring, and only a 180-tick boundary pushes the layers
     public sealed class BeltSegmentExitStatisticsTable : IBeltSegmentExitObserver
     {
-        private const int LowestBlockTicks = 5;
-        private const int NibbleSlots = 3;
+        private const int RingBlockTicks = BeltSegmentExitWindows.RingBlockTicks;
+        private const int RingSlots = BeltSegmentExitWindows.RingSlots;
         private const int PairSlots = 2;
-        private const int PairsPerSegment = BeltSegmentExitWindows.LayerCount * PairSlots;
+        private const int PairsPerSegment = BeltSegmentExitWindows.PairLayerCount * PairSlots;
 
-        private byte[] _block5 = Array.Empty<byte>();
-        private ushort[] _block15 = Array.Empty<ushort>();
-        private ushort[] _block45 = Array.Empty<ushort>();
+        private byte[] _currentBlock = Array.Empty<byte>();
+        private byte[] _ring = Array.Empty<byte>();
+        // 層ごとに[古い, 新しい]の順
+        // Per layer, [older, newer]
         private ushort[] _pairs = Array.Empty<ushort>();
         private int _segmentCount;
         private readonly Subject<Unit> _onWindowAdvanced = new();
@@ -29,8 +30,8 @@ namespace Client.Game.InGame.BeltTransport.Statistics
         // Ticks completed since the reset; only windows no longer than this can be answered
         public int CompletedTicks { get; private set; }
 
-        // 45tickブロックが1つ完成するたびに流れる。表示側は購読して出し直す
-        // Fires each time a 45-tick block completes; the display subscribes and republishes
+        // 5tickブロックが1つ完成するたびに流れる。表示側は購読して出し直す
+        // Fires each time a 5-tick block completes; the display subscribes and republishes
         public IObservable<Unit> OnWindowAdvanced => _onWindowAdvanced;
 
         // 複製の組み直しごとに呼ぶ。履歴は全部捨てる(ユーザー裁定 2026-10-20: 組み直し追従はせず全リセット)
@@ -39,17 +40,15 @@ namespace Client.Game.InGame.BeltTransport.Statistics
         {
             if (_segmentCount != segmentCount)
             {
-                _block5 = new byte[segmentCount];
-                _block15 = new ushort[segmentCount];
-                _block45 = new ushort[segmentCount];
+                _currentBlock = new byte[segmentCount];
+                _ring = new byte[segmentCount * RingSlots];
                 _pairs = new ushort[segmentCount * PairsPerSegment];
                 _segmentCount = segmentCount;
             }
             else
             {
-                Array.Clear(_block5, 0, _block5.Length);
-                Array.Clear(_block15, 0, _block15.Length);
-                Array.Clear(_block45, 0, _block45.Length);
+                Array.Clear(_currentBlock, 0, _currentBlock.Length);
+                Array.Clear(_ring, 0, _ring.Length);
                 Array.Clear(_pairs, 0, _pairs.Length);
             }
             CompletedTicks = 0;
@@ -57,24 +56,24 @@ namespace Client.Game.InGame.BeltTransport.Statistics
 
         public void OnExited(int handle)
         {
-            _block5[handle]++;
+            _currentBlock[handle]++;
         }
 
-        // 複製を1tick進めた直後に呼ぶ。境界に当たった層だけ下から順に押し上げる(上の層は同じtickに書かれた下の2スロットを読む)
-        // Called right after the replica advanced one tick; only layers at a boundary push, bottom up (an upper layer reads the two lower slots written this same tick)
+        // 複製を1tick進めた直後に呼ぶ。5tick境界でリングへ書き、180tick境界で層を下から順に押し上げる(上の層は同じtickに書かれた下の2スロットを読む)
+        // Called right after the replica advanced one tick; a 5-tick boundary writes the ring, a 180-tick boundary pushes the layers bottom up (an upper layer reads the two lower slots written this same tick)
         public void EndTick()
         {
             CompletedTicks++;
-            if (CompletedTicks % LowestBlockTicks != 0) return;
-            PushBlock5();
-            if (CompletedTicks % (LowestBlockTicks * NibbleSlots) != 0) return;
-            PushBlock15();
-            if (CompletedTicks % BeltSegmentExitWindows.PairBaseBlockTicks != 0) return;
-            PushBlock45();
-            for (var layer = 1; layer < BeltSegmentExitWindows.LayerCount; layer++)
+            if (CompletedTicks % RingBlockTicks != 0) return;
+            WriteRing();
+            if (CompletedTicks % BeltSegmentExitWindows.RingTicks == 0)
             {
-                if (CompletedTicks % BeltSegmentExitWindows.BlockTicksOfLayer(layer) != 0) break;
-                PushPairLayer(layer);
+                PushRingTotal();
+                for (var layer = 1; layer < BeltSegmentExitWindows.PairLayerCount; layer++)
+                {
+                    if (CompletedTicks % BeltSegmentExitWindows.PairBlockTicksOfLayer(layer) != 0) break;
+                    PushPairLayer(layer);
+                }
             }
             _onWindowAdvanced.OnNext(Unit.Default);
         }
@@ -84,77 +83,83 @@ namespace Client.Game.InGame.BeltTransport.Statistics
         public bool TryGetExitCount(int segmentIndex, int windowTicks, out int exitCount)
         {
             exitCount = 0;
-            if (!BeltSegmentExitWindows.TryGetLayer(windowTicks, out var layer))
+            if (BeltSegmentExitWindows.IsRingWindow(windowTicks))
             {
-                Debug.LogError($"[BeltSegmentExitStatistics] {windowTicks} is not a window this table holds");
-                return false;
+                if (windowTicks % RingBlockTicks != 0 || windowTicks <= 0) return UnknownWindow(windowTicks);
+                if (CompletedTicks < windowTicks) return false;
+                exitCount = SumLatestRingSlots(segmentIndex, windowTicks / RingBlockTicks);
+                return true;
             }
+            if (!BeltSegmentExitWindows.TryGetPairLayer(windowTicks, out var layer)) return UnknownWindow(windowTicks);
             if (CompletedTicks < windowTicks) return false;
             var first = segmentIndex * PairsPerSegment + layer * PairSlots;
             exitCount = _pairs[first] + _pairs[first + 1];
             return true;
         }
 
-        private void PushBlock5()
+        private static bool UnknownWindow(int windowTicks)
         {
-            var shift = NibbleShift(CompletedTicks / LowestBlockTicks);
+            Debug.LogError($"[BeltSegmentExitStatistics] {windowTicks} is not a window this table holds");
+            return false;
+        }
+
+        // 完成した5tickブロック番号(1始まり)が指すリングのスロット
+        // The ring slot addressed by the completed 5-tick block number (from 1)
+        private int LatestRingSlot()
+        {
+            return (CompletedTicks / RingBlockTicks - 1) % RingSlots;
+        }
+
+        private void WriteRing()
+        {
+            var slot = LatestRingSlot();
             for (var i = 0; i < _segmentCount; i++)
             {
-                _block15[i] = WriteNibble(_block15[i], shift, _block5[i]);
-                _block5[i] = 0;
+                _ring[i * RingSlots + slot] = _currentBlock[i];
+                _currentBlock[i] = 0;
             }
         }
 
-        private void PushBlock15()
+        // 直近slotCount個のスロットを、最新から逆向きに足す
+        // Add the latest slotCount slots, walking backward from the newest
+        private int SumLatestRingSlots(int segmentIndex, int slotCount)
         {
-            var shift = NibbleShift(CompletedTicks / (LowestBlockTicks * NibbleSlots));
-            for (var i = 0; i < _segmentCount; i++)
+            var first = segmentIndex * RingSlots;
+            var slot = LatestRingSlot();
+            var sum = 0;
+            for (var n = 0; n < slotCount; n++)
             {
-                _block45[i] = WriteNibble(_block45[i], shift, SumNibbles(_block15[i]));
+                sum += _ring[first + slot];
+                slot = slot == 0 ? RingSlots - 1 : slot - 1;
             }
+            return sum;
         }
 
-        private void PushBlock45()
+        // リング全体(180tick)の和を層0の新しい側へ入れ、古い側へ押し出す
+        // Put the whole ring's sum (180 ticks) into layer 0's newer slot, pushing the previous one to the older slot
+        private void PushRingTotal()
         {
-            var slot = PairSlot(CompletedTicks / BeltSegmentExitWindows.PairBaseBlockTicks);
             for (var i = 0; i < _segmentCount; i++)
             {
-                _pairs[i * PairsPerSegment + slot] = (ushort)SumNibbles(_block45[i]);
+                var total = 0;
+                var first = i * RingSlots;
+                for (var slot = 0; slot < RingSlots; slot++) total += _ring[first + slot];
+                var pair = i * PairsPerSegment;
+                _pairs[pair] = _pairs[pair + 1];
+                _pairs[pair + 1] = (ushort)total;
             }
         }
 
         private void PushPairLayer(int layer)
         {
-            var slot = PairSlot(CompletedTicks / BeltSegmentExitWindows.BlockTicksOfLayer(layer));
             var lower = (layer - 1) * PairSlots;
-            var upper = layer * PairSlots + slot;
+            var upper = layer * PairSlots;
             for (var i = 0; i < _segmentCount; i++)
             {
                 var first = i * PairsPerSegment;
-                _pairs[first + upper] = (ushort)(_pairs[first + lower] + _pairs[first + lower + 1]);
+                _pairs[first + upper] = _pairs[first + upper + 1];
+                _pairs[first + upper + 1] = (ushort)(_pairs[first + lower] + _pairs[first + lower + 1]);
             }
-        }
-
-        // 完成したブロック番号(1始まり)から、その層の書き込み先を決める
-        // The completed block number (from 1) decides the slot written in that layer
-        private static int NibbleShift(int completedBlock)
-        {
-            return ((completedBlock - 1) % NibbleSlots) * 4;
-        }
-
-        private static int PairSlot(int completedBlock)
-        {
-            return (completedBlock - 1) % PairSlots;
-        }
-
-        private static ushort WriteNibble(ushort packed, int shift, int value)
-        {
-            return (ushort)((packed & ~(0xF << shift)) | (value << shift));
-        }
-
-        private static int SumNibbles(ushort packed)
-        {
-            return (packed & 0xF) + ((packed >> 4) & 0xF) + ((packed >> 8) & 0xF);
         }
     }
 }
