@@ -11,31 +11,8 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.WebUi.Settings
 {
-    public class GraphicsQualityContractTest
+    public class GraphicsQualityContractTest : Client.Tests.GraphicsQuality.GraphicsQualityTestScope
     {
-        private bool _hadSaved;
-        private string _saved;
-
-        [SetUp]
-        public void SetUp()
-        {
-            // 開発者の保存値を退避し未保存から始める
-            // Stash the developer preference and start unsaved
-            _hadSaved = PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey);
-            _saved = PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey);
-            PlayerPrefs.DeleteKey(GraphicsQualityPreference.PreferenceKey);
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            // 保存値を復元して他テストへ漏らさない
-            // Restore persistence to avoid leaking into other tests
-            if (_hadSaved) PlayerPrefs.SetString(GraphicsQualityPreference.PreferenceKey, _saved);
-            else PlayerPrefs.DeleteKey(GraphicsQualityPreference.PreferenceKey);
-            PlayerPrefs.Save();
-        }
-
         [Test]
         public async Task PresetActionPersistsAndTopicReportsPresetName()
         {

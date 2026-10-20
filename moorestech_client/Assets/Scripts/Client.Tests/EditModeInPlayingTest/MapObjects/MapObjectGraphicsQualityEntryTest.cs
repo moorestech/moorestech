@@ -22,6 +22,16 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 {
     public class MapObjectGraphicsQualityEntryTest
     {
+        [UnityTearDown]
+        public IEnumerator RestorePlayModeAndBootstrapFlag()
+        {
+            try
+            {
+                if (Application.isPlaying) yield return new ExitPlayMode();
+            }
+            finally { SessionState.SetBool("DebugObjectsBootstrap_Disabled", false); }
+        }
+
         [UnityTest]
         public IEnumerator InitialPreferenceAndChangesReachLateObjectsIncludingLandmarks()
         {
@@ -29,8 +39,6 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             yield return new EnterPlayMode(expectDomainReload: true);
             LogAssert.ignoreFailingMessages = true;
             yield return Body().ToCoroutine();
-            yield return new ExitPlayMode();
-            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
 
             #region Internal
 
@@ -39,6 +47,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                 var hadSaved = PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey);
                 var saved = PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey);
                 GameObject prefab = null;
+                MapObjectDistanceVisibilityController fixtureDistance = null;
                 try
                 {
                     // 起動前の低をConstructの初期適用で受け取る
@@ -51,8 +60,15 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                     var store = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include);
                     await store.IsNearFieldInstantiated.Where(static ready => ready).First().ToUniTask();
                     var runner = GetField(store, "_instantiationRunner");
-                    var instantiator = (MapObjectLayoutInstantiator)GetField(runner, "_instantiator");
-                    var visibilityRegistry = GetField(instantiator, "_visibilityRegistry");
+                    var original = (MapObjectLayoutInstantiator)GetField(runner, "_instantiator");
+                    var visibilityRegistry = (MapObjectRendererVisibilityRegistry)GetField(original, "_visibilityRegistry");
+                    // 固定layout満杯の距離枠へ試験個体を追加しない
+                    // Keep fixture objects out of the distance capacity reserved for the fixed layout
+                    fixtureDistance = new MapObjectDistanceVisibilityController(2, System.Threading.CancellationToken.None);
+                    var instantiator = new MapObjectLayoutInstantiator((Transform)GetField(original, "_parent"),
+                        (MapObjectRegistry)GetField(original, "_registry"),
+                        (Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>)GetField(original, "_snapshotByInstanceId"),
+                        fixtureDistance, visibilityRegistry);
                     Assert.IsFalse((bool)GetField(visibilityRegistry, "_isQualityVisible"));
                     var lateRenderers = new List<Renderer>();
                     var snapshots = (Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack>)GetField(instantiator, "_snapshotByInstanceId");
@@ -96,6 +112,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                     if (hadSaved) PlayerPrefs.SetString(GraphicsQualityPreference.PreferenceKey, saved);
                     else PlayerPrefs.DeleteKey(GraphicsQualityPreference.PreferenceKey);
                     PlayerPrefs.Save();
+                    fixtureDistance?.Shutdown();
                     Object.Destroy(prefab);
                 }
             }

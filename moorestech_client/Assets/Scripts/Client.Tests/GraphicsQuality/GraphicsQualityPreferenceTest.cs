@@ -7,29 +7,8 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.GraphicsQuality
 {
-    public class GraphicsQualityPreferenceTest
+    public class GraphicsQualityPreferenceTest : Client.Tests.GraphicsQuality.GraphicsQualityTestScope
     {
-        private bool _hadSaved;
-        private string _saved;
-
-        [SetUp]
-        public void SetUp()
-        {
-            // 開発者の保存値を退避し未保存から始める
-            // Stash the developer preference and start unsaved
-            _hadSaved = PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey);
-            _saved = PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey);
-            PlayerPrefs.DeleteKey(GraphicsQualityPreference.PreferenceKey);
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            if (_hadSaved) PlayerPrefs.SetString(GraphicsQualityPreference.PreferenceKey, _saved);
-            else PlayerPrefs.DeleteKey(GraphicsQualityPreference.PreferenceKey);
-            PlayerPrefs.Save();
-        }
-
         [Test]
         public void UnsavedPreferenceStartsAtMedium()
         {

@@ -125,6 +125,26 @@
       },
       "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165",
       "distanceVisibilityType": "cullable"
+    },
+    {
+      "maxStack": 100,
+      "mapObjectName": "GraphicsQualityLandmarkFixture",
+      "addressablePath": "Vanilla/Environment/Pebble",
+      "mapObjectGuid": "caf625bc-1be3-4dcb-b976-aa00d5b54102",
+      "miningType": "PickUp",
+      "miningParam": {
+        "hp": 1,
+        "earnItemHpInterval": 1,
+        "soundEffectType": "stone",
+        "earnItems": [
+          {
+            "maxCount": 1,
+            "minCount": 1,
+            "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
+          }
+        ]
+      },
+      "distanceVisibilityType": "landmark"
     }
   ],
   "mapVeins": [
