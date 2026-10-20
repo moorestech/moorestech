@@ -116,8 +116,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var item = world.RestoreInternal(BeltDirection.Left);
             world.RestoreInternal(BeltDirection.Right);
 
-            // 古い合流入力数に依存せず次の撤去を計算する
-            // Calculate the next removal without relying on stale merge input counts
+            // 古い合流入力数を使わず次の撤去を計算
+            // Calculate the next removal without stale merge input counts
             Assert.IsTrue(world.Remove(new Vector3Int(-1, 0, 1)).Success);
             Assert.IsTrue(world.Remove(new Vector3Int(1, 0, 1)).Success);
             Assert.AreEqual(2, world.Count(item.ItemId));

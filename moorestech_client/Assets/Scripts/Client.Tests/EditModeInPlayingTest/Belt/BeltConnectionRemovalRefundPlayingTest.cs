@@ -94,7 +94,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 var tick = GameUpdater.CurrentTick;
                 Debug.Log($"[BeltConnectionRemovalRefundPlaying] removed success={response.Success} carried={Carried()} refunded={Count()} tick={tick}");
 
-                // 次tickの再構築後にも対象品の総量を確認する
+                // 次tickの再構築後も対象品の総量を検証
                 // Verify target-item conservation after the next real tick rebuild
                 for (var frame = 0; frame < 300 && GameUpdater.CurrentTick == tick; frame++) await UniTask.Yield();
                 Assert.Greater(GameUpdater.CurrentTick, tick, "The running server must advance a real tick.");

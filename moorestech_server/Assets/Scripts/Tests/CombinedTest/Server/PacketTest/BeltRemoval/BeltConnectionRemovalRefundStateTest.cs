@@ -31,8 +31,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.FillInventory();
             var before = world.Inventory.InventoryItems.ToArray();
 
-            // 返却照会と満杯拒否は保存cacheまで不変
-            // Refund queries and full-inventory rejection preserve even the save cache
+            // 照会と満杯拒否では保存キャッシュも不変
+            // Queries and full-inventory rejection also preserve the save cache
             Assert.AreEqual(1, world.Transport.GetConnectionRemovalRefundItems(source.BlockInstanceId).Count);
             Assert.AreEqual(RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull, world.Remove(sourcePosition).FailureReason);
             Assert.AreSame(source, ServerContext.WorldBlockDatastore.GetBlock(sourcePosition));
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.FillInventory();
             var before = world.Inventory.InventoryItems.ToArray();
 
-            // 初回再構築前もpendingだけを計上する
+            // 初回再構築前もpendingのみ計上
             // Count only pending content even before the first rebuild
             Assert.AreEqual(1, world.Transport.GetConnectionRemovalRefundItems(left.BlockInstanceId).Count);
             Assert.AreEqual(RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull, world.Remove(new Vector3Int(-1, 0, 1)).FailureReason);
@@ -110,8 +110,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(staleLiveInternal ? 4 : 0, world.CarriedCount());
             Assert.AreEqual(hash, world.Transport.ComputeStateHash());
 
-            // 撤去方向だけ消費し走行・buffer・優先順を保つ
-            // Consume only the removed direction, retaining running, buffer and priority
+            // 撤去方向のみ消費し他状態を保持
+            // Consume only the removed direction; retain running items, buffer and priority
             var remaining = world.Transport.CreateSaveState(merge.BlockInstanceId);
             Assert.AreNotSame(pending, remaining);
             Assert.AreSame(pending.Items, remaining.Items);
@@ -149,7 +149,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.Inventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
             var hash = world.Transport.ComputeStateHash();
 
-            // 一種類分の空きでは通常在庫との合計が入らない
+            // 空き1枠では通常在庫との合計が入らない
             // One free slot cannot fit both ordinary inventory and transport contents
             Assert.AreEqual(RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull, world.Remove(sourcePosition).FailureReason);
             Assert.AreEqual(hash, world.Transport.ComputeStateHash());

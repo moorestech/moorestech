@@ -30,8 +30,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var item = BeltRemovalRefundTestWorld.Item();
             world.Restore(Vector3Int.zero, new[] { new BeltItemState(item, 100) });
 
-            // 実プロトコルで返却し、次tickで復活しない
-            // Refund through the production protocol and verify no next-tick resurrection
+            // 実プロトコルで返却し次tickも復活なし
+            // Refund through the production protocol; no next-tick resurrection
             Assert.IsTrue(world.Remove(Vector3Int.zero).Success);
             Assert.AreEqual(1, world.Count(item.ItemId));
             world.AssertRefund(item);
@@ -81,8 +81,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var item = BeltRemovalRefundTestWorld.Item();
             segment.Buffer.RestoreItem(item);
 
-            // 上流を消してもbufferはその所有マスに残る
-            // Removing upstream does not refund the buffer owned by its last cell
+            // 上流撤去後もバッファは所有マスに残る
+            // After upstream removal, the buffer remains on its owning cell
             Assert.IsTrue(world.Remove(Vector3Int.back).Success);
             Assert.AreEqual(0, world.Count(item.ItemId));
             Assert.IsTrue(segment.Buffer.HasItem);
@@ -98,8 +98,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var world = BeltRemovalRefundTestWorld.CreateServer();
             world.CreateMerge();
-            // 分岐bufferから合流へ入る経路に内部segmentが生成される
-            // A branch buffer feeding the merge creates an internal segment
+            // 分岐バッファ→合流で内部区間を生成
+            // A branch buffer feeding a merge creates an internal segment
             Assert.IsTrue(world.Remove(Vector3Int.zero).Success);
             world.Place(ForUnitTestModBlockId.BeltConveyorSplitter, Vector3Int.zero);
             EnterMachinePushWindow();
@@ -107,8 +107,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var item = BeltRemovalRefundTestWorld.Item();
             Assembly().Segments[layout.Index].RestoreItems(new[] { new BeltItemState(item, 100) });
 
-            // 内部segmentは合流マスの撤去でだけ返る
-            // Only removal of the merge cell refunds its internal segment
+            // 内部区間は合流マス撤去時のみ返却
+            // Refund internal segments only when removing the merge cell
             Assert.IsTrue(world.Remove(Vector3Int.back).Success);
             Assert.AreEqual(0, world.Count(item.ItemId));
             Assert.IsTrue(world.Remove(new Vector3Int(0, 0, 1)).Success);

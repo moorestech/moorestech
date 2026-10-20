@@ -33,8 +33,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var inventory = world.Inventory.InventoryItems.ToArray();
             var wallet = world.Wallet(block.BlockId);
 
-            // 拒否時は搬送・手持ち・財布を全て不変にする
-            // Rejection preserves transport, inventory, and wallet state
+            // 拒否時は搬送・手持ち・財布全て不変
+            // Rejection preserves transport, inventory and wallet state
             Assert.AreEqual(RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull, world.Remove(position).FailureReason);
             Assert.AreSame(block, ServerContext.WorldBlockDatastore.GetBlock(position));
             Assert.AreSame(assembly, world.Transport.Assembly);
@@ -86,8 +86,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var states = Enumerable.Range(0, 3).Select(i => new BeltItemState(BeltRemovalRefundTestWorld.Item(), 100 + i * BeltConstants.ItemWidth)).ToArray();
             world.Restore(Vector3Int.zero, states);
 
-            // 再構築前に2マスを消し、同じ位置を重ねて要求
-            // Remove two cells before rebuilding, then repeat the same request
+            // 再構築前に2マス撤去し同じ位置を再要求
+            // Remove two cells before rebuilding, then request the same position again
             Assert.IsTrue(world.Remove(new Vector3Int(0, 0, 2)).Success);
             Assert.IsTrue(world.Remove(Vector3Int.forward).Success);
             Assert.IsFalse(world.Remove(Vector3Int.forward).Success);
@@ -119,8 +119,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var hash = world.Transport.ComputeStateHash();
             var serialized = JsonConvert.SerializeObject(pending);
 
-            // pendingと古い組を重複させず、照会は非破壊
-            // Read pending content without duplicating or modifying the old assembly
+            // pending優先で重複排除し非破壊照会
+            // Prefer pending content to avoid duplication and keep queries non-destructive
             Assert.AreEqual(3, world.Transport.GetRefundItems(block.BlockInstanceId).Count);
             world.FillInventory();
             var before = world.Inventory.InventoryItems.ToArray();
@@ -153,8 +153,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             var current = new BeltItem(ForUnitTestItemId.ItemId2, ItemInstanceId.Create(), BeltEntryDirection.FromBack);
             SegmentAt(Vector3Int.zero).RestoreItems(new[] { new BeltItemState(current, 100) });
 
-            // 保存cacheを温めた後の状態注入を返却へ反映
-            // Refund the live injection made after warming the save cache
+            // 保存キャッシュ作成後の注入も返却
+            // Refund live items injected after creating the save cache
             Assert.IsEmpty(cached.Items);
             Assert.IsEmpty(world.Transport.CreateSaveState(block.BlockInstanceId).Items);
             Assert.IsTrue(world.Remove(Vector3Int.zero).Success);
