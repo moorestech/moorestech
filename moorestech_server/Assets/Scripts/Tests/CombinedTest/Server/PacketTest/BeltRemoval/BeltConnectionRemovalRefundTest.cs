@@ -57,7 +57,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(2, world.Count(left.ItemId) + world.CarriedCount());
             if (beltInput)
-                Assert.IsTrue(Assembly().Segments.SelectMany(segment => segment.CaptureItems()).Any(state => state.Item.ItemInstanceId == right.ItemInstanceId));
+                Assert.IsTrue(Assembly().Segments.Any(segment => segment.CaptureItems().Any(state => state.Item.ItemInstanceId == right.ItemInstanceId) ||
+                    segment is BeltBufferedSegment buffered && buffered.Buffer.TryGetItem(out var held) && held.ItemInstanceId == right.ItemInstanceId));
         }
 
         [Test]
