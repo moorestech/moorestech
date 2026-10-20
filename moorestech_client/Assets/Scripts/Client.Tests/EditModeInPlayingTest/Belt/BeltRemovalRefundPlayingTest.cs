@@ -47,12 +47,17 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // 実在する通常・歯車のマスタで同じ本番経路を通す
                 // Exercise the same production path with real normal and gear belt masters
-                var names = new[] { "直進高速ベルトコンベア", "直線歯車ベルトコンベア" };
-                for (var index = 0; index < names.Length; index++)
+                var testCases = new (string BlockName, bool VerifyFullInventoryRetry)[]
                 {
+                    ("直進高速ベルトコンベア", false),
+                    ("直線歯車ベルトコンベア", true),
+                };
+                for (var index = 0; index < testCases.Length; index++)
+                {
+                    var testCase = testCases[index];
                     ClearInventory();
                     var position = new Vector3Int(100 + index * 3, 100, 100);
-                    var block = PlaceBlock(names[index], position, BlockDirection.North);
+                    var block = PlaceBlock(testCase.BlockName, position, BlockDirection.North);
                     Assert.IsNotNull(block);
                     transport.RebuildIfDirty();
                     var layout = transport.Assembly.Layouts.Single(entry => entry.Cells.Any(cell => cell.Position == position));
@@ -64,7 +69,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                     // 歯車では満杯拒否後に同じ撤去を再試行
                     // Retry the same gear belt removal after a full-inventory rejection
-                    if (index == 1)
+                    if (testCase.VerifyFullInventoryRetry)
                     {
                         for (var slot = 0; slot < inventory.GetSlotSize(); slot++)
                             inventory.SetItem(slot, ServerContext.ItemStackFactory.Create(filler, 1));
@@ -86,7 +91,7 @@ namespace Client.Tests.EditModeInPlayingTest
                     Assert.AreEqual(1, Count());
                     Assert.IsNull(ServerContext.WorldBlockDatastore.GetBlock(position));
                     var tick = GameUpdater.CurrentTick;
-                    Debug.Log($"[BeltRemovalRefundPlaying] removed={names[index]} success={response.Success} refunded={Count()} tick={tick}");
+                    Debug.Log($"[BeltRemovalRefundPlaying] removed={testCase.BlockName} success={response.Success} refunded={Count()} tick={tick}");
                     for (var frame = 0; frame < 300 && GameUpdater.CurrentTick == tick; frame++) await UniTask.Yield();
                     Assert.Greater(GameUpdater.CurrentTick, tick, "The running server must advance a real tick.");
                     Assert.IsEmpty(transport.GetRefundItems(block.BlockInstanceId));
@@ -94,7 +99,6 @@ namespace Client.Tests.EditModeInPlayingTest
                     Debug.Log($"[BeltRemovalRefundPlaying] after-tick carried=0 refunded={Count()} tick={GameUpdater.CurrentTick}");
                 }
 
-                #region Internal
                 int Count()
                 {
                     return inventory.InventoryItems.Where(stack => stack.Id == itemId).Sum(stack => stack.Count);
@@ -104,7 +108,6 @@ namespace Client.Tests.EditModeInPlayingTest
                 {
                     for (var slot = 0; slot < inventory.GetSlotSize(); slot++) inventory.SetItem(slot, ServerContext.ItemStackFactory.CreatEmpty());
                 }
-                #endregion
             }
 
             #endregion
