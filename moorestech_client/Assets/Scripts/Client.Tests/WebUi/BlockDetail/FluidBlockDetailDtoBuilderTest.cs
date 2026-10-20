@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Reflection;
+using Client.Game.InGame.BeltTransport;
+using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Game.InGame.Block;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BlockDetail;
@@ -75,7 +77,7 @@ namespace Client.Tests.WebUi.BlockDetail
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, new BlockStateMessagePack(state, Vector3Int.zero));
             var dto = new BlockInventoryDto { FluidSlots = new List<BlockFluidSlotDto>() };
-            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache());
+            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
             Object.DestroyImmediate(gameObject);
             return dto;
         }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
 using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
@@ -15,10 +16,14 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     /// </summary>
     public static class BlockDetailDtoBuilder
     {
-        public static void Apply(BlockInventoryDto dto, BlockGameObject block, BlockNetworkInfoCache cache)
+        public static void Apply(BlockInventoryDto dto, BlockGameObject block, BlockNetworkInfoCache cache, BeltTransportClientCache beltCache)
         {
             var param = block.BlockMasterElement.BlockParam;
             ElectricToGearDetailDtoBuilder.Apply(dto, block, param);
+
+            // ベルト: クライアントの複製が数えた搬出統計
+            // Belts: exit statistics counted by the client's replica
+            BeltThroughputDetailDtoBuilder.Apply(dto, block, param, beltCache);
             GearToElectricDetailDtoBuilder.Apply(dto, block, param);
             TrainPlatformDetailDtoBuilder.Apply(dto, block, param);
             TrainStationDetailDtoBuilder.Apply(dto, block, param);

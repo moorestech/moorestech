@@ -60,6 +60,7 @@ The skill's whitelist principle covers this document too: read the relevant sect
   - **ゲージの溝は常に `--gauge-track`。** 帯でも矢印でも器の形が変わるだけで、溝のトーンは変えない。
   - **充填は `--gauge-fill` が既定。** 逸脱してよいのは「器そのものが既に確立した見た目を持ち、その見た目＝満了状態である」場合（前例: 矢印グリフゲージの `--color-content-primary`・§8.13）と、「パネル面を持たず世界の上へ直に載る常時表示HUDで、寒色グレーが背景に沈んで進捗が読めない」場合（前例: 採掘プログレスバー・§8.18）に限り、逸脱先は必ず既存トークンから取る。緑など新しい色相をゲージへ持ち込むのは、溝・充填のどちらでも禁止。
   - **逸脱は器ごとに局所化する。** `GaugeBar` 自体や `--gauge-fill` トークンの定義は変えず、利用側の器のCSSで `--gauge-fill` をローカル上書きする（共有部品にドメイン語彙を持ち込まないため）。
+- **BarSeries**: 読み取り専用の棒の時系列。0..1の値を古い順に縦棒で並べ、各棒は `GaugeBar` と同じ器（溝 `--gauge-track`・内周輪郭 `--bevel-c1`・充填 `--gauge-fill`）を底から充填する。高さ `--bar-series-height`・棒幅 `--bar-series-bar-width`・隙間 `--bar-series-gap` は固定長トークンで、パネル幅に比例させない。値が `null` の棒は溝だけ（`data-empty`）。軸・目盛・ラベル・ツールチップ・系列色は持たず、1系列専用。ドメイン語彙を持たない。
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
   - **縦利用（`orientation="vertical"`）はサイドバーナビとして使ってよい。** カテゴリ切替のような縦積み択一に、新規コンポーネントを作らずこれを転用する。
   - **`disabled?: boolean`**: root に `data-disabled` を付与し全ボタンを `disabled` にする汎用減衰。選択肢は `--text-muted` 系へさらに減衰しクリック不可（`pointer-events: none`）。判断（いつdisabledにするか）は利用側が持ち、ModeSwitch自体はドメイン語彙を持たない。
@@ -389,3 +390,11 @@ The skill's whitelist principle covers this document too: read the relevant sect
 - タブ列はパネル本文の最上段に置き、`--mode-switch-gap` で並べる。高さはパネルに比例させない。
 - `role="tablist"` のとき各ボタンは `role="tab"` と `aria-selected` を出す（既定の `group` は `aria-pressed` のまま）。`data-selected="true"` は共通。testid は `<feature>-tab-<name>`。
 - 出所: ユーザー裁定 2026-09-24「タブを新設する」（`.decisions/2026-09-24-列車インベントリに時刻表タブを新設する.md`）。
+
+## 8.23 ベルト搬出量セクション（`features/blockInventory/details/BeltThroughputSection`）
+
+- 歯車ベルトコンベアの詳細パネル内、歯車行（`GearSection`）の直上に置く。ホストが `beltThroughput`（全窓の搬出数・最大数、直近1秒ごとの搬出数）を送った時だけ出す。
+- 行は `GearSection` と同じ `Text size="sm" c="var(--text-default)"` の2行: 「直近N秒: 個数 / 最大 (割合%)」「個/分」。計測中の窓は1行目を「計測中」にし、個/分の行を出さない。
+- その下に `BarSeries` で直近9秒の1秒ごとの搬出数を9本の棒にする（高さ＝個数÷速度由来の1秒最大数、超過は満杯に丸め）。まだ無い秒は先頭側を空棒にする。棒は窓の選択に依らず常に直近9秒。
+- 窓の切替は ←/→ キー。最前面がブロックインベントリの時だけ拾い、一覧の端で止まる（巡回しない）。既定は180tick（9秒）。ホストに問い合わせず、送られた全窓から選ぶだけ。キーの案内文は出さない。
+- 出所: ユーザー裁定 2026-10-20「Fキーで詳細みたときだけでいい」「180tickにします」「Bで1秒平均にして9本がいい」「←/→の窓切替を残す」「左右で窓変更は伝わらないので文字削除」（ADR 0086）。

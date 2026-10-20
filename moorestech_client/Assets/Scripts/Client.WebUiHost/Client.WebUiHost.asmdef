@@ -15,6 +15,7 @@
         "Core.Item.Interface",
         "Core.Master",
         "Core.Update",
+        "Core.BeltTransport",
         "Game.Block",
         "Game.Block.Interface",
         "Game.Gear",

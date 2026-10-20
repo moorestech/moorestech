@@ -1,5 +1,6 @@
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.BeltTransport;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Submit;
@@ -80,7 +81,7 @@ namespace Client.WebUiHost.Game
             // Register the block-inventory topic (the timetable fetcher is shared with the timetable-tab action)
             var trainUnitClientCache = resolver.Resolve<TrainUnitClientCache>();
             var timetableFetcher = new TrainTimetableFetcher(resolver.Resolve<IClientTrainTimetableMutator>(), resolver.Resolve<IClientTrainTimetableLookup>());
-            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher);
+            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher, resolver.Resolve<BeltTransportClientCache>());
             hub.RegisterTopic(BlockInventoryTopic.TopicName, blockInventoryTopic);
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)

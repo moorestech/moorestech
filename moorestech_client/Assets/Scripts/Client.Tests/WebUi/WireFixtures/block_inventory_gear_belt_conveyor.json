@@ -1,0 +1,24 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "GearBeltConveyor",
+  "identifier": "(4, 0, 2)",
+  "blockGuid": "66666666-6666-4666-8666-666666666666",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "gear": { "currentRpm": 10.0, "currentTorque": 1.0, "role": "consumer", "baseRpm": 10.0 },
+  "beltThroughput": {
+    "currentSpeed": 18,
+    "windows": [
+      { "ticks": 90, "measured": true, "exitCount": 4, "maxCount": 4.5 },
+      { "ticks": 180, "measured": true, "exitCount": 9, "maxCount": 9.0 },
+      { "ticks": 360, "measured": false, "exitCount": 0, "maxCount": 18.0 },
+      { "ticks": 720, "measured": false, "exitCount": 0, "maxCount": 36.0 },
+      { "ticks": 1440, "measured": false, "exitCount": 0, "maxCount": 72.0 },
+      { "ticks": 2880, "measured": false, "exitCount": 0, "maxCount": 144.0 },
+      { "ticks": 5760, "measured": false, "exitCount": 0, "maxCount": 288.0 }
+    ],
+    "recentSecondCounts": [ 1, 1, 1, 1, 1, 1, 1, 1, 1 ],
+    "maxCountPerSecond": 1.0
+  }
+}

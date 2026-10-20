@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.BeltTransport.Network;
+using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.Train.RailGraph;
@@ -29,7 +30,7 @@ namespace Client.Tests.BeltTransport
     {
         public readonly TrainUnitTickState TickState = new();
         public readonly TrainUnitFutureMessageBuffer FutureMessageBuffer;
-        public readonly BeltTransportClientCache Cache = new();
+        public readonly BeltTransportClientCache Cache = new(new BeltSegmentExitStatisticsTable());
         public readonly CapturingVanillaApiEvent ApiEvent = new();
         public readonly BeltTransportEventNetworkHandler Handler;
         public readonly TrainUnitHashVerifier Verifier;

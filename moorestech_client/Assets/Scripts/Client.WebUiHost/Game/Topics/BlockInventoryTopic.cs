@@ -1,6 +1,7 @@
 using System;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
@@ -24,6 +25,9 @@ namespace Client.WebUiHost.Game.Topics
     {
         public const string TopicName = "block_inventory.current";
         private readonly TrainUnitClientCache _trainUnitClientCache;
+        private readonly BeltTransportClientCache _beltCache;
+        private readonly IDisposable _beltWindowSubscription;
+        private bool _republishOnBeltWindow;
         private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _timetableFetcher;
         private readonly OpenTrainTimetableTracker _openTrainTimetableTracker;
@@ -43,9 +47,16 @@ namespace Client.WebUiHost.Game.Topics
         // Task 8 の action handler がスナップショット反映に使う公開口
         // Public access point used by Task 8 action handlers to apply snapshots
         public BlockNetworkInfoCache NetworkCache => _networkCache;
-        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher timetableFetcher)
+        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher timetableFetcher, BeltTransportClientCache beltCache)
         {
             _trainUnitClientCache = trainUnitClientCache;
+            _beltCache = beltCache;
+            // 搬出統計の5tickブロックが完成するたびに、開いているベルトの詳細を出し直す
+            // Republish the open belt's detail each time a 5-tick block of the exit statistics completes
+            _beltWindowSubscription = beltCache.ExitStatistics.OnWindowAdvanced.Subscribe(_ =>
+            {
+                if (_republishOnBeltWindow) SchedulePublish();
+            });
             _timetables = timetables;
             _timetableFetcher = timetableFetcher;
             // 時刻表更新・取得失敗・所属列車の変化で再配信する
@@ -78,6 +89,7 @@ namespace Client.WebUiHost.Game.Topics
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _subInventorySubscription.Dispose();
             _continuousSampleSubscription.Dispose();
+            _beltWindowSubscription.Dispose();
             _trainTimetableSubscription.Dispose();
             _openTrainTimetableTracker.Dispose();
             _networkCache.OnUpdated -= SchedulePublish;
@@ -146,7 +158,7 @@ namespace Client.WebUiHost.Game.Topics
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
             TrackBlock(block);
-            var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache);
+            var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache);
             return WebUiJson.Serialize(dto);
         }
         // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える
@@ -162,6 +174,7 @@ namespace Client.WebUiHost.Game.Topics
             if (block == null)
             {
                 _sampleContinuously = false;
+                _republishOnBeltWindow = false;
                 _networkCache.Clear();
                 return;
             }
@@ -177,6 +190,7 @@ namespace Client.WebUiHost.Game.Topics
             var electric = param is IElectricWireConnectParam;
             var gear = param is IGearConnectors;
             _sampleContinuously = gear;
+            _republishOnBeltWindow = param is IBeltSpeedParam;
             var filterSplitter = block.BlockMasterElement.BlockType == "FilterSplitter";
             _networkCache.Track(block, electric, gear, filterSplitter);
         }
