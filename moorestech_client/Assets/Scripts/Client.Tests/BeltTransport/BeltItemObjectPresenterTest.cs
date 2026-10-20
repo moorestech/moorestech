@@ -117,7 +117,7 @@ namespace Client.Tests.BeltTransport
 
             // 入る側と出る側の間(47 m 前後): 内側のまま
             // Between the enter and leave distances (about 47 m): stays inside
-            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 46f);
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 49f);
             cache.ApplyTickDiff(BeltTickDiff.Empty);
             presenter.UpdateAll();
             Assert.IsFalse(factory.Created[1].IsDestroyed, "kept between the enter and leave distances");
@@ -194,54 +194,5 @@ namespace Client.Tests.BeltTransport
             return new BeltCellShape(new Vector3Int(x, y, z), BeltDirection.Front);
         }
 
-        // 表示物をその場で返し、個体IDごとに記録する。個体IDは生成順に1から振られている前提
-        // Returns objects on the spot and records them by instance id; instance ids are assumed to be numbered from 1 in creation order
-        private sealed class FakeBeltItemObjectFactory : IBeltItemObjectFactory
-        {
-            public readonly Dictionary<long, FakeBeltItemObject> Created = new();
-            public readonly Dictionary<long, ItemId> CreatedItemIds = new();
-
-            public IBeltItemObject Create(ItemId itemId, Vector3 position)
-            {
-                var itemObject = new FakeBeltItemObject { Position = position };
-                var instanceId = Created.Count + 1;
-                Created.Add(instanceId, itemObject);
-                CreatedItemIds.Add(instanceId, itemId);
-                return itemObject;
-            }
-        }
-
-        private sealed class FakeBeltItemViewpoint : IBeltItemViewpoint
-        {
-            public Vector3 Position;
-            public bool HasPosition = true;
-
-            public FakeBeltItemViewpoint(Vector3 position)
-            {
-                Position = position;
-            }
-
-            public bool TryGetPosition(out Vector3 position)
-            {
-                position = Position;
-                return HasPosition;
-            }
-        }
-
-        private sealed class FakeBeltItemObject : IBeltItemObject
-        {
-            public Vector3 Position;
-            public bool IsDestroyed;
-
-            public void SetPosition(Vector3 position)
-            {
-                Position = position;
-            }
-
-            public void Destroy()
-            {
-                IsDestroyed = true;
-            }
-        }
     }
 }

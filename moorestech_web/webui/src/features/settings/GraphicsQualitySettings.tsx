@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { Text, Title } from "@mantine/core";
-import { dispatchAction, Topics, useTopic, type GraphicsQualityPresetChoice, type GraphicsQualitySettings as Settings } from "@/bridge";
+import { dispatchAction, dispatchActionOutcome, Topics, useTopic, type GraphicsQualityPresetChoice, type GraphicsQualitySettings as Settings } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { ModeSwitch } from "@/shared/ui";
 
@@ -10,13 +11,37 @@ type OnOff = "on" | "off";
 // Graphics preset and items; the settings.graphicsQuality topic is authoritative
 export function GraphicsQualitySettings() {
   const { t } = useI18n();
+  const [failure, setFailure] = useState<string | null>(null);
   const data = useTopic(Topics.graphicsQuality);
   const label = t(L.ui.settings.graphics);
   // topic未着では項目を描かない（既定値はUnity側が持つ）
   // Render no items before the topic arrives (Unity owns the default)
   if (!data) return <section aria-label={label}><Title order={2}>{label}</Title></section>;
   const settings = data.settings;
-  const setItem = (next: Settings) => void dispatchAction("settings.setGraphicsQuality", { settings: next });
+  const setItem = async (next: Settings) => {
+    const result = await dispatchActionOutcome("settings.setGraphicsQuality", { settings: next });
+    setFailure(result.kind === "rejected" ? result.error : null);
+  };
+  const failureText = () => {
+    if (!failure) return null;
+    const [code, reason, field] = failure.split(":");
+    if (code !== "invalid_graphics_quality") return failure;
+    const reasons = {
+      missing_settings: L.ui.settings.graphicsMissingValue,
+      missing_field: L.ui.settings.graphicsMissingValue,
+      invalid_type: L.ui.settings.graphicsInvalidType,
+      unsupported_value: L.ui.settings.graphicsUnsupportedValue,
+    };
+    const fields = {
+      settings: L.ui.settings.graphics, drawDistanceMeters: L.ui.settings.graphicsDrawDistance,
+      renderScalePercent: L.ui.settings.graphicsRenderScale, terrainDetail: L.ui.settings.graphicsTerrainDetail,
+      shadows: L.ui.settings.graphicsShadows, ssao: L.ui.settings.graphicsSsao,
+      postProcessing: L.ui.settings.graphicsPostProcessing, effects: L.ui.settings.graphicsEffects,
+      mapObjects: L.ui.settings.graphicsMapObjects, ocean: L.ui.settings.graphicsOcean,
+    };
+    if (!(reason in reasons) || !(field in fields)) return failure;
+    return `${t(fields[field as keyof typeof fields])}: ${t(reasons[reason as keyof typeof reasons])}`;
+  };
   const boolSwitch = (key: BoolKey, title: string) => (
     <div key={key}>
       <Text>{title}</Text>
@@ -36,6 +61,7 @@ export function GraphicsQualitySettings() {
   return (
     <section aria-label={label}>
       <Title order={2}>{label}</Title>
+      {failure && <Text role="alert">{failureText()}</Text>}
       <Text>{t(L.ui.settings.graphicsPreset)}</Text>
       {/* カスタムはどの選択肢にも一致しないのでvalueをnull（無選択）にする */}
       {/* Custom matches no option, so the value is null (no selection) */}

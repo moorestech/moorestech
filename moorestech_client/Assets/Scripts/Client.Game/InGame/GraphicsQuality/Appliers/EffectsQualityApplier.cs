@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.View.Object.Core;
 using UniRx;
+using UniRx.Triggers;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -15,7 +16,7 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
     {
         private readonly BlockGameObjectDataStore _blockDataStore;
         private readonly TrainCarObjectDatastore _trainCarDatastore;
-        private readonly List<EffectsQualitySwitch> _switches = new();
+        private readonly HashSet<EffectsQualitySwitch> _switches = new();
 
         public EffectsQualityApplier(BlockGameObjectDataStore blockDataStore, TrainCarObjectDatastore trainCarDatastore)
         {
@@ -32,14 +33,23 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
             _blockDataStore.OnBlockPlaced.Subscribe(AttachBlock);
             _trainCarDatastore.OnTrainCarCreated.Subscribe(trainCar => Attach(trainCar.gameObject));
             GraphicsQualityPreference.OnSettingsChanged.Subscribe(settings => Apply(settings.EffectsEnabled));
-        }
 
-        private void AttachBlock(BlockGameObject block)
-        {
-            var effects = Attach(block.gameObject);
-            // 設置演出が子を再有効化した直後に現在の画質を再適用する
-            // Reapply the current quality immediately after placement reactivates children
-            block.OnFinishedPlaceAnimation.Subscribe(_ => effects.SetEffectsEnabled(GraphicsQualityPreference.Current.EffectsEnabled));
+            #region Internal
+
+            void AttachBlock(BlockGameObject block)
+            {
+                var effects = Attach(block.gameObject);
+                // 設置演出が子を再有効化した直後に現在の画質を再適用する
+                // Reapply the current quality immediately after placement reactivates children
+                block.OnFinishedPlaceAnimation.Subscribe(_ => effects.SetEffectsEnabled(GraphicsQualityPreference.Current.EffectsEnabled));
+            }
+
+            void Apply(bool effectsEnabled)
+            {
+                foreach (var effects in _switches) effects.SetEffectsEnabled(effectsEnabled);
+            }
+
+            #endregion
         }
 
         private EffectsQualitySwitch Attach(GameObject root)
@@ -47,15 +57,11 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
             var effects = root.AddComponent<EffectsQualitySwitch>();
             effects.Initialize(GraphicsQualityPreference.Current.EffectsEnabled);
             _switches.Add(effects);
+            // 実破棄時に保持を外し累積参照を残さない
+            // Release retained switches at actual destruction
+            effects.OnDestroyAsObservable().Subscribe(_ => _switches.Remove(effects));
             return effects;
         }
 
-        private void Apply(bool effectsEnabled)
-        {
-            // 撤去済み（破棄済み）の切替は配布前に外す
-            // Drop switches whose objects were removed before distributing
-            _switches.RemoveAll(effects => effects == null);
-            foreach (var effects in _switches) effects.SetEffectsEnabled(effectsEnabled);
-        }
     }
 }

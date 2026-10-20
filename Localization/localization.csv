@@ -415,3 +415,6 @@ ui.bugReport.deliveryLocalOnlyTokenMissingUnknown,Not sent: no developer token i
 ui.bugReport.deliveryLocalOnlyTokenUnreadableUnknown,Not sent: the developer token cannot be read,Not sent: the developer token cannot be read,未送信: 開発者トークンを読めません,Nicht gesendet: Entwicklertoken nicht lesbar,미전송: 개발자 토큰을 읽을 수 없습니다
 ui.bugReport.deliveryLocalOnlyDistributionUnavailableUnknown,Not sent: check build-info and Steam,Not sent: check build-info and Steam,未送信: build-infoとSteamの送信条件を確認してください,Nicht gesendet: build-info und Steam prüfen,미전송: build-info 및 Steam 전송 조건을 확인하세요
 ui.bugReport.deliveryRefusedUnknown,The receiver refused this machine; the token may be revoked,The receiver refused this machine; the token may be revoked,受け口に拒否されました。トークン失効の可能性があります,Der Empfänger hat dieses Gerät abgelehnt; das Token wurde möglicherweise widerrufen,수신 서버가 이 기기를 거부했습니다. 토큰이 취소되었을 수 있습니다
+ui.settings.graphicsMissingValue,Value is missing,Value is missing,値がありません,Wert fehlt,값이 없습니다
+ui.settings.graphicsInvalidType,Invalid value type,Invalid value type,値の種類が正しくありません,Ungültiger Werttyp,값 형식이 잘못되었습니다
+ui.settings.graphicsUnsupportedValue,Unsupported value,Unsupported value,選択できない値です,Nicht unterstützter Wert,지원하지 않는 값입니다

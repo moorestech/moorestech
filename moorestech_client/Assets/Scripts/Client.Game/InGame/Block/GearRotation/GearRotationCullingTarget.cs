@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Block.GearRotation
 
         public void SetWithinRange(bool withinRange)
         {
-            foreach (var processor in _processors) processor.enabled = withinRange;
+            foreach (var processor in _processors) processor.SetRotationWithinRange(withinRange);
         }
     }
 }

@@ -16,8 +16,20 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         [SerializeField] private float rpm60Speed = 1;
         [SerializeField] private AnimationPlayDirection defaultPlayDirection = AnimationPlayDirection.Positive;
 
+        private bool _savedAnimatorEnabled;
+        private bool _rotationEnabled = true;
         private bool _directionParameterChecked;
         private bool _hasDirectionParameter;
+
+        public override void SetRotationEnabled(bool enabled)
+        {
+            if (_rotationEnabled == enabled) return; // silent-ok: 同値設定は状態を変えない / 呼び出し元が現在値を保持する
+            _rotationEnabled = enabled;
+            // 回転担当だけを止め、元から無効なAnimatorは復帰させない
+            // Pause only the rotation animator and preserve its original enabled state
+            if (!enabled) _savedAnimatorEnabled = animator.enabled;
+            animator.enabled = enabled && _savedAnimatorEnabled;
+        }
 
         public override void Rotate(GearStateDetail gearStateDetail, float deltaTime)
         {

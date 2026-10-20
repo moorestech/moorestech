@@ -32,17 +32,22 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
         {
             Apply(GraphicsQualityPreference.Current);
             GraphicsQualityPreference.OnSettingsChanged.Subscribe(Apply);
+
+            #region Internal
+
+            void Apply(GraphicsQualitySettings settings)
+            {
+                var isFine = settings.TerrainDetail == GraphicsTerrainDetail.Fine;
+                foreach (var terrain in _terrains)
+                {
+                    terrain.heightmapPixelError = isFine ? FinePixelError : CoarsePixelError;
+                    terrain.drawTreesAndFoliage = isFine;
+                }
+                foreach (var oceanRenderer in _oceanRenderers) oceanRenderer.enabled = settings.OceanVisible;
+            }
+
+            #endregion
         }
 
-        private void Apply(GraphicsQualitySettings settings)
-        {
-            var isFine = settings.TerrainDetail == GraphicsTerrainDetail.Fine;
-            foreach (var terrain in _terrains)
-            {
-                terrain.heightmapPixelError = isFine ? FinePixelError : CoarsePixelError;
-                terrain.drawTreesAndFoliage = isFine;
-            }
-            foreach (var oceanRenderer in _oceanRenderers) oceanRenderer.enabled = settings.OceanVisible;
-        }
     }
 }

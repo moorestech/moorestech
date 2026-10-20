@@ -62,8 +62,6 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
                 _particleSystems[i].Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
 
-            #region Internal
-
             bool Toggle(bool current, ref bool saved)
             {
                 if (effectsEnabled) return saved;
@@ -71,15 +69,18 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
                 return false;
             }
 
+            #region Internal
+
+            void StopEffects()
+            {
+                foreach (var effect in _visualEffects) effect.enabled = false;
+                foreach (var renderer in _particleRenderers) renderer.enabled = false;
+                foreach (var light in _lights) light.enabled = false;
+                foreach (var particle in _particleSystems) particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+
             #endregion
         }
 
-        private void StopEffects()
-        {
-            foreach (var effect in _visualEffects) effect.enabled = false;
-            foreach (var renderer in _particleRenderers) renderer.enabled = false;
-            foreach (var light in _lights) light.enabled = false;
-            foreach (var particle in _particleSystems) particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
-        }
     }
 }

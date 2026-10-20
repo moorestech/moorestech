@@ -42,10 +42,20 @@ namespace Client.WebUiHost.Game.Actions
         {
             // 定義外の値を含む組は失敗契約で返し、保存値は変えない
             // A set containing an undefined value returns the failure contract and leaves the saved value as is
-            if (!GraphicsQualityWire.TryFromJObject(payload?["settings"] as JObject, out var settings))
+            var status = GraphicsQualityWire.Parse(payload, out var settings, out var invalidField);
+            if (status != GraphicsQualityParseStatus.Success)
             {
-                Debug.LogWarning($"[GraphicsQualityActions] Rejected invalid graphics quality: {payload}");
-                return UniTask.FromResult(ActionResult.Fail("invalid_graphics_quality"));
+                var reason = status switch
+                {
+                    GraphicsQualityParseStatus.MissingSettings => "missing_settings",
+                    GraphicsQualityParseStatus.MissingField => "missing_field",
+                    GraphicsQualityParseStatus.InvalidType => "invalid_type",
+                    GraphicsQualityParseStatus.UnsupportedValue => "unsupported_value",
+                    _ => throw new System.ArgumentOutOfRangeException(nameof(status), status, null),
+                };
+                var error = $"invalid_graphics_quality:{reason}:{invalidField}";
+                Debug.LogWarning($"[GraphicsQualityActions] Rejected invalid graphics quality: {error}");
+                return UniTask.FromResult(ActionResult.Fail(error));
             }
             GraphicsQualityPreference.SetSettings(settings);
             return UniTask.FromResult(ActionResult.Success());

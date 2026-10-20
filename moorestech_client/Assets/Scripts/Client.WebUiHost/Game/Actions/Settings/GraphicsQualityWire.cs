@@ -1,6 +1,7 @@
 using Client.Game.InGame.GraphicsQuality;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
+using System.Numerics;
 
 namespace Client.WebUiHost.Game.Actions
 {
@@ -21,6 +22,11 @@ namespace Client.WebUiHost.Game.Actions
         public bool MapObjects;
         public string TerrainDetail;
         public bool Ocean;
+    }
+
+    internal enum GraphicsQualityParseStatus
+    {
+        Success, MissingSettings, MissingField, InvalidType, UnsupportedValue,
     }
 
     internal static class GraphicsQualityWire
@@ -59,32 +65,49 @@ namespace Client.WebUiHost.Game.Actions
             };
         }
 
-        public static bool TryFromJObject(JObject json, out GraphicsQualitySettings settings)
+        public static GraphicsQualityParseStatus Parse(JObject payload, out GraphicsQualitySettings settings, out string invalidField)
         {
             settings = default;
-            if (json == null) return false;
-            if (!TryDrawDistance(json["drawDistanceMeters"], out var drawDistance) || !TryRenderScale(json["renderScalePercent"], out var renderScale) ||
-                !TryTerrain(json["terrainDetail"], out var terrain) || !TryBool(json["shadows"], out var shadows) || !TryBool(json["ssao"], out var ssao) ||
-                !TryBool(json["postProcessing"], out var post) || !TryBool(json["effects"], out var effects) ||
-                !TryBool(json["mapObjects"], out var mapObjects) || !TryBool(json["ocean"], out var ocean)) return false;
-            settings = new GraphicsQualitySettings(drawDistance, shadows, renderScale, ssao, post, effects, mapObjects, terrain, ocean);
-            return true;
+            invalidField = "settings";
+            if (payload?["settings"] == null) return GraphicsQualityParseStatus.MissingSettings;
+            if (payload["settings"] is not JObject json) return GraphicsQualityParseStatus.InvalidType;
+
+            // 欠落・型・値域を区別し、最初の拒否項目を返す
+            // Distinguish missing fields, types and values and return the first rejected field
+            var keys = new[] { "drawDistanceMeters", "renderScalePercent", "terrainDetail", "shadows", "ssao", "postProcessing", "effects", "mapObjects", "ocean" };
+            foreach (var key in keys)
+            {
+                invalidField = key;
+                var token = json[key];
+                if (token == null) return GraphicsQualityParseStatus.MissingField;
+                var expectedType = key switch
+                {
+                    "drawDistanceMeters" or "renderScalePercent" => JTokenType.Integer,
+                    "terrainDetail" => JTokenType.String,
+                    _ => JTokenType.Boolean,
+                };
+                if (token.Type != expectedType) return GraphicsQualityParseStatus.InvalidType;
+                if (expectedType == JTokenType.Integer && !TryInteger(token, out _)) return GraphicsQualityParseStatus.UnsupportedValue;
+                if (key == "drawDistanceMeters" && !TryDrawDistance(token, out _)) return GraphicsQualityParseStatus.UnsupportedValue;
+                if (key == "renderScalePercent" && !TryRenderScale(token, out _)) return GraphicsQualityParseStatus.UnsupportedValue;
+                if (key == "terrainDetail" && token.Value<string>() is not ("fine" or "coarse")) return GraphicsQualityParseStatus.UnsupportedValue;
+            }
+
+            TryDrawDistance(json["drawDistanceMeters"], out var drawDistance);
+            TryRenderScale(json["renderScalePercent"], out var renderScale);
+            var terrain = json["terrainDetail"].Value<string>() == "fine" ? GraphicsTerrainDetail.Fine : GraphicsTerrainDetail.Coarse;
+            settings = new GraphicsQualitySettings(drawDistance, json["shadows"].Value<bool>(), renderScale, json["ssao"].Value<bool>(),
+                json["postProcessing"].Value<bool>(), json["effects"].Value<bool>(), json["mapObjects"].Value<bool>(), terrain, json["ocean"].Value<bool>());
+            invalidField = null;
+            return GraphicsQualityParseStatus.Success;
 
             #region Internal
 
-            bool TryBool(JToken token, out bool value)
-            {
-                value = false;
-                if (token == null || token.Type != JTokenType.Boolean) return false;
-                value = token.Value<bool>();
-                return true;
-            }
-
-            // 数値との対応はToMeters/ToScaleを正とし、ここでは逆引きだけする
-            // ToMeters/ToScale own the numeric mapping; this only looks it up in reverse
+            // 数値との対応は既存の変換を逆引きする
+            // Look up numeric values through the existing conversions
             bool TryDrawDistance(JToken token, out GraphicsDrawDistance value)
             {
-                value = GraphicsDrawDistance.Meters300;
+                value = default;
                 if (!TryInteger(token, out var number)) return false;
                 foreach (GraphicsDrawDistance candidate in System.Enum.GetValues(typeof(GraphicsDrawDistance)))
                 {
@@ -97,7 +120,7 @@ namespace Client.WebUiHost.Game.Actions
 
             bool TryRenderScale(JToken token, out GraphicsRenderScale value)
             {
-                value = GraphicsRenderScale.Percent100;
+                value = default;
                 if (!TryInteger(token, out var number)) return false;
                 foreach (GraphicsRenderScale candidate in System.Enum.GetValues(typeof(GraphicsRenderScale)))
                 {
@@ -108,23 +131,25 @@ namespace Client.WebUiHost.Game.Actions
                 return false;
             }
 
-            bool TryTerrain(JToken token, out GraphicsTerrainDetail value)
-            {
-                value = GraphicsTerrainDetail.Fine;
-                var text = token?.Type == JTokenType.String ? token.Value<string>() : null;
-                if (text == "fine") return true;
-                value = GraphicsTerrainDetail.Coarse;
-                return text == "coarse";
-            }
-
-            // longに収まらない整数（BigInteger）はValue<int>が例外を投げるので、型で弾いて失敗契約へ流す
-            // Integers beyond long (BigInteger) make Value<int> throw, so reject by type and let the failure contract answer
+            // 整数箱の種類に依存せず、範囲外の整数も例外なく拒否する
+            // Normalize integral boxes and reject oversized integers without exceptions
             bool TryInteger(JToken token, out long value)
             {
                 value = 0;
-                if (token is not JValue { Type: JTokenType.Integer, Value: long number }) return false;
-                value = number;
-                return true;
+                if (token is not JValue { Type: JTokenType.Integer } integer) return false;
+                switch (integer.Value)
+                {
+                    case sbyte n: value = n; return true;
+                    case byte n: value = n; return true;
+                    case short n: value = n; return true;
+                    case ushort n: value = n; return true;
+                    case int n: value = n; return true;
+                    case uint n: value = n; return true;
+                    case long n: value = n; return true;
+                    case ulong n when n <= (ulong)long.MaxValue: value = (long)n; return true;
+                    case BigInteger n when long.MinValue <= n && n <= long.MaxValue: value = (long)n; return true;
+                    default: return false;
+                }
             }
 
             #endregion

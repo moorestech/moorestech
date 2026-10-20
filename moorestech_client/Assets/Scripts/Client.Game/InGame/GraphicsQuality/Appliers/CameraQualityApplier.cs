@@ -10,7 +10,7 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
     /// </summary>
     public static class CameraQualityApplier
     {
-        public static void Apply(Camera camera, CinemachineVirtualCamera virtualCamera, GraphicsQualitySettings settings)
+        internal static void Apply(Camera camera, CinemachineVirtualCamera virtualCamera, GraphicsQualitySettings settings)
         {
             // Cinemachineのlensが毎フレーム上書きするため両方へ入れる
             // Cinemachine's lens overwrites the camera every frame, so set both

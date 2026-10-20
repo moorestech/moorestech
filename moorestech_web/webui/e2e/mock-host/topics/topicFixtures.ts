@@ -39,7 +39,7 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.sprintInputMode]: () => ({ mode: "toggle", recoveredInvalidPreference: false }),
   // 実ホストの未保存=中プリセットと同じ値。欠けると設定画面の画質項目が描かれず縦寸法を実測できない
   // Same as the real host's unsaved=medium preset; without it the graphics items never render and the layout cannot be measured
-  [Topics.graphicsQuality]: () => ({ preset: "medium", settings: { drawDistanceMeters: 1000, shadows: true, renderScalePercent: 100, ssao: false, postProcessing: true, effects: true, mapObjects: true, terrainDetail: "fine", ocean: true } }),
+  [Topics.graphicsQuality]: () => ({ preset: "medium", settings: { drawDistanceMeters: 300, shadows: true, renderScalePercent: 100, ssao: true, postProcessing: true, effects: true, mapObjects: true, terrainDetail: "fine", ocean: true } }),
   [Topics.localization]: () => ({ locale: "japanese", revision: 1 }),
   // 通常のe2eは出展モードではないので待機しない。欠けるとsnapshotが返らずrestoringのまま全操作が塞がる
   // Regular e2e is not event mode, so it never waits; a missing entry returns no snapshot and wedges everything in restoring

@@ -33,7 +33,7 @@ namespace Client.Tests.GraphicsQuality
         [Test]
         public void UnsavedPreferenceStartsAtMedium()
         {
-            Assert.AreEqual(GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium), GraphicsQualityPreference.Current);
+            AssertFixed(GraphicsQualityPreference.Current, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true);
         }
 
         [Test]
@@ -56,7 +56,7 @@ namespace Client.Tests.GraphicsQuality
         public void ApplyPresetOverwritesEveryItem()
         {
             GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Low);
-            Assert.AreEqual(GraphicsQualityPresets.Get(GraphicsQualityPreset.Low), GraphicsQualityPreference.Current);
+            AssertFixed(GraphicsQualityPreference.Current, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent50, GraphicsTerrainDetail.Coarse, false);
             Assert.IsTrue(GraphicsQualityPresets.TryMatch(GraphicsQualityPreference.Current, out var preset));
             Assert.AreEqual(GraphicsQualityPreset.Low, preset);
         }
@@ -68,8 +68,54 @@ namespace Client.Tests.GraphicsQuality
         {
             PlayerPrefs.SetString(GraphicsQualityPreference.PreferenceKey, saved);
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GraphicsQualityPreference\] Unknown saved graphics quality"));
-            Assert.AreEqual(GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium), GraphicsQualityPreference.Current);
-            Assert.AreEqual(GraphicsQualityPreference.Serialize(GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium)), PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey));
+            AssertFixed(GraphicsQualityPreference.Current, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true);
+            Assert.AreEqual("Meters300|True|Percent100|True|True|True|True|Fine|True", PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey));
+        }
+        [TestCase(GraphicsQualityPreset.High, GraphicsDrawDistance.Meters5000, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true)]
+        [TestCase(GraphicsQualityPreset.Medium, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true)]
+        [TestCase(GraphicsQualityPreset.Low, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent50, GraphicsTerrainDetail.Coarse, false)]
+        public void PresetsHaveFixedIndependentValues(GraphicsQualityPreset preset, GraphicsDrawDistance distance, GraphicsRenderScale scale, GraphicsTerrainDetail terrain, bool enabled)
+        {
+            AssertFixed(GraphicsQualityPresets.Get(preset), distance, scale, terrain, enabled);
+        }
+
+        [TestCase(0)][TestCase(1)][TestCase(2)][TestCase(3)][TestCase(4)]
+        [TestCase(5)][TestCase(6)][TestCase(7)][TestCase(8)]
+        public void EachItemPersistsNotifiesAndMatchesIndependently(int index)
+        {
+            var values = new[] { "Meters300", "True", "Percent100", "True", "True", "True", "True", "Fine", "True" };
+            values[index] = index switch { 0 => "Meters1000", 2 => "Percent75", 7 => "Coarse", _ => "False" };
+            var expected = new GraphicsQualitySettings(index == 0 ? GraphicsDrawDistance.Meters1000 : GraphicsDrawDistance.Meters300,
+                index != 1, index == 2 ? GraphicsRenderScale.Percent75 : GraphicsRenderScale.Percent100,
+                index != 3, index != 4, index != 5, index != 6, index == 7 ? GraphicsTerrainDetail.Coarse : GraphicsTerrainDetail.Fine, index != 8);
+            var notifications = 0;
+            using var subscription = GraphicsQualityPreference.OnSettingsChanged.Subscribe(_ => notifications++);
+
+            // 一項目ずつ保存・通知・カスタム判定の独立性を確認する
+            // Check persistence, notification and custom matching for each individual item
+            GraphicsQualityPreference.SetSettings(expected);
+            GraphicsQualityPreference.SetSettings(expected);
+            Assert.AreEqual(string.Join("|", values), PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey));
+            Assert.AreEqual(1, notifications);
+            Assert.IsFalse(GraphicsQualityPresets.TryMatch(GraphicsQualityPreference.Current, out _));
+            GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Medium);
+            Assert.AreEqual(2, notifications);
+            Assert.IsTrue(GraphicsQualityPresets.TryMatch(GraphicsQualityPreference.Current, out var preset));
+            Assert.AreEqual(GraphicsQualityPreset.Medium, preset);
+            AssertFixed(GraphicsQualityPreference.Current, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true);
+        }
+
+        private static void AssertFixed(GraphicsQualitySettings actual, GraphicsDrawDistance distance, GraphicsRenderScale scale, GraphicsTerrainDetail terrain, bool enabled)
+        {
+            Assert.AreEqual(distance, actual.DrawDistance);
+            Assert.AreEqual(scale, actual.RenderScale);
+            Assert.AreEqual(terrain, actual.TerrainDetail);
+            Assert.AreEqual(enabled, actual.ShadowsEnabled);
+            Assert.AreEqual(enabled, actual.SsaoEnabled);
+            Assert.AreEqual(enabled, actual.PostProcessingEnabled);
+            Assert.AreEqual(enabled, actual.EffectsEnabled);
+            Assert.AreEqual(enabled, actual.MapObjectsVisible);
+            Assert.AreEqual(enabled, actual.OceanVisible);
         }
     }
 }
