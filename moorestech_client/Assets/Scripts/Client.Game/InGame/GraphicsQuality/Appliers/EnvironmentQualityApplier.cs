@@ -11,8 +11,8 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
     /// </summary>
     public sealed class EnvironmentQualityApplier
     {
-        // 精細はTerrain既定の5、粗いはv7と同じ10
-        // Fine is the Terrain default 5; coarse matches v7's 10
+        // 精細=既定5、粗い=v7の10
+        // Fine uses the default 5; coarse uses v7’s 10
         private const float FinePixelError = 5f;
         private const float CoarsePixelError = 10f;
 

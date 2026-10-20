@@ -8,8 +8,10 @@ using VContainer.Unity;
 namespace Client.Game.InGame.GraphicsQuality.Appliers
 {
     /// <summary>
-    /// 全ブロック・列車へエフェクト切替を付け、画質設定のエフェクト項目の変化を配る
-    /// Attaches the effects switch to every block and train and distributes changes of the effects quality item
+    /// - 全ブロック・列車へ切替を付与
+    /// - エフェクト設定変更を配信
+    /// - Attach switches to all blocks and cars
+    /// - Distribute effects-setting changes
     /// </summary>
     public sealed class EffectsQualityApplier : IStartable
     {

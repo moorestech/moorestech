@@ -115,8 +115,8 @@ namespace Client.Tests.BeltTransport
             presenter.UpdateAll();
             Assert.AreEqual(2, factory.Created.Count, "materialized once within the enter distance");
 
-            // 入る側と出る側の間(47 m 前後): 内側のまま
-            // Between the enter and leave distances (about 47 m): stays inside
+            // 約47mの中間帯では表示を維持
+            // Keep objects visible in the intermediate band around 47m
             viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 49f);
             cache.ApplyTickDiff(BeltTickDiff.Empty);
             presenter.UpdateAll();

@@ -6,8 +6,8 @@ test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
 });
 
-// 1280×720 と高さ制約型の横長で、設定項目が増えても枠が画面に収まり戻るボタンと全項目に届く
-// At 1280×720 and a height-bound wide viewport, the frame stays on screen and the back button and every item stay reachable
+// 画面内に収め全項目・戻るへ到達
+// Keep the frame on screen and every item and Back reachable
 for (const viewport of [{ width: 1280, height: 720 }, { width: 2432, height: 786 }]) {
   test(`設定画面は${viewport.width}x${viewport.height}で枠内に収まり本文だけスクロールする`, async ({ page }) => {
     await page.setViewportSize(viewport);
@@ -28,8 +28,8 @@ for (const viewport of [{ width: 1280, height: 720 }, { width: 2432, height: 786
     const backBox = await back.boundingBox();
     expect(backBox!.y + backBox!.height).toBeLessThanOrEqual(frame!.y + frame!.height);
 
-    // 最後の項目までスクロールして操作でき、戻るも押せる
-    // Scroll to the last item and operate it; the back button stays pressable
+    // 末尾項目の操作と戻るを確認
+    // Verify operating the last item and returning
     await menu.getByTestId("graphics-ocean-off").scrollIntoViewIfNeeded();
     await menu.getByTestId("graphics-ocean-off").click();
     await expect.poll(async () => (await payloadsOf(page, "settings.setGraphicsQuality")).at(-1)).toMatchObject({ settings: { ocean: false } });

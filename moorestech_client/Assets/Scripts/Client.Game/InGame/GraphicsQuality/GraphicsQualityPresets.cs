@@ -19,8 +19,8 @@ namespace Client.Game.InGame.GraphicsQuality
             };
         }
 
-        // どのプリセットとも一致しなければfalse（設定画面ではカスタム表示）
-        // Returns false when no preset matches (shown as custom on the settings screen)
+        // 不一致はfalse（UIではカスタム表示）
+        // Return false for no match (shown as custom in the UI)
         public static bool TryMatch(GraphicsQualitySettings settings, out GraphicsQualityPreset matched)
         {
             foreach (var preset in AllPresets)

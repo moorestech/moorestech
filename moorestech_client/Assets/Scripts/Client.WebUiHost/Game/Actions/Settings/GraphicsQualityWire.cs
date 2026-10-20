@@ -72,8 +72,8 @@ namespace Client.WebUiHost.Game.Actions
             if (payload?["settings"] == null) return GraphicsQualityParseStatus.MissingSettings;
             if (payload["settings"] is not JObject json) return GraphicsQualityParseStatus.InvalidType;
 
-            // 欠落・型・値域を区別し、最初の拒否項目を返す
-            // Distinguish missing fields, types and values and return the first rejected field
+            // 欠落・型・値域別に最初の拒否を返す
+            // Distinguish missing fields, types and ranges; return the first rejection
             var keys = new[] { "drawDistanceMeters", "renderScalePercent", "terrainDetail", "shadows", "ssao", "postProcessing", "effects", "mapObjects", "ocean" };
             foreach (var key in keys)
             {

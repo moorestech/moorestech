@@ -3,8 +3,10 @@ using System.Collections.Generic;
 namespace Client.Game.InGame.Map.MapObject
 {
     /// <summary>
-    /// ランドマークを含む全mapObjectの表示物を持ち、画質設定の表示可否を配る
-    /// Holds every map object's visibility including landmarks and distributes the graphics-quality visibility
+    /// - ランドマークを含む表示物を保持
+    /// - 画質による表示可否を配信
+    /// - Retain visibility targets including landmarks
+    /// - Distribute quality visibility
     /// </summary>
     internal sealed class MapObjectRendererVisibilityRegistry
     {

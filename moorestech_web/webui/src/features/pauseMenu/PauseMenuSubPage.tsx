@@ -6,8 +6,8 @@ import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { PanelActionButton } from "@/shared/ui";
 import styles from "./style.module.css";
 
-// 子画面の枠。見出しと戻るボタンは固定し、本文だけがスクロールする
-// Frame for a sub-page: the heading and back button stay fixed while only the body scrolls
+// 見出し・戻るは固定、本文のみスクロール
+// Keep the heading and Back fixed; scroll only the body
 export function PauseMenuSubPage({ title, children }: { title: string; children: ReactNode }) {
   const { t } = useI18n();
   const back = () => void dispatchAction("pause_menu.show_page", { page: PauseMenuPageNames.top });

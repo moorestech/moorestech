@@ -53,8 +53,8 @@ namespace Client.Game.InGame.Map.MapObject
             var instantiator = new MapObjectLayoutInstantiator(
                 transform, _registry, snapshotByInstanceId, _distanceVisibilityController, visibilityRegistry);
 
-            // 画質設定の木や岩を今すぐ当て、以後の変更も即時反映する
-            // Apply the trees-and-rocks quality item now and follow later changes immediately
+            // 木・岩の画質を初期適用し変更を購読
+            // Apply trees-and-rocks quality initially and subscribe to changes
             visibilityRegistry.SetQualityVisible(GraphicsQualityPreference.Current.MapObjectsVisible);
             GraphicsQualityPreference.OnSettingsChanged.Subscribe(settings => visibilityRegistry.SetQualityVisible(settings.MapObjectsVisible)).AddTo(this);
             var nearFieldOrder = MapObjectLayoutDistanceOrder.SortNearFieldFirst(

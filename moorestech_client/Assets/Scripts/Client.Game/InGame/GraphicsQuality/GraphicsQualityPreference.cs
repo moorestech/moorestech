@@ -45,16 +45,16 @@ namespace Client.Game.InGame.GraphicsQuality
 
         private static GraphicsQualitySettings Load()
         {
-            // 未保存は既定の中（裁定 2026-10-20）
-            // Unsaved means the default medium (ruling 2026-10-20)
+            // 未保存時は中（ユーザー裁定）
+            // Use medium when unsaved (user ruling)
             var medium = GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium);
             if (!PlayerPrefs.HasKey(PreferenceKey)) return medium;
 
             var saved = PlayerPrefs.GetString(PreferenceKey);
             if (TryDeserialize(saved, out var settings)) return settings;
 
-            // 不正値は中へ修復し、開発者が読めるログへ残す
-            // Repair an invalid value to medium and leave a log developers can read
+            // 不正値は中へ修復し開発ログへ記録
+            // Repair invalid values to medium and record a developer log
             Debug.LogWarning($"[GraphicsQualityPreference] Unknown saved graphics quality '{saved}'. Using Medium.");
             PlayerPrefs.SetString(PreferenceKey, Serialize(medium));
             PlayerPrefs.Save();

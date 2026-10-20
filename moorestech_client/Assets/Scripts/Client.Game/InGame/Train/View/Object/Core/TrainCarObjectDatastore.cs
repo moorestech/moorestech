@@ -12,8 +12,8 @@ namespace Client.Game.InGame.Train.View.Object.Core
     {
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
 
-        // 描画物の生成を購読側（画質設定など）へ知らせる
-        // Notifies subscribers such as graphics quality when a view object is created
+        // 画質設定などへの生成通知
+        // Creation notifications for graphics quality and other subscribers
         public IObservable<TrainCarEntityObject> OnTrainCarCreated => _onTrainCarCreated;
         private readonly Subject<TrainCarEntityObject> _onTrainCarCreated = new();
 

@@ -29,8 +29,8 @@ namespace Client.Tests.GraphicsQuality
             Assert.IsFalse(existingBlock.GetComponent<Light>().enabled);
             Assert.IsFalse(existingCar.GetComponent<Light>().enabled);
 
-            // 生成通知を通し新設個体と設置完了後の再停止を検証する
-            // Verify new instances and stopping after placement through creation notifications
+            // 生成・設置完了通知から再停止を検証
+            // Verify new instances and stopping again through creation and placement-completion notifications
             var placed = CreateBlock("placed block", null);
             var newCar = CreateCar("new car", null);
             ((Subject<BlockGameObject>)GetField(store, "_onBlockPlaced")).OnNext(placed);
@@ -44,15 +44,15 @@ namespace Client.Tests.GraphicsQuality
             foreach (var root in new[] { existingBlock.gameObject, existingCar.gameObject, placed.gameObject, newCar.gameObject })
                 Assert.IsTrue(root.GetComponent<Light>().enabled);
 
-            // 設定変更を挟まず実破棄だけで保持参照が外れる
-            // Actual destruction releases retained references without another setting change
+            // 設定変更なしでも破棄で保持解除
+            // Destruction releases references without a setting change
             var switches = (HashSet<EffectsQualitySwitch>)GetField(applier, "_switches");
             Assert.AreEqual(4, switches.Count);
             Object.DestroyImmediate(placed.gameObject);
             Assert.AreEqual(3, switches.Count);
 
-            // 一度も有効化しない生成個体もフレーム経過で保持から外れる
-            // Instances destroyed before activation are also released after frames advance
+            // 未有効化個体も数フレーム後に保持解除
+            // Release never-activated instances after destruction and frame advancement
             var inactiveParent = Own(new GameObject("inactive parent"));
             inactiveParent.SetActive(false);
             var inactiveBlock = CreateBlock("inactive block", inactiveParent.transform);

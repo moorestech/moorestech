@@ -43,8 +43,6 @@ namespace Client.Tests.GraphicsQuality
             using var subscription = GraphicsQualityPreference.OnSettingsChanged.Subscribe(_ => changes++);
             var custom = new GraphicsQualitySettings(GraphicsDrawDistance.Meters1000, false, GraphicsRenderScale.Percent75, true, false, true, false, GraphicsTerrainDetail.Coarse, true);
 
-            // 同じ値の再保存では通知しない
-            // Re-saving the same value does not notify
             GraphicsQualityPreference.SetSettings(custom);
             GraphicsQualityPreference.SetSettings(custom);
             Assert.AreEqual(custom, GraphicsQualityPreference.Current);
@@ -91,8 +89,8 @@ namespace Client.Tests.GraphicsQuality
             var notifications = 0;
             using var subscription = GraphicsQualityPreference.OnSettingsChanged.Subscribe(_ => notifications++);
 
-            // 一項目ずつ保存・通知・カスタム判定の独立性を確認する
-            // Check persistence, notification and custom matching for each individual item
+            // 項目ごとに保存・通知・カスタム判定
+            // Check persistence, notification and custom matching per item
             GraphicsQualityPreference.SetSettings(expected);
             GraphicsQualityPreference.SetSettings(expected);
             Assert.AreEqual(string.Join("|", values), PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey));

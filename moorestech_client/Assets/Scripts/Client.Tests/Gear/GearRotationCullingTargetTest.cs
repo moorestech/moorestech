@@ -21,8 +21,6 @@ namespace Client.Tests.Gear
             processors[1].transform.SetParent(root.transform);
             var target = new GearRotationCullingTarget(processors);
 
-            // 範囲外で全停止し、範囲内で全再開する
-            // Every processor stops outside the range and resumes inside it
             target.SetWithinRange(false);
             Assert.IsFalse(processors[0].enabled);
             Assert.IsFalse(processors[1].enabled);

@@ -47,8 +47,8 @@ namespace Client.Game.InGame.Control
         {
             CameraManager.RegisterCamera(this);
 
-            // 画質設定を今すぐ当て、以後の変更も即時反映する
-            // Apply graphics quality now and follow later changes immediately
+            // 画質を初期適用し変更を購読
+            // Apply quality initially and subscribe to changes
             CameraQualityApplier.Apply(mainCamera, virtualCamera, GraphicsQualityPreference.Current);
             GraphicsQualityPreference.OnSettingsChanged.Subscribe(settings => CameraQualityApplier.Apply(mainCamera, virtualCamera, settings)).AddTo(this);
         }
