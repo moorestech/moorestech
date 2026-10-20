@@ -14,7 +14,7 @@ vi.mock("@/shared/uiState", async (importOriginal) => ({
   isTextInputElement: () => false,
 }));
 vi.mock("@/shared/ui", () => ({
-  BarSeries: (props: object) => createElement("mock-bars", props),
+  BarSeries: ({ testId, ...props }: { testId?: string; values: number[] }) => createElement("mock-bars", { ...props, "data-testid": testId }),
 }));
 vi.mock("@mantine/core", () => ({
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
