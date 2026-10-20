@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Save;
@@ -10,6 +11,7 @@ using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Context;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
@@ -141,6 +143,36 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             // 設置直後で組にまだ無いblock、アイテムも優先順も持たないblockは空
             // A block placed this tick and not yet in the assembly, or one holding no item or order, saves as empty
             return _capturedSaveStates.TryGetValue(blockInstanceId, out var captured) ? captured : new BeltConveyorSaveJsonObject();
+        }
+
+        public IReadOnlyList<IItemStack> GetRefundItems(BlockInstanceId blockInstanceId)
+        {
+            // pendingは組と重ねず読む
+            // Read pending state without overlapping the assembly
+            BeltTransportSnapshot snapshot;
+            if (_loadedStates.TryGetValue(blockInstanceId, out var pending))
+            {
+                snapshot = new BeltTransportSnapshot();
+                BeltTransportLoadedStateConverter.Convert(new Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> { [blockInstanceId] = pending }, snapshot);
+            }
+            else snapshot = BeltTransportSnapshot.Capture(Assembly);
+
+            // 再構築と同じ所有規則で現在の品を集める
+            // Collect current items using the rebuild ownership rules
+            var items = new List<IItemStack>();
+            foreach (var record in snapshot.RunningItems) Add(record.CellBlockInstanceId, record.Item);
+            foreach (var record in snapshot.BufferItems) Add(record.CellBlockInstanceId, record.Item);
+            foreach (var record in snapshot.InternalItems)
+                foreach (var state in record.States) Add(record.MergeBlockInstanceId, state.Item);
+            return items;
+
+            #region Internal
+            void Add(BlockInstanceId owner, BeltItem item)
+            {
+                if (owner == blockInstanceId)
+                    items.Add(ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId));
+            }
+            #endregion
         }
 
         private void MarkDirtyIfAffectsLayout(IBlock block)

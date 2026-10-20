@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Core.Item.Interface;
 using Game.Block.Blocks.BeltConveyor.Save;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Interface;
@@ -8,6 +10,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     // Read-only contract for the belt transport assembly; the mutable assembly itself stays hidden, only the full state, hash and save content are handed out
     public interface IBeltTransportLookup
     {
+        IReadOnlyList<IItemStack> GetRefundItems(BlockInstanceId blockInstanceId);
         BeltTransportFullState CaptureFullState();
         uint ComputeStateHash();
         BeltConveyorSaveJsonObject CreateSaveState(BlockInstanceId blockInstanceId);
