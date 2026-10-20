@@ -11,6 +11,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
     public interface IBeltTransportLookup
     {
         IReadOnlyList<IItemStack> GetRefundItems(BlockInstanceId blockInstanceId);
+        IReadOnlyList<IItemStack> GetConnectionRemovalRefundItems(BlockInstanceId blockInstanceId);
         BeltTransportFullState CaptureFullState();
         uint ComputeStateHash();
         BeltConveyorSaveJsonObject CreateSaveState(BlockInstanceId blockInstanceId);

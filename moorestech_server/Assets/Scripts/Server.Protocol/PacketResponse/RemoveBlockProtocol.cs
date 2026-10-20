@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.TrainRail;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -27,6 +28,7 @@ namespace Server.Protocol.PacketResponse
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly ConstructionWalletService _constructionWallet;
         private readonly IRailGraphDatastore _railGraphDatastore;
+        private readonly IBeltTransportLookup _beltTransportLookup;
 
 
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
@@ -35,6 +37,7 @@ namespace Server.Protocol.PacketResponse
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
+            _beltTransportLookup = serviceProvider.GetService<IBeltTransportLookup>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
@@ -120,6 +123,9 @@ namespace Server.Protocol.PacketResponse
                     result.AddRange(refundInfo.GetRefundItems());
                 }
                 
+                // 接続撤去で消える搬送内容を合算する
+                // Include transport contents lost when this connection is removed
+                result.AddRange(_beltTransportLookup.GetConnectionRemovalRefundItems(block.BlockInstanceId));
                 result.AddRange(railRefundItems);
                 return result;
             }

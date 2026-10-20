@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Save;
@@ -9,9 +8,9 @@ using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
+using Game.Block.Blocks.BeltConveyor.Transport.Removal;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Context;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
@@ -55,7 +54,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             // 流体・歯車は全ブロックの設置・撤去で作り直すが、ベルトは作り直すと合流・分岐の優先順が初期化されるので構成に関わるブロックだけを契機にする
             // Fluid and gear rebuild on every placement or removal, but a belt rebuild resets merge and branch priority orders, so only blocks that affect the layout trigger it
             worldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(properties => MarkDirtyIfAffectsLayout(properties.BlockData.Block));
-            worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => MarkDirtyIfAffectsLayout(properties.BlockData.Block));
+            worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => OnBlockRemoved(properties.BlockData.Block));
         }
 
         // tick先頭にMasterTickUpdaterから毎tick呼ばれ、設置・撤去・ロードがあった時だけワールドから組を作り直す
@@ -147,32 +146,22 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
 
         public IReadOnlyList<IItemStack> GetRefundItems(BlockInstanceId blockInstanceId)
         {
-            // pendingは組と重ねず読む
-            // Read pending state without overlapping the assembly
-            BeltTransportSnapshot snapshot;
-            if (_loadedStates.TryGetValue(blockInstanceId, out var pending))
-            {
-                snapshot = new BeltTransportSnapshot();
-                BeltTransportLoadedStateConverter.Convert(new Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> { [blockInstanceId] = pending }, snapshot);
-            }
-            else snapshot = BeltTransportSnapshot.Capture(Assembly);
+            return BeltOwnedItemRefund.GetItems(blockInstanceId, Assembly, _loadedStates);
+        }
 
-            // 再構築と同じ所有規則で現在の品を集める
-            // Collect current items using the rebuild ownership rules
-            var items = new List<IItemStack>();
-            foreach (var record in snapshot.RunningItems) Add(record.CellBlockInstanceId, record.Item);
-            foreach (var record in snapshot.BufferItems) Add(record.CellBlockInstanceId, record.Item);
-            foreach (var record in snapshot.InternalItems)
-                foreach (var state in record.States) Add(record.MergeBlockInstanceId, state.Item);
-            return items;
+        public IReadOnlyList<IItemStack> GetConnectionRemovalRefundItems(BlockInstanceId blockInstanceId)
+        {
+            var block = _worldBlockDatastore.GetBlock(blockInstanceId);
+            return BeltConnectionRemovalRefund.GetItems(block, _worldBlockDatastore, Assembly, _loadedStates);
+        }
 
-            #region Internal
-            void Add(BlockInstanceId owner, BeltItem item)
-            {
-                if (owner == blockInstanceId)
-                    items.Add(ServerContext.ItemStackFactory.Create(item.ItemId, 1, item.ItemInstanceId));
-            }
-            #endregion
+        private void OnBlockRemoved(IBlock block)
+        {
+            // 切断前の接続から消える内部区間を消費する
+            // Consume disappearing internal segments before connectors are disconnected
+            BeltConnectionRemovalRefund.Consume(block, _worldBlockDatastore, Assembly, _loadedStates);
+            _capturedSaveStates = null;
+            MarkDirtyIfAffectsLayout(block);
         }
 
         private void MarkDirtyIfAffectsLayout(IBlock block)

@@ -17,6 +17,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using Tests.Util;
+using Tests.UnitTest.Game.BeltConnection.Transport;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -63,6 +64,33 @@ namespace Tests.CombinedTest.Server.PacketTest
             return new BeltItem(ForUnitTestItemId.ItemId1, ItemInstanceId.Create(), BeltEntryDirection.FromBack);
         }
 
+        internal IBlock CreateConnectionMerge(bool beltInput, bool rightSource)
+        {
+            // 非ベルト入力を左右から与える
+            // Feed the merge from non-belt inputs on either side
+            BeltTransportTestUtil.InstallMachinePorts(new[] { Vector3Int.left, Vector3Int.right }, new[] { Vector3Int.back });
+            if (beltInput) Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.zero);
+            var merge = Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.forward);
+            Place(ForUnitTestModBlockId.BeltConveyorId, Vector3Int.forward * 2);
+            Place(ForUnitTestModBlockId.ChestId, new Vector3Int(-1, 0, 1));
+            if (rightSource) Place(ForUnitTestModBlockId.ChestId, new Vector3Int(1, 0, 1));
+            BeltWorldTestUtil.EnterMachinePushWindow();
+            return merge;
+        }
+
+        internal BeltItem RestoreInternal(BeltDirection direction)
+        {
+            var layout = Transport.Assembly.Layouts.Single(entry => entry.IsInternal && entry.Inputs[0].Direction == direction);
+            var item = Item();
+            Transport.Assembly.Segments[layout.Index].RestoreItems(new[] { new BeltItemState(item, 100) });
+            return item;
+        }
+
+        internal int CarriedCount()
+        {
+            return Transport.Assembly.Segments.Sum(segment => segment.Count + (segment is BeltBufferedSegment buffered && buffered.Buffer.HasItem ? 1 : 0));
+        }
+
         internal void Restore(Vector3Int position, BeltItemState[] states)
         {
             BeltWorldTestUtil.EnterMachinePushWindow();
@@ -74,7 +102,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 挿入時にIDを採番する手持ちとは別に、返却契約の個体IDを観測する
             // Observe refund-contract identity before the inventory assigns stack identities
             var block = ServerContext.WorldBlockDatastore.GetBlock(position);
-            if (block != null) _lastRefund = Transport.GetRefundItems(block.BlockInstanceId);
+            if (block != null) _lastRefund = Transport.GetRefundItems(block.BlockInstanceId)
+                .Concat(Transport.GetConnectionRemovalRefundItems(block.BlockInstanceId)).ToArray();
             var bytes = MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(position));
             return (RemoveBlockProtocol.RemoveBlockResponseMessagePack)_protocol.GetResponse(bytes, 1);
         }
