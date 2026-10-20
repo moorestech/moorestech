@@ -17,7 +17,7 @@ export function PauseMenuPanel() {
 
   return (
     <section className={styles.panel} data-testid="pause-menu" {...tutorialAnchor(TutorialAnchorIds.pauseMenu)}>
-      <div data-testid={`pause-menu-locale-${locale}`}>{renderPage()}</div>
+      <div className={styles.page} data-testid={`pause-menu-locale-${locale}`}>{renderPage()}</div>
     </section>
   );
 

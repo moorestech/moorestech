@@ -21,6 +21,7 @@ vi.mock("@/bridge", async (importOriginal) => {
 vi.mock("@/features/toast", () => ({ emitToast: vi.fn() }));
 vi.mock("@mantine/core", () => ({
   Button: ({ children, ...rest }: { children: ReactNode }) => createElement("button", rest, children),
+  ScrollArea: ({ children }: { children: ReactNode }) => createElement("main", null, children),
   Stack: ({ children, ...rest }: { children: ReactNode }) => createElement("div", rest, children),
   Text: ({ children }: { children: ReactNode }) => createElement("p", null, children),
   Title: ({ children }: { children: ReactNode }) => createElement("h1", null, children),

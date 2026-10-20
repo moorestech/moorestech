@@ -5,6 +5,9 @@
   /* The body Stack owns the width; the sort button's default width wraps long menu labels */
   --panel-action-button-width: auto;
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  max-height: var(--pause-menu-max-height);
   z-index: var(--z-stage-pause-menu);
   left: 50%;
   top: 50%;
@@ -15,6 +18,26 @@
   border: 1px solid rgb(255 255 255 / 24%);
   border-radius: 12px;
   transform: translate(-50%, -50%);
+}
+
+/* 枠が最大高で止まったとき、本文だけがスクロールできるようflexの高さ連鎖を子画面まで通す */
+/* Pass the flex height chain down to the sub-page so only the body scrolls when the frame stops at its max height */
+.page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.subPage {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 土台（flex連鎖・§8.10ネイビートーン）はpanelBodyScrollAreaが持つ。見出しと戻るボタンは枠内に固定する */
+/* panelBodyScrollArea owns the base (flex chain, §8.10 navy tone); the heading and back button stay fixed in the frame */
+.scroll {
+  composes: scroll from "../../shared/ui/panelBodyScrollArea.module.css";
 }
 
 /* 様式はtextAreaFieldが持ち、ここはポーズメニュー本文幅（420−32×2）に合わせた寸法だけを足す */
