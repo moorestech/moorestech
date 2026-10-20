@@ -3,6 +3,7 @@ using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BeltTransport.Network;
 using Client.Game.InGame.Block.GearRotation;
+using Client.Game.InGame.GraphicsQuality.Appliers;
 using Client.Game.InGame.Block.Preview;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
@@ -100,6 +101,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<BlockPreviewRadiusRegisterService>();
             builder.Register<GearRotationCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<GearRotationCullingRegisterService>();
+            builder.RegisterEntryPoint<RenderPipelineQualityApplier>();
             builder.RegisterEntryPoint<PlayerPositionSender>().AsSelf();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();

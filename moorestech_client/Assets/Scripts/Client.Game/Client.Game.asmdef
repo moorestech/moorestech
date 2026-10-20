@@ -73,7 +73,9 @@
         "Game.Hotbar",
         "Game.Construction",
         "Game.PlayerIdentity",
-        "Core.BeltTransport"
+        "Core.BeltTransport",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
