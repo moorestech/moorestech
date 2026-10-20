@@ -42,8 +42,6 @@
         "Client.Localization",
         "Client.Network",
         "Cinemachine",
-        "Unity.RenderPipelines.Universal.Runtime",
-        "Unity.RenderPipelines.Core.Runtime",
         "UniRx",
         "UniTask",
         "Unity.TextMeshPro",
