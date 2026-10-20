@@ -46,11 +46,11 @@ namespace Client.Tests.EditModeInPlayingTest
                 var mergePosition = new Vector3Int(100, 100, 101);
                 var sourcePosition = mergePosition + Vector3Int.left;
 
-                // 実マスタの横向きチェストから合流へ接続する
-                // Connect a real sideways chest to a merge using production masters
+                // 固定テストマスタのチェストから合流へ接続する
+                // Connect the chest from the fixed test master data to a merge
                 PlaceBlock("直線歯車ベルトコンベア", mergePosition + Vector3Int.back, BlockDirection.North);
                 var merge = PlaceBlock("直線歯車ベルトコンベア", mergePosition, BlockDirection.North);
-                var source = PlaceBlock("鉄のミニコンベアチェスト", sourcePosition, BlockDirection.East);
+                var source = PlaceBlock("量子チェスト", sourcePosition, BlockDirection.East);
                 Assert.IsNotNull(source);
                 Assert.IsNotNull(merge);
                 transport.RebuildIfDirty();
