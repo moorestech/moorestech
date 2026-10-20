@@ -29,12 +29,20 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             {
                 if (Application.isPlaying) yield return new ExitPlayMode();
             }
-            finally { SessionState.SetBool("DebugObjectsBootstrap_Disabled", false); }
+            finally
+            {
+                // PlayModeで変更したEditorの描画値も必ず戻す
+                // Always restore the editor rendering value changed during PlayMode
+                QualitySettings.lodBias = SessionState.GetFloat("GraphicsQualityEntryTest_LodBias", QualitySettings.lodBias);
+                SessionState.EraseFloat("GraphicsQualityEntryTest_LodBias");
+                SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+            }
         }
 
         [UnityTest]
         public IEnumerator InitialPreferenceAndChangesReachLateObjectsIncludingLandmarks()
         {
+            SessionState.SetFloat("GraphicsQualityEntryTest_LodBias", QualitySettings.lodBias);
             EnterPlayModeUtil();
             yield return new EnterPlayMode(expectDomainReload: true);
             LogAssert.ignoreFailingMessages = true;
