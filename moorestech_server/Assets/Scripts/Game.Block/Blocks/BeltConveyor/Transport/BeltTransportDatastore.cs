@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.BeltConveyor.Save;
@@ -28,6 +29,9 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // ロードで預かり、次の再構築で載せるまで保持する保存内容
         // Save content handed over at load and kept until the next rebuild places it
         private readonly Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> _loadedStates = new();
+        // 撤去済み内部区間は次tickの再構築まで物理状態と分けて保持する
+        // Track removed internal segments separately from physical state until the next tick rebuild
+        private readonly HashSet<(BlockInstanceId MergeBlock, BeltDirection Direction)> _removedInternalInputs = new();
         // 機械との搬送の成立を溜め、搬送tickの報告で取り出す
         // Accumulates settled machine handoffs, taken by the transport tick report
         private readonly BeltTransportDiffRecorder _diffRecorder = new();
@@ -66,11 +70,12 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             _isAfterTransportTick = false;
             if (!_isTopologyDirty) return;
             _isTopologyDirty = false;
-            var snapshot = BeltTransportSnapshot.Capture(Assembly);
+            var snapshot = CaptureRemainingItems();
             var savedPriorityOrders = BeltTransportLoadedStateConverter.Convert(_loadedStates, snapshot);
             _loadedStates.Clear();
             Assembly = BeltTransportAssembler.Assemble(BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(_worldBlockDatastore)), savedPriorityOrders, _diffRecorder);
             BeltTransportRestorer.Restore(snapshot, Assembly);
+            _removedInternalInputs.Clear();
 
             // 旧構成の番号で書かれた未取り出しの差分は新構成へ適用しない。中身は再構築後の全量に含まれる
             // Untaken diffs written with old-assembly numbers are never applied to the new one; their effect is in the post-rebuild full state
@@ -137,7 +142,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         public BeltConveyorSaveJsonObject CreateSaveState(BlockInstanceId blockInstanceId)
         {
             if (_loadedStates.TryGetValue(blockInstanceId, out var pending)) return pending;
-            _capturedSaveStates ??= BeltTransportSaveStateBuilder.Build(BeltTransportSnapshot.Capture(Assembly));
+            _capturedSaveStates ??= BeltTransportSaveStateBuilder.Build(CaptureRemainingItems());
 
             // 設置直後で組にまだ無いblock、アイテムも優先順も持たないblockは空
             // A block placed this tick and not yet in the assembly, or one holding no item or order, saves as empty
@@ -146,22 +151,29 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
 
         public IReadOnlyList<IItemStack> GetRefundItems(BlockInstanceId blockInstanceId)
         {
-            return BeltOwnedItemRefund.GetItems(blockInstanceId, Assembly, _loadedStates);
+            return BeltOwnedItemRefund.GetItems(blockInstanceId, CaptureRemainingItems(), _loadedStates);
         }
 
         public IReadOnlyList<IItemStack> GetConnectionRemovalRefundItems(BlockInstanceId blockInstanceId)
         {
             var block = _worldBlockDatastore.GetBlock(blockInstanceId);
-            return BeltConnectionRemovalRefund.GetItems(block, _worldBlockDatastore, Assembly, _loadedStates);
+            return BeltConnectionRemovalRefund.GetItems(block, _worldBlockDatastore, CaptureRemainingItems(), _loadedStates);
         }
 
         private void OnBlockRemoved(IBlock block)
         {
-            // 切断前の接続から消える内部区間を消費する
-            // Consume disappearing internal segments before connectors are disconnected
-            BeltConnectionRemovalRefund.Consume(block, _worldBlockDatastore, Assembly, _loadedStates);
+            // 境界ハッシュを保ち、返却・保存・復元から対象を除外する
+            // Preserve the boundary hash while excluding removed inputs from refunds, saves and restoration
+            BeltConnectionRemovalRefund.RecordRemoval(block, _worldBlockDatastore, _loadedStates, _removedInternalInputs);
             _capturedSaveStates = null;
             MarkDirtyIfAffectsLayout(block);
+        }
+
+        private BeltTransportSnapshot CaptureRemainingItems()
+        {
+            var snapshot = BeltTransportSnapshot.Capture(Assembly);
+            snapshot.InternalItems.RemoveAll(record => _removedInternalInputs.Contains((record.MergeBlockInstanceId, record.InputDirection)));
+            return snapshot;
         }
 
         private void MarkDirtyIfAffectsLayout(IBlock block)

@@ -25,7 +25,8 @@ BeltConveyorInventoryComponentがIGetRefundItemsInfoを実装し、IBeltTranspor
 - 原因: 実測（証拠: `C:/Users/5080/AppData/Local/Temp/moorestech-internal-refund-20261020/repro-before.json`、再現コード: 同ディレクトリの `repro.txt`）。旧コードの実サーバーDIで、`MachinePortTestTemplate` の接続を使うチェストから合流へ入る内部segmentへ `RestoreItems` で1個を注入し、本番撤去プロトコルと次tickを通した結果は `source=Chest; success=True; carriedBefore=1; refunded=0; carriedAfter=0; internalSegmentsAfter=0`。内部segmentは合流所有物としてしか返却照会されず、搬出元撤去後の再構築で消失する。
 - 出所: agent前提（既存 `RemoveBlockProtocol` の全量容量確認と本ADRの返却契約）。通常インベントリ・建設費・レール返却と内部segment分を合算し、全部入らなければ撤去を拒否する。拒否は照会だけで搬送状態を変えない。
 - 出所: agent前提（`BeltSegmentLayoutBuilder` の合流条件）。2入力から1入力になって合流が解消される場合は、残る入力側を含む消失する内部segmentを返す。3入力から2入力の場合は存続する方向を返さない。複数の合流へ接続する搬出元も同じ規則で扱う。
-- 出所: agent前提（`WorldBlockDatastore.RemoveBlock` の同期イベント順序と既存Datastore購読）。返却算出は搬送側に置き、プロトコルには返却物の合算だけを追加する。成功した撤去の既存イベントで、消える内部segmentの実状態とpendingロード内容を消費し、保存cacheを無効化する。同tickの合流撤去で二重返却しない。
+- 出所: agent前提（`WorldBlockDatastore.RemoveBlock` の同期イベント順序と既存Datastore購読）。返却算出は搬送側に置き、プロトコルには返却物の合算だけを追加する。成功した撤去の既存イベントで、消える内部segmentの合流ID・入力方向を記録し、以後の返却照会・保存・次回再構築snapshotから除外する。pendingロード内容は対象方向を除いた新しいオブジェクトへ置き換え、保存cacheを無効化する。同tickの合流撤去で二重返却しない。
+- 出所: 既存同期契約（`MasterTickUpdater.Update`、`BeltTransportTickEventPacket`）。搬送通知→tick末尾の撤去→境界ハッシュの間はlive Assemblyを保つ。内部区間の物理的な消費は次tick先頭の再構築で行い、除外記録をクリアする。これにより搬送通知だけで進むクライアント複製と境界ハッシュが一致し、同tickの全量取得にも同じ物理状態が渡る。同期違反の実測: `C:/Users/5080/AppData/Local/Temp/moorestech-internal-refund-20261020/repro-boundary-hash-blocked.json` に `postTransportHash=4069276182; boundaryHashAfterRemoval=3653395762; hashesMatch=False`。この契約を搬送tick後の撤去・返却/保存除外・次tick再構築のNUnitで検証する。
 - 出所: agent前提（既存ロード契約）。pendingロード内容は同じ所有blockの実segmentより優先し、既存converterで検証する。セーブの形式と所有規則は変更しない。
 - 呼び出し側の線引き: `Server.Protocol` は `IBeltTransportLookup` から追加返却物を受け取り、既存の全量容量確認に含める。合流・方向・入力数の判定やsegment操作は行わない。
 - 出所: ユーザー裁定 2026-10-20「ok」（欠けている個人スキル `codex-audit` を `gpt-6.1-sol / medium` の独立サブエージェントで代替する質問への回答）。独立質問チェックの残問は0件。

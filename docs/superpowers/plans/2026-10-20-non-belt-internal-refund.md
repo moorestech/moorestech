@@ -3,7 +3,7 @@
 > **For the controller session:** moores-subagent-driven-developmentの単一subagent実装モードでTask 1〜2を実行する。末尾のレビュー・PR更新はcontrollerが担う。
 
 **Goal:** チェスト・駅などベルコン以外の搬出元を手動撤去するとき、失われる内部segmentの中身を手持ちへ返す。
-**Architecture:** 搬送Datastoreの読み取り契約で追加返却物を計算し、RemoveBlockProtocolの既存容量確認へ合算する。撤去確定の既存イベントで消失対象を消費する。内部segmentの保存上の所有者は合流blockのまま保つ。
+**Architecture:** 搬送Datastoreの読み取り契約で追加返却物を計算し、RemoveBlockProtocolの既存容量確認へ合算する。撤去確定の既存イベントで消失対象キーを記録し、返却・保存・再構築snapshotから除外する。live Assemblyは次tickの再構築まで保持し、内部segmentの保存上の所有者は合流blockのまま保つ。
 **Tech Stack:** C# / Unity / NUnit / UniRx / MessagePack。
 
 ## Requirements
@@ -13,6 +13,7 @@
 - 一つの搬出元から複数の合流へ出す場合、全ての対象を一度ずつ返却する。
 - 通常インベントリ・建設費・レール等との合計が入らない場合は撤去を拒否し、搬送・pending保存・手持ちを変えない。空きを作った再試行は成功する。
 - 同tickで搬出元→合流、合流→搬出元、複数搬出元を連続撤去しても重複や消失を起こさない。次tickの再構築後も総量を保持する。
+- 搬送通知後の撤去で境界ハッシュと同tick全量を変えない。消失対象は返却・保存から即座に除外し、物理的には次tickの再構築で消費する。
 - 実状態のItemInstanceIdを保持する。pendingロードは既存converterの検証とID生成規則を使い、実状態と重複計上しない。
 - pendingロード後の初回rebuild前にも動く。成功時は対象internal項目だけを消費し、running/buffer/priority/存続する内部方向を保つ。
 - 既存の通常・歯車ベルト撤去を回帰確認する。セーブ形式・ベルト接続構築・物理搬送・描画の変更はしない。
@@ -54,8 +55,6 @@
 ### Task 1: 搬出元撤去の追加返却と成功時の消費を実装する
 
 **Files:**
-- Modify: `moorestech_server/Assets/Scripts/Core.BeltTransport/Simulation/BeltConveyorSegment.cs`（走行列の消費APIを追加）
-- Create: `moorestech_server/Assets/Scripts/Core.BeltTransport/Simulation/State/BeltItemRun.cs`（走行列状態と既存アルゴリズムを抽出し200行以内へ分割）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/Transport/BeltTransportDatastore.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/Transport/IBeltTransportLookup.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/Transport/Removal/BeltConnectionRemovalRefund.cs`
@@ -63,6 +62,7 @@
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltConnectionRemovalRefundTest.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltConnectionRemovalRefundStateTest.cs`
+- Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltConnectionRemovalRefundSyncTest.cs`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltRemovalRefundTestWorld.cs`
 
 **Interfaces:**
@@ -112,18 +112,18 @@ foreach (var layout in layouts)
 }
 ```
 
-- [ ] **Step 3: 成功した撤去のイベントで対象を消費する。**
-  既存OnBlockRemove購読を専用privateメソッドへ繋ぐ。イベントはworldからの削除前に発火するため、対象IDを除く予測で同じキー集合を算出する。live segmentは空のstateへ、pendingは該当internal方向を除いた保存内容へ置き換える。pendingの入力オブジェクトを破壊せず、他の保存項目を保持する。`_capturedSaveStates`を無効化し、既存通りdirtyにする。原子的な同期protocol内では照会からイベントまでtickを挟まない。
+- [ ] **Step 3: 成功した撤去のイベントで消失対象を記録する。**
+  既存OnBlockRemove購読を専用privateメソッドへ繋ぐ。イベントはworldからの削除前に発火するため、対象IDを除く予測で同じキー集合を算出する。Datastoreが対象キーを次tickの再構築まで保持し、live snapshotの返却・保存・復元対象から除外する。pendingは該当internal方向を除いた保存内容へ置き換える。pendingの入力オブジェクトを破壊せず、他の保存項目を保持する。`_capturedSaveStates`を無効化し、既存通りdirtyにする。原子的な同期protocol内では照会からイベントまでtickを挟まない。
 
 ```csharp
 worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => OnBlockRemoved(properties.BlockData.Block));
-// 実segmentの消費は成功イベント内だけ
-Assembly.Segments[segmentIndex].ClearItems();
+// 成功イベントで除外キーを記録し、物理状態は次tickまで保つ
+_removedInternalInputs.UnionWith(removedInputs);
 _capturedSaveStates = null;
 MarkDirtyIfAffectsLayout(block);
 ```
 
-  `RestoreItems` は空のsegmentへ追記する既存契約であり、空配列では何も消費しない。実行検証で返却後にも搬送数1が残ったため、`ClearItems` が既存の先頭取り出し処理で走行列を消費する。配列・隙間・密着群の処理は `BeltItemRun` へ説明ごと移し、物理進行アルゴリズムは保持する。
+  `CaptureRemainingItems` は現Assemblyのsnapshotから記録済み内部方向を除く。所有物返却・接続撤去返却・保存・次回再構築がこれを使用する。次tick先頭でこのsnapshotから新Assemblyへ復元し、除外記録をクリアする。搬送通知から境界ハッシュまでの物理状態は同一に保ち、既存の全量/差分同期経路を使う。
 
 ```csharp
 // pending owner全体をconverterで検証した後、成功時のみ対象方向を除く
@@ -163,7 +163,8 @@ GameUpdater.UpdateOneTick();
 Assert.AreEqual(1, world.Count(item.ItemId));
 ```
 
-  pending代表ケースでは同じfixtureの合流blockへ `RegisterLoadedState` で対象internalの保存1個を登録し、古いlive internalにも別IDを置く。照会1個・拒否時JSON不変・成功後pending/internal両方空・次tick後追加返却0を検査する。非対象running/bufferはpendingだけへ置いて保持を確認する。古いrunning/bufferとpendingの重複という本件以外の人工状態は今回の修正範囲に広げない。
+  pending代表ケースでは同じfixtureの合流blockへ `RegisterLoadedState` で対象internalの保存1個を登録し、古いlive internalにも別IDを置く。照会1個・拒否時JSON不変・成功後pending対象方向と後続返却0・同tickの物理ハッシュ不変・次tick後追加返却0を検査する。非対象running/bufferはpendingだけへ置いて保持を確認する。古いrunning/bufferとpendingの重複という本件以外の人工状態は今回の修正範囲に広げない。
+  同期テストでは合流・下流を詰めて対象を内部に保ち、transport.Tick→撤去→境界hashが複製と一致することを検証する。同tickに同位置へ搬出元を置き直しても返却済み品が復元せず、次回再構築後の新しい搬送品は返却できることも検証する。
 - [ ] **Step 5: `uloop compile` と関連EditModeテストを実行しTask 1をコミットする。**
   Library再生成中はcontrollerへソース完成を連絡して待つ。controllerが既存Editorへ変更を反映した後、同Editorの操作を直列化して実施する。`--filter-type regex --filter-value 'BeltConnectionRemovalRefund|BeltRemovalRefund|BeltConveyorRemoval|BeltTransportRebuildBuffer'`。未検証は成功と記録しない。
 
@@ -173,7 +174,7 @@ Assert.AreEqual(1, world.Count(item.ItemId));
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Belt/BeltConnectionRemovalRefundPlayingTest.cs`
 **Interfaces:** Consumes existing LoadMainGame, master blocks, transport and ClientContext.VanillaApi.Response.Block.BlockRemove. Produces gameplay log evidence.
 
-- [ ] `editmode-in-playing-test`を読み、既存BeltRemovalRefundPlayingTestと同じ起動/終了方法を使う。実マスタのチェストまたは機械と合流beltを配置し、内部segmentを確認してitemを注入する。満杯拒否→空きを作る→API撤去→次tickまで総量維持を観測する。
+- [ ] `editmode-in-playing-test`を読み、既存BeltRemovalRefundPlayingTestと同じ起動/終了方法を使う。LoadMainGame既定の固定テストマスタから量子チェストと歯車合流beltを配置し、内部segmentを確認してitemを注入する。満杯拒否→空きを作る→API撤去→次tickまで総量維持を観測する。API応答直後には物理状態がまだ残りうるため、搬送品の消費は次の実tick後に検証する。
 
 ```csharp
 var response = await ClientContext.VanillaApi.Response.Block.BlockRemove(sourcePosition, CancellationToken.None);

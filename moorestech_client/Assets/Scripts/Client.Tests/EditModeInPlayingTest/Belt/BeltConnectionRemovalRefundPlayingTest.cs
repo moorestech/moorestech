@@ -91,7 +91,6 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.IsTrue(response.Success, response.FailureReason.ToString());
                 Assert.IsNull(ServerContext.WorldBlockDatastore.GetBlock(sourcePosition));
                 Assert.AreEqual(1, Count());
-                Assert.AreEqual(0, Carried());
                 var tick = GameUpdater.CurrentTick;
                 Debug.Log($"[BeltConnectionRemovalRefundPlaying] removed success={response.Success} carried={Carried()} refunded={Count()} tick={tick}");
 

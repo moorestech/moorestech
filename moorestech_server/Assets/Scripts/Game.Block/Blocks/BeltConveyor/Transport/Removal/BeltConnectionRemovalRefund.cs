@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
     internal static class BeltConnectionRemovalRefund
     {
         internal static IReadOnlyList<IItemStack> GetItems(IBlock block, IWorldBlockDatastore world,
-            BeltTransportAssembly assembly, IReadOnlyDictionary<BlockInstanceId, BeltConveyorSaveJsonObject> loadedStates)
+            BeltTransportSnapshot snapshot, IReadOnlyDictionary<BlockInstanceId, BeltConveyorSaveJsonObject> loadedStates)
         {
             var removedInputs = GetRemovedInputs(block, world);
             var items = new List<IItemStack>();
@@ -23,7 +23,6 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
 
             // pending所有者は実状態と重ねず検証する
             // Validate pending owners without overlapping their live state
-            var snapshot = BeltTransportSnapshot.Capture(assembly);
             snapshot.InternalItems.RemoveAll(record => loadedStates.ContainsKey(record.MergeBlockInstanceId));
             var pending = new Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject>();
             foreach (var key in removedInputs)
@@ -41,21 +40,16 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
             return items;
         }
 
-        internal static void Consume(IBlock block, IWorldBlockDatastore world, BeltTransportAssembly assembly,
-            Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> loadedStates)
+        internal static void RecordRemoval(IBlock block, IWorldBlockDatastore world,
+            Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> loadedStates,
+            HashSet<(BlockInstanceId MergeBlock, BeltDirection Direction)> removedInternalInputs)
         {
             var removedInputs = GetRemovedInputs(block, world);
             if (removedInputs.Count == 0) return;
 
-            // 古い構成にも同じキーを適用して二重返却を防ぐ
-            // Apply the same keys to the old assembly to prevent duplicate refunds
-            foreach (var layout in assembly.Layouts)
-            {
-                if (!layout.IsInternal) continue;
-                var merge = assembly.Layouts[layout.Outputs[0].PartnerSegmentIndex];
-                if (removedInputs.Contains((merge.Cells[0].BlockInstanceId, layout.Inputs[0].Direction)))
-                    assembly.Segments[layout.Index].ClearItems();
-            }
+            // 物理状態を変えず同tickの返却・保存から除外する
+            // Exclude items from same-tick refunds and saves without changing physical state
+            removedInternalInputs.UnionWith(removedInputs);
 
             // 保存入力を変更せず対象方向だけ除いた内容へ置換する
             // Replace pending content without mutating its input object or unrelated fields

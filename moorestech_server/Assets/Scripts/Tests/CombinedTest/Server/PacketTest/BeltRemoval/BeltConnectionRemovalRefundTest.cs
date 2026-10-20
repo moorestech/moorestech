@@ -32,7 +32,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(world.Remove(sourcePosition).Success);
             Assert.AreEqual(1, world.Count(item.ItemId));
             world.AssertRefund(item);
-            Assert.AreEqual(0, world.CarriedCount());
+            Assert.AreEqual(1, world.CarriedCount());
+            Assert.IsEmpty(world.Transport.GetRefundItems(ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.forward).BlockInstanceId));
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, world.Count(item.ItemId));
             Assert.AreEqual(0, world.CarriedCount());
@@ -43,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void RefundsExactlyTheInternalDirectionsThatDisappear(bool beltInput, int refunded)
         {
             var world = BeltRemovalRefundTestWorld.CreateServer();
-            world.CreateConnectionMerge(beltInput, true);
+            var merge = world.CreateConnectionMerge(beltInput, true);
             var left = world.RestoreInternal(BeltDirection.Left);
             var right = world.RestoreInternal(BeltDirection.Right);
 
@@ -53,7 +54,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.AssertRefund(left);
             if (!beltInput) world.AssertRefund(right);
             Assert.AreEqual(refunded, world.Count(left.ItemId));
-            Assert.AreEqual(2 - refunded, world.CarriedCount());
+            Assert.AreEqual(2, world.CarriedCount());
+            Assert.AreEqual(2 - refunded, world.Transport.GetRefundItems(merge.BlockInstanceId).Count);
+            Assert.AreEqual(2 - refunded, world.Transport.CreateSaveState(merge.BlockInstanceId).InternalItems.Count);
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(2, world.Count(left.ItemId) + world.CarriedCount());
             if (beltInput)

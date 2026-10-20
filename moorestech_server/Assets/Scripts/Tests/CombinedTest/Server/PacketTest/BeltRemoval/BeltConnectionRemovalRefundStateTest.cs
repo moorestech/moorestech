@@ -43,13 +43,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             CollectionAssert.AreEqual(before, world.Inventory.InventoryItems);
             Assert.AreEqual(wallet, world.Wallet(source.BlockId));
 
-            // 成功時だけ内部区間と保存cacheを更新する
-            // Update the internal segment and save cache only on success
+            // 成功時も物理状態を保ち返却と保存から対象を除く
+            // Preserve physical state on success while excluding the items from refunds and saves
             world.ClearInventory();
             Assert.IsTrue(world.Remove(sourcePosition).Success);
             world.AssertRefund(item);
             Assert.AreEqual(1, world.Count(item.ItemId));
-            Assert.AreEqual(0, world.CarriedCount());
+            Assert.AreEqual(1, world.CarriedCount());
+            Assert.AreEqual(hash, world.Transport.ComputeStateHash());
+            Assert.IsEmpty(world.Transport.GetRefundItems(merge.BlockInstanceId));
             Assert.IsEmpty(world.Transport.CreateSaveState(merge.BlockInstanceId).InternalItems);
             Assert.AreEqual(serialized, JsonConvert.SerializeObject(saved));
             GameUpdater.UpdateOneTick();
@@ -101,7 +103,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.ClearInventory();
             Assert.IsTrue(world.Remove(new Vector3Int(-1, 0, 1)).Success);
             Assert.AreEqual(1, world.Count(item.ItemId));
-            Assert.AreEqual(0, world.CarriedCount());
+            Assert.AreEqual(staleLiveInternal ? 1 : 0, world.CarriedCount());
+            Assert.AreEqual(hash, world.Transport.ComputeStateHash());
 
             // 撤去方向だけ消費し走行・buffer・優先順を保つ
             // Consume only the removed direction, retaining running, buffer and priority
