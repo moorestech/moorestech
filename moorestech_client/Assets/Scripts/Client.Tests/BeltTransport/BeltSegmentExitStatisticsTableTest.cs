@@ -25,7 +25,6 @@ namespace Client.Tests.BeltTransport
                 table.EndTick();
                 Assert.IsFalse(table.TryGetExitCount(0, 90, out _), $"tick {tick} is still measuring");
             }
-            table.OnExited(0);
             table.EndTick();
 
             Assert.IsTrue(table.TryGetExitCount(0, 90, out var count));
