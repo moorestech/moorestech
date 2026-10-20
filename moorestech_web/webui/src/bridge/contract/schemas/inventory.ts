@@ -151,6 +151,19 @@ const TrainTimetableStateSchema = z.discriminatedUnion("kind", [
 ]);
 const TrainStationDetailSchema = z.object({ name: z.string() });
 
+// ベルトの搬出統計。ホストが全窓を送り、Web側はどの窓を見せるかだけを選ぶ。measuredがfalseの窓はまだ埋まっていない
+// Belt exit statistics: the host sends every window and the Web side only picks which to show; a window with measured=false is not filled yet
+export const BeltThroughputWindowDataSchema = z.object({
+  ticks: z.number().int().positive(),
+  measured: z.boolean(),
+  exitCount: z.number().int().nonnegative(),
+  maxCount: z.number().nonnegative(),
+});
+export const BeltThroughputDataSchema = z.object({
+  currentSpeed: z.number().int().nonnegative(),
+  windows: z.array(BeltThroughputWindowDataSchema).min(1),
+});
+
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("block"),
@@ -173,6 +186,7 @@ export const BlockInventoryOpenSchema = z.object({
   gearToElectric: GearToElectricDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
   trainStation: TrainStationDetailSchema.optional(),
+  beltThroughput: BeltThroughputDataSchema.optional(),
 }).strict().superRefine((data, ctx) => {
   // 変換機詳細の混入は受信境界で拒否する。未着は許容する
   // Reject mismatched converter details at the receive boundary while allowing pending details

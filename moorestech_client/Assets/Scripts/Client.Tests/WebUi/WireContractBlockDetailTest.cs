@@ -255,6 +255,36 @@ namespace Client.Tests.WebUi
 
         // DTO を実運用シリアライザで直列化しフィクスチャと DeepEquals 照合する
         // Serialize the DTO with the production serializer and DeepEquals against the fixture
+        // 歯車ベルト: gear + beltThroughput(全窓、埋まった窓と計測中の窓が混在)の presence ケース
+        // Gear belt: the presence case with gear + beltThroughput (every window, filled and still-measuring ones mixed)
+        [Test]
+        public void GearBeltConveyorFixtureMatchesDto()
+        {
+            var windows = new List<BeltThroughputWindowDto>
+            {
+                new() { Ticks = 90, Measured = true, ExitCount = 4, MaxCount = 4.5 },
+                new() { Ticks = 180, Measured = true, ExitCount = 9, MaxCount = 9 },
+                new() { Ticks = 360, Measured = false, ExitCount = 0, MaxCount = 18 },
+                new() { Ticks = 720, Measured = false, ExitCount = 0, MaxCount = 36 },
+                new() { Ticks = 1440, Measured = false, ExitCount = 0, MaxCount = 72 },
+                new() { Ticks = 2880, Measured = false, ExitCount = 0, MaxCount = 144 },
+                new() { Ticks = 5760, Measured = false, ExitCount = 0, MaxCount = 288 },
+            };
+            var dto = new BlockInventoryDto
+            {
+                Open = true,
+                Source = "block",
+                BlockType = "GearBeltConveyor",
+                Identifier = "(4, 0, 2)",
+                BlockGuid = "66666666-6666-4666-8666-666666666666",
+                ItemSlots = new List<BlockItemSlotDto>(),
+                FluidSlots = new List<BlockFluidSlotDto>(),
+                Gear = new GearDetailDto { CurrentRpm = 10f, CurrentTorque = 1f, BaseRpm = 10f, Role = "consumer" },
+                BeltThroughput = new BeltThroughputDetailDto { CurrentSpeed = 18, Windows = windows },
+            };
+            AssertMatchesFixture(dto, "block_inventory_gear_belt_conveyor.json");
+        }
+
         private void AssertMatchesFixture(object dto, string fixtureName)
         {
             var actual = JToken.Parse(WebUiJson.Serialize(dto));

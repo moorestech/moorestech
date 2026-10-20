@@ -15,6 +15,8 @@ import type {
   FluidMasterEntrySchema,
   FluidSlotDataSchema,
   GearDetailDataSchema,
+  BeltThroughputDataSchema,
+  BeltThroughputWindowDataSchema,
   GearNetworkStopReasonSchema,
   HotbarDataSchema,
   HotbarSlotSchema,
@@ -94,6 +96,8 @@ export type FluidSlotData = z.infer<typeof FluidSlotDataSchema>;
 export type MachineProcessState = z.infer<typeof MachineProcessStateSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
+export type BeltThroughputData = z.infer<typeof BeltThroughputDataSchema>;
+export type BeltThroughputWindowData = z.infer<typeof BeltThroughputWindowDataSchema>;
 export type GearToElectricGenerationState = z.infer<typeof GearToElectricGenerationStateSchema>;
 export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;

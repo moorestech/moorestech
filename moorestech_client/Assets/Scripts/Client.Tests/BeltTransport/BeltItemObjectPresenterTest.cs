@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BeltTransport;
+using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Game.InGame.BeltTransport.View;
 using Core.BeltTransport;
 using Core.Item.Interface;
@@ -25,7 +26,7 @@ namespace Client.Tests.BeltTransport
         public void RunningItemsGetObjectsBufferedAndInternalOnesDoNot()
         {
             var factory = new FakeBeltItemObjectFactory();
-            var cache = new BeltTransportClientCache();
+            var cache = new BeltTransportClientCache(new BeltSegmentExitStatisticsTable());
             var presenter = new BeltItemObjectPresenter(cache, factory, new FakeBeltItemViewpoint(Vector3.zero));
 
             // 直線に2個、分岐のbufferに1個、内部segmentに1個
@@ -48,7 +49,7 @@ namespace Client.Tests.BeltTransport
         public void TickMovesObjectsAndRemovedItemsDestroyThem()
         {
             var factory = new FakeBeltItemObjectFactory();
-            var cache = new BeltTransportClientCache();
+            var cache = new BeltTransportClientCache(new BeltSegmentExitStatisticsTable());
             var presenter = new BeltItemObjectPresenter(cache, factory, new FakeBeltItemViewpoint(Vector3.zero));
             cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(1, 2 * Cell), Running(2, 0)) }));
             presenter.UpdateAll();
@@ -74,7 +75,7 @@ namespace Client.Tests.BeltTransport
         public void UpdateAllDoesNothingUntilTheReplicaAdvances()
         {
             var factory = new FakeBeltItemObjectFactory();
-            var cache = new BeltTransportClientCache();
+            var cache = new BeltTransportClientCache(new BeltSegmentExitStatisticsTable());
             var presenter = new BeltItemObjectPresenter(cache, factory, new FakeBeltItemViewpoint(Vector3.zero));
 
             // 複製が無い間は何もしない
@@ -98,7 +99,7 @@ namespace Client.Tests.BeltTransport
         public void OnlySegmentsWithinRangeOfTheViewpointGetObjects()
         {
             var factory = new FakeBeltItemObjectFactory();
-            var cache = new BeltTransportClientCache();
+            var cache = new BeltTransportClientCache(new BeltSegmentExitStatisticsTable());
             var viewpoint = new FakeBeltItemViewpoint(new Vector3(0.5f, 0f, 1000f));
             var presenter = new BeltItemObjectPresenter(cache, factory, viewpoint);
 
@@ -143,7 +144,7 @@ namespace Client.Tests.BeltTransport
         public void NothingIsMaterializedWithoutAViewpoint()
         {
             var factory = new FakeBeltItemObjectFactory();
-            var cache = new BeltTransportClientCache();
+            var cache = new BeltTransportClientCache(new BeltSegmentExitStatisticsTable());
             var viewpoint = new FakeBeltItemViewpoint(Vector3.zero) { HasPosition = false };
             var presenter = new BeltItemObjectPresenter(cache, factory, viewpoint);
             cache.ApplyFullState(new BeltTransportFullState(new[] { Line(Running(1, 2 * Cell)) }));

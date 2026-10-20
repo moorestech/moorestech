@@ -58,6 +58,7 @@ namespace Core.BeltTransport
                     : Output.TryReceive(BeltDirections.Opposite(_outputDirection), length, item);
             }
             Advance(sent);
+            if (sent) NotifyExited();
         }
 
         // 段階4の全前進完了後、成立済みの通常segment間搬送を進入距離を保って末尾へ反映する

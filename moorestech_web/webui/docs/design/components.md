@@ -389,3 +389,11 @@ The skill's whitelist principle covers this document too: read the relevant sect
 - タブ列はパネル本文の最上段に置き、`--mode-switch-gap` で並べる。高さはパネルに比例させない。
 - `role="tablist"` のとき各ボタンは `role="tab"` と `aria-selected` を出す（既定の `group` は `aria-pressed` のまま）。`data-selected="true"` は共通。testid は `<feature>-tab-<name>`。
 - 出所: ユーザー裁定 2026-09-24「タブを新設する」（`.decisions/2026-09-24-列車インベントリに時刻表タブを新設する.md`）。
+
+## 8.23 ベルト搬出量セクション（`features/blockInventory/details/BeltThroughputSection`）
+
+- 歯車ベルトコンベアの詳細パネル内、歯車行（`GearSection`）の直上に置くテキスト行の束。ホストが `beltThroughput`（全窓の搬出数・最大数）を送った時だけ出す。
+- 行は `GearSection` と同じ `Text size="sm" c="var(--text-default)"` の3行構成: 「直近N秒: 個数 / 最大 (割合%)」「個/分」「窓切替のキーヒント」。計測中の窓は1行目を「計測中」にし、個/分の行を出さない。
+- 窓の切替は ←/→ キー。最前面がブロックインベントリの時だけ拾い、一覧の端で止まる（巡回しない）。既定は180tick（9秒）。ホストに問い合わせず、送られた全窓から選ぶだけ。
+- キーヒントは §7 の様式（`keyHintText` + `<kbd>` + `t()`）を `LocalizedShortcutHint layout="inline"` で描く。ホスト配信の `keyHints`（§8.19・ADR-0032）はブロック種別を知らないので、このベルト限定のヒントはセクション内に持つ。
+- 出所: ユーザー裁定 2026-10-20「Fキーで詳細みたときだけでいい」「180tickにします」「左右キーで時間窓を変更」（ADR 0086）。

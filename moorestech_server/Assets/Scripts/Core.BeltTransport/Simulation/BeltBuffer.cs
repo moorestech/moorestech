@@ -96,6 +96,9 @@ namespace Core.BeltTransport
                 _item = default;
                 HasItem = false;
                 if (_priorityCount == 3) _outputOrder = BeltPriority.MoveLast(_outputOrder, (int)direction);
+                // 搬出はbufferから相手へ渡せた時点。段階1の回収は搬出ではない
+                // The output is the handover from the buffer to the target; the stage-1 collection is not one
+                Segment.NotifyExited();
                 return;
             }
         }
