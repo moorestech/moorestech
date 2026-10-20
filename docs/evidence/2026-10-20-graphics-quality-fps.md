@@ -2,22 +2,22 @@
 
 ## 完了基準の計測（2026-10-21 Mac mini）
 
-中プリセット・録画ありで平均 **24.830fps**。20fps以上の完了基準を満たした。目標30fpsには未達。
+particle再適用修正後の最終コードで、中プリセット・録画ありで平均 **24.916fps**。20fps以上の完了基準を満たした。目標30fpsには未達。
 
 | 指標 | 実測値 |
 |---|---:|
-| 平均fps（フレーム数 / unscaledDeltaTime合計） | 24.830 |
-| p50 フレーム時間 / fps換算 | 33.600ms / 29.762fps |
-| p95 フレーム時間 / fps換算 | 67.957ms / 14.715fps |
-| 計測フレーム数 | 1,502 |
-| フレーム時間合計 / 実経過時間 | 60.490秒 / 60.524秒 |
-| 実時間による平均fps（照合） | 24.817 |
-| 歩行距離 | 262.994m |
+| 平均fps（フレーム数 / unscaledDeltaTime合計） | 24.916 |
+| p50 フレーム時間 / fps換算 | 33.735ms / 29.643fps |
+| p95 フレーム時間 / fps換算 | 64.349ms / 15.540fps |
+| 計測フレーム数 | 1,508 |
+| フレーム時間合計 / 実経過時間 | 60.523秒 / 60.518秒 |
+| 実時間による平均fps（照合） | 24.918 |
+| 歩行距離 | 264.993m |
 | ブロック / 歯車Processor数（非active含む） | 13,852 / 10,215 |
 | 解像度 / active Terrain数 | 1280×720 / 1 |
 | targetFrameRate / vSyncCount | 60 / 1 |
 | Recorder captureDeltaTime | 0.03333334秒 |
-| フォーカスが有効だった計測フレーム | 1,502 / 1,502 |
+| フォーカスが有効だった計測フレーム | 1,508 / 1,508 |
 
 - Record=true、Unity Recorder + PlaytestOverlayあり。Record=falseの補助値ではない。Recorderは30fps設定。unscaledDeltaTime集計と実時間の平均が一致することも照合した。
 - 元worldはshareのworld_1のworld.json/map.json/save.jsonを専用worktreeのPlaytestResultsへ複製し、固定world入口（template、seed=0、AutoSave=false）でロードした。原本・通常savesは変更せず、退避・復元は不要。
@@ -29,7 +29,7 @@
 
 実行: `PLAYTEST_WORLD_DIRECTORY=<worktree>/moorestech_client/PlaytestResults/worlds/graphics-quality-world_1 PLAYTEST_MAP_MODE=template PLAYTEST_SEED=0 .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/graphics-quality/quality-fps-measure.cs <pin-923367a2>/server_v8`
 
-結果: `moorestech_client/PlaytestResults/20261021_010920/quality-fps-measure/result.json`（Success=true、ErrorLogs空）。録画・開始/完了スクリーンショットが存在し、アバター・地面・HUD・機械/搬送ライン・設置チェストをゲーム視点で目視した。
+結果: `moorestech_client/PlaytestResults/20261021_012642/quality-fps-measure/result.json`（Success=true、ErrorLogs空）。録画・開始/完了スクリーンショットが存在し、アバター・地面・HUD・機械/搬送ライン・設置チェストをゲーム視点で目視した。
 `uloop get-logs --project-path ./moorestech_client --search-text '[PERF]' --max-count 2` で同値を回収した。
 
 比較元（引継ぎ資料、今回の実測ではない）: MacBook・Editor・カメラ固定で、対策なし7〜9fps、常時軽量化3つ14.1fps、さらに描画距離300mで35.5fps。マシン・録画・カメラ・操作条件が違うため直接の速度比には使わない。
@@ -47,3 +47,5 @@
 - 合成particle（実prefabとは区別）: 修正前は非activeのplayOnAwake子を再有効化するとisPlaying=true、手動Play後にoffを再適用してもtrueをEDCで実測。設置完了イベントから現在画質を再適用し、既にoffでも保存済み状態を書き換えず停止する修正を実施。修正後録画で再有効化/手動Play後の再適用による停止をアサートし、対象NUnit 2/2成功。追加の手動Playが再適用より後に行われる任意の経路を毎フレーム監視する仕組みは追加していない。現行Client.GameのParticleSystem.Play呼出箇所はSwitchの復元経路のみ（検索実測）。
 
 各最終実行の動画・画像は0byteではなく、result.jsonの全アサートが成功。アバター・地面・HUDを含むゲーム視点で目視した。動画の保存時刻はRecorder固定30fpsによるもので、fps集計の実時間窓とは別。
+
+最小修正前の初回録画（20261021_010920）は24.830fps。上表は修正後の再計測（20261021_012642）であり、同じ原本複製・設定・操作条件を用いた。両方Record=true。
