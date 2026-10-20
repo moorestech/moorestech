@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.View.Object.Core;
 using UniRx;
-using UniRx.Triggers;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -57,9 +56,9 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
             var effects = root.AddComponent<EffectsQualitySwitch>();
             effects.Initialize(GraphicsQualityPreference.Current.EffectsEnabled);
             _switches.Add(effects);
-            // 実破棄時に保持を外し累積参照を残さない
-            // Release retained switches at actual destruction
-            effects.OnDestroyAsObservable().Subscribe(_ => _switches.Remove(effects));
+            // 非activeのままの破棄も監視して保持を外す
+            // Monitor destruction before activation as well to release retained switches
+            Disposable.Create(() => _switches.Remove(effects)).AddTo(root);
             return effects;
         }
 
