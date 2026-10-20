@@ -280,7 +280,13 @@ namespace Client.Tests.WebUi
                 ItemSlots = new List<BlockItemSlotDto>(),
                 FluidSlots = new List<BlockFluidSlotDto>(),
                 Gear = new GearDetailDto { CurrentRpm = 10f, CurrentTorque = 1f, BaseRpm = 10f, Role = "consumer" },
-                BeltThroughput = new BeltThroughputDetailDto { CurrentSpeed = 18, Windows = windows },
+                BeltThroughput = new BeltThroughputDetailDto
+                {
+                    CurrentSpeed = 18,
+                    Windows = windows,
+                    RecentSecondCounts = new List<int> { 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+                    MaxCountPerSecond = 1,
+                },
             };
             AssertMatchesFixture(dto, "block_inventory_gear_belt_conveyor.json");
         }

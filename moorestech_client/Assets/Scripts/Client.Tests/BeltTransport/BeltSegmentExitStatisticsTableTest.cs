@@ -118,6 +118,50 @@ namespace Client.Tests.BeltTransport
         }
 
         [Test]
+        public void 直近の束は古い順に写され埋まった数だけ返す()
+        {
+            var table = new BeltSegmentExitStatisticsTable();
+            table.Reset(1);
+            var buckets = new int[9];
+
+            // 19tickでは5tickブロックが3つしか無く、1秒(4ブロック)の束は0個
+            // At tick 19 only three 5-tick blocks exist, so no one-second (4-block) bundle is filled
+            for (var tick = 1; tick <= 19; tick++)
+            {
+                if (tick % 2 == 1) table.OnExited(0);
+                table.EndTick();
+            }
+            Assert.AreEqual(0, table.ReadRecentExitCounts(0, 4, buckets));
+
+            // 20tickで1束。奇数tick1..19の10個
+            // At tick 20 one bundle: 10 outputs on odd ticks 1..19
+            table.EndTick();
+            Assert.AreEqual(1, table.ReadRecentExitCounts(0, 4, buckets));
+            Assert.AreEqual(10, buckets[0]);
+
+            // 45tickまで進めて2束。最新の束は26..45で奇数10個、その前は6..25で奇数10個。先頭5tickは束に入らない
+            // At tick 45 two bundles: the newest covers 26..45 (10 odd ticks), the one before 6..25 (10); the first 5 ticks fall outside the bundles
+            for (var tick = 21; tick <= 45; tick++)
+            {
+                if (tick % 2 == 1) table.OnExited(0);
+                table.EndTick();
+            }
+            Assert.AreEqual(2, table.ReadRecentExitCounts(0, 4, buckets));
+            Assert.AreEqual(10, buckets[0]);
+            Assert.AreEqual(10, buckets[1]);
+
+            // 200tick以降は9束で頭打ち。搬出を止めて進めると最新側から0になる
+            // From tick 200 on it caps at nine bundles; advancing without outputs zeroes them from the newest side
+            for (var tick = 46; tick <= 200; tick++)
+            {
+                if (tick <= 100 && tick % 2 == 1) table.OnExited(0);
+                table.EndTick();
+            }
+            Assert.AreEqual(9, table.ReadRecentExitCounts(0, 4, buckets));
+            CollectionAssert.AreEqual(new[] { 10, 10, 10, 10, 0, 0, 0, 0, 0 }, buckets);
+        }
+
+        [Test]
         public void リセットで履歴と経過tickが消える()
         {
             var table = new BeltSegmentExitStatisticsTable();

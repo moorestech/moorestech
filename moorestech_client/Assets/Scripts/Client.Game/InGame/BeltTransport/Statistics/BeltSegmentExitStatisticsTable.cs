@@ -97,6 +97,27 @@ namespace Client.Game.InGame.BeltTransport.Statistics
             return true;
         }
 
+        // リングの直近を slotsPerBucket 個ずつ束ねて古い順に buckets へ写し、埋まった束の数を返す。最新の束は最新スロットで終わる
+        // Copies the ring's latest slots bundled slotsPerBucket at a time into buckets, oldest first, and returns how many bundles are filled; the newest bundle ends at the newest slot
+        public int ReadRecentExitCounts(int segmentIndex, int slotsPerBucket, int[] buckets)
+        {
+            var completedBlocks = CompletedTicks / RingBlockTicks;
+            var available = Math.Min(buckets.Length, Math.Min(completedBlocks, RingSlots) / slotsPerBucket);
+            var first = segmentIndex * RingSlots;
+            var slot = LatestRingSlot();
+            for (var bucket = available - 1; bucket >= 0; bucket--)
+            {
+                var sum = 0;
+                for (var n = 0; n < slotsPerBucket; n++)
+                {
+                    sum += _ring[first + slot];
+                    slot = slot == 0 ? RingSlots - 1 : slot - 1;
+                }
+                buckets[bucket] = sum;
+            }
+            return available;
+        }
+
         private static bool UnknownWindow(int windowTicks)
         {
             Debug.LogError($"[BeltSegmentExitStatistics] {windowTicks} is not a window this table holds");

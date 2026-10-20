@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BeltThroughputWindowData } from "@/bridge";
-import { beltThroughputRowDisplay, cycleBeltWindow, selectBeltWindow } from "../beltThroughputLogic";
+import { beltRecentSecondBars, beltThroughputRowDisplay, cycleBeltWindow, selectBeltWindow } from "../beltThroughputLogic";
 
 const windows: BeltThroughputWindowData[] = [
   { ticks: 90, measured: true, exitCount: 4, maxCount: 4.5 },
@@ -55,5 +55,15 @@ describe("beltThroughputLogic", () => {
   it("shows zero percent for a stopped belt", () => {
     const row = beltThroughputRowDisplay({ ticks: 180, measured: true, exitCount: 0, maxCount: 0 });
     expect(row.params).toEqual({ seconds: "9", count: 0, max: "0", percent: 0 });
+  });
+
+  // 足りない秒は先頭側をnullで埋め、最大を超えた秒は1に丸め、停止中は0
+  // Missing seconds are null at the front, a second above the maximum rounds to 1, a stopped belt gives 0
+  it("maps per-second counts onto bar heights oldest first", () => {
+    expect(beltRecentSecondBars([1, 0, 2], 2, 5)).toEqual([null, null, 0.5, 0, 1]);
+    expect(beltRecentSecondBars([3, 1], 2, 2)).toEqual([1, 0.5]);
+    expect(beltRecentSecondBars([1, 1, 1], 2, 2)).toEqual([0.5, 0.5]);
+    expect(beltRecentSecondBars([1], 0, 2)).toEqual([null, 0]);
+    expect(beltRecentSecondBars([], 2, 3)).toEqual([null, null, null]);
   });
 });

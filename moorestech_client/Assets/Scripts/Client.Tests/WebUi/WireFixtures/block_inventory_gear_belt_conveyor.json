@@ -17,6 +17,8 @@
       { "ticks": 1440, "measured": false, "exitCount": 0, "maxCount": 72.0 },
       { "ticks": 2880, "measured": false, "exitCount": 0, "maxCount": 144.0 },
       { "ticks": 5760, "measured": false, "exitCount": 0, "maxCount": 288.0 }
-    ]
+    ],
+    "recentSecondCounts": [ 1, 1, 1, 1, 1, 1, 1, 1, 1 ],
+    "maxCountPerSecond": 1.0
   }
 }

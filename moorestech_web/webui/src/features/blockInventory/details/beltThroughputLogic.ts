@@ -4,7 +4,9 @@ import { L, type InterpolationValues, type TranslationKey } from "@/shared/i18n"
 // 既定の窓は180tick(9秒)。バニラ3速度の搬出周期(20・9・3tick)の最小公倍数で、満載時の個数が位相でぶれない最短の窓(ユーザー裁定 2026-10-20)
 // The default window is 180 ticks (9 s): the least common multiple of the three vanilla output periods (20, 9, 3 ticks), the shortest window whose full-belt count never wobbles with phase (user ruling 2026-10-20)
 export const DEFAULT_BELT_WINDOW_TICKS = 180;
-export const BELT_WINDOW_SHORTCUT = "←/→";
+// 棒グラフは1秒平均を9本(ユーザー裁定 2026-10-20)
+// The bar chart shows nine one-second averages (user ruling 2026-10-20)
+export const RECENT_SECOND_BAR_COUNT = 9;
 const TICKS_PER_SECOND = 20;
 const TICKS_PER_MINUTE = TICKS_PER_SECOND * 60;
 
@@ -45,6 +47,19 @@ export function beltThroughputRowDisplay(window: BeltThroughputWindowData): Belt
     params: { seconds, count: window.exitCount, max: formatCount(window.maxCount), percent },
     itemsPerMinute: ((window.exitCount * TICKS_PER_MINUTE) / window.ticks).toFixed(1),
   };
+}
+
+// 古い順の1秒ごとの搬出数を、最大数に対する高さ(0..1)の棒barCount本に写す。まだ無い秒は先頭側をnullで埋める
+// Maps the oldest-first per-second counts onto barCount bar heights (0..1) against the maximum; seconds not yet available are null at the front
+export function beltRecentSecondBars(counts: readonly number[], maxCountPerSecond: number, barCount: number): (number | null)[] {
+  const recent = counts.slice(-barCount);
+  const bars: (number | null)[] = Array.from({ length: barCount - recent.length }, () => null);
+  for (const count of recent) {
+    // 停止中(最大0)は0。整数の粗さで最大を超えた秒は満杯に丸める
+    // A stopped belt (max 0) gives 0; a second that exceeds the maximum through integer coarseness rounds to full
+    bars.push(maxCountPerSecond > 0 ? Math.min(1, count / maxCountPerSecond) : 0);
+  }
+  return bars;
 }
 
 // 整数はそのまま、端数は小数1桁(90tick=4.5秒、速度によっては最大数も端数になる)
