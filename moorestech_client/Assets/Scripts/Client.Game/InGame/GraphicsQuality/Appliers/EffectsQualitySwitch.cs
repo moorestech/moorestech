@@ -34,7 +34,13 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
 
         public void SetEffectsEnabled(bool effectsEnabled)
         {
-            if (_effectsEnabled == effectsEnabled) return;
+            if (_effectsEnabled == effectsEnabled)
+            {
+                // 設置アニメの再有効化や手動Playで再開した演出も、保存状態を上書きせず止め直す
+                // Stop effects restarted by placement reactivation or manual Play without overwriting saved state
+                if (!effectsEnabled) StopEffects();
+                return;
+            }
             _effectsEnabled = effectsEnabled;
 
             // 状態駆動の演出が消したものを点けないよう、止める瞬間の状態を保存して戻す
@@ -66,6 +72,14 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
             }
 
             #endregion
+        }
+
+        private void StopEffects()
+        {
+            foreach (var effect in _visualEffects) effect.enabled = false;
+            foreach (var renderer in _particleRenderers) renderer.enabled = false;
+            foreach (var light in _lights) light.enabled = false;
+            foreach (var particle in _particleSystems) particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
     }
 }
