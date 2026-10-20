@@ -6,6 +6,7 @@ using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using Mooresmaster.Model.BlocksModule;
@@ -23,7 +24,6 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
 
             // pending所有者は実状態と重ねず検証する
             // Validate pending owners without overlapping their live state
-            snapshot.InternalItems.RemoveAll(record => loadedStates.ContainsKey(record.MergeBlockInstanceId));
             var pending = new Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject>();
             foreach (var key in removedInputs)
                 if (loadedStates.TryGetValue(key.MergeBlock, out var state)) pending[key.MergeBlock] = state;
@@ -76,6 +76,18 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
         {
             var removedInputs = new HashSet<(BlockInstanceId MergeBlock, BeltDirection Direction)>();
             if (block.BlockMasterElement.BlockParam is IBeltSpeedParam) return removedInputs;
+
+            // ベルトへの出力を持つ搬出元だけを調べる
+            // Inspect only sources with an output connected to a belt
+            if (!block.ComponentManager.TryGetComponent<IBlockConnectorComponent<IBlockInventory>>(out var connector)) return removedInputs;
+            var hasBeltOutput = false;
+            foreach (var info in connector.ConnectedTargets.Values)
+                if (info.TargetBlock.BlockMasterElement.BlockParam is IBeltSpeedParam)
+                {
+                    hasBeltOutput = true;
+                    break;
+                }
+            if (!hasBeltOutput) return removedInputs;
 
             // 同tickの先行撤去を反映した現在の接続を読む
             // Read current connections including earlier removals in the same tick

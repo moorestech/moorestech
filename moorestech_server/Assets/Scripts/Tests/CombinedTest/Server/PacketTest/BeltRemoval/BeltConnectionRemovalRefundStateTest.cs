@@ -74,6 +74,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             {
                 EnterMachinePushWindow();
                 world.RestoreInternal(BeltDirection.Left);
+                world.RestoreInternal(BeltDirection.Right);
+                var oldItem = BeltRemovalRefundTestWorld.Item();
+                SegmentAt(Vector3Int.forward).RestoreItems(new[] { new BeltItemState(oldItem, 100) });
+                ((BeltBufferedSegment)SegmentAt(Vector3Int.forward)).Buffer.RestoreItem(oldItem);
             }
             var item = BeltRemovalRefundTestWorld.Item();
             var pending = new BeltConveyorSaveJsonObject
@@ -103,7 +107,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             world.ClearInventory();
             Assert.IsTrue(world.Remove(new Vector3Int(-1, 0, 1)).Success);
             Assert.AreEqual(1, world.Count(item.ItemId));
-            Assert.AreEqual(staleLiveInternal ? 1 : 0, world.CarriedCount());
+            Assert.AreEqual(staleLiveInternal ? 4 : 0, world.CarriedCount());
             Assert.AreEqual(hash, world.Transport.ComputeStateHash());
 
             // 撤去方向だけ消費し走行・buffer・優先順を保つ
@@ -118,6 +122,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(3, world.Transport.GetRefundItems(merge.BlockInstanceId).Count);
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(4, world.Count(item.ItemId) + world.CarriedCount());
+            foreach (var segment in Assembly().Segments) Assert.LessOrEqual(segment.Count, segment.Capacity);
 
             // 存続方向も後続撤去で一度だけ返す
             // Refund the surviving direction exactly once on its later removal

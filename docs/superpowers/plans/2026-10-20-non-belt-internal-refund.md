@@ -63,6 +63,7 @@
 - Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltConnectionRemovalRefundTest.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltConnectionRemovalRefundStateTest.cs`
 - Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltConnectionRemovalRefundSyncTest.cs`
+- Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltConnectionRemovalRefundPendingTest.cs`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/BeltRemoval/BeltRemovalRefundTestWorld.cs`
 
 **Interfaces:**
@@ -92,7 +93,7 @@ IReadOnlyList<IItemStack> GetConnectionRemovalRefundItems(BlockInstanceId blockI
 result.AddRange(_beltTransportLookup.GetConnectionRemovalRefundItems(block.BlockInstanceId));
 ```
 
-  選ばれた `(MergeBlockInstanceId, InputDirection)` でsnapshot.InternalItemsを読む。pending所有者はassemblyの同所有者を除き、converter結果を使う。Itemsは既存ItemStackFactoryで1個ずつ生成する。読み取りでは再構築・消費・cache更新をしない。
+  選ばれた `(MergeBlockInstanceId, InputDirection)` でsnapshot.InternalItemsを読む。返却照会・再構築とも、pending所有者はassemblyの同所有者を走行・buffer・内部区間の全カテゴリで除き、converter結果を使う。Itemsは既存ItemStackFactoryで1個ずつ生成する。読み取りでは再構築・消費・cache更新をしない。
 
 ```csharp
 // internal helper: GetRemovedInputs(IBlock block, IWorldBlockDatastore world)
@@ -163,7 +164,7 @@ GameUpdater.UpdateOneTick();
 Assert.AreEqual(1, world.Count(item.ItemId));
 ```
 
-  pending代表ケースでは同じfixtureの合流blockへ `RegisterLoadedState` で対象internalの保存1個を登録し、古いlive internalにも別IDを置く。照会1個・拒否時JSON不変・成功後pending対象方向と後続返却0・同tickの物理ハッシュ不変・次tick後追加返却0を検査する。非対象running/bufferはpendingだけへ置いて保持を確認する。古いrunning/bufferとpendingの重複という本件以外の人工状態は今回の修正範囲に広げない。
+  pending代表ケースでは同じfixtureの合流blockへ `RegisterLoadedState` で対象internalの保存1個を登録し、古いliveには撤去側・存続側の内部区間、running、bufferを置く。照会1個・拒否時JSON不変・成功後pending対象方向と後続返却0・同tickの物理ハッシュ不変・次tick後の総量保持と全segmentのCount<=Capacityを検査する。破損pendingはログを出し所有者全体を除外する既存契約も回帰確認する。
   同期テストでは合流・下流を詰めて対象を内部に保ち、transport.Tick→撤去→境界hashが複製と一致することを検証する。同tickに同位置へ搬出元を置き直しても返却済み品が復元せず、次回再構築後の新しい搬送品は返却できることも検証する。
 - [ ] **Step 5: `uloop compile` と関連EditModeテストを実行しTask 1をコミットする。**
   Library再生成中はcontrollerへソース完成を連絡して待つ。controllerが既存Editorへ変更を反映した後、同Editorの操作を直列化して実施する。`--filter-type regex --filter-value 'BeltConnectionRemovalRefund|BeltRemovalRefund|BeltConveyorRemoval|BeltTransportRebuildBuffer'`。未検証は成功と記録しない。

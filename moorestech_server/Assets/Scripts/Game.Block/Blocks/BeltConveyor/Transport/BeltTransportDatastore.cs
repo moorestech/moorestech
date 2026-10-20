@@ -59,6 +59,17 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             // Fluid and gear rebuild on every placement or removal, but a belt rebuild resets merge and branch priority orders, so only blocks that affect the layout trigger it
             worldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(properties => MarkDirtyIfAffectsLayout(properties.BlockData.Block));
             worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => OnBlockRemoved(properties.BlockData.Block));
+
+            #region Internal
+            void OnBlockRemoved(IBlock block)
+            {
+                // 境界ハッシュを保ち、返却・保存・復元から対象を除外する
+                // Preserve the boundary hash while excluding removed inputs from refunds, saves and restoration
+                BeltConnectionRemovalRefund.RecordRemoval(block, _worldBlockDatastore, _loadedStates, _removedInternalInputs);
+                _capturedSaveStates = null;
+                MarkDirtyIfAffectsLayout(block);
+            }
+            #endregion
         }
 
         // tick先頭にMasterTickUpdaterから毎tick呼ばれ、設置・撤去・ロードがあった時だけワールドから組を作り直す
@@ -160,19 +171,15 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             return BeltConnectionRemovalRefund.GetItems(block, _worldBlockDatastore, CaptureRemainingItems(), _loadedStates);
         }
 
-        private void OnBlockRemoved(IBlock block)
-        {
-            // 境界ハッシュを保ち、返却・保存・復元から対象を除外する
-            // Preserve the boundary hash while excluding removed inputs from refunds, saves and restoration
-            BeltConnectionRemovalRefund.RecordRemoval(block, _worldBlockDatastore, _loadedStates, _removedInternalInputs);
-            _capturedSaveStates = null;
-            MarkDirtyIfAffectsLayout(block);
-        }
-
         private BeltTransportSnapshot CaptureRemainingItems()
         {
             var snapshot = BeltTransportSnapshot.Capture(Assembly);
-            snapshot.InternalItems.RemoveAll(record => _removedInternalInputs.Contains((record.MergeBlockInstanceId, record.InputDirection)));
+            // pending所有者は全カテゴリで古い実状態を置き換える
+            // Pending owners replace old live records in every category
+            snapshot.RunningItems.RemoveAll(record => _loadedStates.ContainsKey(record.CellBlockInstanceId));
+            snapshot.BufferItems.RemoveAll(record => _loadedStates.ContainsKey(record.CellBlockInstanceId));
+            snapshot.InternalItems.RemoveAll(record => _loadedStates.ContainsKey(record.MergeBlockInstanceId) ||
+                _removedInternalInputs.Contains((record.MergeBlockInstanceId, record.InputDirection)));
             return snapshot;
         }
 
