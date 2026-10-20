@@ -1,4 +1,3 @@
-using Client.Game.InGame.UltraLight;
 using Game.MapGeneration.Surface;
 using UnityEngine;
 
@@ -19,7 +18,6 @@ namespace Client.Game.InGame.Environment.Terrain
         {
             // 旧版ワールドはprefab既定の海をそのまま使う
             // Legacy worlds keep the prefab's default ocean as is
-            HideOceanForUltraLight();
         }
 
         public void VisitGrounded(SurfaceEnvelope envelope)
@@ -28,14 +26,6 @@ namespace Client.Game.InGame.Environment.Terrain
             if (ocean == null)
                 throw SurfaceContractFailure.Create("[TerrainRuntimeBuilder] GeneratedOceanSurface is not wired on the environment prefab.");
             ocean.Initialize(envelope);
-            HideOceanForUltraLight();
-        }
-
-        private void HideOceanForUltraLight()
-        {
-            // 超軽量設定: 屈折付きの海を描かない
-            // Ultra-light preset: skip the refractive ocean entirely
-            foreach (var ocean in _environmentRoot.GetComponentsInChildren<GeneratedOceanSurface>(true)) UltraLightPreset.HideRenderers(ocean.gameObject);
         }
     }
 }

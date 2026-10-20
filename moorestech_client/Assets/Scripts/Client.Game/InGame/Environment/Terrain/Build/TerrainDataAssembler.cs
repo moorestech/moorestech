@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Core.Master.Validator;
 using Cysharp.Threading.Tasks;
@@ -8,8 +9,10 @@ using UnityEngine;
 namespace Client.Game.InGame.Environment.Terrain.Build
 {
     /// <summary>
-    ///     出来上がった高さとsplatmapをTerrainDataへ載せる最終段。超軽量設定ではdetail描画を省く
-    ///     The final stage mounting finished heights and splatmap onto TerrainData; the ultra-light preset skips detail rendering
+    ///     出来上がった高さ・splatmap・detail密度をTerrainDataへ載せる最終段。Unityの設定順どおりに流し込む
+    ///     適用可否はBakedTerrainTileの中身が決める
+    ///     The final stage mounting finished heights, splatmap and detail densities onto a TerrainData in Unity's required order
+    ///     What applies is decided by the baked tile's own contents
     /// </summary>
     public static class TerrainDataAssembler
     {
@@ -42,12 +45,11 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            // 超軽量設定でもdetail入力は地形を変更する前に検証する
-            // Validate detail input before modifying terrain, even in the ultra-light preset
-            ValidateDetailInputs();
+            var detailResolution = ValidateDetailInputs();
             ApplyHeightmap();
             await TerrainAlphamapApplier.ApplyAsync(terrainData, terrainLayers, tile, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
+            ApplyDetail();
 
             #region Internal
 
@@ -59,12 +61,32 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 terrainData.size = layout.TileSize;
                 terrainData.SetHeights(0, 0, tile.DisplayHeights);
             }
-            // native TerrainDataを変更する前に、全detail入力の本数と寸法を確定する
-            // Settle every detail count and dimension before modifying the native TerrainData
-            void ValidateDetailInputs()
+
+            void ApplyDetail()
             {
                 var detailMaps = tile.DetailMaps;
                 if (detailMaps.Count == 0) return;
+
+                terrainData.SetDetailResolution(detailResolution, GenerationMasterUtil.DetailResolutionPerPatch);
+                if (terrainData.detailResolution != detailResolution)
+                    throw new System.InvalidOperationException(
+                        $"[TerrainDataAssembler] Unity applied detail resolution {terrainData.detailResolution} instead of {detailResolution}.");
+
+                // CoverageModeではメッシュDetailが描画されないことがあるため移植元と同じくInstanceCountModeにする
+                // CoverageMode can leave mesh details undrawn, so InstanceCountMode is used as in the source
+                terrainData.SetDetailScatterMode(DetailScatterMode.InstanceCountMode);
+                terrainData.detailPrototypes = detailPrototypes.ToArray();
+
+                for (var layerIndex = 0; layerIndex < detailMaps.Count; layerIndex++)
+                    terrainData.SetDetailLayer(0, 0, layerIndex, detailMaps[layerIndex]);
+            }
+
+            // native TerrainDataを変更する前に、全detail入力の本数と寸法を確定する
+            // Settle every detail count and dimension before modifying the native TerrainData
+            int ValidateDetailInputs()
+            {
+                var detailMaps = tile.DetailMaps;
+                if (detailMaps.Count == 0) return 0;
 
                 // プロトタイプ数と密度マップ本数は生成側の1:1対応が保証しているだけで、ここは知らない前提で組む
                 // The prototype count and density-map count agree only because the generator guarantees it 1:1; this stage assumes nothing on its own
@@ -81,6 +103,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                         throw new System.InvalidOperationException(
                             $"[TerrainDataAssembler] Detail map {layerIndex} must be square and match resolution {resolution}.");
 
+                return resolution;
             }
 
             #endregion
