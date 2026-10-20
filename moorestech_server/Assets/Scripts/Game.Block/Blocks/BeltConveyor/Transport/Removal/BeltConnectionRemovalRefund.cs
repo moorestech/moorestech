@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.BeltTransport;
 using Core.Item.Interface;
@@ -55,7 +54,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
                 if (!layout.IsInternal) continue;
                 var merge = assembly.Layouts[layout.Outputs[0].PartnerSegmentIndex];
                 if (removedInputs.Contains((merge.Cells[0].BlockInstanceId, layout.Inputs[0].Direction)))
-                    assembly.Segments[layout.Index].RestoreItems(Array.Empty<BeltItemState>());
+                    assembly.Segments[layout.Index].ClearItems();
             }
 
             // 保存入力を変更せず対象方向だけ除いた内容へ置換する

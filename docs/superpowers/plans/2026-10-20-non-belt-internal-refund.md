@@ -54,6 +54,8 @@
 ### Task 1: 搬出元撤去の追加返却と成功時の消費を実装する
 
 **Files:**
+- Modify: `moorestech_server/Assets/Scripts/Core.BeltTransport/Simulation/BeltConveyorSegment.cs`（走行列の消費APIを追加）
+- Create: `moorestech_server/Assets/Scripts/Core.BeltTransport/Simulation/State/BeltItemRun.cs`（走行列状態と既存アルゴリズムを抽出し200行以内へ分割）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/Transport/BeltTransportDatastore.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/Transport/IBeltTransportLookup.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/BeltConveyor/Transport/Removal/BeltConnectionRemovalRefund.cs`
@@ -116,10 +118,12 @@ foreach (var layout in layouts)
 ```csharp
 worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => OnBlockRemoved(properties.BlockData.Block));
 // 実segmentの消費は成功イベント内だけ
-Assembly.Segments[segmentIndex].RestoreItems(System.Array.Empty<BeltItemState>());
+Assembly.Segments[segmentIndex].ClearItems();
 _capturedSaveStates = null;
 MarkDirtyIfAffectsLayout(block);
 ```
+
+  `RestoreItems` は空のsegmentへ追記する既存契約であり、空配列では何も消費しない。実行検証で返却後にも搬送数1が残ったため、`ClearItems` が既存の先頭取り出し処理で走行列を消費する。配列・隙間・密着群の処理は `BeltItemRun` へ説明ごと移し、物理進行アルゴリズムは保持する。
 
 ```csharp
 // pending owner全体をconverterで検証した後、成功時のみ対象方向を除く
