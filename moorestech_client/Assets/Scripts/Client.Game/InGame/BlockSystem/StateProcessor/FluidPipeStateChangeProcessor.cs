@@ -21,14 +21,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
             
             _waterLevelMaterial = Instantiate(meshRenderer.sharedMaterial);
             meshRenderer.sharedMaterial = _waterLevelMaterial;
-            UpdateWaterLevel(0);
-        }
-        
-        private void Update()
-        {
-            if (_currentFluidPipeState == null) return;
             
-            UpdateWaterLevel(_currentFluidPipeState.Amount / _currentFluidPipeState.Capacity);
+            // Start前に届いた状態があればそれを、無ければ空を表示する
+            // Show a state that arrived before Start, otherwise show empty
+            ApplyCurrentWaterLevel();
         }
         
         public void Initialize(BlockGameObject blockGameObject) { }
@@ -36,6 +32,18 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         public void OnChangeState(BlockStateMessagePack blockState)
         {
             _currentFluidPipeState = blockState.GetStateDetail<FluidPipeStateDetail>(FluidPipeStateDetail.BlockStateDetailKey);
+            
+            // 共有マテリアルを書き換えないよう複製前は反映をStartへ任せる
+            // Leave the update to Start until the material is cloned so the shared material is never written
+            // silent-ok: 複製前の状態はStartのApplyCurrentWaterLevelが必ず反映する / 録画テストの水位表示で気づく
+            if (_waterLevelMaterial == null) return;
+            ApplyCurrentWaterLevel();
+        }
+        
+        private void ApplyCurrentWaterLevel()
+        {
+            var waterLevel = _currentFluidPipeState == null ? 0f : _currentFluidPipeState.Amount / _currentFluidPipeState.Capacity;
+            UpdateWaterLevel(waterLevel);
         }
         
         public void UpdateWaterLevel(float waterLevel)

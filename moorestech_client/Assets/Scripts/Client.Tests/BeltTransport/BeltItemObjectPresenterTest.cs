@@ -108,23 +108,23 @@ namespace Client.Tests.BeltTransport
             presenter.UpdateAll();
             Assert.AreEqual(0, factory.Created.Count, "nothing materialized out of range");
 
-            // 入る側(340 m)の内側へ: 作られる
-            // Inside the enter distance (340 m): created
-            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 330f);
+            // 入る側(45 m)の内側へ: 作られる
+            // Inside the enter distance (45 m): created
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 35f);
             cache.ApplyTickDiff(BeltTickDiff.Empty);
             presenter.UpdateAll();
             Assert.AreEqual(2, factory.Created.Count, "materialized once within the enter distance");
 
-            // 入る側と出る側の間(345 m 前後): 内側のまま
-            // Between the enter and leave distances (about 345 m): stays inside
-            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 346f);
+            // 入る側と出る側の間(47 m 前後): 内側のまま
+            // Between the enter and leave distances (about 47 m): stays inside
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 46f);
             cache.ApplyTickDiff(BeltTickDiff.Empty);
             presenter.UpdateAll();
             Assert.IsFalse(factory.Created[1].IsDestroyed, "kept between the enter and leave distances");
 
-            // 出る側(350 m)の外へ: 即破棄
-            // Beyond the leave distance (350 m): destroyed at once
-            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 360f);
+            // 出る側(50 m)の外へ: 即破棄
+            // Beyond the leave distance (50 m): destroyed at once
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 60f);
             cache.ApplyTickDiff(BeltTickDiff.Empty);
             presenter.UpdateAll();
             Assert.IsTrue(factory.Created[1].IsDestroyed && factory.Created[2].IsDestroyed, "destroyed once beyond the leave distance");
