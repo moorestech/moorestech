@@ -143,6 +143,25 @@ ui.settings.language,Language,Language,言語,Sprache,언어
 ui.settings.sprintMode,Sprint,Sprint,走り,Sprinten,달리기
 ui.settings.sprintModeToggle,Toggle,Toggle,トグル,Umschalten,토글
 ui.settings.sprintModeHold,Hold,Hold,ホールド,Halten,누르기
+ui.settings.graphics,Graphics,Graphics,画質,Grafik,그래픽
+ui.settings.graphicsPreset,Preset,Preset,プリセット,Voreinstellung,프리셋
+ui.settings.graphicsPresetHigh,High,High,高,Hoch,높음
+ui.settings.graphicsPresetMedium,Medium,Medium,中,Mittel,중간
+ui.settings.graphicsPresetLow,Low,Low,低,Niedrig,낮음
+ui.settings.graphicsPresetCustom,Custom,Custom,カスタム,Benutzerdefiniert,사용자 지정
+ui.settings.graphicsDrawDistance,Draw distance,Draw distance,描画距離,Sichtweite,시야 거리
+ui.settings.graphicsShadows,Shadows,Shadows,影,Schatten,그림자
+ui.settings.graphicsRenderScale,Render resolution,Render resolution,描画解像度,Renderauflösung,렌더링 해상도
+ui.settings.graphicsSsao,Ambient occlusion (SSAO),Ambient occlusion (SSAO),アンビエントオクルージョン（SSAO）,Umgebungsverdeckung (SSAO),앰비언트 오클루전(SSAO)
+ui.settings.graphicsPostProcessing,Post-processing,Post-processing,ポストエフェクト,Nachbearbeitung,후처리
+ui.settings.graphicsEffects,Visual effects,Visual effects,エフェクト,Effekte,이펙트
+ui.settings.graphicsMapObjects,Trees and rocks,Trees and rocks,木や岩,Bäume und Felsen,나무와 바위
+ui.settings.graphicsTerrainDetail,Terrain detail,Terrain detail,地形の細かさ,Geländedetails,지형 디테일
+ui.settings.graphicsTerrainFine,Fine,Fine,精細,Fein,세밀
+ui.settings.graphicsTerrainCoarse,Coarse,Coarse,粗い,Grob,거침
+ui.settings.graphicsOcean,Ocean,Ocean,海,Ozean,바다
+ui.settings.on,On,On,オン,An,켜기
+ui.settings.off,Off,Off,オフ,Aus,끄기
 ui.recipe.catalogTitle,CRAFT RECIPE,CRAFT RECIPE,クラフトレシピ,HANDWERKSREZEPT,제작 레시피
 ui.recipe.selectItemHint,Select an item from the list on the right,Select an item from the list on the right,右のリストからアイテムを選択してください,Wählen Sie einen Gegenstand aus der Liste rechts,오른쪽 목록에서 아이템을 선택하세요
 ui.recipe.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}\nクリックでこのアイテムのレシピを確認,"{itemName}\nBestand: {ownedCount}\nBenötigt: {requiredCount}\nKlicken Sie, um Rezepte für diesen Gegenstand zu sehen",{itemName}\n보유: {ownedCount}\n필요: {requiredCount}\n클릭하면 이 아이템의 레시피를 볼 수 있습니다

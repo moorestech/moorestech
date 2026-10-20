@@ -34,6 +34,8 @@
     "train_station.set_name",
     "localization.setLocale",
     "settings.setSprintInputMode",
+    "settings.applyGraphicsQualityPreset",
+    "settings.setGraphicsQuality",
     "debug.echo",
     "tutorial.anchor_ack",
     "skit.advance",

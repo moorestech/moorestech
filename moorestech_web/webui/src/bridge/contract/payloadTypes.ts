@@ -37,6 +37,8 @@ import type {
   UiStateDataSchema,
   LocalizationDataSchema,
   SprintInputModeDataSchema,
+  GraphicsQualityDataSchema,
+  GraphicsQualitySettingsSchema,
   EventLanguageGateDataSchema,
   ChallengeNodeDataSchema,
   ChallengeTreeDataSchema,
@@ -71,6 +73,9 @@ export type ProgressData = z.infer<typeof ProgressDataSchema>;
 export type UiStateData = z.infer<typeof UiStateDataSchema>;
 export type SprintInputModeData = z.infer<typeof SprintInputModeDataSchema>;
 export type SprintInputMode = SprintInputModeData["mode"];
+export type GraphicsQualityData = z.infer<typeof GraphicsQualityDataSchema>;
+export type GraphicsQualitySettings = z.infer<typeof GraphicsQualitySettingsSchema>;
+export type GraphicsQualityPresetChoice = Exclude<GraphicsQualityData["preset"], "custom">;
 export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
 export type EventLanguageGateData = z.infer<typeof EventLanguageGateDataSchema>;
 export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;

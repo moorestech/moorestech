@@ -3,7 +3,7 @@ import type {
   RecipeViewerItemListData,
   ModalData, ProgressData, BlockInventoryData,
   UiStateData, ResearchTreeData, BuildMenuData, HotbarData,
-  SprintInputModeData, LocalizationData, EventLanguageGateData, ChallengeTreeData,
+  SprintInputModeData, GraphicsQualityData, LocalizationData, EventLanguageGateData, ChallengeTreeData,
   ChallengeCurrentData, PauseMenuData, PlacementModeData,
   CrosshairData,
   UiVisibilityData, TooltipData,
@@ -55,6 +55,7 @@ export const Topics = {
   hotbar: "local_player.hotbar",
   localization: "localization.current",
   sprintInputMode: "settings.sprintInputMode",
+  graphicsQuality: "settings.graphicsQuality",
   challengeTree: "challenge.tree",
   challengeCurrent: "challenge.current",
   pauseMenu: "pause_menu.current",
@@ -94,6 +95,7 @@ export type TopicPayloads = {
   [Topics.hotbar]: HotbarData;
   [Topics.localization]: LocalizationData;
   [Topics.sprintInputMode]: SprintInputModeData;
+  [Topics.graphicsQuality]: GraphicsQualityData;
   [Topics.eventLanguageGate]: EventLanguageGateData;
   [Topics.challengeTree]: ChallengeTreeData;
   [Topics.challengeCurrent]: ChallengeCurrentData;

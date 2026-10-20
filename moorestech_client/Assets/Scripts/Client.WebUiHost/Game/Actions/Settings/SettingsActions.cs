@@ -11,6 +11,8 @@ namespace Client.WebUiHost.Game.Actions
         public static void Register(WebSocketHub hub)
         {
             hub.RegisterAction(new SetSprintInputModeActionHandler());
+            hub.RegisterAction(new ApplyGraphicsQualityPresetActionHandler());
+            hub.RegisterAction(new SetGraphicsQualityActionHandler());
         }
     }
 
