@@ -50,8 +50,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         internal IBlock CreateMerge()
         {
-            // 本流と横流から実際の合流と内部segmentを作る
-            // Build a real merge and internal segments from main and side inputs
+            // 本流・横流で合流と内部区間を構築
+            // Build a merge and internal segments from main and side inputs
             for (var z = -1; z <= 2; z++) Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, z));
             BeltWorldTestUtil.Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(1, 0, 1), BlockDirection.West);
             BeltWorldTestUtil.EnterMachinePushWindow();

@@ -45,8 +45,8 @@ namespace Client.Tests.EditModeInPlayingTest
                 var filler = MasterHolder.ItemMaster.GetItemAllIds().Single(id => MasterHolder.ItemMaster.GetItemMaster(id).Name == "小石");
                 Debug.Log($"[BeltRemovalRefundPlaying] booted player={playerId} tick={GameUpdater.CurrentTick}");
 
-                // 実在する通常・歯車のマスタで同じ本番経路を通す
-                // Exercise the same production path with real normal and gear belt masters
+                // 通常・歯車の実マスタで本番経路を検証
+                // Verify the production path with real normal and gear belt masters
                 var testCases = new (string BlockName, bool VerifyFullInventoryRetry)[]
                 {
                     ("直進高速ベルトコンベア", false),
