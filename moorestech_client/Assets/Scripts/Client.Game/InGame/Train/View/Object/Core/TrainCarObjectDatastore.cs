@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using CommandForgeGenerator.Command;
 using Game.Train.Unit;
+using UniRx;
 using UnityEngine;
 using VContainer;
 
@@ -9,6 +11,11 @@ namespace Client.Game.InGame.Train.View.Object.Core
     public class TrainCarObjectDatastore : MonoBehaviour, ISkitWorldObjectControl, ITrainCarViewRegistry
     {
         private readonly Dictionary<TrainCarInstanceId, TrainCarEntityObject> _entities = new();
+
+        // 描画物の生成を購読側（画質設定など）へ知らせる
+        // Notifies subscribers such as graphics quality when a view object is created
+        public IObservable<TrainCarEntityObject> OnTrainCarCreated => _onTrainCarCreated;
+        private readonly Subject<TrainCarEntityObject> _onTrainCarCreated = new();
 
         // 箱選択が車両を走査するための列挙口
         // Enumeration entry for box selection to scan train cars
@@ -132,6 +139,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
             // The factory synchronously creates from the Prefab cache and registers immediately
             var entityObject = _carObjectFactory.CreateTrainCarObject(transform, carSnapshot);
             _entities[trainCarInstanceId] = entityObject;
+            _onTrainCarCreated.OnNext(entityObject);
         }
 
         private List<TrainCarInstanceId> CollectEntityIds()

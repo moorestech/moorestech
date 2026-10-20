@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.GraphicsQuality;
 using Client.Network.API;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
@@ -48,8 +49,14 @@ namespace Client.Game.InGame.Map.MapObject
 
             // 表示制御を個体登録経路へ渡して生成直後から距離状態へ揃える
             // Pass visibility control into registration so each instance is aligned immediately after creation
+            var visibilityRegistry = new MapObjectRendererVisibilityRegistry();
             var instantiator = new MapObjectLayoutInstantiator(
-                transform, _registry, snapshotByInstanceId, _distanceVisibilityController);
+                transform, _registry, snapshotByInstanceId, _distanceVisibilityController, visibilityRegistry);
+
+            // 画質設定の木や岩を今すぐ当て、以後の変更も即時反映する
+            // Apply the trees-and-rocks quality item now and follow later changes immediately
+            visibilityRegistry.SetQualityVisible(GraphicsQualityPreference.Current.MapObjectsVisible);
+            GraphicsQualityPreference.OnSettingsChanged.Subscribe(settings => visibilityRegistry.SetQualityVisible(settings.MapObjectsVisible)).AddTo(this);
             var nearFieldOrder = MapObjectLayoutDistanceOrder.SortNearFieldFirst(
                 handshakeResponse.MapLayout.MapObjects, handshakeResponse.PlayerPos);
 

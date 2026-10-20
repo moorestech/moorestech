@@ -22,18 +22,21 @@ namespace Client.Game.InGame.Map.MapObject
         private readonly MapObjectRegistry _registry;
         private readonly Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> _snapshotByInstanceId;
         private readonly MapObjectDistanceVisibilityController _distanceVisibilityController;
+        private readonly MapObjectRendererVisibilityRegistry _visibilityRegistry;
         private readonly Dictionary<Guid, GameObject> _prefabCacheByMapObjectGuid = new();
 
         public MapObjectLayoutInstantiator(
             Transform parent,
             MapObjectRegistry registry,
             Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> snapshotByInstanceId,
-            MapObjectDistanceVisibilityController distanceVisibilityController)
+            MapObjectDistanceVisibilityController distanceVisibilityController,
+            MapObjectRendererVisibilityRegistry visibilityRegistry)
         {
             _parent = parent;
             _registry = registry;
             _snapshotByInstanceId = snapshotByInstanceId;
             _distanceVisibilityController = distanceVisibilityController;
+            _visibilityRegistry = visibilityRegistry;
         }
 
         /// <summary>
@@ -129,7 +132,12 @@ namespace Client.Game.InGame.Map.MapObject
             // Interpret the master category here and pass only a boolean into the generic visibility mechanism
             var isLandmark = mapObject.MapObjectMasterElement.DistanceVisibilityType ==
                              MapObjectMasterElement.DistanceVisibilityTypeConst.landmark;
-            _distanceVisibilityController.Register(mapObject, isLandmark);
+
+            // 表示物は距離表示と画質表示の両方へ渡す（ランドマークも画質では隠れる）
+            // Hand the visibility to both distance and quality control (landmarks are also hidden by quality)
+            var visibility = new MapObjectRendererVisibility(mapObject);
+            _visibilityRegistry.Add(visibility);
+            _distanceVisibilityController.Register(visibility, mapObject.transform.position, isLandmark);
 
             return true;
         }

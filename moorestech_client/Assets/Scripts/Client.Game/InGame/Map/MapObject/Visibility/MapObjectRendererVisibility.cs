@@ -11,7 +11,8 @@ namespace Client.Game.InGame.Map.MapObject
         private readonly MapObjectGameObject _mapObject;
         private readonly Renderer[] _renderers;
         private readonly bool[] _authoredEnabledStates;
-        private bool _isVisible = true;
+        private bool _isDistanceVisible = true;
+        private bool _isQualityVisible = true;
 
         public MapObjectRendererVisibility(MapObjectGameObject mapObject)
         {
@@ -27,14 +28,26 @@ namespace Client.Game.InGame.Map.MapObject
             }
         }
 
-        public void SetVisible(bool visible)
+        public void SetDistanceVisible(bool visible)
         {
-            if (visible && _mapObject.IsDestroyed) return;
-            if (_isVisible == visible) return;
-            _isVisible = visible;
+            _isDistanceVisible = visible;
+            ApplyRenderers();
+        }
 
-            // rootやColliderには触れずRendererだけを距離表示状態へ揃える
-            // Match only Renderers to distance visibility without touching the root or Colliders
+        public void SetQualityVisible(bool visible)
+        {
+            _isQualityVisible = visible;
+            ApplyRenderers();
+        }
+
+        private void ApplyRenderers()
+        {
+            // 破壊済み個体は再表示しない
+            // A destroyed instance is never shown again
+            var visible = _isDistanceVisible && _isQualityVisible && !_mapObject.IsDestroyed;
+
+            // rootやColliderには触れずRendererだけを揃える
+            // Match only Renderers without touching the root or Colliders
             for (var index = 0; index < _renderers.Length; index++)
             {
                 _renderers[index].enabled = visible && _authoredEnabledStates[index];

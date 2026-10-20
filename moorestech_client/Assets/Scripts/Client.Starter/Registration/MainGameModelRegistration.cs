@@ -102,6 +102,7 @@ namespace Client.Starter.Registration
             builder.Register<GearRotationCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<GearRotationCullingRegisterService>();
             builder.RegisterEntryPoint<RenderPipelineQualityApplier>();
+            builder.RegisterEntryPoint<EffectsQualityApplier>();
             builder.RegisterEntryPoint<PlayerPositionSender>().AsSelf();
             builder.RegisterEntryPoint<SkitFireManager>();
             builder.RegisterEntryPoint<RailGraphCacheNetworkHandler>();
