@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Core.BeltTransport;
 using Core.Item.Interface;
-using Game.Block.Blocks.BeltConveyor.Save;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
@@ -16,18 +15,11 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
     internal static class BeltConnectionRemovalRefund
     {
         internal static IReadOnlyList<IItemStack> GetItems(IBlock block, IWorldBlockDatastore world,
-            BeltTransportSnapshot snapshot, IReadOnlyDictionary<BlockInstanceId, BeltConveyorSaveJsonObject> loadedStates)
+            BeltTransportSnapshot snapshot)
         {
             var removedInputs = GetRemovedInputs(block, world);
             var items = new List<IItemStack>();
             if (removedInputs.Count == 0) return items;
-
-            // pending所有者は実状態と重ねず検証する
-            // Validate pending owners without overlapping their live state
-            var pending = new Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject>();
-            foreach (var key in removedInputs)
-                if (loadedStates.TryGetValue(key.MergeBlock, out var state)) pending[key.MergeBlock] = state;
-            BeltTransportLoadedStateConverter.Convert(pending, snapshot);
 
             // 実状態の個体IDを保って返却する
             // Preserve live item identities in the refund
@@ -41,35 +33,11 @@ namespace Game.Block.Blocks.BeltConveyor.Transport.Removal
         }
 
         internal static void RecordRemoval(IBlock block, IWorldBlockDatastore world,
-            Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> loadedStates,
             HashSet<(BlockInstanceId MergeBlock, BeltDirection Direction)> removedInternalInputs)
         {
-            var removedInputs = GetRemovedInputs(block, world);
-            if (removedInputs.Count == 0) return;
-
             // 物理状態を変えず同tickの返却・保存から除外する
             // Exclude items from same-tick refunds and saves without changing physical state
-            removedInternalInputs.UnionWith(removedInputs);
-
-            // 保存入力を変更せず対象方向だけ除いた内容へ置換する
-            // Replace pending content without mutating its input object or unrelated fields
-            var owners = new HashSet<BlockInstanceId>();
-            foreach (var key in removedInputs) owners.Add(key.MergeBlock);
-            foreach (var owner in owners)
-            {
-                if (!loadedStates.TryGetValue(owner, out var pending)) continue;
-                var snapshot = new BeltTransportSnapshot();
-                BeltTransportLoadedStateConverter.Convert(new Dictionary<BlockInstanceId, BeltConveyorSaveJsonObject> { [owner] = pending }, snapshot);
-                if (snapshot.CorruptedBlocks.Contains(owner)) continue;
-                var remaining = new List<BeltInternalItemSaveJsonObject>();
-                foreach (var saved in pending.InternalItems)
-                    if (!removedInputs.Contains((owner, (BeltDirection)saved.InputDirection))) remaining.Add(saved);
-                loadedStates[owner] = new BeltConveyorSaveJsonObject
-                {
-                    Items = pending.Items, BufferItem = pending.BufferItem,
-                    PriorityOrder = pending.PriorityOrder, InternalItems = remaining
-                };
-            }
+            removedInternalInputs.UnionWith(GetRemovedInputs(block, world));
         }
 
         private static HashSet<(BlockInstanceId MergeBlock, BeltDirection Direction)> GetRemovedInputs(IBlock block, IWorldBlockDatastore world)

@@ -65,7 +65,7 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             {
                 // 境界ハッシュを保ち、返却・保存・復元から対象を除外する
                 // Preserve the boundary hash while excluding removed inputs from refunds, saves and restoration
-                BeltConnectionRemovalRefund.RecordRemoval(block, _worldBlockDatastore, _loadedStates, _removedInternalInputs);
+                BeltConnectionRemovalRefund.RecordRemoval(block, _worldBlockDatastore, _removedInternalInputs);
                 _capturedSaveStates = null;
                 MarkDirtyIfAffectsLayout(block);
             }
@@ -168,18 +168,15 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         public IReadOnlyList<IItemStack> GetConnectionRemovalRefundItems(BlockInstanceId blockInstanceId)
         {
             var block = _worldBlockDatastore.GetBlock(blockInstanceId);
-            return BeltConnectionRemovalRefund.GetItems(block, _worldBlockDatastore, CaptureRemainingItems(), _loadedStates);
+            return BeltConnectionRemovalRefund.GetItems(block, _worldBlockDatastore, CaptureRemainingItems());
         }
 
         private BeltTransportSnapshot CaptureRemainingItems()
         {
             var snapshot = BeltTransportSnapshot.Capture(Assembly);
-            // pending所有者は全カテゴリで古い実状態を置き換える
-            // Pending owners replace old live records in every category
-            snapshot.RunningItems.RemoveAll(record => _loadedStates.ContainsKey(record.CellBlockInstanceId));
-            snapshot.BufferItems.RemoveAll(record => _loadedStates.ContainsKey(record.CellBlockInstanceId));
-            snapshot.InternalItems.RemoveAll(record => _loadedStates.ContainsKey(record.MergeBlockInstanceId) ||
-                _removedInternalInputs.Contains((record.MergeBlockInstanceId, record.InputDirection)));
+            // 返却済みの内部区間を次の再構築まで除外する
+            // Exclude refunded internal segments until the next rebuild
+            snapshot.InternalItems.RemoveAll(record => _removedInternalInputs.Contains((record.MergeBlockInstanceId, record.InputDirection)));
             return snapshot;
         }
 
