@@ -14,9 +14,15 @@ if len(sys.argv) != 2 or sys.argv[1] in ("-h", "--help"):
     sys.exit(__doc__)
 root = Path(sys.argv[1]).expanduser()
 label = root.name
-status = json.loads((root / "steam-upload-status.json").read_text())
-if status["state"] != "uploaded":
-    sys.exit("アップロードが完了していません: " + status["state"])
+# upload_and_verify.sh 経路は steam-upload-status.json、release-playtest.sh 経路は release.log の成功行がアップロード完了の記録
+status_path = root / "steam-upload-status.json"
+release_log = root.parent / (label + ".release.log")
+if status_path.exists():
+    status = json.loads(status_path.read_text())
+    if status["state"] != "uploaded":
+        sys.exit("アップロードが完了していません: " + status["state"])
+elif not (release_log.exists() and "Successfully finished AppID" in release_log.read_text(errors="replace")):
+    sys.exit("アップロード完了の記録がありません（steam-upload-status.json も release.log の成功行も無い）")
 betas = api.call("GetAppBetas/v1/", {})["response"]["betas"]
 builds = api.call("GetAppBuilds/v1/", {"count": "20"})["response"]["builds"]
 build_id = betas["playtest-staging"]["BuildID"]
