@@ -47,9 +47,6 @@ namespace Game.Train.Unit
         private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
         private int _pendingApproachingNodeId;
         private bool _isReversedThisTick;
-        // 自動運転OFFはマスコン・端数距離を差分通知の外で書き換えるので、クライアントへ全量を送り直す
-        // Turning auto-run off rewrites mascon and fractional distance outside the tick diff, so the client needs a full snapshot
-        private bool _isClientResyncRequired;
         private int _manualBranchSelectionIndex;
         private int _previousManualBranchSelectionIndex;
         // 新規編成用: インスタンスIDを新規採番する
@@ -112,16 +109,6 @@ namespace Game.Train.Unit
             _isDockingSpeedForcedToZero = false;
             _pendingApproachingNodeId = -1;
             _isReversedThisTick = false;
-            _isClientResyncRequired = false;
-        }
-
-        // tick内で自動運転が切れたかを返し、要求を消費する
-        // Returns whether auto-run was turned off inside the tick, consuming the request
-        public bool ConsumeClientResyncRequest()
-        {
-            var required = _isClientResyncRequired;
-            _isClientResyncRequired = false;
-            return required;
         }
 
         public int GetManualBranchSelectionIndex()
@@ -148,18 +135,15 @@ namespace Game.Train.Unit
                 totalTractionCapacity += car.TractionForce;
             }
             
+            // 目的地が null になったら自動運転を解除し、同じtickから手動として進める（速度はクライアントと揃えるため触らない）
+            // Without a destination, turn auto-run off and run this tick as manual; speed is left alone to stay in step with the client
+            if (IsAutoRun && trainDiagram.GetCurrentNode() == null)
+            {
+                TurnOffAutoRun();
+            }
+
             if (IsAutoRun)
             {
-                // まず diagram の変更有無を確認する。
-                // Check whether the current diagram is still valid.
-                // 自動運転中に手動でダイアグラムをいじって目的地が null になった場合は自動運転を解除する。
-                // Turn off auto-run when manual edits leave it without a destination.
-                if (trainDiagram.GetCurrentNode() == null)
-                {
-                    TurnOffAutoRun();
-                    _currentSpeed = 0;
-                    return 0;
-                }
                 // 自動運転中はドッキング中なら進まず、ドッキング中でなければ目的地に向かって加速する。
                 // During auto-run, stay stopped while docked and accelerate toward the destination otherwise.
                 if (trainUnitStationDocking.IsDocked)
@@ -544,9 +528,8 @@ namespace Game.Train.Unit
             _timetableChangeNotifier.BeginBatch();
             _isAutoRun = false;
             _remainingDistance = int.MaxValue;
-            masconLevel = 0;
-            _accumulatedDistance = 0;
-            _isClientResyncRequired = true;
+            // マスコンと端数距離は差分通知に乗らないので触らない。次tickの手動入力が移動前にマスコンを決め直す
+            // Mascon and fractional distance stay untouched since the tick diff cannot carry them; next tick's manual input resets mascon before moving
             // ドッキングしていたら解除する。
             // Undock if the train is currently docked.
             if (trainUnitStationDocking.IsDocked)

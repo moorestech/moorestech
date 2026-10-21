@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Core.Update;
-using Game.Train.Event;
 using Game.Train.RailGraph;
 using UniRx;
 
@@ -12,7 +11,6 @@ namespace Game.Train.Unit
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly ITrainUnitLookupDatastore _trainUnitLookupDatastore;
         private readonly TrainCarRidingManualCommandResolver _trainCarRidingManualCommandResolver;
-        private readonly ITrainUnitSnapshotNotifyEvent _trainUnitSnapshotNotifyEvent;
 
         // Trainはサーバーのゲームtickに同期して進める
         // Train tick is aligned with the server game tick interval.
@@ -33,13 +31,11 @@ namespace Game.Train.Unit
         public TrainUpdateService(
             IRailGraphDatastore railGraphDatastore,
             ITrainUnitLookupDatastore trainUnitLookupDatastore,
-            TrainCarRidingManualCommandResolver trainCarRidingManualCommandResolver,
-            ITrainUnitSnapshotNotifyEvent trainUnitSnapshotNotifyEvent)
+            TrainCarRidingManualCommandResolver trainCarRidingManualCommandResolver)
         {
             _railGraphDatastore = railGraphDatastore;
             _trainUnitLookupDatastore = trainUnitLookupDatastore;
             _trainCarRidingManualCommandResolver = trainCarRidingManualCommandResolver;
-            _trainUnitSnapshotNotifyEvent = trainUnitSnapshotNotifyEvent;
         }
 
         public uint GetCurrentTick() => _executedTick;
@@ -69,7 +65,6 @@ namespace Game.Train.Unit
             }
 
             NotifyPreSimulationDiff(_executedTick);
-            ResyncTrainsStoppedInTick();
 
             // これ以降にクライアントからの操作コマンドが適用される
             // Client commands are applied after this point.
@@ -99,17 +94,6 @@ namespace Game.Train.Unit
                 bool HasDiff(int masconLevelDiff, bool isNowDockingSpeedZero, int approachingNodeIdDiff, bool isReversedThisTick, int manualBranchSelectionIndexDiff)
                 {
                     return masconLevelDiff != 0 || isNowDockingSpeedZero || approachingNodeIdDiff != -1 || isReversedThisTick || manualBranchSelectionIndexDiff != 0;
-                }
-            }
-
-            // 差分は移動前の状態としてクライアントで適用されるため、移動中の自動運転OFFはsnapshotで上書きする
-            // The client applies diffs before simulating, so an auto-run stop during movement is overwritten by a snapshot
-            void ResyncTrainsStoppedInTick()
-            {
-                foreach (var trainUnit in _trainUnitLookupDatastore.GetRegisteredTrains())
-                {
-                    if (!trainUnit.ConsumeClientResyncRequest()) continue;
-                    _trainUnitSnapshotNotifyEvent.NotifySnapshot(trainUnit);
                 }
             }
             #endregion

@@ -139,14 +139,17 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainUnit.IsAutoRun, "auto-run should remain enabled after departure preparation.");
             Assert.AreEqual(0d, trainUnit.CurrentSpeed, "the undock tick itself should not move the train yet.");
 
-            trainUnit.Update();
-
+            // 反転は停車中の発車処理で経路を確かめてから行う
+            // The reverse happens in the stopped departure tick, after the route has been checked
             var tickDiff = trainUnit.GetTickDiff();
 
             Assert.IsTrue(tickDiff.isReversedThisTick,
-                "the first movement tick after undocking should report an automatic reverse.");
+                "the departure tick should report an automatic reverse.");
             Assert.IsFalse(frontCar.IsFacingForward,
                 "the car should face backward after the automatic reverse departure.");
+
+            trainUnit.Update();
+
             Assert.Greater(trainUnit.CurrentSpeed, 0d,
                 "the reverse departure tick should begin accelerating immediately.");
             Assert.AreSame(reverseEntry, diagram.GetCurrentNode(),

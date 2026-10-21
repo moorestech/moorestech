@@ -57,7 +57,6 @@ namespace Tests.UnitTest.Game
             trainUnit.TurnOnAutoRun();
             trainUnit.Update();
             Assert.IsTrue(trainUnit.IsDocked, "列車が駅Aに停車した状態で始まっていません。");
-            trainUnit.ConsumeClientResyncRequest();
 
             for (var tick = 0; tick < 10 && trainUnit.IsAutoRun; tick++)
             {
@@ -68,7 +67,6 @@ namespace Tests.UnitTest.Game
             // The old code reversed blindly, drove off, and stopped auto-run mid-route out of sync with the client
             Assert.IsFalse(trainUnit.IsAutoRun, "着けない目的地なのに自動運転が続いています。");
             Assert.IsTrue(IsStoppedAt(trainUnit, stationA.BackExit), "反転したまま走り出しています。駅Aの向きのまま止まるべきです。");
-            Assert.IsTrue(trainUnit.ConsumeClientResyncRequest(), "tick内の自動運転OFFでクライアントへの再同期要求が立っていません。");
         }
 
         #region Helpers
