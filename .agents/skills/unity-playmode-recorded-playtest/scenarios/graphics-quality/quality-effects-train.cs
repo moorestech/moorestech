@@ -47,6 +47,7 @@ var savedRecovered = GraphicsQualityPreference.RecoveredInvalidPreference;
 return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Record = true }, async p =>
 {
     GameObject synthetic = null;
+    Material particleMaterial = null;
     try
     {
         Common.Debug.DebugParameters.SaveInt("DebugEnvironmentTypeKey", 0);
@@ -108,10 +109,15 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
         synthetic = new GameObject("FinalD2SyntheticParticleRoot");
         synthetic.transform.position = p.PlayerPosition + new Vector3(1f, 1f, 0f);
         var child = new GameObject("SyntheticPlayOnAwake");
-        child.transform.SetParent(synthetic.transform);
+        child.transform.SetParent(synthetic.transform, false);
         var particle = child.AddComponent<ParticleSystem>();
         var main = particle.main;
         main.playOnAwake = true;
+        main.startSize = 0.3f;
+        particleMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+        particleMaterial.color = Color.yellow;
+        var particleRenderer = child.GetComponent<ParticleSystemRenderer>();
+        particleRenderer.sharedMaterial = particleMaterial;
         child.SetActive(false);
         var quality = synthetic.AddComponent<EffectsQualitySwitch>();
         quality.Initialize(false);
@@ -123,7 +129,7 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
         GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.High);
         quality.SetEffectsEnabled(true);
         await p.WaitSeconds(0.5f);
-        p.Assert(particle.isPlaying, "D2合成: 高復帰で初期非active子を再生");
+        p.Assert(particle.isPlaying && particle.particleCount > 0 && particleRenderer.enabled, $"D2合成: 高復帰で初期非active子を再生 count={particle.particleCount}");
         await p.Screenshot("04-synthetic-high-restored");
         quality.SetEffectsEnabled(false);
         particle.Play(false);
@@ -134,6 +140,7 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
     finally
     {
         if (synthetic != null) UnityEngine.Object.Destroy(synthetic);
+        if (particleMaterial != null) UnityEngine.Object.Destroy(particleMaterial);
         GraphicsQualityPreference.SetSettings(savedSettings);
         typeof(GraphicsQualityPreference).GetField("<RecoveredInvalidPreference>k__BackingField", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).SetValue(null, savedRecovered);
         if (hadPreference) PlayerPrefs.SetString("GraphicsQuality", savedPreference);
