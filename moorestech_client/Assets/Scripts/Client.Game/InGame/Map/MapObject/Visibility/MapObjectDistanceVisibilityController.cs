@@ -63,7 +63,7 @@ namespace Client.Game.InGame.Map.MapObject
             }
         }
 
-        public void Register(MapObjectGameObject mapObject, bool isLandmark)
+        public void Register(MapObjectRendererVisibility visibility, Vector3 position, bool isLandmark)
         {
             if (isLandmark) return;
             if (_registeredCount == _boundingSpheres.Length)
@@ -71,11 +71,13 @@ namespace Client.Game.InGame.Map.MapObject
 
             var index = _registeredCount;
             _registeredCount++;
-            _visibilityByIndex[index] = new MapObjectRendererVisibility(mapObject);
-            _boundingSpheres[index] = new BoundingSphere(mapObject.transform.position, 0f);
+            _visibilityByIndex[index] = visibility;
+            _boundingSpheres[index] = new BoundingSphere(position, 0f);
             _cullingGroup.SetBoundingSphereCount(_registeredCount);
 
-            if (_camera != null) ApplyDistanceBand(index, GetDistanceBand(mapObject.transform.position));
+            // 初回は描画前に距離を反映する
+            // Apply initial distance visibility before rendering
+            if (_camera != null) visibility.SetDistanceVisible(GetDistanceBand(position) != 2);
         }
 
         internal void ApplyDistanceBand(int index, int distanceBand)
@@ -142,7 +144,7 @@ namespace Client.Game.InGame.Map.MapObject
                 if (_hasPendingVisibilityByIndex[index])
                 {
                     _hasPendingVisibilityByIndex[index] = false;
-                    _visibilityByIndex[index].SetVisible(_pendingVisibilityByIndex[index]);
+                    _visibilityByIndex[index].SetDistanceVisible(_pendingVisibilityByIndex[index]);
                 }
 
                 if (!budget.IsExhausted || _pendingIndices.Count == 0) continue;

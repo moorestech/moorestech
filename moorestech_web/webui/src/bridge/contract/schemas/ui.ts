@@ -41,6 +41,24 @@ export const LocalizationDataSchema = z.object({
 // Sprint input mode; Unity owns the default
 export const SprintInputModeDataSchema = z.object({ mode: z.enum(["toggle", "hold"]), recoveredInvalidPreference: z.boolean() });
 
+// Graphics quality; Unity owns the default and the preset match
+export const GraphicsQualitySettingsSchema = z.object({
+  drawDistanceMeters: z.union([z.literal(300), z.literal(1000), z.literal(5000)]),
+  shadows: z.boolean(),
+  renderScalePercent: z.union([z.literal(100), z.literal(75), z.literal(50)]),
+  ssao: z.boolean(),
+  postProcessing: z.boolean(),
+  effects: z.boolean(),
+  mapObjects: z.boolean(),
+  terrainDetail: z.enum(["fine", "coarse"]),
+  ocean: z.boolean(),
+});
+export const GraphicsQualityDataSchema = z.object({
+  preset: z.enum(["high", "medium", "low", "custom"]),
+  settings: GraphicsQualitySettingsSchema,
+  recoveredInvalidPreference: z.boolean(),
+});
+
 // 出展モードの言語選択ゲートの待機。開始を止めるゲートはこれ1枚なので順序は持たない
 // The wait of event mode's language gate; it is the only gate holding the start, so no order travels with it
 export const EventLanguageGateDataSchema = z.object({ waiting: z.boolean() });

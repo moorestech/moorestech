@@ -146,6 +146,9 @@
   /* Bug-report textarea in the pause menu; fixed lengths for the inner panel width (420−32×2) and three lines */
   --bug-report-textarea-width: 356px;
   --bug-report-textarea-height: 72px;
+  /* ポーズメニュー枠の最大高。stage上下に40pxずつ残し、超えた本文は枠内でスクロールさせる */
+  /* Max height of the pause-menu frame: leaves 40px above and below in the stage; overflowing body scrolls inside it */
+  --pause-menu-max-height: calc(var(--ui-stage-height) - 80px);
   /* 全画面ゲートの見出し・本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する */
   /* Max width for a full-screen gate's heading and body; unconstrained they reach the screen edge with zero side margin */
   --full-screen-gate-text-width: 900px;

@@ -9,8 +9,8 @@ namespace Client.Game.InGame.BeltTransport.View
     // Enter and leave distances differ so a segment on the border does not flicker every tick; the values match the map object visibility control (ADR 0085)
     public sealed class BeltSegmentVisibleRange
     {
-        public const float EnterDistance = 340f;
-        public const float LeaveDistance = 350f;
+        public const float EnterDistance = 45f;
+        public const float LeaveDistance = 50f;
 
         // マス中心からの余裕。坂のマスは中心が 0.5 高く、アイテムの表示物は一辺 1 m 未満
         // Margin beyond the cell centers: slope cells sit 0.5 higher and an item object is under 1 m per side

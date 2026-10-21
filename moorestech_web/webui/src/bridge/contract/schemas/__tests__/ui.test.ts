@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NestedPauseSubStateNames } from "@/bridge";
-import { NotificationDataSchema, PauseMenuDataSchema, SprintInputModeDataSchema, UiStateDataSchema } from "../ui";
+import { GraphicsQualityDataSchema, NotificationDataSchema, PauseMenuDataSchema, SprintInputModeDataSchema, UiStateDataSchema } from "../ui";
 
 describe("NotificationDataSchema", () => {
   it("itemId: nullをomittedと同様に受理する（シリアライザ揺れ耐性）", () => {
@@ -88,4 +88,17 @@ it("件数不明を4状態内で受理し、未知と件数の混在を拒否す
     expect(PauseMenuDataSchema.safeParse({ ...base, delivery: { ...status, inventory } }).success).toBe(true);
     expect(PauseMenuDataSchema.safeParse({ ...base, delivery: { ...status, inventory: { ...inventory, pendingCount: 0 } } }).success).toBe(false);
   }
+});
+
+it("GraphicsQualityDataSchemaは定義済みの値だけを受ける", () => {
+  const settings = {
+    drawDistanceMeters: 300, shadows: true, renderScalePercent: 100, ssao: true, postProcessing: true,
+    effects: true, mapObjects: true, terrainDetail: "fine", ocean: true,
+  };
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "custom", settings, recoveredInvalidPreference: true }).success).toBe(true);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "medium", settings }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "medium", settings, recoveredInvalidPreference: "true" }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "ultra", settings, recoveredInvalidPreference: false }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "low", recoveredInvalidPreference: false, settings: { ...settings, drawDistanceMeters: 777 } }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "low", recoveredInvalidPreference: false, settings: { ...settings, terrainDetail: "ultra" } }).success).toBe(false);
 });

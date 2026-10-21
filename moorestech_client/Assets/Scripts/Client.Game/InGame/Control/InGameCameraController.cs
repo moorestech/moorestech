@@ -1,8 +1,11 @@
 ﻿using Cinemachine;
 using Client.Common;
+using Client.Game.InGame.GraphicsQuality;
+using Client.Game.InGame.GraphicsQuality.Appliers;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Input;
 using DG.Tweening;
+using UniRx;
 using UnityEngine;
 using VContainer.Unity;
 
@@ -43,6 +46,11 @@ namespace Client.Game.InGame.Control
         public void Initialize()
         {
             CameraManager.RegisterCamera(this);
+
+            // 画質を初期適用し変更を購読
+            // Apply quality initially and subscribe to changes
+            CameraQualityApplier.Apply(mainCamera, virtualCamera, GraphicsQualityPreference.Current);
+            GraphicsQualityPreference.OnSettingsChanged.Subscribe(settings => CameraQualityApplier.Apply(mainCamera, virtualCamera, settings)).AddTo(this);
         }
 
         private void Awake()

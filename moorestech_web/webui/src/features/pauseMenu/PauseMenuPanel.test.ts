@@ -21,6 +21,7 @@ vi.mock("@/bridge", async (importOriginal) => {
 vi.mock("@/features/toast", () => ({ emitToast: vi.fn() }));
 vi.mock("@mantine/core", () => ({
   Button: ({ children, ...rest }: { children: ReactNode }) => createElement("button", rest, children),
+  ScrollArea: ({ children }: { children: ReactNode }) => createElement("main", null, children),
   Stack: ({ children, ...rest }: { children: ReactNode }) => createElement("div", rest, children),
   Text: ({ children }: { children: ReactNode }) => createElement("p", null, children),
   Title: ({ children }: { children: ReactNode }) => createElement("h1", null, children),
@@ -33,6 +34,7 @@ vi.mock("@/shared/ui", async () => ({
 vi.mock("@/features/settings", () => ({
   SprintModeSelect: () => createElement("mock-sprint-mode-select", { "data-testid": "sprint-mode-select" }),
   LanguageSelect: () => createElement("mock-language-select", { "data-testid": "language-select" }),
+  GraphicsQualitySettings: () => createElement("mock-graphics-quality-settings", { "data-testid": "graphics-quality-settings" }),
 }));
 
 import { PauseMenuPanel } from "./PauseMenuPanel";
@@ -73,6 +75,7 @@ describe("PauseMenuPanel", () => {
     const renderer = await render("settings");
     expect(byTestId(renderer, "language-select")).toHaveLength(1);
     expect(byTestId(renderer, "sprint-mode-select")).toHaveLength(1);
+    expect(byTestId(renderer, "graphics-quality-settings")).toHaveLength(1);
     expect(byTestId(renderer, "pause-menu-back")[0].type).toBe("button");
     expect(byTestId(renderer, "pause-menu-back")[0].props["data-tutorial-anchor"]).toBe("pause.back-to-top");
     await act(async () => byTestId(renderer, "pause-menu-back")[0].props.onClick());

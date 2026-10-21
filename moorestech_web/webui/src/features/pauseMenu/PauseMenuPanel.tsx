@@ -1,5 +1,5 @@
 import { Topics, useTopic } from "@/bridge";
-import { LanguageSelect, SprintModeSelect } from "@/features/settings";
+import { GraphicsQualitySettings, LanguageSelect, SprintModeSelect } from "@/features/settings";
 import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { BugReportForm } from "./BugReportForm";
@@ -17,7 +17,7 @@ export function PauseMenuPanel() {
 
   return (
     <section className={styles.panel} data-testid="pause-menu" {...tutorialAnchor(TutorialAnchorIds.pauseMenu)}>
-      <div data-testid={`pause-menu-locale-${locale}`}>{renderPage()}</div>
+      <div className={styles.page} data-testid={`pause-menu-locale-${locale}`}>{renderPage()}</div>
     </section>
   );
 
@@ -27,7 +27,7 @@ export function PauseMenuPanel() {
     if (!data) return <PauseMenuTopPage disconnected={false} />;
     switch (data.page) {
       case "top": return <PauseMenuTopPage disconnected={data.disconnected} />;
-      case "settings": return <PauseMenuSubPage title={t(L.ui.pauseMenu.settings)}><LanguageSelect /><SprintModeSelect /></PauseMenuSubPage>;
+      case "settings": return <PauseMenuSubPage title={t(L.ui.pauseMenu.settings)}><LanguageSelect /><SprintModeSelect /><GraphicsQualitySettings /></PauseMenuSubPage>;
       case "bugReport": return <PauseMenuSubPage title={t(L.ui.pauseMenu.bugReport)}><BugReportForm status={data.bugReport} delivery={data.delivery} draft={draft} /></PauseMenuSubPage>;
       default:
         console.warn(`[PauseMenuPanel] Unknown pause menu page: ${String(data.page)}. Rendering the top page.`);

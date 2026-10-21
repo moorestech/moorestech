@@ -5,6 +5,7 @@ using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
+using Client.Game.InGame.GraphicsQuality.Appliers;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.Outcrop;
@@ -79,6 +80,10 @@ namespace Client.Starter.Initialization
             // 露頭を含むワールドオブジェクトの生成前にTerrainを構築する
             // Build Terrain before instantiating world objects including outcrops
             var builtTerrain = await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform, _localMasterDirectory);
+
+            // 地形と海が揃ったので画質設定を当て始める
+            // Terrain and ocean exist now, so start applying graphics quality
+            new EnvironmentQualityApplier(builtTerrain.Terrains, starter.EnvironmentRoot.transform).Initialize();
 
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）
             // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)

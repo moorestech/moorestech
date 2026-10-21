@@ -109,23 +109,23 @@ namespace Client.Tests.BeltTransport
             presenter.UpdateAll();
             Assert.AreEqual(0, factory.Created.Count, "nothing materialized out of range");
 
-            // 入る側(340 m)の内側へ: 作られる
-            // Inside the enter distance (340 m): created
-            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 330f);
+            // 入る側(45 m)の内側へ: 作られる
+            // Inside the enter distance (45 m): created
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 35f);
             cache.ApplyTickDiff(BeltTickDiff.Empty);
             presenter.UpdateAll();
             Assert.AreEqual(2, factory.Created.Count, "materialized once within the enter distance");
 
-            // 入る側と出る側の間(345 m 前後): 内側のまま
-            // Between the enter and leave distances (about 345 m): stays inside
-            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 346f);
+            // 約47mの中間帯では表示を維持
+            // Keep objects visible in the intermediate band around 47m
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 49f);
             cache.ApplyTickDiff(BeltTickDiff.Empty);
             presenter.UpdateAll();
             Assert.IsFalse(factory.Created[1].IsDestroyed, "kept between the enter and leave distances");
 
-            // 出る側(350 m)の外へ: 即破棄
-            // Beyond the leave distance (350 m): destroyed at once
-            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 360f);
+            // 出る側(50 m)の外へ: 即破棄
+            // Beyond the leave distance (50 m): destroyed at once
+            viewpoint.Position = new Vector3(0.5f, 0f, 1.5f + 60f);
             cache.ApplyTickDiff(BeltTickDiff.Empty);
             presenter.UpdateAll();
             Assert.IsTrue(factory.Created[1].IsDestroyed && factory.Created[2].IsDestroyed, "destroyed once beyond the leave distance");
@@ -195,54 +195,5 @@ namespace Client.Tests.BeltTransport
             return new BeltCellShape(new Vector3Int(x, y, z), BeltDirection.Front);
         }
 
-        // 表示物をその場で返し、個体IDごとに記録する。個体IDは生成順に1から振られている前提
-        // Returns objects on the spot and records them by instance id; instance ids are assumed to be numbered from 1 in creation order
-        private sealed class FakeBeltItemObjectFactory : IBeltItemObjectFactory
-        {
-            public readonly Dictionary<long, FakeBeltItemObject> Created = new();
-            public readonly Dictionary<long, ItemId> CreatedItemIds = new();
-
-            public IBeltItemObject Create(ItemId itemId, Vector3 position)
-            {
-                var itemObject = new FakeBeltItemObject { Position = position };
-                var instanceId = Created.Count + 1;
-                Created.Add(instanceId, itemObject);
-                CreatedItemIds.Add(instanceId, itemId);
-                return itemObject;
-            }
-        }
-
-        private sealed class FakeBeltItemViewpoint : IBeltItemViewpoint
-        {
-            public Vector3 Position;
-            public bool HasPosition = true;
-
-            public FakeBeltItemViewpoint(Vector3 position)
-            {
-                Position = position;
-            }
-
-            public bool TryGetPosition(out Vector3 position)
-            {
-                position = Position;
-                return HasPosition;
-            }
-        }
-
-        private sealed class FakeBeltItemObject : IBeltItemObject
-        {
-            public Vector3 Position;
-            public bool IsDestroyed;
-
-            public void SetPosition(Vector3 position)
-            {
-                Position = position;
-            }
-
-            public void Destroy()
-            {
-                IsDestroyed = true;
-            }
-        }
     }
 }

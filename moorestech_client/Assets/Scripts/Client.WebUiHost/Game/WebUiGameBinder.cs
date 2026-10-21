@@ -94,6 +94,7 @@ namespace Client.WebUiHost.Game
             // The current-locale topic is registered ahead of the start gates; this idempotent call covers paths that skip them
             LocalizationTopic.EnsureRegistered(hub);
             hub.RegisterTopic(SprintInputModeTopic.TopicName, new SprintInputModeTopic(hub));
+            hub.RegisterTopic(GraphicsQualityTopic.TopicName, new GraphicsQualityTopic(hub));
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
             var networkDisconnectState = resolver.Resolve<NetworkDisconnectState>();

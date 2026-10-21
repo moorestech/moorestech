@@ -15,6 +15,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         // Only TransformRotationInfo returns a value. Exposed on base for simulator compatibility
         public virtual Transform RotationTransform => null;
 
+        // Transform回転はProcessorの更新停止だけで止まる
+        // Transform rotation stops with processor updates
+        public virtual void SetRotationEnabled(bool enabled) { }
+
         public abstract void Rotate(GearStateDetail gearStateDetail, float deltaTime);
     }
 

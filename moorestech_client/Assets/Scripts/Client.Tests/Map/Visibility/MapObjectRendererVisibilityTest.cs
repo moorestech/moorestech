@@ -22,7 +22,7 @@ namespace Client.Tests.Map.Visibility
             var mapObject = CreateMapObject(out var enabledRenderer, out var disabledRenderer, out var collider);
             var visibility = new MapObjectRendererVisibility(mapObject);
 
-            visibility.SetVisible(false);
+            visibility.SetDistanceVisible(false);
 
             Assert.IsTrue(mapObject.gameObject.activeSelf);
             Assert.IsTrue(collider.enabled);
@@ -35,9 +35,9 @@ namespace Client.Tests.Map.Visibility
         {
             var mapObject = CreateMapObject(out var enabledRenderer, out var disabledRenderer, out _);
             var visibility = new MapObjectRendererVisibility(mapObject);
-            visibility.SetVisible(false);
+            visibility.SetDistanceVisible(false);
 
-            visibility.SetVisible(true);
+            visibility.SetDistanceVisible(true);
 
             Assert.IsTrue(enabledRenderer.enabled);
             Assert.IsFalse(disabledRenderer.enabled);
@@ -48,13 +48,30 @@ namespace Client.Tests.Map.Visibility
         {
             var mapObject = CreateMapObject(out var enabledRenderer, out var disabledRenderer, out _);
             var visibility = new MapObjectRendererVisibility(mapObject);
-            visibility.SetVisible(false);
+            visibility.SetDistanceVisible(false);
             mapObject.DestroyMapObject();
 
-            visibility.SetVisible(true);
+            visibility.SetDistanceVisible(true);
 
             Assert.IsFalse(enabledRenderer.enabled);
             Assert.IsFalse(disabledRenderer.enabled);
+        }
+
+        [Test]
+        public void RendererIsShownOnlyWhenBothDistanceAndQualityAllowIt()
+        {
+            var mapObject = CreateMapObject(out var enabledRenderer, out _, out _);
+            var visibility = new MapObjectRendererVisibility(mapObject);
+
+            // 距離と画質のどちらかが隠すなら描画しない
+            // Hidden whenever either distance or quality hides it
+            visibility.SetQualityVisible(false);
+            Assert.IsFalse(enabledRenderer.enabled);
+            visibility.SetDistanceVisible(false);
+            visibility.SetQualityVisible(true);
+            Assert.IsFalse(enabledRenderer.enabled);
+            visibility.SetDistanceVisible(true);
+            Assert.IsTrue(enabledRenderer.enabled);
         }
 
         private MapObjectGameObject CreateMapObject(
