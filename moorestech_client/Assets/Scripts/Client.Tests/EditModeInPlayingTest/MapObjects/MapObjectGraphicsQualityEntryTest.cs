@@ -20,6 +20,7 @@ using Object = UnityEngine.Object;
 
 namespace Client.Tests.EditModeInPlayingTest.MapObjects
 {
+    [Category("CiShardClientNearFieldStartup")]
     public class MapObjectGraphicsQualityEntryTest
     {
         [UnityTearDown]
@@ -27,7 +28,13 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
         {
             try
             {
-                if (Application.isPlaying) yield return new ExitPlayMode();
+                if (Application.isPlaying)
+                {
+                    // 失敗時の後始末でも終了時の既知の通信ログを吸収する
+                    // Ignore known shutdown connection logs during failure cleanup as well
+                    LogAssert.ignoreFailingMessages = true;
+                    yield return new ExitPlayMode();
+                }
             }
             finally
             {
@@ -47,6 +54,9 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             yield return new EnterPlayMode(expectDomainReload: true);
             LogAssert.ignoreFailingMessages = true;
             yield return Body().ToCoroutine();
+            // TearDownでログ許容がリセットされる前に通信を終了する
+            // Shut down the connection before the test framework resets log handling for TearDown
+            yield return new ExitPlayMode();
 
             #region Internal
 

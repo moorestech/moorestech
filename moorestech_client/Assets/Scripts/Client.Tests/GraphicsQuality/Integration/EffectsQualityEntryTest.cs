@@ -12,6 +12,7 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.GraphicsQuality
 {
+    [Category("CiShardClientPlay3")]
     public class EffectsQualityEntryTest
     {
         [UnityTearDown]
@@ -107,7 +108,17 @@ namespace Client.Tests.GraphicsQuality
                     Assert.DoesNotThrow(() => GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Low));
                     foreach (var root in new[] { existingBlock.gameObject, existingCar.gameObject, newCar.gameObject })
                         Assert.IsFalse(root.GetComponent<Light>().enabled);
-                    for (var frame = 0; frame < 10 && switches.Count != 3; frame++) yield return null;
+                    for (var frame = 0; frame < 10 && switches.Count != 3; frame++)
+                    {
+                        yield return null;
+                        // batchmodeでは描画終端が来ないためUniRxの実監視を進める
+                        // Advance the actual UniRx monitor because batchmode does not execute WaitForEndOfFrame
+                        if (Application.isBatchMode)
+                        {
+                            var dispatcher = Object.FindFirstObjectByType<MainThreadDispatcher>();
+                            ((UniRx.InternalUtil.MicroCoroutine)GetField(dispatcher, "endOfFrameMicroCoroutine")).Run();
+                        }
+                    }
                     Assert.AreEqual(3, switches.Count);
 
                     // 解除後の設定通知が残存個体にだけ届く
