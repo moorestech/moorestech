@@ -44,10 +44,12 @@ namespace Game.Train.Unit
         public bool IsDocked => trainUnitStationDocking?.IsDocked ?? false;
         public int masconLevel = 0;
         private int _previousMasconLevel = 0;// キー入力と差分通知関連
-        private bool _isUndockLastFrame = false;
         private bool _isDockingSpeedForcedToZero;//ドッキングした瞬間強制速度0になるのでmasconlevel差分通知ではズレが生じる
         private int _pendingApproachingNodeId;
         private bool _isReversedThisTick;
+        // 自動運転OFFはマスコン・端数距離を差分通知の外で書き換えるので、クライアントへ全量を送り直す
+        // Turning auto-run off rewrites mascon and fractional distance outside the tick diff, so the client needs a full snapshot
+        private bool _isClientResyncRequired;
         private int _manualBranchSelectionIndex;
         private int _previousManualBranchSelectionIndex;
         // 新規編成用: インスタンスIDを新規採番する
@@ -110,6 +112,16 @@ namespace Game.Train.Unit
             _isDockingSpeedForcedToZero = false;
             _pendingApproachingNodeId = -1;
             _isReversedThisTick = false;
+            _isClientResyncRequired = false;
+        }
+
+        // tick内で自動運転が切れたかを返し、要求を消費する
+        // Returns whether auto-run was turned off inside the tick, consuming the request
+        public bool ConsumeClientResyncRequest()
+        {
+            var required = _isClientResyncRequired;
+            _isClientResyncRequired = false;
+            return required;
         }
 
         public int GetManualBranchSelectionIndex()
@@ -167,7 +179,9 @@ namespace Game.Train.Unit
                             trainUnitStationDocking.UndockFromStation();
                         }
                         trainDiagram.NextEntryAndDepartureReset();
-                        _isUndockLastFrame = true;
+                        // 停車中に次の目的地への経路を確かめ、要れば反転し残距離を引き直す（着けなければ自動運転off）
+                        // While stopped, check the route to the next destination, reverse if needed and refresh the remaining distance (auto-run off if unreachable)
+                        DiagramValidation(true);
                     }
                     return 0;
                 }
@@ -368,16 +382,11 @@ namespace Game.Train.Unit
                     var (found, newPath) = CheckNextPath();
                     if (!found)// 順方向に経路がない
                     {
-                        if (_isUndockLastFrame == false)
-                        {
-                            TurnOffAutoRun();
-                            Debug.Log("次に向かうnodeへの経路なし。自動運転off");
-                            break;
-                        }
-                        // 例外的に逆方向をさがす
-                        Reverse();
-                        _isUndockLastFrame = false;
-                        continue;
+                        // 反転は発車時のDiagramValidationが担うので、走行中は止めるだけ
+                        // Reversing belongs to DiagramValidation at departure, so a moving train only stops here
+                        TurnOffAutoRun();
+                        Debug.Log($"次に向かうnodeへの経路なし。自動運転off train={_trainUnitInstanceId} index={trainDiagram.CurrentIndex}");
+                        break;
                     }
                     
                     // 経路が見つかったので最適なルートを自動選択する。
@@ -418,7 +427,6 @@ namespace Game.Train.Unit
                 }
             }
             
-            _isUndockLastFrame = false;
             return totalMoved;
         }
 
@@ -508,7 +516,9 @@ namespace Game.Train.Unit
                 }
                 if (approaching == destinationNode)
                 {
-                    _remainingDistance = 0;
+                    // 反転後の先頭はノード途中にあるので、残距離は0でなく次ノードまでの距離
+                    // After reversing the head sits mid-edge, so the remaining distance is the distance to that node, not zero
+                    _remainingDistance = _railPosition.GetDistanceToNextNode();
                     return;
                 }
                 
@@ -536,6 +546,7 @@ namespace Game.Train.Unit
             _remainingDistance = int.MaxValue;
             masconLevel = 0;
             _accumulatedDistance = 0;
+            _isClientResyncRequired = true;
             // ドッキングしていたら解除する。
             // Undock if the train is currently docked.
             if (trainUnitStationDocking.IsDocked)
