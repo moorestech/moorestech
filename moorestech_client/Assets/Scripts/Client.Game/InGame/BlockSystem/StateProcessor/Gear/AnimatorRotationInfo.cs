@@ -25,6 +25,13 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         {
             if (_rotationEnabled == enabled) return; // silent-ok: 同値設定は状態を変えない / 呼び出し元が現在値を保持する
             _rotationEnabled = enabled;
+            // 未設定の外部Prefabは当該制御だけを止める
+            // Skip only this rotation control for external prefabs without an animator
+            if (animator == null)
+            {
+                Debug.LogWarning("AnimatorRotationInfo: Animator is not assigned; rotation enable change was skipped.");
+                return;
+            }
             // 回転担当だけを止め、元から無効なAnimatorは復帰させない
             // Pause only the rotation animator and preserve its original enabled state
             if (!enabled) _savedAnimatorEnabled = animator.enabled;

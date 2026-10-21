@@ -47,7 +47,11 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
 
             void Apply(bool effectsEnabled)
             {
-                foreach (var effects in _switches) effects.SetEffectsEnabled(effectsEnabled);
+                foreach (var effects in _switches)
+                {
+                    if (effects == null) continue; // silent-ok: 非active破棄からUniRx解除まで配信を避ける / 入口試験で生存個体への配信と保持解除を確認
+                    effects.SetEffectsEnabled(effectsEnabled);
+                }
             }
 
             #endregion

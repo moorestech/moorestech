@@ -102,6 +102,11 @@ namespace Client.Tests.GraphicsQuality
                     Assert.AreEqual(5, switches.Count);
                     Object.DestroyImmediate(inactiveBlock.gameObject);
                     Object.DestroyImmediate(inactiveCar.gameObject);
+                    // 監視による解除前でも生存個体へ配信する
+                    // Deliver to survivors even before the destruction monitor releases references
+                    Assert.DoesNotThrow(() => GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Low));
+                    foreach (var root in new[] { existingBlock.gameObject, existingCar.gameObject, newCar.gameObject })
+                        Assert.IsFalse(root.GetComponent<Light>().enabled);
                     for (var frame = 0; frame < 10 && switches.Count != 3; frame++) yield return null;
                     Assert.AreEqual(3, switches.Count);
 

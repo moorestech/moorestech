@@ -75,7 +75,9 @@ namespace Client.Game.InGame.Map.MapObject
             _boundingSpheres[index] = new BoundingSphere(position, 0f);
             _cullingGroup.SetBoundingSphereCount(_registeredCount);
 
-            if (_camera != null) ApplyDistanceBand(index, GetDistanceBand(position));
+            // 初回は描画前に距離を反映する
+            // Apply initial distance visibility before rendering
+            if (_camera != null) visibility.SetDistanceVisible(GetDistanceBand(position) != 2);
         }
 
         internal void ApplyDistanceBand(int index, int distanceBand)

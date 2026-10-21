@@ -8,6 +8,7 @@ using Server.Event.EventReceive;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Gear
 {
@@ -29,6 +30,30 @@ namespace Client.Tests.Gear
             Assert.IsTrue(processors[1].enabled);
             Object.DestroyImmediate(root);
         }
+        [Test]
+        public void MissingAnimatorWarnsAndAllowsRangeChanges()
+        {
+            var root = new GameObject("gear without animator");
+            try
+            {
+                var processor = root.AddComponent<GearStateChangeProcessor>();
+                typeof(GearStateChangeProcessor).GetField("rotationInfos", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .SetValue(processor, new List<RotationInfo> { new AnimatorRotationInfo() });
+                var target = new GearRotationCullingTarget(new[] { processor });
+
+                // 未設定参照でも停止と復帰を継続する
+                // Continue stopping and resuming even with an unassigned reference
+                const string warning = "AnimatorRotationInfo: Animator is not assigned; rotation enable change was skipped.";
+                LogAssert.Expect(LogType.Warning, warning);
+                Assert.DoesNotThrow(() => target.SetWithinRange(false));
+                Assert.IsFalse(processor.enabled);
+                LogAssert.Expect(LogType.Warning, warning);
+                Assert.DoesNotThrow(() => target.SetWithinRange(true));
+                Assert.IsTrue(processor.enabled);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test]
         public void AnimatorStopsOutsideRangeAndResumesWithLatestReceivedRpm()
         {

@@ -31,6 +31,7 @@ namespace Client.Tests.Map.Visibility
             var mapObject = CreateMapObject(new Vector3(400f, 0f, 0f), out var renderer);
 
             controller.Register(new MapObjectRendererVisibility(mapObject), mapObject.transform.position, false);
+            Assert.IsFalse(renderer.enabled);
             yield return null;
             yield return null;
 
@@ -45,6 +46,7 @@ namespace Client.Tests.Map.Visibility
             var mapObject = CreateMapObject(new Vector3(400f, 0f, 0f), out var renderer);
 
             controller.Register(new MapObjectRendererVisibility(mapObject), mapObject.transform.position, true);
+            Assert.IsTrue(renderer.enabled);
             yield return null;
 
             Assert.IsTrue(renderer.enabled);
@@ -57,6 +59,7 @@ namespace Client.Tests.Map.Visibility
             var controller = CreateController(1, camera);
             var mapObject = CreateMapObject(Vector3.zero, out var renderer);
             controller.Register(new MapObjectRendererVisibility(mapObject), mapObject.transform.position, false);
+            Assert.IsTrue(renderer.enabled);
             yield return null;
 
             controller.ApplyDistanceBand(0, 2);
