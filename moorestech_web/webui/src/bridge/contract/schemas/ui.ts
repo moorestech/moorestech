@@ -56,6 +56,7 @@ export const GraphicsQualitySettingsSchema = z.object({
 export const GraphicsQualityDataSchema = z.object({
   preset: z.enum(["high", "medium", "low", "custom"]),
   settings: GraphicsQualitySettingsSchema,
+  recoveredInvalidPreference: z.boolean(),
 });
 
 // 出展モードの言語選択ゲートの待機。開始を止めるゲートはこれ1枚なので順序は持たない

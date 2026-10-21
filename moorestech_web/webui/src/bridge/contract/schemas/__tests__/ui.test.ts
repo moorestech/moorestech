@@ -95,8 +95,10 @@ it("GraphicsQualityDataSchemaは定義済みの値だけを受ける", () => {
     drawDistanceMeters: 300, shadows: true, renderScalePercent: 100, ssao: true, postProcessing: true,
     effects: true, mapObjects: true, terrainDetail: "fine", ocean: true,
   };
-  expect(GraphicsQualityDataSchema.safeParse({ preset: "custom", settings }).success).toBe(true);
-  expect(GraphicsQualityDataSchema.safeParse({ preset: "ultra", settings }).success).toBe(false);
-  expect(GraphicsQualityDataSchema.safeParse({ preset: "low", settings: { ...settings, drawDistanceMeters: 777 } }).success).toBe(false);
-  expect(GraphicsQualityDataSchema.safeParse({ preset: "low", settings: { ...settings, terrainDetail: "ultra" } }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "custom", settings, recoveredInvalidPreference: true }).success).toBe(true);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "medium", settings }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "medium", settings, recoveredInvalidPreference: "true" }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "ultra", settings, recoveredInvalidPreference: false }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "low", recoveredInvalidPreference: false, settings: { ...settings, drawDistanceMeters: 777 } }).success).toBe(false);
+  expect(GraphicsQualityDataSchema.safeParse({ preset: "low", recoveredInvalidPreference: false, settings: { ...settings, terrainDetail: "ultra" } }).success).toBe(false);
 });

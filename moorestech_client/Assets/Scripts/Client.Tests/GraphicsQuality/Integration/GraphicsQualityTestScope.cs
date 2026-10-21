@@ -11,6 +11,8 @@ namespace Client.Tests.GraphicsQuality
     {
         private string _saved;
         private bool _hadSaved;
+        private bool _recovered;
+        private static readonly FieldInfo RecoveryField = typeof(GraphicsQualityPreference).GetField("<RecoveredInvalidPreference>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
         private object _observer;
         private readonly List<Object> _owned = new();
         private readonly Subject<GraphicsQualitySettings> _subject = (Subject<GraphicsQualitySettings>)GraphicsQualityPreference.OnSettingsChanged;
@@ -23,6 +25,8 @@ namespace Client.Tests.GraphicsQuality
             // Isolate game-lifetime subscriptions to this test's lifetime
             _hadSaved = PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey);
             _saved = PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey);
+            _recovered = GraphicsQualityPreference.RecoveredInvalidPreference;
+            RecoveryField.SetValue(null, false);
             _observer = ObserverField.GetValue(_subject);
             using var empty = new Subject<GraphicsQualitySettings>();
             ObserverField.SetValue(_subject, ObserverField.GetValue(empty));
@@ -34,12 +38,19 @@ namespace Client.Tests.GraphicsQuality
         {
             // 破棄済みfixtureへの通知を残さず、端末設定も復元する
             // Leave no notifications targeting destroyed fixtures and restore device preferences
-            ObserverField.SetValue(_subject, _observer);
-            if (_hadSaved) PlayerPrefs.SetString(GraphicsQualityPreference.PreferenceKey, _saved);
-            else PlayerPrefs.DeleteKey(GraphicsQualityPreference.PreferenceKey);
-            PlayerPrefs.Save();
-            for (var index = _owned.Count - 1; 0 <= index; index--) Object.DestroyImmediate(_owned[index]);
-            _owned.Clear();
+            try
+            {
+                for (var index = _owned.Count - 1; 0 <= index; index--) Object.DestroyImmediate(_owned[index]);
+            }
+            finally
+            {
+                _owned.Clear();
+                ObserverField.SetValue(_subject, _observer);
+                RecoveryField.SetValue(null, _recovered);
+                if (_hadSaved) PlayerPrefs.SetString(GraphicsQualityPreference.PreferenceKey, _saved);
+                else PlayerPrefs.DeleteKey(GraphicsQualityPreference.PreferenceKey);
+                PlayerPrefs.Save();
+            }
         }
 
         protected T Own<T>(T value) where T : Object

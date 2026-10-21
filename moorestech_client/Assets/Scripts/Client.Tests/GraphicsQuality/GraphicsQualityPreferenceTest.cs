@@ -46,6 +46,9 @@ namespace Client.Tests.GraphicsQuality
             PlayerPrefs.SetString(GraphicsQualityPreference.PreferenceKey, saved);
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GraphicsQualityPreference\] Unknown saved graphics quality"));
             AssertFixed(GraphicsQualityPreference.Current, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true);
+            Assert.IsTrue(GraphicsQualityPreference.RecoveredInvalidPreference);
+            _ = GraphicsQualityPreference.Current;
+            Assert.IsTrue(GraphicsQualityPreference.RecoveredInvalidPreference);
             Assert.AreEqual("Meters300|True|Percent100|True|True|True|True|Fine|True", PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey));
         }
         [TestCase(GraphicsQualityPreset.High, GraphicsDrawDistance.Meters5000, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true)]
@@ -80,6 +83,22 @@ namespace Client.Tests.GraphicsQuality
             Assert.IsTrue(GraphicsQualityPresets.TryMatch(GraphicsQualityPreference.Current, out var preset));
             Assert.AreEqual(GraphicsQualityPreset.Medium, preset);
             AssertFixed(GraphicsQualityPreference.Current, GraphicsDrawDistance.Meters300, GraphicsRenderScale.Percent100, GraphicsTerrainDetail.Fine, true);
+        }
+
+        [TestCase(false)][TestCase(true)]
+        public void ExplicitSameValueAcknowledgesRecoveryAndNotifiesOnce(bool preset)
+        {
+            PlayerPrefs.SetString(GraphicsQualityPreference.PreferenceKey, "broken");
+            LogAssert.Expect(LogType.Warning, new Regex("Unknown saved graphics quality"));
+            var repaired = GraphicsQualityPreference.Current;
+            var changes = 0;
+            using var subscription = GraphicsQualityPreference.OnSettingsChanged.Subscribe(_ => changes++);
+            if (preset) GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Medium);
+            else GraphicsQualityPreference.SetSettings(repaired);
+            Assert.IsFalse(GraphicsQualityPreference.RecoveredInvalidPreference);
+            Assert.AreEqual(1, changes);
+            GraphicsQualityPreference.SetSettings(repaired);
+            Assert.AreEqual(1, changes);
         }
 
         private static void AssertFixed(GraphicsQualitySettings actual, GraphicsDrawDistance distance, GraphicsRenderScale scale, GraphicsTerrainDetail terrain, bool enabled)

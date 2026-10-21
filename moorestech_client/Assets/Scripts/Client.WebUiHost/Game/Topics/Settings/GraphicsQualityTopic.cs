@@ -42,12 +42,14 @@ namespace Client.WebUiHost.Game.Topics
             {
                 Preset = GraphicsQualityWire.PresetToWire(settings),
                 Settings = GraphicsQualityWire.ToData(settings),
+                RecoveredInvalidPreference = GraphicsQualityPreference.RecoveredInvalidPreference,
             });
         }
 
         private class GraphicsQualityData
         {
             public string Preset;
+            public bool RecoveredInvalidPreference;
             public GraphicsQualitySettingsData Settings;
         }
     }

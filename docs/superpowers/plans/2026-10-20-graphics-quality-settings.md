@@ -15,7 +15,7 @@
 - R3: 50mより遠いベルト上アイテムは描画しない（表示物を具現化しない）。受け入れ: `BeltSegmentVisibleRange.LeaveDistance == 50f` で既存の `BeltItemObjectPresenterTest` が通る
 - R4: 設定画面に画質設定を出す。項目と選べる値: 描画距離 300/1000/5000m、影 オン/オフ、描画解像度 100/75/50%、SSAO オン/オフ、ポストエフェクト オン/オフ、エフェクト(VFX・パーティクル・ライト) オン/オフ、木や岩 オン/オフ、地形 精細/粗い、海 オン/オフ。スライダーは使わない
 - R5: 三段階プリセット: 高=5000m・影オン・100%・全部オン・地形精細／中=描画距離300mのみ他は高と同じ／低=300m・影オフ・50%・SSAOオフ・ポストオフ・エフェクトオフ・木や岩オフ・地形粗い・海オフ
-- R5b: 項目に無いv7の変更は既存項目の最低値に含める: 影オフ=ソフト影・追加ライトの影も停止／描画解像度50%=MSAA・HDRも停止／エフェクトオフ=パーティクルの計算と追加ライトも停止／木や岩オフ=lodBias 0.4・LODクロスフェード停止／海オフ=屈折用の画面コピー（opaque texture）停止。vSync 0 と Chr001 の一部非表示は捨てる。受け入れ: Task 4 Step 3 のPlayMode確認
+- R5b: 項目に無いv7の変更は既存項目の最低値に含める: 影オフ=ソフト影・追加ライトの影も停止／描画解像度50%=MSAA・HDRも停止／エフェクトオフ=パーティクルの計算と追加ライトも停止／木や岩オフ=lodBias 0.4・LODクロスフェード停止／海オフ=屈折用の画面コピー（opaque texture）停止。vSync 0 と Chr001 の一部非表示は開発用細工として除外する。2項目の除外の出所は今回のStep7 D4案A承認（[[2026-10-21-v7のvSync0とChr001一部非表示は今回承認で除外する.md]]）であり、2026-10-20の「既存の項目に含める」から遡及承認したものではない。受け入れ: Task 4 Step 3 のPlayMode確認
 - R6: 画質設定を一度も保存していないプレイヤーは「中」で始まる（既存テスターも未設定なら中）
 - R7: プリセット選択後に項目を個別に変えると、プリセット欄は「カスタム」表示になる。どのプリセットとも一致しない値の組がカスタム。高/中/低を選び直すと全項目が上書きされる
 - R8: 全項目を再起動なしでその場で反映する（木や岩・地形・海・既存ブロック/列車のエフェクトを含む）
@@ -631,6 +631,7 @@ namespace Client.Game.InGame.GraphicsQuality
 
         public static IObservable<GraphicsQualitySettings> OnSettingsChanged => SettingsChangedSubject;
         public static GraphicsQualitySettings Current => Load();
+        public static bool RecoveredInvalidPreference { get; private set; }
 
         public static void ApplyPreset(GraphicsQualityPreset preset)
         {
@@ -639,9 +640,12 @@ namespace Client.Game.InGame.GraphicsQuality
 
         public static void SetSettings(GraphicsQualitySettings settings)
         {
-            var changed = !Load().Equals(settings);
+            var changed = !Load().Equals(settings) || RecoveredInvalidPreference;
             PlayerPrefs.SetString(PreferenceKey, Serialize(settings));
             PlayerPrefs.Save();
+            // 明示選択で復旧表示を解除し、同値でも解除を通知する
+            // Acknowledge recovery on explicit selection and notify even for the same value
+            RecoveredInvalidPreference = false;
             // silent-ok: 同値の再保存は画面に変化が無い / 保存テストで再通知が無いことを確認する
             if (!changed) return;
             SettingsChangedSubject.OnNext(settings);
@@ -655,19 +659,20 @@ namespace Client.Game.InGame.GraphicsQuality
 
         private static GraphicsQualitySettings Load()
         {
-            // 未保存は既定の中（裁定 2026-10-20）
-            // Unsaved means the default medium (ruling 2026-10-20)
+            // 未保存時は中（ユーザー裁定）
+            // Use medium when unsaved (user ruling)
             var medium = GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium);
             if (!PlayerPrefs.HasKey(PreferenceKey)) return medium;
 
             var saved = PlayerPrefs.GetString(PreferenceKey);
             if (TryDeserialize(saved, out var settings)) return settings;
 
-            // 不正値は中へ修復し、開発者が読めるログへ残す
-            // Repair an invalid value to medium and leave a log developers can read
+            // 不正値を中へ修復し、明示選択まで復旧表示を保持する
+            // Repair invalid values to medium and retain recovery until explicit selection
             Debug.LogWarning($"[GraphicsQualityPreference] Unknown saved graphics quality '{saved}'. Using Medium.");
             PlayerPrefs.SetString(PreferenceKey, Serialize(medium));
             PlayerPrefs.Save();
+            RecoveredInvalidPreference = true;
             return medium;
 
             #region Internal
@@ -1223,9 +1228,25 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
             SetEffectsEnabled(effectsEnabled);
         }
 
+        public void ReapplyAfterPlacement(bool effectsEnabled)
+        {
+            // 設置完了時だけ実再生を補完し、既存の復元対象を保つ
+            // Supplement actual playback only after placement, preserving prior restore targets
+            if (!_effectsEnabled && !effectsEnabled)
+                for (var i = 0; i < _particleSystems.Length; i++)
+                    _savedParticlePlaying[i] |= _particleSystems[i].isPlaying;
+            SetEffectsEnabled(effectsEnabled);
+        }
+
         public void SetEffectsEnabled(bool effectsEnabled)
         {
-            if (_effectsEnabled == effectsEnabled) return;
+            if (_effectsEnabled == effectsEnabled)
+            {
+                // 設置アニメの再有効化や手動Playで再開した演出も、保存状態を上書きせず止め直す
+                // Stop effects restarted by placement reactivation or manual Play without overwriting saved state
+                if (!effectsEnabled) StopEffects();
+                return;
+            }
             _effectsEnabled = effectsEnabled;
 
             // 状態駆動の演出が消したものを点けないよう、止める瞬間の状態を保存して戻す
@@ -1247,8 +1268,6 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
                 _particleSystems[i].Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
             }
 
-            #region Internal
-
             bool Toggle(bool current, ref bool saved)
             {
                 if (effectsEnabled) return saved;
@@ -1256,8 +1275,19 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
                 return false;
             }
 
+            #region Internal
+
+            void StopEffects()
+            {
+                foreach (var effect in _visualEffects) effect.enabled = false;
+                foreach (var renderer in _particleRenderers) renderer.enabled = false;
+                foreach (var light in _lights) light.enabled = false;
+                foreach (var particle in _particleSystems) particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+            }
+
             #endregion
         }
+
     }
 }
 ```
@@ -1342,516 +1372,21 @@ git add moorestech_client/Assets/Scripts/Client.Game/InGame/GraphicsQuality/Appl
 git commit -m "feat: 地形・海・木や岩・エフェクトを画質設定から即時反映する"
 ```
 
-### Task 6: Web UIとの接続（Topic・Action・設定画面）
+### Task 6: Web画質設定の通信と表示
 
-**Files:**
-- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Settings/GraphicsQualityTopic.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/Settings/GraphicsQualityActions.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/Settings/GraphicsQualityWire.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/Settings/SettingsActions.cs`（`Register` に2行）
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs:95` の直後
-- Modify: `Localization/localization.csv`
-- Modify: `moorestech_web/webui/src/bridge/contract/schemas/ui.ts`、`moorestech_web/webui/src/bridge/contract/payloadTypes.ts`、`moorestech_web/webui/src/bridge/contract/validators.ts`、`moorestech_web/webui/src/bridge/transport/protocol.ts`、`moorestech_web/webui/src/bridge/transport/actionContract.ts`
-- Create: `moorestech_web/webui/src/features/settings/GraphicsQualitySettings.tsx`
-- Modify: `moorestech_web/webui/src/features/settings/index.ts`、`moorestech_web/webui/src/features/pauseMenu/PauseMenuPanel.tsx:30`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/Settings/GraphicsQualityContractTest.cs`
-- Test: `moorestech_web/webui/src/features/settings/GraphicsQualitySettings.test.ts`
+通信契約（Step7 D1/D3案Aで更新）:
+- topic `settings.graphicsQuality`: `{preset:"high"|"medium"|"low"|"custom", settings:{drawDistanceMeters:300|1000|5000, shadows:boolean, renderScalePercent:100|75|50, ssao:boolean, postProcessing:boolean, effects:boolean, mapObjects:boolean, terrainDetail:"fine"|"coarse", ocean:boolean}, recoveredInvalidPreference:boolean}`。
+- action `settings.applyGraphicsQualityPreset`: `{preset:"high"|"medium"|"low"}`。全値適用を維持。未知値は `unknown_graphics_quality_preset`。
+- action `settings.setGraphicsQuality`: `GraphicsQualityChange`。`item`を判別子とする9項目unionで `{item, value}` のみ送る。6bool、距離300/1000/5000、解像度100/75/50、地形fine/coarse。UIは表示topicの全値を複製して送らない。共通bridgeは輸送のみ。
+- 既存handler/Wireが単項目を検証し、Unityの最新Currentから未変更項目を引き継いで保存する。旧 `{settings:全9項目}` は受け付けない。
+- C06の拒否契約: `invalid_graphics_quality:<missing_field|invalid_type|unsupported_value>:<item|対象項目名>`。itemの欠落/型違い/未知値と、対象値の欠落/型違い/範囲外を区別し、UIは理由と対象を翻訳する。旧settings本体のmissing_settingsは単項目契約のmissing_field:itemに置き換わる。
+- 最初の不正Loadから明示選択まで復旧boolを保持してtopicとUIに届ける。preset/単項目の同値選択も解除を通知する。保存形式は9項目のまま。
 
-**Interfaces:**
-- Consumes: Task 3 の型
-- Produces（wire）:
-  - topic `settings.graphicsQuality`: `{ preset: "high"|"medium"|"low"|"custom", settings: { drawDistanceMeters: 300|1000|5000, shadows: boolean, renderScalePercent: 100|75|50, ssao: boolean, postProcessing: boolean, effects: boolean, mapObjects: boolean, terrainDetail: "fine"|"coarse", ocean: boolean } }`
-  - action `settings.applyGraphicsQualityPreset` `{ preset: "high"|"medium"|"low" }`、失敗 `unknown_graphics_quality_preset`
-  - action `settings.setGraphicsQuality` `{ settings: <上の settings と同形> }`、失敗 `invalid_graphics_quality`
-  - C#: `GraphicsQualityWire.ToData(GraphicsQualitySettings) : GraphicsQualitySettingsData`、`TryFromJObject(JObject, out GraphicsQualitySettings) : bool`、`PresetToWire(GraphicsQualitySettings) : string`、`TryPresetFromWire(string, out GraphicsQualityPreset) : bool`
+実装箇所: `GraphicsQualityWire.cs`、`GraphicsQualityActions.cs`、`GraphicsQualityTopic.cs`、Web `payloadTypes.ts` / `actionContract.ts` / `schemas/ui.ts` / `GraphicsQualitySettings.tsx`。Localization/localization.csvを更新し `pnpm gen:i18n` で生成する。
 
-- [ ] **Step 1: C#契約テストを書く** — `GraphicsQualityContractTest.cs`（SetUp/TearDown は `GraphicsQualityPreferenceTest` と同じ退避・復元）
+検証: 全9項目についてtopicを保留した連続操作とpreset直後の単項目操作、保存不変の拒否理由・対象、破損値の複数回読取と同値明示選択での通知、UI復旧表示を試験する。設定/bridge/PauseMenuを対象にtsc/lint/VitestとPlaywrightを実行する。
 
-```csharp
-        [Test]
-        public async Task PresetActionPersistsAndTopicReportsPresetName()
-        {
-            var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
-            using var topic = new GraphicsQualityTopic(hub);
-            var result = await hub.ResolveAction("settings.applyGraphicsQualityPreset").ExecuteAsync(new JObject { ["preset"] = "low" });
-            var snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
-            Assert.IsTrue(result.Ok);
-            Assert.AreEqual("low", snapshot["preset"]?.Value<string>());
-            Assert.AreEqual(300, snapshot["settings"]?["drawDistanceMeters"]?.Value<int>());
-            Assert.IsFalse(snapshot["settings"]?["shadows"]?.Value<bool>());
-        }
-
-        [Test]
-        public async Task ChangingOneItemAfterPresetReportsCustom()
-        {
-            var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
-            using var topic = new GraphicsQualityTopic(hub);
-            var settings = JObject.Parse(WebUiJson.Serialize(GraphicsQualityWire.ToData(GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium))));
-            settings["shadows"] = false;
-            var result = await hub.ResolveAction("settings.setGraphicsQuality").ExecuteAsync(new JObject { ["settings"] = settings });
-            var snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
-            Assert.IsTrue(result.Ok);
-            Assert.AreEqual("custom", snapshot["preset"]?.Value<string>());
-        }
-
-        [TestCase("ultra")]
-        [TestCase(null)]
-        public async Task UnknownPresetIsRejectedWithoutSaving(string wire)
-        {
-            var result = await new ApplyGraphicsQualityPresetActionHandler().ExecuteAsync(new JObject { ["preset"] = wire });
-            Assert.IsFalse(result.Ok);
-            Assert.AreEqual("unknown_graphics_quality_preset", result.Error);
-            Assert.IsFalse(PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey));
-        }
-
-        [Test]
-        public async Task InvalidSettingsAreRejectedWithoutSaving()
-        {
-            var settings = JObject.Parse(WebUiJson.Serialize(GraphicsQualityWire.ToData(GraphicsQualityPresets.Get(GraphicsQualityPreset.High))));
-            settings["drawDistanceMeters"] = 777;
-            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(new JObject { ["settings"] = settings });
-            Assert.IsFalse(result.Ok);
-            Assert.AreEqual("invalid_graphics_quality", result.Error);
-            Assert.IsFalse(PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey));
-        }
-```
-（クラス冒頭の using は `SprintInputModeContractTest` と同じ＋`Client.Game.InGame.GraphicsQuality`・`Client.WebUiHost.Common`。`GraphicsQualityWire` は internal なので、`Client.Tests` から見えなければ WebUiHost の既存 `InternalsVisibleTo` の有無を確認し、無ければ ToData を使わず JObject を手で組む）
-
-- [ ] **Step 2: C#実装**
-
-`GraphicsQualityWire.cs`:
-```csharp
-using Client.Game.InGame.GraphicsQuality;
-using Newtonsoft.Json.Linq;
-
-namespace Client.WebUiHost.Game.Actions
-{
-    /// <summary>
-    /// 画質設定のC#値とWeb契約の相互変換。未知の値は変換失敗にする
-    /// Converts graphics quality between C# values and the web contract; unknown values fail conversion
-    /// </summary>
-    // topicのsettings節。WebUiJsonがcamelCaseで書き出す
-    // The settings section of the topic; WebUiJson writes it in camelCase
-    internal class GraphicsQualitySettingsData
-    {
-        public int DrawDistanceMeters;
-        public bool Shadows;
-        public int RenderScalePercent;
-        public bool Ssao;
-        public bool PostProcessing;
-        public bool Effects;
-        public bool MapObjects;
-        public string TerrainDetail;
-        public bool Ocean;
-    }
-
-    internal static class GraphicsQualityWire
-    {
-        public static string PresetToWire(GraphicsQualitySettings settings)
-        {
-            if (!GraphicsQualityPresets.TryMatch(settings, out var preset)) return "custom";
-            return preset switch { GraphicsQualityPreset.High => "high", GraphicsQualityPreset.Medium => "medium", _ => "low" };
-        }
-
-        public static bool TryPresetFromWire(string wire, out GraphicsQualityPreset preset)
-        {
-            preset = GraphicsQualityPreset.Medium;
-            switch (wire)
-            {
-                case "high": preset = GraphicsQualityPreset.High; return true;
-                case "medium": preset = GraphicsQualityPreset.Medium; return true;
-                case "low": preset = GraphicsQualityPreset.Low; return true;
-                default: return false;
-            }
-        }
-
-        public static GraphicsQualitySettingsData ToData(GraphicsQualitySettings s)
-        {
-            return new GraphicsQualitySettingsData
-            {
-                DrawDistanceMeters = (int)s.DrawDistance.ToMeters(),
-                Shadows = s.ShadowsEnabled,
-                RenderScalePercent = ToPercent(s.RenderScale),
-                Ssao = s.SsaoEnabled,
-                PostProcessing = s.PostProcessingEnabled,
-                Effects = s.EffectsEnabled,
-                MapObjects = s.MapObjectsVisible,
-                TerrainDetail = s.TerrainDetail == GraphicsTerrainDetail.Fine ? "fine" : "coarse",
-                Ocean = s.OceanVisible,
-            };
-        }
-
-        private static int ToPercent(GraphicsRenderScale renderScale)
-        {
-            return UnityEngine.Mathf.RoundToInt(renderScale.ToScale() * 100f);
-        }
-
-        public static bool TryFromJObject(JObject json, out GraphicsQualitySettings settings)
-        {
-            settings = default;
-            if (json == null) return false;
-            if (!TryDrawDistance(json["drawDistanceMeters"], out var drawDistance) || !TryRenderScale(json["renderScalePercent"], out var renderScale) ||
-                !TryTerrain(json["terrainDetail"], out var terrain) || !TryBool(json["shadows"], out var shadows) || !TryBool(json["ssao"], out var ssao) ||
-                !TryBool(json["postProcessing"], out var post) || !TryBool(json["effects"], out var effects) ||
-                !TryBool(json["mapObjects"], out var mapObjects) || !TryBool(json["ocean"], out var ocean)) return false;
-            settings = new GraphicsQualitySettings(drawDistance, shadows, renderScale, ssao, post, effects, mapObjects, terrain, ocean);
-            return true;
-
-            #region Internal
-
-            bool TryBool(JToken token, out bool value)
-            {
-                value = false;
-                if (token == null || token.Type != JTokenType.Boolean) return false;
-                value = token.Value<bool>();
-                return true;
-            }
-
-            // 数値との対応はToMeters/ToScaleを正とし、ここでは逆引きだけする
-            // ToMeters/ToScale own the numeric mapping; this only looks it up in reverse
-            bool TryDrawDistance(JToken token, out GraphicsDrawDistance value)
-            {
-                value = GraphicsDrawDistance.Meters300;
-                if (token == null || token.Type != JTokenType.Integer) return false;
-                foreach (GraphicsDrawDistance candidate in System.Enum.GetValues(typeof(GraphicsDrawDistance)))
-                {
-                    if ((int)candidate.ToMeters() != token.Value<int>()) continue;
-                    value = candidate;
-                    return true;
-                }
-                return false;
-            }
-
-            bool TryRenderScale(JToken token, out GraphicsRenderScale value)
-            {
-                value = GraphicsRenderScale.Percent100;
-                if (token == null || token.Type != JTokenType.Integer) return false;
-                foreach (GraphicsRenderScale candidate in System.Enum.GetValues(typeof(GraphicsRenderScale)))
-                {
-                    if (ToPercent(candidate) != token.Value<int>()) continue;
-                    value = candidate;
-                    return true;
-                }
-                return false;
-            }
-
-            bool TryTerrain(JToken token, out GraphicsTerrainDetail value)
-            {
-                value = GraphicsTerrainDetail.Fine;
-                var text = token?.Type == JTokenType.String ? token.Value<string>() : null;
-                if (text == "fine") return true;
-                value = GraphicsTerrainDetail.Coarse;
-                return text == "coarse";
-            }
-
-            #endregion
-        }
-    }
-}
-```
-
-`GraphicsQualityActions.cs`:
-```csharp
-using Client.Game.InGame.GraphicsQuality;
-using Client.WebUiHost.Boot;
-using Cysharp.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using UnityEngine;
-
-namespace Client.WebUiHost.Game.Actions
-{
-    /// <summary>
-    /// Webからのプリセット選択を保存窓口へ渡す
-    /// Passes a preset selection from the web to the preference store
-    /// </summary>
-    public class ApplyGraphicsQualityPresetActionHandler : IActionHandler
-    {
-        public string ActionType => "settings.applyGraphicsQualityPreset";
-
-        public UniTask<ActionResult> ExecuteAsync(JObject payload)
-        {
-            var wire = payload?["preset"]?.ToString();
-
-            // 不明値は失敗契約で返し、保存値は変えない
-            // An unknown value returns the failure contract and leaves the saved value as is
-            if (!GraphicsQualityWire.TryPresetFromWire(wire, out var preset))
-            {
-                Debug.LogWarning($"[GraphicsQualityActions] Rejected unknown graphics quality preset: {wire}");
-                return UniTask.FromResult(ActionResult.Fail("unknown_graphics_quality_preset"));
-            }
-            GraphicsQualityPreference.ApplyPreset(preset);
-            return UniTask.FromResult(ActionResult.Success());
-        }
-    }
-
-    /// <summary>
-    /// Webからの項目変更（全項目の値）を保存窓口へ渡す
-    /// Passes an item change (all item values) from the web to the preference store
-    /// </summary>
-    public class SetGraphicsQualityActionHandler : IActionHandler
-    {
-        public string ActionType => "settings.setGraphicsQuality";
-
-        public UniTask<ActionResult> ExecuteAsync(JObject payload)
-        {
-            // 定義外の値を含む組は失敗契約で返し、保存値は変えない
-            // A set containing an undefined value returns the failure contract and leaves the saved value as is
-            if (!GraphicsQualityWire.TryFromJObject(payload?["settings"] as JObject, out var settings))
-            {
-                Debug.LogWarning($"[GraphicsQualityActions] Rejected invalid graphics quality: {payload}");
-                return UniTask.FromResult(ActionResult.Fail("invalid_graphics_quality"));
-            }
-            GraphicsQualityPreference.SetSettings(settings);
-            return UniTask.FromResult(ActionResult.Success());
-        }
-    }
-}
-```
-
-`SettingsActions.Register` に追加:
-```csharp
-            hub.RegisterAction(new ApplyGraphicsQualityPresetActionHandler());
-            hub.RegisterAction(new SetGraphicsQualityActionHandler());
-```
-
-`GraphicsQualityTopic.cs`:
-```csharp
-using System;
-using Client.Game.InGame.GraphicsQuality;
-using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.Actions;
-using Client.WebUiHost.Common;
-using Cysharp.Threading.Tasks;
-using UniRx;
-
-namespace Client.WebUiHost.Game.Topics
-{
-    /// <summary>
-    /// - 画質設定の初期値配信
-    /// - 画質設定の変化通知
-    /// - Publishes the initial graphics quality
-    /// - Publishes graphics quality changes
-    /// </summary>
-    public class GraphicsQualityTopic : ITopicHandler, IDisposable
-    {
-        public const string TopicName = "settings.graphicsQuality";
-
-        private readonly IDisposable _settingsSubscription;
-
-        public GraphicsQualityTopic(WebSocketHub hub)
-        {
-            _settingsSubscription = GraphicsQualityPreference.OnSettingsChanged.Subscribe(_ => hub.Publish(TopicName, BuildJson()));
-        }
-
-        public UniTask<string> GetSnapshotJsonAsync()
-        {
-            return UniTask.FromResult(BuildJson());
-        }
-
-        public void Dispose()
-        {
-            _settingsSubscription.Dispose();
-        }
-
-        private static string BuildJson()
-        {
-            var settings = GraphicsQualityPreference.Current;
-            return WebUiJson.Serialize(new GraphicsQualityData
-            {
-                Preset = GraphicsQualityWire.PresetToWire(settings),
-                Settings = GraphicsQualityWire.ToData(settings),
-            });
-        }
-
-        private class GraphicsQualityData
-        {
-            public string Preset;
-            public GraphicsQualitySettingsData Settings;
-        }
-    }
-}
-```
-（`GraphicsQualityWire` は internal なので Topic と同じアセンブリ内で参照できる）
-
-`WebUiGameBinder.cs:95` の直後:
-```csharp
-            hub.RegisterTopic(GraphicsQualityTopic.TopicName, new GraphicsQualityTopic(hub));
-```
-
-- [ ] **Step 3: ローカライズ** — `Localization/localization.csv` の `ui.settings.sprintModeHold` 行の直後に追加（列: key,Source,english,japanese,german,korean）:
-
-```csv
-ui.settings.graphics,Graphics,Graphics,画質,Grafik,그래픽
-ui.settings.graphicsPreset,Preset,Preset,プリセット,Voreinstellung,프리셋
-ui.settings.graphicsPresetHigh,High,High,高,Hoch,높음
-ui.settings.graphicsPresetMedium,Medium,Medium,中,Mittel,중간
-ui.settings.graphicsPresetLow,Low,Low,低,Niedrig,낮음
-ui.settings.graphicsPresetCustom,Custom,Custom,カスタム,Benutzerdefiniert,사용자 지정
-ui.settings.graphicsDrawDistance,Draw distance,Draw distance,描画距離,Sichtweite,시야 거리
-ui.settings.graphicsShadows,Shadows,Shadows,影,Schatten,그림자
-ui.settings.graphicsRenderScale,Render resolution,Render resolution,描画解像度,Renderauflösung,렌더링 해상도
-ui.settings.graphicsSsao,Ambient occlusion (SSAO),Ambient occlusion (SSAO),アンビエントオクルージョン（SSAO）,Umgebungsverdeckung (SSAO),앰비언트 오클루전(SSAO)
-ui.settings.graphicsPostProcessing,Post-processing,Post-processing,ポストエフェクト,Nachbearbeitung,후처리
-ui.settings.graphicsEffects,Visual effects,Visual effects,エフェクト,Effekte,이펙트
-ui.settings.graphicsMapObjects,Trees and rocks,Trees and rocks,木や岩,Bäume und Felsen,나무와 바위
-ui.settings.graphicsTerrainDetail,Terrain detail,Terrain detail,地形の細かさ,Geländedetails,지형 디테일
-ui.settings.graphicsTerrainFine,Fine,Fine,精細,Fein,세밀
-ui.settings.graphicsTerrainCoarse,Coarse,Coarse,粗い,Grob,거침
-ui.settings.graphicsOcean,Ocean,Ocean,海,Ozean,바다
-ui.settings.on,On,On,オン,An,켜기
-ui.settings.off,Off,Off,オフ,Aus,끄기
-```
-Run: `cd moorestech_web/webui && npm run gen:i18n` → `src/shared/i18n/generated/localizationKeys.ts` に `graphicsPreset` 等が入る
-
-- [ ] **Step 4: Web契約** —
-
-`schemas/ui.ts`（`SprintInputModeDataSchema` の直後）:
-```ts
-// Graphics quality; Unity owns the default and the preset match
-export const GraphicsQualitySettingsSchema = z.object({
-  drawDistanceMeters: z.union([z.literal(300), z.literal(1000), z.literal(5000)]),
-  shadows: z.boolean(),
-  renderScalePercent: z.union([z.literal(100), z.literal(75), z.literal(50)]),
-  ssao: z.boolean(),
-  postProcessing: z.boolean(),
-  effects: z.boolean(),
-  mapObjects: z.boolean(),
-  terrainDetail: z.enum(["fine", "coarse"]),
-  ocean: z.boolean(),
-});
-export const GraphicsQualityDataSchema = z.object({
-  preset: z.enum(["high", "medium", "low", "custom"]),
-  settings: GraphicsQualitySettingsSchema,
-});
-```
-`payloadTypes.ts`: import に2スキーマを足し
-```ts
-export type GraphicsQualityData = z.infer<typeof GraphicsQualityDataSchema>;
-export type GraphicsQualitySettings = z.infer<typeof GraphicsQualitySettingsSchema>;
-export type GraphicsQualityPresetChoice = Exclude<GraphicsQualityData["preset"], "custom">;
-```
-`protocol.ts`: Topics に `graphicsQuality: "settings.graphicsQuality",`、payload表に `[Topics.graphicsQuality]: GraphicsQualityData;`（import追加）
-`validators.ts`: `[Topics.graphicsQuality]: GraphicsQualityDataSchema,`（import追加）
-`actionContract.ts`: 型表に
-```ts
-  "settings.applyGraphicsQualityPreset": { preset: GraphicsQualityPresetChoice };
-  "settings.setGraphicsQuality": { settings: GraphicsQualitySettings };
-```
-と、134行付近のaction名配列に `"settings.applyGraphicsQualityPreset", "settings.setGraphicsQuality",`（import追加）
-
-- [ ] **Step 5: 画面** — `GraphicsQualitySettings.tsx`:
-
-```tsx
-import { Text, Title } from "@mantine/core";
-import { dispatchAction, Topics, useTopic, type GraphicsQualityPresetChoice, type GraphicsQualitySettings as Settings } from "@/bridge";
-import { L, useI18n } from "@/shared/i18n";
-import { ModeSwitch } from "@/shared/ui";
-
-type BoolKey = "shadows" | "ssao" | "postProcessing" | "effects" | "mapObjects" | "ocean";
-
-// 画質のプリセットと各項目。現在値はsettings.graphicsQualityトピックを正とする
-// Graphics preset and items; the settings.graphicsQuality topic is authoritative
-export function GraphicsQualitySettings() {
-  const { t } = useI18n();
-  const data = useTopic(Topics.graphicsQuality);
-  const label = t(L.ui.settings.graphics);
-  if (data === undefined) return <section aria-label={label}><Title order={2}>{label}</Title></section>;
-  const settings = data.settings;
-  const setItem = (next: Settings) => void dispatchAction("settings.setGraphicsQuality", { settings: next });
-  const onOff = [
-    { value: "on", label: t(L.ui.settings.on) },
-    { value: "off", label: t(L.ui.settings.off) },
-  ];
-  const boolSwitch = (key: BoolKey, title: string) => (
-    <div key={key}>
-      <Text>{title}</Text>
-      <ModeSwitch<string>
-        value={settings[key] ? "on" : "off"}
-        options={onOff.map((o) => ({ ...o, testId: `graphics-${key}-${o.value}` }))}
-        onChange={(next) => setItem({ ...settings, [key]: next === "on" })}
-        orientation="horizontal"
-        testId={`graphics-${key}`}
-      />
-    </div>
-  );
-
-  return (
-    <section aria-label={label}>
-      <Title order={2}>{label}</Title>
-      <Text>{t(L.ui.settings.graphicsPreset)}</Text>
-      <ModeSwitch<string>
-        value={data.preset}
-        options={[
-          { value: "high", label: t(L.ui.settings.graphicsPresetHigh), testId: "graphics-preset-high" },
-          { value: "medium", label: t(L.ui.settings.graphicsPresetMedium), testId: "graphics-preset-medium" },
-          { value: "low", label: t(L.ui.settings.graphicsPresetLow), testId: "graphics-preset-low" },
-        ]}
-        onChange={(next) => void dispatchAction("settings.applyGraphicsQualityPreset", { preset: next as GraphicsQualityPresetChoice })}
-        orientation="horizontal"
-        testId="graphics-preset"
-      />
-      {data.preset === "custom" && <Text role="status" data-testid="graphics-preset-custom">{t(L.ui.settings.graphicsPresetCustom)}</Text>}
-      <Text>{t(L.ui.settings.graphicsDrawDistance)}</Text>
-      <ModeSwitch<string>
-        value={String(settings.drawDistanceMeters)}
-        options={[300, 1000, 5000].map((m) => ({ value: String(m), label: `${m}m`, testId: `graphics-draw-distance-${m}` }))}
-        onChange={(next) => setItem({ ...settings, drawDistanceMeters: Number(next) as Settings["drawDistanceMeters"] })}
-        orientation="horizontal"
-        testId="graphics-draw-distance"
-      />
-      {boolSwitch("shadows", t(L.ui.settings.graphicsShadows))}
-      <Text>{t(L.ui.settings.graphicsRenderScale)}</Text>
-      <ModeSwitch<string>
-        value={String(settings.renderScalePercent)}
-        options={[100, 75, 50].map((p) => ({ value: String(p), label: `${p}%`, testId: `graphics-render-scale-${p}` }))}
-        onChange={(next) => setItem({ ...settings, renderScalePercent: Number(next) as Settings["renderScalePercent"] })}
-        orientation="horizontal"
-        testId="graphics-render-scale"
-      />
-      {boolSwitch("ssao", t(L.ui.settings.graphicsSsao))}
-      {boolSwitch("postProcessing", t(L.ui.settings.graphicsPostProcessing))}
-      {boolSwitch("effects", t(L.ui.settings.graphicsEffects))}
-      {boolSwitch("mapObjects", t(L.ui.settings.graphicsMapObjects))}
-      <Text>{t(L.ui.settings.graphicsTerrainDetail)}</Text>
-      <ModeSwitch<string>
-        value={settings.terrainDetail}
-        options={[
-          { value: "fine", label: t(L.ui.settings.graphicsTerrainFine), testId: "graphics-terrain-fine" },
-          { value: "coarse", label: t(L.ui.settings.graphicsTerrainCoarse), testId: "graphics-terrain-coarse" },
-        ]}
-        onChange={(next) => setItem({ ...settings, terrainDetail: next as Settings["terrainDetail"] })}
-        orientation="horizontal"
-        testId="graphics-terrain"
-      />
-      {boolSwitch("ocean", t(L.ui.settings.graphicsOcean))}
-    </section>
-  );
-}
-```
-（`ModeSwitch` が options に無い value（`"custom"`）を受けたとき選択なしで描けるか `src/shared/ui` の実装を確認する。描けない場合は custom の間だけ value に `undefined` 相当を渡せる既存の形に合わせる。`@/bridge` が型を再exportしていなければ `payloadTypes` の再export箇所に足す）
-
-`features/settings/index.ts`: `export { GraphicsQualitySettings } from "./GraphicsQualitySettings";`
-`PauseMenuPanel.tsx:30`: `<LanguageSelect /><SprintModeSelect /><GraphicsQualitySettings />`（import追加）
-
-- [ ] **Step 6: Webテスト** — `GraphicsQualitySettings.test.ts`（`SprintModeSelect.test.ts` と同じモック構成。`useTopic` が `settings.graphicsQuality` で `{ preset, settings }` を返す）で次の3件:
-  1. `preset: "medium"` のとき `graphics-preset` の value が `"medium"` で、`graphics-preset-custom` の Text が無い
-  2. `preset: "custom"` のとき `graphics-preset-custom` の Text が1件出る
-  3. `graphics-shadows` の onChange("off") で `dispatchAction("settings.setGraphicsQuality", { settings: { ...medium, shadows: false } })` が呼ばれ、`graphics-preset` の onChange("low") で `dispatchAction("settings.applyGraphicsQualityPreset", { preset: "low" })` が呼ばれる
-
-- [ ] **Step 7: コンパイル・テスト**
-
-Run: `uloop compile --project-path ./moorestech_client` → ErrorCount 0
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.WebUi.Settings.GraphicsQualityContractTest"` → PASS
-Run: `cd moorestech_web/webui && npx tsc --noEmit && npm run lint && npx vitest run src/features/settings src/bridge` → PASS
-
-- [ ] **Step 8: コミット**
-
-```bash
-git add moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests/WebUi/Settings Localization/localization.csv moorestech_web/webui/src
-git commit -m "feat: 設定画面に画質設定（プリセットと項目）を追加する"
-```
+出所: [[2026-10-21-個別画質変更は単項目契約で最新ホスト値へ適用する.md]]、[[2026-10-21-画質保存値の復旧を明示選択まで画面へ届ける.md]]。覆すのは旧Task6全量payloadとD10画面復旧表示省略のagent前提。
 
 ### Task 7: unityプレイ録画テストと完了基準の計測
 
@@ -1902,14 +1437,14 @@ planning中の判断:
 - D4 歯車の距離ゲートはカメラでなくプレイヤー中心の既存 `PlayerCenteredDistanceCulling` を使う（半径50m・チャンク8m・再評価2m）。出所: シミュレーター予測→ユーザー承認 2026-10-20 質問「歯車の回転を止める50mは、どこから測りますか？」→「プレイヤー中心でよい」（`.decisions/2026-10-20-歯車回転停止の50mはプレイヤー中心で測る.md`）
 - D5 ベルト上アイテムの範囲は既存 `BeltSegmentVisibleRange` の定数を 45/50m に変える（ADR 0085 の 340/350m を改訂）。出所: ユーザー裁定の距離＋agent前提（ヒステリシス5m）
 - D6 描画解像度とSSAOは URP アセット・renderer data・feature を実行時に複製して当てる（リフレクションで `m_RendererDataList` を差し替え）。Editor では PlayMode 終了で元アセットへ戻す。出所: agent前提（アセットを実行時に書き換えるとEditorで保存され汚れるため。代替の「SSAO無しrenderer資産を別に作り SetRenderer で切替」は資産の二重管理になるため採らない）
-- D7 エフェクト項目は VFX・パーティクル（描画と計算）・ライトを止め、止めた瞬間の状態を保存して戻す（状態駆動で消えている演出を点けない）。Switchの付与と配布は `EffectsQualityApplier` 1か所（既存分の走査＋`OnBlockPlaced`／`OnTrainCarCreated`）。出所: agent前提（前例 `BlockColliderCullingTarget` の保存・復元、`BlockDistanceCullingRegistrar` の付与経路。配置検査の違反指摘で生成ファクトリへの直書きから移した）＋パーティクル計算停止は `.decisions/2026-10-20-v7の残り項目は画質設定の既存項目の最低値に含める.md`
+- D7 エフェクトOFFは停止直前の状態を保存しONで復元する。設置一時非activeで初回再生falseだったparticleは、設置完了通知だけが呼ぶReapplyAfterPlacementで実再生をOR補完して停止し直す。既存trueとVFX/Light/renderer保存値を保持し、通常同値OFFで保存しない。付与・配信は既存EffectsQualityApplier。出所: 前例に基づくagent前提をStep7 D2案Aで限定補正（[[2026-10-21-設置完了時にparticleの実再生状態だけを補完する.md]]）。
 - D8 木や岩はランドマークも含めて隠す（v7と同じ）。mapObjectの表示は距離と画質のAND。出所: ユーザー裁定「低=v7相当」＋agent前提（AND合成）
 - D9 地形「粗い」は heightmapPixelError 10 と木・草（drawTreesAndFoliage）非表示。detailデータ自体は常に載せる（即時反映のため）。出所: ユーザー裁定「即時反映」＋agent前提
-- D10 不正な保存値は中へ修復し `Debug.LogWarning`。走り方式設定にある「復旧したことを画面に出す」表示は持たない。出所: agent前提（YAGNI。手で壊さない限り起きない）
+- D10 不正保存値は中へ修復し警告する。Sprint前例と同形のRecoveredInvalidPreference boolをtopic/UIまで保持し、明示選択で解除する。同値選択でも解除通知する。再起動を跨ぐ保持や別保存領域は作らない。出所: Step7 D3案A承認（[[2026-10-21-画質保存値の復旧を明示選択まで画面へ届ける.md]]）。旧画面通知省略はagent前提として撤回。
 - D12 `MapObjectGameObjectDatastore.cs` は `MapObjectRendererVisibilityRegistry` を生成して instantiator へ渡し、画質設定の木や岩を購読して配る（DataStoreへ画質の判断は持ち込まず、表示可否のboolをpushするだけ）。出所: agent前提（既存の距離表示コントローラを同じ場所で生成・配線している前例に合わせる）
 - D13 `GraphicsQualityPreference` は静的クラスで読み書きを同居させる（I*Lookup/I*Mutation に分けない）。出所: シミュレーター予測→ユーザー承認 2026-10-20 質問「画質設定の保存窓口は、読む口と書く口を分けますか？」→「このままでよい」
 - D14 型閉包の弱い指摘は (c) enum⇔数値の対応を `ToMeters`/`ToScale` に一本化する（Wire は逆引き）だけ拾い、(a) 型の置き場・(b) 翻訳欠損は前例どおり。出所: シミュレーター予測→ユーザー承認 2026-10-20 質問「型閉包検査の弱い指摘が3件あります。どれを拾いますか？」→「(c)だけ直す」
-- D15 v7の残り項目は既存項目の最低値に含める（R5b）。公開setterの無いURPの直列化フィールド（`m_SoftShadowsSupported`・`m_AdditionalLightShadowsSupported`・`m_EnableLODCrossFade`・`m_AdditionalLightsRenderingMode`）は複製アセットへリフレクションで書き、見つからなければ起動時に例外で止める。出所: ユーザー承認の裁定（`.decisions/2026-10-20-v7の残り項目は画質設定の既存項目の最低値に含める.md`）＋実装方法は agent前提
+- D15 v7の残り項目は既存項目の最低値に含める（R5b）。公開setterの無いURPの直列化フィールド（`m_SoftShadowsSupported`・`m_AdditionalLightShadowsSupported`・`m_EnableLODCrossFade`・`m_AdditionalLightsRenderingMode`）は複製アセットへリフレクションで書き、見つからなければ起動時に例外で止める。出所: ユーザー承認の裁定（`.decisions/2026-10-20-v7の残り項目は画質設定の既存項目の最低値に含める.md`）＋実装方法は agent前提 vSync 0/Chr001部分非表示の除外根拠はR5bの今回Step7 D4案A承認。
 - D16 Topic は既存24本と同じ DTO＋`WebUiJson.Serialize` で組む。出所: agent前提（配置検査の違反指摘。前例 `SprintInputModeTopic.cs`）
 - D11 ランタイム挙動に触れるため unityプレイ録画テスト（Task 7）を入れる。出所: moores-writing-plans 規定
 

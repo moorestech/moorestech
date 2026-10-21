@@ -21,6 +21,7 @@ namespace Client.Game.InGame.GraphicsQuality
 
         public static IObservable<GraphicsQualitySettings> OnSettingsChanged => SettingsChangedSubject;
         public static GraphicsQualitySettings Current => Load();
+        public static bool RecoveredInvalidPreference { get; private set; }
 
         public static void ApplyPreset(GraphicsQualityPreset preset)
         {
@@ -29,9 +30,12 @@ namespace Client.Game.InGame.GraphicsQuality
 
         public static void SetSettings(GraphicsQualitySettings settings)
         {
-            var changed = !Load().Equals(settings);
+            var changed = !Load().Equals(settings) || RecoveredInvalidPreference;
             PlayerPrefs.SetString(PreferenceKey, Serialize(settings));
             PlayerPrefs.Save();
+            // 明示選択で復旧表示を解除し、同値でも解除を通知する
+            // Acknowledge recovery on explicit selection and notify even for the same value
+            RecoveredInvalidPreference = false;
             // silent-ok: 同値の再保存は画面に変化が無い / 保存テストで再通知が無いことを確認する
             if (!changed) return;
             SettingsChangedSubject.OnNext(settings);
@@ -53,11 +57,12 @@ namespace Client.Game.InGame.GraphicsQuality
             var saved = PlayerPrefs.GetString(PreferenceKey);
             if (TryDeserialize(saved, out var settings)) return settings;
 
-            // 不正値は中へ修復し開発ログへ記録
-            // Repair invalid values to medium and record a developer log
+            // 不正値を中へ修復し、明示選択まで復旧表示を保持する
+            // Repair invalid values to medium and retain recovery until explicit selection
             Debug.LogWarning($"[GraphicsQualityPreference] Unknown saved graphics quality '{saved}'. Using Medium.");
             PlayerPrefs.SetString(PreferenceKey, Serialize(medium));
             PlayerPrefs.Save();
+            RecoveredInvalidPreference = true;
             return medium;
 
             #region Internal

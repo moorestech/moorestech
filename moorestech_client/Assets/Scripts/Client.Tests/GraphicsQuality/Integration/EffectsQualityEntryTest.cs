@@ -59,16 +59,29 @@ namespace Client.Tests.GraphicsQuality
                     // Verify new instances and stopping again through creation and placement-completion notifications
                     var placed = CreateBlock("placed block", null);
                     var newCar = CreateCar("new car", null);
+                    var particleRoot = Own(new GameObject("placement particle"));
+                    particleRoot.transform.SetParent(placed.transform, false);
+                    particleRoot.SetActive(false);
+                    var particle = particleRoot.AddComponent<ParticleSystem>();
+                    Assert.IsFalse(particle.isPlaying);
                     ((Subject<BlockGameObject>)GetField(store, "_onBlockPlaced")).OnNext(placed);
                     ((Subject<TrainCarEntityObject>)GetField(trains, "_onTrainCarCreated")).OnNext(newCar);
                     Assert.IsFalse(placed.GetComponent<Light>().enabled);
                     Assert.IsFalse(newCar.GetComponent<Light>().enabled);
+                    // 実際の非active→再有効化でplayOnAwakeが再生する経路を通す
+                    // Exercise actual inactive-to-active playOnAwake playback
+                    particleRoot.SetActive(true);
+                    yield return null;
+                    Assert.IsTrue(particle.isPlaying);
                     placed.GetComponent<Light>().enabled = true;
                     ((Subject<BlockGameObject>)GetField(placed, "_onFinishedPlaceAnimation")).OnNext(placed);
                     Assert.IsFalse(placed.GetComponent<Light>().enabled);
+                    Assert.IsFalse(particle.isPlaying);
                     GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.High);
                     foreach (var root in new[] { existingBlock.gameObject, existingCar.gameObject, placed.gameObject, newCar.gameObject })
                         Assert.IsTrue(root.GetComponent<Light>().enabled);
+
+                    Assert.IsTrue(particle.isPlaying);
 
                     // 設定変更なしでも破棄で保持解除
                     // Destruction releases references without a setting change

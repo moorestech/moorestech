@@ -32,10 +32,9 @@ namespace Client.Tests.WebUi.Settings
             var result = await hub.ResolveAction("settings.applyGraphicsQualityPreset").ExecuteAsync(new JObject { ["preset"] = "low" });
             Assert.IsTrue(result.Ok);
             AssertEvent("low", 1, false, 50);
-            var settings = JObject.Parse("{\"drawDistanceMeters\":1000,\"shadows\":true,\"renderScalePercent\":75,\"ssao\":true,\"postProcessing\":true,\"effects\":true,\"mapObjects\":true,\"terrainDetail\":\"fine\",\"ocean\":true}");
-            result = await hub.ResolveAction("settings.setGraphicsQuality").ExecuteAsync(new JObject { ["settings"] = settings });
+            result = await hub.ResolveAction("settings.setGraphicsQuality").ExecuteAsync(new JObject { ["item"] = "renderScalePercent", ["value"] = 75 });
             Assert.IsTrue(result.Ok);
-            AssertEvent("custom", 2, true, 75);
+            AssertEvent("custom", 2, false, 75);
             var empty = new object[] { null };
             Assert.IsFalse((bool)tryRead.Invoke(reader, empty));
             connection.RequestStop();
@@ -56,6 +55,45 @@ namespace Client.Tests.WebUi.Settings
             }
 
             #endregion
+        }
+        [TestCase(false)][TestCase(true)]
+        public async Task SameExplicitSelectionDeliversRecoveryAcknowledgment(bool preset)
+        {
+            var hub = new WebSocketHub();
+            SettingsActions.Register(hub);
+            using var topic = new GraphicsQualityTopic(hub);
+            hub.RegisterTopic(GraphicsQualityTopic.TopicName, topic);
+            UnityEngine.PlayerPrefs.SetString(Client.Game.InGame.GraphicsQuality.GraphicsQualityPreference.PreferenceKey, "broken");
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("Unknown saved graphics quality"));
+            var snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
+            Assert.IsTrue(snapshot["recoveredInvalidPreference"].Value<bool>());
+            snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
+            Assert.IsTrue(snapshot["recoveredInvalidPreference"].Value<bool>());
+            Assert.AreEqual("medium", snapshot["preset"].Value<string>());
+            var connection = new WebSocketConnection(null);
+            try
+            {
+                connection.Topics.TryAdd(GraphicsQualityTopic.TopicName, 0);
+                ((ConcurrentDictionary<Guid, WebSocketConnection>)GetField(hub, "_connections")).TryAdd(Guid.NewGuid(), connection);
+                var channel = GetField(connection, "_sendChannel");
+                var reader = channel.GetType().GetProperty("Reader").GetValue(channel);
+                var tryRead = reader.GetType().GetMethod("TryRead", BindingFlags.Instance | BindingFlags.Public);
+
+                // 同値でも解除通知が実購読接続へ届くことを確かめる
+                // Verify acknowledgment reaches a real subscribed connection even for the same value
+                var action = preset ? "settings.applyGraphicsQualityPreset" : "settings.setGraphicsQuality";
+                var payload = preset ? new JObject { ["preset"] = "medium" } : new JObject { ["item"] = "shadows", ["value"] = true };
+                Assert.IsTrue((await hub.ResolveAction(action).ExecuteAsync(payload)).Ok);
+                var arguments = new object[] { null };
+                Assert.IsTrue((bool)tryRead.Invoke(reader, arguments));
+                var data = JObject.Parse((string)arguments[0])["data"];
+                Assert.IsFalse(data["recoveredInvalidPreference"].Value<bool>());
+                Assert.AreEqual("medium", data["preset"].Value<string>());
+                Assert.IsTrue(JToken.DeepEquals(snapshot["settings"], data["settings"]));
+                Assert.IsTrue((await hub.ResolveAction(action).ExecuteAsync(payload)).Ok);
+                Assert.IsFalse((bool)tryRead.Invoke(reader, new object[] { null }));
+            }
+            finally { connection.RequestStop(); }
         }
     }
 }

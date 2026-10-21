@@ -39,6 +39,7 @@ namespace Client.Tests.WebUi.Settings
             using var topic = new GraphicsQualityTopic(hub);
             var snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
             Assert.AreEqual("medium", snapshot["preset"]?.Value<string>());
+            Assert.IsFalse(snapshot["recoveredInvalidPreference"].Value<bool>());
             Assert.IsTrue(JToken.DeepEquals(MediumSettingsJson(), snapshot["settings"]));
         }
 
@@ -52,7 +53,7 @@ namespace Client.Tests.WebUi.Settings
             using var topic = new GraphicsQualityTopic(hub);
             var settings = MediumSettingsJson();
             settings[key] = JToken.FromObject(value);
-            var result = await hub.ResolveAction("settings.setGraphicsQuality").ExecuteAsync(new JObject { ["settings"] = settings });
+            var result = await hub.ResolveAction("settings.setGraphicsQuality").ExecuteAsync(new JObject { ["item"] = key, ["value"] = JToken.FromObject(value) });
             var snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
             Assert.IsTrue(result.Ok);
             Assert.AreEqual("custom", snapshot["preset"]?.Value<string>());
@@ -80,14 +81,18 @@ namespace Client.Tests.WebUi.Settings
         [TestCase("shadows", "true", "invalid_type")]
         [TestCase("terrainDetail", "ultra", "unsupported_value")]
         [TestCase("ocean", null, "invalid_type")]
+        [TestCase("ssao", 1, "invalid_type")][TestCase("postProcessing", "false", "invalid_type")]
+        [TestCase("effects", 0, "invalid_type")][TestCase("mapObjects", "on", "invalid_type")]
+        [TestCase("terrainDetail", 1, "invalid_type")][TestCase("renderScalePercent", 75.5, "invalid_type")]
+        [TestCase("unknown", true, "unsupported_value")]
+        [TestCase("", true, "unsupported_value")]
         public async Task InvalidSettingsAreRejectedWithoutSaving(string key, object value, string reason)
         {
             LogAssert.Expect(LogType.Warning, new Regex("Rejected invalid graphics quality"));
-            var settings = MediumSettingsJson();
-            settings[key] = value == null ? null : JToken.FromObject(value);
-            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(new JObject { ["settings"] = settings });
+
+            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(new JObject { ["item"] = key, ["value"] = value == null ? null : JToken.FromObject(value) });
             Assert.IsFalse(result.Ok);
-            Assert.AreEqual($"invalid_graphics_quality:{reason}:{key}", result.Error);
+            Assert.AreEqual($"invalid_graphics_quality:{reason}:{(key is "unknown" or "" ? "item" : key)}", result.Error);
             Assert.IsFalse(PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey));
         }
 
@@ -95,7 +100,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task OversizedIntegerBeyondLongIsRejectedWithoutThrowing()
         {
             LogAssert.Expect(LogType.Warning, new Regex("Rejected invalid graphics quality"));
-            var json = "{\"settings\":" + MediumSettingsJson().ToString().Replace("\"drawDistanceMeters\": 300", "\"drawDistanceMeters\": 99999999999999999999999") + "}";
+            var json = "{\"item\":\"drawDistanceMeters\",\"value\":99999999999999999999999}";
             var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(JObject.Parse(json));
             Assert.IsFalse(result.Ok);
             Assert.AreEqual("invalid_graphics_quality:unsupported_value:drawDistanceMeters", result.Error);
@@ -105,7 +110,7 @@ namespace Client.Tests.WebUi.Settings
         [TestCase(false)][TestCase(true)]
         public async Task DirectBoxedIntegersAndParsedJsonHaveTheSameContract(bool parseJson)
         {
-            var payload = new JObject { ["settings"] = MediumSettingsJson() };
+            var payload = new JObject { ["item"] = "drawDistanceMeters", ["value"] = 300 };
             if (parseJson) payload = JObject.Parse(payload.ToString());
             var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(payload);
             Assert.IsTrue(result.Ok, result.Error);
@@ -124,21 +129,19 @@ namespace Client.Tests.WebUi.Settings
         {
             GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Low);
             var saved = PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey);
-            var settings = MediumSettingsJson();
-            settings.Remove(key);
             LogAssert.Expect(LogType.Warning, new Regex("Rejected invalid graphics quality"));
-            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(new JObject { ["settings"] = settings });
+            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(new JObject { ["item"] = key });
             Assert.AreEqual($"invalid_graphics_quality:missing_field:{key}", result.Error);
             Assert.AreEqual(saved, PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey));
         }
 
         [TestCase(false)][TestCase(true)]
-        public async Task SettingsBodyDistinguishesMissingAndWrongType(bool wrongType)
+        public async Task ItemDiscriminatorDistinguishesMissingAndWrongType(bool wrongType)
         {
             LogAssert.Expect(LogType.Warning, new Regex("Rejected invalid graphics quality"));
-            var payload = wrongType ? new JObject { ["settings"] = false } : new JObject();
+            var payload = wrongType ? new JObject { ["item"] = false, ["value"] = true } : new JObject();
             var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(payload);
-            Assert.AreEqual(wrongType ? "invalid_graphics_quality:invalid_type:settings" : "invalid_graphics_quality:missing_settings:settings", result.Error);
+            Assert.AreEqual(wrongType ? "invalid_graphics_quality:invalid_type:item" : "invalid_graphics_quality:missing_field:item", result.Error);
             Assert.IsFalse(PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey));
         }
 

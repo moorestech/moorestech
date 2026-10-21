@@ -26,7 +26,7 @@ namespace Client.WebUiHost.Game.Actions
 
     internal enum GraphicsQualityParseStatus
     {
-        Success, MissingSettings, MissingField, InvalidType, UnsupportedValue,
+        Success, MissingField, InvalidType, UnsupportedValue,
     }
 
     internal static class GraphicsQualityWire
@@ -68,36 +68,44 @@ namespace Client.WebUiHost.Game.Actions
         public static GraphicsQualityParseStatus Parse(JObject payload, out GraphicsQualitySettings settings, out string invalidField)
         {
             settings = default;
-            invalidField = "settings";
-            if (payload?["settings"] == null) return GraphicsQualityParseStatus.MissingSettings;
-            if (payload["settings"] is not JObject json) return GraphicsQualityParseStatus.InvalidType;
-
-            // 欠落・型・値域別に最初の拒否を返す
-            // Distinguish missing fields, types and ranges; return the first rejection
-            var keys = new[] { "drawDistanceMeters", "renderScalePercent", "terrainDetail", "shadows", "ssao", "postProcessing", "effects", "mapObjects", "ocean" };
-            foreach (var key in keys)
+            invalidField = "item";
+            if (payload?["item"] == null) return GraphicsQualityParseStatus.MissingField;
+            if (payload["item"].Type != JTokenType.String) return GraphicsQualityParseStatus.InvalidType;
+            var item = payload["item"].Value<string>();
+            var expectedType = item switch
             {
-                invalidField = key;
-                var token = json[key];
-                if (token == null) return GraphicsQualityParseStatus.MissingField;
-                var expectedType = key switch
-                {
-                    "drawDistanceMeters" or "renderScalePercent" => JTokenType.Integer,
-                    "terrainDetail" => JTokenType.String,
-                    _ => JTokenType.Boolean,
-                };
-                if (token.Type != expectedType) return GraphicsQualityParseStatus.InvalidType;
-                if (expectedType == JTokenType.Integer && !TryInteger(token, out _)) return GraphicsQualityParseStatus.UnsupportedValue;
-                if (key == "drawDistanceMeters" && !TryDrawDistance(token, out _)) return GraphicsQualityParseStatus.UnsupportedValue;
-                if (key == "renderScalePercent" && !TryRenderScale(token, out _)) return GraphicsQualityParseStatus.UnsupportedValue;
-                if (key == "terrainDetail" && token.Value<string>() is not ("fine" or "coarse")) return GraphicsQualityParseStatus.UnsupportedValue;
-            }
+                "drawDistanceMeters" or "renderScalePercent" => JTokenType.Integer,
+                "terrainDetail" => JTokenType.String,
+                "shadows" or "ssao" or "postProcessing" or "effects" or "mapObjects" or "ocean" => JTokenType.Boolean,
+                _ => JTokenType.None,
+            };
+            if (expectedType == JTokenType.None) return GraphicsQualityParseStatus.UnsupportedValue;
 
-            TryDrawDistance(json["drawDistanceMeters"], out var drawDistance);
-            TryRenderScale(json["renderScalePercent"], out var renderScale);
-            var terrain = json["terrainDetail"].Value<string>() == "fine" ? GraphicsTerrainDetail.Fine : GraphicsTerrainDetail.Coarse;
-            settings = new GraphicsQualitySettings(drawDistance, json["shadows"].Value<bool>(), renderScale, json["ssao"].Value<bool>(),
-                json["postProcessing"].Value<bool>(), json["effects"].Value<bool>(), json["mapObjects"].Value<bool>(), terrain, json["ocean"].Value<bool>());
+            // 拒否理由には変更対象を残し、保存前に型と値域を検証する
+            // Preserve the selected item in rejections and validate type and range before saving
+            invalidField = item;
+            var token = payload["value"];
+            if (token == null) return GraphicsQualityParseStatus.MissingField;
+            if (token.Type != expectedType) return GraphicsQualityParseStatus.InvalidType;
+            if (item == "drawDistanceMeters" && !TryDrawDistance(token, out _)) return GraphicsQualityParseStatus.UnsupportedValue;
+            if (item == "renderScalePercent" && !TryRenderScale(token, out _)) return GraphicsQualityParseStatus.UnsupportedValue;
+            if (item == "terrainDetail" && token.Value<string>() is not ("fine" or "coarse")) return GraphicsQualityParseStatus.UnsupportedValue;
+
+            // 未変更項目は受信せず、ホストの最新値だけから引き継ぐ
+            // Receive no untouched items; retain them exclusively from the host's latest state
+            var current = GraphicsQualityPreference.Current;
+            TryDrawDistance(token, out var distance);
+            TryRenderScale(token, out var scale);
+            settings = new GraphicsQualitySettings(
+                item == "drawDistanceMeters" ? distance : current.DrawDistance,
+                item == "shadows" ? token.Value<bool>() : current.ShadowsEnabled,
+                item == "renderScalePercent" ? scale : current.RenderScale,
+                item == "ssao" ? token.Value<bool>() : current.SsaoEnabled,
+                item == "postProcessing" ? token.Value<bool>() : current.PostProcessingEnabled,
+                item == "effects" ? token.Value<bool>() : current.EffectsEnabled,
+                item == "mapObjects" ? token.Value<bool>() : current.MapObjectsVisible,
+                item == "terrainDetail" ? (token.Value<string>() == "fine" ? GraphicsTerrainDetail.Fine : GraphicsTerrainDetail.Coarse) : current.TerrainDetail,
+                item == "ocean" ? token.Value<bool>() : current.OceanVisible);
             invalidField = null;
             return GraphicsQualityParseStatus.Success;
 

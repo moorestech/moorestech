@@ -42,7 +42,7 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
                 var effects = Attach(block.gameObject);
                 // 設置演出が子を再有効化した直後に現在の画質を再適用する
                 // Reapply the current quality immediately after placement reactivates children
-                block.OnFinishedPlaceAnimation.Subscribe(_ => effects.SetEffectsEnabled(GraphicsQualityPreference.Current.EffectsEnabled));
+                block.OnFinishedPlaceAnimation.Subscribe(_ => effects.ReapplyAfterPlacement(GraphicsQualityPreference.Current.EffectsEnabled));
             }
 
             void Apply(bool effectsEnabled)

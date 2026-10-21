@@ -31,8 +31,8 @@ namespace Client.WebUiHost.Game.Actions
     }
 
     /// <summary>
-    /// Webからの項目変更（全項目の値）を保存窓口へ渡す
-    /// Passes an item change (all item values) from the web to the preference store
+    /// Webからの項目変更（対象と値）を保存窓口へ渡す
+    /// Passes an item change (selected item and value) from the web to the preference store
     /// </summary>
     public class SetGraphicsQualityActionHandler : IActionHandler
     {
@@ -47,7 +47,6 @@ namespace Client.WebUiHost.Game.Actions
             {
                 var reason = status switch
                 {
-                    GraphicsQualityParseStatus.MissingSettings => "missing_settings",
                     GraphicsQualityParseStatus.MissingField => "missing_field",
                     GraphicsQualityParseStatus.InvalidType => "invalid_type",
                     GraphicsQualityParseStatus.UnsupportedValue => "unsupported_value",

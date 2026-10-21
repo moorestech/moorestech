@@ -32,6 +32,16 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
             SetEffectsEnabled(effectsEnabled);
         }
 
+        public void ReapplyAfterPlacement(bool effectsEnabled)
+        {
+            // 設置完了時だけ実再生を補完し、既存の復元対象を保つ
+            // Supplement actual playback only after placement, preserving prior restore targets
+            if (!_effectsEnabled && !effectsEnabled)
+                for (var i = 0; i < _particleSystems.Length; i++)
+                    _savedParticlePlaying[i] |= _particleSystems[i].isPlaying;
+            SetEffectsEnabled(effectsEnabled);
+        }
+
         public void SetEffectsEnabled(bool effectsEnabled)
         {
             if (_effectsEnabled == effectsEnabled)

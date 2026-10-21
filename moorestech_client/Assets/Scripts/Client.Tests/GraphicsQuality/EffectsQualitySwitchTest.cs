@@ -56,5 +56,43 @@ namespace Client.Tests.GraphicsQuality
                 Object.DestroyImmediate(root);
             }
         }
+        [TestCase(false, false)][TestCase(false, true)][TestCase(true, false)][TestCase(true, true)]
+        public void PlacementComplementsOnlyActualPlaybackAndPreservesSavedTrue(bool originallyPlaying, bool restarted)
+        {
+            var root = new GameObject("placement-particle");
+            try
+            {
+                var particle = root.AddComponent<ParticleSystem>();
+                if (originallyPlaying) particle.Play(false);
+                else particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+                var effects = root.AddComponent<EffectsQualitySwitch>();
+                effects.Initialize(false);
+                if (restarted) particle.Play(false);
+                effects.ReapplyAfterPlacement(false);
+                Assert.IsFalse(particle.isPlaying);
+                effects.SetEffectsEnabled(false);
+                effects.SetEffectsEnabled(true);
+                Assert.AreEqual(originallyPlaying || restarted, particle.isPlaying);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void OrdinarySameOffDoesNotRememberManuallyStartedParticle()
+        {
+            var root = new GameObject("manually-stopped-particle");
+            try
+            {
+                var particle = root.AddComponent<ParticleSystem>();
+                particle.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+                var effects = root.AddComponent<EffectsQualitySwitch>();
+                effects.Initialize(false);
+                particle.Play(false);
+                effects.SetEffectsEnabled(false);
+                effects.SetEffectsEnabled(true);
+                Assert.IsFalse(particle.isPlaying);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
     }
 }
