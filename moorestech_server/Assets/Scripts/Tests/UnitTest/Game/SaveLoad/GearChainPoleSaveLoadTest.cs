@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Game.SaveLoad
     public class GearChainPoleSaveLoadTest
     {
         [Test]
-        public void ロード後の最初のtickで保存済みチェーンから歯車網を再構築する()
+        public void ロード完了時に保存済みチェーンから歯車網を再構築する()
         {
             var (_, saveProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -51,19 +51,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             var loader = (WorldLoaderFromJson)loadProvider.GetRequiredService<IWorldSaveDataLoader>();
             loader.Load(saveJson);
 
-            // ロード直後は接続だけを復元し、歯車網は未構築のままdirtyにする
-            // Restore only connections during load and leave the gear network dirty and unbuilt
+            // ロード完了時の再構築で、復元した接続から三本を同じ歯車網へまとめる
+            // The load-completion rebuild gathers the three poles into one gear network from the restored connections
             var loadedDatastore = loadProvider.GetRequiredService<GearNetworkDatastore>();
             var loadedPole1 = ServerContext.WorldBlockDatastore.GetBlock(pos1).GetComponent<IGearChainPole>();
             var loadedPole2 = ServerContext.WorldBlockDatastore.GetBlock(pos2).GetComponent<IGearChainPole>();
             var loadedPole3 = ServerContext.WorldBlockDatastore.GetBlock(pos3).GetComponent<IGearChainPole>();
-            Assert.IsFalse(loadedDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out _));
             Assert.IsTrue(loadedPole1.ContainsChainConnection(loadedPole2.BlockInstanceId));
             Assert.IsTrue(loadedPole1.ContainsChainConnection(loadedPole3.BlockInstanceId));
-
-            // 最初のtick先頭で三本を同じ歯車網へまとめ、その後はdirtyを解除する
-            // Build one shared gear network at the first tick head and then clear the dirty state
-            GameUpdater.UpdateOneTick();
             Assert.IsTrue(loadedDatastore.TryGetGearNetwork(loadedPole1.BlockInstanceId, out var network1));
             Assert.IsTrue(loadedDatastore.TryGetGearNetwork(loadedPole2.BlockInstanceId, out var network2));
             Assert.IsTrue(loadedDatastore.TryGetGearNetwork(loadedPole3.BlockInstanceId, out var network3));

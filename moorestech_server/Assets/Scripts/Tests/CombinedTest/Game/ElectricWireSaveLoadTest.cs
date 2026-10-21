@@ -79,14 +79,14 @@ namespace Tests.CombinedTest.Game
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             (loadServiceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(saveJson);
 
-            // ロード直後は接続情報だけがあり、派生した電力網はまだ構築されていない
-            // Immediately after load, connections exist but the derived electric network is not built yet
+            // ロード完了時の再構築で、復元した接続から電力網が構築済みになっている
+            // The load-completion rebuild has already built the electric network from the restored connections
             var loadedNetworkDatastore = loadServiceProvider.GetService<IElectricWireNetworkLookup>();
-            var loadedPoleBeforeRebuild = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();
-            Assert.IsFalse(loadedNetworkDatastore.TryGetEnergySegment(loadedPoleBeforeRebuild.BlockInstanceId, out _));
+            var loadedPoleAfterLoad = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();
+            Assert.IsTrue(loadedNetworkDatastore.TryGetEnergySegment(loadedPoleAfterLoad.BlockInstanceId, out _));
 
-            // ロード直後のトポロジ反映と統計確定のため1tick進める
-            // Advance one tick after load for the topology flush and statistics settlement
+            // 統計確定のため1tick進める
+            // Advance one tick for statistics settlement
             GameUpdater.UpdateOneTick();
 
             var loadedPole = ServerContext.WorldBlockDatastore.GetBlock(posPole).GetComponent<IElectricWireConnector>();

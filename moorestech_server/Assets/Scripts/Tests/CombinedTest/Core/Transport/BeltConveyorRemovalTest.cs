@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -72,19 +73,21 @@ namespace Tests.CombinedTest.Core.Transport
             var removalReasons = new List<BlockRemoveReason>();
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
 
-            // 1tick目で1個が乗り、以後は壊れるまで回す
-            // One item boards on the first tick, then run until the belt breaks
-            GameUpdater.RunFrames(1);
-            Assert.AreEqual(1, ItemsOnSegmentAt(conveyorPos).Length);
+            // 1tick目で1個が乗る。乗った個数はベルコン側の通知で数え、以後は壊れるまで回す
+            // One item boards on the first tick, counted from the belt's report; then run until the belt breaks
+            var boarded = 0;
+            using (ServerContext.GetService<BeltTransportTickUpdater>().OnTransportTickCompleted.Subscribe(_ => boarded = ItemsOnSegmentAt(conveyorPos).Length))
+                GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, boarded);
             Assert.AreEqual(4, CountOf(source, ItemA));
             for (var i = 0; i < 200 && world.Exists(conveyorPos); i++) GameUpdater.UpdateOneTick();
             Assert.IsFalse(world.Exists(conveyorPos));
             Assert.IsTrue(removalReasons.Contains(BlockRemoveReason.Broken));
 
-            // 次のtickの再構築でベルコンは無くなり、乗っていた1個はどこにも戻らない
-            // The next-tick rebuild has no belt left and the carried item returns nowhere
-            GameUpdater.RunFrames(1);
+            // 破壊したtick末尾の再構築でベルコンは無くなり、乗っていた1個はどこにも戻らない
+            // The rebuild at the end of the breaking tick leaves no belt, and the carried item returns nowhere
             Assert.IsEmpty(Assembly().Segments);
+            GameUpdater.RunFrames(1);
             Assert.AreEqual(4, CountOf(source, ItemA));
         }
     }
