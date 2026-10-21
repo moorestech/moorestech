@@ -51,13 +51,21 @@ return PlaytestRunner.Run("quality-reviewed-lifecycle", new PlaytestRunOptions {
         var pausedTime = animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
         await p.WaitSeconds(1f);
         p.Assert(Mathf.Approximately(pausedTime, animator.GetCurrentAnimatorStateInfo(0).normalizedTime), "停止中は実Animatorの進行時刻が不変");
-        p.Note($"[GEAR] far enabled={processor.enabled}, animator={animator.enabled}, time={pausedTime}, rpm={processor.DebugCurrentGearState.CurrentRpm}");
+        var farState = processor.DebugCurrentGearState;
+        p.Note($"[GEAR] far enabled={processor.enabled}, animator={animator.enabled}, time={pausedTime}, stateReceived={farState != null}");
         await p.Screenshot("02-far-animator-stopped");
         p.WarpPlayer(new Vector3(659.5f, 96.6f, 606.5f));
         await p.Until(() => processor.enabled && animator.enabled, 15f, "近距離へ戻ると両方再開");
         var rpm60 = (float)typeof(AnimatorRotationInfo).GetField("rpm60Speed", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(rotation);
-        p.Assert(Mathf.Approximately(animator.speed, Mathf.Abs(rpm60 * processor.DebugCurrentGearState.CurrentRpm / 60f)), "実受信中の最新RPMをAnimator速度へ反映");
-        p.Note($"[GEAR] near enabled={processor.enabled}, animator={animator.enabled}, speed={animator.speed}, rpm={processor.DebugCurrentGearState.CurrentRpm}");
+        // 未受信を既定RPMで埋めず診断へ残す
+        // Report missing network state without substituting a default RPM
+        var nearState = processor.DebugCurrentGearState;
+        if (nearState == null) p.Note("[UNVERIFIED] 歯車状態が未受信のため最新RPMと速度の整合は未確認");
+        else
+        {
+            p.Assert(Mathf.Approximately(animator.speed, Mathf.Abs(rpm60 * nearState.CurrentRpm / 60f)), "実受信中の最新RPMをAnimator速度へ反映");
+            p.Note($"[GEAR] near enabled={processor.enabled}, animator={animator.enabled}, speed={animator.speed}, rpm={nearState.CurrentRpm}");
+        }
 
         // 設定を変えず実破棄だけで保持集合から外れることを確認する
         // Verify actual destruction removes retention without changing settings
