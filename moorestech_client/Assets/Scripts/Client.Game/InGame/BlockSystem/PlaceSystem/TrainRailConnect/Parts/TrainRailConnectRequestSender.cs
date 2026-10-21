@@ -27,6 +27,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.Parts
         // Each Send captures its own generation and applies the result only when it still matches on arrival.
         private int _generation;
 
+        // 引き継ぎ先の解決待ちを打ち切るためのキャンセル源。世代を進めるたびに作り直す
+        // Cancellation source that ends the pending hand-off wait; recreated every time the generation advances
+        private CancellationTokenSource _resolveCancellation = new();
+
         private IRailComponentConnectAreaCollider _resolvedArea;
 
         public TrainRailConnectRequestSender(RailGraphClientCache cache, BlockGameObjectDataStore blockGameObjectDataStore)
@@ -43,6 +47,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.Parts
         {
             _generation++;
             _resolvedArea = null;
+            RenewResolveCancellation();
         }
 
         /// <summary>
@@ -64,6 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.Parts
         {
             var generation = ++_generation;
             _resolvedArea = null;
+            var resolveCancellationToken = RenewResolveCancellation();
 
             UniTask.Create(async () =>
             {
@@ -72,13 +78,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.Parts
 
                 // 設置済み橋脚の接続エリアが解決できたときだけ引き継ぎ先として残す
                 // Keep the next origin only when the placed pier's connect area could be resolved
-                var placedArea = await PlacedPierConnectAreaResolver.Resolve(_cache, _blockGameObjectDataStore, response.ToNodeId);
+                var placedArea = await PlacedPierConnectAreaResolver.Resolve(_cache, _blockGameObjectDataStore, response.ToNodeId, resolveCancellationToken);
 
                 // 世代が進んでいたら応答ごと破棄する。持ち替えや再選択の後に古い橋脚が接続元へ戻るのを防ぐ
                 // Discard everything when the generation has advanced, so a stale pier never returns as the origin after a tool switch or re-selection
                 if (generation != _generation) return;
                 _resolvedArea = placedArea;
             });
+        }
+
+        private CancellationToken RenewResolveCancellation()
+        {
+            _resolveCancellation.Cancel();
+            _resolveCancellation.Dispose();
+            _resolveCancellation = new CancellationTokenSource();
+            return _resolveCancellation.Token;
         }
     }
 }
