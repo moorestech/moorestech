@@ -9,6 +9,7 @@ import GearToElectricSection from "../details/GearToElectricSection";
 import GeneratorSection from "../details/GeneratorSection";
 import MachineSection from "../details/MachineSection";
 import MinerSection from "../details/MinerSection";
+import BeltThroughputSection from "../details/BeltThroughputSection";
 import PumpSection from "../details/pump/PumpSection";
 import { ElectricNetworkSection, GearNetworkSection } from "../details/NetworkSections";
 
@@ -64,6 +65,7 @@ export default function SectionStackView({ data, fillsPanelHeight }: { data: Blo
       <PumpSection data={data} />
       <GeneratorSection data={data} />
       <GearToElectricSection data={data} />
+      <BeltThroughputSection data={data} />
       <GearSection data={data} />
       <ElectricNetworkSection data={data} />
       <GearNetworkSection data={data} />

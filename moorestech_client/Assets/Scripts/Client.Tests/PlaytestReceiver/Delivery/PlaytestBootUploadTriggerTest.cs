@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading;
@@ -19,7 +20,8 @@ namespace Client.Tests.PlaytestReceiver
             var requester = new CountingRequester();
             var root = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             new PlaytestBootUploadTrigger(requester, PlaytestOutboxTestBoxes.Directories(root)).Start();
-            for (var frame = 0; requester.Count == 0 && frame < 300; frame++) yield return null;
+            var wait = Stopwatch.StartNew();
+            while (requester.Count == 0 && wait.Elapsed.TotalSeconds < 10) yield return null;
             Directory.Delete(root, true);
             Assert.AreEqual(1, requester.Count);
         }
@@ -39,8 +41,11 @@ namespace Client.Tests.PlaytestReceiver
                 var operation = ((UniTask)method.Invoke(trigger, new object[] { cancellation.Token })).AsTask();
                 Assert.IsFalse(operation.IsCompleted);
                 cancellation.Cancel();
-                for (var frame = 0; !operation.IsCompleted && frame < 300; frame++) yield return null;
-                Assert.IsTrue(operation.IsCompleted);
+                // batchmodeの高速フレームでもスレッドプールへ実時間の猶予を与える
+                // Allow real time for the thread pool even when batchmode advances frames rapidly
+                var wait = Stopwatch.StartNew();
+                while (!operation.IsCompleted && wait.Elapsed.TotalSeconds < 10) yield return null;
+                Assert.IsTrue(operation.IsCompleted, "Cancellation did not complete within 10 seconds.");
                 Assert.That(operation.Exception?.InnerException, Is.InstanceOf<System.OperationCanceledException>());
                 Assert.AreEqual(0, requester.Count);
             }

@@ -213,6 +213,11 @@
   /* ゲージの器は寒色リングが判別できる最小幅で縁取る */
   /* Outline gauge vessels with the minimum visible width for a cool ring */
   --gauge-outline-width: 1px;
+  /* 棒の時系列(BarSeries)は半スロット高の固定長で、棒幅と隙間も固定長にしてパネル幅に比例させない */
+  /* The bar series (BarSeries) is a fixed half-slot tall, with fixed bar width and gap so it never scales with the panel width */
+  --bar-series-height: calc(var(--slot-size) / 2);
+  --bar-series-bar-width: calc(var(--slot-size) / 4);
+  --bar-series-gap: 2px;
   /* ブロックパネルの下向き三角と内容を分離する安全帯を確保する */
   /* Reserves a safe area between block-panel content and the downward triangle */
   --block-panel-bottom-safe-area: 58px;

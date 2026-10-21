@@ -18,6 +18,8 @@ namespace Core.BeltTransport
         private int _head;
         private int _totalGap;
         private int _tickSpeed;
+        private IBeltSegmentExitObserver _exitObserver = BeltSegmentExitObserverNone.Instance;
+        private int _exitObserverHandle;
         private int Length => Capacity * BeltConstants.ItemWidth;
 
         public abstract BeltSegmentKind Kind { get; }
@@ -62,6 +64,21 @@ namespace Core.BeltTransport
         {
             if (speed < 0 || speed > BeltConstants.MaxSpeed) throw new ArgumentOutOfRangeException(nameof(speed));
             Speed = speed;
+        }
+
+        // 搬出の観測先を差す。tick境界で呼ぶ。既定のNoneに戻すこともできる
+        // Set where outputs are reported. Call at a tick boundary. Passing None restores the default
+        public void SetExitObserver(IBeltSegmentExitObserver observer, int handle)
+        {
+            _exitObserver = observer;
+            _exitObserverHandle = handle;
+        }
+
+        // 搬出が成立した直後に、通常segment本体かbufferが呼ぶ
+        // Called by a normal segment itself or by a buffer right after an output settles
+        internal void NotifyExited()
+        {
+            _exitObserver.OnExited(_exitObserverHandle);
         }
 
         // 搬入元を持たない種類は何も記録しない。合流だけが搬入元を保持する

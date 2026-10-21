@@ -1,6 +1,8 @@
 using Client.WebUiHost.Game.Topics;
 using System.Collections.Generic;
 using System.Reflection;
+using Client.Game.InGame.BeltTransport;
+using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Game.InGame.Block;
 using Game.Block.Interface.State;
 using MessagePack;
@@ -56,7 +58,7 @@ namespace Client.Tests.WebUi.BlockDetail
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, new BlockStateMessagePack(state, Vector3Int.zero));
             var dto = new BlockInventoryDto();
-            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache());
+            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
             Object.DestroyImmediate(gameObject);
 
             // 公開DTOの3値で親の配線を保証する

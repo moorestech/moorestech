@@ -419,3 +419,5 @@ ui.settings.graphicsMissingValue,Value is missing,Value is missing,値があり�
 ui.settings.graphicsInvalidType,Invalid value type,Invalid value type,値の種類が正しくありません,Ungültiger Werttyp,값 형식이 잘못되었습니다
 ui.settings.graphicsUnsupportedValue,Unsupported value,Unsupported value,選択できない値です,Nicht unterstützter Wert,지원하지 않는 값입니다
 ui.settings.graphicsRecovered,Graphics settings were repaired to Medium. Select a preset or item to confirm.,Graphics settings were repaired to Medium. Select a preset or item to confirm.,画質設定を中に復旧しました。プリセットか項目を選んで確認してください。,Grafikeinstellungen wurden auf Mittel zurückgesetzt. Wähle eine Voreinstellung oder Option zur Bestätigung.,그래픽 설정을 중간으로 복구했습니다. 프리셋 또는 항목을 선택하여 확인하세요.
+ui.blockInventory.beltThroughputWindow,Last {seconds}s: {count} / {max} items ({percent}%),Last {seconds}s: {count} / {max} items ({percent}%),直近{seconds}秒: {count} / {max}個 ({percent}%),Letzte {seconds}s: {count} / {max} Gegenstände ({percent}%),최근 {seconds}초: {count} / {max}개 ({percent}%)
+ui.blockInventory.beltThroughputMeasuring,Last {seconds}s: measuring,Last {seconds}s: measuring,直近{seconds}秒: 計測中,Letzte {seconds}s: wird gemessen,최근 {seconds}초: 측정 중
