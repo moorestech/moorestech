@@ -50,6 +50,7 @@ namespace Game.SaveLoad.Json
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
         private readonly PlayerIdentityRegistry _playerIdentityRegistry;
+        private readonly IWorldTopologyRebuilder _worldTopologyRebuilder;
 
         public WorldSaveDataRestorer(
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
@@ -58,7 +59,8 @@ namespace Game.SaveLoad.Json
             IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ConstructionPayerDataStore constructionPayerDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore,
             SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
-            PlayerIdentityRegistry playerIdentityRegistry)
+            PlayerIdentityRegistry playerIdentityRegistry,
+            IWorldTopologyRebuilder worldTopologyRebuilder)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -83,6 +85,7 @@ namespace Game.SaveLoad.Json
             _miningCooldownDatastore = miningCooldownDatastore;
             _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
             _playerIdentityRegistry = playerIdentityRegistry;
+            _worldTopologyRebuilder = worldTopologyRebuilder;
         }
 
         public void Restore(WorldSaveAllInfo load)
@@ -145,6 +148,10 @@ namespace Game.SaveLoad.Json
             // 採掘クールダウンは保存時のtick基準で効く。戻さないとロード直後の再生が保存前に拒否された採掘を通す
             // The mining cooldown is measured from the saved tick; skipping it lets a replay accept mining the live world rejected
             _miningCooldownDatastore.LoadMiningCooldowns(load.MiningCooldowns);
+
+            // 派生網はtick末尾でしか作り直さないので、ロードした世界はここで1回作り直して検証する。最初のtickから整った網で回り、直後のセーブも預かり無しで書ける
+            // Derived networks are only rebuilt at tick end, so a loaded world is rebuilt and validated once here; the first tick runs on settled networks and an immediate save needs no held-over content
+            _worldTopologyRebuilder.RebuildTopologiesIfDirty();
 
             // 復元は乱数を引かない（ID類はセーブから引き継ぐ）。引いていたら巻き戻して隠さず、ずれた事実を出す
             // Restoration draws no randomness because ids come from the save; a drift is reported instead of being hidden by another rewind

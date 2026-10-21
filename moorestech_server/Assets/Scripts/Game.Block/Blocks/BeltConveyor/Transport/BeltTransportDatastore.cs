@@ -8,6 +8,7 @@ using Game.Block.Blocks.BeltConveyor.Sync.State;
 using Game.Block.Blocks.BeltConveyor.Topology;
 using Game.Block.Blocks.BeltConveyor.Topology.Layout;
 using Game.Block.Blocks.BeltConveyor.Transport.Rebuild;
+using Game.Block.Blocks.BeltConveyor.Transport.Removal;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.World.Interface.DataStore;
@@ -17,8 +18,8 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor.Transport
 {
-    // ワールド全体のベルト搬送の1組を持つ。ベルト・搬入出できるブロックの設置・撤去でdirtyになり、tick先頭のRebuildIfDirtyでワールドから作り直す
-    // Holds the single world-wide belt transport assembly; placing or removing a belt or an item-connected block marks it dirty and RebuildIfDirty at the tick head rebuilds it from the world
+    // ワールド全体のベルト搬送の1組を持つ。ベルト・搬入出できるブロックの設置・撤去でdirtyになり、tick末尾のRebuildIfDirtyでワールドから作り直す
+    // Holds the single world-wide belt transport assembly; placing or removing a belt or an item-connected block marks it dirty and RebuildIfDirty at the tick end rebuilds it from the world
     // 再構築では旧構成のアイテムとロード済みの保存内容を取り出し、撤去と再構築の仕様に従って新構成へ復元する。置けないアイテムは消滅する
     // A rebuild captures the old assembly's items and the loaded save content, then restores them into the new one per the removal/rebuild spec; items that cannot be placed vanish
     public class BeltTransportDatastore : IBeltTransportLookup, IBeltTransportMutation
@@ -30,12 +31,10 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // 機械との搬送の成立を溜め、搬送tickの報告で取り出す
         // Accumulates settled machine handoffs, taken by the transport tick report
         private readonly BeltTransportDiffRecorder _diffRecorder = new();
+        private readonly Subject<Unit> _onAssemblyRebuilt = new();
         private bool _isTopologyDirty = true;
-        // tick先頭の再構築を覚えておき、搬送後の報告に載せる
-        // Remembers a rebuild at the tick head so the post-transport report carries it
-        private bool _rebuiltSinceLastTick;
-        // 搬送tick後〜次tick先頭のRebuildIfDirty前。この区間の押し込みは境界ハッシュに載るが差分に載らないため拒否する
-        // From the transport tick to the next tick-head RebuildIfDirty; a push here would land in the boundary hash but in no diff, so it is refused
+        // 搬送tick後〜次tick先頭の受付開始前。この区間の押し込みは境界ハッシュに載るが差分に載らないため拒否する
+        // From the transport tick until the window opens at the next tick head; a push here would land in the boundary hash but in no diff, so it is refused
         private bool _isAfterTransportTick;
         // セーブ1回分の切り出し結果。組を変える操作(搬送tick・再構築・押し込み)で捨てる
         // Save content cut out for one save pass; dropped by every operation that changes the assembly (transport tick, rebuild, push)
@@ -44,6 +43,8 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
         // 組そのものは可変なのでinterfaceには出さない
         // The assembly itself is mutable and is therefore exposed through neither interface
         public BeltTransportAssembly Assembly { get; private set; }
+
+        public IObservable<Unit> OnAssemblyRebuilt => _onAssemblyRebuilt;
 
         public BeltTransportDatastore(IWorldBlockDatastore worldBlockDatastore, IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
@@ -56,13 +57,17 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => MarkDirtyIfAffectsLayout(properties.BlockData.Block));
         }
 
-        // tick先頭にMasterTickUpdaterから毎tick呼ばれ、設置・撤去・ロードがあった時だけワールドから組を作り直す
-        // Called by MasterTickUpdater at every tick head; rebuilds the assembly from the world only after a placement, removal or load
+        // tick先頭にMasterTickUpdaterから呼ばれ、ここから搬送tickまで(block更新)の押し込みを受け付ける
+        // Called by MasterTickUpdater at the tick head; pushes are accepted from here until the transport tick (block updates)
+        public void BeginMachinePushWindow()
+        {
+            _isAfterTransportTick = false;
+        }
+
+        // tick末尾の操作適用後とロード完了時に呼ばれ、設置・撤去・ロードがあった時だけワールドから組を作り直す。押し込みの受付区間は開かない
+        // Called after tick-end input and on load completion; rebuilds the assembly from the world only after a placement, removal or load, and never opens the push window
         public void RebuildIfDirty()
         {
-            // dirtyでなくても、ここから押し込みを受け付ける区間(block更新)に入る
-            // Even when not dirty, the window that accepts pushes (block updates) opens here
-            _isAfterTransportTick = false;
             if (!_isTopologyDirty) return;
             _isTopologyDirty = false;
             var snapshot = BeltTransportSnapshot.Capture(Assembly);
@@ -70,22 +75,20 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             _loadedStates.Clear();
             Assembly = BeltTransportAssembler.Assemble(BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(_worldBlockDatastore)), savedPriorityOrders, _diffRecorder);
             BeltTransportRestorer.Restore(snapshot, Assembly);
-
-            // 旧構成の番号で書かれた未取り出しの差分は新構成へ適用しない。中身は再構築後の全量に含まれる
-            // Untaken diffs written with old-assembly numbers are never applied to the new one; their effect is in the post-rebuild full state
-            _diffRecorder.Discard();
             _capturedSaveStates = null;
-            _rebuiltSinceLastTick = true;
+
+            // 境界ハッシュより前に全量を送らせる。クライアントの複製は差分でなくこの全量で組み直す
+            // Have the full state sent before the boundary hash; the client replica re-assembles from it rather than from a diff
+            _onAssemblyRebuilt.OnNext(Unit.Default);
         }
 
-        // 組を1tick進め、そのtickの報告(先頭で作り直したか・成立した差分)を返す。搬送と差分の取り出しを分けると差分が次tickへ混ざる
-        // Advances the assembly one tick and returns that tick's report (rebuilt at the head, settled diff); splitting transport from taking the diff would leak it into the next tick
+        // 組を1tick進め、そのtickで成立した差分を報告する。搬送と差分の取り出しを分けると差分が次tickへ混ざる
+        // Advances the assembly one tick and reports the diff settled in it; splitting transport from taking the diff would leak it into the next tick
         public BeltTransportTickReport Tick()
         {
             Assembly.ApplyGearDriveSpeeds();
             Assembly.Simulation.Tick();
-            var report = new BeltTransportTickReport(_rebuiltSinceLastTick, _diffRecorder.TakeTickDiff());
-            _rebuiltSinceLastTick = false;
+            var report = new BeltTransportTickReport(_diffRecorder.TakeTickDiff());
             _capturedSaveStates = null;
             _isAfterTransportTick = true;
             return report;
@@ -129,18 +132,41 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             _isTopologyDirty = true;
         }
 
-        // blockの保存内容。ロード後まだ載せていないblockは預かった内容をそのまま返す(預かり後は書き換えない)
-        // The block's save content; a loaded block not yet placed returns the content it handed over (never modified after that)
-        // セーブは全blockを順に問い合わせるので、組を1回だけ取り出して全blockへ振り分けた結果を次の変更まで使い回す
-        // A save queries every block in turn, so the assembly is captured once, distributed to every block, and reused until the next change
+        // blockの保存内容。セーブは全blockを順に問い合わせるので、組を1回だけ取り出して全blockへ振り分けた結果を次の変更まで使い回す
+        // The block's save content; a save queries every block in turn, so the assembly is captured once, distributed to every block, and reused until the next change
         public BeltConveyorSaveJsonObject CreateSaveState(BlockInstanceId blockInstanceId)
         {
-            if (_loadedStates.TryGetValue(blockInstanceId, out var pending)) return pending;
             _capturedSaveStates ??= BeltTransportSaveStateBuilder.Build(BeltTransportSnapshot.Capture(Assembly));
 
-            // 設置直後で組にまだ無いblock、アイテムも優先順も持たないblockは空
-            // A block placed this tick and not yet in the assembly, or one holding no item or order, saves as empty
+            // アイテムも優先順も持たないblockは空
+            // A block holding no item or order saves as empty
             return _capturedSaveStates.TryGetValue(blockInstanceId, out var captured) ? captured : new BeltConveyorSaveJsonObject();
+        }
+
+        // blockが所有するアイテム(走行中・buffer・合流へ入る内部segment)を、組を変えずに返却物として列挙する
+        // Lists the items a block owns (running, buffered, internal segments into its merge) as refunds without changing the assembly
+        public IReadOnlyList<IItemStack> GetOwnedRefundItems(BlockInstanceId blockInstanceId)
+        {
+            return BeltOwnedItemRefund.GetItems(blockInstanceId, BeltTransportSnapshot.Capture(Assembly));
+        }
+
+        // 搬出元の撤去で消える内部segmentの中身を、組を変えずに返却物として列挙する
+        // Lists, without changing the assembly, the contents of internal segments that removing a source would make vanish
+        public IReadOnlyList<IItemStack> GetConnectionRemovalRefundItems(IBlock block)
+        {
+            return BeltConnectionRemovalRefund.GetItems(BeltConnectionRemovalRefund.GetRemovedInputs(block, _worldBlockDatastore), BeltTransportSnapshot.Capture(Assembly));
+        }
+
+        // 返却を確定した撤去の直前に呼び、消える内部segmentを空にする。形は再構築まで変えないので、同tickの後続の撤去・再設置・再構築の復元にこの中身が二度出てこない
+        // Called right before a refunded removal; empties the vanishing internal segments while keeping the shape until the rebuild, so later removals, re-placements and the rebuild's restore in the same tick never see these items again
+        public void DiscardConnectionRemovalItems(IBlock block)
+        {
+            foreach (var (mergeBlockInstanceId, inputDirection) in BeltConnectionRemovalRefund.GetRemovedInputs(block, _worldBlockDatastore))
+            {
+                if (!Assembly.Locator.TryFindInternal(mergeBlockInstanceId, inputDirection, out var segmentIndex)) continue;
+                Assembly.Segments[segmentIndex].DiscardAllItems();
+            }
+            _capturedSaveStates = null;
         }
 
         private void MarkDirtyIfAffectsLayout(IBlock block)

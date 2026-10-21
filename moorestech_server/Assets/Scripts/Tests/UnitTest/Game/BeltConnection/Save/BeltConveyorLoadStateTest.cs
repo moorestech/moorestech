@@ -234,10 +234,11 @@ namespace Tests.UnitTest.Game.BeltConnection.Save
             ((BeltBufferedSegment)CurrentSegmentAt(MergeCell)).Buffer.RestoreItem(NewItem(ItemB, BeltEntryDirection.FromRight));
             var saved = SaveWorld(world);
 
-            // ロード直後(再構築前)のセーブは、預けた内容をそのまま返す
-            // A save right after load (before the rebuild) returns the handed-over content as is
+            // ロード完了時の再構築を経た直後のセーブは、ロードした内容と一致する
+            // A save right after the load-completion rebuild matches the loaded content
             var loaded = NewWorld();
             loaded.LoadBlockDataList(saved);
+            Rebuild();
             foreach (var position in new[] { new Vector3Int(0, 0, -1), Vector3Int.zero, MergeCell, new Vector3Int(0, 0, 2), new Vector3Int(1, 0, 1) })
             {
                 var resaved = JToken.FromObject(SaveStateAt(loaded, position));

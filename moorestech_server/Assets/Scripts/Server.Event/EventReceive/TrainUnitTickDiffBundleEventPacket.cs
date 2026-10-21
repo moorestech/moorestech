@@ -11,8 +11,8 @@ namespace Server.Event.EventReceive
 {
     // hash(n-1)とdiff(n)を1イベントで送る統合パケット
     // Unified packet that sends hash(n-1) and diff(n) in one event.
-    // hash(n)はtick nの境界(操作の適用後・セーブの前)で列車・レール・ベルトを一度に計算して覚え、tick n+1の先頭でdiff(n+1)ができた瞬間に束にして送る
-    // hash(n) is computed for train, rail and belt together at tick n's boundary (after input is applied, before save) and kept until diff(n+1) exists at the head of tick n+1, when both go out as one bundle
+    // hash(n)はtick nの境界(操作の適用と網の再構築の後・セーブの前)で列車・レール・ベルトを一度に計算して覚え、tick n+1の先頭でdiff(n+1)ができた瞬間に束にして送る
+    // hash(n) is computed for train, rail and belt together at tick n's boundary (after input is applied and networks are rebuilt, before save) and kept until diff(n+1) exists at the head of tick n+1, when both go out as one bundle
     public sealed class TrainUnitTickDiffBundleEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:trainUnitTickDiffBundle";

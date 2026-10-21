@@ -1,5 +1,3 @@
-using System;
-
 namespace Core.Update
 {
     public static class GameUpdater
@@ -22,17 +20,17 @@ namespace Core.Update
 
         // 1tickの処理順はServer.BootのMasterTickUpdaterが1ファイルで明示する。ここが持つのはその本体1本だけで、外から追加する口は無い
         // The order inside one tick is declared in Server.Boot's MasterTickUpdater; this holds only that one body, with no way to append from outside
-        private static Action _masterTick = NoMasterTick;
+        private static IMasterTick _masterTick = NoMasterTick.Instance;
 
         public static void Update()
         {
             CurrentTick++;
-            _masterTick();
+            _masterTick.Tick();
         }
 
         // サーバー生成時に1回呼ぶ。作り直しでは前のサーバーの本体を置き換え、2本並ぶことは無い
         // Called once when a server is created; re-creating replaces the previous server's body, so two never run side by side
-        public static void SetMasterTick(Action tick)
+        public static void SetMasterTick(IMasterTick tick)
         {
             _masterTick = tick;
         }
@@ -41,7 +39,7 @@ namespace Core.Update
         // Called before a server is disposed or re-created; detaches the previous server's body so ticks idle. CurrentTick is never rewound (in-flight differences would wrap)
         public static void ResetUpdate()
         {
-            _masterTick = NoMasterTick;
+            _masterTick = NoMasterTick.Instance;
         }
 
         // 秒数をtickに変換するユーティリティ（マスターデータの秒数値を変換する用）
@@ -76,8 +74,17 @@ namespace Core.Update
 
         // サーバーが無い間のtick本体。進めるのはtick番号だけ
         // The tick body while no server exists; only the tick number advances
-        private static void NoMasterTick()
+        private sealed class NoMasterTick : IMasterTick
         {
+            public static readonly NoMasterTick Instance = new();
+
+            public void Tick()
+            {
+            }
+
+            public void RebuildTopologiesIfDirty()
+            {
+            }
         }
 
 #if UNITY_EDITOR
@@ -88,14 +95,15 @@ namespace Core.Update
             RunFrames(1);
         }
 
-        // テスト用: 指定tick数だけ進行
-        // For testing: advance by specified tick count
+        // テスト用: 指定tick数だけ進行。テストはtick外で設置するので、本番の「末尾で適用→再構築→次tick」に揃えるため各tickの前に網を作り直す
+        // For testing: advance by specified tick count; tests place blocks outside a tick, so networks are rebuilt before each tick to match production's apply-at-end, rebuild, next tick
         public static void RunFrames(uint frameCount)
         {
             for (var i = 0u; i < frameCount; i++)
             {
+                _masterTick.RebuildTopologiesIfDirty();
                 CurrentTick++;
-                _masterTick();
+                _masterTick.Tick();
             }
         }
 #endif

@@ -8,6 +8,7 @@ using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.Boot.Loop;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.BeltTransportSync;
@@ -17,23 +18,24 @@ using static Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync.BeltSy
 
 namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
 {
-    // 搬送tickごとのベルトイベントが、毎tick1件・連番の欠番なし・再構築tickは全量で送られ、イベントだけで進む複製がサーバーと列車束のハッシュに一致するか
-    // Whether per-tick belt events go out once per tick with gapless sequence ids and a full state on rebuilt ticks, and a replica driven only by events matches the server and the train bundle hashes
+    // 搬送tickごとのベルト差分が毎tick1件・連番の欠番なしで送られ、tick末尾で作り直したtickは差分の後・ハッシュの前に全量が続き、イベントだけで進む複製がサーバーと列車束のハッシュに一致するか
+    // Whether per-tick belt diffs go out once per tick with gapless sequence ids, a tick rebuilt at its end follows the diff with a full state before the hash, and a replica driven only by events matches the server and the train bundle hashes
     public class BeltTransportTickEventPacketTest
     {
         private const int PlayerId = 1;
         private const int TickCount = 60;
-        // 8tick暖機後、24回目の前の設置は再構築tick32(ハッシュtick)に、41回目の前の設置はハッシュtick48の直後に当たる
-        // After an 8-tick warm-up, the placement before iteration 24 rebuilds at tick 32 (a hash tick) and the one before iteration 41 lands right after hash tick 48
+        // 8tick暖機後、24回目のtick末尾の設置は再構築tick32(ハッシュtick)に、41回目はハッシュtick48の直後に当たる
+        // After an 8-tick warm-up, the tick-end placement in iteration 24 rebuilds at tick 32 (a hash tick) and the one in iteration 41 lands right after hash tick 48
         private const int FirstPlacementIteration = 24;
         private const int SecondPlacementIteration = 41;
 
         [Test]
-        public void EveryTickSendsOneBeltEventWithGaplessSequenceIdsAndRebuiltFullState()
+        public void EveryTickSendsOneBeltDiffWithGaplessSequenceIdsAndRebuiltFullStateBeforeHash()
         {
             var serviceProvider = CreateServer();
             BuildMachineFedWorldAndWarmUp();
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            var actionQueue = serviceProvider.GetService<ServerThreadActionQueue>();
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
             var sequenceIdsByTick = new Dictionary<uint, List<uint>>();
@@ -43,24 +45,25 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             var nonEmptyDiffs = 0;
             for (var i = 1; i <= TickCount; i++)
             {
-                PlaceOnPlacementIteration(i, trainUpdateService, expectedRebuiltTicks);
+                PlaceOnPlacementIteration(i, trainUpdateService, actionQueue, expectedRebuiltTicks);
                 GameUpdater.UpdateOneTick();
                 var tick = (trainUpdateService.GetCurrentTick() - 1);
                 var events = sink.TakeAll();
                 CollectSequenceIds(events, sequenceIdsByTick);
 
-                // 毎tickちょうど1件、そのtickの番号で届く
-                // Exactly one belt event per tick, stamped with that tick
+                // 毎tick先頭に差分が1件、そのtickの番号で届く。作り直したtickだけ、その後に作り直し後の全量が続く
+                // Each tick starts with exactly one diff stamped with that tick; only a rebuilt tick follows it with the rebuilt full state
                 var beltEvents = events.Where(IsBeltTickEvent).ToList();
-                Assert.AreEqual(1, beltEvents.Count, $"belt events at tick {tick}");
-                if (beltEvents[0].Tag == BeltTransportTickEventPacket.RebuiltFullStateEventTag)
+                Assert.AreEqual(BeltTransportTickEventPacket.TickDiffEventTag, beltEvents[0].Tag, $"diff first at tick {tick}");
+                if (beltEvents.Count == 2)
                 {
-                    var full = MessagePackSerializer.Deserialize<BeltTransportFullStateMessagePack>(beltEvents[0].Payload);
+                    Assert.AreEqual(BeltTransportTickEventPacket.RebuiltFullStateEventTag, beltEvents[1].Tag, $"full state after the diff at tick {tick}");
+                    var full = MessagePackSerializer.Deserialize<BeltTransportFullStateMessagePack>(beltEvents[1].Payload);
                     Assert.AreEqual(tick, full.ServerTick, "rebuilt full state tick");
                     BeltFullStateAssert.AreEqual(CaptureServer(), full.ToFullState());
                     rebuiltTicks.Add(tick);
-                    continue;
                 }
+                else Assert.AreEqual(1, beltEvents.Count, $"belt events at tick {tick}");
                 var diff = MessagePackSerializer.Deserialize<BeltTransportTickDiffMessagePack>(beltEvents[0].Payload);
                 Assert.AreEqual(tick, diff.ServerTick, "diff tick");
                 var decodedDiff = diff.ToDiff();
@@ -68,15 +71,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
                 else nonEmptyDiffs++;
             }
 
-            // 設置の次のtickだけが全量で、その後は差分に戻った。空の差分も送られている
-            // Only the tick after each placement carried a full state, later ticks went back to diffs, and empty diffs were sent too
+            // 設置したtickだけが全量を伴い、その後は差分だけに戻った。空の差分も送られている
+            // Only each placing tick carried a full state, later ticks went back to diffs alone, and empty diffs were sent too
             CollectionAssert.AreEqual(expectedRebuiltTicks, rebuiltTicks, "rebuilt ticks");
             Assert.Greater(emptyDiffs, 0, "empty diffs are sent");
             Assert.Greater(nonEmptyDiffs, 0, "machine handoffs are sent");
 
-            // 各tickは列車のdiff・ベルト・列車のhashの3つで、欠番も重複も無い
-            // Each tick holds three ids (train diff, belt, train hash) with no gap or duplicate
-            Assert.AreEqual(TickCount - 1, AssertNoSequenceGaps(sequenceIdsByTick, 3), "fully observed ticks");
+            // 各tickは列車のdiff・ベルト差分・列車のhashの3つ、作り直したtickは全量を足した4つで、欠番も重複も無い
+            // Each tick holds three ids (train diff, belt diff, train hash), a rebuilt tick four with the full state, with no gap or duplicate
+            Assert.AreEqual(TickCount - 1, AssertNoSequenceGaps(sequenceIdsByTick, rebuiltTicks), "fully observed ticks");
         }
 
         [Test]
@@ -85,6 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             var serviceProvider = CreateServer();
             BuildMachineFedWorldAndWarmUp();
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
+            var actionQueue = serviceProvider.GetService<ServerThreadActionQueue>();
 
             // 登録時のpushを捨てずに受け、3件目のベルト全量から複製を組む
             // Keep the registration push and assemble the replica from the third event, the belt full state
@@ -105,7 +109,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             var dummyHashesChecked = 0;
             for (var i = 1; i <= TickCount; i++)
             {
-                PlaceOnPlacementIteration(i, trainUpdateService, expectedRebuiltTicks);
+                PlaceOnPlacementIteration(i, trainUpdateService, actionQueue, expectedRebuiltTicks);
                 GameUpdater.UpdateOneTick();
                 foreach (var eventMessagePack in sink.TakeAll()) Apply(eventMessagePack);
 
@@ -160,13 +164,32 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             #endregion
         }
 
-        // 指定回の直前に行き止まりを延ばし、これから回るtickを再構築tickとして記録する
-        // Extend the dead end right before the chosen iterations and record the tick about to run as the expected rebuilt tick
-        private static void PlaceOnPlacementIteration(int iteration, TrainUpdateService trainUpdateService, List<uint> expectedRebuiltTicks)
+        // 指定回では、これから回るtickの末尾で行き止まりを延ばすよう積み、そのtickを再構築tickとして記録する。クライアント操作と同じくtick末尾で適用される
+        // On the chosen iterations, queue a dead-end extension for the end of the tick about to run and record that tick as the expected rebuilt one; it applies at the tick end like client input
+        private static void PlaceOnPlacementIteration(int iteration, TrainUpdateService trainUpdateService, ServerThreadActionQueue actionQueue, List<uint> expectedRebuiltTicks)
         {
             if (iteration != FirstPlacementIteration && iteration != SecondPlacementIteration) return;
-            ExtendDeadEnd(iteration == FirstPlacementIteration ? 22 : 23);
+            Assert.IsTrue(actionQueue.TryEnqueue(new ExtendDeadEndAtTickEnd(iteration == FirstPlacementIteration ? 22 : 23)), "placement queued for the tick end");
             expectedRebuiltTicks.Add(trainUpdateService.GetCurrentTick());
+        }
+
+        private sealed class ExtendDeadEndAtTickEnd : IServerThreadAction
+        {
+            private readonly int _x;
+
+            public ExtendDeadEndAtTickEnd(int x)
+            {
+                _x = x;
+            }
+
+            public void Run()
+            {
+                ExtendDeadEnd(_x);
+            }
+
+            public void OnServerStopped()
+            {
+            }
         }
 
         private static uint HashOf(BeltTransportReplica replica)

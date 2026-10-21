@@ -17,6 +17,7 @@ using Tests.Util;
 using UnityEngine;
 using System;
 using Core.Update;
+using UniRx;
 
 namespace Tests.CombinedTest.Game
 {
@@ -217,13 +218,18 @@ namespace Tests.CombinedTest.Game
             
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SmallGear, smallGearBPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var smallGearBBlock);
             var smallGearB = smallGearBBlock.GetComponent<GearComponent>();
-            
+
+            // 小歯車は1tick目の過負荷で壊れ、tick末尾の再構築で網が作り直される。tick後の値は計算前なので、需給確定時の通知でRPMを読む
+            // The small gears break from overload on the first tick and the tick-end rebuild re-creates the networks, so read RPMs at the settlement notification rather than after the tick
+            var rpms = new Dictionary<IGearEnergyTransformer, float>();
+            var transformers = new IGearEnergyTransformer[] { (IGearEnergyTransformer)fastGenerator, smallGearA, (IGearEnergyTransformer)generator, smallGearB };
+            var subscriptions = new List<IDisposable>();
+            foreach (var transformer in transformers)
+                subscriptions.Add(((IBlockStateObservable)transformer).OnChangeBlockState.Subscribe(_ => rpms[transformer] = transformer.CurrentRpm.AsPrimitive()));
             GameUpdater.UpdateOneTick();
-            
-            Assert.AreEqual(fastGenerator.CurrentRpm, 20f);
-            Assert.AreEqual(smallGearA.CurrentRpm, 20f);
-            Assert.AreEqual(generator.CurrentRpm, 20f);
-            Assert.AreEqual(smallGearB.CurrentRpm, 20f);
+            foreach (var subscription in subscriptions) subscription.Dispose();
+
+            foreach (var transformer in transformers) Assert.AreEqual(20f, rpms[transformer]);
         }
         
         [Test]

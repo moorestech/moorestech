@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Core.Transport
             // An electric pole is neither a belt nor has an inventory connector
             var pole = Place(ForUnitTestModBlockId.ElectricPoleId, new Vector3Int(10, 0, 10), BlockDirection.North);
             Assert.IsFalse(pole.ComponentManager.ExistsComponent<IBlockConnectorComponent<IBlockInventory>>(), "precondition: no inventory connector");
-            Assert.IsFalse(TickAndReport().WasRebuilt, "no rebuild for an unrelated block");
+            Assert.IsFalse(TickAndObserveRebuild(), "no rebuild for an unrelated block");
             Assert.AreSame(assembly, datastore.Assembly, "assembly kept");
             Assert.AreEqual(hash, datastore.ComputeStateHash(), "hash unchanged");
             Assert.AreEqual(rotatedOrder, SegmentAt(MergeCell).PriorityOrder, "merge order kept");
@@ -54,14 +54,14 @@ namespace Tests.CombinedTest.Core.Transport
             // 搬入出できるブロック(チェスト)は離れていても契機になり、仕様どおり優先順は初期化される
             // A block that exchanges items (a chest) triggers a rebuild even far away, and the order resets per the spec
             Place(ForUnitTestModBlockId.ChestId, new Vector3Int(20, 0, 20), BlockDirection.North);
-            Assert.IsTrue(TickAndReport().WasRebuilt, "a chest triggers a rebuild");
+            Assert.IsTrue(TickAndObserveRebuild(), "a chest triggers a rebuild");
             Assert.AreEqual(initialOrder, SegmentAt(MergeCell).PriorityOrder, "merge order reset by the rebuild");
         }
 
-        // 搬送tick後〜次tick先頭の再構築前の押し込みは、エラーを残して拒否される。再構築の後は受け付ける
-        // A push between the transport tick and the next tick-head rebuild is refused with an error; after the rebuild it is accepted
+        // 搬送tick後〜次tick先頭の受付開始前の押し込みは、エラーを残して拒否される。tick末尾の再構築では開かず、受付開始の後は受け付ける
+        // A push between the transport tick and the next tick head's window is refused with an error; the tick-end rebuild keeps it closed, and after the window opens it is accepted
         [Test]
-        public void PushAfterTransportTickIsRefusedUntilNextRebuild()
+        public void PushAfterTransportTickIsRefusedUntilNextWindow()
         {
             CreateServer();
             var machine = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1), BlockDirection.North);
@@ -76,8 +76,15 @@ namespace Tests.CombinedTest.Core.Transport
             Assert.AreEqual(1, refused.Count, "the push is refused");
             Assert.IsEmpty(ItemsOnSegmentAt(Vector3Int.zero), "nothing entered the belt");
 
-            // tick先頭の再構築(dirtyでなくても呼ばれる)で受付区間に戻る
-            // The tick-head rebuild (called even when not dirty) reopens the window
+            // 再構築だけでは受付区間に戻らない
+            // A rebuild alone does not reopen the window
+            Place(ForUnitTestModBlockId.ChestId, new Vector3Int(20, 0, 20), BlockDirection.North);
+            ServerContext.GetService<IBeltTransportMutation>().RebuildIfDirty();
+            LogAssert.Expect(LogType.Error, new Regex(@"\[BeltTransport\] push into belt block .* arrived after the transport tick"));
+            Assert.AreEqual(1, inlet.InsertItem(ServerContext.ItemStackFactory.Create(ItemA, 1), context).Count, "still refused after the rebuild");
+
+            // tick先頭の受付開始で区間に戻る
+            // Opening the window at the tick head accepts pushes again
             EnterMachinePushWindow();
             var accepted = inlet.InsertItem(ServerContext.ItemStackFactory.Create(ItemA, 1), context);
             Assert.AreEqual(0, accepted.Count, "the push is accepted");
@@ -99,11 +106,13 @@ namespace Tests.CombinedTest.Core.Transport
             GameUpdater.UpdateOneTick();
         }
 
-        private static BeltTransportTickReport TickAndReport()
+        // 1tick進め、その間に組が作り直されたかを返す
+        // Advance one tick and return whether the assembly was rebuilt during it
+        private static bool TickAndObserveRebuild()
         {
-            var report = default(BeltTransportTickReport);
-            using (ServerContext.GetService<BeltTransportTickUpdater>().OnTransportTickCompleted.Subscribe(completed => report = completed)) GameUpdater.UpdateOneTick();
-            return report;
+            var rebuilt = false;
+            using (ServerContext.GetService<IBeltTransportLookup>().OnAssemblyRebuilt.Subscribe(_ => rebuilt = true)) GameUpdater.UpdateOneTick();
+            return rebuilt;
         }
     }
 }

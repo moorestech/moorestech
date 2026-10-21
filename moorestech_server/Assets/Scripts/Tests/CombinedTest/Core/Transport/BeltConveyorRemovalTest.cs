@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Interface;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -17,14 +19,14 @@ using static Tests.Util.BeltWorldTestUtil;
 
 namespace Tests.CombinedTest.Core.Transport
 {
-    // 撤去・過負荷破壊でベルコン上のアイテムは返らず消える
-    // Items on a belt are neither refunded nor kept when the belt is removed or broken by overload
+    // 手動撤去は返却し、過負荷破壊は搬送品を失う
+    // Manual removal refunds carried items; overload breakage loses them
     public class BeltConveyorRemovalTest : RemoveBlockProtocolTestBase
     {
         private static readonly ItemId ItemA = new(1);
 
         [Test]
-        public void ManualRemovalRefundsNothingAndDropsItemsOnTheRemovedCell()
+        public void ManualRemovalRefundsRemovedCellAndPreservesAdjacentItems()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
@@ -38,18 +40,21 @@ namespace Tests.CombinedTest.Core.Transport
             Assert.AreEqual(3, ItemsOnSegmentAt(Vector3Int.zero).Length);
             Assert.AreEqual(0, CountOf(source, ItemA));
 
-            // z=1を撤去プロトコルで外す。ベルコンのマスタに必要アイテムは無く、載っていたアイテムも返らない
-            // Remove z=1 through the protocol; the belt master requires no items and the carried item is not refunded either
+            // z=1の品だけ撤去プロトコルで返却
+            // Refund only the item on z=1 through the removal protocol
             var response = GetRemoveBlockResponse(packet.GetPacketResponse(RemoveBlock(new Vector3Int(0, 0, 1)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId)));
             Assert.IsTrue(response.Success);
-            for (var i = 0; i < playerInventory.GetSlotSize(); i++) Assert.AreEqual(ItemMaster.EmptyItemId, playerInventory.GetItem(i).Id, $"slot {i}");
+            Assert.AreEqual(1, playerInventory.InventoryItems.Where(item => item.Id == ItemA).Sum(item => item.Count));
 
-            // 次のtickで再構築され、z=1に乗っていたアイテムだけ消える
-            // The next tick rebuilds and only the item that sat on z=1 vanishes
+            // 次tick後も隣接2個と返却1個を保持
+            // Preserve both neighboring items and the one refund after the next tick
             GameUpdater.RunFrames(1);
             Assert.AreEqual(1, ItemsOnSegmentAt(new Vector3Int(0, 0, 2)).Length);
             Assert.AreEqual(1, ItemsOnSegmentAt(Vector3Int.zero).Length);
             Assert.AreEqual(0, CountOf(source, ItemA));
+            Assert.AreEqual(1, playerInventory.InventoryItems.Where(item => item.Id == ItemA).Sum(item => item.Count));
+            Assert.AreEqual(3, Assembly().Segments.Sum(segment => segment.Count) +
+                playerInventory.InventoryItems.Where(item => item.Id == ItemA).Sum(item => item.Count));
         }
 
         [Test]
@@ -68,19 +73,21 @@ namespace Tests.CombinedTest.Core.Transport
             var removalReasons = new List<BlockRemoveReason>();
             using var subscription = ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(update => removalReasons.Add(update.RemoveReason));
 
-            // 1tick目で1個が乗り、以後は壊れるまで回す
-            // One item boards on the first tick, then run until the belt breaks
-            GameUpdater.RunFrames(1);
-            Assert.AreEqual(1, ItemsOnSegmentAt(conveyorPos).Length);
+            // 1tick目で1個が乗る。乗った個数はベルコン側の通知で数え、以後は壊れるまで回す
+            // One item boards on the first tick, counted from the belt's report; then run until the belt breaks
+            var boarded = 0;
+            using (ServerContext.GetService<BeltTransportTickUpdater>().OnTransportTickCompleted.Subscribe(_ => boarded = ItemsOnSegmentAt(conveyorPos).Length))
+                GameUpdater.RunFrames(1);
+            Assert.AreEqual(1, boarded);
             Assert.AreEqual(4, CountOf(source, ItemA));
             for (var i = 0; i < 200 && world.Exists(conveyorPos); i++) GameUpdater.UpdateOneTick();
             Assert.IsFalse(world.Exists(conveyorPos));
             Assert.IsTrue(removalReasons.Contains(BlockRemoveReason.Broken));
 
-            // 次のtickの再構築でベルコンは無くなり、乗っていた1個はどこにも戻らない
-            // The next-tick rebuild has no belt left and the carried item returns nowhere
-            GameUpdater.RunFrames(1);
+            // 破壊したtick末尾の再構築でベルコンは無くなり、乗っていた1個はどこにも戻らない
+            // The rebuild at the end of the breaking tick leaves no belt, and the carried item returns nowhere
             Assert.IsEmpty(Assembly().Segments);
+            GameUpdater.RunFrames(1);
             Assert.AreEqual(4, CountOf(source, ItemA));
         }
     }

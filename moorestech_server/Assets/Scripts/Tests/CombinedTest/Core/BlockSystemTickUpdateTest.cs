@@ -26,14 +26,15 @@ namespace Tests.CombinedTest.Core
             var output = Inventory(Place(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, 1), BlockDirection.North));
             source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 1));
 
-            // GameUpdaterを使わずMasterTickUpdater.Updateだけで回す。1回目で再構築・チェストの押し込み・ベルト1tickが走る
-            // Drive only MasterTickUpdater.Update without GameUpdater; the first call rebuilds, runs the chest push and one belt tick
+            // GameUpdaterを使わずMasterTickUpdaterだけで回す。tick外の設置を反映してから、1回目でチェストの押し込み・ベルト1tickが走る
+            // Drive only MasterTickUpdater without GameUpdater; after applying the out-of-tick placement, the first tick runs the chest push and one belt tick
+            masterTickUpdater.RebuildTopologiesIfDirty();
             // 1マス・速度6: 出口まで359。59回後に残り5、60回目に渡る
             // One cell at speed 6: 359 to the exit; 5 away after 59 updates, handed over on update 60
-            for (var i = 0; i < 59; i++) masterTickUpdater.Update();
+            for (var i = 0; i < 59; i++) masterTickUpdater.Tick();
             Assert.AreEqual(0, source.GetItem(0).Count);
             Assert.AreEqual(0, CountOf(output, itemId));
-            masterTickUpdater.Update();
+            masterTickUpdater.Tick();
             Assert.AreEqual(1, CountOf(output, itemId));
         }
     }

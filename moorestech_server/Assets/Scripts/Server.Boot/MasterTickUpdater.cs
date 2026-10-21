@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Update;
 using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Blocks.Fluid;
 using Game.EnergySystem;
@@ -15,15 +16,13 @@ using UniRx;
 
 namespace Server.Boot
 {
-    // 1tickの全順序を1箇所で明示する。本体(仕様2.1①〜④＋拡張: 電力網→歯車網→流体網→ベルト搬送再構築→電力→歯車→流体→鉄道tick→ブロック更新→ベルト搬送)→チャレンジ・クリーンルーム→末尾(操作の一括適用→別スレッド処理)→境界(ハッシュ・tick++)→セーブ→スナップショット
-    // Declares the whole tick order in one place: the body (spec 2.1 ①-④ plus extensions: rebuild electric, gear, fluid and belt transport topologies, then settle electric, gear, fluid, train, update blocks, belt transport), then challenge and clean room, the tick end (apply input, drain other-thread work), the boundary (hash, tick++), save, snapshot
+    // 1tickの全順序を1箇所で明示する。本体(仕様2.1①〜④＋拡張: 電力→歯車→流体→鉄道tick→ブロック更新→ベルト搬送)→チャレンジ・クリーンルーム→末尾(操作の一括適用→別スレッド処理→派生網の再構築)→境界(ハッシュ・tick++)→セーブ→スナップショット
+    // Declares the whole tick order in one place: the body (spec 2.1 ①-④ plus extensions: settle electric, gear, fluid, train, update blocks, belt transport), then challenge and clean room, the tick end (apply input, drain other-thread work, rebuild derived networks), the boundary (hash, tick++), save, snapshot
     // 処理順を購読や登録順に頼る箇所はここには無い(設置・撤去の購読は正準順の作り直し予約だけ)。GameUpdaterにはこのUpdateを1本だけ登録する
     // Nothing here derives its order from subscriptions or registration order (the place/remove subscription only schedules the canonical-order rebuild); GameUpdater registers only this Update
-    public class MasterTickUpdater
+    public class MasterTickUpdater : IMasterTick
     {
-        private readonly ElectricWireNetworkDatastore _electricWireNetworkDatastore;
-        private readonly GearNetworkDatastore _gearNetworkDatastore;
-        private readonly FluidNetworkDatastore _fluidNetworkDatastore;
+        private readonly IWorldTopologyRebuilder _worldTopologyRebuilder;
         private readonly ElectricTickUpdater _electricTickUpdater;
         private readonly GearTickUpdater _gearTickUpdater;
         private readonly FluidTickUpdater _fluidTickUpdater;
@@ -44,9 +43,7 @@ namespace Server.Boot
         private bool _isTickOrderDirty = true;
 
         public MasterTickUpdater(
-            ElectricWireNetworkDatastore electricWireNetworkDatastore,
-            GearNetworkDatastore gearNetworkDatastore,
-            FluidNetworkDatastore fluidNetworkDatastore,
+            IWorldTopologyRebuilder worldTopologyRebuilder,
             ElectricTickUpdater electricTickUpdater,
             GearTickUpdater gearTickUpdater,
             FluidTickUpdater fluidTickUpdater,
@@ -62,9 +59,7 @@ namespace Server.Boot
             WorldSaveCoordinator worldSaveCoordinator,
             WorldSnapshotRing worldSnapshotRing)
         {
-            _electricWireNetworkDatastore = electricWireNetworkDatastore;
-            _gearNetworkDatastore = gearNetworkDatastore;
-            _fluidNetworkDatastore = fluidNetworkDatastore;
+            _worldTopologyRebuilder = worldTopologyRebuilder;
             _electricTickUpdater = electricTickUpdater;
             _gearTickUpdater = gearTickUpdater;
             _fluidTickUpdater = fluidTickUpdater;
@@ -85,14 +80,11 @@ namespace Server.Boot
             worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(_ => _isTickOrderDirty = true);
         }
 
-        public void Update()
+        public void Tick()
         {
-            // トポロジ反映は全網とも需給計算より先（tick途中でセグメント所属を変えないため）
-            // Apply every topology before any settlement so segment membership never changes mid tick
-            _electricWireNetworkDatastore.RebuildIfDirty();
-            _gearNetworkDatastore.RebuildIfDirty();
-            _fluidNetworkDatastore.RebuildIfDirty();
-            _beltTransportMutation.RebuildIfDirty();
+            // 網は前tickの末尾で作り直し済み。ここから搬送tickまでが機械からベルトへの押し込みを受け付ける区間
+            // Networks were rebuilt at the previous tick end; from here until the transport tick, machine pushes into belts are accepted
+            _beltTransportMutation.BeginMachinePushWindow();
             _electricTickUpdater.Update();
             _gearTickUpdater.Update();
             _fluidTickUpdater.Update();
@@ -127,19 +119,25 @@ namespace Server.Boot
             _challengeDatastore.Update();
             _cleanRoomDatastore.Update();
 
-            // tick末尾: 固定した入力と予約破壊を一つの更新器で確定し、他スレッドから積まれた処理を流す。派生する網の再構築は次tick先頭のRebuildIfDirtyに委ねる
-            // Tick end: commit frozen input and reserved removals through one updater, then drain other-thread work; derived network rebuilding is deferred to RebuildIfDirty at the next tick head
+            // tick末尾: 固定した入力と予約破壊を一つの更新器で確定し、他スレッドから積まれた処理を流す。その変更で崩れた網はここで1回だけ作り直す（tick途中でセグメント所属を変えないため）
+            // Tick end: commit frozen input and reserved removals through one updater, then drain other-thread work; networks invalidated by them are rebuilt here exactly once (segment membership never changes mid tick)
             _worldMutationTickEndUpdater.Update();
             _serverThreadActionQueue.Drain();
+            _worldTopologyRebuilder.RebuildTopologiesIfDirty();
 
-            // 境界: 操作の適用まで終えた状態で列車・レール・ベルトのハッシュを出し、tick番号を進める。ベルトの組はまだ作り直されていないので搬送直後と同じハッシュになる
-            // Boundary: emit the train, rail and belt hashes from the state after input was applied and advance the tick; the belt assembly is not rebuilt yet, so its hash equals the post-transport one
+            // 境界: 操作の適用と再構築まで終えた状態で列車・レール・ベルトのハッシュを出し、tick番号を進める。再構築したベルトの全量はハッシュより前に送られている
+            // Boundary: emit the train, rail and belt hashes from the state after input and rebuilds, and advance the tick; a rebuilt belt assembly's full state was already sent before the hash
             _trainUpdateService.CompleteTick();
 
             // 全世界変更の確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。常時記録のスナップショットも同じ安定点で取る（Startされるまで何もしない）
             // The point after every world mutation commits is the only save-stable boundary (spec 2.1-7); always-on snapshots are captured at the same point (inert until Start)
             _worldSaveCoordinator.SaveIfRequested();
             _worldSnapshotRing.Update();
+        }
+
+        public void RebuildTopologiesIfDirty()
+        {
+            _worldTopologyRebuilder.RebuildTopologiesIfDirty();
         }
     }
 }
