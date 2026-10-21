@@ -528,8 +528,8 @@ namespace Game.Train.Unit
             _timetableChangeNotifier.BeginBatch();
             _isAutoRun = false;
             _remainingDistance = int.MaxValue;
-            // マスコンと端数距離は差分通知に乗らないので触らない。次tickの手動入力が移動前にマスコンを決め直す
-            // Mascon and fractional distance stay untouched since the tick diff cannot carry them; next tick's manual input resets mascon before moving
+            // 移動後にマスコン・端数距離を書き換えるとクライアントとずれるので触らない。マスコンは次tickの手動入力が移動前に決め直す
+            // Rewriting mascon or fractional distance after moving desyncs the client, so leave them; next tick's manual input resets mascon before moving
             // ドッキングしていたら解除する。
             // Undock if the train is currently docked.
             if (trainUnitStationDocking.IsDocked)
