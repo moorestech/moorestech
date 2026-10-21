@@ -77,19 +77,19 @@
 **Interfaces:**
 - Produces: `UltraLightPreset` が存在しない状態。`Client.Game.asmdef` から URP 参照が外れる（Task 6 で必要分を戻す）
 
-- [ ] **Step 1: revertする**
+- [x] **Step 1: revertする**
 
 ```bash
 git revert --no-edit e97360fc64
 ```
 コンフリクトしたら、e97360fc64 より後の変更を残しつつ v7 の差分だけを打ち消す向きで解消する（`git show e97360fc64` を見て逆適用）。
 
-- [ ] **Step 2: 残骸が無いことを確かめる**
+- [x] **Step 2: 残骸が無いことを確かめる**
 
 Run: `grep -rn "UltraLight" moorestech_client/Assets/Scripts` → Expected: 出力なし
 Run: `grep -n "RestoreDistance = \|HideDistance = " moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/Visibility/MapObjectDistanceVisibilityController.cs` → Expected: `340f` と `350f`
 
-- [ ] **Step 3: コンパイル**
+- [x] **Step 3: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client` → Expected: ErrorCount 0
 
@@ -111,7 +111,7 @@ Run: `uloop compile --project-path ./moorestech_client` → Expected: ErrorCount
 - Consumes: `PlayerCenteredDistanceCulling(PlayerSystemContainer, float chunkSize, float activeRadius, float reevalMoveDistance)`、`BlockDistanceCullingRegistrar(BlockGameObjectDataStore, PlayerCenteredDistanceCulling, IBlockDistanceCullingSource)`、`BlockDistanceCullingEntry(Bounds, IDistanceCullingTarget)`（internal ctor。同アセンブリ）
 - Produces: `GearRotationCullingTarget(GearStateChangeProcessor[] processors)` : `IDistanceCullingTarget`
 
-- [ ] **Step 1: テストを書く** — `Client.Tests/Gear/GearRotationCullingTargetTest.cs`
+- [x] **Step 1: テストを書く** — `Client.Tests/Gear/GearRotationCullingTargetTest.cs`
 
 ```csharp
 using Client.Game.InGame.Block.GearRotation;
@@ -146,7 +146,7 @@ namespace Client.Tests.Gear
 ```
 （`GearStateChangeProcessor` は `[RequireComponent(typeof(GearStateChangeProcessorSimulator))]` なので AddComponent で Simulator も付く。付かずに失敗した場合は先に Simulator を AddComponent する）
 
-- [ ] **Step 2: 実装を書く**
+- [x] **Step 2: 実装を書く**
 
 `GearRotationCullingManager.cs`:
 ```csharp
@@ -305,12 +305,12 @@ namespace Client.Game.InGame.Block.GearRotation
 改訂: 範囲は 45/50m に縮めた（`.decisions/2026-10-20-遠方の歯車回転停止とパイプ水位の状態駆動とベルトアイテム非表示は常時入れる.md`）。
 ```
 
-- [ ] **Step 3: コンパイルしテスト**
+- [x] **Step 3: コンパイルしテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → ErrorCount 0
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GearRotationCullingTargetTest|BeltItemObjectPresenterTest|BeltSegmentVisibleRange"` → PASS（既存テストが340/350mを直書きしていて落ちたら、定数参照に直すか値を45/50へ直す）
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Block/GearRotation moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameModelRegistration.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/FluidPipeStateChangeProcessor.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BeltTransport/View/BeltSegmentVisibleRange.cs moorestech_client/Assets/Scripts/Client.Tests/Gear docs/adr/0085-belt-item-objects-materialize-within-camera-range.md
@@ -339,7 +339,7 @@ git commit -m "perf: 遠方の歯車回転・パイプ水位の毎フレーム�
   - `static class GraphicsQualityPresets { GraphicsQualitySettings Get(GraphicsQualityPreset); bool TryMatch(GraphicsQualitySettings, out GraphicsQualityPreset) }`
   - `static class GraphicsQualityPreference { GraphicsQualitySettings Current; IObservable<GraphicsQualitySettings> OnSettingsChanged; void SetSettings(GraphicsQualitySettings); void ApplyPreset(GraphicsQualityPreset); internal const string PreferenceKey = "GraphicsQuality"; }`
 
-- [ ] **Step 1: テストを書く** — `Client.Tests/GraphicsQuality/GraphicsQualityPreferenceTest.cs`
+- [x] **Step 1: テストを書く** — `Client.Tests/GraphicsQuality/GraphicsQualityPreferenceTest.cs`
 
 ```csharp
 using System.Text.RegularExpressions;
@@ -419,7 +419,7 @@ namespace Client.Tests.GraphicsQuality
 }
 ```
 
-- [ ] **Step 2: 実装を書く**
+- [x] **Step 2: 実装を書く**
 
 `GraphicsDrawDistance.cs`:
 ```csharp
@@ -704,12 +704,12 @@ namespace Client.Game.InGame.GraphicsQuality
 }
 ```
 
-- [ ] **Step 3: コンパイルしテスト**
+- [x] **Step 3: コンパイルしテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → ErrorCount 0
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.GraphicsQuality.GraphicsQualityPreferenceTest"` → PASS
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/GraphicsQuality moorestech_client/Assets/Scripts/Client.Tests/GraphicsQuality
@@ -729,7 +729,7 @@ git commit -m "feat: 画質設定の値・プリセット・端末保存を追�
 - Consumes: `GraphicsQualityPreference.Current` / `OnSettingsChanged`、`GraphicsDrawDistance.ToMeters()`、`GraphicsRenderScale.ToScale()`
 - Produces: `CameraQualityApplier.Apply(Camera camera, CinemachineVirtualCamera virtualCamera, GraphicsQualitySettings settings)`、`RenderPipelineQualityApplier : IStartable`
 
-- [ ] **Step 1: 実装を書く**
+- [x] **Step 1: 実装を書く**
 
 `CameraQualityApplier.cs`:
 ```csharp
@@ -915,15 +915,15 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
             builder.RegisterEntryPoint<RenderPipelineQualityApplier>();
 ```
 
-- [ ] **Step 2: コンパイル**
+- [x] **Step 2: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client` → ErrorCount 0
 
-- [ ] **Step 3: PlayModeで確かめる**
+- [x] **Step 3: PlayModeで確かめる**
 
 PlayModeに入り、`uloop execute-dynamic-code` で `Client.Game.InGame.GraphicsQuality.GraphicsQualityPreference.ApplyPreset(Low)`→`High` を順に呼び、各回 `Camera.main.farClipPlane`・`GetUniversalAdditionalCameraData().renderShadows`・`((UniversalRenderPipelineAsset)QualitySettings.renderPipeline).renderScale` が Low=300/false/0.5、High=5000/true/1 になり、Low で `msaaSampleCount==1`・`supportsHDR==false`・`QualitySettings.lodBias==0.4`、High で元の値（2・true・1）に戻ることを返り値で確かめる。PlayModeを止めた後 `git status --short moorestech_client/ProjectSettings moorestech_client/Assets/Asset/Common/URPSettings` が空であること（アセットを汚していない）を確かめる。
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/GraphicsQuality/Appliers moorestech_client/Assets/Scripts/Client.Game/Client.Game.asmdef moorestech_client/Assets/Scripts/Client.Game/InGame/Control/InGameCameraController.cs moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameModelRegistration.cs
@@ -959,7 +959,7 @@ git commit -m "feat: 描画距離・影・ポスト・描画解像度・SSAOを�
   - `EffectsQualityApplier : IStartable`
   - `TrainCarObjectDatastore.OnTrainCarCreated : IObservable<TrainCarEntityObject>`
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `MapObjectRendererVisibilityTest.cs`（`MapObjectRendererVisibility` は internal。`Client.Tests` から internal が見えない場合は既存 `MapObjectDistanceVisibilityControllerTest` と同じ参照方法に合わせる）:
 ```csharp
@@ -1029,7 +1029,7 @@ namespace Client.Tests.GraphicsQuality
 }
 ```
 
-- [ ] **Step 2: mapObjectの表示を2入力にする**
+- [x] **Step 2: mapObjectの表示を2入力にする**
 
 `MapObjectRendererVisibility.cs` の `_isVisible` と `SetVisible` を次へ置き換える:
 ```csharp
@@ -1129,7 +1129,7 @@ namespace Client.Game.InGame.Map.MapObject
 ```
 `MapObjectDistanceVisibilityControllerTest` の `Register(mapObject, isLandmark)` 呼び出しは `Register(new MapObjectRendererVisibility(mapObject), mapObject.transform.position, isLandmark)` へ直す。
 
-- [ ] **Step 3: 地形と海**
+- [x] **Step 3: 地形と海**
 
 `EnvironmentQualityApplier.cs`:
 ```csharp
@@ -1190,7 +1190,7 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
 ```
 （`FinePixelError` は revert 後の `TerrainObjectFactory` が設定しない既定値。既定が5でなければ、revert後のTerrainの値を PlayMode で読みその値に合わせる）
 
-- [ ] **Step 4: エフェクト**
+- [x] **Step 4: エフェクト**
 
 `EffectsQualitySwitch.cs`:
 ```csharp
@@ -1360,12 +1360,12 @@ namespace Client.Game.InGame.GraphicsQuality.Appliers
 （ブロック・列車の生成ファクトリは変更しない。`BlockGameObject` がキャッシュするのは VFX の `gameObject.SetActive` 用で、Switch が触る `enabled` とは別なので、付与が `Initialize` の後でも衝突しない）
 `MainGameModelRegistration`: `builder.RegisterEntryPoint<EffectsQualityApplier>();`（`TrainCarObjectDatastore` が DI に登録済みか確認し、無ければ `RegisterComponentInHierarchy` 等の既存登録元に合わせる）
 
-- [ ] **Step 5: コンパイルしテスト**
+- [x] **Step 5: コンパイルしテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → ErrorCount 0
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MapObjectRendererVisibilityTest|MapObjectDistanceVisibilityControllerTest|EffectsQualitySwitchTest"` → PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/GraphicsQuality/Appliers moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Game/InGame/Train/View/Object/Core/TrainCarObjectDatastore.cs moorestech_client/Assets/Scripts/Client.Tests/Map/Visibility moorestech_client/Assets/Scripts/Client.Tests/GraphicsQuality
@@ -1394,11 +1394,11 @@ git commit -m "feat: 地形・海・木や岩・エフェクトを画質設定�
 - Create: 録画シナリオ（`unity-playmode-recorded-playtest` スキルの置き場所規約に従う）
 - Create: `docs/evidence/2026-10-20-graphics-quality-fps.md`（計測結果）
 
-- [ ] **Step 1: 録画シナリオ** — `unity-playmode-recorded-playtest` スキル（プレイテストDSL）で次を通しで録画する: ワールドに入る → Escでポーズメニュー → 設定画面 → 画質プリセット「低」→ 画面が軽量表示（遠景が消え、影が無い）になる → 「高」→ 戻る → 影だけオフにしてプリセット欄が「カスタム」になる → 閉じて流体パイプの水位が見える場所で水位が変わることを確認。Web UIの自動操作が難しければ、設定変更は `settings.applyGraphicsQualityPreset` / `settings.setGraphicsQuality` actionを直接送る形でよい（判断記録へ1行残す）
+- [x] **Step 1: 録画シナリオ** — `unity-playmode-recorded-playtest` スキル（プレイテストDSL）で次を通しで録画する: ワールドに入る → Escでポーズメニュー → 設定画面 → 画質プリセット「低」→ 画面が軽量表示（遠景が消え、影が無い）になる → 「高」→ 戻る → 影だけオフにしてプリセット欄が「カスタム」になる → 閉じて流体パイプの水位が見える場所で水位が変わることを確認。Web UIの自動操作が難しければ、設定変更は `settings.applyGraphicsQualityPreset` / `settings.setGraphicsQuality` actionを直接送る形でよい（判断記録へ1行残す）
 
-- [ ] **Step 2: 完了基準の計測** — メインworktree（`/Users/katsumi/moorestech`）でPlayを押して入るワールドと同じセーブを使い、「中」で、歩く・ブロックを1つ設置する操作を含む60秒の平均fpsを計る。計り方: `Observable.EveryEndOfFrame` で `Time.unscaledDeltaTime` を集計して `[PERF]` タグで `Debug.Log` し `uloop get-logs --search-text "[PERF]"` で回収する。Editorは前面（`uloop focus-window`）。平均20fps以上なら合格。結果（平均・p50・p95）を `docs/evidence/2026-10-20-graphics-quality-fps.md` に書く。20fps未満ならそこで止め、計測値を添えてユーザーへ報告する
+- [x] **Step 2: 完了基準の計測** — メインクローンのworktreeでPlayを押して入るワールドと同じセーブを使い、「中」で、歩く・ブロックを1つ設置する操作を含む60秒の平均fpsを計る。計り方: `Observable.EveryEndOfFrame` で `Time.unscaledDeltaTime` を集計して `[PERF]` タグで `Debug.Log` し `uloop get-logs --search-text "[PERF]"` で回収する。Editorは前面（`uloop focus-window`）。平均20fps以上なら合格。結果（平均・p50・p95）を `docs/evidence/2026-10-20-graphics-quality-fps.md` に書く。20fps未満ならそこで止め、計測値を添えてユーザーへ報告する
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add docs/evidence/2026-10-20-graphics-quality-fps.md <録画シナリオのパス>
@@ -1407,7 +1407,7 @@ git commit -m "test: 画質設定の録画テストとfps計測を追加する"
 
 ### Task 8: 全ブランチレビュー
 
-- [ ] 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。レビュー指摘の反映が判定経路・条件式・評価時点に触れたら、Task 7 の録画テストを反映後に再実施する
+- [x] 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。レビュー指摘の反映が判定経路・条件式・評価時点に触れたら、Task 7 の録画テストを反映後に再実施する
 
 ### Task 9: PR作成とセッション終了可能状態
 
