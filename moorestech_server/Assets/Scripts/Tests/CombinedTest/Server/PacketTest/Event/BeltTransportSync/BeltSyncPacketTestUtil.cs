@@ -57,8 +57,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             for (var i = 0; i < WarmUpTicks; i++) GameUpdater.UpdateOneTick();
         }
 
-        // 分配器の右の行き止まりをx方向へ1マス延ばす。設置で組が汚れ、次のtick先頭で作り直される
-        // Extend the splitter's right dead end by one cell along x; the placement dirties the assembly, rebuilt at the next tick head
+        // 分配器の右の行き止まりをx方向へ1マス延ばす。設置で組が汚れ、tick末尾で作り直される
+        // Extend the splitter's right dead end by one cell along x; the placement dirties the assembly, rebuilt at the tick end
         public static void ExtendDeadEnd(int x)
         {
             Assert.IsNotNull(Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(x, 0, 0), BlockDirection.East), $"placed belt at x={x}");
@@ -111,7 +111,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
 
         // 最初と最後のtickは一部しか観測していないので除き、残りの各tickの連番が欠番・重複なく1..maxを覆うか確かめる。返り値は検査したtick数
         // Skip the partially observed first and last ticks and check every other tick's ids cover 1..max with no gap or duplicate; returns the number of ticks checked
-        public static int AssertNoSequenceGaps(Dictionary<uint, List<uint>> sequenceIdsByTick, int expectedIdsPerTick)
+        public static int AssertNoSequenceGaps(Dictionary<uint, List<uint>> sequenceIdsByTick, ICollection<uint> rebuiltTicks)
         {
             var ticks = sequenceIdsByTick.Keys.OrderBy(t => t).ToList();
             for (var i = 1; i < ticks.Count - 1; i++)
@@ -119,7 +119,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
                 var ids = sequenceIdsByTick[ticks[i]].OrderBy(id => id).ToList();
                 var expected = Enumerable.Range(1, ids.Count).Select(id => (uint)id).ToList();
                 CollectionAssert.AreEqual(expected, ids, $"sequence ids of tick {ticks[i]}: {string.Join(",", ids)}");
-                Assert.AreEqual(expectedIdsPerTick, ids.Count, $"sequence ids per tick at tick {ticks[i]}");
+                Assert.AreEqual(rebuiltTicks.Contains(ticks[i]) ? 4 : 3, ids.Count, $"sequence ids per tick at tick {ticks[i]}");
             }
             for (var i = 1; i < ticks.Count; i++) Assert.AreEqual(ticks[i - 1] + 1, ticks[i], "observed ticks are consecutive");
             return ticks.Count - 2;

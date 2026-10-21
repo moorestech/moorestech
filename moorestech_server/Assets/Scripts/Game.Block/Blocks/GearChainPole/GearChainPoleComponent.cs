@@ -125,8 +125,8 @@ namespace Game.Block.Blocks.GearChainPole
             if (!BlockComponentStateReader.TryRead<GearChainPoleSaveDataJsonObject>(_componentStates, SaveKey, out var data)) return;
             GearChainConnectionRestorer.Restore(data, BlockInstanceId, _param.MaxConnectionCount, _chainLookup, _chainMutation);
 
-            // 復元した接続を次tick先頭で反映
-            // Rebuild the network from restored connections at the next tick head
+            // 復元した接続をロード完了時の再構築で反映
+            // Rebuild the network from restored connections when the load completes
             ServerContext.GetService<IGearNetworkDatastore>().MarkTopologyDirty();
             _onChangeBlockState.OnNext(Unit.Default);
         }

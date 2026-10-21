@@ -134,6 +134,18 @@ namespace Core.BeltTransport
                 EnqueueTail(state.DistanceToExit - TotalLength, state.Item);
         }
 
+        // tick境界で走行中のアイテムをすべて取り除く。取り除いたアイテムの行き先は呼び出し側が持つ
+        // Remove every running item at a tick boundary; the caller owns where the removed items go
+        public void DiscardAllItems()
+        {
+            Array.Clear(_gaps, 0, _gaps.Length);
+            Array.Clear(_items, 0, _items.Length);
+            Array.Clear(_blockSizes, 0, _blockSizes.Length);
+            _head = 0;
+            _totalGap = 0;
+            Count = 0;
+        }
+
         // 進入距離lengthで入口から入ったアイテムを、現在の最後尾の後ろへ追加する
         // Append an item that entered the entrance by length behind the current last item
         protected void EnqueueAtEntry(int length, in BeltItem item)

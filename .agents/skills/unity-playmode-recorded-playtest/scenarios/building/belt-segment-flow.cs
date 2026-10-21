@@ -45,8 +45,8 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     await p.WaitBlockGameObject(sinkAPosition);
     await p.WaitBlockGameObject(sinkBPosition);
 
-    // サーバーの組とクライアントの複製が同じ本数になるまで待つ(再構築は次tick先頭、途中参加の全量は接続時)
-    // Wait until the server assembly and the client replica hold the same segment count (rebuild at the next tick head)
+    // サーバーの組とクライアントの複製が同じ本数になるまで待つ(再構築は設置したtickの末尾、途中参加の全量は接続時)
+    // Wait until the server assembly and the client replica hold the same segment count (rebuild at the end of the placing tick)
     var datastore = p.ServerService<BeltTransportDatastore>();
     var trainUpdateService = p.ServerService<TrainUpdateService>();
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;

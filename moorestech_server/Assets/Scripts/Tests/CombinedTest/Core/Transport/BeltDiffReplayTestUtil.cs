@@ -52,8 +52,8 @@ namespace Tests.CombinedTest.Core.Transport
 
         // 機械(チェスト)からの押し込みと同じ文脈で、ベルコンの搬入口へ1個押し込む。入ったらtrue
         // Push one item into the belt inlet with the same context a machine (chest) push carries; true when it entered
-        // 実tickの押し込みはblock更新中だけなので、先にtick先頭の再構築まで進めてその区間に入る
-        // Real-tick pushes happen only during block updates, so first advance to the tick-head rebuild to enter that window
+        // 実tickの押し込みはblock更新中だけなので、先にtick外の設置を反映してその区間に入る
+        // Real-tick pushes happen only during block updates, so first apply placements made outside a tick and enter that window
         internal static bool PushThroughInlet(IBlockInventory inlet, IBlock machine, IItemStack stack)
         {
             Tests.Util.BeltWorldTestUtil.EnterMachinePushWindow();

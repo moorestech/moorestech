@@ -24,7 +24,7 @@ namespace Game.Block.Blocks.BeltConveyor.Save
 
         public BeltConveyorSaveStateComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId) : this(blockInstanceId)
         {
-            // 保存されていたアイテム・優先順は組へ預ける。次のtick先頭の再構築で復元手順に乗る
+            // 保存されていたアイテム・優先順は組へ預ける。ロード完了時の再構築で復元手順に乗る
             // Saved items and priority orders are handed to the assembly and go through the restore procedure at the next tick-head rebuild
             if (!BlockComponentStateReader.TryRead<BeltConveyorSaveJsonObject>(componentStates, SaveKey, out var state)) return;
             ServerContext.GetService<IBeltTransportMutation>().RegisterLoadedState(blockInstanceId, state);

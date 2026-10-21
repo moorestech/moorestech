@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.BeltConveyor.Transport;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -27,7 +28,8 @@ namespace Server.Protocol.PacketResponse
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly ConstructionWalletService _constructionWallet;
         private readonly IRailGraphDatastore _railGraphDatastore;
-
+        private readonly IBeltTransportLookup _beltTransportLookup;
+        private readonly IBeltTransportMutation _beltTransportMutation;
 
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
@@ -35,6 +37,8 @@ namespace Server.Protocol.PacketResponse
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
+            _beltTransportLookup = serviceProvider.GetService<IBeltTransportLookup>();
+            _beltTransportMutation = serviceProvider.GetService<IBeltTransportMutation>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
@@ -60,8 +64,9 @@ namespace Server.Protocol.PacketResponse
             if (!TryInsertRefundItems(out var refundItems))
                 return Refuse(RemoveBlockFailureReason.InventoryFull);
             
-            // 削除処理
-            // Deletion process
+            // 返却した搬送中のアイテムを組から取り除いてから削除する。同tickの後続の撤去・再構築で二度出てこない
+            // Take the refunded carried items out of the assembly before deleting, so later removals and the rebuild in this tick never see them again
+            _beltTransportMutation.DiscardConnectionRemovalItems(block);
             ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
 
             // 撤去確定後に財布へ知らせる
@@ -120,6 +125,9 @@ namespace Server.Protocol.PacketResponse
                     result.AddRange(refundInfo.GetRefundItems());
                 }
                 
+                // 搬出元の撤去で消える合流内部segmentの中身を合算する
+                // Include the contents of merge internal segments that vanish when this source is removed
+                result.AddRange(_beltTransportLookup.GetConnectionRemovalRefundItems(block));
                 result.AddRange(railRefundItems);
                 return result;
             }

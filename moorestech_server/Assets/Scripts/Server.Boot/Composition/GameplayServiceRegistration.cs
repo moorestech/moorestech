@@ -179,6 +179,7 @@ namespace Server.Boot.Composition
             services.AddSingleton<GearTickUpdater>();
             services.AddSingleton<FluidTickUpdater>();
             services.AddSingleton<BeltTransportTickUpdater>();
+            services.AddSingleton<IWorldTopologyRebuilder, WorldTopologyRebuilder>();
             services.AddSingleton<MasterTickUpdater>();
             services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
             // クライアント操作は全接続共通FIFOへ集め、tick末尾に一括適用する

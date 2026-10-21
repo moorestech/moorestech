@@ -4,12 +4,12 @@ namespace Game.Block.Blocks.Fluid
 {
     /// <summary>
     ///     流体tickの唯一の入口。MasterTickUpdaterからelectric・gearに続いて呼ばれる。
-    ///     トポロジ反映はtick先頭のRebuildIfDirty（MasterTickUpdater管轄）で済んでいる前提で、
+    ///     トポロジ反映は前tick末尾のRebuildIfDirty（MasterTickUpdater管轄）で済んでいる前提で、
     ///     全パイプを速度モデルで一括更新した後、変化したパイプの状態通知をまとめて発火する。
     ///     パイプ個別のUpdate（BlockSystem経由の自己tick）は存在せず、ここが全パイプの物理進行を担う。
     ///
     ///     Sole entry point of the fluid tick, called by MasterTickUpdater after electric and gear.
-    ///     Topology changes are already applied by RebuildIfDirty at the tick head (owned by MasterTickUpdater);
+    ///     Topology changes are already applied by RebuildIfDirty at the previous tick end (owned by MasterTickUpdater);
     ///     this steps every pipe through the velocity model in one batch, then fires batched state notifications for changed pipes.
     ///     Pipes have no per-block Update; all pipe physics advances here.
     /// </summary>

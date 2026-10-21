@@ -40,18 +40,20 @@ namespace Tests.Util
             return count;
         }
 
-        // 現在のワールド全体の搬送の組。設置・撤去の直後は次のtick先頭で作り直される
-        // The current world-wide transport assembly; it is rebuilt at the next tick head after a placement or removal
+        // 現在のワールド全体の搬送の組。tick外の設置・撤去は次のtickを進める前に作り直される
+        // The current world-wide transport assembly; placements and removals outside a tick are rebuilt before the next tick advances
         public static BeltTransportAssembly Assembly()
         {
             return ServerContext.GetService<BeltTransportDatastore>().Assembly;
         }
 
-        // tick先頭の再構築を先に呼び、機械の押し込みを受け付ける区間(block更新中)に入る。tickの外から搬入口へ押し込むテストが使う
-        // Run the tick-head rebuild first to enter the window that accepts machine pushes (block updates); used by tests that push into an inlet from outside a tick
+        // tick外の設置を反映してから、機械の押し込みを受け付ける区間(block更新中)に入る。tickの外から搬入口へ押し込むテストが使う
+        // Apply placements made outside a tick, then enter the window that accepts machine pushes (block updates); used by tests that push into an inlet from outside a tick
         public static void EnterMachinePushWindow()
         {
-            ServerContext.GetService<IBeltTransportMutation>().RebuildIfDirty();
+            var mutation = ServerContext.GetService<IBeltTransportMutation>();
+            mutation.RebuildIfDirty();
+            mutation.BeginMachinePushWindow();
         }
 
         // 指定マスを含むsegmentを返す

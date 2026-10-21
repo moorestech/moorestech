@@ -10,12 +10,13 @@ namespace Game.Block.Blocks.BeltConveyor
 {
     // ベルコンblockが機械から受ける搬入口。押し込みはワールド全体の搬送の組へ進入距離1で渡し、1個入った分だけ減らして返す
     // The belt block's inlet for machines; a push goes to the world-wide transport assembly at entry length 1 and the stack returns reduced by the one item that entered
-    // ベルコン上のアイテムはblockのスロットとして持たない。撤去・過負荷破壊で返さず、次tickの再構築で消える
-    // Items on the belt are not block slots; removal and overload breakage return nothing and the next-tick rebuild drops them
-    public class BeltConveyorInventoryComponent : IBlockInventory
+    // ベルコン上のアイテムはblockのスロットとして持たない。手動撤去では所有中のアイテムを返却契約で返し、過負荷破壊では返さずtick末尾の再構築で消える
+    // Items on the belt are not block slots; manual removal refunds the owned items through the refund contract, while overload breakage refunds nothing and the tick-end rebuild drops them
+    public class BeltConveyorInventoryComponent : IBlockInventory, IGetRefundItemsInfo
     {
         private readonly BlockInstanceId _blockInstanceId;
         private readonly IBeltTransportMutation _beltTransportMutation;
+        private readonly IBeltTransportLookup _beltTransportLookup;
 
         public bool IsDestroy { get; private set; }
 
@@ -23,6 +24,7 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             _blockInstanceId = blockInstanceId;
             _beltTransportMutation = ServerContext.GetService<IBeltTransportMutation>();
+            _beltTransportLookup = ServerContext.GetService<IBeltTransportLookup>();
         }
 
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
@@ -39,6 +41,12 @@ namespace Game.Block.Blocks.BeltConveyor
         {
             BlockException.CheckDestroy(this);
             return itemStacks.Count == 1 && itemStacks[0].Count == 1;
+        }
+
+        public IReadOnlyList<IItemStack> GetRefundItems()
+        {
+            BlockException.CheckDestroy(this);
+            return _beltTransportLookup.GetOwnedRefundItems(_blockInstanceId);
         }
 
         public void Destroy()

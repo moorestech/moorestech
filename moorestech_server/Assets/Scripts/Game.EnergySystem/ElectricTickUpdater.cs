@@ -13,8 +13,8 @@ namespace Game.EnergySystem
 
         public void Update()
         {
-            // 再構築はtick先頭のMasterTickUpdaterが担い、ここでは需給計算だけ行う
-            // MasterTickUpdater owns the tick-head rebuild; this updater performs settlement only
+            // 再構築は前tick末尾のMasterTickUpdaterが担い、ここでは需給計算だけ行う
+            // MasterTickUpdater owns the rebuild at the previous tick end; this updater performs settlement only
             foreach (var segment in _electricWireNetworkLookup.GetSegments())
             {
                 segment.SettleTick();
