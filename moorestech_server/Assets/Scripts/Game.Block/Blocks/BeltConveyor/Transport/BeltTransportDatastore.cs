@@ -75,10 +75,6 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             _loadedStates.Clear();
             Assembly = BeltTransportAssembler.Assemble(BeltSegmentLayoutBuilder.Build(BeltTopologyBuilder.Build(_worldBlockDatastore)), savedPriorityOrders, _diffRecorder);
             BeltTransportRestorer.Restore(snapshot, Assembly);
-
-            // 旧構成の番号で書かれた未取り出しの差分は新構成へ適用しない。中身は再構築後の全量に含まれる
-            // Untaken diffs written with old-assembly numbers are never applied to the new one; their effect is in the post-rebuild full state
-            _diffRecorder.Discard();
             _capturedSaveStates = null;
 
             // 境界ハッシュより前に全量を送らせる。クライアントの複製は差分でなくこの全量で組み直す
@@ -136,17 +132,14 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             _isTopologyDirty = true;
         }
 
-        // blockの保存内容。ロード後まだ載せていないblockは預かった内容をそのまま返す(預かり後は書き換えない)
-        // The block's save content; a loaded block not yet placed returns the content it handed over (never modified after that)
-        // セーブは全blockを順に問い合わせるので、組を1回だけ取り出して全blockへ振り分けた結果を次の変更まで使い回す
-        // A save queries every block in turn, so the assembly is captured once, distributed to every block, and reused until the next change
+        // blockの保存内容。セーブは全blockを順に問い合わせるので、組を1回だけ取り出して全blockへ振り分けた結果を次の変更まで使い回す
+        // The block's save content; a save queries every block in turn, so the assembly is captured once, distributed to every block, and reused until the next change
         public BeltConveyorSaveJsonObject CreateSaveState(BlockInstanceId blockInstanceId)
         {
-            if (_loadedStates.TryGetValue(blockInstanceId, out var pending)) return pending;
             _capturedSaveStates ??= BeltTransportSaveStateBuilder.Build(BeltTransportSnapshot.Capture(Assembly));
 
-            // 設置直後で組にまだ無いblock、アイテムも優先順も持たないblockは空
-            // A block placed this tick and not yet in the assembly, or one holding no item or order, saves as empty
+            // アイテムも優先順も持たないblockは空
+            // A block holding no item or order saves as empty
             return _capturedSaveStates.TryGetValue(blockInstanceId, out var captured) ? captured : new BeltConveyorSaveJsonObject();
         }
 

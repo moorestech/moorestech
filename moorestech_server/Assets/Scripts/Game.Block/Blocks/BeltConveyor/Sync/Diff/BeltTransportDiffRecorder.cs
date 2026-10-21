@@ -37,14 +37,5 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Diff
             _extracts.Clear();
             return diff;
         }
-
-        // 再構築で番号が付け直されるので、旧構成の番号で書かれた未取り出し分は捨てる。中身は再構築後の全量に含まれる
-        // A rebuild renumbers segments, so untaken records written with old numbers are dropped; their effect is already in the post-rebuild full state
-        public void Discard()
-        {
-            _speedChanges.Clear();
-            _inserts.Clear();
-            _extracts.Clear();
-        }
     }
 }
