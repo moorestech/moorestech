@@ -42,6 +42,8 @@ await SemanticInput.TapKey(Key.Escape);
 await UniTask.WaitUntil(() => PlaytestUiOps.CurrentUiState() == UIStateEnum.GameScreen).Timeout(System.TimeSpan.FromSeconds(15));
 var hadPreference = PlayerPrefs.HasKey("GraphicsQuality");
 var savedPreference = PlayerPrefs.GetString("GraphicsQuality");
+var savedSettings = GraphicsQualityPreference.Current;
+var savedRecovered = GraphicsQualityPreference.RecoveredInvalidPreference;
 return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Record = true }, async p =>
 {
     GameObject synthetic = null;
@@ -97,12 +99,14 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
         p.Assert(train.GetComponent<EffectsQualitySwitch>() != null && trainVfx.Length > 0 && trainVfx.All(v => !v.enabled), $"新規列車へSwitch付与とVFX停止: {trainVfx.Length}");
         SetEffects(true);
         await p.WaitSeconds(0.5f);
-        p.Assert(trainVfx.All(v => v.enabled), "新規列車のVFX再開");
+        p.Assert(trainVfx.All(v => v.enabled) && vfx.All(v => v.enabled), "新規列車と新設置ブロックのVFX再開");
         await p.Screenshot("02-new-locomotive");
 
         // 合成particleは実prefabと区別して再有効化と手動Playを観測する
         // Distinguish synthetic particles from real prefabs and observe reactivation and manual Play
-        synthetic = new GameObject("Task7SyntheticParticleRoot");
+        GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Low);
+        synthetic = new GameObject("FinalD2SyntheticParticleRoot");
+        synthetic.transform.position = p.PlayerPosition + new Vector3(1f, 1f, 0f);
         var child = new GameObject("SyntheticPlayOnAwake");
         child.transform.SetParent(synthetic.transform);
         var particle = child.AddComponent<ParticleSystem>();
@@ -113,8 +117,15 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
         quality.Initialize(false);
         child.SetActive(true);
         await p.WaitSeconds(0.5f);
+        quality.ReapplyAfterPlacement(false);
+        p.Assert(!particle.isPlaying, "D2合成: 初期非active子の低で設置完了後は停止");
+        await p.Screenshot("03-synthetic-low-placement");
+        GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.High);
+        quality.SetEffectsEnabled(true);
+        await p.WaitSeconds(0.5f);
+        p.Assert(particle.isPlaying, "D2合成: 高復帰で初期非active子を再生");
+        await p.Screenshot("04-synthetic-high-restored");
         quality.SetEffectsEnabled(false);
-        p.Assert(!particle.isPlaying, "合成playOnAwake再有効化後のoff再適用で停止");
         particle.Play(false);
         await p.WaitSeconds(0.5f);
         quality.SetEffectsEnabled(false);
@@ -123,6 +134,8 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
     finally
     {
         if (synthetic != null) UnityEngine.Object.Destroy(synthetic);
+        GraphicsQualityPreference.SetSettings(savedSettings);
+        typeof(GraphicsQualityPreference).GetField("<RecoveredInvalidPreference>k__BackingField", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).SetValue(null, savedRecovered);
         if (hadPreference) PlayerPrefs.SetString("GraphicsQuality", savedPreference);
         else PlayerPrefs.DeleteKey("GraphicsQuality");
         PlayerPrefs.Save();

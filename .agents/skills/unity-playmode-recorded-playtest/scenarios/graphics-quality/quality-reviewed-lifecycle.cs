@@ -20,6 +20,8 @@ gameView.Focus();
 await UniTask.DelayFrame(3);
 var hadPreference = PlayerPrefs.HasKey("GraphicsQuality");
 var savedPreference = PlayerPrefs.GetString("GraphicsQuality");
+var savedSettings = GraphicsQualityPreference.Current;
+var savedRecovered = GraphicsQualityPreference.RecoveredInvalidPreference;
 return PlaytestRunner.Run("quality-reviewed-lifecycle", new PlaytestRunOptions { Record = true }, async p =>
 {
     try
@@ -79,6 +81,8 @@ return PlaytestRunner.Run("quality-reviewed-lifecycle", new PlaytestRunOptions {
     {
         // キーの有無と値をそのまま戻す
         // Restore the original key presence and value
+        GraphicsQualityPreference.SetSettings(savedSettings);
+        typeof(GraphicsQualityPreference).GetField("<RecoveredInvalidPreference>k__BackingField", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).SetValue(null, savedRecovered);
         if (hadPreference) PlayerPrefs.SetString("GraphicsQuality", savedPreference);
         else PlayerPrefs.DeleteKey("GraphicsQuality");
         PlayerPrefs.Save();

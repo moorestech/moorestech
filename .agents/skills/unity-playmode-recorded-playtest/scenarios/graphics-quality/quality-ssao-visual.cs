@@ -27,6 +27,8 @@ await SemanticInput.TapKey(Key.Escape);
 await UniTask.WaitUntil(() => PlaytestUiOps.CurrentUiState() == UIStateEnum.GameScreen).Timeout(System.TimeSpan.FromSeconds(15));
 var hadPreference = PlayerPrefs.HasKey("GraphicsQuality");
 var savedPreference = PlayerPrefs.GetString("GraphicsQuality");
+var savedSettings = GraphicsQualityPreference.Current;
+var savedRecovered = GraphicsQualityPreference.RecoveredInvalidPreference;
 return PlaytestRunner.Run("quality-ssao-visual", new PlaytestRunOptions { Record = true }, async p =>
 {
     try
@@ -65,6 +67,8 @@ return PlaytestRunner.Run("quality-ssao-visual", new PlaytestRunOptions { Record
     }
     finally
     {
+        GraphicsQualityPreference.SetSettings(savedSettings);
+        typeof(GraphicsQualityPreference).GetField("<RecoveredInvalidPreference>k__BackingField", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).SetValue(null, savedRecovered);
         if (hadPreference) PlayerPrefs.SetString("GraphicsQuality", savedPreference);
         else PlayerPrefs.DeleteKey("GraphicsQuality");
         PlayerPrefs.Save();
