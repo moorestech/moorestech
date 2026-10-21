@@ -4,7 +4,7 @@ import { dispatchAction, dispatchActionOutcome, Topics, useTopic, type GraphicsQ
 import { L, useI18n } from "@/shared/i18n";
 import { ModeSwitch } from "@/shared/ui";
 
-type BoolKey = "shadows" | "ssao" | "postProcessing" | "effects" | "mapObjects" | "ocean";
+type BoolKey = Extract<GraphicsQualityChange, { value: boolean }>["item"];
 type OnOff = "on" | "off";
 
 // 画質のプリセットと各項目。現在値はsettings.graphicsQualityトピックを正とする

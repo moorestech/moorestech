@@ -77,16 +77,12 @@ export type GraphicsQualityData = z.infer<typeof GraphicsQualityDataSchema>;
 export type GraphicsQualitySettings = z.infer<typeof GraphicsQualitySettingsSchema>;
 // 項目と対応する値だけを送り、未変更値の上書きを防ぐ
 // Send only the selected item and its matching value to prevent overwriting untouched values
-export type GraphicsQualityChange =
-  | { item: "drawDistanceMeters"; value: 300 | 1000 | 5000 }
-  | { item: "renderScalePercent"; value: 100 | 75 | 50 }
-  | { item: "terrainDetail"; value: "fine" | "coarse" }
-  | { item: "shadows"; value: boolean }
-  | { item: "ssao"; value: boolean }
-  | { item: "postProcessing"; value: boolean }
-  | { item: "effects"; value: boolean }
-  | { item: "mapObjects"; value: boolean }
-  | { item: "ocean"; value: boolean };
+export type GraphicsQualityChange = {
+  [K in keyof GraphicsQualitySettings]: {
+    item: K;
+    value: GraphicsQualitySettings[K];
+  };
+}[keyof GraphicsQualitySettings];
 export type GraphicsQualityPresetChoice = Exclude<GraphicsQualityData["preset"], "custom">;
 export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
 export type EventLanguageGateData = z.infer<typeof EventLanguageGateDataSchema>;
