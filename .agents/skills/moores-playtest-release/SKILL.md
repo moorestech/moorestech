@@ -1,11 +1,11 @@
 ---
 name: moores-playtest-release
-description: moorestech のプレイテスト配布を通しで行う。最新 origin/master の Windows/Mac ビルド → Steam playtest-staging へアップロード（Steam Guard 対応）→ Windows 検証機の通し検証 → 配信中ビルドとの差分からパッチノート → playtest ブランチへ反映。Use When — 「最新プレイテストビルドして」「プレイテスト版を更新して」「playtest版に反映して」「プレイテストのパッチノート作って」「steamcmd のログインが切れる」と言われた場合。
+description: moorestech のプレイテスト配布を通しで行う。最新 origin/master の Windows/Mac ビルド → Steam playtest-staging へアップロード（Steam Guard 対応）→ Windows 検証機の通し検証 → Mac 版を Mac mini の Steam で確認 → 配信中ビルドとの差分からパッチノート → playtest ブランチへ反映。Use When — 「最新プレイテストビルドして」「プレイテスト版を更新して」「playtest版に反映して」「プレイテストのパッチノート作って」「steamcmd のログインが切れる」と言われた場合。
 ---
 
 # moores-playtest-release
 
-工程の正本は `scripts/playtest/README.md` と `scripts/playtest/release-playtest.sh`。このスキルは、標準スクリプトが止まる Steam 認証、反映、パッチノートを補う。パッチノートだけを頼まれたら手順 3 だけを行う。スクリプトのパスは本体 clone 直下からの相対で書いている（`.agents/skills/moores-playtest-release/scripts/`）。
+工程の正本は `scripts/playtest/README.md` と `scripts/playtest/release-playtest.sh`。このスキルは、標準スクリプトが止まる Steam 認証、Mac 版の確認、反映、パッチノートを補う。パッチノートだけを頼まれたら手順 3 だけを行う。スクリプトのパスは本体 clone 直下からの相対で書いている（`.agents/skills/moores-playtest-release/scripts/`）。
 
 ## 前提条件
 
@@ -31,7 +31,7 @@ scripts/playtest/release-playtest.sh "$(git rev-parse origin/master)" > $RUNS/$M
 
 - 渡すのは SHA か `origin/master`。ローカルの `master` は渡さない（fetch で進まないので古いコミットを焼く）。
 - 待つ間は Monitor でログを見る。拾う語は `ERROR|FAIL|Invalid|credentials|phase|passed|EXIT=` で、成功だけでなく失敗も拾う。
-- steamcmd・検証まで通って `promotion.md` が出たら、手順 2 を飛ばして手順 3 へ進む。
+- steamcmd・検証まで通って `promotion.md` が出たら、`python3 .agents/skills/moores-playtest-release/scripts/validate_staging.py $RUNS/<label>` で `validated-steam-build.json` を書き、手順 2 を飛ばして手順 3 へ進む（反映スクリプトがこのファイルを読む）。
 
 ### 2. アップロード（steamcmd が `Invalid Password` で止まったとき）
 
@@ -53,24 +53,33 @@ scripts/playtest/release-playtest.sh "$(git rev-parse origin/master)" > $RUNS/$M
 1. 比較元は、いまテスターに配信中のビルド。`.agents/skills/moores-playtest-release/scripts/find_live_playtest.py` で、配信中のビルド ID とその run・コミットを得る。
 2. `git log --merges <比較元>..<今回>` で PR を列挙する。対象を絞るときは `--first-parent` を使わない（比較元がブランチ上のコミットだと範囲がずれる）。`gh pr view` で中身を読む。
 3. 次の PR は載せない。比較元にすでに入っている PR、文書・スキル・テストだけの PR。`.moorestech-external-revisions.json` の master ピンの差分も確かめる（マスタ変更はレシピ・数値の変更として載せる）。
-4. `<run-dir>/patch-notes.md` を書く。プレイヤーへの影響が大きい順に「1. **題**」と本文を並べ、プレイヤーの言葉で書く（クラス名・PR 番号は書かない）。形は過去の run の `patch-notes.md` を手本にする。
-5. HTML にして共有する。
+4. `<run-dir>/patch-notes.md` を書く。冒頭は `# 見出し`・前回/今回のビルド・掲載順の行、項目はプレイヤーへの影響が大きい順に `## 1. 題` と本文で並べ、プレイヤーの言葉で書く（クラス名・PR 番号は書かない）。数値の変更は `### 分類` の下に `- 対象：前 → 後` の箇条書きで並べる。`**` と表は使わない（テスターへコピペで配るので、貼り付け先で崩れる）。
+5. md のまま共有する。HTML にはしない（コピペできないため）。text/plain で配信される。
 
 ```bash
-python3 .agents/skills/moores-playtest-release/scripts/render_patch_notes.py <run-dir>/patch-notes.md "<状態文>" > <run-dir>/patch-notes.html
-share-put -n <日付>-moorestech-playtest-patch-notes <run-dir>/patch-notes.html
+share-put -n <日付>-moorestech-playtest-patch-notes <run-dir>/patch-notes.md
 ```
 
-状態文は、反映前なら「staging へアップロード済み」、反映後なら「playtest へ配信済み（Build ID N）」と書く。反映したら HTML を作り直して同じ名前で share-put し直す。
+反映したら、冒頭の今回の行に Build ID を足して同じ名前で share-put し直す。
 
-### 4. playtest への反映（ユーザーが反映を指示したときだけ）
+### 4. Mac 版の確認（Mac mini の Steam で自分で行う）
+
+`promotion.md` の「Mac 版の手動確認」は、ユーザーに頼まず Mac mini（Apple Silicon・moorestech インストール済み・ベータ playtest-staging 選択済み）の Steam Desktop で行う。操作は cua-driver スキルの references/games.md の手順（`screencapture` で撮り、`cliclick` の長押しクリックと `osascript` のキー入力。前面化が要る）。
+
+1. `open -g -a Steam` で起動し、`~/Library/Application Support/Steam/steamapps/appmanifest_1958160.acf` の `buildid` が release.log の `BuildID` と一致し `StateFlags` が `4` になるまで待つ（Steam が自動で更新する）。
+2. `open "steam://run/1958160"` で起動する。Gatekeeper などの回避操作が要ったかを記録する。
+3. 同意画面は「了解」、前回異常終了の報告は「送らない」（開発機の報告を取り込みに混ぜない）、「ローカルでプレイ」でワールドに入る。進み具合は `~/Library/Logs/sakastudio/moorestech/Player.log` の `[PlaytestTitleGates] step`・`[InitializeScenePipeline] mod icon capture completed`・`[TerrainRuntimeBuilder] Terrain built` で確かめる。地形は生成に十数秒かかり、それまで海だけが映る。
+4. Tab を押してインベントリが開くことをスクショで確かめ、Cmd+Q で終了する。
+5. `promotion.md` のチェック欄を埋め、確認結果（BuildID・セーブ変換の行・スクショで見たこと）を追記する。
+
+### 5. playtest への反映（ユーザーが反映を指示したときだけ）
 
 ```bash
 python3 .agents/skills/moores-playtest-release/scripts/promote_playtest.py <run-dir> --mac-checked
 python3 .agents/skills/moores-playtest-release/scripts/promote_playtest.py <run-dir> --skip-mac-check "<ユーザー指示の引用>"
 ```
 
-- Mac 版の手動確認がまだなのにユーザーが反映を指示したときだけ、後者を使う。その場合は「Mac は未確認」と報告する。
+- 手順 4 の Mac 確認がまだなのにユーザーが反映を指示したときだけ、後者を使う。その場合は「Mac は未確認」と報告する。
 - スクリプトは次の 2 点を確かめてから `SetAppBuildLive` を呼び、読み戻しで一致を確かめて `released.json` を書く。ログに `[verify] passed` があること。コミットは release.log の `commit=` から読む。`released.json` は次回のパッチノートで比較元になる。
 - Steamworks Web UI での手作業は不要。
 
@@ -89,4 +98,3 @@ python3 .agents/skills/moores-playtest-release/scripts/promote_playtest.py <run-
 - `scripts/validate_staging.py <run-dir>` — staging の Win/Mac depot が今回アップロードしたビルドと一致するか確かめる
 - `scripts/find_live_playtest.py [runs-dir]` — 配信中の playtest ビルドと、その run・コミットを返す
 - `scripts/promote_playtest.py <run-dir> --mac-checked|--skip-mac-check "<引用>"` — playtest へ反映し、読み戻しで確認する
-- `scripts/render_patch_notes.py <md> <状態文>` — パッチノートの md を共有用 HTML にする
