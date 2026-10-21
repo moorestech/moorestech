@@ -3,6 +3,7 @@ using System.Linq;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Interface;
 using Game.Train.Diagram;
+using Game.Train.RailCalc;
 using Game.Train.RailGraph;
 using Game.Train.RailPositions;
 using Game.Train.Unit;
@@ -17,13 +18,15 @@ namespace Tests.UnitTest.Game
     // Regression tests for auto-run reversing at a dead-end station toward the next station
     //
     // 配置: [駅A]==R==[駅B] の一本線。駅Aの奥(Back側出口)と駅Bの奥(Front側出口)が行き止まり。
-    // 列車は駅Aに奥向きで停車し、後部車両は駅を出て区間Rへ5000はみ出す。反転後の先頭はノード途中になる。
+    // 列車は駅Aに奥向きで停車し、後部車両は駅を出て区間Rへ5マス（5×RAIL_LENGTH_SCALE）はみ出す。反転後の先頭はノード途中になる。
     // Layout: a single line [A]==R==[B]; A's back exit and B's front exit are dead ends.
-    // The train stops at A facing the dead end with its rear wagon 5000 out into R, so after reversing the head sits mid-edge.
+    // The train stops at A facing the dead end with its rear wagon 5 master units (5×RAIL_LENGTH_SCALE) out into R, so after reversing the head sits mid-edge.
     public class TrainAutoRunReverseDepartureTest
     {
         private const int TransitSegmentLength = 20000;
-        private const int RearWagonLength = 5000;
+        // 車両長はマスタ単位（×RAIL_LENGTH_SCALE でレール単位になる）
+        // Car lengths are in master units (multiplied by RAIL_LENGTH_SCALE into rail units)
+        private const int RearWagonMasterLength = 5;
 
         [Test]
         public void 駅で反転した列車は残距離を引き直して次の駅まで走る()
@@ -89,17 +92,20 @@ namespace Tests.UnitTest.Game
 
             // 先頭はAの奥向き出口、機関車は駅内、後部貨車は区間Rへはみ出す
             // Head at A's back exit with the locomotive inside the station and the rear wagon sticking out into R
-            var locomotive = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, StationLength(stationA), true, TrainTestCarFactory.StableAutoRunTestWeight).trainCar;
-            var wagon = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 1, RearWagonLength, true, TrainTestCarFactory.StableAutoRunTestWeight).trainCar;
+            var locomotive = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 400000, 1, StationMasterLength(stationA), true, TrainTestCarFactory.StableAutoRunTestWeight).trainCar;
+            var wagon = TrainTestCarFactory.CreateTrainCarWithItemContainer(0, 0, 1, RearWagonMasterLength, true, TrainTestCarFactory.StableAutoRunTestWeight).trainCar;
             var nodes = new List<IRailNode> { stationA.BackExit, stationA.ExitComponent.BackNode, transit.BackNode };
             var railPosition = new RailPosition(nodes, locomotive.Length + wagon.Length, 0);
             var trainUnit = new TrainUnit(railPosition, new List<TrainCar> { locomotive, wagon }, env.GetTrainRailPositionManager(), env.GetTrainDiagramManager());
             return (trainUnit, stationA, stationB);
         }
 
-        private static int StationLength(StationExits station)
+        private static int StationMasterLength(StationExits station)
         {
-            return station.ExitComponent.BackNode.GetDistanceToNode(station.BackExit);
+            var railUnits = station.ExitComponent.BackNode.GetDistanceToNode(station.BackExit);
+            var scale = (int)BezierUtility.RAIL_LENGTH_SCALE;
+            Assert.AreEqual(0, railUnits % scale, "駅の内部長がマスタ単位の整数倍になっていません。");
+            return railUnits / scale;
         }
 
         private static bool IsStoppedAt(TrainUnit trainUnit, IRailNode node)

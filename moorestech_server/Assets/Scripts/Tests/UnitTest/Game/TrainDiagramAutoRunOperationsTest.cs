@@ -120,10 +120,15 @@ namespace Tests.UnitTest.Game
 
             var forwardEntry = diagram.Entries[1].Node;
             var deadEndEntry = diagram.Entries[2].Node;
-            var reverseEntry = diagram.Entries[3].Node;
+            var behindNode = diagram.Entries[3].Node;
 
+            // 反転後の列車は後方ノードの反対側ノードへ向かって走るので、停車先はそちらにする（このシナリオの線路は順方向の辺しか持たない）
+            // After reversing the train runs toward the behind node's opposite node, so that is the stop (this scenario's track has forward edges only)
             diagram.HandleNodeRemoval(forwardEntry);
             diagram.HandleNodeRemoval(deadEndEntry);
+            diagram.HandleNodeRemoval(behindNode);
+            var reverseEntry = behindNode.OppositeNode;
+            diagram.AddEntry(reverseEntry);
             diagram.Entries[0].SetDepartureWaitTicks(0);
 
             Assert.AreSame(scenario.StationExitFront, diagram.GetCurrentNode(),
