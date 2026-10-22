@@ -14,9 +14,13 @@ Game.Paths.GameSystemPaths.SetDefaultWorldDirectoryOverride(@"C:\moorestech-perf
 var popup = Object.FindFirstObjectByType<Client.MainMenu.Playtest.CrashReportPopup>(FindObjectsInactive.Include);
 if (popup && popup.gameObject.activeInHierarchy)
   ((Button)typeof(Client.MainMenu.Playtest.CrashReportPopup).GetField("skipButton", bf).GetValue(popup)).onClick.Invoke();
+// タイトルの準備（同意・クラッシュ確認ゲート）が済むまでは押さずに not-ready を返し、呼び出し側が再試行する
 var start = Object.FindFirstObjectByType<Client.MainMenu.StartLocal>(FindObjectsInactive.Include);
+if (start == null) return "not-ready: title scene not loaded";
+var verdict = Client.Starter.Playtest.TitleGates.PlaytestTitleGates.EvaluateStart("Benchmark", out _);
+if (verdict != Client.Starter.Playtest.TitleGates.PlaytestStartVerdict.Passed) return "not-ready: " + verdict;
 ((Button)typeof(Client.MainMenu.StartLocal).GetField("startLocalButton", bf).GetValue(start)).onClick.Invoke();
-return "world=" + Game.Paths.GameSystemPaths.DefaultWorldDirectory + " wasMinimized=" + wasMinimized;
+return "started world=" + Game.Paths.GameSystemPaths.DefaultWorldDirectory + " wasMinimized=" + wasMinimized;
 
 
 [DllImport("kernel32.dll")] static extern uint SetThreadExecutionState(uint flags);
