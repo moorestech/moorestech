@@ -1,0 +1,55 @@
+.ve-root {
+    flex-grow: 1;
+}
+
+.ve-toolbar {
+    flex-direction: row;
+    align-items: center;
+    height: 40px;
+    padding: 0 10px;
+    background-color: #20242a;
+    border-bottom-width: 1px;
+    border-color: #3d434d;
+}
+
+.ve-toolbar > * {
+    margin-right: 8px;
+}
+
+.ve-tool--active {
+    background-color: #3c6fb0;
+    color: #ffffff;
+}
+
+.ve-status {
+    flex-grow: 1;
+    -unity-text-align: middle-right;
+    color: #8fe08f;
+    font-size: 12px;
+}
+
+.ve-canvas-host {
+    flex-grow: 1;
+}
+
+.ve-canvas {
+    flex-grow: 1;
+    overflow: hidden;
+    background-color: #e9eaec;
+}
+
+.ve-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.ve-hint {
+    padding: 6px 10px;
+    font-size: 12px;
+    color: #9aa3ad;
+    background-color: #20242a;
+    white-space: normal;
+}

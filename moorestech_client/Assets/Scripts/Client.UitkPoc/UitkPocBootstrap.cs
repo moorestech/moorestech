@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Client.UitkPoc.Effects;
 using Client.UitkPoc.Motion;
+using Client.UitkPoc.NodeEditor;
+using Client.UitkPoc.VectorEditor;
 using Client.UitkPoc.Overlay;
 using Client.UitkPoc.PowerChart;
 using Client.UitkPoc.Preview3D;
@@ -40,6 +42,8 @@ namespace Client.UitkPoc
                 new MotionDemo(context),
                 new TextAndInputDemo(context),
                 new OverlayDemo(context),
+                new NodeEditorDemo(context),
+                new VectorEditorDemo(context),
             };
 
             // シェルのUSSと日本語フォントをルートへ与える
