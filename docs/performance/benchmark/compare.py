@@ -18,6 +18,7 @@ FIXED_MARKERS = [
     "UniTaskLoopRunnerYieldUpdate",
     "PacketExchange.DispatchReceivedPackets",
     "PacketExchange.Deserialize.ProtocolBase",
+    "PacketExchange.ReadPacketHeader",
     "PacketExchange.Deserialize.EventStream",
     "PacketExchange.RouteEvent",
     "PacketExchange.RouteResponse",
