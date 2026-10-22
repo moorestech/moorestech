@@ -26,12 +26,25 @@
 .poc-root .unity-base-field {
     margin: 0;
     color: #e6e8eb;
+    align-items: center;
 }
 
 .poc-root .unity-base-field__label {
     color: #9aa3ad;
     min-width: 0;
-    padding-right: 6px;
+    padding: 0 6px 0 0;
+    -unity-text-align: middle-left;
+}
+
+/* 既定テーマでは入力部の高さが0になり、トラックがラベルの上へずれるため明示する */
+/* The default theme leaves the slider input at zero height, shifting the track above the label */
+.poc-root .unity-base-slider--horizontal .unity-base-slider__input {
+    height: 20px;
+}
+
+.poc-root .unity-base-slider--horizontal .unity-base-slider__drag-container {
+    flex-grow: 1;
+    height: 20px;
 }
 
 .poc-root .unity-base-popup-field__input,
@@ -58,6 +71,7 @@
 }
 
 .poc-root .unity-base-slider__tracker {
+    top: 50%;
     height: 4px;
     margin-top: -2px;
     border-width: 0;
@@ -66,6 +80,7 @@
 }
 
 .poc-root .unity-base-slider__dragger {
+    top: 50%;
     width: 14px;
     height: 14px;
     margin-top: -7px;
@@ -97,6 +112,8 @@
 }
 
 .poc-root .unity-scroller .unity-base-slider__tracker {
+    top: 0;
+    bottom: 0;
     width: 8px;
     height: auto;
     margin: 0;

@@ -11,9 +11,14 @@ namespace Client.UitkPoc.Shell
         private float _windowElapsed;
         private int _windowFrames;
         private float _windowWorst;
+        private float _windowUitkTotal;
+        private float _windowUitkWorst;
+        private readonly UitkCostRecorder _uitkCost = new();
 
         public float LastAverageMs { get; private set; }
         public float LastWorstMs { get; private set; }
+        public float LastUitkAverageMs { get; private set; }
+        public float LastUitkWorstMs { get; private set; }
 
         public FrameTimeMeter()
         {
@@ -29,13 +34,20 @@ namespace Client.UitkPoc.Shell
             _windowElapsed += deltaSeconds;
             _windowFrames++;
             _windowWorst = Mathf.Max(_windowWorst, deltaSeconds);
+            var uitkMs = _uitkCost.LastFrameMilliseconds();
+            _windowUitkTotal += uitkMs;
+            _windowUitkWorst = Mathf.Max(_windowUitkWorst, uitkMs);
             if (_windowElapsed < 1f) return false;
 
             // 1秒窓を閉じて表示を更新する
             // Close the one-second window and refresh the badge
             LastAverageMs = _windowElapsed / _windowFrames * 1000f;
             LastWorstMs = _windowWorst * 1000f;
-            Badge.text = $"{_windowFrames / _windowElapsed:0} fps  avg {LastAverageMs:0.0}ms  worst {LastWorstMs:0.0}ms  VE {lastElementCount}";
+            LastUitkAverageMs = _windowUitkTotal / _windowFrames;
+            LastUitkWorstMs = _windowUitkWorst;
+            Badge.text = $"{_windowFrames / _windowElapsed:0} fps  frame {LastAverageMs:0.0}ms  UITK {LastUitkAverageMs:0.00}ms(max {LastUitkWorstMs:0.0})  VE {lastElementCount}";
+            _windowUitkTotal = 0;
+            _windowUitkWorst = 0;
             _windowElapsed = 0;
             _windowFrames = 0;
             _windowWorst = 0;

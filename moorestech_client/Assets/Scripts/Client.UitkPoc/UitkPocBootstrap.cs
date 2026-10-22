@@ -66,7 +66,8 @@ namespace Client.UitkPoc
 
         public string DescribeMeter()
         {
-            return $"{_shell.ActiveDemo.Title}: avg {_shell.Meter.LastAverageMs:0.00}ms worst {_shell.Meter.LastWorstMs:0.00}ms";
+            var meter = _shell.Meter;
+            return $"{_shell.ActiveDemo.Title}: frame avg {meter.LastAverageMs:0.00}ms worst {meter.LastWorstMs:0.00}ms / UITK avg {meter.LastUitkAverageMs:0.00}ms max {meter.LastUitkWorstMs:0.00}ms";
         }
     }
 }
