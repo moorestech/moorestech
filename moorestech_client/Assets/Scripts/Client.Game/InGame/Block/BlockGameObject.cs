@@ -99,13 +99,14 @@ namespace Client.Game.InGame.Block
                 ClientContext.VanillaApi.Event.SubscribeEventResponse(eventTag,
                     payload =>
                     {
-                        var data = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payload);
+                        BlockStateMessagePack data;
+                        using (BlockStateProfilerMarkers.DeserializeBlockState.Auto()) data = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payload);
                         if (data.Position != BlockPosInfo.OriginalPos) return;
                         foreach (var processor in BlockStateChangeProcessors)
                         {
                             try
                             {
-                                processor.OnChangeState(data); 
+                                using (BlockStateProfilerMarkers.ForProcessor(processor).Auto()) processor.OnChangeState(data);
                             }
                             catch (Exception e)
                             {

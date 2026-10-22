@@ -45,6 +45,7 @@ namespace Client.Network.API
                     // 到着順を保ったままメインスレッドで直列ディスパッチする（順序契約）
                     // Dispatch serially on the main thread preserving arrival order (ordering contract)
                     await UniTask.Yield(PlayerLoopTiming.Update);
+                    using var dispatchScope = EventDispatchProfilerMarkers.DispatchReceivedPackets.Auto();
                     while (_receivedPackets.TryDequeue(out var data))
                     {
                         // 外部入力デシリアライズ＋購読者呼び出しの境界隔離。1packetの失敗で受信ループを殺さない
@@ -63,17 +64,20 @@ namespace Client.Network.API
 
             void DispatchPacket(byte[] data)
             {
-                var basePacket = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data);
+                ProtocolMessagePackBase basePacket;
+                using (EventDispatchProfilerMarkers.DeserializeProtocolBase.Auto()) basePacket = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data);
 
                 // イベントpushはSequenceId照合ではなくイベントストリームへ流す
                 // Route pushed events to the event stream instead of sequence matching
                 if (basePacket.Tag == EventStreamMessagePack.ProtocolTag)
                 {
-                    var eventPacket = MessagePackSerializer.Deserialize<EventStreamMessagePack>(data);
-                    _eventPacketSubject.OnNext(eventPacket.Event);
+                    EventStreamMessagePack eventPacket;
+                    using (EventDispatchProfilerMarkers.DeserializeEventStream.Auto()) eventPacket = MessagePackSerializer.Deserialize<EventStreamMessagePack>(data);
+                    using (EventDispatchProfilerMarkers.RouteEvent.Auto()) _eventPacketSubject.OnNext(eventPacket.Event);
                     return;
                 }
 
+                using var routeResponseScope = EventDispatchProfilerMarkers.RouteResponse.Auto();
                 var sequence = basePacket.SequenceId;
                 if (!_responseWaiters.ContainsKey(sequence)) return;
                 _responseWaiters[sequence].WaitSubject.OnNext((data, PacketWaitCompletionReason.Received));
@@ -184,15 +188,5 @@ namespace Client.Network.API
 
             #endregion
         }
-    }
-
-
-    // 応答待ちが完了した理由を明示する
-    // Distinguishes how a packet wait completed
-    public enum PacketWaitCompletionReason
-    {
-        Received,
-        Timeout,
-        DeserializeFailed,
     }
 }
