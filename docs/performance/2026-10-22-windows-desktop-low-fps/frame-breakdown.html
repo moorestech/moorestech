@@ -97,7 +97,7 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; }
     <div class="tile"><div class="v">141.7ms</div><div class="l">PlayerLoop／フレーム（60fps予算 16.7ms の約8.5倍）</div></div>
     <div class="tile"><div class="v">78%</div><div class="l">受信パケット処理が占める割合（110.3ms）</div></div>
     <div class="tile"><div class="v">61%</div><div class="l">受信処理のうちデシリアライズ（1件で4回）</div></div>
-    <div class="tile"><div class="v">3,296件</div><div class="l">1フレームの受信イベント数（92% が液体パイプ）</div></div>
+    <div class="tile"><div class="v">3,296件</div><div class="l">1フレームの受信イベント数（84% が液体パイプ）</div></div>
   </div>
 
   <section class="card">
@@ -124,7 +124,7 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; }
     <svg id="chart3" role="img" aria-label="観点別合計の横棒"></svg>
   </section>
 
-  <p class="foot">EditorLoop（13.8ms）は PlayerLoop の外にある Editor 専用負荷のため①に含めていない。液体パイプの寄与は受信処理の約73%（約80ms）と推測（件数比按分）。</p>
+  <p class="foot">EditorLoop（13.8ms）は PlayerLoop の外にある Editor 専用負荷のため①に含めていない。液体パイプの寄与は受信処理の約68%（約75ms）と推測（件数比按分）。</p>
 </main>
 <div id="tip"></div>
 <script>

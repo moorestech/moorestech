@@ -3,11 +3,13 @@
 ## 結論
 - メインスレッドの律速は**サーバーから届くイベントパケットの受信処理**（`PacketExchangeManager.DispatchReceivedPacketsLoop`）。PlayerLoop 141.7ms/フレームのうち 110.3ms（78%）。
 - 受信処理の中身の 61%（67.5ms）は **MessagePack のデシリアライズ**。パイプのイベント1件で同じデータを4段階に分けて読んでいる。
-- イベントの 92% は**液体パイプの `va:event:changeBlockState`**。`FluidPipeStateDetail.Amount`（float）が毎 tick わずかに変わるため、サーバー側の「同じペイロードなら送らない」差分スキップが効かず、全パイプが毎 tick 配信されている。
+- イベントの 84% は**液体パイプの `va:event:changeBlockState`**。`FluidPipeStateDetail.Amount`（float）が毎 tick わずかに変わるため、サーバー側の「同じペイロードなら送らない」差分スキップが効かず、全パイプが毎 tick 配信されている。
 - 2つ目の原因：`WorldDataHandler.UpdateWorldData` が 100ms ごと（`NetworkConst.SecondUpdateRate = 10`）に**ワールドの全ブロックを `RequestWorldDataProtocol` で取り直している**。応答1回の処理が約30ms（最大115ms）で、約2.5フレームに1回届く。
 - GPU は待ちが中心で、律速ではない。
 
-グラフ：[frame-breakdown.html](frame-breakdown.html)（ブラウザで開く）
+グラフ（ブラウザで開く）：
+- [frame-breakdown.html](frame-breakdown.html) … メインスレッドの時間の内訳
+- [packet-counts.html](packet-counts.html) … 受信パケット数（ブロック種別ごとの件数・状態キーごとの値の変化率・その他の受信）
 
 ## 計測環境
 | 項目 | 値 |
@@ -73,7 +75,8 @@
 | 受信ループ自体 | 1.7 | 2% |
 
 ### 推測を含む値
-- **液体パイプの寄与は受信処理の約73%（約80ms/フレーム）**。件数に比例する費用（外側デシリアライズ・配送・BlockState デシリアライズの計 71.6ms）にパイプの件数比 92% を掛け、パイプのプロセッサ費用 14.9ms を足した値。PlayerLoop 全体では約57%。
+- **液体パイプの寄与は受信処理の約68%（約75ms/フレーム）**。件数に比例する費用（外側デシリアライズ・配送・BlockState デシリアライズの計 71.6ms）にパイプの件数比 84% を掛け、パイプのプロセッサ費用 14.9ms を足した値。PlayerLoop 全体では約53%。
+- パイプの件数比は、イベントを状態キーで分類して数えた値（[packet-counts.html](packet-counts.html)、17,403件/秒のうち 14,585件/秒）。当初 92% としていたのは `FluidPipeStateChangeProcessor` の呼び出し回数からの算出で、このプロセッサはパイプ以外のブロックにも付いているため過大だった。
 - デシリアライズの中身（文字列・辞書・byte[] の確保が主因）はコードを読んだうえでの推測で、計測はしていない。
 - Debug 最適化の Editor なので、ビルド版（Release・IL2CPP）では ms の絶対値が数倍小さい可能性がある（推測）。比率の構造は変わらないと見ている。
 

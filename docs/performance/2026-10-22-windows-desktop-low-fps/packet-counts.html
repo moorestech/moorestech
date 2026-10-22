@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>受信パケット数</title>
+<style>
+:root {
+  color-scheme: light;
+  --surface-0: #f4f3f0; --surface-1: #fcfcfb; --border: #e2e0da; --grid: #ebe9e4;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #85837d;
+  --accent: #2a78d6; --neutral: #b7b5ad; --changed: #eb6834; --unchanged: #d8d6cf;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface-0: #121211; --surface-1: #1a1a19; --border: #2e2e2c; --grid: #262624;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+    --accent: #3987e5; --neutral: #5e5d58; --changed: #d95926; --unchanged: #3a3a37;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0: #121211; --surface-1: #1a1a19; --border: #2e2e2c; --grid: #262624;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+  --accent: #3987e5; --neutral: #5e5d58; --changed: #d95926; --unchanged: #3a3a37;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface-0); color: var(--text-primary); font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif; font-size: 14px; line-height: 1.5; }
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.sub { color: var(--text-secondary); margin: 0 0 24px; font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.tile .v { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tile .l { color: var(--text-secondary); font-size: 12px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 20px 20px 16px; margin-bottom: 20px; }
+.card h2 { font-size: 16px; margin: 0 0 2px; }
+.card .note { color: var(--text-secondary); font-size: 12px; margin: 0 0 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 8px; font-size: 12px; color: var(--text-secondary); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: inherit; }
+.mark:hover { filter: brightness(1.08); }
+#tip { position: fixed; pointer-events: none; opacity: 0; transition: opacity .08s; background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 300px; }
+#tip b { display: block; font-size: 13px; }
+#tip .m { color: var(--text-secondary); }
+details { margin-top: 8px; }
+summary { cursor: pointer; color: var(--text-secondary); font-size: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; margin-top: 8px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+th { color: var(--text-secondary); font-weight: 600; }
+td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+code { font-size: 11.5px; color: var(--text-secondary); }
+.foot { color: var(--text-muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>サーバー → クライアントの受信パケット数</h1>
+  <p class="sub">windows-desktop・Unity Editor PlayMode・定常状態。イベント購読の Subject に計測フックを差し込んで集計（約11秒間）</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="v">17,400件/秒</div><div class="l">ブロック状態イベント（<code>va:event:changeBlockState</code>）</div></div>
+    <div class="tile"><div class="v">84%</div><div class="l">そのうち液体パイプの割合（約14,600件/秒）</div></div>
+    <div class="tile"><div class="v">1,745個</div><div class="l">状態イベントを出しているブロック（1個あたり毎秒10〜20回）</div></div>
+    <div class="tile"><div class="v">約2.1MB/秒</div><div class="l">受信量の推測（平均123バイト/件 × 件数）。payload 部分だけで約1.16MB/秒</div></div>
+  </div>
+
+  <section class="card">
+    <h2>① ブロック種別ごとのイベント数（件/秒）</h2>
+    <p class="note">種別名は状態キーの組み合わせからの推定。棒にマウスを乗せると状態キーが出る。</p>
+    <svg id="chartA" role="img" aria-label="ブロック種別ごとの毎秒イベント数"></svg>
+    <details>
+      <summary>表で見る</summary>
+      <table id="tableA"><thead><tr><th>種別（推定）</th><th>状態キー</th><th>件/秒</th><th>比率</th></tr></thead><tbody></tbody></table>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>② 状態キーごとに、値が実際に変わっていた割合</h2>
+    <p class="note">約5秒間に届いたイベントを状態キー単位で数え、前回届いた値と比べて変わっていたかを判定。液体パイプは毎回変わっているので、サーバー側の「同じなら送らない」差分スキップが効いていない。</p>
+    <div class="legend"><span><i style="background:var(--changed)"></i>値が変わっていた</span><span><i style="background:var(--unchanged)"></i>同じ値だった（別のキーの変化に巻き込まれて送られた）</span></div>
+    <svg id="chartB" role="img" aria-label="状態キーごとの値変化率"></svg>
+  </section>
+
+  <section class="card">
+    <h2>③ その他の受信</h2>
+    <table>
+      <thead><tr><th>種類</th><th>頻度</th><th>1回の処理</th><th>備考</th></tr></thead>
+      <tbody>
+        <tr><td>ワールド全ブロックの応答<br><code>RequestWorldDataProtocol</code></td><td class="n">約3回/秒（推測）</td><td class="n">約30ms（最大115ms）</td><td>クライアントが 100ms 間隔で全量を要求（<code>WorldDataHandler.UpdateWorldData</code>）。約2.5フレームに1回届いていた</td></tr>
+        <tr><td><code>va:event:beltTransportTickDiff</code></td><td class="n">10件/秒</td><td class="n">約0.05ms</td><td>ベルトの差分。1件にまとめて送られているので軽い</td></tr>
+        <tr><td><code>va:event:trainUnitTickDiffBundle</code></td><td class="n">10件/秒</td><td class="n">約0.04ms</td><td>列車の差分。同上</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <p class="foot">件/秒は、フック計測時の件/フレーム × 計測中の fps（42フレーム ÷ 10.87秒 = 3.86fps）で換算。①の合計 17,403件/秒は、別の回の計測（17,135件/秒）とほぼ一致。受信量の 2.1MB/秒は、パケット全体のサンプル 3,000件の平均サイズからの推測で、通信路の枠付けは含まない。</p>
+</main>
+<div id="tip"></div>
+<script>
+const types = [
+  { name: "液体パイプ", keys: "FluidPipeStateData", rate: 14585, pipe: true },
+  { name: "電気機械", keys: "CommonMachine + ElectricWire + MachineBlock", rate: 1106 },
+  { name: "燃料歯車発電機", keys: "FuelGearGenerator + GearStateData + PowerGenerator", rate: 517 },
+  { name: "歯車機械", keys: "CommonMachine + GearStateData + MachineBlock", rate: 433 },
+  { name: "液体入出力つき電気機械", keys: "CommonMachine + ElectricWire + FluidMachineInventory + MachineBlock", rate: 250 },
+  { name: "歯車→電気の変換機", keys: "ElectricWire + GearStateData + GearToElectricGenerator", rate: 226 },
+  { name: "電気ポンプ", keys: "CommonMachine + ElectricWire + FluidMachineInventory + Pump", rate: 123 },
+  { name: "駅の積み降ろし", keys: "FluidMachineInventory + TrainPlatformTransfer", rate: 60 },
+  { name: "歯車採掘機", keys: "CommonMachine + CommonMiner + GearStateData", rate: 48 },
+  { name: "歯車ポンプ", keys: "FluidMachineInventory + GearStateData + Pump", rate: 23 },
+  { name: "電気→歯車の変換機", keys: "ElectricToGearGenerator + ElectricWire + GearStateData", rate: 21 },
+  { name: "電気採掘機", keys: "CommonMachine + CommonMiner + ElectricWire", rate: 10 },
+];
+const keyChanges = [
+  { key: "FluidPipeStateData", events: 84285, changed: 84285 },
+  { key: "CommonMachine", events: 11920, changed: 11132 },
+  { key: "MachineBlock", events: 10860, changed: 10444 },
+  { key: "ElectricWire", events: 10411, changed: 175 },
+  { key: "GearStateData", events: 7434, changed: 1589 },
+  { key: "PowerGenerator", events: 2865, changed: 2862 },
+  { key: "FuelGearGenerator", events: 2865, changed: 248 },
+  { key: "FluidMachineInventory", events: 2751, changed: 1492 },
+  { key: "GearToElectricGenerator", events: 1264, changed: 1264 },
+  { key: "Pump", events: 1000, changed: 9 },
+  { key: "CommonMiner", events: 364, changed: 9 },
+  { key: "TrainPlatformTransfer", events: 164, changed: 3 },
+  { key: "ElectricToGearGenerator", events: 114, changed: 114 },
+];
+const TOTAL = types.reduce((a, b) => a + b.rate, 0);
+const NS = "http://www.w3.org/2000/svg";
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const fmt = n => n.toLocaleString("ja-JP");
+const tip = document.getElementById("tip");
+function bindTip(node, html) {
+  node.addEventListener("mousemove", ev => {
+    tip.innerHTML = html; tip.style.opacity = 1;
+    tip.style.left = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (ev.clientY + 14) + "px";
+  });
+  node.addEventListener("mouseleave", () => tip.style.opacity = 0);
+}
+
+function drawA() {
+  const svg = document.getElementById("chartA"); svg.innerHTML = "";
+  const rowH = 30, labelW = 210, W = 1000, plotW = W - labelW - 130, top = 6, max = 15000;
+  const H = top + types.length * rowH + 26; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const sx = plotW / max;
+  for (let t = 0; t <= max; t += 2500) {
+    const gx = labelW + t * sx;
+    el("line", { x1: gx, x2: gx, y1: top, y2: top + types.length * rowH, stroke: css("--grid") }, svg);
+    el("text", { x: gx, y: H - 6, "text-anchor": "middle", "font-size": 11, fill: css("--text-muted") }, svg).textContent = fmt(t);
+  }
+  types.forEach((r, i) => {
+    const y = top + i * rowH, bh = 18, by = y + (rowH - bh) / 2, w = Math.max(r.rate * sx, 2);
+    el("text", { x: labelW - 10, y: by + bh / 2 + 4, "text-anchor": "end", "font-size": 12.5, "font-weight": r.pipe ? 700 : 400, fill: css("--text-primary") }, svg).textContent = r.name;
+    const hit = el("rect", { x: labelW, y, width: plotW, height: rowH, fill: "transparent" }, svg);
+    const bar = el("rect", { x: labelW, y: by, width: w, height: bh, rx: 4, fill: r.pipe ? css("--accent") : css("--neutral"), class: "mark" }, svg);
+    el("text", { x: labelW + w + 6, y: by + bh / 2 + 4, "font-size": 12, "font-weight": 600, fill: css("--text-primary") }, svg).textContent = fmt(r.rate);
+    el("text", { x: labelW + w + 58, y: by + bh / 2 + 4, "font-size": 11.5, fill: css("--text-muted") }, svg).textContent = (r.rate / TOTAL * 100).toFixed(r.rate / TOTAL < 0.01 ? 1 : 0) + "%";
+    const html = `<b>${r.name}</b>${fmt(r.rate)} 件/秒 <span class="m">（${(r.rate / TOTAL * 100).toFixed(1)}%）</span><div class="m">${r.keys}</div>`;
+    bindTip(hit, html); bindTip(bar, html);
+  });
+}
+
+function drawB() {
+  const svg = document.getElementById("chartB"); svg.innerHTML = "";
+  const rowH = 28, labelW = 210, W = 1000, plotW = W - labelW - 170, top = 6;
+  const H = top + keyChanges.length * rowH + 26; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  [0, 25, 50, 75, 100].forEach(t => {
+    const gx = labelW + plotW * t / 100;
+    el("text", { x: gx, y: H - 6, "text-anchor": "middle", "font-size": 11, fill: css("--text-muted") }, svg).textContent = t + "%";
+  });
+  keyChanges.forEach((r, i) => {
+    const y = top + i * rowH, bh = 16, by = y + (rowH - bh) / 2;
+    const ratio = r.changed / r.events, cw = plotW * ratio;
+    el("text", { x: labelW - 10, y: by + bh / 2 + 4, "text-anchor": "end", "font-size": 12.5, "font-weight": i === 0 ? 700 : 400, fill: css("--text-primary") }, svg).textContent = r.key;
+    const hit = el("rect", { x: labelW, y, width: plotW, height: rowH, fill: "transparent" }, svg);
+    el("rect", { x: labelW, y: by, width: plotW, height: bh, rx: 4, fill: css("--unchanged") }, svg);
+    if (cw > 0.5) el("rect", { x: labelW, y: by, width: Math.max(cw, 2), height: bh, rx: 4, fill: css("--changed"), class: "mark" }, svg);
+    el("text", { x: labelW + plotW + 10, y: by + bh / 2 + 4, "font-size": 12, "font-weight": 600, fill: css("--text-primary") }, svg).textContent = (ratio * 100).toFixed(ratio < 0.1 ? 1 : 0) + "%";
+    el("text", { x: labelW + plotW + 62, y: by + bh / 2 + 4, "font-size": 11.5, fill: css("--text-muted") }, svg).textContent = `${fmt(r.changed)} / ${fmt(r.events)}`;
+    bindTip(hit, `<b>${r.key}</b>値が変わっていた ${fmt(r.changed)} 件 / 届いた ${fmt(r.events)} 件 <span class="m">（${(ratio * 100).toFixed(1)}%）</span>`);
+  });
+}
+
+function drawAll() {
+  drawA(); drawB();
+  document.querySelector("#tableA tbody").innerHTML = types.map(t => `<tr><td>${t.name}</td><td><code>${t.keys}</code></td><td class="n">${fmt(t.rate)}</td><td class="n">${(t.rate / TOTAL * 100).toFixed(1)}%</td></tr>`).join("");
+}
+drawAll();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+</script>
+</body>
+</html>
