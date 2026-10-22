@@ -24,6 +24,7 @@ namespace Game.Gear.Common
         }
 
         internal IReadOnlyCollection<GearNetwork> ContinuousTickNetworks => _continuousTickNetworks;
+        internal IReadOnlyCollection<IGearOverloadTickTarget> OverloadTickTargets => _overloadTickTargets;
 
         public void AddGear(IGearEnergyTransformer gear)
         {
@@ -67,11 +68,6 @@ namespace Game.Gear.Common
         public void UnregisterOverloadTickTarget(IGearOverloadTickTarget target)
         {
             _overloadTickTargets.Remove(target);
-        }
-
-        internal void CollectOverloadTickTargets(List<IGearOverloadTickTarget> buffer)
-        {
-            buffer.AddRange(_overloadTickTargets);
         }
 
         public void NotifyGeneratorOutputChanged(IGearEnergyTransformer generator)
