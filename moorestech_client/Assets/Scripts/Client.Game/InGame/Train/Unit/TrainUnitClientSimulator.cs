@@ -1,6 +1,7 @@
 using System;
 using Client.Game.InGame.BeltTransport.Cover;
 using Client.Game.InGame.BeltTransport.View;
+using Client.Game.InGame.FluidNetwork.View;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.View;
 using Core.Update;
@@ -47,6 +48,7 @@ namespace Client.Game.InGame.Train.Unit
         private readonly TrainUnitVisualUpdateSystem _visualUpdateSystem;
         private readonly BeltItemObjectPresenter _beltItemObjectPresenter;
         private readonly BeltMergeCellCoverPresenter _beltMergeCellCoverPresenter;
+        private readonly FluidPipeWaterLevelPresenter _fluidPipeWaterLevelPresenter;
 
         private double _estimatedClientTick;
         private double _targetSlackTicks = MinTargetSlackTicks;
@@ -63,7 +65,8 @@ namespace Client.Game.InGame.Train.Unit
             TrainUnitFutureMessageBuffer futureMessageBuffer,
             TrainUnitVisualUpdateSystem visualUpdateSystem,
             BeltItemObjectPresenter beltItemObjectPresenter,
-            BeltMergeCellCoverPresenter beltMergeCellCoverPresenter)
+            BeltMergeCellCoverPresenter beltMergeCellCoverPresenter,
+            FluidPipeWaterLevelPresenter fluidPipeWaterLevelPresenter)
         {
             _tickState = tickState;
             _hashTickGate = hashTickGate;
@@ -71,6 +74,7 @@ namespace Client.Game.InGame.Train.Unit
             _visualUpdateSystem = visualUpdateSystem;
             _beltItemObjectPresenter = beltItemObjectPresenter;
             _beltMergeCellCoverPresenter = beltMergeCellCoverPresenter;
+            _fluidPipeWaterLevelPresenter = fluidPipeWaterLevelPresenter;
         }
 
         public void Tick()
@@ -156,6 +160,10 @@ namespace Client.Game.InGame.Train.Unit
             // 合流マスの覆いはアイテム表示の後に同じ順で更新する(複製が進んだ回に合流マスを取り直す)
             // Merge-cell covers update after the item display in this same fixed order (merge cells re-read when the replica advanced)
             _beltMergeCellCoverPresenter.UpdateAll();
+
+            // パイプの水位は流体の複製が進んだ回だけ、同じ順で押し込む
+            // Pipe water levels are pushed in this same fixed order, only when the fluid replica advanced
+            _fluidPipeWaterLevelPresenter.UpdateAll();
         }
 
         // 受信tickの到着ペース(tick/秒)を長い時定数で平滑化する。起動直後と長いフレームは名目値で数える

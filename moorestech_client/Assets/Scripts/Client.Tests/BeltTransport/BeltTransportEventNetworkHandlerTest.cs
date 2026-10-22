@@ -31,7 +31,7 @@ namespace Client.Tests.BeltTransport
             var sink = new CapturedEventSink();
             serviceProvider.GetService<EventProtocolProvider>().RegisterPlayer(PlayerId, sink);
 
-            var rig = new BeltSyncClientRig();
+            var rig = new TickSyncClientRig();
             rig.Join(sink.TakeAll());
             Assert.AreEqual(BeltTransportStateHash.Compute(CaptureServer()), rig.Cache.ComputeCurrentHash(), "replica hash right after the join-time full state");
 

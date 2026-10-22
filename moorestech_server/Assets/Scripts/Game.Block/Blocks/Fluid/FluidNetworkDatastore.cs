@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Core.Master;
 using Game.Fluid.Simulation;
+using Game.Fluid.Sync.Diff;
+using Game.Fluid.Sync.State;
 using Game.World.Interface.DataStore;
 using UniRx;
 using UnityEngine;
@@ -11,14 +14,14 @@ namespace Game.Block.Blocks.Fluid
     ///     全パイプの登録と、シミュレーション用トポロジ（ノード・面・境界ポート）の構築を担うデータストア。
     ///     登録集合とdirtyフラグを持ち、tick末尾とロード完了時に呼ばれるRebuildIfDirtyでO(V+E)一括再構築する（electric・gearと同型）。
     ///     ブロックの増減は流体接続の増減なので、ワールド更新イベントでdirtyフラグを立て、そのtickの末尾で組み直す。
-    ///     ノード・面は座標順にソートして保持し、走査順を決定論的にする（将来のクライアント同時計算の前提）。
+    ///     ノード・面は座標順にソートして保持し、走査順を決定論的にする。クライアントの複製はこの並びをそのまま写して同じ計算を回す。
     ///
     ///     Datastore registering every pipe and building the simulation topology (nodes, faces, boundary ports).
     ///     It keeps a registration set plus a dirty flag; RebuildIfDirty, called at the tick end and on load completion, rebuilds everything in O(V+E) like electric and gear.
     ///     Any block place/remove can change fluid connections, so world update events mark the topology dirty for that tick's end.
-    ///     Nodes and faces are kept position-sorted so iteration is deterministic (a prerequisite for future client-side co-simulation).
+    ///     Nodes and faces are kept position-sorted so iteration is deterministic; the client replica copies this order and runs the same computation.
     /// </summary>
-    public class FluidNetworkDatastore : IFluidNetworkDatastore
+    public class FluidNetworkDatastore : IFluidNetworkDatastore, IFluidNetworkLookup
     {
         private readonly HashSet<FluidPipeComponent> _pipes = new();
         private readonly List<FluidPipeComponent> _sortedPipes = new();
@@ -26,12 +29,20 @@ namespace Game.Block.Blocks.Fluid
         private readonly List<FluidSimNode> _nodes = new();
         private readonly List<FluidSimFace> _faces = new();
         private readonly List<FluidBoundaryPort> _boundaryPorts = new();
+        private readonly List<IFluidBoundaryPort> _boundaryPortsForSync = new();
         private readonly Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace> _faceByPositionPair = new();
+
+        // 差分がノードを番号で指すための逆引き。再構築のたびに作り直す
+        // Reverse lookup so diffs can address nodes by index; rebuilt with every topology rebuild
+        private readonly Dictionary<FluidPipeComponent, int> _nodeIndexByPipe = new();
+        private readonly FluidNetworkDiffRecorder _diffRecorder = new();
+        private readonly Subject<Unit> _onTopologyRebuilt = new();
         private bool _isTopologyDirty = true;
 
         public IReadOnlyList<FluidSimNode> Nodes => _nodes;
         public IReadOnlyList<FluidSimFace> Faces => _faces;
         public IReadOnlyList<FluidBoundaryPort> BoundaryPorts => _boundaryPorts;
+        public IObservable<Unit> OnTopologyRebuilt => _onTopologyRebuilt;
 
         public FluidNetworkDatastore(IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
@@ -62,20 +73,59 @@ namespace Game.Block.Blocks.Fluid
             }
         }
 
+        // 番号を持つパイプへの流入だけを差分に残す。設置直後で未構築のパイプは次の再構築の全量が中身ごと運ぶので記録しない
+        // Only inflows into an indexed pipe go into the diff; a pipe placed and not yet built is carried, contents included, by the next rebuild's full state
+        public void RecordInflow(FluidPipeComponent pipe, FluidId fluidId, double acceptedAmount)
+        {
+            if (!_nodeIndexByPipe.TryGetValue(pipe, out var nodeIndex)) return;
+            _diffRecorder.RecordInflow(nodeIndex, fluidId, acceptedAmount);
+        }
+
+        // 流体tickの直後に、各ポートが機械へ実際に渡した量を差分へ写す
+        // Right after the fluid tick, copy the amount each port actually handed to its machine into the diff
+        public void RecordDeliveries()
+        {
+            _diffRecorder.RecordDeliveries(_boundaryPortsForSync);
+        }
+
+        public FluidTickDiff TakeTickDiff()
+        {
+            return _diffRecorder.TakeTickDiff();
+        }
+
+        // 現在の網の全量を切り出す。初回同期・再構築時の全量送信が使う
+        // Cuts the current network's full state; used for the initial sync and the full-state send after a rebuild
+        public FluidNetworkFullState CaptureFullState()
+        {
+            return FluidNetworkFullStateCapture.Capture(_nodes, _faces, _boundaryPortsForSync);
+        }
+
+        // 現在の網の全量ハッシュ。クライアントの複製との照合に使う
+        // Full-state hash of the current network, checked against the client replica
+        public uint ComputeStateHash()
+        {
+            return FluidNetworkStateHash.Compute(CaptureFullState());
+        }
+
         // tick末尾とロード完了時に呼ばれ、登録・接続に変化があった時だけトポロジを一括再構築する
         // Called at the tick end and on load completion; rebuilds the whole topology only when registrations or connections changed
         public void RebuildIfDirty()
         {
             if (!_isTopologyDirty) return;
 
-            // パイプを座標順に整列し、ノード列を確定する
-            // Sort pipes by position and settle the node list
+            // パイプを座標順に整列し、ノード列と番号を確定する
+            // Sort pipes by position and settle the node list and indices
             _sortedPipes.Clear();
             _sortedPipes.AddRange(_pipes);
             _sortedPipes.Sort(static (x, y) => ComparePositions(x.Position, y.Position));
 
             _nodes.Clear();
-            foreach (var pipe in _sortedPipes) _nodes.Add(pipe.Node);
+            _nodeIndexByPipe.Clear();
+            foreach (var pipe in _sortedPipes)
+            {
+                _nodeIndexByPipe.Add(pipe, _nodes.Count);
+                _nodes.Add(pipe.Node);
+            }
 
             // 既存面は位置ペアが一致しノードも同一なら速度ごと引き継ぐ（波の状態を再構築で失わない）
             // Reuse faces whose position pair and nodes match, carrying the velocity so rebuilds do not erase wave state
@@ -104,12 +154,15 @@ namespace Game.Block.Blocks.Fluid
 
             _faces.Sort(static (x, y) => CompareFaces(x, y));
             _boundaryPorts.Sort(static (x, y) => ComparePorts(x, y));
+            _boundaryPortsForSync.Clear();
+            foreach (var port in _boundaryPorts) _boundaryPortsForSync.Add(port);
 
             // ロード復元用の初期速度は最初の構築で消費済みになる
             // Loaded initial velocities are consumed by the first rebuild
             foreach (var pipe in _sortedPipes) pipe.ClearLoadedFaceVelocities();
 
             _isTopologyDirty = false;
+            _onTopologyRebuilt.OnNext(Unit.Default);
 
             #region Internal
 
@@ -169,19 +222,6 @@ namespace Game.Block.Blocks.Fluid
             }
 
             #endregion
-        }
-
-        // 全パイプのBlockState通知を毎tickまとめて発火する（差分化は将来のtick差分同期で行う）
-        // Fire batched BlockState notifications for all pipes every tick (diffing is deferred to the future tick-diff sync)
-        internal void NotifyPipeStates()
-        {
-            foreach (var pipe in _sortedPipes)
-            {
-                // tick途中で破壊されたパイプへの通知はスキップする（gearと同じガード）
-                // Skip pipes destroyed mid tick, mirroring the gear guard
-                if (pipe.IsDestroy) continue;
-                pipe.NotifyState();
-            }
         }
     }
 }

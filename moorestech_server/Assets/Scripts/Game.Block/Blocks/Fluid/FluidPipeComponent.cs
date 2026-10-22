@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.Master;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -8,23 +7,19 @@ using Game.Block.Interface.Component.ConnectJudge;
 using Game.Context;
 using Game.Fluid;
 using Game.Fluid.Simulation;
-using MessagePack;
-using UniRx;
 using UnityEngine;
 
 namespace Game.Block.Blocks.Fluid
 {
     /// <summary>
     ///     流体パイプ本体。物理進行はFluidTickUpdaterが全パイプ一括で行うため、このコンポーネントはシミュレーションノードへの薄いアダプタに徹する。
-    ///     設置時にFluidNetworkDatastoreへ登録し、破壊時に解除する。状態変更通知はtick末尾にdatastore経由でまとめて発火される。
+    ///     設置時にFluidNetworkDatastoreへ登録し、破壊時に解除する。中身はブロック状態としては配らず、網全体のtick差分同期でクライアントへ届く。
     ///
     ///     The fluid pipe itself. FluidTickUpdater advances the physics of all pipes in one batch, so this component stays a thin adapter over its simulation node.
-    ///     It registers itself to FluidNetworkDatastore on placement and unregisters on destruction; state notifications fire batched at the tick tail via the datastore.
+    ///     It registers itself to FluidNetworkDatastore on placement and unregisters on destruction; contents are not published as block state but reach the client through the network-wide tick diff sync.
     /// </summary>
-    public class FluidPipeComponent : IFluidInventory, IBlockStateObservable
+    public class FluidPipeComponent : IFluidInventory
     {
-        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
-
         // シミュレーションが読む流体状態と、トポロジ構築に使う接続
         // Fluid state read by the simulation and connections used for topology building
         public readonly FluidSimNode Node;
@@ -32,7 +27,7 @@ namespace Game.Block.Blocks.Fluid
 
         public Vector3Int Position => Node.Position;
 
-        private readonly Subject<Unit> _onChangeBlockState = new();
+        private readonly IFluidNetworkDatastore _fluidNetworkDatastore;
 
         // ロード復元用の面初期速度（正準側方向→速度）。最初のトポロジ構築で消費される
         // Loaded initial face velocities (canonical direction → velocity), consumed by the first topology rebuild
@@ -52,12 +47,18 @@ namespace Game.Block.Blocks.Fluid
                 _loadedFaceVelocities = jsonObject.ToFaceVelocityDictionary();
             }
 
-            ServerContext.GetService<IFluidNetworkDatastore>().AddPipe(this);
+            _fluidNetworkDatastore = ServerContext.GetService<IFluidNetworkDatastore>();
+            _fluidNetworkDatastore.AddPipe(this);
         }
 
+        // 機械からの流入。ノードが受け入れた量だけをtick差分に残し、クライアントの複製が同じ量を足す
+        // Inflow from a machine; only the amount the node accepted goes into the tick diff, and the client replica adds the same amount
         public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
-            return Node.AddExternal(fluidStack);
+            var remainder = Node.AddExternal(fluidStack);
+            var accepted = fluidStack.Amount - remainder.Amount;
+            if (0 < accepted) _fluidNetworkDatastore.RecordInflow(this, fluidStack.FluidId, accepted);
+            return remainder;
         }
 
         // パイプは単一流体しか保持しないため、残量があれば1要素、無ければ空のリストを返す
@@ -70,20 +71,6 @@ namespace Game.Block.Blocks.Fluid
                 fluidStacks.Add(new FluidStack(Node.Amount, Node.FluidId));
             }
             return fluidStacks;
-        }
-
-        public BlockStateDetail[] GetBlockStateDetails()
-        {
-            var stateDetail = new FluidPipeStateDetail(Node.FluidId, (float)Node.Amount, (float)Node.Capacity);
-            var serialized = MessagePackSerializer.Serialize(stateDetail);
-            return new[] { new BlockStateDetail(FluidPipeStateDetail.BlockStateDetailKey, serialized) };
-        }
-
-        // tick末尾にFluidNetworkDatastoreから呼ばれ、毎tick状態を発火する（差分化はクライアント同時tick計算のtick差分同期で行う予定）
-        // Called by FluidNetworkDatastore at the tick tail; fires every tick (diffing is deferred to the future tick-diff sync)
-        internal void NotifyState()
-        {
-            _onChangeBlockState.OnNext(Unit.Default);
         }
 
         internal double TakeLoadedFaceVelocity(Vector3Int direction)
@@ -101,7 +88,7 @@ namespace Game.Block.Blocks.Fluid
 
         public void Destroy()
         {
-            ServerContext.GetService<IFluidNetworkDatastore>().RemovePipe(this);
+            _fluidNetworkDatastore.RemovePipe(this);
             IsDestroy = true;
         }
     }

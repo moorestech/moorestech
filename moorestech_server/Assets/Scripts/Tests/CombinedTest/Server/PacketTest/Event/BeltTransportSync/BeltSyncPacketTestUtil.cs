@@ -15,6 +15,8 @@ using Server.Boot;
 using Server.Event;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.BeltTransportSync;
+using Server.Event.EventReceive.FluidNetworkSync;
+using Game.Fluid.Sync.Message;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
@@ -74,8 +76,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             return eventMessagePack.Tag == BeltTransportTickEventPacket.TickDiffEventTag || eventMessagePack.Tag == BeltTransportTickEventPacket.RebuiltFullStateEventTag;
         }
 
-        // 連番を消費したイベントから(tick, 連番)を集める。列車の束はhash(n-1)とdiff(n)の2つ、ベルトは1つ
-        // Collect (tick, sequence id) from sequence-consuming events; a train bundle has two (hash n-1, diff n), a belt event one
+        // 連番を消費したイベントから(tick, 連番)を集める。列車の束はhash(n-1)とdiff(n)の2つ、ベルトと流体のイベントは1つずつ
+        // Collect (tick, sequence id) from sequence-consuming events; a train bundle has two (hash n-1, diff n), each belt or fluid event one
         public static void CollectSequenceIds(IEnumerable<EventMessagePack> events, Dictionary<uint, List<uint>> sequenceIdsByTick)
         {
             foreach (var eventMessagePack in events)
@@ -96,6 +98,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
                     var full = MessagePackSerializer.Deserialize<BeltTransportFullStateMessagePack>(eventMessagePack.Payload);
                     Add(full.ServerTick, full.TickSequenceId);
                 }
+                else if (eventMessagePack.Tag == FluidNetworkTickEventPacket.TickDiffEventTag)
+                {
+                    var diff = MessagePackSerializer.Deserialize<FluidNetworkTickDiffMessagePack>(eventMessagePack.Payload);
+                    Add(diff.ServerTick, diff.TickSequenceId);
+                }
+                else if (eventMessagePack.Tag == FluidNetworkTickEventPacket.RebuiltFullStateEventTag)
+                {
+                    var full = MessagePackSerializer.Deserialize<FluidNetworkFullStateMessagePack>(eventMessagePack.Payload);
+                    Add(full.ServerTick, full.TickSequenceId);
+                }
             }
 
             #region Internal
@@ -109,9 +121,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             #endregion
         }
 
+        // 毎tickの連番は列車diff・ベルト差分・流体差分・列車hashの4つ。作り直したtickは作り直した系統の全量が1つずつ足される
+        // Every tick issues four ids (train diff, belt diff, fluid diff, train hash); a rebuilt tick adds one full state per rebuilt system
+        public const int SequenceIdsPerTick = 4;
+
         // 最初と最後のtickは一部しか観測していないので除き、残りの各tickの連番が欠番・重複なく1..maxを覆うか確かめる。返り値は検査したtick数
         // Skip the partially observed first and last ticks and check every other tick's ids cover 1..max with no gap or duplicate; returns the number of ticks checked
-        public static int AssertNoSequenceGaps(Dictionary<uint, List<uint>> sequenceIdsByTick, ICollection<uint> rebuiltTicks)
+        public static int AssertNoSequenceGaps(Dictionary<uint, List<uint>> sequenceIdsByTick, ICollection<uint> rebuiltTicks, int fullStatesPerRebuiltTick)
         {
             var ticks = sequenceIdsByTick.Keys.OrderBy(t => t).ToList();
             for (var i = 1; i < ticks.Count - 1; i++)
@@ -119,7 +135,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
                 var ids = sequenceIdsByTick[ticks[i]].OrderBy(id => id).ToList();
                 var expected = Enumerable.Range(1, ids.Count).Select(id => (uint)id).ToList();
                 CollectionAssert.AreEqual(expected, ids, $"sequence ids of tick {ticks[i]}: {string.Join(",", ids)}");
-                Assert.AreEqual(rebuiltTicks.Contains(ticks[i]) ? 4 : 3, ids.Count, $"sequence ids per tick at tick {ticks[i]}");
+                Assert.AreEqual(rebuiltTicks.Contains(ticks[i]) ? SequenceIdsPerTick + fullStatesPerRebuiltTick : SequenceIdsPerTick, ids.Count, $"sequence ids per tick at tick {ticks[i]}");
             }
             for (var i = 1; i < ticks.Count; i++) Assert.AreEqual(ticks[i - 1] + 1, ticks[i], "observed ticks are consecutive");
             return ticks.Count - 2;

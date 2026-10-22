@@ -1,55 +1,42 @@
-using System.Collections.Generic;
 using System.Reflection;
-using Client.Game.InGame.BlockSystem.StateProcessor;
-using Core.Master;
-using Game.Block.Interface.State;
-using Game.Fluid;
-using MessagePack;
+using Client.Game.InGame.FluidNetwork.View;
 using NUnit.Framework;
-using Server.Event.EventReceive;
 using UnityEditor;
 using UnityEngine;
 
 namespace Client.Tests.GraphicsQuality
 {
-    public class FluidPipeStateEntryTest : GraphicsQualityTestScope
+    public class FluidPipeWaterLevelViewTest : GraphicsQualityTestScope
     {
         [Test]
-        public void StateBeforeAndAfterStartUpdatesTransformAndOnlyClonedMaterial()
+        public void LevelBeforeAndAfterStartUpdatesTransformAndOnlyClonedMaterial()
         {
             var shader = AssetDatabase.LoadAssetAtPath<Shader>("Assets/Asset/Block/Materials/FluidPipe/FluidPipe_Water.shadergraph");
             Assert.IsNotNull(shader);
             var source = Own(new Material(shader));
             source.SetFloat("_WaterLevel", 0.13f);
-            var root = Own(new GameObject("water state entry"));
+            var root = Own(new GameObject("water level view"));
             var renderer = root.AddComponent<MeshRenderer>();
             renderer.sharedMaterial = source;
             var water = new GameObject("water").transform;
             water.SetParent(root.transform);
-            var processor = root.AddComponent<FluidPipeStateChangeProcessor>();
-            SetField(processor, "meshRenderer", renderer);
-            SetField(processor, "waterLevelTransform", water);
+            var view = root.AddComponent<FluidPipeWaterLevelView>();
+            SetField(view, "meshRenderer", renderer);
+            SetField(view, "waterLevelTransform", water);
 
-            // Start前の受信値を複製後に一度だけ反映する
-            // Apply a pre-Start state once the material has been cloned
-            Send(25);
+            // Start前に届いた水位を複製後に一度だけ反映する
+            // Apply a pre-Start level once the material has been cloned
+            view.SetWaterLevel(0.25f);
             Assert.AreSame(source, renderer.sharedMaterial);
-            typeof(FluidPipeStateChangeProcessor).GetMethod("Start", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(processor, null);
+            typeof(FluidPipeWaterLevelView).GetMethod("Start", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, null);
             Own(renderer.sharedMaterial);
             Assert.AreNotSame(source, renderer.sharedMaterial);
             AssertWater(0.25f);
-            Send(75);
+            view.SetWaterLevel(0.75f);
             AssertWater(0.75f);
             Assert.AreEqual(0.13f, source.GetFloat("_WaterLevel"), 0.00001f);
 
             #region Internal
-
-            void Send(float amount)
-            {
-                var detail = new FluidPipeStateDetail(FluidMaster.EmptyFluidId, amount, 100);
-                var state = new BlockState(new Dictionary<string, byte[]> { [FluidPipeStateDetail.BlockStateDetailKey] = MessagePackSerializer.Serialize(detail) });
-                processor.OnChangeState(new BlockStateMessagePack(state, Vector3Int.zero));
-            }
 
             void AssertWater(float level)
             {

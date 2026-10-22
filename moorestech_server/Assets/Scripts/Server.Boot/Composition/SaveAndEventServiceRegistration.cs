@@ -70,6 +70,7 @@ using Server.Event;
 using Server.Event.EventReceive.Train;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.BeltTransportSync;
+using Server.Event.EventReceive.FluidNetworkSync;
 using Server.Event.Notification;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Boot.Loop.PacketProcessing;
@@ -155,6 +156,8 @@ namespace Server.Boot.Composition
             services.AddSingleton<TrainFullSnapshotEventPacket>();
             services.AddSingleton<BeltTransportTickEventPacket>();
             services.AddSingleton<BeltTransportFullSnapshotEventPacket>();
+            services.AddSingleton<FluidNetworkTickEventPacket>();
+            services.AddSingleton<FluidNetworkFullSnapshotEventPacket>();
             services.AddSingleton<RailNodeRemovedEventPacket>();
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();

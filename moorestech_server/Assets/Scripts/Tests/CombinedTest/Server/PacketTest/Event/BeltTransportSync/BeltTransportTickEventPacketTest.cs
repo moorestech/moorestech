@@ -77,9 +77,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             Assert.Greater(emptyDiffs, 0, "empty diffs are sent");
             Assert.Greater(nonEmptyDiffs, 0, "machine handoffs are sent");
 
-            // 各tickは列車のdiff・ベルト差分・列車のhashの3つ、作り直したtickは全量を足した4つで、欠番も重複も無い
-            // Each tick holds three ids (train diff, belt diff, train hash), a rebuilt tick four with the full state, with no gap or duplicate
-            Assert.AreEqual(TickCount - 1, AssertNoSequenceGaps(sequenceIdsByTick, rebuiltTicks), "fully observed ticks");
+            // 各tickは列車のdiff・ベルト差分・流体差分・列車のhashの4つ。ベルトの設置は流体網も汚すので、作り直したtickは両方の全量を足した6つで、欠番も重複も無い
+            // Each tick holds four ids (train diff, belt diff, fluid diff, train hash); placing a belt also dirties the fluid network, so a rebuilt tick holds six with both full states, with no gap or duplicate
+            Assert.AreEqual(TickCount - 1, AssertNoSequenceGaps(sequenceIdsByTick, rebuiltTicks, 2), "fully observed ticks");
         }
 
         [Test]
@@ -90,12 +90,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var actionQueue = serviceProvider.GetService<ServerThreadActionQueue>();
 
-            // 登録時のpushを捨てずに受け、3件目のベルト全量から複製を組む
-            // Keep the registration push and assemble the replica from the third event, the belt full state
+            // 登録時のpushを捨てずに受け、3件目のベルト全量から複製を組む(4件目は流体の全量)
+            // Keep the registration push and assemble the replica from the third event, the belt full state (the fourth is the fluid full state)
             var sink = new CapturedEventSink();
             serviceProvider.GetService<EventProtocolProvider>().RegisterPlayer(PlayerId, sink);
             var initial = sink.TakeAll();
-            Assert.AreEqual(3, initial.Count, "initial pushes");
+            Assert.AreEqual(4, initial.Count, "initial pushes");
             Assert.AreEqual(BeltTransportFullSnapshotEventPacket.EventTag, initial[2].Tag);
             var snapshot = MessagePackSerializer.Deserialize<BeltTransportFullStateMessagePack>(initial[2].Payload);
             var replica = BeltTransportReplicaAssembler.Assemble(snapshot.ToFullState());
