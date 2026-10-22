@@ -1,0 +1,260 @@
+.fx-root {
+    flex-grow: 1;
+}
+
+.fx-grid {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 12px;
+}
+
+.fx-card {
+    width: 448px;
+    height: 300px;
+    margin: 0 12px 12px 0;
+    padding: 12px;
+    border-radius: 10px;
+    background-color: #242830;
+    border-width: 1px;
+    border-color: #343a44;
+}
+
+.fx-card__header {
+    flex-direction: row;
+    align-items: center;
+}
+
+.fx-card__title {
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #f0f2f4;
+    white-space: normal;
+}
+
+.fx-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+.fx-badge--native {
+    background-color: #2e7d4f;
+    color: #d9ffe8;
+}
+
+.fx-badge--workaround {
+    background-color: #8a6a1c;
+    color: #fff1cc;
+}
+
+.fx-badge--impossible {
+    background-color: #8a2c2c;
+    color: #ffd9d9;
+}
+
+.fx-card__sample {
+    flex-grow: 1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0;
+    border-radius: 8px;
+    background-color: #1b1e23;
+    overflow: hidden;
+}
+
+.fx-card__note {
+    font-size: 12px;
+    color: #9aa3ad;
+    white-space: normal;
+}
+
+.fx-gradient-box {
+    width: 180px;
+    height: 120px;
+    border-radius: 16px;
+}
+
+#hexagon {
+    width: 150px;
+    height: 150px;
+}
+
+.fx-glow {
+    width: 160px;
+    height: 160px;
+    align-items: center;
+    justify-content: center;
+}
+
+.fx-icon {
+    width: 56px;
+    height: 56px;
+    margin: 4px;
+    border-radius: 8px;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.fx-filter--grayscale {
+    filter: grayscale(1);
+}
+
+.fx-filter--hue {
+    filter: hue-rotate(140deg);
+}
+
+.fx-filter--invert {
+    filter: invert(1);
+}
+
+.fx-filter--sepia {
+    filter: sepia(1);
+}
+
+.fx-filter--blur {
+    filter: blur(3px);
+}
+
+.fx-shadow-host {
+    width: 260px;
+    height: 150px;
+    align-items: center;
+    justify-content: center;
+}
+
+.fx-shadow {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    top: 34px;
+    bottom: -18px;
+    -unity-slice-left: 40;
+    -unity-slice-right: 40;
+    -unity-slice-top: 40;
+    -unity-slice-bottom: 40;
+}
+
+.fx-blur-shadow {
+    position: absolute;
+    left: 34px;
+    right: 34px;
+    top: 34px;
+    bottom: 16px;
+    border-radius: 14px;
+    background-color: rgba(0, 0, 0, 0.85);
+    filter: blur(12px);
+}
+
+.fx-floating-card {
+    width: 200px;
+    height: 100px;
+    border-radius: 14px;
+    background-color: #f4f1ea;
+    color: #2a2a2a;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.fx-backdrop-host {
+    flex-direction: row;
+    width: 400px;
+    height: 150px;
+    align-items: center;
+    justify-content: center;
+}
+
+.fx-glass {
+    position: absolute;
+    left: 90px;
+    top: 30px;
+    width: 220px;
+    height: 90px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.18);
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.4);
+    color: #fff;
+    -unity-text-align: middle-center;
+    filter: blur(4px);
+}
+
+#dashed {
+    width: 300px;
+    height: 120px;
+}
+
+#ring {
+    width: 150px;
+    height: 150px;
+}
+
+.fx-glow-text {
+    font-size: 40px;
+    -unity-font-style: bold;
+    color: #ffe9b0;
+    text-shadow: 0 0 12px rgba(255, 170, 40, 1);
+}
+
+.fx-outline-text {
+    margin-left: 18px;
+    font-size: 32px;
+    -unity-font-style: bold;
+    color: #ffffff;
+    -unity-text-outline-width: 0.3px;
+    -unity-text-outline-color: #3c6fb0;
+}
+
+.fx-stripe {
+    width: 360px;
+    padding: 6px 10px;
+    color: #d6dae0;
+}
+
+.fx-stripe--even {
+    background-color: #2c313a;
+}
+
+.fx-stack {
+    width: 360px;
+    height: 160px;
+}
+
+.fx-stack__card {
+    position: absolute;
+    width: 200px;
+    height: 90px;
+    padding: 8px;
+    border-radius: 10px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    -unity-font-style: bold;
+}
+
+.fx-stack__card--0 {
+    left: 10px;
+    top: 10px;
+    background-color: #b0473c;
+}
+
+.fx-stack__card--1 {
+    left: 80px;
+    top: 40px;
+    background-color: #3c7bb0;
+}
+
+.fx-stack__card--2 {
+    left: 150px;
+    top: 66px;
+    background-color: #3cb07a;
+}
+
+#radial {
+    width: 180px;
+    height: 120px;
+    margin-left: 12px;
+}

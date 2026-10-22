@@ -29,7 +29,8 @@ namespace Client.UitkPoc
             // FontDefinition.FromFont(Font)はビットマップ描画になり拡大で崩れるため、SDFの動的フォントアセットを作る
             // FromFont(Font) renders bitmap glyphs that break when scaled, so build a dynamic SDF font asset
             var sdfFont = FontAsset.CreateFontAsset(japaneseFont, 90, 9, GlyphRenderMode.SDFAA, 2048, 2048, AtlasPopulationMode.Dynamic, true);
-            var context = new UitkPocContext(sdfFont, modDirectory);
+            var context = new UitkPocContext(sdfFont, japaneseFont, modDirectory);
+            ApplyItemIconSprites(context);
             var demos = new List<IUitkPocDemo>
             {
                 new RecipeGraphDemo(context),
@@ -50,6 +51,17 @@ namespace Client.UitkPoc
             _shell = new UitkPocShell(demos);
             root.Add(_shell.Root);
             _shell.Show(demos[0]);
+        }
+
+        private void ApplyItemIconSprites(UitkPocContext context)
+        {
+            // <sprite name="アイテム名">はパネルのテキスト設定の既定SpriteAssetから引かれるため、複製したPanelSettingsへ差し込む
+            // <sprite name="item"> resolves from the panel's default SpriteAsset, so inject it into a cloned PanelSettings
+            var textSettings = ScriptableObject.CreateInstance<PanelTextSettings>();
+            textSettings.defaultSpriteAsset = ItemIconSpriteAssetLoader.LoadAllItems(context);
+            var panelSettings = Instantiate(uiDocument.panelSettings);
+            panelSettings.textSettings = textSettings;
+            uiDocument.panelSettings = panelSettings;
         }
 
         private void Update()

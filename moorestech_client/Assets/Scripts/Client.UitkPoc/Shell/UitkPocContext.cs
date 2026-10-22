@@ -10,12 +10,14 @@ namespace Client.UitkPoc.Shell
     public class UitkPocContext
     {
         public readonly FontAsset JapaneseFont;
+        public readonly Font JapaneseSourceFont;
         public readonly string ModDirectory;
         private readonly Dictionary<string, Texture2D> _iconCache = new();
 
-        public UitkPocContext(FontAsset japaneseFont, string modDirectory)
+        public UitkPocContext(FontAsset japaneseFont, Font japaneseSourceFont, string modDirectory)
         {
             JapaneseFont = japaneseFont;
+            JapaneseSourceFont = japaneseSourceFont;
             ModDirectory = modDirectory;
         }
 

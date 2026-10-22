@@ -21,10 +21,6 @@
     border-bottom-color: #4a494a;
 }
 
-.pc-meter:last-child {
-    margin-right: 0;
-}
-
 .pc-meter #title {
     color: #ffe6c0;
     -unity-font-style: bold;
@@ -113,10 +109,6 @@
     border-width: 1px;
     border-color: #111;
     border-bottom-color: #4a494a;
-}
-
-.pc-panel:last-child {
-    margin-right: 0;
 }
 
 .pc-panel__header {

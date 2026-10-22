@@ -1,0 +1,152 @@
+.tx-root {
+    flex-grow: 1;
+    flex-direction: row;
+    padding: 12px;
+}
+
+.tx-column {
+    flex-grow: 1;
+    flex-basis: 0;
+    margin-right: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    background-color: #242830;
+}
+
+.tx-column__title {
+    margin-bottom: 10px;
+    -unity-font-style: bold;
+    color: #f2a640;
+}
+
+.md-root Label {
+    color: #d6dae0;
+    white-space: normal;
+    font-size: 16px;
+}
+
+.md-root .md-h1 {
+    font-size: 28px;
+    -unity-font-style: bold;
+    margin: 4px 0 8px 0;
+    color: #ffffff;
+}
+
+.md-root .md-h2 {
+    font-size: 20px;
+    -unity-font-style: bold;
+    margin: 12px 0 6px 0;
+    padding-bottom: 4px;
+    border-bottom-width: 1px;
+    border-color: #3a404a;
+    color: #ffffff;
+}
+
+.md-p {
+    margin-bottom: 8px;
+}
+
+.md-li {
+    flex-direction: row;
+    margin: 2px 0 2px 8px;
+}
+
+.md-li__marker {
+    min-width: 26px;
+    color: #f2a640;
+}
+
+.md-li__body {
+    flex-shrink: 1;
+    flex-grow: 1;
+}
+
+.md-root .md-quote {
+    margin: 8px 0;
+    padding: 6px 10px;
+    border-left-width: 4px;
+    border-color: #f2a640;
+    background-color: rgba(242, 166, 64, 0.08);
+}
+
+.md-rule {
+    height: 1px;
+    margin: 10px 0;
+    background-color: #3a404a;
+}
+
+.md-root .md-code {
+    padding: 8px 10px;
+    border-radius: 6px;
+    background-color: #15171b;
+    color: #9cdcfe;
+}
+
+.md-link-hover {
+    background-color: rgba(108, 182, 255, 0.06);
+}
+
+.tx-link-popup {
+    position: absolute;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: #f4f1ea;
+    color: #222;
+    font-size: 15px;
+}
+
+.tx-font-panel__caption {
+    margin-top: 10px;
+    -unity-font-style: bold;
+    color: #9aa3ad;
+}
+
+.tx-font-panel__sample {
+    color: #e8eaed;
+    padding: 1px 0;
+}
+
+.tx-search-results {
+    margin: 6px 0 12px 0;
+    min-height: 200px;
+}
+
+.tx-search-results Label {
+    padding: 3px 6px;
+    font-size: 16px;
+    color: #d6dae0;
+}
+
+.tx-multiline {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.tx-multiline .unity-text-field__input {
+    height: 90px;
+    -unity-text-align: upper-left;
+    white-space: normal;
+}
+
+.tx-note {
+    margin-top: 12px;
+    font-size: 12px;
+    color: #9aa3ad;
+}
+
+.tx-ellipsis-single {
+    width: 320px;
+    color: #e8eaed;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tx-ellipsis-multi {
+    width: 320px;
+    height: 66px;
+    color: #e8eaed;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
