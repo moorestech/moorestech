@@ -22,8 +22,9 @@ Accepted
   棄却案: 毎tick通知だけ止め、BlockStateは初回pullと手動取得用に残す
 - **クライアントの全ワールド取得ポーリング（`WorldDataHandler.UpdateWorldData`、毎秒10回）を廃止する。** 初回ハンドシェイクの全量適用と、設置・撤去イベントの購読はそのまま。
   出所: ユーザー裁定 2026-10-22 質問「この1PRに何を入れますか？」→ 選択「#20＋ポーリング廃止＋パイプtick差分」。前段の原文「クライアントが全ブロック情報を毎秒10回取り直している って必要なのかね？」
-- **セーブ時に破壊予約が空であることを tick 順の保険として確かめる（やり残し #20）。** 予約が残っていればエラーログを出す（セーブは続行）。
-  出所: ユーザー裁定 2026-10-22（同上の選択）。元の記載は E:\Dropbox\morr\yarubeki.txt #20
+- **やり残し #20（セーブ時に破壊予約が空であること）は既存テストで担保し、本番コードへ確認ロジックは入れない。** `BlockRemovalReservationTest.tick進行で予約破壊がtick末尾に確定する` が「予約→1tick→ブロック消滅」を見ており、これがセーブ地点より前に予約が使い切られる証明になる。
+  出所: ユーザー裁定 2026-10-22 PR範囲の選択で #20 を含めた後、2026-10-23 原文「これは過剰では？あまりそのためだけによごしたくない」で `MasterTickUpdater` のセーブ前確認（`HasPendingRemovals` とエラーログ）を取り下げ
+  棄却案: `IBlockRemovalReservationService.HasPendingRemovals` を足し `MasterTickUpdater` がセーブ前にエラーログで知らせる（一度も鳴らない前提の確認のために依存と分岐を増やす）
 - **#21（破壊予約の内部化）と #19（train系の省略可能引数の削除）はこのPRに含めない。**
   出所: ユーザー裁定 2026-10-22（同上の選択）
   棄却案: #21 も束ねる／#21・#19 も束ねる
@@ -42,11 +43,10 @@ Accepted
 - Server.Event/EventReceive/FluidNetworkSync: `FluidNetworkTickEventPacket`（差分・再構築全量）・`FluidNetworkFullSnapshotEventPacket`（登録時push）。`TrainUnitTickDiffBundleEventPacket` に流体ハッシュ。
 - Client.Game/InGame/FluidNetwork: `FluidNetworkClientCache`、`Network/FluidNetworkEventNetworkHandler` と2つの buffered event、`View/FluidPipeWaterLevelPresenter`。`TrainUnitHashVerifier`・`TrainUnitFutureMessageBuffer`・診断に流体ハッシュ。`FluidPipeStateChangeProcessor` は水位の表示だけを持つ `FluidPipeWaterLevelView` へ。
 - Client.Game/InGame/World: `WorldDataHandler` からポーリングを削除。
-- Game.World.Interface: `IBlockRemovalReservationService.HasPendingRemovals`。`MasterTickUpdater` がセーブ前に確認。
 
 ## Verification
 - サーバー: 差分が毎tick1件・連番に欠番なし、再構築tickは差分の後・ハッシュの前に全量。イベントだけで進めた複製がサーバーの全量・ハッシュと一致（ポンプ→パイプ→機械の流れ、パイプの追加で再構築）。
 - クライアント: 受信口→順序待ちキュー→複製→検証器の一式で列車束の流体ハッシュを通す。複製の食い違いで恒久停止。水位表示が複製の値を反映。WebUI のパイプ詳細が複製から埋まる。
 - 既存のベルト同期テストの連番数・登録push数を4系統へ更新。流体の既存テスト（FluidTest 等）が通る。
-- 破壊予約: 1tick進めた後に予約が空。
+- 破壊予約: 既存の `BlockRemovalReservationTest`（1tick進めた後にブロックが消えている）をそのまま #20 の担保とする。
 - ポーリング: `WorldDataHandler` に周期取得が無い（コンパイルと既存テスト）。
