@@ -1,0 +1,17 @@
+using Unity.Profiling;
+using UnityEditorInternal;
+var marker = Client.Network.API.EventDispatchProfilerMarkers.RouteEvent;
+const int N = 200000;
+var sb = new System.Text.StringBuilder();
+System.Func<double> run = () => { var sw = System.Diagnostics.Stopwatch.StartNew(); for (int i = 0; i < N; i++) { using (marker.Auto()) { } } return sw.Elapsed.TotalMilliseconds * 1e6 / N; };
+System.Func<double> baseline = () => { var sw = System.Diagnostics.Stopwatch.StartNew(); int x = 0; for (int i = 0; i < N; i++) { x++; } return sw.Elapsed.TotalMilliseconds * 1e6 / N; };
+var processor = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.BlockSystem.StateProcessor.FluidPipeStateChangeProcessor>(UnityEngine.FindObjectsInactive.Include);
+System.Func<double> lookup = () => { var sw = System.Diagnostics.Stopwatch.StartNew(); for (int i = 0; i < N; i++) { Client.Game.InGame.Block.BlockStateProfilerMarkers.ForProcessor(processor); } return sw.Elapsed.TotalMilliseconds * 1e6 / N; };
+ProfilerDriver.enabled = false; run(); 
+sb.AppendLine("baseline loop ns=" + baseline().ToString("F1"));
+sb.AppendLine("profiler OFF  marker pair ns=" + run().ToString("F1"));
+sb.AppendLine("ForProcessor lookup ns=" + (processor != null ? lookup().ToString("F1") : "n/a"));
+ProfilerDriver.profileEditor = true; ProfilerDriver.enabled = true; run();
+sb.AppendLine("profiler ON   marker pair ns=" + run().ToString("F1"));
+ProfilerDriver.enabled = false; ProfilerDriver.profileEditor = false; ProfilerDriver.ClearAllFrames();
+return sb.ToString();

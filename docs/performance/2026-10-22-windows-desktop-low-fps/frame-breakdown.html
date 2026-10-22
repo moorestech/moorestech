@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>メインスレッド内訳</title>
+<style>
+:root {
+  color-scheme: light;
+  --surface-0: #f4f3f0;
+  --surface-1: #fcfcfb;
+  --border: #e2e0da;
+  --grid: #ebe9e4;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #85837d;
+  --s-deser: #2a78d6;
+  --s-world: #eb6834;
+  --s-proc: #1baf7a;
+  --s-route: #eda100;
+  --s-loop: #6250d6;
+  --s-other: #c9c7c0;
+  --s-other-2: #b0aea6;
+  --budget: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface-0: #121211;
+    --surface-1: #1a1a19;
+    --border: #2e2e2c;
+    --grid: #262624;
+    --text-primary: #f0efec;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8f8e86;
+    --s-deser: #3987e5;
+    --s-world: #d95926;
+    --s-proc: #199e70;
+    --s-route: #c98500;
+    --s-loop: #9085e9;
+    --s-other: #4a4945;
+    --s-other-2: #5e5d58;
+    --budget: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-0: #121211; --surface-1: #1a1a19; --border: #2e2e2c; --grid: #262624;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8f8e86;
+  --s-deser: #3987e5; --s-world: #d95926; --s-proc: #199e70; --s-route: #c98500; --s-loop: #9085e9;
+  --s-other: #4a4945; --s-other-2: #5e5d58; --budget: #e66767;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--surface-0); color: var(--text-primary);
+  font-family: "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.5;
+}
+main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.sub { color: var(--text-secondary); margin: 0 0 24px; font-size: 13px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+.tile .v { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tile .l { color: var(--text-secondary); font-size: 12px; }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 12px; padding: 20px 20px 16px; margin-bottom: 20px; }
+.card h2 { font-size: 16px; margin: 0 0 2px; }
+.card .note { color: var(--text-secondary); font-size: 12px; margin: 0 0 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 8px; font-size: 12px; color: var(--text-secondary); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+svg { display: block; width: 100%; height: auto; overflow: visible; }
+svg text { font-family: inherit; }
+.mark { cursor: default; }
+.mark:hover { filter: brightness(1.08); }
+#tip {
+  position: fixed; pointer-events: none; opacity: 0; transition: opacity .08s;
+  background: var(--surface-1); color: var(--text-primary); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 280px;
+}
+#tip b { display: block; font-size: 13px; }
+#tip .m { color: var(--text-secondary); }
+details { margin-top: 8px; }
+summary { cursor: pointer; color: var(--text-secondary); font-size: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; margin-top: 8px; }
+th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--grid); }
+td.n { text-align: right; font-variant-numeric: tabular-nums; }
+.foot { color: var(--text-muted); font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>メインスレッドの内訳（1フレーム平均）</h1>
+  <p class="sub">windows-desktop・Unity Editor PlayMode・定常状態24フレーム・ProfilerMarker 実測（ブランチ perf/event-dispatch-profiler-markers）</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="v">141.7ms</div><div class="l">PlayerLoop／フレーム（60fps予算 16.7ms の約8.5倍）</div></div>
+    <div class="tile"><div class="v">78%</div><div class="l">受信パケット処理が占める割合（110.3ms）</div></div>
+    <div class="tile"><div class="v">61%</div><div class="l">受信処理のうちデシリアライズ（1件で4回）</div></div>
+    <div class="tile"><div class="v">3,296件</div><div class="l">1フレームの受信イベント数（92% が液体パイプ）</div></div>
+  </div>
+
+  <section class="card">
+    <h2>① フレーム全体：何に 141.7ms 使っているか</h2>
+    <p class="note">赤い線が 60fps の1フレーム予算（16.7ms）。色付き部分が受信パケット処理。</p>
+    <div class="legend" id="legend1"></div>
+    <svg id="chart1" viewBox="0 0 1000 130" role="img" aria-label="フレーム全体の内訳の積み上げ棒"></svg>
+  </section>
+
+  <section class="card">
+    <h2>② 受信パケット処理 110.3ms の内訳</h2>
+    <p class="note">色は観点（デシリアライズ／定期取得／プロセッサ本体／配送／ループ）。</p>
+    <div class="legend" id="legend2"></div>
+    <svg id="chart2" role="img" aria-label="受信パケット処理の内訳の横棒"></svg>
+    <details>
+      <summary>表で見る</summary>
+      <table id="table2"><thead><tr><th>処理</th><th>観点</th><th>ms/フレーム</th><th>受信処理比</th></tr></thead><tbody></tbody></table>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>③ 観点別の合計</h2>
+    <p class="note">受信パケット処理 110.3ms を観点ごとに合算。</p>
+    <svg id="chart3" role="img" aria-label="観点別合計の横棒"></svg>
+  </section>
+
+  <p class="foot">EditorLoop（13.8ms）は PlayerLoop の外にある Editor 専用負荷のため①に含めていない。液体パイプの寄与は受信処理の約73%（約80ms）と推測（件数比按分）。</p>
+</main>
+<div id="tip"></div>
+<script>
+const CAT = {
+  deser: { name: "デシリアライズ", c: "--s-deser" },
+  world: { name: "ワールドデータ定期取得", c: "--s-world" },
+  proc:  { name: "プロセッサ本体", c: "--s-proc" },
+  route: { name: "イベント配送", c: "--s-route" },
+  loop:  { name: "受信ループ自体", c: "--s-loop" },
+};
+const RECV = 110.3;
+const detail = [
+  { label: "BlockState のデシリアライズ", ms: 27.3, cat: "deser", desc: "BlockGameObject の購読ラムダ内 BlockStateMessagePack" },
+  { label: "外側デシリアライズ②（EventStream）", ms: 18.0, cat: "deser", desc: "PacketExchangeManager.DispatchPacket" },
+  { label: "外側デシリアライズ①（ProtocolBase）", ms: 15.8, cat: "deser", desc: "PacketExchangeManager.DispatchPacket" },
+  { label: "ワールドデータ定期取得（応答処理）", ms: 15.5, cat: "world", desc: "WorldDataHandler.UpdateWorldData：約2.5フレームに1回・1回約30ms" },
+  { label: "イベント配送（Subject・辞書引き等）", ms: 10.5, cat: "route", desc: "RouteEvent の self 時間" },
+  { label: "パイプ：水位の反映", ms: 7.5, cat: "proc", desc: "FluidPipe.ApplyWaterLevel（Transform 更新と SetFloat）" },
+  { label: "パイプ：状態の再デシリアライズ", ms: 6.4, cat: "deser", desc: "FluidPipe.GetStateDetail" },
+  { label: "その他のプロセッサ", ms: 3.5, cat: "proc", desc: "機械・歯車・ベルト・蒸気エンジン" },
+  { label: "電線のプロセッサ", ms: 3.1, cat: "proc", desc: "ElectricWireStateChangeProcessor" },
+  { label: "受信ループ自体", ms: 1.7, cat: "loop", desc: "DispatchReceivedPackets の self 時間" },
+  { label: "パイプ：その他", ms: 1.0, cat: "proc", desc: "FluidPipe プロセッサの self 時間" },
+];
+const frame = [
+  { label: "デシリアライズ", ms: 67.5, color: "--s-deser" },
+  { label: "ワールドデータ定期取得", ms: 15.5, color: "--s-world" },
+  { label: "プロセッサ本体", ms: 15.1, color: "--s-proc" },
+  { label: "イベント配送", ms: 10.5, color: "--s-route" },
+  { label: "受信ループ自体", ms: 1.7, color: "--s-loop" },
+  { label: "描画（カメラ）", ms: 10.8, color: "--s-other-2", recv: false },
+  { label: "その他（物理・Gear Update・Skinned 等）", ms: 20.6, color: "--s-other", recv: false },
+];
+
+const NS = "http://www.w3.org/2000/svg";
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const tip = document.getElementById("tip");
+function bindTip(node, html) {
+  node.addEventListener("mousemove", ev => {
+    tip.innerHTML = html; tip.style.opacity = 1;
+    const x = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8);
+    tip.style.left = x + "px"; tip.style.top = (ev.clientY + 14) + "px";
+  });
+  node.addEventListener("mouseleave", () => tip.style.opacity = 0);
+}
+function legend(id, items) {
+  document.getElementById(id).innerHTML = items.map(i => `<span><i style="background:var(${i.c})"></i>${i.name}</span>`).join("");
+}
+
+function drawChart1() {
+  const svg = document.getElementById("chart1"); svg.innerHTML = "";
+  const L = 10, W = 980, total = frame.reduce((a, b) => a + b.ms, 0), sx = W / total;
+  const y = 34, h = 44;
+  let x = L;
+  frame.forEach((s, i) => {
+    const w = s.ms * sx;
+    const r = el("rect", { x: x + (i ? 1 : 0), y, width: Math.max(w - (i ? 2 : 1), 1), height: h, rx: 4, fill: `var(${s.color})`, class: "mark" }, svg);
+    bindTip(r, `<b>${s.label}</b>${s.ms.toFixed(1)} ms <span class="m">（フレームの ${(s.ms / total * 100).toFixed(0)}%）</span>`);
+    if (w > 46) el("text", { x: x + w / 2, y: y + h / 2 + 5, "text-anchor": "middle", "font-size": 12, "font-weight": 600, fill: s.recv === false ? css("--text-primary") : "#fff" }, svg).textContent = s.ms.toFixed(1);
+    x += w;
+  });
+  // 受信処理の範囲ブラケット
+  const recvW = RECV * sx;
+  el("path", { d: `M${L} 26 V20 H${L + recvW} V26`, fill: "none", stroke: css("--text-secondary"), "stroke-width": 1.2 }, svg);
+  el("text", { x: L + recvW / 2, y: 14, "text-anchor": "middle", "font-size": 12, fill: css("--text-secondary") }, svg).textContent = `受信パケット処理 110.3ms（78%）`;
+  // 60fps 予算線
+  const bx = L + 16.7 * sx;
+  el("line", { x1: bx, x2: bx, y1: y - 6, y2: y + h + 10, stroke: css("--budget"), "stroke-width": 2, "stroke-dasharray": "4 3" }, svg);
+  el("text", { x: bx + 4, y: y + h + 22, "font-size": 11, fill: css("--text-secondary") }, svg).textContent = "60fps 予算 16.7ms";
+  // 目盛り
+  [0, 25, 50, 75, 100, 125].forEach(t => {
+    const tx = L + t * sx;
+    el("text", { x: tx, y: 124, "text-anchor": "middle", "font-size": 11, fill: css("--text-muted") }, svg).textContent = t + "ms";
+  });
+  el("text", { x: L + W, y: 124, "text-anchor": "end", "font-size": 11, fill: css("--text-muted") }, svg).textContent = total.toFixed(1) + "ms";
+}
+
+function hbar(svgId, rows, opts) {
+  const svg = document.getElementById(svgId); svg.innerHTML = "";
+  const rowH = 30, labelW = opts.labelW, W = 1000, plotW = W - labelW - 70, top = 6;
+  const H = top + rows.length * rowH + 26;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const max = opts.max, sx = plotW / max;
+  for (let t = 0; t <= max; t += opts.step) {
+    const gx = labelW + t * sx;
+    el("line", { x1: gx, x2: gx, y1: top, y2: top + rows.length * rowH, stroke: css("--grid"), "stroke-width": 1 }, svg);
+    el("text", { x: gx, y: H - 6, "text-anchor": "middle", "font-size": 11, fill: css("--text-muted") }, svg).textContent = t + "ms";
+  }
+  rows.forEach((r, i) => {
+    const y = top + i * rowH, bh = 18, by = y + (rowH - bh) / 2;
+    el("text", { x: labelW - 10, y: by + bh / 2 + 4, "text-anchor": "end", "font-size": 12.5, fill: css("--text-primary") }, svg).textContent = r.label;
+    const w = Math.max(r.ms * sx, 2);
+    const hit = el("rect", { x: labelW, y, width: plotW, height: rowH, fill: "transparent", class: "mark" }, svg);
+    const bar = el("rect", { x: labelW, y: by, width: w, height: bh, rx: 4, fill: `var(${CAT[r.cat].c})`, class: "mark" }, svg);
+    el("rect", { x: labelW, y: by, width: Math.min(4, w), height: bh, fill: `var(${CAT[r.cat].c})` }, svg);
+    el("text", { x: labelW + w + 6, y: by + bh / 2 + 4, "font-size": 12, "font-weight": 600, fill: css("--text-primary") }, svg).textContent = `${r.ms.toFixed(1)}ms`;
+    el("text", { x: labelW + w + 64, y: by + bh / 2 + 4, "font-size": 11.5, fill: css("--text-muted") }, svg).textContent = `${(r.ms / RECV * 100).toFixed(0)}%`;
+    const html = `<b>${r.label}</b>${r.ms.toFixed(1)} ms／フレーム <span class="m">（受信処理の ${(r.ms / RECV * 100).toFixed(0)}%）</span>${r.desc ? `<div class="m">${r.desc}</div>` : ""}`;
+    bindTip(hit, html); bindTip(bar, html);
+  });
+}
+
+function drawAll() {
+  legend("legend1", [...Object.values(CAT).map(c => ({ name: c.name, c: c.c })), { name: "描画（カメラ）", c: "--s-other-2" }, { name: "その他", c: "--s-other" }]);
+  legend("legend2", Object.values(CAT));
+  drawChart1();
+  hbar("chart2", detail, { labelW: 290, max: 30, step: 5 });
+  const sums = Object.keys(CAT).map(k => ({ label: CAT[k].name, cat: k, ms: +detail.filter(d => d.cat === k).reduce((a, b) => a + b.ms, 0).toFixed(1) }));
+  hbar("chart3", sums, { labelW: 200, max: 70, step: 10 });
+  document.querySelector("#table2 tbody").innerHTML = detail.map(d => `<tr><td>${d.label}</td><td>${CAT[d.cat].name}</td><td class="n">${d.ms.toFixed(1)}</td><td class="n">${(d.ms / RECV * 100).toFixed(0)}%</td></tr>`).join("");
+}
+drawAll();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+</script>
+</body>
+</html>
