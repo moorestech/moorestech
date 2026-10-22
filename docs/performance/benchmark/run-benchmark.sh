@@ -57,11 +57,12 @@ COMMIT="$(remote "git -C $REPO rev-parse HEAD" | tr -d '\r')"
 BRANCH="$(remote "git -C $REPO rev-parse --abbrev-ref HEAD" | tr -d '\r')"
 DIRTY="$(remote "git -C $REPO status --porcelain --untracked-files=no" | tr -d '\r' | sed '/^$/d' | wc -l | tr -d ' ')"
 
+# 前回の PlayMode が残っているとサーバーが作業用フォルダを掴んだままで消せないので、先に止める
+remote "uloop control-play-mode --action Stop --project-path $PROJECT" >/dev/null 2>&1 || true
 echo "[bench] ベースラインワールド $BASELINE を作業用フォルダへ複製"
 BASE_HASH="$(remote "\$b='C:\\moorestech-perf\\baselines\\$BASELINE'; if (-not (Test-Path \"\$b\\save.json\")) { Write-Error 'baseline not found'; exit 1 }; \$w='C:\\moorestech-perf\\work\\current'; if (Test-Path \$w) { Remove-Item \$w -Recurse -Force }; New-Item -ItemType Directory -Force -Path \$w | Out-Null; Copy-Item \"\$b\\*\" \$w -Force; (Get-FileHash \"\$b\\save.json\" -Algorithm SHA256).Hash" | tr -d '\r')"
 
 echo "[bench] PlayMode 開始"
-remote "uloop control-play-mode --action Stop --project-path $PROJECT" >/dev/null 2>&1 || true
 remote "uloop control-play-mode --action Play --project-path $PROJECT" >/dev/null
 # タイトル画面の準備が済むまで数秒おきに開始を試みる
 for _ in $(seq 1 30); do
