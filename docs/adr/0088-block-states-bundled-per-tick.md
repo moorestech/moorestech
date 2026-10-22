@@ -16,7 +16,7 @@ windows-desktop の計測（docs/performance/2026-10-22-windows-desktop-low-fps/
 - 完了基準：テストが通り、固定ベンチマークを変更の前後で回して `docs/performance/benchmark/results/` と README の結果一覧に残すこと。数値目標は置かない。出所: ユーザー裁定 2026-10-22 選択「前後を計測して記録する」
 - 前回と同じ中身なら送らない判定（`_lastBroadcastPayloads`）は、溜める前に行う。`RequestBlockState`（初期状態の問い合わせ）の応答は判定をせずに強制で溜め、同じtickの束に載せる。出所: agent前提（既存の ChangeState / ForceChangeState の契約を維持）
 - 撤去・設置のときは、その座標に溜めた分も捨てる。同じtickに撤去→再設置しても、古いブロックの状態が新しいブロックに届かない。出所: agent前提（既存の OnBlockRemove / OnBlockPlace による差分記録の掃除と同じ理由）
-- クライアントで座標に該当するブロックが無い件（撤去直後など）は読み飛ばす。束の各件の処理中に例外が出ても、他のブロックへの配送は続ける（今の購読ラムダの try-catch とログを1件ごとに維持する）。出所: agent前提（現行の BlockGameObject 購読の挙動を維持）
+- クライアントで座標に該当するブロックが無い件（撤去直後など）は読み飛ばす。状態プロセッサの例外は1プロセッサごとに隔離し、他のプロセッサ・他のブロックへの配送は続ける（今の購読ラムダの try-catch とログを維持する）。ブロックの状態変化通知（`OnBlockStateChanged`）の購読者は例外を投げない前提とする。出所: agent前提（現行の BlockGameObject 購読の挙動を維持）
 - 送り口は `MasterTickUpdater` の tick末尾から明示的に呼ぶ（購読順に頼らない）。出所: agent前提（MasterTickUpdater が1tickの全順序を1ファイルで明示する方針。ADR 0087）
 - セーブ形式は変わらない。バグ報告のリプレイが記録するのはクライアントからの受信パケットだけなので、リプレイにも影響しない。出所: agent前提（ReplayRecordedPacketEntry のコード確認）
 
