@@ -1,0 +1,250 @@
+.rg-root {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.rg-graph-area {
+    flex-grow: 1;
+}
+
+.rg-viewport {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    background-color: #1a1c20;
+    background-image: none;
+}
+
+.rg-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.rg-toolbar {
+    position: absolute;
+    left: 12px;
+    top: 12px;
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: rgba(20, 22, 26, 0.88);
+    border-width: 1px;
+    border-color: #3d434d;
+}
+
+.rg-toolbar > * {
+    margin-right: 8px;
+}
+
+.rg-toolbar .unity-base-field__label {
+    min-width: 0;
+    padding-right: 6px;
+    color: #9aa3ad;
+}
+
+.rg-toolbar .unity-slider {
+    width: 220px;
+}
+
+.rg-toolbar DropdownField {
+    width: 220px;
+}
+
+/* ノードカード / node card */
+.rg-node {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background-color: #2a2f37;
+    border-width: 1px;
+    border-left-width: 4px;
+    border-color: #454c57;
+    border-left-color: #f2a640;
+    transition-property: opacity, border-color, background-color, scale;
+    transition-duration: 0.18s, 0.18s, 0.18s, 0.25s;
+    transition-timing-function: ease-out;
+}
+
+.rg-node:hover {
+    background-color: #323843;
+    border-color: #f2a640;
+}
+
+.rg-node--raw {
+    border-left-color: #8fbf5a;
+}
+
+.rg-node--fluid {
+    border-left-color: #4fa3ff;
+    background-color: #24303d;
+}
+
+.rg-node--dim {
+    opacity: 0.22;
+}
+
+.rg-node--entering {
+    opacity: 0;
+    scale: 0.8 0.8;
+}
+
+.rg-node--leaving {
+    opacity: 0;
+    scale: 0.8 0.8;
+}
+
+.rg-node__top {
+    flex-direction: row;
+    align-items: center;
+}
+
+.rg-node__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background-color: #1d2127;
+    -unity-background-scale-mode: scale-to-fit;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.rg-node__title-column {
+    margin-left: 8px;
+    flex-shrink: 1;
+}
+
+.rg-node__title {
+    font-size: 15px;
+    -unity-font-style: bold;
+    color: #f0f2f4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rg-node__rate {
+    font-size: 13px;
+    color: #f2c27a;
+}
+
+.rg-node__bottom {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.rg-node__machine {
+    flex-grow: 1;
+    flex-shrink: 1;
+    font-size: 12px;
+    color: #9aa3ad;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rg-node__count {
+    padding: 1px 6px;
+    border-radius: 9px;
+    background-color: #f2a640;
+    color: #1b1d22;
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+.rg-node__alt {
+    margin-left: 4px;
+    padding: 1px 6px;
+    border-radius: 9px;
+    background-color: #3c6fb0;
+    color: #e6f0ff;
+    font-size: 12px;
+}
+
+.rg-node__alt:hover {
+    background-color: #5a8fd6;
+}
+
+/* 辺ラベル / edge label */
+.rg-edge-label {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-left: -60px;
+    margin-top: -11px;
+    width: 120px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border-left-width: 3px;
+    background-color: rgba(16, 18, 22, 0.85);
+    color: #d6dae0;
+    font-size: 11px;
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition-property: opacity;
+    transition-duration: 0.18s;
+}
+
+.rg-edge-label--dim {
+    opacity: 0.1;
+}
+
+/* 集計パネル / summary panel */
+.rg-summary {
+    width: 300px;
+    background-color: #20242a;
+    border-left-width: 1px;
+    border-left-color: #3d434d;
+    padding: 10px;
+}
+
+.rg-summary__heading {
+    margin: 10px 0 4px 0;
+    color: #f2a640;
+    -unity-font-style: bold;
+}
+
+.rg-summary__row {
+    flex-direction: row;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom-width: 1px;
+    border-bottom-color: #2c3138;
+}
+
+.rg-summary__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background-color: #2a2f37;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.rg-summary__name-column {
+    flex-grow: 1;
+    margin-left: 8px;
+}
+
+.rg-summary__note {
+    font-size: 11px;
+    color: #8a929c;
+}
+
+.rg-summary__value {
+    color: #f2c27a;
+    -unity-font-style: bold;
+}
+
+.rg-canvas--far .rg-edge-label {
+    display: none;
+}

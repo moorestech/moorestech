@@ -1,0 +1,23 @@
+{
+    "name": "Client.UitkPoc",
+    "rootNamespace": "",
+    "references": [
+        "Client.Common",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "UniRx"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_EDITOR"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
