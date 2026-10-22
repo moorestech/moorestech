@@ -31,13 +31,13 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
         
         public void OnChangeState(BlockStateMessagePack blockState)
         {
-            _currentFluidPipeState = blockState.GetStateDetail<FluidPipeStateDetail>(FluidPipeStateDetail.BlockStateDetailKey);
+            using (BlockStateProfilerMarkers.FluidPipeGetStateDetail.Auto()) _currentFluidPipeState = blockState.GetStateDetail<FluidPipeStateDetail>(FluidPipeStateDetail.BlockStateDetailKey);
             
             // 共有マテリアルを書き換えないよう複製前は反映をStartへ任せる
             // Leave the update to Start until the material is cloned so the shared material is never written
             // silent-ok: 複製前の状態はStartのApplyCurrentWaterLevelが必ず反映する / 録画テストの水位表示で気づく
             if (_waterLevelMaterial == null) return;
-            ApplyCurrentWaterLevel();
+            using (BlockStateProfilerMarkers.FluidPipeApplyWaterLevel.Auto()) ApplyCurrentWaterLevel();
         }
         
         private void ApplyCurrentWaterLevel()
