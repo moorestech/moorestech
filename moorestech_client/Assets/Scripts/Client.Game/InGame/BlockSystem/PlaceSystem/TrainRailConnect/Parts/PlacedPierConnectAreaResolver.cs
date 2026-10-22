@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.RailGraph;
 using Cysharp.Threading.Tasks;
@@ -12,24 +13,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.Parts
     /// </summary>
     public static class PlacedPierConnectAreaResolver
     {
-        // 橋脚の生成とノード到着を待つ上限秒数
-        // Timeout seconds for waiting the pier block spawn and its node arrival
-        private const float PierSpawnWaitSeconds = 1f;
+        // 待ちがこの秒数を超えたら一度だけ警告する（待ち自体は打ち切らない）
+        // Warn once when the wait exceeds this many seconds (the wait itself is never cut off)
+        private const float SlowResolveWarningSeconds = 1f;
 
-        // 解決できなければnullを返す。呼び出し元は接続元を更新しない（前回の接続元がそのまま残る）
-        // Returns null when unresolved; the caller then leaves the origin untouched, so the previous origin stays as it was
-        public static async UniTask<IRailComponentConnectAreaCollider> Resolve(RailGraphClientCache cache, BlockGameObjectDataStore blockGameObjectDataStore, int toNodeId)
+        // 解決できるまで待ち続け、キャンセルされたらnullを返す。呼び出し元は接続元を更新しない
+        // Keeps waiting until resolved and returns null on cancellation; the caller then leaves the origin untouched
+        public static async UniTask<IRailComponentConnectAreaCollider> Resolve(RailGraphClientCache cache, BlockGameObjectDataStore blockGameObjectDataStore, int toNodeId, CancellationToken cancellationToken)
         {
-            // ノード到着とブロック生成の両方をタイムアウト付きで毎フレーム確認する（前例: GearChainPoleExtendRequestSender.WaitForPlacedPole）
-            // Poll both the node arrival and the block spawn every frame with a timeout (precedent: GearChainPoleExtendRequestSender.WaitForPlacedPole)
+            // ノード反映はクライアント列車tickに揃うため数秒遅れうる。固定上限で捨てず、持ち替えや再選択のキャンセルまで待つ
+            // Node apply is aligned to the client train tick and can lag seconds, so never give up on a fixed timeout; wait until a tool switch or re-selection cancels
             var startTime = Time.time;
-            while (Time.time - startTime < PierSpawnWaitSeconds)
+            var warned = false;
+            while (!cancellationToken.IsCancellationRequested)
             {
                 if (TryResolve(out var connectArea)) return connectArea;
+                if (!warned && Time.time - startTime > SlowResolveWarningSeconds)
+                {
+                    warned = true;
+                    Debug.LogWarning($"[TrainRailConnect] Placed pier connect area is still unresolved after {SlowResolveWarningSeconds}s; keep waiting. nodeId={toNodeId}");
+                }
                 await UniTask.NextFrame();
             }
 
-            Debug.LogWarning($"[TrainRailConnect] Placed pier connect area was not resolved within {PierSpawnWaitSeconds}s. nodeId={toNodeId}");
+            // silent-ok: キャンセルは持ち替え・再選択による正常な破棄 / 起点が空のままなのはプレイヤーが画面で気づく
+            // silent-ok: cancellation is a normal discard by tool switch or re-selection / the player sees the empty origin on screen
             return null;
 
             #region Internal
