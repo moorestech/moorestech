@@ -8,6 +8,7 @@ using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.World;
 using Client.Network.API;
 using Client.Skit.UI;
 using Game.PlayerRiding.Interface;
@@ -21,6 +22,7 @@ namespace Client.Starter.Registration
         public static void ResolveRequiredServices(IObjectResolver resolver)
         {
             resolver.Resolve<BlockGameObjectDataStore>();
+            resolver.Resolve<WorldDataHandler>();
             resolver.Resolve<OutcropGameObjectDatastore>();
             resolver.Resolve<UIStateControl>();
             resolver.Resolve<TrainCarObjectDatastore>();

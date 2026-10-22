@@ -94,7 +94,9 @@ namespace Client.Starter.Registration
             // presenterと索引cacheを登録
             // Register event-driven presenters and index caches
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
-            builder.RegisterEntryPoint<WorldDataHandler>();
+            // 周期取得は持たず、生成時にハンドシェイクの全量を適用して設置・撤去イベントを購読するだけなので、起動時に1度解決する
+            // Holds no polling; it applies the handshake full state and subscribes to place/remove events on construction, so it is resolved once at startup
+            builder.Register<WorldDataHandler>(Lifetime.Singleton);
             builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
             builder.Register<BlockPreviewRadiusCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
