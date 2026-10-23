@@ -112,3 +112,52 @@ describe("dispatchAction の toast 配線", () => {
       .toEqual({ kind: "accepted" });
   });
 });
+
+// 実トランスポートでサーバーの遅延拒否が共通通知まで届くことを確認する
+// Exercise the real transport through delayed server rejection and common notification
+describe("rocket command transport deadlines", () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    ["build", 6000, "rocket_command_missing_materials"],
+    ["launch", 6000, "rocket_command_missing_payload"],
+    ["build", 11000, "rocket_command_timeout"],
+    ["launch", 11000, "rocket_command_timeout"],
+  ] as const)("%s receives %s ms rejection %s", async (command, delay, error) => {
+    vi.resetModules();
+    vi.useFakeTimers();
+    vi.mocked(notify).mockClear();
+    const sent: string[] = [];
+    class SocketStub {
+      static readonly OPEN = 1;
+      readyState = 1;
+      onmessage: ((event: { data: string }) => void) | null = null;
+      constructor() { socket = this; }
+      send(message: string) { sent.push(message); }
+    }
+    let socket: SocketStub;
+    vi.stubGlobal("WebSocket", SocketStub);
+    vi.stubGlobal("window", globalThis);
+    vi.stubGlobal("location", { protocol: "http:", host: "example.test" });
+    const { initBridge } = await import("./webSocketClient");
+    const { dispatchActionOutcome: dispatch } = await import("./actions");
+    initBridge();
+    const result = dispatch("rocket_launch_pad.command", { command });
+    const completed = vi.fn();
+    void result.then(completed);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(completed).not.toHaveBeenCalled();
+    expect(notify).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(delay - 5000);
+    const { requestId } = JSON.parse(sent.find((raw) => raw.includes("rocket_launch_pad.command"))!);
+    socket!.onmessage!({ data: JSON.stringify({ op: "result", requestId, ok: false, error }) });
+    expect(await result).toEqual({ kind: "rejected", error });
+    expect(notify).toHaveBeenCalledOnce();
+    expect(JSON.stringify(vi.mocked(notify).mock.calls[0])).toContain(error);
+  });
+});

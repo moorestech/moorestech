@@ -4,6 +4,10 @@ using System.Reflection;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.UIState.State.SubInventory;
+using Game.PlayerInventory.Interface.Subscription;
+using Server.Protocol.PacketResponse;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BlockDetail;
@@ -76,6 +80,17 @@ namespace Client.Tests.WebUi.BlockDetail
                 .SetValue(block, new BlockStateMessagePack(state, Vector3Int.zero));
             var dto = new BlockInventoryDto();
             BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), layout);
+            // 状態受信済みでも取得失敗の在庫には発射台の添字を載せない
+            // Omit launch pad indices for failed inventory even when state has arrived
+            var source = new BlockSubInventorySource(null, Vector3Int.zero);
+            var failedModel = new SubInventoryModel(new BlockInventorySubInventoryIdentifier(Vector3Int.zero));
+            failedModel.SetResult(InventoryRequestResult.Timeout);
+            var failed = BlockInventoryDtoFactory.Create(source, failedModel, block,
+                new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), layout);
+            Assert.AreEqual("openFailed", failed.Error);
+            Assert.IsEmpty(failed.ItemSlots);
+            Assert.IsNull(failed.RocketLaunchPad);
+            Assert.IsNull(JObject.Parse(WebUiJson.Serialize(failed))["rocketLaunchPad"]);
             Object.DestroyImmediate(gameObject);
 
             Assert.AreEqual(wirePhase, dto.RocketLaunchPad.Phase);

@@ -115,8 +115,9 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
         // Check whether a retained stack can be created under the current limit
         private static bool CanCreate(ItemStackSaveJsonObject item)
         {
+            if (!Guid.TryParse(item.ItemGuidStr, out var guid)) return false;
             if (item.Count == 0) return true;
-            var id = Guid.TryParse(item.ItemGuidStr, out var guid) ? MasterHolder.ItemMaster.GetItemIdOrNull(guid) : null;
+            var id = MasterHolder.ItemMaster.GetItemIdOrNull(guid);
             return 0 < item.Count && id.HasValue && item.Count <= ServerContext.GetService<IItemStackLevelLookup>().GetMaxStack(id.Value);
         }
     }

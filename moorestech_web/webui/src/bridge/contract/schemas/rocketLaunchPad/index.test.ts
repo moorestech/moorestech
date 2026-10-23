@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { deliverTopicPayload, useTopicStore } from "../../../store/topicStore";
+import { Topics } from "../../../transport/protocol";
 import { BlockInventoryOpenSchema } from "../inventory";
 import { loadFixture } from "../../wireFixtures.test-helper";
 
@@ -26,4 +28,17 @@ describe("rocket launch pad wire boundary", () => {
 // Reject each group's out-of-bounds indices before rendering
 it.each(["materialSlots", "payloadSlots", "outputSlots"])("rejects out of range %s", (group) => {
   expect(BlockInventoryOpenSchema.safeParse({ ...fixture, itemSlots: [{ itemId: 0, count: 0 }], rocketLaunchPad: { ...detail, materialSlots: [], payloadSlots: [], outputSlots: [], [group]: [1] } }).success).toBe(false);
+});
+
+// 取得失敗は古い在庫と操作状態を置き換える
+// An acquisition failure replaces stale inventory and command state
+it("accepts the host failure DTO and replaces the successful snapshot", () => {
+  useTopicStore.setState({ topics: {}, revisions: {} });
+  expect(deliverTopicPayload(Topics.blockInventory, 1, fixture)).toBe(true);
+  const { rocketLaunchPad: _detail, ...base } = fixture;
+  const failed = { ...base, error: "openFailed", itemSlots: [] };
+  expect(deliverTopicPayload(Topics.blockInventory, 2, failed)).toBe(true);
+  expect(useTopicStore.getState().revisions[Topics.blockInventory]).toBe(2);
+  expect(useTopicStore.getState().topics[Topics.blockInventory]).toMatchObject({ error: "openFailed", itemSlots: [] });
+  expect(useTopicStore.getState().topics[Topics.blockInventory]).not.toHaveProperty("rocketLaunchPad");
 });

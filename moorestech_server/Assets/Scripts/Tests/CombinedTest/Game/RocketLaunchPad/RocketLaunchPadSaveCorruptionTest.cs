@@ -88,6 +88,30 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.AreEqual(field.StartsWith("cargo") ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Building, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
         }
 
+        // 個数ゼロでも実体化前にGUID構文を検証する
+        // Validate GUID syntax before materialization even for zero counts
+        [TestCase("cargoMaterials", "broken-guid")]
+        [TestCase("cargoMaterials", null)]
+        [TestCase("outputItems", "broken-guid")]
+        [TestCase("outputItems", null)]
+        [TestCase("cargoMaterials", "00000000-0000-0000-0000-000000000000")]
+        [TestCase("outputItems", "00000000-0000-0000-0000-000000000000")]
+        public void 個数ゼロのGUIDを生成前に検証する(string field, string guid)
+        {
+            var save = RocketLaunchPadSaveTestUtil.CreateSavedWorld(RocketLaunchPadPhase.Building);
+            var item = new JObject { ["count"] = 0 };
+            if (guid != null) item["itemGuid"] = guid;
+            RocketLaunchPadSaveTestUtil.State(save)[field][0] = item;
+            var valid = guid == "00000000-0000-0000-0000-000000000000";
+            if (!valid) LogAssert.Expect(LogType.Warning, new Regex(field == "cargoMaterials" ? "打ち上げられない" : "復元できない品"));
+            var loaded = RocketLaunchPadSaveTestUtil.Load(save);
+            Assert.AreEqual(!valid && field == "cargoMaterials" ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Building,
+                loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            var restored = JObject.FromObject(RocketLaunchPadSaveTestUtil.Capture(loaded));
+            if (field == "outputItems") Assert.AreEqual(0, (int)restored[field][0]["count"]);
+            if (!valid && field == "cargoMaterials") Assert.IsEmpty(loaded.GetComponent<RocketLaunchPadProcessorComponent>().GetRefundItems());
+        }
+
         [TestCase("phase")]
         [TestCase("nextPayloadIndex")]
         public void 必須ゼロ値の欠落を警告する(string key)

@@ -40,6 +40,9 @@ export const DEFAULT_ACTION_TIMEOUT_MS = 5000;
 // bug_report.submit waits on ffmpeg concat, untracked file copies and four git spawns; the default reported successes as failures
 export const ACTION_TIMEOUTS_MS: Partial<Record<keyof ActionPayloads, number>> = {
   "bug_report.submit": 120000,
+  // サーバーの10秒期限と1秒の検査周期に配送余裕を加える
+  // Allow delivery time beyond the server timeout of 10s and its 1s check interval
+  "rocket_launch_pad.command": 15_000,
 };
 
 export function shouldToastFailure(type: keyof ActionPayloads, error: string | undefined): boolean {

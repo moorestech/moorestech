@@ -34,7 +34,7 @@ namespace Client.WebUiHost.Game.Topics
             }
             // capability 詳細とネットワーク集約を充填する
             // Fill capability details and network aggregates
-            BlockDetailDtoBuilder.Apply(dto, block, networkCache, beltCache, rocketLayout);
+            BlockDetailDtoBuilder.Apply(dto, block, networkCache, beltCache, dto.Error == null ? rocketLayout : null);
             return dto;
         }
     }
