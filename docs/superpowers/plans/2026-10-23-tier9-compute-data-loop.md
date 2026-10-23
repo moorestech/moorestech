@@ -97,7 +97,9 @@
 - Modify: `.moorestech-external-revisions.json`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs`
-- Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/ItemMasterUtil.cs`（`Validate` の連鎖に1行。`ItemMaster.Validate` は委譲の1行のまま）
+- Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/ItemMasterUtil.cs`（S1 の領域でない2つの検証を下の2ファイルへ移して200行以下にし、`Validate` の連鎖に積荷表の1行を足す。`ItemMaster.Validate` は委譲の1行のまま）
+- Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Item/ItemStackLevelTableValidator.cs`（`ItemMasterUtil` のローカル関数 `StackLevelTableValidation` の移し先）
+- Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Item/ItemInitialEquipmentValidator.cs`（同 `InitialEquipmentValidation`・中の `InitialLevelMaxStackValidation` の移し先）
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs`（`Validate` に1行）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs`、`ForUnitTestItemId.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload/OrbitalPayloadMasterValidatorTest.cs`
@@ -225,7 +227,7 @@ blockType の `options` の末尾（`CleanRoomMachine` の次）に `- RocketLau
 
 `git ls-files | grep -E "items\.json$"` の全ファイル（本repoの4件。`mooresmaster.SandBox/schema/items.json` がスキーマ生成物なら edit-schema スキルの手順で再生成）と、moorestech_master で読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/items.json` の1件へ `"orbitalPayloads": []` を足す（edit-schema スキルの「全JSON一括更新」手順に従う）。moorestech_master の `server/`・`server_v4`〜`server_v7` の旧 mod は今のゲームが読まないので触らない。
 
-moorestech_master の作業ブランチは origin/master の `b2149a0`（tier9基板）の上にあり、そこで `stackLevelTableGuid` が空の7件（グラフェンケーブル・グラフェンシート・使用済み銅板・高純度炭素・ロケット筐体素材・ロケット燃料・反物質爆弾）が入っている。今のピン `0d129c8` には空の行が無く、ピンを作業ブランチへ進めると `ItemMasterUtil.StackLevelTableValidation` の参照検証で読込が止まる。そこで同じ items.json の7件へ Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa` を入れる（読み込みに要る最小限。S3 が同じ7件を重ねて直さないよう、Task 2 Step 8 の bd note で伝える）。
+moorestech_master の作業ブランチは origin/master の `b2149a0`（tier9基板）の上にあり、そこで `stackLevelTableGuid` が空の7件（グラフェンケーブル・グラフェンシート・使用済み銅板・高純度炭素・ロケット筐体素材・ロケット燃料・反物質爆弾）が入っている。今のピン `0d129c8` には空の行が無く、ピンを作業ブランチへ進めると、スタックテーブルの参照検証（今の `ItemMasterUtil.StackLevelTableValidation`。Step 4 で `ItemStackLevelTableValidator` へ移す）で読込が止まる。そこで同じ items.json の7件へ Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa` を入れる（読み込みに要る最小限。S3 が同じ7件を重ねて直さないよう、Task 2 Step 8 の bd note で伝える）。
 
 moorestech_master へ入れるのはこの空配列と7件の Default だけで、アイテム・積荷表の行・ビルドメニュー・発射台の値・レシピ・研究は統合タスクで入れる（末尾の「統合タスクへ引き継ぐマスタの中身」節）。そのうえで ForUnitTest の items.json の `data` に次の6件を足し、`orbitalPayloads` を2行にする:
 
@@ -325,7 +327,7 @@ namespace Core.Master.Validator.OrbitalPayload
 
                 // 発射台は積荷1種につき1スロットなので、レベル1のスタック上限を超える1便は積めない
                 // A launch pad has one slot per payload, so a launch above the level-1 stack limit can never be loaded
-                // silent-ok: テーブル欠落・段数0のテーブルは ItemMasterUtil の既存検証が報告する / マスタ読込時のエラーログで開発者が気づく
+                // silent-ok: テーブル欠落・段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
                 if (!tableByGuid.TryGetValue(item.StackLevelTableGuid, out var table) || table.StackCounts.Length == 0) return "";
                 var firstLevelStack = table.StackCounts[0];
                 return payload.CountPerLaunch > firstLevelStack ? $"[ItemMaster.orbitalPayloads] {item.Name} countPerLaunch {payload.CountPerLaunch} exceeds level-1 stack {firstLevelStack}\n" : "";
@@ -343,15 +345,130 @@ namespace Core.Master.Validator.OrbitalPayload
 }
 ```
 
-（スタックテーブル欠落と段数0のテーブルは `ItemMasterUtil` の既存検証（`StackLevelTableValidation`）が報告するので、ここでは二重に出さない。段数0を見送るのは既存の `InitialLevelMaxStackValidation` と同じ扱い。）
+（スタックテーブル欠落と段数0のテーブルは既存のスタックテーブル検証（下で `ItemStackLevelTableValidator` へ移す）が報告するので、ここでは二重に出さない。段数0を見送るのは既存の `InitialLevelMaxStackValidation`（下で `ItemInitialEquipmentValidator` へ移す）と同じ扱い。）
 
-`ItemMaster.Validate` は委譲の1行のまま残し、連鎖は `ItemMasterUtil.Validate` に足す（前例 `BlockMasterUtil.Validate` の `errorLogs +=` 連結）。`ItemMasterUtil.cs` に `using Core.Master.Validator.OrbitalPayload;` を足し、`errorLogs += InitialEquipmentValidation();` の次の行に足す:
+`ItemMaster.Validate` は委譲の1行のまま残し、連鎖は `ItemMasterUtil.Validate` に足す（前例 `BlockMasterUtil.Validate` の `errorLogs +=` 連結）。`ItemMasterUtil.cs` は今244行で、1行足すと200行の規則にさらに外れる。そこで先に、S1 の領域ではない2つの検証（スタックテーブルと初期装備）を `Core.Master/Validator/Item/` へ移す（前例: `Validator/Block/` が `BlockMasterUtil` から検証を切り出した形。名前空間はその過半と同じサブ名前空間）。モジュールとレベルファミリーの検証（`ModulesValidation`・`LevelFamiliesValidation`）は S1 の領域なので動かさない。移す2つの本体は今のコードを1文字も変えずに写す（`allItemGuids` を使うのは初期装備の検証だけなので引数で渡す）。
+
+`moorestech_server/Assets/Scripts/Core.Master/Validator/Item/ItemStackLevelTableValidator.cs`:
 
 ```csharp
-            errorLogs += OrbitalPayloadMasterValidator.Validate(items);
+using System;
+using System.Collections.Generic;
+using Mooresmaster.Model.ItemsModule;
+
+namespace Core.Master.Validator.Item
+{
+    // スタックテーブルの中身と、各アイテムからの参照先テーブルの実在を検証する
+    // Validates stack level table contents and that each item references an existing table
+    internal static class ItemStackLevelTableValidator
+    {
+        internal static string Validate(Items items)
+        {
+            // 空配列・1未満のスタック数・アイテムからの参照先テーブル実在を検証
+            // Validate empty arrays, sub-1 counts, and that each item references an existing table
+            var logs = "";
+            if (items.ItemStackLevelTables == null) return logs;
+
+            var tableGuids = new HashSet<Guid>();
+            foreach (var table in items.ItemStackLevelTables)
+            {
+                // TableGuid重複はInitializeのDictionary.Addが生の例外で落ちるため検証で弾く
+                // Duplicate TableGuid would throw raw in Initialize's Dictionary.Add, so reject it here
+                if (!tableGuids.Add(table.TableGuid))
+                    logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has duplicate TableGuid:{table.TableGuid}\n";
+                if (table.StackCounts.Length == 0)
+                    logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has empty StackCounts\n";
+                foreach (var count in table.StackCounts)
+                    if (count < 1)
+                        logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has invalid StackCount:{count} (must be >= 1)\n";
+            }
+            foreach (var item in items.Data)
+                if (!tableGuids.Contains(item.StackLevelTableGuid))
+                    logs += $"[ItemMaster.data] Name:{item.Name} references missing StackLevelTableGuid:{item.StackLevelTableGuid}\n";
+
+            return logs;
+        }
+    }
+}
 ```
 
-（`ItemMasterUtil.cs` は既に244行で、この2行で246行になる。分割は本PRの範囲を広げるので行わず、Task 10 の PR 本文「本PR外のリファクタ提案」に書く。）
+`moorestech_server/Assets/Scripts/Core.Master/Validator/Item/ItemInitialEquipmentValidator.cs`:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mooresmaster.Model.ItemsModule;
+
+namespace Core.Master.Validator.Item
+{
+    // 初期装備は未定義アイテムを指せない。装備スロットを超える分は投入時に捨てられるためここで弾く
+    // Initial equipment must reference defined items; entries beyond the equipment slot count would be dropped on grant, so reject them here
+    internal static class ItemInitialEquipmentValidator
+    {
+        internal static string Validate(Items items, HashSet<Guid> allItemGuids)
+        {
+            var logs = "";
+
+            // 初期レベルの最大スタック数はItemStack生成が生の例外で落ちるため、ここで先に弾く
+            // ItemStack creation throws raw past the level-1 max stack, so it is rejected here first
+            var stackLevelTableByGuid = items.ItemStackLevelTables.ToDictionary(table => table.TableGuid);
+            var itemByGuid = items.Data.ToDictionary(item => item.ItemGuid);
+
+            foreach (var initial in items.InitialEquipmentItems)
+            {
+                if (!allItemGuids.Contains(initial.ItemGuid))
+                {
+                    logs += $"[ItemMaster.initialEquipmentItems] has invalid ItemGuid:{initial.ItemGuid}\n";
+                    continue;
+                }
+                if (initial.ItemCount <= 0)
+                    logs += $"[ItemMaster.initialEquipmentItems] ItemGuid:{initial.ItemGuid} has non-positive ItemCount:{initial.ItemCount}\n";
+                logs += InitialLevelMaxStackValidation(initial.ItemGuid, initial.ItemCount);
+            }
+            if (items.EquipmentSlotCount < items.InitialEquipmentItems.Length)
+                logs += $"[ItemMaster.initialEquipmentItems] count:{items.InitialEquipmentItems.Length} exceeds EquipmentSlotCount:{items.EquipmentSlotCount}\n";
+            // 装備選択は「未装備なし」で常に1枠を指すため、枠0は選択インデックスのクランプが成立せず起動不能になる
+            // Equipment selection always points at a slot (no unequipped state), so zero slots breaks the index clamp and the boot
+            if (items.EquipmentSlotCount < 1)
+                logs += $"[ItemMaster.equipmentSlotCount] must be at least 1 but was {items.EquipmentSlotCount}\n";
+
+            return logs;
+
+            #region Internal
+
+            // 参照先テーブルが壊れている件は ItemStackLevelTableValidator の担当なので、ここでは黙って見送る
+            // A broken table reference is ItemStackLevelTableValidator's job, so it is skipped silently here
+            string InitialLevelMaxStackValidation(Guid itemGuid, int itemCount)
+            {
+                if (!itemByGuid.TryGetValue(itemGuid, out var item)) return "";
+                if (!stackLevelTableByGuid.TryGetValue(item.StackLevelTableGuid, out var table)) return "";
+                if (table.StackCounts.Length == 0) return "";
+
+                var initialLevelMaxStack = table.StackCounts[0];
+                if (itemCount <= initialLevelMaxStack) return "";
+                return $"[ItemMaster.initialEquipmentItems] ItemGuid:{itemGuid} has ItemCount:{itemCount} exceeding initial level MaxStack:{initialLevelMaxStack}\n";
+            }
+
+            #endregion
+        }
+    }
+}
+```
+
+`ItemMasterUtil.cs` では、ローカル関数 `StackLevelTableValidation`（112〜137行）と `InitialEquipmentValidation`（139〜182行。前のコメント2行を含む）を消し、`using Core.Master.Validator.Item;` と `using Core.Master.Validator.OrbitalPayload;` を足して、`Validate` の連鎖を次にする（`Initialize` は触らない。約176行になる）:
+
+```csharp
+            errorLogs = "";
+            errorLogs += ModulesValidation();
+            errorLogs += LevelFamiliesValidation();
+            errorLogs += ItemStackLevelTableValidator.Validate(items);
+            errorLogs += ItemInitialEquipmentValidator.Validate(items, allItemGuids);
+            errorLogs += OrbitalPayloadMasterValidator.Validate(items);
+            return string.IsNullOrEmpty(errorLogs);
+```
+
+（移した2つの検証の既存テストは、Step 8 のフィルタ `ItemMaster` が拾う。ログの文面を変えていないので、既存テストの期待値はそのまま通る。）
 
 - [ ] **Step 5: 発射台パラメータの検証を書く**
 
@@ -433,7 +550,7 @@ namespace Core.Master.Validator.Block
                         var outputItemId = MasterHolder.ItemMaster.GetItemIdOrNull(output.ItemGuid);
                         var firstLevelStack = outputItemId == null ? null : FirstLevelStackOrNull(outputItemId.Value);
 
-                        // silent-ok: 未知の成果アイテムは積荷表の検証、段数0のテーブルは ItemMasterUtil が報告する / マスタ読込時のエラーログで開発者が気づく
+                        // silent-ok: 未知の成果アイテムは積荷表の検証、段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
                         if (firstLevelStack == null) continue;
                         stackCount += (output.Count + firstLevelStack.Value - 1) / firstLevelStack.Value;
                     }
@@ -447,7 +564,7 @@ namespace Core.Master.Validator.Block
                 var element = MasterHolder.ItemMaster.GetItemMaster(itemId);
                 var stackCounts = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts;
 
-                // silent-ok: 段数0のテーブルは ItemMasterUtil の既存検証が報告する / マスタ読込時のエラーログで開発者が気づく
+                // silent-ok: 段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
                 return stackCounts.Length == 0 ? null : stackCounts[0];
             }
 
@@ -3257,8 +3374,11 @@ git commit -m "feat(webui): ロケット発射台のパネルと建造発射の�
 - PR 本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S3向けの口（`Game.Orbit` の API と GUID。`PreviewArrivalOutputs` を足したことと、拠点も成果が出力口に入りきるときだけ打ち上げる方式にすること）／統合タスク（bd `moorestech-xyuaf.2`）へ回したもの／確かめ方（CombinedTest・プロトコルテスト・web UI の vitest と wire 契約テストの結果。録画は統合タスク）／セーブ版 6→7（S3 は 7→8）／本PR外のリファクタ提案。
 - 「統合タスクへ回したもの」の節: plan 末尾の「統合タスクへ引き継ぐマスタの中身」節の見出しを並べ（アイテム・積荷表の行・発射台の値・ビルドメニュー・レシピ・研究・バランス・録画テスト）、裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md` へリンクする。値（計算データの成果 Lv1=10〜Lv5=160・研究コスト・1便の資材数・建造と打ち上げの秒数・電力）は統合タスクで決め直す仮値であることも書く（判断記録 D12）。
 - 「本PR外のリファクタ提案」の節（plan のタスクにはしない。既存側／新設側／同じ役割と判断した根拠の順に書く）:
-  1. `Core.Master/Validator/ItemMasterUtil.cs` の `InitialLevelMaxStackValidation` ／新設の `OrbitalPayloadMasterValidator.ValidatePayloadItem`・`RocketLaunchPadParamValidator.FirstLevelStackOrNull` ／どれもアイテムのスタックテーブルの `StackCounts[0]` と個数を比べて読込時に弾く同じ判定。あわせて `ItemMasterUtil.cs` は本PRで246行になり200行を超えたままなので、検証のローカル関数群を `Validator/Item/` へ出す（前例 `Validator/Block/`）。
+  1. `Core.Master/Validator/Item/ItemInitialEquipmentValidator.cs` の `InitialLevelMaxStackValidation`（本PRで `ItemMasterUtil.cs` から移すだけで中身は変えない）／新設の `OrbitalPayloadMasterValidator.ValidatePayloadItem`・`RocketLaunchPadParamValidator.FirstLevelStackOrNull` ／どれもアイテムのスタックテーブルの `StackCounts[0]` と個数を比べて読込時に弾く同じ判定（段数0の見送りは D29 で揃えた）。
   2. `Game.Block/Blocks/Machine/VanillaElectricMachineComponent.cs`（同形: `Miner/VanillaElectricMinerComponent.cs`・`Pump/ElectricPumpComponent.cs`・`CleanRoom/Machine/CleanRoomMachineComponent.cs`）／新設の `RocketLaunchPadElectricComponent` ／どれも処理部の要求電力を `RequestEnergy` に出し、要求×`PowerRate` を処理部の供給口へ渡すだけの同じ導出。
+  3. `Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs`（`CanStoreOutputs`・`InsertOutputSlot`・仮挿入と実挿入で共有する `TrySimulateOutputs`・`InsertConnectInventory`）／新設の `RocketLaunchPadOutputSlots`（`CanStore`・`Store`・`PushToConnected`）／どちらも「出力の並びが出力口へ入りきるかを書き込まずに試し、確定して、接続先へ流す」役割で、`PushToConnected` は `InsertConnectInventory` と同じ処理。
+  4. `Game.Block/Blocks/Machine/Inventory/Input/MachineInputSlotBinding.cs`（`ResolveBoundSlots`・`RequiredCountAt`・`CheckPlacement`）と `VanillaMachineInputSimulationUtil.SimulateInsert` ／新設の `RocketLaunchPadSlotLayout.TryGetInputSlot`・`RequirementAt` と `RocketLaunchPadInventoryComponent` の仮挿入 ／どちらも「アイテムを束縛された入れ口へ割り当て、仮挿入する」役割。
+  5. `Game.Block/Blocks/Machine/State/Util/MachineStateDetailFactory.cs`（`processingRate` の式）／新設の発射台の進み具合の計算（`Clamp01(1 - 残りtick/総tick)`）／どちらも「残りtickと総tickから0〜1の進み具合を出す」同じ式。
 - 全実装タスク完了＝完了ではない。PR未作成のまま終わるのはplan未完了である。
 
 ---
@@ -3301,14 +3421,14 @@ planning 中の判断:
 | D11 | `inventory.ts`（215行）は列車とベルト統計の schema を別ファイルへ移してから足す。`GameplayServiceRegistration.cs`（202行）には足さず `OrbitServiceRegistration` を新設。`WorldSaveDataRestorer.cs`（194行）は必須欠損の検査を `WorldSaveRequiredFieldGuard` へ移す | agent前提（AGENTS.md 200行規則） |
 | D12 | 計算データの成果 Lv1=10・Lv2=20・Lv3=40・Lv4=80・Lv5=160（倍々）。ロケット技術の研究コスト、1便の資材数、建造120秒・打ち上げ15秒も仮値。どれも統合タスクでマスタへ入れるときに決め直す（この plan ではテスト用 mod の値だけを使う） | agent前提（GPUのレベルが計算データへどう効くかは S2 が決める: S1 からの連絡 2026-10-23「GPU の Lv が計算データにどう効くかは S2 で決めてください」。倍々は S1 裁定「大部分のレベル1と少数のレベル2チップ程度でクリアできるようにしたい」の下で Lv1 だけでも研究が進み、上位ほど報われる形にするため。研究コストは S1 の Tier9 研究コストの裁定が出るまでの仮値）。入れる時期はユーザー裁定 D36 |
 | D13 | GPU・GPU衛星のレシピと「半導体のアップグレード研究」は、この plan では入れず統合タスクで入れる。GPU衛星は通常レシピ5本（GPU LvN＋資材→GPU衛星 LvN）、研究ノードは計算データを要求し、解放先は S1 の上位モジュールが入ってから足す | ユーザー裁定 2026-10-23（D36。研究ノードの形は質問「計算データで上位モジュールを解放する「半導体のアップグレード研究」はどう入れますか？」→ 選択「研究ノードだけ先に作る」 [[2026-10-23-計算データの研究ノードはS2が先に作り解放先はS1のモジュールが入ってから足す]]）。旧案「S1 の仕組みが origin/master にあるときだけ入れる」はこれで置き換え |
-| D14 | moorestech_master の作業ブランチの土台 `b2149a0`（tier9基板）で `stackLevelTableGuid` が空になっている7件へ Default を入れる。今のピン `0d129c8` には空の行が無く、ピンを作業ブランチへ進めると `ItemMasterUtil.StackLevelTableValidation` の参照検証で読込が止まるため、D36 の「読み込みに要る最小限」としてこの PR に入れる。S3 は同じ7件を重ねて直さない（Task 2 Step 8 の bd note） | agent前提（実測 2026-10-23: `git show 0d129c8:…/items.json` は空0件、`b2149a0` は7件。検証の実装は `ItemMasterUtil.cs` の `StackLevelTableValidation`） |
+| D14 | moorestech_master の作業ブランチの土台 `b2149a0`（tier9基板）で `stackLevelTableGuid` が空になっている7件へ Default を入れる。今のピン `0d129c8` には空の行が無く、ピンを作業ブランチへ進めるとスタックテーブルの参照検証（Task 1 で `ItemStackLevelTableValidator` へ移す）で読込が止まるため、D36 の「読み込みに要る最小限」としてこの PR に入れる。S3 は同じ7件を重ねて直さない（Task 2 Step 8 の bd note） | agent前提（実測 2026-10-23: `git show 0d129c8:…/items.json` は空0件、`b2149a0` は7件。検証の実装は `ItemMasterUtil.cs` の `StackLevelTableValidation`） |
 | D15 | Web UI の失敗コードは既存集合（`invalid_payload`・`block_not_open`・`invalid_state`）から選ぶ | agent前提（`ActionErrorCodeWireContractTest` の集合を広げない） |
 | D16 | この plan には unityプレイ録画テストも EditModeInPlayingTest も入れない。ランタイム挙動・UI・3D表示に触れるが、実ゲームで発射台を置くにはマスタの中身が要り、それは統合タスクで入る（D37） | ユーザー裁定 2026-10-23（D36・D37） |
 | D17 | Game.Orbit 一式と積荷表のスキーマ（repo 内の全JSON と master の空配列）を Task 1〜2 に置き、Task 2 の最後で両repoを push する。以後 force-push しない | agent前提（S3 からの依頼 2026-10-23「Game.Orbit 一式と orbitalPayloads のスキーマ／マスタ（GPU衛星行込み）を最初の実装タスクにし、できた時点で両 repo へ push」「その後もブランチは force-push しない」）。GPU衛星の行は D36 で統合タスクへ移した（S3 へ 2026-10-23 連絡済み） |
 | D18 | `RemoveBlockProtocol` の返却を `IGetRefundItemsInfo` 全件の合算に直す。発射台の部品順は電線を進行より前に置き、修正前のコードでは返却が落ちることをテストで確かめる | agent前提（S3 からの指摘 2026-10-23。`RemoveBlockProtocol.cs:123` の `TryGetComponent` が先頭1件だけを読むことをコードで確認。原因: 推測（根拠: コード読解。未再現。Task 5 の撤去返却テストが修正前に落ちることで実測に変わる）） |
 | D19 | ビルドメニュー「生産」の下に「宇宙」（`d2000000-0000-4000-8000-000200000005`）を作り、発射台と S3 の宇宙エレベーター拠点を置く。入れるのは統合タスク | agent前提（S3 からの提案 2026-10-23。既存の「半導体」サブカテゴリと同じ書式）。時期はユーザー裁定 D36 |
 | D21 | `VanillaSchema/blocks.yml` に blockType `RocketLaunchPad` と case を足す。全キー必須（`optional` を使わず default だけ置く）で、`IInventoryConnectors`・`IElectricWireConnectParam` を実装させる | agent前提（edit-schema スキル・AGENTS.md「optional: true で吸収するのは設計の敗北」、前例 `CleanRoomMachine` の case） |
-| D22 | 積荷表の検証は `Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`（新設ディレクトリ）に置き、`ItemMasterUtil.Validate` の `errorLogs +=` 連鎖に1行足す（`ItemMaster.Validate` は委譲1行のまま。検証クラスは `internal` のまま、テストは `ItemMasterUtil.Validate` を呼ぶ）。`ItemMasterUtil.cs` は244→246行になるが、分割は範囲が広がるので Task 10 の「本PR外のリファクタ提案」に回す。発射台パラメータの検証は `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` に置き、`BlockMasterUtil.Validate` に1行足す。スタック上限の判定は既存の `InitialLevelMaxStackValidation` と同じく段数0のテーブルを見送る | agent前提（配置検査 #5: 全 Master の `Validate` は Util への委譲1行で、連鎖は Util 側。前例 `BlockMasterUtil.Validate`・`BeltSpeedPerSecondMasterTest.cs:57`）。段数0の見送りはユーザー裁定 D29 |
+| D22 | 積荷表の検証は `Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`（新設ディレクトリ）に置き、`ItemMasterUtil.Validate` の `errorLogs +=` 連鎖に1行足す（`ItemMaster.Validate` は委譲1行のまま。検証クラスは `internal` のまま、テストは `ItemMasterUtil.Validate` を呼ぶ）。`ItemMasterUtil.cs`（244行）は1行足す前に、S1 の領域ではないスタックテーブルと初期装備の検証を `Core.Master/Validator/Item/`（`ItemStackLevelTableValidator`・`ItemInitialEquipmentValidator`、internal static、本体は文字どおり写す）へ移して約176行にする。モジュールとレベルファミリーの検証は S1 の領域なので動かさない。発射台パラメータの検証は `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` に置き、`BlockMasterUtil.Validate` に1行足す。スタック上限の判定は既存の `InitialLevelMaxStackValidation` と同じく段数0のテーブルを見送る | agent前提（配置検査 #5: 全 Master の `Validate` は Util への委譲1行で、連鎖は Util 側。前例 `BlockMasterUtil.Validate`・`BeltSpeedPerSecondMasterTest.cs:57`。分割は再検査 N1: AGENTS.md「1ファイル200行以下」と moores-code-review の決定論チェック `file-too-long`。切り出しの前例は `Validator/Block/`）。段数0の見送りはユーザー裁定 D29 |
 | D23 | 発射台の組み立ては `Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs`（New/Load とも `Create` へ集める）に置き、`Game.Block/Factory/VanillaIBlockTemplates.cs` の `BlockTypesDictionary` へ登録する。サービスは `ServerContext.GetService<T>()` で取る | agent前提（前例 `VanillaCleanRoomAirFilterTemplate.cs`） |
 | D24 | 建造・発射の合図は1本のプロトコル `Server.Protocol/PacketResponse/Rocket/RocketLaunchPadCommandProtocol.cs`（直下は52ファイルのためサブディレクトリ。名前空間は `Server.Protocol.PacketResponse`）にする。操作の種類 `RocketLaunchPadCommandOperation` と通信の失敗理由 `RocketLaunchPadCommandFailureReason` はプロトコルにネストし、ドメインの結果 `RocketLaunchPadCommandResult` から `ToFailureReason` で写す。応答は `Success`＋`FailureReason`。部品は `IRocketLaunchPadComponent` で引くので asmdef の参照は足さない | agent前提（配置検査 #1・#4。前例 `MachineRecipeSelectionProtocol.cs`・`IMachineRecipeSelectorComponent.cs`・`PacketResponse/TrainStation/SetTrainStationNameProtocol.cs`、creating-server-protocol スキル「1プロトコル=1メソッド」） |
 | D20 | 「軌道エレベーターの建設」の研究ノードの変更（発射台・筐体素材・燃料の解放を外し、計算データを消費に足す）は S2 の plan では触らない。中身は S3 が決め、統合タスクで入れる | agent前提（ユーザー裁定 2026-10-23「ロケット独立＋両方で消費」の実施分担。ノードの持ち主は S3）。時期はユーザー裁定 D36 |
@@ -3332,7 +3452,7 @@ planning 中の判断:
 - 注目点3: `RocketLaunchHistoryJsonObject` で bool を1個包むのは、`WorldSaveRequiredFieldGuard` が節の欠損を null で検出して止めるため（素の bool だと欠損が false に化けて黙って通る）。
 - 注目点5: 既存マスタの発射台の行は `blockType` が空で `blockParam` も無い（シミュレーターの斥候が moorestech_master `blocks.json` で実測）ので、テスターのワールドに置かれた台は無く、ブロック状態の移行は要らない。
 - 注目点6: `Rocket.prefab`（`Vanilla/Block/Rocket`）を使う他のブロックは moorestech_master `server/mods/moorestechAlphaMod_3`（今のゲームが読まない旧 mod）の「ロケット」だけで、読み込まれる `server_v8/mods/moorestechAlphaMod_8` には無い（実測 2026-10-23。`grep -rn "Vanilla/Block/Rocket"`）。Task 7 Step 3 の冒頭で着手時にもう一度確かめる。
-- 注目点9: `ItemMasterUtil.cs` の行数は D22 のとおり本PR外の提案へ回す。
+- 注目点9（再検査 N1 で改め）: `ItemMasterUtil.cs` は D22 のとおり本PRで S1 の領域ではない検証を `Validator/Item/` へ移し、200行以下にする。
 - 注目点10: 発射台のスロット並びは `MasterHolder` の積荷表を直接読む。S3 の拠点が同じ読み方を複製するときは、`Game.Orbit` に入口を置くかを S3 の実装時に決める。
 - 注目点11: `OrbitServiceRegistration` は D11 の理由（`GameplayServiceRegistration.cs` が202行）で新設する。分け方の軸（役割別とドメイン別）が混ざることは受け入れる。
 
