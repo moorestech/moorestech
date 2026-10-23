@@ -35,6 +35,11 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [TestCase("excess")]
         [TestCase("shrink")]
         [TestCase("emptyTail")]
+        [TestCase("missingConnected")]
+        [TestCase("missingSeconds")]
+        [TestCase("nullConnected")]
+        [TestCase("nullSeconds")]
+        [TestCase("validFalseZero")]
         public void DiskLoadKeepsSourceWhenCurrentMasterCannotRetainAllItems(string scenario)
         {
             var (_, provider) = CreateServer();
@@ -43,14 +48,22 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             inventory.SetItem(0, ForUnitTestItemId.ItemId2, 1);
             var save = JObject.Parse(provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
             var state = save["world"][0]["state"];
-            if (scenario == "shrink" || scenario == "emptyTail")
+            var requiredKey = scenario.EndsWith("Connected") ? "isConnected" : "remainingClimbSeconds";
+            var invalidRequired = scenario.StartsWith("missing") || scenario.StartsWith("null");
+            if (invalidRequired)
+            {
+                var climber = (JObject)state["spaceElevatorClimber"];
+                if (scenario.StartsWith("missing")) climber.Remove(requiredKey);
+                else climber[requiredKey] = JValue.CreateNull();
+            }
+            else if (scenario == "shrink" || scenario == "emptyTail")
             {
                 var item = scenario == "shrink"
                     ? ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 3)
                     : ServerContext.ItemStackFactory.CreatEmpty();
                 ((JArray)state[inventory.SaveKey]).Add(JObject.FromObject(new ItemStackSaveJsonObject(item)));
             }
-            else
+            else if (scenario != "validFalseZero")
             {
                 var item = ServerContext.ItemStackFactory.Create(scenario == "unsupported" ? ForUnitTestItemId.ItemId1 : ForUnitTestItemId.TestElevatorSatellite,
                     scenario == "unsupported" ? 1 : 3);
@@ -72,10 +85,15 @@ namespace Tests.CombinedTest.Game.SpaceElevator
                 worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, path),
             };
             var (_, loaded) = new MoorestechServerDIContainerGenerator().Create(options);
-            if (scenario == "emptyTail")
+            if (scenario == "emptyTail" || scenario == "validFalseZero")
             {
                 loaded.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
                 Assert.AreEqual(1, ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero).GetComponent<SpaceElevatorBaseInventoryComponent>().GetItem(0).Count);
+            }
+            else if (invalidRequired)
+            {
+                var error = Assert.Throws<Exception>(() => loaded.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize());
+                StringAssert.Contains(requiredKey, error.Message);
             }
             else
             {
