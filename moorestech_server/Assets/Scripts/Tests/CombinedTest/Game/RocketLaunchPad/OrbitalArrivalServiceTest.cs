@@ -91,6 +91,31 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.AreEqual(0, arrivals.Count);
         }
 
+        [TestCase(14_316_558, false)]
+        [TestCase(14_316_558, true)]
+        [TestCase(28_633_116, false)]
+        [TestCase(28_633_116, true)]
+        public void 成果が整数範囲を超える便数は先読みも到着も拒否し通知しない(int payloadCount, bool arrive)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var service = ServerContext.GetService<IOrbitalArrivalService>();
+            var arrivals = new List<OrbitalArrival>();
+            service.OnOrbitalArrival.Subscribe(arrivals.Add);
+
+            // 負数と正数への折り返しを拒み、到着の誤通知を防ぐ
+            // Reject both negative and positive wraparound without publishing an arrival
+            var error = Assert.Throws<System.ArgumentOutOfRangeException>(() =>
+            {
+                var outputs = arrive
+                    ? service.Arrive(ForUnitTestItemId.SatellitePayloadId, payloadCount)
+                    : service.PreviewArrivalOutputs(ForUnitTestItemId.SatellitePayloadId, payloadCount);
+                TestContext.WriteLine($"OutputStacks:{outputs.Count} Arrivals:{arrivals.Count}");
+            });
+            Assert.AreEqual(0, arrivals.Count);
+            Assert.AreEqual(nameof(payloadCount), error.ParamName);
+            StringAssert.Contains($"TotalCount:{(long)payloadCount * 150}", error.Message);
+        }
+
         [Test]
         public void 初打ち上げの通知は1回だけ()
         {

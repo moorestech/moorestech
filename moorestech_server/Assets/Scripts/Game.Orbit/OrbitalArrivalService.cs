@@ -34,14 +34,27 @@ namespace Game.Orbit
         {
             var payload = FindPayload();
 
-            // 成果は1便ぶん×便数。スタック上限を超える量は分割して返す
-            // Outputs are per-launch amounts times launches, split when above the stack limit
+            // 全成果を整数範囲で検証し、部分的な成果生成を防ぐ
+            // Validate every output count before creating any output stacks
             var launchCount = payloadCount / payload.CountPerLaunch;
+            var outputCounts = new List<int>();
+            foreach (var output in payload.ArrivalOutputs)
+            {
+                var totalCount = (long)output.Count * launchCount;
+                if (totalCount > int.MaxValue)
+                    throw new ArgumentOutOfRangeException(nameof(payloadCount), payloadCount, $"打ち上げ成果の個数が整数範囲を超えます ItemId:{payloadItemId} OutputItemGuid:{output.ItemGuid} TotalCount:{totalCount} MaxCount:{int.MaxValue}");
+                outputCounts.Add((int)totalCount);
+            }
+
+            // スタック上限を超える成果を分割する
+            // Split validated outputs at the stack limit
             var outputs = new List<IItemStack>();
+            var outputIndex = 0;
             foreach (var output in payload.ArrivalOutputs)
             {
                 var outputItemId = MasterHolder.ItemMaster.GetItemId(output.ItemGuid);
-                outputs.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(outputItemId, output.Count * launchCount));
+                outputs.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(outputItemId, outputCounts[outputIndex]));
+                outputIndex++;
             }
             return outputs;
 
