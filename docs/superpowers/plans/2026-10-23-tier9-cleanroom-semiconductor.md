@@ -56,9 +56,10 @@
 - RC15 上位レベルの品を下位の代わりに使える（機械）: 継承しない機械レシピで、要求が levelFamily の基準なら同ファミリーの上位の変種も受け付けて消費する。他ファミリーは受け付けず、手動の挿入は別レベルを重ねず、自動搬入だけ低い方のレベルへ揃え、継承元スロットには効かず、加工中の返却は基準で返す。受け入れ: C11 `LevelFamilySubstituteMachineTest` の6件。
 - RC16 上位レベルの品を下位の代わりに使える（研究）: 研究の `consumeItems` で、要求が基準なら受け付ける全変種の合計で充足を判定し、消費は下位のレベルから（同じレベルの中はスロット順）行う。受け入れ: C11 `LevelFamilySubstituteResearchTest` の4件（Lv2 で足りる・Lv1 から先に減る・混在は合計で数える・他ファミリーは数えない）と、Web の不足表示が上位レベルの所持も数える（C12 `researchLogic.test.ts`・`ResearchDetailPane.test.ts`）。
 - RC17 研究ノードに機械強化の解放2種を出す: 詳細ペインの「解放: その他」に「モジュールスロット上限 N」と「〇〇を LvN まで製作可能」の行を出す。受け入れ: C12 の `ResearchNodeDtoFactoryTest`・wire 契約・vitest・Playwright `researchMachineUpgradeUnlock.spec.ts`、表示台帳の網羅テスト（表示8種）、C10 の EditModeInPlayingTest で `research.tree` に `unlockModuleSlotStackLimits [6]`・`unlockLevelInheritanceCraftCaps [{製品Lv1, 2}]` が載る。
-- RC18 止まった理由を機械UIに出す: 継承レシピの機械の継承元スロットは、ベルト・チェスト等から届いた品を2つの場合に断る。(a) スロットに別のレベルが入っている。(b) 製作上限を超えている。断ったうえで材料がそろっていない間は、機械UIに赤字で理由を出す。文言は「レベルの違う品（{品名}）が届いて止まっています」と「製作上限を超えるレベルの品（{品名}）が届いて止まっています」。止まった状態は表示専用で保存しない。原因が消えれば最大1秒で表示も消える。原因が消えるのは、仕分け・取り出し・研究で通る、搬入元が無くなる、材料がそろう、レシピを外す、のいずれか。プレイヤーの手での移動・挿入は対象外。受け入れは次の4つ。
+- RC18 止まった理由を機械UIに出す: 継承レシピの機械の継承元スロットは、ベルト・チェスト等から届いた品を2つの場合に断る。(a) スロットに別のレベルが入っている。(b) 製作上限を超えている。断ったうえで、機械が待機中（加工中・出力詰まり・停止中でない）で、継承元スロットの数が選択レシピの継承元の要求数に足りない間は、機械UIに赤字で理由を出す。継承元は足りていて他の材料だけが欠けている間は出さない（レベル違いを仕分けても機械は動かないため）。加工中に断られても出さず、加工が終わって始められないときに出す。文言は「レベルの違う品（{品名}）が届いて止まっています」と「製作上限を超えるレベルの品（{品名}）が届いて止まっています」。品名は断られた品（後から届いたレベル）。止まった状態は表示専用で保存しない。原因が消えれば最大1秒で表示も消える。原因が消えるのは、仕分け・取り出し・研究で通る、搬入元が無くなる、継承元が要求数そろう、レシピを外す、のいずれか。プレイヤーの手での移動・挿入は対象外。受け入れは次の5つ。
   - C13 `MachineInputLevelStallBeltTest` の3件。上限超えは研究で消える。レベル違いはベルトの撤去後2 tick で消える。Lv1 を取り出すと Lv2 が入って消える。
-  - C13 `MachineInputLevelStallMinimalTest` の4件。搬入元の無い1回の拒否は2 tick で消える。手動の挿入では出ない。材料がそろっていれば出ない。束縛外の品とレシピ未選択では出ない。
+  - C13 `MachineInputLevelStallMinimalTest` の6件。搬入元の無い1回の拒否は2 tick で消える。手動の挿入では出ない。材料がそろっていれば出ない。継承元は足りていて他の材料だけが欠けているときは出ない。加工中に断られても出ず、加工が終わって始められないときに出る。束縛外の品とレシピ未選択では出ない。
+  - C13 `MachineInputLevelStallComponentCoverageTest` の1件。テストマスタで `IMachineParam` を持つ全ブロック（電気機械・歯車機械・清浄室機械）が `MachineInputLevelStallComponent` を持つ。
   - C13 `GetMachineInputStallProtocolTest` の5件と、wire 契約・vitest。
   - EditModeInPlayingTest `MachineInputLevelStallWebUiTopicTest`。石の粉砕機へベルトで届いた Lv2 で `machineInputStall: {reason: "aboveCraftCap"}` が配信に載り、研究の後に消える。
 
@@ -154,8 +155,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反4件・修正4件（3回。1回目3件・2回目1件・3回目〈2回目の修正範囲だけ〉0件） / 継承の解釈 util と製作上限の表を層責務どおりに置き直し、抽選の中身の入口を持ち主側の部品へ移した
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強16・弱57・第3バケツ15（3回。1回目 強12・弱27・第3バケツ11、2回目 強4・弱27・第3バケツ4、3回目〈2回目の修正範囲だけ〉強0・弱3＋部をまたぐ食い違い4） / 強は全部型で閉じ（wire DTO と加工中ジョブのセーブ形は前例どおり据え置き）、弱は拾うか判断記録へ、第3バケツは F2 の PR 本文へ
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反4件・修正4件（3回。1回目3件・2回目1件・3回目〈2回目の修正範囲だけ〉0件・4回目〈予測レビュー後に足した C13 だけ〉0件） / 継承の解釈 util と製作上限の表を層責務どおりに置き直し、抽選の中身の入口を持ち主側の部品へ移した
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強16・弱57・第3バケツ15（3回。1回目 強12・弱27・第3バケツ11、2回目 強4・弱27・第3バケツ4、3回目〈2回目の修正範囲だけ〉強0・弱3＋部をまたぐ食い違い4、4回目〈C13 だけ〉強1・弱3・第3バケツ1＋名前の食い違い4、全件反映） / 強は全部型で閉じ（wire DTO と加工中ジョブのセーブ形は前例どおり据え置き）、弱は拾うか判断記録へ、第3バケツは F2 の PR 本文へ
 
 ---
 
@@ -250,8 +251,8 @@
 | ブロック可変値の保存とマイグレーション | `SaveMigrationStepV5ToV6`（world[].state の JSON を書き換える） | 従う |
 | 上位レベルの代替の照合（C11） | `MachineRecipeSlotBindingUtil.IsInputBoundTo`（束縛・加工開始・配置可否が通る1か所）と `ResearchDataStore` の消費 | 従う。照合規則は `Core.Item.LevelFamilySubstituteUtil` の1か所に置き、両方から使う |
 | 研究ノードの解放内容表示（C12） | `ResearchNodeDtoFactory` の表示6種と webui `UnlockSections` の「解放: その他」（connectTool・trainCar のテキスト行） | 従う。表示台帳へ移す |
-| 止まった理由の判定（C13） | 拒否の発生点は `VanillaMachineInputInventory.InsertItemFromBlock`（ブロック搬入の唯一の口。`BeltMachineReceiver.TryReceive`・`ConnectingInventoryListPriorityInsertItemService` が通る）。部品が答えプロトコルは詰め替えるだけの形は B6 の `CleanRoomYieldPreviewComponent` | 従う。状態は「直近の拒否の tick」だけを持ち、問い合わせのときに `GameUpdater.CurrentTick` との差とレシピの充足から導く（`Update()` での同値判定もフラグを下ろす処理も持たない） |
-| 止まった理由の同期（C13） | `GetElectricNetworkInfoProtocol`＋`BlockNetworkInfoCache`、A6 `va:getCleanRoomInfo`・B6 `va:getCleanRoomYieldInfo` と A8 の汎用 `BlockInfoPoller` | 従う（表示中だけ1秒の要求応答）。3点セットと A7 のブロック状態は採らない。消える瞬間は「拒否が来なくなった」ことで出来事が無く、通知するには毎 tick の監視が要るため |
+| 止まった理由の判定（C13） | 拒否の発生点は `VanillaMachineInputInventory.InsertItemFromBlock`（ブロック搬入の唯一の口。`BeltMachineReceiver.TryReceive`・`ConnectingInventoryListPriorityInsertItemService` が通る）。サーバー側の読み口が答え、プロトコルはブロックを引いて詰め替えるだけの形は A6 の `GetCleanRoomInfoProtocol`（種別ごとの読み口 `CleanRoomInfoView`）。B6 の `CleanRoomYieldPreviewComponent` は同じ形の後続タスク | 従う。状態は「直近の拒否の tick」だけを持ち、問い合わせのときに `GameUpdater.CurrentTick` との差・継承元スロットの数と要求数・processor の加工状態から導く（`Update()` での同値判定もフラグを下ろす処理も持たない） |
+| 止まった理由の同期（C13） | `GetElectricNetworkInfoProtocol`＋`BlockNetworkInfoCache`、A6 `va:getCleanRoomInfo` と A8 の汎用 `BlockInfoPoller`（B6 `va:getCleanRoomYieldInfo` は同じ形の後続タスク） | 従う（表示中だけ1秒の要求応答）。3点セットと A7 のブロック状態は採らない。消える瞬間は「拒否が来なくなった」ことで出来事が無く、通知するには毎 tick の監視が要るため |
 | 止まった理由の表示（C13） | webui `details/LackHighlightText`（不足の赤字）と A9 の `details/cleanRoom/` の欄の置き方 | 従う。新しい色や部品は作らない |
 
 ### Part B
@@ -14627,11 +14628,14 @@ git commit -m "test: 研究の解放が Web UI の配信まで届くことと上
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputLevelStall.cs`（理由の列挙と、止まっている状態の値）
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputBlockInflow.cs`（ブロック搬入の口。旧 `InsertItemFromBlock`・`InsertionCheckFromBlock` の本体と、拒否の記録）
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputLevelStallComponent.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachineProcessStateReader.cs`（2つの processor の加工状態を読む口）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs`（クラス宣言の行に `IMachineProcessStateReader` を足すだけ。C3・C4 後の199行のまま）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs`（同じくクラス宣言の行だけ。A7・C3・C4 後の199行のまま）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputSlotBinding.cs`（`TryGetRecipe` を足す。C11 後の約145行→約148行）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/VanillaMachineInputInventory.cs`（ブロック搬入の2メソッドを搬入口へ移し、`TryGetLevelStall` を足す。C7 後の199行→約192行）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs`（New・Load の components 列に1行ずつ。130→133行）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaGearMachineTemplate.cs`（components 列に1行。85→87行）
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs`（components 列に1行。A7・B2 後に1行増）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs`（components 列に1行。A7 後に1行増）
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/GetMachineInputStallProtocol.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/MachineInputStallMessagePack.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/MachineInputStallView.cs`
@@ -14640,6 +14644,7 @@ git commit -m "test: 研究の解放が Web UI の配信まで届くことと上
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallTestUtil.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallBeltTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallMinimalTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallComponentCoverageTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall/GetMachineInputStallProtocolTest.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/MachineInput/MachineInputStallPollSource.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/MachineInput/MachineInputStallDetailDtos.cs`
@@ -14667,36 +14672,40 @@ git commit -m "test: 研究の解放が Web UI の配信まで届くことと上
 
 置き場のファイル数は次のとおり。どれも10本以内。
 - `Machine/Inventory/Input/` は現行の4本に C7 の1本を足した5本で、このタスクの後は8本。
-- `Tests/CombinedTest/Core/Machine/Upgrade/` は C1〜C11 で8本ある。2本足すと上限の10本ちょうどになるので、新しいサブディレクトリ `InputLevelStall/`（3本）に置く。
+- `Machine/State/` は現行の6本に C3 の `MachineProcessingJob.cs` を足した7本で、このタスクの後は8本。
+- `Tests/CombinedTest/Core/Machine/Upgrade/` は C1〜C11 で8本ある。足すと上限の10本を超えるので、新しいサブディレクトリ `InputLevelStall/`（4本）に置く。
 - `Server.Protocol/PacketResponse/MachineInputStall/` は新しいディレクトリで3本。namespace は前例 `PacketResponse/CleanRoom/` に合わせて `Server.Protocol.PacketResponse` のままにする。
 - `PacketTest/MachineInputStall/` は新しいディレクトリで1本。
 - `BlockDetail/MachineInput/` は新しいディレクトリで3本。`BlockDetail/` 直下は既に10本なので、前例 `BlockDetail/CleanRoom/`・`NetworkInfo/` に倣う。サブディレクトリ名を `Machine` にしないのは、namespace `…BlockDetail.Machine` ができると、既存コードで `Machine.` から始まる修飾名の解決が変わるため。
-- `Client.Tests/WebUi/BlockDetail/` は B6 の後で8本、このタスクの後は9本。
+- `Client.Tests/WebUi/BlockDetail/` は現行の5本に A8 の2本を足した7本で、このタスクの後は8本（後続の B6 で9本）。
 - `schemas/` 直下の .ts は10本ちょうどなので、前例 `schemas/cleanRoom/index.ts` に倣ってサブディレクトリに置く。
 - `details/` 直下も12本あるので、前例 `details/cleanRoom/` に倣って `details/machineInputStall/` に置く。
-- `EditModeInPlayingTest/BlockInventory/` は5本で、このタスクの後は6本。
+- `EditModeInPlayingTest/BlockInventory/` は現行の5本に C10 の `MachineUpgradeWebUiTopicTest.cs` を足した6本で、このタスクの後は7本。
 
 **Interfaces:**
 - Consumes:
   - C2: `MachineRecipeLevelInheritanceUtil.TryGetShape(MachineRecipeMasterElement, out LevelInheritanceShape)`、`LevelInheritanceShape.SourceInputIndex`・`ResolveSourceLevel(ItemId) : int?`。テスト用は `ForUnitTestLevelInheritanceIds`（`InheritRecipeGuid`・`CappedInheritRecipeGuid`・`CappedTargetBaseGuid`・`Source(level)`）
-  - C3: `LevelInheritanceTestHelper`（`PlaceMachine`・`Recipe`・`Create`・`CreateTest1`・`CountItem`・`InputSlotCount`）
+  - C3: `LevelInheritanceTestHelper`（`PlaceMachine`・`Recipe`・`Create`・`CreateTest1`・`CountItem`・`InputSlotCount`・`AdvanceTicksWithFullPower`・`TicksToComplete`）
+  - 既存: `VanillaMachineProcessorComponent.CurrentState`・`CleanRoomMachineProcessorComponent.CurrentState`（どちらも `public ProcessState CurrentState { get; private set; }`。待機は `ProcessState.Idle`）
   - C7: `MachineInputSlotBinding(MachineInputCraftCapGate)`・`CheckPlacement(int, IItemStack)`・`MachineSlotPlacementCheck.LevelAboveCraftCap`、`VanillaMachineInputInventory` の ctor（`_slotBinding` を ctor で作る版）、`ILevelInheritanceCraftCapUnlocker.UnlockCraftCap(Guid, int)`
   - C11: `VanillaMachineInputSimulationUtil.SimulateAutoInsert` の `AlignSubstituteVariant`。継承元スロットは揃えないので、レベル違いの拒否はこのスロットにだけ起きる
   - C10: EditModeInPlayingTestMod の `継承テスト素材Lv1..3`・`継承テスト製品Lv1..3`・研究 `e0de0000-0000-4000-8000-000000000001`（製作上限を2へ上げる）。テストの書き方は `MachineUpgradeWebUiTopicTest` と同じ（`Snapshot` の読み方・`BlockSubInventoryOpener`・`WebUiActionInvoker`）
-  - A6・B6: プロトコルの書き方。private ctor と種別ごとの static factory を持ち、読み出しは `TryGetView` だけにする。`BlockNotFound` はビューに入れない。入れ子が欠けた応答は警告を出して読めない扱いにする。テストは `PacketResponseCreator.GetPacketResponse` と `BoundPacketContext.Bind(1)` で呼ぶ
+  - A6: プロトコルの書き方（`GetCleanRoomInfoProtocol`・`CleanRoomInfoView`）。private ctor と種別ごとの static factory を持ち、読み出しは `TryGetView` だけにする。`BlockNotFound` はビューに入れない。入れ子が欠けた応答は警告を出して読めない扱いにする。テストは `PacketResponseCreator.GetPacketResponse` と `BoundPacketContext.Bind(1)` で呼ぶ
   - A8: `IBlockInfoPollSource<TResponse, TSnapshot>`・`BlockInfoPoller<TResponse, TSnapshot>`（`Start`・`Stop`・`TryGetSnapshot`・取得のたびに発火する `OnUpdated`）、`BlockNetworkInfoCache` の全文（`Track`・`Clear`・ctor の購読）、`BlockDetailDtoBuilder` の `CleanRoomDetailDtoBuilder.Apply(dto, block, cache);` の行、`BlockInventoryDtos` の `CleanRoom` フィールド
   - A9: `schemas/cleanRoom` の import 行と export 行、`inventory.ts` の `cleanRoom` 行、`SectionStackView.tsx` の `<CleanRoomSection data={data} />`、`_CompileRequester` の MD5 の再計算
 - Produces（統合タスク bd moorestech-xyuaf.2 の D9 chip-line 録画が使う）:
   - サーバー（namespace `Game.Block.Blocks.Machine.Inventory.Input`）:
     - `enum MachineInputLevelRefusalReason { MixedLevel, AboveCraftCap }`
     - `readonly struct MachineInputLevelStall { MachineInputLevelRefusalReason Reason; ItemId WaitingItemId }`
-    - `MachineInputLevelStallComponent : IBlockComponent`（`bool TryGetStall(out MachineInputLevelStall stall)`。ctor は internal で template だけが作る。電気機械・歯車機械・清浄室機械の3種に付く）
+    - `MachineInputLevelStallComponent : IBlockComponent`（`bool TryGetStall(out MachineInputLevelStall stall)`。ctor は internal の `(VanillaMachineInputInventory, IMachineProcessStateReader)` で template だけが作る。電気機械・歯車機械・清浄室機械の3種に付く）
     - `VanillaMachineInputInventory.TryGetLevelStall(out MachineInputLevelStall stall) : bool`
     - `MachineInputSlotBinding.TryGetRecipe(out MachineRecipeMasterElement recipe) : bool`
-  - 「止まっている」の定義（`MachineInputBlockInflow.TryGetStall`）は、次の3つがすべて成り立つこと。
+  - サーバー（namespace `Game.Block.Blocks.Machine.State`）: `interface IMachineProcessStateReader { ProcessState CurrentState { get; } }`。`VanillaMachineProcessorComponent` と `CleanRoomMachineProcessorComponent` が既存の `CurrentState` で実装する
+  - 「止まっている」の定義は、次の4つがすべて成り立つこと。1〜3 は `MachineInputBlockInflow.TryGetStall`、4 は `MachineInputLevelStallComponent.TryGetStall` が見る。
     1. ブロック搬入の口 `IBlockInventory.InsertItem(stack, context)` で、継承元の変種が継承元のレベルの都合で断られた。
     2. その最後の拒否が現在 tick から1 tick 以内に起きている。
-    3. 選択レシピの材料がそろっていない（`RecipeConfirmation` が false）。
+    3. 継承元スロットの数が、選択レシピの継承元の要求数に足りない（`InventoryItems[shape.SourceInputIndex].Count < recipe.InputItems[shape.SourceInputIndex].Count`）。継承元は足りていて他の材料だけが欠けているときは成り立たない。
+    4. processor が待機中（`CurrentState == ProcessState.Idle`）。加工中・出力詰まり・停止中は成り立たない。
     - 理由は2つある。製作上限を超えるなら `AboveCraftCap`。継承元スロットに別のレベルが入っているなら `MixedLevel`。
     - プレイヤーの挿入（文脈なしの `InsertItem`）、ベルトの振り分け判定（`InsertionCheck`）、束縛外の品、同じレベルの満杯は、止まった理由にしない。
   - プロトコル `va:getMachineInputStall`（`GetMachineInputStallProtocol`）、`WorldQueryApi.GetMachineInputStall(BlockInstanceId, CancellationToken)`
@@ -14724,11 +14733,14 @@ git commit -m "test: 研究の解放が Web UI の配信まで届くことと上
 - **判定の置き場所。** 判定はブロック搬入の唯一の口に置く。旧 `VanillaMachineInputInventory.InsertItemFromBlock` の本体を `MachineInputBlockInflow` へ移し、そこで行う。
   - 拒否はこの口でしか起きない。ベルトの `BeltMachineReceiver.TryReceive` と、チェスト等の `ConnectingInventoryListPriorityInsertItemService` は、どちらも `VanillaMachineBlockInventoryComponent.InsertItem(stack, context)` を通ってここへ来る。
   - 記録は「拒否が起きた」という出来事を受けて書く。`Update()` で毎 tick 何かを比べることはしない。
-  - 「今も止まっているか」は、問い合わせたときに次の2つから導く。
+  - 「今も止まっているか」は、問い合わせたときに次の3つから導く。
     - 最後の拒否の tick と `GameUpdater.CurrentTick` との差
-    - 選択レシピの充足
+    - 継承元スロットの数と、選択レシピの継承元の要求数
+    - processor の加工状態（部品が `IMachineProcessStateReader` で読む）
   - 前の値と比べる処理も、止まった状態のフラグを下ろす処理も持たない。
-  - 機械の部品（processor）とブロックインベントリ部品は199行あって足せない。そのため止まった状態は入力インベントリ側が持ち、部品 `MachineInputLevelStallComponent` は読む口だけにする。前例は B6 の `CleanRoomYieldPreviewComponent`（持ち主側の部品が答え、プロトコルは詰め替えるだけ）。
+  - 機械の部品（processor）とブロックインベントリ部品は199行あって状態も判定も足せない。そのため止まった状態は入力インベントリ側が持ち、部品 `MachineInputLevelStallComponent` は読む口だけにする。processor には、既存の公開プロパティ `CurrentState` を読ませる interface をクラス宣言の行に足すだけにする（行は増えない）。前例は A6 の `GetCleanRoomInfoProtocol`（サーバー側の読み口が答え、プロトコルはブロックを引いて詰め替えるだけ）。B6 の `CleanRoomYieldPreviewComponent` は同じ形の後続タスク。
+- **加工中は出さない。** 加工中に断られた品は「次の加工を始められない見込み」にすぎない。そこで出すと、加工時間ぶん早く「止まっています」が出る。出力詰まり（`OutputBlocked`）と停止（`Halted`。清浄室の未密閉・クラス不足）は、別の理由で止まっていて、レベル違いを仕分けても動かない。そのため部品は processor が `ProcessState.Idle` のときだけ答える。加工が終わって待機に戻り、始められない間に断られた品があれば出る。
+  - 2つの processor（`VanillaMachineProcessorComponent`・`CleanRoomMachineProcessorComponent`）は共通の型を持たない。`ProcessState` は Game.Block の型なので、Game.Block.Interface の `IMachineRecipeSelectorComponent` には足せない。そのため `Game.Block/Blocks/Machine/State/IMachineProcessStateReader.cs` に読み口を置く。`using Game.Block.Blocks.Machine.State;` は両方の processor に既にあるので、199行のまま実装できる。
 - **1 tick の窓。** ベルトもチェストも、断られた品を毎 tick 渡し直す。
   - ベルトは `BeltNormalSegment.AdvanceAndTransfer` が、先頭が出口にある間、毎 tick `Output.TryReceive` を呼ぶ。
   - チェストは `VanillaChestComponent.Update` が全スロットを毎 tick 押し込む。
@@ -14737,13 +14749,14 @@ git commit -m "test: 研究の解放が Web UI の配信まで届くことと上
 - **消え方。** 止まった状態を消す処理は書かない。原因が消えれば、次のどれかで自然に消える。
   1. 次の受け渡しが通る。プレイヤーが仕分ける、スロットの別レベルを取り出す、研究で製作上限が上がる、のいずれかで起きる。
   2. 渡し直す搬入元がいなくなる。ベルトを撤去する、向きを変える、チェストが空になる、のいずれかで起きる。最後の拒否から2 tick 後には窓を外れる。
-  3. 選択レシピの材料がそろう。機械は動けるので表示しない。材料を消費して再び足りなくなっても、届いた品が断られ続けていればまた出る。
+  3. 継承元スロットが要求数そろう。継承元の不足が止まった原因ではなくなるので表示しない。他の材料だけが欠けている間も出さない（レベル違いを仕分けても機械は動かないので、理由として誤る）。消費して再び足りなくなっても、届いた品が断られ続けていればまた出る。
   4. レシピの選択を外す。`TryGetRecipe` が false になる。
   5. ブロックを撤去する。部品が壊れ、ポーラーは BlockNotFound で止まる。
+  6. 加工が始まる。待機中でなくなるので表示しない。加工が終わって始められなければ、次の受け渡しの拒否でまた出る。
   - どの最小構成でも、表示が出たまま残ることはない。空スロット、単品、ベルト無し、手動投入をテストで固定する。
 - **保存しない。** 止まった状態は「今届いている品」から導く一時的な値で、ロード後も搬入元が1 tick で作り直す。セーブ形式は変えない（マイグレーション不要）。
 - **同期方式。** 開いている機械だけ、1秒ごとに要求応答で問い合わせる。A8 の汎用 `BlockInfoPoller` に取得元を1つ足す。
-  - 前例は A6・B6 の表示中ポーリングと、`GetElectricNetworkInfoProtocol`。
+  - 前例は A6 の表示中ポーリングと、`GetElectricNetworkInfoProtocol`（B6 は同じ形の後続タスク）。
   - 3点セット（イベントパケット＋初期データ＋購読）にも、A7 のブロック状態（変化時だけ通知）にもしない。理由は次の2つ。
     - 状態が消える瞬間は「拒否が来なくなった」ことで、出来事として起きない。変化時に通知するには、毎 tick 前回値と比べる監視が要る。これは規約が禁じる同値判定にあたる。
     - 値を使うのは機械UIを開いている間だけである。
@@ -14752,9 +14765,9 @@ git commit -m "test: 研究の解放が Web UI の配信まで届くことと上
   - **移動**（`InventoryItemMoveProtocol` の SwapSlot）: `InventoryItemMoveService.Move` が `IsAllowedToPlace` で上限超えを `RejectedByDestination` にする。この結果は `InventoryItemMoveRejectionReporter` がログと通知に出す。別レベルの移動は入れ替えになる（Lv1 が手元へ戻り Lv2 が入る）ので、止まる状況が生まれない。
   - **挿入**（InsertSlot）: `InventoryItemInsertService.Insert` が文脈なしの `InsertItem(itemId, count)` を呼ぶ。断られた分はプレイヤーの手元のスロットに残る（通知は無い）。機械が止まるわけではないので、このタスクの対象外にする。
   - **自動化の扱い**: 文脈なしの `InsertItem` は搬入口を通らない。そのため手動の挿入は記録されない（テストで固定する）。
-- **wire の列挙を分ける。** wire の理由は、サーバーの `MachineInputLevelRefusalReason` を使わず、プロトコル側の `MachineInputStallReasonKind` に写す。B6 と同じく、wire の型をプロトコル層に閉じるためである。写す switch はプロトコルに1か所、webui の文字列に写す switch はクライアントの DTO 組み立てに1か所だけ置く。
+- **wire の列挙を分ける。** wire の理由は、サーバーの `MachineInputLevelRefusalReason` を使わず、プロトコル側の `MachineInputStallReasonKind` に写す。wire の型をプロトコル層に閉じるためである（後続の B6 も同じ形）。写す switch はプロトコルに1か所、webui の文字列に写す switch はクライアントの DTO 組み立てに1か所だけ置く。
 - **振り分け判定は記録しない。** ベルトの振り分け判定（`InsertionCheckFromBlock` → `CanInsertAll`）は拒否を記録しない。これは「どこへ流すか」を探す問いで、届いた品の拒否ではないため。
-- **表示の置き場所。** 欄は部屋欄（A9）・抽選の中身欄（B6）の下、アイテム欄と機械欄の上に置く。赤字は既存の `LackHighlightText` で出し、新しい色や部品は作らない。
+- **表示の置き場所。** 欄は部屋欄（A9）の下、アイテム欄と機械欄の上に置く（後続の B6 の抽選の中身欄は部屋欄の直後に入る）。赤字は既存の `LackHighlightText` で出し、新しい色や部品は作らない。
 
 - [ ] **Step 1: サーバーのテストを書く**
 
@@ -14923,8 +14936,10 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallMinimalTest.cs`:
 
 ```csharp
+using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
 using Tests.Module.TestMod;
@@ -14983,6 +14998,45 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
         }
 
         [Test]
+        public void SourceSatisfiedButOtherInputMissingDoesNotStallTest()
+        {
+            var (block, inventory) = SetUpMachine(InheritRecipeGuid);
+            inventory.SetItem(0, Create(Source(1), 2));
+
+            // 継承元は要求数(2)そろい Test1 だけが欠けている。レベル違いを仕分けても動かないので理由にしない
+            // The source meets its requirement (2) and only Test1 is missing; sorting levels would not start it, so no stall
+            Assert.AreEqual(1, inventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty).Count);
+            AssertNotStalled(block);
+        }
+
+        [Test]
+        public void RefusalWhileProcessingStallsOnlyAfterJobEndsTest()
+        {
+            var (block, inventory) = SetUpMachine(InheritRecipeGuid);
+            var processor = block.GetComponent<VanillaMachineProcessorComponent>();
+            inventory.SetItem(0, Create(Source(1), 3));
+            inventory.SetItem(1, CreateTest1(2));
+
+            // 1tick で加工が始まり、継承元は残り1（要求2に足りない）になる
+            // One tick starts the job and leaves one source, short of the required two
+            AdvanceTicksWithFullPower(1, processor);
+            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            Assert.AreEqual(1, CountItem(inventory, 0, InputSlotCount, Source(1)));
+
+            // 加工中に Lv2 が断られても、次の加工の見込みにすぎないので出さない
+            // A Lv2 refused while processing is only a forecast for the next job, so no stall
+            Assert.AreEqual(1, inventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty).Count);
+            AssertNotStalled(block);
+
+            // 加工が終わって待機に戻り、始められない間に断られると出る
+            // Once the job ends and the machine idles unable to start, a refusal reports the stall
+            AdvanceTicksWithFullPower(TicksToComplete(Recipe(InheritRecipeGuid)), processor);
+            Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
+            Assert.AreEqual(1, inventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty).Count);
+            AssertStalled(block, MachineInputLevelRefusalReason.MixedLevel, Source(2));
+        }
+
+        [Test]
         public void NonLevelRefusalDoesNotStallTest()
         {
             var (block, inventory) = SetUpMachine(InheritRecipeGuid);
@@ -15002,7 +15056,63 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
 }
 ```
 
-`CountItem` は `IOpenableInventory` を取り、`VanillaMachineBlockInventoryComponent` を渡せる（C3 のテストと同じ使い方）。
+`CountItem` は `IOpenableInventory` を取り、`VanillaMachineBlockInventoryComponent` を渡せる（C3 のテストと同じ使い方）。`AdvanceTicksWithFullPower`・`TicksToComplete` も C3 の `LevelInheritanceTestHelper` のもの（継承機械は電気機械なので、加工には給電が要る）。
+
+`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallComponentCoverageTest.cs`:
+
+```csharp
+using System;
+using System.Collections.Generic;
+using Core.Master;
+using Game.Block.Blocks.Machine.Inventory.Input;
+using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using Game.Context;
+using Mooresmaster.Model.BlocksModule;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UnityEngine;
+
+namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
+{
+    /// <summary>
+    ///     IMachineParam を持つ全ブロックが止まった理由の部品を持つことを確かめる（クライアントは IMachineParam なら問い合わせるため）
+    ///     Verifies every block whose param is IMachineParam carries the stall component, since the client queries any IMachineParam block
+    /// </summary>
+    public class MachineInputLevelStallComponentCoverageTest
+    {
+        // 大きな機械どうしが重ならない設置間隔
+        // Spacing so that large machines never overlap
+        private const int PlacementSpacing = 32;
+
+        [Test]
+        public void EveryMachineParamBlockHasStallComponentTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // テストマスタの IMachineParam のブロックを1つずつ置き、部品の有無を確かめる
+            // Place each IMachineParam block of the test master and check it carries the component
+            var placedBlockTypes = new HashSet<string>();
+            foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
+            {
+                var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                if (master.BlockParam is not IMachineParam) continue;
+                var position = new Vector3Int(blockId.AsPrimitive() * PlacementSpacing, 0, 0);
+                Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block), $"failed to place {master.Name}");
+                Assert.IsTrue(block.TryGetComponent<MachineInputLevelStallComponent>(out _), $"{master.Name} ({master.BlockType}) has no MachineInputLevelStallComponent");
+                placedBlockTypes.Add(master.BlockType);
+            }
+
+            // 3種の機械がそろっていることで、検査が空振りでないことを確かめる
+            // All three machine kinds being present proves the check did not pass vacuously
+            CollectionAssert.IsSupersetOf(placedBlockTypes, new[] { "ElectricMachine", "GearMachine", "CleanRoomMachine" });
+        }
+    }
+}
+```
+
+テストマスタには電気機械5種・歯車機械1種・清浄室機械1種がある（`forUnitTest/master/blocks.json`。継承機械 `TestLevelInheritMachine` も電気機械）。`IMachineParam` を実装する blockType は `VanillaSchema/blocks.yml` のこの3種だけで、4つ目を足して template に部品を組み忘れると、このテストが落ちる。
 
 - [ ] **Step 2: コンパイルエラーを確かめる**
 
@@ -15058,7 +15168,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface.MachineUpgrade;
-using Game.Fluid;
 
 namespace Game.Block.Blocks.Machine.Inventory.Input
 {
@@ -15072,9 +15181,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
         // Belts and chests re-offer a refused item every tick; a refusal up to one tick old counts as still waiting, whatever point of the tick the query comes at
         private const ulong RetryWindowTicks = 1;
 
-        private readonly BlockId _blockId;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        private readonly IReadOnlyList<FluidContainer> _fluidContainers;
         private readonly MachineInputSlotBinding _slotBinding;
 
         // 直近の拒否。上書きするだけで、消すのは時間切れ（RetryWindowTicks）に任せる
@@ -15082,11 +15189,9 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
         private MachineInputLevelStall _latestRefusal;
         private ulong? _latestRefusalTick;
 
-        public MachineInputBlockInflow(BlockId blockId, OpenableInventoryItemDataStoreService itemDataStoreService, IReadOnlyList<FluidContainer> fluidContainers, MachineInputSlotBinding slotBinding)
+        public MachineInputBlockInflow(OpenableInventoryItemDataStoreService itemDataStoreService, MachineInputSlotBinding slotBinding)
         {
-            _blockId = blockId;
             _itemDataStoreService = itemDataStoreService;
-            _fluidContainers = fluidContainers;
             _slotBinding = slotBinding;
         }
 
@@ -15118,14 +15223,18 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return true;
         }
 
-        // 直近の拒否が窓の内にあり、選択レシピの材料がそろっていないときだけ止まっている
-        // Stalled only while the latest refusal is inside the window and the selected recipe is unsatisfied
+        // 直近の拒否が窓の内にあり、継承元スロットの数が選択レシピの継承元の要求数に足りないときだけ止まっている（加工状態は部品が見る）
+        // Stalled only while the latest refusal is inside the window and the source slot holds fewer than the selected recipe requires (the component checks the process state)
         public bool TryGetStall(out MachineInputLevelStall stall)
         {
             stall = _latestRefusal;
             if (!_latestRefusalTick.HasValue || RetryWindowTicks < GameUpdater.CurrentTick - _latestRefusalTick.Value) return false;
-            if (!_slotBinding.TryGetRecipe(out var recipe)) return false;
-            return !recipe.RecipeConfirmation(_blockId, _itemDataStoreService.InventoryItems, _fluidContainers);
+            if (!_slotBinding.TryGetRecipe(out var recipe) || !MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape)) return false;
+
+            // 継承元が足りていて他の材料だけが欠けている間は、レベル違いを仕分けても動かないので理由にしない
+            // While the source suffices and only other inputs are missing, sorting levels would not start it, so it is not the reason
+            var sourceIndex = shape.SourceInputIndex;
+            return _itemDataStoreService.InventoryItems[sourceIndex].Count < recipe.InputItems[sourceIndex].Count;
         }
 
         // 継承元の変種が、製作上限超えか、別レベルの入ったスロットのせいで断られたかを分ける
@@ -15177,7 +15286,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 - コンストラクタの末尾（`_fluidContainers` を満たす for の閉じ括弧の次）に1行足す:
 
 ```csharp
-            _blockInflow = new MachineInputBlockInflow(_blockId, _itemDataStoreService, _fluidContainers, _slotBinding);
+            _blockInflow = new MachineInputBlockInflow(_itemDataStoreService, _slotBinding);
 ```
 
 - `InsertItemFromBlock` と `InsertionCheckFromBlock`（コメント2行から2つ目の閉じ括弧まで。現行 115〜131 行で、C3〜C11 は本体を変えない）を次の5行で置き換える。呼び出し側の `VanillaMachineBlockInventoryComponent`（199行）は変えない。
@@ -15193,32 +15302,60 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 Run: `wc -l moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/VanillaMachineInputInventory.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputSlotBinding.cs`
 Expected: どちらも200未満（約192行・約148行）
 
-- [ ] **Step 4: 止まった理由を答える部品を書き、3種の機械の template で組む**
+- [ ] **Step 4: 加工状態の読み口と、止まった理由を答える部品を書き、3種の機械の template で組む**
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachineProcessStateReader.cs`:
+
+```csharp
+namespace Game.Block.Blocks.Machine.State
+{
+    /// <summary>
+    ///     機械の加工状態を読む口。電気・歯車機械と清浄室機械の2つの processor が既存の CurrentState で実装する
+    ///     Read port for a machine's process state, implemented by both the electric/gear and the clean-room processors through their existing CurrentState
+    /// </summary>
+    public interface IMachineProcessStateReader
+    {
+        ProcessState CurrentState { get; }
+    }
+}
+```
+
+2つの processor のクラス宣言の行の末尾に `, IMachineProcessStateReader` を足す（行は増えない。`using Game.Block.Blocks.Machine.State;` はどちらにも既にある）。
+- `VanillaMachineProcessorComponent.cs`: `public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IMachineRecipeSelectorComponent, IMachineProcessStateReader`
+- `CleanRoomMachineProcessorComponent.cs`: `public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IBlockSaveState, IMachineRecipeSelectorComponent, IMachineProcessStateReader`
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputLevelStallComponent.cs`:
 
 ```csharp
+using Game.Block.Blocks.Machine.State;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 
 namespace Game.Block.Blocks.Machine.Inventory.Input
 {
     /// <summary>
-    ///     機械UIの停止理由「レベルの違う品が届いて止まっている」を答える部品。状態は入力インベントリの搬入口が持ち、ここは読むだけ
-    ///     Answers the machine UI's halt reason "an item of another level arrived and stalled"; the input inventory's inlet holds the state and this only reads it
+    ///     機械UIの停止理由「レベルの違う品が届いて止まっている」を答える部品。状態は入力インベントリの搬入口が持ち、加工状態は processor から読む。ここは読むだけ
+    ///     Answers the machine UI's halt reason "an item of another level arrived and stalled"; the input inventory's inlet holds the state, the processor gives the process state, and this only reads them
     /// </summary>
     public class MachineInputLevelStallComponent : IBlockComponent
     {
         private readonly VanillaMachineInputInventory _inputInventory;
+        private readonly IMachineProcessStateReader _processState;
 
-        internal MachineInputLevelStallComponent(VanillaMachineInputInventory inputInventory)
+        internal MachineInputLevelStallComponent(VanillaMachineInputInventory inputInventory, IMachineProcessStateReader processState)
         {
             _inputInventory = inputInventory;
+            _processState = processState;
         }
 
         public bool TryGetStall(out MachineInputLevelStall stall)
         {
             BlockException.CheckDestroy(this);
+
+            // 待機中だけ答える。加工中は次の加工の見込みにすぎず、出力詰まり・停止中は別の理由で止まっている
+            // Answer only while idle; processing is just a forecast for the next job, and output blockage or halt stops it for another reason
+            stall = default;
+            if (_processState.CurrentState != ProcessState.Idle) return false;
             return _inputInventory.TryGetLevelStall(out stall);
         }
 
@@ -15232,20 +15369,23 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 }
 ```
 
-3つの template で、components 列の `new MachineRecipeBlueprintSettingsComponent(processor),` の次に1行足す。`input` は `BlockTemplateUtil.GetMachineIOInventory` が返す入力インベントリ。
+3つの template で、components 列の `new MachineRecipeBlueprintSettingsComponent(processor),` の次に1行足す。`input` は `BlockTemplateUtil.GetMachineIOInventory` が返す入力インベントリ、`processor` はその template が作った processor（電気・歯車は `VanillaMachineProcessorComponent`、清浄室は `CleanRoomMachineProcessorComponent`。どちらも `IMachineProcessStateReader`）。
 
 ```csharp
-                new MachineInputLevelStallComponent(input),
+                new MachineInputLevelStallComponent(input, processor),
 ```
 
 - `Machine/VanillaMachineTemplate.cs`: `New` と `Load` の2か所。using に `using Game.Block.Blocks.Machine.Inventory.Input;` を足す（`using Game.Block.Blocks.Machine.Inventory;` の次）
 - `Machine/VanillaGearMachineTemplate.cs`: components 列の1か所。using も同じく足す
-- `CleanRoom/VanillaCleanRoomMachineTemplate.cs`（A7・B2 後）: components 列の1か所。A7 の `operabilityState,` は末尾のまま。using も同じく足す
+- `CleanRoom/VanillaCleanRoomMachineTemplate.cs`（A7 後）: components 列の1か所。A7 の `operabilityState,` は末尾のまま。using も同じく足す
+
+Run: `wc -l moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs`
+Expected: どちらも199（クラス宣言の行を書き換えただけ）
 
 - [ ] **Step 5: コンパイルしてサーバーのテストを通す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineInputLevelStall|LevelInheritanceCraftCapTest|LevelInheritanceRecipeTest|LevelFamilySubstituteMachineTest|MachineAutoInsertCapTest|MachineSlotBindingTest|InsertItemContextTest|BeltConveyorTest|CleanRoomMachine"`
-Expected: ErrorCount 0 / 全 PASS（新しい7件〈ベルト3・最小構成4〉と、ブロック搬入の口を移したことの回帰）
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineInputLevelStall|LevelInheritanceCraftCapTest|LevelInheritanceRecipeTest|LevelFamilySubstituteMachineTest|MachineAutoInsertCapTest|MachineSlotBindingTest|InsertItemContextTest|BeltConveyorTest|CleanRoomMachine|MachineIOTest"`
+Expected: ErrorCount 0 / 全 PASS（新しい10件〈ベルト3・最小構成6・網羅1〉と、ブロック搬入の口を移したこと・processor に読み口を足したことの回帰）
 
 - [ ] **Step 6: プロトコルのテストを書く**
 
@@ -15623,10 +15763,10 @@ namespace Server.Protocol.PacketResponse
 - [ ] **Step 8: コンパイルしてプロトコルのテストを通し、サーバー側をコミットする**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineInputLevelStall|GetMachineInputStallProtocolTest"`
-Expected: ErrorCount 0 / 12件 PASS（サーバー7件・プロトコル5件）
+Expected: ErrorCount 0 / 15件 PASS（サーバー10件・プロトコル5件）
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaGearMachineTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs moorestech_server/Assets/Scripts/Server.Protocol moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall.meta moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall.meta
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachineProcessStateReader.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IMachineProcessStateReader.cs.meta moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaGearMachineTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs moorestech_server/Assets/Scripts/Server.Protocol moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall.meta moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall.meta
 git commit -m "feat(machine): 継承元のレベルで止まった機械の理由を返すプロトコル va:getMachineInputStall を追加する"
 ```
 
@@ -15649,7 +15789,7 @@ Unity が生成した `.meta`（新しいディレクトリとファイル）も
 }
 ```
 
-機械欄（`machine`）は schema 上 optional なので、止まった理由の契約だけを固定するために省く（B6 の fixture と同じ）。
+機械欄（`machine`）は schema 上 optional なので、止まった理由の契約だけを固定するために省く（A8 の `block_inventory_clean_room_machine.json` と同じ）。
 
 `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractMachineInputStallTest.cs`:
 
@@ -16332,11 +16472,13 @@ git add moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Serv
 git commit -m "test: ベルトで届いた上限超えの止まった理由が Web UI の配信に載り研究で消えることを確かめる"
 ```
 
-unityプレイ録画テストはこのタスクに置かない。Part C 完了時点の出荷マスタには継承レシピが無く、止まる場面を作れないため。出荷マスタの画面での確認は、統合タスク（bd moorestech-xyuaf.2）の D9 chip-line の録画で行う（引き継ぎ文書 RD14。手順と見る箇所は下の「統合タスクの録画項目」）。
+unityプレイ録画テストはこのタスクに置かない。Part C 完了時点の出荷マスタには継承レシピが無く、止まる場面を作れないため。出荷マスタの画面での確認は、統合タスク（bd moorestech-xyuaf.2）の D9 chip-line の録画で行う（`docs/superpowers/plans/2026-10-23-tier9-s1-master-content-handoff.md` の RD14〈23行目〉と末尾の「S1 plan の予測レビュー（2026-10-24）からの持ち越し」節。手順と見る箇所は下の「統合タスクの録画項目」）。
 
 **統合タスクの録画項目（D9 chip-line に足す1点）:**
-- わざと Lv1 と Lv2 を混ぜたチップのベルトを、モジュールの継承レシピの機械へつなぐ。機械をF単押しで開き、`PlaytestDomQuery.Query("machine-input-stall", …)` が Found であることを確かめる。文言は「レベルの違う品（ICチップLv2）が届いて止まっています」で、`data-insufficient="true"` が付く。この画面をスクショ `04-mixed-level-stall` に撮る。
-- 続けてフィルター分岐器で Lv2 を別のベルトへ逃がす。3秒以内に `machine-input-stall` が Found=false になり、ラインが回ることを確かめる。
+- 文言の品名は、断られた品（後から届いたレベル）の名前になる。どのレベルが断られるかは、空の継承元スロットへ先に入ったレベルで決まる。そのため混ぜる順を固定する。
+- まず Lv1 だけのチップのベルトを、モジュールの継承レシピの機械へつなぐ。Lv1 を継承元の要求数より少なく（例: 1個）だけ流し、継承元スロットに Lv1 が入って機械が待機中のままであることを確かめる。要求数以上を入れると、他の材料だけが欠けた状態になり、表示は出ない。
+- 続けて同じベルトに Lv2 を流す。機械をF単押しで開き、`PlaytestDomQuery.Query("machine-input-stall", …)` が Found であることを確かめる。文言は断られた Lv2 の名前で「レベルの違う品（ICチップLv2）が届いて止まっています」になり、`data-insufficient="true"` が付く。この画面をスクショ `04-mixed-level-stall` に撮る。
+- 続けてフィルター分岐器で Lv2 を別のベルトへ逃がし、Lv1 を要求数まで流す。3秒以内に `machine-input-stall` が Found=false になり、加工が始まってラインが回ることを確かめる。
 
 ## Part B: チップ生産の工程
 
@@ -21684,7 +21826,7 @@ git commit -m "feat(cleanroom): 半導体の専用機5種の簡易モデル pref
 - Consumes: F1 までの全コミット
 - Produces: moorestech の PR と moorestech_master の PR（どちらも作成まで。moorestech の規約でマージはしない。マージ方式はマージコミット）
 
-**PR 本文に必ず入れる節「本PR外のリファクタ提案」**（設計検査 Phase 2.6 の第3バケツ。本 PR のタスクにはしない。着手の可否は人間が決める）。moorestech の PR 本文に、次の14件を「既存側ファイル／新設側／同じ役割と判断した根拠」の形のまま並べる:
+**PR 本文に必ず入れる節「本PR外のリファクタ提案」**（設計検査 Phase 2.6 の第3バケツ。本 PR のタスクにはしない。着手の可否は人間が決める）。moorestech の PR 本文に、次の15件を「既存側ファイル／新設側／同じ役割と判断した根拠」の形のまま並べる:
 
 - 既存側 `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs`（ctor の `_filterItemId` 解決〈47行〉・`HasFilterItem`〈115-120行〉）／新設側 A2 のテンプレートの `GetItemId(param.FilterItemGuid)`（893行）と `CleanRoomAirFilterInventoryComponent.IsFilterOrEmpty`（874行）／同じ清浄機の中で、「フィルター GUID から ItemId を解決する処理」と「フィルターかどうかの判定」を2つの部品が別々に持っている
 - 既存側 `Game.CleanRoom/Util/CleanRoomCellSets.cs:30,42`・`CleanRoomDetectionService.cs:31`（境界の判定と6近傍）／新設側 A5 `CleanRoomLeakRays.IsBoundary`・`Directions`（2211-2219）と `CleanRoomInfoQuery.Query` の `isBoundary`（2574）／部屋の検出が既に持つ「セルが `ICleanRoomBoundaryComponent` を持つか」と6近傍の列挙を、漏れの探索用に作り直している
@@ -21700,6 +21842,7 @@ git commit -m "feat(cleanroom): 半導体の専用機5種の簡易モデル pref
 - 既存側 `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs:64-70・113-119`／新設側 B2 `VanillaCleanRoomMachineTemplate`／「タンクがあれば液体コネクタと `VanillaMachineFluidInventoryComponent` を組む」判定と組み立てが3か所目になる
 - 既存側 `moorestech_server/Assets/Scripts/Game.PlayerInventory/PlayerInventorySlotLevelDataStore.cs`／新設側 C6 `ModuleSlotStackLimitDataStore.UnlockLevel`／「0始まりの段階レベルを上げるだけにし、段階表の値が変わったら通知する」本体が同じ
 - 既存側 `moorestech_server/Assets/Scripts/Core.Item/ItemStackLevelDataStore.cs`／新設側 C7 `LevelInheritanceCraftCapTable`＋`LevelInheritanceCraftCapDataStore`／「GUIDごとのレベル。未登録は Lv1、上がるだけ、上がったら通知」が同じ形
+- 既存側 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs:26`（`SelectedRecipe`。選択レシピの正本で、`BindSelectedRecipe` が入力の束縛へ写す）／新設側 C13 `MachineInputSlotBinding.TryGetRecipe`／どちらも「いま選ばれているレシピ」を返す。束縛側の `_recipe` は正本の写しで、後続の B6 の `IMachineRecipeSelectorComponent.TryGetSelectedRecipe` は正本から読む。読み口を正本の1本に寄せるかを人間が決める
 
 - [ ] **Step 1: moorestech_master の PR を作る**
 
@@ -21834,15 +21977,20 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 研究ノードには新しい2種の解放アクションの中身を出す（スロット上限は上限値、製作上限は継承先の基準アイテムとレベル）。前例 connectTool・trainCar と同じ「解放: その他」節のテキスト行にし、表示台帳へ入れる。出所: シミュレーター予測→ユーザー承認（.decisions/2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる.md）
 - Part C のサーバーテストは `Tests/CombinedTest/Core/Machine/Upgrade/` にまとめる（既存の Machine 直下はコード10件ちょうどで足せないため）。出所: agent前提（moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/）
 - 継承レシピの機械は、継承元スロットに1レベルずつしか受けず、レベルを混ぜず、格下げもしない。レベルの混ざった品や製作上限を超える品がベルトで届くと、ラインは先頭で止まる。仕分けはプレイヤーが既存のフィルター分岐器で行う。機械UIには「レベルの違う品が届いて止まっている」旨を出す。そのためにサーバーの状態と同期を新しく足す（C13）。棄却した案は2つ。(B) 計画とテストに止まることを書くだけにする。(C) レベルごとに入力スロットを分ける。出所: シミュレーター予測→ユーザー承認 2026-10-24（.decisions/2026-10-24-レベルの混ざったチップはプレイヤーが仕分け止まった理由を機械UIに出す.md）
-- 止まったかどうかの判定はブロック搬入の唯一の口で行う。旧 `VanillaMachineInputInventory.InsertItemFromBlock` の本体を `MachineInputBlockInflow` へ移し、継承元のレベルで断った直近の1件とその tick だけを記録する。「今も止まっているか」は問い合わせのときに導く。条件は、最後の拒否から1 tick 以内で、かつ選択レシピの材料がそろっていないこと。`Update()` で毎 tick 比べることも、止まった状態を下ろす処理もしない。出所: agent前提（ベルトは `BeltNormalSegment.AdvanceAndTransfer` が先頭の品を毎 tick `Output.TryReceive` へ渡し直し、チェストは `VanillaChestComponent.Update` が毎 tick 押し込むので、止まっている間は記録が毎 tick 新しくなる。AGENTS.md「状態変化の検知は購読で。Update() 内で毎tickの同値判定をしない」）
+- 止まったかどうかの判定はブロック搬入の唯一の口で行う。旧 `VanillaMachineInputInventory.InsertItemFromBlock` の本体を `MachineInputBlockInflow` へ移し、継承元のレベルで断った直近の1件とその tick だけを記録する。「今も止まっているか」は問い合わせのときに導く。条件は、最後の拒否から1 tick 以内で、継承元スロットの数が選択レシピの継承元の要求数に足りず、processor が待機中であること。`Update()` で毎 tick 比べることも、止まった状態を下ろす処理もしない。出所: agent前提（ベルトは `BeltNormalSegment.AdvanceAndTransfer` が先頭の品を毎 tick `Output.TryReceive` へ渡し直し、チェストは `VanillaChestComponent.Update` が毎 tick 押し込むので、止まっている間は記録が毎 tick 新しくなる。AGENTS.md「状態変化の検知は購読で。Update() 内で毎tickの同値判定をしない」）
 - 窓を0でなく1 tick にするのは、照会が tick のどの時点に来ても同じ答えにするため。`GameUpdater.CurrentTick` は `Tick()` の前に進み、パケットは tick の外で処理される。窓が短いので、搬入元が無くなれば最大2 tick で記録が古くなり、止まったまま残る構成は無い。テストで固定するのは、空スロット・単品・ベルト無し・手動投入の4つ。出所: agent前提（`Core.Update.GameUpdater`、C13 `MachineInputLevelStallMinimalTest`・`MachineInputLevelStallBeltTest`）
 - 止まった理由にするのは、ブロック搬入で継承元の変種が次のどちらかで断られたときだけ。(a) 製作上限超え（`CheckPlacement` が `LevelAboveCraftCap`）。(b) スロットに別レベルの継承元が入っていて積めない。次のものは理由にしない。束縛外の品、同じレベルの満杯、レシピ未選択、ベルトの振り分け判定（`InsertionCheck`）。振り分け判定は「どこへ流すか」の問いで、届いた品の拒否ではないため。出所: agent前提（C7 `MachineInputSlotBinding.CheckPlacement`・C11 の継承元スロットは揃えない規則）
 - 手での操作は C13 の対象外にする。移動（SwapSlot）は、上限超えを `InventoryItemMoveService.Move` が `RejectedByDestination` にし、`InventoryItemMoveRejectionReporter` がログと通知に出す。別レベルの移動は入れ替えになるので、止まる状況が生まれない。挿入（InsertSlot）は、文脈なしの `InsertItem` で断られた分がプレイヤーの手元に残る。どちらも機械を止めない。出所: agent前提（`InventoryItemMoveProtocol`・`InventoryItemInsertService.Insert`）
 - 止まった理由は保存しない。今届いている品から導く一時的な値で、ロード後も搬入元が1 tick で作り直すため。セーブ形式は変えない（マイグレーション不要）。出所: agent前提（AGENTS.md「唯一の例外: セーブ形式」）
-- 同期は、表示中だけ1秒ごとの要求応答 `va:getMachineInputStall` にする。A8 の汎用 `BlockInfoPoller` に取得元を1つ足し、機械（`IMachineParam`）を開いている間だけ問い合わせる。3点セットと A7 のブロック状態は採らない。理由は2つ。止まった状態が消える瞬間は出来事として起きず、変化時に通知するには毎 tick の監視が要る。値を使うのは機械UIを開いている間だけ。表示の遅れは最大1秒で、許容する。出所: agent前提（前例 `GetElectricNetworkInfoProtocol`＋`BlockNetworkInfoCache`、A6・B6 の表示中ポーリング）
-- wire の理由は、サーバーの `MachineInputLevelRefusalReason` を使わず、プロトコル側の `MachineInputStallReasonKind` に写す。写す switch はプロトコルに1か所、webui の文字列に写す switch はクライアントの DTO 組み立てに1か所置く。判別子が Stalled なのに中身が欠けた応答や、未知の理由は、警告を出して読めない扱いにする（ポーラーは値を捨てて止める）。出所: agent前提（B6 の `CleanRoomYieldView`・`TryGetView` の形）
-- 止まった状態は入力インベントリ側の `MachineInputBlockInflow` が持つ。読む口として部品 `MachineInputLevelStallComponent` を、電気機械・歯車機械・清浄室機械の3つの template で組む。機械の processor とブロックインベントリ部品は199行あり、足す余地が無い。出所: agent前提（`VanillaMachineBlockInventoryComponent.cs` 199行、前例 B6 `CleanRoomYieldPreviewComponent`）
-- unityプレイ録画テストは C13 に置かない。Part C 完了時点の出荷マスタには継承レシピが無く、止まる場面を作れないため。画面の確認は、統合タスクの D9 chip-line の録画で行う（引き継ぎ文書 RD14 と 2840 行目に記載済み）。C13 では EditModeInPlayingTest で、テスト用マスタの石の粉砕機に上限つき継承レシピ1件を足し、ベルトから配信までを確かめる。出所: agent前提（auto-memory「UIは録画テストを省かない」に対し、出荷マスタで場面を作れないので録画項目は統合タスクへ渡す）
+- 同期は、表示中だけ1秒ごとの要求応答 `va:getMachineInputStall` にする。A8 の汎用 `BlockInfoPoller` に取得元を1つ足し、機械（`IMachineParam`）を開いている間だけ問い合わせる。3点セットと A7 のブロック状態は採らない。理由は2つ。止まった状態が消える瞬間は出来事として起きず、変化時に通知するには毎 tick の監視が要る。値を使うのは機械UIを開いている間だけ。表示の遅れは最大1秒で、許容する。出所: agent前提（前例 `GetElectricNetworkInfoProtocol`＋`BlockNetworkInfoCache`、A6 の表示中ポーリング。B6 は同じ形の後続タスク）
+- wire の理由は、サーバーの `MachineInputLevelRefusalReason` を使わず、プロトコル側の `MachineInputStallReasonKind` に写す。写す switch はプロトコルに1か所、webui の文字列に写す switch はクライアントの DTO 組み立てに1か所置く。判別子が Stalled なのに中身が欠けた応答や、未知の理由は、警告を出して読めない扱いにする（ポーラーは値を捨てて止める）。出所: agent前提（A6 の `CleanRoomInfoView`・`TryGetView` の形。B6 の `CleanRoomYieldView` は同じ形の後続タスク）
+- 止まった状態は入力インベントリ側の `MachineInputBlockInflow` が持つ。読む口として部品 `MachineInputLevelStallComponent` を、電気機械・歯車機械・清浄室機械の3つの template で組む。機械の processor とブロックインベントリ部品は199行あり、状態も判定も足す余地が無い。出所: agent前提（`VanillaMachineBlockInventoryComponent.cs` 199行、前例 A6 `GetCleanRoomInfoProtocol`〈サーバー側の読み口が答え、プロトコルは詰め替えるだけ〉。B6 `CleanRoomYieldPreviewComponent` は同じ形の後続タスク）
+- 「止まっている」の3つ目の条件は、選択レシピ全体の充足（`RecipeConfirmation`）ではなく、継承元スロットの数が選択レシピの継承元の要求数に足りないこと（`InventoryItems[SourceInputIndex].Count < recipe.InputItems[SourceInputIndex].Count`）にする。継承元は足りていて他の材料だけが欠けているときに出すと、プレイヤーがレベル違いを仕分けても機械は止まったままで、理由として誤るため。出所: agent前提（設計検査 C13 強。C13 `MachineInputLevelStallMinimalTest.SourceSatisfiedButOtherInputMissingDoesNotStallTest`）
+- 止まった理由は processor が待機（`ProcessState.Idle`）のときだけ出す。加工中に断られた品は次の加工を始められない見込みにすぎず、出すと加工時間ぶん早く「止まっています」になる。出力詰まり（`OutputBlocked`）と停止（`Halted`。清浄室の未密閉・クラス不足）は別の理由で止まっていて、レベル違いを仕分けても動かない。加工が終わって待機に戻り、始められない間に断られた品があれば出る。出所: agent前提（設計検査 C13 弱1・`IdleMachineProcessState.GetNextUpdate`。C13 `MachineInputLevelStallMinimalTest.RefusalWhileProcessingStallsOnlyAfterJobEndsTest`）
+- 加工状態は、2つの processor が既に持つ公開プロパティ `CurrentState`（`{ get; private set; }`）で読む。2つの型をまとめる interface `IMachineProcessStateReader` を `Game.Block/Blocks/Machine/State/` に置き、両 processor のクラス宣言の行に足す。processor は2本とも199行で、行を足せないため。`using Game.Block.Blocks.Machine.State;` は両方に既にあるので、行は増えない。`ProcessState` は Game.Block の型なので、Game.Block.Interface の `IMachineRecipeSelectorComponent` には足せない。出所: agent前提（`VanillaMachineProcessorComponent.cs`・`CleanRoomMachineProcessorComponent.cs` 199行、設計検査 C13 弱1）
+- `IMachineParam` を持つ全ブロックが `MachineInputLevelStallComponent` を持つことを、テストマスタの全ブロックを置くテスト `MachineInputLevelStallComponentCoverageTest` で固定する。クライアントは `param is IMachineParam` で問い合わせ、サーバーは3つの template で部品を組む。部品の無い template で4つ目の機械種別を足すと、開いている間ずっと警告が出て欄が出ないため。出所: agent前提（設計検査 C13 弱3・`VanillaSchema/blocks.yml` の `IMachineParam` 実装は ElectricMachine・GearMachine・CleanRoomMachine の3種）
+- 統合タスクの録画項目は、先に Lv1 だけを継承元の要求数より少なく流してスロットに入れてから Lv2 を混ぜる手順にする。文言の品名は断られた品（後から届いたレベル）の名前になり、どのレベルが断られるかは空のスロットへ先に入ったレベルで決まるため。出所: agent前提（設計検査 C13 弱2・`MachineInputBlockInflow.Insert` が残りの `Id` を記録する）
+- unityプレイ録画テストは C13 に置かない。Part C 完了時点の出荷マスタには継承レシピが無く、止まる場面を作れないため。画面の確認は、統合タスクの D9 chip-line の録画で行う（`docs/superpowers/plans/2026-10-23-tier9-s1-master-content-handoff.md` の RD14〈23行目〉と末尾の「S1 plan の予測レビュー（2026-10-24）からの持ち越し」節に記載済み）。C13 では EditModeInPlayingTest で、テスト用マスタの石の粉砕機に上限つき継承レシピ1件を足し、ベルトから配信までを確かめる。出所: agent前提（auto-memory「UIは録画テストを省かない」に対し、出荷マスタで場面を作れないので録画項目は統合タスクへ渡す）
 
 ### Part B（チップ生産の工程） の判断
 
@@ -21889,6 +22037,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 再検査（2回目）で足した・置き直した reviewer 対象ファイル: 部屋の境界ブロックのテンプレート `VanillaCleanRoomBoundaryTemplate.cs`（A14。ハッチの搬送量上限をマスタから読んで部品へ渡す。既存テンプレートの形に従う）、ハッチ搬送量上限の起動時検証 `CleanRoomItemHatchThroughputValidator.cs` と登録先 `BlockMasterUtil.cs`（A14。前例 `BeltSpeedPerSecondValidator`。必須キーで正の値以外は起動時に止める）、部屋照会の wire `CleanRoomSummaryMessagePack.cs`・読み口 `CleanRoomInfoView.cs`・`CleanRoomLeakView.cs`（A6。private ctor＋種別ごとの factory＋`TryGetView` で判別子と入れ子の整合を閉じる。中身は MessagePack 型のまま公開を許す）、継承レシピの形の検証 `LevelInheritanceRecipeShape.cs`（C2。public にして実行時の `BuildShape` と Part B の役割検証が委ねる1か所にする）。出所: agent前提（設計検査 再検査 強1・違反1・弱。各タスクの前例欄）
 - C13 で触る reviewer 対象ファイルは次のとおり。
   - 機械 template 3本（`VanillaMachineTemplate.cs`・`VanillaGearMachineTemplate.cs`・`VanillaCleanRoomMachineTemplate.cs`）。components 列に `MachineInputLevelStallComponent` を1行足すだけで、既存の部品の順と生成は変えない。
+  - processor 2本（`VanillaMachineProcessorComponent.cs`・`CleanRoomMachineProcessorComponent.cs`）と読み口 `Machine/State/IMachineProcessStateReader.cs`。クラス宣言の行に interface を足すだけで、既存の `CurrentState` を実装に充てる（199行のまま）。
   - プロトコルの登録 `PacketResponseCreator.cs` と、クライアント呼び出し `WorldQueryApi.cs`（`va:getMachineInputStall`）。
   - プロトコル本体 `GetMachineInputStallProtocol.cs`・wire `MachineInputStallMessagePack.cs`・読み口 `MachineInputStallView.cs`（`PacketResponse/MachineInputStall/`）。部品の `TryGetComponent` → 結果の詰め替えだけで、wire は private ctor＋種別ごとの factory＋`TryGetView` で判別子と中身の整合を閉じる（A6・B6 と同じ形）。
   - 表示中ポーリングのキャッシュ `BlockNetworkInfoCache.cs`。A8 の汎用 `BlockInfoPoller` をもう1本持ち、`Track` で `IMachineParam` のときだけ開始する。
