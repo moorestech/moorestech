@@ -58,30 +58,33 @@ namespace Client.Game.InGame.FluidNetwork.Network
             return _initialApplyCompletion.Task;
         }
 
-        // ネットワーク受信payloadのデシリアライズと適用を隔離する外部境界。畳まないと完了ソースがPendingで残り、初期化の待機が無期限になる
-        // External boundary isolating deserialization and apply of a received network payload; without folding, the source stays Pending and the init wait never ends
+        // ネットワーク受信payloadのデシリアライズだけを隔離する外部境界。コピーの組み立て(ApplyFullState)のバグは例外のまま上げ、受信データの破損と区別できるようにする
+        // External boundary isolating only the deserialization of a received network payload; a bug in assembling the copy (ApplyFullState) propagates as an exception so it stays distinguishable from corrupt input
         private void HandleFullSnapshot(byte[] payload)
         {
+            FluidNetworkFullStateMessagePack message;
             try
             {
-                var message = MessagePackSerializer.Deserialize<FluidNetworkFullStateMessagePack>(payload);
-                _diagnostics.RecordReceived("FluidNetworkFullSnapshot", message.ServerTick, message.TickSequenceId);
-                _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.TickSequenceId));
-                if (!CanApplyInitialSnapshot()) return;
-
-                _cache.ApplyFullState(message.ToFullState());
-                _initialApplyCompletion.TrySetResult();
+                message = MessagePackSerializer.Deserialize<FluidNetworkFullStateMessagePack>(payload);
             }
-            catch (Exception applyException)
+            catch (Exception deserializeException)
             {
-                // 初期全量はInitializeDispatchの同期replayを通るため、再送出すると起動ごと中断し残りのbufferedイベントが永久に配信されない
-                // The initial full state arrives through InitializeDispatch's synchronous replay, so rethrowing would abort startup and strand every remaining buffered event
-                _initialApplyCompletion.TrySetException(applyException);
-                Debug.LogError($"[FluidNetworkSync] 途中参加の全量の適用に失敗しました: {applyException}");
-                // 複製が無いまま順序適用とハッシュ照合が進むとNREが続くので、列車ごと恒久停止する
-                // Without a replica, ordered applies and hash checks would keep throwing NREs, so stop permanently with the train
+                // 初期全量はInitializeDispatchの同期replayを通るため、再送出すると起動ごと中断し残りのbufferedイベントが永久に配信されない。畳まないと完了ソースがPendingで残り、初期化の待機が無期限になる
+                // The initial full state arrives through InitializeDispatch's synchronous replay, so rethrowing would abort startup and strand every remaining buffered event; without folding, the source stays Pending and the init wait never ends
+                _initialApplyCompletion.TrySetException(deserializeException);
+                Debug.LogError($"[FluidNetworkSync] 途中参加の全量のデシリアライズに失敗しました: {deserializeException}");
+                // コピーが無いまま順序適用とハッシュ照合が進むとNREが続くので、列車ごと同期を止める
+                // Without a copy, ordered applies and hash checks would keep throwing NREs, so stop the sync together with the train
                 _futureMessageBuffer.StopRetainingFutureMessages("FluidNetworkInitialSnapshotFailed");
+                return;
             }
+
+            _diagnostics.RecordReceived("FluidNetworkFullSnapshot", message.ServerTick, message.TickSequenceId);
+            _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.TickSequenceId));
+            if (!CanApplyInitialSnapshot()) return;
+
+            _cache.ApplyFullState(message.ToFullState());
+            _initialApplyCompletion.TrySetResult();
 
             #region Internal
 
@@ -100,13 +103,37 @@ namespace Client.Game.InGame.FluidNetwork.Network
 
         private void HandleTickDiff(byte[] payload)
         {
-            var message = MessagePackSerializer.Deserialize<FluidNetworkTickDiffMessagePack>(payload);
+            // 外部境界: 受信payloadのデシリアライズだけを隔離する。壊れた差分は黙って落とさず、列車ごと同期を止めて理由を残す
+            // External boundary isolating only the deserialization of the received payload; a corrupt diff is not dropped silently but stops the sync together with the train, leaving the reason
+            FluidNetworkTickDiffMessagePack message;
+            try
+            {
+                message = MessagePackSerializer.Deserialize<FluidNetworkTickDiffMessagePack>(payload);
+            }
+            catch (Exception deserializeException)
+            {
+                Debug.LogError($"[FluidNetworkSync] 流体差分のデシリアライズに失敗しました: {deserializeException}");
+                _futureMessageBuffer.StopRetainingFutureMessages("FluidNetworkTickDiffDeserializeFailed");
+                return;
+            }
             _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, new FluidNetworkTickDiffBufferedEvent(_cache, _futureMessageBuffer, _diagnostics, TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.TickSequenceId), message.ToDiff()));
         }
 
         private void HandleRebuiltFullState(byte[] payload)
         {
-            var message = MessagePackSerializer.Deserialize<FluidNetworkFullStateMessagePack>(payload);
+            // 外部境界: 受信payloadのデシリアライズだけを隔離する(HandleTickDiff と同じ扱い)
+            // External boundary isolating only the deserialization of the received payload (handled like HandleTickDiff)
+            FluidNetworkFullStateMessagePack message;
+            try
+            {
+                message = MessagePackSerializer.Deserialize<FluidNetworkFullStateMessagePack>(payload);
+            }
+            catch (Exception deserializeException)
+            {
+                Debug.LogError($"[FluidNetworkSync] 作り直し後の全量のデシリアライズに失敗しました: {deserializeException}");
+                _futureMessageBuffer.StopRetainingFutureMessages("FluidNetworkRebuiltFullStateDeserializeFailed");
+                return;
+            }
             _futureMessageBuffer.EnqueueEvent(message.ServerTick, message.TickSequenceId, new FluidNetworkRebuiltFullStateBufferedEvent(_cache, message.ToFullState()));
         }
 
