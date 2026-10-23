@@ -80,12 +80,14 @@ namespace Game.Block.Blocks.Fluid
 
             FluidStack AddToHoldover()
             {
-                var accepted = FluidSimNetwork.ResolveAcceptedUnits(_holdoverUnits, CapacityUnits, _holdoverFluidId, fluidStack.FluidId, FluidUnits.ToUnitsFloor(fluidStack.Amount));
+                // 網に入る前は面が無いので、圧力スケールは自分の容量
+                // Before joining the network there are no faces, so the pressure scale is the pipe capacity itself
+                var accepted = FluidSimNetwork.ResolveAcceptedUnits(_holdoverUnits, CapacityUnits, CapacityUnits, _holdoverFluidId, fluidStack.FluidId, FluidUnits.ToUnitsFloor(fluidStack.Amount));
                 if (accepted <= 0) return fluidStack;
 
-                // 空の持ち越しは流体IDを引き継ぐ
-                // An empty holdover adopts the incoming fluid id
-                if (_holdoverUnits <= 0) _holdoverFluidId = fluidStack.FluidId;
+                // 受け入れた以上、名は入ってきた流体(空・痕跡は置き換わり、同じ流体なら変わらない)
+                // Once accepted, the id is the incoming fluid (empty and trace are replaced; the same fluid is unchanged)
+                _holdoverFluidId = fluidStack.FluidId;
                 _holdoverUnits += accepted;
                 return new FluidStack(fluidStack.Amount - FluidUnits.ToAmount(accepted), fluidStack.FluidId);
             }

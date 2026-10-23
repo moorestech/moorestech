@@ -10,12 +10,14 @@ namespace Game.Fluid.Simulation
     ///     クランプで流せなかった運動量は速度から取り除く（速度フィードバック）。これにより詰まり時の速度ワインドアップと解消時の非物理的バーストを防ぐ。
     ///     フェーズはノード範囲・面範囲・ポート範囲の関数で、各フェーズは自分の添字の要素だけに書き、前のフェーズの配列だけを読む(gather)。
     ///     そのため範囲をいくつに分けて回しても結果は同じで、ハッシュも範囲ごとの部分和の加算で一致する(ADR 0090。将来のスレッド配分の入口が partitionCount)。
+    ///     整数化で生じる「押し出せない微小量」(痕跡。FluidSimNetwork.IsTrace)は空と同じ扱いで、別の流体を遮らず入ってきた流体の名に置き換わる。境界ポートは中身があれば最小ゲインを保証して必ず流れ出す。
     ///
     ///     Batched two-phase leapfrog tick: fill-rate differences at tick n yield face velocities at n+1/2, which settle amounts at n+1.
     ///     Amounts and velocities are FluidUnits integers. Proportional clamping is the integer multiply-divide "desired * amount / sum" (truncating), never exceeding the giver's amount; each face subtracts and adds the same value, so conservation is exact.
     ///     Momentum that could not flow is removed from the velocity (velocity feedback), preventing wind-up while blocked and unphysical bursts on release.
     ///     Phases are node-range, face-range and port-range functions; each writes only its own index and reads only arrays of earlier phases (gather).
     ///     Hence splitting the ranges into any number of parts gives the same result, and the hash is the sum of per-range partial sums (ADR 0090; partitionCount is the future thread-distribution entry).
+    ///     A residue too small to push anywhere (a trace, FluidSimNetwork.IsTrace) counts as empty: it never blocks another fluid and takes the incoming fluid id. A boundary port with any content gets at least the sustaining gain so it always drains.
     /// </summary>
     public static class FluidSimulationStepper
     {
@@ -63,8 +65,8 @@ namespace Game.Fluid.Simulation
             return (int)((long)count * part / partitionCount);
         }
 
-        // 面範囲: 両端の充填率差から速度を更新し、向き許可と面上限で希望流量を切る。異種流体が向かい合う面は閉面として速度を殺す
-        // Face range: update velocity from the fill-rate difference of both ends and clamp the desired flux by direction permission and face cap; a face between mismatched fluids is closed and its velocity killed
+        // 面範囲: 両端の充填率差から速度を更新し、向き許可と面上限で希望流量を切る。異種流体が向かい合う面は閉面として速度を殺す(片側が痕跡なら空と同じく開く)
+        // Face range: update velocity from the fill-rate difference of both ends and clamp the desired flux by direction permission and face cap; a face between mismatched fluids is closed and its velocity killed (a trace side counts as empty and keeps it open)
         private static void UpdateFaceVelocities(FluidSimNetwork network, FluidSimulationScratch scratch, int start, int end)
         {
             var amounts = network.NodeAmounts;
@@ -75,7 +77,7 @@ namespace Game.Fluid.Simulation
             {
                 var a = network.FaceNodeA[f];
                 var b = network.FaceNodeB[f];
-                if (0 < amounts[a] && 0 < amounts[b] && fluidIds[a] != fluidIds[b])
+                if (fluidIds[a] != fluidIds[b] && !network.IsTrace(a) && !network.IsTrace(b))
                 {
                     velocities[f] = 0;
                     scratch.FaceDesired[f] = 0;
@@ -84,9 +86,8 @@ namespace Game.Fluid.Simulation
 
                 // 圧力スケールは隣接容量の小さい方。容量が異なっても充填率（水位）で釣り合う。充填率差 × 容量を先に 1.0 で割ってから係数を掛け、64 ビットに収める
                 // Pressure scale is the smaller neighbor capacity; unequal capacities still balance by fill rate. The fill-rate difference times capacity is divided by 1.0 before the gain so it fits in 64 bits
-                var pressureDelta = FillRate(amounts[a], capacities[a]) - FillRate(amounts[b], capacities[b]);
-                var pressureUnits = pressureDelta * Math.Min(capacities[a], capacities[b]) / FluidSimulationConstants.FillRateOne;
-                var gain = pressureUnits * FluidSimulationConstants.PressureGainNumerator / FluidSimulationConstants.PressureGainDenominator;
+                var pressureDelta = FluidPressureMath.FillRate(amounts[a], capacities[a]) - FluidPressureMath.FillRate(amounts[b], capacities[b]);
+                var gain = FluidPressureMath.Gain(FluidPressureMath.PressureUnits(pressureDelta, Math.Min(capacities[a], capacities[b])));
                 var velocity = (velocities[f] + gain) * (1000 - FluidSimulationConstants.DampingPerMille) / 1000;
                 velocities[f] = velocity;
 
@@ -107,7 +108,11 @@ namespace Game.Fluid.Simulation
             for (var p = start; p < end; p++)
             {
                 var port = network.Ports[p];
-                var gain = amounts[port.NodeIndex] * FluidSimulationConstants.PressureGainNumerator / FluidSimulationConstants.PressureGainDenominator;
+                var amount = amounts[port.NodeIndex];
+                var gain = FluidPressureMath.Gain(amount);
+                // 境界は吸い込み口なので、中身があれば最小ゲインを保証して必ず流れ出す(痕跡が機械直結のパイプに残らない)。一方向なので往復は起きない
+                // A boundary is a sink: any content gets at least the sustaining gain so it always drains (no trace stays in a machine-attached pipe); being one-way it never oscillates
+                if (0 < amount && gain < FluidPressureMath.MinSustainedGain) gain = FluidPressureMath.MinSustainedGain;
                 var velocity = (port.Velocity + gain) * (1000 - FluidSimulationConstants.DampingPerMille) / 1000;
                 port.Velocity = Math.Max(0, velocity);
             }
@@ -154,13 +159,13 @@ namespace Game.Fluid.Simulation
             }
         }
 
-        // ノード範囲: この tick に受け入れる流体を決め、その流体の流入希望を集める。中身があればその流体、空なら番号最小の流入面の流体。別の流体の面は閉面になる
-        // Node range: decide the fluid accepted this tick and gather the incoming desire of that fluid; the node's own fluid when it holds some, else the fluid of its lowest-index incoming face. Faces of other fluids become closed
+        // ノード範囲: この tick に受け入れる流体を決め、その流体の流入希望を集める。痕跡でない中身があればその流体、空か痕跡なら番号最小の流入面の流体。別の流体の面は閉面になる
+        // Node range: decide the fluid accepted this tick and gather the incoming desire of that fluid; the node keeps its own fluid when it holds more than a trace, else takes the fluid of its lowest-index incoming face. Faces of other fluids become closed
         private static void ResolveInflow(FluidSimNetwork network, FluidSimulationScratch scratch, int start, int end)
         {
             for (var i = start; i < end; i++)
             {
-                var incoming = 0 < scratch.NodeAmountStart[i] ? network.NodeFluidIds[i] : FluidMaster.EmptyFluidId;
+                var incoming = network.IsTrace(i) ? FluidMaster.EmptyFluidId : network.NodeFluidIds[i];
                 long sum = 0;
                 for (var k = network.NodeFaceStart[i]; k < network.NodeFaceStart[i + 1]; k++)
                 {
@@ -209,21 +214,22 @@ namespace Game.Fluid.Simulation
             return hash;
         }
 
-        // ノード範囲: 接続面の確定流量を集めて量を更新する(正準側 A は引き、B は足す。同じ値なので厳密保存)。空だったノードは採った流体を引き継ぐ
-        // Node range: gather the settled fluxes of the node's faces into its amount (canonical side A subtracts, B adds the same value, so conservation is exact). A node that was empty adopts the accepted fluid
+        // ノード範囲: 接続面の確定流量を集めて量を更新する(正準側 A は引き、B は足す。同じ値なので厳密保存)。流入があったノードは採った流体の名になる(空は引き継ぎ、痕跡は置き換わり、同じ流体なら不変)
+        // Node range: gather the settled fluxes of the node's faces into its amount (canonical side A subtracts, B adds the same value, so conservation is exact). A node with inflow takes the accepted fluid id (empty adopts, trace is replaced, the same fluid is unchanged)
         private static void ApplyNodeFluxes(FluidSimNetwork network, FluidSimulationScratch scratch, int start, int end)
         {
             for (var i = start; i < end; i++)
             {
                 long delta = 0;
+                long inflow = 0;
                 for (var k = network.NodeFaceStart[i]; k < network.NodeFaceStart[i + 1]; k++)
                 {
                     var f = network.NodeFaces[k];
-                    var settled = scratch.FaceSettled[f];
-                    if (network.FaceNodeA[f] == i) delta -= settled;
-                    else delta += settled;
+                    var contribution = network.FaceNodeA[f] == i ? -scratch.FaceSettled[f] : scratch.FaceSettled[f];
+                    delta += contribution;
+                    if (0 < contribution) inflow += contribution;
                 }
-                if (scratch.NodeAmountStart[i] <= 0 && 0 < delta) network.NodeFluidIds[i] = scratch.NodeIncomingFluid[i];
+                if (0 < inflow) network.NodeFluidIds[i] = scratch.NodeIncomingFluid[i];
                 network.NodeAmounts[i] += delta;
             }
         }
@@ -273,14 +279,6 @@ namespace Game.Fluid.Simulation
                 }
             }
             return hash;
-        }
-
-        // 整数の充填率。容量 0 は満杯扱い(0 除算を避ける)
-        // Integer fill rate; a zero capacity counts as full (avoids division by zero)
-        private static long FillRate(long amount, long capacity)
-        {
-            if (capacity <= 0) return FluidSimulationConstants.FillRateOne;
-            return amount * FluidSimulationConstants.FillRateOne / capacity;
         }
 
         // 希望合計が利用可能量を超えるときだけ「希望 × 利用可能量 / 希望合計」で縮める。符号は希望に従い、切り捨ては 0 へ向く

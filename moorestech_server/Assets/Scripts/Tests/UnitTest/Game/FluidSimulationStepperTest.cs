@@ -101,9 +101,9 @@ namespace Tests.UnitTest.Game
                 Assert.LessOrEqual(acceptingPort.Velocity, 500);
             }
 
-            // 排水は残量に比例して漸減するため指数テールを持つ。整数の切り捨てで圧力が0になる数単位だけが残り、渡した量と残量の和は厳密に保存される
-            // Draining decays proportionally to the remaining amount (exponential tail); only the few units whose pressure truncates to zero remain, and delivered plus remaining is conserved exactly
-            Assert.LessOrEqual(network.NodeAmounts[0], 8);
+            // 排水は残量に比例して漸減するが、境界ポートは中身があれば最小ゲインを保証するので最後の数単位も渡しきる。渡した量と残量の和は厳密に保存される
+            // Draining decays proportionally to the remaining amount, but a boundary port guarantees the sustaining gain while content remains, so the last few units are delivered too; delivered plus remaining is conserved exactly
+            Assert.AreEqual(0, network.NodeAmounts[0]);
             Assert.AreEqual(20 * Unit, acceptingPort.DeliveredTotal + network.NodeAmounts[0]);
 
             // 全拒否する境界では、ノード残量が変わらず速度も0に収束する

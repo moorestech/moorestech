@@ -45,6 +45,10 @@ namespace Game.Fluid.Simulation
         public readonly int[] NodePortStart;
         public readonly int[] NodePorts;
 
+        // ノードごとの圧力スケール(接続面の min(両端の容量) の最大。面が無ければ自分の容量)。痕跡判定「どの面からも押し出せない量か」の基準
+        // Per-node pressure scale (the largest min(capacity of both ends) over its faces; its own capacity without faces); the basis of the trace test "too little to push through any face"
+        public readonly long[] NodePressureScale;
+
         // 現在の状態のハッシュ。Stepper が最終パスで全要素を足し直し、境界からの流入は要素の差分で更新し、構築直後は全走査で求める。加算で畳むので要素単位の差し替えが O(1) で済む
         // Hash of the current state: the stepper re-sums every element in its final pass, boundary inflows update it by element delta, and construction computes it with a full walk; the additive fold makes a per-element replacement O(1)
         public uint LastStateHash { get; private set; }
@@ -73,6 +77,7 @@ namespace Game.Fluid.Simulation
             for (var i = 0; i < nodePositions.Length; i++) _nodeIndexByPosition.Add(nodePositions[i], i);
 
             BuildAdjacency(out NodeFaceStart, out NodeFaces, out NodePortStart, out NodePorts);
+            NodePressureScale = BuildPressureScale();
             RecomputeStateHash();
         }
 
@@ -97,37 +102,44 @@ namespace Game.Fluid.Simulation
             return NodeAmounts[node] / (double)NodeCapacities[node];
         }
 
-        // 受け入れ規則の唯一の定義。異種流体は拒否(0)、空なら流体IDを引き継ぎ、空き容量でクランプした受け入れ量(単位)を返す。持ち越し中のパイプも同じ規則を使う
-        // The single definition of the acceptance rule: reject mismatched fluid (0), an empty holder adopts the incoming id, clamp by free capacity and return the accepted units; unbuilt pipes use the same rule
-        public static long ResolveAcceptedUnits(long currentAmount, long capacity, FluidId currentFluidId, FluidId incomingFluidId, long incomingUnits)
+        // 受け入れ規則の唯一の定義。異種流体は拒否(0)。ただし今の中身が痕跡(FluidPressureMath.IsTrace)なら空と同じく受け入れ、呼び出し側で流体IDを入ってきた方に置き換える。空き容量でクランプした受け入れ量(単位)を返す。持ち越し中のパイプも同じ規則を使う
+        // The single definition of the acceptance rule: reject mismatched fluid (0) unless the current content is a trace (FluidPressureMath.IsTrace), which counts as empty and the caller relabels to the incoming id; clamp by free capacity and return the accepted units. Unbuilt pipes use the same rule
+        public static long ResolveAcceptedUnits(long currentAmount, long capacity, long pressureScale, FluidId currentFluidId, FluidId incomingFluidId, long incomingUnits)
         {
             if (incomingUnits <= 0) return 0;
-            if (0 < currentAmount && currentFluidId != incomingFluidId) return 0;
+            if (currentFluidId != incomingFluidId && !FluidPressureMath.IsTrace(currentAmount, capacity, pressureScale)) return 0;
             return Math.Max(0, Math.Min(incomingUnits, capacity - currentAmount));
+        }
+
+        // 痕跡(空の隣にも押し出せない量。0 を含む)か。面を開く・流入を受ける判断で空と同じ扱いにする
+        // Whether the node holds a trace (too little to push into an empty neighbor; zero included); treated as empty when opening faces and accepting inflow
+        public bool IsTrace(int node)
+        {
+            return FluidPressureMath.IsTrace(NodeAmounts[node], NodeCapacities[node], NodePressureScale[node]);
         }
 
         // 境界(機械のpush等)からの流入。double を切り捨てて単位にし、受け入れ規則でクランプして、実際に足した単位を accepted で返す。差分にはこの値をそのまま記録する。残りは double のまま返す(端数は機械に残る)
         // External inflow from boundaries (machine push etc.): the double is floored to units, clamped by the acceptance rule, and the units actually added are returned in accepted (what the diff records); the remainder stays a double (the fraction stays in the machine)
         public FluidStack AddExternal(int node, FluidStack fluidStack, out long accepted)
         {
-            accepted = ResolveAcceptedUnits(NodeAmounts[node], NodeCapacities[node], NodeFluidIds[node], fluidStack.FluidId, FluidUnits.ToUnitsFloor(fluidStack.Amount));
+            accepted = ResolveAcceptedUnits(NodeAmounts[node], NodeCapacities[node], NodePressureScale[node], NodeFluidIds[node], fluidStack.FluidId, FluidUnits.ToUnitsFloor(fluidStack.Amount));
             if (accepted <= 0) return fluidStack;
 
-            // 要素ハッシュの差し替えは流体IDの書き換えより前の値から取る
-            // The element-hash swap starts from the value before the fluid id is rewritten
+            // 要素ハッシュの差し替えは流体IDの書き換えより前の値から取る。受け入れた以上、名は入ってきた流体(空・痕跡は置き換わり、同じ流体なら変わらない)
+            // The element-hash swap starts from the value before the fluid id is rewritten. Once accepted, the id is the incoming fluid (empty and trace are replaced; the same fluid is unchanged)
             var before = FluidNetworkStateHash.NodeElement(node, NodeAmounts[node], NodeFluidIds[node].AsPrimitive());
-            if (NodeAmounts[node] <= 0) NodeFluidIds[node] = fluidStack.FluidId;
+            NodeFluidIds[node] = fluidStack.FluidId;
             NodeAmounts[node] += accepted;
             ReplaceNodeElement(node, before);
             return new FluidStack(fluidStack.Amount - FluidUnits.ToAmount(accepted), fluidStack.FluidId);
         }
 
-        // サーバーが受け入れ済みの量をそのまま足す(複製の差分再生)。容量確認はしない。空のノードは流体IDを引き継ぐ
-        // Adds units the server already accepted (replica diff replay); no capacity check, and an empty node adopts the fluid id
+        // サーバーが受け入れ済みの量をそのまま足す(複製の差分再生)。容量確認はしない。流体IDはサーバーが受け入れた流体の名をそのまま写す(空・痕跡の置き換えを含む)
+        // Adds units the server already accepted (replica diff replay); no capacity check, and the fluid id copies what the server accepted (including the replacement of empty or trace content)
         public void AddAccepted(int node, FluidId fluidId, long units)
         {
             var before = FluidNetworkStateHash.NodeElement(node, NodeAmounts[node], NodeFluidIds[node].AsPrimitive());
-            if (NodeAmounts[node] <= 0) NodeFluidIds[node] = fluidId;
+            NodeFluidIds[node] = fluidId;
             NodeAmounts[node] += units;
             ReplaceNodeElement(node, before);
         }
@@ -158,6 +170,24 @@ namespace Game.Fluid.Simulation
         private void RecomputeStateHash()
         {
             LastStateHash = FluidNetworkStateHash.Compute(this);
+        }
+
+        // 面が 1 つ以上あるノードは接続面の min(両端の容量) の最大、無ければ自分の容量
+        // Nodes with faces take the largest min(capacity of both ends) over them; nodes without faces take their own capacity
+        private long[] BuildPressureScale()
+        {
+            var scale = new long[NodePositions.Length];
+            for (var f = 0; f < FaceNodeA.Length; f++)
+            {
+                var faceScale = Math.Min(NodeCapacities[FaceNodeA[f]], NodeCapacities[FaceNodeB[f]]);
+                scale[FaceNodeA[f]] = Math.Max(scale[FaceNodeA[f]], faceScale);
+                scale[FaceNodeB[f]] = Math.Max(scale[FaceNodeB[f]], faceScale);
+            }
+            for (var i = 0; i < scale.Length; i++)
+            {
+                if (NodeFaceStart[i] == NodeFaceStart[i + 1]) scale[i] = NodeCapacities[i];
+            }
+            return scale;
         }
 
         // ノードごとの接続面・ポートの一覧を CSR で作る。面・ポートを番号順になめて詰めるので、各ノードの一覧は番号の昇順になる
