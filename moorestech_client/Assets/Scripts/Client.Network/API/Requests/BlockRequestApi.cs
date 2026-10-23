@@ -65,6 +65,13 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(request, ct);
         }
 
+        public async UniTask<(RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse response, PacketWaitCompletionReason reason)> SendRocketLaunchPadCommand(
+            Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, BlockInstanceId expectedInstanceId, CancellationToken ct)
+        {
+            var request = new RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest(position, operation, expectedInstanceId);
+            return await _packetExchangeManager.GetPacketResponseWithReason<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>(request, ct);
+        }
+
         // BP Create/GetAll/Deleteを1メソッドで統合
         // Blueprint request (single endpoint for Create / GetAll / Delete)
         public async UniTask<BlueprintResponse> SendBlueprintRequest(BlueprintRequest request, CancellationToken ct)

@@ -1,4 +1,5 @@
 using System;
+using Game.Block.Interface;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.Inventory;
@@ -53,6 +54,13 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             blockGuid = masterElement.BlockGuid;
             blockTypeName = masterElement.BlockType;
             return true;
+        }
+
+        public bool TryGetBlockInstanceId(out BlockInstanceId instanceId)
+        {
+            var found = TryResolveBlockGameObject(out var block);
+            instanceId = found ? block.BlockInstanceId : default;
+            return found;
         }
 
         // 「開いた位置の今の表示は何か」を答える唯一の口。撤去済みの墓標はfake-null比較で落とす

@@ -173,6 +173,11 @@
           "name": "VoidPipe",
           "entrySource": "blocks",
           "subCategoryGuid": "a2000000-0000-4000-8000-000100000034"
+        },
+        {
+          "name": "RocketLaunchPad",
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000035"
         }
       ],
       "categoryGuid": "a1000000-0000-4000-8000-000000000001"

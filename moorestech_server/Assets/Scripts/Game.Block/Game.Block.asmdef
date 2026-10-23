@@ -2,6 +2,7 @@
     "name": "Game.Block",
     "rootNamespace": "",
     "references": [
+        "Game.Orbit",
         "Core.Item.Interface",
         "Game.Block.Interface",
         "Core.Update",

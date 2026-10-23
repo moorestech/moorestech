@@ -52,21 +52,23 @@ namespace Core.Item.Implementation
             }
             
             
-            var newCount = ((ItemStack)receiveItemStack).Count + Count;
+            // 有効なスタック同士でも合計はintを超えるため、上限分割までlongで保持する
+            // Valid stacks can sum beyond int range, so keep the total as long until splitting at the limit
+            var newCount = (long)receiveItemStack.Count + Count;
             var tmpStack = ItemStackLevelDataStore.Instance.GetMaxStack(Id);
             
             //量が指定数より多かったらはみ出した分を返す
             if (tmpStack < newCount)
             {
                 var tmpItem = factory.Create(Id, tmpStack, _metaData);
-                var tmpReceive = factory.Create(Id, newCount - tmpStack, _metaData);
+                var tmpReceive = factory.Create(Id, (int)(newCount - tmpStack), _metaData);
                 
                 return new ItemProcessResult(tmpItem, tmpReceive);
             }
             
             // 通常加算でも一致済みの属性を保つ
             // Preserve matching metadata on ordinary successful addition
-            return new ItemProcessResult(factory.Create(Id, newCount, _metaData), factory.CreatEmpty());
+            return new ItemProcessResult(factory.Create(Id, (int)newCount, _metaData), factory.CreatEmpty());
         }
         
         public IItemStack SubItem(int subCount)
