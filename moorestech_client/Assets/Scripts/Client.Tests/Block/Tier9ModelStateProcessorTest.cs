@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Collections;
+using UnityEngine.TestTools;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor.Rocket;
 using Client.Game.InGame.BlockSystem.StateProcessor.SpaceElevator;
@@ -58,8 +60,8 @@ namespace Client.Tests.Block
             Assert.AreEqual(bottom, climber.localPosition);
         }
 
-        [Test]
-        public void RocketReflectsEveryPhaseAndRisesInWorldSpace()
+        [UnityTest]
+        public IEnumerator RocketReflectsEveryPhaseAndRisesInWorldSpace()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var block = _root.AddComponent<BlockGameObject>();
@@ -83,6 +85,23 @@ namespace Client.Tests.Block
                     body.gameObject.activeSelf, phase.ToString());
                 Assert.That(Vector3.Distance(rest, body.localPosition), Is.LessThan(0.0001f));
             }
+            Apply(RocketLaunchPadPhase.Idle, 0);
+            // 途中受信・外挿後の遅延通知・先行補正を実経路で検証する
+            // Exercise mid-launch initialization, delayed notifications after extrapolation and forward correction
+            Apply(RocketLaunchPadPhase.Launching, 0.5f);
+            var middle = body.position;
+            yield return null;
+            TestReflection.InvokePrivate(processor, "Update");
+            var extrapolated = body.position;
+            Assert.Greater(extrapolated.y, middle.y);
+            Apply(RocketLaunchPadPhase.Launching, 0.5f);
+            Assert.That(Vector3.Distance(extrapolated, body.position), Is.LessThan(0.0001f));
+            Apply(RocketLaunchPadPhase.Launching, 0.4f);
+            Assert.That(Vector3.Distance(extrapolated, body.position), Is.LessThan(0.0001f));
+            Apply(RocketLaunchPadPhase.Launching, 0.9f);
+            Assert.That(Vector3.Distance(origin + Vector3.up * (80f * 0.9f * 0.9f), body.position), Is.LessThan(0.0001f));
+            Apply(RocketLaunchPadPhase.ReadyToLaunch, 1);
+            Assert.That(Vector3.Distance(rest, body.localPosition), Is.LessThan(0.0001f));
             foreach (var progress in new[] { 0f, 0.5f, 1f })
             {
                 Apply(RocketLaunchPadPhase.Launching, progress);
