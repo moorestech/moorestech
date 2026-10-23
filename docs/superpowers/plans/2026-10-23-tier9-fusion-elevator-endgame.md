@@ -4,7 +4,7 @@
 
 **Goal:** Tier9 の終盤（核融合炉・重水素抽出装置・反物質製造装置・反物質爆弾・終端研究・宇宙エレベーター拠点とケーブルプール・グラフェン工程・金属3Dプリンタ・研究ツリー整理）を、マスタと実装の両方で遊べる状態にする。
 
-**Architecture:** 核融合・反物質・グラフェン・金属3Dプリンタは既存の ElectricGenerator / ElectricMachine とマスタだけで作り、新コードは発電機の稼働表示（状態詳細）に限る。宇宙エレベーターは新しいブロック種別 `SpaceElevatorBase` と、ワールド単位のケーブルプール（新アセンブリ `Game.SpaceElevator`）で作る。プールは S2 の軌道到着サービス（`Game.Orbit`）の到着通知を購読してケーブルを数え、拠点は「接続」ボタン（専用プロトコル）でプールから1エレベーター分を引く。昇降機は衛星を1つずつ電力で運び、昇り切ったら軌道到着サービスへ渡して返ってきた成果を保留経由で出力口へ流す。
+**Architecture:** 核融合・反物質・グラフェン・金属3Dプリンタは既存の ElectricGenerator / ElectricMachine とマスタだけで作り、新コードは発電機の稼働表示（状態詳細）に限る。宇宙エレベーターは新しいブロック種別 `SpaceElevatorBase` と、ワールド単位のケーブルプール（新アセンブリ `Game.SpaceElevator`）で作る。プールは S2 の軌道到着サービス（`Game.Orbit`）の到着通知を購読してケーブルを数え、拠点は「接続」ボタン（専用プロトコル）でプールから1エレベーター分を引く。昇降機は衛星を1つずつ電力で運び、昇り切ったら軌道到着サービスへ渡して返ってきた成果を出力口へ入れる。昇り始める前と渡す直前に、成果が出力口へ入りきるかを軌道到着サービスの成果の問い合わせで確かめ、入らなければ待たせて理由を出す（打ち上げ後の保留は持たない）。
 
 **Tech Stack:** Unity / C#（moorestech_server, moorestech_client）、MessagePack、UniRx、Microsoft.Extensions.DependencyInjection、React + zod（moorestech_web/webui）、マスタ JSON（moorestech_master）、Python3（マスタ整合ツール）
 
@@ -31,8 +31,8 @@
 | R15 | 拠点ごとの「接続」でプールから1エレベーター分を引く。足りなければ接続できず理由を UI に出す | サーバーテスト: 足りれば Connected・残量が減る／足りなければ InsufficientCable・残量不変。プロトコルテスト・webui の理由表示 |
 | R16 | 接続済み拠点を撤去すると1エレベーター分がプールへ戻る。未接続の撤去は影響しない | サーバーテスト（ユーザー原文の 200→2基接続→+50→1基撤去で150→3基目接続可 のシナリオ） |
 | R17 | 昇降機は1拠点1台で GPU 衛星を1つずつ運び、昇降中だけ電力を使い、不足すると遅くなる | サーバーテスト: 昇降時間・電力不足で遅くなる・未接続では昇らない |
-| R18 | 昇り切ったら軌道到着サービスへ渡し、返ってきた成果を保留経由で出力口へ流す。保留が残る間は次の衛星を昇らせず理由を出す | サーバーテスト: 成果が出力口に出る／出力満杯で保留・次が昇らない・空くと流れる |
-| R19 | 保留と昇降中の衛星はセーブに入り、撤去時はプレイヤーへ返る | サーバーテスト: セーブ往復で復元／撤去でプレイヤーインベントリへ返る |
+| R18 | 昇り切ったら軌道到着サービスへ渡し、返ってきた成果を出力口へ入れる。昇り始める前と渡す直前に成果が出力口へ入りきるかを確かめ、入らなければ待たせて理由を出す | サーバーテスト: 成果が出力口に出る／出力口が塞がっていると昇り始めない・昇り切っても渡さず待つ／空くと進む。成果が空の出力口にも入らないマスタは起動時に止まる |
+| R19 | 接続済みと昇降中の衛星はセーブに入り、撤去時は衛星がプレイヤーへ返る | サーバーテスト: セーブ往復で復元／撤去でプレイヤーインベントリへ返る |
 | R20 | プール残量はワールドセーブに入る。セーブ形式の変更は版上げ＋移行ステップ＋テストを同梱する | `WorldSaveAllInfo.CurrentVersion` 7→8、`SaveMigrationStepV7ToV8`、移行テストと往復テスト |
 | R21 | 拠点は簡易モデルで、接続でケーブルが現れ、昇降中は昇降機がケーブルを昇る | unityプレイ録画テストで目視 |
 | R22 | 拠点 UI に接続ボタン・プール残量／1エレベーター分・昇降の進み・待ちの理由を出す | webui unit/e2e テストと録画 |
@@ -82,7 +82,7 @@ Task 4 数値シミュレーション（核融合・反物質・グラフェン�
 Task 5 S2 取り込みゲート＋S2 依存のマスタ（積荷行・スタック表・研究 (a)(b)(c)・buildMenu）
 Task 6 スキーマ SpaceElevatorBase と拠点のマスタ
 Task 7 ケーブルプールとワールドセーブ（版 7→8）
-Task 8 拠点ブロック（インベントリ・昇降機・保留・撤去返却）と接続サービス
+Task 8 拠点ブロック（インベントリ・昇降機・出力口の確認・撤去返却）
 Task 9 接続プロトコル
 Task 10 拠点の webui
 Task 11 拠点の簡易モデルと昇降の見た目
@@ -111,7 +111,7 @@ Task 5 は S2 の `Game.Orbit` が push されていないと進めない。Task
 | `moorestech_web/webui/src/features/blockInventory/views/SectionStackView.tsx` | ElectricGenerator に液体行を出す | 3 |
 | `VanillaSchema/blocks.yml` | `SpaceElevatorBase` の blockType と param | 6 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/ISpaceElevatorBase.cs`（新） | プール・接続処理が拠点に触る面 | 7 |
-| `moorestech_server/Assets/Scripts/Game.SpaceElevator/`（新 asmdef） | `SpaceElevatorCablePool`（残量・到着購読・セーブ）、`SpaceElevatorConnectionService`（接続・撤去返却・残量 push）、`SpaceElevatorConnectResult`、`Save/SpaceElevatorCablePoolSaveData` | 7,8 |
+| `moorestech_server/Assets/Scripts/Game.SpaceElevator/`（新 asmdef） | `SpaceElevatorCablePool`（残量・到着購読・セーブ）、`SpaceElevatorConnectionService`（接続・撤去返却・残量 push）、`SpaceElevatorOrbitalTableCheck`（起動時の表との突き合わせ）、`SpaceElevatorConnectResult`、`Save/SpaceElevatorCablePoolSaveData` | 7,8 |
 | `moorestech_server/Assets/Scripts/Game.SaveLoad/...` | WorldSaveAllInfo・保存・復元・移行・pruner | 7 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/`（新） | 拠点のインベントリ・昇降機・電力・状態詳細・セーブ | 8 |
 | `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs`（新） | 拠点の組み立て | 8 |
@@ -137,6 +137,7 @@ Task 5 は S2 の `Game.Orbit` が push されていないと進めない。Task
 | `ISpaceElevatorBase` を `Game.Block.Interface/Component/SpaceElevator/` に置く | `Game.Block.Interface/Component/CleanRoom/ICleanRoomMachine.cs` |
 | プール・接続サービスを main コンテナの具象型 singleton＋`IBootInitializable` で起動時に生成・購読する | `moorestech_server/Assets/Scripts/Server.Event/EventReceive/ChangeBlockStateEventPacket.cs`（`IBootInitializable.Load` で購読を張る。`AddInitializableForwarding` が転送） |
 | 撤去でのプール返却は `OnBlockRemoveEvent` 購読 | `CleanRoomDatastore` の ctor 購読（`OnBlockRemoveEvent` は `Destroy` より前に発火する: `WorldBlockDatastore.cs:38→43`） |
+| 昇降機が出口に入りきるかを昇り始める前と渡す直前に確かめる | `Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118`（`VanillaMachineOutputInventory.CanStoreOutputs`） |
 | 拠点の電力消費（昇降中だけ要求・不足で遅く） | `Game.Block/Blocks/Pump/ElectricPumpComponent.cs`＋`ElectricPumpProcessorComponent.cs`（供給を加算し Update で latch）、`Game.Block/Blocks/Util/MachineCurrentPowerToSubSecond.cs` |
 | 拠点のインベントリ（開ける・ベルト入出力） | `Game.Block/Blocks/Chest/VanillaChestComponent.cs` |
 | 拠点の状態詳細（MessagePack） | `Game.Block/Blocks/ElectricToGear/ElectricToGearGeneratorBlockStateDetail.cs` |
@@ -773,20 +774,18 @@ git push
 - Modify: `$M/items.json`, `$M/research.json`, `.../localization/localization.csv`
 
 **Interfaces:**
-- Consumes（S2）: `Game.Orbit.IOrbitalArrivalService`（`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`、`bool IsOrbitalPayload(ItemId itemId)`、`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`）、`Game.Orbit.OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`）、items.yml の `orbitalPayloads`（`payloadItemGuid` / `countPerLaunch` / `arrivalOutputs[{itemGuid, count}]`）、`WorldSaveAllInfo.CurrentVersion == 7`
+- Consumes（S2）: `Game.Orbit.IOrbitalArrivalService`（`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`、`IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)`（Arrive と同じ成果を返し、通知も記録もしない）、`bool IsOrbitalPayload(ItemId itemId)`、`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`）、`Game.Orbit.OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`）、items.yml の `orbitalPayloads`（`payloadItemGuid` / `countPerLaunch` / `arrivalOutputs[{itemGuid, count}]`）、`WorldSaveAllInfo.CurrentVersion == 7`
 - Produces: グラフェンケーブルの積荷行と [1000] スタック表、研究 (a)(b)(c)
 
 - [ ] **Step 1: ゲート — S2 の push を確かめる**
 
 ```bash
 git fetch origin
-git log --oneline origin/feat/tier9-compute-data-loop | grep "feat(orbit): 軌道到着サービスと初打ち上げ履歴を足す"
-git ls-tree -r --name-only origin/feat/tier9-compute-data-loop -- moorestech_server/Assets/Scripts/Game.Orbit | grep IOrbitalArrivalService
-bd show moorestech-xyuaf.1 | grep "Game.Orbitと積荷表をpush済み"
+git grep -l "PreviewArrivalOutputs" origin/feat/tier9-compute-data-loop -- moorestech_server/Assets/Scripts/Game.Orbit
 git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame fetch origin
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame log --oneline origin/feat/tier9-compute-data-loop | head -3
+git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame grep -l "orbitalPayloads" origin/feat/tier9-compute-data-loop -- server_v8/mods/moorestechAlphaMod_8/master/items.json
 ```
-3つとも当たれば Step 2 へ。S2 が既に origin/master へマージ済みなら、以降の `origin/feat/tier9-compute-data-loop` を `origin/master` に読み替える。当たらなければ、前景で `sleep 600` → 上を再実行、を最大12回（2時間）繰り返す。それでも無ければ `bd note` に「S2 の Game.Orbit 未 push で Task 5 以降を保留」と書き、Task 1〜4 の成果を push した状態で止まって報告する（解決不能な障害）。
+2つとも当たれば（`IOrbitalArrivalService` に `PreviewArrivalOutputs` があり、S2 のマスタブランチの items.json に積荷表がある）Step 2 へ。S2 が既に origin/master へマージ済みなら、以降の `origin/feat/tier9-compute-data-loop` を `origin/master` に読み替える。当たらなければ、前景で `sleep 600` → 上を再実行、を最大12回（2時間）繰り返す。それでも無ければ `bd note` に「S2 の Game.Orbit 未 push で Task 5 以降を保留」と書き、Task 1〜4 の成果を push した状態で止まって報告する（解決不能な障害）。
 
 - [ ] **Step 2: 両 repo へ S2 を取り込む**
 
@@ -834,9 +833,9 @@ git push   # moorestech 側のマージコミット
 **Interfaces:**
 - Consumes: Task 5 の S2 取り込み（items.yml の `orbitalPayloads`、ビルドメニュー「生産>宇宙」）
 - Produces:
-  - 生成型 `Mooresmaster.Model.BlocksModule.SpaceElevatorBaseBlockParam`（`Guid[] CarriedPayloadItemGuids`, `Guid CableItemGuid`, `int CablesPerElevator`, `float ClimbSeconds`, `float RequiredPower`, `InventoryConnects InventoryConnectors`, `int MaxWireConnectionCount`, `int ConnectionRange`, `int ConnectionHeightRange`）と `BlockMasterElement.BlockTypeConst.SpaceElevatorBase`
+  - 生成型 `Mooresmaster.Model.BlocksModule.SpaceElevatorBaseBlockParam`（`Guid[] CarriedPayloadItemGuids`, `Guid CableItemGuid`, `int CablesPerElevator`, `float ClimbSeconds`, `float RequiredPower`, `int OutputSlotCount`, `InventoryConnects InventoryConnectors`, `int MaxWireConnectionCount`, `int ConnectionRange`, `int ConnectionHeightRange`）と `BlockMasterElement.BlockTypeConst.SpaceElevatorBase`
   - `ForUnitTestModBlockId.TestSpaceElevatorBase`、`ForUnitTestItemId.TestElevatorCable` / `TestElevatorSatellite` / `TestElevatorReward`
-  - テスト mod の値: 1エレベーター分 100 本、昇降 2 秒、電力 100、ケーブルの1便 50 本、衛星1機の成果 TestElevatorReward ×5
+  - テスト mod の値: 1エレベーター分 100 本、昇降 2 秒、電力 100、出口スロット 1、ケーブルの1便 50 本、衛星1機の成果 TestElevatorReward ×5
 
 - [ ] **Step 1: スキーマに blockType と case を足す**
 
@@ -871,6 +870,9 @@ edit-schema スキルを読む。`VanillaSchema/blocks.yml` の `blockType` の 
         - key: requiredPower
           type: number
           default: 2000
+        - key: outputSlotCount
+          type: integer
+          default: 4
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: maxWireConnectionCount
@@ -935,6 +937,7 @@ namespace Core.Master.Validator.Block
             if (param.CablesPerElevator < 1) logs += $"[BlockMaster] Name:{name} cablesPerElevator must be >= 1. value:{param.CablesPerElevator}\n";
             if (!(param.ClimbSeconds >= 1f) || float.IsInfinity(param.ClimbSeconds)) logs += $"[BlockMaster] Name:{name} climbSeconds must be finite and >= 1. value:{param.ClimbSeconds}\n";
             if (!(param.RequiredPower > 0f) || float.IsInfinity(param.RequiredPower)) logs += $"[BlockMaster] Name:{name} requiredPower must be finite and > 0. value:{param.RequiredPower}\n";
+            if (param.OutputSlotCount < 1) logs += $"[BlockMaster] Name:{name} outputSlotCount must be >= 1. value:{param.OutputSlotCount}\n";
             return logs;
         }
     }
@@ -974,6 +977,7 @@ namespace Core.Master.Validator.Block
     "cablesPerElevator": 100,
     "climbSeconds": 2,
     "requiredPower": 100,
+    "outputSlotCount": 1,
     "inventoryConnectors": {
       "inputConnects": [{ "connectorGuid": "5e1ea7a0-0003-4000-8000-000000000001", "offset": [0, 0, 0], "directions": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]] }],
       "outputConnects": [{ "connectorGuid": "5e1ea7a0-0003-4000-8000-000000000002", "offset": [0, 0, 0], "directions": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]] }]
@@ -1047,6 +1051,7 @@ namespace Tests.UnitTest.Core.Block.SpaceElevator
         [TestCase("cablesPerElevator", 0, "cablesPerElevator must be >= 1")]
         [TestCase("climbSeconds", 0, "climbSeconds must be finite and >= 1")]
         [TestCase("requiredPower", 0, "requiredPower must be finite and > 0")]
+        [TestCase("outputSlotCount", 0, "outputSlotCount must be >= 1")]
         public void 数値が範囲外だとマスタ読込で止まる(string key, int value, string message)
         {
             var error = Assert.Throws<InvalidOperationException>(() => MasterHolder.Load(CreateWith(param => param[key] = value)));
@@ -1098,6 +1103,7 @@ namespace Tests.UnitTest.Core.Block.SpaceElevator
     "cablesPerElevator": 1000,
     "climbSeconds": 600,
     "requiredPower": 2000,
+    "outputSlotCount": 4,
     "inventoryConnectors": {
       "inputConnects": [{ "connectorGuid": "01a167e9-21d6-7e9d-89c4-70dc3df73072", "offset": [4, 0, 0], "directions": [[0, 0, -1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98" }],
       "outputConnects": [{ "connectorGuid": "01a167e9-21d9-7b56-9484-4fb75fd18a37", "offset": [4, 0, 8], "directions": [[0, 0, 1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98" }]
@@ -1119,7 +1125,7 @@ namespace Tests.UnitTest.Core.Block.SpaceElevator
   "subCategory": "宇宙"
 }
 ```
-（1エレベーター分 1000 本＝ケーブル1便。昇降 600 秒・電力 2000 は agent前提で Task 12 が S2 のロケット建造時間と比べて確定する）
+（1エレベーター分 1000 本＝ケーブル1便。昇降 600 秒・電力 2000 は agent前提で Task 12 が S2 のロケット建造時間と比べて確定する。出口スロット 4 は agent前提で、GPU衛星1機の成果が空の出口に入りきるかを Task 7 の起動時検査が確かめる）
 `localization.csv` に `block.01a162aa-cec0-738c-93c5-f58adc87fa7f.name,宇宙エレベーター拠点,Space Elevator Base,宇宙エレベーター拠点,Weltraumaufzug-Basis,우주 엘리베이터 기지` が無ければ足す。
 
 - [ ] **Step 6: 生成・コンパイル・テスト・整合ツール**
@@ -1146,6 +1152,7 @@ git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorCablePool.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorConnectionService.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorConnectResult.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorOrbitalTableCheck.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/Save/SpaceElevatorCablePoolSaveData.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Game.SaveLoad.asmdef`、`moorestech_server/Assets/Scripts/Server.Boot/Server.Boot.asmdef`、`moorestech_server/Assets/Scripts/Tests/Server.Tests.asmdef`（`Game.SpaceElevator` を参照に足す）
 - Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs`
@@ -1158,13 +1165,15 @@ git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/Composition/GameplayServiceRegistration.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/SaveMigrationStepV7ToV8Test.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorCablePoolTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorOrbitalTableCheckTest.cs`
 
 **Interfaces:**
-- Consumes: S2 `IOrbitalArrivalService`（`Arrive`, `IsOrbitalPayload`, `OnOrbitalArrival`）、`OrbitalArrival.PayloadItemId` / `PayloadCount`、Task 6 の `SpaceElevatorBaseBlockParam`
+- Consumes: S2 `IOrbitalArrivalService`（`Arrive`, `PreviewArrivalOutputs`, `IsOrbitalPayload`, `OnOrbitalArrival`）、`OrbitalArrival.PayloadItemId` / `PayloadCount`、Task 6 の `SpaceElevatorBaseBlockParam`
 - Produces:
   - `ISpaceElevatorBase : IBlockComponent`（`bool IsConnected { get; }`, `void MarkConnected()`, `void SetCablePoolAmount(int amount)`）
   - `SpaceElevatorCablePool : IBootInitializable`（`int Amount { get; private set; }`, `IObservable<int> OnAmountChanged`, `internal bool TryTake(int count)`, `internal void Add(int count)`, `SpaceElevatorCablePoolSaveData GetSaveData()`, `void Restore(SpaceElevatorCablePoolSaveData saveData)`）
   - `SpaceElevatorConnectionService : IBootInitializable`（`SpaceElevatorConnectResult Connect(IBlock block)`）
+  - `SpaceElevatorOrbitalTableCheck : IBootInitializable`（起動時に拠点のマスタを軌道到着の表と突き合わせ、合わなければ例外で起動を止める）
   - `enum SpaceElevatorConnectResult { Connected, AlreadyConnected, InsufficientCable, NotSpaceElevatorBase }`
   - `SpaceElevatorCablePoolSaveData`（`[JsonProperty("cableCount")] public int CableCount;`）、セーブの節名 `spaceElevatorCablePool`、`WorldSaveAllInfo.CurrentVersion == 8`、`SaveMigrationStepV7ToV8`
 
@@ -1277,13 +1286,11 @@ namespace Game.SpaceElevator
 
         public void Load()
         {
-            // 拠点のマスタを軌道到着の表と突き合わせ、合わなければ起動を止める
-            // Check base masters against the orbital table and stop the boot on a mismatch
+            // 拠点のマスタが数えるケーブルを集める。表との突き合わせは SpaceElevatorOrbitalTableCheck が起動時に行う
+            // Collect the cable items base masters count; SpaceElevatorOrbitalTableCheck cross-checks them with the table at boot
             foreach (var block in MasterHolder.BlockMaster.Blocks.Data)
             {
                 if (block.BlockParam is not SpaceElevatorBaseBlockParam param) continue;
-                ThrowIfNotOrbitalPayload(block.Name, param.CableItemGuid);
-                foreach (var payloadGuid in param.CarriedPayloadItemGuids) ThrowIfNotOrbitalPayload(block.Name, payloadGuid);
                 _cableItemIds.Add(MasterHolder.ItemMaster.GetItemId(param.CableItemGuid));
             }
 
@@ -1294,18 +1301,6 @@ namespace Game.SpaceElevator
                 if (!_cableItemIds.Contains(arrival.PayloadItemId)) return;
                 Add(arrival.PayloadCount);
             });
-
-            #region Internal
-
-            void ThrowIfNotOrbitalPayload(string blockName, Guid itemGuid)
-            {
-                if (_orbitalArrivalService.IsOrbitalPayload(MasterHolder.ItemMaster.GetItemId(itemGuid))) return;
-                var reason = $"宇宙エレベーター拠点 {blockName} のアイテム {itemGuid} が軌道到着の表（items の orbitalPayloads）にありません";
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
-            }
-
-            #endregion
         }
 
         // 足りれば引いてtrue。足りなければ何もしない（判定は接続サービスだけが使う）
@@ -1349,6 +1344,93 @@ namespace Game.SpaceElevator
 }
 ```
 `MasterHolder.BlockMaster.Blocks.Data` の実名は `Core.Master/BlockMaster.cs` で確かめる（全ブロックを列挙するプロパティ名に合わせる）。
+
+`Game.SpaceElevator/SpaceElevatorOrbitalTableCheck.cs`（成果が出口に入りきるかを先に確かめる方式は S2 の裁定。拠点は昇り始める前と渡す直前に確かめるので、衛星1機の成果が空の出口にも入らないマスタでは昇降機が永遠に待つ。その形を起動時に止める）:
+```csharp
+using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
+using Core.Master;
+using Game.Context;
+using Game.Orbit;
+using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
+
+namespace Game.SpaceElevator
+{
+    /// <summary>
+    ///     起動時に拠点のマスタを軌道到着の表と突き合わせ、合わなければ起動を止める（ADR 0089）
+    ///     At boot, checks base masters against the orbital arrival table and stops the boot on a mismatch (ADR 0089)
+    /// </summary>
+    public class SpaceElevatorOrbitalTableCheck : IBootInitializable
+    {
+        private readonly IOrbitalArrivalService _orbitalArrivalService;
+
+        public SpaceElevatorOrbitalTableCheck(IOrbitalArrivalService orbitalArrivalService)
+        {
+            _orbitalArrivalService = orbitalArrivalService;
+        }
+
+        public void Load()
+        {
+            foreach (var block in MasterHolder.BlockMaster.Blocks.Data)
+            {
+                if (block.BlockParam is not SpaceElevatorBaseBlockParam param) continue;
+                ThrowIfNotOrbitalPayload(block.Name, param.CableItemGuid);
+                foreach (var payloadGuid in param.CarriedPayloadItemGuids)
+                {
+                    ThrowIfNotOrbitalPayload(block.Name, payloadGuid);
+                    ThrowIfResultNeverFits(block.Name, payloadGuid, param.OutputSlotCount);
+                }
+            }
+
+            #region Internal
+
+            void ThrowIfNotOrbitalPayload(string blockName, Guid itemGuid)
+            {
+                if (_orbitalArrivalService.IsOrbitalPayload(MasterHolder.ItemMaster.GetItemId(itemGuid))) return;
+                Fail($"宇宙エレベーター拠点 {blockName} のアイテム {itemGuid} が軌道到着の表（items の orbitalPayloads）にありません");
+            }
+
+            // 衛星1機の成果が空の出口にも入らないと、昇り切っても永遠に渡せない
+            // If one satellite's result cannot fit even into empty outlets, the climber could never hand it over
+            void ThrowIfResultNeverFits(string blockName, Guid payloadGuid, int outputSlotCount)
+            {
+                var outputs = _orbitalArrivalService.PreviewArrivalOutputs(MasterHolder.ItemMaster.GetItemId(payloadGuid), 1);
+                var neededSlots = CountSlotsAtStackLevelOne(outputs);
+                if (neededSlots <= outputSlotCount) return;
+                Fail($"宇宙エレベーター拠点 {blockName} の積荷 {payloadGuid} 1機の成果は出口 {neededSlots} スロットぶんあり、outputSlotCount {outputSlotCount} に入りません");
+            }
+
+            void Fail(string reason)
+            {
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
+
+            #endregion
+        }
+
+        // 成果をアイテムごとに合算し、スタック上限が最も低いレベル1で何スロット要るかを数える
+        // Sum the results per item and count the slots needed at stack level 1, the lowest stack limit
+        private static int CountSlotsAtStackLevelOne(IReadOnlyList<IItemStack> outputs)
+        {
+            var totals = new Dictionary<ItemId, int>();
+            foreach (var output in outputs) totals[output.Id] = totals.GetValueOrDefault(output.Id) + output.Count;
+
+            var slots = 0;
+            foreach (var pair in totals)
+            {
+                var element = MasterHolder.ItemMaster.GetItemMaster(pair.Key);
+                var stackAtLevelOne = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
+                slots += (pair.Value + stackAtLevelOne - 1) / stackAtLevelOne;
+            }
+            return slots;
+        }
+    }
+}
+```
+衛星の `countPerLaunch` が 1 でないと、昇降機の `Arrive(衛星, 1)` が実行時に例外になる。S2 の `PreviewArrivalOutputs` が `Arrive` と同じく「countPerLaunch の正の整数倍でなければ例外」なら、上の `PreviewArrivalOutputs(..., 1)` がその形を起動時に止める。S2 の実装を読み、Preview がこの検査をしないなら、S2 の積荷表の生成型から countPerLaunch を引いて 1 でなければ `Fail` する行を `ThrowIfResultNeverFits` の先頭に足す。
 
 `Game.SpaceElevator/SpaceElevatorConnectionService.cs`:
 ```csharp
@@ -1429,6 +1511,7 @@ namespace Game.SpaceElevator
 ```csharp
             // 宇宙エレベーターのプールと接続。起動時に購読を張るので具象型で登録する
             // Space elevator pool and connections; registered by concrete type so their boot-time subscriptions run
+            services.AddSingleton<SpaceElevatorOrbitalTableCheck>();
             services.AddSingleton<SpaceElevatorCablePool>();
             services.AddSingleton<SpaceElevatorConnectionService>();
 ```
@@ -1618,9 +1701,80 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 ```
 （`IWorldSaveDataLoader` の名前空間と `Load(JObject)` の有無は `Tests/CombinedTest/Core/CleanRoom/CleanRoomSaveLoadTest.cs:132-144` のヘルパーに合わせる）
 
+`Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorOrbitalTableCheckTest.cs`（テスト mod の拠点は出口1スロット。偽の到着サービスで表の中身だけを差し替える）:
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Core.Item.Interface;
+using Core.Master;
+using Game.Context;
+using Game.Orbit;
+using Game.SpaceElevator;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UniRx;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Tests.CombinedTest.Game.SpaceElevator
+{
+    public class SpaceElevatorOrbitalTableCheckTest
+    {
+        [Test]
+        public void 衛星1機の成果が空の出口に入らなければ起動時に止まる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // レベル1のスタック上限より1つ多い成果は2スロット要り、出口1スロットに入らない
+            // One more than the level-1 stack limit needs two slots and cannot fit the single outlet
+            var element = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.TestElevatorReward);
+            var stackAtLevelOne = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
+            var oversized = new List<IItemStack>
+            {
+                ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, stackAtLevelOne),
+                ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 1),
+            };
+
+            LogAssert.Expect(LogType.Error, new Regex("outputSlotCount 1 に入りません"));
+            Assert.Throws<InvalidOperationException>(() => new SpaceElevatorOrbitalTableCheck(new FixedOrbitalArrivalService(true, oversized)).Load());
+        }
+
+        [Test]
+        public void 積荷が軌道到着の表に無ければ起動時に止まる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            LogAssert.Expect(LogType.Error, new Regex("軌道到着の表"));
+            Assert.Throws<InvalidOperationException>(() => new SpaceElevatorOrbitalTableCheck(new FixedOrbitalArrivalService(false, new List<IItemStack>())).Load());
+        }
+
+        // 表の判定と成果の問い合わせだけを固定で返す偽の到着サービス
+        // A fake arrival service returning fixed answers for the table check and the result preview
+        private class FixedOrbitalArrivalService : IOrbitalArrivalService
+        {
+            private readonly bool _isOrbitalPayload;
+            private readonly IReadOnlyList<IItemStack> _preview;
+
+            public FixedOrbitalArrivalService(bool isOrbitalPayload, IReadOnlyList<IItemStack> preview)
+            {
+                _isOrbitalPayload = isOrbitalPayload;
+                _preview = preview;
+            }
+
+            public IObservable<OrbitalArrival> OnOrbitalArrival => Observable.Empty<OrbitalArrival>();
+            public bool IsOrbitalPayload(ItemId itemId) { return _isOrbitalPayload; }
+            public IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount) { return _preview; }
+            public IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount) { throw new NotSupportedException("検査は到着させない"); }
+        }
+    }
+}
+```
+（S2 の `IOrbitalArrivalService` に上の4つ以外のメンバーがあれば、偽物にも同じ形で足す。テスト mod の正しいマスタが起動時の検査を通ることは、`CreateServer` を使う全テストが通ることで確かめられる）
+
 - [ ] **Step 5: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevatorCablePoolTest|SaveMigrationStepV7ToV8Test|SaveMigrationChainTest|MissingMasterSectionCoverageTest|SaveLoad"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevatorCablePoolTest|SpaceElevatorOrbitalTableCheckTest|SaveMigrationStepV7ToV8Test|SaveMigrationChainTest|MissingMasterSectionCoverageTest|SaveLoad"`
 Expected: ErrorCount 0 / 全 PASS
 
 - [ ] **Step 6: 実ロード検証**
@@ -1653,16 +1807,17 @@ git commit -m "feat(space-elevator): ケーブルプールと接続サービス�
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorTestUtil.cs`
 
 **Interfaces:**
-- Consumes: Task 7 の `ISpaceElevatorBase`・`SpaceElevatorConnectionService.Connect(IBlock)`、S2 の `IOrbitalArrivalService.Arrive`
+- Consumes: Task 7 の `ISpaceElevatorBase`・`SpaceElevatorConnectionService.Connect(IBlock)`、S2 の `IOrbitalArrivalService.Arrive`・`PreviewArrivalOutputs`、Task 6 の `SpaceElevatorBaseBlockParam.OutputSlotCount`
 - Produces:
   - `SpaceElevatorBaseStateDetail`（MessagePack、キー `"SpaceElevatorBase"`。`[Key(0)] bool IsConnected`、`[Key(1)] int CablePoolAmount`、`[Key(2)] int CablesPerElevator`、`[Key(3)] float ClimbProgress`、`[Key(4)] SpaceElevatorBaseStatus Status`）
   - `enum SpaceElevatorBaseStatus { NotConnected, WaitingSatellite, Climbing, LowPower, OutputBlocked }`
-  - インベントリのスロット: 0＝衛星の入口（運ぶ積荷だけ）、1＝成果の出口（取り出しのみ）。`SpaceElevatorBaseInventoryComponent.SatelliteSlot = 0`、`OutputSlot = 1`
+  - インベントリのスロット: 0＝衛星の入口（運ぶ積荷だけ）、1〜`OutputSlotCount`＝成果の出口（取り出しのみ）。`SpaceElevatorBaseInventoryComponent.SatelliteSlot = 0`、`FirstOutputSlot = 1`
+  - 出口の確認は機械の前例（`Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:49` の開始前、`ProcessingMachineProcessState.cs:118` の完了直前に `CanStoreOutputs`）と同じ2点: 昇り始める前と、頂上で軌道到着サービスへ渡す直前。どちらも `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを見る。入らなければ衛星を入口に残す／頂上で待たせ、状態を `OutputBlocked` にする。頂上で待つ間は電力を使わない
   - `RemoveBlockProtocol` は `IGetRefundItemsInfo` を全コンポーネントから合算する
 
 - [ ] **Step 1: 撤去返却の合算を確かめて直す**
 
-`grep -n "IGetRefundItemsInfo" moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`。`TryGetComponent(out IGetRefundItemsInfo refundInfo)` のままなら（S2 未修正）、次へ置き換える（拠点はワイヤー端点と昇降機の2つが `IGetRefundItemsInfo` を持つため、先頭1件だけでは衛星・保留が返らない）:
+`grep -n "IGetRefundItemsInfo" moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`。`TryGetComponent(out IGetRefundItemsInfo refundInfo)` のままなら（S2 未修正）、次へ置き換える（拠点はワイヤー端点と昇降機の2つが `IGetRefundItemsInfo` を持つため、先頭1件だけでは昇降中の衛星が返らない）:
 ```csharp
                 // 返却すべきアイテム情報を全コンポーネントから集める（ワイヤー端点と本体の両方が持つブロックがある）
                 // Gather refundable items from every component; some blocks carry both a wire connector and a body that refund
@@ -1730,7 +1885,6 @@ namespace Game.Block.Blocks.SpaceElevator
 ```
 `SpaceElevatorClimberSaveJsonObject.cs`:
 ```csharp
-using System.Collections.Generic;
 using Core.Item.Interface;
 using Newtonsoft.Json;
 
@@ -1743,14 +1897,13 @@ namespace Game.Block.Blocks.SpaceElevator
         // The satellite being lifted; an empty stack while not climbing
         [JsonProperty("climbingSatellite")] public ItemStackSaveJsonObject ClimbingSatellite;
         [JsonProperty("remainingClimbTicks")] public uint RemainingClimbTicks;
-        [JsonProperty("pendingOutputs")] public List<ItemStackSaveJsonObject> PendingOutputs;
     }
 }
 ```
 
 - [ ] **Step 3: インベントリを書く**
 
-`SpaceElevatorBaseInventoryComponent.cs`（前例 `Game.Block/Blocks/Chest/VanillaChestComponent.cs`）:
+`SpaceElevatorBaseInventoryComponent.cs`（スロットの扱いの前例 `Game.Block/Blocks/Chest/VanillaChestComponent.cs`、出口の模擬の前例 `Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs:73-125`）:
 ```csharp
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -1764,24 +1917,25 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
 using static Game.Block.Interface.BlockException;
 
 namespace Game.Block.Blocks.SpaceElevator
 {
     /// <summary>
-    ///     拠点のスロット。0は運ぶ衛星の入口、1は成果の出口。出口だけを隣のベルトへ押し出す
-    ///     The base's slots: slot 0 takes satellites to carry, slot 1 holds results; only slot 1 is pushed to adjacent belts
+    ///     拠点のスロット。0は運ぶ衛星の入口、1以降は成果の出口。出口だけを隣のベルトへ押し出す
+    ///     The base's slots: slot 0 takes satellites to carry, the rest hold results; only the outlets are pushed to adjacent belts
     /// </summary>
     public class SpaceElevatorBaseInventoryComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent
     {
         public const int SatelliteSlot = 0;
-        public const int OutputSlot = 1;
-        private const int SlotCount = 2;
+        public const int FirstOutputSlot = 1;
 
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
         public string SaveKey { get; } = typeof(SpaceElevatorBaseInventoryComponent).FullName;
 
+        private readonly int _slotCount;
         private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly HashSet<ItemId> _carriedPayloadIds = new();
@@ -1790,7 +1944,8 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             BlockInstanceId = blockInstanceId;
             _blockInventoryInserter = blockInventoryInserter;
-            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, SlotCount);
+            _slotCount = FirstOutputSlot + param.OutputSlotCount;
+            _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, _slotCount);
             foreach (var payloadGuid in param.CarriedPayloadItemGuids) _carriedPayloadIds.Add(MasterHolder.ItemMaster.GetItemId(payloadGuid));
         }
 
@@ -1800,37 +1955,65 @@ namespace Game.Block.Blocks.SpaceElevator
             // ロード時はまだワールドに登録されていないのでイベントを出さない
             // Loading does not fire events because the block is not registered in the world yet
             var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
-            for (var i = 0; i < SlotCount && i < itemJsons.Count; i++) _itemDataStoreService.SetItemWithoutEvent(i, itemJsons[i].ToItemStack());
+            for (var i = 0; i < _slotCount && i < itemJsons.Count; i++) _itemDataStoreService.SetItemWithoutEvent(i, itemJsons[i].ToItemStack());
         }
 
-        // 昇降機が衛星を1つ取り出す。入口が空なら空スタックでfalse
-        // The climber takes one satellite; returns false with an empty stack when the inlet is empty
-        public bool TryTakeSatellite(out IItemStack satellite)
+        // 入口の衛星の種類を見る。空ならfalse
+        // Peek at the satellite kind in the inlet; false when empty
+        public bool TryPeekSatellite(out ItemId satelliteId)
         {
             CheckDestroy(this);
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
-            satellite = ServerContext.ItemStackFactory.Create(stack.Id, stack.Count == 0 ? 0 : 1);
-            if (stack.Count == 0) return false;
-            _itemDataStoreService.SetItem(SatelliteSlot, stack.SubItem(1));
-            return true;
+            satelliteId = stack.Id;
+            return stack.Count > 0;
         }
 
-        // 成果を出口へ入れ、入りきらない分を返す
-        // Put results into the outlet and return what did not fit
-        public IItemStack InsertOutput(IItemStack itemStack)
+        // 入口から衛星を1つ取り出す。同じtickのTryPeekSatelliteがtrueのときだけ呼ぶ
+        // Take one satellite from the inlet; call only after TryPeekSatellite returned true in the same tick
+        public IItemStack TakeOneSatellite()
         {
             CheckDestroy(this);
-            var result = _itemDataStoreService.GetItem(OutputSlot).AddItem(itemStack);
-            _itemDataStoreService.SetItem(OutputSlot, result.ProcessResultItemStack);
-            return result.RemainderItemStack;
+            var stack = _itemDataStoreService.GetItem(SatelliteSlot);
+            _itemDataStoreService.SetItem(SatelliteSlot, stack.SubItem(1));
+            return ServerContext.ItemStackFactory.Create(stack.Id, 1);
+        }
+
+        // 成果が出口へ入りきるかを、出口の複製に積んで確かめる
+        // Check whether the results fit by stacking them onto a copy of the outlets
+        public bool CanStoreOutputs(IReadOnlyList<IItemStack> outputs)
+        {
+            CheckDestroy(this);
+            return TrySimulateOutputs(outputs, out _);
+        }
+
+        // 成果を出口へ入れる。確認と同じ模擬で積むので、確認を通った成果は必ず入る
+        // Insert results into the outlets; the same simulation as the check is used, so checked results always fit
+        public void InsertOutputs(IReadOnlyList<IItemStack> outputs)
+        {
+            CheckDestroy(this);
+            if (!TrySimulateOutputs(outputs, out var simulated))
+            {
+                Debug.LogError("[SpaceElevatorBase] 渡す直前の出口の確認を通ったのに出口へ入らず、成果が失われた");
+                return;
+            }
+
+            for (var i = 0; i < simulated.Count; i++)
+            {
+                var current = _itemDataStoreService.GetItem(FirstOutputSlot + i);
+                if (simulated[i].Id == current.Id && simulated[i].Count == current.Count) continue;
+                _itemDataStoreService.SetItem(FirstOutputSlot + i, simulated[i]);
+            }
         }
 
         public void Update()
         {
             CheckDestroy(this);
-            var output = _itemDataStoreService.GetItem(OutputSlot);
-            if (output.Count == 0) return;
-            _itemDataStoreService.SetItem(OutputSlot, _blockInventoryInserter.InsertItem(output));
+            for (var slot = FirstOutputSlot; slot < _slotCount; slot++)
+            {
+                var output = _itemDataStoreService.GetItem(slot);
+                if (output.Count == 0) continue;
+                _itemDataStoreService.SetItem(slot, _blockInventoryInserter.InsertItem(output));
+            }
         }
 
         // ベルト・プレイヤーからは運ぶ積荷だけを入口へ受ける
@@ -1860,7 +2043,7 @@ namespace Game.Block.Blocks.SpaceElevator
         }
 
         // 入口は積荷だけ、出口は取り出し（空にする）だけを許す
-        // The inlet accepts only payloads and the outlet only taking out (emptying)
+        // The inlet accepts only payloads and the outlets only taking out (emptying)
         public bool IsAllowedToPlace(int slot, IItemStack itemStack)
         {
             if (itemStack.Count == 0) return true;
@@ -1873,6 +2056,26 @@ namespace Game.Block.Blocks.SpaceElevator
             var itemJson = new List<ItemStackSaveJsonObject>();
             foreach (var item in _itemDataStoreService.InventoryItems) itemJson.Add(new ItemStackSaveJsonObject(item));
             return itemJson;
+        }
+
+        // 成果を出口の複製へ前から順に積む唯一の模擬。確認と実挿入がこれを共有する
+        // The single simulation stacking results onto a copy of the outlets front to back; the check and the insert share it
+        private bool TrySimulateOutputs(IReadOnlyList<IItemStack> outputs, out List<IItemStack> simulated)
+        {
+            simulated = new List<IItemStack>();
+            for (var slot = FirstOutputSlot; slot < _slotCount; slot++) simulated.Add(_itemDataStoreService.GetItem(slot));
+            foreach (var output in outputs)
+            {
+                var remainder = output;
+                for (var i = 0; i < simulated.Count && remainder.Count > 0; i++)
+                {
+                    var result = simulated[i].AddItem(remainder);
+                    simulated[i] = result.ProcessResultItemStack;
+                    remainder = result.RemainderItemStack;
+                }
+                if (remainder.Count > 0) return false;
+            }
+            return true;
         }
 
         private void InvokeEvent(int slot, IItemStack itemStack)
@@ -1900,10 +2103,11 @@ namespace Game.Block.Blocks.SpaceElevator
     }
 }
 ```
+`wc -l` が 200 以上になったら、`TrySimulateOutputs` を同じディレクトリの `SpaceElevatorOutputSimulation.cs`（`internal static class SpaceElevatorOutputSimulation` の `internal static bool TryStack(List<IItemStack> outlets, IReadOnlyList<IItemStack> outputs)`。複製の作成は呼び出し側）へ移す。
 
 - [ ] **Step 4: 昇降機と電力を書く**
 
-`SpaceElevatorClimberComponent.cs`（電力の前例 `Game.Block/Blocks/Pump/ElectricPumpProcessorComponent.cs`、進みの前例 `Game.Block/Blocks/Util/MachineCurrentPowerToSubSecond.cs`）:
+`SpaceElevatorClimberComponent.cs`（電力の前例 `Game.Block/Blocks/Pump/ElectricPumpProcessorComponent.cs`、進みの前例 `Game.Block/Blocks/Util/MachineCurrentPowerToSubSecond.cs`、出口の2点確認の前例 `Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118`）:
 ```csharp
 using System;
 using System.Collections.Generic;
@@ -1924,8 +2128,8 @@ using UniRx;
 namespace Game.Block.Blocks.SpaceElevator
 {
     /// <summary>
-    ///     拠点の昇降機。接続済みなら衛星を1つずつ電力で昇らせ、昇り切ったら軌道到着サービスへ渡し、成果を保留経由で出口へ流す
-    ///     The base's climber: once connected it lifts satellites one at a time with power, hands each to the orbital arrival service at the top, and drains the result through a pending list into the outlet
+    ///     拠点の昇降機。接続済みなら衛星を1つずつ電力で昇らせ、頂上で軌道到着サービスへ渡して成果を出口へ入れる。成果が出口へ入りきらなければ昇り始めず、頂上でも渡さず待つ
+    ///     The base's climber: once connected it lifts satellites one at a time with power and hands each to the orbital arrival service at the top, putting the result into the outlets; it neither starts nor hands over while the result would not fit
     /// </summary>
     public class SpaceElevatorClimberComponent : ISpaceElevatorBase, IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo
     {
@@ -1933,21 +2137,22 @@ namespace Game.Block.Blocks.SpaceElevator
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         public string SaveKey => "spaceElevatorClimber";
 
-        // 昇降中だけ電力を要求する
-        // Request power only while climbing
-        public float RequestPower => IsClimbing ? _param.RequiredPower : 0f;
+        // 昇っている間だけ電力を要求する。頂上で出口の空きを待つ間は使わない
+        // Request power only while ascending; waiting at the top for outlet space uses none
+        public float RequestPower => IsAscending ? _param.RequiredPower : 0f;
 
-        private bool IsClimbing => _climbingSatellite.Id != ItemMaster.EmptyItemId;
+        private bool IsCarrying => _climbingSatellite.Id != ItemMaster.EmptyItemId;
+        private bool IsAscending => IsCarrying && _remainingClimbTicks > 0;
 
         private readonly Subject<Unit> _onChangeBlockState = new();
         private readonly SpaceElevatorBaseBlockParam _param;
         private readonly SpaceElevatorBaseInventoryComponent _inventory;
         private readonly IOrbitalArrivalService _orbitalArrivalService;
         private readonly uint _climbTotalTicks;
-        private readonly List<IItemStack> _pendingOutputs = new();
 
         private IItemStack _climbingSatellite;
         private uint _remainingClimbTicks;
+        private bool _outputBlocked;
         private int _cablePoolAmount;
         private float _suppliedPower;
         private float _latchedPower;
@@ -1967,7 +2172,6 @@ namespace Game.Block.Blocks.SpaceElevator
             IsConnected = save.IsConnected;
             _climbingSatellite = save.ClimbingSatellite.ToItemStack();
             _remainingClimbTicks = save.RemainingClimbTicks;
-            foreach (var pending in save.PendingOutputs) _pendingOutputs.Add(pending.ToItemStack());
         }
 
         public void Update()
@@ -1979,12 +2183,13 @@ namespace Game.Block.Blocks.SpaceElevator
             _latchedPower = _suppliedPower;
             _suppliedPower = 0f;
 
-            var changed = FlushPendingOutputs();
-            changed |= IsClimbing ? AdvanceClimb() : TryStartClimb();
+            var wasOutputBlocked = _outputBlocked;
+            var changed = IsCarrying ? AdvanceClimb() : TryStartClimb();
+            changed |= wasOutputBlocked != _outputBlocked;
 
-            // 昇降中は進みが毎tick動くので毎tick通知する（同一ペイロードはイベント側が送らない）
-            // While climbing the progress moves every tick, so notify every tick (the event packet drops identical payloads)
-            if (changed || IsClimbing) _onChangeBlockState.OnNext(Unit.Default);
+            // 昇っている間は進みが毎tick動くので毎tick通知する（同一ペイロードはイベント側が送らない）
+            // While ascending the progress moves every tick, so notify every tick (the event packet drops identical payloads)
+            if (changed || IsAscending) _onChangeBlockState.OnNext(Unit.Default);
 
             #region Internal
 
@@ -1992,24 +2197,35 @@ namespace Game.Block.Blocks.SpaceElevator
             {
                 // 電力不足なら供給率に比例して遅くなる
                 // A power shortage slows the climb in proportion to the supply rate
-                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_latchedPower, _param.RequiredPower);
-                _remainingClimbTicks = subTicks >= _remainingClimbTicks ? 0 : _remainingClimbTicks - subTicks;
-                if (_remainingClimbTicks > 0) return false;
+                if (_remainingClimbTicks > 0)
+                {
+                    var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_latchedPower, _param.RequiredPower);
+                    _remainingClimbTicks = subTicks >= _remainingClimbTicks ? 0 : _remainingClimbTicks - subTicks;
+                    if (_remainingClimbTicks > 0) return false;
+                }
 
-                // 昇り切ったら軌道到着サービスへ渡し、返ってきた成果を保留へ入れる
-                // At the top, hand the satellite to the orbital arrival service and queue the returned result
-                _pendingOutputs.AddRange(_orbitalArrivalService.Arrive(_climbingSatellite.Id, 1));
+                // 頂上では成果が出口へ入りきるときだけ渡す。入らなければ頂上で待つ
+                // At the top, hand over only when the result fits the outlets; otherwise wait at the top
+                // silent-ok: 出口の空き待ちは通常の待機 / プレイヤーが拠点UIの状態表示（OutputBlocked）で気づく
+                _outputBlocked = !_inventory.CanStoreOutputs(_orbitalArrivalService.PreviewArrivalOutputs(_climbingSatellite.Id, 1));
+                if (_outputBlocked) return false;
+                _inventory.InsertOutputs(_orbitalArrivalService.Arrive(_climbingSatellite.Id, 1));
                 _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
-                FlushPendingOutputs();
                 return true;
             }
 
             bool TryStartClimb()
             {
-                // silent-ok: 未接続・保留あり・衛星なしは通常の待機 / プレイヤーが拠点UIの状態表示（Status）で気づく
-                if (!IsConnected || _pendingOutputs.Count > 0) return false;
-                if (!_inventory.TryTakeSatellite(out var satellite)) return false;
-                _climbingSatellite = satellite;
+                // silent-ok: 未接続・衛星なしは通常の待機 / プレイヤーが拠点UIの状態表示（NotConnected・WaitingSatellite）で気づく
+                _outputBlocked = false;
+                if (!IsConnected || !_inventory.TryPeekSatellite(out var satelliteId)) return false;
+
+                // 昇り始める前に、成果が出口へ入りきるかを確かめる
+                // Before starting, check that the result fits the outlets
+                // silent-ok: 出口の空き待ちは通常の待機 / プレイヤーが拠点UIの状態表示（OutputBlocked）で気づく
+                _outputBlocked = !_inventory.CanStoreOutputs(_orbitalArrivalService.PreviewArrivalOutputs(satelliteId, 1));
+                if (_outputBlocked) return false;
+                _climbingSatellite = _inventory.TakeOneSatellite();
                 _remainingClimbTicks = _climbTotalTicks;
                 return true;
             }
@@ -2043,64 +2259,41 @@ namespace Game.Block.Blocks.SpaceElevator
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            var progress = IsClimbing ? 1f - (float)_remainingClimbTicks / _climbTotalTicks : 0f;
+            var progress = IsCarrying ? 1f - (float)_remainingClimbTicks / _climbTotalTicks : 0f;
             var detail = new SpaceElevatorBaseStateDetail(IsConnected, _cablePoolAmount, _param.CablesPerElevator, progress, ResolveStatus());
             return new[] { new BlockStateDetail(SpaceElevatorBaseStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
 
             #region Internal
 
-            // 待ちの理由を優先順に1つ選ぶ。保留は昇降中には起きない（保留がある間は昇り始めない）
-            // Pick one waiting reason by priority; pending results never coexist with climbing because climbs do not start while results are pending
+            // 待ちの理由を優先順に1つ選ぶ
+            // Pick one waiting reason by priority
             SpaceElevatorBaseStatus ResolveStatus()
             {
                 if (!IsConnected) return SpaceElevatorBaseStatus.NotConnected;
-                if (_pendingOutputs.Count > 0) return SpaceElevatorBaseStatus.OutputBlocked;
-                if (!IsClimbing) return SpaceElevatorBaseStatus.WaitingSatellite;
+                if (_outputBlocked) return SpaceElevatorBaseStatus.OutputBlocked;
+                if (!IsCarrying) return SpaceElevatorBaseStatus.WaitingSatellite;
                 return _latchedPower < _param.RequiredPower ? SpaceElevatorBaseStatus.LowPower : SpaceElevatorBaseStatus.Climbing;
             }
 
             #endregion
         }
 
-        // 撤去時は昇降中の衛星と保留中の成果をプレイヤーへ返す
-        // On removal, return the climbing satellite and pending results to the player
+        // 撤去時は昇降中の衛星をプレイヤーへ返す
+        // On removal, return the satellite being carried to the player
         public IReadOnlyList<IItemStack> GetRefundItems()
         {
-            var refunds = new List<IItemStack>(_pendingOutputs);
-            if (IsClimbing) refunds.Add(_climbingSatellite);
-            return refunds;
+            return IsCarrying ? new List<IItemStack> { _climbingSatellite } : new List<IItemStack>();
         }
 
         public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var pending = new List<ItemStackSaveJsonObject>();
-            foreach (var item in _pendingOutputs) pending.Add(new ItemStackSaveJsonObject(item));
             return new SpaceElevatorClimberSaveJsonObject
             {
                 IsConnected = IsConnected,
                 ClimbingSatellite = new ItemStackSaveJsonObject(_climbingSatellite),
                 RemainingClimbTicks = _remainingClimbTicks,
-                PendingOutputs = pending,
             };
-        }
-
-        // 保留を出口へ流し込み、入りきらなかった分だけ残す
-        // Drain pending results into the outlet, keeping only what did not fit
-        private bool FlushPendingOutputs()
-        {
-            if (_pendingOutputs.Count == 0) return false;
-            var moved = false;
-            var remaining = new List<IItemStack>();
-            foreach (var pending in _pendingOutputs)
-            {
-                var remainder = _inventory.InsertOutput(pending);
-                if (remainder.Count != pending.Count) moved = true;
-                if (remainder.Count > 0) remaining.Add(remainder);
-            }
-            _pendingOutputs.Clear();
-            _pendingOutputs.AddRange(remaining);
-            return moved;
         }
 
         public bool IsDestroy { get; private set; }
@@ -2112,7 +2305,7 @@ namespace Game.Block.Blocks.SpaceElevator
     }
 }
 ```
-`wc -l` で 200 行未満を確かめる。超えたら `FlushPendingOutputs` と保留リストを `SpaceElevatorPendingOutputs.cs`（`public class SpaceElevatorPendingOutputs`: `int Count`、`void AddRange(IEnumerable<IItemStack>)`、`bool FlushInto(SpaceElevatorBaseInventoryComponent inventory)`、`List<ItemStackSaveJsonObject> ToSaveJson()`、`IReadOnlyList<IItemStack> Items`）へ切り出す。
+`wc -l` で 200 行未満を確かめる（`IGetRefundItemsInfo.GetRefundItems` の戻り型は既存の interface に合わせる）。
 
 `SpaceElevatorBaseElectricComponent.cs`（前例 `Game.Block/Blocks/Pump/ElectricPumpComponent.cs`）:
 ```csharp
@@ -2377,8 +2570,8 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             RunSeconds(2.2);
 
-            Assert.AreEqual(ForUnitTestItemId.TestElevatorReward, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.OutputSlot).Id);
-            Assert.AreEqual(5, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.OutputSlot).Count);
+            Assert.AreEqual(ForUnitTestItemId.TestElevatorReward, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Id);
+            Assert.AreEqual(5, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
         }
 
         [Test]
@@ -2388,11 +2581,11 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Inventory(elevatorBase).SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 1);
 
             RunSeconds(2.2);
-            Assert.AreEqual(0, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.OutputSlot).Count);
+            Assert.AreEqual(0, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
             Assert.AreEqual(SpaceElevatorBaseStatus.LowPower, ReadDetail(elevatorBase).Status);
 
             RunSeconds(2.4);
-            Assert.AreEqual(5, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.OutputSlot).Count);
+            Assert.AreEqual(5, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
         }
 
         [Test]
@@ -2410,25 +2603,52 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         }
 
         [Test]
-        public void 出口が満杯なら保留して次を昇らせず空くと流れる()
+        public void 出口が塞がっていると昇り始めず空くと昇る()
         {
             var elevatorBase = SetupConnected(100f);
             var inventory = Inventory(elevatorBase);
 
-            // 出口を別アイテムで塞ぐと成果は保留され、次の衛星は入口に残る
-            // Blocking the outlet with another item holds the result and leaves the next satellite in the inlet
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.OutputSlot, ForUnitTestItemId.ItemId1, 1);
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 2);
-            RunSeconds(4.5);
+            // 出口を別アイテムで塞ぐと、衛星は入口に残り理由を出す
+            // Blocking the outlet with another item keeps the satellite in the inlet and shows why
+            inventory.SetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ForUnitTestItemId.ItemId1, 1);
+            inventory.SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 1);
+            RunSeconds(0.5);
             Assert.AreEqual(SpaceElevatorBaseStatus.OutputBlocked, ReadDetail(elevatorBase).Status);
             Assert.AreEqual(1, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Count);
+            Assert.AreEqual(0f, ReadDetail(elevatorBase).ClimbProgress);
 
-            // 出口を空けると保留が流れ、次の衛星が昇り始める
-            // Clearing the outlet drains the pending result and the next satellite starts climbing
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.OutputSlot, ServerContext.ItemStackFactory.CreatEmpty());
-            RunSeconds(0.2);
-            Assert.AreEqual(5, inventory.GetItem(SpaceElevatorBaseInventoryComponent.OutputSlot).Count);
+            // 出口を空けると昇り始め、2秒で成果が出る
+            // Clearing the outlet starts the climb and the result appears after two seconds
+            inventory.SetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ServerContext.ItemStackFactory.CreatEmpty());
+            RunSeconds(2.2);
             Assert.AreEqual(0, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Count);
+            Assert.AreEqual(5, inventory.GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
+        }
+
+        [Test]
+        public void 昇る間に出口が塞がると頂上で電力を使わず待ち空くと渡す()
+        {
+            var elevatorBase = SetupConnected(100f);
+            var inventory = Inventory(elevatorBase);
+            var climber = elevatorBase.GetComponent<SpaceElevatorClimberComponent>();
+            inventory.SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 1);
+            RunSeconds(0.5);
+
+            // 昇降中に出口を塞ぐと、昇り切っても渡さず頂上で待つ
+            // Blocking the outlet mid-climb makes it wait at the top without handing over
+            inventory.SetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ForUnitTestItemId.ItemId1, 1);
+            RunSeconds(2);
+            var waiting = ReadDetail(elevatorBase);
+            Assert.AreEqual(SpaceElevatorBaseStatus.OutputBlocked, waiting.Status);
+            Assert.AreEqual(1f, waiting.ClimbProgress);
+            Assert.AreEqual(0f, climber.RequestPower);
+
+            // 出口を空けると次のtickで渡し、成果が出る
+            // Clearing the outlet hands it over on the next tick and the result appears
+            inventory.SetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ServerContext.ItemStackFactory.CreatEmpty());
+            RunSeconds(0.1);
+            Assert.AreEqual(5, inventory.GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
+            Assert.AreEqual(SpaceElevatorBaseStatus.WaitingSatellite, ReadDetail(elevatorBase).Status);
         }
 
         [Test]
@@ -2438,7 +2658,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var inventory = Inventory(PlaceBase(Vector3Int.zero));
             var rejected = inventory.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3));
             Assert.AreEqual(3, rejected.Count);
-            Assert.IsFalse(inventory.IsAllowedToPlace(SpaceElevatorBaseInventoryComponent.OutputSlot, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 1)));
+            Assert.IsFalse(inventory.IsAllowedToPlace(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 1)));
         }
 
         private static Game.Block.Interface.IBlock SetupConnected(float power)
@@ -2486,7 +2706,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         private const int PlayerId = 3;
 
         [Test]
-        public void 接続と昇降中と保留がセーブを往復する()
+        public void 接続と昇降中がセーブを往復する()
         {
             var (_, provider) = CreateServer();
             var elevatorBase = PlaceBase(Vector3Int.zero);
@@ -2509,7 +2729,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         }
 
         [Test]
-        public void 撤去すると昇降中の衛星と保留とスロットがプレイヤーへ返り接続分がプールへ戻る()
+        public void 撤去すると昇降中の衛星とスロットがプレイヤーへ返り接続分がプールへ戻る()
         {
             var (packet, provider) = CreateServer();
             var elevatorBase = PlaceBase(Vector3Int.zero);
@@ -2542,7 +2762,7 @@ Expected: ErrorCount 0 / 全 PASS
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator
-git commit -m "feat(space-elevator): 拠点ブロック（昇降機・電力・保留・撤去返却）を足す"
+git commit -m "feat(space-elevator): 拠点ブロック（昇降機・電力・出口の確認・撤去返却）を足す"
 ```
 
 ### Task 9: 接続プロトコル
@@ -2903,7 +3123,7 @@ ui.blockInventory.spaceElevatorStatusNotConnected,Not connected,Not connected,�
 ui.blockInventory.spaceElevatorStatusWaitingSatellite,Waiting for a GPU satellite,Waiting for a GPU satellite,GPU衛星を待っています,Warte auf GPU-Satelliten,GPU 위성 대기 중
 ui.blockInventory.spaceElevatorStatusClimbing,Climbing,Climbing,昇降中,Steigt auf,상승 중
 ui.blockInventory.spaceElevatorStatusLowPower,Climbing slowly (low power),Climbing slowly (low power),電力不足で遅くなっています,Langsam (zu wenig Strom),전력 부족으로 느려짐
-ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; the next satellite is waiting,Output full; the next satellite is waiting,出口が満杯のため次の衛星を待たせています,Ausgang voll; nächster Satellit wartet,출구가 가득 차 다음 위성이 대기 중
+ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until the result fits,Output full; waiting until the result fits,出口が満杯のため、成果が入るまで待っています,Ausgang voll; wartet bis das Ergebnis passt,출구가 가득 차 결과가 들어갈 때까지 대기 중
 ```
 `cd moorestech_web/webui && npm run gen:i18n` で `localizationKeys.ts` を再生成する。
 
@@ -3465,7 +3685,7 @@ git commit -m "test(playtest): 核融合炉と宇宙エレベーターの録画�
 
 - [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
-Codex ホストでは moores-code-review の `references/codex-host.md` の runner で実行する。レビュー指摘の反映がソースの判定経路・条件式・その評価時点（昇降機の開始条件・接続判定・保留の流し込み・撤去返却など）に触れたら、Task 13 の unityプレイ録画テストを反映後のバイナリで再実施してから完了とする。指摘の反映ごとにコミットする。
+Codex ホストでは moores-code-review の `references/codex-host.md` の runner で実行する。レビュー指摘の反映がソースの判定経路・条件式・その評価時点（昇降機の開始条件・頂上で渡す条件・出口の確認・接続判定・撤去返却など）に触れたら、Task 13 の unityプレイ録画テストを反映後のバイナリで再実施してから完了とする。指摘の反映ごとにコミットする。
 
 ### Task 15: PR 作成とセッションを閉じられる状態
 
@@ -3517,13 +3737,15 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P9 | 研究「軌道エレベーターの建設」の計算データ消費は S2 の plan の値（見つからなければ 200）、研究「反物質爆弾」に計算データ ×400 | S2 の裁定「計算データを消費する」。量は S2 待ち・S1 待ち |
 | P10 | プールは起動時（`IBootInitializable.Load`）に、拠点のマスタが指すケーブル・積荷が軌道到着の表にあるか、積荷にケーブルが含まれないかを S2 の `IsOrbitalPayload` で確かめ、違えば例外で止める | ADR 0089。S2 のマスタ API が未確定のため、公開済みの契約（`IsOrbitalPayload`）だけで確かめる |
 | P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない） | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値 |
-| P12 | 撤去返却は `RemoveBlockProtocol` で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星と保留を返すため。既存が先頭1つだけを読むなら直す |
+| P12 | 撤去返却は `RemoveBlockProtocol` で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
 | P13 | 接続は専用プロトコル `va:connectSpaceElevator` で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出し、プレイヤーには状態詳細のプール残量から理由を出す | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
 | P14 | 拠点の UI は専用 view を作らず `SectionStackView` に固有部分 `SpaceElevatorSection` を合成する | 前例 `GearToElectricSection` |
 | P15 | 新しいファイルはディレクトリの 10 ファイル上限のためサブディレクトリ（`PacketResponse/SpaceElevator/`・`Actions/SpaceElevator/`・`Topics/BlockDetail/SpaceElevator/`・`StateProcessor/SpaceElevator/`）に置き、`inventory.ts`（215 行）を分割する | AGENTS.md の規約 |
-| P16 | 録画テストは昇降の完了（600 秒）まで待たず、昇降機が上がること・進みが増えることまでを見る。到着後の成果・保留はユニットテストで見る。ケーブルの打ち上げはサーバーで `Arrive(cable, 1000)` を呼んで起こす | 録画の長さ。本番との差: ロケットでの打ち上げ経路は通さない（S2 の録画が担う） |
-| P17 | Task 5 は S2 の `feat(orbit): 軌道到着サービスと初打ち上げ履歴を足す` が push されるまで前景で 600 秒ずつ最大 12 回待ち、来なければ止めて報告する | S2 の API に依存するため。バックグラウンドのポーリングはしない |
+| P16 | 録画テストは昇降の完了（600 秒）まで待たず、昇降機が上がること・進みが増えることまでを見る。到着後の成果・出口の空き待ちはユニットテストで見る。ケーブルの打ち上げはサーバーで `Arrive(cable, 1000)` を呼んで起こす | 録画の長さ。本番との差: ロケットでの打ち上げ経路は通さない（S2 の録画が担う） |
+| P17 | Task 5 は S2 の `Game.Orbit`（`PreviewArrivalOutputs` を含む）と積荷表が push されるまで前景で 600 秒ずつ最大 12 回待ち、来なければ止めて報告する | S2 の API に依存するため。バックグラウンドのポーリングはしない |
 | P18 | ランタイム挙動（発電機の UI・拠点の UI・見た目・昇降）に触れるので、unityプレイ録画テスト（Task 13）を入れる | moores-writing-plans の録画テスト規定 |
+| P19 | 昇降機は打ち上げ後の保留を持たない。昇り始める前と頂上で渡す直前に `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを確かめ、入らなければ入口に残す／頂上で電力を使わず待つ。状態は `OutputBlocked` | S2 のユーザー裁定（S2 ブランチ `.decisions/2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める.md`、明示引用「発射台の出力口が満杯のとき、どこで待たせますか？」→ 選択「入りきる時だけ建造開始」）と、その裁定ファイルの「宇宙エレベーター拠点（S3）も同じ方式にする」。拠点への適用の形（2点の確認・頂上で待つ間は電力を使わない）は agent前提で、前例は機械の `IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118` |
+| P20 | 拠点の出口は `outputSlotCount`（出荷 4・テスト mod 1）スロット。衛星1機の成果がレベル1のスタック上限で空の出口に入りきらないマスタは、起動時に `SpaceElevatorOrbitalTableCheck` が止める | 入りきらない成果は頂上で永遠に待つ（構造的に解消しない待ち）ため、いちばん早い段階で止める（AGENTS.md）。スロット数 4 は agent前提 |
 
 ### S1 待ち・S2 待ち
 
