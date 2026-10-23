@@ -1,5 +1,4 @@
 using System;
-using Game.Block.Interface.Component;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
@@ -41,7 +40,6 @@ namespace Client.WebUiHost.Game.Topics
         private readonly IDisposable _continuousSampleSubscription;
         private BlockGameObject _trackedBlock;
         private IDisposable _blockStateSubscription;
-        private RocketLaunchPadSlotLayout _rocketLayout;
         private bool _publishScheduled;
         private bool _continuousSamplePending;
         private bool _sampleContinuously;
@@ -160,7 +158,7 @@ namespace Client.WebUiHost.Game.Topics
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
             TrackBlock(block);
-            var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache, _rocketLayout);
+            var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache);
             return WebUiJson.Serialize(dto);
         }
         // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える
@@ -171,7 +169,6 @@ namespace Client.WebUiHost.Game.Topics
             _blockStateSubscription?.Dispose();
             _blockStateSubscription = null;
             _trackedBlock = block;
-            _rocketLayout = block != null && block.BlockMasterElement.BlockParam is RocketLaunchPadBlockParam rocketParam ? new RocketLaunchPadSlotLayout(rocketParam) : null;
             if (block == null)
             {
                 _sampleContinuously = false;

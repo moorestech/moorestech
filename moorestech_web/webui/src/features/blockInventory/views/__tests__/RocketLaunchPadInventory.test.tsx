@@ -83,6 +83,48 @@ describe("RocketLaunchPadInventory through the real panel", () => {
     act(() => { tree.unmount(); });
   });
 
+  it.each([
+    ["build", "awaitingBuildCommand", "building", "rocket_command_not_awaiting_build"],
+    ["launch", "awaitingLaunchCommand", "readyToLaunch", "rocket_command_not_awaiting_launch"],
+  ] as const)("%sの成功後topicが遅れても二度目の拒否を誤報しない", async (command, phase, nextPhase, error) => {
+    vi.resetModules();
+    const actual = await vi.importActual<typeof import("@/bridge")>("@/bridge");
+    const notify = vi.fn();
+    const sends: string[] = [];
+    class SocketStub {
+      static readonly OPEN = 1;
+      readyState = 1;
+      onmessage: ((event: { data: string }) => void) | null = null;
+      send(raw: string) {
+        const request = JSON.parse(raw);
+        if (request.op !== "action") return;
+        sends.push(raw);
+        queueMicrotask(() => this.onmessage?.({ data: JSON.stringify({ op: "result", requestId: request.requestId, ok: sends.length === 1, error }) }));
+      }
+    }
+    vi.stubGlobal("WebSocket", SocketStub);
+    vi.stubGlobal("window", globalThis);
+    vi.stubGlobal("location", { protocol: "http:", host: "example.test" });
+    actual.setToastSink(notify);
+    actual.initBridge();
+    mock.dispatch.mockImplementation(actual.dispatchAction);
+    mock.block = { ...mock.block, rocketLaunchPad: { ...mock.block.rocketLaunchPad!, phase } };
+    let tree!: ReturnType<typeof create>;
+    act(() => { tree = create(createElement(BlockInventoryPanel)); });
+    await act(async () => { hostById(tree.root, `rocket-launch-pad-${command}`).props.onClick(); });
+    // 応答後にもtopicは古いままにして再操作する
+    // Click again after the response while the topic still carries the old phase
+    await act(async () => { hostById(tree.root, `rocket-launch-pad-${command}`).props.onClick(); });
+    expect(sends).toHaveLength(2);
+    expect(notify).not.toHaveBeenCalled();
+    mock.block = { ...mock.block, rocketLaunchPad: { ...mock.block.rocketLaunchPad!, phase: nextPhase } };
+    act(() => { tree.update(createElement(BlockInventoryPanel)); });
+    expect(hostById(tree.root, `rocket-launch-pad-${command}`)).toBeUndefined();
+    act(() => { tree.unmount(); });
+    actual.setToastSink(() => {});
+    vi.unstubAllGlobals();
+  });
+
   it("renders DTO groups and preserves their absolute indices through real mouse gestures", () => {
     // 意図的に並びを変え、Webが0から振り直す故障を検出する
     // Deliberately reorder indices to detect the Web renumbering slots from zero

@@ -70,6 +70,31 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
         }
 
         [Test]
+        public void 発射台は近傍順へ変わらず先頭の空枠へ溢れる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var configs = ModJsonStringLoader.GetMasterString(new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")));
+            var key = new JsonFileName("blocks");
+            var blocks = JObject.Parse(configs[0].JsonContents[key]);
+            blocks["data"].Single(block => (string)block["name"] == "TestRocketLaunchPad")["blockParam"]["outputSlotCount"] = 3;
+            configs[0].JsonContents[key] = blocks.ToString();
+            MasterHolder.Load(new MasterJsonFileContainer(configs));
+            var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
+            var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
+            inventory.SetItem(7, ForUnitTestItemId.ComputeDataId, 99);
+            var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
+            var output = (RocketLaunchPadOutputSlots)typeof(RocketLaunchPadProcessorComponent).GetField("_outputSlots", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(processor);
+            var arrival = new[] { ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 2) };
+
+            // 通常在庫の近傍順[空,A1,A100]とは違う先頭順を保持する
+            // Preserve first-empty order instead of the normal inventory's proximity order [empty,A1,A100]
+            Assert.IsTrue(output.CanStore(arrival));
+            CollectionAssert.AreEqual(new[] { 0, 0, 99 }, inventory.InventoryItems.Skip(5).Select(item => item.Count));
+            output.Store(arrival);
+            CollectionAssert.AreEqual(new[] { 1, 0, 100 }, inventory.InventoryItems.Skip(5).Select(item => item.Count));
+        }
+
+        [Test]
         public void 同一成果二行を一枠に合算して検証し格納する()
         {
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

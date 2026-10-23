@@ -77,11 +77,18 @@ describe("dispatchAction の toast 配線", () => {
     expect(notify).toHaveBeenCalledOnce();
   });
 
-  it.each(["rocket_command_missing_materials", "rocket_command_missing_payload", "rocket_command_output_full", "rocket_command_instance_mismatch", "rocket_command_timeout"])("発射台の拒否理由 %s を通知まで保持する", async (error) => {
+  it.each(["rocket_command_missing_materials", "rocket_command_missing_payload", "rocket_command_output_full", "rocket_command_instance_mismatch", "rocket_command_timeout", "rocket_command_invalid_response", "rocket_command_block_not_found", "rocket_command_not_launch_pad", "rocket_command_unknown_operation", "rocket_command_invalid_request", "invalid_payload", "block_not_open"])("発射台の拒否理由 %s を通知まで保持する", async (error) => {
     vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error });
     expect(await dispatchAction("rocket_launch_pad.command", { command: "build" })).toBe(false);
     expect(notify).toHaveBeenCalledOnce();
     expect(JSON.stringify(vi.mocked(notify).mock.calls[0])).toContain(error);
+  });
+
+  it.each(["rocket_command_not_awaiting_build", "rocket_command_not_awaiting_launch"])("合図連打の段階不一致 %s だけはトーストしない", async (error) => {
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error });
+    expect(await dispatchActionOutcome("rocket_launch_pad.command", { command: "build" })).toEqual({ kind: "rejected", error });
+    expect(notify).not.toHaveBeenCalled();
+    expect(shouldToastFailure("inventory.move_item", error)).toBe(true);
   });
 
   // 既定の5秒だと ffmpeg 結合とgit起動を待つ bug_report.submit が成功しても失敗として表示される

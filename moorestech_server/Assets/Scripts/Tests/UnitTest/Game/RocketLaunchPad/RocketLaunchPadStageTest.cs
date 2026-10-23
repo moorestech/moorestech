@@ -105,24 +105,24 @@ namespace Tests.UnitTest.Game.RocketLaunchPad
         }
 
         [Test]
-        public void 未対応の段階はログ付きで拒否し元の段階を保つ()
+        public void 全段階に進行と操作と表示の実装が必須である()
         {
-            var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
-            var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
-            var sequence = typeof(RocketLaunchPadProcessorComponent).GetField("_sequence", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(processor);
-            var setStage = sequence.GetType().GetMethod("SetStage");
-
-            // Phaseだけ既知値を返す未知型も、通常待機として扱わない
-            // Reject an unknown type even if it reports a known phase
-            LogAssert.Expect(LogType.Error, new Regex("発射台の未対応の段階を拒否しました"));
-            var exception = Assert.Throws<TargetInvocationException>(() => setStage.Invoke(sequence, new object[] { new UnknownStage() }));
-            Assert.IsInstanceOf<InvalidOperationException>(exception.InnerException);
-            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(processor).Phase);
-        }
-
-        private sealed class UnknownStage : RocketLaunchPadStage
-        {
-            public override RocketLaunchPadPhase Phase => RocketLaunchPadPhase.Idle;
+            // 新段階の追加時に省略できない抽象契約を検査する
+            // Check abstract contracts that a new stage cannot omit
+            var operations = new[] { "Advance", "RequestBuild", "RequestLaunch", "OnFirstLaunch", "GetRequestPower", "CalculateProgress" };
+            var baseType = typeof(RocketLaunchPadStage);
+            var stageTypes = baseType.Assembly.GetTypes().Where(type => baseType.IsAssignableFrom(type) && !type.IsAbstract).ToArray();
+            Assert.AreEqual(6, stageTypes.Length);
+            foreach (var operation in operations)
+            {
+                Assert.IsTrue(baseType.GetMethod(operation, BindingFlags.NonPublic | BindingFlags.Instance).IsAbstract);
+                foreach (var type in stageTypes)
+                {
+                    var method = type.GetMethod(operation, BindingFlags.NonPublic | BindingFlags.Instance);
+                    Assert.IsFalse(method.IsAbstract);
+                    Assert.AreEqual(type, method.DeclaringType);
+                }
+            }
         }
 
         private static RocketCargo CreateCargo()

@@ -17,7 +17,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     /// </summary>
     public static class BlockDetailDtoBuilder
     {
-        public static void Apply(BlockInventoryDto dto, BlockGameObject block, BlockNetworkInfoCache cache, BeltTransportClientCache beltCache, RocketLaunchPadSlotLayout rocketLayout)
+        public static void Apply(BlockInventoryDto dto, BlockGameObject block, BlockNetworkInfoCache cache, BeltTransportClientCache beltCache)
         {
             var param = block.BlockMasterElement.BlockParam;
             ElectricToGearDetailDtoBuilder.Apply(dto, block, param);
@@ -28,7 +28,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             GearToElectricDetailDtoBuilder.Apply(dto, block, param);
             TrainPlatformDetailDtoBuilder.Apply(dto, block, param);
             TrainStationDetailDtoBuilder.Apply(dto, block, param);
-            RocketLaunchPadDetailDtoBuilder.Apply(dto, block, rocketLayout);
+            RocketLaunchPadDetailDtoBuilder.Apply(dto, block);
 
             // 機械系: CommonMachine + MachineBlock の両 StateDetail が揃うブロックのみ
             // Machines: only blocks carrying both CommonMachine and MachineBlock state details

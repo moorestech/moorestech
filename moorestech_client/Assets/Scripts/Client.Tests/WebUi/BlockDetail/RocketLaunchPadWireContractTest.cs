@@ -76,17 +76,24 @@ namespace Client.Tests.WebUi.BlockDetail
             var gameObject = new GameObject("RocketLaunchPadWireTest");
             var block = gameObject.AddComponent<BlockGameObject>();
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockMasterElement)).SetValue(block, master);
+            // マスタだけ先に分かっても初期state未着の詳細を作らない
+            // Do not synthesize detail when the master is known but initial state has not arrived
+            var pending = new BlockInventoryDto();
+            typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(block, new BlockStateMessagePack(new BlockState(new Dictionary<string, byte[]>()), Vector3Int.zero));
+            BlockDetailDtoBuilder.Apply(pending, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
+            Assert.IsNull(pending.RocketLaunchPad);
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, new BlockStateMessagePack(state, Vector3Int.zero));
             var dto = new BlockInventoryDto();
-            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), layout);
+            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
             // 状態受信済みでも取得失敗の在庫には発射台の添字を載せない
             // Omit launch pad indices for failed inventory even when state has arrived
             var source = new BlockSubInventorySource(null, Vector3Int.zero);
             var failedModel = new SubInventoryModel(new BlockInventorySubInventoryIdentifier(Vector3Int.zero));
             failedModel.SetResult(InventoryRequestResult.Timeout);
             var failed = BlockInventoryDtoFactory.Create(source, failedModel, block,
-                new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), layout);
+                new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
             Assert.AreEqual("openFailed", failed.Error);
             Assert.IsEmpty(failed.ItemSlots);
             Assert.IsNull(failed.RocketLaunchPad);

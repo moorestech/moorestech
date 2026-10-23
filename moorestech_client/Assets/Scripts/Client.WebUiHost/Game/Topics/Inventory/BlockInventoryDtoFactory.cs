@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game.Block.Interface.Component;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory;
@@ -12,7 +11,7 @@ namespace Client.WebUiHost.Game.Topics
     // Combine block inventory contents and details for publication
     internal static class BlockInventoryDtoFactory
     {
-        public static BlockInventoryDto Create(BlockSubInventorySource blockSource, SubInventoryModel sub, BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache, RocketLaunchPadSlotLayout rocketLayout)
+        public static BlockInventoryDto Create(BlockSubInventorySource blockSource, SubInventoryModel sub, BlockGameObject block, BlockNetworkInfoCache networkCache, BeltTransportClientCache beltCache)
         {
             var dto = new BlockInventoryDto
             {
@@ -34,7 +33,7 @@ namespace Client.WebUiHost.Game.Topics
             }
             // capability 詳細とネットワーク集約を充填する
             // Fill capability details and network aggregates
-            BlockDetailDtoBuilder.Apply(dto, block, networkCache, beltCache, dto.Error == null ? rocketLayout : null);
+            BlockDetailDtoBuilder.Apply(dto, block, networkCache, beltCache);
             return dto;
         }
     }

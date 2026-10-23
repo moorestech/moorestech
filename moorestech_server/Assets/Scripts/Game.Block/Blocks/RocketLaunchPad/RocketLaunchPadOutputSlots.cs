@@ -64,16 +64,12 @@ namespace Game.Block.Blocks.RocketLaunchPad
         // Fill existing matching stacks before empty slots to preserve room for other items
         private static IItemStack FillInOrder(List<IItemStack> slots, IItemStack item)
         {
-            var rest = item;
-            for (var pass = 0; pass < 2; pass++)
-                for (var i = 0; i < slots.Count && 0 < rest.Count; i++)
-                {
-                    if (pass == 0 ? slots[i].Id != item.Id : slots[i].Count != 0) continue;
-                    var result = slots[i].AddItem(rest);
-                    slots[i] = result.ProcessResultItemStack;
-                    rest = result.RemainderItemStack;
-                }
-            return rest;
+            var order = new List<int>();
+            for (var i = 0; i < slots.Count; i++)
+                if (slots[i].Id == item.Id) order.Add(i);
+            for (var i = 0; i < slots.Count; i++)
+                if (slots[i].Count == 0) order.Add(i);
+            return InventoryInsertItem.InsertInOrder(item, slots, order);
         }
     }
 }

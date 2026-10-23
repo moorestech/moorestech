@@ -41,11 +41,12 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadCargoLoader _cargoLoader;
         private readonly RocketLaunchPadOutputSlots _outputSlots;
         private readonly RocketLaunchPadLaunchSequence _sequence;
-        private readonly CompositeDisposable _subscriptions = new();
+        private readonly CompositeDisposable _subscriptions;
         private float _suppliedPower;
 
-        public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, BlockInstanceId blockInstanceId)
+        public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, IObservable<Unit> inventoryChanges, CompositeDisposable subscriptions)
         {
+            _subscriptions = subscriptions;
             _layout = layout;
             _slots = slots;
             _outputSlots = new RocketLaunchPadOutputSlots(layout, slots, beltOutput);
@@ -57,8 +58,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
             launchHistory.OnFirstLaunch.Subscribe(_ => OnWorldFirstLaunch()).AddTo(_subscriptions);
             // 在庫と上限の変化だけで待機条件を無効化する
             // Invalidate waiting conditions only when inventory or stack limits change
-            ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
-                .Where(change => change.BlockInstanceId == blockInstanceId).Subscribe(_ => _sequence.InvalidateWait()).AddTo(_subscriptions);
+            inventoryChanges.Subscribe(_ => _sequence.InvalidateWait()).AddTo(_subscriptions);
             ServerContext.GetService<IItemStackLevelLookup>().OnStackLevelUnlocked.Subscribe(_ => _sequence.InvalidateWait()).AddTo(_subscriptions);
 
             #region Internal
@@ -73,8 +73,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
             #endregion
         }
 
-        public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, BlockInstanceId blockInstanceId)
-            : this(param, layout, slots, beltOutput, arrivalService, launchHistory, blockInstanceId)
+        public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, IObservable<Unit> inventoryChanges, CompositeDisposable subscriptions)
+            : this(param, layout, slots, beltOutput, arrivalService, launchHistory, inventoryChanges, subscriptions)
         {
             // スロット・次に探す積荷・段階を戻す。今の積荷表で打ち上げられない積荷はコンバーターが警告して捨てる
             // Restore slots, the next payload index and the stage; the converter warns about and drops cargo the current table cannot launch

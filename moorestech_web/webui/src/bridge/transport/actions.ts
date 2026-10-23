@@ -15,6 +15,9 @@ export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<str
   "inventory.split": new Set(["grab_not_empty", "empty_slot"]),
   "block_inventory.move_item": new Set(["empty_slot", "insufficient_count"]),
   "block_inventory.split": new Set(["grab_not_empty", "empty_slot"]),
+  // topic到着前の合図連打だけ抑止し、通信や不足の拒否は通知する
+  // Suppress only repeated commands before the topic arrives; transport and resource failures still notify
+  "rocket_launch_pad.command": new Set(["rocket_command_not_awaiting_build", "rocket_command_not_awaiting_launch"]),
   "ui.modal.respond": new Set(["no_pending_modal"]),
   // メニューが先に閉じた/BPが先に消えた stale クリックはトースト不要
   // Stale clicks (menu already closed / BP already deleted) need no error toast
