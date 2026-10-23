@@ -2519,26 +2519,28 @@ git commit -m "feat(block): ロケット発射台の建造と打ち上げとセ�
 ### Task 6: 建造・発射の合図のプロトコル
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RocketLaunchPadCommandProtocol.cs`
+- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Rocket/RocketLaunchPadCommandProtocol.cs`（`PacketResponse/` 直下は .cs が52個あるのでサブディレクトリ。名前空間は前例 `PacketResponse/TrainStation/SetTrainStationNameProtocol.cs` どおり `Server.Protocol.PacketResponse` のまま）
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs`（`SetTrainPlatformTransferModeProtocol` の登録の次）
-- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/Server.Protocol.asmdef`（`Game.Orbit` が要れば）
 - Modify: `moorestech_client/Assets/Scripts/Client.Network/API/Requests/BlockRequestApi.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket/RocketLaunchPadCommandProtocolTest.cs`
 
+通信の語彙（操作の種類・座標からブロックを引く失敗）はプロトコルにネストし、発射台の部品が返すのはドメインの結果 `RocketLaunchPadCommandResult` だけにする（前例 `MachineRecipeSelectionProtocol` のネストした `MachineRecipeSelectionOperation`・`MachineRecipeSelectionFailureReason` と `ToFailureReason`、ドメインの結果は `IMachineRecipeSelectorComponent.cs` の `MachineRecipeSelectionResult`）。部品は具象型でなくインターフェース層の `IRocketLaunchPadComponent` で引くので、`Server.Protocol.asmdef` に参照を足す必要は無い（`Game.Block.Interface` は参照済み）。
+
 **Interfaces:**
-- Consumes: Task 5 の `RocketLaunchPadProcessorComponent.RequestBuild/RequestLaunch`、Task 4 の `RocketLaunchPadCommand`・`RocketLaunchPadCommandResult`
+- Consumes: Task 4 の `IRocketLaunchPadComponent`・`RocketLaunchPadCommandResult`
 - Produces:
   - `RocketLaunchPadCommandProtocol.ProtocolTag = "va:rocketLaunchPadCommand"`
-  - `RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest`（`[Key(2)] Vector3IntMessagePack Position`・`[Key(3)] RocketLaunchPadCommand Command`、ctor `(Vector3Int position, RocketLaunchPadCommand command)`）
-  - `RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse`（`[Key(2)] RocketLaunchPadCommandResult Result`）
-  - `BlockRequestApi.SendRocketLaunchPadCommand(Vector3Int position, RocketLaunchPadCommand command, CancellationToken ct)` → `UniTask<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>`
+  - ネストした enum `RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation { Build = 0, Launch = 1 }`
+  - ネストした enum `RocketLaunchPadCommandProtocol.RocketLaunchPadCommandFailureReason { None = 0, BlockNotFound = 1, NotRocketLaunchPad = 2, UnknownOperation = 3, InvalidRequest = 4, NotAwaitingBuildCommand = 5, NotAwaitingLaunchCommand = 6, CargoNotReady = 7, OutputFull = 8 }`
+  - `RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest`（`[Key(2)] Vector3IntMessagePack Position`・`[Key(3)] RocketLaunchPadCommandOperation Operation`、ctor `(Vector3Int position, RocketLaunchPadCommandOperation operation)`）
+  - `RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse`（`[Key(2)] bool Success`・`[Key(3)] RocketLaunchPadCommandFailureReason FailureReason`）
+  - `BlockRequestApi.SendRocketLaunchPadCommand(Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, CancellationToken ct)` → `UniTask<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>`
 
 - [ ] **Step 1: creating-server-protocol スキルを読み、プロトコルを書く**
 
 ```csharp
 using System;
-using Game.Block.Blocks.RocketLaunchPad;
-using Game.Block.Blocks.RocketLaunchPad.State;
+using Game.Block.Interface.Component;
 using Game.Context;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -2547,8 +2549,10 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    // 発射台への建造・発射の合図。結果の表示はブロック状態の更新を正とする
-    // Build/launch commands for a launch pad; the displayed result follows the block state update
+    /// <summary>
+    ///     発射台への建造・発射の合図。結果の表示はブロック状態の更新を正とする
+    ///     Build/launch commands for a launch pad; the displayed result follows the block state update
+    /// </summary>
     public class RocketLaunchPadCommandProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:rocketLaunchPadCommand";
@@ -2560,32 +2564,52 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RocketLaunchPadCommandRequest>(payload);
-            return new RocketLaunchPadCommandResponse(Execute());
+            if (request.Position == null) return Fail(RocketLaunchPadCommandFailureReason.InvalidRequest);
+
+            // 指定座標の発射台を引く。無ければ理由を残して拒否する
+            // Look up the launch pad at the position, rejecting with a logged reason when absent
+            var block = ServerContext.WorldBlockDatastore.GetBlock(request.Position.Vector3Int);
+            if (block == null) return Fail(RocketLaunchPadCommandFailureReason.BlockNotFound);
+            if (!block.ComponentManager.TryGetComponent<IRocketLaunchPadComponent>(out var launchPad)) return Fail(RocketLaunchPadCommandFailureReason.NotRocketLaunchPad);
+
+            // 操作の種類ごとに発射台の入口へ渡し、ドメインの結果を通信の失敗理由へ写す
+            // Hand each operation to the pad's entry point and map the domain result to a wire failure reason
+            switch (request.Operation)
+            {
+                case RocketLaunchPadCommandOperation.Build:
+                    return ToResponse(launchPad.RequestBuild());
+                case RocketLaunchPadCommandOperation.Launch:
+                    return ToResponse(launchPad.RequestLaunch());
+                default:
+                    return Fail(RocketLaunchPadCommandFailureReason.UnknownOperation);
+            }
 
             #region Internal
 
-            RocketLaunchPadCommandResult Execute()
+            RocketLaunchPadCommandResponse ToResponse(RocketLaunchPadCommandResult result)
             {
-                // 指定座標の発射台を取り出す。無ければ理由を残して拒否する
-                // Fetch the launch pad at the position, rejecting with a logged reason when absent
-                var block = ServerContext.WorldBlockDatastore.GetBlock(request.Position.Vector3Int);
-                if (block == null) return Reject(RocketLaunchPadCommandResult.BlockNotFound);
-                if (!block.ComponentManager.TryGetComponent<RocketLaunchPadProcessorComponent>(out var processor)) return Reject(RocketLaunchPadCommandResult.NotRocketLaunchPad);
-
-                // 合図の種類ごとに発射台の入口へ渡す
-                // Hand each command kind to the pad's matching entry point
-                return request.Command switch
-                {
-                    RocketLaunchPadCommand.Build => processor.RequestBuild(),
-                    RocketLaunchPadCommand.Launch => processor.RequestLaunch(),
-                    _ => Reject(RocketLaunchPadCommandResult.UnknownCommand),
-                };
+                // 部品側の拒否は部品が理由をログに出している
+                // Component-side rejections are already logged by the component
+                if (result == RocketLaunchPadCommandResult.Accepted) return new RocketLaunchPadCommandResponse(true, RocketLaunchPadCommandFailureReason.None);
+                return new RocketLaunchPadCommandResponse(false, ToFailureReason(result));
             }
 
-            RocketLaunchPadCommandResult Reject(RocketLaunchPadCommandResult result)
+            RocketLaunchPadCommandResponse Fail(RocketLaunchPadCommandFailureReason reason)
             {
-                Debug.LogWarning($"ロケット発射台への合図を拒否しました 理由:{result} 座標:{request.Position.Vector3Int}");
-                return result;
+                Debug.LogWarning($"ロケット発射台への合図を拒否しました 理由:{reason} 座標:{request.Position?.Vector3Int}");
+                return new RocketLaunchPadCommandResponse(false, reason);
+            }
+
+            static RocketLaunchPadCommandFailureReason ToFailureReason(RocketLaunchPadCommandResult result)
+            {
+                return result switch
+                {
+                    RocketLaunchPadCommandResult.NotAwaitingBuildCommand => RocketLaunchPadCommandFailureReason.NotAwaitingBuildCommand,
+                    RocketLaunchPadCommandResult.NotAwaitingLaunchCommand => RocketLaunchPadCommandFailureReason.NotAwaitingLaunchCommand,
+                    RocketLaunchPadCommandResult.CargoNotReady => RocketLaunchPadCommandFailureReason.CargoNotReady,
+                    RocketLaunchPadCommandResult.OutputFull => RocketLaunchPadCommandFailureReason.OutputFull,
+                    _ => throw new ArgumentOutOfRangeException(nameof(result), result, "通信の失敗理由へ写していない発射台の結果です"),
+                };
             }
 
             #endregion
@@ -2597,36 +2621,53 @@ namespace Server.Protocol.PacketResponse
         public class RocketLaunchPadCommandRequest : ProtocolMessagePackBase
         {
             [Key(2)] public Vector3IntMessagePack Position { get; set; }
-            [Key(3)] public RocketLaunchPadCommand Command { get; set; }
+            [Key(3)] public RocketLaunchPadCommandOperation Operation { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RocketLaunchPadCommandRequest()
-            {
-            }
+            public RocketLaunchPadCommandRequest() { Tag = ProtocolTag; }
 
-            public RocketLaunchPadCommandRequest(Vector3Int position, RocketLaunchPadCommand command)
+            public RocketLaunchPadCommandRequest(Vector3Int position, RocketLaunchPadCommandOperation operation)
             {
                 Tag = ProtocolTag;
                 Position = new Vector3IntMessagePack(position);
-                Command = command;
+                Operation = operation;
             }
         }
 
         [MessagePackObject]
         public class RocketLaunchPadCommandResponse : ProtocolMessagePackBase
         {
-            [Key(2)] public RocketLaunchPadCommandResult Result { get; set; }
+            [Key(2)] public bool Success { get; set; }
+            [Key(3)] public RocketLaunchPadCommandFailureReason FailureReason { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-            public RocketLaunchPadCommandResponse()
-            {
-            }
+            public RocketLaunchPadCommandResponse() { }
 
-            public RocketLaunchPadCommandResponse(RocketLaunchPadCommandResult result)
+            public RocketLaunchPadCommandResponse(bool success, RocketLaunchPadCommandFailureReason failureReason)
             {
                 Tag = ProtocolTag;
-                Result = result;
+                Success = success;
+                FailureReason = failureReason;
             }
+        }
+
+        public enum RocketLaunchPadCommandOperation
+        {
+            Build = 0,
+            Launch = 1,
+        }
+
+        public enum RocketLaunchPadCommandFailureReason
+        {
+            None = 0,
+            BlockNotFound = 1,
+            NotRocketLaunchPad = 2,
+            UnknownOperation = 3,
+            InvalidRequest = 4,
+            NotAwaitingBuildCommand = 5,
+            NotAwaitingLaunchCommand = 6,
+            CargoNotReady = 7,
+            OutputFull = 8,
         }
 
         #endregion
@@ -2634,27 +2675,30 @@ namespace Server.Protocol.PacketResponse
 }
 ```
 
+（`ToFailureReason` の既定分岐は、ドメインの結果に値を足して写し忘れたときに落とすための例外。`Accepted` は `ToResponse` が先に返すのでここへ来ない。）
+
 `PacketResponseCreator.cs` に `_packetResponseDictionary.Add(RocketLaunchPadCommandProtocol.ProtocolTag, new RocketLaunchPadCommandProtocol(serviceProvider));`。
 
-`BlockRequestApi.cs` に追加（`using Game.Block.Blocks.RocketLaunchPad.State;`）:
+`BlockRequestApi.cs` に追加（前例は同ファイルの `SendMachineRecipeSelectionRequest`。`using Server.Protocol.PacketResponse;` は既存）:
 
 ```csharp
         // 発射台へ建造・発射の合図を送る
         // Send a build or launch command to a rocket launch pad
         public async UniTask<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse> SendRocketLaunchPadCommand(
-            Vector3Int position, RocketLaunchPadCommand command, CancellationToken ct)
+            Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, CancellationToken ct)
         {
-            var request = new RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest(position, command);
+            var request = new RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest(position, operation);
             return await _packetExchangeManager.GetPacketResponse<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>(request, ct);
         }
 ```
 
 - [ ] **Step 2: テストを書く**
 
-`Tests/CombinedTest/Server/PacketTest/Rocket/RocketLaunchPadCommandProtocolTest.cs`。`SetTrainPlatformTransferModeProtocolTest` と同じ書式で、`packet.GetPacketResponse(payload, BoundPacketContext.Bind(1))[0]` を使う（パケット送受の実物は既存 PacketTest に合わせる）。台は `RocketLaunchPadTestUtil.PlacePoweredPad`・`FillOneLaunch` で用意する:
-- 合図待ちの台へ `Build` → `Accepted`、`Phase == Building`。
-- `AwaitingLaunchCommand` まで進めて `Launch` → `Accepted`、`Phase == Launching`。
-- 空き座標 → `BlockNotFound`、チェストへ → `NotRocketLaunchPad`、空の台へ `Build` → `NotAwaitingBuildCommand`（それぞれ `LogAssert.Expect(LogType.Warning, ...)`）。
+`Tests/CombinedTest/Server/PacketTest/Rocket/RocketLaunchPadCommandProtocolTest.cs`。`SetTrainPlatformTransferModeProtocolTest` と同じ書式で、`packet.GetPacketResponse(payload, BoundPacketContext.Bind(1))[0]` を使う（パケット送受の実物は既存 PacketTest に合わせる）。台は `Tests.Util.Rocket.RocketLaunchPadTestUtil.PlacePoweredPad`・`FillOneLaunch` で用意する:
+- 合図待ちの台へ `Build` → `Success == true`・`FailureReason == None`、`Phase == Building`。
+- `AwaitingLaunchCommand` まで進めて `Launch` → `Success == true`、直後の `Phase == ReadyToLaunch`（合図は段階を移すだけ）、1tick後に `Launching`。
+- 空き座標 → `BlockNotFound`、チェストへ → `NotRocketLaunchPad`、空の台へ `Build` → `NotAwaitingBuildCommand`、`Operation` に99を入れた要求 → `UnknownOperation`（それぞれ `Success == false`、`LogAssert.Expect(LogType.Warning, ...)`）。
+- 合図待ちの台の出力口を `FillOutputSlots(pad, 100)` で埋めて `Build` → `OutputFull`。
 
 - [ ] **Step 3: コンパイルしテストを実行する**
 
@@ -2664,7 +2708,7 @@ Expected: ErrorCount 0 / 全 PASS
 - [ ] **Step 4: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Server.Protocol moorestech_client/Assets/Scripts/Client.Network moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket
+git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Rocket moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs moorestech_client/Assets/Scripts/Client.Network moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket
 git commit -m "feat(protocol): 発射台の建造と発射の合図を足す"
 ```
 
@@ -2677,14 +2721,14 @@ git commit -m "feat(protocol): 発射台の建造と発射の合図を足す"
 - Modify（uloop経由）: `moorestech_client/Assets/AddressableResources/Block/Rocket.prefab`（ルートへ `RocketLaunchPadStateChangeProcessor` を追加し `body` を割り当てる）
 
 **Interfaces:**
-- Consumes: Task 4 の `RocketLaunchPadStateDetail`・`RocketLaunchPadPhase`、Task 1 の `RocketLaunchPadBlockParam.LaunchSeconds`
+- Consumes: Task 4 の `RocketLaunchPadStateDetail`・`RocketLaunchPadPhase`（名前空間 `Game.Block.Interface.State`）、Task 1 の `RocketLaunchPadBlockParam.LaunchSeconds`
 - Produces: なし（見た目のみ）
 
 - [ ] **Step 1: 状態処理を書く**
 
 ```csharp
 using Client.Game.InGame.Block;
-using Game.Block.Blocks.RocketLaunchPad.State;
+using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using Server.Event.EventReceive;
 using UnityEngine;
@@ -2714,9 +2758,9 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.Rocket
         {
             var detail = blockState.GetStateDetail<RocketLaunchPadStateDetail>(RocketLaunchPadStateDetail.BlockStateDetailKey);
 
-            // 本体は発射の合図待ちと打ち上げ中だけ見せる
-            // Show the body only while awaiting launch and while launching
-            body.gameObject.SetActive(detail.Phase is RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.Launching);
+            // 本体は建造が終わってから昇り切るまで（発射の合図待ち・打ち上げ待ち・打ち上げ中）だけ見せる
+            // Show the body from build completion until it finishes rising (awaiting launch, ready to launch, launching)
+            body.gameObject.SetActive(detail.Phase is RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch or RocketLaunchPadPhase.Launching);
 
             // 打ち上げの途中から受け取っても、サーバーの進み具合から上昇位置を合わせる
             // Even when received mid-launch, align the rise with the server's progress
@@ -2787,7 +2831,7 @@ git commit -m "feat(client): 発射台のロケット本体の表示と上昇を
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/Rocket/RocketLaunchPadDetailDto.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/Rocket/RocketLaunchPadDetailDtoBuilder.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockInventoryDtos.cs`（`public RocketLaunchPadDetailDto RocketLaunchPad;`）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockInventoryDtos.cs`（`public RocketLaunchPadDetailDto RocketLaunchPad;`）
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs`（`TrainStationDetailDtoBuilder.Apply` の次に1行）
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/Rocket/RocketLaunchPadCommandActionHandler.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs`（列車PFのアクション登録の次に1行）
@@ -2797,8 +2841,9 @@ git commit -m "feat(client): 発射台のロケット本体の表示と上昇を
 - Modify: `Localization/localization.csv`
 - Create: `moorestech_web/webui/src/bridge/contract/schemas/train/index.ts`（`inventory.ts` から列車の schema を移す）
 - Create: `moorestech_web/webui/src/bridge/contract/schemas/beltThroughput/index.ts`（`inventory.ts` からベルト統計の schema を移す）
-- Create: `moorestech_web/webui/src/bridge/contract/schemas/rocketLaunchPad/index.ts`
+- Create: `moorestech_web/webui/src/bridge/contract/schemas/rocketLaunchPad/index.ts`（schema だけ。型は置かない）
 - Modify: `moorestech_web/webui/src/bridge/contract/schemas/inventory.ts`、`schemas/index.ts`
+- Modify: `moorestech_web/webui/src/bridge/contract/payloadTypes.ts`（`RocketLaunchPadData` 型を導出する。公開型の定義元はここだけ）
 - Modify: `moorestech_web/webui/src/bridge/transport/actionContract.ts`
 - Modify: `moorestech_web/webui/src/bridge/contract/wireContract.test.ts`（fixture 一覧）
 - Create: `moorestech_web/webui/src/features/blockInventory/views/RocketLaunchPadInventory.tsx`
@@ -2808,10 +2853,12 @@ git commit -m "feat(client): 発射台のロケット本体の表示と上昇を
 - Create: `moorestech_web/webui/src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx`
 - Modify: `moorestech_web/webui/src/features/blockInventory/registry/registeredBlockTypes.ts`、`registry/blockComponentRegistry.ts`
 
+スロットの並び（資材→積荷→出力の絶対添字）は C# の `RocketLaunchPadSlotLayout` が計算した値を DTO にそのまま載せ、TS では計算し直さない（判断記録 D29）。`RocketLaunchPadSlotLayout` はインターフェース層の型なので、クライアントがこれを生成するのはサーバーと並びの規則を共有するための正規の参照になる。
+
 **Interfaces:**
-- Consumes: Task 4 の `RocketLaunchPadStateDetail`・`RocketLaunchPadSlotLayout`、Task 6 の `BlockRequestApi.SendRocketLaunchPadCommand`
+- Consumes: Task 4 の `RocketLaunchPadStateDetail`・`RocketLaunchPadSlotLayout`（`Game.Block.Interface.State`・`Game.Block.Interface.Component`）、Task 6 の `BlockRequestApi.SendRocketLaunchPadCommand`・`RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation`
 - Produces:
-  - wire `rocketLaunchPad`: `{ phase: "idle"|"awaitingBuildCommand"|"building"|"awaitingLaunchCommand"|"launching", waitReason: "none"|"missingMaterials"|"missingPayload"|"outputPending"|"noPower", progress: number(0..1), materialSlotCount: int, payloadSlotCount: int, outputSlotCount: int }`
+  - wire `rocketLaunchPad`: `{ phase: "idle"|"awaitingBuildCommand"|"building"|"awaitingLaunchCommand"|"readyToLaunch"|"launching", waitReason: "none"|"missingMaterials"|"missingPayload"|"outputFull"|"noPower", progress: number(0..1), materialSlots: int[], payloadSlots: int[], outputSlots: int[] }`
   - action `rocket_launch_pad.command`、payload `{ command: "build" | "launch" }`
   - testid: `rocket-launch-pad-view`・`rocket-launch-pad-material-slots`・`rocket-launch-pad-payload-slots`・`rocket-launch-pad-output-slots`・`rocket-launch-pad-status`・`rocket-launch-pad-progress`・`rocket-launch-pad-build`・`rocket-launch-pad-launch`
 
@@ -2823,25 +2870,27 @@ Run: `cd moorestech_web/webui && pnpm vitest run src/bridge` → 全 PASS（移�
 
 - [ ] **Step 2: wire schema とアクション契約を足す**
 
-`schemas/rocketLaunchPad/index.ts`:
+`schemas/rocketLaunchPad/index.ts`（schema だけを置く。前例 `schemas/energyConversion/index.ts`。`schemas/` の下には `z.infer` を置かない）:
 
 ```ts
 import { z } from "zod";
 
-// 発射台の段階・待ち理由・進み具合とスロット群の数。C# の RocketLaunchPadDetailDtoBuilder と1対1
-// Launch pad phase, wait reason, progress and slot group sizes; mirrors C#'s RocketLaunchPadDetailDtoBuilder one-to-one
-export const RocketLaunchPadPhaseSchema = z.enum(["idle", "awaitingBuildCommand", "building", "awaitingLaunchCommand", "launching"]);
-export const RocketLaunchPadWaitReasonSchema = z.enum(["none", "missingMaterials", "missingPayload", "outputPending", "noPower"]);
+// 発射台の段階・待ち理由・進み具合と、C# が並べたスロット群の絶対添字。C# の RocketLaunchPadDetailDtoBuilder と1対1
+// Launch pad phase, wait reason, progress and the slot group indices laid out by C#; mirrors RocketLaunchPadDetailDtoBuilder one-to-one
+export const RocketLaunchPadPhaseSchema = z.enum(["idle", "awaitingBuildCommand", "building", "awaitingLaunchCommand", "readyToLaunch", "launching"]);
+export const RocketLaunchPadWaitReasonSchema = z.enum(["none", "missingMaterials", "missingPayload", "outputFull", "noPower"]);
+const SlotIndexListSchema = z.array(z.number().int().nonnegative());
 export const RocketLaunchPadDataSchema = z.object({
   phase: RocketLaunchPadPhaseSchema,
   waitReason: RocketLaunchPadWaitReasonSchema,
   progress: z.number().min(0).max(1),
-  materialSlotCount: z.number().int().nonnegative(),
-  payloadSlotCount: z.number().int().nonnegative(),
-  outputSlotCount: z.number().int().nonnegative(),
+  materialSlots: SlotIndexListSchema,
+  payloadSlots: SlotIndexListSchema,
+  outputSlots: SlotIndexListSchema,
 }).strict();
-export type RocketLaunchPadData = z.infer<typeof RocketLaunchPadDataSchema>;
 ```
+
+`payloadTypes.ts` の `from "./schemas"` の import に `RocketLaunchPadDataSchema` を足し、`TrainPlatformMode` の型の並びに `export type RocketLaunchPadData = z.infer<typeof RocketLaunchPadDataSchema>;` を足す（L66「公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ」。feature 層は `@/bridge` の `export type * from "./contract/payloadTypes"` からだけ型を見る）。
 
 `inventory.ts` の `BlockInventoryOpenSchema` に `rocketLaunchPad: RocketLaunchPadDataSchema.optional(),` を足し、`superRefine` に「`rocketLaunchPad` は `blockType === "RocketLaunchPad"` のときだけ」を既存の変換機と同じ書式で足す。
 
@@ -2852,6 +2901,8 @@ export type RocketLaunchPadData = z.infer<typeof RocketLaunchPadDataSchema>;
 `RocketLaunchPadDetailDto.cs`（名前空間 `Client.WebUiHost.Game.Topics.BlockDetail.Rocket`。既存DTOと同じ public フィールド）:
 
 ```csharp
+using System.Collections.Generic;
+
 namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
 {
     public class RocketLaunchPadDetailDto
@@ -2859,9 +2910,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
         public string Phase;
         public string WaitReason;
         public float Progress;
-        public int MaterialSlotCount;
-        public int PayloadSlotCount;
-        public int OutputSlotCount;
+        public List<int> MaterialSlots;
+        public List<int> PayloadSlots;
+        public List<int> OutputSlots;
     }
 }
 ```
@@ -2870,16 +2921,17 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
 
 ```csharp
 using System;
+using System.Linq;
 using Client.Game.InGame.Block;
-using Game.Block.Blocks.RocketLaunchPad;
-using Game.Block.Blocks.RocketLaunchPad.State;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
 {
     /// <summary>
-    /// 発射台の状態とスロット群の数をDTOへ変換する
-    /// Converts the launch pad state and its slot group sizes into the DTO
+    /// 発射台の状態とスロット群の絶対添字をDTOへ変換する
+    /// Converts the launch pad state and the absolute indices of its slot groups into the DTO
     /// </summary>
     public static class RocketLaunchPadDetailDtoBuilder
     {
@@ -2890,17 +2942,17 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
             // silent-ok: 初回の状態を受け取る前だけ詳細を省き、受信後の再配信で埋まる / ボタンと段階表示が出ないことでパネル上で気づく
             if (state == null) return;
 
-            // スロット群の数はサーバーと同じ並びの規則から引く
-            // Slot group sizes come from the same layout rule the server uses
+            // スロット群はサーバーと同じ並びの型が計算した添字をそのまま載せる
+            // Carry the indices computed by the layout type the server also uses
             var layout = new RocketLaunchPadSlotLayout(padParam);
             dto.RocketLaunchPad = new RocketLaunchPadDetailDto
             {
                 Phase = ToWirePhase(state.Phase),
                 WaitReason = ToWireWaitReason(state.WaitReason),
                 Progress = state.Progress,
-                MaterialSlotCount = layout.Materials.Count,
-                PayloadSlotCount = layout.Payloads.Count,
-                OutputSlotCount = layout.OutputSlotCount,
+                MaterialSlots = layout.MaterialSlots.ToList(),
+                PayloadSlots = layout.PayloadSlots.ToList(),
+                OutputSlots = layout.OutputSlots.ToList(),
             };
         }
 
@@ -2912,6 +2964,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
                 RocketLaunchPadPhase.AwaitingBuildCommand => "awaitingBuildCommand",
                 RocketLaunchPadPhase.Building => "building",
                 RocketLaunchPadPhase.AwaitingLaunchCommand => "awaitingLaunchCommand",
+                RocketLaunchPadPhase.ReadyToLaunch => "readyToLaunch",
                 RocketLaunchPadPhase.Launching => "launching",
                 _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, "未知の発射台の段階"),
             };
@@ -2924,7 +2977,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
                 RocketLaunchPadWaitReason.None => "none",
                 RocketLaunchPadWaitReason.MissingMaterials => "missingMaterials",
                 RocketLaunchPadWaitReason.MissingPayload => "missingPayload",
-                RocketLaunchPadWaitReason.OutputPending => "outputPending",
+                RocketLaunchPadWaitReason.OutputFull => "outputFull",
                 RocketLaunchPadWaitReason.NoPower => "noPower",
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未知の発射台の待ち理由"),
             };
@@ -2935,15 +2988,15 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
 
 `BlockDetailDtoBuilder.Apply` の `TrainStationDetailDtoBuilder.Apply(dto, block, param);` の次に `RocketLaunchPadDetailDtoBuilder.Apply(dto, block, param);`。
 
-`Actions/Rocket/RocketLaunchPadCommandActionHandler.cs`（失敗コードは `ActionErrorCodeWireContractTest` の既存集合から選ぶ）:
+`Actions/Rocket/RocketLaunchPadCommandActionHandler.cs`（失敗コードは `ActionErrorCodeWireContractTest` の既存集合から選ぶ。操作の種類はプロトコルにネストした enum を使う）:
 
 ```csharp
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Cysharp.Threading.Tasks;
-using Game.Block.Blocks.RocketLaunchPad.State;
 using Newtonsoft.Json.Linq;
+using Server.Protocol.PacketResponse;
 
 namespace Client.WebUiHost.Game.Actions.Rocket
 {
@@ -2965,31 +3018,33 @@ namespace Client.WebUiHost.Game.Actions.Rocket
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (payload == null) return ActionResult.Fail("invalid_payload");
-            var command = ParseCommand(payload["command"]);
-            if (command == null) return ActionResult.Fail("invalid_payload");
+            var operation = ParseOperation(payload["command"]);
+            if (operation == null) return ActionResult.Fail("invalid_payload");
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source) return ActionResult.Fail("block_not_open");
             if (!source.TryGetBlockIdentity(out _, out var blockTypeName) || blockTypeName != "RocketLaunchPad") return ActionResult.Fail("block_not_open");
 
             // 表示の正本は後続のブロック状態。ここでは受理されたかだけ返す
             // The later block state is the display source of truth; only acceptance is reported here
-            var response = await ClientContext.VanillaApi.Response.Block.SendRocketLaunchPadCommand(source.BlockPosition, command.Value, CancellationToken.None);
-            if (response == null || response.Result != RocketLaunchPadCommandResult.Accepted) return ActionResult.Fail("invalid_state");
+            var response = await ClientContext.VanillaApi.Response.Block.SendRocketLaunchPadCommand(source.BlockPosition, operation.Value, CancellationToken.None);
+            if (response == null || !response.Success) return ActionResult.Fail("invalid_state");
             return ActionResult.Success();
         }
 
-        private static RocketLaunchPadCommand? ParseCommand(JToken token)
+        private static RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation? ParseOperation(JToken token)
         {
             if (token is not JValue { Type: JTokenType.String } value) return null;
             return (string)value switch
             {
-                "build" => RocketLaunchPadCommand.Build,
-                "launch" => RocketLaunchPadCommand.Launch,
+                "build" => RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation.Build,
+                "launch" => RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation.Launch,
                 _ => null,
             };
         }
     }
 }
 ```
+
+（`ActionResult.Fail` に失敗理由を残す口が既存にあれば、`response.FailureReason` をそこへ渡す。サーバー側の拒否はサーバーのログに理由が残る。）
 
 `WebUiGameBinder.cs` に、`TrainPlatformSetTransferModeActionHandler` を登録している行と同じ書式で `RocketLaunchPadCommandActionHandler` を登録する。
 
@@ -3007,16 +3062,17 @@ ui.blockInventory.rocketStatusIdle,Waiting for cargo,Waiting for cargo,積み込
 ui.blockInventory.rocketStatusAwaitingBuild,Ready to build,Ready to build,建造できます,Bereit zum Bauen,건조 가능
 ui.blockInventory.rocketStatusBuilding,Building rocket,Building rocket,ロケットを建造中,Rakete wird gebaut,로켓 건조 중
 ui.blockInventory.rocketStatusAwaitingLaunch,Ready to launch,Ready to launch,発射できます,Startbereit,발사 가능
+ui.blockInventory.rocketStatusReadyToLaunch,Launching soon,Launching soon,まもなく打ち上げ,Start in Kürze,곧 발사
 ui.blockInventory.rocketStatusLaunching,Launching,Launching,打ち上げ中,Startet,발사 중
 ui.blockInventory.rocketWaitMissingMaterials,Not enough materials,Not enough materials,資材が足りません,Nicht genug Material,자재 부족
 ui.blockInventory.rocketWaitMissingPayload,No payload loaded,No payload loaded,積荷がありません,Keine Nutzlast,적재물 없음
-ui.blockInventory.rocketWaitOutputPending,Output is full,Output is full,出力がいっぱいです,Ausgabe ist voll,출력이 가득 참
+ui.blockInventory.rocketWaitOutputFull,Output is full,Output is full,出力がいっぱいです,Ausgabe ist voll,출력이 가득 참
 ui.blockInventory.rocketWaitNoPower,No power,No power,電力がありません,Kein Strom,전력 없음
 ```
 
 - [ ] **Step 5: パネルを書く**
 
-`details/rocket/rocketLaunchPadLogic.ts`（表示の分岐を純関数に集める）:
+`details/rocket/rocketLaunchPadLogic.ts`（表示の分岐を純関数に集める。スロットの並びは DTO の添字を使うので、ここでは計算しない）:
 
 ```ts
 import type { RocketLaunchPadData } from "@/bridge";
@@ -3028,7 +3084,7 @@ export function rocketStatusKey(detail: RocketLaunchPadData): string {
   switch (detail.waitReason) {
     case "missingMaterials": return L.ui.blockInventory.rocketWaitMissingMaterials;
     case "missingPayload": return L.ui.blockInventory.rocketWaitMissingPayload;
-    case "outputPending": return L.ui.blockInventory.rocketWaitOutputPending;
+    case "outputFull": return L.ui.blockInventory.rocketWaitOutputFull;
     case "noPower": return L.ui.blockInventory.rocketWaitNoPower;
     case "none": break;
   }
@@ -3037,6 +3093,7 @@ export function rocketStatusKey(detail: RocketLaunchPadData): string {
     case "awaitingBuildCommand": return L.ui.blockInventory.rocketStatusAwaitingBuild;
     case "building": return L.ui.blockInventory.rocketStatusBuilding;
     case "awaitingLaunchCommand": return L.ui.blockInventory.rocketStatusAwaitingLaunch;
+    case "readyToLaunch": return L.ui.blockInventory.rocketStatusReadyToLaunch;
     case "launching": return L.ui.blockInventory.rocketStatusLaunching;
   }
 }
@@ -3047,19 +3104,6 @@ export function rocketCommandButton(detail: RocketLaunchPadData): "build" | "lau
   if (detail.phase === "awaitingBuildCommand") return "build";
   if (detail.phase === "awaitingLaunchCommand") return "launch";
   return null;
-}
-
-// itemSlots をサーバーの並び（資材→積荷→出力）で3群に分けた絶対添字
-// Absolute indices of itemSlots split into the server order: materials, payloads, outputs
-export function rocketSlotGroups(detail: RocketLaunchPadData): { materials: number[]; payloads: number[]; outputs: number[] } {
-  const range = (start: number, count: number) => Array.from({ length: count }, (_, i) => start + i);
-  const payloadStart = detail.materialSlotCount;
-  const outputStart = payloadStart + detail.payloadSlotCount;
-  return {
-    materials: range(0, detail.materialSlotCount),
-    payloads: range(payloadStart, detail.payloadSlotCount),
-    outputs: range(outputStart, detail.outputSlotCount),
-  };
 }
 ```
 
@@ -3072,14 +3116,13 @@ import type { BlockInventoryOpen } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { GaugeBar, ItemSlot, PanelActionButton, SlotGrid } from "@/shared/ui";
 import { useBlockSlotGestures } from "../../useBlockSlotGestures";
-import { rocketCommandButton, rocketSlotGroups, rocketStatusKey } from "./rocketLaunchPadLogic";
+import { rocketCommandButton, rocketStatusKey } from "./rocketLaunchPadLogic";
 
 export default function RocketLaunchPadSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   const gestures = useBlockSlotGestures();
   const detail = data.rocketLaunchPad;
   if (!detail) return null;
-  const groups = rocketSlotGroups(detail);
   const command = rocketCommandButton(detail);
 
   // 絶対添字のスロットをジェスチャ付きで描く
@@ -3106,8 +3149,8 @@ export default function RocketLaunchPadSection({ data }: { data: BlockInventoryO
 
   return (
     <Stack gap="sm">
-      {group(L.ui.blockInventory.rocketMaterials, groups.materials, "rocket-launch-pad-material-slots")}
-      {group(L.ui.blockInventory.rocketPayloads, groups.payloads, "rocket-launch-pad-payload-slots")}
+      {group(L.ui.blockInventory.rocketMaterials, detail.materialSlots, "rocket-launch-pad-material-slots")}
+      {group(L.ui.blockInventory.rocketPayloads, detail.payloadSlots, "rocket-launch-pad-payload-slots")}
       <Text size="sm" data-testid="rocket-launch-pad-status">{t(rocketStatusKey(detail))}</Text>
       <GaugeBar value={detail.progress} testId="rocket-launch-pad-progress" />
       {command === "build" ? (
@@ -3120,7 +3163,7 @@ export default function RocketLaunchPadSection({ data }: { data: BlockInventoryO
           {t(L.ui.blockInventory.rocketLaunch)}
         </PanelActionButton>
       ) : null}
-      {group(L.ui.blockInventory.rocketOutputs, groups.outputs, "rocket-launch-pad-output-slots")}
+      {group(L.ui.blockInventory.rocketOutputs, detail.outputSlots, "rocket-launch-pad-output-slots")}
     </Stack>
   );
 }
@@ -3148,9 +3191,9 @@ export default function RocketLaunchPadInventory({ data }: { data: BlockInventor
 
 - [ ] **Step 6: テストを書く**
 
-`rocketLaunchPadLogic.test.ts`: (a) 待ち理由 `outputPending` は段階より優先、(b) `awaitingBuildCommand` で `"build"`、`awaitingLaunchCommand` で `"launch"`、その他の4段階で `null`、(c) 資材3・積荷6・出力4で群の添字が `[0,1,2]`・`[3..8]`・`[9..12]`、(d) 積荷0の最小構成で `payloads` が空・`outputs` が `[3..]`。
+`rocketLaunchPadLogic.test.ts`: (a) 待ち理由 `outputFull` は段階（`readyToLaunch`）より優先、(b) `awaitingBuildCommand` で `"build"`、`awaitingLaunchCommand` で `"launch"`、その他の4段階（`readyToLaunch` を含む）で `null`、(c) 6段階すべてに状態文のキーがある（`switch` の網羅は `tsc` の戻り値の型検査でも落ちる）。
 
-`views/__tests__/RocketLaunchPadInventory.test.tsx`（`TrainPlatformInventory.test.tsx` と同じ mock 構成）: `awaitingBuildCommand` のデータで `rocket-launch-pad-build` があり `rocket-launch-pad-launch` が無い、`building` でどちらも無い、`dispatchAction` を mock してボタン押下で `("rocket_launch_pad.command", { command: "build" })` が呼ばれる。
+`views/__tests__/RocketLaunchPadInventory.test.tsx`（`TrainPlatformInventory.test.tsx` と同じ mock 構成）: `awaitingBuildCommand` のデータで `rocket-launch-pad-build` があり `rocket-launch-pad-launch` が無い、`building` と `readyToLaunch` でどちらも無い、DTO の `materialSlots: [0]`・`payloadSlots: [1]`・`outputSlots: [2]` どおりの添字のスロットが各群に1つずつ描かれる、`dispatchAction` を mock してボタン押下で `("rocket_launch_pad.command", { command: "build" })` が呼ばれる。
 
 `WireFixtures/block_inventory_rocket_launch_pad.json`:
 
@@ -3171,9 +3214,9 @@ export default function RocketLaunchPadInventory({ data }: { data: BlockInventor
     "phase": "awaitingBuildCommand",
     "waitReason": "none",
     "progress": 0.0,
-    "materialSlotCount": 1,
-    "payloadSlotCount": 1,
-    "outputSlotCount": 1
+    "materialSlots": [0],
+    "payloadSlots": [1],
+    "outputSlots": [2]
   }
 }
 ```
