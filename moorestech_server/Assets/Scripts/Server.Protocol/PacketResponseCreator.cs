@@ -73,6 +73,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(RideActionProtocol.ProtocolTag, new RideActionProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetTrainPlatformTransferModeProtocol.ProtocolTag, new SetTrainPlatformTransferModeProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RocketLaunchPadCommandProtocol.ProtocolTag, new RocketLaunchPadCommandProtocol(serviceProvider));
             _packetResponseDictionary.Add(TrainScheduleEditProtocol.ProtocolTag, new TrainScheduleEditProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetTrainTimetableProtocol.ProtocolTag, new GetTrainTimetableProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetTrainStationNameProtocol.ProtocolTag, new SetTrainStationNameProtocol(serviceProvider));

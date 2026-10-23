@@ -65,6 +65,15 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(request, ct);
         }
 
+        // 発射台へ建造・発射の合図を送る
+        // Send a build or launch command to a rocket launch pad
+        public async UniTask<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse> SendRocketLaunchPadCommand(
+            Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, CancellationToken ct)
+        {
+            var request = new RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest(position, operation);
+            return await _packetExchangeManager.GetPacketResponse<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>(request, ct);
+        }
+
         // BP Create/GetAll/Deleteを1メソッドで統合
         // Blueprint request (single endpoint for Create / GetAll / Delete)
         public async UniTask<BlueprintResponse> SendBlueprintRequest(BlueprintRequest request, CancellationToken ct)
