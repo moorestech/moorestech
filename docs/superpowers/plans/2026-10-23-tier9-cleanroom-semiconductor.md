@@ -149,8 +149,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反4件・修正4件（2回。1回目3件・2回目1件） / 継承の解釈 util と製作上限の表を層責務どおりに置き直し、抽選の中身の入口を持ち主側の部品へ移した
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強16・弱54・第3バケツ15（2回。1回目 強12・弱27・第3バケツ11、2回目 強4・弱27・第3バケツ4） / 強は全部型で閉じ（wire DTO と加工中ジョブのセーブ形は前例どおり据え置き）、弱は拾うか判断記録へ、第3バケツは F2 の PR 本文へ
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反4件・修正4件（3回。1回目3件・2回目1件・3回目〈2回目の修正範囲だけ〉0件） / 継承の解釈 util と製作上限の表を層責務どおりに置き直し、抽選の中身の入口を持ち主側の部品へ移した
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強16・弱57・第3バケツ15（3回。1回目 強12・弱27・第3バケツ11、2回目 強4・弱27・第3バケツ4、3回目〈2回目の修正範囲だけ〉強0・弱3＋部をまたぐ食い違い4） / 強は全部型で閉じ（wire DTO と加工中ジョブのセーブ形は前例どおり据え置き）、弱は拾うか判断記録へ、第3バケツは F2 の PR 本文へ
 
 ---
 
@@ -6002,7 +6002,7 @@ git commit -m "feat(cleanroom): webui に部屋欄・停止理由・清浄機の
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomTooltipPresenter.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomLeakMarkerVisualizer.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomBoundaryHoverService.cs`（このディレクトリは A8 の `CleanRoomInfoPollSource.cs` と合わせて5本）
-- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/OwnedTooltipLinesWriter.cs`（このディレクトリは7本）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/OwnedTooltipLinesWriter.cs`（このディレクトリは既存7本＋1で8本。10本の上限内）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs`（所有者・同一内容スキップ・Hide の本体を `OwnedTooltipLinesWriter` へ移す。84行→約43行。挙動は変えない）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/GameScreenState.cs`（146行→約156行）
 - Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/CleanRoomUiRegistration.cs`
@@ -7873,7 +7873,7 @@ namespace Game.Block.Interface.MachineUpgrade
 }
 ```
 
-`moorestech_server/Assets/Scripts/Core.Master/Validator/MachineUpgrade/LevelInheritanceRecipeShape.cs`（生のマスタだけで継承レシピの形を引く1か所。起動時の検証〈Core.Master〉と実行時の `MachineRecipeLevelInheritanceUtil.BuildShape`〈Game.Block.Interface。asmdef で Core.Master を参照済み〉の両方がこれを使い、「基準アイテムか」と「基準の入出力の探索」を2本に分けない。前例 `BeltConveyorFamilyValidator` と `BeltConveyorPlaceFamilyUtil` の分け方のうち、検証側を共有の下位にする形）
+`moorestech_server/Assets/Scripts/Core.Master/Validator/MachineUpgrade/LevelInheritanceRecipeShape.cs`（生のマスタだけで継承レシピの形を引く1か所。起動時の検証〈Core.Master〉と実行時の `MachineRecipeLevelInheritanceUtil.BuildShape`〈Game.Block.Interface。asmdef で Core.Master を参照済み〉の両方がこれを使い、「基準アイテムか」と「基準の入出力の探索」を2本に分けない。前例 `Core.Master/Validator/GenerationBiomeObjectConfigCatalog.cs`〈public。`GenerationMasterUtil` の検証と実行時の `Game.MapGeneration/Pipeline/Runtime/BiomeObjectConfigRuntimeApplier.cs` の両方が使う〉）
 
 ```csharp
 using System;
@@ -17249,7 +17249,7 @@ git commit -m "feat(cleanroom): 旧チップ抽選を撤去し、クラス別の
 - Consumes:
   - B1: `ChipYieldFormula.ReducedRate`、`ChipYieldDraw.DrawLayerFailure`
   - B3: `CleanRoomYieldRollContext`（`ClassYield`・`FactorySet`〈工場の1セット目。継承先＝次層ウェハは投入品のレベルの変種が当たり済み〉・`SetCount`）、`RecipeOutputSetBuilder.CopySet` / `Repeat`、`CleanRoomRoleRates`、`Core.Master.CleanRoomRoles.CleanRoomRecipeRole`（`private protected static int IndexOfOutput(MachineRecipeMasterElement recipe, Guid itemGuid)`）、`CleanRoomMaster.TryGetRecipeRole` と `Initialize` の役割索引、`CleanRoomRoleRecipeChecks.Validate` / `RequireSingleOutput` / `RequireFamilyBase(string, Guid, Guid, out int? variantCount)`、`CleanRoomYieldDrawDecorator.Decorate` の役割の型の switch
-  - C2: 生成定数 `MachineRecipeMasterElement.LevelInheritanceConst.Inherit` とプロパティ `string MachineRecipeMasterElement.LevelInheritance`。public の形のヘルパー `Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape.CountFamilyBaseInputs(MachineRecipeMasterElement recipe) : int` / `FindSourceFamilyLength(MachineRecipeMasterElement recipe) : int?`（継承元がちょうど1つならその長さ、0個か2個以上なら null。呼び出し側は `is not int` で受け `.Value` を書かない）/ `GetFamilyLength(Guid) : int`。継承先の出力に継承レベルの変種を当てるのは C3 の工場（`MachineRecipeLevelInheritanceUtil.ResolveOutputItemId`）だけで、B4 の書き換え器は工場の1セットの写しを使うのでこれを呼ばない。継承元（levelFamily の基準を指す入力）がちょうど1つであることは、機械レシピの検証の順序に頼らず、役割の検証が `CountFamilyBaseInputs == 1` で自分でも確かめる
+  - C2: 生成定数 `MachineRecipeMasterElement.LevelInheritanceConst.Inherit` とプロパティ `string MachineRecipeMasterElement.LevelInheritance`。public の形のヘルパー `Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape.CountFamilyBaseInputs(MachineRecipeMasterElement recipe) : int` / `FindSourceFamilyLength(MachineRecipeMasterElement recipe) : int?`（継承元がちょうど1つならその長さ、0個か2個以上なら null。呼び出し側は `is not int` で受け `.Value` を書かない）/ `GetFamilyLength(Guid) : int`。継承先の出力に継承レベルの変種を当てるのは C3 の工場（`MachineRecipeLevelInheritanceUtil.ResolveOutputItemId`）だけで、B4 の書き換え器は工場の1セットの写しを使うのでこれを呼ばない。継承元（levelFamily の基準を指す入力）がちょうど1つであることは、機械レシピの検証の順序に頼らず、役割の検証が `FindSourceFamilyLength` が null でないことで自分でも確かめる（`CountFamilyBaseInputs` はエラー文用）
   - C3: `Inherit` のレシピでは、入力スロットが継承元ファミリーの全変種を受け入れ、`inheritedLevel` に投入品のレベルが入る
   - C1: 品質モジュールの許可は `allowQualityModule` だけで決まり、継承レシピの機械でも許可できる（Part C は「継承レシピの機械は品質モジュール不可」の検証を持たない）
 - Produces:
@@ -19956,11 +19956,10 @@ git commit -m "feat(cleanroom): 半導体の専用機5種の簡易モデル pref
 - Consumes: F1 までの全コミット
 - Produces: moorestech の PR と moorestech_master の PR（どちらも作成まで。moorestech の規約でマージはしない。マージ方式はマージコミット）
 
-**PR 本文に必ず入れる節「本PR外のリファクタ提案」**（設計検査 Phase 2.6 の第3バケツ。本 PR のタスクにはしない。着手の可否は人間が決める）。moorestech の PR 本文に、次の11件を「既存側ファイル／新設側／同じ役割と判断した根拠」の形のまま並べる:
+**PR 本文に必ず入れる節「本PR外のリファクタ提案」**（設計検査 Phase 2.6 の第3バケツ。本 PR のタスクにはしない。着手の可否は人間が決める）。moorestech の PR 本文に、次の14件を「既存側ファイル／新設側／同じ役割と判断した根拠」の形のまま並べる:
 
 - 既存側 `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs`（ctor の `_filterItemId` 解決〈47行〉・`HasFilterItem`〈115-120行〉）／新設側 A2 のテンプレートの `GetItemId(param.FilterItemGuid)`（893行）と `CleanRoomAirFilterInventoryComponent.IsFilterOrEmpty`（874行）／同じ清浄機の中で、「フィルター GUID から ItemId を解決する処理」と「フィルターかどうかの判定」を2つの部品が別々に持っている
 - 既存側 `Game.CleanRoom/Util/CleanRoomCellSets.cs:30,42`・`CleanRoomDetectionService.cs:31`（境界の判定と6近傍）／新設側 A5 `CleanRoomLeakRays.IsBoundary`・`Directions`（2211-2219）と `CleanRoomInfoQuery.Query` の `isBoundary`（2574）／部屋の検出が既に持つ「セルが `ICleanRoomBoundaryComponent` を持つか」と6近傍の列挙を、漏れの探索用に作り直している
-- 既存側 `Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs`（`IsUnchangedFromShown`・`IsSameLines`）／新設側 A10 `CleanRoomTooltipPresenter.Present` の `ReferenceEquals && SequenceEqual`（4603）／どちらも「自分が所有者で、行が同じなら Show を省く」判定。既存側は TextParams まで比べる専用の比較を持つ（新設側の `SequenceEqual` が参照等価になり毎フレーム Show する可能性がある。推測・未検証）
 - 既存側 `Game.Block/Factory/VanillaIBlockTemplates.cs:70-73`（blockType から境界の種類への対応）／新設側 A10 `CleanRoomBoundaryHoverService.TryGetHoveredBoundary`（4790。blockType の4種を文字列で列挙）／「どのブロックが部屋の境界か」を、サーバーとクライアントが別の入力から2回定義している
 - 既存側 `Core.Inventory/OpenableInventoryItemDataStoreService.cs:106`（`ReplaceItem`）／新設側 C6 `MachineSubInventoryReplaceUtil.Replace`（8083-8111）／「同じ ID ならスタックして余りを返し、別 ID なら入れ替える」本体が同じで、新設側はスロット上限の頭打ちを足しただけ
 - 既存側 `Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`（Clamp で引き、1以上・単調を検査）／新設側 C6 `ModuleSlotStackLimitMasterUtil`・`ModuleSlotStackLimitLevelsValidator`（7730-7779）／「0始まりのレベル→値の段階表」を引いて検証する同じ規則を、既存は実行時の例外で、新設はマスタ検証で持つ
@@ -19969,7 +19968,6 @@ git commit -m "feat(cleanroom): 半導体の専用機5種の簡易モデル pref
 - 既存側 `Client.Game/InGame/UI/Inventory/RecipeViewer/ItemRecipeViewerDataContainer.cs:72-84`（出力から機械レシピを引く辞書）／新設側 C9 `webui/src/features/recipe/logic/craftLogic.ts` `producesItem`（10998-11003）／どちらも「そのアイテムを作る機械レシピ」を決める述語。新設側だけが継承先の上位レベルを含むので、Web の表示とホストの逆引き・一覧が食い違う
 - 既存側 `Core.Update/GameRandom.cs`（private `SplitMix64`・`StateFromSeed`。コメントに「splitmix64の再実装を防ぐ」とある）／新設側 B1 `CleanRoomDrawRandom.NextDouble`（12392-12403）／同じ SplitMix64 の定数とシフトで [0,1) を作る処理を再実装している
 - 既存側 `Core.Master/Validator/ItemMasterUtil.cs:176-181`（ローカル関数 `InitialLevelMaxStackValidation`）／新設側 B5 `CleanRoomDicingValidator` のスタック検査（15196-15220）／どちらも「個数が最大スタックを超えると `ItemStackFactory.Create` が例外を投げるので、起動時にスタック表と比べて止める」判定で、違いは表の引き方（初期値か最小値か）だけ
-
 - 既存側 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/RangeBox/CellRangeBoxVisualizer.cs`（`CreateCube`・`PlaceCell`）／新設側 A10 `CleanRoomLeakMarkerVisualizer.CreateMarker`・`Show`／どちらも「Primitive Cube を作り Collider を消し、プレビュー材質を複製して色を付け、セル c を c+(0.5,0.5,0.5) に置く」
 - 既存側 `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs:64-70・113-119`／新設側 B2 `VanillaCleanRoomMachineTemplate`／「タンクがあれば液体コネクタと `VanillaMachineFluidInventoryComponent` を組む」判定と組み立てが3か所目になる
 - 既存側 `moorestech_server/Assets/Scripts/Game.PlayerInventory/PlayerInventorySlotLevelDataStore.cs`／新設側 C6 `ModuleSlotStackLimitDataStore.UnlockLevel`／「0始まりの段階レベルを上げるだけにし、段階表の値が変わったら通知する」本体が同じ
@@ -20046,7 +20044,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 床・天井・壁の区別をやめ、向き自由の「クリーンルームパネル」1種（旧「床」GUID `a069613c-bcb5-4b19-a956-1e264a23f81e` を流用、旧「天井」は作らない）にする。縦向きの見た目と設置面の既存不具合は A13 で直す（UpSouth・UpWest の原点が変わるので、既存ワールドでその向きに置かれた高さ2以上のブロックはコネクタ位置が正しい位置へ動く。セーブ形式は変わらない）。出所: agent前提（裁定 .decisions/2026-10-23-ダイ数と機械の見た目と部材と部屋の状態の取得.md (3) の実装形）
 - 専用機5種の簡易モデルは D10 で既存 prefab を複製して色・上面の形・ラベルを変え、D5 のブロック定義より前に作る。出所: agent前提（裁定 同 (2) の実装形）
 - セーブ版は 6 → 7（C4 `SaveMigrationStepV6ToV7`）→ 8（B2 `SaveMigrationStepV7ToV8`）で欠番・重複なし。Part A・C11・C12・B6・D はセーブ形式を変えない。出所: agent前提（AGENTS.md「唯一の例外: セーブ形式」・moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs:25）
-- 部をまたぐ名前は Part C の Produces に揃えた（`MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel)` の引数順、`moduleSlotStackLimitLevels` のオブジェクト配列 `[{"stackLimit": 3}, …]`、cleanRoom.json の役割表と閾値行のキー、パネルの名前とアイテムを持たないこと）。出所: agent前提（各部の Produces）
+- 部をまたぐ名前は Part C の Produces に揃えた（`MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel, out setCount)` の引数順、`moduleSlotStackLimitLevels` のオブジェクト配列 `[{"stackLimit": 3}, …]`、cleanRoom.json の役割表と閾値行のキー、パネルの名前とアイテムを持たないこと）。出所: agent前提（各部の Produces）
 - unityプレイ録画テストは A11（部屋）・C10（機械のスロット上限表示。研究ノード表示は EditModeInPlayingTest＋Playwright）の2か所。チップライン・モジュールと GPU・専用機の見た目と抽選欄（B6）の録画は、出荷マスタに中身が入る統合タスク（bd moorestech-xyuaf.2）で撮る（ユーザー裁定「ループ全体の unityプレイ録画テストも統合タスクで撮る」）。出所: agent前提（.agents/skills/moores-writing-plans/SKILL.md「unityプレイ録画テスト」）
 
 ### S2（ロケット・GPU人工衛星・計算データ）との取り決め
@@ -20130,7 +20128,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 清浄室機械の液体は、通常機械と同じキー（`inputFluidSlot` / `outputFluidSlot`）で保存する。版7以前のセーブには、マイグレーションで空配列を足す。読み込み側はキー欠落を許さない（欠落はマイグレーション漏れとして早く落とす）。出所: agent前提（AGENTS.md「唯一の例外: セーブ形式」）
 - ダイシングの出力はレベルごとの専用スロットに入れる。開始前に全出力が入るかを判定し、入らなければ始めない（入力と IPA を減らさない）。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs）
 - ダイシングの役割レシピの出力個数は `diesPerWafer`（取りうる上限）で書き、実際の個数は抽選で決める。出力の並びは [ダイLv1..LvN, 失敗ダイ] に固定する。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/RecipeSelection/MachineRecipeSlotBindingUtil.cs）
-- EUV とダイシングの役割レシピは、Part C の `levelInheritance: Inherit` を必須にし、入力のグレードを継承レベルとして受け取る。グレードの出どころ（基準の入力）は `LevelInheritanceRecipeShape.FindSourceFamilyLength` で引き、`CleanRoomRoleRecipeChecks` が基準の入力がちょうど1つであることを自分でも数える。出所: agent前提（本 plan の Part C（C2・C3））
+- EUV とダイシングの役割レシピは、Part C の `levelInheritance: Inherit` を必須にし、入力のグレードを継承レベルとして受け取る。グレードの出どころ（基準の入力）は `LevelInheritanceRecipeShape.FindSourceFamilyLength` で引き、`CleanRoomRoleRecipeChecks` が `FindSourceFamilyLength` が null でないことで、基準の入力がちょうど1つであることを自分でも確かめる（`CountFamilyBaseInputs` はエラー文用）。出所: agent前提（本 plan の Part C（C2・C3））
 - 役割ごとの確率は `CleanRoomRoleRates` 1か所から `ChipYieldFormula` へ渡す。書き換え器3本と B6 の表示が同じ口を使い、計算を二重に持たない。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/CleanRoomRoleRates.cs〈B3 で新設〉）
 - 抽選の中身は A6 の `va:getCleanRoomInfo` に相乗りさせず、別のプロトコル `va:getCleanRoomYieldInfo` で返す／部屋照会は清浄機・壁・ハッチからも引かれ、A10 のツールチップも使う。抽選の中身は室内機械の選択レシピとモジュールに依存する別の問いである／別にすれば、A の応答形と fixture を変えずに済む／出所: agent前提（moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomInfoProtocol.cs〈A6 で新設〉）
 - 稼働できない機械（未密閉・クラス不足）では、抽選の中身の欄を出さない。止まっている部屋の効果はクラス値を持たない形なので数字を作れず、停止理由は A9 の部屋欄が出している。出所: agent前提（moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs）
@@ -20193,7 +20191,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 抽選の中身の入口は持ち主側の部品 `CleanRoomYieldPreviewComponent` に置く。template が選択部品・`MachineModuleEffectComponent`・効果の読み口（`processor.CleanRoomEffectLookup`）を ctor で渡す。プロトコルは `TryGetComponent` → `GetPreview()` の結果を詰め替えるだけにする（A6 の `CleanRoomInfoQuery` と同じ役割）。出所: agent前提（review_phase1 違反3・前例 Server.Protocol/PacketResponse/GetElectricNetworkInfoProtocol.cs）
 - 抽選の中身の表示はポーリング時点の値を出し、抽選は入力がそろって加工を始める時点（待機ステートで実現出力を確定するとき）の値を使う。間に部屋クラス・モジュール・レシピが変わると両者はずれるが、これは許す。表示は「次の抽選がいまの状態のまま行われたら使う値」を意味する。出所: agent前提（review_phase1 注目点3・moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs）
 - 「レシピGUID→清浄室工程の役割」は `CleanRoomMaster.TryGetRecipeRole` の1か所で引く。役割レコード（`Core.Master/CleanRoomRoles/`）は `Initialize` で出力の添字・基準アイテム・変種数を1回だけ解決する。検証は生のマスタで「ちょうど1つ」「基準アイテムである」を確かめ、実行時は導き直さない。出所: agent前提（review_phase26 弱・MasterHolder は各マスタを検証してから初期化し、検証失敗で例外を投げる）
-- グレードを入力から受け継ぐ役割（EUV・ダイシング）の検証は、基準の入力がちょうど1つであることを `LevelInheritanceRecipeShape.CountFamilyBaseInputs` で自分でも数える。機械レシピの検証の順序には頼らない。出所: agent前提（review_phase26 弱）
+- グレードを入力から受け継ぐ役割（EUV・ダイシング）の検証は、基準の入力がちょうど1つであることを `LevelInheritanceRecipeShape.FindSourceFamilyLength` が null でないことで自分でも確かめる（`CountFamilyBaseInputs` はエラー文用）。機械レシピの検証の順序には頼らない。出所: agent前提（review_phase26 弱）
 - 抽選のときに部屋の効果がクラス値を持たなければ、デコレータは例外で止める。processor は停止中に加工を始めないので通常は起きないが、黙って素通しすると品質モジュールの効果が消えても誰も気づけない。出所: agent前提（CleanRoomMachineProcessorComponent の Update が停止中は Halted へ移す）
 - 抽選の中身の結果は、サーバーでは役割ごとの型にする。wire は判別子と役割ごとの入れ子（null 許容のキー）にし、種別の列挙はプロトコルの `CleanRoomYieldResponseKind` 1つだけにする。webui へ送る役割名の文字列は `CleanRoomYieldDetailDtoBuilder.Build` の網羅 switch 1か所で作る。出所: agent前提（review_phase26 強8・強9・A6 の factory＋TryGetView の形）
 - webui ホストの `CleanRoomYieldDetailDto` は平らな nullable フィールドのまま据え置く。C# は wire へ詰め替えるだけで、役割ごとの形は TS の zod `discriminatedUnion(...).strict()` と inventory.test.ts の受理テストが閉じる。A8 の `CleanRoomDetailDto` と同じ判断。出所: agent前提（review_phase26 強4・changes_A の (3) の同じ行）
@@ -20228,3 +20226,5 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 清浄室機械のセーブの液体タンクのキー（`inputFluidSlot`／`outputFluidSlot`）が欠けていたら、両キーの有無を入れた `InvalidOperationException` でロードを止める（C3 の `MachineProcessingJob` の明示の例外と同じ扱い）。出所: agent前提（review2_phase26 弱・判断記録「読み込み側はキー欠落を許さない」）
 - `ChipYieldFormula` は抽選と表示が使う3関数（`MaxWaferGrade`・`PromotionChance`・`ReducedRate`）だけを public にする。グレード分布・期待値の閉形式はテストの TestHelper に置き、プロダクションにテスト専用の public を残さない。出所: agent前提（AGENTS.md「デバッグ/テスト専用publicをプロダクションに残さない」）
 - 抽選の中身の応答で、判別子に対応する入れ子が null なら `TryGetView` は警告を出して false を返す（ポーラーは消失と同じく値を捨てて止める）。外部から届く wire の食い違いなので、例外にせず警告にする。出所: agent前提（review2_phase26 弱・A6 の `TryGetView`）
+- 3回目の検査の弱「`SetProcessing` と `MachineProcessingJob` の ctor で継承レベルの検査が2回走る」は直さない。待機からの加工開始は `MachineProcessingJob` を通らず `SetProcessing` だけを通るので、ctor だけに寄せると待機からの開始で検査が消える。出所: agent前提（C3 の `IdleMachineProcessState` からの開始経路）
+- 3回目の検査の部をまたぐ食い違い（F2 の第3バケツに残っていた解消済みのツールチップ重複、件数の見出し、`CreateRealizedOutputs` の引数、ちょうど1つの確かめ方）と弱2件（`LevelInheritanceRecipeShape` の前例を `GenerationBiomeObjectConfigCatalog` に差し替え、Tooltip ディレクトリの本数）は直した。出所: agent前提（設計検査 3回目）
