@@ -49,7 +49,7 @@
 - GUID（統合タスクで使う。S3へ送付済み・変更不可。この plan のコードとテストは参照しない）: 研究「ロケット技術」`01a167cf-af9d-7f31-817c-3069b4f6e499`／計算データ `01a167cf-af88-74d3-9cd6-7d61b71052bb`／GPU衛星 Lv1 `01a167cf-af8b-7894-8de6-593ee30289c0`・Lv2 `01a167cf-af8e-7e95-b299-09eb712bee12`・Lv3 `01a167cf-af91-7f62-93d1-e499b06f2398`・Lv4 `01a167cf-af94-7e25-9654-825374c3923b`・Lv5 `01a167cf-af97-7f67-bf53-7833b8d17a15`／GPU衛星 levelFamily `01a167cf-af9a-78e5-9203-1c18ce94cdc6`／ロケット筐体素材レシピ `01a167cf-afa0-7add-8407-eec71456f4f3`／ロケット燃料レシピ `01a167cf-afa3-7c4f-82b7-c0d4f6d513c6`。
 - S1 の GPU（S1 からの連絡 2026-10-23。統合タスクで使う）: levelFamily `01a167ed-2700-7371-9f95-168966ff60bc`、Lv1 `01a167ed-2703-7014-98e4-11bd15f38571`・Lv2 `01a167ed-2706-7bfd-8361-a430dd96a569`・Lv3 `01a167ed-2709-74f0-a5c6-25026c7479d9`・Lv4 `01a167ed-270c-7873-a83a-5cf02ead6277`・Lv5 `01a167ed-270f-7276-8700-469ab54a26a2`。
 - 既存マスタGUID（統合タスクで使う）: ロケット発射台 `01a162b0-7769-7419-af24-bb35528b93d2`、ロケット筐体素材 `01a162a4-9334-7286-a8ba-7daf9c0f407a`、ロケット燃料 `01a162a8-e435-73d0-bddb-08533819b80e`、コンピュータ `019f0ca4-a544-723e-8ff2-feb15f99c84e`、鋼鉄板 `019e3a98-cfe5-73eb-bf6a-a564400bdb4f`、プラスチック `019e3aaa-af6f-7527-8689-01f4ebd65426`、固形燃料 `019eded2-f06b-70fd-b8aa-960690cb2b0f`、ガソリン（流体）`019eded2-7454-76da-8943-84c4e7a59179`、化学プラント `019ee880-7f68-705e-b846-7b05036e2ca8`、電気汎用工作装置 `019e1225-f49b-7283-8835-428d903852f1`、研究「半導体製造」`019e3ad9-46e2-73fd-9555-8c1d0245d26d`、スタックテーブル Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa`。
-- セーブ版: S2 が 6→7（`SaveMigrationStepV6ToV7`）。S3 は 7→8 を使う。後からマージする側が番号を詰め直す。S1（クリーンルーム）がセーブ形式を変えるかは Task 3 の着手時に S1 の plan で確かめ、`bd note moorestech-xyuaf.1` に残す。
+- セーブ版: S2 が 6→7（`SaveMigrationStepV6ToV7`）。S1（クリーンルーム）も 6→7（モジュール・継承）と 7→8（クリーンルーム機械の液体）、S3 は 7→8 を使う（S1 からの連絡 2026-10-23）。番号は3本とも重なるので、後からマージする側が番号を詰め直す（ステップの FromVersion・`CurrentVersion`・テストの版の数字を、先に入った版の続きへ繰り上げる）。この PR では 6→7 のまま実装する。
 - moorestech は PR 作成までで止める（マージしない）。moorestech_master も PR を作る（中身は items.json の空配列と、スタックテーブルが空の7件への Default だけ）。
 - S3 は本ブランチ（moorestech・moorestech_master とも `feat/tier9-compute-data-loop`）を merge で取り込んでエレベーター拠点を作る。Task 2 の最後で両repoを push する（S3 の着手条件）。以後どちらのブランチも force-push・rebase・履歴の書き換えをしない。
 - ビルドメニュー「生産 / 宇宙」（`subCategoryGuid: d2000000-0000-4000-8000-000200000005`、`entrySource: blocks`。S3 合意）は統合タスクで入れる。
@@ -3380,7 +3380,7 @@ git commit -m "feat(webui): ロケット発射台のパネルと建造発射の�
 - [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
 
 - moorestech_master（`feat/tier9-compute-data-loop` → master）の PR も作り、moorestech の PR 本文から相互にリンクする。master の PR の中身は items.json の `"orbitalPayloads": []` と、スタックテーブルが空の7件への Default だけ（D14）。`.moorestech-external-revisions.json` のピンがその PR の head と一致していること。
-- PR 本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S3向けの口（`Game.Orbit` の API と GUID。`PreviewArrivalOutputs` を足したことと、拠点も成果が出力口に入りきるときだけ打ち上げる方式にすること）／統合タスク（bd `moorestech-xyuaf.2`）へ回したもの／確かめ方（CombinedTest・プロトコルテスト・web UI の vitest と wire 契約テストの結果。録画は統合タスク）／セーブ版 6→7（S3 は 7→8）／本PR外のリファクタ提案。
+- PR 本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S3向けの口（`Game.Orbit` の API と GUID。`PreviewArrivalOutputs` を足したことと、拠点も成果が出力口に入りきるときだけ打ち上げる方式にすること）／統合タスク（bd `moorestech-xyuaf.2`）へ回したもの／確かめ方（CombinedTest・プロトコルテスト・web UI の vitest と wire 契約テストの結果。録画は統合タスク）／セーブ版 6→7（S1 も 6→7・7→8、S3 は 7→8 を使うので、後からマージする側が番号を繰り上げる）／本PR外のリファクタ提案。
 - 「統合タスクへ回したもの」の節: plan 末尾の「統合タスクへ引き継ぐマスタの中身」節の見出しを並べ（アイテム・積荷表の行・発射台の値・ビルドメニュー・レシピ・研究・バランス・録画テスト）、裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md` へリンクする。値（計算データの成果 Lv1=10〜Lv5=160・研究コスト・1便の資材数・建造と打ち上げの秒数・電力）は統合タスクで決め直す仮値であることも書く（判断記録 D12）。
 - 「本PR外のリファクタ提案」の節（plan のタスクにはしない。既存側／新設側／同じ役割と判断した根拠の順に書く）:
   1. `Core.Master/Validator/Item/ItemInitialEquipmentValidator.cs` の `InitialLevelMaxStackValidation`（本PRで `ItemMasterUtil.cs` から移すだけで中身は変えない）／新設の `OrbitalPayloadMasterValidator.ValidatePayloadItem`・`RocketLaunchPadParamValidator.FirstLevelStackOrNull` ／どれもアイテムのスタックテーブルの `StackCounts[0]` と個数を比べて読込時に弾く同じ判定（段数0の見送りは D29 で揃えた）。
@@ -3475,7 +3475,7 @@ planning 中の判断:
 ### A. アイテム・levelFamily・積荷表（items.json）
 
 - `stackLevelTableGuid` が空だった7件への Default は、この plan の Task 1 で済ませてある。重ねて直さない。
-- GPU Lv1〜Lv5 の行と GPU の levelFamily は、S1 の GUID（Global Constraints「S1 の GPU」）で入れる。名前・画像・スタックテーブルは S1 の定義に従う。S1 が先に master へ入れていれば、重ねて足さない。levelFamily の形は `{ "familyGuid": "01a167ed-2700-7371-9f95-168966ff60bc", "name": <S1 の名前>, "baseItemGuid": "01a167ed-2703-7014-98e4-11bd15f38571", "levelItemGuids": [Lv1〜Lv5 の GUID] }`。
+- GPU Lv1〜Lv5 の行と GPU の levelFamily は、S1 の GUID（Global Constraints「S1 の GPU」）で入れる。名前（「GPU」「GPU Lv2」〜「GPU Lv5」。S1 からの連絡 2026-10-23）・画像・スタックテーブルは S1 の定義に従う。S1 が先に master へ入れていれば、重ねて足さない。levelFamily の形は `{ "familyGuid": "01a167ed-2700-7371-9f95-168966ff60bc", "name": "GPU", "baseItemGuid": "01a167ed-2703-7014-98e4-11bd15f38571", "levelItemGuids": [Lv1〜Lv5 の GUID] }`。
 - 計算データ `01a167cf-af88-74d3-9cd6-7d61b71052bb` と GPU衛星Lv1〜Lv5 の行を足す。`stackLevelTableGuid` は Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa` にする。`sortPriority` はロケット燃料の後ろに置く。`imagePath`・`recipeViewType`・`initialUnlocked` はロケット燃料の行と同じ形にする。名前は「計算データ」「GPU衛星Lv1」〜「GPU衛星Lv5」で、録画シナリオもこの名前で引く。
 - GPU衛星の levelFamily:
   ```json
