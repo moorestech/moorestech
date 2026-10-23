@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
 
                 // 同種枠を先に満たし、intを超える総数をlongで比較する
                 // Fill the matching slot first and compare totals above int range using long
-                outputSlots.Store(arrival);
+                Assert.IsTrue(outputSlots.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1, new FixedOutputArrivalService(arrival), out _));
                 var expectedTotal = (long)existingCount + arrivalCount;
                 var actualTotal = (long)inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count + inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count;
                 TestContext.WriteLine($"existing={existingCount}; arrival={arrivalCount}; slots=[{inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count},{inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count}]; total={actualTotal}; expected={expectedTotal}");
@@ -101,7 +101,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             // Preserve first-empty order instead of the normal inventory's proximity order [empty,A1,A100]
             Assert.IsTrue(output.CanStore(arrival));
             CollectionAssert.AreEqual(new[] { 0, 0, 99 }, inventory.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).Select(item => item.Count));
-            output.Store(arrival);
+            Assert.IsTrue(output.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1, new FixedOutputArrivalService(arrival), out _));
             CollectionAssert.AreEqual(new[] { 1, 0, 100 }, inventory.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).Select(item => item.Count));
         }
 

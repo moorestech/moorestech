@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using Core.Inventory;
+using Core.Master;
 using Game.Block.Blocks.Connector;
 using Core.Item.Interface;
 using Game.Block.Blocks.Service;
 using Game.Block.Interface.Component;
-using UnityEngine;
+using Game.Orbit;
+using Game.Block.Interface.State;
 
 namespace Game.Block.Blocks.RocketLaunchPad
 {
@@ -23,27 +25,31 @@ namespace Game.Block.Blocks.RocketLaunchPad
             _beltOutput = beltOutput;
         }
 
-        public bool CanStore(IReadOnlyList<IItemStack> outputs)
+        public bool CanStore(IReadOnlyList<IItemStack> outputs) => TrySimulate(outputs, out _);
+
+        public bool TryCompleteArrival(ItemId itemId, int count, IOrbitalArrivalService arrivalService, out RocketLaunchPadWaitReason denyReason)
         {
-            // 出力口の写しへ順に詰めて余りを検査
-            // Fill copied output slots in order and check for remainders
-            var simulated = CopyOutputSlots();
-            foreach (var output in outputs)
-                if (0 < FillInOrder(simulated, output).Count) return false;
+            // 通知より前に配置を決め、受理後に同じ配置を確定する
+            // Determine placement before notification and commit that placement after acceptance
+            if (!TrySimulate(arrivalService.PreviewArrivalOutputs(itemId, count), out var simulated))
+            {
+                denyReason = RocketLaunchPadWaitReason.OutputFull;
+                return false; // silent-ok: 出口待ちは通常の待機 / 呼出側がUIの待ち理由へ反映する
+            }
+            arrivalService.Arrive(itemId, count);
+            for (var i = 0; i < _layout.OutputSlots.Count; i++) _slots.SetItem(_layout.OutputSlots[i], simulated[i]);
+            denyReason = RocketLaunchPadWaitReason.None;
             return true;
         }
 
-        public void Store(IReadOnlyList<IItemStack> outputs)
+        private bool TrySimulate(IReadOnlyList<IItemStack> outputs, out List<IItemStack> simulated)
         {
-            // 同じtickの直前に CanStore を通したので余りは出ない。出たら判定と書き込みの食い違いとして残す（機械の出力と同じ）
-            // CanStore passed earlier in the same tick, so no remainder is expected; log a mismatch if one appears (as machine outputs do)
-            var current = CopyOutputSlots();
+            // 建造前と到着直前に同じ配置規則を使う
+            // Use the same placement rules before construction and arrival
+            simulated = CopyOutputSlots();
             foreach (var output in outputs)
-            {
-                var remainder = FillInOrder(current, output);
-                if (0 < remainder.Count) Debug.LogError($"発射台の出力口に成果が入りきりませんでした ItemId:{remainder.Id} Count:{remainder.Count}");
-            }
-            for (var i = 0; i < _layout.OutputSlots.Count; i++) _slots.SetItem(_layout.OutputSlots[i], current[i]);
+                if (0 < FillInOrder(simulated, output).Count) return false;
+            return true;
         }
 
         public void PushToConnected()

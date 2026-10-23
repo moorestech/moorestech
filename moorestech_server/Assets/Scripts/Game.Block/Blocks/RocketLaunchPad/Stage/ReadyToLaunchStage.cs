@@ -13,17 +13,16 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
             // silent-ok: 出力口の空きが変わるまで再検査不要 / UIは出力満杯を表示する
             if (!reevaluateWait) return;
             var payload = Cargo.Payload;
-            if (!execution.OutputSlots.CanStore(execution.ArrivalService.PreviewArrivalOutputs(payload.Id, payload.Count)))
+            if (!execution.OutputSlots.TryCompleteArrival(payload.Id, payload.Count, execution.ArrivalService, out var denyReason))
             {
-                execution.SetWaitReason(RocketLaunchPadWaitReason.OutputFull);
+                execution.SetWaitReason(denyReason);
                 return; // silent-ok: 出力口の空き待ちは通常の待機 / UIの待ち理由でプレイヤーに伝える
             }
 
-            // 発射開始はこのtick口だけ。通知時にはLaunchingを観測できる順序を保つ
-            // This tick operation is the sole launch entry; preserve Launching as the stage observed by arrival subscribers
+            // 到着の正常受理後に積荷所有を解放する
+            // Release cargo ownership only after arrival returns normally
             execution.SetWaitReason(RocketLaunchPadWaitReason.None);
             execution.SetStage(new LaunchingStage(execution.LaunchTotalTicks));
-            execution.OutputSlots.Store(execution.ArrivalService.Arrive(payload.Id, payload.Count));
             execution.LaunchHistory.RecordLaunch();
         }
 

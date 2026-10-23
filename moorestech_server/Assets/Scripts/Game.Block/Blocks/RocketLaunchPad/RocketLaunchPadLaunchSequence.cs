@@ -15,7 +15,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public RocketLaunchPadWaitReason WaitReason => _execution.WaitReason;
         public float RequestPower => Stage.GetRequestPower(_execution);
         private readonly RocketLaunchPadStageExecution _execution;
-        private bool _reevaluateWait = true;
+        private ulong _waitGeneration = 1;
+        private ulong _processedWaitGeneration;
 
         public RocketLaunchPadLaunchSequence(RocketLaunchPadBlockParam param, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory)
         {
@@ -28,16 +29,16 @@ namespace Game.Block.Blocks.RocketLaunchPad
             _execution.SetStage(stage);
         }
 
-        public void InvalidateWait() => _reevaluateWait = true;
+        public void InvalidateWait() => _waitGeneration++;
 
         public void Advance(float tickPower)
         {
-            // 再評価フラグを先に消費し、処理中の在庫通知は次tickにも残す
-            // Consume the flag first so inventory notifications during execution survive for the next tick
+            // 正常復帰した開始世代だけを処理済みにする
+            // Acknowledge only the starting generation after normal completion
             var previous = Stage;
-            var reevaluateWait = _reevaluateWait;
-            _reevaluateWait = false;
-            Stage.Advance(_execution, tickPower, reevaluateWait);
+            var generation = _waitGeneration;
+            Stage.Advance(_execution, tickPower, generation != _processedWaitGeneration);
+            _processedWaitGeneration = generation;
             if (!ReferenceEquals(previous, Stage)) InvalidateWait();
         }
 
