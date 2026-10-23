@@ -117,10 +117,9 @@ namespace Server.Protocol.PacketResponse
                         result.Add(blockInventory.GetItem(i));
                     }
                 }
-                
-                // その他の返却すべきアイテム情報を取得する
-                // Get refundable item information before block removal
-                if (block.ComponentManager.TryGetComponent(out IGetRefundItemsInfo refundInfo))
+                // 全コンポーネントの返却を合算する
+                // Collect refunds from every component before removal
+                foreach (var refundInfo in block.ComponentManager.GetComponents<IGetRefundItemsInfo>())
                 {
                     result.AddRange(refundInfo.GetRefundItems());
                 }

@@ -1,0 +1,184 @@
+using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
+using Core.Master;
+using Core.Update;
+using Game.Block.Blocks.Util;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
+using Game.Context;
+using Game.Orbit;
+using MessagePack;
+using Mooresmaster.Model.BlocksModule;
+using UniRx;
+using UnityEngine;
+
+namespace Game.Block.Blocks.SpaceElevator
+{
+    // 拠点の昇降機。衛星を1つずつ電力で昇らせ、頂上で軌道到着サービスへ渡して成果を出口へ入れる。成果が入りきらなければ昇り始めず、頂上でも待つ
+    // The base's climber: lifts satellites one at a time with power and hands each over at the top; it neither starts nor hands over while the result would not fit
+    public class SpaceElevatorClimberComponent : ISpaceElevatorBase, IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo
+    {
+        public bool IsConnected { get; private set; }
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
+        public string SaveKey => "spaceElevatorClimber";
+        // 昇っている間だけ電力を要求する。頂上で出口の空きを待つ間は使わない
+        // Request power only while ascending; waiting at the top for outlet space uses none
+        public float RequestPower => IsAscending ? _param.RequiredPower : 0f;
+        private bool IsCarrying => _climbingSatellite.Id != ItemMaster.EmptyItemId;
+        private bool IsAscending => IsCarrying && _remainingClimbTicks > 0;
+        private readonly Subject<Unit> _onChangeBlockState = new();
+        private readonly SpaceElevatorBaseBlockParam _param;
+        private readonly SpaceElevatorBaseInventoryComponent _inventory;
+        private readonly IOrbitalArrivalService _orbitalArrivalService;
+        private readonly uint _climbTotalTicks;
+        private readonly IDisposable _inventorySubscription;
+        private bool _inventoryChanged = true;
+        private IItemStack _climbingSatellite;
+        private uint _remainingClimbTicks;
+        private bool _outputBlocked;
+        private bool _inletNotCarried;
+        private int _cablePoolAmount;
+        private bool _hasEnoughCable;
+        private float _suppliedPower;
+        private float _latchedPower;
+        public SpaceElevatorClimberComponent(SpaceElevatorBaseBlockParam param, SpaceElevatorBaseInventoryComponent inventory)
+        {
+            _param = param;
+            _inventory = inventory;
+            _orbitalArrivalService = ServerContext.GetService<IOrbitalArrivalService>();
+            _climbTotalTicks = GameUpdater.SecondsToTicks(param.ClimbSeconds);
+            _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
+            // 在庫変更で待機条件を再評価する
+            // Reevaluate waiting conditions when inventory changes
+            _inventorySubscription = ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
+                .Where(change => change.BlockInstanceId == inventory.BlockInstanceId).Subscribe(_ => _inventoryChanged = true);
+        }
+
+        public SpaceElevatorClimberComponent(Dictionary<string, object> componentStates, SpaceElevatorBaseBlockParam param, SpaceElevatorBaseInventoryComponent inventory) : this(param, inventory)
+        {
+            var save = BlockComponentStateReader.Read<SpaceElevatorClimberSaveJsonObject>(componentStates, SaveKey);
+            IsConnected = save.IsConnected;
+            (_climbingSatellite, _remainingClimbTicks) = SpaceElevatorClimberSaveRestorer.Restore(save, inventory, _climbTotalTicks);
+        }
+
+        public void Update()
+        {
+            BlockException.CheckDestroy(this);
+            // tick内の供給を確定してから進める
+            // Latch this tick's supply before advancing
+            _latchedPower = _suppliedPower;
+            _suppliedPower = 0f;
+            var wasOutputBlocked = _outputBlocked;
+            var shouldEvaluate = IsAscending || _inventoryChanged;
+            _inventoryChanged = false;
+            var changed = shouldEvaluate && (IsCarrying ? AdvanceClimb() : TryStartClimb());
+            changed |= wasOutputBlocked != _outputBlocked;
+            // 出口待ちに入ったtickに1回だけ理由をログへ出す（以降はUIの状態表示で伝える）
+            // Log the reason once on the tick the outlet wait begins; the UI status carries it afterwards
+            if (!wasOutputBlocked && _outputBlocked) Debug.Log("[SpaceElevatorBase] 衛星1機の成果が出口に入りきらないため、出口が空くまで待ちます");
+            // 昇っている間は進みが毎tick動くので毎tick通知する（同一ペイロードはイベント側が送らない）
+            // While ascending the progress moves every tick, so notify every tick (the event packet drops identical payloads)
+            if (changed || IsAscending) _onChangeBlockState.OnNext(Unit.Default);
+            #region Internal
+            bool AdvanceClimb()
+            {
+                // 電力不足なら供給率に比例して遅くなる
+                // A power shortage slows the climb in proportion to the supply rate
+                if (_remainingClimbTicks > 0)
+                {
+                    var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_latchedPower, _param.RequiredPower);
+                    _remainingClimbTicks = subTicks >= _remainingClimbTicks ? 0 : _remainingClimbTicks - subTicks;
+                    if (_remainingClimbTicks > 0) return false;
+                }
+                // 頂上では成果が出口へ入りきるときだけ渡す。入らなければ頂上で待つ
+                // At the top, hand over only when the result fits the outlets; otherwise wait at the top
+                _outputBlocked = !ResultFitsOutlets(_climbingSatellite.Id);
+                // silent-ok: 出口待ちは初回ログと状態詳細で通知 / プレイヤーは拠点UIで気づく
+                if (_outputBlocked) return false;
+                // 到着が例外なら衛星を保持し、次tickで再試行する
+                // Retain the satellite and retry next tick if arrival throws
+                _inventoryChanged = true;
+                _inventory.InsertOutputs(_orbitalArrivalService.Arrive(_climbingSatellite.Id, 1));
+                _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
+                return true;
+            }
+            bool TryStartClimb()
+            {
+                // silent-ok: 未接続・衛星なしは通常の待機 / プレイヤーが拠点UIの状態表示（ReadyToConnect・InsufficientCable・WaitingSatellite）で気づく
+                _outputBlocked = false;
+                var wasInletNotCarried = _inletNotCarried;
+                var inletState = _inventory.PeekSatellite(out var satelliteId);
+                _inletNotCarried = inletState == SatelliteInletState.NotCarried;
+                // 運べないアイテムが入口を塞いだら、その tick に1回だけ開発者ログへ出す
+                // Log once on the tick a non-carried item starts blocking the inlet
+                if (_inletNotCarried && !wasInletNotCarried) Debug.LogWarning($"[SpaceElevatorBase] 入口の {satelliteId} は今のマスタで運ぶ積荷ではないため昇れません。入口から取り出してください");
+                if (!IsConnected || inletState != SatelliteInletState.Carriable) return false;
+                // 昇り始める前に、成果が出口へ入りきるかを確かめる
+                // Before starting, check that the result fits the outlets
+                _outputBlocked = !ResultFitsOutlets(satelliteId);
+                if (_outputBlocked) return false;
+                _climbingSatellite = _inventory.TakeOneSatellite();
+                _remainingClimbTicks = _climbTotalTicks;
+                return true;
+            }
+            // 衛星1機の成果が出口へ入りきるか。昇り始める前と頂上の2点で使う
+            // Whether one satellite's result fits the outlets; used before starting and at the top
+            bool ResultFitsOutlets(ItemId satelliteId)
+            {
+                return _inventory.CanStoreOutputs(_orbitalArrivalService.PreviewArrivalOutputs(satelliteId, 1));
+            }
+            #endregion
+        }
+
+        internal void SupplyPower(float power)
+        {
+            BlockException.CheckDestroy(this);
+            // 複数の電力セグメントから供給され得るため加算する
+            // Accumulate because several electric segments may supply this base
+            _suppliedPower += power;
+        }
+
+        public void MarkConnected()
+        {
+            BlockException.CheckDestroy(this);
+            IsConnected = true;
+            _inventoryChanged = true;
+            _onChangeBlockState.OnNext(Unit.Default);
+        }
+        // 接続できるかはプールが判定して渡す。拠点は判定せず状態に載せるだけ
+        // The pool judges connectability and pushes it; the base only carries it in its state
+        public void SetCablePoolAvailability(int poolAmount, bool hasEnoughCable)
+        {
+            BlockException.CheckDestroy(this);
+            _cablePoolAmount = poolAmount;
+            _hasEnoughCable = hasEnoughCable;
+            _onChangeBlockState.OnNext(Unit.Default);
+        }
+
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            BlockException.CheckDestroy(this);
+            var progress = IsCarrying ? 1f - (float)_remainingClimbTicks / _climbTotalTicks : 0f;
+            var status = SpaceElevatorBaseStatusResolver.Resolve(IsConnected, _hasEnoughCable, _outputBlocked, IsCarrying, _latchedPower < _param.RequiredPower);
+            var detail = new SpaceElevatorBaseStateDetail(IsConnected, _cablePoolAmount, progress, status);
+            return new[] { new BlockStateDetail(SpaceElevatorBaseStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
+        }
+        // 撤去時は昇降中の衛星をプレイヤーへ返す
+        // On removal, return the satellite being carried to the player
+        public IReadOnlyList<IItemStack> GetRefundItems()
+        {
+            return IsCarrying ? new List<IItemStack> { _climbingSatellite } : new List<IItemStack>();
+        }
+
+        public object GetSaveState()
+        {
+            BlockException.CheckDestroy(this);
+            return SpaceElevatorClimberSaveRestorer.ToSave(IsConnected, _climbingSatellite, _remainingClimbTicks);
+        }
+
+        public bool IsDestroy { get; private set; }
+        public void Destroy() { IsDestroy = true; _inventorySubscription.Dispose(); _onChangeBlockState.Dispose(); }
+    }
+}
