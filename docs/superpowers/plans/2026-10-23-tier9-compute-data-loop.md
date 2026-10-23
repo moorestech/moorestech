@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** ロケット発射台でGPU衛星を打ち上げて計算データを得て、計算データで研究を進められるTier9のループを遊べる状態にする。
+**Goal:** ロケット発射台でGPU衛星を打ち上げて計算データを得る仕組み（スキーマ・軌道到着サービス・発射台・合図・表示・Web UI・セーブ）を、テスト用マスタで確かめた状態で入れる。moorestech_master の中身（GPU・GPU衛星・積荷表の行・発射台の値・レシピ・研究）と、ループ全体を遊べるかの unityプレイ録画テストは、S1〜S3 の実装がそろってからの統合タスク（bd `moorestech-xyuaf.2`）で入れる。この plan の成果は、統合タスクの後に遊べる状態になる。
 
 **Architecture:** 軌道に届いた後の処理（打ち上げ成果の決定と到着通知）を新設アセンブリ `Game.Orbit` の `IOrbitalArrivalService` に集め、発射台（`Game.Block`）とS3のエレベーター拠点はそれを呼ぶだけにする（ADR 0088）。発射台は資材スロット・積荷スロット・出力スロットを持つブロックで、電力と時間でロケットを建造し、初打ち上げだけプレイヤーのボタン操作（Web UI → プロトコル）を待つ。初打ち上げ済みかはワールド単位の状態 `IRocketLaunchHistory` としてセーブに入れる（版6→7）。
 
@@ -15,20 +15,21 @@
 3. **R3 初打ち上げの手動操作:** ワールドで初打ち上げが済むまでは、揃った台は「建造の合図待ち」で止まり、建造ボタンで建造を始め、建造後は「発射の合図待ち」で止まり、発射ボタンで打ち上げる。初打ち上げ後は全ての台（合図待ちで止まっていた台を含む）が自動で建造・打ち上げする。合図と初打ち上げの通知は段階を「打ち上げ待ち」へ移すだけで、打ち上げはその台自身の tick で始まる。受け入れ: 別の台の初打ち上げで、発射の合図待ちの台が同じtickか次のtickに打ち上がる。
 4. **R4 積荷の選び方:** 1便に積むのは1種類。揃った積荷が複数あれば、前回の次の積荷から順に、成果が出力スロットに入りきる最初の積荷を選ぶ。受け入れ: GPU衛星とグラフェンケーブルの両方が常に揃っている台で、交互に打ち上がる。出力が満杯でも、成果の無いグラフェンケーブルは打ち上がる。
 5. **R5 軌道到着と成果:** 打ち上げ開始の時点で軌道到着とし、`IOrbitalArrivalService.Arrive` が積荷表から成果を返し、`OnOrbitalArrival` を流す。成果が出力スロットに入りきるかを、建造を始める前と打ち上げる直前の両方で確かめ、入りきらなければ待たせて理由（出力満杯）を出す。打ち上げた成果はそのまま出力スロットへ入り、出力スロットからは接続先（ベルト）へ流れる。打ち上げ後に成果を預かる保留は持たない。受け入れ: 出力が満杯のとき次の便の資材が取り込まれず、取り出すと再開する。
-6. **R6 積荷表:** items.yml のトップレベル配列 `orbitalPayloads`（積荷アイテム・1便の個数・成果の並び）を必須で追加し、全 items.json を更新する。GPU衛星 Lv1〜Lv5 の行を moorestech_master に入れる。受け入れ: 積荷表に無いアイテムは積荷スロットを持たない。
+6. **R6 積荷表:** items.yml のトップレベル配列 `orbitalPayloads`（積荷アイテム・1便の個数・成果の並び）を必須で追加する。repo 内の全 items.json と、moorestech_master で読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/items.json` へ空配列を足す（土台で空になっているスタックテーブル7件への Default と合わせ、読み込みが止まらない最小限。R12・D14）。テスト用 mod には積荷2行を入れる。GPU衛星などの実際の行は統合タスクで入れる。受け入れ: 積荷表に無いアイテムは積荷スロットを持たない。ピン先の moorestech_master が読込エラー無しで読める。
 7. **R7 マスタ検証:** 積荷表と発射台パラメータの不整合（存在しないアイテム・重複・1便の個数がスタック上限を超える・資材と積荷が同じアイテム・秒数や電力が0以下・発射台があるのに積荷表が空・1便ぶんの成果がレベル1のスタック上限で数えて `outputSlotCount` を超える）はマスタ読込時にエラーで止まる。
 8. **R8 セーブ:** 発射台の段階（int）・残り秒・積んだロケットの中身・次に探す積荷・入れ口と出力口の中身をブロックのセーブに入れ、`rocketLaunchHistory.hasLaunchedOnce` をワールドのセーブに入れる。版を6→7に上げ、旧版セーブに `hasLaunchedOnce:false` を足す移行ステップを同梱する。ロード時、今の積荷表で打ち上げられない積荷（表に無い・1便の倍数でない・欠損マスタの刈り込みで空）は警告して捨てて待機に戻し、置き場の無いスロットの品は警告して捨て、負の「次に探す積荷」は範囲内へ直す。受け入れ: 建造中・発射の合図待ち・出力満杯の打ち上げ待ちでセーブ→ロードして同じ状態から続く。壊れた積荷のセーブはロードが止まらず待機から始まる。
 9. **R9 撤去返却:** 撤去時、スロットの中身（出力スロットの成果を含む）に加えて、建造中・発射の合図待ち・打ち上げ待ちのロケットに積んだ資材と積荷を返却する。打ち上げ中のロケットの中身は消費済みなので返さない。
 10. **R10 見た目:** 既存の `Rocket.prefab`（発射台 base とロケット本体 body）を使う。base は常に表示、body は建造完了（発射の合図待ち・打ち上げ待ち）から表示し、打ち上げで `launchSeconds` かけて上昇し、終わると消える。演出・音は付けない。
 11. **R11 Web UI:** 発射台を開くと、資材・積荷・出力のスロット群に見出しを付けて並べ、段階と待ち理由の文、建造・打ち上げの進み具合のゲージ、初打ち上げ前だけ「建造」「発射」ボタンを出す。
-12. **R12 研究とレシピ（moorestech_master）:** 研究「ロケット技術」（前提: 半導体製造）が発射台・ロケット筐体素材・ロケット燃料のレシピを解放する。ロケット筐体素材（電気汎用工作装置）とロケット燃料（化学プラント）のレシピを入れる。計算データ・GPU衛星 Lv1〜Lv5 のアイテムと levelFamily を入れる。
-13. **R13 S1待ちの分離:** GPU衛星のレシピ（GPU LvN → GPU衛星 LvN）と「半導体のアップグレード研究」（計算データでモジュールの上位を解放）は S1 の GPU アイテムとレベル継承レシピの仕組みが origin/master にあるときだけ入れる。無ければ入れず、bd とPR本文に「S1待ち」と書く。
-14. **R14 S3への口:** `Game.Orbit` の API（S3 へ送付済み）を変えない。Game.Orbit 一式と積荷表（スキーマ・全JSON・GPU衛星の行）を最初の2タスクで作って push する。S3 はグラフェンケーブルの行を積荷表へ足し、「軌道エレベーターの建設」の研究変更（発射台・筐体素材・燃料の解放を外し、計算データを消費に足す）を自分で行う。
+12. **R12 マスタの中身は統合タスク:** 研究「ロケット技術」・「半導体のアップグレード研究」、ロケット筐体素材・ロケット燃料・GPU衛星のレシピ、計算データ・GPU・GPU衛星のアイテムと levelFamily、積荷表の行、発射台の blocks 行の値、ビルドメニュー「宇宙」は、この plan では入れない。下書きを末尾の「統合タスクへ引き継ぐマスタの中身」節に残し、統合タスク（bd `moorestech-xyuaf.2`）が使う。受け入れ: この PR の moorestech_master の差分は items.json の `"orbitalPayloads": []` と、スタックテーブルが空の7件への Default（作業ブランチの土台 `b2149a0` で読込が止まるのを防ぐ最小限。D14）だけ。
+13. **R13 録画テストは統合タスク:** ループ全体の unityプレイ録画テストは、マスタに発射台が入る統合タスクで撮る。この PR はサーバーの CombinedTest（テスト用マスタで建造→打ち上げ→成果→セーブ）・プロトコルテスト・web UI の vitest と wire 契約テストで確かめる。
+14. **R14 S3への口:** `Game.Orbit` の API（S3 へ送付済み。`PreviewArrivalOutputs` の追加は 2026-10-23 に連絡済み）は以後変えない。Game.Orbit 一式と積荷表のスキーマ（repo 内の全JSONと master の空配列）を最初の2タスクで作って push する。グラフェンケーブルの行と「軌道エレベーターの建設」の研究変更は、統合タスクで入れる（S3 へ 2026-10-23 連絡済み）。
 15. **R15 撤去返却の取りこぼし:** `RemoveBlockProtocol` は `IGetRefundItemsInfo` を先頭1件しか読まないため、電線（`ElectricWireConnectorComponent` も `IGetRefundItemsInfo`）と発射台の進行を併せ持つ発射台では片方の返却が消える。全件を合算する。受け入れ: 電線つきの発射台を建造中に撤去すると、積んだ資材と積荷がプレイヤーのインベントリへ戻る。
 
 **やらないこと:**
 - S1 の領域（クリーンルーム・チップ抽選・モジュール・GPU のアイテム定義とレベルの効き方）のコードとマスタを変えない。
 - 宇宙エレベーター拠点・グラフェンケーブルの行・軌道エレベーターの建設の研究ノードは触らない（S3）。
+- moorestech_master の中身（R12 の一覧）と unityプレイ録画テストは入れない（統合タスク bd `moorestech-xyuaf.2`。`.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md`）。
 - 打ち上げの演出（炎・煙・音）、カメラ演出は作らない。
 - UI Toolkit への移行はしない（新UIは webui に作る）。
 
@@ -45,18 +46,18 @@
 - YAMLスキーマを触る前に `edit-schema` スキルを読む。`optional: true` を足さない。プロトコルを作る前に `creating-server-protocol` スキル、セーブ移行を書く前に `moorestech-save-migration` スキル、テストを書く前に `creating-server-tests` スキル、webui を触る前に `ref-webui-design` スキルを読む。
 - moorestech_master の作業場所は、このworktreeのルートから見て `../../moorestech_master/tier9-compute-data-loop`（ブランチ `feat/tier9-compute-data-loop`）。以下のコマンドはどれもこのworktreeのルートで実行し、master 側は `MASTER_WT=../../moorestech_master/tier9-compute-data-loop` を置いて `git -C "$MASTER_WT"` で操作する。`../moorestech_master` は全worktree共有のsymlinkなので、そこで checkout・編集しない。マスタを変えたら master worktree でコミット・push し、本repoの `.moorestech-external-revisions.json` の `moorestech_master.commitHash` をそのコミットへ向ける。`moores-wt status` はこの master worktree を「UNUSED master pin」と表示するが、S2 の作業場所なので `moores-wt rm --prune-master` 等で消さない。
 - 名前（S3へ送付済み・変更不可）: asmdef/名前空間 `Game.Orbit`、`IOrbitalArrivalService`（`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`・`bool IsOrbitalPayload(ItemId itemId)`・`IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)`（S3 へ 2026-10-23 連絡済み）・`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`）、`OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`）、取得は `ServerContext.GetService<IOrbitalArrivalService>()`。
-- GUID（S3へ送付済み・変更不可）: 研究「ロケット技術」`01a167cf-af9d-7f31-817c-3069b4f6e499`／計算データ `01a167cf-af88-74d3-9cd6-7d61b71052bb`／GPU衛星 Lv1 `01a167cf-af8b-7894-8de6-593ee30289c0`・Lv2 `01a167cf-af8e-7e95-b299-09eb712bee12`・Lv3 `01a167cf-af91-7f62-93d1-e499b06f2398`・Lv4 `01a167cf-af94-7e25-9654-825374c3923b`・Lv5 `01a167cf-af97-7f67-bf53-7833b8d17a15`／GPU衛星 levelFamily `01a167cf-af9a-78e5-9203-1c18ce94cdc6`／ロケット筐体素材レシピ `01a167cf-afa0-7add-8407-eec71456f4f3`／ロケット燃料レシピ `01a167cf-afa3-7c4f-82b7-c0d4f6d513c6`。
-- S1 の GPU（S1 からの連絡 2026-10-23。S1 の master に入る値）: levelFamily `01a167ed-2700-7371-9f95-168966ff60bc`、Lv1 `01a167ed-2703-7014-98e4-11bd15f38571`・Lv2 `01a167ed-2706-7bfd-8361-a430dd96a569`・Lv3 `01a167ed-2709-74f0-a5c6-25026c7479d9`・Lv4 `01a167ed-270c-7873-a83a-5cf02ead6277`・Lv5 `01a167ed-270f-7276-8700-469ab54a26a2`。継承レシピの書式と上限を上げる研究アクション名は S1 の plan 確定後に届く（Task 10）。
-- 既存マスタGUID: ロケット発射台 `01a162b0-7769-7419-af24-bb35528b93d2`、ロケット筐体素材 `01a162a4-9334-7286-a8ba-7daf9c0f407a`、ロケット燃料 `01a162a8-e435-73d0-bddb-08533819b80e`、コンピュータ `019f0ca4-a544-723e-8ff2-feb15f99c84e`、鋼鉄板 `019e3a98-cfe5-73eb-bf6a-a564400bdb4f`、プラスチック `019e3aaa-af6f-7527-8689-01f4ebd65426`、固形燃料 `019eded2-f06b-70fd-b8aa-960690cb2b0f`、ガソリン（流体）`019eded2-7454-76da-8943-84c4e7a59179`、化学プラント `019ee880-7f68-705e-b846-7b05036e2ca8`、電気汎用工作装置 `019e1225-f49b-7283-8835-428d903852f1`、研究「半導体製造」`019e3ad9-46e2-73fd-9555-8c1d0245d26d`、スタックテーブル Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa`。
+- GUID（統合タスクで使う。S3へ送付済み・変更不可。この plan のコードとテストは参照しない）: 研究「ロケット技術」`01a167cf-af9d-7f31-817c-3069b4f6e499`／計算データ `01a167cf-af88-74d3-9cd6-7d61b71052bb`／GPU衛星 Lv1 `01a167cf-af8b-7894-8de6-593ee30289c0`・Lv2 `01a167cf-af8e-7e95-b299-09eb712bee12`・Lv3 `01a167cf-af91-7f62-93d1-e499b06f2398`・Lv4 `01a167cf-af94-7e25-9654-825374c3923b`・Lv5 `01a167cf-af97-7f67-bf53-7833b8d17a15`／GPU衛星 levelFamily `01a167cf-af9a-78e5-9203-1c18ce94cdc6`／ロケット筐体素材レシピ `01a167cf-afa0-7add-8407-eec71456f4f3`／ロケット燃料レシピ `01a167cf-afa3-7c4f-82b7-c0d4f6d513c6`。
+- S1 の GPU（S1 からの連絡 2026-10-23。統合タスクで使う）: levelFamily `01a167ed-2700-7371-9f95-168966ff60bc`、Lv1 `01a167ed-2703-7014-98e4-11bd15f38571`・Lv2 `01a167ed-2706-7bfd-8361-a430dd96a569`・Lv3 `01a167ed-2709-74f0-a5c6-25026c7479d9`・Lv4 `01a167ed-270c-7873-a83a-5cf02ead6277`・Lv5 `01a167ed-270f-7276-8700-469ab54a26a2`。
+- 既存マスタGUID（統合タスクで使う）: ロケット発射台 `01a162b0-7769-7419-af24-bb35528b93d2`、ロケット筐体素材 `01a162a4-9334-7286-a8ba-7daf9c0f407a`、ロケット燃料 `01a162a8-e435-73d0-bddb-08533819b80e`、コンピュータ `019f0ca4-a544-723e-8ff2-feb15f99c84e`、鋼鉄板 `019e3a98-cfe5-73eb-bf6a-a564400bdb4f`、プラスチック `019e3aaa-af6f-7527-8689-01f4ebd65426`、固形燃料 `019eded2-f06b-70fd-b8aa-960690cb2b0f`、ガソリン（流体）`019eded2-7454-76da-8943-84c4e7a59179`、化学プラント `019ee880-7f68-705e-b846-7b05036e2ca8`、電気汎用工作装置 `019e1225-f49b-7283-8835-428d903852f1`、研究「半導体製造」`019e3ad9-46e2-73fd-9555-8c1d0245d26d`、スタックテーブル Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa`。
 - セーブ版: S2 が 6→7（`SaveMigrationStepV6ToV7`）。S3 は 7→8 を使う。後からマージする側が番号を詰め直す。S1（クリーンルーム）がセーブ形式を変えるかは Task 3 の着手時に S1 の plan で確かめ、`bd note moorestech-xyuaf.1` に残す。
-- moorestech は PR 作成までで止める（マージしない）。moorestech_master も PR を作る。
+- moorestech は PR 作成までで止める（マージしない）。moorestech_master も PR を作る（中身は items.json の空配列と、スタックテーブルが空の7件への Default だけ）。
 - S3 は本ブランチ（moorestech・moorestech_master とも `feat/tier9-compute-data-loop`）を merge で取り込んでエレベーター拠点を作る。Task 2 の最後で両repoを push する（S3 の着手条件）。以後どちらのブランチも force-push・rebase・履歴の書き換えをしない。
-- ビルドメニュー: 「生産」の下にサブカテゴリ「宇宙」（`subCategoryGuid: d2000000-0000-4000-8000-000200000005`、`entrySource: blocks`）を S2 が作る（S3 合意。S3 は宇宙エレベーター拠点を同じサブカテゴリへ足す）。
+- ビルドメニュー「生産 / 宇宙」（`subCategoryGuid: d2000000-0000-4000-8000-000200000005`、`entrySource: blocks`。S3 合意）は統合タスクで入れる。
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反6件・修正6件 / #1 通信の語彙をプロトコルへ（D24）・#2 整理の除外（D31）・#3 セーブを秒と int に（D32）・#4 10ファイル超のディレクトリを避ける（D33。録画シナリオの1件は保留中の Task 11）・#5 検証の連鎖を `ItemMasterUtil` へ（D22）・#6 webui の型を `payloadTypes.ts` へ（D33）。注目点は判断記録の末尾
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強5・弱5・第3バケツ2 / 強2はユーザー裁定で段階ごとの型（D26）、強1・3・4は前例どおり（D34）、強5は ADR 0088 を直した（D35）。弱の5件はユーザー裁定の4つの選択（進み具合と読込時のガード・打ち上げ開始の口・判定と導出の重複・契約型）で全て直した（D25・D27・D28・D29）。第3バケツの2件は Task 13 の PR 本文「本PR外のリファクタ提案」
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反6件・修正6件 / #1 通信の語彙をプロトコルへ（D24）・#2 整理の除外（D31）・#3 セーブを秒と int に（D32）・#4 10ファイル超のディレクトリを避ける（D33。録画シナリオの1件は末尾の「統合タスクへ引き継ぐマスタの中身」節で `scenarios/rocket/` に置く）・#5 検証の連鎖を `ItemMasterUtil` へ（D22）・#6 webui の型を `payloadTypes.ts` へ（D33）。注目点は判断記録の末尾
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強5・弱5・第3バケツ2 / 強2はユーザー裁定で段階ごとの型（D26）、強1・3・4は前例どおり（D34）、強5は ADR 0088 を直した（D35）。弱の5件はユーザー裁定の4つの選択（進み具合と読込時のガード・打ち上げ開始の口・判定と導出の重複・契約型）で全て直した（D25・D27・D28・D29）。第3バケツの2件は Task 10 の PR 本文「本PR外のリファクタ提案」
 
 ---
 
@@ -79,11 +80,11 @@
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/Rocket/RocketLaunchPadStateChangeProcessor.cs` | ロケット本体の表示と上昇 |
 | `moorestech_client/Assets/Scripts/Client.WebUiHost/...` | DTO・アクション・API |
 | `moorestech_web/webui/src/...` | 発射台パネル |
-| moorestech_master `server_v8/mods/moorestechAlphaMod_8/master/*.json` | 積荷表・アイテム・発射台・レシピ・研究 |
+| moorestech_master `server_v8/mods/moorestechAlphaMod_8/master/items.json` | `"orbitalPayloads": []` と、スタックテーブルが空の7件への Default だけ（中身は統合タスク） |
 
 ---
 
-### Task 1: 積荷表と発射台のスキーマ・マスタ検証・積荷のマスタ行
+### Task 1: 積荷表と発射台のスキーマ・マスタ検証・テスト用マスタ
 
 **Files:**
 - Modify: `VanillaSchema/items.yml`（`levelFamilies` の直後に `orbitalPayloads`）
@@ -92,8 +93,7 @@
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/blocks.json`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/items.json`
 - Modify: `mooresmaster/mooresmaster.SandBox/TestMod/items.json`（edit-schema スキルが SandBox の更新を求める場合のみ。`schema/items.json` はスキーマ生成物なら同スキルの手順で再生成）
-- Modify: moorestech_master `server_v8/mods/moorestechAlphaMod_8/master/items.json`（計算データ・GPU衛星 Lv1〜Lv5・levelFamily・`orbitalPayloads` 5行と、`stackLevelTableGuid` が空の7アイテムへ Default）
-- Modify: moorestech_master `server_v8/mods/moorestechAlphaMod_8/master/buildMenu.json`（「生産」に「宇宙」サブカテゴリ）
+- Modify: moorestech_master `server_v8/mods/moorestechAlphaMod_8/master/items.json`（`"orbitalPayloads": []` と、`stackLevelTableGuid` が空の7件へ Default。どちらも読み込みに要る最小限で、中身は統合タスク）
 - Modify: `.moorestech-external-revisions.json`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs`
@@ -223,7 +223,11 @@ blockType の `options` の末尾（`CleanRoomMachine` の次）に `- RocketLau
 
 - [ ] **Step 3: 全 items.json に `"orbitalPayloads": []` を足し、テストマスタに発射台と積荷を足す**
 
-`git ls-files | grep -E "items\.json$"` の全ファイル（moorestech_master も）へ `"orbitalPayloads": []` を足す（edit-schema スキルの「全JSON一括更新」手順に従う）。そのうえで ForUnitTest の items.json の `data` に次の6件を足し、`orbitalPayloads` を2行にする:
+`git ls-files | grep -E "items\.json$"` の全ファイル（本repoの4件。`mooresmaster.SandBox/schema/items.json` がスキーマ生成物なら edit-schema スキルの手順で再生成）と、moorestech_master で読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/items.json` の1件へ `"orbitalPayloads": []` を足す（edit-schema スキルの「全JSON一括更新」手順に従う）。moorestech_master の `server/`・`server_v4`〜`server_v7` の旧 mod は今のゲームが読まないので触らない。
+
+moorestech_master の作業ブランチは origin/master の `b2149a0`（tier9基板）の上にあり、そこで `stackLevelTableGuid` が空の7件（グラフェンケーブル・グラフェンシート・使用済み銅板・高純度炭素・ロケット筐体素材・ロケット燃料・反物質爆弾）が入っている。今のピン `0d129c8` には空の行が無く、ピンを作業ブランチへ進めると `ItemMasterUtil.StackLevelTableValidation` の参照検証で読込が止まる。そこで同じ items.json の7件へ Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa` を入れる（読み込みに要る最小限。S3 が同じ7件を重ねて直さないよう、Task 2 Step 8 の bd note で伝える）。
+
+moorestech_master へ入れるのはこの空配列と7件の Default だけで、アイテム・積荷表の行・ビルドメニュー・発射台の値・レシピ・研究は統合タスクで入れる（末尾の「統合タスクへ引き継ぐマスタの中身」節）。そのうえで ForUnitTest の items.json の `data` に次の6件を足し、`orbitalPayloads` を2行にする:
 
 ```json
 { "name": "TestRocketCase", "itemGuid": "5c8e0000-0000-4000-8000-000000000001", "imagePath": "Test1", "sortPriority": 100, "recipeViewType": "ForceView", "initialUnlocked": true, "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111" },
@@ -279,15 +283,6 @@ ForUnitTest の blocks.json の `data` に発射台を足す。共通キーは�
 ```
 
 `ForUnitTestModBlockId.cs` に `public static BlockId RocketLaunchPadId => GetBlock("5c8e0000-0000-4000-8000-000000000100");`、`ForUnitTestItemId.cs` に既存の書式で6件（`RocketCaseId`=…0001、`RocketFuelId`=…0002、`RocketComputerId`=…0003、`SatellitePayloadId`=…0004、`CablePayloadId`=…0005、`ComputeDataId`=…0006）を足す。
-
-moorestech_master の items.json では、`stackLevelTableGuid` が空の7件（グラフェンケーブル・グラフェンシート・使用済み銅板・高純度炭素・ロケット筐体素材・ロケット燃料・反物質爆弾）へ Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa` を入れる（空のままだと `ItemMasterUtil` の参照検証で読込が止まる）。
-
-続けて同じ items.json に積荷の行を入れる（S3 が Task 2 の push 後に取り込むため、ここで入れる）:
-- `data` に `name` が「計算データ」（`01a167cf-af88-74d3-9cd6-7d61b71052bb`）と「GPU衛星Lv1」〜「GPU衛星Lv5」（GUID は Global Constraints。名前の書式は既存の「ICチップLv1」と同じ）の6件を足す。`stackLevelTableGuid` は Default、`sortPriority` はロケット燃料の値の後ろへ連番、`imagePath`・`recipeViewType`・`initialUnlocked` はロケット燃料の行と同じ値にする。
-- `levelFamilies`（キーが無ければ作る。書式は ForUnitTest の items.json の `levelFamilies` と同じ）に `{ "familyGuid": "01a167cf-af9a-78e5-9203-1c18ce94cdc6", "name": "GPU衛星", "baseItemGuid": "01a167cf-af8b-7894-8de6-593ee30289c0", "levelItemGuids": ["01a167cf-af8b-7894-8de6-593ee30289c0", "01a167cf-af8e-7e95-b299-09eb712bee12", "01a167cf-af91-7f62-93d1-e499b06f2398", "01a167cf-af94-7e25-9654-825374c3923b", "01a167cf-af97-7f67-bf53-7833b8d17a15"] }`。
-- `orbitalPayloads` に GPU衛星 Lv1〜Lv5 の5行。どれも `countPerLaunch: 1`、`arrivalOutputs` は計算データ `01a167cf-af88-74d3-9cd6-7d61b71052bb` を Lv1=10・Lv2=20・Lv3=40・Lv4=80・Lv5=160（判断記録 D12）。
-
-buildMenu.json の「生産」（`categoryGuid: d1000000-0000-4000-8000-000000000002`）の `subCategories` 末尾（「半導体」の次）に `{ "name": "宇宙", "entrySource": "blocks", "subCategoryGuid": "d2000000-0000-4000-8000-000200000005" }` を足す。ブロック側は名前（`category: "生産"`・`subCategory: "宇宙"`）でここへ入る。中身の無いサブカテゴリでマスタ読込やビルドメニューの検証が止まる場合は、Task 9 Step 2 の発射台の `category`・`subCategory` の設定をこのステップへ前倒しする。
 
 - [ ] **Step 4: 積荷表の検証を書く**
 
@@ -356,7 +351,7 @@ namespace Core.Master.Validator.OrbitalPayload
             errorLogs += OrbitalPayloadMasterValidator.Validate(items);
 ```
 
-（`ItemMasterUtil.cs` は既に244行で、この2行で246行になる。分割は本PRの範囲を広げるので行わず、Task 13 の PR 本文「本PR外のリファクタ提案」に書く。）
+（`ItemMasterUtil.cs` は既に244行で、この2行で246行になる。分割は本PRの範囲を広げるので行わず、Task 10 の PR 本文「本PR外のリファクタ提案」に書く。）
 
 - [ ] **Step 5: 発射台パラメータの検証を書く**
 
@@ -539,8 +534,9 @@ namespace Tests.UnitTest.Core.Master.OrbitalPayload
 
 ```bash
 MASTER_WT=../../moorestech_master/tier9-compute-data-loop
-git -C "$MASTER_WT" add server_v8/mods/moorestechAlphaMod_8/master/items.json server_v8/mods/moorestechAlphaMod_8/master/buildMenu.json
-git -C "$MASTER_WT" commit -m "data(v8): 計算データ・GPU衛星と積荷表、ビルドメニューの宇宙を足し、スタックテーブル未設定のTier9アイテムへDefaultを入れる"
+git -C "$MASTER_WT" diff --stat   # items.json 1件だけであること
+git -C "$MASTER_WT" add server_v8/mods/moorestechAlphaMod_8/master/items.json
+git -C "$MASTER_WT" commit -m "data(v8): 積荷表の空配列を足し、スタックテーブル未設定のTier9アイテムへDefaultを入れる"
 git -C "$MASTER_WT" push origin feat/tier9-compute-data-loop
 git -C "$MASTER_WT" rev-parse HEAD   # この値を .moorestech-external-revisions.json の moorestech_master.commitHash へ
 ```
@@ -548,7 +544,7 @@ git -C "$MASTER_WT" rev-parse HEAD   # この値を .moorestech-external-revisio
 - [ ] **Step 8: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "OrbitalPayloadMasterValidatorTest|RocketLaunchPadParamValidatorTest|ItemMaster|BlockMaster"`
-Expected: ErrorCount 0 / 全 PASS。Editor の Console に `[ItemMaster]` `[BlockMaster]` のエラーが無い（ピン先のマスタが読めている）。
+Expected: ErrorCount 0 / 全 PASS。Editor でマスタを読み直し（RepositorySync がピンへ checkout する）、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `[ItemMaster]` `[BlockMaster]` `MooresmasterLoaderException` が無い（ピン先のマスタが読めている）。土台の `b2149a0` に由来する別の読込エラーが出たら、直さずに内容を bd note と PR 本文に書く（S2 の範囲外）。
 
 - [ ] **Step 9: コミットする**
 
@@ -954,7 +950,7 @@ git commit -m "feat(orbit): 軌道到着サービスと初打ち上げ履歴を�
 
 - [ ] **Step 8: 両repoを push して S3 へ渡す**
 
-S3 はこの push を取り込んでからエレベーター拠点に着手する（Global Constraints）。
+S3 はこの push を取り込んでからエレベーター拠点に着手する（Global Constraints）。moorestech_master 側に入っているのは Task 1 Step 7 の items.json の変更（空配列と7件の Default）だけ。
 
 ```bash
 git push origin feat/tier9-compute-data-loop
@@ -962,7 +958,7 @@ MASTER_WT=../../moorestech_master/tier9-compute-data-loop
 git -C "$MASTER_WT" push origin feat/tier9-compute-data-loop
 git rev-parse HEAD
 git -C "$MASTER_WT" rev-parse HEAD
-bd note moorestech-xyuaf.1 "Game.Orbitと積荷表をpush済み（S3取り込み可）: moorestech <上のハッシュ> / moorestech_master <上のハッシュ>"
+bd note moorestech-xyuaf.1 "Game.Orbit（PreviewArrivalOutputs を含む）と積荷表のスキーマをpush済み（S3取り込み可）: moorestech <上のハッシュ> / moorestech_master <上のハッシュ>。master はorbitalPayloadsの空配列と、土台b2149a0で空だったstackLevelTableGuid 7件へのDefaultだけ（読込に要る最小限。S3は同じ7件を重ねて直さない）。積荷表の行・グラフェンケーブル・ビルドメニュー宇宙・研究は統合タスク moorestech-xyuaf.2"
 ```
 
 Expected: 両方の push が成功し、`.moorestech-external-revisions.json` の `moorestech_master.commitHash` が moorestech_master 側の HEAD と一致する。
@@ -2794,7 +2790,7 @@ Expected: ErrorCount 0
 
 - [ ] **Step 3: Prefab に付ける（uloop execute-dynamic-code）**
 
-先に、`Rocket.prefab` を見た目に使うブロックが発射台だけかを確かめる（他のブロックが使っていると `Initialize` の `RocketLaunchPadBlockParam` への cast で落ちる）。`grep -n "Block/Rocket\"" ../../moorestech_master/tier9-compute-data-loop/server_v8/mods/moorestechAlphaMod_8/master/blocks.json` の該当行が発射台の行だけであること。他に居れば、`Initialize` の cast を `is` の判定に変え、発射台以外では何もせず理由を `Debug.LogWarning` で出す。
+`Rocket.prefab`（アドレス `Vanilla/Block/Rocket`）を見た目に使う他のブロックは、plan 作成時の実測（2026-10-23）では moorestech_master `server/mods/moorestechAlphaMod_3/master/blocks.json` の「ロケット」（`aa312f32-35d4-4dae-9e3e-a292e1a70a70`、今のゲームが読まない旧 mod）だけで、読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/blocks.json` には無い（発射台の行も今は空のパスで、統合タスクで `Vanilla/Block/Rocket` を入れる）。他のブロックが使っていると `Initialize` の `RocketLaunchPadBlockParam` への cast で落ちるので、着手時に `grep -rn "Block/Rocket\"" ../../moorestech_master/tier9-compute-data-loop/server_v8/mods` で同じことを確かめる。居れば、`Initialize` の cast を `is` の判定に変え、発射台以外では何もせず理由を `Debug.LogWarning` で出す。
 
 階層を読む:
 
@@ -3245,26 +3241,126 @@ git commit -m "feat(webui): ロケット発射台のパネルと建造発射の�
 
 ---
 
-### Task 9: マスタデータ（発射台・レシピ・研究）とバランス
+### Task 9: moores-code-review による全ブランチレビュー
 
-**Files（すべて moorestech_master `server_v8/mods/moorestechAlphaMod_8/master/`）:**
-- Modify: `blocks.json`（ロケット発射台）
-- Modify: `machineRecipes.json`（ロケット筐体素材・ロケット燃料）
-- Modify: `research.json`（ロケット技術）
-- Modify（本repo）: `.moorestech-external-revisions.json`
+- [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
-**Interfaces:**
-- Consumes: Task 1 のスキーマ・計算データとGPU衛星のアイテム・「宇宙」サブカテゴリ
-- Produces: 発射台・レシピ2本・研究「ロケット技術」のマスタ行（GUID は Global Constraints）
+レビュー指摘の反映がソースの判定経路・条件式・その評価時点に触れたら、反映後のコードで Task 1〜8 のテスト一式（各タスクの「コンパイルしテストを実行する」ステップのフィルタすべて）を再実行してから完了とする。この plan に unityプレイ録画テストは無い（統合タスクへ移した。判断記録 D37）ので、レビュー報告に「録画は統合タスク bd `moorestech-xyuaf.2` で撮る」と書く。
 
-- [ ] **Step 1: recipe-chain-machine-count スキルで量を決める**
+---
 
-agent前提の目標（判断記録に書く）: 計算データのループ（打ち上げ→研究）は Tier9 の15〜25時間のうち4〜6時間。1台の発射台で1便あたり建造120秒＋打ち上げ15秒。1便の資材を「ロケット筐体素材20・ロケット燃料20・コンピュータ5」とし、同スキルで「1便/135秒を1台で回すのに要る電気汎用工作装置・化学プラントの台数」を出し、上流（鋼鉄板・プラスチック・ガソリン・固形燃料）が既存の工場規模から外れないことを確かめる（作者メモ「それ以外の要素はそこまで変な工場建設は要求されないように」）。外れる場合は資材の数を下げる。結果の表を PR 本文に貼る。
+### Task 10: PR作成
 
-- [ ] **Step 2: blocks.json の発射台を埋める**
+- [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
 
-ロケット発射台 `01a162b0-7769-7419-af24-bb35528b93d2` の行を次の値にする（`name`・`imagePath`・`initialUnlocked: false`・`placementsPerCost: 1` は今の値のまま。電力・建設費は判断記録 D12 の仮値。既存の最大要求電力は石油蒸留機の150なので、その上の200に置く）:
+- moorestech_master（`feat/tier9-compute-data-loop` → master）の PR も作り、moorestech の PR 本文から相互にリンクする。master の PR の中身は items.json の `"orbitalPayloads": []` と、スタックテーブルが空の7件への Default だけ（D14）。`.moorestech-external-revisions.json` のピンがその PR の head と一致していること。
+- PR 本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S3向けの口（`Game.Orbit` の API と GUID。`PreviewArrivalOutputs` を足したことと、拠点も成果が出力口に入りきるときだけ打ち上げる方式にすること）／統合タスク（bd `moorestech-xyuaf.2`）へ回したもの／確かめ方（CombinedTest・プロトコルテスト・web UI の vitest と wire 契約テストの結果。録画は統合タスク）／セーブ版 6→7（S3 は 7→8）／本PR外のリファクタ提案。
+- 「統合タスクへ回したもの」の節: plan 末尾の「統合タスクへ引き継ぐマスタの中身」節の見出しを並べ（アイテム・積荷表の行・発射台の値・ビルドメニュー・レシピ・研究・バランス・録画テスト）、裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md` へリンクする。値（計算データの成果 Lv1=10〜Lv5=160・研究コスト・1便の資材数・建造と打ち上げの秒数・電力）は統合タスクで決め直す仮値であることも書く（判断記録 D12）。
+- 「本PR外のリファクタ提案」の節（plan のタスクにはしない。既存側／新設側／同じ役割と判断した根拠の順に書く）:
+  1. `Core.Master/Validator/ItemMasterUtil.cs` の `InitialLevelMaxStackValidation` ／新設の `OrbitalPayloadMasterValidator.ValidatePayloadItem`・`RocketLaunchPadParamValidator.FirstLevelStackOrNull` ／どれもアイテムのスタックテーブルの `StackCounts[0]` と個数を比べて読込時に弾く同じ判定。あわせて `ItemMasterUtil.cs` は本PRで246行になり200行を超えたままなので、検証のローカル関数群を `Validator/Item/` へ出す（前例 `Validator/Block/`）。
+  2. `Game.Block/Blocks/Machine/VanillaElectricMachineComponent.cs`（同形: `Miner/VanillaElectricMinerComponent.cs`・`Pump/ElectricPumpComponent.cs`・`CleanRoom/Machine/CleanRoomMachineComponent.cs`）／新設の `RocketLaunchPadElectricComponent` ／どれも処理部の要求電力を `RequestEnergy` に出し、要求×`PowerRate` を処理部の供給口へ渡すだけの同じ導出。
+- 全実装タスク完了＝完了ではない。PR未作成のまま終わるのはplan未完了である。
 
+---
+
+## 判断記録（ADR）
+
+設計セッションの裁定:
+- `docs/adr/0088-orbital-arrival-service-shared-by-launch-sites.md`
+- `.decisions/2026-10-23-計算データはGPU衛星の打ち上げごとに一括で得る.md`
+- `.decisions/2026-10-23-GPU衛星はレベル別アイテムとして製造してから打ち上げる.md`
+- `.decisions/2026-10-23-ロケットの手動建造発射はワールドで最初の1回だけ.md`
+- `.decisions/2026-10-23-ロケットは打ち上げごとに筐体素材燃料コンピュータペイロードを消費する.md`
+- `.decisions/2026-10-23-発射台は届いた積荷で打ち上げ内容を自動で選ぶ.md`
+- `.decisions/2026-10-23-ロケットは独立研究にし計算データは半導体アップグレードと軌道エレベーターの両方で使う.md`
+- `.decisions/2026-10-23-半導体のアップグレード研究は計算データでモジュールの上位を解放する.md`
+- `.decisions/2026-10-23-発射台は電力を使い時間をかけてロケットを建造する.md`
+- `.decisions/2026-10-23-発射台は既存Rocketモデルを使いロケット本体だけを上昇させる.md`
+- `.decisions/2026-10-23-計算データは打ち上げた設備の出力口に出す.md`
+- `.decisions/2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める.md`
+- `.decisions/2026-10-23-発射台の段階は段階ごとの型で持つ.md`
+- `.decisions/2026-10-23-発射台の型検査の弱い指摘は4件とも直す.md`
+- `.decisions/2026-10-23-計算データの研究ノードはS2が先に作り解放先はS1のモジュールが入ってから足す.md`
+- `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md`
+- 用語: `CONTEXT.md`「ロケットと計算データ」
+
+planning 中の判断:
+
+| # | 判断 | 出所 |
+|---|---|---|
+| D1 | 積荷表は items.yml のトップレベル配列（新規トップレベルスキーマを作らない） | agent前提（edit-schema スキルの規約） |
+| D2 | 成果が出力口に入りきるかを、建造を始める前と打ち上げる直前に確かめ、入りきらなければ待たせて理由（`OutputFull`）を出す。打ち上げ後に成果を預かる保留は作らない。`IOrbitalArrivalService` に成果を先に知る `PreviewArrivalOutputs` を足し、S3 の拠点も同じ方式にする（S3 へ 2026-10-23 連絡済み）。積荷ごとの1便ぶんの成果がレベル1のスタック上限で数えて `outputSlotCount` 以下であることをマスタ検証で強制する（満たさない積荷は空の出力口でも永遠に待つため） | ユーザー裁定 2026-10-23（質問「発射台の出力口が満杯のとき、どこで待たせますか？」→ 選択「入りきる時だけ建造開始」。棄却: 「打ち上げ後に預かって止める」。[[2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める]]）。マスタ検証は agent前提（帰結） |
+| D3 | 軌道到着は打ち上げ開始の時点。昇っている `launchSeconds` の間は次の便を建造しない | agent前提（CONTEXT.md「軌道到着」） |
+| D4 | 資材・積荷は建造開始で取り込む。撤去時は建造中・発射の合図待ち・打ち上げ待ちの中身を返し、打ち上げ後は返さない | agent前提（`.decisions/…4つとも毎回消費` の「打ち上げごとに消費」を建造開始＝取り込み時点と解釈） |
+| D5 | 積荷1種につき入れ口1スロット。1便の個数はレベル1のスタック上限以下をマスタ検証で強制（S3 のケーブルは専用スタックテーブルで1000本/便） | agent前提（S3 合意 2026-10-23） |
+| D6 | 揃った積荷が複数あるときは前回の次から順に選ぶ（積荷表の並び順の巡回） | agent前提（同点選択。どれを選んでも1便の消費・成果は表で同型に決まるため、偏りの防止だけを目的に巡回にする） |
+| D7 | 電力は建造中だけ要求し、供給は機械と同じく加算→次の Update で使い切る | agent前提（`VanillaMachineProcessorComponent.SupplyExternalPower` の前例） |
+| D8 | 状態は段階・待ち理由が変わったときと、建造中・打ち上げ中は毎tick流す | agent前提（`VanillaMachineProcessorComponent.Update` の前例） |
+| D9 | 初打ち上げの通知（`OnFirstLaunch` の購読）は合図待ちの段階を移すだけにする（建造の合図待ち→待機、発射の合図待ち→打ち上げ待ち）。建造と打ち上げは各台の次の Update が行う。ロード時に初打ち上げ済みなら同じ移し替えをする | ユーザー裁定 2026-10-23（D25）。購読は agent前提（AGENTS.md「状態変化の検知は購読で」） |
+| D10 | 入れ口のセーブはアイテム単位、出力口は並び。マスタ変更で置き場が無くなった品は警告して捨てる | agent前提（テスターのワールドがマスタ更新を跨ぐため。保留を作らない裁定 D2 の帰結で、無効データは消す既存の流儀 `MissingMasterPruner` と同じ向き） |
+| D11 | `inventory.ts`（215行）は列車とベルト統計の schema を別ファイルへ移してから足す。`GameplayServiceRegistration.cs`（202行）には足さず `OrbitServiceRegistration` を新設。`WorldSaveDataRestorer.cs`（194行）は必須欠損の検査を `WorldSaveRequiredFieldGuard` へ移す | agent前提（AGENTS.md 200行規則） |
+| D12 | 計算データの成果 Lv1=10・Lv2=20・Lv3=40・Lv4=80・Lv5=160（倍々）。ロケット技術の研究コスト、1便の資材数、建造120秒・打ち上げ15秒も仮値。どれも統合タスクでマスタへ入れるときに決め直す（この plan ではテスト用 mod の値だけを使う） | agent前提（GPUのレベルが計算データへどう効くかは S2 が決める: S1 からの連絡 2026-10-23「GPU の Lv が計算データにどう効くかは S2 で決めてください」。倍々は S1 裁定「大部分のレベル1と少数のレベル2チップ程度でクリアできるようにしたい」の下で Lv1 だけでも研究が進み、上位ほど報われる形にするため。研究コストは S1 の Tier9 研究コストの裁定が出るまでの仮値）。入れる時期はユーザー裁定 D36 |
+| D13 | GPU・GPU衛星のレシピと「半導体のアップグレード研究」は、この plan では入れず統合タスクで入れる。GPU衛星は通常レシピ5本（GPU LvN＋資材→GPU衛星 LvN）、研究ノードは計算データを要求し、解放先は S1 の上位モジュールが入ってから足す | ユーザー裁定 2026-10-23（D36。研究ノードの形は質問「計算データで上位モジュールを解放する「半導体のアップグレード研究」はどう入れますか？」→ 選択「研究ノードだけ先に作る」 [[2026-10-23-計算データの研究ノードはS2が先に作り解放先はS1のモジュールが入ってから足す]]）。旧案「S1 の仕組みが origin/master にあるときだけ入れる」はこれで置き換え |
+| D14 | moorestech_master の作業ブランチの土台 `b2149a0`（tier9基板）で `stackLevelTableGuid` が空になっている7件へ Default を入れる。今のピン `0d129c8` には空の行が無く、ピンを作業ブランチへ進めると `ItemMasterUtil.StackLevelTableValidation` の参照検証で読込が止まるため、D36 の「読み込みに要る最小限」としてこの PR に入れる。S3 は同じ7件を重ねて直さない（Task 2 Step 8 の bd note） | agent前提（実測 2026-10-23: `git show 0d129c8:…/items.json` は空0件、`b2149a0` は7件。検証の実装は `ItemMasterUtil.cs` の `StackLevelTableValidation`） |
+| D15 | Web UI の失敗コードは既存集合（`invalid_payload`・`block_not_open`・`invalid_state`）から選ぶ | agent前提（`ActionErrorCodeWireContractTest` の集合を広げない） |
+| D16 | この plan には unityプレイ録画テストも EditModeInPlayingTest も入れない。ランタイム挙動・UI・3D表示に触れるが、実ゲームで発射台を置くにはマスタの中身が要り、それは統合タスクで入る（D37） | ユーザー裁定 2026-10-23（D36・D37） |
+| D17 | Game.Orbit 一式と積荷表のスキーマ（repo 内の全JSON と master の空配列）を Task 1〜2 に置き、Task 2 の最後で両repoを push する。以後 force-push しない | agent前提（S3 からの依頼 2026-10-23「Game.Orbit 一式と orbitalPayloads のスキーマ／マスタ（GPU衛星行込み）を最初の実装タスクにし、できた時点で両 repo へ push」「その後もブランチは force-push しない」）。GPU衛星の行は D36 で統合タスクへ移した（S3 へ 2026-10-23 連絡済み） |
+| D18 | `RemoveBlockProtocol` の返却を `IGetRefundItemsInfo` 全件の合算に直す。発射台の部品順は電線を進行より前に置き、修正前のコードでは返却が落ちることをテストで確かめる | agent前提（S3 からの指摘 2026-10-23。`RemoveBlockProtocol.cs:123` の `TryGetComponent` が先頭1件だけを読むことをコードで確認。原因: 推測（根拠: コード読解。未再現。Task 5 の撤去返却テストが修正前に落ちることで実測に変わる）） |
+| D19 | ビルドメニュー「生産」の下に「宇宙」（`d2000000-0000-4000-8000-000200000005`）を作り、発射台と S3 の宇宙エレベーター拠点を置く。入れるのは統合タスク | agent前提（S3 からの提案 2026-10-23。既存の「半導体」サブカテゴリと同じ書式）。時期はユーザー裁定 D36 |
+| D21 | `VanillaSchema/blocks.yml` に blockType `RocketLaunchPad` と case を足す。全キー必須（`optional` を使わず default だけ置く）で、`IInventoryConnectors`・`IElectricWireConnectParam` を実装させる | agent前提（edit-schema スキル・AGENTS.md「optional: true で吸収するのは設計の敗北」、前例 `CleanRoomMachine` の case） |
+| D22 | 積荷表の検証は `Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`（新設ディレクトリ）に置き、`ItemMasterUtil.Validate` の `errorLogs +=` 連鎖に1行足す（`ItemMaster.Validate` は委譲1行のまま。検証クラスは `internal` のまま、テストは `ItemMasterUtil.Validate` を呼ぶ）。`ItemMasterUtil.cs` は244→246行になるが、分割は範囲が広がるので Task 10 の「本PR外のリファクタ提案」に回す。発射台パラメータの検証は `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` に置き、`BlockMasterUtil.Validate` に1行足す。スタック上限の判定は既存の `InitialLevelMaxStackValidation` と同じく段数0のテーブルを見送る | agent前提（配置検査 #5: 全 Master の `Validate` は Util への委譲1行で、連鎖は Util 側。前例 `BlockMasterUtil.Validate`・`BeltSpeedPerSecondMasterTest.cs:57`）。段数0の見送りはユーザー裁定 D29 |
+| D23 | 発射台の組み立ては `Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs`（New/Load とも `Create` へ集める）に置き、`Game.Block/Factory/VanillaIBlockTemplates.cs` の `BlockTypesDictionary` へ登録する。サービスは `ServerContext.GetService<T>()` で取る | agent前提（前例 `VanillaCleanRoomAirFilterTemplate.cs`） |
+| D24 | 建造・発射の合図は1本のプロトコル `Server.Protocol/PacketResponse/Rocket/RocketLaunchPadCommandProtocol.cs`（直下は52ファイルのためサブディレクトリ。名前空間は `Server.Protocol.PacketResponse`）にする。操作の種類 `RocketLaunchPadCommandOperation` と通信の失敗理由 `RocketLaunchPadCommandFailureReason` はプロトコルにネストし、ドメインの結果 `RocketLaunchPadCommandResult` から `ToFailureReason` で写す。応答は `Success`＋`FailureReason`。部品は `IRocketLaunchPadComponent` で引くので asmdef の参照は足さない | agent前提（配置検査 #1・#4。前例 `MachineRecipeSelectionProtocol.cs`・`IMachineRecipeSelectorComponent.cs`・`PacketResponse/TrainStation/SetTrainStationNameProtocol.cs`、creating-server-protocol スキル「1プロトコル=1メソッド」） |
+| D20 | 「軌道エレベーターの建設」の研究ノードの変更（発射台・筐体素材・燃料の解放を外し、計算データを消費に足す）は S2 の plan では触らない。中身は S3 が決め、統合タスクで入れる | agent前提（ユーザー裁定 2026-10-23「ロケット独立＋両方で消費」の実施分担。ノードの持ち主は S3）。時期はユーザー裁定 D36 |
+| D25 | 打ち上げを始める口は `RocketLaunchPadLaunchSequence.AdvanceReadyToLaunch` の1か所だけにする。発射の合図と初打ち上げの通知は段階を `ReadyToLaunchStage` へ移すだけ。別の台は自分の Update で同じtickか次のtickに打ち上がる（テスト4は「次のtickまでに打ち上がる」） | ユーザー裁定 2026-10-23（質問「型と重複の検査で出た弱い指摘のうち、どれを直しますか？」→ 選択「打ち上げ開始の口を1つに, 進み具合と読込時のガード, 判定と導出の重複を消す, 契約型をInterface層へ」。[[2026-10-23-発射台の型検査の弱い指摘は4件とも直す]]）。配置検査の注目点1（再入と発火順の回避策）もこれで解消 |
+| D26 | 発射台の段階は不変の段階型（`IdleStage`・`AwaitingBuildCommandStage`・`BuildingStage`（積荷＋残りtick）・`AwaitingLaunchCommandStage`（積荷）・`ReadyToLaunchStage`（積荷）・`LaunchingStage`（残りtick））で持ち、合わない組み合わせは段階型の ctor が例外で拒む。進行は部品の外殻 `RocketLaunchPadProcessorComponent` と段階の進行 `RocketLaunchPadLaunchSequence` に分け、どちらも200行以内 | ユーザー裁定 2026-10-23（質問「発射台の「段階」と、ある段階でしか意味を持たない残り時間・積んだ荷物を、段階ごとの型に分けますか？」→ 選択「段階ごとの型に分ける」。[[2026-10-23-発射台の段階は段階ごとの型で持つ]]）。外殻と進行の分け方は agent前提（前例 `Game.Block/Blocks/Machine/State/ProcessingMachineProcessState.cs`） |
+| D27 | 発射台の契約型（`IRocketLaunchPadComponent`・`RocketLaunchPadCommandResult`・`RocketLaunchPadSlotLayout`・`RocketLaunchSlotRequirement`・`RocketLaunchPadPhase`・`RocketLaunchPadWaitReason`・`RocketLaunchPadStateDetail`）を `Game.Block.Interface/Component/RocketLaunchPad/`・`State/RocketLaunchPad/` に置く。プロトコルは `IRocketLaunchPadComponent` を `TryGetComponent` で引き、クライアントは Game.Block の具象型を参照しない | ユーザー裁定 2026-10-23（D25 と同じ質問の「契約型をInterface層へ」）。置き場は agent前提（前例 `Game.Block.Interface/Component/CleanRoom/`・`IMachineRecipeSelectorComponent.cs`）。配置検査の注目点4（クライアントがサーバー型を生成）もこれで解消 |
+| D28 | 進み具合は生成側で0〜1に収める。ロード時、今の積荷表で打ち上げられない積荷（表に無い・個数が1便の正の整数倍でない・欠損マスタの刈り込みで空）は警告して捨てて待機へ戻し、不明な段階の値も警告して待機へ戻す。残り0以下は警告して1tickにし、負の「次に探す積荷」は `((x % n) + n) % n` で直す。ロードは止めない | ユーザー裁定 2026-10-23（D25 と同じ質問の「進み具合と読込時のガード」）。配置検査の注目点7（刈り込みで積荷が空になりロードが止まる）もこれで解消 |
+| D29 | スロットの並びは C# の `RocketLaunchPadSlotLayout` が計算した群ごとの絶対添字を DTO（`materialSlots`・`payloadSlots`・`outputSlots`）に載せ、TS では計算し直さない。スタック上限の判定は既存と同じく段数0のテーブルを見送る | ユーザー裁定 2026-10-23（D25 と同じ質問の「判定と導出の重複を消す」） |
+| D30 | 揃った積荷のうち、成果が出力口に入りきる最初の積荷を選ぶ。出力が満杯でも成果の無い積荷（グラフェンケーブル）は打ち上がる。どれも入りきらなければ `OutputFull`、揃った積荷が無ければ `MissingPayload` | agent前提（D2 と D6 の組み合わせ。巡回の先頭が入りきらないだけで、入りきる他の積荷まで止めないため） |
+| D31 | 発射台のインベントリは `ISortExcludedSlots` で全スロットを整理の対象から外す。インベントリのテストに「整理しても中身が動かない」を足す | agent前提（配置検査 #2。前例は役割が同じ `VanillaMachineBlockInventoryComponent.cs` で、機構だけ同じ `CleanRoomAirFilterInventoryComponent` ではない。外さないと `InventorySortService` が ItemId 順に詰め直し、専用スロットの中身が入れ替わって建造が止まる） |
+| D32 | 発射台のブロックのセーブは段階を int、残り時間を秒（`remainingSeconds`）で持ち、ロードで tick へ戻す | agent前提（配置検査 #3。前例 `CleanRoomMachineProcessorSaveJsonObject.cs` の `state`・`remainingSeconds`、`VanillaMachineProcessorComponent` の「tickを秒数に変換して保存」。`StringEnumConverter` はサーバーで未使用） |
+| D33 | 新しいファイルは10ファイルを超えたディレクトリの直下に置かない: プロトコルは `PacketResponse/Rocket/`、テスト共有ヘルパは `Tests/Util/Rocket/`（直下19件）。webui の公開型 `RocketLaunchPadData` は `payloadTypes.ts` だけで導出し、`schemas/rocketLaunchPad/index.ts` には schema だけを置く | agent前提（配置検査 #4・#6・注目点8。前例 `Tests/Util/EnergySystem/`、`payloadTypes.ts` L66「公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ」）。録画シナリオの置き場（#4 のもう1件）は末尾の「統合タスクへ引き継ぐマスタの中身」節で `scenarios/rocket/rocket-launch-pad.cs` にした |
+| D34 | 型・重複の検査の強1（`rocketLaunchPad` を `.optional()`＋superRefine で持つ）・強3（DTO の段階と待ち理由を文字列で載せる）・強4（`t()` の戻り値をそのまま表示する）は前例どおり変えない | シミュレーター予測（確信高・前提宣言で提示、拒否権の行使なし 2026-10-23）。前例: `BlockInventoryOpenSchema` の machine・generator・miner の `.optional()`、既存 DTO の `CurrentState`・`Mode`・`StopReason` の文字列、既存セクションの `t()`（キーは型付きの `L.*` で、欠けると型エラー） |
+| D35 | ADR 0088 の出所の「GPU衛星のレベル別の計算データ量」を「S1 から S2 へ委任」に直し、plan D12 と揃える（強5） | シミュレーター予測（確信高・前提宣言で提示、拒否権の行使なし 2026-10-23）。根拠: S1 からの連絡 2026-10-23「GPU の Lv が計算データにどう効くかは S2 で決めてください」 |
+| D36 | moorestech_master の中身（GPU・GPU衛星・計算データのアイテムと levelFamily・積荷表の行・発射台の blocks 行の値・ビルドメニュー「宇宙」・レシピ・研究・バランス）は、S1〜S3 の実装がそろってから統合タスク（bd `moorestech-xyuaf.2`）で1回にまとめて入れる。この PR の master の変更は、スキーマ変更と土台で読込が止まらない最小限（空配列と D14）だけ。旧 Task 9〜11 の中身は末尾の「統合タスクへ引き継ぐマスタの中身」節に下書きとして移した | ユーザー裁定 2026-10-23（原文「マスタはタスク全体の実装が終わった時に全体でまとめて入れるのが良いんじゃないの？どうせ他にもデッドロック的なタスクがあるんじゃないの？」→ 提案「S2 の PR はコード・スキーマ・テスト用データと、読み込みに必要な最小限の master 変更だけにし、master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」への回答「1 ok」。[[2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる]]） |
+| D37 | unityプレイ録画テストは統合タスクへ移す。この PR はサーバーの CombinedTest（テスト用マスタで建造→打ち上げ→成果→セーブ）・プロトコルテスト・web UI の vitest と wire 契約テストで確かめる。録画シナリオの下書きは末尾の節（`scenarios/rocket/rocket-launch-pad.cs`） | ユーザー裁定 2026-10-23（D36 と同じ提案の「master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」→「1 ok」） |
+| D38 | 計算データの研究ノードは解放アクション0件（`clearedActions: []`）で置ける | agent前提（実測 2026-10-23: `VanillaSchema/research.yml` の `clearedActions` は `ref: gameAction`（配列）で件数の下限が無く、`ResearchMasterUtil.ValidateGameActions` は空配列で何も弾かない。読み込まれる master の research.json に前例2件「フィルター分岐器」「機械オーバークロック」） |
+
+配置検査の注目点のうち、修正しなかったものの扱い（どれも agent前提）:
+- 注目点2: `IRocketLaunchHistory` は共有の `Game.Orbit` に置いたままにする。初打ち上げはワールドの打ち上げの記録で、ワールドセーブの復元（`Game.SaveLoad`）が既に `Game.Orbit` を参照するため。エレベーター拠点はこの状態を読まない（ADR 0088）。
+- 注目点3: `RocketLaunchHistoryJsonObject` で bool を1個包むのは、`WorldSaveRequiredFieldGuard` が節の欠損を null で検出して止めるため（素の bool だと欠損が false に化けて黙って通る）。
+- 注目点5: 既存マスタの発射台の行は `blockType` が空で `blockParam` も無い（シミュレーターの斥候が moorestech_master `blocks.json` で実測）ので、テスターのワールドに置かれた台は無く、ブロック状態の移行は要らない。
+- 注目点6: `Rocket.prefab`（`Vanilla/Block/Rocket`）を使う他のブロックは moorestech_master `server/mods/moorestechAlphaMod_3`（今のゲームが読まない旧 mod）の「ロケット」だけで、読み込まれる `server_v8/mods/moorestechAlphaMod_8` には無い（実測 2026-10-23。`grep -rn "Vanilla/Block/Rocket"`）。Task 7 Step 3 の冒頭で着手時にもう一度確かめる。
+- 注目点9: `ItemMasterUtil.cs` の行数は D22 のとおり本PR外の提案へ回す。
+- 注目点10: 発射台のスロット並びは `MasterHolder` の積荷表を直接読む。S3 の拠点が同じ読み方を複製するときは、`Game.Orbit` に入口を置くかを S3 の実装時に決める。
+- 注目点11: `OrbitServiceRegistration` は D11 の理由（`GameplayServiceRegistration.cs` が202行）で新設する。分け方の軸（役割別とドメイン別）が混ざることは受け入れる。
+
+---
+
+## 統合タスクへ引き継ぐマスタの中身（この plan では実施しない。bd moorestech-xyuaf.2 が使う）
+
+この節は統合タスク（bd `moorestech-xyuaf.2`）向けの下書きで、この plan の手順ではない。この plan を実行する SDD の実行者はこの節を実行しない（そのためチェックボックスを置かない）。入れる時期と範囲はユーザー裁定 D36（[[2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる]]）に従う。数値はどれも agent前提の仮値（D12）で、統合タスクのバランス確認で動かしてよい。ファイルはどれも moorestech_master `server_v8/mods/moorestechAlphaMod_8/master/` の下にある。GUID は Global Constraints の値を使う。
+
+### A. アイテム・levelFamily・積荷表（items.json）
+
+- `stackLevelTableGuid` が空だった7件への Default は、この plan の Task 1 で済ませてある。重ねて直さない。
+- GPU Lv1〜Lv5 の行と GPU の levelFamily は、S1 の GUID（Global Constraints「S1 の GPU」）で入れる。名前・画像・スタックテーブルは S1 の定義に従う。S1 が先に master へ入れていれば、重ねて足さない。levelFamily の形は `{ "familyGuid": "01a167ed-2700-7371-9f95-168966ff60bc", "name": <S1 の名前>, "baseItemGuid": "01a167ed-2703-7014-98e4-11bd15f38571", "levelItemGuids": [Lv1〜Lv5 の GUID] }`。
+- 計算データ `01a167cf-af88-74d3-9cd6-7d61b71052bb` と GPU衛星Lv1〜Lv5 の行を足す。`stackLevelTableGuid` は Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa` にする。`sortPriority` はロケット燃料の後ろに置く。`imagePath`・`recipeViewType`・`initialUnlocked` はロケット燃料の行と同じ形にする。名前は「計算データ」「GPU衛星Lv1」〜「GPU衛星Lv5」で、録画シナリオもこの名前で引く。
+- GPU衛星の levelFamily:
+  ```json
+  { "familyGuid": "01a167cf-af9a-78e5-9203-1c18ce94cdc6", "name": "GPU衛星", "baseItemGuid": "01a167cf-af8b-7894-8de6-593ee30289c0", "levelItemGuids": ["01a167cf-af8b-7894-8de6-593ee30289c0", "01a167cf-af8e-7e95-b299-09eb712bee12", "01a167cf-af91-7f62-93d1-e499b06f2398", "01a167cf-af94-7e25-9654-825374c3923b", "01a167cf-af97-7f67-bf53-7833b8d17a15"] }
+  ```
+- `orbitalPayloads` には GPU衛星 LvN ごとに1行、計5行を足す。どの行も `countPerLaunch: 1` で、`arrivalOutputs` は計算データ1種。数は Lv1 が10、Lv2 が20、Lv3 が40、Lv4 が80、Lv5 が160（D12）。Lv1 の行は次の形で、Lv2〜Lv5 は `payloadItemGuid` と `count` だけを変える:
+  ```json
+  { "payloadItemGuid": "01a167cf-af8b-7894-8de6-593ee30289c0", "countPerLaunch": 1, "arrivalOutputs": [{ "itemGuid": "01a167cf-af88-74d3-9cd6-7d61b71052bb", "count": 10 }] }
+  ```
+  1便ぶんの成果が空の出力口（`outputSlotCount`）に入りきるかは、マスタ読込時の検証が見る（ADR 0088）。値を変えたときは読込エラーが出ないことを確かめる。
+- S3 のグラフェンケーブルの行（1便N個・成果なし。N は S3 が決める）も同じ配列に入る。
+
+### B. 発射台（blocks.json）
+
+- ロケット発射台 `01a162b0-7769-7419-af24-bb35528b93d2` の行に次の値を入れる。`name`・`imagePath`・`initialUnlocked: false`・`placementsPerCost: 1` は今の値のまま残す。電力と建設費は仮値（D12）で、既存の最大要求電力が石油蒸留機の150なので、その上の200に置いた:
 ```json
 "blockType": "RocketLaunchPad",
 "category": "生産",
@@ -3303,86 +3399,60 @@ agent前提の目標（判断記録に書く）: 計算データのループ（�
   "connectionHeightRange": 20
 }
 ```
+- 配列の並びは、`requiredItems` が鋼鉄板・コンピュータ・制御モータ、`launchMaterials` がロケット筐体素材・ロケット燃料・コンピュータ。
+- `launchMaterials` の数は F のバランス確認の結果で下げてよい。
+- 入力は西辺と南辺の中央に、出力は東辺と北辺の中央に置いた。書式は化学プラントと EUV露光式半導体製造装置の `inventoryConnectors` に合わせてある。
+- `Vanilla/Block/Rocket` を使うほかのブロックは、読み込まれない旧 mod の「ロケット」だけ（注目点6）。入れる直前に `grep -rn "Block/Rocket\"" server_v8/mods` でもう一度確かめる。
 
-（鋼鉄板・コンピュータ・制御モータ、ロケット筐体素材・ロケット燃料・コンピュータの順。`launchMaterials` の数は Step 1 の結果で下げてよい。入力は西辺と南辺の中央、出力は東辺と北辺の中央。書式は化学プラント・EUV露光式半導体製造装置の `inventoryConnectors` と同じ。）
+### C. ビルドメニュー（buildMenu.json）
 
-- [ ] **Step 3: レシピと研究を書く**
+- 「生産」（`categoryGuid: d1000000-0000-4000-8000-000000000002`）の下、「半導体」の後ろに `{ "name": "宇宙", "entrySource": "blocks", "subCategoryGuid": "d2000000-0000-4000-8000-000200000005" }` を足す（D19）。発射台と S3 の宇宙エレベーター拠点がここに並ぶ。
 
-`machineRecipes.json` に2本（既存の電気汎用工作装置・化学プラントのレシピの書式を写す。流体入力の書式は化学プラントの既存レシピに合わせる）:
-- `01a167cf-afa0-7add-8407-eec71456f4f3`: 電気汎用工作装置、鋼鉄板×4＋プラスチック×2 → ロケット筐体素材×1、10秒
-- `01a167cf-afa3-7c4f-82b7-c0d4f6d513c6`: 化学プラント、ガソリン100＋固形燃料×2 → ロケット燃料×1、8秒
+### D. レシピ（machineRecipes.json）
 
-`research.json` に「ロケット技術」`01a167cf-af9d-7f31-817c-3069b4f6e499`:
-- `prevResearchNodeGuids: ["019e3ad9-46e2-73fd-9555-8c1d0245d26d"]`（半導体製造）
-- `consumeItems`: 鋼鉄板×1000・コンピュータ×300・ICチップLv1（`f6dd7835-0845-4877-87d0-b719d037ae7d`）×100（agent前提・S1待ち）
-- `clearedActions`: `unlockBlock`（発射台）、`unlockMachineRecipe`（上の2本）、`unlockItemRecipeView`（ロケット筐体素材・ロケット燃料・計算データ・GPU衛星Lv1〜Lv5）
-- `graphViewSettings.UIPosition` は半導体製造（4080, -200）の右隣、`IconItem` はロケット燃料
+- 書式は、既存の電気汎用工作装置と化学プラントのレシピに合わせる。流体を入れるレシピは、化学プラントの既存レシピの書式に合わせる。
+- `01a167cf-afa0-7add-8407-eec71456f4f3`: 電気汎用工作装置で、鋼鉄板×4＋プラスチック×2 → ロケット筐体素材×1、10秒。
+- `01a167cf-afa3-7c4f-82b7-c0d4f6d513c6`: 化学プラントで、ガソリン100＋固形燃料×2 → ロケット燃料×1、8秒。
+- GPU衛星は通常のレシピを5本作る（D13）。各本は GPU LvN（S1 の GUID）＋鋼鉄板×10＋コンピュータ×5 → GPU衛星 LvN、電気汎用工作装置、30秒。GUID は統合タスクで5本ぶん採番する。
 
-「軌道エレベーターの建設」ノードは触らない（S3）。
+### E. 研究（research.json）
 
-- [ ] **Step 4: push しピンを向け、読込を確かめる**
+- 「ロケット技術」`01a167cf-af9d-7f31-817c-3069b4f6e499`:
+  - 前提ノード: 仮に「半導体製造」`019e3ad9-46e2-73fd-9555-8c1d0245d26d` を置く。GPU を解放する研究は S1 が決めるので、前提は S1 の結果に合わせて付け替える（[[2026-10-23-ロケットは独立研究にし計算データは半導体アップグレードと軌道エレベーターの両方で使う]] の補足）。
+  - `consumeItems`: 鋼鉄板×1000、コンピュータ×300、ICチップLv1（`f6dd7835-0845-4877-87d0-b719d037ae7d`）×100。どれも仮値で、S1 の Tier9 研究コストの裁定に合わせて直す。
+  - `clearedActions`:
+    - `unlockBlock`: 発射台
+    - `unlockMachineRecipe`: D の筐体素材・燃料の2本と、GPU衛星の5本
+    - `unlockItemRecipeView`: ロケット筐体素材・ロケット燃料・計算データ・GPU衛星Lv1〜Lv5
+  - 置き場: `graphViewSettings.UIPosition` は前提ノード（半導体製造なら (4080, -200)）の右隣にする。`IconItem` はロケット燃料にする。
+- 「半導体のアップグレード研究」（[[2026-10-23-計算データの研究ノードはS2が先に作り解放先はS1のモジュールが入ってから足す]]）:
+  - `consumeItems` に計算データを入れる。数は F で決める。
+  - 前提ノードは「ロケット技術」にする。
+  - `clearedActions` は S1 の上位モジュールのレシピを `unlockMachineRecipe` で解放する。統合時に S1 の上位モジュールの行がまだ無ければ `clearedActions: []` で置き（D38）、行が入った時点で足す。
+- 「軌道エレベーターの建設」の変更は S3 が中身を決める（D20）。発射台・筐体素材・燃料の解放を外し、計算データを消費に足す。
 
-```bash
-MASTER_WT=../../moorestech_master/tier9-compute-data-loop
-git -C "$MASTER_WT" add server_v8/mods/moorestechAlphaMod_8/master
-git -C "$MASTER_WT" commit -m "data(v8): ロケット発射台・ロケット筐体素材と燃料のレシピ・ロケット技術を足す"
-git -C "$MASTER_WT" push origin feat/tier9-compute-data-loop
-git -C "$MASTER_WT" rev-parse HEAD
-```
+### F. バランス
 
-本repoの `.moorestech-external-revisions.json` をそのハッシュへ向け、Editor でマスタを読み直して（RepositorySync がピンへ checkout する）Console に `[ItemMaster]` `[BlockMaster]` `MooresmasterLoaderException` が無いことを `uloop get-logs --project-path ./moorestech_client --log-type Error` で確かめる。
+- recipe-chain-machine-count スキルで量を決める。
+- 目標（agent前提）は次のとおり:
+  - 計算データのループ（打ち上げ→研究）に、Tier9 の15〜25時間のうち4〜6時間をかける。
+  - 発射台1台の1便は、建造120秒＋打ち上げ15秒。
+  - 1便の資材は、ロケット筐体素材20・ロケット燃料20・コンピュータ5。
+- 同スキルで「1便/135秒を1台で回すのに要る電気汎用工作装置・化学プラントの台数」を出す。上流（鋼鉄板・プラスチック・ガソリン・固形燃料）が既存の工場規模から外れないことも確かめる（作者メモ「それ以外の要素はそこまで変な工場建設は要求されないように」）。外れる場合は資材の数を下げる。
+- 結果の表は統合タスクの PR 本文に貼る。
 
-- [ ] **Step 5: コミットする**
+### G. push・ピン・読込の確認
 
-```bash
-git add .moorestech-external-revisions.json
-git commit -m "chore: マスタのピンをロケット発射台のデータへ向ける"
-```
+- master worktree で `server_v8/mods/moorestechAlphaMod_8/master` をコミットし、push してから `rev-parse HEAD` を取る。
+- 本repoの `.moorestech-external-revisions.json` をそのハッシュへ向ける。
+- Editor でマスタを読み直し（RepositorySync がピンへ checkout する）、`uloop get-logs --project-path ./moorestech_client --log-type Error` を見る。`[ItemMaster]`・`[BlockMaster]`・`MooresmasterLoaderException` が出ていないことを確かめる。
 
----
+### H. unityプレイ録画テスト（D37）
 
-### Task 10: S1待ちの判定（GPU衛星レシピ・半導体のアップグレード研究）
-
-**Files:**
-- Modify（条件付き）: moorestech_master `machineRecipes.json`・`research.json`
-- 記録: bd `moorestech-xyuaf.1.1`
-
-**Interfaces:**
-- Consumes: S1 の GPU アイテム（levelFamily）とレベル継承レシピの仕組み（`.decisions/2026-10-23-チップ製品のレベルは使ったチップのレベルを継承する.md`、S1 ブランチ `feat/tier9-cleanroom-playable`）
-- Produces: なし
-
-- [ ] **Step 1: S1 の到着を確かめる**
-
-```bash
-git fetch origin
-git log --oneline origin/master | head -20
-git grep -n "levelInherit\|InheritLevel\|継承" origin/master -- VanillaSchema | head
-MASTER_WT=../../moorestech_master/tier9-compute-data-loop
-git -C "$MASTER_WT" fetch origin
-git -C "$MASTER_WT" show origin/master:server_v8/mods/moorestechAlphaMod_8/master/items.json | grep -n "01a167ed-2700-7371-9f95-168966ff60bc\|01a167ed-2703-7014-98e4-11bd15f38571"
-git grep -n "gameActionType" origin/master -- VanillaSchema | head
-```
-
-- [ ] **Step 2: 分岐する**
-
-- **origin/master に GPU Lv1〜Lv5 の levelFamily と、レベル継承レシピのスキーマ・サーバー実装の両方がある場合:** GPU衛星のレシピ（GPU LvN（Global Constraints の S1 の GPU）＋鋼鉄板×10＋コンピュータ×5 → GPU衛星 LvN、電気汎用工作装置、30秒。入力と出力が別ファミリーでも1本で書ける S1 の継承レシピの書式に従う）を足し、継承の上限を研究で上げる仕組みがあれば「半導体のアップグレード研究」（計算データを consumeItems に持ち、モジュールの上位レベルの上限を上げる研究。段数と量は S1 の裁定値に従う）を足す。マスタを push しピンを更新、Task 9 Step 4 と同じ確認をしてコミットする。
-- **どちらかが無い場合:** 何も足さない。`bd note moorestech-xyuaf.1.1 "S2の実装時点（<日付>）で origin/master に <無かったもの> が無いため、GPU衛星レシピ／半導体のアップグレード研究は未投入。S1マージ後に足す"` を残し、PR本文の「S1待ち」節に同じ内容を書く（Task 13）。
-
----
-
-### Task 11: unityプレイ録画テスト
-
-**Files:**
-- Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/rocket-launch-pad.cs`
-
-**Interfaces:**
-- Consumes: Task 1〜9 の全成果、testid（Task 8）
-- Produces: 録画・スクショ・result.json
-
-- [ ] **Step 1: unity-playmode-recorded-playtest スキルを読み、シナリオを書く**
-
-`cleanroom-v2.cs`・`ui-place-then-open-machine.cs` の書式で:
-
+- シナリオは `.agents/skills/unity-playmode-recorded-playtest/scenarios/rocket/rocket-launch-pad.cs` に置く。`misc/` は直下が10ファイルを超えるため使わない（D33）。
+- 書式は `cleanroom-v2.cs`・`ui-place-then-open-machine.cs` に合わせる。
+- 段階の enum は `Game.Block.Interface.State`、外殻の `RocketLaunchPadProcessorComponent` は `Game.Block.Blocks.RocketLaunchPad` にある。
+- 発射の合図（`RequestLaunch`）は、段階を打ち上げ待ち（`ReadyToLaunch`）へ移すだけ。打ち上げるのは次の tick の進行である（D25）。
 ```csharp
 using System;
 using Client.Playtest;
@@ -3391,10 +3461,10 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Blocks.RocketLaunchPad;
-using Game.Block.Blocks.RocketLaunchPad.State;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
 using Game.EnergySystem;
 using Game.Fluid;
 using Game.Orbit;
@@ -3447,6 +3517,10 @@ return PlaytestRunner.Run("rocket-launch-pad", options, async p =>
     await p.UntilWebUiElement("rocket-launch-pad-launch", 180f);
     await p.Screenshot("04-awaiting-launch");
     await p.ClickWebUi("rocket-launch-pad-launch");
+
+    // 発射の合図は打ち上げ待ちへ移すだけで、次のtickの進行が打ち上げる
+    // The launch command only moves to ready-to-launch; the next tick's advance performs the launch
+    await p.Until(() => processor.Phase is RocketLaunchPadPhase.ReadyToLaunch or RocketLaunchPadPhase.Launching, 5f, "ready to launch");
     await p.Until(() => processor.Phase == RocketLaunchPadPhase.Launching, 5f, "launching");
     await p.WaitSeconds(5f);
     await p.Screenshot("05-rising");
@@ -3459,8 +3533,8 @@ return PlaytestRunner.Run("rocket-launch-pad", options, async p =>
     await p.Until(() => processor.Phase == RocketLaunchPadPhase.Idle, 20f, "launch finished");
     await p.Screenshot("06-output");
 
-    // 2便目は合図なしで建造が始まる
-    // The second launch starts building without commands
+    // 2便目は合図なしで建造が始まり、建造後は打ち上げ待ちを通って自動で打ち上がる
+    // The second launch builds without commands and launches automatically via ready-to-launch
     inventory.InsertItem(PlaytestItemOps.ResolveItemId("ロケット筐体素材"), 20);
     inventory.InsertItem(PlaytestItemOps.ResolveItemId("ロケット燃料"), 20);
     inventory.InsertItem(PlaytestItemOps.ResolveItemId("コンピュータ"), 5);
@@ -3477,111 +3551,12 @@ return PlaytestRunner.Run("rocket-launch-pad", options, async p =>
     }
 });
 ```
-
-（ブロック名・アイテム名はマスタの `name` と一致させる。照準・`PressInteract` の距離条件は `ui-place-then-open-machine.cs` を見て、10×10 の大きさでインタラクトが届く位置へワープする。建造120秒を待つのが長すぎれば、シナリオ側で台の `buildSeconds` を変えずに、開始前に `SendCommand` で時間を進める手段が DSL に無いことを確かめ、そのまま待つ。）
-
-- [ ] **Step 2: 実行する**
-
-Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/rocket-launch-pad.cs "$(cd ../../moorestech_master/tier9-compute-data-loop && pwd)"`
-Expected: result.json が success、全 Assert 通過。録画とスクショ7枚。`05-rising` でロケット本体が台より上にある、`01`〜`03` で本体が見えない、`04` で本体が見えることを画像で確かめる。
-
-- [ ] **Step 3: 録画を共有しコミットする**
-
-`share-put <録画のディレクトリ> -n rocket-launch-pad-playtest` で URL を得て PR 本文に貼る。
-
-```bash
-git add .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/rocket-launch-pad.cs
-git commit -m "test(playtest): ロケット発射台の初打ち上げと自動打ち上げの録画シナリオを足す"
-```
-
----
-
-### Task 12: moores-code-review による全ブランチレビュー
-
-- [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
-
-レビュー指摘の反映がソースの判定経路・条件式・その評価時点に触れたら、Task 11 の unityプレイ録画テストを反映後のバイナリで再実施してから完了とする。
-
----
-
-### Task 13: PR作成
-
-- [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
-
-- moorestech_master（`feat/tier9-compute-data-loop` → master）の PR も作り、moorestech の PR 本文から相互にリンクする。`.moorestech-external-revisions.json` のピンがその PR の head と一致していること。
-- PR 本文に入れる節: 概要／S3向けの口（`Game.Orbit` の API と GUID。`PreviewArrivalOutputs` を足したことと、拠点も成果が出力口に入りきるときだけ打ち上げる方式にすること）／S1待ち（Task 10 の結果）／バランス表（Task 9 Step 1）／録画の URL（Task 11）／セーブ版 6→7（S3 は 7→8）／仮値／本PR外のリファクタ提案。
-- 「仮値」の節: 計算データの成果（Lv1=10〜Lv5=160）・ロケット技術の研究コスト・1便の資材数・建造と打ち上げの秒数・電力は仮値で、計算データの消費先の研究が S1待ちのため量の妥当性はまだ測れないこと（判断記録 D12）。
-- 「本PR外のリファクタ提案」の節（plan のタスクにはしない。既存側／新設側／同じ役割と判断した根拠の順に書く）:
-  1. `Core.Master/Validator/ItemMasterUtil.cs` の `InitialLevelMaxStackValidation` ／新設の `OrbitalPayloadMasterValidator.ValidatePayloadItem`・`RocketLaunchPadParamValidator.FirstLevelStackOrNull` ／どれもアイテムのスタックテーブルの `StackCounts[0]` と個数を比べて読込時に弾く同じ判定。あわせて `ItemMasterUtil.cs` は本PRで246行になり200行を超えたままなので、検証のローカル関数群を `Validator/Item/` へ出す（前例 `Validator/Block/`）。
-  2. `Game.Block/Blocks/Machine/VanillaElectricMachineComponent.cs`（同形: `Miner/VanillaElectricMinerComponent.cs`・`Pump/ElectricPumpComponent.cs`・`CleanRoom/Machine/CleanRoomMachineComponent.cs`）／新設の `RocketLaunchPadElectricComponent` ／どれも処理部の要求電力を `RequestEnergy` に出し、要求×`PowerRate` を処理部の供給口へ渡すだけの同じ導出。
-- 全実装タスク完了＝完了ではない。PR未作成のまま終わるのはplan未完了である。
-
----
-
-## 判断記録（ADR）
-
-設計セッションの裁定:
-- `docs/adr/0088-orbital-arrival-service-shared-by-launch-sites.md`
-- `.decisions/2026-10-23-計算データはGPU衛星の打ち上げごとに一括で得る.md`
-- `.decisions/2026-10-23-GPU衛星はレベル別アイテムとして製造してから打ち上げる.md`
-- `.decisions/2026-10-23-ロケットの手動建造発射はワールドで最初の1回だけ.md`
-- `.decisions/2026-10-23-ロケットは打ち上げごとに筐体素材燃料コンピュータペイロードを消費する.md`
-- `.decisions/2026-10-23-発射台は届いた積荷で打ち上げ内容を自動で選ぶ.md`
-- `.decisions/2026-10-23-ロケットは独立研究にし計算データは半導体アップグレードと軌道エレベーターの両方で使う.md`
-- `.decisions/2026-10-23-半導体のアップグレード研究は計算データでモジュールの上位を解放する.md`
-- `.decisions/2026-10-23-発射台は電力を使い時間をかけてロケットを建造する.md`
-- `.decisions/2026-10-23-発射台は既存Rocketモデルを使いロケット本体だけを上昇させる.md`
-- `.decisions/2026-10-23-計算データは打ち上げた設備の出力口に出す.md`
-- `.decisions/2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める.md`
-- `.decisions/2026-10-23-発射台の段階は段階ごとの型で持つ.md`
-- `.decisions/2026-10-23-発射台の型検査の弱い指摘は4件とも直す.md`
-- 用語: `CONTEXT.md`「ロケットと計算データ」
-
-planning 中の判断:
-
-| # | 判断 | 出所 |
-|---|---|---|
-| D1 | 積荷表は items.yml のトップレベル配列（新規トップレベルスキーマを作らない） | agent前提（edit-schema スキルの規約） |
-| D2 | 成果が出力口に入りきるかを、建造を始める前と打ち上げる直前に確かめ、入りきらなければ待たせて理由（`OutputFull`）を出す。打ち上げ後に成果を預かる保留は作らない。`IOrbitalArrivalService` に成果を先に知る `PreviewArrivalOutputs` を足し、S3 の拠点も同じ方式にする（S3 へ 2026-10-23 連絡済み）。積荷ごとの1便ぶんの成果がレベル1のスタック上限で数えて `outputSlotCount` 以下であることをマスタ検証で強制する（満たさない積荷は空の出力口でも永遠に待つため） | ユーザー裁定 2026-10-23（質問「発射台の出力口が満杯のとき、どこで待たせますか？」→ 選択「入りきる時だけ建造開始」。棄却: 「打ち上げ後に預かって止める」。[[2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める]]）。マスタ検証は agent前提（帰結） |
-| D3 | 軌道到着は打ち上げ開始の時点。昇っている `launchSeconds` の間は次の便を建造しない | agent前提（CONTEXT.md「軌道到着」） |
-| D4 | 資材・積荷は建造開始で取り込む。撤去時は建造中・発射の合図待ち・打ち上げ待ちの中身を返し、打ち上げ後は返さない | agent前提（`.decisions/…4つとも毎回消費` の「打ち上げごとに消費」を建造開始＝取り込み時点と解釈） |
-| D5 | 積荷1種につき入れ口1スロット。1便の個数はレベル1のスタック上限以下をマスタ検証で強制（S3 のケーブルは専用スタックテーブルで1000本/便） | agent前提（S3 合意 2026-10-23） |
-| D6 | 揃った積荷が複数あるときは前回の次から順に選ぶ（積荷表の並び順の巡回） | agent前提（同点選択。どれを選んでも1便の消費・成果は表で同型に決まるため、偏りの防止だけを目的に巡回にする） |
-| D7 | 電力は建造中だけ要求し、供給は機械と同じく加算→次の Update で使い切る | agent前提（`VanillaMachineProcessorComponent.SupplyExternalPower` の前例） |
-| D8 | 状態は段階・待ち理由が変わったときと、建造中・打ち上げ中は毎tick流す | agent前提（`VanillaMachineProcessorComponent.Update` の前例） |
-| D9 | 初打ち上げの通知（`OnFirstLaunch` の購読）は合図待ちの段階を移すだけにする（建造の合図待ち→待機、発射の合図待ち→打ち上げ待ち）。建造と打ち上げは各台の次の Update が行う。ロード時に初打ち上げ済みなら同じ移し替えをする | ユーザー裁定 2026-10-23（D25）。購読は agent前提（AGENTS.md「状態変化の検知は購読で」） |
-| D10 | 入れ口のセーブはアイテム単位、出力口は並び。マスタ変更で置き場が無くなった品は警告して捨てる | agent前提（テスターのワールドがマスタ更新を跨ぐため。保留を作らない裁定 D2 の帰結で、無効データは消す既存の流儀 `MissingMasterPruner` と同じ向き） |
-| D11 | `inventory.ts`（215行）は列車とベルト統計の schema を別ファイルへ移してから足す。`GameplayServiceRegistration.cs`（202行）には足さず `OrbitServiceRegistration` を新設。`WorldSaveDataRestorer.cs`（194行）は必須欠損の検査を `WorldSaveRequiredFieldGuard` へ移す | agent前提（AGENTS.md 200行規則） |
-| D12 | 計算データの成果 Lv1=10・Lv2=20・Lv3=40・Lv4=80・Lv5=160（倍々）。ロケット技術の研究コスト、1便の資材数、建造120秒・打ち上げ15秒も仮値 | agent前提（GPUのレベルが計算データへどう効くかは S2 が決める: S1 からの連絡 2026-10-23「GPU の Lv が計算データにどう効くかは S2 で決めてください」。倍々は S1 裁定「大部分のレベル1と少数のレベル2チップ程度でクリアできるようにしたい」の下で Lv1 だけでも研究が進み、上位ほど報われる形にするため。研究コストは S1 の Tier9 研究コストの裁定が出るまでの仮値） |
-| D13 | GPU衛星レシピと半導体のアップグレード研究は S1 の仕組みが origin/master にあるときだけ入れる | agent前提（依頼原文「GPU のアイテム定義とレベルの効き方は S1 が決める」・「S1 の領域のコードは変更しない」、S1 からの連絡 2026-10-23「GPU のアイテム定義とレシピは S1 が作ります」） |
-| D14 | マスタの `stackLevelTableGuid` が空の Tier9 アイテム7件へ Default を入れる | agent前提（`ItemMasterUtil.StackLevelTableValidation` で読込が止まるため。S3 の担当アイテムも含むが、値は S3 にも共有済み） |
-| D15 | Web UI の失敗コードは既存集合（`invalid_payload`・`block_not_open`・`invalid_state`）から選ぶ | agent前提（`ActionErrorCodeWireContractTest` の集合を広げない） |
-| D16 | unityプレイ録画テストを入れる（ランタイム挙動・UI・3D表示に触れるため） | agent前提（moores-writing-plans の録画テスト規則） |
-| D17 | Game.Orbit 一式と積荷表（スキーマ・全JSON・計算データとGPU衛星の行）を Task 1〜2 に置き、Task 2 の最後で両repoを push する。以後 force-push しない | agent前提（S3 からの依頼 2026-10-23「Game.Orbit 一式と orbitalPayloads のスキーマ／マスタ（GPU衛星行込み）を最初の実装タスクにし、できた時点で両 repo へ push」「その後もブランチは force-push しない」） |
-| D18 | `RemoveBlockProtocol` の返却を `IGetRefundItemsInfo` 全件の合算に直す。発射台の部品順は電線を進行より前に置き、修正前のコードでは返却が落ちることをテストで確かめる | agent前提（S3 からの指摘 2026-10-23。`RemoveBlockProtocol.cs:123` の `TryGetComponent` が先頭1件だけを読むことをコードで確認。原因: 推測（根拠: コード読解。未再現。Task 5 の撤去返却テストが修正前に落ちることで実測に変わる）） |
-| D19 | ビルドメニュー「生産」の下に「宇宙」（`d2000000-0000-4000-8000-000200000005`）を S2 が作り、発射台を置く。S3 は宇宙エレベーター拠点を同じ場所へ足す | agent前提（S3 からの提案 2026-10-23。既存の「半導体」サブカテゴリと同じ書式） |
-| D21 | `VanillaSchema/blocks.yml` に blockType `RocketLaunchPad` と case を足す。全キー必須（`optional` を使わず default だけ置く）で、`IInventoryConnectors`・`IElectricWireConnectParam` を実装させる | agent前提（edit-schema スキル・AGENTS.md「optional: true で吸収するのは設計の敗北」、前例 `CleanRoomMachine` の case） |
-| D22 | 積荷表の検証は `Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`（新設ディレクトリ）に置き、`ItemMasterUtil.Validate` の `errorLogs +=` 連鎖に1行足す（`ItemMaster.Validate` は委譲1行のまま。検証クラスは `internal` のまま、テストは `ItemMasterUtil.Validate` を呼ぶ）。`ItemMasterUtil.cs` は244→246行になるが、分割は範囲が広がるので Task 13 の「本PR外のリファクタ提案」に回す。発射台パラメータの検証は `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` に置き、`BlockMasterUtil.Validate` に1行足す。スタック上限の判定は既存の `InitialLevelMaxStackValidation` と同じく段数0のテーブルを見送る | agent前提（配置検査 #5: 全 Master の `Validate` は Util への委譲1行で、連鎖は Util 側。前例 `BlockMasterUtil.Validate`・`BeltSpeedPerSecondMasterTest.cs:57`）。段数0の見送りはユーザー裁定 D29 |
-| D23 | 発射台の組み立ては `Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs`（New/Load とも `Create` へ集める）に置き、`Game.Block/Factory/VanillaIBlockTemplates.cs` の `BlockTypesDictionary` へ登録する。サービスは `ServerContext.GetService<T>()` で取る | agent前提（前例 `VanillaCleanRoomAirFilterTemplate.cs`） |
-| D24 | 建造・発射の合図は1本のプロトコル `Server.Protocol/PacketResponse/Rocket/RocketLaunchPadCommandProtocol.cs`（直下は52ファイルのためサブディレクトリ。名前空間は `Server.Protocol.PacketResponse`）にする。操作の種類 `RocketLaunchPadCommandOperation` と通信の失敗理由 `RocketLaunchPadCommandFailureReason` はプロトコルにネストし、ドメインの結果 `RocketLaunchPadCommandResult` から `ToFailureReason` で写す。応答は `Success`＋`FailureReason`。部品は `IRocketLaunchPadComponent` で引くので asmdef の参照は足さない | agent前提（配置検査 #1・#4。前例 `MachineRecipeSelectionProtocol.cs`・`IMachineRecipeSelectorComponent.cs`・`PacketResponse/TrainStation/SetTrainStationNameProtocol.cs`、creating-server-protocol スキル「1プロトコル=1メソッド」） |
-| D20 | 「軌道エレベーターの建設」の研究ノードの変更（発射台・筐体素材・燃料の解放を外し、計算データを消費に足す）は S3 が行い、S2 は触らない | agent前提（ユーザー裁定 2026-10-23「ロケット独立＋両方で消費」の実施分担。ノードの持ち主は S3） |
-| D25 | 打ち上げを始める口は `RocketLaunchPadLaunchSequence.AdvanceReadyToLaunch` の1か所だけにする。発射の合図と初打ち上げの通知は段階を `ReadyToLaunchStage` へ移すだけ。別の台は自分の Update で同じtickか次のtickに打ち上がる（テスト4は「次のtickまでに打ち上がる」） | ユーザー裁定 2026-10-23（質問「型と重複の検査で出た弱い指摘のうち、どれを直しますか？」→ 選択「打ち上げ開始の口を1つに, 進み具合と読込時のガード, 判定と導出の重複を消す, 契約型をInterface層へ」。[[2026-10-23-発射台の型検査の弱い指摘は4件とも直す]]）。配置検査の注目点1（再入と発火順の回避策）もこれで解消 |
-| D26 | 発射台の段階は不変の段階型（`IdleStage`・`AwaitingBuildCommandStage`・`BuildingStage`（積荷＋残りtick）・`AwaitingLaunchCommandStage`（積荷）・`ReadyToLaunchStage`（積荷）・`LaunchingStage`（残りtick））で持ち、合わない組み合わせは段階型の ctor が例外で拒む。進行は部品の外殻 `RocketLaunchPadProcessorComponent` と段階の進行 `RocketLaunchPadLaunchSequence` に分け、どちらも200行以内 | ユーザー裁定 2026-10-23（質問「発射台の「段階」と、ある段階でしか意味を持たない残り時間・積んだ荷物を、段階ごとの型に分けますか？」→ 選択「段階ごとの型に分ける」。[[2026-10-23-発射台の段階は段階ごとの型で持つ]]）。外殻と進行の分け方は agent前提（前例 `Game.Block/Blocks/Machine/State/ProcessingMachineProcessState.cs`） |
-| D27 | 発射台の契約型（`IRocketLaunchPadComponent`・`RocketLaunchPadCommandResult`・`RocketLaunchPadSlotLayout`・`RocketLaunchSlotRequirement`・`RocketLaunchPadPhase`・`RocketLaunchPadWaitReason`・`RocketLaunchPadStateDetail`）を `Game.Block.Interface/Component/RocketLaunchPad/`・`State/RocketLaunchPad/` に置く。プロトコルは `IRocketLaunchPadComponent` を `TryGetComponent` で引き、クライアントは Game.Block の具象型を参照しない | ユーザー裁定 2026-10-23（D25 と同じ質問の「契約型をInterface層へ」）。置き場は agent前提（前例 `Game.Block.Interface/Component/CleanRoom/`・`IMachineRecipeSelectorComponent.cs`）。配置検査の注目点4（クライアントがサーバー型を生成）もこれで解消 |
-| D28 | 進み具合は生成側で0〜1に収める。ロード時、今の積荷表で打ち上げられない積荷（表に無い・個数が1便の正の整数倍でない・欠損マスタの刈り込みで空）は警告して捨てて待機へ戻し、不明な段階の値も警告して待機へ戻す。残り0以下は警告して1tickにし、負の「次に探す積荷」は `((x % n) + n) % n` で直す。ロードは止めない | ユーザー裁定 2026-10-23（D25 と同じ質問の「進み具合と読込時のガード」）。配置検査の注目点7（刈り込みで積荷が空になりロードが止まる）もこれで解消 |
-| D29 | スロットの並びは C# の `RocketLaunchPadSlotLayout` が計算した群ごとの絶対添字を DTO（`materialSlots`・`payloadSlots`・`outputSlots`）に載せ、TS では計算し直さない。スタック上限の判定は既存と同じく段数0のテーブルを見送る | ユーザー裁定 2026-10-23（D25 と同じ質問の「判定と導出の重複を消す」） |
-| D30 | 揃った積荷のうち、成果が出力口に入りきる最初の積荷を選ぶ。出力が満杯でも成果の無い積荷（グラフェンケーブル）は打ち上がる。どれも入りきらなければ `OutputFull`、揃った積荷が無ければ `MissingPayload` | agent前提（D2 と D6 の組み合わせ。巡回の先頭が入りきらないだけで、入りきる他の積荷まで止めないため） |
-| D31 | 発射台のインベントリは `ISortExcludedSlots` で全スロットを整理の対象から外す。インベントリのテストに「整理しても中身が動かない」を足す | agent前提（配置検査 #2。前例は役割が同じ `VanillaMachineBlockInventoryComponent.cs` で、機構だけ同じ `CleanRoomAirFilterInventoryComponent` ではない。外さないと `InventorySortService` が ItemId 順に詰め直し、専用スロットの中身が入れ替わって建造が止まる） |
-| D32 | 発射台のブロックのセーブは段階を int、残り時間を秒（`remainingSeconds`）で持ち、ロードで tick へ戻す | agent前提（配置検査 #3。前例 `CleanRoomMachineProcessorSaveJsonObject.cs` の `state`・`remainingSeconds`、`VanillaMachineProcessorComponent` の「tickを秒数に変換して保存」。`StringEnumConverter` はサーバーで未使用） |
-| D33 | 新しいファイルは10ファイルを超えたディレクトリの直下に置かない: プロトコルは `PacketResponse/Rocket/`、テスト共有ヘルパは `Tests/Util/Rocket/`（直下19件）。webui の公開型 `RocketLaunchPadData` は `payloadTypes.ts` だけで導出し、`schemas/rocketLaunchPad/index.ts` には schema だけを置く | agent前提（配置検査 #4・#6・注目点8。前例 `Tests/Util/EnergySystem/`、`payloadTypes.ts` L66「公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ」）。録画シナリオの置き場（#4 のもう1件）は保留中の Task 11 に含まれる |
-| D34 | 型・重複の検査の強1（`rocketLaunchPad` を `.optional()`＋superRefine で持つ）・強3（DTO の段階と待ち理由を文字列で載せる）・強4（`t()` の戻り値をそのまま表示する）は前例どおり変えない | シミュレーター予測（確信高・前提宣言で提示、拒否権の行使なし 2026-10-23）。前例: `BlockInventoryOpenSchema` の machine・generator・miner の `.optional()`、既存 DTO の `CurrentState`・`Mode`・`StopReason` の文字列、既存セクションの `t()`（キーは型付きの `L.*` で、欠けると型エラー） |
-| D35 | ADR 0088 の出所の「GPU衛星のレベル別の計算データ量」を「S1 から S2 へ委任」に直し、plan D12 と揃える（強5） | シミュレーター予測（確信高・前提宣言で提示、拒否権の行使なし 2026-10-23）。根拠: S1 からの連絡 2026-10-23「GPU の Lv が計算データにどう効くかは S2 で決めてください」 |
-
-配置検査の注目点のうち、修正しなかったものの扱い（どれも agent前提）:
-- 注目点2: `IRocketLaunchHistory` は共有の `Game.Orbit` に置いたままにする。初打ち上げはワールドの打ち上げの記録で、ワールドセーブの復元（`Game.SaveLoad`）が既に `Game.Orbit` を参照するため。エレベーター拠点はこの状態を読まない（ADR 0088）。
-- 注目点3: `RocketLaunchHistoryJsonObject` で bool を1個包むのは、`WorldSaveRequiredFieldGuard` が節の欠損を null で検出して止めるため（素の bool だと欠損が false に化けて黙って通る）。
-- 注目点5: 既存マスタの発射台の行は `blockType` が空で `blockParam` も無い（シミュレーターの斥候が moorestech_master `blocks.json` で実測）ので、テスターのワールドに置かれた台は無く、ブロック状態の移行は要らない。
-- 注目点6: `Rocket.prefab` を他のブロックが使っていないかは Task 7 Step 3 の冒頭で確かめる（未確認）。
-- 注目点9: `ItemMasterUtil.cs` の行数は D22 のとおり本PR外の提案へ回す。
-- 注目点10: 発射台のスロット並びは `MasterHolder` の積荷表を直接読む。S3 の拠点が同じ読み方を複製するときは、`Game.Orbit` に入口を置くかを S3 の実装時に決める。
-- 注目点11: `OrbitServiceRegistration` は D11 の理由（`GameplayServiceRegistration.cs` が202行）で新設する。分け方の軸（役割別とドメイン別）が混ざることは受け入れる。
+- 名前を合わせる: ブロック名とアイテム名は、マスタの `name` と一致させる。
+- ワープ位置: 照準と `PressInteract` の距離条件は `ui-place-then-open-machine.cs` で確かめ、10×10 の台にインタラクトが届く位置へワープする。
+- 建造120秒の待ち: 長すぎても、台の `buildSeconds` は変えない。DSL に時間を進める手段が無いことを確かめたうえで、そのまま待つ。
+- 実行: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/rocket/rocket-launch-pad.cs "$(cd ../../moorestech_master/<統合タスクの master worktree> && pwd)"`
+- 期待する結果: result.json が success で、全 Assert が通る。録画1本とスクショ7枚が出る。スクショは次の3点を画像で確かめる:
+  - `01`〜`03` では本体が見えない。
+  - `04` では本体が見える。
+  - `05-rising` ではロケット本体が台より上にある。
+- 共有: `share-put <録画のディレクトリ> -n rocket-launch-pad-playtest` で出た URL を、統合タスクの PR 本文に貼る。
