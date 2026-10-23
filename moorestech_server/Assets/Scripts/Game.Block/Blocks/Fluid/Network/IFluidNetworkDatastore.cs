@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Master;
+using Game.Fluid;
 using Game.Fluid.Simulation;
 using UnityEngine;
 
@@ -16,8 +17,8 @@ namespace Game.Block.Blocks.Fluid
         void RemovePipe(FluidPipeComponent pipe);
         void CollectOwnedFaceVelocities(FluidPipeComponent pipe, List<(Vector3Int direction, double velocity)> buffer);
 
-        // 機械がパイプへ入れてノードが受け入れた量を、そのtickの差分に残す
-        // Keep the amount a machine pushed into a pipe and the node accepted in this tick's diff
-        void RecordInflow(FluidPipeComponent pipe, FluidId fluidId, double acceptedAmount);
+        // 機械がパイプへ入れた量を網へ足し、受け入れた量をそのtickの差分に残す。受け入れられなかった残りを返す
+        // Add what a machine pushed into a pipe to the network, keep the accepted amount in this tick's diff, and return the remainder
+        FluidStack AddInflow(FluidPipeComponent pipe, FluidStack fluidStack);
     }
 }

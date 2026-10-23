@@ -82,26 +82,30 @@ namespace Game.Fluid.Simulation
             return NodeAmounts[node] / NodeCapacities[node];
         }
 
-        // 境界(機械のpush等)からの流入。流体ID整合と空き容量でクランプし、受け取れなかった残りを返す
-        // External inflow from boundaries (machine push etc.); clamp by fluid-id match and free capacity, return the remainder
-        public FluidStack AddExternal(int node, FluidStack fluidStack)
+        // 受け入れ規則の唯一の定義。異種流体は拒否(0)、空なら流体IDを引き継ぎ、空き容量でクランプした受け入れ量を返す。持ち越し中のパイプも同じ規則を使う
+        // The single definition of the acceptance rule: reject mismatched fluid (0), an empty holder adopts the incoming id, clamp by free capacity and return the accepted amount; unbuilt pipes use the same rule
+        public static double ResolveAcceptedAmount(double currentAmount, double capacity, FluidId currentFluidId, FluidStack incoming)
         {
-            if (fluidStack.Amount <= 0) return fluidStack;
+            if (incoming.Amount <= 0) return 0;
+            var hasFluid = FluidSimulationConstants.AmountEpsilon < currentAmount;
+            if (hasFluid && currentFluidId != incoming.FluidId) return 0;
+            return Math.Max(0, Math.Min(incoming.Amount, capacity - currentAmount));
+        }
 
-            // 異種流体は拒否(空ノードは受け入れて流体IDを引き継ぐ)
-            // Reject mismatched fluids; an empty node accepts and adopts the incoming id
-            var hasFluid = FluidSimulationConstants.AmountEpsilon < NodeAmounts[node];
-            if (hasFluid && NodeFluidIds[node] != fluidStack.FluidId) return fluidStack;
+        // 境界(機械のpush等)からの流入。受け入れ規則でクランプし、実際に足した量をacceptedで返す。差分にはこの値をそのまま記録する
+        // External inflow from boundaries (machine push etc.); clamped by the acceptance rule, with the amount actually added returned in accepted, which is what the diff must record
+        public FluidStack AddExternal(int node, FluidStack fluidStack, out double accepted)
+        {
+            accepted = ResolveAcceptedAmount(NodeAmounts[node], NodeCapacities[node], NodeFluidIds[node], fluidStack);
+            if (accepted <= 0) return fluidStack;
 
             // 要素ハッシュの差し替えは流体IDの書き換えより前の値から取る
             // The element-hash swap starts from the value before the fluid id is rewritten
             var before = FluidNetworkStateHash.NodeElement(node, NodeAmounts[node], NodeFluidIds[node].AsPrimitive());
-            if (!hasFluid) NodeFluidIds[node] = fluidStack.FluidId;
-
-            var accepted = Math.Min(fluidStack.Amount, NodeCapacities[node] - NodeAmounts[node]);
-            if (0 < accepted) NodeAmounts[node] += accepted;
+            if (!(FluidSimulationConstants.AmountEpsilon < NodeAmounts[node])) NodeFluidIds[node] = fluidStack.FluidId;
+            NodeAmounts[node] += accepted;
             ReplaceNodeElement(node, before);
-            return accepted <= 0 ? fluidStack : new FluidStack(fluidStack.Amount - accepted, fluidStack.FluidId);
+            return new FluidStack(fluidStack.Amount - accepted, fluidStack.FluidId);
         }
 
         // サーバーが受け入れ済みの量をそのまま足す(複製の差分再生)。容量確認はしない。空のノードは流体IDを引き継ぐ
@@ -135,9 +139,9 @@ namespace Game.Fluid.Simulation
             LastStateHash = hash;
         }
 
-        // 全走査でハッシュを求め直す。構築直後と、配列へ直接書いた後(テスト)に使う
-        // Recompute the hash with a full walk; used right after construction and after direct array writes (tests)
-        public void RecomputeStateHash()
+        // 全走査でハッシュを求め直す。構築直後に使う
+        // Recompute the hash with a full walk; used right after construction
+        private void RecomputeStateHash()
         {
             LastStateHash = FluidNetworkStateHash.Compute(this);
         }

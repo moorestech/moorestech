@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Fluid;
 using Game.Fluid.Simulation;
+using Game.Fluid.Sync.State;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -133,8 +134,7 @@ namespace Tests.UnitTest.Game
             var network = Chain(5, 0.5, true, true, (0, 100, TestFluidId), (3, 40, TestFluidId));
             Run(network, 50);
             var stepped = network.LastStateHash;
-            network.RecomputeStateHash();
-            Assert.AreEqual(stepped, network.LastStateHash);
+            Assert.AreEqual(stepped, FluidNetworkStateHash.Compute(network));
         }
 
         private static void Run(FluidSimNetwork network, int ticks)

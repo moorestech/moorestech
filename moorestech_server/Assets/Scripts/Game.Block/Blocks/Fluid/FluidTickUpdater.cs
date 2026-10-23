@@ -1,5 +1,4 @@
 using System;
-using Game.Fluid.Simulation;
 using Game.Fluid.Sync.Diff;
 using UniRx;
 
@@ -32,13 +31,9 @@ namespace Game.Block.Blocks.Fluid
 
         public void Update()
         {
-            // 網の全ノード・全面をリープフロッグ2フェーズで一括更新する。状態ハッシュは同じ走査で網に残る
-            // Advance every node and face of the network in one batched two-phase leapfrog step; the state hash lands on the network in the same walk
-            FluidSimulationStepper.Step(_fluidNetworkDatastore.Network, _fluidNetworkDatastore.Scratch);
-
-            // 各ポートが機械へ実際に渡した量をこのtickの差分へ残す
-            // Keep the amount each port actually handed to its machine in this tick's diff
-            _fluidNetworkDatastore.RecordDeliveries();
+            // 網全体を1tick進め、各ポートが機械へ渡した量も差分へ残す
+            // Advance the whole network one tick and keep what each port handed to its machine in the diff
+            _fluidNetworkDatastore.Step();
         }
 
         // 機械からパイプへの流入はブロック更新で起きるので、その後に差分を取り出して流す

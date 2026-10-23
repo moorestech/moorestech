@@ -75,7 +75,7 @@ namespace Tests.UnitTest.Game.Fluid.Sync
             Assert.IsTrue(replica.Tick(new FluidTickDiff(new[] { new FluidPortDeliveryRecord(0, 2) }, Array.Empty<FluidNodeInflowRecord>())));
 
             Assert.AreEqual(28, replica.Network.NodeAmounts[1], 1e-9);
-            Assert.AreEqual(2, replica.Ports[0].Velocity, 1e-9, "the port velocity converges onto the settled amount");
+            Assert.AreEqual(2, replica.Network.Ports[0].Velocity, 1e-9, "the port velocity converges onto the settled amount");
         }
 
         private static FluidNetworkFullState TwoNodesWithOnePort()

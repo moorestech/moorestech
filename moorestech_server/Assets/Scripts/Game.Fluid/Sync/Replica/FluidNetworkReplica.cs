@@ -8,16 +8,16 @@ namespace Game.Fluid.Sync.Replica
     // A replica of the fluid network assembled from the full state without a world; the client ticks it and feeds boundary exchanges from diffs
     public sealed class FluidNetworkReplica
     {
-        // 網はサーバーと同じ型。ポートだけ複製用の実装で、同じ配列を網の Ports としても持つ
-        // The network is the same type as the server's; only the ports are replica implementations, held both here and as the network's Ports
+        // 網はサーバーと同じ型。ポートだけ複製用の実装で、同じ配列を網の Ports としても持つ(読み出しは Network.Ports 経由)
+        // The network is the same type as the server's; only the ports are replica implementations, held also as the network's Ports (read through Network.Ports)
         public readonly FluidSimNetwork Network;
-        public readonly FluidReplicaBoundaryPort[] Ports;
+        private readonly FluidReplicaBoundaryPort[] _ports;
         private readonly FluidSimulationScratch _scratch;
 
         public FluidNetworkReplica(FluidSimNetwork network, FluidReplicaBoundaryPort[] ports)
         {
             Network = network;
-            Ports = ports;
+            _ports = ports;
             _scratch = new FluidSimulationScratch(network);
         }
 
@@ -28,28 +28,28 @@ namespace Game.Fluid.Sync.Replica
 
         // サーバーと同じtickを再生する。渡した量を予告してから1tick進め、その後の流入を同じ順で足す
         // Replays the same tick as the server: announce the deliveries, advance one tick, then add the inflows in the same order
-        // 範囲外の番号・試みの無い予告・空でないノードへの異種流体は複製がサーバーと食い違った印。falseを返し、呼び出し側が停止を決める
-        // An out-of-range index, an announcement never attempted, or a different fluid into a non-empty node marks the replica as diverged; returns false and the caller decides to stop
+        // 範囲外の番号・試みの無い(または予告より少ない)予告・空でないノードへの異種流体は複製がサーバーと食い違った印。falseを返し、呼び出し側が停止を決める
+        // An out-of-range index, an announcement never attempted or larger than the attempt, or a different fluid into a non-empty node marks the replica as diverged; returns false and the caller decides to stop
         public bool Tick(FluidTickDiff diff)
         {
             var consistent = true;
             foreach (var delivery in diff.Deliveries)
             {
-                if (0 <= delivery.PortIndex && delivery.PortIndex < Ports.Length)
+                if (0 <= delivery.PortIndex && delivery.PortIndex < _ports.Length)
                 {
-                    Ports[delivery.PortIndex].AnnounceDelivery(delivery.DeliveredAmount);
+                    _ports[delivery.PortIndex].AnnounceDelivery(delivery.DeliveredAmount);
                     continue;
                 }
-                Debug.LogError($"[FluidNetwork] replica got a delivery for port {delivery.PortIndex} (ports: {Ports.Length}); the replica has diverged from the server.");
+                Debug.LogError($"[FluidNetwork] replica got a delivery for port {delivery.PortIndex} (ports: {_ports.Length}); the replica has diverged from the server.");
                 consistent = false;
             }
 
             FluidSimulationStepper.Step(Network, _scratch);
 
-            for (var i = 0; i < Ports.Length; i++)
+            for (var i = 0; i < _ports.Length; i++)
             {
-                if (!Ports[i].ClearAnnouncement()) continue;
-                Debug.LogError($"[FluidNetwork] replica never attempted the delivery the server made at port {i}; the replica has diverged from the server.");
+                if (!_ports[i].ClearAnnouncement()) continue;
+                Debug.LogError($"[FluidNetwork] replica never attempted, or attempted less than, the delivery the server made at port {i}; the replica has diverged from the server.");
                 consistent = false;
             }
 
@@ -59,26 +59,30 @@ namespace Game.Fluid.Sync.Replica
                 consistent = false;
             }
             return consistent;
-        }
 
-        private bool TryApplyInflow(FluidNodeInflowRecord inflow)
-        {
-            if (inflow.NodeIndex < 0 || Network.NodeCount <= inflow.NodeIndex)
+            #region Internal
+
+            bool TryApplyInflow(FluidNodeInflowRecord inflow)
             {
-                Debug.LogError($"[FluidNetwork] replica got an inflow for node {inflow.NodeIndex} (nodes: {Network.NodeCount}); the replica has diverged from the server.");
-                return false;
+                if (inflow.NodeIndex < 0 || Network.NodeCount <= inflow.NodeIndex)
+                {
+                    Debug.LogError($"[FluidNetwork] replica got an inflow for node {inflow.NodeIndex} (nodes: {Network.NodeCount}); the replica has diverged from the server.");
+                    return false;
+                }
+
+                // サーバーが受け入れた量なので容量確認はしない。中身のある異種流体だけはサーバーが受け入れない組み合わせなので食い違いとして報告する
+                // The amount was accepted by the server, so no capacity check; only a different fluid into a non-empty node is a combination the server never accepts, hence a divergence
+                var hasFluid = FluidSimulationConstants.AmountEpsilon < Network.NodeAmounts[inflow.NodeIndex];
+                if (hasFluid && Network.NodeFluidIds[inflow.NodeIndex] != inflow.FluidId)
+                {
+                    Debug.LogError($"[FluidNetwork] replica node {inflow.NodeIndex} holds fluid {Network.NodeFluidIds[inflow.NodeIndex]} but the server accepted {inflow.FluidId}; the replica has diverged from the server.");
+                    return false;
+                }
+                Network.AddAccepted(inflow.NodeIndex, inflow.FluidId, inflow.AcceptedAmount);
+                return true;
             }
 
-            // サーバーが受け入れた量なので容量確認はしない。中身のある異種流体だけはサーバーが受け入れない組み合わせなので食い違いとして報告する
-            // The amount was accepted by the server, so no capacity check; only a different fluid into a non-empty node is a combination the server never accepts, hence a divergence
-            var hasFluid = FluidSimulationConstants.AmountEpsilon < Network.NodeAmounts[inflow.NodeIndex];
-            if (hasFluid && Network.NodeFluidIds[inflow.NodeIndex] != inflow.FluidId)
-            {
-                Debug.LogError($"[FluidNetwork] replica node {inflow.NodeIndex} holds fluid {Network.NodeFluidIds[inflow.NodeIndex]} but the server accepted {inflow.FluidId}; the replica has diverged from the server.");
-                return false;
-            }
-            Network.AddAccepted(inflow.NodeIndex, inflow.FluidId, inflow.AcceptedAmount);
-            return true;
+            #endregion
         }
     }
 }

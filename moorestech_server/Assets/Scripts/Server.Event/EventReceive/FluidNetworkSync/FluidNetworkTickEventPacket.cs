@@ -38,6 +38,16 @@ namespace Server.Event.EventReceive.FluidNetworkSync
         {
             _fluidTickUpdater.OnTickDiffPublished.Subscribe(OnTickDiffPublished);
             _fluidNetworkLookup.OnTopologyRebuilt.Subscribe(_ => OnTopologyRebuilt());
+
+            #region Internal
+
+            void OnTopologyRebuilt()
+            {
+                var message = new FluidNetworkFullStateMessagePack(_trainUpdateService.GetCurrentTick(), _trainUpdateService.NextTickSequenceId(), _fluidNetworkLookup.CaptureFullState());
+                _eventProtocolProvider.AddBroadcastEvent(RebuiltFullStateEventTag, MessagePackSerializer.Serialize(message));
+            }
+
+            #endregion
         }
 
         // 連番はそれぞれ1つ消費する。割り当てた連番は必ず送る(送らないと欠番になりクライアントが止まる)
@@ -46,12 +56,6 @@ namespace Server.Event.EventReceive.FluidNetworkSync
         {
             var message = new FluidNetworkTickDiffMessagePack(_trainUpdateService.GetCurrentTick(), _trainUpdateService.NextTickSequenceId(), diff);
             _eventProtocolProvider.AddBroadcastEvent(TickDiffEventTag, MessagePackSerializer.Serialize(message));
-        }
-
-        private void OnTopologyRebuilt()
-        {
-            var message = new FluidNetworkFullStateMessagePack(_trainUpdateService.GetCurrentTick(), _trainUpdateService.NextTickSequenceId(), _fluidNetworkLookup.CaptureFullState());
-            _eventProtocolProvider.AddBroadcastEvent(RebuiltFullStateEventTag, MessagePackSerializer.Serialize(message));
         }
     }
 }

@@ -80,7 +80,7 @@ namespace Client.Game.InGame.Train.Unit
         public void Tick()
         {
             var deltaTime = Time.deltaTime;
-            var arrivalRate = UpdateArrivalRate(deltaTime);
+            var arrivalRate = UpdateArrivalRate();
 
             // 目標の余裕は止まるたび広がり、止まらなければフレーム時間ぶんまで縮む
             // The target slack widens on each stall and shrinks back to one frame's worth otherwise
@@ -164,36 +164,40 @@ namespace Client.Game.InGame.Train.Unit
             // パイプの水位は流体の複製が進んだ回だけ、同じ順で押し込む
             // Pipe water levels are pushed in this same fixed order, only when the fluid replica advanced
             _fluidPipeWaterLevelPresenter.UpdateAll();
-        }
 
-        // 受信tickの到着ペース(tick/秒)を長い時定数で平滑化する。起動直後と長いフレームは名目値で数える
-        // Smooth the arrival pace of received ticks (ticks per second) with a long time constant; right after start and on long frames count the nominal pace
-        private double UpdateArrivalRate(float deltaTime)
-        {
-            _localcnt++;
-            _modifyTime *= 0.9991;
-            _modifyTick *= 0.9991;
-            if (_localcnt >= 20 && deltaTime < 0.5f)
-            {
-                _modifyTime += deltaTime;
-                _modifyTick += _tickState.GetMaxBufferedTicks() - _lastGetMaxBufferedTicks;
-                if (_modifyTime < 1e-5) _modifyTime = 1e-5;
-                return _modifyTick / _modifyTime;
-            }
-            _modifyTime += TickSeconds;
-            _modifyTick += 1.0;
-            return 1.0 / TickSeconds;
-        }
+            #region Internal
 
-        // 余裕が目標より多ければ速く、少なければ遅く進める。大きく遅れたときだけ見た目を捨てて追いつく
-        // Run faster when slack exceeds the target and slower when it falls short; only a large lag sacrifices the look to catch up
-        private static double ResolveSpeedFactor(double slackErrorTicks)
-        {
-            if (FastForwardLagTicks < slackErrorTicks)
+            // 受信tickの到着ペース(tick/秒)を長い時定数で平滑化する。起動直後と長いフレームは名目値で数える
+            // Smooth the arrival pace of received ticks (ticks per second) with a long time constant; right after start and on long frames count the nominal pace
+            double UpdateArrivalRate()
             {
-                return 1.0 + slackErrorTicks * SpeedGainPerTick;
+                _localcnt++;
+                _modifyTime *= 0.9991;
+                _modifyTick *= 0.9991;
+                if (20 <= _localcnt && deltaTime < 0.5f)
+                {
+                    _modifyTime += deltaTime;
+                    _modifyTick += _tickState.GetMaxBufferedTicks() - _lastGetMaxBufferedTicks;
+                    if (_modifyTime < 1e-5) _modifyTime = 1e-5;
+                    return _modifyTick / _modifyTime;
+                }
+                _modifyTime += TickSeconds;
+                _modifyTick += 1.0;
+                return 1.0 / TickSeconds;
             }
-            return Math.Clamp(1.0 + slackErrorTicks * SpeedGainPerTick, MinSpeedFactor, MaxSpeedFactor);
+
+            // 余裕が目標より多ければ速く、少なければ遅く進める。大きく遅れたときだけ見た目を捨てて追いつく
+            // Run faster when slack exceeds the target and slower when it falls short; only a large lag sacrifices the look to catch up
+            static double ResolveSpeedFactor(double slackErrorTicks)
+            {
+                if (FastForwardLagTicks < slackErrorTicks)
+                {
+                    return 1.0 + slackErrorTicks * SpeedGainPerTick;
+                }
+                return Math.Clamp(1.0 + slackErrorTicks * SpeedGainPerTick, MinSpeedFactor, MaxSpeedFactor);
+            }
+
+            #endregion
         }
     }
 }

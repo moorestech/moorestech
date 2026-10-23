@@ -64,15 +64,28 @@ namespace Game.Block.Blocks.Fluid
             _fluidNetworkDatastore.AddPipe(this);
         }
 
-        // 機械からの流入。網に入っていれば網の配列へ足し、受け入れた量だけをtick差分に残す。網に入る前は持ち越しへ同じ規則で足す
-        // Inflow from a machine; once built in, adds to the network arrays and records only the accepted amount in the tick diff; before that, adds to the holdover under the same rules
+        // 機械からの流入。網に入っていれば網へ足して受け入れた量を差分に残し、網に入る前は持ち越しへ同じ受け入れ規則で足す
+        // Inflow from a machine; once built in, adds to the network and records the accepted amount in the diff, before that, adds to the holdover under the same acceptance rule
         public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
-            if (NodeIndex < 0) return AddToHoldover(fluidStack);
-            var remainder = _fluidNetworkDatastore.Network.AddExternal(NodeIndex, fluidStack);
-            var accepted = fluidStack.Amount - remainder.Amount;
-            if (0 < accepted) _fluidNetworkDatastore.RecordInflow(this, fluidStack.FluidId, accepted);
-            return remainder;
+            if (0 <= NodeIndex) return _fluidNetworkDatastore.AddInflow(this, fluidStack);
+            return AddToHoldover();
+
+            #region Internal
+
+            FluidStack AddToHoldover()
+            {
+                var accepted = FluidSimNetwork.ResolveAcceptedAmount(_holdoverAmount, Capacity, _holdoverFluidId, fluidStack);
+                if (accepted <= 0) return fluidStack;
+
+                // 空の持ち越しは流体IDを引き継ぐ
+                // An empty holdover adopts the incoming fluid id
+                if (!(FluidSimulationConstants.AmountEpsilon < _holdoverAmount)) _holdoverFluidId = fluidStack.FluidId;
+                _holdoverAmount += accepted;
+                return new FluidStack(fluidStack.Amount - accepted, fluidStack.FluidId);
+            }
+
+            #endregion
         }
 
         // パイプは単一流体しか保持しないため、残量があれば1要素、無ければ空のリストを返す
@@ -119,22 +132,11 @@ namespace Game.Block.Blocks.Fluid
         public void Destroy()
         {
             _fluidNetworkDatastore.RemovePipe(this);
+
+            // 旧網の添字を持ち越さない。以後の読み書きは持ち越し(空)に落ちる
+            // Do not carry the old network's index; later reads and writes fall through to the (empty) holdover
+            NodeIndex = -1;
             IsDestroy = true;
-        }
-
-        // 網のノードと同じ受け入れ規則(異種流体は拒否、空なら流体IDを引き継ぐ、空き容量でクランプ)を持ち越しに適用する
-        // Applies the network node's acceptance rules (reject mismatched fluid, adopt the id when empty, clamp by free capacity) to the holdover
-        private FluidStack AddToHoldover(FluidStack fluidStack)
-        {
-            if (fluidStack.Amount <= 0) return fluidStack;
-            var hasFluid = FluidSimulationConstants.AmountEpsilon < _holdoverAmount;
-            if (hasFluid && _holdoverFluidId != fluidStack.FluidId) return fluidStack;
-            if (!hasFluid) _holdoverFluidId = fluidStack.FluidId;
-
-            var accepted = Math.Min(fluidStack.Amount, Capacity - _holdoverAmount);
-            if (accepted <= 0) return fluidStack;
-            _holdoverAmount += accepted;
-            return new FluidStack(fluidStack.Amount - accepted, fluidStack.FluidId);
         }
     }
 }

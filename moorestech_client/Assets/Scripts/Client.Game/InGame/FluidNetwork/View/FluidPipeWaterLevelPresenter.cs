@@ -44,20 +44,24 @@ namespace Client.Game.InGame.FluidNetwork.View
             {
                 var view = ResolveView(i, network.NodePositions[i]);
                 if (view == null) continue;
-                view.SetWaterLevel((float)(network.NodeAmounts[i] / network.NodeCapacities[i]));
+                view.SetWaterLevel((float)network.FillRate(i));
             }
-        }
 
-        // 撤去済みの表示はUnityのnull判定で外れ、同じ座標に置き直されたパイプは次の引き直しで新しい表示に繋がる
-        // A destroyed view drops out through Unity's null check, and a pipe re-placed at the same position binds to its new view on the next lookup
-        private FluidPipeWaterLevelView ResolveView(int nodeIndex, Vector3Int position)
-        {
-            var view = _viewsByNode[nodeIndex];
-            if (view != null) return view;
-            if (!_blockGameObjectDataStore.TryGetBlockGameObject(position, out var block)) return null;
-            view = block.GetComponentInChildren<FluidPipeWaterLevelView>(true);
-            _viewsByNode[nodeIndex] = view;
-            return view;
+            #region Internal
+
+            // 撤去済みの表示はUnityのnull判定で外れ、同じ座標に置き直されたパイプは次の引き直しで新しい表示に繋がる
+            // A destroyed view drops out through Unity's null check, and a pipe re-placed at the same position binds to its new view on the next lookup
+            FluidPipeWaterLevelView ResolveView(int nodeIndex, Vector3Int position)
+            {
+                var view = _viewsByNode[nodeIndex];
+                if (view != null) return view;
+                if (!_blockGameObjectDataStore.TryGetBlockGameObject(position, out var block)) return null;
+                view = block.GetComponentInChildren<FluidPipeWaterLevelView>(true);
+                _viewsByNode[nodeIndex] = view;
+                return view;
+            }
+
+            #endregion
         }
     }
 }

@@ -63,6 +63,22 @@ namespace Game.Train.RailGraph
             hash = AddVector3(hash, frontControlPoint);
             hash = AddVector3(hash, backControlPoint);
             return ElementHash.Finish(hash);
+
+            #region Internal
+
+            static uint AddConnectionDestination(uint current, ConnectionDestination destination)
+            {
+                if (destination.IsDefault()) return ElementHash.Add(current, -1);
+
+                var position = destination.blockPosition;
+                var hash = ElementHash.Add(current, position.x);
+                hash = ElementHash.Add(hash, position.y);
+                hash = ElementHash.Add(hash, position.z);
+                hash = ElementHash.Add(hash, destination.componentIndex);
+                return ElementHash.Add(hash, destination.IsFront);
+            }
+
+            #endregion
         }
 
         private static uint ConnectionElements(IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes, Func<int, int, Guid> resolveRailType, Func<int, int, bool> resolveRailDrawable)
@@ -104,18 +120,6 @@ namespace Game.Train.RailGraph
             var hash = ElementHash.Add(current, vector.x);
             hash = ElementHash.Add(hash, vector.y);
             return ElementHash.Add(hash, vector.z);
-        }
-
-        private static uint AddConnectionDestination(uint current, ConnectionDestination destination)
-        {
-            if (destination.IsDefault()) return ElementHash.Add(current, -1);
-
-            var position = destination.blockPosition;
-            var hash = ElementHash.Add(current, position.x);
-            hash = ElementHash.Add(hash, position.y);
-            hash = ElementHash.Add(hash, position.z);
-            hash = ElementHash.Add(hash, destination.componentIndex);
-            return ElementHash.Add(hash, destination.IsFront);
         }
     }
 }

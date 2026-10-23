@@ -15,6 +15,7 @@ namespace Game.Fluid.Sync.Replica
         // The amount the server delivered this tick; set by the diff replay and consumed by Deliver
         private double _announcedAmount;
         private bool _wasDeliverCalled;
+        private bool _wasAnnouncementAboveAttempt;
 
         public FluidReplicaBoundaryPort(int nodeIndex, double flowCapacityPerTick, double velocity)
         {
@@ -28,22 +29,24 @@ namespace Game.Fluid.Sync.Replica
             _announcedAmount = amount;
         }
 
-        // 複製側が試みた量から予告量を引いた残りを返す。予告が試みた量を超えていれば食い違いだが、ここでは量を切り詰めるだけで判定は呼び出し側が行う
-        // Return the attempted amount minus the announced one; an announcement above the attempt is a divergence, but this only clamps and leaves the judgement to the caller
+        // 複製側が試みた量から予告量を引いた残りを返す。予告が試みた量を超えていれば食い違いとして覚え、tick末尾のClearAnnouncementが報告する
+        // Return the attempted amount minus the announced one; an announcement above the attempt is remembered as a divergence and reported by ClearAnnouncement at tick end
         public FluidStack Deliver(FluidStack fluidStack)
         {
             _wasDeliverCalled = true;
+            if (fluidStack.Amount < _announcedAmount) _wasAnnouncementAboveAttempt = true;
             var remainder = Math.Max(0, fluidStack.Amount - _announcedAmount);
             return new FluidStack(remainder, fluidStack.FluidId);
         }
 
-        // tick末尾に予告を消し、サーバーが渡したのに複製では試みすら無かった不一致を返す
-        // Clear the announcement at tick end and report the mismatch where the server delivered but the replica never even attempted
+        // tick末尾に予告を消し、サーバーが渡したのに複製では試みが無い、または試みが予告より少ない不一致を返す
+        // Clear the announcement at tick end and report the mismatch where the server delivered but the replica never attempted or attempted less than announced
         public bool ClearAnnouncement()
         {
-            var unconsumed = 0 < _announcedAmount && !_wasDeliverCalled;
+            var unconsumed = (0 < _announcedAmount && !_wasDeliverCalled) || _wasAnnouncementAboveAttempt;
             _announcedAmount = 0;
             _wasDeliverCalled = false;
+            _wasAnnouncementAboveAttempt = false;
             return unconsumed;
         }
     }

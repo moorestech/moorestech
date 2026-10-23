@@ -61,8 +61,8 @@ namespace Game.Block.Blocks.Fluid
         {
             _faces.Sort((x, y) =>
             {
-                var compare = Compare(_positions[x.NodeA], _positions[y.NodeA]);
-                return compare != 0 ? compare : Compare(_positions[x.NodeB], _positions[y.NodeB]);
+                var compare = FluidNetworkDatastore.ComparePositions(_positions[x.NodeA], _positions[y.NodeA]);
+                return compare != 0 ? compare : FluidNetworkDatastore.ComparePositions(_positions[x.NodeB], _positions[y.NodeB]);
             });
             var faceA = new int[_faces.Count];
             var faceB = new int[_faces.Count];
@@ -81,13 +81,6 @@ namespace Game.Block.Blocks.Fluid
                 allowBToA[i] = face.AllowBToA;
             }
             return new FluidSimNetwork(_positions, _capacities, _amounts, _fluidIds, faceA, faceB, faceCaps, velocities, allowAToB, allowBToA, ports);
-        }
-
-        private static int Compare(Vector3Int x, Vector3Int y)
-        {
-            if (x.x != y.x) return x.x.CompareTo(y.x);
-            if (x.y != y.y) return x.y.CompareTo(y.y);
-            return x.z.CompareTo(y.z);
         }
 
         private struct FaceEntry

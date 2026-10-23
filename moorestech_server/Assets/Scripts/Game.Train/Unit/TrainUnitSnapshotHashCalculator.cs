@@ -22,63 +22,67 @@ namespace Game.Train.Unit
                 for (var i = 0; i < count; i++) sum += ElementHash.Finish(AddBundle(UnitSeed, bundles[i]));
                 return sum;
             }
-        }
 
-        private static uint AddBundle(uint current, TrainUnitSnapshotBundle bundle)
-        {
-            // 識別子→走行状態→車両→線路上の位置の順に取り込む
-            // Take in the identity, then the motion state, the cars and the rail position
-            var simulation = bundle.Simulation;
-            var hash = ElementHash.Add(current, simulation.TrainUnitInstanceId.AsPrimitive());
-            hash = ElementHash.Add(hash, simulation.CurrentSpeed);
-            hash = ElementHash.Add(hash, simulation.AccumulatedDistance);
-            hash = ElementHash.Add(hash, simulation.MasconLevel);
-            hash = ElementHash.Add(hash, simulation.ManualBranchSelectionIndex);
-            hash = AddCars(hash, simulation.Cars);
-            return AddRailPosition(hash, bundle.RailPositionSnapshot);
-        }
+            #region Internal
 
-        private static uint AddCars(uint current, IReadOnlyList<TrainCarSnapshot> cars)
-        {
-            if (cars == null || cars.Count == 0) return ElementHash.Add(current, -1);
-
-            var hash = ElementHash.Add(current, cars.Count);
-            for (var i = 0; i < cars.Count; i++)
+            static uint AddBundle(uint current, TrainUnitSnapshotBundle bundle)
             {
-                var car = cars[i];
-                hash = ElementHash.Add(hash, car.TrainCarInstanceId.AsPrimitive());
-                hash = ElementHash.Add(hash, car.TrainCarMasterId);
-                hash = ElementHash.Add(hash, car.IsFacingForward);
-                hash = ElementHash.Add(hash, car.Weight);
+                // 識別子→走行状態→車両→線路上の位置の順に取り込む
+                // Take in the identity, then the motion state, the cars and the rail position
+                var simulation = bundle.Simulation;
+                var hash = ElementHash.Add(current, simulation.TrainUnitInstanceId.AsPrimitive());
+                hash = ElementHash.Add(hash, simulation.CurrentSpeed);
+                hash = ElementHash.Add(hash, simulation.AccumulatedDistance);
+                hash = ElementHash.Add(hash, simulation.MasconLevel);
+                hash = ElementHash.Add(hash, simulation.ManualBranchSelectionIndex);
+                hash = AddCars(hash, simulation.Cars);
+                return AddRailPosition(hash, bundle.RailPositionSnapshot);
             }
-            return hash;
-        }
 
-        private static uint AddRailPosition(uint current, RailPositionSaveData saveData)
-        {
-            if (saveData == null) return ElementHash.Add(current, -1);
+            static uint AddCars(uint current, IReadOnlyList<TrainCarSnapshot> cars)
+            {
+                if (cars == null || cars.Count == 0) return ElementHash.Add(current, -1);
 
-            var hash = ElementHash.Add(current, saveData.TrainLength);
-            hash = ElementHash.Add(hash, saveData.DistanceToNextNode);
+                var hash = ElementHash.Add(current, cars.Count);
+                for (var i = 0; i < cars.Count; i++)
+                {
+                    var car = cars[i];
+                    hash = ElementHash.Add(hash, car.TrainCarInstanceId.AsPrimitive());
+                    hash = ElementHash.Add(hash, car.TrainCarMasterId);
+                    hash = ElementHash.Add(hash, car.IsFacingForward);
+                    hash = ElementHash.Add(hash, car.Weight);
+                }
+                return hash;
+            }
 
-            var nodes = saveData.RailSnapshot;
-            if (nodes == null || nodes.Count == 0) return ElementHash.Add(hash, -1);
+            static uint AddRailPosition(uint current, RailPositionSaveData saveData)
+            {
+                if (saveData == null) return ElementHash.Add(current, -1);
 
-            hash = ElementHash.Add(hash, nodes.Count);
-            for (var i = 0; i < nodes.Count; i++) hash = AddDestination(hash, nodes[i]);
-            return hash;
-        }
+                var hash = ElementHash.Add(current, saveData.TrainLength);
+                hash = ElementHash.Add(hash, saveData.DistanceToNextNode);
 
-        private static uint AddDestination(uint current, ConnectionDestination destination)
-        {
-            if (destination.IsDefault()) return ElementHash.Add(current, -1);
+                var nodes = saveData.RailSnapshot;
+                if (nodes == null || nodes.Count == 0) return ElementHash.Add(hash, -1);
 
-            var position = destination.blockPosition;
-            var hash = ElementHash.Add(current, position.x);
-            hash = ElementHash.Add(hash, position.y);
-            hash = ElementHash.Add(hash, position.z);
-            hash = ElementHash.Add(hash, destination.componentIndex);
-            return ElementHash.Add(hash, destination.IsFront);
+                hash = ElementHash.Add(hash, nodes.Count);
+                for (var i = 0; i < nodes.Count; i++) hash = AddDestination(hash, nodes[i]);
+                return hash;
+            }
+
+            static uint AddDestination(uint current, ConnectionDestination destination)
+            {
+                if (destination.IsDefault()) return ElementHash.Add(current, -1);
+
+                var position = destination.blockPosition;
+                var hash = ElementHash.Add(current, position.x);
+                hash = ElementHash.Add(hash, position.y);
+                hash = ElementHash.Add(hash, position.z);
+                hash = ElementHash.Add(hash, destination.componentIndex);
+                return ElementHash.Add(hash, destination.IsFront);
+            }
+
+            #endregion
         }
     }
 }

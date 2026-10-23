@@ -77,9 +77,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             Assert.Greater(emptyDiffs, 0, "empty diffs are sent");
             Assert.Greater(nonEmptyDiffs, 0, "machine handoffs are sent");
 
-            // 各tickは列車のdiff・ベルト差分・流体差分・列車のhashの4つ。ベルトの設置は流体網も汚すので、作り直したtickは両方の全量を足した6つで、欠番も重複も無い
-            // Each tick holds four ids (train diff, belt diff, fluid diff, train hash); placing a belt also dirties the fluid network, so a rebuilt tick holds six with both full states, with no gap or duplicate
-            Assert.AreEqual(TickCount - 1, AssertNoSequenceGaps(sequenceIdsByTick, rebuiltTicks, 2), "fully observed ticks");
+            // 各tickは列車のdiff・ベルト差分・流体差分・列車のhashの4つ。ベルトの設置は流体網を汚さない(流体の接続を持つブロックだけが汚す)ので、作り直したtickはベルトの全量だけを足した5つで、欠番も重複も無い
+            // Each tick holds four ids (train diff, belt diff, fluid diff, train hash); placing a belt does not dirty the fluid network (only blocks with fluid connections do), so a rebuilt tick holds five with only the belt full state, with no gap or duplicate
+            Assert.AreEqual(TickCount - 1, AssertNoSequenceGaps(sequenceIdsByTick, rebuiltTicks, 1), "fully observed ticks");
         }
 
         [Test]
