@@ -1,0 +1,71 @@
+using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
+using Core.Master;
+using Game.Context;
+using Mooresmaster.Model.ItemsModule;
+using UniRx;
+
+namespace Game.Orbit
+{
+    // 積荷表から打ち上げ成果を決め、軌道到着を流す
+    // Decides arrival outputs from the payload table and publishes orbital arrivals
+    public class OrbitalArrivalService : IOrbitalArrivalService
+    {
+        public IObservable<OrbitalArrival> OnOrbitalArrival => _onOrbitalArrival;
+
+        private readonly Subject<OrbitalArrival> _onOrbitalArrival = new();
+        private readonly Dictionary<ItemId, OrbitalPayloadMasterElement> _payloadByItemId = new();
+
+        public OrbitalArrivalService()
+        {
+            // 積荷表を積荷アイテムで引けるように索引する
+            // Index the payload table by payload item
+            foreach (var payload in MasterHolder.ItemMaster.Items.OrbitalPayloads)
+                _payloadByItemId.Add(MasterHolder.ItemMaster.GetItemId(payload.PayloadItemGuid), payload);
+        }
+
+        public bool IsOrbitalPayload(ItemId itemId)
+        {
+            return _payloadByItemId.ContainsKey(itemId);
+        }
+
+        public IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)
+        {
+            var payload = FindPayload();
+
+            // 成果は1便ぶん×便数。スタック上限を超える量は分割して返す
+            // Outputs are per-launch amounts times launches, split when above the stack limit
+            var launchCount = payloadCount / payload.CountPerLaunch;
+            var outputs = new List<IItemStack>();
+            foreach (var output in payload.ArrivalOutputs)
+            {
+                var outputItemId = MasterHolder.ItemMaster.GetItemId(output.ItemGuid);
+                outputs.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(outputItemId, output.Count * launchCount));
+            }
+            return outputs;
+
+            #region Internal
+
+            OrbitalPayloadMasterElement FindPayload()
+            {
+                if (!_payloadByItemId.TryGetValue(payloadItemId, out var found))
+                    throw new InvalidOperationException($"積荷表に無いアイテムの打ち上げ成果を求められました ItemId:{payloadItemId}");
+                if (payloadCount <= 0 || payloadCount % found.CountPerLaunch != 0)
+                    throw new ArgumentException($"積荷の個数が1便の個数の正の整数倍ではありません ItemId:{payloadItemId} Count:{payloadCount} CountPerLaunch:{found.CountPerLaunch}");
+                return found;
+            }
+
+            #endregion
+        }
+
+        public IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)
+        {
+            // 先に知らせた成果と同じものを返し、到着を流す
+            // Return the same outputs as the preview and publish the arrival
+            var outputs = PreviewArrivalOutputs(payloadItemId, payloadCount);
+            _onOrbitalArrival.OnNext(new OrbitalArrival(payloadItemId, payloadCount));
+            return outputs;
+        }
+    }
+}
