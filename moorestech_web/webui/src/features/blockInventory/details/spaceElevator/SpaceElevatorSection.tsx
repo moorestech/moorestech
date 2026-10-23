@@ -1,6 +1,6 @@
 import { Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
-import type { BlockInventoryOpen } from "@/bridge";
+import type { SpaceElevatorDetailState } from "./spaceElevatorDetailState";
 import { L, useI18n } from "@/shared/i18n";
 import { GaugeBar, PanelActionButton } from "@/shared/ui";
 import LackHighlightText from "../LackHighlightText";
@@ -8,11 +8,10 @@ import { spaceElevatorStatusDisplay } from "./spaceElevatorDisplay";
 
 // 接続状態・プール残量・昇降の進みと、未接続なら接続ボタンを出す。接続できるかはサーバーが status で渡す
 // Show the connection state, the pool amount and the climb progress, plus the connect button while unconnected; the server passes connectability in status
-export default function SpaceElevatorSection({ data }: { data: BlockInventoryOpen }) {
+export default function SpaceElevatorSection({ state }: { state: SpaceElevatorDetailState }) {
   const { t } = useI18n();
-  const detail = data.spaceElevator;
-  // silent-ok: 詳細未着は表示を保留する / C# DTOビルダーが未着を警告する
-  if (!detail) return null;
+  if (state.kind === "loading") return <Text size="sm" c="var(--text-muted)" data-testid="space-elevator-loading">{t(L.ui.blockInventory.detailLoading)}</Text>;
+  const detail = state.detail;
   const display = spaceElevatorStatusDisplay(detail.status);
   const canConnect = detail.status === "readyToConnect";
   const connect = () => {

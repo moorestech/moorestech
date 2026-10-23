@@ -46,16 +46,9 @@ namespace Game.Block.Blocks.PowerGenerator
 
         internal static void Restore(VanillaElectricGeneratorFuelService service, VanillaElectricGeneratorSaveJsonObject saveData)
         {
-            if (saveData == null) return;
+            VanillaElectricGeneratorFuelSaveValidation.Validate(service, saveData);
 
-            if (!string.IsNullOrEmpty(saveData.ActiveFuelType) && Enum.TryParse(saveData.ActiveFuelType, out VanillaElectricGeneratorFuelService.FuelType parsedType))
-            {
-                service._currentFuelType = parsedType;
-            }
-            else
-            {
-                service._currentFuelType = VanillaElectricGeneratorFuelService.FuelType.None;
-            }
+            service._currentFuelType = Enum.Parse<VanillaElectricGeneratorFuelService.FuelType>(saveData.ActiveFuelType);
 
             service._currentFuelItemId = saveData.CurrentFuelItemGuid.HasValue
                 ? MasterHolder.ItemMaster.GetItemId(saveData.CurrentFuelItemGuid.Value)

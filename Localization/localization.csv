@@ -432,3 +432,4 @@ ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until th
 ui.blockInventory.spaceElevatorSatelliteInput,GPU satellite input,GPU satellite input,GPU衛星の入口,GPU-Satelliten-Eingang,GPU 위성 입구
 ui.blockInventory.spaceElevatorResultOutput,Result output,Result output,成果の出口,Ergebnisausgang,결과 출구
 ui.blockInventory.spaceElevatorStatusInletBlocked,Remove the unsupported item from the inlet,Remove the unsupported item from the inlet,入口の運べないアイテムを取り出してください,Entferne den nicht transportierbaren Gegenstand aus dem Eingang,입구에서 운반할 수 없는 아이템을 꺼내세요
+ui.blockInventory.detailLoading,Waiting for status,Waiting for status,状態の取得を待っています,Warte auf Status,상태를 기다리는 중입니다

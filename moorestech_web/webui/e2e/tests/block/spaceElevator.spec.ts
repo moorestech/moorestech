@@ -82,3 +82,17 @@ for (const [outputIndex, count] of [[0, 4], [1, 7]] as const) {
     await expect(page.getByTestId("space-elevator-input-grid")).toHaveText("");
   });
 }
+
+// 未着を説明し、到着後だけ接続操作を有効にする
+// Explain pending details and enable connection only after they arrive
+test("詳細の取得待ちから接続可能へ遷移する", async ({ page }, testInfo) => {
+  await setBlock(page, "spaceElevatorLoading");
+  await page.goto("/");
+  await expect(page.getByTestId("space-elevator-loading")).toContainText("状態の取得を待っています");
+  await expect(page.getByTestId("space-elevator-connect")).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath("space-elevator-loading.png") });
+  await setBlock(page, "spaceElevator");
+  await expect(page.getByTestId("space-elevator-loading")).toHaveCount(0);
+  await expect(page.getByTestId("space-elevator-connect")).toBeEnabled();
+  await page.screenshot({ path: testInfo.outputPath("space-elevator-ready.png") });
+});

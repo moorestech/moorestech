@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using Core.Item.Interface;
+using System.Linq;
 using Core.Master;
 using Game.Context;
 using Game.Orbit;
@@ -43,12 +42,14 @@ namespace Game.SpaceElevator
 
             // 衛星1機の成果が空の出口にも入らないと、昇り切っても永遠に渡せない
             // If one satellite's result cannot fit even into empty outlets, the climber could never hand it over
-            // 1機の問い合わせは、countPerLaunch が1でない積荷を Preview 自身の整数倍検査で例外にする
-            // Previewing a single satellite throws via Preview's own multiple check when countPerLaunch is not one
             void ThrowIfResultNeverFits(string blockName, Guid payloadGuid, int outputSlotCount)
             {
-                var outputs = _orbitalArrivalService.PreviewArrivalOutputs(MasterHolder.ItemMaster.GetItemId(payloadGuid), 1);
-                var neededSlots = CountSlotsAtStackLevelOne(outputs);
+                var payload = MasterHolder.ItemMaster.Items.OrbitalPayloads.Single(row => row.PayloadItemGuid == payloadGuid);
+                if (payload.CountPerLaunch != 1) Fail($"宇宙エレベーター拠点 {blockName} の積荷 {payloadGuid} は1機ずつ運ぶため countPerLaunch が1である必要があります");
+                // 起動時はスタックを生成せず、表の数量から必要容量を求める
+                // At boot, calculate capacity from table counts without allocating stacks
+                var counts = payload.ArrivalOutputs.Select(output => (MasterHolder.ItemMaster.GetItemId(output.ItemGuid), output.Count));
+                var neededSlots = MasterHolder.ItemMaster.CountRequiredSlotsAtLevelOne(counts);
                 if (neededSlots <= outputSlotCount) return;
                 Fail($"宇宙エレベーター拠点 {blockName} の積荷 {payloadGuid} 1機の成果は出口 {neededSlots} スロットぶんあり、outputSlotCount {outputSlotCount} に入りません");
             }
@@ -59,28 +60,8 @@ namespace Game.SpaceElevator
                 throw new InvalidOperationException(reason);
             }
 
-            int CountSlotsAtStackLevelOne(IReadOnlyList<IItemStack> outputs)
-            {
-                var totals = new Dictionary<ItemId, int>();
-                foreach (var output in outputs) totals[output.Id] = totals.GetValueOrDefault(output.Id) + output.Count;
-
-                var slots = 0;
-                foreach (var pair in totals)
-                {
-                    var element = MasterHolder.ItemMaster.GetItemMaster(pair.Key);
-                    var stackAtLevelOne = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
-                    slots += (pair.Value + stackAtLevelOne - 1) / stackAtLevelOne;
-                }
-                return slots;
-            }
-
             #endregion
         }
-
-        // 成果をアイテムごとに合算し、スタック上限が最も低いレベル1で何スロット要るかを数える
-        // Sum the results per item and count the slots needed at stack level 1, the lowest stack limit
-        // スタック上限は研究で上がるだけなので、いちばん小さいレベル1で入れば実行時の今の上限でも必ず入る
-        // Stack limits only rise with research, so fitting at level one guarantees a fit at any runtime level
 
     }
 }

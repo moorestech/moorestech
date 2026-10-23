@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { applySpaceElevatorConnect } from "./detailActions";
-import type { BlockInventoryWireData } from "./types/blockInventoryWireData";
+import { applySpaceElevatorConnect } from "../detailActions";
+import type { BlockInventoryWireData } from "../types/blockInventoryWireData";
 
 function base(): Extract<BlockInventoryWireData, { open: true; source: "block" }> {
   return {

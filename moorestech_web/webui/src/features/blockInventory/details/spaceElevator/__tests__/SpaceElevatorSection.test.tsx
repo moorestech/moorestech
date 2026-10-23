@@ -18,6 +18,7 @@ vi.mock("@/bridge", async (original) => ({
 }));
 
 import { dispatchAction } from "@/bridge";
+import { toSpaceElevatorDetailState } from "../spaceElevatorDetailState";
 import SpaceElevatorSection from "../SpaceElevatorSection";
 import { spaceElevatorStatusDisplay } from "../spaceElevatorDisplay";
 
@@ -29,7 +30,7 @@ function renderSection(spaceElevator: SpaceElevatorData | undefined) {
     blockGuid: "99999999-9999-4999-8999-999999999999", itemSlots: [], fluidSlots: [], spaceElevator,
   };
   let tree!: ReturnType<typeof create>;
-  act(() => { tree = create(createElement(SpaceElevatorSection, { data })); });
+  act(() => { tree = create(createElement(SpaceElevatorSection, { state: toSpaceElevatorDetailState(data) })); });
   return tree;
 }
 const unconnected: SpaceElevatorData = { connected: false, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0, status: "insufficientCable" };
@@ -73,9 +74,10 @@ describe("SpaceElevatorSection", () => {
     expect(tree.root.findAllByProps({ "data-testid": "space-elevator-status" })[0].props.children).toContain(labelKey);
     act(() => { tree.unmount(); });
   });
-  it("詳細未着では空表示にする", () => {
+  it("詳細未着は取得待ちを表示し接続操作を作らない", () => {
     const tree = renderSection(undefined);
-    expect(tree.toJSON()).toBeNull();
+    expect(tree.root.findAllByProps({ "data-testid": "space-elevator-loading" })[0].props.children).toContain(L.ui.blockInventory.detailLoading);
+    expect(tree.root.findAllByType("button")).toHaveLength(0);
     act(() => { tree.unmount(); });
   });
 });

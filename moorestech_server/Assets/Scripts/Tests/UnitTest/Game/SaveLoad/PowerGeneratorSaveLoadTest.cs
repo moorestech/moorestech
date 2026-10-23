@@ -44,12 +44,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             var secondaryItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000002"));
             var fuelFluidId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("00000000-0000-0000-1234-000000000003"));
 
-            // テスト用の残り燃料tick数（567 tick）
-            // Test remaining fuel ticks (567 ticks)
-            const uint remainingFuelTicks = 567u;
+            // 実際の設定内に収まる燃焼途中の時間を保存する
+            // Save an in-progress duration within the actual configured fuel unit
+            var remainingFuelTicks = global::Core.Update.GameUpdater.SecondsToTicks(
+                ((ElectricGeneratorBlockParam)powerGeneratorBlock.BlockMasterElement.BlockParam).FuelItems[0].Time) / 2;
 
-            // プライベートフィールドを利用して燃料状態とインベントリを直接構築する
-            // Directly configure fuel state and inventory through private fields.
+            // 復元APIで燃焼状態を構築する
+            // Build combustion state through the restoration API.
             SetFuelState(powerGenerator, fuelItemId, remainingFuelTicks);
 
             // テスト用にアイテムを設定する際はイベントを発火させない（ブロックがまだWorldBlockDatastoreに登録されていないため）

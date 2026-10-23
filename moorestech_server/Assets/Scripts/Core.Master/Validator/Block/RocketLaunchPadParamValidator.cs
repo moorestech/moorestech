@@ -71,18 +71,10 @@ namespace Core.Master.Validator.Block
                 var result = "";
                 foreach (var payload in payloads)
                 {
-                    // 切り上げ前に広げ、整数上限の成果でも容量不足を検出する
-                    // Widen before ceiling division to detect over-capacity outputs even at the integer limit
-                    long stackCount = 0;
-                    foreach (var output in payload.ArrivalOutputs)
-                    {
-                        var outputItemId = MasterHolder.ItemMaster.GetItemIdOrNull(output.ItemGuid);
-                        var firstLevelStack = outputItemId == null ? null : FirstLevelStackOrNull(outputItemId.Value);
-
-                        // silent-ok: 未知の成果アイテムは積荷表の検証、段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
-                        if (firstLevelStack == null) continue;
-                        stackCount += ((long)output.Count + firstLevelStack.Value - 1) / firstLevelStack.Value;
-                    }
+                    // 数量の合算と切り上げはItemMasterの共通計算へ渡す
+                    // Delegate quantity aggregation and ceiling division to ItemMaster
+                    var counts = payload.ArrivalOutputs.Select(output => (MasterHolder.ItemMaster.GetItemId(output.ItemGuid), output.Count));
+                    var stackCount = MasterHolder.ItemMaster.CountRequiredSlotsAtLevelOne(counts);
                     if (param.OutputSlotCount < stackCount) result += $"[BlockMaster] {name} outputSlotCount {param.OutputSlotCount} cannot hold one launch of payload {payload.PayloadItemGuid} ({stackCount} stacks at level-1 stack)\n";
                 }
                 return result;

@@ -1,3 +1,4 @@
+using System;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -38,7 +39,7 @@ namespace Game.Block.Blocks.SpaceElevator
             if (!inventory.IsCarriedPayload(satellite.Id))
             {
                 Debug.LogError($"[SpaceElevatorBase] 昇降中の衛星 {satellite.Id} は今のマスタで運ぶ積荷ではないため、昇降を取り消して入口へ戻します");
-                inventory.ReturnSatelliteWithoutEvent(satellite);
+                if (!inventory.TryReturnSatelliteWithoutEvent(satellite)) throw new InvalidOperationException("Space elevator load failed: unsupported satellite cannot be returned; preserve the source save");
                 return (ServerContext.ItemStackFactory.CreatEmpty(), 0);
             }
 
@@ -47,7 +48,8 @@ namespace Game.Block.Blocks.SpaceElevator
             if (1 < satellite.Count)
             {
                 Debug.LogError($"[SpaceElevatorBase] 昇降中の衛星が {satellite.Count} 機セーブにあるため、1機だけ昇らせ残りを入口へ戻します");
-                inventory.ReturnSatelliteWithoutEvent(ServerContext.ItemStackFactory.Create(satellite.Id, satellite.Count - 1));
+                if (!inventory.TryReturnSatelliteWithoutEvent(ServerContext.ItemStackFactory.Create(satellite.Id, satellite.Count - 1)))
+                    throw new InvalidOperationException("Space elevator load failed: excess satellites cannot be returned; preserve the source save");
                 satellite = ServerContext.ItemStackFactory.Create(satellite.Id, 1);
             }
 

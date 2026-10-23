@@ -94,3 +94,7 @@ export const blockSpaceElevatorOutputBlocked = {
   itemSlots: [{ itemId: 0, count: 0 }, { itemId: 2, count: 100 }, { itemId: 2, count: 100 }],
   spaceElevator: { ...blockSpaceElevatorClimbing.spaceElevator, climbProgress: 1, status: "outputBlocked" },
 } satisfies BlockInventoryWireData;
+
+// 詳細未着をwireで省略する過渡状態
+// Transient wire state that omits the pending detail
+export const blockSpaceElevatorLoading = { ...blockSpaceElevator, spaceElevator: undefined } satisfies BlockInventoryWireData;

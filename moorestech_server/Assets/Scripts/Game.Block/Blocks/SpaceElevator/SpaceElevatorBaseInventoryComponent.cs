@@ -53,10 +53,7 @@ namespace Game.Block.Blocks.SpaceElevator
             // ロード時はまだワールドに登録されていないのでイベントを出さない
             // Loading does not fire events because the block is not registered in the world yet
             var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
-            for (var i = 0; i < _slotCount && i < itemJsons.Count; i++) _itemDataStoreService.SetItemWithoutEvent(i, itemJsons[i].ToItemStack());
-            // マスタで出口を減らすと超えた分は捨てる。黙って捨てずログに残す
-            // Reducing the outlets in the master drops the overflow; log it instead of dropping silently
-            if (_slotCount < itemJsons.Count) Debug.LogError($"[SpaceElevatorBase] セーブのスロット数 {itemJsons.Count} がマスタの {_slotCount} を超えるため、超えた分を捨てます BlockInstanceId:{blockInstanceId}");
+            SpaceElevatorInventoryRestorer.Restore(itemJsons, _itemDataStoreService, _slotCount, blockInstanceId);
         }
 
         internal bool IsCarriedPayload(ItemId itemId) { return _carriedPayloadIds.Contains(itemId); }
@@ -70,13 +67,18 @@ namespace Game.Block.Blocks.SpaceElevator
             if (stack.Count == 0) return SatelliteInletState.Empty;
             return IsCarriedPayload(stack.Id) ? SatelliteInletState.Carriable : SatelliteInletState.NotCarried;
         }
-        // ロードで取り消した昇降中の衛星を入口へ戻す。入らない分はエラーログを出して失う
-        // Return a satellite whose climb was cancelled on load to the inlet; anything that does not fit is logged and lost
-        internal void ReturnSatelliteWithoutEvent(IItemStack satellite)
+        // 全量が戻せるときだけ入口へ確定する
+        // Commit to the inlet only when the entire satellite stack fits
+        internal bool TryReturnSatelliteWithoutEvent(IItemStack satellite)
         {
             var result = _itemDataStoreService.GetItem(SatelliteSlot).AddItem(satellite);
+            if (0 < result.RemainderItemStack.Count)
+            {
+                Debug.LogError($"[SpaceElevatorBase] 入口に衛星を全量戻せないためロードを中断します item:{satellite.Id} count:{satellite.Count}");
+                return false;
+            }
             _itemDataStoreService.SetItemWithoutEvent(SatelliteSlot, result.ProcessResultItemStack);
-            if (0 < result.RemainderItemStack.Count) Debug.LogError($"[SpaceElevatorBase] 入口が埋まっていて衛星を戻せず失いました item:{satellite.Id} count:{result.RemainderItemStack.Count}");
+            return true;
         }
         // 収納確認から取り出しまでを在庫の所有者が完結する
         // The inventory owner checks capacity and takes the satellite together

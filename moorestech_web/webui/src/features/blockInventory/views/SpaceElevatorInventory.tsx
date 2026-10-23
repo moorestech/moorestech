@@ -4,6 +4,7 @@ import { L, useI18n } from "@/shared/i18n";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
 import { useBlockSlotGestures } from "../useBlockSlotGestures";
 import { ElectricNetworkSection } from "../details/NetworkSections";
+import { toSpaceElevatorDetailState } from "../details/spaceElevator/spaceElevatorDetailState";
 import SpaceElevatorSection from "../details/spaceElevator/SpaceElevatorSection";
 
 // 入出力を分けても、機械UIと同じく元のサーバースロットindexで操作する
@@ -38,7 +39,7 @@ export default function SpaceElevatorInventory({ data }: { data: BlockInventoryO
           </Stack>
         ))}
       </Stack>
-      <SpaceElevatorSection data={data} />
+      <SpaceElevatorSection state={toSpaceElevatorDetailState(data)} />
       <ElectricNetworkSection data={data} />
     </Stack>
   );

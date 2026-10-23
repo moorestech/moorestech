@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         }
 
         [Test]
-        public void セーブの超過スロットはログを出し範囲内の在庫を保つ()
+        public void セーブの非空超過スロットは原本を保ってロードを止める()
         {
             CreateServer();
             var block = PlaceBase(Vector3Int.zero);
@@ -69,14 +69,14 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             items[0] = new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 2));
             items.Add(new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1)));
 
-            // 今のマスタより多いスロットだけを切り落とす
-            // Truncate only the slots exceeding the current master
-            LogAssert.Expect(LogType.Error, new Regex("セーブのスロット数.*超えた分を捨てます"));
-            var loaded = new SpaceElevatorBaseInventoryComponent(new Dictionary<string, object> { { inventory.SaveKey, items } },
+            // 品物が残る末尾は切り捨てず明示ロード失敗にする
+            // Fail loading explicitly instead of truncating a nonempty tail
+            LogAssert.Expect(LogType.Error, new Regex("出口縮小.*ロードを中断"));
+            Assert.Throws<InvalidOperationException>(() => new SpaceElevatorBaseInventoryComponent(new Dictionary<string, object> { { inventory.SaveKey, items } },
                 block.BlockInstanceId, param, new ConnectingInventoryListPriorityInsertItemService(block.BlockInstanceId,
-                    block.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>()));
-            Assert.AreEqual(1 + param.OutputSlotCount, loaded.GetSlotSize());
-            Assert.AreEqual(2, loaded.GetItem(0).Count);
+                    block.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>())));
+            Assert.AreEqual(3, items.Count);
+            Assert.AreEqual(1, items[2].Count);
         }
 
         [Test]

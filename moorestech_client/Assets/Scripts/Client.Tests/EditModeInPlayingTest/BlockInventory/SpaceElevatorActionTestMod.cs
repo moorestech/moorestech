@@ -20,6 +20,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Directory.CreateDirectory(Path.GetDirectoryName(destination));
                 File.Copy(file, destination);
             }
+            // 描画用の元Modへ、対象ブロックとその依存定義を複製する
+            // Copy the tested block and its definitions into the original rendering mod
             var serverMaster = Path.GetFullPath(Path.Combine(Application.dataPath, "../../moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master"));
             var targetMaster = Directory.GetFiles(root, "blocks.json", SearchOption.AllDirectories).Single();
             var targetItemsPath = Path.Combine(Path.GetDirectoryName(targetMaster), "items.json");
@@ -30,11 +32,15 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             baseBlock["blockPrefabAddressablesPath"] = "Vanilla/Block/SpaceElevatorBase";
             var param = baseBlock["blockParam"];
             var required = ((JArray)param["carriedPayloadItemGuids"]).Select(g => (string)g).Append((string)param["cableItemGuid"]).ToHashSet();
+            // 積荷と成果の参照を先に集める
+            // Collect payload and output references before copying item definitions
             foreach (var payload in originalItems["orbitalPayloads"].Where(p => required.Contains((string)p["payloadItemGuid"])))
             {
                 ((JArray)items["orbitalPayloads"]).Add(payload.DeepClone());
                 foreach (var output in payload["arrivalOutputs"]) required.Add((string)output["itemGuid"]);
             }
+            // 追加品目が参照する容量表も実定義から解決する
+            // Resolve stack tables referenced by added items from their actual definitions
             foreach (var item in originalItems["data"].Where(i => required.Contains((string)i["itemGuid"])))
             {
                 ((JArray)items["data"]).Add(item.DeepClone());
@@ -42,6 +48,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 if (items["itemStackLevelTables"].Any(t => (string)t["tableGuid"] == tableGuid)) continue;
                 ((JArray)items["itemStackLevelTables"]).Add(originalItems["itemStackLevelTables"].Single(t => (string)t["tableGuid"] == tableGuid).DeepClone());
             }
+            // 有効なカテゴリを継承してテスト起動の検証を通す
+            // Reuse a valid category pair so the test boot passes validation
             var blocks = JObject.Parse(File.ReadAllText(targetMaster));
             baseBlock["category"] = blocks["data"][0]["category"].DeepClone();
             baseBlock["subCategory"] = blocks["data"][0]["subCategory"].DeepClone();

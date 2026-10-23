@@ -27,6 +27,11 @@ namespace Core.Master.Validator.Item
                 foreach (var count in table.StackCounts)
                     if (count < 1)
                         logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has invalid StackCount:{count} (must be >= 1)\n";
+                // 研究解放で容量が減る表は、起動時の容量保証を壊す
+                // A capacity decrease after research breaks boot-time capacity guarantees
+                for (var i = 1; i < table.StackCounts.Length; i++)
+                    if (table.StackCounts[i] < table.StackCounts[i - 1])
+                        logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} StackCounts must be nondecreasing: level {i} ({table.StackCounts[i - 1]}) to level {i + 1} ({table.StackCounts[i]})\n";
             }
             foreach (var item in items.Data)
                 if (!tableGuids.Contains(item.StackLevelTableGuid))
