@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Server.Boot.Composition
 {
-    // 宇宙エレベーターのプール・接続を登録する。起動時に購読を張るので具象型で登録する
+    // プールと接続を具象登録し起動時に購読
     // Registers the space elevator pool and connections by concrete type so their boot-time subscriptions run
     internal static class SpaceElevatorServiceRegistration
     {

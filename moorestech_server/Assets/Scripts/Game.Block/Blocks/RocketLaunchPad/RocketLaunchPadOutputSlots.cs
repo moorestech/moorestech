@@ -29,7 +29,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
         public bool TryCompleteArrival(ItemId itemId, int count, IOrbitalArrivalService arrivalService, out RocketLaunchPadWaitReason denyReason)
         {
-            // 通知より前に配置を決め、受理後に同じ配置を確定する
+            // 到着受理後に模擬配置を確定
             // Determine placement before notification and commit that placement after acceptance
             if (!TrySimulate(arrivalService.PreviewArrivalOutputs(itemId, count), out var simulated))
             {
@@ -50,6 +50,27 @@ namespace Game.Block.Blocks.RocketLaunchPad
             foreach (var output in outputs)
                 if (0 < FillInOrder(simulated, output).Count) return false;
             return true;
+
+            #region Internal
+            List<IItemStack> CopyOutputSlots()
+            {
+                var copy = new List<IItemStack>();
+                foreach (var slot in _layout.OutputSlots) copy.Add(_slots.GetItem(slot));
+                return copy;
+            }
+
+            // 同種枠を先に埋め別品目の空枠を残す
+            // Fill existing matching stacks before empty slots to preserve room for other items
+            IItemStack FillInOrder(List<IItemStack> slots, IItemStack item)
+            {
+                var order = new List<int>();
+                for (var i = 0; i < slots.Count; i++)
+                    if (slots[i].Id == item.Id) order.Add(i);
+                for (var i = 0; i < slots.Count; i++)
+                    if (slots[i].Count == 0) order.Add(i);
+                return InventoryInsertItem.InsertInOrder(item, slots, order);
+            }
+            #endregion
         }
 
         public void PushToConnected()
@@ -59,23 +80,5 @@ namespace Game.Block.Blocks.RocketLaunchPad
             BlockOutputTransfer.Transfer(_slots, _layout.OutputSlots, _beltOutput);
         }
 
-        private List<IItemStack> CopyOutputSlots()
-        {
-            var copy = new List<IItemStack>();
-            foreach (var slot in _layout.OutputSlots) copy.Add(_slots.GetItem(slot));
-            return copy;
-        }
-
-        // 同種スタックを埋めてから空枠を使い、別品目の場所を残す
-        // Fill existing matching stacks before empty slots to preserve room for other items
-        private static IItemStack FillInOrder(List<IItemStack> slots, IItemStack item)
-        {
-            var order = new List<int>();
-            for (var i = 0; i < slots.Count; i++)
-                if (slots[i].Id == item.Id) order.Add(i);
-            for (var i = 0; i < slots.Count; i++)
-                if (slots[i].Count == 0) order.Add(i);
-            return InventoryInsertItem.InsertInOrder(item, slots, order);
-        }
     }
 }

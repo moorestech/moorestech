@@ -86,7 +86,7 @@ namespace Client.Tests.Block
                 Assert.That(Vector3.Distance(rest, body.localPosition), Is.LessThan(0.0001f));
             }
             Apply(RocketLaunchPadPhase.Idle, 0);
-            // 途中受信・外挿後の遅延通知・先行補正を実経路で検証する
+            // 外挿後の遅延通知でも下降させない
             // Exercise mid-launch initialization, delayed notifications after extrapolation and forward correction
             Apply(RocketLaunchPadPhase.Launching, 0.5f);
             var middle = body.position;

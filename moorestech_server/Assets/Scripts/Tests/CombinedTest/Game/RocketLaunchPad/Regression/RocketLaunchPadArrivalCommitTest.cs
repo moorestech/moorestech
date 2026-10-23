@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
                 CollectionAssert.AreEqual(refunds, processor.GetRefundItems().Select(i => (i.Id, i.Count)));
             }
 
-            // 在庫変更なしで容量だけを解放し同便を一度だけ受理する
+            // 容量解放後に同便だけを受理
             // Free only pool capacity and accept the same cargo once without inventory changes
             var arrivalCount = 0;
             using var sub = ServerContext.GetService<IOrbitalArrivalService>().OnOrbitalArrival.Subscribe(_ =>
@@ -100,7 +100,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             }
             else processor.Update();
 
-            // 実撤去プロトコルを通し、未受理の資材とケーブルだけを返す
+            // 実撤去で未受理の積荷と資材を返す
             // Exercise real removal and refund only unaccepted materials and cables
             var inventory = services.GetRequiredService<IPlayerInventoryDataStore>().GetInventoryData(3).MainOpenableInventory;
             for (var i = 0; i < inventory.GetSlotSize(); i++) inventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());
@@ -131,7 +131,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             });
             processor.Update();
 
-            // 通知中の在庫変化を正常復帰時に消していないことを観測する
+            // 通知中に増えた世代の保持を検証
             // Observe that normal completion did not consume an inventory change made during notification
             var sequence = Field(processor, "_sequence");
             Assert.AreNotEqual(Field(sequence, "_waitGeneration"), Field(sequence, "_processedWaitGeneration"));

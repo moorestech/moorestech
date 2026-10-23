@@ -98,7 +98,7 @@ namespace Game.Block.Blocks.PowerGenerator
                         break;
                 }
 
-                // 消費済み燃料の寿命は保持し、復元可能範囲だけを検査する
+                // 残寿命を保ち復元可能範囲を検査
                 // Preserve consumed fuel lifetime and validate only the restorable range
                 if (seconds <= 0 || GameUpdater.TicksToSeconds(uint.MaxValue) < seconds) Fail($"remaining time is outside the restorable range:{seconds}");
 

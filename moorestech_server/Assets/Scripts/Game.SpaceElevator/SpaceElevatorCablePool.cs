@@ -32,7 +32,7 @@ namespace Game.SpaceElevator
 
         public void Load()
         {
-            // 拠点のマスタが数えるケーブルを集める。表との整合はマスタ読込時に検証済み
+            // ケーブル収集（整合は読込時に検証済み）
             // Collect the cable items base masters count; table consistency was validated during master loading
             _cableItemIds.UnionWith(SpaceElevatorBaseMasters.CableItemIds());
 

@@ -32,7 +32,7 @@ namespace Core.Master.Validator.Block
                 if (payload == null) return $"[BlockMaster] Name:{name} item {guid} is missing from orbitalPayloads\n";
                 if (!carried) return ""; // silent-ok: ケーブルは昇降機に積まない / carried側で単機容量を検証する
 
-                // 初期スタック容量を共有long計算し、プレビュー配列を作らない
+                // 初期容量はlong集計し配列を作らない
                 // Share the long initial-stack calculation without allocating preview arrays
                 var result = "";
                 if (payload.CountPerLaunch != 1) result += $"[BlockMaster] Name:{name} carried payload {guid} countPerLaunch must be 1\n";

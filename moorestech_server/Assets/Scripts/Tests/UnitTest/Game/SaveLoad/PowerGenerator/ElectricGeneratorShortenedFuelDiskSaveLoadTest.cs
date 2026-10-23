@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             File.WriteAllText(directory.SaveJsonFilePath, text);
             var bytes = File.ReadAllBytes(directory.SaveJsonFilePath);
 
-            // キャッシュを構築する新DIより先に専用modを変更する
+            // 新DIの構築前にmodを変更
             // Modify the private mod before constructing the fresh DI and its caches
             SetDuration(5);
             var options = new MoorestechServerDIContainerOptions(mod) { worldDataDirectory = WorldDataDirectory.FromServerDataMap(mod, directory.SaveJsonFilePath) };

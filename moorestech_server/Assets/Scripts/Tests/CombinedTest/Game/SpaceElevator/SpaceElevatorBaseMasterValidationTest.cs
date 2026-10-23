@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var cable = MasterHolder.ItemMaster.GetItemGuid(ForUnitTestItemId.TestElevatorCable);
             var row = items["orbitalPayloads"].Single(p => (Guid)p["payloadItemGuid"] == satellite);
 
-            // サービスを構築せず生マスタ入口の拒否を検証する
+            // 生マスタ入口だけで不正を拒否
             // Verify rejection at the raw master entry without constructing game services
             if (variant == "capacity")
             {
