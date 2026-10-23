@@ -3,8 +3,8 @@ using Core.Item.Interface;
 
 namespace Game.Block.Blocks.SpaceElevator
 {
-    // 成果を出口の複製へ前から順に積む唯一の模擬。確認と実挿入がこれを共有する
-    // The single simulation stacking results onto a copy of the outlets front to back; the check and the insert share it
+    // 成果を既存スタック優先で出口の複製へ積む。確認と実挿入がこの模擬を共有する
+    // Stack results onto copied outlets, preferring existing stacks; checks and insertion share this simulation
     internal static class SpaceElevatorOutputSimulation
     {
         internal static bool TryStack(List<IItemStack> outlets, IReadOnlyList<IItemStack> outputs, out List<IItemStack> stacked)
@@ -13,12 +13,20 @@ namespace Game.Block.Blocks.SpaceElevator
             foreach (var output in outputs)
             {
                 var remainder = output;
-                for (var i = 0; i < stacked.Count && remainder.Count > 0; i++)
+                // 同属性への加算はAddItemに任せ、空き枠は既存スタックを埋めた後に使う
+                // Let AddItem enforce metadata compatibility and use empty slots only after existing stacks
+                for (var pass = 0; pass < 2 && remainder.Count > 0; pass++)
                 {
-                    var result = stacked[i].AddItem(remainder);
-                    stacked[i] = result.ProcessResultItemStack;
-                    remainder = result.RemainderItemStack;
+                    for (var i = 0; i < stacked.Count && remainder.Count > 0; i++)
+                    {
+                        // silent-ok: 各段で対象外の枠は次の候補へ進む / 呼び出し元が最終判定を待機状態とログへ反映する
+                        if ((stacked[i].Count == 0) != (pass == 1)) continue;
+                        var result = stacked[i].AddItem(remainder);
+                        stacked[i] = result.ProcessResultItemStack;
+                        remainder = result.RemainderItemStack;
+                    }
                 }
+                // silent-ok: 模擬失敗は在庫を確定しない / 呼び出し元が出口待ちの表示とログ、または格納失敗の例外で通知する
                 if (remainder.Count > 0) return false;
             }
             return true;
