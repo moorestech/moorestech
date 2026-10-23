@@ -1136,33 +1136,67 @@ git commit -m "feat(save): 初打ち上げ履歴をセーブに入れ版6から7
 
 ---
 
-### Task 4: 発射台のスロット並び・インベントリ・状態の型
+### Task 4: 発射台の契約型（インターフェース層）・インベントリ・段階の型
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadSlotLayout.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad/IRocketLaunchPadComponent.cs`（合図を受ける口と結果 enum。前例 `Game.Block.Interface/Component/IMachineRecipeSelectorComponent.cs`）
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad/RocketLaunchPadSlotLayout.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadPhase.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadWaitReason.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadStateDetail.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadInventoryComponent.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketCargo.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/State/RocketLaunchPadPhase.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/State/RocketLaunchPadWaitReason.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/State/RocketLaunchPadCommand.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/State/RocketLaunchPadCommandResult.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/State/RocketLaunchPadStateDetail.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Stage/RocketLaunchPadStage.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadInventoryTest.cs`（Task 5 のテンプレート登録後に実行する。このタスクではコンパイルまで）
+- Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/RocketLaunchPad/RocketLaunchPadStageTest.cs`
+
+配置: 契約型（合図の口と結果・段階・待ち理由・状態詳細・スロット並び）はサーバーの部品・プロトコル・クライアントの表示が共有するので `Game.Block.Interface` に置く（判断記録 D27）。`Game.Block.Interface/Component/` と `State/` の直下には足さず、前例 `Component/CleanRoom/` と同じくドメインのサブディレクトリを作る。名前空間はディレクトリによらず `Game.Block.Interface.Component`・`Game.Block.Interface.State`（前例どおり）。`Game.Block.Interface.asmdef` は `Core.Master` と `MessagePack` を既に参照しており、生成型 `Mooresmaster.Model.*` も `IMachineRecipeSelectorComponent` が使っている。
 
 **Interfaces:**
 - Consumes: Task 1 の `RocketLaunchPadBlockParam`・`Items.OrbitalPayloads`
 - Produces:
-  - `RocketLaunchSlotRequirement`（readonly struct: `public readonly ItemId ItemId; public readonly int Count;`）
-  - `RocketLaunchPadSlotLayout`（ctor `(RocketLaunchPadBlockParam param)`、`IReadOnlyList<RocketLaunchSlotRequirement> Materials`・`Payloads`、`int OutputSlotStart`・`OutputSlotCount`・`TotalSlotCount`、`int PayloadSlot(int payloadIndex)`、`bool IsOutputSlot(int slot)`、`bool TryGetInputSlot(ItemId itemId, out int slot)`、`RocketLaunchSlotRequirement RequirementAt(int inputSlot)`）
-  - `RocketLaunchPadInventoryComponent : IOpenableBlockInventoryComponent`（ctor `(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)`）
-  - `RocketCargo`（`public readonly IItemStack Payload; public readonly IReadOnlyList<IItemStack> Materials; bool IsLoaded`、ctor `(IItemStack payload, IReadOnlyList<IItemStack> materials)`、`static RocketCargo CreateNone()`、`IEnumerable<IItemStack> AllItems()`）
-  - enum `RocketLaunchPadPhase { Idle, AwaitingBuildCommand, Building, AwaitingLaunchCommand, Launching }`
-  - enum `RocketLaunchPadWaitReason { None, MissingMaterials, MissingPayload, OutputPending, NoPower }`
-  - enum `RocketLaunchPadCommand { Build, Launch }`
-  - enum `RocketLaunchPadCommandResult { Accepted, BlockNotFound, NotRocketLaunchPad, UnknownCommand, NotAwaitingBuildCommand, NotAwaitingLaunchCommand, CargoNotReady }`
-  - `RocketLaunchPadStateDetail`（`const string BlockStateDetailKey = "RocketLaunchPad"`、`[Key(0)] Phase`・`[Key(1)] WaitReason`・`[Key(2)] float Progress`、`static BlockStateDetail CreateState(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress)`）
+  - `Game.Block.Interface.Component.IRocketLaunchPadComponent : IBlockComponent`（`RocketLaunchPadCommandResult RequestBuild()`・`RocketLaunchPadCommandResult RequestLaunch()`）
+  - enum `Game.Block.Interface.Component.RocketLaunchPadCommandResult { Accepted, NotAwaitingBuildCommand, NotAwaitingLaunchCommand, CargoNotReady, OutputFull }`
+  - `Game.Block.Interface.Component.RocketLaunchSlotRequirement`（readonly struct: `public readonly ItemId ItemId; public readonly int Count;`）
+  - `Game.Block.Interface.Component.RocketLaunchPadSlotLayout`（ctor `(RocketLaunchPadBlockParam param)`、`IReadOnlyList<RocketLaunchSlotRequirement> Materials`・`Payloads`、`IReadOnlyList<int> MaterialSlots`・`PayloadSlots`・`OutputSlots`（群ごとの絶対添字）、`int OutputSlotStart`・`OutputSlotCount`・`TotalSlotCount`、`int PayloadSlot(int payloadIndex)`、`bool IsOutputSlot(int slot)`、`bool TryGetInputSlot(ItemId itemId, out int slot)`、`bool TryGetPayloadRequirement(ItemId itemId, out RocketLaunchSlotRequirement requirement)`、`RocketLaunchSlotRequirement RequirementAt(int inputSlot)`）
+  - enum `Game.Block.Interface.State.RocketLaunchPadPhase { Idle = 0, AwaitingBuildCommand = 1, Building = 2, AwaitingLaunchCommand = 3, ReadyToLaunch = 4, Launching = 5 }`（セーブに int で入るので値を固定する）
+  - enum `Game.Block.Interface.State.RocketLaunchPadWaitReason { None = 0, MissingMaterials = 1, MissingPayload = 2, OutputFull = 3, NoPower = 4 }`
+  - `Game.Block.Interface.State.RocketLaunchPadStateDetail`（`const string BlockStateDetailKey = "RocketLaunchPad"`、`[Key(0)] Phase`・`[Key(1)] WaitReason`・`[Key(2)] float Progress`、`static BlockStateDetail CreateState(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress)`）
+  - `Game.Block.Blocks.RocketLaunchPad.RocketLaunchPadInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots`（ctor `(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)`）
+  - `Game.Block.Blocks.RocketLaunchPad.RocketCargo`（`public readonly IItemStack Payload; public readonly IReadOnlyList<IItemStack> Materials; bool IsLoaded`、ctor `(IItemStack payload, IReadOnlyList<IItemStack> materials)`、`IEnumerable<IItemStack> AllItems()`）
+  - 段階の型（名前空間 `Game.Block.Blocks.RocketLaunchPad.Stage`）: 抽象 `RocketLaunchPadStage`（`abstract RocketLaunchPadPhase Phase`）、抽象 `LoadedRocketStage : RocketLaunchPadStage`（`public readonly RocketCargo Cargo`）、`IdleStage.Instance`、`AwaitingBuildCommandStage.Instance`、`BuildingStage(RocketCargo cargo, uint remainingTicks)`、`AwaitingLaunchCommandStage(RocketCargo cargo)`、`ReadyToLaunchStage(RocketCargo cargo)`、`LaunchingStage(uint remainingTicks)`。積荷は `LoadedRocketStage` の3種だけが持ち、残りtickは `BuildingStage`・`LaunchingStage` だけが持つ
 
-- [ ] **Step 1: スロット並びを書く**
+- [ ] **Step 1: 合図の口と結果を書く**
+
+`Game.Block.Interface/Component/RocketLaunchPad/IRocketLaunchPadComponent.cs`:
+
+```csharp
+namespace Game.Block.Interface.Component
+{
+    /// <summary>
+    ///     建造・発射の合図を受ける発射台の部品。合図が意味を持つのはワールドの初打ち上げ前だけ
+    ///     Launch pad component accepting build and launch commands; they only matter before the world's first launch
+    /// </summary>
+    public interface IRocketLaunchPadComponent : IBlockComponent
+    {
+        RocketLaunchPadCommandResult RequestBuild();
+        RocketLaunchPadCommandResult RequestLaunch();
+    }
+
+    public enum RocketLaunchPadCommandResult
+    {
+        Accepted,
+        NotAwaitingBuildCommand,
+        NotAwaitingLaunchCommand,
+        CargoNotReady,
+        OutputFull,
+    }
+}
+```
+
+- [ ] **Step 2: スロット並びを書く**
+
+`Game.Block.Interface/Component/RocketLaunchPad/RocketLaunchPadSlotLayout.cs`:
 
 ```csharp
 using System.Collections.Generic;
@@ -1170,14 +1204,17 @@ using System.Linq;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 
-namespace Game.Block.Blocks.RocketLaunchPad
+namespace Game.Block.Interface.Component
 {
-    // 発射台のスロット並び。資材→積荷→出力の順で、入れ口は1アイテムにつき1スロット
-    // Slot order of a launch pad: materials, then payloads, then outputs; one input slot per item
+    // 発射台のスロット並び。資材→積荷→出力の順で、入れ口は1アイテムにつき1スロット。サーバーと表示が同じ並びを使う
+    // Slot order of a launch pad: materials, payloads, outputs, one input slot per item; the server and the display share it
     public class RocketLaunchPadSlotLayout
     {
         public readonly IReadOnlyList<RocketLaunchSlotRequirement> Materials;
         public readonly IReadOnlyList<RocketLaunchSlotRequirement> Payloads;
+        public readonly IReadOnlyList<int> MaterialSlots;
+        public readonly IReadOnlyList<int> PayloadSlots;
+        public readonly IReadOnlyList<int> OutputSlots;
         public readonly int OutputSlotStart;
         public readonly int OutputSlotCount;
         public int TotalSlotCount => OutputSlotStart + OutputSlotCount;
@@ -1190,11 +1227,17 @@ namespace Game.Block.Blocks.RocketLaunchPad
             Payloads = MasterHolder.ItemMaster.Items.OrbitalPayloads.Select(payload => new RocketLaunchSlotRequirement(MasterHolder.ItemMaster.GetItemId(payload.PayloadItemGuid), payload.CountPerLaunch)).ToList();
             OutputSlotStart = Materials.Count + Payloads.Count;
             OutputSlotCount = param.OutputSlotCount;
+
+            // 群ごとの絶対添字。表示側はこれをそのまま使い、並びを計算し直さない
+            // Absolute indices per group; the display uses them as-is and never recomputes the order
+            MaterialSlots = Enumerable.Range(0, Materials.Count).ToList();
+            PayloadSlots = Enumerable.Range(Materials.Count, Payloads.Count).ToList();
+            OutputSlots = Enumerable.Range(OutputSlotStart, OutputSlotCount).ToList();
         }
 
         public int PayloadSlot(int payloadIndex)
         {
-            return Materials.Count + payloadIndex;
+            return PayloadSlots[payloadIndex];
         }
 
         public bool IsOutputSlot(int slot)
@@ -1220,6 +1263,20 @@ namespace Game.Block.Blocks.RocketLaunchPad
             slot = 0;
             return false;
         }
+
+        // 積荷表に載る積荷の1便ぶんの要求を引く。資材は対象にしない
+        // Looks up one launch worth of a listed payload; materials are not considered
+        public bool TryGetPayloadRequirement(ItemId itemId, out RocketLaunchSlotRequirement requirement)
+        {
+            foreach (var payload in Payloads)
+            {
+                if (payload.ItemId != itemId) continue;
+                requirement = payload;
+                return true;
+            }
+            requirement = default;
+            return false;
+        }
     }
 
     public readonly struct RocketLaunchSlotRequirement
@@ -1236,11 +1293,66 @@ namespace Game.Block.Blocks.RocketLaunchPad
 }
 ```
 
-- [ ] **Step 2: インベントリを書く**
+- [ ] **Step 3: 段階・待ち理由・状態詳細を書く**
 
-`CleanRoomAirFilterInventoryComponent` と同じく全メンバーを `OpenableInventoryItemDataStoreService` へ委譲し、`CheckDestroy(this)` を各メンバー先頭で呼ぶ。違いは次の4メンバーだけ:
+`Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadPhase.cs`（名前空間 `Game.Block.Interface.State`。値は Interfaces 節のとおり固定し、各値に日英1行ずつ「`AwaitingBuildCommand`・`AwaitingLaunchCommand` は初打ち上げ前だけ」「`ReadyToLaunch` は打ち上げが許され出力口の空きを待つ」を書く）、`RocketLaunchPadWaitReason.cs`（同じく値を固定）。
+
+`Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadStateDetail.cs`（`TrainPlatformTransferStateDetail` と同形）:
 
 ```csharp
+using System;
+using MessagePack;
+
+namespace Game.Block.Interface.State
+{
+    // 発射台の段階・待ち理由・進み具合をクライアントへ送る
+    // Sends the launch pad's phase, wait reason and progress to the client
+    [MessagePackObject]
+    public class RocketLaunchPadStateDetail
+    {
+        public const string BlockStateDetailKey = "RocketLaunchPad";
+
+        [Key(0)] public RocketLaunchPadPhase Phase { get; set; }
+        [Key(1)] public RocketLaunchPadWaitReason WaitReason { get; set; }
+        [Key(2)] public float Progress { get; set; }
+
+        public RocketLaunchPadStateDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress)
+        {
+            Phase = phase;
+            WaitReason = waitReason;
+            Progress = progress;
+        }
+
+        public static BlockStateDetail CreateState(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress)
+        {
+            var stateDetail = new RocketLaunchPadStateDetail(phase, waitReason, progress);
+            return new BlockStateDetail(BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
+        }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public RocketLaunchPadStateDetail() { }
+    }
+}
+```
+
+（`{ get; set; }` は MessagePack の前例 `TrainPlatformTransferStateDetail` どおり。）
+
+- [ ] **Step 4: インベントリを書く**
+
+`Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadInventoryComponent.cs`。スロットごとに入れてよい品が決まっているという役割は機械と同じなので、`VanillaMachineBlockInventoryComponent` と同じく `ISortExcludedSlots` で全スロットを整理の対象から外す（外さないと、開いたまま整理ボタンを押したとき `InventorySortService` が ItemId 順に先頭から詰め直し、燃料が筐体素材のスロットへ、資材が出力スロットへ移って建造が止まる）。`GetItem`・`SetItem`・`ReplaceItem`・`GetSlotSize`・`InventoryItems` などの残りのメンバーは `CleanRoomAirFilterInventoryComponent` と同じく `OpenableInventoryItemDataStoreService` へ委譲し、各メンバーの先頭で `CheckDestroy(this)` を呼ぶ。前例と違うメンバーは次のとおり:
+
+```csharp
+        // 入れ口も出力口も束縛済みのスロットなので、どれも整理の対象にしない（機械のインベントリと同じ）
+        // Every input and output slot is bound, so none takes part in sorting (same as machine inventories)
+        public IReadOnlyCollection<int> SortExcludedSlots
+        {
+            get
+            {
+                CheckDestroy(this);
+                return Enumerable.Range(0, GetSlotSize()).ToList();
+            }
+        }
+
         // 入れ口は割り当てたアイテムだけ、出力口は取り出し専用
         // Input slots accept only their assigned item; output slots are take-out only
         public bool IsAllowedToPlace(int slot, IItemStack itemStack)
@@ -1292,21 +1404,19 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
 ctor は `(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)` で2つを保持する。`IsDestroy`/`Destroy()` は前例どおり。
 
-- [ ] **Step 3: 積荷と状態の型を書く**
+- [ ] **Step 5: 積荷と段階の型を書く**
 
-`RocketCargo.cs`:
+`Game.Block/Blocks/RocketLaunchPad/RocketCargo.cs`:
 
 ```csharp
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
-using Game.Context;
 
 namespace Game.Block.Blocks.RocketLaunchPad
 {
-    // 建造中・発射の合図待ちのロケットに積んだ積荷と資材。打ち上げで消費される
-    // Payload and materials loaded into a rocket being built or awaiting launch; consumed by the launch
+    // ロケットに積んだ積荷と資材。打ち上げで消費され、打ち上げ前の撤去では返る
+    // Payload and materials loaded into a rocket; consumed by the launch and refunded on removal before it
     public class RocketCargo
     {
         public readonly IItemStack Payload;
@@ -1319,107 +1429,174 @@ namespace Game.Block.Blocks.RocketLaunchPad
             Materials = materials;
         }
 
-        public static RocketCargo CreateNone()
-        {
-            return new RocketCargo(ServerContext.ItemStackFactory.CreatEmpty(), Array.Empty<IItemStack>());
-        }
-
+        // 欠損マスタの刈り込みで空になった資材は返さない
+        // Materials emptied by missing-master pruning are not refunded
         public IEnumerable<IItemStack> AllItems()
         {
-            return IsLoaded ? Materials.Prepend(Payload) : Enumerable.Empty<IItemStack>();
+            return Materials.Prepend(Payload).Where(item => item.Count > 0);
         }
     }
 }
 ```
 
-`State/RocketLaunchPadPhase.cs`（`AwaitingBuildCommand`・`AwaitingLaunchCommand` は初打ち上げ前だけ現れる、と各値に日英コメント）、`State/RocketLaunchPadWaitReason.cs`、`State/RocketLaunchPadCommand.cs`、`State/RocketLaunchPadCommandResult.cs` は Interfaces 節の値をそのまま並べた enum（名前空間 `Game.Block.Blocks.RocketLaunchPad.State`）。
-
-`State/RocketLaunchPadStateDetail.cs`（`TrainPlatformTransferStateDetail` と同形）:
+`Game.Block/Blocks/RocketLaunchPad/Stage/RocketLaunchPadStage.cs`:
 
 ```csharp
 using System;
-using Game.Block.Interface.Component;
-using MessagePack;
+using Game.Block.Interface.State;
 
-namespace Game.Block.Blocks.RocketLaunchPad.State
+namespace Game.Block.Blocks.RocketLaunchPad.Stage
 {
-    // 発射台の段階・待ち理由・進み具合をクライアントへ送る
-    // Sends the launch pad's phase, wait reason and progress to the client
-    [MessagePackObject]
-    public class RocketLaunchPadStateDetail
+    // 発射台の段階。段階ごとに意味を持つ値だけを持ち、作った後は変えない
+    // A launch pad stage; it holds only the values meaningful to that stage and never changes after creation
+    public abstract class RocketLaunchPadStage
     {
-        public const string BlockStateDetailKey = "RocketLaunchPad";
+        public abstract RocketLaunchPadPhase Phase { get; }
+    }
 
-        [Key(0)] public RocketLaunchPadPhase Phase { get; set; }
-        [Key(1)] public RocketLaunchPadWaitReason WaitReason { get; set; }
-        [Key(2)] public float Progress { get; set; }
+    // ロケットを積んでいる段階。撤去すると中身が返る
+    // Stages holding a loaded rocket; removing the pad refunds its contents
+    public abstract class LoadedRocketStage : RocketLaunchPadStage
+    {
+        public readonly RocketCargo Cargo;
 
-        public RocketLaunchPadStateDetail(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress)
+        protected LoadedRocketStage(RocketCargo cargo)
         {
-            Phase = phase;
-            WaitReason = waitReason;
-            Progress = progress;
+            // 空のロケットを積んだ段階は作れない
+            // A loaded stage cannot be created with an empty rocket
+            if (!cargo.IsLoaded) throw new ArgumentException("積荷の無いロケットで積載中の段階を作ろうとしました", nameof(cargo));
+            Cargo = cargo;
         }
+    }
 
-        public static BlockStateDetail CreateState(RocketLaunchPadPhase phase, RocketLaunchPadWaitReason waitReason, float progress)
+    // 1便ぶんの資材と積荷、成果を入れる出力口の空きを待つ
+    // Waits for one launch worth of materials and payload and for output space for the arrival outputs
+    public sealed class IdleStage : RocketLaunchPadStage
+    {
+        public static readonly IdleStage Instance = new();
+        public override RocketLaunchPadPhase Phase => RocketLaunchPadPhase.Idle;
+
+        private IdleStage() { }
+    }
+
+    // 初打ち上げ前だけ: 揃った台がプレイヤーの建造の合図を待つ
+    // Before the first launch only: a ready pad waits for the player's build command
+    public sealed class AwaitingBuildCommandStage : RocketLaunchPadStage
+    {
+        public static readonly AwaitingBuildCommandStage Instance = new();
+        public override RocketLaunchPadPhase Phase => RocketLaunchPadPhase.AwaitingBuildCommand;
+
+        private AwaitingBuildCommandStage() { }
+    }
+
+    public sealed class BuildingStage : LoadedRocketStage
+    {
+        public readonly uint RemainingTicks;
+        public override RocketLaunchPadPhase Phase => RocketLaunchPadPhase.Building;
+
+        public BuildingStage(RocketCargo cargo, uint remainingTicks) : base(cargo)
         {
-            var stateDetail = new RocketLaunchPadStateDetail(phase, waitReason, progress);
-            return new BlockStateDetail(BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
+            // 残り0の建造中は作れない。建造が終わったら次の段階へ移るため
+            // A building stage with zero ticks left cannot exist; a finished build moves to the next stage
+            if (remainingTicks == 0) throw new ArgumentOutOfRangeException(nameof(remainingTicks), "建造中の段階は残りtickが1以上です");
+            RemainingTicks = remainingTicks;
         }
+    }
 
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public RocketLaunchPadStateDetail() { }
+    // 初打ち上げ前だけ: 完成したロケットがプレイヤーの発射の合図を待つ
+    // Before the first launch only: a finished rocket waits for the player's launch command
+    public sealed class AwaitingLaunchCommandStage : LoadedRocketStage
+    {
+        public override RocketLaunchPadPhase Phase => RocketLaunchPadPhase.AwaitingLaunchCommand;
+
+        public AwaitingLaunchCommandStage(RocketCargo cargo) : base(cargo) { }
+    }
+
+    // 打ち上げが許され、成果が出力口に入りきるのを待つ。打ち上げはこの段階からだけ始まる
+    // Launch is permitted and waits until the outputs fit the output slots; launches start only from this stage
+    public sealed class ReadyToLaunchStage : LoadedRocketStage
+    {
+        public override RocketLaunchPadPhase Phase => RocketLaunchPadPhase.ReadyToLaunch;
+
+        public ReadyToLaunchStage(RocketCargo cargo) : base(cargo) { }
+    }
+
+    public sealed class LaunchingStage : RocketLaunchPadStage
+    {
+        public readonly uint RemainingTicks;
+        public override RocketLaunchPadPhase Phase => RocketLaunchPadPhase.Launching;
+
+        public LaunchingStage(uint remainingTicks)
+        {
+            if (remainingTicks == 0) throw new ArgumentOutOfRangeException(nameof(remainingTicks), "打ち上げ中の段階は残りtickが1以上です");
+            RemainingTicks = remainingTicks;
+        }
     }
 }
 ```
 
-- [ ] **Step 4: インベントリのテストを書く（実行は Task 5 Step 6）**
+- [ ] **Step 6: テストを書く（実行は Task 5 Step 8）**
 
 `Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadInventoryTest.cs`。`ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.RocketLaunchPadId, ...)` で台を置き（既存 CombinedTest の設置書式に合わせる）、`IBlockInventory` と `IOpenableBlockInventoryComponent` を取って次を確かめる:
 - `InsertItem(TestRocketFuel×5)` が資材スロット1（2番目）に入り、余りが空。
 - `InsertItem(TestComputeData×1)` はそのまま返る（入れ口が無い）。
 - `IsAllowedToPlace(出力スロット, 任意の品)` が false、`IsAllowedToPlace(0, TestRocketFuel)` が false（スロット0は筐体素材専用）、`IsAllowedToPlace(0, TestRocketCase)` が true。
 - `InsertionCheck([TestRocketCase×99, TestRocketCase×2])` が false（スタック100を超える）、`[TestRocketCase×99, TestSatellitePayload×1]` が true。
-- スロット数が `3（資材）+2（積荷）+2（出力）=7`。
+- スロット数が `3（資材）+2（積荷）+2（出力）=7`。`RocketLaunchPadSlotLayout` の `MaterialSlots`・`PayloadSlots`・`OutputSlots` が `[0,1,2]`・`[3,4]`・`[5,6]`。
+- 整理しても中身が動かない: 資材スロット1へ燃料、積荷スロット3へ衛星を入れ、`SortInventoryProtocol` で開いているブロックの整理を送る（`SortInventoryProtocol` の既存テストの書き方に合わせる。無ければ `InventorySortService.Sort` を `ISortExcludedSlots` 付きで直接呼ぶ）。各スロットの中身が整理前と同じ。
 
-- [ ] **Step 5: コンパイルする**
+`Tests/UnitTest/Game/RocketLaunchPad/RocketLaunchPadStageTest.cs`（DIを作って `ServerContext.ItemStackFactory` を使う。最小構成の段階を作れないことを固定する）:
+- `new BuildingStage(空の積荷, 10)` は `ArgumentException`、`new BuildingStage(積荷, 0)` と `new LaunchingStage(0)` は `ArgumentOutOfRangeException`。
+- `ReadyToLaunchStage` と `AwaitingLaunchCommandStage` は `LoadedRocketStage` で、`IdleStage.Instance`・`LaunchingStage` は違う。
+
+- [ ] **Step 7: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
 
-- [ ] **Step 6: コミットする**
+- [ ] **Step 8: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad
-git commit -m "feat(block): 発射台のスロット並びとインベントリと状態の型を足す"
+git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/UnitTest/Game/RocketLaunchPad
+git commit -m "feat(block): 発射台の契約型とインベントリと段階の型を足す"
 ```
 
 ---
 
-### Task 5: 発射台の進行・電力・保留・セーブとテンプレート
+### Task 5: 発射台の進行（外殻と段階の進行）・出力口・電力・セーブとテンプレート
 
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadCargoLoader.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadOutputBuffer.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadOutputSlots.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadLaunchSequence.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadProcessorComponent.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadElectricComponent.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/State/RocketLaunchPadSaveJsonObject.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/State/RocketLaunchPadSaveConverter.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Save/RocketLaunchPadSaveJsonObject.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Save/RocketLaunchPadSaveConverter.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs`（`BlockTypesDictionary` に `RocketLaunchPad`）
-- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs:121-126`（`IGetRefundItemsInfo` を全件合算）
+- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs:121-126`（`IGetRefundItemsInfo` を全件合算。ファイルはちょうど200行なので、6行を6行で置き換え行を増やさない）
+- Create: `moorestech_server/Assets/Scripts/Tests/Util/Rocket/RocketLaunchPadTestUtil.cs`（`Tests/Util/` 直下は19件あるのでサブディレクトリ。前例 `Tests/Util/EnergySystem/ElectricWireTestUtil.cs`）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket/RocketLaunchPadRemoveRefundTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadLaunchFlowTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadOutputFullTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadSaveLoadTest.cs`
-- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadTestUtil.cs`
+
+`Game.Block/Blocks/RocketLaunchPad/` の直下は Task 4 と合わせて .cs が7個（インベントリ・積荷・積み込み・出力口・段階の進行・外殻・電力）と、サブディレクトリ `Stage/`・`Save/` になる。
+
+外殻と段階の進行の分け方: 外殻 `RocketLaunchPadProcessorComponent` はブロック部品としての口（tick・合図・初打ち上げ通知の購読・状態の通知・セーブ・撤去返却）だけを持ち、段階の遷移はすべて `RocketLaunchPadLaunchSequence` が持つ。どちらも200行以内。打ち上げを始めるのは `RocketLaunchPadLaunchSequence.AdvanceReadyToLaunch` の1か所だけで、発射の合図と初打ち上げ通知は段階を `ReadyToLaunchStage` へ移すだけ（判断記録 D25）。打ち上げは自分の Update の中でしか起きないので、別の台の `RecordLaunch` の呼び出しの中から再入で打ち上げることはなく、「段階を先に変えて二重打ち上げを防ぐ」回避策も要らない。
 
 **Interfaces:**
-- Consumes: Task 2 の `IOrbitalArrivalService`・`IRocketLaunchHistory`、Task 4 の全型
+- Consumes: Task 2 の `IOrbitalArrivalService`（`PreviewArrivalOutputs`・`Arrive`）・`IRocketLaunchHistory`、Task 4 の全型
 - Produces:
-  - `RocketLaunchPadProcessorComponent`（`RocketLaunchPadPhase Phase { get; private set; }`・`RocketLaunchPadWaitReason WaitReason { get; private set; }`・`float RequestPower`・`void SupplyPower(float power)`・`RocketLaunchPadCommandResult RequestBuild()`・`RocketLaunchPadCommandResult RequestLaunch()`、`IUpdatableBlockComponent`・`IBlockStateObservable`・`IBlockSaveState`・`IGetRefundItemsInfo`）
+  - `RocketLaunchPadCargoLoader`（`int NextPayloadIndex { get; private set; }`・`void SetNextPayloadIndex(int nextPayloadIndex)`・`bool HasMaterials()`・`IEnumerable<int> ReadyPayloadIndices()`・`RocketCargo LoadCargo(int payloadIndex)`）
+  - `RocketLaunchPadOutputSlots`（`bool CanStore(IReadOnlyList<IItemStack> outputs)`・`void Store(IReadOnlyList<IItemStack> outputs)`・`void PushToConnected()`）
+  - `RocketLaunchPadLaunchSequence`（`RocketLaunchPadStage Stage { get; private set; }`・`RocketLaunchPadWaitReason WaitReason { get; private set; }`・`float RequestPower`・`void SetStage(RocketLaunchPadStage stage)`・`void Advance(float tickPower)`・`RocketLaunchPadCommandResult RequestBuild()`・`RocketLaunchPadCommandResult RequestLaunch()`・`void ReleaseCommandWaits()`・`float CalculateProgress()`）
+  - `RocketLaunchPadProcessorComponent : IRocketLaunchPadComponent, IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo`（`RocketLaunchPadPhase Phase`・`RocketLaunchPadWaitReason WaitReason`・`float RequestPower`・`void SupplyPower(float power)`）
   - `RocketLaunchPadElectricComponent : IElectricConsumer, IElectricTickPostHandler`
+  - `Save.RocketLaunchPadSaveJsonObject`・`Save.RocketLaunchPadSaveConverter`（`Capture`・`RestoreSlots`・`RestoreStage`）
   - `VanillaRocketLaunchPadTemplate : IBlockTemplate`
-  - テスト用 `RocketLaunchPadTestUtil`（`static IBlock PlacePoweredPad(Vector3Int position, float generatePower)`・`static void FillOneLaunch(IBlock pad, ItemId payloadItemId, int payloadCount)`・`static bool RunUntilPhase(IBlock pad, RocketLaunchPadPhase until, int maxTicks)`。Task 6 のテストも使う）
+  - テスト用 `Tests.Util.Rocket.RocketLaunchPadTestUtil`（`static IBlock PlacePoweredPad(Vector3Int position, float generatePower)`・`static void FillMaterials(IBlock pad)`・`static void FillOneLaunch(IBlock pad, ItemId payloadItemId, int payloadCount)`・`static void FillOutputSlots(IBlock pad, int countPerSlot)`・`static bool RunUntilPhase(IBlock pad, RocketLaunchPadPhase until, int maxTicks)`。Task 6 のテストも使う）
 
 - [ ] **Step 1: 積み込みを書く**
 
@@ -1430,13 +1607,13 @@ using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
-using Game.Block.Blocks.RocketLaunchPad.State;
+using Game.Block.Interface.Component;
 using Game.Context;
 
 namespace Game.Block.Blocks.RocketLaunchPad
 {
-    // 入れ口から1便ぶんの資材と積荷を確かめ、取り出してロケットに積む
-    // Checks and takes one launch worth of materials and payload from the input slots into a rocket
+    // 入れ口の資材と積荷を数え、選ばれた1便ぶんを取り出してロケットに積む
+    // Counts materials and payloads in the input slots and takes the chosen launch worth into a rocket
     public class RocketLaunchPadCargoLoader
     {
         public int NextPayloadIndex { get; private set; }
@@ -1452,47 +1629,43 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
         public void SetNextPayloadIndex(int nextPayloadIndex)
         {
-            // 積荷表の行数がセーブ時から変わっても範囲内に収める
-            // Keep it in range even if the payload table changed since the save
-            NextPayloadIndex = nextPayloadIndex % _layout.Payloads.Count;
+            // 積荷表の行数がセーブ時から変わっても、負の値でも範囲内に収める（表が空でないことはマスタ検証が保証する）
+            // Keep it in range for a changed table size or a negative value (master validation guarantees a non-empty table)
+            var count = _layout.Payloads.Count;
+            NextPayloadIndex = (nextPayloadIndex % count + count) % count;
         }
 
-        public RocketLaunchPadWaitReason CheckReady()
+        public bool HasMaterials()
         {
             for (var i = 0; i < _layout.Materials.Count; i++)
-                if (!HasRequirement(i, _layout.Materials[i])) return RocketLaunchPadWaitReason.MissingMaterials;
-            return TryFindReadyPayloadIndex(out _) ? RocketLaunchPadWaitReason.None : RocketLaunchPadWaitReason.MissingPayload;
+                if (!HasRequirement(_layout.MaterialSlots[i], _layout.Materials[i])) return false;
+            return true;
         }
 
-        public RocketCargo LoadCargo()
-        {
-            // 揃っていないのに呼ばれたら呼び出し側の段階管理の誤り
-            // Being called while not ready is a phase-management bug in the caller
-            if (!TryFindReadyPayloadIndex(out var payloadIndex) || CheckReady() != RocketLaunchPadWaitReason.None)
-                throw new InvalidOperationException("1便ぶんの資材と積荷が揃っていない発射台で建造が始まりました");
-
-            var materials = new List<IItemStack>();
-            for (var i = 0; i < _layout.Materials.Count; i++) materials.Add(TakeRequirement(i, _layout.Materials[i]));
-            var payload = TakeRequirement(_layout.PayloadSlot(payloadIndex), _layout.Payloads[payloadIndex]);
-
-            // 次の便は今回の次の積荷から探し、特定の積荷だけが飛び続けないようにする
-            // Search the next launch from the payload after this one so no single payload starves the others
-            NextPayloadIndex = (payloadIndex + 1) % _layout.Payloads.Count;
-            return new RocketCargo(payload, materials);
-        }
-
-        private bool TryFindReadyPayloadIndex(out int payloadIndex)
+        // 1便ぶん揃った積荷の番号を前回の次から順に返し、特定の積荷だけが飛び続けないようにする
+        // Yields ready payload indices starting after the previous launch so no single payload starves the others
+        public IEnumerable<int> ReadyPayloadIndices()
         {
             var count = _layout.Payloads.Count;
             for (var offset = 0; offset < count; offset++)
             {
                 var index = (NextPayloadIndex + offset) % count;
-                if (!HasRequirement(_layout.PayloadSlot(index), _layout.Payloads[index])) continue;
-                payloadIndex = index;
-                return true;
+                if (HasRequirement(_layout.PayloadSlot(index), _layout.Payloads[index])) yield return index;
             }
-            payloadIndex = 0;
-            return false;
+        }
+
+        public RocketCargo LoadCargo(int payloadIndex)
+        {
+            // 揃っていないのに呼ばれたら呼び出し側の段階管理の誤り
+            // Being called while not ready is a stage-management bug in the caller
+            if (!HasMaterials() || !HasRequirement(_layout.PayloadSlot(payloadIndex), _layout.Payloads[payloadIndex]))
+                throw new InvalidOperationException("1便ぶんの資材と積荷が揃っていない発射台で建造が始まりました");
+
+            var materials = new List<IItemStack>();
+            for (var i = 0; i < _layout.Materials.Count; i++) materials.Add(TakeRequirement(_layout.MaterialSlots[i], _layout.Materials[i]));
+            var payload = TakeRequirement(_layout.PayloadSlot(payloadIndex), _layout.Payloads[payloadIndex]);
+            NextPayloadIndex = (payloadIndex + 1) % _layout.Payloads.Count;
+            return new RocketCargo(payload, materials);
         }
 
         private bool HasRequirement(int slot, RocketLaunchSlotRequirement requirement)
@@ -1510,81 +1683,291 @@ namespace Game.Block.Blocks.RocketLaunchPad
 }
 ```
 
-- [ ] **Step 2: 成果の保留を書く**
+- [ ] **Step 2: 出力口を書く**
 
-`RocketLaunchPadOutputBuffer.cs`:
+`RocketLaunchPadOutputSlots.cs`（前例 `Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs` の `CanStoreOutputs`・`InsertOutputSlot`・`InsertConnectInventory`）:
 
 ```csharp
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Game.Block.Blocks.Connector;
+using Game.Block.Interface.Component;
+using UnityEngine;
 
 namespace Game.Block.Blocks.RocketLaunchPad
 {
-    // 打ち上げ成果を出力口へ入りきるまで預かり、出力口の中身を接続先へ流す
-    // Holds arrival outputs until they fit the output slots and pushes output slot contents to connected inventories
-    public class RocketLaunchPadOutputBuffer
+    // 出力口へ成果を入れ、中身を接続先へ流す。入りきるかは機械の出力と同じく書き込まずに試す
+    // Stores outputs into the output slots and pushes them onward; the fit check simulates without writing, like machine outputs
+    public class RocketLaunchPadOutputSlots
     {
-        public bool HasPending => _pending.Count > 0;
-        public IReadOnlyList<IItemStack> PendingItems => _pending;
-
-        private readonly List<IItemStack> _pending = new();
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
         private readonly IBlockInventoryInserter _beltOutput;
 
-        public RocketLaunchPadOutputBuffer(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput)
+        public RocketLaunchPadOutputSlots(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput)
         {
             _layout = layout;
             _slots = slots;
             _beltOutput = beltOutput;
         }
 
-        public void AddPending(IEnumerable<IItemStack> items)
+        public bool CanStore(IReadOnlyList<IItemStack> outputs)
         {
-            foreach (var item in items)
-                if (item.Count > 0) _pending.Add(item);
+            // 出力口の写しへ順に詰め、余りが出たら入りきらない
+            // Fill a copy of the output slots in order; any remainder means they do not fit
+            var simulated = CopyOutputSlots();
+            foreach (var output in outputs)
+                if (FillInOrder(simulated, output).Count > 0) return false;
+            return true;
         }
 
-        public void Flush()
+        public void Store(IReadOnlyList<IItemStack> outputs)
         {
-            MovePendingIntoOutputSlots();
+            // 同じtickの直前に CanStore を通したので余りは出ない。出たら判定と書き込みの食い違いとして残す（機械の出力と同じ）
+            // CanStore passed earlier in the same tick, so no remainder is expected; log a mismatch if one appears (as machine outputs do)
+            var current = CopyOutputSlots();
+            foreach (var output in outputs)
+            {
+                var remainder = FillInOrder(current, output);
+                if (remainder.Count > 0) Debug.LogError($"発射台の出力口に成果が入りきりませんでした ItemId:{remainder.Id} Count:{remainder.Count}");
+            }
+            for (var i = 0; i < _layout.OutputSlots.Count; i++) _slots.SetItem(_layout.OutputSlots[i], current[i]);
+        }
 
+        public void PushToConnected()
+        {
             // 出力口の中身は機械の出力と同じく毎tick接続先へ流す
             // Push output slot contents to connected inventories every tick, as machine outputs do
-            for (var slot = _layout.OutputSlotStart; slot < _layout.TotalSlotCount; slot++)
-                _slots.SetItem(slot, _beltOutput.InsertItem(_slots.GetItem(slot)));
+            foreach (var slot in _layout.OutputSlots) _slots.SetItem(slot, _beltOutput.InsertItem(_slots.GetItem(slot)));
         }
 
-        private void MovePendingIntoOutputSlots()
+        private List<IItemStack> CopyOutputSlots()
         {
-            if (_pending.Count == 0) return;
+            var copy = new List<IItemStack>();
+            foreach (var slot in _layout.OutputSlots) copy.Add(_slots.GetItem(slot));
+            return copy;
+        }
 
-            // 先に届いた成果から順に出力口の空きへ詰める
-            // Fill the output slots with the earliest pending outputs first
-            var remaining = new List<IItemStack>();
-            foreach (var item in _pending)
+        // 写しのスロットへ先頭から詰め、余りを返す
+        // Fills the copied slots from the first one and returns the remainder
+        private static IItemStack FillInOrder(List<IItemStack> slots, IItemStack item)
+        {
+            var rest = item;
+            for (var i = 0; i < slots.Count && rest.Count > 0; i++)
             {
-                var rest = item;
-                for (var slot = _layout.OutputSlotStart; slot < _layout.TotalSlotCount && rest.Count > 0; slot++)
-                {
-                    var result = _slots.GetItem(slot).AddItem(rest);
-                    _slots.SetItem(slot, result.ProcessResultItemStack);
-                    rest = result.RemainderItemStack;
-                }
-                if (rest.Count > 0) remaining.Add(rest);
+                var result = slots[i].AddItem(rest);
+                slots[i] = result.ProcessResultItemStack;
+                rest = result.RemainderItemStack;
             }
-            _pending.Clear();
-            _pending.AddRange(remaining);
+            return rest;
         }
     }
 }
 ```
 
-- [ ] **Step 3: 進行を書く**
+- [ ] **Step 3: 段階の進行を書く**
 
-`RocketLaunchPadProcessorComponent.cs`（200行以内。セーブ形の組み立ては Step 4 の `RocketLaunchPadSaveConverter` へ出す）:
+`RocketLaunchPadLaunchSequence.cs`（段階の遷移はここだけが持つ。前例は機械の処理状態 `Game.Block/Blocks/Machine/State/ProcessingMachineProcessState.cs` の残りtickと電力の進め方）:
+
+```csharp
+using Core.Update;
+using Game.Block.Blocks.RocketLaunchPad.Stage;
+using Game.Block.Blocks.Util;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
+using Game.Orbit;
+using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
+
+namespace Game.Block.Blocks.RocketLaunchPad
+{
+    // 発射台の段階を1tickずつ進める。建造は成果が出力口に入りきるときだけ始め、打ち上げは ReadyToLaunch からだけ始める
+    // Advances the pad stage one tick at a time; builds start only when outputs fit, launches only from ReadyToLaunch
+    public class RocketLaunchPadLaunchSequence
+    {
+        public RocketLaunchPadStage Stage { get; private set; } = IdleStage.Instance;
+        public RocketLaunchPadWaitReason WaitReason { get; private set; }
+        public float RequestPower => Stage is BuildingStage ? _requiredPower : 0f;
+
+        private readonly RocketLaunchPadSlotLayout _layout;
+        private readonly RocketLaunchPadCargoLoader _cargoLoader;
+        private readonly RocketLaunchPadOutputSlots _outputSlots;
+        private readonly IOrbitalArrivalService _arrivalService;
+        private readonly IRocketLaunchHistory _launchHistory;
+        private readonly float _requiredPower;
+        private readonly uint _buildTotalTicks;
+        private readonly uint _launchTotalTicks;
+
+        public RocketLaunchPadLaunchSequence(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService, IRocketLaunchHistory launchHistory)
+        {
+            _layout = layout;
+            _cargoLoader = cargoLoader;
+            _outputSlots = outputSlots;
+            _arrivalService = arrivalService;
+            _launchHistory = launchHistory;
+            _requiredPower = param.RequiredPower;
+            _buildTotalTicks = GameUpdater.SecondsToTicks(param.BuildSeconds);
+            _launchTotalTicks = GameUpdater.SecondsToTicks(param.LaunchSeconds);
+        }
+
+        public void SetStage(RocketLaunchPadStage stage)
+        {
+            Stage = stage;
+        }
+
+        public void Advance(float tickPower)
+        {
+            switch (Stage)
+            {
+                case IdleStage:
+                case AwaitingBuildCommandStage:
+                    AdvanceWaitingForCargo();
+                    break;
+                case BuildingStage building:
+                    AdvanceBuilding(building, tickPower);
+                    break;
+                case ReadyToLaunchStage ready:
+                    AdvanceReadyToLaunch(ready);
+                    break;
+                case LaunchingStage launching:
+                    AdvanceLaunching(launching);
+                    break;
+            }
+        }
+
+        public RocketLaunchPadCommandResult RequestBuild()
+        {
+            if (Stage is not AwaitingBuildCommandStage) return RocketLaunchPadCommandResult.NotAwaitingBuildCommand;
+            var reason = CheckBuildable(out var payloadIndex);
+            if (reason == RocketLaunchPadWaitReason.OutputFull) return RocketLaunchPadCommandResult.OutputFull;
+            if (reason != RocketLaunchPadWaitReason.None) return RocketLaunchPadCommandResult.CargoNotReady;
+            StartBuilding(payloadIndex);
+            return RocketLaunchPadCommandResult.Accepted;
+        }
+
+        public RocketLaunchPadCommandResult RequestLaunch()
+        {
+            // 合図は段階を移すだけ。打ち上げは次の Advance の AdvanceReadyToLaunch が行う
+            // The command only moves the stage; the next Advance performs the launch in AdvanceReadyToLaunch
+            if (Stage is not AwaitingLaunchCommandStage awaiting) return RocketLaunchPadCommandResult.NotAwaitingLaunchCommand;
+            Stage = new ReadyToLaunchStage(awaiting.Cargo);
+            return RocketLaunchPadCommandResult.Accepted;
+        }
+
+        // 初打ち上げの後は合図を待たない。段階を移すだけで、建造と打ち上げは各台の次の Advance が行う
+        // No command waits after the first launch; only the stage moves, and each pad's next Advance builds or launches
+        public void ReleaseCommandWaits()
+        {
+            if (Stage is AwaitingBuildCommandStage) Stage = IdleStage.Instance;
+            else if (Stage is AwaitingLaunchCommandStage awaiting) Stage = new ReadyToLaunchStage(awaiting.Cargo);
+        }
+
+        public float CalculateProgress()
+        {
+            // 建造中・打ち上げ中は0〜1、完成したロケットが待つ段階は1。マスタ変更で残りが総量を超えても0〜1に収める
+            // Building and launching report 0..1 and a finished waiting rocket reports 1; clamp even if remaining exceeds the total after a master change
+            return Stage switch
+            {
+                BuildingStage building => Mathf.Clamp01(1f - building.RemainingTicks / (float)_buildTotalTicks),
+                LaunchingStage launching => Mathf.Clamp01(1f - launching.RemainingTicks / (float)_launchTotalTicks),
+                AwaitingLaunchCommandStage or ReadyToLaunchStage => 1f,
+                _ => 0f,
+            };
+        }
+
+        private void AdvanceWaitingForCargo()
+        {
+            WaitReason = CheckBuildable(out var payloadIndex);
+            if (WaitReason != RocketLaunchPadWaitReason.None)
+            {
+                Stage = IdleStage.Instance;
+                return;
+            }
+
+            // 初打ち上げ前のワールドではプレイヤーの建造の合図を待つ
+            // Before the world's first launch, wait for the player's build command
+            if (_launchHistory.HasLaunchedOnce) StartBuilding(payloadIndex);
+            else Stage = AwaitingBuildCommandStage.Instance;
+        }
+
+        private void AdvanceBuilding(BuildingStage building, float tickPower)
+        {
+            // 電力の供給率だけ建造を進める
+            // Advance the build by the power supply rate
+            WaitReason = tickPower <= 0f ? RocketLaunchPadWaitReason.NoPower : RocketLaunchPadWaitReason.None;
+            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(tickPower, _requiredPower);
+            if (subTicks < building.RemainingTicks)
+            {
+                Stage = new BuildingStage(building.Cargo, building.RemainingTicks - subTicks);
+                return;
+            }
+
+            // 初打ち上げ前は発射の合図を待ち、以後は打ち上げ待ちへ進む
+            // Before the first launch wait for the launch command, otherwise move on to ready-to-launch
+            WaitReason = RocketLaunchPadWaitReason.None;
+            if (_launchHistory.HasLaunchedOnce) Stage = new ReadyToLaunchStage(building.Cargo);
+            else Stage = new AwaitingLaunchCommandStage(building.Cargo);
+        }
+
+        private void AdvanceReadyToLaunch(ReadyToLaunchStage ready)
+        {
+            // 打ち上げを始める唯一の口。成果が出力口に入りきらない間は待たせる
+            // The only place a launch starts; wait while the outputs do not fit the output slots
+            var payload = ready.Cargo.Payload;
+            if (!_outputSlots.CanStore(_arrivalService.PreviewArrivalOutputs(payload.Id, payload.Count)))
+            {
+                WaitReason = RocketLaunchPadWaitReason.OutputFull;
+                return;
+            }
+
+            // 打ち上げ開始が軌道到着（CONTEXT.md）。成果を出力口へ入れ、ワールドの打ち上げを記録する
+            // Launch start is orbital arrival (CONTEXT.md); store the outputs and record the world's launch
+            WaitReason = RocketLaunchPadWaitReason.None;
+            Stage = new LaunchingStage(_launchTotalTicks);
+            _outputSlots.Store(_arrivalService.Arrive(payload.Id, payload.Count));
+            _launchHistory.RecordLaunch();
+        }
+
+        private void AdvanceLaunching(LaunchingStage launching)
+        {
+            if (launching.RemainingTicks > 1) Stage = new LaunchingStage(launching.RemainingTicks - 1);
+            else Stage = IdleStage.Instance;
+        }
+
+        // 揃った積荷のうち、成果が出力口に入りきる最初の1つを選ぶ。成果の無い積荷は出力口が満杯でも選べる
+        // Picks the first ready payload whose outputs fit; payloads without outputs can go even when the outputs are full
+        private RocketLaunchPadWaitReason CheckBuildable(out int payloadIndex)
+        {
+            payloadIndex = 0;
+            if (!_cargoLoader.HasMaterials()) return RocketLaunchPadWaitReason.MissingMaterials;
+
+            var anyReady = false;
+            foreach (var index in _cargoLoader.ReadyPayloadIndices())
+            {
+                anyReady = true;
+                var payload = _layout.Payloads[index];
+                if (!_outputSlots.CanStore(_arrivalService.PreviewArrivalOutputs(payload.ItemId, payload.Count))) continue;
+                payloadIndex = index;
+                return RocketLaunchPadWaitReason.None;
+            }
+            return anyReady ? RocketLaunchPadWaitReason.OutputFull : RocketLaunchPadWaitReason.MissingPayload;
+        }
+
+        private void StartBuilding(int payloadIndex)
+        {
+            Stage = new BuildingStage(_cargoLoader.LoadCargo(payloadIndex), _buildTotalTicks);
+            WaitReason = RocketLaunchPadWaitReason.None;
+        }
+    }
+}
+```
+
+（約190行。200行を超えたら `CheckBuildable` と `StartBuilding` を `RocketLaunchPadBuildStarter` へ出す。電力の進め方が `ProcessingMachineProcessState` と食い違えば前例に合わせる。）
+
+- [ ] **Step 4: 外殻を書く**
+
+`RocketLaunchPadProcessorComponent.cs`（段階は持たず、段階の進行へ渡すだけ。セーブ形の組み立ては Step 5 の `RocketLaunchPadSaveConverter`）:
 
 ```csharp
 using System;
@@ -1592,11 +1975,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
-using Core.Update;
 using Game.Block.Blocks.Connector;
-using Game.Block.Blocks.RocketLaunchPad.State;
-using Game.Block.Blocks.Util;
+using Game.Block.Blocks.RocketLaunchPad.Save;
+using Game.Block.Blocks.RocketLaunchPad.Stage;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Game.Orbit;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
@@ -1606,14 +1989,14 @@ using static Game.Block.Interface.BlockException;
 namespace Game.Block.Blocks.RocketLaunchPad
 {
     /// <summary>
-    ///     資材と積荷からロケットを建造して打ち上げ、成果を出力口へ流す
-    ///     Builds a rocket from materials and payload, launches it, and routes the arrival outputs to the output slots
+    ///     発射台の部品としての口。tick・合図・初打ち上げ通知を段階の進行へ渡し、状態の通知・セーブ・撤去返却を受け持つ
+    ///     The pad's component surface: routes ticks, commands and the first-launch notice to the sequence, and owns state publishing, saving and refunds
     /// </summary>
-    public class RocketLaunchPadProcessorComponent : IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo
+    public class RocketLaunchPadProcessorComponent : IRocketLaunchPadComponent, IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo
     {
-        public RocketLaunchPadPhase Phase { get; private set; }
-        public RocketLaunchPadWaitReason WaitReason { get; private set; }
-        public float RequestPower => Phase == RocketLaunchPadPhase.Building ? _requiredPower : 0f;
+        public RocketLaunchPadPhase Phase => _sequence.Stage.Phase;
+        public RocketLaunchPadWaitReason WaitReason => _sequence.WaitReason;
+        public float RequestPower => _sequence.RequestPower;
         public IObservable<Unit> OnChangeBlockState => _changeState;
         public string SaveKey { get; } = typeof(RocketLaunchPadProcessorComponent).FullName;
         public bool IsDestroy { get; private set; }
@@ -1622,16 +2005,9 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
         private readonly RocketLaunchPadCargoLoader _cargoLoader;
-        private readonly RocketLaunchPadOutputBuffer _outputBuffer;
-        private readonly IOrbitalArrivalService _arrivalService;
-        private readonly IRocketLaunchHistory _launchHistory;
+        private readonly RocketLaunchPadOutputSlots _outputSlots;
+        private readonly RocketLaunchPadLaunchSequence _sequence;
         private readonly IDisposable _firstLaunchSubscription;
-        private readonly float _requiredPower;
-        private readonly uint _buildTotalTicks;
-        private readonly uint _launchTotalTicks;
-
-        private RocketCargo _cargo = RocketCargo.CreateNone();
-        private uint _remainingTicks;
         private float _suppliedPower;
 
         public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, IRocketLaunchHistory launchHistory)
@@ -1639,30 +2015,27 @@ namespace Game.Block.Blocks.RocketLaunchPad
             _layout = layout;
             _slots = slots;
             _cargoLoader = new RocketLaunchPadCargoLoader(layout, slots);
-            _outputBuffer = new RocketLaunchPadOutputBuffer(layout, slots, beltOutput);
-            _arrivalService = arrivalService;
-            _launchHistory = launchHistory;
-            _requiredPower = param.RequiredPower;
-            _buildTotalTicks = GameUpdater.SecondsToTicks(param.BuildSeconds);
-            _launchTotalTicks = GameUpdater.SecondsToTicks(param.LaunchSeconds);
+            _outputSlots = new RocketLaunchPadOutputSlots(layout, slots, beltOutput);
+            _sequence = new RocketLaunchPadLaunchSequence(param, layout, _cargoLoader, _outputSlots, arrivalService, launchHistory);
 
-            // ワールドの初打ち上げで、発射の合図を待っている台も自動で打ち上げる
-            // On the world's first launch, pads awaiting a launch command launch automatically too
+            // ワールドの初打ち上げで合図待ちを解く。打ち上げそのものは各台の次の Update が行う
+            // On the world's first launch release the command waits; each pad's next update performs the launch
             _firstLaunchSubscription = launchHistory.OnFirstLaunch.Subscribe(_ => OnWorldFirstLaunch());
         }
 
         public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, IRocketLaunchHistory launchHistory)
             : this(param, layout, slots, beltOutput, arrivalService, launchHistory)
         {
-            // セーブの段階・積荷・スロット・保留を戻し、段階と積荷の食い違いはここで止める
-            // Restore phase, cargo, slots and pending outputs, and stop here on a phase/cargo mismatch
+            // スロット・次に探す積荷・段階を戻す。今の積荷表で打ち上げられない積荷はコンバーターが警告して捨てる
+            // Restore slots, the next payload index and the stage; the converter warns about and drops cargo the current table cannot launch
             var saveData = BlockComponentStateReader.Read<RocketLaunchPadSaveJsonObject>(componentStates, SaveKey);
-            Phase = saveData.Phase;
-            _remainingTicks = saveData.RemainingTicks;
-            _cargo = RocketLaunchPadSaveConverter.RestoreCargo(saveData);
+            RocketLaunchPadSaveConverter.RestoreSlots(saveData, _layout, _slots);
             _cargoLoader.SetNextPayloadIndex(saveData.NextPayloadIndex);
-            _outputBuffer.AddPending(RocketLaunchPadSaveConverter.RestoreSlots(saveData, _layout, _slots));
-            RocketLaunchPadSaveConverter.ThrowIfInconsistent(Phase, _remainingTicks, _cargo);
+            _sequence.SetStage(RocketLaunchPadSaveConverter.RestoreStage(saveData, _layout));
+
+            // 初打ち上げ済みのワールドで合図待ちのまま保存された台は、通知を受けた台と同じく合図待ちを解く（履歴はブロックより先にロードされる）
+            // Pads saved awaiting a command in an already-launched world are released like notified pads (history loads before blocks)
+            if (launchHistory.HasLaunchedOnce) _sequence.ReleaseCommandWaits();
         }
 
         public void SupplyPower(float power)
@@ -1680,23 +2053,10 @@ namespace Game.Block.Blocks.RocketLaunchPad
             var tickPower = _suppliedPower;
             _suppliedPower = 0f;
 
-            // 保留中の成果を出力口へ、出力口の中身を接続先へ流す
-            // Move pending outputs into the output slots and push output contents onward
-            _outputBuffer.Flush();
-
-            switch (Phase)
-            {
-                case RocketLaunchPadPhase.Idle:
-                case RocketLaunchPadPhase.AwaitingBuildCommand:
-                    UpdateWaitingForCargo();
-                    break;
-                case RocketLaunchPadPhase.Building:
-                    UpdateBuilding(tickPower);
-                    break;
-                case RocketLaunchPadPhase.Launching:
-                    UpdateLaunching();
-                    break;
-            }
+            // 出力口の中身を接続先へ流してから段階を進める（機械の出力と同じ順）
+            // Push output contents onward before advancing the stage (same order as machine outputs)
+            _outputSlots.PushToConnected();
+            _sequence.Advance(tickPower);
 
             // 段階か待ち理由が変わったとき、進行中は毎tick状態を流す（機械の進捗と同じ）
             // Publish on a phase or reason change, and every tick while progressing (as machine progress does)
@@ -1707,131 +2067,32 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public RocketLaunchPadCommandResult RequestBuild()
         {
             CheckDestroy(this);
-            if (Phase != RocketLaunchPadPhase.AwaitingBuildCommand) return Reject(RocketLaunchPadCommandResult.NotAwaitingBuildCommand);
-            if (_cargoLoader.CheckReady() != RocketLaunchPadWaitReason.None) return Reject(RocketLaunchPadCommandResult.CargoNotReady);
-            StartBuilding();
-            _changeState.OnNext(Unit.Default);
-            return RocketLaunchPadCommandResult.Accepted;
+            return PublishCommandResult(_sequence.RequestBuild());
         }
 
         public RocketLaunchPadCommandResult RequestLaunch()
         {
             CheckDestroy(this);
-            if (Phase != RocketLaunchPadPhase.AwaitingLaunchCommand) return Reject(RocketLaunchPadCommandResult.NotAwaitingLaunchCommand);
-            StartLaunching();
-            _changeState.OnNext(Unit.Default);
-            return RocketLaunchPadCommandResult.Accepted;
-        }
-
-        private void UpdateWaitingForCargo()
-        {
-            // 成果が出力口に入りきらない間は次の便を建造しない
-            // Do not build the next rocket while arrival outputs are still pending
-            WaitReason = _outputBuffer.HasPending ? RocketLaunchPadWaitReason.OutputPending : _cargoLoader.CheckReady();
-            if (WaitReason != RocketLaunchPadWaitReason.None)
-            {
-                Phase = RocketLaunchPadPhase.Idle;
-                return;
-            }
-
-            // 初打ち上げ前のワールドではプレイヤーの建造の合図を待つ
-            // Before the world's first launch, wait for the player's build command
-            if (_launchHistory.HasLaunchedOnce) StartBuilding();
-            else Phase = RocketLaunchPadPhase.AwaitingBuildCommand;
-        }
-
-        private void UpdateBuilding(float tickPower)
-        {
-            // 電力の供給率だけ建造を進める
-            // Advance the build by the power supply rate
-            WaitReason = tickPower <= 0f ? RocketLaunchPadWaitReason.NoPower : RocketLaunchPadWaitReason.None;
-            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(tickPower, _requiredPower);
-            _remainingTicks -= Math.Min(subTicks, _remainingTicks);
-            if (_remainingTicks > 0) return;
-
-            // 初打ち上げ前は発射の合図を待ち、以後は続けて打ち上げる
-            // Before the first launch wait for the launch command, otherwise launch right away
-            WaitReason = RocketLaunchPadWaitReason.None;
-            if (_launchHistory.HasLaunchedOnce) StartLaunching();
-            else Phase = RocketLaunchPadPhase.AwaitingLaunchCommand;
-        }
-
-        private void UpdateLaunching()
-        {
-            _remainingTicks--;
-            if (_remainingTicks == 0) Phase = RocketLaunchPadPhase.Idle;
-        }
-
-        private void StartBuilding()
-        {
-            _cargo = _cargoLoader.LoadCargo();
-            _remainingTicks = _buildTotalTicks;
-            Phase = RocketLaunchPadPhase.Building;
-            WaitReason = RocketLaunchPadWaitReason.None;
-        }
-
-        private void StartLaunching()
-        {
-            // 打ち上げ開始が軌道到着（CONTEXT.md）。段階を先に変え、初打ち上げ通知で自分が二重に打ち上げないようにする
-            // Launch start is orbital arrival (CONTEXT.md); switch phase first so the first-launch notice cannot relaunch this pad
-            Phase = RocketLaunchPadPhase.Launching;
-            WaitReason = RocketLaunchPadWaitReason.None;
-            _remainingTicks = _launchTotalTicks;
-            var cargo = _cargo;
-            _cargo = RocketCargo.CreateNone();
-            _outputBuffer.AddPending(_arrivalService.Arrive(cargo.Payload.Id, cargo.Payload.Count));
-            _launchHistory.RecordLaunch();
-        }
-
-        private void OnWorldFirstLaunch()
-        {
-            // 建造の合図待ちは次のUpdateで自動建造へ進むので、ここでは発射の合図待ちだけを動かす
-            // Pads awaiting a build command auto-build on their next update, so only awaiting-launch pads move here
-            if (Phase != RocketLaunchPadPhase.AwaitingLaunchCommand) return;
-            StartLaunching();
-            _changeState.OnNext(Unit.Default);
-        }
-
-        private RocketLaunchPadCommandResult Reject(RocketLaunchPadCommandResult result)
-        {
-            Debug.LogWarning($"ロケット発射台への操作を拒否しました 理由:{result} 段階:{Phase} 待ち理由:{WaitReason}");
-            return result;
+            return PublishCommandResult(_sequence.RequestLaunch());
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
         {
             CheckDestroy(this);
-            return new[] { RocketLaunchPadStateDetail.CreateState(Phase, WaitReason, CalculateProgress()) };
-
-            #region Internal
-
-            float CalculateProgress()
-            {
-                // 建造中・打ち上げ中だけ0〜1の進み具合を持ち、発射の合図待ちは建造完了として1
-                // Only building and launching carry 0..1 progress; awaiting launch counts as a finished build
-                return Phase switch
-                {
-                    RocketLaunchPadPhase.Building => 1f - _remainingTicks / (float)_buildTotalTicks,
-                    RocketLaunchPadPhase.Launching => 1f - _remainingTicks / (float)_launchTotalTicks,
-                    RocketLaunchPadPhase.AwaitingLaunchCommand => 1f,
-                    _ => 0f,
-                };
-            }
-
-            #endregion
+            return new[] { RocketLaunchPadStateDetail.CreateState(Phase, WaitReason, _sequence.CalculateProgress()) };
         }
 
         public IReadOnlyList<IItemStack> GetRefundItems()
         {
-            // 積んだまま打ち上げていないロケットの中身と、出力口に入りきらない成果を返す
-            // Refund the contents of a not-yet-launched rocket and outputs that never fit the output slots
-            return _cargo.AllItems().Concat(_outputBuffer.PendingItems).ToList();
+            // 積んだまま打ち上げていないロケットの中身を返す。出力口の成果は開けるスロットとして撤去処理が返す
+            // Refund the contents of a not-yet-launched rocket; output slot contents are refunded by removal as openable slots
+            return _sequence.Stage is LoadedRocketStage loaded ? loaded.Cargo.AllItems().ToList() : new List<IItemStack>();
         }
 
         public object GetSaveState()
         {
             CheckDestroy(this);
-            return RocketLaunchPadSaveConverter.Capture(Phase, _remainingTicks, _cargo, _cargoLoader.NextPayloadIndex, _outputBuffer.PendingItems, _layout, _slots);
+            return RocketLaunchPadSaveConverter.Capture(_sequence.Stage, _cargoLoader.NextPayloadIndex, _layout, _slots);
         }
 
         public void Destroy()
@@ -1839,119 +2100,169 @@ namespace Game.Block.Blocks.RocketLaunchPad
             IsDestroy = true;
             _firstLaunchSubscription.Dispose();
         }
+
+        private void OnWorldFirstLaunch()
+        {
+            var previousPhase = Phase;
+            _sequence.ReleaseCommandWaits();
+            if (previousPhase != Phase) _changeState.OnNext(Unit.Default);
+        }
+
+        private RocketLaunchPadCommandResult PublishCommandResult(RocketLaunchPadCommandResult result)
+        {
+            // 受け付けた合図は段階を変えるので状態を流し、拒否は理由を開発者向けに残す
+            // Accepted commands change the stage so publish it; rejections leave their reason for developers
+            if (result == RocketLaunchPadCommandResult.Accepted) _changeState.OnNext(Unit.Default);
+            else Debug.LogWarning($"ロケット発射台への操作を拒否しました 理由:{result} 段階:{Phase} 待ち理由:{WaitReason}");
+            return result;
+        }
     }
 }
 ```
 
-（200行を超えたら、`GetBlockStateDetails` の進み具合計算を `State/RocketLaunchPadProgress.cs` の static メソッドへ出す。）
+- [ ] **Step 5: セーブ形と変換を書く**
 
-- [ ] **Step 4: セーブ形と変換を書く**
+残り時間は秒、段階は int で保存する（前例 `Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorSaveJsonObject.cs` の `state`・`remainingSeconds`、`VanillaMachineProcessorComponent` の「tickを秒数に変換して保存」）。打ち上げ後の保留は無いので、セーブにも持たない。
 
-`State/RocketLaunchPadSaveJsonObject.cs`:
+`Save/RocketLaunchPadSaveJsonObject.cs`:
 
 ```csharp
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 
-namespace Game.Block.Blocks.RocketLaunchPad.State
+namespace Game.Block.Blocks.RocketLaunchPad.Save
 {
     // 入れ口はアイテムで、出力口は並びで保存する。積荷表が変わってもスロットの意味がずれないようにするため
     // Inputs are saved by item and outputs by order, so slot meaning survives a payload table change
     public class RocketLaunchPadSaveJsonObject
     {
-        [JsonProperty("phase"), JsonConverter(typeof(StringEnumConverter))] public RocketLaunchPadPhase Phase;
-        [JsonProperty("remainingTicks")] public uint RemainingTicks;
+        [JsonProperty("phase")] public int Phase;
+        [JsonProperty("remainingSeconds")] public double RemainingSeconds;
         [JsonProperty("cargoPayload")] public ItemStackSaveJsonObject CargoPayload;
         [JsonProperty("cargoMaterials")] public List<ItemStackSaveJsonObject> CargoMaterials;
         [JsonProperty("nextPayloadIndex")] public int NextPayloadIndex;
         [JsonProperty("inputItems")] public List<ItemStackSaveJsonObject> InputItems;
         [JsonProperty("outputItems")] public List<ItemStackSaveJsonObject> OutputItems;
-        [JsonProperty("pendingOutputs")] public List<ItemStackSaveJsonObject> PendingOutputs;
     }
 }
 ```
 
-`State/RocketLaunchPadSaveConverter.cs`:
+`Save/RocketLaunchPadSaveConverter.cs`（前例 `CleanRoomMachineProcessorSaveState.cs` の static 変換）:
 
 ```csharp
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
+using Core.Update;
+using Game.Block.Blocks.RocketLaunchPad.Stage;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Game.Context;
 using UnityEngine;
 
-namespace Game.Block.Blocks.RocketLaunchPad.State
+namespace Game.Block.Blocks.RocketLaunchPad.Save
 {
-    // 発射台のセーブ形と実行時の状態を相互に変換する
-    // Converts between the launch pad's save shape and its runtime state
+    // 発射台のセーブ形と段階の型を相互に変換する。壊れた値は段階を作る前に弾き、警告して待機へ戻す
+    // Converts between the save shape and stage types; broken values are rejected before building a stage and fall back to idle with a warning
     public static class RocketLaunchPadSaveConverter
     {
-        public static RocketLaunchPadSaveJsonObject Capture(RocketLaunchPadPhase phase, uint remainingTicks, RocketCargo cargo, int nextPayloadIndex, IReadOnlyList<IItemStack> pending, RocketLaunchPadSlotLayout layout, IOpenableInventory slots)
+        public static RocketLaunchPadSaveJsonObject Capture(RocketLaunchPadStage stage, int nextPayloadIndex, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
         {
+            var cargo = stage is LoadedRocketStage loaded ? loaded.Cargo : new RocketCargo(ServerContext.ItemStackFactory.CreatEmpty(), new List<IItemStack>());
             var items = slots.InventoryItems;
             return new RocketLaunchPadSaveJsonObject
             {
-                Phase = phase,
-                RemainingTicks = remainingTicks,
+                Phase = (int)stage.Phase,
+                RemainingSeconds = GameUpdater.TicksToSeconds(RemainingTicksOf(stage)),
                 CargoPayload = new ItemStackSaveJsonObject(cargo.Payload),
                 CargoMaterials = cargo.Materials.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 NextPayloadIndex = nextPayloadIndex,
                 InputItems = items.Take(layout.OutputSlotStart).Where(item => item.Count > 0).Select(item => new ItemStackSaveJsonObject(item)).ToList(),
-                OutputItems = items.Skip(layout.OutputSlotStart).Select(item => new ItemStackSaveJsonObject(item)).ToList(),
-                PendingOutputs = pending.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
+                OutputItems = layout.OutputSlots.Select(slot => new ItemStackSaveJsonObject(items[slot])).ToList(),
             };
         }
 
-        public static RocketCargo RestoreCargo(RocketLaunchPadSaveJsonObject saveData)
+        public static void RestoreSlots(RocketLaunchPadSaveJsonObject saveData, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
         {
-            return new RocketCargo(saveData.CargoPayload.ToItemStack(), saveData.CargoMaterials.Select(item => item.ToItemStack()).ToList());
-        }
-
-        // スロットをイベント無しで戻し、今の並びに置き場の無い品を保留として返す
-        // Restore slots without events and return items that have no place in the current layout as pending
-        public static List<IItemStack> RestoreSlots(RocketLaunchPadSaveJsonObject saveData, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
-        {
-            var displaced = saveData.PendingOutputs.Select(item => item.ToItemStack()).ToList();
-            foreach (var input in saveData.InputItems.Select(item => item.ToItemStack()))
+            // スロットをイベント無しで戻す。マスタ変更で置き場が無くなった品は警告して捨てる（打ち上げ後の保留は持たない）
+            // Restore slots without events; items that lost their place through a master change are dropped with a warning (no pending store)
+            var droppedCount = 0;
+            foreach (var input in saveData.InputItems.Select(item => item.ToItemStack()).Where(item => item.Count > 0))
             {
                 if (layout.TryGetInputSlot(input.Id, out var slot)) slots.SetItemWithoutEvent(slot, input);
-                else displaced.Add(input);
+                else droppedCount += input.Count;
             }
             var outputs = saveData.OutputItems.Select(item => item.ToItemStack()).ToList();
             for (var i = 0; i < outputs.Count; i++)
             {
-                if (i < layout.OutputSlotCount) slots.SetItemWithoutEvent(layout.OutputSlotStart + i, outputs[i]);
-                else displaced.Add(outputs[i]);
+                if (i < layout.OutputSlotCount) slots.SetItemWithoutEvent(layout.OutputSlots[i], outputs[i]);
+                else droppedCount += outputs[i].Count;
             }
-
-            // マスタ変更で入れ口・出力口が減ったときは品を消さず出力の保留へ回す
-            // When a master change removed slots, keep the items by moving them to pending outputs
-            var movedCount = displaced.Count - saveData.PendingOutputs.Count;
-            if (movedCount > 0) Debug.LogWarning($"発射台のスロット構成がセーブ時と違うため {movedCount} 件の品を出力の保留へ移しました");
-            return displaced.Where(item => item.Count > 0).ToList();
+            if (droppedCount > 0) Debug.LogWarning($"発射台のスロット構成がセーブ時と違うため、置き場の無い品を {droppedCount} 個捨てました");
         }
 
-        public static void ThrowIfInconsistent(RocketLaunchPadPhase phase, uint remainingTicks, RocketCargo cargo)
+        public static RocketLaunchPadStage RestoreStage(RocketLaunchPadSaveJsonObject saveData, RocketLaunchPadSlotLayout layout)
         {
-            // 積荷を持つのは建造中と発射の合図待ちだけ、残りtickを持つのは建造中と打ち上げ中だけ
-            // Only building and awaiting-launch hold cargo; only building and launching hold remaining ticks
-            var expectsCargo = phase is RocketLaunchPadPhase.Building or RocketLaunchPadPhase.AwaitingLaunchCommand;
-            var expectsTicks = phase is RocketLaunchPadPhase.Building or RocketLaunchPadPhase.Launching;
-            if (cargo.IsLoaded == expectsCargo && (remainingTicks > 0) == expectsTicks) return;
+            var phase = (RocketLaunchPadPhase)saveData.Phase;
+            var cargo = new RocketCargo(saveData.CargoPayload.ToItemStack(), saveData.CargoMaterials.Select(item => item.ToItemStack()).ToList());
+            var isLoadedPhase = phase is RocketLaunchPadPhase.Building or RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch;
 
-            var reason = $"発射台のセーブが壊れています 段階:{phase} 積荷あり:{cargo.IsLoaded} 残りtick:{remainingTicks}";
-            Debug.LogError(reason);
-            throw new InvalidOperationException(reason);
+            // 積載中の段階は、今の積荷表で打ち上げられる積荷のときだけ戻す（欠損マスタの刈り込みで空になった積荷もここで弾く）
+            // Loaded stages are restored only for cargo the current table can launch (cargo emptied by missing-master pruning is rejected here too)
+            if (isLoadedPhase && !IsLaunchableCargo(cargo, layout)) return FallBackToIdle($"積荷が今の積荷表で打ち上げられないため積荷を捨てます 段階:{phase} 積荷:{cargo.Payload.Id}×{cargo.Payload.Count}");
+            if (!isLoadedPhase && cargo.IsLoaded) Debug.LogWarning($"発射台のセーブで積荷を持たない段階に積荷があったため捨てます 段階:{phase}");
+
+            switch (phase)
+            {
+                case RocketLaunchPadPhase.Idle: return IdleStage.Instance;
+                case RocketLaunchPadPhase.AwaitingBuildCommand: return AwaitingBuildCommandStage.Instance;
+                case RocketLaunchPadPhase.Building: return new BuildingStage(cargo, RestoreRemainingTicks(saveData, phase));
+                case RocketLaunchPadPhase.AwaitingLaunchCommand: return new AwaitingLaunchCommandStage(cargo);
+                case RocketLaunchPadPhase.ReadyToLaunch: return new ReadyToLaunchStage(cargo);
+                case RocketLaunchPadPhase.Launching: return new LaunchingStage(RestoreRemainingTicks(saveData, phase));
+            }
+            return FallBackToIdle($"段階の値が不明です 段階:{saveData.Phase}");
+        }
+
+        // 積荷表に載り、個数が1便の正の整数倍なら軌道到着サービスが受け付ける
+        // The arrival service accepts cargo listed in the table with a positive multiple of one launch
+        private static bool IsLaunchableCargo(RocketCargo cargo, RocketLaunchPadSlotLayout layout)
+        {
+            if (!layout.TryGetPayloadRequirement(cargo.Payload.Id, out var requirement)) return false;
+            return cargo.Payload.Count > 0 && cargo.Payload.Count % requirement.Count == 0;
+        }
+
+        private static uint RestoreRemainingTicks(RocketLaunchPadSaveJsonObject saveData, RocketLaunchPadPhase phase)
+        {
+            // 進行中の段階は残り1tick以上。壊れた0以下の値は警告して1tickにする
+            // Progressing stages have at least one tick left; a broken non-positive value is set to one tick with a warning
+            var ticks = GameUpdater.SecondsToTicks(saveData.RemainingSeconds);
+            if (ticks > 0) return ticks;
+            Debug.LogWarning($"発射台のセーブの残り時間が0以下のため1tickにします 段階:{phase} 残り秒:{saveData.RemainingSeconds}");
+            return 1;
+        }
+
+        private static uint RemainingTicksOf(RocketLaunchPadStage stage)
+        {
+            if (stage is BuildingStage building) return building.RemainingTicks;
+            if (stage is LaunchingStage launching) return launching.RemainingTicks;
+            return 0;
+        }
+
+        private static RocketLaunchPadStage FallBackToIdle(string reason)
+        {
+            Debug.LogWarning($"発射台のセーブを待機として読み込みます {reason}");
+            return IdleStage.Instance;
         }
     }
 }
 ```
 
-- [ ] **Step 5: 電力とテンプレートを書く**
+（約120行。`ItemStackSaveJsonObject.ToItemStack()` は `Game.Context` の拡張メソッド。）
+
+- [ ] **Step 6: 電力とテンプレートと撤去返却を書く**
 
 `RocketLaunchPadElectricComponent.cs`（`VanillaElectricMachineComponent` と同形）:
 
@@ -2071,11 +2382,11 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
 }
 ```
 
-（`using` の名前空間は既存テンプレート `VanillaCleanRoomAirFilterTemplate`・機械テンプレートの実物に合わせる。`ConnectingInventoryListPriorityInsertItemService` の名前空間は `Game.Block.Blocks.Service`。）
+（`using` の名前空間は既存テンプレート `VanillaCleanRoomAirFilterTemplate`・機械テンプレートの実物に合わせる。`ConnectingInventoryListPriorityInsertItemService` の名前空間は `Game.Block.Blocks.Service`。プロトコルは部品を `IRocketLaunchPadComponent` で引くので、テンプレートの部品一覧に processor が入っていれば足りる。）
 
 `VanillaIBlockTemplates.cs` の `BlockTypesDictionary` 構築に、既存の追加行と同じ書式で `RocketLaunchPad` → `new VanillaRocketLaunchPadTemplate()` を足す。
 
-`RemoveBlockProtocol.cs` の `GetRefundItems` ローカル関数で、`TryGetComponent(out IGetRefundItemsInfo refundInfo)` の if ブロック（121〜126行）を次へ置き換える。発射台は電線（`ElectricWireConnectorComponent` も `IGetRefundItemsInfo`）と進行の両方が返却を持つため、先頭1件だけでは片方が消える。既存テンプレートで返却を持つ部品が2つ以上あるブロックは無い（電線つきテンプレートとベルト・チェーンポール・フィルター分配器・クリーンルーム境界のテンプレートは重ならない）ので、既存ブロックの返却量は変わらない:
+`RemoveBlockProtocol.cs` の `GetRefundItems` ローカル関数で、`TryGetComponent(out IGetRefundItemsInfo refundInfo)` の if ブロック（121〜126行の6行）を次の6行へ置き換える。発射台は電線（`ElectricWireConnectorComponent` も `IGetRefundItemsInfo`）と進行の両方が返却を持つため、先頭1件だけでは片方が消える。既存テンプレートで返却を持つ部品が2つ以上あるブロックは無い（電線つきテンプレートとベルト・チェーンポール・フィルター分配器・クリーンルーム境界のテンプレートは重ならない）ので、既存ブロックの返却量は変わらない:
 
 ```csharp
                 // 返却を持つ部品すべてを合算する。電線と発射台の進行のように1ブロックに複数あり得る
@@ -2086,25 +2397,28 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
                 }
 ```
 
-- [ ] **Step 6: 進行のテストを書く**
+- [ ] **Step 7: テストを書く**
 
-`RocketLaunchPadTestUtil.cs`（テスト用。`ElectricWireTestUtil.WirePower(consumerPos, polePos, generatePower)` で給電する）:
+`Tests/Util/Rocket/RocketLaunchPadTestUtil.cs`（テスト用。`ElectricWireTestUtil.WirePower(consumerPos, polePos, generatePower)` で給電する）:
 
 ```csharp
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.RocketLaunchPad;
-using Game.Block.Blocks.RocketLaunchPad.State;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using Tests.Module.TestMod;
 using Tests.Util.EnergySystem;
 using UnityEngine;
 
-namespace Tests.CombinedTest.Game.RocketLaunchPad
+namespace Tests.Util.Rocket
 {
+    // 発射台のテストで使う設置・搬入・tick送り
+    // Placement, loading and tick helpers shared by launch pad tests
     public static class RocketLaunchPadTestUtil
     {
         public static IBlock PlacePoweredPad(Vector3Int position, float generatePower)
@@ -2114,13 +2428,27 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             return pad;
         }
 
-        public static void FillOneLaunch(IBlock pad, ItemId payloadItemId, int payloadCount)
+        public static void FillMaterials(IBlock pad)
         {
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             inventory.InsertItem(ForUnitTestItemId.RocketCaseId, 2);
             inventory.InsertItem(ForUnitTestItemId.RocketFuelId, 3);
             inventory.InsertItem(ForUnitTestItemId.RocketComputerId, 1);
-            inventory.InsertItem(payloadItemId, payloadCount);
+        }
+
+        public static void FillOneLaunch(IBlock pad, ItemId payloadItemId, int payloadCount)
+        {
+            FillMaterials(pad);
+            pad.GetComponent<IOpenableBlockInventoryComponent>().InsertItem(payloadItemId, payloadCount);
+        }
+
+        // 出力口を計算データで埋める。出力口は取り出し専用なので、置き場の制限を通らない SetItem で書く
+        // Fill the output slots with compute data; they are take-out only, so write with SetItem which skips the placement check
+        public static void FillOutputSlots(IBlock pad, int countPerSlot)
+        {
+            var layout = new RocketLaunchPadSlotLayout((RocketLaunchPadBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.RocketLaunchPadId).BlockParam);
+            var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
+            foreach (var slot in layout.OutputSlots) inventory.SetItem(slot, ForUnitTestItemId.ComputeDataId, countPerSlot);
         }
 
         // 指定の段階になるまで tick を回し、なったかを返す
@@ -2139,35 +2467,50 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
 }
 ```
 
-（`TryAddBlock` の引数・`GameUpdater.RunFrames` の実名・`ElectricWireTestUtil.WirePower` の引数は既存 CombinedTest の実物に合わせる。tickを回す既存ヘルパが別名ならそれを使う。）
+（`TryAddBlock` の引数・`ElectricWireTestUtil.WirePower` の引数は既存 CombinedTest の実物に合わせる。`GameUpdater.RunFrames(uint)` は実在を確認済み。）
 
 `RocketLaunchPadLaunchFlowTest.cs` に次のテストを書く（各テストは DI を作り直す。`IRocketLaunchHistory` は `ServerContext.GetService` で取る）:
 
-1. `初打ち上げ前は建造と発射の合図を待つ`: 給電した台に1便ぶん入れて `RunUntilPhase(AwaitingBuildCommand, 5)` が true、資材が減っていない。`RequestBuild()` が `Accepted`、資材と積荷が消える。`RunUntilPhase(AwaitingLaunchCommand, 40)` が true。`RequestLaunch()` が `Accepted`、`HasLaunchedOnce` が true、出力スロット2つに TestComputeData が合計150（100＋50）入り、保留は空。
-2. `合図待ちでない台への操作は拒否する`: 空の台で `RequestBuild()` が `NotAwaitingBuildCommand`、`RequestLaunch()` が `NotAwaitingLaunchCommand`（`LogAssert.Expect(LogType.Warning, new Regex("ロケット発射台への操作を拒否しました"))` を2回）。合図待ちの台から資材を1つ抜いて `RequestBuild()` が `CargoNotReady`。
-3. `初打ち上げ後は自動で建造し打ち上げる`: `history.RecordLaunch()` してから1便ぶん入れ、`RunUntilPhase(Launching, 40)` が true（`AwaitingBuildCommand` と `AwaitingLaunchCommand` を経ない）。
-4. `別の台の初打ち上げで発射の合図待ちの台が打ち上がる`: 台Aと台Bを置き、両方を `AwaitingLaunchCommand` まで進め、Aで `RequestLaunch()`。同じtick内でBの `Phase` が `Launching`。
-5. `電力が半分なら建造が倍かかる`: 要求100に対し発電50の台と発電100の台で、`Building` から `Launching` までのtick数の比が 1.6〜2.4（確率的な丸めのため幅を持たせる）。発電0では40tick後も `Building` のまま `WaitReason == NoPower`。
-6. `成果が入りきらない間は次の便を建造しない`: 自動モードで衛星を2便ぶん入れ、1便目の成果150のうち出力2スロットに入りきって保留が0のことを確認、続けて2便目が打ち上がると出力が満杯（100＋100）で保留100（成果150のうち50だけが2つ目の出力スロットに入る）が残り、`Launching` 終了後 `Idle` かつ `WaitReason == OutputPending` で3便目を建造しない。出力スロットを空にすると次のtickで保留が流れ、建造が始まる。
-7. `揃った積荷は交互に選ぶ`: 自動モードで衛星1便ぶんとケーブル1便ぶん（5個）を同時に入れ、1便目と2便目で `OnOrbitalArrival` の積荷が異なる。
-8. `撤去で積んだ資材と保留を返す`: 合図待ちで `RequestBuild()` した台の `GetRefundItems()` に資材3種と積荷が入る。打ち上げ中（`Launching`）の台の `GetRefundItems()` は保留だけ。
-9. `資材が無いときの最小構成`: 空の台は `Idle`・`MissingMaterials`。資材だけ入れると `MissingPayload`。
+1. `初打ち上げ前は建造と発射の合図を待つ`: 給電した台に1便ぶん入れて `RunUntilPhase(AwaitingBuildCommand, 5)` が true、資材が減っていない。`RequestBuild()` が `Accepted`、資材と積荷が消える。`RunUntilPhase(AwaitingLaunchCommand, 40)` が true。`RequestLaunch()` が `Accepted` で、直後の `Phase` は `ReadyToLaunch`（合図は段階を移すだけ）。`RunUntilPhase(Launching, 2)` が true、`HasLaunchedOnce` が true、出力スロット2つに TestComputeData が合計150（100＋50）入る。
+2. `合図待ちでない台への操作は拒否する`: 空の台で `RequestBuild()` が `NotAwaitingBuildCommand`、`RequestLaunch()` が `NotAwaitingLaunchCommand`（`LogAssert.Expect(LogType.Warning, new Regex("ロケット発射台への操作を拒否しました"))` を2回）。合図待ちの台から資材を1つ抜いて `RequestBuild()` が `CargoNotReady`。資材を戻し、`FillOutputSlots(pad, 100)` で出力口を埋めてから `RequestBuild()` が `OutputFull`（拒否の警告をそれぞれ `LogAssert.Expect`）。
+3. `初打ち上げ後は自動で建造し打ち上げる`: `history.RecordLaunch()` してから1便ぶん入れ、`RunUntilPhase(Launching, 40)` が true。毎tickの `Phase` を記録し、`AwaitingBuildCommand` と `AwaitingLaunchCommand` を一度も経ない。
+4. `別の台の初打ち上げで発射の合図待ちの台が次のtickまでに打ち上がる`: 台Aと台Bを置き、両方を `AwaitingLaunchCommand` まで進め、Aで `RequestLaunch()`。`RunUntilPhase(A, Launching, 2)` が true になった時点で、Bは `ReadyToLaunch` か `Launching`。続けて `RunUntilPhase(B, Launching, 1)` が true（Bの打ち上げは自分の Update の中で、Aの打ち上げと同じtickか次のtick）。
+5. `電力が半分なら建造が倍かかる`: 自動モード（`RecordLaunch()` 済み）で、要求100に対し発電50の台と発電100の台の`Building` から `ReadyToLaunch` までのtick数の比が 1.6〜2.4（確率的な丸めのため幅を持たせる）。発電0では40tick後も `Building` のまま `WaitReason == NoPower`。
+6. `揃った積荷は交互に選ぶ`: 自動モードで資材2便ぶん・衛星1便ぶん・ケーブル1便ぶん（5個）を同時に入れ、1便目と2便目で `OnOrbitalArrival` の積荷が異なる（1便目の成果150が出力口に入りきり、2便目のケーブルは成果が無いので入りきる）。
+7. `撤去で積んだ資材を返す`: 合図待ちで `RequestBuild()` した台の `GetRefundItems()` に資材3種と積荷が入る。`ReadyToLaunch` の台も同じ。打ち上げ中（`Launching`）の台の `GetRefundItems()` は空。
+8. `資材が無いときの最小構成`: 空の台は `Idle`・`MissingMaterials`。資材だけ入れると `MissingPayload`。
+
+`RocketLaunchPadOutputFullTest.cs`（出力口の満杯。ユーザー裁定 D2）:
+
+1. `成果が出力口に入りきらないときは建造を始めない`: 自動モードで資材2便ぶんと衛星2機を入れる。1便目の打ち上げで出力が100＋50になり、`Launching` の後は `Idle` かつ `WaitReason == OutputFull` で、2便目の資材と衛星が入れ口に残る（成果150は空き50に入りきらない）。出力スロット1つを空にすると次のtickで `Building` に入る。
+2. `初打ち上げ前でも出力口が満杯なら建造の合図を待たない`: `FillOutputSlots(pad, 100)` の後に1便ぶん入れ、5tick回しても `AwaitingBuildCommand` へ進まず `Idle`・`OutputFull`。
+3. `出力口が満杯でも成果の無い積荷は打ち上げる`: 自動モードで `FillOutputSlots(pad, 100)` の後に資材1便ぶん・衛星1機・ケーブル5個を入れ、最初の `OnOrbitalArrival` の積荷がケーブル。続けて資材をもう1便ぶん入れると `Idle`・`OutputFull`（衛星が待つ）。
+4. `打ち上げ直前に出力口が埋まったら発射を待たせる`: 初打ち上げ前に `AwaitingLaunchCommand` まで進め、`FillOutputSlots(pad, 100)` してから `RequestLaunch()`。5tick回しても `ReadyToLaunch`・`OutputFull` のままで、`HasLaunchedOnce` は false。出力口を空にすると次のtickで `Launching`。
 
 `Tests/CombinedTest/Server/PacketTest/Rocket/RocketLaunchPadRemoveRefundTest.cs`（`RemoveBlockRefundTest` の `CreateServer`・`GetInventory`・`GetItemCount`・`CreateRemovePayload` を同ファイル内に写す）:
 - `建造中の台を撤去すると積んだ資材と積荷が戻る`: `PlacePoweredPad`・`FillOneLaunch(pad, SatellitePayloadId, 1)` → `RunUntilPhase(AwaitingBuildCommand, 5)` → `RequestBuild()` の後、`RemoveBlockProtocol` で撤去し、プレイヤーのインベントリに TestRocketCase×2・TestRocketFuel×3・TestRocketComputer×1・TestSatellitePayload×1 が入る。テンプレートの部品順は電線が進行より前なので、修正前の `TryGetComponent`（先頭1件）では電線の返却しか読まれずこのテストが落ちる。
-- `保留中の成果も撤去で戻る`: 自動モードで出力2スロットを満杯にして保留を作った台を撤去し、出力スロットの中身と保留の両方がインベントリに入る（インベントリの空きが足りるよう、テスト前にプレイヤーのインベントリを空にしておく）。
+- `出力口の成果も撤去で戻る`: 自動モードで1便打ち上げた台（出力100＋50）を撤去し、TestComputeData×150 がインベントリに入る（開けるスロットの既存の返却経路。インベントリの空きが足りるよう、テスト前にプレイヤーのインベントリを空にしておく）。
 
-`RocketLaunchPadSaveLoadTest.cs`: `CleanRoomSaveLoadTest` の書き方で、(a) `Building` 途中、(b) `AwaitingLaunchCommand`、(c) 保留あり、の3状態でセーブ→ロードし、段階・残りtick・積荷・入れ口・出力口・保留・`NextPayloadIndex` が同じであること、ロード後に進行が続くこと。さらに (d) 保存した `inputItems` に入れ口の無いアイテム（TestComputeData）を書き足したJSONをロードすると、そのアイテムが保留に入り `LogAssert.Expect(LogType.Warning, new Regex("スロット構成がセーブ時と違う"))` が出ること。(e) `phase` を `Idle` にして `cargoPayload` を残した壊れたJSONのロードが `InvalidOperationException` になること。
+`RocketLaunchPadSaveLoadTest.cs`（`CleanRoomSaveLoadTest` の書き方。保存した JSON を書き換えるケースは `SaveLoadJsonTestHelper` を使う）:
+- (a) `Building` 途中、(b) `AwaitingLaunchCommand`、(c) 出力口が満杯で待つ `ReadyToLaunch`、の3状態でセーブ→ロードし、段階・残り秒から戻した残りtick・積荷・入れ口・出力口・`NextPayloadIndex` が同じで、ロード後に進行が続く。保存した state の `phase` が int、`remainingSeconds` が秒であること。
+- (d) 保存した `inputItems` に入れ口の無いアイテム（TestComputeData）を書き足すと、そのアイテムは捨てられ `LogAssert.Expect(LogType.Warning, new Regex("置き場の無い品"))`。
+- (e) `phase` が `Building` のまま `cargoPayload` を空・TestComputeData（積荷表に無い）・TestCablePayload×3（1便5個の倍数でない）にしたJSONは、どれもロードで `Idle` になり `LogAssert.Expect(LogType.Warning, new Regex("打ち上げられないため積荷を捨てます"))`。
+- (f) `nextPayloadIndex` を -1 にすると `NextPayloadIndex` が1（積荷表2行）。
+- (g) `phase` を99にすると `Idle` で `段階の値が不明` の警告。`Launching` で `remainingSeconds` を0にすると残り1tickで警告。
+- (h) `Building` で `remainingSeconds` を100（建造1秒の台）にしたJSONをロードすると、状態の `Progress` が0（負にならない）。
+- (i) `AwaitingLaunchCommand` の台を置いたワールドを保存し、JSON の `rocketLaunchHistory.hasLaunchedOnce` を true に書き換えてロードすると、ロード直後の `Phase` が `ReadyToLaunch`。
 
-- [ ] **Step 7: コンパイルしテストを実行する**
+`Tests/UnitTest/Game/RocketLaunchPad/` の段階の型のテスト（Task 4）もここで実行する。
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Game\.RocketLaunchPad\.|RocketLaunchPadRemoveRefundTest|RemoveBlockRefundTest|RemoveBlockProtocolTest|BeltConveyorRemovalTest"`
+- [ ] **Step 8: コンパイルしテストを実行する**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Game\.RocketLaunchPad\.|Tests\.UnitTest\.Game\.RocketLaunchPad\.|RocketLaunchPadRemoveRefundTest|RemoveBlockRefundTest|RemoveBlockProtocolTest|BeltConveyorRemovalTest"`
 Expected: ErrorCount 0 / Task 4・5 の全テストと既存の撤去返却テストが PASS
 
-- [ ] **Step 8: コミットする**
+- [ ] **Step 9: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket
+git add moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs moorestech_server/Assets/Scripts/Tests/Util/Rocket moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket
 git commit -m "feat(block): ロケット発射台の建造と打ち上げとセーブを足し、撤去返却を全部品で合算する"
 ```
 
