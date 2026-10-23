@@ -54,7 +54,7 @@ namespace Server.Event.EventReceive
             // A skipped tick is a dummy for the belt and fluid too; only a real tick hashes the current assembly and network on the spot
             var isRealHashTick = TrainUpdateService.IsHashBroadcastTick(hashStateEventData.Tick);
             var beltTransportHash = isRealHashTick ? _beltTransportLookup.ComputeStateHash() : TrainUnitHashStateMessagePack.DummyHash;
-            var fluidNetworkHash = isRealHashTick ? _fluidNetworkLookup.ComputeStateHash() : TrainUnitHashStateMessagePack.DummyHash;
+            var fluidNetworkHash = isRealHashTick ? _fluidNetworkLookup.CurrentStateHash : TrainUnitHashStateMessagePack.DummyHash;
             _hashStatesByTick[hashStateEventData.Tick] = new HashTickState(
                 hashStateEventData.UnitsHash,
                 hashStateEventData.RailGraphHash,

@@ -92,9 +92,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             // パイプの中身はクライアントの流体複製から読む。複製にノードがある座標だけがパイプ
             // Pipe contents come from the client's fluid replica; only a position with a replica node is a pipe
-            if (fluidCache.TryGetNode(block.BlockPosInfo.OriginalPos, out var pipeNode))
+            if (fluidCache.TryGetNodeIndex(block.BlockPosInfo.OriginalPos, out var pipeNode))
             {
-                FluidSlotDtoBuilder.Append(dto.FluidSlots, new List<FluidMessagePack> { new(pipeNode.FluidId, pipeNode.Amount, pipeNode.Capacity) });
+                var network = fluidCache.Replica.Network;
+                FluidSlotDtoBuilder.Append(dto.FluidSlots, new List<FluidMessagePack> { new(network.NodeFluidIds[pipeNode], network.NodeAmounts[pipeNode], network.NodeCapacities[pipeNode]) });
             }
 
             ApplyNetworkCaches(dto, cache);

@@ -34,7 +34,7 @@ namespace Client.Tests.FluidNetwork
 
             var rig = new TickSyncClientRig();
             rig.Join(sink.TakeAll());
-            Assert.AreEqual(ServerHash(), rig.FluidCache.ComputeCurrentHash(), "replica hash right after the join-time full state");
+            Assert.AreEqual(ServerHash(), rig.FluidCache.CurrentHash, "replica hash right after the join-time full state");
 
             var expectedRebuiltTicks = new List<uint>();
             for (var i = 1; i <= TickCount; i++)
@@ -52,7 +52,7 @@ namespace Client.Tests.FluidNetwork
                 // Every tick the verifier passes the previous tick's hash, and once flushed up to the fluid's sequence id the replica equals the server
                 var tick = (trainUpdateService.GetCurrentTick() - 1);
                 Assert.AreEqual(tick, rig.TickState.GetTick(), $"client reached tick {tick}");
-                Assert.AreEqual(ServerHash(), rig.FluidCache.ComputeCurrentHash(), $"replica hash at tick {tick}");
+                Assert.AreEqual(ServerHash(), rig.FluidCache.CurrentHash, $"replica hash at tick {tick}");
             }
 
             Assert.AreEqual(expectedRebuiltTicks.Count, rig.FluidRebuiltFullStatesReceived, "one rebuilt full state per placement");

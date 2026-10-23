@@ -185,7 +185,7 @@ namespace Client.WebUiHost.Game.Topics
                 _networkCache.Clear();
                 return;
             }
-            _republishOnFluidReplica = _fluidCache.TryGetNode(block.BlockPosInfo.OriginalPos, out _);
+            _republishOnFluidReplica = _fluidCache.TryGetNodeIndex(block.BlockPosInfo.OriginalPos, out _);
             // uGUI BlockGameObject と同じ per-block イベントタグを直接購読して再配信トリガにする
             // Directly subscribe the same per-block event tag as uGUI BlockGameObject as the republish trigger
             var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);

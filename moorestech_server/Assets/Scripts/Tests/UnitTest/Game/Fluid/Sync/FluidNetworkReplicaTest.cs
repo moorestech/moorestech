@@ -24,8 +24,8 @@ namespace Tests.UnitTest.Game.Fluid.Sync
             var replica = FluidNetworkReplicaAssembler.Assemble(full);
 
             FluidFullStateAssert.AreEqual(full, replica);
-            Assert.IsTrue(replica.TryGetNode(new Vector3Int(0, 0, 1), out var node));
-            Assert.AreEqual(30, node.Amount);
+            Assert.IsTrue(replica.TryGetNodeIndex(new Vector3Int(0, 0, 1), out var node));
+            Assert.AreEqual(30, replica.Network.NodeAmounts[node]);
         }
 
         [Test]
@@ -38,9 +38,9 @@ namespace Tests.UnitTest.Game.Fluid.Sync
 
             // 空だったノード0は水になり7を持つ。ノード1は面の流れを除けば5増える(面は許可方向が無いので流れない)
             // Node 0, previously empty, becomes water holding 7; node 1 gains 5 (the face allows no direction, so nothing flows)
-            Assert.AreEqual(Water, replica.Nodes[0].FluidId);
-            Assert.AreEqual(7, replica.Nodes[0].Amount, 1e-9);
-            Assert.AreEqual(35, replica.Nodes[1].Amount, 1e-9);
+            Assert.AreEqual(Water, replica.Network.NodeFluidIds[0]);
+            Assert.AreEqual(7, replica.Network.NodeAmounts[0], 1e-9);
+            Assert.AreEqual(35, replica.Network.NodeAmounts[1], 1e-9);
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace Tests.UnitTest.Game.Fluid.Sync
 
             Assert.IsTrue(replica.Tick(new FluidTickDiff(new[] { new FluidPortDeliveryRecord(0, 2) }, Array.Empty<FluidNodeInflowRecord>())));
 
-            Assert.AreEqual(28, replica.Nodes[1].Amount, 1e-9);
+            Assert.AreEqual(28, replica.Network.NodeAmounts[1], 1e-9);
             Assert.AreEqual(2, replica.Ports[0].Velocity, 1e-9, "the port velocity converges onto the settled amount");
         }
 

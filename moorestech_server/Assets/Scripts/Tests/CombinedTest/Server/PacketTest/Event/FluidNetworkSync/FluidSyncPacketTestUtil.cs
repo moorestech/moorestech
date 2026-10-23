@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.FluidNetworkSync
             Place(ForUnitTestModBlockId.VoidPipe, new Vector3Int(-PipeRunLength, 0, 1), BlockDirection.North);
             for (var i = 0; i < WarmUpTicks; i++) GameUpdater.UpdateOneTick();
 
-            Assert.Greater(world.GetBlock(new Vector3Int(-1, 0, 0)).GetComponent<FluidPipeComponent>().Node.Amount, 0, "the pump pushed into the first pipe during the warm-up");
+            Assert.Greater(world.GetBlock(new Vector3Int(-1, 0, 0)).GetComponent<FluidPipeComponent>().Amount, 0, "the pump pushed into the first pipe during the warm-up");
         }
 
         // パイプ列を西へ1本延ばす。設置で網が汚れ、tick末尾で作り直される
@@ -61,12 +61,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.FluidNetworkSync
 
         public static uint ServerHash()
         {
-            return ServerContext.GetService<FluidNetworkDatastore>().ComputeStateHash();
+            return ServerContext.GetService<FluidNetworkDatastore>().CurrentStateHash;
         }
 
         public static uint HashOf(FluidNetworkReplica replica)
         {
-            return FluidNetworkStateHash.Compute(replica.Nodes, replica.Faces, replica.Ports);
+            return replica.Network.LastStateHash;
         }
 
         public static bool IsFluidTickEvent(EventMessagePack eventMessagePack)

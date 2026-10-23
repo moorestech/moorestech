@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Core.Fluid
             var pump = PlacePoweredPump(WaterVeinPos);
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, PipePos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pipeBlock);
-            var pipeNode = pipeBlock.GetComponent<FluidPipeComponent>().Node;
+            var pipeNode = pipeBlock.GetComponent<FluidPipeComponent>();
             var param = (Mooresmaster.Model.BlocksModule.ElectricPumpBlockParam)pump.BlockMasterElement.BlockParam;
 
             // 定常域の要求は搬出量÷満額生成量の按分になる
@@ -62,7 +62,7 @@ namespace Tests.CombinedTest.Core.Fluid
             // Publishing uses the basis latched at the previous tick's end, so the pump turns generating within two ticks of draining
             for (var i = 0; i < 2; i++)
             {
-                pipeNode.Amount -= DrainPerTick;
+                Drain(pipeNode, DrainPerTick);
                 GameUpdater.UpdateOneTick();
             }
 
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Core.Fluid
             // Steady state: draining keeps generating + the prorated request
             for (var i = 0; i < 40; i++)
             {
-                pipeNode.Amount -= DrainPerTick;
+                Drain(pipeNode, DrainPerTick);
                 GameUpdater.UpdateOneTick();
                 var common = GetCommonDetail(pump);
                 Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState, common.CurrentStateType, $"搬出中のtick {i} で待機へ振動した");
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Core.Fluid
             var drainPerTick = fullRatePerSec / GameUpdater.TicksPerSecond * drainRatio;
             var expectedTorque = fullTorque * (float)drainRatio;
 
-            var pipeNode = pipeBlock.GetComponent<FluidPipeComponent>().Node;
+            var pipeNode = pipeBlock.GetComponent<FluidPipeComponent>();
 
             // 満杯になるまで確実に生成させる
             // Generate until reliably full
@@ -117,7 +117,7 @@ namespace Tests.CombinedTest.Core.Fluid
             // Publishing uses the basis latched at the previous tick's end, so the pump turns generating within two ticks of draining
             for (var i = 0; i < 2; i++)
             {
-                pipeNode.Amount -= drainPerTick;
+                Drain(pipeNode, drainPerTick);
                 GameUpdater.UpdateOneTick();
             }
 
@@ -125,7 +125,7 @@ namespace Tests.CombinedTest.Core.Fluid
             // Steady state: keep generating + the prorated torque request
             for (var i = 0; i < 40; i++)
             {
-                pipeNode.Amount -= drainPerTick;
+                Drain(pipeNode, drainPerTick);
                 GameUpdater.UpdateOneTick();
                 Assert.IsTrue(gearPump.CanGenerateFluid, $"搬出中のtick {i} で待機へ振動した");
                 Assert.AreEqual(expectedTorque, gear.GetRequiredTorque(baseRpm, true).AsPrimitive(), fullTorque * 0.001f, $"搬出中のtick {i} で要求トルクが按分値から外れた");
@@ -135,6 +135,13 @@ namespace Tests.CombinedTest.Core.Fluid
             // Clogged: idle within a few ticks
             GameUpdater.RunFrames(3);
             Assert.IsFalse(gearPump.CanGenerateFluid, "搬出が止まった満杯ポンプは待機になるはず");
+        }
+
+        // 搬出を模して、パイプの中身を網の配列から直接減らす
+        // Mimics draining by subtracting straight from the pipe's slot in the network arrays
+        private static void Drain(FluidPipeComponent pipe, double amount)
+        {
+            ServerContext.GetService<FluidNetworkDatastore>().Network.NodeAmounts[pipe.NodeIndex] -= amount;
         }
     }
 }

@@ -450,12 +450,12 @@ namespace Tests.CombinedTest.Core.Fluid
     {
         public static double GetAmount(this FluidPipeComponent fluidPipe)
         {
-            return fluidPipe.Node.Amount;
+            return fluidPipe.Amount;
         }
 
         public static FluidId GetFluidId(this FluidPipeComponent fluidPipe)
         {
-            return fluidPipe.Node.FluidId;
+            return fluidPipe.FluidId;
         }
     }
 }

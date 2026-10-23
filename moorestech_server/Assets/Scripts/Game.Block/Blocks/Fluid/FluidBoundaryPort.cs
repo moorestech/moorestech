@@ -17,20 +17,20 @@ namespace Game.Block.Blocks.Fluid
     /// </summary>
     public class FluidBoundaryPort : IFluidBoundaryPort
     {
-        public FluidSimNode PipeNode { get; }
+        public int NodeIndex { get; }
         public double FlowCapacityPerTick { get; }
         public double Velocity { get; set; }
 
-        // トポロジ再構築時の決定論的な並び替えに使う
-        // Used for deterministic ordering during topology rebuilds
+        // 再構築時の決定論的な並び替えに使う
+        // Used for deterministic ordering during rebuilds
         public readonly Vector3Int TargetPosition;
 
         private readonly IFluidInventory _target;
         private readonly ConnectedInfo _connectedInfo;
 
-        public FluidBoundaryPort(FluidSimNode pipeNode, IFluidInventory target, ConnectedInfo connectedInfo, double flowCapacityPerTick, Vector3Int targetPosition)
+        public FluidBoundaryPort(int nodeIndex, IFluidInventory target, ConnectedInfo connectedInfo, double flowCapacityPerTick, Vector3Int targetPosition)
         {
-            PipeNode = pipeNode;
+            NodeIndex = nodeIndex;
             _target = target;
             _connectedInfo = connectedInfo;
             FlowCapacityPerTick = flowCapacityPerTick;

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Fluid;
@@ -20,25 +21,16 @@ namespace Tests.UnitTest.Game
         // Two nodes equalize their levels and the total amount is conserved exactly
         public void TwoNodeEqualizationTest()
         {
-            var nodeA = new FluidSimNode(new Vector3Int(0, 0, 0), 100) { Amount = 30, FluidId = TestFluidId };
-            var nodeB = new FluidSimNode(new Vector3Int(1, 0, 0), 100);
-            var face = CreateBidirectionalFace(nodeA, nodeB, 0.5);
-
-            var nodes = new List<FluidSimNode> { nodeA, nodeB };
-            var faces = new List<FluidSimFace> { face };
-            var ports = new List<IFluidBoundaryPort>();
+            var network = Chain(2, 0.5, true, true, (0, 30, TestFluidId));
 
             // Damping=0.002では静定に約2000step要する
             // With Damping=0.002 settling takes about 2000 steps
-            for (var i = 0; i < 2500; i++)
-            {
-                FluidSimulationStepper.Step(nodes, faces, ports);
-            }
+            Run(network, 2500);
 
-            Assert.AreEqual(15d, nodeA.Amount, 0.5d);
-            Assert.AreEqual(15d, nodeB.Amount, 0.5d);
-            Assert.AreEqual(30d, nodeA.Amount + nodeB.Amount, 1e-9);
-            Assert.AreEqual(TestFluidId, nodeB.FluidId);
+            Assert.AreEqual(15d, network.NodeAmounts[0], 0.5d);
+            Assert.AreEqual(15d, network.NodeAmounts[1], 0.5d);
+            Assert.AreEqual(30d, network.NodeAmounts[0] + network.NodeAmounts[1], 1e-9);
+            Assert.AreEqual(TestFluidId, network.NodeFluidIds[1]);
         }
 
         [Test]
@@ -46,42 +38,21 @@ namespace Tests.UnitTest.Game
         // The total is conserved across a chain and every node stays within [0, capacity]
         public void ChainConservationTest()
         {
-            var nodes = new List<FluidSimNode>();
-            var faces = new List<FluidSimFace>();
-            for (var i = 0; i < 5; i++)
-            {
-                nodes.Add(new FluidSimNode(new Vector3Int(i, 0, 0), 100));
-            }
-            nodes[0].Amount = 100;
-            nodes[0].FluidId = TestFluidId;
-            nodes[3].Amount = 40;
-            nodes[3].FluidId = TestFluidId;
-            for (var i = 0; i < 4; i++)
-            {
-                faces.Add(CreateBidirectionalFace(nodes[i], nodes[i + 1], 0.5));
-            }
-
-            var ports = new List<IFluidBoundaryPort>();
-            for (var i = 0; i < 500; i++)
-            {
-                FluidSimulationStepper.Step(nodes, faces, ports);
-            }
+            var network = Chain(5, 0.5, true, true, (0, 100, TestFluidId), (3, 40, TestFluidId));
+            Run(network, 500);
 
             var total = 0d;
-            foreach (var node in nodes)
+            for (var i = 0; i < network.NodeCount; i++)
             {
-                total += node.Amount;
-                Assert.GreaterOrEqual(node.Amount, 0);
-                Assert.LessOrEqual(node.Amount, node.Capacity + 1e-9);
+                total += network.NodeAmounts[i];
+                Assert.GreaterOrEqual(network.NodeAmounts[i], 0);
+                Assert.LessOrEqual(network.NodeAmounts[i], network.NodeCapacities[i] + 1e-9);
             }
             Assert.AreEqual(140d, total, 1e-9);
 
             // 最終的に全ノードが均等（各28）に収束する
             // Eventually every node converges to the same level (28 each)
-            foreach (var node in nodes)
-            {
-                Assert.AreEqual(28d, node.Amount, 1d);
-            }
+            for (var i = 0; i < network.NodeCount; i++) Assert.AreEqual(28d, network.NodeAmounts[i], 1d);
         }
 
         [Test]
@@ -89,24 +60,13 @@ namespace Tests.UnitTest.Game
         // A one-way face only flows in its allowed direction
         public void OneWayFaceTest()
         {
-            var nodeA = new FluidSimNode(new Vector3Int(0, 0, 0), 100);
-            var nodeB = new FluidSimNode(new Vector3Int(1, 0, 0), 100) { Amount = 50, FluidId = TestFluidId };
-
             // A→Bのみ許可。Bに液体があるがAへは逆流しない
             // Only A→B allowed; fluid in B must not flow back into A
-            var face = new FluidSimFace(nodeA, nodeB, 0.5, 0) { AllowAToB = true };
+            var network = Chain(2, 0.5, true, false, (1, 50, TestFluidId));
+            Run(network, 100);
 
-            var nodes = new List<FluidSimNode> { nodeA, nodeB };
-            var faces = new List<FluidSimFace> { face };
-            var ports = new List<IFluidBoundaryPort>();
-
-            for (var i = 0; i < 100; i++)
-            {
-                FluidSimulationStepper.Step(nodes, faces, ports);
-            }
-
-            Assert.AreEqual(0d, nodeA.Amount, 1e-9);
-            Assert.AreEqual(50d, nodeB.Amount, 1e-9);
+            Assert.AreEqual(0d, network.NodeAmounts[0], 1e-9);
+            Assert.AreEqual(50d, network.NodeAmounts[1], 1e-9);
         }
 
         [Test]
@@ -114,23 +74,14 @@ namespace Tests.UnitTest.Game
         // Nodes with different capacities balance by fill rate (water level)
         public void FillRateBalanceAcrossCapacitiesTest()
         {
-            var tank = new FluidSimNode(new Vector3Int(0, 0, 0), 1000) { Amount = 1000, FluidId = TestFluidId };
-            var pipe = new FluidSimNode(new Vector3Int(1, 0, 0), 100);
-            var face = CreateBidirectionalFace(tank, pipe, 0.5);
-
-            var nodes = new List<FluidSimNode> { tank, pipe };
-            var faces = new List<FluidSimFace> { face };
-            var ports = new List<IFluidBoundaryPort>();
-
-            for (var i = 0; i < 2000; i++)
-            {
-                FluidSimulationStepper.Step(nodes, faces, ports);
-            }
+            var network = Build(new[] { (new Vector3Int(0, 0, 0), 1000d, 1000d, TestFluidId), (new Vector3Int(1, 0, 0), 100d, 0d, FluidMaster.EmptyFluidId) },
+                new[] { (0, 1, 0.5, true, true) }, Array.Empty<IFluidBoundaryPort>());
+            Run(network, 2000);
 
             // 充填率が一致する（tank≒909, pipe≒91）
             // Fill rates match (tank ≈ 909, pipe ≈ 91)
-            Assert.AreEqual(tank.FillRate, pipe.FillRate, 0.02d);
-            Assert.AreEqual(1000d, tank.Amount + pipe.Amount, 1e-9);
+            Assert.AreEqual(network.FillRate(0), network.FillRate(1), 0.02d);
+            Assert.AreEqual(1000d, network.NodeAmounts[0] + network.NodeAmounts[1], 1e-9);
         }
 
         [Test]
@@ -138,37 +89,27 @@ namespace Tests.UnitTest.Game
         // A boundary port drains its node, velocity never exceeds the cap, and rejection kills the velocity
         public void BoundaryPortDrainAndFeedbackTest()
         {
-            var node = new FluidSimNode(new Vector3Int(0, 0, 0), 100) { Amount = 20, FluidId = TestFluidId };
-            var acceptingPort = new TestBoundaryPort(node, 0.5, acceptAll: true);
-
-            var nodes = new List<FluidSimNode> { node };
-            var faces = new List<FluidSimFace>();
-            var ports = new List<IFluidBoundaryPort> { acceptingPort };
-
+            var acceptingPort = new TestBoundaryPort(0, 0.5, acceptAll: true);
+            var network = Build(new[] { (new Vector3Int(0, 0, 0), 100d, 20d, TestFluidId) }, Array.Empty<(int, int, double, bool, bool)>(), new IFluidBoundaryPort[] { acceptingPort });
+            var scratch = new FluidSimulationScratch(network);
             for (var i = 0; i < 1000; i++)
             {
-                FluidSimulationStepper.Step(nodes, faces, ports);
+                FluidSimulationStepper.Step(network, scratch);
                 Assert.LessOrEqual(acceptingPort.Velocity, 0.5 + 1e-9);
             }
 
             // 排水は残量に比例して漸減するため指数テールを持つ。1000tickでほぼ0まで排水される
             // Draining decays proportionally to the remaining amount (exponential tail); after 1000 ticks it is effectively empty
-            Assert.AreEqual(0d, node.Amount, 1e-6);
+            Assert.AreEqual(0d, network.NodeAmounts[0], 1e-6);
             Assert.AreEqual(20d, acceptingPort.DeliveredTotal, 1e-6);
 
             // 全拒否する境界では、ノード残量が変わらず速度も0に収束する
             // A rejecting boundary leaves the node untouched and the velocity converges to zero
-            var node2 = new FluidSimNode(new Vector3Int(0, 0, 0), 100) { Amount = 20, FluidId = TestFluidId };
-            var rejectingPort = new TestBoundaryPort(node2, 0.5, acceptAll: false);
-            var nodes2 = new List<FluidSimNode> { node2 };
-            var ports2 = new List<IFluidBoundaryPort> { rejectingPort };
+            var rejectingPort = new TestBoundaryPort(0, 0.5, acceptAll: false);
+            var network2 = Build(new[] { (new Vector3Int(0, 0, 0), 100d, 20d, TestFluidId) }, Array.Empty<(int, int, double, bool, bool)>(), new IFluidBoundaryPort[] { rejectingPort });
+            Run(network2, 100);
 
-            for (var i = 0; i < 100; i++)
-            {
-                FluidSimulationStepper.Step(nodes2, faces, ports2);
-            }
-
-            Assert.AreEqual(20d, node2.Amount, 1e-9);
+            Assert.AreEqual(20d, network2.NodeAmounts[0], 1e-9);
             Assert.AreEqual(0d, rejectingPort.Velocity, 1e-9);
         }
 
@@ -177,46 +118,73 @@ namespace Tests.UnitTest.Game
         // A face between mismatched fluids closes and neither side changes
         public void MismatchedFluidClosedFaceTest()
         {
-            var nodeA = new FluidSimNode(new Vector3Int(0, 0, 0), 100) { Amount = 30, FluidId = new FluidId(1) };
-            var nodeB = new FluidSimNode(new Vector3Int(1, 0, 0), 100) { Amount = 10, FluidId = new FluidId(2) };
-            var face = CreateBidirectionalFace(nodeA, nodeB, 0.5);
+            var network = Chain(2, 0.5, true, true, (0, 30, new FluidId(1)), (1, 10, new FluidId(2)));
+            Run(network, 100);
 
-            var nodes = new List<FluidSimNode> { nodeA, nodeB };
-            var faces = new List<FluidSimFace> { face };
-            var ports = new List<IFluidBoundaryPort>();
-
-            for (var i = 0; i < 100; i++)
-            {
-                FluidSimulationStepper.Step(nodes, faces, ports);
-            }
-
-            Assert.AreEqual(30d, nodeA.Amount, 1e-9);
-            Assert.AreEqual(10d, nodeB.Amount, 1e-9);
+            Assert.AreEqual(30d, network.NodeAmounts[0], 1e-9);
+            Assert.AreEqual(10d, network.NodeAmounts[1], 1e-9);
         }
 
-        private static FluidSimFace CreateBidirectionalFace(FluidSimNode nodeA, FluidSimNode nodeB, double flowCapacityPerTick)
+        [Test]
+        // Step が走査のついでに残すハッシュは、全走査で求めた値と一致する
+        // The hash the step folds in during its own walk equals the one from a full walk
+        public void StepHashMatchesFullRecompute()
         {
-            return new FluidSimFace(nodeA, nodeB, flowCapacityPerTick, 0)
-            {
-                AllowAToB = true,
-                AllowBToA = true,
-            };
+            var network = Chain(5, 0.5, true, true, (0, 100, TestFluidId), (3, 40, TestFluidId));
+            Run(network, 50);
+            var stepped = network.LastStateHash;
+            network.RecomputeStateHash();
+            Assert.AreEqual(stepped, network.LastStateHash);
+        }
+
+        private static void Run(FluidSimNetwork network, int ticks)
+        {
+            var scratch = new FluidSimulationScratch(network);
+            for (var i = 0; i < ticks; i++) FluidSimulationStepper.Step(network, scratch);
+        }
+
+        // x軸に並ぶ容量100のノード列を同じ面上限・向き許可で繋ぎ、指定ノードへ初期量を入れる
+        // A row of capacity-100 nodes along x, joined by faces with one cap and direction permission, with initial amounts on the given nodes
+        private static FluidSimNetwork Chain(int nodeCount, double faceCap, bool allowAToB, bool allowBToA, params (int node, double amount, FluidId fluidId)[] contents)
+        {
+            var nodes = new (Vector3Int, double, double, FluidId)[nodeCount];
+            for (var i = 0; i < nodeCount; i++) nodes[i] = (new Vector3Int(i, 0, 0), 100d, 0d, FluidMaster.EmptyFluidId);
+            foreach (var (node, amount, fluidId) in contents) nodes[node] = (nodes[node].Item1, 100d, amount, fluidId);
+            var faces = new (int, int, double, bool, bool)[nodeCount - 1];
+            for (var i = 0; i < faces.Length; i++) faces[i] = (i, i + 1, faceCap, allowAToB, allowBToA);
+            return Build(nodes, faces, Array.Empty<IFluidBoundaryPort>());
+        }
+
+        private static FluidSimNetwork Build((Vector3Int position, double capacity, double amount, FluidId fluidId)[] nodes, (int a, int b, double cap, bool allowAToB, bool allowBToA)[] faces, IFluidBoundaryPort[] ports)
+        {
+            var positions = new Vector3Int[nodes.Length];
+            var capacities = new double[nodes.Length];
+            var amounts = new double[nodes.Length];
+            var fluidIds = new FluidId[nodes.Length];
+            for (var i = 0; i < nodes.Length; i++) (positions[i], capacities[i], amounts[i], fluidIds[i]) = nodes[i];
+            var faceA = new int[faces.Length];
+            var faceB = new int[faces.Length];
+            var caps = new double[faces.Length];
+            var allowAToB = new bool[faces.Length];
+            var allowBToA = new bool[faces.Length];
+            for (var i = 0; i < faces.Length; i++) (faceA[i], faceB[i], caps[i], allowAToB[i], allowBToA[i]) = faces[i];
+            return new FluidSimNetwork(positions, capacities, amounts, fluidIds, faceA, faceB, caps, new double[faces.Length], allowAToB, allowBToA, ports);
         }
 
         // テスト用の境界ポート。acceptAll=falseなら全量拒否する
         // Test boundary port; rejects everything when acceptAll is false
         private class TestBoundaryPort : IFluidBoundaryPort
         {
-            public FluidSimNode PipeNode { get; }
+            public int NodeIndex { get; }
             public double FlowCapacityPerTick { get; }
             public double Velocity { get; set; }
             public double DeliveredTotal { get; private set; }
 
             private readonly bool _acceptAll;
 
-            public TestBoundaryPort(FluidSimNode pipeNode, double flowCapacityPerTick, bool acceptAll)
+            public TestBoundaryPort(int nodeIndex, double flowCapacityPerTick, bool acceptAll)
             {
-                PipeNode = pipeNode;
+                NodeIndex = nodeIndex;
                 FlowCapacityPerTick = flowCapacityPerTick;
                 _acceptAll = acceptAll;
             }

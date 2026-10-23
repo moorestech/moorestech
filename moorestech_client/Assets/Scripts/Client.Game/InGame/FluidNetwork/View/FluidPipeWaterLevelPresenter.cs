@@ -33,17 +33,18 @@ namespace Client.Game.InGame.FluidNetwork.View
             var replica = _cache.Replica;
             if (replica == null || _cache.ReplicaVersion == _shownReplicaVersion) return;
             _shownReplicaVersion = _cache.ReplicaVersion;
+            var network = replica.Network;
             if (!ReferenceEquals(_boundReplica, replica))
             {
                 _boundReplica = replica;
-                _viewsByNode = new FluidPipeWaterLevelView[replica.Nodes.Length];
+                _viewsByNode = new FluidPipeWaterLevelView[network.NodeCount];
             }
 
-            for (var i = 0; i < replica.Nodes.Length; i++)
+            for (var i = 0; i < network.NodeCount; i++)
             {
-                var view = ResolveView(i, replica.Nodes[i].Position);
+                var view = ResolveView(i, network.NodePositions[i]);
                 if (view == null) continue;
-                view.SetWaterLevel((float)(replica.Nodes[i].Amount / replica.Nodes[i].Capacity));
+                view.SetWaterLevel((float)(network.NodeAmounts[i] / network.NodeCapacities[i]));
             }
         }
 

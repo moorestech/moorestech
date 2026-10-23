@@ -1,37 +1,30 @@
-using System.Collections.Generic;
 using Game.Fluid.Simulation;
 
 namespace Game.Fluid.Sync.State
 {
-    // tick境界で、サーバーの網のノード・面・ポートから全量(送受信する形)を切り出す。途中参加と再構築tickの全量送信だけが使い、ハッシュは切り出さずに直接混ぜる
-    // Cuts the full state (the wire form) out of the server network's nodes, faces and ports at a tick boundary; only the join-time and rebuilt-tick full-state sends use it, while the hash mixes directly without a capture
+    // tick境界で、網の配列から全量(送受信する形)を切り出す。途中参加と再構築tickの全量送信だけが使い、ハッシュは切り出さずに網が持つ
+    // Cuts the full state (the wire form) out of the network arrays at a tick boundary; only the join-time and rebuilt-tick full-state sends use it, while the hash lives on the network without a capture
     public static class FluidNetworkFullStateCapture
     {
-        public static FluidNetworkFullState Capture(IReadOnlyList<FluidSimNode> nodes, IReadOnlyList<FluidSimFace> faces, IReadOnlyList<IFluidBoundaryPort> ports)
+        public static FluidNetworkFullState Capture(FluidSimNetwork network)
         {
-            // 面とポートはノードを参照で持つので、番号へ写すための逆引きを作る
-            // Faces and ports hold nodes by reference, so build the reverse lookup to express them as indices
-            var indexByNode = new Dictionary<FluidSimNode, int>(nodes.Count);
-            var nodeStates = new FluidNodeState[nodes.Count];
-            for (var i = 0; i < nodes.Count; i++)
+            var nodeStates = new FluidNodeState[network.NodeCount];
+            for (var i = 0; i < nodeStates.Length; i++)
             {
-                var node = nodes[i];
-                indexByNode.Add(node, i);
-                nodeStates[i] = new FluidNodeState(node.Position, node.Capacity, node.Amount, node.FluidId);
+                nodeStates[i] = new FluidNodeState(network.NodePositions[i], network.NodeCapacities[i], network.NodeAmounts[i], network.NodeFluidIds[i]);
             }
 
-            var faceStates = new FluidFaceState[faces.Count];
-            for (var i = 0; i < faces.Count; i++)
+            var faceStates = new FluidFaceState[network.FaceCount];
+            for (var i = 0; i < faceStates.Length; i++)
             {
-                var face = faces[i];
-                faceStates[i] = new FluidFaceState(indexByNode[face.NodeA], indexByNode[face.NodeB], face.FlowCapacityPerTick, face.Velocity, face.AllowAToB, face.AllowBToA);
+                faceStates[i] = new FluidFaceState(network.FaceNodeA[i], network.FaceNodeB[i], network.FaceFlowCapacities[i], network.FaceVelocities[i], network.FaceAllowAToB[i], network.FaceAllowBToA[i]);
             }
 
-            var portStates = new FluidPortState[ports.Count];
-            for (var i = 0; i < ports.Count; i++)
+            var portStates = new FluidPortState[network.Ports.Length];
+            for (var i = 0; i < portStates.Length; i++)
             {
-                var port = ports[i];
-                portStates[i] = new FluidPortState(indexByNode[port.PipeNode], port.FlowCapacityPerTick, port.Velocity);
+                var port = network.Ports[i];
+                portStates[i] = new FluidPortState(port.NodeIndex, port.FlowCapacityPerTick, port.Velocity);
             }
 
             return new FluidNetworkFullState(nodeStates, faceStates, portStates);

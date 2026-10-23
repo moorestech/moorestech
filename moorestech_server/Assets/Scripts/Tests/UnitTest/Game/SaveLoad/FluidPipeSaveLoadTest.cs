@@ -34,8 +34,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // Set fluid directly on the simulation node
             var fluidId = FluidTest.FluidId;
             const double fluidAmount = 50.5;
-            fluidPipe.Node.FluidId = fluidId;
-            fluidPipe.Node.Amount = fluidAmount;
+            fluidPipe.AddLiquid(new FluidStack(fluidAmount, fluidId), default);
 
             var saveComponent = fluidPipeBlock.GetComponent<FluidPipeSaveComponent>();
             var saveState = saveComponent.GetSaveState();
@@ -48,8 +47,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 液体の状態が一致するかチェック
             // Verify the fluid state matches
-            Assert.AreEqual(fluidId, loadedFluidPipe.Node.FluidId);
-            Assert.AreEqual(fluidAmount, loadedFluidPipe.Node.Amount);
+            Assert.AreEqual(fluidId, loadedFluidPipe.FluidId);
+            Assert.AreEqual(fluidAmount, loadedFluidPipe.Amount);
         }
 
         [Test]
@@ -64,8 +63,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 空の状態を確認
             // Confirm the pipe starts empty
-            Assert.AreEqual(FluidMaster.EmptyFluidId, fluidPipe.Node.FluidId);
-            Assert.AreEqual(0, fluidPipe.Node.Amount);
+            Assert.AreEqual(FluidMaster.EmptyFluidId, fluidPipe.FluidId);
+            Assert.AreEqual(0, fluidPipe.Amount);
 
             var saveComponent = fluidPipeBlock.GetComponent<FluidPipeSaveComponent>();
             var saveState = saveComponent.GetSaveState();
@@ -78,8 +77,8 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 空の状態が維持されているかチェック
             // Verify the empty state is preserved
-            Assert.AreEqual(FluidMaster.EmptyFluidId, loadedFluidPipe.Node.FluidId);
-            Assert.AreEqual(0, loadedFluidPipe.Node.Amount);
+            Assert.AreEqual(FluidMaster.EmptyFluidId, loadedFluidPipe.FluidId);
+            Assert.AreEqual(0, loadedFluidPipe.Amount);
         }
 
         [Test]

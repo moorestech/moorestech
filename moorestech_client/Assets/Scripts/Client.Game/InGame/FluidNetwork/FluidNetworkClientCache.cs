@@ -1,4 +1,3 @@
-using Game.Fluid.Simulation;
 using Game.Fluid.Sync.Diff;
 using Game.Fluid.Sync.Replica;
 using Game.Fluid.Sync.State;
@@ -33,17 +32,16 @@ namespace Client.Game.InGame.FluidNetwork
             return consistent;
         }
 
-        public uint ComputeCurrentHash()
-        {
-            return FluidNetworkStateHash.Compute(Replica.Nodes, Replica.Faces, Replica.Ports);
-        }
+        // 直前の tick(または組み立て)時点のハッシュ。Stepper が走査のついでに足している
+        // Hash as of the last tick (or assembly), folded in by the stepper during its own walk
+        public uint CurrentHash => Replica.Network.LastStateHash;
 
-        // パイプの座標からノードを引く。複製が無い間、パイプでない座標はfalse
-        // Looks up the node at a pipe position; false without a replica or off a pipe
-        public bool TryGetNode(Vector3Int position, out FluidSimNode node)
+        // パイプの座標からノード番号を引く。複製が無い間、パイプでない座標はfalse
+        // Looks up the node index at a pipe position; false without a replica or off a pipe
+        public bool TryGetNodeIndex(Vector3Int position, out int nodeIndex)
         {
-            if (Replica != null) return Replica.TryGetNode(position, out node);
-            node = null;
+            if (Replica != null) return Replica.TryGetNodeIndex(position, out nodeIndex);
+            nodeIndex = -1;
             return false;
         }
     }

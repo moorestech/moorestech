@@ -11,42 +11,40 @@ using UnityEngine;
 namespace Game.Block.Blocks.Fluid
 {
     /// <summary>
-    ///     全パイプの登録と、シミュレーション用トポロジ（ノード・面・境界ポート）の構築を担うデータストア。
+    ///     全パイプの登録と、シミュレーション用の網（ノード・面・境界ポートの配列）の構築を担うデータストア。
     ///     登録集合とdirtyフラグを持ち、tick末尾とロード完了時に呼ばれるRebuildIfDirtyでO(V+E)一括再構築する（electric・gearと同型）。
     ///     ブロックの増減は流体接続の増減なので、ワールド更新イベントでdirtyフラグを立て、そのtickの末尾で組み直す。
-    ///     ノード・面は座標順にソートして保持し、走査順を決定論的にする。クライアントの複製はこの並びをそのまま写して同じ計算を回す。
+    ///     ノード・面は座標順に並べ、走査順を決定論的にする。クライアントの複製はこの並びをそのまま写して同じ計算を回す。
     ///
-    ///     Datastore registering every pipe and building the simulation topology (nodes, faces, boundary ports).
+    ///     Datastore registering every pipe and building the simulation network (node, face and boundary-port arrays).
     ///     It keeps a registration set plus a dirty flag; RebuildIfDirty, called at the tick end and on load completion, rebuilds everything in O(V+E) like electric and gear.
     ///     Any block place/remove can change fluid connections, so world update events mark the topology dirty for that tick's end.
-    ///     Nodes and faces are kept position-sorted so iteration is deterministic; the client replica copies this order and runs the same computation.
+    ///     Nodes and faces are position-sorted so iteration is deterministic; the client replica copies this order and runs the same computation.
     /// </summary>
     public class FluidNetworkDatastore : IFluidNetworkDatastore, IFluidNetworkLookup
     {
         private readonly HashSet<FluidPipeComponent> _pipes = new();
         private readonly List<FluidPipeComponent> _sortedPipes = new();
 
-        // 再構築のたびに配列へ置き換える。毎tickの走査とハッシュが配列を直接なめられるようにする(インターフェース経由の添字より速い)
-        // Replaced with arrays at every rebuild so the per-tick sweep and the hash walk arrays directly (faster than indexing through the interface)
-        private FluidSimNode[] _nodes = Array.Empty<FluidSimNode>();
-        private FluidSimFace[] _faces = Array.Empty<FluidSimFace>();
-        private FluidBoundaryPort[] _boundaryPorts = Array.Empty<FluidBoundaryPort>();
-        private readonly Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace> _faceByPositionPair = new();
-
-        // 差分がノードを番号で指すための逆引き。再構築のたびに作り直す
-        // Reverse lookup so diffs can address nodes by index; rebuilt with every topology rebuild
-        private readonly Dictionary<FluidPipeComponent, int> _nodeIndexByPipe = new();
+        // 再構築のたびに網と作業配列を丸ごと置き換える。パイプは新しい番号を受け取る
+        // Every rebuild swaps in a new network and scratch; pipes receive their new indices
+        private FluidSimNetwork _network = FluidSimNetwork.CreateEmpty();
+        private FluidSimulationScratch _scratch;
         private readonly FluidNetworkDiffRecorder _diffRecorder = new();
         private readonly Subject<Unit> _onTopologyRebuilt = new();
         private bool _isTopologyDirty = true;
 
-        public IReadOnlyList<FluidSimNode> Nodes => _nodes;
-        public IReadOnlyList<FluidSimFace> Faces => _faces;
-        public IReadOnlyList<FluidBoundaryPort> BoundaryPorts => _boundaryPorts;
+        public FluidSimNetwork Network => _network;
+        public FluidSimulationScratch Scratch => _scratch;
         public IObservable<Unit> OnTopologyRebuilt => _onTopologyRebuilt;
+
+        // 直前の Step(または再構築)時点のハッシュ。クライアントの複製との照合に使う
+        // Hash as of the last Step (or rebuild), checked against the client replica
+        public uint CurrentStateHash => _network.LastStateHash;
 
         public FluidNetworkDatastore(IWorldBlockUpdateEvent worldBlockUpdateEvent)
         {
+            _scratch = new FluidSimulationScratch(_network);
             worldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(_ => _isTopologyDirty = true);
             worldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(_ => _isTopologyDirty = true);
         }
@@ -63,14 +61,15 @@ namespace Game.Block.Blocks.Fluid
             _isTopologyDirty = true;
         }
 
-        // セーブ用に、指定パイプが正準側(NodeA)として所有する面の方向と速度を集める
-        // Collect directions and velocities of faces the given pipe owns as the canonical NodeA side, for saving
+        // セーブ用に、指定パイプが正準側(NodeA)として所有する面の方向と速度を集める。未構築のパイプは面を持たない
+        // Collect directions and velocities of faces the given pipe owns as the canonical NodeA side, for saving; an unbuilt pipe owns no face
         public void CollectOwnedFaceVelocities(FluidPipeComponent pipe, List<(Vector3Int direction, double velocity)> buffer)
         {
-            foreach (var face in _faces)
+            if (pipe.NodeIndex < 0) return;
+            for (var f = 0; f < _network.FaceCount; f++)
             {
-                if (face.NodeA != pipe.Node) continue;
-                buffer.Add((face.NodeB.Position - face.NodeA.Position, face.Velocity));
+                if (_network.FaceNodeA[f] != pipe.NodeIndex) continue;
+                buffer.Add((_network.NodePositions[_network.FaceNodeB[f]] - _network.NodePositions[_network.FaceNodeA[f]], _network.FaceVelocities[f]));
             }
         }
 
@@ -78,15 +77,15 @@ namespace Game.Block.Blocks.Fluid
         // Only inflows into an indexed pipe go into the diff; a pipe placed and not yet built is carried, contents included, by the next rebuild's full state
         public void RecordInflow(FluidPipeComponent pipe, FluidId fluidId, double acceptedAmount)
         {
-            if (!_nodeIndexByPipe.TryGetValue(pipe, out var nodeIndex)) return;
-            _diffRecorder.RecordInflow(nodeIndex, fluidId, acceptedAmount);
+            if (pipe.NodeIndex < 0) return;
+            _diffRecorder.RecordInflow(pipe.NodeIndex, fluidId, acceptedAmount);
         }
 
         // 流体tickの直後に、各ポートが機械へ実際に渡した量を差分へ写す
         // Right after the fluid tick, copy the amount each port actually handed to its machine into the diff
         public void RecordDeliveries()
         {
-            _diffRecorder.RecordDeliveries(_boundaryPorts);
+            _diffRecorder.RecordDeliveries(_network.Ports);
         }
 
         public FluidTickDiff TakeTickDiff()
@@ -98,43 +97,36 @@ namespace Game.Block.Blocks.Fluid
         // Cuts the current network's full state; used for the initial sync and the full-state send after a rebuild
         public FluidNetworkFullState CaptureFullState()
         {
-            return FluidNetworkFullStateCapture.Capture(_nodes, _faces, _boundaryPorts);
+            return FluidNetworkFullStateCapture.Capture(_network);
         }
 
-        // 現在の網のハッシュ。クライアントの複製との照合に使う。全量を写さず直接混ぜる
-        // Hash of the current network, checked against the client replica; mixes directly without capturing the full state
-        public uint ComputeStateHash()
-        {
-            return FluidNetworkStateHash.Compute(_nodes, _faces, _boundaryPorts);
-        }
-
-        // tick末尾とロード完了時に呼ばれ、登録・接続に変化があった時だけトポロジを一括再構築する
-        // Called at the tick end and on load completion; rebuilds the whole topology only when registrations or connections changed
+        // tick末尾とロード完了時に呼ばれ、登録・接続に変化があった時だけ網を一括再構築する
+        // Called at the tick end and on load completion; rebuilds the whole network only when registrations or connections changed
         public void RebuildIfDirty()
         {
             if (!_isTopologyDirty) return;
 
-            // パイプを座標順に整列し、ノード列と番号を確定する
-            // Sort pipes by position and settle the node list and indices
+            // パイプを座標順に整列し、旧網(または未構築の持ち越し)から中身を引き継いでノード列を作る
+            // Sort pipes by position and build the node columns, carrying contents over from the old network (or the unbuilt holdover)
             _sortedPipes.Clear();
             _sortedPipes.AddRange(_pipes);
             _sortedPipes.Sort(static (x, y) => ComparePositions(x.Position, y.Position));
-
-            _nodeIndexByPipe.Clear();
-            _nodes = new FluidSimNode[_sortedPipes.Count];
+            var previous = _network;
+            var builder = new FluidNetworkBuilder(_sortedPipes.Count);
             for (var i = 0; i < _sortedPipes.Count; i++)
             {
-                _nodeIndexByPipe.Add(_sortedPipes[i], i);
-                _nodes[i] = _sortedPipes[i].Node;
+                var pipe = _sortedPipes[i];
+                var (amount, fluidId) = pipe.TakeContents(previous);
+                builder.SetNode(i, pipe.Position, pipe.Capacity, amount, fluidId);
+                pipe.SetNodeIndex(i);
             }
 
-            // 既存面は位置ペアが一致しノードも同一なら速度ごと引き継ぐ（波の状態を再構築で失わない）
-            // Reuse faces whose position pair and nodes match, carrying the velocity so rebuilds do not erase wave state
-            var previousFaces = new Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace>(_faceByPositionPair);
-            _faceByPositionPair.Clear();
-            var faces = new List<FluidSimFace>(_faces.Length);
-            var boundaryPorts = new List<FluidBoundaryPort>(_boundaryPorts.Length);
+            // 面は旧網の同じ位置ペアから速度を引き継ぐ(波の状態を再構築で失わない)。無ければロード復元値
+            // Faces carry their velocity over from the old network's matching position pair (rebuilds do not erase wave state), else the loaded value
+            var previousVelocities = new Dictionary<(Vector3Int a, Vector3Int b), double>(previous.FaceCount);
+            for (var f = 0; f < previous.FaceCount; f++) previousVelocities[(previous.NodePositions[previous.FaceNodeA[f]], previous.NodePositions[previous.FaceNodeB[f]])] = previous.FaceVelocities[f];
 
+            var ports = new List<FluidBoundaryPort>();
             foreach (var pipe in _sortedPipes)
             {
                 foreach (var (target, connectedInfo) in pipe.Connector.ConnectedTargets)
@@ -142,21 +134,20 @@ namespace Game.Block.Blocks.Fluid
                     if (target is FluidPipeComponent targetPipe)
                     {
                         if (!_pipes.Contains(targetPipe)) continue;
-                        BuildFace(pipe, targetPipe, connectedInfo, previousFaces);
+                        AddFace(pipe, targetPipe, connectedInfo);
                     }
                     else
                     {
                         var flowCapacity = FluidBoundaryPort.GetFlowCapacityPerTick(connectedInfo);
                         var targetPosition = connectedInfo.TargetBlock.BlockPositionInfo.OriginalPos;
-                        boundaryPorts.Add(new FluidBoundaryPort(pipe.Node, target, connectedInfo, flowCapacity, targetPosition));
+                        ports.Add(new FluidBoundaryPort(pipe.NodeIndex, target, connectedInfo, flowCapacity, targetPosition));
                     }
                 }
             }
 
-            faces.Sort(static (x, y) => CompareFaces(x, y));
-            boundaryPorts.Sort(static (x, y) => ComparePorts(x, y));
-            _faces = faces.ToArray();
-            _boundaryPorts = boundaryPorts.ToArray();
+            ports.Sort((x, y) => ComparePorts(x, y));
+            _network = builder.Build(ports.ToArray());
+            _scratch = new FluidSimulationScratch(_network);
 
             // ロード復元用の初期速度は最初の構築で消費済みになる
             // Loaded initial velocities are consumed by the first rebuild
@@ -167,62 +158,34 @@ namespace Game.Block.Blocks.Fluid
 
             #region Internal
 
-            void BuildFace(FluidPipeComponent pipe, FluidPipeComponent targetPipe, Game.Block.Interface.Component.ConnectedInfo connectedInfo, Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace> previous)
+            void AddFace(FluidPipeComponent pipe, FluidPipeComponent targetPipe, Game.Block.Interface.Component.ConnectedInfo connectedInfo)
             {
-                // 正準側（座標辞書順で小さい側）をNodeAとする
-                // NodeA is the canonical (lexicographically smaller position) side
+                // 正準側（座標辞書順で小さい側）をNodeAとする。既にペアの面があれば今回の走査向きを許可方向として追記する
+                // NodeA is the canonical (lexicographically smaller position) side; if the pair's face exists, record this traversal direction as allowed
                 var (pipeA, pipeB) = ComparePositions(pipe.Position, targetPipe.Position) <= 0 ? (pipe, targetPipe) : (targetPipe, pipe);
                 var key = (pipeA.Position, pipeB.Position);
+                var pipeIsNodeA = pipe == pipeA;
+                if (builder.TryAllowDirection(key, pipeIsNodeA)) return;
 
-                // 既にペアの面がある場合は今回の走査向き（pipe→targetPipe）を許可方向として追記する（双方向接続なら両向きが立つ）
-                // If the pair's face exists, record this traversal direction (pipe→targetPipe) as allowed; bidirectional connections set both
-                if (_faceByPositionPair.TryGetValue(key, out var existingFace))
-                {
-                    SetAllowedDirection(existingFace, pipe == pipeA);
-                    return;
-                }
-
-                // 速度は前トポロジの同一面から引き継ぎ、無ければロード復元値を使う（波の状態を再構築で失わない）
-                // Carry the velocity from the previous topology's matching face, else the loaded value, so rebuilds do not erase wave state
                 var flowCapacity = FluidBoundaryPort.GetFlowCapacityPerTick(connectedInfo);
-                var initialVelocity = previous.TryGetValue(key, out var previousFace) && previousFace.NodeA == pipeA.Node && previousFace.NodeB == pipeB.Node
-                    ? previousFace.Velocity
-                    : pipeA.TakeLoadedFaceVelocity(pipeB.Position - pipeA.Position);
-
-                var face = new FluidSimFace(pipeA.Node, pipeB.Node, flowCapacity, initialVelocity);
-                SetAllowedDirection(face, pipe == pipeA);
-                _faceByPositionPair[key] = face;
-                faces.Add(face);
-
-                static void SetAllowedDirection(FluidSimFace face, bool pipeIsNodeA)
-                {
-                    // 一方向パイプは片側の接続しか持たないため、存在する向きだけが許可される
-                    // A one-way pipe holds a connection on one side only, so only the existing direction becomes allowed
-                    if (pipeIsNodeA) face.AllowAToB = true;
-                    else face.AllowBToA = true;
-                }
+                var initialVelocity = previousVelocities.TryGetValue(key, out var carried) ? carried : pipeA.TakeLoadedFaceVelocity(pipeB.Position - pipeA.Position);
+                builder.AddFace(key, pipeA.NodeIndex, pipeB.NodeIndex, flowCapacity, initialVelocity, pipeIsNodeA);
             }
 
-            static int CompareFaces(FluidSimFace x, FluidSimFace y)
+            int ComparePorts(FluidBoundaryPort x, FluidBoundaryPort y)
             {
-                var compare = ComparePositions(x.NodeA.Position, y.NodeA.Position);
-                return compare != 0 ? compare : ComparePositions(x.NodeB.Position, y.NodeB.Position);
-            }
-
-            static int ComparePorts(FluidBoundaryPort x, FluidBoundaryPort y)
-            {
-                var compare = ComparePositions(x.PipeNode.Position, y.PipeNode.Position);
+                var compare = ComparePositions(builder.PositionOf(x.NodeIndex), builder.PositionOf(y.NodeIndex));
                 return compare != 0 ? compare : ComparePositions(x.TargetPosition, y.TargetPosition);
             }
 
-            static int ComparePositions(Vector3Int x, Vector3Int y)
-            {
-                if (x.x != y.x) return x.x.CompareTo(y.x);
-                if (x.y != y.y) return x.y.CompareTo(y.y);
-                return x.z.CompareTo(y.z);
-            }
-
             #endregion
+        }
+
+        private static int ComparePositions(Vector3Int x, Vector3Int y)
+        {
+            if (x.x != y.x) return x.x.CompareTo(y.x);
+            if (x.y != y.y) return x.y.CompareTo(y.y);
+            return x.z.CompareTo(y.z);
         }
     }
 }

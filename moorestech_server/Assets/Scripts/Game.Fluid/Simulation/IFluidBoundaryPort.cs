@@ -9,7 +9,9 @@ namespace Game.Fluid.Simulation
     /// </summary>
     public interface IFluidBoundaryPort
     {
-        FluidSimNode PipeNode { get; }
+        // 繋がるパイプのノード番号(網の配列の添字)
+        // Index of the connected pipe's node in the network arrays
+        int NodeIndex { get; }
 
         // このポートを1tickに通過できる最大量
         // Maximum amount this port can pass per tick

@@ -30,11 +30,10 @@ namespace Game.Block.Blocks.Fluid
         {
             BlockException.CheckDestroy(this);
 
-            var node = _fluidPipeComponent.Node;
             var jsonObject = new FluidPipeSaveJsonObject
             {
-                FluidGuidStr = MasterHolder.FluidMaster.GetFluidGuid(node.FluidId).ToString(),
-                Amount = node.Amount,
+                FluidGuidStr = MasterHolder.FluidMaster.GetFluidGuid(_fluidPipeComponent.FluidId).ToString(),
+                Amount = _fluidPipeComponent.Amount,
             };
 
             // 正準側として所有する面の速度を方向つきで保存する（波の状態をロード後も引き継ぐ）

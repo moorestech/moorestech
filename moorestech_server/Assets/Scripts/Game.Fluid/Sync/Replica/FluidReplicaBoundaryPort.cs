@@ -7,7 +7,7 @@ namespace Game.Fluid.Sync.Replica
     // A boundary port in the replica; the machine's acceptance is dictated by the server's settled diff, so it takes only the announced amount and returns the rest
     public sealed class FluidReplicaBoundaryPort : IFluidBoundaryPort
     {
-        public FluidSimNode PipeNode { get; }
+        public int NodeIndex { get; }
         public double FlowCapacityPerTick { get; }
         public double Velocity { get; set; }
 
@@ -16,9 +16,9 @@ namespace Game.Fluid.Sync.Replica
         private double _announcedAmount;
         private bool _wasDeliverCalled;
 
-        public FluidReplicaBoundaryPort(FluidSimNode pipeNode, double flowCapacityPerTick, double velocity)
+        public FluidReplicaBoundaryPort(int nodeIndex, double flowCapacityPerTick, double velocity)
         {
-            PipeNode = pipeNode;
+            NodeIndex = nodeIndex;
             FlowCapacityPerTick = flowCapacityPerTick;
             Velocity = velocity;
         }

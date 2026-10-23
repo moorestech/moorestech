@@ -101,7 +101,7 @@ namespace Client.Game.InGame.Train.View
                     _trainCache.ComputeCurrentHash(), message.UnitsHash,
                     _railGraphCache.ComputeCurrentHash(), message.RailGraphHash,
                     _beltTransportCache.ComputeCurrentHash(), message.BeltTransportHash,
-                    _fluidNetworkCache.ComputeCurrentHash(), message.FluidNetworkHash);
+                    _fluidNetworkCache.CurrentHash, message.FluidNetworkHash);
             }
 
             static bool IsSameServerHash(in TrainTickHashState a, in TrainTickHashState b)

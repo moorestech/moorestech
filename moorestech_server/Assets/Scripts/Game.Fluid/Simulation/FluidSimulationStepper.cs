@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Core.Master;
+using Game.Fluid.Sync.State;
 
 namespace Game.Fluid.Simulation
 {
@@ -9,16 +9,35 @@ namespace Game.Fluid.Simulation
     ///     速度→流量の変換時に「送り側残量・受け側空き容量・面上限」で比例クランプし、面ごとに引く量と足す量を同一値にすることで質量保存を厳密に守る。
     ///     クランプで流せなかった運動量は速度から取り除く（速度フィードバック）。これにより詰まり時の速度ワインドアップと解消時の非物理的バーストを防ぐ。
     ///     全面の速度更新→全面の流量適用の2段一括処理のため、結果は面の登録順に依存しない（浮動小数点の丸めを除く）。
+    ///     状態は網の配列を番号でなめ、最終パスで要素ハッシュを足して網へ残す(ハッシュのための別走査を持たない)。
     ///
     ///     Batched two-phase leapfrog tick: fill-rate differences at tick n yield face velocities at n+1/2, which settle amounts at n+1.
     ///     Fluxes are proportionally clamped by giver amount, receiver free capacity and per-face cap; each face subtracts and adds the same value, keeping mass conservation exact.
     ///     Momentum that could not flow is removed from the velocity (velocity feedback), preventing wind-up while blocked and unphysical bursts on release.
     ///     Velocities update for all faces before any flux applies, so results do not depend on face registration order (up to floating-point rounding).
+    ///     State is walked by index over the network arrays, and the final passes fold the element hash into the network (no separate hashing walk).
     /// </summary>
     public static class FluidSimulationStepper
     {
-        public static void Step(IReadOnlyList<FluidSimNode> nodes, IReadOnlyList<FluidSimFace> faces, IReadOnlyList<IFluidBoundaryPort> boundaryPorts)
+        public static void Step(FluidSimNetwork network, FluidSimulationScratch scratch)
         {
+            var amounts = network.NodeAmounts;
+            var capacities = network.NodeCapacities;
+            var fluidIds = network.NodeFluidIds;
+            var faceA = network.FaceNodeA;
+            var faceB = network.FaceNodeB;
+            var faceCaps = network.FaceFlowCapacities;
+            var velocities = network.FaceVelocities;
+            var allowAToB = network.FaceAllowAToB;
+            var allowBToA = network.FaceAllowBToA;
+            var ports = network.Ports;
+            var outflowSum = scratch.OutflowSum;
+            var inflowSum = scratch.InflowSum;
+            var outflowScale = scratch.OutflowScale;
+            var inflowScale = scratch.InflowScale;
+            var tentativeFlux = scratch.TentativeFlux;
+            var hash = FluidNetworkStateHash.Counts(amounts.Length, faceA.Length, ports.Length);
+
             ResetScratch();
 
             // Phase1: n tickの充填率差 → n+1/2の面速度（リープフロッグ）
@@ -34,48 +53,52 @@ namespace Game.Fluid.Simulation
             DeliverToBoundaryPorts();
 
             CleanupNodes();
+            network.SetLastStateHash(hash);
 
             #region Internal
 
             void ResetScratch()
             {
-                foreach (var node in nodes)
+                for (var i = 0; i < amounts.Length; i++)
                 {
-                    node.OutflowSum = 0;
-                    node.InflowSum = 0;
-                    node.OutflowScale = 1;
-                    node.InflowScale = 1;
+                    outflowSum[i] = 0;
+                    inflowSum[i] = 0;
+                    outflowScale[i] = 1;
+                    inflowScale[i] = 1;
                 }
             }
 
             void UpdateFaceVelocities()
             {
-                foreach (var face in faces)
+                for (var f = 0; f < faceA.Length; f++)
                 {
+                    var a = faceA[f];
+                    var b = faceB[f];
+
                     // 異種流体が向かい合う面は閉面として速度を殺す
                     // A face between mismatched fluids is closed and its velocity killed
-                    if (IsClosedFace(face))
+                    if (IsClosedFace(a, b))
                     {
-                        face.Velocity = 0;
+                        velocities[f] = 0;
                         continue;
                     }
 
                     // 圧力スケールは隣接容量の小さい方。容量が異なっても充填率（水位）で釣り合う
                     // Pressure scale is the smaller neighbor capacity; unequal capacities still balance by fill rate (water level)
-                    var pressureScale = Math.Min(face.NodeA.Capacity, face.NodeB.Capacity);
-                    var pressureDelta = face.NodeA.FillRate - face.NodeB.FillRate;
-                    face.Velocity = (face.Velocity + FluidSimulationConstants.PressureGain * pressureDelta * pressureScale) * (1 - FluidSimulationConstants.Damping);
+                    var pressureScale = Math.Min(capacities[a], capacities[b]);
+                    var pressureDelta = amounts[a] / capacities[a] - amounts[b] / capacities[b];
+                    velocities[f] = (velocities[f] + FluidSimulationConstants.PressureGain * pressureDelta * pressureScale) * (1 - FluidSimulationConstants.Damping);
                 }
             }
 
             void UpdateBoundaryPortVelocities()
             {
-                foreach (var port in boundaryPorts)
+                foreach (var port in ports)
                 {
                     // 境界の圧力は0扱い（受け入れ可否はDeliverの残量で表現される）。吸い戻しはしないため0未満にはならない
                     // Boundary pressure counts as zero (acceptance shows up as Deliver's remainder); no suction, so never below zero
-                    var node = port.PipeNode;
-                    var velocity = (port.Velocity + FluidSimulationConstants.PressureGain * node.FillRate * node.Capacity) * (1 - FluidSimulationConstants.Damping);
+                    var node = port.NodeIndex;
+                    var velocity = (port.Velocity + FluidSimulationConstants.PressureGain * amounts[node]) * (1 - FluidSimulationConstants.Damping);
                     port.Velocity = Math.Max(0, velocity);
                 }
             }
@@ -84,23 +107,23 @@ namespace Game.Fluid.Simulation
             {
                 // 各ノードの流出希望合計を集計し、残量を超える場合の比例縮小率を決める
                 // Sum each node's desired outflow and derive the proportional scale when it exceeds the available amount
-                foreach (var face in faces)
+                for (var f = 0; f < faceA.Length; f++)
                 {
-                    var desired = ClampByFaceCap(face);
-                    if (0 < desired) face.NodeA.OutflowSum += desired;
-                    else face.NodeB.OutflowSum += -desired;
+                    var desired = ClampByFaceCap(f);
+                    if (0 < desired) outflowSum[faceA[f]] += desired;
+                    else outflowSum[faceB[f]] += -desired;
                 }
 
-                foreach (var port in boundaryPorts)
+                foreach (var port in ports)
                 {
-                    port.PipeNode.OutflowSum += Math.Min(port.Velocity, port.FlowCapacityPerTick);
+                    outflowSum[port.NodeIndex] += Math.Min(port.Velocity, port.FlowCapacityPerTick);
                 }
 
-                foreach (var node in nodes)
+                for (var i = 0; i < amounts.Length; i++)
                 {
-                    if (node.Amount < node.OutflowSum)
+                    if (amounts[i] < outflowSum[i])
                     {
-                        node.OutflowScale = 0 < node.OutflowSum ? node.Amount / node.OutflowSum : 0;
+                        outflowScale[i] = 0 < outflowSum[i] ? amounts[i] / outflowSum[i] : 0;
                     }
                 }
             }
@@ -109,103 +132,108 @@ namespace Game.Fluid.Simulation
             {
                 // 送り側縮小後の暫定流量を確定し、受け側の空き容量による縮小率を決める
                 // Fix tentative fluxes after giver-side scaling, then derive receiver-side scales from free capacity
-                foreach (var face in faces)
+                for (var f = 0; f < faceA.Length; f++)
                 {
-                    var desired = ClampByFaceCap(face);
-                    var giver = 0 < desired ? face.NodeA : face.NodeB;
-                    var receiver = 0 < desired ? face.NodeB : face.NodeA;
-                    face.TentativeFlux = desired * giver.OutflowScale;
-                    receiver.InflowSum += Math.Abs(face.TentativeFlux);
+                    var desired = ClampByFaceCap(f);
+                    var giver = 0 < desired ? faceA[f] : faceB[f];
+                    var receiver = 0 < desired ? faceB[f] : faceA[f];
+                    tentativeFlux[f] = desired * outflowScale[giver];
+                    inflowSum[receiver] += Math.Abs(tentativeFlux[f]);
                 }
 
-                foreach (var node in nodes)
+                for (var i = 0; i < amounts.Length; i++)
                 {
-                    var freeCapacity = Math.Max(0, node.Capacity - node.Amount);
-                    if (freeCapacity < node.InflowSum)
+                    var freeCapacity = Math.Max(0, capacities[i] - amounts[i]);
+                    if (freeCapacity < inflowSum[i])
                     {
-                        node.InflowScale = 0 < node.InflowSum ? freeCapacity / node.InflowSum : 0;
+                        inflowScale[i] = 0 < inflowSum[i] ? freeCapacity / inflowSum[i] : 0;
                     }
                 }
             }
 
             void ApplyFaceFluxes()
             {
-                foreach (var face in faces)
+                for (var f = 0; f < faceA.Length; f++)
                 {
-                    var tentative = face.TentativeFlux;
-                    var giver = 0 <= tentative ? face.NodeA : face.NodeB;
-                    var receiver = 0 <= tentative ? face.NodeB : face.NodeA;
+                    var tentative = tentativeFlux[f];
+                    var giver = 0 <= tentative ? faceA[f] : faceB[f];
+                    var receiver = 0 <= tentative ? faceB[f] : faceA[f];
 
                     // 同tick内で先行する面が受け側に別流体を入れた場合は閉面扱いにする
                     // Treat as closed when an earlier face already filled the receiver with a different fluid this tick
-                    var receiverHasFluid = FluidSimulationConstants.AmountEpsilon < receiver.Amount;
-                    if (receiverHasFluid && receiver.FluidId != giver.FluidId && 0 < Math.Abs(tentative))
+                    var receiverHasFluid = FluidSimulationConstants.AmountEpsilon < amounts[receiver];
+                    if (receiverHasFluid && fluidIds[receiver] != fluidIds[giver] && 0 < Math.Abs(tentative))
                     {
-                        face.Velocity = 0;
+                        velocities[f] = 0;
+                        hash += FluidNetworkStateHash.FaceElement(f, 0);
                         continue;
                     }
 
                     // 受け側空き容量の縮小を掛けた確定流量を、両ノードへ同一値で適用する（厳密保存）
                     // Apply the settled flux, scaled by receiver free capacity, with one shared value on both nodes (exact conservation)
-                    var settled = tentative * receiver.InflowScale;
-                    face.NodeA.Amount -= settled;
-                    face.NodeB.Amount += settled;
+                    var settled = tentative * inflowScale[receiver];
+                    amounts[faceA[f]] -= settled;
+                    amounts[faceB[f]] += settled;
 
                     if (FluidSimulationConstants.AmountEpsilon < Math.Abs(settled) && !receiverHasFluid)
                     {
-                        receiver.FluidId = giver.FluidId;
+                        fluidIds[receiver] = fluidIds[giver];
                     }
 
-                    // 速度フィードバック: 実際に流れた量へ速度を収束させる（非クランプ時は恒等）
-                    // Velocity feedback: converge velocity onto the settled flux (identity when unclamped)
-                    face.Velocity = settled;
+                    // 速度フィードバック: 実際に流れた量へ速度を収束させる（非クランプ時は恒等）。確定した速度をそのまま要素ハッシュへ足す
+                    // Velocity feedback: converge velocity onto the settled flux (identity when unclamped); the settled velocity goes straight into the element hash
+                    velocities[f] = settled;
+                    hash += FluidNetworkStateHash.FaceElement(f, settled);
                 }
             }
 
             void DeliverToBoundaryPorts()
             {
-                foreach (var port in boundaryPorts)
+                for (var p = 0; p < ports.Length; p++)
                 {
-                    var node = port.PipeNode;
+                    var port = ports[p];
+                    var node = port.NodeIndex;
                     var desired = Math.Min(port.Velocity, port.FlowCapacityPerTick);
-                    var attempted = desired * node.OutflowScale;
+                    var attempted = desired * outflowScale[node];
 
                     var actual = 0.0;
-                    if (FluidSimulationConstants.AmountEpsilon < attempted && node.FluidId != FluidMaster.EmptyFluidId)
+                    if (FluidSimulationConstants.AmountEpsilon < attempted && fluidIds[node] != FluidMaster.EmptyFluidId)
                     {
                         // 境界が受け取らなかった残量ぶんだけ流量を縮め、ノードから確定分のみを減らす
                         // Shrink the flux by whatever the boundary rejected and subtract only the settled amount from the node
-                        var remain = port.Deliver(new FluidStack(attempted, node.FluidId));
+                        var remain = port.Deliver(new FluidStack(attempted, fluidIds[node]));
                         actual = attempted - remain.Amount;
-                        node.Amount -= actual;
+                        amounts[node] -= actual;
                     }
 
                     port.Velocity = actual;
+                    hash += FluidNetworkStateHash.PortElement(p, actual);
                 }
             }
 
             void CleanupNodes()
             {
-                foreach (var node in nodes)
+                for (var i = 0; i < amounts.Length; i++)
                 {
-                    node.CleanupIfEmpty();
+                    network.CleanupIfEmpty(i);
+                    hash += FluidNetworkStateHash.NodeElement(i, amounts[i], fluidIds[i].AsPrimitive());
                 }
             }
 
-            double ClampByFaceCap(FluidSimFace face)
+            double ClampByFaceCap(int f)
             {
                 // 許可されていない向きは0でクランプする（一方向パイプ対応）
                 // Directions that are not allowed clamp to zero (one-way pipe support)
-                var min = face.AllowBToA ? -face.FlowCapacityPerTick : 0;
-                var max = face.AllowAToB ? face.FlowCapacityPerTick : 0;
-                return Math.Clamp(face.Velocity, min, max);
+                var min = allowBToA[f] ? -faceCaps[f] : 0;
+                var max = allowAToB[f] ? faceCaps[f] : 0;
+                return Math.Clamp(velocities[f], min, max);
             }
 
-            bool IsClosedFace(FluidSimFace face)
+            bool IsClosedFace(int a, int b)
             {
-                var aHasFluid = FluidSimulationConstants.AmountEpsilon < face.NodeA.Amount;
-                var bHasFluid = FluidSimulationConstants.AmountEpsilon < face.NodeB.Amount;
-                return aHasFluid && bHasFluid && face.NodeA.FluidId != face.NodeB.FluidId;
+                var aHasFluid = FluidSimulationConstants.AmountEpsilon < amounts[a];
+                var bHasFluid = FluidSimulationConstants.AmountEpsilon < amounts[b];
+                return aHasFluid && bHasFluid && fluidIds[a] != fluidIds[b];
             }
 
             #endregion
