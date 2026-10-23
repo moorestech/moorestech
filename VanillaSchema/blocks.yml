@@ -190,6 +190,7 @@ properties:
       - CleanRoomPipeHatch
       - CleanRoomAirFilter
       - CleanRoomMachine
+      - RocketLaunchPad
     - key: requiredItems
       type: array
       optional: true
@@ -1091,6 +1092,56 @@ properties:
           default: 0
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
+        - key: maxWireConnectionCount
+          type: integer
+          default: 2
+        - key: connectionRange
+          type: integer
+          default: 30
+        - key: connectionHeightRange
+          type: integer
+          default: 20
+      - when: RocketLaunchPad
+        type: object
+        implementationInterface:
+        - IInventoryConnectors
+        - IElectricWireConnectParam
+        properties:
+        # 建造中だけ要求する電力。供給率に応じて建造が進む
+        # Power requested only while building; building advances by the supply rate
+        - key: requiredPower
+          type: number
+          default: 100
+        - key: buildSeconds
+          type: number
+          default: 60
+        # 打ち上げ開始から本体が昇り切るまでの秒数。この間は次の便を建造しない
+        # Seconds from launch start until the rocket body finishes rising; no next build meanwhile
+        - key: launchSeconds
+          type: number
+          default: 10
+        # 1便ごとに消費する資材。1件につき専用スロットを1つ持つ
+        # Materials consumed per launch; each entry owns one dedicated slot
+        - key: launchMaterials
+          type: array
+          overrideCodeGeneratePropertyName: RocketLaunchMaterialElement
+          items:
+            type: object
+            properties:
+            - key: itemGuid
+              type: uuid
+              foreignKey:
+                schemaId: items
+                foreignKeyIdPath: /data/[*]/itemGuid
+                displayElementPath: /data/[*]/name
+            - key: count
+              type: integer
+              default: 1
+        - key: outputSlotCount
+          type: integer
+          default: 4
+        - key: inventoryConnectors
+          ref: inventoryConnects
         - key: maxWireConnectionCount
           type: integer
           default: 2

@@ -33,6 +33,7 @@
         "Core.Item",
         "Game.Gear",
         "Game.CleanRoom",
+        "Game.Orbit",
         "Game.Challenge",
         "Core.Master",
         "Game.Train",

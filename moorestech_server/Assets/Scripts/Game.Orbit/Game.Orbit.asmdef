@@ -1,0 +1,19 @@
+{
+  "name": "Game.Orbit",
+  "rootNamespace": "",
+  "references": [
+    "Core.Master",
+    "Core.Item.Interface",
+    "Game.Context",
+    "UniRx"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
