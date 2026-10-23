@@ -100,11 +100,11 @@ namespace Game.Block.Blocks.Fluid
             return FluidNetworkFullStateCapture.Capture(_nodes, _faces, _boundaryPortsForSync);
         }
 
-        // 現在の網の全量ハッシュ。クライアントの複製との照合に使う
-        // Full-state hash of the current network, checked against the client replica
+        // 現在の網のハッシュ。クライアントの複製との照合に使う。全量を写さず直接混ぜる
+        // Hash of the current network, checked against the client replica; mixes directly without capturing the full state
         public uint ComputeStateHash()
         {
-            return FluidNetworkStateHash.Compute(CaptureFullState());
+            return FluidNetworkStateHash.Compute(_nodes, _faces, _boundaryPortsForSync);
         }
 
         // tick末尾とロード完了時に呼ばれ、登録・接続に変化があった時だけトポロジを一括再構築する

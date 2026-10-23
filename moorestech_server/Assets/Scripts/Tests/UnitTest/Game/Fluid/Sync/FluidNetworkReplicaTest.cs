@@ -25,6 +25,9 @@ namespace Tests.UnitTest.Game.Fluid.Sync
 
             FluidFullStateAssert.AreEqual(full, replica.CaptureFullState());
             Assert.AreEqual(FluidNetworkStateHash.Compute(full), FluidNetworkStateHash.Compute(replica.CaptureFullState()));
+            // 本番が使う直接混ぜ込みも、全量からの計算と同じ値になる
+            // The direct mixing used in production yields the same value as the full-state computation
+            Assert.AreEqual(FluidNetworkStateHash.Compute(full), FluidNetworkStateHash.Compute(replica.Nodes, replica.Faces, replica.Ports));
             Assert.IsTrue(replica.TryGetNode(new Vector3Int(0, 0, 1), out var node));
             Assert.AreEqual(30, node.Amount);
         }

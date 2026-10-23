@@ -35,7 +35,7 @@ namespace Client.Game.InGame.FluidNetwork
 
         public uint ComputeCurrentHash()
         {
-            return FluidNetworkStateHash.Compute(Replica.CaptureFullState());
+            return FluidNetworkStateHash.Compute(Replica.Nodes, Replica.Faces, Replica.Ports);
         }
 
         // パイプの座標からノードを引く。複製が無い間、パイプでない座標はfalse
