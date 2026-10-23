@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(elevatorBase);
             var inventory = elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 1);
+            inventory.SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 1);
             RunSeconds(1);
             var json = provider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
@@ -78,7 +78,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             LaunchCables(100);
             ServerContext.GetService<SpaceElevatorConnectionService>().Connect(elevatorBase);
             var inventory = elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 3);
+            inventory.SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 3);
             RunSeconds(0.5);
 
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(Vector3Int.zero)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             LogAssert.Expect(LogType.Error, new Regex("運ぶ積荷ではない"));
             var climber = LoadClimber(elevatorBase, save);
             var inventory = elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Id);
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, inventory.GetItem(0).Id);
             Assert.AreEqual(SpaceElevatorBaseStatus.InletBlocked, ReadClimberDetail(climber).Status);
 
             // 入口の運べないアイテムは運ばず、入口を塞いだ tick に開発者ログへ出す
@@ -128,7 +128,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             LogAssert.Expect(LogType.Warning, new Regex("運ぶ積荷ではないため昇れません"));
             climber.Update();
             climber.Update();
-            Assert.AreEqual(ForUnitTestItemId.ItemId1, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Id);
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, inventory.GetItem(0).Id);
             Assert.AreEqual(0, climber.GetRefundItems().Count);
         }
 
@@ -145,7 +145,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             LogAssert.Expect(LogType.Error, new Regex("1機だけ昇らせ"));
             var climber = LoadClimber(elevatorBase, save);
             var inventory = elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
-            Assert.AreEqual(2, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Count);
+            Assert.AreEqual(2, inventory.GetItem(0).Count);
             Assert.AreEqual(1, climber.GetRefundItems()[0].Count);
         }
 

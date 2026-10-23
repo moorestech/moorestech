@@ -3,6 +3,8 @@ using System.Linq;
 using Game.Orbit;
 using System.Collections.ObjectModel;
 using Core.Inventory;
+using Game.Block.Blocks.Service;
+using UniRx;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Connector;
@@ -21,12 +23,15 @@ namespace Game.Block.Blocks.SpaceElevator
     // The base's slots: slot 0 takes satellites to carry, the rest hold results; only the outlets are pushed to adjacent belts
     public class SpaceElevatorBaseInventoryComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent, ISortExcludedSlots
     {
-        public const int SatelliteSlot = 0;
-        public const int FirstOutputSlot = 1;
+        private const int SatelliteSlot = 0;
+        private const int FirstOutputSlot = 1;
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
         public IReadOnlyCollection<int> SortExcludedSlots => Enumerable.Range(0, _slotCount).ToArray();
         public string SaveKey { get; } = typeof(SpaceElevatorBaseInventoryComponent).FullName;
+        internal IObservable<Unit> OnInventoryChanged => _inventoryChanged;
+        private readonly Subject<Unit> _inventoryChanged = new();
+        private readonly int[] _outputSlots;
         private readonly int _slotCount;
         private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
@@ -36,17 +41,18 @@ namespace Game.Block.Blocks.SpaceElevator
             BlockInstanceId = blockInstanceId;
             _blockInventoryInserter = blockInventoryInserter;
             _slotCount = FirstOutputSlot + param.OutputSlotCount;
+            _outputSlots = Enumerable.Range(FirstOutputSlot, param.OutputSlotCount).ToArray();
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, _slotCount);
             foreach (var payloadGuid in param.CarriedPayloadItemGuids) _carriedPayloadIds.Add(MasterHolder.ItemMaster.GetItemId(payloadGuid));
             #region Internal
             void InvokeEvent(int slot, IItemStack itemStack)
             {
+                _inventoryChanged.OnNext(Unit.Default);
                 var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
                 blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack));
             }
             #endregion
         }
-
         public SpaceElevatorBaseInventoryComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter) :
             this(blockInstanceId, param, blockInventoryInserter)
         {
@@ -55,7 +61,6 @@ namespace Game.Block.Blocks.SpaceElevator
             var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
             SpaceElevatorInventoryRestorer.Restore(itemJsons, _itemDataStoreService, _slotCount, blockInstanceId);
         }
-
         internal bool IsCarriedPayload(ItemId itemId) { return _carriedPayloadIds.Contains(itemId); }
         // 入口の中身を見る。運べないアイテムはマスタを変えた後のロードでだけ残る
         // Peek at the inlet; a non-carried item only remains after loading with a changed master
@@ -82,29 +87,25 @@ namespace Game.Block.Blocks.SpaceElevator
         }
         // 収納確認から取り出しまでを在庫の所有者が完結する
         // The inventory owner checks capacity and takes the satellite together
-        internal bool TryTakeSatelliteForClimb(IOrbitalArrivalService arrivalService, out IItemStack satellite, out string denyReason)
+        internal SatelliteTakeResult TryTakeSatelliteForClimb(IOrbitalArrivalService arrivalService, out IItemStack satellite, out ItemId satelliteId)
         {
             CheckDestroy(this);
             satellite = ServerContext.ItemStackFactory.CreatEmpty();
-            var inlet = PeekSatellite(out var satelliteId);
-            denyReason = inlet == SatelliteInletState.NotCarried ? "inletBlocked" : "waitingSatellite";
+            var inlet = PeekSatellite(out satelliteId);
             // silent-ok: 通常の入口待機 / 呼出側が理由を状態詳細と初回ログへ反映する
-            if (inlet != SatelliteInletState.Carriable) return false;
-            denyReason = "outputBlocked";
+            if (inlet != SatelliteInletState.Carriable) return inlet == SatelliteInletState.Empty ? SatelliteTakeResult.Empty : SatelliteTakeResult.NotCarried;
             // silent-ok: 成果の収納待機 / 呼出側が出口待ちをUIへ配信する
-            if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), arrivalService.PreviewArrivalOutputs(satelliteId, 1), out _)) return false;
+            if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), arrivalService.PreviewArrivalOutputs(satelliteId, 1), out _)) return SatelliteTakeResult.OutputBlocked;
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
             _itemDataStoreService.SetItem(SatelliteSlot, stack.SubItem(1));
             satellite = ServerContext.ItemStackFactory.Create(stack.Id, 1);
-            denyReason = null;
-            return true;
+            return SatelliteTakeResult.Taken;
         }
         // 一度だけ模擬し、到着成功後に同じ配置を確定する
         // Simulate once and commit that placement after arrival succeeds
-        internal bool TryCompleteArrival(ItemId satelliteId, IOrbitalArrivalService arrivalService, out string denyReason)
+        internal bool TryCompleteArrival(ItemId satelliteId, IOrbitalArrivalService arrivalService)
         {
             CheckDestroy(this);
-            denyReason = "outputBlocked";
             var outputs = arrivalService.PreviewArrivalOutputs(satelliteId, 1);
             // silent-ok: 容量不足では到着させない / 昇降機が出口待ちをUIと初回ログへ反映する
             if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), outputs, out var simulated)) return false;
@@ -116,20 +117,12 @@ namespace Game.Block.Blocks.SpaceElevator
                 if (simulated[i].Id == current.Id && simulated[i].Count == current.Count) continue;
                 _itemDataStoreService.SetItem(FirstOutputSlot + i, simulated[i]);
             }
-            denyReason = null;
             return true;
         }
-
         public void Update()
         {
             CheckDestroy(this);
-            for (var slot = FirstOutputSlot; slot < _slotCount; slot++)
-            {
-                var output = _itemDataStoreService.GetItem(slot);
-                // silent-ok: 空スロットには搬出物が無い / 入口と出口UIに空状態が表示される
-                if (output.Count == 0) continue;
-                _itemDataStoreService.SetItem(slot, _blockInventoryInserter.InsertItem(output));
-            }
+            BlockOutputTransfer.Transfer(_itemDataStoreService, _outputSlots, _blockInventoryInserter);
         }
         // ベルト・プレイヤーからは運ぶ積荷だけを入口へ受ける
         // Belts and players may only put carried payloads into the inlet
@@ -183,7 +176,16 @@ namespace Game.Block.Blocks.SpaceElevator
 
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context) { return InsertItem(itemStack); }
         public IItemStack InsertItem(ItemId itemId, int count) { return InsertItem(ServerContext.ItemStackFactory.Create(itemId, count)); }
-        public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { var remainders = new List<IItemStack>(); foreach (var itemStack in itemStacks) remainders.Add(InsertItem(itemStack)); return remainders; }
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
+        {
+            var remainders = new List<IItemStack>();
+            foreach (var itemStack in itemStacks)
+            {
+                var remainder = InsertItem(itemStack);
+                if (0 < remainder.Count) remainders.Add(remainder);
+            }
+            return remainders;
+        }
         public void SetItem(int slot, IItemStack itemStack) { CheckDestroy(this); _itemDataStoreService.SetItem(slot, itemStack); }
         public void SetItem(int slot, ItemId itemId, int count) { CheckDestroy(this); _itemDataStoreService.SetItem(slot, itemId, count); }
         public IItemStack GetItem(int slot) { CheckDestroy(this); return _itemDataStoreService.GetItem(slot); }
@@ -192,6 +194,6 @@ namespace Game.Block.Blocks.SpaceElevator
         public IItemStack ReplaceItem(int slot, IItemStack itemStack) { CheckDestroy(this); return _itemDataStoreService.ReplaceItem(slot, itemStack); }
         public IItemStack ReplaceItem(int slot, ItemId itemId, int count) { CheckDestroy(this); return _itemDataStoreService.ReplaceItem(slot, itemId, count); }
         public bool IsDestroy { get; private set; }
-        public void Destroy() { IsDestroy = true; }
+        public void Destroy() { IsDestroy = true; _inventoryChanged.Dispose(); }
     }
 }

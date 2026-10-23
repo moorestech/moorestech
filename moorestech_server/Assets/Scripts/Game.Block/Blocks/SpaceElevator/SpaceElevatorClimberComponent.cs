@@ -53,8 +53,7 @@ namespace Game.Block.Blocks.SpaceElevator
             _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
             // 在庫変更で待機条件を再評価する
             // Reevaluate waiting conditions when inventory changes
-            _inventorySubscription = ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
-                .Where(change => change.BlockInstanceId == inventory.BlockInstanceId).Subscribe(_ => _inventoryChanged = true);
+            _inventorySubscription = inventory.OnInventoryChanged.Subscribe(_ => _inventoryChanged = true);
             _stackLevelSubscription = ServerContext.GetService<IItemStackLevelLookup>().OnStackLevelUnlocked
                 .Subscribe(_ => _inventoryChanged = true);
         }
@@ -101,7 +100,7 @@ namespace Game.Block.Blocks.SpaceElevator
                 // 頂上では成果が出口へ入りきるときだけ渡す。入らなければ頂上で待つ
                 // At the top, hand over only when the result fits the outlets; otherwise wait at the top
                 _inventoryChanged = true;
-                _outputBlocked = !_inventory.TryCompleteArrival(_climbingSatellite.Id, _orbitalArrivalService, out _);
+                _outputBlocked = !_inventory.TryCompleteArrival(_climbingSatellite.Id, _orbitalArrivalService);
                 // 容量不足は実通知まで待つ。例外時の再試行予約は到着呼出し前に残す
                 // Wait for a real event when full; reserve retries before arrival so exceptions retain them
                 _inventoryChanged = !_outputBlocked;
@@ -115,16 +114,18 @@ namespace Game.Block.Blocks.SpaceElevator
                 // silent-ok: 未接続・衛星なしは通常の待機 / プレイヤーが拠点UIの状態表示（ReadyToConnect・InsufficientCable・WaitingSatellite）で気づく
                 _outputBlocked = false;
                 var wasInletNotCarried = _inletNotCarried;
-                var inletState = _inventory.PeekSatellite(out var satelliteId);
-                _inletNotCarried = inletState == SatelliteInletState.NotCarried;
+                IItemStack satellite = null;
+                ItemId satelliteId;
+                var result = IsConnected
+                    ? _inventory.TryTakeSatelliteForClimb(_orbitalArrivalService, out satellite, out satelliteId)
+                    : _inventory.PeekSatellite(out satelliteId) == SatelliteInletState.NotCarried ? SatelliteTakeResult.NotCarried : SatelliteTakeResult.Empty;
+                _inletNotCarried = result == SatelliteTakeResult.NotCarried;
                 // 運べないアイテムが入口を塞いだら、その tick に1回だけ開発者ログへ出す
                 // Log once on the tick a non-carried item starts blocking the inlet
                 if (_inletNotCarried && !wasInletNotCarried) Debug.LogWarning($"[SpaceElevatorBase] 入口の {satelliteId} は今のマスタで運ぶ積荷ではないため昇れません。入口から取り出してください");
-                if (!IsConnected || inletState != SatelliteInletState.Carriable) return false;
-                var taken = _inventory.TryTakeSatelliteForClimb(_orbitalArrivalService, out var satellite, out var denyReason);
-                _outputBlocked = denyReason == "outputBlocked";
+                _outputBlocked = result == SatelliteTakeResult.OutputBlocked;
                 // silent-ok: 在庫が返す待機理由は状態詳細へ反映 / プレイヤーは拠点UIで気づく
-                if (!taken) return false;
+                if (result != SatelliteTakeResult.Taken) return false;
                 _climbingSatellite = satellite;
                 _remainingClimbTicks = _climbTotalTicks;
                 return true;
@@ -161,9 +162,18 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             BlockException.CheckDestroy(this);
             var progress = IsCarrying ? 1f - (float)_remainingClimbTicks / _climbTotalTicks : 0f;
-            var status = SpaceElevatorBaseStatusResolver.Resolve(IsConnected, _hasEnoughCable, _outputBlocked, IsCarrying, _latchedPower < _param.RequiredPower, _inventory.PeekSatellite(out _));
+            var status = ResolveStatus();
             var detail = new SpaceElevatorBaseStateDetail(IsConnected, _cablePoolAmount, progress, status);
             return new[] { new BlockStateDetail(SpaceElevatorBaseStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
+            #region Internal
+            SpaceElevatorBaseStatus ResolveStatus()
+            {
+                if (!IsConnected) return _hasEnoughCable ? SpaceElevatorBaseStatus.ReadyToConnect : SpaceElevatorBaseStatus.InsufficientCable;
+                if (_outputBlocked) return SpaceElevatorBaseStatus.OutputBlocked;
+                if (!IsCarrying) return _inventory.PeekSatellite(out _) == SatelliteInletState.NotCarried ? SpaceElevatorBaseStatus.InletBlocked : SpaceElevatorBaseStatus.WaitingSatellite;
+                return _latchedPower < _param.RequiredPower ? SpaceElevatorBaseStatus.LowPower : SpaceElevatorBaseStatus.Climbing;
+            }
+            #endregion
         }
         // 撤去時は昇降中の衛星をプレイヤーへ返す
         // On removal, return the satellite being carried to the player

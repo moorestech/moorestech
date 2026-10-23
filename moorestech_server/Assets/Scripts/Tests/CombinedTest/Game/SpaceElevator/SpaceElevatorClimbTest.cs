@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
@@ -21,12 +23,12 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 接続済みで電力が足りれば2秒で昇り成果が出口に出る()
         {
             var elevatorBase = SetupConnected(100f);
-            Inventory(elevatorBase).SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 2);
+            Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 2);
 
             RunSeconds(2.2);
 
-            Assert.AreEqual(ForUnitTestItemId.TestElevatorReward, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Id);
-            Assert.AreEqual(5, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
+            Assert.AreEqual(ForUnitTestItemId.TestElevatorReward, Inventory(elevatorBase).GetItem(1).Id);
+            Assert.AreEqual(5, Inventory(elevatorBase).GetItem(1).Count);
         }
 
         [Test]
@@ -36,14 +38,14 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             // 確率丸めの系列を固定し電力比の検証を安定させる
             // Fix probabilistic rounding so the power-ratio assertion is reproducible
             global::Core.Update.GameRandom.Reseed(0);
-            Inventory(elevatorBase).SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 1);
+            Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 1);
 
             RunSeconds(2.2);
-            Assert.AreEqual(0, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
+            Assert.AreEqual(0, Inventory(elevatorBase).GetItem(1).Count);
             Assert.AreEqual(SpaceElevatorBaseStatus.LowPower, ReadDetail(elevatorBase).Status);
 
             RunSeconds(2.4);
-            Assert.AreEqual(5, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
+            Assert.AreEqual(5, Inventory(elevatorBase).GetItem(1).Count);
         }
 
         [Test]
@@ -52,11 +54,11 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             CreateServer();
             var elevatorBase = PlaceBase(Vector3Int.zero);
             PowerBase(elevatorBase, Vector3Int.zero, 100f);
-            Inventory(elevatorBase).SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 1);
+            Inventory(elevatorBase).SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 1);
 
             RunSeconds(3);
 
-            Assert.AreEqual(1, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Count);
+            Assert.AreEqual(1, Inventory(elevatorBase).GetItem(0).Count);
             Assert.AreEqual(SpaceElevatorBaseStatus.InsufficientCable, ReadDetail(elevatorBase).Status);
         }
 
@@ -68,19 +70,19 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 出口を別アイテムで塞ぐと、衛星は入口に残り理由を出す
             // Blocking the outlet with another item keeps the satellite in the inlet and shows why
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ForUnitTestItemId.ItemId1, 1);
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 1);
+            inventory.SetItem(1, ForUnitTestItemId.ItemId1, 1);
+            inventory.SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 1);
             RunSeconds(0.5);
             Assert.AreEqual(SpaceElevatorBaseStatus.OutputBlocked, ReadDetail(elevatorBase).Status);
-            Assert.AreEqual(1, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Count);
+            Assert.AreEqual(1, inventory.GetItem(0).Count);
             Assert.AreEqual(0f, ReadDetail(elevatorBase).ClimbProgress);
 
             // 出口を空けると昇り始め、2秒で成果が出る
             // Clearing the outlet starts the climb and the result appears after two seconds
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ServerContext.ItemStackFactory.CreatEmpty());
+            inventory.SetItem(1, ServerContext.ItemStackFactory.CreatEmpty());
             RunSeconds(2.2);
-            Assert.AreEqual(0, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Count);
-            Assert.AreEqual(5, inventory.GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
+            Assert.AreEqual(0, inventory.GetItem(0).Count);
+            Assert.AreEqual(5, inventory.GetItem(1).Count);
         }
 
         [Test]
@@ -89,12 +91,12 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var elevatorBase = SetupConnected(100f);
             var inventory = Inventory(elevatorBase);
             var climber = elevatorBase.GetComponent<SpaceElevatorClimberComponent>();
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot, ForUnitTestItemId.TestElevatorSatellite, 1);
+            inventory.SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 1);
             RunSeconds(0.5);
 
             // 昇降中に出口を塞ぐと、昇り切っても渡さず頂上で待つ
             // Blocking the outlet mid-climb makes it wait at the top without handing over
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ForUnitTestItemId.ItemId1, 1);
+            inventory.SetItem(1, ForUnitTestItemId.ItemId1, 1);
             RunSeconds(2);
             var waiting = ReadDetail(elevatorBase);
             Assert.AreEqual(SpaceElevatorBaseStatus.OutputBlocked, waiting.Status);
@@ -103,9 +105,9 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 出口を空けると次のtickで渡し、成果が出る
             // Clearing the outlet hands it over on the next tick and the result appears
-            inventory.SetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ServerContext.ItemStackFactory.CreatEmpty());
+            inventory.SetItem(1, ServerContext.ItemStackFactory.CreatEmpty());
             RunSeconds(0.1);
-            Assert.AreEqual(5, inventory.GetItem(SpaceElevatorBaseInventoryComponent.FirstOutputSlot).Count);
+            Assert.AreEqual(5, inventory.GetItem(1).Count);
             Assert.AreEqual(SpaceElevatorBaseStatus.WaitingSatellite, ReadDetail(elevatorBase).Status);
         }
 
@@ -116,7 +118,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var inventory = Inventory(PlaceBase(Vector3Int.zero));
             var rejected = inventory.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 3));
             Assert.AreEqual(3, rejected.Count);
-            Assert.IsFalse(inventory.IsAllowedToPlace(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 1)));
+            Assert.IsFalse(inventory.IsAllowedToPlace(1, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 1)));
         }
 
         [Test]
@@ -153,6 +155,29 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(2, inventory.GetItem(0).Count);
             Assert.AreEqual(0, inventory.GetItem(1).Count);
             Assert.AreEqual(5, chest.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Count);
+        }
+
+        [TestCase("empty", 0)]
+        [TestCase("all", 0)]
+        [TestCase("partial", 1)]
+        [TestCase("rejected", 2)]
+        public void 一括挿入は実際の余りだけ返す(string scenario, int expected)
+        {
+            CreateServer();
+            var inventory = Inventory(PlaceBase(Vector3Int.zero));
+            var item = scenario == "rejected" ? ForUnitTestItemId.ItemId1 : ForUnitTestItemId.TestElevatorSatellite;
+            if (scenario == "partial") inventory.SetItem(0, item, ItemStackLevelDataStore.Instance.GetMaxStack(item) - 1);
+            var items = new List<IItemStack>();
+            if (scenario != "empty") items.Add(ServerContext.ItemStackFactory.Create(item, 2));
+            var remainders = inventory.InsertItem(items);
+            Assert.AreEqual(expected == 0 ? 0 : 1, remainders.Count);
+            if (0 < expected)
+            {
+                Assert.AreEqual(expected, remainders[0].Count);
+                Assert.AreEqual(item, remainders[0].Id);
+            }
+            Assert.AreEqual(scenario == "rejected" || scenario == "empty" ? 0 : scenario == "partial" ? ItemStackLevelDataStore.Instance.GetMaxStack(item) : 2,
+                inventory.GetItem(0).Count);
         }
 
         private static IBlock SetupConnected(float power)

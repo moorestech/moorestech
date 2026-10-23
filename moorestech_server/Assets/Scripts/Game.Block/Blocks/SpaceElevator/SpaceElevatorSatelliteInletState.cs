@@ -8,4 +8,12 @@ namespace Game.Block.Blocks.SpaceElevator
         Carriable,
         NotCarried,
     }
+    internal enum SatelliteTakeResult
+    {
+        Taken,
+        Empty,
+        NotCarried,
+        OutputBlocked,
+    }
+
 }

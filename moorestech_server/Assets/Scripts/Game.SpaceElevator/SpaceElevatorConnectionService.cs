@@ -49,6 +49,12 @@ namespace Game.SpaceElevator
                 // A failed refund aborts removal, so retain tracking for a retry until the refund succeeds
                 _bases.Remove(block.BlockInstanceId);
             }
+            // 接続できるかはプールの HasEnough で決め、拠点へは結果だけを渡す
+            // Connectability is decided by the pool's HasEnough; the base only receives the result
+            void PushAvailability(TrackedSpaceElevatorBase tracked)
+            {
+                tracked.Base.SetCablePoolAvailability(_pool.Amount, _pool.HasEnough(tracked.CablesPerElevator));
+            }
             void PushAvailabilityToAll()
             {
                 foreach (var tracked in _bases.Values) PushAvailability(tracked);
@@ -88,13 +94,6 @@ namespace Game.SpaceElevator
             }
 
             #endregion
-        }
-
-        // 接続できるかはプールの HasEnough で決め、拠点へは結果だけを渡す
-        // Connectability is decided by the pool's HasEnough; the base only receives the result
-        private void PushAvailability(TrackedSpaceElevatorBase tracked)
-        {
-            tracked.Base.SetCablePoolAvailability(_pool.Amount, _pool.HasEnough(tracked.CablesPerElevator));
         }
 
         // 追跡中の拠点と、その拠点の1エレベーター分の量

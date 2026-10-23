@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
+using Core.Item;
+using Tests.UnitTest.Core.Other;
 using Core.Item.Interface;
 using Game.Context;
 using NUnit.Framework;
@@ -50,6 +52,31 @@ namespace Tests.UnitTest.Core.Inventory
             CollectionAssert.AreEqual(new[] { 100, 100, 100 }, slots.Select(stack => stack.Count));
             Assert.AreEqual(1, remainder.Count);
             Assert.AreEqual(301, slots.Sum(stack => stack.Count) + remainder.Count);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 変化しない挿入は元の個体と通知数を保つ(bool incompatibleMetadata)
+        {
+            var factory = ServerContext.ItemStackFactory;
+            var item = ForUnitTestItemId.ComputeDataId;
+            var changes = new List<int>();
+            var inventory = new OpenableInventoryItemDataStoreService((slot, _) => changes.Add(slot), factory, 1);
+            inventory.SetItem(0, item, incompatibleMetadata ? 1 : ItemStackLevelDataStore.Instance.GetMaxStack(item));
+            var before = inventory.GetItem(0);
+            changes.Clear();
+            var incoming = incompatibleMetadata
+                ? factory.Create(item, 2, new Dictionary<string, ItemStackMetaData> { ["test"] = new TestMeta1() })
+                : factory.Create(item, 2);
+
+            // 満杯も属性不一致も、余りだけを返す
+            // Both full and incompatible stacks return only the remainder
+            var remainder = inventory.InsertItem(incoming);
+            Assert.AreSame(before, inventory.GetItem(0));
+            Assert.AreEqual(before.ItemInstanceId, inventory.GetItem(0).ItemInstanceId);
+            Assert.AreEqual(2, remainder.Count);
+            Assert.AreEqual(item, remainder.Id);
+            Assert.IsEmpty(changes);
         }
 
         [Test]

@@ -12,7 +12,12 @@ namespace Game.Block.Blocks.Service
         internal static void Transfer(OpenableInventoryItemDataStoreService slots, IReadOnlyList<int> outputSlots, IBlockInventoryInserter destination)
         {
             foreach (var slot in outputSlots)
-                slots.SetItem(slot, destination.InsertItem(slots.GetItem(slot)));
+            {
+                var item = slots.GetItem(slot);
+                // silent-ok: 空枠には搬出物が無い / 在庫UIが空状態を表示する
+                if (item.Count == 0) continue;
+                slots.SetItem(slot, destination.InsertItem(item));
+            }
         }
     }
 }
