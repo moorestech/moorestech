@@ -73,7 +73,6 @@ namespace Game.Block.Blocks.PowerGenerator
                 if (saveData == null) Fail("fuel state is missing");
                 var seconds = saveData.RemainingFuelSeconds;
                 if (double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds < 0) Fail($"invalid remainingFuelSeconds:{seconds}");
-                uint totalTicks = 0;
 
                 // 種別とIDと許可設定を同じ境界で照合する
                 // Check the kind, identity and allowed setting at the same boundary
@@ -85,25 +84,23 @@ namespace Game.Block.Blocks.PowerGenerator
                     case "Item":
                         var itemGuid = saveData.CurrentFuelItemGuid;
                         var itemId = itemGuid.HasValue ? MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid.Value) : null;
-                        if (!IsEmpty(saveData.CurrentFuelFluidGuidStr) || !itemId.HasValue || !service._itemFuelSettings.TryGetValue(itemId.Value, out var itemFuel))
+                        if (!IsEmpty(saveData.CurrentFuelFluidGuidStr) || !itemId.HasValue || !service._itemFuelSettings.TryGetValue(itemId.Value, out _))
                             Fail($"active item fuel is not configured:{saveData.CurrentFuelItemGuidStr}");
-                        else totalTicks = itemFuel.Ticks;
                         break;
                     case "Fluid":
                         var fluidGuid = saveData.CurrentFuelFluidGuid;
                         var fluidId = fluidGuid.HasValue ? MasterHolder.FluidMaster.GetFluidIdOrNull(fluidGuid.Value) : null;
-                        if (!IsEmpty(saveData.CurrentFuelItemGuidStr) || !fluidId.HasValue || !service._fluidFuelSettings.TryGetValue(fluidId.Value, out var fluidFuel))
+                        if (!IsEmpty(saveData.CurrentFuelItemGuidStr) || !fluidId.HasValue || !service._fluidFuelSettings.TryGetValue(fluidId.Value, out _))
                             Fail($"active fluid fuel is not configured:{saveData.CurrentFuelFluidGuidStr}");
-                        else totalTicks = fluidFuel.Ticks;
                         break;
                     default:
                         Fail($"unsupported activeFuelType:{saveData.ActiveFuelType}");
                         break;
                 }
 
-                // 秒で保存した値を同じtick換算の総量と比較する
-                // Compare saved seconds with the total expressed through the same tick conversion
-                if (seconds <= 0 || GameUpdater.TicksToSeconds(totalTicks) < seconds) Fail($"remaining time is outside the configured fuel duration:{seconds}");
+                // 消費済み燃料の寿命は保持し、復元可能範囲だけを検査する
+                // Preserve consumed fuel lifetime and validate only the restorable range
+                if (seconds <= 0 || GameUpdater.TicksToSeconds(uint.MaxValue) < seconds) Fail($"remaining time is outside the restorable range:{seconds}");
 
                 #region Internal
                 bool IsEmpty(string value) => string.IsNullOrEmpty(value) || value == Guid.Empty.ToString();
