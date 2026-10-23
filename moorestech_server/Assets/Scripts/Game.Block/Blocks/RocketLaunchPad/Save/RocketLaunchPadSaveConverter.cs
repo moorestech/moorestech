@@ -39,10 +39,11 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
 
         public static void RestoreSlots(RocketLaunchPadSaveJsonObject saveData, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
         {
-            // スロットをイベント無しで戻す。マスタ変更で置き場が無くなった品は警告して捨てる（打ち上げ後の保留は持たない）
-            // Restore slots without events; items that lost their place through a master change are dropped with a warning (no pending store)
+            // 実在品を保持できる場合だけ復元
+            // Restore slots only after confirming that all existing items can be retained
             ValidateStructure(saveData.InputItems, "inputItems");
             ValidateStructure(saveData.OutputItems, "outputItems");
+            RocketLaunchPadRetainedItemValidator.Validate(saveData, layout);
             long droppedCount = 0;
             var invalidRecords = 0;
             foreach (var input in saveData.InputItems)
@@ -151,7 +152,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
 
         // 保持するスタックだけが現在の上限内で生成可能かを調べる
         // Check whether a retained stack can be created under the current limit
-        private static bool CanCreate(ItemStackSaveJsonObject item)
+        internal static bool CanCreate(ItemStackSaveJsonObject item)
         {
             if (!Guid.TryParse(item.ItemGuidStr, out var guid)) return false;
             if (item.Count == 0) return true;

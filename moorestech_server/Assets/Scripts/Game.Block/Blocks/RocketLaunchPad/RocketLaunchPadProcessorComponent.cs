@@ -78,8 +78,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, SpaceElevatorCablePool cablePool, IObservable<Unit> inventoryChanges, CompositeDisposable subscriptions)
             : this(param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventoryChanges, subscriptions)
         {
-            // スロット・次に探す積荷・段階を戻す。今の積荷表で打ち上げられない積荷はコンバーターが警告して捨てる
-            // Restore slots, the next payload index and the stage; the converter warns about and drops cargo the current table cannot launch
+            // 実在品を保全してから段階を復元
+            // Restore the stage only after verifying that all existing items can be retained
             var saveData = BlockComponentStateReader.Read<RocketLaunchPadSaveJsonObject>(componentStates, SaveKey);
             RocketLaunchPadSaveConverter.RestoreSlots(saveData, _layout, _slots);
             if (!saveData.NextPayloadIndex.HasValue) Debug.LogWarning("発射台のセーブに巡回位置が無いため先頭から探します");
