@@ -138,6 +138,13 @@ describe("rocket command transport deadlines", () => {
     ["space_elevator.connect", {}, 6000, null],
     ["space_elevator.connect", {}, 6000, "insufficient_cable"],
     ["space_elevator.connect", {}, 11000, "connect_timeout"],
+    ["space_elevator.connect", {}, 6000, "already_connected"],
+    ["space_elevator.connect", {}, 6000, "connect_invalid_response"],
+    ["space_elevator.connect", {}, 6000, "connect_invalid_request"],
+    ["space_elevator.connect", {}, 6000, "connect_block_not_found"],
+    ["space_elevator.connect", {}, 6000, "connect_instance_mismatch"],
+    ["space_elevator.connect", {}, 6000, "not_space_elevator_base"],
+    ["space_elevator.connect", {}, 6000, "invalid_block_type"],
   ] as const)("%s receives %s at %s ms: %s", async (type, payload, delay, error) => {
     vi.resetModules();
     vi.useFakeTimers();
@@ -167,7 +174,7 @@ describe("rocket command transport deadlines", () => {
     const { requestId } = JSON.parse(sent.find((raw) => raw.includes(type))!);
     socket!.onmessage!({ data: JSON.stringify({ op: "result", requestId, ok: error === null, error }) });
     expect(await result).toEqual(error === null ? { kind: "accepted" } : { kind: "rejected", error });
-    if (error === null) expect(notify).not.toHaveBeenCalled();
+    if (error === null || error === "already_connected") expect(notify).not.toHaveBeenCalled();
     else {
       expect(notify).toHaveBeenCalledOnce();
       expect(JSON.stringify(vi.mocked(notify).mock.calls[0])).toContain(error);

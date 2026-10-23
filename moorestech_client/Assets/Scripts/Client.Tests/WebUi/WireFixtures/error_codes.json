@@ -48,6 +48,8 @@
     "connect_instance_mismatch",
     "not_space_elevator_base",
     "insufficient_cable",
+    "already_connected",
+    "invalid_block_type",
     "rocket_command_timeout",
     "rocket_command_invalid_response",
     "rocket_command_block_not_found",
