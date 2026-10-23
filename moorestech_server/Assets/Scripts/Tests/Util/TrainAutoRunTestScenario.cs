@@ -108,6 +108,11 @@ namespace Tests.Util
             stationNodes.ExitFront.ConnectNode(n1, 123456);
             n1.ConnectNode(n2, 234567);
             //n0->start->n1->n2 : n2が終端でどこにも繋がらない
+            // 実際の線路と同じく逆方向の辺も持たせる（反転した列車は反対側ノードの上を走る）
+            // Give the track its reverse edges like real rails do (a reversed train runs on the opposite nodes)
+            ((RailNode)stationNodes.EntryFront.OppositeNode).ConnectNode((RailNode)n0.OppositeNode, 9876543);
+            ((RailNode)n1.OppositeNode).ConnectNode((RailNode)stationNodes.ExitFront.OppositeNode, 123456);
+            ((RailNode)n2.OppositeNode).ConnectNode((RailNode)n1.OppositeNode, 234567);
 
             var initialRailNodes = new List<IRailNode> { stationNodes.ExitFront, stationNodes.EntryFront, n0 };
             var initialDistance = startRunning ? stationNodes.SegmentLength - 1 : 0;

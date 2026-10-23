@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UITK 難所 PoC</title>
+<style>
+:root { --bg:#f6f6f4; --fg:#1d1f23; --sub:#5b6270; --card:#ffffff; --line:#e1e3e7; --ok:#1f7a45; --mid:#8a6a1c; --ng:#a33232; --accent:#c9771c; }
+@media (prefers-color-scheme: dark) { :root { --bg:#16181c; --fg:#e8eaed; --sub:#9aa3ad; --card:#1f2228; --line:#2f343c; --ok:#5fd08f; --mid:#e3b54d; --ng:#ff7b7b; --accent:#f2a640; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font: 15px/1.7 -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
+h1 { font-size: 26px; margin: 8px 0 4px; }
+h2 { font-size: 20px; margin: 40px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 16px; margin: 24px 0 6px; }
+.sub { color: var(--sub); font-size: 13px; }
+.verdict { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--accent); border-radius: 8px; padding: 14px 18px; margin: 16px 0; }
+.verdict b { font-size: 17px; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; color: var(--sub); font-weight: 600; }
+.tbl { overflow-x: auto; }
+.ok { color: var(--ok); font-weight: 700; white-space: nowrap; }
+.mid { color: var(--mid); font-weight: 700; white-space: nowrap; }
+.ng { color: var(--ng); font-weight: 700; white-space: nowrap; }
+img { max-width: 100%; border-radius: 6px; border: 1px solid var(--line); display: block; margin: 8px 0; }
+figure { margin: 12px 0; }
+figcaption { color: var(--sub); font-size: 13px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+ul { padding-left: 20px; }
+li { margin: 4px 0; }
+code { font-size: 13px; background: rgba(127,127,127,0.15); padding: 1px 5px; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+</style>
+</head>
+<body>
+<main>
+<h1>UITK 難所 PoC — Web なら簡単で UITK だと高くつくもの</h1>
+<div class="sub">2026-10-22 / ブランチ <code>poc/uitk-hard-cases</code> / Unity 6000.3.8f1・UI Toolkit ランタイム / Mac mini 1920×1080 の Game ビューで計測</div>
+
+<div class="verdict">
+<b>判定: 移行の障害になるものは見つからなかった。</b>
+試した7分野（レシピチェーン図・電力グラフ・3D・CSS表現・動き・文字・重ね操作）は、どれも実用の見た目と速度で動いた。
+UITK で素直にできないのは <b>backdrop-filter（すりガラス）</b>と <b>:nth-child 等の構造擬似クラス</b>の2つだけ。
+代わりに、Web ならライブラリや既定機能で済むもの（グラフの自動配置・ツールチップ・DnD・右クリックメニュー・暗色テーマ・文中アイコン）を<b>自前で持つ必要がある</b>。
+これが移行コストの本体になる。性能面で設計が要るのは、<b>3D 小窓を数十個並べる場合</b>だけだった。
+</div>
+
+<h2>一覧</h2>
+<div class="tbl">
+<table>
+<tr><th>対象</th><th>Web での手段</th><th>UITK の結果</th><th>実装（C#行）</th><th>計測</th></tr>
+<tr><td>レシピチェーン図<br><span class="sub">satisfactory-calculator 風</span></td><td>dagre / elkjs ＋ SVG（React Flow）</td><td class="mid">工夫で可</td><td class="num">1,503<br><span class="sub">うち配置計算 約250</span></td><td>24ノード・27辺: 自動配置 初回7.8ms・2回目以降0.9ms、60fps 維持</td></tr>
+<tr><td>電力グラフ<br><span class="sub">Factorio 風</span></td><td>uPlot / Chart.js / canvas</td><td class="ok">できた</td><td class="num">791</td><td>UITK のメインスレッド時間/フレーム: 18系列×300点 1.5ms／48×1000 6.2ms／96×4000 47ms</td></tr>
+<tr><td>3D プレビュー<br><span class="sub">three.js 相当</span></td><td>three.js</td><td class="ok">できた</td><td class="num">289</td><td>フレーム時間（vSync なし）: 小窓0個 2.1ms／12個 8.6ms／24個 14.4ms／48個 26.3ms。UITK 自体は 0.1ms</td></tr>
+<tr><td>CSS の見た目表現 12項目</td><td>CSS 1行</td><td><span class="ok">そのまま可 3</span>・<span class="mid">工夫で可 7</span>・<span class="ng">不可 2</span></td><td class="num">342</td><td>0.27ms/フレーム</td></tr>
+<tr><td>動き（通知・FLIP・ばね・時間差・アコーディオン）</td><td>CSS animation / framer-motion</td><td class="ok">できた</td><td class="num">302</td><td>0.04ms/フレーム</td></tr>
+<tr><td>文字（マークダウン・文中アイコン・リンク・省略・検索強調）</td><td>marked ＋ &lt;img&gt; ＋ &lt;a&gt;</td><td class="mid">工夫で可</td><td class="num">363</td><td>0.04ms/フレーム</td></tr>
+<tr><td>重ね・操作（ツールチップ・右クリック・DnD・1万行・浮動窓・モーダル）</td><td>title 属性 / HTML5 DnD / dialog 要素</td><td class="mid">工夫で可</td><td class="num">554</td><td>1万行: 行要素28個、絞り込み0.5ms、自動スクロール中 0.67ms/フレーム</td></tr>
+</table>
+</div>
+<p class="sub">計測値は ProfilerRecorder で読んだ <code>UIElementsUpdatePanels</code>＋<code>UIElementsRepaintPanels</code>（UITK の CPU 時間）と、フレーム時間。スクショはすべて PlayMode で実際に操作して撮った。</p>
+
+<h2>1. レシピチェーン図</h2>
+<p>実 master（コンピュータ 5個/分）から必要な機械と台数を逆算し、段組みで自動配置した。辺の太さは流量、色はアイテム、破線は流れの向きに動く。dagre 相当の配置（最長経路で段を決め、長い辺に中継点を挟み、重心法で並べ替えて交差を減らし、縦位置を最小二乗で揃える）は自作した。</p>
+<div class="grid2">
+<figure><img src="img/rg5_hover.jpg" alt=""><figcaption>ホバーで上流・下流以外を暗くする</figcaption></figure>
+<figure><img src="img/rg6_drag.jpg" alt=""><figcaption>ノードをドラッグすると辺が追従する</figcaption></figure>
+</div>
+<figure><img src="img/rg8_after.jpg" alt=""><figcaption>ノードのクリックで代替レシピに切り替えた後。銅のワイヤーの機械が「原始的な加工機 ×24.44」から「電気汎用工作装置 ×4.58」に替わり、右の集計も更新された</figcaption></figure>
+<ul>
+<li>できたこと: パン、カーソル中心のズーム、ホバー強調、ドラッグ、代替レシピの切り替え、流れる破線、辺ラベルの衝突回避、遠景で辺ラベルを隠す</li>
+<li>高くついたもの: 配置計算の自作（約250行）。Painter2D の曲線と破線は素直に使えた</li>
+</ul>
+
+<h2>2. 電力グラフ</h2>
+<div class="grid2">
+<figure><img src="img/pc1.jpg" alt=""><figcaption>消費・発電・蓄電の3列、時間幅タブ、行ホバーで系列を強調</figcaption></figure>
+<figure><img src="img/pc4.jpg" alt=""><figcaption>負荷試験（系列数・点数を引き上げ）</figcaption></figure>
+</div>
+<table>
+<tr><th>系列×点数</th><th>Painter2D</th><th>自前メッシュ（四角形を直書き）</th></tr>
+<tr><td class="num">18×300（実用域）</td><td class="num">約1.5ms</td><td class="num">1.8ms</td></tr>
+<tr><td class="num">48×1000</td><td class="num">6.2ms</td><td class="num">11.9ms</td></tr>
+<tr><td class="num">96×4000</td><td class="num">47ms</td><td class="num">90ms</td></tr>
+</table>
+<p>Painter2D は Burst ジョブで線を作るので、素朴な自前メッシュより速かった。実用の規模（18系列×300点）では余裕がある。</p>
+
+<h2>3. 3D プレビュー</h2>
+<figure><img src="img/p3_48.jpg" alt=""><figcaption>左: 仮想化リスト（ブロック一覧）/ 中央: ドラッグで回転・ホイールでズームする大きなプレビュー（上に UITK のラベルを重ねる）/ 右: 自動回転する小窓48個</figcaption></figure>
+<ul>
+<li>方式: ブロックのプレハブから描画用メッシュだけを複製し（スクリプトは起動させない）、専用レイヤー・専用カメラで RenderTexture に描いて、要素の背景に貼る。透明背景のまま UI に重なった</li>
+<li>重さはカメラの数で決まる。1カメラあたり約0.5ms で、48個だと 26ms/フレームになる。<b>動かない小窓はアイコンとして一度だけ焼き、ライブ描画は注目中の1〜数個に絞る</b>のが設計の答え</li>
+</ul>
+
+<h2>4. CSS の見た目表現</h2>
+<figure><img src="img/fx3.jpg" alt=""><figcaption>緑=そのまま可 / 黄=工夫で可 / 赤=不可</figcaption></figure>
+<div class="tbl">
+<table>
+<tr><th>CSS</th><th>判定</th><th>UITK での書き方</th></tr>
+<tr><td>filter: grayscale / hue-rotate / invert / sepia / blur</td><td class="ok">そのまま可</td><td>6.3 から USS の filter で書ける（無効アイテムの灰色化などに使える）</td></tr>
+<tr><td>box-shadow</td><td class="ok">そのまま可</td><td>背面に黒い板を置き、filter: blur でぼかす。9スライスの影テクスチャを焼く方法も可</td></tr>
+<tr><td>text-shadow / 文字の縁取り</td><td class="ok">そのまま可</td><td>text-shadow と -unity-text-outline。グラデーション文字は不可</td></tr>
+<tr><td>linear / radial-gradient</td><td class="mid">工夫で可</td><td>USS の背景には書けない。テクスチャを焼くか、Painter2D の FillGradient で塗る</td></tr>
+<tr><td>clip-path: polygon()</td><td class="mid">工夫で可</td><td>Painter2D でパスを塗る。子要素を多角形で切り抜くことはできない</td></tr>
+<tr><td>conic-gradient の進捗リング</td><td class="mid">工夫で可</td><td>Painter2D.Arc と strokeGradient</td></tr>
+<tr><td>border-style: dashed</td><td class="mid">工夫で可</td><td>枠線は実線のみ。Painter2D の SetDashPattern で描く</td></tr>
+<tr><td>z-index / gap / grid</td><td class="mid">工夫で可</td><td>z-index は無く、兄弟順（BringToFront）で決まる。gap と grid も無いので、flex-wrap と margin で組む</td></tr>
+<tr><td>backdrop-filter: blur（すりガラス）</td><td class="ng">不可</td><td>filter は自分と子をぼかすだけで、背後は見えない。背面を RenderTexture に描いて敷くなどの自作が要る</td></tr>
+<tr><td>:nth-child / :last-child</td><td class="ng">不可</td><td>警告が出て無視される。縞模様や末尾の余白は、コードでクラスを付ける</td></tr>
+</table>
+</div>
+
+<h2>5. 動き</h2>
+<figure><img src="img/flip_strip2.jpg" alt=""><figcaption>FLIP 並べ替え（左: 押す前 / 中: 120ms / 右: 250ms）。行が重なりながら新しい位置へ移る</figcaption></figure>
+<figure><img src="img/toast_acc_strip.jpg" alt=""><figcaption>上段: 通知が入る途中（100ms）と、高さを畳みながら消える途中（2.8秒）/ 下段: アコーディオンが開く途中（150ms・600ms）</figcaption></figure>
+<ul>
+<li>USS の transition、<code>experimental.animation</code>、自前の積分（ばね）の3つで、framer-motion 相当はひととおり書けた</li>
+<li>罠1: <code>height: auto</code> は transition できない。今の高さを px で固定してから動かす</li>
+<li>罠2: 高さ0で overflow: hidden の親の中では、子の文字が高さ0で測られて潰れる（実測: 子の高さ0、ラベル12px＝余白だけ）。中身を absolute にして実寸を測る</li>
+<li>罠3: <code>schedule.Execute</code> は同じフレームのレイアウトより先に走るので、並べ替え直後の位置が取れない。<code>GeometryChangedEvent</code> の旧矩形・新矩形を使えば FLIP がそのまま書ける</li>
+</ul>
+
+<h2>6. 文字と入力</h2>
+<figure><img src="img/tx2.jpg" alt=""><figcaption>左: マークダウン風の説明（見出し・番号リスト・引用・コード・文中アイコン・リンク）/ 中: 和文の画質 / 右: 検索ハイライト・複数行入力・省略記号</figcaption></figure>
+<div class="grid2">
+<figure><img src="img/sprite3_crop.jpg" alt=""><figcaption>文中アイコン（<code>&lt;sprite name="アイテム名"&gt;</code>）。mod から実行時に読むアイコンを SpriteAsset にまとめた</figcaption></figure>
+<figure><img src="img/font_compare.jpg" alt=""><figcaption>3倍に拡大した比較。上から UITK の SDF、UITK のビットマップ、Chrome（同じ Noto Sans JP Medium）</figcaption></figure>
+</div>
+<ul>
+<li><b>文中アイコンは内部 API 頼み</b>: 実行時に SpriteAsset を作る公開 API が無い。アトラス・寸法・字面情報を、リフレクションで内部フィールドに書いて動かした。moorestech のアイコンは mod から実行時に読むので、エディタで事前に焼く方法は使えない。Unity の更新で壊れうるので、テストで検知する前提が要る</li>
+<li>存在しない sprite 名を書くと、タグがそのまま文字で出る。アイコンの有無を確かめてからタグを付ける</li>
+<li>リンク: <code>&lt;link&gt;</code> のクリックは PointerUpLinkTagEvent で拾えた。ただし<b>リンク単位の :hover は無く</b>、ホバーの見た目は行（Label）全体にしか当たらない</li>
+<li>複数行の省略記号（CSS の line-clamp 相当）は、高さを固定して text-overflow: ellipsis にするだけで効いた</li>
+<li>和文の画質: 11〜12px は Chrome より線が細く、やや甘い。14px 以上はほぼ同等。UITK の SDF とビットマップの差はほぼ無い</li>
+<li>マークダウンは自前の変換（約80行）。Web ならライブラリの呼び出し1行</li>
+</ul>
+
+<h2>7. 重ね・操作</h2>
+<figure><img src="img/ov_strip.jpg" alt=""><figcaption>左上: ツールチップ / 右上: ドラッグ中のゴーストと落とし先の強調 / 左下: 入れ替え後 / 右下: 右クリックメニュー（GenericDropdownMenu）</figcaption></figure>
+<div class="grid2">
+<figure><img src="img/ov_tipflip_crop.jpg" alt=""><figcaption>画面の右端ではツールチップがカーソルの左側へ反転する</figcaption></figure>
+<figure><img src="img/modal_400.jpg" alt=""><figcaption>モーダル（背景を暗くし、Esc か背景クリックで閉じる）</figcaption></figure>
+</div>
+<ul>
+<li>ランタイムの UITK には、ツールチップの表示・HTML5 DnD・右クリックメニューの管理役が無い。それぞれ自作した（ツールチップ約90行、DnD 約140行）。右クリックメニューは GenericDropdownMenu がランタイムでも使えたが、見た目は明色の既定テーマのまま</li>
+<li>罠: ポインタを捕捉してドラッグしている間も、下の要素に PointerEnter が届く。ツールチップがドラッグ中に出たので、抑止を足した</li>
+<li>仮想化 ListView は1万行でも行要素28個で済み、絞り込みの処理は0.5ms（再バインドは次のフレーム）。自動スクロール中は 0.67ms/フレーム</li>
+<li>浮動ウィンドウ: z-index の代わりに BringToFront で兄弟順を変える</li>
+</ul>
+
+<h2>横断的な知見（どの画面にも効く）</h2>
+<h3>半透明が Web より薄く見える（Linear 色空間での合成）</h3>
+<table>
+<tr><th>重ねたもの</th><th>Chrome（実測）</th><th>UITK</th></tr>
+<tr><td>#9c7b42 の上に黒60%（モーダルの幕）</td><td class="num">#3e311a</td><td class="num">#664f29（実測）</td></tr>
+<tr><td>白の上に rgba(18,20,24,0.96)（ツールチップ）</td><td class="num">#1b1d21</td><td class="num">#3c3d3e（計算値。スクショでもアイコンが透けて見える）</td></tr>
+</table>
+<p>プロジェクトが Linear 色空間なので、UITK は線形の値で合成する。明るいものの上に暗い半透明を重ねると、Web よりずっと透ける。<b>Web 版の rgba 値をそのまま移植すると、幕やツールチップが薄くなる</b>。不透明度は実機で見て決め直すか、不透明の地に影を付ける。</p>
+<h3>既定テーマを暗色にする USS を自前で持つ</h3>
+<p>ランタイムの既定テーマは明色。ボタン・入力欄・ドロップダウン・スライダー・トグル・スクロールバー・ポップアップを暗色化する USS が146行要った。癖として、スライダーの入力部の高さが0になり、トラックがラベルの上にずれた。高さを明示して直した。</p>
+<h3>和文フォントは SDF の FontAsset を実行時に作る</h3>
+<p><code>FontDefinition.FromFont(Font)</code> はビットマップ描画で、拡大すると崩れる（レシピ図のズームで発覚）。<code>FontAsset.CreateFontAsset</code> で SDF を作って <code>FromSDFFont</code> で当てる。</p>
+<h3>その他</h3>
+<ul>
+<li>CSS と同じく詳細度で負ける（<code>.root Label</code> が <code>.h1</code> に勝つ）。自分のミスだが、Web と同じ注意が要る</li>
+<li>PackTextures はアトラスを必要最小の大きさに縮める（512→256）。UV は縮んだ後の寸法で計算する</li>
+<li>Advanced Text Generator は、プロジェクト設定で有効にしないと使えない（今回は未検証）</li>
+<li>開発の道具: UITK を含めた画面は ScreenCapture.CaptureScreenshot でないと撮れない（uloop screenshot の rendering モードには UITK が写らない）</li>
+</ul>
+
+<h2>moorestech の移行への含意</h2>
+<ol>
+<li><b>最初に共通の基盤を作る</b>: 暗色テーマ USS／ツールチップ層／DnD（インベントリ用）／右クリックメニューの見た目／アイテムアイコンの SpriteAsset。どの画面もこれらに乗るので、画面ごとに作り直さない</li>
+<li><b>アイコンの SpriteAsset は内部 API に依存する</b>。Unity を更新したら最初に壊れる箇所なので、構築と描画のテストを置く</li>
+<li><b>3D は「焼いたアイコン＋ライブ1〜数個」</b>の構成にする。カメラ1台あたり約0.5ms</li>
+<li><b>半透明の値は Web 版から流用しない</b>（Linear 合成で薄くなる）</li>
+<li>グラフ類（電力・レシピ）は Painter2D で十分速い。レシピ図の自動配置はこの PoC の約250行を基にできる</li>
+</ol>
+
+<h2>未検証</h2>
+<ul>
+<li>日本語 IME での入力（自動操作では確かめられないので、手で確認が要る）</li>
+<li>ゲームパッド・キーボードでのフォーカス移動、モーダル内へのフォーカスの閉じ込め</li>
+<li>Windows 実機・4K・UI スケール変更での見え方</li>
+<li>Advanced Text Generator</li>
+</ul>
+
+<h2>再現方法</h2>
+<p>ブランチ <code>poc/uitk-hard-cases</code> の <code>Assets/Scenes/Other/UitkPoc.unity</code> を開いて Play する。上部のタブで7つのデモを切り替えられ、右上に fps・UITK の時間・要素数が出る。コードは <code>Assets/Scripts/Client.UitkPoc/</code>（Editor 限定の asmdef なので、ビルドには入らない）。シーンの UitkPoc オブジェクトの <code>modDirectory</code> は Mac mini の master ピンの絶対パスなので、別の機器では手元の <code>moorestech_master/server_v8/mods/moorestechAlphaMod_8</code> に差し替える。</p>
+</main>
+</body>
+</html>
