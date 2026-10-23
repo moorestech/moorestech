@@ -24,8 +24,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
         public bool CanStore(IReadOnlyList<IItemStack> outputs)
         {
-            // 出力口の写しへ順に詰め、余りが出たら入りきらない
-            // Fill a copy of the output slots in order; any remainder means they do not fit
+            // 出力口の写しへ順に詰めて余りを検査
+            // Fill copied output slots in order and check for remainders
             var simulated = CopyOutputSlots();
             foreach (var output in outputs)
                 if (0 < FillInOrder(simulated, output).Count) return false;
@@ -47,8 +47,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
         public void PushToConnected()
         {
-            // 出力口の中身は機械の出力と同じく毎tick接続先へ流す
-            // Push output slot contents to connected inventories every tick, as machine outputs do
+            // 機械と同じく毎tick接続先へ搬出
+            // Push output contents to connected inventories each tick, like machines
             foreach (var slot in _layout.OutputSlots) _slots.SetItem(slot, _beltOutput.InsertItem(_slots.GetItem(slot)));
         }
 

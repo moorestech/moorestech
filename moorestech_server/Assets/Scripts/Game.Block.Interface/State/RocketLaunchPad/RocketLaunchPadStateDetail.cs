@@ -4,8 +4,8 @@ using Game.Block.Interface.Component;
 
 namespace Game.Block.Interface.State
 {
-    // 発射台の段階・待ち理由・進み具合をクライアントへ送る
-    // Sends the launch pad's phase, wait reason and progress to the client
+    // 段階・待ち理由・進捗をクライアントへ
+    // Send phase, wait reason and progress to the client
     [MessagePackObject]
     public class RocketLaunchPadStateDetail
     {

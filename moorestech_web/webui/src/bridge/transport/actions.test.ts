@@ -113,8 +113,8 @@ describe("dispatchAction の toast 配線", () => {
   });
 });
 
-// 実トランスポートでサーバーの遅延拒否が共通通知まで届くことを確認する
-// Exercise the real transport through delayed server rejection and common notification
+// 実通信の遅延拒否を共通通知まで検証
+// Test delayed server rejection through real transport and common notification
 describe("rocket command transport deadlines", () => {
   afterEach(() => {
     vi.clearAllTimers();

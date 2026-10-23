@@ -27,8 +27,8 @@ namespace Client.Tests.WebUi.BlockDetail
 {
     public class RocketLaunchPadWireContractTest
     {
-        // 実シリアライザーの出力をTSと共用するfixtureに照合する
-        // Match the real serializer output against the fixture shared with TypeScript
+        // 実直列化結果をTS共有値と照合
+        // Compare real serialization with the TypeScript fixture
         [Test]
         public void LaunchPadFixtureMatchesDto()
         {
@@ -71,8 +71,8 @@ namespace Client.Tests.WebUi.BlockDetail
                 { RocketLaunchPadStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(new RocketLaunchPadStateDetail(phase, reason, 0.375f)) },
             });
 
-            // Unityオブジェクトへ受信状態を差し込み、公開の合成入口を通す
-            // Inject received state into a Unity object and call the public composition entry
+            // 実オブジェクトの受信状態で合成を検証
+            // Test public composition with received state in a real Unity object
             var gameObject = new GameObject("RocketLaunchPadWireTest");
             var block = gameObject.AddComponent<BlockGameObject>();
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockMasterElement)).SetValue(block, master);

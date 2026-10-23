@@ -65,8 +65,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             save.Remove("rocketHasLaunchedOnce");
             save["worldVersion"] = 6;
 
-            // 実ファイルを指定し、退避・移行・刈り込み・復元の全経路を通す
-            // Use a real file to exercise archival, migration, pruning and restoration
+            // 実ファイルで退避・移行・刈込・復元を通す
+            // Exercise archival, migration, pruning and restoration with a real file
             Directory.CreateDirectory(_archiveRoot);
             var sourcePath = WorldDataDirectory.FromWorldRoot(_archiveRoot).SaveJsonFilePath;
             var original = save.ToString();

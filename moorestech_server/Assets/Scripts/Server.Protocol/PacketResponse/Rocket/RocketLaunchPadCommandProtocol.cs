@@ -33,8 +33,8 @@ namespace Server.Protocol.PacketResponse
             if (block.BlockInstanceId.AsPrimitive() != request.ExpectedInstanceId.Value) return Fail(RocketLaunchPadCommandFailureReason.InstanceMismatch);
             if (!block.ComponentManager.TryGetComponent<IRocketLaunchPadComponent>(out var launchPad)) return Fail(RocketLaunchPadCommandFailureReason.NotRocketLaunchPad);
 
-            // 操作の種類ごとに発射台の入口へ渡し、ドメインの結果を通信の失敗理由へ写す
-            // Hand each operation to the pad's entry point and map the domain result to a wire failure reason
+            // 操作を発射台へ渡し結果を通信理由へ変換
+            // Dispatch operations to the pad and map results to wire failure reasons
             switch (request.Operation)
             {
                 case RocketLaunchPadCommandOperation.Build:

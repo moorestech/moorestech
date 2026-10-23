@@ -134,8 +134,8 @@ namespace Tests.UnitTest.Core.Master.OrbitalPayload
             items["orbitalPayloads"] = new JArray();
             configs[0].JsonContents[fileName] = items.ToString();
 
-            // 通常の読込経路が検証エラーで止まることを確かめる
-            // Verify that the normal load boundary stops on the validation error
+            // 通常読込が検証エラーで止まるか検査
+            // Check that validation errors stop normal loading
             var error = Assert.Throws<System.InvalidOperationException>(() => MasterHolder.Load(new MasterJsonFileContainer(configs)));
             StringAssert.Contains("items.orbitalPayloads is empty", error.Message);
         }

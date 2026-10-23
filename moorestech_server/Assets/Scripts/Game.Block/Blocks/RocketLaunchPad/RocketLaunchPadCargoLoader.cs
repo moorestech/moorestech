@@ -7,8 +7,10 @@ using Game.Context;
 
 namespace Game.Block.Blocks.RocketLaunchPad
 {
-    // 入れ口の資材と積荷を数え、選ばれた1便ぶんを取り出してロケットに積む
-    // Counts materials and payloads in the input slots and takes the chosen launch worth into a rocket
+    // - 入れ口の資材・積荷を集計
+    // - 選択した1便分を取り出して積載
+    // - Count materials and payloads in inputs
+    // - Take and load the selected launch worth
     internal class RocketLaunchPadCargoLoader
     {
         public int NextPayloadIndex { get; private set; }

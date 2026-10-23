@@ -16,8 +16,10 @@ using UnityEngine;
 
 namespace Tests.Util.Rocket
 {
-    // 実ワールドの保存と別DIへの復元で、ブロック状態の読込経路を通す
-    // Save the real world and restore into a separate DI container through the block-state load path
+    // - 実ワールドを保存
+    // - 別DIでブロック状態を復元
+    // - Save the real world
+    // - Restore block state through a separate DI container
     public static class RocketLaunchPadSaveTestUtil
     {
         public static JObject CreateSavedWorld(RocketLaunchPadPhase phase)

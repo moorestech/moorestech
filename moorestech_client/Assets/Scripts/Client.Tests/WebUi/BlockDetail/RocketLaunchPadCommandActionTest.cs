@@ -34,8 +34,8 @@ namespace Client.Tests.WebUi.BlockDetail
             TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", _previousApi);
             if (_owner != null) Object.DestroyImmediate(_owner);
         }
-        // 外部payloadの不正値を既存コードと警告で拒否する
-        // Reject invalid external payloads with the established error code and a warning
+        // 不正入力を既存エラーと警告で拒否
+        // Reject invalid input with the established error code and a warning
         [UnityTest]
         public IEnumerator InvalidCommandsAreRejectedBeforeReadingGameState() => UniTask.ToCoroutine(async () =>
         {
@@ -50,8 +50,6 @@ namespace Client.Tests.WebUi.BlockDetail
             }
         });
 
-        // 正しい合図も開いているブロックが無ければ送信しない
-        // Even valid commands must not send when there is no open block
         [UnityTest]
         public IEnumerator ValidCommandsRequireAnOpenBlock() => UniTask.ToCoroutine(async () =>
         {
@@ -90,8 +88,8 @@ namespace Client.Tests.WebUi.BlockDetail
             TestReflection.SetField(state, "<CurrentSubInventorySource>k__BackingField", new BlockSubInventorySource(store, position));
             TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", capture.Api);
 
-            // 実handlerから実APIを通り、送信した位置・操作・個体を復号する
-            // Decode position, operation and identity sent through the real handler and API
+            // 実送信の位置・操作・個体を復号
+            // Decode position, operation and identity from the real handler/API request
             var pending = new RocketLaunchPadCommandActionHandler(state).ExecuteAsync(new JObject { ["command"] = command });
             var request = MessagePackSerializer.Deserialize<RocketLaunchPadCommandRequest>(capture.ReadRequest());
             Assert.AreEqual(position, request.Position.Vector3Int);

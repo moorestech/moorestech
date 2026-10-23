@@ -31,8 +31,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.Rocket
         {
             var detail = blockState.GetStateDetail<RocketLaunchPadStateDetail>(RocketLaunchPadStateDetail.BlockStateDetailKey);
 
-            // 建造完了から打ち上げが終わるまで本体を表示する
-            // Show the body from build completion until the launch ends
+            // 建造完了から発射終了まで本体を表示
+            // Show the body from build completion through launch end
             body.gameObject.SetActive(detail.Phase is RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch or RocketLaunchPadPhase.Launching);
 
             // 途中参加でもサーバーの進行位置から上昇を始める

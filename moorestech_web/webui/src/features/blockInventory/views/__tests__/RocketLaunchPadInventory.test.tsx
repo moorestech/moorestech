@@ -5,8 +5,8 @@ import type { BlockInventoryOpen } from "@/bridge";
 import { loadFixture } from "../../../../bridge/contract/wireFixtures.test-helper";
 
 const mock = vi.hoisted(() => ({ dispatch: vi.fn(), block: {} as BlockInventoryOpen, grab: { itemId: 0, count: 0 } }));
-// 実パネルと実スロットを残し、外部topicだけ固定する
-// Keep the real panel and slots and isolate only external topic state
+// 実パネル・スロットで外部状態を固定
+// Keep real panels and slots while fixing external topic state
 vi.mock("@/bridge", async (original) => ({
   ...(await original<typeof import("@/bridge")>()),
   dispatchAction: mock.dispatch,

@@ -16,8 +16,10 @@ using Mooresmaster.Model.BlocksModule;
 namespace Game.Block.Factory.BlockTemplate.Rocket
 {
     /// <summary>
-    ///     ロケット発射台（資材・積荷・出力スロットと電力）のテンプレート
-    ///     Template for the rocket launch pad with material, payload and output slots and power
+    ///     - 資材・積荷・出力スロットを構成
+    ///     - 電力部品を構成
+    ///     - Compose material, payload and output slots
+    ///     - Compose power components
     /// </summary>
     public class VanillaRocketLaunchPadTemplate : IBlockTemplate
     {

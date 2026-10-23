@@ -20,8 +20,10 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Game.RocketLaunchPad
 {
-    // テンプレート登録後に実際のブロック経由で専用スロットを検証する
-    // Verify bound slots through the actual block after template registration
+    // - テンプレート登録後の実ブロックを使用
+    // - 専用スロットを検証
+    // - Use the real block after template registration
+    // - Verify bound slots
     public class RocketLaunchPadInventoryTest
     {
         private static readonly Vector3Int Position = new(5, 10, 0);

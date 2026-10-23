@@ -136,8 +136,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
         public void 操作キーが無い実配列を無消費で拒否する()
         {
             var pad = PlaceAwaitingBuildPad();
-            // 末尾の操作と個体IDを持たないMessagePack配列を送る
-            // Send an actual MessagePack array missing operation and instance ID
+            // 操作・個体IDなしの実配列を送信
+            // Send a real MessagePack array without trailing operation and instance ID
             var bytes = MessagePackSerializer.Serialize(new object[] { ProtocolTag, 42, new global::Server.Util.MessagePack.Vector3IntMessagePack(Vector3Int.zero) });
             ExpectProtocolRejection(RocketLaunchPadCommandFailureReason.InvalidRequest);
             var responses = _packet.GetPacketResponse(bytes, BoundPacketContext.Bind(1));
@@ -160,8 +160,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
 
         private RocketLaunchPadCommandResponse Send(RocketLaunchPadCommandRequest request)
         {
-            // 実パケット入口でタグ登録・接続ID・連番の往復も確かめる
-            // Exercise real packet dispatch, connection identity and sequence round-trip
+            // 実通信のタグ・接続ID・連番を検証
+            // Verify tags, connection identity and sequence round-trip through real dispatch
             request.SequenceId = 42;
             var responses = _packet.GetPacketResponse(MessagePackSerializer.Serialize(request), BoundPacketContext.Bind(1));
             Assert.AreEqual(1, responses.Count);

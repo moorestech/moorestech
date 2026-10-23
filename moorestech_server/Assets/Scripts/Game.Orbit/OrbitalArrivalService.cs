@@ -19,8 +19,6 @@ namespace Game.Orbit
 
         public OrbitalArrivalService()
         {
-            // 積荷表を積荷アイテムで引けるように索引する
-            // Index the payload table by payload item
             foreach (var payload in MasterHolder.ItemMaster.Items.OrbitalPayloads)
                 _payloadByItemId.Add(MasterHolder.ItemMaster.GetItemId(payload.PayloadItemGuid), (payload.CountPerLaunch, payload.ArrivalOutputs.Select(output => (MasterHolder.ItemMaster.GetItemId(output.ItemGuid), output.Count)).ToArray()));
         }

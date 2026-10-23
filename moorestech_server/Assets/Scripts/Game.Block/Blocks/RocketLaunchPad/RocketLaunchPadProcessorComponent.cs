@@ -19,8 +19,12 @@ using static Game.Block.Interface.BlockException;
 namespace Game.Block.Blocks.RocketLaunchPad
 {
     /// <summary>
-    ///     発射台の部品としての口。tick・合図・初打ち上げ通知を段階の進行へ渡し、状態の通知・セーブ・撤去返却を受け持つ
-    ///     The pad's component surface: routes ticks, commands and the first-launch notice to the sequence, and owns state publishing, saving and refunds
+    ///     - 進行へtick・合図・初発射を委譲
+    ///     - 状態通知・セーブを担当
+    ///     - 撤去時に積荷を返却
+    ///     - Route ticks, commands and first-launch notifications to the sequence
+    ///     - Publish and save state
+    ///     - Refund cargo on removal
     /// </summary>
     public class RocketLaunchPadProcessorComponent : IRocketLaunchPadComponent, IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo
     {

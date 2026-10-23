@@ -65,8 +65,6 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(request, ct);
         }
 
-        // 発射台へ建造・発射の合図を送る
-        // Send a build or launch command to a rocket launch pad
         public async UniTask<(RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse response, PacketWaitCompletionReason reason)> SendRocketLaunchPadCommand(
             Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, BlockInstanceId expectedInstanceId, CancellationToken ct)
         {
