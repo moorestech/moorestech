@@ -78,8 +78,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             processor.RequestLaunch();
             GameUpdater.RunFrames(3);
 
-            // 正常な発射の途中から実ワールド全体を別DIへ保存往復する
-            // Round-trip the whole real world into a separate DI container during a normal launch
+            // 発射中の実ワールドを別DIへ保存往復
+            // Round-trip the real world into a separate DI container during launch
             var save = JObject.Parse(SaveLoadJsonTestHelper.AssembleSaveJson(services));
             var before = RocketLaunchPadSaveTestUtil.State(save);
             var remainingTicks = GameUpdater.SecondsToTicks(before["remainingSeconds"].Value<double>());

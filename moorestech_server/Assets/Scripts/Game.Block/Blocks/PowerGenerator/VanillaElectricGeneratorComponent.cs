@@ -168,8 +168,8 @@ namespace Game.Block.Blocks.PowerGenerator
             var power = new PowerGeneratorStateDetail(GameUpdater.TicksToSeconds(_fuelService.RemainingFuelTicks), GameUpdater.TicksToSeconds(_fuelService.CurrentFuelTotalTicks), operatingRate);
             var details = new List<BlockStateDetail> { new(PowerGeneratorStateDetail.StateDetailKey, MessagePackSerializer.Serialize(power)) };
 
-            // 液体燃料タンクは機械と同じ液体詳細で送り、webuiの液体行に出す
-            // Send the fluid fuel tank as the same fluid detail machines use, shown in the webui fluid row
+            // 燃料タンクを共通液体詳細でUIへ表示
+            // Display the fuel tank in the UI using the shared machine fluid detail
             if (_fuelService.TryGetFuelTank(out var tank))
             {
                 var fluid = new FluidMachineInventoryStateDetail(new List<FluidMessagePack> { tank }, new List<FluidMessagePack>());

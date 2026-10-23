@@ -29,8 +29,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             var sink = EventTestUtil.RegisterCaptureSink(services, 1);
             var tag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(pad.BlockPositionInfo);
 
-            // 初期pullとtickによる理由変更を通信境界で観測する
-            // Observe the initial pull and tick-driven reason change at the wire boundary
+            // pull・tickの待因変更を通信検証
+            // Verify the initial pull and tick-driven wait-reason change over the wire
             packet.GetPacketResponse(MessagePackSerializer.Serialize(new RequestBlockStateProtocolMessagePack(Vector3Int.zero)), BoundPacketContext.Bind(1));
             Assert.AreEqual(RocketLaunchPadPhase.Idle, LastState().Phase);
             GameUpdater.RunFrames(1);

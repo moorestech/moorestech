@@ -77,8 +77,8 @@ namespace Game.SpaceElevator
             if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked)) return Refuse(SpaceElevatorConnectResult.NotSpaceElevatorBase);
             if (tracked.Base.IsConnected) return Refuse(SpaceElevatorConnectResult.AlreadyConnected);
 
-            // 1エレベーター分が残っていれば引いて接続する
-            // Connect after taking one elevator's worth when it remains
+            // 1基分の残量を引いて接続
+            // Take one base's cable requirement and connect it
             if (!_pool.TryTake(tracked.CablesPerElevator)) return Refuse(SpaceElevatorConnectResult.InsufficientCable);
             tracked.Base.MarkConnected();
             return SpaceElevatorConnectResult.Connected;

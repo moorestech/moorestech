@@ -73,8 +73,8 @@ namespace Tests.CombinedTest.Game.SpaceElevator
                 });
             }
 
-            // 実ファイルから正規のLoadOrInitializeへ渡す
-            // Load the actual file through the normal LoadOrInitialize entry point
+            // 実ファイルを正規ロード入口へ渡す
+            // Load the real file through the normal LoadOrInitialize entry point
             _root = Path.Combine(Path.GetTempPath(), $"elevator-load-{Guid.NewGuid()}");
             Directory.CreateDirectory(_root);
             var path = WorldDataDirectory.FromWorldRoot(_root).SaveJsonFilePath;

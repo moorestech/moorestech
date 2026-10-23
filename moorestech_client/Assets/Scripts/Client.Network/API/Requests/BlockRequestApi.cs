@@ -49,8 +49,6 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<SetElectricToGearOutputModeResponse>(request, ct);
         }
 
-        // 宇宙エレベーター拠点の接続を頼む
-        // Ask to connect a space elevator base
         public async UniTask<(ConnectSpaceElevatorResponse response, PacketWaitCompletionReason reason)> ConnectSpaceElevator(
             Vector3Int position, BlockInstanceId expectedInstanceId, CancellationToken ct)
         {

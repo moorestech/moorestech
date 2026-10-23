@@ -134,8 +134,8 @@ namespace Tests.CombinedTest.Server.PacketTest.SpaceElevator
             var payload = MessagePackSerializer.Serialize(request);
             var responses = packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
 
-            // 登録タグと応答の対応付けも実通信形式で確かめる
-            // Verify routing and response correlation through the actual wire format
+            // 実通信で登録タグと応答の対応を検証
+            // Verify registered tags and response correlation over the real wire format
             Assert.AreEqual(1, responses.Count);
             var response = MessagePackSerializer.Deserialize<ConnectSpaceElevatorResponse>(responses[0]);
             Assert.AreEqual(ConnectSpaceElevatorProtocol.ProtocolTag, response.Tag);

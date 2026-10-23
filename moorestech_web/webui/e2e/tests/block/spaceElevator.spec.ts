@@ -23,8 +23,8 @@ test("接続ボタンでactionを送り、接続後は進みを出す", async ({
   await expect(page.getByTestId("space-elevator-connect")).toHaveCount(0);
 });
 
-// 不足・昇降・出口待ちを専用ビューの実描画で確かめる
-// Exercise shortage, climbing, and output waiting through the real dedicated view
+// 不足・昇降・出口待ちを専用画面で検証
+// Verify shortage, climbing and output waiting in the rendered dedicated view
 for (const [fixture, status, progress] of [
   ["spaceElevatorInsufficient", "ケーブルが足りません", null],
   ["spaceElevatorClimbing", "昇降中", "0.5"],

@@ -72,8 +72,8 @@ namespace Core.Master.Validator.Block
                 var result = "";
                 foreach (var payload in payloads)
                 {
-                    // 数量の合算と切り上げはItemMasterの共通計算へ渡す
-                    // Delegate quantity aggregation and ceiling division to ItemMaster
+                    // 合算・切上げはItemMasterへ
+                    // Delegate aggregation and ceiling division to ItemMaster
                     var counts = payload.ArrivalOutputs.Select(output => (MasterHolder.ItemMaster.GetItemId(output.ItemGuid), output.Count));
                     var stackCount = MasterHolder.ItemMaster.CountRequiredSlotsAtLevelOne(counts);
                     if (param.OutputSlotCount < stackCount) result += $"[BlockMaster] {name} outputSlotCount {param.OutputSlotCount} cannot hold one launch of payload {payload.PayloadItemGuid} ({stackCount} stacks at level-1 stack)\n";

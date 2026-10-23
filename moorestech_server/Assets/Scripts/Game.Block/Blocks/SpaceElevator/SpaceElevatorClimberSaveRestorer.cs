@@ -7,8 +7,10 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.SpaceElevator
 {
-    // セーブの昇降中の衛星と残りを、今のマスタで成り立つ形に直して返す
-    // Normalises the saved climbing satellite and remaining time to what the current master allows
+    // - 昇降中の衛星と残り時間を復元
+    // - 現マスタで有効な形へ正規化
+    // - Restore the climbing satellite and remaining time
+    // - Normalize them against the current master
     internal static class SpaceElevatorClimberSaveRestorer
     {
         internal static SpaceElevatorClimberSaveJsonObject ToSave(bool isConnected, IItemStack satellite, uint remainingTicks)

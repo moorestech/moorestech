@@ -53,8 +53,8 @@ namespace Tests.CombinedTest.Game.SpaceElevator
                 new JObject { ["itemGuid"] = otherGuid, ["count"] = 5 });
             File.WriteAllText(itemsPath, items.ToString());
 
-            // 実サーバーの起動検査・テンプレートを2出口の構成で通す
-            // Exercise real boot validation and templates with two outlets
+            // 2出口で起動検査と実テンプレートを通す
+            // Run boot validation and production templates with two outlets
             var blocksPath = Path.Combine(masterDirectory, "blocks.json");
             var blocks = JObject.Parse(File.ReadAllText(blocksPath));
             blocks["data"].Single(block => (Guid)block["blockGuid"] == baseGuid)["blockParam"]["outputSlotCount"] = 2;

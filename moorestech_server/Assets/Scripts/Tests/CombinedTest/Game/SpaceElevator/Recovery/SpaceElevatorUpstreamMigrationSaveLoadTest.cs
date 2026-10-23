@@ -77,8 +77,8 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             CollectionAssert.AreEqual(bytes, File.ReadAllBytes(loaded.GetRequiredService<WorldDataDirectory>().BackupSaveJsonPath(version)));
             AssertPreserved(save, Capture(loaded));
 
-            // ロードした発射台から到着・履歴記録・プール加算まで本番経路を通す
-            // Use the loaded launch pad's production path for arrival, launch history and pool increments
+            // 読込済台で到着・履歴・プール加算を検証
+            // Verify arrival, history and pool increments through the loaded launch pad
             pad = ServerContext.WorldBlockDatastore.GetBlock(PadPosition);
             ElectricWireTestUtil.WirePower(PadPosition, PolePosition, 100);
             var arrivals = 0;

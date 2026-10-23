@@ -8,8 +8,8 @@ namespace Tests.CombinedTest.Game.SpaceElevator
     {
         internal static ServiceProvider CreateServer()
         {
-            // 本物の拠点テンプレートでプール境界も検証する
-            // Exercise pool boundaries with the production base template
+            // 実拠点テンプレートでプール境界を検証
+            // Verify pool boundaries using the production base template
             var (_, provider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             return provider;

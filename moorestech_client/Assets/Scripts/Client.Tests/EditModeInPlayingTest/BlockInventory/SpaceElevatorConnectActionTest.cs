@@ -49,8 +49,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var target = PlaceBlock(master.Name, position, BlockDirection.North);
                 var decoy = PlaceBlock(master.Name, Vector3Int.zero, BlockDirection.North);
                 var view = await WaitBlockGameObjectSpawn(position);
-                // 実配置のクリック判定から所有者と操作入口まで確かめる
-                // Verify the placed collider raycast resolves its owner and interaction entry
+                // 実配置でクリック・所有者・操作を検証
+                // Verify clicking, ownership and interaction on the placed block
                 var collider = view.GetComponentsInChildren<Collider>(true).Single();
                 Assert.AreEqual(LayerConst.BlockLayer, collider.gameObject.layer);
                 Assert.IsTrue(BlockGameObjectColliderSetup.IsClickableCollider(view.transform, collider));
@@ -65,8 +65,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Debug.Log($"[SpaceElevatorClick] count=1 layer={collider.gameObject.layer} clickable=true owner={child.BlockGameObject.name} actions={view.Interactable.Actions.Count}");
                 var subInventory = await BlockSubInventoryOpener.Open(view);
 
-                // 実Binderの登録から実API・サーバー応答まで通す
-                // Exercise the real binder registration, API and server response
+                // 実Binder・API・応答を通す
+                // Exercise the real binder, API and server response
                 var insufficient = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
                 Assert.IsFalse(insufficient.Ok);
                 Assert.AreEqual("insufficient_cable", insufficient.Error);

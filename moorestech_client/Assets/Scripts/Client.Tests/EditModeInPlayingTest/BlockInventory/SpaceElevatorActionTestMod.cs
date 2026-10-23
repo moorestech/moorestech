@@ -20,8 +20,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Directory.CreateDirectory(Path.GetDirectoryName(destination));
                 File.Copy(file, destination);
             }
-            // 描画用の元Modへ、対象ブロックとその依存定義を複製する
-            // Copy the tested block and its definitions into the original rendering mod
+            // 描画Modへブロックと依存定義を複製
+            // Copy the block and its dependencies into the rendering mod
             var serverMaster = Path.GetFullPath(Path.Combine(Application.dataPath, "../../moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master"));
             var targetMaster = Directory.GetFiles(root, "blocks.json", SearchOption.AllDirectories).Single();
             var targetItemsPath = Path.Combine(Path.GetDirectoryName(targetMaster), "items.json");
@@ -39,8 +39,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 ((JArray)items["orbitalPayloads"]).Add(payload.DeepClone());
                 foreach (var output in payload["arrivalOutputs"]) required.Add((string)output["itemGuid"]);
             }
-            // 追加品目が参照する容量表も実定義から解決する
-            // Resolve stack tables referenced by added items from their actual definitions
+            // 追加品目の容量表を実定義から解決
+            // Resolve added items' stack tables from their actual definitions
             foreach (var item in originalItems["data"].Where(i => required.Contains((string)i["itemGuid"])))
             {
                 ((JArray)items["data"]).Add(item.DeepClone());

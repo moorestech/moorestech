@@ -26,8 +26,8 @@ namespace Server.Protocol.PacketResponse
             var request = MessagePackSerializer.Deserialize<RocketLaunchPadCommandRequest>(payload);
             if (request.Position == null || !request.Operation.HasValue || !request.ExpectedInstanceId.HasValue) return Fail(RocketLaunchPadCommandFailureReason.InvalidRequest);
 
-            // 指定座標の発射台を引く。無ければ理由を残して拒否する
-            // Look up the launch pad at the position, rejecting with a logged reason when absent
+            // 座標で発射台を取得し不在は理由付き拒否
+            // Resolve the launch pad by position; reject missing pads with a logged reason
             var block = ServerContext.WorldBlockDatastore.GetBlock(request.Position.Vector3Int);
             if (block == null) return Fail(RocketLaunchPadCommandFailureReason.BlockNotFound);
             if (block.BlockInstanceId.AsPrimitive() != request.ExpectedInstanceId.Value) return Fail(RocketLaunchPadCommandFailureReason.InstanceMismatch);

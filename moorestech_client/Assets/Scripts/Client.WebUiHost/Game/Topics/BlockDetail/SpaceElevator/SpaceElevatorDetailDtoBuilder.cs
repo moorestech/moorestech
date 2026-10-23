@@ -6,10 +6,6 @@ using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
-    /// <summary>
-    /// 宇宙エレベーター拠点の状態詳細をDTOへ詰める
-    /// Fills the space elevator base's state detail into its capability DTO
-    /// </summary>
     public static class SpaceElevatorDetailDtoBuilder
     {
         public static void Apply(BlockInventoryDto dto, BlockGameObject block, object param)

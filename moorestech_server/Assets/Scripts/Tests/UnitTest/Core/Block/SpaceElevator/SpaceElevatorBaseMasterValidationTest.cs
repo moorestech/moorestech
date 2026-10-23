@@ -59,8 +59,8 @@ namespace Tests.UnitTest.Core.Block.SpaceElevator
 
         private static MasterJsonFileContainer CreateWith(Action<JObject> edit)
         {
-            // JSON境界で拠点のパラメータを書き換え、通常ロードの検証器まで通す
-            // Rewrite the base's param at the JSON boundary and run the normal loader's validator
+            // 拠点JSON変更を通常ロードで検証
+            // Verify edited base JSON through the normal loader and its validator
             var configs = ModJsonStringLoader.GetMasterString(CreateResource());
             var fileName = new JsonFileName("blocks");
             var json = JObject.Parse(configs[0].JsonContents[fileName]);

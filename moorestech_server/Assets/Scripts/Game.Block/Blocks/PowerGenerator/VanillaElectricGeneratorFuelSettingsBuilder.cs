@@ -7,8 +7,10 @@ using Mooresmaster.Model.BlocksModule;
 namespace Game.Block.Blocks.PowerGenerator
 {
     /// <summary>
-    /// 発電機マスタから燃料設定辞書（燃料ID → 設定とtick数）を作る。
-    /// Builds fuel setting dictionaries (fuel id to setting and ticks) from the generator master.
+    /// - 燃料IDで設定を索引化
+    /// - 燃焼時間をtickへ変換
+    /// - Index settings by fuel ID
+    /// - Convert burn duration into ticks
     /// </summary>
     internal static class VanillaElectricGeneratorFuelSettingsBuilder
     {

@@ -71,8 +71,8 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             File.WriteAllText(directory.SaveJsonFilePath, text);
             var bytes = File.ReadAllBytes(directory.SaveJsonFilePath);
 
-            // 独立modの定義を外し、本番preparerとディスク入口を通す
-            // Remove definitions in the private mod and use the production preparer and disk entry point
+            // 独立modで定義除去し実読込を通す
+            // Remove definitions in the private mod and exercise the production preparer and disk loader
             ElectricGeneratorRecoveryTestMod.RemoveFuel(mod, removeItem);
             var options = new MoorestechServerDIContainerOptions(mod) { worldDataDirectory = WorldDataDirectory.FromServerDataMap(mod, directory.SaveJsonFilePath) };
             var (_, loaded) = new MoorestechServerDIContainerGenerator().Create(options);

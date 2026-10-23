@@ -52,8 +52,6 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.IsTrue(JToken.DeepEquals(expected, actual), $"fixture mismatch\nexpected: {expected}\nactual: {actual}");
         }
 
-        // 親ビルダーまで通して状態とマスタ値の配線を確かめる
-        // Exercise the parent builder to verify state and master-value wiring
         [TestCase(SpaceElevatorBaseStatus.ReadyToConnect, "readyToConnect")]
         [TestCase(SpaceElevatorBaseStatus.InsufficientCable, "insufficientCable")]
         [TestCase(SpaceElevatorBaseStatus.WaitingSatellite, "waitingSatellite")]

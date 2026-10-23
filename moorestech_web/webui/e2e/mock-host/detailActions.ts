@@ -94,8 +94,8 @@ export function applyResearchComplete(tree: ResearchTreeData, p: ActionPayloads[
   return true;
 }
 
-// space_elevator.connect: サーバーの代わりに、接続できる状態なら接続済みにしてプールから引く
-// space_elevator.connect: standing in for the server, mark connected and take from the pool when the status says it can connect
+// mockで接続可なら接続しプール消費
+// In the mock, connect when allowed and consume cables from the pool
 export function applySpaceElevatorConnect(block: BlockInventoryWireData): { ok: boolean; error?: string } {
   if (!block.open) return { ok: false, error: "block_not_open" };
   if (block.blockType !== "SpaceElevatorBase") return { ok: false, error: "invalid_block_type" };

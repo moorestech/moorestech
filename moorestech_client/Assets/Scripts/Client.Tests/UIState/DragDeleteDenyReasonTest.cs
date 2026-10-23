@@ -25,8 +25,8 @@ namespace Client.Tests.UIState
         [Test]
         public void CablePoolFullResponseResolvesToItsLocalizedReason()
         {
-            // サーバーの撤去拒否を本番の理由変換と辞書引きまで通す
-            // Pass the server removal refusal through the production reason mapping and dictionary
+            // 撤去拒否を本番変換と辞書引きまで検証
+            // Verify removal refusal through production mapping and localization lookup
             var method = typeof(Client.Game.InGame.Block.BlockGameObjectChild).GetMethod("GetReason",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
             var key = (LocalizationKey)method.Invoke(null, new object[] { Server.Protocol.PacketResponse.RemoveBlockProtocol.RemoveBlockFailureReason.CablePoolFull });
