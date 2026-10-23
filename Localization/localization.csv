@@ -44,6 +44,21 @@ ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrie
 ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨
 ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen,적재
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し,Entladen,하역
+ui.blockInventory.rocketMaterials,Materials,Materials,資材,Materialien,자재
+ui.blockInventory.rocketPayloads,Payloads,Payloads,積荷,Nutzlasten,적재물
+ui.blockInventory.rocketOutputs,Output,Output,出力,Ausgabe,출력
+ui.blockInventory.rocketBuild,Build,Build,建造,Bauen,건조
+ui.blockInventory.rocketLaunch,Launch,Launch,発射,Starten,발사
+ui.blockInventory.rocketStatusIdle,Waiting for cargo,Waiting for cargo,積み込み待ち,Wartet auf Fracht,적재 대기
+ui.blockInventory.rocketStatusAwaitingBuild,Ready to build,Ready to build,建造できます,Bereit zum Bauen,건조 가능
+ui.blockInventory.rocketStatusBuilding,Building rocket,Building rocket,ロケットを建造中,Rakete wird gebaut,로켓 건조 중
+ui.blockInventory.rocketStatusAwaitingLaunch,Ready to launch,Ready to launch,発射できます,Startbereit,발사 가능
+ui.blockInventory.rocketStatusReadyToLaunch,Launching soon,Launching soon,まもなく打ち上げ,Start in Kürze,곧 발사
+ui.blockInventory.rocketStatusLaunching,Launching,Launching,打ち上げ中,Startet,발사 중
+ui.blockInventory.rocketWaitMissingMaterials,Not enough materials,Not enough materials,資材が足りません,Nicht genug Material,자재 부족
+ui.blockInventory.rocketWaitMissingPayload,No payload loaded,No payload loaded,積荷がありません,Keine Nutzlast,적재물 없음
+ui.blockInventory.rocketWaitOutputFull,Output is full,Output is full,出力がいっぱいです,Ausgabe ist voll,출력이 가득 참
+ui.blockInventory.rocketWaitNoPower,No power,No power,電力がありません,Kein Strom,전력 없음
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze,업그레이드 슬롯
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute,분당 생산량
 ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden,{seconds}초

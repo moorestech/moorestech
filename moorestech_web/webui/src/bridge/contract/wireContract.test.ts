@@ -133,6 +133,7 @@ describe("block detail fixtures", () => {
     "block_inventory_electric_to_gear.json",
     "block_inventory_space_elevator.json",
     "block_inventory_train_platform.json",
+    "block_inventory_rocket_launch_pad.json",
     "block_inventory_train_fluid_platform.json",
     "block_inventory_electric_pole.json",
     "block_inventory_gear_belt_conveyor.json",

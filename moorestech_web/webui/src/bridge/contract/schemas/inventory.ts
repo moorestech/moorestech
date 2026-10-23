@@ -5,6 +5,8 @@ import { TrainPlatformDataSchema, TrainStationDetailSchema, TrainTimetableStateS
 import { BeltThroughputDataSchema } from "./beltThroughput";
 import { SpaceElevatorDataSchema } from "./spaceElevator";
 
+import { RocketLaunchPadDataSchema } from "./rocketLaunchPad";
+
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
@@ -149,6 +151,7 @@ export const BlockInventoryOpenSchema = z.object({
   trainPlatform: TrainPlatformDataSchema.optional(),
   trainStation: TrainStationDetailSchema.optional(),
   beltThroughput: BeltThroughputDataSchema.optional(),
+  rocketLaunchPad: RocketLaunchPadDataSchema.optional(),
 }).strict().superRefine((data, ctx) => {
   // 変換機詳細の混入は受信境界で拒否する。未着は許容する
   // Reject mismatched converter details at the receive boundary while allowing pending details
@@ -158,6 +161,18 @@ export const BlockInventoryOpenSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["electricToGear"], message: "electricToGear requires ElectricToGearGenerator" });
   if (data.spaceElevator && data.blockType !== "SpaceElevatorBase")
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["spaceElevator"], message: "spaceElevator requires SpaceElevatorBase" });
+  if (data.rocketLaunchPad && data.blockType !== "RocketLaunchPad")
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rocketLaunchPad"], message: "rocketLaunchPad requires RocketLaunchPad" });
+  // 絶対添字は受信した在庫の範囲内に限定する
+  // Require every absolute slot index to belong to the received inventory
+  if (data.rocketLaunchPad) {
+    for (const group of ["materialSlots", "payloadSlots", "outputSlots"] as const) {
+      data.rocketLaunchPad[group].forEach((index, entry) => {
+        if (data.itemSlots.length <= index)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rocketLaunchPad", group, entry], message: "Slot index exceeds itemSlots" });
+      });
+    }
+  }
   if (data.gearToElectric && data.electricToGear)
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Converter details cannot coexist" });
 });

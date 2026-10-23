@@ -114,7 +114,7 @@
   - テストID: `ForUnitTestModBlockId.RocketLaunchPadId`、`ForUnitTestItemId.RocketCaseId`・`RocketFuelId`・`RocketComputerId`・`SatellitePayloadId`・`CablePayloadId`・`ComputeDataId`
   - 生成された数値型（`float`/`double`）は SourceGenerator の出力に合わせる。上の表記と違えば以降のタスクのコードも出力側に合わせる
 
-- [ ] **Step 0: 環境を確かめる**
+- [x] **Step 0: 環境を確かめる**
 
 Run:
 ```bash
@@ -127,7 +127,7 @@ uloop compile --project-path ./moorestech_client
 ```
 Expected: 自分のworktreeのEditorが居なければ `uloop launch --project-path ./moorestech_client` で起動してからcompile。ErrorCount 0。
 
-- [ ] **Step 1: items.yml に積荷表を足す**
+- [x] **Step 1: items.yml に積荷表を足す**
 
 `levelFamilies` ブロックの直後（`itemStackLevelTables` の直前）に追加する:
 
@@ -166,7 +166,7 @@ Expected: 自分のworktreeのEditorが居なければ `uloop launch --project-p
           default: 1
 ```
 
-- [ ] **Step 2: blocks.yml に発射台を足す**
+- [x] **Step 2: blocks.yml に発射台を足す**
 
 blockType の `options` の末尾（`CleanRoomMachine` の次）に `- RocketLaunchPad` を足し、`blockParam.cases` の末尾に追加する:
 
@@ -223,7 +223,7 @@ blockType の `options` の末尾（`CleanRoomMachine` の次）に `- RocketLau
           default: 20
 ```
 
-- [ ] **Step 3: 全 items.json に `"orbitalPayloads": []` を足し、テストマスタに発射台と積荷を足す**
+- [x] **Step 3: 全 items.json に `"orbitalPayloads": []` を足し、テストマスタに発射台と積荷を足す**
 
 `git ls-files | grep -E "items\.json$"` の全ファイル（本repoの4件。`mooresmaster.SandBox/schema/items.json` がスキーマ生成物なら edit-schema スキルの手順で再生成）と、moorestech_master で読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/items.json` の1件へ `"orbitalPayloads": []` を足す（edit-schema スキルの「全JSON一括更新」手順に従う）。moorestech_master の `server/`・`server_v4`〜`server_v7` の旧 mod は今のゲームが読まないので触らない。
 
@@ -286,7 +286,7 @@ ForUnitTest の blocks.json の `data` に発射台を足す。共通キーは�
 
 `ForUnitTestModBlockId.cs` に `public static BlockId RocketLaunchPadId => GetBlock("5c8e0000-0000-4000-8000-000000000100");`、`ForUnitTestItemId.cs` に既存の書式で6件（`RocketCaseId`=…0001、`RocketFuelId`=…0002、`RocketComputerId`=…0003、`SatellitePayloadId`=…0004、`CablePayloadId`=…0005、`ComputeDataId`=…0006）を足す。
 
-- [ ] **Step 4: 積荷表の検証を書く**
+- [x] **Step 4: 積荷表の検証を書く**
 
 `moorestech_server/Assets/Scripts/Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`:
 
@@ -470,7 +470,7 @@ namespace Core.Master.Validator.Item
 
 （移した2つの検証の既存テストは、Step 8 のフィルタ `ItemMaster` が拾う。ログの文面を変えていないので、既存テストの期待値はそのまま通る。）
 
-- [ ] **Step 5: 発射台パラメータの検証を書く**
+- [x] **Step 5: 発射台パラメータの検証を書く**
 
 `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs`:
 
@@ -578,7 +578,7 @@ namespace Core.Master.Validator.Block
 
 `BlockMasterUtil.Validate` の `errorLogs += BeltSpeedPerSecondValidator.Validate(blocks);` の次に `errorLogs += RocketLaunchPadParamValidator.Validate(blocks);` を足す。
 
-- [ ] **Step 6: 検証のテストを書く**
+- [x] **Step 6: 検証のテストを書く**
 
 検証クラスは `internal` のまま、テストは公開された集約点 `ItemMasterUtil.Validate`・`BlockMasterUtil.Validate` を呼ぶ（前例 `Tests/UnitTest/Game/BeltSpeedPerSecondMasterTest.cs` の `BlockMasterUtil.Validate(new BlockMaster(blocksJToken).Blocks, out var errorLogs)`）。
 
@@ -647,7 +647,7 @@ namespace Tests.UnitTest.Core.Master.OrbitalPayload
 
 (`TestModDirectory.ForUnitTestModDirectory` の実際のパス構成は前例 `BeltSpeedPerSecondMasterTest.PrepareBlocksJson` と同じ組み立てにする。)
 
-- [ ] **Step 7: マスタを push しピンを向ける**
+- [x] **Step 7: マスタを push しピンを向ける**
 
 ```bash
 MASTER_WT=../../moorestech_master/tier9-compute-data-loop
@@ -658,12 +658,12 @@ git -C "$MASTER_WT" push origin feat/tier9-compute-data-loop
 git -C "$MASTER_WT" rev-parse HEAD   # この値を .moorestech-external-revisions.json の moorestech_master.commitHash へ
 ```
 
-- [ ] **Step 8: コンパイルしテストを実行する**
+- [x] **Step 8: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "OrbitalPayloadMasterValidatorTest|RocketLaunchPadParamValidatorTest|ItemMaster|BlockMaster"`
 Expected: ErrorCount 0 / 全 PASS。Editor でマスタを読み直し（RepositorySync がピンへ checkout する）、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `[ItemMaster]` `[BlockMaster]` `MooresmasterLoaderException` が無い（ピン先のマスタが読めている）。土台の `b2149a0` に由来する別の読込エラーが出たら、直さずに内容を bd note と PR 本文に書く（S2 の範囲外）。
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add VanillaSchema/items.yml VanillaSchema/blocks.yml moorestech_server/Assets/Scripts/Core.Master moorestech_server/Assets/Scripts/Tests.Module moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData .moorestech-external-revisions.json mooresmaster
@@ -694,7 +694,7 @@ git commit -m "feat(master): 積荷表と発射台のスキーマと読込時検
   - `Game.Orbit.IRocketLaunchHistory`（`bool HasLaunchedOnce { get; }`・`IObservable<Unit> OnFirstLaunch { get; }`・`void RecordLaunch()`・`void LoadSaveData(bool hasLaunchedOnce)`。セーブへは `HasLaunchedOnce` をそのまま書く）
   - DI: `IRocketLaunchHistory`→`RocketLaunchHistory`、`IOrbitalArrivalService`→`OrbitalArrivalService`（どちらもシングルトン）
 
-- [ ] **Step 1: asmdef を作る**
+- [x] **Step 1: asmdef を作る**
 
 `Game.Orbit.asmdef`（書式は `Game.CleanRoom.asmdef` と同じ）:
 
@@ -720,7 +720,7 @@ git commit -m "feat(master): 積荷表と発射台のスキーマと読込時検
 }
 ```
 
-- [ ] **Step 2: 到着通知とサービスを書く**
+- [x] **Step 2: 到着通知とサービスを書く**
 
 `OrbitalArrival.cs`:
 
@@ -850,7 +850,7 @@ namespace Game.Orbit
 }
 ```
 
-- [ ] **Step 3: 初打ち上げ履歴を書く**
+- [x] **Step 3: 初打ち上げ履歴を書く**
 
 `IRocketLaunchHistory.cs`:
 
@@ -905,7 +905,7 @@ namespace Game.Orbit
 }
 ```
 
-- [ ] **Step 4: DI に登録する**
+- [x] **Step 4: DI に登録する**
 
 `Server.Boot/Composition/OrbitServiceRegistration.cs`（`GameplayServiceRegistration.cs` は202行で既に上限超えのため足さない）:
 
@@ -930,7 +930,7 @@ namespace Server.Boot.Composition
 
 `MoorestechServerDIContainerGenerator.cs` の `GameplayServiceRegistration.Register(...)` の次の行に `OrbitServiceRegistration.Register(services);` を足す。各 asmdef に `"Game.Orbit"` を足す。
 
-- [ ] **Step 5: テストを書く**
+- [x] **Step 5: テストを書く**
 
 `Tests/CombinedTest/Game/RocketLaunchPad/OrbitalArrivalServiceTest.cs`:
 
@@ -1031,19 +1031,19 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
 
 （`ForUnitTestItemId` の各IDが `ItemId` を返す形かは既存の書式に合わせる。`MoorestechServerDIContainerGenerator().Create` の戻り値の使い方は既存 CombinedTest に合わせる。）
 
-- [ ] **Step 6: コンパイルしテストを実行する**
+- [x] **Step 6: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.RocketLaunchPad.OrbitalArrivalServiceTest"`
 Expected: ErrorCount 0 / 5件 PASS
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Orbit moorestech_server/Assets/Scripts/Server.Boot moorestech_server/Assets/Scripts/Game.Block/Game.Block.asmdef moorestech_server/Assets/Scripts/Game.SaveLoad/Game.SaveLoad.asmdef moorestech_server/Assets/Scripts/Tests
 git commit -m "feat(orbit): 軌道到着サービスと初打ち上げ履歴を足す"
 ```
 
-- [ ] **Step 8: 両repoを push して S3 へ渡す**
+- [x] **Step 8: 両repoを push して S3 へ渡す**
 
 S3 はこの push を取り込んでからエレベーター拠点に着手する（Global Constraints）。moorestech_master 側に入っているのは Task 1 Step 7 の items.json の変更（空配列と7件の Default）だけ。
 
@@ -1077,7 +1077,7 @@ Expected: 両方の push が成功し、`.moorestech-external-revisions.json` �
 - Consumes: Task 2 の `IRocketLaunchHistory`
 - Produces: セーブのトップレベル `rocketHasLaunchedOnce: bool`（版7で必須）、`SaveMigrationStepV6ToV7`（`FromVersion => 6`）
 
-- [ ] **Step 1: moorestech-save-migration スキルを読み、移行ステップを書く**
+- [x] **Step 1: moorestech-save-migration スキルを読み、移行ステップを書く**
 
 `SaveMigrationStepV6ToV7.cs`:
 
@@ -1123,7 +1123,7 @@ namespace Game.SaveLoad.Migration.Steps
 
 3か所の配列の末尾へ `new SaveMigrationStepV6ToV7()` を足す。
 
-- [ ] **Step 2: 必須欠損の検査を移して `rocketHasLaunchedOnce` を足す**
+- [x] **Step 2: 必須欠損の検査を移して `rocketHasLaunchedOnce` を足す**
 
 `WorldSaveRequiredFieldGuard.cs`:
 
@@ -1168,7 +1168,7 @@ namespace Game.SaveLoad.Json
 
 `WorldSaveAllInfo` の ctor 引数・代入・プロパティ、`AssembleSaveJsonText` の ctor・`Capture()` の引数（`_cleanRoomDatastore.GetSaveData(),` の次に `_rocketLaunchHistory.HasLaunchedOnce,`）を足す。`WorldSaveAllInfo` を `new` している他の箇所（`git grep -n "new WorldSaveAllInfo("`）も引数を足す。`MissingMasterPruner` の一覧に `"rocketHasLaunchedOnce"` を足す。
 
-- [ ] **Step 3: テストを書く**
+- [x] **Step 3: テストを書く**
 
 `Tests/UnitTest/Game/SaveLoad/Migration/SaveMigrationStepV6ToV7Test.cs`:
 
@@ -1214,12 +1214,12 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
 
 既存テストやフィクスチャが「現在版=6」を前提にしていれば（`git grep -n "worldVersion\\\\\":6\|CurrentVersion" -- moorestech_server/Assets/Scripts/Tests`）、7へ直す。
 
-- [ ] **Step 4: コンパイルしテストを実行する**
+- [x] **Step 4: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveMigration|SaveLoad|RocketLaunchHistory|MissingMasterPruner"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.SaveLoad moorestech_server/Assets/Scripts/Server.Boot moorestech_server/Assets/Scripts/Tests
@@ -1258,7 +1258,7 @@ git commit -m "feat(save): 初打ち上げ履歴をセーブに入れ版6から7
   - `Game.Block.Blocks.RocketLaunchPad.RocketCargo`（`public readonly IItemStack Payload; public readonly IReadOnlyList<IItemStack> Materials; bool IsLoaded`、ctor `(IItemStack payload, IReadOnlyList<IItemStack> materials)`、`IEnumerable<IItemStack> AllItems()`）
   - 段階の型（名前空間 `Game.Block.Blocks.RocketLaunchPad.Stage`）: 抽象 `RocketLaunchPadStage`（`abstract RocketLaunchPadPhase Phase`）、抽象 `LoadedRocketStage : RocketLaunchPadStage`（`public readonly RocketCargo Cargo`）、`IdleStage.Instance`、`AwaitingBuildCommandStage.Instance`、`BuildingStage(RocketCargo cargo, uint remainingTicks)`、`AwaitingLaunchCommandStage(RocketCargo cargo)`、`ReadyToLaunchStage(RocketCargo cargo)`、`LaunchingStage(uint remainingTicks)`、interface `IProgressingStage`（`uint RemainingTicks { get; }`。`BuildingStage`・`LaunchingStage` が実装）。積荷は `LoadedRocketStage` の3種だけが持ち、残りtickは `IProgressingStage` の2種だけが持つ。「積荷を持つ段階」「進行中の段階」の集合はこの型の階層から引き、enum の集合で書き直さない（再検査 弱(e)）
 
-- [ ] **Step 1: 合図の口と結果を書く**
+- [x] **Step 1: 合図の口と結果を書く**
 
 `Game.Block.Interface/Component/RocketLaunchPad/IRocketLaunchPadComponent.cs`:
 
@@ -1286,7 +1286,7 @@ namespace Game.Block.Interface.Component
 }
 ```
 
-- [ ] **Step 2: スロット並びを書く**
+- [x] **Step 2: スロット並びを書く**
 
 `Game.Block.Interface/Component/RocketLaunchPad/RocketLaunchPadSlotLayout.cs`:
 
@@ -1385,7 +1385,7 @@ namespace Game.Block.Interface.Component
 }
 ```
 
-- [ ] **Step 3: 段階・待ち理由・状態詳細を書く**
+- [x] **Step 3: 段階・待ち理由・状態詳細を書く**
 
 `Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadPhase.cs`（名前空間 `Game.Block.Interface.State`。値は Interfaces 節のとおり固定し、各値に日英1行ずつ「`AwaitingBuildCommand`・`AwaitingLaunchCommand` は初打ち上げ前だけ」「`ReadyToLaunch` は打ち上げが許され出力口の空きを待つ」を書く）、`RocketLaunchPadWaitReason.cs`（同じく値を固定）。
 
@@ -1429,7 +1429,7 @@ namespace Game.Block.Interface.State
 
 （`{ get; set; }` は MessagePack の前例 `TrainPlatformTransferStateDetail` どおり。）
 
-- [ ] **Step 4: インベントリを書く**
+- [x] **Step 4: インベントリを書く**
 
 `Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadInventoryComponent.cs`。スロットごとに入れてよい品が決まっているという役割は機械と同じなので、`VanillaMachineBlockInventoryComponent` と同じく `ISortExcludedSlots` で全スロットを整理の対象から外す（外さないと、開いたまま整理ボタンを押したとき `InventorySortService` が ItemId 順に先頭から詰め直し、燃料が筐体素材のスロットへ、資材が出力スロットへ移って建造が止まる）。`GetItem`・`SetItem`・`ReplaceItem`・`GetSlotSize`・`InventoryItems` などの残りのメンバーは `CleanRoomAirFilterInventoryComponent` と同じく `OpenableInventoryItemDataStoreService` へ委譲し、各メンバーの先頭で `CheckDestroy(this)` を呼ぶ。前例と違うメンバーは次のとおり:
 
@@ -1505,7 +1505,7 @@ namespace Game.Block.Interface.State
 
 ctor は `(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)` で2つを保持する。`IsDestroy`/`Destroy()` は前例どおり。仮挿入 `SimulateInsert` は1本だけ置き、`InsertionCheck` と実挿入の両方がこれを通る（前例 `VanillaMachineInputInventory` の `InsertItem`・`InsertionCheck` が `VanillaMachineInputSimulationUtil.SimulateInsert` を共有する形。再検査 弱(d)）。
 
-- [ ] **Step 5: 積荷と段階の型を書く**
+- [x] **Step 5: 積荷と段階の型を書く**
 
 `Game.Block/Blocks/RocketLaunchPad/RocketCargo.cs`:
 
@@ -1645,7 +1645,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
 
 （`RemainingTicks` は `IProgressingStage` の実装なので get 専用のプロパティにし、ctor でだけ代入する。）
 
-- [ ] **Step 6: テストを書く（実行は Task 5 Step 8）**
+- [x] **Step 6: テストを書く（実行は Task 5 Step 8）**
 
 `Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadInventoryTest.cs`。`ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.RocketLaunchPadId, ...)` で台を置き（既存 CombinedTest の設置書式に合わせる）、`IBlockInventory` と `IOpenableBlockInventoryComponent` を取って次を確かめる:
 - `InsertItem(TestRocketFuel×5)` が資材スロット1（2番目）に入り、余りが空。
@@ -1659,12 +1659,12 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
 - `new BuildingStage(空の積荷, 10)` は `ArgumentException`、`new BuildingStage(積荷, 0)` と `new LaunchingStage(0)` は `ArgumentOutOfRangeException`。
 - `ReadyToLaunchStage` と `AwaitingLaunchCommandStage` は `LoadedRocketStage` で、`IdleStage.Instance`・`LaunchingStage` は違う。`BuildingStage` と `LaunchingStage` は `IProgressingStage` で、`ReadyToLaunchStage`・`IdleStage.Instance` は違う。
 
-- [ ] **Step 7: コンパイルする**
+- [x] **Step 7: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/UnitTest/Game/RocketLaunchPad
@@ -1708,7 +1708,7 @@ git commit -m "feat(block): 発射台の契約型とインベントリと段階�
   - `VanillaRocketLaunchPadTemplate : IBlockTemplate`
   - テスト用 `Tests.Util.Rocket.RocketLaunchPadTestUtil`（`static IBlock PlacePoweredPad(Vector3Int position, float generatePower)`・`static void FillMaterials(IBlock pad)`・`static void FillOneLaunch(IBlock pad, ItemId payloadItemId, int payloadCount)`・`static void FillOutputSlots(IBlock pad, int countPerSlot)`・`static bool RunUntilPhase(IBlock pad, RocketLaunchPadPhase until, int maxTicks)`。Task 6 のテストも使う）
 
-- [ ] **Step 1: 積み込みを書く**
+- [x] **Step 1: 積み込みを書く**
 
 `RocketLaunchPadCargoLoader.cs`:
 
@@ -1799,7 +1799,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 }
 ```
 
-- [ ] **Step 2: 出力口を書く**
+- [x] **Step 2: 出力口を書く**
 
 `RocketLaunchPadOutputSlots.cs`（前例 `Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs` の `CanStoreOutputs`・`InsertOutputSlot`・`InsertConnectInventory`）:
 
@@ -1882,7 +1882,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 }
 ```
 
-- [ ] **Step 3: 段階の進行を書く**
+- [x] **Step 3: 段階の進行を書く**
 
 `RocketLaunchPadLaunchSequence.cs`（段階の遷移はここだけが持つ。遷移の持ち主の置き方は新規パターン（D26 の裁定による。機械の State ハンドラ方式とは遷移の持ち主が違う）。残りtickと電力の進め方の前例は機械の処理状態 `Game.Block/Blocks/Machine/State/ProcessingMachineProcessState.cs`）:
 
@@ -2080,7 +2080,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
 （約189行。実装で200行を超えたら `CheckBuildable` と `StartBuilding` を `RocketLaunchPadBuildStarter` へ出す。電力の進め方が `ProcessingMachineProcessState` と食い違えば前例に合わせる。）
 
-- [ ] **Step 4: 外殻を書く**
+- [x] **Step 4: 外殻を書く**
 
 `RocketLaunchPadProcessorComponent.cs`（段階は持たず、段階の進行へ渡すだけ。セーブ形の組み立ては Step 5 の `RocketLaunchPadSaveConverter`）:
 
@@ -2235,7 +2235,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 }
 ```
 
-- [ ] **Step 5: セーブ形と変換を書く**
+- [x] **Step 5: セーブ形と変換を書く**
 
 残り時間は秒、段階は int で保存する（前例 `Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorSaveJsonObject.cs` の `state`・`remainingSeconds`、`VanillaMachineProcessorComponent` の「tickを秒数に変換して保存」）。打ち上げ後の保留は無いので、セーブにも持たない。
 
@@ -2382,7 +2382,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
 
 （約125行。`ItemStackSaveJsonObject.ToItemStack()` は `Game.Context` の拡張メソッド。積荷を持つかは `LoadedRocketStage`、残りtickは `IProgressingStage` で引き、段階の enum の集合を別に書かない（再検査 弱(e)）。打ち上げられるかの判定は発射台の並びの要求（`TryGetPayloadRequirement` と個数の一致）だけで行い、積荷表の受け付け規則は `IOrbitalArrivalService.Arrive` に残す（再検査 弱(b)）。）
 
-- [ ] **Step 6: 電力とテンプレートと撤去返却を書く**
+- [x] **Step 6: 電力とテンプレートと撤去返却を書く**
 
 `RocketLaunchPadElectricComponent.cs`（`VanillaElectricMachineComponent` と同形）:
 
@@ -2517,7 +2517,7 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
                 }
 ```
 
-- [ ] **Step 7: テストを書く**
+- [x] **Step 7: テストを書く**
 
 `Tests/Util/Rocket/RocketLaunchPadTestUtil.cs`（テスト用。`ElectricWireTestUtil.WirePower(consumerPos, polePos, generatePower)` で給電する）:
 
@@ -2622,12 +2622,12 @@ namespace Tests.Util.Rocket
 
 `Tests/UnitTest/Game/RocketLaunchPad/` の段階の型のテスト（Task 4）もここで実行する。
 
-- [ ] **Step 8: コンパイルしテストを実行する**
+- [x] **Step 8: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Game\.RocketLaunchPad\.|Tests\.UnitTest\.Game\.RocketLaunchPad\.|RocketLaunchPadRemoveRefundTest|RemoveBlockRefundTest|RemoveBlockProtocolTest|BeltConveyorRemovalTest"`
 Expected: ErrorCount 0 / Task 4・5 の全テストと既存の撤去返却テストが PASS
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs moorestech_server/Assets/Scripts/Tests/Util/Rocket moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket
@@ -2656,7 +2656,7 @@ git commit -m "feat(block): ロケット発射台の建造と打ち上げとセ�
   - `RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse`（`[Key(2)] bool Success`・`[Key(3)] RocketLaunchPadCommandFailureReason FailureReason`）
   - `BlockRequestApi.SendRocketLaunchPadCommand(Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, CancellationToken ct)` → `UniTask<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>`
 
-- [ ] **Step 1: creating-server-protocol スキルを読み、プロトコルを書く**
+- [x] **Step 1: creating-server-protocol スキルを読み、プロトコルを書く**
 
 ```csharp
 using System;
@@ -2812,7 +2812,7 @@ namespace Server.Protocol.PacketResponse
         }
 ```
 
-- [ ] **Step 2: テストを書く**
+- [x] **Step 2: テストを書く**
 
 `Tests/CombinedTest/Server/PacketTest/Rocket/RocketLaunchPadCommandProtocolTest.cs`。`SetTrainPlatformTransferModeProtocolTest` と同じ書式で、`packet.GetPacketResponse(payload, BoundPacketContext.Bind(1))[0]` を使う（パケット送受の実物は既存 PacketTest に合わせる）。台は `Tests.Util.Rocket.RocketLaunchPadTestUtil.PlacePoweredPad`・`FillOneLaunch` で用意する:
 - 合図待ちの台へ `Build` → `Success == true`・`FailureReason == None`、`Phase == Building`。
@@ -2820,12 +2820,12 @@ namespace Server.Protocol.PacketResponse
 - 空き座標 → `BlockNotFound`、チェストへ → `NotRocketLaunchPad`、空の台へ `Build` → `NotAwaitingBuildCommand`、`Operation` に99を入れた要求 → `UnknownOperation`（それぞれ `Success == false`、`LogAssert.Expect(LogType.Warning, ...)`）。
 - 合図待ちの台の出力口を `FillOutputSlots(pad, 100)` で埋めて `Build` → `OutputFull`。
 
-- [ ] **Step 3: コンパイルしテストを実行する**
+- [x] **Step 3: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "RocketLaunchPadCommandProtocolTest"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Rocket moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs moorestech_client/Assets/Scripts/Client.Network moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket
@@ -2844,7 +2844,7 @@ git commit -m "feat(protocol): 発射台の建造と発射の合図を足す"
 - Consumes: Task 4 の `RocketLaunchPadStateDetail`・`RocketLaunchPadPhase`（名前空間 `Game.Block.Interface.State`）、Task 1 の `RocketLaunchPadBlockParam.LaunchSeconds`
 - Produces: なし（見た目のみ）
 
-- [ ] **Step 1: 状態処理を書く**
+- [x] **Step 1: 状態処理を書く**
 
 ```csharp
 using Client.Game.InGame.Block;
@@ -2906,12 +2906,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.Rocket
 
 （`Initialize` のシグネチャ・`BlockGameObject.BlockMasterElement` の参照は `GearStateChangeProcessor` と `IBlockGameObjectInnerComponent` の実物に合わせる。）
 
-- [ ] **Step 2: コンパイルする**
+- [x] **Step 2: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
 
-- [ ] **Step 3: Prefab に付ける（uloop execute-dynamic-code）**
+- [x] **Step 3: Prefab に付ける（uloop execute-dynamic-code）**
 
 `Initialize` の `RocketLaunchPadBlockParam` への cast は、前例 `Client.Game/InGame/BlockSystem/StateProcessor/SteamEngineEffectStateChangeProcessor.cs:21`（`(FuelGearGeneratorBlockParam)blockGameObject.BlockMasterElement.BlockParam`）と同じ形のまま残し、型での保証は足さない（判断記録 D39）。到達しない根拠は次の実測で、読み込まれる mod で `Rocket.prefab` を使うのは（統合タスクでパスを入れた後の）発射台だけになる。`Rocket.prefab`（アドレス `Vanilla/Block/Rocket`）を見た目に使う他のブロックは、plan 作成時の実測（2026-10-23）では moorestech_master `server/mods/moorestechAlphaMod_3/master/blocks.json` の「ロケット」（`aa312f32-35d4-4dae-9e3e-a292e1a70a70`、今のゲームが読まない旧 mod）だけで、読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/blocks.json` には無い（発射台の行も今は空のパスで、統合タスクで `Vanilla/Block/Rocket` を入れる）。他のブロックが使っていると `Initialize` の `RocketLaunchPadBlockParam` への cast で落ちるので、着手時に `grep -rn "Block/Rocket\"" ../../moorestech_master/tier9-compute-data-loop/server_v8/mods` で同じことを確かめる。居れば、`Initialize` の cast を `is` の判定に変え、発射台以外では何もせず理由を `Debug.LogWarning` で出す。
 
@@ -2937,7 +2937,7 @@ UnityEditor.PrefabUtility.UnloadPrefabContents(root);
 
 保存後にもう一度読み、`body` が null でないことをログで確かめる。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/Rocket moorestech_client/Assets/AddressableResources/Block/Rocket.prefab
@@ -2984,13 +2984,13 @@ git commit -m "feat(client): 発射台のロケット本体の表示と上昇を
   - action `rocket_launch_pad.command`、payload `{ command: "build" | "launch" }`
   - testid: `rocket-launch-pad-view`・`rocket-launch-pad-material-slots`・`rocket-launch-pad-payload-slots`・`rocket-launch-pad-output-slots`・`rocket-launch-pad-status`・`rocket-launch-pad-progress`・`rocket-launch-pad-build`・`rocket-launch-pad-launch`
 
-- [ ] **Step 1: ref-webui-design スキルを読み、inventory.ts を分ける**
+- [x] **Step 1: ref-webui-design スキルを読み、inventory.ts を分ける**
 
 `inventory.ts`（215行）から、`TrainPlatformModeSchema`〜`TrainStationDetailSchema`（124〜152行）を `schemas/train/index.ts` へ、`BeltThroughputWindowDataSchema`・`BeltThroughputDataSchema`（156〜169行）を `schemas/beltThroughput/index.ts` へそのまま移し（`const` だった `TrainTimetableStateSchema`・`TrainStationDetailSchema` は `export const` にする）、`inventory.ts` は import に置き換える。`schemas/index.ts` に `export * from "./train";`・`export * from "./beltThroughput";`・`export * from "./rocketLaunchPad";` を足す。挙動は変えない。
 
 Run: `cd moorestech_web/webui && pnpm vitest run src/bridge` → 全 PASS（移しただけで壊れていないこと）
 
-- [ ] **Step 2: wire schema とアクション契約を足す**
+- [x] **Step 2: wire schema とアクション契約を足す**
 
 `schemas/rocketLaunchPad/index.ts`（schema だけを置く。前例 `schemas/energyConversion/index.ts`。`schemas/` の下には `z.infer` を置かない）:
 
@@ -3018,7 +3018,7 @@ export const RocketLaunchPadDataSchema = z.object({
 
 `actionContract.ts` の payload 型表に `"rocket_launch_pad.command": { command: "build" | "launch" };`、`ACTION_TYPES` に `"rocket_launch_pad.command",` を足す。`action_names.json` にも同じ名前を足す。
 
-- [ ] **Step 3: C# の DTO・アクションを書く**
+- [x] **Step 3: C# の DTO・アクションを書く**
 
 名前空間はサブディレクトリによらず親のまま置く（前例: `Topics/BlockDetail/Train/`・`Belt/` の DtoBuilder は `Client.WebUiHost.Game.Topics.BlockDetail`、`Actions/Train/` のハンドラは `Client.WebUiHost.Game.Actions`。再検査 N3）。そのため `BlockInventoryDtos.cs`・`BlockDetailDtoBuilder.cs`・`WebUiGameBinder.cs` に using は足さない。
 
@@ -3173,7 +3173,7 @@ namespace Client.WebUiHost.Game.Actions
 
 `WebUiGameBinder.cs` の `hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));` の次に `hub.RegisterAction(new RocketLaunchPadCommandActionHandler(subInventoryState));` を足す（前例: 開いているブロックへ合図を送るハンドラを `subInventoryState` 付きで直に登録する同じ行。`TrainPlatformSetTransferModeActionHandler` は `Actions/Train/TrainWebUiActionRegistration.cs` 経由の登録で、この1行の前例にならない）。ハンドラは名前空間 `Client.WebUiHost.Game.Actions` なので、既存の `using Client.WebUiHost.Game.Actions;` で足りる。
 
-- [ ] **Step 4: 文言を足す**
+- [x] **Step 4: 文言を足す**
 
 `Localization/localization.csv` の `ui.blockInventory.trainPlatformUnload` の次に追加し（列: key,Source,english,japanese,german,korean）、`cd moorestech_web/webui && pnpm gen:i18n` を実行する:
 
@@ -3195,7 +3195,7 @@ ui.blockInventory.rocketWaitOutputFull,Output is full,Output is full,出力が�
 ui.blockInventory.rocketWaitNoPower,No power,No power,電力がありません,Kein Strom,전력 없음
 ```
 
-- [ ] **Step 5: パネルを書く**
+- [x] **Step 5: パネルを書く**
 
 `details/rocket/rocketLaunchPadLogic.ts`（表示の分岐を純関数に集める。スロットの並びは DTO の添字を使うので、ここでは計算しない。文言キーは前例 `details/detailLogic.ts:37` の `stopReasonTranslationKey` と同じく `TranslationKey` で返し、`RocketLaunchPadSection` の `group` の `labelKey` も `TranslationKey` にする。キーの打ち間違いを型エラーにするため（判断記録 D34））:
 
@@ -3314,7 +3314,7 @@ export default function RocketLaunchPadInventory({ data }: { data: BlockInventor
 
 `registeredBlockTypes.ts` に `"RocketLaunchPad",`、`blockComponentRegistry.ts` に `RocketLaunchPad: RocketLaunchPadInventory,`（import も）。
 
-- [ ] **Step 6: テストを書く**
+- [x] **Step 6: テストを書く**
 
 `rocketLaunchPadLogic.test.ts`: (a) 待ち理由 `outputFull` は段階（`readyToLaunch`）より優先、(b) `awaitingBuildCommand` で `"build"`、`awaitingLaunchCommand` で `"launch"`、その他の4段階（`readyToLaunch` を含む）で `null`、(c) 6段階すべてに状態文のキーがある（`switch` の網羅は `tsc` の戻り値の型検査でも落ちる）。
 
@@ -3348,7 +3348,7 @@ export default function RocketLaunchPadInventory({ data }: { data: BlockInventor
 
 `Client.Tests/WebUi/BlockDetail/RocketLaunchPadWireContractTest.cs`: `WireContractPhaseB2Test.TrainPlatformFixtureMatchesDto` と同じ形で同じ値の `BlockInventoryDto` を作り、`WebUiJson.Serialize` の結果が fixture と `JToken.DeepEquals` で一致することを確かめる（`AssertMatchesFixture` は同ファイル内に写す）。`progress` の `0.0` と `0` の差で一致しなければ fixture を C# の出力に合わせる。`wireContract.test.ts` の block detail fixtures 一覧に `"block_inventory_rocket_launch_pad.json"` を足す。
 
-- [ ] **Step 7: コンパイル・テストを実行する**
+- [x] **Step 7: コンパイル・テストを実行する**
 
 Run:
 ```bash
@@ -3358,7 +3358,7 @@ cd moorestech_web/webui && pnpm vitest run && pnpm tsc --noEmit && pnpm lint
 ```
 Expected: ErrorCount 0 / 全 PASS（`pnpm lint` が無いスクリプト名なら package.json の lint 系を使う）
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests/WebUi Localization/localization.csv moorestech_web/webui/src
@@ -3369,7 +3369,7 @@ git commit -m "feat(webui): ロケット発射台のパネルと建造発射の�
 
 ### Task 9: moores-code-review による全ブランチレビュー
 
-- [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+- [x] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
 レビュー指摘の反映がソースの判定経路・条件式・その評価時点に触れたら、反映後のコードで Task 1〜8 のテスト一式（各タスクの「コンパイルしテストを実行する」ステップのフィルタすべて）を再実行してから完了とする。この plan に unityプレイ録画テストは無い（統合タスクへ移した。判断記録 D37）ので、レビュー報告に「録画は統合タスク bd `moorestech-xyuaf.2` で撮る」と書く。
 

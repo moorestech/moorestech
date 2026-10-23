@@ -9,6 +9,7 @@ using Game.Context;
 using Game.Entity.Interface;
 using Game.Hotbar;
 using Game.Map.Interface;
+using Game.Orbit;
 using Game.PlayerIdentity;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
@@ -40,6 +41,7 @@ namespace Game.SaveLoad.Json
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
+        private readonly RocketLaunchHistory _rocketLaunchHistory;
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
         private readonly PlayerIdentityRegistry _playerIdentityRegistry;
@@ -62,6 +64,7 @@ namespace Game.SaveLoad.Json
             ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
             CleanRoomDatastore cleanRoomDatastore,
+            RocketLaunchHistory rocketLaunchHistory,
             IMiningCooldownDatastore miningCooldownDatastore,
             SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
             PlayerIdentityRegistry playerIdentityRegistry,
@@ -83,6 +86,7 @@ namespace Game.SaveLoad.Json
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
+            _rocketLaunchHistory = rocketLaunchHistory;
             _miningCooldownDatastore = miningCooldownDatastore;
             _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
             _playerIdentityRegistry = playerIdentityRegistry;
@@ -120,6 +124,7 @@ namespace Game.SaveLoad.Json
                 _itemStackLevelDataStore.GetSaveJsonObject(),
                 _playerInventorySlotLevelDataStore.GetSaveLevel(),
                 _cleanRoomDatastore.GetSaveData(),
+                _rocketLaunchHistory.HasLaunchedOnce,
                 _miningCooldownDatastore.GetSaveJsonObject(),
                 GameRandom.ExportState(),
                 new List<string>(_saveBackfilledFieldsRecord.Fields),

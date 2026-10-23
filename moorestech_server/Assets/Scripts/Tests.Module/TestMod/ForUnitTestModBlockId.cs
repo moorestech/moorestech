@@ -122,8 +122,6 @@ namespace Tests.Module.TestMod
         // Fuel windmill for the throughput suite (10 RPM, torque 1.7, timeToMax 3 s, burns one Test1 per 3 s); one supplies about 101% of ten wood gear belts (demand 16.85)
         public static BlockId ThroughputFuelWindmill => GetBlock("7b3e1a10-0005-4000-8000-000000000001");
 
-        // ロケット発射台のテスト用ブロック
-        // Test block for the rocket launch pad
         public static BlockId RocketLaunchPadId => GetBlock("5c8e0000-0000-4000-8000-000000000100");
 
         // 宇宙エレベーター拠点のテスト用ブロック

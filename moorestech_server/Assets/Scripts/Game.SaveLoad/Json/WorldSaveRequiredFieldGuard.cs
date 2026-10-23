@@ -5,14 +5,14 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Json
 {
-    // 現在版のセーブに必須の節が揃っているかを復元前に確かめる
-    // Checks before restoring that a current-version save has every required section
+    // 現在版のセーブに必須の節が欠けていれば理由付きで止める
+    // Stops with a reason when a current-version save lacks a required section
     internal static class WorldSaveRequiredFieldGuard
     {
-        // 版が古いセーブの欠損はマイグレーション連鎖が補うので、ここで補填はしない。欠けたまま進むと理由の無い素の例外になる
-        // An older save's gaps are filled by the migration chain, not here; passing one through would fail with a reasonless bare exception
         internal static void ThrowIfMissing(WorldSaveAllInfo load)
         {
+            // 値型も欠損を区別し、既定値で破損を隠さない
+            // Distinguish absence even for value types instead of hiding corruption with defaults
             var missing = new List<string>();
             if (!load.CurrentTick.HasValue) missing.Add("currentTick");
             if (load.RandomState == null) missing.Add("randomState");
@@ -20,8 +20,11 @@ namespace Game.SaveLoad.Json
             if (load.BackfilledFields == null) missing.Add("backfilledFields");
             if (load.Players == null) missing.Add("players");
             if (load.SpaceElevatorCablePool == null) missing.Add("spaceElevatorCablePool");
-            if (missing.Count == 0) return;
+            if (!load.RocketHasLaunchedOnce.HasValue) missing.Add("rocketHasLaunchedOnce");
+            if (missing.Count == 0) return; // silent-ok: 必須項目が揃う正常経路 / ロード呼び出し元が完了を確認する
 
+            // データストアを書き換える前に欠損名を残して中断する
+            // Report missing fields and abort before mutating any datastore
             var reason = $"セーブに {string.Join(" / ", missing)} がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";
             Debug.LogError(reason);
             throw new InvalidOperationException(reason);

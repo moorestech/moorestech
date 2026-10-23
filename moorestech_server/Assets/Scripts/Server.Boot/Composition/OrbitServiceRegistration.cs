@@ -9,7 +9,7 @@ namespace Server.Boot.Composition
     {
         internal static void Register(ServiceCollection services)
         {
-            services.AddSingleton<IRocketLaunchHistory, RocketLaunchHistory>();
+            services.AddSingleton<RocketLaunchHistory>();
             services.AddSingleton<IOrbitalArrivalService, OrbitalArrivalService>();
         }
     }

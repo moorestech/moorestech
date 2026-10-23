@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Model.ItemsModule;
+using Core.Master.Validator.Item;
 
 namespace Core.Master.Validator.OrbitalPayload
 {
@@ -13,7 +14,6 @@ namespace Core.Master.Validator.OrbitalPayload
         {
             var logs = "";
             var itemByGuid = items.Data.ToDictionary(item => item.ItemGuid);
-            var tableByGuid = items.ItemStackLevelTables.ToDictionary(table => table.TableGuid);
             var seenPayloads = new HashSet<Guid>();
             foreach (var payload in items.OrbitalPayloads)
             {
@@ -35,8 +35,8 @@ namespace Core.Master.Validator.OrbitalPayload
                 // 発射台は積荷1種につき1スロットなので、レベル1のスタック上限を超える1便は積めない
                 // A launch pad has one slot per payload, so a launch above the level-1 stack limit can never be loaded
                 // silent-ok: テーブル欠落・段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
-                if (!tableByGuid.TryGetValue(item.StackLevelTableGuid, out var table) || table.StackCounts.Length == 0) return "";
-                var firstLevelStack = table.StackCounts[0];
+                var firstLevelStack = ItemStackLevelTableValidator.GetInitialStackLimit(items, payload.PayloadItemGuid);
+                if (firstLevelStack == null) return "";
                 return firstLevelStack < payload.CountPerLaunch ? $"[ItemMaster.orbitalPayloads] {item.Name} countPerLaunch {payload.CountPerLaunch} exceeds level-1 stack {firstLevelStack}\n" : "";
             }
 

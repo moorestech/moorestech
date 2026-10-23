@@ -58,6 +58,7 @@ import type {
   TrainRidingDataSchema,
   SpaceElevatorStatusSchema,
   TrainPlatformModeSchema,
+  RocketLaunchPadDataSchema,
   TrainTimetableDataSchema,
   TrainTimetableStationSchema,
   TrainTimetableStopSchema,
@@ -114,6 +115,7 @@ export type BeltThroughputData = z.infer<typeof BeltThroughputDataSchema>;
 export type BeltThroughputWindowData = z.infer<typeof BeltThroughputWindowDataSchema>;
 export type GearToElectricGenerationState = z.infer<typeof GearToElectricGenerationStateSchema>;
 export type SpaceElevatorStatus = z.infer<typeof SpaceElevatorStatusSchema>;
+export type RocketLaunchPadData = z.infer<typeof RocketLaunchPadDataSchema>;
 export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;
 export type TrainTimetableStation = z.infer<typeof TrainTimetableStationSchema>;

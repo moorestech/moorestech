@@ -77,6 +77,20 @@ describe("dispatchAction の toast 配線", () => {
     expect(notify).toHaveBeenCalledOnce();
   });
 
+  it.each(["rocket_command_missing_materials", "rocket_command_missing_payload", "rocket_command_output_full", "rocket_command_instance_mismatch", "rocket_command_timeout", "rocket_command_invalid_response", "rocket_command_block_not_found", "rocket_command_not_launch_pad", "rocket_command_unknown_operation", "rocket_command_invalid_request", "invalid_payload", "block_not_open"])("発射台の拒否理由 %s を通知まで保持する", async (error) => {
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error });
+    expect(await dispatchAction("rocket_launch_pad.command", { command: "build" })).toBe(false);
+    expect(notify).toHaveBeenCalledOnce();
+    expect(JSON.stringify(vi.mocked(notify).mock.calls[0])).toContain(error);
+  });
+
+  it.each(["rocket_command_not_awaiting_build", "rocket_command_not_awaiting_launch"])("合図連打の段階不一致 %s だけはトーストしない", async (error) => {
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error });
+    expect(await dispatchActionOutcome("rocket_launch_pad.command", { command: "build" })).toEqual({ kind: "rejected", error });
+    expect(notify).not.toHaveBeenCalled();
+    expect(shouldToastFailure("inventory.move_item", error)).toBe(true);
+  });
+
   // 既定の5秒だと ffmpeg 結合とgit起動を待つ bug_report.submit が成功しても失敗として表示される
   // At the 5s default, bug_report.submit (ffmpeg concat plus git spawns) reports a success as a failure
   it("bug_report.submit だけ 120 秒の待ち時間で送る", async () => {
@@ -103,5 +117,54 @@ describe("dispatchAction の toast 配線", () => {
     vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
     expect(await dispatchActionOutcome("event_mode.select_language", { locale: "ja" }))
       .toEqual({ kind: "accepted" });
+  });
+});
+
+// 実通信の遅延拒否を共通通知まで検証
+// Test delayed server rejection through real transport and common notification
+describe("rocket command transport deadlines", () => {
+  afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it.each([
+    ["build", 6000, "rocket_command_missing_materials"],
+    ["launch", 6000, "rocket_command_missing_payload"],
+    ["build", 11000, "rocket_command_timeout"],
+    ["launch", 11000, "rocket_command_timeout"],
+  ] as const)("%s receives %s ms rejection %s", async (command, delay, error) => {
+    vi.resetModules();
+    vi.useFakeTimers();
+    vi.mocked(notify).mockClear();
+    const sent: string[] = [];
+    class SocketStub {
+      static readonly OPEN = 1;
+      readyState = 1;
+      onmessage: ((event: { data: string }) => void) | null = null;
+      constructor() { socket = this; }
+      send(message: string) { sent.push(message); }
+    }
+    let socket: SocketStub;
+    vi.stubGlobal("WebSocket", SocketStub);
+    vi.stubGlobal("window", globalThis);
+    vi.stubGlobal("location", { protocol: "http:", host: "example.test" });
+    const { initBridge } = await import("./webSocketClient");
+    const { dispatchActionOutcome: dispatch } = await import("./actions");
+    initBridge();
+    const result = dispatch("rocket_launch_pad.command", { command });
+    const completed = vi.fn();
+    void result.then(completed);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(completed).not.toHaveBeenCalled();
+    expect(notify).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(delay - 5000);
+    const { requestId } = JSON.parse(sent.find((raw) => raw.includes("rocket_launch_pad.command"))!);
+    socket!.onmessage!({ data: JSON.stringify({ op: "result", requestId, ok: false, error }) });
+    expect(await result).toEqual({ kind: "rejected", error });
+    expect(notify).toHaveBeenCalledOnce();
+    expect(JSON.stringify(vi.mocked(notify).mock.calls[0])).toContain(error);
   });
 });

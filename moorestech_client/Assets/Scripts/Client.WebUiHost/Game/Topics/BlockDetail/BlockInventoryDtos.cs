@@ -35,6 +35,7 @@ namespace Client.WebUiHost.Game.Topics
         public TrainTimetableStateDto Timetable;
         public TrainStationDetailDto TrainStation;
         public BeltThroughputDetailDto BeltThroughput;
+        public RocketLaunchPadDetailDto RocketLaunchPad;
     }
 
     public class BlockItemSlotDto

@@ -1,17 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Model.ItemsModule;
 
 namespace Core.Master.Validator.Item
 {
-    // スタックテーブルの中身と、各アイテムからの参照先テーブルの実在を検証する
-    // Validates stack level table contents and that each item references an existing table
+    // - スタックテーブルの内容を検証
+    // - アイテムの参照先を検証
+    // - Validate stack table contents
+    // - Validate item references to tables
     internal static class ItemStackLevelTableValidator
     {
         internal static string Validate(Items items)
         {
-            // 空配列・1未満のスタック数・アイテムからの参照先テーブル実在を検証
-            // Validate empty arrays, sub-1 counts, and that each item references an existing table
+            // 空配列・非正数・参照切れを検証
+            // Validate empty arrays, nonpositive stack counts and missing table references
             var logs = "";
             if (items.ItemStackLevelTables == null) return logs;
 
@@ -38,6 +41,17 @@ namespace Core.Master.Validator.Item
                     logs += $"[ItemMaster.data] Name:{item.Name} references missing StackLevelTableGuid:{item.StackLevelTableGuid}\n";
 
             return logs;
+        }
+        // 生DTOだけで初期上限を引き、参照異常の診断は元の検証器へ残す
+        // Resolve the initial limit from raw DTOs, leaving reference diagnostics to their validators
+        internal static int? GetInitialStackLimit(Items items, Guid itemGuid)
+        {
+            var item = items.Data.FirstOrDefault(element => element.ItemGuid == itemGuid);
+            // silent-ok: 未知アイテムは各利用側が診断する / マスタ読込エラーで開発者が気づく
+            if (item == null) return null;
+            var table = items.ItemStackLevelTables.FirstOrDefault(element => element.TableGuid == item.StackLevelTableGuid);
+            // silent-ok: 参照切れ・段数0はValidateが診断する / マスタ読込エラーで開発者が気づく
+            return table == null || table.StackCounts.Length == 0 ? null : table.StackCounts[0];
         }
     }
 }

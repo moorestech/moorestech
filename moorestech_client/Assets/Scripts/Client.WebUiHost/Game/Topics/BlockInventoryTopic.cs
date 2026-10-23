@@ -166,8 +166,6 @@ namespace Client.WebUiHost.Game.Topics
         private void TrackBlock(BlockGameObject block)
         {
             if (ReferenceEquals(_trackedBlock, block)) return;
-            // 前のブロックの state イベント購読を解除する
-            // Unsubscribe the previous block's state event
             _blockStateSubscription?.Dispose();
             _blockStateSubscription = null;
             _trackedBlock = block;
