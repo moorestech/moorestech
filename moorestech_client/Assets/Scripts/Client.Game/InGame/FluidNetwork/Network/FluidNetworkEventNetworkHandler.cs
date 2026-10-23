@@ -58,8 +58,8 @@ namespace Client.Game.InGame.FluidNetwork.Network
             return _initialApplyCompletion.Task;
         }
 
-        // ネットワーク受信payloadのデシリアライズだけを隔離する外部境界。コピーの組み立て(ApplyFullState)のバグは例外のまま上げ、受信データの破損と区別できるようにする
-        // External boundary isolating only the deserialization of a received network payload; a bug in assembling the copy (ApplyFullState) propagates as an exception so it stays distinguishable from corrupt input
+        // ネットワーク受信payloadのデシリアライズ(外部境界)と、コピーの組み立て(ApplyFullState)を別々のtryで隔離し、失敗の文言と停止理由で原因を区別する
+        // Deserialization of the received payload (external boundary) and assembling the copy (ApplyFullState) are isolated in separate try blocks so the message and stop reason tell the causes apart
         private void HandleFullSnapshot(byte[] payload)
         {
             FluidNetworkFullStateMessagePack message;
@@ -83,7 +83,19 @@ namespace Client.Game.InGame.FluidNetwork.Network
             _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(message.ServerTick, message.TickSequenceId));
             if (!CanApplyInitialSnapshot()) return;
 
-            _cache.ApplyFullState(message.ToFullState());
+            // 組み立ての失敗も完了ソースへ畳む。購読は EventResponseDispatcher.InvokeIsolated が例外を握るので、畳まないと起動待ちが永遠に終わらない
+            // Fold assembly failures into the completion source too: the dispatcher's InvokeIsolated swallows handler exceptions, so without folding the startup wait never ends
+            try
+            {
+                _cache.ApplyFullState(message.ToFullState());
+            }
+            catch (Exception applyException)
+            {
+                _initialApplyCompletion.TrySetException(applyException);
+                Debug.LogError($"[FluidNetworkSync] 途中参加の全量からコピーを組み立てられませんでした（受信データの破損ではなく組み立て側の不具合）: {applyException}");
+                _futureMessageBuffer.StopRetainingFutureMessages("FluidNetworkInitialApplyFailed");
+                return;
+            }
             _initialApplyCompletion.TrySetResult();
 
             #region Internal

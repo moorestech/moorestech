@@ -48,7 +48,7 @@ public class FluidPipeWaterLevelViewInspector : Editor
 
             if (GUILayout.Button("Stop Simulating"))
             {
-                view.SetWaterLevel(0);
+                view.DebugApplyWaterLevelImmediately(0);
                 _isSimulating = false;
                 EditorApplication.update -= OnEditorUpdate;
 
@@ -83,7 +83,7 @@ public class FluidPipeWaterLevelViewInspector : Editor
         var view = target as FluidPipeWaterLevelView;
         if (!view) return;
 
-        view.SetWaterLevel(_simulatedWaterLevel);
+        view.DebugApplyWaterLevelImmediately(_simulatedWaterLevel);
 
         Repaint();
     }

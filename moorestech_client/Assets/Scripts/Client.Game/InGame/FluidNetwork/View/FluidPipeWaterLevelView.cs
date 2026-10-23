@@ -47,6 +47,14 @@ namespace Client.Game.InGame.FluidNetwork.View
 
         #if UNITY_EDITOR
         public float DebugWaterLevel => _waterLevel;
+
+        // Edit modeではStartが走らず複製が無いため、インスペクタのシミュレーション用に即時反映する
+        // In edit mode Start has not run and nothing is cloned, so the inspector simulation applies the level immediately
+        public void DebugApplyWaterLevelImmediately(float waterLevel)
+        {
+            _waterLevel = waterLevel;
+            ApplyWaterLevel();
+        }
         #endif
     }
 }
