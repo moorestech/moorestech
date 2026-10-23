@@ -39,7 +39,7 @@
 ### Part C（機械の汎用機構）
 
 - RC1 レベル継承レシピ: 機械レシピの必須キー `levelInheritance`（`None` / `Inherit` / `InheritUpToUnlocked`）で宣言する。継承レシピでは「levelFamily の基準を指す入力」ちょうど1つのレベルが、「levelFamily の基準を指す出力」ちょうど1つへそのまま移る。受け入れ: Lv3 の素材を入れると Lv3 の製品が出る（C3 `InheritsSourceLevelAcrossFamiliesTest`）。
-- RC2 入力と出力が別ファミリーでも書け、継承先と同じファミリーの非基準の変種やファミリー外のアイテムを他の出力に並べられる（GPU→GPU衛星・ダイシング）。受け入れ: テストマスタの Source→Target の継承が検証を通り（C2 `TestMasterPassesValidationTest`）、品質可の機械で「継承先の基準＋Lv2＋ファミリー外」の出力も通り（C2 `DicingShapedOutputsOnQualityMachinePassTest`）、実行でも移る（C3）。
+- RC2 入力と出力が別ファミリーでも書け、継承先と同じファミリーの非基準の変種やファミリー外のアイテムを他の出力に並べられる（ICチップ→モジュール・GPU・ダイシング）。受け入れ: テストマスタの Source→Target の継承が検証を通り（C2 `TestMasterPassesValidationTest`）、品質可の機械で「継承先の基準＋Lv2＋ファミリー外」の出力も通り（C2 `DicingShapedOutputsOnQualityMachinePassTest`）、実行でも移る（C3）。
 - RC3 混ぜない: 1回の製作で消費する継承元は1スロット・1アイテムIDに限る。受け入れ: 継承元スロットに Lv2 を入れた後の Lv3 は手動でも自動搬入でも重ならずに戻る（C3 `SourceLevelsNeverMixInSlotTest`・C11 `InheritanceSourceSlotNeverAlignsTest`）。
 - RC4 品質モジュールは一般機械の出力を変えない（汎用の品質シフトを撤去し、品質を読むのは Part B のクリーンルームの書き換え器だけ）。受け入れ: 品質＋生産性を付けた TestElectricMachine の出力が基準アイテム2セットで上位の変種が0（C3 `LevelVariantOutputTest.QualityModuleLeavesGeneralOutputAtBaseLevelTest`）、品質モジュールを付けても GameRandom を引くのは追加産出の1回だけ（C3 `MachineRandomDrawSiteTest.品質モジュールを付けても抽選は追加産出の1回だけ`）。
 - RC5 製作上限: `InheritUpToUnlocked` のレシピは、継承先ファミリーの基準アイテムGUIDごとの上限（未解放は Lv1）を超えるレベルの継承元を受け入れない。受け入れ: 上限1のとき Lv2 の素材は入力スロットへ入らず、`unlockLevelInheritanceCraftLevel` の研究後は入る（C7 `LevelInheritanceCraftCapTest`）。
@@ -162,7 +162,7 @@
 - fail-closed の拒否・保留は理由をログへ出す（`Debug.LogWarning` 等）。マスタ検証の失敗は `errorLogs` に積んで起動時に止める。意図した無音の続行には同じ行か直前の行に `silent-ok: <続行してよい理由> / <誰がどこで気づくか>` を付ける。
 - .cs を変えたら `uloop compile --project-path ./moorestech_client` を通す。.meta は手で作らない（Unity が生成したものはコミットしてよい）。消すファイルは `git rm` で .meta ごと消す。
 - Prefab・シーン・ScriptableObject・Addressables 設定は `uloop execute-dynamic-code` 経由でだけ作る・変える（テキスト編集禁止）。アセットだけの変更（prefab）にはテストを新設しない。
-- セーブ形式を変えるタスクは `WorldSaveAllInfo.CurrentVersion` を1つ上げ、`Game.SaveLoad/Migration/Steps/` に `ISaveMigrationStep` を1本足し、登録3か所（`moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs:116`・`moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoadPreparerTestFixture.cs:37`・`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/SaveMigrationChainTest.cs:137`）の配列末尾へ足し、旧版から新版への変換テストを同梱する。本 plan の版の割り当ては、現行 6 → C4 が 7（`SaveMigrationStepV6ToV7`、`FromVersion => 6`）→ B2 が 8（`SaveMigrationStepV7ToV8`、`FromVersion => 7`）。ほかのタスクはセーブ形式を変えない。
+- セーブ形式を変えるタスクは `WorldSaveAllInfo.CurrentVersion` を1つ上げ、`Game.SaveLoad/Migration/Steps/` に `ISaveMigrationStep` を1本足し、登録3か所（`moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs:116`・`moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoadPreparerTestFixture.cs:37`・`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/SaveMigrationChainTest.cs:137`）の配列末尾へ足し、旧版から新版への変換テストを同梱する。本 plan の版の割り当ては、現行 6 → C4 が 7（`SaveMigrationStepV6ToV7`、`FromVersion => 6`）→ B2 が 8（`SaveMigrationStepV7ToV8`、`FromVersion => 7`）。ほかのタスクはセーブ形式を変えない。並行する S2（6→7）・S3（7→8）も同じ番号を使う。S1〜S3 の取り決めは「後からマージする側が、先に master へ入った版の続きへ FromVersion・CurrentVersion・クラス名・テストの版を繰り上げる」。F2 で master をマージしたときに版がぶつかっていれば、この取り決めで繰り上げ、`SaveMigrationChainTest` を通してから push する。
 - テストマスタの JSON の書式: `blocks.json` / `machineRecipes.json` / `cleanRoom.json` / `fluids.json` は `json.dumps(indent=2, ensure_ascii=False) + "\n"`、`items.json` は `indent=4` + `"\n"`。moorestech_master の JSON は `indent=2`・`ensure_ascii=False`・末尾改行なし（localization.csv は末尾改行あり）。
 - moorestech_master の Guid は UUIDv7（`uuid.uuid7()`）。既存アイテムの改名は Guid を変えない。既存の値を変える JSON 要素は本 plan に載せたものだけ。
 - moorestech_master の変更: Part A〜C はそのタスクの中で `$MW` にコミットして push し、`.moorestech-external-revisions.json` の `moorestech_master` の `commitHash` を push 済みのコミットへ向ける（ピンは単独でコミットし、`git show HEAD:.moorestech-external-revisions.json` で確かめる）。Part D は D3〜D7 の master コミットを D8 でまとめて push し、ピンを付け直す。
@@ -5543,9 +5543,9 @@ git commit -m "feat: 品質モジュールを allowQualityModule の機械にだ
 - Consumes: なし（C1 の後に着手する。テストマスタの機械ブロックは C1 の必須キー `allowQualityModule` を持っている前提で、Step 6 の複製もそれを引き継ぐ）
 - Produces（Part B・S2・Part D が使う宣言方法）:
   - スキーマ: 機械レシピの必須キー `"levelInheritance": "None" | "Inherit" | "InheritUpToUnlocked"`。生成定数は `MachineRecipeMasterElement.LevelInheritanceConst.None` / `.Inherit` / `.InheritUpToUnlocked`、プロパティは `string MachineRecipeMasterElement.LevelInheritance`
-  - 継承の規則（検証が強制する）: 継承レシピは「levelFamily の基準アイテムを指す入力」がちょうど1つ（継承元）、「levelFamily の基準アイテムを指す出力」がちょうど1つ（継承先）。継承元と継承先は別ファミリーでよい（GPU→GPU衛星）。継承先ファミリーの長さ ≥ 継承元ファミリーの長さ（等しくてよい）。同じ継承先ファミリーを指す継承レシピの間で `Inherit` と `InheritUpToUnlocked` を混ぜない。他の入力は levelFamily の基準であってはならない（固定素材はファミリーを持たないアイテムで書く）。他の出力は基準でなければ何でもよく、継承先と同じファミリーの非基準の変種やファミリー外のアイテムを並べてよい（ダイシングの出力「ダイ基準1つ＋ダイ Lv2..LvN＋失敗ダイ」はこの形で通る。`DicingShapedOutputsOnQualityMachinePassTest`）。機械の `allowQualityModule` は見ない（品質可の EUV・ダイシングにも継承レシピを置ける）
+  - 継承の規則（検証が強制する）: 継承レシピは「levelFamily の基準アイテムを指す入力」がちょうど1つ（継承元）、「levelFamily の基準アイテムを指す出力」がちょうど1つ（継承先）。継承元と継承先は別ファミリーでよい（ICチップ→モジュール・GPU）。継承先ファミリーの長さ ≥ 継承元ファミリーの長さ（等しくてよい）。同じ継承先ファミリーを指す継承レシピの間で `Inherit` と `InheritUpToUnlocked` を混ぜない。他の入力は levelFamily の基準であってはならない（固定素材はファミリーを持たないアイテムで書く）。他の出力は基準でなければ何でもよく、継承先と同じファミリーの非基準の変種やファミリー外のアイテムを並べてよい（ダイシングの出力「ダイ基準1つ＋ダイ Lv2..LvN＋失敗ダイ」はこの形で通る。`DicingShapedOutputsOnQualityMachinePassTest`）。機械の `allowQualityModule` は見ない（品質可の EUV・ダイシングにも継承レシピを置ける）
   - 実行時に継承レベルが移るのは継承先の出力1つだけ（C3）。他の出力は書いたアイテムのまま出て、Part B の書き換え器が必要なら差し替える
-  - 使い分け: チップ製品（モジュール・GPU・GPU衛星）は `InheritUpToUnlocked`（初期上限 Lv1、C7 の研究で上げる）。ダイ→チップのパッケージングは `Inherit`（上限なし）
+  - 使い分け: チップ製品（モジュール・GPU）は `InheritUpToUnlocked`（初期上限 Lv1、C7 の研究で上げる）。ダイ→チップのパッケージングは `Inherit`（上限なし）
   - `public static class Core.Master.MachineRecipeLevelInheritanceUtil`:
     - `const int NotInheritanceIndex = -1`
     - `bool IsInheritance(MachineRecipeMasterElement recipe)`
@@ -8601,9 +8601,9 @@ git commit -m "feat: モジュールスロットのスタック上限を研究�
 **Interfaces:**
 - Consumes: C2 の `MachineRecipeLevelInheritanceUtil`、C6 の `MachineUpgradeGameActionValidator`・`UnlockReplayGameActionTypes`・`MachineUpgradeServiceRegistration`・`GameActionExecutor`
 - Produces:
-  - **単位と初期値**: 製作上限は「継承先ファミリーの基準アイテムGUID」ごとのレベル（1始まり）。未解放は `MachineRecipeLevelInheritanceUtil.InitialCraftCap = 1`（前例 `ItemStackLevelDataStore` の「未登録はレベル1」）。上限は `InheritUpToUnlocked` のレシピの継承元スロットだけに効き、`Inherit` と通常レシピには効かない。同じ継承先ファミリーを作るレシピは全部同じ上限を共有する（GPU衛星の上限は GPU→GPU衛星のレシピ全部に効く）
+  - **単位と初期値**: 製作上限は「継承先ファミリーの基準アイテムGUID」ごとのレベル（1始まり）。未解放は `MachineRecipeLevelInheritanceUtil.InitialCraftCap = 1`（前例 `ItemStackLevelDataStore` の「未登録はレベル1」）。上限は `InheritUpToUnlocked` のレシピの継承元スロットだけに効き、`Inherit` と通常レシピには効かない。同じ継承先ファミリーを作るレシピは全部同じ上限を共有する（品質モジュールの上限は、品質モジュールを作る継承レシピ全部に効く）
   - gameAction: `"gameActionType": "unlockLevelInheritanceCraftLevel", "gameActionParam": {"targetItemGuids": [継承先ファミリーの基準アイテムGUID…], "level": int}`。検証: 各 GUID が levelFamily の基準で、それを継承先に持つ `InheritUpToUnlocked` レシピが1つ以上あり、`1 <= level <= ファミリー長`。生成型 `UnlockLevelInheritanceCraftLevelGameActionParam.TargetItemGuids` / `.Level`。ロード時に再実行される解放系に入る
-  - **S2・Part D へ**: GPU の上限は `{"targetItemGuids": ["01a167ed-2700-7371-9f95-168966ff60bc" の基準アイテムGUID], "level": N}`。family GUID ではなく **基準アイテム（Lv1）の itemGuid** を書く（GPU は `01a167ed-2703-7014-98e4-11bd15f38571`）。GPU衛星は S2 が足すファミリーの Lv1 の itemGuid。モジュール4種も各ファミリーの Lv1 の itemGuid
+  - **S2・Part D へ**: GPU の上限は `{"targetItemGuids": ["01a167ed-2700-7371-9f95-168966ff60bc" の基準アイテムGUID], "level": N}`。family GUID ではなく **基準アイテム（Lv1）の itemGuid** を書く（GPU は `01a167ed-2703-7014-98e4-11bd15f38571`）。GPU衛星は S2 の裁定で GPU LvN→GPU衛星 LvN の通常レシピ5本にするため継承レシピを使わない。モジュール4種も各ファミリーの Lv1 の itemGuid
   - `public interface Game.Block.Interface.MachineUpgrade.ILevelInheritanceCraftCapLookup { IReadOnlyDictionary<Guid, int> UnlockedCaps { get; } IObservable<(Guid familyBaseItemGuid, int level)> OnCraftCapUnlocked { get; } int GetCraftCap(Guid familyBaseItemGuid); }`（`UnlockedCaps` は初期値 Lv1 を含まない）
   - `public interface Game.Block.Interface.MachineUpgrade.ILevelInheritanceCraftCapUnlocker { void UnlockCraftCap(Guid familyBaseItemGuid, int level); void ApplyUnlockLevelInheritanceCraftLevelAction(GameActionElement action); }`（冪等。ファミリー長で丸める）
   - `MachineSlotPlacementCheck.LevelAboveCraftCap`
@@ -19378,7 +19378,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 ### S2（ロケット・GPU人工衛星・計算データ）との取り決め
 
 - GPU の levelFamily（D6 が items.json に書く）: `{"familyGuid": "01a167ed-2700-7371-9f95-168966ff60bc", "name": "GPU", "baseItemGuid": "01a167ed-2703-7014-98e4-11bd15f38571", "levelItemGuids": ["01a167ed-2703-7014-98e4-11bd15f38571", "01a167ed-2706-7bfd-8361-a430dd96a569", "01a167ed-2709-74f0-a5c6-25026c7479d9", "01a167ed-270c-7873-a83a-5cf02ead6277", "01a167ed-270f-7276-8700-469ab54a26a2"]}`。アイテム名は「GPU」「GPU Lv2」〜「GPU Lv5」。
-- 継承レシピ（GPU→GPU衛星は入出力が別ファミリーでよい）: 機械レシピの必須キー `"levelInheritance": "InheritUpToUnlocked"`。継承元は基準（Lv1）の itemGuid を書いた入力ちょうど1つ（GPU は `01a167ed-2703-7014-98e4-11bd15f38571`）、継承先は基準の itemGuid を書いた出力ちょうど1つ。他の入力はファミリー外、継承先ファミリーの長さ ≥ 継承元ファミリーの長さ（GPU衛星ファミリー `01a167cf-af9a-78e5-9203-1c18ce94cdc6` は 5 以上）。
+- 継承レシピ（ICチップ→モジュール・GPU のように入出力が別ファミリーでよい）: 機械レシピの必須キー `"levelInheritance": "InheritUpToUnlocked"`。継承元は基準（Lv1）の itemGuid を書いた入力ちょうど1つ（GPU は `01a167ed-2703-7014-98e4-11bd15f38571`）、継承先は基準の itemGuid を書いた出力ちょうど1つ。他の入力はファミリー外、継承先ファミリーの長さ ≥ 継承元ファミリーの長さ。GPU衛星は S2 の裁定（`.decisions/2026-10-23-GPU衛星はレベル別アイテムとして製造してから打ち上げる.md`「衛星アイテムとレシピはGPUのレベル数だけ用意する」）で GPU LvN→GPU衛星 LvN の通常レシピ5本にするので、継承レシピの継承先には使わない。
 - 製作上限を上げる研究アクション: `{"gameActionType": "unlockLevelInheritanceCraftLevel", "gameActionParam": {"targetItemGuids": [<継承先ファミリーの Lv1 の itemGuid>], "level": N}}`（`1 <= N <= ファミリー長`、family GUID ではなく基準アイテムの itemGuid。未解放は Lv1）。研究ノードには C12 の表示で「〇〇を LvN まで製作可能」と出る。
 - S1 の研究ノード固定 GUID・モジュールと GPU の継承レシピ固定 GUID は D の `sim/fixed_guids.json`（＝`guids.json` の初期値）。
 
@@ -19417,7 +19417,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 待機ステートの実現出力キャッシュの鍵を (レシピ, 継承レベル) にする。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs）
 - 加工中ジョブの継承レベルは processor の JSON に `inheritedLevel` として保存し、`SaveMigrationStepV6ToV7` で既存機械へ 1 を補う（`CurrentVersion` 6→7。Part B が 7→8）。出所: agent前提（moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/・moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs:116）
 - 継承レシピの出力スロットに前のレベルの製品が残っているときは、取り出されるまで待機する（出力スロットは増やさない）。出所: シミュレーター予測→ユーザー承認（.decisions/2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる.md）
-- 製作上限の単位は「継承先ファミリーの基準アイテムGUIDごと」、未解放は Lv1。チップ製品（モジュール・GPU・GPU衛星）は `InheritUpToUnlocked`、ダイ→チップのパッケージングは `Inherit`（上限なし）。出所: agent前提（moorestech_server/Assets/Scripts/Core.Item/ItemStackLevelDataStore.cs）
+- 製作上限の単位は「継承先ファミリーの基準アイテムGUIDごと」、未解放は Lv1。チップ製品（モジュール・GPU）は `InheritUpToUnlocked`、ダイ→チップのパッケージングは `Inherit`（上限なし）。出所: agent前提（moorestech_server/Assets/Scripts/Core.Item/ItemStackLevelDataStore.cs）
 - スロット上限は items.json 直下の必須配列 `moduleSlotStackLimitLevels`（0 始まりのレベル→1スロットあたりの個数）で持ち、本番は [3, 6, 10]。出所: ユーザー裁定（.decisions/2026-10-23-モジュールスロットのスタック上限は研究で上げる.md）
 - 製作上限とスロット上限はセーブへ明示保存せず、研究・チャレンジの clearedActions のロード時再実行で復元する（ロード時に誰も読まないため）。出所: agent前提（moorestech_server/Assets/Scripts/Game.Research/ResearchDataStore.cs・moorestech_server/Assets/Scripts/Game.Challenge/ChallengeDatastore.cs）
 - 上限を超えてモジュールスロットに入っている分（セーブ由来）は効果に数えない。取り出しはできる。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Module/MachineModuleEffectComponent.cs）
