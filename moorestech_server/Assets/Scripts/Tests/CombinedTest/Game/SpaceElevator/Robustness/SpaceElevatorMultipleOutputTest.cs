@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             // Use the exact I1 counterexample and check the preview has no side effects
             Assert.AreEqual(10, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestElevatorReward));
             Assert.AreEqual(10, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.RocketComputerId));
-            var fits = inventory.CanStoreOutputs(outputs);
+            var fits = SpaceElevatorOutputSimulation.TryStack(inventory.InventoryItems.Skip(1).ToList(), outputs, out _);
             for (var i = 0; i < before.Length; i++) Assert.AreSame(before[i], inventory.GetItem(i));
             Assert.AreEqual(0, changes);
             Assert.AreEqual(5, outputs[0].Count);
@@ -44,7 +44,10 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 実挿入も同じ配置となり、両出口だけを通知する
             // Real insertion uses the same placement and notifies both outlets only
-            inventory.InsertOutputs(outputs);
+            var arrival = new FixedArrival(outputs);
+            Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite, arrival, out _));
+            Assert.AreEqual(1, arrival.Previews);
+            Assert.AreEqual(1, arrival.Arrivals);
             AssertOutputs(inventory);
             Assert.AreEqual(2, changes);
         }
@@ -62,12 +65,12 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 同IDでも属性が違えば空き2枠が必要で、1枠では拒否する
             // Different metadata needs two free slots even for the same ID and cannot fit one
-            Assert.AreEqual(matchingMetadata, inventory.CanStoreOutputs(outputs));
+            Assert.AreEqual(matchingMetadata, SpaceElevatorOutputSimulation.TryStack(inventory.InventoryItems.Skip(1).ToList(), outputs, out _));
             Assert.AreSame(existing, inventory.GetItem(2));
             Assert.AreEqual(0, inventory.GetItem(1).Count);
             if (matchingMetadata)
             {
-                inventory.InsertOutputs(outputs);
+                Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite, new FixedArrival(outputs), out _));
                 AssertOutputs(inventory);
                 Assert.IsInstanceOf<TestMeta1>(inventory.GetItem(2).GetMeta("quality"));
             }
@@ -82,9 +85,9 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 既存8へ2を加え、残り3だけが空きへ入る
             // Add two to the existing eight and put only the remaining three into the empty slot
-            Assert.IsTrue(inventory.CanStoreOutputs(outputs));
+            Assert.IsTrue(SpaceElevatorOutputSimulation.TryStack(inventory.InventoryItems.Skip(1).ToList(), outputs, out _));
             Assert.AreEqual(8, inventory.GetItem(2).Count);
-            inventory.InsertOutputs(outputs);
+            Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite, new FixedArrival(outputs), out _));
             Assert.AreEqual(10, inventory.GetItem(2).Count);
             Assert.AreEqual(ForUnitTestItemId.TestElevatorReward, inventory.GetItem(1).Id);
             Assert.AreEqual(3, inventory.GetItem(1).Count);
@@ -140,6 +143,18 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(1, arrivals);
             Assert.AreEqual(SpaceElevatorBaseStatus.WaitingSatellite, ReadDetail(block).Status);
             Assert.AreEqual(0f, block.GetComponent<SpaceElevatorClimberComponent>().RequestPower);
+        }
+
+        private sealed class FixedArrival : IOrbitalArrivalService
+        {
+            internal int Previews;
+            internal int Arrivals;
+            private readonly System.Collections.Generic.IReadOnlyList<IItemStack> _outputs;
+            internal FixedArrival(System.Collections.Generic.IReadOnlyList<IItemStack> outputs) { _outputs = outputs; }
+            public System.IObservable<OrbitalArrival> OnOrbitalArrival => Observable.Empty<OrbitalArrival>();
+            public bool IsOrbitalPayload(global::Core.Master.ItemId id) => true;
+            public System.Collections.Generic.IReadOnlyList<IItemStack> PreviewArrivalOutputs(global::Core.Master.ItemId id, int count) { Previews++; return _outputs; }
+            public System.Collections.Generic.IReadOnlyList<IItemStack> Arrive(global::Core.Master.ItemId id, int count) { Arrivals++; return _outputs; }
         }
 
         private static void AssertOutputs(SpaceElevatorBaseInventoryComponent inventory)

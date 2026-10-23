@@ -35,20 +35,24 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 ClimbProgress = state.ClimbProgress,
                 Status = ToWireStatus(state.Status),
             };
+            #region Internal
+            string ToWireStatus(SpaceElevatorBaseStatus status)
+            {
+                return status switch
+                {
+                    SpaceElevatorBaseStatus.ReadyToConnect => "readyToConnect",
+                    SpaceElevatorBaseStatus.InsufficientCable => "insufficientCable",
+                    SpaceElevatorBaseStatus.WaitingSatellite => "waitingSatellite",
+                    SpaceElevatorBaseStatus.Climbing => "climbing",
+                    SpaceElevatorBaseStatus.LowPower => "lowPower",
+                    SpaceElevatorBaseStatus.OutputBlocked => "outputBlocked",
+                    SpaceElevatorBaseStatus.InletBlocked => "inletBlocked",
+                    _ => throw new System.ArgumentOutOfRangeException(nameof(status), status, "未対応の拠点状態"),
+                };
+            }
+            #endregion
         }
 
-        private static string ToWireStatus(SpaceElevatorBaseStatus status)
-        {
-            return status switch
-            {
-                SpaceElevatorBaseStatus.ReadyToConnect => "readyToConnect",
-                SpaceElevatorBaseStatus.InsufficientCable => "insufficientCable",
-                SpaceElevatorBaseStatus.WaitingSatellite => "waitingSatellite",
-                SpaceElevatorBaseStatus.Climbing => "climbing",
-                SpaceElevatorBaseStatus.LowPower => "lowPower",
-                SpaceElevatorBaseStatus.OutputBlocked => "outputBlocked",
-                _ => throw new System.ArgumentOutOfRangeException(nameof(status), status, "未対応の拠点状態"),
-            };
-        }
+
     }
 }

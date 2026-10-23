@@ -59,6 +59,21 @@ namespace Game.SpaceElevator
                 throw new InvalidOperationException(reason);
             }
 
+            int CountSlotsAtStackLevelOne(IReadOnlyList<IItemStack> outputs)
+            {
+                var totals = new Dictionary<ItemId, int>();
+                foreach (var output in outputs) totals[output.Id] = totals.GetValueOrDefault(output.Id) + output.Count;
+
+                var slots = 0;
+                foreach (var pair in totals)
+                {
+                    var element = MasterHolder.ItemMaster.GetItemMaster(pair.Key);
+                    var stackAtLevelOne = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
+                    slots += (pair.Value + stackAtLevelOne - 1) / stackAtLevelOne;
+                }
+                return slots;
+            }
+
             #endregion
         }
 
@@ -66,19 +81,6 @@ namespace Game.SpaceElevator
         // Sum the results per item and count the slots needed at stack level 1, the lowest stack limit
         // スタック上限は研究で上がるだけなので、いちばん小さいレベル1で入れば実行時の今の上限でも必ず入る
         // Stack limits only rise with research, so fitting at level one guarantees a fit at any runtime level
-        private static int CountSlotsAtStackLevelOne(IReadOnlyList<IItemStack> outputs)
-        {
-            var totals = new Dictionary<ItemId, int>();
-            foreach (var output in outputs) totals[output.Id] = totals.GetValueOrDefault(output.Id) + output.Count;
 
-            var slots = 0;
-            foreach (var pair in totals)
-            {
-                var element = MasterHolder.ItemMaster.GetItemMaster(pair.Key);
-                var stackAtLevelOne = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
-                slots += (pair.Value + stackAtLevelOne - 1) / stackAtLevelOne;
-            }
-            return slots;
-        }
     }
 }

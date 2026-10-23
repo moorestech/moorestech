@@ -431,3 +431,4 @@ ui.blockInventory.spaceElevatorStatusLowPower,Climbing slowly (low power),Climbi
 ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until the result fits,Output full; waiting until the result fits,出口が満杯のため、成果が入るまで待っています,Ausgang voll; wartet bis das Ergebnis passt,출구가 가득 차 결과가 들어갈 때까지 대기 중
 ui.blockInventory.spaceElevatorSatelliteInput,GPU satellite input,GPU satellite input,GPU衛星の入口,GPU-Satelliten-Eingang,GPU 위성 입구
 ui.blockInventory.spaceElevatorResultOutput,Result output,Result output,成果の出口,Ergebnisausgang,결과 출구
+ui.blockInventory.spaceElevatorStatusInletBlocked,Remove the unsupported item from the inlet,Remove the unsupported item from the inlet,入口の運べないアイテムを取り出してください,Entferne den nicht transportierbaren Gegenstand aus dem Eingang,입구에서 운반할 수 없는 아이템을 꺼내세요

@@ -150,8 +150,8 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (!applied) error = "invalid_mode_index";
           else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
         } else if (msg.type === "space_elevator.connect") {
-          const applied = applySpaceElevatorConnect(state.currentBlock);
-          if (!applied) error = "insufficient_cable";
+          const result = applySpaceElevatorConnect(state.currentBlock);
+          if (!result.ok) error = result.error;
           else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
         } else if (msg.type === "train_platform.set_transfer_mode") {
           const applied = applyTrainPlatformMode(state.currentBlock, msg.payload as ActionPayloads["train_platform.set_transfer_mode"]);

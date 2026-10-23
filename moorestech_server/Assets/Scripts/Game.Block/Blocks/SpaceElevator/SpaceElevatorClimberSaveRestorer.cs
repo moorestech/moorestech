@@ -44,7 +44,7 @@ namespace Game.Block.Blocks.SpaceElevator
 
             // 昇降機は1機ずつ運ぶ。壊れたセーブで2機以上あれば1機だけ昇らせ、余りを入口へ戻す
             // The climber carries one at a time; a broken save with more keeps one climbing and returns the rest to the inlet
-            if (satellite.Count > 1)
+            if (1 < satellite.Count)
             {
                 Debug.LogError($"[SpaceElevatorBase] 昇降中の衛星が {satellite.Count} 機セーブにあるため、1機だけ昇らせ残りを入口へ戻します");
                 inventory.ReturnSatelliteWithoutEvent(ServerContext.ItemStackFactory.Create(satellite.Id, satellite.Count - 1));
@@ -53,7 +53,7 @@ namespace Game.Block.Blocks.SpaceElevator
 
             // 残りが負・NaN・無限のセーブは壊れている。最初から昇り直す（0は頂上で出口待ちの正しい値）
             // A negative, NaN or infinite remaining time is a broken save; climb again from the start (zero is the valid waiting-at-top value)
-            if (!(save.RemainingClimbSeconds >= 0) || double.IsInfinity(save.RemainingClimbSeconds))
+            if (!(0 <= save.RemainingClimbSeconds) || double.IsInfinity(save.RemainingClimbSeconds))
             {
                 Debug.LogError($"[SpaceElevatorBase] 昇降の残り {save.RemainingClimbSeconds} 秒は不正なため、最初から昇り直します");
                 return (satellite, climbTotalTicks);

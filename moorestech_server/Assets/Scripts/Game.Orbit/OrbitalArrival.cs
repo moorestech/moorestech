@@ -9,7 +9,7 @@ namespace Game.Orbit
         public readonly ItemId PayloadItemId;
         public readonly int PayloadCount;
 
-        public OrbitalArrival(ItemId payloadItemId, int payloadCount)
+        internal OrbitalArrival(ItemId payloadItemId, int payloadCount)
         {
             PayloadItemId = payloadItemId;
             PayloadCount = payloadCount;

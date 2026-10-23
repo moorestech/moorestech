@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.PowerGenerator
         {
             // tickを秒数に変換して保存（tick数の変動に対応）
             // Convert ticks to seconds for storage (to handle tick rate changes)
-            saveData.RemainingFuelSeconds = GameUpdater.TicksToSeconds(service._remainingFuelTicks);
+            saveData.RemainingFuelSeconds = GameUpdater.TicksToSeconds(service.RemainingFuelTicks);
             saveData.ActiveFuelType = service._currentFuelType.ToString();
 
             saveData.CurrentFuelItemGuidStr = null;
@@ -47,10 +47,6 @@ namespace Game.Block.Blocks.PowerGenerator
         internal static void Restore(VanillaElectricGeneratorFuelService service, VanillaElectricGeneratorSaveJsonObject saveData)
         {
             if (saveData == null) return;
-
-            // 秒数からtickに変換して復元
-            // Convert seconds back to ticks for restoration
-            service._remainingFuelTicks = GameUpdater.SecondsToTicks(saveData.RemainingFuelSeconds);
 
             if (!string.IsNullOrEmpty(saveData.ActiveFuelType) && Enum.TryParse(saveData.ActiveFuelType, out VanillaElectricGeneratorFuelService.FuelType parsedType))
             {

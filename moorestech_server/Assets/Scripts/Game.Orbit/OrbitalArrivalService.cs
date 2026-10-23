@@ -41,7 +41,7 @@ namespace Game.Orbit
             foreach (var output in payload.ArrivalOutputs)
             {
                 var totalCount = (long)output.Count * launchCount;
-                if (totalCount > int.MaxValue)
+                if (int.MaxValue < totalCount)
                     throw new ArgumentOutOfRangeException(nameof(payloadCount), payloadCount, $"打ち上げ成果の個数が整数範囲を超えます ItemId:{payloadItemId} OutputItemGuid:{output.ItemGuid} TotalCount:{totalCount} MaxCount:{int.MaxValue}");
                 outputCounts.Add((int)totalCount);
             }

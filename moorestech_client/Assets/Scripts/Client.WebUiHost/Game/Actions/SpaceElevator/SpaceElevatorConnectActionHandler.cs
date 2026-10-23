@@ -24,12 +24,6 @@ namespace Client.WebUiHost.Game.Actions
             _subInventoryState = subInventoryState;
         }
 
-        private static ActionResult Fail(string reason)
-        {
-            Debug.LogWarning($"[SpaceElevatorConnect] 接続要求を拒否: {reason}");
-            return ActionResult.Fail(reason);
-        }
-
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source) return Fail("block_not_open");
@@ -47,6 +41,13 @@ namespace Client.WebUiHost.Game.Actions
                 SpaceElevatorConnectResult.InsufficientCable => Fail("insufficient_cable"),
                 _ => Fail("not_space_elevator_base"),
             };
+            #region Internal
+            ActionResult Fail(string reason)
+            {
+                Debug.LogWarning($"[SpaceElevatorConnect] 接続要求を拒否: {reason}");
+                return ActionResult.Fail(reason);
+            }
+            #endregion
         }
     }
 }

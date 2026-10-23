@@ -15,9 +15,9 @@ namespace Game.Block.Blocks.SpaceElevator
                 var remainder = output;
                 // 同属性への加算はAddItemに任せ、空き枠は既存スタックを埋めた後に使う
                 // Let AddItem enforce metadata compatibility and use empty slots only after existing stacks
-                for (var pass = 0; pass < 2 && remainder.Count > 0; pass++)
+                for (var pass = 0; pass < 2 && 0 < remainder.Count; pass++)
                 {
-                    for (var i = 0; i < stacked.Count && remainder.Count > 0; i++)
+                    for (var i = 0; i < stacked.Count && 0 < remainder.Count; i++)
                     {
                         // silent-ok: 各段で対象外の枠は次の候補へ進む / 呼び出し元が最終判定を待機状態とログへ反映する
                         if ((stacked[i].Count == 0) != (pass == 1)) continue;
@@ -27,7 +27,7 @@ namespace Game.Block.Blocks.SpaceElevator
                     }
                 }
                 // silent-ok: 模擬失敗は在庫を確定しない / 呼び出し元が出口待ちの表示とログ、または格納失敗の例外で通知する
-                if (remainder.Count > 0) return false;
+                if (0 < remainder.Count) return false;
             }
             return true;
         }

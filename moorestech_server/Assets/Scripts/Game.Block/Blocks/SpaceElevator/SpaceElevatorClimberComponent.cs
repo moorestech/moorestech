@@ -27,13 +27,14 @@ namespace Game.Block.Blocks.SpaceElevator
         // Request power only while ascending; waiting at the top for outlet space uses none
         public float RequestPower => IsAscending ? _param.RequiredPower : 0f;
         private bool IsCarrying => _climbingSatellite.Id != ItemMaster.EmptyItemId;
-        private bool IsAscending => IsCarrying && _remainingClimbTicks > 0;
+        private bool IsAscending => IsCarrying && 0 < _remainingClimbTicks;
         private readonly Subject<Unit> _onChangeBlockState = new();
         private readonly SpaceElevatorBaseBlockParam _param;
         private readonly SpaceElevatorBaseInventoryComponent _inventory;
         private readonly IOrbitalArrivalService _orbitalArrivalService;
         private readonly uint _climbTotalTicks;
         private readonly IDisposable _inventorySubscription;
+        private readonly IDisposable _stackLevelSubscription;
         private bool _inventoryChanged = true;
         private IItemStack _climbingSatellite;
         private uint _remainingClimbTicks;
@@ -54,6 +55,8 @@ namespace Game.Block.Blocks.SpaceElevator
             // Reevaluate waiting conditions when inventory changes
             _inventorySubscription = ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
                 .Where(change => change.BlockInstanceId == inventory.BlockInstanceId).Subscribe(_ => _inventoryChanged = true);
+            _stackLevelSubscription = ServerContext.GetService<IItemStackLevelLookup>().OnStackLevelUnlocked
+                .Subscribe(_ => _inventoryChanged = true);
         }
 
         public SpaceElevatorClimberComponent(Dictionary<string, object> componentStates, SpaceElevatorBaseBlockParam param, SpaceElevatorBaseInventoryComponent inventory) : this(param, inventory)
@@ -86,21 +89,18 @@ namespace Game.Block.Blocks.SpaceElevator
             {
                 // 電力不足なら供給率に比例して遅くなる
                 // A power shortage slows the climb in proportion to the supply rate
-                if (_remainingClimbTicks > 0)
+                if (0 < _remainingClimbTicks)
                 {
                     var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_latchedPower, _param.RequiredPower);
-                    _remainingClimbTicks = subTicks >= _remainingClimbTicks ? 0 : _remainingClimbTicks - subTicks;
-                    if (_remainingClimbTicks > 0) return false;
+                    _remainingClimbTicks = _remainingClimbTicks <= subTicks ? 0 : _remainingClimbTicks - subTicks;
                 }
+                if (0 < _remainingClimbTicks) return false;
                 // 頂上では成果が出口へ入りきるときだけ渡す。入らなければ頂上で待つ
                 // At the top, hand over only when the result fits the outlets; otherwise wait at the top
-                _outputBlocked = !ResultFitsOutlets(_climbingSatellite.Id);
+                _inventoryChanged = true;
+                _outputBlocked = !_inventory.TryCompleteArrival(_climbingSatellite.Id, _orbitalArrivalService, out _);
                 // silent-ok: 出口待ちは初回ログと状態詳細で通知 / プレイヤーは拠点UIで気づく
                 if (_outputBlocked) return false;
-                // 到着が例外なら衛星を保持し、次tickで再試行する
-                // Retain the satellite and retry next tick if arrival throws
-                _inventoryChanged = true;
-                _inventory.InsertOutputs(_orbitalArrivalService.Arrive(_climbingSatellite.Id, 1));
                 _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
                 return true;
             }
@@ -115,19 +115,13 @@ namespace Game.Block.Blocks.SpaceElevator
                 // Log once on the tick a non-carried item starts blocking the inlet
                 if (_inletNotCarried && !wasInletNotCarried) Debug.LogWarning($"[SpaceElevatorBase] 入口の {satelliteId} は今のマスタで運ぶ積荷ではないため昇れません。入口から取り出してください");
                 if (!IsConnected || inletState != SatelliteInletState.Carriable) return false;
-                // 昇り始める前に、成果が出口へ入りきるかを確かめる
-                // Before starting, check that the result fits the outlets
-                _outputBlocked = !ResultFitsOutlets(satelliteId);
-                if (_outputBlocked) return false;
-                _climbingSatellite = _inventory.TakeOneSatellite();
+                var taken = _inventory.TryTakeSatelliteForClimb(_orbitalArrivalService, out var satellite, out var denyReason);
+                _outputBlocked = denyReason == "outputBlocked";
+                // silent-ok: 在庫が返す待機理由は状態詳細へ反映 / プレイヤーは拠点UIで気づく
+                if (!taken) return false;
+                _climbingSatellite = satellite;
                 _remainingClimbTicks = _climbTotalTicks;
                 return true;
-            }
-            // 衛星1機の成果が出口へ入りきるか。昇り始める前と頂上の2点で使う
-            // Whether one satellite's result fits the outlets; used before starting and at the top
-            bool ResultFitsOutlets(ItemId satelliteId)
-            {
-                return _inventory.CanStoreOutputs(_orbitalArrivalService.PreviewArrivalOutputs(satelliteId, 1));
             }
             #endregion
         }
@@ -161,7 +155,7 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             BlockException.CheckDestroy(this);
             var progress = IsCarrying ? 1f - (float)_remainingClimbTicks / _climbTotalTicks : 0f;
-            var status = SpaceElevatorBaseStatusResolver.Resolve(IsConnected, _hasEnoughCable, _outputBlocked, IsCarrying, _latchedPower < _param.RequiredPower);
+            var status = SpaceElevatorBaseStatusResolver.Resolve(IsConnected, _hasEnoughCable, _outputBlocked, IsCarrying, _latchedPower < _param.RequiredPower, _inventory.PeekSatellite(out _));
             var detail = new SpaceElevatorBaseStateDetail(IsConnected, _cablePoolAmount, progress, status);
             return new[] { new BlockStateDetail(SpaceElevatorBaseStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
         }
@@ -179,6 +173,6 @@ namespace Game.Block.Blocks.SpaceElevator
         }
 
         public bool IsDestroy { get; private set; }
-        public void Destroy() { IsDestroy = true; _inventorySubscription.Dispose(); _onChangeBlockState.Dispose(); }
+        public void Destroy() { IsDestroy = true; _inventorySubscription.Dispose(); _stackLevelSubscription.Dispose(); _onChangeBlockState.Dispose(); }
     }
 }

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Game.Orbit;
 using System.Collections.ObjectModel;
 using Core.Inventory;
 using Core.Item.Interface;
@@ -17,12 +19,13 @@ namespace Game.Block.Blocks.SpaceElevator
 {
     // 拠点のスロット。0は運ぶ衛星の入口、1以降は成果の出口。出口だけを隣のベルトへ押し出す
     // The base's slots: slot 0 takes satellites to carry, the rest hold results; only the outlets are pushed to adjacent belts
-    public class SpaceElevatorBaseInventoryComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent
+    public class SpaceElevatorBaseInventoryComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent, ISortExcludedSlots
     {
         public const int SatelliteSlot = 0;
         public const int FirstOutputSlot = 1;
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
+        public IReadOnlyCollection<int> SortExcludedSlots => Enumerable.Range(0, _slotCount).ToArray();
         public string SaveKey { get; } = typeof(SpaceElevatorBaseInventoryComponent).FullName;
         private readonly int _slotCount;
         private readonly IBlockInventoryInserter _blockInventoryInserter;
@@ -35,6 +38,13 @@ namespace Game.Block.Blocks.SpaceElevator
             _slotCount = FirstOutputSlot + param.OutputSlotCount;
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, _slotCount);
             foreach (var payloadGuid in param.CarriedPayloadItemGuids) _carriedPayloadIds.Add(MasterHolder.ItemMaster.GetItemId(payloadGuid));
+            #region Internal
+            void InvokeEvent(int slot, IItemStack itemStack)
+            {
+                var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
+                blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack));
+            }
+            #endregion
         }
 
         public SpaceElevatorBaseInventoryComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter) :
@@ -66,34 +76,37 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             var result = _itemDataStoreService.GetItem(SatelliteSlot).AddItem(satellite);
             _itemDataStoreService.SetItemWithoutEvent(SatelliteSlot, result.ProcessResultItemStack);
-            if (result.RemainderItemStack.Count > 0) Debug.LogError($"[SpaceElevatorBase] 入口が埋まっていて衛星を戻せず失いました item:{satellite.Id} count:{result.RemainderItemStack.Count}");
+            if (0 < result.RemainderItemStack.Count) Debug.LogError($"[SpaceElevatorBase] 入口が埋まっていて衛星を戻せず失いました item:{satellite.Id} count:{result.RemainderItemStack.Count}");
         }
-        // 入口から衛星を1つ取り出す。同じtickのPeekSatelliteがCarriableのときだけ呼ぶ
-        // Take one satellite from the inlet; call only after PeekSatellite returned Carriable in the same tick
-        internal IItemStack TakeOneSatellite()
+        // 収納確認から取り出しまでを在庫の所有者が完結する
+        // The inventory owner checks capacity and takes the satellite together
+        internal bool TryTakeSatelliteForClimb(IOrbitalArrivalService arrivalService, out IItemStack satellite, out string denyReason)
         {
             CheckDestroy(this);
+            satellite = ServerContext.ItemStackFactory.CreatEmpty();
+            var inlet = PeekSatellite(out var satelliteId);
+            denyReason = inlet == SatelliteInletState.NotCarried ? "inletBlocked" : "waitingSatellite";
+            // silent-ok: 通常の入口待機 / 呼出側が理由を状態詳細と初回ログへ反映する
+            if (inlet != SatelliteInletState.Carriable) return false;
+            denyReason = "outputBlocked";
+            // silent-ok: 成果の収納待機 / 呼出側が出口待ちをUIへ配信する
+            if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), arrivalService.PreviewArrivalOutputs(satelliteId, 1), out _)) return false;
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
             _itemDataStoreService.SetItem(SatelliteSlot, stack.SubItem(1));
-            return ServerContext.ItemStackFactory.Create(stack.Id, 1);
+            satellite = ServerContext.ItemStackFactory.Create(stack.Id, 1);
+            denyReason = null;
+            return true;
         }
-        // 成果が出口へ入りきるかを、出口の複製に積んで確かめる
-        // Check whether the results fit by stacking them onto a copy of the outlets
-        internal bool CanStoreOutputs(IReadOnlyList<IItemStack> outputs)
+        // 一度だけ模擬し、到着成功後に同じ配置を確定する
+        // Simulate once and commit that placement after arrival succeeds
+        internal bool TryCompleteArrival(ItemId satelliteId, IOrbitalArrivalService arrivalService, out string denyReason)
         {
             CheckDestroy(this);
-            return SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), outputs, out _);
-        }
-        // 成果を出口へ入れる。確認と同じ模擬で積むので、確認を通った成果は必ず入る
-        // Insert results into the outlets; the same simulation as the check is used, so checked results always fit
-        internal void InsertOutputs(IReadOnlyList<IItemStack> outputs)
-        {
-            CheckDestroy(this);
-            if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), outputs, out var simulated))
-            {
-                Debug.LogError("[SpaceElevatorBase] 渡す直前の出口の確認を通ったのに出口へ入らず、成果を格納できません");
-                throw new InvalidOperationException("Space elevator outputs no longer fit");
-            }
+            denyReason = "outputBlocked";
+            var outputs = arrivalService.PreviewArrivalOutputs(satelliteId, 1);
+            // silent-ok: 容量不足では到着させない / 昇降機が出口待ちをUIと初回ログへ反映する
+            if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), outputs, out var simulated)) return false;
+            arrivalService.Arrive(satelliteId, 1);
             for (var i = 0; i < simulated.Count; i++)
             {
                 var current = _itemDataStoreService.GetItem(FirstOutputSlot + i);
@@ -101,6 +114,8 @@ namespace Game.Block.Blocks.SpaceElevator
                 if (simulated[i].Id == current.Id && simulated[i].Count == current.Count) continue;
                 _itemDataStoreService.SetItem(FirstOutputSlot + i, simulated[i]);
             }
+            denyReason = null;
+            return true;
         }
 
         public void Update()
@@ -136,7 +151,7 @@ namespace Game.Block.Blocks.SpaceElevator
                 if (!IsCarriedPayload(itemStack.Id)) return false;
                 var result = slot.AddItem(itemStack);
                 // silent-ok: 満杯の通常拒否 / 呼び出し側と入口UIに残数が届く
-                if (result.RemainderItemStack.Count > 0) return false;
+                if (0 < result.RemainderItemStack.Count) return false;
                 slot = result.ProcessResultItemStack;
             }
             return true;
@@ -162,12 +177,6 @@ namespace Game.Block.Blocks.SpaceElevator
             var outlets = new List<IItemStack>();
             for (var slot = FirstOutputSlot; slot < _slotCount; slot++) outlets.Add(_itemDataStoreService.GetItem(slot));
             return outlets;
-        }
-
-        private void InvokeEvent(int slot, IItemStack itemStack)
-        {
-            var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
-            blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack));
         }
 
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context) { return InsertItem(itemStack); }

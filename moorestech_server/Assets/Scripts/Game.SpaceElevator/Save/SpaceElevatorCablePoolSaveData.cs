@@ -21,14 +21,18 @@ namespace Game.SpaceElevator.Save
         {
             // 小数・文字列・範囲外を残量に変換すると、破損した原本を上書きしてしまう
             // Converting fractions, strings or out-of-range numbers would overwrite the corrupt original with a fabricated amount
-            if (reader.TokenType == JsonToken.Integer)
+            if (reader.TokenType != JsonToken.Integer) return Reject();
+            if (reader.Value is int count) return count;
+            if (reader.Value is long wideCount && int.MinValue <= wideCount && wideCount <= int.MaxValue) return (int)wideCount;
+            return Reject();
+            #region Internal
+            object Reject()
             {
-                if (reader.Value is int count) return count;
-                if (reader.Value is long wideCount && wideCount >= int.MinValue && wideCount <= int.MaxValue) return (int)wideCount;
-            }
             var reason = $"spaceElevatorCablePool.cableCount はint範囲の整数が必須です path:{reader.Path} value:{reader.Value}";
             Debug.LogError(reason);
             throw new JsonSerializationException(reason);
+            }
+            #endregion
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

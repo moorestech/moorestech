@@ -10,5 +10,6 @@ namespace Game.Block.Interface.State
         Climbing,
         LowPower,
         OutputBlocked,
+        InletBlocked,
     }
 }

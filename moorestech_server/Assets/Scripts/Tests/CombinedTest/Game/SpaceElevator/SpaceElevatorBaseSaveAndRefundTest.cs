@@ -121,7 +121,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var climber = LoadClimber(elevatorBase, save);
             var inventory = elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
             Assert.AreEqual(ForUnitTestItemId.ItemId1, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Id);
-            Assert.AreEqual(SpaceElevatorBaseStatus.WaitingSatellite, ReadClimberDetail(climber).Status);
+            Assert.AreEqual(SpaceElevatorBaseStatus.InletBlocked, ReadClimberDetail(climber).Status);
 
             // 入口の運べないアイテムは運ばず、入口を塞いだ tick に開発者ログへ出す
             // The non-carried item in the inlet is never carried, and the tick it starts blocking is logged

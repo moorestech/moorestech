@@ -10,9 +10,9 @@ namespace Game.Block.Blocks.PowerGenerator
     /// 発電機マスタから燃料設定辞書（燃料ID → 設定とtick数）を作る。
     /// Builds fuel setting dictionaries (fuel id to setting and ticks) from the generator master.
     /// </summary>
-    public static class VanillaElectricGeneratorFuelSettingsBuilder
+    internal static class VanillaElectricGeneratorFuelSettingsBuilder
     {
-        public static Dictionary<ItemId, (FuelItemsElement Setting, uint Ticks)> BuildItemFuelSettings(ElectricGeneratorBlockParam param)
+        internal static Dictionary<ItemId, (FuelItemsElement Setting, uint Ticks)> BuildItemFuelSettings(ElectricGeneratorBlockParam param)
         {
             var settings = new Dictionary<ItemId, (FuelItemsElement Setting, uint Ticks)>();
             if (param.FuelItems == null) return settings;
@@ -27,7 +27,7 @@ namespace Game.Block.Blocks.PowerGenerator
             return settings;
         }
 
-        public static Dictionary<FluidId, (FuelFluidsElement Setting, uint Ticks)> BuildFluidFuelSettings(ElectricGeneratorBlockParam param)
+        internal static Dictionary<FluidId, (FuelFluidsElement Setting, uint Ticks)> BuildFluidFuelSettings(ElectricGeneratorBlockParam param)
         {
             var settings = new Dictionary<FluidId, (FuelFluidsElement Setting, uint Ticks)>();
             if (param.FuelFluids == null) return settings;

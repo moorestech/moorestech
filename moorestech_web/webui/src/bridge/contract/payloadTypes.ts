@@ -56,7 +56,6 @@ import type {
   WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
-  SpaceElevatorDataSchema,
   SpaceElevatorStatusSchema,
   TrainPlatformModeSchema,
   TrainTimetableDataSchema,
@@ -114,7 +113,6 @@ export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
 export type BeltThroughputData = z.infer<typeof BeltThroughputDataSchema>;
 export type BeltThroughputWindowData = z.infer<typeof BeltThroughputWindowDataSchema>;
 export type GearToElectricGenerationState = z.infer<typeof GearToElectricGenerationStateSchema>;
-export type SpaceElevatorData = z.infer<typeof SpaceElevatorDataSchema>;
 export type SpaceElevatorStatus = z.infer<typeof SpaceElevatorStatusSchema>;
 export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;

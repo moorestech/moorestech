@@ -60,6 +60,7 @@ namespace Client.Tests.WebUi.BlockDetail
         [TestCase(SpaceElevatorBaseStatus.Climbing, "climbing")]
         [TestCase(SpaceElevatorBaseStatus.LowPower, "lowPower")]
         [TestCase(SpaceElevatorBaseStatus.OutputBlocked, "outputBlocked")]
+        [TestCase(SpaceElevatorBaseStatus.InletBlocked, "inletBlocked")]
         public void ParentApplyCopiesMasterAndEveryStatus(SpaceElevatorBaseStatus status, string wireStatus)
         {
             var block = CreateBlock(new SpaceElevatorBaseStateDetail(true, 250, 0.5f, status));

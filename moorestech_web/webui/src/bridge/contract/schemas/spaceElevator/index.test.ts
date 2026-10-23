@@ -9,6 +9,9 @@ describe("SpaceElevator receive boundary", () => {
   it("別のblockTypeへの詳細混入を拒否する", () => {
     expect(BlockInventoryOpenSchema.safeParse({ ...fixture, blockType: "Chest" }).success).toBe(false);
   });
+  it("入口詰まりを受理する", () => {
+    expect(BlockInventoryOpenSchema.safeParse({ ...fixture, spaceElevator: { ...detail, status: "inletBlocked" } }).success).toBe(true);
+  });
   it("詳細未着を許容する", () => {
     const { spaceElevator: pending, ...rest } = fixture;
     expect(pending).toBeDefined();

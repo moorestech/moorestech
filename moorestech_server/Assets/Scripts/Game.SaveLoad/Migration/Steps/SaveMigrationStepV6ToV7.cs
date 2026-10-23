@@ -17,15 +17,14 @@ namespace Game.SaveLoad.Migration.Steps
             // 既にあれば形だけ確かめて素通しする（冪等）。値の範囲（負でないか）はロード時の Restore だけが見る
             // When present, only check the shape and pass it through (idempotent); only Restore at load checks the value range
             var existing = save[PoolKey];
-            if (existing != null)
+            if (existing == null)
             {
-                if (existing is JObject pool && pool[CountKey]?.Type == JTokenType.Integer) return SaveMigrationStepResult.Converted(save);
-                return Fail($"{PoolKey} が整数の {CountKey} を持つオブジェクトではありません。 value={existing}");
+                save[PoolKey] = new JObject { [CountKey] = 0 };
+                Debug.Log("セーブを版6から版7へ変換しました。宇宙エレベーターのケーブルプールを0で足しました");
+                return SaveMigrationStepResult.Converted(save);
             }
-
-            save[PoolKey] = new JObject { [CountKey] = 0 };
-            Debug.Log("セーブを版6から版7へ変換しました。宇宙エレベーターのケーブルプールを0で足しました");
-            return SaveMigrationStepResult.Converted(save);
+            if (existing is JObject pool && pool[CountKey]?.Type == JTokenType.Integer) return SaveMigrationStepResult.Converted(save);
+            return Fail($"{PoolKey} が整数の {CountKey} を持つオブジェクトではありません。 value={existing}");
 
             #region Internal
 

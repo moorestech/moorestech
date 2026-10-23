@@ -49,7 +49,7 @@ namespace Game.SpaceElevator
         // Whether one elevator's worth remains; this is the only place that judges whether a base can connect
         internal bool HasEnough(int count)
         {
-            return Amount >= count;
+            return count <= Amount;
         }
 
         // 足りれば引いてtrue。足りなければ何もしない（接続サービスだけが使う）
@@ -65,7 +65,7 @@ namespace Game.SpaceElevator
         {
             // 到着と撤去返却の確定前に検査し、失敗時は残量も通知も変えない
             // Validate before committing an arrival or removal refund, leaving amount and notifications unchanged on failure
-            if (count < 0 || count > int.MaxValue - Amount)
+            if (count < 0 || int.MaxValue - Amount < count)
             {
                 var reason = $"ケーブルプールの加算が整数範囲を超えます amount:{Amount} count:{count} max:{int.MaxValue}";
                 Debug.LogError(reason);

@@ -29,6 +29,41 @@ namespace Game.SpaceElevator
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(properties => OnBlockPlaced(properties.BlockData.Block));
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => OnBlockRemoved(properties.BlockData.Block));
             _pool.OnAmountChanged.Subscribe(_ => PushAvailabilityToAll());
+            #region Internal
+            void OnBlockPlaced(IBlock block)
+            {
+                if (!block.ComponentManager.TryGetComponent<ISpaceElevatorBase>(out var elevatorBase)) return;
+                var cablesPerElevator = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).CablesPerElevator;
+                var tracked = new TrackedSpaceElevatorBase(elevatorBase, cablesPerElevator);
+                _bases[block.BlockInstanceId] = tracked;
+                PushAvailability(tracked);
+            }
+            void OnBlockRemoved(IBlock block)
+            {
+                if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked)) return;
+
+                // 接続済みの拠点だけが1エレベーター分をプールへ戻す。撤去イベントはDestroyより前に来るので状態を読める
+                // Only a connected base returns one elevator's worth; the remove event fires before Destroy, so its state is still readable
+                if (tracked.Base.IsConnected) _pool.Add(tracked.CablesPerElevator);
+                // 返却の失敗は撤去を止めるため、再試行に必要な追跡は成功後に外す
+                // A failed refund aborts removal, so retain tracking for a retry until the refund succeeds
+                _bases.Remove(block.BlockInstanceId);
+            }
+            void PushAvailabilityToAll()
+            {
+                foreach (var tracked in _bases.Values) PushAvailability(tracked);
+            }
+            #endregion
+        }
+
+        // segmentを消す前に、撤去で戻る全ケーブルの受け入れを確認する
+        // Check the full cable refund before removal discards any segment items
+        public bool CanRemove(IBlock block)
+        {
+            if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked) || !tracked.Base.IsConnected) return true;
+            if (tracked.CablesPerElevator <= int.MaxValue - _pool.Amount) return true;
+            Debug.LogWarning($"[SpaceElevator] removal denied: cable pool overflow instance={block.BlockInstanceId} amount={_pool.Amount} refund={tracked.CablesPerElevator}");
+            return false;
         }
 
         public SpaceElevatorConnectResult Connect(IBlock block)
@@ -53,32 +88,6 @@ namespace Game.SpaceElevator
             }
 
             #endregion
-        }
-
-        private void OnBlockPlaced(IBlock block)
-        {
-            if (!block.ComponentManager.TryGetComponent<ISpaceElevatorBase>(out var elevatorBase)) return;
-            var cablesPerElevator = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).CablesPerElevator;
-            var tracked = new TrackedSpaceElevatorBase(elevatorBase, cablesPerElevator);
-            _bases[block.BlockInstanceId] = tracked;
-            PushAvailability(tracked);
-        }
-
-        private void OnBlockRemoved(IBlock block)
-        {
-            if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked)) return;
-
-            // 接続済みの拠点だけが1エレベーター分をプールへ戻す。撤去イベントはDestroyより前に来るので状態を読める
-            // Only a connected base returns one elevator's worth; the remove event fires before Destroy, so its state is still readable
-            if (tracked.Base.IsConnected) _pool.Add(tracked.CablesPerElevator);
-            // 返却の失敗は撤去を止めるため、再試行に必要な追跡は成功後に外す
-            // A failed refund aborts removal, so retain tracking for a retry until the refund succeeds
-            _bases.Remove(block.BlockInstanceId);
-        }
-
-        private void PushAvailabilityToAll()
-        {
-            foreach (var tracked in _bases.Values) PushAvailability(tracked);
         }
 
         // 接続できるかはプールの HasEnough で決め、拠点へは結果だけを渡す

@@ -96,12 +96,15 @@ export function applyResearchComplete(tree: ResearchTreeData, p: ActionPayloads[
 
 // space_elevator.connect: サーバーの代わりに、接続できる状態なら接続済みにしてプールから引く
 // space_elevator.connect: standing in for the server, mark connected and take from the pool when the status says it can connect
-export function applySpaceElevatorConnect(block: BlockInventoryWireData): boolean {
-  if (!block.open || !("spaceElevator" in block) || !block.spaceElevator) return false;
+export function applySpaceElevatorConnect(block: BlockInventoryWireData): { ok: boolean; error?: string } {
+  if (!block.open) return { ok: false, error: "block_not_open" };
+  if (block.blockType !== "SpaceElevatorBase") return { ok: false, error: "invalid_block_type" };
+  if (!("spaceElevator" in block) || !block.spaceElevator) return { ok: false, error: "connect_request_failed" };
   const detail = block.spaceElevator;
-  if (detail.connected || detail.status !== "readyToConnect") return false;
+  if (detail.connected) return { ok: false, error: "already_connected" };
+  if (detail.cablePoolAmount < detail.cablesPerElevator) return { ok: false, error: "insufficient_cable" };
   detail.connected = true;
   detail.cablePoolAmount -= detail.cablesPerElevator;
   detail.status = "waitingSatellite";
-  return true;
+  return { ok: true };
 }

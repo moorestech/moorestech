@@ -71,7 +71,9 @@
         "Game.Construction",
         "Game.Map.Interface",
         "Client.PlaytestReceiver",
-        "Client.RemoteExec"
+        "Client.RemoteExec",
+        "Game.Orbit",
+        "Game.SpaceElevator"
     ],
     "includePlatforms": [
         "Editor"

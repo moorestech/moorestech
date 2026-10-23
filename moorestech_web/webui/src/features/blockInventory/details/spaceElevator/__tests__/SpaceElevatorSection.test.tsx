@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import type { BlockInventoryOpen, SpaceElevatorData } from "@/bridge";
+import type { BlockInventoryOpen } from "@/bridge";
 import { L } from "@/shared/i18n";
 
 vi.mock("@/shared/i18n", async (original) => ({
@@ -20,6 +20,8 @@ vi.mock("@/bridge", async (original) => ({
 import { dispatchAction } from "@/bridge";
 import SpaceElevatorSection from "../SpaceElevatorSection";
 import { spaceElevatorStatusDisplay } from "../spaceElevatorDisplay";
+
+type SpaceElevatorData = NonNullable<BlockInventoryOpen["spaceElevator"]>;
 
 function renderSection(spaceElevator: SpaceElevatorData | undefined) {
   const data: BlockInventoryOpen = {
@@ -63,6 +65,7 @@ describe("SpaceElevatorSection", () => {
     ["waitingSatellite", L.ui.blockInventory.spaceElevatorStatusWaitingSatellite, false],
     ["climbing", L.ui.blockInventory.spaceElevatorStatusClimbing, false],
     ["lowPower", L.ui.blockInventory.spaceElevatorStatusLowPower, true],
+    ["inletBlocked", L.ui.blockInventory.spaceElevatorStatusInletBlocked, true],
     ["outputBlocked", L.ui.blockInventory.spaceElevatorStatusOutputBlocked, true],
   ] as const)("%s の文言と不足色を表示する", (status, labelKey, insufficient) => {
     expect(spaceElevatorStatusDisplay(status)).toEqual({ labelKey, insufficient });
