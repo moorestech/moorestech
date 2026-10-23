@@ -11,6 +11,7 @@ using Game.Block.Factory.BlockTemplate.Gear;
 using Game.Block.Factory.BlockTemplate.Machine;
 using Game.Block.Factory.BlockTemplate.Miner;
 using Game.Block.Factory.BlockTemplate.Train;
+using Game.Block.Factory.BlockTemplate.Rocket;
 using Game.Block.Factory.BlockTemplate.Transport;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
@@ -73,6 +74,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomPipeHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.PipeHatch));
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirFilter, new VanillaCleanRoomAirFilterTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomMachine, new VanillaCleanRoomMachineTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(BlockTypeConst.RocketLaunchPad, new VanillaRocketLaunchPadTemplate());
         }
     }
 }
