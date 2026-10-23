@@ -780,7 +780,7 @@ git commit -m "feat(schema): 宇宙エレベーター拠点のブロック種別
 
 設計の要点（ADR 0089「呼び出し側の線引き」）: 拠点はプールの残量の判定も引き算も知らない。接続できるかの判定（残量 ≥ 1エレベーター分）はプールの `HasEnough` だけが持ち、`TryTake` も画面向けの「接続できるか」の配信も同じ `HasEnough` を通す。引き算・撤去の返却は `SpaceElevatorConnectionService` が持ち、プール本体の `HasEnough`/`TryTake`/`Add` は同アセンブリ内だけに閉じる（`internal`）。拠点は配信された「残量」と「接続できるか」を状態に載せるだけで、画面（webui）は判定しない（ユーザー裁定 [[2026-10-23-エレベーター拠点に接続できるかはサーバーのプールが判定し画面は表示するだけ]]）。
 
-- [ ] **Step 1: 拠点の面とプール・接続サービスを書く**
+- [x] **Step 1: 拠点の面とプール・接続サービスを書く**
 
 `Game.Block.Interface/Component/SpaceElevator/ISpaceElevatorBase.cs`:
 ```csharp
@@ -1182,7 +1182,7 @@ namespace Server.Boot.Composition
 `MoorestechServerDIContainerGenerator.cs` の S2 の `OrbitServiceRegistration.Register(services);` の次の行（`SaveAndEventServiceRegistration.Register(...)` より前。その末尾の `AddInitializableForwarding()` が `IBootInitializable` へ転送するため）に `SpaceElevatorServiceRegistration.Register(services);` を足す。S2 の行が無ければ `GameplayServiceRegistration.Register(...)` の次に足す。
 `Game.SaveLoad.asmdef`・`Server.Boot.asmdef`・`Server.Tests.asmdef` の `references` に `"Game.SpaceElevator"` を足す（`Game.Orbit` が無ければそれも）。
 
-- [ ] **Step 2: ワールドセーブに節を足し版を 8 にする**
+- [x] **Step 2: ワールドセーブに節を足し版を 8 にする**
 
 `WorldSaveAllInfo.cs`: `CurrentVersion` を `8` にする（Task 5 で見た版が 7 でなく N だったら、この Task の 7→8 をすべて N→N+1 と読み替える。判断記録 P11）。ctor の最後の引数（S2 が足した引数の後ろ）に `SpaceElevatorCablePoolSaveData spaceElevatorCablePool` を足し、本体で `SpaceElevatorCablePool = spaceElevatorCablePool;`、プロパティ `[JsonProperty("spaceElevatorCablePool")] public SpaceElevatorCablePoolSaveData SpaceElevatorCablePool { get; }` を足す（`using Game.SpaceElevator.Save;`。欠損は null のまま残し、復元側で止める）。
 `AssembleSaveJsonText.cs`: ctor に `SpaceElevatorCablePool spaceElevatorCablePool` を足して `_spaceElevatorCablePool` に保持し、`Capture()` の `new WorldSaveAllInfo(...)` の最後の引数に `_spaceElevatorCablePool.GetSaveData()` を渡す。
@@ -1195,7 +1195,7 @@ namespace Server.Boot.Composition
 S2 の `WorldSaveRequiredFieldGuard.ThrowIfMissing(load)`（`Game.SaveLoad/Json/WorldSaveRequiredFieldGuard.cs`）の欠損の一覧に `if (load.SpaceElevatorCablePool == null) missing.Add("spaceElevatorCablePool");` を足す（S2 の書き方に合わせる。`WorldSaveDataRestorer.cs` が200行を超えないよう、必須欠損の検査はこのファイルに集める）。
 `MissingMasterPruner.cs` の `SectionsWithoutMasterPruning` の「マスタguidを持たない」行に `"spaceElevatorCablePool"` を足す（残量の数だけでマスタ guid を持たない）。
 
-- [ ] **Step 3: 移行ステップを書いて3箇所に登録する**
+- [x] **Step 3: 移行ステップを書いて3箇所に登録する**
 
 moorestech-save-migration スキルを読む。`Game.SaveLoad/Migration/Steps/SaveMigrationStepV7ToV8.cs`:
 ```csharp
@@ -1245,7 +1245,7 @@ namespace Game.SaveLoad.Migration.Steps
 ```
 `backfilledFields` には足さない（0 は補填値ではなく実値）。`SaveAndEventServiceRegistration.cs`・`SaveLoadPreparerTestFixture.cs`・`SaveMigrationChainTest.cs` の3箇所の `new ISaveMigrationStep[] { ... }` の末尾（S2 の `SaveMigrationStepV6ToV7` の次）に `new SaveMigrationStepV7ToV8()` を足す。
 
-- [ ] **Step 4: テストを書く**
+- [x] **Step 4: テストを書く**
 
 `Tests/UnitTest/Game/SaveLoad/SaveMigrationStepV7ToV8Test.cs`:
 ```csharp
@@ -1454,16 +1454,16 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 ```
 （S2 の `IOrbitalArrivalService` に上の4つ以外のメンバーがあれば、偽物にも同じ形で足す。テスト mod の正しいマスタが起動時の検査を通ることは、`CreateServer` を使う全テストが通ることで確かめられる）
 
-- [ ] **Step 5: コンパイルしテストを実行する**
+- [x] **Step 5: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevatorCablePoolTest|SpaceElevatorOrbitalTableCheckTest|SaveMigrationStepV7ToV8Test|SaveMigrationChainTest|MissingMasterSectionCoverageTest|SaveLoad"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 6: 実ロード検証**
+- [x] **Step 6: 実ロード検証**
 
 moorestech-save-migration スキルの `references/load_test.cs` の手順で、S2 の版7セーブ（S2 の移行テストの入力か、S2 の plan が置いたサンプル）を版8へ読み込めることを `uloop execute-dynamic-code` で確かめ、出力（変換ログの行）を判断記録に貼る。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator moorestech_server/Assets/Scripts/Game.SpaceElevator moorestech_server/Assets/Scripts/Game.SaveLoad moorestech_server/Assets/Scripts/Server.Boot moorestech_server/Assets/Scripts/Tests
