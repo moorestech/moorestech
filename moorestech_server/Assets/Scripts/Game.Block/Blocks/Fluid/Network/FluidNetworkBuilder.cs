@@ -5,13 +5,13 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.Fluid
 {
-    // 再構築中にノード列と面の一覧を溜め、座標順に並べた面とポートから FluidSimNetwork の配列を作る
-    // Accumulates node columns and the face list during a rebuild and produces the FluidSimNetwork arrays from faces and ports sorted by position
+    // 再構築中にノード列と面の一覧を溜め、座標順に並べた面とポートから FluidSimNetwork の配列を作る(量・容量・上限・速度は単位)
+    // Accumulates node columns and the face list during a rebuild and produces the FluidSimNetwork arrays from faces and ports sorted by position (amounts, capacities, caps and velocities in units)
     public sealed class FluidNetworkBuilder
     {
         private readonly Vector3Int[] _positions;
-        private readonly double[] _capacities;
-        private readonly double[] _amounts;
+        private readonly long[] _capacities;
+        private readonly long[] _amounts;
         private readonly FluidId[] _fluidIds;
         private readonly List<FaceEntry> _faces = new();
         private readonly Dictionary<(Vector3Int a, Vector3Int b), int> _faceIndexByPositionPair = new();
@@ -19,16 +19,16 @@ namespace Game.Block.Blocks.Fluid
         public FluidNetworkBuilder(int nodeCount)
         {
             _positions = new Vector3Int[nodeCount];
-            _capacities = new double[nodeCount];
-            _amounts = new double[nodeCount];
+            _capacities = new long[nodeCount];
+            _amounts = new long[nodeCount];
             _fluidIds = new FluidId[nodeCount];
         }
 
-        public void SetNode(int index, Vector3Int position, double capacity, double amount, FluidId fluidId)
+        public void SetNode(int index, Vector3Int position, long capacityUnits, long amountUnits, FluidId fluidId)
         {
             _positions[index] = position;
-            _capacities[index] = capacity;
-            _amounts[index] = amount;
+            _capacities[index] = capacityUnits;
+            _amounts[index] = amountUnits;
             _fluidIds[index] = fluidId;
         }
 
@@ -49,7 +49,7 @@ namespace Game.Block.Blocks.Fluid
             return true;
         }
 
-        public void AddFace((Vector3Int a, Vector3Int b) key, int nodeA, int nodeB, double flowCapacityPerTick, double initialVelocity, bool pipeIsNodeA)
+        public void AddFace((Vector3Int a, Vector3Int b) key, int nodeA, int nodeB, long flowCapacityPerTick, long initialVelocity, bool pipeIsNodeA)
         {
             _faceIndexByPositionPair.Add(key, _faces.Count);
             _faces.Add(new FaceEntry { NodeA = nodeA, NodeB = nodeB, FlowCapacityPerTick = flowCapacityPerTick, Velocity = initialVelocity, AllowAToB = pipeIsNodeA, AllowBToA = !pipeIsNodeA });
@@ -66,8 +66,8 @@ namespace Game.Block.Blocks.Fluid
             });
             var faceA = new int[_faces.Count];
             var faceB = new int[_faces.Count];
-            var faceCaps = new double[_faces.Count];
-            var velocities = new double[_faces.Count];
+            var faceCaps = new long[_faces.Count];
+            var velocities = new long[_faces.Count];
             var allowAToB = new bool[_faces.Count];
             var allowBToA = new bool[_faces.Count];
             for (var i = 0; i < _faces.Count; i++)
@@ -87,8 +87,8 @@ namespace Game.Block.Blocks.Fluid
         {
             public int NodeA;
             public int NodeB;
-            public double FlowCapacityPerTick;
-            public double Velocity;
+            public long FlowCapacityPerTick;
+            public long Velocity;
             public bool AllowAToB;
             public bool AllowBToA;
         }

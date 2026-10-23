@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Fluid;
@@ -18,8 +19,8 @@ namespace Game.Block.Blocks.Fluid
     public class FluidBoundaryPort : IFluidBoundaryPort
     {
         public int NodeIndex { get; }
-        public double FlowCapacityPerTick { get; }
-        public double Velocity { get; set; }
+        public long FlowCapacityPerTick { get; }
+        public long Velocity { get; set; }
 
         // 再構築時の決定論的な並び替えに使う
         // Used for deterministic ordering during rebuilds
@@ -28,7 +29,7 @@ namespace Game.Block.Blocks.Fluid
         private readonly IFluidInventory _target;
         private readonly ConnectedInfo _connectedInfo;
 
-        public FluidBoundaryPort(int nodeIndex, IFluidInventory target, ConnectedInfo connectedInfo, double flowCapacityPerTick, Vector3Int targetPosition)
+        public FluidBoundaryPort(int nodeIndex, IFluidInventory target, ConnectedInfo connectedInfo, long flowCapacityPerTick, Vector3Int targetPosition)
         {
             NodeIndex = nodeIndex;
             _target = target;
@@ -37,21 +38,26 @@ namespace Game.Block.Blocks.Fluid
             TargetPosition = targetPosition;
         }
 
-        public FluidStack Deliver(FluidStack fluidStack)
+        // 単位の量を double にして機械へ渡し、機械が受け入れた double を切り上げて単位に戻す。ノードから引く量 ≥ 機械が得た量(最大 1 単位が消える側に丸め、増える側には丸めない)
+        // Hands the units to the machine as a double and rounds the accepted double up back to units: the node loses at least what the machine gained (at most one unit vanishes; never rounds toward creating fluid)
+        public long Deliver(long attemptedUnits, FluidId fluidId)
         {
-            return _target.AddLiquid(fluidStack, _connectedInfo);
+            var attemptedAmount = FluidUnits.ToAmount(attemptedUnits);
+            var remainder = _target.AddLiquid(new FluidStack(attemptedAmount, fluidId), _connectedInfo);
+            var acceptedUnits = FluidUnits.ToUnitsCeil(attemptedAmount - remainder.Amount);
+            return Math.Clamp(acceptedUnits, 0, attemptedUnits);
         }
 
-        // 両側コネクタの流体搬送能力の小さい方に、1tickの秒数を乗じた面あたり流量上限を求める
-        // Per-face flow cap: the smaller of both connectors' flow capacities multiplied by seconds per tick
-        public static double GetFlowCapacityPerTick(ConnectedInfo connectedInfo)
+        // 両側コネクタの流体搬送能力の小さい方に、1tickの秒数を乗じた面あたり流量上限(単位)を求める
+        // Per-face flow cap (units): the smaller of both connectors' flow capacities multiplied by seconds per tick
+        public static long GetFlowCapacityPerTick(ConnectedInfo connectedInfo)
         {
             if (connectedInfo.SelfConnector is not IFluidConnector selfConnector || connectedInfo.TargetConnector is not IFluidConnector targetConnector)
             {
                 throw new ArgumentException("Fluid connector option is not set");
             }
 
-            return Math.Min(selfConnector.Option.FlowCapacity, targetConnector.Option.FlowCapacity) * GameUpdater.SecondsPerTick;
+            return FluidUnits.ToUnitsNearest(Math.Min(selfConnector.Option.FlowCapacity, targetConnector.Option.FlowCapacity) * GameUpdater.SecondsPerTick);
         }
     }
 }

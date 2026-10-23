@@ -36,7 +36,7 @@ namespace Game.Fluid.Sync.State
             unchecked { return ElementHash.Count(NodeSeed, nodeCount) + ElementHash.Count(FaceSeed, faceCount) + ElementHash.Count(PortSeed, portCount); }
         }
 
-        public static uint NodeElement(int index, double amount, int fluidId)
+        public static uint NodeElement(int index, long amount, int fluidId)
         {
             var hash = ElementHash.Begin(NodeSeed, index);
             hash = ElementHash.Add(hash, amount);
@@ -44,12 +44,12 @@ namespace Game.Fluid.Sync.State
             return ElementHash.Finish(hash);
         }
 
-        public static uint FaceElement(int index, double velocity)
+        public static uint FaceElement(int index, long velocity)
         {
             return ElementHash.Finish(ElementHash.Add(ElementHash.Begin(FaceSeed, index), velocity));
         }
 
-        public static uint PortElement(int index, double velocity)
+        public static uint PortElement(int index, long velocity)
         {
             return ElementHash.Finish(ElementHash.Add(ElementHash.Begin(PortSeed, index), velocity));
         }

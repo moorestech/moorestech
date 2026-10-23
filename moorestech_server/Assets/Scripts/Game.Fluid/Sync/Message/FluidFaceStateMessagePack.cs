@@ -4,15 +4,15 @@ using MessagePack;
 
 namespace Game.Fluid.Sync.Message
 {
-    // 全量に載せる面1枚の通信形
-    // Wire form of one face in the full state
+    // 全量に載せる面1枚の通信形(上限・速度は単位の整数)
+    // Wire form of one face in the full state (cap and velocity as integer units)
     [MessagePackObject]
     public class FluidFaceStateMessagePack
     {
         [Key(0)] public int NodeAIndex { get; set; }
         [Key(1)] public int NodeBIndex { get; set; }
-        [Key(2)] public double FlowCapacityPerTick { get; set; }
-        [Key(3)] public double Velocity { get; set; }
+        [Key(2)] public long FlowCapacityPerTick { get; set; }
+        [Key(3)] public long Velocity { get; set; }
         [Key(4)] public bool AllowAToB { get; set; }
         [Key(5)] public bool AllowBToA { get; set; }
 

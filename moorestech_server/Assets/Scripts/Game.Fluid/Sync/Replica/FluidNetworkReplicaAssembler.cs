@@ -13,8 +13,8 @@ namespace Game.Fluid.Sync.Replica
         {
             var nodes = fullState.Nodes;
             var positions = new Vector3Int[nodes.Length];
-            var capacities = new double[nodes.Length];
-            var amounts = new double[nodes.Length];
+            var capacities = new long[nodes.Length];
+            var amounts = new long[nodes.Length];
             var fluidIds = new FluidId[nodes.Length];
             for (var i = 0; i < nodes.Length; i++)
             {
@@ -27,8 +27,8 @@ namespace Game.Fluid.Sync.Replica
             var faces = fullState.Faces;
             var faceA = new int[faces.Length];
             var faceB = new int[faces.Length];
-            var faceCaps = new double[faces.Length];
-            var velocities = new double[faces.Length];
+            var faceCaps = new long[faces.Length];
+            var velocities = new long[faces.Length];
             var allowAToB = new bool[faces.Length];
             var allowBToA = new bool[faces.Length];
             for (var i = 0; i < faces.Length; i++)

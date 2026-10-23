@@ -34,7 +34,7 @@ namespace Client.WebUiHost.Game.Topics
         // パイプの中身はブロック状態イベントで届かずクライアント側のコピーが毎tick進めるので、連続値と同じ間隔で見て、量か流体の種類が前回の配信から変わった回だけ出し直す
         // Pipe contents no longer arrive as block state events but advance in the client-side copy every tick, so they are sampled at the continuous-sample interval and republished only when the amount or fluid id changed since the last publish
         private bool _republishOnFluidReplica;
-        private double _publishedPipeAmount;
+        private long _publishedPipeAmount;
         private FluidId _publishedPipeFluidId;
         private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _timetableFetcher;

@@ -137,11 +137,11 @@ namespace Tests.CombinedTest.Core.Fluid
             Assert.IsFalse(gearPump.CanGenerateFluid, "搬出が止まった満杯ポンプは待機になるはず");
         }
 
-        // 搬出を模して、パイプの中身を網の配列から直接減らす
-        // Mimics draining by subtracting straight from the pipe's slot in the network arrays
+        // 搬出を模して、パイプの中身を網の配列から直接減らす(網は 1/1000 単位の整数)
+        // Mimics draining by subtracting straight from the pipe's slot in the network arrays (the network holds 1/1000-unit integers)
         private static void Drain(FluidPipeComponent pipe, double amount)
         {
-            ServerContext.GetService<FluidNetworkDatastore>().Network.NodeAmounts[pipe.NodeIndex] -= amount;
+            ServerContext.GetService<FluidNetworkDatastore>().Network.NodeAmounts[pipe.NodeIndex] -= global::Game.Fluid.FluidUnits.ToUnitsNearest(amount);
         }
     }
 }

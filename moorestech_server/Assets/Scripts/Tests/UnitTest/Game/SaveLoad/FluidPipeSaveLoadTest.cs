@@ -108,12 +108,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             var jsonObject = (FluidPipeSaveJsonObject)saveState;
             Assert.AreEqual(1, jsonObject.FaceVelocities.Count);
             Assert.AreEqual(1, jsonObject.FaceVelocities[0].X);
-            Assert.Greater(jsonObject.FaceVelocities[0].Velocity, 0);
+            Assert.Greater(jsonObject.FaceVelocities[0].VelocityUnits, 0);
 
             // ロード復元で初期速度としてノードに引き継がれる
             // Loading restores it as the face's initial velocity
             var restored = jsonObject.ToFaceVelocityDictionary();
-            Assert.AreEqual(jsonObject.FaceVelocities[0].Velocity, restored[new Vector3Int(1, 0, 0)]);
+            Assert.AreEqual(jsonObject.FaceVelocities[0].VelocityUnits, restored[new Vector3Int(1, 0, 0)]);
         }
 
         [Test]
@@ -133,7 +133,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (var i = 0; i < 5; i++) GameUpdater.RunFrames(1);
 
             var savedJson = (FluidPipeSaveJsonObject)pipeBlock0.GetComponent<FluidPipeSaveComponent>().GetSaveState();
-            var savedVelocity = savedJson.FaceVelocities[0].Velocity;
+            var savedVelocity = savedJson.FaceVelocities[0].VelocityUnits;
             Assert.Greater(savedVelocity, 0);
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
@@ -154,12 +154,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             // 正準側(pipe0)が所有する+x方向の面に、保存値どおりの初期速度が乗っている
             // The +x face owned by the canonical side (pipe0) carries exactly the saved initial velocity
             var loadedPipe0 = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero).GetComponent<FluidPipeComponent>();
-            var faceVelocities = new List<(Vector3Int direction, double velocity)>();
+            var faceVelocities = new List<(Vector3Int direction, long velocity)>();
             fluidNetworkDatastore.CollectOwnedFaceVelocities(loadedPipe0, faceVelocities);
 
             Assert.AreEqual(1, faceVelocities.Count);
             Assert.AreEqual(new Vector3Int(1, 0, 0), faceVelocities[0].direction);
-            Assert.AreEqual(savedVelocity, faceVelocities[0].velocity, 1e-9);
+            Assert.AreEqual(savedVelocity, faceVelocities[0].velocity);
         }
     }
 }

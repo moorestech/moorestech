@@ -37,7 +37,7 @@ namespace Game.Fluid.Sync.Replica
             {
                 if (0 <= delivery.PortIndex && delivery.PortIndex < _ports.Length)
                 {
-                    _ports[delivery.PortIndex].AnnounceDelivery(delivery.DeliveredAmount);
+                    _ports[delivery.PortIndex].AnnounceDelivery(delivery.DeliveredUnits);
                     continue;
                 }
                 Debug.LogError($"[FluidNetwork] replica got a delivery for port {delivery.PortIndex} (ports: {_ports.Length}); the replica has diverged from the server.");
@@ -72,13 +72,13 @@ namespace Game.Fluid.Sync.Replica
 
                 // サーバーが受け入れた量なので容量確認はしない。中身のある異種流体だけはサーバーが受け入れない組み合わせなので食い違いとして報告する
                 // The amount was accepted by the server, so no capacity check; only a different fluid into a non-empty node is a combination the server never accepts, hence a divergence
-                var hasFluid = FluidSimulationConstants.AmountEpsilon < Network.NodeAmounts[inflow.NodeIndex];
+                var hasFluid = 0 < Network.NodeAmounts[inflow.NodeIndex];
                 if (hasFluid && Network.NodeFluidIds[inflow.NodeIndex] != inflow.FluidId)
                 {
                     Debug.LogError($"[FluidNetwork] replica node {inflow.NodeIndex} holds fluid {Network.NodeFluidIds[inflow.NodeIndex]} but the server accepted {inflow.FluidId}; the replica has diverged from the server.");
                     return false;
                 }
-                Network.AddAccepted(inflow.NodeIndex, inflow.FluidId, inflow.AcceptedAmount);
+                Network.AddAccepted(inflow.NodeIndex, inflow.FluidId, inflow.AcceptedUnits);
                 return true;
             }
 

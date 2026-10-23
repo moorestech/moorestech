@@ -4,6 +4,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.FluidNetwork;
 using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
+using Game.Fluid;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using System;
@@ -95,7 +96,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             if (fluidCache.TryGetNodeIndex(block.BlockPosInfo.OriginalPos, out var pipeNode))
             {
                 var network = fluidCache.Replica.Network;
-                FluidSlotDtoBuilder.Append(dto.FluidSlots, new List<FluidMessagePack> { new(network.NodeFluidIds[pipeNode], network.NodeAmounts[pipeNode], network.NodeCapacities[pipeNode]) });
+                FluidSlotDtoBuilder.Append(dto.FluidSlots, new List<FluidMessagePack> { new(network.NodeFluidIds[pipeNode], FluidUnits.ToAmount(network.NodeAmounts[pipeNode]), FluidUnits.ToAmount(network.NodeCapacities[pipeNode])) });
             }
 
             ApplyNetworkCaches(dto, cache);

@@ -15,7 +15,7 @@ namespace Game.Block.Blocks.Fluid
         FluidSimNetwork Network { get; }
         void AddPipe(FluidPipeComponent pipe);
         void RemovePipe(FluidPipeComponent pipe);
-        void CollectOwnedFaceVelocities(FluidPipeComponent pipe, List<(Vector3Int direction, double velocity)> buffer);
+        void CollectOwnedFaceVelocities(FluidPipeComponent pipe, List<(Vector3Int direction, long velocity)> buffer);
 
         // 機械がパイプへ入れた量を網へ足し、受け入れた量をそのtickの差分に残す。受け入れられなかった残りを返す
         // Add what a machine pushed into a pipe to the network, keep the accepted amount in this tick's diff, and return the remainder

@@ -1,26 +1,27 @@
 namespace Game.Fluid.Simulation
 {
     /// <summary>
-    ///     速度ベース流体シミュレーションの調整定数。
+    ///     速度ベース流体シミュレーションの調整定数。量・速度は FluidUnits の整数単位(1/1000)で、係数は整数比で持つ(ADR 0090)。
     ///     速度の単位は「量/tick」。面の流量は毎tick、速度をそのまま流す量として解釈される。
     ///
-    ///     Tuning constants for the velocity-based fluid simulation.
+    ///     Tuning constants for the velocity-based fluid simulation. Amounts and velocities are FluidUnits integers (1/1000) and the coefficients are integer ratios (ADR 0090).
     ///     Velocity is measured in amount-per-tick; each tick a face transfers its velocity worth of fluid.
     /// </summary>
     public static class FluidSimulationConstants
     {
-        // 圧力ゲイン: 充填率差1.0×圧力スケール（隣接容量の小さい方）が1tickで生む速度増分の係数
+        // 圧力ゲイン 0.12 = 12/100: 充填率差1.0×圧力スケール（隣接容量の小さい方）が1tickで生む速度増分の係数
         // リープフロッグの安定条件はおよそ1以下。大きいほど波が速く、小さいほど流れが緩やかになる
-        // Pressure gain: coefficient of per-tick velocity gain from fill-rate difference times pressure scale (min neighbor capacity)
+        // Pressure gain 0.12 = 12/100: coefficient of per-tick velocity gain from fill-rate difference times pressure scale (min neighbor capacity)
         // Leapfrog stability requires roughly <= 1; higher means faster waves, lower means gentler flow
-        public const double PressureGain = 0.12;
+        public const long PressureGainNumerator = 12;
+        public const long PressureGainDenominator = 100;
 
-        // 減衰（粘性）: 毎tick速度に掛かる摩擦。0にするとスロッシングが永久に減衰しなくなる
-        // Damping (viscosity): per-tick friction on velocity; at zero, sloshing never settles
-        public const double Damping = 0.002;
+        // 減衰（粘性）0.002 = 2/1000: 毎tick速度に掛かる摩擦。整数の切り捨てで必ず0へ減衰する
+        // Damping (viscosity) 0.002 = 2/1000: per-tick friction on velocity; integer truncation guarantees decay to zero
+        public const long DampingPerMille = 2;
 
-        // 量ゼロ判定のイプシロン
-        // Epsilon for zero-amount checks
-        public const double AmountEpsilon = 1e-9;
+        // 充填率の 1.0 を表す整数。amount * FillRateOne / capacity が充填率。2^30 × 容量(10^9 単位まで)が 64 ビットに収まる
+        // The integer that stands for a fill rate of 1.0: amount * FillRateOne / capacity. 2^30 times a capacity (up to 10^9 units) fits in 64 bits
+        public const long FillRateOne = 1L << 30;
     }
 }

@@ -85,17 +85,18 @@ namespace Tests.UnitTest.Game.Fluid.Sync
         [Test]
         public void 機械の流入はほぼ満杯のノードでも受け入れた量だけを網と記録に与える()
         {
-            // 空き0.2のノードへ空きの2倍を超える量を押し込む。網へ足された量とout acceptedは同じ値でなければならない
-            // Push more than twice the free space into a node; the amount added to the network and the out accepted must be the same value
+            // 空き 200 単位(0.2)のノードへ空きの2倍を超える量を押し込む。網へ足された単位と out accepted は同じ値で、残りは double で機械へ返る
+            // Push more than twice the free space into a node with 200 units (0.2) free; the units added to the network and the out accepted are the same value and the remainder returns to the machine as a double
             var network = Build(2);
             var capacity = network.NodeCapacities[1];
-            network.NodeAmounts[1] = capacity - 0.2;
+            network.NodeAmounts[1] = capacity - 200;
             var before = network.NodeAmounts[1];
 
             var remainder = network.AddExternal(1, new FluidStack(0.55, Water), out var accepted);
 
-            Assert.AreEqual(network.NodeAmounts[1] - before, accepted, 1e-12);
-            Assert.AreEqual(0.55 - accepted, remainder.Amount, 1e-12);
+            Assert.AreEqual(200, accepted);
+            Assert.AreEqual(network.NodeAmounts[1] - before, accepted);
+            Assert.AreEqual(0.55 - 0.2, remainder.Amount, 1e-12);
         }
 
         private static FluidSimNetwork Build(int nodeCount)

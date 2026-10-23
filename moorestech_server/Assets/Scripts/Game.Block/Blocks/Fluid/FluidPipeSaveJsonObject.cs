@@ -7,19 +7,19 @@ using UnityEngine;
 namespace Game.Block.Blocks.Fluid
 {
     /// <summary>
-    ///     パイプ永続化用の表現。内容量と流体GUIDに加え、正準側(NodeA)として所有する面の速度を方向つきで保存する。
-    ///     FluidIdは揮発値なので安定したGUIDで保存する。
+    ///     パイプ永続化用の表現(セーブ版 7)。内容量と流体GUIDに加え、正準側(NodeA)として所有する面の速度を方向つきで保存する。
+    ///     量と速度は FluidUnits の整数単位(1/1000)。版 6 の double(`amount`・`velocity`)は SaveMigrationStepV6ToV7 が変換する。FluidIdは揮発値なので安定したGUIDで保存する。
     ///
-    ///     Persistence shape for a pipe. Besides amount and fluid GUID, it stores velocities of faces the pipe owns as the canonical NodeA side, keyed by direction.
-    ///     FluidId is volatile, so the stable GUID is persisted instead.
+    ///     Persistence shape for a pipe (save version 7). Besides amount and fluid GUID, it stores velocities of faces the pipe owns as the canonical NodeA side, keyed by direction.
+    ///     Amount and velocity are FluidUnits integers (1/1000); the version-6 doubles (`amount`, `velocity`) are converted by SaveMigrationStepV6ToV7. FluidId is volatile, so the stable GUID is persisted instead.
     /// </summary>
     public class FluidPipeSaveJsonObject
     {
         [JsonProperty("fluidGuid")]
         public string FluidGuidStr;
 
-        [JsonProperty("amount")]
-        public double Amount;
+        [JsonProperty("amountMilli")]
+        public long AmountUnits;
 
         [JsonProperty("faceVelocities")]
         public List<FaceVelocityJsonObject> FaceVelocities = new();
@@ -27,12 +27,12 @@ namespace Game.Block.Blocks.Fluid
         [JsonIgnore]
         public FluidId FluidId => MasterHolder.FluidMaster.GetFluidId(string.IsNullOrEmpty(FluidGuidStr) ? Guid.Empty : Guid.Parse(FluidGuidStr));
 
-        public Dictionary<Vector3Int, double> ToFaceVelocityDictionary()
+        public Dictionary<Vector3Int, long> ToFaceVelocityDictionary()
         {
-            var result = new Dictionary<Vector3Int, double>();
+            var result = new Dictionary<Vector3Int, long>();
             foreach (var face in FaceVelocities)
             {
-                result[new Vector3Int(face.X, face.Y, face.Z)] = face.Velocity;
+                result[new Vector3Int(face.X, face.Y, face.Z)] = face.VelocityUnits;
             }
             return result;
         }
@@ -48,8 +48,8 @@ namespace Game.Block.Blocks.Fluid
             [JsonProperty("z")]
             public int Z;
 
-            [JsonProperty("velocity")]
-            public double Velocity;
+            [JsonProperty("velocityMilli")]
+            public long VelocityUnits;
         }
     }
 }

@@ -73,7 +73,7 @@ namespace Game.Block.Blocks.Fluid
 
         // セーブ用に、指定パイプが正準側(NodeA)として所有する面の方向と速度を集める。未構築のパイプは面を持たない
         // Collect directions and velocities of faces the given pipe owns as the canonical NodeA side, for saving; an unbuilt pipe owns no face
-        public void CollectOwnedFaceVelocities(FluidPipeComponent pipe, List<(Vector3Int direction, double velocity)> buffer)
+        public void CollectOwnedFaceVelocities(FluidPipeComponent pipe, List<(Vector3Int direction, long velocity)> buffer)
         {
             if (pipe.NodeIndex < 0) return;
             for (var f = 0; f < Network.FaceCount; f++)
@@ -131,13 +131,13 @@ namespace Game.Block.Blocks.Fluid
                 var pipe = _sortedPipes[i];
                 wasBuiltIn[i] = 0 <= pipe.NodeIndex;
                 var (amount, fluidId) = pipe.TakeContents(previous);
-                builder.SetNode(i, pipe.Position, pipe.Capacity, amount, fluidId);
+                builder.SetNode(i, pipe.Position, pipe.CapacityUnits, amount, fluidId);
                 pipe.SetNodeIndex(i);
             }
 
             // 面は旧網の同じ位置ペアから速度を引き継ぐ(波の状態を再構築で失わない)。ただし両端が旧網に居たパイプのときだけで、置き直した新パイプには引き継がない。無ければロード復元値
             // Faces carry their velocity over from the old network's matching position pair (rebuilds do not erase wave state), but only when both ends were already built in, never to a freshly re-placed pipe; else the loaded value
-            var previousVelocities = new Dictionary<(Vector3Int a, Vector3Int b), double>(previous.FaceCount);
+            var previousVelocities = new Dictionary<(Vector3Int a, Vector3Int b), long>(previous.FaceCount);
             for (var f = 0; f < previous.FaceCount; f++) previousVelocities[(previous.NodePositions[previous.FaceNodeA[f]], previous.NodePositions[previous.FaceNodeB[f]])] = previous.FaceVelocities[f];
 
             var ports = new List<FluidBoundaryPort>();

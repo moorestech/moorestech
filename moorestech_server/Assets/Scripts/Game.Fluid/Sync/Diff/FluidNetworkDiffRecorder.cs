@@ -12,7 +12,7 @@ namespace Game.Fluid.Sync.Diff
         private readonly List<FluidNodeInflowRecord> _inflows = new();
 
         // 流体tickの後、Stepperが各ポートの速度へ残した実渡し量を番号順に記録する。0のポートは載せない
-        // After the fluid tick, record in port order the actual delivered amount the stepper left in each port's velocity; zero ports are skipped
+        // After the fluid tick, record in port order the actual delivered units the stepper left in each port's velocity; zero ports are skipped
         public void RecordDeliveries(IReadOnlyList<IFluidBoundaryPort> ports)
         {
             for (var i = 0; i < ports.Count; i++)
@@ -23,9 +23,9 @@ namespace Game.Fluid.Sync.Diff
             }
         }
 
-        public void RecordInflow(int nodeIndex, FluidId fluidId, double acceptedAmount)
+        public void RecordInflow(int nodeIndex, FluidId fluidId, long acceptedUnits)
         {
-            _inflows.Add(new FluidNodeInflowRecord(nodeIndex, fluidId, acceptedAmount));
+            _inflows.Add(new FluidNodeInflowRecord(nodeIndex, fluidId, acceptedUnits));
         }
 
         // 溜まった分を1tickの差分として取り出し、空にする

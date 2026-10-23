@@ -32,7 +32,9 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var waterId = MasterHolder.FluidMaster.GetFluidId(WaterGuid);
-            var dto = ApplyWithFluidNode(ForUnitTestModBlockId.FluidPipe, new FluidNodeState(Vector3Int.zero, 100, 40, waterId));
+            // 複製の量は 1/1000 単位なので、容量 100・量 40 は 100,000 / 40,000
+            // Replica amounts are 1/1000 units, so capacity 100 and amount 40 are 100,000 / 40,000
+            var dto = ApplyWithFluidNode(ForUnitTestModBlockId.FluidPipe, new FluidNodeState(Vector3Int.zero, 100_000, 40_000, waterId));
 
             Assert.AreEqual(1, dto.FluidSlots.Count);
             Assert.AreEqual(waterId.AsPrimitive(), dto.FluidSlots[0].FluidId);
@@ -47,7 +49,7 @@ namespace Client.Tests.WebUi.BlockDetail
         public void EmptyPipeNodeFillsEmptyFluidSlot()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var dto = ApplyWithFluidNode(ForUnitTestModBlockId.FluidPipe, new FluidNodeState(Vector3Int.zero, 100, 0, FluidMaster.EmptyFluidId));
+            var dto = ApplyWithFluidNode(ForUnitTestModBlockId.FluidPipe, new FluidNodeState(Vector3Int.zero, 100_000, 0, FluidMaster.EmptyFluidId));
 
             Assert.AreEqual(1, dto.FluidSlots.Count);
             Assert.AreEqual("", dto.FluidSlots[0].FluidGuid);
