@@ -96,7 +96,7 @@ moorestech_master のファイル・バランスのツール・録画シナリ�
 | `VanillaSchema/blocks.yml`・`moorestech_server/Assets/Scripts/Core.Master/Validator/Block/SpaceElevatorBaseParamValidator.cs`（新）・テスト mod の `{blocks,items,buildMenu}.json` | `SpaceElevatorBase` の blockType と param、マスタ検証、テスト用の拠点・ケーブル・衛星・積荷行 | 6 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/{ISpaceElevatorBase,SpaceElevatorConnectResult}.cs`（新） | プール・接続処理が拠点に触る面と接続結果（クライアントも読む契約型） | 7 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/{SpaceElevatorBaseStateDetail,SpaceElevatorBaseStatus}.cs`（新） | 拠点の状態詳細と状態の列挙（クライアントも読む契約型） | 8 |
-| `moorestech_server/Assets/Scripts/Game.SpaceElevator/`（新 asmdef） | `SpaceElevatorCablePool`（残量・到着購読・セーブ）、`SpaceElevatorConnectionService`（接続・撤去返却・残量 push）、`SpaceElevatorOrbitalTableCheck`（起動時の表との突き合わせ）、`SpaceElevatorBaseMasters`（拠点のマスタの列挙）、`Save/SpaceElevatorCablePoolSaveData` | 7 |
+| `moorestech_server/Assets/Scripts/Game.SpaceElevator/`（新 asmdef） | `SpaceElevatorCablePool`（残量・到着購読・セーブ）、`SpaceElevatorConnectionService`（接続・撤去返却・残量 push）、`SpaceElevatorBaseMasters`（拠点のマスタの列挙）、`Save/SpaceElevatorCablePoolSaveData` | 6 |
 | `moorestech_server/Assets/Scripts/Game.SaveLoad/...` | WorldSaveAllInfo・保存・復元・移行・pruner | 7 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/`（新） | 拠点のインベントリ・昇降機・電力・出口の模擬・セーブと復元 | 8 |
 | `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs`（新） | 拠点の組み立て | 8 |
@@ -752,7 +752,7 @@ git commit -m "feat(schema): 宇宙エレベーター拠点のブロック種別
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorConnectionService.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorConnectResult.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorBaseMasters.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorOrbitalTableCheck.cs`
+- Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/SpaceElevatorBaseParamValidator.cs`（表所属・単機数・成果容量）
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/Save/SpaceElevatorCablePoolSaveData.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Game.SaveLoad.asmdef`、`moorestech_server/Assets/Scripts/Server.Boot/Server.Boot.asmdef`、`moorestech_server/Assets/Scripts/Tests/Server.Tests.asmdef`（`Game.SpaceElevator` を参照に足す）
 - Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs`
@@ -766,7 +766,7 @@ git commit -m "feat(schema): 宇宙エレベーター拠点のブロック種別
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/MoorestechServerDIContainerGenerator.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/SaveMigrationStepV7ToV8Test.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorCablePoolTest.cs`
-- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorOrbitalTableCheckTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorBaseMasterValidationTest.cs`
 
 **Interfaces:**
 - Consumes: S2 `IOrbitalArrivalService`（`Arrive`, `PreviewArrivalOutputs`, `IsOrbitalPayload`, `OnOrbitalArrival`）、`OrbitalArrival.PayloadItemId` / `PayloadCount`、Task 6 の `SpaceElevatorBaseBlockParam`
@@ -774,7 +774,7 @@ git commit -m "feat(schema): 宇宙エレベーター拠点のブロック種別
   - `ISpaceElevatorBase : IBlockComponent`（`bool IsConnected { get; }`, `void MarkConnected()`, `void SetCablePoolAvailability(int poolAmount, bool hasEnoughCable)`）
   - `SpaceElevatorCablePool : IBootInitializable`（`int Amount { get; private set; }`, `IObservable<int> OnAmountChanged`, `internal bool HasEnough(int count)`, `internal bool TryTake(int count)`, `internal void Add(int count)`, `SpaceElevatorCablePoolSaveData GetSaveData()`, `void Restore(SpaceElevatorCablePoolSaveData saveData)`）
   - `SpaceElevatorConnectionService : IBootInitializable`（`SpaceElevatorConnectResult Connect(IBlock block)`）
-  - `SpaceElevatorOrbitalTableCheck : IBootInitializable`（起動時に拠点のマスタを軌道到着の表と突き合わせ、合わなければ例外で起動を止める）
+  - `SpaceElevatorBaseParamValidator.Validate(Blocks)`（マスタ読込で表所属・単機数・成果容量を検査し、不正なら起動を止める）
   - `enum SpaceElevatorConnectResult { Connected, AlreadyConnected, InsufficientCable, NotSpaceElevatorBase }`（`Game.Block.Interface.Component`）
   - `SpaceElevatorCablePoolSaveData`（`[JsonProperty("cableCount")] public int CableCount;`）、セーブの節名 `spaceElevatorCablePool`、`WorldSaveAllInfo.CurrentVersion == 8`、`SaveMigrationStepV7ToV8`
 
@@ -886,8 +886,8 @@ namespace Game.SpaceElevator
 
         public void Load()
         {
-            // 拠点のマスタが数えるケーブルを集める。表との突き合わせは SpaceElevatorOrbitalTableCheck が起動時に行う
-            // Collect the cable items base masters count; SpaceElevatorOrbitalTableCheck cross-checks them with the table at boot
+            // 拠点のマスタが数えるケーブルを集める。表との整合はマスタ読込時に検証済み
+            // Collect the cable items base masters count; table consistency was validated during master loading
             _cableItemIds.UnionWith(SpaceElevatorBaseMasters.CableItemIds());
 
             // ケーブルの到着だけを数える。どの打ち上げ口から来たかは見ない
@@ -947,95 +947,9 @@ namespace Game.SpaceElevator
 }
 ```
 
-`Game.SpaceElevator/SpaceElevatorOrbitalTableCheck.cs`（成果が出口に入りきるかを先に確かめる方式は S2 の裁定。拠点は昇り始める前と渡す直前に確かめるので、衛星1機の成果が空の出口にも入らないマスタでは昇降機が永遠に待つ。その形を起動時に止める）:
-```csharp
-using System;
-using System.Collections.Generic;
-using Core.Item.Interface;
-using Core.Master;
-using Game.Context;
-using Game.Orbit;
-using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
+`Core.Master/Validator/Block/SpaceElevatorBaseParamValidator.cs` が `MasterHolder.Load` 内でケーブル・積荷の表所属、運搬積荷の `countPerLaunch == 1`、空の出口容量を検証する。容量は `ItemMaster.CountRequiredSlotsAtLevelOne` の共有long計算で数え、巨大な分割スタックは生成しない。ADR0089の起動時停止をマスタ単独入口にも適用する配置は、Task14 fresh w7 のcontroller選択D02Aによるagent前提の更新であり、ユーザー裁定の変更ではない。
 
-namespace Game.SpaceElevator
-{
-    /// <summary>
-    ///     起動時に拠点のマスタを軌道到着の表と突き合わせ、合わなければ起動を止める（ADR 0089）
-    ///     At boot, checks base masters against the orbital arrival table and stops the boot on a mismatch (ADR 0089)
-    /// </summary>
-    public class SpaceElevatorOrbitalTableCheck : IBootInitializable
-    {
-        private readonly IOrbitalArrivalService _orbitalArrivalService;
-
-        public SpaceElevatorOrbitalTableCheck(IOrbitalArrivalService orbitalArrivalService)
-        {
-            _orbitalArrivalService = orbitalArrivalService;
-        }
-
-        public void Load()
-        {
-            foreach (var (blockName, param) in SpaceElevatorBaseMasters.All())
-            {
-                ThrowIfNotOrbitalPayload(blockName, param.CableItemGuid);
-                foreach (var payloadGuid in param.CarriedPayloadItemGuids)
-                {
-                    ThrowIfNotOrbitalPayload(blockName, payloadGuid);
-                    ThrowIfResultNeverFits(blockName, payloadGuid, param.OutputSlotCount);
-                }
-            }
-
-            #region Internal
-
-            void ThrowIfNotOrbitalPayload(string blockName, Guid itemGuid)
-            {
-                if (_orbitalArrivalService.IsOrbitalPayload(MasterHolder.ItemMaster.GetItemId(itemGuid))) return;
-                Fail($"宇宙エレベーター拠点 {blockName} のアイテム {itemGuid} が軌道到着の表（items の orbitalPayloads）にありません");
-            }
-
-            // 衛星1機の成果が空の出口にも入らないと、昇り切っても永遠に渡せない
-            // If one satellite's result cannot fit even into empty outlets, the climber could never hand it over
-            void ThrowIfResultNeverFits(string blockName, Guid payloadGuid, int outputSlotCount)
-            {
-                var outputs = _orbitalArrivalService.PreviewArrivalOutputs(MasterHolder.ItemMaster.GetItemId(payloadGuid), 1);
-                var neededSlots = CountSlotsAtStackLevelOne(outputs);
-                if (neededSlots <= outputSlotCount) return;
-                Fail($"宇宙エレベーター拠点 {blockName} の積荷 {payloadGuid} 1機の成果は出口 {neededSlots} スロットぶんあり、outputSlotCount {outputSlotCount} に入りません");
-            }
-
-            void Fail(string reason)
-            {
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
-            }
-
-            #endregion
-        }
-
-        // 成果をアイテムごとに合算し、スタック上限が最も低いレベル1で何スロット要るかを数える
-        // Sum the results per item and count the slots needed at stack level 1, the lowest stack limit
-        // スタック上限は研究で上がるだけなので、いちばん小さいレベル1で入れば実行時の今の上限でも必ず入る
-        // Stack limits only rise with research, so fitting at level one guarantees a fit at any runtime level
-        private static int CountSlotsAtStackLevelOne(IReadOnlyList<IItemStack> outputs)
-        {
-            var totals = new Dictionary<ItemId, int>();
-            foreach (var output in outputs) totals[output.Id] = totals.GetValueOrDefault(output.Id) + output.Count;
-
-            var slots = 0;
-            foreach (var pair in totals)
-            {
-                var element = MasterHolder.ItemMaster.GetItemMaster(pair.Key);
-                var stackAtLevelOne = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
-                slots += (pair.Value + stackAtLevelOne - 1) / stackAtLevelOne;
-            }
-            return slots;
-        }
-    }
-}
-```
-衛星の `countPerLaunch` が 1 でないと、昇降機の `Arrive(衛星, 1)` が実行時に例外になる。S2 の `PreviewArrivalOutputs` が `Arrive` と同じく「countPerLaunch の正の整数倍でなければ例外」なら、上の `PreviewArrivalOutputs(..., 1)` がその形を起動時に止める。S2 の実装を読み、Preview がこの検査をしないなら、S2 の積荷表の生成型から countPerLaunch を引いて 1 でなければ `Fail` する行を `ThrowIfResultNeverFits` の先頭に足す。
-
-`Game.SpaceElevator/SpaceElevatorBaseMasters.cs`（拠点マスタの列挙とケーブル集合の導出を1か所にする。プールと起動時の検査が使う。`Core.Master` の `SpaceElevatorBaseParamValidator` は `Game.*` を参照できないので、ロード時の検証は自前で列挙する）:
+`Game.SpaceElevator/SpaceElevatorBaseMasters.cs`（拠点マスタの列挙とケーブル集合の導出を1か所にする。プールと接続サービスが使う。`Core.Master` の `SpaceElevatorBaseParamValidator` は `Game.*` を参照できないので、ロード時の検証は自前で列挙する）:
 ```csharp
 using System.Collections.Generic;
 using Core.Master;
@@ -1166,13 +1080,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Server.Boot.Composition
 {
-    // 宇宙エレベーターのプール・接続・起動時の検査を登録する。起動時に購読を張るので具象型で登録する
-    // Registers the space elevator pool, connections and boot-time check by concrete type so their boot-time subscriptions run
+    // 宇宙エレベーターのプール・接続を登録する。起動時に購読を張るので具象型で登録する
+    // Registers the space elevator pool and connections by concrete type so their boot-time subscriptions run
     internal static class SpaceElevatorServiceRegistration
     {
         internal static void Register(IServiceCollection services)
         {
-            services.AddSingleton<SpaceElevatorOrbitalTableCheck>();
             services.AddSingleton<SpaceElevatorCablePool>();
             services.AddSingleton<SpaceElevatorConnectionService>();
         }
@@ -1383,80 +1296,11 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 ```
 （`IWorldSaveDataLoader` の名前空間と `Load(JObject)` の有無は `Tests/CombinedTest/Core/CleanRoom/CleanRoomSaveLoadTest.cs:132-144` のヘルパーに合わせる）
 
-`Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorOrbitalTableCheckTest.cs`（テスト mod の拠点は出口1スロット。偽の到着サービスで表の中身だけを差し替える）:
-```csharp
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using Core.Item.Interface;
-using Core.Master;
-using Game.Context;
-using Game.Orbit;
-using Game.SpaceElevator;
-using NUnit.Framework;
-using Server.Boot;
-using Tests.Module.TestMod;
-using UniRx;
-using UnityEngine;
-using UnityEngine.TestTools;
-
-namespace Tests.CombinedTest.Game.SpaceElevator
-{
-    public class SpaceElevatorOrbitalTableCheckTest
-    {
-        [Test]
-        public void 衛星1機の成果が空の出口に入らなければ起動時に止まる()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            // レベル1のスタック上限より1つ多い成果は2スロット要り、出口1スロットに入らない
-            // One more than the level-1 stack limit needs two slots and cannot fit the single outlet
-            var element = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.TestElevatorReward);
-            var stackAtLevelOne = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
-            var oversized = new List<IItemStack>
-            {
-                ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, stackAtLevelOne),
-                ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 1),
-            };
-
-            LogAssert.Expect(LogType.Error, new Regex("outputSlotCount 1 に入りません"));
-            Assert.Throws<InvalidOperationException>(() => new SpaceElevatorOrbitalTableCheck(new FixedOrbitalArrivalService(true, oversized)).Load());
-        }
-
-        [Test]
-        public void 積荷が軌道到着の表に無ければ起動時に止まる()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            LogAssert.Expect(LogType.Error, new Regex("軌道到着の表"));
-            Assert.Throws<InvalidOperationException>(() => new SpaceElevatorOrbitalTableCheck(new FixedOrbitalArrivalService(false, new List<IItemStack>())).Load());
-        }
-
-        // 表の判定と成果の問い合わせだけを固定で返す偽の到着サービス
-        // A fake arrival service returning fixed answers for the table check and the result preview
-        private class FixedOrbitalArrivalService : IOrbitalArrivalService
-        {
-            private readonly bool _isOrbitalPayload;
-            private readonly IReadOnlyList<IItemStack> _preview;
-
-            public FixedOrbitalArrivalService(bool isOrbitalPayload, IReadOnlyList<IItemStack> preview)
-            {
-                _isOrbitalPayload = isOrbitalPayload;
-                _preview = preview;
-            }
-
-            public IObservable<OrbitalArrival> OnOrbitalArrival => Observable.Empty<OrbitalArrival>();
-            public bool IsOrbitalPayload(ItemId itemId) { return _isOrbitalPayload; }
-            public IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount) { return _preview; }
-            public IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount) { throw new NotSupportedException("検査は到着させない"); }
-        }
-    }
-}
-```
-（S2 の `IOrbitalArrivalService` に上の4つ以外のメンバーがあれば、偽物にも同じ形で足す。テスト mod の正しいマスタが起動時の検査を通ることは、`CreateServer` を使う全テストが通ることで確かめられる）
+`Tests/CombinedTest/Game/SpaceElevator/SpaceElevatorBaseMasterValidationTest.cs` が、生マスタの表所属（ケーブル／衛星）、countPerLaunch、容量不正を `MasterHolder.Load` 単独で拒否する。`OrbitalOutputCapacityRecoveryTest` が巨大数量、同種行のlong合算、非減少スタック表を検証する。偽到着サービスやゲームサービスの構築は検証入口に使わない。
 
 - [x] **Step 5: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevatorCablePoolTest|SpaceElevatorOrbitalTableCheckTest|SaveMigrationStepV7ToV8Test|SaveMigrationChainTest|MissingMasterSectionCoverageTest|SaveLoad"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevatorCablePoolTest|SpaceElevatorBaseMasterValidationTest|SaveMigrationStepV7ToV8Test|SaveMigrationChainTest|MissingMasterSectionCoverageTest|SaveLoad"`
 Expected: ErrorCount 0 / 全 PASS
 
 - [x] **Step 6: 実ロード検証**
@@ -3443,7 +3287,7 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 順序:
 1. 土台をそろえる: S2 の PR が origin/master へ入っていれば `git merge origin/master`、入っていなければ `git merge origin/feat/tier9-compute-data-loop` で S2 の最新を取り込み直す（S2 の途中のコミットだけを持つ状態で出さない）。取り込んだ後に `WorldSaveAllInfo.CurrentVersion` と `Game.SaveLoad/Migration/Steps/` を見て、S3 の移行ステップと同じ FromVersion のステップ（S1 など）が先に入っていたら、判断記録 P11 の規則で S3 の移行ステップを先に入った版の続きへ繰り上げる（FromVersion・CurrentVersion・クラス名とファイル名・テストの版・3箇所の登録の並び）。`uloop compile --project-path ./moorestech_client`（ErrorCount 0）と Task 7〜9 のテスト（`SaveMigrationChainTest` を含む）を通して push する。
 2. ピンを確かめる: `git diff <1. で取り込んだ ref> -- .moorestech-external-revisions.json` が空（S3 はマスタを変えないので、ピンは S2 か origin/master と同じ値）。
-3. pr-create スキルで PR を作る（base `master`）。本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S2 への依存（S2 の PR が未マージなら「S2 の PR のマージ後にマージする」と書き、その URL）／統合タスクへ回したもの（末尾の節の見出しを並べ、裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md` と bd `moorestech-xyuaf.2` へリンク）／確かめ方（CombinedTest・プロトコルテスト・wire 契約テスト・webui の vitest と e2e の結果。録画は統合タスク）／セーブ版 7→8（S2 が 6→7。S1 が先に入っていれば繰り上げた後の版）／判断記録の「S1 待ち」「S2 待ち」の一覧／本PR外のリファクタ提案（判断記録 P30）／レビュー依頼の注目点（判断記録 P10 の起動時のマスタ整合検査サービスと P31）。マージはしない。
+3. pr-create スキルで PR を作る（base `master`）。本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S2 への依存（S2 の PR が未マージなら「S2 の PR のマージ後にマージする」と書き、その URL）／統合タスクへ回したもの（末尾の節の見出しを並べ、裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md` と bd `moorestech-xyuaf.2` へリンク）／確かめ方（CombinedTest・プロトコルテスト・wire 契約テスト・webui の vitest と e2e の結果。録画は統合タスク）／セーブ版 7→8（S2 が 6→7。S1 が先に入っていれば繰り上げた後の版）／判断記録の「S1 待ち」「S2 待ち」の一覧／本PR外のリファクタ提案（判断記録 P30）／レビュー依頼の注目点（判断記録 P10 のマスタ読込時の整合検査と P31）。マージはしない。
 4. CI の結果を確かめる。
 5. `bd note moorestech-xyuaf.2 "S3 の PR <URL>。S3 から統合タスクへ渡すマスタの中身・バランス・録画の下書きは S3 plan docs/superpowers/plans/2026-10-23-tier9-fusion-elevator-endgame.md の「統合タスクへ引き継ぐマスタの中身」節"` を書く。
 6. `moores-wt rm tier9-fusion-elevator-endgame`（Editor と worktree を畳む。未コミット・未 push が無いことを先に確かめる）。
@@ -3485,7 +3329,7 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P7 | 〔統合タスクへの下書き〕反物質の機械名は「反物質製造装置」 | 既存モデル名 `Antimatter_manufacturing_equipment` と ADR 0090 に合わせる。裁定ファイルの「反物質生成装置」は機能の言い換え（ユーザーが名前を決めた裁定ではない） |
 | P8 | 〔統合タスクへの下書き〕グラフェンケーブルは軌道到着の積荷表に 1便1000本・成果なしで載せ、スタック表 [1000] を割り当てる。1エレベーター分 1000 本＝1便。昇降 600 秒・昇降中の電力 2000 | S2 の契約「countPerLaunch ≤ スタック上限」。Task 12 で S2 のロケット建造時間と比べて確定する |
 | P9 | 〔統合タスクへの下書き〕研究「軌道エレベーターの建設」の計算データ消費は S2 の plan の値（見つからなければ 200）、研究「反物質爆弾」に計算データ ×400 | S2 の裁定「計算データを消費する」。量は S2 待ち・S1 待ち |
-| P10 | 起動時（`IBootInitializable.Load`）の検査は `SpaceElevatorOrbitalTableCheck.cs`（`Game.SpaceElevator/`）が担う。拠点のマスタが指すケーブル・積荷が軌道到着の表にあるかを S2 の `IsOrbitalPayload` で、積荷の `countPerLaunch == 1` を検証し、衛星1機の成果数量を `ItemMaster.CountRequiredSlotsAtLevelOne` の共有long計算へ渡して空の出口（`outputSlotCount`）に入りきるか確かめ、違えば例外で止める。起動時は `PreviewArrivalOutputs` による大量の分割スタックを作らない（P32(C)と同じTask14 resume契約のagent前提）。積荷にケーブルが含まれないかはマスタだけで決まるので `SpaceElevatorBaseParamValidator`（P22）が見る。プールは起動時の検査をしない | ADR 0089。S2 のサービスに依存する検査だけを起動時に置き、マスタだけで決まる検査はロード時の validator に置く。起動時のマスタ整合検査サービスは前例の無い新しい形（配置検査の注目点4） |
+| P10 | 拠点の表所属・運搬積荷のcountPerLaunch==1・空の出口容量を既存 `SpaceElevatorBaseParamValidator` が `MasterHolder.Load` 内で検証する。容量は `ItemMaster.CountRequiredSlotsAtLevelOne` の共有long計算で求め、Previewや分割スタックを作らない。後段の起動検査サービスとDI登録は削除する | ADR0089の不正マスタで起動停止という結果を維持。Task14 fresh w7のcontroller選択D02Aによる配置のagent前提更新であり、ユーザー裁定ではない |
 | P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない）。版の番号は S1（6→7 と 7→8 を使う）・S2 と重なるので、後から master へマージする側が、先に入った版の続きへ FromVersion・CurrentVersion・クラス名とファイル名・テストの版・登録の並びを繰り上げる。7→8 は S2 だけが先に入った場合の値 | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値。繰り上げの規則は S1〜S3 のセッション間の取り決め（S2 のセッションからの連絡。ユーザー裁定ではない） |
 | P12 | 撤去返却は `RemoveBlockProtocol.cs`（`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`）で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
 | P13 | 接続は専用プロトコル `va:connectSpaceElevator`（`ConnectSpaceElevatorProtocol.cs` を `PacketResponse/SpaceElevator/` に新設し `PacketResponseCreator.cs` に登録、`Server.Protocol.asmdef` に `Game.SpaceElevator` 参照を足す。クライアントは `BlockRequestApi.cs` に `ConnectSpaceElevator` を足す）で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出す。押せるか・不足の理由は、プールが判定して拠点の状態（`ReadyToConnect` / `InsufficientCable`）に載せたものを webui が表示する（P26） | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
@@ -3495,9 +3339,9 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P17 | Task 5 は S2 の `Game.Orbit`（`PreviewArrivalOutputs` を含む）と積荷表が push されるまで前景で 600 秒ずつ最大 12 回待ち、来なければ止めて報告する | S2 の API に依存するため。バックグラウンドのポーリングはしない |
 | P18 | この plan には unityプレイ録画テストも EditModeInPlayingTest も入れない。ランタイム挙動（発電機の UI・拠点の UI・見た目・昇降）に触れるが、実ゲームで核融合炉と拠点を置いて開くにはマスタの中身が要り、それは統合タスクで入る。この PR はサーバーの CombinedTest（テスト mod で接続→昇降→成果→セーブ→撤去）・プロトコルテスト・wire 契約テスト・webui の vitest と e2e（mock host）で確かめる。録画シナリオの下書きは末尾の節の旧 Task 13 | ユーザー裁定 2026-10-23（S2 のセッション。提案「…master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」→ 回答「1 ok」。[[2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる]]）。録画テスト規定の例外はこの裁定による |
 | P19 | 昇降機は打ち上げ後の保留を持たない。昇り始める前と頂上で渡す直前に `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを確かめ、入らなければ入口に残す／頂上で電力を使わず待つ。状態は `OutputBlocked` | S2 のユーザー裁定（S2 ブランチ `.decisions/2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める.md`、明示引用「発射台の出力口が満杯のとき、どこで待たせますか？」→ 選択「入りきる時だけ建造開始」）と、その裁定ファイルの「宇宙エレベーター拠点（S3）も同じ方式にする」。拠点への適用の形（2点の確認・頂上で待つ間は電力を使わない）は agent前提で、前例は機械の `IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118` |
-| P20 | 拠点の出口は `outputSlotCount`（出荷 4・テスト mod 1）スロット。衛星1機の成果がレベル1のスタック上限で空の出口に入りきらないマスタは、起動時に `SpaceElevatorOrbitalTableCheck` が止める | 入りきらない成果は頂上で永遠に待つ（構造的に解消しない待ち）ため、いちばん早い段階で止める（AGENTS.md）。スロット数 4 は agent前提 |
+| P20 | 拠点の出口は `outputSlotCount`（出荷 4・テスト mod 1）スロット。衛星1機の成果がレベル1のスタック上限で空の出口に入りきらないマスタは、マスタ読込時に `SpaceElevatorBaseParamValidator` が止める | 入りきらない成果は頂上で永遠に待つ（構造的に解消しない待ち）ため、いちばん早い段階で止める（AGENTS.md）。スロット数 4 は agent前提 |
 | P21 | `VanillaSchema/blocks.yml` に blockType `SpaceElevatorBase` と case を足し、`_CompileRequester.cs`（`moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`）の `dummyText` を上げて生成し直す。新しい case だけなので既存ブロックの JSON は変えない | edit-schema スキルの手順。拠点の振る舞いは既存の blockType では表せない（ケーブルプールへの接続・昇降機）ため新設 |
-| P22 | 拠点のマスタ検証を `SpaceElevatorBaseParamValidator.cs`（`Core.Master/Validator/Block/`）に置き、`BlockMasterUtil.cs` の `Validate` に連結する。見るのは参照・数値・全拠点のケーブルが1種か。軌道到着の表との突き合わせは S2 のサービスが要るので起動時（P10） | 前例 `BlockMasterUtil.cs` の `BeltSpeedPerSecondValidator` の連結。AGENTS.md「必須の設定はいちばん早い段階で止める」 |
+| P22 | 拠点のマスタ検証を `SpaceElevatorBaseParamValidator.cs`（`Core.Master/Validator/Block/`）に置き、`BlockMasterUtil.cs` の `Validate` に連結する。参照・数値・全拠点のケーブルが1種かに加え、表所属・単機数・成果容量も見る（P10） | 前例 `BlockMasterUtil.cs` の `BeltSpeedPerSecondValidator` の連結。AGENTS.md「必須の設定はいちばん早い段階で止める」 |
 | P23 | 拠点の組み立てを `VanillaSpaceElevatorBaseTemplate.cs`（`Game.Block/Factory/BlockTemplate/SpaceElevator/`）に置き、`VanillaIBlockTemplates.cs` に登録する。供給の受け取りを昇降機より前に並べる | 前例 `VanillaElectricPumpTemplate`（電力受け取りと処理の順）・`VanillaChestTemplate`（インベントリとコネクタ） |
 | P24 | 契約型（クライアントも読む型）を Interface 層に置く: 接続結果 `SpaceElevatorConnectResult` は `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorConnectResult.cs`、状態詳細 `SpaceElevatorBaseStateDetail` と状態 `SpaceElevatorBaseStatus` は `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/`。クライアントの asmdef（`Client.Network`・`Client.WebUiHost`）に `Game.SpaceElevator` を足さない | agent前提（設計検査 Phase 2.6 強3。シミュレーター予測をもとに前提として宣言し、ユーザーの拒否なし。前例は S2 の判断記録 D27（契約型をインターフェース層に置く）と `Game.Block.Interface/State/` の既存の状態詳細） |
 | P25 | webui の拠点詳細 `spaceElevator` は optional のまま（無ければ「拠点ではない／未着」。未着は DTO ビルダーが警告ログ）、状態は C# の列挙→camelCase 文字列→zod の enum（未対応の値は例外）、翻訳キーは `TranslationKey` 型で欠損を型とテストで止める | agent前提（設計検査 Phase 2.6 強1・強4・強5。前例 `electricToGear` の optional・`TrainPlatformDetailDtoBuilder.ToWireMode`・webui 全体の `t(キー)`。前提として宣言し、ユーザーの拒否なし） |
@@ -3506,8 +3350,8 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P28 | 状態詳細は平らなフィールドのまま持つ（発電機の `IsBurning` と `CurrentFuelTotalTicks`、拠点の `Status` と `ClimbProgress` が同居し、動いていないときは 0） | agent前提（設計検査 Phase 2.6 強2。MessagePack の状態詳細は平らな形だけが前例: `PowerGeneratorStateDetail`・`CommonMachineBlockStateDetail`。ユーザーへ聞いたが「何の話？」の答えで、プレイヤーに見える差が無い内部の形なので前例どおりの前提で閉じた。裁定ではない） |
 | P29 | moorestech_master の中身（液体・アイテム・ブロック・レシピ・研究・積荷表のグラフェンケーブル行とスタック表・軌道エレベーターの建設の変更・ビルドメニュー「宇宙」）・バランスのシミュレーション・unityプレイ録画テストは、S1〜S3 の実装がそろってから統合タスク（bd `moorestech-xyuaf.2`）で入れる。この PR は moorestech_master を変えない（S3 のスキーマ変更は新しい case だけで、出荷マスタに読み込みに要る変更が無い）。ピンは Task 5 で取り込む S2 の値。旧 Task 1・2・4・12・13 と、旧 Task 3・5・6・10 のマスタ部分は末尾の節へ下書きとして移した。スタックテーブルが空の7件は S2 の master PR が直すので S3 は触らない | ユーザー裁定 2026-10-23（S2 のセッション。原文「マスタはタスク全体の実装が終わった時に全体でまとめて入れるのが良いんじゃないの？どうせ他にもデッドロック的なタスクがあるんじゃないの？」→ 提案「S2 の PR はコード・スキーマ・テスト用データと、読み込みに必要な最小限の master 変更だけにし、master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」→ 回答「1 ok」。裁定は S1〜S3 の PR に効く。[[2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる]]（S2 ブランチで記録。Task 5 の取り込みで入る））。7件の分担は S2 からの連絡 2026-10-23 |
 | P30 | 本PR外のリファクタ提案（plan のタスクには足さない）: (1) 出口へ入りきるかの模擬が3か所にある。既存 `moorestech_server/Assets/Scripts/Core.Inventory/InventoryInsertItem.cs`（`OpenableInventoryItemDataStoreService` の InsertionCheck/InsertItem）と `Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs`（CanStoreOutputs/TrySimulateOutputs）、新設 `SpaceElevatorOutputSimulation`。同じ役割（成果の並びが空きスロットに積めるか）なので共通化を提案する。(2) 発電機の燃焼判定と燃料の総時間が2つの燃料サービスにある。既存 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/FuelGearGeneratorFuelService.cs`（`IsFuelActive`・`CurrentFuelTicks`）と、新設の `VanillaElectricGeneratorFuelService.IsBurning`・`CurrentFuelTotalTicks`。共通の型が無いので `PowerGeneratorStateDetail` に秒値の ctor を2本目として足している。燃料サービスの共通化を提案する | 設計検査 Phase 2.6 の第3バケツ（(1) は1回目、(2) は再検査）。Task 15 の PR 本文「本PR外のリファクタ提案」に載せる |
-| P31 | レビュー依頼の注目点（前例が割れていて plan では直さないもの）: (a) 接続結果 `SpaceElevatorConnectResult` はワールドのサービス `SpaceElevatorConnectionService.Connect` が返す列挙を Interface 層に置き、プロトコルの応答にそのまま載せる（前例 `RideActionProtocol` の `RideActionResult`）。通信の失敗理由をプロトコルの中に持ち `Success＋FailureReason` で返す形（前例 `SetElectricToGearOutputModeProtocol`・S2 D24）もある。(b) プール残量は `SpaceElevatorCablePoolSaveData` で包んで保存する（S2 は単一値をトップレベルの nullable フィールドにした）。(c) 昇降機の部品 `SpaceElevatorClimberComponent` が拠点のインターフェース `ISpaceElevatorBase` を持ち、接続・残量・状態・セーブ・撤去返却まで受け持つ（S2 の同じ役割は `RocketLaunchPadProcessorComponent`）。(d) action の失敗コード（`already_connected` ほか）は `error_codes.json` の集合の外（既存 `ElectricToGearActions` と同じ。S2 は既存集合から選ぶ）。(e) プール残量を拠点ごとの状態詳細に写して既存の `ChangeBlockStateEventPacket` で送るので、残量が変わるたびに拠点 N 基ぶんの通知が出る（P26 の判定を拠点ごとに持つため） | agent前提（配置検査 r2 の注目点 N1・N4・N8・N11・N7。前例が割れているので violation ではない）。Task 15 の PR 本文の注目点に載せる |
-| P32 | 型検査の再検査の弱4件: (A) 入口の問い合わせを `PeekSatellite` の3状態（`SatelliteInletState` の Empty/Carriable/NotCarried）にし、運べないアイテムが入口を塞いだ tick に1回だけ警告ログを出す。(B) ロード時のガードに、昇降中の衛星が2機以上（1機だけ昇らせ余りを入口へ）・残りが負/NaN/無限（最初から昇り直す）・衛星なしで残りあり（昇降していない状態で戻す）を足し、どれもエラーログを出す。(C) 起動時の検査はスタック上限レベル1で数え、実行時は今の上限で積むが、上限は研究で上がるだけなのでレベル1で入れば実行時も必ず入る。数量の合算・必要枠数計算は `ItemMaster.CountRequiredSlotsAtLevelOne` のlong計算へ共有し、起動時に分割スタックを生成しない。非減少性は `ItemStackLevelTableValidator` が保証する（Task14のresume契約によるagent前提の更新。P10の起動サービス配置は維持）。(D) マスタ読み込み時の検証（Core.Master）はゲーム層の型を参照できないので、拠点マスタの列挙を検証側とゲーム側の2か所に持つ（1本にするとマスタ層に宇宙エレベーター専用の列挙を置くことになる）。あわせて昇降機とインベントリを 200 行未満に保つため、待ちの理由の選び方を `SpaceElevatorBaseStatusResolver` へ分ける | シミュレーター予測（確信高。前回2回とも推奨の束をすべて採用）→ 前提宣言としてユーザーへ報告し、違えば指摘を受ける |
+| P31 | レビュー依頼の注目点（前例が割れていて plan では直さないもの）: (a) 接続結果 `SpaceElevatorConnectResult` はワールドのサービス `SpaceElevatorConnectionService.Connect` が返す列挙を Interface 層に置き、プロトコルの応答にそのまま載せる（前例 `RideActionProtocol` の `RideActionResult`）。通信の失敗理由をプロトコルの中に持ち `Success＋FailureReason` で返す形（前例 `SetElectricToGearOutputModeProtocol`・S2 D24）もある。(b) プール残量は `SpaceElevatorCablePoolSaveData` で包んで保存する（S2 は単一値をトップレベルの nullable フィールドにした）。(c) 昇降機の部品 `SpaceElevatorClimberComponent` が拠点のインターフェース `ISpaceElevatorBase` を持ち、接続・残量・状態・セーブ・撤去返却まで受け持つ（S2 の同じ役割は `RocketLaunchPadProcessorComponent`）。(d) 接続actionのコードは `error_codes.json` に登録し、`already_connected` だけをWebの既存良性表で抑止する（Task14 fresh w7のcontroller選択D04Aによるagent前提更新）。(e) プール残量を拠点ごとの状態詳細に写して既存の `ChangeBlockStateEventPacket` で送るので、残量が変わるたびに拠点 N 基ぶんの通知が出る（P26 の判定を拠点ごとに持つため） | agent前提（配置検査 r2 の注目点 N1・N4・N8・N11・N7。前例が割れているので violation ではない）。Task 15 の PR 本文の注目点に載せる |
+| P32 | 型検査の再検査の弱4件: (A) 入口の問い合わせを `PeekSatellite` の3状態（`SatelliteInletState` の Empty/Carriable/NotCarried）にし、運べないアイテムが入口を塞いだ tick に1回だけ警告ログを出す。(B) ロード時のガードに、昇降中の衛星が2機以上（1機だけ昇らせ余りを入口へ）・残りが負/NaN/無限（最初から昇り直す）・衛星なしで残りあり（昇降していない状態で戻す）を足し、どれもエラーログを出す。(C) マスタ読込時の検査はスタック上限レベル1で数え、実行時は今の上限で積むが、上限は研究で上がるだけなのでレベル1で入れば実行時も必ず入る。数量の合算・必要枠数計算は `ItemMaster.CountRequiredSlotsAtLevelOne` のlong計算へ共有し、起動時に分割スタックを生成しない。非減少性は `ItemStackLevelTableValidator` が保証する（Task14のresume契約によるagent前提の更新。P10の配置はfresh w7のD02Aにより既存マスタvalidatorへ統合）。(D) マスタ読み込み時の検証（Core.Master）はゲーム層の型を参照できないので、拠点マスタの列挙を検証側とゲーム側の2か所に持つ（1本にするとマスタ層に宇宙エレベーター専用の列挙を置くことになる）。あわせて昇降機とインベントリを 200 行未満に保つため、待ちの理由の選び方は `GetBlockStateDetails` 内ローカル関数にまとめる（Task14 C17の反映） | シミュレーター予測（確信高。前回2回とも推奨の束をすべて採用）→ 前提宣言としてユーザーへ報告し、違えば指摘を受ける |
 
 ### S1 待ち・S2 待ち
 

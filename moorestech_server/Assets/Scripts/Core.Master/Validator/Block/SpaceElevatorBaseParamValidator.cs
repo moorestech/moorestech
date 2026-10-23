@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Core.Master.Validator.Block
 {
-    // 宇宙エレベーター拠点の参照と数値を検証する。軌道到着の表との突き合わせは起動時の検査サービスが行う
-    // Validates the space elevator base's references and numbers; the orbital-table cross-check runs in the boot-time check service
+    // 拠点の参照・数値・軌道到着容量をマスタ読込時に検証する
+    // Validate base references, scalars and orbital output capacity during master loading
     internal static class SpaceElevatorBaseParamValidator
     {
         internal static string Validate(Blocks blocks)
@@ -16,6 +17,7 @@ namespace Core.Master.Validator.Block
             {
                 if (block.BlockParam is not SpaceElevatorBaseBlockParam param) continue;
                 cableItemGuids.Add(param.CableItemGuid);
+                logs += ValidatePayload(block.Name, param.CableItemGuid, false, param.OutputSlotCount);
                 logs += ValidateBase(block.Name, param);
             }
 
@@ -24,6 +26,22 @@ namespace Core.Master.Validator.Block
             if (1 < cableItemGuids.Count) logs += $"[BlockMaster] SpaceElevatorBase blocks must share one cableItemGuid. found:{string.Join(",", cableItemGuids)}\n";
             return logs;
             #region Internal
+            string ValidatePayload(string name, Guid guid, bool carried, int outputSlots)
+            {
+                var payload = MasterHolder.ItemMaster.Items.OrbitalPayloads.SingleOrDefault(row => row.PayloadItemGuid == guid);
+                if (payload == null) return $"[BlockMaster] Name:{name} item {guid} is missing from orbitalPayloads\n";
+                if (!carried) return ""; // silent-ok: ケーブルは昇降機に積まない / carried側で単機容量を検証する
+
+                // 初期スタック容量を共有long計算し、プレビュー配列を作らない
+                // Share the long initial-stack calculation without allocating preview arrays
+                var result = "";
+                if (payload.CountPerLaunch != 1) result += $"[BlockMaster] Name:{name} carried payload {guid} countPerLaunch must be 1\n";
+                var counts = payload.ArrivalOutputs.Select(output => (MasterHolder.ItemMaster.GetItemId(output.ItemGuid), output.Count));
+                var neededSlots = MasterHolder.ItemMaster.CountRequiredSlotsAtLevelOne(counts);
+                if (outputSlots < neededSlots) result += $"[BlockMaster] Name:{name} outputSlotCount {outputSlots} cannot hold payload {guid} ({neededSlots} stacks at level-1 stack)\n";
+                return result;
+            }
+
             string ValidateBase(string name, SpaceElevatorBaseBlockParam param)
             {
                 var logs = "";
@@ -31,7 +49,7 @@ namespace Core.Master.Validator.Block
                 if (param.CarriedPayloadItemGuids.Length == 0) logs += $"[BlockMaster] Name:{name} carriedPayloadItemGuids must not be empty\n";
                 foreach (var payloadGuid in param.CarriedPayloadItemGuids)
                 {
-                    if (MasterHolder.ItemMaster.GetItemIdOrNull(payloadGuid) == null) logs += $"[BlockMaster] Name:{name} has invalid carriedPayloadItemGuid:{payloadGuid}\n";
+                    logs += ValidatePayload(name, payloadGuid, true, param.OutputSlotCount);
 
                     // ケーブルを昇降機で運べるとロケット無しでプールが増える
                     // Carrying cables on the climber would grow the pool without rockets

@@ -32,8 +32,8 @@ namespace Game.SpaceElevator
 
         public void Load()
         {
-            // 拠点のマスタが数えるケーブルを集める。表との突き合わせは SpaceElevatorOrbitalTableCheck が起動時に行う
-            // Collect the cable items base masters count; SpaceElevatorOrbitalTableCheck cross-checks them with the table at boot
+            // 拠点のマスタが数えるケーブルを集める。表との整合はマスタ読込時に検証済み
+            // Collect the cable items base masters count; table consistency was validated during master loading
             _cableItemIds.UnionWith(SpaceElevatorBaseMasters.CableItemIds());
 
             // ケーブルの到着だけを数える。どの打ち上げ口から来たかは見ない
