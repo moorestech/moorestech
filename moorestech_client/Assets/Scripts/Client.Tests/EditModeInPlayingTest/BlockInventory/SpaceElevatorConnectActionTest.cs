@@ -1,6 +1,9 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
+using Client.Common;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;
 using Core.Master;
@@ -46,6 +49,20 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var target = PlaceBlock(master.Name, position, BlockDirection.North);
                 var decoy = PlaceBlock(master.Name, Vector3Int.zero, BlockDirection.North);
                 var view = await WaitBlockGameObjectSpawn(position);
+                // 実配置のクリック判定から所有者と操作入口まで確かめる
+                // Verify the placed collider raycast resolves its owner and interaction entry
+                var collider = view.GetComponentsInChildren<Collider>(true).Single();
+                Assert.AreEqual(LayerConst.BlockLayer, collider.gameObject.layer);
+                Assert.IsTrue(BlockGameObjectColliderSetup.IsClickableCollider(view.transform, collider));
+                Physics.SyncTransforms();
+                var ray = new Ray(collider.bounds.center + Vector3.up * (collider.bounds.extents.y + 2), Vector3.down);
+                Assert.IsTrue(Physics.Raycast(ray, out var hit, 10, LayerConst.BlockOnlyLayerMask));
+                Assert.AreSame(collider, hit.collider);
+                var child = hit.collider.GetComponent<BlockGameObjectChild>();
+                Assert.AreSame(view, child.BlockGameObject);
+                Assert.AreSame(view.Interactable, child.Interactable);
+                Assert.IsNotEmpty(view.Interactable.Actions);
+                Debug.Log($"[SpaceElevatorClick] count=1 layer={collider.gameObject.layer} clickable=true owner={child.BlockGameObject.name} actions={view.Interactable.Actions.Count}");
                 var subInventory = await BlockSubInventoryOpener.Open(view);
 
                 // 実Binderの登録から実API・サーバー応答まで通す
