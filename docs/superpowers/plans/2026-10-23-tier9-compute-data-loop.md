@@ -17,7 +17,7 @@
 5. **R5 軌道到着と成果:** 打ち上げ開始の時点で軌道到着とし、`IOrbitalArrivalService.Arrive` が積荷表から成果を返し、`OnOrbitalArrival` を流す。成果が出力スロットに入りきるかを、建造を始める前と打ち上げる直前の両方で確かめ、入りきらなければ待たせて理由（出力満杯）を出す。打ち上げた成果はそのまま出力スロットへ入り、出力スロットからは接続先（ベルト）へ流れる。打ち上げ後に成果を預かる保留は持たない。受け入れ: 出力が満杯のとき次の便の資材が取り込まれず、取り出すと再開する。
 6. **R6 積荷表:** items.yml のトップレベル配列 `orbitalPayloads`（積荷アイテム・1便の個数・成果の並び）を必須で追加する。repo 内の全 items.json と、moorestech_master で読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/items.json` へ空配列を足す（土台で空になっているスタックテーブル7件への Default と合わせ、読み込みが止まらない最小限。R12・D14）。テスト用 mod には積荷2行を入れる。GPU衛星などの実際の行は統合タスクで入れる。受け入れ: 積荷表に無いアイテムは積荷スロットを持たない。ピン先の moorestech_master が読込エラー無しで読める。
 7. **R7 マスタ検証:** 積荷表と発射台パラメータの不整合（存在しないアイテム・重複・1便の個数がスタック上限を超える・資材と積荷が同じアイテム・秒数や電力が0以下・発射台があるのに積荷表が空・1便ぶんの成果がレベル1のスタック上限で数えて `outputSlotCount` を超える）はマスタ読込時にエラーで止まる。
-8. **R8 セーブ:** 発射台の段階（int）・残り秒・積んだロケットの中身・次に探す積荷・入れ口と出力口の中身をブロックのセーブに入れ、`rocketLaunchHistory.hasLaunchedOnce` をワールドのセーブに入れる。版を6→7に上げ、旧版セーブに `hasLaunchedOnce:false` を足す移行ステップを同梱する。ロード時、今の積荷表で打ち上げられない積荷（表に無い・1便の倍数でない・欠損マスタの刈り込みで空）は警告して捨てて待機に戻し、置き場の無いスロットの品は警告して捨て、負の「次に探す積荷」は範囲内へ直す。受け入れ: 建造中・発射の合図待ち・出力満杯の打ち上げ待ちでセーブ→ロードして同じ状態から続く。壊れた積荷のセーブはロードが止まらず待機から始まる。
+8. **R8 セーブ:** 発射台の段階（int）・残り秒・積んだロケットの中身・次に探す積荷・入れ口と出力口の中身をブロックのセーブに入れ、`rocketHasLaunchedOnce` をワールドのセーブのトップレベルに入れる（版7で必須。欠ければロードを止める）。版を6→7に上げ、旧版セーブに `rocketHasLaunchedOnce:false` を足す移行ステップを同梱する。ロード時、今の積荷表で打ち上げられない積荷（表に無い・1便の倍数でない・欠損マスタの刈り込みで空）は警告して捨てて待機に戻し、置き場の無いスロットの品は警告して捨て、負の「次に探す積荷」は範囲内へ直す。受け入れ: 建造中・発射の合図待ち・出力満杯の打ち上げ待ちでセーブ→ロードして同じ状態から続く。壊れた積荷のセーブはロードが止まらず待機から始まる。
 9. **R9 撤去返却:** 撤去時、スロットの中身（出力スロットの成果を含む）に加えて、建造中・発射の合図待ち・打ち上げ待ちのロケットに積んだ資材と積荷を返却する。打ち上げ中のロケットの中身は消費済みなので返さない。
 10. **R10 見た目:** 既存の `Rocket.prefab`（発射台 base とロケット本体 body）を使う。base は常に表示、body は建造完了（発射の合図待ち・打ち上げ待ち）から表示し、打ち上げで `launchSeconds` かけて上昇し、終わると消える。演出・音は付けない。
 11. **R11 Web UI:** 発射台を開くと、資材・積荷・出力のスロット群に見出しを付けて並べ、段階と待ち理由の文、建造・打ち上げの進み具合のゲージ、初打ち上げ前だけ「建造」「発射」ボタンを出す。
@@ -73,7 +73,7 @@
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/*.cs`・`Stage/`・`Save/` | 発射台の部品の外殻・段階の進行・段階の型・電力・インベントリ・積み込み・出力口・セーブ変換 |
 | `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad/*.cs`・`State/RocketLaunchPad/*.cs` | 発射台の契約型（合図の口と結果・スロット並び・段階・待ち理由・状態詳細）。プロトコルとクライアントが参照する |
 | `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs` | 発射台の組み立て |
-| `moorestech_server/Assets/Scripts/Game.SaveLoad/...` | ワールドセーブへの `rocketLaunchHistory`・V6→V7 移行 |
+| `moorestech_server/Assets/Scripts/Game.SaveLoad/...` | ワールドセーブへの `rocketHasLaunchedOnce`・V6→V7 移行 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Rocket/RocketLaunchPadCommandProtocol.cs` | 建造・発射の合図（操作の種類と通信の失敗理由はプロトコルにネスト） |
 | `moorestech_server/Assets/Scripts/Server.Boot/Composition/OrbitServiceRegistration.cs` | Game.Orbit の DI 登録 |
 | `moorestech_server/Assets/Scripts/Tests/Util/Rocket/RocketLaunchPadTestUtil.cs` | 発射台のテスト共有ヘルパ |
@@ -681,7 +681,6 @@ git commit -m "feat(master): 積荷表と発射台のスキーマと読込時検
 - Create: `moorestech_server/Assets/Scripts/Game.Orbit/OrbitalArrivalService.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Orbit/IRocketLaunchHistory.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Orbit/RocketLaunchHistory.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Orbit/RocketLaunchHistoryJsonObject.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Boot/Composition/OrbitServiceRegistration.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/MoorestechServerDIContainerGenerator.cs`（`SaveAndEventServiceRegistration.Register(...)` の直前に1行）
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/Server.Boot.asmdef`、`moorestech_server/Assets/Scripts/Game.Block/Game.Block.asmdef`、`moorestech_server/Assets/Scripts/Game.SaveLoad/Game.SaveLoad.asmdef`、テストの asmdef（`Tests` 配下で `Game.CleanRoom` を参照している asmdef すべて）の `references` に `"Game.Orbit"`
@@ -692,8 +691,7 @@ git commit -m "feat(master): 積荷表と発射台のスキーマと読込時検
 - Produces:
   - `Game.Orbit.OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`、ctor `(ItemId payloadItemId, int payloadCount)`）
   - `Game.Orbit.IOrbitalArrivalService`（`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`・`bool IsOrbitalPayload(ItemId itemId)`・`IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)`・`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`）
-  - `Game.Orbit.IRocketLaunchHistory`（`bool HasLaunchedOnce { get; }`・`IObservable<Unit> OnFirstLaunch { get; }`・`void RecordLaunch()`・`RocketLaunchHistoryJsonObject GetSaveData()`・`void LoadSaveData(RocketLaunchHistoryJsonObject saveData)`）
-  - `Game.Orbit.RocketLaunchHistoryJsonObject`（`[JsonProperty("hasLaunchedOnce")] public bool HasLaunchedOnce;`）
+  - `Game.Orbit.IRocketLaunchHistory`（`bool HasLaunchedOnce { get; }`・`IObservable<Unit> OnFirstLaunch { get; }`・`void RecordLaunch()`・`void LoadSaveData(bool hasLaunchedOnce)`。セーブへは `HasLaunchedOnce` をそのまま書く）
   - DI: `IRocketLaunchHistory`→`RocketLaunchHistory`、`IOrbitalArrivalService`→`OrbitalArrivalService`（どちらもシングルトン）
 
 - [ ] **Step 1: asmdef を作る**
@@ -870,8 +868,7 @@ namespace Game.Orbit
         IObservable<Unit> OnFirstLaunch { get; }
 
         void RecordLaunch();
-        RocketLaunchHistoryJsonObject GetSaveData();
-        void LoadSaveData(RocketLaunchHistoryJsonObject saveData);
+        void LoadSaveData(bool hasLaunchedOnce);
     }
 }
 ```
@@ -900,29 +897,10 @@ namespace Game.Orbit
             _onFirstLaunch.OnNext(Unit.Default);
         }
 
-        public RocketLaunchHistoryJsonObject GetSaveData()
+        public void LoadSaveData(bool hasLaunchedOnce)
         {
-            return new RocketLaunchHistoryJsonObject { HasLaunchedOnce = HasLaunchedOnce };
+            HasLaunchedOnce = hasLaunchedOnce;
         }
-
-        public void LoadSaveData(RocketLaunchHistoryJsonObject saveData)
-        {
-            HasLaunchedOnce = saveData.HasLaunchedOnce;
-        }
-    }
-}
-```
-
-`RocketLaunchHistoryJsonObject.cs`:
-
-```csharp
-using Newtonsoft.Json;
-
-namespace Game.Orbit
-{
-    public class RocketLaunchHistoryJsonObject
-    {
-        [JsonProperty("hasLaunchedOnce")] public bool HasLaunchedOnce;
     }
 }
 ```
@@ -1085,19 +1063,19 @@ Expected: 両方の push が成功し、`.moorestech-external-revisions.json` �
 ### Task 3: ワールドセーブへの初打ち上げ履歴と V6→V7 移行
 
 **Files:**
-- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs`（`CurrentVersion = 7`、ctor 引数 `RocketLaunchHistoryJsonObject rocketLaunchHistory` を `cleanRoomRooms` の次に、プロパティ `[JsonProperty("rocketLaunchHistory")] public RocketLaunchHistoryJsonObject RocketLaunchHistory { get; }`）
-- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/AssembleSaveJsonText.cs`（ctor に `IRocketLaunchHistory`、`Capture()` で `_rocketLaunchHistory.GetSaveData()`）
-- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldSaveDataRestorer.cs`（ctor に `IRocketLaunchHistory`、`LoadUnlockState` の次で `LoadSaveData`、必須欠損の検査へ `rocketLaunchHistory`）
+- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs`（`CurrentVersion = 7`、ctor 引数 `bool? rocketHasLaunchedOnce` を `cleanRoomRooms` の次に、プロパティ `[JsonProperty("rocketHasLaunchedOnce")] public bool? RocketHasLaunchedOnce { get; }`。前例 `currentTick` の `ulong?`＋`HasValue` と同じく、欠損を null で検出するため nullable にする）
+- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/AssembleSaveJsonText.cs`（ctor に `IRocketLaunchHistory`、`Capture()` で `_rocketLaunchHistory.HasLaunchedOnce`）
+- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldSaveDataRestorer.cs`（ctor に `IRocketLaunchHistory`、`LoadUnlockState` の次で `LoadSaveData`、必須欠損の検査へ `rocketHasLaunchedOnce`）
 - Create: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldSaveRequiredFieldGuard.cs`（`WorldSaveDataRestorer` の `ThrowIfRequiredFieldMissing` を移す。194行のファイルを200行以内に保つため。同じ役割の前例 `PlayerSaveReferenceValidator` に合わせて `internal static`）
-- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Pruning/MissingMasterPruner.cs`（`SectionsWithoutMasterPruning` の「マスタguidを持たない」行に `"rocketLaunchHistory"`）
+- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Pruning/MissingMasterPruner.cs`（`SectionsWithoutMasterPruning` の「マスタguidを持たない」行に `"rocketHasLaunchedOnce"`）
 - Create: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/SaveMigrationStepV6ToV7.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs:116`、`moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoadPreparerTestFixture.cs:37`、`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/SaveMigrationChainTest.cs:137`（配列の末尾に `new SaveMigrationStepV6ToV7()`）
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/Migration/SaveMigrationStepV6ToV7Test.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchHistorySaveLoadTest.cs`
 
 **Interfaces:**
-- Consumes: Task 2 の `IRocketLaunchHistory`・`RocketLaunchHistoryJsonObject`
-- Produces: セーブの `rocketLaunchHistory: { hasLaunchedOnce: bool }`（版7で必須）、`SaveMigrationStepV6ToV7`（`FromVersion => 6`）
+- Consumes: Task 2 の `IRocketLaunchHistory`
+- Produces: セーブのトップレベル `rocketHasLaunchedOnce: bool`（版7で必須）、`SaveMigrationStepV6ToV7`（`FromVersion => 6`）
 
 - [ ] **Step 1: moorestech-save-migration スキルを読み、移行ステップを書く**
 
@@ -1119,11 +1097,11 @@ namespace Game.SaveLoad.Migration.Steps
         {
             // 版6に履歴は無い。あるなら想定外の形なので変換しない
             // V6 has no launch history; its presence is an unexpected shape, so refuse
-            if (save["rocketLaunchHistory"] is JToken existing && existing.Type != JTokenType.Null) return Fail("版6のセーブに rocketLaunchHistory が既にある");
+            if (save["rocketHasLaunchedOnce"] is JToken existing && existing.Type != JTokenType.Null) return Fail("版6のセーブに rocketHasLaunchedOnce が既にある");
 
             // 版6以前に発射台は存在しないので、未打ち上げが唯一の正しい値
             // No launch pad existed before V6, so not-yet-launched is the only correct value
-            save["rocketLaunchHistory"] = new JObject { ["hasLaunchedOnce"] = false };
+            save["rocketHasLaunchedOnce"] = false;
             Debug.Log("セーブを版6から版7へ変換しました。ロケットの初打ち上げ履歴=未打ち上げ");
             return SaveMigrationStepResult.Converted(save);
 
@@ -1145,7 +1123,7 @@ namespace Game.SaveLoad.Migration.Steps
 
 3か所の配列の末尾へ `new SaveMigrationStepV6ToV7()` を足す。
 
-- [ ] **Step 2: 必須欠損の検査を移して `rocketLaunchHistory` を足す**
+- [ ] **Step 2: 必須欠損の検査を移して `rocketHasLaunchedOnce` を足す**
 
 `WorldSaveRequiredFieldGuard.cs`:
 
@@ -1169,7 +1147,7 @@ namespace Game.SaveLoad.Json
             if (load.MiningCooldowns == null) missing.Add("miningCooldowns");
             if (load.BackfilledFields == null) missing.Add("backfilledFields");
             if (load.Players == null) missing.Add("players");
-            if (load.RocketLaunchHistory == null) missing.Add("rocketLaunchHistory");
+            if (!load.RocketHasLaunchedOnce.HasValue) missing.Add("rocketHasLaunchedOnce");
             if (missing.Count == 0) return;
 
             var reason = $"セーブに {string.Join(" / ", missing)} がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";
@@ -1185,10 +1163,10 @@ namespace Game.SaveLoad.Json
 ```csharp
             // 発射台がロード直後の初回Updateで参照するので、ブロックより先に戻す
             // Launch pads read it on their first update after load, so restore it before blocks
-            _rocketLaunchHistory.LoadSaveData(load.RocketLaunchHistory);
+            _rocketLaunchHistory.LoadSaveData(load.RocketHasLaunchedOnce.Value);
 ```
 
-`WorldSaveAllInfo` の ctor 引数・代入・プロパティ、`AssembleSaveJsonText` の ctor・`Capture()` の引数（`_cleanRoomDatastore.GetSaveData(),` の次に `_rocketLaunchHistory.GetSaveData(),`）を足す。`WorldSaveAllInfo` を `new` している他の箇所（`git grep -n "new WorldSaveAllInfo("`）も引数を足す。`MissingMasterPruner` の一覧に `"rocketLaunchHistory"` を足す。
+`WorldSaveAllInfo` の ctor 引数・代入・プロパティ、`AssembleSaveJsonText` の ctor・`Capture()` の引数（`_cleanRoomDatastore.GetSaveData(),` の次に `_rocketLaunchHistory.HasLaunchedOnce,`）を足す。`WorldSaveAllInfo` を `new` している他の箇所（`git grep -n "new WorldSaveAllInfo("`）も引数を足す。`MissingMasterPruner` の一覧に `"rocketHasLaunchedOnce"` を足す。
 
 - [ ] **Step 3: テストを書く**
 
@@ -1214,14 +1192,14 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
             var result = new SaveMigrationStepV6ToV7().Migrate(save);
 
             Assert.IsTrue(result.IsConverted, result.FailureReason);
-            Assert.IsFalse(result.Save["rocketLaunchHistory"]["hasLaunchedOnce"].Value<bool>());
+            Assert.IsFalse(result.Save["rocketHasLaunchedOnce"].Value<bool>());
             Assert.AreEqual("x", result.Save["world"][0]["blockGuid"].Value<string>());
         }
 
         [Test]
         public void 履歴が既にある版6は変換しない()
         {
-            var save = JObject.Parse("{\"worldVersion\":6,\"rocketLaunchHistory\":{\"hasLaunchedOnce\":true}}");
+            var save = JObject.Parse("{\"worldVersion\":6,\"rocketHasLaunchedOnce\":true}");
             LogAssert.Expect(LogType.Warning, new Regex("版6から版7へ変換できません"));
 
             var result = new SaveMigrationStepV6ToV7().Migrate(save);
@@ -1232,7 +1210,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
 }
 ```
 
-`Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchHistorySaveLoadTest.cs`: `CleanRoomSaveLoadTest` と `SaveLoadJsonTestHelper` の書き方に合わせ、(a) `RecordLaunch()` 後にセーブ→新しいDIでロードして `HasLaunchedOnce == true`、(b) 版6のセーブJSON（`SaveLoadJsonTestHelper` が作る現在版のJSONから `rocketLaunchHistory` を消し `worldVersion` を6にしたもの）をロードして `HasLaunchedOnce == false` になることを確かめる2件を書く。
+`Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchHistorySaveLoadTest.cs`: `CleanRoomSaveLoadTest` と `SaveLoadJsonTestHelper` の書き方に合わせ、(a) `RecordLaunch()` 後にセーブ→新しいDIでロードして `HasLaunchedOnce == true`、(b) 版6のセーブJSON（`SaveLoadJsonTestHelper` が作る現在版のJSONから `rocketHasLaunchedOnce` を消し `worldVersion` を6にしたもの）をロードして `HasLaunchedOnce == false` になることを確かめる2件を書く。
 
 既存テストやフィクスチャが「現在版=6」を前提にしていれば（`git grep -n "worldVersion\\\\\":6\|CurrentVersion" -- moorestech_server/Assets/Scripts/Tests`）、7へ直す。
 
@@ -2612,7 +2590,7 @@ namespace Tests.Util.Rocket
 - (f) `nextPayloadIndex` を -1 にすると `NextPayloadIndex` が1（積荷表2行）。
 - (g) `phase` を99にすると `Idle` で `段階の値が不明` の警告。`Launching` で `remainingSeconds` を0にすると残り1tickで警告。
 - (h) `Building` で `remainingSeconds` を100（建造1秒の台）にしたJSONをロードすると、状態の `Progress` が0（負にならない）。
-- (i) `AwaitingLaunchCommand` の台を置いたワールドを保存し、JSON の `rocketLaunchHistory.hasLaunchedOnce` を true に書き換えてロードすると、ロード直後の `Phase` が `ReadyToLaunch`。
+- (i) `AwaitingLaunchCommand` の台を置いたワールドを保存し、JSON の `rocketHasLaunchedOnce` を true に書き換えてロードすると、ロード直後の `Phase` が `ReadyToLaunch`。
 
 `Tests/UnitTest/Game/RocketLaunchPad/` の段階の型のテスト（Task 4）もここで実行する。
 
@@ -3449,7 +3427,7 @@ planning 中の判断:
 
 配置検査の注目点のうち、修正しなかったものの扱い（どれも agent前提）:
 - 注目点2: `IRocketLaunchHistory` は共有の `Game.Orbit` に置いたままにする。初打ち上げはワールドの打ち上げの記録で、ワールドセーブの復元（`Game.SaveLoad`）が既に `Game.Orbit` を参照するため。エレベーター拠点はこの状態を読まない（ADR 0088）。
-- 注目点3: `RocketLaunchHistoryJsonObject` で bool を1個包むのは、`WorldSaveRequiredFieldGuard` が節の欠損を null で検出して止めるため（素の bool だと欠損が false に化けて黙って通る）。
+- 注目点3: 初打ち上げ済みはトップレベルの `bool? RocketHasLaunchedOnce` に置き、`WorldSaveRequiredFieldGuard` が `HasValue` で欠損を検出して止める。前例 `currentTick`（`ulong?`＋`HasValue`）と同じ形で、素の bool だと欠損が false に化けて黙って通るため nullable にする。bool を1個包むだけの節（JsonObject）は作らない（節の内側の素の bool に同じ欠損の化けが残るため。再検査 N2）。
 - 注目点5: 既存マスタの発射台の行は `blockType` が空で `blockParam` も無い（シミュレーターの斥候が moorestech_master `blocks.json` で実測）ので、テスターのワールドに置かれた台は無く、ブロック状態の移行は要らない。
 - 注目点6: `Rocket.prefab`（`Vanilla/Block/Rocket`）を使う他のブロックは moorestech_master `server/mods/moorestechAlphaMod_3`（今のゲームが読まない旧 mod）の「ロケット」だけで、読み込まれる `server_v8/mods/moorestechAlphaMod_8` には無い（実測 2026-10-23。`grep -rn "Vanilla/Block/Rocket"`）。Task 7 Step 3 の冒頭で着手時にもう一度確かめる。
 - 注目点9（再検査 N1 で改め）: `ItemMasterUtil.cs` は D22 のとおり本PRで S1 の領域ではない検証を `Validator/Item/` へ移し、200行以下にする。
