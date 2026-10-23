@@ -3737,8 +3737,8 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P9 | 研究「軌道エレベーターの建設」の計算データ消費は S2 の plan の値（見つからなければ 200）、研究「反物質爆弾」に計算データ ×400 | S2 の裁定「計算データを消費する」。量は S2 待ち・S1 待ち |
 | P10 | プールは起動時（`IBootInitializable.Load`）に、拠点のマスタが指すケーブル・積荷が軌道到着の表にあるか、積荷にケーブルが含まれないかを S2 の `IsOrbitalPayload` で確かめ、違えば例外で止める | ADR 0089。S2 のマスタ API が未確定のため、公開済みの契約（`IsOrbitalPayload`）だけで確かめる |
 | P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない） | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値 |
-| P12 | 撤去返却は `RemoveBlockProtocol` で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
-| P13 | 接続は専用プロトコル `va:connectSpaceElevator` で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出し、プレイヤーには状態詳細のプール残量から理由を出す | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
+| P12 | 撤去返却は `RemoveBlockProtocol.cs`（`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`）で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
+| P13 | 接続は専用プロトコル `va:connectSpaceElevator`（`ConnectSpaceElevatorProtocol.cs` を `PacketResponse/SpaceElevator/` に新設し `PacketResponseCreator.cs` に登録、`Server.Protocol.asmdef` に `Game.SpaceElevator` 参照を足す。クライアントは `BlockRequestApi.cs` に `ConnectSpaceElevator` を足す）で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出し、プレイヤーには状態詳細のプール残量から理由を出す | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
 | P14 | 拠点の UI は専用 view を作らず `SectionStackView` に固有部分 `SpaceElevatorSection` を合成する | 前例 `GearToElectricSection` |
 | P15 | 新しいファイルはディレクトリの 10 ファイル上限のためサブディレクトリ（`PacketResponse/SpaceElevator/`・`Actions/SpaceElevator/`・`Topics/BlockDetail/SpaceElevator/`・`StateProcessor/SpaceElevator/`）に置き、`inventory.ts`（215 行）を分割する | AGENTS.md の規約 |
 | P16 | 録画テストは昇降の完了（600 秒）まで待たず、昇降機が上がること・進みが増えることまでを見る。到着後の成果・出口の空き待ちはユニットテストで見る。ケーブルの打ち上げはサーバーで `Arrive(cable, 1000)` を呼んで起こす | 録画の長さ。本番との差: ロケットでの打ち上げ経路は通さない（S2 の録画が担う） |
@@ -3746,6 +3746,9 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P18 | ランタイム挙動（発電機の UI・拠点の UI・見た目・昇降）に触れるので、unityプレイ録画テスト（Task 13）を入れる | moores-writing-plans の録画テスト規定 |
 | P19 | 昇降機は打ち上げ後の保留を持たない。昇り始める前と頂上で渡す直前に `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを確かめ、入らなければ入口に残す／頂上で電力を使わず待つ。状態は `OutputBlocked` | S2 のユーザー裁定（S2 ブランチ `.decisions/2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める.md`、明示引用「発射台の出力口が満杯のとき、どこで待たせますか？」→ 選択「入りきる時だけ建造開始」）と、その裁定ファイルの「宇宙エレベーター拠点（S3）も同じ方式にする」。拠点への適用の形（2点の確認・頂上で待つ間は電力を使わない）は agent前提で、前例は機械の `IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118` |
 | P20 | 拠点の出口は `outputSlotCount`（出荷 4・テスト mod 1）スロット。衛星1機の成果がレベル1のスタック上限で空の出口に入りきらないマスタは、起動時に `SpaceElevatorOrbitalTableCheck` が止める | 入りきらない成果は頂上で永遠に待つ（構造的に解消しない待ち）ため、いちばん早い段階で止める（AGENTS.md）。スロット数 4 は agent前提 |
+| P21 | `VanillaSchema/blocks.yml` に blockType `SpaceElevatorBase` と case を足し、`_CompileRequester.cs`（`moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`）の `dummyText` を上げて生成し直す。新しい case だけなので既存ブロックの JSON は変えない | edit-schema スキルの手順。拠点の振る舞いは既存の blockType では表せない（ケーブルプールへの接続・昇降機）ため新設 |
+| P22 | 拠点のマスタ検証を `SpaceElevatorBaseParamValidator.cs`（`Core.Master/Validator/Block/`）に置き、`BlockMasterUtil.cs` の `Validate` に連結する。見るのは参照・数値・全拠点のケーブルが1種か。軌道到着の表との突き合わせは S2 のサービスが要るので起動時（P10） | 前例 `BlockMasterUtil.cs` の `BeltSpeedPerSecondValidator` の連結。AGENTS.md「必須の設定はいちばん早い段階で止める」 |
+| P23 | 拠点の組み立てを `VanillaSpaceElevatorBaseTemplate.cs`（`Game.Block/Factory/BlockTemplate/SpaceElevator/`）に置き、`VanillaIBlockTemplates.cs` に登録する。供給の受け取りを昇降機より前に並べる | 前例 `VanillaElectricPumpTemplate`（電力受け取りと処理の順）・`VanillaChestTemplate`（インベントリとコネクタ） |
 
 ### S1 待ち・S2 待ち
 
