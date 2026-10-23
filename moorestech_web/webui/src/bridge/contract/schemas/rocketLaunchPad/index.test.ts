@@ -21,3 +21,9 @@ describe("rocket launch pad wire boundary", () => {
     expect(BlockInventoryOpenSchema.safeParse({ ...fixture, rocketLaunchPad: { ...detail, ...bad } }).success).toBe(false);
   });
 });
+
+// 各群の範囲外添字は描画前の受信境界で拒否する
+// Reject each group's out-of-bounds indices before rendering
+it.each(["materialSlots", "payloadSlots", "outputSlots"])("rejects out of range %s", (group) => {
+  expect(BlockInventoryOpenSchema.safeParse({ ...fixture, itemSlots: [{ itemId: 0, count: 0 }], rocketLaunchPad: { ...detail, materialSlots: [], payloadSlots: [], outputSlots: [], [group]: [1] } }).success).toBe(false);
+});

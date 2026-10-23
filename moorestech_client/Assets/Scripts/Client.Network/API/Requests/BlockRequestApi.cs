@@ -67,11 +67,11 @@ namespace Client.Network.API.Requests
 
         // 発射台へ建造・発射の合図を送る
         // Send a build or launch command to a rocket launch pad
-        public async UniTask<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse> SendRocketLaunchPadCommand(
-            Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, CancellationToken ct)
+        public async UniTask<(RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse response, PacketWaitCompletionReason reason)> SendRocketLaunchPadCommand(
+            Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, BlockInstanceId expectedInstanceId, CancellationToken ct)
         {
-            var request = new RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest(position, operation);
-            return await _packetExchangeManager.GetPacketResponse<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>(request, ct);
+            var request = new RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest(position, operation, expectedInstanceId);
+            return await _packetExchangeManager.GetPacketResponseWithReason<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>(request, ct);
         }
 
         // BP Create/GetAll/Deleteを1メソッドで統合

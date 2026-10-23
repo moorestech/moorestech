@@ -7,27 +7,25 @@ using Game.Block.Interface.State;
 using Game.Orbit;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
-
 namespace Game.Block.Blocks.RocketLaunchPad
 {
     // 発射台の段階を1tickずつ進める。建造は成果が出力口に入りきるときだけ始め、打ち上げは ReadyToLaunch からだけ始める
     // Advances the pad stage one tick at a time; builds start only when outputs fit, launches only from ReadyToLaunch
-    public class RocketLaunchPadLaunchSequence
+    internal class RocketLaunchPadLaunchSequence
     {
         public RocketLaunchPadStage Stage { get; private set; } = IdleStage.Instance;
         public RocketLaunchPadWaitReason WaitReason { get; private set; }
         public float RequestPower => Stage is BuildingStage ? _requiredPower : 0f;
-
+        private bool _reevaluateWait = true;
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly RocketLaunchPadCargoLoader _cargoLoader;
         private readonly RocketLaunchPadOutputSlots _outputSlots;
         private readonly IOrbitalArrivalService _arrivalService;
-        private readonly IRocketLaunchHistory _launchHistory;
+        private readonly RocketLaunchHistory _launchHistory;
         private readonly float _requiredPower;
         private readonly uint _buildTotalTicks;
         private readonly uint _launchTotalTicks;
-
-        public RocketLaunchPadLaunchSequence(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService, IRocketLaunchHistory launchHistory)
+        public RocketLaunchPadLaunchSequence(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory)
         {
             _layout = layout;
             _cargoLoader = cargoLoader;
@@ -38,20 +36,91 @@ namespace Game.Block.Blocks.RocketLaunchPad
             _buildTotalTicks = GameUpdater.SecondsToTicks(param.BuildSeconds);
             _launchTotalTicks = GameUpdater.SecondsToTicks(param.LaunchSeconds);
         }
-
         public void SetStage(RocketLaunchPadStage stage)
         {
+            if (!ReferenceEquals(Stage, stage)) InvalidateWait();
             Stage = stage;
         }
-
+        public void InvalidateWait() => _reevaluateWait = true;
         public void Advance(float tickPower)
         {
             // 発射の合図待ちは tick では進めない。合図か初打ち上げの通知でだけ段階が移る
             // The launch command wait does not advance by tick; only the command or the first-launch notice moves it
-            if (Stage is IdleStage or AwaitingBuildCommandStage) AdvanceWaitingForCargo();
+            if (Stage is IdleStage or AwaitingBuildCommandStage)
+            {
+                if (_reevaluateWait) { _reevaluateWait = false; AdvanceWaitingForCargo(); }
+            }
             else if (Stage is BuildingStage building) AdvanceBuilding(building, tickPower);
-            else if (Stage is ReadyToLaunchStage ready) AdvanceReadyToLaunch(ready);
+            else if (Stage is ReadyToLaunchStage ready)
+            {
+                if (_reevaluateWait) { _reevaluateWait = false; AdvanceReadyToLaunch(ready); }
+            }
             else if (Stage is LaunchingStage launching) AdvanceLaunching(launching);
+
+            #region Internal
+
+            void AdvanceWaitingForCargo()
+            {
+                WaitReason = CheckBuildable(out var payloadIndex);
+                if (WaitReason != RocketLaunchPadWaitReason.None)
+                {
+                    SetStage(IdleStage.Instance);
+                    // silent-ok: 出力口の空き待ちは通常の待機（資材・積荷の待ちも同じ） / プレイヤーは発射台 UI の待ち理由で気づく
+                    return;
+                }
+
+                // 初打ち上げ前のワールドではプレイヤーの建造の合図を待つ。済んでいれば建造の合図待ちの台もここで建造を始める
+                // Before the world's first launch wait for the build command; afterwards pads awaiting it start building here
+                if (_launchHistory.HasLaunchedOnce) StartBuilding(payloadIndex);
+                else SetStage(AwaitingBuildCommandStage.Instance);
+            }
+
+            void AdvanceBuilding(BuildingStage building, float tickPower)
+            {
+                // 電力の供給率だけ建造を進める
+                // Advance the build by the power supply rate
+                WaitReason = tickPower <= 0f ? RocketLaunchPadWaitReason.NoPower : RocketLaunchPadWaitReason.None;
+                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(tickPower, _requiredPower);
+                if (subTicks < building.RemainingTicks)
+                {
+                    SetStage(new BuildingStage(building.Cargo, building.RemainingTicks - subTicks));
+                    return;
+                }
+
+                // 初打ち上げ前は発射の合図を待ち、以後は打ち上げ待ちへ進む
+                // Before the first launch wait for the launch command, otherwise move on to ready-to-launch
+                WaitReason = RocketLaunchPadWaitReason.None;
+                if (_launchHistory.HasLaunchedOnce) SetStage(new ReadyToLaunchStage(building.Cargo));
+                else SetStage(new AwaitingLaunchCommandStage(building.Cargo));
+            }
+
+            void AdvanceReadyToLaunch(ReadyToLaunchStage ready)
+            {
+                // 打ち上げを始める唯一の口。成果が出力口に入りきらない間は待たせる
+                // The only place a launch starts; wait while the outputs do not fit the output slots
+                var payload = ready.Cargo.Payload;
+                if (!CanStoreArrivalOutputs(payload.Id, payload.Count))
+                {
+                    WaitReason = RocketLaunchPadWaitReason.OutputFull;
+                    // silent-ok: 出力口の空き待ちは通常の待機 / プレイヤーは発射台 UI の待ち理由で気づく
+                    return;
+                }
+
+                // 打ち上げ開始が軌道到着（CONTEXT.md）。成果を出力口へ入れ、ワールドの打ち上げを記録する
+                // Launch start is orbital arrival (CONTEXT.md); store the outputs and record the world's launch
+                WaitReason = RocketLaunchPadWaitReason.None;
+                SetStage(new LaunchingStage(_launchTotalTicks));
+                _outputSlots.Store(_arrivalService.Arrive(payload.Id, payload.Count));
+                _launchHistory.RecordLaunch();
+            }
+
+            void AdvanceLaunching(LaunchingStage launching)
+            {
+                if (1 < launching.RemainingTicks) SetStage(new LaunchingStage(launching.RemainingTicks - 1));
+                else SetStage(IdleStage.Instance);
+            }
+
+            #endregion
         }
 
         public RocketLaunchPadCommandResult RequestBuild()
@@ -59,7 +128,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
             if (Stage is not AwaitingBuildCommandStage) return RocketLaunchPadCommandResult.NotAwaitingBuildCommand;
             var reason = CheckBuildable(out var payloadIndex);
             if (reason == RocketLaunchPadWaitReason.OutputFull) return RocketLaunchPadCommandResult.OutputFull;
-            if (reason != RocketLaunchPadWaitReason.None) return RocketLaunchPadCommandResult.CargoNotReady;
+            if (reason == RocketLaunchPadWaitReason.MissingMaterials) return RocketLaunchPadCommandResult.MissingMaterials;
+            if (reason == RocketLaunchPadWaitReason.MissingPayload) return RocketLaunchPadCommandResult.MissingPayload;
             StartBuilding(payloadIndex);
             return RocketLaunchPadCommandResult.Accepted;
         }
@@ -69,7 +139,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
             // 合図は段階を移すだけ。打ち上げは次の Advance の AdvanceReadyToLaunch が行う
             // The command only moves the stage; the next Advance performs the launch in AdvanceReadyToLaunch
             if (Stage is not AwaitingLaunchCommandStage awaiting) return RocketLaunchPadCommandResult.NotAwaitingLaunchCommand;
-            Stage = new ReadyToLaunchStage(awaiting.Cargo);
+            SetStage(new ReadyToLaunchStage(awaiting.Cargo));
             return RocketLaunchPadCommandResult.Accepted;
         }
 
@@ -77,7 +147,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
         // No launch command wait after the first launch; only the stage moves and the next Advance launches. AdvanceWaitingForCargo releases the build wait
         public void ReleaseLaunchCommandWait()
         {
-            if (Stage is AwaitingLaunchCommandStage awaiting) Stage = new ReadyToLaunchStage(awaiting.Cargo);
+            InvalidateWait();
+            if (Stage is AwaitingLaunchCommandStage awaiting) SetStage(new ReadyToLaunchStage(awaiting.Cargo));
         }
 
         public float CalculateProgress()
@@ -91,67 +162,6 @@ namespace Game.Block.Blocks.RocketLaunchPad
                 AwaitingLaunchCommandStage or ReadyToLaunchStage => 1f,
                 _ => 0f,
             };
-        }
-
-        private void AdvanceWaitingForCargo()
-        {
-            WaitReason = CheckBuildable(out var payloadIndex);
-            if (WaitReason != RocketLaunchPadWaitReason.None)
-            {
-                Stage = IdleStage.Instance;
-                // silent-ok: 出力口の空き待ちは通常の待機（資材・積荷の待ちも同じ） / プレイヤーは発射台 UI の待ち理由で気づく
-                return;
-            }
-
-            // 初打ち上げ前のワールドではプレイヤーの建造の合図を待つ。済んでいれば建造の合図待ちの台もここで建造を始める
-            // Before the world's first launch wait for the build command; afterwards pads awaiting it start building here
-            if (_launchHistory.HasLaunchedOnce) StartBuilding(payloadIndex);
-            else Stage = AwaitingBuildCommandStage.Instance;
-        }
-
-        private void AdvanceBuilding(BuildingStage building, float tickPower)
-        {
-            // 電力の供給率だけ建造を進める
-            // Advance the build by the power supply rate
-            WaitReason = tickPower <= 0f ? RocketLaunchPadWaitReason.NoPower : RocketLaunchPadWaitReason.None;
-            var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(tickPower, _requiredPower);
-            if (subTicks < building.RemainingTicks)
-            {
-                Stage = new BuildingStage(building.Cargo, building.RemainingTicks - subTicks);
-                return;
-            }
-
-            // 初打ち上げ前は発射の合図を待ち、以後は打ち上げ待ちへ進む
-            // Before the first launch wait for the launch command, otherwise move on to ready-to-launch
-            WaitReason = RocketLaunchPadWaitReason.None;
-            if (_launchHistory.HasLaunchedOnce) Stage = new ReadyToLaunchStage(building.Cargo);
-            else Stage = new AwaitingLaunchCommandStage(building.Cargo);
-        }
-
-        private void AdvanceReadyToLaunch(ReadyToLaunchStage ready)
-        {
-            // 打ち上げを始める唯一の口。成果が出力口に入りきらない間は待たせる
-            // The only place a launch starts; wait while the outputs do not fit the output slots
-            var payload = ready.Cargo.Payload;
-            if (!CanStoreArrivalOutputs(payload.Id, payload.Count))
-            {
-                WaitReason = RocketLaunchPadWaitReason.OutputFull;
-                // silent-ok: 出力口の空き待ちは通常の待機 / プレイヤーは発射台 UI の待ち理由で気づく
-                return;
-            }
-
-            // 打ち上げ開始が軌道到着（CONTEXT.md）。成果を出力口へ入れ、ワールドの打ち上げを記録する
-            // Launch start is orbital arrival (CONTEXT.md); store the outputs and record the world's launch
-            WaitReason = RocketLaunchPadWaitReason.None;
-            Stage = new LaunchingStage(_launchTotalTicks);
-            _outputSlots.Store(_arrivalService.Arrive(payload.Id, payload.Count));
-            _launchHistory.RecordLaunch();
-        }
-
-        private void AdvanceLaunching(LaunchingStage launching)
-        {
-            if (launching.RemainingTicks > 1) Stage = new LaunchingStage(launching.RemainingTicks - 1);
-            else Stage = IdleStage.Instance;
         }
 
         // 揃った積荷のうち、成果が出力口に入りきる最初の1つを選ぶ。成果の無い積荷は出力口が満杯でも選べる
@@ -182,7 +192,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
         private void StartBuilding(int payloadIndex)
         {
-            Stage = new BuildingStage(_cargoLoader.LoadCargo(payloadIndex), _buildTotalTicks);
+            SetStage(new BuildingStage(_cargoLoader.LoadCargo(payloadIndex), _buildTotalTicks));
             WaitReason = RocketLaunchPadWaitReason.None;
         }
     }

@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         public void 初打ち上げ履歴は新しいDIへのセーブロードで保持される(bool hasLaunchedOnce)
         {
             var saveProvider = SaveLoadPreparerTestFixture.CreateContainer();
-            var history = saveProvider.GetRequiredService<IRocketLaunchHistory>();
+            var history = saveProvider.GetRequiredService<RocketLaunchHistory>();
             if (hasLaunchedOnce) history.RecordLaunch();
             var json = SaveLoadJsonTestHelper.AssembleSaveJson(saveProvider);
             var save = JObject.Parse(json);
@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             // 逆の状態からロードし、既定値の一致による見逃しを防ぐ
             // Load over the opposite state so a matching default cannot hide a restore omission
             var loadProvider = SaveLoadPreparerTestFixture.CreateContainer();
-            var loadedHistory = loadProvider.GetRequiredService<IRocketLaunchHistory>();
+            var loadedHistory = loadProvider.GetRequiredService<RocketLaunchHistory>();
             loadedHistory.LoadSaveData(!hasLaunchedOnce);
             SaveLoadJsonTestHelper.LoadFromJson(loadProvider, json);
 
@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         public void 版6は本番ロード経路で未打ち上げへ移行し原本を保持する()
         {
             var saveProvider = SaveLoadPreparerTestFixture.CreateContainer();
-            saveProvider.GetRequiredService<IRocketLaunchHistory>().RecordLaunch();
+            saveProvider.GetRequiredService<RocketLaunchHistory>().RecordLaunch();
             var save = JObject.Parse(SaveLoadJsonTestHelper.AssembleSaveJson(saveProvider));
             save.Remove("rocketHasLaunchedOnce");
             save["worldVersion"] = 6;
@@ -76,7 +76,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
                 worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, sourcePath),
             };
             var (_, loadProvider) = new MoorestechServerDIContainerGenerator().Create(options);
-            var loadedHistory = loadProvider.GetRequiredService<IRocketLaunchHistory>();
+            var loadedHistory = loadProvider.GetRequiredService<RocketLaunchHistory>();
             loadedHistory.RecordLaunch();
             loadProvider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
 
@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         public void 現在版で履歴が欠損かnullなら復元せず理由付きで拒否する(bool explicitNull)
         {
             var provider = SaveLoadPreparerTestFixture.CreateContainer();
-            var history = provider.GetRequiredService<IRocketLaunchHistory>();
+            var history = provider.GetRequiredService<RocketLaunchHistory>();
             history.RecordLaunch();
             var save = JObject.Parse(SaveLoadJsonTestHelper.AssembleSaveJson(provider));
             if (explicitNull) save["rocketHasLaunchedOnce"] = JValue.CreateNull();

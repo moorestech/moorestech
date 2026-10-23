@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         [Test]
         public void 成果が出力口に入りきらないときは建造を始めない()
         {
-            ServerContext.GetService<IRocketLaunchHistory>().RecordLaunch();
+            ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 2);
             RocketLaunchPadTestUtil.FillMaterials(pad);
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         [Test]
         public void 出力口が満杯でも成果の無い積荷は打ち上げる()
         {
-            ServerContext.GetService<IRocketLaunchHistory>().RecordLaunch();
+            ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             RocketLaunchPadTestUtil.FillOutputSlots(pad, 100);
             RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
@@ -113,7 +113,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             GameUpdater.RunFrames(5);
             Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, processor.Phase);
             Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, processor.WaitReason);
-            Assert.IsFalse(ServerContext.GetService<IRocketLaunchHistory>().HasLaunchedOnce);
+            Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             inventory.SetItem(5, ServerContext.ItemStackFactory.CreatEmpty());
             inventory.SetItem(6, ServerContext.ItemStackFactory.CreatEmpty());

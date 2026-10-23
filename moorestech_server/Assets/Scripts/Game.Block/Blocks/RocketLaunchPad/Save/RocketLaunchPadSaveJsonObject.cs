@@ -8,11 +8,11 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
     // Inputs are saved by item and outputs by order, so slot meaning survives a payload table change
     public class RocketLaunchPadSaveJsonObject
     {
-        [JsonProperty("phase")] public int Phase;
+        [JsonProperty("phase")] public int? Phase;
         [JsonProperty("remainingSeconds")] public double RemainingSeconds;
         [JsonProperty("cargoPayload")] public ItemStackSaveJsonObject CargoPayload;
         [JsonProperty("cargoMaterials")] public List<ItemStackSaveJsonObject> CargoMaterials;
-        [JsonProperty("nextPayloadIndex")] public int NextPayloadIndex;
+        [JsonProperty("nextPayloadIndex")] public int? NextPayloadIndex;
         [JsonProperty("inputItems")] public List<ItemStackSaveJsonObject> InputItems;
         [JsonProperty("outputItems")] public List<ItemStackSaveJsonObject> OutputItems;
     }

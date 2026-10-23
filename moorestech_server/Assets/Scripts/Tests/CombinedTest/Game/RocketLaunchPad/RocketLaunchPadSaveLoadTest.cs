@@ -43,7 +43,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             }
             if (processor.Phase == RocketLaunchPadPhase.AwaitingLaunchCommand) processor.RequestLaunch();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(loaded, RocketLaunchPadPhase.Launching, 2));
-            Assert.IsTrue(ServerContext.GetService<IRocketLaunchHistory>().HasLaunchedOnce);
+            Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
         }
 
         [TestCase(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadPhase.AwaitingBuildCommand)]

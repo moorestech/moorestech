@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
-using Mooresmaster.Model.ItemsModule;
+using System.Linq;
 using UniRx;
 
 namespace Game.Orbit
@@ -15,14 +15,14 @@ namespace Game.Orbit
         public IObservable<OrbitalArrival> OnOrbitalArrival => _onOrbitalArrival;
 
         private readonly Subject<OrbitalArrival> _onOrbitalArrival = new();
-        private readonly Dictionary<ItemId, OrbitalPayloadMasterElement> _payloadByItemId = new();
+        private readonly Dictionary<ItemId, (int CountPerLaunch, (ItemId ItemId, int Count)[] ArrivalOutputs)> _payloadByItemId = new();
 
         public OrbitalArrivalService()
         {
             // 積荷表を積荷アイテムで引けるように索引する
             // Index the payload table by payload item
             foreach (var payload in MasterHolder.ItemMaster.Items.OrbitalPayloads)
-                _payloadByItemId.Add(MasterHolder.ItemMaster.GetItemId(payload.PayloadItemGuid), payload);
+                _payloadByItemId.Add(MasterHolder.ItemMaster.GetItemId(payload.PayloadItemGuid), (payload.CountPerLaunch, payload.ArrivalOutputs.Select(output => (MasterHolder.ItemMaster.GetItemId(output.ItemGuid), output.Count)).ToArray()));
         }
 
         public bool IsOrbitalPayload(ItemId itemId)
@@ -41,8 +41,8 @@ namespace Game.Orbit
             foreach (var output in payload.ArrivalOutputs)
             {
                 var totalCount = (long)output.Count * launchCount;
-                if (totalCount > int.MaxValue)
-                    throw new ArgumentOutOfRangeException(nameof(payloadCount), payloadCount, $"打ち上げ成果の個数が整数範囲を超えます ItemId:{payloadItemId} OutputItemGuid:{output.ItemGuid} TotalCount:{totalCount} MaxCount:{int.MaxValue}");
+                if (int.MaxValue < totalCount)
+                    throw new ArgumentOutOfRangeException(nameof(payloadCount), payloadCount, $"打ち上げ成果の個数が整数範囲を超えます ItemId:{payloadItemId} OutputItemGuid:{output.ItemId} TotalCount:{totalCount} MaxCount:{int.MaxValue}");
                 outputCounts.Add((int)totalCount);
             }
 
@@ -52,7 +52,7 @@ namespace Game.Orbit
             var outputIndex = 0;
             foreach (var output in payload.ArrivalOutputs)
             {
-                var outputItemId = MasterHolder.ItemMaster.GetItemId(output.ItemGuid);
+                var outputItemId = output.ItemId;
                 outputs.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(outputItemId, outputCounts[outputIndex]));
                 outputIndex++;
             }
@@ -60,7 +60,7 @@ namespace Game.Orbit
 
             #region Internal
 
-            OrbitalPayloadMasterElement FindPayload()
+            (int CountPerLaunch, (ItemId ItemId, int Count)[] ArrivalOutputs) FindPayload()
             {
                 if (!_payloadByItemId.TryGetValue(payloadItemId, out var found))
                     throw new InvalidOperationException($"積荷表に無いアイテムの打ち上げ成果を求められました ItemId:{payloadItemId}");

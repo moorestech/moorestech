@@ -51,10 +51,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
             AssertSuccess(Send(RocketLaunchPadCommandOperation.Launch));
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, processor.Phase);
-            Assert.IsFalse(ServerContext.GetService<IRocketLaunchHistory>().HasLaunchedOnce);
+            Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadPhase.Launching, processor.Phase);
-            Assert.IsTrue(ServerContext.GetService<IRocketLaunchHistory>().HasLaunchedOnce);
+            Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
         }
 
         [Test]
@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
         [Test]
         public void 座標が欠けた要求はInvalidRequestを返す()
         {
-            var request = new RocketLaunchPadCommandRequest(Vector3Int.zero, RocketLaunchPadCommandOperation.Build) { Position = null };
+            var request = new RocketLaunchPadCommandRequest(Vector3Int.zero, RocketLaunchPadCommandOperation.Build, new BlockInstanceId(1)) { Position = null };
             ExpectProtocolRejection(RocketLaunchPadCommandFailureReason.InvalidRequest);
             AssertFailure(Send(request), RocketLaunchPadCommandFailureReason.InvalidRequest);
         }
@@ -111,13 +111,38 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
         }
 
         [Test]
-        public void 合図待ちの資材が搬出されるとCargoNotReadyを返す()
+        public void 合図待ちの資材が搬出されるとMissingMaterialsを返す()
         {
             var pad = PlaceAwaitingBuildPad();
             pad.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
-            ExpectComponentRejection(RocketLaunchPadCommandFailureReason.CargoNotReady);
-            AssertFailure(Send(RocketLaunchPadCommandOperation.Build), RocketLaunchPadCommandFailureReason.CargoNotReady);
+            ExpectComponentRejection(RocketLaunchPadCommandFailureReason.MissingMaterials);
+            AssertFailure(Send(RocketLaunchPadCommandOperation.Build), RocketLaunchPadCommandFailureReason.MissingMaterials);
             Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, pad.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+        }
+
+        [Test]
+        public void 古い個体への合図は置換後の台に作用しない()
+        {
+            var oldPad = PlaceAwaitingBuildPad();
+            var request = new RocketLaunchPadCommandRequest(Vector3Int.zero, RocketLaunchPadCommandOperation.Build, oldPad.BlockInstanceId);
+            ServerContext.WorldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
+            var replacement = PlaceAwaitingBuildPad();
+            ExpectProtocolRejection(RocketLaunchPadCommandFailureReason.InstanceMismatch);
+            AssertFailure(Send(request), RocketLaunchPadCommandFailureReason.InstanceMismatch);
+            Assert.AreEqual(2, replacement.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Count);
+        }
+
+        [Test]
+        public void 操作キーが無い実配列を無消費で拒否する()
+        {
+            var pad = PlaceAwaitingBuildPad();
+            // 末尾の操作と個体IDを持たないMessagePack配列を送る
+            // Send an actual MessagePack array missing operation and instance ID
+            var bytes = MessagePackSerializer.Serialize(new object[] { ProtocolTag, 42, new global::Server.Util.MessagePack.Vector3IntMessagePack(Vector3Int.zero) });
+            ExpectProtocolRejection(RocketLaunchPadCommandFailureReason.InvalidRequest);
+            var responses = _packet.GetPacketResponse(bytes, BoundPacketContext.Bind(1));
+            AssertFailure(MessagePackSerializer.Deserialize<RocketLaunchPadCommandResponse>(responses[0]), RocketLaunchPadCommandFailureReason.InvalidRequest);
+            Assert.AreEqual(2, pad.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Count);
         }
 
         private static IBlock PlaceAwaitingBuildPad()
@@ -130,7 +155,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
 
         private RocketLaunchPadCommandResponse Send(RocketLaunchPadCommandOperation operation)
         {
-            return Send(new RocketLaunchPadCommandRequest(Vector3Int.zero, operation));
+            return Send(new RocketLaunchPadCommandRequest(Vector3Int.zero, operation, ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero)?.BlockInstanceId ?? new BlockInstanceId(1)));
         }
 
         private RocketLaunchPadCommandResponse Send(RocketLaunchPadCommandRequest request)

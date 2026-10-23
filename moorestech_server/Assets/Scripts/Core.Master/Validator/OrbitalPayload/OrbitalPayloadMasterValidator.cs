@@ -37,7 +37,7 @@ namespace Core.Master.Validator.OrbitalPayload
                 // silent-ok: テーブル欠落・段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
                 if (!tableByGuid.TryGetValue(item.StackLevelTableGuid, out var table) || table.StackCounts.Length == 0) return "";
                 var firstLevelStack = table.StackCounts[0];
-                return payload.CountPerLaunch > firstLevelStack ? $"[ItemMaster.orbitalPayloads] {item.Name} countPerLaunch {payload.CountPerLaunch} exceeds level-1 stack {firstLevelStack}\n" : "";
+                return firstLevelStack < payload.CountPerLaunch ? $"[ItemMaster.orbitalPayloads] {item.Name} countPerLaunch {payload.CountPerLaunch} exceeds level-1 stack {firstLevelStack}\n" : "";
             }
 
             string ValidateOutput(OrbitalPayloadMasterElement payload, OrbitalArrivalOutputElement output)

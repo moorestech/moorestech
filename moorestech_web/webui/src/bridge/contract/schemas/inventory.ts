@@ -159,6 +159,16 @@ export const BlockInventoryOpenSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["electricToGear"], message: "electricToGear requires ElectricToGearGenerator" });
   if (data.rocketLaunchPad && data.blockType !== "RocketLaunchPad")
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rocketLaunchPad"], message: "rocketLaunchPad requires RocketLaunchPad" });
+  // 絶対添字は受信した在庫の範囲内に限定する
+  // Require every absolute slot index to belong to the received inventory
+  if (data.rocketLaunchPad) {
+    for (const group of ["materialSlots", "payloadSlots", "outputSlots"] as const) {
+      data.rocketLaunchPad[group].forEach((index, entry) => {
+        if (data.itemSlots.length <= index)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rocketLaunchPad", group, entry], message: "Slot index exceeds itemSlots" });
+      });
+    }
+  }
   if (data.gearToElectric && data.electricToGear)
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Converter details cannot coexist" });
 });

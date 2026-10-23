@@ -3,7 +3,7 @@ using UniRx;
 
 namespace Game.Orbit
 {
-    public class RocketLaunchHistory : IRocketLaunchHistory
+    public class RocketLaunchHistory
     {
         public bool HasLaunchedOnce { get; private set; }
         public IObservable<Unit> OnFirstLaunch => _onFirstLaunch;

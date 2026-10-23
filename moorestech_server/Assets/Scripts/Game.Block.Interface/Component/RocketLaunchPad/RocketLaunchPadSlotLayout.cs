@@ -41,7 +41,7 @@ namespace Game.Block.Interface.Component
 
         public bool IsOutputSlot(int slot)
         {
-            return slot >= OutputSlotStart;
+            return OutputSlotStart <= slot;
         }
 
         public RocketLaunchSlotRequirement RequirementAt(int inputSlot)

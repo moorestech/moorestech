@@ -1,4 +1,5 @@
 using System;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using MessagePack;
@@ -23,12 +24,13 @@ namespace Server.Protocol.PacketResponse
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var request = MessagePackSerializer.Deserialize<RocketLaunchPadCommandRequest>(payload);
-            if (request.Position == null) return Fail(RocketLaunchPadCommandFailureReason.InvalidRequest);
+            if (request.Position == null || !request.Operation.HasValue || !request.ExpectedInstanceId.HasValue) return Fail(RocketLaunchPadCommandFailureReason.InvalidRequest);
 
             // 指定座標の発射台を引く。無ければ理由を残して拒否する
             // Look up the launch pad at the position, rejecting with a logged reason when absent
             var block = ServerContext.WorldBlockDatastore.GetBlock(request.Position.Vector3Int);
             if (block == null) return Fail(RocketLaunchPadCommandFailureReason.BlockNotFound);
+            if (block.BlockInstanceId.AsPrimitive() != request.ExpectedInstanceId.Value) return Fail(RocketLaunchPadCommandFailureReason.InstanceMismatch);
             if (!block.ComponentManager.TryGetComponent<IRocketLaunchPadComponent>(out var launchPad)) return Fail(RocketLaunchPadCommandFailureReason.NotRocketLaunchPad);
 
             // 操作の種類ごとに発射台の入口へ渡し、ドメインの結果を通信の失敗理由へ写す
@@ -65,7 +67,8 @@ namespace Server.Protocol.PacketResponse
                 {
                     RocketLaunchPadCommandResult.NotAwaitingBuildCommand => RocketLaunchPadCommandFailureReason.NotAwaitingBuildCommand,
                     RocketLaunchPadCommandResult.NotAwaitingLaunchCommand => RocketLaunchPadCommandFailureReason.NotAwaitingLaunchCommand,
-                    RocketLaunchPadCommandResult.CargoNotReady => RocketLaunchPadCommandFailureReason.CargoNotReady,
+                    RocketLaunchPadCommandResult.MissingMaterials => RocketLaunchPadCommandFailureReason.MissingMaterials,
+                    RocketLaunchPadCommandResult.MissingPayload => RocketLaunchPadCommandFailureReason.MissingPayload,
                     RocketLaunchPadCommandResult.OutputFull => RocketLaunchPadCommandFailureReason.OutputFull,
                     _ => throw new ArgumentOutOfRangeException(nameof(result), result, "通信の失敗理由へ写していない発射台の結果です"),
                 };
@@ -80,16 +83,18 @@ namespace Server.Protocol.PacketResponse
         public class RocketLaunchPadCommandRequest : ProtocolMessagePackBase
         {
             [Key(2)] public Vector3IntMessagePack Position { get; set; }
-            [Key(3)] public RocketLaunchPadCommandOperation Operation { get; set; }
+            [Key(3)] public RocketLaunchPadCommandOperation? Operation { get; set; }
+            [Key(4)] public int? ExpectedInstanceId { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RocketLaunchPadCommandRequest() { Tag = ProtocolTag; }
 
-            public RocketLaunchPadCommandRequest(Vector3Int position, RocketLaunchPadCommandOperation operation)
+            public RocketLaunchPadCommandRequest(Vector3Int position, RocketLaunchPadCommandOperation operation, BlockInstanceId expectedInstanceId)
             {
                 Tag = ProtocolTag;
                 Position = new Vector3IntMessagePack(position);
                 Operation = operation;
+                ExpectedInstanceId = expectedInstanceId.AsPrimitive();
             }
         }
 
@@ -125,7 +130,9 @@ namespace Server.Protocol.PacketResponse
             InvalidRequest = 4,
             NotAwaitingBuildCommand = 5,
             NotAwaitingLaunchCommand = 6,
-            CargoNotReady = 7,
+            MissingMaterials = 7,
+            MissingPayload = 9,
+            InstanceMismatch = 10,
             OutputFull = 8,
         }
 

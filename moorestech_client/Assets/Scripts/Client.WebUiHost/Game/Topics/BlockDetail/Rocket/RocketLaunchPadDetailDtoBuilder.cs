@@ -13,17 +13,16 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     /// </summary>
     public static class RocketLaunchPadDetailDtoBuilder
     {
-        public static void Apply(BlockInventoryDto dto, BlockGameObject block, object param)
+        public static void Apply(BlockInventoryDto dto, BlockGameObject block, RocketLaunchPadSlotLayout layout)
         {
             // silent-ok: 他種別の詳細は各builderが担当する / 発射台以外の通常パネルで確認できる
-            if (param is not RocketLaunchPadBlockParam padParam) return;
+            if (layout == null) return;
             var state = block.GetStateDetail<RocketLaunchPadStateDetail>(RocketLaunchPadStateDetail.BlockStateDetailKey);
             // silent-ok: 初回の状態を受け取る前だけ詳細を省き、受信後の再配信で埋まる / ボタンと段階表示が出ないことでパネル上で気づく
             if (state == null) return;
 
             // スロット群はサーバーと同じ並びの型が計算した添字をそのまま載せる
             // Carry the indices computed by the layout type the server also uses
-            var layout = new RocketLaunchPadSlotLayout(padParam);
             dto.RocketLaunchPad = new RocketLaunchPadDetailDto
             {
                 Phase = ToWirePhase(state.Phase),
@@ -33,33 +32,38 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 PayloadSlots = layout.PayloadSlots.ToList(),
                 OutputSlots = layout.OutputSlots.ToList(),
             };
+
+            #region Internal
+
+            string ToWirePhase(RocketLaunchPadPhase phase)
+            {
+                return phase switch
+                {
+                    RocketLaunchPadPhase.Idle => "idle",
+                    RocketLaunchPadPhase.AwaitingBuildCommand => "awaitingBuildCommand",
+                    RocketLaunchPadPhase.Building => "building",
+                    RocketLaunchPadPhase.AwaitingLaunchCommand => "awaitingLaunchCommand",
+                    RocketLaunchPadPhase.ReadyToLaunch => "readyToLaunch",
+                    RocketLaunchPadPhase.Launching => "launching",
+                    _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, "未知の発射台の段階"),
+                };
+            }
+
+            string ToWireWaitReason(RocketLaunchPadWaitReason reason)
+            {
+                return reason switch
+                {
+                    RocketLaunchPadWaitReason.None => "none",
+                    RocketLaunchPadWaitReason.MissingMaterials => "missingMaterials",
+                    RocketLaunchPadWaitReason.MissingPayload => "missingPayload",
+                    RocketLaunchPadWaitReason.OutputFull => "outputFull",
+                    RocketLaunchPadWaitReason.NoPower => "noPower",
+                    _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未知の発射台の待ち理由"),
+                };
+            }
+
+            #endregion
         }
 
-        private static string ToWirePhase(RocketLaunchPadPhase phase)
-        {
-            return phase switch
-            {
-                RocketLaunchPadPhase.Idle => "idle",
-                RocketLaunchPadPhase.AwaitingBuildCommand => "awaitingBuildCommand",
-                RocketLaunchPadPhase.Building => "building",
-                RocketLaunchPadPhase.AwaitingLaunchCommand => "awaitingLaunchCommand",
-                RocketLaunchPadPhase.ReadyToLaunch => "readyToLaunch",
-                RocketLaunchPadPhase.Launching => "launching",
-                _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, "未知の発射台の段階"),
-            };
-        }
-
-        private static string ToWireWaitReason(RocketLaunchPadWaitReason reason)
-        {
-            return reason switch
-            {
-                RocketLaunchPadWaitReason.None => "none",
-                RocketLaunchPadWaitReason.MissingMaterials => "missingMaterials",
-                RocketLaunchPadWaitReason.MissingPayload => "missingPayload",
-                RocketLaunchPadWaitReason.OutputFull => "outputFull",
-                RocketLaunchPadWaitReason.NoPower => "noPower",
-                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未知の発射台の待ち理由"),
-            };
-        }
     }
 }

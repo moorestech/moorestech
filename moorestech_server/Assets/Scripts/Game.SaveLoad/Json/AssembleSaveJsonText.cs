@@ -40,7 +40,7 @@ namespace Game.SaveLoad.Json
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
-        private readonly IRocketLaunchHistory _rocketLaunchHistory;
+        private readonly RocketLaunchHistory _rocketLaunchHistory;
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
         private readonly PlayerIdentityRegistry _playerIdentityRegistry;
@@ -62,7 +62,7 @@ namespace Game.SaveLoad.Json
             ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
             CleanRoomDatastore cleanRoomDatastore,
-            IRocketLaunchHistory rocketLaunchHistory,
+            RocketLaunchHistory rocketLaunchHistory,
             IMiningCooldownDatastore miningCooldownDatastore,
             SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
             PlayerIdentityRegistry playerIdentityRegistry)

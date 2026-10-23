@@ -39,7 +39,7 @@ export default function TrainInventoryBody({ data }: { data: TrainData }) {
       <ScrollArea className={styles.scroll} type="auto">
         {tab === "inventory" && (data.fluidSlots.length > 0
           ? <FluidInventoryContents fluids={data.fluidSlots} testId="train-inventory-fluids" />
-          : <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />)}
+          : <BlockItemGrid itemSlots={data.itemSlots} slotIndices={data.itemSlots.map((_, index) => index)} testId="train-inventory-slots" />)}
         {tab === "timetable" && timetable.kind === "loading" && (
           <Text size="sm" data-testid="train-timetable-loading">{t(L.ui.blockInventory.timetableLoading)}</Text>
         )}

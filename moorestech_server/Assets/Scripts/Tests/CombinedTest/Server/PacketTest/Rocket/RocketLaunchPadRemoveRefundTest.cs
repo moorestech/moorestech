@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
         public void 出力口の成果も撤去で戻る()
         {
             var (packet, services) = CreateServer();
-            ServerContext.GetService<IRocketLaunchHistory>().RecordLaunch();
+            ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
+using Game.Context;
+using Game.Block.Interface;
 using Core.Item.Interface;
 using Game.Block.Blocks.Connector;
 using Game.Block.Blocks.RocketLaunchPad.Save;
@@ -35,10 +37,10 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadCargoLoader _cargoLoader;
         private readonly RocketLaunchPadOutputSlots _outputSlots;
         private readonly RocketLaunchPadLaunchSequence _sequence;
-        private readonly IDisposable _firstLaunchSubscription;
+        private readonly CompositeDisposable _subscriptions = new();
         private float _suppliedPower;
 
-        public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, IRocketLaunchHistory launchHistory)
+        public RocketLaunchPadProcessorComponent(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, BlockInstanceId blockInstanceId)
         {
             _layout = layout;
             _slots = slots;
@@ -48,17 +50,34 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
             // ワールドの初打ち上げで発射の合図待ちを解く。建造の合図待ちと打ち上げそのものは各台の次の Update が行う
             // On the world's first launch release the launch command wait; each pad's next update handles the build wait and the launch
-            _firstLaunchSubscription = launchHistory.OnFirstLaunch.Subscribe(_ => OnWorldFirstLaunch());
+            launchHistory.OnFirstLaunch.Subscribe(_ => OnWorldFirstLaunch()).AddTo(_subscriptions);
+            // 在庫と上限の変化だけで待機条件を無効化する
+            // Invalidate waiting conditions only when inventory or stack limits change
+            ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
+                .Where(change => change.BlockInstanceId == blockInstanceId).Subscribe(_ => _sequence.InvalidateWait()).AddTo(_subscriptions);
+            ServerContext.GetService<IItemStackLevelLookup>().OnStackLevelUnlocked.Subscribe(_ => _sequence.InvalidateWait()).AddTo(_subscriptions);
+
+            #region Internal
+
+            void OnWorldFirstLaunch()
+            {
+                var previousPhase = Phase;
+                _sequence.ReleaseLaunchCommandWait();
+                if (previousPhase != Phase) _changeState.OnNext(Unit.Default);
+            }
+
+            #endregion
         }
 
-        public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, IRocketLaunchHistory launchHistory)
-            : this(param, layout, slots, beltOutput, arrivalService, launchHistory)
+        public RocketLaunchPadProcessorComponent(Dictionary<string, object> componentStates, RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory, BlockInstanceId blockInstanceId)
+            : this(param, layout, slots, beltOutput, arrivalService, launchHistory, blockInstanceId)
         {
             // スロット・次に探す積荷・段階を戻す。今の積荷表で打ち上げられない積荷はコンバーターが警告して捨てる
             // Restore slots, the next payload index and the stage; the converter warns about and drops cargo the current table cannot launch
             var saveData = BlockComponentStateReader.Read<RocketLaunchPadSaveJsonObject>(componentStates, SaveKey);
             RocketLaunchPadSaveConverter.RestoreSlots(saveData, _layout, _slots);
-            _cargoLoader.SetNextPayloadIndex(saveData.NextPayloadIndex);
+            if (!saveData.NextPayloadIndex.HasValue) Debug.LogWarning("発射台のセーブに巡回位置が無いため先頭から探します");
+            _cargoLoader.SetNextPayloadIndex(saveData.NextPayloadIndex.GetValueOrDefault());
             _sequence.SetStage(RocketLaunchPadSaveConverter.RestoreStage(saveData, _layout));
 
             // 初打ち上げ済みのワールドで発射の合図待ちのまま保存された台は、通知を受けた台と同じく打ち上げ待ちへ移す（履歴はブロックより先にロードされる）
@@ -126,14 +145,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public void Destroy()
         {
             IsDestroy = true;
-            _firstLaunchSubscription.Dispose();
-        }
-
-        private void OnWorldFirstLaunch()
-        {
-            var previousPhase = Phase;
-            _sequence.ReleaseLaunchCommandWait();
-            if (previousPhase != Phase) _changeState.OnNext(Unit.Default);
+            _subscriptions.Dispose();
         }
 
         private RocketLaunchPadCommandResult PublishCommandResult(RocketLaunchPadCommandResult result)

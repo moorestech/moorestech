@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 {
     // 出力口へ成果を入れ、中身を接続先へ流す。入りきるかは機械の出力と同じく書き込まずに試す
     // Stores outputs into the output slots and pushes them onward; the fit check simulates without writing, like machine outputs
-    public class RocketLaunchPadOutputSlots
+    internal class RocketLaunchPadOutputSlots
     {
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
@@ -28,7 +28,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
             // Fill a copy of the output slots in order; any remainder means they do not fit
             var simulated = CopyOutputSlots();
             foreach (var output in outputs)
-                if (FillInOrder(simulated, output).Count > 0) return false;
+                if (0 < FillInOrder(simulated, output).Count) return false;
             return true;
         }
 
@@ -40,7 +40,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
             foreach (var output in outputs)
             {
                 var remainder = FillInOrder(current, output);
-                if (remainder.Count > 0) Debug.LogError($"発射台の出力口に成果が入りきりませんでした ItemId:{remainder.Id} Count:{remainder.Count}");
+                if (0 < remainder.Count) Debug.LogError($"発射台の出力口に成果が入りきりませんでした ItemId:{remainder.Id} Count:{remainder.Count}");
             }
             for (var i = 0; i < _layout.OutputSlots.Count; i++) _slots.SetItem(_layout.OutputSlots[i], current[i]);
         }
@@ -64,7 +64,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private static IItemStack FillInOrder(List<IItemStack> slots, IItemStack item)
         {
             var rest = item;
-            for (var i = 0; i < slots.Count && rest.Count > 0; i++)
+            for (var i = 0; i < slots.Count && 0 < rest.Count; i++)
             {
                 var result = slots[i].AddItem(rest);
                 slots[i] = result.ProcessResultItemStack;

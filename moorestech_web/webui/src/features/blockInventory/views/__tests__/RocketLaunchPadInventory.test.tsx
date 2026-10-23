@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BlockInventoryOpen } from "@/bridge";
-import { readFileSync } from "node:fs";
+import { loadFixture } from "../../../../bridge/contract/wireFixtures.test-helper";
 
 const mock = vi.hoisted(() => ({ dispatch: vi.fn(), block: {} as BlockInventoryOpen, grab: { itemId: 0, count: 0 } }));
 // 実パネルと実スロットを残し、外部topicだけ固定する
@@ -36,7 +36,7 @@ function frameIn(root: ReactTestInstance, group: string) {
 
 describe("RocketLaunchPadInventory through the real panel", () => {
   beforeEach(() => {
-    mock.block = JSON.parse(readFileSync(new URL("../../../../../../../moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_rocket_launch_pad.json", import.meta.url), "utf8")) as BlockInventoryOpen;
+    mock.block = loadFixture("block_inventory_rocket_launch_pad.json") as BlockInventoryOpen;
     mock.grab = { itemId: 0, count: 0 };
     mock.dispatch.mockReset();
   });

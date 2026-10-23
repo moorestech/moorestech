@@ -15,7 +15,8 @@ namespace Game.Block.Interface.Component
         Accepted,
         NotAwaitingBuildCommand,
         NotAwaitingLaunchCommand,
-        CargoNotReady,
+        MissingMaterials,
+        MissingPayload,
         OutputFull,
     }
 }

@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var state = RocketLaunchPadSaveTestUtil.State(save);
             var item = new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 1));
             ((JArray)state["inputItems"]).Add(JObject.FromObject(item));
-            LogAssert.Expect(LogType.Warning, new Regex("置き場の無い品"));
+            LogAssert.Expect(LogType.Warning, new Regex("復元できない品"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
             Assert.AreEqual(RocketLaunchPadPhase.Building, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
             Assert.IsFalse(JObject.FromObject(RocketLaunchPadSaveTestUtil.Capture(loaded))["inputItems"].ToString().Contains(item.ItemGuidStr));
@@ -64,6 +64,44 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             LogAssert.Expect(LogType.Warning, new Regex("段階の値が不明"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
             Assert.AreEqual(RocketLaunchPadPhase.Idle, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+        }
+
+        [TestCase("cargoPayload")]
+        [TestCase("cargoMaterials")]
+        [TestCase("inputItems")]
+        [TestCase("outputItems")]
+        public void 上限超過の生DTOを生成前に捨てる(string field)
+        {
+            var save = RocketLaunchPadSaveTestUtil.CreateSavedWorld(RocketLaunchPadPhase.Building);
+            var state = RocketLaunchPadSaveTestUtil.State(save);
+            if (field == "cargoPayload") state[field]["count"] = 101;
+            else if (field == "cargoMaterials") state[field][0]["count"] = 101;
+            else
+            {
+                var item = JObject.FromObject(new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 1)));
+                item["count"] = 101;
+                if (field == "outputItems") { state[field][0] = item.DeepClone(); state[field][1] = item.DeepClone(); }
+                ((JArray)state[field]).Add(item);
+            }
+            LogAssert.Expect(LogType.Warning, new Regex(field.StartsWith("cargo") ? "打ち上げられない" : "復元できない品"));
+            var loaded = RocketLaunchPadSaveTestUtil.Load(save);
+            Assert.AreEqual(field.StartsWith("cargo") ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Building, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+        }
+
+        [TestCase("phase")]
+        [TestCase("nextPayloadIndex")]
+        public void 必須ゼロ値の欠落を警告する(string key)
+        {
+            var save = RocketLaunchPadSaveTestUtil.CreateSavedWorld(RocketLaunchPadPhase.Building);
+            var state = RocketLaunchPadSaveTestUtil.State(save);
+            state["phase"] = (int)RocketLaunchPadPhase.Launching;
+            state["cargoPayload"] = JObject.FromObject(new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.CreatEmpty()));
+            state["cargoMaterials"] = new JArray();
+            RocketLaunchPadSaveTestUtil.State(save).Property(key).Remove();
+            LogAssert.Expect(LogType.Warning, new Regex(key == "phase" ? "段階の値が不明" : "巡回位置が無い"));
+            var loaded = RocketLaunchPadSaveTestUtil.Load(save);
+            Assert.AreEqual(key == "phase" ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Launching, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            if (key == "nextPayloadIndex") Assert.AreEqual(0, RocketLaunchPadSaveTestUtil.Capture(loaded).NextPayloadIndex);
         }
 
         [TestCase(0d)]

@@ -19,7 +19,7 @@ describe("rocket launch pad presentation", () => {
   ] as const)("%s has a status and only command waits have a button", (phase, key, command) => {
     const state = { ...detail, phase };
     expect(rocketStatusKey(state)).toBe(key);
-    expect(rocketCommandButton(state)).toBe(command);
+    expect((rocketCommandButton(state)?.value ?? null)).toBe(command);
   });
 
   it.each([

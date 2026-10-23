@@ -47,7 +47,7 @@ namespace Game.SaveLoad.Json
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
-        private readonly IRocketLaunchHistory _rocketLaunchHistory;
+        private readonly RocketLaunchHistory _rocketLaunchHistory;
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
         private readonly PlayerIdentityRegistry _playerIdentityRegistry;
@@ -59,7 +59,7 @@ namespace Game.SaveLoad.Json
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
             IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ConstructionPayerDataStore constructionPayerDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore,
-            IRocketLaunchHistory rocketLaunchHistory,
+            RocketLaunchHistory rocketLaunchHistory,
             SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
             PlayerIdentityRegistry playerIdentityRegistry,
             IWorldTopologyRebuilder worldTopologyRebuilder)

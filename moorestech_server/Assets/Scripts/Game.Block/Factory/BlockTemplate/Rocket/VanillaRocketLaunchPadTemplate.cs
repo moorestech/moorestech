@@ -42,11 +42,11 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
             var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
             var beltOutput = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connector);
             var arrivalService = ServerContext.GetService<IOrbitalArrivalService>();
-            var launchHistory = ServerContext.GetService<IRocketLaunchHistory>();
+            var launchHistory = ServerContext.GetService<RocketLaunchHistory>();
 
             var processor = componentStates == null
-                ? new RocketLaunchPadProcessorComponent(param, layout, slots, beltOutput, arrivalService, launchHistory)
-                : new RocketLaunchPadProcessorComponent(componentStates, param, layout, slots, beltOutput, arrivalService, launchHistory);
+                ? new RocketLaunchPadProcessorComponent(param, layout, slots, beltOutput, arrivalService, launchHistory, blockInstanceId)
+                : new RocketLaunchPadProcessorComponent(componentStates, param, layout, slots, beltOutput, arrivalService, launchHistory, blockInstanceId);
             var electric = new RocketLaunchPadElectricComponent(blockInstanceId, processor);
             var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, electric, componentStates);
 

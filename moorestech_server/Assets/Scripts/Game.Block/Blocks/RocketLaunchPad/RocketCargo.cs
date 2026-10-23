@@ -10,7 +10,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
     {
         public readonly IItemStack Payload;
         public readonly IReadOnlyList<IItemStack> Materials;
-        public bool IsLoaded => Payload.Count > 0;
+        public bool IsLoaded => 0 < Payload.Count;
 
         public RocketCargo(IItemStack payload, IReadOnlyList<IItemStack> materials)
         {
@@ -22,7 +22,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
         // Materials emptied by missing-master pruning are not refunded
         public IEnumerable<IItemStack> AllItems()
         {
-            return Materials.Prepend(Payload).Where(item => item.Count > 0);
+            return Materials.Prepend(Payload).Where(item => 0 < item.Count);
         }
     }
 }

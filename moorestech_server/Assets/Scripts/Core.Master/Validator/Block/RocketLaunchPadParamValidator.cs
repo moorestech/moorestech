@@ -42,7 +42,7 @@ namespace Core.Master.Validator.Block
                 return result;
             }
 
-            bool IsPositiveFinite(float value) => value > 0 && !float.IsInfinity(value);
+            bool IsPositiveFinite(float value) => 0 < value && !float.IsInfinity(value);
 
             string ValidateMaterials(string name, RocketLaunchPadBlockParam param)
             {
@@ -59,7 +59,7 @@ namespace Core.Master.Validator.Block
                     if (material.Count < 1) result += $"[BlockMaster] {name} launch material count must be >= 1\n";
 
                     var firstLevelStack = FirstLevelStackOrNull(itemId.Value);
-                    if (firstLevelStack != null && material.Count > firstLevelStack) result += $"[BlockMaster] {name} launch material {material.ItemGuid} count {material.Count} exceeds level-1 stack {firstLevelStack}\n";
+                    if (firstLevelStack != null && firstLevelStack < material.Count) result += $"[BlockMaster] {name} launch material {material.ItemGuid} count {material.Count} exceeds level-1 stack {firstLevelStack}\n";
                 }
                 return result;
             }
@@ -74,16 +74,16 @@ namespace Core.Master.Validator.Block
                     // 切り上げ前に広げ、整数上限の成果でも容量不足を検出する
                     // Widen before ceiling division to detect over-capacity outputs even at the integer limit
                     long stackCount = 0;
-                    foreach (var output in payload.ArrivalOutputs)
+                    foreach (var output in payload.ArrivalOutputs.GroupBy(output => output.ItemGuid))
                     {
-                        var outputItemId = MasterHolder.ItemMaster.GetItemIdOrNull(output.ItemGuid);
+                        var outputItemId = MasterHolder.ItemMaster.GetItemIdOrNull(output.Key);
                         var firstLevelStack = outputItemId == null ? null : FirstLevelStackOrNull(outputItemId.Value);
 
                         // silent-ok: 未知の成果アイテムは積荷表の検証、段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
                         if (firstLevelStack == null) continue;
-                        stackCount += ((long)output.Count + firstLevelStack.Value - 1) / firstLevelStack.Value;
+                        stackCount += (output.Sum(item => (long)item.Count) + firstLevelStack.Value - 1) / firstLevelStack.Value;
                     }
-                    if (stackCount > param.OutputSlotCount) result += $"[BlockMaster] {name} outputSlotCount {param.OutputSlotCount} cannot hold one launch of payload {payload.PayloadItemGuid} ({stackCount} stacks at level-1 stack)\n";
+                    if (param.OutputSlotCount < stackCount) result += $"[BlockMaster] {name} outputSlotCount {param.OutputSlotCount} cannot hold one launch of payload {payload.PayloadItemGuid} ({stackCount} stacks at level-1 stack)\n";
                 }
                 return result;
             }

@@ -1,5 +1,5 @@
 import { dispatchAction, type RocketLaunchPadData } from "@/bridge";
-import { L, useI18n } from "@/shared/i18n";
+import { useI18n } from "@/shared/i18n";
 import { PanelActionButton } from "@/shared/ui";
 import { rocketCommandButton } from "./rocketLaunchPadLogic";
 
@@ -12,10 +12,10 @@ export default function RocketLaunchPadCommandAction({ detail }: { detail: Rocke
   if (!command) return null;
   return (
     <PanelActionButton
-      testId={`rocket-launch-pad-${command}`}
-      onClick={() => { void dispatchAction("rocket_launch_pad.command", { command }); }}
+      testId={`rocket-launch-pad-${command.value}`}
+      onClick={() => { void dispatchAction("rocket_launch_pad.command", { command: command.value }); }}
     >
-      {t(command === "build" ? L.ui.blockInventory.rocketBuild : L.ui.blockInventory.rocketLaunch)}
+      {t(command.labelKey)}
     </PanelActionButton>
   );
 }

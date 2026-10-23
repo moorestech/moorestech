@@ -105,7 +105,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
             CheckDestroy(this);
-            return InsertIntoInputSlots(itemStacks).Where(remainder => remainder.Count > 0).ToList();
+            return InsertIntoInputSlots(itemStacks).Where(remainder => 0 < remainder.Count).ToList();
         }
 
         public bool InsertionCheck(List<IItemStack> itemStacks)

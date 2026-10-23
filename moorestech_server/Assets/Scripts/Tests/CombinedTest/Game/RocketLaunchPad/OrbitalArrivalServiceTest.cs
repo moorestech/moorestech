@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         public void 初打ち上げの通知は1回だけ()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var history = ServerContext.GetService<IRocketLaunchHistory>();
+            var history = ServerContext.GetService<RocketLaunchHistory>();
             var count = 0;
             history.OnFirstLaunch.Subscribe(_ => count++);
 
@@ -157,7 +157,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         public void 履歴の復元は初回通知を流さず未発射のワールドへ戻せる()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var history = ServerContext.GetService<IRocketLaunchHistory>();
+            var history = ServerContext.GetService<RocketLaunchHistory>();
             var count = 0;
             history.OnFirstLaunch.Subscribe(_ => count++);
 

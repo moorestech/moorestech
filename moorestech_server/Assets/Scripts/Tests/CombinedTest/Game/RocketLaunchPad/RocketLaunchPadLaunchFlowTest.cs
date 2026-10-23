@@ -47,9 +47,9 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.AreEqual(0f, processor.RequestPower);
             Assert.AreEqual(RocketLaunchPadCommandResult.Accepted, processor.RequestLaunch());
             Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, processor.Phase);
-            Assert.IsFalse(ServerContext.GetService<IRocketLaunchHistory>().HasLaunchedOnce);
+            Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 2));
-            Assert.IsTrue(ServerContext.GetService<IRocketLaunchHistory>().HasLaunchedOnce);
+            Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             CollectionAssert.AreEqual(new[] { 100, 50 }, inventory.InventoryItems.Skip(5).Select(item => item.Count));
         }
 
@@ -70,17 +70,26 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             inventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
             ExpectRejection();
-            Assert.AreEqual(RocketLaunchPadCommandResult.CargoNotReady, processor.RequestBuild());
+            Assert.AreEqual(RocketLaunchPadCommandResult.MissingMaterials, processor.RequestBuild());
             inventory.InsertItem(ForUnitTestItemId.RocketCaseId, 2);
             RocketLaunchPadTestUtil.FillOutputSlots(pad, 100);
             ExpectRejection();
             Assert.AreEqual(RocketLaunchPadCommandResult.OutputFull, processor.RequestBuild());
+
+            #region Internal
+
+            void ExpectRejection()
+            {
+                LogAssert.Expect(LogType.Warning, new Regex("ロケット発射台への操作を拒否しました"));
+            }
+
+            #endregion
         }
 
         [Test]
         public void 初打ち上げ後は自動で建造し打ち上げる()
         {
-            ServerContext.GetService<IRocketLaunchHistory>().RecordLaunch();
+            ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
@@ -113,7 +122,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             // Aの到着通知の中でBは段階だけ変え、自身のUpdateより先に再入発射しない
             // During A's arrival notification B only changes stage and cannot launch before its own update
             var arrivals = 0;
-            var history = ServerContext.GetService<IRocketLaunchHistory>();
+            var history = ServerContext.GetService<RocketLaunchHistory>();
             using var subscription = history.OnFirstLaunch.Subscribe(_ =>
             {
                 Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, b.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
@@ -126,6 +135,18 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.That(b.GetComponent<RocketLaunchPadProcessorComponent>().Phase, Is.EqualTo(RocketLaunchPadPhase.ReadyToLaunch).Or.EqualTo(RocketLaunchPadPhase.Launching));
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(b, RocketLaunchPadPhase.Launching, 1));
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(c, RocketLaunchPadPhase.Building, 1));
+
+            #region Internal
+
+            IBlock CreateWaitingPad(Vector3Int position)
+            {
+                var pad = RocketLaunchPadTestUtil.PlacePoweredPad(position, 100);
+                RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+                Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
+                return pad;
+            }
+
+            #endregion
         }
 
         [Test]
@@ -139,19 +160,6 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             RocketLaunchPadTestUtil.FillMaterials(pad);
             GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadWaitReason.MissingPayload, processor.WaitReason);
-        }
-
-        private static IBlock CreateWaitingPad(Vector3Int position)
-        {
-            var pad = RocketLaunchPadTestUtil.PlacePoweredPad(position, 100);
-            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
-            Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
-            return pad;
-        }
-
-        private static void ExpectRejection()
-        {
-            LogAssert.Expect(LogType.Warning, new Regex("ロケット発射台への操作を拒否しました"));
         }
 
     }

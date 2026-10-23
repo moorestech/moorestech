@@ -77,7 +77,7 @@ namespace Client.Tests.WebUi.BlockDetail
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, new BlockStateMessagePack(state, Vector3Int.zero));
             var dto = new BlockInventoryDto { FluidSlots = new List<BlockFluidSlotDto>() };
-            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
+            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), null);
             Object.DestroyImmediate(gameObject);
             return dto;
         }

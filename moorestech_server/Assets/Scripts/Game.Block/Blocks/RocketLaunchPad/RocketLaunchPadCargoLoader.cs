@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 {
     // 入れ口の資材と積荷を数え、選ばれた1便ぶんを取り出してロケットに積む
     // Counts materials and payloads in the input slots and takes the chosen launch worth into a rocket
-    public class RocketLaunchPadCargoLoader
+    internal class RocketLaunchPadCargoLoader
     {
         public int NextPayloadIndex { get; private set; }
 
@@ -60,6 +60,16 @@ namespace Game.Block.Blocks.RocketLaunchPad
             var payload = TakeRequirement(_layout.PayloadSlot(payloadIndex), _layout.Payloads[payloadIndex]);
             NextPayloadIndex = (payloadIndex + 1) % _layout.Payloads.Count;
             return new RocketCargo(payload, materials);
+
+            #region Internal
+
+            IItemStack TakeRequirement(int slot, RocketLaunchSlotRequirement requirement)
+            {
+                _slots.SetItem(slot, _slots.GetItem(slot).SubItem(requirement.Count));
+                return ServerContext.ItemStackFactory.Create(requirement.ItemId, requirement.Count);
+            }
+
+            #endregion
         }
 
         // 積荷が1便ぶん揃ったかの判定はここだけが持ち、巡回とガードの両方が呼ぶ
@@ -72,13 +82,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private bool HasRequirement(int slot, RocketLaunchSlotRequirement requirement)
         {
             var stack = _slots.GetItem(slot);
-            return stack.Id == requirement.ItemId && stack.Count >= requirement.Count;
+            return stack.Id == requirement.ItemId && requirement.Count <= stack.Count;
         }
 
-        private IItemStack TakeRequirement(int slot, RocketLaunchSlotRequirement requirement)
-        {
-            _slots.SetItem(slot, _slots.GetItem(slot).SubItem(requirement.Count));
-            return ServerContext.ItemStackFactory.Create(requirement.ItemId, requirement.Count);
-        }
     }
 }
