@@ -3377,7 +3377,7 @@ git commit -m "feat(webui): ロケット発射台のパネルと建造発射の�
 
 ### Task 10: PR作成
 
-- [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
+- [x] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
 
 - moorestech_master（`feat/tier9-compute-data-loop` → master）の PR も作り、moorestech の PR 本文から相互にリンクする。master の PR の中身は items.json の `"orbitalPayloads": []` と、スタックテーブルが空の7件への Default だけ（D14）。`.moorestech-external-revisions.json` のピンがその PR の head と一致していること。
 - PR 本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S3向けの口（`Game.Orbit` の API と GUID。`PreviewArrivalOutputs` を足したことと、拠点も成果が出力口に入りきるときだけ打ち上げる方式にすること）／統合タスク（bd `moorestech-xyuaf.2`）へ回したもの／確かめ方（CombinedTest・プロトコルテスト・web UI の vitest と wire 契約テストの結果。録画は統合タスク）／セーブ版 6→7（S1 も 6→7・7→8、S3 は 7→8 を使うので、後からマージする側が番号を繰り上げる）／本PR外のリファクタ提案。
