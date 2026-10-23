@@ -177,7 +177,7 @@ moorestech_master のファイル・バランスのツール・録画シナリ�
   - `PowerGeneratorStateDetail(double remainingFuelSeconds, double currentFuelSeconds, float operatingRate)`
   - `VanillaElectricGeneratorComponent : IBlockStateObservable`（`PowerGenerator` と、液体燃料タンクがあれば `FluidMachineInventory` の状態詳細を出す）
 
-- [ ] **Step 1: テストを書く**
+- [x] **Step 1: テストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Electric/ElectricGeneratorStateDetailTest.cs`:
 ```csharp
@@ -287,7 +287,7 @@ namespace Tests.CombinedTest.Core.Electric
 ```
 （`FuelFluidsElement` の型名・名前空間は生成コードに合わせる。`VanillaElectricGeneratorFuelService.cs` の既存 using が手本）
 
-- [ ] **Step 2: 燃料サービスを分割し、状態用の読み取り口を足す**
+- [x] **Step 2: 燃料サービスを分割し、状態用の読み取り口を足す**
 
 `VanillaElectricGeneratorFuelService.cs` は 289 行あるので、200 行未満へ分ける。
 1. ctor の `#region Internal` の `BuildItemFuelSettings` / `BuildFluidFuelSettings` を、そのまま `VanillaElectricGeneratorFuelSettingsBuilder.cs` の `public static class VanillaElectricGeneratorFuelSettingsBuilder` の `public static Dictionary<ItemId, (FuelItemsElement Setting, uint Ticks)> BuildItemFuelSettings(ElectricGeneratorBlockParam param)` / `public static Dictionary<FluidId, (FuelFluidsElement Setting, uint Ticks)> BuildFluidFuelSettings(ElectricGeneratorBlockParam param)` へ移し、ctor は `_itemFuelSettings = VanillaElectricGeneratorFuelSettingsBuilder.BuildItemFuelSettings(param);` のように呼ぶ。
@@ -333,7 +333,7 @@ public bool Update()
 ```
 既存の `public void Update()` は `private void UpdateFuel()` に改名し、本体は変えない。`using Game.Block.Interface.State;` を足す。
 
-- [ ] **Step 3: 発電機本体に状態詳細を足し、200行未満へ縮める**
+- [x] **Step 3: 発電機本体に状態詳細を足し、200行未満へ縮める**
 
 `VanillaElectricGeneratorComponent.cs`:
 1. 末尾の `VanillaElectricGeneratorSaveJsonObject` と `VanillaElectricGeneratorFluidSaveJsonObject` を、同じ名前空間のまま `VanillaElectricGeneratorSaveJsonObject.cs` へ移す。
@@ -402,7 +402,7 @@ public PowerGeneratorStateDetail(double remainingFuelSeconds, double currentFuel
 }
 ```
 
-- [ ] **Step 4: クライアントと webui を直す**
+- [x] **Step 4: クライアントと webui を直す**
 
 `BlockGameObjectPrefabContainer.cs` の `IsCommonMachine` から `BlockTypeConst.ElectricGenerator or` の行を消す。
 `SectionStackView.tsx:29` を次にする:
@@ -414,12 +414,12 @@ public PowerGeneratorStateDetail(double remainingFuelSeconds, double currentFuel
 
 出荷マスタの発電機はまだ開けない（`openable: false`）ので、e2e の registry fixture と `intentionalGeneric` は変えない。核融合炉を開けるようにしたときの e2e の追加は統合タスクで行う（末尾の節「旧 Task 3 Step 4 の e2e」）。
 
-- [ ] **Step 5: コンパイルしテストを実行する**
+- [x] **Step 5: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ElectricGeneratorStateDetailTest|PowerGeneratorTest|PowerGeneratorSaveLoadTest"`、`cd moorestech_web/webui && npx vitest run src/features/blockInventory && npx playwright test e2e/tests/block/blockRegistryCoverage.spec.ts`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block/Blocks/PowerGenerator moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Electric/ElectricGeneratorStateDetailTest.cs* moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlockGameObjectPrefabContainer.cs moorestech_web/webui/src/features/blockInventory/views
