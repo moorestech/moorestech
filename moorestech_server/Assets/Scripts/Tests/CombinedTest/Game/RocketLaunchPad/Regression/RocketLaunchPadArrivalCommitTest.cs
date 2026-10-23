@@ -2,8 +2,14 @@ using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Core.Update;
-using Core.Master;
+using System.IO;
+using Game.Paths;
+using Game.SaveLoad;
 using Game.World.Interface.DataStore;
+using Server.Boot;
+using Server.Boot.Loop.PacketProcessing;
+using Server.Protocol;
+using Core.Master;
 using Game.Block.Blocks.RocketLaunchPad;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -31,11 +37,19 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
 {
     public class RocketLaunchPadArrivalCommitTest
     {
+        private string _root;
+
+        [TearDown]
+        public void Cleanup() { if (_root != null && Directory.Exists(_root)) Directory.Delete(_root, true); }
+
         [TestCase(false)]
         [TestCase(true)]
         public void PoolRejectionPreservesCargoSaveRefundAndRetry(bool reload)
         {
-            var (_, services) = SpaceElevatorTestUtil.CreateServer();
+            _root = Path.Combine(Path.GetTempPath(), $"pad-capacity-{Guid.NewGuid()}");
+            Directory.CreateDirectory(_root);
+            var directory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, Path.Combine(_root, "save.json"));
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory) { worldDataDirectory = directory });
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
             pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue });
             var pad = Prepare();
@@ -46,14 +60,19 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
 
             // 本番の同期プール購読で加算拒否させる
             // Reject through the production synchronous pool subscription
-            LogAssert.Expect(LogType.Error, new Regex("ケーブルプールの加算が整数範囲"));
-            Assert.Throws<InvalidOperationException>(() => processor.Update());
+            var saves = services.GetRequiredService<WorldSaveCoordinator>();
+            saves.RequestSave();
+            LogAssert.Expect(LogType.Warning, new Regex("ケーブルプールの容量不足"));
+            Assert.DoesNotThrow(() => GameUpdater.UpdateOneTick());
+            Assert.IsTrue(saves.WaitForPendingWrites());
+            Assert.IsTrue(File.Exists(directory.SaveJsonFilePath));
             Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.IsTrue(JToken.DeepEquals(before, JObject.FromObject(processor.GetSaveState())));
             CollectionAssert.AreEqual(refunds, processor.GetRefundItems().Select(i => (i.Id, i.Count)));
             Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             Assert.AreEqual(int.MaxValue, pool.Amount);
-            Debug.Log($"W7 rejected phase={RocketLaunchPadTestUtil.ReadState(processor).Phase} cargo={refunds.Length} pool={pool.Amount} history=False");
+            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
+            GameUpdater.UpdateOneTick();
             if (reload)
             {
                 pad = RocketLaunchPadSaveTestUtil.Load(JObject.Parse(SaveLoadJsonTestHelper.AssembleSaveJson(services)));
@@ -73,16 +92,20 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
                 Assert.AreEqual(4, processor.GetRefundItems().Count);
                 Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             });
-            pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue - 50 });
-            processor.Update();
+            var elevator = SpaceElevatorTestUtil.PlaceBase(new Vector3Int(20, 0, 0));
+            var connect = new ConnectEntry(elevator);
+            ServerContext.GetService<TickEndPacketQueue>().Enqueue(connect);
+            GameUpdater.UpdateOneTick();
+            Assert.AreEqual(SpaceElevatorConnectResult.Connected, connect.Result);
+            Assert.AreEqual(int.MaxValue - 100, pool.Amount);
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(RocketLaunchPadPhase.Launching, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.IsEmpty(processor.GetRefundItems());
             Assert.AreEqual(0, RocketLaunchPadSaveTestUtil.Capture(pad).CargoPayload.Count);
             Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             processor.Update();
             Assert.AreEqual(1, arrivalCount);
-            Assert.AreEqual(int.MaxValue, pool.Amount);
-            Debug.Log($"W7 accepted phase={RocketLaunchPadTestUtil.ReadState(processor).Phase} arrivals={arrivalCount} pool={pool.Amount}");
+            Assert.AreEqual(int.MaxValue - 50, pool.Amount);
         }
 
         [TestCase(false)]
@@ -95,8 +118,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             if (reject)
             {
                 ServerContext.GetService<SpaceElevatorCablePool>().Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue });
-                LogAssert.Expect(LogType.Error, new Regex("ケーブルプールの加算が整数範囲"));
-                Assert.Throws<InvalidOperationException>(() => processor.Update());
+                LogAssert.Expect(LogType.Warning, new Regex("ケーブルプールの容量不足"));
+                Assert.DoesNotThrow(() => GameUpdater.UpdateOneTick());
             }
             else processor.Update();
 
@@ -104,8 +127,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             // Exercise real removal and refund only unaccepted materials and cables
             var inventory = services.GetRequiredService<IPlayerInventoryDataStore>().GetInventoryData(3).MainOpenableInventory;
             for (var i = 0; i < inventory.GetSlotSize(); i++) inventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());
-            packet.GetPacketResponse(MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(Vector3Int.zero)),
-                Tests.Util.PlayerIdentity.BoundPacketContext.Bind(3));
+            services.GetRequiredService<TickEndPacketQueue>().Enqueue(new RemoveEntry(packet));
+            GameUpdater.UpdateOneTick();
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(Vector3Int.zero));
             Assert.AreEqual(reject ? 50 : 0, Count(ForUnitTestItemId.TestElevatorCable));
             Assert.AreEqual(reject ? 2 : 0, Count(ForUnitTestItemId.RocketCaseId));
@@ -143,6 +166,21 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             object Field(object target, string name) => target.GetType().GetField(name,
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(target);
             #endregion
+        }
+
+        private sealed class ConnectEntry : ITickEndPacketEntry
+        {
+            private readonly IBlock _block;
+            public SpaceElevatorConnectResult Result { get; private set; }
+            public ConnectEntry(IBlock block) { _block = block; }
+            public void Process() { Result = ServerContext.GetService<SpaceElevatorConnectionService>().Connect(_block); }
+        }
+
+        private sealed class RemoveEntry : ITickEndPacketEntry
+        {
+            private readonly PacketResponseCreator _packet;
+            public RemoveEntry(PacketResponseCreator packet) { _packet = packet; }
+            public void Process() => _packet.GetPacketResponse(MessagePackSerializer.Serialize(new RemoveBlockProtocol.RemoveBlockProtocolMessagePack(Vector3Int.zero)), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(3));
         }
 
         private static IBlock Prepare()

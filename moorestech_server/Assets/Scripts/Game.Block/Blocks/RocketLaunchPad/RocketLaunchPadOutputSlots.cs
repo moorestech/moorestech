@@ -6,7 +6,9 @@ using Core.Item.Interface;
 using Game.Block.Blocks.Service;
 using Game.Block.Interface.Component;
 using Game.Orbit;
+using Game.SpaceElevator;
 using Game.Block.Interface.State;
+using UnityEngine;
 
 namespace Game.Block.Blocks.RocketLaunchPad
 {
@@ -17,18 +19,32 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
         private readonly IBlockInventoryInserter _beltOutput;
+        private readonly SpaceElevatorCablePool _cablePool;
+        private bool _waitingForCableCapacity;
 
-        public RocketLaunchPadOutputSlots(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput)
+        public RocketLaunchPadOutputSlots(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, SpaceElevatorCablePool cablePool)
         {
             _layout = layout;
             _slots = slots;
             _beltOutput = beltOutput;
+            _cablePool = cablePool;
         }
 
         public bool CanStore(IReadOnlyList<IItemStack> outputs) => TrySimulate(outputs, out _);
 
         public bool TryCompleteArrival(ItemId itemId, int count, IOrbitalArrivalService arrivalService, out RocketLaunchPadWaitReason denyReason)
         {
+            // プール不足は積荷を保持して待つ
+            // Keep cargo and wait when the cable pool cannot accept the entire arrival
+            if (!_cablePool.CanAcceptArrival(itemId, count))
+            {
+                if (!_waitingForCableCapacity) Debug.LogWarning($"ケーブルプールの容量不足で到着を待機します amount:{_cablePool.Amount} count:{count}");
+                _waitingForCableCapacity = true;
+                denyReason = RocketLaunchPadWaitReason.OutputFull;
+                return false;
+            }
+            _waitingForCableCapacity = false;
+
             // 到着受理後に模擬配置を確定
             // Determine placement before notification and commit that placement after acceptance
             if (!TrySimulate(arrivalService.PreviewArrivalOutputs(itemId, count), out var simulated))

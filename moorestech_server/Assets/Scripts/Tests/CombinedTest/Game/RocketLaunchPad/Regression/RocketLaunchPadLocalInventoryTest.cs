@@ -65,7 +65,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             Assert.IsTrue(output.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1,
                 new FixedOutputArrivalService(new[] { ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 1) }), out _)); AssertInvalidated();
             var layout = new RocketLaunchPadSlotLayout((Mooresmaster.Model.BlocksModule.RocketLaunchPadBlockParam)pad.BlockMasterElement.BlockParam);
-            new RocketLaunchPadOutputSlots(layout, slots, new AcceptAll()).PushToConnected(); AssertInvalidated();
+            new RocketLaunchPadOutputSlots(layout, slots, new AcceptAll(), ServerContext.GetService<global::Game.SpaceElevator.SpaceElevatorCablePool>()).PushToConnected(); AssertInvalidated();
             Assert.AreEqual(11, networkChanges - before);
 
             // 台の破棄で購読だけでなくTemplate所有の通知源も解放する

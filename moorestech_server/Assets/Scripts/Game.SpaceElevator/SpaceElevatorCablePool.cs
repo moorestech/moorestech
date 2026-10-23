@@ -74,6 +74,11 @@ namespace Game.SpaceElevator
             SetAmount(Amount + count);
         }
 
+        public bool CanAcceptArrival(ItemId itemId, int count)
+        {
+            return !_cableItemIds.Contains(itemId) || (0 <= count && count <= int.MaxValue - Amount);
+        }
+
         public SpaceElevatorCablePoolSaveData GetSaveData()
         {
             return new SpaceElevatorCablePoolSaveData { CableCount = Amount };

@@ -12,6 +12,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Game.Orbit;
+using Game.SpaceElevator;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate.Rocket
@@ -48,10 +49,11 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
             var beltOutput = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connector);
             var arrivalService = ServerContext.GetService<IOrbitalArrivalService>();
             var launchHistory = ServerContext.GetService<RocketLaunchHistory>();
+            var cablePool = ServerContext.GetService<SpaceElevatorCablePool>();
 
             var processor = componentStates == null
-                ? new RocketLaunchPadProcessorComponent(param, layout, slots, beltOutput, arrivalService, launchHistory, inventoryChanges, subscriptions)
-                : new RocketLaunchPadProcessorComponent(componentStates, param, layout, slots, beltOutput, arrivalService, launchHistory, inventoryChanges, subscriptions);
+                ? new RocketLaunchPadProcessorComponent(param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventoryChanges, subscriptions)
+                : new RocketLaunchPadProcessorComponent(componentStates, param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventoryChanges, subscriptions);
             var electric = new RocketLaunchPadElectricComponent(blockInstanceId, processor);
             var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, electric, componentStates);
 
