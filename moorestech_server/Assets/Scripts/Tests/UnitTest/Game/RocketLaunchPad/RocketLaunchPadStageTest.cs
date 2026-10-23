@@ -1,5 +1,11 @@
 using System;
 using System.Linq;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using Game.Block.Interface.Extension;
+using Tests.Util.Rocket;
+using UnityEngine;
+using UnityEngine.TestTools;
 using Core.Item.Interface;
 using Game.Block.Blocks.RocketLaunchPad;
 using Game.Block.Blocks.RocketLaunchPad.Stage;
@@ -96,6 +102,27 @@ namespace Tests.UnitTest.Game.RocketLaunchPad
             // Exclude materials emptied by missing-master pruning from the refund
             Assert.IsTrue(cargo.IsLoaded);
             CollectionAssert.AreEqual(new[] { payload, material }, cargo.AllItems());
+        }
+
+        [Test]
+        public void 未対応の段階はログ付きで拒否し元の段階を保つ()
+        {
+            var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
+            var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
+            var sequence = typeof(RocketLaunchPadProcessorComponent).GetField("_sequence", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(processor);
+            var setStage = sequence.GetType().GetMethod("SetStage");
+
+            // Phaseだけ既知値を返す未知型も、通常待機として扱わない
+            // Reject an unknown type even if it reports a known phase
+            LogAssert.Expect(LogType.Error, new Regex("発射台の未対応の段階を拒否しました"));
+            var exception = Assert.Throws<TargetInvocationException>(() => setStage.Invoke(sequence, new object[] { new UnknownStage() }));
+            Assert.IsInstanceOf<InvalidOperationException>(exception.InnerException);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, processor.Phase);
+        }
+
+        private sealed class UnknownStage : RocketLaunchPadStage
+        {
+            public override RocketLaunchPadPhase Phase => RocketLaunchPadPhase.Idle;
         }
 
         private static RocketCargo CreateCargo()

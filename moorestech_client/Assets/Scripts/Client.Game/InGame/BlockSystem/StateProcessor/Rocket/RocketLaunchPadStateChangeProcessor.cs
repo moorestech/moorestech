@@ -35,11 +35,10 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.Rocket
             // Show the body from build completion through launch end
             body.gameObject.SetActive(detail.Phase is RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch or RocketLaunchPadPhase.Launching);
 
-            // 途中参加でもサーバーの進行位置から上昇を始める
-            // Start the ascent at server progress even when joining mid-launch
-            var wasLaunching = _isLaunching;
+            // 通知ごとに上昇位置を補正し、停止中に進んだサーバーへ追いつく
+            // Reanchor every notification to catch up with server progress during a frame stall
             _isLaunching = detail.Phase == RocketLaunchPadPhase.Launching;
-            if (_isLaunching && !wasLaunching) _launchElapsedSeconds = detail.Progress * _launchSeconds;
+            if (_isLaunching) _launchElapsedSeconds = detail.Progress * _launchSeconds;
             if (_isLaunching) UpdateBodyPosition();
             else body.localPosition = _bodyRestLocalPosition;
         }

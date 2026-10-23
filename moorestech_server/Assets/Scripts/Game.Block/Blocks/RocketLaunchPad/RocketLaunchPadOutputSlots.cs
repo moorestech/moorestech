@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using Core.Inventory;
-using Core.Item.Interface;
 using Game.Block.Blocks.Connector;
+using Core.Item.Interface;
+using Game.Block.Blocks.Service;
 using Game.Block.Interface.Component;
 using UnityEngine;
 
@@ -49,7 +50,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
         {
             // 機械と同じく毎tick接続先へ搬出
             // Push output contents to connected inventories each tick, like machines
-            foreach (var slot in _layout.OutputSlots) _slots.SetItem(slot, _beltOutput.InsertItem(_slots.GetItem(slot)));
+            BlockOutputTransfer.Transfer(_slots, _layout.OutputSlots, _beltOutput);
         }
 
         private List<IItemStack> CopyOutputSlots()
@@ -59,17 +60,19 @@ namespace Game.Block.Blocks.RocketLaunchPad
             return copy;
         }
 
-        // 写しのスロットへ先頭から詰め、余りを返す
-        // Fills the copied slots from the first one and returns the remainder
+        // 同種スタックを埋めてから空枠を使い、別品目の場所を残す
+        // Fill existing matching stacks before empty slots to preserve room for other items
         private static IItemStack FillInOrder(List<IItemStack> slots, IItemStack item)
         {
             var rest = item;
-            for (var i = 0; i < slots.Count && 0 < rest.Count; i++)
-            {
-                var result = slots[i].AddItem(rest);
-                slots[i] = result.ProcessResultItemStack;
-                rest = result.RemainderItemStack;
-            }
+            for (var pass = 0; pass < 2; pass++)
+                for (var i = 0; i < slots.Count && 0 < rest.Count; i++)
+                {
+                    if (pass == 0 ? slots[i].Id != item.Id : slots[i].Count != 0) continue;
+                    var result = slots[i].AddItem(rest);
+                    slots[i] = result.ProcessResultItemStack;
+                    rest = result.RemainderItemStack;
+                }
             return rest;
         }
     }

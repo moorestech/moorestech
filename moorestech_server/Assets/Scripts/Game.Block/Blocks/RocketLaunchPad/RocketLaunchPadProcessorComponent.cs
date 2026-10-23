@@ -48,9 +48,9 @@ namespace Game.Block.Blocks.RocketLaunchPad
         {
             _layout = layout;
             _slots = slots;
-            _cargoLoader = new RocketLaunchPadCargoLoader(layout, slots);
             _outputSlots = new RocketLaunchPadOutputSlots(layout, slots, beltOutput);
-            _sequence = new RocketLaunchPadLaunchSequence(param, layout, _cargoLoader, _outputSlots, arrivalService, launchHistory);
+            _cargoLoader = new RocketLaunchPadCargoLoader(layout, slots, _outputSlots, arrivalService);
+            _sequence = new RocketLaunchPadLaunchSequence(param, _cargoLoader, _outputSlots, arrivalService, launchHistory);
 
             // ワールドの初打ち上げで発射の合図待ちを解く。建造の合図待ちと打ち上げそのものは各台の次の Update が行う
             // On the world's first launch release the launch command wait; each pad's next update handles the build wait and the launch

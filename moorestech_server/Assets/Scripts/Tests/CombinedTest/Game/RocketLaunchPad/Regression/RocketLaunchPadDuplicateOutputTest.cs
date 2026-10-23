@@ -47,5 +47,33 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             Assert.AreEqual(6, inventory.GetSlotSize());
             Assert.AreEqual(80, inventory.GetItem(5).Count);
         }
+        [Test]
+        public void 空枠より同種の既存出力を先に埋め別成果も格納する()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var configs = ModJsonStringLoader.GetMasterString(new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods")));
+            var itemsName = new JsonFileName("items");
+            var items = JObject.Parse(configs[0].JsonContents[itemsName]);
+            var outputs = (JArray)items["orbitalPayloads"][0]["arrivalOutputs"];
+            outputs[0]["count"] = 50;
+            var second = (JObject)outputs[0].DeepClone();
+            second["itemGuid"] = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.RocketFuelId).ItemGuid.ToString();
+            outputs.Add(second);
+            configs[0].JsonContents[itemsName] = items.ToString();
+            MasterHolder.Load(new MasterJsonFileContainer(configs));
+
+            // 出力[空,A50]へ成果[A50,B50]を実際の建造・発射で格納する
+            // Store results [A50,B50] into [empty,A50] through the real build and launch
+            ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
+            var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
+            var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
+            inventory.SetItem(6, ForUnitTestItemId.ComputeDataId, 50);
+            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
+            Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));
+            Assert.AreEqual(ForUnitTestItemId.RocketFuelId, inventory.GetItem(5).Id);
+            Assert.AreEqual(50, inventory.GetItem(5).Count);
+            Assert.AreEqual(ForUnitTestItemId.ComputeDataId, inventory.GetItem(6).Id);
+            Assert.AreEqual(100, inventory.GetItem(6).Count);
+        }
     }
 }

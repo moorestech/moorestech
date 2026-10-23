@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Mooresmaster.Model.ItemsModule;
 
 namespace Core.Master.Validator.Item
@@ -15,8 +14,6 @@ namespace Core.Master.Validator.Item
 
             // 初期レベルの最大スタック数はItemStack生成が生の例外で落ちるため、ここで先に弾く
             // ItemStack creation throws raw past the level-1 max stack, so it is rejected here first
-            var stackLevelTableByGuid = items.ItemStackLevelTables.ToDictionary(table => table.TableGuid);
-            var itemByGuid = items.Data.ToDictionary(item => item.ItemGuid);
 
             foreach (var initial in items.InitialEquipmentItems)
             {
@@ -44,11 +41,9 @@ namespace Core.Master.Validator.Item
             // A broken table reference is ItemStackLevelTableValidator's job, so it is skipped silently here
             string InitialLevelMaxStackValidation(Guid itemGuid, int itemCount)
             {
-                if (!itemByGuid.TryGetValue(itemGuid, out var item)) return "";
-                if (!stackLevelTableByGuid.TryGetValue(item.StackLevelTableGuid, out var table)) return "";
-                if (table.StackCounts.Length == 0) return "";
-
-                var initialLevelMaxStack = table.StackCounts[0];
+                var initialLevelMaxStack = ItemStackLevelTableValidator.GetInitialStackLimit(items, itemGuid);
+                // silent-ok: 参照異常は専用検証器が診断する / マスタ読込エラーで開発者が気づく
+                if (initialLevelMaxStack == null) return "";
                 if (itemCount <= initialLevelMaxStack) return "";
                 return $"[ItemMaster.initialEquipmentItems] ItemGuid:{itemGuid} has ItemCount:{itemCount} exceeding initial level MaxStack:{initialLevelMaxStack}\n";
             }

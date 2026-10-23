@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { act, create, type ReactTestInstance } from "react-test-renderer";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 import type { BlockInventoryOpen } from "@/bridge";
 import { loadFixture } from "../../../../bridge/contract/wireFixtures.test-helper";
 
@@ -25,6 +25,7 @@ vi.mock("@mantine/core", () => ({
   Text: ({ children, ...props }: { children: unknown }) => createElement("p", props, children as never),
 }));
 import BlockInventoryPanel from "../../BlockInventoryPanel";
+import RocketLaunchPadInventory, { type RocketViewData } from "../RocketLaunchPadInventory";
 import { GamePanel } from "@/shared/ui";
 
 function hostById(root: ReactTestInstance, id: string) {
@@ -35,6 +36,23 @@ function frameIn(root: ReactTestInstance, group: string) {
 }
 
 describe("RocketLaunchPadInventory through the real panel", () => {
+  it("requires rocket data at the dedicated view boundary", () => {
+    expectTypeOf<BlockInventoryOpen>().not.toMatchTypeOf<RocketViewData>();
+    expectTypeOf<Parameters<typeof RocketLaunchPadInventory>[0]["data"]>().toEqualTypeOf<RocketViewData>();
+  });
+
+  it("waits for initial detail and renders when the topic arrives", () => {
+    const detail = mock.block.rocketLaunchPad;
+    mock.block = { ...mock.block, rocketLaunchPad: undefined };
+    let tree!: ReturnType<typeof create>;
+    act(() => { tree = create(createElement(BlockInventoryPanel)); });
+    expect(hostById(tree.root, "rocket-launch-pad-view")).toBeUndefined();
+    mock.block = { ...mock.block, rocketLaunchPad: detail };
+    act(() => { tree.update(createElement(BlockInventoryPanel)); });
+    expect(hostById(tree.root, "rocket-launch-pad-view")).toBeDefined();
+    act(() => { tree.unmount(); });
+  });
+
   beforeEach(() => {
     mock.block = loadFixture("block_inventory_rocket_launch_pad.json") as BlockInventoryOpen;
     mock.grab = { itemId: 0, count: 0 };

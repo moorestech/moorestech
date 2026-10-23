@@ -1,4 +1,4 @@
-using Core.Master;
+using System;
 using Core.Update;
 using Game.Block.Blocks.RocketLaunchPad.Stage;
 using Game.Block.Blocks.Util;
@@ -15,9 +15,13 @@ namespace Game.Block.Blocks.RocketLaunchPad
     {
         public RocketLaunchPadStage Stage { get; private set; } = IdleStage.Instance;
         public RocketLaunchPadWaitReason WaitReason { get; private set; }
-        public float RequestPower => Stage is BuildingStage ? _requiredPower : 0f;
+        public float RequestPower => Stage switch
+        {
+            BuildingStage => _requiredPower,
+            IdleStage or AwaitingBuildCommandStage or AwaitingLaunchCommandStage or ReadyToLaunchStage or LaunchingStage => 0f,
+            _ => throw RejectUnknownStage(Stage),
+        };
         private bool _reevaluateWait = true;
-        private readonly RocketLaunchPadSlotLayout _layout;
         private readonly RocketLaunchPadCargoLoader _cargoLoader;
         private readonly RocketLaunchPadOutputSlots _outputSlots;
         private readonly IOrbitalArrivalService _arrivalService;
@@ -25,9 +29,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly float _requiredPower;
         private readonly uint _buildTotalTicks;
         private readonly uint _launchTotalTicks;
-        public RocketLaunchPadLaunchSequence(RocketLaunchPadBlockParam param, RocketLaunchPadSlotLayout layout, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory)
+        public RocketLaunchPadLaunchSequence(RocketLaunchPadBlockParam param, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory)
         {
-            _layout = layout;
             _cargoLoader = cargoLoader;
             _outputSlots = outputSlots;
             _arrivalService = arrivalService;
@@ -38,6 +41,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
         }
         public void SetStage(RocketLaunchPadStage stage)
         {
+            if (stage is not (IdleStage or AwaitingBuildCommandStage or BuildingStage or AwaitingLaunchCommandStage or ReadyToLaunchStage or LaunchingStage))
+                throw RejectUnknownStage(stage);
             if (!ReferenceEquals(Stage, stage)) InvalidateWait();
             Stage = stage;
         }
@@ -56,23 +61,18 @@ namespace Game.Block.Blocks.RocketLaunchPad
                 if (_reevaluateWait) { _reevaluateWait = false; AdvanceReadyToLaunch(ready); }
             }
             else if (Stage is LaunchingStage launching) AdvanceLaunching(launching);
+            else if (Stage is AwaitingLaunchCommandStage) return; // silent-ok: 発射合図待ちは進行しない / UIに合図待ちを表示する
+            else throw RejectUnknownStage(Stage);
 
             #region Internal
 
             void AdvanceWaitingForCargo()
             {
-                WaitReason = CheckBuildable(out var payloadIndex);
-                if (WaitReason != RocketLaunchPadWaitReason.None)
-                {
-                    SetStage(IdleStage.Instance);
-                    // silent-ok: 出力口の空き待ちは通常の待機（資材・積荷の待ちも同じ） / プレイヤーは発射台 UI の待ち理由で気づく
-                    return;
-                }
-
-                // 初打ち上げ前のワールドではプレイヤーの建造の合図を待つ。済んでいれば建造の合図待ちの台もここで建造を始める
-                // Before the world's first launch wait for the build command; afterwards pads awaiting it start building here
-                if (_launchHistory.HasLaunchedOnce) StartBuilding(payloadIndex);
-                else SetStage(AwaitingBuildCommandStage.Instance);
+                // 初打ち上げ前だけ非消費で評価し、自動運転では選択と積載を一度に行う
+                // Before the first launch evaluate without consumption; automatic operation selects and loads once
+                WaitReason = _launchHistory.HasLaunchedOnce ? StartBuilding() : _cargoLoader.GetLoadWaitReason();
+                if (WaitReason != RocketLaunchPadWaitReason.None) SetStage(IdleStage.Instance);
+                else if (!_launchHistory.HasLaunchedOnce) SetStage(AwaitingBuildCommandStage.Instance);
             }
 
             void AdvanceBuilding(BuildingStage building, float tickPower)
@@ -99,7 +99,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
                 // 打ち上げを始める唯一の口。成果が出力口に入りきらない間は待たせる
                 // The only place a launch starts; wait while the outputs do not fit the output slots
                 var payload = ready.Cargo.Payload;
-                if (!CanStoreArrivalOutputs(payload.Id, payload.Count))
+                if (!_outputSlots.CanStore(_arrivalService.PreviewArrivalOutputs(payload.Id, payload.Count)))
                 {
                     WaitReason = RocketLaunchPadWaitReason.OutputFull;
                     // silent-ok: 出力口の空き待ちは通常の待機 / プレイヤーは発射台 UI の待ち理由で気づく
@@ -126,11 +126,10 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public RocketLaunchPadCommandResult RequestBuild()
         {
             if (Stage is not AwaitingBuildCommandStage) return RocketLaunchPadCommandResult.NotAwaitingBuildCommand;
-            var reason = CheckBuildable(out var payloadIndex);
+            var reason = StartBuilding();
             if (reason == RocketLaunchPadWaitReason.OutputFull) return RocketLaunchPadCommandResult.OutputFull;
             if (reason == RocketLaunchPadWaitReason.MissingMaterials) return RocketLaunchPadCommandResult.MissingMaterials;
             if (reason == RocketLaunchPadWaitReason.MissingPayload) return RocketLaunchPadCommandResult.MissingPayload;
-            StartBuilding(payloadIndex);
             return RocketLaunchPadCommandResult.Accepted;
         }
 
@@ -160,40 +159,26 @@ namespace Game.Block.Blocks.RocketLaunchPad
                 BuildingStage building => Mathf.Clamp01(1f - building.RemainingTicks / (float)_buildTotalTicks),
                 LaunchingStage launching => Mathf.Clamp01(1f - launching.RemainingTicks / (float)_launchTotalTicks),
                 AwaitingLaunchCommandStage or ReadyToLaunchStage => 1f,
-                _ => 0f,
+                IdleStage or AwaitingBuildCommandStage => 0f,
+                _ => throw RejectUnknownStage(Stage),
             };
         }
 
-        // 揃った積荷のうち、成果が出力口に入りきる最初の1つを選ぶ。成果の無い積荷は出力口が満杯でも選べる
-        // Picks the first ready payload whose outputs fit; payloads without outputs can go even when the outputs are full
-        private RocketLaunchPadWaitReason CheckBuildable(out int payloadIndex)
+        private RocketLaunchPadWaitReason StartBuilding()
         {
-            payloadIndex = 0;
-            if (!_cargoLoader.HasMaterials()) return RocketLaunchPadWaitReason.MissingMaterials;
-
-            var anyReady = false;
-            foreach (var index in _cargoLoader.ReadyPayloadIndices())
-            {
-                anyReady = true;
-                var payload = _layout.Payloads[index];
-                if (!CanStoreArrivalOutputs(payload.ItemId, payload.Count)) continue;
-                payloadIndex = index;
-                return RocketLaunchPadWaitReason.None;
-            }
-            return anyReady ? RocketLaunchPadWaitReason.OutputFull : RocketLaunchPadWaitReason.MissingPayload;
-        }
-
-        // 先読みした成果が出力口に入りきるか。建造前と打ち上げ直前の判定がこの1本を使う
-        // Whether the previewed outputs fit the output slots; both the pre-build and pre-launch checks use this
-        private bool CanStoreArrivalOutputs(ItemId payloadItemId, int payloadCount)
-        {
-            return _outputSlots.CanStore(_arrivalService.PreviewArrivalOutputs(payloadItemId, payloadCount));
-        }
-
-        private void StartBuilding(int payloadIndex)
-        {
-            SetStage(new BuildingStage(_cargoLoader.LoadCargo(payloadIndex), _buildTotalTicks));
+            if (!_cargoLoader.TryLoadNextCargo(out var cargo, out var reason)) return reason;
+            SetStage(new BuildingStage(cargo, _buildTotalTicks));
             WaitReason = RocketLaunchPadWaitReason.None;
+            return RocketLaunchPadWaitReason.None;
+        }
+
+        // 未対応の段階を待機扱いにせず、開発者へ理由を残して拒否する
+        // Reject unsupported stages with a developer-visible reason instead of treating them as waiting
+        private static InvalidOperationException RejectUnknownStage(RocketLaunchPadStage stage)
+        {
+            var message = $"発射台の未対応の段階を拒否しました 型:{stage.GetType().FullName}";
+            Debug.LogError(message);
+            return new InvalidOperationException(message);
         }
     }
 }

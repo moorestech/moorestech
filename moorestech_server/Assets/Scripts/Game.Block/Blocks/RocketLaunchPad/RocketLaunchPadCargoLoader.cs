@@ -1,9 +1,10 @@
-using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Block.Interface.State;
+using Game.Orbit;
 
 namespace Game.Block.Blocks.RocketLaunchPad
 {
@@ -17,11 +18,15 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
+        private readonly RocketLaunchPadOutputSlots _outputSlots;
+        private readonly IOrbitalArrivalService _arrivalService;
 
-        public RocketLaunchPadCargoLoader(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
+        public RocketLaunchPadCargoLoader(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService)
         {
             _layout = layout;
             _slots = slots;
+            _outputSlots = outputSlots;
+            _arrivalService = arrivalService;
         }
 
         public void SetNextPayloadIndex(int nextPayloadIndex)
@@ -32,36 +37,25 @@ namespace Game.Block.Blocks.RocketLaunchPad
             NextPayloadIndex = (nextPayloadIndex % count + count) % count;
         }
 
-        public bool HasMaterials()
-        {
-            for (var i = 0; i < _layout.Materials.Count; i++)
-                if (!HasRequirement(_layout.MaterialSlots[i], _layout.Materials[i])) return false;
-            return true;
-        }
+        // 手動合図を待つ間は在庫を変えず、同じ候補選択で待ち理由を得る
+        // Read the wait reason through the same selection without consuming during the manual wait
+        public RocketLaunchPadWaitReason GetLoadWaitReason() => SelectNextCargo(out _);
 
-        // 1便ぶん揃った積荷の番号を前回の次から順に返し、特定の積荷だけが飛び続けないようにする
-        // Yields ready payload indices starting after the previous launch so no single payload starves the others
-        public IEnumerable<int> ReadyPayloadIndices()
+        public bool TryLoadNextCargo(out RocketCargo cargo, out RocketLaunchPadWaitReason reason)
         {
-            var count = _layout.Payloads.Count;
-            for (var offset = 0; offset < count; offset++)
-            {
-                var index = (NextPayloadIndex + offset) % count;
-                if (IsPayloadReady(index)) yield return index;
-            }
-        }
+            reason = SelectNextCargo(out var payloadIndex);
+            cargo = null;
+            // silent-ok: 充足・出力待ちは正常な待機 / Sequenceが待ち理由をUI・操作応答へ伝える
+            if (reason != RocketLaunchPadWaitReason.None) return false;
 
-        public RocketCargo LoadCargo(int payloadIndex)
-        {
-            // 揃っていないのに呼ばれたら呼び出し側の段階管理の誤り
-            // Being called while not ready is a stage-management bug in the caller
-            if (!HasMaterials() || !IsPayloadReady(payloadIndex)) throw new InvalidOperationException("1便ぶんの資材と積荷が揃っていない発射台で建造が始まりました");
-
+            // 選択が成功した同じ操作内で1便分を取り込み、次の巡回位置を進める
+            // Consume one launch in the successful selection operation and advance the round-robin position
             var materials = new List<IItemStack>();
             for (var i = 0; i < _layout.Materials.Count; i++) materials.Add(TakeRequirement(_layout.MaterialSlots[i], _layout.Materials[i]));
             var payload = TakeRequirement(_layout.PayloadSlot(payloadIndex), _layout.Payloads[payloadIndex]);
             NextPayloadIndex = (payloadIndex + 1) % _layout.Payloads.Count;
-            return new RocketCargo(payload, materials);
+            cargo = new RocketCargo(payload, materials);
+            return true;
 
             #region Internal
 
@@ -74,11 +68,26 @@ namespace Game.Block.Blocks.RocketLaunchPad
             #endregion
         }
 
-        // 積荷が1便ぶん揃ったかの判定はここだけが持ち、巡回とガードの両方が呼ぶ
-        // The single readiness check for one launch worth of a payload, used by both the scan and the guard
-        private bool IsPayloadReady(int payloadIndex)
+        // 充足した候補を巡回し、成果なしの積荷も出力満杯時に選べるようにする
+        // Scan ready candidates in round-robin order, allowing output-free payloads even when full
+        private RocketLaunchPadWaitReason SelectNextCargo(out int payloadIndex)
         {
-            return HasRequirement(_layout.PayloadSlot(payloadIndex), _layout.Payloads[payloadIndex]);
+            payloadIndex = 0;
+            for (var i = 0; i < _layout.Materials.Count; i++)
+                if (!HasRequirement(_layout.MaterialSlots[i], _layout.Materials[i])) return RocketLaunchPadWaitReason.MissingMaterials;
+
+            var anyReady = false;
+            for (var offset = 0; offset < _layout.Payloads.Count; offset++)
+            {
+                var index = (NextPayloadIndex + offset) % _layout.Payloads.Count;
+                var payload = _layout.Payloads[index];
+                if (!HasRequirement(_layout.PayloadSlot(index), payload)) continue;
+                anyReady = true;
+                if (!_outputSlots.CanStore(_arrivalService.PreviewArrivalOutputs(payload.ItemId, payload.Count))) continue;
+                payloadIndex = index;
+                return RocketLaunchPadWaitReason.None;
+            }
+            return anyReady ? RocketLaunchPadWaitReason.OutputFull : RocketLaunchPadWaitReason.MissingPayload;
         }
 
         private bool HasRequirement(int slot, RocketLaunchSlotRequirement requirement)

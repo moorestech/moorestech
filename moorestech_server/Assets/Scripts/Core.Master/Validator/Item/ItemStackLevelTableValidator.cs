@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Model.ItemsModule;
 
 namespace Core.Master.Validator.Item
@@ -35,6 +36,17 @@ namespace Core.Master.Validator.Item
                     logs += $"[ItemMaster.data] Name:{item.Name} references missing StackLevelTableGuid:{item.StackLevelTableGuid}\n";
 
             return logs;
+        }
+        // 生DTOだけで初期上限を引き、参照異常の診断は元の検証器へ残す
+        // Resolve the initial limit from raw DTOs, leaving reference diagnostics to their validators
+        internal static int? GetInitialStackLimit(Items items, Guid itemGuid)
+        {
+            var item = items.Data.FirstOrDefault(element => element.ItemGuid == itemGuid);
+            // silent-ok: 未知アイテムは各利用側が診断する / マスタ読込エラーで開発者が気づく
+            if (item == null) return null;
+            var table = items.ItemStackLevelTables.FirstOrDefault(element => element.TableGuid == item.StackLevelTableGuid);
+            // silent-ok: 参照切れ・段数0はValidateが診断する / マスタ読込エラーで開発者が気づく
+            return table == null || table.StackCounts.Length == 0 ? null : table.StackCounts[0];
         }
     }
 }

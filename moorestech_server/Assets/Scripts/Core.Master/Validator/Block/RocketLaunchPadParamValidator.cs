@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Model.BlocksModule;
+using Core.Master.Validator.Item;
 
 namespace Core.Master.Validator.Block
 {
@@ -58,7 +59,7 @@ namespace Core.Master.Validator.Block
                     if (payloadGuids.Contains(material.ItemGuid)) result += $"[BlockMaster] {name} launch material {material.ItemGuid} is also an orbital payload\n";
                     if (material.Count < 1) result += $"[BlockMaster] {name} launch material count must be >= 1\n";
 
-                    var firstLevelStack = FirstLevelStackOrNull(itemId.Value);
+                    var firstLevelStack = ItemStackLevelTableValidator.GetInitialStackLimit(MasterHolder.ItemMaster.Items, material.ItemGuid);
                     if (firstLevelStack != null && firstLevelStack < material.Count) result += $"[BlockMaster] {name} launch material {material.ItemGuid} count {material.Count} exceeds level-1 stack {firstLevelStack}\n";
                 }
                 return result;
@@ -76,8 +77,7 @@ namespace Core.Master.Validator.Block
                     long stackCount = 0;
                     foreach (var output in payload.ArrivalOutputs.GroupBy(output => output.ItemGuid))
                     {
-                        var outputItemId = MasterHolder.ItemMaster.GetItemIdOrNull(output.Key);
-                        var firstLevelStack = outputItemId == null ? null : FirstLevelStackOrNull(outputItemId.Value);
+                        var firstLevelStack = ItemStackLevelTableValidator.GetInitialStackLimit(MasterHolder.ItemMaster.Items, output.Key);
 
                         // silent-ok: 未知の成果アイテムは積荷表の検証、段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
                         if (firstLevelStack == null) continue;
@@ -86,15 +86,6 @@ namespace Core.Master.Validator.Block
                     if (param.OutputSlotCount < stackCount) result += $"[BlockMaster] {name} outputSlotCount {param.OutputSlotCount} cannot hold one launch of payload {payload.PayloadItemGuid} ({stackCount} stacks at level-1 stack)\n";
                 }
                 return result;
-            }
-
-            int? FirstLevelStackOrNull(ItemId itemId)
-            {
-                var element = MasterHolder.ItemMaster.GetItemMaster(itemId);
-                var stackCounts = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts;
-
-                // silent-ok: 段数0のテーブルは ItemStackLevelTableValidator が報告する / マスタ読込時のエラーログで開発者が気づく
-                return stackCounts.Length == 0 ? null : stackCounts[0];
             }
 
             #endregion

@@ -1,11 +1,16 @@
 import { Stack, Text } from "@mantine/core";
-import type { BlockInventoryOpen } from "@/bridge";
+import type { BlockInventoryOpen, RocketLaunchPadData } from "@/bridge";
 import { L, useI18n, type TranslationKey } from "@/shared/i18n";
 import { GaugeBar } from "@/shared/ui";
 import BlockItemGrid from "../BlockItemGrid";
 import { rocketStatusKey } from "../details/rocket/rocketLaunchPadLogic";
 
-export default function RocketLaunchPadInventory({ data }: { data: BlockInventoryOpen }) {
+export type RocketViewData = Pick<BlockInventoryOpen, "itemSlots"> & {
+  blockType: "RocketLaunchPad";
+  rocketLaunchPad: RocketLaunchPadData | undefined;
+};
+
+export default function RocketLaunchPadInventory({ data }: { data: RocketViewData }) {
   const { t } = useI18n();
   const detail = data.rocketLaunchPad;
   // silent-ok: 初期状態の未着だけ描画を待つ / 次のtopicでパネルに表示される

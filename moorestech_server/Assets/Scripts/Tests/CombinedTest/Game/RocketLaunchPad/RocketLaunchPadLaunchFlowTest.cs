@@ -36,6 +36,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
+            GameUpdater.RunFrames(5);
+            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, processor.Phase);
             Assert.AreEqual(2, inventory.GetItem(0).Count);
             Assert.AreEqual(1, inventory.GetItem(3).Count);
 
