@@ -67,7 +67,7 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反6件・修正6件 / 発電機を燃焼中は毎tick通知・拠点 UI を専用 view へ・状態詳細からマスタ値を外す・昇降の残りを秒で保存・スキーマの切り出しをサブディレクトリへ・型を payloadTypes へ。注目点16件のうち3件（前例の差し替え・未着ログ・P2 の比較）と古い P10 を直し、新しい形（起動時のマスタ整合検査サービス）はレビュー依頼の注目点に回す。死活表6変更はすべて生きる
 - Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
 
 ---
@@ -120,8 +120,8 @@ Task 5 は S2 の `Game.Orbit` が push されていないと進めない。Task
 | `moorestech_client/Assets/Scripts/Client.Network/API/Requests/BlockRequestApi.cs` | 接続 API | 10 |
 | `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/SpaceElevator/`（新） | 拠点の DTO と DTO ビルダー | 10 |
 | `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/SpaceElevator/SpaceElevatorConnectActionHandler.cs`（新） | `space_elevator.connect` | 10 |
-| `moorestech_web/webui/src/bridge/contract/schemas/{spaceElevator/index.ts,fluidSlot.ts,beltThroughput.ts,inventory.ts}` | 受信スキーマ（inventory.ts を 200 行未満へ分割） | 10 |
-| `moorestech_web/webui/src/features/blockInventory/details/spaceElevator/`（新） | 拠点の固有部分（接続ボタン・プール・進み・待ちの理由） | 10 |
+| `moorestech_web/webui/src/bridge/contract/schemas/{spaceElevator/index.ts,blockInventory/fluidSlot.ts,blockInventory/beltThroughput.ts,inventory.ts}`・`moorestech_web/webui/src/bridge/contract/payloadTypes.ts` | 受信スキーマ（inventory.ts を 200 行未満へ分割。`schemas/` 直下は既に10ファイルなので切り出し先はサブディレクトリ）と `z.infer` の型 | 10 |
+| `moorestech_web/webui/src/features/blockInventory/details/spaceElevator/`（新）・`views/SpaceElevatorInventory.tsx`（新）・`registry/{blockComponentRegistry.ts,registeredBlockTypes.ts}` | 拠点の固有部分（接続ボタン・プール・進み・待ちの理由）と、それを載せる専用ビューのレジストリ登録 | 10 |
 | `moorestech_web/webui/e2e/...` | registry fixture・mock host・拠点の e2e | 3,10 |
 | `Localization/localization.csv` | 拠点 UI の文言 | 10 |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/SpaceElevator/SpaceElevatorBaseStateChangeProcessor.cs`（新） | ケーブルの表示と昇降機の位置 | 11 |
@@ -135,14 +135,14 @@ Task 5 は S2 の `Game.Orbit` が push されていないと進めない。Task
 | ケーブルプール（ワールド単位の可変状態＋セーブ節）を独立アセンブリ `Game.SpaceElevator` に置く | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs`（ワールド単位の部屋状態を独立アセンブリで持ち、`WorldSaveAllInfo` の節へ保存） |
 | プールが拠点へ残量を `SetCablePoolAmount(int)` で push し、拠点が状態変化を発火する | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs`（`ICleanRoomMachine.SetCleanRoomEffect` へ push） |
 | `ISpaceElevatorBase` を `Game.Block.Interface/Component/SpaceElevator/` に置く | `Game.Block.Interface/Component/CleanRoom/ICleanRoomMachine.cs` |
-| プール・接続サービスを main コンテナの具象型 singleton＋`IBootInitializable` で起動時に生成・購読する | `moorestech_server/Assets/Scripts/Server.Event/EventReceive/ChangeBlockStateEventPacket.cs`（`IBootInitializable.Load` で購読を張る。`AddInitializableForwarding` が転送） |
+| プール・接続サービスを main コンテナの具象型 singleton＋`IBootInitializable` で起動時に生成・購読する | `moorestech_server/Assets/Scripts/Game.PlayerRiding/RemovedRidableRidingHandler.cs`（Game 層のサービスが `IBootInitializable.Load` でワールドのイベントを購読する同じ役割の前例）。initializer コンテナ側の `CleanRoomDatastore` 型は S2 の Orbit（main コンテナ）に依存できないので採らない |
 | 撤去でのプール返却は `OnBlockRemoveEvent` 購読 | `CleanRoomDatastore` の ctor 購読（`OnBlockRemoveEvent` は `Destroy` より前に発火する: `WorldBlockDatastore.cs:38→43`） |
 | 昇降機が出口に入りきるかを昇り始める前と渡す直前に確かめる | `Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118`（`VanillaMachineOutputInventory.CanStoreOutputs`） |
 | 拠点の電力消費（昇降中だけ要求・不足で遅く） | `Game.Block/Blocks/Pump/ElectricPumpComponent.cs`＋`ElectricPumpProcessorComponent.cs`（供給を加算し Update で latch）、`Game.Block/Blocks/Util/MachineCurrentPowerToSubSecond.cs` |
 | 拠点のインベントリ（開ける・ベルト入出力） | `Game.Block/Blocks/Chest/VanillaChestComponent.cs` |
 | 拠点の状態詳細（MessagePack） | `Game.Block/Blocks/ElectricToGear/ElectricToGearGeneratorBlockStateDetail.cs` |
 | 接続プロトコル | `Server.Protocol/PacketResponse/SetElectricToGearOutputModeProtocol.cs`（形）＋`RemoveBlockProtocol.cs` の拒否ログ（fail-closed のログ） |
-| webui の拠点表示（専用 view を作らず、汎用 `SectionStackView` にデータの有無で固有部分を合成） | `moorestech_web/webui/src/features/blockInventory/details/GearToElectricSection.tsx`＋`views/SectionStackView.tsx` の `configByBlockType` |
+| webui の拠点表示は専用 view `SpaceElevatorInventory` をレジストリに登録する（接続ボタンというブロック固有の操作を持つため。`SectionStackView` は「固有UIだけをレジストリへ残す」合成先で、`intentionalGeneric` は移植待ちの許可リスト） | `moorestech_web/webui/src/features/blockInventory/views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`（固有操作を持つブロックの専用 view）＋`registry/blockComponentRegistry.ts` |
 | 拠点の action と DTO | `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/ElectricToGearActions.cs`／`Topics/BlockDetail/ElectricToGearDetailDtoBuilder.cs` |
 | 簡易モデルの見た目更新 | `Client.Game/InGame/BlockSystem/StateProcessor/SteamEngineEffectStateChangeProcessor.cs`（プレハブに貼る `[SerializeField]` 付き processor） |
 | 発電機の状態詳細 | `Game.Block/Blocks/Gear/FuelGearGeneratorComponent.cs`（`PowerGeneratorStateDetail` を出す） |
@@ -433,7 +433,7 @@ git push
 **Interfaces:**
 - Consumes: なし
 - Produces:
-  - `VanillaElectricGeneratorFuelService.Update()` の戻り値を `bool`（燃料の点き始め・燃え尽きの tick だけ true）に変える
+  - `VanillaElectricGeneratorFuelService.Update()` の戻り値を `bool`（燃料の点き始め・燃え尽きの tick だけ true）に変える。発電機は「その tick に true、または燃焼中」なら状態を通知し、液体を受け入れたときも通知する（前例 `FuelGearGeneratorComponent.cs:88-91`・`VanillaMachineFluidInventoryComponent.cs:139`）
   - `VanillaElectricGeneratorFuelService`: `public bool IsBurning`、`public uint RemainingFuelTicks`、`public uint CurrentFuelTotalTicks`、`public bool TryGetFuelTank(out FluidMessagePack tank)`
   - `PowerGeneratorStateDetail(double remainingFuelSeconds, double currentFuelSeconds, float operatingRate)`
   - `VanillaElectricGeneratorComponent : IBlockStateObservable`（`PowerGenerator` と、液体燃料タンクがあれば `FluidMachineInventory` の状態詳細を出す）
@@ -471,33 +471,60 @@ namespace Tests.CombinedTest.Core.Electric
             var notified = 0;
             generator.OnChangeBlockState.Subscribe(_ => notified++);
 
-            // 3単位ぶん入れて1tick進めると1単位が点き、タンクに2単位残る
-            // Feed three units and advance one tick: one unit ignites and two remain in the tank
+            // 注ぐだけでタンクの変化を通知する
+            // Pouring alone notifies the tank change
             generator.AddLiquid(new FluidStack(fuel.Amount * 3, fluidId), default);
+            Assert.AreEqual(1, notified);
+
+            // 1tick進めると1単位が点き、タンクに2単位残る
+            // One tick ignites one unit and leaves two in the tank
             GameUpdater.UpdateOneTick();
 
             var (power, tank) = ReadDetails(generator);
             Assert.AreEqual(1f, power.OperatingRate);
             Assert.AreEqual(fuel.Time, power.CurrentFuelTime, 0.01);
             Assert.AreEqual(fuel.Amount * 2, tank.Amount, 0.001);
-            Assert.AreEqual(1, notified);
+            Assert.AreEqual(2, notified);
         }
 
         [Test]
-        public void 燃え尽きたら稼働率0を一度だけ通知する()
+        public void 燃焼中は毎tick残燃料を通知する()
+        {
+            var (generator, fuel, fluidId) = Setup();
+            generator.AddLiquid(new FluidStack(fuel.Amount, fluidId), default);
+            GameUpdater.UpdateOneTick();
+            var (before, _) = ReadDetails(generator);
+
+            var notified = 0;
+            generator.OnChangeBlockState.Subscribe(_ => notified++);
+            GameUpdater.RunFrames(3);
+
+            // 残燃料バーが進むよう、燃えている間は毎tick通知する
+            // Notify every tick while burning so the remaining-fuel bar advances
+            var (after, _) = ReadDetails(generator);
+            Assert.AreEqual(3, notified);
+            Assert.Less(after.RemainingFuelTime, before.RemainingFuelTime);
+        }
+
+        [Test]
+        public void 燃え尽きたら稼働率0になり通知が止まる()
         {
             var (generator, fuel, fluidId) = Setup();
             generator.AddLiquid(new FluidStack(fuel.Amount, fluidId), default);
             GameUpdater.UpdateOneTick();
 
-            var notified = 0;
-            generator.OnChangeBlockState.Subscribe(_ => notified++);
             var fuelTicks = GameUpdater.SecondsToTicks(fuel.Time);
             for (var i = 0; i < fuelTicks + 1; i++) GameUpdater.RunFrames(1);
 
+            // 燃え尽きた後は通知が止まる
+            // Notifications stop once the fuel has burned out
+            var notified = 0;
+            generator.OnChangeBlockState.Subscribe(_ => notified++);
+            GameUpdater.RunFrames(3);
+
             var (power, _) = ReadDetails(generator);
             Assert.AreEqual(0f, power.OperatingRate);
-            Assert.AreEqual(1, notified);
+            Assert.AreEqual(0, notified);
         }
 
         private static (VanillaElectricGeneratorComponent, FuelFluidsElement, FluidId) Setup()
@@ -585,9 +612,21 @@ public void Update()
     BlockException.CheckDestroy(this);
     if (_isInfinityPower) return;
 
-    // 燃料の点き始め・燃え尽きでだけ状態を通知する
-    // Notify the state only when a fuel unit ignites or burns out
-    if (_fuelService.Update()) _onChangeBlockState.OnNext(Unit.Default);
+    // 点き始め・燃え尽きのtickと、燃焼中で残燃料が進むtickに通知する
+    // Notify on ignite/burn-out ticks and on every burning tick as the remaining fuel advances
+    var transitioned = _fuelService.Update();
+    if (transitioned || _fuelService.IsBurning) _onChangeBlockState.OnNext(Unit.Default);
+}
+
+public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
+{
+    BlockException.CheckDestroy(this);
+    var remainder = _fuelService.AddLiquid(fluidStack);
+
+    // タンクが増えたら表示を更新する
+    // Refresh the display when the tank gained fluid
+    if (remainder.Amount < fluidStack.Amount) _onChangeBlockState.OnNext(Unit.Default);
+    return remainder;
 }
 
 public BlockStateDetail[] GetBlockStateDetails()
@@ -610,7 +649,7 @@ public BlockStateDetail[] GetBlockStateDetails()
     return details.ToArray();
 }
 ```
-`using System; using Game.Block.Interface.State; using MessagePack; using UniRx;` を足す。`wc -l` で 200 行未満を確かめる。
+既存の `Update` と `AddLiquid` は上の形に置き換える。`using System; using Game.Block.Interface.State; using MessagePack; using UniRx;` を足す。`wc -l` で 200 行未満を確かめる。
 
 `PowerGeneratorStateDetail.cs` に ctor を足す:
 ```csharp
@@ -1809,7 +1848,7 @@ git commit -m "feat(space-elevator): ケーブルプールと接続サービス�
 **Interfaces:**
 - Consumes: Task 7 の `ISpaceElevatorBase`・`SpaceElevatorConnectionService.Connect(IBlock)`、S2 の `IOrbitalArrivalService.Arrive`・`PreviewArrivalOutputs`、Task 6 の `SpaceElevatorBaseBlockParam.OutputSlotCount`
 - Produces:
-  - `SpaceElevatorBaseStateDetail`（MessagePack、キー `"SpaceElevatorBase"`。`[Key(0)] bool IsConnected`、`[Key(1)] int CablePoolAmount`、`[Key(2)] int CablesPerElevator`、`[Key(3)] float ClimbProgress`、`[Key(4)] SpaceElevatorBaseStatus Status`）
+  - `SpaceElevatorBaseStateDetail`（MessagePack、キー `"SpaceElevatorBase"`。`[Key(0)] bool IsConnected`、`[Key(1)] int CablePoolAmount`、`[Key(2)] float ClimbProgress`、`[Key(3)] SpaceElevatorBaseStatus Status`。1エレベーター分の量はマスタ値なので載せず、クライアントの DTO ビルダーが param から引く）
   - `enum SpaceElevatorBaseStatus { NotConnected, WaitingSatellite, Climbing, LowPower, OutputBlocked }`
   - インベントリのスロット: 0＝衛星の入口（運ぶ積荷だけ）、1〜`OutputSlotCount`＝成果の出口（取り出しのみ）。`SpaceElevatorBaseInventoryComponent.SatelliteSlot = 0`、`FirstOutputSlot = 1`
   - 出口の確認は機械の前例（`Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:49` の開始前、`ProcessingMachineProcessState.cs:118` の完了直前に `CanStoreOutputs`）と同じ2点: 昇り始める前と、頂上で軌道到着サービスへ渡す直前。どちらも `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを見る。入らなければ衛星を入口に残す／頂上で待たせ、状態を `OutputBlocked` にする。頂上で待つ間は電力を使わない
@@ -1861,22 +1900,20 @@ namespace Game.Block.Blocks.SpaceElevator
 
         [Key(0)] public bool IsConnected { get; set; }
         [Key(1)] public int CablePoolAmount { get; set; }
-        [Key(2)] public int CablesPerElevator { get; set; }
         // 昇降の進み（0〜1）。昇っていなければ0
         // Climb progress from 0 to 1; zero while not climbing
-        [Key(3)] public float ClimbProgress { get; set; }
-        [Key(4)] public SpaceElevatorBaseStatus Status { get; set; }
+        [Key(2)] public float ClimbProgress { get; set; }
+        [Key(3)] public SpaceElevatorBaseStatus Status { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public SpaceElevatorBaseStateDetail()
         {
         }
 
-        public SpaceElevatorBaseStateDetail(bool isConnected, int cablePoolAmount, int cablesPerElevator, float climbProgress, SpaceElevatorBaseStatus status)
+        public SpaceElevatorBaseStateDetail(bool isConnected, int cablePoolAmount, float climbProgress, SpaceElevatorBaseStatus status)
         {
             IsConnected = isConnected;
             CablePoolAmount = cablePoolAmount;
-            CablesPerElevator = cablesPerElevator;
             ClimbProgress = climbProgress;
             Status = status;
         }
@@ -1896,7 +1933,7 @@ namespace Game.Block.Blocks.SpaceElevator
         // 昇降中の衛星。昇っていなければ空スタック
         // The satellite being lifted; an empty stack while not climbing
         [JsonProperty("climbingSatellite")] public ItemStackSaveJsonObject ClimbingSatellite;
-        [JsonProperty("remainingClimbTicks")] public uint RemainingClimbTicks;
+        [JsonProperty("remainingClimbSeconds")] public double RemainingClimbSeconds;
     }
 }
 ```
@@ -2171,7 +2208,7 @@ namespace Game.Block.Blocks.SpaceElevator
             var save = BlockComponentStateReader.Read<SpaceElevatorClimberSaveJsonObject>(componentStates, SaveKey);
             IsConnected = save.IsConnected;
             _climbingSatellite = save.ClimbingSatellite.ToItemStack();
-            _remainingClimbTicks = save.RemainingClimbTicks;
+            _remainingClimbTicks = GameUpdater.SecondsToTicks(save.RemainingClimbSeconds);
         }
 
         public void Update()
@@ -2260,7 +2297,7 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             BlockException.CheckDestroy(this);
             var progress = IsCarrying ? 1f - (float)_remainingClimbTicks / _climbTotalTicks : 0f;
-            var detail = new SpaceElevatorBaseStateDetail(IsConnected, _cablePoolAmount, _param.CablesPerElevator, progress, ResolveStatus());
+            var detail = new SpaceElevatorBaseStateDetail(IsConnected, _cablePoolAmount, progress, ResolveStatus());
             return new[] { new BlockStateDetail(SpaceElevatorBaseStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
 
             #region Internal
@@ -2292,7 +2329,7 @@ namespace Game.Block.Blocks.SpaceElevator
             {
                 IsConnected = IsConnected,
                 ClimbingSatellite = new ItemStackSaveJsonObject(_climbingSatellite),
-                RemainingClimbTicks = _remainingClimbTicks,
+                RemainingClimbSeconds = GameUpdater.TicksToSeconds(_remainingClimbTicks),
             };
         }
 
@@ -2533,7 +2570,6 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             LaunchCables(150);
             var detail = ReadDetail(elevatorBase);
             Assert.AreEqual(150, detail.CablePoolAmount);
-            Assert.AreEqual(100, detail.CablesPerElevator);
             Assert.AreEqual(SpaceElevatorBaseStatus.NotConnected, detail.Status);
         }
 
@@ -2925,13 +2961,14 @@ git commit -m "feat(space-elevator): 拠点の接続プロトコルを足す"
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/SpaceElevator/WireContractSpaceElevatorTest.cs`
 - Modify: `Localization/localization.csv`
 - Create: `moorestech_web/webui/src/bridge/contract/schemas/spaceElevator/index.ts`
-- Create: `moorestech_web/webui/src/bridge/contract/schemas/fluidSlot.ts`、`moorestech_web/webui/src/bridge/contract/schemas/beltThroughput.ts`（inventory.ts から移す）
-- Modify: `moorestech_web/webui/src/bridge/contract/schemas/inventory.ts`、`schemas/index.ts`
+- Create: `moorestech_web/webui/src/bridge/contract/schemas/blockInventory/fluidSlot.ts`、`moorestech_web/webui/src/bridge/contract/schemas/blockInventory/beltThroughput.ts`（inventory.ts から移す）
+- Modify: `moorestech_web/webui/src/bridge/contract/schemas/inventory.ts`、`moorestech_web/webui/src/bridge/contract/schemas/index.ts`、`moorestech_web/webui/src/bridge/contract/payloadTypes.ts`
 - Modify: `moorestech_web/webui/src/bridge/transport/actionContract.ts`
 - Create: `moorestech_web/webui/src/features/blockInventory/details/spaceElevator/SpaceElevatorSection.tsx`
 - Create: `moorestech_web/webui/src/features/blockInventory/details/spaceElevator/spaceElevatorDisplay.ts`
 - Create: `moorestech_web/webui/src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx`
-- Modify: `moorestech_web/webui/src/features/blockInventory/views/SectionStackView.tsx`
+- Create: `moorestech_web/webui/src/features/blockInventory/views/SpaceElevatorInventory.tsx`
+- Modify: `moorestech_web/webui/src/features/blockInventory/registry/blockComponentRegistry.ts`、`moorestech_web/webui/src/features/blockInventory/registry/registeredBlockTypes.ts`、`moorestech_web/webui/src/features/blockInventory/registry/blockComponentRegistry.test.ts`
 - Modify: `moorestech_web/webui/src/bridge/contract/wireContract.test.ts`
 - Modify: `moorestech_web/webui/e2e/fixtures/v8-block-ui-registry.json`、`moorestech_web/webui/e2e/tests/block/blockRegistryCoverage.spec.ts`
 - Modify: `moorestech_web/webui/e2e/mock-host/fixtures/blocks/energyFixtures.ts`、`moorestech_web/webui/e2e/mock-host/httpHandler.ts`、`moorestech_web/webui/e2e/mock-host/wsHandler.ts`、`moorestech_web/webui/e2e/mock-host/detailActions.ts`
@@ -2944,7 +2981,7 @@ git commit -m "feat(space-elevator): 拠点の接続プロトコルを足す"
   - action `space_elevator.connect`（payload `{}`）
   - testid: `space-elevator-section`, `space-elevator-status`, `space-elevator-pool`, `space-elevator-progress`, `space-elevator-connect`, `space-elevator-insufficient`, `space-elevator-grid`
 
-配置: 拠点のスロット・電力網・固有部分を、汎用の `SectionStackView` にデータの有無で合成する（前例 `GearToElectricSection` と `configByBlockType`。「標準ブロック表示をデータ有無で合成し、固有UIだけをレジストリへ残す」）。接続ボタンは固有部分の中に置き、専用ビューは作らない。
+配置: 拠点は接続ボタンというブロック固有の操作を持つので、専用 view `views/SpaceElevatorInventory.tsx`（スロット・固有部分・電力網）を作ってレジストリに登録する（前例 `views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`）。`SectionStackView` には足さず、e2e の `intentionalGeneric` にも入れない（`SectionStackView.tsx:51-52`「固有UIだけをレジストリへ残す」、`intentionalGeneric` は移植待ちの許可リスト）。
 
 - [ ] **Step 1: クライアントの API・DTO・action を書く**
 
@@ -2979,6 +3016,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.SpaceElevator
 using Client.Game.InGame.Block;
 using Game.Block.Blocks.SpaceElevator;
 using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail.SpaceElevator
 {
@@ -2990,17 +3028,23 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.SpaceElevator
     {
         public static void Apply(BlockInventoryDto dto, BlockGameObject block, object param)
         {
-            if (param is not SpaceElevatorBaseBlockParam) return;
+            if (param is not SpaceElevatorBaseBlockParam elevatorParam) return;
             var state = block.GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
             // 初回の状態が届く前は未着として何も詰めない（webui は詳細なしで描く）
             // Before the first state arrives nothing is filled; the webui renders without the detail
-            if (state == null) return;
+            if (state == null)
+            {
+                Debug.LogWarning("SpaceElevatorBase の状態詳細が未着のため DTO を保留します");
+                return;
+            }
 
             dto.SpaceElevator = new SpaceElevatorDetailDto
             {
                 Connected = state.IsConnected,
                 CablePoolAmount = state.CablePoolAmount,
-                CablesPerElevator = state.CablesPerElevator,
+                // 1エレベーター分の量はマスタ値なので param から引く
+                // The cables per elevator is a master value, so read it from the param
+                CablesPerElevator = elevatorParam.CablesPerElevator,
                 ClimbProgress = state.ClimbProgress,
                 Status = ToWireStatus(state.Status),
             };
@@ -3141,9 +3185,13 @@ export const SpaceElevatorDataSchema = z.object({
   climbProgress: z.number().min(0).max(1),
   status: SpaceElevatorStatusSchema,
 }).strict();
+```
+`payloadTypes.ts` の `import type { ... } from "./schemas";` に `SpaceElevatorDataSchema, SpaceElevatorStatusSchema,` を足し、`TrainPlatformMode` の行の次に足す（型は schemas から出さず、ここに集める。前例 `GearToElectricGenerationState`）:
+```ts
+export type SpaceElevatorData = z.infer<typeof SpaceElevatorDataSchema>;
 export type SpaceElevatorStatus = z.infer<typeof SpaceElevatorStatusSchema>;
 ```
-`inventory.ts` の `FluidSlotWireSchema`・`FluidSlotDataSchema`（とその直前のコメント）を `schemas/fluidSlot.ts` へ、`BeltThroughputWindowDataSchema`・`BeltThroughputDataSchema`（とコメント）を `schemas/beltThroughput.ts` へ本体ごと移し、`inventory.ts` からは `import { FluidSlotDataSchema } from "./fluidSlot"; import { BeltThroughputDataSchema } from "./beltThroughput";` で使い、`export { FluidSlotDataSchema } from "./fluidSlot"; export { BeltThroughputDataSchema, BeltThroughputWindowDataSchema } from "./beltThroughput";` で再公開する（既存の import 先を変えないため）。`BlockInventoryOpenSchema` に `spaceElevator: SpaceElevatorDataSchema.optional(),` を足し、`superRefine` に:
+`inventory.ts` の `FluidSlotWireSchema`・`FluidSlotDataSchema`（とその直前のコメント）を `schemas/blockInventory/fluidSlot.ts` へ、`BeltThroughputWindowDataSchema`・`BeltThroughputDataSchema`（とコメント）を `schemas/blockInventory/beltThroughput.ts` へ本体ごと移し（`schemas/` 直下は既に10ファイルなので、前例 `schemas/energyConversion/` と同じくサブディレクトリに置く）、`inventory.ts` からは `import { FluidSlotDataSchema } from "./blockInventory/fluidSlot"; import { BeltThroughputDataSchema } from "./blockInventory/beltThroughput";` で使い、`export { FluidSlotDataSchema } from "./blockInventory/fluidSlot"; export { BeltThroughputDataSchema, BeltThroughputWindowDataSchema } from "./blockInventory/beltThroughput";` で再公開する（既存の import 先を変えないため）。`BlockInventoryOpenSchema` に `spaceElevator: SpaceElevatorDataSchema.optional(),` を足し、`superRefine` に:
 ```ts
   if (data.spaceElevator && data.blockType !== "SpaceElevatorBase")
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["spaceElevator"], message: "spaceElevator requires SpaceElevatorBase" });
@@ -3224,7 +3272,35 @@ export default function SpaceElevatorSection({ data }: { data: BlockInventoryOpe
   );
 }
 ```
-`SectionStackView.tsx`: `configByBlockType` に `SpaceElevatorBase: { itemGridTestId: "space-elevator-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: false, showFluidDetails: false },` を足し、`<GearToElectricSection data={data} />` の次に `<SpaceElevatorSection data={data} />` を足す（`import SpaceElevatorSection from "../details/spaceElevator/SpaceElevatorSection";`）。
+`views/SpaceElevatorInventory.tsx`（前例 `views/TrainPlatformInventory.tsx`）:
+```tsx
+import { Stack } from "@mantine/core";
+import type { BlockInventoryOpen } from "@/bridge";
+import BlockItemGrid from "../BlockItemGrid";
+import { ElectricNetworkSection } from "../details/NetworkSections";
+import SpaceElevatorSection from "../details/spaceElevator/SpaceElevatorSection";
+
+const ITEM_SLOTS_TEST_ID = "space-elevator-grid";
+
+// 衛星の入口と成果の出口、接続と昇降の固有部分、電力網を縦に並べる
+// Stack the satellite inlet and result outlets, the connect/climb section and the power network
+export default function SpaceElevatorInventory({ data }: { data: BlockInventoryOpen }) {
+  return (
+    <Stack gap="sm" data-testid="space-elevator-view">
+      <BlockItemGrid itemSlots={data.itemSlots} testId={ITEM_SLOTS_TEST_ID} />
+      <SpaceElevatorSection data={data} />
+      <ElectricNetworkSection data={data} />
+    </Stack>
+  );
+}
+```
+`registry/blockComponentRegistry.ts` に `import SpaceElevatorInventory from "../views/SpaceElevatorInventory";` と `blockComponents` の `ElectricPole: ElectricPoleInventory,` の次に `SpaceElevatorBase: SpaceElevatorInventory,` を足す。`registry/registeredBlockTypes.ts` の `"ElectricPole",` の次に `"SpaceElevatorBase",` を足す。`registry/blockComponentRegistry.test.ts` の `ElectricToGearGeneratorは専用ビューへ登録する` の次に:
+```ts
+  it("SpaceElevatorBaseは接続ボタンを持つ専用ビューへ登録する", () => {
+    expect(blockComponents).toHaveProperty("SpaceElevatorBase");
+    expect(resolveBlockComponent("SpaceElevatorBase")).not.toBe(SectionStackView);
+  });
+```
 
 `details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx`（前例 `views/__tests__/SectionStackView.test.tsx` の描画ヘルパーと `dispatchAction` のモックを写す）:
 ```tsx
@@ -3268,7 +3344,7 @@ describe("SpaceElevatorSection", () => {
 
 - [ ] **Step 6: e2e を足す**
 
-`e2e/fixtures/v8-block-ui-registry.json` に `{ "blockType": "SpaceElevatorBase", "openable": true }` をアルファベット順の位置に足す（Task 3 で足した `ElectricGenerator` openable true の行と合わせ、blocks.json から再生成した結果と一致させる）。`blockRegistryCoverage.spec.ts` の `intentionalGeneric` に `"SpaceElevatorBase"` を足す。
+`e2e/fixtures/v8-block-ui-registry.json` に `{ "blockType": "SpaceElevatorBase", "openable": true }` をアルファベット順の位置に足す（Task 3 で足した `ElectricGenerator` openable true の行と合わせ、blocks.json から再生成した結果と一致させる）。拠点は専用 view をレジストリに登録したので、`blockRegistryCoverage.spec.ts` の `intentionalGeneric` には足さない。
 `energyFixtures.ts` の末尾に:
 ```ts
 // 宇宙エレベーター拠点（未接続・ケーブル不足）
@@ -3726,8 +3802,8 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 
 | # | 判断 | 理由・根拠 |
 |---|---|---|
-| P1 | 発電機（ElectricGenerator）に `IBlockStateObservable` を足し、`PowerGeneratorStateDetail` と液体タンク（`FluidMachineInventoryStateDetail`）を出す。通知は燃料の点き始め・燃え尽きの tick だけ | 裁定「既存モデル＋汎用UIの稼働表示」。前例 `FuelGearGeneratorComponent`（同じ状態詳細）。毎 tick の同値判定はしない（AGENTS.md「状態変化の検知は購読で」） |
-| P2 | クライアントで ElectricGenerator を CommonMachine 扱いから外す | 原因: 推測（根拠: `CommonMachineBlockStateChangeProcessor.cs:23-28` は CommonMachine キーが無い状態で `Debug.LogError` を出す。発電機が状態を出すと必ず通る）。Task 13 の録画テストでエラーログが無いことを実測で確かめる |
+| P1 | 発電機（ElectricGenerator）に `IBlockStateObservable` を足し、`PowerGeneratorStateDetail` と液体タンク（`FluidMachineInventoryStateDetail`）を出す。通知は点き始め・燃え尽きの tick、燃焼中の毎 tick（残燃料が進む）、液体を受け入れたとき | 裁定「既存モデル＋汎用UIの稼働表示」。前例 `FuelGearGeneratorComponent.cs:88-91`（稼働中は毎 tick 通知）・`VanillaMachineFluidInventoryComponent.cs:139`（液体の受け入れで通知）。同じ値の再送は `ChangeBlockStateEventPacket` が落とす。配置検査 V1 で「点き始め・燃え尽きだけ」から直した（残燃料バーが止まるため） |
+| P2 | クライアントで ElectricGenerator を CommonMachine 扱いから外す（比べた案: 発電機専用の状態プロセッサを置く → 見た目に変化が無いので要らない。CommonMachine のキーも出す → 発電機は機械の処理状態を持たず偽の値を送ることになる） | 原因: 推測（根拠: `CommonMachineBlockStateChangeProcessor.cs:23-28` は CommonMachine キーが無い状態で `Debug.LogError` を出す。発電機が状態を出すと必ず通る）。Task 13 の録画テストでエラーログが無いことを実測で確かめる |
 | P3 | 発電機は専用 view を作らず汎用 `SectionStackView` で出し、e2e の registry では意図的 Generic にする | 前例「標準ブロック表示をデータ有無で合成し、固有UIだけをレジストリへ残す」 |
 | P4 | `VanillaElectricGeneratorFuelService`（289行）と `VanillaElectricGeneratorComponent` を 200 行未満へ分割する。変換器が触るフィールドを `internal` にする | AGENTS.md の 200 行規約。同アセンブリの変換器だけが触る |
 | P5 | 数値の初期値: 核融合炉 重水素10/2秒で 20000、重水素抽出装置 4000（水100→重水素10/8秒）、反物質製造装置 12000（重水素50→反物質1/30秒）、反物質爆弾 反物質20＋ICチップLv1 50＋鋼鉄板100＋コンピュータ20（電気汎用工作装置 60秒）、グラフェン4レシピと3Dプリンタ2レシピは Task 1・2 の JSON の値 | Task 4 のシミュレーション（R3・R5・R23 の範囲）で検査し、NG なら直して本節へ追記する。全体の時間目標は S1 の裁定 |
@@ -3735,11 +3811,11 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P7 | 反物質の機械名は「反物質製造装置」 | 既存モデル名 `Antimatter_manufacturing_equipment` と ADR 0090 に合わせる。裁定ファイルの「反物質生成装置」は機能の言い換え（ユーザーが名前を決めた裁定ではない） |
 | P8 | グラフェンケーブルは軌道到着の積荷表に 1便1000本・成果なしで載せ、スタック表 [1000] を割り当てる。1エレベーター分 1000 本＝1便。昇降 600 秒・昇降中の電力 2000 | S2 の契約「countPerLaunch ≤ スタック上限」。Task 12 で S2 のロケット建造時間と比べて確定する |
 | P9 | 研究「軌道エレベーターの建設」の計算データ消費は S2 の plan の値（見つからなければ 200）、研究「反物質爆弾」に計算データ ×400 | S2 の裁定「計算データを消費する」。量は S2 待ち・S1 待ち |
-| P10 | プールは起動時（`IBootInitializable.Load`）に、拠点のマスタが指すケーブル・積荷が軌道到着の表にあるか、積荷にケーブルが含まれないかを S2 の `IsOrbitalPayload` で確かめ、違えば例外で止める | ADR 0089。S2 のマスタ API が未確定のため、公開済みの契約（`IsOrbitalPayload`）だけで確かめる |
+| P10 | 起動時（`IBootInitializable.Load`）の検査は `SpaceElevatorOrbitalTableCheck.cs`（`Game.SpaceElevator/`）が担う。拠点のマスタが指すケーブル・積荷が軌道到着の表にあるかを S2 の `IsOrbitalPayload` で、衛星1機の成果が空の出口（`outputSlotCount`）に入りきるかを `PreviewArrivalOutputs` で確かめ、違えば例外で止める。積荷にケーブルが含まれないかはマスタだけで決まるので `SpaceElevatorBaseParamValidator`（P22）が見る。プールは起動時の検査をしない | ADR 0089。S2 のサービスに依存する検査だけを起動時に置き、マスタだけで決まる検査はロード時の validator に置く。起動時のマスタ整合検査サービスは前例の無い新しい形（配置検査の注目点4） |
 | P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない） | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値 |
 | P12 | 撤去返却は `RemoveBlockProtocol.cs`（`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`）で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
 | P13 | 接続は専用プロトコル `va:connectSpaceElevator`（`ConnectSpaceElevatorProtocol.cs` を `PacketResponse/SpaceElevator/` に新設し `PacketResponseCreator.cs` に登録、`Server.Protocol.asmdef` に `Game.SpaceElevator` 参照を足す。クライアントは `BlockRequestApi.cs` に `ConnectSpaceElevator` を足す）で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出し、プレイヤーには状態詳細のプール残量から理由を出す | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
-| P14 | 拠点の UI は専用 view を作らず `SectionStackView` に固有部分 `SpaceElevatorSection` を合成する | 前例 `GearToElectricSection` |
+| P14 | 拠点の UI は専用 view `views/SpaceElevatorInventory.tsx`（`BlockItemGrid`＋`SpaceElevatorSection`＋`ElectricNetworkSection`）を `registry/blockComponentRegistry.ts`・`registeredBlockTypes.ts` に登録する。`SectionStackView` には足さず、e2e の `intentionalGeneric` にも入れない | 接続ボタンはブロック固有の操作。前例 `views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`。`SectionStackView.tsx:51-52`「固有UIだけをレジストリへ残す」、`intentionalGeneric` は移植待ちの許可リスト。配置検査 V2 で「SectionStackView に合成」から直した |
 | P15 | 新しいファイルはディレクトリの 10 ファイル上限のためサブディレクトリ（`PacketResponse/SpaceElevator/`・`Actions/SpaceElevator/`・`Topics/BlockDetail/SpaceElevator/`・`StateProcessor/SpaceElevator/`）に置き、`inventory.ts`（215 行）を分割する | AGENTS.md の規約 |
 | P16 | 録画テストは昇降の完了（600 秒）まで待たず、昇降機が上がること・進みが増えることまでを見る。到着後の成果・出口の空き待ちはユニットテストで見る。ケーブルの打ち上げはサーバーで `Arrive(cable, 1000)` を呼んで起こす | 録画の長さ。本番との差: ロケットでの打ち上げ経路は通さない（S2 の録画が担う） |
 | P17 | Task 5 は S2 の `Game.Orbit`（`PreviewArrivalOutputs` を含む）と積荷表が push されるまで前景で 600 秒ずつ最大 12 回待ち、来なければ止めて報告する | S2 の API に依存するため。バックグラウンドのポーリングはしない |
