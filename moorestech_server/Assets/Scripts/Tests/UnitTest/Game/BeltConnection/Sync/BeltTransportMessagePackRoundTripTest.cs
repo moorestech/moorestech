@@ -54,7 +54,6 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             Assert.AreEqual(TickSequenceId, message.TickSequenceId);
             var decoded = message.ToFullState();
             BeltFullStateAssert.AreEqual(full, decoded);
-            Assert.AreEqual(BeltTransportStateHash.Compute(full), BeltTransportStateHash.Compute(decoded), "hash after the wire round trip");
         }
 
         [Test]

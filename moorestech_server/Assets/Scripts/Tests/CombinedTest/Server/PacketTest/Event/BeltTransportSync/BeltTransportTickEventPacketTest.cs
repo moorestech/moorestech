@@ -115,13 +115,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
 
                 var tick = (trainUpdateService.GetCurrentTick() - 1);
                 Assert.IsTrue(replicaHashByTick.ContainsKey(tick), $"replica advanced to tick {tick}");
-                Assert.AreEqual(BeltTransportStateHash.Compute(CaptureServer()), replicaHashByTick[tick], $"replica hash at tick {tick}");
+                Assert.AreEqual(ServerHash(), replicaHashByTick[tick], $"replica hash at tick {tick}");
             }
 
             Assert.AreEqual(expectedRebuiltTicks.Count, rebuilds, "replica re-assembled once per placement");
             Assert.Greater(realHashesChecked, 0, "real belt hashes compared");
             Assert.Greater(dummyHashesChecked, 0, "dummy belt hashes compared");
-            BeltFullStateAssert.AreEqual(CaptureServer(), replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(CaptureServer(), BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments));
 
             #region Internal
 
@@ -194,7 +194,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
 
         private static uint HashOf(BeltTransportReplica replica)
         {
-            return BeltTransportStateHash.Compute(replica.CaptureFullState());
+            return BeltTransportStateHash.Compute(replica.Shapes, replica.Segments);
         }
     }
 }

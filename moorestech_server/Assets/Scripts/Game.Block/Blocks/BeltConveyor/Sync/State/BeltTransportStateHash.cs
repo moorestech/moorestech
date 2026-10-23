@@ -4,22 +4,24 @@ using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor.Sync.State
 {
-    // 全量の決定的なハッシュ。segment ごとに独立したハッシュ(番号・形・中身)を作り、順序に依存しない加算で畳む(ElementHash。列車・流体と同じ部品)
-    // Deterministic hash of the full state: each segment gets an independent hash (index, shape, contents) folded by order-independent addition (ElementHash, shared with train and fluid)
+    // 組の決定的なハッシュ。segment ごとに独立したハッシュ(番号・形・中身)を作り、順序に依存しない加算で畳む(ElementHash。列車・流体と同じ部品)
+    // Deterministic hash of the assembly: each segment gets an independent hash (index, shape, contents) folded by order-independent addition (ElementHash, shared with train and fluid)
+    // 形の配列と Core segment の配列を直接なめる。全量の切り出しも、アイテム列の配列への写しも無い(割り当て0)
+    // Walks the shape array and the Core segment array directly; no full-state capture and no copy of the item run into an array (zero allocation)
     public static class BeltTransportStateHash
     {
         private const uint SegmentSeed = 0x7365676D;
 
-        public static uint Compute(BeltTransportFullState fullState)
+        public static uint Compute(BeltSegmentShape[] shapes, BeltConveyorSegment[] segments)
         {
             unchecked
             {
-                var sum = ElementHash.Count(SegmentSeed, fullState.Segments.Length);
-                for (var i = 0; i < fullState.Segments.Length; i++)
+                var sum = ElementHash.Count(SegmentSeed, segments.Length);
+                for (var i = 0; i < segments.Length; i++)
                 {
                     var hash = ElementHash.Begin(SegmentSeed, i);
-                    hash = AddShape(hash, fullState.Segments[i].Shape);
-                    hash = AddContents(hash, fullState.Segments[i]);
+                    hash = AddShape(hash, shapes[i]);
+                    hash = AddContents(hash, segments[i]);
                     sum += ElementHash.Finish(hash);
                 }
                 return sum;
@@ -45,14 +47,19 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
                 return hash;
             }
 
-            uint AddContents(uint current, BeltSegmentState state)
+            uint AddContents(uint current, BeltConveyorSegment segment)
             {
-                var hash = ElementHash.Add(current, state.PriorityOrder);
-                hash = ElementHash.Add(hash, state.CurrentSpeed);
-                hash = ElementHash.Add(hash, state.Items.Length);
-                foreach (var item in state.Items) hash = AddItem(hash, item);
-                hash = ElementHash.Add(hash, state.HasBufferItem);
-                if (state.HasBufferItem) hash = AddItem(hash, state.BufferItem);
+                // 走行中は出口に近い順。bufferは合流・分岐だけが持ち、距離は0
+                // Running items in exit order; only merges and branches hold a buffer, whose item sits at distance 0
+                var hash = ElementHash.Add(current, segment.PriorityOrder);
+                hash = ElementHash.Add(hash, segment.Speed);
+                hash = ElementHash.Add(hash, segment.Count);
+                foreach (var state in segment.EnumerateItems()) hash = AddItem(hash, state.Item, state.DistanceToExit);
+
+                var bufferItem = default(BeltItem);
+                var hasBufferItem = segment is BeltBufferedSegment buffered && buffered.Buffer.TryGetItem(out bufferItem);
+                hash = ElementHash.Add(hash, hasBufferItem);
+                if (hasBufferItem) hash = AddItem(hash, bufferItem, 0);
                 return hash;
             }
 
@@ -68,13 +75,12 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.State
                 return hash;
             }
 
-            uint AddItem(uint current, in BeltItemSnapshot item)
+            uint AddItem(uint current, in BeltItem item, int distanceToExit)
             {
                 var hash = ElementHash.Add(current, item.ItemId.AsPrimitive());
                 hash = ElementHash.Add(hash, item.ItemInstanceId.AsPrimitive());
                 hash = ElementHash.Add(hash, (int)item.EntryDirection);
-                hash = ElementHash.Add(hash, item.DistanceToExit);
-                return hash;
+                return ElementHash.Add(hash, distanceToExit);
             }
 
             uint AddPosition(uint current, Vector3Int position)

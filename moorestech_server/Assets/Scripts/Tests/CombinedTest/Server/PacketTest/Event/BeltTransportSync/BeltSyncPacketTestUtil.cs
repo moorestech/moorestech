@@ -66,6 +66,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.BeltTransportSync
             Assert.IsNotNull(Place(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(x, 0, 0), BlockDirection.East), $"placed belt at x={x}");
         }
 
+        public static uint ServerHash()
+        {
+            return ServerContext.GetService<BeltTransportDatastore>().ComputeStateHash();
+        }
+
         public static BeltTransportFullState CaptureServer()
         {
             return ServerContext.GetService<BeltTransportDatastore>().CaptureFullState();

@@ -67,7 +67,7 @@ namespace Client.Game.InGame.BeltTransport.View
                 {
                     if (replica.Shapes[segmentIndex].Cells.Length == 0) continue;
                     if (!_range.Contains(segmentIndex, viewpoint)) continue;
-                    foreach (var state in replica.Segments[segmentIndex].CaptureItems())
+                    foreach (var state in replica.Segments[segmentIndex].EnumerateItems())
                     {
                         var position = BeltItemWorldPositionCalculator.Calculate(replica.Shapes, segmentIndex, state.DistanceToExit, state.Item.EntryDirection);
                         Show(state.Item.ItemInstanceId, state.Item.ItemId, position);

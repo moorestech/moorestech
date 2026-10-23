@@ -52,7 +52,7 @@ namespace Client.Game.InGame.BeltTransport
 
         public uint ComputeCurrentHash()
         {
-            return BeltTransportStateHash.Compute(Replica.CaptureFullState());
+            return BeltTransportStateHash.Compute(Replica.Shapes, Replica.Segments);
         }
 
         // そのマスを持つ統計対象segmentの番号。複製が無い間、合流マス、ベルトでないマスはfalse

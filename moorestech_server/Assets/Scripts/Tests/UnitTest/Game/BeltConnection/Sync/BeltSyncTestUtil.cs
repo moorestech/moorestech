@@ -27,9 +27,9 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
             var replica = BeltTransportReplicaAssembler.Assemble(full);
             BeltFullStateAssert.SameSegments(assembly.Segments, replica.Segments);
-            var again = replica.CaptureFullState();
+            var again = BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments);
             BeltFullStateAssert.AreEqual(full, again);
-            Assert.AreEqual(BeltTransportStateHash.Compute(full), BeltTransportStateHash.Compute(again), "hash after round trip");
+            Assert.AreEqual(HashOf(assembly), HashOf(replica), "hash after round trip");
             return replica;
         }
 
@@ -40,12 +40,12 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
         internal static uint HashOf(BeltTransportAssembly assembly)
         {
-            return BeltTransportStateHash.Compute(CaptureOf(assembly));
+            return BeltTransportStateHash.Compute(assembly.Shapes, assembly.Segments);
         }
 
         internal static uint HashOf(BeltTransportReplica replica)
         {
-            return BeltTransportStateHash.Compute(replica.CaptureFullState());
+            return BeltTransportStateHash.Compute(replica.Shapes, replica.Segments);
         }
 
         // 走行中とbuffer内を合わせた、全量に載っているアイテムの総数

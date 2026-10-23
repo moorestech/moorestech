@@ -41,6 +41,9 @@ Accepted
 - **列車（`TrainUnitSnapshotHashCalculator`・`RailGraphHashCalculator`）とベルト（`BeltTransportStateHash`）の FNV-1a 直列鎖も同じ形へ移す。** 部品を `ClassLibrary.ElementHash`（Begin／Add／Finish／Count）に1つ置き、4系統すべてがそれを使う。混ぜる項目は変えず、畳み方だけを要素ごとの独立ハッシュの加算にする。列車は識別子（TrainUnitInstanceId）を要素に含めるので並べ替えと List の確保が不要になり、Guid・float の取り込みも配列確保なしにした。
   出所: ユーザー 2026-10-23 原文「ちょっと気持ち悪いのでtrainとベルコンもこの直列計算をやめて並列化可能なアルゴリズム採用にしたい」
   棄却案: 流体だけ順序非依存にして列車・ベルトは据え置く（直前の agent 判断。3つの系統で畳み方が違うのは読み手に負担）
+- **ベルトのハッシュも全量を写さず、形の配列と Core segment の配列を直接なめる。** segment の走行中アイテムは `BeltConveyorSegment.EnumerateItems()`（配列へ写さない構造体の列挙）で読む。クライアントのアイテム描画（`BeltItemObjectPresenter`）が毎フレーム呼んでいた `CaptureItems()` も同じ列挙に替える。複製の `CaptureFullState()` は本番の呼び手が無くなるので消し、テストは `BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments)` を直接呼ぶ。
+  出所: ユーザー 2026-10-23 原文「結局ベルトやパイプに関して ムダなメモリコピーは発生しないであってる？」→ agent がベルトには残っていると報告 → ユーザー原文「なおしたい」
+  棄却案: ベルトは割り当てが全体の1%前後なので据え置く（流体で消したものと同種の無駄を残す理由が無い）
 - 機械側の流体タンク状態（`FluidMachineInventoryStateDetail`）と機械の進捗状態は本PRの対象外。石窯 1,677件/秒・加工機 809件/秒の残りは同じ「tick差分」の方向で次に扱う。
   出所: agent前提（範囲を流体パイプに限る裁定の帰結）
 - grill 規約の Codex 独立質問の段は、個人スキル codex-audit 不在のため省略した。

@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             var insert = new BeltMachineInsertRecord(0, BeltDirection.Back, NewItem(ItemB, BeltEntryDirection.FromBack));
             LogAssert.Expect(LogType.Error, new Regex("diverged"));
             Assert.IsFalse(replica.Tick(new BeltTickDiff(new BeltSegmentSpeedRecord[0], new[] { insert }, new BeltMachineExtractRecord[0])));
-            Assert.AreEqual(1, ItemCount(replica.CaptureFullState()), "the unplaceable item was not added");
+            Assert.AreEqual(1, ItemCount(BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments)), "the unplaceable item was not added");
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             // The unconsumed announcement is not carried over, so a later item reaching the exit is not silently accepted
             replica.Segments[0].RestoreItems(new[] { At(ItemA, BeltEntryDirection.FromBack, 0) });
             for (var tick = 0; tick < 300; tick++) Assert.IsTrue(replica.Tick(BeltTickDiff.Empty), $"empty diff at tick {tick}");
-            Assert.AreEqual(1, ItemCount(replica.CaptureFullState()), "the item waits at the exit instead of being handed off");
+            Assert.AreEqual(1, ItemCount(BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments)), "the item waits at the exit instead of being handed off");
         }
     }
 }

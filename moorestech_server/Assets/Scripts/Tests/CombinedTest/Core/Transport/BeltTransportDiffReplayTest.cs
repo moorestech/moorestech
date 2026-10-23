@@ -111,7 +111,7 @@ namespace Tests.CombinedTest.Core.Transport
             Assert.Less(lastFillingExtractTick, TickCount - 50, "handoffs stopped mid-run");
             Assert.AreEqual(3, ItemsOnSegmentAt(Vector3Int.zero).Length, "the line jammed");
 
-            BeltFullStateAssert.AreEqual(Datastore().CaptureFullState(), replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(Datastore().CaptureFullState(), BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments));
         }
 
         [Test]
@@ -143,7 +143,7 @@ namespace Tests.CombinedTest.Core.Transport
             }
             Assert.AreEqual(6, pushed, "every push entered");
             Assert.Greater(CountOf(sink, ItemA), 0, "pushed items reached the chest");
-            BeltFullStateAssert.AreEqual(Datastore().CaptureFullState(), replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(Datastore().CaptureFullState(), BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments));
         }
 
         private static void CreateServer()
