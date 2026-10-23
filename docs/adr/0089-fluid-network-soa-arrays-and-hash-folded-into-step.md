@@ -34,4 +34,5 @@ ADR 0088 で流体シミュを決定論的にしクライアントの複製が�
 
 ## 検証
 - 流体・ポンプ・パイプ・tick 同期・WebUI 系 190 件通過（Release）。
-- ミクロ計測（Release、合成した一直線の網）: `PlaytestResults/scratch/baseline-release-microprobes.log`（前）と `after-soa-release-microprobes.log`（後）。本文の数値は PR 説明に転記する。
+- ミクロ計測（Release、合成した一直線の網）: `PlaytestResults/scratch/baseline-release-microprobes.log`（前）と `after-soa-release-microprobes.log`（後）。シミュ 1 tick（後はハッシュ込み）228 / 2,280 / 22,800 ノードで 17.7 / 158 / 1,775 µs ＋ 4 tick ごとのハッシュ 1.0 / 9.6 / 138 µs → 13.4 / 120 / 1,332 µs、割り当て 0 B。
+- 実機計測（Release、水パイプ 5,000 本を足したベルト計測ワールド 13,628 ブロック、60 秒、前後 2 回ずつ、`PlaytestResults/ticktest/soa-{before,after}-pipes5k*.csv`）: サーバー 19.8〜20.0 tick/s、tick 間隔 p50 50.0 ms、p99 55〜73 ms、max 136〜358 ms、>100 ms が 3〜8 回。前後の差は回ごとの揺らぎの中に収まり、**tick 間隔の指標では SoA の効果は観測できない**。5,000 ノードのシミュは 1 tick 数百 µs で 50 ms の pacing に埋もれるため、期待どおりの結果。効果の根拠はミクロ計測の方に置く。
