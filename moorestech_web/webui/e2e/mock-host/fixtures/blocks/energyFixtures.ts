@@ -71,8 +71,11 @@ export const blockSpaceElevator = {
   blockType: "SpaceElevatorBase",
   identifier: "block:20",
   blockGuid: BlockGuids.SPACE_ELEVATOR_BLOCK_GUID,
-  itemSlots: [],
+  // 入口は空、成果出口は2枠。アイテムIDはmock共通の代用品
+  // Empty inlet and two result outlets; item IDs use the shared mock stand-ins
+  itemSlots: [{ itemId: 0, count: 0 }, { itemId: 2, count: 4 }, { itemId: 2, count: 7 }],
   fluidSlots: [],
+  electricNetwork: { totalGeneratePower: 4000, totalRequiredPower: 2000, consumerCount: 1, powerRate: 1 },
   spaceElevator: { connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect" },
 } satisfies BlockInventoryWireData;
 
@@ -88,5 +91,6 @@ export const blockSpaceElevatorClimbing = {
 } satisfies BlockInventoryWireData;
 export const blockSpaceElevatorOutputBlocked = {
   ...blockSpaceElevatorClimbing,
+  itemSlots: [{ itemId: 0, count: 0 }, { itemId: 2, count: 100 }, { itemId: 2, count: 100 }],
   spaceElevator: { ...blockSpaceElevatorClimbing.spaceElevator, climbProgress: 1, status: "outputBlocked" },
 } satisfies BlockInventoryWireData;
