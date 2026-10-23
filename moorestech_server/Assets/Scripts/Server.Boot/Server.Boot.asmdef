@@ -34,6 +34,7 @@
         "Game.Gear",
         "Game.CleanRoom",
         "Game.Orbit",
+        "Game.SpaceElevator",
         "Game.Challenge",
         "Core.Master",
         "Game.Train",

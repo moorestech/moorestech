@@ -14,6 +14,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
 using Game.SaveLoad.Json.WorldVersions;
+using Game.SpaceElevator;
 using Game.Train.SaveLoad;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
@@ -42,6 +43,7 @@ namespace Game.SaveLoad.Json
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
         private readonly PlayerIdentityRegistry _playerIdentityRegistry;
+        private readonly SpaceElevatorCablePool _spaceElevatorCablePool;
 
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
@@ -62,7 +64,8 @@ namespace Game.SaveLoad.Json
             CleanRoomDatastore cleanRoomDatastore,
             IMiningCooldownDatastore miningCooldownDatastore,
             SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
-            PlayerIdentityRegistry playerIdentityRegistry)
+            PlayerIdentityRegistry playerIdentityRegistry,
+            SpaceElevatorCablePool spaceElevatorCablePool)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -83,6 +86,7 @@ namespace Game.SaveLoad.Json
             _miningCooldownDatastore = miningCooldownDatastore;
             _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
             _playerIdentityRegistry = playerIdentityRegistry;
+            _spaceElevatorCablePool = spaceElevatorCablePool;
         }
 
         public string AssembleSaveJson()
@@ -119,7 +123,8 @@ namespace Game.SaveLoad.Json
                 _miningCooldownDatastore.GetSaveJsonObject(),
                 GameRandom.ExportState(),
                 new List<string>(_saveBackfilledFieldsRecord.Fields),
-                _playerIdentityRegistry.GetSaveJsonObject()
+                _playerIdentityRegistry.GetSaveJsonObject(),
+                _spaceElevatorCablePool.GetSaveData()
             );
             saveAllInfo.CurrentTick = GameUpdater.CurrentTick;
             return saveAllInfo;

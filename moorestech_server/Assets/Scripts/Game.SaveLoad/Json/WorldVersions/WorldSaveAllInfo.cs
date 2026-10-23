@@ -10,6 +10,7 @@ using Game.PlayerIdentity;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
+using Game.SpaceElevator.Save;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Game.UnlockState;
@@ -22,7 +23,7 @@ namespace Game.SaveLoad.Json.WorldVersions
     {
         // セーブ形式の現在版。マイグレーション連鎖の終点であり、形式を変えるPRがここを上げる
         // The current save format version; the migration chain's destination, raised by any PR that changes the format
-        public const int CurrentVersion = 6;
+        public const int CurrentVersion = 7;
 
         [JsonProperty("worldVersion")] public int WorldVersion = CurrentVersion;
 
@@ -48,7 +49,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<PlayerMiningCooldownSaveJsonObject> miningCooldowns,
             ulong[] randomState,
             List<string> backfilledFields,
-            PlayersSaveJsonObject players)
+            PlayersSaveJsonObject players,
+            SpaceElevatorCablePoolSaveData spaceElevatorCablePool)
         {
             World = world;
             Inventory = inventory;
@@ -72,6 +74,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             RandomState = randomState;
             BackfilledFields = backfilledFields;
             Players = players;
+            SpaceElevatorCablePool = spaceElevatorCablePool;
         }
 
         [JsonProperty("players")] public PlayersSaveJsonObject Players { get; }
@@ -95,6 +98,10 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
         [JsonProperty("cleanRoomRooms")] public List<CleanRoomSaveData> CleanRoomRooms { get; }
+
+        // 欠損は null のまま残し、復元前の必須欠損検査で止める
+        // A missing section stays null and is stopped by the required-field check before restoring
+        [JsonProperty("spaceElevatorCablePool")] public SpaceElevatorCablePoolSaveData SpaceElevatorCablePool { get; }
 
         // 手掘りクールダウンは再生の受理判定に効く。欠損を空で埋めると保存前に拒否された採掘が再生で通る
         // The hand-mining cooldown decides what a replay accepts; filling an absent list with an empty one lets rejected mining through

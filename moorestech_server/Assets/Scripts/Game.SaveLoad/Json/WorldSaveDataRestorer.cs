@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Item;
 using Core.Update;
@@ -16,6 +15,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
 using Game.SaveLoad.Json.WorldVersions;
+using Game.SpaceElevator;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Game.UnlockState;
@@ -51,6 +51,7 @@ namespace Game.SaveLoad.Json
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
         private readonly PlayerIdentityRegistry _playerIdentityRegistry;
         private readonly IWorldTopologyRebuilder _worldTopologyRebuilder;
+        private readonly SpaceElevatorCablePool _spaceElevatorCablePool;
 
         public WorldSaveDataRestorer(
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
@@ -60,7 +61,8 @@ namespace Game.SaveLoad.Json
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore,
             SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
             PlayerIdentityRegistry playerIdentityRegistry,
-            IWorldTopologyRebuilder worldTopologyRebuilder)
+            IWorldTopologyRebuilder worldTopologyRebuilder,
+            SpaceElevatorCablePool spaceElevatorCablePool)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -86,13 +88,12 @@ namespace Game.SaveLoad.Json
             _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
             _playerIdentityRegistry = playerIdentityRegistry;
             _worldTopologyRebuilder = worldTopologyRebuilder;
+            _spaceElevatorCablePool = spaceElevatorCablePool;
         }
 
         public void Restore(WorldSaveAllInfo load)
         {
-            // 版が古いセーブの欠損はV1→V2ステップが補うので、ここで補填はしない。欠けたまま進むと理由の無い素の例外になる
-            // An older save's gaps are backfilled by the V1-to-V2 step, not here; passing one through would fail with a reasonless bare exception
-            ThrowIfRequiredFieldMissing();
+            WorldSaveRequiredFieldGuard.ThrowIfMissing(load);
 
             // 時刻と乱数状態を最初に戻す。以降の復元（残りtick等）がこの時刻を基準にする
             // Restore the clock and random state first; later restorations reference this tick
@@ -107,6 +108,9 @@ namespace Game.SaveLoad.Json
             // スロットレベルはプレイヤーインベントリより先にロードする
             // Load the slot level before player inventories
             _playerInventorySlotLevelDataStore.LoadLevel(load.InventorySlotLevel);
+            // ケーブルプールはブロックより先に戻し、ロードで置かれる拠点が設置時に残量を受け取れるようにする
+            // Restore the cable pool before blocks so bases placed by the load receive the amount when placed
+            _spaceElevatorCablePool.Restore(load.SpaceElevatorCablePool);
             _worldBlockDatastore.LoadBlockDataList(load.World);
             // クリーンルームを再検出し、セーブされた純度と行を照合復元する
             // Re-detect clean rooms then restore saved purity and class rows by matching
@@ -158,21 +162,6 @@ namespace Game.SaveLoad.Json
             WarnIfRandomStreamAdvanced(load.RandomState);
 
             #region Internal
-
-            void ThrowIfRequiredFieldMissing()
-            {
-                var missing = new List<string>();
-                if (!load.CurrentTick.HasValue) missing.Add("currentTick");
-                if (load.RandomState == null) missing.Add("randomState");
-                if (load.MiningCooldowns == null) missing.Add("miningCooldowns");
-                if (load.BackfilledFields == null) missing.Add("backfilledFields");
-                if (load.Players == null) missing.Add("players");
-                if (missing.Count == 0) return;
-
-                var reason = $"セーブに {string.Join(" / ", missing)} がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
-            }
 
             void WarnIfRandomStreamAdvanced(ulong[] savedState)
             {

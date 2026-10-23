@@ -1,0 +1,93 @@
+using System;
+using System.Collections.Generic;
+using Core.Master;
+using Game.Context;
+using Game.Orbit;
+using Game.SpaceElevator.Save;
+using UniRx;
+using UnityEngine;
+
+namespace Game.SpaceElevator
+{
+    /// <summary>
+    ///     ワールドに1つのケーブルプール。ケーブルの軌道到着で増え、接続で減り、接続済み拠点の撤去で戻る（ADR 0089）
+    ///     The world's single cable pool: grows on cable orbital arrivals, shrinks on connections, refills when a connected base is removed (ADR 0089)
+    /// </summary>
+    public class SpaceElevatorCablePool : IBootInitializable
+    {
+        public int Amount { get; private set; }
+        public IObservable<int> OnAmountChanged => _onAmountChanged;
+
+        private readonly Subject<int> _onAmountChanged = new();
+        private readonly IOrbitalArrivalService _orbitalArrivalService;
+
+        // 拠点のマスタが数えるケーブル。検証で高々1種に揃う。拠点の無いマスタでは空で何も数えない
+        // Cable items the base masters count; validation keeps it to at most one, and a master without bases leaves it empty
+        private readonly HashSet<ItemId> _cableItemIds = new();
+
+        public SpaceElevatorCablePool(IOrbitalArrivalService orbitalArrivalService)
+        {
+            _orbitalArrivalService = orbitalArrivalService;
+        }
+
+        public void Load()
+        {
+            // 拠点のマスタが数えるケーブルを集める。表との突き合わせは SpaceElevatorOrbitalTableCheck が起動時に行う
+            // Collect the cable items base masters count; SpaceElevatorOrbitalTableCheck cross-checks them with the table at boot
+            _cableItemIds.UnionWith(SpaceElevatorBaseMasters.CableItemIds());
+
+            // ケーブルの到着だけを数える。どの打ち上げ口から来たかは見ない
+            // Count only cable arrivals, regardless of which launch site sent them
+            _orbitalArrivalService.OnOrbitalArrival.Subscribe(arrival =>
+            {
+                if (!_cableItemIds.Contains(arrival.PayloadItemId)) return;
+                Add(arrival.PayloadCount);
+            });
+        }
+
+        // 1エレベーター分が残っているか。接続できるかの判定はここだけが持つ
+        // Whether one elevator's worth remains; this is the only place that judges whether a base can connect
+        internal bool HasEnough(int count)
+        {
+            return Amount >= count;
+        }
+
+        // 足りれば引いてtrue。足りなければ何もしない（接続サービスだけが使う）
+        // Take the count and return true when enough remains; otherwise change nothing (only the connection service uses this)
+        internal bool TryTake(int count)
+        {
+            if (!HasEnough(count)) return false;
+            SetAmount(Amount - count);
+            return true;
+        }
+
+        internal void Add(int count)
+        {
+            SetAmount(Amount + count);
+        }
+
+        public SpaceElevatorCablePoolSaveData GetSaveData()
+        {
+            return new SpaceElevatorCablePoolSaveData { CableCount = Amount };
+        }
+
+        public void Restore(SpaceElevatorCablePoolSaveData saveData)
+        {
+            // 負の残量は手編集による破損。黙って0にせず止める
+            // A negative amount means a hand-edited save; stop instead of silently clamping to zero
+            if (saveData.CableCount < 0)
+            {
+                var reason = $"セーブの spaceElevatorCablePool.cableCount が負です value:{saveData.CableCount}";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
+            SetAmount(saveData.CableCount);
+        }
+
+        private void SetAmount(int amount)
+        {
+            Amount = amount;
+            _onAmountChanged.OnNext(amount);
+        }
+    }
+}
