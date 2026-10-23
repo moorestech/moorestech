@@ -2698,7 +2698,7 @@ git commit -m "feat(space-elevator): 拠点ブロック（昇降機・電力・�
 - Consumes: Task 7 の `SpaceElevatorConnectionService.Connect(IBlock)`・`SpaceElevatorConnectResult`、Task 8 の `SpaceElevatorConnectionTest.ReadDetail(IBlock)`
 - Produces: タグ `va:connectSpaceElevator`、`ConnectSpaceElevatorRequest(Vector3Int position)`（`[Key(2)] Vector3IntMessagePack Position`）、`ConnectSpaceElevatorResponse`（`[Key(2)] SpaceElevatorConnectResult Result`）
 
-- [ ] **Step 1: プロトコルを書く**
+- [x] **Step 1: プロトコルを書く**
 
 `Server.Protocol/PacketResponse/SpaceElevator/ConnectSpaceElevatorProtocol.cs`（形の前例 `SetElectricToGearOutputModeProtocol.cs`、拒否ログの前例 `RemoveBlockProtocol.cs` の `Refuse`。`PacketResponse/` 直下は既に 50 ファイルを超えるのでサブディレクトリに置く）:
 ```csharp
@@ -2777,7 +2777,7 @@ namespace Server.Protocol.PacketResponse
 （`ProtocolMessagePackBase` の Tag の扱い・`Vector3IntMessagePack` の ctor は `SetElectricToGearOutputModeProtocol.cs:57-95` に合わせる）
 `PacketResponseCreator.cs` の `SetElectricToGearOutputModeProtocol` の登録行の次に `_packetResponseDictionary.Add(ConnectSpaceElevatorProtocol.ProtocolTag, new ConnectSpaceElevatorProtocol(serviceProvider));` を足す。
 
-- [ ] **Step 2: テストを書く**
+- [x] **Step 2: テストを書く**
 
 `Tests/CombinedTest/Server/PacketTest/SpaceElevator/ConnectSpaceElevatorProtocolTest.cs`:
 ```csharp
@@ -2825,7 +2825,7 @@ namespace Tests.CombinedTest.Server.PacketTest.SpaceElevator
 ```
 （`GetPacketResponse` の戻り値の型と添字は `Tests/CombinedTest/Server/PacketTest/ElectricToGearOutputModeProtocolTest.cs:63-68` の `Send` に合わせる）
 
-- [ ] **Step 3: コンパイルしテストを実行してコミットする**
+- [x] **Step 3: コンパイルしテストを実行してコミットする**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ConnectSpaceElevatorProtocolTest|PacketResponseCreator|ProtocolTag"`
 Expected: ErrorCount 0 / 全 PASS
