@@ -4,6 +4,8 @@ import { ElectricToGearDataSchema, GearToElectricDataSchema } from "./energyConv
 import { TrainPlatformDataSchema, TrainStationDetailSchema, TrainTimetableStateSchema } from "./train";
 import { BeltThroughputDataSchema } from "./beltThroughput";
 
+import { RocketLaunchPadDataSchema } from "./rocketLaunchPad";
+
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
@@ -147,6 +149,7 @@ export const BlockInventoryOpenSchema = z.object({
   trainPlatform: TrainPlatformDataSchema.optional(),
   trainStation: TrainStationDetailSchema.optional(),
   beltThroughput: BeltThroughputDataSchema.optional(),
+  rocketLaunchPad: RocketLaunchPadDataSchema.optional(),
 }).strict().superRefine((data, ctx) => {
   // 変換機詳細の混入は受信境界で拒否する。未着は許容する
   // Reject mismatched converter details at the receive boundary while allowing pending details
@@ -154,6 +157,8 @@ export const BlockInventoryOpenSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["gearToElectric"], message: "gearToElectric requires GearToElectricGenerator" });
   if (data.electricToGear && data.blockType !== "ElectricToGearGenerator")
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["electricToGear"], message: "electricToGear requires ElectricToGearGenerator" });
+  if (data.rocketLaunchPad && data.blockType !== "RocketLaunchPad")
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rocketLaunchPad"], message: "rocketLaunchPad requires RocketLaunchPad" });
   if (data.gearToElectric && data.electricToGear)
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Converter details cannot coexist" });
 });
