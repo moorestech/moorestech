@@ -409,7 +409,8 @@ public PowerGeneratorStateDetail(double remainingFuelSeconds, double currentFuel
 ```tsx
   ElectricGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: "generator-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
 ```
-`SectionStackView.test.tsx` の `["ElectricGenerator", "generator-fuel-grid", null, true, true]` を `["ElectricGenerator", "generator-fuel-grid", "generator-fluid-slots", false, false]` にする。新しい worktree なので最初に `cd moorestech_web/webui && pnpm install --frozen-lockfile`。
+（`renderEmptyGrid: false` は液体燃料だけの発電機で空の燃料グリッドを出さないため。アイテム燃料の発電機はスロットがあるので従来どおり出る。`showFluidProgress: false` は燃料の残りを `GeneratorSection` が出すので、新しく出る液体行に進みを重ねないため。これまで `fluidRowTestId: null` で液体行が出ていなかったので、`showFluidProgress` の値は効いていなかった）
+`views/__tests__/SectionStackView.test.tsx` の `["ElectricGenerator", "generator-fuel-grid", null, true, true]` を `["ElectricGenerator", "generator-fuel-grid", "generator-fluid-slots", false, false]` にする。新しい worktree なので最初に `cd moorestech_web/webui && pnpm install --frozen-lockfile`。
 
 出荷マスタの発電機はまだ開けない（`openable: false`）ので、e2e の registry fixture と `intentionalGeneric` は変えない。核融合炉を開けるようにしたときの e2e の追加は統合タスクで行う（末尾の節「旧 Task 3 Step 4 の e2e」）。
 
@@ -2055,7 +2056,7 @@ namespace Game.Block.Blocks.SpaceElevator
     }
 }
 ```
-`wc -l` で昇降機とインベントリが 200 行未満であることを確かめる（`IGetRefundItemsInfo.GetRefundItems` の戻り型は既存の interface に合わせる）。
+`wc -l` で昇降機とインベントリが 200 行未満であることを確かめる（`IGetRefundItemsInfo.GetRefundItems` の戻り型は既存の interface に合わせる）。コメントやレビューの反映で超えたら、インベントリは出口の操作（`CanStoreOutputs`・`InsertOutputs`・`CopyOutlets`）を同じディレクトリの `internal class SpaceElevatorBaseOutlets`（`OpenableInventoryItemDataStoreService` と出口の範囲を ctor で受ける）へ、昇降機はセーブの書き出し（`GetSaveState`）をロード時のガードと同じ `SpaceElevatorClimberSaveRestorer` へ `ToSave(...)` として移す。
 
 `SpaceElevatorClimberSaveRestorer.cs`（ロード時のガード。セーブの値を今のマスタで成り立つ形に直す）:
 ```csharp
@@ -2509,6 +2510,7 @@ using System.Text.RegularExpressions;
 using Core.Item.Interface;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -2553,6 +2555,12 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.IsTrue(ReadDetail(loaded).IsConnected);
             Assert.Greater(ReadDetail(loaded).ClimbProgress, 0f);
             Assert.AreEqual(0, loadedProvider.GetService<SpaceElevatorCablePool>().Amount);
+
+            // ロードで置かれた拠点も接続サービスが追跡し、撤去で接続分がプールへ戻る
+            // The connection service also tracks a base placed by loading, and removing it returns the connection to the pool
+            Assert.AreEqual(SpaceElevatorConnectResult.AlreadyConnected, loadedProvider.GetService<SpaceElevatorConnectionService>().Connect(loaded));
+            ServerContext.WorldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
+            Assert.AreEqual(100, loadedProvider.GetService<SpaceElevatorCablePool>().Amount);
         }
 
         [Test]
@@ -2837,7 +2845,7 @@ git commit -m "feat(space-elevator): 拠点の接続プロトコルを足す"
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/action_names.json`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_space_elevator.json`
-- Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractSpaceElevatorTest.cs`（ブロック詳細のテストの置き場。S2 の `BlockDetail/RocketLaunchPadWireContractTest.cs` と同じ）
+- Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractSpaceElevatorTest.cs`（ブロック詳細のテストの置き場。`Client.Tests/WebUi/BlockDetail/` は既存で DtoBuilder のテスト群がある。`WebUi/` 直下は既に 40 ファイルで1ディレクトリ10ファイルの規則を超えているので増やさない。S2 の `BlockDetail/RocketLaunchPadWireContractTest.cs` の有無に関係なくここに置く）
 - Modify: `Localization/localization.csv`
 - Create: `moorestech_web/webui/src/bridge/contract/schemas/spaceElevator/index.ts`
 - Create（S2 の分割が未取り込みのときだけ）: `moorestech_web/webui/src/bridge/contract/schemas/train/index.ts`、`moorestech_web/webui/src/bridge/contract/schemas/beltThroughput/index.ts`（inventory.ts から移す。S2 と同じ分け方）
