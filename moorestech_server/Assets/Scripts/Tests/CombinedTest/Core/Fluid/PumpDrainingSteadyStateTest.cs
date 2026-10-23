@@ -56,7 +56,7 @@ namespace Tests.CombinedTest.Core.Fluid
             // 80秒で満杯、余裕見て90秒
             // Full at 80s; run 90s for margin
             for (var i = 0; i < GameUpdater.SecondsToTicks(90); i++) GameUpdater.UpdateOneTick();
-            Assert.AreEqual(pipeNode.Capacity, pipeNode.Amount, 0.001, "前提: 下流パイプが満杯になっているはず");
+            Assert.That(pipeNode.AmountUnits, Is.EqualTo(pipeNode.CapacityUnits).Within(1), "前提: 下流パイプが満杯になっているはず");
 
             // 配信は前tick末にラッチした基準なので、搬出再開から2tickで稼働へ移る
             // Publishing uses the basis latched at the previous tick's end, so the pump turns generating within two ticks of draining
@@ -110,7 +110,7 @@ namespace Tests.CombinedTest.Core.Fluid
             // 満杯になるまで確実に生成させる
             // Generate until reliably full
             for (var i = 0; i < GameUpdater.SecondsToTicks(90); i++) GameUpdater.UpdateOneTick();
-            Assert.AreEqual(pipeNode.Capacity, pipeNode.Amount, 0.001, "前提: 下流パイプが満杯になっているはず");
+            Assert.That(pipeNode.AmountUnits, Is.EqualTo(pipeNode.CapacityUnits).Within(1), "前提: 下流パイプが満杯になっているはず");
             Assert.IsFalse(gearPump.CanGenerateFluid, "前提: 満杯・搬出なしのポンプは待機のはず");
 
             // 配信は前tick末にラッチした基準なので、搬出再開から2tickで稼働へ移る

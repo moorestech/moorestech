@@ -45,10 +45,9 @@ namespace Game.Block.Blocks.Fluid
         public long AmountUnits => NodeIndex < 0 ? _holdoverUnits : _fluidNetworkDatastore.Network.NodeAmounts[NodeIndex];
         public FluidId FluidId => NodeIndex < 0 ? _holdoverFluidId : _fluidNetworkDatastore.Network.NodeFluidIds[NodeIndex];
 
-        // 表示・検証向けの double。計算は単位で行う
-        // Doubles for display and checks; computation uses units
+        // 表示向けの double。計算は単位で行う
+        // Double for display; computation uses units
         public double Amount => FluidUnits.ToAmount(AmountUnits);
-        public double Capacity => FluidUnits.ToAmount(CapacityUnits);
 
         public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>> connectorComponent, float capacity, Dictionary<string, object> componentStates)
         {

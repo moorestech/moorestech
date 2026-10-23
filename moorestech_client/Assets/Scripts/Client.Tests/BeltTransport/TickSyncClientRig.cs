@@ -13,7 +13,6 @@ using Client.Game.InGame.Train.View;
 using Client.Tests.Inventory;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.BeltConveyor.Sync.Message;
-using Game.Fluid.Sync.Message;
 using Game.Train.Unit;
 using MessagePack;
 using NUnit.Framework;
