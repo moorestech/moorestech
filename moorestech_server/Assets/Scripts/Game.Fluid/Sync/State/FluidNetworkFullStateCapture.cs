@@ -3,8 +3,8 @@ using Game.Fluid.Simulation;
 
 namespace Game.Fluid.Sync.State
 {
-    // tick境界で、ノード・面・ポートの一覧から全量を切り出す。サーバーの網からも、クライアントの複製からも同じ手順で切り出せる
-    // Cuts the full state out of the node, face and port lists at a tick boundary; the same procedure serves the server network and the client replica
+    // tick境界で、サーバーの網のノード・面・ポートから全量(送受信する形)を切り出す。途中参加と再構築tickの全量送信だけが使い、ハッシュは切り出さずに直接混ぜる
+    // Cuts the full state (the wire form) out of the server network's nodes, faces and ports at a tick boundary; only the join-time and rebuilt-tick full-state sends use it, while the hash mixes directly without a capture
     public static class FluidNetworkFullStateCapture
     {
         public static FluidNetworkFullState Capture(IReadOnlyList<FluidSimNode> nodes, IReadOnlyList<FluidSimFace> faces, IReadOnlyList<IFluidBoundaryPort> ports)

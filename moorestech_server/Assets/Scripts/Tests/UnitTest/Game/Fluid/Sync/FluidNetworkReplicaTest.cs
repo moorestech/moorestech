@@ -10,8 +10,8 @@ using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.Fluid.Sync
 {
-    // 全量から組んだ複製が全量を写し戻し、差分の再生が境界の出入りを足し、再現できない差分を食い違いとして報告するか
-    // Whether a replica assembled from a full state captures it back, diff replay adds the boundary exchange, and an irreproducible diff is reported as a divergence
+    // 全量から組んだ複製が全量と同じ項目を持ち、差分の再生が境界の出入りを足し、再現できない差分を食い違いとして報告するか
+    // Whether a replica assembled from a full state holds the same fields, diff replay adds the boundary exchange, and an irreproducible diff is reported as a divergence
     public class FluidNetworkReplicaTest
     {
         private static readonly FluidId Water = new(1);
