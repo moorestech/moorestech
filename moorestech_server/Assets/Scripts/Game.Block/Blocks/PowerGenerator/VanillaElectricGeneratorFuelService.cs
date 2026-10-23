@@ -38,9 +38,9 @@ namespace Game.Block.Blocks.PowerGenerator
             _itemFuelSettings = VanillaElectricGeneratorFuelSettingsBuilder.BuildItemFuelSettings(param);
             _fluidFuelSettings = VanillaElectricGeneratorFuelSettingsBuilder.BuildFluidFuelSettings(param);
 
-            // マスターで液体燃料が設定されている場合のみタンクを生成し、無い場合はダミーで済ませる。
-            // Only create a tank if liquid fuel is configured in the master; otherwise, leave it null.
-            var hasFluidTank = 0 < _fluidFuelSettings.Count && 0 < param.FuelFluidTankCapacity;
+            // 許可燃料が無くても容量のあるタンクは残液を保持
+            // Keep residual fluid in tanks with capacity even without permitted fuel
+            var hasFluidTank = 0 < param.FuelFluidTankCapacity;
             _fuelFluidContainer = hasFluidTank ? new FluidContainer(param.FuelFluidTankCapacity) : null;
         }
 
@@ -67,8 +67,8 @@ namespace Game.Block.Blocks.PowerGenerator
             }
         }
 
-        // 液体燃料タンクを表示用に返す。液体燃料の設定が無い発電機はタンクを持たない
-        // Return the fluid fuel tank for display; generators without fluid fuel settings have no tank
+        // 表示用タンクを返す。容量が無い場合は持たない
+        // Return the display tank; generators without capacity have none
         internal bool TryGetFuelTank(out FluidMessagePack tank)
         {
             tank = null;
@@ -171,8 +171,8 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public FluidStack AddLiquid(FluidStack fluidStack)
         {
-            // タンク未生成（液体燃料設定なし）の場合は受け入れず全量返す
-            // Without a tank (no fluid fuel configured), reject and return the full stack
+            // タンク容量が無い場合は全量返す
+            // Return the full stack when no tank capacity exists
             if (_fuelFluidContainer == null) return fluidStack;
             return _fuelFluidContainer.AddLiquid(fluidStack).Remainder;
         }

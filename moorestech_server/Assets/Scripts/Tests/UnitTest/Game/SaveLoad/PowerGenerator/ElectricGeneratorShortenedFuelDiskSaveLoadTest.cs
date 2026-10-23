@@ -61,7 +61,7 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             if (liquid)
             {
                 var fuel = param.FuelFluids[0];
-                generator.AddLiquid(new FluidStack(fuel.Amount * (removeSetting ? 1 : 3), MasterHolder.FluidMaster.GetFluidId(fuel.FluidGuid)), default);
+                generator.AddLiquid(new FluidStack(fuel.Amount * 3, MasterHolder.FluidMaster.GetFluidId(fuel.FluidGuid)), default);
             }
             else generator.SetItem(0, MasterHolder.ItemMaster.GetItemId(Guid.Parse(ElectricGeneratorRecoveryTestMod.FuelGuid)), 1);
             generator.SetItem(1, ForUnitTestItemId.TestElevatorReward, 7);
@@ -70,6 +70,11 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             var state = JObject.FromObject(generator.GetSaveState());
             Assert.AreEqual(liquid ? "Fluid" : "Item", (string)state["activeFuelType"]);
             Assert.AreEqual(8, (double)state["remainingFuelSeconds"], 0.001);
+            if (liquid)
+            {
+                Assert.AreEqual(param.FuelFluids[0].FluidGuid.ToString(), (string)state["fluidTank"]["fluidGuid"]);
+                Assert.AreEqual(param.FuelFluids[0].Amount * 2, (double)state["fluidTank"]["amount"], 0.001);
+            }
             var text = originalProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
             var original = JObject.Parse(text);
             var directory = WorldDataDirectory.FromWorldRoot(Path.Combine(_root, "world"));
@@ -90,6 +95,7 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             Assert.AreEqual(state["currentFuelItemGuid"], restored["currentFuelItemGuid"]);
             Assert.AreEqual(state["currentFuelFluidGuid"], restored["currentFuelFluidGuid"]);
             Assert.AreEqual(state["remainingFuelSeconds"], restored["remainingFuelSeconds"]);
+            Assert.IsTrue(JToken.DeepEquals(state["fluidTank"], restored["fluidTank"]), "未消費のタンク残液を全量復元する");
             var detail = MessagePackSerializer.Deserialize<PowerGeneratorStateDetail>(generator.GetBlockStateDetails().Single(d => d.Key == PowerGeneratorStateDetail.StateDetailKey).Value);
             Assert.AreEqual(8, detail.RemainingFuelTime, 0.001);
             Assert.AreEqual(removeSetting ? 0 : 5, detail.CurrentFuelTime, 0.001);
@@ -120,6 +126,15 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             if (!liquid) generator.SetItem(0, MasterHolder.ItemMaster.GetItemId(Guid.Parse(ElectricGeneratorRecoveryTestMod.FuelGuid)), 1);
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(8));
             Assert.AreEqual(removeSetting ? 0 : 5, (double)JObject.FromObject(generator.GetSaveState())["remainingFuelSeconds"], 0.001);
+            if (liquid && removeSetting)
+            {
+                // 許可除去後も残液を保持し、新規点火しない
+                // Preserve residual fluid without igniting it after permission removal
+                var expired = JObject.FromObject(generator.GetSaveState());
+                Assert.AreEqual("None", (string)expired["activeFuelType"]);
+                Assert.AreEqual(0, generator.OutputEnergy().AsPrimitive());
+                Assert.IsTrue(JToken.DeepEquals(state["fluidTank"], expired["fluidTank"]));
+            }
 
             #region Internal
             void SetFuelSettings(int seconds, bool remove)
