@@ -108,11 +108,12 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         [Test]
         public void 資材と積荷と出力の順序を共有する()
         {
-            Assert.AreEqual(7, _inventory.GetSlotSize());
-            Assert.AreEqual(7, _layout.TotalSlotCount);
+            var payloadCount = MasterHolder.ItemMaster.Items.OrbitalPayloads.Length;
+            Assert.AreEqual(3 + payloadCount + 2, _inventory.GetSlotSize());
+            Assert.AreEqual(_inventory.GetSlotSize(), _layout.TotalSlotCount);
             CollectionAssert.AreEqual(new[] { 0, 1, 2 }, _layout.MaterialSlots);
-            CollectionAssert.AreEqual(new[] { 3, 4 }, _layout.PayloadSlots);
-            CollectionAssert.AreEqual(new[] { 5, 6 }, _layout.OutputSlots);
+            CollectionAssert.AreEqual(Enumerable.Range(3, payloadCount), _layout.PayloadSlots);
+            CollectionAssert.AreEqual(Enumerable.Range(3 + payloadCount, 2), _layout.OutputSlots);
             Assert.AreEqual(3, _layout.PayloadSlot(0));
             Assert.IsTrue(_layout.TryGetInputSlot(ForUnitTestItemId.RocketFuelId, out var fuelSlot));
             Assert.AreEqual(1, fuelSlot);
@@ -127,7 +128,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             _inventory.InsertItem(ForUnitTestItemId.RocketFuelId, 5);
             _inventory.InsertItem(ForUnitTestItemId.SatellitePayloadId, 1);
             var before = _inventory.InventoryItems.ToArray();
-            CollectionAssert.AreEqual(Enumerable.Range(0, 7), ((ISortExcludedSlots)_inventory).SortExcludedSlots);
+            CollectionAssert.AreEqual(Enumerable.Range(0, _inventory.GetSlotSize()), ((ISortExcludedSlots)_inventory).SortExcludedSlots);
 
             // 前方を空けたまま実プロトコルを通し、誤った詰め直しを検出する
             // Use the real protocol with an empty front slot to detect accidental compaction

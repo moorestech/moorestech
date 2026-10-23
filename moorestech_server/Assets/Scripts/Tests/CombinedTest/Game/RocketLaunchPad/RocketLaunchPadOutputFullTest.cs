@@ -41,11 +41,11 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
             Assert.AreEqual(2, inventory.GetItem(0).Count);
             Assert.AreEqual(1, inventory.GetItem(3).Count);
-            CollectionAssert.AreEqual(new[] { 100, 50 }, inventory.InventoryItems.Skip(5).Select(item => item.Count));
+            CollectionAssert.AreEqual(new[] { 100, 50 }, inventory.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).Select(item => item.Count));
 
             // 150個を置ける空きに戻すと、次のtickで未消費の2便目を取り込む
             // Once 150 outputs fit again, the next tick takes the unconsumed second launch
-            inventory.SetItem(5, ServerContext.ItemStackFactory.CreatEmpty());
+            inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0], ServerContext.ItemStackFactory.CreatEmpty());
             GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadPhase.Building, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.AreEqual(0, inventory.GetItem(3).Count);
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.AreEqual(150, output.InventoryItems.Where(item => item.Id == ForUnitTestItemId.ComputeDataId).Sum(item => item.Count));
             var input = pad.GetComponent<IOpenableBlockInventoryComponent>();
             Assert.AreEqual(2, input.GetItem(0).Count);
-            Assert.IsTrue(input.InventoryItems.Skip(5).All(item => item.Count == 0));
+            Assert.IsTrue(input.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).All(item => item.Count == 0));
         }
 
         [Test]
@@ -115,8 +115,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
             Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-            inventory.SetItem(5, ServerContext.ItemStackFactory.CreatEmpty());
-            inventory.SetItem(6, ServerContext.ItemStackFactory.CreatEmpty());
+            inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0], ServerContext.ItemStackFactory.CreatEmpty());
+            inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1], ServerContext.ItemStackFactory.CreatEmpty());
             GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadPhase.Launching, RocketLaunchPadTestUtil.ReadState(processor).Phase);
         }

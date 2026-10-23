@@ -23,6 +23,17 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
 {
     public class RocketLaunchPadDuplicateOutputTest
     {
+        private string _variantRoot;
+
+        [TearDown]
+        public void CleanupVariant()
+        {
+            // silent-ok: 通常modの試験には独立コピーが無い / NUnitが各試験の結果を報告する
+            if (_variantRoot == null || !Directory.Exists(_variantRoot)) return;
+            Directory.Delete(_variantRoot, true);
+            _variantRoot = null;
+        }
+
         [TestCase(int.MaxValue, 1)]
         [TestCase(1500000000, 1500000000)]
         [TestCase(int.MaxValue, int.MaxValue)]
@@ -40,26 +51,26 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
                 // Use the real pad output owner and verify its fit check leaves inventory untouched
                 var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
                 var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-                inventory.SetItem(6, itemId, existingCount);
+                inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1], itemId, existingCount);
                 var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
                 var field = typeof(RocketLaunchPadProcessorComponent).GetField("_outputSlots", BindingFlags.Instance | BindingFlags.NonPublic);
                 var outputSlots = (RocketLaunchPadOutputSlots)field.GetValue(processor);
                 var arrival = new IItemStack[] { ServerContext.ItemStackFactory.Create(itemId, arrivalCount) };
                 Assert.IsTrue(outputSlots.CanStore(arrival));
-                Assert.AreEqual(0, inventory.GetItem(5).Count);
-                Assert.AreEqual(existingCount, inventory.GetItem(6).Count);
+                Assert.AreEqual(0, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count);
+                Assert.AreEqual(existingCount, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count);
 
                 // 同種枠を先に満たし、intを超える総数をlongで比較する
                 // Fill the matching slot first and compare totals above int range using long
                 outputSlots.Store(arrival);
                 var expectedTotal = (long)existingCount + arrivalCount;
-                var actualTotal = (long)inventory.GetItem(5).Count + inventory.GetItem(6).Count;
-                TestContext.WriteLine($"existing={existingCount}; arrival={arrivalCount}; slots=[{inventory.GetItem(5).Count},{inventory.GetItem(6).Count}]; total={actualTotal}; expected={expectedTotal}");
+                var actualTotal = (long)inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count + inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count;
+                TestContext.WriteLine($"existing={existingCount}; arrival={arrivalCount}; slots=[{inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count},{inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count}]; total={actualTotal}; expected={expectedTotal}");
                 Assert.AreEqual(expectedTotal, actualTotal);
-                Assert.AreEqual(int.MaxValue, inventory.GetItem(6).Count);
-                Assert.AreEqual(expectedTotal - int.MaxValue, inventory.GetItem(5).Count);
-                Assert.AreEqual(itemId, inventory.GetItem(5).Id);
-                Assert.AreEqual(itemId, inventory.GetItem(6).Id);
+                Assert.AreEqual(int.MaxValue, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count);
+                Assert.AreEqual(expectedTotal - int.MaxValue, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count);
+                Assert.AreEqual(itemId, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Id);
+                Assert.AreEqual(itemId, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Id);
             }
             finally
             {
@@ -78,10 +89,10 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             var blocks = JObject.Parse(configs[0].JsonContents[key]);
             blocks["data"].Single(block => (string)block["name"] == "TestRocketLaunchPad")["blockParam"]["outputSlotCount"] = 3;
             configs[0].JsonContents[key] = blocks.ToString();
-            MasterHolder.Load(new MasterJsonFileContainer(configs));
+            _variantRoot = RocketLaunchPadVariantTestMod.CreateServer(configs[0].JsonContents[new JsonFileName("items")], configs[0].JsonContents[new JsonFileName("blocks")]);
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-            inventory.SetItem(7, ForUnitTestItemId.ComputeDataId, 99);
+            inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[2], ForUnitTestItemId.ComputeDataId, 99);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var output = (RocketLaunchPadOutputSlots)typeof(RocketLaunchPadProcessorComponent).GetField("_outputSlots", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(processor);
             var arrival = new[] { ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 2) };
@@ -89,9 +100,9 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             // 通常在庫の近傍順[空,A1,A100]とは違う先頭順を保持する
             // Preserve first-empty order instead of the normal inventory's proximity order [empty,A1,A100]
             Assert.IsTrue(output.CanStore(arrival));
-            CollectionAssert.AreEqual(new[] { 0, 0, 99 }, inventory.InventoryItems.Skip(5).Select(item => item.Count));
+            CollectionAssert.AreEqual(new[] { 0, 0, 99 }, inventory.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).Select(item => item.Count));
             output.Store(arrival);
-            CollectionAssert.AreEqual(new[] { 1, 0, 100 }, inventory.InventoryItems.Skip(5).Select(item => item.Count));
+            CollectionAssert.AreEqual(new[] { 1, 0, 100 }, inventory.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).Select(item => item.Count));
         }
 
         [Test]
@@ -112,14 +123,14 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
 
             // 実ローダーの容量検証と実発射を同じマスタ入力で通す
             // Exercise the real capacity validator and actual launch with the same master input
-            Assert.DoesNotThrow(() => MasterHolder.Load(new MasterJsonFileContainer(configs)));
+            _variantRoot = RocketLaunchPadVariantTestMod.CreateServer(configs[0].JsonContents[itemsName], configs[0].JsonContents[blocksName]);
             ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-            Assert.AreEqual(6, inventory.GetSlotSize());
-            Assert.AreEqual(80, inventory.GetItem(5).Count);
+            Assert.AreEqual(RocketLaunchPadTestUtil.GetLayout(pad).TotalSlotCount, inventory.GetSlotSize());
+            Assert.AreEqual(80, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count);
         }
         [Test]
         public void 空枠より同種の既存出力を先に埋め別成果も格納する()
@@ -134,20 +145,20 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             second["itemGuid"] = MasterHolder.ItemMaster.GetItemMaster(ForUnitTestItemId.RocketFuelId).ItemGuid.ToString();
             outputs.Add(second);
             configs[0].JsonContents[itemsName] = items.ToString();
-            MasterHolder.Load(new MasterJsonFileContainer(configs));
+            _variantRoot = RocketLaunchPadVariantTestMod.CreateServer(configs[0].JsonContents[new JsonFileName("items")], configs[0].JsonContents[new JsonFileName("blocks")]);
 
             // 出力[空,A50]へ成果[A50,B50]を実際の建造・発射で格納する
             // Store results [A50,B50] into [empty,A50] through the real build and launch
             ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-            inventory.SetItem(6, ForUnitTestItemId.ComputeDataId, 50);
+            inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1], ForUnitTestItemId.ComputeDataId, 50);
             RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 40));
-            Assert.AreEqual(ForUnitTestItemId.RocketFuelId, inventory.GetItem(5).Id);
-            Assert.AreEqual(50, inventory.GetItem(5).Count);
-            Assert.AreEqual(ForUnitTestItemId.ComputeDataId, inventory.GetItem(6).Id);
-            Assert.AreEqual(100, inventory.GetItem(6).Count);
+            Assert.AreEqual(ForUnitTestItemId.RocketFuelId, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Id);
+            Assert.AreEqual(50, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count);
+            Assert.AreEqual(ForUnitTestItemId.ComputeDataId, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Id);
+            Assert.AreEqual(100, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count);
         }
     }
 }

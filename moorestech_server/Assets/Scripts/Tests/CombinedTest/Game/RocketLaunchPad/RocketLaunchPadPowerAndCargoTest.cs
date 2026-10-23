@@ -83,8 +83,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             // Keep both candidates available to detect regression to a fixed first choice
             for (var tick = 0; tick < 200 && arrivals.Count < 3; tick++)
             {
-                inventory.SetItem(5, ServerContext.ItemStackFactory.CreatEmpty());
-                inventory.SetItem(6, ServerContext.ItemStackFactory.CreatEmpty());
+                inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0], ServerContext.ItemStackFactory.CreatEmpty());
+                inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1], ServerContext.ItemStackFactory.CreatEmpty());
                 GameUpdater.RunFrames(1);
             }
             CollectionAssert.AreEqual(new[] { ForUnitTestItemId.SatellitePayloadId, ForUnitTestItemId.CablePayloadId, ForUnitTestItemId.SatellitePayloadId }, arrivals.Select(arrival => arrival.PayloadItemId));
@@ -111,8 +111,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             // 発射前の積載は返却し、軌道到着後は消費済みとして返さない
             // Refund loaded contents before launch and none after orbital arrival
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-            inventory.SetItem(5, ServerContext.ItemStackFactory.CreatEmpty());
-            inventory.SetItem(6, ServerContext.ItemStackFactory.CreatEmpty());
+            inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0], ServerContext.ItemStackFactory.CreatEmpty());
+            inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1], ServerContext.ItemStackFactory.CreatEmpty());
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 2));
             Assert.IsEmpty(processor.GetRefundItems());
 

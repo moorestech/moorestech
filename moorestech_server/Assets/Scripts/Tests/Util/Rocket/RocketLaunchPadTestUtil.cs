@@ -34,6 +34,13 @@ namespace Tests.Util.Rocket
             return pad;
         }
 
+        // 試験対象の実マスタからスロット群を得る
+        // Resolve slot groups from the tested block's actual master
+        public static RocketLaunchPadSlotLayout GetLayout(IBlock pad)
+        {
+            return new RocketLaunchPadSlotLayout((RocketLaunchPadBlockParam)pad.BlockMasterElement.BlockParam);
+        }
+
         public static void FillMaterials(IBlock pad)
         {
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();

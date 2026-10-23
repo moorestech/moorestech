@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var save = RocketLaunchPadSaveTestUtil.CreateSavedWorld(RocketLaunchPadPhase.Building);
             RocketLaunchPadSaveTestUtil.State(save)["nextPayloadIndex"] = -1;
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(1, RocketLaunchPadSaveTestUtil.Capture(loaded).NextPayloadIndex);
+            Assert.AreEqual(MasterHolder.ItemMaster.Items.OrbitalPayloads.Length - 1, RocketLaunchPadSaveTestUtil.Capture(loaded).NextPayloadIndex);
         }
 
         [Test]

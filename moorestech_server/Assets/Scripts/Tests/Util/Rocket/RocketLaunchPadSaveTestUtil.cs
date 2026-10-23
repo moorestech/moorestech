@@ -72,7 +72,7 @@ namespace Tests.Util.Rocket
         public static void ClearOutputs(IBlock pad)
         {
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-            for (var i = 5; i < 7; i++) inventory.SetItem(i, ServerContext.ItemStackFactory.CreatEmpty());
+            foreach (var slot in RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots) inventory.SetItem(slot, ServerContext.ItemStackFactory.CreatEmpty());
         }
     }
 }

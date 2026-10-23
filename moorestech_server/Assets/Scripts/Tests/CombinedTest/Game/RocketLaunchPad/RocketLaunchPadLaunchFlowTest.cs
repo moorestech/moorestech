@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 2));
             Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
-            CollectionAssert.AreEqual(new[] { 100, 50 }, inventory.InventoryItems.Skip(5).Select(item => item.Count));
+            CollectionAssert.AreEqual(new[] { 100, 50 }, inventory.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).Select(item => item.Count));
         }
 
         [Test]
