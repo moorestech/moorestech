@@ -7,6 +7,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Context;
+using Game.World.Interface.DataStore;
 using Game.Orbit;
 using NUnit.Framework;
 using Server.Boot;
@@ -81,6 +82,21 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Idle, 40));
             GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, pad.GetComponent<RocketLaunchPadProcessorComponent>().WaitReason);
+        }
+
+        [Test]
+        public void 出力口の成果を接続先へ流し入れ口は搬出しない()
+        {
+            var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.right, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var chest);
+            RocketLaunchPadTestUtil.FillMaterials(pad);
+            RocketLaunchPadTestUtil.FillOutputSlots(pad, 75);
+            GameUpdater.RunFrames(1);
+            var output = chest.GetComponent<IOpenableBlockInventoryComponent>();
+            Assert.AreEqual(150, output.InventoryItems.Where(item => item.Id == ForUnitTestItemId.ComputeDataId).Sum(item => item.Count));
+            var input = pad.GetComponent<IOpenableBlockInventoryComponent>();
+            Assert.AreEqual(2, input.GetItem(0).Count);
+            Assert.IsTrue(input.InventoryItems.Skip(5).All(item => item.Count == 0));
         }
 
         [Test]

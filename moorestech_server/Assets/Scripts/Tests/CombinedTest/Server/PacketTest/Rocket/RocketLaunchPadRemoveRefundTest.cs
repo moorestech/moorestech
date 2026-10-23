@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Core.Inventory;
 using Core.Master;
@@ -8,6 +9,7 @@ using Game.World.Interface.DataStore;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.Orbit;
+using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +38,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
 
             // 電線が先頭の実テンプレートで、積載ロケットも合算されることを確かめる
             // Verify the real wire-first template also refunds the loaded rocket
+            var wire = pad.GetComponent<IElectricWireConnector>();
+            var partnerId = wire.WireConnections.Keys.Single();
+            var partner = wire.WireConnections[partnerId].Connector;
+            wire.TryRemoveWireConnection(partnerId, out var record);
+            partner.TryRemoveWireConnection(wire.BlockInstanceId, out _);
+            var paid = new ConnectionLineRecord(record.ConnectToolGuid, new[] { new ConnectToolMaterialCost(ForUnitTestItemId.ItemId1, 4) });
+            Assert.IsTrue(wire.TryAddWireConnection(partnerId, paid));
+            Assert.IsTrue(partner.TryAddWireConnection(wire.BlockInstanceId, paid));
             var refundComponents = pad.ComponentManager.GetComponents<IGetRefundItemsInfo>().ToList();
             Assert.AreEqual(2, refundComponents.Count);
             Assert.IsFalse(refundComponents[0] is RocketLaunchPadProcessorComponent);
@@ -43,6 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
             ClearInventory(inventory);
             packet.GetPacketResponse(CreateRemovePayload(Vector3Int.zero), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
             Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(Vector3Int.zero));
+            Assert.AreEqual(4, GetItemCount(inventory, ForUnitTestItemId.ItemId1));
             Assert.AreEqual(2, GetItemCount(inventory, ForUnitTestItemId.RocketCaseId));
             Assert.AreEqual(3, GetItemCount(inventory, ForUnitTestItemId.RocketFuelId));
             Assert.AreEqual(1, GetItemCount(inventory, ForUnitTestItemId.RocketComputerId));

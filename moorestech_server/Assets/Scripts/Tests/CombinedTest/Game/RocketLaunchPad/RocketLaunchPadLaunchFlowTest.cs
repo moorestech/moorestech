@@ -122,6 +122,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             a.GetComponent<IRocketLaunchPadComponent>().RequestLaunch();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(a, RocketLaunchPadPhase.Launching, 2));
             Assert.AreEqual(1, arrivals);
+            TestContext.WriteLine($"初打ち上げ直後 A={a.GetComponent<RocketLaunchPadProcessorComponent>().Phase} B={b.GetComponent<RocketLaunchPadProcessorComponent>().Phase} C={c.GetComponent<RocketLaunchPadProcessorComponent>().Phase} firstNotifications={arrivals}");
             Assert.That(b.GetComponent<RocketLaunchPadProcessorComponent>().Phase, Is.EqualTo(RocketLaunchPadPhase.ReadyToLaunch).Or.EqualTo(RocketLaunchPadPhase.Launching));
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(b, RocketLaunchPadPhase.Launching, 1));
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(c, RocketLaunchPadPhase.Building, 1));
