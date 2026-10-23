@@ -487,7 +487,7 @@ git push
   - `ForUnitTestModBlockId.TestSpaceElevatorBase`、`ForUnitTestItemId.TestElevatorCable` / `TestElevatorSatellite` / `TestElevatorReward`
   - テスト mod の値: 1エレベーター分 100 本、昇降 2 秒、電力 100、出口スロット 1、ケーブルの1便 50 本、衛星1機の成果 TestElevatorReward ×5
 
-- [ ] **Step 1: スキーマに blockType と case を足す**
+- [x] **Step 1: スキーマに blockType と case を足す**
 
 edit-schema スキルを読む。`VanillaSchema/blocks.yml` の `blockType` の `options:` の末尾（`- CleanRoomMachine` の次）に `- SpaceElevatorBase` を足す。case 群の末尾（`when: CleanRoomMachine` の case の後）に次を足す:
 ```yaml
@@ -537,7 +537,7 @@ edit-schema スキルを読む。`VanillaSchema/blocks.yml` の `blockType` の 
 ```
 `_CompileRequester.cs` の `dummyText` の末尾の数字を1つ上げる（例 `...-00-04` → `...-00-05`。S1/S2 と衝突したら大きい方＋1）。既存の他ブロックの JSON は変えない（新しい case だけなので既存エントリに必須項目は増えない）。
 
-- [ ] **Step 2: マスタ検証を書く**
+- [x] **Step 2: マスタ検証を書く**
 
 `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/SpaceElevatorBaseParamValidator.cs`:
 ```csharp
@@ -595,7 +595,7 @@ namespace Core.Master.Validator.Block
 ```
 `BlockMasterUtil.Validate` の `errorLogs += BeltSpeedPerSecondValidator.Validate(blocks);` の次に `errorLogs += SpaceElevatorBaseParamValidator.Validate(blocks);` を足す。生成型の数値型が `float` でなく `double` なら `float.IsInfinity` を `double.IsInfinity` に、`1f`/`0f` を `1d`/`0d` に読み替える（生成コード `Mooresmaster.Model.BlocksModule.SpaceElevatorBaseBlockParam` を開いて確かめる）。
 
-- [ ] **Step 3: テスト mod に拠点・アイテム・積荷行を足す**
+- [x] **Step 3: テスト mod に拠点・アイテム・積荷行を足す**
 
 テスト mod の `items.json` の `data` に3件を足す:
 ```json
@@ -649,7 +649,7 @@ public static ItemId TestElevatorReward => MasterHolder.ItemMaster.GetItemId(Gui
 ```
 `ForUnitTestModBlockId.cs` が 200 行以上になる場合は、宇宙エレベーターの ID だけ `Tests.Module/TestMod/ForUnitTestSpaceElevatorId.cs`（`public static class ForUnitTestSpaceElevatorId`）へ分けて置き、以降のタスクの `ForUnitTestModBlockId.TestSpaceElevatorBase` をそちらの名前に読み替える。
 
-- [ ] **Step 4: マスタ検証のテストを書く**
+- [x] **Step 4: マスタ検証のテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Block/SpaceElevator/SpaceElevatorBaseMasterValidationTest.cs`（前例 `Tests/UnitTest/Core/Block/EnergyConversion/GearToElectricMasterValidationTest.cs` と同形）:
 ```csharp
@@ -730,12 +730,12 @@ namespace Tests.UnitTest.Core.Block.SpaceElevator
 ```
 （`Action<JObject>` は `Func<>` ではないので可。前例の例外型が `InvalidOperationException` でなければ前例に合わせる）
 
-- [ ] **Step 5: 生成・コンパイル・テスト**
+- [x] **Step 5: 生成・コンパイル・テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`（ErrorCount 0。生成型 `SpaceElevatorBaseBlockParam` が見えること）→ `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevatorBaseMasterValidationTest|GearToElectricMasterValidationTest|Orbit"`
 Expected: 全 PASS。Editor でマスタを読み直し、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `MooresmasterLoaderException`・`[BlockMaster]` が増えていない（新しい case だけなので、ピン先の出荷マスタはそのまま読める）。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add VanillaSchema/blocks.yml moorestech_server/Assets/Scripts/Core.Master moorestech_server/Assets/Scripts/Tests.Module/TestMod moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Block/SpaceElevator
