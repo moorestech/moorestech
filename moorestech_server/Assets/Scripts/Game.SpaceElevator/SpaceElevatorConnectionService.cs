@@ -4,6 +4,7 @@ using Game.Block.Interface.Component;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
+using UnityEngine;
 
 namespace Game.SpaceElevator
 {
@@ -32,14 +33,26 @@ namespace Game.SpaceElevator
 
         public SpaceElevatorConnectResult Connect(IBlock block)
         {
-            if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked)) return SpaceElevatorConnectResult.NotSpaceElevatorBase;
-            if (tracked.Base.IsConnected) return SpaceElevatorConnectResult.AlreadyConnected;
+            if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked)) return Refuse(SpaceElevatorConnectResult.NotSpaceElevatorBase);
+            if (tracked.Base.IsConnected) return Refuse(SpaceElevatorConnectResult.AlreadyConnected);
 
             // 1エレベーター分が残っていれば引いて接続する
             // Connect after taking one elevator's worth when it remains
-            if (!_pool.TryTake(tracked.CablesPerElevator)) return SpaceElevatorConnectResult.InsufficientCable;
+            if (!_pool.TryTake(tracked.CablesPerElevator)) return Refuse(SpaceElevatorConnectResult.InsufficientCable);
             tracked.Base.MarkConnected();
             return SpaceElevatorConnectResult.Connected;
+
+            #region Internal
+
+            SpaceElevatorConnectResult Refuse(SpaceElevatorConnectResult reason)
+            {
+                // 操作の拒否を対象とともに記録する
+                // Record a rejected operation together with its target
+                Debug.Log($"[SpaceElevator] connection denied: {reason} instance={block.BlockInstanceId.AsPrimitive()} position={block.BlockPositionInfo.OriginalPos}");
+                return reason;
+            }
+
+            #endregion
         }
 
         private void OnBlockPlaced(IBlock block)
@@ -53,11 +66,14 @@ namespace Game.SpaceElevator
 
         private void OnBlockRemoved(IBlock block)
         {
-            if (!_bases.Remove(block.BlockInstanceId, out var tracked)) return;
+            if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked)) return;
 
             // 接続済みの拠点だけが1エレベーター分をプールへ戻す。撤去イベントはDestroyより前に来るので状態を読める
             // Only a connected base returns one elevator's worth; the remove event fires before Destroy, so its state is still readable
             if (tracked.Base.IsConnected) _pool.Add(tracked.CablesPerElevator);
+            // 返却の失敗は撤去を止めるため、再試行に必要な追跡は成功後に外す
+            // A failed refund aborts removal, so retain tracking for a retry until the refund succeeds
+            _bases.Remove(block.BlockInstanceId);
         }
 
         private void PushAvailabilityToAll()

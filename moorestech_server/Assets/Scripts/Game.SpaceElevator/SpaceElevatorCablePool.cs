@@ -63,6 +63,14 @@ namespace Game.SpaceElevator
 
         internal void Add(int count)
         {
+            // 到着と撤去返却の確定前に検査し、失敗時は残量も通知も変えない
+            // Validate before committing an arrival or removal refund, leaving amount and notifications unchanged on failure
+            if (count < 0 || count > int.MaxValue - Amount)
+            {
+                var reason = $"ケーブルプールの加算が整数範囲を超えます amount:{Amount} count:{count} max:{int.MaxValue}";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
             SetAmount(Amount + count);
         }
 

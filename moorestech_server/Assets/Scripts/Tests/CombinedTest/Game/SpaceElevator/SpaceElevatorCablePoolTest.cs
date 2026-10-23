@@ -5,6 +5,7 @@ using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.SpaceElevator;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
@@ -78,6 +79,27 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         {
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             return provider;
+        }
+
+        [TestCase("{}")]
+        [TestCase("{\"cableCount\":null}")]
+        [TestCase("{\"cableCount\":1.5}")]
+        [TestCase("{\"cableCount\":\"50\"}")]
+        public void 現在版の節内欠損や整数以外はロードで止まる(string section)
+        {
+            var provider = CreateServer();
+            var save = JObject.Parse(provider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
+            save["spaceElevatorCablePool"] = JObject.Parse(section);
+
+            // 復元前に外部JSONの破損を拒否し、既存残量を消さない
+            // Reject malformed external JSON before restoration without losing the existing amount
+            var loaded = CreateServer();
+            loaded.GetRequiredService<IOrbitalArrivalService>().Arrive(ForUnitTestItemId.TestElevatorCable, 50);
+            if (section != "{}") LogAssert.Expect(LogType.Error, new Regex("spaceElevatorCablePool.cableCount.*整数が必須"));
+            var error = Assert.Throws<JsonSerializationException>(() =>
+                ((WorldLoaderFromJson)loaded.GetRequiredService<IWorldSaveDataLoader>()).Load(save));
+            StringAssert.Contains("cableCount", error.Message);
+            Assert.AreEqual(50, loaded.GetRequiredService<SpaceElevatorCablePool>().Amount);
         }
     }
 }

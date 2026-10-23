@@ -7,11 +7,11 @@ namespace Game.SaveLoad.Json
 {
     // 現在版のセーブに必須の節が揃っているかを復元前に確かめる
     // Checks before restoring that a current-version save has every required section
-    public static class WorldSaveRequiredFieldGuard
+    internal static class WorldSaveRequiredFieldGuard
     {
         // 版が古いセーブの欠損はマイグレーション連鎖が補うので、ここで補填はしない。欠けたまま進むと理由の無い素の例外になる
         // An older save's gaps are filled by the migration chain, not here; passing one through would fail with a reasonless bare exception
-        public static void ThrowIfMissing(WorldSaveAllInfo load)
+        internal static void ThrowIfMissing(WorldSaveAllInfo load)
         {
             var missing = new List<string>();
             if (!load.CurrentTick.HasValue) missing.Add("currentTick");
