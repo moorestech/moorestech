@@ -2844,7 +2844,7 @@ git commit -m "feat(protocol): 発射台の建造と発射の合図を足す"
 - Consumes: Task 4 の `RocketLaunchPadStateDetail`・`RocketLaunchPadPhase`（名前空間 `Game.Block.Interface.State`）、Task 1 の `RocketLaunchPadBlockParam.LaunchSeconds`
 - Produces: なし（見た目のみ）
 
-- [ ] **Step 1: 状態処理を書く**
+- [x] **Step 1: 状態処理を書く**
 
 ```csharp
 using Client.Game.InGame.Block;
@@ -2906,12 +2906,12 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.Rocket
 
 （`Initialize` のシグネチャ・`BlockGameObject.BlockMasterElement` の参照は `GearStateChangeProcessor` と `IBlockGameObjectInnerComponent` の実物に合わせる。）
 
-- [ ] **Step 2: コンパイルする**
+- [x] **Step 2: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
 
-- [ ] **Step 3: Prefab に付ける（uloop execute-dynamic-code）**
+- [x] **Step 3: Prefab に付ける（uloop execute-dynamic-code）**
 
 `Initialize` の `RocketLaunchPadBlockParam` への cast は、前例 `Client.Game/InGame/BlockSystem/StateProcessor/SteamEngineEffectStateChangeProcessor.cs:21`（`(FuelGearGeneratorBlockParam)blockGameObject.BlockMasterElement.BlockParam`）と同じ形のまま残し、型での保証は足さない（判断記録 D39）。到達しない根拠は次の実測で、読み込まれる mod で `Rocket.prefab` を使うのは（統合タスクでパスを入れた後の）発射台だけになる。`Rocket.prefab`（アドレス `Vanilla/Block/Rocket`）を見た目に使う他のブロックは、plan 作成時の実測（2026-10-23）では moorestech_master `server/mods/moorestechAlphaMod_3/master/blocks.json` の「ロケット」（`aa312f32-35d4-4dae-9e3e-a292e1a70a70`、今のゲームが読まない旧 mod）だけで、読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/blocks.json` には無い（発射台の行も今は空のパスで、統合タスクで `Vanilla/Block/Rocket` を入れる）。他のブロックが使っていると `Initialize` の `RocketLaunchPadBlockParam` への cast で落ちるので、着手時に `grep -rn "Block/Rocket\"" ../../moorestech_master/tier9-compute-data-loop/server_v8/mods` で同じことを確かめる。居れば、`Initialize` の cast を `is` の判定に変え、発射台以外では何もせず理由を `Debug.LogWarning` で出す。
 
@@ -2937,7 +2937,7 @@ UnityEditor.PrefabUtility.UnloadPrefabContents(root);
 
 保存後にもう一度読み、`body` が null でないことをログで確かめる。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/Rocket moorestech_client/Assets/AddressableResources/Block/Rocket.prefab
@@ -2984,13 +2984,13 @@ git commit -m "feat(client): 発射台のロケット本体の表示と上昇を
   - action `rocket_launch_pad.command`、payload `{ command: "build" | "launch" }`
   - testid: `rocket-launch-pad-view`・`rocket-launch-pad-material-slots`・`rocket-launch-pad-payload-slots`・`rocket-launch-pad-output-slots`・`rocket-launch-pad-status`・`rocket-launch-pad-progress`・`rocket-launch-pad-build`・`rocket-launch-pad-launch`
 
-- [ ] **Step 1: ref-webui-design スキルを読み、inventory.ts を分ける**
+- [x] **Step 1: ref-webui-design スキルを読み、inventory.ts を分ける**
 
 `inventory.ts`（215行）から、`TrainPlatformModeSchema`〜`TrainStationDetailSchema`（124〜152行）を `schemas/train/index.ts` へ、`BeltThroughputWindowDataSchema`・`BeltThroughputDataSchema`（156〜169行）を `schemas/beltThroughput/index.ts` へそのまま移し（`const` だった `TrainTimetableStateSchema`・`TrainStationDetailSchema` は `export const` にする）、`inventory.ts` は import に置き換える。`schemas/index.ts` に `export * from "./train";`・`export * from "./beltThroughput";`・`export * from "./rocketLaunchPad";` を足す。挙動は変えない。
 
 Run: `cd moorestech_web/webui && pnpm vitest run src/bridge` → 全 PASS（移しただけで壊れていないこと）
 
-- [ ] **Step 2: wire schema とアクション契約を足す**
+- [x] **Step 2: wire schema とアクション契約を足す**
 
 `schemas/rocketLaunchPad/index.ts`（schema だけを置く。前例 `schemas/energyConversion/index.ts`。`schemas/` の下には `z.infer` を置かない）:
 
@@ -3018,7 +3018,7 @@ export const RocketLaunchPadDataSchema = z.object({
 
 `actionContract.ts` の payload 型表に `"rocket_launch_pad.command": { command: "build" | "launch" };`、`ACTION_TYPES` に `"rocket_launch_pad.command",` を足す。`action_names.json` にも同じ名前を足す。
 
-- [ ] **Step 3: C# の DTO・アクションを書く**
+- [x] **Step 3: C# の DTO・アクションを書く**
 
 名前空間はサブディレクトリによらず親のまま置く（前例: `Topics/BlockDetail/Train/`・`Belt/` の DtoBuilder は `Client.WebUiHost.Game.Topics.BlockDetail`、`Actions/Train/` のハンドラは `Client.WebUiHost.Game.Actions`。再検査 N3）。そのため `BlockInventoryDtos.cs`・`BlockDetailDtoBuilder.cs`・`WebUiGameBinder.cs` に using は足さない。
 
@@ -3173,7 +3173,7 @@ namespace Client.WebUiHost.Game.Actions
 
 `WebUiGameBinder.cs` の `hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));` の次に `hub.RegisterAction(new RocketLaunchPadCommandActionHandler(subInventoryState));` を足す（前例: 開いているブロックへ合図を送るハンドラを `subInventoryState` 付きで直に登録する同じ行。`TrainPlatformSetTransferModeActionHandler` は `Actions/Train/TrainWebUiActionRegistration.cs` 経由の登録で、この1行の前例にならない）。ハンドラは名前空間 `Client.WebUiHost.Game.Actions` なので、既存の `using Client.WebUiHost.Game.Actions;` で足りる。
 
-- [ ] **Step 4: 文言を足す**
+- [x] **Step 4: 文言を足す**
 
 `Localization/localization.csv` の `ui.blockInventory.trainPlatformUnload` の次に追加し（列: key,Source,english,japanese,german,korean）、`cd moorestech_web/webui && pnpm gen:i18n` を実行する:
 
@@ -3195,7 +3195,7 @@ ui.blockInventory.rocketWaitOutputFull,Output is full,Output is full,出力が�
 ui.blockInventory.rocketWaitNoPower,No power,No power,電力がありません,Kein Strom,전력 없음
 ```
 
-- [ ] **Step 5: パネルを書く**
+- [x] **Step 5: パネルを書く**
 
 `details/rocket/rocketLaunchPadLogic.ts`（表示の分岐を純関数に集める。スロットの並びは DTO の添字を使うので、ここでは計算しない。文言キーは前例 `details/detailLogic.ts:37` の `stopReasonTranslationKey` と同じく `TranslationKey` で返し、`RocketLaunchPadSection` の `group` の `labelKey` も `TranslationKey` にする。キーの打ち間違いを型エラーにするため（判断記録 D34））:
 
@@ -3314,7 +3314,7 @@ export default function RocketLaunchPadInventory({ data }: { data: BlockInventor
 
 `registeredBlockTypes.ts` に `"RocketLaunchPad",`、`blockComponentRegistry.ts` に `RocketLaunchPad: RocketLaunchPadInventory,`（import も）。
 
-- [ ] **Step 6: テストを書く**
+- [x] **Step 6: テストを書く**
 
 `rocketLaunchPadLogic.test.ts`: (a) 待ち理由 `outputFull` は段階（`readyToLaunch`）より優先、(b) `awaitingBuildCommand` で `"build"`、`awaitingLaunchCommand` で `"launch"`、その他の4段階（`readyToLaunch` を含む）で `null`、(c) 6段階すべてに状態文のキーがある（`switch` の網羅は `tsc` の戻り値の型検査でも落ちる）。
 
@@ -3348,7 +3348,7 @@ export default function RocketLaunchPadInventory({ data }: { data: BlockInventor
 
 `Client.Tests/WebUi/BlockDetail/RocketLaunchPadWireContractTest.cs`: `WireContractPhaseB2Test.TrainPlatformFixtureMatchesDto` と同じ形で同じ値の `BlockInventoryDto` を作り、`WebUiJson.Serialize` の結果が fixture と `JToken.DeepEquals` で一致することを確かめる（`AssertMatchesFixture` は同ファイル内に写す）。`progress` の `0.0` と `0` の差で一致しなければ fixture を C# の出力に合わせる。`wireContract.test.ts` の block detail fixtures 一覧に `"block_inventory_rocket_launch_pad.json"` を足す。
 
-- [ ] **Step 7: コンパイル・テストを実行する**
+- [x] **Step 7: コンパイル・テストを実行する**
 
 Run:
 ```bash
@@ -3358,7 +3358,7 @@ cd moorestech_web/webui && pnpm vitest run && pnpm tsc --noEmit && pnpm lint
 ```
 Expected: ErrorCount 0 / 全 PASS（`pnpm lint` が無いスクリプト名なら package.json の lint 系を使う）
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests/WebUi Localization/localization.csv moorestech_web/webui/src
