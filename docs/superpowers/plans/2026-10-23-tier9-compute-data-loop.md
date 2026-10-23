@@ -2928,7 +2928,7 @@ git commit -m "feat(client): 発射台のロケット本体の表示と上昇を
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockInventoryDtos.cs`（`public RocketLaunchPadDetailDto RocketLaunchPad;`）
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs`（`TrainStationDetailDtoBuilder.Apply` の次に1行）
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/Rocket/RocketLaunchPadCommandActionHandler.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs`（列車PFのアクション登録の次に1行）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs`（`MachineRecipeSelectActionHandler` の登録の次に1行）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/action_names.json`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_rocket_launch_pad.json`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/RocketLaunchPadWireContractTest.cs`
@@ -2992,12 +2992,14 @@ export const RocketLaunchPadDataSchema = z.object({
 
 - [ ] **Step 3: C# の DTO・アクションを書く**
 
-`RocketLaunchPadDetailDto.cs`（名前空間 `Client.WebUiHost.Game.Topics.BlockDetail.Rocket`。既存DTOと同じ public フィールド）:
+名前空間はサブディレクトリによらず親のまま置く（前例: `Topics/BlockDetail/Train/`・`Belt/` の DtoBuilder は `Client.WebUiHost.Game.Topics.BlockDetail`、`Actions/Train/` のハンドラは `Client.WebUiHost.Game.Actions`。再検査 N3）。そのため `BlockInventoryDtos.cs`・`BlockDetailDtoBuilder.cs`・`WebUiGameBinder.cs` に using は足さない。
+
+`RocketLaunchPadDetailDto.cs`（名前空間 `Client.WebUiHost.Game.Topics.BlockDetail`。既存DTOと同じ public フィールド）:
 
 ```csharp
 using System.Collections.Generic;
 
-namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
+namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
     public class RocketLaunchPadDetailDto
     {
@@ -3021,7 +3023,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 
-namespace Client.WebUiHost.Game.Topics.BlockDetail.Rocket
+namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
     /// <summary>
     /// 発射台の状態とスロット群の絶対添字をDTOへ変換する
@@ -3092,7 +3094,7 @@ using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Server.Protocol.PacketResponse;
 
-namespace Client.WebUiHost.Game.Actions.Rocket
+namespace Client.WebUiHost.Game.Actions
 {
     /// <summary>
     /// 開いている発射台へ建造・発射の合図を送る
@@ -3140,7 +3142,7 @@ namespace Client.WebUiHost.Game.Actions.Rocket
 
 （`ActionResult.Fail` に失敗理由を残す口が既存にあれば、`response.FailureReason` をそこへ渡す。サーバー側の拒否はサーバーのログに理由が残る。）
 
-`WebUiGameBinder.cs` に、`TrainPlatformSetTransferModeActionHandler` を登録している行と同じ書式で `RocketLaunchPadCommandActionHandler` を登録する。
+`WebUiGameBinder.cs` の `hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));` の次に `hub.RegisterAction(new RocketLaunchPadCommandActionHandler(subInventoryState));` を足す（前例: 開いているブロックへ合図を送るハンドラを `subInventoryState` 付きで直に登録する同じ行。`TrainPlatformSetTransferModeActionHandler` は `Actions/Train/TrainWebUiActionRegistration.cs` 経由の登録で、この1行の前例にならない）。ハンドラは名前空間 `Client.WebUiHost.Game.Actions` なので、既存の `using Client.WebUiHost.Game.Actions;` で足りる。
 
 - [ ] **Step 4: 文言を足す**
 
