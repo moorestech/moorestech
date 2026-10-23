@@ -4,6 +4,7 @@ import FilterSplitterInventory from "../views/FilterSplitterInventory";
 import ElectricToGearInventory from "../views/ElectricToGearInventory";
 import SectionStackView from "../views/SectionStackView";
 import ElectricPoleInventory from "../views/ElectricPoleInventory";
+import SpaceElevatorInventory from "../views/SpaceElevatorInventory";
 import TrainPlatformInventory from "../views/TrainPlatformInventory";
 
 // blockType別の静的レジストリ
@@ -23,6 +24,7 @@ export const blockComponents: Record<string, BlockInventoryComponent> = {
   TrainItemPlatform: TrainPlatformInventory,
   TrainFluidPlatform: TrainPlatformInventory,
   ElectricPole: ElectricPoleInventory,
+  SpaceElevatorBase: SpaceElevatorInventory,
 };
 
 // 未登録種別は共通ビューへ戻す

@@ -49,6 +49,14 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<SetElectricToGearOutputModeResponse>(request, ct);
         }
 
+        // 宇宙エレベーター拠点の接続を頼む
+        // Ask to connect a space elevator base
+        public async UniTask<ConnectSpaceElevatorResponse> ConnectSpaceElevator(Vector3Int position, CancellationToken ct)
+        {
+            var request = new ConnectSpaceElevatorRequest(position);
+            return await _packetExchangeManager.GetPacketResponse<ConnectSpaceElevatorResponse>(request, ct);
+        }
+
         // Get/SetMode/SetFilterItemを統合
         // Filter splitter state request (single endpoint for Get/SetMode/SetFilterItem)
         public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SendFilterSplitterStateRequest(

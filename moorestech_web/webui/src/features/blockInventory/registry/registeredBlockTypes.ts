@@ -8,4 +8,5 @@ export const registeredBlockTypes = [
   "TrainItemPlatform",
   "TrainFluidPlatform",
   "ElectricPole",
+  "SpaceElevatorBase",
 ] as const;

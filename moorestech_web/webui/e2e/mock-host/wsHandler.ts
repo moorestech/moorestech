@@ -5,7 +5,7 @@ import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, connections, subscribersOf, topicSubscribers } from "./state";
 import { applyMove, applyBlockMove, applyBlockSplit, applyCollect, applyBlockCollect, applyCraft, applySplitDrag } from "./inventoryModel";
-import { applyElectricToGearMode, applyFilterMode, applyFilterItem, applyMachineRecipeSelect, applyResearchComplete, applyTrainPlatformMode } from "./detailActions";
+import { applySpaceElevatorConnect, applyElectricToGearMode, applyFilterMode, applyFilterItem, applyMachineRecipeSelect, applyResearchComplete, applyTrainPlatformMode } from "./detailActions";
 import { applySkitAction } from "./skitActions";
 import { applyPauseMenuAction, type PauseMenuActionResult } from "./pauseMenuActions";
 import { demoMode } from "./topics/topicFixtures";
@@ -148,6 +148,10 @@ export function attachWsHandlers(wss: WebSocketServer) {
         } else if (msg.type === "electric_to_gear.set_output_mode") {
           const applied = applyElectricToGearMode(state.currentBlock, msg.payload as ActionPayloads["electric_to_gear.set_output_mode"]);
           if (!applied) error = "invalid_mode_index";
+          else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
+        } else if (msg.type === "space_elevator.connect") {
+          const applied = applySpaceElevatorConnect(state.currentBlock);
+          if (!applied) error = "insufficient_cable";
           else setTimeout(() => send(ws, { op: "event", topic: Topics.blockInventory, data: state.currentBlock }), 30);
         } else if (msg.type === "train_platform.set_transfer_mode") {
           const applied = applyTrainPlatformMode(state.currentBlock, msg.payload as ActionPayloads["train_platform.set_transfer_mode"]);

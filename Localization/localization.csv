@@ -421,3 +421,11 @@ ui.settings.graphicsUnsupportedValue,Unsupported value,Unsupported value,選択�
 ui.settings.graphicsRecovered,Graphics settings were repaired to Medium. Select a preset or item to confirm.,Graphics settings were repaired to Medium. Select a preset or item to confirm.,画質設定を中に復旧しました。プリセットか項目を選んで確認してください。,Grafikeinstellungen wurden auf Mittel zurückgesetzt. Wähle eine Voreinstellung oder Option zur Bestätigung.,그래픽 설정을 중간으로 복구했습니다. 프리셋 또는 항목을 선택하여 확인하세요.
 ui.blockInventory.beltThroughputWindow,Last {seconds}s: {count} / {max} items ({percent}%),Last {seconds}s: {count} / {max} items ({percent}%),直近{seconds}秒: {count} / {max}個 ({percent}%),Letzte {seconds}s: {count} / {max} Gegenstände ({percent}%),최근 {seconds}초: {count} / {max}개 ({percent}%)
 ui.blockInventory.beltThroughputMeasuring,Last {seconds}s: measuring,Last {seconds}s: measuring,直近{seconds}秒: 計測中,Letzte {seconds}s: wird gemessen,최근 {seconds}초: 측정 중
+ui.blockInventory.spaceElevatorConnect,Connect,Connect,接続する,Verbinden,연결
+ui.blockInventory.spaceElevatorPool,Cable pool: {pool} / {required},Cable pool: {pool} / {required},ケーブルのプール: {pool} / 必要 {required},Kabelvorrat: {pool} / {required},케이블 풀: {pool} / {required}
+ui.blockInventory.spaceElevatorStatusInsufficientCable,Not enough cable. Launch graphene cables to fill the pool,Not enough cable. Launch graphene cables to fill the pool,ケーブルが足りません。グラフェンケーブルを打ち上げてプールを満たしてください,Nicht genug Kabel. Starte Graphenkabel,케이블이 부족합니다. 그래핀 케이블을 발사하세요
+ui.blockInventory.spaceElevatorStatusReadyToConnect,Not connected; ready to connect,Not connected; ready to connect,未接続（接続できます）,Nicht verbunden; bereit,연결 안 됨 (연결 가능)
+ui.blockInventory.spaceElevatorStatusWaitingSatellite,Waiting for a GPU satellite,Waiting for a GPU satellite,GPU衛星を待っています,Warte auf GPU-Satelliten,GPU 위성 대기 중
+ui.blockInventory.spaceElevatorStatusClimbing,Climbing,Climbing,昇降中,Steigt auf,상승 중
+ui.blockInventory.spaceElevatorStatusLowPower,Climbing slowly (low power),Climbing slowly (low power),電力不足で遅くなっています,Langsam (zu wenig Strom),전력 부족으로 느려짐
+ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until the result fits,Output full; waiting until the result fits,出口が満杯のため、成果が入るまで待っています,Ausgang voll; wartet bis das Ergebnis passt,출구가 가득 차 결과가 들어갈 때까지 대기 중

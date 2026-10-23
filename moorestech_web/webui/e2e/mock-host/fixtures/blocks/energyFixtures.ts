@@ -62,3 +62,31 @@ export const blockElectricPole = {
   fluidSlots: [],
   electricNetwork: { totalGeneratePower: 240, totalRequiredPower: 180, consumerCount: 3, powerRate: 1 },
 } satisfies BlockInventoryWireData;
+
+// 宇宙エレベーター拠点（未接続・接続可能）
+// Space elevator base: unconnected and ready to connect
+export const blockSpaceElevator = {
+  open: true,
+  source: "block",
+  blockType: "SpaceElevatorBase",
+  identifier: "block:20",
+  blockGuid: BlockGuids.SPACE_ELEVATOR_BLOCK_GUID,
+  itemSlots: [],
+  fluidSlots: [],
+  spaceElevator: { connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect" },
+} satisfies BlockInventoryWireData;
+
+// 不足・昇降・出口待ちの受入状態
+// Acceptance states for shortage, climbing, and blocked outlets
+export const blockSpaceElevatorInsufficient = {
+  ...blockSpaceElevator,
+  spaceElevator: { ...blockSpaceElevator.spaceElevator, cablePoolAmount: 250, status: "insufficientCable" },
+} satisfies BlockInventoryWireData;
+export const blockSpaceElevatorClimbing = {
+  ...blockSpaceElevator,
+  spaceElevator: { connected: true, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0.5, status: "climbing" },
+} satisfies BlockInventoryWireData;
+export const blockSpaceElevatorOutputBlocked = {
+  ...blockSpaceElevatorClimbing,
+  spaceElevator: { ...blockSpaceElevatorClimbing.spaceElevator, climbProgress: 1, status: "outputBlocked" },
+} satisfies BlockInventoryWireData;

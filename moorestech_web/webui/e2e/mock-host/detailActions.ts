@@ -93,3 +93,15 @@ export function applyResearchComplete(tree: ResearchTreeData, p: ActionPayloads[
   node.state = "completed";
   return true;
 }
+
+// space_elevator.connect: サーバーの代わりに、接続できる状態なら接続済みにしてプールから引く
+// space_elevator.connect: standing in for the server, mark connected and take from the pool when the status says it can connect
+export function applySpaceElevatorConnect(block: BlockInventoryWireData): boolean {
+  if (!block.open || !("spaceElevator" in block) || !block.spaceElevator) return false;
+  const detail = block.spaceElevator;
+  if (detail.connected || detail.status !== "readyToConnect") return false;
+  detail.connected = true;
+  detail.cablePoolAmount -= detail.cablesPerElevator;
+  detail.status = "waitingSatellite";
+  return true;
+}

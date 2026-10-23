@@ -20,6 +20,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             var param = block.BlockMasterElement.BlockParam;
             ElectricToGearDetailDtoBuilder.Apply(dto, block, param);
+            SpaceElevatorDetailDtoBuilder.Apply(dto, block, param);
 
             // ベルト: クライアントの複製が数えた搬出統計
             // Belts: exit statistics counted by the client's replica
