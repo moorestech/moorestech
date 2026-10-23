@@ -59,9 +59,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.FluidNetworkSync
             return ServerContext.GetService<FluidNetworkDatastore>().CaptureFullState();
         }
 
+        public static uint ServerHash()
+        {
+            return ServerContext.GetService<FluidNetworkDatastore>().ComputeStateHash();
+        }
+
         public static uint HashOf(FluidNetworkReplica replica)
         {
-            return FluidNetworkStateHash.Compute(replica.CaptureFullState());
+            return FluidNetworkStateHash.Compute(replica.Nodes, replica.Faces, replica.Ports);
         }
 
         public static bool IsFluidTickEvent(EventMessagePack eventMessagePack)

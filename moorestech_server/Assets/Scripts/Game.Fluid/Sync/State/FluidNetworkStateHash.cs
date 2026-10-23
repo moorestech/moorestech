@@ -7,8 +7,8 @@ namespace Game.Fluid.Sync.State
 {
     // 網の決定的なハッシュ(FNV-1a、ベルトのBeltTransportStateHashと同型)。番号順に全項目を混ぜる。doubleはビット列で混ぜるので1bitの差も不一致になる
     // Deterministic hash of the network (FNV-1a, same shape as the belt's BeltTransportStateHash); mixes every field in index order. Doubles are mixed as bit patterns, so a one-bit difference mismatches
-    // 本番はノード・面・ポートから直接混ぜて割り当てを出さない。面とポートのノードは番号でなく座標で混ぜるので、全量からの計算も同じ値になる
-    // Production mixes straight from the nodes, faces and ports with no allocation; faces and ports identify nodes by position rather than index, so the full-state overload yields the same value
+    // ノード・面・ポートの実体から直接混ぜ、全量の切り出しをしない(割り当て0)。面とポートの相手ノードは番号の逆引きが要らない座標で混ぜる
+    // Mixes straight from the node, face and port objects without capturing a full state (zero allocation); faces and ports identify their nodes by position, which needs no index lookup
     public static class FluidNetworkStateHash
     {
         private const uint FnvOffset = 2166136261;
@@ -36,34 +36,6 @@ namespace Game.Fluid.Sync.State
             {
                 var port = ports[i];
                 hash = MixPort(hash, port.PipeNode.Position, port.FlowCapacityPerTick, port.Velocity);
-            }
-            return hash;
-        }
-
-        // 全量(送受信した形)からの計算。テストが本番側の値と突き合わせるのに使う
-        // Computation from the full state (the wire form); tests use it to check against the production value
-        public static uint Compute(FluidNetworkFullState fullState)
-        {
-            var hash = Mix(FnvOffset, fullState.Nodes.Length);
-            for (var i = 0; i < fullState.Nodes.Length; i++)
-            {
-                var node = fullState.Nodes[i];
-                hash = Mix(hash, i);
-                hash = MixNode(hash, node.Position, node.Capacity, node.Amount, node.FluidId.AsPrimitive());
-            }
-
-            hash = Mix(hash, fullState.Faces.Length);
-            for (var i = 0; i < fullState.Faces.Length; i++)
-            {
-                var face = fullState.Faces[i];
-                hash = MixFace(hash, fullState.Nodes[face.NodeAIndex].Position, fullState.Nodes[face.NodeBIndex].Position, face.FlowCapacityPerTick, face.Velocity, face.AllowAToB, face.AllowBToA);
-            }
-
-            hash = Mix(hash, fullState.Ports.Length);
-            for (var i = 0; i < fullState.Ports.Length; i++)
-            {
-                var port = fullState.Ports[i];
-                hash = MixPort(hash, fullState.Nodes[port.NodeIndex].Position, port.FlowCapacityPerTick, port.Velocity);
             }
             return hash;
         }

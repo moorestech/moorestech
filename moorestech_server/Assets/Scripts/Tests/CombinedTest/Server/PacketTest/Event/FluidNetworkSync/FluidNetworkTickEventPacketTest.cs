@@ -3,7 +3,6 @@ using System.Linq;
 using Core.Update;
 using Game.Fluid.Sync.Message;
 using Game.Fluid.Sync.Replica;
-using Game.Fluid.Sync.State;
 using Game.Train.Unit;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,13 +114,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event.FluidNetworkSync
 
                 var tick = (trainUpdateService.GetCurrentTick() - 1);
                 Assert.IsTrue(replicaHashByTick.ContainsKey(tick), $"replica advanced to tick {tick}");
-                Assert.AreEqual(FluidNetworkStateHash.Compute(CaptureServer()), replicaHashByTick[tick], $"replica hash at tick {tick}");
+                Assert.AreEqual(ServerHash(), replicaHashByTick[tick], $"replica hash at tick {tick}");
             }
 
             Assert.AreEqual(expectedRebuiltTicks.Count, rebuilds, "replica re-assembled once per placement");
             Assert.Greater(realHashesChecked, 0, "real fluid hashes compared");
             Assert.Greater(dummyHashesChecked, 0, "dummy fluid hashes compared");
-            FluidFullStateAssert.AreEqual(CaptureServer(), replica.CaptureFullState());
+            FluidFullStateAssert.AreEqual(CaptureServer(), replica);
 
             #region Internal
 

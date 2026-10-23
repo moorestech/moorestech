@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Game.Fluid.Simulation;
 using Game.Fluid.Sync.Diff;
-using Game.Fluid.Sync.State;
 using UnityEngine;
 
 namespace Game.Fluid.Sync.Replica
@@ -16,7 +15,6 @@ namespace Game.Fluid.Sync.Replica
         public readonly FluidSimNode[] Nodes;
         public readonly FluidSimFace[] Faces;
         public readonly FluidReplicaBoundaryPort[] Ports;
-        private readonly IFluidBoundaryPort[] _portsForStepper;
         private readonly Dictionary<Vector3Int, int> _nodeIndexByPosition;
 
         public FluidNetworkReplica(FluidSimNode[] nodes, FluidSimFace[] faces, FluidReplicaBoundaryPort[] ports)
@@ -24,14 +22,8 @@ namespace Game.Fluid.Sync.Replica
             Nodes = nodes;
             Faces = faces;
             Ports = ports;
-            _portsForStepper = ports;
             _nodeIndexByPosition = new Dictionary<Vector3Int, int>(nodes.Length);
             for (var i = 0; i < nodes.Length; i++) _nodeIndexByPosition.Add(nodes[i].Position, i);
-        }
-
-        public FluidNetworkFullState CaptureFullState()
-        {
-            return FluidNetworkFullStateCapture.Capture(Nodes, Faces, _portsForStepper);
         }
 
         // パイプの座標からノードを引く。パイプでない座標はfalse
@@ -65,7 +57,7 @@ namespace Game.Fluid.Sync.Replica
                 consistent = false;
             }
 
-            FluidSimulationStepper.Step(Nodes, Faces, _portsForStepper);
+            FluidSimulationStepper.Step(Nodes, Faces, Ports);
 
             for (var i = 0; i < Ports.Length; i++)
             {

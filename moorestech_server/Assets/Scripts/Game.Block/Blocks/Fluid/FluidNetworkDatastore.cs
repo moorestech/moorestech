@@ -29,7 +29,6 @@ namespace Game.Block.Blocks.Fluid
         private readonly List<FluidSimNode> _nodes = new();
         private readonly List<FluidSimFace> _faces = new();
         private readonly List<FluidBoundaryPort> _boundaryPorts = new();
-        private readonly List<IFluidBoundaryPort> _boundaryPortsForSync = new();
         private readonly Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace> _faceByPositionPair = new();
 
         // 差分がノードを番号で指すための逆引き。再構築のたびに作り直す
@@ -85,7 +84,7 @@ namespace Game.Block.Blocks.Fluid
         // Right after the fluid tick, copy the amount each port actually handed to its machine into the diff
         public void RecordDeliveries()
         {
-            _diffRecorder.RecordDeliveries(_boundaryPortsForSync);
+            _diffRecorder.RecordDeliveries(_boundaryPorts);
         }
 
         public FluidTickDiff TakeTickDiff()
@@ -97,14 +96,14 @@ namespace Game.Block.Blocks.Fluid
         // Cuts the current network's full state; used for the initial sync and the full-state send after a rebuild
         public FluidNetworkFullState CaptureFullState()
         {
-            return FluidNetworkFullStateCapture.Capture(_nodes, _faces, _boundaryPortsForSync);
+            return FluidNetworkFullStateCapture.Capture(_nodes, _faces, _boundaryPorts);
         }
 
         // 現在の網のハッシュ。クライアントの複製との照合に使う。全量を写さず直接混ぜる
         // Hash of the current network, checked against the client replica; mixes directly without capturing the full state
         public uint ComputeStateHash()
         {
-            return FluidNetworkStateHash.Compute(_nodes, _faces, _boundaryPortsForSync);
+            return FluidNetworkStateHash.Compute(_nodes, _faces, _boundaryPorts);
         }
 
         // tick末尾とロード完了時に呼ばれ、登録・接続に変化があった時だけトポロジを一括再構築する
@@ -154,8 +153,6 @@ namespace Game.Block.Blocks.Fluid
 
             _faces.Sort(static (x, y) => CompareFaces(x, y));
             _boundaryPorts.Sort(static (x, y) => ComparePorts(x, y));
-            _boundaryPortsForSync.Clear();
-            foreach (var port in _boundaryPorts) _boundaryPortsForSync.Add(port);
 
             // ロード復元用の初期速度は最初の構築で消費済みになる
             // Loaded initial velocities are consumed by the first rebuild

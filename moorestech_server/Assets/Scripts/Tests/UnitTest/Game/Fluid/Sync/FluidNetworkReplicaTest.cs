@@ -18,16 +18,12 @@ namespace Tests.UnitTest.Game.Fluid.Sync
         private static readonly FluidId Steam = new(2);
 
         [Test]
-        public void 全量から組んだ複製は同じ全量を切り出しハッシュも一致する()
+        public void 全量から組んだ複製は全量と同じ項目を持つ()
         {
             var full = TwoNodesWithOnePort();
             var replica = FluidNetworkReplicaAssembler.Assemble(full);
 
-            FluidFullStateAssert.AreEqual(full, replica.CaptureFullState());
-            Assert.AreEqual(FluidNetworkStateHash.Compute(full), FluidNetworkStateHash.Compute(replica.CaptureFullState()));
-            // 本番が使う直接混ぜ込みも、全量からの計算と同じ値になる
-            // The direct mixing used in production yields the same value as the full-state computation
-            Assert.AreEqual(FluidNetworkStateHash.Compute(full), FluidNetworkStateHash.Compute(replica.Nodes, replica.Faces, replica.Ports));
+            FluidFullStateAssert.AreEqual(full, replica);
             Assert.IsTrue(replica.TryGetNode(new Vector3Int(0, 0, 1), out var node));
             Assert.AreEqual(30, node.Amount);
         }

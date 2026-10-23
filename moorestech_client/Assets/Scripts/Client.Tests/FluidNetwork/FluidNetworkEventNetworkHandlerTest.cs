@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Client.Tests.BeltTransport;
 using Core.Update;
 using Game.Fluid.Sync.Diff;
-using Game.Fluid.Sync.State;
 using Game.Train.Unit;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -35,7 +34,7 @@ namespace Client.Tests.FluidNetwork
 
             var rig = new TickSyncClientRig();
             rig.Join(sink.TakeAll());
-            Assert.AreEqual(FluidNetworkStateHash.Compute(CaptureServer()), rig.FluidCache.ComputeCurrentHash(), "replica hash right after the join-time full state");
+            Assert.AreEqual(ServerHash(), rig.FluidCache.ComputeCurrentHash(), "replica hash right after the join-time full state");
 
             var expectedRebuiltTicks = new List<uint>();
             for (var i = 1; i <= TickCount; i++)
@@ -53,13 +52,13 @@ namespace Client.Tests.FluidNetwork
                 // Every tick the verifier passes the previous tick's hash, and once flushed up to the fluid's sequence id the replica equals the server
                 var tick = (trainUpdateService.GetCurrentTick() - 1);
                 Assert.AreEqual(tick, rig.TickState.GetTick(), $"client reached tick {tick}");
-                Assert.AreEqual(FluidNetworkStateHash.Compute(CaptureServer()), rig.FluidCache.ComputeCurrentHash(), $"replica hash at tick {tick}");
+                Assert.AreEqual(ServerHash(), rig.FluidCache.ComputeCurrentHash(), $"replica hash at tick {tick}");
             }
 
             Assert.AreEqual(expectedRebuiltTicks.Count, rig.FluidRebuiltFullStatesReceived, "one rebuilt full state per placement");
             Assert.AreEqual(TickCount, rig.TrainDiffsFlushed, "train diffs flushed once per tick");
             Assert.IsFalse(rig.TickState.IsPermanentlyWaiting, "no stop");
-            FluidFullStateAssert.AreEqual(CaptureServer(), rig.FluidCache.Replica.CaptureFullState());
+            FluidFullStateAssert.AreEqual(CaptureServer(), rig.FluidCache.Replica);
         }
 
         [Test]
