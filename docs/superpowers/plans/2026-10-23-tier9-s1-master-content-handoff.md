@@ -20,7 +20,7 @@
 - RD11 S1 時間配分: 半導体製造の解放から最後の S1 研究まで 6〜8 時間（クラスA/B/C とも）、S1 中のチップは Lv1 中心で Lv2 は 0% より多く 15% 以下。室内機械の生産性モジュールと研究での Lv2 代用を含めて測る。受け入れ: D1 Step 2〜4 と D8 Step 1 で `python3 sim/run_all.py` が exit 0（§0 の12行が全部 PASS）
 - RD12 シミュレーションは `moorestech_master/design/tier9-semiconductor-balance/` に置き、README・目標判定（targets.py）・出力・マスタ照合を含める。値を直す順と spec への写し先は D1 Step 3 の表に従う。受け入れ: `python3 sim/run_all.py` が exit 0、`python3 verify_master.py` が8項目 PASS
 - RD13 新規・改名したアイテム・ブロック・研究のローカライズ行（Source・english・japanese）を mod の localization.csv に持つ。受け入れ: `PASS structure`（Guid 導出キーの行がある）
-- RD14 出荷マスタ全体をロードして起動し、チップライン・モジュールと GPU・専用機の見た目と抽選欄を unityプレイ録画テスト3本で確かめる。受け入れ: D9 の3本の result.json が Success・全 Assert PASS・動画が 0 byte でない
+- RD14 出荷マスタ全体をロードして起動し、チップライン・モジュールと GPU・専用機の見た目と抽選欄を unityプレイ録画テスト3本で確かめる。受け入れ: D9 の3本の result.json が Success・全 Assert PASS・動画が 0 byte でない。chip-line には、ダイシングの後とパッケージングの後の混在ベルトをフィルター分岐器でレベル別に仕分けてラインが止まらないことと、わざと Lv1/Lv2 を混ぜたベルトをモジュールの機械へつなぐと機械UIに止まった理由（S1 の C13）が出ることを入れる（裁定 `.decisions/2026-10-24-レベルの混ざったチップはプレイヤーが仕分け止まった理由を機械UIに出す.md`）
 - RD16 成膜・EUV・ダイシングの機械UIに、出荷マスタの値で抽選欄（上限グレード・昇格確率／層失敗率／ダイ損失率）が出る。受け入れ: D9 yield-ui の `clean-room-yield-section` と各行の `UntilWebUiElement` が PASS、`02-deposition-yield` `03-euv-yield` `04-dicing-yield` で数値が読める
 - RD17 品質モジュールは成膜・EUV・ダイシングにだけ入り、ウェハ切断機とパッケージング装置には入らない。受け入れ: `PASS quality module permission`
 - RD18 ICチップ1個にシリコンダイ10個を使う（パッケージング: シリコンダイLv1×10＋ICチップ基板1→ICチップLv1、`Inherit`）。受け入れ: D8 Step 1 の `PASS recipes = params`、sim の `DIES_PER_CHIP == 10`。
@@ -2247,8 +2247,8 @@ git commit -m "chore: Tier9 半導体のマスタ投入（moorestech_master feat
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/misc/tier9-yield-ui.cs`
 
 **Interfaces:**
-- Consumes: D8 で push・ピン留めした moorestech_master（`run-scenario.sh` が `.moorestech-external-revisions.json` のコミットに HEAD が一致する master worktree＝`$MW` を自動で選ぶ）。D10 の prefab 5種。Part A のブロック `クリーンルームパネル`（北向きで水平の板）・ドア（1×2×1）。Part B の CleanRoomMachine の液体入力と抽選、B6 の抽選欄（testid `clean-room-yield-section`、行 `clean-room-yield-max-grade` / `clean-room-yield-promotion-chance`（成膜）・`clean-room-yield-layer-fail-rate`（EUV）・`clean-room-yield-die-loss-rate`（ダイシング）。役割レシピを選び、部屋が稼働できる機械にだけ出る）。Part C の継承レシピと製作上限。既存 `IResearchDataStore.LoadResearchData(ResearchSaveJsonObject)`（完了済みとして読み込み、各研究の解放アクションを再実行する）
-- Produces: `moorestech_client/PlaytestResults/<run>/result.json`（Success・全 Assert PASS）、動画、スクショ `01-room-and-line` `02-dies` `03-chips`（chip-line）、`01-workshops` `02-modules-gpu`（modules-gpu）、`01-five-machines` `02-deposition-yield` `03-euv-yield` `04-dicing-yield`（yield-ui）
+- Consumes: D8 で push・ピン留めした moorestech_master（`run-scenario.sh` が `.moorestech-external-revisions.json` のコミットに HEAD が一致する master worktree＝`$MW` を自動で選ぶ）。D10 の prefab 5種。Part A のブロック `クリーンルームパネル`（北向きで水平の板）・ドア（1×2×1）。Part B の CleanRoomMachine の液体入力と抽選、B6 の抽選欄（testid `clean-room-yield-section`、行 `clean-room-yield-max-grade` / `clean-room-yield-promotion-chance`（成膜）・`clean-room-yield-layer-fail-rate`（EUV）・`clean-room-yield-die-loss-rate`（ダイシング）。役割レシピを選び、部屋が稼働できる機械にだけ出る）。Part C の継承レシピと製作上限、C13 の止まった理由の欄（testid `machine-input-stall`、`LackHighlightText` が描くので `data-insufficient="true"`。block inventory topic のフィールド `machineInputStall: {reason: "mixedLevel" | "aboveCraftCap", itemId}`。文言 `ui.blockInventory.machineInputStallMixedLevel`「レベルの違う品（{itemName}）が届いて止まっています」・`ui.blockInventory.machineInputStallAboveCraftCap`「製作上限を超えるレベルの品（{itemName}）が届いて止まっています」。継承レシピを選んだ機械へブロックから継承元が断られた後、最大1秒で出て、原因が消えれば最大1秒で消える）。既存 `IResearchDataStore.LoadResearchData(ResearchSaveJsonObject)`（完了済みとして読み込み、各研究の解放アクションを再実行する）
+- Produces: `moorestech_client/PlaytestResults/<run>/result.json`（Success・全 Assert PASS）、動画、スクショ `01-room-and-line` `02-dies` `03-chips` `04-mixed-level-stall`（chip-line）、`01-workshops` `02-modules-gpu`（modules-gpu）、`01-five-machines` `02-deposition-yield` `03-euv-yield` `04-dicing-yield`（yield-ui）
 
 - [ ] **Step 0: サブエージェント探索（unity-playmode-recorded-playtest の必須ゲート）**
 
@@ -2261,6 +2261,7 @@ fresh-context の Explore サブエージェントに、次の名前と挙動を
 6. `VanillaMachineBlockInventoryComponent.InsertItem` が Part C の製作上限を超えるレベルを受け取らずに残りとして返すか（返さない経路なら、上限の拒否を確かめる正しい API に置き換える）
 7. `PlaceBlockDirect` で y=32 の平地に化学プラント（6×16×11）と発電機が置けるか、パネルを北向きで置くと水平の板になるか（Part A の A4・A11 の配置と同じか）
 8. 室内から機械を `AimAt`→`PressInteract` で開いたとき、抽選欄が出る条件（レシピ選択・部屋の稼働・給電）を B6 の実装で確かめる
+9. C13 の止まった理由の欄の出る条件（継承レシピの選択・継承元スロットに別レベルが入っているか製作上限超え・材料が未充足・ブロック〈ベルト〉からの搬入）と、testid `machine-input-stall` の綴り、フィルター分岐器のフィルター設定 API の名前を実コードで確かめる
 
 - [ ] **Step 1: シナリオ3本を書く**
 
@@ -2834,3 +2835,7 @@ git commit -m "test: Tier9 半導体のチップライン・モジュールと G
 - 既存の `moorestech_master/tools/research_sync/sync_machine_recipe_unlocks.py` は D7 の解放の割り当てと役割が重なり、D5 で消す旧 EUV レシピを `KNOWN_ORPHANS` に登録したままで `--check` が exit 2 になる見込み（推測・未実行）→ D7 で使うか、D5 で `KNOWN_ORPHANS` から外す
 - S1 の裁定で追加: アイテムハッチの搬送量上限（S1 の Task A14 が必須キーを足し、本番値は暫定）の本番値をバランスで決め、sim の部屋の比較（大部屋集約が有利）に搬送量の上限を入れる（`.decisions/2026-10-23-アイテムハッチに搬送量の上限を足して大部屋集約を有利にする.md`）
 - S1 の裁定で追加: 製作上限を超えるチップは製品に入れず取っておく（`.decisions/2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく.md`）。sim の S1 期間の Lv2 チップは研究の代用か在庫として数える
+
+## S1 plan の予測レビュー（2026-10-24）からの持ち越し
+
+- D9 の chip-line に、混在ベルトの仕分けと止まった理由の表示を足す（RD14 の受け入れに書いた2点）。S1 の継承元スロットは1レベルずつ受け、混ざった品がベルトの先頭に来ると止まる。仕分けはプレイヤーが既存のフィルター分岐器（研究「酸素の精製」で解放）で行う前提で、レシピ表・研究表のバランスもこの仕分けの手間を含めて見る。出所: シミュレーター予測→ユーザー承認 2026-10-24（.decisions/2026-10-24-レベルの混ざったチップはプレイヤーが仕分け止まった理由を機械UIに出す.md）

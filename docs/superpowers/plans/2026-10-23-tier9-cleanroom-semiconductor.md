@@ -41,7 +41,7 @@
 
 - RC1 レベル継承レシピ: 機械レシピの必須キー `levelInheritance`（`None` / `Inherit` / `InheritUpToUnlocked`）で宣言する。継承レシピでは「levelFamily の基準を指す入力」ちょうど1つのレベルが、「levelFamily の基準を指す出力」ちょうど1つへそのまま移る。受け入れ: Lv3 の素材を入れると Lv3 の製品が出る（C3 `InheritsSourceLevelAcrossFamiliesTest`）。
 - RC2 入力と出力が別ファミリーでも書け、継承先と同じファミリーの非基準の変種やファミリー外のアイテムを他の出力に並べられる（ICチップ→モジュール・GPU・ダイシング）。受け入れ: テストマスタの Source→Target の継承が検証を通り（C2 `TestMasterPassesValidationTest`）、品質可の機械で「継承先の基準＋Lv2＋ファミリー外」の出力も通り（C2 `DicingShapedOutputsOnQualityMachinePassTest`）、実行でも移る（C3）。
-- RC3 混ぜない: 1回の製作で消費する継承元は1スロット・1アイテムIDに限る。受け入れ: 継承元スロットに Lv2 を入れた後の Lv3 は手動でも自動搬入でも重ならずに戻る（C3 `SourceLevelsNeverMixInSlotTest`・C11 `InheritanceSourceSlotNeverAlignsTest`）。
+- RC3 混ぜない: 1回の製作で消費する継承元は1スロット・1アイテムIDに限る。Lv の混ざった品・製作上限を超える品がベルトで届くと先頭で止まるので、プレイヤーがフィルター分岐器でレベルごとに仕分ける前提とし、止まった理由は機械UIに出す（C13。裁定 `.decisions/2026-10-24-レベルの混ざったチップはプレイヤーが仕分け止まった理由を機械UIに出す.md`）。受け入れ: 継承元スロットに Lv2 を入れた後の Lv3 は手動でも自動搬入でも重ならずに戻る（C3 `SourceLevelsNeverMixInSlotTest`・C11 `InheritanceSourceSlotNeverAlignsTest`）。
 - RC4 品質モジュールは一般機械の出力を変えない（汎用の品質シフトを撤去し、品質を読むのは Part B のクリーンルームの書き換え器だけ）。受け入れ: 品質＋生産性を付けた TestElectricMachine の出力が基準アイテム2セットで上位の変種が0（C3 `LevelVariantOutputTest.QualityModuleLeavesGeneralOutputAtBaseLevelTest`）、品質モジュールを付けても GameRandom を引くのは追加産出の1回だけ（C3 `MachineRandomDrawSiteTest.品質モジュールを付けても抽選は追加産出の1回だけ`）。
 - RC5 製作上限: `InheritUpToUnlocked` のレシピは、継承先ファミリーの基準アイテムGUIDごとの上限（未解放は Lv1）を超えるレベルの継承元を受け入れず、格下げもしない（上限超えの品は解放まで手元に残る。裁定 `.decisions/2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく.md`）。受け入れ: 上限1のとき Lv2 の素材は入力スロットへ入らず、`unlockLevelInheritanceCraftLevel` の研究後は入る（C7 `LevelInheritanceCraftCapTest`）。
 - RC6 `Inherit`（上限なし）はパッケージング等に使い、上限を見ない。受け入れ: 上限1のままでも Lv3 の継承が通る（C7 `LevelInheritanceCraftCapTest`）。
@@ -56,6 +56,11 @@
 - RC15 上位レベルの品を下位の代わりに使える（機械）: 継承しない機械レシピで、要求が levelFamily の基準なら同ファミリーの上位の変種も受け付けて消費する。他ファミリーは受け付けず、手動の挿入は別レベルを重ねず、自動搬入だけ低い方のレベルへ揃え、継承元スロットには効かず、加工中の返却は基準で返す。受け入れ: C11 `LevelFamilySubstituteMachineTest` の6件。
 - RC16 上位レベルの品を下位の代わりに使える（研究）: 研究の `consumeItems` で、要求が基準なら受け付ける全変種の合計で充足を判定し、消費は下位のレベルから（同じレベルの中はスロット順）行う。受け入れ: C11 `LevelFamilySubstituteResearchTest` の4件（Lv2 で足りる・Lv1 から先に減る・混在は合計で数える・他ファミリーは数えない）と、Web の不足表示が上位レベルの所持も数える（C12 `researchLogic.test.ts`・`ResearchDetailPane.test.ts`）。
 - RC17 研究ノードに機械強化の解放2種を出す: 詳細ペインの「解放: その他」に「モジュールスロット上限 N」と「〇〇を LvN まで製作可能」の行を出す。受け入れ: C12 の `ResearchNodeDtoFactoryTest`・wire 契約・vitest・Playwright `researchMachineUpgradeUnlock.spec.ts`、表示台帳の網羅テスト（表示8種）、C10 の EditModeInPlayingTest で `research.tree` に `unlockModuleSlotStackLimits [6]`・`unlockLevelInheritanceCraftCaps [{製品Lv1, 2}]` が載る。
+- RC18 止まった理由を機械UIに出す: 継承レシピの機械の継承元スロットは、ベルト・チェスト等から届いた品を2つの場合に断る。(a) スロットに別のレベルが入っている。(b) 製作上限を超えている。断ったうえで材料がそろっていない間は、機械UIに赤字で理由を出す。文言は「レベルの違う品（{品名}）が届いて止まっています」と「製作上限を超えるレベルの品（{品名}）が届いて止まっています」。止まった状態は表示専用で保存しない。原因が消えれば最大1秒で表示も消える。原因が消えるのは、仕分け・取り出し・研究で通る、搬入元が無くなる、材料がそろう、レシピを外す、のいずれか。プレイヤーの手での移動・挿入は対象外。受け入れは次の4つ。
+  - C13 `MachineInputLevelStallBeltTest` の3件。上限超えは研究で消える。レベル違いはベルトの撤去後2 tick で消える。Lv1 を取り出すと Lv2 が入って消える。
+  - C13 `MachineInputLevelStallMinimalTest` の4件。搬入元の無い1回の拒否は2 tick で消える。手動の挿入では出ない。材料がそろっていれば出ない。束縛外の品とレシピ未選択では出ない。
+  - C13 `GetMachineInputStallProtocolTest` の5件と、wire 契約・vitest。
+  - EditModeInPlayingTest `MachineInputLevelStallWebUiTopicTest`。石の粉砕機へベルトで届いた Lv2 で `machineInputStall: {reason: "aboveCraftCap"}` が配信に載り、研究の後に消える。
 
 ### Part B（チップ生産の工程）
 
@@ -245,6 +250,9 @@
 | ブロック可変値の保存とマイグレーション | `SaveMigrationStepV5ToV6`（world[].state の JSON を書き換える） | 従う |
 | 上位レベルの代替の照合（C11） | `MachineRecipeSlotBindingUtil.IsInputBoundTo`（束縛・加工開始・配置可否が通る1か所）と `ResearchDataStore` の消費 | 従う。照合規則は `Core.Item.LevelFamilySubstituteUtil` の1か所に置き、両方から使う |
 | 研究ノードの解放内容表示（C12） | `ResearchNodeDtoFactory` の表示6種と webui `UnlockSections` の「解放: その他」（connectTool・trainCar のテキスト行） | 従う。表示台帳へ移す |
+| 止まった理由の判定（C13） | 拒否の発生点は `VanillaMachineInputInventory.InsertItemFromBlock`（ブロック搬入の唯一の口。`BeltMachineReceiver.TryReceive`・`ConnectingInventoryListPriorityInsertItemService` が通る）。部品が答えプロトコルは詰め替えるだけの形は B6 の `CleanRoomYieldPreviewComponent` | 従う。状態は「直近の拒否の tick」だけを持ち、問い合わせのときに `GameUpdater.CurrentTick` との差とレシピの充足から導く（`Update()` での同値判定もフラグを下ろす処理も持たない） |
+| 止まった理由の同期（C13） | `GetElectricNetworkInfoProtocol`＋`BlockNetworkInfoCache`、A6 `va:getCleanRoomInfo`・B6 `va:getCleanRoomYieldInfo` と A8 の汎用 `BlockInfoPoller` | 従う（表示中だけ1秒の要求応答）。3点セットと A7 のブロック状態は採らない。消える瞬間は「拒否が来なくなった」ことで出来事が無く、通知するには毎 tick の監視が要るため |
+| 止まった理由の表示（C13） | webui `details/LackHighlightText`（不足の赤字）と A9 の `details/cleanRoom/` の欄の置き方 | 従う。新しい色や部品は作らない |
 
 ### Part B
 
@@ -301,6 +309,7 @@
 - C9: Web UI の機械画面（継承バッジ・スロット上限・上位レベル素材の Shift 宛先 `acceptedItemIds`）
 - C12: 研究ノードに機械強化の解放2種を出し、研究の充足に上位レベルを数える（Web UI・表示台帳8種）
 - C10: 画面まで通す（EditModeInPlayingTest で研究→topic・`research.tree`、プレイ録画で上限表示）
+- C13: 継承元のレベルで止まった機械の理由を機械UIに出す。`MachineInputBlockInflow` が直近の拒否を記録し、`va:getMachineInputStall` で表示中だけ1秒ごとに問い合わせ、赤字の欄 `machine-input-stall` に出す。EditModeInPlayingTest で配信まで確かめる。
 
 ### Part B（チップ生産の工程）
 
@@ -12751,7 +12760,7 @@ git commit -m "feat: スロット上限と製作上限をハンドシェイク�
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/machine_upgrade.json`・`machine_recipe_level_inheritance.json`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/MachineUpgrade/MachineUpgradeDtoTest.cs`・`MachineUpgradeWireContractTest.cs`
 - Modify: `Localization/localization.csv`（3行追加）→ 生成物 `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`
-- Create: `moorestech_web/webui/src/bridge/contract/schemas/machineUpgrade.ts`
+- Create: `moorestech_web/webui/src/bridge/contract/schemas/machineUpgrade/index.ts`（`schemas/` 直下は既に .ts が10本あるので、前例 `schemas/energyConversion/` と同じくサブディレクトリに置く。import は `./machineUpgrade` のまま）
 - Modify: `moorestech_web/webui/src/bridge/contract/schemas/index.ts`・`schemas/recipes.ts`・`schemas/inventory.ts:56`・`contract/payloadTypes.ts`・`contract/validators.ts`・`transport/protocol.ts`
 - Modify: `moorestech_web/webui/src/features/blockInventory/details/machine/machineSlotGhosts.ts:69-74`・`MachineInventoryBody.tsx:54-61`
 - Create: `moorestech_web/webui/src/features/blockInventory/details/machine/ModuleSlotStackLimitText.tsx`
@@ -13338,7 +13347,7 @@ Expected: csv の numstat が `3 0`、`localizationKeys.ts` だけが変わる�
 
 - [ ] **Step 10: webui の契約（zod・topic・型）を足す**
 
-`moorestech_web/webui/src/bridge/contract/schemas/machineUpgrade.ts`
+`moorestech_web/webui/src/bridge/contract/schemas/machineUpgrade/index.ts`
 
 ```ts
 import { z } from "zod";
@@ -14609,6 +14618,1725 @@ git commit -m "test: 研究の解放が Web UI の配信まで届くことと上
 ---
 
 ---
+
+### Task C13: レベルの違う品で止まった機械の理由を機械UIに出す
+
+レベル継承レシピ（`Inherit`・`InheritUpToUnlocked`）の機械は、継承元スロットに1レベルずつしか受けない。レベルは混ぜず、格下げもしない（C3・C7。C11 の「低い方へ揃える」も継承元スロットには効かない）。ベルトは先頭の品しか渡さないので、レベルの違う継承元や製作上限を超える継承元がベルトの先頭に来ると、ラインはそこで止まる。仕分けはプレイヤーが既存のフィルター分岐器で行う。このタスクでは、止まった理由を機械UIに「レベルの違う品（名前）が届いて止まっています」と出す（裁定 [[2026-10-24-レベルの混ざったチップはプレイヤーが仕分け止まった理由を機械UIに出す]]）。棄却した案は2つある。(B) 理由を出さず、計画とテストに書くだけにする案。(C) 別レベル用の入力スロットを機械に持たせる案。
+
+**Files:**
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputLevelStall.cs`（理由の列挙と、止まっている状態の値）
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputBlockInflow.cs`（ブロック搬入の口。旧 `InsertItemFromBlock`・`InsertionCheckFromBlock` の本体と、拒否の記録）
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputLevelStallComponent.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputSlotBinding.cs`（`TryGetRecipe` を足す。C11 後の約145行→約148行）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/VanillaMachineInputInventory.cs`（ブロック搬入の2メソッドを搬入口へ移し、`TryGetLevelStall` を足す。C7 後の199行→約192行）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs`（New・Load の components 列に1行ずつ。130→133行）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaGearMachineTemplate.cs`（components 列に1行。85→87行）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs`（components 列に1行。A7・B2 後に1行増）
+- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/GetMachineInputStallProtocol.cs`
+- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/MachineInputStallMessagePack.cs`
+- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/MachineInputStallView.cs`
+- Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs`（`MachineRecipeSelectionProtocol` の登録行の直後に1行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs`（`GetGearNetworkInfo` の直後。A6 後の134→142行）
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallTestUtil.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallBeltTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallMinimalTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall/GetMachineInputStallProtocolTest.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/MachineInput/MachineInputStallPollSource.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/MachineInput/MachineInputStallDetailDtos.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/MachineInput/MachineInputStallDetailDtoBuilder.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs`（A8 後の約137行→約154行）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockInventoryDtos.cs`（`MachineInputStall` フィールド）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs`（A8 後の163→168行）
+- Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_machine_input_stall.json`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractMachineInputStallTest.cs`
+- Modify: `moorestech_web/webui/src/bridge/contract/wireContract.test.ts`（block detail fixtures の cases に1件。A8 後の196→197行）
+- Create: `moorestech_web/webui/src/bridge/contract/schemas/machineInputStall/index.ts`
+- Modify: `moorestech_web/webui/src/bridge/contract/schemas/inventory.ts`・`schemas/index.ts`・`contract/payloadTypes.ts`
+- Modify: `moorestech_web/webui/src/bridge/contract/schemas/__tests__/inventory.test.ts`
+- Create: `moorestech_web/webui/src/features/blockInventory/details/machineInputStall/machineInputStallLogic.ts`
+- Create: `moorestech_web/webui/src/features/blockInventory/details/machineInputStall/MachineInputStallSection.tsx`
+- Test: `moorestech_web/webui/src/features/blockInventory/details/machineInputStall/__tests__/machineInputStallLogic.test.ts`
+- Test: `moorestech_web/webui/src/features/blockInventory/details/machineInputStall/__tests__/MachineInputStallSection.test.ts`
+- Modify: `moorestech_web/webui/src/features/blockInventory/views/SectionStackView.tsx`
+- Modify: `moorestech_web/webui/src/features/blockInventory/views/__tests__/SectionStackView.test.tsx`
+- Modify: `Localization/localization.csv`（末尾に2行）
+- Modify（生成物）: `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`
+- Modify: `moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/machineRecipes.json`（石の粉砕機の継承レシピ1件）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/MachineInputLevelStallWebUiTopicTest.cs`
+
+置き場のファイル数は次のとおり。どれも10本以内。
+- `Machine/Inventory/Input/` は現行の4本に C7 の1本を足した5本で、このタスクの後は8本。
+- `Tests/CombinedTest/Core/Machine/Upgrade/` は C1〜C11 で8本ある。2本足すと上限の10本ちょうどになるので、新しいサブディレクトリ `InputLevelStall/`（3本）に置く。
+- `Server.Protocol/PacketResponse/MachineInputStall/` は新しいディレクトリで3本。namespace は前例 `PacketResponse/CleanRoom/` に合わせて `Server.Protocol.PacketResponse` のままにする。
+- `PacketTest/MachineInputStall/` は新しいディレクトリで1本。
+- `BlockDetail/MachineInput/` は新しいディレクトリで3本。`BlockDetail/` 直下は既に10本なので、前例 `BlockDetail/CleanRoom/`・`NetworkInfo/` に倣う。サブディレクトリ名を `Machine` にしないのは、namespace `…BlockDetail.Machine` ができると、既存コードで `Machine.` から始まる修飾名の解決が変わるため。
+- `Client.Tests/WebUi/BlockDetail/` は B6 の後で8本、このタスクの後は9本。
+- `schemas/` 直下の .ts は10本ちょうどなので、前例 `schemas/cleanRoom/index.ts` に倣ってサブディレクトリに置く。
+- `details/` 直下も12本あるので、前例 `details/cleanRoom/` に倣って `details/machineInputStall/` に置く。
+- `EditModeInPlayingTest/BlockInventory/` は5本で、このタスクの後は6本。
+
+**Interfaces:**
+- Consumes:
+  - C2: `MachineRecipeLevelInheritanceUtil.TryGetShape(MachineRecipeMasterElement, out LevelInheritanceShape)`、`LevelInheritanceShape.SourceInputIndex`・`ResolveSourceLevel(ItemId) : int?`。テスト用は `ForUnitTestLevelInheritanceIds`（`InheritRecipeGuid`・`CappedInheritRecipeGuid`・`CappedTargetBaseGuid`・`Source(level)`）
+  - C3: `LevelInheritanceTestHelper`（`PlaceMachine`・`Recipe`・`Create`・`CreateTest1`・`CountItem`・`InputSlotCount`）
+  - C7: `MachineInputSlotBinding(MachineInputCraftCapGate)`・`CheckPlacement(int, IItemStack)`・`MachineSlotPlacementCheck.LevelAboveCraftCap`、`VanillaMachineInputInventory` の ctor（`_slotBinding` を ctor で作る版）、`ILevelInheritanceCraftCapUnlocker.UnlockCraftCap(Guid, int)`
+  - C11: `VanillaMachineInputSimulationUtil.SimulateAutoInsert` の `AlignSubstituteVariant`。継承元スロットは揃えないので、レベル違いの拒否はこのスロットにだけ起きる
+  - C10: EditModeInPlayingTestMod の `継承テスト素材Lv1..3`・`継承テスト製品Lv1..3`・研究 `e0de0000-0000-4000-8000-000000000001`（製作上限を2へ上げる）。テストの書き方は `MachineUpgradeWebUiTopicTest` と同じ（`Snapshot` の読み方・`BlockSubInventoryOpener`・`WebUiActionInvoker`）
+  - A6・B6: プロトコルの書き方。private ctor と種別ごとの static factory を持ち、読み出しは `TryGetView` だけにする。`BlockNotFound` はビューに入れない。入れ子が欠けた応答は警告を出して読めない扱いにする。テストは `PacketResponseCreator.GetPacketResponse` と `BoundPacketContext.Bind(1)` で呼ぶ
+  - A8: `IBlockInfoPollSource<TResponse, TSnapshot>`・`BlockInfoPoller<TResponse, TSnapshot>`（`Start`・`Stop`・`TryGetSnapshot`・取得のたびに発火する `OnUpdated`）、`BlockNetworkInfoCache` の全文（`Track`・`Clear`・ctor の購読）、`BlockDetailDtoBuilder` の `CleanRoomDetailDtoBuilder.Apply(dto, block, cache);` の行、`BlockInventoryDtos` の `CleanRoom` フィールド
+  - A9: `schemas/cleanRoom` の import 行と export 行、`inventory.ts` の `cleanRoom` 行、`SectionStackView.tsx` の `<CleanRoomSection data={data} />`、`_CompileRequester` の MD5 の再計算
+- Produces（統合タスク bd moorestech-xyuaf.2 の D9 chip-line 録画が使う）:
+  - サーバー（namespace `Game.Block.Blocks.Machine.Inventory.Input`）:
+    - `enum MachineInputLevelRefusalReason { MixedLevel, AboveCraftCap }`
+    - `readonly struct MachineInputLevelStall { MachineInputLevelRefusalReason Reason; ItemId WaitingItemId }`
+    - `MachineInputLevelStallComponent : IBlockComponent`（`bool TryGetStall(out MachineInputLevelStall stall)`。ctor は internal で template だけが作る。電気機械・歯車機械・清浄室機械の3種に付く）
+    - `VanillaMachineInputInventory.TryGetLevelStall(out MachineInputLevelStall stall) : bool`
+    - `MachineInputSlotBinding.TryGetRecipe(out MachineRecipeMasterElement recipe) : bool`
+  - 「止まっている」の定義（`MachineInputBlockInflow.TryGetStall`）は、次の3つがすべて成り立つこと。
+    1. ブロック搬入の口 `IBlockInventory.InsertItem(stack, context)` で、継承元の変種が継承元のレベルの都合で断られた。
+    2. その最後の拒否が現在 tick から1 tick 以内に起きている。
+    3. 選択レシピの材料がそろっていない（`RecipeConfirmation` が false）。
+    - 理由は2つある。製作上限を超えるなら `AboveCraftCap`。継承元スロットに別のレベルが入っているなら `MixedLevel`。
+    - プレイヤーの挿入（文脈なしの `InsertItem`）、ベルトの振り分け判定（`InsertionCheck`）、束縛外の品、同じレベルの満杯は、止まった理由にしない。
+  - プロトコル `va:getMachineInputStall`（`GetMachineInputStallProtocol`）、`WorldQueryApi.GetMachineInputStall(BlockInstanceId, CancellationToken)`
+  - プロトコルの型（namespace `Server.Protocol.PacketResponse`）:
+    - `GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack`
+      - wire は `MachineInputStallResponseKind Kind`〈Key2〉と `MachineInputStallMessagePack Stall`〈Key3〉で、`Stall` は Stalled のときだけ非 null。
+      - 組み立ては `CreateBlockNotFound()`・`CreateNotStalled()`・`CreateStalled(MachineInputStallReasonKind reason, int waitingItemId)` だけで行う。
+      - 読み出しは `bool TryGetView(out MachineInputStallView view)` だけで行う。BlockNotFound は false を返す。`Stall` が欠けた応答と未知の理由は、警告 `[GetMachineInputStall] Stalled response is unreadable` を1回出して false を返す。
+    - `enum MachineInputStallResponseKind { BlockNotFound, NotStalled, Stalled }`
+    - `enum MachineInputStallReasonKind { MixedLevel, AboveCraftCap }`
+    - `MachineInputStallMessagePack { MachineInputStallReasonKind Reason [Key0]; int WaitingItemId [Key1] }`
+    - ビューは `MachineInputNotStalledView.Instance` と `MachineInputStalledView(MachineInputStallMessagePack Stall)`
+  - クライアント（namespace `Client.WebUiHost.Game.Topics.BlockDetail.MachineInput`）:
+    - `MachineInputStallPollSource.CreatePoller()`（1秒間隔）
+    - `MachineInputStallDetailDtoBuilder.Build(MachineInputStallView) : MachineInputStallDetailDto`（止まっていなければ null）
+    - `BlockNetworkInfoCache.TryGetMachineInputStall(out MachineInputStallView view)`
+  - wire: `machineInputStall: { reason: "mixedLevel" | "aboveCraftCap", itemId: number }`。止まっていない機械と、機械でないブロックでは省く
+  - testid: `machine-input-stall`（`LackHighlightText` が描くので `data-insufficient="true"`）
+  - i18n キー:
+    - `ui.blockInventory.machineInputStallMixedLevel`: ja「レベルの違う品（{itemName}）が届いて止まっています」
+    - `ui.blockInventory.machineInputStallAboveCraftCap`: ja「製作上限を超えるレベルの品（{itemName}）が届いて止まっています」
+  - EditModeInPlayingTestMod: 石の粉砕機の上限つき継承レシピ `00000000-0000-4000-8000-0000e0de0002`（素材Lv1×1 → 製品Lv1×1、`InheritUpToUnlocked`）
+
+**設計メモ:**
+- **判定の置き場所。** 判定はブロック搬入の唯一の口に置く。旧 `VanillaMachineInputInventory.InsertItemFromBlock` の本体を `MachineInputBlockInflow` へ移し、そこで行う。
+  - 拒否はこの口でしか起きない。ベルトの `BeltMachineReceiver.TryReceive` と、チェスト等の `ConnectingInventoryListPriorityInsertItemService` は、どちらも `VanillaMachineBlockInventoryComponent.InsertItem(stack, context)` を通ってここへ来る。
+  - 記録は「拒否が起きた」という出来事を受けて書く。`Update()` で毎 tick 何かを比べることはしない。
+  - 「今も止まっているか」は、問い合わせたときに次の2つから導く。
+    - 最後の拒否の tick と `GameUpdater.CurrentTick` との差
+    - 選択レシピの充足
+  - 前の値と比べる処理も、止まった状態のフラグを下ろす処理も持たない。
+  - 機械の部品（processor）とブロックインベントリ部品は199行あって足せない。そのため止まった状態は入力インベントリ側が持ち、部品 `MachineInputLevelStallComponent` は読む口だけにする。前例は B6 の `CleanRoomYieldPreviewComponent`（持ち主側の部品が答え、プロトコルは詰め替えるだけ）。
+- **1 tick の窓。** ベルトもチェストも、断られた品を毎 tick 渡し直す。
+  - ベルトは `BeltNormalSegment.AdvanceAndTransfer` が、先頭が出口にある間、毎 tick `Output.TryReceive` を呼ぶ。
+  - チェストは `VanillaChestComponent.Update` が全スロットを毎 tick 押し込む。
+  - そのため、止まっている間は記録が毎 tick 新しくなる。
+  - 窓を0でなく1にするのは、照会が tick のどの時点に来ても同じ答えにするため。`CurrentTick` は `Tick()` の前に進み、ベルトの搬送はブロック更新の後に走る。
+- **消え方。** 止まった状態を消す処理は書かない。原因が消えれば、次のどれかで自然に消える。
+  1. 次の受け渡しが通る。プレイヤーが仕分ける、スロットの別レベルを取り出す、研究で製作上限が上がる、のいずれかで起きる。
+  2. 渡し直す搬入元がいなくなる。ベルトを撤去する、向きを変える、チェストが空になる、のいずれかで起きる。最後の拒否から2 tick 後には窓を外れる。
+  3. 選択レシピの材料がそろう。機械は動けるので表示しない。材料を消費して再び足りなくなっても、届いた品が断られ続けていればまた出る。
+  4. レシピの選択を外す。`TryGetRecipe` が false になる。
+  5. ブロックを撤去する。部品が壊れ、ポーラーは BlockNotFound で止まる。
+  - どの最小構成でも、表示が出たまま残ることはない。空スロット、単品、ベルト無し、手動投入をテストで固定する。
+- **保存しない。** 止まった状態は「今届いている品」から導く一時的な値で、ロード後も搬入元が1 tick で作り直す。セーブ形式は変えない（マイグレーション不要）。
+- **同期方式。** 開いている機械だけ、1秒ごとに要求応答で問い合わせる。A8 の汎用 `BlockInfoPoller` に取得元を1つ足す。
+  - 前例は A6・B6 の表示中ポーリングと、`GetElectricNetworkInfoProtocol`。
+  - 3点セット（イベントパケット＋初期データ＋購読）にも、A7 のブロック状態（変化時だけ通知）にもしない。理由は次の2つ。
+    - 状態が消える瞬間は「拒否が来なくなった」ことで、出来事として起きない。変化時に通知するには、毎 tick 前回値と比べる監視が要る。これは規約が禁じる同値判定にあたる。
+    - 値を使うのは機械UIを開いている間だけである。
+  - 表示の遅れは最大1秒で、これは許容する。
+- **手動の操作は対象外**（確認済み）。プレイヤーの手による操作は、どれも機械が止まる原因にならない。
+  - **移動**（`InventoryItemMoveProtocol` の SwapSlot）: `InventoryItemMoveService.Move` が `IsAllowedToPlace` で上限超えを `RejectedByDestination` にする。この結果は `InventoryItemMoveRejectionReporter` がログと通知に出す。別レベルの移動は入れ替えになる（Lv1 が手元へ戻り Lv2 が入る）ので、止まる状況が生まれない。
+  - **挿入**（InsertSlot）: `InventoryItemInsertService.Insert` が文脈なしの `InsertItem(itemId, count)` を呼ぶ。断られた分はプレイヤーの手元のスロットに残る（通知は無い）。機械が止まるわけではないので、このタスクの対象外にする。
+  - **自動化の扱い**: 文脈なしの `InsertItem` は搬入口を通らない。そのため手動の挿入は記録されない（テストで固定する）。
+- **wire の列挙を分ける。** wire の理由は、サーバーの `MachineInputLevelRefusalReason` を使わず、プロトコル側の `MachineInputStallReasonKind` に写す。B6 と同じく、wire の型をプロトコル層に閉じるためである。写す switch はプロトコルに1か所、webui の文字列に写す switch はクライアントの DTO 組み立てに1か所だけ置く。
+- **振り分け判定は記録しない。** ベルトの振り分け判定（`InsertionCheckFromBlock` → `CanInsertAll`）は拒否を記録しない。これは「どこへ流すか」を探す問いで、届いた品の拒否ではないため。
+- **表示の置き場所。** 欄は部屋欄（A9）・抽選の中身欄（B6）の下、アイテム欄と機械欄の上に置く。赤字は既存の `LackHighlightText` で出し、新しい色や部品は作らない。
+
+- [ ] **Step 1: サーバーのテストを書く**
+
+`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallTestUtil.cs`:
+
+```csharp
+using System;
+using Core.Master;
+using Core.Update;
+using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
+using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+using Tests.Util;
+using UnityEngine;
+using static Tests.CombinedTest.Core.Machine.Upgrade.LevelInheritanceTestHelper;
+
+namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
+{
+    /// <summary>
+    ///     止まった理由のテストの共通処理（継承機械の設置・tick送り・止まった理由の確認）
+    ///     Shared helpers for the stall tests (placing the inheritance machine, advancing ticks, checking the stall)
+    /// </summary>
+    internal static class MachineInputLevelStallTestUtil
+    {
+        public static readonly Vector3Int MachinePos = Vector3Int.zero;
+
+        // サーバーを作り、継承機械を置いて指定レシピを選んだ状態から始める
+        // Create the server, place the inheritance machine and select the given recipe
+        public static (IBlock block, VanillaMachineBlockInventoryComponent inventory) SetUpMachine(Guid recipeGuid)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (block, inventory, _) = PlaceMachine(MachinePos);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, Recipe(recipeGuid));
+            return (block, inventory);
+        }
+
+        public static void RunTicks(int ticks)
+        {
+            for (var i = 0; i < ticks; i++) GameUpdater.UpdateOneTick();
+        }
+
+        public static void AssertStalled(IBlock block, MachineInputLevelRefusalReason reason, ItemId waitingItemId)
+        {
+            Assert.IsTrue(block.GetComponent<MachineInputLevelStallComponent>().TryGetStall(out var stall), "the machine should report a level stall");
+            Assert.AreEqual(reason, stall.Reason);
+            Assert.AreEqual(waitingItemId, stall.WaitingItemId);
+        }
+
+        public static void AssertNotStalled(IBlock block)
+        {
+            Assert.IsFalse(block.GetComponent<MachineInputLevelStallComponent>().TryGetStall(out _), "the machine should not report a level stall");
+        }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallBeltTest.cs`:
+
+```csharp
+using Core.Master;
+using Game.Block.Blocks.Machine.Inventory.Input;
+using Game.Block.Interface;
+using Game.Block.Interface.MachineUpgrade;
+using Game.Context;
+using NUnit.Framework;
+using Tests.Module.TestMod;
+using UnityEngine;
+using static Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall.MachineInputLevelStallTestUtil;
+using static Tests.CombinedTest.Core.Machine.Upgrade.LevelInheritanceTestHelper;
+using static Tests.Module.TestMod.ForUnitTestLevelInheritanceIds;
+using static Tests.Util.BeltWorldTestUtil;
+
+namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
+{
+    /// <summary>
+    ///     ベルトの先頭にレベル違い・製作上限超えの継承元が来ると止まった理由が立ち、原因が消えると消えることを、実際のtick経路で検証する
+    ///     Through the real tick path, verifies the stall appears when a different-level or above-cap source heads the belt and clears once the cause is gone
+    /// </summary>
+    public class MachineInputLevelStallBeltTest
+    {
+        private static readonly Vector3Int BeltPos = new(0, 0, -1);
+        private static readonly Vector3Int ChestPos = new(0, 0, -2);
+
+        // チェストからベルト1マス（約60tick）を渡って機械の入口で待つまでに余裕を持たせたtick数
+        // Ticks with margin for an item to leave the chest, cross one belt cell (about 60 ticks) and wait at the machine inlet
+        private const int DeliveryTicks = 300;
+
+        [Test]
+        public void AboveCraftCapOnEmptySlotStallsUntilCapIsRaisedTest()
+        {
+            var (block, inventory) = SetUpMachine(CappedInheritRecipeGuid);
+            var chest = PlaceFeedLine();
+
+            // 空のスロットへ製作上限(Lv1)を超える Lv2 が1個届くと、上限超えで止まる
+            // A single Lv2 above the craft cap (Lv1) arriving at an empty slot stalls as above-cap
+            FeedOne(chest, Source(2));
+            AssertStalled(block, MachineInputLevelRefusalReason.AboveCraftCap, Source(2));
+
+            // 上限を2へ上げると、待っていた Lv2 が入って理由が消える
+            // Raising the cap to 2 lets the waiting Lv2 in and the stall clears
+            ServerContext.GetService<ILevelInheritanceCraftCapUnlocker>().UnlockCraftCap(CappedTargetBaseGuid, 2);
+            RunTicks(3);
+            Assert.AreEqual(1, CountItem(inventory, 0, InputSlotCount, Source(2)));
+            AssertNotStalled(block);
+        }
+
+        [Test]
+        public void MixedLevelClearsWithinTwoTicksWhenBeltIsRemovedTest()
+        {
+            var (block, inventory) = SetUpMachine(InheritRecipeGuid);
+            var chest = PlaceFeedLine();
+            inventory.SetItem(0, Create(Source(1), 1));
+
+            // Lv1 が1個入ったスロットへ Lv2 が1個だけ届くと、レベル違いで止まる
+            // A single Lv2 arriving at a slot holding one Lv1 stalls as mixed level
+            FeedOne(chest, Source(2));
+            AssertStalled(block, MachineInputLevelRefusalReason.MixedLevel, Source(2));
+
+            // ベルトを撤去すると誰も渡し直さないので、2tick以内に消える（止まったまま残らない）
+            // With the belt removed nobody re-offers, so it clears within two ticks instead of staying forever
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.RemoveBlock(BeltPos, BlockRemoveReason.ManualRemove));
+            RunTicks(2);
+            AssertNotStalled(block);
+        }
+
+        [Test]
+        public void TakingOutLowerLevelLetsWaitingItemInTest()
+        {
+            var (block, inventory) = SetUpMachine(InheritRecipeGuid);
+            var chest = PlaceFeedLine();
+            inventory.SetItem(0, Create(Source(1), 1));
+            FeedOne(chest, Source(2));
+            AssertStalled(block, MachineInputLevelRefusalReason.MixedLevel, Source(2));
+
+            // プレイヤーが Lv1 を取り出すと、待っていた Lv2 が入って理由が消える
+            // When the player takes the Lv1 out, the waiting Lv2 goes in and the stall clears
+            inventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
+            RunTicks(3);
+            Assert.AreEqual(1, CountItem(inventory, 0, InputSlotCount, Source(2)));
+            AssertNotStalled(block);
+        }
+
+        // 機械の手前にベルト1マスとチェストを北向きに並べ、チェストを返す
+        // Line one belt cell and a chest facing north in front of the machine and return the chest
+        private static IBlock PlaceFeedLine()
+        {
+            Place(ForUnitTestModBlockId.BeltConveyorId, BeltPos, BlockDirection.North);
+            return Place(ForUnitTestModBlockId.ChestId, ChestPos, BlockDirection.North);
+        }
+
+        // チェストへ1個入れ、ベルトの先頭が機械の入口で待つまで進める
+        // Put one item in the chest and advance until the belt head waits at the machine inlet
+        private static void FeedOne(IBlock chest, ItemId itemId)
+        {
+            Inventory(chest).SetItem(0, Create(itemId, 1));
+            RunTicks(DeliveryTicks);
+        }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall/MachineInputLevelStallMinimalTest.cs`:
+
+```csharp
+using Game.Block.Blocks.Machine.Inventory.Input;
+using Game.Block.Interface.Component;
+using Game.Context;
+using NUnit.Framework;
+using Tests.Module.TestMod;
+using UnityEngine;
+using static Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall.MachineInputLevelStallTestUtil;
+using static Tests.CombinedTest.Core.Machine.Upgrade.LevelInheritanceTestHelper;
+using static Tests.Module.TestMod.ForUnitTestLevelInheritanceIds;
+
+namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
+{
+    /// <summary>
+    ///     ベルトの無い最小構成で、止まった理由が出たまま残らないことと、出してはいけない場面で出ないことを検証する
+    ///     In minimal setups without a belt, verifies the stall never stays on and never appears where it must not
+    /// </summary>
+    public class MachineInputLevelStallMinimalTest
+    {
+        [Test]
+        public void SingleBlockInsertWithoutRetryClearsWithinTwoTicksTest()
+        {
+            var (block, inventory) = SetUpMachine(InheritRecipeGuid);
+            inventory.SetItem(0, Create(Source(1), 1));
+
+            // ブロック搬入の口で1回だけ断られると、その時点では止まった理由が立つ
+            // A single refusal at the block-inflow inlet reports the stall at that moment
+            Assert.AreEqual(1, inventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty).Count);
+            AssertStalled(block, MachineInputLevelRefusalReason.MixedLevel, Source(2));
+
+            // 渡し直す搬入元が無いので、2tick以内に消える
+            // With no source re-offering, it clears within two ticks
+            RunTicks(2);
+            AssertNotStalled(block);
+        }
+
+        [Test]
+        public void ManualInsertNeverStallsTest()
+        {
+            var (block, inventory) = SetUpMachine(CappedInheritRecipeGuid);
+
+            // プレイヤーの挿入（文脈なしの InsertItem。InventoryItemInsertService と同じ口）は断られても理由を立てない
+            // A player insert (context-less InsertItem, the same entry as InventoryItemInsertService) never reports a stall even when refused
+            Assert.AreEqual(1, inventory.InsertItem(Create(Source(2), 1)).Count);
+            AssertNotStalled(block);
+        }
+
+        [Test]
+        public void SatisfiedRecipeDoesNotStallTest()
+        {
+            var (block, inventory) = SetUpMachine(InheritRecipeGuid);
+            inventory.SetItem(0, Create(Source(1), 2));
+            inventory.SetItem(1, CreateTest1(1));
+
+            // 材料がそろっていれば機械は動けるので、別レベルが断られても止まった扱いにしない
+            // With the recipe satisfied the machine can run, so a refused other level does not count as a stall
+            Assert.AreEqual(1, inventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty).Count);
+            AssertNotStalled(block);
+        }
+
+        [Test]
+        public void NonLevelRefusalDoesNotStallTest()
+        {
+            var (block, inventory) = SetUpMachine(InheritRecipeGuid);
+
+            // 継承元でない品（束縛外）が断られても止まった理由にしない（従来の差し戻し）
+            // A refused non-source item (outside the binding) is not a stall reason (the usual bounce)
+            Assert.AreEqual(1, inventory.InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId4, 1), InsertItemContext.Empty).Count);
+            AssertNotStalled(block);
+
+            // レシピ未選択の機械は何も受けず、止まった理由も立てない
+            // A machine without a selected recipe accepts nothing and reports no stall
+            var (unselectedBlock, unselectedInventory, _) = PlaceMachine(new Vector3Int(5, 0, 0));
+            Assert.AreEqual(1, unselectedInventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty).Count);
+            AssertNotStalled(unselectedBlock);
+        }
+    }
+}
+```
+
+`CountItem` は `IOpenableInventory` を取り、`VanillaMachineBlockInventoryComponent` を渡せる（C3 のテストと同じ使い方）。
+
+- [ ] **Step 2: コンパイルエラーを確かめる**
+
+Run: `uloop compile --project-path ./moorestech_client`
+Expected: `MachineInputLevelStallComponent`・`MachineInputLevelRefusalReason` が見つからない CS0246 が出る。
+
+- [ ] **Step 3: 止まった状態の型と、ブロック搬入の口を書く**
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputLevelStall.cs`:
+
+```csharp
+using Core.Master;
+
+namespace Game.Block.Blocks.Machine.Inventory.Input
+{
+    // 継承元スロットが品をレベルの都合で受け取れなかった理由
+    // Why the inheritance source slot could not take an item because of its level
+    public enum MachineInputLevelRefusalReason
+    {
+        // スロットに別レベルの継承元が入っている
+        // The slot holds a source of another level
+        MixedLevel,
+
+        // 製作上限を超えるレベル
+        // A level above the craft cap
+        AboveCraftCap,
+    }
+
+    /// <summary>
+    ///     ブロックからの搬入が継承元のレベルで止まっている状態（理由と、届いて待っている品）
+    ///     Inflow from blocks stalled on the inheritance source level (the reason and the item that arrived and waits)
+    /// </summary>
+    public readonly struct MachineInputLevelStall
+    {
+        public MachineInputLevelRefusalReason Reason { get; }
+        public ItemId WaitingItemId { get; }
+
+        public MachineInputLevelStall(MachineInputLevelRefusalReason reason, ItemId waitingItemId)
+        {
+            Reason = reason;
+            WaitingItemId = waitingItemId;
+        }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputBlockInflow.cs`:
+
+```csharp
+using System.Collections.Generic;
+using Core.Inventory;
+using Core.Item.Interface;
+using Core.Master;
+using Core.Update;
+using Game.Block.Interface.MachineUpgrade;
+using Game.Fluid;
+
+namespace Game.Block.Blocks.Machine.Inventory.Input
+{
+    /// <summary>
+    ///     ブロック（ベルト・チェスト等）から機械への搬入口。自動搬入上限で積み、継承元のレベルで断った直近の1件を覚える
+    ///     The inlet for inflow from blocks (belts, chests, ...); stacks under the auto-insert cap and remembers the latest refusal on the inheritance source level
+    /// </summary>
+    internal class MachineInputBlockInflow
+    {
+        // ベルトとチェストは断られた品を毎tick渡し直す。1tick前までの拒否を「今も届いて待っている」とみなし、照会がtickのどこで来ても同じ答えにする
+        // Belts and chests re-offer a refused item every tick; a refusal up to one tick old counts as still waiting, whatever point of the tick the query comes at
+        private const ulong RetryWindowTicks = 1;
+
+        private readonly BlockId _blockId;
+        private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly IReadOnlyList<FluidContainer> _fluidContainers;
+        private readonly MachineInputSlotBinding _slotBinding;
+
+        // 直近の拒否。上書きするだけで、消すのは時間切れ（RetryWindowTicks）に任せる
+        // The latest refusal; it is only overwritten and goes stale through RetryWindowTicks instead of being cleared
+        private MachineInputLevelStall _latestRefusal;
+        private ulong? _latestRefusalTick;
+
+        public MachineInputBlockInflow(BlockId blockId, OpenableInventoryItemDataStoreService itemDataStoreService, IReadOnlyList<FluidContainer> fluidContainers, MachineInputSlotBinding slotBinding)
+        {
+            _blockId = blockId;
+            _itemDataStoreService = itemDataStoreService;
+            _fluidContainers = fluidContainers;
+            _slotBinding = slotBinding;
+        }
+
+        public IItemStack Insert(IItemStack itemStack)
+        {
+            // 自動搬入上限で積む（旧 VanillaMachineInputInventory.InsertItemFromBlock の本体）
+            // Stack under the auto-insert cap (the former body of VanillaMachineInputInventory.InsertItemFromBlock)
+            var (slots, touchedSlots, remainders) = VanillaMachineInputSimulationUtil.SimulateAutoInsert(_itemDataStoreService.InventoryItems, new List<IItemStack> { itemStack }, _slotBinding);
+            foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
+
+            // 継承元のレベルで断った残りだけを、理由と時刻つきで覚える
+            // Remember only a remainder refused on the source level, with its reason and tick
+            var remainder = remainders[0];
+            // silent-ok: 束縛外の品・同じレベルの満杯は従来どおり残りを返すだけ / 品は搬入元（ベルト・チェスト）に残り、プレイヤーが見て気づく
+            if (remainder.Count == 0 || !TryClassifyLevelRefusal(remainder, out var reason)) return remainder;
+            _latestRefusal = new MachineInputLevelStall(reason, remainder.Id);
+            _latestRefusalTick = GameUpdater.CurrentTick;
+            return remainder;
+        }
+
+        // ベルトの振り分け判定。実挿入と同じ上限で全量入るかだけを見て、拒否は覚えない（届いた品ではなく、流し先を探す問いのため）
+        // Belt routing check; only whether everything fits under the real insert's cap, without remembering refusals (it asks where to route, not about an arrived item)
+        public bool CanInsertAll(List<IItemStack> itemStacks)
+        {
+            foreach (var remainder in VanillaMachineInputSimulationUtil.SimulateAutoInsert(_itemDataStoreService.InventoryItems, itemStacks, _slotBinding).remainders)
+            {
+                if (remainder.Count != 0) return false;
+            }
+            return true;
+        }
+
+        // 直近の拒否が窓の内にあり、選択レシピの材料がそろっていないときだけ止まっている
+        // Stalled only while the latest refusal is inside the window and the selected recipe is unsatisfied
+        public bool TryGetStall(out MachineInputLevelStall stall)
+        {
+            stall = _latestRefusal;
+            if (!_latestRefusalTick.HasValue || RetryWindowTicks < GameUpdater.CurrentTick - _latestRefusalTick.Value) return false;
+            if (!_slotBinding.TryGetRecipe(out var recipe)) return false;
+            return !recipe.RecipeConfirmation(_blockId, _itemDataStoreService.InventoryItems, _fluidContainers);
+        }
+
+        // 継承元の変種が、製作上限超えか、別レベルの入ったスロットのせいで断られたかを分ける
+        // Tell whether a source variant was refused for being above the craft cap or for a slot holding another level
+        private bool TryClassifyLevelRefusal(IItemStack remainder, out MachineInputLevelRefusalReason reason)
+        {
+            reason = default;
+            if (!_slotBinding.TryGetRecipe(out var recipe) || !MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape)) return false;
+            if (!shape.ResolveSourceLevel(remainder.Id).HasValue) return false;
+
+            // 上限超えは配置判定と同じ口で見分ける
+            // Tell above-cap apart through the same entry as the placement check
+            var sourceIndex = shape.SourceInputIndex;
+            if (_slotBinding.CheckPlacement(sourceIndex, remainder) == MachineSlotPlacementCheck.LevelAboveCraftCap)
+            {
+                reason = MachineInputLevelRefusalReason.AboveCraftCap;
+                return true;
+            }
+
+            // 別レベルが入っていて積めなかったときだけレベル違い。同じレベルの満杯は普通の詰まり
+            // Mixed level only when another level occupies the slot; a full slot of the same level is an ordinary backup
+            var slotItemId = _itemDataStoreService.InventoryItems[sourceIndex].Id;
+            reason = MachineInputLevelRefusalReason.MixedLevel;
+            return slotItemId != ItemMaster.EmptyItemId && slotItemId != remainder.Id;
+        }
+    }
+}
+```
+
+`MachineInputSlotBinding.cs`（C11 の版）の `CheckPlacement` の前に足す:
+
+```csharp
+        // 選択済みならそのレシピを返す。未選択は false
+        // Returns the selected recipe; false when unselected
+        public bool TryGetRecipe(out MachineRecipeMasterElement recipe) => (recipe = _recipe) != null;
+
+```
+
+`VanillaMachineInputInventory.cs`（C7 の版）を次のとおり変える:
+- `_slotBinding` のフィールド（C7 で `private readonly MachineInputSlotBinding _slotBinding;`）の次に足す:
+
+```csharp
+
+        // ブロック搬入の口。自動搬入上限と、継承元のレベルで断った記録を持つ
+        // The block-inflow inlet holding the auto-insert cap and the source-level refusal record
+        private readonly MachineInputBlockInflow _blockInflow;
+```
+
+- コンストラクタの末尾（`_fluidContainers` を満たす for の閉じ括弧の次）に1行足す:
+
+```csharp
+            _blockInflow = new MachineInputBlockInflow(_blockId, _itemDataStoreService, _fluidContainers, _slotBinding);
+```
+
+- `InsertItemFromBlock` と `InsertionCheckFromBlock`（コメント2行から2つ目の閉じ括弧まで。現行 115〜131 行で、C3〜C11 は本体を変えない）を次の5行で置き換える。呼び出し側の `VanillaMachineBlockInventoryComponent`（199行）は変えない。
+
+```csharp
+        // ブロック搬入は、自動搬入上限で積み継承元のレベルの拒否を覚える搬入口を通す
+        // Inflow from blocks goes through the inlet that stacks under the auto-insert cap and remembers source-level refusals
+        internal IItemStack InsertItemFromBlock(IItemStack itemStack) => _blockInflow.Insert(itemStack);
+        internal bool InsertionCheckFromBlock(List<IItemStack> itemStacks) => _blockInflow.CanInsertAll(itemStacks);
+        public bool TryGetLevelStall(out MachineInputLevelStall stall) => _blockInflow.TryGetStall(out stall);
+```
+
+Run: `wc -l moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/VanillaMachineInputInventory.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputSlotBinding.cs`
+Expected: どちらも200未満（約192行・約148行）
+
+- [ ] **Step 4: 止まった理由を答える部品を書き、3種の機械の template で組む**
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputLevelStallComponent.cs`:
+
+```csharp
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+
+namespace Game.Block.Blocks.Machine.Inventory.Input
+{
+    /// <summary>
+    ///     機械UIの停止理由「レベルの違う品が届いて止まっている」を答える部品。状態は入力インベントリの搬入口が持ち、ここは読むだけ
+    ///     Answers the machine UI's halt reason "an item of another level arrived and stalled"; the input inventory's inlet holds the state and this only reads it
+    /// </summary>
+    public class MachineInputLevelStallComponent : IBlockComponent
+    {
+        private readonly VanillaMachineInputInventory _inputInventory;
+
+        internal MachineInputLevelStallComponent(VanillaMachineInputInventory inputInventory)
+        {
+            _inputInventory = inputInventory;
+        }
+
+        public bool TryGetStall(out MachineInputLevelStall stall)
+        {
+            BlockException.CheckDestroy(this);
+            return _inputInventory.TryGetLevelStall(out stall);
+        }
+
+        public bool IsDestroy { get; private set; }
+
+        public void Destroy()
+        {
+            IsDestroy = true;
+        }
+    }
+}
+```
+
+3つの template で、components 列の `new MachineRecipeBlueprintSettingsComponent(processor),` の次に1行足す。`input` は `BlockTemplateUtil.GetMachineIOInventory` が返す入力インベントリ。
+
+```csharp
+                new MachineInputLevelStallComponent(input),
+```
+
+- `Machine/VanillaMachineTemplate.cs`: `New` と `Load` の2か所。using に `using Game.Block.Blocks.Machine.Inventory.Input;` を足す（`using Game.Block.Blocks.Machine.Inventory;` の次）
+- `Machine/VanillaGearMachineTemplate.cs`: components 列の1か所。using も同じく足す
+- `CleanRoom/VanillaCleanRoomMachineTemplate.cs`（A7・B2 後）: components 列の1か所。A7 の `operabilityState,` は末尾のまま。using も同じく足す
+
+- [ ] **Step 5: コンパイルしてサーバーのテストを通す**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineInputLevelStall|LevelInheritanceCraftCapTest|LevelInheritanceRecipeTest|LevelFamilySubstituteMachineTest|MachineAutoInsertCapTest|MachineSlotBindingTest|InsertItemContextTest|BeltConveyorTest|CleanRoomMachine"`
+Expected: ErrorCount 0 / 全 PASS（新しい7件〈ベルト3・最小構成4〉と、ブロック搬入の口を移したことの回帰）
+
+- [ ] **Step 6: プロトコルのテストを書く**
+
+`moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall/GetMachineInputStallProtocolTest.cs`:
+
+```csharp
+using System.Text.RegularExpressions;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using MessagePack;
+using NUnit.Framework;
+using Server.Boot;
+using Server.Protocol;
+using Server.Protocol.PacketResponse;
+using Tests.Module.TestMod;
+using Tests.Util;
+using UnityEngine;
+using UnityEngine.TestTools;
+using static Tests.CombinedTest.Core.Machine.Upgrade.LevelInheritanceTestHelper;
+using static Tests.Module.TestMod.ForUnitTestLevelInheritanceIds;
+using static Tests.Util.BeltWorldTestUtil;
+
+namespace Tests.CombinedTest.Server.PacketTest.MachineInputStall
+{
+    public class GetMachineInputStallProtocolTest
+    {
+        [Test]
+        public void StalledMachineReturnsReasonAndWaitingItemTest()
+        {
+            var packet = CreatePacket();
+            var (block, inventory, _) = PlaceMachine(Vector3Int.zero);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, Recipe(InheritRecipeGuid));
+            inventory.SetItem(0, Create(Source(1), 1));
+
+            // Lv1 入りのスロットへブロック搬入で Lv2 が断られると、理由と待っている品が返る
+            // When a block inflow of Lv2 is refused by a slot holding Lv1, the reason and the waiting item come back
+            inventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty);
+            var view = ReadView<MachineInputStalledView>(Invoke(packet, block.BlockInstanceId));
+            Assert.AreEqual(MachineInputStallReasonKind.MixedLevel, view.Stall.Reason);
+            Assert.AreEqual(Source(2).AsPrimitive(), view.Stall.WaitingItemId);
+        }
+
+        [Test]
+        public void IdleMachineReturnsNotStalledTest()
+        {
+            var packet = CreatePacket();
+            var (block, _, _) = PlaceMachine(Vector3Int.zero);
+
+            // 何も届いていない機械は止まっていない
+            // A machine nothing has arrived at is not stalled
+            ReadView<MachineInputNotStalledView>(Invoke(packet, block.BlockInstanceId));
+        }
+
+        [Test]
+        public void NonMachineBlockReturnsNotStalledWithWarningTest()
+        {
+            var packet = CreatePacket();
+            var chest = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(3, 0, 0), BlockDirection.North);
+
+            // クライアントは機械にだけ問い合わせる。別種のブロックは食い違いとして警告し、止まっていない扱いで返す
+            // The client only asks machines; any other block is a mismatch, warned about and answered as not stalled
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetMachineInputStall\] block .* has no MachineInputLevelStallComponent"));
+            ReadView<MachineInputNotStalledView>(Invoke(packet, chest.BlockInstanceId));
+        }
+
+        [Test]
+        public void UnknownBlockReturnsBlockNotFoundTest()
+        {
+            var packet = CreatePacket();
+
+            // 存在しないブロックIDは BlockNotFound を返し、ビューを持たない
+            // A missing block ID returns BlockNotFound, which has no view
+            var response = Invoke(packet, new BlockInstanceId(999999));
+            Assert.AreEqual(MachineInputStallResponseKind.BlockNotFound, response.Kind);
+            Assert.IsFalse(response.TryGetView(out _));
+        }
+
+        [Test]
+        public void MalformedResponsesAreUnreadableWithWarningTest()
+        {
+            // 判別子が Stalled なのに中身が欠けた応答は、警告を出して読めない扱いにする
+            // A Stalled response missing its details warns and is unreadable
+            var missing = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.MixedLevel, 1);
+            missing.Stall = null;
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetMachineInputStall\] Stalled response is unreadable"));
+            Assert.IsFalse(missing.TryGetView(out _));
+
+            // 未知の理由（版違いの wire）も wire を通して同じ扱い
+            // An unknown reason (a mismatched wire) is treated the same through the wire
+            var unknownReason = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.MixedLevel, 1);
+            unknownReason.Stall.Reason = (MachineInputStallReasonKind)99;
+            var received = MessagePackSerializer.Deserialize<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack>(MessagePackSerializer.Serialize(unknownReason));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetMachineInputStall\] Stalled response is unreadable"));
+            Assert.IsFalse(received.TryGetView(out _));
+        }
+
+        private static PacketResponseCreator CreatePacket()
+        {
+            var (packet, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            return packet;
+        }
+
+        private static GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack Invoke(PacketResponseCreator packet, BlockInstanceId id)
+        {
+            var request = new GetMachineInputStallProtocol.RequestMachineInputStallMessagePack(id);
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
+            return MessagePackSerializer.Deserialize<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack>(responseBytes[0]);
+        }
+
+        // 応答を種別ごとのビューで読み、期待した型であることを確かめる
+        // Read the response as its per-kind view and check it is the expected one
+        private static TView ReadView<TView>(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack response) where TView : MachineInputStallView
+        {
+            Assert.IsTrue(response.TryGetView(out var view), $"kind={response.Kind}");
+            Assert.IsInstanceOf<TView>(view);
+            return (TView)view;
+        }
+    }
+}
+```
+
+Run: `uloop compile --project-path ./moorestech_client`
+Expected: `GetMachineInputStallProtocol` が見つからない CS0246 が出る。
+
+- [ ] **Step 7: プロトコルを書き、登録する**
+
+`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/MachineInputStallMessagePack.cs`:
+
+```csharp
+using System;
+using MessagePack;
+
+namespace Server.Protocol.PacketResponse
+{
+    // 止まった機械の中身（理由と、届いて待っている品）
+    // Details of a stalled machine (the reason and the item that arrived and waits)
+    [MessagePackObject]
+    public class MachineInputStallMessagePack
+    {
+        [Key(0)] public MachineInputStallReasonKind Reason { get; set; }
+        [Key(1)] public int WaitingItemId { get; set; }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public MachineInputStallMessagePack() { }
+
+        public MachineInputStallMessagePack(MachineInputStallReasonKind reason, int waitingItemId)
+        {
+            Reason = reason;
+            WaitingItemId = waitingItemId;
+        }
+    }
+
+    // wire の理由。サーバーの MachineInputLevelRefusalReason はプロトコルの switch 1か所でここへ写す
+    // The wire reason; the server's MachineInputLevelRefusalReason maps onto it in a single switch in the protocol
+    public enum MachineInputStallReasonKind
+    {
+        MixedLevel,
+        AboveCraftCap,
+    }
+
+    // 応答の判別子
+    // The response discriminator
+    public enum MachineInputStallResponseKind
+    {
+        BlockNotFound,
+        NotStalled,
+        Stalled,
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/MachineInputStallView.cs`:
+
+```csharp
+namespace Server.Protocol.PacketResponse
+{
+    /// <summary>
+    ///     止まった理由の応答を種別ごとの型で読む口。BlockNotFound はこの型に入らず、取得側（ポーラー）が扱う
+    ///     Per-kind read view of the stall response; BlockNotFound is not part of it and is handled by the fetcher (poller)
+    /// </summary>
+    public abstract class MachineInputStallView
+    {
+        // 種別はこのファイルの型に閉じる
+        // The kinds are closed to the types in this file
+        private protected MachineInputStallView()
+        {
+        }
+    }
+
+    public sealed class MachineInputNotStalledView : MachineInputStallView
+    {
+        public static readonly MachineInputNotStalledView Instance = new();
+
+        private MachineInputNotStalledView()
+        {
+        }
+    }
+
+    public sealed class MachineInputStalledView : MachineInputStallView
+    {
+        public MachineInputStallMessagePack Stall { get; }
+
+        public MachineInputStalledView(MachineInputStallMessagePack stall)
+        {
+            Stall = stall;
+        }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MachineInputStall/GetMachineInputStallProtocol.cs`:
+
+```csharp
+using System;
+using Game.Block.Blocks.Machine.Inventory.Input;
+using Game.Block.Interface;
+using Game.Block.Interface.Extension;
+using Game.Context;
+using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
+using UnityEngine;
+
+namespace Server.Protocol.PacketResponse
+{
+    // 機械の搬入が継承元のレベルで止まっているか（理由と待っている品）を返すプロトコル
+    // Protocol returning whether a machine's inflow is stalled on the inheritance source level (reason and waiting item)
+    public class GetMachineInputStallProtocol : IPacketResponse
+    {
+        public const string ProtocolTag = "va:getMachineInputStall";
+
+        public GetMachineInputStallProtocol(ServiceProvider serviceProvider)
+        {
+        }
+
+        public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
+        {
+            var request = MessagePackSerializer.Deserialize<RequestMachineInputStallMessagePack>(payload);
+
+            // 照会の間にブロックが壊れていれば BlockNotFound を返し、クライアントのポーラーが警告を出す
+            // If the block was removed before the query, return BlockNotFound so the client's poller logs a warning
+            var block = ServerContext.WorldBlockDatastore.GetBlock(request.BlockInstanceId);
+            if (block == null) return ResponseMachineInputStallMessagePack.CreateBlockNotFound();
+
+            // クライアントは機械にだけ問い合わせる。別種のブロックは食い違いとして警告する
+            // The client only asks machines; any other block is a mismatch and gets a warning
+            if (!block.TryGetComponent<MachineInputLevelStallComponent>(out var stallComponent))
+            {
+                Debug.LogWarning($"[GetMachineInputStall] block {request.BlockInstanceId} has no MachineInputLevelStallComponent; returning NotStalled");
+                return ResponseMachineInputStallMessagePack.CreateNotStalled();
+            }
+            if (!stallComponent.TryGetStall(out var stall)) return ResponseMachineInputStallMessagePack.CreateNotStalled();
+            return ResponseMachineInputStallMessagePack.CreateStalled(ToWireReason(stall.Reason), stall.WaitingItemId.AsPrimitive());
+        }
+
+        // サーバーの理由を wire の理由へ写す（クライアントは Game.Block の型を wire で受けない）
+        // Map the server reason onto the wire reason, so the client never receives Game.Block types on the wire
+        private static MachineInputStallReasonKind ToWireReason(MachineInputLevelRefusalReason reason)
+        {
+            return reason switch
+            {
+                MachineInputLevelRefusalReason.MixedLevel => MachineInputStallReasonKind.MixedLevel,
+                MachineInputLevelRefusalReason.AboveCraftCap => MachineInputStallReasonKind.AboveCraftCap,
+                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未対応の停止理由 / Unsupported stall reason"),
+            };
+        }
+
+        #region MessagePack
+
+        [MessagePackObject]
+        public class RequestMachineInputStallMessagePack : ProtocolMessagePackBase
+        {
+            [Key(2)] public BlockInstanceId BlockInstanceId { get; set; }
+
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public RequestMachineInputStallMessagePack() { }
+
+            public RequestMachineInputStallMessagePack(BlockInstanceId blockInstanceId)
+            {
+                Tag = ProtocolTag;
+                BlockInstanceId = blockInstanceId;
+            }
+        }
+
+        [MessagePackObject]
+        public class ResponseMachineInputStallMessagePack : ProtocolMessagePackBase
+        {
+            // wire は判別子と、Stalled のときだけ書かれる中身。組み立ては下の factory、読み出しは TryGetView だけ
+            // The wire has a discriminator plus details written only when Stalled; build only via the factories below and read only via TryGetView
+            [Key(2)] public MachineInputStallResponseKind Kind { get; set; }
+            [Key(3)] public MachineInputStallMessagePack Stall { get; set; }
+
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public ResponseMachineInputStallMessagePack() { }
+
+            private ResponseMachineInputStallMessagePack(MachineInputStallResponseKind kind)
+            {
+                Tag = ProtocolTag;
+                Kind = kind;
+            }
+
+            public static ResponseMachineInputStallMessagePack CreateBlockNotFound()
+            {
+                return new ResponseMachineInputStallMessagePack(MachineInputStallResponseKind.BlockNotFound);
+            }
+
+            public static ResponseMachineInputStallMessagePack CreateNotStalled()
+            {
+                return new ResponseMachineInputStallMessagePack(MachineInputStallResponseKind.NotStalled);
+            }
+
+            public static ResponseMachineInputStallMessagePack CreateStalled(MachineInputStallReasonKind reason, int waitingItemId)
+            {
+                return new ResponseMachineInputStallMessagePack(MachineInputStallResponseKind.Stalled) { Stall = new MachineInputStallMessagePack(reason, waitingItemId) };
+            }
+
+            // BlockNotFound と、中身の欠けた・理由の読めない Stalled は false。判別子の読み分けはここだけで行う
+            // False for BlockNotFound and for a Stalled response with missing details or an unknown reason; the only place that branches on the discriminator
+            public bool TryGetView(out MachineInputStallView view)
+            {
+                switch (Kind)
+                {
+                    case MachineInputStallResponseKind.NotStalled:
+                        view = MachineInputNotStalledView.Instance;
+                        return true;
+                    case MachineInputStallResponseKind.Stalled:
+                        if (Stall == null || !Enum.IsDefined(typeof(MachineInputStallReasonKind), Stall.Reason)) return WarnUnreadable(out view);
+                        view = new MachineInputStalledView(Stall);
+                        return true;
+                    case MachineInputStallResponseKind.BlockNotFound:
+                        view = default;
+                        return false;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "未対応の停止理由の応答種別 / Unsupported stall response kind");
+                }
+
+                #region Internal
+
+                // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは値を捨てて止める）
+                // A mismatch in wire data from outside, so warn instead of throwing and treat it as unreadable (the poller drops the value and stops)
+                bool WarnUnreadable(out MachineInputStallView unreadableView)
+                {
+                    Debug.LogWarning($"[GetMachineInputStall] Stalled response is unreadable (missing details or unknown reason {Stall?.Reason}); treating it as unreadable");
+                    unreadableView = default;
+                    return false;
+                }
+
+                #endregion
+            }
+        }
+
+        #endregion
+    }
+}
+```
+
+`PacketResponseCreator.cs` の `_packetResponseDictionary.Add(MachineRecipeSelectionProtocol.ProtocolTag, new MachineRecipeSelectionProtocol(serviceProvider));` の直後に足す:
+
+```csharp
+            _packetResponseDictionary.Add(GetMachineInputStallProtocol.ProtocolTag, new GetMachineInputStallProtocol(serviceProvider));
+```
+
+`WorldQueryApi.cs` の `GetGearNetworkInfo` メソッドの直後に足す:
+
+```csharp
+
+        // 機械の搬入が継承元のレベルで止まっているかを取得する
+        // Fetch whether a machine's inflow is stalled on the inheritance source level
+        public async UniTask<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack> GetMachineInputStall(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetMachineInputStallProtocol.RequestMachineInputStallMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack>(request, ct);
+        }
+```
+
+- [ ] **Step 8: コンパイルしてプロトコルのテストを通し、サーバー側をコミットする**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "MachineInputLevelStall|GetMachineInputStallProtocolTest"`
+Expected: ErrorCount 0 / 12件 PASS（サーバー7件・プロトコル5件）
+
+```bash
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaGearMachineTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs moorestech_server/Assets/Scripts/Server.Protocol moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/InputLevelStall.meta moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineInputStall.meta
+git commit -m "feat(machine): 継承元のレベルで止まった機械の理由を返すプロトコル va:getMachineInputStall を追加する"
+```
+
+Unity が生成した `.meta`（新しいディレクトリとファイル）も同じコミットに含める。
+
+- [ ] **Step 9: wire fixture と C# の契約テストを書く**
+
+`moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_machine_input_stall.json`:
+
+```json
+{
+  "open": true,
+  "source": "block",
+  "blockType": "GearMachine",
+  "identifier": "(0, 0, 0)",
+  "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "machineInputStall": { "reason": "aboveCraftCap", "itemId": 12 }
+}
+```
+
+機械欄（`machine`）は schema 上 optional なので、止まった理由の契約だけを固定するために省く（B6 の fixture と同じ）。
+
+`moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractMachineInputStallTest.cs`:
+
+```csharp
+using System.Collections.Generic;
+using System.IO;
+using Client.WebUiHost.Common;
+using Client.WebUiHost.Game.Topics;
+using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using Server.Protocol.PacketResponse;
+using UnityEngine;
+
+namespace Client.Tests.WebUi.BlockDetail
+{
+    /// <summary>
+    ///     止まった理由の応答→ビュー→DTO の詰め替えと、WireFixtures との一致を固定する
+    ///     Pins the stall response to view to DTO conversion and its equality with WireFixtures
+    /// </summary>
+    public class WireContractMachineInputStallTest
+    {
+        [Test]
+        public void AboveCraftCapMatchesFixtureTest()
+        {
+            // 上限超えは理由と待っている品のIDだけを載せる
+            // Above-cap carries only the reason and the waiting item ID
+            var view = ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.AboveCraftCap, 12));
+            AssertMatchesFixture(CreateMachineDto(MachineInputStallDetailDtoBuilder.Build(view)), "block_inventory_machine_input_stall.json");
+        }
+
+        [Test]
+        public void MixedLevelMapsToWireNameTest()
+        {
+            // レベル違いは "mixedLevel" に写す
+            // Mixed level maps to "mixedLevel"
+            var dto = MachineInputStallDetailDtoBuilder.Build(ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.MixedLevel, 7)));
+            Assert.AreEqual("mixedLevel", dto.Reason);
+            Assert.AreEqual(7, dto.ItemId);
+        }
+
+        [Test]
+        public void NotStalledBuildsNoSectionTest()
+        {
+            // 止まっていない機械では欄を出さない
+            // No section for a machine that is not stalled
+            Assert.IsNull(MachineInputStallDetailDtoBuilder.Build(ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateNotStalled())));
+        }
+
+        [Test]
+        public void BlockNotFoundHasNoViewTest()
+        {
+            // 消えたブロックはビューを持たず、ポーラーが消失として扱う
+            // A vanished block has no view, and the poller treats it as vanished
+            Assert.IsFalse(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateBlockNotFound().TryGetView(out _));
+        }
+
+        private static MachineInputStallView ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack response)
+        {
+            Assert.IsTrue(response.TryGetView(out var view), $"kind={response.Kind}");
+            return view;
+        }
+
+        private static BlockInventoryDto CreateMachineDto(MachineInputStallDetailDto machineInputStall)
+        {
+            return new BlockInventoryDto
+            {
+                Open = true,
+                Source = "block",
+                BlockType = "GearMachine",
+                Identifier = "(0, 0, 0)",
+                BlockGuid = "a334d703-9442-4910-a8f8-b914df50df4e",
+                ItemSlots = new List<BlockItemSlotDto>(),
+                FluidSlots = new List<BlockFluidSlotDto>(),
+                MachineInputStall = machineInputStall,
+            };
+        }
+
+        private static void AssertMatchesFixture(object dto, string fixtureName)
+        {
+            var actual = JToken.Parse(WebUiJson.Serialize(dto));
+            var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
+            var expected = JToken.Parse(File.ReadAllText(path));
+            Assert.IsTrue(JToken.DeepEquals(expected, actual), $"fixture mismatch: {fixtureName}\nexpected: {expected}\nactual: {actual}");
+        }
+    }
+}
+```
+
+Run: `uloop compile --project-path ./moorestech_client`
+Expected: `MachineInputStallDetailDtoBuilder` が見つからない CS0246 が出る。
+
+- [ ] **Step 10: ポーリングの口・DTO・組み立てを書き、キャッシュに足す**
+
+`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/MachineInput/MachineInputStallPollSource.cs`:
+
+```csharp
+using System;
+using System.Threading;
+using Client.Game.InGame.BlockInfoPolling;
+using Client.Game.InGame.Context;
+using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using Server.Protocol.PacketResponse;
+
+namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
+{
+    /// <summary>
+    ///     止まった理由の照会の1回分の問い合わせと、BlockNotFound を除いた種別ごとの型への読み替え
+    ///     One round of the stall query and its conversion into the per-kind view, excluding BlockNotFound
+    /// </summary>
+    public class MachineInputStallPollSource : IBlockInfoPollSource<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView>
+    {
+        // 電力網・部屋の照会と同じ1秒。止まった理由は表示中だけ要る
+        // The same 1 second as the electric and room queries; the stall is needed only while displayed
+        private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
+
+        public static BlockInfoPoller<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView> CreatePoller()
+        {
+            return new BlockInfoPoller<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView>(new MachineInputStallPollSource(), "GetMachineInputStall", PollInterval);
+        }
+
+        public UniTask<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack> Request(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            return ClientContext.VanillaApi.Response.World.GetMachineInputStall(blockInstanceId, ct);
+        }
+
+        public bool TryGetSnapshot(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack response, out MachineInputStallView snapshot)
+        {
+            return response.TryGetView(out snapshot);
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/MachineInput/MachineInputStallDetailDtos.cs`:
+
+```csharp
+namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
+{
+    /// <summary>
+    ///     機械の搬入が継承元のレベルで止まっている理由と、届いて待っている品
+    ///     Why a machine's inflow is stalled on the inheritance source level, and the item that arrived and waits
+    /// </summary>
+    public class MachineInputStallDetailDto
+    {
+        // mixedLevel / aboveCraftCap
+        public string Reason;
+        public int ItemId;
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/MachineInput/MachineInputStallDetailDtoBuilder.cs`:
+
+```csharp
+using System;
+using Server.Protocol.PacketResponse;
+
+namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
+{
+    /// <summary>
+    ///     止まった理由のビューから、webui に送る欄を組み立てる
+    ///     Builds the webui section from the stall view
+    /// </summary>
+    public static class MachineInputStallDetailDtoBuilder
+    {
+        public static void Apply(BlockInventoryDto dto, BlockNetworkInfoCache cache)
+        {
+            // silent-ok: 未取得・消失・読めない応答の間は欄を出さない / 消失・読めない応答はポーラーが警告を1回出して問い合わせを止め（開き直すと再開）、未取得は次の1秒で欄が出る
+            if (!cache.TryGetMachineInputStall(out var view)) return;
+            dto.MachineInputStall = Build(view);
+        }
+
+        // webui へ送る理由の文字列はこの網羅 switch の1か所でだけ作る。止まっていなければ null（欄を出さない）
+        // Reason strings for webui are made only in this exhaustive switch; null when not stalled (no section)
+        public static MachineInputStallDetailDto Build(MachineInputStallView view)
+        {
+            return view switch
+            {
+                MachineInputStalledView stalled => new MachineInputStallDetailDto { Reason = ToWireReason(stalled.Stall.Reason), ItemId = stalled.Stall.WaitingItemId },
+                MachineInputNotStalledView _ => null,
+                _ => throw new ArgumentOutOfRangeException(nameof(view), view.GetType().Name, "未対応の停止理由のビュー / Unsupported stall view"),
+            };
+        }
+
+        private static string ToWireReason(MachineInputStallReasonKind reason)
+        {
+            return reason switch
+            {
+                MachineInputStallReasonKind.MixedLevel => "mixedLevel",
+                MachineInputStallReasonKind.AboveCraftCap => "aboveCraftCap",
+                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未対応の停止理由 / Unsupported stall reason"),
+            };
+        }
+    }
+}
+```
+
+`BlockInventoryDtos.cs`: `public CleanRoomDetailDto CleanRoom;`（A8）の次に `public MachineInputStallDetailDto MachineInputStall;` を足し、using に `using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;` を足す。
+
+`BlockDetailDtoBuilder.cs`: using に `using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;` を足し、`CleanRoomDetailDtoBuilder.Apply(dto, block, cache);`（A8）の次に足す。
+
+```csharp
+
+            // 機械: 継承元のレベルで止まった理由
+            // Machines: the reason the inflow stalled on the inheritance source level
+            MachineInputStallDetailDtoBuilder.Apply(dto, cache);
+```
+
+`BlockNetworkInfoCache.cs`（A8 の全文）を次のとおり変える。ループは書かず、A8 の汎用ポーラーをもう1本持つ。
+- using に `using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;` を足す（`using Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom;` の次）
+- クラスの doc コメントに1行ずつ足す。日本語の塊は `/// - electric/gear/cleanRoom: 汎用ポーラー BlockInfoPoller の1秒ポーリング` の次に `/// - machineInputStall: 機械だけ、同じ汎用ポーラーの1秒ポーリング`。英語の塊は `/// - electric/gear/cleanRoom: 1s polling through the generic BlockInfoPoller` の次に `/// - machineInputStall: machines only, 1s polling through the same generic poller`
+- フィールド `_cleanRoomPoller` の次の行に足す
+
+```csharp
+        private readonly BlockInfoPoller<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView> _machineInputStallPoller = MachineInputStallPollSource.CreatePoller();
+```
+
+- ctor の `_cleanRoomPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));` の次に1行足す（直前の2行コメントは全ポーラーを指すので変えない）
+
+```csharp
+            _machineInputStallPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+```
+
+- `TryGetCleanRoom` の後ろに足す
+
+```csharp
+
+        // 取得済みのときだけ止まった理由を返す。未取得と消失・読めない応答はどちらも false に畳む（読み手は欄を出さず、警告はポーラーが出す）
+        // Returns the stall only while fetched; not fetched, vanished and unreadable all fold into false (the reader omits the section and the poller warns)
+        public bool TryGetMachineInputStall(out MachineInputStallView view)
+        {
+            return _machineInputStallPoller.TryGetSnapshot(out view);
+        }
+```
+
+- `Track` の末尾の `if (CleanRoomTarget != CleanRoomDetailTarget.None) _cleanRoomPoller.Start(block.BlockInstanceId);`（A8）の次に足す。機械かどうかは、ネットワーク所属と同じくマスタの param の interface で判定する。
+
+```csharp
+
+            // 機械（電気・歯車・清浄室）は、継承元のレベルで止まった理由を開いている間だけ追う
+            // Machines (electric, gear, clean room) follow the source-level stall only while open
+            if (param is IMachineParam) _machineInputStallPoller.Start(block.BlockInstanceId);
+```
+
+- `Clear()` の `_cleanRoomPoller.Stop();` の次に `_machineInputStallPoller.Stop();` を足す
+
+Run: `wc -l moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs`
+Expected: どれも200未満（約154行・168行・142行）。
+
+- [ ] **Step 11: コンパイルして C# の契約テストを通す**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi\.(BlockDetail\.|WireContractBlockDetailTest)|BlockInfoPolling\.)"`
+Expected: ErrorCount 0 / 全 PASS（新しい4件と、A8 の部屋欄・網の取得元・ポーラー・既存の block detail 契約）。
+
+- [ ] **Step 12: TS の fixture 一覧に足し、schema のテストを書く**
+
+`moorestech_web/webui/src/bridge/contract/wireContract.test.ts` の `describe("block detail fixtures"` の `cases` 配列で、`"block_inventory_clean_room_air_filter_leak.json",`（A8）の次に足す:
+
+```ts
+    "block_inventory_machine_input_stall.json",
+```
+
+`moorestech_web/webui/src/bridge/contract/schemas/__tests__/inventory.test.ts`:
+- A9 が足した `import { CleanRoomDetailDataSchema } from "../cleanRoom";` の次に `import { MachineInputStallDataSchema } from "../machineInputStall";` を足す。
+- 末尾に足す:
+
+```ts
+describe("MachineInputStallDataSchema", () => {
+  // 理由は2種だけ、アイテムIDは正の整数、余計なキーは拒否する
+  // Only the two reasons, a positive integer item ID, and no extra keys
+  it.each([
+    [{ reason: "mixedLevel", itemId: 12 }, true],
+    [{ reason: "aboveCraftCap", itemId: 12 }, true],
+    [{ reason: "full", itemId: 12 }, false],
+    [{ reason: "mixedLevel" }, false],
+    [{ reason: "mixedLevel", itemId: 0 }, false],
+    [{ reason: "mixedLevel", itemId: 1.5 }, false],
+    [{ reason: "mixedLevel", itemId: 12, level: 2 }, false],
+  ])("%j の受理は %s", (value, expected) => {
+    expect(MachineInputStallDataSchema.safeParse(value).success).toBe(expected);
+  });
+});
+```
+
+Run: `cd moorestech_web/webui && pnpm vitest run src/bridge/contract`
+Expected: FAIL（`MachineInputStallDataSchema` が未定義、新しい fixture が `valid` false）
+
+- [ ] **Step 13: schema を書き、ブロックUIへ載せる**
+
+`moorestech_web/webui/src/bridge/contract/schemas/machineInputStall/index.ts`:
+
+```ts
+import { z } from "zod";
+
+// 機械の搬入が継承元のレベルで止まっている理由と、届いて待っている品
+// Why a machine's inflow is stalled on the inheritance source level, and the item that arrived and waits
+export const MachineInputStallDataSchema = z.object({
+  reason: z.enum(["mixedLevel", "aboveCraftCap"]),
+  itemId: z.number().int().positive(),
+}).strict();
+```
+
+`inventory.ts`:
+- A9 が足した `import { CleanRoomDetailDataSchema } from "./cleanRoom";` の次に `import { MachineInputStallDataSchema } from "./machineInputStall";` を足す。
+- `BlockInventoryOpenSchema` の `cleanRoom: CleanRoomDetailDataSchema.optional(),`（A9）の次に `machineInputStall: MachineInputStallDataSchema.optional(),` を足す。
+
+`schemas/index.ts`: A9 が足した `export * from "./cleanRoom";` の次に `export * from "./machineInputStall";` を足す。
+
+`payloadTypes.ts`:
+- import 一覧の `MachineDetailDataSchema,` の次に `MachineInputStallDataSchema,` を足す。
+- `export type BlockInventoryOpen = z.infer<typeof BlockInventoryOpenSchema>;` の次に `export type MachineInputStallData = z.infer<typeof MachineInputStallDataSchema>;` を足す。
+
+Run: `cd moorestech_web/webui && pnpm vitest run src/bridge/contract`
+Expected: PASS（新しい schema テスト7件と fixture 1件を含む）
+
+- [ ] **Step 14: 文言を足す**
+
+`Localization/localization.csv` の末尾（最終行の改行の後）に次の2行を足す。LF・末尾改行あり。値にカンマを含めない。
+
+```csv
+ui.blockInventory.machineInputStallMixedLevel,Stopped: {itemName} of a different level arrived,Stopped: {itemName} of a different level arrived,レベルの違う品（{itemName}）が届いて止まっています,Angehalten: {itemName} mit anderer Stufe ist angekommen,정지됨: 레벨이 다른 {itemName}이(가) 도착했습니다
+ui.blockInventory.machineInputStallAboveCraftCap,Stopped: {itemName} above the craft cap arrived,Stopped: {itemName} above the craft cap arrived,製作上限を超えるレベルの品（{itemName}）が届いて止まっています,Angehalten: {itemName} über der Herstellungsgrenze ist angekommen,정지됨: 제작 상한을 넘는 {itemName}이(가) 도착했습니다
+```
+
+Run: `cd moorestech_web/webui && pnpm gen:i18n && git -C ../.. diff --stat -- moorestech_web/webui/src/shared/i18n/generated Localization`
+Expected: `localizationKeys.ts` と `localization.csv` が変わる。
+
+Client.Localization の再コンパイル印を CSV の内容に合わせる（A9 Step 4 と同じ計算。リポジトリルートで実行）:
+
+```bash
+python3 - <<'EOF'
+import hashlib, os, re
+root = "Localization"
+items = []
+for dirpath, _, files in os.walk(root):
+    for name in files:
+        path = os.path.join(dirpath, name)
+        digest = "-".join("%02X" % b for b in hashlib.md5(open(path, "rb").read()).digest())
+        items.append((os.path.relpath(path, root).replace("\\", "/"), digest))
+source = "".join(rel + "\0" + digest + "\0" for rel, digest in sorted(items))
+token = "-".join("%02X" % b for b in hashlib.md5(source.encode()).digest())
+requester = "moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs"
+text = open(requester, encoding="utf-8").read()
+text = re.sub(r'dummyText = "[^"]*"', 'dummyText = "%s"' % token, text)
+open(requester, "w", encoding="utf-8").write(text)
+print(token)
+EOF
+```
+
+Expected: `git diff moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs` が1行だけ変わる。
+
+- [ ] **Step 15: 表示ロジックとセクションのテストを書く**
+
+`moorestech_web/webui/src/features/blockInventory/details/machineInputStall/__tests__/machineInputStallLogic.test.ts`:
+
+```ts
+import { describe, expect, it } from "vitest";
+import { L } from "@/shared/i18n";
+import { machineInputStallMessageKey } from "../machineInputStallLogic";
+
+describe("machineInputStallMessageKey", () => {
+  it("レベル違いはレベル違いの文言にする", () => {
+    expect(machineInputStallMessageKey({ reason: "mixedLevel", itemId: 12 })).toBe(L.ui.blockInventory.machineInputStallMixedLevel);
+  });
+
+  it("上限超えは製作上限の文言にする", () => {
+    expect(machineInputStallMessageKey({ reason: "aboveCraftCap", itemId: 12 })).toBe(L.ui.blockInventory.machineInputStallAboveCraftCap);
+  });
+});
+```
+
+`moorestech_web/webui/src/features/blockInventory/details/machineInputStall/__tests__/MachineInputStallSection.test.ts`:
+
+```ts
+import { createElement } from "react";
+import { act, create } from "react-test-renderer";
+import { describe, expect, it, vi } from "vitest";
+import type { BlockInventoryOpen, MachineInputStallData } from "@/bridge";
+
+vi.mock("@/shared/i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/shared/i18n")>()),
+  useI18n: () => ({ t: (key: string, params?: Record<string, string>) => `${key}|${JSON.stringify(params)}` }),
+  useItemDisplayName: () => (itemId: number) => `item${itemId}`,
+}));
+vi.mock("@mantine/core", () => ({
+  Text: ({ children, ...props }: { children: unknown }) => createElement("mock-text", props, children as never),
+}));
+
+import MachineInputStallSection from "../MachineInputStallSection";
+
+function render(machineInputStall: MachineInputStallData | undefined) {
+  const data = { open: true, source: "block", blockType: "GearMachine", identifier: "block:1", blockGuid: "g", itemSlots: [], fluidSlots: [], machineInputStall } as unknown as BlockInventoryOpen;
+  let tree!: ReturnType<typeof create>;
+  act(() => { tree = create(createElement(MachineInputStallSection, { data })); });
+  return tree.root;
+}
+
+describe("MachineInputStallSection", () => {
+  it("止まっていなければ何も描かない", () => {
+    expect(render(undefined).findAll((n) => n.props["data-testid"] === "machine-input-stall")).toEqual([]);
+  });
+
+  it("レベル違いは品の名前を差し込んで赤字で描く", () => {
+    const row = render({ reason: "mixedLevel", itemId: 12 }).findByProps({ "data-testid": "machine-input-stall" });
+    expect(row.props["data-insufficient"]).toBe(true);
+    expect(row.props.children).toBe('ui.blockInventory.machineInputStallMixedLevel|{"itemName":"item12"}');
+  });
+
+  it("上限超えは製作上限の文言で描く", () => {
+    const row = render({ reason: "aboveCraftCap", itemId: 7 }).findByProps({ "data-testid": "machine-input-stall" });
+    expect(row.props.children).toBe('ui.blockInventory.machineInputStallAboveCraftCap|{"itemName":"item7"}');
+  });
+});
+```
+
+Run: `cd moorestech_web/webui && pnpm vitest run src/features/blockInventory/details/machineInputStall`
+Expected: FAIL（`../machineInputStallLogic`・`../MachineInputStallSection` が無い）
+
+- [ ] **Step 16: 表示ロジックとセクションを書き、セクション列に組み込む**
+
+`moorestech_web/webui/src/features/blockInventory/details/machineInputStall/machineInputStallLogic.ts`:
+
+```ts
+import type { MachineInputStallData } from "@/bridge";
+import { L, type TranslationKey } from "@/shared/i18n";
+
+// 止まった理由ごとの文言キー
+// The message key for each stall reason
+export function machineInputStallMessageKey(stall: MachineInputStallData): TranslationKey {
+  switch (stall.reason) {
+    case "mixedLevel":
+      return L.ui.blockInventory.machineInputStallMixedLevel;
+    case "aboveCraftCap":
+      return L.ui.blockInventory.machineInputStallAboveCraftCap;
+  }
+}
+```
+
+`moorestech_web/webui/src/features/blockInventory/details/machineInputStall/MachineInputStallSection.tsx`:
+
+```tsx
+import type { BlockInventoryOpen } from "@/bridge";
+import { useI18n, useItemDisplayName } from "@/shared/i18n";
+import LackHighlightText from "../LackHighlightText";
+import { machineInputStallMessageKey } from "./machineInputStallLogic";
+
+// 搬入停止欄: レベルの違う品・製作上限を超える品が届いて止まっていることを、待っている品の名前つきで赤字で出す
+// Inflow-stall section: in red, says an item of another level or above the craft cap arrived and stalled, naming the waiting item
+export default function MachineInputStallSection({ data }: { data: BlockInventoryOpen }) {
+  const { t } = useI18n();
+  const itemDisplayName = useItemDisplayName();
+  if (!data.machineInputStall) return null;
+  const stall = data.machineInputStall;
+  return (
+    <LackHighlightText insufficient={true} size="xs" testId="machine-input-stall">
+      {t(machineInputStallMessageKey(stall), { itemName: itemDisplayName(stall.itemId) })}
+    </LackHighlightText>
+  );
+}
+```
+
+`SectionStackView.tsx`:
+- import に `import MachineInputStallSection from "../details/machineInputStall/MachineInputStallSection";` を足す（A9 の `CleanRoomSection` の import の次）。
+- `<CleanRoomSection data={data} />`（A9）の次に `<MachineInputStallSection data={data} />` を足す（B6 の抽選欄は後から `<CleanRoomSection>` の直後に入るので、並びは部屋欄・抽選欄・搬入停止欄になる）。
+
+`SectionStackView.test.tsx` の `describe` の末尾（A9 の「部屋欄はセクション列の先頭に描く」の次）に足す:
+
+```ts
+  it("搬入停止欄は機械欄より上に赤字で描く", () => {
+    const data = dataFor("GearMachine", []);
+    data.machineInputStall = { reason: "mixedLevel", itemId: 12 };
+    const tree = render(data);
+    const row = tree.root.findByProps({ "data-testid": "machine-input-stall" });
+    expect(row.props["data-insufficient"]).toBe(true);
+    act(() => { tree.unmount(); });
+  });
+```
+
+Run: `cd moorestech_web/webui && pnpm vitest run src/features/blockInventory`
+Expected: PASS（logic 2件・section 3件・SectionStackView の1件を含む）
+
+- [ ] **Step 17: webui 全体の型・テスト・lint と Unity のコンパイルを通し、クライアント側をコミットする**
+
+Run: `cd moorestech_web/webui && pnpm exec tsc -b && pnpm test && pnpm lint`
+Expected: すべて成功（`localizationKeysFreshness`・`noJsxVisibleLiteral`・`allScreensI18n` を含む）。
+
+Run: `wc -l moorestech_web/webui/src/bridge/contract/wireContract.test.ts moorestech_web/webui/src/bridge/contract/schemas/inventory.ts moorestech_web/webui/src/features/blockInventory/views/SectionStackView.tsx`
+Expected: どれも200未満（wireContract.test.ts は197行）。
+
+Run: `uloop compile --project-path ./moorestech_client`
+Expected: ErrorCount 0（`LocalizationKeys.Ui.BlockInventory.MachineInputStall*` が生成される）。
+
+```bash
+git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractMachineInputStallTest.cs moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractMachineInputStallTest.cs.meta moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_machine_input_stall.json moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_machine_input_stall.json.meta moorestech_web/webui/src
+git commit -m "feat(machine): 継承元のレベルで止まった機械の理由を機械UIに赤字で出す"
+```
+
+Unity が生成した `.meta`（`BlockDetail/MachineInput/` と新しいファイル）も同じコミットに含める。
+
+- [ ] **Step 18: EditModeInPlayingTest でベルトから届いた上限超えが配信に載り、研究で消えることを確かめる**
+
+`キャンプファイア` には搬入口が無く、`釜` はレシピ数を `MachineRecipeSelectRoundTripTest` が固定している。そのため、搬入口を4方向に持ち、レシピの無い `石の粉砕機`（GearMachine・1×1×1・入力1・出力4）に上限つき継承レシピを1件足す。製作上限は継承先ファミリー（製品）ごとなので、C10 の研究がこのレシピにも効く。
+
+```bash
+python3 - <<'PY'
+import copy, json, re
+path = 'moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/machineRecipes.json'
+text = open(path, encoding='utf-8').read()
+data = json.loads(text)
+indent = len(re.match(r'\{\n( +)', text).group(1))
+# 石の粉砕機の上限つき継承レシピ / capped inheritance recipe on the stone crusher
+recipe = copy.deepcopy(data['data'][0])
+recipe.update({'machineRecipeGuid': '00000000-0000-4000-8000-0000e0de0002', 'blockGuid': 'a334d703-9442-4910-a8f8-b914df50df4e', 'time': 1,
+               'inputItems': [{'itemGuid': '00000000-0000-0000-e0de-000000000011', 'count': 1, 'isRemain': False}], 'inputFluids': [],
+               'outputItems': [{'itemGuid': '00000000-0000-0000-e0de-000000000021', 'count': 1, 'percent': 1}], 'outputFluids': [],
+               'initialUnlocked': True, 'levelInheritance': 'InheritUpToUnlocked'})
+data['data'].append(recipe)
+open(path, 'w', encoding='utf-8').write(json.dumps(data, ensure_ascii=False, indent=indent) + ('\n' if text.endswith('\n') else ''))
+PY
+git diff --numstat -- moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData
+```
+
+Expected: 削除1行（末尾要素へのカンマ付与）だけ。それより多ければ書式が崩れているので `git checkout --` で戻して手で足す
+
+`moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/MachineInputLevelStallWebUiTopicTest.cs`:
+
+```csharp
+using System;
+using System.Collections;
+using Client.Game.InGame.Context;
+using Client.Tests.EditModeInPlayingTest.Util;
+using Client.WebUiHost.Game.Topics;
+using Core.Master;
+using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Context;
+using Game.Research;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using UnityEngine;
+using UnityEngine.TestTools;
+using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+
+namespace Client.Tests.EditModeInPlayingTest.BlockInventory
+{
+    /// <summary>
+    ///     ベルトで届いた製作上限超えの素材で止まった理由が、実ゲームの起動経路で Web UI の配信に載り、研究で消えることを確かめる
+    ///     Verifies, through the real game boot, that the stall from an above-cap material arriving by belt reaches the Web UI topic and clears after research
+    /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay2")]
+    public class MachineInputLevelStallWebUiTopicTest
+    {
+        private const string MachineBlockName = "石の粉砕機";
+        private const string BeltBlockName = "直進高速ベルトコンベア";
+        private const string ChestBlockName = "量子チェスト";
+        private static readonly Guid CrusherInheritRecipeGuid = Guid.Parse("00000000-0000-4000-8000-0000e0de0002");
+        private static readonly Guid MachineUpgradeResearchGuid = Guid.Parse("e0de0000-0000-4000-8000-000000000001");
+        private static readonly Guid SourceLv2ItemGuid = Guid.Parse("00000000-0000-0000-e0de-000000000012");
+
+        [UnityTest]
+        public IEnumerator 製作上限を超える素材がベルトで届くと止まった理由が配信に載り研究で消える()
+        {
+            EnterPlayModeUtil();
+
+            // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
+            // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
+            yield return new EnterPlayMode(expectDomainReload: true);
+
+            // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
+            // Prevent test failure from test framework internal errors during EnterPlayMode.
+            LogAssert.ignoreFailingMessages = true;
+
+            yield return Body().ToCoroutine();
+
+            yield return new ExitPlayMode();
+
+            // テスト終了後にデバッグオブジェクト無効化フラグをクリア
+            // Clear debug objects disabled flag after test.
+#if UNITY_EDITOR
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+#endif
+
+            #region Internal
+
+            async UniTask Body()
+            {
+                await LoadMainGame();
+
+                // チェスト→ベルト→粉砕機を北向きに一列に置き、粉砕機を開いて上限つき継承レシピを選ぶ
+                // Line chest -> belt -> crusher facing north, open the crusher and select the capped inheritance recipe
+                var machinePos = new Vector3Int(0, 0, 0);
+                var chest = PlaceBlock(ChestBlockName, new Vector3Int(0, 0, -2), BlockDirection.North);
+                PlaceBlock(BeltBlockName, new Vector3Int(0, 0, -1), BlockDirection.North);
+                var machine = PlaceBlock(MachineBlockName, machinePos, BlockDirection.North);
+                var subInventoryState = await BlockSubInventoryOpener.Open(await WaitBlockGameObjectSpawn(machinePos));
+                var select = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = CrusherInheritRecipeGuid.ToString() });
+                Assert.IsTrue(select.Ok, $"select action failed: {select.Error}");
+
+                // 製作上限 Lv1 の間に Lv2 の素材をチェストへ入れると、ベルトの先頭で止まり、理由が配信に載る
+                // Putting a Lv2 material in the chest under the Lv1 craft cap stalls it at the belt head and the reason reaches the topic
+                var sourceLv2 = MasterHolder.ItemMaster.GetItemId(SourceLv2ItemGuid);
+                InsertItemToBlock(chest, sourceLv2, 1);
+                var stall = await WaitUntilStallAppears();
+                Assert.AreEqual("aboveCraftCap", stall["reason"].Value<string>());
+                Assert.AreEqual(sourceLv2.AsPrimitive(), stall["itemId"].Value<int>());
+
+                // 研究で製作上限を2へ上げると、待っていた Lv2 が入り、理由が配信から消える
+                // Raising the craft cap to 2 by research lets the waiting Lv2 in and the reason leaves the topic
+                var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
+                Assert.IsTrue(ServerContext.GetService<IResearchDataStore>().CompleteResearch(MachineUpgradeResearchGuid, playerId), "research did not complete");
+                await WaitUntilStallCleared();
+                Assert.AreEqual(sourceLv2, machine.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Id, "the waiting Lv2 did not enter the source slot");
+
+                BlockSubInventoryOpener.Close(subInventoryState);
+            }
+
+            // 開いているブロックの配信を JSON で読む
+            // Read the open block's topic snapshot as JSON
+            async UniTask<JObject> BlockInventorySnapshot()
+            {
+                var hub = Client.WebUiHost.Boot.WebUiHost.Hub;
+                Assert.IsNotNull(hub, "WebUiHost hub is not running");
+                var handler = hub.ResolveTopic(BlockInventoryTopic.TopicName);
+                Assert.IsNotNull(handler, $"topic '{BlockInventoryTopic.TopicName}' is not registered by WebUiGameBinder");
+                return JObject.Parse(await handler.GetSnapshotJsonAsync());
+            }
+
+            // ベルトの搬送と1秒ごとの問い合わせを待ち、止まった理由が配信に載るまで待つ
+            // Wait for the belt transport and the 1 s query until the stall reaches the topic
+            async UniTask<JObject> WaitUntilStallAppears()
+            {
+                var stall = (await BlockInventorySnapshot())["machineInputStall"] as JObject;
+                for (var i = 0; i < 100 && stall == null; i++)
+                {
+                    await UniTask.Delay(100);
+                    stall = (await BlockInventorySnapshot())["machineInputStall"] as JObject;
+                }
+                Assert.IsNotNull(stall, "machineInputStall never reached the block inventory topic");
+                return stall;
+            }
+
+            // 止まった理由が配信から消えるまで待つ
+            // Wait until the stall leaves the topic
+            async UniTask WaitUntilStallCleared()
+            {
+                var stall = (await BlockInventorySnapshot())["machineInputStall"];
+                for (var i = 0; i < 50 && stall != null; i++)
+                {
+                    await UniTask.Delay(100);
+                    stall = (await BlockInventorySnapshot())["machineInputStall"];
+                }
+                Assert.IsNull(stall, "machineInputStall did not clear after the craft cap was raised");
+            }
+
+            #endregion
+        }
+    }
+}
+```
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Client\.Tests\.EditModeInPlayingTest\.BlockInventory\.(MachineInputLevelStallWebUiTopicTest|MachineUpgradeWebUiTopicTest|MachineRecipeSelectRoundTripTest)" --timeout-seconds 1200`
+Expected: 3件 PASS。ドメインリロードで切断されたら45秒待ち、`docs/development/uloop-troubleshooting.md` の手順で結果を読む。
+
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockClickColliderTest"`
+Expected: PASS（石の粉砕機にレシピを足しても、当たり判定のテストは変わらない）
+
+- [ ] **Step 19: コミットする**
+
+```bash
+git add moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/machineRecipes.json moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/MachineInputLevelStallWebUiTopicTest.cs moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BlockInventory/MachineInputLevelStallWebUiTopicTest.cs.meta
+git commit -m "test: ベルトで届いた上限超えの止まった理由が Web UI の配信に載り研究で消えることを確かめる"
+```
+
+unityプレイ録画テストはこのタスクに置かない。Part C 完了時点の出荷マスタには継承レシピが無く、止まる場面を作れないため。出荷マスタの画面での確認は、統合タスク（bd moorestech-xyuaf.2）の D9 chip-line の録画で行う（引き継ぎ文書 RD14。手順と見る箇所は下の「統合タスクの録画項目」）。
+
+**統合タスクの録画項目（D9 chip-line に足す1点）:**
+- わざと Lv1 と Lv2 を混ぜたチップのベルトを、モジュールの継承レシピの機械へつなぐ。機械をF単押しで開き、`PlaytestDomQuery.Query("machine-input-stall", …)` が Found であることを確かめる。文言は「レベルの違う品（ICチップLv2）が届いて止まっています」で、`data-insufficient="true"` が付く。この画面をスクショ `04-mixed-level-stall` に撮る。
+- 続けてフィルター分岐器で Lv2 を別のベルトへ逃がす。3秒以内に `machine-input-stall` が Found=false になり、ラインが回ることを確かめる。
 
 ## Part B: チップ生産の工程
 
@@ -18352,18 +20080,18 @@ git commit -m "feat(cleanroom): ダイシングのレベル別切り分けと出
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldMessagePack.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldView.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs`（`GetCleanRoomInfoProtocol` の登録行の直後に1行）
-- Modify: `moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs`（`GetCleanRoomInfo` の直後。134→142行）
+- Modify: `moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs`（`GetCleanRoomInfo` の直後。C13 後の142→150行）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomYieldInfoProtocolTest.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomYieldInfoPollSource.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs`（A8 後の約137行→約153行）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs`（C13 後の約154行→約170行）
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomYieldDetailDtos.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomYieldDetailDtoBuilder.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockInventoryDtos.cs`（`CleanRoomYield` フィールド）
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs`（163→166行）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs`（C13 後の168→171行）
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_clean_room_yield_deposition.json`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_clean_room_yield_dicing.json`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractCleanRoomYieldTest.cs`
-- Modify: `moorestech_web/webui/src/bridge/contract/wireContract.test.ts`（block detail fixtures の cases に2件。A8 後の196→198行）
+- Modify: `moorestech_web/webui/src/bridge/contract/wireContract.test.ts`（block detail fixtures の cases に2件。C13 後の197→199行）
 - Modify: `moorestech_web/webui/src/bridge/contract/schemas/cleanRoom/index.ts`
 - Modify: `moorestech_web/webui/src/bridge/contract/schemas/inventory.ts`
 - Modify: `moorestech_web/webui/src/bridge/contract/payloadTypes.ts`
@@ -19442,7 +21170,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
 - `Clear()` の `_cleanRoomPoller.Stop();` の次に `_cleanRoomYieldPoller.Stop();` を足す
 
 Run: `wc -l moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs`
-Expected: どちらも200未満（約153行・166行）。
+Expected: どちらも200未満（約170行・171行）。
 
 - [ ] **Step 11: コンパイルして C# の契約テストを通す**
 
@@ -20026,6 +21754,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - [アイテムハッチに搬送量の上限を足して大部屋集約を有利にする](../../../.decisions/2026-10-23-アイテムハッチに搬送量の上限を足して大部屋集約を有利にする.md) — 出所: シミュレーター予測→ユーザー承認 2026-10-23
 - [縦向きの高さのあるブロックの接続口のずれはマイグレーションなしで直す](../../../.decisions/2026-10-23-縦向きの高さのあるブロックの接続口のずれはマイグレーションなしで直す.md) — 出所: シミュレーター予測→ユーザー承認 2026-10-23
 - [製作上限を超えるチップは製品に入れず解放まで取っておく](../../../.decisions/2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく.md) — 出所: シミュレーター予測→ユーザー承認 2026-10-23
+- [レベルの混ざったチップはプレイヤーが仕分け止まった理由を機械UIに出す](../../../.decisions/2026-10-24-レベルの混ざったチップはプレイヤーが仕分け止まった理由を機械UIに出す.md) — 出所: シミュレーター予測→ユーザー承認 2026-10-24
 
 ### 裁定どうしの読み替え（後の裁定が前の裁定の一部を覆す）
 
@@ -20083,7 +21812,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 
 - 品質モジュールを入れられる機械は `IMachineParam` の必須 boolean `allowQualityModule` で宣言し、既定値やフォールバックを持たせない。出所: agent前提（VanillaSchema/blocks.yml の defineInterface IMachineParam）
 - 品質モジュールを入れられない機械では品質モジュールだけを拒否し、非モジュールは従来どおり受け入れる（既存テストが挿入ガードを設けない設計を固定している）。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/VanillaMachineModuleInventory.cs・moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/MachineModuleEquipMoveProtocolTest.cs）
-- 汎用の品質シフト（`RollQualityLevel`・`CreateLevelAppliedOutputs`・`ApplyLevel`）を撤去し、品質モジュールの効果はクリーンルームの役割レシピの書き換え器（Part B）だけが読む。`MachineModuleEffect.QualityShift` は残す。継承レシピの検証は機械の品質可否を見ない。出所: ユーザー裁定（.decisions/2026-10-23-モジュールは品質速度省エネ生産性の4種で歩留まりは品質に統合する.md）
+- 汎用の品質シフト（`RollQualityLevel`・`CreateLevelAppliedOutputs`・`ApplyLevel`）を撤去し、品質モジュールの効果はクリーンルームの役割レシピの書き換え器（Part B）だけが読む。`MachineModuleEffect.QualityShift` は残す。継承レシピの検証は機械の品質可否を見ない。出所: ユーザー裁定（品質モジュールの効き先を成膜・EUV・ダイシングに限る。.decisions/2026-10-23-モジュールは品質速度省エネ生産性の4種で歩留まりは品質に統合する.md）＋agent前提（汎用シフトの撤去は同ファイルの agent前提「一般機械の品質シフトで製品Lvが上がるのを防ぐ」から導いた）
 - 速度・省エネ・生産性のモジュールはクリーンルーム機械を含む全機械に入る。出所: シミュレーター予測→ユーザー承認（.decisions/2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる.md）
 - レベル継承はレシピの必須 enum `levelInheritance`（None / Inherit / InheritUpToUnlocked）で宣言し、継承元・継承先は「levelFamily の基準を指す入出力」から導く。出所: ユーザー裁定（.decisions/2026-10-23-チップ製品のレベルは使ったチップのレベルを継承する.md）
 - 待機ステートの実現出力キャッシュの鍵を (レシピ, 継承レベル) にする。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs）
@@ -20099,11 +21828,21 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - Web はスロット上限を別 topic `machine_upgrade.current` で受け取り、継承の情報は機械レシピの DTO に一様な形（継承しないレシピも -1・空・0）で必須として載せる。出所: agent前提（moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs が 198 行）
 - 上限を超えるレベルの素材の Shift 移動は、Web で宛先から外さず、サーバーの拒否と既存の拒否通知に任せる。出所: agent前提（moorestech_web/webui/src/features/inventory/slotActions.ts）
 - 上位レベルの品は、要求が levelFamily の基準のとき、継承しない機械レシピと研究の消費で下位の代わりに使える。消費は下位から。照合規則は `Core.Item.LevelFamilySubstituteUtil` の1か所に置く。出所: シミュレーター予測→ユーザー承認（.decisions/2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる.md）
-- 機械の入力スロットは1アイテムIDのまま。手動の挿入では別レベルを重ねず、ブロックからの自動搬入だけスロットの品と入ってくる品を低い方のレベルへ揃えて積む（混在ベルトで機械を止めない）。継承元スロットは揃えない。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/VanillaMachineInputSimulationUtil.cs）
+- 機械の入力スロットは1アイテムIDのまま。手動の挿入では別レベルを重ねず、ブロックからの自動搬入だけスロットの品と入ってくる品を低い方のレベルへ揃えて積む（混在ベルトで機械を止めない）。継承元スロットは揃えない。そのため継承元にはレベルの混ざったベルトで止まる帰結が残り、プレイヤーの仕分けと止まった理由の表示（C13）で扱う（シミュレーター予測→ユーザー承認 2026-10-24）。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/VanillaMachineInputSimulationUtil.cs）
 - 代替品を消費した加工中ジョブの返却は要求アイテム（基準）で返し、消費した変種は保存しない（セーブ形式を変えない）。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/RecipeSelection/MachineRecipeRefundUtil.cs）
 - 代替は手持ちクラフト・設置・接続ツール・ベースキャンプには入れない（裁定の対象が通常レシピと研究）。出所: シミュレーター予測→ユーザー承認（.decisions/2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる.md）
 - 研究ノードには新しい2種の解放アクションの中身を出す（スロット上限は上限値、製作上限は継承先の基準アイテムとレベル）。前例 connectTool・trainCar と同じ「解放: その他」節のテキスト行にし、表示台帳へ入れる。出所: シミュレーター予測→ユーザー承認（.decisions/2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる.md）
 - Part C のサーバーテストは `Tests/CombinedTest/Core/Machine/Upgrade/` にまとめる（既存の Machine 直下はコード10件ちょうどで足せないため）。出所: agent前提（moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/）
+- 継承レシピの機械は、継承元スロットに1レベルずつしか受けず、レベルを混ぜず、格下げもしない。レベルの混ざった品や製作上限を超える品がベルトで届くと、ラインは先頭で止まる。仕分けはプレイヤーが既存のフィルター分岐器で行う。機械UIには「レベルの違う品が届いて止まっている」旨を出す。そのためにサーバーの状態と同期を新しく足す（C13）。棄却した案は2つ。(B) 計画とテストに止まることを書くだけにする。(C) レベルごとに入力スロットを分ける。出所: シミュレーター予測→ユーザー承認 2026-10-24（.decisions/2026-10-24-レベルの混ざったチップはプレイヤーが仕分け止まった理由を機械UIに出す.md）
+- 止まったかどうかの判定はブロック搬入の唯一の口で行う。旧 `VanillaMachineInputInventory.InsertItemFromBlock` の本体を `MachineInputBlockInflow` へ移し、継承元のレベルで断った直近の1件とその tick だけを記録する。「今も止まっているか」は問い合わせのときに導く。条件は、最後の拒否から1 tick 以内で、かつ選択レシピの材料がそろっていないこと。`Update()` で毎 tick 比べることも、止まった状態を下ろす処理もしない。出所: agent前提（ベルトは `BeltNormalSegment.AdvanceAndTransfer` が先頭の品を毎 tick `Output.TryReceive` へ渡し直し、チェストは `VanillaChestComponent.Update` が毎 tick 押し込むので、止まっている間は記録が毎 tick 新しくなる。AGENTS.md「状態変化の検知は購読で。Update() 内で毎tickの同値判定をしない」）
+- 窓を0でなく1 tick にするのは、照会が tick のどの時点に来ても同じ答えにするため。`GameUpdater.CurrentTick` は `Tick()` の前に進み、パケットは tick の外で処理される。窓が短いので、搬入元が無くなれば最大2 tick で記録が古くなり、止まったまま残る構成は無い。テストで固定するのは、空スロット・単品・ベルト無し・手動投入の4つ。出所: agent前提（`Core.Update.GameUpdater`、C13 `MachineInputLevelStallMinimalTest`・`MachineInputLevelStallBeltTest`）
+- 止まった理由にするのは、ブロック搬入で継承元の変種が次のどちらかで断られたときだけ。(a) 製作上限超え（`CheckPlacement` が `LevelAboveCraftCap`）。(b) スロットに別レベルの継承元が入っていて積めない。次のものは理由にしない。束縛外の品、同じレベルの満杯、レシピ未選択、ベルトの振り分け判定（`InsertionCheck`）。振り分け判定は「どこへ流すか」の問いで、届いた品の拒否ではないため。出所: agent前提（C7 `MachineInputSlotBinding.CheckPlacement`・C11 の継承元スロットは揃えない規則）
+- 手での操作は C13 の対象外にする。移動（SwapSlot）は、上限超えを `InventoryItemMoveService.Move` が `RejectedByDestination` にし、`InventoryItemMoveRejectionReporter` がログと通知に出す。別レベルの移動は入れ替えになるので、止まる状況が生まれない。挿入（InsertSlot）は、文脈なしの `InsertItem` で断られた分がプレイヤーの手元に残る。どちらも機械を止めない。出所: agent前提（`InventoryItemMoveProtocol`・`InventoryItemInsertService.Insert`）
+- 止まった理由は保存しない。今届いている品から導く一時的な値で、ロード後も搬入元が1 tick で作り直すため。セーブ形式は変えない（マイグレーション不要）。出所: agent前提（AGENTS.md「唯一の例外: セーブ形式」）
+- 同期は、表示中だけ1秒ごとの要求応答 `va:getMachineInputStall` にする。A8 の汎用 `BlockInfoPoller` に取得元を1つ足し、機械（`IMachineParam`）を開いている間だけ問い合わせる。3点セットと A7 のブロック状態は採らない。理由は2つ。止まった状態が消える瞬間は出来事として起きず、変化時に通知するには毎 tick の監視が要る。値を使うのは機械UIを開いている間だけ。表示の遅れは最大1秒で、許容する。出所: agent前提（前例 `GetElectricNetworkInfoProtocol`＋`BlockNetworkInfoCache`、A6・B6 の表示中ポーリング）
+- wire の理由は、サーバーの `MachineInputLevelRefusalReason` を使わず、プロトコル側の `MachineInputStallReasonKind` に写す。写す switch はプロトコルに1か所、webui の文字列に写す switch はクライアントの DTO 組み立てに1か所置く。判別子が Stalled なのに中身が欠けた応答や、未知の理由は、警告を出して読めない扱いにする（ポーラーは値を捨てて止める）。出所: agent前提（B6 の `CleanRoomYieldView`・`TryGetView` の形）
+- 止まった状態は入力インベントリ側の `MachineInputBlockInflow` が持つ。読む口として部品 `MachineInputLevelStallComponent` を、電気機械・歯車機械・清浄室機械の3つの template で組む。機械の processor とブロックインベントリ部品は199行あり、足す余地が無い。出所: agent前提（`VanillaMachineBlockInventoryComponent.cs` 199行、前例 B6 `CleanRoomYieldPreviewComponent`）
+- unityプレイ録画テストは C13 に置かない。Part C 完了時点の出荷マスタには継承レシピが無く、止まる場面を作れないため。画面の確認は、統合タスクの D9 chip-line の録画で行う（引き継ぎ文書 RD14 と 2840 行目に記載済み）。C13 では EditModeInPlayingTest で、テスト用マスタの石の粉砕機に上限つき継承レシピ1件を足し、ベルトから配信までを確かめる。出所: agent前提（auto-memory「UIは録画テストを省かない」に対し、出荷マスタで場面を作れないので録画項目は統合タスクへ渡す）
 
 ### Part B（チップ生産の工程） の判断
 
@@ -20148,13 +21887,20 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 部屋の状態と抽選の中身は要求応答で表示中だけ1秒ごとに引く: `CleanRoomInfoMessagePack.cs`・`CleanRoomInfoMessagePackFactory.cs`（`va:getCleanRoomInfo`）、`GetCleanRoomYieldInfoProtocol.cs`・`CleanRoomYieldMessagePack.cs`・`CleanRoomYieldView.cs`（`va:getCleanRoomYieldInfo`）、クライアントの `CleanRoomYieldInfoPollSource.cs` と汎用の `BlockInfoPoller`、`PacketResponseCreator.cs` への登録、`WorldQueryApi.cs` のクライアント呼び出し、`Server.Protocol.asmdef` へ Game.CleanRoom 参照を足す。出所: ユーザー裁定 2026-10-23「表示中だけ問い合わせる」（`.decisions/2026-10-23-ダイ数と機械の見た目と部材と部屋の状態の取得.md`）・前例 `GetElectricNetworkInfoProtocol`
 - 空気清浄機のベルト搬入口は `VanillaCleanRoomAirFilterTemplate.cs` で `BlockTemplateUtil.CreateInventoryConnector` を組む。出所: ユーザー裁定 2026-10-23「B2 これってベルコンや手動での挿入経路はないの？」（`.decisions/2026-10-23-クリーンルームのブロック到達性と搬入経路を揃える.md`）・前例 `VanillaCleanRoomBoundaryTemplate`
 - 再検査（2回目）で足した・置き直した reviewer 対象ファイル: 部屋の境界ブロックのテンプレート `VanillaCleanRoomBoundaryTemplate.cs`（A14。ハッチの搬送量上限をマスタから読んで部品へ渡す。既存テンプレートの形に従う）、ハッチ搬送量上限の起動時検証 `CleanRoomItemHatchThroughputValidator.cs` と登録先 `BlockMasterUtil.cs`（A14。前例 `BeltSpeedPerSecondValidator`。必須キーで正の値以外は起動時に止める）、部屋照会の wire `CleanRoomSummaryMessagePack.cs`・読み口 `CleanRoomInfoView.cs`・`CleanRoomLeakView.cs`（A6。private ctor＋種別ごとの factory＋`TryGetView` で判別子と入れ子の整合を閉じる。中身は MessagePack 型のまま公開を許す）、継承レシピの形の検証 `LevelInheritanceRecipeShape.cs`（C2。public にして実行時の `BuildShape` と Part B の役割検証が委ねる1か所にする）。出所: agent前提（設計検査 再検査 強1・違反1・弱。各タスクの前例欄）
+- C13 で触る reviewer 対象ファイルは次のとおり。
+  - 機械 template 3本（`VanillaMachineTemplate.cs`・`VanillaGearMachineTemplate.cs`・`VanillaCleanRoomMachineTemplate.cs`）。components 列に `MachineInputLevelStallComponent` を1行足すだけで、既存の部品の順と生成は変えない。
+  - プロトコルの登録 `PacketResponseCreator.cs` と、クライアント呼び出し `WorldQueryApi.cs`（`va:getMachineInputStall`）。
+  - プロトコル本体 `GetMachineInputStallProtocol.cs`・wire `MachineInputStallMessagePack.cs`・読み口 `MachineInputStallView.cs`（`PacketResponse/MachineInputStall/`）。部品の `TryGetComponent` → 結果の詰め替えだけで、wire は private ctor＋種別ごとの factory＋`TryGetView` で判別子と中身の整合を閉じる（A6・B6 と同じ形）。
+  - 表示中ポーリングのキャッシュ `BlockNetworkInfoCache.cs`。A8 の汎用 `BlockInfoPoller` をもう1本持ち、`Track` で `IMachineParam` のときだけ開始する。
+  - `VanillaMachineInputInventory.cs`。ブロック搬入の2メソッドの本体を `MachineInputBlockInflow.cs` へ移し、委譲だけにする。呼び出し側の `VanillaMachineBlockInventoryComponent.cs`（199行）は変えない。
+  - 出所: agent前提（前例 B6 の template・プロトコル・キャッシュの差分と同じ形。200行の上限を守るために本体を移す）
 
 ### 設計検査（2026-10-23）を受けた判断
 
 - 清浄室の役割レコードは Core.Master の索引（`Core.Master/CleanRoomRoles/`）に置き、`BeltConveyorFamily` 型（解決レコードを Game.Block.Interface に置く）の前例には従わない。役割表の GUID から機械的に引くだけでゲームの規則を足さず、`MasterHolder` が検証の後に初期化する順序を使って実行時に導き直さないため。出所: agent前提（設計検査 再検査 注目点1・既存 `CleanRoomMaster.TryGetChipDraw`）
 - 今の部屋の効果の持ち主は出力の書き換え器（`CleanRoomYieldDrawDecorator`）が兼ねる。processor は 199 行で効果を持てない。またデコレータは保存したサイクル番号を `Restore` から受けるので、processor の ctor の中でしか作れない。そのため B6 の template は processor の `CleanRoomEffectLookup`（読み口 `ICleanRoomEffectLookup` の型）を兄弟の部品へ渡す。具象は processor の private フィールドに閉じる。停止ステートは押し込まれた可否（`SetCanOperate`）の写しだけを持ち、書き手は1つ。出所: agent前提（設計検査 再検査 注目点3・5、review2_phase26 強3）
 - `LevelFamilySubstituteUtil` には、ドメインごとの除外（クラフトでは受けない等）を足さない。使うかどうかは各ドメインが決める。出所: agent前提（設計検査 再検査 注目点2）
-- 再検査（2026-10-23）の強4件・弱27件は、初回と同じ扱い（強は型で閉じる、弱は全部拾い「No が妥当」は理由を残して直さない）で反映した。内部の作りだけでゲームの挙動に出ないので質問にしていない。出所: シミュレーター予測→ユーザー承認 2026-10-23（初回の「そのとおり進めて」の範囲）
+- 再検査（2026-10-23）の強4件・弱27件は、初回と同じ扱い（強は型で閉じる、弱は全部拾い「No が妥当」は理由を残して直さない）で反映した。内部の作りだけでゲームの挙動に出ないので質問にしていない。出所: agent前提（初回の承認「そのとおり進めて」と同じ方針を再検査にも当てた。拒否権つきで完成報告に書く）
 - 設計検査の扱い: 置き場所の違反3件は直し、型の閉包（強）は、webui へ渡す C# の DTO の形と加工中ジョブのセーブの形を前例どおり据え置き、それ以外を型で閉じた。弱い指摘は Part A〜C の分を全部拾い、Part D の分は統合タスクの引き継ぎ文書へ回した。本PR外のリファクタ提案は F2 の PR 本文に並べる。出所: シミュレーター予測→ユーザー承認 2026-10-23（質問「設計検査で出た残り（遊び方には出ないもの）を、次のとおり進めてよいですか？」→「そのとおり進めて」）
 - `CleanRoomInfoQuery` は既存の `CleanRoomDatastore` 具象を受ける。新しい DataStore は作らず読み手を1つ足すだけなので、`ICleanRoomLookup` は切らない。出所: agent前提（設計検査 注目点4・既存 CleanRoomDatastore は Lookup/Mutation 未分離）
 - A7 の停止理由の通知は、既存の `PushEffects` の毎 tick 押し込みを受けて前回値と比べ、変化時だけ発火する。部屋側の変化検知への作り替えは既存の押し込み機構の改修になるので行わない。出所: agent前提（設計検査 注目点5・moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs）
@@ -20179,7 +21925,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 継承の有無は `TryGetShape` の戻り値、継承レベルの有無は `int?` で表す。継承しないレシピとジョブ無しの継承レベルは null で、番兵の -1・0・1 は使わない。継承レシピのジョブのレベルは生成時（入力からの解決・セーブからの復元）に `IsValidInheritedLevel` で閉じ、値が欠けたセーブはロードで止める。出所: agent前提（設計検査 強6・弱「継承レベルは1以上を生成側で閉じる」）
 - C9 の `MachineRecipe.levelInheritance` の DTO は、判別子 `kind` と一様な必須フィールド（継承しないレシピは -1・空配列・0）の形のまま変えない。wire の形は TS の zod が閉じ、C# は網羅 switch 1か所で詰め替えるだけにする。-1 は DTO ビルダーの private 定数にだけ現れる。出所: agent前提（設計検査 強4。前例 判断記録93「一様な形で必須」）
 - C4 のセーブは既存の平らな形（`VanillaMachineProcessorSaveJsonObject` の並列フィールド）に `inheritedLevel`（int か null）を1キー足すだけにし、ジョブのサブオブジェクト化はしない。メモリ上は加工中ジョブの値型 `MachineProcessingJob`（レシピ・残りtick・保留出力・継承レベル）で受け、ジョブの有無はこの型の有無だけで表す。processor の ctor・`CleanRoomMachineProcessorSaveState.Restore` に、ジョブ無しで意味の無い引数を null で並べない。平らなキーからの組み立ては `MachineProcessingJob.RestoreFromFlatSave` の1か所、平らなキーへの書き戻しは各プロセッサの保存に閉じる。版6には継承レシピが無いので、V6→V7 は null を明示で書く。出所: agent前提（前例 `VanillaMachineSaveComponent`。Part B の V7→V8 と衝突させないため。設計検査 強5・再検査 強4）
-- C11 の自動搬入は、スロットの品と入ってくる品が同じ要求に充てられる別レベルなら、両方を低い方のレベルへ揃えて積む（上位は下位として使われ、レベルは戻らない）。手動の挿入は揃えずに弾き、継承元スロットは揃えない。出所: agent前提（混在ベルトで機械を止めないため。`VanillaMachineInputSimulationUtil.cs`。設計検査 注目点6）
+- C11 の自動搬入は、スロットの品と入ってくる品が同じ要求に充てられる別レベルなら、両方を低い方のレベルへ揃えて積む（上位は下位として使われ、レベルは戻らない）。手動の挿入は揃えずに弾き、継承元スロットは揃えない（継承元が混在ベルトで止まる帰結は C13 の表示とプレイヤーの仕分けで扱う）。出所: agent前提（混在ベルトで機械を止めないため。`VanillaMachineInputSimulationUtil.cs`。設計検査 注目点6）
 - `Server.Boot/Composition/MachineUpgradeServiceRegistration.cs` は、役割ではなくドメイン名で DI 登録を束ねる初めての Composition にする。出所: agent前提（`GameplayServiceRegistration.cs` が 202 行で足せないための分割。設計検査 注目点7）
 - 製作上限を超えるレベルの継承元は、レベル継承の製品レシピの機械に入れず、格下げもしない。研究で上限が上がるまでプレイヤーの手元に残す。上位チップの下位代用（研究・通常レシピ）には上限は効かない。出所: ユーザー裁定（.decisions/2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく.md。設計検査 強12）
 - 「未登録は初期値 Lv1・上がるだけ」の製作上限の表は `LevelInheritanceCraftCapTable` 1つにまとめ（置き場は Game.Block/Blocks/Machine/Upgrade）、サーバーの DataStore とクライアントの写しが委譲する。範囲 1..ファミリー長 は起動時の検証が保証するので、実行時には丸めない。出所: agent前提（前例 `Core.Item/ItemStackLevelDataStore.cs` の「未登録はレベル1」）
@@ -20228,3 +21974,9 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 抽選の中身の応答で、判別子に対応する入れ子が null なら `TryGetView` は警告を出して false を返す（ポーラーは消失と同じく値を捨てて止める）。外部から届く wire の食い違いなので、例外にせず警告にする。出所: agent前提（review2_phase26 弱・A6 の `TryGetView`）
 - 3回目の検査の弱「`SetProcessing` と `MachineProcessingJob` の ctor で継承レベルの検査が2回走る」は直さない。待機からの加工開始は `MachineProcessingJob` を通らず `SetProcessing` だけを通るので、ctor だけに寄せると待機からの開始で検査が消える。出所: agent前提（C3 の `IdleMachineProcessState` からの開始経路）
 - 3回目の検査の部をまたぐ食い違い（F2 の第3バケツに残っていた解消済みのツールチップ重複、件数の見出し、`CreateRealizedOutputs` の引数、ちょうど1つの確かめ方）と弱2件（`LevelInheritanceRecipeShape` の前例を `GenerationBiomeObjectConfigCatalog` に差し替え、Tooltip ディレクトリの本数）は直した。出所: agent前提（設計検査 3回目）
+
+### 予測レビュー（2026-10-24）を受けた判断
+
+- B6 には Unity 上の軽量代替（EditModeInPlayingTest）も置かない。EditModeInPlayingTestMod には cleanRoom.json の役割表も工程レシピも無く、置くにはテスト用マスタ一式を足す必要がある。B6 の画面は統合タスクの録画（D9 tier9-yield-ui）が出荷マスタで確かめ、B6 のクライアント側の土台（汎用 `BlockInfoPoller` とキャッシュ）は A11 の録画で動く。出所: agent前提（.agents/skills/editmode-in-playing-test の前提マスタ・auto-memory「UIは録画テストを省かない」に対して省く理由を書く）
+- 漏れ箇所の探索が外れたとき（凹んだ形・64マスを超える部屋）は、種が見つからなければ「囲いが見つからない」と出し、見つかれば実際の穴と違う場所に赤い箱が出ることがある。部屋が密閉されているかと稼働の可否は既存の部屋検出（`CleanRoomDatastore`）が正で、漏れ探索は表示の補助なので、外れても機械の稼働は狂わない。出所: agent前提（A5 `CleanRoomLeakProbe`。.decisions 部屋の状態取得 (3)「閉じてさえいればどんな形の部屋でもよい」は部屋の成立の裁定で、漏れ表示の精度ではない）
+- C9 の webui の schema は `schemas/machineUpgrade/index.ts` に置く。`schemas/` 直下は既に .ts が10本で、直下に足すと1ディレクトリ10本の上限を超えるため（A9 の `cleanRoom/`・C13 の `machineInputStall/` も同じ）。出所: agent前提（AGENTS.md「1ディレクトリ10ファイルまで」・前例 `schemas/energyConversion/`）
