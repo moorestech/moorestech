@@ -1,18 +1,14 @@
 using System.Collections;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;
 using Core.Master;
-using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
-using Game.Context;
-using Game.Orbit;
-using Game.SpaceElevator;
 using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -43,11 +39,14 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 var directory = SpaceElevatorActionTestMod.Create();
                 await LoadMainGame(directory, null);
+                // 起動後の例外をテスト失敗として扱う
+                // Fail the test on exceptions after startup
+                LogAssert.ignoreFailingMessages = false;
                 var master = MasterHolder.BlockMaster.GetBlockAllIds().Select(id => MasterHolder.BlockMaster.GetBlockMaster(id))
                     .Single(b => b.BlockParam is SpaceElevatorBaseBlockParam);
                 var position = new Vector3Int(20, 0, 4);
-                var target = PlaceBlock(master.Name, position, BlockDirection.North);
-                var decoy = PlaceBlock(master.Name, Vector3Int.zero, BlockDirection.North);
+                var target = await ServerBlockPlacement.PlaceAsync(master.Name, position, BlockDirection.North);
+                var decoy = await ServerBlockPlacement.PlaceAsync(master.Name, Vector3Int.zero, BlockDirection.North);
                 var view = await WaitBlockGameObjectSpawn(position);
                 // 実配置でクリック・所有者・操作を検証
                 // Verify clicking, ownership and interaction on the placed block
@@ -71,18 +70,30 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.IsFalse(insufficient.Ok);
                 Assert.AreEqual("insufficient_cable", insufficient.Error);
                 var param = (SpaceElevatorBaseBlockParam)master.BlockParam;
-                var cable = MasterHolder.ItemMaster.GetItemId(param.CableItemGuid);
-                var perLaunch = MasterHolder.ItemMaster.Items.OrbitalPayloads.Single(p => p.PayloadItemGuid == param.CableItemGuid).CountPerLaunch;
-                var pool = ServerContext.GetService<SpaceElevatorCablePool>();
-                while (pool.Amount < param.CablesPerElevator) ServerContext.GetService<IOrbitalArrivalService>().Arrive(cable, perLaunch);
+                var insufficientState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
+                Assert.AreEqual(0, insufficientState.PoolAmount);
+                Assert.IsFalse(insufficientState.TargetConnected);
+                var supplied = await SpaceElevatorServerTestState.SupplyCableAsync(param);
                 var connected = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
                 Assert.IsTrue(connected.Ok, connected.Error);
-                Assert.IsTrue(target.GetComponent<SpaceElevatorClimberComponent>().IsConnected);
-                Assert.IsFalse(decoy.GetComponent<SpaceElevatorClimberComponent>().IsConnected, "request used the decoy coordinates");
+                var connectedState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
+                Assert.IsTrue(connectedState.TargetConnected);
+                Assert.IsFalse(connectedState.DecoyConnected, "request used the decoy coordinates");
+                Assert.AreEqual(supplied - param.CablesPerElevator, connectedState.PoolAmount);
                 var already = await WebUiActionInvoker.ExecuteAsync("space_elevator.connect", new JObject());
                 Assert.IsFalse(already.Ok);
                 Assert.AreEqual("already_connected", already.Error);
+                var alreadyState = await SpaceElevatorServerTestState.ReadAsync(target, decoy);
+                Assert.AreEqual(connectedState.PoolAmount, alreadyState.PoolAmount);
                 BlockSubInventoryOpener.Close(subInventory);
+
+                // 正規撤去の返却を検証する
+                // Verify refunds through the normal removal request
+                var removed = await ClientContext.VanillaApi.Response.Block.BlockRemove(position, CancellationToken.None);
+                Assert.IsTrue(removed.Success);
+                var refundedState = await SpaceElevatorServerTestState.ReadAsync(decoy, decoy);
+                Assert.AreEqual(supplied, refundedState.PoolAmount);
+                Assert.IsFalse(refundedState.DecoyConnected);
                 Directory.Delete(directory, true);
             }
             #endregion

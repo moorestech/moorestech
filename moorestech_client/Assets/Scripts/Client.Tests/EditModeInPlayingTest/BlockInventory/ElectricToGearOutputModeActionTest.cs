@@ -54,11 +54,14 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             async UniTask Body()
             {
                 await LoadMainGame();
+                // 起動後の例外をテスト失敗として扱う
+                // Fail the test on exceptions after startup
+                LogAssert.ignoreFailingMessages = false;
 
                 // テストブロックを配置し、サーバーコンポーネントの初期選択が0であることを確認
                 // Place the test block and confirm the server component's initial selection is 0.
                 var pos = new Vector3Int(0, 0, 0);
-                var serverBlock = PlaceBlock(BlockName, pos, BlockDirection.North);
+                var serverBlock = await ServerBlockPlacement.PlaceAsync(BlockName, pos, BlockDirection.North);
                 var component = serverBlock.GetComponent<ElectricToGearGeneratorComponent>();
                 Assert.AreEqual(0, component.SelectedIndex);
 
