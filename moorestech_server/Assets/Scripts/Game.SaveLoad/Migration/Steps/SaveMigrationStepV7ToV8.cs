@@ -5,7 +5,7 @@ namespace Game.SaveLoad.Migration.Steps
 {
     // V6→V7移行: 宇宙エレベーターのケーブルプールの節を0で足す。版6まではケーブルを軌道へ運ぶ積荷表の行が無く、0が実値である
     // V6→V7 migration: add the space elevator cable pool section at zero; up to version 6 no payload row could carry cables to orbit, so zero is the real value
-    public sealed class SaveMigrationStepV6ToV7 : ISaveMigrationStep
+    public sealed class SaveMigrationStepV7ToV8 : ISaveMigrationStep
     {
         private const string PoolKey = "spaceElevatorCablePool";
         private const string CountKey = "cableCount";
