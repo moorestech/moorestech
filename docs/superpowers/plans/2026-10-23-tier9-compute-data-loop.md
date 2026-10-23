@@ -2478,7 +2478,7 @@ namespace Tests.Util.Rocket
 4. `別の台の初打ち上げで発射の合図待ちの台が次のtickまでに打ち上がる`: 台Aと台Bを置き、両方を `AwaitingLaunchCommand` まで進め、Aで `RequestLaunch()`。`RunUntilPhase(A, Launching, 2)` が true になった時点で、Bは `ReadyToLaunch` か `Launching`。続けて `RunUntilPhase(B, Launching, 1)` が true（Bの打ち上げは自分の Update の中で、Aの打ち上げと同じtickか次のtick）。
 5. `電力が半分なら建造が倍かかる`: 自動モード（`RecordLaunch()` 済み）で、要求100に対し発電50の台と発電100の台の`Building` から `ReadyToLaunch` までのtick数の比が 1.6〜2.4（確率的な丸めのため幅を持たせる）。発電0では40tick後も `Building` のまま `WaitReason == NoPower`。
 6. `揃った積荷は交互に選ぶ`: 自動モードで資材2便ぶん・衛星1便ぶん・ケーブル1便ぶん（5個）を同時に入れ、1便目と2便目で `OnOrbitalArrival` の積荷が異なる（1便目の成果150が出力口に入りきり、2便目のケーブルは成果が無いので入りきる）。
-7. `撤去で積んだ資材を返す`: 合図待ちで `RequestBuild()` した台の `GetRefundItems()` に資材3種と積荷が入る。`ReadyToLaunch` の台も同じ。打ち上げ中（`Launching`）の台の `GetRefundItems()` は空。
+7. `撤去で積んだ資材を返す`: 合図待ちで `RequestBuild()` した台の `GetRefundItems()` に資材3種と積荷が入る。`ReadyToLaunch` の台（初打ち上げ前に出力口を埋めてから `RequestLaunch()` し、`OutputFull` で待たせた台）も同じ。打ち上げ中（`Launching`）の台の `GetRefundItems()` は空。
 8. `資材が無いときの最小構成`: 空の台は `Idle`・`MissingMaterials`。資材だけ入れると `MissingPayload`。
 
 `RocketLaunchPadOutputFullTest.cs`（出力口の満杯。ユーザー裁定 D2）:
