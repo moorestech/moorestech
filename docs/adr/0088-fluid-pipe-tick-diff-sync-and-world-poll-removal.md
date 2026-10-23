@@ -32,6 +32,9 @@ Accepted
   出所: agent前提（ベルトの `BeltTransportTickEventPacket` と同じ連番運用。ADR 0087「再構築したtickは再構築直後・境界ハッシュ前に全量を連番付きで送る」）
 - 流体ハッシュは列車の束（`TrainUnitTickDiffBundleMessagePack`）に4つ目のハッシュとして載せ、間引きtickはダミー。クライアントの検証器は列車・レール・ベルト・流体の4つを同じtickで照合する。
   出所: agent前提（ベルトハッシュの前例をそのまま拡張）
+- **流体ハッシュは tick で変わる項目（ノードの量・流体ID、面の速度、ポートの速度）と各件数だけを混ぜる。** 座標・容量・面の相手と上限・向き許可・ポートの上限は再構築まで変わらず、再構築tickと途中参加の全量送信（と `FluidFullStateAssert` のテスト）で揃うので、4tickごとの照合には載せない。構造が食い違えば量が次のtickからずれるので検出は遅れない。計算は全量を写さず `FluidSimNode[]`・`FluidSimFace[]`・`IFluidBoundaryPort[]` を直接なめ、FNV-1a の掛け算の直列依存を外すため4本の鎖で並走して最後に合流する。
+  出所: ユーザー 2026-10-23 原文「hash計算もめちゃ軽くしたい」→ agent が「インライン化＋配列直接」「4本の鎖」「可変項目だけ」の3案と実測（22,800ノードで 3.9ms）を提示 → ユーザー原文「全部ためしてみて」。同一実行内の実測: 現行 3.9ms → インライン化 2.9 → 配列直接 2.5 → 可変項目だけ 0.7 → 4本の鎖 0.49ms（8倍）。配置の連続・散在で差は無く（5.3ms 対 5.4ms）、同じオブジェクトを演算なしで舐めるだけなら 0.25ms なので、重さはメモリでなく Mono 上の演算と呼び出し。
+  棄却案: 全項目を混ぜたまま4本の鎖だけ入れる（2.5ms→2.7ms で効果なし。鎖の依存が支配的になるのは混ぜる項目を減らした後）／全量を写してから混ぜる（割り当て 1ノード約105B、本PRの前半で廃止済み）
 - 機械側の流体タンク状態（`FluidMachineInventoryStateDetail`）と機械の進捗状態は本PRの対象外。石窯 1,677件/秒・加工機 809件/秒の残りは同じ「tick差分」の方向で次に扱う。
   出所: agent前提（範囲を流体パイプに限る裁定の帰結）
 - grill 規約の Codex 独立質問の段は、個人スキル codex-audit 不在のため省略した。
@@ -39,7 +42,7 @@ Accepted
 
 ## Placement
 - Game.Fluid/Sync: `State`（`FluidNetworkFullState`・`FluidNodeState`・`FluidFaceState`・`FluidPortState`・`FluidNetworkStateHash`）、`Diff`（`FluidTickDiff`・`FluidPortDeliveryRecord`・`FluidNodeInflowRecord`・`FluidNetworkDiffRecorder`）、`Replica`（`FluidNetworkReplica`・`FluidNetworkReplicaAssembler`・`FluidReplicaBoundaryPort`）、`Message`（全量・差分の MessagePack）。
-- Game.Block/Blocks/Fluid: `FluidNetworkDatastore` が全量切り出し・ハッシュ・差分記録・再構築通知を持つ（`IFluidNetworkLookup`）。`FluidTickUpdater` が差分の束を流す。`FluidPipeComponent` から `IBlockStateDetail`・`IBlockStateObservable` を外す。
+- Game.Block/Blocks/Fluid: `FluidNetworkDatastore` が全量切り出し・ハッシュ・差分記録・再構築通知を持つ（`IFluidNetworkLookup`）。ノード・面・ポートは再構築ごとに配列へ置き換えて保持する。`FluidTickUpdater` が差分の束を流す。`FluidPipeComponent` から `IBlockStateDetail`・`IBlockStateObservable` を外す。
 - Server.Event/EventReceive/FluidNetworkSync: `FluidNetworkTickEventPacket`（差分・再構築全量）・`FluidNetworkFullSnapshotEventPacket`（登録時push）。`TrainUnitTickDiffBundleEventPacket` に流体ハッシュ。
 - Client.Game/InGame/FluidNetwork: `FluidNetworkClientCache`、`Network/FluidNetworkEventNetworkHandler` と2つの buffered event、`View/FluidPipeWaterLevelPresenter`。`TrainUnitHashVerifier`・`TrainUnitFutureMessageBuffer`・診断に流体ハッシュ。`FluidPipeStateChangeProcessor` は水位の表示だけを持つ `FluidPipeWaterLevelView` へ。
 - Client.Game/InGame/World: `WorldDataHandler` からポーリングを削除。

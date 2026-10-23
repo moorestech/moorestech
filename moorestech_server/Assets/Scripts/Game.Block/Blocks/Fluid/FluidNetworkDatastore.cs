@@ -26,9 +26,11 @@ namespace Game.Block.Blocks.Fluid
         private readonly HashSet<FluidPipeComponent> _pipes = new();
         private readonly List<FluidPipeComponent> _sortedPipes = new();
 
-        private readonly List<FluidSimNode> _nodes = new();
-        private readonly List<FluidSimFace> _faces = new();
-        private readonly List<FluidBoundaryPort> _boundaryPorts = new();
+        // 再構築のたびに配列へ置き換える。毎tickの走査とハッシュが配列を直接なめられるようにする(インターフェース経由の添字より速い)
+        // Replaced with arrays at every rebuild so the per-tick sweep and the hash walk arrays directly (faster than indexing through the interface)
+        private FluidSimNode[] _nodes = Array.Empty<FluidSimNode>();
+        private FluidSimFace[] _faces = Array.Empty<FluidSimFace>();
+        private FluidBoundaryPort[] _boundaryPorts = Array.Empty<FluidBoundaryPort>();
         private readonly Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace> _faceByPositionPair = new();
 
         // 差分がノードを番号で指すための逆引き。再構築のたびに作り直す
@@ -118,20 +120,20 @@ namespace Game.Block.Blocks.Fluid
             _sortedPipes.AddRange(_pipes);
             _sortedPipes.Sort(static (x, y) => ComparePositions(x.Position, y.Position));
 
-            _nodes.Clear();
             _nodeIndexByPipe.Clear();
-            foreach (var pipe in _sortedPipes)
+            _nodes = new FluidSimNode[_sortedPipes.Count];
+            for (var i = 0; i < _sortedPipes.Count; i++)
             {
-                _nodeIndexByPipe.Add(pipe, _nodes.Count);
-                _nodes.Add(pipe.Node);
+                _nodeIndexByPipe.Add(_sortedPipes[i], i);
+                _nodes[i] = _sortedPipes[i].Node;
             }
 
             // 既存面は位置ペアが一致しノードも同一なら速度ごと引き継ぐ（波の状態を再構築で失わない）
             // Reuse faces whose position pair and nodes match, carrying the velocity so rebuilds do not erase wave state
             var previousFaces = new Dictionary<(Vector3Int a, Vector3Int b), FluidSimFace>(_faceByPositionPair);
             _faceByPositionPair.Clear();
-            _faces.Clear();
-            _boundaryPorts.Clear();
+            var faces = new List<FluidSimFace>(_faces.Length);
+            var boundaryPorts = new List<FluidBoundaryPort>(_boundaryPorts.Length);
 
             foreach (var pipe in _sortedPipes)
             {
@@ -146,13 +148,15 @@ namespace Game.Block.Blocks.Fluid
                     {
                         var flowCapacity = FluidBoundaryPort.GetFlowCapacityPerTick(connectedInfo);
                         var targetPosition = connectedInfo.TargetBlock.BlockPositionInfo.OriginalPos;
-                        _boundaryPorts.Add(new FluidBoundaryPort(pipe.Node, target, connectedInfo, flowCapacity, targetPosition));
+                        boundaryPorts.Add(new FluidBoundaryPort(pipe.Node, target, connectedInfo, flowCapacity, targetPosition));
                     }
                 }
             }
 
-            _faces.Sort(static (x, y) => CompareFaces(x, y));
-            _boundaryPorts.Sort(static (x, y) => ComparePorts(x, y));
+            faces.Sort(static (x, y) => CompareFaces(x, y));
+            boundaryPorts.Sort(static (x, y) => ComparePorts(x, y));
+            _faces = faces.ToArray();
+            _boundaryPorts = boundaryPorts.ToArray();
 
             // ロード復元用の初期速度は最初の構築で消費済みになる
             // Loaded initial velocities are consumed by the first rebuild
@@ -188,7 +192,7 @@ namespace Game.Block.Blocks.Fluid
                 var face = new FluidSimFace(pipeA.Node, pipeB.Node, flowCapacity, initialVelocity);
                 SetAllowedDirection(face, pipe == pipeA);
                 _faceByPositionPair[key] = face;
-                _faces.Add(face);
+                faces.Add(face);
 
                 static void SetAllowedDirection(FluidSimFace face, bool pipeIsNodeA)
                 {
