@@ -439,7 +439,7 @@ git commit -m "feat(generator): 電気発電機が稼働率と燃料タンクを
 - Consumes（S2）: `Game.Orbit.IOrbitalArrivalService`（`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`、`IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)`（Arrive と同じ成果を返し、通知も記録もしない）、`bool IsOrbitalPayload(ItemId itemId)`、`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`）、`Game.Orbit.OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`）、items.yml の `orbitalPayloads`（`payloadItemGuid` / `countPerLaunch` / `arrivalOutputs[{itemGuid, count}]`）、`WorldSaveAllInfo.CurrentVersion == 7`
 - Produces: S2 の `Game.Orbit`・積荷表のスキーマ（items.yml の `orbitalPayloads`）・テスト mod の積荷2行・S2 のピン（`.moorestech-external-revisions.json`）を取り込んだ moorestech ブランチ
 
-- [ ] **Step 1: ゲート — S2 の push を確かめる**
+- [x] **Step 1: ゲート — S2 の push を確かめる**
 
 ```bash
 git fetch origin
@@ -448,7 +448,7 @@ git grep -l "orbitalPayloads" origin/feat/tier9-compute-data-loop -- VanillaSche
 ```
 2つとも当たれば（`IOrbitalArrivalService` に `PreviewArrivalOutputs` があり、S2 の items.yml に積荷表がある）Step 2 へ。S2 が既に origin/master へマージ済みなら、以降の `origin/feat/tier9-compute-data-loop` を `origin/master` に読み替える。当たらなければ、前景で `sleep 600` → 上を再実行、を最大12回（2時間）繰り返す。それでも無ければ `bd note moorestech-xyuaf.1` に「S3: S2 の Game.Orbit 未 push で Task 5 以降を保留」と書き、Task 3 の成果を push した状態で止まって報告する（解決不能な障害）。
 
-- [ ] **Step 2: S2 を取り込む**
+- [x] **Step 2: S2 を取り込む**
 
 ```bash
 git merge --no-ff origin/feat/tier9-compute-data-loop -m "Merge S2 (feat/tier9-compute-data-loop) for Game.Orbit"
@@ -462,7 +462,7 @@ S3 はマスタを変えないので、`.moorestech-external-revisions.json` は
 - Editor でマスタを読み直し（RepositorySync がピンへ checkout する）、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `MooresmasterLoaderException`・`[ItemMaster]`・`[BlockMaster]` が無い。出たら S2 の範囲なので直さず、`bd note moorestech-xyuaf.1` に内容を書いて続ける（サーバーテストはテスト mod で動く）。PR 本文にも書く
 - `git diff -- .moorestech-external-revisions.json` が空（Editor が書き戻していたら `git checkout -- .moorestech-external-revisions.json`）
 
-- [ ] **Step 3: push する**
+- [x] **Step 3: push する**
 
 ```bash
 git push
