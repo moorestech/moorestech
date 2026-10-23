@@ -1,104 +1,90 @@
+using ClassLibrary;
 using Core.BeltTransport;
 using UnityEngine;
 
 namespace Game.Block.Blocks.BeltConveyor.Sync.State
 {
-    // 全量の決定的なハッシュ(FNV-1a、列車のTrainUnitSnapshotHashCalculatorと同型)。segment番号順に全項目を混ぜる
-    // Deterministic hash of the full state (FNV-1a, same shape as the train's TrainUnitSnapshotHashCalculator); mixes every field in segment-number order
+    // 全量の決定的なハッシュ。segment ごとに独立したハッシュ(番号・形・中身)を作り、順序に依存しない加算で畳む(ElementHash。列車・流体と同じ部品)
+    // Deterministic hash of the full state: each segment gets an independent hash (index, shape, contents) folded by order-independent addition (ElementHash, shared with train and fluid)
     public static class BeltTransportStateHash
     {
-        private const uint FnvOffset = 2166136261;
-        private const uint FnvPrime = 16777619;
+        private const uint SegmentSeed = 0x7365676D;
 
         public static uint Compute(BeltTransportFullState fullState)
         {
-            var stateHash = Mix(FnvOffset, fullState.Segments.Length);
-            for (var i = 0; i < fullState.Segments.Length; i++)
+            unchecked
             {
-                stateHash = Mix(stateHash, i);
-                stateHash = MixShape(stateHash, fullState.Segments[i].Shape);
-                stateHash = MixContents(stateHash, fullState.Segments[i]);
+                var sum = ElementHash.Count(SegmentSeed, fullState.Segments.Length);
+                for (var i = 0; i < fullState.Segments.Length; i++)
+                {
+                    var hash = ElementHash.Begin(SegmentSeed, i);
+                    hash = AddShape(hash, fullState.Segments[i].Shape);
+                    hash = AddContents(hash, fullState.Segments[i]);
+                    sum += ElementHash.Finish(hash);
+                }
+                return sum;
             }
-            return stateHash;
 
             #region Internal
 
-            uint MixShape(uint current, BeltSegmentShape shape)
+            uint AddShape(uint current, BeltSegmentShape shape)
             {
-                var hash = Mix(current, (int)shape.Kind);
-                hash = Mix(hash, shape.IsInternal ? 1 : 0);
-                hash = Mix(hash, shape.Capacity);
-                hash = Mix(hash, shape.Speed);
-                hash = Mix(hash, (int)shape.Forward);
-                hash = Mix(hash, shape.Cells.Length);
+                var hash = ElementHash.Add(current, (int)shape.Kind);
+                hash = ElementHash.Add(hash, shape.IsInternal);
+                hash = ElementHash.Add(hash, shape.Capacity);
+                hash = ElementHash.Add(hash, shape.Speed);
+                hash = ElementHash.Add(hash, (int)shape.Forward);
+                hash = ElementHash.Add(hash, shape.Cells.Length);
                 foreach (var cell in shape.Cells)
                 {
-                    hash = MixPosition(hash, cell.Position);
-                    hash = Mix(hash, (int)cell.Forward);
+                    hash = AddPosition(hash, cell.Position);
+                    hash = ElementHash.Add(hash, (int)cell.Forward);
                 }
-                hash = MixLinks(hash, shape.Inputs);
-                hash = MixLinks(hash, shape.Outputs);
+                hash = AddLinks(hash, shape.Inputs);
+                hash = AddLinks(hash, shape.Outputs);
                 return hash;
             }
 
-            uint MixContents(uint current, BeltSegmentState state)
+            uint AddContents(uint current, BeltSegmentState state)
             {
-                var hash = Mix(current, state.PriorityOrder);
-                hash = Mix(hash, state.CurrentSpeed);
-                hash = Mix(hash, state.Items.Length);
-                foreach (var item in state.Items) hash = MixItem(hash, item);
-                hash = Mix(hash, state.HasBufferItem ? 1 : 0);
-                if (state.HasBufferItem) hash = MixItem(hash, state.BufferItem);
+                var hash = ElementHash.Add(current, state.PriorityOrder);
+                hash = ElementHash.Add(hash, state.CurrentSpeed);
+                hash = ElementHash.Add(hash, state.Items.Length);
+                foreach (var item in state.Items) hash = AddItem(hash, item);
+                hash = ElementHash.Add(hash, state.HasBufferItem);
+                if (state.HasBufferItem) hash = AddItem(hash, state.BufferItem);
                 return hash;
             }
 
-            uint MixLinks(uint current, BeltLinkShape[] links)
+            uint AddLinks(uint current, BeltLinkShape[] links)
             {
-                var hash = Mix(current, links.Length);
+                var hash = ElementHash.Add(current, links.Length);
                 foreach (var link in links)
                 {
-                    hash = Mix(hash, (int)link.Direction);
-                    hash = Mix(hash, (int)link.EntryDirection);
-                    hash = Mix(hash, link.PartnerSegmentIndex);
+                    hash = ElementHash.Add(hash, (int)link.Direction);
+                    hash = ElementHash.Add(hash, (int)link.EntryDirection);
+                    hash = ElementHash.Add(hash, link.PartnerSegmentIndex);
                 }
                 return hash;
             }
 
-            uint MixItem(uint current, in BeltItemSnapshot item)
+            uint AddItem(uint current, in BeltItemSnapshot item)
             {
-                var hash = Mix(current, item.ItemId.AsPrimitive());
-                hash = MixLong(hash, item.ItemInstanceId.AsPrimitive());
-                hash = Mix(hash, (int)item.EntryDirection);
-                hash = Mix(hash, item.DistanceToExit);
+                var hash = ElementHash.Add(current, item.ItemId.AsPrimitive());
+                hash = ElementHash.Add(hash, item.ItemInstanceId.AsPrimitive());
+                hash = ElementHash.Add(hash, (int)item.EntryDirection);
+                hash = ElementHash.Add(hash, item.DistanceToExit);
                 return hash;
             }
 
-            uint MixPosition(uint current, Vector3Int position)
+            uint AddPosition(uint current, Vector3Int position)
             {
-                var hash = Mix(current, position.x);
-                hash = Mix(hash, position.y);
-                hash = Mix(hash, position.z);
-                return hash;
-            }
-
-            uint MixLong(uint current, long value)
-            {
-                unchecked
-                {
-                    var hash = Mix(current, (int)value);
-                    return Mix(hash, (int)(value >> 32));
-                }
+                var hash = ElementHash.Add(current, position.x);
+                hash = ElementHash.Add(hash, position.y);
+                return ElementHash.Add(hash, position.z);
             }
 
             #endregion
-        }
-
-        private static uint Mix(uint current, int value)
-        {
-            unchecked
-            {
-                return (current ^ (uint)value) * FnvPrime;
-            }
         }
     }
 }

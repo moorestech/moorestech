@@ -1,208 +1,121 @@
 using System;
 using System.Collections.Generic;
+using ClassLibrary;
 using Game.Train.SaveLoad;
 using UnityEngine;
 
 namespace Game.Train.RailGraph
 {
-    /// <summary>
-    /// RailGraphDatastore 内部の connectNodes(List<List<(int,int)>>) から
-    /// 決定的かつ順序非依存のハッシュ値を生成するユーティリティ。
-    ///
-    /// ・connectNodes[i] 内の順序が異なっていても同内容なら同じハッシュ
-    /// ・FNV-1aベースで軽量＆高速
-    /// ・ネットワーク同期/差分検出を目的とした運用前提
-    /// </summary>
+    // レール網のハッシュ。ノードごと・接続リストごとに独立したハッシュ(識別子は nodeId)を作り、順序に依存しない加算で畳む(ElementHash。列車・ベルト・流体と同じ部品)
+    // Hash of the rail graph: each node and each connection list gets an independent hash (identified by nodeId) folded by order-independent addition (ElementHash, shared with train, belt and fluid)
+    // サーバー(IRailNode)とクライアント(RailNodeInitializationData)の2入力が同じ要素関数を通るので同じ値になる。接続リストは target・distance 順に正規化してから取り込む
+    // The server (IRailNode) and client (RailNodeInitializationData) inputs go through the same element functions and therefore agree; connection lists are normalized by target and distance before being taken in
     public static class RailGraphHashCalculator
     {
-        // 32bit FNV-1a 定数
-        private const uint FnvOffset = 2166136261;
-        private const uint FnvPrime = 16777619;
+        private const uint NodeSeed = 0x7261696C;
+        private const uint EdgeSeed = 0x65646765;
 
-        /// <summary>
-        /// railNodes / connectNodes の状態から順序独立ハッシュを計算する。
-        /// </summary>
         public static uint ComputeGraphStateHash(IReadOnlyList<IRailNode> railNodes, List<List<(int targetId, int distance)>> connectNodes, Func<int, int, Guid> resolveRailType, Func<int, int, bool> resolveRailDrawable)
-        {
-            uint hash = FnvOffset;
-
-            if (railNodes != null)
-            {
-                for (int nodeId = 0; nodeId < railNodes.Count; nodeId++)
-                {
-                    IRailNode node = railNodes[nodeId];
-                    if (node == null)
-                        continue;
-
-                    hash = MixNode(
-                        hash,
-                        nodeId,
-                        node.NodeGuid,
-                        node.ConnectionDestination,
-                        node.FrontControlPoint.OriginalPosition,
-                        node.FrontControlPoint.ControlPointPosition,
-                        node.BackControlPoint.ControlPointPosition);
-                }
-            }
-
-            hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
-            return MixConnections(hash, connectNodes, resolveRailType, resolveRailDrawable);
-        }
-
-        /// <summary>
-        /// RailNodeInitializationData / connectNodes から順序独立ハッシュを計算する。
-        /// </summary>
-        public static uint ComputeGraphStateHash(
-            IReadOnlyList<RailNodeInitializationData> nodes,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes,
-            Func<int, int, Guid> resolveRailType,
-            Func<int, int, bool> resolveRailDrawable)
-        {
-            uint hash = FnvOffset;
-
-            if (nodes != null)
-            {
-                for (int i = 0; i < nodes.Count; i++)
-                {
-                    var node = nodes[i];
-                    hash = MixNode(
-                        hash,
-                        node.NodeId,
-                        node.NodeGuid,
-                        node.ConnectionDestination,
-                        node.OriginPoint,
-                        node.FrontControlPoint,
-                        node.BackControlPoint);
-                }
-            }
-
-            hash = Mix(hash, unchecked((int)0x3F6A_2B1D));
-            return MixConnections(hash, connectNodes, resolveRailType, resolveRailDrawable);
-        }
-
-        /// <summary>
-        /// FNV-1a mix
-        /// </summary>
-        private static uint Mix(uint current, int value)
         {
             unchecked
             {
-                uint v = (uint)value;
-                current ^= v;
-                current *= FnvPrime;
-                return current;
+                uint sum = 0;
+                if (railNodes != null)
+                {
+                    for (var nodeId = 0; nodeId < railNodes.Count; nodeId++)
+                    {
+                        var node = railNodes[nodeId];
+                        if (node == null) continue;
+                        sum += NodeElement(nodeId, node.NodeGuid, node.ConnectionDestination, node.FrontControlPoint.OriginalPosition, node.FrontControlPoint.ControlPointPosition, node.BackControlPoint.ControlPointPosition);
+                    }
+                }
+                return sum + ConnectionElements(connectNodes, resolveRailType, resolveRailDrawable);
             }
         }
 
-        private static uint MixGuid(uint current, Guid guid)
+        public static uint ComputeGraphStateHash(IReadOnlyList<RailNodeInitializationData> nodes, IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes, Func<int, int, Guid> resolveRailType, Func<int, int, bool> resolveRailDrawable)
         {
-            var bytes = guid.ToByteArray();
-            for (int i = 0; i < bytes.Length; i += 4)
+            unchecked
             {
-                int chunk = BitConverter.ToInt32(bytes, i);
-                current = Mix(current, chunk);
+                uint sum = 0;
+                if (nodes != null)
+                {
+                    for (var i = 0; i < nodes.Count; i++)
+                    {
+                        var node = nodes[i];
+                        sum += NodeElement(node.NodeId, node.NodeGuid, node.ConnectionDestination, node.OriginPoint, node.FrontControlPoint, node.BackControlPoint);
+                    }
+                }
+                return sum + ConnectionElements(connectNodes, resolveRailType, resolveRailDrawable);
             }
-            return current;
         }
 
-        private static uint MixVector3(uint current, Vector3 vector)
+        // Guid の無いノードは要素に数えない(両入力で同じ扱い)
+        // A node without a Guid contributes nothing (the same on both inputs)
+        private static uint NodeElement(int nodeId, Guid guid, ConnectionDestination destination, Vector3 origin, Vector3 frontControlPoint, Vector3 backControlPoint)
         {
-            current = Mix(current, FloatToInt(vector.x));
-            current = Mix(current, FloatToInt(vector.y));
-            current = Mix(current, FloatToInt(vector.z));
-            return current;
+            if (guid == Guid.Empty) return 0;
+
+            var hash = ElementHash.Begin(NodeSeed, nodeId);
+            hash = ElementHash.Add(hash, guid);
+            hash = AddConnectionDestination(hash, destination);
+            hash = AddVector3(hash, origin);
+            hash = AddVector3(hash, frontControlPoint);
+            hash = AddVector3(hash, backControlPoint);
+            return ElementHash.Finish(hash);
         }
 
-        private static uint MixConnectionDestination(uint current, ConnectionDestination destination)
+        private static uint ConnectionElements(IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes, Func<int, int, Guid> resolveRailType, Func<int, int, bool> resolveRailDrawable)
         {
-            if (destination.IsDefault())
+            if (connectNodes == null || connectNodes.Count == 0) return 0;
+
+            unchecked
             {
-                return Mix(current, -1);
+                uint sum = 0;
+                for (var nodeId = 0; nodeId < connectNodes.Count; nodeId++)
+                {
+                    var edges = connectNodes[nodeId];
+                    if (edges == null || edges.Count == 0) continue;
+
+                    var normalized = new List<(int target, int dist)>(edges.Count);
+                    for (var i = 0; i < edges.Count; i++) normalized.Add(edges[i]);
+                    normalized.Sort((a, b) =>
+                    {
+                        var cmp = a.target.CompareTo(b.target);
+                        return cmp != 0 ? cmp : a.dist.CompareTo(b.dist);
+                    });
+
+                    var hash = ElementHash.Begin(EdgeSeed, nodeId);
+                    for (var i = 0; i < normalized.Count; i++)
+                    {
+                        hash = ElementHash.Add(hash, normalized[i].target);
+                        hash = ElementHash.Add(hash, normalized[i].dist);
+                        hash = ElementHash.Add(hash, resolveRailType == null ? Guid.Empty : resolveRailType(nodeId, normalized[i].target));
+                        hash = ElementHash.Add(hash, resolveRailDrawable != null && resolveRailDrawable(nodeId, normalized[i].target));
+                    }
+                    sum += ElementHash.Finish(hash);
+                }
+                return sum;
             }
+        }
+
+        private static uint AddVector3(uint current, Vector3 vector)
+        {
+            var hash = ElementHash.Add(current, vector.x);
+            hash = ElementHash.Add(hash, vector.y);
+            return ElementHash.Add(hash, vector.z);
+        }
+
+        private static uint AddConnectionDestination(uint current, ConnectionDestination destination)
+        {
+            if (destination.IsDefault()) return ElementHash.Add(current, -1);
 
             var position = destination.blockPosition;
-            current = Mix(current, position.x);
-            current = Mix(current, position.y);
-            current = Mix(current, position.z);
-            current = Mix(current, destination.componentIndex);
-            current = Mix(current, destination.IsFront ? 1 : 0);
-            return current;
-        }
-
-        private static int FloatToInt(float value)
-        {
-            return BitConverter.ToInt32(BitConverter.GetBytes(value), 0);
-        }
-
-        private static uint MixNode(
-            uint current,
-            int nodeId,
-            Guid guid,
-            ConnectionDestination destination,
-            Vector3 origin,
-            Vector3 frontControlPoint,
-            Vector3 backControlPoint)
-        {
-            if (guid == Guid.Empty)
-                return current;
-
-            uint hash = Mix(current, unchecked((int)0x17F1_5C3D) ^ nodeId);
-            hash = MixGuid(hash, guid);
-            hash = MixConnectionDestination(hash, destination);
-            hash = MixVector3(hash, origin);
-            hash = MixVector3(hash, frontControlPoint);
-            hash = MixVector3(hash, backControlPoint);
-            return hash;
-        }
-
-        private static uint MixConnections(
-            uint current,
-            IReadOnlyList<IReadOnlyList<(int targetId, int distance)>> connectNodes,
-            Func<int, int, Guid> resolveRailType,
-            Func<int, int, bool> resolveRailDrawable)
-        {
-            if (connectNodes == null || connectNodes.Count == 0)
-                return current;
-
-            uint hash = current;
-            for (int nodeId = 0; nodeId < connectNodes.Count; nodeId++)
-            {
-                var edges = connectNodes[nodeId];
-                if (edges == null || edges.Count == 0)
-                    continue;
-
-                var normalized = new List<(int target, int dist)>(edges.Count);
-                for (int i = 0; i < edges.Count; i++)
-                {
-                    normalized.Add(edges[i]);
-                }
-                normalized.Sort((a, b) =>
-                {
-                    int cmp = a.target.CompareTo(b.target);
-                    return cmp != 0 ? cmp : a.dist.CompareTo(b.dist);
-                });
-
-                hash = Mix(hash, unchecked((int)0x7F00) ^ nodeId);
-                for (int i = 0; i < normalized.Count; i++)
-                {
-                    hash = Mix(hash, normalized[i].target);
-                    hash = Mix(hash, normalized[i].dist);
-                    hash = MixGuid(hash, ResolveRailTypeGuid(resolveRailType, nodeId, normalized[i].target));
-                    hash = Mix(hash, ResolveRailDrawable(resolveRailDrawable, nodeId, normalized[i].target) ? 1 : 0);
-                }
-            }
-
-            return hash;
-        }
-
-        private static Guid ResolveRailTypeGuid(Func<int, int, Guid> resolveRailType, int startNodeId, int endNodeId)
-        {
-            return resolveRailType == null ? Guid.Empty : resolveRailType(startNodeId, endNodeId);
-        }
-
-        private static bool ResolveRailDrawable(Func<int, int, bool> resolveRailDrawable, int startNodeId, int endNodeId)
-        {
-            return resolveRailDrawable != null && resolveRailDrawable(startNodeId, endNodeId);
+            var hash = ElementHash.Add(current, position.x);
+            hash = ElementHash.Add(hash, position.y);
+            hash = ElementHash.Add(hash, position.z);
+            hash = ElementHash.Add(hash, destination.componentIndex);
+            return ElementHash.Add(hash, destination.IsFront);
         }
     }
 }
