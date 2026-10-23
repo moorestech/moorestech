@@ -14,7 +14,7 @@
 - 1本の plan・1ブランチ・moorestech と moorestech_master の PR 各1本（末尾の Final tasks で作る）。順序は Part A → Part C → Part B → 統合タスク（旧 Part D） で、各タスクはそれ単体でコンパイル・テストが通る単位。
 - スキーマ（VanillaSchema/*.yml）を変えるタスクは、同じタスクで (1) テストマスタ `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/*.json`（と、該当すれば EditModeInPlayingTestMod）と (2) `$MW` の該当 JSON を最小限追従させ、`.moorestech-external-revisions.json` のピンをその push 済みコミットへ向ける。本格的な値・アイテム・レシピ・研究の投入は 統合タスク（旧 Part D）。
 - サーバー可変状態のクライアント同期は「イベントパケット＋初期データ＋購読」の3点セット。ただし部屋の状態と抽選の中身のように表示中だけ要る派生値は、裁定どおり表示中のブロックだけ1秒ごとに問い合わせる（前例 `GetElectricNetworkInfoProtocol`・`BlockNetworkInfoCache`）。
-- 裁定（要件の正）: `.decisions/2026-10-23-*.md`（18本）と `CONTEXT.md`「### 半導体とクリーンルーム」。既存仕様: `docs/superpowers/specs/2026-07-08-cleanroom-design-v2.md`。
+- 裁定（要件の正）: `.decisions/2026-10-23-*.md`（22本）と `CONTEXT.md`「### 半導体とクリーンルーム」。既存仕様: `docs/superpowers/specs/2026-07-08-cleanroom-design-v2.md`。
 
 ## Requirements
 
@@ -46,7 +46,7 @@
 - RC5 製作上限: `InheritUpToUnlocked` のレシピは、継承先ファミリーの基準アイテムGUIDごとの上限（未解放は Lv1）を超えるレベルの継承元を受け入れず、格下げもしない（上限超えの品は解放まで手元に残る。裁定 `.decisions/2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく.md`）。受け入れ: 上限1のとき Lv2 の素材は入力スロットへ入らず、`unlockLevelInheritanceCraftLevel` の研究後は入る（C7 `LevelInheritanceCraftCapTest`）。
 - RC6 `Inherit`（上限なし）はパッケージング等に使い、上限を見ない。受け入れ: 上限1のままでも Lv3 の継承が通る（C7 `LevelInheritanceCraftCapTest`）。
 - RC7 加工中にレシピを変えると、投入したレベルの継承元が返る。受け入れ: Lv3 投入・加工中の変更で Lv3 が返る（C3 `RecipeChangeRefundsInheritedLevelTest`）。
-- RC8 継承レベルはセーブ・ロードをまたいで保たれる。旧セーブの機械は継承レベル無し（null）として読め、継承レシピのジョブで値が欠けたセーブはロードで止まる。受け入れ: 保存→ロード後の返却が Lv3、V6 セーブがマイグレーションで `inheritedLevel: null` を得て加工中のまま読める、値の欠けた継承ジョブはロードで例外になる（C4 `LevelInheritanceSaveLoadTest`・`SaveMigrationStepV6ToV7Test`）。
+- RC8 継承レベルはセーブ・ロードをまたいで保たれる。旧セーブの機械は継承レベル無し（null）として読め、継承レシピのジョブで値が欠けたセーブはロードで止まる。受け入れ: 保存→ロード後の返却が Lv3、V6 セーブがマイグレーションで `inheritedLevel: null` を得て加工中のまま読める、値の欠けた継承ジョブはロードで例外になる、継承ジョブのレシピがマスタから消えたセーブは継承レベルごとジョブを捨てて警告を出し待機へ戻る（C4 `LevelInheritanceSaveLoadTest`・`SaveMigrationStepV6ToV7Test`・`InheritanceJobWithMissingRecipeFallsBackToIdleTest`）。
 - RC9 品質モジュールは `allowQualityModule: true` の機械（成膜・EUV・ダイシング）だけに入り、効く。速度・省エネ・生産性はクリーンルーム機械を含む全機械に入り、効く。受け入れ: false の機械へは移動プロトコルで拒否され、セーブ由来で入っていても効果集計に入らない（C1 `MachineModuleQualityRestrictionTest`）。
 - RC10 Part B 向けに「装着中の品質モジュールの最高 tier」と「品質効果合計」を機械から取り出せる。受け入れ: tier1 と tier2 の品質モジュールで `HighestQualityModuleTier == 2`（C5 `MachineModuleQualityTierTest`）。
 - RC11 モジュールスロットのスタック上限: 既定は items.json の `moduleSlotStackLimitLevels[0]`、研究 `unlockModuleSlotStackLevel` で段階的に上がる。受け入れ: 上限3で5個を移動すると3個だけ入り2個が戻る。研究後は5個入る。上限を超えて入っている分は効果に数えない（C6 `ModuleSlotStackLimitTest`）。
@@ -72,7 +72,7 @@
 - RB11 どのレシピがどの工程かは、マスタ（cleanRoom.json の役割表）で宣言し、起動時に検証する。検証する項目は、レシピが存在する・清浄室機械のレシピである・1レシピ1役割・出力の並び・スタック容量。受け入れ: B3〜B5 の規則テストと、テストマスタでの起動。
 - RB12 抽選は決定的である。同じブロックIDとサイクル番号からは同じ結果が出て、サイクル番号はセーブで保たれる。受け入れ: B1 の決定性テストと、B3 のセーブ往復テスト。
 - RB13 清浄室機械に生産性モジュールを入れられる。追加の1セットはそのサイクルの抽選結果を共有し、出力スロットに入り切る。受け入れ: B5 の `ProductivityExtraSetSharesTheDrawAndFitsTest`（効果1.0の生産性モジュールで G3 ウェハ1枚から合計600個・各出力の個数が偶数・入力を消費）と、B5 のスタック容量検証（`diesPerWafer × 2` 未満は起動時に止まる）。
-- RB14 室内機械のUIに、選択工程の抽選の中身を役割に関係する行だけ出す。値は抽選と同じ口（`CleanRoomRoleRates`→`ChipYieldFormula`）から出し、開いている間だけ1秒ごとに取得する。未選択・役割の無いレシピ・稼働できない機械では欄を出さない／成膜: 上限グレード・昇格確率／EUV: 層失敗率／ダイシング: ダイ損失率／受け入れ: B6 のサーバーテスト6件（クラスA・tier1で G2/90%・2%・3%、部屋の外は NotOperable、未選択は NoRole、無いブロックは BlockNotFound）／受け入れ: C# の wire 契約テスト5件と TS の fixture 2件／受け入れ: vitest（schema 9件・logic 4件・section 4件・SectionStackView の並び1件）／受け入れ: 出荷マスタの画面に出ることは統合タスク（bd moorestech-xyuaf.2）の録画テストで確かめる。
+- RB14 室内機械のUIに、選択工程の抽選の中身を役割に関係する行だけ出す。値は抽選と同じ口（`CleanRoomRoleRates`→`ChipYieldFormula`）から出し、開いている間だけ1秒ごとに取得する。未選択・役割の無いレシピ・稼働できない機械では欄を出さない／成膜: 上限グレード・昇格確率／EUV: 層失敗率／ダイシング: ダイ損失率／受け入れ: B6 のサーバーテスト7件（クラスA・tier1で G2/90%・2%・3%、部屋の外は NotOperable、未選択は NoRole、無いブロックは BlockNotFound、入れ子が欠けた応答は警告して読めない）／受け入れ: C# の wire 契約テスト5件と TS の fixture 2件／受け入れ: vitest（schema 9件・logic 4件・section 4件・SectionStackView の並び1件）／受け入れ: 出荷マスタの画面に出ることは統合タスク（bd moorestech-xyuaf.2）の録画テストで確かめる。
 - RB15 成膜・EUV でグレードが変わり、前のグレードが出力スロットに残っているときは、取り出されるまで次の加工を待つ（出力スロットは増やさない）。受け入れ: 出力スロット数と容量判定（`VanillaMachineOutputInventory.TrySimulateOutputs`）を変えない（コード変更なし）。統合タスクの録画テスト（チップライン） で成膜・EUV の出力を取り出しながらラインが回る。
 
 ### Part D（専用機の簡易モデル）
@@ -149,8 +149,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反4件・修正4件（2回。1回目3件・2回目1件） / 継承の解釈 util と製作上限の表を層責務どおりに置き直し、抽選の中身の入口を持ち主側の部品へ移した
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強16・弱54・第3バケツ15（2回。1回目 強12・弱27・第3バケツ11、2回目 強4・弱27・第3バケツ4） / 強は全部型で閉じ（wire DTO と加工中ジョブのセーブ形は前例どおり据え置き）、弱は拾うか判断記録へ、第3バケツは F2 の PR 本文へ
 
 ---
 
@@ -167,7 +167,7 @@
 - master のクリーンルーム6ブロックには、スキーマに無い `itemGuid` キーが残っている（items.json にも同名の6アイテムがある）。Part A は触らない（統合タスク（旧 Part D） の掃除対象）。
 - master の作業 worktree はまだ無い。共有クローン `/Users/sakastudio/hermes-agent/data/repos/moorestech_master` は 0d129c8 で detached。Unity Editor はピンファイルを書き換えることがあるので、ピンのコミットは単独で行い `git show HEAD:.moorestech-external-revisions.json` で確かめる（`docs/development/worktree-and-review-pitfalls.md`）。
 - 既存テストのヘルパー `CleanRoomMachineTestHelpers.GetCommonMachineState` は `machine.GetComponent<IBlockStateObservable>()`（先頭一致）を使う。部品の並びで processor より前にある `CleanRoomMachineComponent` に `IBlockStateObservable` を足すとこのヘルパーが別の部品を掴んで壊れるので、停止理由は末尾に足す専用部品（`CleanRoomOperabilityStateComponent`）で公開する。
-- 200行を超える、または余裕が無いファイル: `Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs`（198行、網の判定を `BlockNetworkInfoCache.Track` へ移して4行減らす）。
+- 200行を超える、または余裕が無いファイル: `Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs`（198行、網の判定を `BlockNetworkInfoCache.Track` へ移して6行減らし192行にする）。
 - 200行を超える、または余裕が無いファイル: `Client.Starter/Registration/MainGameInteractionRegistration.cs`（211行、触らず `CleanRoomUiRegistration.cs` に置く）。
 - 200行を超える、または余裕が無いファイル: `moorestech_web/webui/src/bridge/contract/schemas/inventory.ts`（215行、列車スキーマを `schemas/train/index.ts` へ分割して200未満にする）。
 - 200行を超える、または余裕が無いファイル: `Client.Tests/WebUi/WireContractBlockDetailTest.cs`（307行、触らず新ファイルにする）。
@@ -209,7 +209,7 @@
 - 品質効果の合計は既にある。`MachineModuleEffect.QualityShift` は品質モジュールの `effectValue × 個数` の合計（下限0）である。最高 tier は Part C の C5 が `MachineModuleEffect.HighestQualityModuleTier`（品質モジュールが無ければ0）として足す。
 - 既存テストの一部は、抽選の撤去で意味を失う／`CleanRoomChipOutputTest`（EUV成功率・4レベル一様抽選）と `Tests/UnitTest/Game/CleanRoomChipDrawTest.cs` は、対象のコードごと消える／`CleanRoomMachineTest.cs:77-78` のコメント「4レベル一様抽選」は事実でなくなる。
 - `machineRecipes.json` の `outputItems[].percent` はどこからも読まれていない。Part B は確率をこのキーに載せない。
-- `CleanRoomMachineComponent` は押し込まれた `CleanRoomEffect` を自分では持たず、processor へ素通しするだけである。processor は 199 行で、これ以上足せない。B3 で今の効果をデコレータの `CurrentEffect` に1つだけ持たせ、B6 はそれを読む部品 `CleanRoomYieldPreviewComponent` を template で組む。
+- `CleanRoomMachineComponent` は押し込まれた `CleanRoomEffect` を自分では持たず、processor へ素通しするだけである。processor は 199 行で、これ以上足せない。B3 で今の効果をデコレータの `CurrentEffect` に1つだけ持たせ、B6 はそれを読み口 `ICleanRoomEffectLookup` で読む部品 `CleanRoomYieldPreviewComponent` を template で組む。
 - A6 の部屋照会 `va:getCleanRoomInfo` は、清浄機・壁・ハッチからも引かれる「ブロックから見た部屋」の問い合わせである。機械の選択レシピもモジュールも見ない。
 
 ## 配置と前例（各部の前例検索）
@@ -218,12 +218,13 @@
 
 | 決めたこと | 前例（同じ役割） | 従う／逸脱 |
 |---|---|---|
+| ハッチの搬送量の上限（A14） | 検証 `BeltSpeedPerSecondValidator`（同じ置き場・名前空間）、tick ごとの量 `TrainPlatformFluidTransfer`／`PumpFluidOutputComponent`（`GameUpdater.SecondsPerTick` の加算） | 従う |
 | 清浄機のベルト搬入口 | `VanillaCleanRoomBoundaryTemplate`（アイテムハッチ）の `BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, …)` と blocks.yml の `IInventoryConnectors` + `inventoryConnectors: ref inventoryConnects` | 従う |
 | 非対象アイテムをベルトから無言で差し戻す | `VanillaMachineInputInventory.InsertItemFromBlock`（束縛外は残りを返すだけ） | 従う。`silent-ok` を付ける |
 | 手動移動の拒否通知 | `InventoryItemMoveService` が `IsAllowedToPlace` false で `RejectedByDestination`、`InventoryItemMoveRejectionReporter` がログと通知 | 従う（新たな通知は作らない） |
 | ブロックUIの集約情報の同期 | `GetElectricNetworkInfoProtocol` + `BlockNetworkInfoCache.PollElectric`（開いている間1秒） | 従う。表示中だけ問い合わせる（ユーザー裁定。3点セットにはしない） |
 | 機械ごとの可変状態の配信 | `MachineBlockStateDetail`（`[MessagePackObject]`・const キー・`CreateState`）+ `IBlockStateObservable` | 従う |
-| カーソルツールチップの所有と同一内容スキップ | `PlacementFeedbackTooltipPresenter`（`TooltipOwner`・同一行なら Show しない） | 所有者比較と同一内容スキップは従う（比較は `TooltipLineComparison` に移して共有）。他の所有者が出している間は譲る部分は新規パターン（前例は譲らず上書きする） |
+| カーソルツールチップの所有と同一内容スキップ | `PlacementFeedbackTooltipPresenter`（`TooltipOwner`・同一行なら Show しない） | 所有者比較と同一内容スキップは従う（所有者トークン・同一内容スキップ・複製して Show・自分の分だけ Hide の本体を `OwnedTooltipLinesWriter` へ移して共有）。他の所有者が出している間は譲る部分は新規パターン（前例は譲らず上書きする） |
 | 世界へのマーカー表示 | `CellRangeBoxVisualizer`（Primitive Cube・Collider 破棄・プレビュー材質の複製と着色） | 従う |
 | webui の詳細セクション | `GearSection` + `detailLogic.gearRowDisplay`（キーと引数を純関数で作り、`t` で描く） | 従う |
 | wire 契約の照合 | `WireContractPhaseB2Test.AssertMatchesFixture` + `wireContract.test.ts` の cases | 従う |
@@ -250,7 +251,7 @@
 | 決めたこと | 前例（同じ役割） | 従う／逸脱 |
 |---|---|---|
 | 決定的な抽選のシード | `CleanRoomChipDrawDecorator`（`(blockInstanceId << 20) ^ CycleCount`、CycleCount を保存） | 従う。乱数列は逸脱: 1サイクルで数百回引くので、ハッシュ1発（`CleanRoomChipDraw.Roll`）ではなく SplitMix64 の列 `CleanRoomDrawRandom` にする |
-| 実現出力の差し替え | `IRealizedOutputDecorator`（容量判定より前に置換） | 従う。引数に継承レベルとモジュール効果を足す（B3） |
+| 実現出力の差し替え | `IRealizedOutputDecorator`（容量判定より前に置換） | 従う。引数に継承レベル・モジュール効果・工場のセット数を足す（B3） |
 | 出力スロットの束縛 | `MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding`（出力 j のレベルファミリー） | 従う。束縛を広げる `CleanRoomChipOutputBindingUtil` は消す |
 | 清浄室機械の液体 | `VanillaMachineTemplate`（タンクがあるとき液体コネクタと `VanillaMachineFluidInventoryComponent`） | 従う |
 | 液体の保存 | `VanillaMachineSaveComponent`（`inputFluidSlot` / `outputFluidSlot` に `FluidContainerSaveJsonObject`） | 従う（同じキー名・同じ型） |
@@ -2082,7 +2083,8 @@ Expected: commitHash が `git -C "$MW" rev-parse HEAD` と一致する。差分�
 - Modify: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom/ICleanRoomAirFilter.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Util/CleanRoomAirFilterCollector.cs`
-- Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs:123-160`
+- Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs:123-172`（清浄機の収集・合計の共通化と、`UpdateThresholdRow` の濃度・換気回数を共通関数へ）
+- Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/Util/CleanRoomPurityLogic.cs`（58行→約74行。体積0を0にする濃度・換気回数の2関数）
 - Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoom.cs`（60行→約78行。Out 判定の関数 `TryGetClassRow`）
 - Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomInfo.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomClassStanding.cs`
@@ -2097,6 +2099,7 @@ Expected: commitHash が `git -C "$MW" rev-parse HEAD` と一致する。差分�
 - Create: `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/Leak/CleanRoomLeakProbe.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomLeakProbeTest.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability/CleanRoomInfoQueryTest.cs`
+- Modify: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomPurityLogicTest.cs`（71行→約88行。体積0の2関数のテスト）
 
 **Interfaces:**
 - Consumes: A1・A2 の後のコード（清浄機は `ICleanRoomAirFilter` を実装する `CleanRoomAirFilterComponent`）
@@ -2107,18 +2110,21 @@ Expected: commitHash が `git -C "$MW" rev-parse HEAD` と一致する。差分�
     - `Collect(CleanRoom room, IWorldBlockDatastore world)` → `List<CleanRoomAirFilterEntry>`（`readonly struct CleanRoomAirFilterEntry { IBlock Block; ICleanRoomAirFilter Filter; }`）
     - `SumRemovalVolume(IReadOnlyList<CleanRoomAirFilterEntry> entries)` → `double`。清浄機の除去体積の合計を出すのはここだけ（純度計算と部屋の要約が呼ぶ）
   - `Game.CleanRoom.CleanRoom.TryGetClassRow(out ThresholdsElement row)` → `bool`。Out なら false。「部屋が Out か」の判定はここだけに置く（A5 の要約と A7 の `PushEffects` が呼ぶ）
+  - `Game.CleanRoom.Util.CleanRoomPurityLogic.Concentration(double impurityCount, int volume)` → `double`・`CleanRoomPurityLogic.AirChangeRate(double removalVolumePerSecond, int volume)` → `double`。体積0なら0。濃度 N/V・換気回数 nq/V を出すのはここだけ（クラス判定の `CleanRoomDatastore.UpdateThresholdRow` と表示の `CleanRoomRoomSummary.Create` が呼ぶ）
   - namespace `Game.CleanRoom.Info`:
     - 照会結果は種別ごとの型。`abstract class CleanRoomInfo`（ctor は `private protected` で、種別を下の2つに閉じる）
-      - `sealed class CleanRoomEnclosedInfo : CleanRoomInfo { IReadOnlyList<CleanRoomRoomSummary> Rooms; }`（1件以上。共有壁なら複数）
+      - `sealed class CleanRoomEnclosedInfo : CleanRoomInfo { IReadOnlyList<CleanRoomRoomSummary> Rooms; }`（1件以上。共有壁なら複数。0件を渡すと ctor が `ArgumentException` を投げる）
       - `sealed class CleanRoomNotEnclosedInfo : CleanRoomInfo { CleanRoomLeakReport Leak; }`
       - 判別子の列挙と「片側だけ null」の表現は持たない。読む側は型で switch し、`default` は例外にする
     - 部屋のクラスも種別ごとの型。`abstract class CleanRoomClassStanding`（`static CleanRoomClassStanding Of(CleanRoom room)`）
       - `sealed class CleanRoomOutStanding`（`Instance` だけ）
       - `sealed class CleanRoomClassifiedStanding { string ClassName; int ThresholdIndex; }`
-    - `class CleanRoomRoomSummary { CleanRoomClassStanding Class; double Concentration; double AirChangeRate; int Volume; IReadOnlyList<CleanRoomAirFilterSummary> AirFilters; }`。ClassName を空文字で埋めない。体積0のとき濃度・換気回数は 0
+    - `class CleanRoomRoomSummary { CleanRoomClassStanding Class; double Concentration; double AirChangeRate; int Volume; IReadOnlyList<CleanRoomAirFilterSummary> AirFilters; }`。ClassName を空文字で埋めない。濃度・換気回数は `CleanRoomPurityLogic.Concentration`・`AirChangeRate` で出す（体積0のとき 0。クラス判定と同じ値）
     - `class CleanRoomAirFilterSummary { Vector3Int Position; CleanRoomAirFilterStatus Status; }`
-    - `enum CleanRoomLeakKind { Openings, NoEnclosure, TooLarge, DetectionPending }`
-    - `class CleanRoomLeakReport { const int MaxReportedOpenings = 32; CleanRoomLeakKind Kind; IReadOnlyList<Vector3Int> OpeningCells; int TotalOpeningCount; }`。OpeningCells は y→x→z の昇順で、最大32件
+    - 漏れも種別ごとの型。`abstract class CleanRoomLeakReport`（ctor は `private protected`、`const int MaxReportedOpenings = 32`）。組み立ては基底の static factory だけ: `Openings(IEnumerable<Vector3Int> cells)`（0件なら `ArgumentException`）・`NoEnclosure()`・`TooLarge()`・`DetectionPending()`
+      - `sealed class CleanRoomOpeningsLeak { IReadOnlyList<Vector3Int> OpeningCells; int TotalOpeningCount; }`（ctor は internal）。OpeningCells は y→x→z の昇順で、最大32件。漏れセルと総数を持つのはこの型だけ
+      - `sealed class CleanRoomNoEnclosureLeak`・`CleanRoomTooLargeLeak`・`CleanRoomDetectionPendingLeak`（どれも `Instance` だけ。中身を持たない）
+      - 判別子の列挙（旧 `CleanRoomLeakKind`）は持たない。読む側は型で switch し、`default` は例外にする
     - `class CleanRoomInfoQuery { CleanRoomInfoQuery(CleanRoomDatastore datastore, IWorldBlockDatastore world); CleanRoomInfo Query(IBlock block); }`
   - namespace `Game.CleanRoom.Info.Leak`:
     - `CleanRoomLeakProbe.ProbeFromBoundary(IWorldBlockDatastore, IReadOnlyList<Vector3Int> boundaryCells)` → `CleanRoomLeakReport`
@@ -2159,8 +2165,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
 
             // 西の壁から探しても、南の壁に空いた1マスだけが漏れとして返る
             // Probing from the west wall still returns only the single hole in the south wall
-            var report = CleanRoomLeakProbe.ProbeFromBoundary(ServerContext.WorldBlockDatastore, new[] { new Vector3Int(0, 2, 2) });
-            Assert.AreEqual(CleanRoomLeakKind.Openings, report.Kind);
+            var report = AsOpenings(CleanRoomLeakProbe.ProbeFromBoundary(ServerContext.WorldBlockDatastore, new[] { new Vector3Int(0, 2, 2) }));
             Assert.AreEqual(1, report.TotalOpeningCount);
             Assert.AreEqual(new Vector3Int(2, 2, 0), report.OpeningCells[0]);
         }
@@ -2176,8 +2181,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
 
             // 境界が上の段まで続くので箱を y=4 まで広げ、抜けた上面の25マスを漏れとして返す
             // The boundary continues upward, so the box grows to y=4 and the 25 missing top-face cells are returned
-            var report = CleanRoomLeakProbe.ProbeFromBoundary(ServerContext.WorldBlockDatastore, new[] { new Vector3Int(0, 2, 3) });
-            Assert.AreEqual(CleanRoomLeakKind.Openings, report.Kind);
+            var report = AsOpenings(CleanRoomLeakProbe.ProbeFromBoundary(ServerContext.WorldBlockDatastore, new[] { new Vector3Int(0, 2, 3) }));
             Assert.AreEqual(25, report.TotalOpeningCount);
             Assert.AreEqual(25, report.OpeningCells.Count);
             Assert.IsTrue(report.OpeningCells.All(cell => cell.y == 4));
@@ -2192,7 +2196,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             // An interior of 17x15x17=4335 exceeds the 4096-cell room cap
             CleanRoomDetectionTest.BuildBox(new Vector3Int(0, 0, 0), new Vector3Int(18, 16, 18));
             var report = CleanRoomLeakProbe.ProbeFromBoundary(ServerContext.WorldBlockDatastore, new[] { new Vector3Int(0, 8, 9) });
-            Assert.AreEqual(CleanRoomLeakKind.TooLarge, report.Kind);
+            Assert.IsInstanceOf<CleanRoomTooLargeLeak>(report);
         }
 
         [Test]
@@ -2201,9 +2205,10 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             CleanRoomHatchTest.CreateServer();
             CleanRoomDetectionTest.AddBlock(ForUnitTestModBlockId.CleanRoomWallId, new Vector3Int(0, 0, 0));
 
+            // 囲いが無い型は漏れセルを持たない（型にセルの欄が無い）
+            // The no-enclosure type carries no opening cells (it has no field for them)
             var report = CleanRoomLeakProbe.ProbeFromBoundary(ServerContext.WorldBlockDatastore, new[] { new Vector3Int(0, 0, 0) });
-            Assert.AreEqual(CleanRoomLeakKind.NoEnclosure, report.Kind);
-            Assert.AreEqual(0, report.OpeningCells.Count);
+            Assert.IsInstanceOf<CleanRoomNoEnclosureLeak>(report);
         }
 
         [Test]
@@ -2215,8 +2220,18 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             // Probing before any tick finds no hole, so the result is pending detection
             CleanRoomDetectionTest.BuildBox(new Vector3Int(0, 0, 0), new Vector3Int(4, 4, 4));
             var report = CleanRoomLeakProbe.ProbeFromBoundary(ServerContext.WorldBlockDatastore, new[] { new Vector3Int(0, 2, 2) });
-            Assert.AreEqual(CleanRoomLeakKind.DetectionPending, report.Kind);
+            Assert.IsInstanceOf<CleanRoomDetectionPendingLeak>(report);
         }
+
+        #region TestHelper
+
+        private static CleanRoomOpeningsLeak AsOpenings(CleanRoomLeakReport report)
+        {
+            Assert.IsInstanceOf<CleanRoomOpeningsLeak>(report, $"expected openings but got {report.GetType().Name}");
+            return (CleanRoomOpeningsLeak)report;
+        }
+
+        #endregion
     }
 }
 ```
@@ -2324,8 +2339,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             var info = new CleanRoomInfoQuery(datastore, ServerContext.WorldBlockDatastore).Query(filter);
             Assert.IsInstanceOf<CleanRoomNotEnclosedInfo>(info);
             var leak = ((CleanRoomNotEnclosedInfo)info).Leak;
-            Assert.AreEqual(CleanRoomLeakKind.Openings, leak.Kind);
-            CollectionAssert.Contains(leak.OpeningCells, new Vector3Int(2, 2, 0));
+            Assert.IsInstanceOf<CleanRoomOpeningsLeak>(leak);
+            CollectionAssert.Contains(((CleanRoomOpeningsLeak)leak).OpeningCells, new Vector3Int(2, 2, 0));
         }
 
         #region TestHelper
@@ -2481,6 +2496,62 @@ namespace Game.CleanRoom.Util
                 foreach (var entry in filters) entry.Filter.ApplyRemovedImpurity(removed * entry.Filter.RemovalVolumePerSecond / removalVolume);
 ```
 
+濃度・換気回数の「体積0なら0」を、クラス判定と表示の両方が同じ関数で出すようにする。今の `UpdateThresholdRow` は `room.ImpurityCount / room.Volume`（double を int で割る）なので、体積0の部屋（内部が全部機械）では例外にはならず NaN か無限大になり、どの行も満たさず Out になっている。表示の要約は0を出すので、判定と表示で式が2つある。
+
+`moorestech_server/Assets/Scripts/Game.CleanRoom/Util/CleanRoomPurityLogic.cs` の `IntegrateTick` の直後に足す:
+
+```csharp
+
+        // 濃度 N/V。体積0の部屋（内部が全部機械）は0とする。クラス判定と表示の両方がここを呼ぶ
+        // Concentration N/V; zero for a zero-volume room (fully filled by machines), shared by the class decision and the display
+        public static double Concentration(double impurityCount, int volume)
+        {
+            return volume <= 0 ? 0 : impurityCount / volume;
+        }
+
+        // 換気回数 nq/V。体積0の部屋は0とする。クラス判定と表示の両方がここを呼ぶ
+        // Air change rate nq/V; zero for a zero-volume room, shared by the class decision and the display
+        public static double AirChangeRate(double removalVolumePerSecond, int volume)
+        {
+            return volume <= 0 ? 0 : removalVolumePerSecond / volume;
+        }
+```
+
+`CleanRoomDatastore.UpdatePurity` のローカル関数 `UpdateThresholdRow` の次の2行を、
+
+```csharp
+                var concentration = room.ImpurityCount / room.Volume;
+                var airChangeRate = removalVolume / room.Volume;
+```
+
+次の2行に置き換える。体積0の部屋は濃度0・換気0で判定に入る。換気0はどの閾値行の `requiredAirChangeRate`（テストマスタ・本番とも全行が正）も満たさないので、今と同じく Out になる。
+
+```csharp
+                var concentration = CleanRoomPurityLogic.Concentration(room.ImpurityCount, room.Volume);
+                var airChangeRate = CleanRoomPurityLogic.AirChangeRate(removalVolume, room.Volume);
+```
+
+`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomPurityLogicTest.cs` の最後のテスト `DecideThresholdIndexHysteresisTest` の閉じ括弧の直後（クラスの閉じ括弧の前）に足す:
+
+```csharp
+
+        [Test]
+        public void ZeroVolumeConcentrationAndAirChangeRateAreZeroTest()
+        {
+            // 体積0の部屋は濃度・換気回数とも0になり、NaN や無限大を判定へ渡さない
+            // A zero-volume room yields zero concentration and air change rate, never passing NaN or infinity to the decision
+            Assert.AreEqual(0d, CleanRoomPurityLogic.Concentration(5d, 0));
+            Assert.AreEqual(0d, CleanRoomPurityLogic.AirChangeRate(3d, 0));
+            Assert.AreEqual(3d, CleanRoomPurityLogic.Concentration(30d, 10), 1e-9);
+            Assert.AreEqual(0.5d, CleanRoomPurityLogic.AirChangeRate(5d, 10), 1e-9);
+
+            // 換気0はどの行の必要換気回数も満たさないので、体積0の部屋は Out のまま
+            // Zero air change satisfies no row's required rate, so a zero-volume room stays Out
+            var rows = new List<CleanRoomThresholdRow> { new(10, 0.017), new(50, 0.0083) };
+            Assert.AreEqual(rows.Count, CleanRoomPurityLogic.DecideThresholdIndex(rows.Count, 0d, 0d, rows));
+        }
+```
+
 「部屋が Out か」の判定を部屋の1関数にまとめる。A5 の要約と A7 の `PushEffects` はこれだけを呼び、`OutThresholdIndex <= ThresholdIndex` を自分で書かない。
 
 `CleanRoom.cs` の先頭に `using Mooresmaster.Model.CleanRoomModule;` を足し、`SetThresholdIndex` の直後に足す:
@@ -2507,6 +2578,7 @@ namespace Game.CleanRoom.Util
 `moorestech_server/Assets/Scripts/Game.CleanRoom/Info/CleanRoomInfo.cs`:
 
 ```csharp
+using System;
 using System.Collections.Generic;
 
 namespace Game.CleanRoom.Info
@@ -2534,6 +2606,9 @@ namespace Game.CleanRoom.Info
 
         public CleanRoomEnclosedInfo(IReadOnlyList<CleanRoomRoomSummary> rooms)
         {
+            // 「1件以上」は照会の分岐だけに任せず、型の側で閉じる
+            // Close "one or more" in the type itself instead of trusting only the query's branch
+            if (rooms.Count == 0) throw new ArgumentException("密閉済みの照会結果は部屋を1件以上持つ / An enclosed result holds at least one room", nameof(rooms));
             Rooms = rooms;
         }
     }
@@ -2670,10 +2745,10 @@ namespace Game.CleanRoom.Info
             var removalVolume = CleanRoomAirFilterCollector.SumRemovalVolume(entries);
             var airFilters = entries.Select(entry => new CleanRoomAirFilterSummary(entry.Block.BlockPositionInfo.OriginalPos, entry.Filter.GetStatus())).ToList();
 
-            // 体積0の部屋（内部が全部機械）は濃度・換気回数を0として表示する
-            // A zero-volume room (fully filled by machines) shows zero concentration and air change rate
-            var concentration = room.Volume <= 0 ? 0d : room.ImpurityCount / room.Volume;
-            var airChangeRate = room.Volume <= 0 ? 0d : removalVolume / room.Volume;
+            // 濃度・換気回数はクラス判定と同じ関数で出す（体積0の部屋は0）
+            // Concentration and air change rate come from the same functions as the class decision (zero for a zero-volume room)
+            var concentration = CleanRoomPurityLogic.Concentration(room.ImpurityCount, room.Volume);
+            var airChangeRate = CleanRoomPurityLogic.AirChangeRate(removalVolume, room.Volume);
             return new CleanRoomRoomSummary(CleanRoomClassStanding.Of(room), concentration, airChangeRate, room.Volume, airFilters);
         }
     }
@@ -2690,34 +2765,18 @@ using UnityEngine;
 
 namespace Game.CleanRoom.Info
 {
-    public enum CleanRoomLeakKind
-    {
-        Openings,
-        NoEnclosure,
-        TooLarge,
-        DetectionPending,
-    }
-
     /// <summary>
-    ///     密閉できていない理由と、漏れているセル（表示用に上限件数まで）
-    ///     Why the structure is not sealed and the leaking cells, capped for display
+    ///     密閉できていない理由。種別ごとの型のどれか1つだけになり、漏れセルは Openings の型だけが持つ
+    ///     Why the structure is not sealed; always exactly one per-kind type, and only the openings type carries leaking cells
     /// </summary>
-    public class CleanRoomLeakReport
+    public abstract class CleanRoomLeakReport
     {
         public const int MaxReportedOpenings = 32;
 
-        public CleanRoomLeakKind Kind { get; }
-
-        // y→x→z の昇順、最大 MaxReportedOpenings 件
-        // Ascending by y, x then z, at most MaxReportedOpenings cells
-        public IReadOnlyList<Vector3Int> OpeningCells { get; }
-        public int TotalOpeningCount { get; }
-
-        private CleanRoomLeakReport(CleanRoomLeakKind kind, IReadOnlyList<Vector3Int> openingCells, int totalOpeningCount)
+        // 種別はこのファイルの4つの型に閉じる
+        // The kinds are closed to the four types in this file
+        private protected CleanRoomLeakReport()
         {
-            Kind = kind;
-            OpeningCells = openingCells;
-            TotalOpeningCount = totalOpeningCount;
         }
 
         public static CleanRoomLeakReport Openings(IEnumerable<Vector3Int> cells)
@@ -2725,22 +2784,70 @@ namespace Game.CleanRoom.Info
             // 表示とテストが毎回同じになるよう並べてから上限で切る
             // Sort before capping so display and tests see the same cells every time
             var sorted = cells.Distinct().OrderBy(cell => cell.y).ThenBy(cell => cell.x).ThenBy(cell => cell.z).ToList();
-            return new CleanRoomLeakReport(CleanRoomLeakKind.Openings, sorted.Take(MaxReportedOpenings).ToList(), sorted.Count);
+            if (sorted.Count == 0) throw new ArgumentException("漏れセルが無いなら Openings ではない / Openings needs at least one cell", nameof(cells));
+            return new CleanRoomOpeningsLeak(sorted.Take(MaxReportedOpenings).ToList(), sorted.Count);
         }
 
         public static CleanRoomLeakReport NoEnclosure()
         {
-            return new CleanRoomLeakReport(CleanRoomLeakKind.NoEnclosure, Array.Empty<Vector3Int>(), 0);
+            return CleanRoomNoEnclosureLeak.Instance;
         }
 
         public static CleanRoomLeakReport TooLarge()
         {
-            return new CleanRoomLeakReport(CleanRoomLeakKind.TooLarge, Array.Empty<Vector3Int>(), 0);
+            return CleanRoomTooLargeLeak.Instance;
         }
 
         public static CleanRoomLeakReport DetectionPending()
         {
-            return new CleanRoomLeakReport(CleanRoomLeakKind.DetectionPending, Array.Empty<Vector3Int>(), 0);
+            return CleanRoomDetectionPendingLeak.Instance;
+        }
+    }
+
+    public sealed class CleanRoomOpeningsLeak : CleanRoomLeakReport
+    {
+        // y→x→z の昇順、最大 MaxReportedOpenings 件
+        // Ascending by y, x then z, at most MaxReportedOpenings cells
+        public IReadOnlyList<Vector3Int> OpeningCells { get; }
+        public int TotalOpeningCount { get; }
+
+        internal CleanRoomOpeningsLeak(IReadOnlyList<Vector3Int> openingCells, int totalOpeningCount)
+        {
+            OpeningCells = openingCells;
+            TotalOpeningCount = totalOpeningCount;
+        }
+    }
+
+    // 種の候補のどれも境界に囲まれていない
+    // None of the seed candidates is enclosed by boundaries
+    public sealed class CleanRoomNoEnclosureLeak : CleanRoomLeakReport
+    {
+        public static readonly CleanRoomNoEnclosureLeak Instance = new CleanRoomNoEnclosureLeak();
+
+        private CleanRoomNoEnclosureLeak()
+        {
+        }
+    }
+
+    // 塗りが部屋の上限体積を超えた
+    // The fill exceeded the room volume cap
+    public sealed class CleanRoomTooLargeLeak : CleanRoomLeakReport
+    {
+        public static readonly CleanRoomTooLargeLeak Instance = new CleanRoomTooLargeLeak();
+
+        private CleanRoomTooLargeLeak()
+        {
+        }
+    }
+
+    // 穴は無いが、まだ部屋として検出されていない
+    // No hole exists, but the room has not been detected yet
+    public sealed class CleanRoomDetectionPendingLeak : CleanRoomLeakReport
+    {
+        public static readonly CleanRoomDetectionPendingLeak Instance = new CleanRoomDetectionPendingLeak();
+
+        private CleanRoomDetectionPendingLeak()
+        {
         }
     }
 }
@@ -3187,13 +3294,13 @@ namespace Game.CleanRoom.Info
 
 - [ ] **Step 9: コンパイルしテストを実行して通ることを確認する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Core\.CleanRoom\."`
-Expected: ErrorCount 0 / 全 PASS（新しい9件〈漏れ探索5・照会4〉と、清浄機の収集・合計を共通化した既存の純度・清浄機テスト）。
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.(CombinedTest\.Core\.CleanRoom\.|UnitTest\.Game\.CleanRoomPurityLogicTest)"`
+Expected: ErrorCount 0 / 全 PASS（新しい10件〈漏れ探索5・照会4・体積0の2関数1〉と、清浄機の収集・合計と濃度・換気回数を共通化した既存の純度・清浄機テスト）。
 
 - [ ] **Step 10: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs moorestech_server/Assets/Scripts/Game.CleanRoom moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability
+git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/CleanRoom moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/CleanRoomAirFilterComponent.cs moorestech_server/Assets/Scripts/Game.CleanRoom moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/Usability moorestech_server/Assets/Scripts/Tests/UnitTest/Game/CleanRoomPurityLogicTest.cs
 git commit -m "feat(cleanroom): ブロックから見た部屋の状態と漏れ箇所を求める照会を追加する"
 ```
 
@@ -3206,6 +3313,7 @@ git commit -m "feat(cleanroom): ブロックから見た部屋の状態と漏れ
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomInfoMessagePack.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomSummaryMessagePack.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomInfoView.cs`
+- Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomLeakView.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomInfoMessagePackFactory.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs:59`（GetElectricNetworkInfoProtocol の登録行の直後に足す）
 - Modify: `moorestech_server/Assets/Scripts/Server.Protocol/Server.Protocol.asmdef`（references に `"Game.CleanRoom"` を足す）
@@ -3213,15 +3321,17 @@ git commit -m "feat(cleanroom): ブロックから見た部屋の状態と漏れ
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomInfoProtocolTest.cs`
 
 **Interfaces:**
-- Consumes: A5 の `CleanRoomInfoQuery`・`CleanRoomInfo`（`CleanRoomEnclosedInfo`／`CleanRoomNotEnclosedInfo`）・`CleanRoomClassStanding`・`CleanRoomLeakReport`・`CleanRoomCellSets.MaxRoomVolume`
+- Consumes: A5 の `CleanRoomInfoQuery`・`CleanRoomInfo`（`CleanRoomEnclosedInfo`／`CleanRoomNotEnclosedInfo`）・`CleanRoomClassStanding`・`CleanRoomLeakReport`（`CleanRoomOpeningsLeak`／`CleanRoomNoEnclosureLeak`／`CleanRoomTooLargeLeak`／`CleanRoomDetectionPendingLeak`）・`CleanRoomCellSets.MaxRoomVolume`
 - Produces（A8・A10・B6 が使う。namespace は `Server.Protocol.PacketResponse`）:
   - `GetCleanRoomInfoProtocol.ProtocolTag = "va:getCleanRoomInfo"`
   - `GetCleanRoomInfoProtocol.RequestCleanRoomInfoMessagePack(BlockInstanceId)`
   - `GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack`:
     - wire のキーは `CleanRoomInfoResponseKind Kind` [Key2]・`List<CleanRoomSummaryMessagePack> Rooms` [Key3]・`CleanRoomLeakMessagePack Leak` [Key4]（MessagePack の境界なので平らな形のまま）
-    - 組み立ては種別ごとの static factory だけ: `CreateEnclosed(List<CleanRoomSummaryMessagePack> rooms)`・`CreateNotEnclosed(CleanRoomLeakMessagePack leak)`・`CreateBlockNotFound()`。引数つき ctor は private で、null を渡す呼び出しは無い
+    - 組み立ては種別ごとの static factory だけ: `CreateEnclosed(List<CleanRoomSummaryMessagePack> rooms)`・`CreateNotEnclosed(CleanRoomLeakMessagePack leak)`・`CreateBlockNotFound()`。引数つき ctor は private。本番で null を渡す呼び出しは無い（`TryGetView` の不整合の検査テストだけが null を渡す）
     - 読むのは `bool TryGetView(out CleanRoomInfoView view)` だけ。BlockNotFound なら false。`Kind` の読み分けはこの1か所に閉じる
-  - `CleanRoomInfoView`（`abstract`、ctor は `private protected`）と種別ごとの型 `CleanRoomEnclosedView { IReadOnlyList<CleanRoomSummaryMessagePack> Rooms; }`・`CleanRoomNotEnclosedView { CleanRoomLeakMessagePack Leak; }`。どちらも `public` ctor を持つ（A8・A10 のテストが直接組む）。BlockNotFound はこの型に入らない
+    - wire から読んだ値なので、各 case で入れ子を確かめる。Enclosed で `Rooms` が null・0件・null 要素・`AirFilters` が null・分類済みなのに `ClassName` が null、NotEnclosed で `Leak` が null（または `Leak.TryGetView` が false）なら、`Debug.LogWarning` を出して false を返す。factory を通るサーバーの応答では起きない
+  - `CleanRoomInfoView`（`abstract`、ctor は `private protected`）と種別ごとの型 `CleanRoomEnclosedView { IReadOnlyList<CleanRoomSummaryMessagePack> Rooms; }`（0件なら ctor が `ArgumentException`）・`CleanRoomNotEnclosedView { CleanRoomLeakView Leak; }`。どちらも `public` ctor を持つ（A8・A10 のテストが直接組む。種別ごとの型なので、種別と合わない値の組は作れない）。BlockNotFound はこの型に入らない
+  - 漏れも種別ごとの読み口。`CleanRoomLeakView`（`abstract`、ctor は `private protected`）と `CleanRoomOpeningsLeakView { IReadOnlyList<Vector3IntMessagePack> OpeningCells; int TotalOpeningCount; }`・`CleanRoomTooLargeLeakView { int MaxRoomVolume; }`（この2つは `public` ctor）・`CleanRoomNoEnclosureLeakView.Instance`・`CleanRoomDetectionPendingLeakView.Instance`（中身なし）。漏れセルと総数は Openings、上限体積は TooLarge の型だけが持つ
   - `enum CleanRoomInfoResponseKind { Enclosed, NotEnclosed, BlockNotFound }`
   - `enum CleanRoomLeakResponseKind { Openings, NoEnclosure, TooLarge, DetectionPending }`
   - `enum CleanRoomClassResponseKind { Classified, Out }`
@@ -3230,18 +3340,25 @@ git commit -m "feat(cleanroom): ブロックから見た部屋の状態と漏れ
     - 組み立ては `CreateClassified(string className, int thresholdIndex, double concentration, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)` と `CreateOut(double concentration, double airChangeRate, int volume, List<CleanRoomAirFilterMessagePack> airFilters)` だけ
     - クラスは `bool TryGetClass(out string className, out int thresholdIndex)` で読む。Out なら false。ClassName を空文字で埋めない
   - `CleanRoomAirFilterMessagePack(Vector3IntMessagePack position, double powerRatio, double removalVolumePerSecond, int filterItemCount, double filterRemainingRatio)`（種別を持たないので ctor のまま）
-  - `CleanRoomLeakMessagePack(CleanRoomLeakResponseKind kind, List<Vector3IntMessagePack> openingCells, int totalOpeningCount, int maxRoomVolume)`（同上）
+  - `CleanRoomLeakMessagePack`:
+    - wire のキーは `Kind`・`OpeningCells`・`TotalOpeningCount`・`MaxRoomVolume`（平らな形のまま。`OpeningCells`・`TotalOpeningCount` は Openings、`MaxRoomVolume` は TooLarge のときだけ書かれる）
+    - 判別子を持つので、外側・要約と同じく組み立ては種別ごとの static factory だけ: `CreateOpenings(List<Vector3IntMessagePack> openingCells, int totalOpeningCount)`・`CreateNoEnclosure()`・`CreateTooLarge(int maxRoomVolume)`・`CreateDetectionPending()`。引数つき ctor は private
+    - 読むのは `bool TryGetView(out CleanRoomLeakView view)` だけ。Openings で `OpeningCells` が null なら `Debug.LogWarning` を出して false
   - `WorldQueryApi.GetCleanRoomInfo(BlockInstanceId, CancellationToken)` → `UniTask<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack>`（通信失敗は null。既存の `GetGearNetworkInfo` と同じ）
 
 列挙はサーバー側の型をそのまま載せず、プロトコル専用の型にする。MessagePack 型の公開シグネチャにはプリミティブとプロトコル専用の型しか出さない。こうすると、クライアント側のアセンブリは Game.CleanRoom を参照しなくてよい（前例: `GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot` がドメイン型を詰め替えている）。
 
-wire（MessagePack のキー）は判別子と種別ごとのキーが並ぶ平らな形のままにする。MessagePack の `[Union]` はこのリポジトリに前例が無い。代わりに、組み立ては種別ごとの static factory、読み出しは `TryGetView`・`TryGetClass` の1か所に閉じ、呼び出し側は判別子と null を読まない。
+wire（MessagePack のキー）は判別子と種別ごとのキーが並ぶ平らな形のままにする。MessagePack の `[Union]` はこのリポジトリに前例が無い。代わりに、組み立ては種別ごとの static factory、読み出しは `TryGetView`・`TryGetClass` の1か所に閉じ、呼び出し側は判別子と null を読まない。外側の応答・部屋の要約・内側の漏れの3つとも、この同じ形にする。
+
+読み口（`CleanRoomInfoView`・`CleanRoomLeakView`）の中身は MessagePack 型（`CleanRoomSummaryMessagePack`・`Vector3IntMessagePack`）のままにし、Client.Game・Client.WebUiHost の公開シグネチャにもそれが出る。プロトコル外の読み取り型へもう一段詰め替えることはしない（前例: `BlockNetworkInfoCache.Electric` が `GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot` を直接公開し、webui ホストの DTO ビルダーがそれを読む）。判別子と入れ子の整合は `TryGetView` が確かめ、読み口の型は種別ごとに閉じているので、詰め替えを足しても閉じ方は変わらない。
 
 - [ ] **Step 1: テストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomInfoProtocolTest.cs`:
 
 ```csharp
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
@@ -3254,6 +3371,7 @@ using Tests.CombinedTest.Core.CleanRoom;
 using Tests.CombinedTest.Core.CleanRoom.Machine;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
 {
@@ -3297,9 +3415,10 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             Assert.IsTrue(Invoke(packet, filter.BlockInstanceId).TryGetView(out var view));
             Assert.IsInstanceOf<CleanRoomNotEnclosedView>(view);
             var leak = ((CleanRoomNotEnclosedView)view).Leak;
-            Assert.AreEqual(CleanRoomLeakResponseKind.Openings, leak.Kind);
-            Assert.AreEqual(1, leak.TotalOpeningCount);
-            Assert.AreEqual(new Vector3Int(2, 2, 0), leak.OpeningCells[0].Vector3Int);
+            Assert.IsInstanceOf<CleanRoomOpeningsLeakView>(leak);
+            var openings = (CleanRoomOpeningsLeakView)leak;
+            Assert.AreEqual(1, openings.TotalOpeningCount);
+            Assert.AreEqual(new Vector3Int(2, 2, 0), openings.OpeningCells[0].Vector3Int);
         }
 
         [Test]
@@ -3312,6 +3431,21 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             var response = Invoke(packet, new BlockInstanceId(999999));
             Assert.AreEqual(CleanRoomInfoResponseKind.BlockNotFound, response.Kind);
             Assert.IsFalse(response.TryGetView(out _));
+        }
+
+        [Test]
+        public void MalformedResponsesAreUnreadableWithWarningTest()
+        {
+            // 判別子と入れ子が合わない応答は、読み口を作らず警告して false を返す
+            // A response whose discriminator and nested values disagree yields no view, logs a warning and returns false
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] Enclosed response"));
+            Assert.IsFalse(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(new List<CleanRoomSummaryMessagePack>()).TryGetView(out _));
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] NotEnclosed response has no leak"));
+            Assert.IsFalse(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(null).TryGetView(out _));
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] Openings leak has no cells"));
+            Assert.IsFalse(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(CleanRoomLeakMessagePack.CreateOpenings(null, 3)).TryGetView(out _));
         }
 
         private static PacketResponseCreator CreatePacket()
@@ -3348,6 +3482,7 @@ using System;
 using System.Collections.Generic;
 using MessagePack;
 using Server.Util.MessagePack;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -3372,29 +3507,77 @@ namespace Server.Protocol.PacketResponse
         Out,
     }
 
+    /// <summary>
+    ///     密閉できていない理由。組み立ては種別ごとの static factory、読み出しは TryGetView に閉じる
+    ///     Why the structure is not sealed; built only through per-kind static factories and read only through TryGetView
+    /// </summary>
     [MessagePackObject]
     public class CleanRoomLeakMessagePack
     {
         [Key(0)] public CleanRoomLeakResponseKind Kind { get; set; }
 
-        // 表示上限まで。総数は TotalOpeningCount
-        // Capped for display; the full count is TotalOpeningCount
+        // OpeningCells（表示上限まで）と TotalOpeningCount は Openings、MaxRoomVolume は TooLarge のときだけ書かれる。読むのは TryGetView だけ
+        // OpeningCells (capped for display) and TotalOpeningCount are written only for Openings, MaxRoomVolume only for TooLarge; only TryGetView reads them
         [Key(1)] public List<Vector3IntMessagePack> OpeningCells { get; set; }
         [Key(2)] public int TotalOpeningCount { get; set; }
-
-        // TooLarge の文言に出す部屋の上限体積
-        // Room volume cap shown in the TooLarge message
         [Key(3)] public int MaxRoomVolume { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CleanRoomLeakMessagePack() { }
 
-        public CleanRoomLeakMessagePack(CleanRoomLeakResponseKind kind, List<Vector3IntMessagePack> openingCells, int totalOpeningCount, int maxRoomVolume)
+        private CleanRoomLeakMessagePack(CleanRoomLeakResponseKind kind)
         {
             Kind = kind;
-            OpeningCells = openingCells;
-            TotalOpeningCount = totalOpeningCount;
-            MaxRoomVolume = maxRoomVolume;
+        }
+
+        public static CleanRoomLeakMessagePack CreateOpenings(List<Vector3IntMessagePack> openingCells, int totalOpeningCount)
+        {
+            return new CleanRoomLeakMessagePack(CleanRoomLeakResponseKind.Openings) { OpeningCells = openingCells, TotalOpeningCount = totalOpeningCount };
+        }
+
+        public static CleanRoomLeakMessagePack CreateNoEnclosure()
+        {
+            return new CleanRoomLeakMessagePack(CleanRoomLeakResponseKind.NoEnclosure);
+        }
+
+        public static CleanRoomLeakMessagePack CreateTooLarge(int maxRoomVolume)
+        {
+            return new CleanRoomLeakMessagePack(CleanRoomLeakResponseKind.TooLarge) { MaxRoomVolume = maxRoomVolume };
+        }
+
+        public static CleanRoomLeakMessagePack CreateDetectionPending()
+        {
+            return new CleanRoomLeakMessagePack(CleanRoomLeakResponseKind.DetectionPending);
+        }
+
+        // 判別子の読み分けはここだけ。wire から読んだ値なので、Openings のセル欠損は警告して false
+        // The only place that branches on the discriminator; values come from the wire, so missing Openings cells warn and return false
+        public bool TryGetView(out CleanRoomLeakView view)
+        {
+            switch (Kind)
+            {
+                case CleanRoomLeakResponseKind.Openings:
+                    if (OpeningCells == null)
+                    {
+                        Debug.LogWarning($"[GetCleanRoomInfo] Openings leak has no cells (total {TotalOpeningCount}); treating the response as unreadable");
+                        view = default;
+                        return false;
+                    }
+
+                    view = new CleanRoomOpeningsLeakView(OpeningCells, TotalOpeningCount);
+                    return true;
+                case CleanRoomLeakResponseKind.NoEnclosure:
+                    view = CleanRoomNoEnclosureLeakView.Instance;
+                    return true;
+                case CleanRoomLeakResponseKind.TooLarge:
+                    view = new CleanRoomTooLargeLeakView(MaxRoomVolume);
+                    return true;
+                case CleanRoomLeakResponseKind.DetectionPending:
+                    view = CleanRoomDetectionPendingLeakView.Instance;
+                    return true;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "未対応の漏れ種別 / Unsupported leak kind");
+            }
         }
     }
 }
@@ -3497,6 +3680,7 @@ namespace Server.Protocol.PacketResponse
 `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomInfoView.cs`:
 
 ```csharp
+using System;
 using System.Collections.Generic;
 
 namespace Server.Protocol.PacketResponse
@@ -3522,17 +3706,85 @@ namespace Server.Protocol.PacketResponse
 
         public CleanRoomEnclosedView(IReadOnlyList<CleanRoomSummaryMessagePack> rooms)
         {
+            if (rooms.Count == 0) throw new ArgumentException("密閉済みの読み口は部屋を1件以上持つ / An enclosed view holds at least one room", nameof(rooms));
             Rooms = rooms;
         }
     }
 
     public sealed class CleanRoomNotEnclosedView : CleanRoomInfoView
     {
-        public CleanRoomLeakMessagePack Leak { get; }
+        public CleanRoomLeakView Leak { get; }
 
-        public CleanRoomNotEnclosedView(CleanRoomLeakMessagePack leak)
+        public CleanRoomNotEnclosedView(CleanRoomLeakView leak)
         {
             Leak = leak;
+        }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomLeakView.cs`:
+
+```csharp
+using System.Collections.Generic;
+using Server.Util.MessagePack;
+
+namespace Server.Protocol.PacketResponse
+{
+    /// <summary>
+    ///     漏れの応答を種別ごとの型で読む口。漏れセルと総数は Openings、上限体積は TooLarge の型だけが持つ
+    ///     Per-kind read view of the leak response; only the openings type has cells and a total, only the too-large type has the volume cap
+    /// </summary>
+    public abstract class CleanRoomLeakView
+    {
+        // 種別はこのファイルの4つの型に閉じる
+        // The kinds are closed to the four types in this file
+        private protected CleanRoomLeakView()
+        {
+        }
+    }
+
+    public sealed class CleanRoomOpeningsLeakView : CleanRoomLeakView
+    {
+        // 表示上限まで。総数は TotalOpeningCount
+        // Capped for display; the full count is TotalOpeningCount
+        public IReadOnlyList<Vector3IntMessagePack> OpeningCells { get; }
+        public int TotalOpeningCount { get; }
+
+        public CleanRoomOpeningsLeakView(IReadOnlyList<Vector3IntMessagePack> openingCells, int totalOpeningCount)
+        {
+            OpeningCells = openingCells;
+            TotalOpeningCount = totalOpeningCount;
+        }
+    }
+
+    public sealed class CleanRoomNoEnclosureLeakView : CleanRoomLeakView
+    {
+        public static readonly CleanRoomNoEnclosureLeakView Instance = new CleanRoomNoEnclosureLeakView();
+
+        private CleanRoomNoEnclosureLeakView()
+        {
+        }
+    }
+
+    public sealed class CleanRoomTooLargeLeakView : CleanRoomLeakView
+    {
+        // TooLarge の文言に出す部屋の上限体積
+        // Room volume cap shown in the TooLarge message
+        public int MaxRoomVolume { get; }
+
+        public CleanRoomTooLargeLeakView(int maxRoomVolume)
+        {
+            MaxRoomVolume = maxRoomVolume;
+        }
+    }
+
+    public sealed class CleanRoomDetectionPendingLeakView : CleanRoomLeakView
+    {
+        public static readonly CleanRoomDetectionPendingLeakView Instance = new CleanRoomDetectionPendingLeakView();
+
+        private CleanRoomDetectionPendingLeakView()
+        {
         }
     }
 }
@@ -3588,19 +3840,15 @@ namespace Server.Protocol.PacketResponse
 
         private static CleanRoomLeakMessagePack CreateLeak(CleanRoomLeakReport leak)
         {
-            var cells = leak.OpeningCells.Select(cell => new Vector3IntMessagePack(cell)).ToList();
-            return new CleanRoomLeakMessagePack(ToResponseKind(leak.Kind), cells, leak.TotalOpeningCount, CleanRoomCellSets.MaxRoomVolume);
-        }
-
-        private static CleanRoomLeakResponseKind ToResponseKind(CleanRoomLeakKind kind)
-        {
-            return kind switch
+            // 種別ごとの型を種別ごとの factory へ写す。上限体積は TooLarge のときだけ載せる
+            // Map each per-kind type onto its per-kind factory; the volume cap goes only with TooLarge
+            return leak switch
             {
-                CleanRoomLeakKind.Openings => CleanRoomLeakResponseKind.Openings,
-                CleanRoomLeakKind.NoEnclosure => CleanRoomLeakResponseKind.NoEnclosure,
-                CleanRoomLeakKind.TooLarge => CleanRoomLeakResponseKind.TooLarge,
-                CleanRoomLeakKind.DetectionPending => CleanRoomLeakResponseKind.DetectionPending,
-                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "未対応の漏れ種別 / Unsupported leak kind"),
+                CleanRoomOpeningsLeak openings => CleanRoomLeakMessagePack.CreateOpenings(openings.OpeningCells.Select(cell => new Vector3IntMessagePack(cell)).ToList(), openings.TotalOpeningCount),
+                CleanRoomNoEnclosureLeak _ => CleanRoomLeakMessagePack.CreateNoEnclosure(),
+                CleanRoomTooLargeLeak _ => CleanRoomLeakMessagePack.CreateTooLarge(CleanRoomCellSets.MaxRoomVolume),
+                CleanRoomDetectionPendingLeak _ => CleanRoomLeakMessagePack.CreateDetectionPending(),
+                _ => throw new ArgumentOutOfRangeException(nameof(leak), leak.GetType().Name, "未対応の漏れ種別 / Unsupported leak kind"),
             };
         }
     }
@@ -3618,6 +3866,7 @@ using Game.CleanRoom.Info;
 using Game.Context;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -3701,20 +3950,53 @@ namespace Server.Protocol.PacketResponse
             // False for BlockNotFound; the only place that branches on the discriminator
             public bool TryGetView(out CleanRoomInfoView view)
             {
+                view = default;
                 switch (Kind)
                 {
                     case CleanRoomInfoResponseKind.Enclosed:
+                        // wire から読んだ部屋一覧が空・欠損なら、密閉済みの型を作らず警告して読めないことにする
+                        // If the room list read from the wire is empty or broken, build no enclosed view, warn and report it unreadable
+                        if (!AreReadableRooms())
+                        {
+                            Debug.LogWarning($"[GetCleanRoomInfo] Enclosed response has no or broken rooms (count {Rooms?.Count ?? 0}); treating it as unreadable");
+                            return false;
+                        }
+
                         view = new CleanRoomEnclosedView(Rooms);
                         return true;
                     case CleanRoomInfoResponseKind.NotEnclosed:
-                        view = new CleanRoomNotEnclosedView(Leak);
+                        if (Leak == null)
+                        {
+                            Debug.LogWarning("[GetCleanRoomInfo] NotEnclosed response has no leak; treating it as unreadable");
+                            return false;
+                        }
+
+                        // 漏れの中身の欠損は Leak.TryGetView が警告する
+                        // Leak.TryGetView warns about missing leak contents
+                        if (!Leak.TryGetView(out var leakView)) return false;
+                        view = new CleanRoomNotEnclosedView(leakView);
                         return true;
                     case CleanRoomInfoResponseKind.BlockNotFound:
-                        view = default;
                         return false;
                     default:
                         throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "未対応の部屋照会の種別 / Unsupported room query kind");
                 }
+
+                #region Internal
+
+                bool AreReadableRooms()
+                {
+                    if (Rooms == null || Rooms.Count == 0) return false;
+                    foreach (var room in Rooms)
+                    {
+                        if (room == null || room.AirFilters == null) return false;
+                        if (room.ClassKind == CleanRoomClassResponseKind.Classified && room.ClassName == null) return false;
+                    }
+
+                    return true;
+                }
+
+                #endregion
             }
         }
 
@@ -3750,7 +4032,7 @@ namespace Server.Protocol.PacketResponse
 - [ ] **Step 6: コンパイルしてテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Server.PacketTest.CleanRoom.GetCleanRoomInfoProtocolTest"`
-Expected: ErrorCount 0 / 3件 PASS。
+Expected: ErrorCount 0 / 4件 PASS。
 
 - [ ] **Step 7: コミットする**
 
@@ -3782,7 +4064,7 @@ git commit -m "feat(cleanroom): ブロックから部屋の状態を引くプロ
   - `CleanRoomEffect(CleanRoomOperability operability, int maxChipLevel, double downBinRate)`
     - `CleanRoomOperability Operability`
     - `bool CanOperate => Operability == CleanRoomOperability.Operable`
-    - **Part B はこの ctor に合わせる**
+    - A7 の時点ではこの ctor の形のまま置く。Part B の B3 で `CleanRoomEffect` を private ctor ＋ factory（`Operable(CleanRoomClassYield)`／`NotEnclosed()`／`ClassOut()`）と `TryGetClassYield` へ書き換え、この ctor と `MaxChipLevel`・`DownBinRate` は消える（B3 Step 6 が A7 の `PushEffects` の3分岐も書き換える）
   - `CleanRoomOperabilityStateDetail`（namespace `Game.Block.Interface.State`）
     - `BlockStateDetailKey = "CleanRoomOperability"`
     - `[Key(0)] CleanRoomOperability Operability`
@@ -4119,8 +4401,11 @@ git commit -m "feat(cleanroom): 機械の停止理由（未密閉／クラス不
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockInfoPolling/IBlockInfoPollSource.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockInfoPolling/BlockInfoPoller.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomInfoPollSource.cs`（A10 も同じディレクトリに置く）
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs`（111行→約145行）
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs:184-195`（198行→191行）
+- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/NetworkInfo/ElectricNetworkInfoPollSource.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/NetworkInfo/GearNetworkInfoPollSource.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs`（111行→約140行。電力網・歯車網の手書きループを汎用ポーラーへ載せ替え、`OnUpdated` を UniRx にする）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs:24-96,184-195`（198行→192行。`OnUpdated` の購読を `IDisposable` にし、網の判定をキャッシュへ移す）
+- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomDetailTarget.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomDetailDtos.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomDetailDtoBuilder.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockInventoryDtos.cs`（`CleanRoom` フィールド）
@@ -4129,12 +4414,13 @@ git commit -m "feat(cleanroom): 機械の停止理由（未密閉／クラス不
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_clean_room_air_filter_leak.json`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractCleanRoomTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling/BlockInfoPollerTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/NetworkInfoPollSourceTest.cs`
 - Modify: `moorestech_web/webui/src/bridge/contract/wireContract.test.ts`（block detail fixtures の cases に2件足す。A9 で schema を足してから通る）
 
-`BlockDetail/` 直下は既に .cs が 10 本あるので、新しいファイルは `BlockDetail/CleanRoom/` に置く（前例 `BlockDetail/Train/`）。汎用のポーラーは A8・A10・B6 が使うので、両方のアセンブリ（Client.WebUiHost・Client.Game）から見える Client.Game の `InGame/BlockInfoPolling/`（新しいディレクトリ、3本）に置く。
+`BlockDetail/` 直下は既に .cs が 10 本あるので、新しいファイルは `BlockDetail/CleanRoom/`（A8 で3本、B6 の後は5本）と `BlockDetail/NetworkInfo/`（新しいディレクトリ、2本）に置く（前例 `BlockDetail/Train/`）。汎用のポーラーは A8・A10・B6 が使うので、両方のアセンブリ（Client.WebUiHost・Client.Game）から見える Client.Game の `InGame/BlockInfoPolling/`（新しいディレクトリ、3本）に置く。電力網・歯車網の取得元はキャッシュだけが使うので Client.WebUiHost に置く。
 
 **Interfaces:**
-- Consumes: A6 の `WorldQueryApi.GetCleanRoomInfo`・`ResponseCleanRoomInfoMessagePack.TryGetView`・`CleanRoomInfoView`（`CleanRoomEnclosedView`／`CleanRoomNotEnclosedView`）・`CleanRoomSummaryMessagePack.TryGetClass`、A7 の `CleanRoomOperabilityStateDetail`・`CleanRoomOperability`
+- Consumes: A6 の `WorldQueryApi.GetCleanRoomInfo`・`ResponseCleanRoomInfoMessagePack.TryGetView`・`CleanRoomInfoView`（`CleanRoomEnclosedView`／`CleanRoomNotEnclosedView`）・`CleanRoomLeakView`（`CleanRoomOpeningsLeakView`／`CleanRoomNoEnclosureLeakView`／`CleanRoomTooLargeLeakView`／`CleanRoomDetectionPendingLeakView`）・`CleanRoomSummaryMessagePack.TryGetClass`、A7 の `CleanRoomOperabilityStateDetail`・`CleanRoomOperability`、既存の `WorldQueryApi.GetElectricNetworkInfo`・`GetGearNetworkInfo`
 - Produces（A9・A10・B6 が使う）:
   - wire 形（A9）:
     - `cleanRoom.kind`: `"enclosed" | "openings" | "noEnclosure" | "tooLarge" | "detecting"`
@@ -4144,23 +4430,32 @@ git commit -m "feat(cleanroom): 機械の停止理由（未密閉／クラス不
     - `cleanRoom.haltReason`（停止中の室内機械だけ）: `"notEnclosed" | "classOut"`
   - 汎用のポーラー（namespace `Client.Game.InGame.BlockInfoPolling`）:
     - `enum BlockInfoFetchState { NotFetched, Fetched, Vanished }`（未取得／取得済み／消失）
-    - `interface IBlockInfoPollSource<TResponse, TSnapshot> { UniTask<TResponse> Request(BlockInstanceId blockInstanceId, CancellationToken ct); bool TryGetSnapshot(TResponse response, out TSnapshot snapshot); }`。`Request` は通信失敗で null を返す（`WorldQueryApi` の既存の約束）。`TryGetSnapshot` はブロック消失で false
+    - `interface IBlockInfoPollSource<TResponse, TSnapshot> { UniTask<TResponse> Request(BlockInstanceId blockInstanceId, CancellationToken ct); bool TryGetSnapshot(TResponse response, out TSnapshot snapshot); }`。`Request` は通信失敗で null を返す（`WorldQueryApi` の既存の約束）。`TryGetSnapshot` はブロック消失（または読めない応答）で false
     - `class BlockInfoPoller<TResponse, TSnapshot> where TResponse : class`:
       - ctor `(IBlockInfoPollSource<TResponse, TSnapshot> source, string requestName, TimeSpan interval)`
       - `void Start(BlockInstanceId blockInstanceId)`（前の取得を打ち切り、未取得から始め直す）・`void Stop()`（打ち切って未取得に戻す）
       - `BlockInfoFetchState State`・`bool TryGetSnapshot(out TSnapshot snapshot)`（取得済みのときだけ true）
       - `IObservable<Unit> OnUpdated`（取得済みになった・消失したときに発火。通信失敗では発火しない）
-      - 通信失敗は状態と前回値を保って警告ログ、ブロック消失は値を捨てて `Vanished` にして警告ログ。A8・A10・B6 の通信失敗の扱いはこの1本でそろう
+      - 通信失敗は状態と前回値を保って警告ログ、ブロック消失は値を捨てて `Vanished` にして警告ログを1回出し、問い合わせを止める（次の `Start` まで消失のまま）。A8・A10・B6 の通信失敗の扱いはこの1本でそろう
   - `Client.Game.InGame.CleanRoom.CleanRoomInfoPollSource : IBlockInfoPollSource<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>`。`static CreatePoller()` が1秒間隔のポーラーを返す（A8 のキャッシュと A10 の照準が使う）
-  - C#: `BlockNetworkInfoCache.Track(BlockGameObject block)`（旧 `Track(block, electric, gear, filterSplitter)` を置き換える）・`BlockNetworkInfoCache.TryGetCleanRoom(out CleanRoomInfoView view)`・`BlockNetworkInfoCache.IsTrackingGear`
-  - C#: `CleanRoomDetailDtoBuilder.BuildForMachine(CleanRoomInfoView view, CleanRoomOperability operability)` と `CleanRoomDetailDtoBuilder.BuildForAirFilter(CleanRoomInfoView view)` → `CleanRoomDetailDto`。BlockNotFound は引数の型に入らない（ポーラーが `Vanished` として扱う）
+  - namespace `Client.WebUiHost.Game.Topics.BlockDetail.NetworkInfo`: `ElectricNetworkInfoPollSource : IBlockInfoPollSource<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack, GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot>`・`GearNetworkInfoPollSource : IBlockInfoPollSource<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack, GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot>`。どちらも `static CreatePoller()`（1秒間隔）。網に属さない（`Info == null`）は取得済みの値として返し（`TryGetSnapshot` は常に true）、通信失敗（応答 null）とは区別する
+  - C#: `BlockNetworkInfoCache`:
+    - `Track(BlockGameObject block)`（旧 `Track(block, electric, gear, filterSplitter)` を置き換える）・`Clear()`
+    - `Electric`・`GearNetwork`（読み取りのみ。網に属さない・未取得なら null。通信失敗では前回値を保つ）・`FilterSplitter`・`IsTrackingGear`
+    - `CleanRoomDetailTarget CleanRoomTarget`（`enum CleanRoomDetailTarget { None, Machine, AirFilter }`、namespace `Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom`）。部屋欄を出すブロックの判定は `Track` が呼ぶ private static `ToCleanRoomTarget(IBlockParam)` の switch（`CleanRoomMachineBlockParam` → Machine、`CleanRoomAirFilterBlockParam` → AirFilter、ほかは None）1か所だけで、組み立て側はこれを読む
+    - `bool TryGetCleanRoom(out CleanRoomInfoView view)`。未取得と消失はどちらも false に畳む（意図どおり: 消費側の A8 の部屋欄はどちらでも欄を出さず、消失の警告はポーラーが出す。区別が要る消費者が出たらポーラーの `State` を公開する）
+    - `IObservable<Unit> OnUpdated`（旧 `event Action OnUpdated`。AGENTS.md「イベント発火に Action を使わない」に合わせて UniRx の `Subject<Unit>` で出す）。Topic は `Subscribe` の `IDisposable` を持ち、`Dispose` で外す
+  - C#: `CleanRoomDetailDtoBuilder.BuildForMachine(CleanRoomInfoView view, CleanRoomOperability operability)` と `CleanRoomDetailDtoBuilder.BuildForAirFilter(CleanRoomInfoView view)` → `CleanRoomDetailDto`。BlockNotFound は引数の型に入らない（ポーラーが `Vanished` として扱う）。入口 `Apply(BlockInventoryDto dto, BlockGameObject block, BlockNetworkInfoCache cache)` は `cache.CleanRoomTarget` の網羅 switch で口を選び、None なのに部屋の状態があれば `InvalidOperationException`
 
 **設計メモ:**
 - `BlockNetworkInfoCache` が網ごとの判定もまとめて持つ。どの網を追うかを、Topic でなくキャッシュの側で決める。
   - 理由: Topic は198行で、これ以上足せない。
   - 同種の分岐（どの集約情報を取得するか）を一箇所に揃えることにもなる。歯車網を追うかの判定（`param is IGearConnectors`）もキャッシュだけが行い、Topic は `IsTrackingGear` を読む。
-- 「1秒ごとに問い合わせ、通信失敗なら前回値を保ち、ブロック消失なら消す」ループは、汎用の `BlockInfoPoller` 1本にする。A8 の部屋欄・A10 の照準・B6 の抽選の中身が同じものを使う。問い合わせと応答の読み替えは `Func` でなく `IBlockInfoPollSource` の実装で渡す。
+- 「1秒ごとに問い合わせ、通信失敗なら前回値を保ち、ブロック消失なら消して止まる」ループは、汎用の `BlockInfoPoller` 1本にする。A8 の部屋欄・電力網・歯車網、A10 の照準、B6 の抽選の中身が同じものを使う。問い合わせと応答の読み替えは `Func` でなく `IBlockInfoPollSource` の実装で渡す。
+  - 電力網・歯車網の手書きループ（`PollElectric`・`PollGear`）は消す。電力網は今、通信失敗（応答 null）と網に属さない（`Info == null`）を同じ `Electric = null` で上書きしている。ポーラーに載せると、通信失敗は前回値を保って警告になり、網に属さないは取得済みの値になって区別できる。歯車網は今も通信失敗で前回値を保っているので、挙動は変わらない（警告の文言だけ `[BlockInfoPoller] GetGearNetworkInfo failed …` になる）。
+  - サーバーはブロックが無いときも電力網・歯車網に `Info == null` を返す。網の取得元は消失を区別せず「網に属さない」として出す（ブロックが消えれば画面ごと閉じる）。
 - 部屋欄の組み立ては、機械用（停止理由を必ず受け取る `BuildForMachine`）と清浄機用（停止理由の引数が無い `BuildForAirFilter`）の2つの口に分ける。null で「清浄機である」を表さない。
+- どのブロックに部屋欄を出すかは、キャッシュの `ToCleanRoomTarget` の switch 1か所で `CleanRoomDetailTarget` に決める。組み立て（`Apply`）はその値の網羅 switch で口を選び、「機械でなければ清浄機」という残りの扱いはしない。残り（None なのに部屋の状態がある）は配線の誤りなので例外にする。
 - webui へ渡す C# の wire DTO（`CleanRoomDetailDto`）は前例どおり、判別子の文字列と、種別ごとにしか意味を持たないフィールドを null（キーごと省略）で並べる形にする。C# は wire へ詰め替えるだけで、種別を閉じる役は TS の zod の `discriminatedUnion`（A9）が担う。
 - 漏れセルの座標は webui へ送らない。件数だけを送る。座標は A10 がワールドにマーカーとして出す。
 
@@ -4260,7 +4555,7 @@ namespace Client.Tests.WebUi.BlockDetail
             // 清浄機は停止理由の引数が無い口で組むので haltReason は出ない
             // A purifier goes through the entry point without a halt-reason argument, so haltReason never appears
             var cells = new List<Vector3IntMessagePack> { new(0, 33, 0), new(1, 33, 0), new(2, 33, 0) };
-            var leak = new CleanRoomLeakMessagePack(CleanRoomLeakResponseKind.Openings, cells, 3, 4096);
+            var leak = new CleanRoomOpeningsLeakView(cells, 3);
 
             var dto = new BlockInventoryDto
             {
@@ -4289,20 +4584,33 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.IsNull(dto.HaltReason);
         }
 
-        [TestCase(CleanRoomLeakResponseKind.NoEnclosure, "noEnclosure")]
-        [TestCase(CleanRoomLeakResponseKind.TooLarge, "tooLarge")]
-        [TestCase(CleanRoomLeakResponseKind.DetectionPending, "detecting")]
-        public void LeakKindMapsToWireKindTest(CleanRoomLeakResponseKind kind, string expected)
+        [Test]
+        public void NoEnclosureLeakMapsToWireKindTest()
         {
-            var leak = new CleanRoomLeakMessagePack(kind, new List<Vector3IntMessagePack>(), 0, 4096);
+            AssertLeakMapsTo(CleanRoomNoEnclosureLeakView.Instance, "noEnclosure", null);
+        }
 
+        [Test]
+        public void TooLargeLeakCarriesVolumeCapTest()
+        {
+            AssertLeakMapsTo(new CleanRoomTooLargeLeakView(4096), "tooLarge", 4096);
+        }
+
+        [Test]
+        public void DetectionPendingLeakMapsToWireKindTest()
+        {
+            AssertLeakMapsTo(CleanRoomDetectionPendingLeakView.Instance, "detecting", null);
+        }
+
+        private static void AssertLeakMapsTo(CleanRoomLeakView leak, string expectedKind, int? expectedMaxRoomVolume)
+        {
             // 稼働可の機械は停止理由を出さず、上限体積は tooLarge のときだけ載る
             // An operable machine shows no halt reason, and the volume cap appears only for tooLarge
             var dto = CleanRoomDetailDtoBuilder.BuildForMachine(new CleanRoomNotEnclosedView(leak), CleanRoomOperability.Operable);
-            Assert.AreEqual(expected, dto.Kind);
+            Assert.AreEqual(expectedKind, dto.Kind);
             Assert.IsNull(dto.HaltReason);
             Assert.IsNull(dto.OpeningCount);
-            Assert.AreEqual(kind == CleanRoomLeakResponseKind.TooLarge ? 4096 : (int?)null, dto.MaxRoomVolume);
+            Assert.AreEqual(expectedMaxRoomVolume, dto.MaxRoomVolume);
         }
 
         private static void AssertMatchesFixture(object dto, string fixtureName)
@@ -4334,8 +4642,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.BlockInfoPolling
 {
     /// <summary>
-    ///     未取得→取得済み→通信失敗（保持）→消失 の遷移と、通知が取得済み・消失のときだけ出ることを固定する
-    ///     Pins the not fetched -> fetched -> transport failure (kept) -> vanished transitions and that only fetch and vanish notify
+    ///     未取得→取得済み→通信失敗（保持）→消失（停止）の遷移と、通知が取得済み・消失のときだけ出ることを固定する
+    ///     Pins the not fetched -> fetched -> transport failure (kept) -> vanished (stopped) transitions and that only fetch and vanish notify
     /// </summary>
     public class BlockInfoPollerTest
     {
@@ -4376,6 +4684,14 @@ namespace Client.Tests.BlockInfoPolling
             Assert.IsFalse(poller.TryGetSnapshot(out _));
             Assert.AreEqual(2, updates);
 
+            // 消失したら問い合わせを止めるので、間隔の10倍待っても警告も通知も繰り返さない
+            // Vanishing stops the requests, so even ten intervals later neither the warning nor the notification repeats
+            var requestsAtVanish = source.RequestCount;
+            await UniTask.Delay(TimeSpan.FromMilliseconds(100));
+            Assert.AreEqual(requestsAtVanish, source.RequestCount);
+            Assert.AreEqual(BlockInfoFetchState.Vanished, poller.State);
+            Assert.AreEqual(2, updates);
+
             // 止めると未取得に戻る
             // Stopping returns it to not fetched
             poller.Stop();
@@ -4400,8 +4716,11 @@ namespace Client.Tests.BlockInfoPolling
         {
             private UniTaskCompletionSource<ScriptedResponse> _pending;
 
+            public int RequestCount { get; private set; }
+
             public UniTask<ScriptedResponse> Request(BlockInstanceId blockInstanceId, CancellationToken ct)
             {
+                RequestCount++;
                 _pending = new UniTaskCompletionSource<ScriptedResponse>();
                 return _pending.Task;
             }
@@ -4427,10 +4746,55 @@ namespace Client.Tests.BlockInfoPolling
 }
 ```
 
+`moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/NetworkInfoPollSourceTest.cs`:
+
+```csharp
+using Client.WebUiHost.Game.Topics.BlockDetail.NetworkInfo;
+using Game.Gear.Common;
+using NUnit.Framework;
+using Server.Protocol.PacketResponse;
+
+namespace Client.Tests.WebUi.BlockDetail
+{
+    /// <summary>
+    ///     網に属さない応答（Info=null）を消失でなく取得済みの値として返すことを固定する（通信失敗の null とは別扱い）
+    ///     Pins that a not-a-member response (Info == null) is a fetched value rather than a vanish, apart from the transport-failure null
+    /// </summary>
+    public class NetworkInfoPollSourceTest
+    {
+        [Test]
+        public void ElectricNonMemberIsFetchedValueTest()
+        {
+            var source = new ElectricNetworkInfoPollSource();
+
+            // 網に属さないは取得済みの null、属していればその集約値
+            // Not a member is a fetched null; a member yields its aggregate
+            Assert.IsTrue(source.TryGetSnapshot(new GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack(null), out var none));
+            Assert.IsNull(none);
+            var info = new GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot(10f, 5f, 1f, 2);
+            Assert.IsTrue(source.TryGetSnapshot(new GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack(info), out var member));
+            Assert.AreSame(info, member);
+        }
+
+        [Test]
+        public void GearNonMemberIsFetchedValueTest()
+        {
+            var source = new GearNetworkInfoPollSource();
+
+            Assert.IsTrue(source.TryGetSnapshot(new GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack(null), out var none));
+            Assert.IsNull(none);
+            var info = new GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot(4f, 8f, GearNetworkStopReason.None);
+            Assert.IsTrue(source.TryGetSnapshot(new GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack(info), out var member));
+            Assert.AreSame(info, member);
+        }
+    }
+}
+```
+
 - [ ] **Step 3: コンパイルエラーを確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: `Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom` と `Client.Game.InGame.BlockInfoPolling` が見つからない CS0234 が出る。
+Expected: `Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom`・`Client.WebUiHost.Game.Topics.BlockDetail.NetworkInfo`・`Client.Game.InGame.BlockInfoPolling` が見つからない CS0234 が出る。
 
 - [ ] **Step 4: 汎用のポーラーと部屋照会の取得元を書く**
 
@@ -4471,8 +4835,8 @@ namespace Client.Game.InGame.BlockInfoPolling
         // Returns null on a transport failure, as WorldQueryApi already does
         UniTask<TResponse> Request(BlockInstanceId blockInstanceId, CancellationToken ct);
 
-        // ブロック消失なら false
-        // False when the block has vanished
+        // ブロック消失（または読めない応答）なら false。ポーラーは値を捨てて問い合わせを止める
+        // False when the block has vanished (or the response is unreadable); the poller drops the value and stops polling
         bool TryGetSnapshot(TResponse response, out TSnapshot snapshot);
     }
 }
@@ -4548,35 +4912,41 @@ namespace Client.Game.InGame.BlockInfoPolling
             {
                 var response = await _source.Request(blockInstanceId, ct);
                 if (ct.IsCancellationRequested) return;
-                Apply(response, blockInstanceId);
+
+                // 消失したら問い合わせを止める。次の Start までは消失のままなので、警告は1回だけ出る
+                // Stop polling once vanished; it stays vanished until the next Start, so the warning is logged once
+                if (!Apply(response, blockInstanceId)) return;
                 await UniTask.Delay(_interval, cancellationToken: ct);
             }
         }
 
-        private void Apply(TResponse response, BlockInstanceId blockInstanceId)
+        // 問い合わせを続けるなら true、ブロック消失なら false
+        // True to keep polling, false once the block has vanished
+        private bool Apply(TResponse response, BlockInstanceId blockInstanceId)
         {
             // 通信失敗は状態と前回値を保つ（未取得なら未取得のまま）。開発者には警告で知らせる
             // A transport failure keeps the state and last value (not fetched stays so); warn the developer
             if (response == null)
             {
                 Debug.LogWarning($"[BlockInfoPoller] {_requestName} failed for block {blockInstanceId}; keeping the {State} state");
-                return;
+                return true;
             }
 
-            // ブロック消失は値を捨てて消失にする
-            // A vanished block drops the value and turns vanished
+            // ブロック消失（または読めない応答）は値を捨てて消失にする
+            // A vanished block (or an unreadable response) drops the value and turns vanished
             if (!_source.TryGetSnapshot(response, out var snapshot))
             {
-                Debug.LogWarning($"[BlockInfoPoller] {_requestName} found no block {blockInstanceId}; clearing the snapshot");
+                Debug.LogWarning($"[BlockInfoPoller] {_requestName} found no block {blockInstanceId} (or an unreadable response); clearing the snapshot and stopping");
                 _snapshot = default;
                 State = BlockInfoFetchState.Vanished;
                 _onUpdated.OnNext(Unit.Default);
-                return;
+                return false;
             }
 
             _snapshot = snapshot;
             State = BlockInfoFetchState.Fetched;
             _onUpdated.OnNext(Unit.Default);
+            return true;
         }
     }
 }
@@ -4601,8 +4971,8 @@ namespace Client.Game.InGame.CleanRoom
     /// </summary>
     public class CleanRoomInfoPollSource : IBlockInfoPollSource<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>
     {
-        // 部屋の検出・清浄化の進み具合を追う間隔（前例 BlockNetworkInfoCache.PollElectric と同じ1秒）
-        // Interval following room detection and purification progress, the same 1 second as BlockNetworkInfoCache.PollElectric
+        // 部屋の検出・清浄化の進み具合を追う間隔（電力網の ElectricNetworkInfoPollSource と同じ1秒）
+        // Interval following room detection and purification progress, the same 1 second as the electric ElectricNetworkInfoPollSource
         private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
 
         public static BlockInfoPoller<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView> CreatePoller()
@@ -4623,7 +4993,117 @@ namespace Client.Game.InGame.CleanRoom
 }
 ```
 
+電力網・歯車網も同じ汎用ポーラーに載せる。取得元はキャッシュだけが使うので Client.WebUiHost に置く。
+
+`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/NetworkInfo/ElectricNetworkInfoPollSource.cs`:
+
+```csharp
+using System;
+using System.Threading;
+using Client.Game.InGame.BlockInfoPolling;
+using Client.Game.InGame.Context;
+using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using Server.Protocol.PacketResponse;
+
+namespace Client.WebUiHost.Game.Topics.BlockDetail.NetworkInfo
+{
+    /// <summary>
+    ///     電力網の集約情報の1回分の問い合わせ。網に属さないことも取得済みの値として保つ
+    ///     One round of the electric network aggregate query; non-membership is kept as a fetched value too
+    /// </summary>
+    public class ElectricNetworkInfoPollSource : IBlockInfoPollSource<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack, GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot>
+    {
+        // uGUI ElectricNetworkInfoView と同じ1秒間隔
+        // The same 1-second interval as uGUI ElectricNetworkInfoView
+        private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
+
+        public static BlockInfoPoller<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack, GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot> CreatePoller()
+        {
+            return new BlockInfoPoller<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack, GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot>(new ElectricNetworkInfoPollSource(), "GetElectricNetworkInfo", PollInterval);
+        }
+
+        public UniTask<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack> Request(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            return ClientContext.VanillaApi.Response.World.GetElectricNetworkInfo(blockInstanceId, ct);
+        }
+
+        // 網に属さない（Info=null）は取得済みの「未所属」として返す。通信失敗（応答 null）はポーラーが前回値を保つので混ざらない
+        // Non-membership (Info == null) is returned as a fetched "not a member"; a transport failure (null response) keeps the last value in the poller, so the two never mix
+        // silent-ok: サーバーはブロックが無いときも同じ Info=null を返すので消失を区別せず未所属として出す / ブロックが消えれば開いている画面ごと閉じ、未所属の表示は画面で見える
+        public bool TryGetSnapshot(GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack response, out GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot snapshot)
+        {
+            snapshot = response.Info;
+            return true;
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/NetworkInfo/GearNetworkInfoPollSource.cs`:
+
+```csharp
+using System;
+using System.Threading;
+using Client.Game.InGame.BlockInfoPolling;
+using Client.Game.InGame.Context;
+using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using Server.Protocol.PacketResponse;
+
+namespace Client.WebUiHost.Game.Topics.BlockDetail.NetworkInfo
+{
+    /// <summary>
+    ///     歯車網の集約情報の1回分の問い合わせ。網に属さないことも取得済みの値として保つ
+    ///     One round of the gear network aggregate query; non-membership is kept as a fetched value too
+    /// </summary>
+    public class GearNetworkInfoPollSource : IBlockInfoPollSource<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack, GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot>
+    {
+        // 電力網と同じ1秒間隔（開いている間ずっと停止理由行を追随させる）
+        // The same 1-second interval as the electric network, so the stop-reason row stays live while open
+        private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
+
+        public static BlockInfoPoller<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack, GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot> CreatePoller()
+        {
+            return new BlockInfoPoller<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack, GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot>(new GearNetworkInfoPollSource(), "GetGearNetworkInfo", PollInterval);
+        }
+
+        public UniTask<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack> Request(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            return ClientContext.VanillaApi.Response.World.GetGearNetworkInfo(blockInstanceId, ct);
+        }
+
+        // 網に属さない（Info=null）は取得済みの「未所属」として返す。通信失敗（応答 null）はポーラーが前回値を保つので混ざらない
+        // Non-membership (Info == null) is returned as a fetched "not a member"; a transport failure (null response) keeps the last value in the poller, so the two never mix
+        // silent-ok: サーバーはブロックが無いときも同じ Info=null を返すので消失を区別せず未所属として出す / ブロックが消えれば開いている画面ごと閉じ、未所属の表示は画面で見える
+        public bool TryGetSnapshot(GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack response, out GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot snapshot)
+        {
+            snapshot = response.Info;
+            return true;
+        }
+    }
+}
+```
+
 - [ ] **Step 5: DTO と組み立てを書く**
+
+`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomDetailTarget.cs`:
+
+```csharp
+namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
+{
+    /// <summary>
+    ///     開いているブロックの部屋欄をどの口で組むか。判定は BlockNetworkInfoCache.Track の switch だけが行う
+    ///     Which entry point builds the open block's room section; only the switch in BlockNetworkInfoCache.Track decides it
+    /// </summary>
+    public enum CleanRoomDetailTarget
+    {
+        None,
+        Machine,
+        AirFilter,
+    }
+}
+```
 
 `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomDetailDtos.cs`:
 
@@ -4684,7 +5164,6 @@ using System.Linq;
 using Client.Game.InGame.Block;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
-using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
@@ -4701,18 +5180,24 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
             // Omit the section while not fetched or vanished; the poller already warns about vanishing and transport failures
             if (!cache.TryGetCleanRoom(out var view)) return;
 
-            // 停止理由の状態を持つのは室内機械だけ。清浄機は停止理由の無い口で組む
-            // Only interior machines carry a halt-reason state; purifiers use the entry point without one
-            if (!(block.BlockMasterElement.BlockParam is CleanRoomMachineBlockParam))
+            // 口はキャッシュの判定（CleanRoomTarget）で選び、ここで param を見直さない
+            // Pick the entry point from the cache's decision (CleanRoomTarget) instead of re-checking the param here
+            switch (cache.CleanRoomTarget)
             {
-                dto.CleanRoom = BuildForAirFilter(view);
-                return;
+                case CleanRoomDetailTarget.AirFilter:
+                    dto.CleanRoom = BuildForAirFilter(view);
+                    return;
+                case CleanRoomDetailTarget.Machine:
+                    // silent-ok: 機械の状態がまだ届いていない間は欄を出さない（前例 PumpDetailDtoBuilder）/ 状態イベントの到着で再配信されるので、欄が出続けなければ開いた画面で見える
+                    var operability = block.GetStateDetail<CleanRoomOperabilityStateDetail>(CleanRoomOperabilityStateDetail.BlockStateDetailKey);
+                    if (operability == null) return;
+                    dto.CleanRoom = BuildForMachine(view, operability.Operability);
+                    return;
+                default:
+                    // 部屋の照会を追うのは室内機械と清浄機だけなので、それ以外で値があるのは配線の誤り
+                    // Only interior machines and purifiers follow the room query, so a value for any other target is a wiring bug
+                    throw new InvalidOperationException($"部屋の照会を追わない対象に部屋の状態がある / Room state exists for a target that does not follow the room query: {cache.CleanRoomTarget}");
             }
-
-            // silent-ok: 機械の状態がまだ届いていない間は欄を出さない（前例 PumpDetailDtoBuilder）/ 状態イベントの到着で再配信されるので、欄が出続けなければ開いた画面で見える
-            var operability = block.GetStateDetail<CleanRoomOperabilityStateDetail>(CleanRoomOperabilityStateDetail.BlockStateDetailKey);
-            if (operability == null) return;
-            dto.CleanRoom = BuildForMachine(view, operability.Operability);
         }
 
         // 室内機械用: 停止理由を必ず受け取る
@@ -4741,17 +5226,17 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
             };
         }
 
-        private static CleanRoomDetailDto BuildLeak(CleanRoomLeakMessagePack leak)
+        private static CleanRoomDetailDto BuildLeak(CleanRoomLeakView leak)
         {
-            // 漏れ種別ごとに件数か上限体積だけを添える
-            // Attach only the opening count or the volume cap, per leak kind
-            return leak.Kind switch
+            // 漏れの型ごとに、その型だけが持つ件数か上限体積を添える
+            // Attach the opening count or the volume cap that only that leak type carries
+            return leak switch
             {
-                CleanRoomLeakResponseKind.Openings => new CleanRoomDetailDto { Kind = "openings", OpeningCount = leak.TotalOpeningCount },
-                CleanRoomLeakResponseKind.NoEnclosure => new CleanRoomDetailDto { Kind = "noEnclosure" },
-                CleanRoomLeakResponseKind.TooLarge => new CleanRoomDetailDto { Kind = "tooLarge", MaxRoomVolume = leak.MaxRoomVolume },
-                CleanRoomLeakResponseKind.DetectionPending => new CleanRoomDetailDto { Kind = "detecting" },
-                _ => throw new ArgumentOutOfRangeException(nameof(leak.Kind), leak.Kind, "未対応の漏れ種別 / Unsupported leak kind"),
+                CleanRoomOpeningsLeakView openings => new CleanRoomDetailDto { Kind = "openings", OpeningCount = openings.TotalOpeningCount },
+                CleanRoomNoEnclosureLeakView _ => new CleanRoomDetailDto { Kind = "noEnclosure" },
+                CleanRoomTooLargeLeakView tooLarge => new CleanRoomDetailDto { Kind = "tooLarge", MaxRoomVolume = tooLarge.MaxRoomVolume },
+                CleanRoomDetectionPendingLeakView _ => new CleanRoomDetailDto { Kind = "detecting" },
+                _ => throw new ArgumentOutOfRangeException(nameof(leak), leak.GetType().Name, "未対応の漏れ種別 / Unsupported leak kind"),
             };
         }
 
@@ -4809,7 +5294,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
 
 - [ ] **Step 6: キャッシュに部屋の照会を足し、網の判定を移す**
 
-`BlockNetworkInfoCache.cs` を次の全文にする（`ApplyFilterSplitterSnapshot`・`PollElectric`・`PollGear`・`FetchFilterSplitter` の本体は現行と同じ）。
+`BlockNetworkInfoCache.cs` を次の全文にする（`FetchFilterSplitter` の本体は現行と同じ。手書きのループ `PollElectric`・`PollGear` は消え、電力網・歯車網・部屋は汎用ポーラーで追う。`OnUpdated` は `event Action` から UniRx の `IObservable<Unit>` に替える）。
 
 ```csharp
 using System;
@@ -4818,6 +5303,8 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Game.InGame.CleanRoom;
 using Client.Game.InGame.Context;
+using Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom;
+using Client.WebUiHost.Game.Topics.BlockDetail.NetworkInfo;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -4828,38 +5315,50 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
     /// <summary>
     /// 開いているブロックのネット集約情報をキャッシュ
-    /// - electric/gear: 1秒ポーリング
+    /// - electric/gear/cleanRoom: 汎用ポーラー BlockInfoPoller の1秒ポーリング
     /// - filter: 開時1回取得
-    /// - cleanRoom: 汎用ポーラー BlockInfoPoller の1秒ポーリング
     /// Caches network aggregates for the open block
-    /// - electric/gear: 1s polling
+    /// - electric/gear/cleanRoom: 1s polling through the generic BlockInfoPoller
     /// - filter: fetched once on open
-    /// - cleanRoom: 1s polling through the generic BlockInfoPoller
     /// </summary>
     public class BlockNetworkInfoCache
     {
-        public GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot Electric { get; private set; }
-        public GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot GearNetwork { get; private set; }
+        // 網に属さない・未取得なら null。通信失敗ではポーラーが前回値を保つ
+        // Null when not a member or not fetched yet; on a transport failure the poller keeps the last value
+        public GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot Electric => _electricPoller.TryGetSnapshot(out var info) ? info : null;
+        public GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot GearNetwork => _gearPoller.TryGetSnapshot(out var info) ? info : null;
         public FilterSplitterStateProtocol.FilterSplitterStateResponse FilterSplitter { get; private set; }
 
         // 歯車網を追っているか。Topic の連続サンプリングはこれを読み、判定はここだけで行う
         // Whether the gear network is tracked; the topic's continuous sampling reads this, so the check lives only here
         public bool IsTrackingGear { get; private set; }
-        public event Action OnUpdated;
 
+        // 部屋欄をどの口で組むか。判定は ToCleanRoomTarget の switch だけで行い、組み立て側はこれを読む
+        // Which entry point builds the room section; only the switch in ToCleanRoomTarget decides it and the builder reads it
+        public CleanRoomDetailTarget CleanRoomTarget { get; private set; }
+
+        // どれかの集約情報が取得済み・消失に変わったときに発火する（Topic が再配信する）
+        // Fires when any aggregate becomes fetched or vanished so the topic republishes
+        public IObservable<Unit> OnUpdated => _onUpdated;
+
+        private readonly Subject<Unit> _onUpdated = new();
+        private readonly BlockInfoPoller<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack, GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot> _electricPoller = ElectricNetworkInfoPollSource.CreatePoller();
+        private readonly BlockInfoPoller<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack, GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot> _gearPoller = GearNetworkInfoPollSource.CreatePoller();
         private readonly BlockInfoPoller<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView> _cleanRoomPoller = CleanRoomInfoPollSource.CreatePoller();
         private CancellationTokenSource _cts;
         private Vector3Int _currentPos = new(int.MinValue, int.MinValue, int.MinValue);
 
         public BlockNetworkInfoCache()
         {
-            // 部屋の照会が取得済み・消失に変わったら再配信する
-            // Republish when the room query becomes fetched or vanished
-            _cleanRoomPoller.OnUpdated.Subscribe(_ => OnUpdated?.Invoke());
+            // どのポーラーが取得済み・消失に変わっても再配信する（通信失敗では発火しない）
+            // Republish whenever any poller becomes fetched or vanished; transport failures never fire
+            _electricPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+            _gearPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+            _cleanRoomPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
         }
 
-        // 取得済みのときだけ部屋の状態を返す（未取得・消失は false）
-        // Returns the room state only while fetched (false when not fetched or vanished)
+        // 取得済みのときだけ部屋の状態を返す。未取得と消失はどちらも false に畳む（どの読み手も欄を出さない扱いで同じため。消失の警告はポーラーが出す）
+        // Returns the room state only while fetched; not fetched and vanished both fold into false since every reader omits the section either way (the poller warns on vanishing)
         public bool TryGetCleanRoom(out CleanRoomInfoView view)
         {
             return _cleanRoomPoller.TryGetSnapshot(out view);
@@ -4879,13 +5378,14 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // The master's connection params answer which networks a block joins; enumerating blockTypes drops new kinds
             var param = block.BlockMasterElement.BlockParam;
             IsTrackingGear = param is IGearConnectors;
-            if (param is IElectricWireConnectParam) PollElectric(block, _cts.Token).Forget();
-            if (IsTrackingGear) PollGear(block, _cts.Token).Forget();
+            CleanRoomTarget = ToCleanRoomTarget(param);
+            if (param is IElectricWireConnectParam) _electricPoller.Start(block.BlockInstanceId);
+            if (IsTrackingGear) _gearPoller.Start(block.BlockInstanceId);
             if (block.BlockMasterElement.BlockType == "FilterSplitter") FetchFilterSplitter(block.BlockPosInfo.OriginalPos, _cts.Token).Forget();
 
             // 室内機械と清浄機は、開いている間ずっと部屋の状態を追う
             // Interior machines and purifiers follow the room state while open
-            if (param is CleanRoomMachineBlockParam or CleanRoomAirFilterBlockParam) _cleanRoomPoller.Start(block.BlockInstanceId);
+            if (CleanRoomTarget != CleanRoomDetailTarget.None) _cleanRoomPoller.Start(block.BlockInstanceId);
         }
 
         public void Clear()
@@ -4893,11 +5393,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
+            _electricPoller.Stop();
+            _gearPoller.Stop();
             _cleanRoomPoller.Stop();
-            Electric = null;
-            GearNetwork = null;
             FilterSplitter = null;
             IsTrackingGear = false;
+            CleanRoomTarget = CleanRoomDetailTarget.None;
             _currentPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
         }
 
@@ -4906,45 +5407,19 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public void ApplyFilterSplitterSnapshot(FilterSplitterStateProtocol.FilterSplitterStateResponse response)
         {
             FilterSplitter = response;
-            OnUpdated?.Invoke();
+            _onUpdated.OnNext(Unit.Default);
         }
 
-        private async UniTaskVoid PollElectric(BlockGameObject block, CancellationToken ct)
+        // 部屋欄を出すブロックの判定はここだけ。部屋に属しうる室内機械と清浄機のほかは部屋欄を持たない
+        // The only place deciding which blocks show the room section; only interior machines and purifiers have one
+        private static CleanRoomDetailTarget ToCleanRoomTarget(IBlockParam param)
         {
-            // uGUI ElectricNetworkInfoView と同じ1秒間隔ポーリング
-            // Same 1-second polling as uGUI ElectricNetworkInfoView
-            while (!ct.IsCancellationRequested)
+            return param switch
             {
-                var response = await ClientContext.VanillaApi.Response.World.GetElectricNetworkInfo(block.BlockInstanceId, ct);
-                if (ct.IsCancellationRequested) return;
-                Electric = response?.Info;
-                OnUpdated?.Invoke();
-                await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
-            }
-        }
-
-        private async UniTaskVoid PollGear(BlockGameObject block, CancellationToken ct)
-        {
-            // PollElectric と同じ1秒間隔ポーリング（開いている間ずっと停止理由行を追随させる）
-            // Same 1-second polling as PollElectric, so the stop-reason row stays live while open
-            while (!ct.IsCancellationRequested)
-            {
-                var response = await ClientContext.VanillaApi.Response.World.GetGearNetworkInfo(block.BlockInstanceId, ct);
-                if (ct.IsCancellationRequested) return;
-
-                // 通信失敗は網未所属(Info=null)と区別し、前回値を保って停止理由行を消さない
-                // Keep the last snapshot on a transport failure so it is not confused with non-membership (Info == null)
-                if (response == null)
-                {
-                    Debug.LogWarning($"[BlockNetworkInfoCache] GetGearNetworkInfo failed for block {block.BlockInstanceId}; keeping the previous gear network snapshot");
-                    await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
-                    continue;
-                }
-
-                GearNetwork = response.Info;
-                OnUpdated?.Invoke();
-                await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
-            }
+                CleanRoomMachineBlockParam => CleanRoomDetailTarget.Machine,
+                CleanRoomAirFilterBlockParam => CleanRoomDetailTarget.AirFilter,
+                _ => CleanRoomDetailTarget.None,
+            };
         }
 
         private async UniTaskVoid FetchFilterSplitter(Vector3Int pos, CancellationToken ct)
@@ -4961,7 +5436,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 }
 ```
 
-`BlockInventoryTopic.cs` の 184〜195 行（`// ネットワーク所属は…` の2行コメントから `_networkCache.Track(block, electric, gear, filterSplitter);` まで）を、次で置き換える:
+`BlockInventoryTopic.cs` を次のとおり変える。
+
+- `OnUpdated` が UniRx になったので、購読を `IDisposable` で持つ。フィールド `private readonly IDisposable _continuousSampleSubscription;` の次の行に `private readonly IDisposable _networkCacheSubscription;` を足す。
+- ctor の `_networkCache.OnUpdated += SchedulePublish;` を `_networkCacheSubscription = _networkCache.OnUpdated.Subscribe(_ => SchedulePublish());` にする（直前の2行コメントはそのまま）。
+- `Dispose` の `_networkCache.OnUpdated -= SchedulePublish;` を `_networkCacheSubscription.Dispose();` にする。
+- 元の 184〜195 行（上でフィールドを1行足した後は 185〜196 行。`// ネットワーク所属は…` の2行コメントから `_networkCache.Track(block, electric, gear, filterSplitter);` まで）を、次で置き換える:
 
 ```csharp
             // どの集約情報を追うかはキャッシュが param から決め、歯車網の追跡有無もキャッシュから読む
@@ -4984,16 +5464,16 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
 - [ ] **Step 8: コンパイルして C# テストを通す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi\.(BlockDetail\.WireContractCleanRoomTest|WireContractBlockDetailTest)|BlockInfoPolling\.)"`
-Expected: ErrorCount 0 / 全 PASS（新しい7件〈部屋欄6・ポーラー1〉と、既存の block detail 契約）。
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi\.(BlockDetail\.|WireContractBlockDetailTest)|BlockInfoPolling\.)"`
+Expected: ErrorCount 0 / 全 PASS（新しい9件〈部屋欄6・網の取得元2・ポーラー1〉と、既存の block detail 契約、キャッシュを組む既存の `GearToElectricDetailDtoBuilderTest`・`FluidBlockDetailDtoBuilderTest`）。
 
 Run: `wc -l moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs`
-Expected: どちらも200未満（約145行・191行）。
+Expected: どちらも200未満（約140行・192行）。
 
 - [ ] **Step 9: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockInfoPolling moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractCleanRoomTest.cs moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_clean_room_machine.json moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_clean_room_air_filter_leak.json moorestech_web/webui/src/bridge/contract/wireContract.test.ts
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockInfoPolling moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics moorestech_client/Assets/Scripts/Client.Tests/BlockInfoPolling moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContractCleanRoomTest.cs moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/NetworkInfoPollSourceTest.cs moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_clean_room_machine.json moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_clean_room_air_filter_leak.json moorestech_web/webui/src/bridge/contract/wireContract.test.ts
 git commit -m "feat(cleanroom): 室内機械・清浄機の部屋の状態を block_inventory に載せる"
 ```
 
@@ -5522,8 +6002,8 @@ git commit -m "feat(cleanroom): webui に部屋欄・停止理由・清浄機の
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomTooltipPresenter.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomLeakMarkerVisualizer.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomBoundaryHoverService.cs`（このディレクトリは A8 の `CleanRoomInfoPollSource.cs` と合わせて5本）
-- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/TooltipLineComparison.cs`（このディレクトリは8本）
-- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs`（`IsSameLines` を `TooltipLineComparison` へ移す。84行→約64行）
+- Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/OwnedTooltipLinesWriter.cs`（このディレクトリは7本）
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs`（所有者・同一内容スキップ・Hide の本体を `OwnedTooltipLinesWriter` へ移す。84行→約43行。挙動は変えない）
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/GameScreenState.cs`（146行→約156行）
 - Create: `moorestech_client/Assets/Scripts/Client.Starter/Registration/CleanRoomUiRegistration.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/MainGameStarter.cs:109`
@@ -5533,12 +6013,14 @@ git commit -m "feat(cleanroom): webui に部屋欄・停止理由・清浄機の
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/UIState/UIStateKeyHintCatalogTest.cs:137`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/CleanRoom/CleanRoomTooltipLinesTest.cs`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/CleanRoom/CleanRoomTooltipPresenterTest.cs`
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Tooltip/OwnedTooltipLinesWriterTest.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenterTest.cs`（152行→約170行。共通の書き手へ寄せた後も既存の比較のままであることを固定する1件を足す）
 
 `MainGameInteractionRegistration.cs` は既に211行あるため、登録は新しいファイルに分ける。asmdef の変更は不要（Client.Game は Server.Protocol・Client.Network・Server.Util を参照済み）。
 
 **Interfaces:**
 - Consumes:
-  - A6 の `CleanRoomInfoView`（`CleanRoomEnclosedView`／`CleanRoomNotEnclosedView`）・`CleanRoomSummaryMessagePack.TryGetClass`・`CleanRoomSummaryMessagePack.CreateClassified`／`CreateOut`（テスト）
+  - A6 の `CleanRoomInfoView`（`CleanRoomEnclosedView`／`CleanRoomNotEnclosedView`）・`CleanRoomLeakView`（`CleanRoomOpeningsLeakView`／`CleanRoomNoEnclosureLeakView`／`CleanRoomTooLargeLeakView`／`CleanRoomDetectionPendingLeakView`）・`CleanRoomSummaryMessagePack.TryGetClass`・`CleanRoomSummaryMessagePack.CreateClassified`／`CreateOut`（テスト）
   - A8 の `BlockInfoPoller`・`BlockInfoFetchState`・`CleanRoomInfoPollSource.CreatePoller()`
   - A9 の `LocalizationKeys.Ui.Tooltip.CleanRoom*`
   - 既存の `IMouseCursorTooltip`・`TooltipOwner`・`BlockClickDetectUtil.TryGetCursorOnBlock`
@@ -5547,11 +6029,15 @@ git commit -m "feat(cleanroom): webui に部屋欄・停止理由・清浄機の
   - 名前 `CleanRoomLeakMarker` の Cube。漏れセル `c` の中心 `c + (0.5, 0.5, 0.5)` に置き、Collider は持たない
   - `CleanRoomBoundaryHoverService.ManualUpdate()` と `Disable()`
   - `CleanRoomTooltipLines.Build(CleanRoomInfoView view)` → `TooltipLine[]`（BlockNotFound は引数の型に入らない）
-  - `Client.Game.InGame.UI.Tooltip.TooltipLineComparison.IsSameLines(IReadOnlyList<TooltipLine> left, IReadOnlyList<TooltipLine> right)`（キーと TextParams を添字で比べる。設置フィードバックと部屋のツールチップが共有する）
+  - `Client.Game.InGame.UI.Tooltip.OwnedTooltipLinesWriter`（設置フィードバックと部屋のツールチップが共有する書き手）:
+    - ctor `(IMouseCursorTooltip tooltip)`。所有者トークンを1つ持つ
+    - `void Show(IReadOnlyList<TooltipLine> lines)`: 自分の表示が立ったままで、キーと TextParams が同じなら Show を省く。そうでなければ複製して Show する
+    - `void Hide()`: 自分の表示だけを消す
+    - `bool IsShownByOther()`: 他の書き手が表示中か。譲るかどうかは呼び出し側が決める（部屋のツールチップだけが譲る）
 
 **設計メモ:**
 - ツールチップは、他の書き手（インタラクト案内・設置フィードバック）が出している間は譲る。`CurrentOwner` が null か自分のときだけ出す。
-  - 所有者比較と同一内容スキップは前例 `PlacementFeedbackTooltipPresenter` に従う。同一内容の判定は、前例の `IsSameLines`（キーと TextParams を比べる）を `TooltipLineComparison` へ移して両方から呼ぶ。
+  - 所有者比較・同一内容スキップ・自分の分だけの Hide は前例 `PlacementFeedbackTooltipPresenter` に従う。前例の本体（所有者トークン・`_lastShown`・`IsUnchangedFromShown`・`IsSameLines`・複製して Show・Hide）を共通の小クラス `OwnedTooltipLinesWriter` へ移し、両方の表示役はそれを持つだけにする。2つの違いは「他の所有者が出している間は譲る」の1行だけになる。前例の挙動を変えないことは、既存の `PlacementFeedbackTooltipPresenterTest` 7件と、足す1件（別インスタンスの同じ内容で Show を省く）で確かめる。
   - 「他の所有者が出している間は譲る」は前例に無い新規パターン。前例の `PlacementFeedbackTooltipPresenter` は譲らず、自分の内容で上書きする。部屋の要約は照準している間ずっと出したい常駐の情報で、インタラクト案内や設置フィードバックはその場の操作への応答なので、後者を優先させる。
 - 取得は A8 の汎用ポーラー（`CleanRoomInfoPollSource.CreatePoller()`）に任せる。照準中のブロックが変わったときだけ `Start` で張り直す（1秒間隔）。行とマーカーはポーラーの `OnUpdated`（取得済み・消失）で作り直し、ツールチップは毎フレーム手元の最新行で出し直しの要否を判定する。
 - 通信失敗はポーラーが前回値を保つ（A8 の部屋欄と同じ扱い）ので、表示も前回のまま残る。ブロック消失は表示を消す。
@@ -5562,6 +6048,7 @@ git commit -m "feat(cleanroom): webui に部屋欄・停止理由・清浄機の
 `moorestech_client/Assets/Scripts/Client.Tests/CleanRoom/CleanRoomTooltipLinesTest.cs`:
 
 ```csharp
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.CleanRoom;
 using Mooresmaster.Localization.Generated;
@@ -5594,28 +6081,39 @@ namespace Client.Tests.CleanRoom
             CollectionAssert.AreEqual(new[] { "0" }, lines[5].TextParams);
         }
 
-        [TestCase(CleanRoomLeakResponseKind.Openings, "ui.tooltip.cleanRoomNotSealed", "7")]
-        [TestCase(CleanRoomLeakResponseKind.TooLarge, "ui.tooltip.cleanRoomTooLarge", "4096")]
-        public void LeakWithCountProducesOneLineTest(CleanRoomLeakResponseKind kind, string expectedKey, string expectedParam)
+        [Test]
+        public void OpeningsLeakShowsTotalCountTest()
         {
-            var leak = new CleanRoomLeakMessagePack(kind, new List<Vector3IntMessagePack>(), 7, 4096);
-
-            var lines = CleanRoomTooltipLines.Build(new CleanRoomNotEnclosedView(leak));
-            Assert.AreEqual(1, lines.Length);
-            Assert.AreEqual(expectedKey, lines[0].Key.Key);
-            CollectionAssert.AreEqual(new[] { expectedParam }, lines[0].TextParams);
+            // 表示上限で切ったセル数でなく総数を出す
+            // Show the total count rather than the number of cells capped for display
+            var cells = new List<Vector3IntMessagePack> { new(0, 0, 0), new(1, 0, 0) };
+            AssertSingleLeakLine(new CleanRoomOpeningsLeakView(cells, 7), "ui.tooltip.cleanRoomNotSealed", new[] { "7" });
         }
 
-        [TestCase(CleanRoomLeakResponseKind.NoEnclosure, "ui.tooltip.cleanRoomNoEnclosure")]
-        [TestCase(CleanRoomLeakResponseKind.DetectionPending, "ui.tooltip.cleanRoomDetecting")]
-        public void LeakWithoutCountProducesOneLineTest(CleanRoomLeakResponseKind kind, string expectedKey)
+        [Test]
+        public void TooLargeLeakShowsVolumeCapTest()
         {
-            var leak = new CleanRoomLeakMessagePack(kind, new List<Vector3IntMessagePack>(), 0, 4096);
+            AssertSingleLeakLine(new CleanRoomTooLargeLeakView(4096), "ui.tooltip.cleanRoomTooLarge", new[] { "4096" });
+        }
 
+        [Test]
+        public void NoEnclosureLeakProducesOneLineTest()
+        {
+            AssertSingleLeakLine(CleanRoomNoEnclosureLeakView.Instance, "ui.tooltip.cleanRoomNoEnclosure", Array.Empty<string>());
+        }
+
+        [Test]
+        public void DetectionPendingLeakProducesOneLineTest()
+        {
+            AssertSingleLeakLine(CleanRoomDetectionPendingLeakView.Instance, "ui.tooltip.cleanRoomDetecting", Array.Empty<string>());
+        }
+
+        private static void AssertSingleLeakLine(CleanRoomLeakView leak, string expectedKey, string[] expectedParams)
+        {
             var lines = CleanRoomTooltipLines.Build(new CleanRoomNotEnclosedView(leak));
             Assert.AreEqual(1, lines.Length);
             Assert.AreEqual(expectedKey, lines[0].Key.Key);
-            Assert.AreEqual(0, lines[0].TextParams.Count);
+            CollectionAssert.AreEqual(expectedParams, lines[0].TextParams);
         }
     }
 }
@@ -5725,12 +6223,101 @@ namespace Client.Tests.CleanRoom
 }
 ```
 
+`moorestech_client/Assets/Scripts/Client.Tests/Tooltip/OwnedTooltipLinesWriterTest.cs`:
+
+```csharp
+using Client.Game.InGame.UI.Tooltip;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
+using NUnit.Framework;
+
+namespace Client.Tests.Tooltip
+{
+    /// <summary>
+    ///     設置フィードバックと部屋のツールチップが共有する書き手の、同一内容スキップ・上書き後の出し直し・自分の分だけの Hide を固定する
+    ///     Pins the shared writer's unchanged-content skip, re-show after an overwrite and own-only Hide used by placement feedback and the room tooltip
+    /// </summary>
+    public class OwnedTooltipLinesWriterTest
+    {
+        private MouseCursorTooltipState _tooltip;
+
+        [SetUp]
+        public void SetUp()
+        {
+            // 文言解決が実辞書を引くため初期化しておく（前例 PlacementFeedbackTooltipPresenterTest）
+            // Initialize the real dictionary because text resolution reads from it, as PlacementFeedbackTooltipPresenterTest does
+            Localize.Initialize();
+            _tooltip = new MouseCursorTooltipState();
+        }
+
+        [Test]
+        public void SameContentSkipsShowAndOverwriteShowsAgainTest()
+        {
+            var writer = new OwnedTooltipLinesWriter(_tooltip);
+            writer.Show(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) });
+            var shownLines = _tooltip.GetPresentation().Lines;
+
+            // 別インスタンスでもキーと TextParams が同じなら出し直さない
+            // A new instance with the same keys and TextParams is not shown again
+            writer.Show(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) });
+            Assert.AreSame(shownLines, _tooltip.GetPresentation().Lines);
+            Assert.IsFalse(writer.IsShownByOther());
+
+            // 他の書き手に上書きされたら、同じ内容でも出し直す
+            // After another writer overwrites, the same content is shown again
+            _tooltip.Show(new TooltipOwner(), LocalizationKeys.Ui.Tooltip.HoldToGet);
+            Assert.IsTrue(writer.IsShownByOther());
+            writer.Show(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) });
+            Assert.IsFalse(writer.IsShownByOther());
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key, _tooltip.GetPresentation().Lines[0].Key.Key);
+        }
+
+        [Test]
+        public void HideClearsOnlyOwnShowTest()
+        {
+            var writer = new OwnedTooltipLinesWriter(_tooltip);
+            writer.Show(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomDetecting) });
+
+            // 他の書き手が出している間の Hide は、その表示を消さない
+            // A Hide while another writer is showing never clears that tooltip
+            _tooltip.Show(new TooltipOwner(), LocalizationKeys.Ui.Tooltip.HoldToGet);
+            writer.Hide();
+            Assert.IsTrue(_tooltip.GetPresentation().Visible);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.HoldToGet.Key, _tooltip.GetPresentation().Lines[0].Key.Key);
+        }
+    }
+}
+```
+
+`moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenterTest.cs` の最後のテスト `行が空のShowは非表示として扱う` の閉じ括弧の直後（クラスの閉じ括弧の前）に足す。共通の書き手へ寄せた後も、比較がインスタンスでなくキーと TextParams のままであることを固定する（既存の7件は変えずにそのまま通す）。
+
+```csharp
+
+        [Test]
+        public void 別インスタンスの同じ内容はShowを呼ばない()
+        {
+            var presenter = new PlacementFeedbackTooltipPresenter(_tooltip);
+            var first = new PlacementFeedback();
+            first.AddBlockedByTerrain();
+            presenter.Present(first);
+            var shownLines = _tooltip.GetPresentation().Lines;
+
+            // 共通の書き手へ寄せた後も、比較はインスタンスでなくキーと TextParams で行う
+            // After moving to the shared writer, comparison still uses keys and TextParams rather than instances
+            var second = new PlacementFeedback();
+            second.AddBlockedByTerrain();
+            presenter.Present(second);
+
+            Assert.AreSame(shownLines, _tooltip.GetPresentation().Lines);
+        }
+```
+
 - [ ] **Step 2: コンパイルエラーを確かめる**
 
 Run: `uloop compile --project-path ./moorestech_client`
-Expected: `CleanRoomTooltipLines`・`CleanRoomTooltipPresenter` が見つからない CS0246 が出る（`Client.Game.InGame.CleanRoom` 名前空間自体は A8 の `CleanRoomInfoPollSource` で既にある）。
+Expected: `CleanRoomTooltipLines`・`CleanRoomTooltipPresenter`・`OwnedTooltipLinesWriter` が見つからない CS0246 が出る（`Client.Game.InGame.CleanRoom` 名前空間自体は A8 の `CleanRoomInfoPollSource` で既にある）。
 
-- [ ] **Step 3: ツールチップ行・行の比較・表示役を書く**
+- [ ] **Step 3: ツールチップ行・共通の書き手・表示役を書く**
 
 `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomTooltipLines.cs`:
 
@@ -5775,15 +6362,17 @@ namespace Client.Game.InGame.CleanRoom
             return lines.ToArray();
         }
 
-        private static TooltipLine BuildLeak(CleanRoomLeakMessagePack leak)
+        private static TooltipLine BuildLeak(CleanRoomLeakView leak)
         {
-            return leak.Kind switch
+            // 漏れの型ごとに、その型だけが持つ件数か上限体積を文言へ渡す
+            // Pass the opening count or the volume cap that only that leak type carries into the text
+            return leak switch
             {
-                CleanRoomLeakResponseKind.Openings => new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed, new[] { leak.TotalOpeningCount.ToString(CultureInfo.InvariantCulture) }),
-                CleanRoomLeakResponseKind.NoEnclosure => new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomNoEnclosure),
-                CleanRoomLeakResponseKind.TooLarge => new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomTooLarge, new[] { leak.MaxRoomVolume.ToString(CultureInfo.InvariantCulture) }),
-                CleanRoomLeakResponseKind.DetectionPending => new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomDetecting),
-                _ => throw new ArgumentOutOfRangeException(nameof(leak.Kind), leak.Kind, "未対応の漏れ種別 / Unsupported leak kind"),
+                CleanRoomOpeningsLeakView openings => new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed, new[] { openings.TotalOpeningCount.ToString(CultureInfo.InvariantCulture) }),
+                CleanRoomNoEnclosureLeakView _ => new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomNoEnclosure),
+                CleanRoomTooLargeLeakView tooLarge => new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomTooLarge, new[] { tooLarge.MaxRoomVolume.ToString(CultureInfo.InvariantCulture) }),
+                CleanRoomDetectionPendingLeakView _ => new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomDetecting),
+                _ => throw new ArgumentOutOfRangeException(nameof(leak), leak.GetType().Name, "未対応の漏れ種別 / Unsupported leak kind"),
             };
         }
 
@@ -5795,22 +6384,73 @@ namespace Client.Game.InGame.CleanRoom
 }
 ```
 
-`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/TooltipLineComparison.cs`（`PlacementFeedbackTooltipPresenter.IsSameLines` の本文をそのまま移す）:
+`moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/OwnedTooltipLinesWriter.cs`（`PlacementFeedbackTooltipPresenter` の所有者トークン・`_lastShown`・`IsUnchangedFromShown`・`IsSameLines`・`Hide` の本文をそのまま移す）:
 
 ```csharp
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Client.Game.InGame.UI.Tooltip
 {
     /// <summary>
-    ///     毎フレーム Show を省くための行の同一判定（キーと TextParams を比べる）
-    ///     Line equality used to skip Show every frame, comparing keys and TextParams
+    ///     自分の所有者トークンで行をツールチップへ出す。自分の表示が立ったままで内容も同じなら Show を省き、Hide は自分の分だけ消す
+    ///     Shows lines on the tooltip under its own owner token, skipping Show while its show stands with the same content, and hides only its own
     /// </summary>
-    public static class TooltipLineComparison
+    public class OwnedTooltipLinesWriter
     {
+        private readonly IMouseCursorTooltip _tooltip;
+        private readonly TooltipOwner _tooltipOwner = new();
+
+        // 直近に自分が渡したスナップショット。内容が変わっていないかの比較に使う
+        // The snapshot handed over last time, used to compare whether the content is unchanged
+        private TooltipLine[] _lastShown = Array.Empty<TooltipLine>();
+
+        public OwnedTooltipLinesWriter(IMouseCursorTooltip tooltip)
+        {
+            _tooltip = tooltip;
+        }
+
+        // 他の書き手が表示中か。譲るかどうかは呼び出し側が決める
+        // Whether another writer is showing; the caller decides whether to yield
+        public bool IsShownByOther()
+        {
+            var owner = _tooltip.CurrentOwner;
+            return owner != null && !ReferenceEquals(owner, _tooltipOwner);
+        }
+
+        public void Show(IReadOnlyList<TooltipLine> lines)
+        {
+            // 毎フレーム呼ばれるため、自分の表示が出たままで内容も同じフレームは複製もShowも行わない
+            // This runs every frame, so a frame whose content is unchanged and still ours skips both the copy and the Show
+            if (IsUnchangedFromShown()) return;
+
+            // TooltipPresentationは不変スナップショット前提のため、使い回しバッファではなく複製を渡す
+            // TooltipPresentation assumes an immutable snapshot, so hand it a copy instead of the reused buffer
+            _lastShown = lines.ToArray();
+            _tooltip.Show(_tooltipOwner, _lastShown);
+
+            #region Internal
+
+            bool IsUnchangedFromShown()
+            {
+                // 所有者が自分でなければ他者が上書きしているので出し直す
+                // If we are not the owner, someone else overwrote the tooltip and we must show again
+                return ReferenceEquals(_tooltip.CurrentOwner, _tooltipOwner) && IsSameLines(lines, _lastShown);
+            }
+
+            #endregion
+        }
+
+        public void Hide()
+        {
+            _lastShown = Array.Empty<TooltipLine>();
+            _tooltip.Hide(_tooltipOwner);
+        }
+
         // 毎フレーム走るためLINQ列挙子を作らず添字ループで比較する
         // Compares by index instead of LINQ enumerators because it runs every frame
-        public static bool IsSameLines(IReadOnlyList<TooltipLine> left, IReadOnlyList<TooltipLine> right)
+        private static bool IsSameLines(IReadOnlyList<TooltipLine> left, IReadOnlyList<TooltipLine> right)
         {
             if (left.Count != right.Count) return false;
 
@@ -5834,16 +6474,53 @@ namespace Client.Game.InGame.UI.Tooltip
 }
 ```
 
-`PlacementFeedbackTooltipPresenter.cs` は次の2点だけ変える（挙動は変わらない）。
-- ローカル関数 `IsUnchangedFromShown` の `IsSameLines(feedback.Lines, _lastShown)` を `TooltipLineComparison.IsSameLines(feedback.Lines, _lastShown)` にする。
-- private static の `IsSameLines` メソッド（直前の2行コメントを含む）を削除する。
+`PlacementFeedbackTooltipPresenter.cs` を次の全文にする（挙動は変わらない。前例どおり他の書き手が出していても譲らず上書きする）。
+
+```csharp
+using Client.Game.InGame.UI.Tooltip;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
+{
+    /// <summary>
+    ///     PlacementFeedback をカーソルツールチップへ反映する。行が無ければ自分が出した分だけ消す（DeleteObjectServiceと同じ規則）
+    ///     Pushes PlacementFeedback into the cursor tooltip; with no lines it hides only what it showed itself (same rule as DeleteObjectService)
+    /// </summary>
+    public class PlacementFeedbackTooltipPresenter : IPlacementFeedbackPresenter
+    {
+        // 所有者トークン・同一内容の Show 省略・自分の分だけの Hide は共通の書き手が持つ
+        // The shared writer holds the owner token, the unchanged-content Show skip and the own-only Hide
+        private readonly OwnedTooltipLinesWriter _writer;
+
+        public PlacementFeedbackTooltipPresenter(IMouseCursorTooltip tooltip)
+        {
+            _writer = new OwnedTooltipLinesWriter(tooltip);
+        }
+
+        public void Present(PlacementFeedback feedback)
+        {
+            if (feedback.Lines.Count == 0)
+            {
+                Hide();
+                return;
+            }
+
+            // 他の書き手が出していても譲らず出す（自分の表示が立ったままで内容も同じなら Show を省く）
+            // Show even while another writer is showing, without yielding (Show is skipped while ours stands with the same content)
+            _writer.Show(feedback.Lines);
+        }
+
+        public void Hide()
+        {
+            _writer.Hide();
+        }
+    }
+}
+```
 
 `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomTooltipPresenter.cs`:
 
 ```csharp
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using Client.Game.InGame.UI.Tooltip;
 
 namespace Client.Game.InGame.CleanRoom
@@ -5854,49 +6531,27 @@ namespace Client.Game.InGame.CleanRoom
     /// </summary>
     public class CleanRoomTooltipPresenter
     {
-        private readonly IMouseCursorTooltip _tooltip;
-        private readonly TooltipOwner _tooltipOwner = new();
-
-        // 直近に自分が渡したスナップショット。内容が変わっていないかの比較に使う
-        // The snapshot handed over last time, used to compare whether the content is unchanged
-        private TooltipLine[] _lastShown = Array.Empty<TooltipLine>();
+        // 所有者トークン・同一内容の Show 省略・自分の分だけの Hide は、設置フィードバックと共通の書き手が持つ
+        // The writer shared with placement feedback holds the owner token, the unchanged-content Show skip and the own-only Hide
+        private readonly OwnedTooltipLinesWriter _writer;
 
         public CleanRoomTooltipPresenter(IMouseCursorTooltip tooltip)
         {
-            _tooltip = tooltip;
+            _writer = new OwnedTooltipLinesWriter(tooltip);
         }
 
-        // 毎フレーム呼ばれる。空き、または自分の表示で内容が変わったときだけ Show する
-        // Called every frame; shows only when the tooltip is free, or ours with changed content
+        // 毎フレーム呼ばれる。設置フィードバックとの違いは、他の書き手が出している間は譲る1行だけ
+        // Called every frame; the only difference from placement feedback is the one line that yields to other writers
         public void Present(IReadOnlyList<TooltipLine> lines)
         {
-            var owner = _tooltip.CurrentOwner;
-
             // silent-ok: インタラクト案内・設置フィードバックが優先する正常な調停で、相手が消えた次フレームに出し直す / 部屋の要約が出ないことは照準中の画面で見える
-            if (owner != null && !ReferenceEquals(owner, _tooltipOwner)) return;
-            if (IsUnchangedFromShown()) return;
-
-            // TooltipPresentation は不変スナップショット前提のため複製を渡す
-            // TooltipPresentation assumes an immutable snapshot, so hand over a copy
-            _lastShown = lines.ToArray();
-            _tooltip.Show(_tooltipOwner, _lastShown);
-
-            #region Internal
-
-            bool IsUnchangedFromShown()
-            {
-                // 自分の表示が立ったままで、キーと TextParams も同じなら出し直さない（前例 PlacementFeedbackTooltipPresenter と同じ比較）
-                // Skip when our show still stands and keys and TextParams match, the same comparison as PlacementFeedbackTooltipPresenter
-                return ReferenceEquals(owner, _tooltipOwner) && TooltipLineComparison.IsSameLines(lines, _lastShown);
-            }
-
-            #endregion
+            if (_writer.IsShownByOther()) return;
+            _writer.Show(lines);
         }
 
         public void Hide()
         {
-            _lastShown = Array.Empty<TooltipLine>();
-            _tooltip.Hide(_tooltipOwner);
+            _writer.Hide();
         }
     }
 }
@@ -6040,7 +6695,7 @@ namespace Client.Game.InGame.CleanRoom
 
             // 隙間があるときだけ、そのセルに印を出す
             // Mark the gap cells only when openings exist
-            if (view is CleanRoomNotEnclosedView notEnclosed && notEnclosed.Leak.Kind == CleanRoomLeakResponseKind.Openings) _markers.Show(notEnclosed.Leak.OpeningCells);
+            if (view is CleanRoomNotEnclosedView { Leak: CleanRoomOpeningsLeakView openings }) _markers.Show(openings.OpeningCells);
             else _markers.HideAll();
         }
 
@@ -6129,16 +6784,16 @@ namespace Client.Starter.Registration
 
 - [ ] **Step 6: コンパイルしてテストを通す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(CleanRoom|UIState)\."`
-Expected: ErrorCount 0 / 全 PASS（新しい7件〈行5・表示役2〉と、GameScreenState を組む既存の UIState テスト）。
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(CleanRoom|UIState|Tooltip)\."`
+Expected: ErrorCount 0 / 全 PASS（新しい9件〈行5・表示役2・共通の書き手2〉と、GameScreenState を組む既存の UIState テスト、既存の `TooltipPresentationEqualityTest`）。
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementFeedback"`
-Expected: 全 PASS（`IsSameLines` を移した設置フィードバックの既存テスト）。
+Expected: 全 PASS（本体を共通の書き手へ移した設置フィードバックの既存テスト7件と、足した1件）。
 
 - [ ] **Step 7: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/TooltipLineComparison.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/TooltipLineComparison.cs.meta moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/GameScreenState.cs moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests/CleanRoom moorestech_client/Assets/Scripts/Client.Tests/UIState
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/OwnedTooltipLinesWriter.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Tooltip/OwnedTooltipLinesWriter.cs.meta moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/GameScreenState.cs moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests/CleanRoom moorestech_client/Assets/Scripts/Client.Tests/UIState moorestech_client/Assets/Scripts/Client.Tests/Tooltip moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenterTest.cs
 git commit -m "feat(cleanroom): 壁・ドア・ハッチの照準で部屋の要約ツールチップと漏れマーカーを出す"
 ```
 
@@ -6822,8 +7477,8 @@ git commit -m "feat: 品質モジュールを allowQualityModule の機械にだ
   - 継承の規則（検証が強制する）: 継承レシピは「levelFamily の基準アイテムを指す入力」がちょうど1つ（継承元）、「levelFamily の基準アイテムを指す出力」がちょうど1つ（継承先）。継承元と継承先は別ファミリーでよい（ICチップ→モジュール・GPU）。継承先ファミリーの長さ ≥ 継承元ファミリーの長さ（等しくてよい）。同じ継承先ファミリーを指す継承レシピの間で `Inherit` と `InheritUpToUnlocked` を混ぜない。他の入力は levelFamily の基準であってはならない（固定素材はファミリーを持たないアイテムで書く）。他の出力は基準でなければ何でもよく、継承先と同じファミリーの非基準の変種やファミリー外のアイテムを並べてよい（ダイシングの出力「ダイ基準1つ＋ダイ Lv2..LvN＋失敗ダイ」はこの形で通る。`DicingShapedOutputsOnQualityMachinePassTest`）。機械の `allowQualityModule` は見ない（品質可の EUV・ダイシングにも継承レシピを置ける）
   - 実行時に継承レベルが移るのは継承先の出力1つだけ（C3）。他の出力は書いたアイテムのまま出て、Part B の書き換え器が必要なら差し替える
   - 使い分け: チップ製品（モジュール・GPU）は `InheritUpToUnlocked`（初期上限 Lv1、C7 の研究で上げる）。ダイ→チップのパッケージングは `Inherit`（上限なし）
-  - 置き場: 実行時の解釈（サーバーの束縛・実現出力・返却・ゲートとクライアントの表示が使う）は `Game.Block.Interface/MachineUpgrade/`（namespace `Game.Block.Interface.MachineUpgrade`。前例 `Game.Block.Interface/Extension/BeltConveyorPlaceFamilyUtil.cs`・`Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`）。起動時の検証は Core.Master から Game.Block.Interface を参照できないので、検証用の内部ヘルパー `LevelInheritanceRecipeShape` で生のマスタだけを読む（前例 `Core.Master/Validator/BeltConveyorFamilyValidator.cs`）
-  - `public readonly struct Game.Block.Interface.MachineUpgrade.LevelInheritanceShape`（継承レシピにだけ作る。番兵の -1・0 は持たない）:
+  - 置き場: 実行時の解釈（サーバーの束縛・実現出力・返却・ゲートとクライアントの表示が使う）は `Game.Block.Interface/MachineUpgrade/`（namespace `Game.Block.Interface.MachineUpgrade`。前例 `Game.Block.Interface/Extension/BeltConveyorPlaceFamilyUtil.cs`・`Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`）。起動時の検証は Core.Master から Game.Block.Interface を参照できないので、生のマスタだけを読む `LevelInheritanceRecipeShape`（Core.Master）で判定する（前例 `Core.Master/Validator/BeltConveyorFamilyValidator.cs`）。「基準アイテムか」と「基準の入出力の探索」は `LevelInheritanceRecipeShape` の1か所に置き、実行時の `BuildShape` もそれに委ねる（Game.Block.Interface は Core.Master を参照できる）
+  - `public readonly struct Game.Block.Interface.MachineUpgrade.LevelInheritanceShape`（継承レシピにだけ作る。番兵の -1・0 は持たない。ctor は `internal` で、作れるのは `TryGetShape` だけ）:
     - `readonly int SourceInputIndex`・`readonly int TargetOutputIndex`
     - `readonly IReadOnlyList<ItemId> SourceVariants`・`readonly IReadOnlyList<ItemId> TargetVariants`（レベル順。添字0が Lv1）
     - `readonly Guid TargetBaseItemGuid`（継承先ファミリーの基準アイテムGUID。製作上限の鍵）
@@ -6837,13 +7492,14 @@ git commit -m "feat: 品質モジュールを allowQualityModule の機械にだ
     - `ItemId ResolveInputItemId(MachineRecipeMasterElement recipe, int inputIndex, int? inheritedLevel)`（入力 i が継承元なら継承レベルの変種、それ以外は書いたまま。継承元で null なら `InvalidOperationException`）
     - `ItemId ResolveOutputItemId(MachineRecipeMasterElement recipe, int outputIndex, int? inheritedLevel)`（出力 j が継承先なら継承レベルの変種、それ以外は書いたまま。Part B の書き換え器もこれで継承先を写す）
     - C7 で `int GetMaxCraftableLevel(LevelInheritanceShape shape, ILevelInheritanceCraftCapLookup craftCapLookup)` を足す
-  - `internal static class Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape`（検証専用。生のマスタだけで判定。Part B の `CleanRoomRoleRecipeChecks` も同じアセンブリから使う）:
+  - `public static class Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape`（生のマスタだけで判定。起動時の検証・実行時の `MachineRecipeLevelInheritanceUtil.BuildShape`・Part B の `CleanRoomRoleRecipeChecks` が使う）:
     - `bool IsLevelFamilyBase(Guid itemGuid)`
-    - `int CountFamilyBaseInputs(MachineRecipeMasterElement recipe)`・`int CountFamilyBaseOutputs(MachineRecipeMasterElement recipe)`
-    - `int? FindSourceInputIndex(MachineRecipeMasterElement recipe)`・`int? FindTargetOutputIndex(MachineRecipeMasterElement recipe)`（最初の基準の入力・出力。無ければ null）
-    - `int? FindSourceFamilyLength(MachineRecipeMasterElement recipe)`（継承元ファミリーの長さ。基準の入力が無ければ null）
-    - `Guid? FindTargetBaseGuid(MachineRecipeMasterElement recipe)`（継承先の基準アイテムGUID。基準の出力が無ければ null）
+    - `int CountFamilyBaseInputs(MachineRecipeMasterElement recipe)`・`int CountFamilyBaseOutputs(MachineRecipeMasterElement recipe)`（検証のエラー文用）
+    - `int? FindSingleSourceInputIndex(MachineRecipeMasterElement recipe)`・`int? FindSingleTargetOutputIndex(MachineRecipeMasterElement recipe)`（基準の入力・出力がちょうど1つならその番号、0個か2個以上なら null）
+    - `int? FindSourceFamilyLength(MachineRecipeMasterElement recipe)`（継承元ファミリーの長さ。基準の入力がちょうど1つでなければ null）
+    - `Guid? FindTargetBaseGuid(MachineRecipeMasterElement recipe)`（継承先の基準アイテムGUID。基準の出力がちょうど1つでなければ null）
     - `int GetFamilyLength(Guid baseItemGuid)`
+    - 呼び出し側は `is not int x`／`is not Guid x` で受け、無条件の `.Value` を書かない
   - テスト用 ID: `Tests.Module.TestMod.ForUnitTestLevelInheritanceIds`（下記 Step 1）
 
 - [ ] **Step 1: テスト用の ID 定数を作る**
@@ -7095,7 +7751,9 @@ namespace Game.Block.Interface.MachineUpgrade
 
         public int MaxLevel => SourceVariants.Count;
 
-        public LevelInheritanceShape(int sourceInputIndex, int targetOutputIndex, IReadOnlyList<ItemId> sourceVariants, IReadOnlyList<ItemId> targetVariants, Guid targetBaseItemGuid, bool hasCraftCap)
+        // 継承レシピにだけ作るので、作れるのは同じアセンブリの MachineRecipeLevelInheritanceUtil.TryGetShape だけにする
+        // Built only for inheritance recipes, so only MachineRecipeLevelInheritanceUtil.TryGetShape in this assembly may construct it
+        internal LevelInheritanceShape(int sourceInputIndex, int targetOutputIndex, IReadOnlyList<ItemId> sourceVariants, IReadOnlyList<ItemId> targetVariants, Guid targetBaseItemGuid, bool hasCraftCap)
         {
             SourceInputIndex = sourceInputIndex;
             TargetOutputIndex = targetOutputIndex;
@@ -7134,6 +7792,7 @@ namespace Game.Block.Interface.MachineUpgrade
 ```csharp
 using System;
 using Core.Master;
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Interface.MachineUpgrade
@@ -7198,52 +7857,23 @@ namespace Game.Block.Interface.MachineUpgrade
 
         private static LevelInheritanceShape BuildShape(MachineRecipeMasterElement recipe, bool hasCraftCap)
         {
-            // 継承元・継承先がちょうど1つずつあることは MachineRecipeLevelInheritanceValidator が起動時に保証する
-            // MachineRecipeLevelInheritanceValidator guarantees exactly one source and one target at boot
-            var sourceIndex = FindSourceInputIndex();
-            var targetIndex = FindTargetOutputIndex();
+            // 継承元・継承先の探索は検証と同じ LevelInheritanceRecipeShape に委ねる。ちょうど1つずつあることは起動時の検証が保証するので、無ければ検証漏れとして止める
+            // Finding the source and target is delegated to the same LevelInheritanceRecipeShape as validation; boot validation guarantees exactly one of each, so a miss is a validation gap and stops here
+            if (LevelInheritanceRecipeShape.FindSingleSourceInputIndex(recipe) is not int sourceIndex) throw new InvalidOperationException($"継承レシピの継承元の入力がちょうど1つではありません recipe={recipe.MachineRecipeGuid}");
+            if (LevelInheritanceRecipeShape.FindSingleTargetOutputIndex(recipe) is not int targetIndex) throw new InvalidOperationException($"継承レシピの継承先の出力がちょうど1つではありません recipe={recipe.MachineRecipeGuid}");
+
             var sourceBaseItemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[sourceIndex].ItemGuid);
             var targetBaseGuid = recipe.OutputItems[targetIndex].ItemGuid;
             var targetBaseItemId = MasterHolder.ItemMaster.GetItemId(targetBaseGuid);
             return new LevelInheritanceShape(sourceIndex, targetIndex,
                 MasterHolder.ItemMaster.GetLevelVariants(sourceBaseItemId), MasterHolder.ItemMaster.GetLevelVariants(targetBaseItemId),
                 targetBaseGuid, hasCraftCap);
-
-            #region Internal
-
-            int FindSourceInputIndex()
-            {
-                for (var i = 0; i < recipe.InputItems.Length; i++)
-                {
-                    if (IsLevelFamilyBase(recipe.InputItems[i].ItemGuid)) return i;
-                }
-                throw new InvalidOperationException($"継承レシピに継承元の入力がありません recipe={recipe.MachineRecipeGuid}");
-            }
-
-            int FindTargetOutputIndex()
-            {
-                for (var i = 0; i < recipe.OutputItems.Length; i++)
-                {
-                    if (IsLevelFamilyBase(recipe.OutputItems[i].ItemGuid)) return i;
-                }
-                throw new InvalidOperationException($"継承レシピに継承先の出力がありません recipe={recipe.MachineRecipeGuid}");
-            }
-
-            #endregion
-        }
-
-        // levelFamily の基準アイテムか（変種や存在しないGUIDは false）
-        // Whether the item is a level-family base (variants and unknown GUIDs are false)
-        private static bool IsLevelFamilyBase(Guid itemGuid)
-        {
-            var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid);
-            return itemId.HasValue && MasterHolder.ItemMaster.HasLevelFamily(itemId.Value);
         }
     }
 }
 ```
 
-`moorestech_server/Assets/Scripts/Core.Master/Validator/MachineUpgrade/LevelInheritanceRecipeShape.cs`（検証専用。Game.Block.Interface の util を Core.Master からは呼べないので、生のマスタだけで同じ形を引く。前例 `BeltConveyorFamilyValidator` と `BeltConveyorPlaceFamilyUtil` の分け方）
+`moorestech_server/Assets/Scripts/Core.Master/Validator/MachineUpgrade/LevelInheritanceRecipeShape.cs`（生のマスタだけで継承レシピの形を引く1か所。起動時の検証〈Core.Master〉と実行時の `MachineRecipeLevelInheritanceUtil.BuildShape`〈Game.Block.Interface。asmdef で Core.Master を参照済み〉の両方がこれを使い、「基準アイテムか」と「基準の入出力の探索」を2本に分けない。前例 `BeltConveyorFamilyValidator` と `BeltConveyorPlaceFamilyUtil` の分け方のうち、検証側を共有の下位にする形）
 
 ```csharp
 using System;
@@ -7252,10 +7882,10 @@ using Mooresmaster.Model.MachineRecipesModule;
 namespace Core.Master.Validator.MachineUpgrade
 {
     /// <summary>
-    ///     検証用に、生のマスタだけで継承レシピの形（levelFamily の基準を指す入力・出力とファミリー長）を引く。実行時の解釈は Game.Block.Interface の MachineRecipeLevelInheritanceUtil が持つ
-    ///     For validation, reads an inheritance recipe's shape (level-family base inputs/outputs and family lengths) from the raw master only; runtime interpretation lives in Game.Block.Interface's MachineRecipeLevelInheritanceUtil
+    ///     生のマスタだけで継承レシピの形（levelFamily の基準を指す入力・出力とファミリー長）を引く。起動時の検証と実行時の MachineRecipeLevelInheritanceUtil が共有する
+    ///     Reads an inheritance recipe's shape (level-family base inputs/outputs and family lengths) from the raw master only; shared by boot validation and the runtime MachineRecipeLevelInheritanceUtil
     /// </summary>
-    internal static class LevelInheritanceRecipeShape
+    public static class LevelInheritanceRecipeShape
     {
         // levelFamily の基準アイテムか（変種や存在しないGUIDは false）
         // Whether the item is a level-family base (variants and unknown GUIDs are false)
@@ -7265,6 +7895,8 @@ namespace Core.Master.Validator.MachineUpgrade
             return itemId.HasValue && MasterHolder.ItemMaster.HasLevelFamily(itemId.Value);
         }
 
+        // 基準を指す入力・出力の数（検証のエラー文が使う）
+        // Number of base inputs/outputs (used by validation error messages)
         public static int CountFamilyBaseInputs(MachineRecipeMasterElement recipe)
         {
             var count = 0;
@@ -7279,44 +7911,48 @@ namespace Core.Master.Validator.MachineUpgrade
             return count;
         }
 
-        // 最初の基準の入力の番号。無ければ null
-        // Index of the first base input; null when there is none
-        public static int? FindSourceInputIndex(MachineRecipeMasterElement recipe)
+        // 基準を指す入力がちょうど1つならその番号。0個か2個以上なら null
+        // Index of the base input when there is exactly one; null for none or several
+        public static int? FindSingleSourceInputIndex(MachineRecipeMasterElement recipe)
         {
+            int? found = null;
             for (var i = 0; i < recipe.InputItems.Length; i++)
             {
-                if (IsLevelFamilyBase(recipe.InputItems[i].ItemGuid)) return i;
+                if (!IsLevelFamilyBase(recipe.InputItems[i].ItemGuid)) continue;
+                if (found.HasValue) return null;
+                found = i;
             }
-            return null;
+            return found;
         }
 
-        // 最初の基準の出力の番号。無ければ null
-        // Index of the first base output; null when there is none
-        public static int? FindTargetOutputIndex(MachineRecipeMasterElement recipe)
+        // 基準を指す出力がちょうど1つならその番号。0個か2個以上なら null
+        // Index of the base output when there is exactly one; null for none or several
+        public static int? FindSingleTargetOutputIndex(MachineRecipeMasterElement recipe)
         {
+            int? found = null;
             for (var i = 0; i < recipe.OutputItems.Length; i++)
             {
-                if (IsLevelFamilyBase(recipe.OutputItems[i].ItemGuid)) return i;
+                if (!IsLevelFamilyBase(recipe.OutputItems[i].ItemGuid)) continue;
+                if (found.HasValue) return null;
+                found = i;
             }
-            return null;
+            return found;
         }
 
-        // 継承元ファミリーの長さ（グレード数）。基準の入力が無ければ null（Part B の役割表の検証も使う）
-        // Length of the source family (grade count); null without a base input (Part B's role-table validation uses it too)
+        // 継承元ファミリーの長さ（グレード数）。基準の入力がちょうど1つでなければ null（Part B の役割表の検証も使う）
+        // Length of the source family (grade count); null unless there is exactly one base input (Part B's role-table validation uses it too)
         public static int? FindSourceFamilyLength(MachineRecipeMasterElement recipe)
         {
-            var sourceIndex = FindSourceInputIndex(recipe);
-            if (!sourceIndex.HasValue) return null;
-            return GetFamilyLength(recipe.InputItems[sourceIndex.Value].ItemGuid);
+            if (FindSingleSourceInputIndex(recipe) is not int sourceIndex) return null;
+            return GetFamilyLength(recipe.InputItems[sourceIndex].ItemGuid);
         }
 
-        // 継承先の基準アイテムGUID（製作上限の鍵）。基準の出力が無ければ null
-        // Base item GUID of the target (the craft cap key); null without a base output
+        // 継承先の基準アイテムGUID（製作上限の鍵）。基準の出力がちょうど1つでなければ null
+        // Base item GUID of the target (the craft cap key); null unless there is exactly one base output
         public static Guid? FindTargetBaseGuid(MachineRecipeMasterElement recipe)
         {
-            var targetIndex = FindTargetOutputIndex(recipe);
-            if (!targetIndex.HasValue) return null;
-            return recipe.OutputItems[targetIndex.Value].ItemGuid;
+            if (FindSingleTargetOutputIndex(recipe) is not int targetIndex) return null;
+            return recipe.OutputItems[targetIndex].ItemGuid;
         }
 
         public static int GetFamilyLength(Guid baseItemGuid)
@@ -7361,19 +7997,13 @@ namespace Core.Master.Validator.MachineUpgrade
             {
                 var prefix = $"[MachineRecipesMaster] Recipe GUID:{recipe.MachineRecipeGuid} levelInheritance:{recipe.LevelInheritance}";
 
-                // 継承元・継承先はちょうど1つずつ。数が合わなければ以降の判定ができない
-                // Exactly one source and one target; later checks are meaningless otherwise
-                var sourceCount = LevelInheritanceRecipeShape.CountFamilyBaseInputs(recipe);
-                var targetCount = LevelInheritanceRecipeShape.CountFamilyBaseOutputs(recipe);
-                if (sourceCount != 1) return $"{prefix} must have exactly one level-family source input but has {sourceCount}\n";
-                if (targetCount != 1) return $"{prefix} must have exactly one level-family target output but has {targetCount}\n";
+                // 継承元・継承先はちょうど1つずつ。ちょうど1つでなければ値が返らず、以降の判定ができない
+                // Exactly one source and one target; otherwise no value comes back and later checks are meaningless
+                if (LevelInheritanceRecipeShape.FindSourceFamilyLength(recipe) is not int sourceLength) return $"{prefix} must have exactly one level-family source input but has {LevelInheritanceRecipeShape.CountFamilyBaseInputs(recipe)}\n";
+                if (LevelInheritanceRecipeShape.FindTargetBaseGuid(recipe) is not Guid targetBaseGuid) return $"{prefix} must have exactly one level-family target output but has {LevelInheritanceRecipeShape.CountFamilyBaseOutputs(recipe)}\n";
 
-                // 上の数の検査を通ったので継承元・継承先は必ず見つかる
-                // Both are guaranteed to exist after the count checks above
                 var errors = "";
-                var targetBaseGuid = LevelInheritanceRecipeShape.FindTargetBaseGuid(recipe).Value;
                 var targetLength = LevelInheritanceRecipeShape.GetFamilyLength(targetBaseGuid);
-                var sourceLength = LevelInheritanceRecipeShape.FindSourceFamilyLength(recipe).Value;
                 if (targetLength < sourceLength) errors += $"{prefix} target family has {targetLength} levels but the source family has {sourceLength}\n";
 
                 // 同じ継承先ファミリーで上限ありと上限なしを混ぜると、研究の効き方が経路で変わる
@@ -7544,10 +8174,13 @@ git commit -m "feat: 機械レシピにレベル継承の宣言（levelInheritan
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs:125-131`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/ProcessingMachineProcessState.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessingJob.cs`（State 直下のコードは 6 → 7 本）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs`（`MachineLoadState` の加工状態の復元）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorSaveState.cs`（`Restore`）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/RecipeSelection/MachineRecipeRefundUtil.cs:20-32`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/RecipeSelection/MachineRecipeSelectionUtil.cs:35`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:63`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:57`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:45,51-52,56,63,68`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:51,57`
 - Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineRandomDrawSiteTest.cs:44,48-63`
 - Delete: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/QualityModuleOutputTest.cs`（と `.meta`）
 - Create: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/LevelVariantOutputTest.cs`（同じディレクトリで1本消して1本足すので、ディレクトリのコード数は 10 のまま）
@@ -7559,18 +8192,21 @@ git commit -m "feat: 機械レシピにレベル継承の宣言（levelInheritan
 **Interfaces:**
 - Consumes: C2 の `MachineRecipeLevelInheritanceUtil`・`ForUnitTestLevelInheritanceIds`
 - Produces:
-  - 継承レベルは `int?` で持つ。継承レシピのジョブは `1..継承元ファミリー長` の値、継承しないレシピとジョブ無しは null（番兵の 0・1 は使わない。値の正しさは生成時に `MachineRecipeLevelInheritanceUtil.IsValidInheritedLevel` で閉じる）
+  - 継承レベルは `int?` で持つ。継承レシピのジョブは `1..継承元ファミリー長` の値、継承しないレシピのジョブは null（番兵の 0・1 は使わない。値の正しさは生成時〈待機からの開始は `SetProcessing`、セーブからの復元は `MachineProcessingJob` の ctor〉に `MachineRecipeLevelInheritanceUtil.IsValidInheritedLevel` で閉じる）。ジョブ無しは `MachineProcessingJob` が無いこと（null）で表し、ジョブ無しのために継承レベルやレシピを null で並べない（`ProcessingMachineProcessState.InheritedLevel` はジョブ無しの間も null を返す、保存のための読み口）
   - `internal static List<IItemStack> MachineOutputFactoryUtil.CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect, int? inheritedLevel)`（引数順は recipe, effect, inheritedLevel。作るのは「素の出力1セット」と「生産性の当選時に同じ1セット」だけ。各出力は `MachineRecipeLevelInheritanceUtil.ResolveOutputItemId` で決め、継承レシピだけ継承先の出力1つが継承レベルの変種になる。品質シフトは読まず、GameRandom を引くのは追加産出の1回だけ）
   - `MachineModuleEffect.QualityShift` は残す（Part B の書き換え器と C5 の API が読む）
   - クリーンルーム機械も同じ `VanillaMachineInputInventory`・待機/加工ステート・`MachineProcessContext.CreateRealizedOutputs` を通るので、束縛・継承レベル・品質シフト撤去の規則は同じに効く。Part B の `IRealizedOutputDecorator` はこの戻り値（品質の影響を受けていない出力）を受け取る
   - `internal List<IItemStack> MachineProcessContext.CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)`
   - `public int? VanillaMachineInputInventory.ResolveInheritedLevel(MachineRecipeMasterElement recipe)`（継承でなければ null。継承元スロットに継承元の変種が無ければ `InvalidOperationException`＝束縛の破れ）
-  - `ProcessingMachineProcessState(MachineProcessContext context, uint remainingTicks, MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel)`（recipe が null なら inheritedLevel も null でなければ `InvalidOperationException`）
+  - `public sealed class Game.Block.Blocks.Machine.State.MachineProcessingJob`（セーブから復元する加工中ジョブ。`readonly MachineRecipeMasterElement Recipe`・`readonly uint RemainingTicks`・`readonly List<IItemStack> PendingOutputs`〈旧セーブは null〉・`readonly int? InheritedLevel`〈継承しないレシピだけ null〉。ctor `MachineProcessingJob(MachineRecipeMasterElement recipe, uint remainingTicks, List<IItemStack> pendingOutputs, int? inheritedLevel)` は `IsValidInheritedLevel` が偽なら `InvalidOperationException`。`static MachineProcessingJob RestoreFromFlatSave(string recipeGuidStr, double remainingSeconds, List<ItemStackSaveJsonObject> pendingOutputs, int? inheritedLevel)` はセーブの平らなキーから組み、ジョブ無し〈null・`Guid.Empty`〉とレシピがマスタから消えたとき〈警告ログ。継承レベルも捨てる〉は null）
+  - `ProcessingMachineProcessState(MachineProcessContext context, MachineProcessingJob restoredJob)`（ジョブの有無は `restoredJob` の有無だけ。ジョブ無しで意味の無い引数を null で並べない）
+  - `VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, MachineProcessingJob processingJob, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, MachineRecipeMasterElement selectedRecipe)`（セーブからの復元用。新規用の ctor は変えない）
+  - `CleanRoomMachineProcessorSaveState.Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out MachineProcessingJob processingJob, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)`
   - `public void ProcessingMachineProcessState.SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel)`（`IsValidInheritedLevel` が偽なら `InvalidOperationException`。セーブからの復元も同じ口を通るので、継承レシピのジョブの「継承レベルは1以上」はここで閉じる）
   - `public int? ProcessingMachineProcessState.InheritedLevel { get; private set; }`（継承しないレシピとジョブ無しは null）
   - `public static List<IItemStack> MachineRecipeRefundUtil.CreateRefundStacks(MachineRecipeMasterElement recipe, int? inheritedLevel)`（各入力は `MachineRecipeLevelInheritanceUtil.ResolveInputItemId`）
   - テスト補助 `Tests.CombinedTest.Core.Machine.Upgrade.LevelInheritanceTestHelper`（下記 Step 1）
-  - **Part B へ**: クリーンルーム機械で `ProcessingMachineProcessState` を作るときは第5引数に継承レベル（`int?`）を渡す（C4 で復元値になる）。実現出力の差し替え（`IRealizedOutputDecorator`）は継承レベル適用後の出力を受け取る
+  - **Part B へ**: クリーンルーム機械の processor は `CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe);` と `_processingState = new ProcessingMachineProcessState(_context, processingJob);` で作る（継承レベルはジョブ型が持ち、C4 でセーブの値になる）。実現出力の差し替え（`IRealizedOutputDecorator`）は継承レベル適用後の出力を受け取る
 
 - [ ] **Step 1: テスト補助を作る**
 
@@ -8026,30 +8662,25 @@ namespace Game.Block.Blocks.Machine.State
             ClearJob();
         }
 
-        public ProcessingMachineProcessState(MachineProcessContext context, uint remainingTicks, MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel)
+        // ジョブの有無は MachineProcessingJob の有無だけで受ける（ジョブ無しは null で、空のまま待つ）
+        // Whether a job exists comes only from the presence of a MachineProcessingJob (null means no job, so stay empty)
+        public ProcessingMachineProcessState(MachineProcessContext context, MachineProcessingJob restoredJob)
         {
             _context = context;
-            RemainingTicks = remainingTicks;
+            if (restoredJob == null) return;
 
-            // ジョブ無しに継承レベルだけ残るセーブは破損なので止める
-            // A save with an inherited level but no job is corrupt, so stop
-            if (recipe == null)
-            {
-                if (inheritedLevel.HasValue) throw new InvalidOperationException($"加工ジョブが無いのに継承レベルがあります inheritedLevel={inheritedLevel}");
-                return;
-            }
-
-            // レシピがあれば加工を復元する。産出予定nullの旧セーブは完了時に再抽選する
-            // Restore processing whenever a recipe exists; old saves with null pending outputs re-roll on completion
-            SetProcessing(recipe, pendingOutputs, inheritedLevel);
+            // セーブの残りtickごと加工を復元する。産出予定nullの旧セーブは完了時に再抽選する
+            // Restore processing with the saved remaining ticks; old saves with null pending outputs re-roll on completion
+            SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel);
+            RemainingTicks = restoredJob.RemainingTicks;
         }
 
         // 加工するジョブをIdle、ロードから設定
         // Set the processing job from Idle or on load
         public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel)
         {
-            // 継承レシピは 1..最大レベル、それ以外は値なしでなければセーブ破損かマイグレーション漏れなので、黙って補わずに止める
-            // Anything but 1..max for an inheritance recipe or no value otherwise means a corrupt save or a missed migration, so stop instead of filling it in
+            // 待機からの開始もここを通る。継承レベルがレシピと合わなければ束縛の破れなので、黙って補わずに止める（復元の値は MachineProcessingJob が先に閉じている）
+            // Starting from idle also passes here; a level that does not fit the recipe means a broken binding, so stop instead of filling it in (restored values are already closed by MachineProcessingJob)
             if (!MachineRecipeLevelInheritanceUtil.IsValidInheritedLevel(recipe, inheritedLevel)) throw new InvalidOperationException($"加工ジョブの継承レベルが不正です recipe={recipe.MachineRecipeGuid} inheritedLevel={inheritedLevel}");
 
             CurrentRecipe = recipe;
@@ -8142,19 +8773,154 @@ namespace Game.Block.Blocks.Machine.State
 }
 ```
 
-両プロセッサの生成箇所に第5引数を足す（C4 でロード値に差し替える。新規生成の null はジョブ無しの値なので正しい）:
-
-`VanillaMachineProcessorComponent.cs:63`
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessingJob.cs`（加工中ジョブの値型。ジョブの有無はこの型の有無〈null〉だけで表し、ジョブ無しで意味の無い引数を null で並べない。セーブ JSON は平らなまま〈判断記録〉で、平らなキーからの組み立てはこの型の `RestoreFromFlatSave` 1か所に置き、`BlockTemplateUtil` と `CleanRoomMachineProcessorSaveState.Restore` が呼ぶ。保存時は各プロセッサが `ProcessingMachineProcessState` の値を平らなキーへ書き戻す）
 
 ```csharp
-            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, processingRecipe, pendingOutputs, null);
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Core.Item.Interface;
+using Core.Master;
+using Core.Update;
+using Game.Block.Interface.MachineUpgrade;
+using Mooresmaster.Model.MachineRecipesModule;
+using UnityEngine;
+
+namespace Game.Block.Blocks.Machine.State
+{
+    /// <summary>
+    ///     セーブから復元する加工中ジョブ（レシピ・残りtick・保留出力・継承レベル）。ジョブが無いことはこの型が無いこと（null）で表すので、継承レベルの null は「継承しないレシピのジョブ」だけを意味する
+    ///     A running job restored from a save (recipe, remaining ticks, pending outputs, inherited level); no job is the absence of this type (null), so a null inherited level only means a job of a non-inheritance recipe
+    /// </summary>
+    public sealed class MachineProcessingJob
+    {
+        public readonly MachineRecipeMasterElement Recipe;
+        public readonly uint RemainingTicks;
+
+        // 保留出力。保留出力を持たない旧セーブは null で、完了時に一度だけ確定する
+        // Pending outputs; null for old saves without them, realized once on completion
+        public readonly List<IItemStack> PendingOutputs;
+
+        // 継承レシピは 1..最大レベル、継承しないレシピは null
+        // 1..max for an inheritance recipe, null for a non-inheritance recipe
+        public readonly int? InheritedLevel;
+
+        public MachineProcessingJob(MachineRecipeMasterElement recipe, uint remainingTicks, List<IItemStack> pendingOutputs, int? inheritedLevel)
+        {
+            // レシピと合わない継承レベルはセーブ破損かマイグレーション漏れなので、Lv1 などで黙って補わずに止める
+            // An inherited level that does not fit the recipe means a corrupt save or a missed migration, so stop instead of silently filling in Lv1
+            if (!MachineRecipeLevelInheritanceUtil.IsValidInheritedLevel(recipe, inheritedLevel)) throw new InvalidOperationException($"加工中ジョブの継承レベルが不正です recipe={recipe.MachineRecipeGuid} inheritedLevel={inheritedLevel}");
+
+            Recipe = recipe;
+            RemainingTicks = remainingTicks;
+            PendingOutputs = pendingOutputs;
+            InheritedLevel = inheritedLevel;
+        }
+
+        // セーブの平らなキーからジョブを組む。ジョブが無いか、レシピがマスタから消えていれば null
+        // Builds the job from a save's flat keys; null when there is no job or its recipe has left the master
+        public static MachineProcessingJob RestoreFromFlatSave(string recipeGuidStr, double remainingSeconds, List<ItemStackSaveJsonObject> pendingOutputs, int? inheritedLevel)
+        {
+            // ジョブ無しは Guid.Empty で保存される（清浄室機械の旧セーブはキー自体が無く null）
+            // No job is saved as Guid.Empty (old clean-room saves lack the key, so it is null)
+            if (string.IsNullOrEmpty(recipeGuidStr)) return null;
+            var recipeGuid = Guid.Parse(recipeGuidStr);
+            if (recipeGuid == Guid.Empty) return null;
+
+            // レシピがマスタから消えていれば、継承レベルごとジョブを捨てる（加工中の状態は呼び出し側が Idle へ戻す。既存の縮退と同じ）
+            // When the recipe has left the master, drop the job together with its inherited level (the caller returns a mid-job state to Idle, as the existing fallback does)
+            var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid);
+            if (recipe == null)
+            {
+                Debug.LogWarning($"[MachineProcessingJob] 加工中レシピがマスタにないため、ジョブを捨てて待機へ戻します recipe={recipeGuid} inheritedLevel={inheritedLevel}");
+                return null;
+            }
+
+            var restoredOutputs = pendingOutputs?.Select(item => item.ToItemStack()).ToList();
+            return new MachineProcessingJob(recipe, GameUpdater.SecondsToTicks(remainingSeconds), restoredOutputs, inheritedLevel);
+        }
+    }
+}
 ```
 
-`CleanRoomMachineProcessorComponent.cs:57`
+両プロセッサとセーブの読み口を、ジョブ型の有無で受ける形にする（行数は変えない）。この時点のセーブ JSON には継承レベルのキーが無いので、`RestoreFromFlatSave` の第4引数は C4 でセーブの値に差し替える（この版のセーブに継承レシピのジョブは無い）。
+
+`VanillaMachineProcessorComponent.cs`（199 行のまま。`using Game.Block.Blocks.Machine.State;` は既存）:
+- 45行 → `            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, null, null)`（新規ブロックはジョブも選択レシピも無い）
+- 51行 → `        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, MachineProcessingJob processingJob, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, MachineRecipeMasterElement selectedRecipe)`
+- 52行 → `            : this(input, output, effect, requestPower, idlePowerRate, currentState, processingJob, selectedRecipe)`
+- 56行 → `        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, MachineProcessingJob processingJob, MachineRecipeMasterElement selectedRecipe)`
+- 63行 → `            _processingState = new ProcessingMachineProcessState(_context, processingJob);`
+- 68行 → `            if (isMidJob && (processingJob == null || selectedRecipe == null))`
+
+`BlockTemplateUtil.cs` の `MachineLoadState` の「加工状態はProcessorのサブオブジェクトから復元する」の2行コメントから `return processor;` の直前の空行まで（`var processorJson`・`var recipe`・`remainingTicks`・`pendingOutputs`・選択レシピの復元・`new VanillaMachineProcessorComponent(...)`）を次に置き換え、`using Core.Update;`（`SecondsToTicks` にしか使っていない）を `using Game.Block.Blocks.Machine.State;` に替える:
 
 ```csharp
-            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs, null);
+            // 加工中ジョブは Processor のサブオブジェクトの平らなキーから組む（レシピがマスタから消えていれば null で、加工中の状態は Idle へ戻る）
+            // Build the running job from the Processor sub-object's flat keys (null when its recipe left the master; a mid-job state then falls back to Idle)
+            var processorJson = jsonObject.Processor;
+            var processingJob = MachineProcessingJob.RestoreFromFlatSave(processorJson.RecipeGuidStr, processorJson.RemainingSeconds, processorJson.PendingOutputs, null);
+
+            // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
+            // Restore the selected recipe; a GUID missing from the master falls back to unselected
+            MachineRecipeMasterElement selectedRecipe = null;
+            if (!string.IsNullOrEmpty(processorJson.SelectedRecipeGuidStr) && Guid.TryParse(processorJson.SelectedRecipeGuidStr, out var selectedGuid))
+            {
+                selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedGuid);
+            }
+
+            var processor = new VanillaMachineProcessorComponent(
+                vanillaMachineInputInventory,
+                vanillaMachineOutputInventory,
+                (ProcessState)processorJson.State,
+                processingJob,
+                requestPower,
+                idlePowerRate,
+                machineModuleEffectComponent,
+                selectedRecipe);
+
 ```
+
+`CleanRoomMachineProcessorSaveState.cs` の `Restore` の宣言から `#region Internal` の直前の空行まで（`RestoreSlots` のローカル関数はそのまま）を次に置き換え、using に `using Game.Block.Blocks.Machine.State;` があることを確かめる（既存）:
+
+```csharp
+        public static void Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out MachineProcessingJob processingJob, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)
+        {
+            state = ProcessState.Idle;
+            processingJob = null;
+            cycleCount = 0;
+            selectedRecipe = null;
+            // 旧セーブではサイクル数以外が欠けるため、各値は個別に復元する
+            // Older saves lack fields other than cycle count, so restore each value independently
+            if (!BlockComponentStateReader.TryRead<CleanRoomMachineProcessorSaveJsonObject>(componentStates, saveKey, out var saveData)) return;
+            cycleCount = saveData.CycleCount;
+            RestoreSlots(saveData);
+
+            // 加工中ジョブは平らなキーから組む（レシピがマスタから消えていれば null）
+            // Build the running job from the flat keys (null when its recipe left the master)
+            processingJob = MachineProcessingJob.RestoreFromFlatSave(saveData.RecipeGuidStr, saveData.RemainingSeconds, saveData.PendingOutputs, null);
+
+            // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
+            // Restore the selected recipe; a GUID missing from the master falls back to unselected
+            if (!string.IsNullOrEmpty(saveData.SelectedRecipeGuidStr) && Guid.TryParse(saveData.SelectedRecipeGuidStr, out var selectedGuid))
+            {
+                selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedGuid);
+            }
+            state = (ProcessState)saveData.State;
+
+            // 加工中（出力詰まり含む）でジョブか選択レシピを復元できない場合は破損扱いでIdleへ戻す
+            // A mid-job state (output blockage included) that cannot restore its job or selected recipe is corrupt and falls back to Idle
+            var isMidJob = state == ProcessState.Processing || state == ProcessState.OutputBlocked;
+            if (isMidJob && (processingJob == null || selectedRecipe == null)) state = ProcessState.Idle;
+
+```
+
+`CleanRoomMachineProcessorComponent.cs`（199 行のまま）:
+- 51行 → `            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe);`
+- 57行 → `            _processingState = new ProcessingMachineProcessState(_context, processingJob);`
+
+Run: `grep -rn "new ProcessingMachineProcessState(\|RestoreFromFlatSave(" moorestech_server/Assets/Scripts`
+Expected: `ProcessingMachineProcessState` の生成は2プロセッサの `(_context, processingJob)` の2件だけ、`RestoreFromFlatSave` の呼び出しは `BlockTemplateUtil.cs` と `CleanRoomMachineProcessorSaveState.cs` の2件だけ
 
 - [ ] **Step 8: 返却に継承レベルを使う**
 
@@ -8379,14 +9145,14 @@ namespace Tests.CombinedTest.Core.Machine
 
 - [ ] **Step 9: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "LevelInheritanceRecipeTest|MachineRandomDrawSiteTest|MachineRecipeChangeRefundTest|MachineAutoInsertCapTest|LevelVariantOutputTest|MachineModuleEffectTest|MachineIOTest|MachineSlotBindingTest|CleanRoom"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "LevelInheritanceRecipeTest|MachineRandomDrawSiteTest|MachineRecipeChangeRefundTest|MachineAutoInsertCapTest|LevelVariantOutputTest|MachineModuleEffectTest|MachineIOTest|MachineSlotBindingTest|MachineSaveLoadTest|GearMachineSaveLoadTest|MachineRecipeSelectionSaveLoadTest|CleanRoom"`（セーブの読み口を `MachineProcessingJob` へ替えたので、既存の機械のセーブ・ロードのテストも回す）
 Expected: ErrorCount 0 / 全 PASS
 
 - [ ] **Step 10: コミットする**
 
 ```bash
 git rm moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/QualityModuleOutputTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/QualityModuleOutputTest.cs.meta
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineRandomDrawSiteTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Recipe/MachineRecipeChangeRefundTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/MachineAutoInsertCapTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/LevelVariantOutputTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/LevelVariantOutputTest.cs.meta
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorSaveState.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineRandomDrawSiteTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Recipe/MachineRecipeChangeRefundTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/MachineAutoInsertCapTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/LevelVariantOutputTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/LevelVariantOutputTest.cs.meta
 git commit -m "feat: レベル継承レシピで入力のレベルを出力へ移し、一般機械の品質シフトを撤去する"
 ```
 
@@ -8394,17 +9160,16 @@ git commit -m "feat: レベル継承レシピで入力のレベルを出力へ�
 
 ### Task C4: 継承レベルの保存と V6→V7 マイグレーション
 
-加工中ジョブの継承レベルを両プロセッサのセーブへ載せ、旧セーブには `inheritedLevel: null`（継承しない）を明示で足すマイグレーションを入れる（セーブ形式の変更。AGENTS.md の3点セット）。版6には継承レシピが無いので null が正しい。継承レシピのジョブで値が欠けたセーブは、C3 の `SetProcessing` が `IsValidInheritedLevel` で拒んでロードを止める（Lv1 で補わない）。
+加工中ジョブの継承レベルを両プロセッサのセーブへ載せ、旧セーブには `inheritedLevel: null`（継承しない）を明示で足すマイグレーションを入れる（セーブ形式の変更。AGENTS.md の3点セット）。版6には継承レシピが無いので null が正しい。継承レシピのジョブで値が欠けたセーブは、C3 の `MachineProcessingJob` の ctor が `IsValidInheritedLevel` で拒んでロードを止める（Lv1 で補わない）。継承レシピのジョブを持つセーブをそのレシピが消えたマスタで開いたときは、`RestoreFromFlatSave` が継承レベルごとジョブを捨てて警告を出し、加工中の状態は Idle へ戻る（既存の「レシピが消えたら Idle」の縮退と同じ）。
 
-セーブの形は既存の平らな形（`VanillaMachineProcessorSaveJsonObject` の並列フィールド。前例 `VanillaMachineSaveComponent`）に1キー足すだけにし、ジョブを1つの入れ子オブジェクトへ畳み直すことはしない（指摘 強5 の据え置き。理由は changes_C.md (3)）。
+セーブの形は既存の平らな形（`VanillaMachineProcessorSaveJsonObject` の並列フィールド。前例 `VanillaMachineSaveComponent`）に1キー足すだけにし、ジョブを1つの入れ子オブジェクトへ畳み直すことはしない（裁定済みの据え置き）。メモリ上は C3 の `MachineProcessingJob` で受け、平らなキーからの組み立ては `MachineProcessingJob.RestoreFromFlatSave` の1か所、平らなキーへの書き戻しは各プロセッサの保存（`GetSaveJsonObject`・`CleanRoomMachineProcessorSaveState.Build`）に閉じる。本タスクはそこへ継承レベルのキーを通すだけで、ctor の形は変えない。
 
 **Files:**
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorSaveJsonObject.cs`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:45,51-52,56,63,183-197`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs:168-178`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs:183-197`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs`（C3 で書いた `RestoreFromFlatSave` の呼び出し1行）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorSaveJsonObject.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorSaveState.cs`
-- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs:51,57`
 - Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs:25`
 - Create: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/SaveMigrationStepV6ToV7.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs:116`
@@ -8414,12 +9179,11 @@ git commit -m "feat: レベル継承レシピで入力のレベルを出力へ�
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/LevelInheritanceSaveLoadTest.cs`
 
 **Interfaces:**
-- Consumes: C3 の `ProcessingMachineProcessState.InheritedLevel`・5引数コンストラクタ
+- Consumes: C3 の `ProcessingMachineProcessState.InheritedLevel`・`MachineProcessingJob.RestoreFromFlatSave`・`ProcessingMachineProcessState(MachineProcessContext, MachineProcessingJob)`
 - Produces:
   - `WorldSaveAllInfo.CurrentVersion == 7`、`SaveMigrationStepV6ToV7 : ISaveMigrationStep`（`FromVersion => 6`）
   - セーブ JSON: `state["Game.Block.Blocks.Machine.VanillaMachineSaveComponent"]["processor"]["inheritedLevel"]`、`state["Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent"]["inheritedLevel"]`（int か null。継承レシピのジョブは 1 以上、継承しないレシピとジョブ無しは null）
-  - `VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs, int? processingInheritedLevel, MachineRecipeMasterElement selectedRecipe)`
-  - `CleanRoomMachineProcessorSaveState.Restore(..., out List<IItemStack> pendingOutputs, out int? inheritedLevel, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)`
+  - ctor と `Restore` のシグネチャは C3 のまま（`VanillaMachineProcessorComponent(..., ProcessState currentState, MachineProcessingJob processingJob, ...)`・`CleanRoomMachineProcessorSaveState.Restore(..., out ProcessState state, out MachineProcessingJob processingJob, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)`）。継承レベルはジョブ型の中を通る
   - **Part B へ**: B2 がクリーンルーム機械の液体の保存で版 7→8（`SaveMigrationStepV7ToV8`・`FromVersion => 7`・`CurrentVersion = 8`）を足す。Part A はセーブ形式を変えないので、本タスクの番号は 6→7 で確定
 
 - [ ] **Step 1: マイグレーションのテストを書く**
@@ -8507,6 +9271,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 ```csharp
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using Core.Master;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
@@ -8525,13 +9290,14 @@ using Tests.CombinedTest.Game;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using UnityEngine.TestTools;
 using static Tests.CombinedTest.Core.Machine.Upgrade.LevelInheritanceTestHelper;
 
 namespace Tests.CombinedTest.Core.Machine.Upgrade
 {
     /// <summary>
-    ///     加工中ジョブの継承レベルがセーブ・ロードで保たれ、欠けたセーブは読まずに止まり、版6の通常機械は継承レベル無しで読めることを検証する
-    ///     Verifies the running job's inherited level survives save/load, a save missing it stops loading, and a version-6 plain machine loads with no inherited level
+    ///     加工中ジョブの継承レベルがセーブ・ロードで保たれ、欠けたセーブは読まずに止まり、レシピが消えたジョブは継承レベルごと捨てて待機へ戻り、版6の通常機械は継承レベル無しで読めることを検証する
+    ///     Verifies the running job's inherited level survives save/load, a save missing it stops loading, a job whose recipe vanished is dropped with its level and falls back to idle, and a version-6 plain machine loads with no inherited level
     /// </summary>
     public class LevelInheritanceSaveLoadTest
     {
@@ -8576,6 +9342,24 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             var loader = loadProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             var exception = Assert.Catch<Exception>(() => loader.Load(save.ToString()));
             StringAssert.Contains("継承レベル", exception.ToString());
+        }
+
+        [Test]
+        public void InheritanceJobWithMissingRecipeFallsBackToIdleTest()
+        {
+            // 継承レベルつきのジョブのレシピGUIDをマスタに無い値へ替えると、例外で止めずにジョブを捨てて待機へ戻る
+            // Swapping the job's recipe GUID for one the master lacks drops the job instead of throwing and falls back to idle
+            var save = BuildInheritanceProcessingSave();
+            ProcessorJson(save)["recipeGuid"] = "00000000-0000-4000-8000-0000deadbeef";
+            var (_, loadProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            LogAssert.Expect(LogType.Warning, new Regex("加工中レシピがマスタにない"));
+            (loadProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(save.ToString());
+
+            // 待機に戻り、保存し直すと継承レベルも残らない
+            // It is idle, and re-saving keeps no inherited level either
+            Assert.AreEqual(ProcessState.Idle, GetProcessor().CurrentState);
+            var resaved = JObject.Parse(loadProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
+            Assert.AreEqual(JTokenType.Null, ProcessorJson(resaved)["inheritedLevel"].Type);
         }
 
         [Test]
@@ -8673,12 +9457,7 @@ Expected: `SaveMigrationStepV6ToV7` が未定義でコンパイルエラー
         public int? InheritedLevel;
 ```
 
-`VanillaMachineProcessorComponent.cs`（行数を 199 に保つ）:
-- 45行 → `            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, 0, null, null, null, null)`
-- 51行 → `        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs, int? processingInheritedLevel, MachineRecipeMasterElement selectedRecipe)`
-- 52行 → `            : this(input, output, effect, requestPower, idlePowerRate, currentState, remainingTicks, processingRecipe, pendingOutputs, processingInheritedLevel, selectedRecipe)`
-- 56行 → `        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs, int? processingInheritedLevel, MachineRecipeMasterElement selectedRecipe)`
-- 63行 → `            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, processingRecipe, pendingOutputs, processingInheritedLevel);`
+`VanillaMachineProcessorComponent.cs`（行数を 199 に保つ。ctor は C3 の形のまま）:
 - 183-197行（`GetSaveJsonObject`）を置き換える（空白だけの186行を消し、1行足す）:
 
 ```csharp
@@ -8699,21 +9478,10 @@ Expected: `SaveMigrationStepV6ToV7` が未定義でコンパイルエラー
         }
 ```
 
-`BlockTemplateUtil.cs` の `new VanillaMachineProcessorComponent(`（168-178行）を置き換える:
+`BlockTemplateUtil.cs` の C3 で書いた行を置き換える（継承レベルをセーブの値にする。値の正しさは `MachineProcessingJob` の ctor が閉じる）:
 
 ```csharp
-            var processor = new VanillaMachineProcessorComponent(
-                vanillaMachineInputInventory,
-                vanillaMachineOutputInventory,
-                (ProcessState)processorJson.State,
-                remainingTicks,
-                recipe,
-                requestPower,
-                idlePowerRate,
-                machineModuleEffectComponent,
-                pendingOutputs,
-                processorJson.InheritedLevel,
-                selectedRecipe);
+            var processingJob = MachineProcessingJob.RestoreFromFlatSave(processorJson.RecipeGuidStr, processorJson.RemainingSeconds, processorJson.PendingOutputs, processorJson.InheritedLevel);
 ```
 
 `CleanRoomMachineProcessorSaveJsonObject.cs` の `SelectedRecipeGuidStr` の後に追加:
@@ -8727,18 +9495,11 @@ Expected: `SaveMigrationStepV6ToV7` が未定義でコンパイルエラー
 
 `CleanRoomMachineProcessorSaveState.cs`:
 - `Build` の初期化子の `SelectedRecipeGuidStr = ...,` の次の行に `                InheritedLevel = processingState.InheritedLevel,` を足す
-- `Restore` のシグネチャ（37行）を次に置き換える:
+- `Restore` の C3 で書いた行を次に置き換える（シグネチャと `CleanRoomMachineProcessorComponent` の ctor は C3 のまま。値の正しさは `MachineProcessingJob` の ctor が閉じる）:
 
 ```csharp
-        public static void Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out int? inheritedLevel, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)
+            processingJob = MachineProcessingJob.RestoreFromFlatSave(saveData.RecipeGuidStr, saveData.RemainingSeconds, saveData.PendingOutputs, saveData.InheritedLevel);
 ```
-
-- 42行 `pendingOutputs = null;` の次に `            inheritedLevel = null;` を足す
-- 64行 `pendingOutputs = saveData.PendingOutputs?...;` の次に `            inheritedLevel = saveData.InheritedLevel;` を足す（値の正しさは `ProcessingMachineProcessState` の生成で `IsValidInheritedLevel` が閉じる）
-
-`CleanRoomMachineProcessorComponent.cs`:
-- 51行 → `            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out var inheritedLevel, out var cycleCount, out var selectedRecipe);`
-- 57行 → `            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs, inheritedLevel);`
 
 - [ ] **Step 5: マイグレーションを書いて登録する**
 
@@ -9021,6 +9782,7 @@ git commit -m "feat: 機械のモジュール集計に品質モジュールの�
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/Research/ResearchUnlockGameActionCoverageTest.cs:29-38`
 - Modify: テストマスタ `items.json`・`research.json`、EditModeInPlayingTestMod `items.json`、moorestech_master `server_v8/mods/moorestechAlphaMod_8/master/items.json`、`.moorestech-external-revisions.json`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/ModuleSlotStackLimitTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/GameAction/UnlockReplayGameActionTypesCoverageTest.cs`
 
 **Interfaces:**
 - Consumes: C1 の `VanillaMachineModuleInventory`（`IsModuleEffective`）、C5 の `MachineModuleEffect`
@@ -9028,15 +9790,15 @@ git commit -m "feat: 機械のモジュール集計に品質モジュールの�
   - スキーマ: items.json ルートの必須キー `"moduleSlotStackLimitLevels": [{"stackLimit": int}, …]`（0始まりのレベル→上限。1以上・単調非減少を検証）。生成型は `ModuleSlotStackLimitLevelElement[] Items.ModuleSlotStackLimitLevels`
   - **値（単位と初期値）**: 上限は「モジュールスロット1つあたりのモジュール個数」。初期値はレベル0の値。テストマスタと EditModeInPlayingTestMod は `[3, 6]`、moorestech_master は `[3, 6, 10]`（裁定「モジュールスロットのスタック上限は研究で上げる」の例 3→6→10）。アイテム自身の最大スタックとは別で、実際に入る数は両者の小さい方
   - gameAction: `"gameActionType": "unlockModuleSlotStackLevel", "gameActionParam": {"level": int}`（`level` は 0 始まり、`0..moduleSlotStackLimitLevels.Length-1` を検証）。生成型 `UnlockModuleSlotStackLevelGameActionParam.Level`。ロード時に再実行される解放系に入る。**統合タスク（旧 Part D） はスロット上限の研究ノードにこれを書く（Lv1→`{"level": 1}`、Lv2→`{"level": 2}`）**
-  - `public static class Game.Block.Interface.MachineUpgrade.ModuleSlotStackLimitMasterUtil { int GetStackLimit(int level); int GetMaxLevel(); }`（`GetStackLimit` は丸めない。レベルを 0..最大へ丸めるのは `ModuleSlotStackLimitDataStore.UnlockLevel` の1か所だけ）
+  - `public static class Game.Block.Interface.MachineUpgrade.ModuleSlotStackLimitMasterUtil { int GetStackLimit(int level); int GetMaxLevel(); }`（`GetStackLimit` は丸めない。範囲 0..最大 は `MachineUpgradeGameActionValidator` が起動時に保証し、どこでも丸めない）
   - `internal static bool MachineSubInventoryReplaceUtil.IsSwap(IItemStack current, IItemStack incoming)`（空きでなく別IDなら入れ替え。モジュールの `CheckPlacement` と `Replace` が同じ判定を使う）
   - `public interface Game.Block.Interface.MachineUpgrade.IModuleSlotStackLimitLookup { int CurrentLevel { get; } int CurrentStackLimit { get; } IObservable<int> OnStackLimitChanged { get; } }`（イベントの値は変化後の上限）
-  - `public interface Game.Block.Interface.MachineUpgrade.IModuleSlotStackLimitUnlocker { void UnlockLevel(int level); void ApplyUnlockModuleSlotStackLevelAction(GameActionElement action); }`（冪等。レベルは下がらない）
+  - `public interface Game.Block.Interface.MachineUpgrade.IModuleSlotStackLimitUnlocker { void UnlockLevel(int level); void ApplyUnlockModuleSlotStackLevelAction(GameActionElement action); }`（冪等。レベルは下がらない。範囲外のレベルは丸めず `ArgumentOutOfRangeException`。製作上限の `UnlockCraftCap` と同じく、範囲は起動時の検証が保証する）
   - DI: `ModuleSlotStackLimitDataStore`（具象）と上の2インターフェースが同じインスタンス
   - `int IVanillaMachineSubInventory.GetSlotStackLimit()`（入力・出力は `int.MaxValue`、モジュールは現在の上限）
   - `MachineSlotPlacementCheck.ExceedsModuleSlotStackLimit`
   - `public static class Core.Master.Validator.MachineUpgrade.MachineUpgradeGameActionValidator { string Validate(GameActionElement[] actions, string ownerLabel); }`（C7 が case を足す）
-  - `internal static class Game.Action.UnlockReplayGameActionTypes { HashSet<string> Types }`（C7 が種別を足す）
+  - `public static class Game.Action.UnlockReplayGameActionTypes { IReadOnlyCollection<string> Types }`（読み取り専用で公開。C7 が種別を足す。全 `GameActionTypeConst` を「ロード時に再実行する／一度きり」のちょうど一方へ分ける網羅テスト `UnlockReplayGameActionTypesCoverageTest` が、新しい種別を集合か一度きりの台帳へ入れ忘れたら赤くなる）
   - `GameActionExecutor` のコンストラクタ（C7 が引数を足す）: `(IGameUnlockStateDataController, IPlayerInventoryDataStore, IItemStackLevelUnlocker, IPlayerInventorySlotLevelDataStore, IModuleSlotStackLimitUnlocker)`
   - `internal static class Server.Boot.Composition.MachineUpgradeServiceRegistration { void Register(IServiceCollection services); }`（C7 が登録を足す）
   - テスト用: 研究 `ForUnitTestLevelInheritanceIds.ModuleSlotStackResearchGuid`（`c0de0000-0000-4000-8000-000000000002`、`unlockModuleSlotStackLevel {level: 1}`）
@@ -9121,6 +9883,10 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             InventoryItemMoveService.Move(mainInventory, 0, machineInventory, ModuleRangeStart, 5);
             Assert.AreEqual(5, machineInventory.GetItem(ModuleRangeStart).Count);
             Assert.AreEqual(ItemMaster.EmptyItemId, mainInventory.GetItem(0).Id);
+
+            // 段階表の外のレベル（テストマスタは 0..1）は丸めずに止める
+            // A level outside the table (0..1 in the test master) stops instead of clamping
+            Assert.Throws<ArgumentOutOfRangeException>(() => serviceProvider.GetService<IModuleSlotStackLimitUnlocker>().UnlockLevel(2));
         }
 
         [Test]
@@ -9250,8 +10016,8 @@ namespace Game.Block.Interface.MachineUpgrade
     /// </summary>
     public static class ModuleSlotStackLimitMasterUtil
     {
-        // level は 0..GetMaxLevel()。範囲へ収めるのは DataStore の UnlockLevel だけなので、ここでは丸めない
-        // level is 0..GetMaxLevel(); only the DataStore's UnlockLevel keeps it in range, so no clamping here
+        // level は 0..GetMaxLevel()。範囲は起動時の検証が保証し、DataStore の UnlockLevel は範囲外を例外で止めるので、ここでは丸めない
+        // level is 0..GetMaxLevel(); boot validation guarantees the range and the DataStore's UnlockLevel throws on anything outside, so no clamping here
         public static int GetStackLimit(int level)
         {
             return MasterHolder.ItemMaster.Items.ModuleSlotStackLimitLevels[level].StackLimit;
@@ -9458,15 +10224,16 @@ namespace Game.Block.Blocks.Machine.Upgrade
 
         public void UnlockLevel(int level)
         {
-            // レベルは下がらない冪等操作。範囲外は最大レベルへ丸める（レベルを範囲へ収めるのはここだけ）
-            // Idempotent and never decreasing; out-of-range levels clamp to the max (the only place levels are kept in range)
-            var clamped = Math.Clamp(level, 0, ModuleSlotStackLimitMasterUtil.GetMaxLevel());
-            if (clamped <= CurrentLevel) return;
+            // レベルは下がらない冪等操作。範囲 0..最大 は MachineUpgradeGameActionValidator が起動時に保証するので丸めず、範囲外は呼び出し側の誤りとして止める（製作上限と同じ扱い）
+            // Idempotent and never decreasing; MachineUpgradeGameActionValidator guarantees 0..max at boot, so no clamping and an out-of-range level stops as a caller bug (same as the craft cap)
+            if (level < 0 || ModuleSlotStackLimitMasterUtil.GetMaxLevel() < level) throw new ArgumentOutOfRangeException(nameof(level), level, $"モジュールスロットのスタックレベルが段階表の範囲 0..{ModuleSlotStackLimitMasterUtil.GetMaxLevel()} の外です");
+            // silent-ok: 同じか下のレベルは研究のロード時再実行・チャレンジとの重なりで正常に来る / 現在の上限は機械UIのモジュール欄（C9）に出る
+            if (level <= CurrentLevel) return;
 
             // 上限が実際に変わったときだけ通知する
             // Notify only when the limit actually changes
             var beforeLimit = CurrentStackLimit;
-            CurrentLevel = clamped;
+            CurrentLevel = level;
             if (CurrentStackLimit != beforeLimit) _onStackLimitChanged.OnNext(CurrentStackLimit);
         }
 
@@ -9702,12 +10469,16 @@ using Mooresmaster.Model.GameActionModule;
 namespace Game.Action
 {
     /// <summary>
-    ///     ロード時・チャレンジ再開時に再実行する解放系アクションの種別。付与とスキットは一度きりなので入れない
-    ///     Unlock action kinds re-run on load and challenge resume; grants and skits happen once, so they are excluded
+    ///     ロード時・チャレンジ再開時に再実行する解放系アクションの種別。付与とスキットは一度きりなので入れない。全種別がこの集合か一度きりのどちらか一方に入ることは UnlockReplayGameActionTypesCoverageTest が固定する
+    ///     Unlock action kinds re-run on load and challenge resume; grants and skits happen once, so they are excluded; UnlockReplayGameActionTypesCoverageTest pins that every kind is in exactly one of this set or the run-once ledger
     /// </summary>
-    internal static class UnlockReplayGameActionTypes
+    public static class UnlockReplayGameActionTypes
     {
-        public static readonly HashSet<string> Types = new()
+        // 外へは読み取り専用で出す（書き換えでロード後の解放が黙って消えないように）
+        // Exposed read-only so no caller can edit it and silently lose unlocks after loading
+        public static IReadOnlyCollection<string> Types => ReplayedTypes;
+
+        private static readonly HashSet<string> ReplayedTypes = new()
         {
             GameActionElement.GameActionTypeConst.unlockCraftRecipe,
             GameActionElement.GameActionTypeConst.unlockItemRecipeView,
@@ -9721,6 +10492,62 @@ namespace Game.Action
             GameActionElement.GameActionTypeConst.unlockBlueprint,
             GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel,
         };
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Tests/UnitTest/Game/GameAction/UnlockReplayGameActionTypesCoverageTest.cs`（前例 `Client.Tests/WebUi/Research/ResearchUnlockGameActionCoverageTest.cs` の「全種別を台帳へ突き合わせる」形。`Tests/UnitTest/Game` 直下は 10 本を超えているので新しいサブディレクトリ）
+
+```csharp
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Game.Action;
+using Mooresmaster.Model.GameActionModule;
+using NUnit.Framework;
+
+namespace Tests.UnitTest.Game.GameAction
+{
+    /// <summary>
+    ///     全 GameActionType を「ロード時に再実行する」「一度きり」のちょうど一方へ分ける網羅テスト
+    ///     Exhaustively sorts every GameActionType into exactly one of "replayed on load" or "run once"
+    /// </summary>
+    public class UnlockReplayGameActionTypesCoverageTest
+    {
+        // 一度きりで、ロード時・チャレンジ再開時に再実行しない種別（付与とスキット）
+        // Kinds that run once and are never replayed on load or challenge resume (grants and skits)
+        private static readonly string[] RunOnceGameActionTypes =
+        {
+            GameActionElement.GameActionTypeConst.giveItem,
+            GameActionElement.GameActionTypeConst.playSkit,
+            GameActionElement.GameActionTypeConst.playBackgroundSkit,
+        };
+
+        [Test]
+        public void EveryGameActionTypeIsReplayedOrRunOnceTest()
+        {
+            // 種別が増えた日はここが赤くなり、再実行するか一度きりかの判断を強制する（switch にだけ足すとロード後にその解放が黙って消えるため）
+            // A new kind turns this red and forces the replay-or-once decision (adding it only to the switch would silently lose that unlock after loading)
+            var ledger = UnlockReplayGameActionTypes.Types.Concat(RunOnceGameActionTypes).ToList();
+            CollectionAssert.AreEquivalent(DeclaredGameActionTypes(), ledger);
+        }
+
+        [Test]
+        public void ReplayedAndRunOnceDoNotOverlapTest()
+        {
+            CollectionAssert.IsEmpty(UnlockReplayGameActionTypes.Types.Intersect(RunOnceGameActionTypes));
+        }
+
+        // 自動生成の GameActionTypeConst から宣言済みの種別を全部取り出す
+        // Pull every declared kind out of the generated GameActionTypeConst
+        private static List<string> DeclaredGameActionTypes()
+        {
+            return typeof(GameActionElement.GameActionTypeConst)
+                .GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Where(field => field.IsLiteral && field.FieldType == typeof(string))
+                .Select(field => (string)field.GetRawConstantValue())
+                .ToList();
+        }
     }
 }
 ```
@@ -9800,6 +10627,7 @@ namespace Game.Action
 `GameActionExecutor.cs` 全体（232 行 → 約 185 行）:
 
 ```csharp
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.MachineUpgrade;
@@ -9835,8 +10663,8 @@ namespace Game.Action
         {
             if (actions == null || actions.Length == 0) return;
 
-            // 解放系だけを再実行する（付与・スキットは一度きり）
-            // Re-run unlock kinds only; grants and skits happen once
+            // 解放系だけを再実行する（付与・スキットは一度きり。集合は読み取り専用なので Enumerable.Contains で引く）
+            // Re-run unlock kinds only; grants and skits happen once (the set is read-only, so look it up with Enumerable.Contains)
             foreach (var action in actions)
             {
                 if (UnlockReplayGameActionTypes.Types.Contains(action.GameActionType)) ExecuteAction(action, context);
@@ -10088,13 +10916,13 @@ Expected: numstat の削除1行、push 成功。
 
 - [ ] **Step 10: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ModuleSlotStackLimitTest|MachineModuleQualityRestrictionTest|MachineModuleEquipMoveProtocolTest|MachineModuleSlotTest|LevelVariantOutputTest|ItemStackLevelUpgradeTest|PlayerInventorySlotLevel|GiveItem|ChallengeDatastore|ResearchUnlockGameActionCoverageTest|InventoryItemMoveServiceTest|BlueprintUnlockStateTest"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ModuleSlotStackLimitTest|MachineModuleQualityRestrictionTest|MachineModuleEquipMoveProtocolTest|MachineModuleSlotTest|LevelVariantOutputTest|ItemStackLevelUpgradeTest|PlayerInventorySlotLevel|GiveItem|ChallengeDatastore|ResearchUnlockGameActionCoverageTest|UnlockReplayGameActionTypesCoverageTest|InventoryItemMoveServiceTest|BlueprintUnlockStateTest"`
 Expected: ErrorCount 0 / 全 PASS。`wc -l` で `GameActionExecutor.cs` と `VanillaMachineBlockInventoryComponent.cs` が 200 未満
 
 - [ ] **Step 11: コミットする**
 
 ```bash
-git add VanillaSchema/items.yml VanillaSchema/ref/gameAction.yml moorestech_server/Assets/Scripts/Core.Master moorestech_server/Assets/Scripts/Game.Block.Interface/MachineUpgrade moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs moorestech_server/Assets/Scripts/Game.Action moorestech_server/Assets/Scripts/Server.Boot moorestech_client/Assets/Scripts/Client.Tests/WebUi/Research/ResearchUnlockGameActionCoverageTest.cs moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/items.json .moorestech-external-revisions.json moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/ModuleSlotStackLimitTest.cs
+git add VanillaSchema/items.yml VanillaSchema/ref/gameAction.yml moorestech_server/Assets/Scripts/Core.Master moorestech_server/Assets/Scripts/Game.Block.Interface/MachineUpgrade moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs moorestech_server/Assets/Scripts/Game.Action moorestech_server/Assets/Scripts/Server.Boot moorestech_client/Assets/Scripts/Client.Tests/WebUi/Research/ResearchUnlockGameActionCoverageTest.cs moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/EditModeInPlayingTestMod/master/items.json .moorestech-external-revisions.json moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Machine/Upgrade/ModuleSlotStackLimitTest.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/GameAction
 git commit -m "feat: モジュールスロットのスタック上限を研究で段階解放する"
 ```
 
@@ -10111,8 +10939,8 @@ git commit -m "feat: モジュールスロットのスタック上限を研究�
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block.Interface/MachineUpgrade/MachineRecipeLevelInheritanceUtil.cs`（`GetMaxCraftableLevel`）
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/MachineUpgrade/MachineUpgradeGameActionValidator.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/MachineUpgrade/ILevelInheritanceCraftCapLookup.cs`・`ILevelInheritanceCraftCapUnlocker.cs`・`LevelInheritanceCraftCapTable.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Upgrade/LevelInheritanceCraftCapDataStore.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/MachineUpgrade/ILevelInheritanceCraftCapLookup.cs`・`ILevelInheritanceCraftCapUnlocker.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Upgrade/LevelInheritanceCraftCapTable.cs`・`LevelInheritanceCraftCapDataStore.cs`（表は辞書を持つ可変の実装なので公開契約の Game.Block.Interface には置かず、DataStore の隣に置く）
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputCraftCapGate.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Inventory/Input/MachineInputSlotBinding.cs`・`VanillaMachineInputInventory.cs`・`Inventory/MachineSlotPlacementCheck.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/BlockTemplateUtil.cs:54-62`
@@ -10131,7 +10959,7 @@ git commit -m "feat: モジュールスロットのスタック上限を研究�
   - **S2・統合タスク（旧 Part D） へ**: GPU の上限は `{"targetItemGuids": ["01a167ed-2700-7371-9f95-168966ff60bc" の基準アイテムGUID], "level": N}`。family GUID ではなく **基準アイテム（Lv1）の itemGuid** を書く（GPU は `01a167ed-2703-7014-98e4-11bd15f38571`）。GPU衛星は S2 の裁定で GPU LvN→GPU衛星 LvN の通常レシピ5本にするため継承レシピを使わない。モジュール4種も各ファミリーの Lv1 の itemGuid
   - `public interface Game.Block.Interface.MachineUpgrade.ILevelInheritanceCraftCapLookup { IReadOnlyDictionary<Guid, int> UnlockedCaps { get; } IObservable<(Guid familyBaseItemGuid, int level)> OnCraftCapUnlocked { get; } int GetCraftCap(Guid familyBaseItemGuid); }`（`UnlockedCaps` は初期値 Lv1 を含まない）
   - `public interface Game.Block.Interface.MachineUpgrade.ILevelInheritanceCraftCapUnlocker { void UnlockCraftCap(Guid familyBaseItemGuid, int level); void ApplyUnlockLevelInheritanceCraftLevelAction(GameActionElement action); }`（冪等。上がる方向だけ。レベルの範囲 1..ファミリー長 は `MachineUpgradeGameActionValidator` が起動時に保証するので丸めない）
-  - `public class Game.Block.Interface.MachineUpgrade.LevelInheritanceCraftCapTable { const int InitialCraftCap = 1; IReadOnlyDictionary<Guid, int> UnlockedCaps { get; } int GetCraftCap(Guid familyBaseItemGuid); bool TryRaise(Guid familyBaseItemGuid, int level); }`（「未登録は初期値・上がるだけ」の表。サーバーの `LevelInheritanceCraftCapDataStore` と C8 のクライアントの写しが共有する）
+  - `public class Game.Block.Blocks.Machine.Upgrade.LevelInheritanceCraftCapTable { const int InitialCraftCap = 1; IReadOnlyDictionary<Guid, int> UnlockedCaps { get; } int GetCraftCap(Guid familyBaseItemGuid); bool TryRaise(Guid familyBaseItemGuid, int level); }`（「未登録は初期値・上がるだけ」の表。辞書を持つ可変の実装なので Game.Block.Interface〈公開契約。実装クラスと可変状態は置かない〉ではなく `LevelInheritanceCraftCapDataStore` の隣に置く。サーバーの DataStore と C8 のクライアントの写しが共有する。Client.Game は Game.Block を参照済み）
   - `public static int MachineRecipeLevelInheritanceUtil.GetMaxCraftableLevel(LevelInheritanceShape shape, ILevelInheritanceCraftCapLookup craftCapLookup)`（継承元として今入れてよい最高レベル。上限なしは `shape.MaxLevel`、上限つきは製作上限との小さい方。C7 のゲートと C9 の DTO が使う）
   - `MachineSlotPlacementCheck.LevelAboveCraftCap`
   - `VanillaMachineInputInventory(BlockId blockId, int inputSlot, int innerTankCount, float innerTankCapacity, BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, IGameUnlockStateData gameUnlockStateData, ILevelInheritanceCraftCapLookup craftCapLookup)`
@@ -10402,8 +11230,8 @@ Expected: `ILevelInheritanceCraftCapLookup` と `LevelAboveCraftCap` が未定�
 クラスの先頭（`Validate` の前）に定数を足す:
 
 ```csharp
-        // 製作上限は1始まり（Core.Master は Game.Block.Interface を参照できないので、実行時の初期値 LevelInheritanceCraftCapTable.InitialCraftCap とは別に持つ）
-        // Craft caps are 1-based (Core.Master cannot reference Game.Block.Interface, so this is kept apart from the runtime LevelInheritanceCraftCapTable.InitialCraftCap)
+        // 製作上限は1始まり（Core.Master は Game.Block を参照できないので、実行時の初期値 LevelInheritanceCraftCapTable.InitialCraftCap とは別に持つ）
+        // Craft caps are 1-based (Core.Master cannot reference Game.Block, so this is kept apart from the runtime LevelInheritanceCraftCapTable.InitialCraftCap)
         private const int MinCraftCapLevel = 1;
 
 ```
@@ -10493,13 +11321,13 @@ namespace Game.Block.Interface.MachineUpgrade
 }
 ```
 
-`moorestech_server/Assets/Scripts/Game.Block.Interface/MachineUpgrade/LevelInheritanceCraftCapTable.cs`
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/Upgrade/LevelInheritanceCraftCapTable.cs`（辞書を持つ可変の実装なので Game.Block.Interface には置かない。前例 `Core.Item/ItemStackLevelDataStore.cs` も表を実装側の private 辞書で持つ）
 
 ```csharp
 using System;
 using System.Collections.Generic;
 
-namespace Game.Block.Interface.MachineUpgrade
+namespace Game.Block.Blocks.Machine.Upgrade
 {
     /// <summary>
     ///     継承先ファミリーごとの製作上限の表。未登録は初期値、値は上がるだけ（サーバーの DataStore とクライアントの写しが共有する）
@@ -10689,9 +11517,9 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 
 - [ ] **Step 7: GameActionExecutor・再実行種別・DI に通す**
 
-`UnlockReplayGameActionTypes.cs` の集合の末尾に `GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel,` を足す。
+`UnlockReplayGameActionTypes.cs` の `ReplayedTypes` の末尾に `GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel,` を足す（足さないと C6 の `UnlockReplayGameActionTypesCoverageTest` が赤くなる）。
 
-`GameActionExecutor.cs`（C6 の版、183 行 → 192 行）:
+`GameActionExecutor.cs`（C6 の版、184 行 → 193 行）:
 - フィールド `private readonly IModuleSlotStackLimitUnlocker _moduleSlotStackLimitUnlocker;` の次に `private readonly ILevelInheritanceCraftCapUnlocker _levelInheritanceCraftCapUnlocker;`
 - コンストラクタ引数の末尾 `IModuleSlotStackLimitUnlocker moduleSlotStackLimitUnlocker)` を `IModuleSlotStackLimitUnlocker moduleSlotStackLimitUnlocker,` と `ILevelInheritanceCraftCapUnlocker levelInheritanceCraftCapUnlocker)` の2行にし、本体の末尾に `_levelInheritanceCraftCapUnlocker = levelInheritanceCraftCapUnlocker;`
 - switch の `unlockModuleSlotStackLevel` の case の後に:
@@ -10744,7 +11572,7 @@ Expected: 削除1行（末尾要素へのカンマ付与）。
 
 - [ ] **Step 9: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "LevelInheritanceCraftCapTest|MachineUpgradeGameActionValidatorTest|LevelInheritanceRecipeTest|LevelInheritanceSaveLoadTest|ModuleSlotStackLimitTest|MachineSlotBindingTest|MachineRecipeChangeRefundTest|MachineAutoInsertCapTest|ResearchUnlockGameActionCoverageTest|CompleteResearchProtocolTest|GetResearchInfoProtocolTest"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "LevelInheritanceCraftCapTest|MachineUpgradeGameActionValidatorTest|LevelInheritanceRecipeTest|LevelInheritanceSaveLoadTest|ModuleSlotStackLimitTest|MachineSlotBindingTest|MachineRecipeChangeRefundTest|MachineAutoInsertCapTest|ResearchUnlockGameActionCoverageTest|UnlockReplayGameActionTypesCoverageTest|CompleteResearchProtocolTest|GetResearchInfoProtocolTest"`
 Expected: ErrorCount 0 / 全 PASS。`wc -l` で `GameActionExecutor.cs`・`VanillaMachineInputInventory.cs`・`MachineInputSlotBinding.cs` が 200 未満
 
 - [ ] **Step 10: コミットする**
@@ -10792,8 +11620,9 @@ git commit -m "feat: 上限つき継承レシピの製作上限を研究で引�
   - `public static class Game.Block.Blocks.Machine.RecipeSelection.MachineRecipeSlotBindingUtil`（`internal` から `public` へ。入力 i の要求アイテムの解決は private `GetRequiredInputItemId` の1か所）:
     - `IReadOnlyList<ItemId> GetAcceptedInputItemIds(MachineRecipeMasterElement recipe, int inputIndex)`（C9 の DTO も使う）
     - `int? ResolveInputAcceptedLevel(MachineRecipeMasterElement recipe, int inputIndex, ItemId itemId)`
+    - `IReadOnlyList<ItemId> GetAcceptedOutputItemIds(MachineRecipeMasterElement recipe, int outputIndex)`（出力 j の生産物のレベルファミリーの全変種を下位から。`BuildDefaultOutputBinding` はこれを集合にし、C9 の DTO も同じ列を詰める）
     - `bool IsInputBoundTo(...)` は全スロットで `ResolveInputAcceptedLevel(...).HasValue`（継承元スロットも同じ式で全変種を受け、製作上限は C7 のゲートが別に見る）
-  - `internal (IItemStack slotStack, IItemStack incoming) MachineInputSlotBinding.AlignSubstituteVariant(int slotIndex, IItemStack slotStack, IItemStack incoming)`
+  - `public (IItemStack slotStack, IItemStack incoming) MachineInputSlotBinding.AlignSubstituteVariant(int slotIndex, IItemStack slotStack, IItemStack incoming)`（クラス `MachineInputSlotBinding` は internal のままで、メンバーは既存の `CheckPlacement` などと同じく public。アセンブリの外からは見えない）
   - `internal static class Game.Research.ResearchConsumeItemsUtil { bool HasRequiredItems(ConsumeItemsElement[] consumeItems, IReadOnlyList<IItemStack> inventoryItems); void Consume(ConsumeItemsElement[] consumeItems, IOpenableInventory inventory); }`
   - テスト用: レシピ `ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid`（`00000000-0000-4000-8000-0000c0de0003`、継承機械、`None`、継承元テストファミリー基準×2＋Test1×1 → Test2×1）、研究 `ForUnitTestLevelInheritanceIds.SubstituteResearchGuid`（`c0de0000-0000-4000-8000-000000000003`、継承元テストファミリー基準×3 を消費、解放アクションなし）
   - **統合タスク（旧 Part D）・S2 へ**: 研究の `consumeItems` に GPU やチップの Lv1（基準）の itemGuid を書けば、上位レベルでも払える。Lv2 以上だけを要求したいときはその変種の itemGuid を書く（その変種だけを受け付ける）
@@ -11157,7 +11986,28 @@ git diff --numstat -- moorestech_server/Assets/Scripts/Game.Block/Game.Block.asm
 
 Expected: 2ファイルとも `1 0`
 
-C2 の `LevelInheritanceShape.ResolveSourceLevel` はこの util へ委譲しない（Game.Block.Interface は Core.Item を参照できない）。継承元の変種列は `GetLevelVariants(継承元の基準)` そのものなので、両者は同じ答えを返す。
+C2 の `LevelInheritanceShape.ResolveSourceLevel` はこの util へ委譲しない。Core.Item は Game.Context 経由で Game.Block.Interface に依存する（asmdef: Core.Item → Game.Context → Game.Block.Interface）ので、Game.Block.Interface から Core.Item を参照すると循環する。継承元の変種列は `GetLevelVariants(継承元の基準)` そのものなので両者は同じ答えを返し、そのことを次のテストで固定する（判断記録）。
+
+`LevelFamilySubstituteMachineTest.cs` の `RecipeChangeRefundsBaseLevelTest` の後に足し、using に `using Core.Item;` と `using Game.Block.Interface.MachineUpgrade;` を足す:
+
+```csharp
+
+        [Test]
+        public void SubstituteLevelMatchesInheritanceSourceLevelTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            Assert.IsTrue(MachineRecipeLevelInheritanceUtil.TryGetShape(Recipe(ForUnitTestLevelInheritanceIds.InheritRecipeGuid), out var shape));
+
+            // 「基準の変種の何番目か」は代用（Core.Item）と継承元（Game.Block.Interface）に1本ずつあるので、同じ答えを返すことをここで固定する
+            // "Which variant of the base" lives once for substitutes (Core.Item) and once for the inheritance source (Game.Block.Interface), so pin that both answer the same
+            var sourceBase = ForUnitTestLevelInheritanceIds.Source(1);
+            var candidates = new[] { ForUnitTestLevelInheritanceIds.Source(1), ForUnitTestLevelInheritanceIds.Source(2), ForUnitTestLevelInheritanceIds.Source(3), ForUnitTestLevelInheritanceIds.Target(2), ForUnitTestItemId.ItemId1 };
+            foreach (var itemId in candidates)
+            {
+                Assert.AreEqual(shape.ResolveSourceLevel(itemId), LevelFamilySubstituteUtil.ResolveAcceptedLevel(sourceBase, itemId), $"itemId={itemId}");
+            }
+        }
+```
 
 `MachineRecipeSlotBindingUtil.cs` 全体を置き換える（`internal` → `public`。C9 の Web UI の DTO が同じ受け付け集合を使うため。入力 i の要求アイテムの解決は `GetRequiredInputItemId` の1か所）:
 
@@ -11205,6 +12055,13 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             return MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[tankIndex].FluidGuid) == fluidId;
         }
 
+        // 出力 outputIndex のスロットへ入れられるアイテム（下位から順。生産物のレベルファミリーの全変種。C9 の DTO も使う）
+        // Items the slot of output outputIndex accepts, lowest first: every variant of the product's level family (C9's DTO uses it too)
+        public static IReadOnlyList<ItemId> GetAcceptedOutputItemIds(MachineRecipeMasterElement recipe, int outputIndex)
+        {
+            return MasterHolder.ItemMaster.GetLevelVariants(MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[outputIndex].ItemGuid));
+        }
+
         // 出力スロットごとの既定許可集合（生産物のレベルファミリーのみ）。レシピ未選択は空
         // Default allowed-item set per output slot (level family only); empty when unselected
         public static IReadOnlyList<IReadOnlyCollection<ItemId>> BuildDefaultOutputBinding(MachineRecipeMasterElement recipe)
@@ -11212,10 +12069,9 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             if (recipe == null) return System.Array.Empty<IReadOnlyCollection<ItemId>>();
 
             var binding = new List<IReadOnlyCollection<ItemId>>(recipe.OutputItems.Length);
-            foreach (var outputItem in recipe.OutputItems)
+            for (var j = 0; j < recipe.OutputItems.Length; j++)
             {
-                var baseItemId = MasterHolder.ItemMaster.GetItemId(outputItem.ItemGuid);
-                binding.Add(new HashSet<ItemId>(MasterHolder.ItemMaster.GetLevelVariants(baseItemId)));
+                binding.Add(new HashSet<ItemId>(GetAcceptedOutputItemIds(recipe, j)));
             }
             return binding;
         }
@@ -11368,7 +12224,7 @@ Expected: 200 未満（約 165）
 `docs/adr/0042-machine-ui-satisfactory-mode-split-and-ghost-slots.md` の「**スロット固定をサーバーで強制する。**」の項の棄却案の行（`  棄却案: ①表示だけゴーストでサーバーは任意受入のまま ②スロット対応を持たず入力欄全体に未投入素材を並べる`）の直後に、次の2行を足す:
 
 ```markdown
-  例外: levelFamily の基準を指す入力は同ファミリーの変種も受ける（継承元は製作上限以下・代用は上位の変種）。1スロット1アイテムIDは保ち、手動の挿入では別レベルを重ねない。
+  例外: levelFamily の基準を指す入力は同ファミリーの変種も受ける（`InheritUpToUnlocked` の継承元は製作上限以下の変種、`Inherit` の継承元は全変種、継承しないレシピの代用は上位の変種）。1スロット1アイテムIDは保ち、手動の挿入では別レベルを重ねない。自動搬入だけは、同じ要求に充てられる別レベルを低い方のレベルへ揃えて積む（継承元スロットは揃えない）。
   出所: ユーザー裁定 2026-10-23（[[2026-10-23-チップ製品のレベルは使ったチップのレベルを継承する]]・[[2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる]]・[[2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく]]）
 ```
 
@@ -11379,7 +12235,7 @@ path = sys.argv[1]
 text = open(path, encoding='utf-8').read()
 anchor = '  棄却案: ①表示だけゴーストでサーバーは任意受入のまま ②スロット対応を持たず入力欄全体に未投入素材を並べる\n'
 assert text.count(anchor) == 1, 'anchor line not unique'
-addition = ('  例外: levelFamily の基準を指す入力は同ファミリーの変種も受ける（継承元は製作上限以下・代用は上位の変種）。1スロット1アイテムIDは保ち、手動の挿入では別レベルを重ねない。\n'
+addition = ('  例外: levelFamily の基準を指す入力は同ファミリーの変種も受ける（`InheritUpToUnlocked` の継承元は製作上限以下の変種、`Inherit` の継承元は全変種、継承しないレシピの代用は上位の変種）。1スロット1アイテムIDは保ち、手動の挿入では別レベルを重ねない。自動搬入だけは、同じ要求に充てられる別レベルを低い方のレベルへ揃えて積む（継承元スロットは揃えない）。\n'
             '  出所: ユーザー裁定 2026-10-23（[[2026-10-23-チップ製品のレベルは使ったチップのレベルを継承する]]・[[2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる]]・[[2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく]]）\n')
 open(path, 'w', encoding='utf-8').write(text.replace(anchor, anchor + addition))
 PY
@@ -11745,6 +12601,7 @@ namespace Client.Game.InGame.MachineUpgrade
 ```csharp
 using System;
 using System.Collections.Generic;
+using Game.Block.Blocks.Machine.Upgrade;
 using Game.Block.Interface.MachineUpgrade;
 using UniRx;
 
@@ -11882,6 +12739,7 @@ git commit -m "feat: スロット上限と製作上限をハンドシェイク�
 機械レシピの配信 DTO にレベル継承を足し、レシピ選択行とレシピビューアにバッジを出す。スロット束縛には「受け付けるアイテムID一覧」を足し、上位レベルの素材（継承元の変種と、C11 で基準の要求に充てられる上位の変種）も Shift 移動の宛先を引けるようにする。スロット上限は小さな topic `machine_upgrade.current` で配り、機械のモジュール欄に「1スロット上限 N」を出す。
 
 **Files:**
+- Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Common/WebUiItemIdListUtil.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/MachineUpgrade/MachineRecipeLevelInheritanceDtoBuilder.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/MachineUpgrade/MachineUpgradeTopic.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/MachineRecipesTopic.cs`
@@ -11908,7 +12766,7 @@ git commit -m "feat: スロット上限と製作上限をハンドシェイク�
 - Produces（webui の契約）:
   - topic `"machine_upgrade.current"`、payload `{ moduleSlotStackLimit: number }`（正の整数。`Topics.machineUpgrade`、型 `MachineUpgradeData`）
   - `MachineRecipe.levelInheritance: { kind: "none" | "inherit" | "inheritUpToUnlocked"; sourceInputIndex: number; sourceItemIds: number[]; targetOutputIndex: number; targetItemIds: number[]; maxCraftableLevel: number }`（必須。`kind` はマスタの `levelInheritance` を DTO ビルダーの網羅 switch 1か所で写した値。継承しないレシピは `-1`・空配列・`0`〈wire 専用の値。サーバー内部は番号の有無を `TryGetShape` で表し -1 を持たない。zod が形を閉じるので DTO の形は変えない〉。`maxCraftableLevel` は今受け付ける継承元の最高レベルで、サーバーのゲートと同じ `GetMaxCraftableLevel`。上限つきは研究済みの製作上限、上限なしは継承元ファミリーの長さ。製作上限の解放で `crafting.machine_recipes` が再配信される）。型 `MachineRecipeLevelInheritance`
-  - `MachineDetailData.slotBindings[].acceptedItemIds: number[]`（必須。入力スロットはサーバーの束縛と同じ `MachineRecipeSlotBindingUtil.GetAcceptedInputItemIds` の結果で、要求が levelFamily の基準なら全変種を下位から（継承元も通常レシピの代替も同じ）、それ以外は `[itemId]`。出力スロットは `[itemId]`。製作上限では絞らない＝上限超えはサーバーが拒否し、既存の拒否通知が出る）
+  - `MachineDetailData.slotBindings[].acceptedItemIds: number[]`（必須。入力スロットはサーバーの束縛と同じ `MachineRecipeSlotBindingUtil.GetAcceptedInputItemIds` の結果で、要求が levelFamily の基準なら全変種を下位から（継承元も通常レシピの代替も同じ）、それ以外は `[itemId]`。出力スロットはサーバーの既定の出力束縛 `BuildDefaultOutputBinding` と同じ `MachineRecipeSlotBindingUtil.GetAcceptedOutputItemIds` の結果で、生産物のレベルファミリーの全変種を下位から（ファミリーを持たなければ `[itemId]`）。Web の Shift 宛先は入力帯だけを引くので、出力の集合は宛先を増やさない。製作上限では絞らない＝上限超えはサーバーが拒否し、既存の拒否通知が出る）
   - testid: `machine-module-stack-limit`（モジュール欄の上限）、`machine-recipe-{recipeGuid}-level-inheritance`（レシピ選択行のバッジ）、`machine-recipe-level-inheritance-{recipeGuid}`（レシピビューアのバッジ）
   - i18n キー: `ui.recipe.levelInheritance`・`ui.recipe.levelInheritanceCapped`（差し込み `{level}`）・`ui.blockInventory.moduleSlotStackLimit`（差し込み `{limit}`）
 
@@ -11995,11 +12853,11 @@ namespace Client.Tests.WebUi.MachineUpgrade
             var machineParam = (IMachineParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestLevelInheritanceIds.MachineId).BlockParam;
             var bindings = MachineSlotBindingDtoBuilder.BuildSlotBindings(recipe, machineParam);
 
-            // 継承元（入力0）は全変種、固定素材（入力1）と出力は自分のIDだけ
-            // The source (input 0) accepts every variant; the fixed input (input 1) and the output accept only their own ID
+            // 継承元（入力0）は全変種、固定素材（入力1）は自分のIDだけ、出力はサーバーの出力束縛と同じく継承先ファミリーの全変種
+            // The source (input 0) accepts every variant, the fixed input (input 1) only its own ID, and the output the whole target family as the server's output binding does
             CollectionAssert.AreEqual(Ids(ForUnitTestLevelInheritanceIds.Source(1), ForUnitTestLevelInheritanceIds.Source(2), ForUnitTestLevelInheritanceIds.Source(3)), bindings[0].AcceptedItemIds);
             CollectionAssert.AreEqual(new List<int> { bindings[1].ItemId }, bindings[1].AcceptedItemIds);
-            CollectionAssert.AreEqual(new List<int> { bindings[2].ItemId }, bindings[2].AcceptedItemIds);
+            CollectionAssert.AreEqual(Ids(ForUnitTestLevelInheritanceIds.Target(1), ForUnitTestLevelInheritanceIds.Target(2), ForUnitTestLevelInheritanceIds.Target(3)), bindings[2].AcceptedItemIds);
         }
 
         [Test]
@@ -12141,12 +12999,36 @@ Expected: `MachineRecipeLevelInheritanceDtoBuilder`・`MachineUpgradeDto`・`Acc
 
 - [ ] **Step 3: 継承の DTO ビルダーを書く**
 
+`moorestech_client/Assets/Scripts/Client.WebUiHost/Common/WebUiItemIdListUtil.cs`（`IReadOnlyList<ItemId>` → wire の `List<int>` の詰め替えを1本にする。C9 の継承 DTO・スロット束縛 DTO と C12 の研究 DTO が使う。`Common/` のコードは 5 → 6 本）
+
+```csharp
+using System.Collections.Generic;
+using Core.Master;
+
+namespace Client.WebUiHost.Common
+{
+    /// <summary>
+    ///     アイテムIDの列を wire の int 配列へ詰め替える（順序は保つ）
+    ///     Converts a list of item IDs into the wire's int array, keeping the order
+    /// </summary>
+    public static class WebUiItemIdListUtil
+    {
+        public static List<int> ToPrimitiveIds(IReadOnlyList<ItemId> itemIds)
+        {
+            var ids = new List<int>(itemIds.Count);
+            foreach (var itemId in itemIds) ids.Add(itemId.AsPrimitive());
+            return ids;
+        }
+    }
+}
+```
+
 `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/MachineUpgrade/MachineRecipeLevelInheritanceDtoBuilder.cs`
 
 ```csharp
 using System;
 using System.Collections.Generic;
-using Core.Master;
+using Client.WebUiHost.Common;
 using Game.Block.Interface.MachineUpgrade;
 using Mooresmaster.Model.MachineRecipesModule;
 
@@ -12201,9 +13083,9 @@ namespace Client.WebUiHost.Game.Topics.MachineUpgrade
 
             MachineRecipeLevelInheritanceDto BuildInheritance(string kind)
             {
-                // 継承レシピの形は util から引く（上の switch で継承レシピと確定している）
-                // Read the inheritance shape from the util (the switch above has confirmed an inheritance recipe)
-                MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape);
+                // 上の switch で継承レシピと決めたのに形が引けなければ、switch と util の食い違いなので止める
+                // If the shape is missing after the switch above decided on inheritance, the switch and the util disagree, so stop
+                if (!MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape)) throw new InvalidOperationException($"継承レシピの形を引けません recipe={recipe.MachineRecipeGuid} levelInheritance={recipe.LevelInheritance}");
 
                 // 上限つきは研究済みの製作上限、上限なしは継承元ファミリーの長さまで受け付ける（サーバーのゲートと同じ関数）
                 // Capped recipes accept up to the researched craft cap, uncapped ones up to the source family length (the same function as the server gate)
@@ -12211,18 +13093,11 @@ namespace Client.WebUiHost.Game.Topics.MachineUpgrade
                 {
                     Kind = kind,
                     SourceInputIndex = shape.SourceInputIndex,
-                    SourceItemIds = ToPrimitiveIds(shape.SourceVariants),
+                    SourceItemIds = WebUiItemIdListUtil.ToPrimitiveIds(shape.SourceVariants),
                     TargetOutputIndex = shape.TargetOutputIndex,
-                    TargetItemIds = ToPrimitiveIds(shape.TargetVariants),
+                    TargetItemIds = WebUiItemIdListUtil.ToPrimitiveIds(shape.TargetVariants),
                     MaxCraftableLevel = MachineRecipeLevelInheritanceUtil.GetMaxCraftableLevel(shape, craftCapLookup),
                 };
-            }
-
-            List<int> ToPrimitiveIds(IReadOnlyList<ItemId> itemIds)
-            {
-                var ids = new List<int>(itemIds.Count);
-                foreach (var itemId in itemIds) ids.Add(itemId.AsPrimitive());
-                return ids;
             }
 
             #endregion
@@ -12357,12 +13232,12 @@ using UniRx;
 `BlockDetailDtos.cs` の `MachineSlotBindingDto` の `public int Count;` の後に足す:
 
 ```csharp
-        // このスロットへ入れられるアイテムID。基準を要求する入力（継承元を含む）はファミリーの全変種。製作上限では絞らない（上限超えはサーバーの拒否と既存の拒否通知に任せる。計画の「やらないこと」と判断記録）
-        // Item IDs this slot accepts; a base-requiring input (including the source) lists every family variant; not narrowed by the craft cap (the server refusal and its existing notice handle that, per the plan's non-goals and decision log)
+        // このスロットへ入れられるアイテムID（サーバーの束縛と同じ集合）。基準を要求する入力（継承元を含む）と出力はファミリーの全変種。製作上限では絞らない（上限超えはサーバーの拒否と既存の拒否通知に任せる。計画の「やらないこと」と判断記録）
+        // Item IDs this slot accepts (the same set as the server binding); base-requiring inputs (including the source) and outputs list every family variant; not narrowed by the craft cap (the server refusal and its existing notice handle that, per the plan's non-goals and decision log)
         public List<int> AcceptedItemIds;
 ```
 
-`MachineSlotBindingDtoBuilder.cs` の `BuildSlotBindings` を次へ置き換え、using に `using Game.Block.Blocks.Machine.RecipeSelection;` を足す（`using Core.Master;` は `CreateBinding` が使うので残す）:
+`MachineSlotBindingDtoBuilder.cs` の `BuildSlotBindings` を次へ置き換え、using に `using Client.WebUiHost.Common;` と `using Game.Block.Blocks.Machine.RecipeSelection;` を足す（`using Core.Master;` は `CreateBinding` が使うので残す）:
 
 ```csharp
         public static List<MachineSlotBindingDto> BuildSlotBindings(MachineRecipeMasterElement recipe, IMachineParam machineParam)
@@ -12374,37 +13249,29 @@ using UniRx;
             // Inputs take their accepted IDs from the same util as the server binding (higher variants for a base requirement; the source follows the same rule)
             for (var i = 0; i < recipe.InputItems.Length; i++)
             {
-                var binding = CreateBinding(i, recipe.InputItems[i].ItemGuid, recipe.InputItems[i].Count);
-                binding.AcceptedItemIds = ToPrimitiveIds(MachineRecipeSlotBindingUtil.GetAcceptedInputItemIds(recipe, i));
-                bindings.Add(binding);
+                bindings.Add(CreateBinding(i, recipe.InputItems[i].ItemGuid, recipe.InputItems[i].Count, MachineRecipeSlotBindingUtil.GetAcceptedInputItemIds(recipe, i)));
             }
 
+            // 出力もサーバーの既定の出力束縛（BuildDefaultOutputBinding）と同じ集合から詰める（生産物のレベルファミリーの全変種）
+            // Outputs come from the same set as the server's default output binding (BuildDefaultOutputBinding): every variant of the product's level family
             for (var j = 0; j < recipe.OutputItems.Length; j++)
             {
-                bindings.Add(CreateBinding(machineParam.InputSlotCount + j, recipe.OutputItems[j].ItemGuid, recipe.OutputItems[j].Count));
+                bindings.Add(CreateBinding(machineParam.InputSlotCount + j, recipe.OutputItems[j].ItemGuid, recipe.OutputItems[j].Count, MachineRecipeSlotBindingUtil.GetAcceptedOutputItemIds(recipe, j)));
             }
 
             return bindings;
 
             #region Internal
 
-            MachineSlotBindingDto CreateBinding(int slot, System.Guid itemGuid, int count)
+            MachineSlotBindingDto CreateBinding(int slot, System.Guid itemGuid, int count, IReadOnlyList<ItemId> acceptedItemIds)
             {
-                var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive();
                 return new MachineSlotBindingDto
                 {
                     Slot = slot,
-                    ItemId = itemId,
+                    ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(),
                     Count = count,
-                    AcceptedItemIds = new List<int> { itemId },
+                    AcceptedItemIds = WebUiItemIdListUtil.ToPrimitiveIds(acceptedItemIds),
                 };
-            }
-
-            List<int> ToPrimitiveIds(IReadOnlyList<ItemId> itemIds)
-            {
-                var ids = new List<int>(itemIds.Count);
-                foreach (var itemId in itemIds) ids.Add(itemId.AsPrimitive());
-                return ids;
             }
 
             #endregion
@@ -12829,7 +13696,7 @@ Expected: vitest 全 PASS（`localizationKeysFreshness`・`allScreensI18n` を�
 - [ ] **Step 16: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/MachineUpgrade moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/MachineRecipesTopic.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs moorestech_client/Assets/Scripts/Client.Tests/WebUi Localization/localization.csv moorestech_web/webui/src moorestech_web/webui/e2e
+git add moorestech_client/Assets/Scripts/Client.WebUiHost/Common/WebUiItemIdListUtil.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Common/WebUiItemIdListUtil.cs.meta moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/MachineUpgrade moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/MachineRecipesTopic.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs moorestech_client/Assets/Scripts/Client.Tests/WebUi Localization/localization.csv moorestech_web/webui/src moorestech_web/webui/e2e
 git commit -m "feat(webui): 継承レシピのバッジ・スロット上限の表示・上位レベル素材の宛先を足す"
 ```
 
@@ -12841,7 +13708,7 @@ git commit -m "feat(webui): 継承レシピのバッジ・スロット上限の�
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Research/ResearchTopicDtos.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Research/ResearchNodeDtoFactory.cs`（145 行 → 約 175 行）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Research/ResearchNodeDtoFactory.cs`（145 行 → 約 168 行。ID 列の詰め替えは C9 の `WebUiItemIdListUtil` を使う）
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/Research/ResearchUnlockGameActionCoverageTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/Research/ResearchNodeDtoFactoryTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireContractResearchTest.cs`・`WireFixtures/research_tree.json`
@@ -12857,7 +13724,7 @@ git commit -m "feat(webui): 継承レシピのバッジ・スロット上限の�
 - Create: `moorestech_web/webui/e2e/tests/research/researchMachineUpgradeUnlock.spec.ts`
 
 **Interfaces:**
-- Consumes: C6 の `unlockModuleSlotStackLevel`（生成型 `UnlockModuleSlotStackLevelGameActionParam.Level`）と `Game.Block.Interface.MachineUpgrade.ModuleSlotStackLimitMasterUtil.GetStackLimit(int level)`、C7 の `unlockLevelInheritanceCraftLevel`（`UnlockLevelInheritanceCraftLevelGameActionParam.TargetItemGuids`・`.Level`）、C11 の `Core.Item.LevelFamilySubstituteUtil.GetAcceptedItemIds`、テスト用研究 `ModuleSlotStackResearchGuid`・`CraftCapResearchGuid`・`SubstituteResearchGuid`
+- Consumes: C6 の `unlockModuleSlotStackLevel`（生成型 `UnlockModuleSlotStackLevelGameActionParam.Level`）と `Game.Block.Interface.MachineUpgrade.ModuleSlotStackLimitMasterUtil.GetStackLimit(int level)`、C7 の `unlockLevelInheritanceCraftLevel`（`UnlockLevelInheritanceCraftLevelGameActionParam.TargetItemGuids`・`.Level`）、C11 の `Core.Item.LevelFamilySubstituteUtil.GetAcceptedItemIds`、C9 の `Client.WebUiHost.Common.WebUiItemIdListUtil.ToPrimitiveIds(IReadOnlyList<ItemId>)`、テスト用研究 `ModuleSlotStackResearchGuid`・`CraftCapResearchGuid`・`SubstituteResearchGuid`
 - Produces（webui の契約。topic `research.tree`）:
   - `ResearchNodeData.consumeItems[].acceptedItemIds: number[]`（必須。要求が基準なら全変種を下位から、それ以外は `[itemId]`）
   - `ResearchNodeData.unlockModuleSlotStackLimits: number[]`（必須。レベルではなく解放後の上限値。正の整数）
@@ -13032,7 +13899,7 @@ Expected: `UnlockModuleSlotStackLimits`・`UnlockLevelInheritanceCraftCaps`・`R
 ```
 
 `ResearchNodeDtoFactory.cs`:
-- using に `using Core.Item;`（`LevelFamilySubstituteUtil`）と `using Game.Block.Interface.MachineUpgrade;`（`ModuleSlotStackLimitMasterUtil`）を足す（Client.WebUiHost の asmdef は Core.Item・Game.Block.Interface を参照済み）
+- using に `using Client.WebUiHost.Common;`（C9 の `WebUiItemIdListUtil`）・`using Core.Item;`（`LevelFamilySubstituteUtil`）・`using Game.Block.Interface.MachineUpgrade;`（`ModuleSlotStackLimitMasterUtil`）を足す（Client.WebUiHost の asmdef は Core.Item・Game.Block.Interface を参照済み）
 - 初期化子の `UnlockTrainCarGuids = new List<string>(),` の後に2行:
 
 ```csharp
@@ -13046,7 +13913,7 @@ Expected: `UnlockModuleSlotStackLimits`・`UnlockLevelInheritanceCraftCaps`・`R
             foreach (var consume in master.ConsumeItems)
             {
                 var itemId = MasterHolder.ItemMaster.GetItemId(consume.ItemGuid);
-                var acceptedItemIds = ToPrimitiveIds(LevelFamilySubstituteUtil.GetAcceptedItemIds(itemId));
+                var acceptedItemIds = WebUiItemIdListUtil.ToPrimitiveIds(LevelFamilySubstituteUtil.GetAcceptedItemIds(itemId));
                 dto.ConsumeItems.Add(new ResearchConsumeItemDto { ItemId = itemId.AsPrimitive(), Count = consume.ItemCount, AcceptedItemIds = acceptedItemIds });
             }
 ```
@@ -13076,18 +13943,6 @@ Expected: `UnlockModuleSlotStackLimits`・`UnlockLevelInheritanceCraftCaps`・`R
                                 dto.UnlockLevelInheritanceCraftCaps.Add(new ResearchUnlockCraftCapDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Level = unlock.Level });
                             break;
                         }
-```
-
-- `#region Internal` の `ToStateString` の前に足す:
-
-```csharp
-            List<int> ToPrimitiveIds(IReadOnlyList<ItemId> itemIds)
-            {
-                var ids = new List<int>(itemIds.Count);
-                foreach (var itemId in itemIds) ids.Add(itemId.AsPrimitive());
-                return ids;
-            }
-
 ```
 
 Run: `wc -l moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Research/ResearchNodeDtoFactory.cs`
@@ -13775,8 +14630,7 @@ git commit -m "test: 研究の解放が Web UI の配信まで届くことと上
     - `int MaxWaferGrade(int highestQualityModuleTier, int gradeCount)`
     - `double PromotionChance(double qualityEffectSum, double classQualityMultiplier, double maxPromotionChance)`
     - `double ReducedRate(double classBaseRate, double qualityEffectSum, double maxReduction)`
-    - `double[] WaferGradeProbabilities(double promotionChance, int maxGrade)`
-    - `double[] ExpectedGoodDiesByLevel(IReadOnlyList<double> gradeProbabilities, double layerFailRate, int layerCount, int diesPerWafer, double dieLossRate, IReadOnlyList<IReadOnlyList<float>> gradeDieTables, int dieLevelCount)`
+    - 本番の呼び手は `CleanRoomRoleRates`（B3〜B5）だけ。グレード確率の閉形式とレベル別の期待ダイ数はバランスの検算にしか使わないので、本番コードに置かずテストの補助（`ChipYieldFormulaTest` の `#region TestHelper`）に置く
   - `public static class ChipYieldDraw`
     - `int DrawWaferGrade(double promotionChance, int maxGrade, CleanRoomDrawRandom random)`
     - `bool DrawLayerFailure(double layerFailRate, CleanRoomDrawRandom random)`
@@ -13849,22 +14703,6 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         }
 
         [Test]
-        public void WaferGradeProbabilitiesMatchClosedFormTest()
-        {
-            // 上限未満は u^(g-1)(1-u)、上限は残り全部 u^(max-1)
-            // Below the cap each grade is u^(g-1)(1-u); the cap takes the remainder u^(max-1)
-            var probabilities = ChipYieldFormula.WaferGradeProbabilities(0.6, 3);
-            Assert.AreEqual(3, probabilities.Length);
-            Assert.AreEqual(0.4, probabilities[0], 1e-9);
-            Assert.AreEqual(0.24, probabilities[1], 1e-9);
-            Assert.AreEqual(0.36, probabilities[2], 1e-9);
-
-            var single = ChipYieldFormula.WaferGradeProbabilities(0.6, 1);
-            Assert.AreEqual(1, single.Length);
-            Assert.AreEqual(1.0, single[0], 1e-9);
-        }
-
-        [Test]
         public void WorkedExampleExpectedDiesTest()
         {
             // クラスA・品質合計0.6・最高tier2: u=0.6、層失敗0.04、ダイ損失0.06、生存=0.96^3×300×0.94=249.4956
@@ -13916,14 +14754,40 @@ namespace Tests.UnitTest.Game.CleanRoomYield
 
         #region TestHelper
 
+        // 本番の式（上限・昇格確率・割引率）を通し、閉形式で投入1枚あたりのレベル別良品ダイ期待値を出す
+        // Run the production formulas (cap, promotion chance, reduced rates) and get the closed-form expected good dies per wafer by level
         private static double[] ExpectedDies((float qualityMultiplier, float layerFailRate, float dieLossRate) classRow, double qualitySum, int highestTier)
         {
             var maxGrade = ChipYieldFormula.MaxWaferGrade(highestTier, GradeCount);
             var chance = ChipYieldFormula.PromotionChance(qualitySum, classRow.qualityMultiplier, MaxPromotionChance);
-            var gradeProbabilities = ChipYieldFormula.WaferGradeProbabilities(chance, maxGrade);
             var layerFail = ChipYieldFormula.ReducedRate(classRow.layerFailRate, qualitySum, MaxReduction);
             var dieLoss = ChipYieldFormula.ReducedRate(classRow.dieLossRate, qualitySum, MaxReduction);
-            return ChipYieldFormula.ExpectedGoodDiesByLevel(gradeProbabilities, layerFail, LayerCount, DiesPerWafer, dieLoss, GradeDieTables, DieLevelCount);
+
+            // 全層成功×ダイ生存×グレード確率×グレード別ダイ表
+            // All layers pass x die survival x grade probability x per-grade die table
+            var expected = new double[DieLevelCount];
+            var survivingDies = System.Math.Pow(1d - layerFail, LayerCount) * DiesPerWafer * (1d - dieLoss);
+            var gradeProbabilities = WaferGradeProbabilities(chance, maxGrade);
+            for (var gradeIndex = 0; gradeIndex < gradeProbabilities.Length; gradeIndex++)
+            {
+                var table = GradeDieTables[gradeIndex];
+                for (var levelIndex = 0; levelIndex < table.Length; levelIndex++) expected[levelIndex] += gradeProbabilities[gradeIndex] * survivingDies * table[levelIndex];
+            }
+            return expected;
+        }
+
+        // グレードgの確率。上限未満は u^(g-1)(1-u)、上限は u^(max-1)（ChipYieldDraw.DrawWaferGrade の閉形式）
+        // Probability of grade g: u^(g-1)(1-u) below the cap, u^(max-1) at the cap (the closed form of ChipYieldDraw.DrawWaferGrade)
+        private static double[] WaferGradeProbabilities(double promotionChance, int maxGrade)
+        {
+            var probabilities = new double[maxGrade];
+            var reach = 1d;
+            for (var grade = 1; grade <= maxGrade; grade++)
+            {
+                probabilities[grade - 1] = grade == maxGrade ? reach : reach * (1d - promotionChance);
+                reach *= promotionChance;
+            }
+            return probabilities;
         }
 
         private static double Sum(IReadOnlyList<double> values, int fromIndex)
@@ -14102,13 +14966,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
 
 ```csharp
 using System;
-using System.Collections.Generic;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.Yield
 {
     /// <summary>
-    ///     チップ歩留まりの確率式。抽選（ChipYieldDraw）とバランス計算が同じ式を共有する
-    ///     Probability formulas for chip yield; the draw (ChipYieldDraw) and balance checks share them
+    ///     チップ歩留まりの確率式。抽選と機械UIの表示が CleanRoomRoleRates を通して同じ式を使う
+    ///     Probability formulas for chip yield; the draws and the machine UI use them through CleanRoomRoleRates
     /// </summary>
     public static class ChipYieldFormula
     {
@@ -14131,37 +14994,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
         public static double ReducedRate(double classBaseRate, double qualityEffectSum, double maxReduction)
         {
             return classBaseRate * (1d - Math.Clamp(qualityEffectSum, 0d, maxReduction));
-        }
-
-        // グレードgの確率。上限未満は u^(g-1)(1-u)、上限は u^(max-1)
-        // Probability of grade g: u^(g-1)(1-u) below the cap, u^(max-1) at the cap
-        public static double[] WaferGradeProbabilities(double promotionChance, int maxGrade)
-        {
-            var probabilities = new double[maxGrade];
-            var reach = 1d;
-            for (var grade = 1; grade <= maxGrade; grade++)
-            {
-                probabilities[grade - 1] = grade == maxGrade ? reach : reach * (1d - promotionChance);
-                reach *= promotionChance;
-            }
-            return probabilities;
-        }
-
-        // 投入1枚あたりのレベル別良品ダイ期待値。全層成功×ダイ生存×グレード別ダイ表
-        // Expected good dies per started wafer by level: all layers pass x die survival x per-grade die table
-        public static double[] ExpectedGoodDiesByLevel(IReadOnlyList<double> gradeProbabilities, double layerFailRate, int layerCount, int diesPerWafer, double dieLossRate, IReadOnlyList<IReadOnlyList<float>> gradeDieTables, int dieLevelCount)
-        {
-            var expected = new double[dieLevelCount];
-            var survivingDies = Math.Pow(1d - layerFailRate, layerCount) * diesPerWafer * (1d - dieLossRate);
-            for (var gradeIndex = 0; gradeIndex < gradeProbabilities.Count; gradeIndex++)
-            {
-                var table = gradeDieTables[gradeIndex];
-                for (var levelIndex = 0; levelIndex < table.Count; levelIndex++)
-                {
-                    expected[levelIndex] += gradeProbabilities[gradeIndex] * survivingDies * table[levelIndex];
-                }
-            }
-            return expected;
         }
     }
 }
@@ -14258,7 +15090,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
 - [ ] **Step 7: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.UnitTest\.Game\.CleanRoomYield\."`
-Expected: ErrorCount 0 / 全テスト PASS（ChipYieldFormulaTest 11件・ChipYieldDrawTest 7件）
+Expected: ErrorCount 0 / 全テスト PASS（ChipYieldFormulaTest 10件・ChipYieldDrawTest 7件）
+
+Run: `grep -n "public static" moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/Yield/ChipYieldFormula.cs`
+Expected: `MaxWaferGrade`・`PromotionChance`・`ReducedRate` の3行だけ（テストだけが使う public を本番に置かない）
 
 - [ ] **Step 8: コミットする**
 
@@ -14292,7 +15127,7 @@ git commit -m "feat(cleanroom): チップ歩留まりの確率式と決定的な
 
 **Interfaces:**
 - Consumes:
-  - C4: `WorldSaveAllInfo.CurrentVersion == 7` と `SaveMigrationStepV6ToV7`（3か所の登録配列の末尾がこれ）。`CleanRoomMachineProcessorSaveJsonObject.InheritedLevel`（`int?`、キー `inheritedLevel`。継承しないレシピとジョブ無しは null）、`CleanRoomMachineProcessorSaveState.Build` の初期化子の `InheritedLevel = processingState.InheritedLevel,` の行、`CleanRoomMachineProcessorSaveState.Restore(..., out List<IItemStack> pendingOutputs, out int? inheritedLevel, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)`（既定は null）
+  - C4: `WorldSaveAllInfo.CurrentVersion == 7` と `SaveMigrationStepV6ToV7`（3か所の登録配列の末尾がこれ）。`CleanRoomMachineProcessorSaveJsonObject.InheritedLevel`（`int?`、キー `inheritedLevel`。継承しないレシピとジョブ無しは null）、`CleanRoomMachineProcessorSaveState.Build` の初期化子の `InheritedLevel = processingState.InheritedLevel,` の行、C3 の `CleanRoomMachineProcessorSaveState.Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out MachineProcessingJob processingJob, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)`（ジョブ無しは `processingJob == null`）と、その中の `RestoreSlots(saveData);` の行。セーブのキー欠けは、C3 の `MachineProcessingJob` の ctor と同じく明示の `InvalidOperationException` でロードを止める（継承レシピのジョブの継承レベル欠け）
   - C1: 機械ブロックの必須キー `allowQualityModule`（bool。`IMachineParam.AllowQualityModule`）。C2: 機械レシピの必須キー `levelInheritance`（`"None"` / `"Inherit"` / `"InheritUpToUnlocked"`）。Step 1 は複製元のブロック・レシピからこの2キーを引き継ぎ、値だけを書き換える
   - 既存: `IFluidInventory.CreateFluidInventoryConnector(FluidInventoryConnects, BlockPositionInfo)`、`new VanillaMachineFluidInventoryComponent(VanillaMachineInputInventory, VanillaMachineOutputInventory, BlockConnectorComponent<IFluidInventory, DefaultContext<IFluidInventory>>)`、`VanillaMachineInputInventory.FluidInputSlot` / `VanillaMachineOutputInventory.FluidOutputSlot`（`IReadOnlyList<FluidContainer>`）、`FluidContainerSaveJsonObject`
 - Produces:
@@ -14758,6 +15593,21 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             Assert.AreEqual(0, ReadInputFluid(reloaded).Amount, 1e-9);
         }
 
+        [Test]
+        public void MissingFluidKeyStopsLoadTest()
+        {
+            CleanRoomHatchTest.CreateServer();
+            var machine = PlaceProcessMachine();
+
+            // マイグレーションを通っていない液体キー欠けのセーブは、液体を黙って捨てずにロードを止める
+            // A save missing a fluid key without the migration stops the load instead of silently dropping fluid
+            var states = SaveLoadJsonTestHelper.ThroughJson(machine.GetSaveState());
+            ((JObject)states[ProcessorSaveKey]).Remove("inputFluidSlot");
+
+            var exception = Assert.Catch<System.Exception>(() => Reload(machine, states));
+            StringAssert.Contains("inputFluidSlot=missing", exception.ToString());
+        }
+
         #region TestHelper
 
         private static FluidContainerSaveJsonObject ReadInputFluid(IBlock machine)
@@ -14853,8 +15703,13 @@ using に `using Game.Fluid;` と `using UnityEngine;` を足す。
 
             void RestoreFluids(CleanRoomMachineProcessorSaveJsonObject data)
             {
-                // キーは版8の保存とマイグレーションで必ずあるため null は見ない
-                // Both version-8 saves and the migration always write the keys, so null is not checked
+                // キーは版8の保存とマイグレーションで必ずある。欠けたセーブは液体を黙って捨てず、継承レベルの欠けと同じく明示の例外でロードを止める
+                // Version-8 saves and the migration always write the keys; a save missing them stops the load with an explicit exception, like a missing inherited level, instead of silently dropping fluid
+                if (data.InputFluidSlot == null || data.OutputFluidSlot == null)
+                {
+                    throw new InvalidOperationException($"清浄室機械のセーブに液体タンクのキーがありません。 inputFluidSlot={(data.InputFluidSlot == null ? "missing" : "present")} outputFluidSlot={(data.OutputFluidSlot == null ? "missing" : "present")}");
+                }
+
                 if (input.FluidInputSlot.Count < data.InputFluidSlot.Count || output.FluidOutputSlot.Count < data.OutputFluidSlot.Count)
                 {
                     Debug.LogError($"清浄室機械のタンク数がセーブより少ないため、超過分の液体は消失します。 input={data.InputFluidSlot.Count}->{input.FluidInputSlot.Count} output={data.OutputFluidSlot.Count}->{output.FluidOutputSlot.Count}");
@@ -14966,7 +15821,7 @@ namespace Game.SaveLoad.Migration.Steps
 - [ ] **Step 10: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "CleanRoomMachineFluidTest|SaveMigrationStepV7ToV8Test|SaveMigrationChain|SaveLoadPreparer|Tests\.CombinedTest\.Core\.CleanRoom\.|GearMachine|FluidMachine" --timeout-seconds 1500`
-Expected: ErrorCount 0 / 全テスト PASS（`CleanRoomMachineFluidTest` 4件・`SaveMigrationStepV7ToV8Test` 12件を含む）
+Expected: ErrorCount 0 / 全テスト PASS（`CleanRoomMachineFluidTest` 5件・`SaveMigrationStepV7ToV8Test` 12件を含む）
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.(UnitTest|CombinedTest)\." --timeout-seconds 1500`
 Expected: 失敗0（テストマスタへの追加でアイテム数・ブロック数・レシピ数を数える既存テストが落ちたら、その期待値を新しい件数へ直してから再実行する）
@@ -14996,9 +15851,13 @@ git commit -m "feat(cleanroom): 清浄室機械に液体入力と液体の保存
 - Modify: `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs`（A7 の3分岐を書き換える）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IRealizedOutputDecorator.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs`（`CreateRealizedOutputs`）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/Util/MachineOutputFactoryUtil.cs`（C3 後の `CreateRealizedOutputs` にセット数の out を足す）
+- Modify: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineRandomDrawSiteTest.cs`（C3 後の2か所の呼び出しを新シグネチャへ）
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/HaltedMachineProcessState.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomOperabilityStateComponent.cs`（A7 の初期値を `CleanRoomEffect.BeforeFirstPush()` から引く）
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomYieldDrawDecorator.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/ICleanRoomEffectLookup.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/CleanRoomYieldRollContext.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/RecipeOutputSetBuilder.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/CleanRoomRoleRates.cs`
@@ -15016,16 +15875,17 @@ git commit -m "feat(cleanroom): 清浄室機械に液体入力と液体の保存
 - Modify（moorestech_master）: `server_v8/mods/moorestechAlphaMod_8/master/cleanRoom.json`
 - Modify: `.moorestech-external-revisions.json`
 
-置き場の数: `Core.Master/` 直下は既に .cs が10本を超えているので、役割レコードは新しいディレクトリ `Core.Master/CleanRoomRoles/`（B3 で2本、B4・B5 で1本ずつ足して4本）に置く。`Game.Block.Interface/Component/CleanRoom/` は A7 の6本に足して7本。
+置き場の数: `Core.Master/` 直下は既に .cs が10本を超えているので、役割レコードは新しいディレクトリ `Core.Master/CleanRoomRoles/`（B3 で2本、B4・B5 で1本ずつ足して4本）に置く。`Game.Block.Interface/Component/CleanRoom/` は A7 の6本に足して7本。`Game.Block/Blocks/CleanRoom/Machine/` 直下は、既存7本（`CleanRoomChipDraw`・`CleanRoomChipDrawDecorator`・`CleanRoomMachineComponent`・`CleanRoomMachineProcessorComponent`・`CleanRoomMachineProcessorSaveJsonObject`・`CleanRoomMachineProcessorSaveState`・`HaltedMachineProcessState`）＋ A7 の `CleanRoomOperabilityStateComponent` から、B3 で2本消して2本（`CleanRoomYieldDrawDecorator`・`ICleanRoomEffectLookup`）足して8本。
 
 **Interfaces:**
 - Consumes:
   - B1: `CleanRoomDrawRandom`、`ChipYieldFormula.MaxWaferGrade` / `PromotionChance`、`ChipYieldDraw.DrawWaferGrade`
   - B2: `CleanRoomProcessMachineTestHelpers` 一式、`ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe`、`ForUnitTestItemId.TestGradedWaferG1..G3`
   - C5: `public readonly int MachineModuleEffect.HighestQualityModuleTier`（効いている品質モジュールの最高 tier、無ければ0）、`public readonly float MachineModuleEffect.QualityShift`（品質効果の合計・下限0。`allowQualityModule: false` の機械とスロット上限を超えた分は数えない）
-  - C3: `internal List<IItemStack> MachineProcessContext.CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)`、`internal static List<IItemStack> MachineOutputFactoryUtil.CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect, int? inheritedLevel)`（汎用の品質シフト経路は Part C が撤去済みで、品質の抽選をしない。継承レシピだけ継承先へ `inheritedLevel` を当て、生産性の追加1セットを足す。継承しないレシピとジョブ無しの継承レベルは null）。待機ステートのキャッシュは (レシピ, 継承レベル) が鍵（C3 Step 6）
-  - C3・C4 後の `CleanRoomMachineProcessorComponent` の ctor: `CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out var inheritedLevel, out var cycleCount, out var selectedRecipe);` と `_processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs, inheritedLevel);`
-  - A7: `enum CleanRoomOperability { NotEnclosed, ClassOut, Operable }`。A7 が書いた `CleanRoomEffect(CleanRoomOperability operability, int maxChipLevel, double downBinRate)`（`Operability`・`CanOperate`）、`CleanRoomMachineEffectService.PushEffects` の3分岐（Out の判定は A5 の `room.TryGetClassRow(out var row)`）、processor の初期値の行 `private CleanRoomEffect _cleanRoomEffect = new(CleanRoomOperability.NotEnclosed, 0, 0);`。B3 は `CleanRoomEffect` を種別ごとの形に作り替え、A7 の3分岐（Step 6）と processor の初期値（Step 9）を書き換える。A7 の停止理由の状態（`CleanRoomMachineComponent.SetCleanRoomEffect` → `CleanRoomOperabilityStateComponent.SetOperability(effect.Operability)`）は `Operability` を読むだけなので変わらない
+  - C3: `internal List<IItemStack> MachineProcessContext.CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)`、`internal static List<IItemStack> MachineOutputFactoryUtil.CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect, int? inheritedLevel)`（汎用の品質シフト経路は Part C が撤去済みで、品質の抽選をしない。各出力は `MachineRecipeLevelInheritanceUtil.ResolveOutputItemId` で決め、継承レシピだけ継承先へ `inheritedLevel` の変種を当て、生産性の当選時に同じ1セットを足す。継承しないレシピとジョブ無しの継承レベルは null）。待機ステートのキャッシュは (レシピ, 継承レベル) が鍵（C3 Step 6）。この工場の呼び出しは C3 後に `MachineProcessContext.CreateRealizedOutputs` と `MachineRandomDrawSiteTest.cs` の2か所（`CreateRealizedOutputs(recipe, noModuleEffect, null);`・`CreateRealizedOutputs(recipe, qualityEffect, null);`）だけ
+  - C3・C4 後の `CleanRoomMachineProcessorComponent` の ctor: `CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe);` と `_processingState = new ProcessingMachineProcessState(_context, processingJob);`（C3 の `MachineProcessingJob` の有無でジョブを受ける）
+  - A7: `enum CleanRoomOperability { NotEnclosed, ClassOut, Operable }`。A7 が書いた `CleanRoomEffect(CleanRoomOperability operability, int maxChipLevel, double downBinRate)`（`Operability`・`CanOperate`）、`CleanRoomMachineEffectService.PushEffects` の3分岐（Out の判定は A5 の `room.TryGetClassRow(out var row)`）、processor の初期値の行 `private CleanRoomEffect _cleanRoomEffect = new(CleanRoomOperability.NotEnclosed, 0, 0);`、停止理由の状態の初期値の行 `public CleanRoomOperability Operability { get; private set; } = CleanRoomOperability.NotEnclosed;` とその2行コメント（`CleanRoomOperabilityStateComponent.cs`）。B3 は `CleanRoomEffect` を種別ごとの形に作り替え、A7 の3分岐（Step 6）・processor の初期値（Step 9）・停止理由の状態の初期値（Step 6）を書き換える。A7 の停止理由の状態の押し込み（`CleanRoomMachineComponent.SetCleanRoomEffect` → `CleanRoomOperabilityStateComponent.SetOperability(effect.Operability)`）は `Operability` を読むだけなので変わらない
+  - C2: `public static class Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape` の `bool IsLevelFamilyBase(Guid itemGuid)`・`int GetFamilyLength(Guid baseItemGuid)`（「基準アイテムからファミリーの長さ」を出す唯一の式。役割レコードと役割の検証はこれを呼び、`GetLevelVariants(...).Count` を書き直さない）、生成定数 `MachineRecipeMasterElement.LevelInheritanceConst.None`
   - 既存: `HaltedMachineProcessState(ProcessingMachineProcessState processingState, Func<bool> canOperate)`。使うのは `CleanRoomMachineProcessorComponent.cs:63` の `new HaltedMachineProcessState(_processingState, () => _cleanRoomEffect.CanOperate)` の1か所だけ（`grep -rn "HaltedMachineProcessState" moorestech_server/Assets/Scripts moorestech_client/Assets/Scripts` で確かめた）
 - Produces:
   - スキーマ: `thresholds[].qualityMultiplier` / `layerFailRate` / `dieLossRate`（number・必須）、`waferGradeDraws[] { machineRecipeGuid, gradedWaferItemGuid, maxPromotionChance }`（必須の配列）。`maxChipLevel` / `downBinRate` / `chipDraws` は無くなる
@@ -15035,21 +15895,27 @@ git commit -m "feat(cleanroom): 清浄室機械に液体入力と液体の保存
     - `public sealed class WaferGradeRecipeRole : CleanRoomRecipeRole { WaferGradeDrawsElement Draw; int GradedOutputIndex; ItemId GradedWaferBaseItemId; int GradeCount; }`（`CleanRoomMaster.Initialize` が1回だけ解決する）
   - namespace `Game.Block.Interface.Component`:
     - `public readonly struct CleanRoomClassYield(float qualityMultiplier, float layerFailRate, float dieLossRate)`（フィールド `QualityMultiplier` / `LayerFailRate` / `DieLossRate`）
-    - `public readonly struct CleanRoomEffect`: `static CleanRoomEffect Operable(CleanRoomClassYield classYield)`・`static CleanRoomEffect NotEnclosed()`・`static CleanRoomEffect ClassOut()`、`CleanRoomOperability Operability`・`bool CanOperate`・`bool TryGetClassYield(out CleanRoomClassYield classYield)`（稼働できないときは false）。公開 ctor とクラス値の公開フィールドは無い
+    - `public readonly struct CleanRoomEffect`: `static CleanRoomEffect Operable(CleanRoomClassYield classYield)`・`static CleanRoomEffect NotEnclosed()`・`static CleanRoomEffect ClassOut()`・`static CleanRoomEffect BeforeFirstPush()`（部屋の効果が届く前の値＝未密閉。デコレータと A7 の停止理由の状態がここから引く唯一の定義）、`CleanRoomOperability Operability`・`bool CanOperate`・`bool TryGetClassYield(out CleanRoomClassYield classYield)`（稼働できないときは false。false の理由〈未密閉・クラス不足〉は `Operability` を読む）。公開 ctor とクラス値の公開フィールドは無い
   - `internal static class CleanRoomRoleRates`（namespace `Game.Block.Blocks.CleanRoom.Machine.OutputRewrite`）: `int MaxWaferGrade(WaferGradeRecipeRole role, MachineModuleEffect moduleEffect)`・`double PromotionChance(WaferGradeRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)`。役割ごとの確率を `ChipYieldFormula` へ渡す唯一の口（B4・B5 が同じクラスへ足し、B6 の表示も使う）
-  - `IRealizedOutputDecorator.Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, List<IItemStack> realizedOutputs)`
-  - `CleanRoomYieldDrawDecorator`（internal）: `uint CycleCount { get; private set; }`・`CleanRoomEffect CurrentEffect { get; private set; }`（最後に押し込まれた部屋の効果。抽選・processor の停止判定・B6 の表示が読む唯一の持ち主）・`void SetCleanRoomEffect(CleanRoomEffect effect)`、`Decorate` は役割の型で振り分ける switch。B4・B5 は switch へ1行ずつ足す
-  - `internal CleanRoomYieldDrawDecorator CleanRoomMachineProcessorComponent.YieldDrawDecorator { get; }`（B6 のテンプレートが抽選の中身の部品へ渡す）
+  - `MachineOutputFactoryUtil.CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect, int? inheritedLevel, out int setCount)`（C3 の3引数版を置き換える。`setCount` は生産性の当否で決めた出力セット数〈1 か 2〉で、戻り値はレシピ出力1セットをこの数だけ並べたもの。`GameRandom` を引くのは従来どおり1回）
+  - `IRealizedOutputDecorator.Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs)`（`setCount` は工場が決めた値をそのまま受ける。書き換え器は割り算で逆算しない）
+  - `public interface ICleanRoomEffectLookup { CleanRoomEffect CurrentEffect { get; } }`（namespace `Game.Block.Blocks.CleanRoom.Machine`。今の部屋の効果の読み口。書き換え〈`SetCleanRoomEffect`〉と抽選〈`Decorate`〉を持たない。消費者は同じ Game.Block の B6 の部品なので Game.Block に置く）
+  - `CleanRoomYieldDrawDecorator`（internal、`IRealizedOutputDecorator` と `ICleanRoomEffectLookup` を実装）: `uint CycleCount { get; private set; }`・`CleanRoomEffect CurrentEffect { get; private set; }`（最後に押し込まれた部屋の効果。抽選・processor の停止判定・B6 の表示が読む唯一の持ち主）・`void SetCleanRoomEffect(CleanRoomEffect effect)`、`Decorate` は役割の型で振り分ける switch。B4・B5 は switch へ1行ずつ足す
+  - `public ICleanRoomEffectLookup CleanRoomMachineProcessorComponent.CleanRoomEffectLookup`（デコレータを読み口の型で出す。B6 のテンプレートが抽選の中身の部品へ渡す。デコレータの具象は processor の private フィールド `_yieldDrawDecorator` に閉じる）
   - `HaltedMachineProcessState(ProcessingMachineProcessState processingState, bool canOperate)`・`void SetCanOperate(bool canOperate)`（述語を受けない）
-  - `CleanRoomYieldRollContext`（`ClassYield` / `ModuleEffect` / `int? InheritedLevel` / `SetCount` / `Random`）、`RecipeOutputSetBuilder.CreatePlainSet` / `Repeat`
-  - `CleanRoomRoleRecipeChecks.Validate` / `RequireSingleOutput` / `RequireFamilyBase(string roleName, Guid machineRecipeGuid, Guid itemGuid, out int? variantCount)`、`CleanRoomYieldTableRules.ValidateClassRows`
+  - `CleanRoomYieldRollContext`（`ClassYield` / `ModuleEffect` / `IReadOnlyList<IItemStack> FactorySet`〈工場が作った1セット目。継承レシピは継承先が継承レベルの変種〉 / `SetCount`〈工場の値〉 / `Random`。継承レベルは持たない＝グレードを使う役割には `Decorate` が非 null の `int` を別に渡す）、`RecipeOutputSetBuilder.CopySet(IReadOnlyList<IItemStack> factorySet)` / `Repeat`。書き換え器はレシピから出力を組み直さず、工場の1セットの写しを書き換える（継承の変種の当て方は工場の1か所だけ）
+  - `CleanRoomRoleRecipeChecks.Validate` / `RequireSingleOutput` / `RequireFamilyBase(string roleName, Guid machineRecipeGuid, Guid itemGuid, out int? variantCount)`、`CleanRoomYieldTableRules.ValidateClassRows`。成膜の役割の検証（`CleanRoomWaferGradeDrawValidator`）はレシピが `levelInheritance: None` であることも求める（継承レシピだと工場が当てた変種をグレード抽選が上書きし、継承が黙って消える）
   - moorestech_master の cleanRoom.json: クラス値（Part B の初期値）と `waferGradeDraws: []`
 
 **設計メモ:**
 - 部屋の効果は「稼働できる（クラス行の3値 `CleanRoomClassYield` を持つ）」か「止まっている（未密閉・クラス不足。クラス値を持たない）」のどちらかで、`CleanRoomEffect` の static factory でしか作れない。クラス値は `TryGetClassYield` でしか読めず、稼働できないときに 0 を読む経路は無い。
-- 今の部屋の効果を持つのは `CleanRoomYieldDrawDecorator.CurrentEffect` の1か所。processor は写しを持たず、停止判定もこれを読む。`HaltedMachineProcessState` には述語を注入せず、processor が押し込みのたびに可否の値を `SetCanOperate` で渡す（layer map「汎用基盤コンポーネントへの状態伝達」: 判断は具体側、基盤には値をプッシュする）。processor は 199 行のままで収まる（using 1行減・初期化1行増）。
-- 「レシピGUID→役割」は `CleanRoomMaster.TryGetRecipeRole` の1か所で引く。役割レコードは `Initialize` で、出力の添字・基準アイテムの ID・変種数を1回だけ解決して持つ。起動時の検証は生のマスタで「ちょうど1つある」「基準アイテムである」を確かめ、実行時（書き換え器・確率の口）はレコードの値を読むだけで導き直さない。
-- 抽選は processor が稼働できる間にしか起きない（停止中は `UpdateCurrentState` を呼ばない）。それでも抽選の時点でクラス値が無ければ、デコレータは例外で止める（黙って素通しすると、品質モジュールの効果が消えたことに誰も気づけない）。
+- 今の部屋の効果を持つのは `CleanRoomYieldDrawDecorator.CurrentEffect` の1か所。processor は効果の写しを持たず、停止判定もこれを読む。`HaltedMachineProcessState` には述語を注入せず、processor が押し込みのたびに可否の値を `SetCanOperate` で渡す（layer map「汎用基盤コンポーネントへの状態伝達」: 判断は具体側、基盤には値をプッシュする）。停止ステートには可否（bool）の写しが1つあるが、書き手は processor の `SetCleanRoomEffect` 1つで、デコレータへの押し込みと同じ呼び出しの中で渡すので食い違わない。
+- 効果を読むだけの相手（B6 の部品）には、デコレータを読み口 `ICleanRoomEffectLookup` の型で渡す。書き換え（`SetCleanRoomEffect`）と抽選カウンタを進める `Decorate` は具象にだけあり、processor の private フィールドに閉じる（layer map「可変DataStoreのアクセス面」の読み取りと変更の分離）。
+- 「効果が届く前は未密閉」は `CleanRoomEffect.BeforeFirstPush()` の1か所で決め、デコレータの初期値と A7 の停止理由の状態の初期値はここから引く（どちらも Game.Block にあり Game.Block.Interface を参照できるので、型の側に置く）。
+- 出力の1セットとセット数は工場（C3 の `MachineOutputFactoryUtil.CreateRealizedOutputs`）だけが決める。工場はセット数を `out` で返し、`MachineProcessContext` がそれを `Decorate` へ渡す。書き換え器はレシピから出力を組み直さず、工場が作った1セット目の写し（継承レシピは継承先が継承レベルの変種）の必要な所だけを書き換えて、工場のセット数だけ並べる。継承の変種を当てるのは工場の1か所だけで、書き換え器が上書きする所（成膜のグレード・ダイシングのレベル列）は書き換え器が全部書く。
+- processor は 199 行から 194 行になる（using 1行減・`_haltedState` の生成1行増・読み口のプロパティ1行増・`Update` の停止判定の if/else を2行に畳んで6行減）。
+- 「レシピGUID→役割」は `CleanRoomMaster.TryGetRecipeRole` の1か所で引く。役割レコードは `Initialize` で、出力の添字・基準アイテムの ID・変種数を1回だけ解決して持つ。変種数は C2 の `LevelInheritanceRecipeShape.GetFamilyLength` で出す。起動時の検証は生のマスタで「ちょうど1つある」「基準アイテムである」を確かめ、実行時（書き換え器・確率の口）はレコードの値を読むだけで導き直さない。
+- 抽選は processor が稼働できる間にしか起きない（停止中は `UpdateCurrentState` を呼ばない）。それでも抽選の時点でクラス値が無ければ、デコレータは例外で止める（黙って素通しすると、品質モジュールの効果が消えたことに誰も気づけない）。この例外は今の経路では届かない（判断記録で意図済み）。
 
 - [ ] **Step 0: moorestech_master の作業ブランチを用意する**
 
@@ -15198,7 +16064,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
 }
 ```
 
-`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/CleanRoomMasterTest.cs` の using に `using Core.Master.CleanRoomRoles;` を足し、`TryGetChipDrawTest`（51〜64行）を次の2つに置き換える。
+`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/CleanRoom/CleanRoomMasterTest.cs` の using に `using System.IO;`・`using Core.Master.CleanRoomRoles;`・`using Newtonsoft.Json.Linq;` を足し、`TryGetChipDrawTest`（51〜64行）を次の3つに置き換える。
 
 ```csharp
         [Test]
@@ -15239,6 +16105,23 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             // 役割表に無いGUIDは引けない
             // A GUID outside the role tables does not resolve
             Assert.IsFalse(master.TryGetRecipeRole(Guid.NewGuid(), out _));
+        }
+
+        [Test]
+        public void WaferGradeRoleRejectsInheritanceRecipeTest()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 成膜の役割表が継承レシピ（Part C のテスト用）を指すと、起動時の検証が levelInheritance None を求めて止める
+            // When the deposition role table points at an inheritance recipe (Part C's test recipe), boot validation stops it by requiring levelInheritance None
+            var cleanRoomJson = JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
+            var draw = (JObject)cleanRoomJson["data"][0]["waferGradeDraws"][0];
+            draw["machineRecipeGuid"] = ForUnitTestLevelInheritanceIds.InheritRecipeGuid.ToString();
+            draw["gradedWaferItemGuid"] = ForUnitTestLevelInheritanceIds.TargetBaseGuid.ToString();
+
+            Assert.IsFalse(new CleanRoomMaster(cleanRoomJson).Validate(out var errorLogs));
+            StringAssert.Contains($"WaferGradeDraws MachineRecipeGuid:{ForUnitTestLevelInheritanceIds.InheritRecipeGuid} must use levelInheritance None", errorLogs);
         }
 ```
 
@@ -15391,6 +16274,7 @@ namespace Core.Master.CleanRoomRoles
 `moorestech_server/Assets/Scripts/Core.Master/CleanRoomRoles/WaferGradeRecipeRole.cs`
 
 ```csharp
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Model.CleanRoomModule;
 
 namespace Core.Master.CleanRoomRoles
@@ -15415,7 +16299,7 @@ namespace Core.Master.CleanRoomRoles
             Draw = draw;
             GradedOutputIndex = IndexOfOutput(recipe, draw.GradedWaferItemGuid);
             GradedWaferBaseItemId = MasterHolder.ItemMaster.GetItemId(draw.GradedWaferItemGuid);
-            GradeCount = MasterHolder.ItemMaster.GetLevelVariants(GradedWaferBaseItemId).Count;
+            GradeCount = LevelInheritanceRecipeShape.GetFamilyLength(draw.GradedWaferItemGuid);
         }
     }
 }
@@ -15613,6 +16497,7 @@ namespace Core.Master.Validator
 ```csharp
 using System;
 using System.Collections.Generic;
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
@@ -15660,10 +16545,12 @@ namespace Core.Master.Validator
         public static string RequireFamilyBase(string roleName, Guid machineRecipeGuid, Guid itemGuid, out int? variantCount)
         {
             variantCount = null;
-            var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid);
-            if (itemId == null) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{machineRecipeGuid} has invalid ItemGuid:{itemGuid}\n";
-            if (!MasterHolder.ItemMaster.HasLevelFamily(itemId.Value)) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{machineRecipeGuid} ItemGuid:{itemGuid} is not the base item of a level family\n";
-            variantCount = MasterHolder.ItemMaster.GetLevelVariants(itemId.Value).Count;
+            if (MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid) == null) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{machineRecipeGuid} has invalid ItemGuid:{itemGuid}\n";
+            if (!LevelInheritanceRecipeShape.IsLevelFamilyBase(itemGuid)) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{machineRecipeGuid} ItemGuid:{itemGuid} is not the base item of a level family\n";
+
+            // ファミリーの長さの式は C2 の LevelInheritanceRecipeShape の1か所
+            // The family-length formula lives only in C2's LevelInheritanceRecipeShape
+            variantCount = LevelInheritanceRecipeShape.GetFamilyLength(itemGuid);
             return "";
         }
     }
@@ -15676,6 +16563,7 @@ namespace Core.Master.Validator
 using System;
 using System.Collections.Generic;
 using Mooresmaster.Model.CleanRoomModule;
+using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Core.Master.Validator
 {
@@ -15692,6 +16580,13 @@ namespace Core.Master.Validator
             {
                 logs += CleanRoomRoleRecipeChecks.Validate(RoleName, draw.MachineRecipeGuid, roleRecipeGuids, out var recipe);
                 if (recipe == null) continue;
+
+                // 成膜は継承しないレシピに限る。継承レシピだと工場が当てた変種をグレード抽選が上書きし、継承が黙って消える
+                // Deposition must be a non-inheritance recipe; otherwise the grade draw overwrites the variant the factory applied and the inheritance silently vanishes
+                if (recipe.LevelInheritance != MachineRecipeMasterElement.LevelInheritanceConst.None)
+                {
+                    logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{draw.MachineRecipeGuid} must use levelInheritance None (found {recipe.LevelInheritance})\n";
+                }
 
                 // グレード付きウェハは出力に1回だけあり、グレードをレベルファミリーで持つ
                 // The graded wafer appears once among the outputs and carries its grades as a level family
@@ -15783,8 +16678,15 @@ namespace Game.Block.Interface.Component
             return new CleanRoomEffect(CleanRoomOperability.ClassOut, default);
         }
 
-        // 稼働できるときだけクラス値を返す。止まっているときは false
-        // Returns the class values only while operable; false while halted
+        // 部屋の効果が届く前の値。抽選側のデコレータと停止理由の状態の初期値はここから引く
+        // The value before any room effect arrives; the draw decorator and the halt-reason state take their defaults from here
+        public static CleanRoomEffect BeforeFirstPush()
+        {
+            return NotEnclosed();
+        }
+
+        // 稼働できるときだけクラス値を返す。止まっているときは false で、止まった理由（未密閉・クラス不足）は Operability を読む
+        // Returns the class values only while operable; false while halted, and the halt reason (not enclosed or class out) is read from Operability
         public bool TryGetClassYield(out CleanRoomClassYield classYield)
         {
             classYield = _classYield;
@@ -15795,6 +16697,16 @@ namespace Game.Block.Interface.Component
 ```
 
 `default(CleanRoomEffect)` は `Operability` が列挙の先頭 `NotEnclosed`（A7 の並び）になり、クラス値を返さない。0 のクラス値を読める形は無い。
+
+A7 が書いた `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomOperabilityStateComponent.cs` の初期値の行とその2行コメント（`// 部屋の効果が届く前は、効果の既定値と同じく未密閉として扱う` から `public CleanRoomOperability Operability { get; private set; } = CleanRoomOperability.NotEnclosed;` まで）を次にする（初期値をデコレータと同じ1か所から引く）。
+
+```csharp
+        // 部屋の効果が届く前の値は CleanRoomEffect.BeforeFirstPush の1か所で決める（抽選側のデコレータも同じ所から引く）
+        // The value before any room effect arrives is defined once by CleanRoomEffect.BeforeFirstPush (the draw decorator reads the same place)
+        public CleanRoomOperability Operability { get; private set; } = CleanRoomEffect.BeforeFirstPush().Operability;
+```
+
+`using Game.Block.Interface.Component;` は A7 の版に既にある。
 
 A7 で書いた `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs` の `PushEffects` のループ（`foreach (var entry in _machines.Values)` から閉じ括弧まで。A7 Step 3 のコード）を次にする。分岐の形（未検出・Out・稼働）と `room.TryGetClassRow(out var row)` は A7 のまま、効果の作り方だけを factory に変える。
 
@@ -15827,7 +16739,25 @@ A7 で書いた `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachin
 
 processor の初期値の行（A7 が書いた `private CleanRoomEffect _cleanRoomEffect = new(CleanRoomOperability.NotEnclosed, 0, 0);`）は Step 9 で消す（`CleanRoomChipDrawDecorator.cs:21` の同じ行は Step 4 で消えている）。
 
-- [ ] **Step 7: 実現出力の差し替え口へ継承レベルとモジュール効果を渡す**
+- [ ] **Step 7: 実現出力の差し替え口へ継承レベル・モジュール効果・工場のセット数を渡す**
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/Util/MachineOutputFactoryUtil.cs`（C3 が全体を置き換えた版）の `CreateRealizedOutputs`（2行コメントから閉じ括弧まで）を次にする。セット数を工場が決めて返し、書き換え器に割り算で逆算させない。`GameRandom` を引く回数（追加産出の1回）は変わらない。
+
+```csharp
+        // 素の出力1セットを、生産性の当選時は2セット並べる。セット数は差し替え口へ渡すため返す（品質は一般機械の出力を変えない）
+        // Lay out one plain output set, or two when productivity rolls; the set count is returned for the rewrite hook (quality never changes general machine output)
+        public static List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect, int? inheritedLevel, out int setCount)
+        {
+            setCount = GameRandom.NextDouble() < effect.ExtraOutputChance ? 2 : 1;
+            var outputs = new List<IItemStack>(recipe.OutputItems.Length * setCount);
+            for (var set = 0; set < setCount; set++) outputs.AddRange(CreatePlainOutputs(recipe, inheritedLevel));
+            return outputs;
+        }
+```
+
+`moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineRandomDrawSiteTest.cs` の、C3 が書いた2か所の呼び出しを新シグネチャへ直す（どちらも戻り値を使わない。乱数を引く回数だけを見るテスト）。
+- `MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, noModuleEffect, null);` → `MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, noModuleEffect, null, out _);`
+- `MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, qualityEffect, null);` → `MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, qualityEffect, null, out _);`
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IRealizedOutputDecorator.cs` の全体を次にする。
 
@@ -15846,33 +16776,38 @@ namespace Game.Block.Blocks.Machine.State
     /// </summary>
     internal interface IRealizedOutputDecorator
     {
-        // 継承レベル（継承しないレシピは null）と、実現出力を作ったのと同じモジュール効果の集計を受け取る
-        // Receives the inherited level (null for non-inheritance recipes) and the same module-effect aggregate that built the realized outputs
-        List<IItemStack> Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, List<IItemStack> realizedOutputs);
+        // 継承レベル（継承しないレシピは null）・出力を作ったのと同じモジュール効果の集計・工場のセット数（実現出力は1セットをその回数並べたもの）を受け取る
+        // Receives the inherited level (null for non-inheritance recipes), the module-effect aggregate that built the outputs, and the factory's set count (the outputs are one set laid out that many times)
+        List<IItemStack> Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs);
     }
 }
 ```
 
-`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs` の `CreateRealizedOutputs`（C3 が書いた形。2行コメントの下の `internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)` から閉じ括弧まで）を次にする。モジュール効果を1回だけ集計し、工場と差し替え口へ同じ値を渡す。
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/MachineProcessContext.cs` の `CreateRealizedOutputs`（C3 が書いた形。2行コメントの下の `internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)` から閉じ括弧まで）を次にする。モジュール効果を1回だけ集計し、工場と差し替え口へ同じ値を渡す。セット数は工場の値をそのまま渡す。
 
 ```csharp
         internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)
         {
-            // 工場と差し替え口が同じ集計を見るよう、モジュール効果は1回だけ集計する
-            // Aggregate the module effect once so the factory and the rewrite hook see the same values
+            // 工場と差し替え口が同じ集計とセット数を見るよう、モジュール効果は1回だけ集計し、セット数は工場の値を渡す
+            // Aggregate the module effect once and pass the factory's set count so the factory and the rewrite hook see the same values
             var effect = EffectComponent.AggregateCurrent();
-            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel);
-            return _realizedOutputDecorator == null ? outputs : _realizedOutputDecorator.Decorate(recipe, inheritedLevel, effect, outputs);
+            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel, out var setCount);
+            return _realizedOutputDecorator == null ? outputs : _realizedOutputDecorator.Decorate(recipe, inheritedLevel, effect, setCount, outputs);
         }
 ```
 
 `using Game.Block.Blocks.Machine.Module;` が無ければ足す。
+
+Run: `grep -rn "MachineOutputFactoryUtil.CreateRealizedOutputs(" moorestech_server/Assets/Scripts`
+Expected: `MachineProcessContext.cs` の1件と `MachineRandomDrawSiteTest.cs` の2件だけで、どれも `out` を渡している
 
 - [ ] **Step 8: 抽選の振り分けと成膜の書き換え器を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/CleanRoomYieldRollContext.cs`
 
 ```csharp
+using System.Collections.Generic;
+using Core.Item.Interface;
 using Game.Block.Blocks.CleanRoom.Machine.Yield;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Interface.Component;
@@ -15880,8 +16815,8 @@ using Game.Block.Interface.Component;
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
     /// <summary>
-    ///     1サイクルの抽選に要る入力（部屋クラスの値・モジュール効果・継承レベル・セット数・乱数列）
-    ///     Inputs for one cycle's draw (class values, module effect, inherited level, set count, random sequence)
+    ///     1サイクルの抽選に要る入力（部屋クラスの値・モジュール効果・工場の1セットとセット数・乱数列）
+    ///     Inputs for one cycle's draw (class values, module effect, the factory's set and set count, random sequence)
     /// </summary>
     internal readonly struct CleanRoomYieldRollContext
     {
@@ -15890,23 +16825,25 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
         public readonly CleanRoomClassYield ClassYield;
         public readonly MachineModuleEffect ModuleEffect;
 
-        // 継承レシピ（EUV・ダイシング）は投入品のレベル、継承しないレシピ（成膜）は null
-        // The input's level for inheritance recipes (EUV, dicing); null for non-inheritance recipes (deposition)
-        public readonly int? InheritedLevel;
+        // 工場が作った1セット目（継承レシピは継承先が継承レベルの変種）と、工場が決めたセット数
+        // The factory's first set (an inheritance recipe's target is already the inherited level's variant) and the set count the factory decided
+        public readonly IReadOnlyList<IItemStack> FactorySet;
         public readonly int SetCount;
         public readonly CleanRoomDrawRandom Random;
 
-        public CleanRoomYieldRollContext(CleanRoomClassYield classYield, MachineModuleEffect moduleEffect, int? inheritedLevel, int setCount, CleanRoomDrawRandom random)
+        public CleanRoomYieldRollContext(CleanRoomClassYield classYield, MachineModuleEffect moduleEffect, IReadOnlyList<IItemStack> factorySet, int setCount, CleanRoomDrawRandom random)
         {
             ClassYield = classYield;
             ModuleEffect = moduleEffect;
-            InheritedLevel = inheritedLevel;
+            FactorySet = factorySet;
             SetCount = setCount;
             Random = random;
         }
     }
 }
 ```
+
+継承レベルはこの型に持たせない。グレードを入力から受け継ぐ役割のうち値を使うもの（B5 のダイシング）には、`Decorate` の振り分けが非 null の `int` を別の引数で渡す。
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/RecipeOutputSetBuilder.cs`
 
@@ -15915,26 +16852,25 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
-using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
     /// <summary>
-    ///     レシピの出力並びに沿って実現出力を組み直す。出力kはスロット(k % 出力数)へ積まれるので並びを崩さない
-    ///     Rebuilds realized outputs along the recipe's output order; output k lands in slot (k % output count), so the order must hold
+    ///     工場が作った出力1セットの並びのまま実現出力を組み直す。出力kはスロット(k % 出力数)へ積まれるので並びを崩さない
+    ///     Rebuilds realized outputs in the order of the factory's output set; output k lands in slot (k % output count), so the order must hold
     /// </summary>
     internal static class RecipeOutputSetBuilder
     {
-        // レシピどおりの1セット（アイテムIDと個数）
-        // One set exactly as the recipe lists it (item ids and counts)
-        public static (ItemId[] itemIds, int[] counts) CreatePlainSet(MachineRecipeMasterElement recipe)
+        // 工場の1セットをアイテムIDと個数の写しにする。書き換え器は写しの必要な所だけを書き換える
+        // Copy the factory's set into item ids and counts; rewriters change only the entries they own
+        public static (ItemId[] itemIds, int[] counts) CopySet(IReadOnlyList<IItemStack> factorySet)
         {
-            var itemIds = new ItemId[recipe.OutputItems.Length];
-            var counts = new int[recipe.OutputItems.Length];
-            for (var i = 0; i < recipe.OutputItems.Length; i++)
+            var itemIds = new ItemId[factorySet.Count];
+            var counts = new int[factorySet.Count];
+            for (var i = 0; i < factorySet.Count; i++)
             {
-                itemIds[i] = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[i].ItemGuid);
-                counts[i] = recipe.OutputItems[i].Count;
+                itemIds[i] = factorySet[i].Id;
+                counts[i] = factorySet[i].Count;
             }
             return (itemIds, counts);
         }
@@ -15954,7 +16890,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 }
 ```
 
-役割表が指す出力の添字は、ここでは探さない（`CleanRoomMaster.Initialize` が役割レコードへ1回だけ解決している）。
+役割表が指す出力の添字は、ここでは探さない（`CleanRoomMaster.Initialize` が役割レコードへ1回だけ解決している）。レシピから出力を組み直す口（旧 `CreatePlainSet`）は置かない。継承の変種を当てるのは工場（C3 の `ResolveOutputItemId`）の1か所だけで、書き換え器が上書きする所は書き換え器が全部書く。
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/OutputRewrite/CleanRoomRoleRates.cs`
 
@@ -15997,7 +16933,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.Yield;
-using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
@@ -16005,7 +16940,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
     // Deposition: swap only the graded-wafer output for the variant of the drawn grade
     internal static class WaferGradeOutputRewriter
     {
-        public static List<IItemStack> Rewrite(MachineRecipeMasterElement recipe, WaferGradeRecipeRole role, CleanRoomYieldRollContext context)
+        public static List<IItemStack> Rewrite(WaferGradeRecipeRole role, CleanRoomYieldRollContext context)
         {
             // 上限＝最高tier+1、昇格確率＝品質合計×クラス倍率（上限maxPromotionChance）で1回引く
             // Draw once with cap = top tier + 1 and chance = quality sum x class multiplier (capped by maxPromotionChance)
@@ -16015,7 +16950,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 
             // 同じグレードを全セットへ並べる（別グレードが同じスロットで混ざらない）
             // Lay the same grade into every set so different grades never meet in one slot
-            var (itemIds, counts) = RecipeOutputSetBuilder.CreatePlainSet(recipe);
+            var (itemIds, counts) = RecipeOutputSetBuilder.CopySet(context.FactorySet);
             itemIds[role.GradedOutputIndex] = MasterHolder.ItemMaster.GetLevelVariantItemId(role.GradedWaferBaseItemId, grade);
             return RecipeOutputSetBuilder.Repeat(itemIds, counts, context.SetCount);
         }
@@ -16043,7 +16978,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 {
     // チップ工程の抽選を実現出力の確定直後に適用する。役割はcleanRoom.jsonの役割表で引き、役割の無いレシピは素通しする
     // Applies chip-process draws right after outputs are realized; roles come from cleanRoom.json, and recipes without a role pass through
-    internal class CleanRoomYieldDrawDecorator : IRealizedOutputDecorator
+    internal class CleanRoomYieldDrawDecorator : IRealizedOutputDecorator, ICleanRoomEffectLookup
     {
         // 抽選シードのブロック固有カウンタ。セーブへ持ち出すため公開する
         // Per-block counter feeding the draw seed; exposed because it is serialized
@@ -16060,9 +16995,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _blockInstanceId = blockInstanceId;
             CycleCount = cycleCount;
 
-            // 部屋の効果が届く前は未密閉として止める（A7 の停止理由の状態の初期値と同じ）
-            // Before any room effect arrives, halt as not enclosed (the same as A7's halt-reason state default)
-            CurrentEffect = CleanRoomEffect.NotEnclosed();
+            // 部屋の効果が届く前の値は CleanRoomEffect が1か所で決める（A7 の停止理由の状態も同じ口を読む）
+            // CleanRoomEffect alone decides the value before any room effect arrives (A7's halt-reason state reads the same factory)
+            CurrentEffect = CleanRoomEffect.BeforeFirstPush();
         }
 
         public void SetCleanRoomEffect(CleanRoomEffect effect)
@@ -16070,7 +17005,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             CurrentEffect = effect;
         }
 
-        public List<IItemStack> Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, List<IItemStack> realizedOutputs)
+        public List<IItemStack> Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs)
         {
             // 役割の無いレシピは抽選せずカウンタも進めない
             // A recipe with no role draws nothing and leaves the counter alone
@@ -16081,7 +17016,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             var context = StartCycle();
             return role switch
             {
-                WaferGradeRecipeRole waferGrade => WaferGradeOutputRewriter.Rewrite(recipe, waferGrade, context),
+                WaferGradeRecipeRole waferGrade => WaferGradeOutputRewriter.Rewrite(waferGrade, context),
                 _ => throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role"),
             };
 
@@ -16101,14 +17036,32 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 CycleCount++;
                 var random = new CleanRoomDrawRandom(((long)_blockInstanceId.AsPrimitive() << 20) ^ CycleCount);
 
-                // 生産性の追加セットも同じ抽選結果を使う（実現出力はレシピ出力数の整数倍）
-                // Productivity's extra set reuses the same draw (realized outputs are a whole multiple of the recipe's outputs)
-                var setCount = realizedOutputs.Count / recipe.OutputItems.Length;
-                return new CleanRoomYieldRollContext(classYield, moduleEffect, inheritedLevel, setCount, random);
+                // 書き換え器は工場の1セット目の写しを書き換え、工場が決めたセット数だけ並べる（生産性の追加セットも同じ抽選結果）
+                // Rewriters edit a copy of the factory's first set and repeat it by the factory's set count (the extra set shares the draw)
+                var factorySet = realizedOutputs.GetRange(0, recipe.OutputItems.Length);
+                return new CleanRoomYieldRollContext(classYield, moduleEffect, factorySet, setCount, random);
             }
 
             #endregion
         }
+    }
+}
+```
+
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/ICleanRoomEffectLookup.cs`
+
+```csharp
+using Game.Block.Interface.Component;
+
+namespace Game.Block.Blocks.CleanRoom.Machine
+{
+    /// <summary>
+    ///     清浄室機械の今の部屋の効果の読み口。書き換えと抽選は持たず、表示の部品（B6）はこの型でだけ受ける
+    ///     Read view of a clean-room machine's current room effect; it cannot write or draw, and display components (B6) take only this type
+    /// </summary>
+    public interface ICleanRoomEffectLookup
+    {
+        CleanRoomEffect CurrentEffect { get; }
     }
 }
 ```
@@ -16157,15 +17110,16 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 }
 ```
 
-`moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs`（A7・C3・C4 後の199行）を次のとおり変える。行数は増やさない（using 1行減・`_haltedState` の生成1行増）。
+`moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs`（A7・C3・C4 後の199行）を次のとおり変える。差し引き5行減って194行になる（using 1行減・`_haltedState` の生成1行増・読み口のプロパティ1行増・`Update` の if/else を2行に畳んで6行減）。
 
 - `using Game.Block.Blocks.CleanRoom.Machine.RecipeSelection;` の行を消す（`MachineRecipeSlotBindingUtil` は既存の `using Game.Block.Blocks.Machine.RecipeSelection;` で引ける）
 - フィールド `private readonly CleanRoomChipDrawDecorator _chipDrawDecorator;` とその2行コメントを次にする
 
 ```csharp
-        // チップ工程の抽選と今の部屋の効果はこのデコレータが持つ。抽選の中身の部品（B6）へ渡すため internal で出す
-        // This decorator owns the chip-process draws and the current room effect; exposed internally for the draw-detail component (B6)
-        internal CleanRoomYieldDrawDecorator YieldDrawDecorator { get; }
+        // チップ工程の抽選と今の部屋の効果はこのデコレータが持つ。外へは効果の読み口だけを出す（B6 の表示が読む）
+        // This decorator owns the chip-process draws and the current room effect; only the effect read view leaves the processor (read by B6)
+        private readonly CleanRoomYieldDrawDecorator _yieldDrawDecorator;
+        public ICleanRoomEffectLookup CleanRoomEffectLookup => _yieldDrawDecorator;
 ```
 
 - A7 が書いた `private CleanRoomEffect _cleanRoomEffect = new(CleanRoomOperability.NotEnclosed, 0, 0);` の行を次にする（効果の写しを processor に持たない）
@@ -16177,33 +17131,38 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 - ctor の3行（`_chipDrawDecorator = new CleanRoomChipDrawDecorator(blockInstanceId, cycleCount);` / `_context.SetRealizedOutputDecorator(_chipDrawDecorator);` / `_context.BindSelectedRecipe(selectedRecipe, CleanRoomChipOutputBindingUtil.BuildOutputBinding(selectedRecipe));`）を次にする
 
 ```csharp
-            YieldDrawDecorator = new CleanRoomYieldDrawDecorator(blockInstanceId, cycleCount);
-            _context.SetRealizedOutputDecorator(YieldDrawDecorator);
+            _yieldDrawDecorator = new CleanRoomYieldDrawDecorator(blockInstanceId, cycleCount);
+            _context.SetRealizedOutputDecorator(_yieldDrawDecorator);
             _context.BindSelectedRecipe(selectedRecipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(selectedRecipe));
 ```
 
-- C4 が書いた `_processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs, inheritedLevel);` の直後へ1行足す
+- C3 が書いた `_processingState = new ProcessingMachineProcessState(_context, processingJob);` の直後へ1行足す
 
 ```csharp
-            _haltedState = new HaltedMachineProcessState(_processingState, YieldDrawDecorator.CurrentEffect.CanOperate);
+            _haltedState = new HaltedMachineProcessState(_processingState, _yieldDrawDecorator.CurrentEffect.CanOperate);
 ```
 
 - `_stateHandlers` の配列の `new HaltedMachineProcessState(_processingState, () => _cleanRoomEffect.CanOperate),` を `_haltedState,` にする
 - `SetCleanRoomEffect` の本体の `_cleanRoomEffect = effect;` と `_chipDrawDecorator.SetCleanRoomEffect(effect);` の2行を次の2行にする（判断はここで行い、停止ステートには値だけを渡す）
 
 ```csharp
-            YieldDrawDecorator.SetCleanRoomEffect(effect);
+            _yieldDrawDecorator.SetCleanRoomEffect(effect);
             _haltedState.SetCanOperate(effect.CanOperate);
 ```
 
-- `GetSaveState` の `_chipDrawDecorator.CycleCount` を `YieldDrawDecorator.CycleCount` にする
-- `Update` の `if (!_cleanRoomEffect.CanOperate && CurrentState != ProcessState.Halted)` を `if (!YieldDrawDecorator.CurrentEffect.CanOperate && CurrentState != ProcessState.Halted)` にする
+- `GetSaveState` の `_chipDrawDecorator.CycleCount` を `_yieldDrawDecorator.CycleCount` にする
+- `Update` の `if (!_cleanRoomEffect.CanOperate && CurrentState != ProcessState.Halted)` から `else` の閉じ括弧までの if/else（ブロック本体それぞれ1行の8行）を次の2行にする（直前の2行コメントは残す）
+
+```csharp
+            if (!_yieldDrawDecorator.CurrentEffect.CanOperate && CurrentState != ProcessState.Halted) ForceHaltedWithoutCompletingJob();
+            else UpdateCurrentState();
+```
 - `ChangeSelection` の `CleanRoomChipOutputBindingUtil.BuildOutputBinding(recipe)` を `MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe)` にする
 
 Run: `wc -l moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs`
-Expected: 200 未満（199）
+Expected: 200 未満（194）
 
-古い効果の作り方と述語の注入が残っていないことを確かめる。
+古い効果の作り方と述語の注入が残っていないこと、デコレータの具象が processor の外へ出ていないことを確かめる。
 
 ```bash
 grep -rn "new CleanRoomEffect(\|new(CleanRoomOperability\|_cleanRoomEffect\|ClassQualityMultiplier\|MaxChipLevel\|DownBinRate\|Func<bool>" --include='*.cs' moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Game.Block.Interface moorestech_server/Assets/Scripts/Game.CleanRoom moorestech_server/Assets/Scripts/Tests moorestech_client/Assets/Scripts | grep -v "Component/CleanRoom/CleanRoomEffect.cs"
@@ -16211,10 +17170,16 @@ grep -rn "new CleanRoomEffect(\|new(CleanRoomOperability\|_cleanRoomEffect\|Clas
 
 Expected: 出力なし（`CleanRoomEffect` は factory でしか作られず、`CleanRoom/Machine/` に `Func<bool>` が無い）。
 
+```bash
+grep -rn "CleanRoomYieldDrawDecorator" --include='*.cs' moorestech_server/Assets/Scripts | grep -v "CleanRoom/Machine/CleanRoomYieldDrawDecorator.cs\|CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs"
+```
+
+Expected: 出力なし（具象を知るのは processor だけ。B6 の部品は `ICleanRoomEffectLookup` で受ける）。
+
 - [ ] **Step 10: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "CleanRoom" --timeout-seconds 1500`
-Expected: ErrorCount 0 / 全テスト PASS（`CleanRoomWaferGradeDrawTest` 3件・`CleanRoomYieldTableRulesTest` 6件・`CleanRoomMasterTest` 5件を含む）
+Expected: ErrorCount 0 / 全テスト PASS（`CleanRoomWaferGradeDrawTest` 3件・`CleanRoomYieldTableRulesTest` 6件・`CleanRoomMasterTest` 6件を含む）
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.(UnitTest|CombinedTest)\." --timeout-seconds 1500`
 Expected: 失敗0
@@ -16283,8 +17248,8 @@ git commit -m "feat(cleanroom): 旧チップ抽選を撤去し、クラス別の
 **Interfaces:**
 - Consumes:
   - B1: `ChipYieldFormula.ReducedRate`、`ChipYieldDraw.DrawLayerFailure`
-  - B3: `CleanRoomYieldRollContext`（`ClassYield`・`int? InheritedLevel`）、`RecipeOutputSetBuilder`、`CleanRoomRoleRates`、`Core.Master.CleanRoomRoles.CleanRoomRecipeRole`（`private protected static int IndexOfOutput(MachineRecipeMasterElement recipe, Guid itemGuid)`）、`CleanRoomMaster.TryGetRecipeRole` と `Initialize` の役割索引、`CleanRoomRoleRecipeChecks.Validate` / `RequireSingleOutput` / `RequireFamilyBase(string, Guid, Guid, out int? variantCount)`、`CleanRoomYieldDrawDecorator.Decorate` の役割の型の switch
-  - C2: 生成定数 `MachineRecipeMasterElement.LevelInheritanceConst.Inherit` とプロパティ `string MachineRecipeMasterElement.LevelInheritance`。検証用の内部ヘルパー `Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape.CountFamilyBaseInputs(MachineRecipeMasterElement recipe) : int` / `FindSourceFamilyLength(MachineRecipeMasterElement recipe) : int?`（同じ Core.Master アセンブリなので internal を使える）。実行時の解釈 `Game.Block.Interface.MachineUpgrade.MachineRecipeLevelInheritanceUtil.ResolveOutputItemId(MachineRecipeMasterElement recipe, int outputIndex, int? inheritedLevel) : ItemId`（継承先の出力なら継承レベルの変種、それ以外は書いたまま。継承レシピで null なら例外）。継承元（levelFamily の基準を指す入力）がちょうど1つであることは、機械レシピの検証の順序に頼らず、役割の検証が `CountFamilyBaseInputs == 1` で自分でも確かめる
+  - B3: `CleanRoomYieldRollContext`（`ClassYield`・`FactorySet`〈工場の1セット目。継承先＝次層ウェハは投入品のレベルの変種が当たり済み〉・`SetCount`）、`RecipeOutputSetBuilder.CopySet` / `Repeat`、`CleanRoomRoleRates`、`Core.Master.CleanRoomRoles.CleanRoomRecipeRole`（`private protected static int IndexOfOutput(MachineRecipeMasterElement recipe, Guid itemGuid)`）、`CleanRoomMaster.TryGetRecipeRole` と `Initialize` の役割索引、`CleanRoomRoleRecipeChecks.Validate` / `RequireSingleOutput` / `RequireFamilyBase(string, Guid, Guid, out int? variantCount)`、`CleanRoomYieldDrawDecorator.Decorate` の役割の型の switch
+  - C2: 生成定数 `MachineRecipeMasterElement.LevelInheritanceConst.Inherit` とプロパティ `string MachineRecipeMasterElement.LevelInheritance`。public の形のヘルパー `Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape.CountFamilyBaseInputs(MachineRecipeMasterElement recipe) : int` / `FindSourceFamilyLength(MachineRecipeMasterElement recipe) : int?`（継承元がちょうど1つならその長さ、0個か2個以上なら null。呼び出し側は `is not int` で受け `.Value` を書かない）/ `GetFamilyLength(Guid) : int`。継承先の出力に継承レベルの変種を当てるのは C3 の工場（`MachineRecipeLevelInheritanceUtil.ResolveOutputItemId`）だけで、B4 の書き換え器は工場の1セットの写しを使うのでこれを呼ばない。継承元（levelFamily の基準を指す入力）がちょうど1つであることは、機械レシピの検証の順序に頼らず、役割の検証が `CountFamilyBaseInputs == 1` で自分でも確かめる
   - C3: `Inherit` のレシピでは、入力スロットが継承元ファミリーの全変種を受け入れ、`inheritedLevel` に投入品のレベルが入る
   - C1: 品質モジュールの許可は `allowQualityModule` だけで決まり、継承レシピの機械でも許可できる（Part C は「継承レシピの機械は品質モジュール不可」の検証を持たない）
 - Produces:
@@ -16528,7 +17493,7 @@ namespace Core.Master.CleanRoomRoles
             errorLogs += CleanRoomLayerExposureValidator.Validate(element.LayerExposures, roleRecipeGuids);
 ```
 
-`moorestech_server/Assets/Scripts/Core.Master/Validator/CleanRoom/CleanRoomRoleRecipeChecks.cs` の先頭の using へ `using Core.Master.Validator.MachineUpgrade;` を足し、`RequireFamilyBase` の後ろ（クラスの閉じ括弧の前）へ足す。
+`moorestech_server/Assets/Scripts/Core.Master/Validator/CleanRoom/CleanRoomRoleRecipeChecks.cs` の `RequireFamilyBase` の後ろ（クラスの閉じ括弧の前）へ足す（`LevelInheritanceRecipeShape` は B3 で足した `using Core.Master.Validator.MachineUpgrade;` で引ける）。
 
 ```csharp
 
@@ -16550,14 +17515,13 @@ namespace Core.Master.CleanRoomRoles
             return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must use levelInheritance Inherit (found {recipe.LevelInheritance})\n";
         }
 
-        // グレードの出どころ（継承元の入力）はちょうど1つ。機械レシピの検証の順序に頼らず、ここでも数える
-        // The grade source (the inheritance source input) must be exactly one; counted here too instead of relying on the machine-recipe validation order
+        // グレードの出どころ（継承元の入力）はちょうど1つ。機械レシピの検証の順序に頼らず、ここでも確かめる
+        // The grade source (the inheritance source input) must be exactly one; checked here too instead of relying on the machine-recipe validation order
         private static string ResolveSourceGradeCount(string roleName, MachineRecipeMasterElement recipe, out int? gradeCount)
         {
             gradeCount = null;
-            var sourceCount = LevelInheritanceRecipeShape.CountFamilyBaseInputs(recipe);
-            if (sourceCount != 1) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must have exactly one level-family base input to take the grade from (found {sourceCount})\n";
-            gradeCount = LevelInheritanceRecipeShape.FindSourceFamilyLength(recipe);
+            if (LevelInheritanceRecipeShape.FindSourceFamilyLength(recipe) is not int length) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must have exactly one level-family base input to take the grade from (found {LevelInheritanceRecipeShape.CountFamilyBaseInputs(recipe)})\n";
+            gradeCount = length;
             return "";
         }
 ```
@@ -16588,9 +17552,9 @@ namespace Core.Master.Validator
                 // 入力のグレードを受け継ぎ、次層ウェハは同じグレード数のファミリーで持つ（両方引けたときだけ比べる）
                 // Inherit the input grade and keep the layered wafer as a family with the same grade count (compared only when both resolve)
                 logs += CleanRoomRoleRecipeChecks.ValidateGradeInheritingRole(RoleName, recipe, exposure.LayeredWaferItemGuid, out var inputGradeCount, out var layeredGradeCount);
-                if (inputGradeCount.HasValue && layeredGradeCount.HasValue && inputGradeCount.Value != layeredGradeCount.Value)
+                if (inputGradeCount is int inputCount && layeredGradeCount is int layeredCount && inputCount != layeredCount)
                 {
-                    logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{exposure.MachineRecipeGuid} input grade count {inputGradeCount.Value} differs from layered wafer grade count {layeredGradeCount.Value}\n";
+                    logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{exposure.MachineRecipeGuid} input grade count {inputCount} differs from layered wafer grade count {layeredCount}\n";
                 }
 
                 // 出力はちょうど [次層ウェハ ×c, 失敗パターンウェハ ×c]
@@ -16640,8 +17604,6 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.Yield;
-using Game.Block.Interface.MachineUpgrade;
-using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
@@ -16649,17 +17611,16 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
     // EUV: roll the layer once; success yields the next-layer wafer at the input's grade, failure yields only the failed pattern wafer
     internal static class LayerExposureOutputRewriter
     {
-        public static List<IItemStack> Rewrite(MachineRecipeMasterElement recipe, LayerExposureRecipeRole role, CleanRoomYieldRollContext context)
+        public static List<IItemStack> Rewrite(LayerExposureRecipeRole role, CleanRoomYieldRollContext context)
         {
             // 失敗率＝クラス別の層失敗率×(1−品質合計による低減)
             // Fail rate = class layer fail rate x (1 - quality-sum reduction)
             var failRate = CleanRoomRoleRates.LayerFailRate(role, context.ClassYield, context.ModuleEffect);
             var isFailed = ChipYieldDraw.DrawLayerFailure(failRate, context.Random);
 
-            // 次層ウェハは継承レベルの変種にし（写しは Part C の util の1か所）、成否で片方の個数を0にする
-            // Use the inherited level's variant for the layered wafer (mapped only by Part C's util) and zero out one side by the outcome
-            var (itemIds, counts) = RecipeOutputSetBuilder.CreatePlainSet(recipe);
-            itemIds[role.LayeredOutputIndex] = MachineRecipeLevelInheritanceUtil.ResolveOutputItemId(recipe, role.LayeredOutputIndex, context.InheritedLevel);
+            // 次層ウェハは工場が継承レベルの変種を当て済みなので、写しの成否で片方の個数を0にするだけ
+            // The factory already set the layered wafer to the inherited level's variant, so just zero out one side of the copy by the outcome
+            var (itemIds, counts) = RecipeOutputSetBuilder.CopySet(context.FactorySet);
             if (isFailed) counts[role.LayeredOutputIndex] = 0;
             else counts[role.FailedOutputIndex] = 0;
             return RecipeOutputSetBuilder.Repeat(itemIds, counts, context.SetCount);
@@ -16671,13 +17632,13 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomYieldDrawDecorator.cs` の `Decorate` の switch で、`WaferGradeRecipeRole waferGrade => ...,` の行の直後へ足す。
 
 ```csharp
-                LayerExposureRecipeRole layerExposure => LayerExposureOutputRewriter.Rewrite(recipe, layerExposure, context),
+                LayerExposureRecipeRole layerExposure => LayerExposureOutputRewriter.Rewrite(layerExposure, context),
 ```
 
 - [ ] **Step 6: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "CleanRoom" --timeout-seconds 1500`
-Expected: ErrorCount 0 / 全テスト PASS（`CleanRoomLayerExposureTest` 1件・`CleanRoomMasterTest` 6件を含む）
+Expected: ErrorCount 0 / 全テスト PASS（`CleanRoomLayerExposureTest` 1件・`CleanRoomMasterTest` 7件を含む）
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.(UnitTest|CombinedTest)\." --timeout-seconds 1500`
 Expected: 失敗0
@@ -16726,14 +17687,14 @@ git commit -m "feat(cleanroom): EUV の層ごとの失敗判定を入れる"
 **Interfaces:**
 - Consumes:
   - B1: `ChipYieldFormula.ReducedRate`、`ChipYieldDraw.DrawDicing`、`DicingDrawResult`
-  - B3: `CleanRoomYieldRollContext`（`ClassYield`・`int? InheritedLevel`）、`RecipeOutputSetBuilder`、`CleanRoomRoleRates`、`Core.Master.CleanRoomRoles.CleanRoomRecipeRole`、`CleanRoomMaster.TryGetRecipeRole` と `Initialize` の役割索引、`CleanRoomRoleRecipeChecks.Validate`、`CleanRoomYieldDrawDecorator.Decorate` の役割の型の switch
+  - B3: `CleanRoomYieldRollContext`（`ClassYield`・`FactorySet`・`SetCount`）、`RecipeOutputSetBuilder.CopySet` / `Repeat`、`CleanRoomRoleRates`、`Core.Master.CleanRoomRoles.CleanRoomRecipeRole`、`CleanRoomMaster.TryGetRecipeRole` と `Initialize` の役割索引、`CleanRoomRoleRecipeChecks.Validate`、`CleanRoomYieldDrawDecorator.Decorate`（`int? inheritedLevel` を受ける）の役割の型の switch と `#region Internal` の `StartCycle`
   - B4: `CleanRoomRoleRecipeChecks.ValidateGradeInheritingRole(string roleName, MachineRecipeMasterElement recipe, Guid outputBaseItemGuid, out int? sourceGradeCount, out int? outputVariantCount)`、`ForUnitTestItemId.TestLayeredWaferG1..G3`
-  - C2・C3: `Inherit` のレシピの継承元入力の受け入れと `int? inheritedLevel`（B4 の Consumes と同じ名前）。役割の検証が `Inherit` を必須にしているので、ダイシングの抽選では `InheritedLevel` は必ず値を持つ。C1: 品質モジュールの許可は `allowQualityModule` だけで決まる
+  - C2・C3: `Inherit` のレシピの継承元入力の受け入れと `int? inheritedLevel`（B4 の Consumes と同じ名前）。役割の検証が `Inherit` を必須にしているので、ダイシングの抽選では継承レベルは必ず値を持つ。無条件の `.Value` は書かず、`Decorate` の振り分けで `is not int gradeLevel` なら block と recipe を添えた `InvalidOperationException` で止め、書き換え器には非 null の `int` を渡す。C3 の工場は継承先の出力（ダイの基準＝出力[0]）を投入グレードの変種に当てるので、ダイシングの書き換え器はレベル列のアイテムIDを全部書き直す。`LevelInheritanceRecipeShape.GetFamilyLength(Guid) : int`（public）。C1: 品質モジュールの許可は `allowQualityModule` だけで決まる
   - C3: `MachineOutputFactoryUtil.CreateRealizedOutputs` は生産性の `ExtraOutputChance`（1以下にクランプ）で追加1セットを足す。テストの生産性モジュール `TestProductivityModule`（itemGuid `00000000-0000-0000-1234-000000000002`、effectValue 1.0）は追加セットを必ず出す
 - Produces:
   - `CleanRoomRoleRates.DieLossRate(DicingRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect) : double`
   - スキーマ: `dicings[] { machineRecipeGuid, dieItemGuid, failedDieItemGuid, diesPerWafer(integer), maxLossReduction, gradeDieTables[] { levelRates: number[] } }`（必須の配列。`gradeDieTables` は G1 から順。number 配列の生成型は `float[]` の想定＝integer 配列 `stackCounts` が `int[]` になる前例と同じ）
-  - `Core.Master.CleanRoomRoles.DicingRecipeRole`（`DicingsElement Dicing`・`int DieLevelCount`＝ダイのレベルファミリーの変種数。出力は `[ダイLv1..LvN, 失敗ダイ]` の順なので失敗ダイの出力の添字も `DieLevelCount`）。`CleanRoomMaster.TryGetRecipeRole` がダイシングのレシピでこれを返す
+  - `Core.Master.CleanRoomRoles.DicingRecipeRole`（`DicingsElement Dicing`・`ItemId DieBaseItemId`＝ダイのレベルファミリーの基準・`int DieLevelCount`＝ダイのレベルファミリーの変種数〈`GetFamilyLength`〉。出力は `[ダイLv1..LvN, 失敗ダイ]` の順なので失敗ダイの出力の添字も `DieLevelCount`）。`CleanRoomMaster.TryGetRecipeRole` がダイシングのレシピでこれを返す
   - `CleanRoomYieldTableRules.ValidateDieTables(string roleLabel, IReadOnlyList<IReadOnlyList<float>> gradeDieTables, int dieLevelCount) : string`
   - `CleanRoomDicingValidator.MaxOutputSetsPerCycle = 2`（生産性で最大1セット増えるぶん）
   - レシピの出力の約束（統合タスク（旧 Part D） 向け）: ダイシングの役割レシピの出力はちょうど `[ダイLv1(基準), ダイLv2, …, ダイLvN, 失敗ダイ]` の順で、どれも個数 `diesPerWafer`。これらのアイテムのスタック表の最小値は `diesPerWafer × 2` 以上。機械の出力スロット数は N+1 以上
@@ -17172,17 +18133,17 @@ namespace Core.Master.Validator
                 // 入力ウェハのグレードを受け継ぎ、グレード数ぶんの表を持つ（グレード数が引けたときだけ比べる）
                 // Inherit the input wafer's grade and hold one table per grade (compared only when the grade count resolves)
                 logs += CleanRoomRoleRecipeChecks.ValidateGradeInheritingRole(RoleName, recipe, dicing.DieItemGuid, out var gradeCount, out var dieLevelCount);
-                if (gradeCount.HasValue && dicing.GradeDieTables.Length != gradeCount.Value) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} has {dicing.GradeDieTables.Length} grade tables for {gradeCount.Value} wafer grades\n";
+                if (gradeCount is int waferGradeCount && dicing.GradeDieTables.Length != waferGradeCount) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} has {dicing.GradeDieTables.Length} grade tables for {waferGradeCount} wafer grades\n";
                 if (dicing.DiesPerWafer < 1) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} DiesPerWafer:{dicing.DiesPerWafer} must be >= 1\n";
                 if (dicing.MaxLossReduction < 0f || 1f < dicing.MaxLossReduction) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} MaxLossReduction:{dicing.MaxLossReduction} is out of [0,1]\n";
 
                 // ダイのレベル数が引けたときだけ表の形と出力の並びを見る（引けない理由は上でログ済み）
                 // Check the table shape and output layout only when the die level count resolves (the reason it did not is already logged above)
-                if (!dieLevelCount.HasValue) continue;
+                if (dieLevelCount is not int levelCount) continue;
                 var tables = new List<IReadOnlyList<float>>();
                 foreach (var table in dicing.GradeDieTables) tables.Add(table.LevelRates);
-                logs += CleanRoomYieldTableRules.ValidateDieTables($"{RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid}", tables, dieLevelCount.Value);
-                logs += OutputLayoutValidation(recipe, dicing, dieLevelCount.Value);
+                logs += CleanRoomYieldTableRules.ValidateDieTables($"{RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid}", tables, levelCount);
+                logs += OutputLayoutValidation(recipe, dicing, levelCount);
             }
             return logs;
         }
@@ -17230,6 +18191,7 @@ namespace Core.Master.Validator
 `moorestech_server/Assets/Scripts/Core.Master/CleanRoomRoles/DicingRecipeRole.cs`
 
 ```csharp
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Model.CleanRoomModule;
 
 namespace Core.Master.CleanRoomRoles
@@ -17242,6 +18204,10 @@ namespace Core.Master.CleanRoomRoles
     {
         public DicingsElement Dicing { get; }
 
+        // ダイのレベルファミリーの基準。書き換え器はここから各レベルの変種を引く
+        // Base item of the die level family; the rewriter derives each level's variant from it
+        public ItemId DieBaseItemId { get; }
+
         // ダイのレベル数。出力は [ダイLv1..LvN, 失敗ダイ] の順（起動時の検証が保証）なので、失敗ダイの出力の添字もこの値
         // Die level count; outputs run [die Lv1..LvN, failed die] (guaranteed by boot validation), so this is also the failed die's output index
         public int DieLevelCount { get; }
@@ -17249,7 +18215,8 @@ namespace Core.Master.CleanRoomRoles
         internal DicingRecipeRole(DicingsElement dicing)
         {
             Dicing = dicing;
-            DieLevelCount = MasterHolder.ItemMaster.GetLevelVariants(MasterHolder.ItemMaster.GetItemId(dicing.DieItemGuid)).Count;
+            DieBaseItemId = MasterHolder.ItemMaster.GetItemId(dicing.DieItemGuid);
+            DieLevelCount = LevelInheritanceRecipeShape.GetFamilyLength(dicing.DieItemGuid);
         }
     }
 }
@@ -17280,9 +18247,9 @@ namespace Core.Master.CleanRoomRoles
 ```csharp
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Master;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.Yield;
-using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
@@ -17290,20 +18257,20 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
     // Dicing: cut one wafer into diesPerWafer dies, send losses to failed dies and split survivors by level with the grade's die table
     internal static class DicingOutputRewriter
     {
-        public static List<IItemStack> Rewrite(MachineRecipeMasterElement recipe, DicingRecipeRole role, CleanRoomYieldRollContext context)
+        public static List<IItemStack> Rewrite(DicingRecipeRole role, int gradeLevel, CleanRoomYieldRollContext context)
         {
             // グレードは入力ウェハから受け継いだレベル。役割の検証が Inherit と「表の数＝グレード数」を保証するので丸めない
             // The grade is the level inherited from the input wafer; validation guarantees Inherit and one table per grade, so no clamping
             var dicing = role.Dicing;
-            var gradeIndex = context.InheritedLevel.Value - 1;
             var lossRate = CleanRoomRoleRates.DieLossRate(role, context.ClassYield, context.ModuleEffect);
-            var result = ChipYieldDraw.DrawDicing(dicing.DiesPerWafer, lossRate, dicing.GradeDieTables[gradeIndex].LevelRates, context.Random);
+            var result = ChipYieldDraw.DrawDicing(dicing.DiesPerWafer, lossRate, dicing.GradeDieTables[gradeLevel - 1].LevelRates, context.Random);
 
-            // 出力の並びは [ダイLv1..LvN, 失敗ダイ]。表に無い上位レベルは0個（空スタック）
-            // Outputs are ordered [die Lv1..LvN, failed die]; levels beyond the table get zero (an empty stack)
-            var (itemIds, counts) = RecipeOutputSetBuilder.CreatePlainSet(recipe);
+            // 出力は [ダイLv1..LvN, 失敗ダイ]。工場が継承先（Lv1 の枠）を投入グレードの変種にしているので、レベル列のIDは全部書き直す
+            // Outputs are [die Lv1..LvN, failed die]; the factory set the inheritance target (the Lv1 slot) to the input grade's variant, so rewrite every level id
+            var (itemIds, counts) = RecipeOutputSetBuilder.CopySet(context.FactorySet);
             for (var levelIndex = 0; levelIndex < role.DieLevelCount; levelIndex++)
             {
+                itemIds[levelIndex] = MasterHolder.ItemMaster.GetLevelVariantItemId(role.DieBaseItemId, levelIndex + 1);
                 counts[levelIndex] = levelIndex < result.GoodDieCountsByLevel.Count ? result.GoodDieCountsByLevel[levelIndex] : 0;
             }
             counts[role.DieLevelCount] = result.FailedDieCount;
@@ -17316,13 +18283,34 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomYieldDrawDecorator.cs` の `Decorate` の switch で、B4 で足した `LayerExposureRecipeRole layerExposure => ...,` の行の直後へ足す。
 
 ```csharp
-                DicingRecipeRole dicing => DicingOutputRewriter.Rewrite(recipe, dicing, context),
+                DicingRecipeRole dicing => DicingOutputRewriter.Rewrite(dicing, RequireGradeLevel(), context),
 ```
+
+同じファイルの `#region Internal` の `StartCycle` の閉じ括弧の後ろ（`#endregion` の前）へ足す。継承レベルの欠けはここ1か所で止め、書き換え器には非 null の値だけを渡す。EUV は工場が継承先へ投入グレードを当て済みの1セットを使うので、継承レベルの値を要らない（ここを通らない）。
+
+```csharp
+
+            // グレードを受け継ぐ役割は継承レシピ（役割の検証が保証）。継承レベルが無いのは壊れたジョブなので黙って続けない
+            // Grade-inheriting roles are inheritance recipes (guaranteed by validation); a missing level means a broken job, so do not continue silently
+            int RequireGradeLevel()
+            {
+                if (inheritedLevel is not int gradeLevel) throw new InvalidOperationException($"グレードを受け継ぐ清浄室工程に継承レベルがありません。 block={_blockInstanceId} recipe={recipe.MachineRecipeGuid}");
+                return gradeLevel;
+            }
+```
+
+`.Value` が Part B に残っていないことを確かめる。
+
+```bash
+grep -rn "InheritedLevel\.Value\|inheritedLevel\.Value\|Count\.Value\|\.HasValue" --include='*.cs' moorestech_server/Assets/Scripts/Core.Master/Validator/CleanRoom moorestech_server/Assets/Scripts/Core.Master/CleanRoomRoles moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom
+```
+
+Expected: 出力なし
 
 - [ ] **Step 7: コンパイルしテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "CleanRoom" --timeout-seconds 1500`
-Expected: ErrorCount 0 / 全テスト PASS（`CleanRoomDicingTest` 4件・`CleanRoomYieldTableRulesTest` 11件・`CleanRoomMasterTest` 7件を含む）
+Expected: ErrorCount 0 / 全テスト PASS（`CleanRoomDicingTest` 4件・`CleanRoomYieldTableRulesTest` 11件・`CleanRoomMasterTest` 8件を含む）
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Tests\.(UnitTest|CombinedTest)\." --timeout-seconds 1500`
 Expected: 失敗0
@@ -17357,6 +18345,9 @@ git commit -m "feat(cleanroom): ダイシングのレベル別切り分けと出
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreview.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewComponent.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs`（部品を作って components に足す）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/IMachineRecipeSelectorComponent.cs`（`TryGetSelectedRecipe` を足す）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs`（C3・C4 後の199行→197行）
+- Modify: `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs`（B3 後の194行→195行）
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/GetCleanRoomYieldInfoProtocol.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldMessagePack.cs`
 - Create: `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/CleanRoom/CleanRoomYieldView.cs`
@@ -17364,7 +18355,7 @@ git commit -m "feat(cleanroom): ダイシングのレベル別切り分けと出
 - Modify: `moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs`（`GetCleanRoomInfo` の直後。134→142行）
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom/GetCleanRoomYieldInfoProtocolTest.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Game/InGame/CleanRoom/CleanRoomYieldInfoPollSource.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs`（A8 後の約147行→約163行）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs`（A8 後の約137行→約153行）
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomYieldDetailDtos.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/CleanRoom/CleanRoomYieldDetailDtoBuilder.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockInventoryDtos.cs`（`CleanRoomYield` フィールド）
@@ -17387,11 +18378,11 @@ git commit -m "feat(cleanroom): ダイシングのレベル別切り分けと出
 - Modify（生成物）: `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`
 - Modify: `moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs`
 
-置き場の数: `Machine/YieldPreview/` は新しいディレクトリ（3本）。`PacketResponse/CleanRoom/` は A6 の5本に足して8本。`Client.Game/InGame/CleanRoom/` は A8・A10 の5本に足して6本。`BlockDetail/CleanRoom/` は A8 の2本に足して4本。`details/cleanRoom/` は A9 の2本に足して4本（`__tests__/` は A9 の2本に足して4本）。どれも10本以内。
+置き場の数: `Machine/YieldPreview/` は新しいディレクトリ（3本）。`PacketResponse/CleanRoom/` は A6 の6本に足して9本。`Client.Game/InGame/CleanRoom/` は A8・A10 の5本に足して6本。`BlockDetail/CleanRoom/` は A8 の3本に足して5本。`details/cleanRoom/` は A9 の2本に足して4本（`__tests__/` は A9 の2本に足して4本）。どれも10本以内。
 
 **Interfaces:**
 - Consumes:
-  - B3〜B5: `CleanRoomRoleRates.MaxWaferGrade(WaferGradeRecipeRole, MachineModuleEffect)` / `PromotionChance(WaferGradeRecipeRole, CleanRoomClassYield, MachineModuleEffect)` / `LayerFailRate(LayerExposureRecipeRole, CleanRoomClassYield, MachineModuleEffect)` / `DieLossRate(DicingRecipeRole, CleanRoomClassYield, MachineModuleEffect)`（抽選の書き換え器が使う唯一の口。式は `ChipYieldFormula` にしか無い）、`CleanRoomMaster.TryGetRecipeRole(Guid, out CleanRoomRecipeRole)`（レシピGUID→役割の唯一の口）、`CleanRoomEffect.TryGetClassYield(out CleanRoomClassYield)`、`CleanRoomYieldDrawDecorator.CurrentEffect`（今の部屋の効果の唯一の持ち主）、`CleanRoomMachineProcessorComponent.YieldDrawDecorator`（internal）
+  - B3〜B5: `CleanRoomRoleRates.MaxWaferGrade(WaferGradeRecipeRole, MachineModuleEffect)` / `PromotionChance(WaferGradeRecipeRole, CleanRoomClassYield, MachineModuleEffect)` / `LayerFailRate(LayerExposureRecipeRole, CleanRoomClassYield, MachineModuleEffect)` / `DieLossRate(DicingRecipeRole, CleanRoomClassYield, MachineModuleEffect)`（抽選の書き換え器が使う唯一の口。式は `ChipYieldFormula` にしか無い）、`CleanRoomMaster.TryGetRecipeRole(Guid, out CleanRoomRecipeRole)`（レシピGUID→役割の唯一の口）、`CleanRoomEffect.TryGetClassYield(out CleanRoomClassYield)`、`ICleanRoomEffectLookup.CurrentEffect`（今の部屋の効果の読み口。持ち主はデコレータ1つ）、`CleanRoomMachineProcessorComponent.CleanRoomEffectLookup`（public。デコレータの具象は processor の外へ出ない）
   - C5: `MachineModuleEffectComponent.AggregateCurrent()` → `MachineModuleEffect`（`QualityShift`・`HighestQualityModuleTier`）。抽選も同じ集計を使う（B3 Step 7 の `MachineProcessContext.CreateRealizedOutputs`）
   - A6: プロトコルの書き方（private ctor ＋ 種別ごとの static factory ＋ 種別ごとの閉じた型を返す `TryGetView`。`CleanRoomInfoView` の形・`BlockNotFound` はビューに入れない）、テストの呼び方（`PacketResponseCreator.GetPacketResponse` + `BoundPacketContext.Bind(1)`）
   - A7: `VanillaCleanRoomMachineTemplate` の components 列（停止理由の状態 `operabilityState` を末尾に置く並び）
@@ -17399,22 +18390,23 @@ git commit -m "feat(cleanroom): ダイシングのレベル別切り分けと出
   - A9: `schemas/cleanRoom/index.ts`・`inventory.ts` の `cleanRoom` 行と import 行・`SectionStackView.tsx` の `<CleanRoomSection data={data} />`・`inventory.test.ts` の `import { CleanRoomDetailDataSchema } from "../cleanRoom";`・部屋の要約の形 `{ headline: "class", className, concentration, airChangeRate, volume, airFilters }`・`_CompileRequester` の MD5 再計算
 - Produces（統合タスクの録画テスト が使う）:
   - プロトコル `va:getCleanRoomYieldInfo`（`GetCleanRoomYieldInfoProtocol`）、`WorldQueryApi.GetCleanRoomYieldInfo(BlockInstanceId, CancellationToken)`
-  - サーバー（namespace `Game.Block.Blocks.CleanRoom.Machine.YieldPreview`）: `CleanRoomYieldPreviewComponent : IBlockComponent`（`CleanRoomYieldPreviewResult GetPreview()`。ctor は internal で template だけが作る）、役割ごとの結果型 `CleanRoomYieldPreviewResult`（`NoRolePreview.Instance`・`NotOperablePreview.Instance`・`WaferGradePreview { int MaxGrade; double PromotionChance }`・`LayerExposurePreview { double LayerFailRate }`・`DicingPreview { double DieLossRate }`）、internal `CleanRoomYieldPreview.Compute(MachineRecipeMasterElement selectedRecipe, CleanRoomEffect cleanRoomEffect, MachineModuleEffect moduleEffect)`
-  - プロトコルの型（namespace `Server.Protocol.PacketResponse`）: `GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack`（wire は `CleanRoomYieldResponseKind Kind` [Key2]・`WaferGradeYieldMessagePack WaferGrade` [Key3]・`LayerExposureYieldMessagePack LayerExposure` [Key4]・`DicingYieldMessagePack Dicing` [Key5]。その役割の入れ子だけが非 null。組み立ては `CreateBlockNotFound()`・`CreateNoRole()`・`CreateNotOperable()`・`CreateWaferGrade(int maxGrade, double promotionChance)`・`CreateLayerExposure(double layerFailRate)`・`CreateDicing(double dieLossRate)` だけ、読み出しは `bool TryGetView(out CleanRoomYieldView view)` だけで BlockNotFound なら false）、`enum CleanRoomYieldResponseKind { BlockNotFound, NoRole, NotOperable, WaferGrade, LayerExposure, Dicing }`、ビュー `CleanRoomYieldNoRoleView.Instance`・`CleanRoomYieldNotOperableView.Instance`・`CleanRoomYieldWaferGradeView(WaferGradeYieldMessagePack WaferGrade)`・`CleanRoomYieldLayerExposureView(LayerExposureYieldMessagePack LayerExposure)`・`CleanRoomYieldDicingView(DicingYieldMessagePack Dicing)`
+  - サーバー（namespace `Game.Block.Blocks.CleanRoom.Machine.YieldPreview`）: `CleanRoomYieldPreviewComponent : IBlockComponent`（`CleanRoomYieldPreviewResult GetPreview()`。ctor `internal (IMachineRecipeSelectorComponent recipeSelector, MachineModuleEffectComponent moduleEffectComponent, ICleanRoomEffectLookup effectLookup)` で template だけが作る）、役割ごとの結果型 `CleanRoomYieldPreviewResult`（`NoRolePreview.Instance`・`NotOperablePreview.Instance`・`WaferGradePreview { int MaxGrade; double PromotionChance }`・`LayerExposurePreview { double LayerFailRate }`・`DicingPreview { double DieLossRate }`）、internal `CleanRoomYieldPreview.Compute(MachineRecipeMasterElement selectedRecipe, CleanRoomEffect cleanRoomEffect, MachineModuleEffect moduleEffect)`（`selectedRecipe` は選択済みの非 null だけ。未選択は呼び出し前に `NoRolePreview`）
+  - `IMachineRecipeSelectorComponent.TryGetSelectedRecipe(out MachineRecipeMasterElement recipe) : bool`（未選択なら false。実装は `VanillaMachineProcessorComponent` と `CleanRoomMachineProcessorComponent` の2つだけ。「未選択」を `Guid.Empty` との比較で表す読み手を増やさない）
+  - プロトコルの型（namespace `Server.Protocol.PacketResponse`）: `GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack`（wire は `CleanRoomYieldResponseKind Kind` [Key2]・`WaferGradeYieldMessagePack WaferGrade` [Key3]・`LayerExposureYieldMessagePack LayerExposure` [Key4]・`DicingYieldMessagePack Dicing` [Key5]。その役割の入れ子だけが非 null。組み立ては `CreateBlockNotFound()`・`CreateNoRole()`・`CreateNotOperable()`・`CreateWaferGrade(int maxGrade, double promotionChance)`・`CreateLayerExposure(double layerFailRate)`・`CreateDicing(double dieLossRate)` だけ、読み出しは `bool TryGetView(out CleanRoomYieldView view)` だけで BlockNotFound と、判別子に対応する入れ子が null の読めない応答〈警告 `[GetCleanRoomYieldInfo] {Kind} response has no {Kind} details; treating it as unreadable` を1回出す〉なら false）、`enum CleanRoomYieldResponseKind { BlockNotFound, NoRole, NotOperable, WaferGrade, LayerExposure, Dicing }`、ビュー `CleanRoomYieldNoRoleView.Instance`・`CleanRoomYieldNotOperableView.Instance`・`CleanRoomYieldWaferGradeView(WaferGradeYieldMessagePack WaferGrade)`・`CleanRoomYieldLayerExposureView(LayerExposureYieldMessagePack LayerExposure)`・`CleanRoomYieldDicingView(DicingYieldMessagePack Dicing)`
   - クライアント: `Client.Game.InGame.CleanRoom.CleanRoomYieldInfoPollSource.CreatePoller()`、`BlockNetworkInfoCache.TryGetCleanRoomYield(out CleanRoomYieldView view)`、`CleanRoomYieldDetailDtoBuilder.Build(CleanRoomYieldView view)`
   - wire: `cleanRoomYield`（`{ role: "waferGrade", maxGrade, promotionChance }` | `{ role: "layerExposure", layerFailRate }` | `{ role: "dicing", dieLossRate }`）。役割の無いレシピ・未選択・稼働できない機械では省く
   - testid: `clean-room-yield-section`、行 `clean-room-yield-max-grade` / `clean-room-yield-promotion-chance`（成膜）・`clean-room-yield-layer-fail-rate`（EUV）・`clean-room-yield-die-loss-rate`（ダイシング）
   - i18n キー: `ui.blockInventory.cleanRoomYieldMaxGrade`（`{grade}`）・`cleanRoomYieldPromotionChance` / `cleanRoomYieldLayerFailRate` / `cleanRoomYieldDieLossRate`（`{percent}`。小数1桁の百分率）
 
 **設計メモ:**
-- 表示値は抽選と同じ入力と同じ口から出す。`CleanRoomYieldPreviewComponent` は抽選と同じ3つ（選択レシピ・`CleanRoomYieldDrawDecorator.CurrentEffect`・`MachineModuleEffectComponent.AggregateCurrent()`）を読み、`CleanRoomYieldPreview.Compute` は `CleanRoomMaster.TryGetRecipeRole` と `CleanRoomRoleRates` を呼ぶだけで式を書き直さない。部屋の効果の持ち主はデコレータ1つで、`CleanRoomMachineComponent` に写しを足さない。
-- 部品は template が「レシピ選択（processor）・`MachineModuleEffectComponent`・デコレータ」を ctor で渡して作る。プロトコルは `TryGetComponent<CleanRoomYieldPreviewComponent>` → `GetPreview()` の結果を詰め替えるだけで、機械の中の組み立て（processor・デコレータ・マスタの役割表）を知らない。
+- 表示値は抽選と同じ入力と同じ口から出す。`CleanRoomYieldPreviewComponent` は抽選と同じ3つ（選択レシピ・`ICleanRoomEffectLookup.CurrentEffect`〈中身はデコレータ〉・`MachineModuleEffectComponent.AggregateCurrent()`）を読み、`CleanRoomYieldPreview.Compute` は `CleanRoomMaster.TryGetRecipeRole` と `CleanRoomRoleRates` を呼ぶだけで式を書き直さない。部屋の効果の持ち主はデコレータ1つで、`CleanRoomMachineComponent` に写しを足さない。
+- 部品は template が「レシピ選択（processor）・`MachineModuleEffectComponent`・効果の読み口（`processor.CleanRoomEffectLookup`）」を ctor で渡して作る。部品は効果を書き換えられず、抽選カウンタも進められない。選択レシピは `TryGetSelectedRecipe` で受け、未選択を `Guid.Empty` との比較で判定しない。プロトコルは `TryGetComponent<CleanRoomYieldPreviewComponent>` → `GetPreview()` の結果を詰め替えるだけで、機械の中の組み立て（processor・デコレータ・マスタの役割表）を知らない。
 - 表示の値はポーリングした時点の値で、抽選に使うのは入力がそろって加工を始める時点の値。その間に部屋クラス・モジュール・レシピが変わると両者はずれる。これは許容し、表示は「次の抽選がいまの状態のまま行われたら使う値」を意味する（1秒ごとに追随する）。
 - 結果は役割ごとの型（判別共用体）で、役割に要らない値を持たない。サーバー側に種別の列挙を持たず、種別の列挙はプロトコルの `CleanRoomYieldResponseKind` 1つだけ。wire は判別子と役割ごとの入れ子（その役割の入れ子だけ非 null）で、組み立ては factory、読み出しは `TryGetView` に閉じる（A6 と同じ形）。webui へ送る役割名の文字列は `CleanRoomYieldDetailDtoBuilder.Build` の網羅 switch 1か所でだけ作る。
 - webui ホストの DTO `CleanRoomYieldDetailDto` は平らな nullable フィールドのまま。JSON の形は TS の zod `discriminatedUnion` が閉じ、A8 の `CleanRoomDetailDto` と同じ書き方にそろえる。
 - プロトコルは A6 の `va:getCleanRoomInfo` と別にする。部屋の照会は清浄機・壁・ハッチからも引かれる「ブロックから見た部屋」で、A10 のツールチップも使う。抽選の中身は室内機械のレシピとモジュールに依存する別の問いであり、A の応答形と fixture を変えずに済む。
 - 稼働できない機械（未密閉・クラス不足）では欄を出さない。止まっている部屋の効果はクラス値を持たない形なので数字を作れず、停止理由は A9 の部屋欄が出している。
-- 取得は「開いている間だけ1秒ごと」。A8 の汎用 `BlockInfoPoller` を使い、ループは書かない。`Track` のブロック切替・`Clear` で止まり、通信失敗は前回値を保って警告、ブロック消失は値を捨てて警告（どちらもポーラーが出す）。
+- 取得は「開いている間だけ1秒ごと」。A8 の汎用 `BlockInfoPoller` を使い、ループは書かない。`Track` のブロック切替・`Clear` で止まり、通信失敗は前回値を保って警告、ブロック消失と読めない応答は値を捨てて警告を1回出し、次の `Start` まで問い合わせを止める（どちらもポーラーが出す）。
 
 - [ ] **Step 1: サーバーのテストを書く**
 
@@ -17422,10 +18414,12 @@ git commit -m "feat(cleanroom): ダイシングのレベル別切り分けと出
 
 ```csharp
 using System;
+using System.Text.RegularExpressions;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.CleanRoom;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -17437,6 +18431,7 @@ using Tests.CombinedTest.Core.CleanRoom;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using UnityEngine.TestTools;
 using static Tests.CombinedTest.Core.CleanRoom.Machine.CleanRoomMachineTestHelpers;
 using static Tests.CombinedTest.Core.CleanRoom.Machine.CleanRoomProcessMachineTestHelpers;
 
@@ -17454,6 +18449,8 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
         public void DepositionShowsMaxGradeAndPromotionChanceTest()
         {
             var (packet, machine) = SetUpOperableMachine(ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe);
+            Assert.IsTrue(machine.GetComponent<IMachineRecipeSelectorComponent>().TryGetSelectedRecipe(out var selected));
+            Assert.AreEqual(ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, selected.MachineRecipeGuid);
 
             // tier1・効果1.0の品質モジュールで上限G2、昇格確率は min(0.9, 1.0×1.0)=0.9
             // A tier-1 module of effect 1.0 caps at G2 and the promotion chance is min(0.9, 1.0 x 1.0) = 0.9
@@ -17503,8 +18500,9 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             var (packet, _) = CreatePacket();
             var machine = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomProcessMachineId, new Vector3Int(10, 0, 10));
 
-            // レシピ未選択は工程の役割が無いので NoRole
-            // No selected recipe means no process role, so NoRole
+            // レシピ未選択は工程の役割が無いので NoRole（未選択は TryGetSelectedRecipe の false で表す）
+            // No selected recipe means no process role, so NoRole (unselected is TryGetSelectedRecipe returning false)
+            Assert.IsFalse(machine.GetComponent<IMachineRecipeSelectorComponent>().TryGetSelectedRecipe(out _));
             ReadView<CleanRoomYieldNoRoleView>(Invoke(packet, machine.BlockInstanceId));
         }
 
@@ -17518,6 +18516,30 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             var response = Invoke(packet, new BlockInstanceId(999999));
             Assert.AreEqual(CleanRoomYieldResponseKind.BlockNotFound, response.Kind);
             Assert.IsFalse(response.TryGetView(out _));
+        }
+
+        [Test]
+        public void MalformedResponsesAreUnreadableWithWarningTest()
+        {
+            // 判別子に対応する入れ子が欠けた応答（壊れた・版違いのwire）は、警告を出して読めない扱いにする
+            // A response missing the nested object its discriminator names (broken or mismatched wire) warns and is unreadable
+            var waferGrade = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(2, 0.5);
+            waferGrade.WaferGrade = null;
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] WaferGrade response has no"));
+            Assert.IsFalse(waferGrade.TryGetView(out _));
+
+            var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(0.1);
+            layerExposure.LayerExposure = null;
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] LayerExposure response has no"));
+            Assert.IsFalse(layerExposure.TryGetView(out _));
+
+            // wire を通しても同じ（入れ子が null のまま届く）
+            // The same holds through the wire (the nested object arrives as null)
+            var dicing = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(0.1);
+            dicing.Dicing = null;
+            var received = MessagePackSerializer.Deserialize<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack>(MessagePackSerializer.Serialize(dicing));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] Dicing response has no"));
+            Assert.IsFalse(received.TryGetView(out _));
         }
 
         private static (PacketResponseCreator packet, IBlock machine) SetUpOperableMachine(Guid recipeGuid)
@@ -17662,11 +18684,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
     /// </summary>
     internal static class CleanRoomYieldPreview
     {
+        // selectedRecipe は選択済みのレシピ。未選択は呼び出し側が NoRolePreview にする
+        // selectedRecipe is the selected recipe; the caller turns "unselected" into NoRolePreview
         public static CleanRoomYieldPreviewResult Compute(MachineRecipeMasterElement selectedRecipe, CleanRoomEffect cleanRoomEffect, MachineModuleEffect moduleEffect)
         {
-            // 未選択と役割表に無いレシピは抽選しない
-            // Unselected recipes and recipes outside the role tables never draw
-            if (selectedRecipe == null) return NoRolePreview.Instance;
+            // 役割表に無いレシピは抽選しない
+            // Recipes outside the role tables never draw
             if (!MasterHolder.CleanRoomMaster.TryGetRecipeRole(selectedRecipe.MachineRecipeGuid, out var role)) return NoRolePreview.Instance;
 
             // 止まっている部屋の効果はクラス値を持たないので、数字を作らず停止として返す
@@ -17694,8 +18717,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview/CleanRoomYieldPreviewComponent.cs`:
 
 ```csharp
-using System;
-using Core.Master;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -17710,24 +18731,23 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
     {
         private readonly IMachineRecipeSelectorComponent _recipeSelector;
         private readonly MachineModuleEffectComponent _moduleEffectComponent;
-        private readonly CleanRoomYieldDrawDecorator _yieldDrawDecorator;
+        private readonly ICleanRoomEffectLookup _effectLookup;
 
-        internal CleanRoomYieldPreviewComponent(IMachineRecipeSelectorComponent recipeSelector, MachineModuleEffectComponent moduleEffectComponent, CleanRoomYieldDrawDecorator yieldDrawDecorator)
+        internal CleanRoomYieldPreviewComponent(IMachineRecipeSelectorComponent recipeSelector, MachineModuleEffectComponent moduleEffectComponent, ICleanRoomEffectLookup effectLookup)
         {
             _recipeSelector = recipeSelector;
             _moduleEffectComponent = moduleEffectComponent;
-            _yieldDrawDecorator = yieldDrawDecorator;
+            _effectLookup = effectLookup;
         }
 
         public CleanRoomYieldPreviewResult GetPreview()
         {
             BlockException.CheckDestroy(this);
 
-            // 部屋の効果は抽選と同じくデコレータが持つ値を読む
-            // Read the room effect from the decorator, exactly as the draw does
-            var selectedRecipeGuid = _recipeSelector.SelectedRecipeGuid;
-            var recipe = selectedRecipeGuid == Guid.Empty ? null : MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedRecipeGuid);
-            return CleanRoomYieldPreview.Compute(recipe, _yieldDrawDecorator.CurrentEffect, _moduleEffectComponent.AggregateCurrent());
+            // 未選択は役割が無い。部屋の効果は抽選と同じ持ち主（デコレータ）の値を読み口から読む
+            // Unselected means no role; read the room effect through the read view of the draw's own owner (the decorator)
+            if (!_recipeSelector.TryGetSelectedRecipe(out var recipe)) return NoRolePreview.Instance;
+            return CleanRoomYieldPreview.Compute(recipe, _effectLookup.CurrentEffect, _moduleEffectComponent.AggregateCurrent());
         }
 
         public bool IsDestroy { get; private set; }
@@ -17746,12 +18766,36 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 
 ```csharp
 
-            // 抽選の中身の部品は、抽選と同じレシピ選択・モジュール集計・部屋の効果の持ち主を受け取る
-            // The draw-detail component receives the same recipe selection, module aggregate and room-effect owner as the draw
-            var yieldPreview = new CleanRoomYieldPreviewComponent(processor, effectComponent, processor.YieldDrawDecorator);
+            // 抽選の中身の部品は、抽選と同じレシピ選択・モジュール集計と、部屋の効果の読み口を受け取る
+            // The draw-detail component receives the draw's own recipe selection and module aggregate, plus the room effect's read view
+            var yieldPreview = new CleanRoomYieldPreviewComponent(processor, effectComponent, processor.CleanRoomEffectLookup);
 ```
 
 - components 列の `new MachineRecipeBlueprintSettingsComponent(processor),` の次（A7 の `operabilityState,` の前）に `yieldPreview,` を足す（`operabilityState` は A7 の理由で末尾のまま）
+
+`moorestech_server/Assets/Scripts/Game.Block.Interface/Component/IMachineRecipeSelectorComponent.cs` の `Guid SelectedRecipeGuid { get; }` の次に足す。
+
+```csharp
+
+        // 選択済みならそのレシピを返す。未選択は false（Guid.Empty との比較で未選択を表さない）
+        // Returns the selected recipe; false when unselected (do not encode "unselected" as a Guid.Empty comparison)
+        bool TryGetSelectedRecipe(out MachineRecipeMasterElement recipe);
+```
+
+実装は2つだけ（`grep -rn "IMachineRecipeSelectorComponent" --include='*.cs'` で `class` 宣言に出るのは2プロセッサだけ）。どちらも `SelectedRecipeGuid` の行の次へ1行足す。
+
+```csharp
+        public bool TryGetSelectedRecipe(out MachineRecipeMasterElement recipe) => (recipe = _context.SelectedRecipe) != null;
+```
+
+`VanillaMachineProcessorComponent.cs`（C3・C4 後の199行）は、足す前に C3 が書いた4行の if（`if (isMidJob && (processingJob == null || selectedRecipe == null))` と波括弧と `CurrentState = ProcessState.Idle;`）を1行にする（直前の2行コメントは残す）。
+
+```csharp
+            if (isMidJob && (processingJob == null || selectedRecipe == null)) CurrentState = ProcessState.Idle;
+```
+
+Run: `wc -l moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs`
+Expected: 197 と 195（どちらも200未満）
 
 - [ ] **Step 5: プロトコルを書き、登録する**
 
@@ -18019,8 +19063,8 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.Dicing) { Dicing = new DicingYieldMessagePack(dieLossRate) };
             }
 
-            // BlockNotFound なら false。判別子の読み分けはここだけで行う
-            // False for BlockNotFound; the only place that branches on the discriminator
+            // BlockNotFound と、判別子の入れ子が欠けた読めない応答は false。判別子の読み分けはここだけで行う
+            // False for BlockNotFound and for an unreadable response missing its nested object; the only place that branches on the discriminator
             public bool TryGetView(out CleanRoomYieldView view)
             {
                 switch (Kind)
@@ -18032,12 +19076,15 @@ namespace Server.Protocol.PacketResponse
                         view = CleanRoomYieldNotOperableView.Instance;
                         return true;
                     case CleanRoomYieldResponseKind.WaferGrade:
+                        if (WaferGrade == null) return WarnMissingNested(out view);
                         view = new CleanRoomYieldWaferGradeView(WaferGrade);
                         return true;
                     case CleanRoomYieldResponseKind.LayerExposure:
+                        if (LayerExposure == null) return WarnMissingNested(out view);
                         view = new CleanRoomYieldLayerExposureView(LayerExposure);
                         return true;
                     case CleanRoomYieldResponseKind.Dicing:
+                        if (Dicing == null) return WarnMissingNested(out view);
                         view = new CleanRoomYieldDicingView(Dicing);
                         return true;
                     case CleanRoomYieldResponseKind.BlockNotFound:
@@ -18046,6 +19093,19 @@ namespace Server.Protocol.PacketResponse
                     default:
                         throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "未対応の抽選の中身の種別 / Unsupported yield response kind");
                 }
+
+                #region Internal
+
+                // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは消失と同じく値を捨てて止める）
+                // A mismatch in wire data from outside, so warn instead of throwing and treat it as unreadable (the poller drops the value and stops, as on vanishing)
+                bool WarnMissingNested(out CleanRoomYieldView missingView)
+                {
+                    Debug.LogWarning($"[GetCleanRoomYieldInfo] {Kind} response has no {Kind} details; treating it as unreadable");
+                    missingView = default;
+                    return false;
+                }
+
+                #endregion
             }
         }
 
@@ -18075,12 +19135,12 @@ namespace Server.Protocol.PacketResponse
 - [ ] **Step 6: コンパイルしてサーバーのテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Server.PacketTest.CleanRoom.GetCleanRoomYieldInfoProtocolTest"`
-Expected: ErrorCount 0 / 6件 PASS。
+Expected: ErrorCount 0 / 7件 PASS。
 
 - [ ] **Step 7: サーバー側をコミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview.meta moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs moorestech_server/Assets/Scripts/Server.Protocol moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/YieldPreview.meta moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/CleanRoom/VanillaCleanRoomMachineTemplate.cs moorestech_server/Assets/Scripts/Game.Block.Interface/Component/IMachineRecipeSelectorComponent.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/VanillaMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorComponent.cs moorestech_server/Assets/Scripts/Server.Protocol moorestech_client/Assets/Scripts/Client.Network/API/Requests/WorldQueryApi.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/CleanRoom
 git commit -m "feat(cleanroom): 室内機械の抽選の中身を返すプロトコル va:getCleanRoomYieldInfo を追加する"
 ```
 
@@ -18311,7 +19371,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
     {
         public static void Apply(BlockInventoryDto dto, BlockNetworkInfoCache cache)
         {
-            // silent-ok: 未取得・ブロック消失の間は欄を出さない / 消失と通信失敗はポーラーが警告ログに出し、取得できれば次の1秒で欄が出る
+            // silent-ok: 未取得・消失・読めない応答の間は欄を出さない / 消失・読めない応答はポーラーが警告を1回出して問い合わせを止め（次に開き直すと再開）、未取得は次の1秒で欄が出る
             if (!cache.TryGetCleanRoomYield(out var view)) return;
             dto.CleanRoomYield = Build(view);
         }
@@ -18345,47 +19405,44 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
 ```
 
 `BlockNetworkInfoCache.cs`（A8 の全文）を次のとおり変える。ループは書かず、A8 の汎用ポーラーをもう1本持つ。
-- クラスの doc コメントの日本語の塊の `/// - cleanRoom: 汎用ポーラー BlockInfoPoller の1秒ポーリング` の次に `/// - cleanRoomYield: 室内機械だけ、同じ汎用ポーラーの1秒ポーリング` を、英語の塊の `/// - cleanRoom: 1s polling through the generic BlockInfoPoller` の次に `/// - cleanRoomYield: interior machines only, 1s polling through the same generic poller` を足す
+- クラスの doc コメントの日本語の塊の `/// - electric/gear/cleanRoom: 汎用ポーラー BlockInfoPoller の1秒ポーリング` の次に `/// - cleanRoomYield: 室内機械だけ、同じ汎用ポーラーの1秒ポーリング` を、英語の塊の `/// - electric/gear/cleanRoom: 1s polling through the generic BlockInfoPoller` の次に `/// - cleanRoomYield: interior machines only, 1s polling through the same generic poller` を足す
 - フィールド `_cleanRoomPoller` の次の行に足す
 
 ```csharp
         private readonly BlockInfoPoller<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView> _cleanRoomYieldPoller = CleanRoomYieldInfoPollSource.CreatePoller();
 ```
 
-- ctor の本体（2行コメントと `_cleanRoomPoller.OnUpdated.Subscribe(_ => OnUpdated?.Invoke());`）を次にする
+- ctor の `_cleanRoomPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));` の次に1行足す（直前の2行コメント「どのポーラーが取得済み・消失に変わっても再配信する…」は全ポーラーを指すので変えない）
 
 ```csharp
-            // 部屋の照会と抽選の中身の照会が取得済み・消失に変わったら再配信する
-            // Republish when the room query or the draw-detail query becomes fetched or vanished
-            _cleanRoomPoller.OnUpdated.Subscribe(_ => OnUpdated?.Invoke());
-            _cleanRoomYieldPoller.OnUpdated.Subscribe(_ => OnUpdated?.Invoke());
+            _cleanRoomYieldPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
 ```
 
 - `TryGetCleanRoom` の後ろに足す
 
 ```csharp
 
-        // 取得済みのときだけ抽選の中身を返す（未取得・消失は false）
-        // Returns the draw details only while fetched (false when not fetched or vanished)
+        // 取得済みのときだけ抽選の中身を返す。未取得と消失・読めない応答はどちらも false に畳む（読み手は欄を出さず、警告はポーラーが出す）
+        // Returns the draw details only while fetched; not fetched, vanished and unreadable all fold into false (the reader omits the section and the poller warns)
         public bool TryGetCleanRoomYield(out CleanRoomYieldView view)
         {
             return _cleanRoomYieldPoller.TryGetSnapshot(out view);
         }
 ```
 
-- `Track` の末尾の `if (param is CleanRoomMachineBlockParam or CleanRoomAirFilterBlockParam) _cleanRoomPoller.Start(block.BlockInstanceId);` の次に足す
+- `Track` の末尾の `if (CleanRoomTarget != CleanRoomDetailTarget.None) _cleanRoomPoller.Start(block.BlockInstanceId);`（A8）の次に足す（室内機械かの判定は A8 の `ToCleanRoomTarget` の結果を読み、`param is …` を書き直さない）
 
 ```csharp
 
             // 室内機械は選択工程の抽選の中身も、開いている間だけ追う
             // Interior machines also follow the selected process's draw details, only while open
-            if (param is CleanRoomMachineBlockParam) _cleanRoomYieldPoller.Start(block.BlockInstanceId);
+            if (CleanRoomTarget == CleanRoomDetailTarget.Machine) _cleanRoomYieldPoller.Start(block.BlockInstanceId);
 ```
 
 - `Clear()` の `_cleanRoomPoller.Stop();` の次に `_cleanRoomYieldPoller.Stop();` を足す
 
 Run: `wc -l moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockNetworkInfoCache.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs`
-Expected: どちらも200未満（約163行・166行）。
+Expected: どちらも200未満（約153行・166行）。
 
 - [ ] **Step 11: コンパイルして C# の契約テストを通す**
 
@@ -18913,6 +19970,11 @@ git commit -m "feat(cleanroom): 半導体の専用機5種の簡易モデル pref
 - 既存側 `Core.Update/GameRandom.cs`（private `SplitMix64`・`StateFromSeed`。コメントに「splitmix64の再実装を防ぐ」とある）／新設側 B1 `CleanRoomDrawRandom.NextDouble`（12392-12403）／同じ SplitMix64 の定数とシフトで [0,1) を作る処理を再実装している
 - 既存側 `Core.Master/Validator/ItemMasterUtil.cs:176-181`（ローカル関数 `InitialLevelMaxStackValidation`）／新設側 B5 `CleanRoomDicingValidator` のスタック検査（15196-15220）／どちらも「個数が最大スタックを超えると `ItemStackFactory.Create` が例外を投げるので、起動時にスタック表と比べて止める」判定で、違いは表の引き方（初期値か最小値か）だけ
 
+- 既存側 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/RangeBox/CellRangeBoxVisualizer.cs`（`CreateCube`・`PlaceCell`）／新設側 A10 `CleanRoomLeakMarkerVisualizer.CreateMarker`・`Show`／どちらも「Primitive Cube を作り Collider を消し、プレビュー材質を複製して色を付け、セル c を c+(0.5,0.5,0.5) に置く」
+- 既存側 `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Machine/VanillaMachineTemplate.cs:64-70・113-119`／新設側 B2 `VanillaCleanRoomMachineTemplate`／「タンクがあれば液体コネクタと `VanillaMachineFluidInventoryComponent` を組む」判定と組み立てが3か所目になる
+- 既存側 `moorestech_server/Assets/Scripts/Game.PlayerInventory/PlayerInventorySlotLevelDataStore.cs`／新設側 C6 `ModuleSlotStackLimitDataStore.UnlockLevel`／「0始まりの段階レベルを上げるだけにし、段階表の値が変わったら通知する」本体が同じ
+- 既存側 `moorestech_server/Assets/Scripts/Core.Item/ItemStackLevelDataStore.cs`／新設側 C7 `LevelInheritanceCraftCapTable`＋`LevelInheritanceCraftCapDataStore`／「GUIDごとのレベル。未登録は Lv1、上がるだけ、上がったら通知」が同じ形
+
 - [ ] **Step 1: moorestech_master の PR を作る**
 
 ```bash
@@ -18962,6 +20024,10 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - [半導体の上流レシピとチップの用途](../../../.decisions/2026-10-23-半導体の上流レシピとチップの用途.md) — 出所: ユーザー裁定 2026-10-23
 - [半導体工程は専用機5種を全部クリーンルーム内に置く](../../../.decisions/2026-10-23-半導体工程は専用機5種を全部クリーンルーム内に置く.md) — 出所: ユーザー裁定 2026-10-23
 - [部屋の状態は機械と清浄機のUIと壁ホバーに出す](../../../.decisions/2026-10-23-部屋の状態は機械と清浄機のUIと壁ホバーに出す.md) — 出所: ユーザー裁定 2026-10-23
+- [S1のマスタの中身は統合タスクへ移しクリーンルーム系ブロックの直しはS1に残す](../../../.decisions/2026-10-23-S1のマスタの中身は統合タスクへ移しクリーンルーム系ブロックの直しはS1に残す.md) — 出所: シミュレーター予測→ユーザー承認 2026-10-23
+- [アイテムハッチに搬送量の上限を足して大部屋集約を有利にする](../../../.decisions/2026-10-23-アイテムハッチに搬送量の上限を足して大部屋集約を有利にする.md) — 出所: シミュレーター予測→ユーザー承認 2026-10-23
+- [縦向きの高さのあるブロックの接続口のずれはマイグレーションなしで直す](../../../.decisions/2026-10-23-縦向きの高さのあるブロックの接続口のずれはマイグレーションなしで直す.md) — 出所: シミュレーター予測→ユーザー承認 2026-10-23
+- [製作上限を超えるチップは製品に入れず解放まで取っておく](../../../.decisions/2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく.md) — 出所: シミュレーター予測→ユーザー承認 2026-10-23
 
 ### 裁定どうしの読み替え（後の裁定が前の裁定の一部を覆す）
 
@@ -19023,7 +20089,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 速度・省エネ・生産性のモジュールはクリーンルーム機械を含む全機械に入る。出所: シミュレーター予測→ユーザー承認（.decisions/2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる.md）
 - レベル継承はレシピの必須 enum `levelInheritance`（None / Inherit / InheritUpToUnlocked）で宣言し、継承元・継承先は「levelFamily の基準を指す入出力」から導く。出所: ユーザー裁定（.decisions/2026-10-23-チップ製品のレベルは使ったチップのレベルを継承する.md）
 - 待機ステートの実現出力キャッシュの鍵を (レシピ, 継承レベル) にする。出所: agent前提（moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs）
-- 加工中ジョブの継承レベルは processor の JSON に `inheritedLevel` として保存し、`SaveMigrationStepV6ToV7` で既存機械へ 1 を補う（`CurrentVersion` 6→7。Part B が 7→8）。出所: agent前提（moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/・moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs:116）
+- 加工中ジョブの継承レベルは processor の JSON に `inheritedLevel` として保存し、`SaveMigrationStepV6ToV7` で既存機械へ null（継承しない）を明示で書く（版6に継承レシピは無い）（`CurrentVersion` 6→7。Part B が 7→8）。出所: agent前提（moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/・moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs:116）
 - 継承レシピの出力スロットに前のレベルの製品が残っているときは、取り出されるまで待機する（出力スロットは増やさない）。出所: シミュレーター予測→ユーザー承認（.decisions/2026-10-23-上位チップは下位の代わりに使え抽選の中身は機械UIと研究に見せる.md）
 - 製作上限の単位は「継承先ファミリーの基準アイテムGUIDごと」、未解放は Lv1。チップ製品（モジュール・GPU）は `InheritUpToUnlocked`、ダイ→チップのパッケージングは `Inherit`（上限なし）。出所: agent前提（moorestech_server/Assets/Scripts/Core.Item/ItemStackLevelDataStore.cs）
 - スロット上限は items.json 直下の必須配列 `moduleSlotStackLimitLevels`（0 始まりのレベル→1スロットあたりの個数）で持ち、本番は [3, 6, 10]。出所: ユーザー裁定（.decisions/2026-10-23-モジュールスロットのスタック上限は研究で上げる.md）
@@ -19078,14 +20144,19 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 ### reviewer 対象ファイルの改修判断（ledger-gate 掲載）
 
 - スキーマ変更（`VanillaSchema/machineRecipes.yml` の必須キー `levelInheritance`・`allowQualityModule`、`VanillaSchema/items.yml` の必須キー `moduleSlotStackLimitLevels`、`VanillaSchema/ref/gameAction.yml` の `unlockModuleSlotStackLevel`・`unlockLevelInheritanceCraftLevel`、`VanillaSchema/cleanRoom.yml` の閾値行の必須キーと役割表 `waferGradeDraws`・`layerExposures`・`dicings`）は必須キーとして入れ、テストマスタと moorestech_master を同じタスクで追従する。SourceGenerator を回すために `_CompileRequester.cs` の印を同じコミットで更新する。出所: agent前提（AGENTS.md「optional・フォールバック禁止」・edit-schema スキル）
-- 検証は Core.Master/Validator に置き生のマスタだけで判定し（前例 `Core.Master/Validator/BeltConveyorFamilyValidator.cs`）、機械のマスタ値の解釈 util（`MachineRecipeLevelInheritanceUtil`・`LevelInheritanceShape`・`ModuleSlotStackLimitMasterUtil`・`LevelInheritanceCraftCapTable`）は Game.Block.Interface/MachineUpgrade に、levelFamily の照合規則 `LevelFamilySubstituteUtil` は Core.Item に置く（前例 `Game.Block.Interface/Extension/BeltConveyorPlaceFamilyUtil.cs`・`Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`。設計検査 違反1・2・注目点1）。対象ファイル: `MachineRecipeLevelInheritanceUtil.cs`・`MachineRecipeLevelInheritanceValidator.cs`・`MachineRecipesMasterUtil.cs`（継承レシピの形の検証）、`ModuleSlotStackLimitMasterUtil.cs`・`ModuleSlotStackLimitLevelsValidator.cs`・`MachineUpgradeGameActionValidator.cs`（段階表と新 gameAction の検証）、`LevelFamilySubstituteUtil.cs` と `ItemMaster.cs`（levelFamily の照合規則を1か所に置く）、`CleanRoomMaster.cs`・`CleanRoomMasterUtil.cs`・`CleanRoomYieldTableRules.cs`・`CleanRoomRoleRecipeChecks.cs`・`CleanRoomWaferGradeDrawValidator.cs`・`CleanRoomLayerExposureValidator.cs`・`CleanRoomDicingValidator.cs`、役割レコード `CleanRoomRoles/CleanRoomRecipeRole.cs`・`WaferGradeRecipeRole.cs`・`LayerExposureRecipeRole.cs`・`DicingRecipeRole.cs`、`Component/CleanRoom/CleanRoomClassYield.cs`、`YieldPreview/CleanRoomYieldPreviewComponent.cs`（役割表の索引と起動時検証を役割ごとに分ける）。検証失敗は errorLogs に積んで起動時に止める。出所: agent前提（前例 `CleanRoomMasterUtil.Validate`・`PlayerInventorySlotLevelMasterUtil`）
+- 検証は Core.Master/Validator に置き生のマスタだけで判定し（前例 `Core.Master/Validator/BeltConveyorFamilyValidator.cs`）、機械のマスタ値の解釈 util（`MachineRecipeLevelInheritanceUtil`・`LevelInheritanceShape`・`ModuleSlotStackLimitMasterUtil`）は Game.Block.Interface/MachineUpgrade に、製作上限の表 `LevelInheritanceCraftCapTable`（辞書を持つ可変の実装）は `Game.Block/Blocks/Machine/Upgrade/`（`LevelInheritanceCraftCapDataStore` の隣。Game.Block.Interface は公開契約なので実装クラスと可変状態を置かない。クライアントの写しの Client.Game は Game.Block を参照済み）に、levelFamily の照合規則 `LevelFamilySubstituteUtil` は Core.Item に置く（前例 `Game.Block.Interface/Extension/BeltConveyorPlaceFamilyUtil.cs`・`Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`。設計検査 違反1・2・注目点1）。対象ファイル: `MachineRecipeLevelInheritanceUtil.cs`・`MachineRecipeLevelInheritanceValidator.cs`・`MachineRecipesMasterUtil.cs`（継承レシピの形の検証）、`ModuleSlotStackLimitMasterUtil.cs`・`ModuleSlotStackLimitLevelsValidator.cs`・`MachineUpgradeGameActionValidator.cs`・`ItemMaster.cs`（段階表と新 gameAction の検証）、`LevelFamilySubstituteUtil.cs`（levelFamily の照合規則を1か所に置く）、`CleanRoomMaster.cs`・`CleanRoomMasterUtil.cs`・`CleanRoomYieldTableRules.cs`・`CleanRoomRoleRecipeChecks.cs`・`CleanRoomWaferGradeDrawValidator.cs`・`CleanRoomLayerExposureValidator.cs`・`CleanRoomDicingValidator.cs`、役割レコード `CleanRoomRoles/CleanRoomRecipeRole.cs`・`WaferGradeRecipeRole.cs`・`LayerExposureRecipeRole.cs`・`DicingRecipeRole.cs`、`Component/CleanRoom/CleanRoomClassYield.cs`、`YieldPreview/CleanRoomYieldPreviewComponent.cs`（役割表の索引と起動時検証を役割ごとに分ける）。検証失敗は errorLogs に積んで起動時に止める。出所: agent前提（前例 `CleanRoomMasterUtil.Validate`・`PlayerInventorySlotLevelMasterUtil`）
 - 研究で上がる2状態の DataStore は `Game.Block/Blocks/Machine/Upgrade/` に置く: `ModuleSlotStackLimitDataStore.cs`・`LevelInheritanceCraftCapDataStore.cs`（Lookup/Unlocker 分離・冪等・Subject 通知・保存せず研究の clearedActions 再実行で復元）。出所: agent前提（前例 `Core.Item/ItemStackLevelDataStore.cs`）
 - 2状態のクライアント同期は3点セット: `ModuleSlotStackLevelEventPacket.cs`（と製作上限の同型パケット）、`HandshakeAcceptedMessagePack.cs`・`InitialHandshakeResponseFactory.cs`・`InitialHandshakeResponse.cs`（ハンドシェイクの初期値）、`ClientModuleSlotStackLimitDatastore.cs`（クライアントのミラー）。出所: agent前提（前例 `ItemStackLevelUnlockEventPacket`＋`HandshakeAcceptedMessagePack.ItemStackLevels`）
 - 部屋の状態と抽選の中身は要求応答で表示中だけ1秒ごとに引く: `CleanRoomInfoMessagePack.cs`・`CleanRoomInfoMessagePackFactory.cs`（`va:getCleanRoomInfo`）、`GetCleanRoomYieldInfoProtocol.cs`・`CleanRoomYieldMessagePack.cs`・`CleanRoomYieldView.cs`（`va:getCleanRoomYieldInfo`）、クライアントの `CleanRoomYieldInfoPollSource.cs` と汎用の `BlockInfoPoller`、`PacketResponseCreator.cs` への登録、`WorldQueryApi.cs` のクライアント呼び出し、`Server.Protocol.asmdef` へ Game.CleanRoom 参照を足す。出所: ユーザー裁定 2026-10-23「表示中だけ問い合わせる」（`.decisions/2026-10-23-ダイ数と機械の見た目と部材と部屋の状態の取得.md`）・前例 `GetElectricNetworkInfoProtocol`
 - 空気清浄機のベルト搬入口は `VanillaCleanRoomAirFilterTemplate.cs` で `BlockTemplateUtil.CreateInventoryConnector` を組む。出所: ユーザー裁定 2026-10-23「B2 これってベルコンや手動での挿入経路はないの？」（`.decisions/2026-10-23-クリーンルームのブロック到達性と搬入経路を揃える.md`）・前例 `VanillaCleanRoomBoundaryTemplate`
+- 再検査（2回目）で足した・置き直した reviewer 対象ファイル: 部屋の境界ブロックのテンプレート `VanillaCleanRoomBoundaryTemplate.cs`（A14。ハッチの搬送量上限をマスタから読んで部品へ渡す。既存テンプレートの形に従う）、ハッチ搬送量上限の起動時検証 `CleanRoomItemHatchThroughputValidator.cs` と登録先 `BlockMasterUtil.cs`（A14。前例 `BeltSpeedPerSecondValidator`。必須キーで正の値以外は起動時に止める）、部屋照会の wire `CleanRoomSummaryMessagePack.cs`・読み口 `CleanRoomInfoView.cs`・`CleanRoomLeakView.cs`（A6。private ctor＋種別ごとの factory＋`TryGetView` で判別子と入れ子の整合を閉じる。中身は MessagePack 型のまま公開を許す）、継承レシピの形の検証 `LevelInheritanceRecipeShape.cs`（C2。public にして実行時の `BuildShape` と Part B の役割検証が委ねる1か所にする）。出所: agent前提（設計検査 再検査 強1・違反1・弱。各タスクの前例欄）
 
 ### 設計検査（2026-10-23）を受けた判断
 
+- 清浄室の役割レコードは Core.Master の索引（`Core.Master/CleanRoomRoles/`）に置き、`BeltConveyorFamily` 型（解決レコードを Game.Block.Interface に置く）の前例には従わない。役割表の GUID から機械的に引くだけでゲームの規則を足さず、`MasterHolder` が検証の後に初期化する順序を使って実行時に導き直さないため。出所: agent前提（設計検査 再検査 注目点1・既存 `CleanRoomMaster.TryGetChipDraw`）
+- 今の部屋の効果の持ち主は出力の書き換え器（`CleanRoomYieldDrawDecorator`）が兼ねる。processor は 199 行で効果を持てない。またデコレータは保存したサイクル番号を `Restore` から受けるので、processor の ctor の中でしか作れない。そのため B6 の template は processor の `CleanRoomEffectLookup`（読み口 `ICleanRoomEffectLookup` の型）を兄弟の部品へ渡す。具象は processor の private フィールドに閉じる。停止ステートは押し込まれた可否（`SetCanOperate`）の写しだけを持ち、書き手は1つ。出所: agent前提（設計検査 再検査 注目点3・5、review2_phase26 強3）
+- `LevelFamilySubstituteUtil` には、ドメインごとの除外（クラフトでは受けない等）を足さない。使うかどうかは各ドメインが決める。出所: agent前提（設計検査 再検査 注目点2）
+- 再検査（2026-10-23）の強4件・弱27件は、初回と同じ扱い（強は型で閉じる、弱は全部拾い「No が妥当」は理由を残して直さない）で反映した。内部の作りだけでゲームの挙動に出ないので質問にしていない。出所: シミュレーター予測→ユーザー承認 2026-10-23（初回の「そのとおり進めて」の範囲）
 - 設計検査の扱い: 置き場所の違反3件は直し、型の閉包（強）は、webui へ渡す C# の DTO の形と加工中ジョブのセーブの形を前例どおり据え置き、それ以外を型で閉じた。弱い指摘は Part A〜C の分を全部拾い、Part D の分は統合タスクの引き継ぎ文書へ回した。本PR外のリファクタ提案は F2 の PR 本文に並べる。出所: シミュレーター予測→ユーザー承認 2026-10-23（質問「設計検査で出た残り（遊び方には出ないもの）を、次のとおり進めてよいですか？」→「そのとおり進めて」）
 - `CleanRoomInfoQuery` は既存の `CleanRoomDatastore` 具象を受ける。新しい DataStore は作らず読み手を1つ足すだけなので、`ICleanRoomLookup` は切らない。出所: agent前提（設計検査 注目点4・既存 CleanRoomDatastore は Lookup/Mutation 未分離）
 - A7 の停止理由の通知は、既存の `PushEffects` の毎 tick 押し込みを受けて前回値と比べ、変化時だけ発火する。部屋側の変化検知への作り替えは既存の押し込み機構の改修になるので行わない。出所: agent前提（設計検査 注目点5・moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs）
@@ -19097,7 +20168,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - webui 向けの C# wire DTO（A8 `CleanRoomDetailDto` ほか）は種別ごとの null 省略の形のまま据え置く。C# は wire へ詰め替えるだけで、閉じる役は TS の zod の discriminatedUnion が担う。出所: agent前提（review_phase26 強4。A9 の zod スキーマとそのテスト）
 - A9 の `t()` の戻り値は空・欠損の分岐なしで表示へ渡す。キーの存在は既存の localizationKeysFreshness と allScreensI18n のテストが保証する。出所: agent前提（moorestech_web/webui の既存 i18n テスト）
 - A10 の部屋のツールチップは、他の所有者が表示している間は出さずに譲る。前例 `PlacementFeedbackTooltipPresenter` は譲らず上書きするので、これは新規パターンである。部屋の要約は照準中ずっと出す常駐の情報で、インタラクト案内や設置フィードバックはその場の操作への応答なので後者を優先する。出所: agent前提（review_phase1 注目点8・PlacementFeedbackTooltipPresenter.cs）
-- ブロック単位の1秒ポーリングは汎用の `BlockInfoPoller` 1本にし、通信失敗は前回値を保って警告ログ、ブロック消失は値を捨てて `Vanished` にして警告ログ、で A8・A10・B6 をそろえる。出所: agent前提（review_phase26 弱。既存 `WorldQueryApi` が通信失敗で null を返す約束）
+- ブロック単位の1秒ポーリングは汎用の `BlockInfoPoller` 1本にし、通信失敗は前回値を保って警告ログ、ブロック消失は値を捨てて `Vanished` にし、警告ログを1回出して問い合わせを止める（次の `Start` まで）、で A8・A10・B6 をそろえる。出所: agent前提（review_phase26 弱。既存 `WorldQueryApi` が通信失敗で null を返す約束）
 - 部屋の見出しの種別（class／classOut）はサーバーのクラス種別から写して DTO に載せ、TS と C# はそれを読むだけにする。出所: agent前提（review_phase26 弱）
 - アイテムハッチに1ハッチあたり毎秒の搬送量の上限を足す。出所: ユーザー裁定（.decisions/2026-10-23-アイテムハッチに搬送量の上限を足して大部屋集約を有利にする.md）
 - ハッチの上限は「1秒分を貯める搬送枠（貯められる量は max(上限, 1個)）に1tickごとに上限×1tick分を足し、押し出した個数だけ減らす」形で数え、枠はセーブしない（ロード直後は1秒分まとめて通る）。超えた分は中継スロットに残り、満杯なら既存どおり差し戻してベルトで待つ。出所: agent前提（既存 CleanRoomItemHatchComponent の中継スロットと差し戻し・GameUpdater.SecondsPerTick）
@@ -19106,23 +20177,54 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 
 #### Part C
 
-- `LevelFamilySubstituteUtil` は Core.Item に置き、Game.Block・Game.Research の asmdef に `Core.Item` を足す。Core.Item は Game.Context 経由で Game.Block.Interface に依存するので、Game.Block.Interface には置けない。機械レシピの入力 i への当てはめは `MachineRecipeSlotBindingUtil` に置く。出所: agent前提（各 asmdef の参照閉包。設計検査 注目点1）
+- `LevelFamilySubstituteUtil` は Core.Item に置き、Game.Block・Game.Research の asmdef に `Core.Item` を足す。Game.Research は Game.Block.Interface を参照しないので、研究からも使える層として Core.Item に置く（Core.Item → Game.Context → Game.Block.Interface の向きなので、Game.Block.Interface 側から Core.Item は呼べない）。機械レシピの入力 i への当てはめは `MachineRecipeSlotBindingUtil` に置く。出所: agent前提（各 asmdef の参照閉包。設計検査 注目点1）
 - 継承の有無は `TryGetShape` の戻り値、継承レベルの有無は `int?` で表す。継承しないレシピとジョブ無しの継承レベルは null で、番兵の -1・0・1 は使わない。継承レシピのジョブのレベルは生成時（入力からの解決・セーブからの復元）に `IsValidInheritedLevel` で閉じ、値が欠けたセーブはロードで止める。出所: agent前提（設計検査 強6・弱「継承レベルは1以上を生成側で閉じる」）
 - C9 の `MachineRecipe.levelInheritance` の DTO は、判別子 `kind` と一様な必須フィールド（継承しないレシピは -1・空配列・0）の形のまま変えない。wire の形は TS の zod が閉じ、C# は網羅 switch 1か所で詰め替えるだけにする。-1 は DTO ビルダーの private 定数にだけ現れる。出所: agent前提（設計検査 強4。前例 判断記録93「一様な形で必須」）
-- C4 のセーブは既存の平らな形（`VanillaMachineProcessorSaveJsonObject` の並列フィールド）に `inheritedLevel`（int か null）を1キー足すだけにし、加工中ジョブのサブオブジェクト化はしない。版6には継承レシピが無いので、V6→V7 は null を明示で書く。出所: agent前提（前例 `VanillaMachineSaveComponent`。Part B の V7→V8 と衝突させないため。設計検査 強5）
+- C4 のセーブは既存の平らな形（`VanillaMachineProcessorSaveJsonObject` の並列フィールド）に `inheritedLevel`（int か null）を1キー足すだけにし、ジョブのサブオブジェクト化はしない。メモリ上は加工中ジョブの値型 `MachineProcessingJob`（レシピ・残りtick・保留出力・継承レベル）で受け、ジョブの有無はこの型の有無だけで表す。processor の ctor・`CleanRoomMachineProcessorSaveState.Restore` に、ジョブ無しで意味の無い引数を null で並べない。平らなキーからの組み立ては `MachineProcessingJob.RestoreFromFlatSave` の1か所、平らなキーへの書き戻しは各プロセッサの保存に閉じる。版6には継承レシピが無いので、V6→V7 は null を明示で書く。出所: agent前提（前例 `VanillaMachineSaveComponent`。Part B の V7→V8 と衝突させないため。設計検査 強5・再検査 強4）
 - C11 の自動搬入は、スロットの品と入ってくる品が同じ要求に充てられる別レベルなら、両方を低い方のレベルへ揃えて積む（上位は下位として使われ、レベルは戻らない）。手動の挿入は揃えずに弾き、継承元スロットは揃えない。出所: agent前提（混在ベルトで機械を止めないため。`VanillaMachineInputSimulationUtil.cs`。設計検査 注目点6）
 - `Server.Boot/Composition/MachineUpgradeServiceRegistration.cs` は、役割ではなくドメイン名で DI 登録を束ねる初めての Composition にする。出所: agent前提（`GameplayServiceRegistration.cs` が 202 行で足せないための分割。設計検査 注目点7）
 - 製作上限を超えるレベルの継承元は、レベル継承の製品レシピの機械に入れず、格下げもしない。研究で上限が上がるまでプレイヤーの手元に残す。上位チップの下位代用（研究・通常レシピ）には上限は効かない。出所: ユーザー裁定（.decisions/2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく.md。設計検査 強12）
-- 「未登録は初期値 Lv1・上がるだけ」の製作上限の表は `LevelInheritanceCraftCapTable` 1つにまとめ、サーバーの DataStore とクライアントの写しが委譲する。範囲 1..ファミリー長 は起動時の検証が保証するので、実行時には丸めない。出所: agent前提（前例 `Core.Item/ItemStackLevelDataStore.cs` の「未登録はレベル1」）
+- 「未登録は初期値 Lv1・上がるだけ」の製作上限の表は `LevelInheritanceCraftCapTable` 1つにまとめ（置き場は Game.Block/Blocks/Machine/Upgrade）、サーバーの DataStore とクライアントの写しが委譲する。範囲 1..ファミリー長 は起動時の検証が保証するので、実行時には丸めない。出所: agent前提（前例 `Core.Item/ItemStackLevelDataStore.cs` の「未登録はレベル1」）
 
 #### Part B
 
 - 部屋の効果は `CleanRoomEffect.Operable(CleanRoomClassYield)`・`NotEnclosed()`・`ClassOut()` の factory でしか作れず、クラス値は `TryGetClassYield` でしか読めない。停止理由ごとに factory を1つずつ置き、理由を引数に取る「停止」の factory は作らない（Operable を停止理由として渡せる形を型で塞ぐ）。出所: agent前提（review_phase26 強7・A7 の CleanRoomOperability の3値）
-- 今の部屋の効果の持ち主は `CleanRoomYieldDrawDecorator.CurrentEffect` 1つにする。processor は写しを持たず、`HaltedMachineProcessState` には述語を注入しない。processor が押し込みのたびに可否を `SetCanOperate` で渡す。出所: agent前提（review_phase1 注目点2・references/moorestech-layer-map.md「汎用基盤コンポーネントへの状態伝達」）
-- 抽選の中身の入口は持ち主側の部品 `CleanRoomYieldPreviewComponent` に置く。template が選択部品・`MachineModuleEffectComponent`・デコレータを ctor で渡し、プロトコルは `TryGetComponent` → `GetPreview()` の結果を詰め替えるだけにする（A6 の `CleanRoomInfoQuery` と同じ役割）。出所: agent前提（review_phase1 違反3・前例 Server.Protocol/PacketResponse/GetElectricNetworkInfoProtocol.cs）
+- 今の部屋の効果の持ち主は `CleanRoomYieldDrawDecorator.CurrentEffect` 1つにする。processor は写しを持たず、`HaltedMachineProcessState` には述語を注入しない。processor が押し込みのたびに可否を `SetCanOperate` で渡す（停止ステートの bool は押し込まれた値の受け手で、書き手は1つ）。読むだけの相手には `ICleanRoomEffectLookup` で渡す。出所: agent前提（review_phase1 注目点2・references/moorestech-layer-map.md「汎用基盤コンポーネントへの状態伝達」）
+- 抽選の中身の入口は持ち主側の部品 `CleanRoomYieldPreviewComponent` に置く。template が選択部品・`MachineModuleEffectComponent`・効果の読み口（`processor.CleanRoomEffectLookup`）を ctor で渡す。プロトコルは `TryGetComponent` → `GetPreview()` の結果を詰め替えるだけにする（A6 の `CleanRoomInfoQuery` と同じ役割）。出所: agent前提（review_phase1 違反3・前例 Server.Protocol/PacketResponse/GetElectricNetworkInfoProtocol.cs）
 - 抽選の中身の表示はポーリング時点の値を出し、抽選は入力がそろって加工を始める時点（待機ステートで実現出力を確定するとき）の値を使う。間に部屋クラス・モジュール・レシピが変わると両者はずれるが、これは許す。表示は「次の抽選がいまの状態のまま行われたら使う値」を意味する。出所: agent前提（review_phase1 注目点3・moorestech_server/Assets/Scripts/Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs）
 - 「レシピGUID→清浄室工程の役割」は `CleanRoomMaster.TryGetRecipeRole` の1か所で引く。役割レコード（`Core.Master/CleanRoomRoles/`）は `Initialize` で出力の添字・基準アイテム・変種数を1回だけ解決する。検証は生のマスタで「ちょうど1つ」「基準アイテムである」を確かめ、実行時は導き直さない。出所: agent前提（review_phase26 弱・MasterHolder は各マスタを検証してから初期化し、検証失敗で例外を投げる）
 - グレードを入力から受け継ぐ役割（EUV・ダイシング）の検証は、基準の入力がちょうど1つであることを `LevelInheritanceRecipeShape.CountFamilyBaseInputs` で自分でも数える。機械レシピの検証の順序には頼らない。出所: agent前提（review_phase26 弱）
 - 抽選のときに部屋の効果がクラス値を持たなければ、デコレータは例外で止める。processor は停止中に加工を始めないので通常は起きないが、黙って素通しすると品質モジュールの効果が消えても誰も気づけない。出所: agent前提（CleanRoomMachineProcessorComponent の Update が停止中は Halted へ移す）
 - 抽選の中身の結果は、サーバーでは役割ごとの型にする。wire は判別子と役割ごとの入れ子（null 許容のキー）にし、種別の列挙はプロトコルの `CleanRoomYieldResponseKind` 1つだけにする。webui へ送る役割名の文字列は `CleanRoomYieldDetailDtoBuilder.Build` の網羅 switch 1か所で作る。出所: agent前提（review_phase26 強8・強9・A6 の factory＋TryGetView の形）
 - webui ホストの `CleanRoomYieldDetailDto` は平らな nullable フィールドのまま据え置く。C# は wire へ詰め替えるだけで、役割ごとの形は TS の zod `discriminatedUnion(...).strict()` と inventory.test.ts の受理テストが閉じる。A8 の `CleanRoomDetailDto` と同じ判断。出所: agent前提（review_phase26 強4・changes_A の (3) の同じ行）
+
+### 再検査（2回目）を受けた判断
+
+- 部屋照会の内側の漏れも、外側の応答・部屋の要約と同じく種別ごとの型で閉じる。ドメインは `CleanRoomLeakReport` の4型（漏れセルは Openings の型だけが持つ）、wire は平らなキーのまま private ctor ＋種別ごとの factory ＋ `TryGetView` で読み口 `CleanRoomLeakView` の4型（上限体積は TooLarge の型だけが持つ）にする。出所: agent前提（review2_phase26 強1。修正方針「強は型で閉じる」はユーザー承認済み）
+- 部屋照会の読み口（`CleanRoomInfoView`・`CleanRoomLeakView`）の中身は MessagePack 型のままにし、Client.Game・Client.WebUiHost の公開シグネチャに出ることを許す。プロトコル外の読み取り型へもう一段詰め替えない。出所: agent前提（前例 `BlockNetworkInfoCache.Electric` が `GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot` を直接公開する。review2_phase26 弱）
+- wire から読んだ応答の `TryGetView` は、判別子と入れ子（部屋一覧の0件・null、漏れの null、Openings のセルの null、分類済みの ClassName の null）の整合を確かめ、不整合なら警告ログを出して false を返す。ポーラーはそれを消失と同じく値を捨てて止まる扱いにする。出所: agent前提（review2_phase26 弱。factory を通るサーバー応答では起きないが、wire は外部データ）
+- 部屋の濃度 N/V・換気回数 nq/V は `CleanRoomPurityLogic.Concentration`・`AirChangeRate` の1か所で出し、体積0の部屋は判定・表示とも0にする。判定は従来 NaN／無限大で Out だったが、変更後も換気0がどの行の `requiredAirChangeRate` も満たさないので Out のまま（`requiredAirChangeRate` が0の行を持つマスタを作ると、体積0の部屋はその行に入る）。出所: agent前提（既存 `CleanRoomDatastore.cs:169-170` の double/int 除算と、テストマスタ・本番 cleanRoom.json の全行が正であることを確認）
+- 汎用ポーラーはブロック消失（BlockNotFound）で問い合わせを止め、警告は1回だけ出す。次の `Start`（照準・開くブロックの切り替え）まで `Vanished` のまま。出所: agent前提（計画のコードを読み、消失後も1秒ごとに警告と通知が続くことを確認）
+- 電力網・歯車網の表示中1秒ポーリングも汎用 `BlockInfoPoller` に載せる。網に属さない（`Info == null`）は取得済みの値、通信失敗（応答 null）は前回値を保って警告にし、電力網で両者を同じ null で上書きしていたのを解く。サーバーはブロック消失も `Info == null` で返すので、網の取得元は消失を区別せず未所属として出す。出所: agent前提（既存 `BlockNetworkInfoCache.PollElectric` の `Electric = response?.Info` と `GetElectricNetworkInfoProtocol`／`GetGearNetworkInfoProtocol` の null の意味）
+- `BlockNetworkInfoCache.OnUpdated` は `event Action` をやめ、UniRx の `IObservable<Unit>` にする。出所: agent前提（AGENTS.md「イベント発火のためにActionを使わない。UniRxを使う」。review2_phase1 注目点4）
+- `BlockNetworkInfoCache.TryGetCleanRoom` は未取得と消失をどちらも false に畳む。今の読み手（A8 の部屋欄）はどちらでも欄を出さず、消失の警告はポーラーが出すため。出所: agent前提（review2_phase26 弱）
+- 部屋欄を出すブロックの判定は `BlockNetworkInfoCache.ToCleanRoomTarget` の switch 1か所で `CleanRoomDetailTarget` に決め、組み立ては網羅 switch で口を選び、残りは例外にする。出所: agent前提（review2_phase26 弱）
+- カーソルツールチップの「所有者トークン・同一内容なら Show を省く・複製して Show・自分の分だけ Hide」は共通の `OwnedTooltipLinesWriter` 1本にし、設置フィードバックと部屋のツールチップの違いは「他の書き手が出している間は譲る」1行だけにする。出所: agent前提（review2_phase26 弱。既存 `PlacementFeedbackTooltipPresenterTest` 7件で挙動が変わらないことを確かめる）
+- 継承レシピの加工中ジョブを持つセーブを、そのレシピが消えた（GUID が変わった）マスタで開いたときは、継承レベルごとジョブを捨てて警告を出し、加工中の状態は Idle へ戻す。継承レシピのジョブで継承レベルが欠けたセーブは、補わずにロードを止める。出所: agent前提（既存の縮退 `BlockTemplateUtil.cs:150`・`CleanRoomMachineProcessorSaveState.cs:51-69`。review2_phase26 弱）
+- 「levelFamily の基準アイテムか」と「継承レシピの基準の入出力の探索」は、`Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape`（public）の1か所に置く。起動時の検証・実行時の `MachineRecipeLevelInheritanceUtil.BuildShape`・Part B の役割の検証がこれを使う。探索は「ちょうど1つなら番号、それ以外は null」で返し、呼び出し側は無条件の `.Value` を書かない。出所: agent前提（Game.Block.Interface.asmdef は Core.Master を参照している。review2_phase26 弱）
+- 「アイテムが基準の変種の何番目か」は、代用の `Core.Item.LevelFamilySubstituteUtil.ResolveAcceptedLevel` と継承元の `LevelInheritanceShape.ResolveSourceLevel` の2本のまま置く。両者が同じ答えを返すことは C11 の `SubstituteLevelMatchesInheritanceSourceLevelTest` で固定する。出所: agent前提（asmdef: Core.Item → Game.Context → Game.Block.Interface なので、Game.Block.Interface から Core.Item を参照すると循環する。review2_phase26 弱）
+- ロード時に再実行する解放系の種別は `UnlockReplayGameActionTypes.Types`（読み取り専用）で持つ。全 `GameActionTypeConst` が「再実行する／一度きり」のちょうど一方に入ることを網羅テストで固定し、新しい解放を switch にだけ足してロード後に黙って消えることを防ぐ。出所: agent前提（前例 `Client.Tests/WebUi/Research/ResearchUnlockGameActionCoverageTest.cs`。review2_phase26 弱）
+- モジュールスロットのスタックレベルも製作上限と同じく実行時には丸めず、範囲外は例外で止める（範囲は `MachineUpgradeGameActionValidator` が起動時に保証する）。出所: agent前提（判断記録「製作上限の表は `LevelInheritanceCraftCapTable` 1つにまとめ」の行と同じ不変条件の扱いにそろえる。review2_phase26 範囲外）
+- webui のスロット束縛の `acceptedItemIds` は、入力も出力もサーバーの束縛と同じ集合から詰める（出力は `BuildDefaultOutputBinding` と同じ `GetAcceptedOutputItemIds`＝生産物のレベルファミリーの全変種）。出所: agent前提（review2_phase26 弱）
+- 「レシピ未選択」は `IMachineRecipeSelectorComponent.TryGetSelectedRecipe` の false で表し、`SelectedRecipeGuid == Guid.Empty` を比べる読み手を増やさない。`CleanRoomYieldPreview.Compute` は選択済みのレシピだけを受け、未選択は呼び出し前に `NoRolePreview` にする。出所: agent前提（設計検査 強。遊び方に出ない内部の形なので agent が決め、報告で拒否権を残す）
+- 今の部屋の効果を読むだけの相手には、デコレータを読み口 `ICleanRoomEffectLookup`（public、Game.Block）の型で渡す。書き換え（`SetCleanRoomEffect`）と抽選カウンタを進める `Decorate` は具象にだけ置き、具象は processor の private フィールドに閉じる。出所: agent前提（設計検査 強。遊び方に出ない内部の形なので agent が決め、報告で拒否権を残す）
+- 役割の型による振り分けは、抽選（`Decorate`）と表示（`CleanRoomYieldPreview.Compute`）の2系統のまま置く。式は `ChipYieldFormula` の1か所、役割ごとの率は `CleanRoomRoleRates` の1か所なので、数字はずれない。出所: agent前提（review2_phase26 弱・判断記録「役割ごとの確率は `CleanRoomRoleRates` 1か所」）
+- 停止ステート（`HaltedMachineProcessState`）は押し込まれた可否の bool の写しを1つ持つ。書き手は processor の `SetCleanRoomEffect` 1つで、デコレータへの押し込みと同じ呼び出しの中で渡すので食い違わない。出所: agent前提（review2_phase1 注目点5・layer map「汎用基盤コンポーネントへの状態伝達」）
+- 「効果が届く前は未密閉」は `CleanRoomEffect.BeforeFirstPush()` の1か所で決める。デコレータと A7 の停止理由の状態は、ここから初期値を引く。出所: agent前提（review2_phase26 弱）
+- 出力の1セットとセット数は工場（`MachineOutputFactoryUtil.CreateRealizedOutputs`）だけが決め、セット数を `out` で `Decorate` へ渡す。書き換え器はレシピから組み直さず、工場の1セット目の写しを書き換える。継承の変種を当てるのは工場の1か所だけで、書き換え器が上書きする所（成膜のグレード、ダイシングのレベル列）は書き換え器が全部書く。出所: agent前提（review2_phase26 弱・C3 の `MachineOutputFactoryUtil`）
+- 成膜の役割レシピは `levelInheritance: None` を必須にし、起動時の検証で止める。継承レシピにすると、工場が当てた変種をグレード抽選が上書きし、継承が黙って消えるため。出所: agent前提（review2_phase26 弱）
+- Part B の「基準アイテムからファミリーの長さ」は `LevelInheritanceRecipeShape.GetFamilyLength(Guid)` を呼び、式を書き直さない。出所: agent前提（review2_phase26 弱・Part C の `LevelInheritanceRecipeShape` を public にした変更）
+- 継承レベルは書き換え器の共通の入力に持たせない。値を使う役割（ダイシング）には、`Decorate` の振り分けが非 null の `int` を渡す。欠けていれば block と recipe を添えた `InvalidOperationException` で止める。無条件の `.Value` は書かない。出所: agent前提（review2_phase26 弱〈Part C の項〉）
+- 清浄室機械のセーブの液体タンクのキー（`inputFluidSlot`／`outputFluidSlot`）が欠けていたら、両キーの有無を入れた `InvalidOperationException` でロードを止める（C3 の `MachineProcessingJob` の明示の例外と同じ扱い）。出所: agent前提（review2_phase26 弱・判断記録「読み込み側はキー欠落を許さない」）
+- `ChipYieldFormula` は抽選と表示が使う3関数（`MaxWaferGrade`・`PromotionChance`・`ReducedRate`）だけを public にする。グレード分布・期待値の閉形式はテストの TestHelper に置き、プロダクションにテスト専用の public を残さない。出所: agent前提（AGENTS.md「デバッグ/テスト専用publicをプロダクションに残さない」）
+- 抽選の中身の応答で、判別子に対応する入れ子が null なら `TryGetView` は警告を出して false を返す（ポーラーは消失と同じく値を捨てて止める）。外部から届く wire の食い違いなので、例外にせず警告にする。出所: agent前提（review2_phase26 弱・A6 の `TryGetView`）
