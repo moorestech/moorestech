@@ -47,9 +47,11 @@ describe("RocketLaunchPadInventory through the real panel", () => {
     let tree!: ReturnType<typeof create>;
     act(() => { tree = create(createElement(BlockInventoryPanel)); });
     expect(hostById(tree.root, "rocket-launch-pad-view")).toBeUndefined();
+    expect(hostById(tree.root, "rocket-launch-pad-loading").props.children).toBe("ui.blockInventory.detailLoading");
     mock.block = { ...mock.block, rocketLaunchPad: detail };
     act(() => { tree.update(createElement(BlockInventoryPanel)); });
     expect(hostById(tree.root, "rocket-launch-pad-view")).toBeDefined();
+    expect(hostById(tree.root, "rocket-launch-pad-loading")).toBeUndefined();
     act(() => { tree.unmount(); });
   });
 

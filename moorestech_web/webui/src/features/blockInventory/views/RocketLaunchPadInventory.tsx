@@ -13,8 +13,9 @@ type RocketViewData = Pick<BlockInventoryOpen, "itemSlots"> & {
 export default function RocketLaunchPadInventory({ data }: { data: RocketViewData }) {
   const { t } = useI18n();
   const detail = data.rocketLaunchPad;
-  // silent-ok: 初期状態の未着だけ描画を待つ / 次のtopicでパネルに表示される
-  if (!detail) return null;
+  // 詳細未着は取得待ちとして伝える
+  // Show pending details as loading
+  if (!detail) return <Text size="sm" c="var(--text-muted)" data-testid="rocket-launch-pad-loading">{t(L.ui.blockInventory.detailLoading)}</Text>;
 
   const group = (labelKey: TranslationKey, indices: number[], testId: string) => (
     <Stack gap={4}>
