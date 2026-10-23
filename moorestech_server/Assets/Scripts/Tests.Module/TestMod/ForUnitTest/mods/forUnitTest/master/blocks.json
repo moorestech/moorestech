@@ -7437,6 +7437,33 @@
         "connectionRange": 30,
         "connectionHeightRange": 20
       }
+    },
+    {
+      "blockGuid": "5e1ea7a0-0001-4000-8000-000000000001",
+      "name": "TestSpaceElevatorBase",
+      "blockType": "SpaceElevatorBase",
+      "openable": true,
+      "maxStack": 100,
+      "modelTransform": { "scale": [1, 1, 1], "rotation": [0, 0, 0], "position": [0, 0, 0] },
+      "blockSize": [1, 1, 1],
+      "category": "テスト",
+      "subCategory": "SpaceElevatorBase",
+      "placementsPerCost": 1,
+      "blockParam": {
+        "carriedPayloadItemGuids": ["5e1ea7a0-0002-4000-8000-000000000002"],
+        "cableItemGuid": "5e1ea7a0-0002-4000-8000-000000000001",
+        "cablesPerElevator": 100,
+        "climbSeconds": 2,
+        "requiredPower": 100,
+        "outputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [ { "offset": [0, 0, 0], "directions": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]], "connectorGuid": "5e1ea7a0-0003-4000-8000-000000000001" } ],
+          "outputConnects": [ { "offset": [0, 0, 0], "directions": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]], "connectorGuid": "5e1ea7a0-0003-4000-8000-000000000002" } ]
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 30,
+        "connectionHeightRange": 20
+      }
     }
   ],
   "connectorSettings": {

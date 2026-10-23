@@ -125,5 +125,9 @@ namespace Tests.Module.TestMod
         // ロケット発射台のテスト用ブロック
         // Test block for the rocket launch pad
         public static BlockId RocketLaunchPadId => GetBlock("5c8e0000-0000-4000-8000-000000000100");
+
+        // 宇宙エレベーター拠点のテスト用ブロック
+        // Test block for the space elevator base
+        public static BlockId TestSpaceElevatorBase => GetBlock("5e1ea7a0-0001-4000-8000-000000000001");
     }
 }

@@ -30,5 +30,8 @@ namespace Tests.Module.TestMod
         public static ItemId SatellitePayloadId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000004"));
         public static ItemId CablePayloadId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000005"));
         public static ItemId ComputeDataId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000006"));
+        public static ItemId TestElevatorCable => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5e1ea7a0-0002-4000-8000-000000000001"));
+        public static ItemId TestElevatorSatellite => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5e1ea7a0-0002-4000-8000-000000000002"));
+        public static ItemId TestElevatorReward => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5e1ea7a0-0002-4000-8000-000000000003"));
     }
 }
