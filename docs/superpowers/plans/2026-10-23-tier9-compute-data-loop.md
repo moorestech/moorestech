@@ -114,7 +114,7 @@
   - テストID: `ForUnitTestModBlockId.RocketLaunchPadId`、`ForUnitTestItemId.RocketCaseId`・`RocketFuelId`・`RocketComputerId`・`SatellitePayloadId`・`CablePayloadId`・`ComputeDataId`
   - 生成された数値型（`float`/`double`）は SourceGenerator の出力に合わせる。上の表記と違えば以降のタスクのコードも出力側に合わせる
 
-- [ ] **Step 0: 環境を確かめる**
+- [x] **Step 0: 環境を確かめる**
 
 Run:
 ```bash
@@ -127,7 +127,7 @@ uloop compile --project-path ./moorestech_client
 ```
 Expected: 自分のworktreeのEditorが居なければ `uloop launch --project-path ./moorestech_client` で起動してからcompile。ErrorCount 0。
 
-- [ ] **Step 1: items.yml に積荷表を足す**
+- [x] **Step 1: items.yml に積荷表を足す**
 
 `levelFamilies` ブロックの直後（`itemStackLevelTables` の直前）に追加する:
 
@@ -166,7 +166,7 @@ Expected: 自分のworktreeのEditorが居なければ `uloop launch --project-p
           default: 1
 ```
 
-- [ ] **Step 2: blocks.yml に発射台を足す**
+- [x] **Step 2: blocks.yml に発射台を足す**
 
 blockType の `options` の末尾（`CleanRoomMachine` の次）に `- RocketLaunchPad` を足し、`blockParam.cases` の末尾に追加する:
 
@@ -223,7 +223,7 @@ blockType の `options` の末尾（`CleanRoomMachine` の次）に `- RocketLau
           default: 20
 ```
 
-- [ ] **Step 3: 全 items.json に `"orbitalPayloads": []` を足し、テストマスタに発射台と積荷を足す**
+- [x] **Step 3: 全 items.json に `"orbitalPayloads": []` を足し、テストマスタに発射台と積荷を足す**
 
 `git ls-files | grep -E "items\.json$"` の全ファイル（本repoの4件。`mooresmaster.SandBox/schema/items.json` がスキーマ生成物なら edit-schema スキルの手順で再生成）と、moorestech_master で読み込まれる `server_v8/mods/moorestechAlphaMod_8/master/items.json` の1件へ `"orbitalPayloads": []` を足す（edit-schema スキルの「全JSON一括更新」手順に従う）。moorestech_master の `server/`・`server_v4`〜`server_v7` の旧 mod は今のゲームが読まないので触らない。
 
@@ -286,7 +286,7 @@ ForUnitTest の blocks.json の `data` に発射台を足す。共通キーは�
 
 `ForUnitTestModBlockId.cs` に `public static BlockId RocketLaunchPadId => GetBlock("5c8e0000-0000-4000-8000-000000000100");`、`ForUnitTestItemId.cs` に既存の書式で6件（`RocketCaseId`=…0001、`RocketFuelId`=…0002、`RocketComputerId`=…0003、`SatellitePayloadId`=…0004、`CablePayloadId`=…0005、`ComputeDataId`=…0006）を足す。
 
-- [ ] **Step 4: 積荷表の検証を書く**
+- [x] **Step 4: 積荷表の検証を書く**
 
 `moorestech_server/Assets/Scripts/Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`:
 
@@ -470,7 +470,7 @@ namespace Core.Master.Validator.Item
 
 （移した2つの検証の既存テストは、Step 8 のフィルタ `ItemMaster` が拾う。ログの文面を変えていないので、既存テストの期待値はそのまま通る。）
 
-- [ ] **Step 5: 発射台パラメータの検証を書く**
+- [x] **Step 5: 発射台パラメータの検証を書く**
 
 `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs`:
 
@@ -578,7 +578,7 @@ namespace Core.Master.Validator.Block
 
 `BlockMasterUtil.Validate` の `errorLogs += BeltSpeedPerSecondValidator.Validate(blocks);` の次に `errorLogs += RocketLaunchPadParamValidator.Validate(blocks);` を足す。
 
-- [ ] **Step 6: 検証のテストを書く**
+- [x] **Step 6: 検証のテストを書く**
 
 検証クラスは `internal` のまま、テストは公開された集約点 `ItemMasterUtil.Validate`・`BlockMasterUtil.Validate` を呼ぶ（前例 `Tests/UnitTest/Game/BeltSpeedPerSecondMasterTest.cs` の `BlockMasterUtil.Validate(new BlockMaster(blocksJToken).Blocks, out var errorLogs)`）。
 
@@ -647,7 +647,7 @@ namespace Tests.UnitTest.Core.Master.OrbitalPayload
 
 (`TestModDirectory.ForUnitTestModDirectory` の実際のパス構成は前例 `BeltSpeedPerSecondMasterTest.PrepareBlocksJson` と同じ組み立てにする。)
 
-- [ ] **Step 7: マスタを push しピンを向ける**
+- [x] **Step 7: マスタを push しピンを向ける**
 
 ```bash
 MASTER_WT=../../moorestech_master/tier9-compute-data-loop
@@ -658,12 +658,12 @@ git -C "$MASTER_WT" push origin feat/tier9-compute-data-loop
 git -C "$MASTER_WT" rev-parse HEAD   # この値を .moorestech-external-revisions.json の moorestech_master.commitHash へ
 ```
 
-- [ ] **Step 8: コンパイルしテストを実行する**
+- [x] **Step 8: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "OrbitalPayloadMasterValidatorTest|RocketLaunchPadParamValidatorTest|ItemMaster|BlockMaster"`
 Expected: ErrorCount 0 / 全 PASS。Editor でマスタを読み直し（RepositorySync がピンへ checkout する）、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `[ItemMaster]` `[BlockMaster]` `MooresmasterLoaderException` が無い（ピン先のマスタが読めている）。土台の `b2149a0` に由来する別の読込エラーが出たら、直さずに内容を bd note と PR 本文に書く（S2 の範囲外）。
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add VanillaSchema/items.yml VanillaSchema/blocks.yml moorestech_server/Assets/Scripts/Core.Master moorestech_server/Assets/Scripts/Tests.Module moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData .moorestech-external-revisions.json mooresmaster
@@ -694,7 +694,7 @@ git commit -m "feat(master): 積荷表と発射台のスキーマと読込時検
   - `Game.Orbit.IRocketLaunchHistory`（`bool HasLaunchedOnce { get; }`・`IObservable<Unit> OnFirstLaunch { get; }`・`void RecordLaunch()`・`void LoadSaveData(bool hasLaunchedOnce)`。セーブへは `HasLaunchedOnce` をそのまま書く）
   - DI: `IRocketLaunchHistory`→`RocketLaunchHistory`、`IOrbitalArrivalService`→`OrbitalArrivalService`（どちらもシングルトン）
 
-- [ ] **Step 1: asmdef を作る**
+- [x] **Step 1: asmdef を作る**
 
 `Game.Orbit.asmdef`（書式は `Game.CleanRoom.asmdef` と同じ）:
 
@@ -720,7 +720,7 @@ git commit -m "feat(master): 積荷表と発射台のスキーマと読込時検
 }
 ```
 
-- [ ] **Step 2: 到着通知とサービスを書く**
+- [x] **Step 2: 到着通知とサービスを書く**
 
 `OrbitalArrival.cs`:
 
@@ -850,7 +850,7 @@ namespace Game.Orbit
 }
 ```
 
-- [ ] **Step 3: 初打ち上げ履歴を書く**
+- [x] **Step 3: 初打ち上げ履歴を書く**
 
 `IRocketLaunchHistory.cs`:
 
@@ -905,7 +905,7 @@ namespace Game.Orbit
 }
 ```
 
-- [ ] **Step 4: DI に登録する**
+- [x] **Step 4: DI に登録する**
 
 `Server.Boot/Composition/OrbitServiceRegistration.cs`（`GameplayServiceRegistration.cs` は202行で既に上限超えのため足さない）:
 
@@ -930,7 +930,7 @@ namespace Server.Boot.Composition
 
 `MoorestechServerDIContainerGenerator.cs` の `GameplayServiceRegistration.Register(...)` の次の行に `OrbitServiceRegistration.Register(services);` を足す。各 asmdef に `"Game.Orbit"` を足す。
 
-- [ ] **Step 5: テストを書く**
+- [x] **Step 5: テストを書く**
 
 `Tests/CombinedTest/Game/RocketLaunchPad/OrbitalArrivalServiceTest.cs`:
 
@@ -1031,19 +1031,19 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
 
 （`ForUnitTestItemId` の各IDが `ItemId` を返す形かは既存の書式に合わせる。`MoorestechServerDIContainerGenerator().Create` の戻り値の使い方は既存 CombinedTest に合わせる。）
 
-- [ ] **Step 6: コンパイルしテストを実行する**
+- [x] **Step 6: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.RocketLaunchPad.OrbitalArrivalServiceTest"`
 Expected: ErrorCount 0 / 5件 PASS
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Orbit moorestech_server/Assets/Scripts/Server.Boot moorestech_server/Assets/Scripts/Game.Block/Game.Block.asmdef moorestech_server/Assets/Scripts/Game.SaveLoad/Game.SaveLoad.asmdef moorestech_server/Assets/Scripts/Tests
 git commit -m "feat(orbit): 軌道到着サービスと初打ち上げ履歴を足す"
 ```
 
-- [ ] **Step 8: 両repoを push して S3 へ渡す**
+- [x] **Step 8: 両repoを push して S3 へ渡す**
 
 S3 はこの push を取り込んでからエレベーター拠点に着手する（Global Constraints）。moorestech_master 側に入っているのは Task 1 Step 7 の items.json の変更（空配列と7件の Default）だけ。
 
