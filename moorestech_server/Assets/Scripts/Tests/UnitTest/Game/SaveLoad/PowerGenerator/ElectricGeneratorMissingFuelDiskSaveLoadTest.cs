@@ -81,11 +81,14 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             var state = prepared.Save["world"].Single(b => (int)b["instanceId"] == block.BlockInstanceId.AsPrimitive())["state"][generator.SaveKey];
             if (!removeItem)
             {
-                // 実在するが許可されない燃料は引き続きロード拒否する
-                // Existing but disallowed fuel must still be rejected on load
+                // 許可変更後も既消費の燃料を復元
+                // Restore already consumed fuel after ignition permissions change
                 Assert.AreEqual("Item", (string)state["activeFuelType"]);
-                LogAssert.Expect(LogType.Error, new Regex("燃料の復元が不整合.*not configured"));
-                Assert.Throws<Exception>(() => loaded.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize());
+                LogAssert.Expect(LogType.Warning, new Regex("許可設定から外れた既消費燃料"));
+                loaded.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
+                generator = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero).GetComponent<VanillaElectricGeneratorComponent>();
+                Assert.IsTrue(JToken.DeepEquals(burning, JObject.FromObject(generator.GetSaveState())));
+                Assert.AreEqual(0, generator.OutputEnergy().AsPrimitive());
                 AssertPreserved();
                 return;
             }

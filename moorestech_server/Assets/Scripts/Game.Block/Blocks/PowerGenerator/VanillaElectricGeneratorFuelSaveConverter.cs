@@ -20,15 +20,15 @@ namespace Game.Block.Blocks.PowerGenerator
             saveData.ActiveFuelType = service._currentFuelType.ToString();
 
             saveData.CurrentFuelItemGuidStr = null;
-            if (service._currentFuelType == VanillaElectricGeneratorFuelService.FuelType.Item && service._currentFuelItemId != ItemMaster.EmptyItemId && service._itemFuelSettings.TryGetValue(service._currentFuelItemId, out var itemFuel))
+            if (service._currentFuelType == VanillaElectricGeneratorFuelService.FuelType.Item && service._currentFuelItemId != ItemMaster.EmptyItemId)
             {
-                saveData.CurrentFuelItemGuidStr = itemFuel.Setting.ItemGuid.ToString();
+                saveData.CurrentFuelItemGuidStr = MasterHolder.ItemMaster.GetItemMaster(service._currentFuelItemId).ItemGuid.ToString();
             }
 
             saveData.CurrentFuelFluidGuidStr = null;
-            if (service._currentFuelType == VanillaElectricGeneratorFuelService.FuelType.Fluid && service._currentFuelFluidId != FluidMaster.EmptyFluidId && service._fluidFuelSettings.TryGetValue(service._currentFuelFluidId, out var fluidFuel))
+            if (service._currentFuelType == VanillaElectricGeneratorFuelService.FuelType.Fluid && service._currentFuelFluidId != FluidMaster.EmptyFluidId)
             {
-                saveData.CurrentFuelFluidGuidStr = fluidFuel.Setting.FluidGuid.ToString();
+                saveData.CurrentFuelFluidGuidStr = MasterHolder.FluidMaster.GetFluidMaster(service._currentFuelFluidId).FluidGuid.ToString();
             }
 
             saveData.FluidTank = null;
@@ -74,8 +74,8 @@ namespace Game.Block.Blocks.PowerGenerator
                 var seconds = saveData.RemainingFuelSeconds;
                 if (double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds < 0) Fail($"invalid remainingFuelSeconds:{seconds}");
 
-                // 種別とIDと許可設定を同じ境界で照合する
-                // Check the kind, identity and allowed setting at the same boundary
+                // 既消費燃料は現在の許可と分けて復元
+                // Restore consumed fuel independently of current ignition permissions
                 switch (saveData.ActiveFuelType)
                 {
                     case "None":
@@ -84,14 +84,16 @@ namespace Game.Block.Blocks.PowerGenerator
                     case "Item":
                         var itemGuid = saveData.CurrentFuelItemGuid;
                         var itemId = itemGuid.HasValue ? MasterHolder.ItemMaster.GetItemIdOrNull(itemGuid.Value) : null;
-                        if (!IsEmpty(saveData.CurrentFuelFluidGuidStr) || !itemId.HasValue || !service._itemFuelSettings.TryGetValue(itemId.Value, out _))
-                            Fail($"active item fuel is not configured:{saveData.CurrentFuelItemGuidStr}");
+                        if (!IsEmpty(saveData.CurrentFuelFluidGuidStr) || !itemId.HasValue)
+                            Fail($"active item fuel identity is invalid:{saveData.CurrentFuelItemGuidStr}");
+                        if (!service._itemFuelSettings.ContainsKey(itemId.Value)) Debug.LogWarning($"[ElectricGenerator] 許可設定から外れた既消費燃料を0出力で復元します item:{itemGuid}");
                         break;
                     case "Fluid":
                         var fluidGuid = saveData.CurrentFuelFluidGuid;
                         var fluidId = fluidGuid.HasValue ? MasterHolder.FluidMaster.GetFluidIdOrNull(fluidGuid.Value) : null;
-                        if (!IsEmpty(saveData.CurrentFuelItemGuidStr) || !fluidId.HasValue || !service._fluidFuelSettings.TryGetValue(fluidId.Value, out _))
-                            Fail($"active fluid fuel is not configured:{saveData.CurrentFuelFluidGuidStr}");
+                        if (!IsEmpty(saveData.CurrentFuelItemGuidStr) || !fluidId.HasValue)
+                            Fail($"active fluid fuel identity is invalid:{saveData.CurrentFuelFluidGuidStr}");
+                        if (!service._fluidFuelSettings.ContainsKey(fluidId.Value)) Debug.LogWarning($"[ElectricGenerator] 許可設定から外れた既消費燃料を0出力で復元します fluid:{fluidGuid}");
                         break;
                     default:
                         Fail($"unsupported activeFuelType:{saveData.ActiveFuelType}");

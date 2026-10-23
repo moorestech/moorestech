@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
 
         [TestCase("Item")]
         [TestCase("Fluid")]
-        public void FuelRemovedFromSettingsRejectsBeforeChangingExistingState(string kind)
+        public void FuelRemovedFromSettingsPreservesLifetimeAndIdentity(string kind)
         {
             var service = Create(out var param);
             var save = ValidSave(param, kind);
@@ -28,13 +28,22 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             if (kind == "Item") service._itemFuelSettings.Remove(MasterHolder.ItemMaster.GetItemId(param.FuelItems[0].ItemGuid));
             else service._fluidFuelSettings.Remove(MasterHolder.FluidMaster.GetFluidId(param.FuelFluids[0].FluidGuid));
 
-            // 外部復元の拒否は既存タイマーも元の保存値も変更しない
-            // Refusing external restoration changes neither the existing timer nor source values
+            // 許可除去後も寿命とGUIDを再保存
+            // Preserve consumed lifetime and its GUID when current ignition permissions change
             var original = Newtonsoft.Json.JsonConvert.SerializeObject(save);
-            LogAssert.Expect(LogType.Error, new Regex("燃料の復元が不整合.*not configured"));
-            Assert.Throws<InvalidOperationException>(() => service.Restore(save));
+            LogAssert.Expect(LogType.Warning, new Regex("許可設定から外れた既消費燃料"));
+            service.Restore(save);
+            Assert.AreEqual(0, service.GetOutputEnergy().AsPrimitive());
+            var saved = new VanillaElectricGeneratorSaveJsonObject();
+            service.WriteSaveData(saved);
+            Assert.AreEqual(save.CurrentFuelItemGuidStr, saved.CurrentFuelItemGuidStr);
+            Assert.AreEqual(save.CurrentFuelFluidGuidStr, saved.CurrentFuelFluidGuidStr);
+            LogAssert.Expect(LogType.Warning, new Regex("許可設定から外れた既消費燃料"));
+            service.Restore(saved);
             Assert.AreEqual(ticks, service.RemainingFuelTicks);
             Assert.AreEqual(original, Newtonsoft.Json.JsonConvert.SerializeObject(save));
+            service.Update();
+            Assert.AreEqual(ticks - 1, service.RemainingFuelTicks);
         }
 
         [TestCase("Item")]
