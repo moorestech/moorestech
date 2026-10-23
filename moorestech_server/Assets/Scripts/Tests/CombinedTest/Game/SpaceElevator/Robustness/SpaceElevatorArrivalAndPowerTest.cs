@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Context;
@@ -86,6 +87,79 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(1, arrivals);
             Assert.AreEqual(5, inventory.GetItem(1).Count);
+        }
+
+        [TestCase(false, false, false, SpaceElevatorBaseStatus.InsufficientCable)]
+        [TestCase(true, false, false, SpaceElevatorBaseStatus.WaitingSatellite)]
+        [TestCase(true, true, false, SpaceElevatorBaseStatus.OutputBlocked)]
+        [TestCase(true, true, true, SpaceElevatorBaseStatus.OutputBlocked)]
+        public void UnchangedIdleTicksDoNotPublishDirectState(bool connected, bool satellite, bool atTop, SpaceElevatorBaseStatus status)
+        {
+            CreateServer();
+            var block = PlaceBase(Vector3Int.zero);
+            PowerBase(block, Vector3Int.zero, 100f);
+            if (connected)
+            {
+                LaunchCables(100);
+                ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
+            }
+            var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();
+            var climber = block.GetComponent<SpaceElevatorClimberComponent>();
+            if (satellite)
+            {
+                inventory.SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 1);
+                if (atTop) RunSeconds(0.5);
+                inventory.SetItem(1, ForUnitTestItemId.ItemId1, 1);
+            }
+            RunSeconds(3);
+            Assert.AreEqual(status, ReadDetail(block).Status);
+            Assert.AreEqual(atTop ? 1f : 0f, ReadDetail(block).ClimbProgress);
+
+            // パケットの重複除去より上流で、実在庫イベントと直接通知を別々に測る
+            // Measure real inventory events and direct state notifications before packet deduplication
+            var notifications = 0;
+            var inventoryEvents = 0;
+            var arrivals = 0;
+            using var state = ((IBlockStateObservable)climber).OnChangeBlockState.Subscribe(_ => notifications++);
+            using var items = ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
+                .Where(change => change.BlockInstanceId == block.BlockInstanceId).Subscribe(_ => inventoryEvents++);
+            using var orbital = ServerContext.GetService<IOrbitalArrivalService>().OnOrbitalArrival.Subscribe(_ => arrivals++);
+            for (var tick = 0; tick < 8; tick++)
+            {
+                GameUpdater.UpdateOneTick();
+                Assert.AreEqual(status, ReadDetail(block).Status);
+                Assert.AreEqual(atTop ? 1f : 0f, ReadDetail(block).ClimbProgress);
+                Assert.AreEqual(0, climber.RequestPower);
+            }
+            TestContext.WriteLine($"idle atTop={atTop} status={status} ticks=8 OnNext={notifications} inventory={inventoryEvents} arrivals={arrivals}");
+            Assert.AreEqual(0, inventoryEvents);
+            Assert.AreEqual(0, arrivals);
+            Assert.AreEqual(0, notifications, $"unchanged {status} atTop={atTop}: direct OnNext={notifications} over 8 ticks");
+        }
+
+        [Test]
+        public void SuccessfulArrivalAutomaticallyStartsTheNextSatellite()
+        {
+            CreateServer();
+            var block = PlaceBase(Vector3Int.zero);
+            PowerBase(block, Vector3Int.zero, 100f);
+            LaunchCables(100);
+            ServerContext.GetService<SpaceElevatorConnectionService>().Connect(block);
+            var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();
+            var arrivals = 0;
+            using var subscription = ServerContext.GetService<IOrbitalArrivalService>().OnOrbitalArrival.Subscribe(_ => arrivals++);
+
+            // 二機を先に投入し、一機目の到着後は外部操作なしで次便を完了させる
+            // Queue two satellites up front and complete the next trip without further external actions
+            inventory.SetItem(0, ForUnitTestItemId.TestElevatorSatellite, 2);
+            RunSeconds(2.2);
+            Assert.AreEqual(1, arrivals);
+            Assert.AreEqual(0, inventory.GetItem(0).Count);
+            Assert.AreEqual(SpaceElevatorBaseStatus.Climbing, ReadDetail(block).Status);
+            RunSeconds(2.2);
+            Assert.AreEqual(2, arrivals);
+            Assert.AreEqual(10, inventory.GetItem(1).Count);
+            Assert.AreEqual(SpaceElevatorBaseStatus.WaitingSatellite, ReadDetail(block).Status);
         }
 
         [Test]

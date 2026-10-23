@@ -102,6 +102,9 @@ namespace Game.Block.Blocks.SpaceElevator
                 // At the top, hand over only when the result fits the outlets; otherwise wait at the top
                 _inventoryChanged = true;
                 _outputBlocked = !_inventory.TryCompleteArrival(_climbingSatellite.Id, _orbitalArrivalService, out _);
+                // 容量不足は実通知まで待つ。例外時の再試行予約は到着呼出し前に残す
+                // Wait for a real event when full; reserve retries before arrival so exceptions retain them
+                _inventoryChanged = !_outputBlocked;
                 // silent-ok: 出口待ちは初回ログと状態詳細で通知 / プレイヤーは拠点UIで気づく
                 if (_outputBlocked) return false;
                 _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
