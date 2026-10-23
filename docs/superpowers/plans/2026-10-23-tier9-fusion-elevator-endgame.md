@@ -3303,7 +3303,7 @@ git commit -m "feat(webui): 宇宙エレベーター拠点の接続ボタンと�
 - Consumes: Task 8 の `SpaceElevatorBaseStateDetail`（`IsConnected`, `ClimbProgress`）
 - Produces: アドレス `Vanilla/Block/SpaceElevatorBase` のプレハブ（子 `ClickCollider`・`Base`・`Anchor`・`Cable`・`Climber`）
 
-- [ ] **Step 1: 見た目の processor を書く**
+- [x] **Step 1: 見た目の processor を書く**
 
 前例 `StateProcessor/SteamEngineEffectStateChangeProcessor.cs`（プレハブに貼る `[SerializeField]` 付き processor）:
 ```csharp
@@ -3352,7 +3352,7 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.SpaceElevator
 ```
 コンパイルする（`uloop compile --project-path ./moorestech_client`、ErrorCount 0）。
 
-- [ ] **Step 2: プレハブを dynamic code で作り Addressables に登録する**
+- [x] **Step 2: プレハブを dynamic code で作り Addressables に登録する**
 
 `uloop execute-dynamic-code --project-path ./moorestech_client` で次を実行する（blockSize [9,4,9] の土台と、高さ約80のケーブル）:
 ```csharp
@@ -3415,7 +3415,7 @@ return $"{entry.address} -> {prefabPath}";
 ```
 Expected: `Vanilla/Block/SpaceElevatorBase -> Assets/AddressableResources/Block/SpaceElevatorBase.prefab`。`git status` で prefab・mat・その .meta・`Vanilla Asset Group.asset` の変更だけが出ることを確かめる（.meta は Unity が生成したもの）。
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/SpaceElevator moorestech_client/Assets/AddressableResources/Block/SpaceElevatorBase* "moorestech_client/Assets/AddressableAssetsData/AssetGroups/Vanilla Asset Group.asset"
