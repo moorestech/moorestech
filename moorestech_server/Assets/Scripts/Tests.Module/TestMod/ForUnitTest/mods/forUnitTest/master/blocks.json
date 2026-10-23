@@ -7407,6 +7407,36 @@
       "subCategory": "FuelGearGenerator",
       "placementsPerCost": 1,
       "openable": false
+    },
+    {
+      "blockGuid": "5c8e0000-0000-4000-8000-000000000100",
+      "name": "TestRocketLaunchPad",
+      "blockType": "RocketLaunchPad",
+      "openable": true,
+      "maxStack": 100,
+      "modelTransform": { "scale": [1, 1, 1], "rotation": [0, 0, 0], "position": [0, 0, 0] },
+      "blockSize": [1, 1, 1],
+      "category": "テスト",
+      "subCategory": "RocketLaunchPad",
+      "placementsPerCost": 1,
+      "blockParam": {
+        "requiredPower": 100,
+        "buildSeconds": 1,
+        "launchSeconds": 1,
+        "launchMaterials": [
+          { "itemGuid": "5c8e0000-0000-4000-8000-000000000001", "count": 2 },
+          { "itemGuid": "5c8e0000-0000-4000-8000-000000000002", "count": 3 },
+          { "itemGuid": "5c8e0000-0000-4000-8000-000000000003", "count": 1 }
+        ],
+        "outputSlotCount": 2,
+        "inventoryConnectors": {
+          "inputConnects": [ { "offset": [0, 0, 0], "directions": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]], "connectorGuid": "607ee58d-6dc6-4647-a882-7213cdd1334a" } ],
+          "outputConnects": [ { "offset": [0, 0, 0], "directions": [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]], "connectorGuid": "6fa4b379-b0ea-4b4e-8484-2dabea65fe2d" } ]
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 30,
+        "connectionHeightRange": 20
+      }
     }
   ],
   "connectorSettings": {

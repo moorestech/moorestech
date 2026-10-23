@@ -21,5 +21,14 @@ namespace Tests.Module.TestMod
         // スループット回帰テスト用。1スロットに1,000,000個積める
         // For the throughput regression suite; one slot holds 1,000,000
         public static ItemId ThroughputTestItem => MasterHolder.ItemMaster.GetItemId(Guid.Parse("7b3e1a10-0002-4000-8000-000000000001"));
+
+        // ロケット発射台のテスト用資材・積荷・成果
+        // Test materials, payloads and arrival output for the rocket launch pad
+        public static ItemId RocketCaseId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000001"));
+        public static ItemId RocketFuelId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000002"));
+        public static ItemId RocketComputerId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000003"));
+        public static ItemId SatellitePayloadId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000004"));
+        public static ItemId CablePayloadId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000005"));
+        public static ItemId ComputeDataId => MasterHolder.ItemMaster.GetItemId(Guid.Parse("5c8e0000-0000-4000-8000-000000000006"));
     }
 }
