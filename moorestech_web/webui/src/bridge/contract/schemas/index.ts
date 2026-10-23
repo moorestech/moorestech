@@ -8,3 +8,5 @@ export * from "./challenge";
 export * from "./buildMenu";
 export * from "./hotbar";
 export * from "./presentation";
+export * from "./train";
+export * from "./beltThroughput";
