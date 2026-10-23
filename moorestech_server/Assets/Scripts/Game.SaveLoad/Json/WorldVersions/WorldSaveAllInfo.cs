@@ -22,7 +22,7 @@ namespace Game.SaveLoad.Json.WorldVersions
     {
         // セーブ形式の現在版。マイグレーション連鎖の終点であり、形式を変えるPRがここを上げる
         // The current save format version; the migration chain's destination, raised by any PR that changes the format
-        public const int CurrentVersion = 6;
+        public const int CurrentVersion = 7;
 
         [JsonProperty("worldVersion")] public int WorldVersion = CurrentVersion;
 
@@ -45,6 +45,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             Dictionary<string, int> itemStackLevels,
             int inventorySlotLevel,
             List<CleanRoomSaveData> cleanRoomRooms,
+            bool? rocketHasLaunchedOnce,
             List<PlayerMiningCooldownSaveJsonObject> miningCooldowns,
             ulong[] randomState,
             List<string> backfilledFields,
@@ -68,6 +69,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             ItemStackLevels = itemStackLevels ?? new Dictionary<string, int>();
             InventorySlotLevel = inventorySlotLevel;
             CleanRoomRooms = cleanRoomRooms ?? new List<CleanRoomSaveData>();
+            RocketHasLaunchedOnce = rocketHasLaunchedOnce;
             MiningCooldowns = miningCooldowns;
             RandomState = randomState;
             BackfilledFields = backfilledFields;
@@ -95,6 +97,10 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
         [JsonProperty("cleanRoomRooms")] public List<CleanRoomSaveData> CleanRoomRooms { get; }
+
+        // 未打ち上げと欠損を区別し、現在版の欠損はロード時に拒否する
+        // Distinguish not-yet-launched from absent, rejecting absence when loading the current version
+        [JsonProperty("rocketHasLaunchedOnce")] public bool? RocketHasLaunchedOnce { get; }
 
         // 手掘りクールダウンは再生の受理判定に効く。欠損を空で埋めると保存前に拒否された採掘が再生で通る
         // The hand-mining cooldown decides what a replay accepts; filling an absent list with an empty one lets rejected mining through
