@@ -1,7 +1,10 @@
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Game.Block.Blocks.RocketLaunchPad;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
@@ -20,6 +23,52 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
 {
     public class RocketLaunchPadDuplicateOutputTest
     {
+        [TestCase(int.MaxValue, 1)]
+        [TestCase(1500000000, 1500000000)]
+        [TestCase(int.MaxValue, int.MaxValue)]
+        public void 巨大な同種出力の容量検査と格納で総数を保存する(int existingCount, int arrivalCount)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemId = ForUnitTestItemId.ComputeDataId;
+            var master = MasterHolder.ItemMaster.GetItemMaster(itemId);
+            var counts = MasterHolder.ItemMaster.GetStackLevelTable(master.StackLevelTableGuid).StackCounts;
+            var originalLimit = counts[0];
+            counts[0] = int.MaxValue;
+            try
+            {
+                // 実発射台の出力担当を使い、容量検査が実在庫を変えないことも確かめる
+                // Use the real pad output owner and verify its fit check leaves inventory untouched
+                var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
+                var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
+                inventory.SetItem(6, itemId, existingCount);
+                var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
+                var field = typeof(RocketLaunchPadProcessorComponent).GetField("_outputSlots", BindingFlags.Instance | BindingFlags.NonPublic);
+                var outputSlots = (RocketLaunchPadOutputSlots)field.GetValue(processor);
+                var arrival = new IItemStack[] { ServerContext.ItemStackFactory.Create(itemId, arrivalCount) };
+                Assert.IsTrue(outputSlots.CanStore(arrival));
+                Assert.AreEqual(0, inventory.GetItem(5).Count);
+                Assert.AreEqual(existingCount, inventory.GetItem(6).Count);
+
+                // 同種枠を先に満たし、intを超える総数をlongで比較する
+                // Fill the matching slot first and compare totals above int range using long
+                outputSlots.Store(arrival);
+                var expectedTotal = (long)existingCount + arrivalCount;
+                var actualTotal = (long)inventory.GetItem(5).Count + inventory.GetItem(6).Count;
+                TestContext.WriteLine($"existing={existingCount}; arrival={arrivalCount}; slots=[{inventory.GetItem(5).Count},{inventory.GetItem(6).Count}]; total={actualTotal}; expected={expectedTotal}");
+                Assert.AreEqual(expectedTotal, actualTotal);
+                Assert.AreEqual(int.MaxValue, inventory.GetItem(6).Count);
+                Assert.AreEqual(expectedTotal - int.MaxValue, inventory.GetItem(5).Count);
+                Assert.AreEqual(itemId, inventory.GetItem(5).Id);
+                Assert.AreEqual(itemId, inventory.GetItem(6).Id);
+            }
+            finally
+            {
+                // テストが変更したメモリ内上限を失敗時も復元する
+                // Restore the in-memory stack limit even when the regression fails
+                counts[0] = originalLimit;
+            }
+        }
+
         [Test]
         public void 同一成果二行を一枠に合算して検証し格納する()
         {
