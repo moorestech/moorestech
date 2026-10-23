@@ -2869,7 +2869,7 @@ git commit -m "feat(space-elevator): 拠点の接続プロトコルを足す"
 
 配置: 拠点は接続ボタンというブロック固有の操作を持つので、専用 view `views/SpaceElevatorInventory.tsx`（スロット・固有部分・電力網）を作ってレジストリに登録する（前例 `views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`）。`SectionStackView` には足さず、e2e の `intentionalGeneric` にも入れない（`SectionStackView.tsx:51-52`「固有UIだけをレジストリへ残す」、`intentionalGeneric` は移植待ちの許可リスト）。
 
-- [ ] **Step 1: クライアントの API・DTO・action を書く**
+- [x] **Step 1: クライアントの API・DTO・action を書く**
 
 `BlockRequestApi.cs` の `SetElectricToGearOutputMode` の次に:
 ```csharp
@@ -3004,7 +3004,7 @@ namespace Client.WebUiHost.Game.Actions
 `WebUiGameBinder.cs` の `hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));` の次に `hub.RegisterAction(new SpaceElevatorConnectActionHandler(subInventoryState));`（`wc -l` が 200 以上になったら `ElectricToGear` 以降のブロック系 action 登録を `Actions/BlockActionRegistration.cs` の `public static void Register(WebUiHub hub, SubInventoryState subInventoryState)` へ移す）。
 `action_names.json` に `"space_elevator.connect"` を既存の並びの規則（アルファベット順なら該当位置）で足す。
 
-- [ ] **Step 2: wire fixture と契約テストを書く**
+- [x] **Step 2: wire fixture と契約テストを書く**
 
 `WireFixtures/block_inventory_space_elevator.json`:
 ```json
@@ -3042,7 +3042,7 @@ namespace Client.WebUiHost.Game.Actions
 （fixture のパスは `Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_space_elevator.json`。前例の fixture に null のキーが出るなら、こちらの fixture も実出力に合わせて同じキーを持たせる）
 `wireContract.test.ts` の `block detail fixtures` の `cases` に `"block_inventory_space_elevator.json"` を足す。
 
-- [ ] **Step 3: UI 文言を足す**
+- [x] **Step 3: UI 文言を足す**
 
 `Localization/localization.csv` に（列は `key,Source,english,japanese,german,korean`。差し込みは `{name}` 形式）:
 ```
@@ -3057,7 +3057,7 @@ ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until th
 ```
 `cd moorestech_web/webui && npm run gen:i18n` で `localizationKeys.ts` を再生成する。
 
-- [ ] **Step 4: webui の受信スキーマを足し、inventory.ts を 200 行未満にする**
+- [x] **Step 4: webui の受信スキーマを足し、inventory.ts を 200 行未満にする**
 
 `schemas/spaceElevator/index.ts`:
 ```ts
@@ -3084,7 +3084,7 @@ export type SpaceElevatorStatus = z.infer<typeof SpaceElevatorStatusSchema>;
 ```
 `schemas/index.ts` に `export * from "./spaceElevator";` を足す。`wc -l src/bridge/contract/schemas/inventory.ts` が 200 未満であること。
 
-- [ ] **Step 5: action 契約と固有部分を書く**
+- [x] **Step 5: action 契約と固有部分を書く**
 
 `actionContract.ts` の `ActionPayloads` に `"space_elevator.connect": Record<string, never>;`、`ACTION_TYPES` に `"space_elevator.connect",` を足す（`electric_to_gear.set_output_mode` の次）。
 
@@ -3217,7 +3217,7 @@ describe("SpaceElevatorSection", () => {
 ```
 （`renderSection(detail)` は blockType `SpaceElevatorBase` の `BlockInventoryOpen` を作って i18n プロバイダ付きで描くヘルパー、`mockDispatchAction()` は `vi.mock("@/bridge", ...)` で `dispatchAction` を差し替えて返すヘルパー。どちらも SectionStackView.test.tsx の既存ヘルパーの形で同ファイル内に書く）
 
-- [ ] **Step 6: e2e を足す**
+- [x] **Step 6: e2e を足す**
 
 出荷マスタにはまだ拠点が無いので、e2e の registry fixture（blocks.json から作る）は変えない（拠点が入ったときの1行は統合タスク。末尾の節「旧 Task 10 Step 6 の e2e fixture」）。レジストリに先に登録しておくのは `blockRegistryCoverage.spec.ts` が許す（fixture に無い型の登録は落ちない）。
 `energyFixtures.ts` の末尾に:
@@ -3279,13 +3279,13 @@ test("接続ボタンでactionを送り、接続後は進みを出す", async ({
 });
 ```
 
-- [ ] **Step 7: コンパイル・テスト・lint**
+- [x] **Step 7: コンパイル・テスト・lint**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "WireContract|LocalizationDictionaryCoverageTest|ElectricToGearOutputModeActionTest"`
 Run: `cd moorestech_web/webui && npx tsc --noEmit && npx vitest run && npm run lint && npx playwright test e2e/tests/block`
 Expected: ErrorCount 0 / 全 PASS / 型・lint エラー 0
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Network moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests/WebUi Localization/localization.csv moorestech_web/webui/src moorestech_web/webui/e2e
