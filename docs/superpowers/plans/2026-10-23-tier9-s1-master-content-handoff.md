@@ -2824,3 +2824,14 @@ git commit -m "test: Tier9 半導体のチップライン・モジュールと G
 - 化学プラントの prefab に口の見た目は足さない。出所: agent前提（化学プラントの見た目は Tier8 の既存資産で、口の位置はブロックのコネクタ表示で分かる）
 - 新規アイテムの sortPriority は仮値を入れ、D7 で master-refine 操作 A が再計算する。出所: agent前提（master-refine の規約）
 - D9 の研究は `LoadResearchData` に前提の閉包を渡して完了扱いにする。出所: agent前提（`CompleteResearch` は前提・素材が揃わないと拒む。/Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-cleanroom-playable/moorestech_server/Assets/Scripts/Game.Research/ResearchDataStore.cs）
+
+## 設計検査の持ち越し（S1 plan の検査 2026-10-23 で Part D に当たった弱い指摘。ユーザー承認「全部拾う」）
+
+- sim の Python が B1 `ChipYieldFormula`・`MachineModuleEffect`・C11 の研究消費と同じ導出を書き直しており、照合が無い → B1 の期待値テストと同じ入力（クラスA・品質合計0.6・最高tier2 で Lv1/Lv2/Lv3 = 191.114/44.909/13.473）で sim を突き合わせる fixture を D1 に足す
+- `verify_master.py` が B5 のスタック検証・B3 の役割検証・クラス行の単調性を Python でもう1本持つ → D8 の検証は、出荷マスタでサーバーを起動して起動時のマスタ検証を通す1本に寄せ、Python 側は値の照合（params と JSON の一致）だけにする
+- 「電気炉だけ2倍」の判定が targets.py と verify の `check_upstream_ratio` に2か所あり基準が違う（verify は炉以外が2倍でも PASS）→ params 側の1関数にまとめ両方から呼ぶ
+- `math.ceil(v - 1e-6)` が5か所にあり定義済みの `ceil_counts` を使っていない → 全箇所をその関数に置き換える
+- 品目の種類を名前の前方一致（`startswith("シリコンダイ")` 等）で決めている → `levelFamilies` と Guid 台帳で判別する
+- 既存の `moorestech_master/tools/research_sync/sync_machine_recipe_unlocks.py` は D7 の解放の割り当てと役割が重なり、D5 で消す旧 EUV レシピを `KNOWN_ORPHANS` に登録したままで `--check` が exit 2 になる見込み（推測・未実行）→ D7 で使うか、D5 で `KNOWN_ORPHANS` から外す
+- S1 の裁定で追加: アイテムハッチの搬送量上限（S1 の Task A14 が必須キーを足し、本番値は暫定）の本番値をバランスで決め、sim の部屋の比較（大部屋集約が有利）に搬送量の上限を入れる（`.decisions/2026-10-23-アイテムハッチに搬送量の上限を足して大部屋集約を有利にする.md`）
+- S1 の裁定で追加: 製作上限を超えるチップは製品に入れず取っておく（`.decisions/2026-10-23-製作上限を超えるチップは製品に入れず解放まで取っておく.md`）。sim の S1 期間の Lv2 チップは研究の代用か在庫として数える
