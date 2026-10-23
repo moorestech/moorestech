@@ -3,8 +3,10 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V6→V7移行: ロケットの初打ち上げ履歴を未打ち上げで足す（ADR 0088）
-    // V6→V7 migration: add the rocket launch history as not yet launched (ADR 0088)
+    // - 初発射履歴を未発射で追加
+    // - ADR 0088に従う
+    // - Add first-launch history as not yet launched
+    // - Follow ADR 0088
     public sealed class SaveMigrationStepV6ToV7 : ISaveMigrationStep
     {
         public int FromVersion => 6;

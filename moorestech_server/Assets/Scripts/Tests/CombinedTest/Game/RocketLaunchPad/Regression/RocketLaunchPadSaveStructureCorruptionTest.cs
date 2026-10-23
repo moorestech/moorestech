@@ -17,8 +17,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
 {
     public class RocketLaunchPadSaveStructureCorruptionTest
     {
-        // 欠落・null・null要素を積載中と非積載中の両方で検査する
-        // Check missing values, nulls and null elements in loaded and unloaded phases
+        // 積載有無×欠落・ヌル・ヌル要素
+        // Cover loaded/unloaded phases × missing values, nulls and null elements
         [Test]
         public void 積荷の構造欠損を警告して待機へ戻す(
             [Values("cargoPayload", "cargoMaterials")] string field,
