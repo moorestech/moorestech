@@ -2,31 +2,21 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Tier9 の終盤（核融合炉・重水素抽出装置・反物質製造装置・反物質爆弾・終端研究・宇宙エレベーター拠点とケーブルプール・グラフェン工程・金属3Dプリンタ・研究ツリー整理）を、マスタと実装の両方で遊べる状態にする。
+**Goal:** Tier9 の終盤（核融合炉・重水素抽出装置・反物質製造装置・反物質爆弾・終端研究・宇宙エレベーター拠点とケーブルプール・グラフェン工程・金属3Dプリンタ・研究ツリー整理）のうち、コードで作る部分（発電機の稼働表示・宇宙エレベーター拠点・ケーブルプール・接続・昇降機・拠点 UI・簡易モデル）を、テスト用マスタで確かめた状態で入れる。moorestech_master の中身（液体・アイテム・ブロック・レシピ・研究・バランス）と unityプレイ録画テストは、S1〜S3 の実装がそろってからの統合タスク（bd `moorestech-xyuaf.2`）で入れる（下書きは末尾の「統合タスクへ引き継ぐマスタの中身」節）。この plan の成果は、統合タスクの後に遊べる状態になる。
 
-**Architecture:** 核融合・反物質・グラフェン・金属3Dプリンタは既存の ElectricGenerator / ElectricMachine とマスタだけで作り、新コードは発電機の稼働表示（状態詳細）に限る。宇宙エレベーターは新しいブロック種別 `SpaceElevatorBase` と、ワールド単位のケーブルプール（新アセンブリ `Game.SpaceElevator`）で作る。プールは S2 の軌道到着サービス（`Game.Orbit`）の到着通知を購読してケーブルを数え、拠点は「接続」ボタン（専用プロトコル）でプールから1エレベーター分を引く。昇降機は衛星を1つずつ電力で運び、昇り切ったら軌道到着サービスへ渡して返ってきた成果を出力口へ入れる。昇り始める前と渡す直前に、成果が出力口へ入りきるかを軌道到着サービスの成果の問い合わせで確かめ、入らなければ待たせて理由を出す（打ち上げ後の保留は持たない）。
+**Architecture:** 核融合・反物質・グラフェン・金属3Dプリンタは既存の ElectricGenerator / ElectricMachine とマスタだけで作るので、この PR のコードは発電機の稼働表示（状態詳細）に限り、マスタは統合タスクで入れる。宇宙エレベーターは新しいブロック種別 `SpaceElevatorBase` と、ワールド単位のケーブルプール（新アセンブリ `Game.SpaceElevator`）で作る。プールは S2 の軌道到着サービス（`Game.Orbit`）の到着通知を購読してケーブルを数え、拠点は「接続」ボタン（専用プロトコル）でプールから1エレベーター分を引く。昇降機は衛星を1つずつ電力で運び、昇り切ったら軌道到着サービスへ渡して返ってきた成果を出力口へ入れる。昇り始める前と渡す直前に、成果が出力口へ入りきるかを軌道到着サービスの成果の問い合わせで確かめ、入らなければ待たせて理由を出す（打ち上げ後の保留は持たない）。
 
-**Tech Stack:** Unity / C#（moorestech_server, moorestech_client）、MessagePack、UniRx、Microsoft.Extensions.DependencyInjection、React + zod（moorestech_web/webui）、マスタ JSON（moorestech_master）、Python3（マスタ整合ツール）
+**Tech Stack:** Unity / C#（moorestech_server, moorestech_client）、MessagePack、UniRx、Microsoft.Extensions.DependencyInjection、React + zod（moorestech_web/webui）、テスト用 mod のマスタ JSON
 
 ## Requirements
 
 設計 ADR: `docs/adr/0089-space-elevator-cable-pool-and-per-base-connection.md`、`docs/adr/0090-fusion-net-power-from-fuel-extraction-cost.md`。裁定: `.decisions/2026-10-23-*`（S3 分は本 plan 末尾『判断記録（ADR）』に一覧）。用語: `CONTEXT.md` の「宇宙エレベーター」「核融合」「終盤」。
 
+R1〜R3・R5〜R13・R23 は統合タスクへ移した（末尾の節の「移した要件」）。番号は判断記録から引くので振り直さない。
+
 | # | 要件 | 受け入れ基準 |
 |---|---|---|
-| R1 | 液体「重水素」を作る | fluids.json に `重水素` があり、ローカライズ行がある |
-| R2 | 重水素抽出装置（ElectricMachine）が水から重水素を作る。大電力・モジュールスロットあり | 水を入れて電力を与えると重水素タンクが増える（マスタ読込スモーク＋シミュレーション） |
-| R3 | 核融合炉（ElectricGenerator）が重水素を燃やして大電力を出す。モジュールスロット・点火手順は無い | 重水素を入れると出力が出る。炉1基の差し引き電力（炉出力−必要台数の抽出装置の消費）がモジュールなしでガソリン発電機 3〜5 台分（シミュレーションで検査） |
-| R4 | 発電機（ElectricGenerator）を開くと稼働状態（稼働率・残燃料・燃料タンク）が汎用UIに出る | サーバーテストで状態詳細が出る。webui で `generator-section` と `generator-fluid-slots` が出る。核融合炉は `openable: true` |
-| R5 | 反物質製造装置（ElectricMachine）が重水素と核融合炉級の電力で反物質を作る | マスタ読込スモーク・シミュレーションで反物質1機の消費電力が炉の差し引き電力（モジュールなし）の3倍以上 |
-| R6 | 反物質爆弾を既存の電気汎用工作装置で作る | machineRecipes に 反物質＋ICチップLv1＋鋼鉄板＋コンピュータ → 反物質爆弾 がある |
-| R7 | 終端研究（反物質爆弾を規定量消費する仮の研究）で終わる。クリア状態・エンディングは作らない | research.json に終端研究ノード（consume 反物質爆弾 10、clearedActions 空、前提 反物質爆弾）がある |
-| R8 | グラフェンケーブルを既存機械の短い直線で作り、使用済み銅板は電気炉で銅板に戻す | 石炭→高純度炭素（電気炉）→グラフェンシート＋使用済み銅板（電気炉）→グラフェンケーブル（電気汎用工作装置）、使用済み銅板→銅板（電気炉）の4レシピがある |
-| R9 | 金属3Dプリンタを ElectricMachine ブロックにし、ICチップ等からコンピュータ・制御モータを1工程で作る。研究「金属超精密加工」で解放 | 旧アイテム「金属3Dプリンタ」が消え、ブロックとレシピ2本があり、金属超精密加工が unlockBlock する |
-| R10 | 研究「フィルター分岐器」を消し、金属超精密加工の前提を張り替える | ノードが無く、金属超精密加工の前提が `機械オーバークロック` だけになる。progression_check が詰みを増やさない |
-| R11 | 研究「機械オーバークロック」は S1 が速度モジュール研究として作る。S3 は触らない | S3 の差分で当該ノードが変わっていない |
-| R12 | 「軌道エレベーターの建設」から発射台・筐体・燃料の解放を外し（a）、計算データを消費し（b）、前提にロケット技術を足す（c） | research.json の当該ノードが (a)(b)(c) を満たす |
-| R13 | グラフェンケーブルは軌道到着の積荷表に 1便1000本・成果なしで載り、スタック上限 1000 のテーブルを持つ | items.json の `orbitalPayloads` に行があり、グラフェンケーブルの `stackLevelTableGuid` が [1000] のテーブルを指す |
+| R4 | 発電機（ElectricGenerator）を開くと稼働状態（稼働率・残燃料・燃料タンク）が汎用UIに出る | サーバーテストで状態詳細が出る。webui で `generator-section` と `generator-fluid-slots` が出る（核融合炉を `openable: true` にするのは統合タスク） |
 | R14 | ワールドに1つのケーブルプールが、ケーブルの軌道到着で増える | サーバーテスト: `Arrive(cable, N)` でプール残量が N 増える。ケーブル以外の到着では増えない |
 | R15 | 拠点ごとの「接続」でプールから1エレベーター分を引く。足りなければ接続できず理由を UI に出す | サーバーテスト: 足りれば Connected・残量が減る／足りなければ InsufficientCable・残量不変。プロトコルテスト・webui の理由表示 |
 | R16 | 接続済み拠点を撤去すると1エレベーター分がプールへ戻る。未接続の撤去は影響しない | サーバーテスト（ユーザー原文の 200→2基接続→+50→1基撤去で150→3基目接続可 のシナリオ） |
@@ -34,24 +24,24 @@
 | R18 | 昇り切ったら軌道到着サービスへ渡し、返ってきた成果を出力口へ入れる。昇り始める前と渡す直前に成果が出力口へ入りきるかを確かめ、入らなければ待たせて理由を出す | サーバーテスト: 成果が出力口に出る／出力口が塞がっていると昇り始めない・昇り切っても渡さず待つ／空くと進む。成果が空の出力口にも入らないマスタは起動時に止まる |
 | R19 | 接続済みと昇降中の衛星はセーブに入り、撤去時は衛星がプレイヤーへ返る | サーバーテスト: セーブ往復で復元／撤去でプレイヤーインベントリへ返る |
 | R20 | プール残量はワールドセーブに入る。セーブ形式の変更は版上げ＋移行ステップ＋テストを同梱する | `WorldSaveAllInfo.CurrentVersion` 7→8、`SaveMigrationStepV7ToV8`、移行テストと往復テスト |
-| R21 | 拠点は簡易モデルで、接続でケーブルが現れ、昇降中は昇降機がケーブルを昇る | unityプレイ録画テストで目視 |
-| R22 | 拠点 UI に接続ボタン・プール残量／1エレベーター分・昇降の進み・待ちの理由を出す | webui unit/e2e テストと録画 |
-| R23 | 新しい値はシミュレーションで目標に合わせる（S3 の配分 5〜11 時間、全体 15〜25 時間は S1 の裁定） | `tools/balance/tier9_endgame_balance.py` が目標の範囲を検査して exit 0 |
+| R21 | 拠点は簡易モデルで、接続でケーブルが現れ、昇降中は昇降機がケーブルを昇る | アドレス `Vanilla/Block/SpaceElevatorBase` のプレハブがあり、processor が状態詳細の接続と進みからケーブルの表示と昇降機の位置を決める。目視は統合タスクの録画 |
+| R22 | 拠点 UI に接続ボタン・プール残量／1エレベーター分・昇降の進み・待ちの理由を出す | webui unit/e2e テスト（mock host） |
+| R24 | この PR は moorestech_master を変えない。マスタの中身と録画テストは統合タスクで入れる | moorestech_master への差分が0。`.moorestech-external-revisions.json` は Task 5 で S2 を取り込んだ値のまま |
 
 **やらないこと（スコープ境界）:**
 - エンディング・クリア状態・最終ボタン・スキット（裁定で不採用）
 - 炉本体へのモジュール・点火・再起動の手順（裁定で不採用）
 - 専用のオーバークロック機能、確率振り分けのフィルターコンベア（裁定で不採用）
-- モジュールの種類・値・レシピ・研究コスト、チップのレベル、GPU の性能、Tier9 研究コストの最終値（S1 の担当。S3 は仮値を置き「S1 待ち」と記す）
+- モジュールの種類・値・レシピ・研究コスト、チップのレベル、GPU の性能、Tier9 研究コストの最終値（S1 の担当。S3 の下書きの仮値は統合タスクで決め直す）
 - ロケット発射台・GPU衛星・計算データ・軌道到着サービス本体・初打ち上げ状態（S2 の担当。S3 は取り込んで使うだけ）
 - クリーンルーム・チップ抽選・モジュールのコード（S1 の担当。触らない）
+- moorestech_master の中身・バランスのシミュレーション・unityプレイ録画テスト（統合タスク bd `moorestech-xyuaf.2`。裁定は判断記録 P29。スタックテーブルが空の7件は S2 の master PR が直すので S3 は触らない）
 
 ## Global Constraints
 
-- 作業場所: moorestech worktree `$HOME/hermes-agent/data/worktrees/moorestech/tier9-fusion-elevator-endgame`（branch `feat/tier9-fusion-elevator-endgame`）。マスタ: `$HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame`（branch `feat/tier9-fusion-elevator-endgame`、Task 1 で作る）。最初に `pwd` で確かめる
-- 両 repo とも PR 作成まで。moorestech はマージしない。force-push しない（S2 と相互に取り込むため）
-- 本 repo の `.moorestech-external-revisions.json` の `moorestech_master` ピンは、マスタブランチの push 済みコミットを指す。ピン変更は `git add .moorestech-external-revisions.json` 単独でコミットし、`git show HEAD:.moorestech-external-revisions.json` で値を確かめる（Editor が書き戻すため）
-- Editor のマスタは既定で `../../moorestech_master`（共有の main clone）を読む。S3 のマスタで動かすときは、録画テストは `run-scenario.sh` の第3引数に `$HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame/server_v8` を渡し、スモークは `MoorestechServerDIContainerOptions` に同パスを渡す。main clone の HEAD を動かさない（S1/S2 と共有）
+- 作業場所: moorestech worktree `$HOME/hermes-agent/data/worktrees/moorestech/tier9-fusion-elevator-endgame`（branch `feat/tier9-fusion-elevator-endgame`）。最初に `pwd` で確かめる。moorestech_master の worktree は作らない
+- PR 作成まで。moorestech はマージしない。force-push しない（S2 を取り込むため）
+- 本 repo の `.moorestech-external-revisions.json` は Task 5 で S2 を取り込んだ値（S2 の master PR の head）から動かさない。S3 はマスタを変えないので書き換える理由が無い。各コミットの前に `git diff -- .moorestech-external-revisions.json` が空であることを確かめ、Editor が書き換えていたら `git checkout -- .moorestech-external-revisions.json` で戻す
 - Unity は自分の worktree の Editor だけを使う（`moores-wt status` で所有者確認）。自分で起動したプロセスは PID を控えて `kill <PID>` で止める（`pkill -f` 禁止）
 - バックグラウンドのポーリングで待たない。待つときは前景で `sleep` を挟む。区切り（各タスクの最後）ごとにコミットする
 - .cs を変えたら `uloop compile --project-path ./moorestech_client`（ErrorCount 0）。テストは `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。Domain Reload 中エラーは 45 秒待って再試行
@@ -60,47 +50,41 @@
 - fail-closed（拒否・保留・無視）する分岐は理由を `Debug.Log`/`LogWarning` に出す。無音の縮退は禁止
 - サーバー時間は `GameUpdater` の tick だけ（`SecondsToTicks`/`TicksToSeconds`）
 - .meta を手で作らない。Prefab・Scene・ScriptableObject・Addressables の .asset をテキスト編集しない（`uloop execute-dynamic-code` 経由は可）。Library を消さない
-- マスタ JSON を変えたら moorestech_master で `python3 tools/research_sync/sync_machine_recipe_unlocks.py`（書き戻し）→ `--check`（exit 0）→ `python3 tools/research_sync/progression_check.py`（詰みを増やさない）→ `python3 scripts/check_shipped_data_contracts.py`（exit 0）
 - スキーマ（`VanillaSchema/*.yml`）を変えるときは edit-schema スキルに従う（`moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs` の `dummyText` を変えて再生成、test mod・`moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ServerData/mods/`・`mooresmaster/mooresmaster.SandBox/` の JSON も更新）
 - セーブ形式を変える PR は moorestech-save-migration スキルが正本（版上げ・移行ステップ・3箇所登録・移行テスト・実ロード検証）
-- S1 の担当値（Tier9 研究コスト・チップ Lv・モジュール値）は仮値で置き、判断記録に「S1 待ち」と書く。S2 の担当値（計算データ量・GPU衛星の成果・ロケット建造時間）は S2 のマスタブランチの値を読む
+- コードとテストはテスト用 mod の値だけを使う。出荷マスタの GUID・数値に依存するコードを書かない（出荷マスタに拠点が無くても起動・テストが通ること）
 
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反6件・修正6件 / 発電機を燃焼中は毎tick通知・拠点 UI を専用 view へ・状態詳細からマスタ値を外す・昇降の残りを秒で保存・スキーマの切り出しをサブディレクトリへ・型を payloadTypes へ。注目点16件のうち3件（前例の差し替え・未着ログ・P2 の比較）と古い P10 を直し、新しい形（起動時のマスタ整合検査サービス）はレビュー依頼の注目点に回す。死活表6変更はすべて生きる
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強6・弱11・第3バケツ1 / 強6はユーザー裁定で接続の判定をサーバーへ（P26）、契約型を Interface 層へ（P24）・optional と列挙と翻訳キーは前例どおり（P25）・状態詳細は平らなまま（P28）を前提として宣言。弱11のうち7件はユーザー裁定の4束で直し（P27）、残り4件は派生で閉じているか直し済み・前例どおりで見送り。第3バケツの1件（出口の模擬の重複）は PR 本文の「本PR外のリファクタ提案」（P30）
 
 ---
 
 ## 依存関係と順序
 
 ```
-Task 1 マスタ: 核融合・反物質 ──┐
-Task 2 マスタ: グラフェン・3Dプリンタ・研究整理 ──┤
-Task 3 発電機の稼働表示（server/client/webui） ──┤（S2 非依存。先に全部やる）
-Task 4 数値シミュレーション（核融合・反物質・グラフェン） ──┘
-Task 5 S2 取り込みゲート＋S2 依存のマスタ（積荷行・スタック表・研究 (a)(b)(c)・buildMenu）
-Task 6 スキーマ SpaceElevatorBase と拠点のマスタ
+Task 3 発電機の稼働表示（server/client/webui）（S2 非依存。先にやる）
+Task 5 S2 取り込みゲート（moorestech だけ）
+Task 6 スキーマ SpaceElevatorBase とマスタ検証・テスト mod
 Task 7 ケーブルプールとワールドセーブ（版 7→8）
 Task 8 拠点ブロック（インベントリ・昇降機・出力口の確認・撤去返却）
 Task 9 接続プロトコル
 Task 10 拠点の webui
 Task 11 拠点の簡易モデルと昇降の見た目
-Task 12 シミュレーションにエレベーターを足して値を確定
-Task 13 unityプレイ録画テスト
 Task 14 moores-code-review
-Task 15 PR 作成（moorestech_master → moorestech の順）
+Task 15 PR 作成
+（Task 1・2・4・12・13 は統合タスクへ移した。番号は判断記録と末尾の節から引くので振り直さない）
 ```
 
 Task 5 は S2 の `Game.Orbit` が push されていないと進めない。Task 5 Step 1 のゲート手順に従う。
 
 ## File Structure
 
+moorestech_master のファイル・バランスのツール・録画シナリオは統合タスクへ移した（末尾の節）。
+
 | ファイル | 責務 | タスク |
 |---|---|---|
-| `moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/{fluids,items,blocks,machineRecipes,research,buildMenu}.json` | 新液体・アイテム・ブロック・レシピ・研究・ビルドメニュー | 1,2,5,6 |
-| `moorestech_master/server_v8/mods/moorestechAlphaMod_8/localization/localization.csv` | コンテンツ名の訳 | 1,2,5 |
-| `moorestech_master/tools/balance/tier9_endgame_balance.py` | 差し引き電力・台数・所要時間の検査 | 4,12 |
 | `moorestech_server/Assets/Scripts/Game.Block/Blocks/PowerGenerator/VanillaElectricGeneratorComponent.cs` | 発電機本体＋状態詳細の発火（200行未満へ圧縮） | 3 |
 | `.../PowerGenerator/VanillaElectricGeneratorSaveJsonObject.cs`（新） | 発電機セーブ JSON（本体から移動） | 3 |
 | `.../PowerGenerator/VanillaElectricGeneratorFuelService.cs` | 燃料管理＋状態用の読み取り口（200行未満へ分割） | 3 |
@@ -109,11 +93,12 @@ Task 5 は S2 の `Game.Orbit` が push されていないと進めない。Task
 | `.../PowerGenerator/PowerGeneratorStateDetail.cs` | 秒値から作る ctor を追加 | 3 |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlockGameObjectPrefabContainer.cs` | ElectricGenerator を CommonMachine 扱いから外す | 3 |
 | `moorestech_web/webui/src/features/blockInventory/views/SectionStackView.tsx` | ElectricGenerator に液体行を出す | 3 |
-| `VanillaSchema/blocks.yml` | `SpaceElevatorBase` の blockType と param | 6 |
-| `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/ISpaceElevatorBase.cs`（新） | プール・接続処理が拠点に触る面 | 7 |
-| `moorestech_server/Assets/Scripts/Game.SpaceElevator/`（新 asmdef） | `SpaceElevatorCablePool`（残量・到着購読・セーブ）、`SpaceElevatorConnectionService`（接続・撤去返却・残量 push）、`SpaceElevatorOrbitalTableCheck`（起動時の表との突き合わせ）、`SpaceElevatorConnectResult`、`Save/SpaceElevatorCablePoolSaveData` | 7,8 |
+| `VanillaSchema/blocks.yml`・`moorestech_server/Assets/Scripts/Core.Master/Validator/Block/SpaceElevatorBaseParamValidator.cs`（新）・テスト mod の `{blocks,items,buildMenu}.json` | `SpaceElevatorBase` の blockType と param、マスタ検証、テスト用の拠点・ケーブル・衛星・積荷行 | 6 |
+| `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/{ISpaceElevatorBase,SpaceElevatorConnectResult}.cs`（新） | プール・接続処理が拠点に触る面と接続結果（クライアントも読む契約型） | 7 |
+| `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/{SpaceElevatorBaseStateDetail,SpaceElevatorBaseStatus}.cs`（新） | 拠点の状態詳細と状態の列挙（クライアントも読む契約型） | 8 |
+| `moorestech_server/Assets/Scripts/Game.SpaceElevator/`（新 asmdef） | `SpaceElevatorCablePool`（残量・到着購読・セーブ）、`SpaceElevatorConnectionService`（接続・撤去返却・残量 push）、`SpaceElevatorOrbitalTableCheck`（起動時の表との突き合わせ）、`SpaceElevatorBaseMasters`（拠点のマスタの列挙）、`Save/SpaceElevatorCablePoolSaveData` | 7 |
 | `moorestech_server/Assets/Scripts/Game.SaveLoad/...` | WorldSaveAllInfo・保存・復元・移行・pruner | 7 |
-| `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/`（新） | 拠点のインベントリ・昇降機・電力・状態詳細・セーブ | 8 |
+| `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/`（新） | 拠点のインベントリ・昇降機・電力・出口の模擬・セーブと復元 | 8 |
 | `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs`（新） | 拠点の組み立て | 8 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs` | 返却情報を全コンポーネントから合算 | 8 |
 | `moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/SpaceElevator/ConnectSpaceElevatorProtocol.cs`（新） | 接続リクエスト（`PacketResponse/` 直下は 50 ファイル超のためサブディレクトリ） | 9 |
@@ -122,18 +107,17 @@ Task 5 は S2 の `Game.Orbit` が push されていないと進めない。Task
 | `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/SpaceElevator/SpaceElevatorConnectActionHandler.cs`（新） | `space_elevator.connect` | 10 |
 | `moorestech_web/webui/src/bridge/contract/schemas/{spaceElevator/index.ts,blockInventory/fluidSlot.ts,blockInventory/beltThroughput.ts,inventory.ts}`・`moorestech_web/webui/src/bridge/contract/payloadTypes.ts` | 受信スキーマ（inventory.ts を 200 行未満へ分割。`schemas/` 直下は既に10ファイルなので切り出し先はサブディレクトリ）と `z.infer` の型 | 10 |
 | `moorestech_web/webui/src/features/blockInventory/details/spaceElevator/`（新）・`views/SpaceElevatorInventory.tsx`（新）・`registry/{blockComponentRegistry.ts,registeredBlockTypes.ts}` | 拠点の固有部分（接続ボタン・プール・進み・待ちの理由）と、それを載せる専用ビューのレジストリ登録 | 10 |
-| `moorestech_web/webui/e2e/...` | registry fixture・mock host・拠点の e2e | 3,10 |
+| `moorestech_web/webui/e2e/...` | mock host・拠点の e2e | 10 |
 | `Localization/localization.csv` | 拠点 UI の文言 | 10 |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StateProcessor/SpaceElevator/SpaceElevatorBaseStateChangeProcessor.cs`（新） | ケーブルの表示と昇降機の位置 | 11 |
 | `moorestech_client/Assets/AddressableResources/Block/SpaceElevatorBase.prefab`（新、execute-dynamic-code で生成） | 簡易モデル | 11 |
-| `.agents/skills/unity-playmode-recorded-playtest/scenarios/building/tier9-endgame-fusion-and-elevator.cs`（新） | 録画シナリオ | 13 |
 
 ### 配置と前例
 
 | 配置 | 前例（役割が同じもの） |
 |---|---|
 | ケーブルプール（ワールド単位の可変状態＋セーブ節）を独立アセンブリ `Game.SpaceElevator` に置く | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomDatastore.cs`（ワールド単位の部屋状態を独立アセンブリで持ち、`WorldSaveAllInfo` の節へ保存） |
-| プールが拠点へ残量を `SetCablePoolAmount(int)` で push し、拠点が状態変化を発火する | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs`（`ICleanRoomMachine.SetCleanRoomEffect` へ push） |
+| プールが拠点へ残量と「接続できるか」を `SetCablePoolAvailability(int, bool)` で push し、拠点が状態変化を発火する | `moorestech_server/Assets/Scripts/Game.CleanRoom/CleanRoomMachineEffectService.cs`（`ICleanRoomMachine.SetCleanRoomEffect` へ push） |
 | `ISpaceElevatorBase` を `Game.Block.Interface/Component/SpaceElevator/` に置く | `Game.Block.Interface/Component/CleanRoom/ICleanRoomMachine.cs` |
 | プール・接続サービスを main コンテナの具象型 singleton＋`IBootInitializable` で起動時に生成・購読する | `moorestech_server/Assets/Scripts/Game.PlayerRiding/RemovedRidableRidingHandler.cs`（Game 層のサービスが `IBootInitializable.Load` でワールドのイベントを購読する同じ役割の前例）。initializer コンテナ側の `CleanRoomDatastore` 型は S2 の Orbit（main コンテナ）に依存できないので採らない |
 | 撤去でのプール返却は `OnBlockRemoveEvent` 購読 | `CleanRoomDatastore` の ctor 購読（`OnBlockRemoveEvent` は `Destroy` より前に発火する: `WorldBlockDatastore.cs:38→43`） |
@@ -149,39 +133,7 @@ Task 5 は S2 の `Game.Orbit` が push されていないと進めない。Task
 
 ---
 
-## 共通の GUID・参照表
-
-既存（moorestech_master origin/master b2149a0）:
-
-| 名前 | GUID |
-|---|---|
-| 核融合炉（ブロック、仮エントリ） | 01a162f1-ab04-76e2-94cf-dc713edeb63b |
-| 宇宙エレベーター拠点（ブロック、仮エントリ） | 01a162aa-cec0-738c-93c5-f58adc87fa7f |
-| ロケット発射台（ブロック、S2 担当） | 01a162b0-7769-7419-af24-bb35528b93d2 |
-| 反物質爆弾（アイテム） | 01a162ab-07ba-73c1-9dd6-38e1e867663b |
-| グラフェンケーブル / グラフェンシート / 使用済み銅板 / 高純度炭素 | 01a16290-f793-748b-a0b0-91d44be0d4ab / 01a16297-4724-73b9-82c3-2e77120be77d / 01a16297-6665-765d-8e19-96d357394c3e / 01a16297-a7f5-759b-91ba-be4021ca3bf2 |
-| 金属3Dプリンタ（アイテム、削除対象） | 019e3af5-e750-71ae-ab09-2b98f3db9913 |
-| 石炭 / 銅板 / 鋼鉄板 / 鉄のフレーム | f882df45-5651-4aec-b871-a9f885a5f75f / 019e0a92-1907-707a-8625-630d86a076ee / 019e3a98-cfe5-73eb-bf6a-a564400bdb4f / 231d2146-5e40-4e55-be27-22dda4175f47 |
-| コンピュータ / 制御モータ / ICチップLv1 | 019f0ca4-a544-723e-8ff2-feb15f99c84e / 019f0ca5-a575-7625-a43e-f43e8471287e / f6dd7835-0845-4877-87d0-b719d037ae7d |
-| 水（液体） | 9eae6979-d56a-4991-9107-b8161acec430 |
-| 電気炉 / 電気汎用工作装置（ブロック） | 019e0a68-3705-75f7-a040-50fab3c7d81e / 019e1225-f49b-7283-8835-428d903852f1 |
-| 研究: 機械オーバークロック / フィルター分岐器（削除） / 金属超精密加工 / 核融合炉 / 軌道エレベーターの建設 / 反物質爆弾 | 019e3ae2-5005-7439-b242-9b7b3191a2c3 / 019e3aab-32c6-7166-a184-d761153c2498 / 019e3af5-f2e6-76de-a80f-5e66e79fa35d / 019e3af0-297f-726e-8a02-0a8518124e6d / 01a16291-4094-7369-a87f-5dfe2197d25e / 019e3aef-a149-746b-8fad-159e0434cb51 |
-| ベルト用コネクタ形状 | 65f063cd-3ae1-4b55-b39d-00e033b7ec98 |
-| スタック表 Default | 9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa |
-
-S2 のマスタブランチ（Task 5 で取り込む）: 研究「ロケット技術」01a167cf-af9d-7f31-817c-3069b4f6e499、計算データ 01a167cf-af88-74d3-9cd6-7d61b71052bb、GPU衛星Lv1〜Lv5 01a167cf-af8b-7894-8de6-593ee30289c0 / 01a167cf-af8e-7e95-b299-09eb712bee12 / 01a167cf-af91-7f62-93d1-e499b06f2398 / 01a167cf-af94-7e25-9654-825374c3923b / 01a167cf-af97-7f67-bf53-7833b8d17a15、ビルドメニュー「生産>宇宙」d2000000-0000-4000-8000-000200000005。
-
-新規（本 plan で作る）:
-
-| 名前 | GUID |
-|---|---|
-| 重水素（液体） | 01a167e9-21b2-7bb0-b6a3-0f17d349704e |
-| 反物質（アイテム） | 01a167e9-21b5-7479-9060-995505f43137 |
-| 重水素抽出装置 / 反物質製造装置 / 金属3Dプリンタ（ブロック） | 01a167e9-21b8-7db1-a289-99cdf7490fe9 / 01a167e9-21bb-76dd-9a83-0a249aa9f1fc / 01a167e9-21be-72cd-ae04-e5bbe12b95c2 |
-| コネクタ: 炉の液体入口 / 抽出装置の水入口 / 抽出装置の重水素出口 / 反物質機の重水素入口 / 反物質機のアイテム出口 / 3Dプリンタ入口 / 3Dプリンタ出口 / 拠点入口 / 拠点出口 | 01a167e9-21c1-7ec0-9813-d30ce62e14c0 / 01a167e9-21c4-792a-a10b-e36304af4ddf / 01a167e9-21c7-7a2d-872c-c06b53e28700 / 01a167e9-21ca-738d-9bae-95fc4d736a88 / 01a167e9-21cd-7a18-b1df-eacf1fea87a6 / 01a167e9-21d0-749d-a485-ddc2943f0535 / 01a167e9-21d3-7e29-9915-33f9c849be17 / 01a167e9-21d6-7e9d-89c4-70dc3df73072 / 01a167e9-21d9-7b56-9484-4fb75fd18a37 |
-| レシピ: 重水素 / 反物質 / 反物質爆弾 / 高純度炭素 / グラフェンシート / グラフェンケーブル / 銅板戻し / 3Dプリンタのコンピュータ / 3Dプリンタの制御モータ | 01a167e9-21dc-7eb1-a240-8345ed8fbd40 / 01a167e9-21df-7b2a-81e3-04be55cb89b0 / 01a167e9-21e2-7c4e-91be-8ad747466bde / 01a167e9-21e5-7b43-9414-15365405623b / 01a167e9-21e8-76b9-bf3f-b462360e3fa9 / 01a167e9-21eb-7e67-b6ee-1d6503d8af84 / 01a167e9-21ee-7339-b7b6-351ad1775730 / 01a167e9-21f0-7d5b-8ddc-18a841c01637 / 01a167e9-21f3-73f5-9418-35a676b8fa3f |
-| 研究: 最終研究 | 01a167e9-21f6-7d26-a990-e7d6d78750d0 |
-| スタック表: グラフェンケーブル [1000] | 01a167e9-21f9-70a8-be5e-08c2ba6895c9 |
+## テスト mod の ID
 
 テスト mod（`moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/`）に足す ID:
 
@@ -193,225 +145,13 @@ S2 のマスタブランチ（Task 5 で取り込む）: 研究「ロケット�
 
 ---
 
-### Task 1: マスタ — 重水素・核融合炉・重水素抽出装置・反物質・反物質製造装置・反物質爆弾レシピ
+### Task 1: （統合タスクへ移した）マスタ — 重水素・核融合炉・重水素抽出装置・反物質・反物質製造装置・反物質爆弾レシピ
 
-**Files:**
-- Create（git worktree）: `$HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame`
-- Modify: `server_v8/mods/moorestechAlphaMod_8/master/fluids.json`, `items.json`, `blocks.json`, `machineRecipes.json`, `research.json`（moorestech_master worktree 内）
-- Modify: `server_v8/mods/moorestechAlphaMod_8/localization/localization.csv`
-- Create: `moorestech_client/Library`（コピー。git 管理外）
+この PR では実行しない（マスタの中身は S1〜S3 の実装後に統合タスク bd `moorestech-xyuaf.2` で入れる。判断記録 P29）。下書きは末尾「統合タスクへ引き継ぐマスタの中身」の「旧 Task 1」。
 
-**Interfaces:**
-- Consumes: なし
-- Produces: 重水素 01a167e9-21b2-…、反物質 01a167e9-21b5-…、重水素抽出装置 01a167e9-21b8-…、反物質製造装置 01a167e9-21bb-… と各レシピ（Task 4 のシミュレーションが name で引く）
+### Task 2: （統合タスクへ移した）マスタ — グラフェン工程・金属3Dプリンタ・研究ツリー整理・最終研究
 
-- [ ] **Step 1: 作業場所を用意する**
-
-```bash
-pwd   # $HOME/hermes-agent/data/worktrees/moorestech/tier9-fusion-elevator-endgame
-git -C $HOME/hermes-agent/data/repos/moorestech_master fetch origin
-git -C $HOME/hermes-agent/data/repos/moorestech_master worktree add -b feat/tier9-fusion-elevator-endgame $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame origin/master
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame log --oneline -1   # b2149a0 tire9基板 以降であること
-moores-wt status   # Editor pid が空の worktree を Library のコピー元に選ぶ（候補: pr-apply）
-cp -Rc $HOME/hermes-agent/data/worktrees/moorestech/pr-apply/moorestech_client/Library moorestech_client/Library
-```
-その後 uloop-launch スキルで `./moorestech_client` の Editor を起動し、`uloop compile --project-path ./moorestech_client` が ErrorCount 0 になることを確かめる（Editor の PID を控える）。
-
-- [ ] **Step 2: 液体・アイテムを足す**
-
-以下 `M=$HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame/server_v8/mods/moorestechAlphaMod_8/master`。JSON は既存の整形（インデント・キー順）に合わせ、Python の `json.load`→要素追加→`json.dump(..., ensure_ascii=False, indent=<既存と同じ>)` で書く。
-
-`$M/fluids.json` の `data` に追加:
-```json
-{"name": "重水素", "fluidGuid": "01a167e9-21b2-7bb0-b6a3-0f17d349704e", "color": "#7FD8FF"}
-```
-`$M/items.json` の `data` に追加（反物質爆弾 sortPriority 1610 の直前）:
-```json
-{"itemGuid": "01a167e9-21b5-7479-9060-995505f43137", "imagePath": "", "name": "反物質", "sortPriority": 1605, "initialUnlocked": false, "recipeViewType": "IsUnlocked", "addressablePaths": {"handGrabModel": "", "entityModel": ""}, "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"}
-```
-
-- [ ] **Step 3: ブロックを足す・仮エントリを置き換える**
-
-既存モデルの寸法を測る。`uloop execute-dynamic-code --project-path ./moorestech_client` で次を実行し、4モデルの renderer bounds（size）を読む:
-```csharp
-using UnityEditor; using UnityEngine; using System.Linq;
-var paths = new[]{"Assets/AddressableResources/Block/FusionReactor.prefab","Assets/AddressableResources/Block/Deuterium_extraction_equipment.prefab","Assets/AddressableResources/Block/Antimatter_manufacturing_equipment.prefab","Assets/AddressableResources/Block/3D Printer.prefab","Assets/AddressableResources/Block/ElectricOven.prefab"};
-return string.Join("\n", paths.Select(p => { var go = AssetDatabase.LoadAssetAtPath<GameObject>(p); var rs = go.GetComponentsInChildren<Renderer>(); var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); return $"{p} min={b.min} size={b.size}"; }));
-```
-各 blockSize は size を切り上げた整数にする（旧 mod の値: 核融合炉 [19,10,17]・重水素抽出装置 [3,2,3]・反物質製造装置 [3,4,3]。測定と食い違えば測定値を採り、判断記録に実測値を書く）。コネクタの offset は「入口 = [floor(x/2), 0, 0] 向き [0,0,-1]、出口 = [floor(x/2), 0, z-1] 向き [0,0,1]」で、下の JSON はこの規則で旧寸法から計算した値。寸法を変えたら offset も同じ規則で直す。
-
-`$M/blocks.json` の核融合炉（01a162f1-…）の仮エントリを丸ごと次で置き換える（ガソリンエンジン発電機と同じキー構成）:
-```json
-{"blockGuid": "01a162f1-ab04-76e2-94cf-dc713edeb63b", "name": "核融合炉", "blockType": "ElectricGenerator", "blockSize": [19, 10, 17],
- "blockPrefabAddressablesPath": "Vanilla/Block/FusionReactor", "openable": true,
- "blockParam": {"fuelItemSlotCount": 0, "isInfinityPower": false, "infinityPower": 0,
-  "inventoryConnectors": {"inputConnects": [], "outputConnects": []},
-  "fuelFluidTankCapacity": 200,
-  "fluidInventoryConnectors": {"inflowConnects": [{"connectorGuid": "01a167e9-21c1-7ec0-9813-d30ce62e14c0", "offset": [9, 0, 0], "directions": [[0, 0, -1]], "option": {"flowCapacity": 600, "connectTankIndex": 0}}], "outflowConnects": []},
-  "fuelItems": [],
-  "fuelFluids": [{"fluidGuid": "01a167e9-21b2-7bb0-b6a3-0f17d349704e", "amount": 10, "time": 2, "power": 20000}],
-  "maxWireConnectionCount": 4, "connectionRange": 30, "connectionHeightRange": 20},
- "initialUnlocked": false,
- "requiredItems": [{"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 600}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 100}, {"itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 100}, {"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 100}],
- "placementsPerCost": 1, "sortPriority": 1195, "category": "電力", "subCategory": "発電"}
-```
-追加:
-```json
-{"blockGuid": "01a167e9-21b8-7db1-a289-99cdf7490fe9", "name": "重水素抽出装置", "blockType": "ElectricMachine", "blockSize": [3, 2, 3],
- "blockPrefabAddressablesPath": "Vanilla/Block/Deuterium_extraction_equipment", "openable": true,
- "blockParam": {"requiredPower": 4000, "idlePowerRate": 0.05, "inputSlotCount": 0, "outputSlotCount": 0,
-  "inventoryConnectors": {"inputConnects": [], "outputConnects": []},
-  "inputTankCount": 1, "outputTankCount": 1, "innerTankCapacity": 300, "moduleSlotCount": 3,
-  "fluidInventoryConnectors": {
-   "inflowConnects": [{"connectorGuid": "01a167e9-21c4-792a-a10b-e36304af4ddf", "offset": [1, 0, 0], "directions": [[0, 0, -1]], "option": {"flowCapacity": 600, "connectTankIndex": 0}}],
-   "outflowConnects": [{"connectorGuid": "01a167e9-21c7-7a2d-872c-c06b53e28700", "offset": [1, 0, 2], "directions": [[0, 0, 1]], "option": {"flowCapacity": 600, "connectTankIndex": 0}}]},
-  "maxWireConnectionCount": 2, "connectionRange": 30, "connectionHeightRange": 20},
- "initialUnlocked": false,
- "requiredItems": [{"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 100}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 20}, {"itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 20}],
- "placementsPerCost": 1, "sortPriority": 1110, "category": "生産", "subCategory": "化学"}
-```
-```json
-{"blockGuid": "01a167e9-21bb-76dd-9a83-0a249aa9f1fc", "name": "反物質製造装置", "blockType": "ElectricMachine", "blockSize": [3, 4, 3],
- "blockPrefabAddressablesPath": "Vanilla/Block/Antimatter_manufacturing_equipment", "openable": true,
- "blockParam": {"requiredPower": 12000, "idlePowerRate": 0.05, "inputSlotCount": 0, "outputSlotCount": 1,
-  "inventoryConnectors": {"inputConnects": [], "outputConnects": [{"connectorGuid": "01a167e9-21cd-7a18-b1df-eacf1fea87a6", "offset": [1, 0, 2], "directions": [[0, 0, 1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98"}]},
-  "inputTankCount": 1, "outputTankCount": 0, "innerTankCapacity": 300, "moduleSlotCount": 3,
-  "fluidInventoryConnectors": {"inflowConnects": [{"connectorGuid": "01a167e9-21ca-738d-9bae-95fc4d736a88", "offset": [1, 0, 0], "directions": [[0, 0, -1]], "option": {"flowCapacity": 600, "connectTankIndex": 0}}], "outflowConnects": []},
-  "maxWireConnectionCount": 2, "connectionRange": 30, "connectionHeightRange": 20},
- "initialUnlocked": false,
- "requiredItems": [{"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 400}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 80}, {"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 100}],
- "placementsPerCost": 1, "sortPriority": 1120, "category": "生産", "subCategory": "化学"}
-```
-
-- [ ] **Step 4: レシピを足す**
-
-`$M/machineRecipes.json` の `data` に追加（機械の入力スロットの上限はスタック上限 100 なので、1スロットの投入数は 100 以下に保つ）:
-```json
-{"machineRecipeGuid": "01a167e9-21dc-7eb1-a240-8345ed8fbd40", "blockGuid": "01a167e9-21b8-7db1-a289-99cdf7490fe9", "time": 8, "inputItems": [], "inputFluids": [{"fluidGuid": "9eae6979-d56a-4991-9107-b8161acec430", "amount": 100}], "outputItems": [], "outputFluids": [{"fluidGuid": "01a167e9-21b2-7bb0-b6a3-0f17d349704e", "amount": 10}], "initialUnlocked": false}
-{"machineRecipeGuid": "01a167e9-21df-7b2a-81e3-04be55cb89b0", "blockGuid": "01a167e9-21bb-76dd-9a83-0a249aa9f1fc", "time": 30, "inputItems": [], "inputFluids": [{"fluidGuid": "01a167e9-21b2-7bb0-b6a3-0f17d349704e", "amount": 50}], "outputItems": [{"itemGuid": "01a167e9-21b5-7479-9060-995505f43137", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
-{"machineRecipeGuid": "01a167e9-21e2-7c4e-91be-8ad747466bde", "blockGuid": "019e1225-f49b-7283-8835-428d903852f1", "time": 60, "inputItems": [{"itemGuid": "01a167e9-21b5-7479-9060-995505f43137", "count": 20}, {"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 50}, {"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 100}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 20}], "inputFluids": [], "outputItems": [{"itemGuid": "01a162ab-07ba-73c1-9dd6-38e1e867663b", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
-```
-
-- [ ] **Step 5: 研究の解放物と仮コストを足す**
-
-`$M/research.json`:
-- 核融合炉（019e3af0-…）: `consumeItems` = `[{ICチップLv1, 600}, {鋼鉄板, 3000}, {コンピュータ, 600}, {制御モータ, 600}]`、`clearedActions` の unlockBlock を `["01a162f1-ab04-76e2-94cf-dc713edeb63b", "01a167e9-21b8-7db1-a289-99cdf7490fe9"]` にする
-- 反物質爆弾（019e3aef-…）: `consumeItems` = `[{ICチップLv1, 1000}, {鋼鉄板, 4000}, {コンピュータ, 1000}]`、`clearedActions` を `unlockItemRecipeView ["01a167e9-21b5-7479-9060-995505f43137", "01a162ab-07ba-73c1-9dd6-38e1e867663b"]` と `unlockBlock ["01a167e9-21bb-76dd-9a83-0a249aa9f1fc"]` にする
-（`consumeItems` の要素は `{"itemGuid": ..., "itemCount": ...}`。値は agent前提・S1 待ち）
-
-- [ ] **Step 6: ローカライズ行を足す**
-
-`.../moorestechAlphaMod_8/localization/localization.csv`（ヘッダ `key,Source,english,japanese,german,korean`）。既存行が無いものだけ足す（`grep -n "01a162f1" localization.csv` で確認）:
-```
-fluid.01a167e9-21b2-7bb0-b6a3-0f17d349704e.name,重水素,Deuterium,重水素,Deuterium,중수소
-item.01a167e9-21b5-7479-9060-995505f43137.name,反物質,Antimatter,反物質,Antimaterie,반물질
-block.01a162f1-ab04-76e2-94cf-dc713edeb63b.name,核融合炉,Fusion Reactor,核融合炉,Fusionsreaktor,핵융합로
-block.01a167e9-21b8-7db1-a289-99cdf7490fe9.name,重水素抽出装置,Deuterium Extractor,重水素抽出装置,Deuteriumextraktor,중수소 추출기
-block.01a167e9-21bb-76dd-9a83-0a249aa9f1fc.name,反物質製造装置,Antimatter Fabricator,反物質製造装置,Antimateriefabrik,반물질 제조기
-```
-
-- [ ] **Step 7: 整合ツールとマスタ読込スモークを通す**
-
-```bash
-cd $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame
-python3 tools/research_sync/sync_machine_recipe_unlocks.py      # 機械レシピの解放ノードを書き戻す
-python3 tools/research_sync/sync_machine_recipe_unlocks.py --check   # exit 0
-python3 tools/research_sync/progression_check.py                    # 詰みが増えない
-python3 scripts/check_shipped_data_contracts.py                      # exit 0
-```
-Expected: 重水素・反物質・反物質爆弾のレシピがそれぞれ 核融合炉・反物質爆弾・反物質爆弾 ノードの unlockMachineRecipe に入る。
-
-スモーク（`uloop execute-dynamic-code --project-path ./moorestech_client`）:
-```csharp
-using Server.Boot; using Core.Master; using System;
-// worktree 直下の兄弟 moorestech_master/tier9-fusion-elevator-endgame を指す（Assets から4つ上が worktrees/）
-var dir = System.IO.Path.GetFullPath(System.IO.Path.Combine(UnityEngine.Application.dataPath, "../../../../moorestech_master/tier9-fusion-elevator-endgame/server_v8"));
-new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(dir));
-var reactor = MasterHolder.BlockMaster.GetBlockMaster(Guid.Parse("01a162f1-ab04-76e2-94cf-dc713edeb63b"));
-return $"{reactor.Name} {reactor.BlockType} fluid={MasterHolder.FluidMaster.GetFluidId(Guid.Parse("01a167e9-21b2-7bb0-b6a3-0f17d349704e"))}";
-```
-Expected: `核融合炉 ElectricGenerator fluid=<数値>`。仮エントリ（宇宙エレベーター拠点・ロケット発射台の空 blockType）でローダーが落ちた場合は、そのエラー行を判断記録に実測として書き、Task 6 の後のスモークで解消を確かめる（それ以外のエラーは直す）。
-
-- [ ] **Step 8: コミットして push する**
-
-```bash
-cd $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame
-git add server_v8/mods/moorestechAlphaMod_8
-git commit -m "data(v8): 重水素・核融合炉・重水素抽出装置・反物質・反物質製造装置と爆弾レシピを足す"
-git push -u origin feat/tier9-fusion-elevator-endgame
-```
-
-### Task 2: マスタ — グラフェン工程・金属3Dプリンタ・研究ツリー整理・最終研究
-
-**Files:**
-- Modify: `$M/items.json`, `$M/blocks.json`, `$M/machineRecipes.json`, `$M/research.json`, `.../localization/localization.csv`（moorestech_master worktree 内）
-
-**Interfaces:**
-- Consumes: Task 1 のマスタ
-- Produces: 金属3Dプリンタ（ブロック）01a167e9-21be-…、最終研究 01a167e9-21f6-…、グラフェン4レシピ（Task 4 のシミュレーションが name で引く）
-
-- [ ] **Step 1: 金属3Dプリンタをアイテムからブロックへ移す**
-
-アイテム 019e3af5-e750-71ae-ab09-2b98f3db9913 を `$M/items.json` から消し、`grep -rn "019e3af5-e750-71ae-ab09-2b98f3db9913" $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame/server_v8` の残り（研究の unlockItemRecipeView・ローカライズ・クラフトレシピ）も消す。Task 1 Step 3 で測った `3D Printer` の寸法で blockSize を決め、`$M/blocks.json` に追加（下は [3,3,3] の場合の offset）:
-```json
-{"blockGuid": "01a167e9-21be-72cd-ae04-e5bbe12b95c2", "name": "金属3Dプリンタ", "blockType": "ElectricMachine", "blockSize": [3, 3, 3],
- "blockPrefabAddressablesPath": "Vanilla/Block/3D Printer", "openable": true,
- "blockParam": {"requiredPower": 300, "idlePowerRate": 0.2, "inputSlotCount": 3, "outputSlotCount": 1,
-  "inventoryConnectors": {"inputConnects": [{"connectorGuid": "01a167e9-21d0-749d-a485-ddc2943f0535", "offset": [1, 0, 0], "directions": [[0, 0, -1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98"}],
-   "outputConnects": [{"connectorGuid": "01a167e9-21d3-7e29-9915-33f9c849be17", "offset": [1, 0, 2], "directions": [[0, 0, 1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98"}]},
-  "inputTankCount": 0, "outputTankCount": 0, "innerTankCapacity": 0, "moduleSlotCount": 3,
-  "fluidInventoryConnectors": {"inflowConnects": [], "outflowConnects": []},
-  "maxWireConnectionCount": 2, "connectionRange": 30, "connectionHeightRange": 20},
- "initialUnlocked": false,
- "requiredItems": [{"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 60}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 10}, {"itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 10}],
- "placementsPerCost": 1, "sortPriority": 1010, "category": "生産", "subCategory": "電気機械"}
-```
-
-- [ ] **Step 2: グラフェン工程と3Dプリンタのレシピを足す**
-
-`$M/machineRecipes.json` に追加:
-```json
-{"machineRecipeGuid": "01a167e9-21e5-7b43-9414-15365405623b", "blockGuid": "019e0a68-3705-75f7-a040-50fab3c7d81e", "time": 3, "inputItems": [{"itemGuid": "f882df45-5651-4aec-b871-a9f885a5f75f", "count": 2}], "inputFluids": [], "outputItems": [{"itemGuid": "01a16297-a7f5-759b-91ba-be4021ca3bf2", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
-{"machineRecipeGuid": "01a167e9-21e8-76b9-bf3f-b462360e3fa9", "blockGuid": "019e0a68-3705-75f7-a040-50fab3c7d81e", "time": 6, "inputItems": [{"itemGuid": "01a16297-a7f5-759b-91ba-be4021ca3bf2", "count": 2}, {"itemGuid": "019e0a92-1907-707a-8625-630d86a076ee", "count": 1}], "inputFluids": [], "outputItems": [{"itemGuid": "01a16297-4724-73b9-82c3-2e77120be77d", "count": 1, "percent": 1}, {"itemGuid": "01a16297-6665-765d-8e19-96d357394c3e", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
-{"machineRecipeGuid": "01a167e9-21eb-7e67-b6ee-1d6503d8af84", "blockGuid": "019e1225-f49b-7283-8835-428d903852f1", "time": 6, "inputItems": [{"itemGuid": "01a16297-4724-73b9-82c3-2e77120be77d", "count": 1}], "inputFluids": [], "outputItems": [{"itemGuid": "01a16290-f793-748b-a0b0-91d44be0d4ab", "count": 5, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
-{"machineRecipeGuid": "01a167e9-21ee-7339-b7b6-351ad1775730", "blockGuid": "019e0a68-3705-75f7-a040-50fab3c7d81e", "time": 3, "inputItems": [{"itemGuid": "01a16297-6665-765d-8e19-96d357394c3e", "count": 1}], "inputFluids": [], "outputItems": [{"itemGuid": "019e0a92-1907-707a-8625-630d86a076ee", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
-{"machineRecipeGuid": "01a167e9-21f0-7d5b-8ddc-18a841c01637", "blockGuid": "01a167e9-21be-72cd-ae04-e5bbe12b95c2", "time": 4, "inputItems": [{"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 1}, {"itemGuid": "019e0a92-1907-707a-8625-630d86a076ee", "count": 5}, {"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 2}], "inputFluids": [], "outputItems": [{"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
-{"machineRecipeGuid": "01a167e9-21f3-73f5-9418-35a676b8fa3f", "blockGuid": "01a167e9-21be-72cd-ae04-e5bbe12b95c2", "time": 5, "inputItems": [{"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 1}, {"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 4}, {"itemGuid": "019e0a92-1907-707a-8625-630d86a076ee", "count": 4}], "inputFluids": [], "outputItems": [{"itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
-```
-
-- [ ] **Step 3: 研究ツリーを整理し最終研究を足す**
-
-`$M/research.json`:
-- フィルター分岐器（019e3aab-…）のノードを消す
-- 金属超精密加工（019e3af5-f2e6-…）: `prevResearchNodeGuids` = `["019e3ae2-5005-7439-b242-9b7b3191a2c3"]`、`consumeItems` = `[{ICチップLv1, 300}, {鋼鉄板, 1500}, {制御モータ, 300}]`、`clearedActions` = `[{"gameActionType": "unlockBlock", "gameActionParam": {"unlockBlockGuids": ["01a167e9-21be-72cd-ae04-e5bbe12b95c2"]}}]`、説明「ICチップから部品を1工程で作る金属3Dプリンタを解放する」
-- 軌道エレベーターの建設（01a16291-…）: 説明「グラフェンケーブルと宇宙エレベーター拠点を解放する」、`graphViewSettings.UIPosition` = `[4590, 0]`、`consumeItems` = `[{ICチップLv1, 800}, {鋼鉄板, 3000}]`（計算データ・ロケット関連は Task 5）
-- 機械オーバークロック（019e3ae2-…）は触らない（S1 が速度モジュール研究として作る）
-- 最終研究を追加:
-```json
-{"researchNodeGuid": "01a167e9-21f6-7d26-a990-e7d6d78750d0", "researchNodeName": "最終研究", "researchNodeDescription": "反物質爆弾を規定量そろえたことを記録する仮の研究。現段階のゲームの終点（解放物なし）",
- "consumeItems": [{"itemGuid": "01a162ab-07ba-73c1-9dd6-38e1e867663b", "itemCount": 10}],
- "prevResearchNodeGuids": ["019e3aef-a149-746b-8fad-159e0434cb51"],
- "clearedActions": [],
- "graphViewSettings": {"UIPosition": [4930, -200], "UIScale": [1, 1, 1], "IconItem": "01a162ab-07ba-73c1-9dd6-38e1e867663b"}}
-```
-
-- [ ] **Step 4: ローカライズを直す**
-
-localization.csv: フィルター分岐器ノード（`research.019e3aab-32c6-7166-a184-d761153c2498.*`）と旧アイテム（`item.019e3af5-e750-71ae-ab09-2b98f3db9913.name`）の行を消し、次を足す（金属超精密加工・軌道エレベーターの建設の description 行は新しい説明文へ書き換える。英独韓も対応する訳に）:
-```
-block.01a167e9-21be-72cd-ae04-e5bbe12b95c2.name,金属3Dプリンタ,Metal 3D Printer,金属3Dプリンタ,Metall-3D-Drucker,금속 3D 프린터
-research.01a167e9-21f6-7d26-a990-e7d6d78750d0.name,最終研究,Final Research,最終研究,Abschlussforschung,최종 연구
-research.01a167e9-21f6-7d26-a990-e7d6d78750d0.description,反物質爆弾を規定量そろえたことを記録する仮の研究。現段階のゲームの終点（解放物なし）,"A provisional research that records stockpiling the required antimatter bombs. The current end of the game (unlocks nothing)",反物質爆弾を規定量そろえたことを記録する仮の研究。現段階のゲームの終点（解放物なし）,"Vorläufige Forschung, die das Bereitstellen der nötigen Antimateriebomben festhält. Derzeitiges Spielende (schaltet nichts frei)","필요한 반물질 폭탄을 모은 것을 기록하는 임시 연구. 현재 게임의 끝 (해금 없음)"
-```
-
-- [ ] **Step 5: 整合ツールを通し、コミットして push する**
-
-Task 1 Step 7 と同じ4コマンドとスモーク（金属3Dプリンタのブロックが引けること）。Expected: グラフェンのレシピ4本が 軌道エレベーターの建設 に、3Dプリンタのレシピ2本が 金属超精密加工 に割り当たる。最終研究がツリーから到達可能。
-```bash
-git add server_v8/mods/moorestechAlphaMod_8
-git commit -m "data(v8): グラフェン工程・金属3Dプリンタ・最終研究を足しフィルター分岐器ノードを消す"
-git push
-```
+この PR では実行しない（マスタの中身は S1〜S3 の実装後に統合タスク bd `moorestech-xyuaf.2` で入れる。判断記録 P29）。下書きは末尾「統合タスクへ引き継ぐマスタの中身」の「旧 Task 2」。
 
 ### Task 3: 発電機（ElectricGenerator）の稼働表示
 
@@ -427,7 +167,6 @@ git push
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlockGameObjectPrefabContainer.cs:146-154`
 - Modify: `moorestech_web/webui/src/features/blockInventory/views/SectionStackView.tsx:29`
 - Modify: `moorestech_web/webui/src/features/blockInventory/views/__tests__/SectionStackView.test.tsx`
-- Modify: `moorestech_web/webui/e2e/fixtures/v8-block-ui-registry.json`、`moorestech_web/webui/e2e/tests/block/blockRegistryCoverage.spec.ts`
 - Test: `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Electric/ElectricGeneratorStateDetailTest.cs`
 
 **Interfaces:**
@@ -530,7 +269,7 @@ namespace Tests.CombinedTest.Core.Electric
         private static (VanillaElectricGeneratorComponent, FuelFluidsElement, FluidId) Setup()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GeneratorId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GeneratorId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block));
             var param = (ElectricGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockParam;
             var fuel = param.FuelFluids[0];
             return (block.GetComponent<VanillaElectricGeneratorComponent>(), fuel, MasterHolder.FluidMaster.GetFluidId(fuel.FluidGuid));
@@ -672,9 +411,7 @@ public PowerGeneratorStateDetail(double remainingFuelSeconds, double currentFuel
 ```
 `SectionStackView.test.tsx` の `["ElectricGenerator", "generator-fuel-grid", null, true, true]` を `["ElectricGenerator", "generator-fuel-grid", "generator-fluid-slots", false, false]` にする。新しい worktree なので最初に `cd moorestech_web/webui && pnpm install --frozen-lockfile`。
 
-核融合炉が `openable: true` になると、e2e の `blockRegistryCoverage.spec.ts`（blocks.json の `[blockType, openable]` を `sort -u` した fixture のうち openable の型が、レジストリか意図的 Generic に入っているかを見る）が ElectricGenerator で落ちる。発電機は専用 view を作らず汎用の `SectionStackView` で出すので、意図的 Generic に入れる:
-- `e2e/fixtures/v8-block-ui-registry.json` の `{ "blockType": "ElectricGenerator", "openable": false },` の次の行に `{ "blockType": "ElectricGenerator", "openable": true },` を足す（他の発電機は openable false のままなので両方の行が残る）
-- `e2e/tests/block/blockRegistryCoverage.spec.ts` の `intentionalGeneric` の `"ElectricMachine",` の前に `"ElectricGenerator",` を足す
+出荷マスタの発電機はまだ開けない（`openable: false`）ので、e2e の registry fixture と `intentionalGeneric` は変えない。核融合炉を開けるようにしたときの e2e の追加は統合タスクで行う（末尾の節「旧 Task 3 Step 4 の e2e」）。
 
 - [ ] **Step 5: コンパイルしテストを実行する**
 
@@ -684,180 +421,53 @@ Expected: ErrorCount 0 / 全 PASS
 - [ ] **Step 6: コミットする**
 
 ```bash
-git add moorestech_server/Assets/Scripts/Game.Block/Blocks/PowerGenerator moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Electric/ElectricGeneratorStateDetailTest.cs* moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlockGameObjectPrefabContainer.cs moorestech_web/webui/src/features/blockInventory/views moorestech_web/webui/e2e/fixtures/v8-block-ui-registry.json moorestech_web/webui/e2e/tests/block/blockRegistryCoverage.spec.ts
+git add moorestech_server/Assets/Scripts/Game.Block/Blocks/PowerGenerator moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/Electric/ElectricGeneratorStateDetailTest.cs* moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlockGameObjectPrefabContainer.cs moorestech_web/webui/src/features/blockInventory/views
 git commit -m "feat(generator): 電気発電機が稼働率と燃料タンクを状態詳細に出す"
 ```
 
-### Task 4: 数値シミュレーション（核融合・反物質・グラフェン）
+### Task 4: （統合タスクへ移した）数値シミュレーション（核融合・反物質・グラフェン）
+
+この PR では実行しない（マスタの中身は S1〜S3 の実装後に統合タスク bd `moorestech-xyuaf.2` で入れる。判断記録 P29）。下書きは末尾「統合タスクへ引き継ぐマスタの中身」の「旧 Task 4」。
+
+### Task 5: S2 取り込みゲート
 
 **Files:**
-- Create: `tools/balance/tier9_endgame_balance.py`（moorestech_master worktree 内）
-
-**Interfaces:**
-- Consumes: Task 1・2 のマスタ（名前で引く: `核融合炉`, `重水素抽出装置`, `反物質製造装置`, `ガソリンエンジン発電機`, `電気炉`, `電気汎用工作装置`, `重水素`, `反物質`, `反物質爆弾`, `グラフェンケーブル`, `グラフェンシート`, `高純度炭素`, `最終研究`）
-- Produces: `python3 tools/balance/tier9_endgame_balance.py` が目標外で exit 1（Task 12 がエレベーターの検査を足す）
-
-- [ ] **Step 1: スクリプトを書く**
-
-```python
-#!/usr/bin/env python3
-# Tier9 終盤の数値（核融合の差し引き電力・反物質・グラフェン）を出荷マスタから計算し目標と照合する
-# Compute Tier9 endgame numbers (fusion net power, antimatter, graphene) from the shipped master and check targets
-# 目標の根拠: moorestech ADR 0090（差し引きはガソリン発電機数台分）、S1 裁定（Tier9 15〜25時間・S3 配分 5〜11時間）
-# Targets: moorestech ADR 0090 (net equals a few gasoline generators) and the S1 ruling (Tier9 15-25h, S3 share 5-11h)
-import json, os, sys
-
-ROOT = os.path.join(os.path.dirname(__file__), '..', '..')
-M = os.path.join(ROOT, 'server_v8', 'mods', 'moorestechAlphaMod_8', 'master')
-
-
-def load(name):
-    with open(os.path.join(M, name), encoding='utf-8') as f:
-        return json.load(f)
-
-
-blocks = {b['name']: b for b in load('blocks.json')['data']}
-fluids = {f['name']: f['fluidGuid'] for f in load('fluids.json')['data']}
-items = {i['name']: i['itemGuid'] for i in load('items.json')['data']}
-recipes = load('machineRecipes.json')['data']
-research = {r['researchNodeName']: r for r in load('research.json')['data']}
-failures = []
-
-
-def check(label, value, low, high):
-    ok = low <= value <= high
-    print(f"{'OK' if ok else 'NG'} {label}: {value:.2f}（目標 {low}〜{high}）")
-    if not ok:
-        failures.append(label)
-
-
-def recipe_of(block_name, output_name, is_fluid):
-    # 機械と出力名からレシピと出力量を引く。無ければ原因名つきで止める
-    # Look up the recipe and output amount by machine and output name; abort naming the cause when missing
-    block_guid = blocks[block_name]['blockGuid']
-    key, guid_key, amount_key = ('outputFluids', 'fluidGuid', 'amount') if is_fluid else ('outputItems', 'itemGuid', 'count')
-    target = fluids[output_name] if is_fluid else items[output_name]
-    for recipe in recipes:
-        if recipe['blockGuid'] != block_guid:
-            continue
-        for output in recipe[key]:
-            if output[guid_key] == target:
-                return recipe, output[amount_key]
-    sys.exit(f'ERROR recipe not found: {block_name} -> {output_name}')
-
-
-# 核融合: 炉1基の重水素消費を賄う抽出装置の台数と差し引き電力
-# Fusion: extractors needed to feed one reactor and the resulting net power
-gasoline_power = blocks['ガソリンエンジン発電機']['blockParam']['fuelFluids'][0]['power']
-reactor_fuel = blocks['核融合炉']['blockParam']['fuelFluids'][0]
-extractor = blocks['重水素抽出装置']['blockParam']
-extract_recipe, extract_out = recipe_of('重水素抽出装置', '重水素', True)
-deuterium_per_extractor = extract_out / extract_recipe['time']
-extractors_per_reactor = (reactor_fuel['amount'] / reactor_fuel['time']) / deuterium_per_extractor
-net_power = reactor_fuel['power'] - extractors_per_reactor * extractor['requiredPower']
-print(f"炉: 出力 {reactor_fuel['power']} / 抽出装置 {extractors_per_reactor:.2f} 台 × {extractor['requiredPower']} / 差し引き {net_power:.0f}")
-check('炉1基の差し引き電力（ガソリン発電機何台分）', net_power / gasoline_power, 3, 5)
-check('炉1基に要る抽出装置の台数', extractors_per_reactor, 2, 8)
-# モジュール値は S1 の担当。仮に省エネ3枚で消費-45%とした場合を参考表示する（検査はしない）
-# Module values belong to S1; show a reference case of three efficiency modules at -45% (not checked)
-print(f"参考: 抽出装置の消費-45%なら差し引き {reactor_fuel['power'] - extractors_per_reactor * extractor['requiredPower'] * 0.55:.0f}")
-
-# 反物質: 1台の電力（重水素づくりを含む）と、最終研究の爆弾を揃える時間
-# Antimatter: power per fabricator including its deuterium, and the time to stock the final research bombs
-fabricator = blocks['反物質製造装置']['blockParam']
-antimatter_recipe, antimatter_out = recipe_of('反物質製造装置', '反物質', False)
-deuterium_in = antimatter_recipe['inputFluids'][0]['amount'] / antimatter_recipe['time']
-fabricator_total_power = fabricator['requiredPower'] + deuterium_in / deuterium_per_extractor * extractor['requiredPower']
-check('反物質製造装置1台の電力（炉の差し引き何基分）', fabricator_total_power / net_power, 3, 6)
-bomb_recipe, _ = recipe_of('電気汎用工作装置', '反物質爆弾', False)
-antimatter_per_bomb = next(i['count'] for i in bomb_recipe['inputItems'] if i['itemGuid'] == items['反物質'])
-final_bombs = next(c['itemCount'] for c in research['最終研究']['consumeItems'] if c['itemGuid'] == items['反物質爆弾'])
-hours = final_bombs * antimatter_per_bomb / (2 * antimatter_out / antimatter_recipe['time']) / 3600
-check('反物質製造装置2台で最終研究の爆弾を揃える時間 [h]', hours, 0.5, 3)
-
-# グラフェン: ロケット1便分（1000本）を1時間で作る機械台数
-# Graphene: machines needed to make one launch (1000 cables) per hour
-cable_recipe, cable_out = recipe_of('電気汎用工作装置', 'グラフェンケーブル', False)
-sheet_recipe, sheet_out = recipe_of('電気炉', 'グラフェンシート', False)
-carbon_recipe, carbon_out = recipe_of('電気炉', '高純度炭素', False)
-cables_per_sec = 1000 / 3600
-sheets_per_sec = cables_per_sec / cable_out * cable_recipe['inputItems'][0]['count']
-carbon_per_sec = sheets_per_sec / sheet_out * next(i['count'] for i in sheet_recipe['inputItems'] if i['itemGuid'] == items['高純度炭素'])
-machines = (cables_per_sec / (cable_out / cable_recipe['time'])
-            + sheets_per_sec / (sheet_out / sheet_recipe['time'])
-            + carbon_per_sec / (carbon_out / carbon_recipe['time']))
-check('1便分のケーブルを1時間で作る機械台数（戻し炉を除く）', machines, 1, 12)
-
-if failures:
-    print('NG: ' + ', '.join(failures))
-    sys.exit(1)
-```
-
-- [ ] **Step 2: 実行して目標に合わせる**
-
-Run: `python3 tools/balance/tier9_endgame_balance.py`（moorestech_master worktree で）
-Expected: 全行 OK、exit 0。NG が出たら blocks.json / machineRecipes.json の値（requiredPower・time・amount）を直して再実行し、直した値と理由を plan の『判断記録（ADR）』へ追記する。
-
-- [ ] **Step 3: コミットして push する**
-
-```bash
-git add tools/balance/tier9_endgame_balance.py server_v8/mods/moorestechAlphaMod_8
-git commit -m "tools: Tier9 終盤の数値を検査するシミュレーションを足す"
-git push
-```
-
-### Task 5: S2 取り込みゲートと S2 依存のマスタ
-
-**Files:**
-- Modify（merge）: moorestech と moorestech_master の両 worktree
-- Modify: `$M/items.json`, `$M/research.json`, `.../localization/localization.csv`
+- Modify（merge）: moorestech worktree（S2 の `feat/tier9-compute-data-loop` を取り込む。moorestech_master は触らない）
 
 **Interfaces:**
 - Consumes（S2）: `Game.Orbit.IOrbitalArrivalService`（`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`、`IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)`（Arrive と同じ成果を返し、通知も記録もしない）、`bool IsOrbitalPayload(ItemId itemId)`、`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`）、`Game.Orbit.OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`）、items.yml の `orbitalPayloads`（`payloadItemGuid` / `countPerLaunch` / `arrivalOutputs[{itemGuid, count}]`）、`WorldSaveAllInfo.CurrentVersion == 7`
-- Produces: グラフェンケーブルの積荷行と [1000] スタック表、研究 (a)(b)(c)
+- Produces: S2 の `Game.Orbit`・積荷表のスキーマ（items.yml の `orbitalPayloads`）・テスト mod の積荷2行・S2 のピン（`.moorestech-external-revisions.json`）を取り込んだ moorestech ブランチ
 
 - [ ] **Step 1: ゲート — S2 の push を確かめる**
 
 ```bash
 git fetch origin
 git grep -l "PreviewArrivalOutputs" origin/feat/tier9-compute-data-loop -- moorestech_server/Assets/Scripts/Game.Orbit
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame fetch origin
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame grep -l "orbitalPayloads" origin/feat/tier9-compute-data-loop -- server_v8/mods/moorestechAlphaMod_8/master/items.json
+git grep -l "orbitalPayloads" origin/feat/tier9-compute-data-loop -- VanillaSchema/items.yml
 ```
-2つとも当たれば（`IOrbitalArrivalService` に `PreviewArrivalOutputs` があり、S2 のマスタブランチの items.json に積荷表がある）Step 2 へ。S2 が既に origin/master へマージ済みなら、以降の `origin/feat/tier9-compute-data-loop` を `origin/master` に読み替える。当たらなければ、前景で `sleep 600` → 上を再実行、を最大12回（2時間）繰り返す。それでも無ければ `bd note` に「S2 の Game.Orbit 未 push で Task 5 以降を保留」と書き、Task 1〜4 の成果を push した状態で止まって報告する（解決不能な障害）。
+2つとも当たれば（`IOrbitalArrivalService` に `PreviewArrivalOutputs` があり、S2 の items.yml に積荷表がある）Step 2 へ。S2 が既に origin/master へマージ済みなら、以降の `origin/feat/tier9-compute-data-loop` を `origin/master` に読み替える。当たらなければ、前景で `sleep 600` → 上を再実行、を最大12回（2時間）繰り返す。それでも無ければ `bd note moorestech-xyuaf.1` に「S3: S2 の Game.Orbit 未 push で Task 5 以降を保留」と書き、Task 3 の成果を push した状態で止まって報告する（解決不能な障害）。
 
-- [ ] **Step 2: 両 repo へ S2 を取り込む**
+- [ ] **Step 2: S2 を取り込む**
 
 ```bash
 git merge --no-ff origin/feat/tier9-compute-data-loop -m "Merge S2 (feat/tier9-compute-data-loop) for Game.Orbit"
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame merge --no-ff origin/feat/tier9-compute-data-loop -m "Merge S2 master for orbitalPayloads"
+git show HEAD:.moorestech-external-revisions.json
+git show origin/feat/tier9-compute-data-loop:.moorestech-external-revisions.json
 ```
-衝突の解き方: `research.json`・`items.json`・`blocks.json`・`localization.csv` は両方の追加を残す（S3 は 軌道エレベーターの建設 を、S2 は ロケット技術 ほかを触っている）。`.moorestech-external-revisions.json` は S3 側を残す（Task 15 で付け直す）。解いたら `uloop compile --project-path ./moorestech_client`（ErrorCount 0）と `grep -n "CurrentVersion" moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs`（`= 7` であること。6 なら S2 の版上げが未取り込み → Step 1 へ戻る）。S2 のテスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Orbit"` が通ることを確かめる。
+S3 はマスタを変えないので、`.moorestech-external-revisions.json` は S2 側の値になる（2つの `git show` の `moorestech_master` の値が一致すること。衝突したら `git checkout --theirs .moorestech-external-revisions.json` で S2 側を取る）。他の衝突は両方の変更を残す。解いたら:
+- `uloop compile --project-path ./moorestech_client`（ErrorCount 0）
+- `grep -n "CurrentVersion" moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs` が `= 7`（6 なら S2 の版上げが未取り込み → Step 1 へ戻る）
+- `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Orbit"` が全 PASS
+- Editor でマスタを読み直し（RepositorySync がピンへ checkout する）、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `MooresmasterLoaderException`・`[ItemMaster]`・`[BlockMaster]` が無い。出たら S2 の範囲なので直さず、`bd note moorestech-xyuaf.1` に内容を書いて続ける（サーバーテストはテスト mod で動く）。PR 本文にも書く
+- `git diff -- .moorestech-external-revisions.json` が空（Editor が書き戻していたら `git checkout -- .moorestech-external-revisions.json`）
 
-- [ ] **Step 3: グラフェンケーブルを積荷表に載せ、スタック上限 1000 の表を割り当てる**
+- [ ] **Step 3: push する**
 
-`$M/items.json`（S2 取り込み後に `orbitalPayloads` のキー名を S2 の items.yml で確かめる）:
-- `itemStackLevelTables` に `{"tableGuid": "01a167e9-21f9-70a8-be5e-08c2ba6895c9", "name": "グラフェンケーブル", "stackCounts": [1000]}` を足す
-- グラフェンケーブル（01a16290-…）の `stackLevelTableGuid` を `01a167e9-21f9-70a8-be5e-08c2ba6895c9` にする
-- `orbitalPayloads` に `{"payloadItemGuid": "01a16290-f793-748b-a0b0-91d44be0d4ab", "countPerLaunch": 1000, "arrivalOutputs": []}` を足す
-
-- [ ] **Step 4: 研究「軌道エレベーターの建設」と「反物質爆弾」を S2 に合わせる**
-
-`$M/research.json`:
-- 軌道エレベーターの建設（01a16291-…）: (a) `unlockBlock` から ロケット発射台 01a162b0-7769-7419-af24-bb35528b93d2 を、`unlockItemRecipeView` から ロケット筐体素材・ロケット燃料（GUID は items.json を name で引く）を外す。(b) `consumeItems` に `{"itemGuid": "01a167cf-af88-74d3-9cd6-7d61b71052bb", "itemCount": <S2 の計算データ仮値>}` を足す（S2 の plan `docs/superpowers/plans/` の計算データ量の表を読む。見つからなければ 200 とし、判断記録に「S2 の値待ち」と書く）。(c) `prevResearchNodeGuids` に `01a167cf-af9d-7f31-817c-3069b4f6e499` を足す
-- 反物質爆弾（019e3aef-…）: `consumeItems` に 計算データ ×400（agent前提・S1/S2 待ち）を足す
-
-- [ ] **Step 5: 整合ツール・シミュレーション・スモークを通して push する**
-
-Task 1 Step 7 の4コマンド＋`python3 tools/balance/tier9_endgame_balance.py`＋スモーク（`MasterHolder.ItemMaster` からグラフェンケーブルのスタック上限が 1000 で引けること、S2 の積荷表の検証がマスタ読込で通ること）。
 ```bash
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame add server_v8
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame commit -m "data(v8): グラフェンケーブルを積荷表に載せ軌道エレベーターの建設をロケット技術の後ろにする"
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame push
-git push   # moorestech 側のマージコミット
+git push
 ```
 
-### Task 6: スキーマ `SpaceElevatorBase` と拠点のマスタ
+### Task 6: スキーマ `SpaceElevatorBase` とマスタ検証・テスト mod
 
 **Files:**
 - Modify: `VanillaSchema/blocks.yml`（`blockType` の `options` と case）
@@ -867,10 +477,10 @@ git push   # moorestech 側のマージコミット
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/{blocks,items,buildMenu}.json`
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs`、`ForUnitTestItemId.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Block/SpaceElevator/SpaceElevatorBaseMasterValidationTest.cs`
-- Modify（マスタ worktree）: `server_v8/mods/moorestechAlphaMod_8/master/blocks.json`、`localization/localization.csv`
+（出荷マスタの拠点を `SpaceElevatorBase` にするのは統合タスク。末尾の節「旧 Task 6 Step 5〜7 のマスタ部分」）
 
 **Interfaces:**
-- Consumes: Task 5 の S2 取り込み（items.yml の `orbitalPayloads`、ビルドメニュー「生産>宇宙」）
+- Consumes: Task 5 の S2 取り込み（items.yml の `orbitalPayloads` とテスト mod の `orbitalPayloads` 配列）
 - Produces:
   - 生成型 `Mooresmaster.Model.BlocksModule.SpaceElevatorBaseBlockParam`（`Guid[] CarriedPayloadItemGuids`, `Guid CableItemGuid`, `int CablesPerElevator`, `float ClimbSeconds`, `float RequiredPower`, `int OutputSlotCount`, `InventoryConnects InventoryConnectors`, `int MaxWireConnectionCount`, `int ConnectionRange`, `int ConnectionHeightRange`）と `BlockMasterElement.BlockTypeConst.SpaceElevatorBase`
   - `ForUnitTestModBlockId.TestSpaceElevatorBase`、`ForUnitTestItemId.TestElevatorCable` / `TestElevatorSatellite` / `TestElevatorReward`
@@ -1119,67 +729,16 @@ namespace Tests.UnitTest.Core.Block.SpaceElevator
 ```
 （`Action<JObject>` は `Func<>` ではないので可。前例の例外型が `InvalidOperationException` でなければ前例に合わせる）
 
-- [ ] **Step 5: 出荷マスタの拠点を本物にする**
-
-マスタ worktree の `blocks.json` の 宇宙エレベーター拠点（01a162aa-cec0-738c-93c5-f58adc87fa7f）の仮エントリを次の全文で置き換える:
-```json
-{
-  "blockGuid": "01a162aa-cec0-738c-93c5-f58adc87fa7f",
-  "name": "宇宙エレベーター拠点",
-  "blockType": "SpaceElevatorBase",
-  "blockSize": [9, 4, 9],
-  "blockPrefabAddressablesPath": "Vanilla/Block/SpaceElevatorBase",
-  "openable": true,
-  "blockParam": {
-    "carriedPayloadItemGuids": [
-      "01a167cf-af8b-7894-8de6-593ee30289c0",
-      "01a167cf-af8e-7e95-b299-09eb712bee12",
-      "01a167cf-af91-7f62-93d1-e499b06f2398",
-      "01a167cf-af94-7e25-9654-825374c3923b",
-      "01a167cf-af97-7f67-bf53-7833b8d17a15"
-    ],
-    "cableItemGuid": "01a16290-f793-748b-a0b0-91d44be0d4ab",
-    "cablesPerElevator": 1000,
-    "climbSeconds": 600,
-    "requiredPower": 2000,
-    "outputSlotCount": 4,
-    "inventoryConnectors": {
-      "inputConnects": [{ "connectorGuid": "01a167e9-21d6-7e9d-89c4-70dc3df73072", "offset": [4, 0, 0], "directions": [[0, 0, -1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98" }],
-      "outputConnects": [{ "connectorGuid": "01a167e9-21d9-7b56-9484-4fb75fd18a37", "offset": [4, 0, 8], "directions": [[0, 0, 1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98" }]
-    },
-    "maxWireConnectionCount": 4,
-    "connectionRange": 30,
-    "connectionHeightRange": 20
-  },
-  "initialUnlocked": false,
-  "requiredItems": [
-    { "itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 200 },
-    { "itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 50 },
-    { "itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 50 },
-    { "itemGuid": "231d2146-5e40-4e55-be27-22dda4175f47", "count": 100 }
-  ],
-  "placementsPerCost": 1,
-  "sortPriority": 1210,
-  "category": "生産",
-  "subCategory": "宇宙"
-}
-```
-（1エレベーター分 1000 本＝ケーブル1便。昇降 600 秒・電力 2000 は agent前提で Task 12 が S2 のロケット建造時間と比べて確定する。出口スロット 4 は agent前提で、GPU衛星1機の成果が空の出口に入りきるかを Task 7 の起動時検査が確かめる）
-`localization.csv` に `block.01a162aa-cec0-738c-93c5-f58adc87fa7f.name,宇宙エレベーター拠点,Space Elevator Base,宇宙エレベーター拠点,Weltraumaufzug-Basis,우주 엘리베이터 기지` が無ければ足す。
-
-- [ ] **Step 6: 生成・コンパイル・テスト・整合ツール**
+- [ ] **Step 5: 生成・コンパイル・テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`（ErrorCount 0。生成型 `SpaceElevatorBaseBlockParam` が見えること）→ `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevatorBaseMasterValidationTest|GearToElectricMasterValidationTest|Orbit"`
-Expected: 全 PASS。マスタ worktree で Task 1 Step 7 の4コマンドが exit 0。スモーク（Task 1 Step 8 の dynamic code を `MasterHolder.BlockMaster.GetBlockMaster(Guid.Parse("01a162aa-cec0-738c-93c5-f58adc87fa7f")).BlockType` を出す形にして実行）で `SpaceElevatorBase` が出る。
+Expected: 全 PASS。Editor でマスタを読み直し、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `MooresmasterLoaderException`・`[BlockMaster]` が増えていない（新しい case だけなので、ピン先の出荷マスタはそのまま読める）。
 
-- [ ] **Step 7: コミットして push する**
+- [ ] **Step 6: コミットする**
 
 ```bash
 git add VanillaSchema/blocks.yml moorestech_server/Assets/Scripts/Core.Master moorestech_server/Assets/Scripts/Tests.Module/TestMod moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Block/SpaceElevator
 git commit -m "feat(schema): 宇宙エレベーター拠点のブロック種別とマスタ検証を足す"
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame add server_v8
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame commit -m "data(v8): 宇宙エレベーター拠点を SpaceElevatorBase にする"
-git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame push
 ```
 （Unity が生成した新ファイルの .meta も `git status` で確かめて一緒に add する）
 
@@ -1190,7 +749,8 @@ git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/Game.SpaceElevator.asmdef`
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorCablePool.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorConnectionService.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorConnectResult.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorConnectResult.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorBaseMasters.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/SpaceElevatorOrbitalTableCheck.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.SpaceElevator/Save/SpaceElevatorCablePoolSaveData.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Game.SaveLoad.asmdef`、`moorestech_server/Assets/Scripts/Server.Boot/Server.Boot.asmdef`、`moorestech_server/Assets/Scripts/Tests/Server.Tests.asmdef`（`Game.SpaceElevator` を参照に足す）
@@ -1209,14 +769,14 @@ git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator
 **Interfaces:**
 - Consumes: S2 `IOrbitalArrivalService`（`Arrive`, `PreviewArrivalOutputs`, `IsOrbitalPayload`, `OnOrbitalArrival`）、`OrbitalArrival.PayloadItemId` / `PayloadCount`、Task 6 の `SpaceElevatorBaseBlockParam`
 - Produces:
-  - `ISpaceElevatorBase : IBlockComponent`（`bool IsConnected { get; }`, `void MarkConnected()`, `void SetCablePoolAmount(int amount)`）
-  - `SpaceElevatorCablePool : IBootInitializable`（`int Amount { get; private set; }`, `IObservable<int> OnAmountChanged`, `internal bool TryTake(int count)`, `internal void Add(int count)`, `SpaceElevatorCablePoolSaveData GetSaveData()`, `void Restore(SpaceElevatorCablePoolSaveData saveData)`）
+  - `ISpaceElevatorBase : IBlockComponent`（`bool IsConnected { get; }`, `void MarkConnected()`, `void SetCablePoolAvailability(int poolAmount, bool hasEnoughCable)`）
+  - `SpaceElevatorCablePool : IBootInitializable`（`int Amount { get; private set; }`, `IObservable<int> OnAmountChanged`, `internal bool HasEnough(int count)`, `internal bool TryTake(int count)`, `internal void Add(int count)`, `SpaceElevatorCablePoolSaveData GetSaveData()`, `void Restore(SpaceElevatorCablePoolSaveData saveData)`）
   - `SpaceElevatorConnectionService : IBootInitializable`（`SpaceElevatorConnectResult Connect(IBlock block)`）
   - `SpaceElevatorOrbitalTableCheck : IBootInitializable`（起動時に拠点のマスタを軌道到着の表と突き合わせ、合わなければ例外で起動を止める）
-  - `enum SpaceElevatorConnectResult { Connected, AlreadyConnected, InsufficientCable, NotSpaceElevatorBase }`
+  - `enum SpaceElevatorConnectResult { Connected, AlreadyConnected, InsufficientCable, NotSpaceElevatorBase }`（`Game.Block.Interface.Component.SpaceElevator`）
   - `SpaceElevatorCablePoolSaveData`（`[JsonProperty("cableCount")] public int CableCount;`）、セーブの節名 `spaceElevatorCablePool`、`WorldSaveAllInfo.CurrentVersion == 8`、`SaveMigrationStepV7ToV8`
 
-設計の要点（ADR 0089「呼び出し側の線引き」）: 拠点はプールの残量も引き算も知らない。接続の判定（残量 ≥ 1エレベーター分）と引き算・撤去の返却はすべて `SpaceElevatorConnectionService` が持ち、プール本体の `TryTake`/`Add` は同アセンブリ内だけに閉じる（`internal`）。外から見えるのは `Connect` の結果 enum だけ。
+設計の要点（ADR 0089「呼び出し側の線引き」）: 拠点はプールの残量の判定も引き算も知らない。接続できるかの判定（残量 ≥ 1エレベーター分）はプールの `HasEnough` だけが持ち、`TryTake` も画面向けの「接続できるか」の配信も同じ `HasEnough` を通す。引き算・撤去の返却は `SpaceElevatorConnectionService` が持ち、プール本体の `HasEnough`/`TryTake`/`Add` は同アセンブリ内だけに閉じる（`internal`）。拠点は配信された「残量」と「接続できるか」を状態に載せるだけで、画面（webui）は判定しない（ユーザー裁定 [[2026-10-23-エレベーター拠点に接続できるかはサーバーのプールが判定し画面は表示するだけ]]）。
 
 - [ ] **Step 1: 拠点の面とプール・接続サービスを書く**
 
@@ -1224,13 +784,13 @@ git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator
 ```csharp
 namespace Game.Block.Interface.Component.SpaceElevator
 {
-    // 接続サービスが拠点に触る面。接続済みかの読み書きとプール残量の受け取りだけを持つ
-    // The surface the connection service touches on a base: read and set the connected flag and receive the pool amount
+    // 接続サービスが拠点に触る面。接続済みかの読み書きと、プール残量・接続できるか（プールが判定）の受け取りだけを持つ
+    // The surface the connection service touches on a base: the connected flag and receiving the pool amount and whether it can connect (judged by the pool)
     public interface ISpaceElevatorBase : IBlockComponent
     {
         bool IsConnected { get; }
         void MarkConnected();
-        void SetCablePoolAmount(int amount);
+        void SetCablePoolAvailability(int poolAmount, bool hasEnoughCable);
     }
 }
 ```
@@ -1261,9 +821,9 @@ namespace Game.Block.Interface.Component.SpaceElevator
 }
 ```
 
-`Game.SpaceElevator/SpaceElevatorConnectResult.cs`:
+`Game.Block.Interface/Component/SpaceElevator/SpaceElevatorConnectResult.cs`（通信の契約型なので実装の `Game.SpaceElevator` ではなく契約の層に置く。クライアントは `Game.SpaceElevator` を参照しない。前例 S2 の `RocketLaunchPadCommandResult`）:
 ```csharp
-namespace Game.SpaceElevator
+namespace Game.Block.Interface.Component.SpaceElevator
 {
     public enum SpaceElevatorConnectResult
     {
@@ -1296,7 +856,6 @@ using Core.Master;
 using Game.Context;
 using Game.Orbit;
 using Game.SpaceElevator.Save;
-using Mooresmaster.Model.BlocksModule;
 using UniRx;
 using UnityEngine;
 
@@ -1327,11 +886,7 @@ namespace Game.SpaceElevator
         {
             // 拠点のマスタが数えるケーブルを集める。表との突き合わせは SpaceElevatorOrbitalTableCheck が起動時に行う
             // Collect the cable items base masters count; SpaceElevatorOrbitalTableCheck cross-checks them with the table at boot
-            foreach (var block in MasterHolder.BlockMaster.Blocks.Data)
-            {
-                if (block.BlockParam is not SpaceElevatorBaseBlockParam param) continue;
-                _cableItemIds.Add(MasterHolder.ItemMaster.GetItemId(param.CableItemGuid));
-            }
+            _cableItemIds.UnionWith(SpaceElevatorBaseMasters.CableItemIds());
 
             // ケーブルの到着だけを数える。どの打ち上げ口から来たかは見ない
             // Count only cable arrivals, regardless of which launch site sent them
@@ -1342,11 +897,18 @@ namespace Game.SpaceElevator
             });
         }
 
-        // 足りれば引いてtrue。足りなければ何もしない（判定は接続サービスだけが使う）
+        // 1エレベーター分が残っているか。接続できるかの判定はここだけが持つ
+        // Whether one elevator's worth remains; this is the only place that judges whether a base can connect
+        internal bool HasEnough(int count)
+        {
+            return Amount >= count;
+        }
+
+        // 足りれば引いてtrue。足りなければ何もしない（接続サービスだけが使う）
         // Take the count and return true when enough remains; otherwise change nothing (only the connection service uses this)
         internal bool TryTake(int count)
         {
-            if (Amount < count) return false;
+            if (!HasEnough(count)) return false;
             SetAmount(Amount - count);
             return true;
         }
@@ -1412,14 +974,13 @@ namespace Game.SpaceElevator
 
         public void Load()
         {
-            foreach (var block in MasterHolder.BlockMaster.Blocks.Data)
+            foreach (var (blockName, param) in SpaceElevatorBaseMasters.All())
             {
-                if (block.BlockParam is not SpaceElevatorBaseBlockParam param) continue;
-                ThrowIfNotOrbitalPayload(block.Name, param.CableItemGuid);
+                ThrowIfNotOrbitalPayload(blockName, param.CableItemGuid);
                 foreach (var payloadGuid in param.CarriedPayloadItemGuids)
                 {
-                    ThrowIfNotOrbitalPayload(block.Name, payloadGuid);
-                    ThrowIfResultNeverFits(block.Name, payloadGuid, param.OutputSlotCount);
+                    ThrowIfNotOrbitalPayload(blockName, payloadGuid);
+                    ThrowIfResultNeverFits(blockName, payloadGuid, param.OutputSlotCount);
                 }
             }
 
@@ -1471,6 +1032,37 @@ namespace Game.SpaceElevator
 ```
 衛星の `countPerLaunch` が 1 でないと、昇降機の `Arrive(衛星, 1)` が実行時に例外になる。S2 の `PreviewArrivalOutputs` が `Arrive` と同じく「countPerLaunch の正の整数倍でなければ例外」なら、上の `PreviewArrivalOutputs(..., 1)` がその形を起動時に止める。S2 の実装を読み、Preview がこの検査をしないなら、S2 の積荷表の生成型から countPerLaunch を引いて 1 でなければ `Fail` する行を `ThrowIfResultNeverFits` の先頭に足す。
 
+`Game.SpaceElevator/SpaceElevatorBaseMasters.cs`（拠点マスタの列挙とケーブル集合の導出を1か所にする。プールと起動時の検査が使う。`Core.Master` の `SpaceElevatorBaseParamValidator` は `Game.*` を参照できないので、ロード時の検証は自前で列挙する）:
+```csharp
+using System.Collections.Generic;
+using Core.Master;
+using Mooresmaster.Model.BlocksModule;
+
+namespace Game.SpaceElevator
+{
+    // マスタにある宇宙エレベーター拠点の列挙と、拠点が数えるケーブルの導出
+    // Enumerates the space elevator bases in the master and derives the cable items they count
+    internal static class SpaceElevatorBaseMasters
+    {
+        internal static IEnumerable<(string BlockName, SpaceElevatorBaseBlockParam Param)> All()
+        {
+            foreach (var block in MasterHolder.BlockMaster.Blocks.Data)
+            {
+                if (block.BlockParam is SpaceElevatorBaseBlockParam param) yield return (block.Name, param);
+            }
+        }
+
+        internal static HashSet<ItemId> CableItemIds()
+        {
+            var ids = new HashSet<ItemId>();
+            foreach (var (_, param) in All()) ids.Add(MasterHolder.ItemMaster.GetItemId(param.CableItemGuid));
+            return ids;
+        }
+    }
+}
+```
+`MasterHolder.BlockMaster.Blocks.Data` の実名は `Core.Master/BlockMaster.cs` で確かめる（全ブロックを列挙するプロパティ名に合わせる）。
+
 `Game.SpaceElevator/SpaceElevatorConnectionService.cs`:
 ```csharp
 using System.Collections.Generic;
@@ -1483,13 +1075,13 @@ using UniRx;
 namespace Game.SpaceElevator
 {
     /// <summary>
-    ///     拠点の接続・撤去時の返却・残量の配信を受け持つ。拠点はプールの残量も1エレベーター分の引き算も知らない
-    ///     Owns connecting, the refund on removal and pushing the pool amount; bases know neither the pool amount check nor the per-elevator subtraction
+    ///     拠点の接続・撤去時の返却・残量と接続できるかの配信を受け持つ。拠点はプールの残量の判定も1エレベーター分の引き算も知らない
+    ///     Owns connecting, the refund on removal and pushing the pool amount and connectability; bases know neither the pool check nor the per-elevator subtraction
     /// </summary>
     public class SpaceElevatorConnectionService : IBootInitializable
     {
         private readonly SpaceElevatorCablePool _pool;
-        private readonly Dictionary<BlockInstanceId, ISpaceElevatorBase> _bases = new();
+        private readonly Dictionary<BlockInstanceId, TrackedSpaceElevatorBase> _bases = new();
 
         public SpaceElevatorConnectionService(SpaceElevatorCablePool pool)
         {
@@ -1502,45 +1094,63 @@ namespace Game.SpaceElevator
             // Subscribe before the world loads so bases placed by the load are tracked too
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(properties => OnBlockPlaced(properties.BlockData.Block));
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(properties => OnBlockRemoved(properties.BlockData.Block));
-            _pool.OnAmountChanged.Subscribe(PushPoolAmount);
+            _pool.OnAmountChanged.Subscribe(_ => PushAvailabilityToAll());
         }
 
         public SpaceElevatorConnectResult Connect(IBlock block)
         {
-            if (!block.ComponentManager.TryGetComponent<ISpaceElevatorBase>(out var elevatorBase)) return SpaceElevatorConnectResult.NotSpaceElevatorBase;
-            if (elevatorBase.IsConnected) return SpaceElevatorConnectResult.AlreadyConnected;
+            if (!_bases.TryGetValue(block.BlockInstanceId, out var tracked)) return SpaceElevatorConnectResult.NotSpaceElevatorBase;
+            if (tracked.Base.IsConnected) return SpaceElevatorConnectResult.AlreadyConnected;
 
             // 1エレベーター分が残っていれば引いて接続する
             // Connect after taking one elevator's worth when it remains
-            if (!_pool.TryTake(CablesPerElevator(block))) return SpaceElevatorConnectResult.InsufficientCable;
-            elevatorBase.MarkConnected();
+            if (!_pool.TryTake(tracked.CablesPerElevator)) return SpaceElevatorConnectResult.InsufficientCable;
+            tracked.Base.MarkConnected();
             return SpaceElevatorConnectResult.Connected;
         }
 
         private void OnBlockPlaced(IBlock block)
         {
             if (!block.ComponentManager.TryGetComponent<ISpaceElevatorBase>(out var elevatorBase)) return;
-            _bases[block.BlockInstanceId] = elevatorBase;
-            elevatorBase.SetCablePoolAmount(_pool.Amount);
+            var cablesPerElevator = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).CablesPerElevator;
+            var tracked = new TrackedSpaceElevatorBase(elevatorBase, cablesPerElevator);
+            _bases[block.BlockInstanceId] = tracked;
+            PushAvailability(tracked);
         }
 
         private void OnBlockRemoved(IBlock block)
         {
-            if (!_bases.Remove(block.BlockInstanceId, out var elevatorBase)) return;
+            if (!_bases.Remove(block.BlockInstanceId, out var tracked)) return;
 
             // 接続済みの拠点だけが1エレベーター分をプールへ戻す。撤去イベントはDestroyより前に来るので状態を読める
             // Only a connected base returns one elevator's worth; the remove event fires before Destroy, so its state is still readable
-            if (elevatorBase.IsConnected) _pool.Add(CablesPerElevator(block));
+            if (tracked.Base.IsConnected) _pool.Add(tracked.CablesPerElevator);
         }
 
-        private void PushPoolAmount(int amount)
+        private void PushAvailabilityToAll()
         {
-            foreach (var elevatorBase in _bases.Values) elevatorBase.SetCablePoolAmount(amount);
+            foreach (var tracked in _bases.Values) PushAvailability(tracked);
         }
 
-        private static int CablesPerElevator(IBlock block)
+        // 接続できるかはプールの HasEnough で決め、拠点へは結果だけを渡す
+        // Connectability is decided by the pool's HasEnough; the base only receives the result
+        private void PushAvailability(TrackedSpaceElevatorBase tracked)
         {
-            return ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).CablesPerElevator;
+            tracked.Base.SetCablePoolAvailability(_pool.Amount, _pool.HasEnough(tracked.CablesPerElevator));
+        }
+
+        // 追跡中の拠点と、その拠点の1エレベーター分の量
+        // A tracked base and its cables per elevator
+        private class TrackedSpaceElevatorBase
+        {
+            public readonly ISpaceElevatorBase Base;
+            public readonly int CablesPerElevator;
+
+            public TrackedSpaceElevatorBase(ISpaceElevatorBase elevatorBase, int cablesPerElevator)
+            {
+                Base = elevatorBase;
+                CablesPerElevator = cablesPerElevator;
+            }
         }
     }
 }
@@ -1590,13 +1200,13 @@ namespace Game.SaveLoad.Migration.Steps
 
         public SaveMigrationStepResult Migrate(JObject save)
         {
-            // 既にあれば形だけ確かめて素通しする（冪等）
-            // When present, only check the shape and pass it through (idempotent)
+            // 既にあれば形だけ確かめて素通しする（冪等）。値の範囲（負でないか）はロード時の Restore だけが見る
+            // When present, only check the shape and pass it through (idempotent); only Restore at load checks the value range
             var existing = save[PoolKey];
             if (existing != null)
             {
-                if (existing is JObject pool && pool[CountKey]?.Type == JTokenType.Integer && pool[CountKey].Value<int>() >= 0) return SaveMigrationStepResult.Converted(save);
-                return Fail($"{PoolKey} が0以上の {CountKey} を持つオブジェクトではありません。 value={existing}");
+                if (existing is JObject pool && pool[CountKey]?.Type == JTokenType.Integer) return SaveMigrationStepResult.Converted(save);
+                return Fail($"{PoolKey} が整数の {CountKey} を持つオブジェクトではありません。 value={existing}");
             }
 
             save[PoolKey] = new JObject { [CountKey] = 0 };
@@ -1626,8 +1236,8 @@ namespace Game.SaveLoad.Migration.Steps
 ```csharp
 using System.Text.RegularExpressions;
 using Game.SaveLoad.Migration.Steps;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -1656,7 +1266,6 @@ namespace Tests.UnitTest.Game.SaveLoad
 
         [TestCase("{\"spaceElevatorCablePool\":5}")]
         [TestCase("{\"spaceElevatorCablePool\":{\"cableCount\":\"x\"}}")]
-        [TestCase("{\"spaceElevatorCablePool\":{\"cableCount\":-1}}")]
         public void 形の違う節は変換を拒む(string json)
         {
             LogAssert.Expect(LogType.Warning, new Regex("版7から版8へ変換できません"));
@@ -1686,6 +1295,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UniRx;
 
 namespace Tests.CombinedTest.Game.SpaceElevator
 {
@@ -1702,6 +1312,24 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             orbital.Arrive(ForUnitTestItemId.TestElevatorSatellite, 1);
 
             Assert.AreEqual(50, pool.Amount);
+        }
+
+        [Test]
+        public void 成果の問い合わせでは到着の通知が流れずプールも増えない()
+        {
+            var provider = CreateServer();
+            var orbital = provider.GetService<IOrbitalArrivalService>();
+            var pool = provider.GetService<SpaceElevatorCablePool>();
+            var notified = 0;
+            orbital.OnOrbitalArrival.Subscribe(_ => notified++);
+
+            // 昇降機は出口待ちの間 毎tick問い合わせるので、問い合わせに副作用が無いことを確かめる
+            // The climber asks every tick while the outlet is full, so the query must have no side effect
+            orbital.PreviewArrivalOutputs(ForUnitTestItemId.TestElevatorSatellite, 1);
+            orbital.PreviewArrivalOutputs(ForUnitTestItemId.TestElevatorCable, 50);
+
+            Assert.AreEqual(0, notified);
+            Assert.AreEqual(0, pool.Amount);
         }
 
         [Test]
@@ -1834,8 +1462,10 @@ git commit -m "feat(space-elevator): ケーブルプールと接続サービス�
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberComponent.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberSaveJsonObject.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseElectricComponent.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseStateDetail.cs`
-- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseStatus.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/SpaceElevatorBaseStateDetail.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/SpaceElevatorBaseStatus.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberSaveRestorer.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorOutputSimulation.cs`
 - Create: `moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs`
 - Modify: `moorestech_server/Assets/Scripts/Game.Block/Game.Block.asmdef`（`Game.Orbit` が無ければ足す）
@@ -1849,8 +1479,10 @@ git commit -m "feat(space-elevator): ケーブルプールと接続サービス�
 - Consumes: Task 7 の `ISpaceElevatorBase`・`SpaceElevatorConnectionService.Connect(IBlock)`、S2 の `IOrbitalArrivalService.Arrive`・`PreviewArrivalOutputs`、Task 6 の `SpaceElevatorBaseBlockParam.OutputSlotCount`
 - Produces:
   - `SpaceElevatorBaseStateDetail`（MessagePack、キー `"SpaceElevatorBase"`。`[Key(0)] bool IsConnected`、`[Key(1)] int CablePoolAmount`、`[Key(2)] float ClimbProgress`、`[Key(3)] SpaceElevatorBaseStatus Status`。1エレベーター分の量はマスタ値なので載せず、クライアントの DTO ビルダーが param から引く）
-  - `enum SpaceElevatorBaseStatus { NotConnected, WaitingSatellite, Climbing, LowPower, OutputBlocked }`
-  - インベントリのスロット: 0＝衛星の入口（運ぶ積荷だけ）、1〜`OutputSlotCount`＝成果の出口（取り出しのみ）。`SpaceElevatorBaseInventoryComponent.SatelliteSlot = 0`、`FirstOutputSlot = 1`
+  - `enum SpaceElevatorBaseStatus { ReadyToConnect, InsufficientCable, WaitingSatellite, Climbing, LowPower, OutputBlocked }`（未接続は、プールが判定した「接続できるか」で `ReadyToConnect`／`InsufficientCable` に分かれる）
+  - インベントリのスロット: 0＝衛星の入口（運ぶ積荷だけ）、1〜`OutputSlotCount`＝成果の出口（取り出しのみ）。`SpaceElevatorBaseInventoryComponent.SatelliteSlot = 0`、`FirstOutputSlot = 1`、`internal bool IsCarriedPayload(ItemId)`、`internal void ReturnSatelliteWithoutEvent(IItemStack)`
+  - 出口待ちに入った tick に1回だけ理由をログへ出す（Global Constraints「fail-closed はログ必須」。UI の `OutputBlocked` 表示と併せる）
+  - ロード時のガード（`SpaceElevatorClimberSaveRestorer`）: 昇降中の衛星が運ぶ積荷でなければエラーログを出して昇降を取り消し入口へ戻す、残りが昇降の総時間を超えていれば警告ログを出して総時間に収める。インベントリはセーブのスロットがマスタより多ければエラーログを出して超えた分を捨てる（前例 `VanillaChestComponent.cs:49-52`）
   - 出口の確認は機械の前例（`Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:49` の開始前、`ProcessingMachineProcessState.cs:118` の完了直前に `CanStoreOutputs`）と同じ2点: 昇り始める前と、頂上で軌道到着サービスへ渡す直前。どちらも `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを見る。入らなければ衛星を入口に残す／頂上で待たせ、状態を `OutputBlocked` にする。頂上で待つ間は電力を使わない
   - `RemoveBlockProtocol` は `IGetRefundItemsInfo` を全コンポーネントから合算する
 
@@ -1869,15 +1501,16 @@ git commit -m "feat(space-elevator): ケーブルプールと接続サービス�
 
 - [ ] **Step 2: 状態・セーブの型を書く**
 
-`SpaceElevatorBaseStatus.cs`:
+`Game.Block.Interface/State/SpaceElevator/SpaceElevatorBaseStatus.cs`（状態詳細と列挙は通信の契約型なので契約の層に置く。前例 S2 の `State/RocketLaunchPad/`）:
 ```csharp
-namespace Game.Block.Blocks.SpaceElevator
+namespace Game.Block.Interface.State.SpaceElevator
 {
-    // 拠点の今の状態。待ちの理由もここで表す
-    // The base's current state, including why it is waiting
+    // 拠点の今の状態。待ちの理由もここで表す。未接続は接続できるか（プールが判定）で2つに分かれる
+    // The base's current state, including why it is waiting; unconnected splits by whether it can connect (judged by the pool)
     public enum SpaceElevatorBaseStatus
     {
-        NotConnected,
+        ReadyToConnect,
+        InsufficientCable,
         WaitingSatellite,
         Climbing,
         LowPower,
@@ -1885,12 +1518,12 @@ namespace Game.Block.Blocks.SpaceElevator
     }
 }
 ```
-`SpaceElevatorBaseStateDetail.cs`（前例 `ElectricToGearGeneratorBlockStateDetail.cs`）:
+`Game.Block.Interface/State/SpaceElevator/SpaceElevatorBaseStateDetail.cs`（前例 `ElectricToGearGeneratorBlockStateDetail.cs`）:
 ```csharp
 using System;
 using MessagePack;
 
-namespace Game.Block.Blocks.SpaceElevator
+namespace Game.Block.Interface.State.SpaceElevator
 {
     [Serializable]
     [MessagePackObject]
@@ -1993,16 +1626,34 @@ namespace Game.Block.Blocks.SpaceElevator
             // Loading does not fire events because the block is not registered in the world yet
             var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
             for (var i = 0; i < _slotCount && i < itemJsons.Count; i++) _itemDataStoreService.SetItemWithoutEvent(i, itemJsons[i].ToItemStack());
+
+            // マスタで出口を減らすと超えた分は捨てる。黙って捨てずログに残す
+            // Reducing the outlets in the master drops the overflow; log it instead of dropping silently
+            if (_slotCount < itemJsons.Count) Debug.LogError($"[SpaceElevatorBase] セーブのスロット数 {itemJsons.Count} がマスタの {_slotCount} を超えるため、超えた分を捨てます BlockInstanceId:{blockInstanceId}");
         }
 
-        // 入口の衛星の種類を見る。空ならfalse
-        // Peek at the satellite kind in the inlet; false when empty
+        internal bool IsCarriedPayload(ItemId itemId)
+        {
+            return _carriedPayloadIds.Contains(itemId);
+        }
+
+        // 入口の運べる衛星の種類を見る。空か運べないアイテムならfalse
+        // Peek at a carriable satellite in the inlet; false when empty or not a carried payload
         public bool TryPeekSatellite(out ItemId satelliteId)
         {
             CheckDestroy(this);
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
             satelliteId = stack.Id;
-            return stack.Count > 0;
+            return stack.Count > 0 && IsCarriedPayload(stack.Id);
+        }
+
+        // ロードで取り消した昇降中の衛星を入口へ戻す。入らない分はエラーログを出して失う
+        // Return a satellite whose climb was cancelled on load to the inlet; anything that does not fit is logged and lost
+        internal void ReturnSatelliteWithoutEvent(IItemStack satellite)
+        {
+            var result = _itemDataStoreService.GetItem(SatelliteSlot).AddItem(satellite);
+            _itemDataStoreService.SetItemWithoutEvent(SatelliteSlot, result.ProcessResultItemStack);
+            if (result.RemainderItemStack.Count > 0) Debug.LogError($"[SpaceElevatorBase] 入口が埋まっていて衛星を戻せず失いました item:{satellite.Id} count:{result.RemainderItemStack.Count}");
         }
 
         // 入口から衛星を1つ取り出す。同じtickのTryPeekSatelliteがtrueのときだけ呼ぶ
@@ -2020,7 +1671,7 @@ namespace Game.Block.Blocks.SpaceElevator
         public bool CanStoreOutputs(IReadOnlyList<IItemStack> outputs)
         {
             CheckDestroy(this);
-            return TrySimulateOutputs(outputs, out _);
+            return SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), outputs, out _);
         }
 
         // 成果を出口へ入れる。確認と同じ模擬で積むので、確認を通った成果は必ず入る
@@ -2028,7 +1679,7 @@ namespace Game.Block.Blocks.SpaceElevator
         public void InsertOutputs(IReadOnlyList<IItemStack> outputs)
         {
             CheckDestroy(this);
-            if (!TrySimulateOutputs(outputs, out var simulated))
+            if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), outputs, out var simulated))
             {
                 Debug.LogError("[SpaceElevatorBase] 渡す直前の出口の確認を通ったのに出口へ入らず、成果が失われた");
                 return;
@@ -2059,7 +1710,7 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             CheckDestroy(this);
             // silent-ok: 積荷以外はベルト上に残す通常の受け入れ拒否 / プレイヤーはベルトの詰まりと拠点UIの入口で気づく
-            if (!_carriedPayloadIds.Contains(itemStack.Id)) return itemStack;
+            if (!IsCarriedPayload(itemStack.Id)) return itemStack;
             var result = _itemDataStoreService.GetItem(SatelliteSlot).AddItem(itemStack);
             _itemDataStoreService.SetItem(SatelliteSlot, result.ProcessResultItemStack);
             return result.RemainderItemStack;
@@ -2071,7 +1722,7 @@ namespace Game.Block.Blocks.SpaceElevator
             var slot = _itemDataStoreService.GetItem(SatelliteSlot);
             foreach (var itemStack in itemStacks)
             {
-                if (!_carriedPayloadIds.Contains(itemStack.Id)) return false;
+                if (!IsCarriedPayload(itemStack.Id)) return false;
                 var result = slot.AddItem(itemStack);
                 if (result.RemainderItemStack.Count > 0) return false;
                 slot = result.ProcessResultItemStack;
@@ -2084,7 +1735,7 @@ namespace Game.Block.Blocks.SpaceElevator
         public bool IsAllowedToPlace(int slot, IItemStack itemStack)
         {
             if (itemStack.Count == 0) return true;
-            return slot == SatelliteSlot && _carriedPayloadIds.Contains(itemStack.Id);
+            return slot == SatelliteSlot && IsCarriedPayload(itemStack.Id);
         }
 
         public object GetSaveState()
@@ -2095,24 +1746,11 @@ namespace Game.Block.Blocks.SpaceElevator
             return itemJson;
         }
 
-        // 成果を出口の複製へ前から順に積む唯一の模擬。確認と実挿入がこれを共有する
-        // The single simulation stacking results onto a copy of the outlets front to back; the check and the insert share it
-        private bool TrySimulateOutputs(IReadOnlyList<IItemStack> outputs, out List<IItemStack> simulated)
+        private List<IItemStack> CopyOutlets()
         {
-            simulated = new List<IItemStack>();
-            for (var slot = FirstOutputSlot; slot < _slotCount; slot++) simulated.Add(_itemDataStoreService.GetItem(slot));
-            foreach (var output in outputs)
-            {
-                var remainder = output;
-                for (var i = 0; i < simulated.Count && remainder.Count > 0; i++)
-                {
-                    var result = simulated[i].AddItem(remainder);
-                    simulated[i] = result.ProcessResultItemStack;
-                    remainder = result.RemainderItemStack;
-                }
-                if (remainder.Count > 0) return false;
-            }
-            return true;
+            var outlets = new List<IItemStack>();
+            for (var slot = FirstOutputSlot; slot < _slotCount; slot++) outlets.Add(_itemDataStoreService.GetItem(slot));
+            return outlets;
         }
 
         private void InvokeEvent(int slot, IItemStack itemStack)
@@ -2140,7 +1778,37 @@ namespace Game.Block.Blocks.SpaceElevator
     }
 }
 ```
-`wc -l` が 200 以上になったら、`TrySimulateOutputs` を同じディレクトリの `SpaceElevatorOutputSimulation.cs`（`internal static class SpaceElevatorOutputSimulation` の `internal static bool TryStack(List<IItemStack> outlets, IReadOnlyList<IItemStack> outputs)`。複製の作成は呼び出し側）へ移す。
+`SpaceElevatorOutputSimulation.cs`（インベントリを 200 行未満に保つため、出口の模擬を別ファイルにする）:
+```csharp
+using System.Collections.Generic;
+using Core.Item.Interface;
+
+namespace Game.Block.Blocks.SpaceElevator
+{
+    // 成果を出口の複製へ前から順に積む唯一の模擬。確認と実挿入がこれを共有する
+    // The single simulation stacking results onto a copy of the outlets front to back; the check and the insert share it
+    internal static class SpaceElevatorOutputSimulation
+    {
+        internal static bool TryStack(List<IItemStack> outlets, IReadOnlyList<IItemStack> outputs, out List<IItemStack> stacked)
+        {
+            stacked = outlets;
+            foreach (var output in outputs)
+            {
+                var remainder = output;
+                for (var i = 0; i < stacked.Count && remainder.Count > 0; i++)
+                {
+                    var result = stacked[i].AddItem(remainder);
+                    stacked[i] = result.ProcessResultItemStack;
+                    remainder = result.RemainderItemStack;
+                }
+                if (remainder.Count > 0) return false;
+            }
+            return true;
+        }
+    }
+}
+```
+`wc -l` でインベントリが 200 行未満であることを確かめる。
 
 - [ ] **Step 4: 昇降機と電力を書く**
 
@@ -2156,11 +1824,13 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Component.SpaceElevator;
 using Game.Block.Interface.State;
+using Game.Block.Interface.State.SpaceElevator;
 using Game.Context;
 using Game.Orbit;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
+using UnityEngine;
 
 namespace Game.Block.Blocks.SpaceElevator
 {
@@ -2191,6 +1861,7 @@ namespace Game.Block.Blocks.SpaceElevator
         private uint _remainingClimbTicks;
         private bool _outputBlocked;
         private int _cablePoolAmount;
+        private bool _hasEnoughCable;
         private float _suppliedPower;
         private float _latchedPower;
 
@@ -2207,8 +1878,7 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             var save = BlockComponentStateReader.Read<SpaceElevatorClimberSaveJsonObject>(componentStates, SaveKey);
             IsConnected = save.IsConnected;
-            _climbingSatellite = save.ClimbingSatellite.ToItemStack();
-            _remainingClimbTicks = GameUpdater.SecondsToTicks(save.RemainingClimbSeconds);
+            (_climbingSatellite, _remainingClimbTicks) = SpaceElevatorClimberSaveRestorer.Restore(save, inventory, _climbTotalTicks);
         }
 
         public void Update()
@@ -2223,6 +1893,10 @@ namespace Game.Block.Blocks.SpaceElevator
             var wasOutputBlocked = _outputBlocked;
             var changed = IsCarrying ? AdvanceClimb() : TryStartClimb();
             changed |= wasOutputBlocked != _outputBlocked;
+
+            // 出口待ちに入ったtickに1回だけ理由をログへ出す（以降はUIの状態表示で伝える）
+            // Log the reason once on the tick the outlet wait begins; the UI status carries it afterwards
+            if (!wasOutputBlocked && _outputBlocked) Debug.Log("[SpaceElevatorBase] 衛星1機の成果が出口に入りきらないため、出口が空くまで待ちます");
 
             // 昇っている間は進みが毎tick動くので毎tick通知する（同一ペイロードはイベント側が送らない）
             // While ascending the progress moves every tick, so notify every tick (the event packet drops identical payloads)
@@ -2243,8 +1917,7 @@ namespace Game.Block.Blocks.SpaceElevator
 
                 // 頂上では成果が出口へ入りきるときだけ渡す。入らなければ頂上で待つ
                 // At the top, hand over only when the result fits the outlets; otherwise wait at the top
-                // silent-ok: 出口の空き待ちは通常の待機 / プレイヤーが拠点UIの状態表示（OutputBlocked）で気づく
-                _outputBlocked = !_inventory.CanStoreOutputs(_orbitalArrivalService.PreviewArrivalOutputs(_climbingSatellite.Id, 1));
+                _outputBlocked = !ResultFitsOutlets(_climbingSatellite.Id);
                 if (_outputBlocked) return false;
                 _inventory.InsertOutputs(_orbitalArrivalService.Arrive(_climbingSatellite.Id, 1));
                 _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
@@ -2253,18 +1926,24 @@ namespace Game.Block.Blocks.SpaceElevator
 
             bool TryStartClimb()
             {
-                // silent-ok: 未接続・衛星なしは通常の待機 / プレイヤーが拠点UIの状態表示（NotConnected・WaitingSatellite）で気づく
+                // silent-ok: 未接続・衛星なしは通常の待機 / プレイヤーが拠点UIの状態表示（ReadyToConnect・InsufficientCable・WaitingSatellite）で気づく
                 _outputBlocked = false;
                 if (!IsConnected || !_inventory.TryPeekSatellite(out var satelliteId)) return false;
 
                 // 昇り始める前に、成果が出口へ入りきるかを確かめる
                 // Before starting, check that the result fits the outlets
-                // silent-ok: 出口の空き待ちは通常の待機 / プレイヤーが拠点UIの状態表示（OutputBlocked）で気づく
-                _outputBlocked = !_inventory.CanStoreOutputs(_orbitalArrivalService.PreviewArrivalOutputs(satelliteId, 1));
+                _outputBlocked = !ResultFitsOutlets(satelliteId);
                 if (_outputBlocked) return false;
                 _climbingSatellite = _inventory.TakeOneSatellite();
                 _remainingClimbTicks = _climbTotalTicks;
                 return true;
+            }
+
+            // 衛星1機の成果が出口へ入りきるか。昇り始める前と頂上の2点で使う
+            // Whether one satellite's result fits the outlets; used before starting and at the top
+            bool ResultFitsOutlets(ItemId satelliteId)
+            {
+                return _inventory.CanStoreOutputs(_orbitalArrivalService.PreviewArrivalOutputs(satelliteId, 1));
             }
 
             #endregion
@@ -2286,10 +1965,13 @@ namespace Game.Block.Blocks.SpaceElevator
             _onChangeBlockState.OnNext(Unit.Default);
         }
 
-        public void SetCablePoolAmount(int amount)
+        // 接続できるかはプールが判定して渡す。拠点は判定せず状態に載せるだけ
+        // The pool judges connectability and pushes it; the base only carries it in its state
+        public void SetCablePoolAvailability(int poolAmount, bool hasEnoughCable)
         {
             BlockException.CheckDestroy(this);
-            _cablePoolAmount = amount;
+            _cablePoolAmount = poolAmount;
+            _hasEnoughCable = hasEnoughCable;
             _onChangeBlockState.OnNext(Unit.Default);
         }
 
@@ -2306,7 +1988,7 @@ namespace Game.Block.Blocks.SpaceElevator
             // Pick one waiting reason by priority
             SpaceElevatorBaseStatus ResolveStatus()
             {
-                if (!IsConnected) return SpaceElevatorBaseStatus.NotConnected;
+                if (!IsConnected) return _hasEnoughCable ? SpaceElevatorBaseStatus.ReadyToConnect : SpaceElevatorBaseStatus.InsufficientCable;
                 if (_outputBlocked) return SpaceElevatorBaseStatus.OutputBlocked;
                 if (!IsCarrying) return SpaceElevatorBaseStatus.WaitingSatellite;
                 return _latchedPower < _param.RequiredPower ? SpaceElevatorBaseStatus.LowPower : SpaceElevatorBaseStatus.Climbing;
@@ -2342,7 +2024,46 @@ namespace Game.Block.Blocks.SpaceElevator
     }
 }
 ```
-`wc -l` で 200 行未満を確かめる（`IGetRefundItemsInfo.GetRefundItems` の戻り型は既存の interface に合わせる）。
+`wc -l` で 200 行未満を確かめる（`IGetRefundItemsInfo.GetRefundItems` の戻り型は既存の interface に合わせる。超えたら `GetBlockStateDetails` の `ResolveStatus` を同じディレクトリの `internal static class SpaceElevatorBaseStatusResolver` へ移す）。
+
+`SpaceElevatorClimberSaveRestorer.cs`（ロード時のガード。セーブの値を今のマスタで成り立つ形に直す）:
+```csharp
+using Core.Item.Interface;
+using Core.Master;
+using Core.Update;
+using Game.Context;
+using UnityEngine;
+
+namespace Game.Block.Blocks.SpaceElevator
+{
+    // セーブの昇降中の衛星と残りを、今のマスタで成り立つ形に直して返す
+    // Normalises the saved climbing satellite and remaining time to what the current master allows
+    internal static class SpaceElevatorClimberSaveRestorer
+    {
+        internal static (IItemStack Satellite, uint RemainingTicks) Restore(SpaceElevatorClimberSaveJsonObject save, SpaceElevatorBaseInventoryComponent inventory, uint climbTotalTicks)
+        {
+            var satellite = save.ClimbingSatellite.ToItemStack();
+            if (satellite.Id == ItemMaster.EmptyItemId) return (satellite, 0);
+
+            // 運ぶ積荷から外れた衛星は頂上で軌道到着サービスが例外を出すので、昇降を取り消して入口へ戻す
+            // A satellite no longer carried would make the orbital service throw at the top, so cancel the climb and return it to the inlet
+            if (!inventory.IsCarriedPayload(satellite.Id))
+            {
+                Debug.LogError($"[SpaceElevatorBase] 昇降中の衛星 {satellite.Id} は今のマスタで運ぶ積荷ではないため、昇降を取り消して入口へ戻します");
+                inventory.ReturnSatelliteWithoutEvent(satellite);
+                return (ServerContext.ItemStackFactory.CreatEmpty(), 0);
+            }
+
+            // マスタで昇降時間が縮んだときは総時間に収め、進みが負にならないようにする
+            // When the master shortened the climb, clamp to the total so the progress never goes negative
+            var remainingTicks = GameUpdater.SecondsToTicks(save.RemainingClimbSeconds);
+            if (remainingTicks <= climbTotalTicks) return (satellite, remainingTicks);
+            Debug.LogWarning($"[SpaceElevatorBase] 昇降の残り {remainingTicks}tick が総時間 {climbTotalTicks}tick を超えるため、総時間に収めます");
+            return (satellite, climbTotalTicks);
+        }
+    }
+}
+```
 
 `SpaceElevatorBaseElectricComponent.cs`（前例 `Game.Block/Blocks/Pump/ElectricPumpComponent.cs`）:
 ```csharp
@@ -2466,7 +2187,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
         public static IBlock PlaceBase(Vector3Int position)
         {
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestSpaceElevatorBase, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.TestSpaceElevatorBase, position, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block));
             return block;
         }
 
@@ -2475,10 +2196,10 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public static void PowerBase(IBlock elevatorBase, Vector3Int basePosition, float power)
         {
             var polePosition = basePosition + new Vector3Int(2, 0, 0);
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
             ElectricWireTestUtil.Connect(basePosition, polePosition);
             GameUpdater.UpdateOneTick();
-            ServerContext.GetService<IElectricWireNetworkLookup>().TryGetEnergySegment(elevatorBase.BlockInstanceId, out var segment);
+            Assert.IsTrue(ServerContext.GetService<IElectricWireNetworkLookup>().TryGetEnergySegment(elevatorBase.BlockInstanceId, out var segment));
             AddGenerator(segment, new TestElectricGenerator(new ElectricPower(power), BlockInstanceId.Create()));
         }
 
@@ -2503,6 +2224,9 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 `SpaceElevatorConnectionTest.cs`:
 ```csharp
 using Game.Block.Blocks.SpaceElevator;
+using Game.Block.Interface;
+using Game.Block.Interface.Component.SpaceElevator;
+using Game.Block.Interface.State.SpaceElevator;
 using Game.Context;
 using Game.SpaceElevator;
 using NUnit.Framework;
@@ -2567,13 +2291,17 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         {
             CreateServer();
             var elevatorBase = PlaceBase(Vector3Int.zero);
+            Assert.AreEqual(SpaceElevatorBaseStatus.InsufficientCable, ReadDetail(elevatorBase).Status);
+
+            // テストmodの1エレベーター分は100。残量が届き、足りると接続できる状態に変わる
+            // The test mod needs 100 per elevator; the amount arrives and the state turns connectable once enough remains
             LaunchCables(150);
             var detail = ReadDetail(elevatorBase);
             Assert.AreEqual(150, detail.CablePoolAmount);
-            Assert.AreEqual(SpaceElevatorBaseStatus.NotConnected, detail.Status);
+            Assert.AreEqual(SpaceElevatorBaseStatus.ReadyToConnect, detail.Status);
         }
 
-        public static SpaceElevatorBaseStateDetail ReadDetail(Game.Block.Interface.IBlock elevatorBase)
+        public static SpaceElevatorBaseStateDetail ReadDetail(IBlock elevatorBase)
         {
             var details = elevatorBase.GetComponent<SpaceElevatorClimberComponent>().GetBlockStateDetails();
             return MessagePack.MessagePackSerializer.Deserialize<SpaceElevatorBaseStateDetail>(details[0].Value);
@@ -2586,6 +2314,8 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 ```csharp
 using Core.Master;
 using Game.Block.Blocks.SpaceElevator;
+using Game.Block.Interface;
+using Game.Block.Interface.State.SpaceElevator;
 using Game.Context;
 using Game.SpaceElevator;
 using NUnit.Framework;
@@ -2635,7 +2365,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             RunSeconds(3);
 
             Assert.AreEqual(1, Inventory(elevatorBase).GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Count);
-            Assert.AreEqual(SpaceElevatorBaseStatus.NotConnected, ReadDetail(elevatorBase).Status);
+            Assert.AreEqual(SpaceElevatorBaseStatus.InsufficientCable, ReadDetail(elevatorBase).Status);
         }
 
         [Test]
@@ -2697,7 +2427,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.IsFalse(inventory.IsAllowedToPlace(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 1)));
         }
 
-        private static Game.Block.Interface.IBlock SetupConnected(float power)
+        private static IBlock SetupConnected(float power)
         {
             CreateServer();
             var elevatorBase = PlaceBase(Vector3Int.zero);
@@ -2707,7 +2437,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             return elevatorBase;
         }
 
-        private static SpaceElevatorBaseInventoryComponent Inventory(Game.Block.Interface.IBlock elevatorBase)
+        private static SpaceElevatorBaseInventoryComponent Inventory(IBlock elevatorBase)
         {
             return elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
         }
@@ -2719,8 +2449,13 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 `SpaceElevatorBaseSaveAndRefundTest.cs`:
 ```csharp
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using Core.Item.Interface;
 using Game.Block.Blocks.SpaceElevator;
+using Game.Block.Interface;
+using Game.Block.Interface.State.SpaceElevator;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Game.SaveLoad.Interface;
@@ -2728,10 +2463,12 @@ using Game.SaveLoad.Json;
 using Game.SpaceElevator;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
+using UnityEngine.TestTools;
 using static Tests.CombinedTest.Game.SpaceElevator.SpaceElevatorTestUtil;
 using static Tests.CombinedTest.Game.SpaceElevator.SpaceElevatorConnectionTest;
 
@@ -2785,6 +2522,51 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(3, satellites);
             Assert.AreEqual(100, provider.GetService<SpaceElevatorCablePool>().Amount);
         }
+
+        [Test]
+        public void ロードした残りが昇降時間を超えていたら総時間に収める()
+        {
+            CreateServer();
+            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var param = (SpaceElevatorBaseBlockParam)elevatorBase.BlockMasterElement.BlockParam;
+            var satellite = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorSatellite, 1);
+            var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(satellite), RemainingClimbSeconds = param.ClimbSeconds * 10 };
+
+            // マスタで昇降時間を縮めた後のロードを模す。進みは負にならず0から始まる
+            // Mimic loading after the master shortened the climb; the progress starts at zero instead of going negative
+            LogAssert.Expect(LogType.Warning, new Regex("総時間に収めます"));
+            var climber = LoadClimber(elevatorBase, save);
+            Assert.AreEqual(0f, ReadClimberDetail(climber).ClimbProgress);
+        }
+
+        [Test]
+        public void 運ぶ積荷でない衛星が昇降中でロードされたら入口へ戻す()
+        {
+            CreateServer();
+            var elevatorBase = PlaceBase(Vector3Int.zero);
+            var stray = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId1, 1);
+            var save = new SpaceElevatorClimberSaveJsonObject { IsConnected = true, ClimbingSatellite = new ItemStackSaveJsonObject(stray), RemainingClimbSeconds = 1 };
+
+            // 頂上で軌道到着サービスが例外を出さないよう、昇降を取り消して入口へ戻す
+            // Cancel the climb and return it to the inlet so the orbital service never throws at the top
+            LogAssert.Expect(LogType.Error, new Regex("運ぶ積荷ではない"));
+            var climber = LoadClimber(elevatorBase, save);
+            var inventory = elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>();
+            Assert.AreEqual(ForUnitTestItemId.ItemId1, inventory.GetItem(SpaceElevatorBaseInventoryComponent.SatelliteSlot).Id);
+            Assert.AreEqual(SpaceElevatorBaseStatus.WaitingSatellite, ReadClimberDetail(climber).Status);
+        }
+
+        private static SpaceElevatorClimberComponent LoadClimber(IBlock elevatorBase, SpaceElevatorClimberSaveJsonObject save)
+        {
+            var param = (SpaceElevatorBaseBlockParam)elevatorBase.BlockMasterElement.BlockParam;
+            var states = new Dictionary<string, object> { { "spaceElevatorClimber", save } };
+            return new SpaceElevatorClimberComponent(states, param, elevatorBase.GetComponent<SpaceElevatorBaseInventoryComponent>());
+        }
+
+        private static SpaceElevatorBaseStateDetail ReadClimberDetail(SpaceElevatorClimberComponent climber)
+        {
+            return MessagePackSerializer.Deserialize<SpaceElevatorBaseStateDetail>(climber.GetBlockStateDetails()[0].Value);
+        }
     }
 }
 ```
@@ -2818,6 +2600,7 @@ git commit -m "feat(space-elevator): 拠点ブロック（昇降機・電力・�
 `Server.Protocol/PacketResponse/SpaceElevator/ConnectSpaceElevatorProtocol.cs`（形の前例 `SetElectricToGearOutputModeProtocol.cs`、拒否ログの前例 `RemoveBlockProtocol.cs` の `Refuse`。`PacketResponse/` 直下は既に 50 ファイルを超えるのでサブディレクトリに置く）:
 ```csharp
 using System;
+using Game.Block.Interface.Component.SpaceElevator;
 using Game.Context;
 using Game.SpaceElevator;
 using MessagePack;
@@ -2895,6 +2678,7 @@ namespace Server.Protocol.PacketResponse.SpaceElevator
 
 `Tests/CombinedTest/Game/SpaceElevator/ConnectSpaceElevatorProtocolTest.cs`:
 ```csharp
+using Game.Block.Interface.Component.SpaceElevator;
 using Game.SpaceElevator;
 using MessagePack;
 using NUnit.Framework;
@@ -2950,12 +2734,12 @@ git commit -m "feat(space-elevator): 拠点の接続プロトコルを足す"
 ### Task 10: 拠点の UI（クライアントの DTO・action と webui）
 
 **Files:**
-- Modify: `moorestech_client/Assets/Scripts/Client.Network/API/Requests/BlockRequestApi.cs`、`moorestech_client/Assets/Scripts/Client.Network/Client.Network.asmdef`（`Game.SpaceElevator` を参照に足す）
+- Modify: `moorestech_client/Assets/Scripts/Client.Network/API/Requests/BlockRequestApi.cs`（契約型は `Game.Block.Interface` と `Server.Protocol` にあるので、クライアントの asmdef には参照を足さない）
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/SpaceElevator/SpaceElevatorDetailDto.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/SpaceElevator/SpaceElevatorDetailDtoBuilder.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockInventoryDtos.cs`、`BlockDetailDtoBuilder.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/SpaceElevator/SpaceElevatorConnectActionHandler.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs`、Client.WebUiHost の asmdef（`Game.SpaceElevator` を参照に足す）
+- Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/action_names.json`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/block_inventory_space_elevator.json`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/SpaceElevator/WireContractSpaceElevatorTest.cs`
@@ -2970,16 +2754,15 @@ git commit -m "feat(space-elevator): 拠点の接続プロトコルを足す"
 - Create: `moorestech_web/webui/src/features/blockInventory/views/SpaceElevatorInventory.tsx`
 - Modify: `moorestech_web/webui/src/features/blockInventory/registry/blockComponentRegistry.ts`、`moorestech_web/webui/src/features/blockInventory/registry/registeredBlockTypes.ts`、`moorestech_web/webui/src/features/blockInventory/registry/blockComponentRegistry.test.ts`
 - Modify: `moorestech_web/webui/src/bridge/contract/wireContract.test.ts`
-- Modify: `moorestech_web/webui/e2e/fixtures/v8-block-ui-registry.json`、`moorestech_web/webui/e2e/tests/block/blockRegistryCoverage.spec.ts`
 - Modify: `moorestech_web/webui/e2e/mock-host/fixtures/blocks/energyFixtures.ts`、`moorestech_web/webui/e2e/mock-host/httpHandler.ts`、`moorestech_web/webui/e2e/mock-host/wsHandler.ts`、`moorestech_web/webui/e2e/mock-host/detailActions.ts`
 - Create: `moorestech_web/webui/e2e/tests/block/spaceElevator.spec.ts`
 
 **Interfaces:**
 - Consumes: Task 8 の `SpaceElevatorBaseStateDetail`・`SpaceElevatorBaseStatus`、Task 9 の `ConnectSpaceElevatorRequest`/`ConnectSpaceElevatorResponse`
 - Produces:
-  - wire の `spaceElevator: { connected: boolean; cablePoolAmount: number; cablesPerElevator: number; climbProgress: number; status: "notConnected" | "waitingSatellite" | "climbing" | "lowPower" | "outputBlocked" }`（blockType `SpaceElevatorBase` のときだけ）
+  - wire の `spaceElevator: { connected: boolean; cablePoolAmount: number; cablesPerElevator: number; climbProgress: number; status: "readyToConnect" | "insufficientCable" | "waitingSatellite" | "climbing" | "lowPower" | "outputBlocked" }`（blockType `SpaceElevatorBase` のときだけ。接続できるかはサーバーのプールが判定して `status` に載せ、webui は判定しない）
   - action `space_elevator.connect`（payload `{}`）
-  - testid: `space-elevator-section`, `space-elevator-status`, `space-elevator-pool`, `space-elevator-progress`, `space-elevator-connect`, `space-elevator-insufficient`, `space-elevator-grid`
+  - testid: `space-elevator-section`, `space-elevator-status`, `space-elevator-pool`, `space-elevator-progress`, `space-elevator-connect`, `space-elevator-grid`, `space-elevator-view`
 
 配置: 拠点は接続ボタンというブロック固有の操作を持つので、専用 view `views/SpaceElevatorInventory.tsx`（スロット・固有部分・電力網）を作ってレジストリに登録する（前例 `views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`）。`SectionStackView` には足さず、e2e の `intentionalGeneric` にも入れない（`SectionStackView.tsx:51-52`「固有UIだけをレジストリへ残す」、`intentionalGeneric` は移植待ちの許可リスト）。
 
@@ -3014,7 +2797,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.SpaceElevator
 `Topics/BlockDetail/SpaceElevator/SpaceElevatorDetailDtoBuilder.cs`（前例 `ElectricToGearDetailDtoBuilder.cs`）:
 ```csharp
 using Client.Game.InGame.Block;
-using Game.Block.Blocks.SpaceElevator;
+using Game.Block.Interface.State.SpaceElevator;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
@@ -3054,7 +2837,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.SpaceElevator
         {
             return status switch
             {
-                SpaceElevatorBaseStatus.NotConnected => "notConnected",
+                SpaceElevatorBaseStatus.ReadyToConnect => "readyToConnect",
+                SpaceElevatorBaseStatus.InsufficientCable => "insufficientCable",
                 SpaceElevatorBaseStatus.WaitingSatellite => "waitingSatellite",
                 SpaceElevatorBaseStatus.Climbing => "climbing",
                 SpaceElevatorBaseStatus.LowPower => "lowPower",
@@ -3074,7 +2858,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Cysharp.Threading.Tasks;
-using Game.SpaceElevator;
+using Game.Block.Interface.Component.SpaceElevator;
 using Newtonsoft.Json.Linq;
 
 namespace Client.WebUiHost.Game.Actions.SpaceElevator
@@ -3162,8 +2946,8 @@ namespace Client.WebUiHost.Game.Actions.SpaceElevator
 ```
 ui.blockInventory.spaceElevatorConnect,Connect,Connect,接続する,Verbinden,연결
 ui.blockInventory.spaceElevatorPool,Cable pool: {pool} / {required},Cable pool: {pool} / {required},ケーブルのプール: {pool} / 必要 {required},Kabelvorrat: {pool} / {required},케이블 풀: {pool} / {required}
-ui.blockInventory.spaceElevatorInsufficientCable,Not enough cable. Launch graphene cables to fill the pool,Not enough cable. Launch graphene cables to fill the pool,ケーブルが足りません。グラフェンケーブルを打ち上げてプールを満たしてください,Nicht genug Kabel. Starte Graphenkabel,케이블이 부족합니다. 그래핀 케이블을 발사하세요
-ui.blockInventory.spaceElevatorStatusNotConnected,Not connected,Not connected,未接続,Nicht verbunden,연결 안 됨
+ui.blockInventory.spaceElevatorStatusInsufficientCable,Not enough cable. Launch graphene cables to fill the pool,Not enough cable. Launch graphene cables to fill the pool,ケーブルが足りません。グラフェンケーブルを打ち上げてプールを満たしてください,Nicht genug Kabel. Starte Graphenkabel,케이블이 부족합니다. 그래핀 케이블을 발사하세요
+ui.blockInventory.spaceElevatorStatusReadyToConnect,Not connected; ready to connect,Not connected; ready to connect,未接続（接続できます）,Nicht verbunden; bereit,연결 안 됨 (연결 가능)
 ui.blockInventory.spaceElevatorStatusWaitingSatellite,Waiting for a GPU satellite,Waiting for a GPU satellite,GPU衛星を待っています,Warte auf GPU-Satelliten,GPU 위성 대기 중
 ui.blockInventory.spaceElevatorStatusClimbing,Climbing,Climbing,昇降中,Steigt auf,상승 중
 ui.blockInventory.spaceElevatorStatusLowPower,Climbing slowly (low power),Climbing slowly (low power),電力不足で遅くなっています,Langsam (zu wenig Strom),전력 부족으로 느려짐
@@ -3177,7 +2961,7 @@ ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until th
 ```ts
 import { z } from "zod";
 
-export const SpaceElevatorStatusSchema = z.enum(["notConnected", "waitingSatellite", "climbing", "lowPower", "outputBlocked"]);
+export const SpaceElevatorStatusSchema = z.enum(["readyToConnect", "insufficientCable", "waitingSatellite", "climbing", "lowPower", "outputBlocked"]);
 export const SpaceElevatorDataSchema = z.object({
   connected: z.boolean(),
   cablePoolAmount: z.number().int().nonnegative(),
@@ -3212,7 +2996,8 @@ import { L, type TranslationKey } from "@/shared/i18n";
 export type SpaceElevatorStatusDisplay = { labelKey: TranslationKey; insufficient: boolean };
 
 const StatusDisplayTable: Record<SpaceElevatorStatus, SpaceElevatorStatusDisplay> = {
-  notConnected: { labelKey: L.ui.blockInventory.spaceElevatorStatusNotConnected, insufficient: true },
+  readyToConnect: { labelKey: L.ui.blockInventory.spaceElevatorStatusReadyToConnect, insufficient: false },
+  insufficientCable: { labelKey: L.ui.blockInventory.spaceElevatorStatusInsufficientCable, insufficient: true },
   waitingSatellite: { labelKey: L.ui.blockInventory.spaceElevatorStatusWaitingSatellite, insufficient: false },
   climbing: { labelKey: L.ui.blockInventory.spaceElevatorStatusClimbing, insufficient: false },
   lowPower: { labelKey: L.ui.blockInventory.spaceElevatorStatusLowPower, insufficient: true },
@@ -3221,12 +3006,6 @@ const StatusDisplayTable: Record<SpaceElevatorStatus, SpaceElevatorStatusDisplay
 
 export function spaceElevatorStatusDisplay(status: SpaceElevatorStatus): SpaceElevatorStatusDisplay {
   return StatusDisplayTable[status];
-}
-
-// 未接続でプールに1エレベーター分あるときだけ接続できる
-// Connecting is possible only while unconnected and the pool holds one elevator's worth
-export function canConnectSpaceElevator(connected: boolean, cablePoolAmount: number, cablesPerElevator: number): boolean {
-  return !connected && cablePoolAmount >= cablesPerElevator;
 }
 ```
 （`TranslationKey` の import 元は `detailLogic.ts` に合わせる）
@@ -3239,16 +3018,16 @@ import type { BlockInventoryOpen } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { GaugeBar, PanelActionButton } from "@/shared/ui";
 import LackHighlightText from "../LackHighlightText";
-import { canConnectSpaceElevator, spaceElevatorStatusDisplay } from "./spaceElevatorDisplay";
+import { spaceElevatorStatusDisplay } from "./spaceElevatorDisplay";
 
-// 接続状態・プール残量・昇降の進みと、未接続なら接続ボタンを出す
-// Show the connection state, the pool amount and the climb progress, plus the connect button while unconnected
+// 接続状態・プール残量・昇降の進みと、未接続なら接続ボタンを出す。接続できるかはサーバーが status で渡す
+// Show the connection state, the pool amount and the climb progress, plus the connect button while unconnected; the server passes connectability in status
 export default function SpaceElevatorSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   const detail = data.spaceElevator;
   if (!detail) return null;
   const display = spaceElevatorStatusDisplay(detail.status);
-  const canConnect = canConnectSpaceElevator(detail.connected, detail.cablePoolAmount, detail.cablesPerElevator);
+  const canConnect = detail.status === "readyToConnect";
   const connect = () => {
     void dispatchAction("space_elevator.connect", {});
   };
@@ -3264,9 +3043,6 @@ export default function SpaceElevatorSection({ data }: { data: BlockInventoryOpe
         <PanelActionButton onClick={connect} disabled={!canConnect} testId="space-elevator-connect">
           {t(L.ui.blockInventory.spaceElevatorConnect)}
         </PanelActionButton>
-      )}
-      {detail.connected || canConnect ? null : (
-        <LackHighlightText insufficient size="sm" testId="space-elevator-insufficient">{t(L.ui.blockInventory.spaceElevatorInsufficientCable)}</LackHighlightText>
       )}
     </Stack>
   );
@@ -3306,29 +3082,26 @@ export default function SpaceElevatorInventory({ data }: { data: BlockInventoryO
 ```tsx
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, screen } from "@testing-library/react";
+import { L } from "@/shared/i18n";
 import SpaceElevatorSection from "../SpaceElevatorSection";
-import { canConnectSpaceElevator } from "../spaceElevatorDisplay";
+import { spaceElevatorStatusDisplay } from "../spaceElevatorDisplay";
 
-describe("canConnectSpaceElevator", () => {
-  it.each([
-    [false, 1000, 1000, true],
-    [false, 999, 1000, false],
-    [true, 5000, 1000, false],
-  ])("connected=%s pool=%s required=%s → %s", (connected, pool, required, expected) => {
-    expect(canConnectSpaceElevator(connected, pool, required)).toBe(expected);
+describe("spaceElevatorStatusDisplay", () => {
+  it("ケーブル不足は不足の文言を足りない色で出す", () => {
+    expect(spaceElevatorStatusDisplay("insufficientCable")).toEqual({ labelKey: L.ui.blockInventory.spaceElevatorStatusInsufficientCable, insufficient: true });
   });
 });
 
 describe("SpaceElevatorSection", () => {
-  it("足りないときは接続ボタンを押せず理由を出す", () => {
-    renderSection({ connected: false, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0, status: "notConnected" });
+  it("サーバーがケーブル不足と判定したら接続ボタンを押せない", () => {
+    renderSection({ connected: false, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0, status: "insufficientCable" });
     expect(screen.getByTestId("space-elevator-connect")).toBeDisabled();
-    expect(screen.getByTestId("space-elevator-insufficient")).toBeInTheDocument();
+    expect(screen.getByTestId("space-elevator-status")).toBeInTheDocument();
   });
 
-  it("足りるときは接続actionを送る", () => {
+  it("サーバーが接続できると判定したら接続actionを送る", () => {
     const dispatch = mockDispatchAction();
-    renderSection({ connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "notConnected" });
+    renderSection({ connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect" });
     fireEvent.click(screen.getByTestId("space-elevator-connect"));
     expect(dispatch).toHaveBeenCalledWith("space_elevator.connect", {});
   });
@@ -3344,7 +3117,7 @@ describe("SpaceElevatorSection", () => {
 
 - [ ] **Step 6: e2e を足す**
 
-`e2e/fixtures/v8-block-ui-registry.json` に `{ "blockType": "SpaceElevatorBase", "openable": true }` をアルファベット順の位置に足す（Task 3 で足した `ElectricGenerator` openable true の行と合わせ、blocks.json から再生成した結果と一致させる）。拠点は専用 view をレジストリに登録したので、`blockRegistryCoverage.spec.ts` の `intentionalGeneric` には足さない。
+出荷マスタにはまだ拠点が無いので、e2e の registry fixture（blocks.json から作る）は変えない（拠点が入ったときの1行は統合タスク。末尾の節「旧 Task 10 Step 6 の e2e fixture」）。レジストリに先に登録しておくのは `blockRegistryCoverage.spec.ts` が許す（fixture に無い型の登録は落ちない）。
 `energyFixtures.ts` の末尾に:
 ```ts
 // 宇宙エレベーター拠点（未接続・ケーブル不足）
@@ -3357,17 +3130,17 @@ export const blockSpaceElevator = {
   blockGuid: BlockGuids.ELECTRIC_TO_GEAR_BLOCK_GUID,
   itemSlots: [],
   fluidSlots: [],
-  spaceElevator: { connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "notConnected" },
+  spaceElevator: { connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect" },
 } satisfies BlockInventoryWireData;
 ```
 （`BlockGuids` に専用の GUID を足す前例があればそれに従う）`httpHandler.ts` の `electricToGear: fx.blockElectricToGear,` の次に `spaceElevator: fx.blockSpaceElevator,`。`detailActions.ts` に:
 ```ts
-// space_elevator.connect: 足りれば接続済みにしてプールから引く
-// space_elevator.connect: when enough remains, mark connected and take from the pool
+// space_elevator.connect: サーバーの代わりに、接続できる状態なら接続済みにしてプールから引く
+// space_elevator.connect: standing in for the server, mark connected and take from the pool when the status says it can connect
 export function applySpaceElevatorConnect(block: BlockInventoryWireData): boolean {
   if (!block.open || !("spaceElevator" in block) || !block.spaceElevator) return false;
   const detail = block.spaceElevator;
-  if (detail.connected || detail.cablePoolAmount < detail.cablesPerElevator) return false;
+  if (detail.connected || detail.status !== "readyToConnect") return false;
   detail.connected = true;
   detail.cablePoolAmount -= detail.cablesPerElevator;
   detail.status = "waitingSatellite";
@@ -3433,7 +3206,7 @@ git commit -m "feat(webui): 宇宙エレベーター拠点の接続ボタンと�
 前例 `StateProcessor/SteamEngineEffectStateChangeProcessor.cs`（プレハブに貼る `[SerializeField]` 付き processor）:
 ```csharp
 using Client.Game.InGame.Block;
-using Game.Block.Blocks.SpaceElevator;
+using Game.Block.Interface.State.SpaceElevator;
 using Server.Event.EventReceive;
 using UnityEngine;
 
@@ -3547,7 +3320,599 @@ git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/StatePro
 git commit -m "feat(client): 宇宙エレベーター拠点の簡易モデルと昇降の見た目を足す"
 ```
 
-### Task 12: シミュレーションにエレベーターを足して値を確定する
+### Task 12: （統合タスクへ移した）シミュレーションにエレベーターを足して値を確定する
+
+この PR では実行しない（マスタの中身は S1〜S3 の実装後に統合タスク bd `moorestech-xyuaf.2` で入れる。判断記録 P29）。下書きは末尾「統合タスクへ引き継ぐマスタの中身」の「旧 Task 12」。
+
+### Task 13: （統合タスクへ移した）unityプレイ録画テスト
+
+この PR では実行しない（録画テストは統合タスク bd `moorestech-xyuaf.2` で撮る。判断記録 P18・P29）。下書きは末尾「統合タスクへ引き継ぐマスタの中身」の「旧 Task 13」。
+
+### Task 14: 全ブランチレビュー
+
+- [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+
+Codex ホストでは moores-code-review の `references/codex-host.md` の runner で実行する。レビュー指摘の反映がソースの判定経路・条件式・その評価時点（昇降機の開始条件・頂上で渡す条件・出口の確認・接続判定・撤去返却など）に触れたら、反映後のコードで Task 3・5〜11 のテスト一式（各タスクの「コンパイルしテストを実行する」ステップのフィルタすべてと webui の `npx vitest run`・`npx playwright test e2e/tests/block`）を再実行してから完了とする。この plan に unityプレイ録画テストは無い（統合タスクへ移した。判断記録 P18・P29）ので、レビュー報告に「録画は統合タスク bd `moorestech-xyuaf.2` で撮る」と書く。指摘の反映ごとにコミットする。
+
+### Task 15: PR 作成とセッションを閉じられる状態
+
+- [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
+
+順序:
+1. 土台をそろえる: S2 の PR が origin/master へ入っていれば `git merge origin/master`、入っていなければ `git merge origin/feat/tier9-compute-data-loop` で S2 の最新を取り込み直す（S2 の途中のコミットだけを持つ状態で出さない）。`uloop compile --project-path ./moorestech_client`（ErrorCount 0）と Task 7〜9 のテストを通して push する。
+2. ピンを確かめる: `git diff <1. で取り込んだ ref> -- .moorestech-external-revisions.json` が空（S3 はマスタを変えないので、ピンは S2 か origin/master と同じ値）。
+3. pr-create スキルで PR を作る（base `master`）。本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S2 への依存（S2 の PR が未マージなら「S2 の PR のマージ後にマージする」と書き、その URL）／統合タスクへ回したもの（末尾の節の見出しを並べ、裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md` と bd `moorestech-xyuaf.2` へリンク）／確かめ方（CombinedTest・プロトコルテスト・wire 契約テスト・webui の vitest と e2e の結果。録画は統合タスク）／セーブ版 7→8（S2 が 6→7）／判断記録の「S1 待ち」「S2 待ち」の一覧／本PR外のリファクタ提案（判断記録 P30）／レビュー依頼の注目点（判断記録 P10 の起動時のマスタ整合検査サービス）。マージはしない。
+4. CI の結果を確かめる。
+5. `bd note moorestech-xyuaf.2 "S3 の PR <URL>。S3 から統合タスクへ渡すマスタの中身・バランス・録画の下書きは S3 plan docs/superpowers/plans/2026-10-23-tier9-fusion-elevator-endgame.md の「統合タスクへ引き継ぐマスタの中身」節"` を書く。
+6. `moores-wt rm tier9-fusion-elevator-endgame`（Editor と worktree を畳む。未コミット・未 push が無いことを先に確かめる）。
+
+---
+
+## 判断記録（ADR）
+
+### 設計 ADR と S3 の裁定
+
+- ADR: `docs/adr/0089-space-elevator-cable-pool-and-per-base-connection.md`（ケーブルプール・拠点ごとの接続・昇降機・軌道到着サービスへの委譲）、`docs/adr/0090-fusion-net-power-from-fuel-extraction-cost.md`（核融合の差し引き電力・炉は既存の燃料発電機）
+- S3 のユーザー裁定（`.decisions/`）:
+  - `2026-10-23-ストーリークリアは定義せず反物質爆弾を規定量作る仮の研究で終端にする.md`（原文「クリアについて現段階で明確に定義しない。反物質爆弾を規定量つくったらそれでおわり（終了を明示する仮の研究があってもok、その程度」）
+  - `2026-10-23-宇宙エレベーターは接続でGPU人工衛星の打ち上げ経路として機能させる.md`
+  - `2026-10-23-エレベーター経由の衛星打ち上げは燃料と筐体が不要だが入手に時間がかかる.md`
+  - `2026-10-23-エレベーター拠点は1基につき昇降機1台で衛星を1つずつ運ぶ.md`
+  - `2026-10-23-打ち上げたケーブルはワールド共通の素材プールに入り拠点ごとの接続で消費し撤去で戻る.md`
+  - `2026-10-23-エレベーター拠点は簡易モデルで接続でケーブルが現れ昇降機が上昇する.md`
+  - `2026-10-23-エレベーター拠点は昇降中に電力を使い不足すると遅くなる.md`
+  - `2026-10-23-核融合の収支は燃料づくりの大電力で作りモジュールは燃料側に効かせる.md`
+  - `2026-10-23-核融合の収支は運転中の電力だけで評価し点火手順は設けず見た目は既存モデルと汎用UI.md`
+  - `2026-10-23-反物質は大電力の新機械で作り既存の組立機械で爆弾にする.md`
+  - `2026-10-23-グラフェンは既存機械の短い直線工程で作り使用済み銅板は電気炉で銅板に戻す.md`
+  - `2026-10-23-モジュールは種類ごとに研究を分け機械オーバークロックは速度モジュールの研究にする.md`
+  - `2026-10-23-Tier9のフィルター分岐器ノードは削除し品質モジュール研究は別途作る.md`
+  - `2026-10-23-金属3Dプリンタはコンピュータと制御モータを1工程で作る任意のショートカット機械にする.md`
+- 他セッションの裁定で S3 に効くもの: S1「Tier9 の目標プレイ時間は半導体解放からクリアまで 15〜25 時間」「チップは別アイテムで上限 Lv5・研究とクリアは大部分 Lv1」「モジュールは品質・速度・省エネ・生産性の4種」。S2「研究ロケット技術を新設」「軌道エレベーターの建設は計算データを消費しロケット技術を前提にする」「計算データは打ち上げた設備の出力口に出し、満杯なら待たせて理由を出す」「Tier9 のマスタの中身は S1〜S3 の実装後に統合タスクでまとめて入れる」（P29）
+
+### planning 中の判断（出所は各行。書いていなければ agent前提）
+
+| # | 判断 | 理由・根拠 |
+|---|---|---|
+| P1 | 発電機（ElectricGenerator）に `IBlockStateObservable` を足し、`PowerGeneratorStateDetail` と液体タンク（`FluidMachineInventoryStateDetail`）を出す。通知は点き始め・燃え尽きの tick、燃焼中の毎 tick（残燃料が進む）、液体を受け入れたとき | 裁定「既存モデル＋汎用UIの稼働表示」。前例 `FuelGearGeneratorComponent.cs:88-91`（稼働中は毎 tick 通知）・`VanillaMachineFluidInventoryComponent.cs:139`（液体の受け入れで通知）。同じ値の再送は `ChangeBlockStateEventPacket` が落とす。配置検査 V1 で「点き始め・燃え尽きだけ」から直した（残燃料バーが止まるため） |
+| P2 | クライアントで ElectricGenerator を CommonMachine 扱いから外す（比べた案: 発電機専用の状態プロセッサを置く → 見た目に変化が無いので要らない。CommonMachine のキーも出す → 発電機は機械の処理状態を持たず偽の値を送ることになる） | 原因: 推測（根拠: `CommonMachineBlockStateChangeProcessor.cs:23-28` は CommonMachine キーが無い状態で `Debug.LogError` を出す。発電機が状態を出すと必ず通る）。実測は統合タスクの録画で行う（出荷マスタの発電機が開けるようになるのは統合タスク。末尾の節の旧 Task 13） |
+| P3 | 発電機は専用 view を作らず汎用 `SectionStackView` で出す。e2e の registry で意図的 Generic にするのは、核融合炉が開けるようになる統合タスク（末尾の節の旧 Task 3 Step 4 の e2e） | 前例「標準ブロック表示をデータ有無で合成し、固有UIだけをレジストリへ残す」 |
+| P4 | `VanillaElectricGeneratorFuelService`（289行）と `VanillaElectricGeneratorComponent` を 200 行未満へ分割する。変換器が触るフィールドを `internal` にする | AGENTS.md の 200 行規約。同アセンブリの変換器だけが触る |
+| P5 | 〔統合タスクへの下書き〕数値の初期値: 核融合炉 重水素10/2秒で 20000、重水素抽出装置 4000（水100→重水素10/8秒）、反物質製造装置 12000（重水素50→反物質1/30秒）、反物質爆弾 反物質20＋ICチップLv1 50＋鋼鉄板100＋コンピュータ20（電気汎用工作装置 60秒）、グラフェン4レシピと3Dプリンタ2レシピは Task 1・2 の JSON の値 | Task 4 のシミュレーション（R3・R5・R23 の範囲）で検査し、NG なら直して本節へ追記する。全体の時間目標は S1 の裁定 |
+| P6 | 〔統合タスクへの下書き〕最終研究の名前は「最終研究」、消費は反物質爆弾 10、解放物なし | ユーザー原文「終了を明示する仮の研究があってもok、その程度」。量は agent前提（Task 4 で所要時間を検査） |
+| P7 | 〔統合タスクへの下書き〕反物質の機械名は「反物質製造装置」 | 既存モデル名 `Antimatter_manufacturing_equipment` と ADR 0090 に合わせる。裁定ファイルの「反物質生成装置」は機能の言い換え（ユーザーが名前を決めた裁定ではない） |
+| P8 | 〔統合タスクへの下書き〕グラフェンケーブルは軌道到着の積荷表に 1便1000本・成果なしで載せ、スタック表 [1000] を割り当てる。1エレベーター分 1000 本＝1便。昇降 600 秒・昇降中の電力 2000 | S2 の契約「countPerLaunch ≤ スタック上限」。Task 12 で S2 のロケット建造時間と比べて確定する |
+| P9 | 〔統合タスクへの下書き〕研究「軌道エレベーターの建設」の計算データ消費は S2 の plan の値（見つからなければ 200）、研究「反物質爆弾」に計算データ ×400 | S2 の裁定「計算データを消費する」。量は S2 待ち・S1 待ち |
+| P10 | 起動時（`IBootInitializable.Load`）の検査は `SpaceElevatorOrbitalTableCheck.cs`（`Game.SpaceElevator/`）が担う。拠点のマスタが指すケーブル・積荷が軌道到着の表にあるかを S2 の `IsOrbitalPayload` で、衛星1機の成果が空の出口（`outputSlotCount`）に入りきるかを `PreviewArrivalOutputs` で確かめ、違えば例外で止める。積荷にケーブルが含まれないかはマスタだけで決まるので `SpaceElevatorBaseParamValidator`（P22）が見る。プールは起動時の検査をしない | ADR 0089。S2 のサービスに依存する検査だけを起動時に置き、マスタだけで決まる検査はロード時の validator に置く。起動時のマスタ整合検査サービスは前例の無い新しい形（配置検査の注目点4） |
+| P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない） | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値 |
+| P12 | 撤去返却は `RemoveBlockProtocol.cs`（`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`）で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
+| P13 | 接続は専用プロトコル `va:connectSpaceElevator`（`ConnectSpaceElevatorProtocol.cs` を `PacketResponse/SpaceElevator/` に新設し `PacketResponseCreator.cs` に登録、`Server.Protocol.asmdef` に `Game.SpaceElevator` 参照を足す。クライアントは `BlockRequestApi.cs` に `ConnectSpaceElevator` を足す）で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出す。押せるか・不足の理由は、プールが判定して拠点の状態（`ReadyToConnect` / `InsufficientCable`）に載せたものを webui が表示する（P26） | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
+| P14 | 拠点の UI は専用 view `views/SpaceElevatorInventory.tsx`（`BlockItemGrid`＋`SpaceElevatorSection`＋`ElectricNetworkSection`）を `registry/blockComponentRegistry.ts`・`registeredBlockTypes.ts` に登録する。`SectionStackView` には足さず、e2e の `intentionalGeneric` にも入れない | 接続ボタンはブロック固有の操作。前例 `views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`。`SectionStackView.tsx:51-52`「固有UIだけをレジストリへ残す」、`intentionalGeneric` は移植待ちの許可リスト。配置検査 V2 で「SectionStackView に合成」から直した |
+| P15 | 新しいファイルはディレクトリの 10 ファイル上限のためサブディレクトリ（`PacketResponse/SpaceElevator/`・`Actions/SpaceElevator/`・`Topics/BlockDetail/SpaceElevator/`・`StateProcessor/SpaceElevator/`）に置き、`inventory.ts`（215 行）を分割する | AGENTS.md の規約 |
+| P16 | 〔統合タスクへの下書き〕録画テストは昇降の完了（600 秒）まで待たず、昇降機が上がること・進みが増えることまでを見る。到着後の成果・出口の空き待ちはユニットテストで見る。ケーブルの打ち上げはサーバーで `Arrive(cable, 1000)` を呼んで起こす | 録画の長さ。本番との差: ロケットでの打ち上げ経路は通さない（S2 の録画が担う） |
+| P17 | Task 5 は S2 の `Game.Orbit`（`PreviewArrivalOutputs` を含む）と積荷表が push されるまで前景で 600 秒ずつ最大 12 回待ち、来なければ止めて報告する | S2 の API に依存するため。バックグラウンドのポーリングはしない |
+| P18 | この plan には unityプレイ録画テストも EditModeInPlayingTest も入れない。ランタイム挙動（発電機の UI・拠点の UI・見た目・昇降）に触れるが、実ゲームで核融合炉と拠点を置いて開くにはマスタの中身が要り、それは統合タスクで入る。この PR はサーバーの CombinedTest（テスト mod で接続→昇降→成果→セーブ→撤去）・プロトコルテスト・wire 契約テスト・webui の vitest と e2e（mock host）で確かめる。録画シナリオの下書きは末尾の節の旧 Task 13 | ユーザー裁定 2026-10-23（S2 のセッション。提案「…master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」→ 回答「1 ok」。[[2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる]]）。録画テスト規定の例外はこの裁定による |
+| P19 | 昇降機は打ち上げ後の保留を持たない。昇り始める前と頂上で渡す直前に `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを確かめ、入らなければ入口に残す／頂上で電力を使わず待つ。状態は `OutputBlocked` | S2 のユーザー裁定（S2 ブランチ `.decisions/2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める.md`、明示引用「発射台の出力口が満杯のとき、どこで待たせますか？」→ 選択「入りきる時だけ建造開始」）と、その裁定ファイルの「宇宙エレベーター拠点（S3）も同じ方式にする」。拠点への適用の形（2点の確認・頂上で待つ間は電力を使わない）は agent前提で、前例は機械の `IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118` |
+| P20 | 拠点の出口は `outputSlotCount`（出荷 4・テスト mod 1）スロット。衛星1機の成果がレベル1のスタック上限で空の出口に入りきらないマスタは、起動時に `SpaceElevatorOrbitalTableCheck` が止める | 入りきらない成果は頂上で永遠に待つ（構造的に解消しない待ち）ため、いちばん早い段階で止める（AGENTS.md）。スロット数 4 は agent前提 |
+| P21 | `VanillaSchema/blocks.yml` に blockType `SpaceElevatorBase` と case を足し、`_CompileRequester.cs`（`moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`）の `dummyText` を上げて生成し直す。新しい case だけなので既存ブロックの JSON は変えない | edit-schema スキルの手順。拠点の振る舞いは既存の blockType では表せない（ケーブルプールへの接続・昇降機）ため新設 |
+| P22 | 拠点のマスタ検証を `SpaceElevatorBaseParamValidator.cs`（`Core.Master/Validator/Block/`）に置き、`BlockMasterUtil.cs` の `Validate` に連結する。見るのは参照・数値・全拠点のケーブルが1種か。軌道到着の表との突き合わせは S2 のサービスが要るので起動時（P10） | 前例 `BlockMasterUtil.cs` の `BeltSpeedPerSecondValidator` の連結。AGENTS.md「必須の設定はいちばん早い段階で止める」 |
+| P23 | 拠点の組み立てを `VanillaSpaceElevatorBaseTemplate.cs`（`Game.Block/Factory/BlockTemplate/SpaceElevator/`）に置き、`VanillaIBlockTemplates.cs` に登録する。供給の受け取りを昇降機より前に並べる | 前例 `VanillaElectricPumpTemplate`（電力受け取りと処理の順）・`VanillaChestTemplate`（インベントリとコネクタ） |
+| P24 | 契約型（クライアントも読む型）を Interface 層に置く: 接続結果 `SpaceElevatorConnectResult` は `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorConnectResult.cs`、状態詳細 `SpaceElevatorBaseStateDetail` と状態 `SpaceElevatorBaseStatus` は `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/`。クライアントの asmdef（`Client.Network`・`Client.WebUiHost`）に `Game.SpaceElevator` を足さない | agent前提（設計検査 Phase 2.6 強3。シミュレーター予測をもとに前提として宣言し、ユーザーの拒否なし。前例は S2 の判断記録 D27（契約型をインターフェース層に置く）と `Game.Block.Interface/State/` の既存の状態詳細） |
+| P25 | webui の拠点詳細 `spaceElevator` は optional のまま（無ければ「拠点ではない／未着」。未着は DTO ビルダーが警告ログ）、状態は C# の列挙→camelCase 文字列→zod の enum（未対応の値は例外）、翻訳キーは `TranslationKey` 型で欠損を型とテストで止める | agent前提（設計検査 Phase 2.6 強1・強4・強5。前例 `electricToGear` の optional・`TrainPlatformDetailDtoBuilder.ToWireMode`・webui 全体の `t(キー)`。前提として宣言し、ユーザーの拒否なし） |
+| P26 | 接続できるか（プールに1エレベーター分あるか）はサーバーのプールが判定する。プールは残量が変わるたび、および拠点の設置時に、各拠点へ `SetCablePoolAvailability(int poolAmount, bool hasEnoughCable)` で push し、拠点の状態の「未接続」を `ReadyToConnect` と `InsufficientCable` に分ける。webui は `status` を表示するだけで、ボタンの無効化と不足の文言も `status` から決める | ユーザー裁定 2026-10-23（質問「宇宙エレベーター拠点の『接続する』ボタンを押せるか（プールのケーブルが1エレベーター分あるか）を、どこで判定しますか？」→ 選択「サーバーが判定 (Recommended)」。[[2026-10-23-エレベーター拠点に接続できるかはサーバーのプールが判定し画面は表示するだけ]]）。ADR 0089 も同じ形に直した |
+| P27 | 型検査の弱い指摘を4束とも直す: (1) 読込時と進みのガード（`SpaceElevatorClimberSaveRestorer` が残りを総時間に収める・運べない衛星を入口へ戻す、出口スロットの溢れをエラーログ）、(2) テストで前提を確かめる（設置・電力網の取得を `Assert.IsTrue`、成果の問い合わせで到着の通知が流れないテスト）、(3) 判定と導出の重複を消す（`SpaceElevatorOutputSimulation.TryStack` と昇降機のローカル関数 `ResultFitsOutlets`、`SpaceElevatorBaseMasters`、`IsCarriedPayload`）、(4) 出口待ちに入った tick に1回ログ | ユーザー裁定 2026-10-23（質問「型の検査で出た弱い指摘のうち、どれを直しますか？」→ 選択「読込時と進みのガード, テストで前提を確かめる, 判定と導出の重複を消す, 出口待ちのログ」。[[2026-10-23-エレベーター拠点の型検査の弱い指摘は4束とも直す]]） |
+| P28 | 状態詳細は平らなフィールドのまま持つ（発電機の `IsBurning` と `CurrentFuelTotalTicks`、拠点の `Status` と `ClimbProgress` が同居し、動いていないときは 0） | agent前提（設計検査 Phase 2.6 強2。MessagePack の状態詳細は平らな形だけが前例: `PowerGeneratorStateDetail`・`CommonMachineBlockStateDetail`。ユーザーへ聞いたが「何の話？」の答えで、プレイヤーに見える差が無い内部の形なので前例どおりの前提で閉じた。裁定ではない） |
+| P29 | moorestech_master の中身（液体・アイテム・ブロック・レシピ・研究・積荷表のグラフェンケーブル行とスタック表・軌道エレベーターの建設の変更・ビルドメニュー「宇宙」）・バランスのシミュレーション・unityプレイ録画テストは、S1〜S3 の実装がそろってから統合タスク（bd `moorestech-xyuaf.2`）で入れる。この PR は moorestech_master を変えない（S3 のスキーマ変更は新しい case だけで、出荷マスタに読み込みに要る変更が無い）。ピンは Task 5 で取り込む S2 の値。旧 Task 1・2・4・12・13 と、旧 Task 3・5・6・10 のマスタ部分は末尾の節へ下書きとして移した。スタックテーブルが空の7件は S2 の master PR が直すので S3 は触らない | ユーザー裁定 2026-10-23（S2 のセッション。原文「マスタはタスク全体の実装が終わった時に全体でまとめて入れるのが良いんじゃないの？どうせ他にもデッドロック的なタスクがあるんじゃないの？」→ 提案「S2 の PR はコード・スキーマ・テスト用データと、読み込みに必要な最小限の master 変更だけにし、master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」→ 回答「1 ok」。裁定は S1〜S3 の PR に効く。[[2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる]]（S2 ブランチで記録。Task 5 の取り込みで入る））。7件の分担は S2 からの連絡 2026-10-23 |
+| P30 | 本PR外のリファクタ提案（plan のタスクには足さない）: 出口へ入りきるかの模擬が3か所にある。既存 `moorestech_server/Assets/Scripts/Core.Inventory/InventoryInsertItem.cs`（`OpenableInventoryItemDataStoreService` の InsertionCheck/InsertItem）と `Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs`（CanStoreOutputs/TrySimulateOutputs）、新設 `SpaceElevatorOutputSimulation`。同じ役割（成果の並びが空きスロットに積めるか）なので共通化を提案する | 設計検査 Phase 2.6 の第3バケツ。Task 15 の PR 本文「本PR外のリファクタ提案」に載せる |
+
+### S1 待ち・S2 待ち
+
+- この PR で待つのは S2 の `Game.Orbit`（`PreviewArrivalOutputs` を含む）と積荷表のスキーマの push だけ（Task 5 のゲート）
+- 統合タスクで決めるもの（この PR では扱わない）: Tier9 研究のコスト（核融合炉・反物質爆弾・金属超精密加工・軌道エレベーターの建設の `consumeItems`）、機械のモジュールスロット数（重水素抽出装置・反物質製造装置・金属3Dプリンタは下書きで仮に 3）、レシピのチップ Lv（下書きはすべて ICチップLv1）、計算データの消費量（P9）、ロケット1機の建造時間（旧 Task 12）、GPU衛星 Lv1〜Lv5 の到着成果。研究「機械オーバークロック」は S1 が速度モジュール研究として作る（S3 は触らない）
+
+### 進め方の裁定
+
+- マスタの中身と録画テストは統合タスクへ（P29。S2 のセッションでのユーザー裁定で、S1〜S3 の PR に効く）
+- ユーザー指示 2026-10-23 17:51「とりあえずまだ実装開始しないで」: plan の作成・検査・コミットまでで止め、Codex の実装セッションは起動しない。開始はユーザーの合図を待つ
+
+---
+
+## 統合タスクへ引き継ぐマスタの中身（この PR では実行しない）
+
+統合タスク bd `moorestech-xyuaf.2` の入力。裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md`（S2 ブランチで記録。Task 5 の取り込みで入る）に従い、S3 の moorestech_master の中身・バランスのシミュレーション・unityプレイ録画テストをここへ下書きとして移した。ステップのチェックボックスは外してある。値（研究コスト・チップ Lv・モジュールスロット数・計算データ量・昇降の秒数と電力）は統合タスクで S1・S2 の中身とそろえて決め直す。マスタ worktree のパス（`$HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame`）・ブランチ・ピンの手順は下書き時の想定で、統合タスクの plan が決め直す。
+
+スタックテーブルが空の7件（グラフェンケーブル・グラフェンシート・使用済み銅板・高純度炭素・ロケット筐体素材・ロケット燃料・反物質爆弾）は S2 の master PR が Default（`9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa`）にする。下の「旧 Task 5 Step 3」はグラフェンケーブルだけを [1000] の表へ差し替える（S2 からの連絡 2026-10-23）。
+
+#### 移した要件
+
+| # | 要件 | 受け入れ基準 |
+|---|---|---|
+| R1 | 液体「重水素」を作る | fluids.json に `重水素` があり、ローカライズ行がある |
+| R2 | 重水素抽出装置（ElectricMachine）が水から重水素を作る。大電力・モジュールスロットあり | 水を入れて電力を与えると重水素タンクが増える（マスタ読込スモーク＋シミュレーション） |
+| R3 | 核融合炉（ElectricGenerator）が重水素を燃やして大電力を出す。モジュールスロット・点火手順は無い | 重水素を入れると出力が出る。炉1基の差し引き電力（炉出力−必要台数の抽出装置の消費）がモジュールなしでガソリン発電機 3〜5 台分（シミュレーションで検査） |
+| R5 | 反物質製造装置（ElectricMachine）が重水素と核融合炉級の電力で反物質を作る | マスタ読込スモーク・シミュレーションで反物質1機の消費電力が炉の差し引き電力（モジュールなし）の3倍以上 |
+| R6 | 反物質爆弾を既存の電気汎用工作装置で作る | machineRecipes に 反物質＋ICチップLv1＋鋼鉄板＋コンピュータ → 反物質爆弾 がある |
+| R7 | 終端研究（反物質爆弾を規定量消費する仮の研究）で終わる。クリア状態・エンディングは作らない | research.json に終端研究ノード（consume 反物質爆弾 10、clearedActions 空、前提 反物質爆弾）がある |
+| R8 | グラフェンケーブルを既存機械の短い直線で作り、使用済み銅板は電気炉で銅板に戻す | 石炭→高純度炭素（電気炉）→グラフェンシート＋使用済み銅板（電気炉）→グラフェンケーブル（電気汎用工作装置）、使用済み銅板→銅板（電気炉）の4レシピがある |
+| R9 | 金属3Dプリンタを ElectricMachine ブロックにし、ICチップ等からコンピュータ・制御モータを1工程で作る。研究「金属超精密加工」で解放 | 旧アイテム「金属3Dプリンタ」が消え、ブロックとレシピ2本があり、金属超精密加工が unlockBlock する |
+| R10 | 研究「フィルター分岐器」を消し、金属超精密加工の前提を張り替える | ノードが無く、金属超精密加工の前提が `機械オーバークロック` だけになる。progression_check が詰みを増やさない |
+| R11 | 研究「機械オーバークロック」は S1 が速度モジュール研究として作る。S3 は触らない | S3 の差分で当該ノードが変わっていない |
+| R12 | 「軌道エレベーターの建設」から発射台・筐体・燃料の解放を外し（a）、計算データを消費し（b）、前提にロケット技術を足す（c） | research.json の当該ノードが (a)(b)(c) を満たす |
+| R13 | グラフェンケーブルは軌道到着の積荷表に 1便1000本・成果なしで載り、スタック上限 1000 のテーブルを持つ | items.json の `orbitalPayloads` に行があり、グラフェンケーブルの `stackLevelTableGuid` が [1000] のテーブルを指す |
+| R23 | 新しい値はシミュレーションで目標に合わせる（S3 の配分 5〜11 時間、全体 15〜25 時間は S1 の裁定） | `tools/balance/tier9_endgame_balance.py` が目標の範囲を検査して exit 0 |
+
+#### マスタを変えるときの共通手順（旧 Global Constraints）
+
+- マスタ JSON を変えたら moorestech_master で `python3 tools/research_sync/sync_machine_recipe_unlocks.py`（書き戻し）→ `--check`（exit 0）→ `python3 tools/research_sync/progression_check.py`（詰みを増やさない）→ `python3 scripts/check_shipped_data_contracts.py`（exit 0）
+- S1 の担当値（Tier9 研究コスト・チップ Lv・モジュール値）は仮値で置き、判断記録に「S1 待ち」と書く。S2 の担当値（計算データ量・GPU衛星の成果・ロケット建造時間）は S2 のマスタブランチの値を読む
+- Editor のマスタは既定で `../../moorestech_master`（共有の main clone）を読む。S3 のマスタで動かすときは、録画テストは `run-scenario.sh` の第3引数に `$HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame/server_v8` を渡し、スモークは `MoorestechServerDIContainerOptions` に同パスを渡す。main clone の HEAD を動かさない（S1/S2 と共有）
+
+#### 共通の GUID・参照表（マスタ）
+
+既存（moorestech_master origin/master b2149a0）:
+
+| 名前 | GUID |
+|---|---|
+| 核融合炉（ブロック、仮エントリ） | 01a162f1-ab04-76e2-94cf-dc713edeb63b |
+| 宇宙エレベーター拠点（ブロック、仮エントリ） | 01a162aa-cec0-738c-93c5-f58adc87fa7f |
+| ロケット発射台（ブロック、S2 担当） | 01a162b0-7769-7419-af24-bb35528b93d2 |
+| 反物質爆弾（アイテム） | 01a162ab-07ba-73c1-9dd6-38e1e867663b |
+| グラフェンケーブル / グラフェンシート / 使用済み銅板 / 高純度炭素 | 01a16290-f793-748b-a0b0-91d44be0d4ab / 01a16297-4724-73b9-82c3-2e77120be77d / 01a16297-6665-765d-8e19-96d357394c3e / 01a16297-a7f5-759b-91ba-be4021ca3bf2 |
+| 金属3Dプリンタ（アイテム、削除対象） | 019e3af5-e750-71ae-ab09-2b98f3db9913 |
+| 石炭 / 銅板 / 鋼鉄板 / 鉄のフレーム | f882df45-5651-4aec-b871-a9f885a5f75f / 019e0a92-1907-707a-8625-630d86a076ee / 019e3a98-cfe5-73eb-bf6a-a564400bdb4f / 231d2146-5e40-4e55-be27-22dda4175f47 |
+| コンピュータ / 制御モータ / ICチップLv1 | 019f0ca4-a544-723e-8ff2-feb15f99c84e / 019f0ca5-a575-7625-a43e-f43e8471287e / f6dd7835-0845-4877-87d0-b719d037ae7d |
+| 水（液体） | 9eae6979-d56a-4991-9107-b8161acec430 |
+| 電気炉 / 電気汎用工作装置（ブロック） | 019e0a68-3705-75f7-a040-50fab3c7d81e / 019e1225-f49b-7283-8835-428d903852f1 |
+| 研究: 機械オーバークロック / フィルター分岐器（削除） / 金属超精密加工 / 核融合炉 / 軌道エレベーターの建設 / 反物質爆弾 | 019e3ae2-5005-7439-b242-9b7b3191a2c3 / 019e3aab-32c6-7166-a184-d761153c2498 / 019e3af5-f2e6-76de-a80f-5e66e79fa35d / 019e3af0-297f-726e-8a02-0a8518124e6d / 01a16291-4094-7369-a87f-5dfe2197d25e / 019e3aef-a149-746b-8fad-159e0434cb51 |
+| ベルト用コネクタ形状 | 65f063cd-3ae1-4b55-b39d-00e033b7ec98 |
+| スタック表 Default | 9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa |
+
+S2 のマスタブランチ（Task 5 で取り込む）: 研究「ロケット技術」01a167cf-af9d-7f31-817c-3069b4f6e499、計算データ 01a167cf-af88-74d3-9cd6-7d61b71052bb、GPU衛星Lv1〜Lv5 01a167cf-af8b-7894-8de6-593ee30289c0 / 01a167cf-af8e-7e95-b299-09eb712bee12 / 01a167cf-af91-7f62-93d1-e499b06f2398 / 01a167cf-af94-7e25-9654-825374c3923b / 01a167cf-af97-7f67-bf53-7833b8d17a15、ビルドメニュー「生産>宇宙」d2000000-0000-4000-8000-000200000005。
+
+新規（本 plan で作る）:
+
+| 名前 | GUID |
+|---|---|
+| 重水素（液体） | 01a167e9-21b2-7bb0-b6a3-0f17d349704e |
+| 反物質（アイテム） | 01a167e9-21b5-7479-9060-995505f43137 |
+| 重水素抽出装置 / 反物質製造装置 / 金属3Dプリンタ（ブロック） | 01a167e9-21b8-7db1-a289-99cdf7490fe9 / 01a167e9-21bb-76dd-9a83-0a249aa9f1fc / 01a167e9-21be-72cd-ae04-e5bbe12b95c2 |
+| コネクタ: 炉の液体入口 / 抽出装置の水入口 / 抽出装置の重水素出口 / 反物質機の重水素入口 / 反物質機のアイテム出口 / 3Dプリンタ入口 / 3Dプリンタ出口 / 拠点入口 / 拠点出口 | 01a167e9-21c1-7ec0-9813-d30ce62e14c0 / 01a167e9-21c4-792a-a10b-e36304af4ddf / 01a167e9-21c7-7a2d-872c-c06b53e28700 / 01a167e9-21ca-738d-9bae-95fc4d736a88 / 01a167e9-21cd-7a18-b1df-eacf1fea87a6 / 01a167e9-21d0-749d-a485-ddc2943f0535 / 01a167e9-21d3-7e29-9915-33f9c849be17 / 01a167e9-21d6-7e9d-89c4-70dc3df73072 / 01a167e9-21d9-7b56-9484-4fb75fd18a37 |
+| レシピ: 重水素 / 反物質 / 反物質爆弾 / 高純度炭素 / グラフェンシート / グラフェンケーブル / 銅板戻し / 3Dプリンタのコンピュータ / 3Dプリンタの制御モータ | 01a167e9-21dc-7eb1-a240-8345ed8fbd40 / 01a167e9-21df-7b2a-81e3-04be55cb89b0 / 01a167e9-21e2-7c4e-91be-8ad747466bde / 01a167e9-21e5-7b43-9414-15365405623b / 01a167e9-21e8-76b9-bf3f-b462360e3fa9 / 01a167e9-21eb-7e67-b6ee-1d6503d8af84 / 01a167e9-21ee-7339-b7b6-351ad1775730 / 01a167e9-21f0-7d5b-8ddc-18a841c01637 / 01a167e9-21f3-73f5-9418-35a676b8fa3f |
+| 研究: 最終研究 | 01a167e9-21f6-7d26-a990-e7d6d78750d0 |
+| スタック表: グラフェンケーブル [1000] | 01a167e9-21f9-70a8-be5e-08c2ba6895c9 |
+
+#### 旧 Task 1: マスタ — 重水素・核融合炉・重水素抽出装置・反物質・反物質製造装置・反物質爆弾レシピ
+
+**Files:**
+- Create（git worktree）: `$HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame`
+- Modify: `server_v8/mods/moorestechAlphaMod_8/master/fluids.json`, `items.json`, `blocks.json`, `machineRecipes.json`, `research.json`（moorestech_master worktree 内）
+- Modify: `server_v8/mods/moorestechAlphaMod_8/localization/localization.csv`
+- Create: `moorestech_client/Library`（コピー。git 管理外）
+
+**Interfaces:**
+- Consumes: なし
+- Produces: 重水素 01a167e9-21b2-…、反物質 01a167e9-21b5-…、重水素抽出装置 01a167e9-21b8-…、反物質製造装置 01a167e9-21bb-… と各レシピ（Task 4 のシミュレーションが name で引く）
+
+- **Step 1: 作業場所を用意する**
+
+```bash
+pwd   # $HOME/hermes-agent/data/worktrees/moorestech/tier9-fusion-elevator-endgame
+git -C $HOME/hermes-agent/data/repos/moorestech_master fetch origin
+git -C $HOME/hermes-agent/data/repos/moorestech_master worktree add -b feat/tier9-fusion-elevator-endgame $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame origin/master
+git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame log --oneline -1   # b2149a0 tire9基板 以降であること
+moores-wt status   # Editor pid が空の worktree を Library のコピー元に選ぶ（候補: pr-apply）
+cp -Rc $HOME/hermes-agent/data/worktrees/moorestech/pr-apply/moorestech_client/Library moorestech_client/Library
+```
+その後 uloop-launch スキルで `./moorestech_client` の Editor を起動し、`uloop compile --project-path ./moorestech_client` が ErrorCount 0 になることを確かめる（Editor の PID を控える）。
+
+- **Step 2: 液体・アイテムを足す**
+
+以下 `M=$HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame/server_v8/mods/moorestechAlphaMod_8/master`。JSON は既存の整形（インデント・キー順）に合わせ、Python の `json.load`→要素追加→`json.dump(..., ensure_ascii=False, indent=<既存と同じ>)` で書く。
+
+`$M/fluids.json` の `data` に追加:
+```json
+{"name": "重水素", "fluidGuid": "01a167e9-21b2-7bb0-b6a3-0f17d349704e", "color": "#7FD8FF"}
+```
+`$M/items.json` の `data` に追加（反物質爆弾 sortPriority 1610 の直前）:
+```json
+{"itemGuid": "01a167e9-21b5-7479-9060-995505f43137", "imagePath": "", "name": "反物質", "sortPriority": 1605, "initialUnlocked": false, "recipeViewType": "IsUnlocked", "addressablePaths": {"handGrabModel": "", "entityModel": ""}, "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"}
+```
+
+- **Step 3: ブロックを足す・仮エントリを置き換える**
+
+既存モデルの寸法を測る。`uloop execute-dynamic-code --project-path ./moorestech_client` で次を実行し、4モデルの renderer bounds（size）を読む:
+```csharp
+using UnityEditor; using UnityEngine; using System.Linq;
+var paths = new[]{"Assets/AddressableResources/Block/FusionReactor.prefab","Assets/AddressableResources/Block/Deuterium_extraction_equipment.prefab","Assets/AddressableResources/Block/Antimatter_manufacturing_equipment.prefab","Assets/AddressableResources/Block/3D Printer.prefab","Assets/AddressableResources/Block/ElectricOven.prefab"};
+return string.Join("\n", paths.Select(p => { var go = AssetDatabase.LoadAssetAtPath<GameObject>(p); var rs = go.GetComponentsInChildren<Renderer>(); var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); return $"{p} min={b.min} size={b.size}"; }));
+```
+各 blockSize は size を切り上げた整数にする（旧 mod の値: 核融合炉 [19,10,17]・重水素抽出装置 [3,2,3]・反物質製造装置 [3,4,3]。測定と食い違えば測定値を採り、判断記録に実測値を書く）。コネクタの offset は「入口 = [floor(x/2), 0, 0] 向き [0,0,-1]、出口 = [floor(x/2), 0, z-1] 向き [0,0,1]」で、下の JSON はこの規則で旧寸法から計算した値。寸法を変えたら offset も同じ規則で直す。
+
+`$M/blocks.json` の核融合炉（01a162f1-…）の仮エントリを丸ごと次で置き換える（ガソリンエンジン発電機と同じキー構成）:
+```json
+{"blockGuid": "01a162f1-ab04-76e2-94cf-dc713edeb63b", "name": "核融合炉", "blockType": "ElectricGenerator", "blockSize": [19, 10, 17],
+ "blockPrefabAddressablesPath": "Vanilla/Block/FusionReactor", "openable": true,
+ "blockParam": {"fuelItemSlotCount": 0, "isInfinityPower": false, "infinityPower": 0,
+  "inventoryConnectors": {"inputConnects": [], "outputConnects": []},
+  "fuelFluidTankCapacity": 200,
+  "fluidInventoryConnectors": {"inflowConnects": [{"connectorGuid": "01a167e9-21c1-7ec0-9813-d30ce62e14c0", "offset": [9, 0, 0], "directions": [[0, 0, -1]], "option": {"flowCapacity": 600, "connectTankIndex": 0}}], "outflowConnects": []},
+  "fuelItems": [],
+  "fuelFluids": [{"fluidGuid": "01a167e9-21b2-7bb0-b6a3-0f17d349704e", "amount": 10, "time": 2, "power": 20000}],
+  "maxWireConnectionCount": 4, "connectionRange": 30, "connectionHeightRange": 20},
+ "initialUnlocked": false,
+ "requiredItems": [{"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 600}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 100}, {"itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 100}, {"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 100}],
+ "placementsPerCost": 1, "sortPriority": 1195, "category": "電力", "subCategory": "発電"}
+```
+追加:
+```json
+{"blockGuid": "01a167e9-21b8-7db1-a289-99cdf7490fe9", "name": "重水素抽出装置", "blockType": "ElectricMachine", "blockSize": [3, 2, 3],
+ "blockPrefabAddressablesPath": "Vanilla/Block/Deuterium_extraction_equipment", "openable": true,
+ "blockParam": {"requiredPower": 4000, "idlePowerRate": 0.05, "inputSlotCount": 0, "outputSlotCount": 0,
+  "inventoryConnectors": {"inputConnects": [], "outputConnects": []},
+  "inputTankCount": 1, "outputTankCount": 1, "innerTankCapacity": 300, "moduleSlotCount": 3,
+  "fluidInventoryConnectors": {
+   "inflowConnects": [{"connectorGuid": "01a167e9-21c4-792a-a10b-e36304af4ddf", "offset": [1, 0, 0], "directions": [[0, 0, -1]], "option": {"flowCapacity": 600, "connectTankIndex": 0}}],
+   "outflowConnects": [{"connectorGuid": "01a167e9-21c7-7a2d-872c-c06b53e28700", "offset": [1, 0, 2], "directions": [[0, 0, 1]], "option": {"flowCapacity": 600, "connectTankIndex": 0}}]},
+  "maxWireConnectionCount": 2, "connectionRange": 30, "connectionHeightRange": 20},
+ "initialUnlocked": false,
+ "requiredItems": [{"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 100}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 20}, {"itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 20}],
+ "placementsPerCost": 1, "sortPriority": 1110, "category": "生産", "subCategory": "化学"}
+```
+```json
+{"blockGuid": "01a167e9-21bb-76dd-9a83-0a249aa9f1fc", "name": "反物質製造装置", "blockType": "ElectricMachine", "blockSize": [3, 4, 3],
+ "blockPrefabAddressablesPath": "Vanilla/Block/Antimatter_manufacturing_equipment", "openable": true,
+ "blockParam": {"requiredPower": 12000, "idlePowerRate": 0.05, "inputSlotCount": 0, "outputSlotCount": 1,
+  "inventoryConnectors": {"inputConnects": [], "outputConnects": [{"connectorGuid": "01a167e9-21cd-7a18-b1df-eacf1fea87a6", "offset": [1, 0, 2], "directions": [[0, 0, 1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98"}]},
+  "inputTankCount": 1, "outputTankCount": 0, "innerTankCapacity": 300, "moduleSlotCount": 3,
+  "fluidInventoryConnectors": {"inflowConnects": [{"connectorGuid": "01a167e9-21ca-738d-9bae-95fc4d736a88", "offset": [1, 0, 0], "directions": [[0, 0, -1]], "option": {"flowCapacity": 600, "connectTankIndex": 0}}], "outflowConnects": []},
+  "maxWireConnectionCount": 2, "connectionRange": 30, "connectionHeightRange": 20},
+ "initialUnlocked": false,
+ "requiredItems": [{"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 400}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 80}, {"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 100}],
+ "placementsPerCost": 1, "sortPriority": 1120, "category": "生産", "subCategory": "化学"}
+```
+
+- **Step 4: レシピを足す**
+
+`$M/machineRecipes.json` の `data` に追加（機械の入力スロットの上限はスタック上限 100 なので、1スロットの投入数は 100 以下に保つ）:
+```json
+{"machineRecipeGuid": "01a167e9-21dc-7eb1-a240-8345ed8fbd40", "blockGuid": "01a167e9-21b8-7db1-a289-99cdf7490fe9", "time": 8, "inputItems": [], "inputFluids": [{"fluidGuid": "9eae6979-d56a-4991-9107-b8161acec430", "amount": 100}], "outputItems": [], "outputFluids": [{"fluidGuid": "01a167e9-21b2-7bb0-b6a3-0f17d349704e", "amount": 10}], "initialUnlocked": false}
+{"machineRecipeGuid": "01a167e9-21df-7b2a-81e3-04be55cb89b0", "blockGuid": "01a167e9-21bb-76dd-9a83-0a249aa9f1fc", "time": 30, "inputItems": [], "inputFluids": [{"fluidGuid": "01a167e9-21b2-7bb0-b6a3-0f17d349704e", "amount": 50}], "outputItems": [{"itemGuid": "01a167e9-21b5-7479-9060-995505f43137", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
+{"machineRecipeGuid": "01a167e9-21e2-7c4e-91be-8ad747466bde", "blockGuid": "019e1225-f49b-7283-8835-428d903852f1", "time": 60, "inputItems": [{"itemGuid": "01a167e9-21b5-7479-9060-995505f43137", "count": 20}, {"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 50}, {"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 100}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 20}], "inputFluids": [], "outputItems": [{"itemGuid": "01a162ab-07ba-73c1-9dd6-38e1e867663b", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
+```
+
+- **Step 5: 研究の解放物と仮コストを足す**
+
+`$M/research.json`:
+- 核融合炉（019e3af0-…）: `consumeItems` = `[{ICチップLv1, 600}, {鋼鉄板, 3000}, {コンピュータ, 600}, {制御モータ, 600}]`、`clearedActions` の unlockBlock を `["01a162f1-ab04-76e2-94cf-dc713edeb63b", "01a167e9-21b8-7db1-a289-99cdf7490fe9"]` にする
+- 反物質爆弾（019e3aef-…）: `consumeItems` = `[{ICチップLv1, 1000}, {鋼鉄板, 4000}, {コンピュータ, 1000}]`、`clearedActions` を `unlockItemRecipeView ["01a167e9-21b5-7479-9060-995505f43137", "01a162ab-07ba-73c1-9dd6-38e1e867663b"]` と `unlockBlock ["01a167e9-21bb-76dd-9a83-0a249aa9f1fc"]` にする
+（`consumeItems` の要素は `{"itemGuid": ..., "itemCount": ...}`。値は agent前提・S1 待ち）
+
+- **Step 6: ローカライズ行を足す**
+
+`.../moorestechAlphaMod_8/localization/localization.csv`（ヘッダ `key,Source,english,japanese,german,korean`）。既存行が無いものだけ足す（`grep -n "01a162f1" localization.csv` で確認）:
+```
+fluid.01a167e9-21b2-7bb0-b6a3-0f17d349704e.name,重水素,Deuterium,重水素,Deuterium,중수소
+item.01a167e9-21b5-7479-9060-995505f43137.name,反物質,Antimatter,反物質,Antimaterie,반물질
+block.01a162f1-ab04-76e2-94cf-dc713edeb63b.name,核融合炉,Fusion Reactor,核融合炉,Fusionsreaktor,핵융합로
+block.01a167e9-21b8-7db1-a289-99cdf7490fe9.name,重水素抽出装置,Deuterium Extractor,重水素抽出装置,Deuteriumextraktor,중수소 추출기
+block.01a167e9-21bb-76dd-9a83-0a249aa9f1fc.name,反物質製造装置,Antimatter Fabricator,反物質製造装置,Antimateriefabrik,반물질 제조기
+```
+
+- **Step 7: 整合ツールとマスタ読込スモークを通す**
+
+```bash
+cd $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame
+python3 tools/research_sync/sync_machine_recipe_unlocks.py      # 機械レシピの解放ノードを書き戻す
+python3 tools/research_sync/sync_machine_recipe_unlocks.py --check   # exit 0
+python3 tools/research_sync/progression_check.py                    # 詰みが増えない
+python3 scripts/check_shipped_data_contracts.py                      # exit 0
+```
+Expected: 重水素・反物質・反物質爆弾のレシピがそれぞれ 核融合炉・反物質爆弾・反物質爆弾 ノードの unlockMachineRecipe に入る。
+
+スモーク（`uloop execute-dynamic-code --project-path ./moorestech_client`）:
+```csharp
+using Server.Boot; using Core.Master; using System;
+// worktree 直下の兄弟 moorestech_master/tier9-fusion-elevator-endgame を指す（Assets から4つ上が worktrees/）
+var dir = System.IO.Path.GetFullPath(System.IO.Path.Combine(UnityEngine.Application.dataPath, "../../../../moorestech_master/tier9-fusion-elevator-endgame/server_v8"));
+new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(dir));
+var reactor = MasterHolder.BlockMaster.GetBlockMaster(Guid.Parse("01a162f1-ab04-76e2-94cf-dc713edeb63b"));
+return $"{reactor.Name} {reactor.BlockType} fluid={MasterHolder.FluidMaster.GetFluidId(Guid.Parse("01a167e9-21b2-7bb0-b6a3-0f17d349704e"))}";
+```
+Expected: `核融合炉 ElectricGenerator fluid=<数値>`。仮エントリ（宇宙エレベーター拠点・ロケット発射台の空 blockType）でローダーが落ちた場合は、そのエラー行を判断記録に実測として書き、Task 6 の後のスモークで解消を確かめる（それ以外のエラーは直す）。
+
+- **Step 8: コミットして push する**
+
+```bash
+cd $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame
+git add server_v8/mods/moorestechAlphaMod_8
+git commit -m "data(v8): 重水素・核融合炉・重水素抽出装置・反物質・反物質製造装置と爆弾レシピを足す"
+git push -u origin feat/tier9-fusion-elevator-endgame
+```
+
+#### 旧 Task 2: マスタ — グラフェン工程・金属3Dプリンタ・研究ツリー整理・最終研究
+
+**Files:**
+- Modify: `$M/items.json`, `$M/blocks.json`, `$M/machineRecipes.json`, `$M/research.json`, `.../localization/localization.csv`（moorestech_master worktree 内）
+
+**Interfaces:**
+- Consumes: Task 1 のマスタ
+- Produces: 金属3Dプリンタ（ブロック）01a167e9-21be-…、最終研究 01a167e9-21f6-…、グラフェン4レシピ（Task 4 のシミュレーションが name で引く）
+
+- **Step 1: 金属3Dプリンタをアイテムからブロックへ移す**
+
+アイテム 019e3af5-e750-71ae-ab09-2b98f3db9913 を `$M/items.json` から消し、`grep -rn "019e3af5-e750-71ae-ab09-2b98f3db9913" $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame/server_v8` の残り（研究の unlockItemRecipeView・ローカライズ・クラフトレシピ）も消す。Task 1 Step 3 で測った `3D Printer` の寸法で blockSize を決め、`$M/blocks.json` に追加（下は [3,3,3] の場合の offset）:
+```json
+{"blockGuid": "01a167e9-21be-72cd-ae04-e5bbe12b95c2", "name": "金属3Dプリンタ", "blockType": "ElectricMachine", "blockSize": [3, 3, 3],
+ "blockPrefabAddressablesPath": "Vanilla/Block/3D Printer", "openable": true,
+ "blockParam": {"requiredPower": 300, "idlePowerRate": 0.2, "inputSlotCount": 3, "outputSlotCount": 1,
+  "inventoryConnectors": {"inputConnects": [{"connectorGuid": "01a167e9-21d0-749d-a485-ddc2943f0535", "offset": [1, 0, 0], "directions": [[0, 0, -1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98"}],
+   "outputConnects": [{"connectorGuid": "01a167e9-21d3-7e29-9915-33f9c849be17", "offset": [1, 0, 2], "directions": [[0, 0, 1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98"}]},
+  "inputTankCount": 0, "outputTankCount": 0, "innerTankCapacity": 0, "moduleSlotCount": 3,
+  "fluidInventoryConnectors": {"inflowConnects": [], "outflowConnects": []},
+  "maxWireConnectionCount": 2, "connectionRange": 30, "connectionHeightRange": 20},
+ "initialUnlocked": false,
+ "requiredItems": [{"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 60}, {"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 10}, {"itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 10}],
+ "placementsPerCost": 1, "sortPriority": 1010, "category": "生産", "subCategory": "電気機械"}
+```
+
+- **Step 2: グラフェン工程と3Dプリンタのレシピを足す**
+
+`$M/machineRecipes.json` に追加:
+```json
+{"machineRecipeGuid": "01a167e9-21e5-7b43-9414-15365405623b", "blockGuid": "019e0a68-3705-75f7-a040-50fab3c7d81e", "time": 3, "inputItems": [{"itemGuid": "f882df45-5651-4aec-b871-a9f885a5f75f", "count": 2}], "inputFluids": [], "outputItems": [{"itemGuid": "01a16297-a7f5-759b-91ba-be4021ca3bf2", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
+{"machineRecipeGuid": "01a167e9-21e8-76b9-bf3f-b462360e3fa9", "blockGuid": "019e0a68-3705-75f7-a040-50fab3c7d81e", "time": 6, "inputItems": [{"itemGuid": "01a16297-a7f5-759b-91ba-be4021ca3bf2", "count": 2}, {"itemGuid": "019e0a92-1907-707a-8625-630d86a076ee", "count": 1}], "inputFluids": [], "outputItems": [{"itemGuid": "01a16297-4724-73b9-82c3-2e77120be77d", "count": 1, "percent": 1}, {"itemGuid": "01a16297-6665-765d-8e19-96d357394c3e", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
+{"machineRecipeGuid": "01a167e9-21eb-7e67-b6ee-1d6503d8af84", "blockGuid": "019e1225-f49b-7283-8835-428d903852f1", "time": 6, "inputItems": [{"itemGuid": "01a16297-4724-73b9-82c3-2e77120be77d", "count": 1}], "inputFluids": [], "outputItems": [{"itemGuid": "01a16290-f793-748b-a0b0-91d44be0d4ab", "count": 5, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
+{"machineRecipeGuid": "01a167e9-21ee-7339-b7b6-351ad1775730", "blockGuid": "019e0a68-3705-75f7-a040-50fab3c7d81e", "time": 3, "inputItems": [{"itemGuid": "01a16297-6665-765d-8e19-96d357394c3e", "count": 1}], "inputFluids": [], "outputItems": [{"itemGuid": "019e0a92-1907-707a-8625-630d86a076ee", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
+{"machineRecipeGuid": "01a167e9-21f0-7d5b-8ddc-18a841c01637", "blockGuid": "01a167e9-21be-72cd-ae04-e5bbe12b95c2", "time": 4, "inputItems": [{"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 1}, {"itemGuid": "019e0a92-1907-707a-8625-630d86a076ee", "count": 5}, {"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 2}], "inputFluids": [], "outputItems": [{"itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
+{"machineRecipeGuid": "01a167e9-21f3-73f5-9418-35a676b8fa3f", "blockGuid": "01a167e9-21be-72cd-ae04-e5bbe12b95c2", "time": 5, "inputItems": [{"itemGuid": "f6dd7835-0845-4877-87d0-b719d037ae7d", "count": 1}, {"itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 4}, {"itemGuid": "019e0a92-1907-707a-8625-630d86a076ee", "count": 4}], "inputFluids": [], "outputItems": [{"itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 1, "percent": 1}], "outputFluids": [], "initialUnlocked": false}
+```
+
+- **Step 3: 研究ツリーを整理し最終研究を足す**
+
+`$M/research.json`:
+- フィルター分岐器（019e3aab-…）のノードを消す
+- 金属超精密加工（019e3af5-f2e6-…）: `prevResearchNodeGuids` = `["019e3ae2-5005-7439-b242-9b7b3191a2c3"]`、`consumeItems` = `[{ICチップLv1, 300}, {鋼鉄板, 1500}, {制御モータ, 300}]`、`clearedActions` = `[{"gameActionType": "unlockBlock", "gameActionParam": {"unlockBlockGuids": ["01a167e9-21be-72cd-ae04-e5bbe12b95c2"]}}]`、説明「ICチップから部品を1工程で作る金属3Dプリンタを解放する」
+- 軌道エレベーターの建設（01a16291-…）: 説明「グラフェンケーブルと宇宙エレベーター拠点を解放する」、`graphViewSettings.UIPosition` = `[4590, 0]`、`consumeItems` = `[{ICチップLv1, 800}, {鋼鉄板, 3000}]`（計算データ・ロケット関連は Task 5）
+- 機械オーバークロック（019e3ae2-…）は触らない（S1 が速度モジュール研究として作る）
+- 最終研究を追加:
+```json
+{"researchNodeGuid": "01a167e9-21f6-7d26-a990-e7d6d78750d0", "researchNodeName": "最終研究", "researchNodeDescription": "反物質爆弾を規定量そろえたことを記録する仮の研究。現段階のゲームの終点（解放物なし）",
+ "consumeItems": [{"itemGuid": "01a162ab-07ba-73c1-9dd6-38e1e867663b", "itemCount": 10}],
+ "prevResearchNodeGuids": ["019e3aef-a149-746b-8fad-159e0434cb51"],
+ "clearedActions": [],
+ "graphViewSettings": {"UIPosition": [4930, -200], "UIScale": [1, 1, 1], "IconItem": "01a162ab-07ba-73c1-9dd6-38e1e867663b"}}
+```
+
+- **Step 4: ローカライズを直す**
+
+localization.csv: フィルター分岐器ノード（`research.019e3aab-32c6-7166-a184-d761153c2498.*`）と旧アイテム（`item.019e3af5-e750-71ae-ab09-2b98f3db9913.name`）の行を消し、次を足す（金属超精密加工・軌道エレベーターの建設の description 行は新しい説明文へ書き換える。英独韓も対応する訳に）:
+```
+block.01a167e9-21be-72cd-ae04-e5bbe12b95c2.name,金属3Dプリンタ,Metal 3D Printer,金属3Dプリンタ,Metall-3D-Drucker,금속 3D 프린터
+research.01a167e9-21f6-7d26-a990-e7d6d78750d0.name,最終研究,Final Research,最終研究,Abschlussforschung,최종 연구
+research.01a167e9-21f6-7d26-a990-e7d6d78750d0.description,反物質爆弾を規定量そろえたことを記録する仮の研究。現段階のゲームの終点（解放物なし）,"A provisional research that records stockpiling the required antimatter bombs. The current end of the game (unlocks nothing)",反物質爆弾を規定量そろえたことを記録する仮の研究。現段階のゲームの終点（解放物なし）,"Vorläufige Forschung, die das Bereitstellen der nötigen Antimateriebomben festhält. Derzeitiges Spielende (schaltet nichts frei)","필요한 반물질 폭탄을 모은 것을 기록하는 임시 연구. 현재 게임의 끝 (해금 없음)"
+```
+
+- **Step 5: 整合ツールを通し、コミットして push する**
+
+Task 1 Step 7 と同じ4コマンドとスモーク（金属3Dプリンタのブロックが引けること）。Expected: グラフェンのレシピ4本が 軌道エレベーターの建設 に、3Dプリンタのレシピ2本が 金属超精密加工 に割り当たる。最終研究がツリーから到達可能。
+```bash
+git add server_v8/mods/moorestechAlphaMod_8
+git commit -m "data(v8): グラフェン工程・金属3Dプリンタ・最終研究を足しフィルター分岐器ノードを消す"
+git push
+```
+
+#### 旧 Task 3 Step 4 の e2e（核融合炉が開けるようになったら）
+
+核融合炉が `openable: true` になると、e2e の `blockRegistryCoverage.spec.ts`（blocks.json の `[blockType, openable]` を `sort -u` した fixture のうち openable の型が、レジストリか意図的 Generic に入っているかを見る）が ElectricGenerator で落ちる。発電機は専用 view を作らず汎用の `SectionStackView` で出すので、意図的 Generic に入れる:
+- `e2e/fixtures/v8-block-ui-registry.json` の `{ "blockType": "ElectricGenerator", "openable": false },` の次の行に `{ "blockType": "ElectricGenerator", "openable": true },` を足す（他の発電機は openable false のままなので両方の行が残る）
+- `e2e/tests/block/blockRegistryCoverage.spec.ts` の `intentionalGeneric` の `"ElectricMachine",` の前に `"ElectricGenerator",` を足す
+
+#### 旧 Task 4: 数値シミュレーション（核融合・反物質・グラフェン）
+
+**Files:**
+- Create: `tools/balance/tier9_endgame_balance.py`（moorestech_master worktree 内）
+
+**Interfaces:**
+- Consumes: Task 1・2 のマスタ（名前で引く: `核融合炉`, `重水素抽出装置`, `反物質製造装置`, `ガソリンエンジン発電機`, `電気炉`, `電気汎用工作装置`, `重水素`, `反物質`, `反物質爆弾`, `グラフェンケーブル`, `グラフェンシート`, `高純度炭素`, `最終研究`）
+- Produces: `python3 tools/balance/tier9_endgame_balance.py` が目標外で exit 1（Task 12 がエレベーターの検査を足す）
+
+- **Step 1: スクリプトを書く**
+
+```python
+#!/usr/bin/env python3
+# Tier9 終盤の数値（核融合の差し引き電力・反物質・グラフェン）を出荷マスタから計算し目標と照合する
+# Compute Tier9 endgame numbers (fusion net power, antimatter, graphene) from the shipped master and check targets
+# 目標の根拠: moorestech ADR 0090（差し引きはガソリン発電機数台分）、S1 裁定（Tier9 15〜25時間・S3 配分 5〜11時間）
+# Targets: moorestech ADR 0090 (net equals a few gasoline generators) and the S1 ruling (Tier9 15-25h, S3 share 5-11h)
+import json, os, sys
+
+ROOT = os.path.join(os.path.dirname(__file__), '..', '..')
+M = os.path.join(ROOT, 'server_v8', 'mods', 'moorestechAlphaMod_8', 'master')
+
+
+def load(name):
+    with open(os.path.join(M, name), encoding='utf-8') as f:
+        return json.load(f)
+
+
+blocks = {b['name']: b for b in load('blocks.json')['data']}
+fluids = {f['name']: f['fluidGuid'] for f in load('fluids.json')['data']}
+items = {i['name']: i['itemGuid'] for i in load('items.json')['data']}
+recipes = load('machineRecipes.json')['data']
+research = {r['researchNodeName']: r for r in load('research.json')['data']}
+failures = []
+
+
+def check(label, value, low, high):
+    ok = low <= value <= high
+    print(f"{'OK' if ok else 'NG'} {label}: {value:.2f}（目標 {low}〜{high}）")
+    if not ok:
+        failures.append(label)
+
+
+def recipe_of(block_name, output_name, is_fluid):
+    # 機械と出力名からレシピと出力量を引く。無ければ原因名つきで止める
+    # Look up the recipe and output amount by machine and output name; abort naming the cause when missing
+    block_guid = blocks[block_name]['blockGuid']
+    key, guid_key, amount_key = ('outputFluids', 'fluidGuid', 'amount') if is_fluid else ('outputItems', 'itemGuid', 'count')
+    target = fluids[output_name] if is_fluid else items[output_name]
+    for recipe in recipes:
+        if recipe['blockGuid'] != block_guid:
+            continue
+        for output in recipe[key]:
+            if output[guid_key] == target:
+                return recipe, output[amount_key]
+    sys.exit(f'ERROR recipe not found: {block_name} -> {output_name}')
+
+
+# 核融合: 炉1基の重水素消費を賄う抽出装置の台数と差し引き電力
+# Fusion: extractors needed to feed one reactor and the resulting net power
+gasoline_power = blocks['ガソリンエンジン発電機']['blockParam']['fuelFluids'][0]['power']
+reactor_fuel = blocks['核融合炉']['blockParam']['fuelFluids'][0]
+extractor = blocks['重水素抽出装置']['blockParam']
+extract_recipe, extract_out = recipe_of('重水素抽出装置', '重水素', True)
+deuterium_per_extractor = extract_out / extract_recipe['time']
+extractors_per_reactor = (reactor_fuel['amount'] / reactor_fuel['time']) / deuterium_per_extractor
+net_power = reactor_fuel['power'] - extractors_per_reactor * extractor['requiredPower']
+print(f"炉: 出力 {reactor_fuel['power']} / 抽出装置 {extractors_per_reactor:.2f} 台 × {extractor['requiredPower']} / 差し引き {net_power:.0f}")
+check('炉1基の差し引き電力（ガソリン発電機何台分）', net_power / gasoline_power, 3, 5)
+check('炉1基に要る抽出装置の台数', extractors_per_reactor, 2, 8)
+# モジュール値は S1 の担当。仮に省エネ3枚で消費-45%とした場合を参考表示する（検査はしない）
+# Module values belong to S1; show a reference case of three efficiency modules at -45% (not checked)
+print(f"参考: 抽出装置の消費-45%なら差し引き {reactor_fuel['power'] - extractors_per_reactor * extractor['requiredPower'] * 0.55:.0f}")
+
+# 反物質: 1台の電力（重水素づくりを含む）と、最終研究の爆弾を揃える時間
+# Antimatter: power per fabricator including its deuterium, and the time to stock the final research bombs
+fabricator = blocks['反物質製造装置']['blockParam']
+antimatter_recipe, antimatter_out = recipe_of('反物質製造装置', '反物質', False)
+deuterium_in = antimatter_recipe['inputFluids'][0]['amount'] / antimatter_recipe['time']
+fabricator_total_power = fabricator['requiredPower'] + deuterium_in / deuterium_per_extractor * extractor['requiredPower']
+check('反物質製造装置1台の電力（炉の差し引き何基分）', fabricator_total_power / net_power, 3, 6)
+bomb_recipe, _ = recipe_of('電気汎用工作装置', '反物質爆弾', False)
+antimatter_per_bomb = next(i['count'] for i in bomb_recipe['inputItems'] if i['itemGuid'] == items['反物質'])
+final_bombs = next(c['itemCount'] for c in research['最終研究']['consumeItems'] if c['itemGuid'] == items['反物質爆弾'])
+hours = final_bombs * antimatter_per_bomb / (2 * antimatter_out / antimatter_recipe['time']) / 3600
+check('反物質製造装置2台で最終研究の爆弾を揃える時間 [h]', hours, 0.5, 3)
+
+# グラフェン: ロケット1便分（1000本）を1時間で作る機械台数
+# Graphene: machines needed to make one launch (1000 cables) per hour
+cable_recipe, cable_out = recipe_of('電気汎用工作装置', 'グラフェンケーブル', False)
+sheet_recipe, sheet_out = recipe_of('電気炉', 'グラフェンシート', False)
+carbon_recipe, carbon_out = recipe_of('電気炉', '高純度炭素', False)
+cables_per_sec = 1000 / 3600
+sheets_per_sec = cables_per_sec / cable_out * cable_recipe['inputItems'][0]['count']
+carbon_per_sec = sheets_per_sec / sheet_out * next(i['count'] for i in sheet_recipe['inputItems'] if i['itemGuid'] == items['高純度炭素'])
+machines = (cables_per_sec / (cable_out / cable_recipe['time'])
+            + sheets_per_sec / (sheet_out / sheet_recipe['time'])
+            + carbon_per_sec / (carbon_out / carbon_recipe['time']))
+check('1便分のケーブルを1時間で作る機械台数（戻し炉を除く）', machines, 1, 12)
+
+if failures:
+    print('NG: ' + ', '.join(failures))
+    sys.exit(1)
+```
+
+- **Step 2: 実行して目標に合わせる**
+
+Run: `python3 tools/balance/tier9_endgame_balance.py`（moorestech_master worktree で）
+Expected: 全行 OK、exit 0。NG が出たら blocks.json / machineRecipes.json の値（requiredPower・time・amount）を直して再実行し、直した値と理由を plan の『判断記録（ADR）』へ追記する。
+
+- **Step 3: コミットして push する**
+
+```bash
+git add tools/balance/tier9_endgame_balance.py server_v8/mods/moorestechAlphaMod_8
+git commit -m "tools: Tier9 終盤の数値を検査するシミュレーションを足す"
+git push
+```
+
+#### 旧 Task 5 Step 3〜5（S2 を取り込んだマスタへ）
+
+- **Step 3: グラフェンケーブルを積荷表に載せ、スタック上限 1000 の表を割り当てる**
+
+`$M/items.json`（S2 取り込み後に `orbitalPayloads` のキー名を S2 の items.yml で確かめる）:
+- `itemStackLevelTables` に `{"tableGuid": "01a167e9-21f9-70a8-be5e-08c2ba6895c9", "name": "グラフェンケーブル", "stackCounts": [1000]}` を足す
+- グラフェンケーブル（01a16290-…）の `stackLevelTableGuid` を `01a167e9-21f9-70a8-be5e-08c2ba6895c9` にする
+- `orbitalPayloads` に `{"payloadItemGuid": "01a16290-f793-748b-a0b0-91d44be0d4ab", "countPerLaunch": 1000, "arrivalOutputs": []}` を足す
+
+- **Step 4: 研究「軌道エレベーターの建設」と「反物質爆弾」を S2 に合わせる**
+
+`$M/research.json`:
+- 軌道エレベーターの建設（01a16291-…）: (a) `unlockBlock` から ロケット発射台 01a162b0-7769-7419-af24-bb35528b93d2 を、`unlockItemRecipeView` から ロケット筐体素材・ロケット燃料（GUID は items.json を name で引く）を外す。(b) `consumeItems` に `{"itemGuid": "01a167cf-af88-74d3-9cd6-7d61b71052bb", "itemCount": <S2 の計算データ仮値>}` を足す（S2 の plan `docs/superpowers/plans/` の計算データ量の表を読む。見つからなければ 200 とし、判断記録に「S2 の値待ち」と書く）。(c) `prevResearchNodeGuids` に `01a167cf-af9d-7f31-817c-3069b4f6e499` を足す
+- 反物質爆弾（019e3aef-…）: `consumeItems` に 計算データ ×400（agent前提・S1/S2 待ち）を足す
+
+- **Step 5: 整合ツール・シミュレーション・スモークを通して push する**
+
+Task 1 Step 7 の4コマンド＋`python3 tools/balance/tier9_endgame_balance.py`＋スモーク（`MasterHolder.ItemMaster` からグラフェンケーブルのスタック上限が 1000 で引けること、S2 の積荷表の検証がマスタ読込で通ること）。
+```bash
+git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame add server_v8
+git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame commit -m "data(v8): グラフェンケーブルを積荷表に載せ軌道エレベーターの建設をロケット技術の後ろにする"
+git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame push
+git push   # moorestech 側のマージコミット
+```
+
+#### 旧 Task 6 Step 5〜7 のマスタ部分
+
+- **Step 5: 出荷マスタの拠点を本物にする**
+
+マスタ worktree の `blocks.json` の 宇宙エレベーター拠点（01a162aa-cec0-738c-93c5-f58adc87fa7f）の仮エントリを次の全文で置き換える:
+```json
+{
+  "blockGuid": "01a162aa-cec0-738c-93c5-f58adc87fa7f",
+  "name": "宇宙エレベーター拠点",
+  "blockType": "SpaceElevatorBase",
+  "blockSize": [9, 4, 9],
+  "blockPrefabAddressablesPath": "Vanilla/Block/SpaceElevatorBase",
+  "openable": true,
+  "blockParam": {
+    "carriedPayloadItemGuids": [
+      "01a167cf-af8b-7894-8de6-593ee30289c0",
+      "01a167cf-af8e-7e95-b299-09eb712bee12",
+      "01a167cf-af91-7f62-93d1-e499b06f2398",
+      "01a167cf-af94-7e25-9654-825374c3923b",
+      "01a167cf-af97-7f67-bf53-7833b8d17a15"
+    ],
+    "cableItemGuid": "01a16290-f793-748b-a0b0-91d44be0d4ab",
+    "cablesPerElevator": 1000,
+    "climbSeconds": 600,
+    "requiredPower": 2000,
+    "outputSlotCount": 4,
+    "inventoryConnectors": {
+      "inputConnects": [{ "connectorGuid": "01a167e9-21d6-7e9d-89c4-70dc3df73072", "offset": [4, 0, 0], "directions": [[0, 0, -1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98" }],
+      "outputConnects": [{ "connectorGuid": "01a167e9-21d9-7b56-9484-4fb75fd18a37", "offset": [4, 0, 8], "directions": [[0, 0, 1]], "shapeGuid": "65f063cd-3ae1-4b55-b39d-00e033b7ec98" }]
+    },
+    "maxWireConnectionCount": 4,
+    "connectionRange": 30,
+    "connectionHeightRange": 20
+  },
+  "initialUnlocked": false,
+  "requiredItems": [
+    { "itemGuid": "019e3a98-cfe5-73eb-bf6a-a564400bdb4f", "count": 200 },
+    { "itemGuid": "019f0ca4-a544-723e-8ff2-feb15f99c84e", "count": 50 },
+    { "itemGuid": "019f0ca5-a575-7625-a43e-f43e8471287e", "count": 50 },
+    { "itemGuid": "231d2146-5e40-4e55-be27-22dda4175f47", "count": 100 }
+  ],
+  "placementsPerCost": 1,
+  "sortPriority": 1210,
+  "category": "生産",
+  "subCategory": "宇宙"
+}
+```
+（1エレベーター分 1000 本＝ケーブル1便。昇降 600 秒・電力 2000 は agent前提で Task 12 が S2 のロケット建造時間と比べて確定する。出口スロット 4 は agent前提で、GPU衛星1機の成果が空の出口に入りきるかを Task 7 の起動時検査が確かめる）
+`localization.csv` に `block.01a162aa-cec0-738c-93c5-f58adc87fa7f.name,宇宙エレベーター拠点,Space Elevator Base,宇宙エレベーター拠点,Weltraumaufzug-Basis,우주 엘리베이터 기지` が無ければ足す。
+
+旧 Step 6 のマスタ側の確かめ: マスタ worktree で上の共通手順の4コマンドが exit 0。スモーク（旧 Task 1 Step 8 の dynamic code を `MasterHolder.BlockMaster.GetBlockMaster(Guid.Parse("01a162aa-cec0-738c-93c5-f58adc87fa7f")).BlockType` を出す形にして実行）で `SpaceElevatorBase` が出る。
+
+```bash
+git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame add server_v8
+git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame commit -m "data(v8): 宇宙エレベーター拠点を SpaceElevatorBase にする"
+git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame push
+```
+
+#### 旧 Task 10 Step 6 の e2e fixture（拠点が出荷マスタに入ったら）
+
+`e2e/fixtures/v8-block-ui-registry.json` に `{ "blockType": "SpaceElevatorBase", "openable": true }` をアルファベット順の位置に足す（旧 Task 3 Step 4 で足した `ElectricGenerator` openable true の行と合わせ、blocks.json から再生成した結果と一致させる）。拠点は専用 view をレジストリに登録したので、`blockRegistryCoverage.spec.ts` の `intentionalGeneric` には足さない。
+
+#### 旧 Task 12: シミュレーションにエレベーターを足して値を確定する
 
 **Files:**
 - Modify: `tools/balance/tier9_endgame_balance.py`（moorestech_master worktree）
@@ -3557,7 +3922,7 @@ git commit -m "feat(client): 宇宙エレベーター拠点の簡易モデルと
 - Consumes: Task 4 のスクリプト（`blocks`, `items`, `net_power`, `check`, `failures`, `load`）、Task 5・6 のマスタ、S2 の発射台の建造時間
 - Produces: エレベーターの検査行（exit 0 で値が確定）
 
-- [ ] **Step 1: 検査を足す**
+- **Step 1: 検査を足す**
 
 S2 の `VanillaSchema/blocks.yml` の発射台の case（ロケット発射台の blockType）で、ロケット1機の建造時間（秒）のキー名を読む。`tier9_endgame_balance.py` の `if failures:` の直前に足す（`<キー名>` を読んだ名前にする）:
 ```python
@@ -3572,12 +3937,12 @@ check('昇降時間 / ロケット建造時間', elevator['climbSeconds'] / rock
 check('昇降中の電力 / 炉1基の差し引き電力', elevator['requiredPower'] / net_power, 0.1, 0.5)
 ```
 
-- [ ] **Step 2: 実行して値を確定する**
+- **Step 2: 実行して値を確定する**
 
 Run: `python3 tools/balance/tier9_endgame_balance.py`
 Expected: 全行 OK、exit 0。NG なら `climbSeconds`・`requiredPower` を直して再実行し、直した値と出力の行を判断記録に書く。値を変えたらテスト mod は変えない（テスト mod の値はテスト用で独立）。
 
-- [ ] **Step 3: コミットして push する**
+- **Step 3: コミットして push する**
 
 ```bash
 git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame add tools/balance server_v8
@@ -3585,7 +3950,7 @@ git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator
 git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame push
 ```
 
-### Task 13: unityプレイ録画テスト
+#### 旧 Task 13: unityプレイ録画テスト
 
 **Files:**
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/building/tier9-endgame-fusion-and-elevator.cs`
@@ -3594,7 +3959,7 @@ git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator
 - Consumes: Task 1〜12 のすべて（出荷マスタは S3 のマスタ worktree）
 - Produces: 録画・スクショ・`result.json`（PR 本文に貼る）
 
-- [ ] **Step 1: シナリオを書く**
+- **Step 1: シナリオを書く**
 
 unity-playmode-recorded-playtest スキル（`references/write-scenario.md`・`references/run-scenario.md`）を読む。`scenarios/building/tier9-endgame-fusion-and-elevator.cs`（ブロックを開く操作は `scenarios/connect/rotary-generator-ui.cs:158-182` の `AimAtClickCollider`/`OpenGenerator`、電線は `scenarios/misc/cleanroom-v2.cs:58-64` の `TryConnectBothSides`＋`RebuildAround` と同じ形）:
 ```csharp
@@ -3616,6 +3981,7 @@ using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.State.SpaceElevator;
 using Game.EnergySystem;
 using Game.Fluid;
 using Game.Orbit;
@@ -3670,7 +4036,8 @@ return PlaytestRunner.Run("tier9-endgame-fusion-and-elevator", options, async p 
     p.WarpPlayer(new Vector3(26.5f, 33.5f, -4f));
     await OpenBlock(elevatorObject);
     await p.UntilWebUiElement("space-elevator-section", 15f);
-    await p.UntilWebUiElement("space-elevator-insufficient", 15f);
+    await p.Until(() => Detail(elevator).Status == SpaceElevatorBaseStatus.InsufficientCable, 10f, "サーバーがケーブル不足と判定した");
+    await p.UntilWebUiElement("space-elevator-status", 15f);
     await p.Screenshot("02-elevator-not-enough-cable");
 
     // ケーブル1便の軌道到着でプールを満たし、接続する
@@ -3733,7 +4100,7 @@ return PlaytestRunner.Run("tier9-endgame-fusion-and-elevator", options, async p 
 ```
 （`ConnectionLineRecord` の接続ツール GUID・`IElectricWireNetworkDatastore` の名前空間・`PressInteract` の有無は cleanroom-v2.cs / rotary-generator-ui.cs の実物に合わせる。F で開けない位置なら `WarpPlayer` の座標だけを直す）
 
-- [ ] **Step 2: 調査実行（録画なし）で通す**
+- **Step 2: 調査実行（録画なし）で通す**
 
 `references/run-scenario.md` の手順どおり、`uloop control-play-mode --project-path ./moorestech_client --action stop` → シナリオを `moorestech_client/PlaytestResults/scratch/` へコピーして `Record = false` にし、前景で実行する（Bash の timeout 600000）:
 ```bash
@@ -3746,91 +4113,14 @@ sed -i '' 's/Record = true/Record = false/' "$SCRATCH/tier9-endgame-fusion-and-e
 ```
 Expected: `result.json` の `Success: true`、`Asserts` が全部 passed。`uloop get-logs --project-path ./moorestech_client --log-type Error` に `CommonMachineBlockStateChangeProcessor` と `SpaceElevatorBaseStateChangeProcessor` の行が無い。落ちたら原因を直して（シナリオの座標だけでなく本体の不具合なら本体を）再実行する。
 
-- [ ] **Step 3: 録画ありで最終実行し、目で確かめる**
+- **Step 3: 録画ありで最終実行し、目で確かめる**
 
 `Record = true` のまま同じコマンドで実行する。録画から `ffmpeg -i <動画> -vf fps=1 <scratch>/frames/%03d.png` でフレームを切り出し、(1) 炉のパネルに発電の稼働表示と燃料タンク、(2) 拠点パネルのケーブル不足の理由、(3) 接続後にケーブルが現れる、(4) 昇降機がケーブルを昇る、を目で確かめる。確かめたフレームのパスを判断記録に書く。動画は `share-put <動画> -n tier9-endgame-fusion-and-elevator` で置き、出た URL を PR 本文に貼る。
 
-- [ ] **Step 4: コミットする**
+- **Step 4: コミットする**
 
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/building/tier9-endgame-fusion-and-elevator.cs
 git commit -m "test(playtest): 核融合炉と宇宙エレベーターの録画シナリオを足す"
 ```
 
-### Task 14: 全ブランチレビュー
-
-- [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
-
-Codex ホストでは moores-code-review の `references/codex-host.md` の runner で実行する。レビュー指摘の反映がソースの判定経路・条件式・その評価時点（昇降機の開始条件・頂上で渡す条件・出口の確認・接続判定・撤去返却など）に触れたら、Task 13 の unityプレイ録画テストを反映後のバイナリで再実施してから完了とする。指摘の反映ごとにコミットする。
-
-### Task 15: PR 作成とセッションを閉じられる状態
-
-- [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
-
-順序:
-1. moorestech_master: worktree の全コミットを push し、`gh pr create`（base `master`、本文に変更点・シミュレーションの出力・S2 の PR への依存）で PR を作る。
-2. moorestech: `.moorestech-external-revisions.json` の `moorestech_master` を 1. の push 済み HEAD（`git -C $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame rev-parse HEAD`）にして単独でコミットし、`git show HEAD:.moorestech-external-revisions.json` で値を確かめて push する。
-3. moorestech: pr-create スキルで PR を作る（本文に master PR の URL・S2 の PR への依存・録画の share URL・判断記録の「S1 待ち」「S2 待ち」の一覧）。マージはしない。
-4. 両 PR の CI の結果を確かめる。
-5. `moores-wt rm tier9-fusion-elevator-endgame`（Editor と worktree を畳む）。マスタ worktree は `git -C $HOME/hermes-agent/data/repos/moorestech_master worktree remove $HOME/hermes-agent/data/worktrees/moorestech_master/tier9-fusion-elevator-endgame` で外す（push 済みを確かめてから）。
-
----
-
-## 判断記録（ADR）
-
-### 設計 ADR と S3 の裁定
-
-- ADR: `docs/adr/0089-space-elevator-cable-pool-and-per-base-connection.md`（ケーブルプール・拠点ごとの接続・昇降機・軌道到着サービスへの委譲）、`docs/adr/0090-fusion-net-power-from-fuel-extraction-cost.md`（核融合の差し引き電力・炉は既存の燃料発電機）
-- S3 のユーザー裁定（`.decisions/`）:
-  - `2026-10-23-ストーリークリアは定義せず反物質爆弾を規定量作る仮の研究で終端にする.md`（原文「クリアについて現段階で明確に定義しない。反物質爆弾を規定量つくったらそれでおわり（終了を明示する仮の研究があってもok、その程度」）
-  - `2026-10-23-宇宙エレベーターは接続でGPU人工衛星の打ち上げ経路として機能させる.md`
-  - `2026-10-23-エレベーター経由の衛星打ち上げは燃料と筐体が不要だが入手に時間がかかる.md`
-  - `2026-10-23-エレベーター拠点は1基につき昇降機1台で衛星を1つずつ運ぶ.md`
-  - `2026-10-23-打ち上げたケーブルはワールド共通の素材プールに入り拠点ごとの接続で消費し撤去で戻る.md`
-  - `2026-10-23-エレベーター拠点は簡易モデルで接続でケーブルが現れ昇降機が上昇する.md`
-  - `2026-10-23-エレベーター拠点は昇降中に電力を使い不足すると遅くなる.md`
-  - `2026-10-23-核融合の収支は燃料づくりの大電力で作りモジュールは燃料側に効かせる.md`
-  - `2026-10-23-核融合の収支は運転中の電力だけで評価し点火手順は設けず見た目は既存モデルと汎用UI.md`
-  - `2026-10-23-反物質は大電力の新機械で作り既存の組立機械で爆弾にする.md`
-  - `2026-10-23-グラフェンは既存機械の短い直線工程で作り使用済み銅板は電気炉で銅板に戻す.md`
-  - `2026-10-23-モジュールは種類ごとに研究を分け機械オーバークロックは速度モジュールの研究にする.md`
-  - `2026-10-23-Tier9のフィルター分岐器ノードは削除し品質モジュール研究は別途作る.md`
-  - `2026-10-23-金属3Dプリンタはコンピュータと制御モータを1工程で作る任意のショートカット機械にする.md`
-- 他セッションの裁定で S3 に効くもの: S1「Tier9 の目標プレイ時間は半導体解放からクリアまで 15〜25 時間」「チップは別アイテムで上限 Lv5・研究とクリアは大部分 Lv1」「モジュールは品質・速度・省エネ・生産性の4種」。S2「研究ロケット技術を新設」「軌道エレベーターの建設は計算データを消費しロケット技術を前提にする」「計算データは打ち上げた設備の出力口に出し、満杯なら待たせて理由を出す」
-
-### planning 中の判断（すべて agent前提）
-
-| # | 判断 | 理由・根拠 |
-|---|---|---|
-| P1 | 発電機（ElectricGenerator）に `IBlockStateObservable` を足し、`PowerGeneratorStateDetail` と液体タンク（`FluidMachineInventoryStateDetail`）を出す。通知は点き始め・燃え尽きの tick、燃焼中の毎 tick（残燃料が進む）、液体を受け入れたとき | 裁定「既存モデル＋汎用UIの稼働表示」。前例 `FuelGearGeneratorComponent.cs:88-91`（稼働中は毎 tick 通知）・`VanillaMachineFluidInventoryComponent.cs:139`（液体の受け入れで通知）。同じ値の再送は `ChangeBlockStateEventPacket` が落とす。配置検査 V1 で「点き始め・燃え尽きだけ」から直した（残燃料バーが止まるため） |
-| P2 | クライアントで ElectricGenerator を CommonMachine 扱いから外す（比べた案: 発電機専用の状態プロセッサを置く → 見た目に変化が無いので要らない。CommonMachine のキーも出す → 発電機は機械の処理状態を持たず偽の値を送ることになる） | 原因: 推測（根拠: `CommonMachineBlockStateChangeProcessor.cs:23-28` は CommonMachine キーが無い状態で `Debug.LogError` を出す。発電機が状態を出すと必ず通る）。Task 13 の録画テストでエラーログが無いことを実測で確かめる |
-| P3 | 発電機は専用 view を作らず汎用 `SectionStackView` で出し、e2e の registry では意図的 Generic にする | 前例「標準ブロック表示をデータ有無で合成し、固有UIだけをレジストリへ残す」 |
-| P4 | `VanillaElectricGeneratorFuelService`（289行）と `VanillaElectricGeneratorComponent` を 200 行未満へ分割する。変換器が触るフィールドを `internal` にする | AGENTS.md の 200 行規約。同アセンブリの変換器だけが触る |
-| P5 | 数値の初期値: 核融合炉 重水素10/2秒で 20000、重水素抽出装置 4000（水100→重水素10/8秒）、反物質製造装置 12000（重水素50→反物質1/30秒）、反物質爆弾 反物質20＋ICチップLv1 50＋鋼鉄板100＋コンピュータ20（電気汎用工作装置 60秒）、グラフェン4レシピと3Dプリンタ2レシピは Task 1・2 の JSON の値 | Task 4 のシミュレーション（R3・R5・R23 の範囲）で検査し、NG なら直して本節へ追記する。全体の時間目標は S1 の裁定 |
-| P6 | 最終研究の名前は「最終研究」、消費は反物質爆弾 10、解放物なし | ユーザー原文「終了を明示する仮の研究があってもok、その程度」。量は agent前提（Task 4 で所要時間を検査） |
-| P7 | 反物質の機械名は「反物質製造装置」 | 既存モデル名 `Antimatter_manufacturing_equipment` と ADR 0090 に合わせる。裁定ファイルの「反物質生成装置」は機能の言い換え（ユーザーが名前を決めた裁定ではない） |
-| P8 | グラフェンケーブルは軌道到着の積荷表に 1便1000本・成果なしで載せ、スタック表 [1000] を割り当てる。1エレベーター分 1000 本＝1便。昇降 600 秒・昇降中の電力 2000 | S2 の契約「countPerLaunch ≤ スタック上限」。Task 12 で S2 のロケット建造時間と比べて確定する |
-| P9 | 研究「軌道エレベーターの建設」の計算データ消費は S2 の plan の値（見つからなければ 200）、研究「反物質爆弾」に計算データ ×400 | S2 の裁定「計算データを消費する」。量は S2 待ち・S1 待ち |
-| P10 | 起動時（`IBootInitializable.Load`）の検査は `SpaceElevatorOrbitalTableCheck.cs`（`Game.SpaceElevator/`）が担う。拠点のマスタが指すケーブル・積荷が軌道到着の表にあるかを S2 の `IsOrbitalPayload` で、衛星1機の成果が空の出口（`outputSlotCount`）に入りきるかを `PreviewArrivalOutputs` で確かめ、違えば例外で止める。積荷にケーブルが含まれないかはマスタだけで決まるので `SpaceElevatorBaseParamValidator`（P22）が見る。プールは起動時の検査をしない | ADR 0089。S2 のサービスに依存する検査だけを起動時に置き、マスタだけで決まる検査はロード時の validator に置く。起動時のマスタ整合検査サービスは前例の無い新しい形（配置検査の注目点4） |
-| P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない） | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値 |
-| P12 | 撤去返却は `RemoveBlockProtocol.cs`（`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`）で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
-| P13 | 接続は専用プロトコル `va:connectSpaceElevator`（`ConnectSpaceElevatorProtocol.cs` を `PacketResponse/SpaceElevator/` に新設し `PacketResponseCreator.cs` に登録、`Server.Protocol.asmdef` に `Game.SpaceElevator` 参照を足す。クライアントは `BlockRequestApi.cs` に `ConnectSpaceElevator` を足す）で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出し、プレイヤーには状態詳細のプール残量から理由を出す | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
-| P14 | 拠点の UI は専用 view `views/SpaceElevatorInventory.tsx`（`BlockItemGrid`＋`SpaceElevatorSection`＋`ElectricNetworkSection`）を `registry/blockComponentRegistry.ts`・`registeredBlockTypes.ts` に登録する。`SectionStackView` には足さず、e2e の `intentionalGeneric` にも入れない | 接続ボタンはブロック固有の操作。前例 `views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`。`SectionStackView.tsx:51-52`「固有UIだけをレジストリへ残す」、`intentionalGeneric` は移植待ちの許可リスト。配置検査 V2 で「SectionStackView に合成」から直した |
-| P15 | 新しいファイルはディレクトリの 10 ファイル上限のためサブディレクトリ（`PacketResponse/SpaceElevator/`・`Actions/SpaceElevator/`・`Topics/BlockDetail/SpaceElevator/`・`StateProcessor/SpaceElevator/`）に置き、`inventory.ts`（215 行）を分割する | AGENTS.md の規約 |
-| P16 | 録画テストは昇降の完了（600 秒）まで待たず、昇降機が上がること・進みが増えることまでを見る。到着後の成果・出口の空き待ちはユニットテストで見る。ケーブルの打ち上げはサーバーで `Arrive(cable, 1000)` を呼んで起こす | 録画の長さ。本番との差: ロケットでの打ち上げ経路は通さない（S2 の録画が担う） |
-| P17 | Task 5 は S2 の `Game.Orbit`（`PreviewArrivalOutputs` を含む）と積荷表が push されるまで前景で 600 秒ずつ最大 12 回待ち、来なければ止めて報告する | S2 の API に依存するため。バックグラウンドのポーリングはしない |
-| P18 | ランタイム挙動（発電機の UI・拠点の UI・見た目・昇降）に触れるので、unityプレイ録画テスト（Task 13）を入れる | moores-writing-plans の録画テスト規定 |
-| P19 | 昇降機は打ち上げ後の保留を持たない。昇り始める前と頂上で渡す直前に `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを確かめ、入らなければ入口に残す／頂上で電力を使わず待つ。状態は `OutputBlocked` | S2 のユーザー裁定（S2 ブランチ `.decisions/2026-10-23-発射台は成果が出力口に入りきるときだけ建造と打ち上げを進める.md`、明示引用「発射台の出力口が満杯のとき、どこで待たせますか？」→ 選択「入りきる時だけ建造開始」）と、その裁定ファイルの「宇宙エレベーター拠点（S3）も同じ方式にする」。拠点への適用の形（2点の確認・頂上で待つ間は電力を使わない）は agent前提で、前例は機械の `IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118` |
-| P20 | 拠点の出口は `outputSlotCount`（出荷 4・テスト mod 1）スロット。衛星1機の成果がレベル1のスタック上限で空の出口に入りきらないマスタは、起動時に `SpaceElevatorOrbitalTableCheck` が止める | 入りきらない成果は頂上で永遠に待つ（構造的に解消しない待ち）ため、いちばん早い段階で止める（AGENTS.md）。スロット数 4 は agent前提 |
-| P21 | `VanillaSchema/blocks.yml` に blockType `SpaceElevatorBase` と case を足し、`_CompileRequester.cs`（`moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs`）の `dummyText` を上げて生成し直す。新しい case だけなので既存ブロックの JSON は変えない | edit-schema スキルの手順。拠点の振る舞いは既存の blockType では表せない（ケーブルプールへの接続・昇降機）ため新設 |
-| P22 | 拠点のマスタ検証を `SpaceElevatorBaseParamValidator.cs`（`Core.Master/Validator/Block/`）に置き、`BlockMasterUtil.cs` の `Validate` に連結する。見るのは参照・数値・全拠点のケーブルが1種か。軌道到着の表との突き合わせは S2 のサービスが要るので起動時（P10） | 前例 `BlockMasterUtil.cs` の `BeltSpeedPerSecondValidator` の連結。AGENTS.md「必須の設定はいちばん早い段階で止める」 |
-| P23 | 拠点の組み立てを `VanillaSpaceElevatorBaseTemplate.cs`（`Game.Block/Factory/BlockTemplate/SpaceElevator/`）に置き、`VanillaIBlockTemplates.cs` に登録する。供給の受け取りを昇降機より前に並べる | 前例 `VanillaElectricPumpTemplate`（電力受け取りと処理の順）・`VanillaChestTemplate`（インベントリとコネクタ） |
-
-### S1 待ち・S2 待ち
-
-- S1 待ち: Tier9 研究のコスト（核融合炉・反物質爆弾・金属超精密加工・軌道エレベーターの建設の `consumeItems`）、機械のモジュールスロット数（重水素抽出装置・反物質製造装置・金属3Dプリンタは仮に 3）、レシピのチップ Lv（すべて ICチップLv1 の仮置き）、研究「機械オーバークロック」（S1 が速度モジュール研究として作る。S3 は触らない）
-- S2 待ち: `Game.Orbit` の push（Task 5 のゲート）、計算データの消費量（P9）、ロケット1機の建造時間のキー名と値（Task 12）、GPU衛星 Lv1〜Lv5 の到着成果（S2 の表を読むだけ）
-
-### 進め方の裁定
-
-- ユーザー指示 2026-10-23 17:51「とりあえずまだ実装開始しないで」: plan の作成・検査・コミットまでで止め、Codex の実装セッションは起動しない。開始はユーザーの合図を待つ
