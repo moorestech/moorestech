@@ -456,7 +456,7 @@ git show origin/feat/tier9-compute-data-loop:.moorestech-external-revisions.json
 ```
 S3 はマスタを変えないので、`.moorestech-external-revisions.json` は S2 側の値になる（2つの `git show` の `moorestech_master` の値が一致すること。衝突したら `git checkout --theirs .moorestech-external-revisions.json` で S2 側を取る）。他の衝突は両方の変更を残す。解いたら:
 - `uloop compile --project-path ./moorestech_client`（ErrorCount 0）
-- `grep -n "CurrentVersion" moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs` が `= 7`（6 なら S2 の版上げが未取り込み → Step 1 へ戻る）
+- `grep -n "CurrentVersion" moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs` が `= 7` 以上（6 なら S2 の版上げが未取り込み → Step 1 へ戻る。8 以上なら S1 の版上げも先に入っているので、Task 7 の版は判断記録 P11 の繰り上げ規則で読み替える）
 - `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Orbit"` が全 PASS
 - Editor でマスタを読み直し（RepositorySync がピンへ checkout する）、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `MooresmasterLoaderException`・`[ItemMaster]`・`[BlockMaster]` が無い。出たら S2 の範囲なので直さず、`bd note moorestech-xyuaf.1` に内容を書いて続ける（サーバーテストはテスト mod で動く）。PR 本文にも書く
 - `git diff -- .moorestech-external-revisions.json` が空（Editor が書き戻していたら `git checkout -- .moorestech-external-revisions.json`）
@@ -1183,7 +1183,7 @@ namespace Server.Boot.Composition
 
 - [ ] **Step 2: ワールドセーブに節を足し版を 8 にする**
 
-`WorldSaveAllInfo.cs`: `CurrentVersion` を `8` にする。ctor の最後の引数（S2 が足した引数の後ろ）に `SpaceElevatorCablePoolSaveData spaceElevatorCablePool` を足し、本体で `SpaceElevatorCablePool = spaceElevatorCablePool;`、プロパティ `[JsonProperty("spaceElevatorCablePool")] public SpaceElevatorCablePoolSaveData SpaceElevatorCablePool { get; }` を足す（`using Game.SpaceElevator.Save;`。欠損は null のまま残し、復元側で止める）。
+`WorldSaveAllInfo.cs`: `CurrentVersion` を `8` にする（Task 5 で見た版が 7 でなく N だったら、この Task の 7→8 をすべて N→N+1 と読み替える。判断記録 P11）。ctor の最後の引数（S2 が足した引数の後ろ）に `SpaceElevatorCablePoolSaveData spaceElevatorCablePool` を足し、本体で `SpaceElevatorCablePool = spaceElevatorCablePool;`、プロパティ `[JsonProperty("spaceElevatorCablePool")] public SpaceElevatorCablePoolSaveData SpaceElevatorCablePool { get; }` を足す（`using Game.SpaceElevator.Save;`。欠損は null のまま残し、復元側で止める）。
 `AssembleSaveJsonText.cs`: ctor に `SpaceElevatorCablePool spaceElevatorCablePool` を足して `_spaceElevatorCablePool` に保持し、`Capture()` の `new WorldSaveAllInfo(...)` の最後の引数に `_spaceElevatorCablePool.GetSaveData()` を渡す。
 `WorldSaveDataRestorer.cs`: ctor に `SpaceElevatorCablePool spaceElevatorCablePool` を足す。`Restore` の `_worldBlockDatastore.LoadBlockDataList(load.World);` の直前に:
 ```csharp
@@ -3433,9 +3433,9 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 - [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
 
 順序:
-1. 土台をそろえる: S2 の PR が origin/master へ入っていれば `git merge origin/master`、入っていなければ `git merge origin/feat/tier9-compute-data-loop` で S2 の最新を取り込み直す（S2 の途中のコミットだけを持つ状態で出さない）。`uloop compile --project-path ./moorestech_client`（ErrorCount 0）と Task 7〜9 のテストを通して push する。
+1. 土台をそろえる: S2 の PR が origin/master へ入っていれば `git merge origin/master`、入っていなければ `git merge origin/feat/tier9-compute-data-loop` で S2 の最新を取り込み直す（S2 の途中のコミットだけを持つ状態で出さない）。取り込んだ後に `WorldSaveAllInfo.CurrentVersion` と `Game.SaveLoad/Migration/Steps/` を見て、S3 の移行ステップと同じ FromVersion のステップ（S1 など）が先に入っていたら、判断記録 P11 の規則で S3 の移行ステップを先に入った版の続きへ繰り上げる（FromVersion・CurrentVersion・クラス名とファイル名・テストの版・3箇所の登録の並び）。`uloop compile --project-path ./moorestech_client`（ErrorCount 0）と Task 7〜9 のテスト（`SaveMigrationChainTest` を含む）を通して push する。
 2. ピンを確かめる: `git diff <1. で取り込んだ ref> -- .moorestech-external-revisions.json` が空（S3 はマスタを変えないので、ピンは S2 か origin/master と同じ値）。
-3. pr-create スキルで PR を作る（base `master`）。本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S2 への依存（S2 の PR が未マージなら「S2 の PR のマージ後にマージする」と書き、その URL）／統合タスクへ回したもの（末尾の節の見出しを並べ、裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md` と bd `moorestech-xyuaf.2` へリンク）／確かめ方（CombinedTest・プロトコルテスト・wire 契約テスト・webui の vitest と e2e の結果。録画は統合タスク）／セーブ版 7→8（S2 が 6→7）／判断記録の「S1 待ち」「S2 待ち」の一覧／本PR外のリファクタ提案（判断記録 P30）／レビュー依頼の注目点（判断記録 P10 の起動時のマスタ整合検査サービスと P31）。マージはしない。
+3. pr-create スキルで PR を作る（base `master`）。本文に入れる節: 概要（この PR はコード・スキーマ・テスト用データまでで、遊べるのは統合タスクの後）／S2 への依存（S2 の PR が未マージなら「S2 の PR のマージ後にマージする」と書き、その URL）／統合タスクへ回したもの（末尾の節の見出しを並べ、裁定 `.decisions/2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md` と bd `moorestech-xyuaf.2` へリンク）／確かめ方（CombinedTest・プロトコルテスト・wire 契約テスト・webui の vitest と e2e の結果。録画は統合タスク）／セーブ版 7→8（S2 が 6→7。S1 が先に入っていれば繰り上げた後の版）／判断記録の「S1 待ち」「S2 待ち」の一覧／本PR外のリファクタ提案（判断記録 P30）／レビュー依頼の注目点（判断記録 P10 の起動時のマスタ整合検査サービスと P31）。マージはしない。
 4. CI の結果を確かめる。
 5. `bd note moorestech-xyuaf.2 "S3 の PR <URL>。S3 から統合タスクへ渡すマスタの中身・バランス・録画の下書きは S3 plan docs/superpowers/plans/2026-10-23-tier9-fusion-elevator-endgame.md の「統合タスクへ引き継ぐマスタの中身」節"` を書く。
 6. `moores-wt rm tier9-fusion-elevator-endgame`（Editor と worktree を畳む。未コミット・未 push が無いことを先に確かめる）。
@@ -3478,7 +3478,7 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P8 | 〔統合タスクへの下書き〕グラフェンケーブルは軌道到着の積荷表に 1便1000本・成果なしで載せ、スタック表 [1000] を割り当てる。1エレベーター分 1000 本＝1便。昇降 600 秒・昇降中の電力 2000 | S2 の契約「countPerLaunch ≤ スタック上限」。Task 12 で S2 のロケット建造時間と比べて確定する |
 | P9 | 〔統合タスクへの下書き〕研究「軌道エレベーターの建設」の計算データ消費は S2 の plan の値（見つからなければ 200）、研究「反物質爆弾」に計算データ ×400 | S2 の裁定「計算データを消費する」。量は S2 待ち・S1 待ち |
 | P10 | 起動時（`IBootInitializable.Load`）の検査は `SpaceElevatorOrbitalTableCheck.cs`（`Game.SpaceElevator/`）が担う。拠点のマスタが指すケーブル・積荷が軌道到着の表にあるかを S2 の `IsOrbitalPayload` で、衛星1機の成果が空の出口（`outputSlotCount`）に入りきるかを `PreviewArrivalOutputs` で確かめ、違えば例外で止める。積荷にケーブルが含まれないかはマスタだけで決まるので `SpaceElevatorBaseParamValidator`（P22）が見る。プールは起動時の検査をしない | ADR 0089。S2 のサービスに依存する検査だけを起動時に置き、マスタだけで決まる検査はロード時の validator に置く。起動時のマスタ整合検査サービスは前例の無い新しい形（配置検査の注目点4） |
-| P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない） | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値 |
+| P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない）。版の番号は S1（6→7 と 7→8 を使う）・S2 と重なるので、後から master へマージする側が、先に入った版の続きへ FromVersion・CurrentVersion・クラス名とファイル名・テストの版・登録の並びを繰り上げる。7→8 は S2 だけが先に入った場合の値 | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値。繰り上げの規則は S1〜S3 のセッション間の取り決め（S2 のセッションからの連絡。ユーザー裁定ではない） |
 | P12 | 撤去返却は `RemoveBlockProtocol.cs`（`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`）で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
 | P13 | 接続は専用プロトコル `va:connectSpaceElevator`（`ConnectSpaceElevatorProtocol.cs` を `PacketResponse/SpaceElevator/` に新設し `PacketResponseCreator.cs` に登録、`Server.Protocol.asmdef` に `Game.SpaceElevator` 参照を足す。クライアントは `BlockRequestApi.cs` に `ConnectSpaceElevator` を足す）で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出す。押せるか・不足の理由は、プールが判定して拠点の状態（`ReadyToConnect` / `InsufficientCable`）に載せたものを webui が表示する（P26） | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
 | P14 | 拠点の UI は専用 view `views/SpaceElevatorInventory.tsx`（`BlockItemGrid`＋`SpaceElevatorSection`＋`ElectricNetworkSection`）を `registry/blockComponentRegistry.ts`・`registeredBlockTypes.ts` に登録する。`SectionStackView` には足さず、e2e の `intentionalGeneric` にも入れない | 接続ボタンはブロック固有の操作。前例 `views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`。`SectionStackView.tsx:51-52`「固有UIだけをレジストリへ残す」、`intentionalGeneric` は移植待ちの許可リスト。配置検査 V2 で「SectionStackView に合成」から直した |
