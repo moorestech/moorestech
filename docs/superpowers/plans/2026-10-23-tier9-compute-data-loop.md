@@ -43,8 +43,8 @@
 - `.meta` を手で作らない。Prefab・シーンは `uloop execute-dynamic-code` 経由でだけ変える。Library を消さない。
 - `.cs` を変えたら `uloop compile --project-path ./moorestech_client` を通す。新規 `.cs` を足した直後は Unity の再読込が要ることがある（`uloop` が古い結果を返したら `docs/development/uloop-troubleshooting.md`）。
 - YAMLスキーマを触る前に `edit-schema` スキルを読む。`optional: true` を足さない。プロトコルを作る前に `creating-server-protocol` スキル、セーブ移行を書く前に `moorestech-save-migration` スキル、テストを書く前に `creating-server-tests` スキル、webui を触る前に `ref-webui-design` スキルを読む。
-- moorestech_master の作業場所は、このworktreeのルートから見て `../../moorestech_master/tier9-compute-data-loop`（ブランチ `feat/tier9-compute-data-loop`）。以下のコマンドはどれもこのworktreeのルートで実行し、master 側は `MASTER_WT=../../moorestech_master/tier9-compute-data-loop` を置いて `git -C "$MASTER_WT"` で操作する。`../moorestech_master` は全worktree共有のsymlinkなので、そこで checkout・編集しない。マスタを変えたら master worktree でコミット・push し、本repoの `.moorestech-external-revisions.json` の `moorestech_master.commitHash` をそのコミットへ向ける。
-- 名前（S3へ送付済み・変更不可）: asmdef/名前空間 `Game.Orbit`、`IOrbitalArrivalService`（`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`・`bool IsOrbitalPayload(ItemId itemId)`・`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`）、`OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`）、取得は `ServerContext.GetService<IOrbitalArrivalService>()`。
+- moorestech_master の作業場所は、このworktreeのルートから見て `../../moorestech_master/tier9-compute-data-loop`（ブランチ `feat/tier9-compute-data-loop`）。以下のコマンドはどれもこのworktreeのルートで実行し、master 側は `MASTER_WT=../../moorestech_master/tier9-compute-data-loop` を置いて `git -C "$MASTER_WT"` で操作する。`../moorestech_master` は全worktree共有のsymlinkなので、そこで checkout・編集しない。マスタを変えたら master worktree でコミット・push し、本repoの `.moorestech-external-revisions.json` の `moorestech_master.commitHash` をそのコミットへ向ける。`moores-wt status` はこの master worktree を「UNUSED master pin」と表示するが、S2 の作業場所なので `moores-wt rm --prune-master` 等で消さない。
+- 名前（S3へ送付済み・変更不可）: asmdef/名前空間 `Game.Orbit`、`IOrbitalArrivalService`（`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`・`bool IsOrbitalPayload(ItemId itemId)`・`IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)`（S3 へ 2026-10-23 連絡済み）・`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`）、`OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`）、取得は `ServerContext.GetService<IOrbitalArrivalService>()`。
 - GUID（S3へ送付済み・変更不可）: 研究「ロケット技術」`01a167cf-af9d-7f31-817c-3069b4f6e499`／計算データ `01a167cf-af88-74d3-9cd6-7d61b71052bb`／GPU衛星 Lv1 `01a167cf-af8b-7894-8de6-593ee30289c0`・Lv2 `01a167cf-af8e-7e95-b299-09eb712bee12`・Lv3 `01a167cf-af91-7f62-93d1-e499b06f2398`・Lv4 `01a167cf-af94-7e25-9654-825374c3923b`・Lv5 `01a167cf-af97-7f67-bf53-7833b8d17a15`／GPU衛星 levelFamily `01a167cf-af9a-78e5-9203-1c18ce94cdc6`／ロケット筐体素材レシピ `01a167cf-afa0-7add-8407-eec71456f4f3`／ロケット燃料レシピ `01a167cf-afa3-7c4f-82b7-c0d4f6d513c6`。
 - S1 の GPU（S1 からの連絡 2026-10-23。S1 の master に入る値）: levelFamily `01a167ed-2700-7371-9f95-168966ff60bc`、Lv1 `01a167ed-2703-7014-98e4-11bd15f38571`・Lv2 `01a167ed-2706-7bfd-8361-a430dd96a569`・Lv3 `01a167ed-2709-74f0-a5c6-25026c7479d9`・Lv4 `01a167ed-270c-7873-a83a-5cf02ead6277`・Lv5 `01a167ed-270f-7276-8700-469ab54a26a2`。継承レシピの書式と上限を上げる研究アクション名は S1 の plan 確定後に届く（Task 10）。
 - 既存マスタGUID: ロケット発射台 `01a162b0-7769-7419-af24-bb35528b93d2`、ロケット筐体素材 `01a162a4-9334-7286-a8ba-7daf9c0f407a`、ロケット燃料 `01a162a8-e435-73d0-bddb-08533819b80e`、コンピュータ `019f0ca4-a544-723e-8ff2-feb15f99c84e`、鋼鉄板 `019e3a98-cfe5-73eb-bf6a-a564400bdb4f`、プラスチック `019e3aaa-af6f-7527-8689-01f4ebd65426`、固形燃料 `019eded2-f06b-70fd-b8aa-960690cb2b0f`、ガソリン（流体）`019eded2-7454-76da-8943-84c4e7a59179`、化学プラント `019ee880-7f68-705e-b846-7b05036e2ca8`、電気汎用工作装置 `019e1225-f49b-7283-8835-428d903852f1`、研究「半導体製造」`019e3ad9-46e2-73fd-9555-8c1d0245d26d`、スタックテーブル Default `9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa`。
@@ -96,10 +96,11 @@
 - Modify: `.moorestech-external-revisions.json`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`
 - Create: `moorestech_server/Assets/Scripts/Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs`
-- Modify: `moorestech_server/Assets/Scripts/Core.Master/ItemMaster.cs`（`Validate`）
+- Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/ItemMasterUtil.cs`（`Validate` の連鎖に1行。`ItemMaster.Validate` は委譲の1行のまま）
 - Modify: `moorestech_server/Assets/Scripts/Core.Master/Validator/BlockMasterUtil.cs`（`Validate` に1行）
 - Modify: `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTestModBlockId.cs`、`ForUnitTestItemId.cs`
 - Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload/OrbitalPayloadMasterValidatorTest.cs`
+- Test: `moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload/RocketLaunchPadParamValidatorTest.cs`
 
 **Interfaces:**
 - Produces:
@@ -239,7 +240,7 @@ blockType の `options` の末尾（`CleanRoomMachine` の次）に `- RocketLau
 ]
 ```
 
-（成果150はスタック上限100を超え、分割と保留の検証に使う。）
+（成果150はスタック上限100を超え、分割と出力満杯の検証に使う。出力2スロットに1便ぶん（100＋50）が入りきるので、発射台パラメータの検証は通る。）
 
 ForUnitTest の blocks.json の `data` に発射台を足す。共通キーはテスト機械 `TestElectricMachine`（`00000000-0000-0000-0000-000000000001`）と同じ値にし、`inventoryConnectors` は同じ形で `connectorGuid` だけ新しくする（テストでは 1×1×1 で足りる）:
 
@@ -328,7 +329,8 @@ namespace Core.Master.Validator.OrbitalPayload
 
                 // 発射台は積荷1種につき1スロットなので、レベル1のスタック上限を超える1便は積めない
                 // A launch pad has one slot per payload, so a launch above the level-1 stack limit can never be loaded
-                if (!tableByGuid.TryGetValue(item.StackLevelTableGuid, out var table)) return "";
+                // silent-ok: テーブル欠落・段数0のテーブルは ItemMasterUtil の既存検証が報告する / マスタ読込時のエラーログで開発者が気づく
+                if (!tableByGuid.TryGetValue(item.StackLevelTableGuid, out var table) || table.StackCounts.Length == 0) return "";
                 var firstLevelStack = table.StackCounts[0];
                 return payload.CountPerLaunch > firstLevelStack ? $"[ItemMaster.orbitalPayloads] {item.Name} countPerLaunch {payload.CountPerLaunch} exceeds level-1 stack {firstLevelStack}\n" : "";
             }
@@ -345,21 +347,15 @@ namespace Core.Master.Validator.OrbitalPayload
 }
 ```
 
-（スタックテーブル欠落そのものは `ItemMasterUtil` の既存検証が報告するので、ここでは二重に出さない。）
+（スタックテーブル欠落と段数0のテーブルは `ItemMasterUtil` の既存検証（`StackLevelTableValidation`）が報告するので、ここでは二重に出さない。段数0を見送るのは既存の `InitialLevelMaxStackValidation` と同じ扱い。）
 
-`ItemMaster.cs` の `Validate` を次へ置き換える（`using Core.Master.Validator.OrbitalPayload;` を足す）:
+`ItemMaster.Validate` は委譲の1行のまま残し、連鎖は `ItemMasterUtil.Validate` に足す（前例 `BlockMasterUtil.Validate` の `errorLogs +=` 連結）。`ItemMasterUtil.cs` に `using Core.Master.Validator.OrbitalPayload;` を足し、`errorLogs += InitialEquipmentValidation();` の次の行に足す:
 
 ```csharp
-        public bool Validate(out string errorLogs)
-        {
-            // アイテム本体の検証に積荷表の検証を連ねる
-            // Chain the orbital payload table validation after the item validation
-            var itemsValid = ItemMasterUtil.Validate(Items, out var itemLogs);
-            var payloadLogs = OrbitalPayloadMasterValidator.Validate(Items);
-            errorLogs = itemLogs + payloadLogs;
-            return itemsValid && string.IsNullOrEmpty(payloadLogs);
-        }
+            errorLogs += OrbitalPayloadMasterValidator.Validate(items);
 ```
+
+（`ItemMasterUtil.cs` は既に244行で、この2行で246行になる。分割は本PRの範囲を広げるので行わず、Task 13 の PR 本文「本PR外のリファクタ提案」に書く。）
 
 - [ ] **Step 5: 発射台パラメータの検証を書く**
 
@@ -380,12 +376,14 @@ namespace Core.Master.Validator.Block
         internal static string Validate(Blocks blocks)
         {
             var logs = "";
-            var payloadGuids = new HashSet<Guid>(MasterHolder.ItemMaster.Items.OrbitalPayloads.Select(payload => payload.PayloadItemGuid));
+            var payloads = MasterHolder.ItemMaster.Items.OrbitalPayloads;
+            var payloadGuids = new HashSet<Guid>(payloads.Select(payload => payload.PayloadItemGuid));
             foreach (var block in blocks.Data)
             {
                 if (block.BlockParam is not RocketLaunchPadBlockParam param) continue;
                 logs += ValidateScalars(block.Name, param);
                 logs += ValidateMaterials(block.Name, param);
+                logs += ValidateOutputCapacity(block.Name, param);
 
                 // 積荷表が空だと揃う積荷が無く、永遠に建造しない
                 // With an empty payload table nothing can ever be loaded, so the pad would never build
@@ -420,11 +418,41 @@ namespace Core.Master.Validator.Block
                     if (payloadGuids.Contains(material.ItemGuid)) result += $"[BlockMaster] {name} launch material {material.ItemGuid} is also an orbital payload\n";
                     if (material.Count < 1) result += $"[BlockMaster] {name} launch material count must be >= 1\n";
 
-                    var element = MasterHolder.ItemMaster.GetItemMaster(itemId.Value);
-                    var firstLevelStack = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
-                    if (material.Count > firstLevelStack) result += $"[BlockMaster] {name} launch material {element.Name} count {material.Count} exceeds level-1 stack {firstLevelStack}\n";
+                    var firstLevelStack = FirstLevelStackOrNull(itemId.Value);
+                    if (firstLevelStack != null && material.Count > firstLevelStack) result += $"[BlockMaster] {name} launch material {material.ItemGuid} count {material.Count} exceeds level-1 stack {firstLevelStack}\n";
                 }
                 return result;
+            }
+
+            string ValidateOutputCapacity(string name, RocketLaunchPadBlockParam param)
+            {
+                // 空の出力口に1便ぶんの成果が入りきらない積荷は、その台で永遠に出力満杯のまま打ち上がらない
+                // A payload whose single launch outputs cannot fit empty output slots would stay output-full forever on this pad
+                var result = "";
+                foreach (var payload in payloads)
+                {
+                    var stackCount = 0;
+                    foreach (var output in payload.ArrivalOutputs)
+                    {
+                        var outputItemId = MasterHolder.ItemMaster.GetItemIdOrNull(output.ItemGuid);
+                        var firstLevelStack = outputItemId == null ? null : FirstLevelStackOrNull(outputItemId.Value);
+
+                        // silent-ok: 未知の成果アイテムは積荷表の検証、段数0のテーブルは ItemMasterUtil が報告する / マスタ読込時のエラーログで開発者が気づく
+                        if (firstLevelStack == null) continue;
+                        stackCount += (output.Count + firstLevelStack.Value - 1) / firstLevelStack.Value;
+                    }
+                    if (stackCount > param.OutputSlotCount) result += $"[BlockMaster] {name} outputSlotCount {param.OutputSlotCount} cannot hold one launch of payload {payload.PayloadItemGuid} ({stackCount} stacks at level-1 stack)\n";
+                }
+                return result;
+            }
+
+            int? FirstLevelStackOrNull(ItemId itemId)
+            {
+                var element = MasterHolder.ItemMaster.GetItemMaster(itemId);
+                var stackCounts = MasterHolder.ItemMaster.GetStackLevelTable(element.StackLevelTableGuid).StackCounts;
+
+                // silent-ok: 段数0のテーブルは ItemMasterUtil の既存検証が報告する / マスタ読込時のエラーログで開発者が気づく
+                return stackCounts.Length == 0 ? null : stackCounts[0];
             }
 
             #endregion
@@ -433,16 +461,20 @@ namespace Core.Master.Validator.Block
 }
 ```
 
+成果のスタック数はレベル1のスタック上限で数える。実行時の分割（`CreateSplitStacks`）はその時点のスタック上限を使い、レベルが上がるほど上限は大きくなるので、レベル1で入りきれば実行時も空の出力口に入りきる。
+
 `BlockMasterUtil.Validate` の `errorLogs += BeltSpeedPerSecondValidator.Validate(blocks);` の次に `errorLogs += RocketLaunchPadParamValidator.Validate(blocks);` を足す。
 
 - [ ] **Step 6: 検証のテストを書く**
 
-`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload/OrbitalPayloadMasterValidatorTest.cs`。テストマスタの読込が通ること（＝検証が正しい行を通す）と、壊した JSON で検証が止めることを確かめる。`ItemsLoader.Load(JToken)` で Items を作り `OrbitalPayloadMasterValidator.Validate` を直接呼ぶ（`internal` なので `Core.Master` の `InternalsVisibleTo` を確認し、無ければ `Validate` を `public static` にする）:
+検証クラスは `internal` のまま、テストは公開された集約点 `ItemMasterUtil.Validate`・`BlockMasterUtil.Validate` を呼ぶ（前例 `Tests/UnitTest/Game/BeltSpeedPerSecondMasterTest.cs` の `BlockMasterUtil.Validate(new BlockMaster(blocksJToken).Blocks, out var errorLogs)`）。
+
+`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload/OrbitalPayloadMasterValidatorTest.cs`:
 
 ```csharp
 using System.IO;
-using Core.Master.Validator.OrbitalPayload;
-using Mooresmaster.Loader.ItemsModule;
+using Core.Master;
+using Core.Master.Validator;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
@@ -458,7 +490,7 @@ namespace Tests.UnitTest.Core.Master.OrbitalPayload
             // DIの生成でマスタが読み込まれ、検証エラーなら例外で落ちる
             // Building the container loads the master and would throw on a validation error
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            Assert.AreEqual(2, global::Core.Master.MasterHolder.ItemMaster.Items.OrbitalPayloads.Length);
+            Assert.AreEqual(2, MasterHolder.ItemMaster.Items.OrbitalPayloads.Length);
         }
 
         [TestCase("countPerLaunch", 101, "exceeds level-1 stack")]
@@ -467,8 +499,11 @@ namespace Tests.UnitTest.Core.Master.OrbitalPayload
         {
             var json = LoadTestItemsJson();
             json["orbitalPayloads"][0][key] = value;
-            var logs = OrbitalPayloadMasterValidator.Validate(ItemsLoader.Load(json));
-            StringAssert.Contains(expected, logs);
+
+            var isValid = ItemMasterUtil.Validate(new ItemMaster(json).Items, out var errorLogs);
+
+            Assert.IsFalse(isValid);
+            StringAssert.Contains(expected, errorLogs);
         }
 
         [Test]
@@ -476,19 +511,28 @@ namespace Tests.UnitTest.Core.Master.OrbitalPayload
         {
             var json = LoadTestItemsJson();
             ((JArray)json["orbitalPayloads"]).Add(json["orbitalPayloads"][0].DeepClone());
-            StringAssert.Contains("duplicate payload", OrbitalPayloadMasterValidator.Validate(ItemsLoader.Load(json)));
+
+            var isValid = ItemMasterUtil.Validate(new ItemMaster(json).Items, out var errorLogs);
+
+            Assert.IsFalse(isValid);
+            StringAssert.Contains("duplicate payload", errorLogs);
         }
 
         private static JObject LoadTestItemsJson()
         {
-            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods/forUnitTest/master/items.json");
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "items.json");
             return JObject.Parse(File.ReadAllText(path));
         }
     }
 }
 ```
 
-（`TestModDirectory.ForUnitTestModDirectory` の実際のパス構成と `ItemsLoader.Load` の引数型は既存コードで確かめ、合わせる。）
+`moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Master/OrbitalPayload/RocketLaunchPadParamValidatorTest.cs`（`BeltSpeedPerSecondMasterTest` の `PrepareBlocksJson`・`FindBlockParam` を同ファイル内に写す。`PrepareBlocksJson` が DI を作るので `MasterHolder.ItemMaster` は読込済み）:
+- `出力口に1便ぶんの成果が入りきらない台を止める`: `TestRocketLaunchPad` の `outputSlotCount` を1にして `BlockMasterUtil.Validate` が false、ログに `cannot hold one launch of payload 5c8e0000-0000-4000-8000-000000000004 (2 stacks at level-1 stack)` を含む（成果150はレベル1のスタック100で2スタック）。
+- `資材の個数がスタックを超える台を止める`: `launchMaterials[0].count` を101にして `exceeds level-1 stack 100` を含む。
+- `テストマスタの発射台は検証を通る`: 変更しないJSONで `BlockMasterUtil.Validate` が true。
+
+(`TestModDirectory.ForUnitTestModDirectory` の実際のパス構成は前例 `BeltSpeedPerSecondMasterTest.PrepareBlocksJson` と同じ組み立てにする。)
 
 - [ ] **Step 7: マスタを push しピンを向ける**
 
@@ -502,7 +546,7 @@ git -C "$MASTER_WT" rev-parse HEAD   # この値を .moorestech-external-revisio
 
 - [ ] **Step 8: コンパイルしテストを実行する**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "OrbitalPayloadMasterValidatorTest|ItemMaster|BlockMaster"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "OrbitalPayloadMasterValidatorTest|RocketLaunchPadParamValidatorTest|ItemMaster|BlockMaster"`
 Expected: ErrorCount 0 / 全 PASS。Editor の Console に `[ItemMaster]` `[BlockMaster]` のエラーが無い（ピン先のマスタが読めている）。
 
 - [ ] **Step 9: コミットする**
@@ -533,7 +577,7 @@ git commit -m "feat(master): 積荷表と発射台のスキーマと読込時検
 - Consumes: Task 1 の `Items.OrbitalPayloads`、`OrbitalPayloadMasterElement`
 - Produces:
   - `Game.Orbit.OrbitalArrival`（`public readonly ItemId PayloadItemId; public readonly int PayloadCount;`、ctor `(ItemId payloadItemId, int payloadCount)`）
-  - `Game.Orbit.IOrbitalArrivalService`（`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`・`bool IsOrbitalPayload(ItemId itemId)`・`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`）
+  - `Game.Orbit.IOrbitalArrivalService`（`IObservable<OrbitalArrival> OnOrbitalArrival { get; }`・`bool IsOrbitalPayload(ItemId itemId)`・`IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)`・`IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)`）
   - `Game.Orbit.IRocketLaunchHistory`（`bool HasLaunchedOnce { get; }`・`IObservable<Unit> OnFirstLaunch { get; }`・`void RecordLaunch()`・`RocketLaunchHistoryJsonObject GetSaveData()`・`void LoadSaveData(RocketLaunchHistoryJsonObject saveData)`）
   - `Game.Orbit.RocketLaunchHistoryJsonObject`（`[JsonProperty("hasLaunchedOnce")] public bool HasLaunchedOnce;`）
   - DI: `IRocketLaunchHistory`→`RocketLaunchHistory`、`IOrbitalArrivalService`→`OrbitalArrivalService`（どちらもシングルトン）
@@ -607,6 +651,10 @@ namespace Game.Orbit
 
         bool IsOrbitalPayload(ItemId itemId);
 
+        // 到着させずに成果だけを返す。打ち上げ口は出力口に入りきるかをこれで確かめてから打ち上げる
+        // Returns the outputs without arriving; launch sites check output space with it before launching
+        IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount);
+
         // 成果を新しいスタックの並びで返し、到着を通知する。表に無い積荷・1便の整数倍でない個数は呼び出し側のバグとして例外
         // Returns the outputs as fresh stacks and publishes the arrival; unknown payloads or non-multiple counts are caller bugs and throw
         IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount);
@@ -649,7 +697,7 @@ namespace Game.Orbit
             return _payloadByItemId.ContainsKey(itemId);
         }
 
-        public IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)
+        public IReadOnlyList<IItemStack> PreviewArrivalOutputs(ItemId payloadItemId, int payloadCount)
         {
             var payload = FindPayload();
 
@@ -662,8 +710,6 @@ namespace Game.Orbit
                 var outputItemId = MasterHolder.ItemMaster.GetItemId(output.ItemGuid);
                 outputs.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(outputItemId, output.Count * launchCount));
             }
-
-            _onOrbitalArrival.OnNext(new OrbitalArrival(payloadItemId, payloadCount));
             return outputs;
 
             #region Internal
@@ -671,13 +717,22 @@ namespace Game.Orbit
             OrbitalPayloadMasterElement FindPayload()
             {
                 if (!_payloadByItemId.TryGetValue(payloadItemId, out var found))
-                    throw new InvalidOperationException($"積荷表に無いアイテムが軌道へ届きました ItemId:{payloadItemId}");
+                    throw new InvalidOperationException($"積荷表に無いアイテムの打ち上げ成果を求められました ItemId:{payloadItemId}");
                 if (payloadCount <= 0 || payloadCount % found.CountPerLaunch != 0)
                     throw new ArgumentException($"積荷の個数が1便の個数の正の整数倍ではありません ItemId:{payloadItemId} Count:{payloadCount} CountPerLaunch:{found.CountPerLaunch}");
                 return found;
             }
 
             #endregion
+        }
+
+        public IReadOnlyList<IItemStack> Arrive(ItemId payloadItemId, int payloadCount)
+        {
+            // 先に知らせた成果と同じものを返し、到着を流す
+            // Return the same outputs as the preview and publish the arrival
+            var outputs = PreviewArrivalOutputs(payloadItemId, payloadCount);
+            _onOrbitalArrival.OnNext(new OrbitalArrival(payloadItemId, payloadCount));
+            return outputs;
         }
     }
 }
@@ -832,6 +887,28 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
         }
 
         [Test]
+        public void 成果の先読みは到着と同じ量を返し通知しない()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var service = ServerContext.GetService<IOrbitalArrivalService>();
+            var arrivals = new List<OrbitalArrival>();
+            service.OnOrbitalArrival.Subscribe(arrivals.Add);
+
+            // 先読みは通知せず、到着と同じスタックの並びを返す
+            // The preview publishes nothing and returns the same stacks as the arrival
+            var preview = service.PreviewArrivalOutputs(ForUnitTestItemId.SatellitePayloadId, 1);
+            Assert.AreEqual(0, arrivals.Count);
+            var outputs = service.Arrive(ForUnitTestItemId.SatellitePayloadId, 1);
+            Assert.AreEqual(outputs.Count, preview.Count);
+            for (var i = 0; i < outputs.Count; i++)
+            {
+                Assert.AreEqual(outputs[i].Id, preview[i].Id);
+                Assert.AreEqual(outputs[i].Count, preview[i].Count);
+            }
+            Assert.Throws<System.ArgumentException>(() => service.PreviewArrivalOutputs(ForUnitTestItemId.CablePayloadId, 3));
+        }
+
+        [Test]
         public void 表に無い積荷と半端な個数は例外()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -865,7 +942,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
 - [ ] **Step 6: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Tests.CombinedTest.Game.RocketLaunchPad.OrbitalArrivalServiceTest"`
-Expected: ErrorCount 0 / 4件 PASS
+Expected: ErrorCount 0 / 5件 PASS
 
 - [ ] **Step 7: コミットする**
 
@@ -3087,4 +3164,8 @@ planning 中の判断:
 | D17 | Game.Orbit 一式と積荷表（スキーマ・全JSON・計算データとGPU衛星の行）を Task 1〜2 に置き、Task 2 の最後で両repoを push する。以後 force-push しない | agent前提（S3 からの依頼 2026-10-23「Game.Orbit 一式と orbitalPayloads のスキーマ／マスタ（GPU衛星行込み）を最初の実装タスクにし、できた時点で両 repo へ push」「その後もブランチは force-push しない」） |
 | D18 | `RemoveBlockProtocol` の返却を `IGetRefundItemsInfo` 全件の合算に直す。発射台の部品順は電線を進行より前に置き、修正前のコードでは返却が落ちることをテストで確かめる | agent前提（S3 からの指摘 2026-10-23。`RemoveBlockProtocol.cs:123` の `TryGetComponent` が先頭1件だけを読むことをコードで確認。原因: 推測（根拠: コード読解。未再現。Task 5 の撤去返却テストが修正前に落ちることで実測に変わる）） |
 | D19 | ビルドメニュー「生産」の下に「宇宙」（`d2000000-0000-4000-8000-000200000005`）を S2 が作り、発射台を置く。S3 は宇宙エレベーター拠点を同じ場所へ足す | agent前提（S3 からの提案 2026-10-23。既存の「半導体」サブカテゴリと同じ書式） |
+| D21 | `VanillaSchema/blocks.yml` に blockType `RocketLaunchPad` と case を足す。全キー必須（`optional` を使わず default だけ置く）で、`IInventoryConnectors`・`IElectricWireConnectParam` を実装させる | agent前提（edit-schema スキル・AGENTS.md「optional: true で吸収するのは設計の敗北」、前例 `CleanRoomMachine` の case） |
+| D22 | 積荷表の検証は `Core.Master/Validator/OrbitalPayload/OrbitalPayloadMasterValidator.cs`（新設ディレクトリ。`ItemMasterUtil.cs` は244行のため足さない）に置き、`Core.Master/ItemMaster.cs` の `Validate` でアイテム検証の後に連ねる。発射台パラメータの検証は `Core.Master/Validator/Block/RocketLaunchPadParamValidator.cs` に置き、`Core.Master/Validator/BlockMasterUtil.cs` の `Validate` に1行足す | agent前提（前例 `Core.Master/Validator/Block/BlockParamValidator.cs` と `BlockMasterUtil.Validate` の `errorLogs +=` 連結） |
+| D23 | 発射台の組み立ては `Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs`（New/Load とも `Create` へ集める）に置き、`Game.Block/Factory/VanillaIBlockTemplates.cs` の `BlockTypesDictionary` へ登録する。サービスは `ServerContext.GetService<T>()` で取る | agent前提（前例 `VanillaCleanRoomAirFilterTemplate.cs`） |
+| D24 | 建造・発射の合図は1本のプロトコル `Server.Protocol/PacketResponse/RocketLaunchPadCommandProtocol.cs`（enum `RocketLaunchPadCommand` で分岐、結果は enum で返す）にし、`Server.Protocol/PacketResponseCreator.cs` へ登録、クライアントは `Client.Network/API/Requests/BlockRequestApi.cs` に1メソッドだけ足す。`Server.Protocol/Server.Protocol.asmdef` へは `Game.Orbit` を参照が要るときだけ足す（プロトコル本体は Game.Orbit を使わない見込み） | agent前提（creating-server-protocol スキル「1プロトコル=1メソッド」「enum をそのまま使う」、前例 `SetTrainPlatformTransferModeProtocol.cs`・`BlockRequestApi` の既存メソッド） |
 | D20 | 「軌道エレベーターの建設」の研究ノードの変更（発射台・筐体素材・燃料の解放を外し、計算データを消費に足す）は S3 が行い、S2 は触らない | agent前提（ユーザー裁定 2026-10-23「ロケット独立＋両方で消費」の実施分担。ノードの持ち主は S3） |
