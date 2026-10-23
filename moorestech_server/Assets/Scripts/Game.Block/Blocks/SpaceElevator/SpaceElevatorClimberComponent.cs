@@ -75,9 +75,12 @@ namespace Game.Block.Blocks.SpaceElevator
             _suppliedPower = 0f;
             var wasOutputBlocked = _outputBlocked;
             var shouldEvaluate = IsAscending || _inventoryChanged;
+            var inventoryChanged = _inventoryChanged;
             _inventoryChanged = false;
             var changed = shouldEvaluate && (IsCarrying ? AdvanceClimb() : TryStartClimb());
-            changed |= wasOutputBlocked != _outputBlocked;
+            // 在庫通知は初回tick前の入口変更も含むため、キャッシュ差分に依存せず配信する
+            // Inventory events include inlet changes before the first tick, so publish without relying on a cached difference
+            changed |= wasOutputBlocked != _outputBlocked || inventoryChanged;
             // 出口待ちに入ったtickに1回だけ理由をログへ出す（以降はUIの状態表示で伝える）
             // Log the reason once on the tick the outlet wait begins; the UI status carries it afterwards
             if (!wasOutputBlocked && _outputBlocked) Debug.Log("[SpaceElevatorBase] 衛星1機の成果が出口に入りきらないため、出口が空くまで待ちます");

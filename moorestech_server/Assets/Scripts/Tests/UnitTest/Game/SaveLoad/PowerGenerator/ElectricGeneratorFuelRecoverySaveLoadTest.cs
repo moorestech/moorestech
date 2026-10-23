@@ -74,6 +74,7 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
 
         [TestCase("999", null)]
         [TestCase("Item", "not-a-guid")]
+        [TestCase("Item", null)]
         [TestCase("None", "00000000-0000-0000-1234-000000000001")]
         public void InvalidKindOrIdentityIsRejected(string kind, string identity)
         {
