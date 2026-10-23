@@ -41,11 +41,12 @@ namespace Core.Inventory
 
         private static IItemStack Fill(IItemStack item, IList<IItemStack> slots, IEnumerable<int> order, Action<int> onSlotUpdate)
         {
+            // silent-ok: 空入力には充填も通知も不要 / 空の余りをそのまま呼出側へ返す
+            if (item.Count == 0) return item;
             Dictionary<int, IItemStack> before = null;
             var remainder = item;
             foreach (var slot in order)
             {
-                if (remainder.Count == 0) break;
                 // silent-ok: 入らない品は次の枠で試す / 最終余りが容量不足を伝える
                 if (!slots[slot].IsAllowedToAddWithRemain(remainder)) continue;
                 var result = slots[slot].AddItem(remainder);
@@ -61,6 +62,9 @@ namespace Core.Inventory
                     slots[slot] = result.ProcessResultItemStack;
                 }
                 remainder = result.RemainderItemStack;
+                // 充填完了後は次の候補を評価しない
+                // Stop before evaluating another candidate once filling is complete
+                if (remainder.Count == 0) break;
             }
             // 最初に変化した順で最終値を一度だけ通知する
             // Notify each final value once in the order of its first change

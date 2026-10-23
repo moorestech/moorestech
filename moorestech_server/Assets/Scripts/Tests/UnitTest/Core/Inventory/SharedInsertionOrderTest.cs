@@ -4,6 +4,7 @@ using Core.Inventory;
 using Core.Item;
 using Tests.UnitTest.Core.Other;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -91,6 +92,54 @@ namespace Tests.UnitTest.Core.Inventory
             Assert.IsTrue(inventory.InsertionCheck(new List<IItemStack> { factory.Create(ForUnitTestItemId.ComputeDataId, 2) }));
             CollectionAssert.AreEqual(before, inventory.InventoryItems);
             Assert.AreEqual(0, notifications);
+        }
+
+        [TestCase(true, false)]
+        [TestCase(false, false)]
+        [TestCase(true, true)]
+        [TestCase(false, true)]
+        public void 空入力と先頭枠の充填完了では後続枠を走査しない(bool multiple, bool emptyInput)
+        {
+            var factory = ServerContext.ItemStackFactory;
+            var changed = new List<int>();
+            var inventory = new OpenableInventoryItemDataStoreService((slot, _) => changed.Add(slot), factory, 40,
+                new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = multiple });
+            inventory.SetItemWithoutEvent(0, factory.Create(ForUnitTestItemId.ComputeDataId, 99));
+            var unread = new ReadCountingItemStack(factory.CreatEmpty());
+            for (var slot = 1; slot < 40; slot++) inventory.SetItemWithoutEvent(slot, unread);
+
+            // 空入力は探索せず、充填完了は次のMoveNextより前に止める
+            // Empty input skips enumeration and completion stops before the next MoveNext
+            var incoming = emptyInput ? factory.CreatEmpty() : factory.Create(ForUnitTestItemId.ComputeDataId, 1);
+            var remainder = inventory.InsertItem(incoming);
+            Assert.AreEqual(0, remainder.Count);
+            Assert.AreEqual(0, unread.CountReads);
+            Assert.AreEqual(emptyInput ? 99 : 100, inventory.GetItem(0).Count);
+            CollectionAssert.AreEqual(emptyInput ? new int[0] : new[] { 0 }, changed);
+        }
+
+        private sealed class ReadCountingItemStack : IItemStack
+        {
+            private readonly IItemStack inner;
+            public int CountReads { get; private set; }
+            public int Count { get { CountReads++; return inner.Count; } }
+            public ItemId Id => inner.Id;
+            public ItemInstanceId ItemInstanceId => inner.ItemInstanceId;
+
+            public ReadCountingItemStack(IItemStack inner)
+            {
+                this.inner = inner;
+            }
+
+            // 空枠の読取回数以外は実スタックへ委譲する
+            // Delegate everything except empty-slot read counting to the real stack
+            public ItemProcessResult AddItem(IItemStack item) => inner.AddItem(item);
+            public IItemStack SubItem(int count) => inner.SubItem(count);
+            public bool IsAllowedToAdd(IItemStack item) => inner.IsAllowedToAdd(item);
+            public bool IsAllowedToAddWithRemain(IItemStack item) => inner.IsAllowedToAddWithRemain(item);
+            public ItemStackMetaData GetMeta(string key) => inner.GetMeta(key);
+            public bool TryGetMeta(string key, out ItemStackMetaData value) => inner.TryGetMeta(key, out value);
+            public IItemStack SetMeta(string key, ItemStackMetaData value) => inner.SetMeta(key, value);
         }
     }
 }
