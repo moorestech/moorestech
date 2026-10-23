@@ -12,20 +12,24 @@ using Game.Block.Factory.BlockTemplate;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
+using Game.Block.Interface.State;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
-using Newtonsoft.Json;
+using MessagePack;
+using UniRx;
 
 namespace Game.Block.Blocks.PowerGenerator
 {
-    public class VanillaElectricGeneratorComponent : IElectricGenerator, IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent, IFluidInventory
+    public class VanillaElectricGeneratorComponent : IElectricGenerator, IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent, IFluidInventory, IBlockStateObservable
     {
         private readonly ElectricPower _infinityPower;
         private readonly bool _isInfinityPower;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly VanillaElectricGeneratorFuelService _fuelService;
+        private readonly Subject<Unit> _onChangeBlockState = new();
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         
         public VanillaElectricGeneratorComponent(
             BlockInstanceId blockInstanceId,
@@ -71,44 +75,19 @@ namespace Game.Block.Blocks.PowerGenerator
         }
         public BlockPositionInfo BlockPositionInfo { get; }
         
-        public IItemStack InsertItem(IItemStack itemStack)
-        {
-            BlockException.CheckDestroy(this);
+        public IItemStack InsertItem(IItemStack itemStack) { BlockException.CheckDestroy(this); return _itemDataStoreService.InsertItem(itemStack); }
 
-            return _itemDataStoreService.InsertItem(itemStack);
-        }
+        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context) => InsertItem(itemStack);
 
-        public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context)
-        {
-            return InsertItem(itemStack);
-        }
-
-        public IItemStack GetItem(int slot)
-        {
-            BlockException.CheckDestroy(this);
-            
-            return _itemDataStoreService.GetItem(slot);
-        }
+        public IItemStack GetItem(int slot) { BlockException.CheckDestroy(this); return _itemDataStoreService.GetItem(slot); }
         
         // 配置制約を持たないインベントリはどのスロットも受け入れる
         // An inventory without placement restrictions accepts every slot
-        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
-        {
-            return true;
-        }
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack) => true;
 
-        public void SetItem(int slot, IItemStack itemStack)
-        {
-            BlockException.CheckDestroy(this);
-            
-            _itemDataStoreService.SetItem(slot, itemStack);
-        }
+        public void SetItem(int slot, IItemStack itemStack) { BlockException.CheckDestroy(this); _itemDataStoreService.SetItem(slot, itemStack); }
         
-        public int GetSlotSize()
-        {
-            BlockException.CheckDestroy(this);
-            return _itemDataStoreService.GetSlotSize();
-        }
+        public int GetSlotSize() { BlockException.CheckDestroy(this); return _itemDataStoreService.GetSlotSize(); }
         
         public string SaveKey { get; } = typeof(VanillaElectricGeneratorComponent).FullName;
         public object GetSaveState()
@@ -141,54 +120,20 @@ namespace Game.Block.Blocks.PowerGenerator
         }
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         
-        public ReadOnlyCollection<IItemStack> CreateCopiedItems()
-        {
-            BlockException.CheckDestroy(this);
-            return _itemDataStoreService.CreateCopiedItems();
-        }
+        public ReadOnlyCollection<IItemStack> CreateCopiedItems() { BlockException.CheckDestroy(this); return _itemDataStoreService.CreateCopiedItems(); }
         
         
-        public IItemStack ReplaceItem(int slot, ItemId itemId, int count)
-        {
-            BlockException.CheckDestroy(this);
-            
-            return _itemDataStoreService.ReplaceItem(slot, itemId, count);
-        }
+        public IItemStack ReplaceItem(int slot, ItemId itemId, int count) { BlockException.CheckDestroy(this); return _itemDataStoreService.ReplaceItem(slot, itemId, count); }
         
-        public IItemStack InsertItem(ItemId itemId, int count)
-        {
-            BlockException.CheckDestroy(this);
-            
-            return _itemDataStoreService.InsertItem(itemId, count);
-        }
+        public IItemStack InsertItem(ItemId itemId, int count) { BlockException.CheckDestroy(this); return _itemDataStoreService.InsertItem(itemId, count); }
         
-        public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
-        {
-            BlockException.CheckDestroy(this);
-            
-            return _itemDataStoreService.InsertItem(itemStacks);
-        }
+        public List<IItemStack> InsertItem(List<IItemStack> itemStacks) { BlockException.CheckDestroy(this); return _itemDataStoreService.InsertItem(itemStacks); }
         
-        public bool InsertionCheck(List<IItemStack> itemStacks)
-        {
-            BlockException.CheckDestroy(this);
-            
-            return _itemDataStoreService.InsertionCheck(itemStacks);
-        }
+        public bool InsertionCheck(List<IItemStack> itemStacks) { BlockException.CheckDestroy(this); return _itemDataStoreService.InsertionCheck(itemStacks); }
         
-        public void SetItem(int slot, ItemId itemId, int count)
-        {
-            BlockException.CheckDestroy(this);
-            
-            _itemDataStoreService.SetItem(slot, itemId, count);
-        }
+        public void SetItem(int slot, ItemId itemId, int count) { BlockException.CheckDestroy(this); _itemDataStoreService.SetItem(slot, itemId, count); }
         
-        public IItemStack ReplaceItem(int slot, IItemStack itemStack)
-        {
-            BlockException.CheckDestroy(this);
-            
-            return _itemDataStoreService.ReplaceItem(slot, itemStack);
-        }
+        public IItemStack ReplaceItem(int slot, IItemStack itemStack) { BlockException.CheckDestroy(this); return _itemDataStoreService.ReplaceItem(slot, itemStack); }
         
         
         public void Update()
@@ -196,13 +141,41 @@ namespace Game.Block.Blocks.PowerGenerator
             BlockException.CheckDestroy(this);
             if (_isInfinityPower) return;
 
-            _fuelService.Update();
+            // 点き始め・燃え尽きのtickと、燃焼中で残燃料が進むtickに通知する
+            // Notify on ignite/burn-out ticks and on every burning tick as the remaining fuel advances
+            var transitioned = _fuelService.Update();
+            if (transitioned || _fuelService.IsBurning) _onChangeBlockState.OnNext(Unit.Default);
         }
 
         public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
             BlockException.CheckDestroy(this);
-            return _fuelService.AddLiquid(fluidStack);
+            var remainder = _fuelService.AddLiquid(fluidStack);
+
+            // タンクが増えたら表示を更新する
+            // Refresh the display when the tank gained fluid
+            if (remainder.Amount < fluidStack.Amount) _onChangeBlockState.OnNext(Unit.Default);
+            return remainder;
+        }
+
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            BlockException.CheckDestroy(this);
+
+            // 稼働率は燃焼中なら1、無限電源も常に1
+            // The operating rate is 1 while burning, and always 1 for infinite power
+            var operatingRate = _isInfinityPower || _fuelService.IsBurning ? 1f : 0f;
+            var power = new PowerGeneratorStateDetail(GameUpdater.TicksToSeconds(_fuelService.RemainingFuelTicks), GameUpdater.TicksToSeconds(_fuelService.CurrentFuelTotalTicks), operatingRate);
+            var details = new List<BlockStateDetail> { new(PowerGeneratorStateDetail.StateDetailKey, MessagePackSerializer.Serialize(power)) };
+
+            // 液体燃料タンクは機械と同じ液体詳細で送り、webuiの液体行に出す
+            // Send the fluid fuel tank as the same fluid detail machines use, shown in the webui fluid row
+            if (_fuelService.TryGetFuelTank(out var tank))
+            {
+                var fluid = new FluidMachineInventoryStateDetail(new List<FluidMessagePack> { tank }, new List<FluidMessagePack>());
+                details.Add(new BlockStateDetail(FluidMachineInventoryStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(fluid)));
+            }
+            return details.ToArray();
         }
 
         public List<FluidStack> GetFluidInventory()
@@ -219,43 +192,5 @@ namespace Game.Block.Blocks.PowerGenerator
             var properties = new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack);
             blockInventoryUpdate.OnInventoryUpdateInvoke(properties);
         }
-    }
-    
-    public class VanillaElectricGeneratorSaveJsonObject
-    {
-        [JsonProperty("currentFuelItemGuid")]
-        public string CurrentFuelItemGuidStr;
-        [JsonIgnore]
-        public Guid? CurrentFuelItemGuid => Guid.TryParse(CurrentFuelItemGuidStr, out var guid) ? guid : null;
-
-        [JsonProperty("currentFuelFluidGuid")]
-        public string CurrentFuelFluidGuidStr;
-        [JsonIgnore]
-        public Guid? CurrentFuelFluidGuid => Guid.TryParse(CurrentFuelFluidGuidStr, out var guid) ? guid : null;
-
-        [JsonProperty("inventory")]
-        public List<ItemStackSaveJsonObject> Items;
-
-        // 秒数として保存（tick数の変動に対応）
-        // Save as seconds (to handle tick rate changes)
-        [JsonProperty("remainingFuelSeconds")]
-        public double RemainingFuelSeconds;
-
-        [JsonProperty("activeFuelType")]
-        public string ActiveFuelType;
-
-        [JsonProperty("fluidTank")]
-        public VanillaElectricGeneratorFluidSaveJsonObject FluidTank;
-    }
-
-    public class VanillaElectricGeneratorFluidSaveJsonObject
-    {
-        [JsonProperty("fluidGuid")]
-        public string FluidGuidStr;
-        [JsonIgnore]
-        public Guid? FluidGuid => Guid.TryParse(FluidGuidStr, out var guid) ? guid : null;
-
-        [JsonProperty("amount")]
-        public double Amount;
     }
 }

@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Master;
 using Core.Update;
+using Game.Block.Interface.State;
 using Game.EnergySystem;
 using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
@@ -15,98 +15,90 @@ namespace Game.Block.Blocks.PowerGenerator
     /// </summary>
     public class VanillaElectricGeneratorFuelService
     {
-        private enum FuelType
+        internal enum FuelType
         {
             None,
             Item,
             Fluid,
         }
 
-        private readonly Dictionary<ItemId, (FuelItemsElement Setting, uint Ticks)> _itemFuelSettings;
-        private readonly Dictionary<FluidId, (FuelFluidsElement Setting, uint Ticks)> _fluidFuelSettings;
+        internal readonly Dictionary<ItemId, (FuelItemsElement Setting, uint Ticks)> _itemFuelSettings;
+        internal readonly Dictionary<FluidId, (FuelFluidsElement Setting, uint Ticks)> _fluidFuelSettings;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        private readonly FluidContainer _fuelFluidContainer;
+        internal readonly FluidContainer _fuelFluidContainer;
 
-        private ItemId _currentFuelItemId = ItemMaster.EmptyItemId;
-        private FluidId _currentFuelFluidId = FluidMaster.EmptyFluidId;
-        private FuelType _currentFuelType = FuelType.None;
-        private uint _remainingFuelTicks;
+        internal ItemId _currentFuelItemId = ItemMaster.EmptyItemId;
+        internal FluidId _currentFuelFluidId = FluidMaster.EmptyFluidId;
+        internal FuelType _currentFuelType = FuelType.None;
+        internal uint _remainingFuelTicks;
 
         public VanillaElectricGeneratorFuelService(ElectricGeneratorBlockParam param, OpenableInventoryItemDataStoreService itemDataStoreService)
         {
             _itemDataStoreService = itemDataStoreService;
-            _itemFuelSettings = BuildItemFuelSettings(param);
-            _fluidFuelSettings = BuildFluidFuelSettings(param);
+            _itemFuelSettings = VanillaElectricGeneratorFuelSettingsBuilder.BuildItemFuelSettings(param);
+            _fluidFuelSettings = VanillaElectricGeneratorFuelSettingsBuilder.BuildFluidFuelSettings(param);
 
             // マスターで液体燃料が設定されている場合のみタンクを生成し、無い場合はダミーで済ませる。
             // Only create a tank if liquid fuel is configured in the master; otherwise, leave it null.
             var hasFluidTank = _fluidFuelSettings.Count > 0 && param.FuelFluidTankCapacity > 0;
             _fuelFluidContainer = hasFluidTank ? new FluidContainer(param.FuelFluidTankCapacity) : null;
-
-            #region Internal
-
-            Dictionary<ItemId, (FuelItemsElement, uint)> BuildItemFuelSettings(ElectricGeneratorBlockParam generatorParam)
-            {
-                var settings = new Dictionary<ItemId, (FuelItemsElement, uint)>();
-                if (generatorParam.FuelItems == null) return settings;
-
-                foreach (var fuelItem in generatorParam.FuelItems)
-                {
-                    var itemId = MasterHolder.ItemMaster.GetItemId(fuelItem.ItemGuid);
-                    var ticks = GameUpdater.SecondsToTicks(fuelItem.Time);
-                    settings[itemId] = (fuelItem, ticks);
-                }
-
-                return settings;
-            }
-
-            Dictionary<FluidId, (FuelFluidsElement, uint)> BuildFluidFuelSettings(ElectricGeneratorBlockParam generatorParam)
-            {
-                var settings = new Dictionary<FluidId, (FuelFluidsElement, uint)>();
-                if (generatorParam.FuelFluids == null) return settings;
-
-                foreach (var fuelFluid in generatorParam.FuelFluids)
-                {
-                    var fluidId = MasterHolder.FluidMaster.GetFluidId(fuelFluid.FluidGuid);
-                    var ticks = GameUpdater.SecondsToTicks(fuelFluid.Time);
-                    settings[fluidId] = (fuelFluid, ticks);
-                }
-
-                return settings;
-            }
-
-            #endregion
         }
 
         public ElectricPower GetOutputEnergy()
         {
-            if (_currentFuelType == FuelType.Item && _itemFuelSettings.TryGetValue(_currentFuelItemId, out var itemFuel))
-            {
-                return (ElectricPower)itemFuel.Setting.Power;
-            }
-
-            if (_currentFuelType == FuelType.Fluid && _fluidFuelSettings.TryGetValue(_currentFuelFluidId, out var fluidFuel))
-            {
-                return (ElectricPower)fluidFuel.Setting.Power;
-            }
-
+            if (_currentFuelType == FuelType.Item && _itemFuelSettings.TryGetValue(_currentFuelItemId, out var itemFuel)) return (ElectricPower)itemFuel.Setting.Power;
+            if (_currentFuelType == FuelType.Fluid && _fluidFuelSettings.TryGetValue(_currentFuelFluidId, out var fluidFuel)) return (ElectricPower)fluidFuel.Setting.Power;
             return new ElectricPower(0);
         }
 
-        public void Update()
+        // 燃焼中か（表示用）
+        // Whether a fuel unit is burning (for display)
+        public bool IsBurning => _currentFuelType != FuelType.None;
+        public uint RemainingFuelTicks => _remainingFuelTicks;
+
+        // 燃焼中の燃料1単位の総tick。燃えていなければ0
+        // Total ticks of the burning fuel unit; zero when nothing burns
+        public uint CurrentFuelTotalTicks
+        {
+            get
+            {
+                if (_currentFuelType == FuelType.Item && _itemFuelSettings.TryGetValue(_currentFuelItemId, out var item)) return item.Ticks;
+                if (_currentFuelType == FuelType.Fluid && _fluidFuelSettings.TryGetValue(_currentFuelFluidId, out var fluid)) return fluid.Ticks;
+                return 0;
+            }
+        }
+
+        // 液体燃料タンクを表示用に返す。液体燃料の設定が無い発電機はタンクを持たない
+        // Return the fluid fuel tank for display; generators without fluid fuel settings have no tank
+        public bool TryGetFuelTank(out FluidMessagePack tank)
+        {
+            tank = null;
+            if (_fuelFluidContainer == null) return false;
+            tank = new FluidMessagePack(_fuelFluidContainer.FluidId, _fuelFluidContainer.Amount, _fuelFluidContainer.Capacity);
+            return true;
+        }
+
+        // 燃料の点き始め・燃え尽きのtickだけtrueを返す（状態通知の合図）
+        // Returns true only on ticks where a fuel unit ignites or burns out (the cue for a state notification)
+        public bool Update()
+        {
+            var wasBurning = IsBurning;
+            UpdateFuel();
+            var ignitedNewUnit = IsBurning && _remainingFuelTicks == CurrentFuelTotalTicks;
+            return wasBurning != IsBurning || ignitedNewUnit;
+        }
+
+        private void UpdateFuel()
         {
             // 1. タンク状態を整えてからタイマーや燃料選択を処理する。
             // 1. First, maintain the tank state before processing timers and fuel selection.
             MaintainFluidContainer();
 
+            // 2. 稼働中の燃料を先に消費し、継続中なら以降の処理は不要。
+            // 2. Consume the fuel in operation first, and if it continues, no further processing is required.
             if (_currentFuelType != FuelType.None)
             {
-                // 2. 稼働中の燃料を先に消費し、継続中なら以降の処理は不要。
-                // 2. Consume the fuel in operation first, and if it continues, no further processing is required.
                 TickFuelTimer();
-                
-                // 燃料消費中なら以降の処理は不要
-                // If fuel is being consumed, no further processing is required.
                 if (_currentFuelType != FuelType.None) return;
             }
 
@@ -120,11 +112,7 @@ namespace Game.Block.Blocks.PowerGenerator
 
             void TickFuelTimer()
             {
-                if (1u >= _remainingFuelTicks)
-                {
-                    ClearFuelState();
-                    return;
-                }
+                if (1u >= _remainingFuelTicks) { ClearFuelState(); return; }
 
                 _remainingFuelTicks--;
             }
@@ -163,11 +151,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 if (fuel.Setting.Amount <= 0 || _fuelFluidContainer.Amount < fuel.Setting.Amount) return;
 
                 _fuelFluidContainer.Amount -= fuel.Setting.Amount;
-                if (_fuelFluidContainer.Amount <= 0)
-                {
-                    _fuelFluidContainer.Amount = 0;
-                    _fuelFluidContainer.FluidId = FluidMaster.EmptyFluidId;
-                }
+                if (_fuelFluidContainer.Amount <= 0) { _fuelFluidContainer.Amount = 0; _fuelFluidContainer.FluidId = FluidMaster.EmptyFluidId; }
 
                 _currentFuelItemId = ItemMaster.EmptyItemId;
                 _currentFuelFluidId = fluidId;
@@ -179,11 +163,7 @@ namespace Game.Block.Blocks.PowerGenerator
             {
                 if (_fuelFluidContainer == null) return;
 
-                if (_fuelFluidContainer.Amount <= 0)
-                {
-                    _fuelFluidContainer.Amount = 0;
-                    _fuelFluidContainer.FluidId = FluidMaster.EmptyFluidId;
-                }
+                if (_fuelFluidContainer.Amount <= 0) { _fuelFluidContainer.Amount = 0; _fuelFluidContainer.FluidId = FluidMaster.EmptyFluidId; }
             }
 
             void ClearFuelState()
@@ -205,85 +185,15 @@ namespace Game.Block.Blocks.PowerGenerator
             return _fuelFluidContainer.AddLiquid(fluidStack).Remainder;
         }
 
-
         public List<FluidStack> GetFluidInventory()
         {
             var fluidStacks = new List<FluidStack>();
-            if (_fuelFluidContainer != null && _fuelFluidContainer.Amount > 0)
-            {
-                fluidStacks.Add(new FluidStack(_fuelFluidContainer.Amount, _fuelFluidContainer.FluidId));
-            }
+            if (_fuelFluidContainer != null && _fuelFluidContainer.Amount > 0) fluidStacks.Add(new FluidStack(_fuelFluidContainer.Amount, _fuelFluidContainer.FluidId));
             return fluidStacks;
         }
 
-        public void WriteSaveData(VanillaElectricGeneratorSaveJsonObject saveData)
-        {
-            // tickを秒数に変換して保存（tick数の変動に対応）
-            // Convert ticks to seconds for storage (to handle tick rate changes)
-            saveData.RemainingFuelSeconds = GameUpdater.TicksToSeconds(_remainingFuelTicks);
-            saveData.ActiveFuelType = _currentFuelType.ToString();
+        public void WriteSaveData(VanillaElectricGeneratorSaveJsonObject saveData) => VanillaElectricGeneratorFuelSaveConverter.Write(this, saveData);
 
-            saveData.CurrentFuelItemGuidStr = null;
-            if (_currentFuelType == FuelType.Item && _currentFuelItemId != ItemMaster.EmptyItemId && _itemFuelSettings.TryGetValue(_currentFuelItemId, out var itemFuel))
-            {
-                saveData.CurrentFuelItemGuidStr = itemFuel.Setting.ItemGuid.ToString();
-            }
-
-            saveData.CurrentFuelFluidGuidStr = null;
-            if (_currentFuelType == FuelType.Fluid && _currentFuelFluidId != FluidMaster.EmptyFluidId && _fluidFuelSettings.TryGetValue(_currentFuelFluidId, out var fluidFuel))
-            {
-                saveData.CurrentFuelFluidGuidStr = fluidFuel.Setting.FluidGuid.ToString();
-            }
-            
-            saveData.FluidTank = null;
-            if (_fuelFluidContainer != null)
-            {
-                // 空タンク(EmptyFluidId)はGuid変換できないためnullで保存する。Restore側はnullを空として復元する
-                // An empty tank (EmptyFluidId) has no Guid, so persist null; Restore maps null back to empty
-                var isEmpty = _fuelFluidContainer.FluidId == FluidMaster.EmptyFluidId;
-                saveData.FluidTank = new VanillaElectricGeneratorFluidSaveJsonObject
-                {
-                    FluidGuidStr = isEmpty ? null : MasterHolder.FluidMaster.GetFluidMaster(_fuelFluidContainer.FluidId).FluidGuid.ToString(),
-                    Amount = _fuelFluidContainer.Amount,
-                };
-            }
-        }
-
-        public void Restore(VanillaElectricGeneratorSaveJsonObject saveData)
-        {
-            if (saveData == null) return;
-
-            // 秒数からtickに変換して復元
-            // Convert seconds back to ticks for restoration
-            _remainingFuelTicks = GameUpdater.SecondsToTicks(saveData.RemainingFuelSeconds);
-
-            if (!string.IsNullOrEmpty(saveData.ActiveFuelType) && Enum.TryParse(saveData.ActiveFuelType, out FuelType parsedType))
-            {
-                _currentFuelType = parsedType;
-            }
-            else
-            {
-                _currentFuelType = FuelType.None;
-            }
-
-            _currentFuelItemId = saveData.CurrentFuelItemGuid.HasValue
-                ? MasterHolder.ItemMaster.GetItemId(saveData.CurrentFuelItemGuid.Value)
-                : ItemMaster.EmptyItemId;
-
-            _currentFuelFluidId = saveData.CurrentFuelFluidGuid.HasValue
-                ? MasterHolder.FluidMaster.GetFluidId(saveData.CurrentFuelFluidGuid.Value)
-                : FluidMaster.EmptyFluidId;
-
-            if (saveData.FluidTank != null && _fuelFluidContainer != null)
-            {
-                var savedFluidGuid = saveData.FluidTank.FluidGuid;
-                _fuelFluidContainer.FluidId = savedFluidGuid.HasValue
-                    ? MasterHolder.FluidMaster.GetFluidId(savedFluidGuid.Value)
-                    : FluidMaster.EmptyFluidId;
-                _fuelFluidContainer.Amount = saveData.FluidTank.Amount;
-            }
-
-        }
-
+        public void Restore(VanillaElectricGeneratorSaveJsonObject saveData) => VanillaElectricGeneratorFuelSaveConverter.Restore(this, saveData);
     }
 }

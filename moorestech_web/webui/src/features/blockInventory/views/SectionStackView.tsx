@@ -26,7 +26,7 @@ const configByBlockType: Record<string, SectionStackViewConfig> = {
   Chest: { itemGridTestId: "chest-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
   ElectricMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
   GearMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
-  ElectricGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
+  ElectricGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: "generator-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
   FuelGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
   SimpleGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
   GearToElectricGenerator: { itemGridTestId: null, fluidRowTestId: null, renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
