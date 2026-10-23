@@ -41,27 +41,60 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
         {
             // スロットをイベント無しで戻す。マスタ変更で置き場が無くなった品は警告して捨てる（打ち上げ後の保留は持たない）
             // Restore slots without events; items that lost their place through a master change are dropped with a warning (no pending store)
+            ValidateStructure(saveData.InputItems, "inputItems");
+            ValidateStructure(saveData.OutputItems, "outputItems");
             long droppedCount = 0;
+            var invalidRecords = 0;
             foreach (var input in saveData.InputItems)
             {
                 var id = Guid.TryParse(input.ItemGuidStr, out var inputGuid) ? MasterHolder.ItemMaster.GetItemIdOrNull(inputGuid) : null;
-                if (id.HasValue && layout.TryGetInputSlot(id.Value, out var slot) && CanCreate(input))
+                if (id.HasValue && layout.TryGetInputSlot(id.Value, out var slot) && IsValidSlot(input))
                     slots.SetItemWithoutEvent(slot, input.ToItemStack());
-                else droppedCount += Math.Max(1, input.Count);
+                else CountDiscarded(input);
             }
             for (var i = 0; i < saveData.OutputItems.Count; i++)
             {
                 var output = saveData.OutputItems[i];
-                if (i < layout.OutputSlotCount && CanCreate(output)) slots.SetItemWithoutEvent(layout.OutputSlots[i], output.ToItemStack());
-                else droppedCount += Math.Max(1, output.Count);
+                if (i < layout.OutputSlotCount && IsValidSlot(output)) slots.SetItemWithoutEvent(layout.OutputSlots[i], output.ToItemStack());
+                else CountDiscarded(output);
             }
-            if (0 < droppedCount) Debug.LogWarning($"発射台のスロット構成または保存値が無効なため、復元できない品を {droppedCount} 個捨てました");
+            if (0 < droppedCount || 0 < invalidRecords)
+                Debug.LogWarning($"発射台のスロット構成または保存値が無効なため、復元できない品を {droppedCount} 個捨てました 不正レコード:{invalidRecords} 件");
+
+            #region Internal
+
+            // 構造欠損は部分復元を始める前に明示拒否する
+            // Reject structural corruption explicitly before restoring any slots
+            void ValidateStructure(List<ItemStackSaveJsonObject> items, string field)
+            {
+                var reason = items == null ? field : items.Any(item => item == null) ? field + "のnull要素" : null;
+                if (reason == null) return;
+                var message = $"発射台のセーブの{reason}が欠損しているためロードを拒否します";
+                Debug.LogError(message);
+                throw new InvalidOperationException(message);
+            }
+
+            bool IsValidSlot(ItemStackSaveJsonObject item)
+                => CanCreate(item) && (item.Count != 0 || Guid.Parse(item.ItemGuidStr) == Guid.Empty);
+
+            // 実物の損失と不正な保存レコードを分けて数える
+            // Count physical item losses separately from invalid saved records
+            void CountDiscarded(ItemStackSaveJsonObject item)
+            {
+                if (0 < item.Count) droppedCount += item.Count;
+                if (!IsValidSlot(item)) invalidRecords++;
+            }
+
+            #endregion
         }
 
         public static RocketLaunchPadStage RestoreStage(RocketLaunchPadSaveJsonObject saveData, RocketLaunchPadSlotLayout layout)
         {
             if (!saveData.Phase.HasValue || !Enum.IsDefined(typeof(RocketLaunchPadPhase), saveData.Phase.Value))
                 return FallBackToIdle($"段階の値が不明です 段階:{saveData.Phase}");
+            if (saveData.CargoPayload == null) return FallBackToIdle("cargoPayloadが欠損しています");
+            if (saveData.CargoMaterials == null) return FallBackToIdle("cargoMaterialsが欠損しています");
+            if (saveData.CargoMaterials.Any(item => item == null)) return FallBackToIdle("cargoMaterialsのnull要素が欠損しています");
             var phase = (RocketLaunchPadPhase)saveData.Phase.Value;
             var holdsCargo = phase is RocketLaunchPadPhase.Building or RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch;
 
@@ -96,7 +129,12 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
             {
                 // 進行中の段階は残り1tick以上。壊れた0以下の値は警告して1tickにする
                 // Progressing stages need one tick; warn and repair non-positive remaining time
-                var ticks = GameUpdater.SecondsToTicks(saveData.RemainingSeconds);
+                if (!saveData.RemainingSeconds.HasValue)
+                {
+                    Debug.LogWarning($"発射台のセーブの残り時間が欠落しているため1tickにします 段階:{phase}");
+                    return 1;
+                }
+                var ticks = GameUpdater.SecondsToTicks(saveData.RemainingSeconds.Value);
                 if (0 < ticks) return ticks;
                 Debug.LogWarning($"発射台のセーブの残り時間が0以下のため1tickにします 段階:{phase} 残り秒:{saveData.RemainingSeconds}");
                 return 1;

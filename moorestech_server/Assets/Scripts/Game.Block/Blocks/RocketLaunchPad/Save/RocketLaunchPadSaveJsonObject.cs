@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
     public class RocketLaunchPadSaveJsonObject
     {
         [JsonProperty("phase")] public int? Phase;
-        [JsonProperty("remainingSeconds")] public double RemainingSeconds;
+        [JsonProperty("remainingSeconds")] public double? RemainingSeconds;
         [JsonProperty("cargoPayload")] public ItemStackSaveJsonObject CargoPayload;
         [JsonProperty("cargoMaterials")] public List<ItemStackSaveJsonObject> CargoMaterials;
         [JsonProperty("nextPayloadIndex")] public int? NextPayloadIndex;

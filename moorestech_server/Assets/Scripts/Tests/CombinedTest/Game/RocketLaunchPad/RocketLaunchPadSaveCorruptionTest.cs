@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             ((JArray)state["inputItems"]).Add(JObject.FromObject(item));
             LogAssert.Expect(LogType.Warning, new Regex("復元できない品"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(RocketLaunchPadPhase.Building, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Building, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
             Assert.IsFalse(JObject.FromObject(RocketLaunchPadSaveTestUtil.Capture(loaded))["inputItems"].ToString().Contains(item.ItemGuidStr));
         }
 
@@ -43,7 +43,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             state["cargoPayload"] = JObject.FromObject(new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.Create(itemId, count)));
             LogAssert.Expect(LogType.Warning, new Regex("打ち上げられないため積荷を捨てます"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(RocketLaunchPadPhase.Idle, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
             Assert.IsEmpty(loaded.GetComponent<RocketLaunchPadProcessorComponent>().GetRefundItems());
         }
 
@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             RocketLaunchPadSaveTestUtil.State(save)["phase"] = 99;
             LogAssert.Expect(LogType.Warning, new Regex("段階の値が不明"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(RocketLaunchPadPhase.Idle, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
         }
 
         [TestCase("cargoPayload")]
@@ -85,7 +85,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             }
             LogAssert.Expect(LogType.Warning, new Regex(field.StartsWith("cargo") ? "打ち上げられない" : "復元できない品"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(field.StartsWith("cargo") ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Building, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(field.StartsWith("cargo") ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Building, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
         }
 
         // 個数ゼロでも実体化前にGUID構文を検証する
@@ -106,7 +106,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             if (!valid) LogAssert.Expect(LogType.Warning, new Regex(field == "cargoMaterials" ? "打ち上げられない" : "復元できない品"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
             Assert.AreEqual(!valid && field == "cargoMaterials" ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Building,
-                loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+                RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
             var restored = JObject.FromObject(RocketLaunchPadSaveTestUtil.Capture(loaded));
             if (field == "outputItems") Assert.AreEqual(0, (int)restored[field][0]["count"]);
             if (!valid && field == "cargoMaterials") Assert.IsEmpty(loaded.GetComponent<RocketLaunchPadProcessorComponent>().GetRefundItems());
@@ -124,7 +124,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             RocketLaunchPadSaveTestUtil.State(save).Property(key).Remove();
             LogAssert.Expect(LogType.Warning, new Regex(key == "phase" ? "段階の値が不明" : "巡回位置が無い"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(key == "phase" ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Launching, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(key == "phase" ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Launching, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
             if (key == "nextPayloadIndex") Assert.AreEqual(0, RocketLaunchPadSaveTestUtil.Capture(loaded).NextPayloadIndex);
         }
 
@@ -142,7 +142,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
             Assert.AreEqual(GameUpdater.SecondsPerTick, RocketLaunchPadSaveTestUtil.Capture(loaded).RemainingSeconds);
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(RocketLaunchPadPhase.Idle, loaded.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
         }
     }
 }

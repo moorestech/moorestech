@@ -88,13 +88,16 @@ namespace Game.Block.Blocks.RocketLaunchPad
                 return RocketLaunchPadWaitReason.None;
             }
             return anyReady ? RocketLaunchPadWaitReason.OutputFull : RocketLaunchPadWaitReason.MissingPayload;
-        }
 
-        private bool HasRequirement(int slot, RocketLaunchSlotRequirement requirement)
-        {
-            var stack = _slots.GetItem(slot);
-            return stack.Id == requirement.ItemId && requirement.Count <= stack.Count;
-        }
+            #region Internal
 
+            bool HasRequirement(int slot, RocketLaunchSlotRequirement requirement)
+            {
+                var stack = _slots.GetItem(slot);
+                return stack.Id == requirement.ItemId && requirement.Count <= stack.Count;
+            }
+
+            #endregion
+        }
     }
 }

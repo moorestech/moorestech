@@ -2,7 +2,7 @@ import { ItemSlot, SlotGrid } from "@/shared/ui";
 import type { SlotData } from "@/bridge";
 import { useBlockSlotGestures } from "./useBlockSlotGestures";
 
-export const MAX_BLOCK_INVENTORY_COLUMNS = 9;
+const MAX_BLOCK_INVENTORY_COLUMNS = 9;
 
 // itemSlots を最大9列で描画し grab/move_item/collect と連動する共通部品
 // Grid of up to 9 columns for block itemSlots, wired to grab via move_item/collect

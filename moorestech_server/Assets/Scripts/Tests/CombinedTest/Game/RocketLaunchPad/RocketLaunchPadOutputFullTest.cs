@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             GameUpdater.RunFrames(1);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
-            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, processor.WaitReason);
+            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
             Assert.AreEqual(2, inventory.GetItem(0).Count);
             Assert.AreEqual(1, inventory.GetItem(3).Count);
             CollectionAssert.AreEqual(new[] { 100, 50 }, inventory.InventoryItems.Skip(5).Select(item => item.Count));
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             // Once 150 outputs fit again, the next tick takes the unconsumed second launch
             inventory.SetItem(5, ServerContext.ItemStackFactory.CreatEmpty());
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(RocketLaunchPadPhase.Building, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Building, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.AreEqual(0, inventory.GetItem(3).Count);
         }
 
@@ -59,8 +59,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             GameUpdater.RunFrames(5);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
-            Assert.AreEqual(RocketLaunchPadPhase.Idle, processor.Phase);
-            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, processor.WaitReason);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(processor).Phase);
+            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
         }
 
         [Test]
@@ -81,7 +81,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             RocketLaunchPadTestUtil.FillMaterials(pad);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Idle, 40));
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, pad.GetComponent<RocketLaunchPadProcessorComponent>().WaitReason);
+            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).WaitReason);
         }
 
         [Test]
@@ -111,14 +111,14 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             RocketLaunchPadTestUtil.FillOutputSlots(pad, 100);
             processor.RequestLaunch();
             GameUpdater.RunFrames(5);
-            Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, processor.Phase);
-            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, processor.WaitReason);
+            Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, RocketLaunchPadTestUtil.ReadState(processor).Phase);
+            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
             Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             inventory.SetItem(5, ServerContext.ItemStackFactory.CreatEmpty());
             inventory.SetItem(6, ServerContext.ItemStackFactory.CreatEmpty());
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(RocketLaunchPadPhase.Launching, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Launching, RocketLaunchPadTestUtil.ReadState(processor).Phase);
         }
     }
 }

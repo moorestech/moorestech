@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
         {
             var pad = PlaceAwaitingBuildPad();
             AssertSuccess(Send(RocketLaunchPadCommandOperation.Build));
-            Assert.AreEqual(RocketLaunchPadPhase.Building, pad.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Building, RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
         }
 
         [Test]
@@ -50,10 +50,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
             // Only the stage changes before the response; arrival occurs on the next tick
             AssertSuccess(Send(RocketLaunchPadCommandOperation.Launch));
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
-            Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(RocketLaunchPadPhase.Launching, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Launching, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
         }
 
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             ExpectComponentRejection(reason);
             AssertFailure(Send(operation), reason);
-            Assert.AreEqual(RocketLaunchPadPhase.Idle, pad.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
         }
 
         [Test]
@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
             var pad = PlaceAwaitingBuildPad();
             ExpectProtocolRejection(RocketLaunchPadCommandFailureReason.UnknownOperation);
             AssertFailure(Send((RocketLaunchPadCommandOperation)99), RocketLaunchPadCommandFailureReason.UnknownOperation);
-            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, pad.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
             RocketLaunchPadTestUtil.FillOutputSlots(pad, 100);
             ExpectComponentRejection(RocketLaunchPadCommandFailureReason.OutputFull);
             AssertFailure(Send(RocketLaunchPadCommandOperation.Build), RocketLaunchPadCommandFailureReason.OutputFull);
-            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, pad.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
             Assert.AreEqual(2, pad.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Count);
         }
 
@@ -117,7 +117,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Rocket
             pad.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
             ExpectComponentRejection(RocketLaunchPadCommandFailureReason.MissingMaterials);
             AssertFailure(Send(RocketLaunchPadCommandOperation.Build), RocketLaunchPadCommandFailureReason.MissingMaterials);
-            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, pad.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
         }
 
         [Test]

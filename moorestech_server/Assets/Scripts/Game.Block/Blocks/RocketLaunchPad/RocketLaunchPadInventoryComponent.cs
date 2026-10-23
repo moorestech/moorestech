@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
 
-        public RocketLaunchPadInventoryComponent(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
+        internal RocketLaunchPadInventoryComponent(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
         {
             _layout = layout;
             _slots = slots;

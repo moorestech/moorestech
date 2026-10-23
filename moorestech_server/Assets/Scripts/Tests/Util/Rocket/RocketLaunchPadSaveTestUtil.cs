@@ -47,7 +47,7 @@ namespace Tests.Util.Rocket
                 // Also verify input contents left behind through the save round trip
                 RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.CablePayloadId, 5);
             }
-            Assert.AreEqual(phase, processor.Phase);
+            Assert.AreEqual(phase, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             return JObject.Parse(SaveLoadJsonTestHelper.AssembleSaveJson(services));
         }
 

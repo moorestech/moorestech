@@ -43,8 +43,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var before = ((RocketLaunchPadSaveJsonObject)processor.GetSaveState()).RemainingSeconds;
             GameUpdater.RunFrames(40);
-            Assert.AreEqual(RocketLaunchPadPhase.Building, processor.Phase);
-            Assert.AreEqual(RocketLaunchPadWaitReason.NoPower, processor.WaitReason);
+            Assert.AreEqual(RocketLaunchPadPhase.Building, RocketLaunchPadTestUtil.ReadState(processor).Phase);
+            Assert.AreEqual(RocketLaunchPadWaitReason.NoPower, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
             Assert.AreEqual(100, processor.RequestPower);
             Assert.AreEqual(before, ((RocketLaunchPadSaveJsonObject)processor.GetSaveState()).RemainingSeconds);
 
@@ -56,12 +56,12 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
                 RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
                 Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Building, 5));
                 var ticks = 0;
-                while (pad.GetComponent<RocketLaunchPadProcessorComponent>().Phase == RocketLaunchPadPhase.Building && ticks < 100)
+                while (RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).Phase == RocketLaunchPadPhase.Building && ticks < 100)
                 {
                     GameUpdater.RunFrames(1);
                     ticks++;
                 }
-                Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, pad.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+                Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, RocketLaunchPadTestUtil.ReadState(pad.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
                 return ticks;
             }
 
@@ -105,7 +105,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             RocketLaunchPadTestUtil.FillOutputSlots(pad, 100);
             processor.RequestLaunch();
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             AssertCargoRefund();
 
             // 発射前の積載は返却し、軌道到着後は消費済みとして返さない

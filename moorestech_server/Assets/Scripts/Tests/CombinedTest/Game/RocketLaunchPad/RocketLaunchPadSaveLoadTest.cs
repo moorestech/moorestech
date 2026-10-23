@@ -33,15 +33,15 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var processor = loaded.GetComponent<RocketLaunchPadProcessorComponent>();
             var after = JObject.FromObject(RocketLaunchPadSaveTestUtil.Capture(loaded));
             Assert.IsTrue(JToken.DeepEquals(before, after), $"before={before}\nafter={after}");
-            Assert.AreEqual(phase, processor.Phase);
+            Assert.AreEqual(phase, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             TestContext.WriteLine($"保存復元 phase={phase} remainingSeconds={after["remainingSeconds"]} nextPayloadIndex={after["nextPayloadIndex"]} JSON同一=true");
             RocketLaunchPadSaveTestUtil.ClearOutputs(loaded);
-            for (var i = 0; i < 40 && processor.Phase == RocketLaunchPadPhase.Building; i++)
+            for (var i = 0; i < 40 && RocketLaunchPadTestUtil.ReadState(processor).Phase == RocketLaunchPadPhase.Building; i++)
             {
                 processor.SupplyPower(100);
                 GameUpdater.RunFrames(1);
             }
-            if (processor.Phase == RocketLaunchPadPhase.AwaitingLaunchCommand) processor.RequestLaunch();
+            if (RocketLaunchPadTestUtil.ReadState(processor).Phase == RocketLaunchPadPhase.AwaitingLaunchCommand) processor.RequestLaunch();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(loaded, RocketLaunchPadPhase.Launching, 2));
             Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
         }
@@ -54,9 +54,9 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             save["rocketHasLaunchedOnce"] = true;
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
             var processor = loaded.GetComponent<RocketLaunchPadProcessorComponent>();
-            Assert.AreEqual(immediately, processor.Phase);
+            Assert.AreEqual(immediately, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(saved == RocketLaunchPadPhase.AwaitingBuildCommand ? RocketLaunchPadPhase.Building : RocketLaunchPadPhase.Launching, processor.Phase);
+            Assert.AreEqual(saved == RocketLaunchPadPhase.AwaitingBuildCommand ? RocketLaunchPadPhase.Building : RocketLaunchPadPhase.Launching, RocketLaunchPadTestUtil.ReadState(processor).Phase);
         }
 
         [Test]

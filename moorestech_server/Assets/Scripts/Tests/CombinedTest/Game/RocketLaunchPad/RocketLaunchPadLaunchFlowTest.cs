@@ -37,7 +37,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingBuildCommand, 5));
             GameUpdater.RunFrames(5);
-            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.AwaitingBuildCommand, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.AreEqual(2, inventory.GetItem(0).Count);
             Assert.AreEqual(1, inventory.GetItem(3).Count);
 
@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.AwaitingLaunchCommand, 40));
             Assert.AreEqual(0f, processor.RequestPower);
             Assert.AreEqual(RocketLaunchPadCommandResult.Accepted, processor.RequestLaunch());
-            Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.IsFalse(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(pad, RocketLaunchPadPhase.Launching, 2));
             Assert.IsTrue(ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
@@ -96,12 +96,12 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.SatellitePayloadId, 1);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var phases = new List<RocketLaunchPadPhase>();
-            for (var i = 0; i < 40 && processor.Phase != RocketLaunchPadPhase.Launching; i++)
+            for (var i = 0; i < 40 && RocketLaunchPadTestUtil.ReadState(processor).Phase != RocketLaunchPadPhase.Launching; i++)
             {
                 GameUpdater.RunFrames(1);
-                phases.Add(processor.Phase);
+                phases.Add(RocketLaunchPadTestUtil.ReadState(processor).Phase);
             }
-            Assert.AreEqual(RocketLaunchPadPhase.Launching, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Launching, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             CollectionAssert.DoesNotContain(phases, RocketLaunchPadPhase.AwaitingBuildCommand);
             CollectionAssert.DoesNotContain(phases, RocketLaunchPadPhase.AwaitingLaunchCommand);
         }
@@ -127,14 +127,14 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var history = ServerContext.GetService<RocketLaunchHistory>();
             using var subscription = history.OnFirstLaunch.Subscribe(_ =>
             {
-                Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, b.GetComponent<RocketLaunchPadProcessorComponent>().Phase);
+                Assert.AreEqual(RocketLaunchPadPhase.ReadyToLaunch, RocketLaunchPadTestUtil.ReadState(b.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
                 arrivals++;
             });
             a.GetComponent<IRocketLaunchPadComponent>().RequestLaunch();
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(a, RocketLaunchPadPhase.Launching, 2));
             Assert.AreEqual(1, arrivals);
-            TestContext.WriteLine($"初打ち上げ直後 A={a.GetComponent<RocketLaunchPadProcessorComponent>().Phase} B={b.GetComponent<RocketLaunchPadProcessorComponent>().Phase} C={c.GetComponent<RocketLaunchPadProcessorComponent>().Phase} firstNotifications={arrivals}");
-            Assert.That(b.GetComponent<RocketLaunchPadProcessorComponent>().Phase, Is.EqualTo(RocketLaunchPadPhase.ReadyToLaunch).Or.EqualTo(RocketLaunchPadPhase.Launching));
+            TestContext.WriteLine($"初打ち上げ直後 A={RocketLaunchPadTestUtil.ReadState(a.GetComponent<RocketLaunchPadProcessorComponent>()).Phase} B={RocketLaunchPadTestUtil.ReadState(b.GetComponent<RocketLaunchPadProcessorComponent>()).Phase} C={RocketLaunchPadTestUtil.ReadState(c.GetComponent<RocketLaunchPadProcessorComponent>()).Phase} firstNotifications={arrivals}");
+            Assert.That(RocketLaunchPadTestUtil.ReadState(b.GetComponent<RocketLaunchPadProcessorComponent>()).Phase, Is.EqualTo(RocketLaunchPadPhase.ReadyToLaunch).Or.EqualTo(RocketLaunchPadPhase.Launching));
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(b, RocketLaunchPadPhase.Launching, 1));
             Assert.IsTrue(RocketLaunchPadTestUtil.RunUntilPhase(c, RocketLaunchPadPhase.Building, 1));
 
@@ -157,11 +157,11 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(RocketLaunchPadPhase.Idle, processor.Phase);
-            Assert.AreEqual(RocketLaunchPadWaitReason.MissingMaterials, processor.WaitReason);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(processor).Phase);
+            Assert.AreEqual(RocketLaunchPadWaitReason.MissingMaterials, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
             RocketLaunchPadTestUtil.FillMaterials(pad);
             GameUpdater.RunFrames(1);
-            Assert.AreEqual(RocketLaunchPadWaitReason.MissingPayload, processor.WaitReason);
+            Assert.AreEqual(RocketLaunchPadWaitReason.MissingPayload, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
         }
 
     }

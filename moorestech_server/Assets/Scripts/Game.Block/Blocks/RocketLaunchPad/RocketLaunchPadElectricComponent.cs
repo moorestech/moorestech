@@ -14,7 +14,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
         private readonly RocketLaunchPadProcessorComponent _processor;
 
-        public RocketLaunchPadElectricComponent(BlockInstanceId blockInstanceId, RocketLaunchPadProcessorComponent processor)
+        internal RocketLaunchPadElectricComponent(BlockInstanceId blockInstanceId, RocketLaunchPadProcessorComponent processor)
         {
             BlockInstanceId = blockInstanceId;
             _processor = processor;

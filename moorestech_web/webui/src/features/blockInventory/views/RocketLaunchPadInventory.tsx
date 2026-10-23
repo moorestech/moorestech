@@ -5,7 +5,7 @@ import { GaugeBar } from "@/shared/ui";
 import BlockItemGrid from "../BlockItemGrid";
 import { rocketStatusKey } from "../details/rocket/rocketLaunchPadLogic";
 
-export type RocketViewData = Pick<BlockInventoryOpen, "itemSlots"> & {
+type RocketViewData = Pick<BlockInventoryOpen, "itemSlots"> & {
   blockType: "RocketLaunchPad";
   rocketLaunchPad: RocketLaunchPadData | undefined;
 };

@@ -83,7 +83,7 @@ namespace Game.Block.Interface.Component
         public readonly ItemId ItemId;
         public readonly int Count;
 
-        public RocketLaunchSlotRequirement(ItemId itemId, int count)
+        internal RocketLaunchSlotRequirement(ItemId itemId, int count)
         {
             ItemId = itemId;
             Count = count;

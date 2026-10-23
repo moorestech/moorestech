@@ -17,7 +17,7 @@ namespace Server.Protocol.PacketResponse
     {
         public const string ProtocolTag = "va:rocketLaunchPadCommand";
 
-        public RocketLaunchPadCommandProtocol(ServiceProvider serviceProvider)
+        internal RocketLaunchPadCommandProtocol(ServiceProvider serviceProvider)
         {
         }
 

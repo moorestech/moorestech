@@ -117,7 +117,7 @@ namespace Tests.UnitTest.Game.RocketLaunchPad
             LogAssert.Expect(LogType.Error, new Regex("発射台の未対応の段階を拒否しました"));
             var exception = Assert.Throws<TargetInvocationException>(() => setStage.Invoke(sequence, new object[] { new UnknownStage() }));
             Assert.IsInstanceOf<InvalidOperationException>(exception.InnerException);
-            Assert.AreEqual(RocketLaunchPadPhase.Idle, processor.Phase);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(processor).Phase);
         }
 
         private sealed class UnknownStage : RocketLaunchPadStage

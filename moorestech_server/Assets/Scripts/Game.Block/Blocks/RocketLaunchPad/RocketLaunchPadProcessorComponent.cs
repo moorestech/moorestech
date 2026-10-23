@@ -28,8 +28,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
     /// </summary>
     public class RocketLaunchPadProcessorComponent : IRocketLaunchPadComponent, IUpdatableBlockComponent, IBlockStateObservable, IBlockSaveState, IGetRefundItemsInfo
     {
-        public RocketLaunchPadPhase Phase => _sequence.Stage.Phase;
-        public RocketLaunchPadWaitReason WaitReason => _sequence.WaitReason;
+        private RocketLaunchPadPhase Phase => _sequence.Stage.Phase;
+        private RocketLaunchPadWaitReason WaitReason => _sequence.WaitReason;
         public float RequestPower => _sequence.RequestPower;
         public IObservable<Unit> OnChangeBlockState => _changeState;
         public string SaveKey { get; } = typeof(RocketLaunchPadProcessorComponent).FullName;

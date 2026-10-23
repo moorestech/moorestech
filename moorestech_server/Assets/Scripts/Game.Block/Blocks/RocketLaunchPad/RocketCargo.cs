@@ -8,8 +8,8 @@ namespace Game.Block.Blocks.RocketLaunchPad
     // Payload and materials loaded into a rocket; consumed by the launch and refunded on removal before it
     public class RocketCargo
     {
-        public readonly IItemStack Payload;
-        public readonly IReadOnlyList<IItemStack> Materials;
+        internal readonly IItemStack Payload;
+        internal readonly IReadOnlyList<IItemStack> Materials;
         public bool IsLoaded => 0 < Payload.Count;
 
         public RocketCargo(IItemStack payload, IReadOnlyList<IItemStack> materials)

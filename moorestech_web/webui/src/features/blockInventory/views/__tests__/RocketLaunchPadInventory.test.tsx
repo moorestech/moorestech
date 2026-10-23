@@ -25,7 +25,7 @@ vi.mock("@mantine/core", () => ({
   Text: ({ children, ...props }: { children: unknown }) => createElement("p", props, children as never),
 }));
 import BlockInventoryPanel from "../../BlockInventoryPanel";
-import RocketLaunchPadInventory, { type RocketViewData } from "../RocketLaunchPadInventory";
+import RocketLaunchPadInventory from "../RocketLaunchPadInventory";
 import { GamePanel } from "@/shared/ui";
 
 function hostById(root: ReactTestInstance, id: string) {
@@ -37,8 +37,8 @@ function frameIn(root: ReactTestInstance, group: string) {
 
 describe("RocketLaunchPadInventory through the real panel", () => {
   it("requires rocket data at the dedicated view boundary", () => {
-    expectTypeOf<BlockInventoryOpen>().not.toMatchTypeOf<RocketViewData>();
-    expectTypeOf<Parameters<typeof RocketLaunchPadInventory>[0]["data"]>().toEqualTypeOf<RocketViewData>();
+    expectTypeOf<BlockInventoryOpen>().not.toMatchTypeOf<Parameters<typeof RocketLaunchPadInventory>[0]["data"]>();
+    expectTypeOf<Parameters<typeof RocketLaunchPadInventory>[0]["data"]["blockType"]>().toEqualTypeOf<"RocketLaunchPad">();
   });
 
   it("waits for initial detail and renders when the topic arrives", () => {

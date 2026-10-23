@@ -1,3 +1,5 @@
+using System.Linq;
+using MessagePack;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.RocketLaunchPad;
@@ -17,6 +19,14 @@ namespace Tests.Util.Rocket
     // Placement, loading and tick helpers shared by launch pad tests
     public static class RocketLaunchPadTestUtil
     {
+        // 本番の状態配信と同じ観測口で検証する
+        // Observe through the same state contract used in production
+        public static RocketLaunchPadStateDetail ReadState(IBlockStateObservable processor)
+        {
+            var detail = processor.GetBlockStateDetails().Single(value => value.Key == RocketLaunchPadStateDetail.BlockStateDetailKey);
+            return MessagePackSerializer.Deserialize<RocketLaunchPadStateDetail>(detail.Value);
+        }
+
         public static IBlock PlacePoweredPad(Vector3Int position, float generatePower)
         {
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.RocketLaunchPadId, position, BlockDirection.North, System.Array.Empty<BlockCreateParam>(), out var pad);
@@ -54,10 +64,10 @@ namespace Tests.Util.Rocket
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             for (var i = 0; i < maxTicks; i++)
             {
-                if (processor.Phase == until) return true;
+                if (RocketLaunchPadTestUtil.ReadState(processor).Phase == until) return true;
                 GameUpdater.RunFrames(1);
             }
-            return processor.Phase == until;
+            return RocketLaunchPadTestUtil.ReadState(processor).Phase == until;
         }
     }
 }
