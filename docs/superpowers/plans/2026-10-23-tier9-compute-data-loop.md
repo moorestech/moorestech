@@ -1077,7 +1077,7 @@ Expected: 両方の push が成功し、`.moorestech-external-revisions.json` �
 - Consumes: Task 2 の `IRocketLaunchHistory`
 - Produces: セーブのトップレベル `rocketHasLaunchedOnce: bool`（版7で必須）、`SaveMigrationStepV6ToV7`（`FromVersion => 6`）
 
-- [ ] **Step 1: moorestech-save-migration スキルを読み、移行ステップを書く**
+- [x] **Step 1: moorestech-save-migration スキルを読み、移行ステップを書く**
 
 `SaveMigrationStepV6ToV7.cs`:
 
@@ -1123,7 +1123,7 @@ namespace Game.SaveLoad.Migration.Steps
 
 3か所の配列の末尾へ `new SaveMigrationStepV6ToV7()` を足す。
 
-- [ ] **Step 2: 必須欠損の検査を移して `rocketHasLaunchedOnce` を足す**
+- [x] **Step 2: 必須欠損の検査を移して `rocketHasLaunchedOnce` を足す**
 
 `WorldSaveRequiredFieldGuard.cs`:
 
@@ -1168,7 +1168,7 @@ namespace Game.SaveLoad.Json
 
 `WorldSaveAllInfo` の ctor 引数・代入・プロパティ、`AssembleSaveJsonText` の ctor・`Capture()` の引数（`_cleanRoomDatastore.GetSaveData(),` の次に `_rocketLaunchHistory.HasLaunchedOnce,`）を足す。`WorldSaveAllInfo` を `new` している他の箇所（`git grep -n "new WorldSaveAllInfo("`）も引数を足す。`MissingMasterPruner` の一覧に `"rocketHasLaunchedOnce"` を足す。
 
-- [ ] **Step 3: テストを書く**
+- [x] **Step 3: テストを書く**
 
 `Tests/UnitTest/Game/SaveLoad/Migration/SaveMigrationStepV6ToV7Test.cs`:
 
@@ -1214,12 +1214,12 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
 
 既存テストやフィクスチャが「現在版=6」を前提にしていれば（`git grep -n "worldVersion\\\\\":6\|CurrentVersion" -- moorestech_server/Assets/Scripts/Tests`）、7へ直す。
 
-- [ ] **Step 4: コンパイルしテストを実行する**
+- [x] **Step 4: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveMigration|SaveLoad|RocketLaunchHistory|MissingMasterPruner"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.SaveLoad moorestech_server/Assets/Scripts/Server.Boot moorestech_server/Assets/Scripts/Tests
@@ -1258,7 +1258,7 @@ git commit -m "feat(save): 初打ち上げ履歴をセーブに入れ版6から7
   - `Game.Block.Blocks.RocketLaunchPad.RocketCargo`（`public readonly IItemStack Payload; public readonly IReadOnlyList<IItemStack> Materials; bool IsLoaded`、ctor `(IItemStack payload, IReadOnlyList<IItemStack> materials)`、`IEnumerable<IItemStack> AllItems()`）
   - 段階の型（名前空間 `Game.Block.Blocks.RocketLaunchPad.Stage`）: 抽象 `RocketLaunchPadStage`（`abstract RocketLaunchPadPhase Phase`）、抽象 `LoadedRocketStage : RocketLaunchPadStage`（`public readonly RocketCargo Cargo`）、`IdleStage.Instance`、`AwaitingBuildCommandStage.Instance`、`BuildingStage(RocketCargo cargo, uint remainingTicks)`、`AwaitingLaunchCommandStage(RocketCargo cargo)`、`ReadyToLaunchStage(RocketCargo cargo)`、`LaunchingStage(uint remainingTicks)`、interface `IProgressingStage`（`uint RemainingTicks { get; }`。`BuildingStage`・`LaunchingStage` が実装）。積荷は `LoadedRocketStage` の3種だけが持ち、残りtickは `IProgressingStage` の2種だけが持つ。「積荷を持つ段階」「進行中の段階」の集合はこの型の階層から引き、enum の集合で書き直さない（再検査 弱(e)）
 
-- [ ] **Step 1: 合図の口と結果を書く**
+- [x] **Step 1: 合図の口と結果を書く**
 
 `Game.Block.Interface/Component/RocketLaunchPad/IRocketLaunchPadComponent.cs`:
 
@@ -1286,7 +1286,7 @@ namespace Game.Block.Interface.Component
 }
 ```
 
-- [ ] **Step 2: スロット並びを書く**
+- [x] **Step 2: スロット並びを書く**
 
 `Game.Block.Interface/Component/RocketLaunchPad/RocketLaunchPadSlotLayout.cs`:
 
@@ -1385,7 +1385,7 @@ namespace Game.Block.Interface.Component
 }
 ```
 
-- [ ] **Step 3: 段階・待ち理由・状態詳細を書く**
+- [x] **Step 3: 段階・待ち理由・状態詳細を書く**
 
 `Game.Block.Interface/State/RocketLaunchPad/RocketLaunchPadPhase.cs`（名前空間 `Game.Block.Interface.State`。値は Interfaces 節のとおり固定し、各値に日英1行ずつ「`AwaitingBuildCommand`・`AwaitingLaunchCommand` は初打ち上げ前だけ」「`ReadyToLaunch` は打ち上げが許され出力口の空きを待つ」を書く）、`RocketLaunchPadWaitReason.cs`（同じく値を固定）。
 
@@ -1429,7 +1429,7 @@ namespace Game.Block.Interface.State
 
 （`{ get; set; }` は MessagePack の前例 `TrainPlatformTransferStateDetail` どおり。）
 
-- [ ] **Step 4: インベントリを書く**
+- [x] **Step 4: インベントリを書く**
 
 `Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadInventoryComponent.cs`。スロットごとに入れてよい品が決まっているという役割は機械と同じなので、`VanillaMachineBlockInventoryComponent` と同じく `ISortExcludedSlots` で全スロットを整理の対象から外す（外さないと、開いたまま整理ボタンを押したとき `InventorySortService` が ItemId 順に先頭から詰め直し、燃料が筐体素材のスロットへ、資材が出力スロットへ移って建造が止まる）。`GetItem`・`SetItem`・`ReplaceItem`・`GetSlotSize`・`InventoryItems` などの残りのメンバーは `CleanRoomAirFilterInventoryComponent` と同じく `OpenableInventoryItemDataStoreService` へ委譲し、各メンバーの先頭で `CheckDestroy(this)` を呼ぶ。前例と違うメンバーは次のとおり:
 
@@ -1505,7 +1505,7 @@ namespace Game.Block.Interface.State
 
 ctor は `(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)` で2つを保持する。`IsDestroy`/`Destroy()` は前例どおり。仮挿入 `SimulateInsert` は1本だけ置き、`InsertionCheck` と実挿入の両方がこれを通る（前例 `VanillaMachineInputInventory` の `InsertItem`・`InsertionCheck` が `VanillaMachineInputSimulationUtil.SimulateInsert` を共有する形。再検査 弱(d)）。
 
-- [ ] **Step 5: 積荷と段階の型を書く**
+- [x] **Step 5: 積荷と段階の型を書く**
 
 `Game.Block/Blocks/RocketLaunchPad/RocketCargo.cs`:
 
@@ -1645,7 +1645,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
 
 （`RemainingTicks` は `IProgressingStage` の実装なので get 専用のプロパティにし、ctor でだけ代入する。）
 
-- [ ] **Step 6: テストを書く（実行は Task 5 Step 8）**
+- [x] **Step 6: テストを書く（実行は Task 5 Step 8）**
 
 `Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadInventoryTest.cs`。`ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.RocketLaunchPadId, ...)` で台を置き（既存 CombinedTest の設置書式に合わせる）、`IBlockInventory` と `IOpenableBlockInventoryComponent` を取って次を確かめる:
 - `InsertItem(TestRocketFuel×5)` が資材スロット1（2番目）に入り、余りが空。
@@ -1659,12 +1659,12 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
 - `new BuildingStage(空の積荷, 10)` は `ArgumentException`、`new BuildingStage(積荷, 0)` と `new LaunchingStage(0)` は `ArgumentOutOfRangeException`。
 - `ReadyToLaunchStage` と `AwaitingLaunchCommandStage` は `LoadedRocketStage` で、`IdleStage.Instance`・`LaunchingStage` は違う。`BuildingStage` と `LaunchingStage` は `IProgressingStage` で、`ReadyToLaunchStage`・`IdleStage.Instance` は違う。
 
-- [ ] **Step 7: コンパイルする**
+- [x] **Step 7: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Component/RocketLaunchPad moorestech_server/Assets/Scripts/Game.Block.Interface/State/RocketLaunchPad moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/UnitTest/Game/RocketLaunchPad
@@ -1708,7 +1708,7 @@ git commit -m "feat(block): 発射台の契約型とインベントリと段階�
   - `VanillaRocketLaunchPadTemplate : IBlockTemplate`
   - テスト用 `Tests.Util.Rocket.RocketLaunchPadTestUtil`（`static IBlock PlacePoweredPad(Vector3Int position, float generatePower)`・`static void FillMaterials(IBlock pad)`・`static void FillOneLaunch(IBlock pad, ItemId payloadItemId, int payloadCount)`・`static void FillOutputSlots(IBlock pad, int countPerSlot)`・`static bool RunUntilPhase(IBlock pad, RocketLaunchPadPhase until, int maxTicks)`。Task 6 のテストも使う）
 
-- [ ] **Step 1: 積み込みを書く**
+- [x] **Step 1: 積み込みを書く**
 
 `RocketLaunchPadCargoLoader.cs`:
 
@@ -1799,7 +1799,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 }
 ```
 
-- [ ] **Step 2: 出力口を書く**
+- [x] **Step 2: 出力口を書く**
 
 `RocketLaunchPadOutputSlots.cs`（前例 `Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs` の `CanStoreOutputs`・`InsertOutputSlot`・`InsertConnectInventory`）:
 
@@ -1882,7 +1882,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 }
 ```
 
-- [ ] **Step 3: 段階の進行を書く**
+- [x] **Step 3: 段階の進行を書く**
 
 `RocketLaunchPadLaunchSequence.cs`（段階の遷移はここだけが持つ。遷移の持ち主の置き方は新規パターン（D26 の裁定による。機械の State ハンドラ方式とは遷移の持ち主が違う）。残りtickと電力の進め方の前例は機械の処理状態 `Game.Block/Blocks/Machine/State/ProcessingMachineProcessState.cs`）:
 
@@ -2080,7 +2080,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
 （約189行。実装で200行を超えたら `CheckBuildable` と `StartBuilding` を `RocketLaunchPadBuildStarter` へ出す。電力の進め方が `ProcessingMachineProcessState` と食い違えば前例に合わせる。）
 
-- [ ] **Step 4: 外殻を書く**
+- [x] **Step 4: 外殻を書く**
 
 `RocketLaunchPadProcessorComponent.cs`（段階は持たず、段階の進行へ渡すだけ。セーブ形の組み立ては Step 5 の `RocketLaunchPadSaveConverter`）:
 
@@ -2235,7 +2235,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
 }
 ```
 
-- [ ] **Step 5: セーブ形と変換を書く**
+- [x] **Step 5: セーブ形と変換を書く**
 
 残り時間は秒、段階は int で保存する（前例 `Game.Block/Blocks/CleanRoom/Machine/CleanRoomMachineProcessorSaveJsonObject.cs` の `state`・`remainingSeconds`、`VanillaMachineProcessorComponent` の「tickを秒数に変換して保存」）。打ち上げ後の保留は無いので、セーブにも持たない。
 
@@ -2382,7 +2382,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
 
 （約125行。`ItemStackSaveJsonObject.ToItemStack()` は `Game.Context` の拡張メソッド。積荷を持つかは `LoadedRocketStage`、残りtickは `IProgressingStage` で引き、段階の enum の集合を別に書かない（再検査 弱(e)）。打ち上げられるかの判定は発射台の並びの要求（`TryGetPayloadRequirement` と個数の一致）だけで行い、積荷表の受け付け規則は `IOrbitalArrivalService.Arrive` に残す（再検査 弱(b)）。）
 
-- [ ] **Step 6: 電力とテンプレートと撤去返却を書く**
+- [x] **Step 6: 電力とテンプレートと撤去返却を書く**
 
 `RocketLaunchPadElectricComponent.cs`（`VanillaElectricMachineComponent` と同形）:
 
@@ -2517,7 +2517,7 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
                 }
 ```
 
-- [ ] **Step 7: テストを書く**
+- [x] **Step 7: テストを書く**
 
 `Tests/Util/Rocket/RocketLaunchPadTestUtil.cs`（テスト用。`ElectricWireTestUtil.WirePower(consumerPos, polePos, generatePower)` で給電する）:
 
@@ -2622,12 +2622,12 @@ namespace Tests.Util.Rocket
 
 `Tests/UnitTest/Game/RocketLaunchPad/` の段階の型のテスト（Task 4）もここで実行する。
 
-- [ ] **Step 8: コンパイルしテストを実行する**
+- [x] **Step 8: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.CombinedTest\.Game\.RocketLaunchPad\.|Tests\.UnitTest\.Game\.RocketLaunchPad\.|RocketLaunchPadRemoveRefundTest|RemoveBlockRefundTest|RemoveBlockProtocolTest|BeltConveyorRemovalTest"`
 Expected: ErrorCount 0 / Task 4・5 の全テストと既存の撤去返却テストが PASS
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs moorestech_server/Assets/Scripts/Tests/Util/Rocket moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket
@@ -2656,7 +2656,7 @@ git commit -m "feat(block): ロケット発射台の建造と打ち上げとセ�
   - `RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse`（`[Key(2)] bool Success`・`[Key(3)] RocketLaunchPadCommandFailureReason FailureReason`）
   - `BlockRequestApi.SendRocketLaunchPadCommand(Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, CancellationToken ct)` → `UniTask<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>`
 
-- [ ] **Step 1: creating-server-protocol スキルを読み、プロトコルを書く**
+- [x] **Step 1: creating-server-protocol スキルを読み、プロトコルを書く**
 
 ```csharp
 using System;
@@ -2812,7 +2812,7 @@ namespace Server.Protocol.PacketResponse
         }
 ```
 
-- [ ] **Step 2: テストを書く**
+- [x] **Step 2: テストを書く**
 
 `Tests/CombinedTest/Server/PacketTest/Rocket/RocketLaunchPadCommandProtocolTest.cs`。`SetTrainPlatformTransferModeProtocolTest` と同じ書式で、`packet.GetPacketResponse(payload, BoundPacketContext.Bind(1))[0]` を使う（パケット送受の実物は既存 PacketTest に合わせる）。台は `Tests.Util.Rocket.RocketLaunchPadTestUtil.PlacePoweredPad`・`FillOneLaunch` で用意する:
 - 合図待ちの台へ `Build` → `Success == true`・`FailureReason == None`、`Phase == Building`。
@@ -2820,12 +2820,12 @@ namespace Server.Protocol.PacketResponse
 - 空き座標 → `BlockNotFound`、チェストへ → `NotRocketLaunchPad`、空の台へ `Build` → `NotAwaitingBuildCommand`、`Operation` に99を入れた要求 → `UnknownOperation`（それぞれ `Success == false`、`LogAssert.Expect(LogType.Warning, ...)`）。
 - 合図待ちの台の出力口を `FillOutputSlots(pad, 100)` で埋めて `Build` → `OutputFull`。
 
-- [ ] **Step 3: コンパイルしテストを実行する**
+- [x] **Step 3: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "RocketLaunchPadCommandProtocolTest"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Rocket moorestech_server/Assets/Scripts/Server.Protocol/PacketResponseCreator.cs moorestech_client/Assets/Scripts/Client.Network moorestech_server/Assets/Scripts/Tests/CombinedTest/Server/PacketTest/Rocket
