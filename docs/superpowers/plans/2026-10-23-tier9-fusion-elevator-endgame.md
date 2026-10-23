@@ -1504,7 +1504,7 @@ git commit -m "feat(space-elevator): ケーブルプールと接続サービス�
   - 出口の確認は機械の前例（`Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:49` の開始前、`ProcessingMachineProcessState.cs:118` の完了直前に `CanStoreOutputs`）と同じ2点: 昇り始める前と、頂上で軌道到着サービスへ渡す直前。どちらも `PreviewArrivalOutputs(衛星, 1)` が出口へ入りきるかを見る。入らなければ衛星を入口に残す／頂上で待たせ、状態を `OutputBlocked` にする。頂上で待つ間は電力を使わない
   - `RemoveBlockProtocol` は `IGetRefundItemsInfo` を全コンポーネントから合算する
 
-- [ ] **Step 1: 撤去返却の合算を確かめて直す**
+- [x] **Step 1: 撤去返却の合算を確かめて直す**
 
 `grep -n "IGetRefundItemsInfo" moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`。`TryGetComponent(out IGetRefundItemsInfo refundInfo)` のままなら（S2 未修正）、次へ置き換える（拠点はワイヤー端点と昇降機の2つが `IGetRefundItemsInfo` を持つため、先頭1件だけでは昇降中の衛星が返らない）:
 ```csharp
@@ -1517,7 +1517,7 @@ git commit -m "feat(space-elevator): ケーブルプールと接続サービス�
 ```
 （`GetComponents<T>` の実名は `Game.Block.Interface/BlockComponentManager.cs` で確かめる。S2 が既に直していれば何もしない。`RemoveBlockProtocol.cs` は今ちょうど200行なので、置き換える元の行数と同じ行数に収め（コメント2行は元のコメントと差し替える）、`wc -l` が200以下であることを確かめる）
 
-- [ ] **Step 2: 状態・セーブの型を書く**
+- [x] **Step 2: 状態・セーブの型を書く**
 
 `Game.Block.Interface/State/SpaceElevator/SpaceElevatorBaseStatus.cs`（状態詳細と列挙は通信の契約型なので契約の層に置く。前例 S2 の `State/RocketLaunchPad/`）:
 ```csharp
@@ -1589,7 +1589,7 @@ namespace Game.Block.Blocks.SpaceElevator
 }
 ```
 
-- [ ] **Step 3: インベントリを書く**
+- [x] **Step 3: インベントリを書く**
 
 `SpaceElevatorBaseInventoryComponent.cs`（スロットの扱いの前例 `Game.Block/Blocks/Chest/VanillaChestComponent.cs`、出口の模擬の前例 `Game.Block/Blocks/Machine/Inventory/VanillaMachineOutputInventory.cs:73-125`）:
 ```csharp
@@ -1835,7 +1835,7 @@ namespace Game.Block.Blocks.SpaceElevator
 ```
 `wc -l` でインベントリが 200 行未満であることを確かめる。
 
-- [ ] **Step 4: 昇降機と電力を書く**
+- [x] **Step 4: 昇降機と電力を書く**
 
 `SpaceElevatorClimberComponent.cs`（電力の前例 `Game.Block/Blocks/Pump/ElectricPumpProcessorComponent.cs`、進みの前例 `Game.Block/Blocks/Util/MachineCurrentPowerToSubSecond.cs`、出口の2点確認の前例 `Game.Block/Blocks/Machine/State/IdleMachineProcessState.cs:49`・`ProcessingMachineProcessState.cs:118`）:
 ```csharp
@@ -2157,7 +2157,7 @@ namespace Game.Block.Blocks.SpaceElevator
 }
 ```
 
-- [ ] **Step 5: テンプレートを書いて登録する**
+- [x] **Step 5: テンプレートを書いて登録する**
 
 `Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs`（前例 `Fluid/VanillaElectricPumpTemplate.cs`・`VanillaChestTemplate.cs`）:
 ```csharp
@@ -2210,7 +2210,7 @@ namespace Game.Block.Factory.BlockTemplate.SpaceElevator
 （`BlockTemplateUtil.CreateInventoryConnector` の戻り型名と `ConnectingInventoryListPriorityInsertItemService` の名前空間は `VanillaChestTemplate.cs` に合わせる。`ElectricWireConnectorComponent` が新規時に `null` を受けるのは `VanillaMachineTemplate.cs:47` が前例）
 `VanillaIBlockTemplates.cs` の `BlockTypesDictionary.Add(BlockTypeConst.CleanRoomMachine, ...)` の次に `BlockTypesDictionary.Add(BlockTypeConst.SpaceElevatorBase, new VanillaSpaceElevatorBaseTemplate());` を足す。
 
-- [ ] **Step 6: テストを書く**
+- [x] **Step 6: テストを書く**
 
 `SpaceElevatorTestUtil.cs`（電線の前例 `Tests/CombinedTest/Core/Fluid/ElectricPumpTest.cs:28-115`）:
 ```csharp
@@ -2674,12 +2674,12 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 }
 ```
 
-- [ ] **Step 7: コンパイルしテストを実行する**
+- [x] **Step 7: コンパイルしテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SpaceElevator|RemoveBlockRefundTest|ElectricWire"`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator
