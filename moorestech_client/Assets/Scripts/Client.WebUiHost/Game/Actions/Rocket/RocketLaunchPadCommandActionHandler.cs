@@ -32,9 +32,7 @@ namespace Client.WebUiHost.Game.Actions
             var operation = ParseOperation(payload["command"]);
             if (operation == null) return Reject("invalid_payload", "command must be build or launch");
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source) return Reject("block_not_open", "an open RocketLaunchPad block is required");
-            if (!source.TryGetBlockIdentity(out _, out var blockTypeName) || blockTypeName != "RocketLaunchPad") return Reject("block_not_open", "an open RocketLaunchPad block is required");
-
-            if (!source.TryGetBlockInstanceId(out var instanceId)) return Reject("block_not_open", "block instance is no longer available");
+            if (!source.TryGetBlockIdentity(out _, out var blockTypeName, out var instanceId) || blockTypeName != "RocketLaunchPad") return Reject("block_not_open", "an open RocketLaunchPad block is required");
 
             // 表示の正本は後続のブロック状態。ここでは受理されたかだけ返す
             // The later block state is the display source of truth; only acceptance is reported here

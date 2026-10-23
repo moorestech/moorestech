@@ -131,11 +131,14 @@ describe("rocket command transport deadlines", () => {
   });
 
   it.each([
-    ["build", 6000, "rocket_command_missing_materials"],
-    ["launch", 6000, "rocket_command_missing_payload"],
-    ["build", 11000, "rocket_command_timeout"],
-    ["launch", 11000, "rocket_command_timeout"],
-  ] as const)("%s receives %s ms rejection %s", async (command, delay, error) => {
+    ["rocket_launch_pad.command", { command: "build" }, 6000, "rocket_command_missing_materials"],
+    ["rocket_launch_pad.command", { command: "launch" }, 6000, "rocket_command_missing_payload"],
+    ["rocket_launch_pad.command", { command: "build" }, 11000, "rocket_command_timeout"],
+    ["rocket_launch_pad.command", { command: "launch" }, 11000, "rocket_command_timeout"],
+    ["space_elevator.connect", {}, 6000, null],
+    ["space_elevator.connect", {}, 6000, "insufficient_cable"],
+    ["space_elevator.connect", {}, 11000, "connect_timeout"],
+  ] as const)("%s receives %s at %s ms: %s", async (type, payload, delay, error) => {
     vi.resetModules();
     vi.useFakeTimers();
     vi.mocked(notify).mockClear();
@@ -154,17 +157,20 @@ describe("rocket command transport deadlines", () => {
     const { initBridge } = await import("./webSocketClient");
     const { dispatchActionOutcome: dispatch } = await import("./actions");
     initBridge();
-    const result = dispatch("rocket_launch_pad.command", { command });
+    const result = dispatch(type, payload);
     const completed = vi.fn();
     void result.then(completed);
     await vi.advanceTimersByTimeAsync(5000);
     expect(completed).not.toHaveBeenCalled();
     expect(notify).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(delay - 5000);
-    const { requestId } = JSON.parse(sent.find((raw) => raw.includes("rocket_launch_pad.command"))!);
-    socket!.onmessage!({ data: JSON.stringify({ op: "result", requestId, ok: false, error }) });
-    expect(await result).toEqual({ kind: "rejected", error });
-    expect(notify).toHaveBeenCalledOnce();
-    expect(JSON.stringify(vi.mocked(notify).mock.calls[0])).toContain(error);
+    const { requestId } = JSON.parse(sent.find((raw) => raw.includes(type))!);
+    socket!.onmessage!({ data: JSON.stringify({ op: "result", requestId, ok: error === null, error }) });
+    expect(await result).toEqual(error === null ? { kind: "accepted" } : { kind: "rejected", error });
+    if (error === null) expect(notify).not.toHaveBeenCalled();
+    else {
+      expect(notify).toHaveBeenCalledOnce();
+      expect(JSON.stringify(vi.mocked(notify).mock.calls[0])).toContain(error);
+    }
   });
 });

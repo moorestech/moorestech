@@ -51,10 +51,11 @@ namespace Client.Network.API.Requests
 
         // 宇宙エレベーター拠点の接続を頼む
         // Ask to connect a space elevator base
-        public async UniTask<ConnectSpaceElevatorResponse> ConnectSpaceElevator(Vector3Int position, CancellationToken ct)
+        public async UniTask<(ConnectSpaceElevatorResponse response, PacketWaitCompletionReason reason)> ConnectSpaceElevator(
+            Vector3Int position, BlockInstanceId expectedInstanceId, CancellationToken ct)
         {
-            var request = new ConnectSpaceElevatorRequest(position);
-            return await _packetExchangeManager.GetPacketResponse<ConnectSpaceElevatorResponse>(request, ct);
+            var request = new ConnectSpaceElevatorRequest(position, expectedInstanceId);
+            return await _packetExchangeManager.GetPacketResponseWithReason<ConnectSpaceElevatorResponse>(request, ct);
         }
 
         // Get/SetMode/SetFilterItemを統合

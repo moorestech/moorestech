@@ -1,6 +1,7 @@
 using System;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Event;
 using Game.Context;
 using Game.SpaceElevator;
 using MessagePack;
@@ -71,14 +72,65 @@ namespace Tests.CombinedTest.Server.PacketTest.SpaceElevator
                 Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, position,
                     BlockDirection.North, Array.Empty<BlockCreateParam>(), out _));
             }
-            ExpectRefusal(SpaceElevatorConnectResult.NotSpaceElevatorBase, position);
-            Assert.AreEqual(SpaceElevatorConnectResult.NotSpaceElevatorBase, Send(packet, position).Result);
+            var expected = placeOtherBlock ? SpaceElevatorConnectResult.NotSpaceElevatorBase : SpaceElevatorConnectResult.BlockNotFound;
+            ExpectRefusal(expected, position);
+            Assert.AreEqual(expected, Send(packet, position).Result);
             Assert.AreEqual(100, ServerContext.GetService<SpaceElevatorCablePool>().Amount);
+        }
+
+        [Test]
+        public void 送信後に置換された別個体へは接続しない()
+        {
+            var (packet, _) = CreateServer();
+            var old = PlaceBase(Vector3Int.zero);
+            var request = new ConnectSpaceElevatorRequest(Vector3Int.zero, old.BlockInstanceId);
+            ServerContext.WorldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
+            var replacement = PlaceBase(Vector3Int.zero);
+            LaunchCables(100);
+
+            // 古い要求は新しい拠点とプールを変えない
+            // A stale request must change neither the replacement nor the pool
+            ExpectRefusal(SpaceElevatorConnectResult.InstanceMismatch, Vector3Int.zero);
+            Assert.AreEqual(SpaceElevatorConnectResult.InstanceMismatch, Send(packet, request).Result);
+            Assert.IsFalse(ReadDetail(replacement).IsConnected);
+            Assert.AreEqual(100, ServerContext.GetService<SpaceElevatorCablePool>().Amount);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void 欠損フィールドにも明示的な拒否応答を返す(bool missingPosition)
+        {
+            var (packet, _) = CreateServer();
+            var block = PlaceBase(Vector3Int.zero);
+            var request = new ConnectSpaceElevatorRequest(Vector3Int.zero, block.BlockInstanceId);
+            if (missingPosition) request.Position = null;
+            else request.ExpectedInstanceId = null;
+            LaunchCables(100);
+            LogAssert.Expect(LogType.Log, $"[ConnectSpaceElevator] connection refused: InvalidRequest pos:{request.Position?.Vector3Int} player:1");
+            Assert.AreEqual(SpaceElevatorConnectResult.InvalidRequest, Send(packet, request).Result);
+            Assert.IsFalse(ReadDetail(block).IsConnected);
+            Assert.AreEqual(100, ServerContext.GetService<SpaceElevatorCablePool>().Amount);
+        }
+
+        [Test]
+        public void Nil入力をプロトコル境界で拒否する()
+        {
+            var (_, provider) = CreateServer();
+            LogAssert.Expect(LogType.Log, "[ConnectSpaceElevator] connection refused: InvalidRequest pos: player:1");
+            var response = (ConnectSpaceElevatorResponse)new ConnectSpaceElevatorProtocol(provider).GetResponse(
+                MessagePackSerializer.Serialize<ConnectSpaceElevatorRequest>(null), 1);
+            Assert.AreEqual(SpaceElevatorConnectResult.InvalidRequest, response.Result);
         }
 
         private static ConnectSpaceElevatorResponse Send(PacketResponseCreator packet, Vector3Int position)
         {
-            var request = new ConnectSpaceElevatorRequest(position) { SequenceId = 42 };
+            var block = ServerContext.WorldBlockDatastore.GetBlock(position);
+            return Send(packet, new ConnectSpaceElevatorRequest(position, block == null ? BlockInstanceId.Create() : block.BlockInstanceId));
+        }
+
+        private static ConnectSpaceElevatorResponse Send(PacketResponseCreator packet, ConnectSpaceElevatorRequest request)
+        {
+            request.SequenceId = 42;
             var payload = MessagePackSerializer.Serialize(request);
             var responses = packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
 

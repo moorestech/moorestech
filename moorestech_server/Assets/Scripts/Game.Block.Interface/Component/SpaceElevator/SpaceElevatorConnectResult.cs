@@ -6,5 +6,8 @@ namespace Game.Block.Interface.Component
         AlreadyConnected,
         InsufficientCable,
         NotSpaceElevatorBase,
+        InvalidRequest,
+        BlockNotFound,
+        InstanceMismatch,
     }
 }

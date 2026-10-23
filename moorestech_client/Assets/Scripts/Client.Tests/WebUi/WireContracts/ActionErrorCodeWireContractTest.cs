@@ -27,6 +27,7 @@ namespace Client.Tests.WebUi.WireContracts
                 "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale", "already_selected",
                 "stale_session", "stale_revision", "intent_not_allowed", "unknown_choice",
                 "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed", "blueprint_delete_unknown",
+                "connect_timeout", "connect_invalid_response", "connect_invalid_request", "connect_block_not_found", "connect_instance_mismatch", "not_space_elevator_base", "insufficient_cable",
                 "rocket_command_timeout", "rocket_command_invalid_response", "rocket_command_block_not_found", "rocket_command_not_launch_pad", "rocket_command_unknown_operation", "rocket_command_invalid_request", "rocket_command_not_awaiting_build", "rocket_command_not_awaiting_launch", "rocket_command_missing_materials", "rocket_command_missing_payload", "rocket_command_output_full", "rocket_command_instance_mismatch",
                 // plan G: ポーズメニュー送信のみ。同意/異常終了はタイトルuGUIへ移設（ADR 0065）
                 // plan G: pause-menu submission only; consent/crash moved to the title uGUI (ADR 0065)
