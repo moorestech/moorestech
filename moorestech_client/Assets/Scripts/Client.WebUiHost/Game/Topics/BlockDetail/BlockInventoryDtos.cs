@@ -37,6 +37,7 @@ namespace Client.WebUiHost.Game.Topics
         public TrainStationDetailDto TrainStation;
         public BeltThroughputDetailDto BeltThroughput;
         public CleanRoomDetailDto CleanRoom;
+        public CleanRoomYieldDetailDto CleanRoomYield;
         public MachineInputStallDetailDto MachineInputStall;
     }
 

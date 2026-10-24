@@ -32,6 +32,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // クリーンルーム: 部屋照会のキャッシュと機械の停止理由
             // Clean room: the room query cache and the machine's halt reason
             CleanRoomDetailDtoBuilder.Apply(dto, block, cache);
+            // 室内機械: 選択工程の抽選の中身
+            // Interior machines: draw details of the selected process
+            CleanRoomYieldDetailDtoBuilder.Apply(dto, cache);
 
             // 機械: 継承元のレベルで止まった理由
             // Machines: the reason the inflow stalled on the inheritance source level

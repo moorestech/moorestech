@@ -2,7 +2,7 @@ import { z } from "zod";
 import { GuidSchema, SlotDataSchema } from "./common";
 import { ElectricToGearDataSchema, GearToElectricDataSchema } from "./energyConversion";
 import { TrainPlatformDataSchema, TrainStationDetailSchema, TrainTimetableStateSchema } from "./train";
-import { CleanRoomDetailDataSchema } from "./cleanRoom";
+import { CleanRoomDetailDataSchema, CleanRoomYieldDataSchema } from "./cleanRoom";
 import { MachineInputStallDataSchema } from "./machineInputStall";
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
@@ -165,6 +165,7 @@ export const BlockInventoryOpenSchema = z.object({
   trainStation: TrainStationDetailSchema.optional(),
   beltThroughput: BeltThroughputDataSchema.optional(),
   cleanRoom: CleanRoomDetailDataSchema.optional(),
+  cleanRoomYield: CleanRoomYieldDataSchema.optional(),
   machineInputStall: MachineInputStallDataSchema.optional(),
 }).strict().superRefine((data, ctx) => {
   // 変換機詳細の混入は受信境界で拒否する。未着は許容する

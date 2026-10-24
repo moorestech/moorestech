@@ -1,0 +1,10 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "CleanRoomMachine",
+  "identifier": "(2, 1, 1)",
+  "blockGuid": "66666666-6666-4666-8666-666666666666",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "cleanRoomYield": { "role": "dicing", "dieLossRate": 0.03 }
+}

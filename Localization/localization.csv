@@ -447,3 +447,7 @@ ui.blockInventory.cleanRoomHaltNotEnclosed,Halted: not in a sealed room,Halted: 
 ui.blockInventory.cleanRoomHaltClassOut,Halted: room below class,Halted: room below class,停止中: 部屋がクラス未達です,Angehalten: Raum unter Klasse,정지: 방 등급 미달입니다
 ui.blockInventory.machineInputStallMixedLevel,Stopped: {itemName} of a different level arrived,Stopped: {itemName} of a different level arrived,レベルの違う品（{itemName}）が届いて止まっています,Angehalten: {itemName} mit anderer Stufe ist angekommen,정지됨: 레벨이 다른 {itemName}이(가) 도착했습니다
 ui.blockInventory.machineInputStallAboveCraftCap,Stopped: {itemName} above the craft cap arrived,Stopped: {itemName} above the craft cap arrived,製作上限を超えるレベルの品（{itemName}）が届いて止まっています,Angehalten: {itemName} über der Herstellungsgrenze ist angekommen,정지됨: 제작 상한을 넘는 {itemName}이(가) 도착했습니다
+ui.blockInventory.cleanRoomYieldMaxGrade,Max wafer grade G{grade},Max wafer grade G{grade},ウェハの上限グレード G{grade},Maximale Wafer-Stufe G{grade},웨이퍼 최대 등급 G{grade}
+ui.blockInventory.cleanRoomYieldPromotionChance,Grade-up chance {percent}%,Grade-up chance {percent}%,グレード昇格率 {percent}%,Aufstufungschance {percent} %,등급 상승 확률 {percent}%
+ui.blockInventory.cleanRoomYieldLayerFailRate,Layer failure rate {percent}%,Layer failure rate {percent}%,層の失敗率 {percent}%,Schicht-Ausfallrate {percent} %,층 실패율 {percent}%
+ui.blockInventory.cleanRoomYieldDieLossRate,Die loss rate {percent}%,Die loss rate {percent}%,ダイの損失率 {percent}%,Die-Verlustrate {percent} %,다이 손실률 {percent}%

@@ -18,10 +18,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     /// <summary>
     /// 開いているブロックのネット集約情報をキャッシュ
     /// - electric/gear/cleanRoom: 汎用ポーラー BlockInfoPoller の1秒ポーリング
+    /// - cleanRoomYield: 室内機械だけ、同じ汎用ポーラーの1秒ポーリング
     /// - machineInputStall: 機械だけ、同じ汎用ポーラーの1秒ポーリング
     /// - filter: 開時1回取得
     /// Caches network aggregates for the open block
     /// - electric/gear/cleanRoom: 1s polling through the generic BlockInfoPoller
+    /// - cleanRoomYield: interior machines only, 1s polling through the same generic poller
     /// - machineInputStall: machines only, 1s polling through the same generic poller
     /// - filter: fetched once on open
     /// </summary>
@@ -49,6 +51,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         private readonly BlockInfoPoller<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack, GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot> _electricPoller = ElectricNetworkInfoPollSource.CreatePoller();
         private readonly BlockInfoPoller<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack, GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot> _gearPoller = GearNetworkInfoPollSource.CreatePoller();
         private readonly BlockInfoPoller<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView> _cleanRoomPoller = CleanRoomInfoPollSource.CreatePoller();
+        private readonly BlockInfoPoller<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView> _cleanRoomYieldPoller = CleanRoomYieldInfoPollSource.CreatePoller();
         private readonly BlockInfoPoller<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView> _machineInputStallPoller = MachineInputStallPollSource.CreatePoller();
         private CancellationTokenSource _cts;
         private Vector3Int _currentPos = new(int.MinValue, int.MinValue, int.MinValue);
@@ -60,6 +63,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             _electricPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
             _gearPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
             _cleanRoomPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+            _cleanRoomYieldPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
             _machineInputStallPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
         }
 
@@ -68,6 +72,13 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public bool TryGetCleanRoom(out CleanRoomInfoView view)
         {
             return _cleanRoomPoller.TryGetSnapshot(out view);
+        }
+
+        // 取得済みのときだけ抽選の中身を返す。未取得と消失・読めない応答はどちらも false に畳む（読み手は欄を出さず、警告はポーラーが出す）
+        // Returns the draw details only while fetched; not fetched, vanished and unreadable all fold into false (the reader omits the section and the poller warns)
+        public bool TryGetCleanRoomYield(out CleanRoomYieldView view)
+        {
+            return _cleanRoomYieldPoller.TryGetSnapshot(out view);
         }
 
         // 取得済みのときだけ止まった理由を返す。未取得と消失・読めない応答はどちらも false に畳む（読み手は欄を出さず、警告はポーラーが出す）
@@ -100,6 +111,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // Interior machines and purifiers follow the room state while open
             if (CleanRoomTarget != CleanRoomDetailTarget.None) _cleanRoomPoller.Start(block.BlockInstanceId);
 
+            // 室内機械は選択工程の抽選の中身も、開いている間だけ追う
+            // Interior machines also follow the selected process's draw details, only while open
+            if (CleanRoomTarget == CleanRoomDetailTarget.Machine) _cleanRoomYieldPoller.Start(block.BlockInstanceId);
+
             // 機械（電気・歯車・清浄室）は、継承元のレベルで止まった理由を開いている間だけ追う
             // Machines (electric, gear, clean room) follow the source-level stall only while open
             if (param is IMachineParam) _machineInputStallPoller.Start(block.BlockInstanceId);
@@ -113,6 +128,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             _electricPoller.Stop();
             _gearPoller.Stop();
             _cleanRoomPoller.Stop();
+            _cleanRoomYieldPoller.Stop();
             _machineInputStallPoller.Stop();
             FilterSplitter = null;
             IsTrackingGear = false;

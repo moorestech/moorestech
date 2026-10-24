@@ -30,3 +30,12 @@ export const CleanRoomDetailDataSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("tooLarge"), maxRoomVolume: z.number().int().positive(), haltReason: CleanRoomHaltReasonSchema.optional() }).strict(),
   z.object({ kind: z.literal("detecting"), haltReason: CleanRoomHaltReasonSchema.optional() }).strict(),
 ]);
+
+// 室内機械の選択工程の抽選の中身。役割ごとに載る値が決まる
+// Draw details of an interior machine's selected process; each role fixes which values it carries
+const CleanRoomRateSchema = z.number().min(0).max(1);
+export const CleanRoomYieldDataSchema = z.discriminatedUnion("role", [
+  z.object({ role: z.literal("waferGrade"), maxGrade: z.number().int().positive(), promotionChance: CleanRoomRateSchema }).strict(),
+  z.object({ role: z.literal("layerExposure"), layerFailRate: CleanRoomRateSchema }).strict(),
+  z.object({ role: z.literal("dicing"), dieLossRate: CleanRoomRateSchema }).strict(),
+]);

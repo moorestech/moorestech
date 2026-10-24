@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { FluidSlotDataSchema } from "../inventory";
-import { CleanRoomDetailDataSchema } from "../cleanRoom";
+import { CleanRoomDetailDataSchema, CleanRoomYieldDataSchema } from "../cleanRoom";
 import { MachineInputStallDataSchema } from "../machineInputStall";
 
 const FLUID_GUID = "60000000-0000-4000-8000-000000000001";
@@ -69,5 +69,23 @@ describe("MachineInputStallDataSchema", () => {
     [{ reason: "mixedLevel", itemId: 12, level: 2 }, false],
   ])("%j の受理は %s", (value, expected) => {
     expect(MachineInputStallDataSchema.safeParse(value).success).toBe(expected);
+  });
+});
+
+describe("CleanRoomYieldDataSchema", () => {
+  // 役割ごとに自分の値だけを受け、割合は0〜1、グレードは1以上の整数
+  // Each role accepts only its own values; rates lie in 0..1 and the grade is an integer of at least 1
+  it.each([
+    [{ role: "waferGrade", maxGrade: 2, promotionChance: 0.9 }, true],
+    [{ role: "layerExposure", layerFailRate: 0.02 }, true],
+    [{ role: "dicing", dieLossRate: 0.03 }, true],
+    [{ role: "waferGrade", maxGrade: 2 }, false],
+    [{ role: "waferGrade", maxGrade: 0, promotionChance: 0.9 }, false],
+    [{ role: "waferGrade", maxGrade: 1.5, promotionChance: 0.9 }, false],
+    [{ role: "dicing", dieLossRate: 1.5 }, false],
+    [{ role: "dicing", dieLossRate: 0.03, layerFailRate: 0.02 }, false],
+    [{ role: "packaging" }, false],
+  ])("%j の受理は %s", (value, expected) => {
+    expect(CleanRoomYieldDataSchema.safeParse(value).success).toBe(expected);
   });
 });
