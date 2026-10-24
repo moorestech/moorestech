@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.TestTools;
+using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor.Rocket;
 using Client.Game.InGame.BlockSystem.StateProcessor.SpaceElevator;
@@ -25,7 +27,11 @@ namespace Client.Tests.Block
             _root.transform.localScale = new Vector3(2, 3, 4);
             _root.transform.rotation = Quaternion.Euler(15, 30, 20);
         }
-        [TearDown] public void Cleanup() => Object.DestroyImmediate(_root);
+        [TearDown] public void Cleanup()
+        {
+            Object.DestroyImmediate(_root);
+            _root = null;
+        }
 
         [Test]
         public void ElevatorReflectsConnectionAndReceivedProgress()
@@ -63,6 +69,13 @@ namespace Client.Tests.Block
         [UnityTest]
         public IEnumerator RocketReflectsEveryPhaseAndRisesInWorldSpace()
         {
+            // 実フレームで動かし、EditModeのdeltaTime=0に依存させない
+            // Exercise real play frames instead of relying on EditMode deltaTime
+            Cleanup();
+            EnterPlayModeUtil();
+            yield return new EnterPlayMode(expectDomainReload: true);
+            PlaytestStartGateBypass.UnattendedReason();
+            Setup();
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var block = _root.AddComponent<BlockGameObject>();
             TestReflection.SetField(block, "<BlockMasterElement>k__BackingField", MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.RocketLaunchPadId));
@@ -90,8 +103,7 @@ namespace Client.Tests.Block
             // Exercise mid-launch initialization, delayed notifications after extrapolation and forward correction
             Apply(RocketLaunchPadPhase.Launching, 0.5f);
             var middle = body.position;
-            yield return null;
-            TestReflection.InvokePrivate(processor, "Update");
+            for (var frame = 0; frame < 120 && body.position.y <= middle.y; frame++) yield return null;
             var extrapolated = body.position;
             Assert.Greater(extrapolated.y, middle.y);
             Apply(RocketLaunchPadPhase.Launching, 0.5f);
@@ -112,6 +124,8 @@ namespace Client.Tests.Block
             Assert.IsFalse(body.gameObject.activeSelf);
             Apply(RocketLaunchPadPhase.Launching, 0);
             Assert.That(Vector3.Distance(origin, body.position), Is.LessThan(0.0001f));
+            Cleanup();
+            yield return new ExitPlayMode();
 
             #region Internal
             void Apply(RocketLaunchPadPhase phase, float progress)
