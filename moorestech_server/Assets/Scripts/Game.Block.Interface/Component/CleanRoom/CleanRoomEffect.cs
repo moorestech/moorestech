@@ -6,15 +6,17 @@ namespace Game.Block.Interface.Component
     /// </summary>
     public readonly struct CleanRoomEffect
     {
-        // 密閉部屋内かつ閾値行がOutでないときのみ稼働可
-        // Operable only inside a sealed room whose threshold row is not Out
-        public readonly bool CanOperate;
+        // 密閉部屋内かつ閾値行がOutでないときだけ Operable。止まる理由も区別して持つ
+        // Operable only inside a sealed room whose row is not Out; the halt reason is kept distinct
+        public readonly CleanRoomOperability Operability;
         public readonly int MaxChipLevel;
         public readonly double DownBinRate;
 
-        public CleanRoomEffect(bool canOperate, int maxChipLevel, double downBinRate)
+        public bool CanOperate => Operability == CleanRoomOperability.Operable;
+
+        public CleanRoomEffect(CleanRoomOperability operability, int maxChipLevel, double downBinRate)
         {
-            CanOperate = canOperate;
+            Operability = operability;
             MaxChipLevel = maxChipLevel;
             DownBinRate = downBinRate;
         }

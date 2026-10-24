@@ -49,11 +49,14 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
             // CleanRoomMachineComponentは汚染判定と電力Consumerを兼ねる
             // CleanRoomMachineComponent serves both pollution reporting and the electric consumer role
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
-            var machineComponent = new CleanRoomMachineComponent(blockInstanceId, processor);
+            var operabilityState = new CleanRoomOperabilityStateComponent();
+            var machineComponent = new CleanRoomMachineComponent(blockInstanceId, processor, operabilityState);
             var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, blockInstanceId, machineComponent, componentStates);
 
             // 供給読み取り(machineComponent)を加工判定(processor)より先に更新させるため、この並び順を維持すること
             // Keep this order: the supply reader (machineComponent) must update before the processor
+            // 停止理由の状態は GetComponent<IBlockStateObservable>() の先頭一致を processor のままにするため末尾に置く
+            // The halt-reason state goes last so GetComponent<IBlockStateObservable>() still returns the processor first
             var components = new List<IBlockComponent>
             {
                 blockInventory,
@@ -63,6 +66,7 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
                 inputConnectorComponent,
                 wireConnector,
                 new MachineRecipeBlueprintSettingsComponent(processor),
+                operabilityState,
             };
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

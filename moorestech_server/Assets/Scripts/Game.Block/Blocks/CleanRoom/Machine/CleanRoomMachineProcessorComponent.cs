@@ -42,7 +42,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         // The chip draw is applied when outputs are realized; the decorator owns the draw counter as well
         private readonly CleanRoomChipDrawDecorator _chipDrawDecorator;
 
-        private CleanRoomEffect _cleanRoomEffect = new(false, 0, 0);
+        private CleanRoomEffect _cleanRoomEffect = new(CleanRoomOperability.NotEnclosed, 0, 0);
         private ProcessState _lastState = ProcessState.Idle;
 
         public CleanRoomMachineProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)

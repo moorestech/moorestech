@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -30,18 +29,25 @@ namespace Game.CleanRoom
             {
                 if (entry.Machine.IsDestroy) continue;
 
-                // 部屋未検出またはOut行なら、機械へ最悪効果を押し込んで停止させる
-                // If no room is found or the room is Out, push the worst effect so the machine halts
-                if (!tryGetRoom(entry.Block, out var room) || MasterHolder.CleanRoomMaster.OutThresholdIndex <= room.ThresholdIndex)
+                // 部屋未検出なら未密閉として最悪効果を押し込み停止させる
+                // Without a detected room, push the worst effect as not enclosed so the machine halts
+                if (!tryGetRoom(entry.Block, out var room))
                 {
-                    entry.Machine.SetCleanRoomEffect(new CleanRoomEffect(false, 0, 0));
+                    entry.Machine.SetCleanRoomEffect(new CleanRoomEffect(CleanRoomOperability.NotEnclosed, 0, 0));
+                    continue;
+                }
+
+                // 部屋はあるがOut行なら、クラス不足として停止させる
+                // A room on the Out row halts the machine for an insufficient class
+                if (!room.TryGetClassRow(out var row))
+                {
+                    entry.Machine.SetCleanRoomEffect(new CleanRoomEffect(CleanRoomOperability.ClassOut, 0, 0));
                     continue;
                 }
 
                 // 非Out行のマスタ効果だけを稼働許可として機械へ渡す
                 // Only non-Out threshold master effects grant machine operation
-                var row = MasterHolder.CleanRoomMaster.Thresholds[room.ThresholdIndex];
-                entry.Machine.SetCleanRoomEffect(new CleanRoomEffect(true, row.MaxChipLevel, row.DownBinRate));
+                entry.Machine.SetCleanRoomEffect(new CleanRoomEffect(CleanRoomOperability.Operable, row.MaxChipLevel, row.DownBinRate));
             }
         }
     }

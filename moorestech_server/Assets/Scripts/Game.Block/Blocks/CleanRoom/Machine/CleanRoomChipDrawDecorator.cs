@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public uint CycleCount { get; private set; }
 
         private readonly BlockInstanceId _blockInstanceId;
-        private CleanRoomEffect _cleanRoomEffect = new(false, 0, 0);
+        private CleanRoomEffect _cleanRoomEffect = new(CleanRoomOperability.NotEnclosed, 0, 0);
 
         public CleanRoomChipDrawDecorator(BlockInstanceId blockInstanceId, uint cycleCount)
         {
