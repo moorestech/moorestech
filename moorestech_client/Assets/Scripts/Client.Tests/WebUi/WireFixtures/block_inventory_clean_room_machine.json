@@ -1,0 +1,20 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "CleanRoomMachine",
+  "identifier": "(3, 33, 3)",
+  "blockGuid": "44444444-4444-4444-8444-444444444444",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "cleanRoom": {
+    "kind": "enclosed",
+    "room": {
+      "headline": "classOut",
+      "concentration": 1.5,
+      "airChangeRate": 0.25,
+      "volume": 74,
+      "airFilters": [ { "x": 1, "y": 33, "z": 5, "powerRatio": 1.0, "filterItemCount": 5, "filterRemainingRatio": 0.5 } ]
+    },
+    "haltReason": "classOut"
+  }
+}

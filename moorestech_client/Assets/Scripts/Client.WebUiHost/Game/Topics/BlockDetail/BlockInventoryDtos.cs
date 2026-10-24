@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.WebUiHost.Game.Topics.BlockDetail;
+using Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -34,6 +35,7 @@ namespace Client.WebUiHost.Game.Topics
         public TrainTimetableStateDto Timetable;
         public TrainStationDetailDto TrainStation;
         public BeltThroughputDetailDto BeltThroughput;
+        public CleanRoomDetailDto CleanRoom;
     }
 
     public class BlockItemSlotDto

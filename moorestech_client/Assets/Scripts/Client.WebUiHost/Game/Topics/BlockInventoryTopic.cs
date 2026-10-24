@@ -38,6 +38,7 @@ namespace Client.WebUiHost.Game.Topics
         private readonly BlockNetworkInfoCache _networkCache = new();
         private readonly IDisposable _subInventorySubscription;
         private readonly IDisposable _continuousSampleSubscription;
+        private readonly IDisposable _networkCacheSubscription;
         private BlockGameObject _trackedBlock;
         private IDisposable _blockStateSubscription;
         private bool _publishScheduled;
@@ -72,7 +73,7 @@ namespace Client.WebUiHost.Game.Topics
             _subInventorySubscription = _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => SchedulePublish());
             // ネットワーク取得完了でも再配信する
             // Republish when a network fetch completes
-            _networkCache.OnUpdated += SchedulePublish;
+            _networkCacheSubscription = _networkCache.OnUpdated.Subscribe(_ => SchedulePublish());
             // ギア連続値を4tick間隔で配信する
             // Sample RPM/torque and other continuous values every four ticks, publishing only the latest state
             _continuousSampleSubscription = Observable.IntervalFrame(4)
@@ -92,7 +93,7 @@ namespace Client.WebUiHost.Game.Topics
             _beltWindowSubscription.Dispose();
             _trainTimetableSubscription.Dispose();
             _openTrainTimetableTracker.Dispose();
-            _networkCache.OnUpdated -= SchedulePublish;
+            _networkCacheSubscription.Dispose();
             TrackBlock(null);
         }
         private void OnStateChanged(UIStateEnum state)
@@ -184,15 +185,11 @@ namespace Client.WebUiHost.Game.Topics
             _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 eventTag,
                 _ => OnTrackedBlockStateChanged());
-            // ネットワーク所属はマスタの接続paramが答える。blockTypeの列挙は新種別を取りこぼす
-            // The master's connection params answer which networks a block joins; enumerating blockTypes drops new kinds
-            var param = block.BlockMasterElement.BlockParam;
-            var electric = param is IElectricWireConnectParam;
-            var gear = param is IGearConnectors;
-            _sampleContinuously = gear;
-            _republishOnBeltWindow = param is IBeltSpeedParam;
-            var filterSplitter = block.BlockMasterElement.BlockType == "FilterSplitter";
-            _networkCache.Track(block, electric, gear, filterSplitter);
+            // どの集約情報を追うかはキャッシュが param から決め、歯車網の追跡有無もキャッシュから読む
+            // The cache decides from the param which aggregates to follow, and whether gear is tracked is read back from it
+            _networkCache.Track(block);
+            _sampleContinuously = _networkCache.IsTrackingGear;
+            _republishOnBeltWindow = block.BlockMasterElement.BlockParam is IBeltSpeedParam;
         }
     }
 }

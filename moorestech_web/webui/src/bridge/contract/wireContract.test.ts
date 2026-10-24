@@ -135,6 +135,8 @@ describe("block detail fixtures", () => {
     "block_inventory_train_fluid_platform.json",
     "block_inventory_electric_pole.json",
     "block_inventory_gear_belt_conveyor.json",
+    "block_inventory_clean_room_machine.json",
+    "block_inventory_clean_room_air_filter_leak.json",
   ];
   for (const file of cases) {
     it(`accepts ${file} and types it as open`, () => {
