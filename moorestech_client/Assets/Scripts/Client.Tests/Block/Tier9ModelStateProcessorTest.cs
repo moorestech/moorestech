@@ -67,6 +67,7 @@ namespace Client.Tests.Block
         }
 
         [UnityTest]
+        [Category("CiShardClientPlay3")]
         public IEnumerator RocketReflectsEveryPhaseAndRisesInWorldSpace()
         {
             // 実フレームで動かし、EditModeのdeltaTime=0に依存させない
