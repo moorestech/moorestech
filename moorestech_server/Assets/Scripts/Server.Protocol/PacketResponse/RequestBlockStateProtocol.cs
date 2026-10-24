@@ -9,7 +9,8 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    // ブロックのステートをリクエストする。返答は直接返すのではなく、通常と同様のイベントを経由して返す
+    // ブロックのステートをリクエストする。返答は直接返さず、そのtick末尾のブロック状態の束に載せて返す
+    // Requests a block's state; the reply is not returned directly but rides on this tick's block-state bundle
     public class RequestBlockStateProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:requestBlockState";

@@ -41,15 +41,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             changeBlockStateEventPacket.ChangeState((blockState, blockData));
             changeBlockStateEventPacket.ChangeState((blockState, blockData));
+            changeBlockStateEventPacket.BroadcastPendingStates();
 
-            var events = sink.TakeAll();
-            Assert.AreEqual(1, events.Count, "同一ペイロードなら1回のみ積まれるべき");
+            var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
+            Assert.AreEqual(1, states.Count, "同一ペイロードなら1件のみ載るべき");
         }
 
         [Test]
-        // ペイロードが変化した場合は2回とも積まれる
-        // Both calls are queued when the payload actually differs
-        public void ChangedPayloadIsBroadcastEachTimeTest()
+        // 同じtick内でペイロードが2回変わったら、後の状態の1件だけが載る
+        // When the payload changes twice within one tick, only the later state is bundled
+        public void ChangedPayloadWithinOneTickKeepsLatestTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
@@ -70,9 +71,43 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             changeBlockStateEventPacket.ChangeState((firstState, blockData));
             changeBlockStateEventPacket.ChangeState((secondState, blockData));
+            changeBlockStateEventPacket.BroadcastPendingStates();
+
+            var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
+            Assert.AreEqual(1, states.Count, "同じtick内の2回の変化は1件に畳まれるべき");
+            Assert.AreEqual(2, states[0].CurrentStateDetail["dummy"][0], "後の状態が残るべき");
+        }
+
+        [Test]
+        // 送信を挟んでペイロードが変わったら、それぞれのtickの束に載る
+        // When the payload changes across a broadcast, each tick's bundle carries it
+        public void ChangedPayloadAcrossTicksIsBroadcastEachTimeTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
+
+            var pos = new Vector3Int(6, 0, 6);
+            world.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var blockData = world.GetOriginPosBlock(pos);
+
+            var playerId = 1;
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
+            // キューをクリア
+            // Clear the event queue
+            sink.TakeAll();
+
+            var firstState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } });
+            var secondState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 2 } });
+
+            changeBlockStateEventPacket.ChangeState((firstState, blockData));
+            changeBlockStateEventPacket.BroadcastPendingStates();
+            changeBlockStateEventPacket.ChangeState((secondState, blockData));
+            changeBlockStateEventPacket.BroadcastPendingStates();
 
             var events = sink.TakeAll();
-            Assert.AreEqual(2, events.Count, "ペイロードが変化したら2回とも積まれるべき");
+            Assert.AreEqual(2, events.Count, "tickごとに束が1件ずつ送られるべき");
+            Assert.AreEqual(2, EventTestUtil.ExtractBlockStates(events).Count, "両方の状態が載るべき");
         }
 
         [Test]
@@ -96,10 +131,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             sink.TakeAll();
 
             changeBlockStateEventPacket.ForceChangeState((blockState, blockData));
+            changeBlockStateEventPacket.BroadcastPendingStates();
             changeBlockStateEventPacket.ForceChangeState((blockState, blockData));
+            changeBlockStateEventPacket.BroadcastPendingStates();
 
-            var events = sink.TakeAll();
-            Assert.AreEqual(2, events.Count, "強制送信経路は同一ペイロードでも必ず積まれるべき");
+            var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
+            Assert.AreEqual(2, states.Count, "強制送信経路は同一ペイロードでも毎回載るべき");
         }
 
         [Test]
@@ -119,6 +156,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // 前回ペイロードとして記録させる
             // Record the payload as the previously broadcast one
             changeBlockStateEventPacket.ChangeState((blockState, blockData));
+            changeBlockStateEventPacket.BroadcastPendingStates();
 
             var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
@@ -131,9 +169,10 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var request = new RequestBlockStateProtocolMessagePack(pos);
             var payload = MessagePackSerializer.Serialize(request);
             packet.GetPacketResponse(payload, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(playerId));
+            changeBlockStateEventPacket.BroadcastPendingStates();
 
-            var events = sink.TakeAll();
-            Assert.AreEqual(1, events.Count, "変化がなくてもpull経路では必ず1件積まれるべき");
+            var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
+            Assert.AreEqual(1, states.Count, "変化がなくてもpull経路では必ず1件載るべき");
         }
 
         [Test]
@@ -180,11 +219,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // (6) 再設置ブロックのstateでChangeState（既定状態がstale値と一致するケースを模す）
             // (6) ChangeState with the re-placed block's state (mirrors a default state matching the stale value)
             changeBlockStateEventPacket.ChangeState((sharedState, secondBlockData));
+            changeBlockStateEventPacket.BroadcastPendingStates();
 
             // (7) staleエントリの掃除により必ず1件積まれるべき
             // (7) Must queue exactly once thanks to the stale-entry cleanup
-            var events = sink.TakeAll();
-            Assert.AreEqual(1, events.Count, "再設置後の初回送信は必ず積まれるべき");
+            var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
+            Assert.AreEqual(1, states.Count, "再設置後の初回送信は必ず載るべき");
         }
     }
 }
