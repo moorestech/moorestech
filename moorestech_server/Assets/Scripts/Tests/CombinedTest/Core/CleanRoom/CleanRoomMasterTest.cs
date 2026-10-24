@@ -154,6 +154,22 @@ namespace Tests.CombinedTest.Core.CleanRoom
             StringAssert.Contains($"WaferGradeDraws MachineRecipeGuid:{ForUnitTestLevelInheritanceIds.InheritRecipeGuid} must use levelInheritance None", errorLogs);
         }
         [Test]
+        public void RoleChanceRequiresFiniteUnitIntervalTest(
+            [Values("waferGradeDraws", "layerExposures", "dicings")] string role,
+            [Values(float.NaN, float.PositiveInfinity, float.NegativeInfinity, 0f, 1f)] float value)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var json = JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
+            var key = role == "waferGradeDraws" ? "maxPromotionChance" : role == "layerExposures" ? "maxFailReduction" : "maxLossReduction";
+            // JSONモデル境界で非有限値と正常な両端を検証する
+            // Validate non-finite values and both valid endpoints at the JSON model boundary
+            json["data"][0][role][0][key] = value;
+            var valid = new CleanRoomMaster(json).Validate(out var logs);
+            Assert.AreEqual(!float.IsNaN(value) && !float.IsInfinity(value), valid, logs);
+            if (!valid) StringAssert.Contains(char.ToUpperInvariant(key[0]) + key.Substring(1), logs);
+        }
+
+        [Test]
         public void DicingCapacityMultiplicationCannotOverflowTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

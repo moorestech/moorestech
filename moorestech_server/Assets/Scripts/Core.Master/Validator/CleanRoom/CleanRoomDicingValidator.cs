@@ -28,7 +28,7 @@ namespace Core.Master.Validator
                 logs += CleanRoomRoleRecipeChecks.ValidateGradeInheritingRole(RoleName, recipe, dicing.DieItemGuid, out var gradeCount, out var dieLevelCount);
                 if (gradeCount is int waferGradeCount && dicing.GradeDieTables.Length != waferGradeCount) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} has {dicing.GradeDieTables.Length} grade tables for {waferGradeCount} wafer grades\n";
                 if (dicing.DiesPerWafer < 1) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} DiesPerWafer:{dicing.DiesPerWafer} must be >= 1\n";
-                if (dicing.MaxLossReduction < 0f || 1f < dicing.MaxLossReduction) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} MaxLossReduction:{dicing.MaxLossReduction} is out of [0,1]\n";
+                if (float.IsNaN(dicing.MaxLossReduction) || float.IsInfinity(dicing.MaxLossReduction) || dicing.MaxLossReduction < 0f || 1f < dicing.MaxLossReduction) logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid} MaxLossReduction:{dicing.MaxLossReduction} must be finite and in [0,1]\n";
 
                 // ダイのレベル数が引けたときだけ表の形と出力の並びを見る（引けない理由は上でログ済み）
                 // Check the table shape and output layout only when the die level count resolves (the reason it did not is already logged above)

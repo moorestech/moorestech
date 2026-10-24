@@ -40,6 +40,32 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         }
 
         [Test]
+        public void NonFiniteClassValuesAreRejectedTest([Values(float.NaN, float.PositiveInfinity, float.NegativeInfinity)] float value)
+        {
+            // 各入力を独立に壊し、他の値で拒否されていないことを確かめる
+            // Corrupt each input independently so another invalid field cannot mask acceptance
+            StringAssert.Contains("QualityMultiplier", CleanRoomYieldTableRules.ValidateClassRows(new[] { ("A", value, 0f, 0f) }));
+            StringAssert.Contains("LayerFailRate", CleanRoomYieldTableRules.ValidateClassRows(new[] { ("A", 1f, value, 0f) }));
+            StringAssert.Contains("DieLossRate", CleanRoomYieldTableRules.ValidateClassRows(new[] { ("A", 1f, 0f, value) }));
+        }
+
+        [Test]
+        public void FiniteBoundaryValuesAreAcceptedTest([Values(0f, 1f)] float value)
+        {
+            Assert.AreEqual("", CleanRoomYieldTableRules.ValidateClassRows(new[] { ("A", value, value, value) }));
+            Assert.AreEqual("", CleanRoomYieldTableRules.ValidateDieTables("Dicings", new[] { new[] { 1f }, new[] { 1f - value, value } }, 2));
+        }
+
+        [Test]
+        public void NonFiniteDieRateIsRejectedTest([Values(float.NaN, float.PositiveInfinity, float.NegativeInfinity)] float value)
+        {
+            var tables = new[] { new[] { 1f }, new[] { value, 0f } };
+            var logs = CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 2);
+            StringAssert.Contains("GradeDieTables[1] LevelRates", logs);
+            StringAssert.Contains(value.ToString(), logs);
+        }
+
+        [Test]
         public void ContractDieTablesAreValidTest()
         {
             var tables = new[]

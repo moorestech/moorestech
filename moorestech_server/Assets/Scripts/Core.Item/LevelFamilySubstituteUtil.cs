@@ -20,6 +20,10 @@ namespace Core.Item
         // The 1-based level when the item can serve the requirement, otherwise null
         public static int? ResolveAcceptedLevel(ItemId requiredItemId, ItemId itemId)
         {
+            // 単独品と特定変種は列挙せず厳密一致する
+            // Match standalone items and specific variants without allocating an array
+            if (!MasterHolder.ItemMaster.HasLevelFamily(requiredItemId)) return requiredItemId == itemId ? 1 : null;
+
             var accepted = GetAcceptedItemIds(requiredItemId);
             for (var i = 0; i < accepted.Count; i++)
             {

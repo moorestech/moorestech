@@ -32,9 +32,9 @@ namespace Core.Master.Validator
                     && recipe.OutputItems[0].ItemGuid == exposure.LayeredWaferItemGuid
                     && recipe.OutputItems[1].ItemGuid == exposure.FailedWaferItemGuid
                     && recipe.OutputItems[0].Count == recipe.OutputItems[1].Count, exposure.MachineRecipeGuid);
-                if (exposure.MaxFailReduction < 0f || 1f < exposure.MaxFailReduction)
+                if (float.IsNaN(exposure.MaxFailReduction) || float.IsInfinity(exposure.MaxFailReduction) || exposure.MaxFailReduction < 0f || 1f < exposure.MaxFailReduction)
                 {
-                    logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{exposure.MachineRecipeGuid} MaxFailReduction:{exposure.MaxFailReduction} is out of [0,1]\n";
+                    logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{exposure.MachineRecipeGuid} MaxFailReduction:{exposure.MaxFailReduction} must be finite and in [0,1]\n";
                 }
             }
             return logs;

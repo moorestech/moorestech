@@ -16,9 +16,9 @@ namespace Core.Master.Validator
             for (var i = 0; i < rows.Count; i++)
             {
                 var row = rows[i];
-                if (row.qualityMultiplier < 0f) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} QualityMultiplier:{row.qualityMultiplier} must be >= 0\n";
-                if (row.layerFailRate < 0f || 1f < row.layerFailRate) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} LayerFailRate:{row.layerFailRate} is out of [0,1]\n";
-                if (row.dieLossRate < 0f || 1f < row.dieLossRate) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} DieLossRate:{row.dieLossRate} is out of [0,1]\n";
+                if (float.IsNaN(row.qualityMultiplier) || float.IsInfinity(row.qualityMultiplier) || row.qualityMultiplier < 0f) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} QualityMultiplier:{row.qualityMultiplier} must be finite and >= 0\n";
+                if (float.IsNaN(row.layerFailRate) || float.IsInfinity(row.layerFailRate) || row.layerFailRate < 0f || 1f < row.layerFailRate) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} LayerFailRate:{row.layerFailRate} must be finite and in [0,1]\n";
+                if (float.IsNaN(row.dieLossRate) || float.IsInfinity(row.dieLossRate) || row.dieLossRate < 0f || 1f < row.dieLossRate) logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{row.className} DieLossRate:{row.dieLossRate} must be finite and in [0,1]\n";
                 if (i == 0) continue;
 
                 var better = rows[i - 1];
@@ -47,6 +47,11 @@ namespace Core.Master.Validator
                 var sum = 0f;
                 foreach (var rate in rates)
                 {
+                    if (float.IsNaN(rate) || float.IsInfinity(rate))
+                    {
+                        logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] LevelRates contains non-finite value {rate}\n";
+                        continue;
+                    }
                     if (rate < 0f) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] has a negative rate {rate}\n";
                     sum += rate;
                 }

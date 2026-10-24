@@ -30,9 +30,9 @@ namespace Core.Master.Validator
                 // The graded wafer appears once among the outputs and carries its grades as a level family
                 logs += CleanRoomRoleRecipeChecks.RequireSingleOutput(RoleName, recipe, draw.GradedWaferItemGuid);
                 logs += CleanRoomRoleRecipeChecks.RequireFamilyBase(RoleName, draw.MachineRecipeGuid, draw.GradedWaferItemGuid, out _);
-                if (draw.MaxPromotionChance < 0f || 1f < draw.MaxPromotionChance)
+                if (float.IsNaN(draw.MaxPromotionChance) || float.IsInfinity(draw.MaxPromotionChance) || draw.MaxPromotionChance < 0f || 1f < draw.MaxPromotionChance)
                 {
-                    logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{draw.MachineRecipeGuid} MaxPromotionChance:{draw.MaxPromotionChance} is out of [0,1]\n";
+                    logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{draw.MachineRecipeGuid} MaxPromotionChance:{draw.MaxPromotionChance} must be finite and in [0,1]\n";
                 }
             }
             return logs;
