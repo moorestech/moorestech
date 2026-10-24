@@ -1020,6 +1020,8 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         properties:
+        - key: maxItemsPerSecond
+          type: number
         - key: inventoryConnectors
           ref: inventoryConnects
       - when: CleanRoomPipeHatch

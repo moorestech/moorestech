@@ -5009,7 +5009,8 @@
               "connectorGuid": "22c61d79-fe65-4481-b957-cf6181686291"
             }
           ]
-        }
+        },
+        "maxItemsPerSecond": 20
       },
       "blockSize": [
         1,

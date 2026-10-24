@@ -23,6 +23,7 @@ namespace Core.Master.Validator
             errorLogs += ExtractionSettingsValidator.Validate(blocks);
             errorLogs += BeltConveyorFamilyValidator.Validate(blocks);
             errorLogs += BeltSpeedPerSecondValidator.Validate(blocks);
+            errorLogs += CleanRoomItemHatchThroughputValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
