@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
+using Core.Master;
 using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface.MachineUpgrade;
@@ -19,6 +20,11 @@ namespace Game.Block.Blocks.Machine.State
         // 進行中ジョブの継承レベル。継承レシピ以外とジョブ無しは null（返却とセーブが使う）
         // Inherited level of the running job; null for non-inheritance recipes or no job (used by refunds and saves)
         public int? InheritedLevel { get; private set; }
+
+        // 開始時に消費した入力の実品ID（返却用）。セーブから復元したジョブは null
+        // Item ids of the inputs consumed at start (for refunds); null for a job restored from a save
+        public IReadOnlyList<ItemId> ConsumedInputItemIds => _consumedInputItemIds;
+        private List<ItemId> _consumedInputItemIds;
 
         public ProcessState State => ProcessState.Processing;
         private readonly MachineProcessContext _context;
@@ -76,6 +82,10 @@ namespace Game.Block.Blocks.Machine.State
         // Consume inputs and set remaining ticks on start
         public void OnEnter()
         {
+            // 消費する前に各入力スロットの実品IDを控える
+            // Record each input slot's real item id before consuming
+            _consumedInputItemIds = new List<ItemId>();
+            for (var i = 0; i < CurrentRecipe.InputItems.Length; i++) _consumedInputItemIds.Add(_context.InputInventory.InputSlot[i].Id);
             _context.InputInventory.ReduceInputSlot(CurrentRecipe);
             RemainingTicks = TotalTicks;
         }
@@ -144,6 +154,7 @@ namespace Game.Block.Blocks.Machine.State
         {
             _pendingOutputs = null;
             CurrentRecipe = null;
+            _consumedInputItemIds = null;
             InheritedLevel = null;
             TotalTicks = 0;
             RemainingTicks = 0;

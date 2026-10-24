@@ -34,11 +34,9 @@ namespace Game.Block.Blocks.Machine.State
             // 選択レシピが無ければ加工しない（レシピ選択必須）
             // Never process without a selected recipe (selection is mandatory)
             var recipe = _context.SelectedRecipe;
-            if (recipe == null || !_context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel))
-            {
-                _pendingRealization = null;
-                return ProcessState.Idle;
-            }
+            // 入力が欠けても確定済みの抽選は捨てない（出し入れで引き直せないように）。レシピと継承レベルの組が変われば下で確定し直す
+            // Keep the fixed draw when inputs go missing (so taking items out and back cannot re-roll); a changed recipe/level pair is realized anew below
+            if (recipe == null || !_context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel)) return ProcessState.Idle;
 
             // レシピか継承レベルが変わったときだけ新規に確定する。同じ組で待機している間は既存の確定結果を使い回す
             // Realize anew only when the recipe or inherited level changed; while waiting on the same pair, reuse the result

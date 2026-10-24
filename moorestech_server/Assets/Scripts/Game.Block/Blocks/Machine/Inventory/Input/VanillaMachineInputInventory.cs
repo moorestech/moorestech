@@ -70,8 +70,13 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 
         public BlockId BlockId => _blockId;
 
+        // 直前に警告した (レシピ, スロット, 理由)。同じ組の警告を毎tick出さないための記録
+        // The last warned (recipe, slot, reason); avoids repeating the same warning every tick
+        private (Guid recipe, int slot, MachineSlotPlacementCheck reason)? _lastNotReadyWarning;
+
         internal void SetBoundRecipe(MachineRecipeMasterElement recipe)
         {
+            _lastNotReadyWarning = null;
             _slotBinding.SetRecipe(recipe);
             _blockInflow.ClearRefusal();
         }
@@ -96,9 +101,12 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             {
                 var placement = _slotBinding.CheckPlacement(slot, InputSlot[slot]);
                 if (placement == MachineSlotPlacementCheck.Allowed) continue;
-                UnityEngine.Debug.LogWarning($"Machine input is not ready: recipe={recipe.MachineRecipeGuid} slot={slot} reason={placement}");
+                var warning = (recipe.MachineRecipeGuid, slot, placement);
+                if (_lastNotReadyWarning != warning) UnityEngine.Debug.LogWarning($"Machine input is not ready: recipe={recipe.MachineRecipeGuid} slot={slot} reason={placement}");
+                _lastNotReadyWarning = warning;
                 return false;
             }
+            _lastNotReadyWarning = null;
             if (MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape))
                 inheritedLevel = shape.ResolveSourceLevel(InputSlot[shape.SourceInputIndex].Id);
             return true;

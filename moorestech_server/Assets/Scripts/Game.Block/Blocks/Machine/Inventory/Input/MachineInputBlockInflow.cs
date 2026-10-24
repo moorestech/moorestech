@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             // 継承元のレベルで断った残りだけを、理由と時刻つきで覚える
             // Remember only a remainder refused on the source level, with its reason and tick
             var remainder = remainders[0];
-            if (remainder.Count < itemStack.Count) _latestRefusalTick = null;
+            if (_refusedStack != null && remainder.Count < itemStack.Count && itemStack.Id == _refusedStack.Id) _latestRefusalTick = null;
             // silent-ok: 束縛外の品・同じレベルの満杯は従来どおり残りを返すだけ / 品は搬入元（ベルト・チェスト）に残り、プレイヤーが見て気づく
             if (remainder.Count == 0 || !TryClassifyLevelRefusal(remainder, out var reason)) return remainder;
             _latestRefusal = new MachineInputLevelStall(reason, remainder.Id);

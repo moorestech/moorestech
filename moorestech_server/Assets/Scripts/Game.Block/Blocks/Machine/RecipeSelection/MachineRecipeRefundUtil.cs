@@ -20,7 +20,9 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
     {
         // 返却対象のアイテム材料を生成する（isRemainは消費されていないため対象外）。継承元は投入時のレベルで返す
         // Build the item stacks to refund (isRemain inputs are not consumed, so excluded); the source returns at its input level
-        public static List<IItemStack> CreateRefundStacks(MachineRecipeMasterElement recipe, int? inheritedLevel)
+        // 消費した実品の控えがあればそのIDで返す。セーブから復元したジョブは控えが無く基準品で返すため警告する
+        // Refund with the recorded consumed item ids when present; a job restored from a save has none and refunds the base item, so warn
+        public static List<IItemStack> CreateRefundStacks(MachineRecipeMasterElement recipe, int? inheritedLevel, IReadOnlyList<ItemId> consumedInputItemIds)
         {
             var stacks = new List<IItemStack>();
             for (var i = 0; i < recipe.InputItems.Length; i++)
@@ -28,6 +30,8 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
                 var input = recipe.InputItems[i];
                 if (input.IsRemain.HasValue && input.IsRemain.Value) continue;
                 var itemId = MachineRecipeLevelInheritanceUtil.ResolveInputItemId(recipe, i, inheritedLevel);
+                if (consumedInputItemIds != null) itemId = consumedInputItemIds[i];
+                else UnityEngine.Debug.LogWarning($"復元ジョブのため消費した変種が不明で基準品で返却した recipe={recipe.MachineRecipeGuid} slot={i}");
                 stacks.Add(ServerContext.ItemStackFactory.Create(itemId, input.Count));
             }
             return stacks;

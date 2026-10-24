@@ -124,7 +124,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            return CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _yieldDrawDecorator.CycleCount, _context.SelectedRecipe);
+            // 待機中の確定済み抽選は保存しないので、その抽選の前の値を書く。ロード後の最初の確定が同じシードで引く
+            // The idle pending draw is not saved, so save the count from before that draw; the first realization after load then uses the same seed
+            var cycleCount = _yieldDrawDecorator.CycleCount;
+            if (_idleState.TryGetPendingRealization(out var pending) && pending.DrawRecord != null) cycleCount--;
+            return CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, cycleCount, _context.SelectedRecipe);
         }
 
         public void Update()

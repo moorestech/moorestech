@@ -118,7 +118,7 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
         }
 
         [Test]
-        public void RecipeChangeRefundsBaseLevelTest()
+        public void RecipeChangeRefundsConsumedVariantTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
@@ -128,12 +128,12 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             AdvanceTicksWithFullPower(2, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
-            // 加工中の返却は要求アイテム（基準）で戻る。どの変種を使ったかは保存しない
-            // A mid-process refund returns the required item (the base); which variant was used is not saved (refunds go to input slots first, then overflow, so count both)
+            // 加工中の返却は消費した実品（投入した変種）で戻る
+            // A mid-process refund returns the consumed variant that was inserted (refunds go to input slots first, then overflow, so count both)
             var overflow = CreateOverflow(10);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, processor.ClearSelectedRecipe(overflow));
-            Assert.AreEqual(2, CountItem(inventory, 0, InputSlotCount, ForUnitTestLevelInheritanceIds.Source(1)) + CountItem(overflow, 0, 10, ForUnitTestLevelInheritanceIds.Source(1)));
-            Assert.AreEqual(0, CountItem(inventory, 0, InputSlotCount, ForUnitTestLevelInheritanceIds.Source(2)) + CountItem(overflow, 0, 10, ForUnitTestLevelInheritanceIds.Source(2)));
+            Assert.AreEqual(2, CountItem(inventory, 0, InputSlotCount, ForUnitTestLevelInheritanceIds.Source(2)) + CountItem(overflow, 0, 10, ForUnitTestLevelInheritanceIds.Source(2)));
+            Assert.AreEqual(0, CountItem(inventory, 0, InputSlotCount, ForUnitTestLevelInheritanceIds.Source(1)) + CountItem(overflow, 0, 10, ForUnitTestLevelInheritanceIds.Source(1)));
         }
 
         [Test]

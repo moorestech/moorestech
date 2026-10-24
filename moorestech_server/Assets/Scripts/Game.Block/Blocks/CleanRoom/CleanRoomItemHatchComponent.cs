@@ -56,6 +56,10 @@ namespace Game.Block.Blocks.CleanRoom
             for (var i = 0; i < TransitSlotCount && i < itemJsons.Count; i++) _transitSlots[i] = itemJsons[i].ToItemStack();
         }
 
+        // 次に押し出しを始める中継スロット。セーブしない（ロード後は0から）
+        // The transit slot to start pushing from next; not saved (starts at 0 after load)
+        private int _nextPushSlot;
+
         public void Update()
         {
             CheckDestroy(this);
@@ -67,8 +71,12 @@ namespace Game.Block.Blocks.CleanRoom
             // 枠の範囲で中継スロットを接続先へ押し出し、押し出せた個数を数える
             // Push transit slots to connected targets within the allowance, counting items actually moved
             var pushedThisTick = 0;
-            for (var i = 0; i < TransitSlotCount; i++)
+            var nextStartSlot = _nextPushSlot;
+            for (var k = 0; k < TransitSlotCount; k++)
             {
+                // 押し出しの開始位置を回し、先頭スロットの再充填で後ろのスロットが飢えないようにする
+                // Rotate the push start so refilling the first slot never starves the later ones
+                var i = (_nextPushSlot + k) % TransitSlotCount;
                 var allowedCount = (int)Math.Floor(_pushAllowance + AllowanceFloorTolerance);
                 // silent-ok: 枠を超えた分は中継スロットに残り、満杯なら InsertItem が差し戻してベルトの出口で待つ（搬送量の上限そのもの） / プレイヤーがハッチ手前の詰まりと搬送の頭打ちで気づく
                 if (allowedCount <= 0) break;
@@ -79,7 +87,9 @@ namespace Game.Block.Blocks.CleanRoom
                 _transitSlots[i] = before.SubItem(pushedCount);
                 _pushAllowance -= pushedCount;
                 pushedThisTick += pushedCount;
+                if (0 < pushedCount) nextStartSlot = (i + 1) % TransitSlotCount;
             }
+            _nextPushSlot = nextStartSlot;
 
             // リング窓を1tick進め、最古の記録を今tickの実績で置き換える
             // Advance the ring window one tick, replacing the oldest record with this tick's count
