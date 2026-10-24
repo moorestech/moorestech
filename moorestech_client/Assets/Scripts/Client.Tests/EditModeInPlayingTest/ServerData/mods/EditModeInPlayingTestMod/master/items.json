@@ -592,5 +592,13 @@
         }
     ],
     "equipmentSlotCount": 3,
-    "initialEquipmentItems": []
+    "initialEquipmentItems": [],
+    "moduleSlotStackLimitLevels": [
+        {
+            "stackLimit": 3
+        },
+        {
+            "stackLimit": 6
+        }
+    ]
 }

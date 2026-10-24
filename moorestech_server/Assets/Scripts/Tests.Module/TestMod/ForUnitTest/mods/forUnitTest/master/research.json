@@ -258,6 +258,34 @@
       },
       "consumeItems": [],
       "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000002",
+      "researchNodeName": "Test Module Slot Stack Level 1",
+      "researchNodeDescription": "unlockModuleSlotStackLevel coverage (Part C)",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockModuleSlotStackLevel",
+          "gameActionParam": {
+            "level": 1
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [],
+      "prevResearchNodeGuids": []
     }
   ]
 }

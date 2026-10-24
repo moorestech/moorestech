@@ -33,6 +33,7 @@ namespace Client.Tests.WebUi.Research
             GameActionElement.GameActionTypeConst.unlockItemStackLevel,
             GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel,
             GameActionElement.GameActionTypeConst.unlockBlueprint,
+            GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel,
             GameActionElement.GameActionTypeConst.playSkit,
             GameActionElement.GameActionTypeConst.playBackgroundSkit,
         };

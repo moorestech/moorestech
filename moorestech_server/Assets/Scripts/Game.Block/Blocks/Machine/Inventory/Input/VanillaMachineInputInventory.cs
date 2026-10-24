@@ -73,6 +73,10 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return _slotBinding.CheckPlacement(localSlot, itemStack);
         }
 
+        // 入力・出力スロットはアイテムの最大スタックだけで決まる
+        // Input and output slots are bounded only by the item's max stack
+        public int GetSlotStackLimit() => int.MaxValue;
+
         public bool IsAllowedToStartProcess(MachineRecipeMasterElement recipe)
         {
             // 選択済みレシピの材料充足のみを確認する（レシピ探索は行わない）

@@ -141,6 +141,14 @@ properties:
     properties:
     - key: slotCount
       type: integer
+- key: moduleSlotStackLimitLevels
+  type: array
+  overrideCodeGeneratePropertyName: ModuleSlotStackLimitLevelElement
+  items:
+    type: object
+    properties:
+    - key: stackLimit
+      type: integer
 - key: equipmentSlotCount
   type: integer
 - key: initialEquipmentItems

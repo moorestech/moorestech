@@ -23,6 +23,7 @@ items:
     - playBackgroundSkit
     - unlockItemStackLevel
     - unlockPlayerInventorySlotLevel
+    - unlockModuleSlotStackLevel
   - key: gameActionParam
     switch: ./gameActionType
     cases:
@@ -175,6 +176,12 @@ items:
         type: integer
         default: 2 
     - when: unlockPlayerInventorySlotLevel
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: level
+        type: integer
+    - when: unlockModuleSlotStackLevel
       type: object
       isDefaultOpen: true
       properties:

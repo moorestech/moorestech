@@ -948,5 +948,13 @@
             "itemGuid": "00000000-0000-0000-1234-000000000001",
             "itemCount": 1
         }
+    ],
+    "moduleSlotStackLimitLevels": [
+        {
+            "stackLimit": 3
+        },
+        {
+            "stackLimit": 6
+        }
     ]
 }

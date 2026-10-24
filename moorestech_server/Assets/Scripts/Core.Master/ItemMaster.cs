@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master.Validator;
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Loader.ItemsModule;
 using Mooresmaster.Model.ItemsModule;
 using Newtonsoft.Json.Linq;
@@ -39,7 +40,9 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            return ItemMasterUtil.Validate(Items, out errorLogs);
+            ItemMasterUtil.Validate(Items, out var itemLogs);
+            errorLogs = itemLogs + ModuleSlotStackLimitLevelsValidator.Validate(Items);
+            return string.IsNullOrEmpty(errorLogs);
         }
 
         public void Initialize()

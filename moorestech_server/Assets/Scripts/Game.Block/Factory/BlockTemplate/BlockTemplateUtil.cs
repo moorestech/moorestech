@@ -12,6 +12,7 @@ using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Context;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
@@ -68,8 +69,8 @@ namespace Game.Block.Factory.BlockTemplate
             // モジュールスロットは第3レンジとして生成
             // Create module slots as the third range
             var module = new VanillaMachineModuleInventory(
-                machineParam.ModuleSlotCount, machineParam.AllowQualityModule, blockInventoryUpdateEvent, blockInstanceId,
-                inputSlotCount, outputSlotCount);
+                machineParam.ModuleSlotCount, machineParam.AllowQualityModule, ServerContext.GetService<IModuleSlotStackLimitLookup>(),
+                blockInventoryUpdateEvent, blockInstanceId, inputSlotCount, outputSlotCount);
 
             return (input, output, module);
         }

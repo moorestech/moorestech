@@ -66,6 +66,10 @@ namespace Game.Block.Blocks.Machine.Inventory
             return _slotBinding.CheckPlacement(localSlot, itemStack);
         }
 
+        // 入力・出力スロットはアイテムの最大スタックだけで決まる
+        // Input and output slots are bounded only by the item's max stack
+        public int GetSlotStackLimit() => int.MaxValue;
+
         /// <summary>
         ///     産出スタック列を格納できるか仮想挿入で判定する
         ///     Check via virtual insertion whether the output stacks fit
