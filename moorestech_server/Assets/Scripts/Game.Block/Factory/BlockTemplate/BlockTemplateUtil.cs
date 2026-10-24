@@ -40,17 +40,11 @@ namespace Game.Block.Factory.BlockTemplate
             var inputSlotCount = machineParam.InputSlotCount;
             var outputSlotCount = machineParam.OutputSlotCount;
             
-            // ElectricMachineBlockParamから流体関連のパラメータを取得
-            var inputTankCount = 0;
-            var outputTankCount = 0;
-            var innerTankCapacity = 0f;
-            
-            if (machineParam is ElectricMachineBlockParam electricMachineParam)
-            {
-                inputTankCount = electricMachineParam.InputTankCount;
-                outputTankCount = electricMachineParam.OutputTankCount;
-                innerTankCapacity = electricMachineParam.InnerTankCapacity;
-            }
+            // タンク数と容量は機械パラメータ共通の口から読む（電気機械・歯車機械・清浄室機械で同じ）
+            // Tank counts and capacity come from the shared machine-param interface (electric, gear and clean-room machines alike)
+            var inputTankCount = machineParam.InputTankCount;
+            var outputTankCount = machineParam.OutputTankCount;
+            var innerTankCapacity = machineParam.InnerTankCapacity;
             
             var input = new VanillaMachineInputInventory(
                 blockId,

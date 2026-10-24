@@ -9,8 +9,10 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.State;
 using Game.Context;
+using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
 using Game.Block.Interface.Component;
+using UnityEngine;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
@@ -32,6 +34,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 ModuleSlot = module.ModuleSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 SelectedRecipeGuidStr = selectedRecipe?.MachineRecipeGuid.ToString(),
                 InheritedLevel = processingState.InheritedLevel,
+                InputFluidSlot = input.FluidInputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
+                OutputFluidSlot = output.FluidOutputSlot.Select(fluid => new FluidContainerSaveJsonObject(fluid)).ToList(),
             };
         }
 
@@ -46,6 +50,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             if (!BlockComponentStateReader.TryRead<CleanRoomMachineProcessorSaveJsonObject>(componentStates, saveKey, out var saveData)) return;
             cycleCount = saveData.CycleCount;
             RestoreSlots(saveData);
+            RestoreFluids(saveData);
 
             // 加工中ジョブは平らなキーから組む（レシピがマスタから消えていれば null）
             // Build the running job from the flat keys (null when its recipe left the master)
@@ -81,6 +86,33 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 if (data.ModuleSlot != null)
                 {
                     for (var i = 0; i < data.ModuleSlot.Count && i < module.ModuleSlot.Count; i++) module.SetItemWithoutEvent(i, data.ModuleSlot[i].ToItemStack());
+                }
+            }
+
+            void RestoreFluids(CleanRoomMachineProcessorSaveJsonObject data)
+            {
+                // キーは版8の保存とマイグレーションで必ずある。欠けたセーブは液体を黙って捨てず、継承レベルの欠けと同じく明示の例外でロードを止める
+                // Version-8 saves and the migration always write the keys; a save missing them stops the load with an explicit exception, like a missing inherited level, instead of silently dropping fluid
+                if (data.InputFluidSlot == null || data.OutputFluidSlot == null)
+                {
+                    throw new InvalidOperationException($"清浄室機械のセーブに液体タンクのキーがありません。 inputFluidSlot={(data.InputFluidSlot == null ? "missing" : "present")} outputFluidSlot={(data.OutputFluidSlot == null ? "missing" : "present")}");
+                }
+
+                if (input.FluidInputSlot.Count < data.InputFluidSlot.Count || output.FluidOutputSlot.Count < data.OutputFluidSlot.Count)
+                {
+                    Debug.LogError($"清浄室機械のタンク数がセーブより少ないため、超過分の液体は消失します。 input={data.InputFluidSlot.Count}->{input.FluidInputSlot.Count} output={data.OutputFluidSlot.Count}->{output.FluidOutputSlot.Count}");
+                }
+
+                for (var i = 0; i < data.InputFluidSlot.Count && i < input.FluidInputSlot.Count; i++)
+                {
+                    input.FluidInputSlot[i].FluidId = data.InputFluidSlot[i].FluidId;
+                    input.FluidInputSlot[i].Amount = data.InputFluidSlot[i].Amount;
+                }
+
+                for (var i = 0; i < data.OutputFluidSlot.Count && i < output.FluidOutputSlot.Count; i++)
+                {
+                    output.FluidOutputSlot[i].FluidId = data.OutputFluidSlot[i].FluidId;
+                    output.FluidOutputSlot[i].Amount = data.OutputFluidSlot[i].Amount;
                 }
             }
 

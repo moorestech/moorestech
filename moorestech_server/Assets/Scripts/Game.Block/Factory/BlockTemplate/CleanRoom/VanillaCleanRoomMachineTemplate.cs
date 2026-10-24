@@ -3,6 +3,8 @@ using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.CleanRoom.Machine;
 using Game.Block.Blocks.ElectricWire;
+using Game.Block.Blocks.Fluid;
+using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.Module;
@@ -70,6 +72,15 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
                 new MachineInputLevelStallComponent(input, processor),
                 operabilityState,
             };
+
+            // タンクを持つ機械だけ配管コネクタと液体インベントリを組む（通常機械と同じ構成）
+            // Only machines with tanks get a pipe connector and fluid inventory (same layout as normal machines)
+            if (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount)
+            {
+                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
+                components.Add(fluidConnector);
+                components.Add(new VanillaMachineFluidInventoryComponent(input, output, fluidConnector));
+            }
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }

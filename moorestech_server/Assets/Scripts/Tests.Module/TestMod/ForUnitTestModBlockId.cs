@@ -92,6 +92,7 @@ namespace Tests.Module.TestMod
         public static BlockId CleanRoomPipeHatchId => GetBlock("8e425510-aa34-4a1b-9f40-5f8079183ab2");
         public static BlockId CleanRoomAirFilterId => GetBlock("21e760d0-54b2-41a5-8cef-d78e1efb8fb8");
         public static BlockId CleanRoomMachineId => GetBlock("e08acf92-9d43-4db0-b43a-bcec773f22dc");
+        public static BlockId CleanRoomProcessMachineId => GetBlock("2abd1843-a5cd-4394-8eb2-987dde59baac");
 
         // スループット回帰テスト用の本番速度ベルト族(木1.0 / 鉄2.222222 / 電気6.666667 / 高速10)
         // Production-speed belt families for the throughput regression suite (wood 1.0 / iron 2.222222 / electric 6.666667 / fast 10)
