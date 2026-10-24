@@ -41,7 +41,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 var directory = SpaceElevatorActionTestMod.Create();
                 await LoadMainGame(directory, null);
-                BlockActionSceneIsolation.AssertBrowserIsInactive();
+                BlockActionSceneIsolation.AssertIsolatedSceneIsReady();
                 // 起動後の例外をテスト失敗として扱う
                 // Fail the test on exceptions after startup
                 LogAssert.ignoreFailingMessages = false;

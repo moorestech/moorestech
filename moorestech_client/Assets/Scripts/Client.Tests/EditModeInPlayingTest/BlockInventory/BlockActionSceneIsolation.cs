@@ -2,6 +2,8 @@
 using System;
 using System.Reflection;
 using Client.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
+using Client.Game.InGame.Player;
 using CefUnity.Runtime;
 using Client.WebUiHost.Cef;
 using NUnit.Framework;
@@ -48,7 +50,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             }
         }
 
-        internal static void AssertBrowserIsInactive()
+        internal static void AssertIsolatedSceneIsReady()
         {
             var browsers = Object.FindObjectsByType<WebUiCefNavigator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Assert.That(browsers, Has.Length.EqualTo(1));
@@ -56,6 +58,12 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             Assert.IsNull(browsers[0].GetComponent<CefUnityBrowserSample>(), "native browser must be absent from the non-rendering scene fixture");
             Assert.IsFalse(SessionState.GetBool(SessionKey, false), "scene permission must be consumed");
             Assert.IsTrue(SessionState.GetBool(OwnedSceneKey, false), "the isolated scene must retain its cleanup owner");
+            // 描画外のAPI検査にも、落下しない物理環境を要求する
+            // Non-rendering API checks still require a stable physical spawn environment
+            var player = Object.FindFirstObjectByType<PlayerObjectController>();
+            var hasGround = GroundHeightProbe.TryGetGroundPoint(0, 0, out var ground);
+            Debug.Log($"[ApiGroundProbe] player={player.Position} groundAtSpawn={hasGround} hit={ground}");
+            Assert.IsTrue(hasGround, "non-rendering API fixtures need a stable floor at their spawn");
         }
 
         [InitializeOnLoadMethod]

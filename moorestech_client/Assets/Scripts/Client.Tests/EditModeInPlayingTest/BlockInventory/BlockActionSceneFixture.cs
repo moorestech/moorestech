@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using CefUnity.Runtime;
 using Client.WebUiHost.Cef;
+using Client.Common;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -43,6 +44,15 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             var browser = navigator.GetComponent<CefUnityBrowserSample>();
             Assert.IsNotNull(browser, "source scene must contain its normal native browser");
             Object.DestroyImmediate(browser);
+
+            // 描画用環境に頼らず、API検査中のプレイヤーを足場で支える
+            // Support the player during API checks independently of authored rendering environments
+            var ground = new GameObject("NonRenderingApiTestFloor");
+            SceneManager.MoveGameObjectToScene(ground, scene);
+            ground.layer = LayerConst.GroundLayer;
+            var collider = ground.AddComponent<BoxCollider>();
+            collider.center = new Vector3(0, -0.5f, 0);
+            collider.size = new Vector3(128, 1, 128);
             Assert.IsTrue(EditorSceneManager.SaveScene(scene));
             Assert.IsTrue(EditorSceneManager.CloseScene(scene, true));
 

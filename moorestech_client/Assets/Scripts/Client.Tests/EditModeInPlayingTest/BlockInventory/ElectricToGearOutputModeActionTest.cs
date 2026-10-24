@@ -55,7 +55,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             async UniTask Body()
             {
                 await LoadMainGame();
-                BlockActionSceneIsolation.AssertBrowserIsInactive();
+                BlockActionSceneIsolation.AssertIsolatedSceneIsReady();
                 // 起動後の例外をテスト失敗として扱う
                 // Fail the test on exceptions after startup
                 LogAssert.ignoreFailingMessages = false;
