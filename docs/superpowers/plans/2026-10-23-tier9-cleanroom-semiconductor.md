@@ -21879,7 +21879,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 
 - [Tier9の完成地点はストーリークリアまでで3セッション並行で作る](../../../.decisions/2026-10-23-Tier9の完成地点はストーリークリアまでで3セッション並行で作る.md) — 出所: ユーザー裁定 2026-10-23
 - [Tier9の目標プレイ時間は半導体解放からクリアまで15〜25時間](../../../.decisions/2026-10-23-Tier9の目標プレイ時間は半導体解放からクリアまで15〜25時間.md) — 出所: ユーザー裁定 2026-10-23
-- [クリーンルームのブロック到達性と搬入経路を揃える](../../../.decisions/2026-10-23-クリーンルームのブロック到達性と搬入経路を揃える.md) — 出所: ユーザー裁定 2026-10-23
+- [クリーンルームのブロック到達性と搬入経路を揃える](../../../.decisions/2026-10-23-クリーンルームのブロック到達性と搬入経路を揃える.md) — 出所: ユーザー裁定 2026-10-23（決定(2)の両経路新設は除く。B2 は調査要求で、両経路の実装は agent前提。同ファイル末尾の訂正注記）
 - [クリーンルームの抽選と建て方の細部](../../../.decisions/2026-10-23-クリーンルームの抽選と建て方の細部.md) — 出所: ユーザー裁定 2026-10-23
 - [ダイ数と機械の見た目と部材と部屋の状態の取得](../../../.decisions/2026-10-23-ダイ数と機械の見た目と部材と部屋の状態の取得.md) — 出所: ユーザー裁定 2026-10-23
 - [チップ製品のレベルは使ったチップのレベルを継承する](../../../.decisions/2026-10-23-チップ製品のレベルは使ったチップのレベルを継承する.md) — 出所: ユーザー裁定 2026-10-23
@@ -22035,7 +22035,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 研究で上がる2状態の DataStore は `Game.Block/Blocks/Machine/Upgrade/` に置く: `ModuleSlotStackLimitDataStore.cs`・`LevelInheritanceCraftCapDataStore.cs`（Lookup/Unlocker 分離・冪等・Subject 通知・保存せず研究の clearedActions 再実行で復元）。出所: agent前提（前例 `Core.Item/ItemStackLevelDataStore.cs`）
 - 2状態のクライアント同期は3点セット: `ModuleSlotStackLevelEventPacket.cs`（と製作上限の同型パケット）、`HandshakeAcceptedMessagePack.cs`・`InitialHandshakeResponseFactory.cs`・`InitialHandshakeResponse.cs`（ハンドシェイクの初期値）、`ClientModuleSlotStackLimitDatastore.cs`（クライアントのミラー）。出所: agent前提（前例 `ItemStackLevelUnlockEventPacket`＋`HandshakeAcceptedMessagePack.ItemStackLevels`）
 - 部屋の状態と抽選の中身は要求応答で表示中だけ1秒ごとに引く: `CleanRoomInfoMessagePack.cs`・`CleanRoomInfoMessagePackFactory.cs`（`va:getCleanRoomInfo`）、`GetCleanRoomYieldInfoProtocol.cs`・`CleanRoomYieldMessagePack.cs`・`CleanRoomYieldView.cs`（`va:getCleanRoomYieldInfo`）、クライアントの `CleanRoomYieldInfoPollSource.cs` と汎用の `BlockInfoPoller`、`PacketResponseCreator.cs` への登録、`WorldQueryApi.cs` のクライアント呼び出し、`Server.Protocol.asmdef` へ Game.CleanRoom 参照を足す。出所: ユーザー裁定 2026-10-23「表示中だけ問い合わせる」（`.decisions/2026-10-23-ダイ数と機械の見た目と部材と部屋の状態の取得.md`）・前例 `GetElectricNetworkInfoProtocol`
-- 空気清浄機のベルト搬入口は `VanillaCleanRoomAirFilterTemplate.cs` で `BlockTemplateUtil.CreateInventoryConnector` を組む。出所: ユーザー裁定 2026-10-23「B2 これってベルコンや手動での挿入経路はないの？」（`.decisions/2026-10-23-クリーンルームのブロック到達性と搬入経路を揃える.md`）・前例 `VanillaCleanRoomBoundaryTemplate`
+- 空気清浄機のベルト搬入口は `VanillaCleanRoomAirFilterTemplate.cs` で `BlockTemplateUtil.CreateInventoryConnector` を組む。出所: agent前提（ベルト・手動の両経路の新設。ユーザーの B2「これってベルコンや手動での挿入経路はないの？」は経路の有無を問う調査要求で、実装の承認ではない。訂正は `.decisions/2026-10-23-クリーンルームのブロック到達性と搬入経路を揃える.md` 末尾の訂正注記・`.decisions/2026-10-25-S1最終レビューの設計判断はすべて推奨案で直す.md` D06）・前例 `VanillaCleanRoomBoundaryTemplate`
 - 再検査（2回目）で足した・置き直した reviewer 対象ファイル: 部屋の境界ブロックのテンプレート `VanillaCleanRoomBoundaryTemplate.cs`（A14。ハッチの搬送量上限をマスタから読んで部品へ渡す。既存テンプレートの形に従う）、ハッチ搬送量上限の起動時検証 `CleanRoomItemHatchThroughputValidator.cs` と登録先 `BlockMasterUtil.cs`（A14。前例 `BeltSpeedPerSecondValidator`。必須キーで正の値以外は起動時に止める）、部屋照会の wire `CleanRoomSummaryMessagePack.cs`・読み口 `CleanRoomInfoView.cs`・`CleanRoomLeakView.cs`（A6。private ctor＋種別ごとの factory＋`TryGetView` で判別子と入れ子の整合を閉じる。中身は MessagePack 型のまま公開を許す）、継承レシピの形の検証 `LevelInheritanceRecipeShape.cs`（C2。public にして実行時の `BuildShape` と Part B の役割検証が委ねる1か所にする）。出所: agent前提（設計検査 再検査 強1・違反1・弱。各タスクの前例欄）
 - C13 で触る reviewer 対象ファイルは次のとおり。
   - 機械 template 3本（`VanillaMachineTemplate.cs`・`VanillaGearMachineTemplate.cs`・`VanillaCleanRoomMachineTemplate.cs`）。components 列に `MachineInputLevelStallComponent` を1行足すだけで、既存の部品の順と生成は変えない。
