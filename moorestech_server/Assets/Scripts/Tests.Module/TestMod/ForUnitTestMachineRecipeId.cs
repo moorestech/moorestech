@@ -11,5 +11,6 @@ namespace Tests.Module.TestMod
         // Test recipes for the clean-room process (deposition, EUV, dicing)
         public static readonly Guid CleanRoomDepositionRecipe = new("ddcacf5c-a34d-4cc9-95e9-0d0e9a0f44ba");
         public static readonly Guid CleanRoomLayerExposureRecipe = new("06549afe-feb3-438e-b2fe-0e53bb16925a");
+        public static readonly Guid CleanRoomDicingRecipe = new("aadd680b-334c-4294-a6d7-37ea2f8a7527");
     }
 }

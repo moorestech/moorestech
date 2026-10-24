@@ -27,6 +27,10 @@ namespace Tests.Module.TestMod
         public static ItemId TestLayeredWaferG2 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("663d48c4-d055-4b20-89ed-ec821c9babaf"));
         public static ItemId TestLayeredWaferG3 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("e9125500-1829-4fee-bcc0-e4d7a17c4f92"));
         public static ItemId TestFailedPatternWafer => MasterHolder.ItemMaster.GetItemId(Guid.Parse("4f0fa5e5-121e-4c92-a0cb-a9ef810921a8"));
+        public static ItemId TestDieLv1 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("f03a661b-041b-4981-bb06-39b7d32ae0d5"));
+        public static ItemId TestDieLv2 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("975b4ab5-978c-44fb-9be1-2489ea707d41"));
+        public static ItemId TestDieLv3 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("20a93525-bb8d-4306-8804-347f390c3684"));
+        public static ItemId TestFailedDie => MasterHolder.ItemMaster.GetItemId(Guid.Parse("4bcfd0a6-c9ea-4286-b7f1-1fd38d93ad32"));
 
         // スループット回帰テスト用。1スロットに1,000,000個積める
         // For the throughput regression suite; one slot holds 1,000,000

@@ -28,5 +28,48 @@ namespace Core.Master.Validator
             }
             return logs;
         }
+
+        // 浮動小数の和の許容誤差
+        // Tolerance for floating-point sums
+        private const float RateTolerance = 1e-4f;
+
+        // 各表は長さ1〜min(グレード, ダイのレベル数)・非負・和1。上位の裾（Lvk以上の割合）はグレードとともに減らない
+        // Each table has length 1..min(grade, die level count), is non-negative and sums to 1; the upper tail (share at Lvk+) never shrinks as the grade rises
+        public static string ValidateDieTables(string roleLabel, IReadOnlyList<IReadOnlyList<float>> gradeDieTables, int dieLevelCount)
+        {
+            var logs = "";
+            for (var gradeIndex = 0; gradeIndex < gradeDieTables.Count; gradeIndex++)
+            {
+                var rates = gradeDieTables[gradeIndex];
+                var maxLength = gradeIndex + 1 < dieLevelCount ? gradeIndex + 1 : dieLevelCount;
+                if (rates.Count < 1 || maxLength < rates.Count) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] has {rates.Count} levels; allowed 1..{maxLength}\n";
+
+                var sum = 0f;
+                foreach (var rate in rates)
+                {
+                    if (rate < 0f) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] has a negative rate {rate}\n";
+                    sum += rate;
+                }
+                if (RateTolerance < System.Math.Abs(sum - 1f)) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] rates sum to {sum}, not 1\n";
+                if (gradeIndex == 0) continue;
+
+                // Lvk以上の割合を1つ下のグレードと比べる
+                // Compare the share at Lvk and above with the grade just below
+                for (var level = 1; level < dieLevelCount; level++)
+                {
+                    var tail = TailFrom(rates, level);
+                    var lowerTail = TailFrom(gradeDieTables[gradeIndex - 1], level);
+                    if (tail + RateTolerance < lowerTail) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] tail from Lv{level + 1} ({tail}) is below the lower grade ({lowerTail})\n";
+                }
+            }
+            return logs;
+        }
+
+        private static float TailFrom(IReadOnlyList<float> rates, int fromLevelIndex)
+        {
+            var tail = 0f;
+            for (var i = fromLevelIndex; i < rates.Count; i++) tail += rates[i];
+            return tail;
+        }
     }
 }

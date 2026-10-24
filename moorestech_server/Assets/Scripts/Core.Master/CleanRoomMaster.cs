@@ -64,6 +64,7 @@ namespace Core.Master
             for (var i = 0; i < _element.Thresholds.Length; i++) _thresholdIndexByClassName.Add(_element.Thresholds[i].ClassName, i);
             foreach (var draw in _element.WaferGradeDraws) _roleByRecipeGuid.Add(draw.MachineRecipeGuid, new WaferGradeRecipeRole(draw));
             foreach (var exposure in _element.LayerExposures) _roleByRecipeGuid.Add(exposure.MachineRecipeGuid, new LayerExposureRecipeRole(exposure));
+            foreach (var dicing in _element.Dicings) _roleByRecipeGuid.Add(dicing.MachineRecipeGuid, new DicingRecipeRole(dicing));
         }
 
         // クラス名から閾値行インデックスを解決する（セーブ復元用、行順に依存しない）

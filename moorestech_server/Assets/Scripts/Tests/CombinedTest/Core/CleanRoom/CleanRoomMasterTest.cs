@@ -115,6 +115,29 @@ namespace Tests.CombinedTest.Core.CleanRoom
         }
 
         [Test]
+        public void TryGetRecipeRoleResolvesDicingTest()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // ダイシングの表はグレード順に並び、1枚あたりのダイ数とダイのレベル数が索引時に解決済み
+            // The dicing tables are ordered by grade, and the dies per wafer and die level count are resolved at indexing
+            var master = MasterHolder.CleanRoomMaster;
+            Assert.IsTrue(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, out var role));
+            Assert.IsInstanceOf<DicingRecipeRole>(role);
+            var dicing = (DicingRecipeRole)role;
+            Assert.AreEqual(300, dicing.Dicing.DiesPerWafer);
+            Assert.AreEqual(3, dicing.Dicing.GradeDieTables.Length);
+            Assert.AreEqual(3, dicing.Dicing.GradeDieTables[2].LevelRates.Length);
+            Assert.AreEqual(3, dicing.DieLevelCount);
+
+            // 層露光レシピはダイシングの役割にならない（1レシピ1役割）
+            // The layer-exposure recipe does not resolve as a dicing role (one role per recipe)
+            Assert.IsTrue(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, out var exposureRole));
+            Assert.IsNotInstanceOf<DicingRecipeRole>(exposureRole);
+        }
+
+        [Test]
         public void WaferGradeRoleRejectsInheritanceRecipeTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator()

@@ -94,3 +94,39 @@ properties:
             displayElementPath: /data/[*]/name
         - key: maxFailReduction
           type: number
+    - key: dicings
+      type: array
+      items:
+        type: object
+        properties:
+        - key: machineRecipeGuid
+          type: uuid
+          foreignKey:
+            schemaId: machineRecipes
+            foreignKeyIdPath: /data/[*]/machineRecipeGuid
+            displayElementPath: /data/[*]/machineRecipeGuid
+        - key: dieItemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: failedDieItemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: diesPerWafer
+          type: integer
+        - key: maxLossReduction
+          type: number
+        - key: gradeDieTables
+          type: array
+          items:
+            type: object
+            properties:
+            - key: levelRates
+              type: array
+              items:
+                type: number

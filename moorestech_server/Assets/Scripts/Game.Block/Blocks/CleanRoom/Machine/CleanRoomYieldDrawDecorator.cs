@@ -55,6 +55,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             {
                 WaferGradeRecipeRole waferGrade => WaferGradeOutputRewriter.Rewrite(waferGrade, context),
                 LayerExposureRecipeRole layerExposure => LayerExposureOutputRewriter.Rewrite(layerExposure, context),
+                DicingRecipeRole dicing => DicingOutputRewriter.Rewrite(dicing, RequireGradeLevel(), context),
                 _ => throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role"),
             };
 
@@ -78,6 +79,14 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 // Rewriters edit a copy of the factory's first set and repeat it by the factory's set count (the extra set shares the draw)
                 var factorySet = realizedOutputs.GetRange(0, recipe.OutputItems.Length);
                 return new CleanRoomYieldRollContext(classYield, moduleEffect, factorySet, setCount, random);
+            }
+
+            // グレードを受け継ぐ役割は継承レシピ（役割の検証が保証）。継承レベルが無いのは壊れたジョブなので黙って続けない
+            // Grade-inheriting roles are inheritance recipes (guaranteed by validation); a missing level means a broken job, so do not continue silently
+            int RequireGradeLevel()
+            {
+                if (inheritedLevel is not int gradeLevel) throw new InvalidOperationException($"グレードを受け継ぐ清浄室工程に継承レベルがありません。 block={_blockInstanceId} recipe={recipe.MachineRecipeGuid}");
+                return gradeLevel;
             }
 
             #endregion

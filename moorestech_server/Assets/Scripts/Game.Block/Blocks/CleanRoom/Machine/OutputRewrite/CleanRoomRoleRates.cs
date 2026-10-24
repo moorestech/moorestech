@@ -31,5 +31,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
         {
             return ChipYieldFormula.ReducedRate(classYield.LayerFailRate, moduleEffect.QualityShift, role.Exposure.MaxFailReduction);
         }
+
+        // ダイシングのダイ損失率＝クラス別のダイ損失率×(1−min(品質合計, maxLossReduction))
+        // Dicing die loss rate = class die loss rate x (1 - min(quality sum, maxLossReduction))
+        public static double DieLossRate(DicingRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
+        {
+            return ChipYieldFormula.ReducedRate(classYield.DieLossRate, moduleEffect.QualityShift, role.Dicing.MaxLossReduction);
+        }
     }
 }

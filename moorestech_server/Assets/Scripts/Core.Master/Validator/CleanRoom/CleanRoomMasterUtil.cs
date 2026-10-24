@@ -17,6 +17,7 @@ namespace Core.Master.Validator
             var roleRecipeGuids = new HashSet<Guid>();
             errorLogs += CleanRoomWaferGradeDrawValidator.Validate(element.WaferGradeDraws, roleRecipeGuids);
             errorLogs += CleanRoomLayerExposureValidator.Validate(element.LayerExposures, roleRecipeGuids);
+            errorLogs += CleanRoomDicingValidator.Validate(element.Dicings, roleRecipeGuids);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal

@@ -56,6 +56,35 @@
           "failedWaferItemGuid": "4f0fa5e5-121e-4c92-a0cb-a9ef810921a8",
           "maxFailReduction": 0.8
         }
+      ],
+      "dicings": [
+        {
+          "machineRecipeGuid": "aadd680b-334c-4294-a6d7-37ea2f8a7527",
+          "dieItemGuid": "f03a661b-041b-4981-bb06-39b7d32ae0d5",
+          "failedDieItemGuid": "4bcfd0a6-c9ea-4286-b7f1-1fd38d93ad32",
+          "diesPerWafer": 300,
+          "maxLossReduction": 0.8,
+          "gradeDieTables": [
+            {
+              "levelRates": [
+                1.0
+              ]
+            },
+            {
+              "levelRates": [
+                0.7,
+                0.3
+              ]
+            },
+            {
+              "levelRates": [
+                0.55,
+                0.3,
+                0.15
+              ]
+            }
+          ]
+        }
       ]
     }
   ]

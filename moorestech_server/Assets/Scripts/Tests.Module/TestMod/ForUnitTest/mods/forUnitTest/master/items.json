@@ -860,6 +860,42 @@
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestDieLv1",
+            "itemGuid": "f03a661b-041b-4981-bb06-39b7d32ae0d5",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "7b3e1a10-0003-4000-8000-000000000001"
+        },
+        {
+            "name": "TestDieLv2",
+            "itemGuid": "975b4ab5-978c-44fb-9be1-2489ea707d41",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "7b3e1a10-0003-4000-8000-000000000001"
+        },
+        {
+            "name": "TestDieLv3",
+            "itemGuid": "20a93525-bb8d-4306-8804-347f390c3684",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "7b3e1a10-0003-4000-8000-000000000001"
+        },
+        {
+            "name": "TestFailedDie",
+            "itemGuid": "4bcfd0a6-c9ea-4286-b7f1-1fd38d93ad32",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "7b3e1a10-0003-4000-8000-000000000001"
         }
     ],
     "itemStackLevelTables": [
@@ -1014,6 +1050,16 @@
                 "1bbb9ba9-403f-47ab-a601-ae74fe444acd",
                 "663d48c4-d055-4b20-89ed-ec821c9babaf",
                 "e9125500-1829-4fee-bcc0-e4d7a17c4f92"
+            ]
+        },
+        {
+            "familyGuid": "d6418319-2867-422d-92f5-d5a7bd3aa4a0",
+            "name": "TestDieFamily",
+            "baseItemGuid": "f03a661b-041b-4981-bb06-39b7d32ae0d5",
+            "levelItemGuids": [
+                "f03a661b-041b-4981-bb06-39b7d32ae0d5",
+                "975b4ab5-978c-44fb-9be1-2489ea707d41",
+                "20a93525-bb8d-4306-8804-347f390c3684"
             ]
         }
     ],
