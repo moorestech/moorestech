@@ -79,6 +79,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SetTrainStationNameProtocol.ProtocolTag, new SetTrainStationNameProtocol(serviceProvider));
             _packetResponseDictionary.Add(FilterSplitterStateProtocol.ProtocolTag, new FilterSplitterStateProtocol(serviceProvider));
             _packetResponseDictionary.Add(MachineRecipeSelectionProtocol.ProtocolTag, new MachineRecipeSelectionProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetMachineInputStallProtocol.ProtocolTag, new GetMachineInputStallProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetElectricToGearOutputModeProtocol.ProtocolTag, new SetElectricToGearOutputModeProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlueprintProtocol.ProtocolTag, new BlueprintProtocol(serviceProvider));
             _packetResponseDictionary.Add(HotbarProtocol.ProtocolTag, new HotbarProtocol(serviceProvider));

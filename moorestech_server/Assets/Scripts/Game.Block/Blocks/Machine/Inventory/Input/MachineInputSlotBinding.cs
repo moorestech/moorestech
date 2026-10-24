@@ -109,6 +109,10 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return (factory.Create(lowerItemId, slotStack.Count), factory.Create(lowerItemId, incoming.Count));
         }
 
+        // 選択済みならそのレシピを返す。未選択は false
+        // Returns the selected recipe; false when unselected
+        public bool TryGetRecipe(out MachineRecipeMasterElement recipe) => (recipe = _recipe) != null;
+
         // 空アイテムは取り出しなのでどのスロットでも許す
         // An empty stack means a take-out, so it is allowed on any slot
         public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)

@@ -18,7 +18,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
-    public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IBlockSaveState, IMachineRecipeSelectorComponent
+    public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IBlockSaveState, IMachineRecipeSelectorComponent, IMachineProcessStateReader
     {
         public Guid RecipeGuid => _processingState.RecipeGuid;
         public float RequestPower => _context.RequestPower;

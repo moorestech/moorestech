@@ -4,6 +4,7 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.CleanRoom.Machine;
 using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Component;
@@ -66,6 +67,7 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
                 inputConnectorComponent,
                 wireConnector,
                 new MachineRecipeBlueprintSettingsComponent(processor),
+                new MachineInputLevelStallComponent(input, processor),
                 operabilityState,
             };
 

@@ -37,6 +37,10 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
         // Slot-binding decision against the selected recipe; unselected accepts nothing (ADR 0042)
         private readonly MachineInputSlotBinding _slotBinding;
 
+        // ブロック搬入の口。自動搬入上限と、継承元のレベルで断った記録を持つ
+        // The block-inflow inlet holding the auto-insert cap and the source-level refusal record
+        private readonly MachineInputBlockInflow _blockInflow;
+
         public VanillaMachineInputInventory(
             BlockId blockId,
             int inputSlot,
@@ -61,6 +65,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             {
                 _fluidContainers[i] = new FluidContainer(innerTankCapacity);
             }
+            _blockInflow = new MachineInputBlockInflow(_itemDataStoreService, _slotBinding);
         }
 
         public BlockId BlockId => _blockId;
@@ -132,23 +137,11 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return true;
         }
 
-        // ブロック搬入だけ自動搬入上限を適用する
-        // Apply the automated cap only to inflow from blocks
-        internal IItemStack InsertItemFromBlock(IItemStack itemStack)
-        {
-            var (slots, touchedSlots, remainders) = VanillaMachineInputSimulationUtil.SimulateAutoInsert(InputSlot, new List<IItemStack> { itemStack }, _slotBinding);
-            foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
-            return remainders[0];
-        }
-
-        internal bool InsertionCheckFromBlock(List<IItemStack> itemStacks)
-        {
-            foreach (var remainder in VanillaMachineInputSimulationUtil.SimulateAutoInsert(InputSlot, itemStacks, _slotBinding).remainders)
-            {
-                if (remainder.Count != 0) return false;
-            }
-            return true;
-        }
+        // ブロック搬入は、自動搬入上限で積み継承元のレベルの拒否を覚える搬入口を通す
+        // Inflow from blocks goes through the inlet that stacks under the auto-insert cap and remembers source-level refusals
+        internal IItemStack InsertItemFromBlock(IItemStack itemStack) => _blockInflow.Insert(itemStack);
+        internal bool InsertionCheckFromBlock(List<IItemStack> itemStacks) => _blockInflow.CanInsertAll(itemStacks);
+        public bool TryGetLevelStall(out MachineInputLevelStall stall) => _blockInflow.TryGetStall(out stall);
 
         // 束縛タンクへ液体を挿入する。指定タンクは束縛時のみ受け、指定無しは必要量→余剰容量の2パスで束縛タンクを満たす（ADR 0042 R5）
         // Insert fluid into the bound tanks; a designated tank only when bound, undesignated inflow fills bound tanks in two passes: requirement first, spare capacity second (ADR 0042 R5)

@@ -17,7 +17,7 @@ using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 namespace Game.Block.Blocks.Machine
 {
-    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IMachineRecipeSelectorComponent
+    public class VanillaMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IMachineRecipeSelectorComponent, IMachineProcessStateReader
     {
         public Guid RecipeGuid => _processingState.RecipeGuid;
         public float RequestPower => _context.RequestPower;
