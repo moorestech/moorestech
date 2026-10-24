@@ -102,4 +102,12 @@ describe("buildRecipeEntries", () => {
     const entries = buildRecipeEntries({ recipes: [] }, { recipes: [inherit] }, 19);
     expect(entries.map((e) => e.recipe.recipeGuid)).toEqual(["m9"]);
   });
+
+  it("継承しないレシピは継承先の並びを読まない", () => {
+    const none: MachineRecipe = {
+      ...machine("m8", 8, 100),
+      levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [19], maxCraftableLevel: 0 },
+    };
+    expect(buildRecipeEntries({ recipes: [] }, { recipes: [none] }, 19)).toEqual([]);
+  });
 });
