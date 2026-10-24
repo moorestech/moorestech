@@ -147,6 +147,22 @@ namespace Core.Master
             return variants[index];
         }
 
+        // 同一品目を先に合算し、レベル1の容量で必要枠数を数える
+        // Aggregate identical items before counting slots at level-one capacity
+        public long CountRequiredSlotsAtLevelOne(IEnumerable<(ItemId ItemId, int Count)> counts)
+        {
+            var totals = new Dictionary<ItemId, long>();
+            foreach (var (itemId, count) in counts) totals[itemId] = totals.GetValueOrDefault(itemId) + count;
+            long slots = 0;
+            foreach (var (itemId, count) in totals)
+            {
+                var element = GetItemMaster(itemId);
+                var capacity = GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
+                slots += (count + capacity - 1) / capacity;
+            }
+            return slots;
+        }
+
         public ItemStackLevelTableMasterElement GetStackLevelTable(Guid tableGuid)
         {
             if (!_stackLevelTableByGuid.TryGetValue(tableGuid, out var table))

@@ -28,12 +28,14 @@ namespace Client.WebUiHost.Game.Topics
         public GearNetworkDto GearNetwork;
         public FilterSplitterDto FilterSplitter;
         public ElectricToGearDetailDto ElectricToGear;
+        public SpaceElevatorDetailDto SpaceElevator;
         public GearToElectricDetailDto GearToElectric;
         public string Error;
         public TrainPlatformDetailDto TrainPlatform;
         public TrainTimetableStateDto Timetable;
         public TrainStationDetailDto TrainStation;
         public BeltThroughputDetailDto BeltThroughput;
+        public RocketLaunchPadDetailDto RocketLaunchPad;
     }
 
     public class BlockItemSlotDto

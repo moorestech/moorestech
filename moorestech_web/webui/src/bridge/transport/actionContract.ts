@@ -87,6 +87,8 @@ export type ActionPayloads = {
   // clear:true clears the filter (right-click); with clear:false the C# side assigns the currently grabbed item
   "filter_splitter.set_filter_item": { directionIndex: number; slotIndex: number; clear: boolean };
   "electric_to_gear.set_output_mode": { modeIndex: number };
+  "space_elevator.connect": Record<string, never>;
+  "rocket_launch_pad.command": { command: "build" | "launch" };
   "train_platform.set_transfer_mode": { mode: "loadToTrain" | "unloadToPlatform" };
   // 時刻表タブを選んだときだけ送り、C#側が開いている列車の時刻表取得を始める
   // Sent only when the timetable tab is selected; the C# side starts fetching the open train's timetable
@@ -142,6 +144,8 @@ export const ACTION_TYPES = [
   "filter_splitter.set_mode",
   "filter_splitter.set_filter_item",
   "electric_to_gear.set_output_mode",
+  "space_elevator.connect",
+  "rocket_launch_pad.command",
   "train_platform.set_transfer_mode",
   "train_timetable.open",
   "train_timetable.replace",

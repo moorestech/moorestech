@@ -93,3 +93,18 @@ export function applyResearchComplete(tree: ResearchTreeData, p: ActionPayloads[
   node.state = "completed";
   return true;
 }
+
+// mockで接続可なら接続しプール消費
+// In the mock, connect when allowed and consume cables from the pool
+export function applySpaceElevatorConnect(block: BlockInventoryWireData): { ok: boolean; error?: string } {
+  if (!block.open) return { ok: false, error: "block_not_open" };
+  if (block.blockType !== "SpaceElevatorBase") return { ok: false, error: "invalid_block_type" };
+  if (!("spaceElevator" in block) || !block.spaceElevator) return { ok: false, error: "connect_request_failed" };
+  const detail = block.spaceElevator;
+  if (detail.connected) return { ok: false, error: "already_connected" };
+  if (detail.cablePoolAmount < detail.cablesPerElevator) return { ok: false, error: "insufficient_cable" };
+  detail.connected = true;
+  detail.cablePoolAmount -= detail.cablesPerElevator;
+  detail.status = "waitingSatellite";
+  return { ok: true };
+}

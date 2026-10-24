@@ -62,6 +62,8 @@ namespace Server.Boot
             // Register each service group in the established order
             var services = new ServiceCollection();
             GameplayServiceRegistration.Register(services, initializerProvider, itemStackLevelDataStore);
+            OrbitServiceRegistration.Register(services);
+            SpaceElevatorServiceRegistration.Register(services);
             SaveAndEventServiceRegistration.Register(services, modResource, serverDataDirectory, options.worldDataDirectory);
 
             var serviceProvider = services.BuildServiceProvider();

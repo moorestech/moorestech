@@ -1,0 +1,16 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "SpaceElevatorBase",
+  "identifier": "(20, 0, 4)",
+  "blockGuid": "99999999-9999-4999-8999-999999999999",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "spaceElevator": {
+    "connected": true,
+    "cablePoolAmount": 250,
+    "cablesPerElevator": 1000,
+    "climbProgress": 0.5,
+    "status": "climbing"
+  }
+}

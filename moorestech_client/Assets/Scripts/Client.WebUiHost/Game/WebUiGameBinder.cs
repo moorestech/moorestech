@@ -183,7 +183,9 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
+            hub.RegisterAction(new SpaceElevatorConnectActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
+            hub.RegisterAction(new RocketLaunchPadCommandActionHandler(subInventoryState));
             TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher);
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuSelection));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
