@@ -80,7 +80,9 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             var json = Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "research.json")));
             var node = json["data"].Single(value => value["researchNodeGuid"].Value<string>() == ForUnitTestLevelInheritanceIds.ModuleSlotStackResearchGuid.ToString());
             node["clearedActions"][0]["gameActionParam"]["level"] = 2;
-            var action = new ResearchMaster(json).GetResearch(ForUnitTestLevelInheritanceIds.ModuleSlotStackResearchGuid).ClearedActions.items[0];
+            var researchMaster = new ResearchMaster(json);
+            researchMaster.Initialize();
+            var action = researchMaster.GetResearch(ForUnitTestLevelInheritanceIds.ModuleSlotStackResearchGuid).ClearedActions.items[0];
             Assert.Throws<ArgumentOutOfRangeException>(() => serviceProvider.GetService<IModuleSlotStackLimitUnlocker>().ApplyUnlockModuleSlotStackLevelAction(action));
         }
 
