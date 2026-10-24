@@ -29,25 +29,25 @@ namespace Game.CleanRoom
             {
                 if (entry.Machine.IsDestroy) continue;
 
-                // 部屋未検出なら未密閉として最悪効果を押し込み停止させる
-                // Without a detected room, push the worst effect as not enclosed so the machine halts
+                // 部屋未検出なら未密閉として止める
+                // Without a detected room, halt the machine as not enclosed
                 if (!tryGetRoom(entry.Block, out var room))
                 {
-                    entry.Machine.SetCleanRoomEffect(new CleanRoomEffect(CleanRoomOperability.NotEnclosed, 0, 0));
+                    entry.Machine.SetCleanRoomEffect(CleanRoomEffect.NotEnclosed());
                     continue;
                 }
 
-                // 部屋はあるがOut行なら、クラス不足として停止させる
+                // 部屋はあるがOut行なら、クラス不足として止める
                 // A room on the Out row halts the machine for an insufficient class
                 if (!room.TryGetClassRow(out var row))
                 {
-                    entry.Machine.SetCleanRoomEffect(new CleanRoomEffect(CleanRoomOperability.ClassOut, 0, 0));
+                    entry.Machine.SetCleanRoomEffect(CleanRoomEffect.ClassOut());
                     continue;
                 }
 
-                // 非Out行のマスタ効果だけを稼働許可として機械へ渡す
-                // Only non-Out threshold master effects grant machine operation
-                entry.Machine.SetCleanRoomEffect(new CleanRoomEffect(CleanRoomOperability.Operable, row.MaxChipLevel, row.DownBinRate));
+                // 非Out行のクラス別の歩留まり値だけを稼働許可と一緒に機械へ渡す
+                // Only a non-Out row's per-class yield values are handed to the machine along with the permission to operate
+                entry.Machine.SetCleanRoomEffect(CleanRoomEffect.Operable(new CleanRoomClassYield(row.QualityMultiplier, row.LayerFailRate, row.DieLossRate)));
             }
         }
     }

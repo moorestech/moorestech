@@ -12,12 +12,13 @@ namespace Game.Block.Blocks.Machine.State.Util
 {
     internal static class MachineOutputFactoryUtil
     {
-        // 素の出力1セットと、生産性の当選時に同じ1セットを追加で作る。品質は一般機械の出力を変えない
-        // Build one plain output set plus an identical extra set when productivity rolls; quality never changes general machine output
-        public static List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect, int? inheritedLevel)
+        // 素の出力1セットを、生産性の当選時は2セット並べる。セット数は差し替え口へ渡すため返す（品質は一般機械の出力を変えない）
+        // Lay out one plain output set, or two when productivity rolls; the set count is returned for the rewrite hook (quality never changes general machine output)
+        public static List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect, int? inheritedLevel, out int setCount)
         {
-            var outputs = CreatePlainOutputs(recipe, inheritedLevel);
-            if (GameRandom.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreatePlainOutputs(recipe, inheritedLevel));
+            setCount = GameRandom.NextDouble() < effect.ExtraOutputChance ? 2 : 1;
+            var outputs = new List<IItemStack>(recipe.OutputItems.Length * setCount);
+            for (var set = 0; set < setCount; set++) outputs.AddRange(CreatePlainOutputs(recipe, inheritedLevel));
             return outputs;
         }
 

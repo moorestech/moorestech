@@ -13,9 +13,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         private readonly Subject<Unit> _onChangeBlockState = new();
 
-        // 部屋の効果が届く前は、効果の既定値と同じく未密閉として扱う
-        // Before any room effect arrives, treat the machine as not enclosed like the effect default
-        public CleanRoomOperability Operability { get; private set; } = CleanRoomOperability.NotEnclosed;
+        // 部屋の効果が届く前の値は CleanRoomEffect.BeforeFirstPush の1か所で決める（抽選側のデコレータも同じ所から引く）
+        // The value before any room effect arrives is defined once by CleanRoomEffect.BeforeFirstPush (the draw decorator reads the same place)
+        public CleanRoomOperability Operability { get; private set; } = CleanRoomEffect.BeforeFirstPush().Operability;
 
         public void SetOperability(CleanRoomOperability operability)
         {

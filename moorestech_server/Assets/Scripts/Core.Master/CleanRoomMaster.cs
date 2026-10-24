@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Core.Master.CleanRoomRoles;
 using Core.Master.Validator;
 using Mooresmaster.Loader.CleanRoomModule;
 using Mooresmaster.Model.CleanRoomModule;
@@ -21,7 +22,7 @@ namespace Core.Master
 
         private readonly CleanRoomMasterElement _element;
         private Dictionary<string, int> _thresholdIndexByClassName;
-        private Dictionary<Guid, ChipDrawsElement> _chipDrawByMachineRecipeGuid;
+        private Dictionary<Guid, CleanRoomRecipeRole> _roleByRecipeGuid;
 
         public CleanRoomMaster(JToken jToken)
         {
@@ -54,7 +55,14 @@ namespace Core.Master
 
         public void Initialize()
         {
-            CleanRoomMasterUtil.Initialize(_element, out _thresholdIndexByClassName, out _chipDrawByMachineRecipeGuid);
+            _thresholdIndexByClassName = new Dictionary<string, int>();
+            _roleByRecipeGuid = new Dictionary<Guid, CleanRoomRecipeRole>();
+            if (_element == null) return;
+
+            // クラス名→行インデックスと、レシピGUID→役割レコードの索引を作る（重複は検証で止まっている）
+            // Build className-to-row and recipeGuid-to-role lookups (duplicates were already rejected by validation)
+            for (var i = 0; i < _element.Thresholds.Length; i++) _thresholdIndexByClassName.Add(_element.Thresholds[i].ClassName, i);
+            foreach (var draw in _element.WaferGradeDraws) _roleByRecipeGuid.Add(draw.MachineRecipeGuid, new WaferGradeRecipeRole(draw));
         }
 
         // クラス名から閾値行インデックスを解決する（セーブ復元用、行順に依存しない）
@@ -64,9 +72,11 @@ namespace Core.Master
             return _thresholdIndexByClassName.TryGetValue(className, out index);
         }
 
-        public bool TryGetChipDraw(Guid machineRecipeGuid, out ChipDrawsElement chipDraw)
+        // レシピGUIDから清浄室工程の役割を引く唯一の口。役割の無いレシピは false
+        // The single lookup from a recipe GUID to its clean-room process role; false for recipes without a role
+        public bool TryGetRecipeRole(Guid machineRecipeGuid, out CleanRoomRecipeRole role)
         {
-            return _chipDrawByMachineRecipeGuid.TryGetValue(machineRecipeGuid, out chipDraw);
+            return _roleByRecipeGuid.TryGetValue(machineRecipeGuid, out role);
         }
     }
 }

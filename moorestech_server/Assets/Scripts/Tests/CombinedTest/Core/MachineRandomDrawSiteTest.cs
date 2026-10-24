@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core
 
             var expected = GameRandomDrawAssert.StateAfterDraws(1);
             GameRandomDrawAssert.BeginDrawCount();
-            MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, noModuleEffect, null);
+            MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, noModuleEffect, null, out _);
             GameRandomDrawAssert.AssertDrawn(expected, "追加産出の抽選が世界共有の乱数を引いていない");
         }
 
@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Core
 
             var expected = GameRandomDrawAssert.StateAfterDraws(1);
             GameRandomDrawAssert.BeginDrawCount();
-            MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, qualityEffect, null);
+            MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, qualityEffect, null, out _);
             GameRandomDrawAssert.AssertDrawn(expected, "品質モジュールで追加の乱数を引いている");
         }
     }

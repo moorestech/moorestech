@@ -126,8 +126,11 @@ namespace Game.Block.Blocks.Machine.State
         // The only place realized outputs are built; both the capacity check and the real insert use this result, so they can never diverge
         internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)
         {
-            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, EffectComponent.AggregateCurrent(), inheritedLevel);
-            return _realizedOutputDecorator == null ? outputs : _realizedOutputDecorator.Decorate(recipe, outputs);
+            // 工場と差し替え口が同じ集計とセット数を見るよう、モジュール効果は1回だけ集計し、セット数は工場の値を渡す
+            // Aggregate the module effect once and pass the factory's set count so the factory and the rewrite hook see the same values
+            var effect = EffectComponent.AggregateCurrent();
+            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel, out var setCount);
+            return _realizedOutputDecorator == null ? outputs : _realizedOutputDecorator.Decorate(recipe, inheritedLevel, effect, setCount, outputs);
         }
 
         // 実現出力の差し替え口を差し込む（清浄室のチップ抽選）。未設定なら抽選結果をそのまま使う
