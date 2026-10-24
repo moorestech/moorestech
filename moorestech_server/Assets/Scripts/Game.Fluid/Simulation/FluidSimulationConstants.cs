@@ -1,10 +1,10 @@
 namespace Game.Fluid.Simulation
 {
     /// <summary>
-    ///     速度ベース流体シミュレーションの調整定数。量・速度は FluidUnits の整数単位(1/1000)で、係数は整数比で持つ(ADR 0090)。
+    ///     速度ベース流体シミュレーションの調整定数。量・速度は FluidUnits の整数単位で、係数は整数比で持つ(ADR 0090)。
     ///     速度の単位は「量/tick」。面の流量は毎tick、速度をそのまま流す量として解釈される。
     ///
-    ///     Tuning constants for the velocity-based fluid simulation. Amounts and velocities are FluidUnits integers (1/1000) and the coefficients are integer ratios (ADR 0090).
+    ///     Tuning constants for the velocity-based fluid simulation. Amounts and velocities are FluidUnits integers and the coefficients are integer ratios (ADR 0090).
     ///     Velocity is measured in amount-per-tick; each tick a face transfers its velocity worth of fluid.
     /// </summary>
     public static class FluidSimulationConstants
@@ -19,9 +19,5 @@ namespace Game.Fluid.Simulation
         // 減衰（粘性）0.002 = 2/1000: 毎tick速度に掛かる摩擦。整数の切り捨てで必ず0へ減衰する
         // Damping (viscosity) 0.002 = 2/1000: per-tick friction on velocity; integer truncation guarantees decay to zero
         public const long DampingPerMille = 2;
-
-        // 充填率の 1.0 を表す整数。amount * FillRateOne / capacity が充填率。2^30 × 容量(10^9 単位まで)が 64 ビットに収まる
-        // The integer that stands for a fill rate of 1.0: amount * FillRateOne / capacity. 2^30 times a capacity (up to 10^9 units) fits in 64 bits
-        public const long FillRateOne = 1L << 30;
     }
 }

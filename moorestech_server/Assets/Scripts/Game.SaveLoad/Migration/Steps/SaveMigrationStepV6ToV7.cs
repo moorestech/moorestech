@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V6→V7移行: パイプの中身と面速度を double(流体量)から 1/1000 単位の整数へ変える(ADR 0090)。`amount`→`amountMilli`、`faceVelocities[].velocity`→`velocityMilli`、どちらも最近傍に丸める
-    // V6→V7 migration: convert pipe contents and face velocities from doubles (amount) to 1/1000-unit integers (ADR 0090). `amount`→`amountMilli`, `faceVelocities[].velocity`→`velocityMilli`, both rounded to nearest
+    // V6→V7移行: パイプの中身と面速度を double(流体量)から 10 億分の 1 単位の整数へ変える(ADR 0090)。`amount`→`amountNano`、`faceVelocities[].velocity`→`velocityNano`、どちらも最近傍に丸める
+    // V6→V7 migration: convert pipe contents and face velocities from doubles (amount) to 10^-9-unit integers (ADR 0090). `amount`→`amountNano`, `faceVelocities[].velocity`→`velocityNano`, both rounded to nearest
     // 機械のタンク(FluidContainerSaveJsonObject)は double のままなので触らない
     // Machine tanks (FluidContainerSaveJsonObject) stay doubles and are left untouched
     public sealed class SaveMigrationStepV6ToV7 : ISaveMigrationStep
@@ -13,7 +13,7 @@ namespace Game.SaveLoad.Migration.Steps
         // パイプの SaveKey(typeof FullName)。ステップは前の版の型を参照しないので文字列で持つ
         // The pipe's SaveKey (typeof FullName); the step never references live types, so it is kept as a string
         private const string PipeSaveKey = "Game.Block.Blocks.Fluid.FluidPipeSaveComponent";
-        private const long UnitsPerAmount = 1000;
+        private const long UnitsPerAmount = 1_000_000_000;
 
         public int FromVersion => 6;
 
@@ -39,12 +39,12 @@ namespace Game.SaveLoad.Migration.Steps
                 var amountToken = pipe["amount"];
                 if (amountToken == null)
                 {
-                    if (pipe["amountMilli"] != null) continue;
-                    return Fail($"{PipeSaveKey} に amount も amountMilli もありません。");
+                    if (pipe["amountNano"] != null) continue;
+                    return Fail($"{PipeSaveKey} に amount も amountNano もありません。");
                 }
                 if (!IsNumber(amountToken)) return Fail($"{PipeSaveKey} の amount が数値ではありません。 type={amountToken.Type}");
                 pipe.Remove("amount");
-                pipe["amountMilli"] = ToUnits(amountToken.Value<double>());
+                pipe["amountNano"] = ToUnits(amountToken.Value<double>());
 
                 var facesToken = pipe["faceVelocities"];
                 if (facesToken != null && facesToken.Type != JTokenType.Null)
@@ -57,13 +57,13 @@ namespace Game.SaveLoad.Migration.Steps
                         if (velocityToken == null) return Fail($"{PipeSaveKey} の faceVelocities 要素に velocity がありません。");
                         if (!IsNumber(velocityToken)) return Fail($"{PipeSaveKey} の velocity が数値ではありません。 type={velocityToken.Type}");
                         face.Remove("velocity");
-                        face["velocityMilli"] = ToUnits(velocityToken.Value<double>());
+                        face["velocityNano"] = ToUnits(velocityToken.Value<double>());
                     }
                 }
                 convertedPipes++;
             }
 
-            Debug.Log($"セーブを版6から版7へ変換しました。パイプの流体量を1/1000単位の整数にした件数={convertedPipes}");
+            Debug.Log($"セーブを版6から版7へ変換しました。パイプの流体量を10億分の1単位の整数にした件数={convertedPipes}");
             return SaveMigrationStepResult.Converted(save);
 
             #region Internal

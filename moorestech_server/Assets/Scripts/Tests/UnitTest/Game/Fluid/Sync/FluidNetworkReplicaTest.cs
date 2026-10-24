@@ -32,14 +32,14 @@ namespace Tests.UnitTest.Game.Fluid.Sync
         public void 流入の再生は受け入れ済み量をそのまま足し空のノードは流体IDを引き継ぐ()
         {
             var replica = FluidNetworkReplicaAssembler.Assemble(TwoNodesWithOnePort());
-            var inflows = new[] { new FluidNodeInflowRecord(1, Water, 5), new FluidNodeInflowRecord(0, Water, 7) };
+            var inflows = new[] { new FluidNodeInflowRecord(1, Water, 5), new FluidNodeInflowRecord(0, Water, 25) };
 
             Assert.IsTrue(replica.Tick(new FluidTickDiff(Array.Empty<FluidPortDeliveryRecord>(), inflows)));
 
-            // 空だったノード0は水になり7を持つ。ノード1は面の流れを除けば5増える(面は許可方向が無いので流れない)
-            // Node 0, previously empty, becomes water holding 7; node 1 gains 5 (the face allows no direction, so nothing flows)
+            // 空だったノード0は水になり25を持つ(動けない量 16 単位を超えるので tick の最後に消えない)。ノード1は面の流れを除けば5増える(面は許可方向が無いので流れない)
+            // Node 0, previously empty, becomes water holding 25 (above the 16-unit immovable amount, so it survives the end of the tick); node 1 gains 5 (the face allows no direction, so nothing flows)
             Assert.AreEqual(Water, replica.Network.NodeFluidIds[0]);
-            Assert.AreEqual(7, replica.Network.NodeAmounts[0], 1e-9);
+            Assert.AreEqual(25, replica.Network.NodeAmounts[0], 1e-9);
             Assert.AreEqual(35, replica.Network.NodeAmounts[1], 1e-9);
         }
 

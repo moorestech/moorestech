@@ -16,6 +16,7 @@ namespace Tests.UnitTest.Game
         private static readonly FluidId Water = new(1);
         private static readonly FluidId Oil = new(2);
         private const long Unit = FluidUnits.UnitsPerAmount;
+        private const long FaceCap = Unit / 2;
 
         [Test]
         // 同じ網を全範囲1回と2分割・3分割・7分割で回しても、量・流体ID・面速度・ポート速度・ハッシュが完全一致する
@@ -56,7 +57,7 @@ namespace Tests.UnitTest.Game
                     (new Vector3Int(1, 0, 0), 100 * Unit, 0L, FluidMaster.EmptyFluidId),
                     (new Vector3Int(2, 0, 0), 100 * Unit, 50 * Unit, Oil),
                 },
-                new[] { (0, 1, 500L, true, true), (1, 2, 500L, true, true) },
+                new[] { (0, 1, FaceCap, true, true), (1, 2, FaceCap, true, true) },
                 Array.Empty<IFluidBoundaryPort>());
             Run(network, 50, 1);
 
@@ -68,22 +69,23 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        // 機械からの流入は 1/1000 単位に切り捨てられ、端数は残りとして機械へ返る。受け入れた単位だけが網に足される
-        // Inflow from a machine is floored to 1/1000 units and the fraction returns to the machine as remainder; only the accepted units land in the network
+        // 機械からの流入は単位(10 億分の 1)に切り捨てられ、端数は残りとして機械へ返る。受け入れた単位だけが網に足される。2 の冪の量なので double の積が正確
+        // Inflow from a machine is floored to units (10^-9) and the fraction returns to the machine as remainder; only the accepted units land in the network. Power-of-two amounts keep the double products exact
         public void 境界からの流入は単位に切り捨てて端数を返すTest()
         {
-            var network = FluidSimulationStepperTest.Chain(1, 500, true, true);
+            var network = FluidSimulationStepperTest.Chain(1, FaceCap, true, true);
 
-            var remainder = network.AddExternal(0, new FluidStack(0.0005, Water), out var accepted);
+            var remainder = network.AddExternal(0, new FluidStack(5e-10, Water), out var accepted);
             Assert.AreEqual(0, accepted);
-            Assert.AreEqual(0.0005, remainder.Amount, 1e-15);
+            Assert.AreEqual(5e-10, remainder.Amount, 1e-25);
             Assert.AreEqual(0, network.NodeAmounts[0]);
             Assert.AreEqual(FluidMaster.EmptyFluidId, network.NodeFluidIds[0]);
 
-            remainder = network.AddExternal(0, new FluidStack(1.2345, Water), out accepted);
-            Assert.AreEqual(1234, accepted);
-            Assert.AreEqual(1.2345 - 1.234, remainder.Amount, 1e-12);
-            Assert.AreEqual(1234, network.NodeAmounts[0]);
+            var fraction = Math.Pow(2, -40);
+            remainder = network.AddExternal(0, new FluidStack(1.25 + fraction, Water), out accepted);
+            Assert.AreEqual(1_250_000_000, accepted);
+            Assert.AreEqual(fraction, remainder.Amount, 1e-25);
+            Assert.AreEqual(1_250_000_000, network.NodeAmounts[0]);
             Assert.AreEqual(Water, network.NodeFluidIds[0]);
         }
 
@@ -99,9 +101,9 @@ namespace Tests.UnitTest.Game
         {
             ports = new[]
             {
-                new FluidSimulationStepperTest.TestBoundaryPort(3, 300, acceptAll: true),
-                new FluidSimulationStepperTest.TestBoundaryPort(3, 200, acceptAll: false),
-                new FluidSimulationStepperTest.TestBoundaryPort(5, 150, acceptAll: true),
+                new FluidSimulationStepperTest.TestBoundaryPort(3, Unit * 3 / 10, acceptAll: true),
+                new FluidSimulationStepperTest.TestBoundaryPort(3, Unit / 5, acceptAll: false),
+                new FluidSimulationStepperTest.TestBoundaryPort(5, Unit * 3 / 20, acceptAll: true),
             };
             return FluidSimulationStepperTest.Build(
                 new[]
@@ -116,12 +118,12 @@ namespace Tests.UnitTest.Game
                 },
                 new[]
                 {
-                    (0, 1, 500L, true, true),
-                    (1, 2, 500L, true, true),
-                    (2, 3, 400L, true, false),
-                    (1, 4, 300L, true, true),
-                    (4, 5, 300L, true, true),
-                    (2, 6, 500L, true, true),
+                    (0, 1, FaceCap, true, true),
+                    (1, 2, FaceCap, true, true),
+                    (2, 3, Unit * 2 / 5, true, false),
+                    (1, 4, Unit * 3 / 10, true, true),
+                    (4, 5, Unit * 3 / 10, true, true),
+                    (2, 6, FaceCap, true, true),
                 },
                 ports);
         }

@@ -10,28 +10,29 @@ namespace Tests.UnitTest.Game
 {
     /// <summary>
     ///     FluidSimulationStepper単体の数値検証。ワールドやDIを介さず、リープフロッグ2フェーズの保存則・収束・クランプ挙動を直接確認する。
-    ///     量は FluidUnits の整数単位(1 = 1/1000)。整数なので総量は許容誤差なしで一致する。
+    ///     量は FluidUnits の整数単位(1 = 流体量の 10 億分の 1)。面・ポートの 1 tick 上限は FaceCap(0.5)。整数なので総量は許容誤差なしで一致する。
     ///     Pure numerical verification of FluidSimulationStepper: conservation, convergence and clamping of the two-phase leapfrog, without world or DI.
-    ///     Amounts are FluidUnits integers (1 = 1/1000), so totals match with no tolerance.
+    ///     Amounts are FluidUnits integers (one unit is 10^-9 of an amount) and faces and ports pass FaceCap (0.5) per tick, so totals match with no tolerance.
     /// </summary>
     public class FluidSimulationStepperTest
     {
         private static readonly FluidId TestFluidId = new(1);
         private const long Unit = FluidUnits.UnitsPerAmount;
+        private const long FaceCap = Unit / 2;
 
         [Test]
         // 2ノードの水位が均等化され、総量が厳密に保存されることを確認
         // Two nodes equalize their levels and the total amount is conserved exactly
         public void TwoNodeEqualizationTest()
         {
-            var network = Chain(2, 500, true, true, (0, 30 * Unit, TestFluidId));
+            var network = Chain(2, FaceCap, true, true, (0, 30 * Unit, TestFluidId));
 
             // Damping=0.002では静定に約2000step要する
             // With Damping=0.002 settling takes about 2000 steps
             Run(network, 2500);
 
-            Assert.AreEqual(15 * Unit, network.NodeAmounts[0], 500);
-            Assert.AreEqual(15 * Unit, network.NodeAmounts[1], 500);
+            Assert.AreEqual(15 * Unit, network.NodeAmounts[0], Unit / 2);
+            Assert.AreEqual(15 * Unit, network.NodeAmounts[1], Unit / 2);
             Assert.AreEqual(30 * Unit, network.NodeAmounts[0] + network.NodeAmounts[1]);
             Assert.AreEqual(TestFluidId, network.NodeFluidIds[1]);
         }
@@ -41,7 +42,7 @@ namespace Tests.UnitTest.Game
         // The total is conserved across a chain and every node stays within [0, capacity]
         public void ChainConservationTest()
         {
-            var network = Chain(5, 500, true, true, (0, 100 * Unit, TestFluidId), (3, 40 * Unit, TestFluidId));
+            var network = Chain(5, FaceCap, true, true, (0, 100 * Unit, TestFluidId), (3, 40 * Unit, TestFluidId));
             Run(network, 500);
 
             long total = 0;
@@ -65,7 +66,7 @@ namespace Tests.UnitTest.Game
         {
             // A→Bのみ許可。Bに液体があるがAへは逆流しない
             // Only A→B allowed; fluid in B must not flow back into A
-            var network = Chain(2, 500, true, false, (1, 50 * Unit, TestFluidId));
+            var network = Chain(2, FaceCap, true, false, (1, 50 * Unit, TestFluidId));
             Run(network, 100);
 
             Assert.AreEqual(0, network.NodeAmounts[0]);
@@ -78,7 +79,7 @@ namespace Tests.UnitTest.Game
         public void FillRateBalanceAcrossCapacitiesTest()
         {
             var network = Build(new[] { (new Vector3Int(0, 0, 0), 1000 * Unit, 1000 * Unit, TestFluidId), (new Vector3Int(1, 0, 0), 100 * Unit, 0L, FluidMaster.EmptyFluidId) },
-                new[] { (0, 1, 500L, true, true) }, Array.Empty<IFluidBoundaryPort>());
+                new[] { (0, 1, FaceCap, true, true) }, Array.Empty<IFluidBoundaryPort>());
             Run(network, 2000);
 
             // 充填率が一致する（tank≒909, pipe≒91）
@@ -92,23 +93,25 @@ namespace Tests.UnitTest.Game
         // A boundary port drains its node, velocity never exceeds the cap, and rejection kills the velocity
         public void BoundaryPortDrainAndFeedbackTest()
         {
-            var acceptingPort = new TestBoundaryPort(0, 500, acceptAll: true);
+            var acceptingPort = new TestBoundaryPort(0, FaceCap, acceptAll: true);
             var network = Build(new[] { (new Vector3Int(0, 0, 0), 100 * Unit, 20 * Unit, TestFluidId) }, Array.Empty<(int, int, long, bool, bool)>(), new IFluidBoundaryPort[] { acceptingPort });
             var scratch = new FluidSimulationScratch(network);
             for (var i = 0; i < 1000; i++)
             {
                 FluidSimulationStepper.Step(network, scratch);
-                Assert.LessOrEqual(acceptingPort.Velocity, 500);
+                Assert.LessOrEqual(acceptingPort.Velocity, FaceCap);
             }
 
-            // 排水は残量に比例して漸減するが、境界ポートは中身があれば最小ゲインを保証するので最後の数単位も渡しきる。渡した量と残量の和は厳密に保存される
-            // Draining decays proportionally to the remaining amount, but a boundary port guarantees the sustaining gain while content remains, so the last few units are delivered too; delivered plus remaining is conserved exactly
+            // 排水は残量に比例して漸減し、動けない量(16 単位以下)まで減った残りは tick の最後に 0 になって名が外れる。渡した量は総量からその閾値以内の減りに収まる
+            // Draining decays proportionally to the remaining amount, and once only an immovable amount (16 units or less) is left it is cleared with its id at the end of the tick; the delivered total falls short of the initial amount by at most that threshold
             Assert.AreEqual(0, network.NodeAmounts[0]);
-            Assert.AreEqual(20 * Unit, acceptingPort.DeliveredTotal + network.NodeAmounts[0]);
+            Assert.AreEqual(FluidMaster.EmptyFluidId, network.NodeFluidIds[0]);
+            Assert.LessOrEqual(acceptingPort.DeliveredTotal, 20 * Unit);
+            Assert.GreaterOrEqual(acceptingPort.DeliveredTotal, 20 * Unit - FluidPressureMath.MaxImmovablePressureUnits);
 
             // 全拒否する境界では、ノード残量が変わらず速度も0に収束する
             // A rejecting boundary leaves the node untouched and the velocity converges to zero
-            var rejectingPort = new TestBoundaryPort(0, 500, acceptAll: false);
+            var rejectingPort = new TestBoundaryPort(0, FaceCap, acceptAll: false);
             var network2 = Build(new[] { (new Vector3Int(0, 0, 0), 100 * Unit, 20 * Unit, TestFluidId) }, Array.Empty<(int, int, long, bool, bool)>(), new IFluidBoundaryPort[] { rejectingPort });
             Run(network2, 100);
 
@@ -121,7 +124,7 @@ namespace Tests.UnitTest.Game
         // A face between mismatched fluids closes and neither side changes
         public void MismatchedFluidClosedFaceTest()
         {
-            var network = Chain(2, 500, true, true, (0, 30 * Unit, new FluidId(1)), (1, 10 * Unit, new FluidId(2)));
+            var network = Chain(2, FaceCap, true, true, (0, 30 * Unit, new FluidId(1)), (1, 10 * Unit, new FluidId(2)));
             Run(network, 100);
 
             Assert.AreEqual(30 * Unit, network.NodeAmounts[0]);
@@ -133,7 +136,7 @@ namespace Tests.UnitTest.Game
         // The hash the step folds in during its own walk equals the one from a full walk
         public void StepHashMatchesFullRecompute()
         {
-            var network = Chain(5, 500, true, true, (0, 100 * Unit, TestFluidId), (3, 40 * Unit, TestFluidId));
+            var network = Chain(5, FaceCap, true, true, (0, 100 * Unit, TestFluidId), (3, 40 * Unit, TestFluidId));
             Run(network, 50);
             var stepped = network.LastStateHash;
             Assert.AreEqual(stepped, FluidNetworkStateHash.Compute(network));

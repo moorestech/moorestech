@@ -8,11 +8,11 @@ namespace Game.Fluid.Simulation
 {
     /// <summary>
     ///     流体網の状態を列ごとの配列で持つ(SoA)。ノード・面は番号で指し、クラス参照を持たない。サーバーの網もクライアントの複製もこの1つの型。
-    ///     量・容量・速度・上限は FluidUnits の整数単位(1/1000)の long(ADR 0090)。整数なので加算の順序で結果が変わらず、サーバーとクライアントがビット単位で一致する。
+    ///     量・容量・速度・上限は FluidUnits の整数単位(1 単位 = 流体量の 10 億分の 1)の long(ADR 0090)。整数なので加算の順序で結果が変わらず、サーバーとクライアントがビット単位で一致する。
     ///     配列は構築時に確定し、再構築のたびに新しい網へ置き換える。tick で変わるのは量・流体ID・面とポートの速度だけ。
     ///     ノード→接続面・ノード→ポートの一覧(CSR)も構築時に作り、Stepper がノードごとに自分の面を集めるために使う。
     ///     The fluid network state as per-column arrays (SoA): nodes and faces are addressed by index with no object references; the server network and the client replica share this one type.
-    ///     Amounts, capacities, velocities and caps are FluidUnits integers (1/1000) held as longs (ADR 0090), so addition order never changes the result and server and client match bit for bit.
+    ///     Amounts, capacities, velocities and caps are FluidUnits integers (one unit is 10^-9 of an amount) held as longs (ADR 0090), so addition order never changes the result and server and client match bit for bit.
     ///     Arrays are fixed at construction and a rebuild swaps in a new network; only amounts, fluid ids and face/port velocities change per tick.
     ///     Node-to-face and node-to-port adjacency (CSR) is also built at construction so the stepper can gather each node's own faces.
     /// </summary>
@@ -45,8 +45,8 @@ namespace Game.Fluid.Simulation
         public readonly int[] NodePortStart;
         public readonly int[] NodePorts;
 
-        // ノードごとの圧力スケール(接続面の min(両端の容量) の最大。面が無ければ自分の容量)。痕跡判定「どの面からも押し出せない量か」の基準
-        // Per-node pressure scale (the largest min(capacity of both ends) over its faces; its own capacity without faces); the basis of the trace test "too little to push through any face"
+        // ノードごとの圧力スケール(接続面の min(両端の容量) の最大。面が無ければ自分の容量)。「どの面からも押し出せない動けない量か」の判定基準
+        // Per-node pressure scale (the largest min(capacity of both ends) over its faces; its own capacity without faces); the basis of the immovable-amount test "too little to push through any face"
         public readonly long[] NodePressureScale;
 
         // 現在の状態のハッシュ。Stepper が最終パスで全要素を足し直し、境界からの流入は要素の差分で更新し、構築直後は全走査で求める。加算で畳むので要素単位の差し替えが O(1) で済む
@@ -102,31 +102,31 @@ namespace Game.Fluid.Simulation
             return NodeAmounts[node] / (double)NodeCapacities[node];
         }
 
-        // 受け入れ規則の唯一の定義。異種流体は拒否(0)。ただし今の中身が痕跡(FluidPressureMath.IsTrace)なら空と同じく受け入れ、呼び出し側で流体IDを入ってきた方に置き換える。空き容量でクランプした受け入れ量(単位)を返す。持ち越し中のパイプも同じ規則を使う
-        // The single definition of the acceptance rule: reject mismatched fluid (0) unless the current content is a trace (FluidPressureMath.IsTrace), which counts as empty and the caller relabels to the incoming id; clamp by free capacity and return the accepted units. Unbuilt pipes use the same rule
-        public static long ResolveAcceptedUnits(long currentAmount, long capacity, long pressureScale, FluidId currentFluidId, FluidId incomingFluidId, long incomingUnits)
+        // 受け入れ規則の唯一の定義。異種流体は拒否(0)、空なら流体IDを引き継ぎ、空き容量でクランプした受け入れ量(単位)を返す。持ち越し中のパイプも同じ規則を使う
+        // The single definition of the acceptance rule: reject mismatched fluid (0), an empty holder adopts the incoming id, clamp by free capacity and return the accepted units; unbuilt pipes use the same rule
+        public static long ResolveAcceptedUnits(long currentAmount, long capacity, FluidId currentFluidId, FluidId incomingFluidId, long incomingUnits)
         {
             if (incomingUnits <= 0) return 0;
-            if (currentFluidId != incomingFluidId && !FluidPressureMath.IsTrace(currentAmount, capacity, pressureScale)) return 0;
+            if (0 < currentAmount && currentFluidId != incomingFluidId) return 0;
             return Math.Max(0, Math.Min(incomingUnits, capacity - currentAmount));
         }
 
-        // 痕跡(空の隣にも押し出せない量。0 を含む)か。面を開く・流入を受ける判断で空と同じ扱いにする
-        // Whether the node holds a trace (too little to push into an empty neighbor; zero included); treated as empty when opening faces and accepting inflow
-        public bool IsTrace(int node)
+        // 動けない量(空の隣にも押し出せない量。0 を含む)か。Stepper が tick の最後に 0 にして名を外す
+        // Whether the node holds an immovable amount (too little to push into an empty neighbor; zero included); the stepper clears it and its id at the end of a tick
+        public bool IsImmovable(int node)
         {
-            return FluidPressureMath.IsTrace(NodeAmounts[node], NodeCapacities[node], NodePressureScale[node]);
+            return FluidPressureMath.IsImmovable(NodeAmounts[node], NodeCapacities[node], NodePressureScale[node]);
         }
 
         // 境界(機械のpush等)からの流入。double を切り捨てて単位にし、受け入れ規則でクランプして、実際に足した単位を accepted で返す。差分にはこの値をそのまま記録する。残りは double のまま返す(端数は機械に残る)
         // External inflow from boundaries (machine push etc.): the double is floored to units, clamped by the acceptance rule, and the units actually added are returned in accepted (what the diff records); the remainder stays a double (the fraction stays in the machine)
         public FluidStack AddExternal(int node, FluidStack fluidStack, out long accepted)
         {
-            accepted = ResolveAcceptedUnits(NodeAmounts[node], NodeCapacities[node], NodePressureScale[node], NodeFluidIds[node], fluidStack.FluidId, FluidUnits.ToUnitsFloor(fluidStack.Amount));
+            accepted = ResolveAcceptedUnits(NodeAmounts[node], NodeCapacities[node], NodeFluidIds[node], fluidStack.FluidId, FluidUnits.ToUnitsFloor(fluidStack.Amount));
             if (accepted <= 0) return fluidStack;
 
-            // 要素ハッシュの差し替えは流体IDの書き換えより前の値から取る。受け入れた以上、名は入ってきた流体(空・痕跡は置き換わり、同じ流体なら変わらない)
-            // The element-hash swap starts from the value before the fluid id is rewritten. Once accepted, the id is the incoming fluid (empty and trace are replaced; the same fluid is unchanged)
+            // 要素ハッシュの差し替えは流体IDの書き換えより前の値から取る。受け入れた以上、名は入ってきた流体(空なら引き継ぎ、同じ流体なら変わらない)
+            // The element-hash swap starts from the value before the fluid id is rewritten. Once accepted, the id is the incoming fluid (an empty node adopts it; the same fluid is unchanged)
             var before = FluidNetworkStateHash.NodeElement(node, NodeAmounts[node], NodeFluidIds[node].AsPrimitive());
             NodeFluidIds[node] = fluidStack.FluidId;
             NodeAmounts[node] += accepted;
@@ -134,8 +134,8 @@ namespace Game.Fluid.Simulation
             return new FluidStack(fluidStack.Amount - FluidUnits.ToAmount(accepted), fluidStack.FluidId);
         }
 
-        // サーバーが受け入れ済みの量をそのまま足す(複製の差分再生)。容量確認はしない。流体IDはサーバーが受け入れた流体の名をそのまま写す(空・痕跡の置き換えを含む)
-        // Adds units the server already accepted (replica diff replay); no capacity check, and the fluid id copies what the server accepted (including the replacement of empty or trace content)
+        // サーバーが受け入れ済みの量をそのまま足す(複製の差分再生)。容量確認はしない。流体IDはサーバーが受け入れた流体の名をそのまま写す(空なら引き継ぎになる)
+        // Adds units the server already accepted (replica diff replay); no capacity check, and the fluid id copies what the server accepted (an empty node adopts it)
         public void AddAccepted(int node, FluidId fluidId, long units)
         {
             var before = FluidNetworkStateHash.NodeElement(node, NodeAmounts[node], NodeFluidIds[node].AsPrimitive());
@@ -151,11 +151,11 @@ namespace Game.Fluid.Simulation
             unchecked { LastStateHash += FluidNetworkStateHash.NodeElement(node, NodeAmounts[node], NodeFluidIds[node].AsPrimitive()) - before; }
         }
 
-        // 空になったら流体IDを解除する
-        // Release the fluid id once the node is empty
-        internal void CleanupIfEmpty(int node)
+        // 動けない量(0 を含む)しか無ければ 0 にして流体IDを解除する。double 版の 1e-9 カットオフに当たる
+        // Clears a node holding only an immovable amount (zero included) and releases its fluid id; the counterpart of the double version's 1e-9 cutoff
+        internal void ClearIfImmovable(int node)
         {
-            if (0 < NodeAmounts[node]) return;
+            if (!IsImmovable(node)) return;
             NodeAmounts[node] = 0;
             NodeFluidIds[node] = FluidMaster.EmptyFluidId;
         }
