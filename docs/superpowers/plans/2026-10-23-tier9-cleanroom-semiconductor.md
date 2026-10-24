@@ -279,56 +279,58 @@
 
 ## タスク一覧（実行順）
 
+> 実行記録（2026-10-24）: 以下のタスク単位チェックは独立した spec/quality レビュー通過を示す。詳細は `.superpowers/sdd/progress.md` とタスク別報告・レビュー（終了時に記録repoへarchive）を正とする。本文の Step チェックは計画原文を維持し、未観測の red-first やサンプルからの是正を実施済みと偽らない。A11 は本番撤去パケット・描画待ちで再録画27/27、C10 はDTO単体代用を却下しFキーで開いた実topic配信で3/3を確認した。マスタ内容・バランスは引き続き統合タスク外部委譲、F1/F2・最終CIは未完了。
+
 ### Part A（部屋の使い勝手）
 
-- A0 moorestech_master の作業 worktree `$MW` を用意する
-- A1 ドアを汚染源（接続口）から外す
-- A2 空気清浄機にベルト搬入口と手動投入を付け、フィルター以外を拒否する
-- A3 ドアを通り抜けられる 1×2×1 のブロックにする（prefab と master）
-- A13 縦向き（Up*・Down*）に置いたブロックの見た目と設置面を占有セルに揃える（BlockDirection の原点修正・PreviewSurfaceTypeResolver）
-- A4 向き自由の平たい部材「クリーンルームパネル」を追加する（向き混在の部屋テスト・prefab・master）
-- A14 クリーンルームのアイテムハッチに搬送量の上限を足す（スキーマ maxItemsPerSecond・搬送枠・検証・master 暫定値）
-- A5 サーバーで「ブロック1つから見た部屋の状態」と漏れ箇所を求める
-- A6 部屋の状態をクライアントへ渡すプロトコル `va:getCleanRoomInfo`
-- A7 機械の停止理由（未密閉／クラス不足）をブロック状態で配る
-- A8 開いている室内機械・清浄機の部屋の状態を webui ホストの DTO に載せる
-- A9 webui に「部屋」欄・停止理由・清浄機のフィルター欄を出し、文言を足す
-- A10 壁・ドア・ハッチ（パネルを含む CleanRoomWall 型）にカーソルを当てると部屋の要約と漏れ箇所を出す
-- A11 unity プレイ録画テスト「パネルで部屋を建てて入る・フィルター投入・状態UI表示」
+- [x] A0 moorestech_master の作業 worktree `$MW` を用意する
+- [x] A1 ドアを汚染源（接続口）から外す
+- [x] A2 空気清浄機にベルト搬入口と手動投入を付け、フィルター以外を拒否する
+- [x] A3 ドアを通り抜けられる 1×2×1 のブロックにする（prefab と master）
+- [x] A13 縦向き（Up*・Down*）に置いたブロックの見た目と設置面を占有セルに揃える（BlockDirection の原点修正・PreviewSurfaceTypeResolver）
+- [x] A4 向き自由の平たい部材「クリーンルームパネル」を追加する（向き混在の部屋テスト・prefab・master）
+- [x] A14 クリーンルームのアイテムハッチに搬送量の上限を足す（スキーマ maxItemsPerSecond・搬送枠・検証・master 暫定値）
+- [x] A5 サーバーで「ブロック1つから見た部屋の状態」と漏れ箇所を求める
+- [x] A6 部屋の状態をクライアントへ渡すプロトコル `va:getCleanRoomInfo`
+- [x] A7 機械の停止理由（未密閉／クラス不足）をブロック状態で配る
+- [x] A8 開いている室内機械・清浄機の部屋の状態を webui ホストの DTO に載せる
+- [x] A9 webui に「部屋」欄・停止理由・清浄機のフィルター欄を出し、文言を足す
+- [x] A10 壁・ドア・ハッチ（パネルを含む CleanRoomWall 型）にカーソルを当てると部屋の要約と漏れ箇所を出す
+- [x] A11 unity プレイ録画テスト「パネルで部屋を建てて入る・フィルター投入・状態UI表示」
 
 ### Part C（機械の汎用機構）
 
-- C1: 品質モジュールの効き先制限（`allowQualityModule`。品質は成膜・EUV・ダイシングだけ、速度・省エネ・生産性は全機械）
-- C2: レベル継承レシピの宣言と検証（`levelInheritance`・`MachineRecipeLevelInheritanceUtil`・ダイシング形の出力を許す検証・テストマスタの例）
-- C3: 継承レシピの実行（入力束縛・実現出力・返却・待機キャッシュ）と一般機械の品質シフトの撤去（`LevelVariantOutputTest`）
-- C4: 継承レベルの保存と V6→V7 マイグレーション（`inheritedLevel`・`SaveMigrationStepV6ToV7`）
-- C5: Part B 向けの品質モジュール API（`MachineModuleEffect.HighestQualityModuleTier`）
-- C6: モジュールスロットのスタック上限（サーバー。`moduleSlotStackLimitLevels`・`unlockModuleSlotStackLevel`・DataStore）
-- C7: 継承レシピの製作上限（サーバー。`unlockLevelInheritanceCraftLevel`・DataStore・入力束縛の上限）
-- C11: 上位チップは下位の代わりに使える（`LevelFamilySubstituteUtil`・通常レシピの入力束縛と自動搬入の揃え・研究の消費を下位から）
-- C8: 2状態のクライアント同期（イベントパケット2本・ハンドシェイク Key 7/8・クライアントのミラー）
-- C9: Web UI の機械画面（継承バッジ・スロット上限・上位レベル素材の Shift 宛先 `acceptedItemIds`）
-- C12: 研究ノードに機械強化の解放2種を出し、研究の充足に上位レベルを数える（Web UI・表示台帳8種）
-- C10: 画面まで通す（EditModeInPlayingTest で研究→topic・`research.tree`、プレイ録画で上限表示）
-- C13: 継承元のレベルで止まった機械の理由を機械UIに出す。`MachineInputBlockInflow` が直近の拒否を記録し、`va:getMachineInputStall` で表示中だけ1秒ごとに問い合わせ、赤字の欄 `machine-input-stall` に出す。EditModeInPlayingTest で配信まで確かめる。
+- [x] C1: 品質モジュールの効き先制限（`allowQualityModule`。品質は成膜・EUV・ダイシングだけ、速度・省エネ・生産性は全機械）
+- [x] C2: レベル継承レシピの宣言と検証（`levelInheritance`・`MachineRecipeLevelInheritanceUtil`・ダイシング形の出力を許す検証・テストマスタの例）
+- [x] C3: 継承レシピの実行（入力束縛・実現出力・返却・待機キャッシュ）と一般機械の品質シフトの撤去（`LevelVariantOutputTest`）
+- [x] C4: 継承レベルの保存と V6→V7 マイグレーション（`inheritedLevel`・`SaveMigrationStepV6ToV7`）
+- [x] C5: Part B 向けの品質モジュール API（`MachineModuleEffect.HighestQualityModuleTier`）
+- [x] C6: モジュールスロットのスタック上限（サーバー。`moduleSlotStackLimitLevels`・`unlockModuleSlotStackLevel`・DataStore）
+- [x] C7: 継承レシピの製作上限（サーバー。`unlockLevelInheritanceCraftLevel`・DataStore・入力束縛の上限）
+- [x] C11: 上位チップは下位の代わりに使える（`LevelFamilySubstituteUtil`・通常レシピの入力束縛と自動搬入の揃え・研究の消費を下位から）
+- [x] C8: 2状態のクライアント同期（イベントパケット2本・ハンドシェイク Key 7/8・クライアントのミラー）
+- [x] C9: Web UI の機械画面（継承バッジ・スロット上限・上位レベル素材の Shift 宛先 `acceptedItemIds`）
+- [x] C12: 研究ノードに機械強化の解放2種を出し、研究の充足に上位レベルを数える（Web UI・表示台帳8種）
+- [x] C10: 画面まで通す（EditModeInPlayingTest で研究→topic・`research.tree`、プレイ録画で上限表示）
+- [x] C13: 継承元のレベルで止まった機械の理由を機械UIに出す。`MachineInputBlockInflow` が直近の拒否を記録し、`va:getMachineInputStall` で表示中だけ1秒ごとに問い合わせ、赤字の欄 `machine-input-stall` に出す。EditModeInPlayingTest で配信まで確かめる。
 
 ### Part B（チップ生産の工程）
 
-- B1: 歩留まりの純計算と抽選（スキーマ変更なし）
-- B2: 清浄室機械の液体入力・液体の保存・セーブ版 7→8
-- B3: 現行チップ抽選の撤去・クラス値の必須化・成膜のウェハグレード抽選（`CleanRoomRoleRates` を新設）
-- B4: EUV の層ごとの失敗判定
-- B5: ダイシングのレベル別切り分け・出力容量の検証・生産性の追加セットの検証
-- B6: 抽選の中身（上限グレード・昇格確率・層失敗率・ダイ損失率）を機械UIに出す（サーバーのプロトコル＋webui）
+- [x] B1: 歩留まりの純計算と抽選（スキーマ変更なし）
+- [x] B2: 清浄室機械の液体入力・液体の保存・セーブ版 7→8
+- [x] B3: 現行チップ抽選の撤去・クラス値の必須化・成膜のウェハグレード抽選（`CleanRoomRoleRates` を新設）
+- [x] B4: EUV の層ごとの失敗判定
+- [x] B5: ダイシングのレベル別切り分け・出力容量の検証・生産性の追加セットの検証
+- [x] B6: 抽選の中身（上限グレード・昇格確率・層失敗率・ダイ損失率）を機械UIに出す（サーバーのプロトコル＋webui）
 
 ### Part D（専用機の簡易モデル）
 
-- D10 専用機5種の簡易モデル prefab（既存の複製・色と上面の形とラベル・Addressables 登録）を Unity 経由で作る
+- [x] D10 専用機5種の簡易モデル prefab（既存の複製・色と上面の形とラベル・Addressables 登録）を Unity 経由で作る
 
 ### Final tasks
 
-- F1 全ブランチレビュー（moores-code-review）
-- F2 PR を作り、セッションを閉じられる状態にする（pr-create）
+- [ ] F1 全ブランチレビュー（moores-code-review）
+- [ ] F2 PR を作り、セッションを閉じられる状態にする（pr-create）
 
 ---
 
