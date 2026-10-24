@@ -65,10 +65,7 @@ namespace Game.Block.Blocks.Machine
             // 加工中レシピか選択レシピのいずれかが欠けた加工中セーブ（出力詰まり含む）は破損データのためIdleへ戻す
             // A mid-job save (output blockage included) missing either the processing or selected recipe is corrupt, so fall back to Idle
             var isMidJob = CurrentState == ProcessState.Processing || CurrentState == ProcessState.OutputBlocked;
-            if (isMidJob && (processingJob == null || selectedRecipe == null))
-            {
-                CurrentState = ProcessState.Idle;
-            }
+            if (isMidJob && (processingJob == null || selectedRecipe == null)) CurrentState = ProcessState.Idle;
 
             _stateHandlers = new IMachineProcessState[]
                 {
@@ -89,6 +86,7 @@ namespace Game.Block.Blocks.Machine
         }
 
         public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
+        public bool TryGetSelectedRecipe(out MachineRecipeMasterElement recipe) => (recipe = _context.SelectedRecipe) != null;
 
         public MachineRecipeSelectionResult SetSelectedRecipe(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
         {

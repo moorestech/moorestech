@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.CleanRoom.Machine;
+using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine;
@@ -54,6 +55,10 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var operabilityState = new CleanRoomOperabilityStateComponent();
             var machineComponent = new CleanRoomMachineComponent(blockInstanceId, processor, operabilityState);
+
+            // 抽選の中身の部品は、抽選と同じレシピ選択・モジュール集計と、部屋の効果の読み口を受け取る
+            // The draw-detail component receives the draw's own recipe selection and module aggregate, plus the room effect's read view
+            var yieldPreview = new CleanRoomYieldPreviewComponent(processor, effectComponent, processor.CleanRoomEffectLookup);
             var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, blockInstanceId, machineComponent, componentStates);
 
             // 供給読み取り(machineComponent)を加工判定(processor)より先に更新させるため、この並び順を維持すること
@@ -69,6 +74,7 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
                 inputConnectorComponent,
                 wireConnector,
                 new MachineRecipeBlueprintSettingsComponent(processor),
+                yieldPreview,
                 new MachineInputLevelStallComponent(input, processor),
                 operabilityState,
             };

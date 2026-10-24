@@ -131,6 +131,14 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack>(request, ct);
         }
 
+        // 室内機械の選択工程について、次の抽選に使う上限・確率を取得する
+        // Fetch the caps and chances the next draw of an interior machine's selected process will use
+        public async UniTask<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack> GetCleanRoomYieldInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetCleanRoomYieldInfoProtocol.RequestCleanRoomYieldInfoMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack>(request, ct);
+        }
+
         // 進行記録がセッション開始時に1回だけ読む。可変状態の同期ではないので初期データ取得のみ
         // The progress record reads this once at session start; it syncs no mutable state, so a fetch is enough
         public async UniTask<GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack> GetWorldPlaySessionInfo(CancellationToken ct)
