@@ -545,6 +545,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3c49f052025fe4e58b0ff3ee9868f929
+    m_Address: Vanilla/Block/CleanRoomPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3d5b3331cf6f74449983c2fea4f59653
     m_Address: Vanilla/Environment/Rock/MesaDesert/Boulders_3
     m_ReadOnly: 0
