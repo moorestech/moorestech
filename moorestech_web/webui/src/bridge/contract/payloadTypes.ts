@@ -60,6 +60,8 @@ import type {
   TrainTimetableDataSchema,
   TrainTimetableStationSchema,
   TrainTimetableStopSchema,
+  CleanRoomDetailDataSchema,
+  CleanRoomSummaryDataSchema,
   NotificationDataSchema,
 } from "./schemas";
 
@@ -111,6 +113,8 @@ export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
 export type BeltThroughputData = z.infer<typeof BeltThroughputDataSchema>;
 export type BeltThroughputWindowData = z.infer<typeof BeltThroughputWindowDataSchema>;
+export type CleanRoomDetailData = z.infer<typeof CleanRoomDetailDataSchema>;
+export type CleanRoomSummaryData = z.infer<typeof CleanRoomSummaryDataSchema>;
 export type GearToElectricGenerationState = z.infer<typeof GearToElectricGenerationStateSchema>;
 export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;

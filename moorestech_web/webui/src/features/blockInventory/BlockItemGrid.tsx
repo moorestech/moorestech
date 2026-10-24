@@ -14,6 +14,7 @@ export default function BlockItemGrid({ itemSlots, testId }: { itemSlots: SlotDa
       {itemSlots.map((slot, index) => (
         <ItemSlot
           key={index}
+          testId={`${testId}-slot-${index}`}
           itemId={slot.itemId}
           count={slot.count}
           onLeftDown={(shiftKey) => gestures.onLeftDown(index, shiftKey)}

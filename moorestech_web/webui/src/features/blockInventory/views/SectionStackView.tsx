@@ -10,6 +10,7 @@ import GeneratorSection from "../details/GeneratorSection";
 import MachineSection from "../details/MachineSection";
 import MinerSection from "../details/MinerSection";
 import BeltThroughputSection from "../details/BeltThroughputSection";
+import CleanRoomSection from "../details/cleanRoom/CleanRoomSection";
 import PumpSection from "../details/pump/PumpSection";
 import { ElectricNetworkSection, GearNetworkSection } from "../details/NetworkSections";
 
@@ -34,6 +35,8 @@ const configByBlockType: Record<string, SectionStackViewConfig> = {
   GearMiner: { itemGridTestId: "gear-miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true, showFluidDetails: false },
   ElectricPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
   GearPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
+  CleanRoomMachine: { itemGridTestId: null, fluidRowTestId: "machine-fluid-slots", renderEmptyGrid: false, showFluidProgress: false, showFluidDetails: false },
+  CleanRoomAirFilter: { itemGridTestId: "clean-room-filter-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: false, showFluidDetails: false },
 };
 
 const genericConfig: SectionStackViewConfig = {
@@ -59,6 +62,7 @@ export default function SectionStackView({ data, fillsPanelHeight }: { data: Blo
     // 高さ確定面でだけ伸ばす。高さ自動の面で伸ばすと子が内容高より縮む経路が開く
     // Stretch only on the height-determining panel; on auto-height panels it would let children shrink below their content
     <Stack className={fillsPanelHeight ? styles.fillPanelHeight : undefined} gap="sm">
+      <CleanRoomSection data={data} />
       {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} testId={itemGridTestId} /> : null}
       {data.machine ? <MachineSection data={data} machine={data.machine} fillsPanelHeight={fillsPanelHeight} /> : null}
       <MinerSection data={data} />

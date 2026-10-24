@@ -56,6 +56,7 @@ export default function InventoryPanel() {
           return (
             <ItemSlot
               key={`main-${i}`}
+              testId={`main-slot-${i}`}
               {...(itemGuid ? tutorialAnchor(inventoryItemAnchorId(itemGuid)) : {})}
               itemId={slot.itemId}
               count={slot.count}

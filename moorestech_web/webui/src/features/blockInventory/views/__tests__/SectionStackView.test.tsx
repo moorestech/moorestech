@@ -53,6 +53,8 @@ describe("SectionStackView", () => {
     ["SimpleGearGenerator", "generator-fuel-grid", null, true, true],
     ["ElectricMiner", "miner-output-grid", null, true, true],
     ["GearMiner", "gear-miner-output-grid", null, true, true],
+    ["CleanRoomMachine", null, "machine-fluid-slots", false, false],
+    ["CleanRoomAirFilter", "clean-room-filter-grid", null, true, false],
     ["unknown", "generic-block-grid", "generic-block-fluids", false, true],
   ])("%s の既存表示を保つ", (blockType, itemGridTestId, fluidRowTestId, renderEmptyGrid, showFluidProgress) => {
     const tree = render(dataFor(blockType, []));
@@ -107,6 +109,15 @@ describe("SectionStackView", () => {
     expect(tree.root.findByProps({ "data-testid": "gear-to-electric-state" }).props.children).toBe("ui.blockInventory.gearToElectricStateGenerating|undefined");
     expect(tree.root.findByProps({ "data-testid": "gear-to-electric-supplied-power" }).props.children).toBe('ui.blockInventory.gearToElectricSuppliedPower|{"current":"72","max":"100"}');
     expect(tree.root.findAll((n) => n.type === "div" && n.props["data-testid"] !== undefined && n.props["data-testid"] !== "fluid-slot" && n.props["data-testid"] !== "progress-arrow-bar" && n.props["data-testid"] !== undefined)).toHaveLength(0);
+    act(() => { tree.unmount(); });
+  });
+
+  it("部屋欄はセクション列の先頭に描く", () => {
+    const data = dataFor("CleanRoomAirFilter", [{ itemId: 12, count: 5 }]);
+    data.cleanRoom = { kind: "openings", openingCount: 3 };
+    const tree = render(data);
+    const ids = tree.root.findAll((n) => typeof n.type === "string" && n.props["data-testid"] !== undefined).map((n) => n.props["data-testid"]);
+    expect(ids.slice(0, 3)).toEqual(["clean-room-section", "clean-room-headline", "clean-room-filter-grid"]);
     act(() => { tree.unmount(); });
   });
 });
