@@ -33,14 +33,16 @@ namespace Client.Tests.Tooltip
             // A new instance with the same keys and TextParams is not shown again
             writer.Show(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) });
             Assert.AreSame(shownLines, _tooltip.GetPresentation().Lines);
-            Assert.IsFalse(writer.IsShownByOther());
+            Assert.IsTrue(writer.TryShowWithoutReplacingOther(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) }));
+            Assert.AreSame(shownLines, _tooltip.GetPresentation().Lines);
 
             // 他の書き手に上書きされたら、同じ内容でも出し直す
             // After another writer overwrites, the same content is shown again
             _tooltip.Show(new TooltipOwner(), LocalizationKeys.Ui.Tooltip.HoldToGet);
-            Assert.IsTrue(writer.IsShownByOther());
+            Assert.IsFalse(writer.TryShowWithoutReplacingOther(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) }));
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.HoldToGet.Key, _tooltip.GetPresentation().Lines[0].Key.Key);
             writer.Show(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) });
-            Assert.IsFalse(writer.IsShownByOther());
+            Assert.IsTrue(writer.TryShowWithoutReplacingOther(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) }));
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key, _tooltip.GetPresentation().Lines[0].Key.Key);
         }
 

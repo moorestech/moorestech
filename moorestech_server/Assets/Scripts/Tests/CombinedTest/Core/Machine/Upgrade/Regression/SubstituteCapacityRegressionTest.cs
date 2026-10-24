@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -35,10 +36,10 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade.Regression
             config.JsonContents[key] = json.ToString();
             MasterHolder.Load(container);
             var (block, inventory, _) = PlaceMachine(Vector3Int.zero);
-            MachineRecipeSelectTestUtil.SelectRecipe(block, Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid));
+            MachineRecipeSelectTestUtil.SelectRecipe(block, LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid));
             inventory.SetItem(0, Create(ForUnitTestLevelInheritanceIds.Source(2), 2));
             var incoming = Create(ForUnitTestLevelInheritanceIds.Source(1), 1);
-            Assert.IsFalse(((IBlockInventory)inventory).InsertionCheck(new List<Core.Item.Interface.IItemStack> { incoming }));
+            Assert.IsFalse(((IBlockInventory)inventory).InsertionCheck(new List<IItemStack> { incoming }));
             var remainder = inventory.InsertItem(incoming, InsertItemContext.Empty);
             Assert.AreEqual(incoming.Id, remainder.Id);
             Assert.AreEqual(1, remainder.Count);
