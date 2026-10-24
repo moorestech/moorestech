@@ -458,4 +458,6 @@ ui.blockInventory.blockInfoUnsupportedTarget,{target}: not available for this bl
 ui.blockInventory.blockInfoVanished,{target}: the block no longer exists,{target}: the block no longer exists,{target}: ブロックが見つかりません,{target}: Block existiert nicht mehr,{target}: 블록을 찾을 수 없습니다
 ui.blockInventory.cleanRoomInfoLabel,Room,Room,部屋の状態,Raum,방 상태
 ui.blockInventory.cleanRoomYieldInfoLabel,Draw details,Draw details,抽選の中身,Ziehungsdetails,추첨 내용
+ui.blockInventory.cleanRoomYieldPendingDrawLabel,Fixed draw waiting for output space,Fixed draw waiting for output space,確定済み・出力の空き待ちの抽選,Feststehende Ziehung wartet auf Ausgabeplatz,출력 공간을 기다리는 확정된 추첨
+ui.blockInventory.cleanRoomYieldNextDrawLabel,Next new draw (current conditions),Next new draw (current conditions),次の新規抽選（今の条件）,Nächste neue Ziehung (aktuelle Bedingungen),다음 새 추첨 (현재 조건)
 ui.blockInventory.machineInputStallInfoLabel,Inflow stall,Inflow stall,搬入停止の理由,Zufuhrstopp,반입 정지 이유

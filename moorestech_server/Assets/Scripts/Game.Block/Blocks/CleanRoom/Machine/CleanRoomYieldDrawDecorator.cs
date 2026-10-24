@@ -5,6 +5,7 @@ using Core.Master;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.OutputRewrite;
 using Game.Block.Blocks.CleanRoom.Machine.Yield;
+using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Machine.State;
 using Game.Block.Interface;
@@ -42,15 +43,20 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             CurrentEffect = effect;
         }
 
-        public List<IItemStack> Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs)
+        public List<IItemStack> Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs, out IRealizedOutputDrawRecord drawRecord)
         {
             // 役割の無いレシピは抽選せずカウンタも進めない
             // A recipe with no role draws nothing and leaves the counter alone
+            drawRecord = null;
             if (!MasterHolder.CleanRoomMaster.TryGetRecipeRole(recipe.MachineRecipeGuid, out var role)) return realizedOutputs;
+
+            // 抽選に使う率を表示と同じ式で記録し、出力待ちの間はこの値を確定済みの効果として見せる
+            // Record the draw's rates through the display's own formula, shown as the fixed effect while the outputs wait
+            var context = StartCycle();
+            drawRecord = CleanRoomYieldPreview.Compute(recipe, CurrentEffect, moduleEffect);
 
             // 役割の型ごとに書き換え器へ渡す
             // Hand each role type to its rewriter
-            var context = StartCycle();
             return role switch
             {
                 WaferGradeRecipeRole waferGrade => WaferGradeOutputRewriter.Rewrite(waferGrade, context),

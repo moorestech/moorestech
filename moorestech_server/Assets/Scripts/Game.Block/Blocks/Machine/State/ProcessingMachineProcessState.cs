@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
-using Core.Update;
 using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Blocks.Util;
 using Game.Block.Interface.MachineUpgrade;
@@ -52,15 +51,16 @@ namespace Game.Block.Blocks.Machine.State
             _context = context;
             if (restoredJob == null) return;
 
-            // セーブの残りtickごと加工を復元する。産出予定nullの旧セーブは完了時に再抽選する
-            // Restore processing with the saved remaining ticks; old saves with null pending outputs re-roll on completion
-            SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel);
+            // セーブの残りtickごと加工を復元する。総tickは保存しないので進捗表示用に今の効果から求める。産出予定nullの旧セーブは完了時に再抽選する
+            // Restore processing with the saved remaining ticks; total ticks are not saved, so derive them for the progress display from the current effect; old saves with null pending outputs re-roll on completion
+            var restoredTotalTicks = MachineRealization.ComputeTotalTicks(restoredJob.Recipe, _context.EffectComponent.AggregateCurrent());
+            SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel, restoredTotalTicks);
             RemainingTicks = restoredJob.RemainingTicks;
         }
 
-        // 加工するジョブをIdle、ロードから設定
-        // Set the processing job from Idle or on load
-        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel)
+        // 加工するジョブをIdle、ロードから設定。加工時間は確定済みの値を受け取り、ここでモジュール効果を取り直さない
+        // Set the processing job from Idle or on load; the processing time arrives already fixed and the module effect is never re-read here
+        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel, uint totalTicks)
         {
             // 待機からの開始もここを通る。継承レベルがレシピと合わなければ束縛の破れなので、黙って補わずに止める（復元の値は MachineProcessingJob が先に閉じている）
             // Starting from idle also passes here; a level that does not fit the recipe means a broken binding, so stop instead of filling it in (restored values are already closed by MachineProcessingJob)
@@ -69,10 +69,6 @@ namespace Game.Block.Blocks.Machine.State
             CurrentRecipe = recipe;
             InheritedLevel = inheritedLevel;
             _pendingOutputs = pendingOutputs;
-
-            var effect = _context.EffectComponent.AggregateCurrent();
-            var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
-            var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
             TotalTicks = totalTicks;
         }
 
@@ -105,7 +101,7 @@ namespace Game.Block.Blocks.Machine.State
 
             // 旧セーブで産出予定が無い場合はここで一度だけ確定させる（以後の保留tickで再抽選しないため）
             // Old saves lacking pending outputs get rolled once here (so held ticks afterward never re-roll)
-            _pendingOutputs ??= _context.CreateRealizedOutputs(CurrentRecipe, InheritedLevel);
+            _pendingOutputs ??= _context.CreateRealization(CurrentRecipe, InheritedLevel).Outputs;
 
             // tickは尽きたが産出物が収まらない間は、加工ではなく出力詰まりとして待つ（要求電力を待機率へ落とす）
             // Once ticks are exhausted but the outputs do not fit, wait as output-blocked rather than processing (drops the request to the idle rate)
@@ -136,7 +132,7 @@ namespace Game.Block.Blocks.Machine.State
         {
             if (CurrentRecipe == null) return;
 
-            var outputs = _pendingOutputs ?? _context.CreateRealizedOutputs(CurrentRecipe, InheritedLevel);
+            var outputs = _pendingOutputs ?? _context.CreateRealization(CurrentRecipe, InheritedLevel).Outputs;
             _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(CurrentRecipe));
 
             // 加工情報をクリアしてIdleが古いレシピ/進捗を報告・保存しないようにする

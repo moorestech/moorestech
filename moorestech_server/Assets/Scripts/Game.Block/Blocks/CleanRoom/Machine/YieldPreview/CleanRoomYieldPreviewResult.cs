@@ -1,10 +1,12 @@
+using Game.Block.Blocks.Machine.State;
+
 namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 {
     /// <summary>
-    ///     選択工程の次の抽選に使う値。役割ごとの型で、その役割に要る値だけを持つ
-    ///     Values the next draw of the selected process will use; one type per role, carrying only that role's values
+    ///     選択工程の抽選に使う値。役割ごとの型で、その役割に要る値だけを持つ。抽選の確定時にも同じ型で記録する
+    ///     Values a draw of the selected process uses; one type per role, carrying only that role's values, and recorded in the same type when a draw is fixed
     /// </summary>
-    public abstract class CleanRoomYieldPreviewResult
+    public abstract class CleanRoomYieldPreviewResult : IRealizedOutputDrawRecord
     {
         // 種別はこのファイルの型に閉じる
         // The kinds are closed to the types in this file

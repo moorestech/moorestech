@@ -68,7 +68,7 @@ namespace Client.Tests.BlockInfoPolling
             var source = new WireResponsePollSource<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView>(new CleanRoomYieldInfoPollSource());
             var poller = new BlockInfoPoller<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView>(source, "CleanRoomYield", TimeSpan.FromMilliseconds(1));
             var cache = CreateCache("_cleanRoomYieldPoller", poller, nameof(BlockNetworkInfoCache.CleanRoomTarget), CleanRoomDetailTarget.Machine);
-            var valid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(0.25d);
+            var valid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(0.25d, null);
             var invalid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNoRole();
             invalid.Kind = (CleanRoomYieldResponseKind)999;
 

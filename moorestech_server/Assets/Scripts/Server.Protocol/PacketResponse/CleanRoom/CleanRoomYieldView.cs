@@ -35,9 +35,14 @@ namespace Server.Protocol.PacketResponse
     {
         public WaferGradeYieldMessagePack WaferGrade { get; }
 
-        public CleanRoomYieldWaferGradeView(WaferGradeYieldMessagePack waferGrade)
+        // 出力待ちの確定済み抽選に使った値。待っていなければ null
+        // Values of the fixed draw waiting for output; null when nothing waits
+        public WaferGradeYieldMessagePack PendingDraw { get; }
+
+        public CleanRoomYieldWaferGradeView(WaferGradeYieldMessagePack waferGrade, WaferGradeYieldMessagePack pendingDraw)
         {
             WaferGrade = waferGrade;
+            PendingDraw = pendingDraw;
         }
     }
 
@@ -45,9 +50,14 @@ namespace Server.Protocol.PacketResponse
     {
         public LayerExposureYieldMessagePack LayerExposure { get; }
 
-        public CleanRoomYieldLayerExposureView(LayerExposureYieldMessagePack layerExposure)
+        // 出力待ちの確定済み抽選に使った値。待っていなければ null
+        // Values of the fixed draw waiting for output; null when nothing waits
+        public LayerExposureYieldMessagePack PendingDraw { get; }
+
+        public CleanRoomYieldLayerExposureView(LayerExposureYieldMessagePack layerExposure, LayerExposureYieldMessagePack pendingDraw)
         {
             LayerExposure = layerExposure;
+            PendingDraw = pendingDraw;
         }
     }
 
@@ -55,9 +65,14 @@ namespace Server.Protocol.PacketResponse
     {
         public DicingYieldMessagePack Dicing { get; }
 
-        public CleanRoomYieldDicingView(DicingYieldMessagePack dicing)
+        // 出力待ちの確定済み抽選に使った値。待っていなければ null
+        // Values of the fixed draw waiting for output; null when nothing waits
+        public DicingYieldMessagePack PendingDraw { get; }
+
+        public CleanRoomYieldDicingView(DicingYieldMessagePack dicing, DicingYieldMessagePack pendingDraw)
         {
             Dicing = dicing;
+            PendingDraw = pendingDraw;
         }
     }
 }

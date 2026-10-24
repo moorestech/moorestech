@@ -35,12 +35,15 @@ const CleanRoomFetchedDetailDataSchema = z.discriminatedUnion("kind", [
 ]);
 export const CleanRoomDetailDataSchema = z.discriminatedUnion("fetchState", [CleanRoomFetchedDetailDataSchema, BlockInfoUnavailableSchema]);
 
-// 室内機械の選択工程の抽選の中身。役割ごとに載る値が決まる
-// Draw details of an interior machine's selected process; each role fixes which values it carries
+// 室内機械の選択工程の抽選の中身。役割ごとに載る値が決まる。pendingDraw は出力の空きを待つ確定済み抽選に使った同じ役割の値で、待っていなければキーごと無い
+// Draw details of an interior machine's selected process; each role fixes its values, and pendingDraw holds the same role's values a fixed draw waiting for output used, absent when nothing waits
 const CleanRoomRateSchema = z.number().min(0).max(1);
+const waferGradeRates = { maxGrade: z.number().int().positive(), promotionChance: CleanRoomRateSchema };
+const layerExposureRates = { layerFailRate: CleanRoomRateSchema };
+const dicingRates = { dieLossRate: CleanRoomRateSchema };
 const CleanRoomYieldFetchedDataSchema = z.discriminatedUnion("role", [
-  z.object({ ...blockInfoFetchedKey, role: z.literal("waferGrade"), maxGrade: z.number().int().positive(), promotionChance: CleanRoomRateSchema }).strict(),
-  z.object({ ...blockInfoFetchedKey, role: z.literal("layerExposure"), layerFailRate: CleanRoomRateSchema }).strict(),
-  z.object({ ...blockInfoFetchedKey, role: z.literal("dicing"), dieLossRate: CleanRoomRateSchema }).strict(),
+  z.object({ ...blockInfoFetchedKey, role: z.literal("waferGrade"), ...waferGradeRates, pendingDraw: z.object(waferGradeRates).strict().optional() }).strict(),
+  z.object({ ...blockInfoFetchedKey, role: z.literal("layerExposure"), ...layerExposureRates, pendingDraw: z.object(layerExposureRates).strict().optional() }).strict(),
+  z.object({ ...blockInfoFetchedKey, role: z.literal("dicing"), ...dicingRates, pendingDraw: z.object(dicingRates).strict().optional() }).strict(),
 ]);
 export const CleanRoomYieldDataSchema = z.discriminatedUnion("fetchState", [CleanRoomYieldFetchedDataSchema, BlockInfoUnavailableSchema]);

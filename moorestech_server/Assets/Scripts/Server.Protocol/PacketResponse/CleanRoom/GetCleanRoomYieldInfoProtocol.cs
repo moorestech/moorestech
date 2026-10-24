@@ -39,19 +39,34 @@ namespace Server.Protocol.PacketResponse
 
             #region Internal
 
-            // サーバーの役割ごとの結果を役割ごとの factory へ写す（クライアントは Game.Block の型を持たない）
-            // Map each per-role server result onto its per-role factory, so the client never holds Game.Block types
-            static ResponseCleanRoomYieldInfoMessagePack CreateResponse(CleanRoomYieldPreviewResult preview)
+            // サーバーの役割ごとの結果を役割ごとの factory へ写す（クライアントは Game.Block の型を持たない）。出力待ちの確定済み抽選は同じ役割の値として添える
+            // Map each per-role server result onto its per-role factory, so the client never holds Game.Block types; a fixed draw waiting for output rides along as the same role's values
+            static ResponseCleanRoomYieldInfoMessagePack CreateResponse(CleanRoomYieldPreviewReport report)
             {
-                return preview switch
+                var pending = report.PendingDraw;
+                return report.Next switch
                 {
                     NoRolePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNoRole(),
+                    // 稼働できない間は率の欄を出さない（停止理由は部屋欄が出す）ので、確定済みの率も載せない
+                    // While the machine cannot operate no rate section is shown (the room section shows the halt reason), so fixed rates are not carried either
                     NotOperablePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
-                    WaferGradePreview waferGrade => ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(waferGrade.MaxGrade, waferGrade.PromotionChance),
-                    LayerExposurePreview layerExposure => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate),
-                    DicingPreview dicing => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(dicing.DieLossRate),
-                    _ => throw new ArgumentOutOfRangeException(nameof(preview), preview.GetType().Name, "未対応の抽選の中身 / Unsupported yield preview"),
+                    WaferGradePreview waferGrade => ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(waferGrade.MaxGrade, waferGrade.PromotionChance, pending == null ? null : ToWaferGrade(RequireSameRole<WaferGradePreview>(pending))),
+                    LayerExposurePreview layerExposure => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate, pending == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(pending).LayerFailRate)),
+                    DicingPreview dicing => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(dicing.DieLossRate, pending == null ? null : new DicingYieldMessagePack(RequireSameRole<DicingPreview>(pending).DieLossRate)),
+                    _ => throw new ArgumentOutOfRangeException(nameof(report.Next), report.Next.GetType().Name, "未対応の抽選の中身 / Unsupported yield preview"),
                 };
+
+                // 確定済み抽選は選択レシピのものだけが届くので役割は次の抽選と同じ。違えば部品の約束の破れなので止める
+                // Only the selected recipe's fixed draw arrives, so its role matches the next draw; a mismatch breaks the component's contract, so stop
+                T RequireSameRole<T>(CleanRoomYieldPreviewResult pendingDraw) where T : CleanRoomYieldPreviewResult
+                {
+                    return pendingDraw as T ?? throw new InvalidOperationException($"確定済み抽選の役割が次の抽選と違います next={report.Next.GetType().Name} pending={pendingDraw.GetType().Name}");
+                }
+
+                static WaferGradeYieldMessagePack ToWaferGrade(WaferGradePreview preview)
+                {
+                    return new WaferGradeYieldMessagePack(preview.MaxGrade, preview.PromotionChance);
+                }
             }
 
             #endregion
@@ -84,6 +99,12 @@ namespace Server.Protocol.PacketResponse
             [Key(4)] public LayerExposureYieldMessagePack LayerExposure { get; set; }
             [Key(5)] public DicingYieldMessagePack Dicing { get; set; }
 
+            // 出力の空きを待っている確定済み抽選に使った値。判別子と同じ役割の欄だけが書かれ、待っていなければ全部 null
+            // Values a fixed draw waiting for output space used; only the discriminator's role is written, and all stay null when nothing waits
+            [Key(6)] public WaferGradeYieldMessagePack PendingWaferGrade { get; set; }
+            [Key(7)] public LayerExposureYieldMessagePack PendingLayerExposure { get; set; }
+            [Key(8)] public DicingYieldMessagePack PendingDicing { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseCleanRoomYieldInfoMessagePack() { }
 
@@ -113,66 +134,28 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.NotOperable);
             }
 
-            public static ResponseCleanRoomYieldInfoMessagePack CreateWaferGrade(int maxGrade, double promotionChance)
+            // pendingDraw は出力待ちの確定済み抽選の値。待っていなければ null
+            // pendingDraw holds the values of a fixed draw waiting for output; null when nothing waits
+            public static ResponseCleanRoomYieldInfoMessagePack CreateWaferGrade(int maxGrade, double promotionChance, WaferGradeYieldMessagePack pendingDraw)
             {
-                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.WaferGrade) { WaferGrade = new WaferGradeYieldMessagePack(maxGrade, promotionChance) };
+                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.WaferGrade) { WaferGrade = new WaferGradeYieldMessagePack(maxGrade, promotionChance), PendingWaferGrade = pendingDraw };
             }
 
-            public static ResponseCleanRoomYieldInfoMessagePack CreateLayerExposure(double layerFailRate)
+            public static ResponseCleanRoomYieldInfoMessagePack CreateLayerExposure(double layerFailRate, LayerExposureYieldMessagePack pendingDraw)
             {
-                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.LayerExposure) { LayerExposure = new LayerExposureYieldMessagePack(layerFailRate) };
+                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.LayerExposure) { LayerExposure = new LayerExposureYieldMessagePack(layerFailRate), PendingLayerExposure = pendingDraw };
             }
 
-            public static ResponseCleanRoomYieldInfoMessagePack CreateDicing(double dieLossRate)
+            public static ResponseCleanRoomYieldInfoMessagePack CreateDicing(double dieLossRate, DicingYieldMessagePack pendingDraw)
             {
-                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.Dicing) { Dicing = new DicingYieldMessagePack(dieLossRate) };
+                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.Dicing) { Dicing = new DicingYieldMessagePack(dieLossRate), PendingDicing = pendingDraw };
             }
 
-            // 判別子の読み分けはここだけで行う。消失・非対応の対象はそのまま返し、入れ子の欠けた応答と未知の種別は警告して Unreadable
-            // The only place that branches on the discriminator; vanished and unsupported targets pass through, missing nested objects and unknown kinds warn and are Unreadable
+            // 判別子と確定済み抽選の欄の読み分けは読み口1か所（CleanRoomYieldResponseReader）で行う
+            // The single reader (CleanRoomYieldResponseReader) branches on the discriminator and the fixed-draw fields
             public BlockInfoReadResult TryReadView(out CleanRoomYieldView view)
             {
-                view = default;
-                switch (Kind)
-                {
-                    case CleanRoomYieldResponseKind.NoRole:
-                        view = CleanRoomYieldNoRoleView.Instance;
-                        return BlockInfoReadResult.Success;
-                    case CleanRoomYieldResponseKind.NotOperable:
-                        view = CleanRoomYieldNotOperableView.Instance;
-                        return BlockInfoReadResult.Success;
-                    case CleanRoomYieldResponseKind.WaferGrade:
-                        if (WaferGrade == null) return WarnMissingNested();
-                        view = new CleanRoomYieldWaferGradeView(WaferGrade);
-                        return BlockInfoReadResult.Success;
-                    case CleanRoomYieldResponseKind.LayerExposure:
-                        if (LayerExposure == null) return WarnMissingNested();
-                        view = new CleanRoomYieldLayerExposureView(LayerExposure);
-                        return BlockInfoReadResult.Success;
-                    case CleanRoomYieldResponseKind.Dicing:
-                        if (Dicing == null) return WarnMissingNested();
-                        view = new CleanRoomYieldDicingView(Dicing);
-                        return BlockInfoReadResult.Success;
-                    case CleanRoomYieldResponseKind.BlockNotFound:
-                        return BlockInfoReadResult.BlockNotFound;
-                    case CleanRoomYieldResponseKind.UnsupportedTarget:
-                        return BlockInfoReadResult.UnsupportedTarget;
-                    default:
-                        Debug.LogWarning($"Unreadable response kind: {Kind}");
-                        return BlockInfoReadResult.Unreadable;
-                }
-
-                #region Internal
-
-                // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは値を捨てて再試行する）
-                // A mismatch in wire data from outside, so warn instead of throwing and treat it as unreadable (the poller drops the value and retries)
-                BlockInfoReadResult WarnMissingNested()
-                {
-                    Debug.LogWarning($"[GetCleanRoomYieldInfo] {Kind} response has no {Kind} details; treating it as unreadable");
-                    return BlockInfoReadResult.Unreadable;
-                }
-
-                #endregion
+                return CleanRoomYieldResponseReader.Read(this, out view);
             }
         }
 

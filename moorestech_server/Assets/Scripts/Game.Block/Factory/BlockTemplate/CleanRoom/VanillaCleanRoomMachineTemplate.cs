@@ -58,7 +58,7 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
 
             // 抽選の中身の部品は、抽選と同じレシピ選択・モジュール集計と、部屋の効果の読み口を受け取る
             // The draw-detail component receives the draw's own recipe selection and module aggregate, plus the room effect's read view
-            var yieldPreview = new CleanRoomYieldPreviewComponent(processor, effectComponent, processor.CleanRoomEffectLookup);
+            var yieldPreview = new CleanRoomYieldPreviewComponent(processor, effectComponent, processor.CleanRoomEffectLookup, processor.PendingRealizationReader);
             var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, blockInstanceId, machineComponent, componentStates);
 
             // 供給読み取り(machineComponent)を加工判定(processor)より先に更新させるため、この並び順を維持すること

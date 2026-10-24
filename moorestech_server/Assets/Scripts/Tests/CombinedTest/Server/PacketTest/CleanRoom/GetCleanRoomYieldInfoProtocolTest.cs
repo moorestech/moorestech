@@ -123,19 +123,19 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
         {
             // 判別子に対応する入れ子が欠けた応答（壊れた・版違いのwire）は、警告を出して読めない扱いにする
             // A response missing the nested object its discriminator names (broken or mismatched wire) warns and is unreadable
-            var waferGrade = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(2, 0.5);
+            var waferGrade = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(2, 0.5, null);
             waferGrade.WaferGrade = null;
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] WaferGrade response has no"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, waferGrade.TryReadView(out _));
 
-            var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(0.1);
+            var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(0.1, null);
             layerExposure.LayerExposure = null;
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] LayerExposure response has no"));
             Assert.AreEqual(BlockInfoReadResult.Unreadable, layerExposure.TryReadView(out _));
 
             // wire を通しても同じ（入れ子が null のまま届く）
             // The same holds through the wire (the nested object arrives as null)
-            var dicing = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(0.1);
+            var dicing = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(0.1, null);
             dicing.Dicing = null;
             var received = MessagePackSerializer.Deserialize<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack>(MessagePackSerializer.Serialize(dicing));
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] Dicing response has no"));

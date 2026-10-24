@@ -41,6 +41,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         // This decorator owns the chip-process draws and the current room effect; only the effect read view leaves the processor (read by B6)
         private readonly CleanRoomYieldDrawDecorator _yieldDrawDecorator;
         public ICleanRoomEffectLookup CleanRoomEffectLookup => _yieldDrawDecorator;
+        // 出力待ちの確定結果は待機ステートが持ち、抽選の中身の表示（D02）が確定時の率を読む
+        // The idle state owns the realization waiting for output; the draw-detail display (D02) reads its fixed rates
+        private readonly IdleMachineProcessState _idleState;
+        internal IMachinePendingRealizationReader PendingRealizationReader => _idleState;
 
         private readonly HaltedMachineProcessState _haltedState;
         private ProcessState _lastState = ProcessState.Idle;
@@ -56,9 +60,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             CurrentState = restoredState;
             _processingState = new ProcessingMachineProcessState(_context, processingJob);
             _haltedState = new HaltedMachineProcessState(_processingState, _yieldDrawDecorator.CurrentEffect.CanOperate);
+            _idleState = new IdleMachineProcessState(_context, _processingState);
             _stateHandlers = new IMachineProcessState[]
                 {
-                    new IdleMachineProcessState(_context, _processingState),
+                    _idleState,
                     _processingState,
                     new OutputBlockedMachineProcessState(_processingState),
                     _haltedState,
@@ -119,8 +124,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var saveData = CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _yieldDrawDecorator.CycleCount, _context.SelectedRecipe);
-            return saveData;
+            return CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _yieldDrawDecorator.CycleCount, _context.SelectedRecipe);
         }
 
         public void Update()
@@ -169,10 +173,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         }
 
         public bool IsDestroy { get; private set; }
-        public void Destroy()
-        {
-            IsDestroy = true;
-        }
+        public void Destroy() => IsDestroy = true;
 
         private MachineRecipeSelectionResult ChangeSelection(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
         {

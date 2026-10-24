@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
@@ -122,15 +121,17 @@ namespace Game.Block.Blocks.Machine.State
             OutputInventory.SetBoundOutputs(allowedOutputItemsPerSlot);
         }
 
-        // 実現出力を作る唯一の口。容量判定も実挿入も必ずこの戻り値を使うので、判定した物と挿入する物が食い違わない
-        // The only place realized outputs are built; both the capacity check and the real insert use this result, so they can never diverge
-        internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)
+        // 実現出力と加工時間を確定する唯一の口。容量判定も実挿入も加工時間も必ずこの戻り値を使うので、判定した物と挿入する物・時間の前提が食い違わない
+        // The only place a job is realized; the capacity check, the real insert and the processing time all use this result, so none of them can diverge
+        internal MachineRealization CreateRealization(MachineRecipeMasterElement recipe, int? inheritedLevel)
         {
-            // 工場と差し替え口が同じ集計とセット数を見るよう、モジュール効果は1回だけ集計し、セット数は工場の値を渡す
-            // Aggregate the module effect once and pass the factory's set count so the factory and the rewrite hook see the same values
+            // 工場・差し替え口・加工時間が同じ集計を見るよう、モジュール効果は1回だけ集計し、セット数は工場の値を渡す
+            // Aggregate the module effect once and pass the factory's set count so the factory, the rewrite hook and the time see the same values
             var effect = EffectComponent.AggregateCurrent();
             var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel, out var setCount);
-            return _realizedOutputDecorator == null ? outputs : _realizedOutputDecorator.Decorate(recipe, inheritedLevel, effect, setCount, outputs);
+            IRealizedOutputDrawRecord drawRecord = null;
+            if (_realizedOutputDecorator != null) outputs = _realizedOutputDecorator.Decorate(recipe, inheritedLevel, effect, setCount, outputs, out drawRecord);
+            return new MachineRealization(recipe, inheritedLevel, outputs, MachineRealization.ComputeTotalTicks(recipe, effect), drawRecord);
         }
 
         // 実現出力の差し替え口を差し込む（清浄室のチップ抽選）。未設定なら抽選結果をそのまま使う

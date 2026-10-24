@@ -29,7 +29,11 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
         // Only for dicing
         public readonly double? DieLossRate;
 
-        private CleanRoomYieldDetailDto(string fetchState, string role, int? maxGrade, double? promotionChance, double? layerFailRate, double? dieLossRate)
+        // 出力の空きを待っている確定済み抽選に使った値（同じ役割）。待っていなければ null でキーごと省く
+        // Values a fixed draw waiting for output space used (same role); null and omitted with its key when nothing waits
+        public readonly CleanRoomYieldPendingDrawDto PendingDraw;
+
+        private CleanRoomYieldDetailDto(string fetchState, string role, int? maxGrade, double? promotionChance, double? layerFailRate, double? dieLossRate, CleanRoomYieldPendingDrawDto pendingDraw)
         {
             FetchState = fetchState;
             Role = role;
@@ -37,28 +41,29 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
             PromotionChance = promotionChance;
             LayerFailRate = layerFailRate;
             DieLossRate = dieLossRate;
+            PendingDraw = pendingDraw;
         }
 
-        public static CleanRoomYieldDetailDto CreateWaferGrade(int maxGrade, double promotionChance)
+        public static CleanRoomYieldDetailDto CreateWaferGrade(int maxGrade, double promotionChance, CleanRoomYieldPendingDrawDto pendingDraw)
         {
-            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "waferGrade", maxGrade, promotionChance, null, null);
+            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "waferGrade", maxGrade, promotionChance, null, null, pendingDraw);
         }
 
-        public static CleanRoomYieldDetailDto CreateLayerExposure(double layerFailRate)
+        public static CleanRoomYieldDetailDto CreateLayerExposure(double layerFailRate, CleanRoomYieldPendingDrawDto pendingDraw)
         {
-            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "layerExposure", null, null, layerFailRate, null);
+            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "layerExposure", null, null, layerFailRate, null, pendingDraw);
         }
 
-        public static CleanRoomYieldDetailDto CreateDicing(double dieLossRate)
+        public static CleanRoomYieldDetailDto CreateDicing(double dieLossRate, CleanRoomYieldPendingDrawDto pendingDraw)
         {
-            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "dicing", null, null, null, dieLossRate);
+            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "dicing", null, null, null, dieLossRate, pendingDraw);
         }
 
         // 取得できていない間は取得状態だけを載せ、率を作らない
         // While not fetched, carry only the fetch state and make up no rates
         public static CleanRoomYieldDetailDto CreateUnavailable(BlockInfoFetchState fetchState)
         {
-            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.ToUnavailableWireName(fetchState), null, null, null, null, null);
+            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.ToUnavailableWireName(fetchState), null, null, null, null, null, null);
         }
     }
 }

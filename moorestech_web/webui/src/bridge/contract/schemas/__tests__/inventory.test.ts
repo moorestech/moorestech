@@ -93,6 +93,14 @@ describe("CleanRoomYieldDataSchema", () => {
     [{ fetchState: "fetched", role: "dicing", dieLossRate: 1.5 }, false],
     [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, layerFailRate: 0.02 }, false],
     [{ fetchState: "fetched", role: "packaging" }, false],
+    // 出力待ちの確定済み抽選は親と同じ役割の値だけを持つ
+    // A fixed draw waiting for output carries only the parent role's values
+    [{ fetchState: "fetched", role: "waferGrade", maxGrade: 1, promotionChance: 0, pendingDraw: { maxGrade: 2, promotionChance: 0.9 } }, true],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, pendingDraw: { dieLossRate: 0.15 } }, true],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, pendingDraw: { layerFailRate: 0.02 } }, false],
+    [{ fetchState: "fetched", role: "waferGrade", maxGrade: 1, promotionChance: 0, pendingDraw: { maxGrade: 2 } }, false],
+    [{ fetchState: "fetched", role: "layerExposure", layerFailRate: 0.02, pendingDraw: { layerFailRate: 1.2 } }, false],
+    [{ fetchState: "notFetched", pendingDraw: { dieLossRate: 0.15 } }, false],
     [{ fetchState: "unreadable" }, true],
     [{ fetchState: "transportFailed", role: "dicing", dieLossRate: 0.03 }, false],
   ])("%j の受理は %s", (value, expected) => {

@@ -27,15 +27,15 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
             return BuildFetched(latestView);
         }
 
-        // 役割名の文字列はこの網羅 switch の1か所でだけ作る。停止理由は部屋欄が出す
-        // Role name strings are made only in this exhaustive switch; the room section shows the halt reason
+        // 役割名の文字列はこの網羅 switch の1か所でだけ作る。出力待ちの確定済み抽選は同じ役割の子欄に載せる。停止理由は部屋欄が出す
+        // Role name strings are made only in this exhaustive switch; a fixed draw waiting for output goes into a same-role child; the room section shows the halt reason
         private static CleanRoomYieldDetailDto BuildFetched(CleanRoomYieldView view)
         {
             return view switch
             {
-                CleanRoomYieldWaferGradeView waferGrade => CleanRoomYieldDetailDto.CreateWaferGrade(waferGrade.WaferGrade.MaxGrade, waferGrade.WaferGrade.PromotionChance),
-                CleanRoomYieldLayerExposureView layerExposure => CleanRoomYieldDetailDto.CreateLayerExposure(layerExposure.LayerExposure.LayerFailRate),
-                CleanRoomYieldDicingView dicing => CleanRoomYieldDetailDto.CreateDicing(dicing.Dicing.DieLossRate),
+                CleanRoomYieldWaferGradeView waferGrade => CleanRoomYieldDetailDto.CreateWaferGrade(waferGrade.WaferGrade.MaxGrade, waferGrade.WaferGrade.PromotionChance, waferGrade.PendingDraw == null ? null : CleanRoomYieldPendingDrawDto.CreateWaferGrade(waferGrade.PendingDraw.MaxGrade, waferGrade.PendingDraw.PromotionChance)),
+                CleanRoomYieldLayerExposureView layerExposure => CleanRoomYieldDetailDto.CreateLayerExposure(layerExposure.LayerExposure.LayerFailRate, layerExposure.PendingDraw == null ? null : CleanRoomYieldPendingDrawDto.CreateLayerExposure(layerExposure.PendingDraw.LayerFailRate)),
+                CleanRoomYieldDicingView dicing => CleanRoomYieldDetailDto.CreateDicing(dicing.Dicing.DieLossRate, dicing.PendingDraw == null ? null : CleanRoomYieldPendingDrawDto.CreateDicing(dicing.PendingDraw.DieLossRate)),
                 CleanRoomYieldNoRoleView _ => null,
                 CleanRoomYieldNotOperableView _ => null,
                 _ => throw new ArgumentOutOfRangeException(nameof(view), view.GetType().Name, "未対応の抽選の中身の種別 / Unsupported yield view"),

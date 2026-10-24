@@ -22,8 +22,17 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             // 成膜は上限グレードと昇格確率だけを載せる
             // Deposition carries only the max grade and the promotion chance
-            var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(2, 0.9d));
+            var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(2, 0.9d, null));
             AssertMatchesFixture(CreateMachineDto(CleanRoomYieldDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, view)), "block_inventory_clean_room_yield_deposition.json");
+        }
+
+        [Test]
+        public void DepositionWithPendingDrawMatchesFixtureTest()
+        {
+            // 出力待ちの確定済み抽選は、次の抽選の現在値と別に同じ役割の値を子欄へ載せる
+            // A fixed draw waiting for output carries the same role's values in a child, apart from the next draw's current values
+            var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(1, 0.1d, new WaferGradeYieldMessagePack(2, 0.9d)));
+            AssertMatchesFixture(CreateMachineDto(CleanRoomYieldDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, view)), "block_inventory_clean_room_yield_deposition_pending.json");
         }
 
         [Test]
@@ -31,7 +40,7 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             // ダイシングはダイの損失率だけを載せる
             // Dicing carries only the die loss rate
-            var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(0.03d));
+            var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(0.03d, null));
             AssertMatchesFixture(CreateMachineDto(CleanRoomYieldDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, view)), "block_inventory_clean_room_yield_dicing.json");
         }
 
