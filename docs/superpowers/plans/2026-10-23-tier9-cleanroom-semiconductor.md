@@ -343,7 +343,7 @@
 - Consumes: なし
 - Produces: `$MW=/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-cleanroom-playable`（ブランチ `feat/tier9-cleanroom-playable`、origin/master から）。Part A〜D の master 変更はすべてここへコミットする
 
-- [ ] **Step 1: worktree を作る（既にあれば流用する）**
+- [x] **Step 1: worktree を作る（既にあれば流用する）**
 
 ```bash
 MW=/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-cleanroom-playable
@@ -354,7 +354,7 @@ git -C "$MW" log --oneline -1
 
 Expected: ブランチは `feat/tier9-cleanroom-playable`。HEAD は origin/master（調査時点 b2149a0）かその子孫。
 
-- [ ] **Step 2: クリーンルーム6ブロックが想定どおりにあることを確かめる**
+- [x] **Step 2: クリーンルーム6ブロックが想定どおりにあることを確かめる**
 
 ```bash
 python3 - "$MW/server_v8/mods/moorestechAlphaMod_8/master/blocks.json" <<'PY'
@@ -376,7 +376,7 @@ Expected: 次の6行が出る。
 
 違えば以降の master 編集スクリプトの前提が崩れているので、差分を報告して止まる。
 
-- [ ] **Step 3: コミットは無い（worktree 作成のみ）**
+- [x] **Step 3: コミットは無い（worktree 作成のみ）**
 
 ---
 
