@@ -4,6 +4,7 @@ using Core.Item.Interface;
 using Core.Update;
 using Game.Block.Blocks.Machine.State.Util;
 using Game.Block.Blocks.Util;
+using Game.Block.Interface.MachineUpgrade;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.State
@@ -15,14 +16,18 @@ namespace Game.Block.Blocks.Machine.State
         // 進行中レシピ(返却用)。無ければnull
         // Recipe of the running job (for refund calculation); null when no job exists
         public MachineRecipeMasterElement CurrentRecipe { get; private set; }
-        
+
+        // 進行中ジョブの継承レベル。継承レシピ以外とジョブ無しは null（返却とセーブが使う）
+        // Inherited level of the running job; null for non-inheritance recipes or no job (used by refunds and saves)
+        public int? InheritedLevel { get; private set; }
+
         public ProcessState State => ProcessState.Processing;
         private readonly MachineProcessContext _context;
         public Guid RecipeGuid => CurrentRecipe?.MachineRecipeGuid ?? Guid.Empty;
-        
+
         public uint TotalTicks { get; private set; }
         public uint RemainingTicks  { get; private set; }
-        
+
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
         private List<IItemStack> _pendingOutputs;
 
@@ -33,40 +38,39 @@ namespace Game.Block.Blocks.Machine.State
             _pendingOutputs = outputs;
         }
 
-        
         // 出力を払い出さずジョブを破棄(返却用)
         // Discard the job without paying outputs (used by the recipe-change refund flow)
         public void CancelProcessing()
         {
-            _pendingOutputs = null;
-            CurrentRecipe = null;
-            TotalTicks = 0;
-            RemainingTicks = 0;
+            ClearJob();
         }
-        
-        public ProcessingMachineProcessState(MachineProcessContext context, uint remainingTicks, MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
+
+        // ジョブの有無は MachineProcessingJob の有無だけで受ける（ジョブ無しは null で、空のまま待つ）
+        // Whether a job exists comes only from the presence of a MachineProcessingJob (null means no job, so stay empty)
+        public ProcessingMachineProcessState(MachineProcessContext context, MachineProcessingJob restoredJob)
         {
             _context = context;
-            RemainingTicks = remainingTicks;
+            if (restoredJob == null) return;
 
-            // レシピがあれば加工を復元する。産出予定nullの旧セーブは完了時に再抽選する
-            // Restore processing whenever a recipe exists; old saves with null pending outputs re-roll on completion
-            if (recipe != null)
-            {
-                SetProcessing(recipe, pendingOutputs);
-            }
+            // セーブの残りtickごと加工を復元する。産出予定nullの旧セーブは完了時に再抽選する
+            // Restore processing with the saved remaining ticks; old saves with null pending outputs re-roll on completion
+            SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel);
+            RemainingTicks = restoredJob.RemainingTicks;
         }
-
 
         // 加工するジョブをIdle、ロードから設定
         // Set the processing job from Idle or on load
-        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs)
+        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel)
         {
+            // 待機からの開始もここを通る。継承レベルがレシピと合わなければ束縛の破れなので、黙って補わずに止める（復元の値は MachineProcessingJob が先に閉じている）
+            // Starting from idle also passes here; a level that does not fit the recipe means a broken binding, so stop instead of filling it in (restored values are already closed by MachineProcessingJob)
+            if (!MachineRecipeLevelInheritanceUtil.IsValidInheritedLevel(recipe, inheritedLevel)) throw new InvalidOperationException($"加工ジョブの継承レベルが不正です recipe={recipe.MachineRecipeGuid} inheritedLevel={inheritedLevel}");
+
             CurrentRecipe = recipe;
+            InheritedLevel = inheritedLevel;
             _pendingOutputs = pendingOutputs;
-            
+
             var effect = _context.EffectComponent.AggregateCurrent();
-            
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var totalTicks = (uint)Math.Max(1, (long)Math.Round(baseTicks * effect.ProcessingTimeMultiplier));
             TotalTicks = totalTicks;
@@ -101,7 +105,7 @@ namespace Game.Block.Blocks.Machine.State
 
             // 旧セーブで産出予定が無い場合はここで一度だけ確定させる（以後の保留tickで再抽選しないため）
             // Old saves lacking pending outputs get rolled once here (so held ticks afterward never re-roll)
-            _pendingOutputs ??= _context.CreateRealizedOutputs(CurrentRecipe);
+            _pendingOutputs ??= _context.CreateRealizedOutputs(CurrentRecipe, InheritedLevel);
 
             // tickは尽きたが産出物が収まらない間は、加工ではなく出力詰まりとして待つ（要求電力を待機率へ落とす）
             // Once ticks are exhausted but the outputs do not fit, wait as output-blocked rather than processing (drops the request to the idle rate)
@@ -132,13 +136,19 @@ namespace Game.Block.Blocks.Machine.State
         {
             if (CurrentRecipe == null) return;
 
-            var outputs = _pendingOutputs ?? _context.CreateRealizedOutputs(CurrentRecipe);
+            var outputs = _pendingOutputs ?? _context.CreateRealizedOutputs(CurrentRecipe, InheritedLevel);
             _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(CurrentRecipe));
 
             // 加工情報をクリアしてIdleが古いレシピ/進捗を報告・保存しないようにする
             // Clear the processing snapshot so idle does not report or serialize stale recipe/progress
+            ClearJob();
+        }
+
+        private void ClearJob()
+        {
             _pendingOutputs = null;
             CurrentRecipe = null;
+            InheritedLevel = null;
             TotalTicks = 0;
             RemainingTicks = 0;
         }

@@ -12,9 +12,10 @@ namespace Game.Block.Blocks.Machine.State
         private readonly MachineProcessContext _context;
         private readonly ProcessingMachineProcessState _processingState;
 
-        // 出力先が空くのを待つ間、確定済みの実現出力を保持する（レシピが変わるまで再抽選しない）
-        // Holds the already-realized outputs while waiting for output space (never re-rolled until the recipe changes)
+        // 出力先が空くのを待つ間、確定済みの実現出力を保持する（レシピか継承レベルが変わるまで再抽選しない）
+        // Holds the already-realized outputs while waiting for output space (never re-rolled until the recipe or inherited level changes)
         private MachineRecipeMasterElement _pendingRecipe;
+        private int? _pendingInheritedLevel;
         private List<IItemStack> _pendingOutputs;
 
         public IdleMachineProcessState(MachineProcessContext context, ProcessingMachineProcessState processingState)
@@ -38,12 +39,14 @@ namespace Game.Block.Blocks.Machine.State
                 return ProcessState.Idle;
             }
 
-            // レシピが変わったときだけ新規に抽選する。同じレシピで待機している間は既存の実現結果を使い回す
-            // Roll only when the recipe changed; while waiting on the same recipe, reuse the already-realized result
-            if (_pendingRecipe != recipe)
+            // レシピか継承レベルが変わったときだけ新規に確定する。同じ組で待機している間は既存の実現結果を使い回す
+            // Realize anew only when the recipe or inherited level changed; while waiting on the same pair, reuse the result
+            var inheritedLevel = _context.InputInventory.ResolveInheritedLevel(recipe);
+            if (_pendingRecipe != recipe || _pendingInheritedLevel != inheritedLevel)
             {
-                _pendingOutputs = _context.CreateRealizedOutputs(recipe);
+                _pendingOutputs = _context.CreateRealizedOutputs(recipe, inheritedLevel);
                 _pendingRecipe = recipe;
+                _pendingInheritedLevel = inheritedLevel;
             }
 
             if (!_context.OutputInventory.CanStoreOutputs(_pendingOutputs, MachineOutputFactoryUtil.CreateFluidOutputs(recipe)))
@@ -53,7 +56,7 @@ namespace Game.Block.Blocks.Machine.State
 
             // ProcessingStateへ遷移
             // Hand the job to ProcessingState and transition
-            _processingState.SetProcessing(recipe, _pendingOutputs);
+            _processingState.SetProcessing(recipe, _pendingOutputs, inheritedLevel);
             ClearPendingOutputs();
             return ProcessState.Processing;
 
@@ -62,6 +65,7 @@ namespace Game.Block.Blocks.Machine.State
             void ClearPendingOutputs()
             {
                 _pendingRecipe = null;
+                _pendingInheritedLevel = null;
                 _pendingOutputs = null;
             }
 

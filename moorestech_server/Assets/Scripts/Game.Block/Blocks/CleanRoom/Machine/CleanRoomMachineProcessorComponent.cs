@@ -48,13 +48,13 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public CleanRoomMachineProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
             _moduleInventory = module;
-            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out var cycleCount, out var selectedRecipe);
+            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe);
             _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
             _chipDrawDecorator = new CleanRoomChipDrawDecorator(blockInstanceId, cycleCount);
             _context.SetRealizedOutputDecorator(_chipDrawDecorator);
             _context.BindSelectedRecipe(selectedRecipe, CleanRoomChipOutputBindingUtil.BuildOutputBinding(selectedRecipe));
             CurrentState = restoredState;
-            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs);
+            _processingState = new ProcessingMachineProcessState(_context, processingJob);
             _stateHandlers = new IMachineProcessState[]
                 {
                     new IdleMachineProcessState(_context, _processingState),

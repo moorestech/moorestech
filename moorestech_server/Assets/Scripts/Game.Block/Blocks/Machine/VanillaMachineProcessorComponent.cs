@@ -42,30 +42,30 @@ namespace Game.Block.Blocks.Machine
         // 新規作成
         // For new creation
         public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
-            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, 0, null, null, null)
+            : this(input, output, effect, requestPower, idlePowerRate, ProcessState.Idle, null, null)
         {
         }
 
         // セーブからの復元
         // For restoration from save
-        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, List<IItemStack> pendingOutputs, MachineRecipeMasterElement selectedRecipe)
-            : this(input, output, effect, requestPower, idlePowerRate, currentState, remainingTicks, processingRecipe, pendingOutputs, selectedRecipe)
+        public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, ProcessState currentState, MachineProcessingJob processingJob, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect, MachineRecipeMasterElement selectedRecipe)
+            : this(input, output, effect, requestPower, idlePowerRate, currentState, processingJob, selectedRecipe)
         {
         }
 
-        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs, MachineRecipeMasterElement selectedRecipe)
+        private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, MachineProcessingJob processingJob, MachineRecipeMasterElement selectedRecipe)
         {
             _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
             _context.BindSelectedRecipe(selectedRecipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(selectedRecipe));
             // 加工状態を復元
             // Restore processing state
             CurrentState = currentState;
-            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, processingRecipe, pendingOutputs);
+            _processingState = new ProcessingMachineProcessState(_context, processingJob);
 
             // 加工中レシピか選択レシピのいずれかが欠けた加工中セーブ（出力詰まり含む）は破損データのためIdleへ戻す
             // A mid-job save (output blockage included) missing either the processing or selected recipe is corrupt, so fall back to Idle
             var isMidJob = CurrentState == ProcessState.Processing || CurrentState == ProcessState.OutputBlocked;
-            if (isMidJob && (processingRecipe == null || selectedRecipe == null))
+            if (isMidJob && (processingJob == null || selectedRecipe == null))
             {
                 CurrentState = ProcessState.Idle;
             }

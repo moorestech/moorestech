@@ -1,9 +1,9 @@
-using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine.Module;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Context;
 using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
@@ -12,15 +12,12 @@ namespace Game.Block.Blocks.Machine.State.Util
 {
     internal static class MachineOutputFactoryUtil
     {
-        // ベース1セットと当選時の追加1セットを生成。品質レベルは1サイクル1回だけ引き両セットへ適用する
-        // Build one base set plus one extra set when the roll succeeds; the quality level is rolled once per cycle and shared by both sets
-        public static List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect)
+        // 素の出力1セットと、生産性の当選時に同じ1セットを追加で作る。品質は一般機械の出力を変えない
+        // Build one plain output set plus an identical extra set when productivity rolls; quality never changes general machine output
+        public static List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect, int? inheritedLevel)
         {
-            // レベルが混在すると同じ出力スロットへ別変種が積まれ、空スロットでも収まらない組が生まれる
-            // Mixed levels stack different variants into one output slot, creating a pair that never fits even when empty
-            var level = RollQualityLevel(effect.QualityShift);
-            var outputs = CreateLevelAppliedOutputs(recipe, level);
-            if (GameRandom.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreateLevelAppliedOutputs(recipe, level));
+            var outputs = CreatePlainOutputs(recipe, inheritedLevel);
+            if (GameRandom.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreatePlainOutputs(recipe, inheritedLevel));
             return outputs;
         }
 
@@ -37,43 +34,17 @@ namespace Game.Block.Blocks.Machine.State.Util
             return outputs;
         }
 
-        // 品質シフトから今サイクルのレベルを引く。シフト無しは1（素の出力）
-        // Roll this cycle's level from the quality shift; no shift means level 1 (the plain output)
-        private static int RollQualityLevel(float qualityShift)
-        {
-            if (qualityShift <= 0f) return 1;
-
-            // 整数部=確定、小数部=抽選で+1
-            // Integer part guaranteed; the fraction rolls one more
-            var guaranteed = (int)Math.Floor(qualityShift);
-            var fraction = qualityShift - guaranteed;
-            var extra = GameRandom.NextDouble() < fraction ? 1 : 0;
-            return 1 + guaranteed + extra;
-        }
-
-        // アイテム出力1セットへ指定レベルを適用して生成
-        // Build one output set with the given level applied
-        private static List<IItemStack> CreateLevelAppliedOutputs(MachineRecipeMasterElement recipe, int level)
+        // 出力1セットを書いたアイテムのまま作る。継承レシピは継承先の出力だけを継承レベルの変種にする
+        // Build one output set as written; an inheritance recipe swaps only the target output to the inherited level's variant
+        private static List<IItemStack> CreatePlainOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)
         {
             var outputs = new List<IItemStack>(recipe.OutputItems.Length);
-            foreach (var outputItem in recipe.OutputItems)
+            for (var i = 0; i < recipe.OutputItems.Length; i++)
             {
-                var stack = ServerContext.ItemStackFactory.Create(outputItem.ItemGuid, outputItem.Count);
-                outputs.Add(ApplyLevel(stack, level));
+                var itemId = MachineRecipeLevelInheritanceUtil.ResolveOutputItemId(recipe, i, inheritedLevel);
+                outputs.Add(ServerContext.ItemStackFactory.Create(itemId, recipe.OutputItems[i].Count));
             }
-
             return outputs;
-        }
-
-        // 指定レベルの上位変種へ差し替える
-        // Swap to the level's higher-tier variant
-        private static IItemStack ApplyLevel(IItemStack output, int level)
-        {
-            if (level <= 1 || !MasterHolder.ItemMaster.HasLevelFamily(output.Id)) return output;
-
-            var variantId = MasterHolder.ItemMaster.GetLevelVariantItemId(output.Id, level);
-            if (variantId == output.Id) return output;
-            return ServerContext.ItemStackFactory.Create(variantId, output.Count);
         }
     }
 }

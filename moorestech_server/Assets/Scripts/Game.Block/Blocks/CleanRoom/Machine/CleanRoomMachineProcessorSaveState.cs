@@ -34,12 +34,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             };
         }
 
-        public static void Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)
+        public static void Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out MachineProcessingJob processingJob, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)
         {
             state = ProcessState.Idle;
-            remainingTicks = 0;
-            recipe = null;
-            pendingOutputs = null;
+            processingJob = null;
             cycleCount = 0;
             selectedRecipe = null;
             // 旧セーブではサイクル数以外が欠けるため、各値は個別に復元する
@@ -48,10 +46,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             cycleCount = saveData.CycleCount;
             RestoreSlots(saveData);
 
-            if (saveData.RecipeGuidStr != null && saveData.RecipeGuid != Guid.Empty)
-            {
-                recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(saveData.RecipeGuid);
-            }
+            // 加工中ジョブは平らなキーから組む（レシピがマスタから消えていれば null）
+            // Build the running job from the flat keys (null when its recipe left the master)
+            processingJob = MachineProcessingJob.RestoreFromFlatSave(saveData.RecipeGuidStr, saveData.RemainingSeconds, saveData.PendingOutputs, null);
 
             // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
             // Restore the selected recipe; a GUID missing from the master falls back to unselected
@@ -59,15 +56,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             {
                 selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedGuid);
             }
-
-            remainingTicks = GameUpdater.SecondsToTicks(saveData.RemainingSeconds);
-            pendingOutputs = saveData.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
             state = (ProcessState)saveData.State;
 
-            // 加工中（出力詰まり含む）でレシピを復元できない場合は破損扱いでIdleへ戻す
-            // A mid-job state (output blockage included) that cannot restore its recipes is corrupt and falls back to Idle
+            // 加工中（出力詰まり含む）でジョブか選択レシピを復元できない場合は破損扱いでIdleへ戻す
+            // A mid-job state (output blockage included) that cannot restore its job or selected recipe is corrupt and falls back to Idle
             var isMidJob = state == ProcessState.Processing || state == ProcessState.OutputBlocked;
-            if (isMidJob && (recipe == null || selectedRecipe == null)) state = ProcessState.Idle;
+            if (isMidJob && (processingJob == null || selectedRecipe == null)) state = ProcessState.Idle;
 
             #region Internal
 

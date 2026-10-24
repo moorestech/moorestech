@@ -124,9 +124,9 @@ namespace Game.Block.Blocks.Machine.State
 
         // 実現出力を作る唯一の口。容量判定も実挿入も必ずこの戻り値を使うので、判定した物と挿入する物が食い違わない
         // The only place realized outputs are built; both the capacity check and the real insert use this result, so they can never diverge
-        internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe)
+        internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)
         {
-            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, EffectComponent.AggregateCurrent());
+            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, EffectComponent.AggregateCurrent(), inheritedLevel);
             return _realizedOutputDecorator == null ? outputs : _realizedOutputDecorator.Decorate(recipe, outputs);
         }
 

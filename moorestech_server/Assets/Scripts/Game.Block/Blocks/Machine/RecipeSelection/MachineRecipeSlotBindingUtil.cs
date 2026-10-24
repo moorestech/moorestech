@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Master;
+using Game.Block.Interface.MachineUpgrade;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.RecipeSelection
@@ -10,11 +11,12 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
     /// </summary>
     internal static class MachineRecipeSlotBindingUtil
     {
-        // スロットslotIndexが素材itemIdの束縛先か
-        // Whether slot slotIndex is bound to input itemId
+        // スロットslotIndexが素材itemIdの束縛先か。継承元スロットは継承元ファミリーのどの変種も受ける
+        // Whether slot slotIndex is bound to input itemId; the source slot accepts any variant of the source family
         public static bool IsInputBoundTo(MachineRecipeMasterElement recipe, int slotIndex, ItemId itemId)
         {
             if (slotIndex < 0 || recipe.InputItems.Length <= slotIndex) return false;
+            if (MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape) && shape.SourceInputIndex == slotIndex) return shape.ResolveSourceLevel(itemId).HasValue;
             return MasterHolder.ItemMaster.GetItemId(recipe.InputItems[slotIndex].ItemGuid) == itemId;
         }
 

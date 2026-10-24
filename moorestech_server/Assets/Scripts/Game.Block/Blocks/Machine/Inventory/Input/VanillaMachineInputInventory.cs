@@ -7,6 +7,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Context;
 using Game.Fluid;
 using Game.UnlockState;
@@ -77,6 +78,19 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             // 選択済みレシピの材料充足のみを確認する（レシピ探索は行わない）
             // Only verify the selected recipe's inputs are satisfied (no recipe search)
             return recipe.RecipeConfirmation(_blockId, InputSlot, FluidInputSlot);
+        }
+
+        // 継承元スロットのアイテムから継承レベルを引く。継承レシピ以外は null
+        // Resolve the inherited level from the source slot's item; null for non-inheritance recipes
+        public int? ResolveInheritedLevel(MachineRecipeMasterElement recipe)
+        {
+            if (!MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape)) return null;
+
+            // IsAllowedToStartProcess を通った後に呼ぶので、継承元スロットには束縛どおり継承元の変種がある。無ければ束縛の破れなので止める
+            // Called after IsAllowedToStartProcess, so the source slot holds a source variant by binding; a missing one is a broken binding, so stop
+            var level = shape.ResolveSourceLevel(InputSlot[shape.SourceInputIndex].Id);
+            if (!level.HasValue) throw new InvalidOperationException($"継承元スロットに継承元の変種がありません recipe={recipe.MachineRecipeGuid} item={InputSlot[shape.SourceInputIndex].Id}");
+            return level;
         }
 
         public bool IsRecipeUnlocked(Guid machineRecipeGuid)

@@ -4,6 +4,7 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.Inventory.Input;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Context;
 using Mooresmaster.Model.MachineRecipesModule;
 
@@ -17,15 +18,16 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
     /// </summary>
     public static class MachineRecipeRefundUtil
     {
-        // 返却対象のアイテム材料を生成する（isRemainは消費されていないため対象外）
-        // Build the item stacks to refund (isRemain inputs are not consumed, so excluded)
-        public static List<IItemStack> CreateRefundStacks(MachineRecipeMasterElement recipe)
+        // 返却対象のアイテム材料を生成する（isRemainは消費されていないため対象外）。継承元は投入時のレベルで返す
+        // Build the item stacks to refund (isRemain inputs are not consumed, so excluded); the source returns at its input level
+        public static List<IItemStack> CreateRefundStacks(MachineRecipeMasterElement recipe, int? inheritedLevel)
         {
             var stacks = new List<IItemStack>();
-            foreach (var input in recipe.InputItems)
+            for (var i = 0; i < recipe.InputItems.Length; i++)
             {
+                var input = recipe.InputItems[i];
                 if (input.IsRemain.HasValue && input.IsRemain.Value) continue;
-                var itemId = MasterHolder.ItemMaster.GetItemId(input.ItemGuid);
+                var itemId = MachineRecipeLevelInheritanceUtil.ResolveInputItemId(recipe, i, inheritedLevel);
                 stacks.Add(ServerContext.ItemStackFactory.Create(itemId, input.Count));
             }
             return stacks;

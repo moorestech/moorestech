@@ -154,7 +154,7 @@ namespace Tests.CombinedTest.Core.Machine
             // Cancellation refunds still fit into input when automated inflow is capped
             var input = MachineRecipeChangeRefundTestHelper.GetInputInventory(inventory);
             var overflow = MachineRecipeChangeRefundTestHelper.CreateOverflow(0);
-            var refunds = MachineRecipeRefundUtil.CreateRefundStacks(recipe);
+            var refunds = MachineRecipeRefundUtil.CreateRefundStacks(recipe, null);
             Assert.IsTrue(MachineRecipeRefundUtil.CanRefundAllItems(input, overflow, refunds));
             MachineRecipeRefundUtil.ExecuteRefund(input, overflow, refunds, recipe);
             Assert.AreEqual(12, inventory.GetItem(0).Count);
