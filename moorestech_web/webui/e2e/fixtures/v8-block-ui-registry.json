@@ -2,7 +2,7 @@
   { "blockType": "BeltConveyor", "openable": false },
   { "blockType": "Block", "openable": false },
   { "blockType": "Chest", "openable": true },
-  { "blockType": "CleanRoomAirFilter", "openable": false },
+  { "blockType": "CleanRoomAirFilter", "openable": true },
   { "blockType": "CleanRoomDoor", "openable": false },
   { "blockType": "CleanRoomItemHatch", "openable": false },
   { "blockType": "CleanRoomMachine", "openable": true },

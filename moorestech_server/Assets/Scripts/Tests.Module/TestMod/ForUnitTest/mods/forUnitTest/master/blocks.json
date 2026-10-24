@@ -5092,7 +5092,42 @@
         "filterCapacity": 5000,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "85067b3f-6985-4861-9cca-abca4c9d1dc0"
+            }
+          ],
+          "outputConnects": []
+        }
       },
       "blockSize": [
         1,

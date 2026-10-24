@@ -1031,6 +1031,7 @@ properties:
         type: object
         implementationInterface:
         - IElectricWireConnectParam
+        - IInventoryConnectors
         properties:
         - key: requiredPower
           type: number
@@ -1056,6 +1057,8 @@ properties:
         - key: connectionHeightRange
           type: integer
           default: 20
+        - key: inventoryConnectors
+          ref: inventoryConnects
       - when: CleanRoomMachine
         type: object
         implementationInterface:

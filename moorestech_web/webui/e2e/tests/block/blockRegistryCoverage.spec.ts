@@ -12,6 +12,7 @@ type BlockUiEntry = {
 // Existing UIs intentionally handled by the common SectionStackView; remove when their unique controls are ported.
 const intentionalGeneric = new Set([
   "Chest",
+  "CleanRoomAirFilter",
   "CleanRoomMachine",
   "ElectricMachine",
   "ElectricMiner",
