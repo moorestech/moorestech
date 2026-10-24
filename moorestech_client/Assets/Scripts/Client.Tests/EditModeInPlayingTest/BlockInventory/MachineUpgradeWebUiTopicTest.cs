@@ -1,18 +1,14 @@
 using System;
 using System.Collections;
-using Client.Game.InGame.Block;
+using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.WebUiHost.Game.Topics;
-using Client.WebUiHost.Game.Topics.BlockDetail;
 using Client.WebUiHost.Game.Topics.MachineUpgrade;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Block.Interface;
-using Game.Block.Interface.State;
 using Game.Context;
 using Game.Research;
-using Mooresmaster.Model.BlocksModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 #if UNITY_EDITOR
@@ -66,12 +62,9 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 await LoadMainGame();
 
-                // 機械を置いて開き、Web UIと同じ登録済みハンドラで継承レシピを選ぶ
-                // Place and open the machine, then select the inheritance recipe through the Web UI's registered handler
-                var pos = new Vector3Int(0, 0, 0);
-                PlaceBlock(MachineBlockName, pos, BlockDirection.North);
-                var blockGameObject = await WaitBlockGameObjectSpawn(pos);
-                var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
+                // 手の届く所に機械を置いてFで開き、Web UIと同じ登録済みハンドラで継承レシピを選ぶ
+                // Place the machine within reach, open it with F, then select the inheritance recipe through the Web UI's registered handler
+                await InteractKeyBlockOpener.PlaceNearPlayerAndOpen(MachineBlockName);
                 var select = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = InheritRecipeGuid.ToString() });
                 Assert.IsTrue(select.Ok, $"select action failed: {select.Error}");
 
@@ -81,7 +74,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var levelInheritance = (await InheritRecipe())["levelInheritance"];
                 Assert.AreEqual("inheritUpToUnlocked", levelInheritance["kind"].Value<string>());
                 Assert.AreEqual(1, levelInheritance["maxCraftableLevel"].Value<int>());
-                Assert.AreEqual(3, await SourceSlotAcceptedCount(blockGameObject));
+                Assert.AreEqual(3, await SourceSlotAcceptedCount());
 
                 // サーバーで研究を完了させ、2つのtopicが再配信されるまで待つ
                 // Complete the research server-side and wait until both topics are republished
@@ -113,7 +106,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.AreEqual(productLv1ItemId, craftCap["itemId"].Value<int>());
                 Assert.AreEqual(2, craftCap["level"].Value<int>());
 
-                BlockSubInventoryOpener.Close(subInventoryState);
+                await InteractKeyBlockOpener.CloseToGameScreen();
             }
 
             // 登録済みtopicのsnapshotをJSONで読む
@@ -152,30 +145,33 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 return null;
             }
 
-            // 選択レシピがブロック状態の同期で届くまで待ち、配信と同じ組み立てで継承元スロットの受け付けID数を返す
-            // Wait for the selected recipe to arrive with the block-state sync and count the source slot's accepted IDs with the topic's own builder
-            async UniTask<int> SourceSlotAcceptedCount(BlockGameObject blockGameObject)
+            // 開いている機械の配信に選択レシピの束縛が載るまで待ち、継承元スロットの受け付けID数を返す
+            // Wait until the open machine's payload carries the selected recipe's binding and return the source slot's accepted ID count
+            async UniTask<int> SourceSlotAcceptedCount()
             {
-                // テストの開き方はUI状態をSubInventoryにしないためblock_inventory.currentは閉じたまま。topicと同じDTO組み立てを直に呼ぶ
-                // The test's opener leaves the UI state outside SubInventory so block_inventory.current stays closed; call the topic's DTO builder directly
-                var selectedRecipeGuid = SelectedRecipeGuid(blockGameObject);
-                for (var i = 0; i < 50 && selectedRecipeGuid != InheritRecipeGuid; i++)
+                var current = await Snapshot(BlockInventoryTopic.TopicName);
+                for (var i = 0; i < 50 && !HasSlotBinding(current); i++)
                 {
                     await UniTask.Delay(100);
-                    selectedRecipeGuid = SelectedRecipeGuid(blockGameObject);
+                    current = await Snapshot(BlockInventoryTopic.TopicName);
                 }
-                Assert.AreEqual(InheritRecipeGuid, selectedRecipeGuid, "selected recipe never arrived with the block-state sync");
+                Assert.IsTrue(current["open"].Value<bool>(), $"block_inventory.current is not open: {current}");
+                Assert.IsTrue(HasSlotBinding(current), $"slot bindings never arrived after selecting the recipe: {current}");
+                var acceptedItemIds = ((JArray)current["machine"]["slotBindings"][0]["acceptedItemIds"]).ToObject<int[]>();
+                Debug.Log($"[MachineUpgradeWebUiTopicTest] block_inventory.current open={current["open"]} acceptedItemIds=[{string.Join(",", acceptedItemIds)}]");
 
-                var selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedRecipeGuid);
-                var machineParam = (IMachineParam)blockGameObject.BlockMasterElement.BlockParam;
-                var bindings = MachineSlotBindingDtoBuilder.BuildSlotBindings(selectedRecipe, machineParam);
-                return bindings[0].AcceptedItemIds.Count;
+                // 受け付けるのは継承元ファミリーの素材Lv1..3そのもの
+                // The accepted IDs are exactly the source family's material Lv1..3
+                var sourceLevelItemIds = new List<int>();
+                foreach (var guid in new[] { "00000000-0000-0000-e0de-000000000011", "00000000-0000-0000-e0de-000000000012", "00000000-0000-0000-e0de-000000000013" })
+                    sourceLevelItemIds.Add(MasterHolder.ItemMaster.GetItemId(Guid.Parse(guid)).AsPrimitive());
+                CollectionAssert.AreEquivalent(sourceLevelItemIds, acceptedItemIds);
+                return acceptedItemIds.Length;
             }
 
-            Guid SelectedRecipeGuid(BlockGameObject blockGameObject)
+            bool HasSlotBinding(JObject current)
             {
-                var machineState = blockGameObject.GetStateDetail<MachineBlockStateDetail>(MachineBlockStateDetail.BlockStateDetailKey);
-                return machineState == null ? Guid.Empty : Guid.Parse(machineState.SelectedRecipeGuid);
+                return current["machine"]?["slotBindings"] is JArray { Count: > 0 };
             }
 
             #endregion
