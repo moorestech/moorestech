@@ -30,6 +30,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         public IEnumerator 出力モード選択がサーバーのSelectedIndexへ届く()
         {
             EnterPlayModeUtil();
+            BlockActionSceneIsolation.Prepare();
 
             // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
@@ -54,6 +55,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             async UniTask Body()
             {
                 await LoadMainGame();
+                BlockActionSceneIsolation.AssertBrowserIsInactive();
                 // 起動後の例外をテスト失敗として扱う
                 // Fail the test on exceptions after startup
                 LogAssert.ignoreFailingMessages = false;
@@ -83,5 +85,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
             #endregion
         }
+
+        [TearDown]
+        public void ResetSceneIsolation() => BlockActionSceneIsolation.Reset();
     }
 }

@@ -5,6 +5,7 @@ using System.Threading;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;
 using Core.Master;
@@ -25,6 +26,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         public IEnumerator RegisteredActionUsesOpenCoordinatesAndReturnsAllThreeResults()
         {
             EnterPlayModeUtil();
+            BlockActionSceneIsolation.Prepare();
             // PlayMode遷移はUnityTest直下に置く
             // Keep the PlayMode transition directly inside the UnityTest
             yield return new EnterPlayMode(expectDomainReload: true);
@@ -39,6 +41,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 var directory = SpaceElevatorActionTestMod.Create();
                 await LoadMainGame(directory, null);
+                BlockActionSceneIsolation.AssertBrowserIsInactive();
                 // 起動後の例外をテスト失敗として扱う
                 // Fail the test on exceptions after startup
                 LogAssert.ignoreFailingMessages = false;
@@ -48,9 +51,18 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var target = await ServerBlockPlacement.PlaceAsync(master.Name, position, BlockDirection.North);
                 var decoy = await ServerBlockPlacement.PlaceAsync(master.Name, Vector3Int.zero, BlockDirection.North);
                 var view = await WaitBlockGameObjectSpawn(position);
+                // 遅延ロードされるプレビューも検査対象へ含める
+                // Include the asynchronously loaded preview in the inspected hierarchy
+                for (var frame = 0; frame < 180 && view.GetComponentInChildren<BlockPreviewBoundingBox>(true) == null; frame++)
+                    await UniTask.Yield();
+                Assert.IsNotNull(view.GetComponentInChildren<BlockPreviewBoundingBox>(true));
+                var colliders = view.GetComponentsInChildren<Collider>(true);
+                Assert.Greater(colliders.Length, 1, "the delayed preview colliders must participate in this regression test");
+                foreach (var candidate in colliders)
+                    Debug.Log($"[SpaceElevatorCollider] name={candidate.name} type={candidate.GetType().Name} layer={candidate.gameObject.layer} enabled={candidate.enabled} active={candidate.gameObject.activeInHierarchy} clickable={BlockGameObjectColliderSetup.IsClickableCollider(view.transform, candidate)} parent={candidate.transform.parent.name}");
                 // 実配置でクリック・所有者・操作を検証
                 // Verify clicking, ownership and interaction on the placed block
-                var collider = view.GetComponentsInChildren<Collider>(true).Single();
+                var collider = colliders.Where(c => BlockGameObjectColliderSetup.IsClickableCollider(view.transform, c)).Single();
                 Assert.AreEqual(LayerConst.BlockLayer, collider.gameObject.layer);
                 Assert.IsTrue(BlockGameObjectColliderSetup.IsClickableCollider(view.transform, collider));
                 Physics.SyncTransforms();
@@ -61,7 +73,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.AreSame(view, child.BlockGameObject);
                 Assert.AreSame(view.Interactable, child.Interactable);
                 Assert.IsNotEmpty(view.Interactable.Actions);
-                Debug.Log($"[SpaceElevatorClick] count=1 layer={collider.gameObject.layer} clickable=true owner={child.BlockGameObject.name} actions={view.Interactable.Actions.Count}");
+                Debug.Log($"[SpaceElevatorClick] total={colliders.Length} clickable=1 layer={collider.gameObject.layer} owner={child.BlockGameObject.name} actions={view.Interactable.Actions.Count}");
                 var subInventory = await BlockSubInventoryOpener.Open(view);
 
                 // 実Binder・API・応答を通す
@@ -98,5 +110,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             }
             #endregion
         }
+
+        [TearDown]
+        public void ResetSceneIsolation() => BlockActionSceneIsolation.Reset();
     }
 }
