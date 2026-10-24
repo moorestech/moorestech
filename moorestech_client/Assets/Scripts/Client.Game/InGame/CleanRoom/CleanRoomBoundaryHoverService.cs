@@ -3,9 +3,9 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Tooltip;
+using Core.Master;
 using Server.Protocol.PacketResponse;
 using UniRx;
-using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 
 namespace Client.Game.InGame.CleanRoom
 {
@@ -76,10 +76,10 @@ namespace Client.Game.InGame.CleanRoom
 
             static bool TryGetHoveredBoundary(out BlockGameObject block)
             {
+                // 部屋要約を出す境界ブロックはマスタの集合で決める
+                // The master's set decides which boundary blocks show the room summary
                 if (!BlockClickDetectUtil.TryGetCursorOnBlock(out block)) return false;
-                var blockType = block.BlockMasterElement.BlockType;
-                return blockType == BlockTypeConst.CleanRoomWall || blockType == BlockTypeConst.CleanRoomDoor ||
-                       blockType == BlockTypeConst.CleanRoomItemHatch || blockType == BlockTypeConst.CleanRoomPipeHatch;
+                return MasterHolder.CleanRoomMaster.IsRoomSummaryBoundaryBlock(block.BlockMasterElement.BlockGuid);
             }
 
             #endregion

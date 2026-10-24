@@ -85,6 +85,16 @@
             }
           ]
         }
+      ],
+      "roomSummaryBoundaryBlockGuids": [
+        "2d8b162a-1ac5-4780-8e4e-2b8d4f6470e8",
+        "07d7e1a2-b1fd-412f-819c-af098e79e4d4",
+        "d6268837-5326-480b-960a-ffdce4b5478e",
+        "8e425510-aa34-4a1b-9f40-5f8079183ab2"
+      ],
+      "pollutionConnectorBlockGuids": [
+        "d6268837-5326-480b-960a-ffdce4b5478e",
+        "8e425510-aa34-4a1b-9f40-5f8079183ab2"
       ]
     }
   ]
