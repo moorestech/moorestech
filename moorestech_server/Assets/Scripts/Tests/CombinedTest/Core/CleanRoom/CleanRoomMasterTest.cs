@@ -92,6 +92,29 @@ namespace Tests.CombinedTest.Core.CleanRoom
         }
 
         [Test]
+        public void TryGetRecipeRoleResolvesLayerExposureTest()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator()
+                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 層露光レシピはEUVの役割として引け、次層ウェハと失敗品の出力の添字が索引時に解決済み
+            // The layer-exposure recipe resolves as an EUV role with the layered and failed output indices already resolved at indexing
+            var master = MasterHolder.CleanRoomMaster;
+            Assert.IsTrue(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, out var role));
+            Assert.IsInstanceOf<LayerExposureRecipeRole>(role);
+            var layerExposure = (LayerExposureRecipeRole)role;
+            Assert.AreEqual(Guid.Parse("1bbb9ba9-403f-47ab-a601-ae74fe444acd"), layerExposure.Exposure.LayeredWaferItemGuid);
+            Assert.AreEqual(Guid.Parse("4f0fa5e5-121e-4c92-a0cb-a9ef810921a8"), layerExposure.Exposure.FailedWaferItemGuid);
+            Assert.AreEqual(0, layerExposure.LayeredOutputIndex);
+            Assert.AreEqual(1, layerExposure.FailedOutputIndex);
+
+            // 成膜レシピはEUVの役割にならない（1レシピ1役割）
+            // The deposition recipe does not resolve as an EUV role (one role per recipe)
+            Assert.IsTrue(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, out var depositionRole));
+            Assert.IsNotInstanceOf<LayerExposureRecipeRole>(depositionRole);
+        }
+
+        [Test]
         public void WaferGradeRoleRejectsInheritanceRecipeTest()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator()

@@ -54,6 +54,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             return role switch
             {
                 WaferGradeRecipeRole waferGrade => WaferGradeOutputRewriter.Rewrite(waferGrade, context),
+                LayerExposureRecipeRole layerExposure => LayerExposureOutputRewriter.Rewrite(layerExposure, context),
                 _ => throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role"),
             };
 

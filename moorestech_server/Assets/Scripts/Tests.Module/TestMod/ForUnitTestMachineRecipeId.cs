@@ -10,5 +10,6 @@ namespace Tests.Module.TestMod
         // 清浄室工程（成膜・EUV・ダイシング）のテスト用レシピ
         // Test recipes for the clean-room process (deposition, EUV, dicing)
         public static readonly Guid CleanRoomDepositionRecipe = new("ddcacf5c-a34d-4cc9-95e9-0d0e9a0f44ba");
+        public static readonly Guid CleanRoomLayerExposureRecipe = new("06549afe-feb3-438e-b2fe-0e53bb16925a");
     }
 }

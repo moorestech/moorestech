@@ -48,6 +48,14 @@
           "gradedWaferItemGuid": "75a25126-5568-40d8-8028-509f202c4207",
           "maxPromotionChance": 0.9
         }
+      ],
+      "layerExposures": [
+        {
+          "machineRecipeGuid": "06549afe-feb3-438e-b2fe-0e53bb16925a",
+          "layeredWaferItemGuid": "1bbb9ba9-403f-47ab-a601-ae74fe444acd",
+          "failedWaferItemGuid": "4f0fa5e5-121e-4c92-a0cb-a9ef810921a8",
+          "maxFailReduction": 0.8
+        }
       ]
     }
   ]

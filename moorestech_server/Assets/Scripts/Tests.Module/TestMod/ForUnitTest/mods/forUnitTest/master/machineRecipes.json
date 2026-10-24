@@ -493,6 +493,38 @@
       "outputFluids": [],
       "machineRecipeGuid": "ddcacf5c-a34d-4cc9-95e9-0d0e9a0f44ba",
       "levelInheritance": "None"
+    },
+    {
+      "time": 1,
+      "blockGuid": "2abd1843-a5cd-4394-8eb2-987dde59baac",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "75a25126-5568-40d8-8028-509f202c4207"
+        }
+      ],
+      "inputFluids": [
+        {
+          "amount": 10,
+          "fluidGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "1bbb9ba9-403f-47ab-a601-ae74fe444acd"
+        },
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "4f0fa5e5-121e-4c92-a0cb-a9ef810921a8"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "06549afe-feb3-438e-b2fe-0e53bb16925a",
+      "levelInheritance": "Inherit"
     }
   ]
 }

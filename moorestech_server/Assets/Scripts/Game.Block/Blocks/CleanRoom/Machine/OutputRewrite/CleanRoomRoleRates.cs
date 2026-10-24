@@ -24,5 +24,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
         {
             return ChipYieldFormula.PromotionChance(moduleEffect.QualityShift, classYield.QualityMultiplier, role.Draw.MaxPromotionChance);
         }
+
+        // EUVの層失敗率＝クラス別の層失敗率×(1−min(品質合計, maxFailReduction))
+        // EUV layer fail rate = class layer fail rate x (1 - min(quality sum, maxFailReduction))
+        public static double LayerFailRate(LayerExposureRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
+        {
+            return ChipYieldFormula.ReducedRate(classYield.LayerFailRate, moduleEffect.QualityShift, role.Exposure.MaxFailReduction);
+        }
     }
 }

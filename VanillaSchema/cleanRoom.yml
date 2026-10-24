@@ -69,3 +69,28 @@ properties:
             displayElementPath: /data/[*]/name
         - key: maxPromotionChance
           type: number
+    - key: layerExposures
+      type: array
+      items:
+        type: object
+        properties:
+        - key: machineRecipeGuid
+          type: uuid
+          foreignKey:
+            schemaId: machineRecipes
+            foreignKeyIdPath: /data/[*]/machineRecipeGuid
+            displayElementPath: /data/[*]/machineRecipeGuid
+        - key: layeredWaferItemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: failedWaferItemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: maxFailReduction
+          type: number

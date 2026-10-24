@@ -16,6 +16,7 @@ namespace Core.Master.Validator
             errorLogs += ThresholdsValidation();
             var roleRecipeGuids = new HashSet<Guid>();
             errorLogs += CleanRoomWaferGradeDrawValidator.Validate(element.WaferGradeDraws, roleRecipeGuids);
+            errorLogs += CleanRoomLayerExposureValidator.Validate(element.LayerExposures, roleRecipeGuids);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal

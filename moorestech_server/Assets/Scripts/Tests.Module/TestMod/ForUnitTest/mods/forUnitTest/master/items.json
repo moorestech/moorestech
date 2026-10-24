@@ -824,6 +824,42 @@
             "recipeViewType": "ForceView",
             "initialUnlocked": false,
             "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestLayeredWaferG1",
+            "itemGuid": "1bbb9ba9-403f-47ab-a601-ae74fe444acd",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestLayeredWaferG2",
+            "itemGuid": "663d48c4-d055-4b20-89ed-ec821c9babaf",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestLayeredWaferG3",
+            "itemGuid": "e9125500-1829-4fee-bcc0-e4d7a17c4f92",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "TestFailedPatternWafer",
+            "itemGuid": "4f0fa5e5-121e-4c92-a0cb-a9ef810921a8",
+            "imagePath": "Test1",
+            "sortPriority": 100,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": false,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         }
     ],
     "itemStackLevelTables": [
@@ -968,6 +1004,16 @@
                 "75a25126-5568-40d8-8028-509f202c4207",
                 "be7f20ef-f90d-482a-9978-109c6183f283",
                 "fc92fbf1-0648-4268-9157-6b247817b3b1"
+            ]
+        },
+        {
+            "familyGuid": "da9226c2-25d3-4941-84f1-5ad58a1070f0",
+            "name": "TestLayeredWaferFamily",
+            "baseItemGuid": "1bbb9ba9-403f-47ab-a601-ae74fe444acd",
+            "levelItemGuids": [
+                "1bbb9ba9-403f-47ab-a601-ae74fe444acd",
+                "663d48c4-d055-4b20-89ed-ec821c9babaf",
+                "e9125500-1829-4fee-bcc0-e4d7a17c4f92"
             ]
         }
     ],
