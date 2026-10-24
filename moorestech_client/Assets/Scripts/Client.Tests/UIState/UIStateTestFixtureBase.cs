@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.CleanRoom;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Interact;
@@ -75,6 +76,13 @@ namespace Client.Tests.UIState
         protected static InteractController CreateInteractController()
         {
             return new InteractController(null, new InteractTargetSelector(), new ProgressBarState(), new MouseCursorTooltipState());
+        }
+
+        // 照準先はカメラ不在のテストでは常に無しなので、本番と同じ組み立てで渡す
+        // The aim target is always absent in camera-less tests, so pass the production assembly as-is
+        protected static CleanRoomBoundaryHoverService CreateCleanRoomHoverService()
+        {
+            return new CleanRoomBoundaryHoverService(new MouseCursorTooltipState());
         }
 
         protected static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)

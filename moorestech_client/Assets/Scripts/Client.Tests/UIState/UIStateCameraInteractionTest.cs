@@ -30,7 +30,7 @@ namespace Client.Tests.UIState
         {
             SetUpGameStateController();
             var gameApplier = new FakePlayerCameraInteractionApplier();
-            var gameState = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
+            var gameState = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null), CreateCleanRoomHoverService());
             gameState.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
             CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
@@ -131,7 +131,7 @@ namespace Client.Tests.UIState
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var placementTargetPickService = new PlacementTargetPickService(null, null);
-            return new GameScreenState(skitManager, CreateInteractController(), placementTargetPickService, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
+            return new GameScreenState(skitManager, CreateInteractController(), placementTargetPickService, CreateCameraPolicy(applier), CreateHotbarTapInputService(null), CreateCleanRoomHoverService());
         }
 
         private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, FakeMapVeinRangeView mapVeinRangeView)
