@@ -51,6 +51,7 @@ export const machineRecipes = {
       blockId: 4, time: 8,
       inputItems: [{ itemId: 2, count: 1 }], outputItems: [{ itemId: 100, count: 1 }],
       inputFluids: [], outputFluids: [],
+      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
     },
     {
       recipeGuid: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -58,6 +59,7 @@ export const machineRecipes = {
       blockId: 3, time: 5,
       inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 3, count: 1 }],
       inputFluids: [], outputFluids: [],
+      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
     },
     {
       recipeGuid: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
@@ -67,6 +69,7 @@ export const machineRecipes = {
       // 液体ゴーストスロットのe2e用に水インプットを1件持たせる
       // Carries one water input so the fluid ghost-slot e2e has a fixture to assert on
       inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [],
+      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
     },
     {
       // 液体のみのレシピ（石油蒸留機型、e2e用）
@@ -78,6 +81,7 @@ export const machineRecipes = {
       blockId: 3, time: 15,
       inputItems: [], outputItems: [],
       inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [{ fluidGuid: OIL_FLUID_GUID, amount: 1000 }],
+      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
     },
     {
       recipeGuid: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
@@ -85,6 +89,7 @@ export const machineRecipes = {
       blockId: 4, time: 20,
       inputItems: [{ itemId: 3, count: 2 }], outputItems: [{ itemId: 7, count: 1 }],
       inputFluids: [], outputFluids: [],
+      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
     },
   ],
 } satisfies MachineRecipesData;
@@ -100,6 +105,7 @@ export const overflowingMachineRecipes = {
       blockId: 3, time: index + 1,
       inputItems: [{ itemId: 2, count: index + 1 }], outputItems: [{ itemId: 100, count: 1 }],
       inputFluids: [], outputFluids: [],
+      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
     })),
   ],
 } satisfies MachineRecipesData;

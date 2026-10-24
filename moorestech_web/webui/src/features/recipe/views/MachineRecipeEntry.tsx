@@ -2,6 +2,7 @@ import { Box, Stack, Text } from "@mantine/core";
 import { ItemSlot, BlockIcon } from "@/shared/ui";
 import type { MachineRecipe } from "@/bridge";
 import RecipeRow from "./RecipeRow";
+import LevelInheritanceBadge from "./LevelInheritanceBadge";
 import styles from "./RecipeBox.module.css";
 import { blockNameKey, L, useI18n } from "@/shared/i18n";
 
@@ -38,6 +39,7 @@ export default function MachineRecipeEntry({ recipe, onSelect, testId }: Props) 
           <Stack className={styles.machineInfo} gap={2} align="center">
             <BlockIcon blockId={recipe.blockId} alt={localizedBlockName} fallback={{ kind: "idText" }} className={styles.machineInfoIcon} />
             <Text className={styles.machineInfoText}>{localizedBlockName}</Text>
+            <LevelInheritanceBadge inheritance={recipe.levelInheritance} testId={`machine-recipe-level-inheritance-${recipe.recipeGuid}`} />
           </Stack>
         )}
         result={recipe.outputItems.map((r, i) => (

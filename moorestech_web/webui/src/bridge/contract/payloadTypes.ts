@@ -26,6 +26,8 @@ import type {
   MachineProcessStateSchema,
   MachineRecipeSchema,
   MachineRecipesDataSchema,
+  MachineRecipeLevelInheritanceSchema,
+  MachineUpgradeDataSchema,
   ModalDataSchema,
   ModalRequestSchema,
   PlayerInventoryDataSchema,
@@ -128,6 +130,8 @@ export type CraftRecipe = z.infer<typeof CraftRecipeSchema>;
 export type CraftRecipesData = z.infer<typeof CraftRecipesDataSchema>;
 export type MachineRecipe = z.infer<typeof MachineRecipeSchema>;
 export type MachineRecipesData = z.infer<typeof MachineRecipesDataSchema>;
+export type MachineRecipeLevelInheritance = z.infer<typeof MachineRecipeLevelInheritanceSchema>;
+export type MachineUpgradeData = z.infer<typeof MachineUpgradeDataSchema>;
 export type RecipeViewerItemListData = z.infer<typeof RecipeViewerItemListDataSchema>;
 export type ItemMasterEntry = z.infer<typeof ItemMasterEntrySchema>;
 export type ItemMasterData = z.infer<typeof ItemMasterDataSchema>;

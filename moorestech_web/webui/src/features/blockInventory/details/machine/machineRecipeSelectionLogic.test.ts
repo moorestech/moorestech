@@ -13,7 +13,7 @@ function recipe(
   outputItems: MachineRecipe["outputItems"] = [{ itemId: 2, count: 1 }],
   outputFluids: MachineRecipe["outputFluids"] = [],
 ): MachineRecipe {
-  return { recipeGuid, blockGuid, blockId: 1, time: 1, inputItems: [{ itemId: 1, count: 1 }], outputItems, inputFluids: [], outputFluids };
+  return { recipeGuid, blockGuid, blockId: 1, time: 1, inputItems: [{ itemId: 1, count: 1 }], outputItems, inputFluids: [], outputFluids, levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 } };
 }
 
 describe("buildMachineRecipeSelectionRows", () => {

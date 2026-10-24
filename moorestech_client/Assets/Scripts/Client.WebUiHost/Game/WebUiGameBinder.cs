@@ -23,6 +23,8 @@ using Client.Game.InGame.Hotbar;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
+using Client.WebUiHost.Game.Topics.MachineUpgrade;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Construction;
 using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
@@ -122,10 +124,11 @@ namespace Client.WebUiHost.Game
                 .Resolve<IGameUnlockStateData>();
             var craftingRecipesTopic = new CraftingRecipesTopic(hub, unlockStateData);
             hub.RegisterTopic(CraftingRecipesTopic.TopicName, craftingRecipesTopic);
-            // 機械レシピトピックを登録
-            // Register the machine-recipes topic
-            var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData);
+            // 機械レシピと機械強化（スロット上限）のトピックを登録
+            // Register the machine-recipe and machine-upgrade (slot limit) topics
+            var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData, resolver.Resolve<ILevelInheritanceCraftCapLookup>());
             hub.RegisterTopic(MachineRecipesTopic.TopicName, machineRecipesTopic);
+            hub.RegisterTopic(MachineUpgradeTopic.TopicName, new MachineUpgradeTopic(hub, resolver.Resolve<IModuleSlotStackLimitLookup>()));
             // アイテムリストトピックを登録
             // Register the item-list topic
             var recipeContainer = ClientDIContext.DIContainer

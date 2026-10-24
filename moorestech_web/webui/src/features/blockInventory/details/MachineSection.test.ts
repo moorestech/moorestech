@@ -17,11 +17,13 @@ vi.mock("@/bridge", async (importOriginal) => ({
         recipeGuid, blockGuid, blockId: 10, time: 7,
         inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
         inputFluids: [], outputFluids: [],
+        levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
       },
       {
         recipeGuid: otherRecipeGuid, blockGuid, blockId: 10, time: 9,
         inputItems: [{ itemId: 1, count: 3 }], outputItems: [{ itemId: 3, count: 1 }],
         inputFluids: [], outputFluids: [],
+        levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
       },
     ],
   }),

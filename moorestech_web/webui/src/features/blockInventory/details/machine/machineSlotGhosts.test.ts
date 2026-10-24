@@ -17,9 +17,9 @@ const machine: MachineDetailData = {
   requestPower: 0,
   slotLayout: layout,
   slotBindings: [
-    { slot: 0, itemId: 1, count: 2 },
-    { slot: 1, itemId: 5, count: 1 },
-    { slot: 3, itemId: 2, count: 1 },
+    { slot: 0, itemId: 1, count: 2, acceptedItemIds: [1, 11, 12] },
+    { slot: 1, itemId: 5, count: 1, acceptedItemIds: [5] },
+    { slot: 3, itemId: 2, count: 1, acceptedItemIds: [2] },
   ],
   tankBindings: [{ tank: 0, fluidGuid: "86000000-0000-4000-8000-000000000001", amount: 10 }],
 };
@@ -110,5 +110,9 @@ describe("boundMachineInputSlotsForItem", () => {
 
   it("束縛されないitemIdは空配列を返す", () => {
     expect(boundMachineInputSlotsForItem(machine, 7, 999)).toEqual([]);
+  });
+
+  it("継承元スロットは上位レベルの変種でも宛先になる", () => {
+    expect(boundMachineInputSlotsForItem(machine, 7, 12)).toEqual([0]);
   });
 });

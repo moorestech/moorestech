@@ -55,7 +55,7 @@ export const MachineDetailDataSchema = z.object({
   slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number(), inputTank: z.number() }),
   // 選択レシピの束縛はホストが配信する正本。Web側で束縛規則を再導出しない
   // The selected recipe's binding is published by the host as the single source; the Web side never re-derives the rule
-  slotBindings: z.array(z.object({ slot: z.number(), itemId: z.number(), count: z.number() })),
+  slotBindings: z.array(z.object({ slot: z.number(), itemId: z.number(), count: z.number(), acceptedItemIds: z.array(z.number()) })),
   tankBindings: z.array(z.object({ tank: z.number(), fluidGuid: GuidSchema, amount: z.number() })),
 });
 

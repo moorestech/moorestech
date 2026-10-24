@@ -76,8 +76,8 @@ function rebuildMachineBindings(machine: MachineWireDetail): void {
   }
 
   machine.slotBindings = [
-    ...recipe.inputItems.map((item, i) => ({ slot: i, itemId: item.itemId, count: item.count })),
-    ...recipe.outputItems.map((item, j) => ({ slot: machine.slotLayout.input + j, itemId: item.itemId, count: item.count })),
+    ...recipe.inputItems.map((item, i) => ({ slot: i, itemId: item.itemId, count: item.count, acceptedItemIds: [item.itemId] })),
+    ...recipe.outputItems.map((item, j) => ({ slot: machine.slotLayout.input + j, itemId: item.itemId, count: item.count, acceptedItemIds: [item.itemId] })),
   ];
   machine.tankBindings = [
     ...recipe.inputFluids.map((fluid, i) => ({ tank: i, fluidGuid: fluid.fluidGuid, amount: fluid.amount })),

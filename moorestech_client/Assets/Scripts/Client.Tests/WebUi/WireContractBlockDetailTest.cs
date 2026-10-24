@@ -117,8 +117,8 @@ namespace Client.Tests.WebUi
                     SlotLayout = new SlotLayoutDto { Input = 2, Output = 1, Module = 1, InputTank = 1 },
                     SlotBindings = new List<MachineSlotBindingDto>
                     {
-                        new() { Slot = 0, ItemId = 3, Count = 2 },
-                        new() { Slot = 2, ItemId = 7, Count = 3 },
+                        new() { Slot = 0, ItemId = 3, Count = 2, AcceptedItemIds = new List<int> { 3 } },
+                        new() { Slot = 2, ItemId = 7, Count = 3, AcceptedItemIds = new List<int> { 7 } },
                     },
                     TankBindings = new List<MachineTankBindingDto>
                     {

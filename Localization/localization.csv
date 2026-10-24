@@ -45,6 +45,7 @@ ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨
 ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen,적재
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し,Entladen,하역
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze,업그레이드 슬롯
+ui.blockInventory.moduleSlotStackLimit,Up to {limit} per slot,Up to {limit} per slot,1スロット上限 {limit},Max. {limit} pro Platz,슬롯당 최대 {limit}
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute,분당 생산량
 ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden,{seconds}초
 ui.blockInventory.recipeNameWithOthers,{name} and {count} more,{name} and {count} more,{name} 他{count}件,{name} und {count} weitere,{name} 외 {count}개
@@ -170,6 +171,8 @@ ui.recipe.duration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Se
 ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to craft (keep holding to craft continuously),長押しでクラフト（押し続けで連続クラフト）,Zum Herstellen gedrückt halten (weiter halten für fortlaufendes Herstellen),길게 눌러 제작 (계속 누르면 연속 제작)
 ui.recipe.craftButtonLabel,Craft,Craft,クラフト,Herstellen,제작
 ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません,Für diesen Gegenstand gibt es keine Rezepte,이 아이템의 레시피가 없습니다
+ui.recipe.levelInheritance,Keeps the material level (Lv N → Lv N),Keeps the material level (Lv N → Lv N),素材のレベルを引き継ぐ（LvN→LvN）,Behält die Materialstufe (Stufe N → Stufe N),재료 레벨 계승 (LvN→LvN)
+ui.recipe.levelInheritanceCapped,Keeps the material level up to Lv {level},Keeps the material level up to Lv {level},素材のレベルを引き継ぐ（〜Lv{level}）,Behält die Materialstufe bis Stufe {level},재료 레벨 계승 (최대 Lv{level})
 ui.research.closeSymbol,×,×,×,×,×
 ui.research.completed,Completed,Completed,完了済み,Abgeschlossen,완료
 ui.research.action,Research,Research,研究,Erforschen,연구
