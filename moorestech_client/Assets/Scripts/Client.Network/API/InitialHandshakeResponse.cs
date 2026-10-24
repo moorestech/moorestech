@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.PlayerRiding.Interface;
 using Game.Research;
 using Server.Event.EventReceive;
+using Server.Event.EventReceive.MachineUpgrade;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.GetMapDataProtocol;
 using static Server.Protocol.PacketResponse.GetMapObjectInfoProtocol;
@@ -33,6 +34,11 @@ namespace Client.Network.API
         // All wallets' remaining-placement counts; bundled
         public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; }
 
+        // スロット上限のレベルと解放済みの製作上限。同梱
+        // The slot-limit level and the unlocked craft caps; bundled
+        public int ModuleSlotStackLevel { get; }
+        public LevelInheritanceCraftCapUnlockEventPacket.LevelInheritanceCraftCapMessagePack[] LevelInheritanceCraftCaps { get; }
+
         public InitialHandshakeResponse(
             ResponseInitialHandshakeMessagePack initialHandshake,
             (
@@ -59,6 +65,8 @@ namespace Client.Network.API
             MapLayout = responses.mapLayout;
             HotbarAssignments = initialHandshake.Accepted.HotbarAssignments;
             RemainingPlacementCounts = initialHandshake.Accepted.RemainingPlacementCounts;
+            ModuleSlotStackLevel = initialHandshake.Accepted.ModuleSlotStackLevel;
+            LevelInheritanceCraftCaps = initialHandshake.Accepted.LevelInheritanceCraftCaps;
         }
     }
 }

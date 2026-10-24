@@ -8,6 +8,7 @@ using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.GraphicsQuality.Appliers;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.MachineUpgrade;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
@@ -68,6 +69,12 @@ namespace Client.Starter.Initialization
                 remainingPlacementCounts[new BlockId(count.WalletBlockId)] = count.RemainingCount;
             }
             resolver.Resolve<ClientRemainingPlacementCountDatastore>().ApplyAll(remainingPlacementCounts);
+
+            // 機械の強化系（スロット上限・製作上限）もhandshake同梱。イベント購読開始前に適用する
+            // The machine-upgrade state (slot limit, craft cap) rides along with the handshake; applied before event dispatch starts
+            resolver.Resolve<ClientModuleSlotStackLimitDatastore>().Apply(_serverResult.HandshakeResponse.ModuleSlotStackLevel);
+            var craftCapDatastore = resolver.Resolve<ClientLevelInheritanceCraftCapDatastore>();
+            foreach (var craftCap in _serverResult.HandshakeResponse.LevelInheritanceCraftCaps) craftCapDatastore.Apply(craftCap.FamilyBaseItemGuid, craftCap.Level);
 
             // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ
             // Fill the blueprint assignments' resolution source once at login so blueprint slots are not unresolved until the build menu is opened
