@@ -1,7 +1,7 @@
 import type { ResearchNodeData } from "@/bridge";
 import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
-import { ownedCountOf } from "@/shared/ownedCounts";
+import { ownedCountOfAny } from "@/shared/ownedCounts";
 import { deriveResearchButton, isConsumeItemLacking } from "./researchLogic";
 import UnlockSections from "./unlock/UnlockSections";
 import {
@@ -39,7 +39,7 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
               <span className={styles.sectionLabel}>{t(L.ui.research.consumeItemsLabel)}</span>
               <div className={styles.detailSlots}>
                 {node.consumeItems.map((c, i) => {
-                  const lacking = isConsumeItemLacking(node, c.itemId, c.count, owned);
+                  const lacking = isConsumeItemLacking(node, c.acceptedItemIds, c.count, owned);
                   return (
                     // 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型)。所持数未受信中は数値自体を出さない
                     // Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView); the number is hidden while owned counts are unknown
@@ -47,7 +47,7 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
                       itemId={c.itemId}
                       insufficient={lacking}
                       shortage={owned
-                        ? { ownedCount: ownedCountOf(owned, c.itemId), requiredCount: c.count, tooltipKey: L.ui.research.consumeItemTooltip }
+                        ? { ownedCount: ownedCountOfAny(owned, c.acceptedItemIds), requiredCount: c.count, tooltipKey: L.ui.research.consumeItemTooltip }
                         : undefined}
                     />
                   );

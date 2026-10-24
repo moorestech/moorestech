@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Client.WebUiHost.Common;
+using Core.Item;
 using Core.Master;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Research;
 using Mooresmaster.Model.GameActionModule;
 using Mooresmaster.Model.ResearchModule;
@@ -32,6 +35,8 @@ namespace Client.WebUiHost.Game.Topics
                 UnlockMachineRecipes = new List<ResearchUnlockMachineRecipeDto>(),
                 UnlockConnectToolGuids = new List<string>(),
                 UnlockTrainCarGuids = new List<string>(),
+                UnlockModuleSlotStackLimits = new List<int>(),
+                UnlockLevelInheritanceCraftCaps = new List<ResearchUnlockCraftCapDto>(),
             };
 
             foreach (var prev in master.PrevResearchNodeGuids) dto.PrevGuids.Add(prev.ToString());
@@ -41,7 +46,8 @@ namespace Client.WebUiHost.Game.Topics
             foreach (var consume in master.ConsumeItems)
             {
                 var itemId = MasterHolder.ItemMaster.GetItemId(consume.ItemGuid);
-                dto.ConsumeItems.Add(new ResearchConsumeItemDto { ItemId = itemId.AsPrimitive(), Count = consume.ItemCount });
+                var acceptedItemIds = WebUiItemIdListUtil.ToPrimitiveIds(LevelFamilySubstituteUtil.GetAcceptedItemIds(itemId));
+                dto.ConsumeItems.Add(new ResearchConsumeItemDto { ItemId = itemId.AsPrimitive(), Count = consume.ItemCount, AcceptedItemIds = acceptedItemIds });
             }
 
             // 解放物はClearedActionsから抽出
@@ -53,8 +59,8 @@ namespace Client.WebUiHost.Game.Topics
 
             void AppendRewardsAndUnlocks()
             {
-                // 抽出は報酬と表示6種のみ
-                // Only the reward and the 6 displayed kinds are extracted
+                // 抽出は報酬と表示8種のみ
+                // Only the reward and the 8 displayed kinds are extracted
                 foreach (var action in master.ClearedActions.items)
                 {
                     switch (action.GameActionType)
@@ -99,8 +105,23 @@ namespace Client.WebUiHost.Game.Topics
                             foreach (var carGuid in unlock.UnlockTrainCarGuids) dto.UnlockTrainCarGuids.Add(carGuid.ToString());
                             break;
                         }
-                        // 表示集合6種の外は全て素通し。種別追加の検知はResearchUnlockGameActionCoverageTestが担う
-                        // Everything outside the 6 displayed kinds passes through; ResearchUnlockGameActionCoverageTest catches new kinds
+                        case GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel:
+                        {
+                            // レベルでなく、プレイヤーが読む上限値で運ぶ
+                            // Carry the limit value the player reads, not the level
+                            var unlock = (UnlockModuleSlotStackLevelGameActionParam)action.GameActionParam;
+                            dto.UnlockModuleSlotStackLimits.Add(ModuleSlotStackLimitMasterUtil.GetStackLimit(unlock.Level));
+                            break;
+                        }
+                        case GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel:
+                        {
+                            var unlock = (UnlockLevelInheritanceCraftLevelGameActionParam)action.GameActionParam;
+                            foreach (var itemGuid in unlock.TargetItemGuids)
+                                dto.UnlockLevelInheritanceCraftCaps.Add(new ResearchUnlockCraftCapDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Level = unlock.Level });
+                            break;
+                        }
+                        // 表示集合8種の外は全て素通し。種別追加の検知はResearchUnlockGameActionCoverageTestが担う
+                        // Everything outside the 8 displayed kinds passes through; ResearchUnlockGameActionCoverageTest catches new kinds
                         default:
                             break;
                     }

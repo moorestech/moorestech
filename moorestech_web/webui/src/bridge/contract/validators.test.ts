@@ -79,9 +79,9 @@ describe("localization.current schema", () => {
 describe("validResearchTree", () => {
   const node = {
     guid: "60000000-0000-4000-8000-000000000001", state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
-    prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
+    prevGuids: [], consumeItems: [{ itemId: 1, count: 3, acceptedItemIds: [1] }],
     rewardItems: [{ itemId: 2, count: 4 }], unlockItemRecipeViewItemIds: [],
-    unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
+    unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [], unlockModuleSlotStackLimits: [], unlockLevelInheritanceCraftCaps: [],
   };
   it("accepts nodes payload", () => {
     expect(parseTopicPayload(Topics.researchTree, { nodes: [node] }).valid).toBe(true);

@@ -41,3 +41,9 @@ export function hasEnoughItems(requirements: readonly ItemRequirement[], owned: 
 export function ownedCountOf(owned: Map<number, number>, itemId: number): number {
   return owned.get(itemId) ?? 0;
 }
+
+// 代替を受け付ける要求の所持数。受け付けるIDそれぞれの所持数を合計する
+// Owned count for a requirement that accepts substitutes; sums the owned count of every accepted ID
+export function ownedCountOfAny(owned: Map<number, number>, itemIds: readonly number[]): number {
+  return itemIds.reduce((total, itemId) => total + ownedCountOf(owned, itemId), 0);
+}

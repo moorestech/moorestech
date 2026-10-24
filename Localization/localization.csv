@@ -189,6 +189,8 @@ ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム,
 ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム,Belohnungsgegenstände,보상 아이템
 ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他,Schaltet frei: Sonstiges,해금: 기타
 ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
+ui.research.unlockModuleSlotStackLimit,Module slot limit: {limit} per slot,Module slot limit: {limit} per slot,モジュールスロット上限 {limit},Modulplatz-Limit: {limit} pro Platz,모듈 슬롯 상한 {limit}
+ui.research.unlockLevelInheritanceCraftCap,Can craft {itemName} up to Lv{level},Can craft {itemName} up to Lv{level},{itemName}をLv{level}まで製作可能,{itemName} bis Stufe {level} herstellbar,{itemName} Lv{level}까지 제작 가능
 ui.research.stateAvailable,Available,Available,研究可能,Verfügbar,연구 가능
 ui.research.stateUnavailable,Unavailable,Unavailable,研究不可,Nicht verfügbar,연구 불가
 ui.skit.auto,Auto,Auto,自動,Auto,자동

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildOwnedCounts, firstSlotIndexByItemId, hasEnoughItems, isOwnedSlot } from "./ownedCounts";
+import { buildOwnedCounts, firstSlotIndexByItemId, hasEnoughItems, isOwnedSlot, ownedCountOfAny } from "./ownedCounts";
 
 const slot = (itemId: number, count: number) => ({ itemId, count });
 
@@ -55,5 +55,13 @@ describe("isOwnedSlot の共有契約", () => {
   it("集計も先頭スロット探索も所持外スロットを一切拾わない", () => {
     expect(buildOwnedCounts(unowned).size).toBe(0);
     expect(firstSlotIndexByItemId(unowned).size).toBe(0);
+  });
+});
+
+describe("ownedCountOfAny", () => {
+  it("受け付けるIDの所持数を合計し、未所持は0として数える", () => {
+    const owned = new Map([[1, 2], [11, 3], [5, 7]]);
+    expect(ownedCountOfAny(owned, [1, 11, 12])).toBe(5);
+    expect(ownedCountOfAny(owned, [12])).toBe(0);
   });
 });

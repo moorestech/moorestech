@@ -10,7 +10,9 @@ export type UnlockEntry =
   | { kind: "itemRecipeView"; index: number; itemId: number }
   | { kind: "rewardItem"; index: number; itemId: number; count: number }
   | { kind: "connectTool"; index: number; guid: string }
-  | { kind: "trainCar"; index: number; guid: string };
+  | { kind: "trainCar"; index: number; guid: string }
+  | { kind: "moduleSlotStackLimit"; index: number; limit: number }
+  | { kind: "levelInheritanceCraftCap"; index: number; itemId: number; level: number };
 
 // 解放/報酬フィールドを表示用リストへ集約
 // Maps unlock/reward fields into a single display list
@@ -23,5 +25,7 @@ export function toUnlockEntries(node: ResearchNodeData): UnlockEntry[] {
   for (const reward of node.rewardItems) entries.push({ kind: "rewardItem", index: entries.length, itemId: reward.itemId, count: reward.count });
   for (const guid of node.unlockConnectToolGuids) entries.push({ kind: "connectTool", index: entries.length, guid });
   for (const guid of node.unlockTrainCarGuids) entries.push({ kind: "trainCar", index: entries.length, guid });
+  for (const limit of node.unlockModuleSlotStackLimits) entries.push({ kind: "moduleSlotStackLimit", index: entries.length, limit });
+  for (const cap of node.unlockLevelInheritanceCraftCaps) entries.push({ kind: "levelInheritanceCraftCap", index: entries.length, itemId: cap.itemId, level: cap.level });
   return entries;
 }

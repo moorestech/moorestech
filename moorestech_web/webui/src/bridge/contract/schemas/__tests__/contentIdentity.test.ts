@@ -18,6 +18,8 @@ const researchNode = {
   unlockMachineRecipes: [],
   unlockConnectToolGuids: [],
   unlockTrainCarGuids: [],
+  unlockModuleSlotStackLimits: [],
+  unlockLevelInheritanceCraftCaps: [],
 };
 
 const challengeNode = {

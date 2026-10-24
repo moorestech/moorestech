@@ -71,6 +71,8 @@ const researchNode = {
   unlockMachineRecipes: [{ recipeGuid: guidA, outputItemIds: [], outputFluids: [{ fluidId: 1, amount: 1, fluidGuid: guidB }] }],
   unlockConnectToolGuids: [guidB],
   unlockTrainCarGuids: [guidC],
+  unlockModuleSlotStackLimits: [],
+  unlockLevelInheritanceCraftCaps: [],
 };
 
 const challengeNode = {

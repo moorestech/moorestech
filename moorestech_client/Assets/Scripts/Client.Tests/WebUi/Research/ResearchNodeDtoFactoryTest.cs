@@ -89,5 +89,33 @@ namespace Client.Tests.WebUi.Research
             CollectionAssert.IsEmpty(dto.UnlockItemRecipeViewItemIds);
             CollectionAssert.IsEmpty(dto.RewardItems);
         }
+
+        [Test]
+        public void Createはスロット上限と製作上限と代替の受け付けIDを出す()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var states = new Dictionary<Guid, ResearchNodeState>();
+
+            // スロット上限はレベルでなく上限値で運ぶ（テストマスタの段階表 [3, 6] の level 1 は 6）
+            // The slot limit travels as the limit value, not the level (level 1 of the test table [3, 6] is 6)
+            var slot = ResearchNodeDtoFactory.Create(MasterHolder.ResearchMaster.ResearchElements[ForUnitTestLevelInheritanceIds.ModuleSlotStackResearchGuid], states);
+            CollectionAssert.AreEqual(new[] { 6 }, slot.UnlockModuleSlotStackLimits);
+            CollectionAssert.IsEmpty(slot.UnlockLevelInheritanceCraftCaps);
+
+            // 製作上限は継承先ファミリーの基準アイテムIDと解放後のレベル
+            // The craft cap carries the target family's base item ID and the unlocked level
+            var cap = ResearchNodeDtoFactory.Create(MasterHolder.ResearchMaster.ResearchElements[ForUnitTestLevelInheritanceIds.CraftCapResearchGuid], states);
+            Assert.AreEqual(1, cap.UnlockLevelInheritanceCraftCaps.Count);
+            Assert.AreEqual(ForUnitTestLevelInheritanceIds.CappedTarget(1).AsPrimitive(), cap.UnlockLevelInheritanceCraftCaps[0].ItemId);
+            Assert.AreEqual(2, cap.UnlockLevelInheritanceCraftCaps[0].Level);
+
+            // 基準を消費する研究は上位の変種も受け付けIDに並ぶ（下位から）。基準でない消費は自分だけ
+            // A research consuming a base lists the higher variants too (lowest first); a non-base consume lists only itself
+            var substitute = ResearchNodeDtoFactory.Create(MasterHolder.ResearchMaster.ResearchElements[ForUnitTestLevelInheritanceIds.SubstituteResearchGuid], states);
+            var sourceIds = new[] { ForUnitTestLevelInheritanceIds.Source(1).AsPrimitive(), ForUnitTestLevelInheritanceIds.Source(2).AsPrimitive(), ForUnitTestLevelInheritanceIds.Source(3).AsPrimitive() };
+            CollectionAssert.AreEqual(sourceIds, substitute.ConsumeItems[0].AcceptedItemIds);
+            var plain = ResearchNodeDtoFactory.Create(MasterHolder.ResearchMaster.ResearchElements[Guid.Parse("cd05e30d-d599-46d3-a079-769113cbbf17")], states);
+            CollectionAssert.AreEqual(new[] { plain.ConsumeItems[0].ItemId }, plain.ConsumeItems[0].AcceptedItemIds);
+        }
     }
 }
