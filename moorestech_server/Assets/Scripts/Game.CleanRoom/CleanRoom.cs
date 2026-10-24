@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master;
+using Mooresmaster.Model.CleanRoomModule;
 using UnityEngine;
 
 namespace Game.CleanRoom
@@ -50,6 +51,21 @@ namespace Game.CleanRoom
         public void SetThresholdIndex(int index)
         {
             ThresholdIndex = index;
+        }
+
+        // 閾値行がOutでなければその行を返す。「部屋がOutか」の判定はここだけに置く
+        // Returns the threshold row unless the room is Out; the only place that decides whether a room is Out
+        public bool TryGetClassRow(out ThresholdsElement row)
+        {
+            var master = MasterHolder.CleanRoomMaster;
+            if (master.OutThresholdIndex <= ThresholdIndex)
+            {
+                row = default;
+                return false;
+            }
+
+            row = master.Thresholds[ThresholdIndex];
+            return true;
         }
 
         public bool Contains(Vector3Int cell)
