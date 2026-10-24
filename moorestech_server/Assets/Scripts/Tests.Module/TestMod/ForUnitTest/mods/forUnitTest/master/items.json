@@ -716,6 +716,87 @@
             "recipeViewType": "ForceView",
             "initialUnlocked": true,
             "stackLevelTableGuid": "7b3e1a10-0003-4000-8000-000000000001"
+        },
+        {
+            "name": "InheritSourceLv1",
+            "itemGuid": "00000000-0000-0000-c0de-000000000011",
+            "imagePath": "Test1",
+            "sortPriority": 870,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "InheritSourceLv2",
+            "itemGuid": "00000000-0000-0000-c0de-000000000012",
+            "imagePath": "Test1",
+            "sortPriority": 871,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "InheritSourceLv3",
+            "itemGuid": "00000000-0000-0000-c0de-000000000013",
+            "imagePath": "Test1",
+            "sortPriority": 872,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "InheritTargetLv1",
+            "itemGuid": "00000000-0000-0000-c0de-000000000021",
+            "imagePath": "Test1",
+            "sortPriority": 873,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "InheritTargetLv2",
+            "itemGuid": "00000000-0000-0000-c0de-000000000022",
+            "imagePath": "Test1",
+            "sortPriority": 874,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "InheritTargetLv3",
+            "itemGuid": "00000000-0000-0000-c0de-000000000023",
+            "imagePath": "Test1",
+            "sortPriority": 875,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "InheritCappedTargetLv1",
+            "itemGuid": "00000000-0000-0000-c0de-000000000031",
+            "imagePath": "Test1",
+            "sortPriority": 876,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "InheritCappedTargetLv2",
+            "itemGuid": "00000000-0000-0000-c0de-000000000032",
+            "imagePath": "Test1",
+            "sortPriority": 877,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
+        },
+        {
+            "name": "InheritCappedTargetLv3",
+            "itemGuid": "00000000-0000-0000-c0de-000000000033",
+            "imagePath": "Test1",
+            "sortPriority": 878,
+            "recipeViewType": "ForceView",
+            "initialUnlocked": true,
+            "stackLevelTableGuid": "11111111-1111-1111-1111-111111111111"
         }
     ],
     "itemStackLevelTables": [
@@ -820,6 +901,36 @@
                 "00000000-0000-0000-1234-000000000003",
                 "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
                 "adf11728-e5e7-b180-b6e1-7396d29e787d"
+            ]
+        },
+        {
+            "familyGuid": "00000000-0000-0000-9876-000000000002",
+            "name": "InheritSourceFamily",
+            "baseItemGuid": "00000000-0000-0000-c0de-000000000011",
+            "levelItemGuids": [
+                "00000000-0000-0000-c0de-000000000011",
+                "00000000-0000-0000-c0de-000000000012",
+                "00000000-0000-0000-c0de-000000000013"
+            ]
+        },
+        {
+            "familyGuid": "00000000-0000-0000-9876-000000000003",
+            "name": "InheritTargetFamily",
+            "baseItemGuid": "00000000-0000-0000-c0de-000000000021",
+            "levelItemGuids": [
+                "00000000-0000-0000-c0de-000000000021",
+                "00000000-0000-0000-c0de-000000000022",
+                "00000000-0000-0000-c0de-000000000023"
+            ]
+        },
+        {
+            "familyGuid": "00000000-0000-0000-9876-000000000004",
+            "name": "InheritCappedTargetFamily",
+            "baseItemGuid": "00000000-0000-0000-c0de-000000000031",
+            "levelItemGuids": [
+                "00000000-0000-0000-c0de-000000000031",
+                "00000000-0000-0000-c0de-000000000032",
+                "00000000-0000-0000-c0de-000000000033"
             ]
         }
     ],

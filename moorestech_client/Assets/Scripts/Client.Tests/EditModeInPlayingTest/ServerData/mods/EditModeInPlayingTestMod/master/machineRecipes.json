@@ -20,7 +20,8 @@
         }
       ],
       "outputFluids": [],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "levelInheritance": "None"
     },
     {
       "machineRecipeGuid": "472d206c-e7ec-4e0f-a723-1912ed594ec5",
@@ -42,7 +43,8 @@
         }
       ],
       "outputFluids": [],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "levelInheritance": "None"
     },
     {
       "machineRecipeGuid": "4a1e6198-e7e2-46cf-8219-7a83f07e672e",
@@ -64,7 +66,8 @@
         }
       ],
       "outputFluids": [],
-      "initialUnlocked": true
+      "initialUnlocked": true,
+      "levelInheritance": "None"
     }
   ]
 }

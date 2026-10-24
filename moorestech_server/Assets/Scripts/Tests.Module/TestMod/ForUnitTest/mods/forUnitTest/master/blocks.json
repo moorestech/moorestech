@@ -7450,6 +7450,127 @@
       "subCategory": "FuelGearGenerator",
       "placementsPerCost": 1,
       "openable": false
+    },
+    {
+      "maxStack": 100,
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestLevelInheritMachine",
+      "openable": true,
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "moduleSlotCount": 4,
+        "requiredPower": 100,
+        "idlePowerRate": 0.25,
+        "outputSlotCount": 2,
+        "inputSlotCount": 2,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "ffffffff-0000-4000-8000-00000000c0d1"
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "ffffffff-0000-4000-8000-00000000c0d2"
+            }
+          ]
+        },
+        "fluidContainerCount": 0,
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "connectionRange": 9,
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
+      },
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "category": "テスト",
+      "subCategory": "ElectricMachine",
+      "placementsPerCost": 1
     }
   ],
   "connectorSettings": {

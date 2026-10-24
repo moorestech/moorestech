@@ -90,3 +90,9 @@ properties:
     - key: initialUnlocked
       type: boolean
       default: true
+    - key: levelInheritance
+      type: enum
+      options:
+      - None
+      - Inherit
+      - InheritUpToUnlocked
