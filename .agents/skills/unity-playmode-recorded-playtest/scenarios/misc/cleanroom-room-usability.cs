@@ -19,7 +19,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.CleanRoom;
-using Game.Context;
 using Game.EnergySystem;
 using Game.Fluid;
 using Mooresmaster.Localization.Generated;
@@ -27,18 +26,19 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
-
 const string PanelName = "クリーンルームパネル";
 var outsidePosition = new Vector3(3.5f, 33.5f, -3.5f); // ドア正面の室外（床の上）
 var doorAimPoint = new Vector3(3.5f, 34f, 0.5f); // 1×2×1 ドアの中心
 var breachCell = new Vector3Int(6, 33, 3); // 後で外す東の壁
 var uiPanelCell = new Vector3Int(6, 33, 4); // Shift+R で縦にして UI で置く東の壁
-var options = new PlaytestRunOptions { Record = true };
-return PlaytestRunner.Run("cleanroom-room-usability", options, async p =>
+return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 15f, "GameScreenに到達");
     await p.SetupFlatGround();
+    // 地形(メサ・岩・木)は足場を突き抜けて立ち位置・照準・画面を狂わせ、原点の遠い大物ほど遅れて生成されるので、スキットと同じ経路で地形の表示と生成を止める
+    // Terrain (mesas, rocks, trees) pokes through the scaffold and skews footing, aim and view, with large far-origin pieces spawning late, so stop terrain display and spawning via the skit path
+    UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
 
     // 開始位置(0,33.5,0)は壁の角になるので、建てる前に室外へ退く。床は室外まで北向き(水平)のパネルで敷く
@@ -49,9 +49,6 @@ return PlaytestRunner.Run("cleanroom-room-usability", options, async p =>
         p.PlaceBlockDirect(PanelName, new Vector3Int(x, 32, z), BlockDirection.North);
     await p.WaitBlockGameObject(new Vector3Int(6, 32, 4));
     await p.WaitSeconds(1f);
-    // 平坦な足場の下から地形のメサ(粗いLODの当たり判定)が室内へ突き出し立ち位置を狂わせるので、建てる範囲に重なる地形を壊す
-    // A terrain mesa's coarse LOD collider pokes through the flat ground into the room and skews footing, so destroy terrain overlapping the build area
-    foreach (var terrain in Physics.OverlapBox(new Vector3(3.5f, 34f, 1.5f), new Vector3(6f, 2f, 8f)).Select(c => c.GetComponentInParent<MapObjectGameObject>()).Where(m => m != null).Distinct()) ServerContext.MapObjectDatastore.Get(terrain.InstanceId).Destroy();
 
     #region パネルを Shift+R で縦にして UI で置く / Stand a panel upright with Shift+R and place it via the UI
     p.WarpPlayer(new Vector3(4.5f, 33.5f, 1.5f));
@@ -88,17 +85,14 @@ return PlaytestRunner.Run("cleanroom-room-usability", options, async p =>
     var machineBlock = p.PlaceBlockDirect("EUV露光式半導体製造装置", new Vector3Int(3, 33, 3), BlockDirection.North);
     WirePower(filterBlock, machineBlock);
     await p.WaitBlockGameObject(new Vector3Int(3, 33, 0));
-
     // 床(水平)・西(UpWest)・南(UpSouth)・UIで置いた東(縦)の板が、それぞれ自分のセルの中に描かれる
     // The floor (flat), west (UpWest), south (UpSouth) and UI-placed east (upright) plates each render inside their own cell
     foreach (var (plateCell, upright) in new[] { (new Vector3Int(2, 32, 2), false), (new Vector3Int(0, 33, 2), true), (new Vector3Int(1, 33, 0), true), (uiPanelCell, true) })
         await AssertPanelPlateInCell(plateCell, upright);
-
     // 密閉された部屋が検出されるのを待つ（クラスは問わない）
     // Wait for the sealed room to be detected, whatever its class
     await p.Until(() => p.ServerService<CleanRoomDatastore>().TryGetCleanRoom(machineBlock, out _), 15f, "部屋が検出された");
     await p.Screenshot("01-room-built");
-
     #region ドアを歩いて通る / Walk through the door
     p.WarpPlayer(outsidePosition);
     await p.WaitSeconds(1f);
@@ -109,23 +103,20 @@ return PlaytestRunner.Run("cleanroom-room-usability", options, async p =>
     p.Note($"室内の位置={p.PlayerPosition}");
     await p.Screenshot("02-inside-room");
     #endregion
-
     #region 清浄機のUIでフィルターを入れる / Load filters through the purifier UI
     p.GiveItemDirect("クリーンルームフィルター", 5);
     var filterItemId = PlaytestItemOps.ResolveItemId("クリーンルームフィルター");
     var localInventory = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
     await p.Until(() => FindMainSlot(localInventory, filterItemId) >= 0, 10f, "フィルターがクライアントのインベントリに届いた");
-    var filterSlot = FindMainSlot(localInventory, filterItemId);
     await OpenBlockUi(new Vector3(1.5f, 33.5f, 3.5f), new Vector3(1.5f, 34f, 5.5f));
     await p.UntilWebUiElement("clean-room-filter-grid-slot-0", 10f);
-    await p.ClickWebUi($"main-slot-{filterSlot}");
+    await p.ClickWebUi($"main-slot-{FindMainSlot(localInventory, filterItemId)}");
     await p.ClickWebUi("clean-room-filter-grid-slot-0");
     Core.Inventory.IOpenableInventory filterInventory = filterBlock.GetComponent<IOpenableBlockInventoryComponent>();
     await p.Until(() => filterInventory.GetItem(0).Id == filterItemId && filterInventory.GetItem(0).Count == 5, 10f, "フィルター5個がスロットに入った");
     await p.UntilWebUiElement("clean-room-section", 10f);
     await p.Screenshot("03-filter-loaded");
-    await p.PressKey(Key.Tab);
-    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await CloseBlockUi();
     #endregion
 
     #region EUV の部屋欄 / Room section of the EUV
@@ -133,8 +124,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", options, async p =>
     await p.UntilWebUiElement("clean-room-section", 10f);
     await p.UntilWebUiElement("clean-room-headline", 10f);
     await p.Screenshot("04-euv-room-section");
-    await p.PressKey(Key.Tab);
-    await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    await CloseBlockUi();
     #endregion
 
     #region ドアのツールチップと漏れ表示 / Door tooltip and leak display
@@ -144,16 +134,26 @@ return PlaytestRunner.Run("cleanroom-room-usability", options, async p =>
     await p.AimAt(doorAimPoint);
     await p.Until(() => FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key || FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomClassOut.Key, 5f, "ドアのツールチップ先頭行が部屋クラス");
     await p.Screenshot("05-door-tooltip-sealed");
-    p.RemoveBlock(breachCell);
+    // 直接撤去はメインスレッドからサーバーのtickと競合し部屋の再検出が古い壁のまま走るので、本番の撤去プロトコル(tick末尾で処理)で外す
+    // A direct remove races the server tick from the main thread so re-detection still sees the wall; remove via the production protocol handled at tick end
+    var removeResponse = await ClientContext.VanillaApi.Response.Block.BlockRemove(breachCell, System.Threading.CancellationToken.None);
+    p.Assert(removeResponse.Success, $"撤去プロトコルで東の壁を外した(失敗理由={removeResponse.FailureReason})");
     await p.Until(() => FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed.Key, 10f, "壁を外すとドアのツールチップが未密閉になる");
     await p.Until(() => ActiveMarkers().Any(marker => Vector3.Distance(marker.position, breachCell + Vector3.one * 0.5f) < 0.01f), 5f, "外した壁の位置に漏れマーカーが出た");
     p.Assert(ActiveMarkers().Length == 1, "漏れマーカーは外した1セルだけ");
+    // 再照会(1秒毎)を2回以上またいでも未密閉から戻らないかを毎フレーム見て、Web UI の描画が追いついてから撮る
+    // Watch every frame across 2+ re-polls (1 s each) that it never flips back from not-sealed, then capture once the Web UI render catches up
+    var observedKeys = new System.Collections.Generic.HashSet<string>();
+    for (var watchEnd = Time.realtimeSinceStartup + 2.5f; Time.realtimeSinceStartup < watchEnd; await UniTask.Yield()) observedKeys.Add(FirstTooltipKey());
+    p.Assert(observedKeys.SetEquals(new[] { LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed.Key }) && ActiveMarkers().Length == 1, $"2.5秒間ツールチップ先頭行が未密閉のまま・漏れマーカー1個(観測キー={string.Join(",", observedKeys)})");
+    await PlaytestWebUiOps.WaitWebUiTextContains("cursor-tooltip", "Not sealed: 1 gaps", 5f);
     await p.Screenshot("06-door-tooltip-leak");
-    // 外した東の壁はドアの正面からは見えないので、南東の室外から東の壁を狙い漏れマーカーを録画に残す（Altは押したまま）
-    // The removed east wall is hidden from the door front, so aim at the east wall from the south-east and keep the marker on the recording (Alt stays held)
+    // 外した東の壁はドアの正面からは見えないので、南東の室外から東の壁を狙い漏れマーカーを録画に残す（Altは最後に離す）
+    // The removed east wall is hidden from the door front, so aim at the east wall from the south-east and keep the marker on the recording (Alt is released last)
     p.WarpPlayer(new Vector3(8f, 33.5f, -2f));
     await p.AimAt(new Vector3(6.1f, 34.5f, 1.5f));
     await p.WaitSeconds(2f);
+    SemanticInput.KeyUp(Key.LeftAlt);
     #endregion
 
     // ローカル関数 / Local functions
@@ -161,8 +161,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", options, async p =>
     {
         // 板の描画範囲がセルの中に収まり、縦なら高さ1・厚さ0.1、横なら高さ0.1になる
         // The plate's rendered bounds stay inside the cell: height 1 and thickness 0.1 when upright, height 0.1 when flat
-        var blockObject = await p.WaitBlockGameObject(cell);
-        var bounds = blockObject.GetComponentsInChildren<MeshRenderer>(true).First(renderer => renderer.gameObject.name == "PanelPlate").bounds;
+        var bounds = (await p.WaitBlockGameObject(cell)).GetComponentsInChildren<MeshRenderer>(true).First(renderer => renderer.gameObject.name == "PanelPlate").bounds;
         var cellBounds = new Bounds(cell + Vector3.one * 0.5f, Vector3.one * 1.02f);
         var isUpright = 0.9f < bounds.size.y && Mathf.Min(bounds.size.x, bounds.size.z) < 0.15f;
         p.Assert(cellBounds.Contains(bounds.min) && cellBounds.Contains(bounds.max) && isUpright == expectUpright, $"{cell} のパネルの板がセル内に{(expectUpright ? "縦" : "横")}で描かれる(bounds={bounds})");
@@ -179,9 +178,9 @@ return PlaytestRunner.Run("cleanroom-room-usability", options, async p =>
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
     }
+    async UniTask CloseBlockUi() { await p.PressKey(Key.Tab); await p.WaitUiState(UIStateEnum.GameScreen, 10f); }
     int FindMainSlot(ILocalPlayerInventory inventory, ItemId itemId) => Enumerable.Range(0, inventory.MainSlotCount).Where(i => inventory[i].Id == itemId && 0 < inventory[i].Count).DefaultIfEmpty(-1).First();
-    string FirstTooltipKey() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>().GetPresentation() is { Visible: true } presentation
-        ? presentation.Lines[0].Key.Key : string.Empty;
+    string FirstTooltipKey() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>().GetPresentation() is { Visible: true } shown ? shown.Lines[0].Key.Key : string.Empty;
     Transform[] ActiveMarkers() => UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None)
         .Where(renderer => renderer.gameObject.activeInHierarchy && renderer.gameObject.name == CleanRoomLeakMarkerVisualizer.MarkerName).Select(renderer => renderer.transform).ToArray();
     void WirePower(IBlock filter, IBlock machine)
