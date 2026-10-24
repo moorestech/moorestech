@@ -164,7 +164,6 @@ describe("block detail fixtures", () => {
     expect(gear.gearNetwork.stopReason).toBe("none");
   });
 });
-
 describe("challenge fixtures", () => {
   it("accepts tree and current payloads", () => {
     const tree = loadFixture("challenge_tree.json");
