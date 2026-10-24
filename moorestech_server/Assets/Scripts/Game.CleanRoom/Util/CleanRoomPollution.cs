@@ -49,9 +49,9 @@ namespace Game.CleanRoom.Util
                     if (!visited.Add(block.BlockInstanceId)) continue;
                     if (!block.TryGetComponent<ICleanRoomBoundaryComponent>(out var boundary)) continue;
 
-                    // 壁以外の境界（ドア・ハッチ等）は接続点として計上する
-                    // Non-wall boundaries (doors, hatches, etc.) count as connectors
-                    if (boundary.BoundaryKind != CleanRoomBoundaryKind.Wall) connectors++;
+                    // ハッチだけを接続点に数える。ドアは人の出入り口で汚染源にしない（裁定 2026-10-23）
+                    // Only hatches count as connectors; doors are for people and add no pollution (ruling 2026-10-23)
+                    if (boundary.BoundaryKind is CleanRoomBoundaryKind.ItemHatch or CleanRoomBoundaryKind.PipeHatch) connectors++;
                     if (block.TryGetComponent<ICleanRoomItemHatch>(out var hatch)) hatchThroughput += hatch.RecentThroughputPerSecond;
                 }
             }
