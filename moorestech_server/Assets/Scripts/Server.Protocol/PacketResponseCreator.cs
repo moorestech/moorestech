@@ -57,6 +57,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(DebugBlockInfoRequestProtocol.ProtocolTag, new DebugBlockInfoRequestProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetGearNetworkInfoProtocol.ProtocolTag, new GetGearNetworkInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetElectricNetworkInfoProtocol.ProtocolTag, new GetElectricNetworkInfoProtocol(serviceProvider));
+            _packetResponseDictionary.Add(GetCleanRoomInfoProtocol.ProtocolTag, new GetCleanRoomInfoProtocol(serviceProvider));
 
             _packetResponseDictionary.Add(RegisterPlayedSkitProtocol.ProtocolTag, new RegisterPlayedSkitProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetFluidInventoryProtocol.ProtocolTag, new GetFluidInventoryProtocol(serviceProvider));

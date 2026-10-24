@@ -10,6 +10,7 @@
     "Game.World.Interface",
     "MessagePack",
     "Game.Block.Interface",
+    "Game.CleanRoom",
     "Core.Inventory",
     "Core.Item.Interface",
     "Core.Const",

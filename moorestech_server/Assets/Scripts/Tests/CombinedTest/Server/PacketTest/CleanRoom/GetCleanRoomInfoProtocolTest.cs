@@ -1,0 +1,105 @@
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using Core.Update;
+using Game.Block.Interface;
+using Game.Context;
+using MessagePack;
+using NUnit.Framework;
+using Server.Boot;
+using Server.Protocol;
+using Server.Protocol.PacketResponse;
+using Tests.CombinedTest.Core.CleanRoom;
+using Tests.CombinedTest.Core.CleanRoom.Machine;
+using Tests.Module.TestMod;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
+{
+    public class GetCleanRoomInfoProtocolTest
+    {
+        [Test]
+        public void EnclosedRoomIsReturnedWithAirFilterTest()
+        {
+            var packet = CreatePacket();
+            CleanRoomMachineTestHelpers.BuildSmallCleanRoomWithFilter();
+            GameUpdater.UpdateOneTick();
+
+            // 壁のIDで引くと、清浄機1台を持つ密閉済みの部屋の型が返る
+            // Querying a wall ID returns the enclosed type holding one purifier
+            var wall = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(0, 2, 2));
+            Assert.IsTrue(Invoke(packet, wall.BlockInstanceId).TryGetView(out var view));
+            Assert.IsInstanceOf<CleanRoomEnclosedView>(view);
+            var rooms = ((CleanRoomEnclosedView)view).Rooms;
+            Assert.AreEqual(1, rooms.Count);
+            Assert.AreEqual(26, rooms[0].Volume);
+            Assert.AreEqual(1, rooms[0].AirFilters.Count);
+            Assert.AreEqual(new Vector3Int(1, 1, 1), rooms[0].AirFilters[0].Position.Vector3Int);
+            Assert.AreEqual(5, rooms[0].AirFilters[0].FilterItemCount);
+
+            // 検出直後の部屋は Out なので、往復後もクラスは読めない
+            // A freshly detected room is Out, so no class is readable after the round trip
+            Assert.IsFalse(rooms[0].TryGetClass(out _, out _));
+        }
+
+        [Test]
+        public void BreachedRoomReturnsOpeningCellsTest()
+        {
+            var packet = CreatePacket();
+            var filter = CleanRoomMachineTestHelpers.BuildSmallCleanRoomWithFilter();
+            GameUpdater.UpdateOneTick();
+            ServerContext.WorldBlockDatastore.RemoveBlock(new Vector3Int(2, 2, 0), BlockRemoveReason.ManualRemove);
+            GameUpdater.UpdateOneTick();
+
+            // 壁を1枚壊すと、清浄機から引いた応答は未密閉の型になり、壊した位置が漏れとして載る
+            // Breaking one wall turns the purifier's response into the not-enclosed type carrying that cell as the leak
+            Assert.IsTrue(Invoke(packet, filter.BlockInstanceId).TryGetView(out var view));
+            Assert.IsInstanceOf<CleanRoomNotEnclosedView>(view);
+            var leak = ((CleanRoomNotEnclosedView)view).Leak;
+            Assert.IsInstanceOf<CleanRoomOpeningsLeakView>(leak);
+            var openings = (CleanRoomOpeningsLeakView)leak;
+            Assert.AreEqual(1, openings.TotalOpeningCount);
+            Assert.AreEqual(new Vector3Int(2, 2, 0), openings.OpeningCells[0].Vector3Int);
+        }
+
+        [Test]
+        public void UnknownBlockReturnsBlockNotFoundTest()
+        {
+            var packet = CreatePacket();
+
+            // 存在しないブロックIDは BlockNotFound になり、部屋の型を返さない
+            // A missing block ID becomes BlockNotFound and yields no room type
+            var response = Invoke(packet, new BlockInstanceId(999999));
+            Assert.AreEqual(CleanRoomInfoResponseKind.BlockNotFound, response.Kind);
+            Assert.IsFalse(response.TryGetView(out _));
+        }
+
+        [Test]
+        public void MalformedResponsesAreUnreadableWithWarningTest()
+        {
+            // 判別子と入れ子が合わない応答は、読み口を作らず警告して false を返す
+            // A response whose discriminator and nested values disagree yields no view, logs a warning and returns false
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] Enclosed response"));
+            Assert.IsFalse(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(new List<CleanRoomSummaryMessagePack>()).TryGetView(out _));
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] NotEnclosed response has no leak"));
+            Assert.IsFalse(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(null).TryGetView(out _));
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] Openings leak has no cells"));
+            Assert.IsFalse(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(CleanRoomLeakMessagePack.CreateOpenings(null, 3)).TryGetView(out _));
+        }
+
+        private static PacketResponseCreator CreatePacket()
+        {
+            var (packet, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            return packet;
+        }
+
+        private static GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack Invoke(PacketResponseCreator packet, BlockInstanceId id)
+        {
+            var request = new GetCleanRoomInfoProtocol.RequestCleanRoomInfoMessagePack(id);
+            var responseBytes = packet.GetPacketResponse(MessagePackSerializer.Serialize(request), Tests.Util.PlayerIdentity.BoundPacketContext.Bind(1));
+            return MessagePackSerializer.Deserialize<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack>(responseBytes[0]);
+        }
+    }
+}

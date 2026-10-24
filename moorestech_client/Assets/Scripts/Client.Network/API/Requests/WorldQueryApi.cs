@@ -115,6 +115,14 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack>(request, ct);
         }
 
+        // 指定ブロックから見たクリーンルームの状態（部屋の要約または漏れ箇所）を取得する
+        // Fetch the clean-room state seen from the given block: room summaries or leak cells
+        public async UniTask<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack> GetCleanRoomInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetCleanRoomInfoProtocol.RequestCleanRoomInfoMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack>(request, ct);
+        }
+
         // 進行記録がセッション開始時に1回だけ読む。可変状態の同期ではないので初期データ取得のみ
         // The progress record reads this once at session start; it syncs no mutable state, so a fetch is enough
         public async UniTask<GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack> GetWorldPlaySessionInfo(CancellationToken ct)
