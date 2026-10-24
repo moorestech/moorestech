@@ -1415,6 +1415,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9c9401b0d7dea44f98ef759ef5209322
+    m_Address: Vanilla/Block/CleanRoomDoor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9cf5bcd57dce84555900af3794c1a851
     m_Address: Vanilla/Environment/Rock/Redwood/Boulder_4
     m_ReadOnly: 0
