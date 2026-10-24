@@ -55,8 +55,8 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class ResponseCleanRoomInfoMessagePack : ProtocolMessagePackBase
         {
-            // wire は判別子と種別ごとのキーが並ぶ平らな形。組み立ては下の factory、読み出しは TryGetView だけ
-            // The wire is flat with a discriminator and per-kind keys; build only via the factories below and read only via TryGetView
+            // wire は判別子と種別ごとのキーが並ぶ平らな形。組み立ては下の factory、読み出しは TryReadView だけ
+            // The wire is flat with a discriminator and per-kind keys; build only via the factories below and read only via TryReadView
             [Key(2)] public CleanRoomInfoResponseKind Kind { get; set; }
             [Key(3)] public List<CleanRoomSummaryMessagePack> Rooms { get; set; }
             [Key(4)] public CleanRoomLeakMessagePack Leak { get; set; }
@@ -86,9 +86,9 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseCleanRoomInfoMessagePack(CleanRoomInfoResponseKind.BlockNotFound);
             }
 
-            // BlockNotFound なら false。判別子の読み分けはここだけで行う
-            // False for BlockNotFound; the only place that branches on the discriminator
-            public bool TryGetView(out CleanRoomInfoView view)
+            // 判別子の読み分けはここだけで行う。消失は BlockNotFound、欠損や未知の種別は警告して Unreadable
+            // The only place that branches on the discriminator; a vanished block is BlockNotFound, broken or unknown kinds warn and are Unreadable
+            public BlockInfoReadResult TryReadView(out CleanRoomInfoView view)
             {
                 view = default;
                 switch (Kind)
@@ -99,29 +99,28 @@ namespace Server.Protocol.PacketResponse
                         if (!AreReadableRooms())
                         {
                             Debug.LogWarning($"[GetCleanRoomInfo] Enclosed response has no or broken rooms (count {Rooms?.Count ?? 0}); treating it as unreadable");
-                            return false;
+                            return BlockInfoReadResult.Unreadable;
                         }
 
                         view = new CleanRoomEnclosedView(Rooms);
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case CleanRoomInfoResponseKind.NotEnclosed:
                         if (Leak == null)
                         {
                             Debug.LogWarning("[GetCleanRoomInfo] NotEnclosed response has no leak; treating it as unreadable");
-                            return false;
+                            return BlockInfoReadResult.Unreadable;
                         }
 
                         // 漏れの中身の欠損は Leak.TryGetView が警告する
                         // Leak.TryGetView warns about missing leak contents
-                        if (!Leak.TryGetView(out var leakView)) return false;
+                        if (!Leak.TryGetView(out var leakView)) return BlockInfoReadResult.Unreadable;
                         view = new CleanRoomNotEnclosedView(leakView);
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case CleanRoomInfoResponseKind.BlockNotFound:
-                        return false;
+                        return BlockInfoReadResult.BlockNotFound;
                     default:
                         Debug.LogWarning($"Unreadable response kind: {Kind}");
-                        view = default;
-                        return false;
+                        return BlockInfoReadResult.Unreadable;
                 }
 
                 #region Internal

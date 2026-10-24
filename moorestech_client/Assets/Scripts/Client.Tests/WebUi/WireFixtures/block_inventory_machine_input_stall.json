@@ -6,5 +6,5 @@
   "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
   "itemSlots": [],
   "fluidSlots": [],
-  "machineInputStall": { "reason": "aboveCraftCap", "itemId": 12 }
+  "machineInputStall": { "fetchState": "fetched", "reason": "aboveCraftCap", "itemId": 12 }
 }

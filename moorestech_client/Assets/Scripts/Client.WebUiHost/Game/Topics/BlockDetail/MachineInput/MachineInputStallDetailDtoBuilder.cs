@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BlockInfoPolling;
 using Server.Protocol.PacketResponse;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
@@ -11,24 +12,29 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
     {
         public static void Apply(BlockInventoryDto dto, BlockNetworkInfoCache cache)
         {
-            // silent-ok: 未取得・消失・読めない応答の間は欄を出さない / 消失・読めない応答はポーラーが警告を1回出して問い合わせを止め（開き直すと再開）、未取得は次の1秒で欄が出る
-            if (!cache.TryGetMachineInputStall(out var view)) return;
-            dto.MachineInputStall = Build(view);
+            // 止まった理由を追うのは機械だけ
+            // Only machines follow the stall
+            if (!cache.IsTrackingMachineInputStall) return;
+            var fetchState = cache.GetMachineInputStall(out var view);
+            dto.MachineInputStall = Build(fetchState, view);
         }
 
-        // webui へ送る理由の文字列はこの網羅 switch の1か所でだけ作る。止まっていなければ null（欄を出さない）
-        // Reason strings for webui are made only in this exhaustive switch; null when not stalled (no section)
-        public static MachineInputStallDetailDto Build(MachineInputStallView view)
+        // 取得できていない間は取得状態だけの欄にする。取得済みで止まっていなければ欄なし
+        // While not fetched, the section carries only the fetch state; once fetched and not stalled, no section
+        public static MachineInputStallDetailDto Build(BlockInfoFetchState fetchState, MachineInputStallView latestView)
         {
-            return view switch
+            if (fetchState != BlockInfoFetchState.Fetched) return MachineInputStallDetailDto.CreateUnavailable(fetchState);
+            return latestView switch
             {
-                MachineInputStalledView stalled => new MachineInputStallDetailDto { Reason = ToWireReason(stalled.Stall.Reason), ItemId = stalled.Stall.WaitingItemId },
+                MachineInputStalledView stalled => MachineInputStallDetailDto.CreateStalled(ToWireReason(stalled.Stall.Reason), stalled.Stall.WaitingItemId),
                 MachineInputNotStalledView _ => null,
-                _ => throw new ArgumentOutOfRangeException(nameof(view), view.GetType().Name, "未対応の停止理由のビュー / Unsupported stall view"),
+                _ => throw new ArgumentOutOfRangeException(nameof(latestView), latestView.GetType().Name, "未対応の停止理由のビュー / Unsupported stall view"),
             };
 
             #region Internal
 
+            // webui へ送る理由の文字列はこの網羅 switch の1か所でだけ作る
+            // Reason strings for webui are made only in this exhaustive switch
             static string ToWireReason(MachineInputStallReasonKind reason)
             {
                 return reason switch
@@ -41,7 +47,5 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
 
             #endregion
         }
-
-
     }
 }

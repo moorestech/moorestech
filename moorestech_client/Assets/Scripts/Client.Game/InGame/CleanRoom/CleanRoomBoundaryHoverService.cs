@@ -25,8 +25,8 @@ namespace Client.Game.InGame.CleanRoom
         {
             _tooltipPresenter = new CleanRoomTooltipPresenter(tooltip);
 
-            // 取得済み・消失に変わったときだけ、行と印を作り直す
-            // Rebuild the lines and markers only when the poll becomes fetched or vanished
+            // 応答ごとに状態が決まったら、行と印を作り直す
+            // Rebuild the lines and markers whenever a response settles the poll state
             _poller.OnBlockInfoSnapshotUpdated.Subscribe(_ => OnRoomInfoUpdated());
             // 他の表示が消えたときだけ再提示する
             // Present again only after another presentation disappears
@@ -39,8 +39,8 @@ namespace Client.Game.InGame.CleanRoom
 
             void OnRoomInfoUpdated()
             {
-                // 消失なら表示を消す。消失の警告はポーラーが出している
-                // On vanishing, clear the display; the poller already logged the warning
+                // 読めた値が無い（消失・読めない応答・非対応）なら表示を消す。通信失敗の間は最後の値を出し続ける。警告はポーラーが出している
+                // Without a value read (vanished, unreadable or unsupported), clear the display; a transport failure keeps the last value; the poller already logged the warning
                 if (!_poller.TryGetSnapshot(out var view))
                 {
                     ClearDisplay();

@@ -9,8 +9,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.CleanRoom
 {
     /// <summary>
-    ///     部屋照会の1回分の問い合わせと、BlockNotFound を除いた種別ごとの型への読み替え
-    ///     One round of the room query and its conversion into the per-kind view, excluding BlockNotFound
+    ///     部屋照会の1回分の問い合わせと、種別ごとの型への読み替え
+    ///     One round of the room query and its conversion into the per-kind view
     /// </summary>
     public class CleanRoomInfoPollSource : IBlockInfoPollSource<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>
     {
@@ -28,9 +28,9 @@ namespace Client.Game.InGame.CleanRoom
             return ClientContext.VanillaApi.Response.World.GetCleanRoomInfo(blockInstanceId, ct);
         }
 
-        public bool TryGetSnapshot(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack response, out CleanRoomInfoView snapshot)
+        public BlockInfoReadResult TryRead(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack response, out CleanRoomInfoView snapshot)
         {
-            return response.TryGetView(out snapshot);
+            return response.TryReadView(out snapshot);
         }
     }
 }

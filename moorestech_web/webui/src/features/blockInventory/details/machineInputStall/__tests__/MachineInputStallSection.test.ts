@@ -27,13 +27,21 @@ describe("MachineInputStallSection", () => {
   });
 
   it("レベル違いは品の名前を差し込んで赤字で描く", () => {
-    const row = render({ reason: "mixedLevel", itemId: 12 }).findByProps({ "data-testid": "machine-input-stall" });
+    const row = render({ fetchState: "fetched", reason: "mixedLevel", itemId: 12 }).findByProps({ "data-testid": "machine-input-stall" });
     expect(row.props["data-insufficient"]).toBe(true);
     expect(row.props.children).toBe('ui.blockInventory.machineInputStallMixedLevel|{"itemName":"item12"}');
   });
 
   it("上限超えは製作上限の文言で描く", () => {
-    const row = render({ reason: "aboveCraftCap", itemId: 7 }).findByProps({ "data-testid": "machine-input-stall" });
+    const row = render({ fetchState: "fetched", reason: "aboveCraftCap", itemId: 7 }).findByProps({ "data-testid": "machine-input-stall" });
     expect(row.props.children).toBe('ui.blockInventory.machineInputStallAboveCraftCap|{"itemName":"item7"}');
+  });
+
+  it("取得できていない間は赤字にせず取得状態の1行だけを描く", () => {
+    const root = render({ fetchState: "unsupportedTarget" });
+    expect(root.findAll((n) => n.props["data-testid"] === "machine-input-stall")).toEqual([]);
+    const row = root.findByProps({ "data-testid": "machine-input-stall-fetch-state" });
+    expect(row.props["data-insufficient"]).toBeUndefined();
+    expect(row.props.children).toBe('ui.blockInventory.blockInfoUnsupportedTarget|{"target":"ui.blockInventory.machineInputStallInfoLabel|undefined"}');
   });
 });

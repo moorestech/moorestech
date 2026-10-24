@@ -28,12 +28,12 @@ namespace Server.Protocol.PacketResponse
             var block = ServerContext.WorldBlockDatastore.GetBlock(request.BlockInstanceId);
             if (block == null) return ResponseCleanRoomYieldInfoMessagePack.CreateBlockNotFound();
 
-            // クライアントは室内機械にだけ問い合わせる。別種のブロックは食い違いとして警告する
-            // The client only asks interior machines; any other block is a mismatch and gets a warning
+            // クライアントは室内機械にだけ問い合わせる。別種のブロックは食い違いとして警告し、正常な NoRole と区別して返す
+            // The client only asks interior machines; any other block is a mismatch, warned and returned apart from a genuine NoRole
             if (!block.TryGetComponent<CleanRoomYieldPreviewComponent>(out var yieldPreview))
             {
-                Debug.LogWarning($"[GetCleanRoomYieldInfo] block {request.BlockInstanceId} has no CleanRoomYieldPreviewComponent; returning NoRole");
-                return ResponseCleanRoomYieldInfoMessagePack.CreateNoRole();
+                Debug.LogWarning($"[GetCleanRoomYieldInfo] block {request.BlockInstanceId} has no CleanRoomYieldPreviewComponent; returning UnsupportedTarget");
+                return ResponseCleanRoomYieldInfoMessagePack.CreateUnsupportedTarget();
             }
             return CreateResponse(yieldPreview.GetPreview());
 
@@ -77,8 +77,8 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class ResponseCleanRoomYieldInfoMessagePack : ProtocolMessagePackBase
         {
-            // wire は判別子と役割ごとの入れ子が並ぶ形。その役割の入れ子だけが書かれ、他は null。組み立ては下の factory、読み出しは TryGetView だけ
-            // The wire has a discriminator plus per-role nested objects; only that role's object is written and the rest stay null. Build only via the factories below and read only via TryGetView
+            // wire は判別子と役割ごとの入れ子が並ぶ形。その役割の入れ子だけが書かれ、他は null。組み立ては下の factory、読み出しは TryReadView だけ
+            // The wire has a discriminator plus per-role nested objects; only that role's object is written and the rest stay null. Build only via the factories below and read only via TryReadView
             [Key(2)] public CleanRoomYieldResponseKind Kind { get; set; }
             [Key(3)] public WaferGradeYieldMessagePack WaferGrade { get; set; }
             [Key(4)] public LayerExposureYieldMessagePack LayerExposure { get; set; }
@@ -96,6 +96,11 @@ namespace Server.Protocol.PacketResponse
             public static ResponseCleanRoomYieldInfoMessagePack CreateBlockNotFound()
             {
                 return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.BlockNotFound);
+            }
+
+            public static ResponseCleanRoomYieldInfoMessagePack CreateUnsupportedTarget()
+            {
+                return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.UnsupportedTarget);
             }
 
             public static ResponseCleanRoomYieldInfoMessagePack CreateNoRole()
@@ -123,48 +128,48 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseCleanRoomYieldInfoMessagePack(CleanRoomYieldResponseKind.Dicing) { Dicing = new DicingYieldMessagePack(dieLossRate) };
             }
 
-            // BlockNotFound と、判別子の入れ子が欠けた読めない応答は false。判別子の読み分けはここだけで行う
-            // False for BlockNotFound and for an unreadable response missing its nested object; the only place that branches on the discriminator
-            public bool TryGetView(out CleanRoomYieldView view)
+            // 判別子の読み分けはここだけで行う。消失・非対応の対象はそのまま返し、入れ子の欠けた応答と未知の種別は警告して Unreadable
+            // The only place that branches on the discriminator; vanished and unsupported targets pass through, missing nested objects and unknown kinds warn and are Unreadable
+            public BlockInfoReadResult TryReadView(out CleanRoomYieldView view)
             {
+                view = default;
                 switch (Kind)
                 {
                     case CleanRoomYieldResponseKind.NoRole:
                         view = CleanRoomYieldNoRoleView.Instance;
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case CleanRoomYieldResponseKind.NotOperable:
                         view = CleanRoomYieldNotOperableView.Instance;
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case CleanRoomYieldResponseKind.WaferGrade:
-                        if (WaferGrade == null) return WarnMissingNested(out view);
+                        if (WaferGrade == null) return WarnMissingNested();
                         view = new CleanRoomYieldWaferGradeView(WaferGrade);
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case CleanRoomYieldResponseKind.LayerExposure:
-                        if (LayerExposure == null) return WarnMissingNested(out view);
+                        if (LayerExposure == null) return WarnMissingNested();
                         view = new CleanRoomYieldLayerExposureView(LayerExposure);
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case CleanRoomYieldResponseKind.Dicing:
-                        if (Dicing == null) return WarnMissingNested(out view);
+                        if (Dicing == null) return WarnMissingNested();
                         view = new CleanRoomYieldDicingView(Dicing);
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case CleanRoomYieldResponseKind.BlockNotFound:
-                        view = default;
-                        return false;
+                        return BlockInfoReadResult.BlockNotFound;
+                    case CleanRoomYieldResponseKind.UnsupportedTarget:
+                        return BlockInfoReadResult.UnsupportedTarget;
                     default:
                         Debug.LogWarning($"Unreadable response kind: {Kind}");
-                        view = default;
-                        return false;
+                        return BlockInfoReadResult.Unreadable;
                 }
 
                 #region Internal
 
-                // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは消失と同じく値を捨てて止める）
-                // A mismatch in wire data from outside, so warn instead of throwing and treat it as unreadable (the poller drops the value and stops, as on vanishing)
-                bool WarnMissingNested(out CleanRoomYieldView missingView)
+                // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは値を捨てて再試行する）
+                // A mismatch in wire data from outside, so warn instead of throwing and treat it as unreadable (the poller drops the value and retries)
+                BlockInfoReadResult WarnMissingNested()
                 {
                     Debug.LogWarning($"[GetCleanRoomYieldInfo] {Kind} response has no {Kind} details; treating it as unreadable");
-                    missingView = default;
-                    return false;
+                    return BlockInfoReadResult.Unreadable;
                 }
 
                 #endregion

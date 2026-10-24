@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BlockInfoPolling;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom;
@@ -22,7 +23,7 @@ namespace Client.Tests.WebUi.BlockDetail
             // 成膜は上限グレードと昇格確率だけを載せる
             // Deposition carries only the max grade and the promotion chance
             var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(2, 0.9d));
-            AssertMatchesFixture(CreateMachineDto(CleanRoomYieldDetailDtoBuilder.Build(view)), "block_inventory_clean_room_yield_deposition.json");
+            AssertMatchesFixture(CreateMachineDto(CleanRoomYieldDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, view)), "block_inventory_clean_room_yield_deposition.json");
         }
 
         [Test]
@@ -31,7 +32,7 @@ namespace Client.Tests.WebUi.BlockDetail
             // ダイシングはダイの損失率だけを載せる
             // Dicing carries only the die loss rate
             var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(0.03d));
-            AssertMatchesFixture(CreateMachineDto(CleanRoomYieldDetailDtoBuilder.Build(view)), "block_inventory_clean_room_yield_dicing.json");
+            AssertMatchesFixture(CreateMachineDto(CleanRoomYieldDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, view)), "block_inventory_clean_room_yield_dicing.json");
         }
 
         [Test]
@@ -40,7 +41,7 @@ namespace Client.Tests.WebUi.BlockDetail
             // 役割の無いレシピ・未選択では欄を出さない
             // No section for a role-less or unselected recipe
             var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNoRole());
-            Assert.IsNull(CleanRoomYieldDetailDtoBuilder.Build(view));
+            Assert.IsNull(CleanRoomYieldDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, view));
         }
 
         [Test]
@@ -49,20 +50,23 @@ namespace Client.Tests.WebUi.BlockDetail
             // 稼働できない機械では欄を出さない（停止理由は部屋欄が出す）
             // No section for a machine that cannot operate; the room section shows the halt reason
             var view = ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable());
-            Assert.IsNull(CleanRoomYieldDetailDtoBuilder.Build(view));
+            Assert.IsNull(CleanRoomYieldDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, view));
         }
 
         [Test]
-        public void BlockNotFoundHasNoViewTest()
+        public void BlockNotFoundAndUnsupportedTargetHaveNoViewTest()
         {
-            // 消えたブロックはビューを持たず、ポーラーが消失として扱う
-            // A vanished block has no view, and the poller treats it as vanished
-            Assert.IsFalse(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateBlockNotFound().TryGetView(out _));
+            // 消えたブロックと非対応の対象はビューを持たず、読み取り結果で区別される
+            // A vanished block and an unsupported target have no view and are told apart by the read result
+            Assert.AreEqual(BlockInfoReadResult.BlockNotFound, GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateBlockNotFound().TryReadView(out var vanished));
+            Assert.IsNull(vanished);
+            Assert.AreEqual(BlockInfoReadResult.UnsupportedTarget, GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateUnsupportedTarget().TryReadView(out var unsupported));
+            Assert.IsNull(unsupported);
         }
 
         private static CleanRoomYieldView ReadView(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack response)
         {
-            Assert.IsTrue(response.TryGetView(out var view), $"kind={response.Kind}");
+            Assert.AreEqual(BlockInfoReadResult.Success, response.TryReadView(out var view), $"kind={response.Kind}");
             return view;
         }
 

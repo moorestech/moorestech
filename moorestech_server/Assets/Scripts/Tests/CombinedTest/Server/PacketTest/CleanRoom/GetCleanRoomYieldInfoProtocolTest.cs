@@ -100,7 +100,22 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             // A missing block ID returns BlockNotFound, which has no view
             var response = Invoke(packet, new BlockInstanceId(999999));
             Assert.AreEqual(CleanRoomYieldResponseKind.BlockNotFound, response.Kind);
-            Assert.IsFalse(response.TryGetView(out _));
+            Assert.AreEqual(BlockInfoReadResult.BlockNotFound, response.TryReadView(out _));
+        }
+
+        [Test]
+        public void NonInteriorMachineReturnsUnsupportedTargetWithWarningTest()
+        {
+            var (packet, _) = CreatePacket();
+            var chest = BeltWorldTestUtil.Place(ForUnitTestModBlockId.ChestId, new Vector3Int(30, 0, 30), BlockDirection.North);
+
+            // 室内機械でないブロックは、正常な NoRole と区別して非対応の対象として返す
+            // A block that is not an interior machine comes back as an unsupported target, apart from a genuine NoRole
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] block .* has no CleanRoomYieldPreviewComponent; returning UnsupportedTarget"));
+            var response = Invoke(packet, chest.BlockInstanceId);
+            Assert.AreEqual(CleanRoomYieldResponseKind.UnsupportedTarget, response.Kind);
+            Assert.AreEqual(BlockInfoReadResult.UnsupportedTarget, response.TryReadView(out var view));
+            Assert.IsNull(view);
         }
 
         [Test]
@@ -111,12 +126,12 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             var waferGrade = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(2, 0.5);
             waferGrade.WaferGrade = null;
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] WaferGrade response has no"));
-            Assert.IsFalse(waferGrade.TryGetView(out _));
+            Assert.AreEqual(BlockInfoReadResult.Unreadable, waferGrade.TryReadView(out _));
 
             var layerExposure = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(0.1);
             layerExposure.LayerExposure = null;
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] LayerExposure response has no"));
-            Assert.IsFalse(layerExposure.TryGetView(out _));
+            Assert.AreEqual(BlockInfoReadResult.Unreadable, layerExposure.TryReadView(out _));
 
             // wire を通しても同じ（入れ子が null のまま届く）
             // The same holds through the wire (the nested object arrives as null)
@@ -124,7 +139,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             dicing.Dicing = null;
             var received = MessagePackSerializer.Deserialize<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack>(MessagePackSerializer.Serialize(dicing));
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomYieldInfo\] Dicing response has no"));
-            Assert.IsFalse(received.TryGetView(out _));
+            Assert.AreEqual(BlockInfoReadResult.Unreadable, received.TryReadView(out _));
         }
 
         private static (PacketResponseCreator packet, IBlock machine) SetUpOperableMachine(Guid recipeGuid)
@@ -159,7 +174,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
         // Read the response as its per-role type and check it is the expected one
         private static TView ReadView<TView>(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack response) where TView : CleanRoomYieldView
         {
-            Assert.IsTrue(response.TryGetView(out var view), $"kind={response.Kind}");
+            Assert.AreEqual(BlockInfoReadResult.Success, response.TryReadView(out var view), $"kind={response.Kind}");
             Assert.IsInstanceOf<TView>(view);
             return (TView)view;
         }

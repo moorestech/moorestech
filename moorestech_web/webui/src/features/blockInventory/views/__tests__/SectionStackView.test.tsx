@@ -114,7 +114,7 @@ describe("SectionStackView", () => {
 
   it("部屋欄はセクション列の先頭に描く", () => {
     const data = dataFor("CleanRoomAirFilter", [{ itemId: 12, count: 5 }]);
-    data.cleanRoom = { kind: "openings", openingCount: 3 };
+    data.cleanRoom = { fetchState: "fetched", kind: "openings", openingCount: 3 };
     const tree = render(data);
     const ids = tree.root.findAll((n) => typeof n.type === "string" && n.props["data-testid"] !== undefined).map((n) => n.props["data-testid"]);
     expect(ids.slice(0, 3)).toEqual(["clean-room-section", "clean-room-headline", "clean-room-filter-grid"]);
@@ -123,7 +123,7 @@ describe("SectionStackView", () => {
 
   it("搬入停止欄は機械欄より上に赤字で描く", () => {
     const data = dataFor("GearMachine", []);
-    data.machineInputStall = { reason: "mixedLevel", itemId: 12 };
+    data.machineInputStall = { fetchState: "fetched", reason: "mixedLevel", itemId: 12 };
     const tree = render(data);
     const row = tree.root.findByProps({ "data-testid": "machine-input-stall" });
     expect(row.props["data-insufficient"]).toBe(true);
@@ -132,8 +132,8 @@ describe("SectionStackView", () => {
 
   it("抽選の中身欄は部屋欄のすぐ下に描く", () => {
     const data = dataFor("CleanRoomMachine", []);
-    data.cleanRoom = { kind: "enclosed", room: { headline: "class", className: "A", concentration: 0.1, airChangeRate: 2, volume: 26, airFilters: [{ x: 1, y: 1, z: 1, powerRatio: 1, filterItemCount: 5, filterRemainingRatio: 0.5 }] } };
-    data.cleanRoomYield = { role: "dicing", dieLossRate: 0.03 };
+    data.cleanRoom = { fetchState: "fetched", kind: "enclosed", room: { headline: "class", className: "A", concentration: 0.1, airChangeRate: 2, volume: 26, airFilters: [{ x: 1, y: 1, z: 1, powerRatio: 1, filterItemCount: 5, filterRemainingRatio: 0.5 }] } };
+    data.cleanRoomYield = { fetchState: "fetched", role: "dicing", dieLossRate: 0.03 };
     const tree = render(data);
     const ids = tree.root.findAll((n) => typeof n.type === "string" && n.props["data-testid"] !== undefined).map((n) => n.props["data-testid"]);
     expect(ids.filter((id: string) => id.startsWith("clean-room"))).toEqual(["clean-room-section", "clean-room-headline", "clean-room-air", "clean-room-air-filter-0", "clean-room-yield-section", "clean-room-yield-die-loss-rate"]);

@@ -16,13 +16,13 @@ using UnityEngine.TestTools;
 namespace Client.Tests.BlockInfoPolling
 {
     /// <summary>
-    ///     未取得→取得済み→通信失敗（保持）→消失（停止）の遷移と、通知が取得済み・消失のときだけ出ることを固定する
-    ///     Pins the not fetched -> fetched -> transport failure (kept) -> vanished (stopped) transitions and that only fetch and vanish notify
+    ///     未取得→取得済み→通信失敗（値は保つが最新ではない）→読めない応答（破棄・再試行）→非対応（破棄・再試行）→回復→消失（停止）の遷移と、応答ごとの通知を固定する
+    ///     Pins not fetched -> fetched -> transport failure (value kept but not latest) -> unreadable (dropped, retried) -> unsupported (dropped, retried) -> recovery -> vanished (stopped), notifying on every response
     /// </summary>
     public class BlockInfoPollerTest
     {
         [UnityTest]
-        public IEnumerator FetchedKeepsOnTransportFailureAndClearsOnVanishTest() => UniTask.ToCoroutine(async () =>
+        public IEnumerator ReadResultsDriveFetchStateAndOnlyVanishStopsTest() => UniTask.ToCoroutine(async () =>
         {
             var source = new ScriptedPollSource();
             var poller = new BlockInfoPoller<ScriptedResponse, string>(source, "ScriptedInfo", TimeSpan.FromMilliseconds(10));
@@ -32,31 +32,48 @@ namespace Client.Tests.BlockInfoPolling
             // 開始直後は未取得で値を持たない
             // Right after starting it is not fetched and holds no value
             poller.Start(new BlockInstanceId(1));
-            Assert.AreEqual(BlockInfoFetchState.NotFetched, poller.State);
+            Assert.AreEqual(BlockInfoFetchState.NotFetched, poller.GetLatest(out _));
             Assert.IsFalse(poller.TryGetSnapshot(out _));
 
             // 応答が来ると取得済みになり値を持つ
             // A response makes it fetched with a value
-            await source.Respond(new ScriptedResponse("room-a", true));
-            Assert.AreEqual(BlockInfoFetchState.Fetched, poller.State);
-            Assert.IsTrue(poller.TryGetSnapshot(out var fetched));
-            Assert.AreEqual("room-a", fetched);
+            await source.Respond(new ScriptedResponse("room-a", BlockInfoReadResult.Success));
+            Assert.AreEqual(BlockInfoFetchState.Fetched, poller.GetLatest(out var latest));
+            Assert.AreEqual("room-a", latest);
 
-            // 通信失敗(null)は状態と前回値を保ち、通知しない
-            // A transport failure (null) keeps the state and last value and does not notify
+            // 通信失敗(null)は最後の値を保つが、最新の値としては渡さず通知する
+            // A transport failure (null) keeps the last value but hands out no latest value, and notifies
             LogAssert.Expect(LogType.Warning, new Regex(@"\[BlockInfoPoller\] ScriptedInfo failed for block"));
             await source.Respond(null);
-            Assert.AreEqual(BlockInfoFetchState.Fetched, poller.State);
+            Assert.AreEqual(BlockInfoFetchState.TransportFailed, poller.GetLatest(out var stale));
+            Assert.IsNull(stale);
             Assert.IsTrue(poller.TryGetSnapshot(out var kept));
             Assert.AreEqual("room-a", kept);
+
+            // 読めない応答と非対応の対象は値を捨て、問い合わせは続ける
+            // An unreadable response and an unsupported target drop the value while polling continues
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[BlockInfoPoller\] ScriptedInfo got an unreadable response"));
+            await source.Respond(new ScriptedResponse("broken", BlockInfoReadResult.Unreadable));
+            Assert.AreEqual(BlockInfoFetchState.Unreadable, poller.State);
+            Assert.IsFalse(poller.TryGetSnapshot(out _));
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[BlockInfoPoller\] ScriptedInfo does not support block"));
+            await source.Respond(new ScriptedResponse("chest", BlockInfoReadResult.UnsupportedTarget));
+            Assert.AreEqual(BlockInfoFetchState.UnsupportedTarget, poller.State);
+            Assert.IsFalse(poller.TryGetSnapshot(out _));
+
+            // 再試行で正常な応答が来れば取得済みへ戻る
+            // A valid response on retry brings it back to fetched
+            await source.Respond(new ScriptedResponse("room-b", BlockInfoReadResult.Success));
+            Assert.AreEqual(BlockInfoFetchState.Fetched, poller.GetLatest(out var recovered));
+            Assert.AreEqual("room-b", recovered);
 
             // ブロック消失は値を捨てて消失になる
             // A vanished block drops the value and turns vanished
             LogAssert.Expect(LogType.Warning, new Regex(@"\[BlockInfoPoller\] ScriptedInfo found no block"));
-            await source.Respond(new ScriptedResponse(null, false));
+            await source.Respond(new ScriptedResponse(null, BlockInfoReadResult.BlockNotFound));
             Assert.AreEqual(BlockInfoFetchState.Vanished, poller.State);
             Assert.IsFalse(poller.TryGetSnapshot(out _));
-            Assert.AreEqual(2, updates);
+            Assert.AreEqual(6, updates);
 
             // 消失したら問い合わせを止めるので、間隔の10倍待っても警告も通知も繰り返さない
             // Vanishing stops the requests, so even ten intervals later neither the warning nor the notification repeats
@@ -64,7 +81,7 @@ namespace Client.Tests.BlockInfoPolling
             await UniTask.Delay(TimeSpan.FromMilliseconds(100));
             Assert.AreEqual(requestsAtVanish, source.RequestCount);
             Assert.AreEqual(BlockInfoFetchState.Vanished, poller.State);
-            Assert.AreEqual(2, updates);
+            Assert.AreEqual(6, updates);
 
             // 止めると未取得に戻る
             // Stopping returns it to not fetched
@@ -73,44 +90,44 @@ namespace Client.Tests.BlockInfoPolling
         });
 
         [UnityTest]
-        public IEnumerator InvalidRoomWireResponseClearsAndNotifiesTest() => UniTask.ToCoroutine(async () =>
+        public IEnumerator InvalidRoomWireResponseDropsAndRecoversTest() => UniTask.ToCoroutine(async () =>
         {
             var valid = GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(CleanRoomLeakMessagePack.CreateNoEnclosure());
             var invalid = GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateBlockNotFound();
             invalid.Kind = (CleanRoomInfoResponseKind)999;
             var source = new WireResponsePollSource<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>(new CleanRoomInfoPollSource());
-            await source.AssertInvalidResponseClearsSnapshot(valid, invalid);
+            await source.AssertInvalidResponseDropsAndRecovers(valid, invalid);
         });
 
         [UnityTest]
-        public IEnumerator InvalidYieldWireResponseClearsAndNotifiesTest() => UniTask.ToCoroutine(async () =>
+        public IEnumerator InvalidYieldWireResponseDropsAndRecoversTest() => UniTask.ToCoroutine(async () =>
         {
             var valid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(3, 0.5);
             var invalid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNoRole();
             invalid.Kind = (CleanRoomYieldResponseKind)999;
             var source = new WireResponsePollSource<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView>(new CleanRoomYieldInfoPollSource());
-            await source.AssertInvalidResponseClearsSnapshot(valid, invalid);
+            await source.AssertInvalidResponseDropsAndRecovers(valid, invalid);
         });
 
         [UnityTest]
-        public IEnumerator InvalidStallWireResponseClearsAndNotifiesTest() => UniTask.ToCoroutine(async () =>
+        public IEnumerator InvalidStallWireResponseDropsAndRecoversTest() => UniTask.ToCoroutine(async () =>
         {
             var valid = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.AboveCraftCap, 12);
             var invalid = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateNotStalled();
             invalid.Kind = (MachineInputStallResponseKind)999;
             var source = new WireResponsePollSource<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView>(new MachineInputStallPollSource());
-            await source.AssertInvalidResponseClearsSnapshot(valid, invalid);
+            await source.AssertInvalidResponseDropsAndRecovers(valid, invalid);
         });
 
         private sealed class ScriptedResponse
         {
             public readonly string Snapshot;
-            public readonly bool BlockExists;
+            public readonly BlockInfoReadResult ReadResult;
 
-            public ScriptedResponse(string snapshot, bool blockExists)
+            public ScriptedResponse(string snapshot, BlockInfoReadResult readResult)
             {
                 Snapshot = snapshot;
-                BlockExists = blockExists;
+                ReadResult = readResult;
             }
         }
 
@@ -131,10 +148,10 @@ namespace Client.Tests.BlockInfoPolling
                 return _pending.Task;
             }
 
-            public bool TryGetSnapshot(ScriptedResponse response, out string snapshot)
+            public BlockInfoReadResult TryRead(ScriptedResponse response, out string snapshot)
             {
-                snapshot = response.Snapshot;
-                return response.BlockExists;
+                snapshot = response.ReadResult == BlockInfoReadResult.Success ? response.Snapshot : null;
+                return response.ReadResult;
             }
 
             // 次の問い合わせが来るまで待ってから応答を返し、ポーラーの反映を1フレーム待つ

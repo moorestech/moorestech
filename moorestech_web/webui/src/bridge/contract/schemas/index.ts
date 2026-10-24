@@ -2,6 +2,7 @@ export * from "./common";
 export * from "./inventory";
 export * from "./energyConversion";
 export * from "./train";
+export * from "./blockInfoFetch";
 export * from "./cleanRoom";
 export * from "./machineInputStall";
 export * from "./ui";

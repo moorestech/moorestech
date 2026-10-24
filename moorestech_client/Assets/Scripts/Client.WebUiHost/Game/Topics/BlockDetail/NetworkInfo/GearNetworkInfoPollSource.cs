@@ -31,10 +31,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.NetworkInfo
         // 網に属さない（Info=null）は取得済みの「未所属」として返す。通信失敗（応答 null）はポーラーが前回値を保つので混ざらない
         // Non-membership (Info == null) is returned as a fetched "not a member"; a transport failure (null response) keeps the last value in the poller, so the two never mix
         // silent-ok: サーバーはブロックが無いときも同じ Info=null を返すので消失を区別せず未所属として出す / ブロックが消えれば開いている画面ごと閉じ、未所属の表示は画面で見える
-        public bool TryGetSnapshot(GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack response, out GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot snapshot)
+        public BlockInfoReadResult TryRead(GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack response, out GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot snapshot)
         {
             snapshot = response.Info;
-            return true;
+            return BlockInfoReadResult.Success;
         }
     }
 }

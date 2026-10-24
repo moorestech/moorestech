@@ -46,15 +46,18 @@ namespace Tests.CombinedTest.Server.PacketTest.MachineInputStall
         }
 
         [Test]
-        public void NonMachineBlockReturnsNotStalledWithWarningTest()
+        public void NonMachineBlockReturnsUnsupportedTargetWithWarningTest()
         {
             var packet = CreatePacket();
             var chest = Place(ForUnitTestModBlockId.ChestId, new Vector3Int(3, 0, 0), BlockDirection.North);
 
-            // クライアントは機械にだけ問い合わせる。別種のブロックは食い違いとして警告し、止まっていない扱いで返す
-            // The client only asks machines; any other block is a mismatch, warned about and answered as not stalled
-            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetMachineInputStall\] block .* has no MachineInputLevelStallComponent"));
-            ReadView<MachineInputNotStalledView>(Invoke(packet, chest.BlockInstanceId));
+            // クライアントは機械にだけ問い合わせる。別種のブロックは食い違いとして警告し、正常な NotStalled と区別して非対応の対象として返す
+            // The client only asks machines; any other block is a mismatch, warned and returned as an unsupported target apart from a genuine NotStalled
+            LogAssert.Expect(LogType.Warning, new Regex(@"\[GetMachineInputStall\] block .* has no MachineInputLevelStallComponent; returning UnsupportedTarget"));
+            var response = Invoke(packet, chest.BlockInstanceId);
+            Assert.AreEqual(MachineInputStallResponseKind.UnsupportedTarget, response.Kind);
+            Assert.AreEqual(BlockInfoReadResult.UnsupportedTarget, response.TryReadView(out var view));
+            Assert.IsNull(view);
         }
 
         [Test]
@@ -66,7 +69,7 @@ namespace Tests.CombinedTest.Server.PacketTest.MachineInputStall
             // A missing block ID returns BlockNotFound, which has no view
             var response = Invoke(packet, new BlockInstanceId(999999));
             Assert.AreEqual(MachineInputStallResponseKind.BlockNotFound, response.Kind);
-            Assert.IsFalse(response.TryGetView(out _));
+            Assert.AreEqual(BlockInfoReadResult.BlockNotFound, response.TryReadView(out _));
         }
 
         [Test]
@@ -77,7 +80,7 @@ namespace Tests.CombinedTest.Server.PacketTest.MachineInputStall
             var missing = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.MixedLevel, 1);
             missing.Stall = null;
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetMachineInputStall\] Stalled response is unreadable"));
-            Assert.IsFalse(missing.TryGetView(out _));
+            Assert.AreEqual(BlockInfoReadResult.Unreadable, missing.TryReadView(out _));
 
             // 未知の理由（版違いの wire）も wire を通して同じ扱い
             // An unknown reason (a mismatched wire) is treated the same through the wire
@@ -85,7 +88,7 @@ namespace Tests.CombinedTest.Server.PacketTest.MachineInputStall
             unknownReason.Stall.Reason = (MachineInputStallReasonKind)99;
             var received = MessagePackSerializer.Deserialize<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack>(MessagePackSerializer.Serialize(unknownReason));
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetMachineInputStall\] Stalled response is unreadable"));
-            Assert.IsFalse(received.TryGetView(out _));
+            Assert.AreEqual(BlockInfoReadResult.Unreadable, received.TryReadView(out _));
         }
 
         private static PacketResponseCreator CreatePacket()
@@ -105,7 +108,7 @@ namespace Tests.CombinedTest.Server.PacketTest.MachineInputStall
         // Read the response as its per-kind view and check it is the expected one
         private static TView ReadView<TView>(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack response) where TView : MachineInputStallView
         {
-            Assert.IsTrue(response.TryGetView(out var view), $"kind={response.Kind}");
+            Assert.AreEqual(BlockInfoReadResult.Success, response.TryReadView(out var view), $"kind={response.Kind}");
             Assert.IsInstanceOf<TView>(view);
             return (TView)view;
         }

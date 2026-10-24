@@ -1,5 +1,6 @@
 import type { BlockInventoryOpen } from "@/bridge";
-import { useI18n, useItemDisplayName } from "@/shared/i18n";
+import { L, useI18n, useItemDisplayName } from "@/shared/i18n";
+import BlockInfoUnavailableLine from "../blockInfoFetch/BlockInfoUnavailableLine";
 import LackHighlightText from "../LackHighlightText";
 import { machineInputStallMessageKey } from "./machineInputStallLogic";
 
@@ -9,6 +10,7 @@ export default function MachineInputStallSection({ data }: { data: BlockInventor
   const { t } = useI18n();
   const itemDisplayName = useItemDisplayName();
   if (!data.machineInputStall) return null;
+  if (data.machineInputStall.fetchState !== "fetched") return <BlockInfoUnavailableLine unavailable={data.machineInputStall} targetKey={L.ui.blockInventory.machineInputStallInfoLabel} testId="machine-input-stall-fetch-state" />;
   const stall = data.machineInputStall;
   return (
     <LackHighlightText insufficient={true} size="xs" testId="machine-input-stall">

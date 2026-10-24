@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockInfoPolling;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using MessagePack;
+using Server.Protocol.PacketResponse;
 using NUnit.Framework;
 using UniRx;
 using UnityEngine;
@@ -29,9 +30,9 @@ namespace Client.Tests.BlockInfoPolling
             return _pending.Task.AttachExternalCancellation(ct);
         }
 
-        public bool TryGetSnapshot(TResponse response, out TSnapshot snapshot)
+        public BlockInfoReadResult TryRead(TResponse response, out TSnapshot snapshot)
         {
-            return _decoder.TryGetSnapshot(response, out snapshot);
+            return _decoder.TryRead(response, out snapshot);
         }
 
         public async UniTask Respond(TResponse response)
@@ -45,7 +46,18 @@ namespace Client.Tests.BlockInfoPolling
             await UniTask.Yield();
         }
 
-        public async UniTask AssertInvalidResponseClearsSnapshot(TResponse valid, TResponse invalid)
+        // 通信失敗（応答 null）を待機中の問い合わせへ返す
+        // Resolve the pending request as a transport failure (null response)
+        public async UniTask RespondTransportFailure()
+        {
+            await UniTask.WaitUntil(() => _pending != null);
+            var pending = _pending;
+            _pending = null;
+            pending.TrySetResult(null);
+            await UniTask.Yield();
+        }
+
+        public async UniTask AssertInvalidResponseDropsAndRecovers(TResponse valid, TResponse invalid)
         {
             var poller = new BlockInfoPoller<TResponse, TSnapshot>(this, "WireResponse", TimeSpan.FromMilliseconds(1));
             var notifications = 0;
@@ -59,12 +71,19 @@ namespace Client.Tests.BlockInfoPolling
             // 不正応答を実デコーダへ流し、古い値の破棄と通知を固定する
             // Feed the real decoder an invalid response and pin stale-value removal and notification
             LogAssert.Expect(LogType.Warning, "Unreadable response kind: 999");
-            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex(@"\[BlockInfoPoller\] WireResponse found no block"));
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex(@"\[BlockInfoPoller\] WireResponse got an unreadable response"));
             await Respond(invalid);
-            Assert.AreEqual(BlockInfoFetchState.Vanished, poller.State);
+            Assert.AreEqual(BlockInfoFetchState.Unreadable, poller.State);
             Assert.IsFalse(poller.TryGetSnapshot(out var discarded));
             Assert.IsNull(discarded);
             Assert.AreEqual(2, notifications);
+
+            // 消失ではないので問い合わせは続き、正常な応答で取得済みへ戻る
+            // It is not a vanish, so polling continues and a valid response restores fetched
+            await Respond(valid);
+            Assert.AreEqual(BlockInfoFetchState.Fetched, poller.State);
+            Assert.IsTrue(poller.TryGetSnapshot(out _));
+            Assert.AreEqual(3, notifications);
             poller.Stop();
         }
     }

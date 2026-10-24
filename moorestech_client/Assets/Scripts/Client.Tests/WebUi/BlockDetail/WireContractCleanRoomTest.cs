@@ -131,7 +131,7 @@ namespace Client.Tests.WebUi.BlockDetail
             var wire = MessagePackSerializer.Serialize(new BlockStateMessagePack(state, Vector3Int.zero));
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, MessagePackSerializer.Deserialize<BlockStateMessagePack>(wire));
-            var dto = new BlockInventoryDto { CleanRoom = new CleanRoomDetailDto { Kind = "enclosed" } };
+            var dto = new BlockInventoryDto { CleanRoom = CleanRoomDetailDtoBuilder.BuildForAirFilter(new CleanRoomNotEnclosedView(CleanRoomNoEnclosureLeakView.Instance)) };
             LogAssert.Expect(LogType.Warning, "Unreadable clean-room operability: 99");
             Assert.DoesNotThrow(() => CleanRoomDetailDtoBuilder.Apply(dto, block, cache));
             Assert.IsNull(dto.CleanRoom);

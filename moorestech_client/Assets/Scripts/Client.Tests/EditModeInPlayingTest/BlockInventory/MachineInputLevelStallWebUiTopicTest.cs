@@ -126,22 +126,22 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 return JObject.Parse(await handler.GetSnapshotJsonAsync());
             }
 
-            // ベルトの搬送と1秒ごとの問い合わせを待ち、止まった理由が配信に載るまで待つ
-            // Wait for the belt transport and the 1 s query until the stall reaches the topic
+            // ベルトの搬送と1秒ごとの問い合わせを待ち、取得済みの止まった理由が配信に載るまで待つ
+            // Wait for the belt transport and the 1 s query until a fetched stall reaches the topic
             async UniTask<JObject> WaitUntilStallAppears()
             {
-                var stall = (await BlockInventorySnapshot())["machineInputStall"] as JObject;
+                var stall = await FetchedStall();
                 for (var i = 0; i < 100 && stall == null; i++)
                 {
                     await UniTask.Delay(100);
-                    stall = (await BlockInventorySnapshot())["machineInputStall"] as JObject;
+                    stall = await FetchedStall();
                 }
-                Assert.IsNotNull(stall, "machineInputStall never reached the block inventory topic");
+                Assert.IsNotNull(stall, "a fetched machineInputStall never reached the block inventory topic");
                 return stall;
             }
 
-            // 止まった理由が配信から消えるまで待つ
-            // Wait until the stall leaves the topic
+            // 止まった理由が配信から消えるまで待つ（取得済みで止まっていなければ欄ごと無い）
+            // Wait until the stall leaves the topic; once fetched and not stalled, the section is absent
             async UniTask WaitUntilStallCleared()
             {
                 var stall = (await BlockInventorySnapshot())["machineInputStall"];
@@ -151,6 +151,14 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     stall = (await BlockInventorySnapshot())["machineInputStall"];
                 }
                 Assert.IsNull(stall, "machineInputStall did not clear after the craft cap was raised");
+            }
+
+            // 取得済みの止まった理由だけを返す。取得中・取得失敗の欄は null 扱い
+            // Returns only a fetched stall; loading or failed sections count as null
+            async UniTask<JObject> FetchedStall()
+            {
+                var stall = (await BlockInventorySnapshot())["machineInputStall"] as JObject;
+                return stall?["fetchState"]?.Value<string>() == "fetched" ? stall : null;
             }
 
             #endregion

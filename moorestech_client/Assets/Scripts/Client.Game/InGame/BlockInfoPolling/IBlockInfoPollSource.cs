@@ -1,6 +1,7 @@
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Server.Protocol.PacketResponse;
 
 namespace Client.Game.InGame.BlockInfoPolling
 {
@@ -14,8 +15,8 @@ namespace Client.Game.InGame.BlockInfoPolling
         // Returns null on a transport failure, as WorldQueryApi already does
         UniTask<TResponse> Request(BlockInstanceId blockInstanceId, CancellationToken ct);
 
-        // ブロック消失（または読めない応答）なら false。ポーラーは値を捨てて問い合わせを止める
-        // False when the block has vanished (or the response is unreadable); the poller drops the value and stops polling
-        bool TryGetSnapshot(TResponse response, out TSnapshot snapshot);
+        // 値は Success のときだけ入る。ポーラーは BlockNotFound だけで問い合わせを止め、Unreadable・UnsupportedTarget は値を捨てて再試行する
+        // The value is set only on Success; the poller stops only on BlockNotFound and drops the value and retries on Unreadable or UnsupportedTarget
+        BlockInfoReadResult TryRead(TResponse response, out TSnapshot snapshot);
     }
 }

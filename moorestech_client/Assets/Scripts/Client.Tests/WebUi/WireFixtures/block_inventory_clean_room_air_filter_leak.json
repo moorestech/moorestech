@@ -6,5 +6,5 @@
   "blockGuid": "55555555-5555-4555-8555-555555555555",
   "itemSlots": [ { "itemId": 12, "count": 5 } ],
   "fluidSlots": [],
-  "cleanRoom": { "kind": "openings", "openingCount": 3 }
+  "cleanRoom": { "fetchState": "fetched", "kind": "openings", "openingCount": 3 }
 }

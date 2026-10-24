@@ -18,10 +18,10 @@ namespace Client.Tests.WebUi.BlockDetail
 
             // 網に属さないは取得済みの null、属していればその集約値
             // Not a member is a fetched null; a member yields its aggregate
-            Assert.IsTrue(source.TryGetSnapshot(new GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack(null), out var none));
+            Assert.AreEqual(BlockInfoReadResult.Success, source.TryRead(new GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack(null), out var none));
             Assert.IsNull(none);
             var info = new GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot(10f, 5f, 1f, 2);
-            Assert.IsTrue(source.TryGetSnapshot(new GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack(info), out var member));
+            Assert.AreEqual(BlockInfoReadResult.Success, source.TryRead(new GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack(info), out var member));
             Assert.AreSame(info, member);
         }
 
@@ -30,10 +30,10 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             var source = new GearNetworkInfoPollSource();
 
-            Assert.IsTrue(source.TryGetSnapshot(new GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack(null), out var none));
+            Assert.AreEqual(BlockInfoReadResult.Success, source.TryRead(new GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack(null), out var none));
             Assert.IsNull(none);
             var info = new GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot(4f, 8f, GearNetworkStopReason.None);
-            Assert.IsTrue(source.TryGetSnapshot(new GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack(info), out var member));
+            Assert.AreEqual(BlockInfoReadResult.Success, source.TryRead(new GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack(info), out var member));
             Assert.AreSame(info, member);
         }
     }

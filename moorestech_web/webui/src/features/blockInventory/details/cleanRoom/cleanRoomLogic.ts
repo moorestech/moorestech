@@ -1,4 +1,4 @@
-import type { CleanRoomDetailData, CleanRoomSummaryData } from "@/bridge";
+import type { CleanRoomFetchedDetailData, CleanRoomSummaryData } from "@/bridge";
 import { L, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 
 type CleanRoomLine = { key: TranslationKey; params?: InterpolationValues };
@@ -13,7 +13,7 @@ type CleanRoomDisplay = {
 
 // 部屋欄の各行のキーと引数を作る。赤（不足）は「稼働を妨げている」行だけに付ける
 // Builds keys and params for each room row; red (insufficient) only marks rows that block operation
-export function cleanRoomDisplay(cleanRoom: CleanRoomDetailData): CleanRoomDisplay {
+export function cleanRoomDisplay(cleanRoom: CleanRoomFetchedDetailData): CleanRoomDisplay {
   const haltReason = haltReasonLine(cleanRoom.haltReason);
   switch (cleanRoom.kind) {
     case "enclosed":
@@ -65,10 +65,10 @@ function headlineOnly(headline: CleanRoomLine, insufficient: boolean, haltReason
   return { headline, headlineInsufficient: insufficient, air: null, filters: [], noFilter: null, haltReason };
 }
 
-const HALT_REASON_LINES: Record<NonNullable<CleanRoomDetailData["haltReason"]>, CleanRoomLine> = {
+const HALT_REASON_LINES: Record<NonNullable<CleanRoomFetchedDetailData["haltReason"]>, CleanRoomLine> = {
   notEnclosed: { key: L.ui.blockInventory.cleanRoomHaltNotEnclosed },
   classOut: { key: L.ui.blockInventory.cleanRoomHaltClassOut },
 };
-function haltReasonLine(haltReason: CleanRoomDetailData["haltReason"]): CleanRoomLine | null {
+function haltReasonLine(haltReason: CleanRoomFetchedDetailData["haltReason"]): CleanRoomLine | null {
   return haltReason === undefined ? null : HALT_REASON_LINES[haltReason];
 }

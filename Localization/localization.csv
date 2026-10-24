@@ -451,3 +451,11 @@ ui.blockInventory.cleanRoomYieldMaxGrade,Max wafer grade G{grade},Max wafer grad
 ui.blockInventory.cleanRoomYieldPromotionChance,Grade-up chance {percent}%,Grade-up chance {percent}%,グレード昇格率 {percent}%,Aufstufungschance {percent} %,등급 상승 확률 {percent}%
 ui.blockInventory.cleanRoomYieldLayerFailRate,Layer failure rate {percent}%,Layer failure rate {percent}%,層の失敗率 {percent}%,Schicht-Ausfallrate {percent} %,층 실패율 {percent}%
 ui.blockInventory.cleanRoomYieldDieLossRate,Die loss rate {percent}%,Die loss rate {percent}%,ダイの損失率 {percent}%,Die-Verlustrate {percent} %,다이 손실률 {percent}%
+ui.blockInventory.blockInfoNotFetched,{target}: loading...,{target}: loading...,{target}: 取得中…,{target}: wird geladen...,{target}: 불러오는 중...
+ui.blockInventory.blockInfoTransportFailed,{target}: no reply from the server (retrying),{target}: no reply from the server (retrying),{target}: サーバーから応答がありません（再試行中）,{target}: keine Antwort vom Server (neuer Versuch läuft),{target}: 서버 응답이 없습니다 (재시도 중)
+ui.blockInventory.blockInfoUnreadable,{target}: received data could not be read (retrying),{target}: received data could not be read (retrying),{target}: 受け取った情報を読めません（再試行中）,{target}: empfangene Daten unlesbar (neuer Versuch läuft),{target}: 받은 정보를 읽을 수 없습니다 (재시도 중)
+ui.blockInventory.blockInfoUnsupportedTarget,{target}: not available for this block,{target}: not available for this block,{target}: このブロックでは表示できません,{target}: für diesen Block nicht verfügbar,{target}: 이 블록에서는 표시할 수 없습니다
+ui.blockInventory.blockInfoVanished,{target}: the block no longer exists,{target}: the block no longer exists,{target}: ブロックが見つかりません,{target}: Block existiert nicht mehr,{target}: 블록을 찾을 수 없습니다
+ui.blockInventory.cleanRoomInfoLabel,Room,Room,部屋の状態,Raum,방 상태
+ui.blockInventory.cleanRoomYieldInfoLabel,Draw details,Draw details,抽選の中身,Ziehungsdetails,추첨 내용
+ui.blockInventory.machineInputStallInfoLabel,Inflow stall,Inflow stall,搬入停止の理由,Zufuhrstopp,반입 정지 이유

@@ -9,8 +9,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
 {
     /// <summary>
-    ///     止まった理由の照会の1回分の問い合わせと、BlockNotFound を除いた種別ごとの型への読み替え
-    ///     One round of the stall query and its conversion into the per-kind view, excluding BlockNotFound
+    ///     止まった理由の照会の1回分の問い合わせと、種別ごとの型への読み替え
+    ///     One round of the stall query and its conversion into the per-kind view
     /// </summary>
     public class MachineInputStallPollSource : IBlockInfoPollSource<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView>
     {
@@ -28,9 +28,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
             return ClientContext.VanillaApi.Response.World.GetMachineInputStall(blockInstanceId, ct);
         }
 
-        public bool TryGetSnapshot(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack response, out MachineInputStallView snapshot)
+        public BlockInfoReadResult TryRead(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack response, out MachineInputStallView snapshot)
         {
-            return response.TryGetView(out snapshot);
+            return response.TryReadView(out snapshot);
         }
     }
 }

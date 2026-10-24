@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockInfoPolling;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Server.Protocol.PacketResponse;
@@ -17,9 +18,18 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
     {
         public static void Apply(BlockInventoryDto dto, BlockGameObject block, BlockNetworkInfoCache cache)
         {
-            // 未取得・ブロック消失の間は欄を出さない（消失と通信失敗の警告はポーラーが出している）
-            // Omit the section while not fetched or vanished; the poller already warns about vanishing and transport failures
-            if (!cache.TryGetCleanRoom(out var view)) return;
+            // 部屋の照会を追わないブロックは欄を持たない
+            // Blocks that do not follow the room query have no section
+            if (cache.CleanRoomTarget == CleanRoomDetailTarget.None) return;
+
+            // 取得できていない間は取得状態だけを出す（警告はポーラーが出している）
+            // While not fetched, show only the fetch state; the poller already logs the warnings
+            var fetchState = cache.GetCleanRoom(out var view);
+            if (fetchState != BlockInfoFetchState.Fetched)
+            {
+                dto.CleanRoom = CleanRoomDetailDto.CreateUnavailable(fetchState);
+                return;
+            }
 
             // 口はキャッシュの判定（CleanRoomTarget）で選び、ここで param を見直さない
             // Pick the entry point from the cache's decision (CleanRoomTarget) instead of re-checking the param here
@@ -41,9 +51,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
                     dto.CleanRoom = BuildForMachine(view, operability.Operability);
                     return;
                 default:
-                    // 部屋の照会を追うのは室内機械と清浄機だけなので、それ以外で値があるのは配線の誤り
-                    // Only interior machines and purifiers follow the room query, so a value for any other target is a wiring bug
-                    throw new InvalidOperationException($"部屋の照会を追わない対象に部屋の状態がある / Room state exists for a target that does not follow the room query: {cache.CleanRoomTarget}");
+                    throw new InvalidOperationException($"未対応の部屋欄の口 / Unsupported room section target: {cache.CleanRoomTarget}");
             }
         }
 
@@ -51,9 +59,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
         // For interior machines: the halt reason is always given
         public static CleanRoomDetailDto BuildForMachine(CleanRoomInfoView view, CleanRoomOperability operability)
         {
-            var dto = BuildBody(view);
-            dto.HaltReason = ToHaltReason(operability);
-            return dto;
+            return BuildBody(view, ToHaltReason(operability));
 
             #region Internal
 
@@ -75,30 +81,30 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
         // For purifiers: they carry no halt-reason state, so none is taken
         public static CleanRoomDetailDto BuildForAirFilter(CleanRoomInfoView view)
         {
-            return BuildBody(view);
+            return BuildBody(view, null);
         }
 
-        private static CleanRoomDetailDto BuildBody(CleanRoomInfoView view)
+        private static CleanRoomDetailDto BuildBody(CleanRoomInfoView view, string haltReason)
         {
             return view switch
             {
-                CleanRoomEnclosedView enclosed => new CleanRoomDetailDto { Kind = "enclosed", Room = BuildRoom(enclosed.Rooms[0]) },
+                CleanRoomEnclosedView enclosed => CleanRoomDetailDto.CreateEnclosed(BuildRoom(enclosed.Rooms[0]), haltReason),
                 CleanRoomNotEnclosedView notEnclosed => BuildLeak(notEnclosed.Leak),
                 _ => throw new ArgumentOutOfRangeException(nameof(view), view.GetType().Name, "未対応の部屋照会の型 / Unsupported room query view"),
             };
 
             #region Internal
 
-            static CleanRoomDetailDto BuildLeak(CleanRoomLeakView leak)
+            CleanRoomDetailDto BuildLeak(CleanRoomLeakView leak)
             {
                 // 漏れの型ごとに、その型だけが持つ件数か上限体積を添える
                 // Attach the opening count or the volume cap that only that leak type carries
                 return leak switch
                 {
-                    CleanRoomOpeningsLeakView openings => new CleanRoomDetailDto { Kind = "openings", OpeningCount = openings.TotalOpeningCount },
-                    CleanRoomNoEnclosureLeakView _ => new CleanRoomDetailDto { Kind = "noEnclosure" },
-                    CleanRoomTooLargeLeakView tooLarge => new CleanRoomDetailDto { Kind = "tooLarge", MaxRoomVolume = tooLarge.MaxRoomVolume },
-                    CleanRoomDetectionPendingLeakView _ => new CleanRoomDetailDto { Kind = "detecting" },
+                    CleanRoomOpeningsLeakView openings => CleanRoomDetailDto.CreateOpenings(openings.TotalOpeningCount, haltReason),
+                    CleanRoomNoEnclosureLeakView _ => CleanRoomDetailDto.CreateNoEnclosure(haltReason),
+                    CleanRoomTooLargeLeakView tooLarge => CleanRoomDetailDto.CreateTooLarge(tooLarge.MaxRoomVolume, haltReason),
+                    CleanRoomDetectionPendingLeakView _ => CleanRoomDetailDto.CreateDetecting(haltReason),
                     _ => throw new ArgumentOutOfRangeException(nameof(leak), leak.GetType().Name, "未対応の漏れ種別 / Unsupported leak kind"),
                 };
             }
@@ -107,28 +113,21 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
             {
                 // 見出しの種別はサーバーのクラス種別をそのまま写し、クラス名は分類済みのときだけ載せる
                 // The headline kind copies the server's class kind, and the class name is attached only when classified
-                var classified = room.TryGetClass(out var className, out _);
-                return new CleanRoomSummaryDto
+                var airFilters = room.AirFilters.Select(filter => new CleanRoomAirFilterDto
                 {
-                    Headline = classified ? "class" : "classOut",
-                    ClassName = classified ? className : null,
-                    Concentration = room.Concentration,
-                    AirChangeRate = room.AirChangeRate,
-                    Volume = room.Volume,
-                    AirFilters = room.AirFilters.Select(filter => new CleanRoomAirFilterDto
-                    {
-                        X = filter.Position.X,
-                        Y = filter.Position.Y,
-                        Z = filter.Position.Z,
-                        PowerRatio = filter.PowerRatio,
-                        FilterItemCount = filter.FilterItemCount,
-                        FilterRemainingRatio = filter.FilterRemainingRatio,
-                    }).ToList(),
-                };
+                    X = filter.Position.X,
+                    Y = filter.Position.Y,
+                    Z = filter.Position.Z,
+                    PowerRatio = filter.PowerRatio,
+                    FilterItemCount = filter.FilterItemCount,
+                    FilterRemainingRatio = filter.FilterRemainingRatio,
+                }).ToList();
+                return room.TryGetClass(out var className, out _)
+                    ? CleanRoomSummaryDto.CreateClass(className, room.Concentration, room.AirChangeRate, room.Volume, airFilters)
+                    : CleanRoomSummaryDto.CreateClassOut(room.Concentration, room.AirChangeRate, room.Volume, airFilters);
             }
 
             #endregion
         }
-
     }
 }

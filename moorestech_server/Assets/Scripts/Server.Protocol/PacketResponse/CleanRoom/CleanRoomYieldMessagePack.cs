@@ -63,5 +63,6 @@ namespace Server.Protocol.PacketResponse
         WaferGrade,
         LayerExposure,
         Dicing,
+        UnsupportedTarget,
     }
 }

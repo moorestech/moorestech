@@ -6,5 +6,5 @@
   "blockGuid": "66666666-6666-4666-8666-666666666666",
   "itemSlots": [],
   "fluidSlots": [],
-  "cleanRoomYield": { "role": "waferGrade", "maxGrade": 2, "promotionChance": 0.9 }
+  "cleanRoomYield": { "fetchState": "fetched", "role": "waferGrade", "maxGrade": 2, "promotionChance": 0.9 }
 }

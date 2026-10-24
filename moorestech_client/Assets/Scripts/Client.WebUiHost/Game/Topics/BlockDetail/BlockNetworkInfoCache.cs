@@ -29,8 +29,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     /// </summary>
     public class BlockNetworkInfoCache
     {
-        // 網に属さない・未取得なら null。通信失敗ではポーラーが前回値を保つ
-        // Null when not a member or not fetched yet; on a transport failure the poller keeps the last value
+        // 網に属さない・未取得なら null。通信失敗の間はポーラーが最後に読めた値を保つ
+        // Null when not a member or not fetched yet; during a transport failure the poller keeps the last value read
         public GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot Electric => _electricPoller.TryGetSnapshot(out var info) ? info : null;
         public GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot GearNetwork => _gearPoller.TryGetSnapshot(out var info) ? info : null;
         public FilterSplitterStateProtocol.FilterSplitterStateResponse FilterSplitter { get; private set; }
@@ -39,12 +39,16 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         // Whether the gear network is tracked; the topic's continuous sampling reads this, so the check lives only here
         public bool IsTrackingGear { get; private set; }
 
+        // 止まった理由を追っているか（機械だけ）。欄を出すかの判定は組み立て側がこれを読む
+        // Whether the stall is tracked (machines only); the builder reads this to decide on the section
+        public bool IsTrackingMachineInputStall { get; private set; }
+
         // 部屋欄をどの口で組むか。判定は ToCleanRoomTarget の switch だけで行い、組み立て側はこれを読む
         // Which entry point builds the room section; only the switch in ToCleanRoomTarget decides it and the builder reads it
         public CleanRoomDetailTarget CleanRoomTarget { get; private set; }
 
-        // どれかの集約情報が取得済み・消失に変わったときに発火する（Topic が再配信する）
-        // Fires when any aggregate becomes fetched or vanished so the topic republishes
+        // どれかの集約情報の取得状態が応答で決まったときに発火する（Topic が再配信する）
+        // Fires whenever a response settles any aggregate's fetch state so the topic republishes
         public IObservable<Unit> OnUpdated => _onUpdated;
 
         private readonly Subject<Unit> _onUpdated = new();
@@ -58,8 +62,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         public BlockNetworkInfoCache()
         {
-            // どのポーラーが取得済み・消失に変わっても再配信する（通信失敗では発火しない）
-            // Republish whenever any poller becomes fetched or vanished; transport failures never fire
+            // どのポーラーの取得状態が決まっても再配信する（通信失敗・読めない応答も画面へ届ける）
+            // Republish whenever any poller's state settles, so transport failures and unreadable responses reach the screen too
             _electricPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
             _gearPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
             _cleanRoomPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
@@ -67,25 +71,25 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             _machineInputStallPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
         }
 
-        // 取得済みのときだけ部屋の状態を返す。未取得と消失はどちらも false に畳む（どの読み手も欄を出さない扱いで同じため。消失の警告はポーラーが出す）
-        // Returns the room state only while fetched; not fetched and vanished both fold into false since every reader omits the section either way (the poller warns on vanishing)
-        public bool TryGetCleanRoom(out CleanRoomInfoView view)
+        // 部屋の取得状態を返し、最新の部屋の状態は取得済みのときだけ渡す（通信失敗の間の古い値は渡さない）
+        // Returns the room fetch state and hands out the latest room state only while fetched, never a stale value during a transport failure
+        public BlockInfoFetchState GetCleanRoom(out CleanRoomInfoView latestView)
         {
-            return _cleanRoomPoller.TryGetSnapshot(out view);
+            return _cleanRoomPoller.GetLatest(out latestView);
         }
 
-        // 取得済みのときだけ抽選の中身を返す。未取得と消失・読めない応答はどちらも false に畳む（読み手は欄を出さず、警告はポーラーが出す）
-        // Returns the draw details only while fetched; not fetched, vanished and unreadable all fold into false (the reader omits the section and the poller warns)
-        public bool TryGetCleanRoomYield(out CleanRoomYieldView view)
+        // 抽選の中身の取得状態を返し、最新の中身は取得済みのときだけ渡す
+        // Returns the draw-detail fetch state and hands out the latest details only while fetched
+        public BlockInfoFetchState GetCleanRoomYield(out CleanRoomYieldView latestView)
         {
-            return _cleanRoomYieldPoller.TryGetSnapshot(out view);
+            return _cleanRoomYieldPoller.GetLatest(out latestView);
         }
 
-        // 取得済みのときだけ止まった理由を返す。未取得と消失・読めない応答はどちらも false に畳む（読み手は欄を出さず、警告はポーラーが出す）
-        // Returns the stall only while fetched; not fetched, vanished and unreadable all fold into false (the reader omits the section and the poller warns)
-        public bool TryGetMachineInputStall(out MachineInputStallView view)
+        // 止まった理由の取得状態を返し、最新の理由は取得済みのときだけ渡す
+        // Returns the stall fetch state and hands out the latest stall only while fetched
+        public BlockInfoFetchState GetMachineInputStall(out MachineInputStallView latestView)
         {
-            return _machineInputStallPoller.TryGetSnapshot(out view);
+            return _machineInputStallPoller.GetLatest(out latestView);
         }
 
         // 開いたブロックに合わせて取得を開始する。ブロックが変わったら前の取得を打ち切る
@@ -117,7 +121,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             // 機械（電気・歯車・清浄室）は、継承元のレベルで止まった理由を開いている間だけ追う
             // Machines (electric, gear, clean room) follow the source-level stall only while open
-            if (param is IMachineParam) _machineInputStallPoller.Start(block.BlockInstanceId);
+            IsTrackingMachineInputStall = param is IMachineParam;
+            if (IsTrackingMachineInputStall) _machineInputStallPoller.Start(block.BlockInstanceId);
 
             #region Internal
 
@@ -148,6 +153,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             _machineInputStallPoller.Stop();
             FilterSplitter = null;
             IsTrackingGear = false;
+            IsTrackingMachineInputStall = false;
             CleanRoomTarget = CleanRoomDetailTarget.None;
             _currentPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
         }

@@ -1,6 +1,7 @@
 import { Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
+import BlockInfoUnavailableLine from "../blockInfoFetch/BlockInfoUnavailableLine";
 import { cleanRoomYieldLines } from "./cleanRoomYieldLogic";
 
 // 抽選の中身欄: 選択工程の上限グレード・昇格率・失敗率・損失率を部屋欄の下に並べる
@@ -8,6 +9,7 @@ import { cleanRoomYieldLines } from "./cleanRoomYieldLogic";
 export default function CleanRoomYieldSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   if (!data.cleanRoomYield) return null;
+  if (data.cleanRoomYield.fetchState !== "fetched") return <BlockInfoUnavailableLine unavailable={data.cleanRoomYield} targetKey={L.ui.blockInventory.cleanRoomYieldInfoLabel} testId="clean-room-yield-fetch-state" />;
   return (
     <Stack gap={2} data-testid="clean-room-yield-section">
       {cleanRoomYieldLines(data.cleanRoomYield).map((line) => (

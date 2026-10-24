@@ -1,6 +1,7 @@
 import { Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
+import BlockInfoUnavailableLine from "../blockInfoFetch/BlockInfoUnavailableLine";
 import LackHighlightText from "../LackHighlightText";
 import { cleanRoomDisplay } from "./cleanRoomLogic";
 
@@ -9,6 +10,7 @@ import { cleanRoomDisplay } from "./cleanRoomLogic";
 export default function CleanRoomSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   if (!data.cleanRoom) return null;
+  if (data.cleanRoom.fetchState !== "fetched") return <BlockInfoUnavailableLine unavailable={data.cleanRoom} targetKey={L.ui.blockInventory.cleanRoomInfoLabel} testId="clean-room-fetch-state" />;
   const view = cleanRoomDisplay(data.cleanRoom);
   return (
     <Stack gap={2} data-testid="clean-room-section">

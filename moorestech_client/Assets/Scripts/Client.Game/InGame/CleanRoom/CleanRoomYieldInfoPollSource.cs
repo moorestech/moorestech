@@ -9,8 +9,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.CleanRoom
 {
     /// <summary>
-    ///     抽選の中身の照会の1回分の問い合わせと、BlockNotFound を除いた役割ごとの型への読み替え
-    ///     One round of the draw-detail query and its conversion into the per-role view, excluding BlockNotFound
+    ///     抽選の中身の照会の1回分の問い合わせと、役割ごとの型への読み替え
+    ///     One round of the draw-detail query and its conversion into the per-role view
     /// </summary>
     public class CleanRoomYieldInfoPollSource : IBlockInfoPollSource<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView>
     {
@@ -28,9 +28,9 @@ namespace Client.Game.InGame.CleanRoom
             return ClientContext.VanillaApi.Response.World.GetCleanRoomYieldInfo(blockInstanceId, ct);
         }
 
-        public bool TryGetSnapshot(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack response, out CleanRoomYieldView snapshot)
+        public BlockInfoReadResult TryRead(GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack response, out CleanRoomYieldView snapshot)
         {
-            return response.TryGetView(out snapshot);
+            return response.TryReadView(out snapshot);
         }
     }
 }

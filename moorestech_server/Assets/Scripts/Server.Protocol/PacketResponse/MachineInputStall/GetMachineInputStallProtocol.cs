@@ -28,12 +28,12 @@ namespace Server.Protocol.PacketResponse
             var block = ServerContext.WorldBlockDatastore.GetBlock(request.BlockInstanceId);
             if (block == null) return ResponseMachineInputStallMessagePack.CreateBlockNotFound();
 
-            // クライアントは機械にだけ問い合わせる。別種のブロックは食い違いとして警告する
-            // The client only asks machines; any other block is a mismatch and gets a warning
+            // クライアントは機械にだけ問い合わせる。別種のブロックは食い違いとして警告し、正常な NotStalled と区別して返す
+            // The client only asks machines; any other block is a mismatch, warned and returned apart from a genuine NotStalled
             if (!block.TryGetComponent<MachineInputLevelStallComponent>(out var stallComponent))
             {
-                Debug.LogWarning($"[GetMachineInputStall] block {request.BlockInstanceId} has no MachineInputLevelStallComponent; returning NotStalled");
-                return ResponseMachineInputStallMessagePack.CreateNotStalled();
+                Debug.LogWarning($"[GetMachineInputStall] block {request.BlockInstanceId} has no MachineInputLevelStallComponent; returning UnsupportedTarget");
+                return ResponseMachineInputStallMessagePack.CreateUnsupportedTarget();
             }
             if (!stallComponent.TryGetStall(out var stall)) return ResponseMachineInputStallMessagePack.CreateNotStalled();
             return ResponseMachineInputStallMessagePack.CreateStalled(ToWireReason(stall.Reason), stall.WaitingItemId.AsPrimitive());
@@ -75,8 +75,8 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class ResponseMachineInputStallMessagePack : ProtocolMessagePackBase
         {
-            // wire は判別子と、Stalled のときだけ書かれる中身。組み立ては下の factory、読み出しは TryGetView だけ
-            // The wire has a discriminator plus details written only when Stalled; build only via the factories below and read only via TryGetView
+            // wire は判別子と、Stalled のときだけ書かれる中身。組み立ては下の factory、読み出しは TryReadView だけ
+            // The wire has a discriminator plus details written only when Stalled; build only via the factories below and read only via TryReadView
             [Key(2)] public MachineInputStallResponseKind Kind { get; set; }
             [Key(3)] public MachineInputStallMessagePack Stall { get; set; }
 
@@ -94,6 +94,11 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseMachineInputStallMessagePack(MachineInputStallResponseKind.BlockNotFound);
             }
 
+            public static ResponseMachineInputStallMessagePack CreateUnsupportedTarget()
+            {
+                return new ResponseMachineInputStallMessagePack(MachineInputStallResponseKind.UnsupportedTarget);
+            }
+
             public static ResponseMachineInputStallMessagePack CreateNotStalled()
             {
                 return new ResponseMachineInputStallMessagePack(MachineInputStallResponseKind.NotStalled);
@@ -104,37 +109,37 @@ namespace Server.Protocol.PacketResponse
                 return new ResponseMachineInputStallMessagePack(MachineInputStallResponseKind.Stalled) { Stall = new MachineInputStallMessagePack(reason, waitingItemId) };
             }
 
-            // BlockNotFound と、中身の欠けた・理由の読めない Stalled は false。判別子の読み分けはここだけで行う
-            // False for BlockNotFound and for a Stalled response with missing details or an unknown reason; the only place that branches on the discriminator
-            public bool TryGetView(out MachineInputStallView view)
+            // 判別子の読み分けはここだけで行う。消失・非対応の対象はそのまま返し、中身の欠けた・理由の読めない Stalled と未知の種別は警告して Unreadable
+            // The only place that branches on the discriminator; vanished and unsupported targets pass through, a broken Stalled and unknown kinds warn and are Unreadable
+            public BlockInfoReadResult TryReadView(out MachineInputStallView view)
             {
+                view = default;
                 switch (Kind)
                 {
                     case MachineInputStallResponseKind.NotStalled:
                         view = MachineInputNotStalledView.Instance;
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case MachineInputStallResponseKind.Stalled:
-                        if (Stall == null || !Enum.IsDefined(typeof(MachineInputStallReasonKind), Stall.Reason)) return WarnUnreadable(out view);
+                        if (Stall == null || !Enum.IsDefined(typeof(MachineInputStallReasonKind), Stall.Reason)) return WarnUnreadable();
                         view = new MachineInputStalledView(Stall);
-                        return true;
+                        return BlockInfoReadResult.Success;
                     case MachineInputStallResponseKind.BlockNotFound:
-                        view = default;
-                        return false;
+                        return BlockInfoReadResult.BlockNotFound;
+                    case MachineInputStallResponseKind.UnsupportedTarget:
+                        return BlockInfoReadResult.UnsupportedTarget;
                     default:
                         Debug.LogWarning($"Unreadable response kind: {Kind}");
-                        view = default;
-                        return false;
+                        return BlockInfoReadResult.Unreadable;
                 }
 
                 #region Internal
 
-                // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは値を捨てて止める）
-                // A mismatch in wire data from outside, so warn instead of throwing and treat it as unreadable (the poller drops the value and stops)
-                bool WarnUnreadable(out MachineInputStallView unreadableView)
+                // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは値を捨てて再試行する）
+                // A mismatch in wire data from outside, so warn instead of throwing and treat it as unreadable (the poller drops the value and retries)
+                BlockInfoReadResult WarnUnreadable()
                 {
                     Debug.LogWarning($"[GetMachineInputStall] Stalled response is unreadable (missing details or unknown reason {Stall?.Reason}); treating it as unreadable");
-                    unreadableView = default;
-                    return false;
+                    return BlockInfoReadResult.Unreadable;
                 }
 
                 #endregion

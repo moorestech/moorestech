@@ -34,5 +34,6 @@ namespace Server.Protocol.PacketResponse
         BlockNotFound,
         NotStalled,
         Stalled,
+        UnsupportedTarget,
     }
 }

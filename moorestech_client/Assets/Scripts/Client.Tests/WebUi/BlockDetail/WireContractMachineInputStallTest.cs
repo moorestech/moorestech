@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BlockInfoPolling;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;
@@ -22,7 +23,7 @@ namespace Client.Tests.WebUi.BlockDetail
             // 上限超えは理由と待っている品のIDだけを載せる
             // Above-cap carries only the reason and the waiting item ID
             var view = ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.AboveCraftCap, 12));
-            AssertMatchesFixture(CreateMachineDto(MachineInputStallDetailDtoBuilder.Build(view)), "block_inventory_machine_input_stall.json");
+            AssertMatchesFixture(CreateMachineDto(MachineInputStallDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, view)), "block_inventory_machine_input_stall.json");
 
             #region Internal
 
@@ -57,9 +58,10 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             // レベル違いは "mixedLevel" に写す
             // Mixed level maps to "mixedLevel"
-            var dto = MachineInputStallDetailDtoBuilder.Build(ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.MixedLevel, 7)));
+            var dto = MachineInputStallDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.MixedLevel, 7)));
             Assert.AreEqual("mixedLevel", dto.Reason);
             Assert.AreEqual(7, dto.ItemId);
+            Assert.AreEqual("fetched", dto.FetchState);
         }
 
         [Test]
@@ -67,20 +69,23 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             // 止まっていない機械では欄を出さない
             // No section for a machine that is not stalled
-            Assert.IsNull(MachineInputStallDetailDtoBuilder.Build(ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateNotStalled())));
+            Assert.IsNull(MachineInputStallDetailDtoBuilder.Build(BlockInfoFetchState.Fetched, ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateNotStalled())));
         }
 
         [Test]
-        public void BlockNotFoundHasNoViewTest()
+        public void BlockNotFoundAndUnsupportedTargetHaveNoViewTest()
         {
-            // 消えたブロックはビューを持たず、ポーラーが消失として扱う
-            // A vanished block has no view, and the poller treats it as vanished
-            Assert.IsFalse(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateBlockNotFound().TryGetView(out _));
+            // 消えたブロックと非対応の対象はビューを持たず、読み取り結果で区別される
+            // A vanished block and an unsupported target have no view and are told apart by the read result
+            Assert.AreEqual(BlockInfoReadResult.BlockNotFound, GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateBlockNotFound().TryReadView(out var vanished));
+            Assert.IsNull(vanished);
+            Assert.AreEqual(BlockInfoReadResult.UnsupportedTarget, GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateUnsupportedTarget().TryReadView(out var unsupported));
+            Assert.IsNull(unsupported);
         }
 
         private static MachineInputStallView ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack response)
         {
-            Assert.IsTrue(response.TryGetView(out var view), $"kind={response.Kind}");
+            Assert.AreEqual(BlockInfoReadResult.Success, response.TryReadView(out var view), $"kind={response.Kind}");
             return view;
         }
 
