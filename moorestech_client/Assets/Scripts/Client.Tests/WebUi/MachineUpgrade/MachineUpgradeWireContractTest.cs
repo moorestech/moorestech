@@ -34,15 +34,7 @@ namespace Client.Tests.WebUi.MachineUpgrade
                 OutputItems = new List<RecipeItemDto> { new() { ItemId = 21, Count = 1 } },
                 InputFluids = new List<RecipeFluidDto>(),
                 OutputFluids = new List<RecipeFluidDto>(),
-                LevelInheritance = new MachineRecipeLevelInheritanceDto
-                {
-                    Kind = MachineRecipeLevelInheritanceDtoBuilder.KindInheritUpToUnlocked,
-                    SourceInputIndex = 0,
-                    SourceItemIds = new List<int> { 11, 12, 13 },
-                    TargetOutputIndex = 0,
-                    TargetItemIds = new List<int> { 21, 22, 23 },
-                    MaxCraftableLevel = 2,
-                },
+                LevelInheritance = MachineRecipeLevelInheritanceDto.CreateInheritUpToUnlocked(0, new List<int> { 11, 12, 13 }, 0, new List<int> { 21, 22, 23 }, 2),
             };
             AssertMatchesFixture(new MachineRecipesDto { Recipes = new List<MachineRecipeDto> { dto } }, "machine_recipe_level_inheritance.json");
         }
