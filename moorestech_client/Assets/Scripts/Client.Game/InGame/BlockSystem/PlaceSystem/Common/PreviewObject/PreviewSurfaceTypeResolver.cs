@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
 {
     /// <summary>
-    ///     ブロックローカルの面の外向き法線を向きで回し、ワールドのどの面に当たるかを返す
-    ///     Rotates a block-local face's outward normal by the direction and returns which world face it becomes
+    ///     ローカル面をワールド面へ変換
+    ///     Converts local faces into world faces
     /// </summary>
     public static class PreviewSurfaceTypeResolver
     {

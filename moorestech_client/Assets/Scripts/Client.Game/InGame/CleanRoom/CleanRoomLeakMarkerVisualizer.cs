@@ -6,8 +6,10 @@ using UnityEngine;
 namespace Client.Game.InGame.CleanRoom
 {
     /// <summary>
-    ///     漏れているセルに赤い半透明の箱を出す（設置不可プレビューと同じ材質・色）
-    ///     Shows translucent red boxes on leaking cells, using the not-placeable preview material and color
+    ///     - 漏れセルを半透明赤で表示
+    ///     - 設置不可の材質・色を使用
+    ///     - Marks leak cells in translucent red
+    ///     - uses the non-placeable preview material and color
     /// </summary>
     public class CleanRoomLeakMarkerVisualizer
     {

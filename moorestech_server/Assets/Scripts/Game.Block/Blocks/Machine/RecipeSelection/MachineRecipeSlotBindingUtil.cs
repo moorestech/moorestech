@@ -62,8 +62,8 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             return binding;
         }
 
-        // 入力 inputIndex の要求アイテム（レシピに書いたまま）
-        // Required item of input inputIndex, as written in the recipe
+        // レシピに記載された要求アイテムを返す
+        // Returns the required item as written in the recipe
         private static ItemId GetRequiredInputItemId(MachineRecipeMasterElement recipe, int inputIndex)
         {
             return MasterHolder.ItemMaster.GetItemId(recipe.InputItems[inputIndex].ItemGuid);

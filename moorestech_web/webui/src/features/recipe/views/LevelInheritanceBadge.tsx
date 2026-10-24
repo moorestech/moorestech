@@ -5,8 +5,8 @@ import { levelInheritanceBadgeText } from "../logic/levelInheritanceBadge";
 
 type Props = { inheritance: MachineRecipeLevelInheritance; testId: string };
 
-// レベル継承レシピのバッジ。レシピ選択行とレシピビューアが共有する
-// Level-inheritance badge shared by the recipe selection row and the recipe viewer
+// レシピ選択行とビューアで共有する継承バッジ
+// Inheritance badge shared by the recipe row and viewer
 export default function LevelInheritanceBadge({ inheritance, testId }: Props) {
   const { t } = useI18n();
   const badge = levelInheritanceBadgeText(inheritance);

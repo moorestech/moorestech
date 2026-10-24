@@ -9,8 +9,8 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    // 機械の搬入が継承元のレベルで止まっているか（理由と待っている品）を返すプロトコル
-    // Protocol returning whether a machine's inflow is stalled on the inheritance source level (reason and waiting item)
+    // 継承元レベルによる搬入停止を照会
+    // Queries inflow stalls caused by the source level
     public class GetMachineInputStallProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:getMachineInputStall";

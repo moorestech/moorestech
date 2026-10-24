@@ -10,8 +10,8 @@ using static Mooresmaster.Model.BlocksModule.BlockMasterElement;
 namespace Client.Game.InGame.CleanRoom
 {
     /// <summary>
-    ///     壁・ドア・ハッチへの照準を追い、部屋の要約ツールチップと漏れマーカーを出す
-    ///     Follows the aim on walls, doors and hatches, showing the room summary tooltip and leak markers
+    ///     壁・ドア・ハッチの照準表示
+    ///     Aim display for walls, doors and hatches
     /// </summary>
     public class CleanRoomBoundaryHoverService
     {

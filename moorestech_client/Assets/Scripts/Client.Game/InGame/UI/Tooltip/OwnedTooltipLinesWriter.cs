@@ -13,8 +13,8 @@ namespace Client.Game.InGame.UI.Tooltip
         private readonly IMouseCursorTooltip _tooltip;
         private readonly TooltipOwner _tooltipOwner = new();
 
-        // 直近に自分が渡したスナップショット。内容が変わっていないかの比較に使う
-        // The snapshot handed over last time, used to compare whether the content is unchanged
+        // 表示差分の比較用スナップショット
+        // Snapshot for comparing displayed content
         private TooltipLine[] _lastShown = Array.Empty<TooltipLine>();
 
         public OwnedTooltipLinesWriter(IMouseCursorTooltip tooltip)

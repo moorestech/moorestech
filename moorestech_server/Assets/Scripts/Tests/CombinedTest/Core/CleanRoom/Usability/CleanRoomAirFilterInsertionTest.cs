@@ -20,8 +20,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
         {
             CleanRoomHatchTest.CreateServer();
 
-            // チェスト→ベルト→清浄機を北向きに直列でつなぐ
-            // Chain chest -> belt -> air filter in a straight line facing north
+            // 北向きにチェスト→ベルト→清浄機
+            // Chest, belt and purifier in a northbound line
             var source = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(0, 0, -1)).GetComponent<VanillaChestComponent>();
             CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 0));
             var filter = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(0, 0, 1));

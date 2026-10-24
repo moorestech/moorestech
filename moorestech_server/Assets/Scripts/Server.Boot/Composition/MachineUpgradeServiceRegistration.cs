@@ -22,8 +22,8 @@ namespace Server.Boot.Composition
             services.AddSingleton<ILevelInheritanceCraftCapLookup>(provider => provider.GetRequiredService<LevelInheritanceCraftCapDataStore>());
             services.AddSingleton<ILevelInheritanceCraftCapUnlocker>(provider => provider.GetRequiredService<LevelInheritanceCraftCapDataStore>());
 
-            // 2状態の変化をクライアントへ配信するイベント
-            // Events that push both states' changes to clients
+            // 両状態の変化をクライアントへ配信
+            // Push both state changes to clients
             services.AddSingleton<ModuleSlotStackLevelEventPacket>();
             services.AddSingleton<LevelInheritanceCraftCapUnlockEventPacket>();
         }

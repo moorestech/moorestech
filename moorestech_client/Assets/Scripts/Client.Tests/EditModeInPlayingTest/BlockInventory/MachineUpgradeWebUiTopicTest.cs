@@ -50,8 +50,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
             yield return new ExitPlayMode();
 
-            // テスト終了後にデバッグオブジェクト無効化フラグをクリア
-            // Clear debug objects disabled flag after test.
+            // テスト後にデバッグ無効化を解除
+            // Clear debug disabling after the test
 #if UNITY_EDITOR
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
 #endif
@@ -76,8 +76,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.AreEqual(1, levelInheritance["maxCraftableLevel"].Value<int>());
                 Assert.AreEqual(3, await SourceSlotAcceptedCount());
 
-                // サーバーで研究を完了させ、2つのtopicが再配信されるまで待つ
-                // Complete the research server-side and wait until both topics are republished
+                // 研究完了後に両トピックの再配信待ち
+                // Wait for both topics to republish after research completes
                 var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
                 Assert.IsTrue(ServerContext.GetService<IResearchDataStore>().CompleteResearch(MachineUpgradeResearchGuid, playerId), "research did not complete");
 

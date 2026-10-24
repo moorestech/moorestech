@@ -124,8 +124,8 @@ namespace Client.WebUiHost.Game
                 .Resolve<IGameUnlockStateData>();
             var craftingRecipesTopic = new CraftingRecipesTopic(hub, unlockStateData);
             hub.RegisterTopic(CraftingRecipesTopic.TopicName, craftingRecipesTopic);
-            // 機械レシピと機械強化（スロット上限）のトピックを登録
-            // Register the machine-recipe and machine-upgrade (slot limit) topics
+            // 機械レシピとスロット上限の配信登録
+            // Register machine-recipe and slot-limit topics
             var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData, resolver.Resolve<ILevelInheritanceCraftCapLookup>());
             hub.RegisterTopic(MachineRecipesTopic.TopicName, machineRecipesTopic);
             hub.RegisterTopic(MachineUpgradeTopic.TopicName, new MachineUpgradeTopic(hub, resolver.Resolve<IModuleSlotStackLimitLookup>()));

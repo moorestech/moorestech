@@ -8,8 +8,10 @@ using Server.Protocol.PacketResponse;
 namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
 {
     /// <summary>
-    ///     部屋照会の種別ごとの型と機械の停止理由から、webui に送る部屋欄を組み立てる
-    ///     Builds the room section for the webui from the per-kind room query view and the machine's halt reason
+    ///     - 部屋ビューと停止理由を結合
+    ///     - Web表示用の部屋欄を生成
+    ///     - Combines the room view and halt reason
+    ///     - builds the web room section
     /// </summary>
     public static class CleanRoomDetailDtoBuilder
     {

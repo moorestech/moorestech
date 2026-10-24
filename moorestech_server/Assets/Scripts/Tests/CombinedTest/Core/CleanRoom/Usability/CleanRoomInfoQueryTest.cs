@@ -51,8 +51,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             var filter = CleanRoomMachineTestHelpers.BuildSmallCleanRoomWithFilter();
             var query = new CleanRoomInfoQuery(datastore, ServerContext.WorldBlockDatastore);
 
-            // 清浄機を満電で回し、部屋がいずれかのクラスに入るまで進める
-            // Run the purifier at full power until the room enters some class
+            // 満電の清浄機でクラス到達まで進める
+            // Run the fully powered purifier until a class is reached
             CleanRoomMachineTestHelpers.EnsureFilterWiredPower(filter);
             CleanRoomClassStanding standing = CleanRoomOutStanding.Instance;
             for (var i = 0; i < 3000 && standing is CleanRoomOutStanding; i++)

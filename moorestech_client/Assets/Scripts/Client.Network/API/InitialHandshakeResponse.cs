@@ -34,8 +34,8 @@ namespace Client.Network.API
         // All wallets' remaining-placement counts; bundled
         public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; }
 
-        // スロット上限のレベルと解放済みの製作上限。同梱
-        // The slot-limit level and the unlocked craft caps; bundled
+        // 上限レベルと解放済み製作上限を同梱
+        // Bundle the slot-limit level and unlocked craft caps
         public int ModuleSlotStackLevel { get; }
         public LevelInheritanceCraftCapUnlockEventPacket.LevelInheritanceCraftCapMessagePack[] LevelInheritanceCraftCaps { get; }
 

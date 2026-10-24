@@ -38,8 +38,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             // The test world has no ground, so stand the player on the same scaffold the recordings use
             await PlaytestSetup.CreateFlatGroundAndWarp();
 
-            // 視線の水平前方にブロックの中心が来るよう原点を決めて置く
-            // Pick the origin so the block's center sits ahead of the player along the horizontal view direction
+            // 視線の水平前方へブロック中心を配置
+            // Place the block center ahead along the horizontal view
             var pos = OriginAheadOfPlayer();
             PlaceBlock(blockName, pos, BlockDirection.North);
             var blockGameObject = await WaitBlockGameObjectSpawn(pos);

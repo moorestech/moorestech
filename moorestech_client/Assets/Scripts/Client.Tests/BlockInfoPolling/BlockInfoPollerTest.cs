@@ -114,8 +114,10 @@ namespace Client.Tests.BlockInfoPolling
             }
         }
 
-        // 問い合わせごとに保留の完了元を作り、テストが Respond で1件ずつ返す
-        // Each request creates a pending completion source that the test resolves one by one with Respond
+        // - 問い合わせごとに完了元を生成
+        // - テストが一件ずつ応答
+        // - Creates a completion source per request
+        // - the test responds one at a time
         private sealed class ScriptedPollSource : IBlockInfoPollSource<ScriptedResponse, string>
         {
             private UniTaskCompletionSource<ScriptedResponse> _pending;

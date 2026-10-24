@@ -85,10 +85,10 @@ namespace Client.WebUiHost.Game.Topics
     }
 
     /// <summary>
-    /// unlockLevelInheritanceCraftLevel表示DTO
+    /// 製作上限の解放表示
     /// - ItemId: 継承先ファミリーの基準アイテム
     /// - Level: 解放後の製作上限
-    /// Display DTO for unlockLevelInheritanceCraftLevel
+    /// Craft-cap unlock display
     /// - ItemId: the target family's base item
     /// - Level: the craft cap after the unlock
     /// </summary>

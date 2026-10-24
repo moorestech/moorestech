@@ -33,8 +33,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
                 placedCount++;
             }
 
-            // 清浄機1台にフィルターを入れ、満電で十分に回す
-            // Load filters into one purifier and run it long enough at full power
+            // 清浄機1台へ給電しフィルターで回す
+            // Power one purifier and run it with a filter
             var airFilter = CleanRoomHatchTest.PlaceBlock(ForUnitTestModBlockId.CleanRoomAirFilterId, new Vector3Int(3, 1, 3));
             airFilter.GetComponent<IOpenableBlockInventoryComponent>().SetItem(0, ForUnitTestItemId.TestCleanRoomFilter, 5);
             ElectricWireTestUtil.WirePower(airFilter.BlockPositionInfo.OriginalPos, new Vector3Int(30, 0, 30), 100f);

@@ -16,8 +16,9 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
     }
 
     /// <summary>
-    ///     ブロックからの搬入が継承元のレベルで止まっている状態（理由と、届いて待っている品）
-    ///     Inflow from blocks stalled on the inheritance source level (the reason and the item that arrived and waits)
+    ///     - 継承元レベルによる搬入停止
+    ///     - 停止理由と待機アイテム
+    ///     - Inflow stalled by the source level, with the reason and waiting item
     /// </summary>
     public readonly struct MachineInputLevelStall
     {

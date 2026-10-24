@@ -26,8 +26,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         {
             _processor.SetCleanRoomEffect(effect);
 
-            // 停止理由はUI表示用に別コンポーネントへ渡す
-            // Forward the halt reason to its own component for UI display
+            // 表示用の停止理由を別部品へ渡す
+            // Forward the display halt reason to its own component
             _operabilityState.SetOperability(effect.Operability);
         }
 

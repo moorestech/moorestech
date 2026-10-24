@@ -11,8 +11,8 @@ export const MachineRecipeLevelInheritanceSchema = z.object({
   maxCraftableLevel: z.number().int().nonnegative(),
 }).strict();
 
-// machine_upgrade.current: モジュールスロット1つあたりの上限
-// machine_upgrade.current: the per-module-slot stack limit
+// モジュール1スロットのスタック上限
+// Per-module-slot stack limit
 export const MachineUpgradeDataSchema = z.object({
   moduleSlotStackLimit: z.number().int().positive(),
 }).strict();

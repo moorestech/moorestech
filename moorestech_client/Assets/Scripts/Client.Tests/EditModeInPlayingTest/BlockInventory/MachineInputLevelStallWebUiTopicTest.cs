@@ -56,8 +56,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
             yield return new ExitPlayMode();
 
-            // テスト終了後にデバッグオブジェクト無効化フラグをクリア
-            // Clear debug objects disabled flag after test.
+            // テスト後にデバッグ無効化を解除
+            // Clear debug disabling after the test
 #if UNITY_EDITOR
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
 #endif
@@ -95,8 +95,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.IsTrue(ServerContext.GetService<IResearchDataStore>().CompleteResearch(MachineUpgradeResearchGuid, playerId), "research did not complete");
                 await WaitUntilStallCleared();
 
-                // 実加工を完了させ、継承後の出力IDと数を確かめる
-                // Finish actual processing and verify the inherited output ID and count
+                // 加工後の継承出力IDと個数を検証
+                // Verify the inherited output ID and count after processing
                 var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(CrusherInheritRecipeGuid);
                 var processor = machine.GetComponent<VanillaMachineProcessorComponent>();
                 var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();

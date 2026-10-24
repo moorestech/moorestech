@@ -3,8 +3,8 @@ using VContainer;
 
 namespace Client.Starter.Registration
 {
-    // クリーンルームの照準表示（ツールチップ・漏れマーカー）を登録する
-    // Registers the clean-room aim display: tooltip and leak markers
+    // 部屋の照準表示を登録
+    // Registers the room aim display
     internal static class CleanRoomUiRegistration
     {
         public static void Register(ContainerBuilder builder)

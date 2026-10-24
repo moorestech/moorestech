@@ -10,8 +10,8 @@ namespace Core.Master.CleanRoomRoles
     {
         public LayerExposuresElement Exposure { get; }
 
-        // 次層ウェハ（継承先）と失敗パターンウェハの出力の添字
-        // Output indices of the layered wafer (the inheritance target) and the failed pattern wafer
+        // 次層ウェハは継承先
+        // The layered wafer is the inheritance target
         public int LayeredOutputIndex { get; }
         public int FailedOutputIndex { get; }
 

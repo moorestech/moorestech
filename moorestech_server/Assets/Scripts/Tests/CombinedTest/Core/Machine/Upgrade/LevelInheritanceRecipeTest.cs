@@ -25,8 +25,8 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
 
-            // Lv3 の継承元と固定素材を入れて1回分回す
-            // Insert a Lv3 source plus the fixed input and run one craft
+            // 継承元Lv3と固定素材で1回加工
+            // Process once with an Lv3 source and fixed materials
             inventory.InsertItem(Create(ForUnitTestLevelInheritanceIds.Source(3), 2));
             inventory.InsertItem(CreateTest1(1));
             AdvanceTicksWithFullPower(TicksToComplete(recipe), processor);
@@ -95,8 +95,8 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             AdvanceTicksWithFullPower(3, processor);
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
 
-            // 待機中に継承元を Lv3 へ差し替えてから出力を空ける
-            // Swap the source to Lv3 while waiting, then free the output
+            // 待機中の継承元をLv3に替え出力を空ける
+            // Replace the waiting source with Lv3, then clear the output
             inventory.SetItem(0, Create(ForUnitTestLevelInheritanceIds.Source(3), 2));
             AdvanceTicksWithFullPower(1, processor);
             inventory.SetItem(InputSlotCount, ServerContext.ItemStackFactory.CreatEmpty());

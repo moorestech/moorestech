@@ -5,8 +5,8 @@ using MessagePack;
 namespace Game.Block.Interface.State
 {
     /// <summary>
-    ///     クリーンルーム機械の稼働可否（停止理由の表示用）
-    ///     Clean-room machine operability, used to show the halt reason
+    ///     停止理由の表示用稼働状態
+    ///     Operability state for halt-reason display
     /// </summary>
     [Serializable]
     [MessagePackObject]

@@ -22,8 +22,8 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
     {
         public static readonly Vector3Int MachinePos = Vector3Int.zero;
 
-        // サーバーを作り、継承機械を置いて指定レシピを選んだ状態から始める
-        // Create the server, place the inheritance machine and select the given recipe
+        // サーバー起動後に継承機械とレシピを設定
+        // Start the server, then set up the inheritance machine and recipe
         public static (IBlock block, VanillaMachineBlockInventoryComponent inventory) SetUpMachine(Guid recipeGuid)
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

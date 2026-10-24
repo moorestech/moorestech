@@ -5,8 +5,8 @@ using Game.Block.Interface;
 namespace Client.Game.InGame.BlockInfoPolling
 {
     /// <summary>
-    ///     ポーラーが1回ごとに呼ぶ問い合わせと、応答から表示用の値を取り出す読み替え
-    ///     The per-round request a poller issues and the conversion from its response to the displayed value
+    ///     問い合わせと表示値変換
+    ///     Requests and display-value conversion
     /// </summary>
     public interface IBlockInfoPollSource<TResponse, TSnapshot>
     {

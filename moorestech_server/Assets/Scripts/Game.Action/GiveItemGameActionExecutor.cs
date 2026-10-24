@@ -21,14 +21,10 @@ namespace Game.Action
 
         public void Execute(GameActionElement action, ActionExecutionContext context)
         {
-            // アイテムを付与するプレイヤーIDのリスト取得
-            // Get the list of player IDs to whom items will be granted
             var param = (GiveItemGameActionParam)action.GameActionParam;
             var targetPlayerIds = ResolveTargetPlayers(param.DeliveryTarget);
             if (targetPlayerIds.Count == 0) return;
 
-            // アイテム付与処理
-            // Item granting process
             foreach (var playerId in targetPlayerIds)
             {
                 var inventoryData = _playerInventoryDataStore.GetInventoryData(playerId);

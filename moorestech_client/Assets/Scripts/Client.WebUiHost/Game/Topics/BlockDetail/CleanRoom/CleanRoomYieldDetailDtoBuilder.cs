@@ -4,8 +4,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
 {
     /// <summary>
-    ///     抽選の中身の役割ごとのビューから、webui に送る欄を組み立てる
-    ///     Builds the webui section from the per-role draw-detail view
+    ///     役割別ビューをWeb表示へ変換
+    ///     Converts per-role views into web display data
     /// </summary>
     public static class CleanRoomYieldDetailDtoBuilder
     {

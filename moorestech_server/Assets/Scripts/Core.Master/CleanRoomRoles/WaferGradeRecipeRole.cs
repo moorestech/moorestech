@@ -11,8 +11,8 @@ namespace Core.Master.CleanRoomRoles
     {
         public WaferGradeDrawsElement Draw { get; }
 
-        // グレード付きウェハの出力の添字・基準アイテム・グレード数（変種数）
-        // Output index, base item and grade count (variant count) of the graded wafer
+        // グレード数は変種数
+        // The grade count is the variant count
         public int GradedOutputIndex { get; }
         public ItemId GradedWaferBaseItemId { get; }
         public int GradeCount { get; }

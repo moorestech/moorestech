@@ -80,7 +80,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
             z_XY_Edge.transform.localPosition = new Vector3(blockSize.x, blockSize.y, 0);
             
             
-            // ========== 面 ==========
             // 面の種類は、ローカルの外向き法線を向きで回したワールドの面で決める（縦向きを含む12向き）
             // Each face type comes from rotating its local outward normal by the direction (all 12 directions, vertical included)
             xy_Origin_Surface.transform.localScale = new Vector3(blockSize.x, blockSize.y, 1);

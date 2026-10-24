@@ -7,8 +7,8 @@ using UniRx;
 namespace Server.Event.EventReceive.MachineUpgrade
 {
     /// <summary>
-    ///     モジュールスロットのスタック上限レベルの変化を全プレイヤーへ配信する
-    ///     Broadcasts module-slot stack limit level changes to every player
+    ///     スロット上限レベル変更を全員へ配信
+    ///     Broadcasts slot-limit level changes to everyone
     /// </summary>
     public class ModuleSlotStackLevelEventPacket : IBootInitializable
     {

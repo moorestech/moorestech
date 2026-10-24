@@ -110,8 +110,8 @@ namespace Client.Tests.WebUi.BlockDetail
         [UnityTest]
         public IEnumerator InvalidOperabilityWireValueClearsSectionAtApplyTest() => UniTask.ToCoroutine(async () =>
         {
-            // 部屋応答を復号して取得済みにし、実Applyへ渡す
-            // Decode the room response into a fetched poller and pass it to the real Apply
+            // 復号済み部屋情報を実Applyへ渡す
+            // Pass decoded room information to the real Apply
             var source = new WireResponsePollSource<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>(new CleanRoomInfoPollSource());
             var poller = new BlockInfoPoller<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>(source, "CleanRoom", System.TimeSpan.FromSeconds(1));
             poller.Start(new BlockInstanceId(1));

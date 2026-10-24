@@ -10,8 +10,8 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    // 指定ブロックから見たクリーンルームの状態（部屋の要約または漏れ箇所）を取得するプロトコル
-    // Protocol fetching the clean-room state seen from a block: room summaries or leak cells
+    // ブロックから見た部屋要約・漏れ照会
+    // Queries room summaries and leaks seen from a block
     public class GetCleanRoomInfoProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:getCleanRoomInfo";

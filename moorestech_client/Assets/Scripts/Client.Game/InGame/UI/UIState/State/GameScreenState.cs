@@ -50,8 +50,8 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
 
-            // 壁・ドア・ハッチへの照準で部屋の要約と漏れ箇所を出す
-            // Aiming at a wall, door or hatch shows the room summary and leak cells
+            // 境界照準時に部屋要約と漏れを表示
+            // Show room summaries and leaks when aiming at a boundary
             _cleanRoomHoverService.ManualUpdate();
 
             // 選定・ハイライト・F/E実行を駆動

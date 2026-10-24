@@ -7,8 +7,9 @@ using Mooresmaster.Model.MachineRecipesModule;
 namespace Client.WebUiHost.Game.Topics.MachineUpgrade
 {
     /// <summary>
-    ///     機械レシピのレベル継承をDTOへ組み立てる。継承元・継承先の変種と、今受け付ける最高レベルを返す
-    ///     Builds a machine recipe's level inheritance for the DTO: source/target variants and the highest level accepted now
+    ///     - 継承元・継承先の変種を返す
+    ///     - 受け付け可能な最高レベルを返す
+    ///     - Returns source and target variants and the highest accepted level
     /// </summary>
     public static class MachineRecipeLevelInheritanceDtoBuilder
     {

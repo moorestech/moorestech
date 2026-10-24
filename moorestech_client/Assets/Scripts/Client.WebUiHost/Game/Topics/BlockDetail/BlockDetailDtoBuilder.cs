@@ -29,8 +29,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             GearToElectricDetailDtoBuilder.Apply(dto, block, param);
             TrainPlatformDetailDtoBuilder.Apply(dto, block, param);
             TrainStationDetailDtoBuilder.Apply(dto, block, param);
-            // クリーンルーム: 部屋照会のキャッシュと機械の停止理由
-            // Clean room: the room query cache and the machine's halt reason
+            // 部屋キャッシュと機械停止理由を反映
+            // Apply the room cache and machine halt reason
             CleanRoomDetailDtoBuilder.Apply(dto, block, cache);
             // 室内機械: 選択工程の抽選の中身
             // Interior machines: draw details of the selected process

@@ -3,8 +3,6 @@ using MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
-    // 止まった機械の中身（理由と、届いて待っている品）
-    // Details of a stalled machine (the reason and the item that arrived and waits)
     [MessagePackObject]
     public class MachineInputStallMessagePack
     {
