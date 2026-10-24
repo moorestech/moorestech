@@ -18,13 +18,9 @@ namespace Client.Game.InGame.CleanRoom
             _writer = new OwnedTooltipLinesWriter(tooltip);
         }
 
-        // 毎フレーム呼ばれる。設置フィードバックとの違いは、他の書き手が出している間は譲る1行だけ
-        // Called every frame; the only difference from placement feedback is the one line that yields to other writers
         public void Present(IReadOnlyList<TooltipLine> lines)
         {
-            // silent-ok: インタラクト案内・設置フィードバックが優先する正常な調停で、相手が消えた次フレームに出し直す / 部屋の要約が出ないことは照準中の画面で見える
-            if (_writer.IsShownByOther()) return;
-            _writer.Show(lines);
+            _writer.TryShowWithoutReplacingOther(lines);
         }
 
         public void Hide()

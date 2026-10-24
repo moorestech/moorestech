@@ -3,7 +3,7 @@ import { z } from "zod";
 // 室内機械・清浄機の部屋欄。種別ごとに持つフィールドが決まる
 // Room section of interior machines and purifiers; each kind fixes which fields it carries
 const CleanRoomHaltReasonSchema = z.enum(["notEnclosed", "classOut"]);
-export const CleanRoomAirFilterDataSchema = z.object({
+const CleanRoomAirFilterDataSchema = z.object({
   x: z.number().int(),
   y: z.number().int(),
   z: z.number().int(),

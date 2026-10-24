@@ -72,8 +72,8 @@ namespace Client.Starter.Initialization
 
             // 機械の強化系（スロット上限・製作上限）もhandshake同梱。イベント購読開始前に適用する
             // The machine-upgrade state (slot limit, craft cap) rides along with the handshake; applied before event dispatch starts
-            resolver.Resolve<ClientModuleSlotStackLimitDatastore>().Apply(_serverResult.HandshakeResponse.ModuleSlotStackLevel);
-            var craftCapDatastore = resolver.Resolve<ClientLevelInheritanceCraftCapDatastore>();
+            resolver.Resolve<IClientModuleSlotStackLimitMutation>().Apply(_serverResult.HandshakeResponse.ModuleSlotStackLevel);
+            var craftCapDatastore = resolver.Resolve<IClientLevelInheritanceCraftCapMutation>();
             foreach (var craftCap in _serverResult.HandshakeResponse.LevelInheritanceCraftCaps) craftCapDatastore.Apply(craftCap.FamilyBaseItemGuid, craftCap.Level);
 
             // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ

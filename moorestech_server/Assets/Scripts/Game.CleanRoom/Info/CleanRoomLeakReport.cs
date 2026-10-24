@@ -11,7 +11,7 @@ namespace Game.CleanRoom.Info
     /// </summary>
     public abstract class CleanRoomLeakReport
     {
-        public const int MaxReportedOpenings = 32;
+        private const int MaxReportedOpenings = 32;
 
         // 種別はこのファイルの4つの型に閉じる
         // The kinds are closed to the four types in this file

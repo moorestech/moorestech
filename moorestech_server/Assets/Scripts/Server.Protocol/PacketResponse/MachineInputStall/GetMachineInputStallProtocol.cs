@@ -37,18 +37,22 @@ namespace Server.Protocol.PacketResponse
             }
             if (!stallComponent.TryGetStall(out var stall)) return ResponseMachineInputStallMessagePack.CreateNotStalled();
             return ResponseMachineInputStallMessagePack.CreateStalled(ToWireReason(stall.Reason), stall.WaitingItemId.AsPrimitive());
-        }
 
-        // サーバーの理由を wire の理由へ写す（クライアントは Game.Block の型を wire で受けない）
-        // Map the server reason onto the wire reason, so the client never receives Game.Block types on the wire
-        private static MachineInputStallReasonKind ToWireReason(MachineInputLevelRefusalReason reason)
-        {
-            return reason switch
+            #region Internal
+
+            // サーバーの理由を wire の理由へ写す（クライアントは Game.Block の型を wire で受けない）
+            // Map the server reason onto the wire reason, so the client never receives Game.Block types on the wire
+            static MachineInputStallReasonKind ToWireReason(MachineInputLevelRefusalReason reason)
             {
-                MachineInputLevelRefusalReason.MixedLevel => MachineInputStallReasonKind.MixedLevel,
-                MachineInputLevelRefusalReason.AboveCraftCap => MachineInputStallReasonKind.AboveCraftCap,
-                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未対応の停止理由 / Unsupported stall reason"),
-            };
+                return reason switch
+                {
+                    MachineInputLevelRefusalReason.MixedLevel => MachineInputStallReasonKind.MixedLevel,
+                    MachineInputLevelRefusalReason.AboveCraftCap => MachineInputStallReasonKind.AboveCraftCap,
+                    _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未対応の停止理由 / Unsupported stall reason"),
+                };
+            }
+
+            #endregion
         }
 
         #region MessagePack
@@ -117,7 +121,9 @@ namespace Server.Protocol.PacketResponse
                         view = default;
                         return false;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "未対応の停止理由の応答種別 / Unsupported stall response kind");
+                        Debug.LogWarning($"Unreadable response kind: {Kind}");
+                        view = default;
+                        return false;
                 }
 
                 #region Internal

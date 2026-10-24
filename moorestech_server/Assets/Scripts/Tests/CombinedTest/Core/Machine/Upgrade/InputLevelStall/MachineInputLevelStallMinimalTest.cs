@@ -1,6 +1,9 @@
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.MachineUpgrade;
+using Core.Master;
+using Tests.Util;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using NUnit.Framework;
@@ -114,5 +117,21 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
             Assert.AreEqual(1, unselectedInventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty).Count);
             AssertNotStalled(unselectedBlock);
         }
+        [Test]
+        public void ResearchAndRecipeChangesClearRefusalWithinSameTickTest()
+        {
+            var (block, inventory) = SetUpMachine(CappedInheritRecipeGuid);
+            inventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty);
+            AssertStalled(block, MachineInputLevelRefusalReason.AboveCraftCap, Source(2));
+            var action = MasterHolder.ResearchMaster.GetResearch(CraftCapResearchGuid).ClearedActions.items[0];
+            ServerContext.GetService<ILevelInheritanceCraftCapUnlocker>().ApplyUnlockLevelInheritanceCraftLevelAction(action);
+            AssertNotStalled(block);
+            inventory.SetItem(0, Create(Source(1), 1));
+            inventory.InsertItem(Create(Source(2), 1), InsertItemContext.Empty);
+            AssertStalled(block, MachineInputLevelRefusalReason.MixedLevel, Source(2));
+            MachineRecipeSelectTestUtil.SelectRecipe(block, LevelInheritanceTestHelper.Recipe(SubstituteRecipeGuid));
+            AssertNotStalled(block);
+        }
+
     }
 }

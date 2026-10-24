@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Core.Master;
 using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Model.MachineRecipesModule;
@@ -11,24 +12,66 @@ namespace Game.Block.Interface.MachineUpgrade
     /// </summary>
     public static class MachineRecipeLevelInheritanceUtil
     {
+        private static readonly object ShapeLock = new();
+        private static ItemMaster _shapeItemMaster;
+        private static ConditionalWeakTable<MachineRecipeMasterElement, StrongBox<LevelInheritanceShape>> _shapes = new();
+
         // 継承レシピなら形を返す。継承しないレシピは false
         // Returns the shape for an inheritance recipe; false for a non-inheritance recipe
         public static bool TryGetShape(MachineRecipeMasterElement recipe, out LevelInheritanceShape shape)
         {
-            switch (recipe.LevelInheritance)
+            // サーバーと表示側の同時初回参照を直列化する
+            // Serialize concurrent first reads from server and presentation
+            lock (ShapeLock)
             {
-                case MachineRecipeMasterElement.LevelInheritanceConst.None:
-                    shape = default;
-                    return false;
-                case MachineRecipeMasterElement.LevelInheritanceConst.Inherit:
-                    shape = BuildShape(recipe, false);
+                // マスタの再ロードで以前の変種配列を捨てる
+                // Drop old variant arrays when the master reloads
+                if (!ReferenceEquals(_shapeItemMaster, MasterHolder.ItemMaster))
+                {
+                    _shapeItemMaster = MasterHolder.ItemMaster;
+                    _shapes = new ConditionalWeakTable<MachineRecipeMasterElement, StrongBox<LevelInheritanceShape>>();
+                }
+                if (_shapes.TryGetValue(recipe, out var cached))
+                {
+                    shape = cached.Value;
                     return true;
-                case MachineRecipeMasterElement.LevelInheritanceConst.InheritUpToUnlocked:
-                    shape = BuildShape(recipe, true);
-                    return true;
-                default:
-                    throw new InvalidOperationException($"未知の levelInheritance です recipe={recipe.MachineRecipeGuid} value={recipe.LevelInheritance}");
+                }
+                switch (recipe.LevelInheritance)
+                {
+                    case MachineRecipeMasterElement.LevelInheritanceConst.None:
+                        shape = default;
+                        return false;
+                    case MachineRecipeMasterElement.LevelInheritanceConst.Inherit:
+                        shape = BuildShape(recipe, false);
+                        _shapes.Add(recipe, new StrongBox<LevelInheritanceShape>(shape));
+                        return true;
+                    case MachineRecipeMasterElement.LevelInheritanceConst.InheritUpToUnlocked:
+                        shape = BuildShape(recipe, true);
+                        _shapes.Add(recipe, new StrongBox<LevelInheritanceShape>(shape));
+                        return true;
+                    default:
+                        throw new InvalidOperationException($"未知の levelInheritance です recipe={recipe.MachineRecipeGuid} value={recipe.LevelInheritance}");
+                }
             }
+
+            #region Internal
+
+            static LevelInheritanceShape BuildShape(MachineRecipeMasterElement recipe, bool hasCraftCap)
+            {
+                // 継承元・継承先の探索は検証と同じ LevelInheritanceRecipeShape に委ねる。ちょうど1つずつあることは起動時の検証が保証するので、無ければ検証漏れとして止める
+                // Finding the source and target is delegated to the same LevelInheritanceRecipeShape as validation; boot validation guarantees exactly one of each, so a miss is a validation gap and stops here
+                if (LevelInheritanceRecipeShape.FindSingleSourceInputIndex(recipe) is not int sourceIndex) throw new InvalidOperationException($"継承レシピの継承元の入力がちょうど1つではありません recipe={recipe.MachineRecipeGuid}");
+                if (LevelInheritanceRecipeShape.FindSingleTargetOutputIndex(recipe) is not int targetIndex) throw new InvalidOperationException($"継承レシピの継承先の出力がちょうど1つではありません recipe={recipe.MachineRecipeGuid}");
+
+                var sourceBaseItemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[sourceIndex].ItemGuid);
+                var targetBaseGuid = recipe.OutputItems[targetIndex].ItemGuid;
+                var targetBaseItemId = MasterHolder.ItemMaster.GetItemId(targetBaseGuid);
+                return new LevelInheritanceShape(sourceIndex, targetIndex,
+                    MasterHolder.ItemMaster.GetLevelVariants(sourceBaseItemId), MasterHolder.ItemMaster.GetLevelVariants(targetBaseItemId),
+                    targetBaseGuid, hasCraftCap);
+            }
+
+            #endregion
         }
 
         // 加工ジョブの継承レベルがレシピと合うか。継承レシピは 1..最大レベル、継承しないレシピは値なし
@@ -71,19 +114,6 @@ namespace Game.Block.Interface.MachineUpgrade
             return inheritedLevel.Value;
         }
 
-        private static LevelInheritanceShape BuildShape(MachineRecipeMasterElement recipe, bool hasCraftCap)
-        {
-            // 継承元・継承先の探索は検証と同じ LevelInheritanceRecipeShape に委ねる。ちょうど1つずつあることは起動時の検証が保証するので、無ければ検証漏れとして止める
-            // Finding the source and target is delegated to the same LevelInheritanceRecipeShape as validation; boot validation guarantees exactly one of each, so a miss is a validation gap and stops here
-            if (LevelInheritanceRecipeShape.FindSingleSourceInputIndex(recipe) is not int sourceIndex) throw new InvalidOperationException($"継承レシピの継承元の入力がちょうど1つではありません recipe={recipe.MachineRecipeGuid}");
-            if (LevelInheritanceRecipeShape.FindSingleTargetOutputIndex(recipe) is not int targetIndex) throw new InvalidOperationException($"継承レシピの継承先の出力がちょうど1つではありません recipe={recipe.MachineRecipeGuid}");
 
-            var sourceBaseItemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[sourceIndex].ItemGuid);
-            var targetBaseGuid = recipe.OutputItems[targetIndex].ItemGuid;
-            var targetBaseItemId = MasterHolder.ItemMaster.GetItemId(targetBaseGuid);
-            return new LevelInheritanceShape(sourceIndex, targetIndex,
-                MasterHolder.ItemMaster.GetLevelVariants(sourceBaseItemId), MasterHolder.ItemMaster.GetLevelVariants(targetBaseItemId),
-                targetBaseGuid, hasCraftCap);
-        }
     }
 }

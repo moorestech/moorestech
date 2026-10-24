@@ -60,11 +60,11 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             // どのポーラーが取得済み・消失に変わっても再配信する（通信失敗では発火しない）
             // Republish whenever any poller becomes fetched or vanished; transport failures never fire
-            _electricPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
-            _gearPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
-            _cleanRoomPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
-            _cleanRoomYieldPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
-            _machineInputStallPoller.OnUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+            _electricPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+            _gearPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+            _cleanRoomPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+            _cleanRoomYieldPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
+            _machineInputStallPoller.OnBlockInfoSnapshotUpdated.Subscribe(_ => _onUpdated.OnNext(Unit.Default));
         }
 
         // 取得済みのときだけ部屋の状態を返す。未取得と消失はどちらも false に畳む（どの読み手も欄を出さない扱いで同じため。消失の警告はポーラーが出す）
@@ -118,6 +118,22 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // 機械（電気・歯車・清浄室）は、継承元のレベルで止まった理由を開いている間だけ追う
             // Machines (electric, gear, clean room) follow the source-level stall only while open
             if (param is IMachineParam) _machineInputStallPoller.Start(block.BlockInstanceId);
+
+            #region Internal
+
+            // 部屋欄を出すブロックの判定はここだけ。部屋に属しうる室内機械と清浄機のほかは部屋欄を持たない
+            // The only place deciding which blocks show the room section; only interior machines and purifiers have one
+            static CleanRoomDetailTarget ToCleanRoomTarget(IBlockParam param)
+            {
+                return param switch
+                {
+                    CleanRoomMachineBlockParam => CleanRoomDetailTarget.Machine,
+                    CleanRoomAirFilterBlockParam => CleanRoomDetailTarget.AirFilter,
+                    _ => CleanRoomDetailTarget.None,
+                };
+            }
+
+            #endregion
         }
 
         public void Clear()
@@ -142,18 +158,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             FilterSplitter = response;
             _onUpdated.OnNext(Unit.Default);
-        }
-
-        // 部屋欄を出すブロックの判定はここだけ。部屋に属しうる室内機械と清浄機のほかは部屋欄を持たない
-        // The only place deciding which blocks show the room section; only interior machines and purifiers have one
-        private static CleanRoomDetailTarget ToCleanRoomTarget(IBlockParam param)
-        {
-            return param switch
-            {
-                CleanRoomMachineBlockParam => CleanRoomDetailTarget.Machine,
-                CleanRoomAirFilterBlockParam => CleanRoomDetailTarget.AirFilter,
-                _ => CleanRoomDetailTarget.None,
-            };
         }
 
         private async UniTaskVoid FetchFilterSplitter(Vector3Int pos, CancellationToken ct)

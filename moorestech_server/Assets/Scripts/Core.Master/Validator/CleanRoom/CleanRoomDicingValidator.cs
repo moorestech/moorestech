@@ -11,7 +11,7 @@ namespace Core.Master.Validator
     {
         // 1サイクルの出力セット数の上限。生産性は最大1セット追加する（ExtraOutputChanceは1でクランプ）
         // Maximum output sets per cycle; productivity adds at most one extra set (ExtraOutputChance is clamped to 1)
-        public const int MaxOutputSetsPerCycle = 2;
+        private const int MaxOutputSetsPerCycle = 2;
 
         private const string RoleName = "Dicings";
 
@@ -39,37 +39,47 @@ namespace Core.Master.Validator
                 logs += OutputLayoutValidation(recipe, dicing, levelCount);
             }
             return logs;
-        }
 
-        // 出力はちょうど [ダイLv1..LvN, 失敗ダイ]、個数はどれもdiesPerWafer、スタック表は最小でも2セット分を1スロットに積める
-        // Outputs are exactly [die Lv1..LvN, failed die], each counting diesPerWafer, and every stack table fits two sets in one slot
-        private static string OutputLayoutValidation(MachineRecipeMasterElement recipe, DicingsElement dicing, int dieLevelCount)
-        {
-            var expectedGuids = new List<Guid>();
-            foreach (var variantId in MasterHolder.ItemMaster.GetLevelVariants(MasterHolder.ItemMaster.GetItemId(dicing.DieItemGuid))) expectedGuids.Add(MasterHolder.ItemMaster.GetItemGuid(variantId));
-            expectedGuids.Add(dicing.FailedDieItemGuid);
+            #region Internal
 
-            var prefix = $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid}";
-            if (recipe.OutputItems.Length != dieLevelCount + 1) return $"{prefix} outputItems must list {dieLevelCount} die levels then the failed die (found {recipe.OutputItems.Length})\n";
-
-            var logs = "";
-            for (var i = 0; i < expectedGuids.Count; i++)
+            // 出力はちょうど [ダイLv1..LvN, 失敗ダイ]、個数はどれもdiesPerWafer、スタック表は最小でも2セット分を1スロットに積める
+            // Outputs are exactly [die Lv1..LvN, failed die], each counting diesPerWafer, and every stack table fits two sets in one slot
+            static string OutputLayoutValidation(MachineRecipeMasterElement recipe, DicingsElement dicing, int dieLevelCount)
             {
-                var output = recipe.OutputItems[i];
-                if (output.ItemGuid != expectedGuids[i]) logs += $"{prefix} outputItems[{i}] must be ItemGuid:{expectedGuids[i]} (found {output.ItemGuid})\n";
-                if (output.Count != dicing.DiesPerWafer) logs += $"{prefix} outputItems[{i}] Count:{output.Count} must equal DiesPerWafer:{dicing.DiesPerWafer}\n";
-                var minStack = MinStackCount(output.ItemGuid);
-                if (minStack < dicing.DiesPerWafer * MaxOutputSetsPerCycle) logs += $"{prefix} outputItems[{i}] ItemGuid:{output.ItemGuid} min stack {minStack} is below {dicing.DiesPerWafer * MaxOutputSetsPerCycle} (DiesPerWafer x {MaxOutputSetsPerCycle})\n";
+                var expectedGuids = new List<Guid>();
+                foreach (var variantId in MasterHolder.ItemMaster.GetLevelVariants(MasterHolder.ItemMaster.GetItemId(dicing.DieItemGuid))) expectedGuids.Add(MasterHolder.ItemMaster.GetItemGuid(variantId));
+                expectedGuids.Add(dicing.FailedDieItemGuid);
+
+                var prefix = $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{dicing.MachineRecipeGuid}";
+                if (recipe.OutputItems.Length != dieLevelCount + 1) return $"{prefix} outputItems must list {dieLevelCount} die levels then the failed die (found {recipe.OutputItems.Length})\n";
+
+                var requiredCapacity = (long)dicing.DiesPerWafer * MaxOutputSetsPerCycle;
+                var logs = "";
+                for (var i = 0; i < expectedGuids.Count; i++)
+                {
+                    var output = recipe.OutputItems[i];
+                    if (output.ItemGuid != expectedGuids[i]) logs += $"{prefix} outputItems[{i}] must be ItemGuid:{expectedGuids[i]} (found {output.ItemGuid})\n";
+                    if (output.Count != dicing.DiesPerWafer) logs += $"{prefix} outputItems[{i}] Count:{output.Count} must equal DiesPerWafer:{dicing.DiesPerWafer}\n";
+                    var minStack = MinStackCount(output.ItemGuid);
+                    if (minStack < requiredCapacity) logs += $"{prefix} outputItems[{i}] ItemGuid:{output.ItemGuid} min stack {minStack} is below {requiredCapacity} (DiesPerWafer x {MaxOutputSetsPerCycle})\n";
+                }
+                return logs;
+
+                #region Internal
+
+                static int MinStackCount(Guid itemGuid)
+                {
+                    var stackCounts = MasterHolder.ItemMaster.GetStackLevelTable(MasterHolder.ItemMaster.GetItemMaster(itemGuid).StackLevelTableGuid).StackCounts;
+                    var min = int.MaxValue;
+                    foreach (var count in stackCounts) min = Math.Min(min, count);
+                    return min;
+                }
+
+                #endregion
             }
-            return logs;
+
+            #endregion
         }
 
-        private static int MinStackCount(Guid itemGuid)
-        {
-            var stackCounts = MasterHolder.ItemMaster.GetStackLevelTable(MasterHolder.ItemMaster.GetItemMaster(itemGuid).StackLevelTableGuid).StackCounts;
-            var min = int.MaxValue;
-            foreach (var count in stackCounts) min = Math.Min(min, count);
-            return min;
-        }
     }
 }

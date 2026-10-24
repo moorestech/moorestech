@@ -106,6 +106,17 @@ namespace Tests.UnitTest.Game.CleanRoomYield
                     Assert.GreaterOrEqual(Sum(betterDies, 1) + 1e-9, Sum(worseDies, 1), $"Lv2+ sum {qualitySum} rows {better}/{better + 1}");
                 }
             }
+
+            #region Internal
+
+            static double Sum(IReadOnlyList<double> values, int fromIndex)
+            {
+                var total = 0.0;
+                for (var i = fromIndex; i < values.Count; i++) total += values[i];
+                return total;
+            }
+
+            #endregion
         }
 
         #region TestHelper
@@ -130,27 +141,24 @@ namespace Tests.UnitTest.Game.CleanRoomYield
                 for (var levelIndex = 0; levelIndex < table.Length; levelIndex++) expected[levelIndex] += gradeProbabilities[gradeIndex] * survivingDies * table[levelIndex];
             }
             return expected;
-        }
 
-        // グレードgの確率。上限未満は u^(g-1)(1-u)、上限は u^(max-1)（ChipYieldDraw.DrawWaferGrade の閉形式）
-        // Probability of grade g: u^(g-1)(1-u) below the cap, u^(max-1) at the cap (the closed form of ChipYieldDraw.DrawWaferGrade)
-        private static double[] WaferGradeProbabilities(double promotionChance, int maxGrade)
-        {
-            var probabilities = new double[maxGrade];
-            var reach = 1d;
-            for (var grade = 1; grade <= maxGrade; grade++)
+            #region Internal
+
+            // グレードgの確率。上限未満は u^(g-1)(1-u)、上限は u^(max-1)（ChipYieldDraw.DrawWaferGrade の閉形式）
+            // Probability of grade g: u^(g-1)(1-u) below the cap, u^(max-1) at the cap (the closed form of ChipYieldDraw.DrawWaferGrade)
+            static double[] WaferGradeProbabilities(double promotionChance, int maxGrade)
             {
-                probabilities[grade - 1] = grade == maxGrade ? reach : reach * (1d - promotionChance);
-                reach *= promotionChance;
+                var probabilities = new double[maxGrade];
+                var reach = 1d;
+                for (var grade = 1; grade <= maxGrade; grade++)
+                {
+                    probabilities[grade - 1] = grade == maxGrade ? reach : reach * (1d - promotionChance);
+                    reach *= promotionChance;
+                }
+                return probabilities;
             }
-            return probabilities;
-        }
 
-        private static double Sum(IReadOnlyList<double> values, int fromIndex)
-        {
-            var total = 0.0;
-            for (var i = fromIndex; i < values.Count; i++) total += values[i];
-            return total;
+            #endregion
         }
 
         #endregion

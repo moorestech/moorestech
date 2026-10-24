@@ -13,7 +13,7 @@ namespace Game.CleanRoom.Info.Leak
     {
         // 軸レイが境界を探す最大距離（部屋の上限4096の一辺の目安）
         // Max distance an axis ray searches for a boundary (a rough side of the 4096-cell cap)
-        public const int MaxRayLength = 64;
+        private const int MaxRayLength = 64;
 
         public static readonly Vector3Int[] Directions =
         {

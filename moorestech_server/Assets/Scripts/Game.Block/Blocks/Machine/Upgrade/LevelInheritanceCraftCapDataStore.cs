@@ -24,7 +24,7 @@ namespace Game.Block.Blocks.Machine.Upgrade
             return _capTable.GetCraftCap(familyBaseItemGuid);
         }
 
-        public void UnlockCraftCap(Guid familyBaseItemGuid, int level)
+        private void UnlockCraftCap(Guid familyBaseItemGuid, int level)
         {
             // 冪等で上がる方向だけ。レベルの範囲 1..ファミリー長 は MachineUpgradeGameActionValidator が起動時に保証する
             // Idempotent and only rising; MachineUpgradeGameActionValidator guarantees the 1..family-length range at boot

@@ -119,7 +119,9 @@ namespace Server.Protocol.PacketResponse
                     case CleanRoomInfoResponseKind.BlockNotFound:
                         return false;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "未対応の部屋照会の種別 / Unsupported room query kind");
+                        Debug.LogWarning($"Unreadable response kind: {Kind}");
+                        view = default;
+                        return false;
                 }
 
                 #region Internal
@@ -130,7 +132,16 @@ namespace Server.Protocol.PacketResponse
                     foreach (var room in Rooms)
                     {
                         if (room == null || room.AirFilters == null) return false;
+                        if (!Enum.IsDefined(typeof(CleanRoomClassResponseKind), room.ClassKind))
+                        {
+                            Debug.LogWarning($"Unreadable room class: {room.ClassKind}");
+                            return false;
+                        }
                         if (room.ClassKind == CleanRoomClassResponseKind.Classified && room.ClassName == null) return false;
+                        foreach (var filter in room.AirFilters)
+                        {
+                            if (filter == null || filter.Position == null) return false;
+                        }
                     }
 
                     return true;

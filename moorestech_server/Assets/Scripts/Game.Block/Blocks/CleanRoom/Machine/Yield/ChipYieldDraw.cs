@@ -38,19 +38,25 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
                 goodCounts[PickLevelIndex(levelRates, random.NextDouble())]++;
             }
             return new DicingDrawResult(goodCounts, failedCount);
+
+            #region Internal
+
+            // 累積比率で添字を選ぶ。丸め誤差で外れた分は最後のレベルへ寄せる
+            // Pick an index by cumulative rate; rounding leftovers fall to the last level
+            static int PickLevelIndex(IReadOnlyList<float> levelRates, double roll)
+            {
+                var cumulative = 0d;
+                for (var i = 0; i < levelRates.Count - 1; i++)
+                {
+                    cumulative += levelRates[i];
+                    if (roll < cumulative) return i;
+                }
+                return levelRates.Count - 1;
+            }
+
+            #endregion
         }
 
-        // 累積比率で添字を選ぶ。丸め誤差で外れた分は最後のレベルへ寄せる
-        // Pick an index by cumulative rate; rounding leftovers fall to the last level
-        private static int PickLevelIndex(IReadOnlyList<float> levelRates, double roll)
-        {
-            var cumulative = 0d;
-            for (var i = 0; i < levelRates.Count - 1; i++)
-            {
-                cumulative += levelRates[i];
-                if (roll < cumulative) return i;
-            }
-            return levelRates.Count - 1;
-        }
+
     }
 }

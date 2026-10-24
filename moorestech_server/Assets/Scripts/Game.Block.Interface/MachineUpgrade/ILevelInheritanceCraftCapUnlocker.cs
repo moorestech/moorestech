@@ -7,8 +7,6 @@ namespace Game.Block.Interface.MachineUpgrade
     // Mutation-only craft cap of inheritance recipes (only GameActionExecutor receives it)
     public interface ILevelInheritanceCraftCapUnlocker
     {
-        void UnlockCraftCap(Guid familyBaseItemGuid, int level);
-
         void ApplyUnlockLevelInheritanceCraftLevelAction(GameActionElement action);
     }
 }

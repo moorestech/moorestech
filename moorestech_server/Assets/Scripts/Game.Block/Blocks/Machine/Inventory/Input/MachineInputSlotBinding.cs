@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.RecipeSelection;
@@ -105,6 +107,12 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             if (!slotLevel.HasValue || !incomingLevel.HasValue) return (slotStack, incoming);
 
             var lowerItemId = slotLevel.Value < incomingLevel.Value ? slotStack.Id : incoming.Id;
+            // 変換後の上限で既存在庫と搬入量を守る
+            // Protect existing stock and inflow with the destination capacity
+            var capacity = ItemStackLevelDataStore.Instance.GetMaxStack(lowerItemId);
+            // silent-ok: 変換で溢れる場合は元の在庫を保持 / 搬入元へ元IDの残余を返す
+            if (capacity <= slotStack.Count) return (slotStack, incoming);
+            incoming = incoming.SubItem(incoming.Count - Math.Min(incoming.Count, capacity - slotStack.Count));
             var factory = ServerContext.ItemStackFactory;
             return (factory.Create(lowerItemId, slotStack.Count), factory.Create(lowerItemId, incoming.Count));
         }

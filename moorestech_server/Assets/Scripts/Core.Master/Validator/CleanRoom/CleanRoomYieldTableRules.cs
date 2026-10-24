@@ -63,13 +63,19 @@ namespace Core.Master.Validator
                 }
             }
             return logs;
+
+            #region Internal
+
+            static float TailFrom(IReadOnlyList<float> rates, int fromLevelIndex)
+            {
+                var tail = 0f;
+                for (var i = fromLevelIndex; i < rates.Count; i++) tail += rates[i];
+                return tail;
+            }
+
+            #endregion
         }
 
-        private static float TailFrom(IReadOnlyList<float> rates, int fromLevelIndex)
-        {
-            var tail = 0f;
-            for (var i = fromLevelIndex; i < rates.Count; i++) tail += rates[i];
-            return tail;
-        }
+
     }
 }

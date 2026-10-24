@@ -88,8 +88,8 @@ namespace Client.Starter.Registration
 
             // 機械の強化系（スロット上限・製作上限）のミラーと購読を登録
             // Register the machine-upgrade mirrors (slot limit, craft cap) and their subscription
-            builder.Register<ClientModuleSlotStackLimitDatastore>(Lifetime.Singleton).AsSelf().As<IModuleSlotStackLimitLookup>();
-            builder.Register<ClientLevelInheritanceCraftCapDatastore>(Lifetime.Singleton).AsSelf().As<ILevelInheritanceCraftCapLookup>();
+            builder.Register<ClientModuleSlotStackLimitDatastore>(Lifetime.Singleton).As<IClientModuleSlotStackLimitMutation>().As<IModuleSlotStackLimitLookup>();
+            builder.Register<ClientLevelInheritanceCraftCapDatastore>(Lifetime.Singleton).As<IClientLevelInheritanceCraftCapMutation>().As<ILevelInheritanceCraftCapLookup>();
             builder.RegisterEntryPoint<MachineUpgradeEventHandler>();
 
             // 装備とスタック解放を登録

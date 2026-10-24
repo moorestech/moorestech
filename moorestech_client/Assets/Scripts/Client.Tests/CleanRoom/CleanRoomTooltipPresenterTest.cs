@@ -66,6 +66,8 @@ namespace Client.Tests.CleanRoom
         {
             private readonly MouseCursorTooltipState _state = new();
 
+            public System.IObservable<TooltipPresentation> OnPresentationChanged => _state.OnPresentationChanged;
+
             public int ShowCount { get; private set; }
             public TooltipOwner CurrentOwner => _state.CurrentOwner;
 

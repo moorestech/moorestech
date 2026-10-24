@@ -17,9 +17,9 @@ namespace Client.Game.InGame.BlockInfoPolling
 
         // 取得済みになった・消失したときに発火する（通信失敗では発火しない）
         // Fires when it becomes fetched or vanished; never on a transport failure
-        public IObservable<Unit> OnUpdated => _onUpdated;
+        public IObservable<Unit> OnBlockInfoSnapshotUpdated => _onBlockInfoSnapshotUpdated;
 
-        private readonly Subject<Unit> _onUpdated = new();
+        private readonly Subject<Unit> _onBlockInfoSnapshotUpdated = new();
         private readonly IBlockInfoPollSource<TResponse, TSnapshot> _source;
         private readonly string _requestName;
         private readonly TimeSpan _interval;
@@ -40,6 +40,57 @@ namespace Client.Game.InGame.BlockInfoPolling
             Stop();
             _cts = new CancellationTokenSource();
             PollLoop(blockInstanceId, _cts.Token).Forget();
+
+            #region Internal
+
+            async UniTaskVoid PollLoop(BlockInstanceId blockInstanceId, CancellationToken ct)
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    var response = await _source.Request(blockInstanceId, ct);
+                    if (ct.IsCancellationRequested) return;
+
+                    // 消失したら問い合わせを止める。次の Start までは消失のままなので、警告は1回だけ出る
+                    // Stop polling once vanished; it stays vanished until the next Start, so the warning is logged once
+                    if (!Apply(response, blockInstanceId)) return;
+                    await UniTask.Delay(_interval, cancellationToken: ct);
+                }
+
+                #region Internal
+
+                // 問い合わせを続けるなら true、ブロック消失なら false
+                // True to keep polling, false once the block has vanished
+                bool Apply(TResponse response, BlockInstanceId blockInstanceId)
+                {
+                    // 通信失敗は状態と前回値を保つ（未取得なら未取得のまま）。開発者には警告で知らせる
+                    // A transport failure keeps the state and last value (not fetched stays so); warn the developer
+                    if (response == null)
+                    {
+                        Debug.LogWarning($"[BlockInfoPoller] {_requestName} failed for block {blockInstanceId}; keeping the {State} state");
+                        return true;
+                    }
+
+                    // ブロック消失（または読めない応答）は値を捨てて消失にする
+                    // A vanished block (or an unreadable response) drops the value and turns vanished
+                    if (!_source.TryGetSnapshot(response, out var snapshot))
+                    {
+                        Debug.LogWarning($"[BlockInfoPoller] {_requestName} found no block {blockInstanceId} (or an unreadable response); clearing the snapshot and stopping");
+                        _snapshot = default;
+                        State = BlockInfoFetchState.Vanished;
+                        _onBlockInfoSnapshotUpdated.OnNext(Unit.Default);
+                        return false;
+                    }
+
+                    _snapshot = snapshot;
+                    State = BlockInfoFetchState.Fetched;
+                    _onBlockInfoSnapshotUpdated.OnNext(Unit.Default);
+                    return true;
+                }
+
+                #endregion
+            }
+
+            #endregion
         }
 
         public void Stop()
@@ -59,47 +110,5 @@ namespace Client.Game.InGame.BlockInfoPolling
             return State == BlockInfoFetchState.Fetched;
         }
 
-        private async UniTaskVoid PollLoop(BlockInstanceId blockInstanceId, CancellationToken ct)
-        {
-            while (!ct.IsCancellationRequested)
-            {
-                var response = await _source.Request(blockInstanceId, ct);
-                if (ct.IsCancellationRequested) return;
-
-                // 消失したら問い合わせを止める。次の Start までは消失のままなので、警告は1回だけ出る
-                // Stop polling once vanished; it stays vanished until the next Start, so the warning is logged once
-                if (!Apply(response, blockInstanceId)) return;
-                await UniTask.Delay(_interval, cancellationToken: ct);
-            }
-        }
-
-        // 問い合わせを続けるなら true、ブロック消失なら false
-        // True to keep polling, false once the block has vanished
-        private bool Apply(TResponse response, BlockInstanceId blockInstanceId)
-        {
-            // 通信失敗は状態と前回値を保つ（未取得なら未取得のまま）。開発者には警告で知らせる
-            // A transport failure keeps the state and last value (not fetched stays so); warn the developer
-            if (response == null)
-            {
-                Debug.LogWarning($"[BlockInfoPoller] {_requestName} failed for block {blockInstanceId}; keeping the {State} state");
-                return true;
-            }
-
-            // ブロック消失（または読めない応答）は値を捨てて消失にする
-            // A vanished block (or an unreadable response) drops the value and turns vanished
-            if (!_source.TryGetSnapshot(response, out var snapshot))
-            {
-                Debug.LogWarning($"[BlockInfoPoller] {_requestName} found no block {blockInstanceId} (or an unreadable response); clearing the snapshot and stopping");
-                _snapshot = default;
-                State = BlockInfoFetchState.Vanished;
-                _onUpdated.OnNext(Unit.Default);
-                return false;
-            }
-
-            _snapshot = snapshot;
-            State = BlockInfoFetchState.Fetched;
-            _onUpdated.OnNext(Unit.Default);
-            return true;
-        }
     }
 }

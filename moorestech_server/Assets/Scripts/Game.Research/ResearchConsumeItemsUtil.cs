@@ -8,53 +8,59 @@ using Mooresmaster.Model.ResearchModule;
 
 namespace Game.Research
 {
-    /// <summary>
-    ///     研究の消費素材の充足判定と消費。基準の要求には上位の変種も数え、消費は下位のレベルから行う
-    ///     Research consume-item sufficiency and consumption; a base requirement also counts higher variants, and consumption starts at the lowest level
-    /// </summary>
     internal static class ResearchConsumeItemsUtil
     {
         public static bool HasRequiredItems(ConsumeItemsElement[] consumeItems, IReadOnlyList<IItemStack> inventoryItems)
         {
-            foreach (var consumeItem in consumeItems)
+            return TryAllocate(consumeItems, inventoryItems, out _);
+        }
+
+        public static bool TryConsume(ConsumeItemsElement[] consumeItems, IOpenableInventory inventory, out string denyReason)
+        {
+            // 全要求を満たすまで実在庫を変更しない
+            // Keep actual inventory unchanged until every requirement is allocated
+            if (!TryAllocate(consumeItems, inventory.InventoryItems, out var amounts))
             {
-                var requiredItemId = MasterHolder.ItemMaster.GetItemId(consumeItem.ItemGuid);
-                if (CountAccepted(requiredItemId, inventoryItems) < consumeItem.ItemCount) return false;
+                denyReason = "研究素材が不足しています";
+                UnityEngine.Debug.LogWarning(denyReason);
+                return false;
             }
+            for (var slot = 0; slot < amounts.Length; slot++)
+            {
+                if (0 < amounts[slot]) inventory.SetItem(slot, inventory.GetItem(slot).SubItem(amounts[slot]));
+            }
+            denyReason = null;
             return true;
         }
 
-        public static void Consume(ConsumeItemsElement[] consumeItems, IOpenableInventory inventory)
+        private static bool TryAllocate(ConsumeItemsElement[] requirements, IReadOnlyList<IItemStack> items, out int[] amounts)
         {
-            foreach (var consumeItem in consumeItems)
+            amounts = new int[items.Count];
+            // 特定変種を先に確保し、基準要求へ残りを配る
+            // Reserve exact variants first, then allocate leftovers to base requirements
+            for (var pass = 0; pass < 2; pass++)
             {
-                // 下位のレベルから順に、同じレベルの中はスロット順に減らす
-                // Take from the lowest level upward, and in slot order within one level
-                var remaining = consumeItem.ItemCount;
-                var requiredItemId = MasterHolder.ItemMaster.GetItemId(consumeItem.ItemGuid);
-                foreach (var acceptedItemId in LevelFamilySubstituteUtil.GetAcceptedItemIds(requiredItemId))
+                foreach (var requirement in requirements)
                 {
-                    for (var slot = 0; slot < inventory.GetSlotSize() && 0 < remaining; slot++)
+                    var itemId = MasterHolder.ItemMaster.GetItemId(requirement.ItemGuid);
+                    var accepted = LevelFamilySubstituteUtil.GetAcceptedItemIds(itemId);
+                    if ((accepted.Count == 1) != (pass == 0)) continue;
+                    var remaining = requirement.ItemCount;
+                    foreach (var acceptedId in accepted)
                     {
-                        var stack = inventory.GetItem(slot);
-                        if (stack.Id != acceptedItemId) continue;
-
-                        var amount = Math.Min(stack.Count, remaining);
-                        inventory.SetItem(slot, stack.SubItem(amount));
-                        remaining -= amount;
+                        for (var slot = 0; slot < items.Count && 0 < remaining; slot++)
+                        {
+                            if (items[slot].Id != acceptedId) continue;
+                            var count = Math.Min(items[slot].Count - amounts[slot], remaining);
+                            amounts[slot] += count;
+                            remaining -= count;
+                        }
                     }
+                    // silent-ok: 判定は表示にも使う / 呼び出し元が不足状態または拒否理由を提示する
+                    if (0 < remaining) return false;
                 }
             }
-        }
-
-        private static int CountAccepted(ItemId requiredItemId, IReadOnlyList<IItemStack> inventoryItems)
-        {
-            var total = 0;
-            foreach (var stack in inventoryItems)
-            {
-                if (LevelFamilySubstituteUtil.ResolveAcceptedLevel(requiredItemId, stack.Id).HasValue) total += stack.Count;
-            }
-            return total;
+            return true;
         }
     }
 }

@@ -23,6 +23,33 @@ namespace Client.Tests.WebUi.BlockDetail
             // Above-cap carries only the reason and the waiting item ID
             var view = ReadView(GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.AboveCraftCap, 12));
             AssertMatchesFixture(CreateMachineDto(MachineInputStallDetailDtoBuilder.Build(view)), "block_inventory_machine_input_stall.json");
+
+            #region Internal
+
+            static BlockInventoryDto CreateMachineDto(MachineInputStallDetailDto machineInputStall)
+            {
+                return new BlockInventoryDto
+                {
+                    Open = true,
+                    Source = "block",
+                    BlockType = "GearMachine",
+                    Identifier = "(0, 0, 0)",
+                    BlockGuid = "a334d703-9442-4910-a8f8-b914df50df4e",
+                    ItemSlots = new List<BlockItemSlotDto>(),
+                    FluidSlots = new List<BlockFluidSlotDto>(),
+                    MachineInputStall = machineInputStall,
+                };
+            }
+
+            static void AssertMatchesFixture(object dto, string fixtureName)
+            {
+                var actual = JToken.Parse(WebUiJson.Serialize(dto));
+                var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
+                var expected = JToken.Parse(File.ReadAllText(path));
+                Assert.IsTrue(JToken.DeepEquals(expected, actual), $"fixture mismatch: {fixtureName}\nexpected: {expected}\nactual: {actual}");
+            }
+
+            #endregion
         }
 
         [Test]
@@ -57,27 +84,5 @@ namespace Client.Tests.WebUi.BlockDetail
             return view;
         }
 
-        private static BlockInventoryDto CreateMachineDto(MachineInputStallDetailDto machineInputStall)
-        {
-            return new BlockInventoryDto
-            {
-                Open = true,
-                Source = "block",
-                BlockType = "GearMachine",
-                Identifier = "(0, 0, 0)",
-                BlockGuid = "a334d703-9442-4910-a8f8-b914df50df4e",
-                ItemSlots = new List<BlockItemSlotDto>(),
-                FluidSlots = new List<BlockFluidSlotDto>(),
-                MachineInputStall = machineInputStall,
-            };
-        }
-
-        private static void AssertMatchesFixture(object dto, string fixtureName)
-        {
-            var actual = JToken.Parse(WebUiJson.Serialize(dto));
-            var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
-            var expected = JToken.Parse(File.ReadAllText(path));
-            Assert.IsTrue(JToken.DeepEquals(expected, actual), $"fixture mismatch: {fixtureName}\nexpected: {expected}\nactual: {actual}");
-        }
     }
 }

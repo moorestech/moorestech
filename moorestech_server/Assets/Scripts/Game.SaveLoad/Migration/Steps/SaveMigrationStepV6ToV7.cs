@@ -36,7 +36,8 @@ namespace Game.SaveLoad.Migration.Steps
                 var vanillaToken = state[VanillaMachineSaveKey];
                 if (vanillaToken != null && vanillaToken.Type != JTokenType.Null)
                 {
-                    if (!(vanillaToken is JObject vanilla) || !(vanilla["processor"] is JObject processor)) return Fail($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={vanillaToken["processor"]?.Type}");
+                    if (!(vanillaToken is JObject vanilla)) return Fail($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}");
+                    if (!(vanilla["processor"] is JObject processor)) return Fail($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={vanilla["processor"]?.Type}");
                     if (!processor.ContainsKey(InheritedLevelKey))
                     {
                         processor[InheritedLevelKey] = JValue.CreateNull();

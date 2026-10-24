@@ -10,7 +10,7 @@ namespace Client.Game.InGame.MachineUpgrade
     ///     サーバーの製作上限のクライアント側ミラー。初期データと購読で更新する
     ///     Client-side mirror of the server's craft caps, updated from initial data and subscriptions
     /// </summary>
-    public class ClientLevelInheritanceCraftCapDatastore : ILevelInheritanceCraftCapLookup
+    public class ClientLevelInheritanceCraftCapDatastore : ILevelInheritanceCraftCapLookup, IClientLevelInheritanceCraftCapMutation
     {
         public IReadOnlyDictionary<Guid, int> UnlockedCaps => _capTable.UnlockedCaps;
         public IObservable<(Guid familyBaseItemGuid, int level)> OnCraftCapUnlocked => _onCraftCapUnlocked;
@@ -26,7 +26,7 @@ namespace Client.Game.InGame.MachineUpgrade
             return _capTable.GetCraftCap(familyBaseItemGuid);
         }
 
-        public void Apply(Guid familyBaseItemGuid, int level)
+        void IClientLevelInheritanceCraftCapMutation.Apply(Guid familyBaseItemGuid, int level)
         {
             if (!_capTable.TryRaise(familyBaseItemGuid, level)) return;
             _onCraftCapUnlocked.OnNext((familyBaseItemGuid, level));

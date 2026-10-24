@@ -9,6 +9,7 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Context;
 using Game.Research;
 using Newtonsoft.Json.Linq;
@@ -94,11 +95,21 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.IsTrue(ServerContext.GetService<IResearchDataStore>().CompleteResearch(MachineUpgradeResearchGuid, playerId), "research did not complete");
                 await WaitUntilStallCleared();
 
-                // 待っていた Lv2 は継承元スロットへ入る。この粉砕機は歯車を繋がなくても加工を始める（実測）ので、届く品が Lv2 だけのこの場面では加工中も Lv2 を受けた証になる
-                // The waiting Lv2 enters the source slot; this crusher starts a job without gears (observed), so with only Lv2 arriving here a running job also proves the Lv2 was taken
-                var sourceSlotItem = machine.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Id;
-                var processState = machine.GetComponent<VanillaMachineProcessorComponent>().CurrentState;
-                Assert.IsTrue(sourceSlotItem == sourceLv2 || processState == ProcessState.Processing, $"the waiting Lv2 did not enter the source slot (slot0={sourceSlotItem}, state={processState})");
+                // 実加工を完了させ、継承後の出力IDと数を確かめる
+                // Finish actual processing and verify the inherited output ID and count
+                var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(CrusherInheritRecipeGuid);
+                var processor = machine.GetComponent<VanillaMachineProcessorComponent>();
+                var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
+                var outputSlot = ((Mooresmaster.Model.BlocksModule.IMachineParam)machine.BlockMasterElement.BlockParam).InputSlotCount;
+                var outputId = MachineRecipeLevelInheritanceUtil.ResolveOutputItemId(recipe, 0, 2);
+                for (var frame = 0; frame < 3600 && inventory.GetItem(outputSlot).Count == 0; frame++)
+                {
+                    processor.SupplyExternalPower(processor.EffectiveRequestPower);
+                    await UniTask.Yield();
+                }
+                var output = inventory.GetItem(outputSlot);
+                Assert.AreEqual(outputId, output.Id);
+                Assert.AreEqual(recipe.OutputItems[0].Count, output.Count);
                 Assert.AreEqual(ItemMaster.EmptyItemId, chest.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Id, "the Lv2 is still in the chest");
 
                 await InteractKeyBlockOpener.CloseToGameScreen();

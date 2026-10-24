@@ -12,10 +12,10 @@ namespace Client.Game.InGame.MachineUpgrade
     public class MachineUpgradeEventHandler : IInitializable
     {
         private readonly IVanillaApiEvent _vanillaApiEvent;
-        private readonly ClientModuleSlotStackLimitDatastore _moduleSlotStackLimitDatastore;
-        private readonly ClientLevelInheritanceCraftCapDatastore _levelInheritanceCraftCapDatastore;
+        private readonly IClientModuleSlotStackLimitMutation _moduleSlotStackLimitDatastore;
+        private readonly IClientLevelInheritanceCraftCapMutation _levelInheritanceCraftCapDatastore;
 
-        public MachineUpgradeEventHandler(IVanillaApiEvent vanillaApiEvent, ClientModuleSlotStackLimitDatastore moduleSlotStackLimitDatastore, ClientLevelInheritanceCraftCapDatastore levelInheritanceCraftCapDatastore)
+        public MachineUpgradeEventHandler(IVanillaApiEvent vanillaApiEvent, IClientModuleSlotStackLimitMutation moduleSlotStackLimitDatastore, IClientLevelInheritanceCraftCapMutation levelInheritanceCraftCapDatastore)
         {
             _vanillaApiEvent = vanillaApiEvent;
             _moduleSlotStackLimitDatastore = moduleSlotStackLimitDatastore;
@@ -26,18 +26,23 @@ namespace Client.Game.InGame.MachineUpgrade
         {
             _vanillaApiEvent.SubscribeEventResponse(ModuleSlotStackLevelEventPacket.EventTag, OnModuleSlotStackLevelChanged);
             _vanillaApiEvent.SubscribeEventResponse(LevelInheritanceCraftCapUnlockEventPacket.EventTag, OnCraftCapUnlocked);
+
+            #region Internal
+
+            void OnModuleSlotStackLevelChanged(byte[] payload)
+            {
+                var data = MessagePackSerializer.Deserialize<ModuleSlotStackLevelEventPacket.ModuleSlotStackLevelMessagePack>(payload);
+                _moduleSlotStackLimitDatastore.Apply(data.Level);
+            }
+
+            void OnCraftCapUnlocked(byte[] payload)
+            {
+                var data = MessagePackSerializer.Deserialize<LevelInheritanceCraftCapUnlockEventPacket.LevelInheritanceCraftCapMessagePack>(payload);
+                _levelInheritanceCraftCapDatastore.Apply(data.FamilyBaseItemGuid, data.Level);
+            }
+
+            #endregion
         }
 
-        private void OnModuleSlotStackLevelChanged(byte[] payload)
-        {
-            var data = MessagePackSerializer.Deserialize<ModuleSlotStackLevelEventPacket.ModuleSlotStackLevelMessagePack>(payload);
-            _moduleSlotStackLimitDatastore.Apply(data.Level);
-        }
-
-        private void OnCraftCapUnlocked(byte[] payload)
-        {
-            var data = MessagePackSerializer.Deserialize<LevelInheritanceCraftCapUnlockEventPacket.LevelInheritanceCraftCapMessagePack>(payload);
-            _levelInheritanceCraftCapDatastore.Apply(data.FamilyBaseItemGuid, data.Level);
-        }
     }
 }

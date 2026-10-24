@@ -19,6 +19,7 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.ItemsModule;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Tests.Module.TestMod;
@@ -76,7 +77,11 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
 
             // 段階表の外のレベル（テストマスタは 0..1）は丸めずに止める
             // A level outside the table (0..1 in the test master) stops instead of clamping
-            Assert.Throws<ArgumentOutOfRangeException>(() => serviceProvider.GetService<IModuleSlotStackLimitUnlocker>().UnlockLevel(2));
+            var json = Newtonsoft.Json.Linq.JObject.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "research.json")));
+            var node = json["data"].Single(value => value["researchNodeGuid"].Value<string>() == ForUnitTestLevelInheritanceIds.ModuleSlotStackResearchGuid.ToString());
+            node["clearedActions"][0]["gameActionParam"]["level"] = 2;
+            var action = new ResearchMaster(json).GetResearch(ForUnitTestLevelInheritanceIds.ModuleSlotStackResearchGuid).ClearedActions.items[0];
+            Assert.Throws<ArgumentOutOfRangeException>(() => serviceProvider.GetService<IModuleSlotStackLimitUnlocker>().ApplyUnlockModuleSlotStackLevelAction(action));
         }
 
         [Test]

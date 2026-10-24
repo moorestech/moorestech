@@ -1,3 +1,5 @@
+using System.Linq;
+using Newtonsoft.Json.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
@@ -71,6 +73,33 @@ namespace Tests.CombinedTest.Game.Research
             inventory.InsertItem(Create(ForUnitTestLevelInheritanceIds.Target(2), 3));
 
             Assert.AreEqual(ResearchNodeState.UnresearchableNotEnoughItem, researchDataStore.GetResearchNodeStates(playerId)[ForUnitTestLevelInheritanceIds.SubstituteResearchGuid]);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void OverlappingRequirementsReserveExactVariantTest(bool reverse)
+        {
+            var (research, inventory, playerId) = Setup();
+            var container = ServerContext.GetService<MasterJsonFileContainer>();
+            var key = new JsonFileName("research");
+            var config = container.ConfigJsons.Single(entry => entry.JsonContents.ContainsKey(key));
+            var json = JObject.Parse(config.JsonContents[key]);
+            var node = json["data"].Single(value => (string)value["researchNodeGuid"] == ForUnitTestLevelInheritanceIds.SubstituteResearchGuid.ToString());
+            var baseRequirement = new JObject { ["itemGuid"] = MasterHolder.ItemMaster.GetItemGuid(ForUnitTestLevelInheritanceIds.Source(1)).ToString(), ["itemCount"] = 1 };
+            var exactRequirement = new JObject { ["itemGuid"] = MasterHolder.ItemMaster.GetItemGuid(ForUnitTestLevelInheritanceIds.Source(2)).ToString(), ["itemCount"] = 1 };
+            node["consumeItems"] = reverse ? new JArray(exactRequirement, baseRequirement) : new JArray(baseRequirement, exactRequirement);
+            config.JsonContents[key] = json.ToString();
+            MasterHolder.Load(container);
+
+            // 同じ1個を二重に割り当てず、不足時は在庫を保つ
+            // Never allocate one item twice; preserve inventory on shortage
+            inventory.InsertItem(Create(ForUnitTestLevelInheritanceIds.Source(2), 1));
+            Assert.IsFalse(research.CompleteResearch(ForUnitTestLevelInheritanceIds.SubstituteResearchGuid, playerId));
+            Assert.AreEqual(1, Count(inventory, ForUnitTestLevelInheritanceIds.Source(2)));
+            inventory.InsertItem(Create(ForUnitTestLevelInheritanceIds.Source(3), 1));
+            Assert.IsTrue(research.CompleteResearch(ForUnitTestLevelInheritanceIds.SubstituteResearchGuid, playerId));
+            Assert.AreEqual(0, Count(inventory, ForUnitTestLevelInheritanceIds.Source(2)));
+            Assert.AreEqual(0, Count(inventory, ForUnitTestLevelInheritanceIds.Source(3)));
         }
 
         private static (IResearchDataStore researchDataStore, IOpenableInventory inventory, int playerId) Setup()

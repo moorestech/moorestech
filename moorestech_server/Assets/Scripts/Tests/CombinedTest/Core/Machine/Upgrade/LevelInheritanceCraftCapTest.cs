@@ -1,3 +1,5 @@
+using Game.Block.Blocks.Machine;
+using Game.Context;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.MachineUpgrade;
@@ -105,5 +107,34 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             Assert.AreEqual(2, lookup.GetCraftCap(ForUnitTestLevelInheritanceIds.CappedTargetBaseGuid));
             Assert.AreEqual(1, lookup.UnlockedCaps.Count);
         }
+        [TestCase(false)]
+        [TestCase(true)]
+        public void RetainedAboveCapInputWaitsForResearchTest(bool loadedInput)
+        {
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerId = PlayerIdentityTestHelper.Register(provider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
+            var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
+            var recipe = LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.CappedInheritRecipeGuid);
+            if (loadedInput)
+            {
+                MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+                inventory.SetItem(0, Create(ForUnitTestLevelInheritanceIds.Source(2), 2));
+            }
+            else
+            {
+                MachineRecipeSelectTestUtil.SelectRecipe(block, LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.InheritRecipeGuid));
+                inventory.InsertItem(Create(ForUnitTestLevelInheritanceIds.Source(2), 2));
+                Assert.AreEqual(MachineRecipeSelectionResult.Success, processor.SetSelectedRecipe(recipe, CreateOverflow(0)));
+            }
+            // 返却残余もロード残留も解放前には消費しない
+            // Neither refund residue nor loaded input is consumed before unlocking
+            AdvanceTicksWithFullPower(2, processor);
+            Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
+            Assert.AreEqual(2, inventory.GetItem(0).Count);
+            Assert.IsTrue(provider.GetService<IResearchDataStore>().CompleteResearch(ForUnitTestLevelInheritanceIds.CraftCapResearchGuid, playerId));
+            AdvanceTicksWithFullPower(TicksToComplete(recipe), processor);
+            Assert.AreEqual(1, CountItem(inventory, InputSlotCount, InputSlotCount + OutputSlotCount, ForUnitTestLevelInheritanceIds.CappedTarget(2)));
+        }
+
     }
 }

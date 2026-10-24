@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Core.Update;
+using Server.Util.MessagePack;
 using Game.Block.Interface;
 using Game.Context;
 using MessagePack;
@@ -87,6 +88,33 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
 
             LogAssert.Expect(LogType.Warning, new Regex(@"\[GetCleanRoomInfo\] Openings leak has no cells"));
             Assert.IsFalse(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(CleanRoomLeakMessagePack.CreateOpenings(null, 3)).TryGetView(out _));
+        }
+
+        [Test]
+        public void UnknownKindsAndMissingNestedElementsAreRejectedTest()
+        {
+            var response = GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateBlockNotFound();
+            response.Kind = (CleanRoomInfoResponseKind)999;
+            Assert.IsFalse(response.TryGetView(out _));
+            var leak = CleanRoomLeakMessagePack.CreateNoEnclosure();
+            leak.Kind = (CleanRoomLeakResponseKind)999;
+            Assert.IsFalse(leak.TryGetView(out _));
+            Assert.IsFalse(CleanRoomLeakMessagePack.CreateOpenings(new List<Vector3IntMessagePack> { null }, 1).TryGetView(out _));
+            var room = CleanRoomSummaryMessagePack.CreateOut(0, 0, 1, new List<CleanRoomAirFilterMessagePack>());
+            response = GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(new List<CleanRoomSummaryMessagePack> { room });
+            room.ClassKind = (CleanRoomClassResponseKind)999;
+            Assert.IsFalse(response.TryGetView(out _));
+            room.ClassKind = CleanRoomClassResponseKind.Out;
+            room.AirFilters.Add(null);
+            Assert.IsFalse(response.TryGetView(out _));
+            room.AirFilters[0] = new CleanRoomAirFilterMessagePack(null, 1, 1, 1, 1);
+            Assert.IsFalse(response.TryGetView(out _));
+            var yieldResponse = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNoRole();
+            yieldResponse.Kind = (CleanRoomYieldResponseKind)999;
+            Assert.IsFalse(yieldResponse.TryGetView(out _));
+            var stall = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateNotStalled();
+            stall.Kind = (MachineInputStallResponseKind)999;
+            Assert.IsFalse(stall.TryGetView(out _));
         }
 
         private static PacketResponseCreator CreatePacket()

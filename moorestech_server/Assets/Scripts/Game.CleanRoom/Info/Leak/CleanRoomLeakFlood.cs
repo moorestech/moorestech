@@ -20,7 +20,7 @@ namespace Game.CleanRoom.Info.Leak
                 if (visited.Add(seed)) queue.Enqueue(seed);
             }
 
-            while (queue.Count > 0 && visited.Count <= CleanRoomCellSets.MaxRoomVolume)
+            while (0 < queue.Count && visited.Count <= CleanRoomCellSets.MaxRoomVolume)
             {
                 var cell = queue.Dequeue();
                 foreach (var direction in CleanRoomLeakRays.Directions)

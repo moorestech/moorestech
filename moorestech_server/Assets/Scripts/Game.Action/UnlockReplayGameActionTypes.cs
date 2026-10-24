@@ -11,9 +11,7 @@ namespace Game.Action
     {
         // 外へは読み取り専用で出す（書き換えでロード後の解放が黙って消えないように）
         // Exposed read-only so no caller can edit it and silently lose unlocks after loading
-        public static IReadOnlyCollection<string> Types => ReplayedTypes;
-
-        private static readonly HashSet<string> ReplayedTypes = new()
+        public static IReadOnlyCollection<string> Types { get; } = new HashSet<string>()
         {
             GameActionElement.GameActionTypeConst.unlockCraftRecipe,
             GameActionElement.GameActionTypeConst.unlockItemRecipeView,

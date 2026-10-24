@@ -1,4 +1,8 @@
+using Game.SaveLoad.Migration;
 using Game.SaveLoad.Migration.Steps;
+using UnityEngine;
+using UnityEngine.TestTools;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -55,6 +59,24 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             Assert.IsFalse(result.IsConverted);
             StringAssert.Contains("processor", result.FailureReason);
+        }
+
+        [TestCase("5")]
+        [TestCase("\"broken\"")]
+        [TestCase("[]")]
+        public void InvalidOuterMachineStateReturnsFailureTest(string json)
+        {
+            var save = Save(new JObject { ["state"] = new JObject { [VanillaKey] = JToken.Parse(json) } });
+            var result = new SaveMigrationStepV6ToV7().Migrate(save);
+            Assert.IsFalse(result.IsConverted);
+            StringAssert.Contains(VanillaKey, result.FailureReason);
+            var chain = new SaveMigrationChain(new ISaveMigrationStep[]
+            {
+                new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(),
+                new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(),
+            }, 7);
+            LogAssert.Expect(LogType.Error, new Regex("セーブをV6からV7へ変換できませんでした"));
+            Assert.IsFalse(chain.Migrate(save).CanLoad);
         }
 
         [Test]

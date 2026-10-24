@@ -73,6 +73,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
         internal void SetBoundRecipe(MachineRecipeMasterElement recipe)
         {
             _slotBinding.SetRecipe(recipe);
+            _blockInflow.ClearRefusal();
         }
 
         public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)
@@ -84,24 +85,23 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
         // Input and output slots are bounded only by the item's max stack
         public int GetSlotStackLimit() => int.MaxValue;
 
-        public bool IsAllowedToStartProcess(MachineRecipeMasterElement recipe)
+        public bool TryGetReadyInput(MachineRecipeMasterElement recipe, out int? inheritedLevel)
         {
-            // 選択済みレシピの材料充足のみを確認する（レシピ探索は行わない）
-            // Only verify the selected recipe's inputs are satisfied (no recipe search)
-            return recipe.RecipeConfirmation(_blockId, InputSlot, FluidInputSlot);
-        }
-
-        // 継承元スロットのアイテムから継承レベルを引く。継承レシピ以外は null
-        // Resolve the inherited level from the source slot's item; null for non-inheritance recipes
-        public int? ResolveInheritedLevel(MachineRecipeMasterElement recipe)
-        {
-            if (!MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape)) return null;
-
-            // IsAllowedToStartProcess を通った後に呼ぶので、継承元スロットには束縛どおり継承元の変種がある。無ければ束縛の破れなので止める
-            // Called after IsAllowedToStartProcess, so the source slot holds a source variant by binding; a missing one is a broken binding, so stop
-            var level = shape.ResolveSourceLevel(InputSlot[shape.SourceInputIndex].Id);
-            if (!level.HasValue) throw new InvalidOperationException($"継承元スロットに継承元の変種がありません recipe={recipe.MachineRecipeGuid} item={InputSlot[shape.SourceInputIndex].Id}");
-            return level;
+            inheritedLevel = null;
+            // silent-ok: 不足中は通常の待機 / 入力欄と機械状態に表示される
+            if (!recipe.RecipeConfirmation(_blockId, InputSlot, FluidInputSlot)) return false;
+            // 返却残余も現在の製作上限で判定する
+            // Check retained inputs against the current craft cap
+            for (var slot = 0; slot < recipe.InputItems.Length; slot++)
+            {
+                var placement = _slotBinding.CheckPlacement(slot, InputSlot[slot]);
+                if (placement == MachineSlotPlacementCheck.Allowed) continue;
+                UnityEngine.Debug.LogWarning($"Machine input is not ready: recipe={recipe.MachineRecipeGuid} slot={slot} reason={placement}");
+                return false;
+            }
+            if (MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape))
+                inheritedLevel = shape.ResolveSourceLevel(InputSlot[shape.SourceInputIndex].Id);
+            return true;
         }
 
         public bool IsRecipeUnlocked(Guid machineRecipeGuid)

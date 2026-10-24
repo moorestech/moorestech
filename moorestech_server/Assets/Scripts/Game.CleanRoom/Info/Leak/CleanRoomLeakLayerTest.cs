@@ -23,7 +23,7 @@ namespace Game.CleanRoom.Info.Leak
                 if (visited.Add(start)) queue.Enqueue(start);
             }
 
-            while (queue.Count > 0)
+            while (0 < queue.Count)
             {
                 var cell = queue.Dequeue();
 

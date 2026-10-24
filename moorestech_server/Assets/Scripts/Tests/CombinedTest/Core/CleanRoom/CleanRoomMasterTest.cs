@@ -153,5 +153,15 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.IsFalse(new CleanRoomMaster(cleanRoomJson).Validate(out var errorLogs));
             StringAssert.Contains($"WaferGradeDraws MachineRecipeGuid:{ForUnitTestLevelInheritanceIds.InheritRecipeGuid} must use levelInheritance None", errorLogs);
         }
+        [Test]
+        public void DicingCapacityMultiplicationCannotOverflowTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var json = JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
+            json["data"][0]["dicings"][0]["diesPerWafer"] = 1073741824;
+            Assert.IsFalse(new CleanRoomMaster(json).Validate(out var logs));
+            StringAssert.Contains("2147483648", logs);
+        }
+
     }
 }

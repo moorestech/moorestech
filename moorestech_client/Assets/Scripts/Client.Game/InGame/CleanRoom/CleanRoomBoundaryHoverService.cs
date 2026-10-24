@@ -27,7 +27,36 @@ namespace Client.Game.InGame.CleanRoom
 
             // 取得済み・消失に変わったときだけ、行と印を作り直す
             // Rebuild the lines and markers only when the poll becomes fetched or vanished
-            _poller.OnUpdated.Subscribe(_ => OnRoomInfoUpdated());
+            _poller.OnBlockInfoSnapshotUpdated.Subscribe(_ => OnRoomInfoUpdated());
+            // 他の表示が消えたときだけ再提示する
+            // Present again only after another presentation disappears
+            tooltip.OnPresentationChanged.Subscribe(presentation =>
+            {
+                if (!presentation.Visible && 0 < _currentLines.Length) _tooltipPresenter.Present(_currentLines);
+            });
+
+            #region Internal
+
+            void OnRoomInfoUpdated()
+            {
+                // 消失なら表示を消す。消失の警告はポーラーが出している
+                // On vanishing, clear the display; the poller already logged the warning
+                if (!_poller.TryGetSnapshot(out var view))
+                {
+                    ClearDisplay();
+                    return;
+                }
+
+                _currentLines = CleanRoomTooltipLines.Build(view);
+                _tooltipPresenter.Present(_currentLines);
+
+                // 隙間があるときだけ、そのセルに印を出す
+                // Mark the gap cells only when openings exist
+                if (view is CleanRoomNotEnclosedView { Leak: CleanRoomOpeningsLeakView openings }) _markers.Show(openings.OpeningCells);
+                else _markers.HideAll();
+            }
+
+            #endregion
         }
 
         public void ManualUpdate()
@@ -43,33 +72,22 @@ namespace Client.Game.InGame.CleanRoom
                 _poller.Start(hovered.BlockInstanceId);
             }
 
-            // 他の書き手が消えた後でも出し直せるよう、手元の最新行で毎フレーム判定する
-            // Re-evaluate every frame with the latest lines so we reappear once another writer hides
-            if (_currentLines.Length > 0) _tooltipPresenter.Present(_currentLines);
+            #region Internal
+
+            static bool TryGetHoveredBoundary(out BlockGameObject block)
+            {
+                if (!BlockClickDetectUtil.TryGetCursorOnBlock(out block)) return false;
+                var blockType = block.BlockMasterElement.BlockType;
+                return blockType == BlockTypeConst.CleanRoomWall || blockType == BlockTypeConst.CleanRoomDoor ||
+                       blockType == BlockTypeConst.CleanRoomItemHatch || blockType == BlockTypeConst.CleanRoomPipeHatch;
+            }
+
+            #endregion
         }
 
         public void Disable()
         {
             StopTracking();
-        }
-
-        private void OnRoomInfoUpdated()
-        {
-            // 消失なら表示を消す。消失の警告はポーラーが出している
-            // On vanishing, clear the display; the poller already logged the warning
-            if (!_poller.TryGetSnapshot(out var view))
-            {
-                ClearDisplay();
-                return;
-            }
-
-            _currentLines = CleanRoomTooltipLines.Build(view);
-            _tooltipPresenter.Present(_currentLines);
-
-            // 隙間があるときだけ、そのセルに印を出す
-            // Mark the gap cells only when openings exist
-            if (view is CleanRoomNotEnclosedView { Leak: CleanRoomOpeningsLeakView openings }) _markers.Show(openings.OpeningCells);
-            else _markers.HideAll();
         }
 
         private void StopTracking()
@@ -86,12 +104,6 @@ namespace Client.Game.InGame.CleanRoom
             _markers.HideAll();
         }
 
-        private static bool TryGetHoveredBoundary(out BlockGameObject block)
-        {
-            if (!BlockClickDetectUtil.TryGetCursorOnBlock(out block)) return false;
-            var blockType = block.BlockMasterElement.BlockType;
-            return blockType == BlockTypeConst.CleanRoomWall || blockType == BlockTypeConst.CleanRoomDoor ||
-                   blockType == BlockTypeConst.CleanRoomItemHatch || blockType == BlockTypeConst.CleanRoomPipeHatch;
-        }
+
     }
 }

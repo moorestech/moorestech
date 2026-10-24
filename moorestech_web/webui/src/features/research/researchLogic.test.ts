@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  allocateResearchItems,
   deriveNodeCardState,
   deriveNodeStateLabelKey,
   deriveResearchButton,
@@ -56,7 +57,7 @@ describe("deriveResearchButton", () => {
       interactable: false,
       tooltipKey: L.ui.research.completed,
     });
-    expect(isConsumeItemLacking(n, [1], 1, new Map<number, number>())).toBe(false);
+    expect(isConsumeItemLacking(n, 1, 0)).toBe(false);
   });
   it("researchableは所持数を問わず活性（充足の正本はサーバーstate）", () => {
     const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 999, acceptedItemIds: [1] }] });
@@ -101,19 +102,19 @@ describe("deriveResearchButton", () => {
 describe("isConsumeItemLacking", () => {
   it("所持数が判明していれば不足を検出する", () => {
     const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1] }] });
-    expect(isConsumeItemLacking(n, [1], 2, new Map([[1, 1]]))).toBe(true);
-    expect(isConsumeItemLacking(n, [1], 2, new Map([[1, 2]]))).toBe(false);
+    expect(isConsumeItemLacking(n, 2, 1)).toBe(true);
+    expect(isConsumeItemLacking(n, 2, 2)).toBe(false);
   });
   it("所持数未受信(null)の間は不足を出さない(D4)", () => {
     // 空Mapを所持0と読み違えない
     // An empty map is never misread as "owns zero"
     const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 1, acceptedItemIds: [1] }] });
-    expect(isConsumeItemLacking(n, [1], 1, null)).toBe(false);
+    expect(isConsumeItemLacking(n, 1, null)).toBe(false);
   });
   it("上位レベルを含む受け付けIDの所持を合計して判定する", () => {
     const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1, 11] }] });
-    expect(isConsumeItemLacking(n, [1, 11], 2, new Map([[1, 1], [11, 1]]))).toBe(false);
-    expect(isConsumeItemLacking(n, [1, 11], 2, new Map([[11, 1]]))).toBe(true);
+    expect(isConsumeItemLacking(n, 2, allocateResearchItems(n, new Map([[1, 1], [11, 1]]))![0])).toBe(false);
+    expect(isConsumeItemLacking(n, 2, allocateResearchItems(n, new Map([[11, 1]]))![0])).toBe(true);
   });
 });
 

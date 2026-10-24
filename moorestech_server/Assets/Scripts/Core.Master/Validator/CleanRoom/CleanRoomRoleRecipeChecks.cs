@@ -65,24 +65,29 @@ namespace Core.Master.Validator
             logs += ResolveSourceGradeCount(roleName, recipe, out sourceGradeCount);
             logs += RequireFamilyBase(roleName, recipe.MachineRecipeGuid, outputBaseItemGuid, out outputVariantCount);
             return logs;
+
+            #region Internal
+
+            // レベル継承レシピでなければ、入力のグレードは常にG1として扱われてしまう
+            // Unless the recipe is a level-inheritance recipe, the input grade would always be treated as G1
+            static string RequireInheritance(string roleName, MachineRecipeMasterElement recipe)
+            {
+                if (recipe.LevelInheritance == MachineRecipeMasterElement.LevelInheritanceConst.Inherit) return "";
+                return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must use levelInheritance Inherit (found {recipe.LevelInheritance})\n";
+            }
+
+            // グレードの出どころ（継承元の入力）はちょうど1つ。機械レシピの検証の順序に頼らず、ここでも確かめる
+            // The grade source (the inheritance source input) must be exactly one; checked here too instead of relying on the machine-recipe validation order
+            static string ResolveSourceGradeCount(string roleName, MachineRecipeMasterElement recipe, out int? gradeCount)
+            {
+                gradeCount = null;
+                if (LevelInheritanceRecipeShape.FindSourceFamilyLength(recipe) is not int length) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must have exactly one level-family base input to take the grade from (found {LevelInheritanceRecipeShape.CountFamilyBaseInputs(recipe)})\n";
+                gradeCount = length;
+                return "";
+            }
+
+            #endregion
         }
 
-        // レベル継承レシピでなければ、入力のグレードは常にG1として扱われてしまう
-        // Unless the recipe is a level-inheritance recipe, the input grade would always be treated as G1
-        private static string RequireInheritance(string roleName, MachineRecipeMasterElement recipe)
-        {
-            if (recipe.LevelInheritance == MachineRecipeMasterElement.LevelInheritanceConst.Inherit) return "";
-            return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must use levelInheritance Inherit (found {recipe.LevelInheritance})\n";
-        }
-
-        // グレードの出どころ（継承元の入力）はちょうど1つ。機械レシピの検証の順序に頼らず、ここでも確かめる
-        // The grade source (the inheritance source input) must be exactly one; checked here too instead of relying on the machine-recipe validation order
-        private static string ResolveSourceGradeCount(string roleName, MachineRecipeMasterElement recipe, out int? gradeCount)
-        {
-            gradeCount = null;
-            if (LevelInheritanceRecipeShape.FindSourceFamilyLength(recipe) is not int length) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must have exactly one level-family base input to take the grade from (found {LevelInheritanceRecipeShape.CountFamilyBaseInputs(recipe)})\n";
-            gradeCount = length;
-            return "";
-        }
     }
 }

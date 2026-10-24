@@ -1,5 +1,4 @@
 import type { ResearchNodeData, ResearchNodeState } from "@/bridge";
-import { ownedCountOfAny } from "@/shared/ownedCounts";
 import { L, type TranslationKey } from "@/shared/i18n";
 
 // state 5値の意味を1表へ畳む。stateが増えた日はここが欠損してコンパイルエラーになる
@@ -13,11 +12,26 @@ const STATE_TRAITS: Record<ResearchNodeState, ResearchStateTraits> = {
   unresearchableAllReasons: { preNodeMet: false, itemsSufficient: false },
 };
 
-// 消費アイテム1件の不足強調。上位レベルの代替品も所持に数える。完了/未受信中は出さない（表示専用でボタン活性には効かない）
-// Per-item shortage highlight counting higher-level substitutes; hidden while completed or unreceived (display only, never gates the button)
-export function isConsumeItemLacking(node: ResearchNodeData, acceptedItemIds: readonly number[], required: number, owned: Map<number, number> | null): boolean {
-  if (owned === null) return false;
-  return node.state !== "completed" && ownedCountOfAny(owned, acceptedItemIds) < required;
+// 特定変種を先に確保し、基準要求に残りを配る
+// Reserve exact variants before allocating leftovers to base requirements
+export function allocateResearchItems(node: ResearchNodeData, owned: Map<number, number> | null): number[] | null {
+  if (owned === null) return null;
+  const remaining = new Map(owned);
+  const allocated = node.consumeItems.map(() => 0);
+  const order = node.consumeItems.map((item, index) => ({ item, index }))
+    .sort((a, b) => a.item.acceptedItemIds.length - b.item.acceptedItemIds.length);
+  for (const { item, index } of order) {
+    for (const id of item.acceptedItemIds) {
+      const amount = Math.min(remaining.get(id) ?? 0, item.count - allocated[index]);
+      allocated[index] += amount;
+      remaining.set(id, (remaining.get(id) ?? 0) - amount);
+    }
+  }
+  return allocated;
+}
+
+export function isConsumeItemLacking(node: ResearchNodeData, required: number, allocated: number | null): boolean {
+  return allocated !== null && node.state !== "completed" && allocated < required;
 }
 
 export type ResearchButtonState = {

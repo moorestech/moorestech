@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.Machine.State
             // 選択レシピが無ければ加工しない（レシピ選択必須）
             // Never process without a selected recipe (selection is mandatory)
             var recipe = _context.SelectedRecipe;
-            if (recipe == null || !_context.InputInventory.IsAllowedToStartProcess(recipe))
+            if (recipe == null || !_context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel))
             {
                 ClearPendingOutputs();
                 return ProcessState.Idle;
@@ -41,7 +41,6 @@ namespace Game.Block.Blocks.Machine.State
 
             // レシピか継承レベルが変わったときだけ新規に確定する。同じ組で待機している間は既存の実現結果を使い回す
             // Realize anew only when the recipe or inherited level changed; while waiting on the same pair, reuse the result
-            var inheritedLevel = _context.InputInventory.ResolveInheritedLevel(recipe);
             if (_pendingRecipe != recipe || _pendingInheritedLevel != inheritedLevel)
             {
                 _pendingOutputs = _context.CreateRealizedOutputs(recipe, inheritedLevel);

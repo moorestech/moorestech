@@ -20,6 +20,23 @@ namespace Game.Block.Blocks.Machine.State.Util
             var outputs = new List<IItemStack>(recipe.OutputItems.Length * setCount);
             for (var set = 0; set < setCount; set++) outputs.AddRange(CreatePlainOutputs(recipe, inheritedLevel));
             return outputs;
+
+            #region Internal
+
+            // 出力1セットを書いたアイテムのまま作る。継承レシピは継承先の出力だけを継承レベルの変種にする
+            // Build one output set as written; an inheritance recipe swaps only the target output to the inherited level's variant
+            static List<IItemStack> CreatePlainOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)
+            {
+                var outputs = new List<IItemStack>(recipe.OutputItems.Length);
+                for (var i = 0; i < recipe.OutputItems.Length; i++)
+                {
+                    var itemId = MachineRecipeLevelInheritanceUtil.ResolveOutputItemId(recipe, i, inheritedLevel);
+                    outputs.Add(ServerContext.ItemStackFactory.Create(itemId, recipe.OutputItems[i].Count));
+                }
+                return outputs;
+            }
+
+            #endregion
         }
 
         // レシピの液体出力1セットを生成
@@ -35,17 +52,6 @@ namespace Game.Block.Blocks.Machine.State.Util
             return outputs;
         }
 
-        // 出力1セットを書いたアイテムのまま作る。継承レシピは継承先の出力だけを継承レベルの変種にする
-        // Build one output set as written; an inheritance recipe swaps only the target output to the inherited level's variant
-        private static List<IItemStack> CreatePlainOutputs(MachineRecipeMasterElement recipe, int? inheritedLevel)
-        {
-            var outputs = new List<IItemStack>(recipe.OutputItems.Length);
-            for (var i = 0; i < recipe.OutputItems.Length; i++)
-            {
-                var itemId = MachineRecipeLevelInheritanceUtil.ResolveOutputItemId(recipe, i, inheritedLevel);
-                outputs.Add(ServerContext.ItemStackFactory.Create(itemId, recipe.OutputItems[i].Count));
-            }
-            return outputs;
-        }
+
     }
 }

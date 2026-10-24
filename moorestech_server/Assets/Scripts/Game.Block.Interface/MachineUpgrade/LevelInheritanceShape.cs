@@ -51,7 +51,7 @@ namespace Game.Block.Interface.MachineUpgrade
             return null;
         }
 
-        public ItemId GetSourceVariant(int level)
+        internal ItemId GetSourceVariant(int level)
         {
             return SourceVariants[level - 1];
         }

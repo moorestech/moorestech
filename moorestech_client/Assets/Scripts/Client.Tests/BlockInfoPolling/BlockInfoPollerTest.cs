@@ -24,7 +24,7 @@ namespace Client.Tests.BlockInfoPolling
             var source = new ScriptedPollSource();
             var poller = new BlockInfoPoller<ScriptedResponse, string>(source, "ScriptedInfo", TimeSpan.FromMilliseconds(10));
             var updates = 0;
-            poller.OnUpdated.Subscribe(_ => updates++);
+            poller.OnBlockInfoSnapshotUpdated.Subscribe(_ => updates++);
 
             // 開始直後は未取得で値を持たない
             // Right after starting it is not fetched and holds no value

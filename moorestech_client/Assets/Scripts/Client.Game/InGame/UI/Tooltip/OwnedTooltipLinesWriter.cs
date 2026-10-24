@@ -24,10 +24,18 @@ namespace Client.Game.InGame.UI.Tooltip
 
         // 他の書き手が表示中か。譲るかどうかは呼び出し側が決める
         // Whether another writer is showing; the caller decides whether to yield
-        public bool IsShownByOther()
+        private bool IsShownByOther()
         {
             var owner = _tooltip.CurrentOwner;
             return owner != null && !ReferenceEquals(owner, _tooltipOwner);
+        }
+
+        public bool TryShowWithoutReplacingOther(IReadOnlyList<TooltipLine> lines)
+        {
+            // silent-ok: 他の所有者の表示を優先する / 表示解放の通知で再提示する
+            if (IsShownByOther()) return false;
+            Show(lines);
+            return true;
         }
 
         public void Show(IReadOnlyList<TooltipLine> lines)
@@ -50,6 +58,29 @@ namespace Client.Game.InGame.UI.Tooltip
                 return ReferenceEquals(_tooltip.CurrentOwner, _tooltipOwner) && IsSameLines(lines, _lastShown);
             }
 
+
+            // 毎フレーム走るためLINQ列挙子を作らず添字ループで比較する
+            // Compares by index instead of LINQ enumerators because it runs every frame
+            static bool IsSameLines(IReadOnlyList<TooltipLine> left, IReadOnlyList<TooltipLine> right)
+            {
+                if (left.Count != right.Count) return false;
+
+                for (var lineIndex = 0; lineIndex < left.Count; lineIndex++)
+                {
+                    if (left[lineIndex].Key.Key != right[lineIndex].Key.Key) return false;
+
+                    var leftParams = left[lineIndex].TextParams;
+                    var rightParams = right[lineIndex].TextParams;
+                    if (leftParams.Count != rightParams.Count) return false;
+
+                    for (var paramIndex = 0; paramIndex < leftParams.Count; paramIndex++)
+                    {
+                        if (leftParams[paramIndex] != rightParams[paramIndex]) return false;
+                    }
+                }
+
+                return true;
+            }
             #endregion
         }
 
@@ -59,27 +90,6 @@ namespace Client.Game.InGame.UI.Tooltip
             _tooltip.Hide(_tooltipOwner);
         }
 
-        // 毎フレーム走るためLINQ列挙子を作らず添字ループで比較する
-        // Compares by index instead of LINQ enumerators because it runs every frame
-        private static bool IsSameLines(IReadOnlyList<TooltipLine> left, IReadOnlyList<TooltipLine> right)
-        {
-            if (left.Count != right.Count) return false;
 
-            for (var lineIndex = 0; lineIndex < left.Count; lineIndex++)
-            {
-                if (left[lineIndex].Key.Key != right[lineIndex].Key.Key) return false;
-
-                var leftParams = left[lineIndex].TextParams;
-                var rightParams = right[lineIndex].TextParams;
-                if (leftParams.Count != rightParams.Count) return false;
-
-                for (var paramIndex = 0; paramIndex < leftParams.Count; paramIndex++)
-                {
-                    if (leftParams[paramIndex] != rightParams[paramIndex]) return false;
-                }
-            }
-
-            return true;
-        }
     }
 }

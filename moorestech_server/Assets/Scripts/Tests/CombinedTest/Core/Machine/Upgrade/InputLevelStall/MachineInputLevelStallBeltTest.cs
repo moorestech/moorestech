@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade.InputLevelStall
 
             // 上限を2へ上げると、待っていた Lv2 が入って理由が消える
             // Raising the cap to 2 lets the waiting Lv2 in and the stall clears
-            ServerContext.GetService<ILevelInheritanceCraftCapUnlocker>().UnlockCraftCap(CappedTargetBaseGuid, 2);
+            ServerContext.GetService<ILevelInheritanceCraftCapUnlocker>().ApplyUnlockLevelInheritanceCraftLevelAction(MasterHolder.ResearchMaster.GetResearch(ForUnitTestLevelInheritanceIds.CraftCapResearchGuid).ClearedActions.items[0]);
             RunTicks(3);
             Assert.AreEqual(1, CountItem(inventory, 0, InputSlotCount, Source(2)));
             AssertNotStalled(block);

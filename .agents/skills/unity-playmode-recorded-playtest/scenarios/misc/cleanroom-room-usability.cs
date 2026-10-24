@@ -134,8 +134,8 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     await p.AimAt(doorAimPoint);
     await p.Until(() => FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key || FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomClassOut.Key, 5f, "ドアのツールチップ先頭行が部屋クラス");
     await p.Screenshot("05-door-tooltip-sealed");
-    // 直接撤去はメインスレッドからサーバーのtickと競合し部屋の再検出が古い壁のまま走るので、本番の撤去プロトコル(tick末尾で処理)で外す
-    // A direct remove races the server tick from the main thread so re-detection still sees the wall; remove via the production protocol handled at tick end
+    // 直接撤去後に旧部屋が残った。tick競合は仮説。本番撤去と描画待機で安定を確認した
+    // The old room remained after direct removal; a tick race is a hypothesis. Production removal and render waiting were observed to be stable
     var removeResponse = await ClientContext.VanillaApi.Response.Block.BlockRemove(breachCell, System.Threading.CancellationToken.None);
     p.Assert(removeResponse.Success, $"撤去プロトコルで東の壁を外した(失敗理由={removeResponse.FailureReason})");
     await p.Until(() => FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed.Key, 10f, "壁を外すとドアのツールチップが未密閉になる");

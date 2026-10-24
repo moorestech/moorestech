@@ -26,16 +26,22 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
                 MachineInputNotStalledView _ => null,
                 _ => throw new ArgumentOutOfRangeException(nameof(view), view.GetType().Name, "未対応の停止理由のビュー / Unsupported stall view"),
             };
+
+            #region Internal
+
+            static string ToWireReason(MachineInputStallReasonKind reason)
+            {
+                return reason switch
+                {
+                    MachineInputStallReasonKind.MixedLevel => "mixedLevel",
+                    MachineInputStallReasonKind.AboveCraftCap => "aboveCraftCap",
+                    _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未対応の停止理由 / Unsupported stall reason"),
+                };
+            }
+
+            #endregion
         }
 
-        private static string ToWireReason(MachineInputStallReasonKind reason)
-        {
-            return reason switch
-            {
-                MachineInputStallReasonKind.MixedLevel => "mixedLevel",
-                MachineInputStallReasonKind.AboveCraftCap => "aboveCraftCap",
-                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未対応の停止理由 / Unsupported stall reason"),
-            };
-        }
+
     }
 }

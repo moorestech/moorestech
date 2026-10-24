@@ -45,7 +45,7 @@ namespace Game.Research
                 return false;
             }
 
-            ResearchConsumeItemsUtil.Consume(researchElement.ConsumeItems, inventory.MainOpenableInventory);
+            if (!ResearchConsumeItemsUtil.TryConsume(researchElement.ConsumeItems, inventory.MainOpenableInventory, out _)) return false;
             _completedResearchGuids.Add(researchGuid);
             _gameActionExecutor.ExecuteActions(researchElement.ClearedActions.items, ActionExecutionContext.ForPlayer(playerId));
             _researchEvent.InvokeOnResearchCompleted(playerId, researchElement);

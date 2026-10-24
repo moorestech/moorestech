@@ -6,8 +6,6 @@ namespace Game.Block.Interface.MachineUpgrade
     // Mutation-only module-slot stack limit (only GameActionExecutor receives it)
     public interface IModuleSlotStackLimitUnlocker
     {
-        void UnlockLevel(int level);
-
         void ApplyUnlockModuleSlotStackLevelAction(GameActionElement action);
     }
 }

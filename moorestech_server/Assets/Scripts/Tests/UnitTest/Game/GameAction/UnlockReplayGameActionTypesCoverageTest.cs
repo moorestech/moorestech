@@ -29,6 +29,21 @@ namespace Tests.UnitTest.Game.GameAction
             // A new kind turns this red and forces the replay-or-once decision (adding it only to the switch would silently lose that unlock after loading)
             var ledger = UnlockReplayGameActionTypes.Types.Concat(RunOnceGameActionTypes).ToList();
             CollectionAssert.AreEquivalent(DeclaredGameActionTypes(), ledger);
+
+            #region Internal
+
+            // 自動生成の GameActionTypeConst から宣言済みの種別を全部取り出す
+            // Pull every declared kind out of the generated GameActionTypeConst
+            static List<string> DeclaredGameActionTypes()
+            {
+                return typeof(GameActionElement.GameActionTypeConst)
+                    .GetFields(BindingFlags.Public | BindingFlags.Static)
+                    .Where(field => field.IsLiteral && field.FieldType == typeof(string))
+                    .Select(field => (string)field.GetRawConstantValue())
+                    .ToList();
+            }
+
+            #endregion
         }
 
         [Test]
@@ -37,15 +52,6 @@ namespace Tests.UnitTest.Game.GameAction
             CollectionAssert.IsEmpty(UnlockReplayGameActionTypes.Types.Intersect(RunOnceGameActionTypes));
         }
 
-        // 自動生成の GameActionTypeConst から宣言済みの種別を全部取り出す
-        // Pull every declared kind out of the generated GameActionTypeConst
-        private static List<string> DeclaredGameActionTypes()
-        {
-            return typeof(GameActionElement.GameActionTypeConst)
-                .GetFields(BindingFlags.Public | BindingFlags.Static)
-                .Where(field => field.IsLiteral && field.FieldType == typeof(string))
-                .Select(field => (string)field.GetRawConstantValue())
-                .ToList();
-        }
+
     }
 }

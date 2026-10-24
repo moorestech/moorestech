@@ -116,6 +116,29 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             Assert.AreEqual(ProcessState.Processing, GetProcessor().CurrentState);
             var resaved = JObject.Parse(loadProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
             Assert.AreEqual(JTokenType.Null, ProcessorJson(resaved)["inheritedLevel"].Type);
+
+            #region Internal
+
+            // 通常レシピ（テストマスタの先頭）で加工中の通常機械を持つ現行セーブを作る
+            // Build a current save holding a plain machine mid-job on the plain recipe (the first test recipe)
+            static JObject BuildPlainProcessingSave()
+            {
+                var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+                var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
+                ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, MachinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+                MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+                var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+                foreach (var input in recipe.InputItems) inventory.InsertItem(ServerContext.ItemStackFactory.Create(input.ItemGuid, input.Count));
+                var processor = block.GetComponent<VanillaMachineProcessorComponent>();
+                AdvanceTicksWithFullPower(2, processor);
+                Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+
+                var save = JObject.Parse(provider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
+                Assert.AreEqual(JTokenType.Null, ProcessorJson(save)["inheritedLevel"].Type);
+                return save;
+            }
+
+            #endregion
         }
 
         // Lv3 で加工中の継承機械を持つ現行セーブを作る
@@ -132,25 +155,6 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
 
             var save = JObject.Parse(provider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
             Assert.AreEqual(3, ProcessorJson(save)["inheritedLevel"].Value<int>());
-            return save;
-        }
-
-        // 通常レシピ（テストマスタの先頭）で加工中の通常機械を持つ現行セーブを作る
-        // Build a current save holding a plain machine mid-job on the plain recipe (the first test recipe)
-        private static JObject BuildPlainProcessingSave()
-        {
-            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, MachinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
-            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
-            var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
-            foreach (var input in recipe.InputItems) inventory.InsertItem(ServerContext.ItemStackFactory.Create(input.ItemGuid, input.Count));
-            var processor = block.GetComponent<VanillaMachineProcessorComponent>();
-            AdvanceTicksWithFullPower(2, processor);
-            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-
-            var save = JObject.Parse(provider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
-            Assert.AreEqual(JTokenType.Null, ProcessorJson(save)["inheritedLevel"].Type);
             return save;
         }
 

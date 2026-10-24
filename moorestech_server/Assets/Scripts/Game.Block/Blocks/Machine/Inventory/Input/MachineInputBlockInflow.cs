@@ -3,6 +3,7 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
+using Mooresmaster.Model.MachineRecipesModule;
 using Game.Block.Interface.MachineUpgrade;
 
 namespace Game.Block.Blocks.Machine.Inventory.Input
@@ -20,15 +21,24 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly MachineInputSlotBinding _slotBinding;
 
-        // 直近の拒否。上書きするだけで、消すのは時間切れ（RetryWindowTicks）に任せる
-        // The latest refusal; it is only overwritten and goes stale through RetryWindowTicks instead of being cleared
+        // 直近の拒否はレシピと現在条件も照合する
+        // Validate the latest refusal against its recipe and current conditions
         private MachineInputLevelStall _latestRefusal;
         private ulong? _latestRefusalTick;
+        private MachineRecipeMasterElement _refusalRecipe;
+        private IItemStack _refusedStack;
 
         public MachineInputBlockInflow(OpenableInventoryItemDataStoreService itemDataStoreService, MachineInputSlotBinding slotBinding)
         {
             _itemDataStoreService = itemDataStoreService;
             _slotBinding = slotBinding;
+        }
+
+        public void ClearRefusal()
+        {
+            _latestRefusalTick = null;
+            _refusalRecipe = null;
+            _refusedStack = null;
         }
 
         public IItemStack Insert(IItemStack itemStack)
@@ -41,10 +51,13 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             // 継承元のレベルで断った残りだけを、理由と時刻つきで覚える
             // Remember only a remainder refused on the source level, with its reason and tick
             var remainder = remainders[0];
+            if (remainder.Count < itemStack.Count) _latestRefusalTick = null;
             // silent-ok: 束縛外の品・同じレベルの満杯は従来どおり残りを返すだけ / 品は搬入元（ベルト・チェスト）に残り、プレイヤーが見て気づく
             if (remainder.Count == 0 || !TryClassifyLevelRefusal(remainder, out var reason)) return remainder;
             _latestRefusal = new MachineInputLevelStall(reason, remainder.Id);
             _latestRefusalTick = GameUpdater.CurrentTick;
+            _slotBinding.TryGetRecipe(out _refusalRecipe);
+            _refusedStack = remainder;
             return remainder;
         }
 
@@ -66,6 +79,13 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             stall = _latestRefusal;
             if (!_latestRefusalTick.HasValue || RetryWindowTicks < GameUpdater.CurrentTick - _latestRefusalTick.Value) return false;
             if (!_slotBinding.TryGetRecipe(out var recipe) || !MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape)) return false;
+
+            // silent-ok: レシピ変更や上限解放で古い拒否を捨てる / 最新の停止理由が照会結果に出る
+            if (!ReferenceEquals(recipe, _refusalRecipe) || !TryClassifyLevelRefusal(_refusedStack, out var reason) || reason != _latestRefusal.Reason)
+            {
+                _latestRefusalTick = null;
+                return false;
+            }
 
             // 継承元が足りていて他の材料だけが欠けている間は、レベル違いを仕分けても動かないので理由にしない
             // While the source suffices and only other inputs are missing, sorting levels would not start it, so it is not the reason

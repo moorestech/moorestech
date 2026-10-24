@@ -77,7 +77,7 @@ namespace Server.Protocol.PacketResponse
             switch (Kind)
             {
                 case CleanRoomLeakResponseKind.Openings:
-                    if (OpeningCells == null)
+                    if (OpeningCells == null || OpeningCells.Exists(cell => cell == null))
                     {
                         Debug.LogWarning($"[GetCleanRoomInfo] Openings leak has no cells (total {TotalOpeningCount}); treating the response as unreadable");
                         view = default;
@@ -96,7 +96,9 @@ namespace Server.Protocol.PacketResponse
                     view = CleanRoomDetectionPendingLeakView.Instance;
                     return true;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "未対応の漏れ種別 / Unsupported leak kind");
+                    Debug.LogWarning($"Unreadable response kind: {Kind}");
+                        view = default;
+                        return false;
             }
         }
     }

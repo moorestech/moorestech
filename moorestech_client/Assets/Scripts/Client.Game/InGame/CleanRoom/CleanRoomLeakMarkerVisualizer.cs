@@ -11,7 +11,7 @@ namespace Client.Game.InGame.CleanRoom
     /// </summary>
     public class CleanRoomLeakMarkerVisualizer
     {
-        public const string MarkerName = "CleanRoomLeakMarker";
+        private const string MarkerName = "CleanRoomLeakMarker";
         private static readonly Vector3 MarkerScale = new(0.9f, 0.9f, 0.9f);
         private static readonly Vector3 CellCenterOffset = new(0.5f, 0.5f, 0.5f);
 
@@ -29,6 +29,29 @@ namespace Client.Game.InGame.CleanRoom
                 _markers[i].SetActive(visible);
                 if (visible) _markers[i].transform.position = cells[i].Vector3Int + CellCenterOffset;
             }
+
+            #region Internal
+
+            GameObject CreateMarker()
+            {
+                // 材質は初回表示時に作る（プレビュー材質のロード完了後に呼ばれるため）
+                // Create the material on first show, which happens after the preview material is loaded
+                if (_material == null)
+                {
+                    _material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
+                    _material.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
+                }
+
+                var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                marker.name = MarkerName;
+                Object.Destroy(marker.GetComponent<Collider>());
+                marker.transform.localScale = MarkerScale;
+                marker.GetComponent<MeshRenderer>().sharedMaterial = _material;
+                marker.SetActive(false);
+                return marker;
+            }
+
+            #endregion
         }
 
         public void HideAll()
@@ -36,23 +59,6 @@ namespace Client.Game.InGame.CleanRoom
             foreach (var marker in _markers) marker.SetActive(false);
         }
 
-        private GameObject CreateMarker()
-        {
-            // 材質は初回表示時に作る（プレビュー材質のロード完了後に呼ばれるため）
-            // Create the material on first show, which happens after the preview material is loaded
-            if (_material == null)
-            {
-                _material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
-                _material.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.NotPlaceableColor);
-            }
 
-            var marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            marker.name = MarkerName;
-            Object.Destroy(marker.GetComponent<Collider>());
-            marker.transform.localScale = MarkerScale;
-            marker.GetComponent<MeshRenderer>().sharedMaterial = _material;
-            marker.SetActive(false);
-            return marker;
-        }
     }
 }

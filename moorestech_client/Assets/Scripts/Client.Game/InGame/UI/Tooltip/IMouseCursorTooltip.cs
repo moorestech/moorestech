@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 
@@ -8,6 +9,7 @@ namespace Client.Game.InGame.UI.Tooltip
         // 現在の表示内容を読む（Web UIブリッジが表示行を写すのに使う）
         // Reads the current presentation, which the Web UI bridge mirrors onto its tooltip topic
         public TooltipPresentation GetPresentation();
+        IObservable<TooltipPresentation> OnPresentationChanged { get; }
 
         // 現在の所有者。書き手が「自分の表示がまだ立っているか」を内容比較なしで判定する
         // The current owner, letting a writer tell whether its own show still stands without comparing content

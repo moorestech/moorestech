@@ -36,21 +36,25 @@ namespace Server.Protocol.PacketResponse
                 return ResponseCleanRoomYieldInfoMessagePack.CreateNoRole();
             }
             return CreateResponse(yieldPreview.GetPreview());
-        }
 
-        // サーバーの役割ごとの結果を役割ごとの factory へ写す（クライアントは Game.Block の型を持たない）
-        // Map each per-role server result onto its per-role factory, so the client never holds Game.Block types
-        private static ResponseCleanRoomYieldInfoMessagePack CreateResponse(CleanRoomYieldPreviewResult preview)
-        {
-            return preview switch
+            #region Internal
+
+            // サーバーの役割ごとの結果を役割ごとの factory へ写す（クライアントは Game.Block の型を持たない）
+            // Map each per-role server result onto its per-role factory, so the client never holds Game.Block types
+            static ResponseCleanRoomYieldInfoMessagePack CreateResponse(CleanRoomYieldPreviewResult preview)
             {
-                NoRolePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNoRole(),
-                NotOperablePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
-                WaferGradePreview waferGrade => ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(waferGrade.MaxGrade, waferGrade.PromotionChance),
-                LayerExposurePreview layerExposure => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate),
-                DicingPreview dicing => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(dicing.DieLossRate),
-                _ => throw new ArgumentOutOfRangeException(nameof(preview), preview.GetType().Name, "未対応の抽選の中身 / Unsupported yield preview"),
-            };
+                return preview switch
+                {
+                    NoRolePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNoRole(),
+                    NotOperablePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
+                    WaferGradePreview waferGrade => ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(waferGrade.MaxGrade, waferGrade.PromotionChance),
+                    LayerExposurePreview layerExposure => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate),
+                    DicingPreview dicing => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(dicing.DieLossRate),
+                    _ => throw new ArgumentOutOfRangeException(nameof(preview), preview.GetType().Name, "未対応の抽選の中身 / Unsupported yield preview"),
+                };
+            }
+
+            #endregion
         }
 
         #region MessagePack
@@ -147,7 +151,9 @@ namespace Server.Protocol.PacketResponse
                         view = default;
                         return false;
                     default:
-                        throw new ArgumentOutOfRangeException(nameof(Kind), Kind, "未対応の抽選の中身の種別 / Unsupported yield response kind");
+                        Debug.LogWarning($"Unreadable response kind: {Kind}");
+                        view = default;
+                        return false;
                 }
 
                 #region Internal

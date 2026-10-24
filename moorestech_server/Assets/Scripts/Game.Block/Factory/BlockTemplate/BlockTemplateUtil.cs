@@ -42,14 +42,12 @@ namespace Game.Block.Factory.BlockTemplate
             
             // タンク数と容量は機械パラメータ共通の口から読む（電気機械・歯車機械・清浄室機械で同じ）
             // Tank counts and capacity come from the shared machine-param interface (electric, gear and clean-room machines alike)
-            var inputTankCount = machineParam.InputTankCount;
-            var outputTankCount = machineParam.OutputTankCount;
             var innerTankCapacity = machineParam.InnerTankCapacity;
             
             var input = new VanillaMachineInputInventory(
                 blockId,
                 inputSlotCount,
-                inputTankCount,
+                machineParam.InputTankCount,
                 innerTankCapacity,
                 blockInventoryUpdateEvent,
                 blockInstanceId,
@@ -58,7 +56,7 @@ namespace Game.Block.Factory.BlockTemplate
             );
             
             var output = new VanillaMachineOutputInventory(
-                outputSlotCount, outputTankCount, innerTankCapacity, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
+                outputSlotCount, machineParam.OutputTankCount, innerTankCapacity, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, blockConnectorComponent);
 
             // モジュールスロットは第3レンジとして生成

@@ -97,33 +97,35 @@ namespace Game.CleanRoom.Info.Leak
                 return exposed;
             }
 
+
+            static void SelectMostEnclosedSeeds(IWorldBlockDatastore world, IReadOnlyList<Vector3Int> candidates, List<Vector3Int> seeds, List<Vector3Int> rayHits)
+            {
+                // 6方向レイが境界に当たる本数で採点し、最多（下限以上）の候補とその命中セルだけを残す
+                // Score candidates by boundary hits of six rays and keep only the best ones (at or above the minimum) with their hits
+                var bestHitCount = MinEnclosingRayHits;
+                foreach (var candidate in candidates)
+                {
+                    var hits = new List<Vector3Int>();
+                    foreach (var direction in CleanRoomLeakRays.Directions)
+                    {
+                        if (CleanRoomLeakRays.TryCastToBoundary(world, candidate, direction, out var hit)) hits.Add(hit);
+                    }
+
+                    if (hits.Count < bestHitCount) continue;
+                    if (bestHitCount < hits.Count)
+                    {
+                        bestHitCount = hits.Count;
+                        seeds.Clear();
+                        rayHits.Clear();
+                    }
+
+                    seeds.Add(candidate);
+                    rayHits.AddRange(hits);
+                }
+            }
             #endregion
         }
 
-        private static void SelectMostEnclosedSeeds(IWorldBlockDatastore world, IReadOnlyList<Vector3Int> candidates, List<Vector3Int> seeds, List<Vector3Int> rayHits)
-        {
-            // 6方向レイが境界に当たる本数で採点し、最多（下限以上）の候補とその命中セルだけを残す
-            // Score candidates by boundary hits of six rays and keep only the best ones (at or above the minimum) with their hits
-            var bestHitCount = MinEnclosingRayHits;
-            foreach (var candidate in candidates)
-            {
-                var hits = new List<Vector3Int>();
-                foreach (var direction in CleanRoomLeakRays.Directions)
-                {
-                    if (CleanRoomLeakRays.TryCastToBoundary(world, candidate, direction, out var hit)) hits.Add(hit);
-                }
 
-                if (hits.Count < bestHitCount) continue;
-                if (bestHitCount < hits.Count)
-                {
-                    bestHitCount = hits.Count;
-                    seeds.Clear();
-                    rayHits.Clear();
-                }
-
-                seeds.Add(candidate);
-                rayHits.AddRange(hits);
-            }
-        }
     }
 }

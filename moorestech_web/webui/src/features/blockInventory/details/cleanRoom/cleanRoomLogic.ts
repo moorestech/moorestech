@@ -1,8 +1,8 @@
 import type { CleanRoomDetailData, CleanRoomSummaryData } from "@/bridge";
 import { L, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 
-export type CleanRoomLine = { key: TranslationKey; params?: InterpolationValues };
-export type CleanRoomDisplay = {
+type CleanRoomLine = { key: TranslationKey; params?: InterpolationValues };
+type CleanRoomDisplay = {
   headline: CleanRoomLine;
   headlineInsufficient: boolean;
   air: CleanRoomLine | null;
@@ -65,8 +65,10 @@ function headlineOnly(headline: CleanRoomLine, insufficient: boolean, haltReason
   return { headline, headlineInsufficient: insufficient, air: null, filters: [], noFilter: null, haltReason };
 }
 
+const HALT_REASON_LINES: Record<NonNullable<CleanRoomDetailData["haltReason"]>, CleanRoomLine> = {
+  notEnclosed: { key: L.ui.blockInventory.cleanRoomHaltNotEnclosed },
+  classOut: { key: L.ui.blockInventory.cleanRoomHaltClassOut },
+};
 function haltReasonLine(haltReason: CleanRoomDetailData["haltReason"]): CleanRoomLine | null {
-  if (haltReason === "notEnclosed") return { key: L.ui.blockInventory.cleanRoomHaltNotEnclosed };
-  if (haltReason === "classOut") return { key: L.ui.blockInventory.cleanRoomHaltClassOut };
-  return null;
+  return haltReason === undefined ? null : HALT_REASON_LINES[haltReason];
 }

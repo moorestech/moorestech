@@ -55,6 +55,51 @@ namespace Tests.CombinedTest.Core.Machine
             var (baseItemId, lv2ItemId) = GetBaseAndLv2ItemIds(recipe);
             Assert.AreEqual(recipe.OutputItems[0].Count * 2, CountOutputItem(inventory, baseItemId));
             Assert.AreEqual(0, CountOutputItem(inventory, lv2ItemId));
+
+            #region Internal
+
+            static void InsertRecipeInputs(IBlock block, VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
+            {
+                MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+                foreach (var inputItem in recipe.InputItems)
+                {
+                    inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
+                }
+            }
+
+            // 毎tick有効要求電力ちょうどを供給して進める（電力比1.0で確率的丸めを排除する）
+            // Advance ticks supplying exactly the effective request power (ratio 1.0 removes probabilistic rounding)
+            static void AdvanceTicksWithFullPower(int ticks, VanillaMachineProcessorComponent processor)
+            {
+                for (var i = 0; i < ticks; i++)
+                {
+                    processor.SupplyExternalPower(processor.EffectiveRequestPower);
+                    GameUpdater.UpdateOneTick();
+                }
+            }
+
+            static ModuleMasterElement GetModuleOfAxis(string effectAxis)
+            {
+                return MasterHolder.ItemMaster.Items.Modules.First(m => m.EffectAxis == effectAxis);
+            }
+
+            static IItemStack CreateModuleItem(ModuleMasterElement moduleElement)
+            {
+                return ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(moduleElement.ItemGuid), 1);
+            }
+
+            static int CountOutputItem(VanillaMachineBlockInventoryComponent inventory, ItemId itemId)
+            {
+                var total = 0;
+                for (var i = InputSlotCount; i < InputSlotCount + OutputSlotCount; i++)
+                {
+                    var stack = inventory.GetItem(i);
+                    if (stack.Id == itemId) total += stack.Count;
+                }
+                return total;
+            }
+
+            #endregion
         }
 
         [Test]
@@ -104,45 +149,5 @@ namespace Tests.CombinedTest.Core.Machine
             return (baseItemId, lv2ItemId);
         }
 
-        private static void InsertRecipeInputs(IBlock block, VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
-        {
-            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
-            foreach (var inputItem in recipe.InputItems)
-            {
-                inventory.InsertItem(ServerContext.ItemStackFactory.Create(inputItem.ItemGuid, inputItem.Count));
-            }
-        }
-
-        // 毎tick有効要求電力ちょうどを供給して進める（電力比1.0で確率的丸めを排除する）
-        // Advance ticks supplying exactly the effective request power (ratio 1.0 removes probabilistic rounding)
-        private static void AdvanceTicksWithFullPower(int ticks, VanillaMachineProcessorComponent processor)
-        {
-            for (var i = 0; i < ticks; i++)
-            {
-                processor.SupplyExternalPower(processor.EffectiveRequestPower);
-                GameUpdater.UpdateOneTick();
-            }
-        }
-
-        private static ModuleMasterElement GetModuleOfAxis(string effectAxis)
-        {
-            return MasterHolder.ItemMaster.Items.Modules.First(m => m.EffectAxis == effectAxis);
-        }
-
-        private static IItemStack CreateModuleItem(ModuleMasterElement moduleElement)
-        {
-            return ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(moduleElement.ItemGuid), 1);
-        }
-
-        private static int CountOutputItem(VanillaMachineBlockInventoryComponent inventory, ItemId itemId)
-        {
-            var total = 0;
-            for (var i = InputSlotCount; i < InputSlotCount + OutputSlotCount; i++)
-            {
-                var stack = inventory.GetItem(i);
-                if (stack.Id == itemId) total += stack.Count;
-            }
-            return total;
-        }
     }
 }

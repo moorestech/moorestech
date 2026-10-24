@@ -34,7 +34,7 @@ namespace Game.CleanRoom.Info
             // 境界は隣接する部屋、室内のブロックは自分が属する部屋を引く
             // A boundary resolves its adjacent rooms; an interior block resolves the room it belongs to
             var rooms = isBoundary ? CollectAdjacentRooms() : CollectOwnRoom();
-            if (rooms.Count > 0) return new CleanRoomEnclosedInfo(rooms.Select(room => CleanRoomRoomSummary.Create(room, _world)).ToList());
+            if (0 < rooms.Count) return new CleanRoomEnclosedInfo(rooms.Select(room => CleanRoomRoomSummary.Create(room, _world)).ToList());
 
             // 部屋が無ければ漏れ箇所を探して返す
             // Without a room, probe for the openings

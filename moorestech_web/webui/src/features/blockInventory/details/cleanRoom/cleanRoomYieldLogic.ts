@@ -1,7 +1,7 @@
 import type { CleanRoomYieldData } from "@/bridge";
 import { L, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 
-export type CleanRoomYieldLine = { testId: string; key: TranslationKey; params: InterpolationValues };
+type CleanRoomYieldLine = { testId: string; key: TranslationKey; params: InterpolationValues };
 
 // 役割に関係する行だけを作る。割合は小数1桁の百分率で出す
 // Builds only the rows relevant to the role; rates are shown as percentages with one decimal

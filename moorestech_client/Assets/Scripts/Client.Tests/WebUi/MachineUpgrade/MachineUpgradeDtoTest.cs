@@ -43,7 +43,7 @@ namespace Client.Tests.WebUi.MachineUpgrade
 
             // 上限を2へ上げると最高レベルも2になる
             // Raising the cap to 2 raises the max level to 2
-            _serviceProvider.GetService<ILevelInheritanceCraftCapUnlocker>().UnlockCraftCap(ForUnitTestLevelInheritanceIds.CappedTargetBaseGuid, 2);
+            _serviceProvider.GetService<ILevelInheritanceCraftCapUnlocker>().ApplyUnlockLevelInheritanceCraftLevelAction(MasterHolder.ResearchMaster.GetResearch(ForUnitTestLevelInheritanceIds.CraftCapResearchGuid).ClearedActions.items[0]);
             Assert.AreEqual(2, MachineRecipeLevelInheritanceDtoBuilder.Build(recipe, craftCapLookup).MaxCraftableLevel);
         }
 
