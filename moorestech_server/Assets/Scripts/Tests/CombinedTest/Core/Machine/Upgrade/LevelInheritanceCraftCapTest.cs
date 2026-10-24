@@ -2,6 +2,7 @@ using Game.Block.Blocks.Machine;
 using Game.Context;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Block.Interface.MachineUpgrade;
 using Game.PlayerIdentity;
 using Game.Research;
@@ -119,6 +120,19 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             {
                 MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
                 inventory.SetItem(0, Create(ForUnitTestLevelInheritanceIds.Source(2), 2));
+                Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
+
+                // 残留入力を保存し、別コンテナの正規ローダーで復元する
+                // Save the retained input and restore it through a fresh container's real loader
+                var saveJson = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
+                (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+                ((WorldLoaderFromJson)provider.GetRequiredService<IWorldSaveDataLoader>()).Load(saveJson);
+                block = ServerContext.WorldBlockDatastore.GetBlock(new Vector3Int(1, 1, 1));
+                inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+                processor = block.GetComponent<VanillaMachineProcessorComponent>();
+                recipe = LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.CappedInheritRecipeGuid);
+                playerId = PlayerIdentityTestHelper.Register(provider.GetRequiredService<PlayerIdentityRegistry>(), "steam:1").PlayerId;
+                Assert.AreEqual(1, provider.GetRequiredService<ILevelInheritanceCraftCapLookup>().GetCraftCap(ForUnitTestLevelInheritanceIds.CappedTargetBaseGuid));
             }
             else
             {

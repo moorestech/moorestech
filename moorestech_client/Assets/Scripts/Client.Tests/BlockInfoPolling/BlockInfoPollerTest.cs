@@ -3,6 +3,9 @@ using System.Collections;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Client.Game.InGame.BlockInfoPolling;
+using Client.Game.InGame.CleanRoom;
+using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;
+using Server.Protocol.PacketResponse;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using NUnit.Framework;
@@ -67,6 +70,36 @@ namespace Client.Tests.BlockInfoPolling
             // Stopping returns it to not fetched
             poller.Stop();
             Assert.AreEqual(BlockInfoFetchState.NotFetched, poller.State);
+        });
+
+        [UnityTest]
+        public IEnumerator InvalidRoomWireResponseClearsAndNotifiesTest() => UniTask.ToCoroutine(async () =>
+        {
+            var valid = GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(CleanRoomLeakMessagePack.CreateNoEnclosure());
+            var invalid = GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateBlockNotFound();
+            invalid.Kind = (CleanRoomInfoResponseKind)999;
+            var source = new WireResponsePollSource<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>(new CleanRoomInfoPollSource());
+            await source.AssertInvalidResponseClearsSnapshot(valid, invalid);
+        });
+
+        [UnityTest]
+        public IEnumerator InvalidYieldWireResponseClearsAndNotifiesTest() => UniTask.ToCoroutine(async () =>
+        {
+            var valid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(3, 0.5);
+            var invalid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNoRole();
+            invalid.Kind = (CleanRoomYieldResponseKind)999;
+            var source = new WireResponsePollSource<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView>(new CleanRoomYieldInfoPollSource());
+            await source.AssertInvalidResponseClearsSnapshot(valid, invalid);
+        });
+
+        [UnityTest]
+        public IEnumerator InvalidStallWireResponseClearsAndNotifiesTest() => UniTask.ToCoroutine(async () =>
+        {
+            var valid = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateStalled(MachineInputStallReasonKind.AboveCraftCap, 12);
+            var invalid = GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack.CreateNotStalled();
+            invalid.Kind = (MachineInputStallResponseKind)999;
+            var source = new WireResponsePollSource<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView>(new MachineInputStallPollSource());
+            await source.AssertInvalidResponseClearsSnapshot(valid, invalid);
         });
 
         private sealed class ScriptedResponse

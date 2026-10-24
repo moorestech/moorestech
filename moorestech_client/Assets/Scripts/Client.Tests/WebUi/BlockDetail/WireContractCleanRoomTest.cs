@@ -1,4 +1,17 @@
 using System.Collections.Generic;
+using System.Collections;
+using System.Reflection;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockInfoPolling;
+using Client.Game.InGame.CleanRoom;
+using Client.Tests.BlockInfoPolling;
+using Client.WebUiHost.Game.Topics.BlockDetail;
+using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using Game.Block.Interface.State;
+using MessagePack;
+using Server.Event.EventReceive;
+using UnityEngine.TestTools;
 using System.IO;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
@@ -93,6 +106,38 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             AssertLeakMapsTo(CleanRoomDetectionPendingLeakView.Instance, "detecting", null);
         }
+
+        [UnityTest]
+        public IEnumerator InvalidOperabilityWireValueClearsSectionAtApplyTest() => UniTask.ToCoroutine(async () =>
+        {
+            // 部屋応答を復号して取得済みにし、実Applyへ渡す
+            // Decode the room response into a fetched poller and pass it to the real Apply
+            var source = new WireResponsePollSource<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>(new CleanRoomInfoPollSource());
+            var poller = new BlockInfoPoller<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView>(source, "CleanRoom", System.TimeSpan.FromSeconds(1));
+            poller.Start(new BlockInstanceId(1));
+            await source.Respond(GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(CleanRoomLeakMessagePack.CreateNoEnclosure()));
+            var cache = new BlockNetworkInfoCache();
+            typeof(BlockNetworkInfoCache).GetField("_cleanRoomPoller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(cache, poller);
+            typeof(BlockNetworkInfoCache).GetProperty(nameof(BlockNetworkInfoCache.CleanRoomTarget)).SetValue(cache, CleanRoomDetailTarget.Machine);
+
+            // 既存の状態注入前例に従い、稼働可否も実MessagePackで復号する
+            // Follow the existing state-injection fixture and decode operability through real MessagePack
+            var gameObject = new GameObject("InvalidOperabilityTest");
+            var block = gameObject.AddComponent<BlockGameObject>();
+            var state = new BlockState(new Dictionary<string, byte[]>
+            {
+                { CleanRoomOperabilityStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(new CleanRoomOperabilityStateDetail((CleanRoomOperability)99)) },
+            });
+            var wire = MessagePackSerializer.Serialize(new BlockStateMessagePack(state, Vector3Int.zero));
+            typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(block, MessagePackSerializer.Deserialize<BlockStateMessagePack>(wire));
+            var dto = new BlockInventoryDto { CleanRoom = new CleanRoomDetailDto { Kind = "enclosed" } };
+            LogAssert.Expect(LogType.Warning, "Unreadable clean-room operability: 99");
+            Assert.DoesNotThrow(() => CleanRoomDetailDtoBuilder.Apply(dto, block, cache));
+            Assert.IsNull(dto.CleanRoom);
+            cache.Clear();
+            Object.DestroyImmediate(gameObject);
+        });
 
         private static void AssertLeakMapsTo(CleanRoomLeakView leak, string expectedKind, int? expectedMaxRoomVolume)
         {

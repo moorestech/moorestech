@@ -182,7 +182,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     int FindMainSlot(ILocalPlayerInventory inventory, ItemId itemId) => Enumerable.Range(0, inventory.MainSlotCount).Where(i => inventory[i].Id == itemId && 0 < inventory[i].Count).DefaultIfEmpty(-1).First();
     string FirstTooltipKey() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>().GetPresentation() is { Visible: true } shown ? shown.Lines[0].Key.Key : string.Empty;
     Transform[] ActiveMarkers() => UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None)
-        .Where(renderer => renderer.gameObject.activeInHierarchy && renderer.gameObject.name == CleanRoomLeakMarkerVisualizer.MarkerName).Select(renderer => renderer.transform).ToArray();
+        .Where(renderer => renderer.gameObject.activeInHierarchy && renderer.gameObject.name == "CleanRoomLeakMarker").Select(renderer => renderer.transform).ToArray();
     void WirePower(IBlock filter, IBlock machine)
     {
         // 室外の発電機へ燃料を直接入れ、電線で清浄機と機械へ給電する（接続処理が電力網を dirty にする）
