@@ -3285,7 +3285,7 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 
 ### Task 15: PR 作成とセッションを閉じられる状態
 
-- [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
+- [x] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
 
 順序:
 1. 土台をそろえる: S2 の PR が origin/master へ入っていれば `git merge origin/master`、入っていなければ `git merge origin/feat/tier9-compute-data-loop` で S2 の最新を取り込み直す（S2 の途中のコミットだけを持つ状態で出さない）。取り込んだ後に `WorldSaveAllInfo.CurrentVersion` と `Game.SaveLoad/Migration/Steps/` を見て、S3 の移行ステップと同じ FromVersion のステップ（S1 など）が先に入っていたら、判断記録 P11 の規則で S3 の移行ステップを先に入った版の続きへ繰り上げる（FromVersion・CurrentVersion・クラス名とファイル名・テストの版・3箇所の登録の並び）。`uloop compile --project-path ./moorestech_client`（ErrorCount 0）と Task 7〜9 のテスト（`SaveMigrationChainTest` を含む）を通して push する。
