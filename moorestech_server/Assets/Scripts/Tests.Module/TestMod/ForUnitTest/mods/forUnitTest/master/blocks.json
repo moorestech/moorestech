@@ -113,7 +113,8 @@
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": true
       },
       "blockGuid": "00000000-0000-0000-0000-000000000001",
       "category": "テスト",
@@ -1731,7 +1732,8 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        }
+        },
+        "allowQualityModule": false
       },
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
       "category": "テスト",
@@ -2587,7 +2589,8 @@
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockGuid": "00000000-0000-0000-0000-000000000019",
       "category": "テスト",
@@ -2707,7 +2710,8 @@
         "inputTankCount": 0,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
       "category": "テスト",
@@ -2827,7 +2831,8 @@
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
       "category": "テスト",
@@ -3594,7 +3599,8 @@
         "inputTankCount": 3,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
       "category": "テスト",
@@ -5225,7 +5231,8 @@
         },
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockSize": [
         1,

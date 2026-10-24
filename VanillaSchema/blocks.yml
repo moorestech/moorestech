@@ -40,6 +40,8 @@ defineInterface:
   - key: moduleSlotCount
     type: integer
     default: 0
+  - key: allowQualityModule
+    type: boolean
 - interfaceName: IChestParam
   properties:
   - key: itemSlotCount
@@ -313,6 +315,8 @@ properties:
         - key: moduleSlotCount
           type: integer
           default: 0
+        - key: allowQualityModule
+          type: boolean
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
         - key: maxWireConnectionCount
@@ -542,6 +546,8 @@ properties:
         - key: moduleSlotCount
           type: integer
           default: 0
+        - key: allowQualityModule
+          type: boolean
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
       - when: SimpleGearGenerator
@@ -1094,6 +1100,8 @@ properties:
         - key: moduleSlotCount
           type: integer
           default: 0
+        - key: allowQualityModule
+          type: boolean
         - key: fluidInventoryConnectors
           ref: fluidInventoryConnects
         - key: maxWireConnectionCount

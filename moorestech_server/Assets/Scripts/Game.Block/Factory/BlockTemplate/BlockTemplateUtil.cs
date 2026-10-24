@@ -68,7 +68,7 @@ namespace Game.Block.Factory.BlockTemplate
             // モジュールスロットは第3レンジとして生成
             // Create module slots as the third range
             var module = new VanillaMachineModuleInventory(
-                machineParam.ModuleSlotCount, blockInventoryUpdateEvent, blockInstanceId,
+                machineParam.ModuleSlotCount, machineParam.AllowQualityModule, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, outputSlotCount);
 
             return (input, output, module);

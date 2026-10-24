@@ -34,6 +34,9 @@ namespace Game.Block.Blocks.Machine.Module
                 var module = MasterHolder.ItemMaster.GetModuleByItemIdOrNull(stack.Id);
                 if (module == null) continue;
 
+                // silent-ok: 配置は CheckPlacement が拒否しログを出すので、ここへ来るのは制限導入前のセーブ由来だけ / プレイヤーは機械UIのモジュール欄でそのモジュールを見て取り出せる
+                if (!_moduleInventory.IsModuleEffective(module)) continue;
+
                 modules.Add(new MachineModuleEffect.EquippedModule(module, stack.Count));
             }
 
