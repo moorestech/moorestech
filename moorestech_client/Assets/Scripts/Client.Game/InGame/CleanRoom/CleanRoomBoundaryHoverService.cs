@@ -1,4 +1,3 @@
-using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockInfoPolling;
 using Client.Game.InGame.Control;
@@ -19,7 +18,6 @@ namespace Client.Game.InGame.CleanRoom
         private readonly CleanRoomLeakMarkerVisualizer _markers = new();
         private readonly BlockInfoPoller<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack, CleanRoomInfoView> _poller = CleanRoomInfoPollSource.CreatePoller();
         private BlockGameObject _trackingBlock;
-        private TooltipLine[] _currentLines = Array.Empty<TooltipLine>();
 
         public CleanRoomBoundaryHoverService(IMouseCursorTooltip tooltip)
         {
@@ -28,12 +26,6 @@ namespace Client.Game.InGame.CleanRoom
             // 応答ごとに状態が決まったら、行と印を作り直す
             // Rebuild the lines and markers whenever a response settles the poll state
             _poller.OnBlockInfoSnapshotUpdated.Subscribe(_ => OnRoomInfoUpdated());
-            // 他の表示が消えたときだけ再提示する
-            // Present again only after another presentation disappears
-            tooltip.OnPresentationChanged.Subscribe(presentation =>
-            {
-                if (!presentation.Visible && 0 < _currentLines.Length) _tooltipPresenter.Present(_currentLines);
-            });
 
             #region Internal
 
@@ -47,8 +39,9 @@ namespace Client.Game.InGame.CleanRoom
                     return;
                 }
 
-                _currentLines = CleanRoomTooltipLines.Build(view);
-                _tooltipPresenter.Present(_currentLines);
+                // ハッチの操作案内など他の表示があっても、その下に併記する
+                // List it under any other show such as a hatch's interact hint
+                _tooltipPresenter.Present(CleanRoomTooltipLines.Build(view));
 
                 // 隙間があるときだけ、そのセルに印を出す
                 // Mark the gap cells only when openings exist
@@ -99,11 +92,8 @@ namespace Client.Game.InGame.CleanRoom
 
         private void ClearDisplay()
         {
-            _currentLines = Array.Empty<TooltipLine>();
             _tooltipPresenter.Hide();
             _markers.HideAll();
         }
-
-
     }
 }

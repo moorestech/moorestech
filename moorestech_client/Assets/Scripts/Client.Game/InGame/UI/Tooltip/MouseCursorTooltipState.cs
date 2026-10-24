@@ -1,17 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 
 namespace Client.Game.InGame.UI.Tooltip
 {
     /// <summary>
-    ///     カーソル付近に出す文言の所有者付き表示状態。描画は Web UI が tooltip topic 経由で行う
-    ///     Owner-tracked state of the cursor tooltip; the Web UI renders it through the tooltip topic
+    ///     カーソル付近に出す文言の所有者付き表示状態。主表示の下に補足行を1組添えられる。描画は Web UI が tooltip topic 経由で行う
+    ///     Owner-tracked state of the cursor tooltip with one supplement group under the main show; the Web UI renders it through the tooltip topic
     /// </summary>
     public class MouseCursorTooltipState : IMouseCursorTooltip
     {
         private readonly ReactiveProperty<TooltipPresentation> _presentation = new(TooltipPresentation.Hidden);
+
+        private IReadOnlyList<TooltipLine> _mainLines = Array.Empty<TooltipLine>();
+        private TooltipOwner _supplementOwner;
+        private IReadOnlyList<TooltipLine> _supplementLines = Array.Empty<TooltipLine>();
 
         public TooltipOwner CurrentOwner { get; private set; }
 
@@ -41,7 +46,8 @@ namespace Client.Game.InGame.UI.Tooltip
             }
 
             CurrentOwner = owner;
-            _presentation.Value = new TooltipPresentation(lines);
+            _mainLines = lines;
+            Publish();
         }
 
         // 自分が出していない表示は消さない（毎フレームHideする書き手が他者の表示を潰さないため）
@@ -51,7 +57,40 @@ namespace Client.Game.InGame.UI.Tooltip
             if (CurrentOwner != owner) return;
 
             CurrentOwner = null;
-            _presentation.Value = TooltipPresentation.Hidden;
+            _mainLines = Array.Empty<TooltipLine>();
+            Publish();
+        }
+
+        // 補足も最後に出した主体のものになり、主表示の所有者とは独立に扱う
+        // The supplement also belongs to its last caller and is tracked apart from the main owner
+        public void ShowSupplement(TooltipOwner owner, IReadOnlyList<TooltipLine> lines)
+        {
+            if (lines.Count == 0)
+            {
+                HideSupplement(owner);
+                return;
+            }
+
+            _supplementOwner = owner;
+            _supplementLines = lines;
+            Publish();
+        }
+
+        public void HideSupplement(TooltipOwner owner)
+        {
+            if (_supplementOwner != owner) return;
+
+            _supplementOwner = null;
+            _supplementLines = Array.Empty<TooltipLine>();
+            Publish();
+        }
+
+        // 主表示の後ろに補足を並べた1つの表示にする。同じ内容なら ReactiveProperty が通知を抑える
+        // Compose one presentation with the supplement after the main lines; the ReactiveProperty suppresses unchanged content
+        private void Publish()
+        {
+            IReadOnlyList<TooltipLine> lines = _supplementLines.Count == 0 ? _mainLines : _mainLines.Concat(_supplementLines).ToArray();
+            _presentation.Value = new TooltipPresentation(lines);
         }
     }
 }

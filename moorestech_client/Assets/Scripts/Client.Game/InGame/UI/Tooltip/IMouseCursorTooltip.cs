@@ -21,5 +21,10 @@ namespace Client.Game.InGame.UI.Tooltip
         public void Show(TooltipOwner owner, LocalizationKey key);
         public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<string> textParams);
         public void Show(TooltipOwner owner, IReadOnlyList<TooltipLine> lines);
+
+        // 主表示の下に添える補足行。主表示の所有者を奪わず、主表示が消えても補足だけで立つ
+        // Supplement lines appended under the main show; they never take the main ownership and stand alone once the main show is gone
+        public void ShowSupplement(TooltipOwner owner, IReadOnlyList<TooltipLine> lines);
+        public void HideSupplement(TooltipOwner owner);
     }
 }

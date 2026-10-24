@@ -22,22 +22,6 @@ namespace Client.Game.InGame.UI.Tooltip
             _tooltip = tooltip;
         }
 
-        // 他の書き手が表示中か。譲るかどうかは呼び出し側が決める
-        // Whether another writer is showing; the caller decides whether to yield
-        private bool IsShownByOther()
-        {
-            var owner = _tooltip.CurrentOwner;
-            return owner != null && !ReferenceEquals(owner, _tooltipOwner);
-        }
-
-        public bool TryShowWithoutReplacingOther(IReadOnlyList<TooltipLine> lines)
-        {
-            // silent-ok: 他の所有者の表示を優先する / 表示解放の通知で再提示する
-            if (IsShownByOther()) return false;
-            Show(lines);
-            return true;
-        }
-
         public void Show(IReadOnlyList<TooltipLine> lines)
         {
             // 毎フレーム呼ばれるため、自分の表示が出たままで内容も同じフレームは複製もShowも行わない
@@ -89,7 +73,5 @@ namespace Client.Game.InGame.UI.Tooltip
             _lastShown = Array.Empty<TooltipLine>();
             _tooltip.Hide(_tooltipOwner);
         }
-
-
     }
 }

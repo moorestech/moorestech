@@ -6,8 +6,8 @@ using NUnit.Framework;
 namespace Client.Tests.Tooltip
 {
     /// <summary>
-    ///     設置フィードバックと部屋のツールチップが共有する書き手の、同一内容スキップ・上書き後の出し直し・自分の分だけの Hide を固定する
-    ///     Pins the shared writer's unchanged-content skip, re-show after an overwrite and own-only Hide used by placement feedback and the room tooltip
+    ///     設置フィードバックの書き手の、同一内容スキップ・上書き後の出し直し・自分の分だけの Hide を固定する
+    ///     Pins the placement feedback writer's unchanged-content skip, re-show after an overwrite and own-only Hide
     /// </summary>
     public class OwnedTooltipLinesWriterTest
     {
@@ -33,16 +33,12 @@ namespace Client.Tests.Tooltip
             // A new instance with the same keys and TextParams is not shown again
             writer.Show(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) });
             Assert.AreSame(shownLines, _tooltip.GetPresentation().Lines);
-            Assert.IsTrue(writer.TryShowWithoutReplacingOther(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) }));
-            Assert.AreSame(shownLines, _tooltip.GetPresentation().Lines);
 
             // 他の書き手に上書きされたら、同じ内容でも出し直す
             // After another writer overwrites, the same content is shown again
             _tooltip.Show(new TooltipOwner(), LocalizationKeys.Ui.Tooltip.HoldToGet);
-            Assert.IsFalse(writer.TryShowWithoutReplacingOther(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) }));
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.HoldToGet.Key, _tooltip.GetPresentation().Lines[0].Key.Key);
             writer.Show(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) });
-            Assert.IsTrue(writer.TryShowWithoutReplacingOther(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.CleanRoomClass, new[] { "A" }) }));
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key, _tooltip.GetPresentation().Lines[0].Key.Key);
         }
 

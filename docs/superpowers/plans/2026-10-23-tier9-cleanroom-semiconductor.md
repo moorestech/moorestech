@@ -230,7 +230,7 @@
 | 手動移動の拒否通知 | `InventoryItemMoveService` が `IsAllowedToPlace` false で `RejectedByDestination`、`InventoryItemMoveRejectionReporter` がログと通知 | 従う（新たな通知は作らない） |
 | ブロックUIの集約情報の同期 | `GetElectricNetworkInfoProtocol` + `BlockNetworkInfoCache.PollElectric`（開いている間1秒） | 従う。表示中だけ問い合わせる（ユーザー裁定。3点セットにはしない） |
 | 機械ごとの可変状態の配信 | `MachineBlockStateDetail`（`[MessagePackObject]`・const キー・`CreateState`）+ `IBlockStateObservable` | 従う |
-| カーソルツールチップの所有と同一内容スキップ | `PlacementFeedbackTooltipPresenter`（`TooltipOwner`・同一行なら Show しない） | 所有者比較と同一内容スキップは従う（所有者トークン・同一内容スキップ・複製して Show・自分の分だけ Hide の本体を `OwnedTooltipLinesWriter` へ移して共有）。他の所有者が出している間は譲る部分は新規パターン（前例は譲らず上書きする） |
+| カーソルツールチップの所有と同一内容スキップ | `PlacementFeedbackTooltipPresenter`（`TooltipOwner`・同一行なら Show しない） | 所有者比較と同一内容スキップは従う（所有者トークン・同一内容スキップ・複製して Show・自分の分だけ Hide の本体を `OwnedTooltipLinesWriter` へ移して共有）。他の所有者が出している間は譲る部分は新規パターン（前例は譲らず上書きする） 【W08 で改訂】部屋の要約は譲らず、`IMouseCursorTooltip.ShowSupplement` の補足行として他の書き手（ハッチの操作案内等）の下に併記する。出所: ユーザー裁定 2026-10-25（`.decisions/2026-10-25-ハッチでは操作案内と部屋の要約を併記する.md`） |
 | 世界へのマーカー表示 | `CellRangeBoxVisualizer`（Primitive Cube・Collider 破棄・プレビュー材質の複製と着色） | 従う |
 | webui の詳細セクション | `GearSection` + `detailLogic.gearRowDisplay`（キーと引数を純関数で作り、`t` で描く） | 従う |
 | wire 契約の照合 | `WireContractPhaseB2Test.AssertMatchesFixture` + `wireContract.test.ts` の cases | 従う |
@@ -21950,7 +21950,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - Part A はセーブ形式を変えない。ドアの大きさの変更とパネルの追加は master だけで行い、クリーンルーム系ブロックは unlock されておらずテスターのセーブに存在しない。出所: agent前提（moorestech_master server_v8/mods/moorestechAlphaMod_8/master/blocks.json）
 - webui の `schemas/inventory.ts`（215行）から列車の schema を `schemas/train/index.ts` へ移す。`schemas/` 直下は10本なので、新しい schema はサブディレクトリに置く。出所: agent前提（moorestech_web/webui/src/bridge/contract/schemas/energyConversion/index.ts）
 - スロットに testid（`main-slot-${i}`・`${grid}-slot-${index}`）を足し、録画テストの `ClickWebUi` が個々のスロットを指せるようにする。出所: agent前提（.agents/skills/unity-playmode-recorded-playtest/references/write-scenario.md）
-- カーソルツールチップは、他の書き手が出している間は譲る。出所: agent前提（moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs）
+- カーソルツールチップは、他の書き手が出している間は譲る。出所: agent前提（moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Feedback/PlacementFeedbackTooltipPresenter.cs） 【W08 で改訂】部屋の要約は譲らず、`IMouseCursorTooltip.ShowSupplement` の補足行として他の書き手（ハッチの操作案内等）の下に併記する。出所: ユーザー裁定 2026-10-25（`.decisions/2026-10-25-ハッチでは操作案内と部屋の要約を併記する.md`）
 - 部屋照会の MessagePack 型はプリミティブ引数の ctor だけを持たせ、ドメイン型からの詰め替えはサーバー側のファクトリが担う。クライアントのアセンブリが Game.CleanRoom を参照しないようにするため。出所: agent前提（moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/GetElectricNetworkInfoProtocol.cs）
 
 ### Part C（機械の汎用機構） の判断
@@ -22062,7 +22062,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - 部屋照会の MessagePack 応答は平らな wire（Kind・Rooms・Leak）のまま、ctor を private にして種別ごとの static factory で組み、`TryGetView` で閉じた型へ読み替える。MessagePack の `[Union]` は前例が無く、wire 形と fixture を変えずに種別を型で閉じられる。出所: agent前提（moorestech_server/Assets/Scripts/Server.Protocol に `[Union]` の使用例が無い）
 - webui 向けの C# wire DTO（A8 `CleanRoomDetailDto` ほか）は種別ごとの null 省略の形のまま据え置く。C# は wire へ詰め替えるだけで、閉じる役は TS の zod の discriminatedUnion が担う。出所: agent前提（review_phase26 強4。A9 の zod スキーマとそのテスト）
 - A9 の `t()` の戻り値は空・欠損の分岐なしで表示へ渡す。キーの存在は既存の localizationKeysFreshness と allScreensI18n のテストが保証する。出所: agent前提（moorestech_web/webui の既存 i18n テスト）
-- A10 の部屋のツールチップは、他の所有者が表示している間は出さずに譲る。前例 `PlacementFeedbackTooltipPresenter` は譲らず上書きするので、これは新規パターンである。部屋の要約は照準中ずっと出す常駐の情報で、インタラクト案内や設置フィードバックはその場の操作への応答なので後者を優先する。出所: agent前提（review_phase1 注目点8・PlacementFeedbackTooltipPresenter.cs）
+- A10 の部屋のツールチップは、他の所有者が表示している間は出さずに譲る。前例 `PlacementFeedbackTooltipPresenter` は譲らず上書きするので、これは新規パターンである。部屋の要約は照準中ずっと出す常駐の情報で、インタラクト案内や設置フィードバックはその場の操作への応答なので後者を優先する。出所: agent前提（review_phase1 注目点8・PlacementFeedbackTooltipPresenter.cs） 【W08 で改訂】部屋の要約は譲らず、`IMouseCursorTooltip.ShowSupplement` の補足行として他の書き手（ハッチの操作案内等）の下に併記する。出所: ユーザー裁定 2026-10-25（`.decisions/2026-10-25-ハッチでは操作案内と部屋の要約を併記する.md`）
 - ブロック単位の1秒ポーリングは汎用の `BlockInfoPoller` 1本にし、通信失敗は前回値を保って警告ログ、ブロック消失は値を捨てて `Vanished` にし、警告ログを1回出して問い合わせを止める（次の `Start` まで）、で A8・A10・B6 をそろえる。出所: agent前提（review_phase26 弱。既存 `WorldQueryApi` が通信失敗で null を返す約束）
 - 部屋の見出しの種別（class／classOut）はサーバーのクラス種別から写して DTO に載せ、TS と C# はそれを読むだけにする。出所: agent前提（review_phase26 弱）
 - アイテムハッチに1ハッチあたり毎秒の搬送量の上限を足す。出所: ユーザー裁定（.decisions/2026-10-23-アイテムハッチに搬送量の上限を足して大部屋集約を有利にする.md）
@@ -22104,7 +22104,7 @@ Expected: 1行目と2行目が一致し、3行目に `origin/feat/tier9-cleanroo
 - `BlockNetworkInfoCache.OnUpdated` は `event Action` をやめ、UniRx の `IObservable<Unit>` にする。出所: agent前提（AGENTS.md「イベント発火のためにActionを使わない。UniRxを使う」。review2_phase1 注目点4）
 - `BlockNetworkInfoCache.TryGetCleanRoom` は未取得と消失をどちらも false に畳む。今の読み手（A8 の部屋欄）はどちらでも欄を出さず、消失の警告はポーラーが出すため。出所: agent前提（review2_phase26 弱）
 - 部屋欄を出すブロックの判定は `BlockNetworkInfoCache.ToCleanRoomTarget` の switch 1か所で `CleanRoomDetailTarget` に決め、組み立ては網羅 switch で口を選び、残りは例外にする。出所: agent前提（review2_phase26 弱）
-- カーソルツールチップの「所有者トークン・同一内容なら Show を省く・複製して Show・自分の分だけ Hide」は共通の `OwnedTooltipLinesWriter` 1本にし、設置フィードバックと部屋のツールチップの違いは「他の書き手が出している間は譲る」1行だけにする。出所: agent前提（review2_phase26 弱。既存 `PlacementFeedbackTooltipPresenterTest` 7件で挙動が変わらないことを確かめる）
+- カーソルツールチップの「所有者トークン・同一内容なら Show を省く・複製して Show・自分の分だけ Hide」は共通の `OwnedTooltipLinesWriter` 1本にし、設置フィードバックと部屋のツールチップの違いは「他の書き手が出している間は譲る」1行だけにする。出所: agent前提（review2_phase26 弱。既存 `PlacementFeedbackTooltipPresenterTest` 7件で挙動が変わらないことを確かめる） 【W08 で改訂】部屋の要約は譲らず、`IMouseCursorTooltip.ShowSupplement` の補足行として他の書き手（ハッチの操作案内等）の下に併記する。出所: ユーザー裁定 2026-10-25（`.decisions/2026-10-25-ハッチでは操作案内と部屋の要約を併記する.md`）
 - 継承レシピの加工中ジョブを持つセーブを、そのレシピが消えた（GUID が変わった）マスタで開いたときは、継承レベルごとジョブを捨てて警告を出し、加工中の状態は Idle へ戻す。継承レシピのジョブで継承レベルが欠けたセーブは、補わずにロードを止める。出所: agent前提（既存の縮退 `BlockTemplateUtil.cs:150`・`CleanRoomMachineProcessorSaveState.cs:51-69`。review2_phase26 弱）
 - 「levelFamily の基準アイテムか」と「継承レシピの基準の入出力の探索」は、`Core.Master.Validator.MachineUpgrade.LevelInheritanceRecipeShape`（public）の1か所に置く。起動時の検証・実行時の `MachineRecipeLevelInheritanceUtil.BuildShape`・Part B の役割の検証がこれを使う。探索は「ちょうど1つなら番号、それ以外は null」で返し、呼び出し側は無条件の `.Value` を書かない。出所: agent前提（Game.Block.Interface.asmdef は Core.Master を参照している。review2_phase26 弱）
 - 「アイテムが基準の変種の何番目か」は、代用の `Core.Item.LevelFamilySubstituteUtil.ResolveAcceptedLevel` と継承元の `LevelInheritanceShape.ResolveSourceLevel` の2本のまま置く。両者が同じ答えを返すことは C11 の `SubstituteLevelMatchesInheritanceSourceLevelTest` で固定する。出所: agent前提（asmdef: Core.Item → Game.Context → Game.Block.Interface なので、Game.Block.Interface から Core.Item を参照すると循環する。review2_phase26 弱）
