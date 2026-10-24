@@ -111,7 +111,10 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         {
             var pending = SessionState.GetBool(SessionKey, false);
             var owned = SessionState.GetBool(OwnedSceneKey, false);
-            if (!pending && !owned) return; // silent-ok: この2fixtureが所有しない起動は変更しない / 各fixtureが隔離状態を検査する
+            // シーン処理権限を消費しても、復元完了までは実行所有を保つ
+            // Retain run ownership until restoration, independently of scene-processing permission
+            var ownsFixture = !string.IsNullOrEmpty(SessionState.GetString(OwnedRunKey, ""));
+            if (!pending && !owned && !ownsFixture) return; // silent-ok: この2fixtureが所有しない起動は変更しない / 各fixtureが隔離状態を検査する
             Debug.Log($"[BlockActionSceneIsolation cleanup] {reason}; pending={pending}, owned={owned}, playing={EditorApplication.isPlaying}");
             SessionState.SetBool(SessionKey, false);
             if (EditorApplication.isPlayingOrWillChangePlaymode)
