@@ -4,6 +4,7 @@ import { ElectricToGearDataSchema, GearToElectricDataSchema } from "./energyConv
 import { TrainPlatformDataSchema, TrainStationDetailSchema, TrainTimetableStateSchema } from "./train";
 import { CleanRoomDetailDataSchema, CleanRoomYieldDataSchema } from "./cleanRoom";
 import { MachineInputStallDataSchema } from "./machineInputStall";
+import { refineDetailSectionParents } from "./detailSectionParents";
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
@@ -176,6 +177,7 @@ export const BlockInventoryOpenSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["electricToGear"], message: "electricToGear requires ElectricToGearGenerator" });
   if (data.gearToElectric && data.electricToGear)
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Converter details cannot coexist" });
+  refineDetailSectionParents(data, ctx);
 });
 const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),

@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import type { BlockInventoryOpen, CleanRoomDetailData } from "@/bridge";
+import type { CleanRoomDetailData } from "@/bridge";
 
 vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
@@ -14,10 +14,9 @@ vi.mock("@mantine/core", () => ({
 
 import CleanRoomSection from "../CleanRoomSection";
 
-function render(cleanRoom: CleanRoomDetailData | undefined) {
-  const data = { open: true, source: "block", blockType: "CleanRoomMachine", identifier: "block:1", blockGuid: "g", itemSlots: [], fluidSlots: [], cleanRoom } as unknown as BlockInventoryOpen;
+function render(cleanRoom: CleanRoomDetailData) {
   let tree!: ReturnType<typeof create>;
-  act(() => { tree = create(createElement(CleanRoomSection, { data })); });
+  act(() => { tree = create(createElement(CleanRoomSection, { cleanRoom })); });
   return tree.root;
 }
 
@@ -26,10 +25,6 @@ function idsOf(root: ReturnType<typeof render>): string[] {
 }
 
 describe("CleanRoomSection", () => {
-  it("部屋欄が無ければ何も描かない", () => {
-    expect(idsOf(render(undefined))).toEqual([]);
-  });
-
   it("密閉済みの部屋は見出し・空気・清浄機・停止理由の順に描く", () => {
     const room = { headline: "classOut" as const, concentration: 1, airChangeRate: 0.5, volume: 74, airFilters: [{ x: 1, y: 33, z: 5, powerRatio: 1, filterItemCount: 0, filterRemainingRatio: 0 }] };
     const root = render({ fetchState: "fetched", kind: "enclosed", room, haltReason: "classOut" });

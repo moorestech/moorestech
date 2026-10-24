@@ -139,4 +139,18 @@ describe("SectionStackView", () => {
     expect(ids.filter((id: string) => id.startsWith("clean-room"))).toEqual(["clean-room-section", "clean-room-headline", "clean-room-air", "clean-room-air-filter-0", "clean-room-yield-section", "clean-room-yield-die-loss-rate"]);
     act(() => { tree.unmount(); });
   });
+
+  it("照会欄の無い payload では3欄とも描かず、取得中の欄は取得状態の行だけを描く", () => {
+    const empty = render(dataFor("CleanRoomMachine", []));
+    expect(empty.root.findAll((n) => typeof n.props["data-testid"] === "string" && /^(clean-room|machine-input-stall)/.test(n.props["data-testid"]))).toEqual([]);
+    act(() => { empty.unmount(); });
+    const data = dataFor("CleanRoomMachine", []);
+    data.cleanRoom = { fetchState: "notFetched" };
+    data.cleanRoomYield = { fetchState: "notFetched" };
+    data.machineInputStall = { fetchState: "notFetched" };
+    const tree = render(data);
+    const ids = tree.root.findAll((n) => typeof n.type === "string" && n.props["data-testid"] !== undefined).map((n) => n.props["data-testid"]);
+    expect(ids.slice(0, 3)).toEqual(["clean-room-fetch-state", "clean-room-yield-fetch-state", "machine-input-stall-fetch-state"]);
+    act(() => { tree.unmount(); });
+  });
 });

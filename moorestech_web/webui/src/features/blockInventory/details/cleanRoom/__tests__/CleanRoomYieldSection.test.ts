@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import type { BlockInventoryOpen, CleanRoomYieldData } from "@/bridge";
+import type { CleanRoomYieldData } from "@/bridge";
 
 vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
@@ -14,10 +14,9 @@ vi.mock("@mantine/core", () => ({
 
 import CleanRoomYieldSection from "../CleanRoomYieldSection";
 
-function render(cleanRoomYield: CleanRoomYieldData | undefined) {
-  const data = { open: true, source: "block", blockType: "CleanRoomMachine", identifier: "block:1", blockGuid: "g", itemSlots: [], fluidSlots: [], cleanRoomYield } as unknown as BlockInventoryOpen;
+function render(cleanRoomYield: CleanRoomYieldData) {
   let tree!: ReturnType<typeof create>;
-  act(() => { tree = create(createElement(CleanRoomYieldSection, { data })); });
+  act(() => { tree = create(createElement(CleanRoomYieldSection, { cleanRoomYield })); });
   return tree.root;
 }
 
@@ -26,10 +25,6 @@ function idsOf(root: ReturnType<typeof render>): string[] {
 }
 
 describe("CleanRoomYieldSection", () => {
-  it("抽選の中身が無ければ何も描かない", () => {
-    expect(idsOf(render(undefined))).toEqual([]);
-  });
-
   it("成膜は上限グレードと昇格率の行だけを描く", () => {
     const root = render({ fetchState: "fetched", role: "waferGrade", maxGrade: 2, promotionChance: 0.9 });
     expect(idsOf(root)).toEqual(["clean-room-yield-section", "clean-room-yield-max-grade", "clean-room-yield-promotion-chance"]);

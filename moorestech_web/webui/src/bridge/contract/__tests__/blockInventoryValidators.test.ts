@@ -121,3 +121,28 @@ describe("converter detail ownership", () => {
     expect(parseTopicPayload(Topics.blockInventory, { ...openBase, blockType }).valid).toBe(true);
   });
 });
+
+describe("validBlockInventory detail section parents", () => {
+  const cleanRoom = { fetchState: "fetched", kind: "noEnclosure" };
+  const cleanRoomYield = { fetchState: "fetched", role: "dicing", dieLossRate: 0.03 };
+  const machineInputStall = { fetchState: "notFetched" };
+
+  // 3欄は欄ごとに許された親ブロックの種別にだけ載り、Chest 等への混入は境界で拒否する
+  // Each of the three sections rides only on its allowed parent block types; mixing into a Chest etc. is rejected at the boundary
+  it.each([
+    ["CleanRoomMachine", { cleanRoom, cleanRoomYield, machineInputStall }, true],
+    ["CleanRoomAirFilter", { cleanRoom }, true],
+    ["ElectricMachine", { machineInputStall }, true],
+    ["GearMachine", { machineInputStall }, true],
+    ["Chest", { cleanRoom }, false],
+    ["Chest", { cleanRoomYield }, false],
+    ["Chest", { machineInputStall }, false],
+    ["CleanRoomAirFilter", { cleanRoomYield }, false],
+    ["CleanRoomAirFilter", { machineInputStall }, false],
+    ["ElectricMachine", { cleanRoom }, false],
+    ["GearMachine", { cleanRoomYield }, false],
+    ["Chest", {}, true],
+  ])("%s with %j の受理は %s", (blockType, sections, expected) => {
+    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, blockType, ...sections }).valid).toBe(expected);
+  });
+});

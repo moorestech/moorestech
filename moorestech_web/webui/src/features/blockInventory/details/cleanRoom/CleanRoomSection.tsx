@@ -1,5 +1,5 @@
 import { Stack, Text } from "@mantine/core";
-import type { BlockInventoryOpen } from "@/bridge";
+import type { CleanRoomDetailData } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import BlockInfoUnavailableLine from "../blockInfoFetch/BlockInfoUnavailableLine";
 import LackHighlightText from "../LackHighlightText";
@@ -7,11 +7,10 @@ import { cleanRoomDisplay } from "./cleanRoomLogic";
 
 // 部屋欄: クラス（または密閉できていない理由）・空気・清浄機・機械の停止理由を最上部に並べる
 // Room section: class (or why it is not sealed), air, purifiers and the machine's halt reason at the top
-export default function CleanRoomSection({ data }: { data: BlockInventoryOpen }) {
+export default function CleanRoomSection({ cleanRoom }: { cleanRoom: CleanRoomDetailData }) {
   const { t } = useI18n();
-  if (!data.cleanRoom) return null;
-  if (data.cleanRoom.fetchState !== "fetched") return <BlockInfoUnavailableLine unavailable={data.cleanRoom} targetKey={L.ui.blockInventory.cleanRoomInfoLabel} testId="clean-room-fetch-state" />;
-  const view = cleanRoomDisplay(data.cleanRoom);
+  if (cleanRoom.fetchState !== "fetched") return <BlockInfoUnavailableLine unavailable={cleanRoom} targetKey={L.ui.blockInventory.cleanRoomInfoLabel} testId="clean-room-fetch-state" />;
+  const view = cleanRoomDisplay(cleanRoom);
   return (
     <Stack gap={2} data-testid="clean-room-section">
       <LackHighlightText size="sm" insufficient={view.headlineInsufficient} testId="clean-room-headline">
