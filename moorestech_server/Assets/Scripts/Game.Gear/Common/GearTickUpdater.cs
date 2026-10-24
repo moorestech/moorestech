@@ -10,7 +10,6 @@ namespace Game.Gear.Common
         private readonly GearNetworkDatastore _gearNetworkDatastore;
         private readonly GearDemandSnapshotUpdater _demandSnapshotUpdater = new();
         private readonly List<GearNetwork> _recalcBuffer = new();
-        private readonly List<IGearOverloadTickTarget> _overloadBuffer = new();
 
         public GearTickUpdater(GearNetworkDatastore gearNetworkDatastore)
         {
@@ -26,11 +25,9 @@ namespace Game.Gear.Common
             _gearNetworkDatastore.CollectNetworksRequiringRecalc(_recalcBuffer);
             foreach (var network in _recalcBuffer) network.RunTick(demandSnapshot);
 
-            // 需給確定後に過負荷を判定する
-            // Check overloads from settled values and isolate iteration from target-set mutations
-            _overloadBuffer.Clear();
-            _gearNetworkDatastore.CollectOverloadTickTargets(_overloadBuffer);
-            foreach (var target in _overloadBuffer) target.TickOverloadCheck();
+            // 需給確定後に過負荷を判定する。破断は予約されtick末尾まで集合は変わらない
+            // Check overloads from settled values; breakage is reserved, so the target set does not change until tick end
+            foreach (var target in _gearNetworkDatastore.OverloadTickTargets) target.TickOverloadCheck();
 
             // 継続駆動と状態通知を処理する
             // Update continuous generators only, then notify state changes for recalculated networks
@@ -38,12 +35,8 @@ namespace Game.Gear.Common
                 network.ConsumeGeneratorTicks();
             foreach (var network in _recalcBuffer)
             {
-                // 破壊はtick末尾の予約確定まで遅延するため通常成立しない防御ガード（破棄済みSubjectへの通知を防ぐ）
-                // Defensive guard, normally unreachable since removals are reserved until tick end; prevents notifying disposed subjects
-                foreach (var transformer in network.GearTransformers)
-                    if (!transformer.IsDestroy) transformer.NotifyStateChanged();
-                foreach (var generator in network.GearGenerators)
-                    if (!generator.IsDestroy) generator.NotifyStateChanged();
+                foreach (var transformer in network.GearTransformers) transformer.NotifyStateChanged();
+                foreach (var generator in network.GearGenerators) generator.NotifyStateChanged();
             }
         }
     }

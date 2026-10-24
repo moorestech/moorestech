@@ -28,11 +28,6 @@ namespace Game.Block.Blocks.BeltConveyor.Sync.Replica
             _machineReceivers = machineReceivers;
         }
 
-        public BeltTransportFullState CaptureFullState()
-        {
-            return BeltTransportFullStateCapture.Capture(Shapes, Segments);
-        }
-
         // サーバーと同じtickを再生する。搬入を同じ順で載せ、搬出成功を予告してから1tick進める
         // Replays the same tick as the server: apply the inserts in order, announce the successful extracts, then advance one tick
         // 載らない搬入や消費されない予告は、複製がサーバーと食い違った印。falseを返し、呼び出し側が停止を決める

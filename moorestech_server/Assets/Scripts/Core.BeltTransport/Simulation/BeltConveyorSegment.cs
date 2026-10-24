@@ -111,18 +111,20 @@ namespace Core.BeltTransport
             _tickSpeed = Speed;
         }
 
-        // tick境界で、出口に近い順のアイテムと出口までの距離を複製する
-        // At a tick boundary, copy items in exit order with their distance to the exit
+        // 出口に近い順のアイテムと出口までの距離を、配列へ写さずその場で列挙する。ハッシュと描画が毎tick・毎フレーム読む
+        // Enumerates items in exit order with their distance to the exit without copying; the hash and the renderer read this every tick and frame
+        public BeltItemStateEnumerator EnumerateItems()
+        {
+            return new BeltItemStateEnumerator(_items, _gaps, _head, Capacity, Count);
+        }
+
+        // tick境界で、出口に近い順のアイテムと出口までの距離を配列へ複製する。全量の切り出しと再構築が使う
+        // At a tick boundary, copy items in exit order with their distance to the exit into an array; used by the full-state capture and rebuilds
         public BeltItemState[] CaptureItems()
         {
             var result = new BeltItemState[Count];
-            var distance = 0;
-            for (var i = 0; i < Count; i++)
-            {
-                var p = (_head + i) % Capacity;
-                distance += _gaps[p] + (i == 0 ? 0 : BeltConstants.ItemWidth);
-                result[i] = new BeltItemState(_items[p], distance);
-            }
+            var i = 0;
+            foreach (var state in EnumerateItems()) result[i++] = state;
             return result;
         }
 

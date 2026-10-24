@@ -149,7 +149,7 @@ namespace Tests.CombinedTest.Core.Fluid
 
         private static double GetPipeAmount(IBlock pipeBlock)
         {
-            return pipeBlock.GetComponent<FluidPipeComponent>().Node.Amount;
+            return pipeBlock.GetComponent<FluidPipeComponent>().Amount;
         }
 
         private static (double Amount, FluidId FluidId) GetPumpTankState(PumpFluidOutputComponent outputComponent)

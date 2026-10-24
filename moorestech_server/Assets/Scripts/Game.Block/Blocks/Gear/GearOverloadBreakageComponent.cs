@@ -22,7 +22,6 @@ namespace Game.Block.Blocks.Gear
         private readonly uint _checkIntervalTicks;
         private readonly bool _overloadEnabled;
         private uint _elapsedTicks;
-        private bool _isDestroyed;
 
         public GearOverloadBreakageComponent(BlockInstanceId blockInstanceId, IGearEnergyTransformer gearEnergyTransformer, IGearOverloadParam overloadParam)
         {
@@ -41,8 +40,6 @@ namespace Game.Block.Blocks.Gear
         {
             // 過負荷判定のインターバルを管理
             // Manage interval for overload checks
-            if (_isDestroyed) return;
-
             _elapsedTicks++;
             if (_elapsedTicks < _checkIntervalTicks) return;
             _elapsedTicks = 0;
@@ -74,20 +71,17 @@ namespace Game.Block.Blocks.Gear
             {
                 // 破壊はその場で行わず予約する。このtickの計算には最後まで参加し、tick末尾に一括反映される
                 // Reserve the destruction instead of applying it in place; the block participates in this tick fully and is removed at tick end
-                _isDestroyed = true;
                 ServerContext.GetService<IBlockRemovalReservationService>().ReserveRemoval(_blockInstanceId, BlockRemoveReason.Broken);
             }
 
             #endregion
         }
 
-        public bool IsDestroy => _isDestroyed;
+        public bool IsDestroy { get; private set; }
 
         public void Destroy()
         {
-            // 破断経由(RequestRemoveで_isDestroyed済み)でも必ず登録解除する。HashSetのRemoveなので重複解除は無害
-            // Always unregister, including the breakage path (where RequestRemove already set _isDestroyed); duplicate removal from the HashSet is harmless
-            _isDestroyed = true;
+            IsDestroy = true;
             if (_overloadEnabled) ServerContext.GetService<IGearNetworkDatastore>().UnregisterOverloadTickTarget(this);
         }
     }
