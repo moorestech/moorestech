@@ -3,6 +3,7 @@ export * from "./inventory";
 export * from "./energyConversion";
 export * from "./train";
 export * from "./cleanRoom";
+export * from "./machineInputStall";
 export * from "./ui";
 export * from "./recipes";
 export * from "./research";

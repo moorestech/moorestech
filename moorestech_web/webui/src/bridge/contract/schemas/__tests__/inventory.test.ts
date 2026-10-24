@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { FluidSlotDataSchema } from "../inventory";
 import { CleanRoomDetailDataSchema } from "../cleanRoom";
+import { MachineInputStallDataSchema } from "../machineInputStall";
 
 const FLUID_GUID = "60000000-0000-4000-8000-000000000001";
 
@@ -52,5 +53,21 @@ describe("CleanRoomDetailDataSchema", () => {
     [{ kind: "sealed" }, false],
   ])("%j の受理は %s", (value, expected) => {
     expect(CleanRoomDetailDataSchema.safeParse(value).success).toBe(expected);
+  });
+});
+
+describe("MachineInputStallDataSchema", () => {
+  // 理由は2種だけ、アイテムIDは正の整数、余計なキーは拒否する
+  // Only the two reasons, a positive integer item ID, and no extra keys
+  it.each([
+    [{ reason: "mixedLevel", itemId: 12 }, true],
+    [{ reason: "aboveCraftCap", itemId: 12 }, true],
+    [{ reason: "full", itemId: 12 }, false],
+    [{ reason: "mixedLevel" }, false],
+    [{ reason: "mixedLevel", itemId: 0 }, false],
+    [{ reason: "mixedLevel", itemId: 1.5 }, false],
+    [{ reason: "mixedLevel", itemId: 12, level: 2 }, false],
+  ])("%j の受理は %s", (value, expected) => {
+    expect(MachineInputStallDataSchema.safeParse(value).success).toBe(expected);
   });
 });

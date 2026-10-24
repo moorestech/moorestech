@@ -445,3 +445,5 @@ ui.blockInventory.cleanRoomTooLarge,Room too large (max {max} cells),Room too la
 ui.blockInventory.cleanRoomDetecting,Detecting room...,Detecting room...,部屋を検出中…,Raum wird erkannt...,방 감지 중...
 ui.blockInventory.cleanRoomHaltNotEnclosed,Halted: not in a sealed room,Halted: not in a sealed room,停止中: 密閉された部屋の外です,Angehalten: nicht in einem abgedichteten Raum,정지: 밀폐된 방 밖입니다
 ui.blockInventory.cleanRoomHaltClassOut,Halted: room below class,Halted: room below class,停止中: 部屋がクラス未達です,Angehalten: Raum unter Klasse,정지: 방 등급 미달입니다
+ui.blockInventory.machineInputStallMixedLevel,Stopped: {itemName} of a different level arrived,Stopped: {itemName} of a different level arrived,レベルの違う品（{itemName}）が届いて止まっています,Angehalten: {itemName} mit anderer Stufe ist angekommen,정지됨: 레벨이 다른 {itemName}이(가) 도착했습니다
+ui.blockInventory.machineInputStallAboveCraftCap,Stopped: {itemName} above the craft cap arrived,Stopped: {itemName} above the craft cap arrived,製作上限を超えるレベルの品（{itemName}）が届いて止まっています,Angehalten: {itemName} über der Herstellungsgrenze ist angekommen,정지됨: 제작 상한을 넘는 {itemName}이(가) 도착했습니다

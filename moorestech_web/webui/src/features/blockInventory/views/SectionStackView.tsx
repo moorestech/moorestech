@@ -11,6 +11,7 @@ import MachineSection from "../details/MachineSection";
 import MinerSection from "../details/MinerSection";
 import BeltThroughputSection from "../details/BeltThroughputSection";
 import CleanRoomSection from "../details/cleanRoom/CleanRoomSection";
+import MachineInputStallSection from "../details/machineInputStall/MachineInputStallSection";
 import PumpSection from "../details/pump/PumpSection";
 import { ElectricNetworkSection, GearNetworkSection } from "../details/NetworkSections";
 
@@ -63,6 +64,7 @@ export default function SectionStackView({ data, fillsPanelHeight }: { data: Blo
     // Stretch only on the height-determining panel; on auto-height panels it would let children shrink below their content
     <Stack className={fillsPanelHeight ? styles.fillPanelHeight : undefined} gap="sm">
       <CleanRoomSection data={data} />
+      <MachineInputStallSection data={data} />
       {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} testId={itemGridTestId} /> : null}
       {data.machine ? <MachineSection data={data} machine={data.machine} fillsPanelHeight={fillsPanelHeight} /> : null}
       <MinerSection data={data} />

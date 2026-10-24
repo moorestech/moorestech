@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
 using Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom;
+using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;
 using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Interface.State;
@@ -31,6 +32,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // クリーンルーム: 部屋照会のキャッシュと機械の停止理由
             // Clean room: the room query cache and the machine's halt reason
             CleanRoomDetailDtoBuilder.Apply(dto, block, cache);
+
+            // 機械: 継承元のレベルで止まった理由
+            // Machines: the reason the inflow stalled on the inheritance source level
+            MachineInputStallDetailDtoBuilder.Apply(dto, cache);
 
             // 機械系: CommonMachine + MachineBlock の両 StateDetail が揃うブロックのみ
             // Machines: only blocks carrying both CommonMachine and MachineBlock state details

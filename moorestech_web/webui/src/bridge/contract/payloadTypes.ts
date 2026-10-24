@@ -23,6 +23,7 @@ import type {
   ItemMasterDataSchema,
   ItemMasterEntrySchema,
   MachineDetailDataSchema,
+  MachineInputStallDataSchema,
   MachineProcessStateSchema,
   MachineRecipeSchema,
   MachineRecipesDataSchema,
@@ -125,6 +126,7 @@ export type TrainTimetableStop = z.infer<typeof TrainTimetableStopSchema>;
 export type GearNetworkStopReason = z.infer<typeof GearNetworkStopReasonSchema>;
 export type FilterSplitterMode = z.infer<typeof FilterSplitterModeSchema>;
 export type BlockInventoryOpen = z.infer<typeof BlockInventoryOpenSchema>;
+export type MachineInputStallData = z.infer<typeof MachineInputStallDataSchema>;
 export type BlockInventoryData = z.infer<typeof BlockInventoryDataSchema>;
 export type CraftRecipe = z.infer<typeof CraftRecipeSchema>;
 export type CraftRecipesData = z.infer<typeof CraftRecipesDataSchema>;

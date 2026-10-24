@@ -120,4 +120,13 @@ describe("SectionStackView", () => {
     expect(ids.slice(0, 3)).toEqual(["clean-room-section", "clean-room-headline", "clean-room-filter-grid"]);
     act(() => { tree.unmount(); });
   });
+
+  it("搬入停止欄は機械欄より上に赤字で描く", () => {
+    const data = dataFor("GearMachine", []);
+    data.machineInputStall = { reason: "mixedLevel", itemId: 12 };
+    const tree = render(data);
+    const row = tree.root.findByProps({ "data-testid": "machine-input-stall" });
+    expect(row.props["data-insufficient"]).toBe(true);
+    act(() => { tree.unmount(); });
+  });
 });

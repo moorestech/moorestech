@@ -3,6 +3,7 @@ import { GuidSchema, SlotDataSchema } from "./common";
 import { ElectricToGearDataSchema, GearToElectricDataSchema } from "./energyConversion";
 import { TrainPlatformDataSchema, TrainStationDetailSchema, TrainTimetableStateSchema } from "./train";
 import { CleanRoomDetailDataSchema } from "./cleanRoom";
+import { MachineInputStallDataSchema } from "./machineInputStall";
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
@@ -164,6 +165,7 @@ export const BlockInventoryOpenSchema = z.object({
   trainStation: TrainStationDetailSchema.optional(),
   beltThroughput: BeltThroughputDataSchema.optional(),
   cleanRoom: CleanRoomDetailDataSchema.optional(),
+  machineInputStall: MachineInputStallDataSchema.optional(),
 }).strict().superRefine((data, ctx) => {
   // 変換機詳細の混入は受信境界で拒否する。未着は許容する
   // Reject mismatched converter details at the receive boundary while allowing pending details

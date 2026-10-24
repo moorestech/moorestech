@@ -1,0 +1,10 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "GearMachine",
+  "identifier": "(0, 0, 0)",
+  "blockGuid": "a334d703-9442-4910-a8f8-b914df50df4e",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "machineInputStall": { "reason": "aboveCraftCap", "itemId": 12 }
+}
