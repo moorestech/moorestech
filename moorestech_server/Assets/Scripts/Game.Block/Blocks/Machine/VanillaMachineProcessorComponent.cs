@@ -183,7 +183,6 @@ namespace Game.Block.Blocks.Machine
         public VanillaMachineProcessorSaveJsonObject GetSaveJsonObject()
         {
             BlockException.CheckDestroy(this);
-    
             // tickを秒数に変換して保存（tick数の変動に対応）
             // Convert ticks to seconds for storage (to handle tick rate changes)
             return new VanillaMachineProcessorSaveJsonObject
@@ -193,6 +192,7 @@ namespace Game.Block.Blocks.Machine
                 RecipeGuidStr = RecipeGuid.ToString(),
                 PendingOutputs = _processingState.PendingOutputs?.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 SelectedRecipeGuidStr = _context.SelectedRecipe?.MachineRecipeGuid.ToString(),
+                InheritedLevel = _processingState.InheritedLevel,
             };
         }
     }

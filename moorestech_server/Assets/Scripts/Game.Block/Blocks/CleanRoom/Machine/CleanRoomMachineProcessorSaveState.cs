@@ -31,6 +31,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 OutputSlot = output.OutputSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 ModuleSlot = module.ModuleSlot.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 SelectedRecipeGuidStr = selectedRecipe?.MachineRecipeGuid.ToString(),
+                InheritedLevel = processingState.InheritedLevel,
             };
         }
 
@@ -48,7 +49,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 
             // 加工中ジョブは平らなキーから組む（レシピがマスタから消えていれば null）
             // Build the running job from the flat keys (null when its recipe left the master)
-            processingJob = MachineProcessingJob.RestoreFromFlatSave(saveData.RecipeGuidStr, saveData.RemainingSeconds, saveData.PendingOutputs, null);
+            processingJob = MachineProcessingJob.RestoreFromFlatSave(saveData.RecipeGuidStr, saveData.RemainingSeconds, saveData.PendingOutputs, saveData.InheritedLevel);
 
             // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
             // Restore the selected recipe; a GUID missing from the master falls back to unselected

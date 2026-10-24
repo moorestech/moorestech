@@ -30,5 +30,10 @@ namespace Game.Block.Blocks.Machine
         // Selected recipe; null when unselected (older saves lack the key)
         [JsonProperty("selectedRecipeGuid")]
         public string SelectedRecipeGuidStr;
+
+        // 加工中ジョブの継承レベル（継承レシピは1以上。ジョブ無しと継承でないレシピは null）
+        // Inherited level of the running job (1 or more for an inheritance recipe; null when there is no job or the recipe does not inherit)
+        [JsonProperty("inheritedLevel")]
+        public int? InheritedLevel;
     }
 }
