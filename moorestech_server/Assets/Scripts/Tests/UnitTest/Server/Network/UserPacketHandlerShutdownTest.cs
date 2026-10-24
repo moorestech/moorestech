@@ -13,9 +13,10 @@ namespace Tests.UnitTest.Server.Network
 {
     public class UserPacketHandlerShutdownTest
     {
-        [TestCase(true)]
-        [TestCase(false)]
-        public void RealPeerReset_IsExpectedOnlyAfterServerCancellation(bool cancelServer)
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        [TestCase(false, false)]
+        public void RealPeerReset_IsExpectedOnlyAfterShutdownIntent(bool cancelServer, bool notifyShutdown)
         {
             using var listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             listener.Bind(new IPEndPoint(IPAddress.Loopback, 0));
@@ -24,6 +25,7 @@ namespace Tests.UnitTest.Server.Network
             peer.Connect(listener.LocalEndPoint);
             using var accepted = listener.Accept();
             using var cancellation = new CancellationTokenSource();
+            using var shutdownNotice = new CancellationTokenSource();
             using var entered = new ManualResetEventSlim();
             var sender = new SendQueueProcessor(accepted);
             var queue = new TickEndPacketQueue();
@@ -33,7 +35,7 @@ namespace Tests.UnitTest.Server.Network
             var thread = new Thread(() =>
             {
                 entered.Set();
-                handler.StartListen(cancellation.Token);
+                handler.StartListen(cancellation.Token, shutdownNotice.Token);
             });
 
             // 実Receiveで待機した状態からcancel→RSTを送り、ループ先頭のcancel検査だけでは覆えない境界を通す
@@ -43,10 +45,11 @@ namespace Tests.UnitTest.Server.Network
             {
                 Assert.That(entered.Wait(TimeSpan.FromSeconds(2)), Is.True);
                 Thread.Sleep(100);
-                Debug.Log($"[UserPacketHandlerShutdown] blocked={thread.ThreadState} cancel={cancelServer} utc={DateTime.UtcNow:O}");
-                if (cancelServer)
+                if (cancelServer) cancellation.Cancel();
+                if (notifyShutdown) shutdownNotice.Cancel();
+                Debug.Log($"[UserPacketHandlerShutdown] serverCancelled={cancellation.IsCancellationRequested} shutdownNotice={shutdownNotice.IsCancellationRequested} utc={DateTime.UtcNow:O}");
+                if (cancelServer || notifyShutdown)
                 {
-                    cancellation.Cancel();
                     LogAssert.Expect(LogType.Log, "サーバー終了中のSocket受信を終了しました: ConnectionReset");
                 }
                 else
