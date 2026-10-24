@@ -1,8 +1,12 @@
 // クラフト・機械レシピとレシピビューア用アイテム一覧のモックsnapshot
 // Mock snapshots for crafting, machine recipes, and the recipe viewer item list
-import type { CraftRecipesData, MachineRecipesData, RecipeViewerItemListData } from "../../../src/bridge/contract/payloadTypes";
+import type { CraftRecipesData, MachineRecipeLevelInheritance, MachineRecipesData, RecipeViewerItemListData } from "../../../src/bridge/contract/payloadTypes";
 import { ELECTRIC_MACHINE_BLOCK_GUID, GEAR_MACHINE_BLOCK_GUID } from "./blockLocalizationFixtures";
 import { OIL_FLUID_GUID, WATER_FLUID_GUID } from "./contentLocalizationFixtures";
+
+// 継承なしレシピの付帯値。schemaの型で注釈しリテラル型(-1/0)を保つ
+// Inheritance-free payload; annotated with the schema type so the -1/0 literals survive inference
+const NO_LEVEL_INHERITANCE: MachineRecipeLevelInheritance = { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 };
 
 export const craftRecipes = {
   recipes: [
@@ -51,7 +55,7 @@ export const machineRecipes = {
       blockId: 4, time: 8,
       inputItems: [{ itemId: 2, count: 1 }], outputItems: [{ itemId: 100, count: 1 }],
       inputFluids: [], outputFluids: [],
-      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
+      levelInheritance: NO_LEVEL_INHERITANCE,
     },
     {
       recipeGuid: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -59,7 +63,7 @@ export const machineRecipes = {
       blockId: 3, time: 5,
       inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 3, count: 1 }],
       inputFluids: [], outputFluids: [],
-      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
+      levelInheritance: NO_LEVEL_INHERITANCE,
     },
     {
       recipeGuid: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
@@ -69,7 +73,7 @@ export const machineRecipes = {
       // 液体ゴーストスロットのe2e用に水インプットを1件持たせる
       // Carries one water input so the fluid ghost-slot e2e has a fixture to assert on
       inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [],
-      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
+      levelInheritance: NO_LEVEL_INHERITANCE,
     },
     {
       // 液体のみのレシピ（石油蒸留機型、e2e用）
@@ -81,7 +85,7 @@ export const machineRecipes = {
       blockId: 3, time: 15,
       inputItems: [], outputItems: [],
       inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [{ fluidGuid: OIL_FLUID_GUID, amount: 1000 }],
-      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
+      levelInheritance: NO_LEVEL_INHERITANCE,
     },
     {
       recipeGuid: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
@@ -89,7 +93,7 @@ export const machineRecipes = {
       blockId: 4, time: 20,
       inputItems: [{ itemId: 3, count: 2 }], outputItems: [{ itemId: 7, count: 1 }],
       inputFluids: [], outputFluids: [],
-      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
+      levelInheritance: NO_LEVEL_INHERITANCE,
     },
   ],
 } satisfies MachineRecipesData;
@@ -105,7 +109,7 @@ export const overflowingMachineRecipes = {
       blockId: 3, time: index + 1,
       inputItems: [{ itemId: 2, count: index + 1 }], outputItems: [{ itemId: 100, count: 1 }],
       inputFluids: [], outputFluids: [],
-      levelInheritance: { kind: "none" as const, sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
+      levelInheritance: NO_LEVEL_INHERITANCE,
     })),
   ],
 } satisfies MachineRecipesData;
