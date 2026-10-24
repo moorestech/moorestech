@@ -1,33 +1,65 @@
-using System.Collections.Generic;
-using Game.SaveLoad.Migration.Steps.V7ToV8;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V7→V8移行: 清浄室機械のstateへ空の液体スロット配列を足し、未実装の仮ブロック3種の保存済み解放を戻す
-    // V7->V8 migration: add empty fluid slot arrays to clean-room machine states and revert saved unlocks of three unimplemented placeholder blocks
+    // V7→V8移行: 通常機械とクリーンルーム機械の加工状態に継承レベル null を明示で足す（版7に継承レシピは無いため「継承しない」が正しい）
+    // V7→V8 migration: add an explicit null inherited level to normal and clean-room machine processing state (version 7 had no inheritance recipes, so "no inheritance" is exact)
     public sealed class SaveMigrationStepV7ToV8 : ISaveMigrationStep
     {
+        // コンポーネントのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
+        // Component SaveKeys (typeof FullName); the step never references live types, so they are kept as strings
+        private const string VanillaMachineSaveKey = "Game.Block.Blocks.Machine.VanillaMachineSaveComponent";
+        private const string CleanRoomMachineSaveKey = "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent";
+        private const string InheritedLevelKey = "inheritedLevel";
+
         public int FromVersion => 7;
 
         public SaveMigrationStepResult Migrate(JObject save)
         {
             if (!(save["world"] is JArray world)) return Fail($"セーブのworldが配列ではないため変換できません。 type={save["world"]?.Type}");
 
-            // 先に両方の対象を検査し、途中で拒否しても原本を書き換えない
-            // Inspect both target sets first so a refusal never leaves the original half-rewritten
-            var fluidTargets = new List<JObject>();
-            if (!CleanRoomMachineFluidSlotFiller.TryCollectTargets(world, fluidTargets, out var fluidFailure)) return Fail(fluidFailure);
-            var unlockTargets = new List<JObject>();
-            if (!UnimplementedBlockUnlockRevoker.TryCollectTargets(save, unlockTargets, out var unlockFailure)) return Fail(unlockFailure);
+            var vanillaCount = 0;
+            var cleanRoomCount = 0;
+            foreach (var blockToken in world)
+            {
+                if (!(blockToken is JObject block)) return Fail($"world要素がオブジェクトではないため変換できません。 type={blockToken.Type}");
 
-            // 検査を通った対象だけを書き換える
-            // Rewrite only the targets that passed inspection
-            var filledCount = CleanRoomMachineFluidSlotFiller.Fill(fluidTargets);
-            var revokedCount = UnimplementedBlockUnlockRevoker.Revoke(unlockTargets);
+                // stateが無いブロックは機械ではないので対象外
+                // A block without state is not a machine, so it is out of scope
+                var stateToken = block["state"];
+                if (stateToken == null || stateToken.Type == JTokenType.Null) continue;
+                if (!(stateToken is JObject state)) return Fail($"world要素のstateがオブジェクトではありません。 type={stateToken.Type}");
 
-            Debug.Log($"セーブを版7から版8へ変換しました。液体スロットを足した清浄室機械={filledCount}台 解放を戻した仮ブロック={revokedCount}種");
+                // 通常機械はprocessorサブオブジェクトへ足す
+                // A normal machine gets the key inside its processor sub-object
+                var vanillaToken = state[VanillaMachineSaveKey];
+                if (vanillaToken != null && vanillaToken.Type != JTokenType.Null)
+                {
+                    if (!(vanillaToken is JObject vanilla)) return Fail($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}");
+                    if (!(vanilla["processor"] is JObject processor)) return Fail($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={vanilla["processor"]?.Type}");
+                    if (!processor.ContainsKey(InheritedLevelKey))
+                    {
+                        processor[InheritedLevelKey] = JValue.CreateNull();
+                        vanillaCount++;
+                    }
+                }
+
+                // クリーンルーム機械は直下へ足す
+                // A clean-room machine gets the key at its top level
+                var cleanRoomToken = state[CleanRoomMachineSaveKey];
+                if (cleanRoomToken != null && cleanRoomToken.Type != JTokenType.Null)
+                {
+                    if (!(cleanRoomToken is JObject cleanRoom)) return Fail($"{CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}");
+                    if (!cleanRoom.ContainsKey(InheritedLevelKey))
+                    {
+                        cleanRoom[InheritedLevelKey] = JValue.CreateNull();
+                        cleanRoomCount++;
+                    }
+                }
+            }
+
+            Debug.Log($"セーブを版7から版8へ変換しました。継承レベルを足した通常機械={vanillaCount}台 クリーンルーム機械={cleanRoomCount}台");
             return SaveMigrationStepResult.Converted(save);
 
             #region Internal

@@ -1,7 +1,7 @@
 using System.Linq;
 using Client.DebugSystem.Environment;
 using Client.Game.InGame.GraphicsQuality;
-using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.FluidNetwork.View;
 using Core.Master;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Interface;
@@ -53,17 +53,22 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
 
         // 切替前の同じパイプを以後の検証まで保持する
         // Keep this pipe alive across all quality changes and water checks
+        // 水はこのパイプへ直接入れず、持ち越し(未構築)で満たした隣のパイプを足して網全体の水位で釣り合わせる。網に入ったパイプへの直接投入はクライアント側のコピーと食い違う
+        // Water is never pushed into this pipe directly; prefilled neighbor pipes (filled while unbuilt) are added and the network settles to one fill level. Direct injection into a built-in pipe would diverge from the client-side copy
         var origin = new Vector3Int(659, 96, 630);
-        p.Assert(p.GetBlock(origin) == null, "孤立パイプのセルは空");
+        var neighborPositions = new[] { new Vector3Int(660, 96, 630), new Vector3Int(661, 96, 630), new Vector3Int(662, 96, 630) };
+        p.Assert(p.GetBlock(origin) == null && neighborPositions.All(c => p.GetBlock(c) == null), "孤立パイプと隣のセルは空");
         var block = p.PlaceBlockDirect("鉄のパイプ", origin, BlockDirection.East);
         var view = await p.WaitBlockGameObject(origin);
         await p.Until(() => !view.IsPlayingPlaceAnimation, 15f, "パイプ設置アニメ完了");
-        var processor = view.GetComponentInChildren<FluidPipeStateChangeProcessor>();
-        var renderer = (MeshRenderer)typeof(FluidPipeStateChangeProcessor).GetField("meshRenderer", viewFlags).GetValue(processor);
-        p.Assert(typeof(FluidPipeStateChangeProcessor).GetMethod("Update", viewFlags) == null, "水位ProcessorにUpdate無し");
+        var waterLevelView = view.GetComponentInChildren<FluidPipeWaterLevelView>();
+        var renderer = (MeshRenderer)typeof(FluidPipeWaterLevelView).GetField("meshRenderer", viewFlags).GetValue(waterLevelView);
+        p.Assert(typeof(FluidPipeWaterLevelView).GetMethod("Update", viewFlags) == null, "水位ViewにUpdate無し");
         var pipe = block.GetComponent<FluidPipeComponent>();
-        p.Note($"[PIPE] before UI: block={block.BlockInstanceId}, view={view.GetInstanceID()}, processor={processor.GetInstanceID()}, renderer={renderer.GetInstanceID()}, origin={origin}");
-        await AddWater(pipe, processor, renderer, 100f, 100f);
+        var networkWater = 0.0;
+        var networkPipes = 1;
+        p.Note($"[PIPE] before UI: block={block.BlockInstanceId}, view={view.GetInstanceID()}, waterLevelView={waterLevelView.GetInstanceID()}, renderer={renderer.GetInstanceID()}, origin={origin}");
+        await AddWater(neighborPositions[0], 200.0);
         await p.Screenshot("01-medium-game");
         p.Note("Escapeからトップ4ボタンを確認して画質設定を開く");
         await p.PressKey(Key.Escape);
@@ -99,10 +104,10 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         // 中へ戻さず、再設置せず、同じ受信先の水位を変える
         // Change water on the same receiver without resetting quality or replacing it
         p.Assert(object.ReferenceEquals(p.GetBlock(origin), block) && object.ReferenceEquals(await p.WaitBlockGameObject(origin), view), "UI切替前後で同一サーバーブロックとView");
-        p.Assert(view.GetComponentInChildren<FluidPipeStateChangeProcessor>() == processor && (MeshRenderer)typeof(FluidPipeStateChangeProcessor).GetField("meshRenderer", viewFlags).GetValue(processor) == renderer, "UI切替前後で同一ProcessorとRenderer");
-        p.Note($"[PIPE] after UI: block={block.BlockInstanceId}, view={view.GetInstanceID()}, processor={processor.GetInstanceID()}, renderer={renderer.GetInstanceID()}");
-        await AddWater(pipe, processor, renderer, 150f, 250f);
-        await AddWater(pipe, processor, renderer, 200f, 450f);
+        p.Assert(view.GetComponentInChildren<FluidPipeWaterLevelView>() == waterLevelView && (MeshRenderer)typeof(FluidPipeWaterLevelView).GetField("meshRenderer", viewFlags).GetValue(waterLevelView) == renderer, "UI切替前後で同一水位ViewとRenderer");
+        p.Note($"[PIPE] after UI: block={block.BlockInstanceId}, view={view.GetInstanceID()}, waterLevelView={waterLevelView.GetInstanceID()}, renderer={renderer.GetInstanceID()}");
+        await AddWater(neighborPositions[1], 450.0);
+        await AddWater(neighborPositions[2], 500.0);
         p.Assert(!GraphicsQualityPresets.TryMatch(GraphicsQualityPreference.Current, out _) && !Camera.main.GetUniversalAdditionalCameraData().renderShadows, "水位確認完了まで影オフのカスタムを維持");
     }
     finally
@@ -118,18 +123,23 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
     }
 
     #region Internal
-    async UniTask AddWater(FluidPipeComponent pipe, FluidPipeStateChangeProcessor processor, MeshRenderer renderer, float added, float total)
+    async UniTask AddWater(Vector3Int neighborPosition, double added)
     {
-        // サーバー状態と材質の両方が届いてから撮影する
-        // Capture only after both server state and material reflect the new amount
+        // 水を持ち越しで入れた隣のパイプを足す。網は充填率(水位)で釣り合うので、同じパイプの水位は 網の総量 / 網の総容量 に向かう。サーバーの量と材質の両方がそこへ届いてから撮影する
+        // Add a neighbor pipe prefilled through its holdover; the network balances by fill rate, so this pipe's level approaches total water / total capacity. Capture only after both the server amount and the material reach it
         var water = MasterHolder.FluidMaster.GetFluidId(new System.Guid("9eae6979-d56a-4991-9107-b8161acec430"));
-        p.Note($"同じパイプへ水を{added}投入: 合計{total}/500");
-        pipe.Node.AddExternal(new FluidStack(added, water));
-        var expected = total / 500f;
-        await p.Until(() => processor.DebugCurrentFluidPipeState != null && processor.DebugCurrentFluidPipeState.Amount == total && Mathf.Abs(renderer.sharedMaterial.GetFloat("_WaterLevel") - expected) < 0.02f, 15f, $"水位受信 {expected:F1}");
-        p.Assert(Mathf.Abs(renderer.sharedMaterial.GetFloat("_WaterLevel") - expected) < 0.02f, $"水位実測 {renderer.sharedMaterial.GetFloat("_WaterLevel"):F3}, received={processor.DebugCurrentFluidPipeState.Amount}/{processor.DebugCurrentFluidPipeState.Capacity}");
+        var neighbor = p.PlaceBlockDirect("鉄のパイプ", neighborPosition, BlockDirection.East).GetComponent<FluidPipeComponent>();
+        var remainder = neighbor.AddLiquid(new FluidStack(added, water), default);
+        p.Assert(neighbor.NodeIndex < 0 && remainder.Amount == 0, $"未構築の隣パイプへ持ち越しで水{added}を注入");
+        networkWater += added;
+        networkPipes++;
+        var expected = (float)(networkWater / (pipe.Capacity * networkPipes));
+        p.Note($"隣のパイプ{neighborPosition}に水{added}を足す: 網 {networkWater}/{pipe.Capacity * networkPipes}, 期待水位 {expected:F3}");
+        await p.Until(() => Mathf.Abs((float)(pipe.Amount / pipe.Capacity) - expected) < 0.01f && Mathf.Abs(renderer.sharedMaterial.GetFloat("_WaterLevel") - expected) < 0.02f, 15f, $"水位到達 {expected:F3}");
+        p.Assert(Mathf.Abs(waterLevelView.DebugWaterLevel - expected) < 0.02f, $"水位View {waterLevelView.DebugWaterLevel:F3}, server={pipe.Amount:F1}/{pipe.Capacity}");
+        p.Assert(Mathf.Abs(renderer.sharedMaterial.GetFloat("_WaterLevel") - expected) < 0.02f, $"水位実測 {renderer.sharedMaterial.GetFloat("_WaterLevel"):F3}, server={pipe.Amount:F1}/{pipe.Capacity}");
         p.Assert(renderer.enabled && renderer.gameObject.activeInHierarchy && renderer.isVisible, "同じパイプの水位Rendererが可視");
-        await p.Screenshot($"water-{total:F0}");
+        await p.Screenshot($"water-{expected * 100:F0}pct");
         await p.WaitSeconds(0.5f);
     }
     async UniTask Choose(string id)

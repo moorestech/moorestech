@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.FluidNetwork;
 using Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom;
 using Client.WebUiHost.Game.Topics.BlockDetail.MachineInput;
 using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
-using Game.Block.Interface.State;
 using Game.Fluid;
+using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using System;
 
@@ -18,7 +19,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     /// </summary>
     public static class BlockDetailDtoBuilder
     {
-        public static void Apply(BlockInventoryDto dto, BlockGameObject block, BlockNetworkInfoCache cache, BeltTransportClientCache beltCache)
+        public static void Apply(BlockInventoryDto dto, BlockGameObject block, BlockNetworkInfoCache cache, BeltTransportClientCache beltCache, FluidNetworkClientCache fluidCache)
         {
             var param = block.BlockMasterElement.BlockParam;
             ElectricToGearDetailDtoBuilder.Apply(dto, block, param);
@@ -102,12 +103,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 FluidSlotDtoBuilder.Append(dto.FluidSlots, fluid.OutputTanks);
             }
 
-            // パイプとタンクの単一液体を表示する
-            // Display the single fluid held by a pipe or tank
-            var pipe = block.GetStateDetail<FluidPipeStateDetail>(FluidPipeStateDetail.BlockStateDetailKey);
-            if (pipe != null)
+            // パイプの中身はクライアントの流体複製から読む。複製にノードがある座標だけがパイプ
+            // Pipe contents come from the client's fluid replica; only a position with a replica node is a pipe
+            if (fluidCache.TryGetNodeIndex(block.BlockPosInfo.OriginalPos, out var pipeNode))
             {
-                FluidSlotDtoBuilder.Append(dto.FluidSlots, new List<FluidMessagePack> { new(pipe.FluidId, pipe.Amount, pipe.Capacity) });
+                var network = fluidCache.Replica.Network;
+                FluidSlotDtoBuilder.Append(dto.FluidSlots, new List<FluidMessagePack> { new(network.NodeFluidIds[pipeNode], FluidUnits.ToAmount(network.NodeAmounts[pipeNode]), FluidUnits.ToAmount(network.NodeCapacities[pipeNode])) });
             }
 
             ApplyNetworkCaches(dto, cache);

@@ -33,7 +33,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             Tick(assembly, 3);
 
             var replica = AssertRoundTrip(assembly);
-            Assert.AreEqual(4, ItemCount(replica.CaptureFullState()));
+            Assert.AreEqual(4, ItemCount(BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments)));
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             Assert.AreEqual(1, assembly.Segments[InternalSegmentIndex(assembly)].Count, "internal segment holds the pushed item");
 
             var replica = AssertRoundTrip(assembly);
-            var full = replica.CaptureFullState();
+            var full = BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments);
             Assert.IsTrue(full.Segments.Any(s => s.Shape.IsInternal && s.Items.Length == 1), "internal segment survives the round trip with its item");
         }
 
@@ -93,7 +93,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             Assert.IsTrue(branch.Buffer.HasItem, "branch buffer holds an item");
             Assert.AreNotEqual(BeltPriority.Create(BeltDirection.Front), branch.PriorityOrder, "branch order rotated away from the default");
             var replica = AssertRoundTrip(assembly);
-            Assert.AreEqual(4, ItemCount(replica.CaptureFullState()));
+            Assert.AreEqual(4, ItemCount(BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments)));
         }
 
         [Test]
@@ -115,7 +115,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
 
             Assert.IsTrue(assembly.Layouts.Any(l => l.Cells.Any(c => c.Position.y == 1)), "slope world reaches the upper level");
             var replica = AssertRoundTrip(assembly);
-            Assert.AreEqual(5, ItemCount(replica.CaptureFullState()));
+            Assert.AreEqual(5, ItemCount(BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments)));
         }
     }
 }

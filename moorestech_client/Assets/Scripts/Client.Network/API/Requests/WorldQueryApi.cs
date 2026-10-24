@@ -74,8 +74,8 @@ namespace Client.Network.API.Requests
         {
             var request = new RequestWorldDataProtocol.RequestWorldDataMessagePack();
             var (response, reason) = await _packetExchangeManager.GetPacketResponseWithReason<RequestWorldDataProtocol.ResponseWorldDataMessagePack>(request, ct);
-            // 正常終了以外（タイムアウト等）はスキップし、呼び出し側 (WorldDataHandler) の null ガードに委ねる
-            // Return null unless the exchange completed successfully so the caller (WorldDataHandler) can skip this update cycle
+            // 正常終了以外（タイムアウト等）は null を返し、呼び出し側（初回ハンドシェイク）の判断に委ねる
+            // Return null unless the exchange completed successfully and leave the decision to the caller (the initial handshake)
             if (reason != PacketWaitCompletionReason.Received) return null;
 
             return ParseWorldResponse(response);

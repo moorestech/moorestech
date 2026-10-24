@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Block.Blocks.BeltConveyor.Transport;
+using Game.Block.Blocks.Fluid;
 using Game.Context;
 using Game.Train.Unit;
 using MessagePack;
@@ -11,8 +12,8 @@ namespace Server.Event.EventReceive
 {
     // hash(n-1)とdiff(n)を1イベントで送る統合パケット
     // Unified packet that sends hash(n-1) and diff(n) in one event.
-    // hash(n)はtick nの境界(操作の適用と網の再構築の後・セーブの前)で列車・レール・ベルトを一度に計算して覚え、tick n+1の先頭でdiff(n+1)ができた瞬間に束にして送る
-    // hash(n) is computed for train, rail and belt together at tick n's boundary (after input is applied and networks are rebuilt, before save) and kept until diff(n+1) exists at the head of tick n+1, when both go out as one bundle
+    // hash(n)はtick nの境界(操作の適用と網の再構築の後・セーブの前)で列車・レール・ベルト・流体を一度に計算して覚え、tick n+1の先頭でdiff(n+1)ができた瞬間に束にして送る
+    // hash(n) is computed for train, rail, belt and fluid together at tick n's boundary (after input is applied and networks are rebuilt, before save) and kept until diff(n+1) exists at the head of tick n+1, when both go out as one bundle
     public sealed class TrainUnitTickDiffBundleEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:trainUnitTickDiffBundle";
@@ -23,16 +24,19 @@ namespace Server.Event.EventReceive
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly IBeltTransportLookup _beltTransportLookup;
+        private readonly IFluidNetworkLookup _fluidNetworkLookup;
         private readonly Dictionary<uint, HashTickState> _hashStatesByTick = new();
 
         public TrainUnitTickDiffBundleEventPacket(
             EventProtocolProvider eventProtocolProvider,
             TrainUpdateService trainUpdateService,
-            IBeltTransportLookup beltTransportLookup)
+            IBeltTransportLookup beltTransportLookup,
+            IFluidNetworkLookup fluidNetworkLookup)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _trainUpdateService = trainUpdateService;
             _beltTransportLookup = beltTransportLookup;
+            _fluidNetworkLookup = fluidNetworkLookup;
         }
 
         public void Load()
@@ -46,15 +50,16 @@ namespace Server.Event.EventReceive
         private void OnHashTick(TrainUpdateService.HashStateEventData hashStateEventData)
         {
             var hashTickSequenceId = _trainUpdateService.NextTickSequenceId();
-            // 間引きtickはベルトもダミー。本物のtickだけ今の組をその場でハッシュする
-            // A skipped tick is a dummy for the belt too; only a real tick hashes the current assembly on the spot
-            var beltTransportHash = TrainUpdateService.IsHashBroadcastTick(hashStateEventData.Tick)
-                ? _beltTransportLookup.ComputeStateHash()
-                : TrainUnitHashStateMessagePack.DummyHash;
+            // 間引きtickはベルト・流体もダミー。本物のtickだけ今の組と網をその場でハッシュする
+            // A skipped tick is a dummy for the belt and fluid too; only a real tick hashes the current assembly and network on the spot
+            var isRealHashTick = TrainUpdateService.IsHashBroadcastTick(hashStateEventData.Tick);
+            var beltTransportHash = isRealHashTick ? _beltTransportLookup.ComputeStateHash() : TrainUnitHashStateMessagePack.DummyHash;
+            var fluidNetworkHash = isRealHashTick ? _fluidNetworkLookup.CurrentStateHash : TrainUnitHashStateMessagePack.DummyHash;
             _hashStatesByTick[hashStateEventData.Tick] = new HashTickState(
                 hashStateEventData.UnitsHash,
                 hashStateEventData.RailGraphHash,
                 beltTransportHash,
+                fluidNetworkHash,
                 hashTickSequenceId);
         }
 
@@ -77,6 +82,7 @@ namespace Server.Event.EventReceive
                 hashState.UnitsHash,
                 hashState.RailGraphHash,
                 hashState.BeltTransportHash,
+                hashState.FluidNetworkHash,
                 diffs);
             var payload = MessagePackSerializer.Serialize(messagePack);
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
@@ -114,13 +120,15 @@ namespace Server.Event.EventReceive
             public uint UnitsHash { get; }
             public uint RailGraphHash { get; }
             public uint BeltTransportHash { get; }
+            public uint FluidNetworkHash { get; }
             public uint HashTickSequenceId { get; }
 
-            public HashTickState(uint unitsHash, uint railGraphHash, uint beltTransportHash, uint hashTickSequenceId)
+            public HashTickState(uint unitsHash, uint railGraphHash, uint beltTransportHash, uint fluidNetworkHash, uint hashTickSequenceId)
             {
                 UnitsHash = unitsHash;
                 RailGraphHash = railGraphHash;
                 BeltTransportHash = beltTransportHash;
+                FluidNetworkHash = fluidNetworkHash;
                 HashTickSequenceId = hashTickSequenceId;
             }
         }

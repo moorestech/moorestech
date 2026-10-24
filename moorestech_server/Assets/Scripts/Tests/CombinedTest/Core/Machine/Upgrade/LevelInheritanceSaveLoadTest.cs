@@ -25,8 +25,8 @@ using static Tests.CombinedTest.Core.Machine.Upgrade.LevelInheritanceTestHelper;
 namespace Tests.CombinedTest.Core.Machine.Upgrade
 {
     /// <summary>
-    ///     加工中ジョブの継承レベルがセーブ・ロードで保たれ、欠けたセーブは読まずに止まり、レシピが消えたジョブは継承レベルごと捨てて待機へ戻り、版6の通常機械は継承レベル無しで読めることを検証する
-    ///     Verifies the running job's inherited level survives save/load, a save missing it stops loading, a job whose recipe vanished is dropped with its level and falls back to idle, and a version-6 plain machine loads with no inherited level
+    ///     加工中ジョブの継承レベルがセーブ・ロードで保たれ、欠けたセーブは読まずに止まり、レシピが消えたジョブは継承レベルごと捨てて待機へ戻り、版7の通常機械は継承レベル無しで読めることを検証する
+    ///     Verifies the running job's inherited level survives save/load, a save missing it stops loading, a job whose recipe vanished is dropped with its level and falls back to idle, and a version-7 plain machine loads with no inherited level
     /// </summary>
     public class LevelInheritanceSaveLoadTest
     {
@@ -94,13 +94,13 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
         }
 
         [Test]
-        public void Version6PlainMachineLoadsWithoutInheritedLevelTest()
+        public void Version7PlainMachineLoadsWithoutInheritedLevelTest()
         {
-            // 通常レシピで加工中の機械から継承レベルを消して版6と名乗らせ、ファイル経由でマイグレーション連鎖を通す
-            // Strip the level from a plain-recipe job, label it version 6 and load from a file so the migration chain runs
+            // 通常レシピで加工中の機械から継承レベルを消して版7と名乗らせ、ファイル経由でマイグレーション連鎖を通す
+            // Strip the level from a plain-recipe job, label it version 7 and load from a file so the migration chain runs
             var save = BuildPlainProcessingSave();
             Assert.IsTrue(ProcessorJson(save).Remove("inheritedLevel"));
-            save["worldVersion"] = 6;
+            save["worldVersion"] = 7;
             Directory.CreateDirectory(_archiveRoot);
             var sourcePath = WorldDataDirectory.FromWorldRoot(_archiveRoot).SaveJsonFilePath;
             File.WriteAllText(sourcePath, save.ToString());
@@ -111,8 +111,8 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             var (_, loadProvider) = new MoorestechServerDIContainerGenerator().Create(options);
             loadProvider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-            // 加工中のまま読め、保存し直すと継承レベルは null（版6に継承レシピは無かった）
-            // It loads still processing and re-saves with a null level (version 6 had no inheritance recipes)
+            // 加工中のまま読め、保存し直すと継承レベルは null（版7に継承レシピは無かった）
+            // It loads still processing and re-saves with a null level (version 7 had no inheritance recipes)
             Assert.AreEqual(ProcessState.Processing, GetProcessor().CurrentState);
             var resaved = JObject.Parse(loadProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
             Assert.AreEqual(JTokenType.Null, ProcessorJson(resaved)["inheritedLevel"].Type);

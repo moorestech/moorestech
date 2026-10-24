@@ -2,8 +2,8 @@ using Core.BeltTransport;
 
 namespace Game.Block.Blocks.BeltConveyor.Sync.State
 {
-    // tick境界で、形の一覧とCore segmentの一覧から全量を切り出す。サーバーの組からも、クライアントの複製からも同じ手順で切り出せる
-    // Cuts the full state out of a shape list and the Core segments at a tick boundary; the same procedure serves the server assembly and the client replica
+    // tick境界で、サーバーの組の形の一覧とCore segmentの一覧から全量(送受信する形)を切り出す。途中参加と再構築tickの全量送信だけが使い、ハッシュは切り出さずに直接混ぜる
+    // Cuts the full state (the wire form) out of the server assembly's shapes and Core segments at a tick boundary; only the join-time and rebuilt-tick full-state sends use it, while the hash mixes directly without a capture
     public static class BeltTransportFullStateCapture
     {
         public static BeltTransportFullState Capture(BeltSegmentShape[] shapes, BeltConveyorSegment[] segments)

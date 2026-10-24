@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Core.Transport
         internal static void ReplayAndAssert(BeltTransportReplica replica, BeltTickDiff diff, int tick)
         {
             Assert.IsTrue(replica.Tick(diff), $"replica consistent at tick {tick}");
-            Assert.AreEqual(ServerHash(), BeltTransportStateHash.Compute(replica.CaptureFullState()), $"hash at tick {tick}");
+            Assert.AreEqual(ServerHash(), BeltTransportStateHash.Compute(replica.Shapes, replica.Segments), $"hash at tick {tick}");
         }
 
         internal static uint ServerHash()

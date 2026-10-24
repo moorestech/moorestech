@@ -5,7 +5,8 @@
         "Game.Block.Interface",
         "Core.Master",
         "MessagePack",
-        "MessagePack.Annotations"
+        "MessagePack.Annotations",
+        "ClassLibrary"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

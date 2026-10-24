@@ -1,17 +1,19 @@
+using System;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V6→V7移行: 通常機械とクリーンルーム機械の加工状態に継承レベル null を明示で足す（版6に継承レシピは無いため「継承しない」が正しい）
-    // V6→V7 migration: add an explicit null inherited level to normal and clean-room machine processing state (version 6 had no inheritance recipes, so "no inheritance" is exact)
+    // V6→V7移行: パイプの中身と面速度を double(流体量)から 10 億分の 1 単位の整数へ変える(ADR 0090)。`amount`→`amountNano`、`faceVelocities[].velocity`→`velocityNano`、どちらも最近傍に丸める
+    // V6→V7 migration: convert pipe contents and face velocities from doubles (amount) to 10^-9-unit integers (ADR 0090). `amount`→`amountNano`, `faceVelocities[].velocity`→`velocityNano`, both rounded to nearest
+    // 機械のタンク(FluidContainerSaveJsonObject)は double のままなので触らない
+    // Machine tanks (FluidContainerSaveJsonObject) stay doubles and are left untouched
     public sealed class SaveMigrationStepV6ToV7 : ISaveMigrationStep
     {
-        // コンポーネントのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
-        // Component SaveKeys (typeof FullName); the step never references live types, so they are kept as strings
-        private const string VanillaMachineSaveKey = "Game.Block.Blocks.Machine.VanillaMachineSaveComponent";
-        private const string CleanRoomMachineSaveKey = "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent";
-        private const string InheritedLevelKey = "inheritedLevel";
+        // パイプの SaveKey(typeof FullName)。ステップは前の版の型を参照しないので文字列で持つ
+        // The pipe's SaveKey (typeof FullName); the step never references live types, so it is kept as a string
+        private const string PipeSaveKey = "Game.Block.Blocks.Fluid.FluidPipeSaveComponent";
+        private const long UnitsPerAmount = 1_000_000_000;
 
         public int FromVersion => 6;
 
@@ -19,50 +21,62 @@ namespace Game.SaveLoad.Migration.Steps
         {
             if (!(save["world"] is JArray world)) return Fail($"セーブのworldが配列ではないため変換できません。 type={save["world"]?.Type}");
 
-            var vanillaCount = 0;
-            var cleanRoomCount = 0;
+            var convertedPipes = 0;
             foreach (var blockToken in world)
             {
                 if (!(blockToken is JObject block)) return Fail($"world要素がオブジェクトではないため変換できません。 type={blockToken.Type}");
 
-                // stateが無いブロックは機械ではないので対象外
-                // A block without state is not a machine, so it is out of scope
+                // stateが無いブロックはパイプではないので対象外
+                // A block without state is not a pipe, so it is out of scope
                 var stateToken = block["state"];
                 if (stateToken == null || stateToken.Type == JTokenType.Null) continue;
                 if (!(stateToken is JObject state)) return Fail($"world要素のstateがオブジェクトではありません。 type={stateToken.Type}");
 
-                // 通常機械はprocessorサブオブジェクトへ足す
-                // A normal machine gets the key inside its processor sub-object
-                var vanillaToken = state[VanillaMachineSaveKey];
-                if (vanillaToken != null && vanillaToken.Type != JTokenType.Null)
-                {
-                    if (!(vanillaToken is JObject vanilla)) return Fail($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}");
-                    if (!(vanilla["processor"] is JObject processor)) return Fail($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={vanilla["processor"]?.Type}");
-                    if (!processor.ContainsKey(InheritedLevelKey))
-                    {
-                        processor[InheritedLevelKey] = JValue.CreateNull();
-                        vanillaCount++;
-                    }
-                }
+                if (!(state[PipeSaveKey] is JObject pipe)) continue;
 
-                // クリーンルーム機械は直下へ足す
-                // A clean-room machine gets the key at its top level
-                var cleanRoomToken = state[CleanRoomMachineSaveKey];
-                if (cleanRoomToken != null && cleanRoomToken.Type != JTokenType.Null)
+                // 旧キーが無く新キーがあれば変換済み(冪等)。どちらも無い形は読めないので拒否する
+                // Converted already when only the new key exists (idempotent); a shape with neither key is unreadable and refused
+                var amountToken = pipe["amount"];
+                if (amountToken == null)
                 {
-                    if (!(cleanRoomToken is JObject cleanRoom)) return Fail($"{CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}");
-                    if (!cleanRoom.ContainsKey(InheritedLevelKey))
+                    if (pipe["amountNano"] != null) continue;
+                    return Fail($"{PipeSaveKey} に amount も amountNano もありません。");
+                }
+                if (!IsNumber(amountToken)) return Fail($"{PipeSaveKey} の amount が数値ではありません。 type={amountToken.Type}");
+                pipe.Remove("amount");
+                pipe["amountNano"] = ToUnits(amountToken.Value<double>());
+
+                var facesToken = pipe["faceVelocities"];
+                if (facesToken != null && facesToken.Type != JTokenType.Null)
+                {
+                    if (!(facesToken is JArray faces)) return Fail($"{PipeSaveKey} の faceVelocities が配列ではありません。 type={facesToken.Type}");
+                    foreach (var faceToken in faces)
                     {
-                        cleanRoom[InheritedLevelKey] = JValue.CreateNull();
-                        cleanRoomCount++;
+                        if (!(faceToken is JObject face)) return Fail($"{PipeSaveKey} の faceVelocities 要素がオブジェクトではありません。 type={faceToken.Type}");
+                        var velocityToken = face["velocity"];
+                        if (velocityToken == null) return Fail($"{PipeSaveKey} の faceVelocities 要素に velocity がありません。");
+                        if (!IsNumber(velocityToken)) return Fail($"{PipeSaveKey} の velocity が数値ではありません。 type={velocityToken.Type}");
+                        face.Remove("velocity");
+                        face["velocityNano"] = ToUnits(velocityToken.Value<double>());
                     }
                 }
+                convertedPipes++;
             }
 
-            Debug.Log($"セーブを版6から版7へ変換しました。継承レベルを足した通常機械={vanillaCount}台 クリーンルーム機械={cleanRoomCount}台");
+            Debug.Log($"セーブを版6から版7へ変換しました。パイプの流体量を10億分の1単位の整数にした件数={convertedPipes}");
             return SaveMigrationStepResult.Converted(save);
 
             #region Internal
+
+            static bool IsNumber(JToken token)
+            {
+                return token.Type == JTokenType.Float || token.Type == JTokenType.Integer;
+            }
+
+            static long ToUnits(double amount)
+            {
+                return (long)Math.Round(amount * UnitsPerAmount, MidpointRounding.AwayFromZero);
+            }
 
             SaveMigrationStepResult Fail(string failureReason)
             {

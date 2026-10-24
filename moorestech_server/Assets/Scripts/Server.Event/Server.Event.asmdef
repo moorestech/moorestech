@@ -28,6 +28,7 @@
     "Game.SaveLoad.Interface",
     "Game.Paths",
     "Game.Block",
+    "Game.Fluid",
     "Core.BeltTransport"
   ],
   "includePlatforms": [],

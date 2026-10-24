@@ -125,7 +125,7 @@ namespace Tests.CombinedTest.Core.Fluid
             // Helper to get the amount of fluid inside a pipe
             double GetPipeAmount(IBlock pipeBlock)
             {
-                return pipeBlock.GetComponent<FluidPipeComponent>().Node.Amount;
+                return pipeBlock.GetComponent<FluidPipeComponent>().Amount;
             }
 
             #endregion

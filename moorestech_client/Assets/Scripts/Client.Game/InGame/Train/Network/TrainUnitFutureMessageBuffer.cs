@@ -49,7 +49,7 @@ namespace Client.Game.InGame.Train.Network
 
         // ハッシュイベントをtick基準でキューへ積む。
         // Queue hash states by tick for tick-aligned verification.
-        public void EnqueueHash(uint unitsHash, uint railGraphHash, uint beltTransportHash, uint serverTick, uint tickSequenceId)
+        public void EnqueueHash(uint unitsHash, uint railGraphHash, uint beltTransportHash, uint fluidNetworkHash, uint serverTick, uint tickSequenceId)
         {
             _diagnostics.RecordReceived("Hash", serverTick, tickSequenceId);
             _tickState.SetMaxBufferedTickUnifiedId(TrainTickUnifiedIdUtility.CreateTickUnifiedId(serverTick, tickSequenceId));
@@ -67,7 +67,7 @@ namespace Client.Game.InGame.Train.Network
                 // Drop hash states already covered.
                 return;
             }
-            _futureHashStates[messageTickUnifiedId] = new TrainTickHashState(unitsHash, railGraphHash, beltTransportHash, serverTick, tickSequenceId);
+            _futureHashStates[messageTickUnifiedId] = new TrainTickHashState(unitsHash, railGraphHash, beltTransportHash, fluidNetworkHash, serverTick, tickSequenceId);
         }
 
         // 指定tickのハッシュを取り出す。

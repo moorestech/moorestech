@@ -14,7 +14,6 @@ using Mooresmaster.Model.FluidInventoryConnectsModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
-using UniRx;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
 
@@ -445,60 +444,18 @@ namespace Tests.CombinedTest.Core.Fluid
             Assert.Contains("Water", names.Keys);
             Assert.Contains("Steam", names.Keys);
         }
-
-        /// <summary>
-        ///     FluidPipeのIBlockStateObservableの実装のテスト。通知はtick末尾に全パイプへ毎tick1回ずつバッチ発火される
-        ///     IBlockStateObservable test: notifications fire batched, once per pipe every tick at the tick tail
-        /// </summary>
-        [Test]
-        public void FluidPipeNetworkTest()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 0, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock0);
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, Vector3Int.right * 1, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock1);
-
-            var fluidPipe0 = fluidPipeBlock0.GetComponent<FluidPipeComponent>();
-            var fluidPipe1 = fluidPipeBlock1.GetComponent<FluidPipeComponent>();
-
-            var fluidId = Guid.Parse("00000000-0000-0000-1234-000000000001");
-            var fluid = MasterHolder.FluidMaster.GetFluidId(fluidId);
-
-            const double fluid0Amount = 10d;
-            const double fluid1Amount = 20d;
-
-            fluidPipe0.AddLiquid(new FluidStack(fluid0Amount, fluid), default);
-            fluidPipe1.AddLiquid(new FluidStack(fluid1Amount, fluid), default);
-
-            var callCount = 0;
-
-            fluidPipe0.OnChangeBlockState.Subscribe(_ => { callCount++; });
-            fluidPipe1.OnChangeBlockState.Subscribe(_ => { callCount++; });
-
-            const int steps = 10;
-
-            // 毎フレーム1tick固定なので、1tickずつ進行
-            // Each frame advances exactly 1 tick
-            for (var i = 0; i < steps; i++) GameUpdater.RunFrames(1);
-
-            // 毎tick両パイプへ1回ずつ通知される（2回/tick × 10tick。差分化は将来のtick差分同期で行う）
-            // Both pipes notify once every tick: 2 per tick over 10 ticks (diffing is deferred to the future tick-diff sync)
-            Assert.AreEqual(20, callCount);
-        }
     }
 
     public static class FluidPipeExtension
     {
         public static double GetAmount(this FluidPipeComponent fluidPipe)
         {
-            return fluidPipe.Node.Amount;
+            return fluidPipe.Amount;
         }
 
         public static FluidId GetFluidId(this FluidPipeComponent fluidPipe)
         {
-            return fluidPipe.Node.FluidId;
+            return fluidPipe.FluidId;
         }
     }
 }

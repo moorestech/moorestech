@@ -26,8 +26,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         // Inherited level of the running job (1 or more for an inheritance recipe; null otherwise)
         [JsonProperty("inheritedLevel")] public int? InheritedLevel;
 
-        // 液体タンク。版8から必ずある（版7以前はマイグレーションで空配列になる）
-        // Fluid tanks; always present from version 8 (older saves get empty arrays via migration)
+        // 液体タンク。版9から必ずある（版8以前はマイグレーションで空配列になる）
+        // Fluid tanks; always present from version 9 (older saves get empty arrays via migration)
         [JsonProperty("inputFluidSlot")] public List<FluidContainerSaveJsonObject> InputFluidSlot;
         [JsonProperty("outputFluidSlot")] public List<FluidContainerSaveJsonObject> OutputFluidSlot;
     }

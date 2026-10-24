@@ -78,21 +78,21 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
         }
 
         [Test]
-        public void VersionSevenStateLoadsAfterMigrationTest()
+        public void VersionEightStateLoadsAfterMigrationTest()
         {
             CleanRoomHatchTest.CreateServer();
             var machine = PlaceProcessMachine();
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 3);
 
-            // 版7の形（液体キー無し）を作り、V7→V8 を通した状態から実ロードする
-            // Rebuild the version-7 shape (no fluid keys), run V7->V8 and load the block from the result
+            // 版8の形（液体キー無し）を作り、V8→V9 を通した状態から実ロードする
+            // Rebuild the version-8 shape (no fluid keys), run V8->V9 and load the block from the result
             var states = SaveLoadJsonTestHelper.ThroughJson(machine.GetSaveState());
             var processorState = (JObject)states[ProcessorSaveKey];
             processorState.Remove("inputFluidSlot");
             processorState.Remove("outputFluidSlot");
-            var save = new JObject { ["worldVersion"] = 7, ["world"] = new JArray(new JObject { ["state"] = JObject.FromObject(states) }) };
+            var save = new JObject { ["worldVersion"] = 8, ["world"] = new JArray(new JObject { ["state"] = JObject.FromObject(states) }) };
 
-            var result = new SaveMigrationStepV7ToV8().Migrate(save);
+            var result = new SaveMigrationStepV8ToV9().Migrate(save);
             Assert.IsTrue(result.IsConverted, result.FailureReason);
             var migratedStates = ((JObject)result.Save["world"][0]["state"]).Properties().ToDictionary(property => property.Name, property => (object)property.Value);
             var reloaded = Reload(machine, migratedStates);

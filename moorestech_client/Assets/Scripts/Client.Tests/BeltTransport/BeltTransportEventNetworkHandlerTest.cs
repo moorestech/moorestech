@@ -31,9 +31,9 @@ namespace Client.Tests.BeltTransport
             var sink = new CapturedEventSink();
             serviceProvider.GetService<EventProtocolProvider>().RegisterPlayer(PlayerId, sink);
 
-            var rig = new BeltSyncClientRig();
+            var rig = new TickSyncClientRig();
             rig.Join(sink.TakeAll());
-            Assert.AreEqual(BeltTransportStateHash.Compute(CaptureServer()), rig.Cache.ComputeCurrentHash(), "replica hash right after the join-time full state");
+            Assert.AreEqual(ServerHash(), rig.Cache.ComputeCurrentHash(), "replica hash right after the join-time full state");
 
             var expectedRebuiltTicks = new List<uint>();
             for (var i = 1; i <= TickCount; i++)
@@ -47,7 +47,7 @@ namespace Client.Tests.BeltTransport
                 // Every tick the verifier passes the previous tick's hash, and once flushed up to the belt's sequence id the replica equals the server
                 var tick = (trainUpdateService.GetCurrentTick() - 1);
                 Assert.AreEqual(tick, rig.TickState.GetTick(), $"client reached tick {tick}");
-                Assert.AreEqual(BeltTransportStateHash.Compute(CaptureServer()), rig.Cache.ComputeCurrentHash(), $"replica hash at tick {tick}");
+                Assert.AreEqual(ServerHash(), rig.Cache.ComputeCurrentHash(), $"replica hash at tick {tick}");
             }
 
             Assert.AreEqual(expectedRebuiltTicks.Count, rig.RebuiltFullStatesReceived, "one rebuilt full state per placement");
@@ -55,7 +55,7 @@ namespace Client.Tests.BeltTransport
             Assert.Greater(rig.RealBeltHashesReceived, 0, "real belt hashes verified");
             Assert.Greater(rig.DummyBeltHashesReceived, 0, "dummy belt hashes passed");
             Assert.IsFalse(rig.TickState.IsPermanentlyWaiting, "no stop");
-            BeltFullStateAssert.AreEqual(CaptureServer(), rig.Cache.Replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(CaptureServer(), BeltTransportFullStateCapture.Capture(rig.Cache.Replica.Shapes, rig.Cache.Replica.Segments));
         }
 
         // 指定回の直前に行き止まりを延ばし、これから回るtickを再構築tickとして記録する

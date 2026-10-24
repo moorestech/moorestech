@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var report = world.Transport.Tick();
             Assert.IsTrue(replica.Tick(report.Diff));
             var postTransportHash = world.Transport.ComputeStateHash();
-            Assert.AreEqual(postTransportHash, BeltTransportStateHash.Compute(replica.CaptureFullState()));
+            Assert.AreEqual(postTransportHash, BeltTransportStateHash.Compute(replica.Shapes, replica.Segments));
             Assert.AreEqual(1, world.Transport.GetConnectionRemovalRefundItems(ServerContext.WorldBlockDatastore.GetBlock(sourcePosition)).Count);
             var beforeSave = world.Transport.CreateSaveState(merge.BlockInstanceId);
             Assert.AreEqual(1, beforeSave.InternalItems.Count);
@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             using (world.Transport.OnAssemblyRebuilt.Subscribe(_ => rebuiltFullState = world.Transport.CaptureFullState())) world.Transport.RebuildIfDirty();
             Assert.IsNotNull(rebuiltFullState, "rebuild published");
             replica = BeltTransportReplicaAssembler.Assemble(rebuiltFullState);
-            Assert.AreEqual(world.Transport.ComputeStateHash(), BeltTransportStateHash.Compute(replica.CaptureFullState()));
+            Assert.AreEqual(world.Transport.ComputeStateHash(), BeltTransportStateHash.Compute(replica.Shapes, replica.Segments));
             Assert.IsFalse(world.Transport.Assembly.Segments.SelectMany(segment => segment.CaptureItems())
                 .Any(state => state.Item.ItemId == item.ItemId));
             Assert.IsFalse(world.Transport.GetOwnedRefundItems(merge.BlockInstanceId).Any(stack => stack.Id == item.ItemId));

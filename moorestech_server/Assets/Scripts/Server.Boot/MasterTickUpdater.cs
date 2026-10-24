@@ -114,6 +114,10 @@ namespace Server.Boot
             // Belt transport advances after every block, so machine pushes made during this tick's block updates move with the belts in one batch
             _beltTransportTickUpdater.Update();
 
+            // 流体の差分は機械からパイプへの流入(block更新中)まで含めるので、本体の最後に取り出して流す
+            // The fluid diff includes machine-to-pipe inflows made during block updates, so it is taken and published at the end of the body
+            _fluidTickUpdater.PublishTickDiff();
+
             // チャレンジ判定とクリーンルームは本体の結果を見る。世界は変えない
             // Challenge checks and the clean room read the body's results; neither mutates the world
             _challengeDatastore.Update();
@@ -125,8 +129,8 @@ namespace Server.Boot
             _serverThreadActionQueue.Drain();
             _worldTopologyRebuilder.RebuildTopologiesIfDirty();
 
-            // 境界: 操作の適用と再構築まで終えた状態で列車・レール・ベルトのハッシュを出し、tick番号を進める。再構築したベルトの全量はハッシュより前に送られている
-            // Boundary: emit the train, rail and belt hashes from the state after input and rebuilds, and advance the tick; a rebuilt belt assembly's full state was already sent before the hash
+            // 境界: 操作の適用と再構築まで終えた状態で列車・レール・ベルト・流体のハッシュを出し、tick番号を進める。再構築したベルト・流体の全量はハッシュより前に送られている
+            // Boundary: emit the train, rail, belt and fluid hashes from the state after input and rebuilds, and advance the tick; rebuilt belt and fluid full states were already sent before the hash
             _trainUpdateService.CompleteTick();
 
             // 全世界変更の確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。常時記録のスナップショットも同じ安定点で取る（Startされるまで何もしない）
