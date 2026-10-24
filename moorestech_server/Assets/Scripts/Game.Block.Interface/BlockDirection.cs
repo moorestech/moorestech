@@ -110,11 +110,13 @@ namespace Game.Block.Interface
                     case BlockDirection.UpEast:
                         addPos = new Vector3Int(size.y, 0, size.x);
                         break;
+                    // 回したモデルの最小隅が占有範囲の最小セルに来る原点にする
+                    // Place the origin so the rotated model's min corner lands on the occupied range's min cell
                     case BlockDirection.UpSouth:
-                        addPos = new Vector3Int(size.x, 0, size.y);
+                        addPos = new Vector3Int(size.x, 0, 0);
                         break;
                     case BlockDirection.UpWest:
-                        addPos = new Vector3Int(0, 0, size.y);
+                        addPos = new Vector3Int(0, 0, 0);
                         break;
                     
                     case BlockDirection.North:
@@ -153,8 +155,8 @@ namespace Game.Block.Interface
             {
                 BlockDirection.UpNorth => new Vector3Int(0, 0, 1),
                 BlockDirection.UpEast => new Vector3Int(1, 0, 1),
-                BlockDirection.UpSouth => new Vector3Int(1, 0, 1),
-                BlockDirection.UpWest => new Vector3Int(0, 0, 1),
+                BlockDirection.UpSouth => new Vector3Int(1, 0, 0),
+                BlockDirection.UpWest => new Vector3Int(0, 0, 0),
                 BlockDirection.North => new Vector3Int(0, 0, 0),
                 BlockDirection.East => new Vector3Int(0, 0, 1),
                 BlockDirection.South => new Vector3Int(1, 0, 1),

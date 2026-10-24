@@ -80,58 +80,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
             z_XY_Edge.transform.localPosition = new Vector3(blockSize.x, blockSize.y, 0);
             
             
-            // ========== x-y 平面 ==========
+            // ========== 面 ==========
+            // 面の種類は、ローカルの外向き法線を向きで回したワールドの面で決める（縦向きを含む12向き）
+            // Each face type comes from rotating its local outward normal by the direction (all 12 directions, vertical included)
             xy_Origin_Surface.transform.localScale = new Vector3(blockSize.x, blockSize.y, 1);
             xy_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
-            xy_Origin_SurfaceScript.SetPreviewSurfaceType(blockDirection switch
-            { 
-                BlockDirection.North => PreviewSurfaceType.YX_Origin,
-                BlockDirection.East => PreviewSurfaceType.YZ_Origin,
-                BlockDirection.South => PreviewSurfaceType.YX_Z,
-                BlockDirection.West => PreviewSurfaceType.YZ_X,
-            }, blockGameObject);
-            
+            xy_Origin_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceTypeResolver.Resolve(blockDirection, new Vector3Int(0, 0, -1)), blockGameObject);
+
             xy_Z_Surface.transform.localScale = new Vector3(blockSize.x, blockSize.y, 1);
             xy_Z_Surface.transform.localPosition = new Vector3(0, 0, blockSize.z);
-            xy_Z_SurfaceScript.SetPreviewSurfaceType(blockDirection switch
-            {
-                BlockDirection.North => PreviewSurfaceType.YX_Z,
-                BlockDirection.East => PreviewSurfaceType.YZ_X,
-                BlockDirection.South => PreviewSurfaceType.YX_Origin,
-                BlockDirection.West => PreviewSurfaceType.YZ_Origin,
-            }, blockGameObject);
-            
-            
-            // ========== y-z 平面 ==========
+            xy_Z_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceTypeResolver.Resolve(blockDirection, new Vector3Int(0, 0, 1)), blockGameObject);
+
             yz_Origin_Surface.transform.localScale = new Vector3(1, blockSize.y, blockSize.z);
             yz_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
-            yz_Origin_SurfaceScript.SetPreviewSurfaceType(blockDirection switch
-            {
-                BlockDirection.North => PreviewSurfaceType.YZ_Origin,
-                BlockDirection.East => PreviewSurfaceType.YX_Z,
-                BlockDirection.South => PreviewSurfaceType.YZ_X,
-                BlockDirection.West => PreviewSurfaceType.YX_Origin,
-            }, blockGameObject);
-            
+            yz_Origin_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceTypeResolver.Resolve(blockDirection, new Vector3Int(-1, 0, 0)), blockGameObject);
+
             yz_X_Surface.transform.localScale = new Vector3(1, blockSize.y, blockSize.z);
             yz_X_Surface.transform.localPosition = new Vector3(blockSize.x, 0, 0);
-            yz_X_SurfaceScript.SetPreviewSurfaceType(blockDirection switch
-            {
-                BlockDirection.North => PreviewSurfaceType.YZ_X,
-                BlockDirection.East => PreviewSurfaceType.YX_Origin,
-                BlockDirection.South => PreviewSurfaceType.YZ_Origin,
-                BlockDirection.West => PreviewSurfaceType.YX_Z,
-            }, blockGameObject);
-            
-            
-            // ========== z-x 平面 ==========
+            yz_X_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceTypeResolver.Resolve(blockDirection, new Vector3Int(1, 0, 0)), blockGameObject);
+
             zx_Origin_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
             zx_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
-            zx_Origin_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Origin, blockGameObject);
-            
+            zx_Origin_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceTypeResolver.Resolve(blockDirection, new Vector3Int(0, -1, 0)), blockGameObject);
+
             zx_Y_Surface.transform.localScale = new Vector3(blockSize.x, 1, blockSize.z);
             zx_Y_Surface.transform.localPosition = new Vector3(0, blockSize.y, 0);
-            zx_Y_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceType.XZ_Y, blockGameObject);
+            zx_Y_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceTypeResolver.Resolve(blockDirection, new Vector3Int(0, 1, 0)), blockGameObject);
         }
     }
 }
