@@ -41,6 +41,7 @@
         "Game.PlayerInventory.Interface",
         "CommandForgeGeneratorUtil.Editor",
         "Client.WebUiHost",
+        "CefUnity.Runtime",
         "Client.Build.Policy",
         "Client.Playtest",
         "Core.BeltTransport",

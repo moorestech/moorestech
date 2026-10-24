@@ -1,11 +1,12 @@
 #if UNITY_EDITOR
+using System;
+using System.Reflection;
 using Client.Common;
+using CefUnity.Runtime;
 using Client.WebUiHost.Cef;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.Callbacks;
-using System;
-using System.Reflection;
 using UnityEditor.TestTools.TestRunner.Api;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -25,6 +26,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             Assert.IsNotEmpty(_currentRun, "isolation requires an active Test Runner job");
             SessionState.SetString(OwnedRunKey, _currentRun);
             SessionState.SetBool(SessionKey, true);
+            BlockActionSceneFixture.Prepare();
         }
 
         internal static void Reset() => Finish("fixture teardown");
@@ -51,6 +53,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             var browsers = Object.FindObjectsByType<WebUiCefNavigator>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             Assert.That(browsers, Has.Length.EqualTo(1));
             Assert.That(browsers[0].gameObject.activeSelf, Is.False, "CEF must never activate in this binder/API test");
+            Assert.IsNull(browsers[0].GetComponent<CefUnityBrowserSample>(), "native browser must be absent from the non-rendering scene fixture");
             Assert.IsFalse(SessionState.GetBool(SessionKey, false), "scene permission must be consumed");
             Assert.IsTrue(SessionState.GetBool(OwnedSceneKey, false), "the isolated scene must retain its cleanup owner");
         }
@@ -110,10 +113,10 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 EditorApplication.isPlaying = false;
                 return;
             }
+            BlockActionSceneFixture.Restore();
             SessionState.SetBool(OwnedSceneKey, false);
             SessionState.EraseString(OwnedRunKey);
         }
-
     }
 }
 #endif
