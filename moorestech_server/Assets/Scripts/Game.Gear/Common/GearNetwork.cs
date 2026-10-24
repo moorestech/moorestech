@@ -130,12 +130,7 @@ namespace Game.Gear.Common
         {
             var networkLoadRate = _runtimeState.NetworkLoadRate;
             foreach (var generator in _gearGenerators)
-            {
-                // 破壊済みgeneratorを飛ばす
-                // Skip generators destroyed this tick; the next tick rebuild removes them from topology
-                if (generator.IsDestroy) continue;
                 if (generator.RequiresContinuousTick) generator.ConsumeGeneratorTick(networkLoadRate);
-            }
         }
 
         internal void Destroy()

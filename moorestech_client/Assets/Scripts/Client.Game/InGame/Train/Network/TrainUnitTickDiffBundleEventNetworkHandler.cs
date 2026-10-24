@@ -58,6 +58,7 @@ namespace Client.Game.InGame.Train.Network
                     bundleMessage.UnitsHash,
                     bundleMessage.RailGraphHash,
                     bundleMessage.BeltTransportHash,
+                    bundleMessage.FluidNetworkHash,
                     hashTick,
                     bundleMessage.HashTickSequenceId);
             }

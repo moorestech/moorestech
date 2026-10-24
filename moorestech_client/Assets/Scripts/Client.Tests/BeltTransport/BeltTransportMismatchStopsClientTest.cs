@@ -34,7 +34,7 @@ namespace Client.Tests.BeltTransport
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var sink = new CapturedEventSink();
             serviceProvider.GetService<EventProtocolProvider>().RegisterPlayer(PlayerId, sink);
-            var rig = new BeltSyncClientRig();
+            var rig = new TickSyncClientRig();
             rig.Join(sink.TakeAll());
 
             // クライアントが本物のハッシュを持つtickを処理し終えるまで進め、そのハッシュが次tickで届く前に複製だけを1tick余分に進める
@@ -77,7 +77,7 @@ namespace Client.Tests.BeltTransport
             var trainUpdateService = serviceProvider.GetService<TrainUpdateService>();
             var sink = new CapturedEventSink();
             serviceProvider.GetService<EventProtocolProvider>().RegisterPlayer(PlayerId, sink);
-            var rig = new BeltSyncClientRig();
+            var rig = new TickSyncClientRig();
             rig.Join(sink.TakeAll());
 
             // 本物の差分に無い機械への搬出を1つ足した差分で、同じ連番位置を上書きする。複製はその搬出を再現できず食い違いになる

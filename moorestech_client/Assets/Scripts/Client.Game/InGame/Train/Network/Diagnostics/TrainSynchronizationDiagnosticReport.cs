@@ -25,7 +25,9 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
         public TrainSynchronizationReceiveRecord[] RecentHistory;
     }
 
-    internal sealed class TrainSynchronizationHashComparison
+    // 同じtickのローカルとサーバーのハッシュの対。検証器が作り、不一致の診断にそのまま残す
+    // The local and server hash pairs of one tick; built by the verifier and kept as is in the mismatch diagnosis
+    public sealed class TrainSynchronizationHashComparison
     {
         public readonly uint LocalTrainHash;
         public readonly uint ServerTrainHash;
@@ -33,8 +35,13 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
         public readonly uint ServerRailHash;
         public readonly uint LocalBeltHash;
         public readonly uint ServerBeltHash;
+        public readonly uint LocalFluidHash;
+        public readonly uint ServerFluidHash;
 
-        internal TrainSynchronizationHashComparison(uint localTrain, uint serverTrain, uint localRail, uint serverRail, uint localBelt, uint serverBelt)
+        public bool HasMismatch =>
+            LocalTrainHash != ServerTrainHash || LocalRailHash != ServerRailHash || LocalBeltHash != ServerBeltHash || LocalFluidHash != ServerFluidHash;
+
+        public TrainSynchronizationHashComparison(uint localTrain, uint serverTrain, uint localRail, uint serverRail, uint localBelt, uint serverBelt, uint localFluid, uint serverFluid)
         {
             LocalTrainHash = localTrain;
             ServerTrainHash = serverTrain;
@@ -42,6 +49,8 @@ namespace Client.Game.InGame.Train.Network.Diagnostics
             ServerRailHash = serverRail;
             LocalBeltHash = localBelt;
             ServerBeltHash = serverBelt;
+            LocalFluidHash = localFluid;
+            ServerFluidHash = serverFluid;
         }
     }
 

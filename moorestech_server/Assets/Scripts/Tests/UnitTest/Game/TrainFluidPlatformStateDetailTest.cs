@@ -84,7 +84,7 @@ namespace Tests.UnitTest.Game
             // 実Updateで押出しと空遷移を確認
             // Verify pushing and empty transition through Update
             component.Update();
-            Assert.AreEqual(0.25, pipe.Node.Amount, 0.001);
+            Assert.AreEqual(0.25, pipe.Amount, 0.001);
             Assert.AreEqual(1, notifications);
             var tank = ReadDetail(component).OutputTanks[0];
             Assert.AreEqual(0, tank.Amount, 0.001);

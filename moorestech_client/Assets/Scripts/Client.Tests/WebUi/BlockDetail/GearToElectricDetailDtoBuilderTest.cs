@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.BeltTransport.Statistics;
+using Client.Game.InGame.FluidNetwork;
 using Client.Game.InGame.Block;
+using Game.Block.Interface;
 using Game.Block.Interface.State;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -55,10 +57,13 @@ namespace Client.Tests.WebUi.BlockDetail
             var gameObject = new GameObject("ParentApplyGeneratorTest");
             var block = gameObject.AddComponent<BlockGameObject>();
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockMasterElement)).SetValue(block, master);
+            // 本番のBlockGameObjectは必ず位置を持つ。流体複製の照会が座標で引くので同じ前提を満たす
+            // A production BlockGameObject always has a position; the fluid replica lookup keys by it, so meet the same premise
+            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).SetValue(block, new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, new BlockStateMessagePack(state, Vector3Int.zero));
             var dto = new BlockInventoryDto();
-            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
+            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
             Object.DestroyImmediate(gameObject);
 
             // 公開DTOの3値で親の配線を保証する

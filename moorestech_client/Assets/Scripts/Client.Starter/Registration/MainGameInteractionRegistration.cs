@@ -4,6 +4,8 @@ using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.BeltTransport.Cover;
 using Client.Game.InGame.BeltTransport.Statistics;
 using Client.Game.InGame.BeltTransport.View;
+using Client.Game.InGame.FluidNetwork;
+using Client.Game.InGame.FluidNetwork.View;
 using CommandForgeGenerator.Command;
 using System;
 using Client.Game.InGame.UI.Notification;
@@ -196,6 +198,8 @@ namespace Client.Starter.Registration
             builder.Register<BeltItemObjectPresenter>(Lifetime.Singleton);
             builder.Register<BlockGameObjectBeltMergeCellCoverFactory>(Lifetime.Singleton).As<IBeltMergeCellCoverFactory>();
             builder.Register<BeltMergeCellCoverPresenter>(Lifetime.Singleton);
+            builder.Register<FluidNetworkClientCache>(Lifetime.Singleton);
+            builder.Register<FluidPipeWaterLevelPresenter>(Lifetime.Singleton);
             builder.Register<TrainUnitTickState>(Lifetime.Singleton);
             builder.Register<Client.Game.InGame.Entity.Removal.TrainCarRemovalRequests>(Lifetime.Singleton);
             builder.RegisterInstance(new TrainSynchronizationDiagnosticWriter(TrainSynchronizationDiagnosticDirectory.Resolve()));

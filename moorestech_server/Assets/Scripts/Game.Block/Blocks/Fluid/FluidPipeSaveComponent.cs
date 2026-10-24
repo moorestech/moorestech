@@ -30,16 +30,15 @@ namespace Game.Block.Blocks.Fluid
         {
             BlockException.CheckDestroy(this);
 
-            var node = _fluidPipeComponent.Node;
             var jsonObject = new FluidPipeSaveJsonObject
             {
-                FluidGuidStr = MasterHolder.FluidMaster.GetFluidGuid(node.FluidId).ToString(),
-                Amount = node.Amount,
+                FluidGuidStr = MasterHolder.FluidMaster.GetFluidGuid(_fluidPipeComponent.FluidId).ToString(),
+                AmountUnits = _fluidPipeComponent.AmountUnits,
             };
 
             // 正準側として所有する面の速度を方向つきで保存する（波の状態をロード後も引き継ぐ）
             // Persist velocities of faces owned as the canonical side, keyed by direction, so wave state survives a reload
-            var faceVelocities = new List<(Vector3Int direction, double velocity)>();
+            var faceVelocities = new List<(Vector3Int direction, long velocity)>();
             ServerContext.GetService<IFluidNetworkDatastore>().CollectOwnedFaceVelocities(_fluidPipeComponent, faceVelocities);
             foreach (var (direction, velocity) in faceVelocities)
             {
@@ -48,7 +47,7 @@ namespace Game.Block.Blocks.Fluid
                     X = direction.x,
                     Y = direction.y,
                     Z = direction.z,
-                    Velocity = velocity,
+                    VelocityUnits = velocity,
                 });
             }
 

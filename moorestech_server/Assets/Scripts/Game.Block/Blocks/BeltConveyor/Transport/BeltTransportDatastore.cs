@@ -117,11 +117,11 @@ namespace Game.Block.Blocks.BeltConveyor.Transport
             return BeltTransportFullStateCapture.Capture(Assembly.Shapes, Assembly.Segments);
         }
 
-        // 現在の組の全量ハッシュ。クライアントの複製との照合に使う
-        // Full-state hash of the current assembly, checked against the client replica
+        // 現在の組のハッシュ。クライアントの複製との照合に使う。全量を写さず直接混ぜる
+        // Hash of the current assembly, checked against the client replica; mixes directly without capturing the full state
         public uint ComputeStateHash()
         {
-            return BeltTransportStateHash.Compute(CaptureFullState());
+            return BeltTransportStateHash.Compute(Assembly.Shapes, Assembly.Segments);
         }
 
         // ロードしたベルコンblockの保存内容を預かる。次の再構築で復元手順に乗せる
