@@ -17,6 +17,12 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
     internal class MachineInputSlotBinding
     {
         private MachineRecipeMasterElement _recipe;
+        private readonly MachineInputCraftCapGate _craftCapGate;
+
+        public MachineInputSlotBinding(MachineInputCraftCapGate craftCapGate)
+        {
+            _craftCapGate = craftCapGate;
+        }
 
         public void SetRecipe(MachineRecipeMasterElement recipe)
         {
@@ -37,7 +43,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             if (_recipe == null) yield break;
             for (var i = 0; i < _recipe.InputItems.Length; i++)
             {
-                if (MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, i, itemId)) yield return i;
+                if (CheckItemPlacement(i, itemId) == MachineSlotPlacementCheck.Allowed) yield return i;
             }
         }
 
@@ -87,9 +93,17 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
         {
             if (itemStack.Id == ItemMaster.EmptyItemId) return MachineSlotPlacementCheck.Allowed;
             if (_recipe == null) return MachineSlotPlacementCheck.RecipeNotSelected;
-            return MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, localSlot, itemStack.Id)
+            return CheckItemPlacement(localSlot, itemStack.Id);
+        }
+
+        // レシピ選択済みのスロットへ素材を置けるか（束縛→製作上限の順）。挿入先の列挙と配置判定が共有する
+        // Whether the item may go into the slot of the selected recipe (binding, then craft cap); shared by slot enumeration and placement checks
+        private MachineSlotPlacementCheck CheckItemPlacement(int localSlot, ItemId itemId)
+        {
+            if (!MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, localSlot, itemId)) return MachineSlotPlacementCheck.ItemNotBoundToSlot;
+            return _craftCapGate.IsWithinCraftCap(_recipe, localSlot, itemId)
                 ? MachineSlotPlacementCheck.Allowed
-                : MachineSlotPlacementCheck.ItemNotBoundToSlot;
+                : MachineSlotPlacementCheck.LevelAboveCraftCap;
         }
 
         public bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)

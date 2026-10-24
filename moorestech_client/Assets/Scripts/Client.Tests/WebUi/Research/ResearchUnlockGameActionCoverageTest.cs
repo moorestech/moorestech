@@ -34,6 +34,7 @@ namespace Client.Tests.WebUi.Research
             GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel,
             GameActionElement.GameActionTypeConst.unlockBlueprint,
             GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel,
+            GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel,
             GameActionElement.GameActionTypeConst.playSkit,
             GameActionElement.GameActionTypeConst.playBackgroundSkit,
         };

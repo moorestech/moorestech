@@ -12,5 +12,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         SlotBeyondRecipeOutputs,
         ModuleNotAllowedOnMachine,
         ExceedsModuleSlotStackLimit,
+        LevelAboveCraftCap,
     }
 }

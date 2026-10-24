@@ -26,6 +26,7 @@ namespace Game.Action
             GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel,
             GameActionElement.GameActionTypeConst.unlockBlueprint,
             GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel,
+            GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel,
         };
     }
 }

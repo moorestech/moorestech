@@ -59,7 +59,8 @@ namespace Game.Block.Factory.BlockTemplate
                 innerTankCapacity,
                 blockInventoryUpdateEvent,
                 blockInstanceId,
-                ServerContext.GetService<IGameUnlockStateDataController>()
+                ServerContext.GetService<IGameUnlockStateDataController>(),
+                ServerContext.GetService<ILevelInheritanceCraftCapLookup>()
             );
             
             var output = new VanillaMachineOutputInventory(

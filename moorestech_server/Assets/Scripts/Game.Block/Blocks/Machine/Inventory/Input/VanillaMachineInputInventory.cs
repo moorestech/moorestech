@@ -35,7 +35,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 
         // 選択レシピへのスロット束縛判定。未選択は何も受け入れない（ADR 0042）
         // Slot-binding decision against the selected recipe; unselected accepts nothing (ADR 0042)
-        private readonly MachineInputSlotBinding _slotBinding = new();
+        private readonly MachineInputSlotBinding _slotBinding;
 
         public VanillaMachineInputInventory(
             BlockId blockId,
@@ -44,12 +44,14 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             float innerTankCapacity,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate,
             BlockInstanceId blockInstanceId,
-            IGameUnlockStateData gameUnlockStateData)
+            IGameUnlockStateData gameUnlockStateData,
+            ILevelInheritanceCraftCapLookup craftCapLookup)
         {
             _blockId = blockId;
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;
             _gameUnlockStateData = gameUnlockStateData;
+            _slotBinding = new MachineInputSlotBinding(new MachineInputCraftCapGate(craftCapLookup));
 
             var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot, option);

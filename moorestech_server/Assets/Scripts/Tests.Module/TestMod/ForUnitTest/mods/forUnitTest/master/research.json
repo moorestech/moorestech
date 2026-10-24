@@ -286,6 +286,37 @@
       },
       "consumeItems": [],
       "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000001",
+      "researchNodeName": "Test Inheritance Craft Cap Lv2",
+      "researchNodeDescription": "unlockLevelInheritanceCraftLevel coverage (Part C)",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockLevelInheritanceCraftLevel",
+          "gameActionParam": {
+            "targetItemGuids": [
+              "00000000-0000-0000-c0de-000000000031"
+            ],
+            "level": 2
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [],
+      "prevResearchNodeGuids": []
     }
   ]
 }

@@ -15,19 +15,22 @@ namespace Game.Action
         private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly IModuleSlotStackLimitUnlocker _moduleSlotStackLimitUnlocker;
+        private readonly ILevelInheritanceCraftCapUnlocker _levelInheritanceCraftCapUnlocker;
 
         public GameActionExecutor(
             IGameUnlockStateDataController gameUnlockStateDataController,
             IPlayerInventoryDataStore playerInventoryDataStore,
             IItemStackLevelUnlocker itemStackLevelUnlocker,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
-            IModuleSlotStackLimitUnlocker moduleSlotStackLimitUnlocker)
+            IModuleSlotStackLimitUnlocker moduleSlotStackLimitUnlocker,
+            ILevelInheritanceCraftCapUnlocker levelInheritanceCraftCapUnlocker)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
             _giveItemGameActionExecutor = new GiveItemGameActionExecutor(playerInventoryDataStore);
             _itemStackLevelUnlocker = itemStackLevelUnlocker;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _moduleSlotStackLimitUnlocker = moduleSlotStackLimitUnlocker;
+            _levelInheritanceCraftCapUnlocker = levelInheritanceCraftCapUnlocker;
         }
 
         public void ExecuteUnlockActions(GameActionElement[] actions, ActionExecutionContext context = default)
@@ -103,6 +106,10 @@ namespace Game.Action
 
                 case GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel:
                     _moduleSlotStackLimitUnlocker.ApplyUnlockModuleSlotStackLevelAction(action);
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel:
+                    _levelInheritanceCraftCapUnlocker.ApplyUnlockLevelInheritanceCraftLevelAction(action);
                     break;
             }
             

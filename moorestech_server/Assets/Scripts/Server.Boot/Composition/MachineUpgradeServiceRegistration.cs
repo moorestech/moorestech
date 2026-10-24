@@ -17,6 +17,9 @@ namespace Server.Boot.Composition
             services.AddSingleton<ModuleSlotStackLimitDataStore>();
             services.AddSingleton<IModuleSlotStackLimitLookup>(provider => provider.GetRequiredService<ModuleSlotStackLimitDataStore>());
             services.AddSingleton<IModuleSlotStackLimitUnlocker>(provider => provider.GetRequiredService<ModuleSlotStackLimitDataStore>());
+            services.AddSingleton<LevelInheritanceCraftCapDataStore>();
+            services.AddSingleton<ILevelInheritanceCraftCapLookup>(provider => provider.GetRequiredService<LevelInheritanceCraftCapDataStore>());
+            services.AddSingleton<ILevelInheritanceCraftCapUnlocker>(provider => provider.GetRequiredService<LevelInheritanceCraftCapDataStore>());
         }
     }
 }

@@ -39,6 +39,14 @@ namespace Game.Block.Interface.MachineUpgrade
             return inheritedLevel.HasValue && 1 <= inheritedLevel.Value && inheritedLevel.Value <= shape.MaxLevel;
         }
 
+        // 継承元として今入れてよい最高レベル。上限なしは最大レベル、上限つきは製作上限との小さい方
+        // Highest source level allowed now: the max level when uncapped, otherwise the smaller of it and the craft cap
+        public static int GetMaxCraftableLevel(LevelInheritanceShape shape, ILevelInheritanceCraftCapLookup craftCapLookup)
+        {
+            if (!shape.HasCraftCap) return shape.MaxLevel;
+            return Math.Min(shape.MaxLevel, craftCapLookup.GetCraftCap(shape.TargetBaseItemGuid));
+        }
+
         // 入力 inputIndex のアイテム。継承元なら継承レベルの変種、それ以外は書いたまま
         // Item of input inputIndex: the inherited level's variant for the source, otherwise as written
         public static ItemId ResolveInputItemId(MachineRecipeMasterElement recipe, int inputIndex, int? inheritedLevel)
