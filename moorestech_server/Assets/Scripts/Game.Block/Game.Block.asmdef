@@ -19,6 +19,7 @@
         "MessagePack",
         "MessagePack.Annotations",
         "Core.Master",
+        "Core.Item",
         "Game.Fluid",
         "Server.Util",
         "ClassLibrary",

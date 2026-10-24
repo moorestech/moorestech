@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.RecipeSelection;
+using Game.Block.Interface.MachineUpgrade;
+using Game.Context;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.Inventory.Input
@@ -85,6 +87,26 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             {
                 if (MachineRecipeSlotBindingUtil.IsInputFluidBoundTo(_recipe, i, fluidId)) yield return i;
             }
+        }
+
+        // 自動搬入で、スロットの品と入ってくる品が同じ要求に充てられる別レベルなら、両方を低い方のレベルへ揃える（1スロット1IDのまま混在ベルトで詰まらせない）
+        // For automated inflow, align the slot's stack and the incoming stack to the lower level when both serve the same requirement (one id per slot without jamming on mixed belts)
+        public (IItemStack slotStack, IItemStack incoming) AlignSubstituteVariant(int slotIndex, IItemStack slotStack, IItemStack incoming)
+        {
+            if (slotStack.Id == ItemMaster.EmptyItemId || slotStack.Id == incoming.Id) return (slotStack, incoming);
+
+            // 継承元スロットは入っていたレベルを継承するので揃えない
+            // The inheritance source slot inherits the level it holds, so it never aligns
+            if (MachineRecipeLevelInheritanceUtil.TryGetShape(_recipe, out var shape) && shape.SourceInputIndex == slotIndex) return (slotStack, incoming);
+
+            var slotLevel = MachineRecipeSlotBindingUtil.ResolveInputAcceptedLevel(_recipe, slotIndex, slotStack.Id);
+            var incomingLevel = MachineRecipeSlotBindingUtil.ResolveInputAcceptedLevel(_recipe, slotIndex, incoming.Id);
+            // silent-ok: 同じ要求に充てられない組は揃えずに返すだけ / 続く AddItem が積めず、呼び出し元が残余で検知する
+            if (!slotLevel.HasValue || !incomingLevel.HasValue) return (slotStack, incoming);
+
+            var lowerItemId = slotLevel.Value < incomingLevel.Value ? slotStack.Id : incoming.Id;
+            var factory = ServerContext.ItemStackFactory;
+            return (factory.Create(lowerItemId, slotStack.Count), factory.Create(lowerItemId, incoming.Count));
         }
 
         // 空アイテムは取り出しなのでどのスロットでも許す

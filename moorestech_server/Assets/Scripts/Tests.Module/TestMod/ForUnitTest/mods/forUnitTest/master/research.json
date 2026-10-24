@@ -317,6 +317,32 @@
       },
       "consumeItems": [],
       "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000003",
+      "researchNodeName": "Test Level Substitute Consume",
+      "researchNodeDescription": "consumeItems level substitute coverage (Part C)",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "00000000-0000-0000-c0de-000000000011",
+          "itemCount": 3
+        }
+      ],
+      "prevResearchNodeGuids": []
     }
   ]
 }

@@ -15,9 +15,11 @@ namespace Tests.Module.TestMod
 
         public static readonly Guid InheritRecipeGuid = Guid.Parse("00000000-0000-4000-8000-0000c0de0001");
         public static readonly Guid CappedInheritRecipeGuid = Guid.Parse("00000000-0000-4000-8000-0000c0de0002");
+        public static readonly Guid SubstituteRecipeGuid = Guid.Parse("00000000-0000-4000-8000-0000c0de0003");
 
         public static readonly Guid CraftCapResearchGuid = Guid.Parse("c0de0000-0000-4000-8000-000000000001");
         public static readonly Guid ModuleSlotStackResearchGuid = Guid.Parse("c0de0000-0000-4000-8000-000000000002");
+        public static readonly Guid SubstituteResearchGuid = Guid.Parse("c0de0000-0000-4000-8000-000000000003");
 
         public static BlockId MachineId => MasterHolder.BlockMaster.GetBlockId(Guid.Parse("ffffffff-0000-4000-8000-00000000c0de"));
 

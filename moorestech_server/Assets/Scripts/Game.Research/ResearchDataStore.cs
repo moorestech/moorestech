@@ -45,7 +45,7 @@ namespace Game.Research
                 return false;
             }
 
-            ConsumeItems(researchElement.ConsumeItems, inventory);
+            ResearchConsumeItemsUtil.Consume(researchElement.ConsumeItems, inventory.MainOpenableInventory);
             _completedResearchGuids.Add(researchGuid);
             _gameActionExecutor.ExecuteActions(researchElement.ClearedActions.items, ActionExecutionContext.ForPlayer(playerId));
             _researchEvent.InvokeOnResearchCompleted(playerId, researchElement);
@@ -76,7 +76,7 @@ namespace Game.Research
             }
 
             var prerequisitesCompleted = ArePrerequisitesCompleted(researchElement.PrevResearchNodeGuids, researchElement.ResearchNodeGuid);
-            var hasRequiredItems = HasRequiredItems(researchElement.ConsumeItems);
+            var hasRequiredItems = ResearchConsumeItemsUtil.HasRequiredItems(researchElement.ConsumeItems, inventory.MainOpenableInventory.InventoryItems);
 
             if (prerequisitesCompleted && hasRequiredItems)
             {
@@ -120,72 +120,7 @@ namespace Game.Research
                 return true;
             }
             
-            bool HasRequiredItems(ConsumeItemsElement[] consumeItems)
-            {
-                if (consumeItems == null || consumeItems.Length == 0)
-                {
-                    return true;
-                }
-                
-                foreach (var consumeItem in consumeItems)
-                {
-                    var itemId = MasterHolder.ItemMaster.GetItemId(consumeItem.ItemGuid);
-                    var currentCount = GetItemCount(itemId);
-                    
-                    if (currentCount < consumeItem.ItemCount)
-                    {
-                        return false;
-                    }
-                }
-                
-                return true;
-            }
-            
-            int GetItemCount(ItemId itemId)
-            {
-                var totalCount = 0;
-                foreach (var itemStack in inventory.MainOpenableInventory.InventoryItems)
-                {
-                    if (itemStack.Id != itemId)
-                    {
-                        continue;
-                    }
-                    
-                    totalCount += itemStack.Count;
-                }
-                
-                return totalCount;
-            }
-            
             #endregion
-        }
-
-        private void ConsumeItems(ConsumeItemsElement[] consumeItems, PlayerInventoryData inventory)
-        {
-            if (consumeItems == null || consumeItems.Length == 0)
-            {
-                return;
-            }
-
-            foreach (var consumeItem in consumeItems)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemId(consumeItem.ItemGuid);
-                var remainingToConsume = consumeItem.ItemCount;
-
-                for (var i = 0; i < inventory.MainOpenableInventory.InventoryItems.Count && remainingToConsume > 0; i++)
-                {
-                    var itemStack = inventory.MainOpenableInventory.InventoryItems[i];
-                    if (itemStack.Id != itemId)
-                    {
-                        continue;
-                    }
-
-                    var consumeAmount = Math.Min(itemStack.Count, remainingToConsume);
-                    var newStack = itemStack.SubItem(consumeAmount);
-                    inventory.MainOpenableInventory.SetItem(i, newStack);
-                    remainingToConsume -= consumeAmount;
-                }
-            }
         }
 
 
