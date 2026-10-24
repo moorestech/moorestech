@@ -14,8 +14,8 @@ namespace Client.Game.InGame.CleanRoom
     /// </summary>
     public class CleanRoomYieldInfoPollSource : IBlockInfoPollSource<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView>
     {
-        // 部屋クラス・装着モジュール・選択レシピの変化を追う間隔（部屋照会の CleanRoomInfoPollSource と同じ1秒）
-        // Interval following room class, module and recipe changes, the same 1 second as the room query's CleanRoomInfoPollSource
+        // 開いている間の1秒照会で部屋クラス・装着・レシピの変化を追う（ユーザー裁定 .decisions/2026-10-25-S1最終レビューの設計判断はすべて推奨案で直す.md D08）
+        // Follows room class, module and recipe changes by 1-second polling while open (user ruling D08 in .decisions/2026-10-25-S1最終レビューの設計判断はすべて推奨案で直す.md)
         private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
 
         public static BlockInfoPoller<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView> CreatePoller()

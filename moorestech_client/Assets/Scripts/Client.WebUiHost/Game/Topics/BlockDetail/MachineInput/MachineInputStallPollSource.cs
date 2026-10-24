@@ -14,8 +14,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.MachineInput
     /// </summary>
     public class MachineInputStallPollSource : IBlockInfoPollSource<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView>
     {
-        // 電力網・部屋の照会と同じ1秒。止まった理由は表示中だけ要る
-        // The same 1 second as the electric and room queries; the stall is needed only while displayed
+        // 止まった理由は開いている間だけ1秒照会する（ユーザー裁定 .decisions/2026-10-25-S1最終レビューの設計判断はすべて推奨案で直す.md D08）
+        // The stall is polled every 1 second only while open (user ruling D08 in .decisions/2026-10-25-S1最終レビューの設計判断はすべて推奨案で直す.md)
         private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(1);
 
         public static BlockInfoPoller<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack, MachineInputStallView> CreatePoller()
