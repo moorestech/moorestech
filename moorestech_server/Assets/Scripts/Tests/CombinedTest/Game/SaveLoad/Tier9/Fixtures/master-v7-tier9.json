@@ -1,0 +1,1259 @@
+{
+  "worldVersion": 7,
+  "players": {
+    "nextPlayerId": 2,
+    "claimCandidatePlayerId": null,
+    "entries": [
+      {
+        "playerId": 1,
+        "identity": "steam:1"
+      }
+    ]
+  },
+  "world": [
+    {
+      "blockGuid": "00000000-0000-0000-0000-000000000001",
+      "direction": 4,
+      "instanceId": -1712562378,
+      "state": {
+        "Game.Block.Blocks.Machine.VanillaMachineSaveComponent": {
+          "inputSlot": [
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            },
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            }
+          ],
+          "outputSlot": [
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            },
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            },
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            }
+          ],
+          "moduleSlot": [
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            },
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            },
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            },
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            }
+          ],
+          "inputFluidSlot": [],
+          "outputFluidSlot": [],
+          "processor": {
+            "state": 1,
+            "remainingSeconds": 0.8,
+            "recipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+            "pendingOutputs": [
+              {
+                "itemGuid": "00000000-0000-0000-1234-000000000003",
+                "count": 1
+              }
+            ],
+            "selectedRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+          }
+        },
+        "ElectricWireConnectorComponent": {
+          "connections": []
+        }
+      },
+      "X": 0,
+      "Y": 0,
+      "Z": 0
+    },
+    {
+      "blockGuid": "e08acf92-9d43-4db0-b43a-bcec773f22dc",
+      "direction": 4,
+      "instanceId": -1269437756,
+      "state": {
+        "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent": {
+          "cycleCount": 0,
+          "state": 0,
+          "remainingSeconds": 0.0,
+          "recipeGuid": "00000000-0000-0000-0000-000000000000",
+          "pendingOutputs": null,
+          "inputSlot": [
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            },
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            }
+          ],
+          "outputSlot": [
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            },
+            {
+              "itemGuid": "00000000-0000-0000-0000-000000000000",
+              "count": 0
+            }
+          ],
+          "moduleSlot": [],
+          "selectedRecipeGuid": null
+        },
+        "ElectricWireConnectorComponent": {
+          "connections": []
+        }
+      },
+      "X": 10,
+      "Y": 0,
+      "Z": 0
+    },
+    {
+      "blockGuid": "9ce688a4-8985-40b6-ad52-0f98f3baf55e",
+      "direction": 4,
+      "instanceId": 810401644,
+      "state": {
+        "Game.Block.Blocks.Fluid.FluidPipeSaveComponent": {
+          "fluidGuid": "00000000-0000-0000-1234-000000000001",
+          "amountNano": 5000000000,
+          "faceVelocities": []
+        }
+      },
+      "X": 20,
+      "Y": 0,
+      "Z": 0
+    }
+  ],
+  "playerInventory": [
+    {
+      "PlayerId": 1,
+      "MainInventoryItems": [
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        }
+      ],
+      "GrabInventoryItems": {
+        "itemGuid": "00000000-0000-0000-0000-000000000000",
+        "count": 0
+      },
+      "EquipmentInventoryItems": [
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        },
+        {
+          "itemGuid": "00000000-0000-0000-0000-000000000000",
+          "count": 0
+        }
+      ],
+      "SelectedEquipmentIndex": 0
+    }
+  ],
+  "entities": [],
+  "setting": {
+    "SpawnX": 0.0,
+    "SpawnY": 0.0,
+    "SpawnZ": 0.0,
+    "WorldCreationDateTime": null,
+    "TotalPlayTimeSeconds": 63928532234.031693,
+    "LastSessionStartDateTime": "2026-10-25T13:37:14.031694Z"
+  },
+  "mapObjects": [
+    {
+      "instanceId": 0,
+      "isDestroyed": false,
+      "hp": 30,
+      "guid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "instanceId": 1,
+      "isDestroyed": false,
+      "hp": 30,
+      "guid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "instanceId": 2,
+      "isDestroyed": false,
+      "hp": 30,
+      "guid": "00000000-0000-1111-0000-000000000001",
+      "x": 0.0,
+      "y": 0.0,
+      "z": 0.0
+    },
+    {
+      "instanceId": 3,
+      "isDestroyed": false,
+      "hp": 30,
+      "guid": "00000000-0000-1111-0000-000000000001",
+      "x": 1.0,
+      "y": 0.0,
+      "z": 1.0
+    },
+    {
+      "instanceId": 4,
+      "isDestroyed": false,
+      "hp": 30,
+      "guid": "00000000-0000-1111-0000-000000000001",
+      "x": 5.5,
+      "y": 0.5,
+      "z": 1.5
+    },
+    {
+      "instanceId": 5,
+      "isDestroyed": false,
+      "hp": 30,
+      "guid": "00000000-0000-2222-0000-000000000001",
+      "x": 100.0,
+      "y": 0.0,
+      "z": 100.0
+    }
+  ],
+  "challenge": {
+    "completedGuids": [],
+    "currentChallengeGuids": [],
+    "playedSkitIds": []
+  },
+  "gameUnlockState": {
+    "craftRecipeUnlockStateInfos": [
+      {
+        "guid": "00000010-0000-0000-0000-000000000000",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000010-0000-0000-0000-000000000001",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000010-0000-0000-0000-000000000002",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000010-0000-0000-0000-000000000003",
+        "isUnlocked": false
+      }
+    ],
+    "itemUnlockStateInfos": [
+      {
+        "guid": "00000000-0000-0000-1234-000000000001",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000002",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000003",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000004",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000005",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000006",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000007",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000008",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000009",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000010",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000011",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000012",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000013",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000014",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000101",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-4649-000000000001",
+        "isUnlocked": false
+      },
+      {
+        "guid": "11100000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "11200000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "11300000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "11400000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "11800000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "11800000-0000-0000-0000-0000000000a1",
+        "isUnlocked": false
+      },
+      {
+        "guid": "11800000-0000-0000-0000-0000000000a2",
+        "isUnlocked": false
+      },
+      {
+        "guid": "11900000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "12010000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "12102000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "16000000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "17000000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "18000000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "189672cb-6811-4080-bde1-1f9ff0ec63ff",
+        "isUnlocked": false
+      },
+      {
+        "guid": "19000000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "1b72541e-0896-43bb-91fa-0b3fef137dcf",
+        "isUnlocked": false
+      },
+      {
+        "guid": "30000000-0000-0000-0000-000000000000",
+        "isUnlocked": false
+      },
+      {
+        "guid": "3d2b7bda-0f4d-4887-979f-9f37506fda25",
+        "isUnlocked": false
+      },
+      {
+        "guid": "40e4307b-a5f8-4374-95bc-440131022863",
+        "isUnlocked": false
+      },
+      {
+        "guid": "4a2cd701-ecd0-45f1-ae00-1e43adcadd84",
+        "isUnlocked": false
+      },
+      {
+        "guid": "547791fe-bfd8-4748-aafa-c7449391eca5",
+        "isUnlocked": false
+      },
+      {
+        "guid": "6488f3bc-ed15-49df-acbb-1738edd13b99",
+        "isUnlocked": false
+      },
+      {
+        "guid": "6e355e23-8e9e-46d2-9405-b0e6bb612890",
+        "isUnlocked": false
+      },
+      {
+        "guid": "75d4c635-53ac-43ba-83a2-6c300e7c90f8",
+        "isUnlocked": false
+      },
+      {
+        "guid": "78274378-9a98-4826-8dea-80f7eb52a5ed",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7868f6d6-6874-4dad-96a5-ea6bd35f57cf",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0002-4000-8000-000000000001",
+        "isUnlocked": true
+      },
+      {
+        "guid": "7dcc6d1e-e273-40cc-938d-39fce586fd89",
+        "isUnlocked": true
+      },
+      {
+        "guid": "868fc884-c0d1-48d7-b6e6-83b0517d381e",
+        "isUnlocked": false
+      },
+      {
+        "guid": "9bbfaa53-1614-40dc-a58e-e3a0e2a00c26",
+        "isUnlocked": true
+      },
+      {
+        "guid": "9bdfa843-d4ee-4033-a61c-538bb9aaa21d",
+        "isUnlocked": false
+      },
+      {
+        "guid": "adf11728-e5e7-b180-b6e1-7396d29e787d",
+        "isUnlocked": false
+      },
+      {
+        "guid": "c3c16652-0ddd-4dd4-ab85-035d602246a3",
+        "isUnlocked": false
+      },
+      {
+        "guid": "c74d50c4-f35f-4863-81ae-bd0b7b62e4f7",
+        "isUnlocked": false
+      },
+      {
+        "guid": "c8d16ba4-8a7d-4ab1-80a4-5a9c0a119627",
+        "isUnlocked": false
+      },
+      {
+        "guid": "ca6225bf-41ea-466d-89ef-98334f8c628f",
+        "isUnlocked": false
+      },
+      {
+        "guid": "d08f4a3b-50d5-4228-8ef2-9b479b79375b",
+        "isUnlocked": false
+      },
+      {
+        "guid": "ed649456-fc6a-4b33-9ad0-ae9af40fe66e",
+        "isUnlocked": false
+      },
+      {
+        "guid": "f458559d-5c3d-4606-8cc2-6b33f694c2c3",
+        "isUnlocked": false
+      },
+      {
+        "guid": "f6d1a313-93a3-f429-3884-0ae12b1f4a05",
+        "isUnlocked": false
+      },
+      {
+        "guid": "fa7bf6df-efc2-421d-b7bc-87be7b229345",
+        "isUnlocked": false
+      },
+      {
+        "guid": "fc8febdb-15e4-4e81-aa4a-0132feb29a45",
+        "isUnlocked": false
+      },
+      {
+        "guid": "913fc0e2-2de2-4597-b6c5-e8912994372b",
+        "isUnlocked": true
+      },
+      {
+        "guid": "344879fd-ee1b-4ff4-93ce-a606016eae61",
+        "isUnlocked": true
+      },
+      {
+        "guid": "cac50667-3c2b-4641-a481-1545b265a108",
+        "isUnlocked": true
+      },
+      {
+        "guid": "c9715726-11d8-4e3f-a925-f460956f3505",
+        "isUnlocked": true
+      },
+      {
+        "guid": "0393ee28-cec8-4a37-94bd-15d79e027721",
+        "isUnlocked": true
+      },
+      {
+        "guid": "11110000-0000-0000-0000-000000000000",
+        "isUnlocked": true
+      },
+      {
+        "guid": "11110009-0000-0000-0000-000000000000",
+        "isUnlocked": true
+      },
+      {
+        "guid": "7f2b0f6c-1d8a-4e37-9c3a-b9da1abbe7b7",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000102",
+        "isUnlocked": false
+      },
+      {
+        "guid": "b15c8f72-df53-4f3a-810f-55a76f65d2ce",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000103",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000104",
+        "isUnlocked": false
+      },
+      {
+        "guid": "20000000-0000-0000-0000-000000000000",
+        "isUnlocked": true
+      },
+      {
+        "guid": "fa9df7cd-b3ba-4df0-9f86-f477e1a8a30e",
+        "isUnlocked": false
+      },
+      {
+        "guid": "d7a1e3b2-5c4f-4a9e-8b6d-1f2e3a4b5c6d",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000031",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000032",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-1234-000000000033",
+        "isUnlocked": false
+      },
+      {
+        "guid": "01a162ab-07ba-73c1-9dd6-38e1e867663b",
+        "isUnlocked": true
+      },
+      {
+        "guid": "019e3af5-e750-71ae-ab09-2b98f3db9913",
+        "isUnlocked": true
+      },
+      {
+        "guid": "01a16290-f793-748b-a0b0-91d44be0d4ab",
+        "isUnlocked": true
+      },
+      {
+        "guid": "01a16297-4724-73b9-82c3-2e77120be77d",
+        "isUnlocked": true
+      },
+      {
+        "guid": "01a16297-6665-765d-8e19-96d357394c3e",
+        "isUnlocked": true
+      },
+      {
+        "guid": "01a16297-a7f5-759b-91ba-be4021ca3bf2",
+        "isUnlocked": true
+      },
+      {
+        "guid": "01a162a4-9334-7286-a8ba-7daf9c0f407a",
+        "isUnlocked": true
+      },
+      {
+        "guid": "01a162a8-e435-73d0-bddb-08533819b80e",
+        "isUnlocked": true
+      }
+    ],
+    "challengeCategoryUnlockStateInfos": [
+      {
+        "categoryGuid": "03ca4ded-3b2b-4e7f-bb6e-430f060c4ed1",
+        "isUnlocked": true
+      },
+      {
+        "categoryGuid": "35330f9d-f44f-493d-a6bc-07ae6413d7c4",
+        "isUnlocked": false
+      }
+    ],
+    "machineRecipeUnlockStateInfos": [
+      {
+        "guid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+        "isUnlocked": true
+      },
+      {
+        "guid": "7ba3de84-6823-4970-b84a-13e7d8b7bf1d",
+        "isUnlocked": true
+      },
+      {
+        "guid": "085c97d3-6343-4397-b2be-214a2282e5bb",
+        "isUnlocked": true
+      },
+      {
+        "guid": "f4bb3dec-ea05-47e5-8ca9-49f790cd4ece",
+        "isUnlocked": true
+      },
+      {
+        "guid": "241ed9c7-6e9e-4e2d-a85a-a12517d22b1b",
+        "isUnlocked": true
+      },
+      {
+        "guid": "d43fd942-2908-4a31-85d5-1bde82aa503e",
+        "isUnlocked": true
+      },
+      {
+        "guid": "ad81ded0-8b7f-40ab-85e3-cff4108479da",
+        "isUnlocked": true
+      },
+      {
+        "guid": "f79c7ee0-1ebe-4fcc-b1ec-5bcb296d9c1a",
+        "isUnlocked": true
+      },
+      {
+        "guid": "38dfacce-1234-4612-8c7c-29112c12409a",
+        "isUnlocked": false
+      },
+      {
+        "guid": "c8e4a1f0-2b7d-4c9e-a6f1-5d3e8b0a9142",
+        "isUnlocked": true
+      },
+      {
+        "guid": "19b0d248-0ce5-4e5f-b59c-5897177b6268",
+        "isUnlocked": true
+      },
+      {
+        "guid": "29442eba-9e8a-4eb6-8f2d-45718b153b94",
+        "isUnlocked": true
+      },
+      {
+        "guid": "fa4f801f-da93-448e-a75c-a066821ffd53",
+        "isUnlocked": false
+      },
+      {
+        "guid": "aa000000-0000-4000-8000-00000000fee1",
+        "isUnlocked": true
+      },
+      {
+        "guid": "7b3e1a10-0006-4000-8000-000000000001",
+        "isUnlocked": true
+      }
+    ],
+    "blockUnlockStateInfos": [
+      {
+        "guid": "00000000-0000-0000-0000-000000000001",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000002",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000003",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000004",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000101",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000005",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000006",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000007",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000008",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000009",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000000a",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000000b",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000000c",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000000d",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000000e",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000002c",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000102",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000000f",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000010",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000011",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000012",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000013",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000014",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000030",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000015",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000019",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000001a",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000001b",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-00000000001c",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000024",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000103",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000104",
+        "isUnlocked": true
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000025",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000026",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000027",
+        "isUnlocked": false
+      },
+      {
+        "guid": "9ce688a4-8985-40b6-ad52-0f98f3baf55e",
+        "isUnlocked": false
+      },
+      {
+        "guid": "019f1a00-0000-7000-8000-00000000f1d0",
+        "isUnlocked": false
+      },
+      {
+        "guid": "bccd23de-053e-4a54-9e32-31120b051dca",
+        "isUnlocked": false
+      },
+      {
+        "guid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
+        "isUnlocked": false
+      },
+      {
+        "guid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
+        "isUnlocked": false
+      },
+      {
+        "guid": "9af7370b-9982-4cdb-bee2-c8d4545581af",
+        "isUnlocked": false
+      },
+      {
+        "guid": "9e18bb3d-b821-4f19-a47e-e3718c39eafa",
+        "isUnlocked": false
+      },
+      {
+        "guid": "cda19f55-adef-41f4-9212-3ed5f4f926b9",
+        "isUnlocked": false
+      },
+      {
+        "guid": "13806455-551c-4399-a7e7-b45a95709a6b",
+        "isUnlocked": false
+      },
+      {
+        "guid": "3829088a-5a78-43d7-8c3c-d3e4bb91b90a",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000028",
+        "isUnlocked": false
+      },
+      {
+        "guid": "eccb9f59-4439-4caf-9ae8-67da50549040",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-0000000000b1",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000029",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000031",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000032",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000033",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000099",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-0000000000a1",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-0000000000a2",
+        "isUnlocked": false
+      },
+      {
+        "guid": "2d8b162a-1ac5-4780-8e4e-2b8d4f6470e8",
+        "isUnlocked": false
+      },
+      {
+        "guid": "07d7e1a2-b1fd-412f-819c-af098e79e4d4",
+        "isUnlocked": false
+      },
+      {
+        "guid": "d6268837-5326-480b-960a-ffdce4b5478e",
+        "isUnlocked": false
+      },
+      {
+        "guid": "8e425510-aa34-4a1b-9f40-5f8079183ab2",
+        "isUnlocked": false
+      },
+      {
+        "guid": "21e760d0-54b2-41a5-8cef-d78e1efb8fb8",
+        "isUnlocked": false
+      },
+      {
+        "guid": "e08acf92-9d43-4db0-b43a-bcec773f22dc",
+        "isUnlocked": false
+      },
+      {
+        "guid": "00000000-0000-0000-0000-000000000060",
+        "isUnlocked": false
+      },
+      {
+        "guid": "f1000000-0000-0000-0000-000000000001",
+        "isUnlocked": false
+      },
+      {
+        "guid": "f1000000-0000-0000-0000-000000000002",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000001",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000002",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000003",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000004",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000005",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000006",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000007",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000008",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000009",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000010",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000011",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000012",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000013",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000014",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000015",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0001-4000-8000-000000000016",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0004-4000-8000-000000000001",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0004-4000-8000-000000000002",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0004-4000-8000-000000000003",
+        "isUnlocked": false
+      },
+      {
+        "guid": "7b3e1a10-0005-4000-8000-000000000001",
+        "isUnlocked": false
+      },
+      {
+        "guid": "01a162f1-ab04-76e2-94cf-dc713edeb63b",
+        "isUnlocked": true
+      },
+      {
+        "guid": "01a162aa-cec0-738c-93c5-f58adc87fa7f",
+        "isUnlocked": true
+      },
+      {
+        "guid": "01a162b0-7769-7419-af24-bb35528b93d2",
+        "isUnlocked": true
+      }
+    ],
+    "trainCarUnlockStateInfos": [
+      {
+        "guid": "dc82cf3f-709d-49eb-bdb2-67ffcaff561b",
+        "isUnlocked": true
+      },
+      {
+        "guid": "22222222-2222-2222-2222-222222222222",
+        "isUnlocked": false
+      }
+    ],
+    "connectToolUnlockStateInfos": [
+      {
+        "guid": "c0000000-0000-0000-0000-000000000003",
+        "isUnlocked": false
+      },
+      {
+        "guid": "c0000000-0000-0000-0000-000000000001",
+        "isUnlocked": false
+      },
+      {
+        "guid": "c0000000-0000-0000-0000-000000000002",
+        "isUnlocked": false
+      }
+    ],
+    "blueprintUnlockState": {
+      "isUnlocked": false
+    }
+  },
+  "currentlyActiveChallenge": null,
+  "research": {
+    "CompletedResearchGuids": [
+      "cd05e30d-d599-46d3-a079-769113cbbf17",
+      "019e3aab-32c6-7166-a184-d761153c2498",
+      "019e3ae2-5005-7439-b242-9b7b3191a2c3",
+      "019e3af5-f2e6-76de-a80f-5e66e79fa35d",
+      "019e3af0-297f-726e-8a02-0a8518124e6d",
+      "019e3aef-a149-746b-8fad-159e0434cb51",
+      "01a16291-4094-7369-a87f-5dfe2197d25e",
+      "c0de0000-0000-4000-8000-000000000011",
+      "c0de0000-0000-4000-8000-000000000013"
+    ]
+  },
+  "trainUnits": [],
+  "railSegments": [],
+  "playerRidingStates": [],
+  "blueprints": [],
+  "hotbarAssignments": [],
+  "remainingPlacementCounts": [],
+  "constructionPayers": [],
+  "itemStackLevels": {},
+  "inventorySlotLevel": 0,
+  "cleanRoomRooms": [],
+  "miningCooldowns": [],
+  "currentTick": 15,
+  "randomState": [
+    17927633202968970623,
+    12350831045657136816,
+    7029980979775108876,
+    9626008024046592686
+  ],
+  "backfilledFields": []
+}
