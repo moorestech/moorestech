@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Net.WebSockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Input;
+using Client.WebUiHost.Boot.Transport;
 using Client.WebUiHost.Game;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
@@ -34,10 +33,12 @@ namespace Client.WebUiHost.Boot
         private readonly ConcurrentDictionary<string, IActionHandler> _actionHandlers = new();
         private readonly ConcurrentDictionary<string, long> _topicRevisions = new();
         private readonly WebSocketMessageDispatcher _dispatcher;
+        private readonly WebSocketReceiveLoop _receiver;
 
         public WebSocketHub()
         {
             _dispatcher = new WebSocketMessageDispatcher(this);
+            _receiver = new WebSocketReceiveLoop(_dispatcher);
         }
 
         // 登録済みtopicハンドラの解決口。未登録はnull
@@ -142,7 +143,7 @@ namespace Client.WebUiHost.Boot
             // 送信ループと受信ループを同時実行し、fault は完了時に必ずログへ残す
             // Run send/receive loops concurrently; faults are always logged on completion
             var sendTask = conn.RunSendLoopAsync(ct);
-            var receiveTask = ReceiveLoop(conn, ct);
+            var receiveTask = _receiver.RunAsync(conn, ct);
             var actionTask = ActionLoop(conn, ct);
             _ = sendTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] send loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
             _ = receiveTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] receive loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
@@ -189,37 +190,6 @@ namespace Client.WebUiHost.Boot
             }
         }
 
-        private async Task ReceiveLoop(WebSocketConnection conn, CancellationToken ct)
-        {
-            var buffer = new byte[8192];
-            var messageBytes = new List<byte>();
-            while (conn.WebSocket.State == WebSocketState.Open && !ct.IsCancellationRequested)
-            {
-                var result = await conn.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), ct);
-                if (result.MessageType == WebSocketMessageType.Close)
-                {
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-                    await conn.CloseAsync(cts.Token);
-                    return;
-                }
 
-                // Text 以外（Binary 等）は Web UI プロトコル対象外なので破棄する（2-C）
-                // Discard non-Text frames (Binary etc.); they are outside the Web UI protocol (2-C)
-                if (result.MessageType != WebSocketMessageType.Text)
-                {
-                    messageBytes.Clear();
-                    continue;
-                }
-
-                // EndOfMessage まで断片を蓄積
-                // Accumulate fragments until EndOfMessage
-                for (var i = 0; i < result.Count; i++) messageBytes.Add(buffer[i]);
-                if (!result.EndOfMessage) continue;
-
-                var json = Encoding.UTF8.GetString(messageBytes.ToArray());
-                messageBytes.Clear();
-                await _dispatcher.DispatchAsync(conn, json);
-            }
-        }
     }
 }
