@@ -22,6 +22,15 @@ namespace Server.MasterGate.Editor
 
         public static bool Run(ServiceProvider serviceProvider, IReadOnlyList<ResearchWalkStep> steps, out string failure)
         {
+            // 歩く前に、研究順がロード済みの全研究を重複なく覆うかを確かめる（完走だけでは全ノードの保証にならない）
+            // Before walking, check the order covers all loaded research without duplicates; finishing the walk alone does not prove every node
+            var loadedResearchGuids = MasterHolder.ResearchMaster.GetAllResearches().Select(node => node.ResearchNodeGuid).ToList();
+            if (!ResearchWalkOrderCoverage.TryCheck(steps, loadedResearchGuids, out failure))
+            {
+                Debug.LogError(failure);
+                return false;
+            }
+
             // サーバーは ShippedMasterOwner が本番と同じ DI 構築で組んだもの。ゲート専用のプレイヤーを1人登録する
             // The server was built by ShippedMasterOwner with the production DI container; register one gate-only player
             var registry = serviceProvider.GetRequiredService<PlayerIdentityRegistry>();
