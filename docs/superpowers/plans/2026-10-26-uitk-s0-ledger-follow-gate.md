@@ -1309,7 +1309,7 @@ git commit -m "test(webui): mock-host のチュートリアル scenario を分�
 - Consumes: Task 4 の `TopicScenario`（`tutorialDragGuide` を含む）、既存 `../support/mockControl` の `requestMockControl(page, baseUrl, path)`、`../mock-host/server.ts`（`MOCK_PORT`・`MOCK_DEMO`、標準出力 `mock-host on <port>`）
 - Produces: `referenceShots: ReferenceShot[]`・`referenceVideos: ReferenceVideo[]`・`ShotStep`・`ShotSetup`（`referenceShots.ts`）、`startMockHost(webuiRoot:string, port:number): Promise<ChildProcess>`・`stopMockHost(child:ChildProcess): Promise<void>`・`openShot(page:Page, baseUrl:string, setup:ShotSetup): Promise<void>`・`referenceViewport`（`shotRunner.ts`）、`writeCaptureIndex(outputDirectory:string, entries:CaptureEntry[], sourceCommit:string): Promise<void>`・`CaptureEntry`（`captureIndex.ts`）。成果物: `<出力先>/<id>.png`・`<id>.webm`・`manifest.json`・`index.md`
 
-- [ ] **Step 1: `referenceShots.ts`（撮影表）を書く**
+- [x] **Step 1: `referenceShots.ts`（撮影表）を書く**
 
 ```ts
 import type { TopicScenario } from "../mock-host/topics/topicControls";
@@ -1434,7 +1434,7 @@ export const referenceShots: ReferenceShot[] = [
 
 `LedgerRows` の値は台帳の `行` 列の文字列と完全に一致させる（Step 5 で照合する）。
 
-- [ ] **Step 2: `referenceVideos.ts`（動画の撮影表）を書く**
+- [x] **Step 2: `referenceVideos.ts`（動画の撮影表）を書く**
 
 ```ts
 import { LedgerRows, topic, ui, type BundleId, type LedgerRow, type ShotSetup } from "./referenceShots";
@@ -1455,7 +1455,7 @@ export const referenceVideos: ReferenceVideo[] = [
 ```
 
 
-- [ ] **Step 3: `shotRunner.ts`（mock-host の起動・停止と画面の準備）を書く**
+- [x] **Step 3: `shotRunner.ts`（mock-host の起動・停止と画面の準備）を書く**
 
 ```ts
 import { spawn, type ChildProcess } from "node:child_process";
@@ -1540,7 +1540,7 @@ async function revealSkitBody(page: Page): Promise<void> {
 
 `5-event-language-gate` は `app-stage` の待機で止まらないか確かめる（ゲートは stage の外に重なるだけで stage は出る想定。止まったら `openShot` の `app-stage` 待機をその撮影だけ外すのではなく、ゲートの撮影の `steps` 先頭の `waitTestId` で代える形に直す）。
 
-- [ ] **Step 4: `captureIndex.ts` と入口 `capture.ts` を書く**
+- [x] **Step 4: `captureIndex.ts` と入口 `capture.ts` を書く**
 
 `captureIndex.ts`:
 
@@ -1654,7 +1654,7 @@ void main().catch((error: unknown) => {
 
 `knip.json` の `entry` に `"e2e/uitk-reference/capture.ts"` を足す（`"e2e/challenge-hud/capture.ts"` の次の行）。
 
-- [ ] **Step 5: 撮影表と台帳の行名の照合を型検査とスクリプトで確かめる**
+- [x] **Step 5: 撮影表と台帳の行名の照合を型検査とスクリプトで確かめる**
 
 Run:
 ```bash
@@ -1664,7 +1664,7 @@ cd moorestech_web/webui
 ```
 Expected: tsc エラー 0、`ledgerRow OK`
 
-- [ ] **Step 6: moorestech_logs の作業場所を作り、README を読む**
+- [x] **Step 6: moorestech_logs の作業場所を作り、README を読む**
 
 ```bash
 LOGS=$HOME/hermes-agent/data/repos/moorestech_logs
@@ -1675,7 +1675,7 @@ git -C "$LOGS" worktree add "$CAP_WT" -b uitk/reference-captures origin/main
 ```
 本体 clone（`$LOGS`）は logs-sync hook が自動コミットするので、そこでは書かない（rebase 中断の隙間でファイルが消えた事故がある。README の「落とし穴」）。
 
-- [ ] **Step 7: 撮影する**
+- [x] **Step 7: 撮影する**
 
 ```bash
 CAP_WT=$HOME/hermes-agent/data/worktrees/moorestech_logs/uitk-reference-captures
@@ -1689,11 +1689,11 @@ find "$CAP_WT/uitk/reference-captures/web-$SHA10" -size +20M
 ```
 Expected: 終了コード 0。PNG が撮影表の件数（Step 1 の配列長）・webm が 5 本・`manifest.json`・`index.md` がある。20MB を超えるファイルが無い（あれば viewport を変えず PNG を `pngquant` 等で縮めず、原因の撮影を調べる）
 
-- [ ] **Step 8: 撮った絵を 1 枚ずつ目で確かめる**
+- [x] **Step 8: 撮った絵を 1 枚ずつ目で確かめる**
 
 全 PNG を Read ツールで開き、各撮影が `id` の意図した画面（例: `1-settings` は設定ページ、`4-block-pump` はポンプの UI、`2-notifications` は通知 4 件）を写していることを確かめる。動画は `ffprobe` で尺（`durationMs` ±1 秒）を確かめ、`ffmpeg -ss 1 -i <webm> -frames:v 1 <tmp>.png` で 1 コマ取り出して開く。意図と違う絵（空の画面・別の画面・接続中の表示）があれば、撮影表を直して出力先を消してから Step 7 を撮り直す。最後に `$TMPDIR` の確認用 PNG を消す。
 
-- [ ] **Step 9: moorestech_logs にコミットして push する**
+- [x] **Step 9: moorestech_logs にコミットして push する**
 
 `$CAP_WT/README.md` のレイアウトのコードブロックに 1 行足す:
 
@@ -1710,7 +1710,7 @@ git -C "$CAP_WT" push origin HEAD:main
 ```
 push が non-fast-forward で拒否されたら `git -C "$CAP_WT" pull --rebase origin main` してから push し直す。`git -C "$CAP_WT" log origin/main -1 --stat` で入ったことを確かめる。
 
-- [ ] **Step 10: 台帳に参照キャプチャ・未撮影・各行の撮影 id を書く**
+- [x] **Step 10: 台帳に参照キャプチャ・未撮影・各行の撮影 id を書く**
 
 `docs/uitk/TODO.md` の「## 参照キャプチャ」を次に置き換える（`<sha10>` は Step 7 の値）:
 
@@ -1754,7 +1754,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 
 「## 行」の各行の `参照キャプチャ` 列に、その行を `ledgerRow` に持つ撮影 id をバッククォート無しで空白区切りに書く（動画は `動画 <id>`）。撮影が無い行は `未撮影` か、「## 未撮影」に載せた行は `未撮影（下表）`。`agent 既定`・`実測の結論` の列は Task 3 のまま。
 
-- [ ] **Step 11: G1 と台帳テストを回し直してコミットする**
+- [x] **Step 11: G1 と台帳テストを回し直してコミットする**
 
 Run:
 ```bash
