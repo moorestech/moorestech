@@ -1,0 +1,23 @@
+{
+    "name": "Client.UitkStage0Probe",
+    "rootNamespace": "",
+    "references": [
+        "Client.Common",
+        "Client.Game",
+        "Client.Input",
+        "CefUnity.Runtime",
+        "Unity.InputSystem",
+        "UnityEngine.UI",
+        "UniRx",
+        "UniTask"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
