@@ -40,6 +40,9 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   trainFluidPlatform: fx.blockTrainFluidPlatform,
   electricPole: fx.blockElectricPole,
 };
+// 開くfixtureだけを登録表から導出して撮影側へ渡す
+// Derive capture names from registered open fixtures
+export const openBlockFixtureNames = Object.keys(BLOCK_FIXTURES).filter((name) => BLOCK_FIXTURES[name].open);
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 // DEMO(採点用): 高密度データとプレースホルダアイコンを配信
 // DEMO (scoring): serve dense data and placeholder icons

@@ -1850,3 +1850,17 @@ PR を作ったら `bd note moorestech-albof.4 "PR #<番号> 作成。台帳・G
 - Task 5 動画尺はページ生成直前からの経過時間を指定durationMsから差し引き、setup/stepsを含む全録画を指定尺に収める。通知の集約と退出を同じ9秒内に残す（agent 既定・ユーザー未裁定）。
 - Task 5 のBP名入力は既存の確認fixtureを置換せず、mockの`/__modal?show=1&kind=blueprint`で`input: true`のfixtureを選択する。Web機能srcは変えず、実modalコンポーネントで撮る（agent 既定・ユーザー未裁定）。
 - Task 5 のlogs専用worktreeは`git worktree add --no-checkout`から`README.md`と`uitk/`だけのsparse-checkoutを作る。全ログの展開によるディスク枯渇を避ける（agent 既定・ユーザー未裁定）。
+
+### agent 既定（ユーザー未裁定）— 全ブランチレビューの設計補正 D01〜D05
+
+ユーザーの「質問せず推奨で進め、plan ADR/PRへ記録」に従い、レビューの推奨案Aを採る。ユーザー裁定として扱わない。
+
+- D01: baseが暗転でheadも暗転または切替済みなら、解決済みコミットが異なる起点への書換えを拒否する。同じSHAの短縮表記と、Webからの開始・切替済みからのrollbackは許す。継続期間の未記帳を起点更新で消さないため。
+- D02: 各Web変更コミットと親コミットの台帳から所有束の和集合を導出し、既存の追従判定へ必須引数で渡す。現在の台帳から旧パスを消しても追従義務は残る。導入前区間（台帳導入を含まない枝も含む）はhead履歴の最初の導入台帳を初期所有表とし、その適用を毎回出力する。導入済み祖先を持つ境界の台帳欠落・不正は理由付きで拒否する。永続台帳やMarkdown列は追加しない。
+- D03: `httpHandler.ts`の既存`BLOCK_FIXTURES`からopenなキーを導出した`openBlockFixtureNames`を撮影表へ公開する。手書きの複製一覧を撤去し、追加・改名を撮影対象へ反映する。DEMOによって開状態の登録は変わらず、fixture内容は撮影表に複製しない。
+- D04: `ShotStep`へ期限10秒の`expectVisible(testId)`と`expectContent(testId, texts)`を足し、64静止画＋5動画へ対象の条件を置く。testIdを持たない照準・研究ノードの枠は、親testIdと必須nullableのdescendantセレクタを指定して実要素の可視を検査する（空のoverlayだけでは完成にならない）。内容条件は件数・各要素の表示・本文を検査する。固定600msは描画整定だけに使う。動画は冒頭の期待条件が成立してから指定尺を計り、録画末尾をffmpegで切り出す。遅いsnapshotやページ準備が短い動画の演出時間を消費しないため。通知の入場・集約は準備後の操作として指定尺に含める。ffmpeg/ffprobeが必要で、欠落・失敗は非0で終了する。
+- D05: `revealBlockingSkitBody`に、1文字1秒のfixtureを十数秒待たず撮るためクリックで全文表示する理由の日英コメントを復元する。全文表示後のadvance防止と既存挙動は保つ。
+- W01: 起動期限・画面整定・期待条件期限を名前付き定数とし、起動失敗メッセージも同じ値を参照する。スキットの試行回数と間隔は共通関数内で名前を付ける。
+- 構成補正: 履歴境界の責務は`history_ownership.py`、動画の準備と切出しは`videoCapture.ts`、実DOMの遅延・欠落回帰は`tests/reference/captureReadiness.spec.ts`へ分け、各コード200行未満と撮影ディレクトリ10ファイル以内を保つ。
+
+- 撮影内容の補正: 配信待ちの状態はポーズトップには描画されないため、同じ`1-pause-delivery-pending`でバグ報告画面を開き「送信待ち 3件」を確認して撮る。切断は切断メッセージ、toastは実エラー本文、研究の枠は実outline要素を待つ。存在するだけの親コンテナを完成条件にしない。

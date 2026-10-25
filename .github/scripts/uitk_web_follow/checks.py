@@ -38,13 +38,13 @@ def switching_bundles(base: Ledger, head: Ledger) -> tuple[int, ...]:
         if bundle.state == STATE_SWITCHED and base.bundles[bundle_id].state != STATE_SWITCHED)
 
 
-def unrecorded_commits(head: Ledger, bundle_id: int, commits: tuple[CommitFiles, ...]) -> tuple[str, ...]:
-    # その束が持つファイルを 1 つでも触ったコミットのうち、記録の無いもの
-    # Commits touching any file the bundle owns that have no follow record for it
+def unrecorded_commits(head: Ledger, bundle_id: int, commits: tuple[CommitFiles, ...], commit_owners: dict[str, frozenset[int]]) -> tuple[str, ...]:
+    # 変更当時の所有束に対して記帳を要求する
+    # Require records for the bundles owning each change at its history boundaries
     recorded = tuple(record.commit for record in head.records if record.bundle_id == bundle_id)
     return tuple(
         commit.sha for commit in commits
-        if any(bundle_id in owning_bundles(path, head.rows) for path in commit.files)
+        if bundle_id in commit_owners[commit.sha]
         and not any(commit.sha.startswith(prefix) for prefix in recorded))
 
 

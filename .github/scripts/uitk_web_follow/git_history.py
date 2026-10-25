@@ -84,3 +84,11 @@ def web_commits(root: Path, start: str, head: str) -> tuple[CommitFiles, ...]:
 
 def tracked_files(root: Path, rev: str, prefix: str) -> tuple[str, ...]:
     return tuple(line for line in _git(root, "ls-tree", "-r", "--name-only", rev, "--", prefix).splitlines() if line)
+
+
+def parents(root: Path, rev: str) -> tuple[str, ...]:
+    return tuple(_git(root, "rev-list", "--parents", "-n", "1", rev).split()[1:])
+
+
+def file_additions(root: Path, head: str, path: str) -> tuple[str, ...]:
+    return tuple(_git(root, "log", "--full-history", "--reverse", "--topo-order", "--diff-filter=A", "--format=%H", head, "--", path).split())

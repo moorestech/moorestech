@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { writeCaptureIndex, type CaptureEntry } from "./captureIndex";
 import { referenceShots } from "./referenceShots";
+import { captureVideo } from "./videoCapture";
 import { referenceVideos } from "./referenceVideos";
 import { openShot, referenceViewport, startMockHost, stopMockHost } from "./shotRunner";
 
@@ -49,18 +50,7 @@ async function main(): Promise<void> {
     for (const video of referenceVideos) {
       const host = await startMockHost(webuiRoot, port);
       try {
-        const context = await browser.newContext({ viewport: referenceViewport, recordVideo: { dir: join(outputDirectory, ".video-tmp"), size: referenceViewport } });
-        const recordingStartedAt = performance.now();
-        const page = await context.newPage();
-        await openShot(page, baseUrl, video);
-        const remainingMs = video.durationMs - (performance.now() - recordingStartedAt);
-        if (remainingMs <= 0) throw new Error(`video setup exceeded duration: ${video.id}`);
-        await page.waitForTimeout(remainingMs);
-        const recording = page.video();
-        await context.close();
-        if (recording === null) throw new Error(`video was not recorded: ${video.id}`);
-        await recording.saveAs(join(outputDirectory, `${video.id}.webm`));
-        await recording.delete();
+        await captureVideo(browser, baseUrl, video, video.durationMs, join(outputDirectory, `${video.id}.webm`), join(outputDirectory, ".video-tmp"));
       } finally {
         await stopMockHost(host);
       }

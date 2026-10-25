@@ -17,5 +17,6 @@
   },
   "vitest": true,
   "ignore": ["eslint-rules/*.d.ts"],
-  "ignoreDependencies": ["globals", "tsx"]
+  "ignoreDependencies": ["globals", "tsx"],
+  "ignoreBinaries": ["ffmpeg", "ffprobe"]
 }

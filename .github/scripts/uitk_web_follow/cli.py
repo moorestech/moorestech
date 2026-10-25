@@ -6,8 +6,9 @@ import sys
 from pathlib import Path
 
 from . import git_history
+from .history_ownership import commit_owners
 from .checks import RULE_SWITCH, Violation, check_coverage, check_retired_changes, check_switch_records, switching_bundles, unrecorded_commits
-from .ledger import STATE_WEB, empty_ledger, parse_ledger
+from .ledger import STATE_DARK, STATE_WEB, empty_ledger, parse_ledger
 from .ownership import WEB_SOURCE_ROOT
 
 LEDGER_PATH = "docs/uitk/TODO.md"
@@ -61,7 +62,17 @@ def main(argv: list[str]) -> int:
         if start is None or not git_history.is_ancestor(root, start, args.head):
             violations.append(Violation(RULE_SWITCH, f"束 {bundle_id} の暗転の起点 {bundle.dark_start} が head の祖先に無い"))
             continue
-        unrecorded = unrecorded_commits(head, bundle_id, git_history.web_commits(root, start, args.head))
+        # 継続中の暗転は起点を固定し、短縮表記の変更だけ許す
+        # Preserve the origin of an ongoing blackout while accepting equivalent abbreviations
+        previous = base.bundles[bundle_id]
+        if previous.state == STATE_DARK and git_history.resolve_commit(root, previous.dark_start) != start:
+            violations.append(Violation(RULE_SWITCH, f"束 {bundle_id} の継続する暗転の起点は変更できない: {previous.dark_start} → {bundle.dark_start}"))
+        commits = git_history.web_commits(root, start, args.head)
+        owners, history_errors = commit_owners(root, args.head, commits)
+        if history_errors:
+            violations.extend(Violation(RULE_SWITCH, error) for error in history_errors)
+            continue
+        unrecorded = unrecorded_commits(head, bundle_id, commits, owners)
         report.append(f"束 {bundle_id}（{bundle.state}・起点 {bundle.dark_start}）: 未記帳 {len(unrecorded)} 件")
         if bundle_id in switching:
             violations.extend(check_switch_records(bundle_id, unrecorded))

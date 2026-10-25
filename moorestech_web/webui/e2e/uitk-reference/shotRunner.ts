@@ -1,8 +1,12 @@
 import { spawn, type ChildProcess } from "node:child_process";
-import type { Page } from "@playwright/test";
+import { expect, type Page } from "@playwright/test";
 import { requestMockControl, revealBlockingSkitBody } from "../support/mockControl";
 import { blockingSkitText } from "../mock-host/fixtures";
 import type { ShotSetup, ShotStep } from "./referenceShots";
+
+const HOST_START_TIMEOUT_MS = 15_000;
+const FRAME_SETTLE_MS = 600;
+const EXPECTATION_TIMEOUT_MS = 10_000;
 
 export const referenceViewport = { width: 1280, height: 720 } as const;
 
@@ -18,8 +22,8 @@ export async function startMockHost(webuiRoot: string, port: number): Promise<Ch
   await new Promise<void>((resolve, reject) => {
     const deadline = setTimeout(() => {
       child.kill();
-      reject(new Error(`mock-host did not listen within 15s on ${port}`));
-    }, 15_000);
+      reject(new Error(`mock-host did not listen within ${HOST_START_TIMEOUT_MS}ms on ${port}`));
+    }, HOST_START_TIMEOUT_MS);
     child.once("exit", (code) => {
       clearTimeout(deadline);
       reject(new Error(`mock-host exited before listening (code ${code})`));
@@ -43,13 +47,21 @@ export async function stopMockHost(child: ChildProcess): Promise<void> {
 // 制御を当ててから開き、手順を流し、カーソルを隅へ退けて落ち着くのを待つ
 // Apply controls, open the page, run the steps, park the cursor, and let the frame settle
 export async function openShot(page: Page, baseUrl: string, setup: ShotSetup): Promise<void> {
+  await prepareShot(page, baseUrl, setup);
+  await finishShot(page, baseUrl, setup);
+}
+
+export async function prepareShot(page: Page, baseUrl: string, setup: ShotSetup): Promise<void> {
   for (const path of setup.controls) await requestMockControl(page, baseUrl, path);
   await page.goto(baseUrl);
   await page.evaluate("document.fonts.ready.then(() => undefined)");
   await page.getByTestId("app-stage").waitFor({ state: "attached" });
+}
+
+export async function finishShot(page: Page, baseUrl: string, setup: ShotSetup): Promise<void> {
   for (const step of setup.steps) await runStep(page, baseUrl, step);
   await page.mouse.move(2, 2);
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(FRAME_SETTLE_MS);
 }
 
 async function runStep(page: Page, baseUrl: string, step: ShotStep): Promise<void> {
@@ -59,6 +71,19 @@ async function runStep(page: Page, baseUrl: string, step: ShotStep): Promise<voi
     case "rightClickFirstChild": return page.getByTestId(step.testId).locator("> div").first().click({ button: "right" });
     case "waitTestId": return page.getByTestId(step.testId).first().waitFor();
     case "revealSkit": return revealBlockingSkitBody(page, blockingSkitText.presentationState.body);
+    case "expectVisible": {
+      const target = page.getByTestId(step.testId);
+      return expect((step.descendant === null ? target : target.locator(step.descendant)).first()).toBeVisible({ timeout: EXPECTATION_TIMEOUT_MS });
+    }
+    case "expectContent": {
+      const targets = page.getByTestId(step.testId);
+      await expect(targets).toHaveCount(step.texts.length, { timeout: EXPECTATION_TIMEOUT_MS });
+      for (const [index, text] of step.texts.entries()) {
+        await expect(targets.nth(index)).toBeVisible({ timeout: EXPECTATION_TIMEOUT_MS });
+        await expect(targets.nth(index)).toContainText(text, { timeout: EXPECTATION_TIMEOUT_MS });
+      }
+      return;
+    }
     case "wait": return page.waitForTimeout(step.ms);
   }
 }

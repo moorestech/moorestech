@@ -53,7 +53,7 @@ class RealLedgerTest(unittest.TestCase):
                 self.assertEqual(owning_bundles(path, self.ledger.rows), frozenset(owners))
                 for bundle in owners:
                     commits = (CommitFiles("a" * 40, (path,)),)
-                    self.assertEqual(unrecorded_commits(self.ledger, bundle, commits), ("a" * 40,))
+                    self.assertEqual(unrecorded_commits(self.ledger, bundle, commits, {"a" * 40: owning_bundles(path, self.ledger.rows)}), ("a" * 40,))
                     bundles = {**self.ledger.bundles, bundle: replace(self.ledger.bundles[bundle], state=STATE_SWITCHED)}
                     shared = replace(self.ledger, bundles=bundles)
                     self.assertEqual(check_retired_changes(shared, shared, (ChangedFile("M", path),)), ())

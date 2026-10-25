@@ -1,3 +1,5 @@
+import { openBlockFixtureNames } from "../mock-host/httpHandler";
+import { blockingSkitText, blockingSkitChoices } from "../mock-host/fixtures";
 import type { TopicScenario } from "../mock-host/topics/topicControls";
 
 // 撮影単位は束・台帳行・制御・操作
@@ -9,6 +11,8 @@ export type ShotStep =
   | { kind: "rightClickFirstChild"; testId: string }
   | { kind: "waitTestId"; testId: string }
   | { kind: "revealSkit" }
+  | { kind: "expectVisible"; testId: string; descendant: string | null }
+  | { kind: "expectContent"; testId: string; texts: string[] }
   | { kind: "wait"; ms: number };
 
 export type ShotSetup = { controls: string[]; steps: ShotStep[] };
@@ -56,63 +60,63 @@ export const topic = (scenario: TopicScenario) => `/__topic-control?scenario=${s
 const block = (type: string) => `/__block?type=${type}`;
 const after = (path: string): ShotStep => ({ kind: "control", path });
 
-// ブロック UI は mock-host の全フィクスチャを撮る（httpHandler.ts の BLOCK_FIXTURES と同じ並び）
-// Block UIs cover every mock-host fixture, in the order of BLOCK_FIXTURES in httpHandler.ts
-const blockTypes = ["chest", "tank", "machine", "gearMachine", "generator", "miner", "filterSplitter", "gearMiner", "pump", "pumpNoVein",
-  "gearPump", "generic", "gearGenerator", "electricToGear", "train", "trainTimetable", "trainError", "trainPlatform", "trainFluidPlatform", "electricPole"] as const;
+// 表示条件も撮影手順に保持し、空の画面を成功扱いにしない
+// Keep visibility requirements with each shot so empty captures fail
+export const visible = (testId: string): ShotStep => ({ kind: "expectVisible", testId, descendant: null });
+export const content = (testId: string, texts: string[]): ShotStep => ({ kind: "expectContent", testId, texts });
 
 export const referenceShots: ReferenceShot[] = [
   // 束 1 命綱
-  { id: "1-pause-top", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [topic("pauseConnected"), ui("PauseMenu")], steps: [] },
-  { id: "1-pause-disconnected", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [topic("pauseDisconnected"), ui("PauseMenu")], steps: [] },
-  { id: "1-pause-delivery-pending", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [topic("deliveryPending"), ui("PauseMenu")], steps: [] },
-  { id: "1-pause-in-skit", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [ui("Story", "PauseMenuScreen")], steps: [] },
-  { id: "1-pause-in-train", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [ui("TrainHUDScreen", "PauseMenuScreen")], steps: [] },
-  { id: "1-bug-report", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-bug-report" }] },
-  { id: "1-settings", bundle: 1, ledgerRow: LedgerRows.settings, controls: [ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-settings" }] },
-  { id: "1-settings-graphics-recovered", bundle: 1, ledgerRow: LedgerRows.settings, controls: [topic("graphicsRecovered"), ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-settings" }] },
+  { id: "1-pause-top", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [topic("pauseConnected"), ui("PauseMenu")], steps: [visible("pause-menu-open-settings")] },
+  { id: "1-pause-disconnected", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [topic("pauseDisconnected"), ui("PauseMenu")], steps: [content("pause-menu", ["サーバーから切断されました"])] },
+  { id: "1-pause-delivery-pending", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [topic("deliveryPending"), ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-bug-report" }, content("bug-report-delivery", ["送信待ち 3件"])] },
+  { id: "1-pause-in-skit", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [ui("Story", "PauseMenuScreen")], steps: [visible("pause-menu-open-settings")] },
+  { id: "1-pause-in-train", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [ui("TrainHUDScreen", "PauseMenuScreen")], steps: [visible("pause-menu-open-settings")] },
+  { id: "1-bug-report", bundle: 1, ledgerRow: LedgerRows.pauseMenu, controls: [ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-bug-report" }, visible("bug-report-description")] },
+  { id: "1-settings", bundle: 1, ledgerRow: LedgerRows.settings, controls: [ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-settings" }, visible("graphics-preset")] },
+  { id: "1-settings-graphics-recovered", bundle: 1, ledgerRow: LedgerRows.settings, controls: [topic("graphicsRecovered"), ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-settings" }, visible("graphics-recovered")] },
   { id: "1-toast", bundle: 1, ledgerRow: LedgerRows.toast, controls: [block("chest"), "/__action-error?type=block_inventory.split&error=invalid_slot", ui("SubInventory")],
-    steps: [{ kind: "rightClickFirstChild", testId: "chest-grid" }, { kind: "waitTestId", testId: "toast-host" }] },
+    steps: [{ kind: "rightClickFirstChild", testId: "chest-grid" }, { kind: "waitTestId", testId: "toast-host" }, content("toast-host", ["invalid_slot"])] },
   // 束 2 常駐表示
-  { id: "2-game-hud", bundle: 2, ledgerRow: LedgerRows.commonHud, controls: [topic("crosshairVisible"), topic("challengeActive"), ui("GameScreen")], steps: [] },
-  { id: "2-mining", bundle: 2, ledgerRow: LedgerRows.progress, controls: [topic("mining"), ui("GameScreen")], steps: [] },
-  { id: "2-progress-labeled", bundle: 2, ledgerRow: LedgerRows.progress, controls: [topic("progressLabeled"), ui("GameScreen")], steps: [] },
-  { id: "2-placement", bundle: 2, ledgerRow: LedgerRows.modeHud, controls: [topic("placement"), ui("PlaceBlock")], steps: [] },
-  { id: "2-placement-unavailable", bundle: 2, ledgerRow: LedgerRows.modeHud, controls: [topic("placementUnavailable"), ui("PlaceBlock")], steps: [] },
-  { id: "2-placement-connect-tool", bundle: 2, ledgerRow: LedgerRows.modeHud, controls: [topic("placementConnectTool"), ui("PlaceBlock")], steps: [] },
-  { id: "2-delete-bar", bundle: 2, ledgerRow: LedgerRows.modeHud, controls: [ui("DeleteBar")], steps: [] },
-  { id: "2-train-hud", bundle: 2, ledgerRow: LedgerRows.trainHud, controls: ["/__train-riding?riding=1&count=3&selected=1", ui("TrainHUDScreen", "GameScreen")], steps: [] },
+  { id: "2-game-hud", bundle: 2, ledgerRow: LedgerRows.commonHud, controls: [topic("crosshairVisible"), topic("challengeActive"), ui("GameScreen")], steps: [visible("hotbar-grid"), visible("challenge-hud"), { kind: "expectVisible", testId: "app-stage", descendant: '[data-tutorial-anchor~="game.crosshair"]' }] },
+  { id: "2-mining", bundle: 2, ledgerRow: LedgerRows.progress, controls: [topic("mining"), ui("GameScreen")], steps: [visible("progress-bar")] },
+  { id: "2-progress-labeled", bundle: 2, ledgerRow: LedgerRows.progress, controls: [topic("progressLabeled"), ui("GameScreen")], steps: [content("progress-bar", ["Crafting"])] },
+  { id: "2-placement", bundle: 2, ledgerRow: LedgerRows.modeHud, controls: [topic("placement"), ui("PlaceBlock")], steps: [content("operation-mode-detail", ["Assembler", "3"])] },
+  { id: "2-placement-unavailable", bundle: 2, ledgerRow: LedgerRows.modeHud, controls: [topic("placementUnavailable"), ui("PlaceBlock")], steps: [content("operation-mode-warning", ["Blocked by terrain"])] },
+  { id: "2-placement-connect-tool", bundle: 2, ledgerRow: LedgerRows.modeHud, controls: [topic("placementConnectTool"), ui("PlaceBlock")], steps: [visible("placement-mode-hud"), visible("operation-mode-detail")] },
+  { id: "2-delete-bar", bundle: 2, ledgerRow: LedgerRows.modeHud, controls: [ui("DeleteBar")], steps: [visible("delete-mode-warning")] },
+  { id: "2-train-hud", bundle: 2, ledgerRow: LedgerRows.trainHud, controls: ["/__train-riding?riding=1&count=3&selected=1", ui("TrainHUDScreen", "GameScreen")], steps: [visible("train-branch-selection")] },
   { id: "2-notifications", bundle: 2, ledgerRow: LedgerRows.notification, controls: [ui("GameScreen")],
-    steps: [after(topic("notificationItemEarned")), after(topic("notificationAchievement")), after(topic("notificationItemUnlocked")), after(topic("notificationDenied"))] },
-  { id: "2-tooltip", bundle: 2, ledgerRow: LedgerRows.cursorTooltip, controls: [topic("tooltip"), ui("GameScreen")], steps: [] },
-  { id: "2-tooltip-multiline", bundle: 2, ledgerRow: LedgerRows.cursorTooltip, controls: [topic("tooltipMultiLine"), ui("GameScreen")], steps: [] },
-  { id: "2-challenge-hud-multiple-long", bundle: 2, ledgerRow: LedgerRows.currentChallengeHud, controls: [topic("challengeMultipleLong"), ui("GameScreen")], steps: [] },
-  { id: "2-skit-background", bundle: 2, ledgerRow: LedgerRows.backgroundSkit, controls: [ui("GameScreen"), "/__skit?stage=background"], steps: [] },
-  { id: "2-skit-text", bundle: 2, ledgerRow: LedgerRows.skit, controls: [ui("Story", "GameScreen"), "/__skit?stage=text"], steps: [{ kind: "revealSkit" }] },
-  { id: "2-skit-choices", bundle: 2, ledgerRow: LedgerRows.skit, controls: [ui("Story", "GameScreen"), "/__skit?stage=choices"], steps: [] },
-  { id: "2-skit-transition", bundle: 2, ledgerRow: LedgerRows.skit, controls: [ui("Story", "GameScreen"), "/__skit?stage=transition"], steps: [] },
-  { id: "2-world-pin-onscreen", bundle: 2, ledgerRow: LedgerRows.worldPin, controls: [ui("GameScreen"), "/__worldpin?x=0.6&y=0.4"], steps: [] },
-  { id: "2-world-pin-offscreen", bundle: 2, ledgerRow: LedgerRows.worldPin, controls: [ui("GameScreen"), "/__worldpin?on=0&dx=1&dy=0.3"], steps: [] },
-  { id: "2-key-control-hint", bundle: 2, ledgerRow: LedgerRows.keyControlHint, controls: [topic("tutorialKeyControl"), ui("GameScreen")], steps: [] },
+    steps: [visible("hotbar-grid"), after(topic("notificationItemEarned")), after(topic("notificationAchievement")), after(topic("notificationItemUnlocked")), after(topic("notificationDenied")), content("notification-row", ["5", "研究完了", "新しいアイテム", "研究を完了できません"])] },
+  { id: "2-tooltip", bundle: 2, ledgerRow: LedgerRows.cursorTooltip, controls: [topic("tooltip"), ui("GameScreen")], steps: [content("cursor-tooltip-line", ["対象"])] },
+  { id: "2-tooltip-multiline", bundle: 2, ledgerRow: LedgerRows.cursorTooltip, controls: [topic("tooltipMultiLine"), ui("GameScreen")], steps: [content("cursor-tooltip-line", ["地形に埋まっています", "遠すぎます"])] },
+  { id: "2-challenge-hud-multiple-long", bundle: 2, ledgerRow: LedgerRows.currentChallengeHud, controls: [topic("challengeMultipleLong"), ui("GameScreen")], steps: [visible("challenge-objective")] },
+  { id: "2-skit-background", bundle: 2, ledgerRow: LedgerRows.backgroundSkit, controls: [ui("GameScreen"), "/__skit?stage=background"], steps: [visible("background-skit")] },
+  { id: "2-skit-text", bundle: 2, ledgerRow: LedgerRows.skit, controls: [ui("Story", "GameScreen"), "/__skit?stage=text"], steps: [{ kind: "revealSkit" }, content("blocking-skit", [blockingSkitText.presentationState.body])] },
+  { id: "2-skit-choices", bundle: 2, ledgerRow: LedgerRows.skit, controls: [ui("Story", "GameScreen"), "/__skit?stage=choices"], steps: [content("blocking-skit", [blockingSkitChoices.presentationState.body])] },
+  { id: "2-skit-transition", bundle: 2, ledgerRow: LedgerRows.skit, controls: [ui("Story", "GameScreen"), "/__skit?stage=transition"], steps: [visible("skit-transition")] },
+  { id: "2-world-pin-onscreen", bundle: 2, ledgerRow: LedgerRows.worldPin, controls: [ui("GameScreen"), "/__worldpin?x=0.6&y=0.4"], steps: [visible("world-pin-map-object-pin")] },
+  { id: "2-world-pin-offscreen", bundle: 2, ledgerRow: LedgerRows.worldPin, controls: [ui("GameScreen"), "/__worldpin?on=0&dx=1&dy=0.3"], steps: [visible("world-pin-arrow-map-object-pin")] },
+  { id: "2-key-control-hint", bundle: 2, ledgerRow: LedgerRows.keyControlHint, controls: [topic("tutorialKeyControl"), ui("GameScreen")], steps: [visible("key-control-hint")] },
   // 束 3 建築
-  { id: "3-build-menu", bundle: 3, ledgerRow: LedgerRows.buildMenu, controls: [ui("BuildMenu")], steps: [] },
-  { id: "3-hotbar-equipment-empty", bundle: 3, ledgerRow: LedgerRows.hotbar, controls: [topic("equipmentEmpty"), ui("GameScreen")], steps: [] },
-  { id: "3-modal", bundle: 3, ledgerRow: LedgerRows.modal, controls: [ui("GameScreen"), "/__modal?show=1&kind=blueprint"], steps: [] },
+  { id: "3-build-menu", bundle: 3, ledgerRow: LedgerRows.buildMenu, controls: [ui("BuildMenu")], steps: [visible("build-menu-columns")] },
+  { id: "3-hotbar-equipment-empty", bundle: 3, ledgerRow: LedgerRows.hotbar, controls: [topic("equipmentEmpty"), ui("GameScreen")], steps: [visible("hotbar-grid")] },
+  { id: "3-modal", bundle: 3, ledgerRow: LedgerRows.modal, controls: [ui("GameScreen"), "/__modal?show=1&kind=blueprint"], steps: [visible("modal-input")] },
   // 束 4 持ち物
-  { id: "4-player-inventory", bundle: 4, ledgerRow: LedgerRows.inventory, controls: [ui("PlayerInventory")], steps: [] },
-  { id: "4-player-inventory-full", bundle: 4, ledgerRow: LedgerRows.inventory, controls: [topic("inventoryEveryRowFilled"), ui("PlayerInventory")], steps: [] },
-  { id: "4-item-list-large", bundle: 4, ledgerRow: LedgerRows.recipe, controls: [topic("itemListLarge"), ui("PlayerInventory")], steps: [] },
-  ...blockTypes.map((type): ReferenceShot => ({ id: `4-block-${type}`, bundle: 4, ledgerRow: LedgerRows.blockInventory, controls: [block(type), ui("SubInventory")], steps: [] })),
-  { id: "4-block-train-timetable-tab", bundle: 4, ledgerRow: LedgerRows.blockInventory, controls: [block("trainTimetable"), ui("SubInventory")], steps: [{ kind: "click", testId: "train-tab-timetable" }] },
-  { id: "4-block-machine-recipe-selection", bundle: 4, ledgerRow: LedgerRows.blockInventory, controls: [topic("machineRecipesOverflow"), block("machine"), ui("SubInventory")], steps: [{ kind: "click", testId: "machine-selected-recipe" }] },
-  { id: "4-research", bundle: 4, ledgerRow: LedgerRows.research, controls: [topic("researchOwnedItems"), ui("ResearchTree")], steps: [] },
+  { id: "4-player-inventory", bundle: 4, ledgerRow: LedgerRows.inventory, controls: [ui("PlayerInventory")], steps: [visible("main-grid"), visible("item-list-grid")] },
+  { id: "4-player-inventory-full", bundle: 4, ledgerRow: LedgerRows.inventory, controls: [topic("inventoryEveryRowFilled"), ui("PlayerInventory")], steps: [visible("main-grid"), visible("equipment-slots")] },
+  { id: "4-item-list-large", bundle: 4, ledgerRow: LedgerRows.recipe, controls: [topic("itemListLarge"), ui("PlayerInventory")], steps: [visible("item-list-grid")] },
+  ...openBlockFixtureNames.map((type): ReferenceShot => ({ id: `4-block-${type}`, bundle: 4, ledgerRow: LedgerRows.blockInventory, controls: [block(type), ui("SubInventory")], steps: [visible("block-inventory")] })),
+  { id: "4-block-train-timetable-tab", bundle: 4, ledgerRow: LedgerRows.blockInventory, controls: [block("trainTimetable"), ui("SubInventory")], steps: [{ kind: "click", testId: "train-tab-timetable" }, visible("train-timetable-section")] },
+  { id: "4-block-machine-recipe-selection", bundle: 4, ledgerRow: LedgerRows.blockInventory, controls: [topic("machineRecipesOverflow"), block("machine"), ui("SubInventory")], steps: [{ kind: "click", testId: "machine-selected-recipe" }, visible("machine-recipe-selection")] },
+  { id: "4-research", bundle: 4, ledgerRow: LedgerRows.research, controls: [topic("researchOwnedItems"), ui("ResearchTree")], steps: [visible("research-tree")] },
   // 束 5 最後
-  { id: "5-challenge-list", bundle: 5, ledgerRow: LedgerRows.challengePanel, controls: [topic("challengeActive"), ui("ChallengeList")], steps: [] },
-  { id: "5-event-language-gate", bundle: 5, ledgerRow: LedgerRows.eventLanguageGate, controls: [topic("eventLanguageGateWaiting"), ui("GameScreen")], steps: [{ kind: "waitTestId", testId: "event-language-gate" }] },
-  { id: "5-tutorial-outline-label", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialOutlineWithLabel"), ui("GameScreen")], steps: [] },
-  { id: "5-tutorial-recipe-item", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialRecipeItem"), ui("PlayerInventory")], steps: [] },
-  { id: "5-tutorial-research-node", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialResearchNode"), ui("ResearchTree")], steps: [] },
+  { id: "5-challenge-list", bundle: 5, ledgerRow: LedgerRows.challengePanel, controls: [topic("challengeActive"), ui("ChallengeList")], steps: [visible("challenge-panel")] },
+  { id: "5-event-language-gate", bundle: 5, ledgerRow: LedgerRows.eventLanguageGate, controls: [topic("eventLanguageGateWaiting"), ui("GameScreen")], steps: [{ kind: "waitTestId", testId: "event-language-gate" }, visible("event-language-gate")] },
+  { id: "5-tutorial-outline-label", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialOutlineWithLabel"), ui("GameScreen")], steps: [visible("tutorial-highlight-label")] },
+  { id: "5-tutorial-recipe-item", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialRecipeItem"), ui("PlayerInventory")], steps: [visible("tutorial-highlight-label")] },
+  { id: "5-tutorial-research-node", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialResearchNode"), ui("ResearchTree")], steps: [{ kind: "expectVisible", testId: "tutorial-overlay", descendant: '[data-kind="outline"]' }] },
   { id: "5-reconnect", bundle: 5, ledgerRow: LedgerRows.reconnect, controls: [ui("GameScreen")],
-    steps: [after("/__disconnect?holdMs=8000"), { kind: "waitTestId", testId: "reconnect-overlay" }] },
-  { id: "5-japanese-inventory", bundle: 5, ledgerRow: LedgerRows.i18n, controls: [topic("japanese"), ui("PlayerInventory")], steps: [] },
+    steps: [after("/__disconnect?holdMs=8000"), { kind: "waitTestId", testId: "reconnect-overlay" }, visible("reconnect-overlay")] },
+  { id: "5-japanese-inventory", bundle: 5, ledgerRow: LedgerRows.i18n, controls: [topic("japanese"), ui("PlayerInventory")], steps: [visible("main-grid")] },
 ];

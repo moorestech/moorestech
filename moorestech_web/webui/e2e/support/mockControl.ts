@@ -78,15 +78,19 @@ export async function setWoodItemGuid(page: Page, itemGuid: string) {
   return requestMockControl(page, "", `/__item-master?woodGuid=${encodeURIComponent(itemGuid)}`);
 }
 
+// 1文字1秒の本文を十数秒待たず全文撮影するため、クリックで即時表示する
+// Reveal the one-character-per-second body by clicking to capture it without waiting tens of seconds
 // 全文表示済みのクリックは次へ進むため先に判定する
 // Check first: clicking a fully revealed line advances the scene
 export async function revealBlockingSkitBody(page: Page, expectedBody: string): Promise<void> {
   const skitWindow = page.getByTestId("blocking-skit");
   await skitWindow.waitFor();
-  for (let attempt = 0; attempt < 20; attempt += 1) {
+  const revealAttempts = 20;
+  const revealRetryMs = 100;
+  for (let attempt = 0; attempt < revealAttempts; attempt += 1) {
     if ((await skitWindow.textContent())?.includes(expectedBody)) return;
     await skitWindow.click();
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(revealRetryMs);
   }
   throw new Error(`blocking body never completed: ${expectedBody}`);
 }
