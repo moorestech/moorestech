@@ -1440,6 +1440,7 @@ export const referenceShots: ReferenceShot[] = [
 - [x] **Step 2: `referenceVideos.ts`（動画の撮影表）を書く**
 
 ```ts
+import { NOTIFICATION_DISPLAY_MS } from "../../src/features/notification/notificationStore";
 import { LedgerRows, topic, ui, type BundleId, type LedgerRow, type ShotSetup } from "./referenceShots";
 
 // 動きでしか意図が伝わらない演出の短い動画
@@ -1447,7 +1448,7 @@ import { LedgerRows, topic, ui, type BundleId, type LedgerRow, type ShotSetup } 
 type ReferenceVideo = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow; durationMs: number };
 
 export const referenceVideos: ReferenceVideo[] = [
-  { id: "2-notification-enter-aggregate-exit", bundle: 2, ledgerRow: LedgerRows.notification, controls: [ui("GameScreen")], durationMs: 9000,
+  { id: "2-notification-enter-aggregate-exit", bundle: 2, ledgerRow: LedgerRows.notification, controls: [ui("GameScreen")], durationMs: NOTIFICATION_DISPLAY_MS + 5000,
     steps: [{ kind: "control", path: topic("notificationItemEarned") }, { kind: "wait", ms: 1500 }, { kind: "control", path: topic("notificationItemEarnedAgain") },
       { kind: "wait", ms: 1000 }, { kind: "control", path: topic("notificationAchievement") }] },
   { id: "2-key-control-hint-pulse", bundle: 2, ledgerRow: LedgerRows.keyControlHint, controls: [topic("tutorialKeyControl"), ui("GameScreen")], durationMs: 3000, steps: [] },
@@ -1847,7 +1848,7 @@ PR を作ったら `bd note moorestech-albof.4 "PR #<番号> 作成。台帳・G
 **agent 既定（ユーザー未裁定）— Task 3 の撤去時の検査**
 - 実repoテストは現存する各featureの台帳割当と全src網羅を検査し、機能数の下限を固定しない。初版20機能・Appの8オーバーレイ・Tier9の2行の存在は初期受入の観測として報告に残す。オーバーレイ行の恒久的な存在要求は置かず、Tier9は残っている行だけ束4を検査する。理由: 切替後の正規のWeb削除・対応行の撤去をCIが阻まないため。
 
-- Task 5 動画尺はページ生成直前からの経過時間を指定durationMsから差し引き、setup/stepsを含む全録画を指定尺に収める。通知の集約と退出を同じ9秒内に残す（agent 既定・ユーザー未裁定）。
+- Task 5 動画尺は準備完了のフレーム目印を始点として指定durationMsを切り出す。通知は既存NOTIFICATION_DISPLAY_MS＋操作と前後余白5秒の12秒で入場・集約・全退出を残す（詳細はD04）（agent 既定・ユーザー未裁定）。
 - Task 5 のBP名入力は既存の確認fixtureを置換せず、mockの`/__modal?show=1&kind=blueprint`で`input: true`のfixtureを選択する。Web機能srcは変えず、実modalコンポーネントで撮る（agent 既定・ユーザー未裁定）。
 - Task 5 のlogs専用worktreeは`git worktree add --no-checkout`から`README.md`と`uitk/`だけのsparse-checkoutを作る。全ログの展開によるディスク枯渇を避ける（agent 既定・ユーザー未裁定）。
 
@@ -1858,7 +1859,7 @@ PR を作ったら `bd note moorestech-albof.4 "PR #<番号> 作成。台帳・G
 - D01: baseが暗転でheadも暗転または切替済みなら、解決済みコミットが異なる起点への書換えを拒否する。同じSHAの短縮表記と、Webからの開始・切替済みからのrollbackは許す。継続期間の未記帳を起点更新で消さないため。
 - D02: 各Web変更コミットと親コミットの台帳から所有束の和集合を導出し、既存の追従判定へ必須引数で渡す。現在の台帳から旧パスを消しても追従義務は残る。導入前区間（台帳導入を含まない枝も含む）はhead履歴の最初の導入台帳を初期所有表とし、その適用を毎回出力する。導入済み祖先を持つ境界の台帳欠落・不正は理由付きで拒否する。永続台帳やMarkdown列は追加しない。
 - D03: `httpHandler.ts`の既存`BLOCK_FIXTURES`からopenなキーを導出した`openBlockFixtureNames`を撮影表へ公開する。手書きの複製一覧を撤去し、追加・改名を撮影対象へ反映する。DEMOによって開状態の登録は変わらず、fixture内容は撮影表に複製しない。
-- D04: `ShotStep`へ期限10秒の`expectVisible(testId)`と`expectContent(testId, texts)`を足し、64静止画＋5動画へ対象の条件を置く。testIdを持たない照準・研究ノードの枠は、親testIdと必須nullableのdescendantセレクタを指定して実要素の可視を検査する（空のoverlayだけでは完成にならない）。内容条件は件数・各要素の表示・本文を検査する。固定600msは描画整定だけに使う。動画は冒頭の期待条件が成立してから指定尺を計り、録画末尾をffmpegで切り出す。遅いsnapshotやページ準備が短い動画の演出時間を消費しないため。通知の入場・集約は準備後の操作として指定尺に含める。ffmpeg/ffprobeが必要で、欠落・失敗は非0で終了する。
+- D04: `ShotStep`へ期限10秒の`expectVisible(testId)`と`expectContent(testId, texts)`を足し、64静止画＋5動画へ対象の条件を置く。testIdを持たない照準・研究ノードの枠は、親testIdと必須nullableのdescendantセレクタを指定して実要素の可視を検査する（空のoverlayだけでは完成にならない）。内容条件は件数・各要素の表示・本文を検査する。固定600msは描画整定だけに使う。動画は冒頭の期待条件が成立してから指定尺を計り、準備中だけ左上へ置く緑の目印の最終フレームをffmpegで検出し、その次のフレームから指定尺を切り出す（目印は成果物に残さない）。録画終了の待ち時間で通知の入場を失わないため、壁時計から末尾位置を推測しない。遅いsnapshotやページ準備が短い動画の演出時間を消費しないため。通知の入場・集約は準備後の操作として指定尺に含める。通知尺は既存の`NOTIFICATION_DISPLAY_MS`（現在7000ms）＋操作と前後余白5000msの計12秒とし、最後に通知行0件を期待して全退出も必須にする。ffmpeg/ffprobeが必要で、欠落・失敗は非0で終了する。
 - D05: `revealBlockingSkitBody`に、1文字1秒のfixtureを十数秒待たず撮るためクリックで全文表示する理由の日英コメントを復元する。全文表示後のadvance防止と既存挙動は保つ。
 - W01: 起動期限・画面整定・期待条件期限を名前付き定数とし、起動失敗メッセージも同じ値を参照する。スキットの試行回数と間隔は共通関数内で名前を付ける。
 - 構成補正: 履歴境界の責務は`history_ownership.py`、動画の準備と切出しは`videoCapture.ts`、実DOMの遅延・欠落回帰は`tests/reference/captureReadiness.spec.ts`へ分け、各コード200行未満と撮影ディレクトリ10ファイル以内を保つ。

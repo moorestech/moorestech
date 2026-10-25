@@ -76,3 +76,40 @@ test("video excludes a four-second snapshot setup from a three-second clip", asy
     await rm(directory, { recursive: true });
   }
 });
+
+// 最初と最後は空の通知層、途中は通知ありを実動画の画素で確かめる
+// Verify an empty notification layer at both ends and visible content in the encoded middle
+test("notification clip retains entry and complete exit", async () => {
+  const host = await startMockHost(root, port);
+  const directory = await mkdtemp(join(tmpdir(), "uitk-notification-"));
+  const baselinePage = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  try {
+    await openShot(baselinePage, baseUrl, { controls: [ui("GameScreen")], steps: [visible("hotbar-grid")] });
+    const baseline = join(directory, "empty.png");
+    await baselinePage.screenshot({ path: baseline });
+    await baselinePage.close();
+    const video = referenceVideos.find((entry) => entry.id === "2-notification-enter-aggregate-exit")!;
+    const output = join(directory, "notifications.webm");
+    await captureVideo(browser, baseUrl, video, video.durationMs, output, join(directory, "raw"));
+    const expected = notificationPixels(baseline, 0);
+    expect(pixelDifference(expected, notificationPixels(output, 0))).toBeLessThan(3);
+    expect(pixelDifference(expected, notificationPixels(output, 1.2))).toBeGreaterThan(5);
+    expect(pixelDifference(expected, notificationPixels(output, video.durationMs / 1000 - 0.2))).toBeLessThan(3);
+  } finally {
+    await baselinePage.close();
+    await stopMockHost(host);
+    await rm(directory, { recursive: true });
+  }
+});
+
+function notificationPixels(path: string, seconds: number): Buffer {
+  return execFileSync("ffmpeg", ["-v", "error", "-ss", String(seconds), "-i", path, "-frames:v", "1",
+    "-vf", "crop=440:140:0:350,format=gray", "-f", "rawvideo", "-"]);
+}
+
+function pixelDifference(expected: Buffer, actual: Buffer): number {
+  expect(actual.length).toBe(expected.length);
+  let total = 0;
+  for (let index = 0; index < actual.length; index += 1) total += Math.abs(actual[index] - expected[index]);
+  return total / actual.length;
+}
