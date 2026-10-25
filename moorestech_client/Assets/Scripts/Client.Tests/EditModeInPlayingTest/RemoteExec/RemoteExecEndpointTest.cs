@@ -8,9 +8,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Client.RemoteExec;
 using Client.RemoteExec.Access;
+using Client.RemoteExec.Listen;
+using System.Net.Sockets;
 using Client.Tests.RemoteExec;
-using Client.WebUiHost.Boot;
-using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -45,17 +45,14 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
         private static async UniTask RunScenarioAsync()
         {
             var files = new RemoteExecTestFiles();
-            var kestrel = new KestrelServer();
             using var client = new HttpClient(new HttpClientHandler { UseProxy = false });
             try
             {
+                // 無効な起動では待受も接続情報も作らない
+                // A disabled boot opens no listener and writes no access details
                 RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
-                await kestrel.StartAsync(new WebSocketHub());
-                var url = $"http://127.0.0.1:{kestrel.ActualPort}{RemoteExecEndpoint.Path}";
                 RemoteExecActivation.ActivateIfRequested();
                 Assert.IsFalse(File.Exists(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
-                using (var disabled = await SendAsync(client, url, HttpMethod.Post, "{}", null, null))
-                    Assert.AreEqual(HttpStatusCode.NotFound, disabled.StatusCode);
 
                 // 本番経路でトークン/ポート取得
                 // Get token/port through the production path
@@ -63,8 +60,11 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 RemoteExecActivation.ActivateIfRequested();
                 var access = JObject.Parse(File.ReadAllText(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
                 var token = access.Value<string>("token");
-                Assert.AreEqual(kestrel.ActualPort, access.Value<int>("port"));
+                var port = access.Value<int>("port");
+                Assert.GreaterOrEqual(port, RemoteExecHttpListener.BasePort);
+                Assert.Less(port, RemoteExecHttpListener.BasePort + RemoteExecHttpListener.PortSearchRange);
                 Assert.AreEqual(64, token.Length);
+                var url = $"http://127.0.0.1:{port}{RemoteExecEndpoint.Path}";
                 var before = files.CountLedgerLines();
 
                 // 拒否と理由ログを確認
@@ -125,14 +125,27 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                     Assert.AreEqual(index == 4 ? "return +;" : "return 1 + 1;", entries[index].Value<string>("code"));
                     Assert.AreEqual(index == 4 ? "CompileFailed" : "Succeeded", entries[index + 1].Value<string>("outcome"));
                 }
+
+                // 無効な起動へ切り替えると待受が閉じ、同じポートへ接続できない
+                // Switching to a disabled boot closes the listener, so the same port refuses connections
+                RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
+                var refused = false;
+                using (var probe = new TcpClient())
+                {
+                    // 接続拒否はOSのネットワーク境界の例外として観測する
+                    // A refused connection is observed as an exception at the OS network boundary
+                    try { await probe.ConnectAsync(System.Net.IPAddress.Loopback, port); }
+                    catch (SocketException) { refused = true; }
+                }
+                Assert.IsTrue(refused);
             }
             finally
             {
                 // 失敗時も状態を復元
                 // Restore state even on failure
+                RemoteExecActivation.Deactivate();
                 RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
-                try { await kestrel.StopAsync(); }
-                finally { files.Restore(); }
+                files.Restore();
             }
         }
 

@@ -843,7 +843,7 @@ git commit -m "feat(remote-exec): 遠隔実行の待受をWeb UIのKestrelから
 - Consumes: `RemoteExecActivation.ActivateIfRequested()`・`Deactivate()`、`RemoteExecHttpListener.BasePort`・`PortSearchRange`、`RemoteExecEndpoint.Path`、`RemoteExecAccessFile.HeaderName/DirectoryPath`
 - Produces: なし（テストのみ）
 
-- [ ] **Step 1: テストを書き換える**
+- [x] **Step 1: テストを書き換える**
 
 変更点（拒否・不正入力・成功 2 回・コンパイル失敗・台帳 6 行の検査はすべて現行の期待値のまま残す）:
 - `using Client.WebUiHost.Boot;`・`using Client.WebUiHost.Common;` を削除し、`using Client.RemoteExec.Listen;`・`using System.Net.Sockets;` を足す
@@ -905,7 +905,7 @@ git commit -m "feat(remote-exec): 遠隔実行の待受をWeb UIのKestrelから
             }
 ```
 
-- [ ] **Step 2: コンパイルし、PlayMode 込みの遠隔実行テストを回す**
+- [x] **Step 2: コンパイルし、PlayMode 込みの遠隔実行テストを回す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
@@ -916,7 +916,7 @@ Expected: `RemoteExecEndpointTest`・`RemoteExecServerTargetTest` が PASS（ド
 Run: `bash scripts/playtest/tests/test-remote-exec.sh && bash scripts/playtest/tests/test-remote-exec-offline.sh`
 Expected: どちらも `OK`／PASS（送信側 CLI は無変更で通る）
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/RemoteExec/RemoteExecEndpointTest.cs
