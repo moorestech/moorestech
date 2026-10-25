@@ -1163,7 +1163,7 @@ git commit -m "refactor(challenge): チャレンジの全カテゴリと完了�
 - Consumes: Task 4 の `MainGameUiStateRegistration.Register`
 - Produces: `Client.Game.InGame.UI.Notification.NotificationFeed(IVanillaApiEvent vanillaApiEvent, ClientLocalNotificationSource localNotificationSource)`: `void Initialize()`、`IObservable<SequencedNotification> OnNotified`、`SequencedNotification SaveMigrationNotice { get; private set; }`。`SequencedNotification`: `public readonly long Seq; public readonly NotificationMessagePack Message;`。`NotificationTopic(WebSocketHub hub, NotificationFeed feed)`
 
-- [ ] **Step 1: `SequencedNotification` と `NotificationFeed` を書く**
+- [x] **Step 1: `SequencedNotification` と `NotificationFeed` を書く**
 
 ```csharp
 using Server.Event.Notification;
@@ -1257,7 +1257,7 @@ namespace Client.Game.InGame.UI.Notification
 ```
 （連番の消費条件は移す前と同じ。移す前は `NotificationCategoryTable.TryGetWebName` が偽＝`Enum.IsDefined` が偽のときだけ連番を消費せず落としていた）
 
-- [ ] **Step 2: `NotificationTopic` をアダプタにする**
+- [x] **Step 2: `NotificationTopic` をアダプタにする**
 
 `NotificationDto` は同じファイルに残す。クラス本体を次に置き換える:
 ```csharp
@@ -1330,7 +1330,7 @@ namespace Client.Game.InGame.UI.Notification
 （`TryGetWebName` が偽になるのは未定義値のときだけで、feed が先に落とすので通常は到達しない。feed と表の判定がずれたときに null のカテゴリを黙って送らないための防御。表の追加漏れは移す前と同じく、default の無い switch 式の例外と CS8509 の警告で気づく）
 using を `Client.Game.InGame.UI.Notification`・`Client.WebUiHost.Boot`・`Client.WebUiHost.Common`・`Core.Master`・`Cysharp.Threading.Tasks`・`Server.Event.Notification`・`System`・`UniRx`・`UnityEngine` に整理する（`MessagePack`・`Client.Network.API` は不要になる）。
 
-- [ ] **Step 3: 登録と binder**
+- [x] **Step 3: 登録と binder**
 
 `MainGameUiStateRegistration.Register` に足す（`using Client.Game.InGame.UI.Notification;`）:
 ```csharp
@@ -1343,7 +1343,7 @@ using を `Client.Game.InGame.UI.Notification`・`Client.WebUiHost.Boot`・`Clie
             hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, resolver.Resolve<NotificationFeed>()));
 ```
 
-- [ ] **Step 4: wire 契約テストの組み立てを直す**
+- [x] **Step 4: wire 契約テストの組み立てを直す**
 
 `WireContractNotificationTest` に組み立ての補助を足し、`new NotificationTopic(hub, vanillaApiEvent, source)` の 3 か所をこれに置き換える（照合内容は変えない）:
 ```csharp
@@ -1358,7 +1358,7 @@ using を `Client.Game.InGame.UI.Notification`・`Client.WebUiHost.Boot`・`Clie
 ```
 `LocalUndoNotificationIsPublishedAndUnsubscribedOnDispose` の「Dispose 後は配信しない」の照合は、topic が feed の購読を外すことで従来どおり成り立つ。
 
-- [ ] **Step 5: プローブ**
+- [x] **Step 5: プローブ**
 
 `Hostless/NotificationStateProbe.cs`:
 ```csharp
@@ -1393,12 +1393,12 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
 ```
 テストの `Body()` 末尾に `NotificationStateProbe.AssertAvailable(resolver);` を足す。
 
-- [ ] **Step 6: コンパイルとテスト**
+- [x] **Step 6: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.WebUi\.WireContractNotificationTest|Hostless\.WebUiHostlessStateAvailabilityTest" --timeout-seconds 1200`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Notification moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter/Registration moorestech_client/Assets/Scripts/Client.Tests
@@ -2086,4 +2086,4 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D19 | 新設したUI純状態のディレクトリは既存WebUiGateClassification.RulesへCategory.Infraとして登録する | 既存Blueprint/BuildMenu/ProgressBarと同じ役割。新しい状態ファイルを正しく分類する付随変更であり、albof.4所有のG1 Web追従ゲート機構には触れない | agent 既定（ユーザー未裁定） |
 | D20 | 現ホストで正規のUnity所有receiptが作れないため、長い検証前にEditor稼働時間を確かめ、既存MIN_AGE_MIN（現在30分）を跨ぐ場合はタスク区切りで自分のPIDだけを停止し、Editor予算と空き容量を再確認してuloop launchする | reaperログで旧PID59245の所有者未確認による停止を実測。常駐処理・wrapper・偽の所有者情報へ変更を加えず、検証中の停止を避ける | agent 既定（ユーザー未裁定） |
 
-| D21 | HostlessのModalプローブはBP解放・実ブロック・公開selection遷移を前提にし、生成GUID・選択リセット・thumbnail完了と自分の生成物だけのcleanupまで待つ。起動後1フレームから全プローブとcleanup完了後1フレームまでLogAssertの失敗無視を解除し、標準runnerが想定外error/exceptionを検出する | 元サンプルは実DIのコピー購読者へSelectingStartのまま確定を流し、Task4/5/6のPassed XMLへBeginCreate例外を隠していた。独立再現とログ検出のみの赤実測で確認した。NoUnexpectedReceivedは通常Logも失敗にする実測があるため用いず、赤実測済みの標準runnerのerror/exception検出を使う。終了時ログの原因は未確定なのでプロダクション終了処理を推測で変更しない | agent 既定（ユーザー未裁定） |
+| D21 | HostlessのModalプローブはBP解放・実ブロック・公開selection遷移を前提にし、生成GUID・選択リセット・thumbnail完了と自分の生成物だけのcleanupまで待つ。起動後1フレームから全プローブとcleanup完了後1フレームまでLogAssertの失敗無視を解除し、標準runnerが想定外error/exceptionを検出する。全probe後は既存統合テストの前例に従い正規終了をawaitしFlushedをassertしてからExitPlayModeへ進む | 元サンプルは実DIのコピー購読者へSelectingStartのまま確定を流し、Task4/5/6のPassed XMLへBeginCreate例外を隠していた。独立再現とログ検出のみの赤実測で確認した。NoUnexpectedReceivedは通常Logも失敗にする実測があるため用いず、赤実測済みの標準runnerのerror/exception検出を使う。終了時エラーはprobe無し対照でも再現し、Task3比較はflush完了が未観測で原因未確定。既存PlaytestReportAndProgressTestの正規終了awaitをテストcleanupの既定とし実測で検証する。プロダクション終了処理を推測で変更しない | agent 既定（ユーザー未裁定） |
