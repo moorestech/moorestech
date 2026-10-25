@@ -81,8 +81,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反4件・修正4件 / Driver 分割の下請けを前例 PlaytestHotbarDriver の形へ（逆参照を廃止）・SetText の待ち上限を Ops の既存定数へ・応答タイムアウトに警告ログ・解説コメントの日英順
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強1・弱6・第3バケツ1 / 5-B（Status＋空値の照会結果）はこのまま（D11）、Reset 後の応答待ちを即時打ち切り・有限値判定の二重化を解消、残りの弱はこのまま（D12）、第3バケツは PR 本文へ
 
 ---
 
@@ -96,7 +96,7 @@
 | 4 | `WebUiElementLocator`（Web 版実装）・`PlaytestDomQuery`・`PlaytestDomSetText`・`PlaytestWebUiRequestChannel<T>`・`DomQueryResultActionHandler`・`DomSetTextResultActionHandler`・`WebUiPayloadReader` | `Client.Playtest/WebUi/`（すべて `internal`） | WS topic publish＋`IActionHandler` 応答 | 既存 `PlaytestDomQuery`（同じ往復の前例そのもの） |
 | 5 | `CefScreenMapper.TryBrowserRectToScreenRect` | 既存 `Client.Playtest/WebUi/CefScreenMapper.cs` | 既存の座標写像 | 同ファイルの `TryBrowserToScreen` |
 | 6 | `PlaytestUiElementOps`（DSL の UI 操作） | `Client.Playtest/Operations/`（`PlaytestWebUiOps.cs` を `git mv`） | static ops | 既存 `PlaytestWebUiOps` |
-| 7 | `PlaytestUiRouteActions`（Driver の 200 行超過を解く委譲先） | `Client.Playtest/Operations/Ui/` | Driver から 1 行委譲 | `PlaytestHotbarDriver`（Driver の下請け） |
+| 7 | `PlaytestWaitActions`（Driver の 200 行超過を解く委譲先。待機表示つき 4 メソッドの本体） | `Client.Playtest/`（root。10 ファイル目） | Driver から 1 行委譲。`PlaytestReporter` だけを受け取り Driver を参照しない | `PlaytestHotbarDriver`（root・reporter だけを受け取る下請け） |
 | 8 | `playtest.dom_set_text` topic・`playtest.dom_set_text_result` action | `bridge/transport/protocol.ts`・`action_names.json` の `excludedFromWebContract` | 既存 playtest 往復 | `playtest.dom_query`・`playtest.dom_query_result` |
 | 9 | `domSetTextResponder.ts`・`playtestTopicResponder.ts`・`testIdElement.ts` | `moorestech_web/webui/src/bridge/playtest/` | topic 購読→読み取り/書き込み→action 応答 | `domQueryResponder.ts` |
 
@@ -132,7 +132,7 @@
 ```bash
 cd <worktree の root（ブランチ feature/uitk-s0-dsl）> && pwd
 git status --short   # 空であること（plan ファイルのコミット以外の変更が無い）
-git log --oneline -1 # plan コミットの親が e855a58667 であること
+git diff --stat e855a58667 HEAD   # 差分が docs/superpowers/plans/ の plan ファイルだけであること
 moores-wt status     # Editor 本数を確認。3本以上なら Task 2 を先に進めて空きを待つ
 (cd moorestech_web/webui && pnpm install --frozen-lockfile)
 uloop launch ./moorestech_client
@@ -695,8 +695,8 @@ namespace Client.Playtest.UiElements
 {
     /// <summary>
     ///     testidでUI要素を照会し文字を入れる、描画系に依存しない窓口
-    ///     Renderer-independent gateway that looks up UI elements by testid and enters text
     ///     Web版（CEF）を段階0で、UITK版と両系照合の合成を段階1で同じinterfaceに実装する
+    ///     Renderer-independent gateway that looks up UI elements by testid and enters text
     ///     Web (CEF) is implemented in stage 0; UITK and the both-renderer composite implement the same interface in stage 1
     /// </summary>
     public interface IUiElementLocator
@@ -957,7 +957,10 @@ namespace Client.Playtest.WebUi
             var startedAt = Time.realtimeSinceStartup;
             while (Time.realtimeSinceStartup - startedAt <= timeoutSeconds)
             {
-                if (_pending.TryGetValue(requestId, out var result) && result != null)
+                // Resetで保留が消えたら、待ち続けず応答なしとして返す
+                // When Reset dropped the pending entry, stop waiting and report no response
+                if (!_pending.TryGetValue(requestId, out var result)) return WebUiChannelResponse<TResult>.TimedOut();
+                if (result != null)
                 {
                     _pending.Remove(requestId);
                     return WebUiChannelResponse<TResult>.Responded(result);
@@ -1124,18 +1127,11 @@ namespace Client.Playtest.WebUi
 
         public static bool IsValidResult(DomQueryResult result)
         {
-            // 数値の有限性と、発見・件数・矩形の相関を検証する
-            // Validate finiteness and the correlation of found, match count, and rect
-            if (!IsFinite(result.X) || !IsFinite(result.Y) || !IsFinite(result.Width) ||
-                !IsFinite(result.Height) || !IsFinite(result.DevicePixelRatio)) return false;
+            // 有限性はWebUiPayloadReader.TryReadFloatが見るので、ここでは値域と発見・件数・矩形の相関だけを検証する
+            // TryReadFloat already checks finiteness, so validate only ranges and the found/count/rect correlation here
             if (result.Width < 0f || result.Height < 0f || result.DevicePixelRatio <= 0f) return false;
             if (result.Found != (0 < result.MatchCount) || result.StateFlags == null) return false;
             return !result.HitTestPassed || (0f < result.Width && 0f < result.Height);
-        }
-
-        private static bool IsFinite(float value)
-        {
-            return !float.IsNaN(value) && !float.IsInfinity(value);
         }
 
         private class DomQueryRequest
@@ -1438,7 +1434,13 @@ namespace Client.Playtest.WebUi
         {
             if (!TryGetRegisteredHub(out var hub)) return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
             var response = await _domQuery.Query(hub, testid, ResponseTimeoutSeconds);
-            if (!response.HasResponse) return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
+            if (!response.HasResponse)
+            {
+                // 応答なしを「見つからない」と区別できるよう理由を残す
+                // Leave the reason so no-answer is distinguishable from not-found
+                Debug.LogWarning($"[PlaytestUi] Web UI did not answer a lookup within {ResponseTimeoutSeconds}s: {testid}");
+                return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
+            }
             if (!response.Result.Found) return UiElementSnapshot.NotFound(testid, UiRenderer.Web);
 
             // CSS pxの矩形をdevicePixelRatioでCEFブラウザpxへ換算してから画面へ写す
@@ -1458,7 +1460,11 @@ namespace Client.Playtest.WebUi
         {
             if (!TryGetRegisteredHub(out var hub)) return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
             var response = await _domSetText.Request(hub, testid, text, ResponseTimeoutSeconds);
-            if (!response.HasResponse) return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
+            if (!response.HasResponse)
+            {
+                Debug.LogWarning($"[PlaytestUi] Web UI did not answer a text input within {ResponseTimeoutSeconds}s: {testid}");
+                return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
+            }
             WarnDuplicate(testid, response.Result.MatchCount);
             return new UiSetTextResult(response.Result.Status, UiRenderer.Web, response.Result.ActualValue);
         }
@@ -1636,7 +1642,7 @@ Expected: ErrorCount 0 / 全 PASS
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Playtest/UiElements/UiElementScreenPointResolver.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/Ui/PlaytestUiRouteActions.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Playtest/PlaytestWaitActions.cs`
 - Modify（`git mv`）: `moorestech_client/Assets/Scripts/Client.Playtest/Operations/PlaytestWebUiOps.cs` → `moorestech_client/Assets/Scripts/Client.Playtest/Operations/PlaytestUiElementOps.cs`（.meta も `git mv`）
 - Modify: `moorestech_client/Assets/Scripts/Client.Playtest/PlaytestDriver.cs:110-160`
 - Modify: `moorestech_client/Assets/Scripts/Client.Playtest/PlaytestRunner.cs:46-50,66-71`
@@ -1647,7 +1653,8 @@ Expected: ErrorCount 0 / 全 PASS
 - Consumes: Task 3 の `IUiElementLocator`・`UiElementSnapshot`・`UiElementLookupStatus`・`UiSetTextResult`・`UiSetTextStatus`・`PlaytestUiLocatorSession`
 - Produces（Task 5・6 のシナリオと文書が使う）:
   - `PlaytestDriver`: `UniTask ClickUi(string testid)`・`UniTask HoverUi(string testid)`・`UniTask UntilUiElement(string testid, float timeoutSeconds)`・`UniTask SetText(string testid, string text)`・`UniTask ClickBuildMenuBlock(string blockName)`・`UniTask CloseBuildMenuPanel()`
-  - `public static class PlaytestUiElementOps`（namespace `Client.Playtest.Operations`）: `string BuildMenuBlockTestId(string)`・`UniTask<UiElementSnapshot> FindUi(string)`・`UniTask ClickUi(string)`・`UniTask ClickUi(string, float)`・`UniTask HoverUi(string)`・`UniTask WaitUiElement(string, float)`・`UniTask ScrollDownUntilUiElementIsClickable(string, string, float)`・`UniTask WaitUiTextContains(string, string, float)`・`UniTask SetText(string, string, float)`
+  - `public static class PlaytestUiElementOps`（namespace `Client.Playtest.Operations`）: `string BuildMenuBlockTestId(string)`・`UniTask<UiElementSnapshot> FindUi(string)`・`UniTask ClickUi(string)`・`UniTask ClickUi(string, float)`・`UniTask HoverUi(string)`・`UniTask WaitUiElement(string, float)`・`UniTask ScrollDownUntilUiElementIsClickable(string, string, float)`・`UniTask WaitUiTextContains(string, string, float)`・`UniTask SetText(string, string)`（待ち上限は `ClickUi(string)` と同じ `ActionTimeoutSeconds`）・`UniTask SetText(string, string, float)`
+  - `public class PlaytestWaitActions`（namespace `Client.Playtest`）: ctor `(PlaytestReporter)`、`UntilUiElement(string, float)`・`WaitUiState(UIStateEnum, float)`・`WaitBlockGameObject(Vector3Int)`・`WaitSeconds(float)`
 
 - [ ] **Step 1: 安定待ちの解決を移す**
 
@@ -1831,6 +1838,11 @@ namespace Client.Playtest.Operations
             throw new TimeoutException($"UI text did not contain '{expected}' (last: '{lastText}'): {testid}");
         }
 
+        public static async UniTask SetText(string testid, string text)
+        {
+            await SetText(testid, text, ActionTimeoutSeconds);
+        }
+
         public static async UniTask SetText(string testid, string text, float timeoutSeconds)
         {
             // 欄の出現・有効化を期限内で待ち、置き換えた値が保たれたら完了とする
@@ -1872,32 +1884,35 @@ namespace Client.Playtest.Operations
 }
 ```
 
-- [ ] **Step 3: Driver を改名し、本体の長い 3 メソッドを `PlaytestUiRouteActions` へ移す**
+- [ ] **Step 3: Driver を改名し、待機表示つきの 4 メソッドの本体を `PlaytestWaitActions` へ移す**
 
-`Operations/Ui/PlaytestUiRouteActions.cs`:
+前例は `PlaytestHotbarDriver`（root に置き、`PlaytestReporter` だけを受け取り、Driver を参照しない下請け）。待機表示（`BeginWait`/`EndWait`）を持つ本体だけを移し、Driver への逆参照を作らない。
+
+`moorestech_client/Assets/Scripts/Client.Playtest/PlaytestWaitActions.cs`:
 
 ```csharp
 using System;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.UI.UIState;
 using Client.Playtest.Core;
+using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
-using Game.Block.Interface;
 using UnityEngine;
 
-namespace Client.Playtest.Operations.Ui
+namespace Client.Playtest
 {
     /// <summary>
-    ///     PlaytestDriverのUI経路操作のうち、複数手順を束ねるものの本体
-    ///     Bodies of PlaytestDriver's multi-step UI-route operations
+    ///     PlaytestDriverの待機系操作の本体。待機中の表示とTimeline記録を伴う
+    ///     Bodies of PlaytestDriver's wait operations, with the waiting overlay and Timeline record
     /// </summary>
-    public class PlaytestUiRouteActions
+    public class PlaytestWaitActions
     {
         private readonly PlaytestReporter _reporter;
-        private readonly PlaytestDriver _driver;
 
-        public PlaytestUiRouteActions(PlaytestReporter reporter, PlaytestDriver driver)
+        public PlaytestWaitActions(PlaytestReporter reporter)
         {
             _reporter = reporter;
-            _driver = driver;
         }
 
         public async UniTask UntilUiElement(string testid, float timeoutSeconds)
@@ -1910,60 +1925,58 @@ namespace Client.Playtest.Operations.Ui
             await UniTask.Delay(TimeSpan.FromSeconds(PlaytestReporter.ActionIntervalSeconds), ignoreTimeScale: true);
         }
 
-        public async UniTask PlaceBlockViaUi(string blockName, Vector3Int origin, BlockDirection direction)
+        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds)
         {
-            // ビルドメニュー選択→照準→クリック設置→サーバー反映待ちの統合操作
-            // Composite op: build-menu select, aim, click-place, then wait for the server-side block
-            await _driver.OpenBuildMenuAndSelectBlock(blockName);
-            await _reporter.Act($"照準: {blockName} at {origin}", () => PlaytestUiOps.AimAtWorldPosition(PlaytestUiOps.PlaceAimPoint(blockName, origin, direction)));
-            await _driver.ClickPlace();
-            await _driver.Until(() => PlaytestBlockOps.GetBlock(origin) != null, 15f, $"UI設置反映: {blockName} at {origin}");
+            var waitEntry = _reporter.BeginWait($"UI状態待ち: {state}");
+            await PlaytestUiOps.WaitUiState(state, timeoutSeconds);
+            _reporter.EndWait(waitEntry);
         }
 
-        public async UniTask DragPlaceViaUi(string blockName, Vector3Int fromOrigin, Vector3Int toOrigin)
+        public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position)
         {
-            // ドラッグ設置（ベルト等の経路設置）。方向はドラッグ経路から自動解決される
-            // Drag placement (belt runs, etc.); direction is auto-resolved from the drag path
-            await _driver.OpenBuildMenuAndSelectBlock(blockName);
-            var fromAim = PlaytestUiOps.PlaceAimPoint(blockName, fromOrigin, BlockDirection.North);
-            var toAim = PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North);
-            _reporter.Step($"ドラッグ設置: {blockName} {fromOrigin}->{toOrigin}");
-            // ドラッグ直後に0.5秒アイドルさせると続く連続ドラッグの始点タイルが設置されない実バグがあるため、Actのインターバルを挟まない
-            // Idling 0.5s after a drag corrupts the next drag's start cell (a real in-game bug), so skip the Act interval here
-            await PlaytestUiOps.DragPlace(fromAim, toAim);
-            await _driver.Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UIドラッグ設置反映: {blockName} {fromOrigin}->{toOrigin}");
+            var waitEntry = _reporter.BeginWait($"ブロック生成待ち: {position}");
+            var blockGameObject = await PlaytestBlockOps.WaitBlockGameObjectSpawn(position, 15f);
+            _reporter.EndWait(waitEntry);
+            return blockGameObject;
+        }
+
+        public async UniTask WaitSeconds(float seconds)
+        {
+            _reporter.BeginWait($"{seconds:0.#}秒");
+            await UniTask.Delay(TimeSpan.FromSeconds(seconds));
         }
     }
 }
 ```
 
-（`PlaytestDriver`〈`Client.Playtest`〉と `PlaytestUiElementOps`・`PlaytestBlockOps`〈`Client.Playtest.Operations`〉は親名前空間なので using 無しで解決される）
+移す 3 メソッド（`WaitUiState`・`WaitBlockGameObject`・`WaitSeconds`）の本体は、今の `PlaytestDriver.cs` の本体をそのまま写す（上のコードと違っていたら Driver 側の現行本体を正とする）。
 
 `PlaytestDriver.cs` の変更:
-- フィールドに `private readonly PlaytestUiRouteActions _uiRoute;` を足し、ctor の `Hotbar = new PlaytestHotbarDriver(_reporter);` の次行に `_uiRoute = new PlaytestUiRouteActions(_reporter, this);`
-- `using Client.Playtest.UiElements;` は不要（Driver は型を露出しない）
+- フィールドに `private readonly PlaytestWaitActions _waits;` を足し、ctor の `Hotbar = new PlaytestHotbarDriver(_reporter);` の次行に `_waits = new PlaytestWaitActions(_reporter);`
 - 114〜126 行（`ClickWebUi`〜`CloseWebUiPanel`）を次に置き換える:
 
 ```csharp
         public async UniTask ClickUi(string testid) => await _reporter.Act($"UIクリック: {testid}", () => PlaytestUiElementOps.ClickUi(testid));
         public async UniTask HoverUi(string testid) => await _reporter.Act($"UIホバー: {testid}", () => PlaytestUiElementOps.HoverUi(testid));
-        public async UniTask UntilUiElement(string testid, float timeoutSeconds) => await _uiRoute.UntilUiElement(testid, timeoutSeconds);
+        public async UniTask UntilUiElement(string testid, float timeoutSeconds) => await _waits.UntilUiElement(testid, timeoutSeconds);
         // テキスト欄の値を置き換える（IMEは通さない）
         // Replace a text field's value (bypassing IME)
-        public async UniTask SetText(string testid, string text) => await _reporter.Act($"UI文字入力: {testid}", () => PlaytestUiElementOps.SetText(testid, text, UiTextInputTimeoutSeconds));
+        public async UniTask SetText(string testid, string text) => await _reporter.Act($"UI文字入力: {testid}", () => PlaytestUiElementOps.SetText(testid, text));
         public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(PlaytestUiElementOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseBuildMenuPanel() => await ClickUi("build-menu-close");
 ```
 
-- 定数に `// テキスト欄の出現・有効化を待つ上限` / `// Upper bound for a text field to appear and enable` と `private const float UiTextInputTimeoutSeconds = 15f;` を足す
-- `PlaceBlockViaUi`・`DragPlaceViaUi` の本体を 1 行委譲にする:
+- `WaitBlockGameObject`・`WaitUiState`・`WaitSeconds` を 1 行委譲にする:
 
 ```csharp
-        public async UniTask PlaceBlockViaUi(string blockName, Vector3Int origin, BlockDirection direction) => await _uiRoute.PlaceBlockViaUi(blockName, origin, direction);
-        public async UniTask DragPlaceViaUi(string blockName, Vector3Int fromOrigin, Vector3Int toOrigin) => await _uiRoute.DragPlaceViaUi(blockName, fromOrigin, toOrigin);
+        public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position) => await _waits.WaitBlockGameObject(position);
+        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await _waits.WaitUiState(state, timeoutSeconds);
+        public async UniTask WaitSeconds(float seconds) => await _waits.WaitSeconds(seconds);
 ```
 
-`wc -l moorestech_client/Assets/Scripts/Client.Playtest/PlaytestDriver.cs` が 200 未満であること（目安 190 前後）。
+`PlaceBlockViaUi`・`DragPlaceViaUi`・`Until` は Driver に残す（`Until` は `Func<bool>` を受ける既存 API で、移すと新しい `Func` の受け口が増えるため）。
+
+`wc -l moorestech_client/Assets/Scripts/Client.Playtest/PlaytestDriver.cs` が 200 未満であること（目安 198）。200 以上なら、`SetupDebugEnvironment` の本体を `PlaytestSetup` の static メソッド（`PlaytestReporter` と `PlaytestEnvironmentConfig` を引数に取る）へ移して Driver を 1 行委譲にする。
 
 - [ ] **Step 4: 呼び出し側を直す**
 
@@ -2261,7 +2274,8 @@ git commit -m "docs(playtest-skill): DSLのUi系APIとロケータ・SetText・�
 - [ ] **Step 1:** pr-create スキルで PR を作る。本文に必ず入れるもの:
   - 合否突き合わせの集計と `docs/uitk-migration/stage0-dsl-parity.md` への参照
   - 「#1348（`feature/belt-conveyor-replace-impl`）がマージされる前後どちらでも、`belt-replace-tier-via-ui.cs`・`input-injection.md`・`PlaytestDriver.cs`・`PlaytestRunner.cs` の旧名（`ClickWebUi` 系・`PlaytestDomQuery`・`CefInputForwarder`）を改名表に沿って追従させる必要がある」
-  - 「ユーザーに見てほしい判断」節: 判断記録 D1〜D9 のうち「agent 既定（ユーザー未裁定）」の行
+  - 「ユーザーに見てほしい判断」節: 判断記録 D1〜D14 のうち「agent 既定（ユーザー未裁定）」の行
+  - 「本PR外のリファクタ提案」節: 既存 `moorestech_web/webui/src/shared/tutorialAnchor/resolveAnchor.ts` の `resolveTutorialAnchor` と新設 `bridge/playtest/testIdElement.ts` の `findByTestId`＋`isElementVisible` は、data 属性で要素を引き、一致件数で重複を見て、hidden・aria-hidden・display・visibility・面積で可視を判定する同じ役割（設計検査 Phase 2.6 の第3バケツ。このPRでは統合しない）
   - 録画 2 本の目視所見
 - [ ] **Step 2:** master とのコンフリクトがあれば master をマージして解消し、コンパイル確認のうえ push する
 - [ ] **Step 3:** `bd note moorestech-albof.6 "PR #<番号> 作成"`、`moores-wt rm` は指揮セッションの指示に従う（このレーンでは worktree を畳まない）
@@ -2279,10 +2293,14 @@ planning 中の判断:
 | D1 | Web 版 `SetText` の方式 | WS 往復（`playtest.dom_set_text`）で Web 側がネイティブ setter＋`input` イベント | (b) クリック後に CEF の `SendCharEvent` を 1 文字ずつ送る（既存 2 シナリオの方式） | (b) は追記にしかならず「値を置き換える」契約を満たせない（全選択＋削除のキー注入が要る）。結果の値を確かめる手段も無い。(a) は UITK 版（`TextField.value`＋ChangeEvent）と同じ意味になり、適用後の値を返せる | agent 既定（ユーザー未裁定） |
 | D2 | 状態フラグの Web 表現 | `data-testid` 以外の `data-*` で値が空か `"true"` のものの名前 | 属性名を個別に列挙する許可リスト | 計画「Web は属性、UITK はクラス」に沿い、`data-selected={x \|\| undefined}` 等の既存の書き方をそのまま拾える。値付き属性（`data-kind="bug"`）は状態ではないので除く | agent 既定（ユーザー未裁定） |
 | D3 | 同じ testid が複数ある場合の Web 版 | 先頭一致を保ち警告ログ（`Ambiguous` は返さない） | Web 版も `Ambiguous` で失敗させる | 完了条件が「改名前と合否が同じ」で、既存シナリオが重複 testid に依存していないかは実測していない。UITK 版・両系照合は `Ambiguous` で失敗させる（§4.4）。段階1で Web 版の扱いを見直す | agent 既定（ユーザー未裁定） |
-| D4 | `Find` に応答待ちの上限を引数で渡すか | 渡さない。Web 版内部で 3 秒 | `Find(testid, timeout)` | 応答待ちは WS 往復を持つ Web 版だけの事情で、UITK 版は同期で返る。interface に描画系の事情を入れない。旧シナリオの 1〜10 秒は応答待ちの上限で、通常は数フレームで返る | agent 既定（ユーザー未裁定） |
+| D4 | `Find` に応答待ちの上限を引数で渡すか | 渡さない。Web 版内部で 3 秒。応答が無いときは警告ログを出す | `Find(testid, timeout)` | 応答待ちは WS 往復を持つ Web 版だけの事情で、UITK 版は同期で返る。interface に描画系の事情を入れない。旧シナリオの 1〜10 秒は応答待ちの上限で、通常は数フレームで返る。代償: Web が応答しないとき、`WaitUiElement(id, 1f)` 等の待ちが指定秒を最大 3 秒超えて終わる | agent 既定（ユーザー未裁定） |
 | D5 | 説明文入力の `SendCharEvent` ループを `p.SetText` へ替えるのは「操作手順の変更」か | 付け替えとして行う（2 本。Assert 1 件ずつ減る） | CEF 直参照を残す | シナリオから CEF への直参照を無くすのが 0-7 の目的で、手順（クリック→入力→送信）は変えない。打鍵経路の検証は IME と同じく §4.9 の人手の範囲 | agent 既定（ユーザー未裁定） |
 | D6 | `ScreenRect` の座標系 | Unity スクリーン座標（左下原点） | CSS 互換の左上原点 | `SemanticInput.MouseGlideTo`・`Screen.width/height` と同じ座標系で、UITK 版もパネル座標→画面座標へ写すため。上下比較の向きが逆になるシナリオ 1 本（`rotary-generator-ui`）は検査式を書き換える | agent 既定（ユーザー未裁定） |
 | D7 | interface の実装が 1 つ（抽象の受益者） | 段階0で interface を置く | 段階1まで具象クラスのまま | 計画 §4.4 が Web 版と UITK 版の 2 本と両系照合を定め、段階1の UITK 版が受益者として名指しできる。0-7 の要件が interface の導入そのもの | 計画 §2.1 0-7 |
 | D8 | `CloseWebUiPanel` の新名 | `CloseBuildMenuPanel` | `CloseUiPanel` | 実処理は `build-menu-close` のクリックで、汎用の「パネルを閉じる」ではない（AGENTS.md「名前は実処理と一致させる」） | agent 既定（ユーザー未裁定） |
-| D9 | `PlaytestDriver.cs`（215 行）の分割 | 複数手順の本体（`UntilUiElement`・`PlaceBlockViaUi`・`DragPlaceViaUi`）を `PlaytestUiRouteActions` へ移し、Driver は 1 行委譲 | `p.Ui.ClickUi` のようなサブファサード化 | シナリオの呼び方（`p.ClickUi`）を改名表どおりに保ち、37 本の書き換えを機械置換に留める | agent 既定（ユーザー未裁定） |
+| D9 | `PlaytestDriver.cs`（215 行）の分割 | 待機表示つき 4 メソッド（`UntilUiElement`・`WaitUiState`・`WaitBlockGameObject`・`WaitSeconds`）の本体を root の `PlaytestWaitActions`（reporter だけを受け取る）へ移し、Driver は 1 行委譲 | (1) `p.Ui.ClickUi` のようなサブファサード化 (2) `PlaceBlockViaUi` 等を Driver を逆参照する下請けへ移す (3) `this PlaytestDriver` 拡張メソッド（`PlaytestInteractOps` の前例） | (1) はシナリオの呼び方が変わり機械置換で済まない。(2) は前例 `PlaytestHotbarDriver` と依存の向きが逆（配置検査 F1）。(3) は Driver の public API しか使えず `BeginWait`・`Step` を呼べない。`Until` は `Func<bool>` の受け口を増やさないため Driver に残す | agent 既定（ユーザー未裁定）。配置検査 F1 で修正 |
+| D11 | `UiElementSnapshot`・`UiSetTextResult` を判別子＋ペイロード型に分けるか（Phase 2.6 5-B 強） | 分けない。`Status` と、Found 以外は空値（`Visible=false`・`Clickable=false`・`Rect.zero`・空文字・空集合）のフィールドを 1 つの型に置き、ctor を private にして factory 4 つ（`Found`・`NotFound`・`Ambiguous`・`Unavailable`）だけで作らせる | `Status` ＋ Found 時だけの nullable ペイロード | 空値はどれも「見えない・押せない・文字なし」で安全側に倒れ、誤って読んでも合格側へ転ばない。ペイロードを分けるとシナリオの `s.IsFound && s.Text.Contains(…)` が null 判定の連鎖になる。シナリオはレビュー対象外の使い捨て台本（`.decisions/2026-08-16-…`） | agent 既定（ユーザー未裁定） |
+| D12 | Phase 2.6 の弱 6 件 | 2 件を直す（`PlaytestWebUiRequestChannel.Await` が Reset 後に期限まで待ち続ける → 即時に応答なし／`IsValidResult` の有限値判定が `TryReadFloat` と二重 → 削除）。残りはこのまま: 5-C `Try*` の失敗理由（呼び出し側でログ済み）、5-F `Start/Stop` の 2 か所呼び出し（冪等にして Runner と probe の両方が使う前提）、5-F `CancellationToken` 無し（既存 DSL に前例が無く、シナリオ全体の打ち切りは `PlaytestRunner` の `.Timeout` が持つ）、5-G 契約型の置き場（同じ Editor 限定 asmdef の中）、検査6 の期限ループ・判定の繰り返し（既存 `PlaytestWebUiOps` の形を保つ） | — | 直すのは誤動作に至る 1 件と純粋な重複 1 件だけ | agent 既定（ユーザー未裁定） |
+| D13 | `PlaytestUiLocatorSession`（`UiElements/`）が `WebUiElementLocator`（`WebUi/`）を直接 new する（配置検査の注目点） | このまま。Session はロケータの組み立て役で、描画系非依存の型と同じ場所に置く。開閉（`StartSession`/`StopSession`）は interface に入れない | Session を root へ置く／開閉を interface に入れる | 開閉は WS 受け口と CEF 入力転送という Web 版だけの事情で、UITK 版は開閉が要らない。段階1の差し替えは Session の 1 行（と開閉の委譲）で済み、interface は変わらない | agent 既定（ユーザー未裁定） |
+| D14 | プレイテスト橋渡しが DOM へ書く（`domQueryResponder.ts` の「読み取るだけ」の線を `domSetTextResponder.ts` で越える。配置検査の注目点） | 書く応答器を別ファイルに分け、照会の応答器は読み取り専用のまま保つ | `CefInputForwarder` に文字転送を足し `SemanticInput` から打鍵する | §4.4 で UITK 版 `SetText` は値の設定と決まっており、Web 版も同じ意味にする（D1）。打鍵案は追記にしかならない | agent 既定（ユーザー未裁定） |
 | D10 | unityプレイ録画テスト | 含める（Task 5 の 30 本の合否突き合わせ＋Task 7 の録画 2 本） | — | DSL はプレイテストの入力経路そのもの | — |
