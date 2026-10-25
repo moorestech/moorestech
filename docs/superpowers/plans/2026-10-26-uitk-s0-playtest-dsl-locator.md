@@ -81,8 +81,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反4件・修正4件 / Driver 分割の下請けを前例 PlaytestHotbarDriver の形へ（逆参照を廃止）・SetText の待ち上限を Ops の既存定数へ・応答タイムアウトに警告ログ・解説コメントの日英順
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強1・弱6・第3バケツ1 / 5-B（Status＋空値の照会結果）はこのまま（D11）、Reset 後の応答待ちを即時打ち切り・有限値判定の二重化を解消、残りの弱はこのまま（D12）、第3バケツは PR 本文へ
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反4件・修正4件 / Driver 分割の下請けを前例 PlaytestHotbarDriver の形へ（逆参照を廃止）・SetText の待ち上限を Ops の既存定数へ・応答タイムアウトに警告ログ・解説コメントの日英順。修正範囲の再検査（fresh-context）: 違反0・弱6 を全件反映
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強1・弱6・第3バケツ1 / 5-B（Status＋空値の照会結果）はこのまま（D11）、Reset 後の応答待ちを即時打ち切り・有限値判定の二重化を解消、残りの弱はこのまま（D12）、第3バケツは PR 本文へ。修正範囲の再検査: 強0（弱は上の配置検査行に合算）
 
 ---
 
@@ -544,6 +544,8 @@ describe("一致件数と状態フラグ", () => {
 
 ```ts
 // @vitest-environment jsdom
+// 既存テストは react-test-renderer だが、ネイティブsetterとdispatchEventには実DOMが要るためreact-dom/clientで描画する
+// Existing tests use react-test-renderer, but the native setter and dispatchEvent need a real DOM, so render with react-dom/client
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createElement, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -563,6 +565,7 @@ let observed = "";
 beforeEach(() => {
   vi.mocked(sendAction).mockClear().mockResolvedValue({ ok: true });
   vi.stubGlobal("CSS", { escape: (value: string) => value });
+  vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   useTopicStore.setState({ topics: {}, status: "open" });
   observed = "";
   dispose = initDomSetTextResponder();
@@ -2100,6 +2103,12 @@ grep -rnE 'ClickWebUi|HoverWebUi|UntilWebUiElement|CloseWebUiPanel|PlaytestWebUi
 
 - [ ] **Step 2: 改名だけの 12 本を流し、表を埋める**
 
+Task 5 では 1 本流すごとに、重複 testid の警告も数えて表の備考に `重複警告 N 件（testid: …）` と書く（挙動は変えない。D3 の実測。段階1で Web 版の扱いを見直す材料）:
+
+```bash
+uloop get-logs --project-path ./moorestech_client --log-type Warning | grep -o "testid '[^']*' matched [0-9]* Web elements" | sort | uniq -c
+```
+
 Task 1 Step 2 と同じ手順・同じ条件で 12 本を流し、「変更後」列と判定（基準と `Success`・Assert 数・失敗 Assert ラベルが同じなら「一致」）を書く。一致しない行は、変更後をもう 1 回流す。それでも基準と違えば、作業をコミットしてから同じ worktree で `git switch --detach e855a58667` → `uloop compile` → 旧シナリオ（`$SKILL/scenarios/...` がその時点の旧版になる）を流し直し、`git switch feature/uitk-s0-dsl` → `uloop compile` で戻る（`git stash` は使わない）。基準の再計測でも違うなら原因を調べて直す（DSL 側の不具合なら Task 4 のコードを直してコンパイル・コミットし、表に再計測を書く）。基準の再計測で揺れと分かったら、両方の結果を表に書き備考に「揺れ」と記す。
 
 - [ ] **Step 3: 照会 API へ置き換える 18 本を 1 本ずつ置換→実行→突き合わせる**
@@ -2306,9 +2315,9 @@ planning 中の判断:
 |---|---|---|---|---|---|
 | D1 | Web 版 `SetText` の方式 | WS 往復（`playtest.dom_set_text`）で Web 側がネイティブ setter＋`input` イベント | (b) クリック後に CEF の `SendCharEvent` を 1 文字ずつ送る（既存 2 シナリオの方式） | (b) は追記にしかならず「値を置き換える」契約を満たせない（全選択＋削除のキー注入が要る）。結果の値を確かめる手段も無い。(a) は UITK 版（`TextField.value`＋ChangeEvent）と同じ意味になり、適用後の値を返せる | agent 既定（ユーザー未裁定） |
 | D2 | 状態フラグの Web 表現 | `data-testid` 以外の `data-*` で値が空か `"true"` のものの名前 | 属性名を個別に列挙する許可リスト | 計画「Web は属性、UITK はクラス」に沿い、`data-selected={x \|\| undefined}` 等の既存の書き方をそのまま拾える。値付き属性（`data-kind="bug"`）は状態ではないので除く | agent 既定（ユーザー未裁定） |
-| D3 | 同じ testid が複数ある場合の Web 版 | 先頭一致を保ち警告ログ（`Ambiguous` は返さない） | Web 版も `Ambiguous` で失敗させる | 完了条件が「改名前と合否が同じ」で、既存シナリオが重複 testid に依存していないかは実測していない。UITK 版・両系照合は `Ambiguous` で失敗させる（§4.4）。段階1で Web 版の扱いを見直す | agent 既定（ユーザー未裁定） |
+| D3 | 同じ testid が複数ある場合の Web 版（Task 5 で警告件数を実測して表に残す） | 先頭一致を保ち警告ログ（`Ambiguous` は返さない） | Web 版も `Ambiguous` で失敗させる | 完了条件が「改名前と合否が同じ」で、既存シナリオが重複 testid に依存していないかは実測していない。UITK 版・両系照合は `Ambiguous` で失敗させる（§4.4）。段階1で Web 版の扱いを見直す | agent 既定（ユーザー未裁定）。user-simulator 予測も (a) 維持・確信中（シミュレーター予測、ユーザー未承認） |
 | D4 | `Find` に応答待ちの上限を引数で渡すか | 渡さない。Web 版内部で 3 秒。応答が無いときは警告ログを出す | `Find(testid, timeout)` | 応答待ちは WS 往復を持つ Web 版だけの事情で、UITK 版は同期で返る。interface に描画系の事情を入れない。旧シナリオの 1〜10 秒は応答待ちの上限で、通常は数フレームで返る。代償: Web が応答しないとき、`WaitUiElement(id, 1f)` 等の待ちが指定秒を最大 3 秒超えて終わる | agent 既定（ユーザー未裁定） |
-| D5 | 説明文入力の `SendCharEvent` ループを `p.SetText` へ替えるのは「操作手順の変更」か | 付け替えとして行う（2 本。Assert 1 件ずつ減る） | CEF 直参照を残す | シナリオから CEF への直参照を無くすのが 0-7 の目的で、手順（クリック→入力→送信）は変えない。打鍵経路の検証は IME と同じく §4.9 の人手の範囲 | agent 既定（ユーザー未裁定） |
+| D5 | 説明文入力の `SendCharEvent` ループを `p.SetText` へ替えるのは「操作手順の変更」か | 付け替えとして行う（2 本。Assert 1 件ずつ減る） | CEF 直参照を残す | シナリオから CEF への直参照を無くすのが 0-7 の目的で、手順（クリック→入力→送信）は変えない。打鍵経路の検証は IME と同じく §4.9 の人手の範囲 | agent 既定（ユーザー未裁定）。user-simulator 予測も (a) 付け替え・確信高（シミュレーター予測、ユーザー未承認） |
 | D6 | `ScreenRect` の座標系 | Unity スクリーン座標（左下原点） | CSS 互換の左上原点 | `SemanticInput.MouseGlideTo`・`Screen.width/height` と同じ座標系で、UITK 版もパネル座標→画面座標へ写すため。上下比較の向きが逆になるシナリオ 1 本（`rotary-generator-ui`）は検査式を書き換える | agent 既定（ユーザー未裁定） |
 | D7 | interface の実装が 1 つ（抽象の受益者） | 段階0で interface を置く | 段階1まで具象クラスのまま | 計画 §4.4 が Web 版と UITK 版の 2 本と両系照合を定め、段階1の UITK 版が受益者として名指しできる。0-7 の要件が interface の導入そのもの | 計画 §2.1 0-7 |
 | D8 | `CloseWebUiPanel` の新名 | `CloseBuildMenuPanel` | `CloseUiPanel` | 実処理は `build-menu-close` のクリックで、汎用の「パネルを閉じる」ではない（AGENTS.md「名前は実処理と一致させる」） | agent 既定（ユーザー未裁定） |
