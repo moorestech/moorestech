@@ -1854,3 +1854,7 @@ PR を作ったら `bd note moorestech-albof.4 "PR #<番号> 作成。台帳・G
 
 **agent 既定（ユーザー未裁定）— Task 3 の撤去時の検査**
 - 実repoテストは現存する各featureの台帳割当と全src網羅を検査し、機能数の下限を固定しない。初版20機能・Appの8オーバーレイ・Tier9の2行の存在は初期受入の観測として報告に残す。オーバーレイ行の恒久的な存在要求は置かず、Tier9は残っている行だけ束4を検査する。理由: 切替後の正規のWeb削除・対応行の撤去をCIが阻まないため。
+
+- Task 5 動画尺はページ生成直前からの経過時間を指定durationMsから差し引き、setup/stepsを含む全録画を指定尺に収める。通知の集約と退出を同じ9秒内に残す（agent 既定・ユーザー未裁定）。
+- Task 5 のBP名入力は既存の確認fixtureを置換せず、mockの`/__modal?show=1&kind=blueprint`で`input: true`のfixtureを選択する。Web機能srcは変えず、実modalコンポーネントで撮る（agent 既定・ユーザー未裁定）。
+- Task 5 のlogs専用worktreeは`git worktree add --no-checkout`から`README.md`と`uitk/`だけのsparse-checkoutを作る。全ログの展開によるディスク枯渇を避ける（agent 既定・ユーザー未裁定）。

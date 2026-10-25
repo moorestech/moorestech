@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../support/actions";
-import { setModal } from "../support/mockControl";
+import { requestMockControl, setModal } from "../support/mockControl";
 
 // モーダルは opt-in。各テストは描画前に表示要求する
 // The modal is opt-in; each test requests it before rendering
@@ -53,4 +53,18 @@ test("背景クリックで cancel を送る", async ({ page }) => {
       return responds[responds.length - 1];
     })
     .toEqual({ id: "m1", result: "cancel" });
+});
+
+// 撮影用BP入力も実際のmodal描画と応答経路を使う
+// The reference blueprint input uses the real modal rendering and response path
+test("BP名入力fixtureは入力後の確定値を送る", async ({ page }) => {
+  await requestMockControl(page, "http://127.0.0.1:5273", "/__modal?show=1&kind=blueprint");
+  await page.goto("/");
+  await expect(page.getByTestId("modal-input")).toBeVisible();
+  await expect(page.getByTestId("modal-button")).toBeDisabled();
+  await page.getByTestId("modal-input").fill("  参照拠点  ");
+  await page.getByTestId("modal-button").click();
+  await expect.poll(async () => (await payloadsOf(page, "ui.modal.respond")).at(-1))
+    .toEqual({ id: "blueprint-name", result: "confirm", text: "参照拠点" });
+  await expect(page.getByTestId("modal")).toHaveCount(0);
 });
