@@ -538,6 +538,9 @@ namespace Client.Starter.Registration
 - [x] **Step 6: Web 無しのプローブを書いてテストへ足す**
 
 `Client.Tests/EditModeInPlayingTest/Hostless/ModalStateProbe.cs`:
+
+実測による補正（D21）: 下のサンプルの `nameInput.Open()` 単独呼び出しは実DIのコピー購読者が要求する選択局面を満たさない。実装ではテスト用ワールドでBPを解放し、実ブロック1個を置き、既存reflection helperで得たselectionの公開遷移を通して名前入力へ進む。確定後は生成GUID・選択リセット・thumbnailまで待ち、自分が生成したGUIDとブロックだけを片付ける。全Hostlessプローブと非同期cleanupの区間で想定外error/exceptionを検出する。サンプルよりこの補正を優先する。
+
 ```csharp
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.Modal;
@@ -857,7 +860,7 @@ git commit -m "refactor(research): 研究ノード状態と取り直しの駆動
   - `ChallengeTreeTopic(WebSocketHub hub, ChallengeProgressState state) : ITopicHandler, IDisposable`、`ChallengeCurrentTopic(WebSocketHub hub, ChallengeProgressState state) : ITopicHandler, IDisposable`
   - `ChallengeDtoBuilder.BuildTree(IReadOnlyList<ChallengeCategoryResponse>)`・`BuildCurrent(IReadOnlyList<ChallengeCategoryResponse>, string)`
 
-- [ ] **Step 1: `ChallengeProgressState` を書く**
+- [x] **Step 1: `ChallengeProgressState` を書く**
 
 ```csharp
 using System;
@@ -915,7 +918,7 @@ namespace Client.Game.InGame.UI.Challenge
 ```
 （`ChallengeTopicState.OnCompletedChallenge` の変換ロジックを一字も変えずに写したもの。購読元を `ClientContext.VanillaApi.Event` から、同じインスタンスである DI の `IVanillaApiEvent` へ替えた）
 
-- [ ] **Step 2: 2 つの topic がそれぞれ状態を購読するアダプタにし、`ChallengeTopicState` を消す**
+- [x] **Step 2: 2 つの topic がそれぞれ状態を購読するアダプタにし、`ChallengeTopicState` を消す**
 
 ```bash
 S=moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Challenge
@@ -1011,7 +1014,7 @@ namespace Client.WebUiHost.Game.Topics
 ```
 `ChallengeDtoBuilder.BuildTree`・`BuildCurrent` の引数型を `IReadOnlyList<ChallengeCategoryResponse>` にする（本体は `foreach` だけ）。
 
-- [ ] **Step 3: 登録と binder**
+- [x] **Step 3: 登録と binder**
 
 `MainGameUiStateRegistration.Register` に足す（`using Client.Game.InGame.UI.Challenge;`）:
 ```csharp
@@ -1029,7 +1032,7 @@ namespace Client.WebUiHost.Game.Topics
 ```
 `var initialHandshake = resolver.Resolve<InitialHandshakeResponse>();` が他で使われていなければ消し、`using Client.Network.API;` も不要なら消す。
 
-- [ ] **Step 4: プローブ**
+- [x] **Step 4: プローブ**
 
 `Hostless/ChallengeStateProbe.cs`:
 ```csharp
@@ -1056,7 +1059,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
 ```
 テストの `Body()` 末尾に `ChallengeStateProbe.AssertAvailable(resolver);` を足す。
 
-- [ ] **Step 5: 完了イベントの経路を単体テストで固定する**
+- [x] **Step 5: 完了イベントの経路を単体テストで固定する**
 
 プローブは handshake の初期値しか見ないので、`Initialize()` で購読が張られ、完了イベントで `Categories` を差し替えてから GUID を流すことを EditMode で確かめる（移す前は無テストだった経路）。`Client.Tests/WebUi/Challenge/ChallengeProgressStateTest.cs`:
 ```csharp
@@ -1130,12 +1133,12 @@ namespace Client.Tests.WebUi.Challenge
 ```
 （`CompletedChallengeEventMessagePack` の `CompletedChallengeGuidStr` 等の setter・`Vector3MessagePack` の namespace は `moorestech_server/Assets/Scripts/Server.Event/EventReceive/CompletedChallengeEventPacket.cs` と `Client.Tests/UIState/UIStateTestFixtureBase.cs` の using に合わせる。`InitialHandshakeResponse` のコンストラクタが null の inventory 等で落ちる場合は、`UIStateTestFixtureBase.CreateHandshakeResponse` と同じく落ちない値を入れる）
 
-- [ ] **Step 6: コンパイルとテスト**
+- [x] **Step 6: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.WebUi\.|Hostless\.WebUiHostlessStateAvailabilityTest" --timeout-seconds 1200`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Tests/WebUi/Challenge moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Challenge moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter/Registration moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless
@@ -2082,3 +2085,5 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D18 | 正規runnerのboot応答がalready playingとなった未投入シナリオは、正規preflight後にboot EDCを一度だけ実行し、今回のSessionDirectoryとready.markerを一致実証してから原文シナリオを一度だけ注入して回収する | 同一bootコードを再送するrunnerの経路でalready playingが反復した。新規sessionの実証により既存world混入を防ぎ、DSL/runnerやシナリオを変更せず必要な実測を得る | agent 既定（ユーザー未裁定） |
 | D19 | 新設したUI純状態のディレクトリは既存WebUiGateClassification.RulesへCategory.Infraとして登録する | 既存Blueprint/BuildMenu/ProgressBarと同じ役割。新しい状態ファイルを正しく分類する付随変更であり、albof.4所有のG1 Web追従ゲート機構には触れない | agent 既定（ユーザー未裁定） |
 | D20 | 現ホストで正規のUnity所有receiptが作れないため、長い検証前にEditor稼働時間を確かめ、既存MIN_AGE_MIN（現在30分）を跨ぐ場合はタスク区切りで自分のPIDだけを停止し、Editor予算と空き容量を再確認してuloop launchする | reaperログで旧PID59245の所有者未確認による停止を実測。常駐処理・wrapper・偽の所有者情報へ変更を加えず、検証中の停止を避ける | agent 既定（ユーザー未裁定） |
+
+| D21 | HostlessのModalプローブはBP解放・実ブロック・公開selection遷移を前提にし、生成GUID・選択リセット・thumbnail完了と自分の生成物だけのcleanupまで待つ。起動後1フレームから全プローブとcleanup完了後1フレームまでLogAssertの失敗無視を解除し、標準runnerが想定外error/exceptionを検出する | 元サンプルは実DIのコピー購読者へSelectingStartのまま確定を流し、Task4/5/6のPassed XMLへBeginCreate例外を隠していた。独立再現とログ検出のみの赤実測で確認した。NoUnexpectedReceivedは通常Logも失敗にする実測があるため用いず、赤実測済みの標準runnerのerror/exception検出を使う。終了時ログの原因は未確定なのでプロダクション終了処理を推測で変更しない | agent 既定（ユーザー未裁定） |
