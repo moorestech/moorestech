@@ -49,6 +49,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
             async UniTask Body()
             {
                 await LoadMainGame();
+                var ground = HostlessPlayerGround.Create();
 
                 // 起動ログを排出してから、全プローブの想定外エラーを検査する
                 // Drain startup logs, then validate unexpected errors across all probes
@@ -56,6 +57,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 LogAssert.ignoreFailingMessages = false;
                 try
                 {
+                    await HostlessPlayerGround.AssertGroundedAsync();
                     // スイッチが効き、起動失敗と同じHub=nullの経路を通ったことを前提として固定する
                     // Pin the precondition that the switch worked and the boot went down the hub-null path
                     Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "Editor限定スイッチを付けたのにWebホストが起動した");
@@ -77,6 +79,9 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 }
                 finally
                 {
+                    // 終了の完了まで支えた、自分の足場だけを最後に除去する
+                    // Remove only our ground after it has supported the player through shutdown
+                    Object.DestroyImmediate(ground);
                     LogAssert.ignoreFailingMessages = true;
                 }
             }
