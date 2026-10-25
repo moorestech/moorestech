@@ -1,6 +1,7 @@
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Modal;
+using Client.Game.InGame.UI.Notification;
 using Client.Game.InGame.UI.Research;
 using VContainer;
 using VContainer.Unity;
@@ -27,6 +28,10 @@ namespace Client.Starter.Registration
             // チャレンジの完了イベントを起動時から購読する
             // Subscribe to challenge completion events from startup
             builder.RegisterEntryPoint<ChallengeProgressState>().AsSelf();
+
+            // 通知の連番と移行告知。サーバー通知とローカル拒否を購読するため起動時に作る
+            // Notification numbering and the migration notice; built at startup because they subscribe to server notifications and local refusals
+            builder.RegisterEntryPoint<NotificationFeed>().AsSelf();
         }
     }
 }

@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.Notification;
 using Client.Game.InGame.UI.Modal;
 using Client.Game.InGame.UI.Research;
 using Client.Game.InGame.Train.Timetable;
@@ -114,7 +115,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, resolver.Resolve<UIRoot>()));
             // 通知トピックを登録
             // Register the notification topic
-            hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, ClientContext.VanillaApi.Event, ClientDIContext.ClientLocalNotificationSource));
+            hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, resolver.Resolve<NotificationFeed>()));
             // ゲーム内ツールチップ状態を Web へ接続する
             // Connect the in-game tooltip state to the web
             hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, resolver.Resolve<MouseCursorTooltipState>()));

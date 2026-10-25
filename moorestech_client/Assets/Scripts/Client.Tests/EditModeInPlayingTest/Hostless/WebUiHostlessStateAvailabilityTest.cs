@@ -62,6 +62,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                     await ModalStateProbe.AssertAvailableAsync(resolver);
                     await ResearchStateProbe.AssertAvailableAsync(resolver);
                     ChallengeStateProbe.AssertAvailable(resolver);
+                    NotificationStateProbe.AssertAvailable(resolver);
                     await UniTask.Yield();
                 }
                 finally
