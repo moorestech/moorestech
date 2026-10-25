@@ -29,6 +29,8 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
             Assert.IsTrue(JToken.DeepEquals(new JArray(), cleanRoom["outputFluidSlot"]));
             Assert.IsFalse(save["rocketHasLaunchedOnce"].Value<bool>());
             Assert.AreEqual(0, save["spaceElevatorCablePool"]["cableCount"].Value<int>());
+            Assert.IsTrue(JToken.DeepEquals(new JArray("019e3ad9-46e2-73fd-9555-8c1d0245d26d"), save["research"]["CompletedResearchGuids"]));
+            Assert.AreEqual(0, ((JArray)save["gameUnlockState"]["itemUnlockStateInfos"]).Count);
             Assert.AreEqual(7, save["worldVersion"].Value<int>());
         }
 

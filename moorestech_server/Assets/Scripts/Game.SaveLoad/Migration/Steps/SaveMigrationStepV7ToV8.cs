@@ -5,8 +5,8 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V7→V8移行: Tier9統合で増えたセーブの形を機能ごとの部品で足す（継承レベル・清浄室機械の液体スロット・初回打ち上げ履歴・ケーブルプール）
-    // V7->V8 migration: add the save shapes introduced by the Tier9 integration through one part per feature (inherited level, clean-room fluid slots, first-launch history, cable pool)
+    // V7→V8移行: Tier9統合で変わるセーブの形を機能ごとの部品で直す（継承レベル・清浄室機械の液体スロット・初回打ち上げ履歴・ケーブルプール・コスト0研究のリセット）
+    // V7->V8 migration: adjust the save shapes changed by the Tier9 integration through one part per feature (inherited level, clean-room fluid slots, first-launch history, cable pool, zero-cost research reset)
     public sealed class SaveMigrationStepV7ToV8 : ISaveMigrationStep
     {
         public int FromVersion => 7;
@@ -19,6 +19,7 @@ namespace Game.SaveLoad.Migration.Steps
                 new CleanRoomMachineFluidSlotFiller(),
                 new RocketLaunchHistoryFiller(),
                 new SpaceElevatorCablePoolFiller(),
+                new ZeroCostTier9ResearchResetter(),
             };
 
             // 先に全部品を検査し、どれかが拒否したら原本を書き換えない

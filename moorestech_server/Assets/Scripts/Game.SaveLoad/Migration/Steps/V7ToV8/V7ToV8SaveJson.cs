@@ -50,5 +50,32 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
 
             return true;
         }
+
+        // save[sectionKey][arrayKey] を辿り、無い／null／配列の3状態を result に入れる。形が違えば拒否する
+        // Walk save[sectionKey][arrayKey] and put one of absent/null/array into result; a wrong shape is refused
+        public static bool TryGetNestedArray(JObject save, string sectionKey, string arrayKey, out NestedSaveArray result, out string failureReason)
+        {
+            result = new MissingNestedSaveArray();
+            failureReason = null;
+            var sectionToken = save[sectionKey];
+            if (sectionToken == null) return true;
+            if (IsExplicitNull(sectionToken))
+            {
+                result = new ExplicitNullNestedSaveArray();
+                return true;
+            }
+            if (!(sectionToken is JObject section)) return Reject($"{sectionKey} がオブジェクトではありません。 type={sectionToken.Type}", out failureReason);
+
+            var arrayToken = section[arrayKey];
+            if (arrayToken == null) return true;
+            if (IsExplicitNull(arrayToken))
+            {
+                result = new ExplicitNullNestedSaveArray();
+                return true;
+            }
+            if (!(arrayToken is JArray found)) return Reject($"{sectionKey}.{arrayKey} が配列ではありません。 type={arrayToken.Type}", out failureReason);
+            result = new PresentNestedSaveArray(found);
+            return true;
+        }
     }
 }
