@@ -6576,7 +6576,7 @@ git -C $MW commit -m "master: 計算データ・GPU衛星・積荷表・ロケ�
 
 ### Task 19: ロケット技術と半導体のアップグレード研究 Lv2〜Lv5、S2 スライスのゲート（S2 引き継ぎ E。裁定4）
 
-**Files:** Create: `moorestech_master:design/tier9-balance/spec/07_rocket_research.json` / Modify: `.../master/{research,items,blocks}.json`（items・blocksはmaster-refineの並び順）・`localization.csv`、`guids.json`、`.../.mooreseditor/nodeGraph.v1.json`（Step 3 の同期） / Create（G6 の S2 区間。Step 5）: `moorestech_master:tools/tier9_balance/sections/{recipe_rates,s2/__init__,s2/launch_plan,s2/factory_load}.py`、`tools/tier9_balance/tests/{s2s3_fixture,test_s2_compute_loop}.py` / Modify（Step 5。Task 3 の空の区間を全文置き換え）: `tools/tier9_balance/sections/s2_compute_loop.py` / Create（控え）: `$GL/p2-9-s2-g1.txt`、`$GL/p2-9-s2-g2.txt`、`$GL/p2-9-s2-nodegraph.txt`、`$GL/p2-9-s2-g6.txt`
+**Files:** Create: `moorestech_master:design/tier9-balance/spec/07_rocket_research.json` / Modify: `.../master/{research,items,blocks}.json`（items・blocksはmaster-refineの並び順）・`localization.csv`、`guids.json`、`.../.mooreseditor/nodeGraph.v1.json`（Step 3 の同期） / Create（G6 の S2 区間。Step 5）: `moorestech_master:tools/tier9_balance/sections/{recipe_rates,s2/__init__,s2/launch_plan,s2/factory_load}.py`、`tools/tier9_balance/tests/{s2s3_fixture,test_s2_compute_loop,test_s2_regressions}.py` / Modify（Step 5。Task 3 の空の区間を全文置き換え）: `tools/tier9_balance/sections/s2_compute_loop.py` / Modify（Step 5）: `tools/tier9_balance/master_view.py`（研究の元の行 `research_rows` と、名前で 1 行に決まるときだけ引く `research_named(name)` を足す。名前の辞書 `research` は同名の後の行で前の行を捨てるため） / Create（控え）: `$GL/p2-9-s2-g1.txt`、`$GL/p2-9-s2-g2.txt`、`$GL/p2-9-s2-nodegraph.txt`、`$GL/p2-9-s2-g6.txt`
 
 **Interfaces:**
 - Consumes:
@@ -6588,7 +6588,7 @@ git -C $MW commit -m "master: 計算データ・GPU衛星・積荷表・ロケ�
 - Produces:
   - 研究「ロケット技術」`01a167cf-af9d-7f31-817c-3069b4f6e499`。Task 22 の「軌道エレベーターの建設」の前提になる。
   - 研究 `半導体のアップグレード研究Lv2`〜`Lv5`（新規採番。台帳キーは `research:半導体のアップグレード研究LvN`）。
-  - G6 の S2 区間 `sections/s2_compute_loop.evaluate(view) -> SectionResult('s2_compute_loop', checks, hours: Resolved)`（Task 3 の区間の形。Step 5）。共有の `sections/recipe_rates.py`（`output_per_second(view, block, output) -> Resolved[RecipeRate(recipe, output_guid, per_second)]`〈レシピが 1 本に決まらなければ `lookup_failed`、毎秒が 0 以下なら `not_positive`〉・`recipe_inputs(recipe)`・`add_demand(demand, guid, 毎秒)`・`add_entry_demand(demand, 行, 毎秒の回数)`・`chain_machines(demand, rate) -> 台数`〈需要は GUID で持ち、上流の需要の積み上げはこの 1 本〉・`prerequisites_before(view) -> {研究名: 前提の GUID 集合}`〈Task 2 の `master_common.research_ancestors` から自分を引いたもの〉。名前と GUID の相互引き・積荷表の行は Task 3 の `MasterView` を使う。判断記録 A31・A32）と最小マスタ `tests/s2s3_fixture.py`（`build_master()`・`view_of(master)`・`guid(name)`・`find(rows, prefix)`）は Task 22 の S3 区間も使う。
+  - G6 の S2 区間 `sections/s2_compute_loop.evaluate(view) -> SectionResult('s2_compute_loop', checks, hours: Resolved)`（Task 3 の区間の形。Step 5）。共有の `sections/recipe_rates.py`（`output_per_second(view, block, output) -> Resolved[RecipeRate(recipe, output_guid, per_second)]`〈レシピが 1 本に決まらなければ `lookup_failed`、毎秒が 0 以下なら `not_positive`〉・`recipe_inputs(recipe)`・`add_demand(demand, guid, 毎秒)`・`add_entry_demand(demand, 行, 毎秒の回数)`・`chain_machines(demand, rate) -> 台数`〈需要は GUID で持ち、上流の需要の積み上げはこの 1 本〉・`prerequisites_before(view) -> {研究 GUID: 前提の GUID 集合}`〈research.json の元の行（`MasterView.research_rows`）を Task 2 の `master_common.research_ancestors` に渡し、自分を引いたもの。キーは全研究行の GUID で、研究名はキーにしない（表示名は identity ではなく、同名の研究も別のキーで両方残す）。値は祖先だけで、自分と子孫は入らない。名前から引く呼び側は `research_named(name)` で行を 1 つに決めてからその GUID で引く〉。名前と GUID の相互引き・積荷表の行は Task 3 の `MasterView` を使う。判断記録 A31・A32）と最小マスタ `tests/s2s3_fixture.py`（`build_master()`・`view_of(master)`・`guid(name)`・`find(rows, prefix)`）は Task 22 の S3 区間も使う。
 
 **下書きに対する訂正:**
 - S2 下書き E は「S1 の上位モジュールのレシピを `unlockMachineRecipe` で解放する」と書いているが、これは古い。S1 は製品ごとに `InheritUpToUnlocked` のレシピを 1 本だけ持つので、解放するレシピはもう無い。各ノードは `unlockLevelInheritanceCraftLevel` で、5 製品の製作上限を 1 段ずつ上げる（裁定4）。
@@ -6659,7 +6659,8 @@ Expected:
   - 所要時間: 計算データを消費する研究ごとに便数を出す。払うのは、前提の研究（祖先）で解放済みの GPU衛星のうち、1 便の計算データが最も多いもの。便数の合計 × 1 便の秒（`buildSeconds`＋`launchSeconds`）÷ 発射台 1 台を時間にする。便数・1 便の秒・時間はどれも `Resolved` で持ち、1 つでも引けなければ時間はその状態を引き継ぐ（判断記録 A31）。
   - GPU衛星の判別: levelFamily「GPU衛星」の各レベルを衛星とし、1 便の計算データは積荷表の行を GUID で引く（`MasterView.payload_row`）。積荷表の行が無いレベルは `target lookup_failed` の行を出す。名前の前方一致と既定値 `''` では判定しない（判断記録 A32）。
   - 研究コストの照合: 計算データを消費する研究の顔ぶれが `COMPUTE_CONSUMERS`（アップグレード Lv2〜Lv5・軌道エレベーターの建設・反物質爆弾）と一致すること。アップグレード LvN の `unlockLevelInheritanceCraftLevel.level` が N であること（Lv2 の行を写して作るので写し残しを拾う。action が 0 個と 2 個以上は `checks.single` で理由を分ける）。どちらも `checks.matches` の行で、コストが無いものは `match lookup_failed`、想定外の消費先は `match mismatch`。
-  - 工場の台数: 発射台 1 台を止めずに回すのに要る台数を `target_range` で 1 レシピ 4 台以下と判定する。対象は打ち上げ資材と GPU衛星Lv1 の直のレシピと、その 1 段上流（鋼鉄板・プラスチック・ガソリン・固形燃料）。
+  - 工場の台数: 発射台 1 台を止めずに回すのに要る台数を `target_range` で 1 レシピ 4 台以下と判定する。対象は打ち上げ資材と GPU衛星Lv1 の直のレシピと、その 1 段上流（鋼鉄板・プラスチック・ガソリン・固形燃料）。台数は丸めずに判定し、表示も丸めない（4.003 台を 4.0 に丸めると、4 台で足りない工場が PASS する）。
+  - 契約テスト（`tests/test_s2_regressions.py`）: `prerequisites_before` は同名の研究 2 行を両方 GUID のキーで残し、自分と子孫を除いた祖先だけを持ち、キーが全研究行の GUID と一致する。工場の台数は 50 個/1351 秒（4.0029… 台）で `out_of_range`、50 個/1350 秒（ちょうど 4 台）で `ok`。
 
 `tools/tier9_balance/sections/recipe_rates.py`（S2・S3 の区間が共有する）:
 ```python
@@ -6723,10 +6724,10 @@ def chain_machines(demand, rate):
 
 
 def prerequisites_before(view):
-    # 研究名 → 前提を末端までたどった GUID の集合（自分は除く。自分の解放は研究前には使えない）
-    # Research name -> GUIDs of all prerequisites up to the roots, excluding itself because its own unlocks are not usable before it
-    ancestors = ancestors_including_self(list(view.research.values()))
-    return {name: ancestors[n['researchNodeGuid']] - {n['researchNodeGuid']} for name, n in view.research.items()}
+    # 研究 GUID → 前提を末端までたどった GUID の集合（自分は除く。自分の解放は研究前には使えない）。同名の研究があっても行を捨てないよう GUID で引く
+    # Research GUID -> GUIDs of all prerequisites up to the roots, excluding itself; keyed by GUID so same-name research rows are never dropped
+    ancestors = ancestors_including_self(view.research_rows)
+    return {guid: found - {guid} for guid, found in ancestors.items()}
 ```
 
 `tools/tier9_balance/sections/s2/__init__.py`:
@@ -6769,9 +6770,12 @@ def evaluate_launches(view):
     before = recipe_rates.prerequisites_before(view)
     unlocker = data_per_launch.map(lambda data: satellite_unlockers(view, set(data)))
     launches = []
-    for node in (n for n in COMPUTE_CONSUMERS if n in view.research):
-        count = unlocker.then(lambda found: launches_for(view, node, data_per_launch.value, found, before[node]))
-        rows += [] if count.ok else [checks.unreadable('target', f'{node} の便数', count)]
+    for name in (n for n in COMPUTE_CONSUMERS if n in view.research):
+        # 前提の集合は研究 GUID で引く（名前は表示用。同名の研究が2行あれば research_named が lookup_failed にする）
+        # Prerequisites are looked up by research GUID (names are for display; two same-name rows make research_named lookup_failed)
+        count = unlocker.then(lambda found: view.research_named(name).then(
+            lambda node: launches_for(view, name, data_per_launch.value, found, before[node['researchNodeGuid']])))
+        rows += [] if count.ok else [checks.unreadable('target', f'{name} の便数', count)]
         launches.append(count)
     if checks.failures([cycle] + launches):
         return rows, checks.carried_failure([cycle] + launches, 'S2 の所要時間'), cycle
@@ -6816,7 +6820,7 @@ def satellite_unlockers(view, satellites):
     # The research GUID whose unlockMachineRecipe unlocks a recipe that outputs a GPU satellite (satellite GUID -> research GUID)
     recipe_outputs = {r['machineRecipeGuid']: [entry_guid(o) for o in r['outputItems']] for r in view.recipes}
     unlocker = {}
-    for node in view.research.values():
+    for node in view.research_rows:
         for action in node['clearedActions']:
             if action['gameActionType'] != 'unlockMachineRecipe':
                 continue
@@ -6830,7 +6834,7 @@ def consumer_set_rows(view):
     compute = view.guid_of(COMPUTE_ITEM)
     if not compute.ok:
         return [checks.unreadable('match', '計算データを消費する研究の数', compute)]
-    actual = {name for name, n in view.research.items() if any(c['itemGuid'] == compute.value for c in n['consumeItems'])}
+    actual = {n['researchNodeName'] for n in view.research_rows if any(c['itemGuid'] == compute.value for c in n['consumeItems'])}
     rows = [checks.lookup_failed('match', f'{n} の計算データのコスト', 'research.json の consumeItems に計算データが無い')
             for n in COMPUTE_CONSUMERS if n not in actual]
     rows += [checks.Check('match', checks.MISMATCH, f'{n} の計算データのコスト', '想定外の消費先（COMPUTE_CONSUMERS に無い）')
@@ -6883,7 +6887,9 @@ def check_factory(view, cycle_seconds):
             rows.append(checks.unreadable('target', name, rate))
             continue
         machines = recipe_rates.chain_machines(demand, rate.value)
-        rows.append(checks.target_range(name, checks.resolved(round(machines, 2)), 0.0, MAX_MACHINES_PER_RECIPE))
+        # 丸めずに判定する（4.003台を 4.0 に丸めると4台で足りない工場を通す）。表示も丸めず、FAIL の行が 4.0 に見えないようにする
+        # Judge unrounded (rounding 4.003 to 4.0 passes a factory four machines cannot feed); show it unrounded so a FAIL never reads 4.0
+        rows.append(checks.target_range(name, checks.resolved(machines), 0.0, MAX_MACHINES_PER_RECIPE))
     return rows
 
 
@@ -7115,7 +7121,7 @@ wc -l $MW/tools/tier9_balance/sections/recipe_rates.py $MW/tools/tier9_balance/s
   - `[s2_compute_loop]` の行は 15 行。
   - `s2-fail=4`。FAIL は「軌道エレベーターの建設」「反物質爆弾」の「計算データのコスト」「便数」の 4 行だけ。2 ノードの計算データは Task 22 が入れる。
   - 製作上限の 4 行は PASS。
-  - 工場の台数の 7 行は PASS。仮値のままなら値は 1.48・1.19・0.22・2.0・0.59・2.47・0.59（最小マスタで実測した値。出荷マスタでの一致は推測）。
+  - 工場の台数の 7 行は PASS。値は丸めずに出る。仮値のままなら約 1.48・1.19・0.22・2.0・0.59・2.47・0.59（最小マスタで実測した値。出荷マスタでの一致は推測）。
   - `FAIL [overall] target lookup_failed s2_compute_loop の所要時間[h]: S2 の所要時間: …` は FAIL のまま（便数の引けない 2 ノードの状態を引き継ぐ）。数値は Task 22 の後に出る。
   - どのファイルも 200 行以下（最長は `s2s3_fixture.py` の 116 行）。
   - 工場の台数が `target lookup_failed`（レシピが 1 本に決まらない）か `target not_positive`（毎秒が 0 以下）で FAIL したら、検査は緩めない。その機械に同じ出力のレシピが 2 本ある原因を spec で確かめて直す。起点 f9370e7 では、`UPSTREAM_RECIPES` の 4 品目はどれも 1 本だった（実測）。
@@ -7459,7 +7465,7 @@ def check_graphene(view):
         if not rate.ok:
             return [checks.unreadable('target', f'{block}（{output}）のレシピ', rate)]
         machines += recipe_rates.chain_machines(demand, rate.value)
-    return [checks.target_range('1便分のケーブルを1時間で作る機械台数（戻し炉を除く）', checks.resolved(round(machines, 2)), 1, 12)]
+    return [checks.target_range('1便分のケーブルを1時間で作る機械台数（戻し炉を除く）', checks.resolved(machines), 1, 12)]
 
 
 def check_elevator(view, net_power):
