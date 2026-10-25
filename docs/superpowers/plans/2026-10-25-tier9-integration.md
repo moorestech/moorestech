@@ -171,7 +171,7 @@ G2 は「入手できるか」だけを見る、量のない静的モデルで�
 
 | P2 節の書き方 | この節の実体 |
 |---|---|
-| `G1 $MW/server_v8` | Task 10 の Produces にあるシェル関数 `G1`。`ShippedMasterLoadGate.TryLoad` を uloop で呼ぶ |
+| `G1 $MW/server_v8` | Task 10 の Produces にあるシェル関数 `G1`。G1 の唯一の入口 `ShippedMasterGateEntry.RunLoadGate` を uloop で呼ぶ（static マスタを書き換えるのは `ShippedMasterOwner` だけ。判断記録 A32） |
 | `G2` | `cd $MW && python3 tools/progression/check.py`。P2 の各タスクもこの形で書く。`tools/research_sync/progression_check.py` は `sync_machine_recipe_unlocks.py` が import する `ProgressionModel` だけを持ち、単体で実行すると check.py を案内して exit 2 で終わる（Task 2 Step 8） |
 | G2 の許可リストのパス | `tools/progression/allowlist.json` |
 | `G6` | `cd $MW && python3 tools/tier9_balance/run.py`（入口はこれだけ。判断記録 A22）。S1 の sim（`design/tier9-balance/sim/`、Task 3 Step 7 が置く）は区間 `s1_semiconductor` が import し、照合 8 項目は Task 12 が `sections/s1/` に書く |
@@ -1554,7 +1554,7 @@ git -C $MW push -u origin feat/tier9-integrated
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Editor/MasterGate/Server.MasterGate.Editor.asmdef`
 - Create: `moorestech_server/Assets/Scripts/Editor/MasterGate/MasterGateArguments.cs`
-- Create: `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterLoadGate.cs`
+- Create: `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterOwner.cs`（ゲートの中で static のマスタを書き換える唯一のクラス。判断記録 A32）
 - Create: `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterGateEntry.cs`
 - Create: `.github/workflows/shipped-master-gate.yml`
 - `.meta` は Unity が生成したものをコミットする（手で作らない）
@@ -1562,15 +1562,16 @@ git -C $MW push -u origin feat/tier9-integrated
 **Interfaces:**
 - Consumes: `Mod.Config.ModsResource(string)`、`Mod.Loader.ModJsonStringLoader.GetMasterString(ModsResource)`、`Core.Master.MasterJsonFileContainer`、`MasterHolder.Load`、`MasterHolder.ResearchMaster.GetAllResearches()`（`ResearchMaster.cs:46`）。どれもサーバーのアセンブリにある（client のアセンブリは参照しない。判断記録 A23）。
 - Produces:
-  - `Server.MasterGate.Editor.ShippedMasterLoadGate.TryLoad(string serverDataDirectory, out string failure) -> bool`。
-    - 成功時のログは `[ShippedMasterLoadGate] PASS <dir> research=<研究ノード数>`。
-    - 失敗時は `Debug.LogError` と `failure` の両方に `[ShippedMasterLoadGate] FAIL …`（例外の全文を含む）を出す。
-  - `Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine()`: `-executeMethod` の入口で、終了コード 0/1 を返す。
+  - `Server.MasterGate.Editor.ShippedMasterOwner.TryLoad(string serverDataDirectory, out string failure) -> bool`。ゲートの中で `MasterHolder.Load` を呼ぶのはこのクラスだけ（Task 11 の `TryCreateServer` も同じクラスに置く）。
+    - 成功時のログは `[ShippedMasterOwner] LOAD PASS <dir> research=<研究ノード数>`。成功した置き場を「最後に通ったマスタ」として覚える。
+    - 失敗時は `Debug.LogError` と `failure` の両方に `[ShippedMasterOwner] LOAD FAIL …`（例外の全文を含む）を出し、続けて最後に通ったマスタを読み直して `[ShippedMasterOwner] RESTORED static master from <dir> after the failed load of <壊れた dir>` を出す。戻す先が無ければ `[ShippedMasterOwner] static master is half-loaded …` を警告に出す。壊れたマスタを static に残さないことは所有者が保証し、呼び出し側に「正常なマスタで回し直す」手順を求めない。
+  - `Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGate(string serverDataDirectory, out string failure) -> bool`: G1 の唯一の入口（batch・手元の G1 関数・Task 11 の `RunAll` がここを通る）。
+  - `Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine()`: `-executeMethod` の入口で、`RunLoadGate` を呼び、終了コード 0/1 を返す。
   - `MasterGateArguments.TryResolveServerDataDirectory(out string serverDataDirectory) -> bool`: `-masterDataRoot <マスタrepoの根>` の末尾に `server_v8` を足した絶対パスを返す。引数が無ければ `[MasterGate] FAIL -masterDataRoot <マスタrepoの根> is required …` を `Debug.LogError` に出して false を返す（ピンからの自動解決はしない）。
   - 置き場の根拠: 「確かめた事実」のカスタムメソッドの前例（`PlatformCompileCheck.cs` と `platform-compile.yml`）。手元の uloop は client project のまま呼べる（`tech.moores.server` パッケージ）。
   - 手元用のシェル関数（P2 節の `G1 $MW/server_v8` の実体）:
 ```bash
-G1() { (cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code "return Server.MasterGate.Editor.ShippedMasterLoadGate.TryLoad(\"$1\", out var failure) ? \"G1 PASS\" : failure;"); }
+G1() { (cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code "return Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGate(\"$1\", out var failure) ? \"G1 PASS\" : failure;"); }
 ```
 
 - [ ] **Step 1: Editor 専用 asmdef を置く**
@@ -1663,9 +1664,10 @@ namespace Server.MasterGate.Editor
 }
 ```
 
-- [ ] **Step 3: ロードゲート本体を置く**（出荷マスタは別 repo から来る外部入力 JSON なので、try-catch の境界例外に当たる。catch した失敗はログと戻り値の両方に残す）
+- [ ] **Step 3: static マスタの所有者を置く**（出荷マスタは別 repo から来る外部入力 JSON なので、try-catch の境界例外に当たる。catch した失敗はログと戻り値の両方に残す）
+  - `MasterHolder.Load` は static のマスタを書き換える。ゲートの中でこれを呼ぶのは `ShippedMasterOwner` だけにし、読み込みに失敗したら所有者が最後に通ったマスタへ戻す（判断記録 A32）。G3 の DI 構築（Task 11）も中でマスタを読むので、同じクラスに置く。
 
-`moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterLoadGate.cs`:
+`moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterOwner.cs`:
 ```csharp
 using System;
 using System.IO;
@@ -1677,45 +1679,84 @@ using UnityEngine;
 namespace Server.MasterGate.Editor
 {
     /// <summary>
-    ///     G1: 出荷マスタを本番と同じ経路（ModsResource → MasterHolder.Load）で読み、ローダーと起動時検証が通るかを判定する
-    ///     G1: loads the shipped master through the production path (ModsResource -> MasterHolder.Load) and judges whether the loader and boot validation pass
+    ///     ゲートの中で static のマスタ（MasterHolder）を書き換える唯一のクラス。読み込みに失敗したら、この Editor で最後に通ったマスタへ自分で戻す
+    ///     The only class in the gates that rewrites the static master (MasterHolder); after a failed load it restores the last passing master of this Editor itself
     /// </summary>
-    public static class ShippedMasterLoadGate
+    public static class ShippedMasterOwner
     {
+        // この Editor で最後に読み込みが通った置き場。失敗した読み込みの後はここへ戻す（ドメインリロードで消える）
+        // The location whose load last passed in this Editor; a failed load is followed by a reload of it (cleared by a domain reload)
+        private static string _lastLoadedServerDataDirectory;
+
+        // G1: 出荷マスタを本番と同じ経路（ModsResource → MasterHolder.Load）で読み、ローダーと起動時検証が通るかを判定する
+        // G1: load the shipped master through the production path (ModsResource -> MasterHolder.Load) and judge whether the loader and boot validation pass
         public static bool TryLoad(string serverDataDirectory, out string failure)
+        {
+            if (!TryLoadMaster(serverDataDirectory, out failure))
+            {
+                Debug.LogError(failure);
+                RestoreLastLoaded(serverDataDirectory);
+                return false;
+            }
+
+            _lastLoadedServerDataDirectory = serverDataDirectory;
+            Debug.Log($"[ShippedMasterOwner] LOAD PASS {serverDataDirectory} research={MasterHolder.ResearchMaster.GetAllResearches().Count}");
+            return true;
+        }
+
+        private static bool TryLoadMaster(string serverDataDirectory, out string failure)
         {
             // 置き場が無いときは推測で続けず、見た場所を理由に残す
             // When the location is missing, do not guess; record where we looked
             var modsDirectory = Path.Combine(serverDataDirectory, "mods");
             if (!Directory.Exists(modsDirectory))
             {
-                failure = $"[ShippedMasterLoadGate] FAIL mods directory not found: {modsDirectory}";
-                Debug.LogError(failure);
+                failure = $"[ShippedMasterOwner] LOAD FAIL mods directory not found: {modsDirectory}";
                 return false;
             }
 
-            // 出荷マスタは別repoから来る外部入力JSON（境界）。必須キー欠落のローダー例外と検証例外をここで理由へ変え、ログに全文を残す
-            // The shipped master is external-input JSON from another repo (a boundary); loader exceptions for missing keys and validation exceptions become a logged reason here
+            // 出荷マスタは別repoから来る外部入力JSON（境界）。必須キー欠落のローダー例外と検証例外をここで理由へ変え、呼び出し側がログに全文を残す
+            // The shipped master is external-input JSON from another repo (a boundary); loader and validation exceptions become a reason here and the caller logs it in full
             try
             {
                 MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(new ModsResource(modsDirectory))));
             }
             catch (Exception exception)
             {
-                failure = $"[ShippedMasterLoadGate] FAIL MasterHolder.Load threw for {serverDataDirectory}:\n{exception}";
-                Debug.LogError(failure);
+                failure = $"[ShippedMasterOwner] LOAD FAIL MasterHolder.Load threw for {serverDataDirectory}:\n{exception}";
                 return false;
             }
 
             failure = null;
-            Debug.Log($"[ShippedMasterLoadGate] PASS {serverDataDirectory} research={MasterHolder.ResearchMaster.GetAllResearches().Count}");
             return true;
+        }
+
+        private static void RestoreLastLoaded(string failedServerDataDirectory)
+        {
+            // 壊れたマスタで読みかけた static を後続の dynamic code に残さないため、最後に通ったマスタを読み直す
+            // Reload the last passing master so later dynamic code never runs on a half-loaded broken static master
+            if (_lastLoadedServerDataDirectory == null)
+            {
+                Debug.LogWarning($"[ShippedMasterOwner] static master is half-loaded from {failedServerDataDirectory} and no earlier load passed in this Editor session; run G1 on a good master before anything reads MasterHolder");
+                return;
+            }
+
+            if (TryLoadMaster(_lastLoadedServerDataDirectory, out var restoreFailure))
+            {
+                Debug.Log($"[ShippedMasterOwner] RESTORED static master from {_lastLoadedServerDataDirectory} after the failed load of {failedServerDataDirectory}");
+                return;
+            }
+
+            // 戻す先も読めなくなった（ファイルが変わった）ので戻す先を捨て、理由を残す
+            // The restore target no longer loads either (its files changed), so forget it and log why
+            Debug.LogError($"[ShippedMasterOwner] FAIL could not restore the static master: {restoreFailure}");
+            _lastLoadedServerDataDirectory = null;
         }
     }
 }
 ```
 
-- [ ] **Step 4: `-executeMethod` の入口を置く**（Task 11 で G3 の入口を足す）
+- [ ] **Step 4: 入口を置く**（G1 の入口は `RunLoadGate` 1 つ。batch の入口と手元の G1 関数はここを通る。Task 11 で G3 の入口を足す）
 
 `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterGateEntry.cs`:
 ```csharp
@@ -1724,8 +1765,8 @@ using UnityEditor;
 namespace Server.MasterGate.Editor
 {
     /// <summary>
-    ///     -executeMethod の入口。結果は終了コード（0=PASS / 1=FAIL）で返し、理由は Unity のログに出す
-    ///     -executeMethod entries; the result is the exit code (0 = PASS / 1 = FAIL) and the reason goes to the Unity log
+    ///     ゲートの入口。batch の入口は終了コード（0=PASS / 1=FAIL）で返し、理由は Unity のログに出す。static マスタの書き換えは ShippedMasterOwner だけが行う
+    ///     Gate entries; batch entries report via the exit code (0 = PASS / 1 = FAIL) and the reason goes to the Unity log; only ShippedMasterOwner rewrites the static master
     /// </summary>
     public static class ShippedMasterGateEntry
     {
@@ -1734,8 +1775,15 @@ namespace Server.MasterGate.Editor
         public static void RunLoadGateFromCommandLine()
         {
             var passed = MasterGateArguments.TryResolveServerDataDirectory(out var serverDataDirectory)
-                         && ShippedMasterLoadGate.TryLoad(serverDataDirectory, out _);
+                         && RunLoadGate(serverDataDirectory, out _);
             EditorApplication.Exit(passed ? 0 : 1);
+        }
+
+        // G1 の唯一の入口（batch・手元の G1 関数・Task 11 の RunAll がここを通る）
+        // The single G1 entry (batch, the local G1 function and Task 11's RunAll all go through it)
+        public static bool RunLoadGate(string serverDataDirectory, out string failure)
+        {
+            return ShippedMasterOwner.TryLoad(serverDataDirectory, out failure);
         }
     }
 }
@@ -1757,8 +1805,8 @@ G1 $GL/pin-master/server_v8
 G1 $MW/server_v8
 ```
 Expected:
-- 1 本目は `G1 PASS`。`cd $W && uloop get-logs --project-path ./moorestech_client --log-type Log` に `[ShippedMasterLoadGate] PASS …/pin-master/server_v8 research=44` が出る。
-- 2 本目は、P1 完了後なら `G1 PASS`。P1 前に `FAIL` が出たら、その全文を `$GL/g1-mw-before-p1.txt` に控える（P1 の受け入れで再確認する）。
+- 1 本目は `G1 PASS`。`cd $W && uloop get-logs --project-path ./moorestech_client --log-type Log` に `[ShippedMasterOwner] LOAD PASS …/pin-master/server_v8 research=44` が出る。
+- 2 本目は、P1 完了後なら `G1 PASS`。P1 前に `FAIL` が出たら、その全文を `$GL/g1-mw-before-p1.txt` に控える（P1 の受け入れで再確認する）。そのときは続けて `[ShippedMasterOwner] RESTORED static master from …/pin-master/server_v8 …` が Log に出る。
 
 - [ ] **Step 7: マスタを 1 か所わざと壊して、G1 が落ちることを確かめる**（必須キー `allowQualityModule` を ElectricMachine の 1 行から消す）
 ```bash
@@ -1774,12 +1822,12 @@ json.dump(doc, open(path, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
 EOF
 G1 $GL/g1-broken/server_v8
 cd $W && uloop get-logs --project-path ./moorestech_client --log-type Error
-G1 $GL/pin-master/server_v8
+cd $W && uloop get-logs --project-path ./moorestech_client --log-type Log | grep 'ShippedMasterOwner\] RESTORED'
 ```
 Expected:
 - `broke 石窯` が出る（ElectricMachine の先頭行）。
-- 壊したほうは `[ShippedMasterLoadGate] FAIL MasterHolder.Load threw for …/g1-broken/server_v8:` で始まる文字列を返し、同じ行が Error ログに出る。例外の型と、本文に `allowQualityModule` が出るかは要確認（実装時にこの出力で確かめる。どちらでも FAIL なら合格）。
-- 最後の 1 行は `G1 PASS`。読み込み済みのマスタを正常なものへ戻すためで、これを省くと、この Editor の後続の dynamic code が壊れたマスタで動く。
+- 壊したほうは `[ShippedMasterOwner] LOAD FAIL MasterHolder.Load threw for …/g1-broken/server_v8:` で始まる文字列を返し、同じ行が Error ログに出る。例外の型と、本文に `allowQualityModule` が出るかは要確認（実装時にこの出力で確かめる。どちらでも FAIL なら合格）。
+- 最後の grep は `[ShippedMasterOwner] RESTORED static master from …/pin-master/server_v8 after the failed load of …/g1-broken/server_v8` を出す。所有者が Step 6 で通ったマスタへ戻したので、正常なマスタで G1 を回し直す手順は要らない（判断記録 A32）。
 
 - [ ] **Step 8: batch（`-executeMethod`）でも同じ判定になることを確かめる**
   - Editor を開いたままでは同じプロジェクトを batch で開けない。そのため、自分の Editor（`moores-wt status` で所有を確認する）を閉じてから回し、終わったら `uloop launch` で戻す。
@@ -1787,13 +1835,13 @@ Expected:
   - 3 本目は `-masterDataRoot` を付けずに回し、置き場を推測せず落ちることを確かめる。
 ```bash
 UNITY=/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Contents/MacOS/Unity
-$UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -masterDataRoot $GL/pin-master -logFile - | grep 'ShippedMasterLoadGate\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
-$UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -masterDataRoot $GL/g1-broken -logFile - | grep 'ShippedMasterLoadGate\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
-$UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -logFile - | grep 'ShippedMasterLoadGate\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
+$UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -masterDataRoot $GL/pin-master -logFile - | grep 'ShippedMasterOwner\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
+$UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -masterDataRoot $GL/g1-broken -logFile - | grep 'ShippedMasterOwner\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
+$UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -logFile - | grep 'ShippedMasterOwner\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
 ```
 Expected:
-- 1 本目は `[ShippedMasterLoadGate] PASS … research=44` と `exit=0`。
-- 2 本目は `[ShippedMasterLoadGate] FAIL …` と `exit=1`。
+- 1 本目は `[ShippedMasterOwner] LOAD PASS … research=44` と `exit=0`。
+- 2 本目は `[ShippedMasterOwner] LOAD FAIL …` と、batch では先に通ったマスタが無いので `[ShippedMasterOwner] static master is half-loaded …` の警告、`exit=1`。
 - 3 本目は `[MasterGate] FAIL -masterDataRoot <マスタrepoの根> is required (the gate never guesses the master location)` と `exit=1`。
 - `pipestatus` は zsh の書き方。bash で回すなら `PIPESTATUS[0]` にする。
 
@@ -1897,7 +1945,7 @@ git -C $W push
 - Step 6 の 1 本目が `G1 PASS` になる。
 - Step 7 の壊したマスタで FAIL の文字列と Error ログが出る。
 - Step 8 の終了コードが 0/1/1 に分かれる（3 本目は `-masterDataRoot` 無しで `[MasterGate] FAIL … is required`）。
-- push 後の PR で `Shipped Master Gate (G1)` の check が success になる。ピン先は本体のコードと対なので通る見込み。失敗した場合は、ログの `[ShippedMasterLoadGate]` 行で原因を読む。
+- push 後の PR で `Shipped Master Gate (G1)` の check が success になる。ピン先は本体のコードと対なので通る見込み。失敗した場合は、ログの `[ShippedMasterOwner]` 行で原因を読む。
 
 ---
 
@@ -1906,21 +1954,24 @@ git -C $W push
 **Files:**
 - Create: `moorestech_server/Assets/Scripts/Editor/MasterGate/ResearchWalkOrderFile.cs`
 - Create: `moorestech_server/Assets/Scripts/Editor/MasterGate/ResearchWalkRunner.cs`
+- Modify: `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterOwner.cs`（G3 のサーバー構築 `TryCreateServer` を足す。DI 構築も中でマスタを読むので、static マスタの所有者に置く。判断記録 A32）
 - Modify: `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterGateEntry.cs`（G3 の入口を足す）
 - Modify: `.github/workflows/shipped-master-gate.yml`（G2 で研究順を書き、G1 → G3 を回す）
 
 **Interfaces:**
 - Consumes:
   - Task 2 の `--emit-order` の JSON。
-  - Task 10 の `ShippedMasterLoadGate.TryLoad` と `MasterGateArguments`。
-  - `MoorestechServerDIContainerGenerator.Create(MoorestechServerDIContainerOptions) -> (PacketResponseCreator, ServiceProvider)`（`MoorestechServerDIContainerGenerator.cs:39`）。
+  - Task 10 の `ShippedMasterGateEntry.RunLoadGate`・`ShippedMasterOwner`・`MasterGateArguments`。
+  - `MoorestechServerDIContainerGenerator.Create(MoorestechServerDIContainerOptions) -> (PacketResponseCreator, ServiceProvider)`（`MoorestechServerDIContainerGenerator.cs:39`。呼ぶのは `ShippedMasterOwner.TryCreateServer` だけ）。
   - `PlayerIdentityRegistry.PreviewAssignment(string) -> PlayerIdAssignment` と `Commit(PlayerIdAssignment)`。
   - `IResearchDataStore.GetResearchNodeStates(int)`・`CompleteResearch(Guid, int)`（`IResearchDataStore.cs:9-10`）。
   - `IPlayerInventoryDataStore.GetInventoryData(int).MainOpenableInventory.InsertItem(IItemStack) -> IItemStack`。
   - `IGameUnlockStateDataController.BlockUnlockStateInfos` / `MachineRecipeUnlockStateInfos`（`Game.UnlockState/IGameUnlockStateDatastoreController.cs:21-22`）。
   - `ServerContext.ItemStackFactory`（`Game.Context/ServerContext.cs:16`）。
 - Produces:
-  - `ShippedMasterGateEntry.RunAll(string serverDataDirectory, string researchOrderPath) -> bool`。G1 が落ちたら G3 は回さない。
+  - `ShippedMasterOwner.TryCreateServer(string serverDataDirectory, out ServiceProvider serviceProvider, out string failure) -> bool`。G1 が最後に通った置き場でだけサーバーを組み、違えば `[ShippedMasterOwner] FAIL the server is built only on …` で false。
+  - `ResearchWalkRunner.Run(ServiceProvider serviceProvider, IReadOnlyList<ResearchWalkStep> steps, out string failure) -> bool`（サーバーは組まず、渡されたものを歩く）。
+  - `ShippedMasterGateEntry.RunAll(string serverDataDirectory, string researchOrderPath) -> bool`。`RunLoadGate` → 研究順の読み込み → `TryCreateServer` → `ResearchWalkRunner.Run` の順。G1 が落ちたら G3 は回さない。
   - `ShippedMasterGateEntry.RunFromCommandLine()`: CI の入口。`-researchOrder <G2 が書いた JSON>` を読む。
   - ログは成功で `[ResearchWalk] PASS <N> nodes completed in G2 order`。失敗は最初の 1 件で止まり、`[ResearchWalk] FAIL <名前> (<GUID>): <理由>`。
 
@@ -2000,14 +2051,35 @@ namespace Server.MasterGate.Editor
 }
 ```
 
-- [ ] **Step 2: ウォーク本体を置く**
-  - 本番の起動と同じ DI 構築で動かす。
+- [ ] **Step 2: サーバーの構築を static マスタの所有者に足し、ウォーク本体を置く**
+  - 本番の起動と同じ DI 構築で動かす。DI 構築（`Create`）は中で `MasterHolder.Load` を呼ぶので、ウォーク本体からは呼ばず、Task 10 の `ShippedMasterOwner` に `TryCreateServer` として足す（static マスタを書き換えるクラスを 1 つに保つ。判断記録 A32）。
+  - `ShippedMasterOwner.cs` の先頭に `using Microsoft.Extensions.DependencyInjection;` と `using Server.Boot;` を足し、`_lastLoadedServerDataDirectory` の宣言の直後に次のメソッドを足す。
+```csharp
+        // G3: 本番の起動と同じ DI 構築でサーバーを組む。Create の中でもう一度マスタを読むので、G1 が通った置き場でだけ組む
+        // G3: build the server with the production DI container; Create reloads the master, so it only builds on a location whose G1 load passed
+        public static bool TryCreateServer(string serverDataDirectory, out ServiceProvider serviceProvider, out string failure)
+        {
+            if (serverDataDirectory != _lastLoadedServerDataDirectory)
+            {
+                serviceProvider = null;
+                failure = $"[ShippedMasterOwner] FAIL the server is built only on the directory whose G1 load last passed: {serverDataDirectory} (last passing: {_lastLoadedServerDataDirectory})";
+                Debug.LogError(failure);
+                return false;
+            }
+
+            (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(serverDataDirectory));
+            failure = null;
+            return true;
+        }
+```
   - コストは主インベントリへ入れる。`CompleteResearch` は主インベントリからだけ払うため（`ResearchDataStore.cs:48`）。
-  - 判定は 3 つ。払う前の状態が前提不足でないこと、払った後が `Researchable` であること、完了の直後に G2 が当てにしたブロックと機械レシピの解放が付いていること。
+  - 判定は 3 つ。払う前の状態が前提不足でないこと、払った後が `Researchable` であること、完了の直後に G2 が当てにしたブロックと機械レシピの解放が付いていること。解放の判定は「解放済み GUID の集合に入っているか」の 1 本にし、ブロックと機械レシピで同じ述語を 2 回書かない（判断記録 A32）。
 
 `moorestech_server/Assets/Scripts/Editor/MasterGate/ResearchWalkRunner.cs`:
 ```csharp
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Master;
 using Game.Context;
 using Game.PlayerIdentity;
@@ -2015,24 +2087,22 @@ using Game.PlayerInventory.Interface;
 using Game.Research;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
-using Server.Boot;
 using UnityEngine;
 
 namespace Server.MasterGate.Editor
 {
     /// <summary>
-    ///     G3: 出荷マスタでサーバーを組み、G2 の研究順に各ノードのコストだけを主インベントリへ渡して CompleteResearch が通り、G2 が使った解放が実際に付くかを確かめる
-    ///     G3: builds a server on the shipped master, gives each node only its cost in G2's order, and checks CompleteResearch succeeds and the unlocks G2 relied on are applied
+    ///     G3: 出荷マスタで組んだサーバーで、G2 の研究順に各ノードのコストだけを主インベントリへ渡して CompleteResearch が通り、G2 が使った解放が実際に付くかを確かめる
+    ///     G3: on a server built from the shipped master, give each node only its cost in G2's order, and check CompleteResearch succeeds and the unlocks G2 relied on are applied
     /// </summary>
     public static class ResearchWalkRunner
     {
         private const string GateIdentity = "gate:research-walk";
 
-        public static bool Run(string serverDataDirectory, IReadOnlyList<ResearchWalkStep> steps, out string failure)
+        public static bool Run(ServiceProvider serviceProvider, IReadOnlyList<ResearchWalkStep> steps, out string failure)
         {
-            // 本番起動と同じ DI 構築でマスタを読み、ゲート専用のプレイヤーを1人登録する
-            // Build the same DI container as production boot and register one gate-only player
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(serverDataDirectory));
+            // サーバーは ShippedMasterOwner が本番と同じ DI 構築で組んだもの。ゲート専用のプレイヤーを1人登録する
+            // The server was built by ShippedMasterOwner with the production DI container; register one gate-only player
             var registry = serviceProvider.GetRequiredService<PlayerIdentityRegistry>();
             var assignment = registry.PreviewAssignment(GateIdentity);
             registry.Commit(assignment);
@@ -2078,15 +2148,19 @@ namespace Server.MasterGate.Editor
                 if (after != ResearchNodeState.Researchable) return Fail(step, $"コストを渡した後の状態が {after}");
                 if (!research.CompleteResearch(step.ResearchNodeGuid, playerId)) return Fail(step, "CompleteResearch が false を返した");
 
-                // G2 がこの段で付くと見なした解放（ブロック・機械レシピ）が実際に付いたか
-                // Check the unlocks G2 assumed at this step (blocks, machine recipes) were actually applied
-                foreach (var guid in step.UnlockBlockGuids)
+                // G2 がこの段で付くと見なした解放（ブロック・機械レシピ）が実際に付いたかを、解放済み GUID の集合 1 つの判定で見る
+                // Check the unlocks G2 assumed at this step (blocks, machine recipes) with one membership test against the unlocked GUID sets
+                var unlockedBlocks = new HashSet<Guid>(unlocks.BlockUnlockStateInfos.Where(pair => pair.Value.IsUnlocked).Select(pair => pair.Key));
+                var unlockedRecipes = new HashSet<Guid>(unlocks.MachineRecipeUnlockStateInfos.Where(pair => pair.Value.IsUnlocked).Select(pair => pair.Key));
+                return FirstNotUnlocked(step, "ブロック", step.UnlockBlockGuids, unlockedBlocks)
+                       ?? FirstNotUnlocked(step, "機械レシピ", step.UnlockMachineRecipeGuids, unlockedRecipes);
+            }
+
+            string FirstNotUnlocked(ResearchWalkStep step, string label, IReadOnlyList<Guid> expected, HashSet<Guid> unlocked)
+            {
+                foreach (var guid in expected)
                 {
-                    if (!unlocks.BlockUnlockStateInfos.TryGetValue(guid, out var info) || !info.IsUnlocked) return Fail(step, $"ブロック {guid} が解放されていない");
-                }
-                foreach (var guid in step.UnlockMachineRecipeGuids)
-                {
-                    if (!unlocks.MachineRecipeUnlockStateInfos.TryGetValue(guid, out var info) || !info.IsUnlocked) return Fail(step, $"機械レシピ {guid} が解放されていない");
+                    if (!unlocked.Contains(guid)) return Fail(step, $"{label} {guid} が解放されていない");
                 }
                 return null;
             }
@@ -2111,8 +2185,8 @@ using UnityEditor;
 namespace Server.MasterGate.Editor
 {
     /// <summary>
-    ///     -executeMethod の入口。結果は終了コード（0=PASS / 1=FAIL）で返し、理由は Unity のログに出す
-    ///     -executeMethod entries; the result is the exit code (0 = PASS / 1 = FAIL) and the reason goes to the Unity log
+    ///     ゲートの入口。batch の入口は終了コード（0=PASS / 1=FAIL）で返し、理由は Unity のログに出す。static マスタの書き換えは ShippedMasterOwner だけが行う
+    ///     Gate entries; batch entries report via the exit code (0 = PASS / 1 = FAIL) and the reason goes to the Unity log; only ShippedMasterOwner rewrites the static master
     /// </summary>
     public static class ShippedMasterGateEntry
     {
@@ -2121,7 +2195,7 @@ namespace Server.MasterGate.Editor
         public static void RunLoadGateFromCommandLine()
         {
             var passed = MasterGateArguments.TryResolveServerDataDirectory(out var serverDataDirectory)
-                         && ShippedMasterLoadGate.TryLoad(serverDataDirectory, out _);
+                         && RunLoadGate(serverDataDirectory, out _);
             EditorApplication.Exit(passed ? 0 : 1);
         }
 
@@ -2134,13 +2208,21 @@ namespace Server.MasterGate.Editor
             EditorApplication.Exit(passed ? 0 : 1);
         }
 
+        // G1 の唯一の入口（batch・手元の G1 関数・RunAll がここを通る）
+        // The single G1 entry (batch, the local G1 function and RunAll all go through it)
+        public static bool RunLoadGate(string serverDataDirectory, out string failure)
+        {
+            return ShippedMasterOwner.TryLoad(serverDataDirectory, out failure);
+        }
+
         // Editor を閉じずに判定する入口（uloop execute-dynamic-code から呼ぶ）。G1 が落ちたら G3 は回さない
         // Judge without quitting the Editor (called from uloop execute-dynamic-code); G3 is skipped when G1 fails
         public static bool RunAll(string serverDataDirectory, string researchOrderPath)
         {
-            if (!ShippedMasterLoadGate.TryLoad(serverDataDirectory, out _)) return false;
+            if (!RunLoadGate(serverDataDirectory, out _)) return false;
             if (!ResearchWalkOrderFile.TryRead(researchOrderPath, out var steps, out _)) return false;
-            return ResearchWalkRunner.Run(serverDataDirectory, steps, out _);
+            if (!ShippedMasterOwner.TryCreateServer(serverDataDirectory, out var serviceProvider, out _)) return false;
+            return ResearchWalkRunner.Run(serviceProvider, steps, out _);
         }
     }
 }
@@ -2157,7 +2239,7 @@ namespace Server.MasterGate.Editor
 python3 $MW/tools/progression/check.py --master-dir $GL/pin-master/server_v8/mods/moorestechAlphaMod_8/master --emit-order $GL/research_order.json > /dev/null; echo "g2 exit=$? (赤でよい)"
 python3 -c "import json;print(len(json.load(open('$GL/research_order.json'))['order']))"
 cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code "return Server.MasterGate.Editor.ShippedMasterGateEntry.RunAll(\"$GL/pin-master/server_v8\", \"$GL/research_order.json\") ? \"G3 PASS\" : \"G3 FAIL\";"
-cd $W && uloop get-logs --project-path ./moorestech_client --log-type All | grep '\[ResearchWalk\]\|\[ShippedMasterLoadGate\]' | tee $GL/g3-base.txt
+cd $W && uloop get-logs --project-path ./moorestech_client --log-type All | grep '\[ResearchWalk\]\|\[ShippedMasterOwner\]' | tee $GL/g3-base.txt
 ```
 Expected:
 - `44` が出る。
@@ -4701,11 +4783,8 @@ GL=$W/moorestech_client/PlaytestResults/tier9-gates                             
 ```
 
 **ゲートの呼び方**（P0 の成果物を使う。実際のコマンド名・出力の書式は P0 節の Produces が正）:
-- **G1: MasterLoadGate batch。** 指定したディレクトリ `server_v8` の出荷マスタを `MasterHolder.Load` で読み込み、起動時のマスタ検証まで通す。この節では `G1 $MW/server_v8` と書く。
-  - P0 の batch がまだ無い場合は、次の dynamic code で同じことを確かめる（S3 引き継ぎ「旧 Task 1 Step 7」のスモークを、このディレクトリ向けに書き換えたもの。`MoorestechServerDIContainerOptions(string)` の存在は S1 ブランチ `MoorestechServerDIContainerGenerator.cs:27` で確認済み）:
-    ```bash
-    cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code 'using Server.Boot; new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions("/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated/server_v8")); return "G1 PASS";'
-    ```
+- **G1: 出荷マスタのロードゲート（Task 10）。** 指定したディレクトリ `server_v8` の出荷マスタを `MasterHolder.Load` で読み込み、起動時のマスタ検証まで通す。この節では `G1 $MW/server_v8` と書く。
+  - G1 は Task 10 の関数 `G1`（`ShippedMasterGateEntry.RunLoadGate`）だけで回す。`MoorestechServerDIContainerGenerator().Create(...)` を dynamic code で直接呼ぶ別経路は使わない。static のマスタを書き換える口を `ShippedMasterOwner` の 1 つに保ち、読み込みに失敗したときの戻しを所有者に任せるため（判断記録 A32）。P2 は J1（Task 10 の完了）の後に始まるので、関数は必ずある。
   - 合格の条件: `G1 PASS` が返り、`uloop get-logs --project-path ./moorestech_client --log-type Error` に `MooresmasterLoaderException`・`[BlockMaster]`・`[ItemMaster]`・`[MachineUpgrade]`・`[OrbitalPayload]` の行が無い。
 - **G2: 到達性チェッカー。** Task 2 が `tools/progression/` に作り直したもの。絶対判定（許可リスト外の詰みが 1 件でもあれば exit 1）、ゴール到達判定、Tier9 のモデル（orbitalPayloads・levelInheritance・ダイ表の抽選）を持つ。この節では `G2` と書き、`cd $MW && python3 tools/progression/check.py` を指す。
   - 判定に使う出力: ゴール「最終研究」に届くか、入手できないアイテム、どこからも解放されないブロック、機械が解放されないレシピ、許可した詰みの一覧。
