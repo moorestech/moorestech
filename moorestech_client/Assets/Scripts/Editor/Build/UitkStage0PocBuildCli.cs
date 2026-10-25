@@ -18,6 +18,13 @@ namespace Client.Editor.Build
             Run(BuildTarget.StandaloneOSX);
         }
 
+        // GUIのEditorからuloop経由で焼く入口（終了しない）
+        // Entry for baking from the GUI Editor through uloop (does not exit)
+        public static string BuildWithoutExit(BuildTarget target, string outputDirectory)
+        {
+            return BuildPipeline.Execute(PlayerBuildRequest.ForLocalDevelopment(target, outputDirectory, false)).ToString();
+        }
+
         private static void Run(BuildTarget target)
         {
             // 出力先は環境変数で受ける。無ければ焼かずに失敗で終える
