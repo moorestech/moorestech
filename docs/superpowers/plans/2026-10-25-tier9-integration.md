@@ -9449,6 +9449,16 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - A31 G6 の「マスタから引けない」は判別子 1 本で表す。`Check` は状態値（`ok`／`lookup_failed`／`not_positive` など）を 1 つ持ち、None を合図に使わない。値を返す関数（`output_per_second`・`evaluate_launches`・`launches_for`・`PowerResult`・`item_rates`・`research_hours_for`）も、値と状態の組を返す。セーブ移行の `TryGetNestedArray` は「無い／null／配列」の 3 状態を返す（型閉包 5-A。出所: シミュレーター予測・確信高→前提宣言、ユーザーの拒否権の行使なし 2026-10-25）
 - A32 型閉包の弱い指摘は次の 3 束を直す: (1) nodegraph_sync と tier9_balance の中で 2 回以上出る述語・導出を 1 本にまとめる（検査6 の (a)〜(g)）、(2) G1 の `MasterHolder.Load` を呼ぶ口を 1 つにし、static のマスタを書き換える所有者を決める（5-F）、(3) GPU衛星かどうか・レシピの入力を、名前の前方一致と既定値 `''` でなく GUID か levelFamily で判定する（5-B）。他の弱（5-C の合成 bool・失敗理由の bool＋string・`unlockMachineRecipe` の書き手 2 者・DI コンテナの終了の所有者・網羅 switch）は Task 32 の全ブランチレビューに任せる（出所: 同上）
 
+### 本PR外のリファクタ提案（第3バケツ。plan のタスクにしない。Task 32 のレビュー依頼文にこの節を写す）
+- 既存 `SaveMigrationStepV1ToV2.cs:168-171` `IsAbsent` ／ 新設 `V7ToV8SaveJson.IsAbsentOrNull` ／ セーブ JSON の「キー欠損か null」の同じ判定
+- 既存 `SaveMigrationStepV3ToV4.cs:26-38`・`V5ToV6.cs:20-31` ／ 新設 `V7ToV8SaveJson.TryCollectBlockStates` ／ world→ブロック→state の同じ走査
+- 既存（S3）`Game.Orbit/OrbitalArrivalService.cs` `FindPayload` ／ 新設 G6 `MasterView.payload_row` ／ 積荷表の行を引く同じ役割（既存は ItemId、新設は GUID）
+- 既存 マスタ `tools/plan6_nodegraph_migration/migrate_nodegraph.py:193-259`（2 パスの解放割り当て・`label`）／ 新設 `tools/nodegraph_sync/spatial_unlock.py`・`graph_io.py`、G6 `MasterView.label_of` ／ 同じ規則の移植
+- 既存 `Game.Research/ResearchDataStore.cs:100-115` `ArePrerequisitesCompleted` ／ 新設 G2 `research_walk.missing_prerequisites` ／ 同じ前提完了の規則を Python に写す
+- 既存 マスタ `tools/tutorial_v3_port/generate_challenges.py:161-186`・`tools/research_sync/sync_machine_recipe_unlocks.py:48-79` ／ 新設 G2 `UnlockIndex`・`tools/master_common/research_ancestors.py` ／ 解放判定・祖先集合の同じ導出
+- 既存 `Server.Boot/MoorestechServerDIContainerGenerator.cs:48-52` ／ 新設 `ShippedMasterOwner.TryLoadMaster` ／ ModsResource→MasterHolder.Load の同じロード手順
+- 既存 `Client.Editor` の `GameDataBundler.cs:39`・`PlatformCompileCheck.cs:64-74` ／ 新設 `MasterGateArguments` ／ マスタ repo の根＋server_v8 の導出とコマンドライン引数の読み取り
+
 ### 実装中に人へ上げる条件（SDD の deferred-questions に溜め、まとめて 1 回提示）
 - G3 で研究コストが主インベントリに入り切らない（コスト・スタック上限・払い方のどれを変えるかは裁定）
 - G6 の目標時間に、パラメータ調整で収まらない区間がある
