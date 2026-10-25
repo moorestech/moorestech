@@ -5,9 +5,9 @@ using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Tests.UnitTest.Game.SaveLoad
+namespace Tests.UnitTest.Game.SaveLoad.Migration
 {
-    public class SaveMigrationStepV7ToV8Test
+    public class SaveMigrationStepV7ToV8CablePoolTest
     {
         [Test]
         public void 節が無ければ0で足す()

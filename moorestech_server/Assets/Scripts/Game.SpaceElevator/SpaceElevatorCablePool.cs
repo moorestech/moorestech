@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Game.SpaceElevator
 {
     /// <summary>
-    ///     ワールドに1つのケーブルプール。ケーブルの軌道到着で増え、接続で減り、接続済み拠点の撤去で戻る（ADR 0089）
-    ///     The world's single cable pool: grows on cable orbital arrivals, shrinks on connections, refills when a connected base is removed (ADR 0089)
+    ///     ワールドに1つのケーブルプール。ケーブルの軌道到着で増え、接続で減り、接続済み拠点の撤去で戻る（ADR 0092）
+    ///     The world's single cable pool: grows on cable orbital arrivals, shrinks on connections, refills when a connected base is removed (ADR 0092)
     /// </summary>
     public class SpaceElevatorCablePool : IBootInitializable
     {

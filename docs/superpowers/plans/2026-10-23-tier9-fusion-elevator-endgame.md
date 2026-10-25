@@ -12,7 +12,7 @@
 
 ## Requirements
 
-設計 ADR: `docs/adr/0089-space-elevator-cable-pool-and-per-base-connection.md`、`docs/adr/0090-fusion-net-power-from-fuel-extraction-cost.md`。裁定: `.decisions/2026-10-23-*`（S3 分は本 plan 末尾『判断記録（ADR）』に一覧）。用語: `CONTEXT.md` の「宇宙エレベーター」「核融合」「終盤」。
+設計 ADR: `docs/adr/0092-space-elevator-cable-pool-and-per-base-connection.md`、`docs/adr/0093-fusion-net-power-from-fuel-extraction-cost.md`。裁定: `.decisions/2026-10-23-*`（S3 分は本 plan 末尾『判断記録（ADR）』に一覧）。用語: `CONTEXT.md` の「宇宙エレベーター」「核融合」「終盤」。
 
 R1〜R3・R5〜R13・R23 は統合タスクへ移した（末尾の節の「移した要件」）。番号は判断記録から引くので振り直さない。
 
@@ -781,7 +781,7 @@ git commit -m "feat(schema): 宇宙エレベーター拠点のブロック種別
   - `enum SpaceElevatorConnectResult { Connected, AlreadyConnected, InsufficientCable, NotSpaceElevatorBase }`（`Game.Block.Interface.Component`）
   - `SpaceElevatorCablePoolSaveData`（`[JsonProperty("cableCount")] public int CableCount;`）、セーブの節名 `spaceElevatorCablePool`、`WorldSaveAllInfo.CurrentVersion == 8`、`SaveMigrationStepV7ToV8`
 
-設計の要点（ADR 0089「呼び出し側の線引き」）: 拠点はプールの残量の判定も引き算も知らない。接続できるかの判定（残量 ≥ 1エレベーター分）はプールの `HasEnough` だけが持ち、`TryTake` も画面向けの「接続できるか」の配信も同じ `HasEnough` を通す。引き算・撤去の返却は `SpaceElevatorConnectionService` が持ち、プール本体の `HasEnough`/`TryTake`/`Add` は同アセンブリ内だけに閉じる（`internal`）。拠点は配信された「残量」と「接続できるか」を状態に載せるだけで、画面（webui）は判定しない（ユーザー裁定 [[2026-10-23-エレベーター拠点に接続できるかはサーバーのプールが判定し画面は表示するだけ]]）。
+設計の要点（ADR 0092「呼び出し側の線引き」）: 拠点はプールの残量の判定も引き算も知らない。接続できるかの判定（残量 ≥ 1エレベーター分）はプールの `HasEnough` だけが持ち、`TryTake` も画面向けの「接続できるか」の配信も同じ `HasEnough` を通す。引き算・撤去の返却は `SpaceElevatorConnectionService` が持ち、プール本体の `HasEnough`/`TryTake`/`Add` は同アセンブリ内だけに閉じる（`internal`）。拠点は配信された「残量」と「接続できるか」を状態に載せるだけで、画面（webui）は判定しない（ユーザー裁定 [[2026-10-23-エレベーター拠点に接続できるかはサーバーのプールが判定し画面は表示するだけ]]）。
 
 - [x] **Step 1: 拠点の面とプール・接続サービスを書く**
 
@@ -867,8 +867,8 @@ using UnityEngine;
 namespace Game.SpaceElevator
 {
     /// <summary>
-    ///     ワールドに1つのケーブルプール。ケーブルの軌道到着で増え、接続で減り、接続済み拠点の撤去で戻る（ADR 0089）
-    ///     The world's single cable pool: grows on cable orbital arrivals, shrinks on connections, refills when a connected base is removed (ADR 0089)
+    ///     ワールドに1つのケーブルプール。ケーブルの軌道到着で増え、接続で減り、接続済み拠点の撤去で戻る（ADR 0092）
+    ///     The world's single cable pool: grows on cable orbital arrivals, shrinks on connections, refills when a connected base is removed (ADR 0092)
     /// </summary>
     public class SpaceElevatorCablePool : IBootInitializable
     {
@@ -950,7 +950,7 @@ namespace Game.SpaceElevator
 }
 ```
 
-`Core.Master/Validator/Block/SpaceElevatorBaseParamValidator.cs` が `MasterHolder.Load` 内でケーブル・積荷の表所属、運搬積荷の `countPerLaunch == 1`、空の出口容量を検証する。容量は `ItemMaster.CountRequiredSlotsAtLevelOne` の共有long計算で数え、巨大な分割スタックは生成しない。ADR0089の起動時停止をマスタ単独入口にも適用する配置は、Task14 fresh w7 のcontroller選択D02Aによるagent前提の更新であり、ユーザー裁定の変更ではない。
+`Core.Master/Validator/Block/SpaceElevatorBaseParamValidator.cs` が `MasterHolder.Load` 内でケーブル・積荷の表所属、運搬積荷の `countPerLaunch == 1`、空の出口容量を検証する。容量は `ItemMaster.CountRequiredSlotsAtLevelOne` の共有long計算で数え、巨大な分割スタックは生成しない。ADR0092の起動時停止をマスタ単独入口にも適用する配置は、Task14 fresh w7 のcontroller選択D02Aによるagent前提の更新であり、ユーザー裁定の変更ではない。
 
 `Game.SpaceElevator/SpaceElevatorBaseMasters.cs`（拠点マスタの列挙とケーブル集合の導出を1か所にする。プールと接続サービスが使う。`Core.Master` の `SpaceElevatorBaseParamValidator` は `Game.*` を参照できないので、ロード時の検証は自前で列挙する）:
 ```csharp
@@ -3301,7 +3301,7 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 
 ### 設計 ADR と S3 の裁定
 
-- ADR: `docs/adr/0089-space-elevator-cable-pool-and-per-base-connection.md`（ケーブルプール・拠点ごとの接続・昇降機・軌道到着サービスへの委譲）、`docs/adr/0090-fusion-net-power-from-fuel-extraction-cost.md`（核融合の差し引き電力・炉は既存の燃料発電機）
+- ADR: `docs/adr/0092-space-elevator-cable-pool-and-per-base-connection.md`（ケーブルプール・拠点ごとの接続・昇降機・軌道到着サービスへの委譲）、`docs/adr/0093-fusion-net-power-from-fuel-extraction-cost.md`（核融合の差し引き電力・炉は既存の燃料発電機）
 - S3 のユーザー裁定（`.decisions/`）:
   - `2026-10-23-ストーリークリアは定義せず反物質爆弾を規定量作る仮の研究で終端にする.md`（原文「クリアについて現段階で明確に定義しない。反物質爆弾を規定量つくったらそれでおわり（終了を明示する仮の研究があってもok、その程度」）
   - `2026-10-23-宇宙エレベーターは接続でGPU人工衛星の打ち上げ経路として機能させる.md`
@@ -3329,13 +3329,13 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P4 | `VanillaElectricGeneratorFuelService`（289行）と `VanillaElectricGeneratorComponent` を 200 行未満へ分割する。変換器が触るフィールドを `internal` にする | AGENTS.md の 200 行規約。同アセンブリの変換器だけが触る |
 | P5 | 〔統合タスクへの下書き〕数値の初期値: 核融合炉 重水素10/2秒で 20000、重水素抽出装置 4000（水100→重水素10/8秒）、反物質製造装置 12000（重水素50→反物質1/30秒）、反物質爆弾 反物質20＋ICチップLv1 50＋鋼鉄板100＋コンピュータ20（電気汎用工作装置 60秒）、グラフェン4レシピと3Dプリンタ2レシピは Task 1・2 の JSON の値 | Task 4 のシミュレーション（R3・R5・R23 の範囲）で検査し、NG なら直して本節へ追記する。全体の時間目標は S1 の裁定 |
 | P6 | 〔統合タスクへの下書き〕最終研究の名前は「最終研究」、消費は反物質爆弾 10、解放物なし | ユーザー原文「終了を明示する仮の研究があってもok、その程度」。量は agent前提（Task 4 で所要時間を検査） |
-| P7 | 〔統合タスクへの下書き〕反物質の機械名は「反物質製造装置」 | 既存モデル名 `Antimatter_manufacturing_equipment` と ADR 0090 に合わせる。裁定ファイルの「反物質生成装置」は機能の言い換え（ユーザーが名前を決めた裁定ではない） |
+| P7 | 〔統合タスクへの下書き〕反物質の機械名は「反物質製造装置」 | 既存モデル名 `Antimatter_manufacturing_equipment` と ADR 0093 に合わせる。裁定ファイルの「反物質生成装置」は機能の言い換え（ユーザーが名前を決めた裁定ではない） |
 | P8 | 〔統合タスクへの下書き〕グラフェンケーブルは軌道到着の積荷表に 1便1000本・成果なしで載せ、スタック表 [1000] を割り当てる。1エレベーター分 1000 本＝1便。昇降 600 秒・昇降中の電力 2000 | S2 の契約「countPerLaunch ≤ スタック上限」。Task 12 で S2 のロケット建造時間と比べて確定する |
 | P9 | 〔統合タスクへの下書き〕研究「軌道エレベーターの建設」の計算データ消費は S2 の plan の値（見つからなければ 200）、研究「反物質爆弾」に計算データ ×400 | S2 の裁定「計算データを消費する」。量は S2 待ち・S1 待ち |
-| P10 | 拠点の表所属・運搬積荷のcountPerLaunch==1・空の出口容量を既存 `SpaceElevatorBaseParamValidator` が `MasterHolder.Load` 内で検証する。容量は `ItemMaster.CountRequiredSlotsAtLevelOne` の共有long計算で求め、Previewや分割スタックを作らない。後段の起動検査サービスとDI登録は削除する | ADR0089の不正マスタで起動停止という結果を維持。Task14 fresh w7のcontroller選択D02Aによる配置のagent前提更新であり、ユーザー裁定ではない |
+| P10 | 拠点の表所属・運搬積荷のcountPerLaunch==1・空の出口容量を既存 `SpaceElevatorBaseParamValidator` が `MasterHolder.Load` 内で検証する。容量は `ItemMaster.CountRequiredSlotsAtLevelOne` の共有long計算で求め、Previewや分割スタックを作らない。後段の起動検査サービスとDI登録は削除する | ADR0092の不正マスタで起動停止という結果を維持。Task14 fresh w7のcontroller選択D02Aによる配置のagent前提更新であり、ユーザー裁定ではない |
 | P11 | ワールドセーブは版 7→8（S2 が 6→7）。移行ステップはプール残量 0 を実値として足す（補完ではない）。版の番号は S1（6→7 と 7→8 を使う）・S2 と重なるので、後から master へマージする側が、先に入った版の続きへ FromVersion・CurrentVersion・クラス名とファイル名・テストの版・登録の並びを繰り上げる。7→8 は S2 だけが先に入った場合の値 | AGENTS.md「セーブ形式の例外」。旧版のワールドにはケーブルの打ち上げが無いので 0 が正しい値。繰り上げの規則は S1〜S3 のセッション間の取り決め（S2 のセッションからの連絡。ユーザー裁定ではない） |
 | P12 | 撤去返却は `RemoveBlockProtocol.cs`（`moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/RemoveBlockProtocol.cs`）で全コンポーネントの `IGetRefundItemsInfo` を合算する（Task 8 Step 1） | 拠点は昇降中の衛星を返すため。既存が先頭1つだけを読むなら直す |
-| P13 | 接続は専用プロトコル `va:connectSpaceElevator`（`ConnectSpaceElevatorProtocol.cs` を `PacketResponse/SpaceElevator/` に新設し `PacketResponseCreator.cs` に登録、`Server.Protocol.asmdef` に `Game.SpaceElevator` 参照を足す。クライアントは `BlockRequestApi.cs` に `ConnectSpaceElevator` を足す）で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出す。押せるか・不足の理由は、プールが判定して拠点の状態（`ReadyToConnect` / `InsufficientCable`）に載せたものを webui が表示する（P26） | ADR 0089「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
+| P13 | 接続は専用プロトコル `va:connectSpaceElevator`（`ConnectSpaceElevatorProtocol.cs` を `PacketResponse/SpaceElevator/` に新設し `PacketResponseCreator.cs` に登録、`Server.Protocol.asmdef` に `Game.SpaceElevator` 参照を足す。クライアントは `BlockRequestApi.cs` に `ConnectSpaceElevator` を足す）で、結果は列挙（Connected / AlreadyConnected / InsufficientCable / NotSpaceElevatorBase）。拒否はサーバーログに出す。押せるか・不足の理由は、プールが判定して拠点の状態（`ReadyToConnect` / `InsufficientCable`）に載せたものを webui が表示する（P26） | ADR 0092「呼び出し側の線引き」。前例 `SetElectricToGearOutputModeProtocol`・`RemoveBlockProtocol` の拒否ログ |
 | P14 | 拠点の UI は専用 view `views/SpaceElevatorInventory.tsx`（`BlockItemGrid`＋`SpaceElevatorSection`＋`ElectricNetworkSection`）を `registry/blockComponentRegistry.ts`・`registeredBlockTypes.ts` に登録する。`SectionStackView` には足さず、e2e の `intentionalGeneric` にも入れない | 接続ボタンはブロック固有の操作。前例 `views/ElectricToGearInventory.tsx`・`views/TrainPlatformInventory.tsx`。`SectionStackView.tsx:51-52`「固有UIだけをレジストリへ残す」、`intentionalGeneric` は移植待ちの許可リスト。配置検査 V2 で「SectionStackView に合成」から直した |
 | P15 | 新しいファイルはディレクトリの 10 ファイル上限のためサブディレクトリ（`PacketResponse/SpaceElevator/`・`Actions/SpaceElevator/`・`Topics/BlockDetail/SpaceElevator/`・`StateProcessor/SpaceElevator/`・`Tests/CombinedTest/Server/PacketTest/SpaceElevator/`）に置き、名前空間は親のまま（前例 `Component/CleanRoom/`・`Topics/BlockDetail/Train/`、S2 も同じ）。`inventory.ts`（215 行）は S2 と同じ分け方（`schemas/train/`・`schemas/beltThroughput/`）で分割し、DI 登録は `SpaceElevatorServiceRegistration.cs` を新設する（`GameplayServiceRegistration.cs` は202行。前例 S2 の `OrbitServiceRegistration`） | AGENTS.md の規約。配置検査 r2 の V1〜V4 で直した |
 | P16 | 〔統合タスクへの下書き〕録画テストは昇降の完了（600 秒）まで待たず、昇降機が上がること・進みが増えることまでを見る。到着後の成果・出口の空き待ちはユニットテストで見る。ケーブルの打ち上げはサーバーで `Arrive(cable, 1000)` を呼んで起こす | 録画の長さ。本番との差: ロケットでの打ち上げ経路は通さない（S2 の録画が担う） |
@@ -3348,7 +3348,7 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 | P23 | 拠点の組み立てを `VanillaSpaceElevatorBaseTemplate.cs`（`Game.Block/Factory/BlockTemplate/SpaceElevator/`）に置き、`VanillaIBlockTemplates.cs` に登録する。供給の受け取りを昇降機より前に並べる | 前例 `VanillaElectricPumpTemplate`（電力受け取りと処理の順）・`VanillaChestTemplate`（インベントリとコネクタ） |
 | P24 | 契約型（クライアントも読む型）を Interface 層に置く: 接続結果 `SpaceElevatorConnectResult` は `moorestech_server/Assets/Scripts/Game.Block.Interface/Component/SpaceElevator/SpaceElevatorConnectResult.cs`、状態詳細 `SpaceElevatorBaseStateDetail` と状態 `SpaceElevatorBaseStatus` は `moorestech_server/Assets/Scripts/Game.Block.Interface/State/SpaceElevator/`。クライアントの asmdef（`Client.Network`・`Client.WebUiHost`）に `Game.SpaceElevator` を足さない | agent前提（設計検査 Phase 2.6 強3。シミュレーター予測をもとに前提として宣言し、ユーザーの拒否なし。前例は S2 の判断記録 D27（契約型をインターフェース層に置く）と `Game.Block.Interface/State/` の既存の状態詳細） |
 | P25 | webui の拠点詳細 `spaceElevator` は optional のまま（無ければ「拠点ではない／未着」。未着は DTO ビルダーが警告ログ）、状態は C# の列挙→camelCase 文字列→zod の enum（未対応の値は例外）、翻訳キーは `TranslationKey` 型で欠損を型とテストで止める | agent前提（設計検査 Phase 2.6 強1・強4・強5。前例 `electricToGear` の optional・`TrainPlatformDetailDtoBuilder.ToWireMode`・webui 全体の `t(キー)`。前提として宣言し、ユーザーの拒否なし） |
-| P26 | 接続できるか（プールに1エレベーター分あるか）はサーバーのプールが判定する。プールは残量が変わるたび、および拠点の設置時に、各拠点へ `SetCablePoolAvailability(int poolAmount, bool hasEnoughCable)` で push し、拠点の状態の「未接続」を `ReadyToConnect` と `InsufficientCable` に分ける。webui は `status` を表示するだけで、ボタンの無効化と不足の文言も `status` から決める | ユーザー裁定 2026-10-23（質問「宇宙エレベーター拠点の『接続する』ボタンを押せるか（プールのケーブルが1エレベーター分あるか）を、どこで判定しますか？」→ 選択「サーバーが判定 (Recommended)」。[[2026-10-23-エレベーター拠点に接続できるかはサーバーのプールが判定し画面は表示するだけ]]）。ADR 0089 も同じ形に直した |
+| P26 | 接続できるか（プールに1エレベーター分あるか）はサーバーのプールが判定する。プールは残量が変わるたび、および拠点の設置時に、各拠点へ `SetCablePoolAvailability(int poolAmount, bool hasEnoughCable)` で push し、拠点の状態の「未接続」を `ReadyToConnect` と `InsufficientCable` に分ける。webui は `status` を表示するだけで、ボタンの無効化と不足の文言も `status` から決める | ユーザー裁定 2026-10-23（質問「宇宙エレベーター拠点の『接続する』ボタンを押せるか（プールのケーブルが1エレベーター分あるか）を、どこで判定しますか？」→ 選択「サーバーが判定 (Recommended)」。[[2026-10-23-エレベーター拠点に接続できるかはサーバーのプールが判定し画面は表示するだけ]]）。ADR 0092 も同じ形に直した |
 | P27 | 型検査の弱い指摘を4束とも直す: (1) 読込時と進みのガード（`SpaceElevatorClimberSaveRestorer` が残りを総時間に収める・運べない衛星を入口へ戻す、出口スロットの溢れをエラーログ）、(2) テストで前提を確かめる（設置・電力網の取得を `Assert.IsTrue`、成果の問い合わせで到着の通知が流れないテスト）、(3) 判定と導出の重複を消す（`SpaceElevatorOutputSimulation.TryStack` と昇降機のローカル関数 `ResultFitsOutlets`、`SpaceElevatorBaseMasters`、`IsCarriedPayload`）、(4) 出口待ちに入った tick に1回ログ | ユーザー裁定 2026-10-23（質問「型の検査で出た弱い指摘のうち、どれを直しますか？」→ 選択「読込時と進みのガード, テストで前提を確かめる, 判定と導出の重複を消す, 出口待ちのログ」。[[2026-10-23-エレベーター拠点の型検査の弱い指摘は4束とも直す]]） |
 | P28 | 状態詳細は平らなフィールドのまま持つ（発電機の `IsBurning` と `CurrentFuelTotalTicks`、拠点の `Status` と `ClimbProgress` が同居し、動いていないときは 0） | agent前提（設計検査 Phase 2.6 強2。MessagePack の状態詳細は平らな形だけが前例: `PowerGeneratorStateDetail`・`CommonMachineBlockStateDetail`。ユーザーへ聞いたが「何の話？」の答えで、プレイヤーに見える差が無い内部の形なので前例どおりの前提で閉じた。裁定ではない） |
 | P29 | moorestech_master の中身（液体・アイテム・ブロック・レシピ・研究・積荷表のグラフェンケーブル行とスタック表・軌道エレベーターの建設の変更・ビルドメニュー「宇宙」）・バランスのシミュレーション・unityプレイ録画テストは、S1〜S3 の実装がそろってから統合タスク（bd `moorestech-xyuaf.2`）で入れる。この PR は moorestech_master を変えない（S3 のスキーマ変更は新しい case だけで、出荷マスタに読み込みに要る変更が無い）。ピンは Task 5 で取り込む S2 の値。旧 Task 1・2・4・12・13 と、旧 Task 3・5・6・10 のマスタ部分は末尾の節へ下書きとして移した。スタックテーブルが空の7件は S2 の master PR が直すので S3 は触らない | ユーザー裁定 2026-10-23（S2 のセッション。原文「マスタはタスク全体の実装が終わった時に全体でまとめて入れるのが良いんじゃないの？どうせ他にもデッドロック的なタスクがあるんじゃないの？」→ 提案「S2 の PR はコード・スキーマ・テスト用データと、読み込みに必要な最小限の master 変更だけにし、master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」→ 回答「1 ok」。裁定は S1〜S3 の PR に効く。[[2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる]]（S2 ブランチで記録。Task 5 の取り込みで入る））。7件の分担は S2 からの連絡 2026-10-23 |
@@ -3673,8 +3673,8 @@ git push
 #!/usr/bin/env python3
 # Tier9 終盤の数値（核融合の差し引き電力・反物質・グラフェン）を出荷マスタから計算し目標と照合する
 # Compute Tier9 endgame numbers (fusion net power, antimatter, graphene) from the shipped master and check targets
-# 目標の根拠: moorestech ADR 0090（差し引きはガソリン発電機数台分）、S1 裁定（Tier9 15〜25時間・S3 配分 5〜11時間）
-# Targets: moorestech ADR 0090 (net equals a few gasoline generators) and the S1 ruling (Tier9 15-25h, S3 share 5-11h)
+# 目標の根拠: moorestech ADR 0093（差し引きはガソリン発電機数台分）、S1 裁定（Tier9 15〜25時間・S3 配分 5〜11時間）
+# Targets: moorestech ADR 0093 (net equals a few gasoline generators) and the S1 ruling (Tier9 15-25h, S3 share 5-11h)
 import json, os, sys
 
 ROOT = os.path.join(os.path.dirname(__file__), '..', '..')

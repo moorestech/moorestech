@@ -7,7 +7,7 @@ using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.SaveLoad.Migration
 {
-    public class SaveMigrationStepV6ToV7Test
+    public class SaveMigrationStepV7ToV8RocketHistoryTest
     {
         [Test]
         public void 版6のセーブに未打ち上げの履歴が足され他の節は残る()

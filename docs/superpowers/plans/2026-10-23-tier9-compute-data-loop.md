@@ -4,7 +4,7 @@
 
 **Goal:** ロケット発射台でGPU衛星を打ち上げて計算データを得る仕組み（スキーマ・軌道到着サービス・発射台・合図・表示・Web UI・セーブ）を、テスト用マスタで確かめた状態で入れる。moorestech_master の中身（GPU・GPU衛星・積荷表の行・発射台の値・レシピ・研究）と、ループ全体を遊べるかの unityプレイ録画テストは、S1〜S3 の実装がそろってからの統合タスク（bd `moorestech-xyuaf.2`）で入れる。この plan の成果は、統合タスクの後に遊べる状態になる。
 
-**Architecture:** 軌道に届いた後の処理（打ち上げ成果の決定と到着通知）を新設アセンブリ `Game.Orbit` の `IOrbitalArrivalService` に集め、発射台（`Game.Block`）とS3のエレベーター拠点はそれを呼ぶだけにする（ADR 0088）。発射台は資材スロット・積荷スロット・出力スロットを持つブロックで、電力と時間でロケットを建造し、初打ち上げだけプレイヤーのボタン操作（Web UI → プロトコル）を待つ。初打ち上げ済みかはワールド単位の状態 `IRocketLaunchHistory` としてセーブに入れる（版6→7）。
+**Architecture:** 軌道に届いた後の処理（打ち上げ成果の決定と到着通知）を新設アセンブリ `Game.Orbit` の `IOrbitalArrivalService` に集め、発射台（`Game.Block`）とS3のエレベーター拠点はそれを呼ぶだけにする（ADR 0091）。発射台は資材スロット・積荷スロット・出力スロットを持つブロックで、電力と時間でロケットを建造し、初打ち上げだけプレイヤーのボタン操作（Web UI → プロトコル）を待つ。初打ち上げ済みかはワールド単位の状態 `IRocketLaunchHistory` としてセーブに入れる（版6→7）。
 
 **Tech Stack:** Unity C#（moorestech_server/client）、UniRx、MessagePack、Newtonsoft.Json、マスタYAMLスキーマ＋SourceGenerator、React/TypeScript（moorestech_web/webui、zod、vitest）、moorestech_master（JSON）。
 
@@ -57,7 +57,7 @@
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 初回 違反6件・修正6件、再検査 違反3件・修正3件 / 初回: #1 通信の語彙をプロトコルへ（D24）・#2 整理の除外（D31）・#3 セーブを秒と int に（D32）・#4 10ファイル超のディレクトリを避ける（D33。録画シナリオの1件は末尾の「統合タスクへ引き継ぐマスタの中身」節で `scenarios/rocket/` に置く）・#5 検証の連鎖を `ItemMasterUtil` へ（D22）・#6 webui の型を `payloadTypes.ts` へ（D33）。再検査: N1 `ItemMasterUtil.cs` の200行超を `Validator/Item/` への切り出しで解消（D22）・N2 初打ち上げ済みを前例 `currentTick` と同じ `bool?` のトップレベル値に（注目点3）・N3 Web UI の3ファイルを親の名前空間に（Task 8）。再検査の注目点1・2・7は D39 で反映。注目点は判断記録の末尾
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 初回 強5・弱5・第3バケツ2、再検査 強1（後の裁定 D36 で解消済み）・弱3・第3バケツ4 / 初回: 強2はユーザー裁定で段階ごとの型（D26）、強1・3・4は前例どおり（D34）、強5は ADR 0088 を直した（D35）。弱の5件はユーザー裁定の4つの選択（進み具合と読込時のガード・打ち上げ開始の口・判定と導出の重複・契約型）で全て直した（D25・D27・D28・D29）。第3バケツの2件は Task 10 の PR 本文「本PR外のリファクタ提案」。再検査: 強1（マスタの中身の担当と時期の食い違い）は D36 と ADR 0088 の更新で解消。弱3件（重複6か所・Task 7 の cast・出力口の空き待ちの無音）は D39 の前提宣言で扱った。第3バケツの4件（新規3件と継続1件）は同じ PR 本文の節に1行ずつ入れた
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 初回 強5・弱5・第3バケツ2、再検査 強1（後の裁定 D36 で解消済み）・弱3・第3バケツ4 / 初回: 強2はユーザー裁定で段階ごとの型（D26）、強1・3・4は前例どおり（D34）、強5は ADR 0091 を直した（D35）。弱の5件はユーザー裁定の4つの選択（進み具合と読込時のガード・打ち上げ開始の口・判定と導出の重複・契約型）で全て直した（D25・D27・D28・D29）。第3バケツの2件は Task 10 の PR 本文「本PR外のリファクタ提案」。再検査: 強1（マスタの中身の担当と時期の食い違い）は D36 と ADR 0091 の更新で解消。弱3件（重複6か所・Task 7 の cast・出力口の空き待ちの無音）は D39 の前提宣言で扱った。第3バケツの4件（新規3件と継続1件）は同じ PR 本文の節に1行ずつ入れた
 
 ---
 
@@ -1087,8 +1087,8 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V6→V7移行: ロケットの初打ち上げ履歴を未打ち上げで足す（ADR 0088）
-    // V6→V7 migration: add the rocket launch history as not yet launched (ADR 0088)
+    // V6→V7移行: ロケットの初打ち上げ履歴を未打ち上げで足す（ADR 0091）
+    // V6→V7 migration: add the rocket launch history as not yet launched (ADR 0091)
     public sealed class SaveMigrationStepV6ToV7 : ISaveMigrationStep
     {
         public int FromVersion => 6;
@@ -3395,7 +3395,7 @@ git commit -m "feat(webui): ロケット発射台のパネルと建造発射の�
 ## 判断記録（ADR）
 
 設計セッションの裁定:
-- `docs/adr/0088-orbital-arrival-service-shared-by-launch-sites.md`
+- `docs/adr/0091-orbital-arrival-service-shared-by-launch-sites.md`
 - `.decisions/2026-10-23-計算データはGPU衛星の打ち上げごとに一括で得る.md`
 - `.decisions/2026-10-23-GPU衛星はレベル別アイテムとして製造してから打ち上げる.md`
 - `.decisions/2026-10-23-ロケットの手動建造発射はワールドで最初の1回だけ.md`
@@ -3451,14 +3451,14 @@ planning 中の判断:
 | D32 | 発射台のブロックのセーブは段階を int、残り時間を秒（`remainingSeconds`）で持ち、ロードで tick へ戻す | agent前提（配置検査 #3。前例 `CleanRoomMachineProcessorSaveJsonObject.cs` の `state`・`remainingSeconds`、`VanillaMachineProcessorComponent` の「tickを秒数に変換して保存」。`StringEnumConverter` はサーバーで未使用） |
 | D33 | 新しいファイルは10ファイルを超えたディレクトリの直下に置かない: プロトコルは `PacketResponse/Rocket/`、テスト共有ヘルパは `Tests/Util/Rocket/`（直下19件）。webui の公開型 `RocketLaunchPadData` は `payloadTypes.ts` だけで導出し、`schemas/rocketLaunchPad/index.ts` には schema だけを置く | agent前提（配置検査 #4・#6・注目点8。前例 `Tests/Util/EnergySystem/`、`payloadTypes.ts` L66「公開DTO型は実行時スキーマから導出し、wire shapeの定義元を一つに保つ」）。録画シナリオの置き場（#4 のもう1件）は末尾の「統合タスクへ引き継ぐマスタの中身」節で `scenarios/rocket/rocket-launch-pad.cs` にした |
 | D34 | 型・重複の検査の強1（`rocketLaunchPad` を `.optional()`＋superRefine で持つ）・強3（DTO の段階と待ち理由を文字列で載せる）・強4（`t()` の戻り値をそのまま表示する）は前例どおり変えない | シミュレーター予測（確信高・前提宣言で提示、拒否権の行使なし 2026-10-23）。前例: `BlockInventoryOpenSchema` の machine・generator・miner の `.optional()`、既存 DTO の `CurrentState`・`Mode`・`StopReason` の文字列、既存セクションの `t()`（キーは型付きの `L.*` で、欠けると型エラー）。事実の注記（再検査）: 型エラーにするため、plan の `rocketStatusKey` の戻り値と `group` の `labelKey` を `string` から `TranslationKey` に直した（前例 `details/detailLogic.ts:37` の `stopReasonTranslationKey`） |
-| D35 | ADR 0088 の出所の「GPU衛星のレベル別の計算データ量」を「S1 から S2 へ委任」に直し、plan D12 と揃える（強5） | シミュレーター予測（確信高・前提宣言で提示、拒否権の行使なし 2026-10-23）。根拠: S1 からの連絡 2026-10-23「GPU の Lv が計算データにどう効くかは S2 で決めてください」 |
+| D35 | ADR 0091 の出所の「GPU衛星のレベル別の計算データ量」を「S1 から S2 へ委任」に直し、plan D12 と揃える（強5） | シミュレーター予測（確信高・前提宣言で提示、拒否権の行使なし 2026-10-23）。根拠: S1 からの連絡 2026-10-23「GPU の Lv が計算データにどう効くかは S2 で決めてください」 |
 | D36 | moorestech_master の中身（GPU・GPU衛星・計算データのアイテムと levelFamily・積荷表の行・発射台の blocks 行の値・ビルドメニュー「宇宙」・レシピ・研究・バランス）は、S1〜S3 の実装がそろってから統合タスク（bd `moorestech-xyuaf.2`）で1回にまとめて入れる。この PR の master の変更は、スキーマ変更と土台で読込が止まらない最小限（空配列と D14）だけ。旧 Task 9〜11 の中身は末尾の「統合タスクへ引き継ぐマスタの中身」節に下書きとして移した | ユーザー裁定 2026-10-23（原文「マスタはタスク全体の実装が終わった時に全体でまとめて入れるのが良いんじゃないの？どうせ他にもデッドロック的なタスクがあるんじゃないの？」→ 提案「S2 の PR はコード・スキーマ・テスト用データと、読み込みに必要な最小限の master 変更だけにし、master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」への回答「1 ok」。[[2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる]]） |
 | D37 | unityプレイ録画テストは統合タスクへ移す。この PR はサーバーの CombinedTest（テスト用マスタで建造→打ち上げ→成果→セーブ）・プロトコルテスト・web UI の vitest と wire 契約テストで確かめる。録画シナリオの下書きは末尾の節（`scenarios/rocket/rocket-launch-pad.cs`） | ユーザー裁定 2026-10-23（D36 と同じ提案の「master の中身と録画プレイテストは S1〜S3 がそろった後の統合タスクでまとめて行う」→「1 ok」） |
 | D38 | 計算データの研究ノードは解放アクション0件（`clearedActions: []`）で置ける | agent前提（実測 2026-10-23: `VanillaSchema/research.yml` の `clearedActions` は `ref: gameAction`（配列）で件数の下限が無く、`ResearchMasterUtil.ValidateGameActions` は空配列で何も弾かない。読み込まれる master の research.json に前例2件「フィルター分岐器」「機械オーバークロック」） |
 | D39 | 再検査の弱い指摘と注目点を次のとおり扱う。(a) 成果が出力口に入りきるかの式は `RocketLaunchPadLaunchSequence.CanStoreArrivalOutputs` の1本にし、建造前と打ち上げ直前が呼ぶ。(b) `RocketLaunchPadSaveConverter.IsLaunchableCargo` は積荷表を自分で引かず、並びの `TryGetPayloadRequirement` と個数の一致だけで決める（積荷表の受け付けは `Arrive` が持つ）。(c) 積み込みの判定は `HasMaterials`・`IsPayloadReady` の1本ずつにし、巡回とガードが呼ぶ。(d) 入れ口の仮挿入は `SimulateInsert` の1本にし、`InsertionCheck` と実挿入が通る（前例 `VanillaMachineInputSimulationUtil.SimulateInsert`）。(e) 「積荷を持つ段階」「進行中の段階」は `LoadedRocketStage`・`IProgressingStage` の型の階層から引く。(f) 積荷表を並び（入れ口と表示の順）とサービス（成果の引き当て）が別々に索引する二重は残す。Task 7 の cast は前例どおり残す（到達しない根拠は実測: 読み込まれる mod で `Rocket.prefab` を使うのは発射台だけ。注目点6）。出力口の空き待ちの2経路に `silent-ok` を書く。D34 の事実の誤りを `TranslationKey` の型付けで直す。注目点1は D9、注目点2は D26、注目点7は Task 8 の登録行と using に反映する | 前提宣言（シミュレーター予測・確信高: 同型の弱い指摘の束を全採択した裁定が2回ある。拒否権つきで提示）。前例の裁定: [[2026-10-23-発射台の型検査の弱い指摘は4件とも直す]]。(f) を残す理由は agent前提: 並びは発射台の入れ口と UI の順のための索引、サービスは成果の引き当てのための索引で目的が違い、S3 の拠点はサービスしか使わないので、並びをサービスへ寄せると発射台の UI の都合がサービスに入る |
 
 配置検査の注目点のうち、修正しなかったものの扱い（どれも agent前提）:
-- 注目点2: `IRocketLaunchHistory` は共有の `Game.Orbit` に置いたままにする。初打ち上げはワールドの打ち上げの記録で、ワールドセーブの復元（`Game.SaveLoad`）が既に `Game.Orbit` を参照するため。エレベーター拠点はこの状態を読まない（ADR 0088）。
+- 注目点2: `IRocketLaunchHistory` は共有の `Game.Orbit` に置いたままにする。初打ち上げはワールドの打ち上げの記録で、ワールドセーブの復元（`Game.SaveLoad`）が既に `Game.Orbit` を参照するため。エレベーター拠点はこの状態を読まない（ADR 0091）。
 - 注目点3: 初打ち上げ済みはトップレベルの `bool? RocketHasLaunchedOnce` に置き、`WorldSaveRequiredFieldGuard` が `HasValue` で欠損を検出して止める。前例 `currentTick`（`ulong?`＋`HasValue`）と同じ形で、素の bool だと欠損が false に化けて黙って通るため nullable にする。bool を1個包むだけの節（JsonObject）は作らない（節の内側の素の bool に同じ欠損の化けが残るため。再検査 N2）。
 - 注目点5: 既存マスタの発射台の行は `blockType` が空で `blockParam` も無い（シミュレーターの斥候が moorestech_master `blocks.json` で実測）ので、テスターのワールドに置かれた台は無く、ブロック状態の移行は要らない。
 - 注目点6: `Rocket.prefab`（`Vanilla/Block/Rocket`）を使う他のブロックは moorestech_master `server/mods/moorestechAlphaMod_3`（今のゲームが読まない旧 mod）の「ロケット」だけで、読み込まれる `server_v8/mods/moorestechAlphaMod_8` には無い（実測 2026-10-23。`grep -rn "Vanilla/Block/Rocket"`）。Task 7 Step 3 の冒頭で着手時にもう一度確かめる。
@@ -3485,7 +3485,7 @@ planning 中の判断:
   ```json
   { "payloadItemGuid": "01a167cf-af8b-7894-8de6-593ee30289c0", "countPerLaunch": 1, "arrivalOutputs": [{ "itemGuid": "01a167cf-af88-74d3-9cd6-7d61b71052bb", "count": 10 }] }
   ```
-  1便ぶんの成果が空の出力口（`outputSlotCount`）に入りきるかは、マスタ読込時の検証が見る（ADR 0088）。値を変えたときは読込エラーが出ないことを確かめる。
+  1便ぶんの成果が空の出力口（`outputSlotCount`）に入りきるかは、マスタ読込時の検証が見る（ADR 0091）。値を変えたときは読込エラーが出ないことを確かめる。
 - S3 のグラフェンケーブルの行（1便N個・成果なし。N は S3 が決める）も同じ配列に入る。
 
 ### B. 発射台（blocks.json）

@@ -3,6 +3,7 @@ using System.IO;
 using System.Reflection;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.BeltTransport.Statistics;
+using Client.Game.InGame.FluidNetwork;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -13,6 +14,7 @@ using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Core.Master;
 using Game.Block.Interface.Component;
+using Game.Block.Interface;
 using Game.Block.Interface.State;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
@@ -76,24 +78,27 @@ namespace Client.Tests.WebUi.BlockDetail
             var gameObject = new GameObject("RocketLaunchPadWireTest");
             var block = gameObject.AddComponent<BlockGameObject>();
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockMasterElement)).SetValue(block, master);
+            // 本番のBlockGameObjectは必ず位置を持つ。流体複製の照会が座標で引くので同じ前提を満たす
+            // A production BlockGameObject always has a position; the fluid replica lookup keys by it, so meet the same premise
+            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).SetValue(block, new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
             // マスタだけ先に分かっても初期state未着の詳細を作らない
             // Do not synthesize detail when the master is known but initial state has not arrived
             var pending = new BlockInventoryDto();
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, new BlockStateMessagePack(new BlockState(new Dictionary<string, byte[]>()), Vector3Int.zero));
-            BlockDetailDtoBuilder.Apply(pending, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
+            BlockDetailDtoBuilder.Apply(pending, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
             Assert.IsNull(pending.RocketLaunchPad);
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, new BlockStateMessagePack(state, Vector3Int.zero));
             var dto = new BlockInventoryDto();
-            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
+            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
             // 状態受信済みでも取得失敗の在庫には発射台の添字を載せない
             // Omit launch pad indices for failed inventory even when state has arrived
             var source = new BlockSubInventorySource(null, Vector3Int.zero);
             var failedModel = new SubInventoryModel(new BlockInventorySubInventoryIdentifier(Vector3Int.zero));
             failedModel.SetResult(InventoryRequestResult.Timeout);
             var failed = BlockInventoryDtoFactory.Create(source, failedModel, block,
-                new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()));
+                new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
             Assert.AreEqual("openFailed", failed.Error);
             Assert.IsEmpty(failed.ItemSlots);
             Assert.IsNull(failed.RocketLaunchPad);
