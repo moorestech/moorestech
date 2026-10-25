@@ -213,7 +213,7 @@ git commit -m "refactor(ui-state): UIStateControl.OnStateChanged を UniRx の I
   - `public static class Client.Starter.Initialization.Boot.WebUiHostEditorSkip`（`#if UNITY_EDITOR` のみ存在）: `public static void Apply()`（次の 1 回の起動で Web ホストを起動しない印を立てる）、`internal static bool ConsumeSkipMark()`
   - テスト `WebUiHostlessStateAvailabilityTest` の `Body()` 内のローカル変数 `resolver`（`IObjectResolver`）。後続タスクはここへプローブの呼び出しを 1 行ずつ足す（待ちが要るプローブは `await XxxStateProbe.AssertAvailableAsync(resolver);`、要らないものは `XxxStateProbe.AssertAvailable(resolver);`）
 
-- [ ] **Step 1: `WebUiStartup` に分岐と末尾のスイッチを足す**
+- [x] **Step 1: `WebUiStartup` に分岐と末尾のスイッチを足す**
 
 `StartAsync` の先頭（`try` の前）:
 ```csharp
@@ -271,7 +271,7 @@ git commit -m "refactor(ui-state): UIStateControl.OnStateChanged を UniRx の I
 #endif
 ```
 
-- [ ] **Step 2: Web 無し起動のテストを書く**
+- [x] **Step 2: Web 無し起動のテストを書く**
 
 `Client.Tests/EditModeInPlayingTest/Hostless/WebUiHostlessStateAvailabilityTest.cs`:
 ```csharp
