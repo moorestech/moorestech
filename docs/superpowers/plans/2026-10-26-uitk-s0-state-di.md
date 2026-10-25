@@ -338,17 +338,17 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
 }
 ```
 
-- [ ] **Step 3: コンパイルし、テストを流す**
+- [x] **Step 3: コンパイルし、テストを流す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.EditModeInPlayingTest.Hostless.WebUiHostlessStateAvailabilityTest" --timeout-seconds 900`
 Expected: ErrorCount 0 / PASS。`uloop get-logs --project-path ./moorestech_client --log-type Warning` に `[WebUiHost] Editor限定スイッチによりWebホストを起動しません` と `[WebUiHost] Bind skipped: hub is null` が出ている
 
-- [ ] **Step 4: 印が漏れないことを確かめる**
+- [x] **Step 4: 印が漏れないことを確かめる**
 
 Run: 同じ Editor で `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value "Client.Tests.EditModeInPlayingTest.BlockInventory.ElectricToGearOutputModeActionTest" --timeout-seconds 900`
 Expected: PASS（このテストは hub を要する。印が次の起動へ漏れていたら hub が null で落ちる）
 
-- [ ] **Step 5: コミット（Unity が生成した `.meta` を含める）**
+- [x] **Step 5: コミット（Unity が生成した `.meta` を含める）**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Starter/Initialization/Boot/WebUiStartup.cs moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless
