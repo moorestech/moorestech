@@ -18,7 +18,7 @@ Task 3 CI: https://github.com/moorestech/moorestech_master/actions/runs/40177394
 
 自己テスト2本成功、本番 G2/G6 は後続データ投入・区間実装前の期待赤。G6 を緑にするための数値調整やマスタ JSON の編集はしていない。sim 目標12件中11件成功、クラスA 5.833333333333333h の1件失敗は計画どおり Task 23 の担当。
 
-Task 1 Step 3 の G2 基準出力は上記で採取済み。G1 基準出力は A の Task 10 が成立してから実施する。G1 を実測した扱いにしないこと。
+Task 1 Step 3 の基準出力は採取済み。G2 は上記。G1 は A の Task 10 の実行証拠 `step6-mw-g1-reference.json` と `step6-mw-logs.json` で、明示ルートの統合マスタ `1cf0df8` に `G1 PASS`・`research=44` を観測した。`a879158..1cf0df8 -- server_v8` の差分0を確認し、Task 1 起点と同じデータの基準出力として logs の `session-b/task-1/p2-1-base-g1*.json` に複製した。これは最終ピンの G1 成功とは別の証拠。
 
 ## レビューで再現して修正した欠陥
 
@@ -42,3 +42,15 @@ Task 3 レビュー1件: `.github/workflows/master-gates.yml` の G2/G6 `actions
 J1 は A の Task 4〜11 の push・進捗 complete・compile 0・指定テスト全成功・G1/G3 実測と、B の上記証拠の両方で判定する。成立前に Task 25〜26 の実装を始めない。成立後、B は `origin/feat/tier9-integrated` を **通常マージ** して進む。
 
 Task 26 では計画の生成器が削除対象 item-view を追加していない点に注意する。移行前の存在・解放済みを assert し、消えたことの検証を空振りにしない。セーブ版と本番コードは A の所有であり B は変更しない。
+
+## J1 停止記録（2026-10-25 11:37 UTC）
+
+A の push 済み HEAD `d58755381d` と `.superpowers/sdd/progress.md` を確認。A は Task 11 の実装・修正・レビューを完了したが、Task 9／10 の受入契約は未解決として **J1 BLOCKED／回答待ち** を明記し、Task 12 と B の Task 25〜26 を解放していない。
+
+- Task 9: 除外なし `Server.Tests` は3319件中3298成功・21失敗。21件は既存 `IgnoreCI` の手動 Surface ゲート。既存CI範囲は3298/3298成功で、原runの非IgnoreCI集合との多重集合一致まで A のレビューが確認した。ただし計画の「全assembly成功」は未達。
+- Task 10: 現ピン `630fdce` は `MooresmasterLoaderException / PropertyPath: orbitalPayloads` で実ロード失敗、batch exit 1。fixture正負・復旧は検証済み。W1統合マスタ `1cf0df8` の G1 は44研究で成功するが、現ピン成功の代わりにはしない。
+- Task 11: W1統合マスタの明示ルートは44研究成功。研究順の空・部分・重複・未知・順序破損を拒否。現ピンは G1 で失敗するので G3 未実行。
+
+A が求める裁定は (1) Task 9 を既存CI範囲で受け入れるか、手動ゲートも含む原条件を維持するか、(2) W1のG1を明示ルートの統合マスタで受け入れて最終ピン受入をTask 24に残すか、という2点。B は代理で免除しない。
+
+したがって **Task 25〜26 は未着手、通常マージも未実施**。Beads `moorestech-xyuaf.2.3` を blocked とし、裁定・A側再検証・J1成立後に再開する。B側の Editor は起動していない。本体repoの変更はこの引き渡し文書のみで、テスト／製品C#変更なし。
