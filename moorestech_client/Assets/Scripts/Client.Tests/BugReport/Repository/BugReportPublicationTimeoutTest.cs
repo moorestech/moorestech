@@ -34,7 +34,6 @@ namespace Client.Tests.BugReport.Repository
                 var manifest = new BugReportManifest { IsEditor = true, Repository = new RepositoryState { Commit = commit } };
                 var box = Path.Combine(root, "box");
                 Directory.CreateDirectory(box);
-                var accepted = listener.AcceptTcpClientAsync();
                 // 中継SSHを孫プロセスにして、直下だけの終了では残る接続を検証する
                 // Make the relay SSH a grandchild to detect cleanup that only kills direct children
                 if (relay)
@@ -67,13 +66,17 @@ namespace Client.Tests.BugReport.Repository
                 }
                 else BugReportCommitBundles.Write(Path.Combine(box, "repo"), "timeout", manifest, root, null);
                 Assert.That(timer.Elapsed.TotalSeconds, Is.LessThan(22));
-                Assert.That(accepted.IsCompleted, Is.True);
+                Assert.That(listener.Pending(), Is.True);
                 Assert.That(File.ReadAllText(Path.Combine(box, "repo/bundle-status.txt")), Does.Contain("commits.bundle: created"));
                 Assert.That(manifest.Missing, Is.Empty);
 
                 // transportの切断と、空repoへ復元できる資料の完成を確認する
                 // Verify transport closure and completed evidence restorable into an empty repository
-                using var client = accepted.Result;
+                // 高FD時もMonoの非同期登録へ依存せず、待受済み接続だけを同期受理する
+                // Accept only the queued connection synchronously without Mono async registration at high FD values
+                listener.Server.Blocking = false;
+                using var client = listener.AcceptTcpClient();
+                client.Client.Blocking = true;
                 client.ReceiveTimeout = 2000;
                 using var stream = client.GetStream();
                 while (stream.ReadByte() != -1) { }
