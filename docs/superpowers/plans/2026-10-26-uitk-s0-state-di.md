@@ -51,7 +51,7 @@
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反5件・修正5件 / tracker の pipe 比較・再配信フラグ・アダプタからの Refresh をアダプタ側へ戻し、Challenge の共有 publisher を廃止、言語ゲートの DI 登録をやめた。死活表を追加
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強3・弱6・第3バケツ1 / 強2件は修正で解消（tracker の bool 撤去・通知のカテゴリ欠損をログ付きで落とす）、検査7（モーダルを interface にしない）は D2 のまま PR で見てもらう。弱は D13 に裁定
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み（機構変更後に変えた範囲を fresh-context で再検査済み。再検査で違反3・強2・弱1を追加し、パイプ基準の控え時点・撤去直後の閉判定・通知注記を修正）/ 強3・弱6・第3バケツ1 / 強2件は修正で解消（tracker の bool 撤去・通知のカテゴリ欠損をログ付きで落とす）、検査7（モーダルを interface にしない）は D2 のまま PR で見てもらう。弱は D13 に裁定
 
 ---
 
@@ -69,7 +69,7 @@
 | 8 | `EventLanguageGate` | `Client.Game/InGame/EventMode/` | 型だけ移す。作り手は `EventModeStartGate`（DI より前）のまま、DI には載せない | 置換対象自身（`EventModeStartGate` が作り `EventLanguageGateBinder` へ渡す現行の駆動）。計画 §5「DI より前に出す全画面ゲート」 |
 | 9 | `TrainTimetableFetcher`・`OpenTrainTimetableTracker`・`OpenTrainUnitResolver` | `Client.Game/InGame/Train/Timetable/` | fetcher は singleton、tracker は entry point | 駆動は置換対象自身（tracker は UI 状態遷移・列車キャッシュを購読）。置き場は時刻表ドメインの既存ディレクトリ（`ClientTrainTimetableDatastore` 等。役割は違うが、時刻表の型を UI 側と列車側に割らないため。D15） |
 | 10 | `BlockNetworkInfoCache`・`OpenBlockDetailTracker` | `Client.Game/InGame/UI/BlockDetail/` | cache は singleton、tracker は entry point。tracker は読み口（`TrackedBlock`・変化通知）だけを出し、書き換えは自分の購読からだけ行う | `NetworkDisconnectState`、旧 `BlockInventoryTopic.TrackBlock`（置換対象自身の駆動＝UI 状態遷移とサブインベントリ更新の購読を引き継ぐ） |
-| 11 | DI 登録 | `Client.Starter/Registration/MainGameUiStateRegistration.cs` | `MainGameStarter.StartGame` から呼ぶ | `MainGameModelRegistration`・`MainGameInteractionRegistration` |
+| 11 | DI 登録 | `Client.Starter/Registration/MainGameUiStateRegistration.cs` | `MainGameStarter.StartGame` から呼ぶ | `MainGameModelRegistration`・`MainGameInteractionRegistration`。前例 `NetworkDisconnectState` が居る `MainGameModelRegistration` の「Web用の論理モデル」節へ足さず新ファイルにしたのは、9 種を足すと同ファイルが 200 行に迫り、`MainGameInteractionRegistration` は既に 215 行あるため |
 | 12 | WebUiHost の topic | `Client.WebUiHost`（既存） | DI の状態を購読して JSON にするアダプタ。各 topic が自分で購読し自分で解除する。Web 帯域のための間引き・再配信方針はここに残す | `TutorialPresentationTopic`・`ProgressTopic`（`Client.Game` の状態を購読して配信） |
 
 **データフロー（Phase 1.5）**: （サーバーイベント・UI 状態遷移・所持変化）→［`Client.Game` の状態クラス（書き手）］→（WebUiHost の topic＝読み手）→ JSON → Web。新設クラスはすべて「書き手」で、topic は「読み手」に縮む。読み手は状態を書き換える口を呼ばない（例外は Web の action が `ApplyNodeStates`・`Respond`・`ApplyFilterSplitterSnapshot` を呼ぶもので、移す前と同じ書き込み経路）。交差点（Web への直接セッター・bool の制御戻り）は足さない。
@@ -116,6 +116,10 @@ Expected: Editor 起動。3 本以上なら Task 2 のコード作業（Editor �
 
 Run: スキルの `scripts/run-scenario.sh` の手順どおり（第 3 引数のマスタ指定は `docs/development/worktree-and-review-pitfalls.md` に従う）
 Expected: 各本の `result.json` の合否と動画パス
+
+- [ ] **Step 2b: 壊れていると記録された関連シナリオを 1 回だけ流す**
+
+研究・チャレンジ・通知・BP を直接触る `research-node-state-label`・`server-notification-smoke`・`blueprint-copy-paste-via-ui`・`blueprint-right-click-delete-via-ui` を、同じ変更前コードで 1 回ずつ流す（bd `moorestech-wwxy` で壊れていると記録されている）。PASS したものは回帰対象に加え（Task 11 でも流す）、FAIL したものは result.json のパスと失敗理由 1 行を baseline.md に残して除外する。シナリオの修理は本 PR の範囲外
 
 - [ ] **Step 3: 合否表を書く**
 
@@ -207,7 +211,7 @@ git commit -m "refactor(ui-state): UIStateControl.OnStateChanged を UniRx の I
 - Consumes: なし
 - Produces:
   - `public static class Client.Starter.Initialization.Boot.WebUiHostEditorSkip`（`#if UNITY_EDITOR` のみ存在）: `public static void Apply()`（次の 1 回の起動で Web ホストを起動しない印を立てる）、`internal static bool ConsumeSkipMark()`
-  - テスト `WebUiHostlessStateAvailabilityTest` の `Body()` 内のローカル変数 `resolver`（`IObjectResolver`）。後続タスクはここへ `await XxxStateProbe.AssertAvailableAsync(resolver);` を 1 行ずつ足す
+  - テスト `WebUiHostlessStateAvailabilityTest` の `Body()` 内のローカル変数 `resolver`（`IObjectResolver`）。後続タスクはここへプローブの呼び出しを 1 行ずつ足す（待ちが要るプローブは `await XxxStateProbe.AssertAvailableAsync(resolver);`、要らないものは `XxxStateProbe.AssertAvailable(resolver);`）
 
 - [ ] **Step 1: `WebUiStartup` に分岐と末尾のスイッチを足す**
 
@@ -842,6 +846,7 @@ git commit -m "refactor(research): 研究ノード状態と取り直しの駆動
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/Challenge/ChallengeDtoBuilder.cs:9,51`
 - Modify: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs:141-146`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameUiStateRegistration.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/Challenge/ChallengeProgressStateTest.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless/ChallengeStateProbe.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless/WebUiHostlessStateAvailabilityTest.cs`
 
@@ -1051,15 +1056,89 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
 ```
 テストの `Body()` 末尾に `ChallengeStateProbe.AssertAvailable(resolver);` を足す。
 
-- [ ] **Step 5: コンパイルとテスト**
+- [ ] **Step 5: 完了イベントの経路を単体テストで固定する**
+
+プローブは handshake の初期値しか見ないので、`Initialize()` で購読が張られ、完了イベントで `Categories` を差し替えてから GUID を流すことを EditMode で確かめる（移す前は無テストだった経路）。`Client.Tests/WebUi/Challenge/ChallengeProgressStateTest.cs`:
+```csharp
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.UI.Challenge;
+using Client.Network.API;
+using Client.Tests.Inventory;
+using MessagePack;
+using NUnit.Framework;
+using Server.Event.EventReceive;
+using UniRx;
+using UnityEngine;
+
+namespace Client.Tests.WebUi.Challenge
+{
+    public class ChallengeProgressStateTest
+    {
+        [Test]
+        public void 完了イベントでカテゴリを差し替えてから完了GUIDを流す()
+        {
+            var vanillaApiEvent = new CapturingVanillaApiEvent();
+            var initialCategories = new List<ChallengeCategoryResponse>();
+            var state = new ChallengeProgressState(vanillaApiEvent, CreateHandshake(initialCategories));
+            state.Initialize();
+
+            // 完了の通知時点でカテゴリが差し替わっていることを、購読の中で見る
+            // Observe inside the subscription that categories were already replaced when the completion is notified
+            var completedGuid = Guid.NewGuid();
+            Guid? received = null;
+            var replacedBeforeNotify = false;
+            using var subscription = state.OnChallengeCompleted.Subscribe(guid =>
+            {
+                received = guid;
+                replacedBeforeNotify = !ReferenceEquals(state.Categories, initialCategories);
+            });
+
+#pragma warning disable CS0618
+            var message = new CompletedChallengeEventMessagePack
+            {
+                CompletedChallengeGuidStr = completedGuid.ToString(),
+                NextChallengeGuidsStr = new List<string>(),
+                PlayedSkitIds = new List<string>(),
+                ChallengeCategories = new List<ChallengeCategoryMessagePack>(),
+            };
+#pragma warning restore CS0618
+            vanillaApiEvent.Dispatch(CompletedChallengeEventPacket.EventTag, MessagePackSerializer.Serialize(message));
+
+            Assert.AreEqual(completedGuid, received);
+            Assert.IsTrue(replacedBeforeNotify, "完了GUIDを流す前にカテゴリが差し替わっていない");
+            Assert.AreEqual(0, state.Categories.Count);
+        }
+
+        // handshakeのうちチャレンジ以外は読まないので、他は空で組む（前例 UIStateTestFixtureBase.CreateHandshakeResponse）
+        // Only challenges are read from the handshake, so the rest stays empty (precedent: UIStateTestFixtureBase.CreateHandshakeResponse)
+        private static InitialHandshakeResponse CreateHandshake(List<ChallengeCategoryResponse> challenges)
+        {
+#pragma warning disable CS0618
+            var initialHandshake = new global::Server.Protocol.PacketResponse.InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack
+            {
+                Accepted = new global::Server.Protocol.PacketResponse.Handshake.HandshakeAcceptedMessagePack
+                {
+                    PlayerPos = new Vector3MessagePack(Vector3.zero),
+                },
+            };
+#pragma warning restore CS0618
+            return new InitialHandshakeResponse(initialHandshake, (null, null, null, challenges, null, null, null, null));
+        }
+    }
+}
+```
+（`CompletedChallengeEventMessagePack` の `CompletedChallengeGuidStr` 等の setter・`Vector3MessagePack` の namespace は `moorestech_server/Assets/Scripts/Server.Event/EventReceive/CompletedChallengeEventPacket.cs` と `Client.Tests/UIState/UIStateTestFixtureBase.cs` の using に合わせる。`InitialHandshakeResponse` のコンストラクタが null の inventory 等で落ちる場合は、`UIStateTestFixtureBase.CreateHandshakeResponse` と同じく落ちない値を入れる）
+
+- [ ] **Step 6: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.WebUi\.|Hostless\.WebUiHostlessStateAvailabilityTest" --timeout-seconds 1200`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 6: コミット**
+- [ ] **Step 7: コミット**
 
 ```bash
-git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Challenge moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter/Registration moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless
+git add -A moorestech_client/Assets/Scripts/Client.Tests/WebUi/Challenge moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Challenge moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter/Registration moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless
 git commit -m "refactor(challenge): チャレンジの全カテゴリと完了通知をClient.GameのDIへ移し2つのtopicをアダプタにする"
 ```
 
@@ -1245,7 +1324,7 @@ namespace Client.Game.InGame.UI.Notification
         }
     }
 ```
-（`NotificationCategoryTable.TryGetWebName` は default 無しの switch で、追加漏れは CS8509 の警告として出る。警告は見落とせるので、実行時にもエラーログで気づけるようにした）
+（`TryGetWebName` が偽になるのは未定義値のときだけで、feed が先に落とすので通常は到達しない。feed と表の判定がずれたときに null のカテゴリを黙って送らないための防御。表の追加漏れは移す前と同じく、default の無い switch 式の例外と CS8509 の警告で気づく）
 using を `Client.Game.InGame.UI.Notification`・`Client.WebUiHost.Boot`・`Client.WebUiHost.Common`・`Core.Master`・`Cysharp.Threading.Tasks`・`Server.Event.Notification`・`System`・`UniRx`・`UnityEngine` に整理する（`MessagePack`・`Client.Network.API` は不要になる）。
 
 - [ ] **Step 3: 登録と binder**
@@ -1330,7 +1409,7 @@ git commit -m "refactor(notification): 通知の連番と移行告知をClient.G
 **Files:**
 - Modify（移動）: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/EventMode/EventLanguageGate.cs` → `moorestech_client/Assets/Scripts/Client.Game/InGame/EventMode/EventLanguageGate.cs`（`git mv` で `.meta` も）
 - Modify（using のみ）: `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/EventMode/EventLanguageGateBinder.cs`、`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/EventMode/EventLanguageGateTopic.cs`、`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Actions/EventMode/EventLanguageGateActions.cs`、`moorestech_client/Assets/Scripts/Client.Starter/EventMode/EventModeStartGate.cs`
-- Modify（using のみ）: `moorestech_client/Assets/Scripts/Client.Tests/EventMode/EventModeStartGateTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/EventMode/EventLanguageGateTopicTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/EventMode/EventLanguageGateTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Boot/EventLanguageGateCursorTest.cs`
+- Modify（using のみ）: `moorestech_client/Assets/Scripts/Client.Tests/EventMode/EventModeStartGateTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/EventMode/EventLanguageGateTopicTest.cs`、`moorestech_client/Assets/Scripts/Client.Tests/EventMode/EventLanguageGateTest.cs`
 
 **Interfaces:**
 - Consumes: なし
@@ -1353,7 +1432,7 @@ namespace を `Client.Game.InGame.EventMode` にし、`internal` の 4 メンバ
 
 - [ ] **Step 2: 参照側の using を直す**
 
-上の Files の 8 ファイルに `using Client.Game.InGame.EventMode;` を足す（`Client.WebUiHost.Game.EventMode` の using は Binder・Topic を使うファイルでは残す）。コンパイルエラーで残りを拾う。
+上の Files の 7 ファイルのうち `EventLanguageGate`・`EventLanguageSelectionResult` を参照するものに `using Client.Game.InGame.EventMode;` を足す（`Client.WebUiHost.Game.EventMode` の using は Binder・Topic を使うファイルでは残す）。コンパイルエラーで残りを拾う。
 
 - [ ] **Step 3: コンパイルとテスト**
 
@@ -1655,7 +1734,7 @@ namespace Client.Game.InGame.UI.BlockDetail
 
 - [ ] **Step 4: `BlockInventoryTopic` をアダプタにする**
 
-フィールド・コンストラクタ・`Dispose`・`OnTrackedBlockChanged`・`HasPipeContentsChanged`・`OnTrackedBlockStateChanged`・`BuildJson` を次にする。`TrackBlock`、`NetworkCache` プロパティ、`_networkCache = new()`、`_trackedBlock`、`_blockStateSubscription`、個別の `IDisposable` フィールド群は削除する。`SchedulePublish`（INFRA-7 のフレーム末の畳み込み）と `PublishContinuousSample` はそのまま残す。
+フィールド・コンストラクタ・`Dispose`・`OnTrackedBlockChanged`・`CapturePipeBaseline`・`HasPipeContentsChanged`・`OnTrackedBlockStateChanged`・`BuildJson` を次にする。`TrackBlock`、`NetworkCache` プロパティ、`_networkCache = new()`、`_trackedBlock`、`_blockStateSubscription`、個別の `IDisposable` フィールド群は削除する。`SchedulePublish`（INFRA-7 のフレーム末の畳み込み）と `PublishContinuousSample` はそのまま残す。
 ```csharp
         public const string TopicName = "block_inventory.current";
         private readonly WebSocketHub _hub;
@@ -1675,6 +1754,9 @@ namespace Client.Game.InGame.UI.BlockDetail
         private bool _republishOnBeltWindow;
         // パイプの中身はブロック状態イベントで届かずクライアント側のコピーが毎tick進めるので、連続値と同じ間隔で見て、量か流体の種類が前回の配信から変わった回だけ出し直す
         // Pipe contents do not arrive as block state events but advance in the client-side copy every tick, so they are sampled at the continuous-sample interval and republished only when the amount or fluid id changed since the last publish
+        // 比較の基準は、追跡が変わった後に最初にDTOを組む瞬間の値で控える（配信した中身と同じ瞬間にそろえる）
+        // The comparison baseline is captured when the first DTO after a tracking change is built, so it matches the published contents
+        private bool _pipeBaselinePending;
         private bool _republishOnFluidReplica;
         private long _publishedPipeAmount;
         private FluidId _publishedPipeFluidId;
@@ -1737,18 +1819,20 @@ namespace Client.Game.InGame.UI.BlockDetail
 
         private void OnTrackedBlockChanged(BlockGameObject block)
         {
-            if (block == null)
-            {
-                _sampleContinuously = false;
-                _republishOnBeltWindow = false;
-                _republishOnFluidReplica = false;
-                return;
-            }
-            var param = block.BlockMasterElement.BlockParam;
+            // ギアの連続値の間引きとベルト統計窓での出し直しは、追跡ブロックの接続paramで決まる（ネットワーク取得の判断はtrackerが持つ）
+            // Gear sampling and belt-window republish follow the tracked block's connection params (the network-fetch decision belongs to the tracker)
+            var param = block == null ? null : block.BlockMasterElement.BlockParam;
             _sampleContinuously = param is IGearConnectors;
             _republishOnBeltWindow = param is IBeltSpeedParam;
-            // 開いた時点でコピーに載っていないパイプは、載るまで中身を出さない(調べ直さない)。載っていれば今の中身を配信済みとして控え、最初の配信は通常の開く経路に任せる
-            // A pipe not yet in the copy when opened shows no contents until reopened (no re-check); when present, the current contents count as published and the first publish goes through the normal open path
+            _republishOnFluidReplica = false;
+            _pipeBaselinePending = block != null;
+        }
+
+        // 開いた時点でコピーに載っていないパイプは、載るまで中身を出さない(調べ直さない)。載っていれば今の中身を配信済みとして控え、最初の配信は通常の開く経路に任せる
+        // A pipe not yet in the copy when opened shows no contents until reopened (no re-check); when present, the current contents count as published and the first publish goes through the normal open path
+        private void CapturePipeBaseline(BlockGameObject block)
+        {
+            _pipeBaselinePending = false;
             _republishOnFluidReplica = _fluidCache.TryGetNodeIndex(block.BlockPosInfo.OriginalPos, out var pipeNode);
             if (!_republishOnFluidReplica) return;
             _publishedPipeAmount = _fluidCache.Replica.Network.NodeAmounts[pipeNode];
@@ -1790,15 +1874,27 @@ namespace Client.Game.InGame.UI.BlockDetail
                 return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, _timetables, _timetableFetcher, ClientDIContext.BlockGameObjectDataStore));
             }
 
-            // 開いているブロックの解決はtrackerが遷移・スロット更新のたびに済ませている。読むだけにする
+            // 開いているブロックの解決はtrackerが遷移・スロット更新のたびに済ませている。ここは読むだけにする
             // The tracker already resolves the open block on every transition and slot update; only read it here
             var block = _tracker.TrackedBlock;
-            if (block == null || _subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource blockSource)
+            if (block == null || _subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource blockSource || !IsStillPlaced(blockSource, block))
             {
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
+            if (_pipeBaselinePending) CapturePipeBaseline(block);
             var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache, _fluidCache);
             return WebUiJson.Serialize(dto);
+
+            #region Internal
+
+            // 撤去されたフレームから閉じる遷移（次のUpdate）までの間は、移す前と同じく閉として出す（撤去済みのGameObjectを読まない）
+            // Between a removal and the closing transition on the next Update, publish closed as before (never read a removed GameObject)
+            bool IsStillPlaced(BlockSubInventorySource source, BlockGameObject tracked)
+            {
+                return ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(source.BlockPosition, out var placed) && ReferenceEquals(placed, tracked);
+            }
+
+            #endregion
         }
 ```
 （移す前の `Dispose` が呼んでいた `TrackBlock(null)` は、追跡が DI 側に移りホスト停止と無関係になったので呼ばない。判断記録 D6）。不要になった using（`Server.Event.EventReceive`・`Client.WebUiHost.Game.Topics.BlockDetail` 等）を整理し、`Client.Game.InGame.UI.BlockDetail` を足す。`Core.Master`（`FluidId`）・`Mooresmaster.Model.BlocksModule`（`IGearConnectors`・`IBeltSpeedParam`）・`Client.Game.InGame.Block`（`BlockGameObject`）は残る。
@@ -1924,7 +2020,7 @@ Expected: 全 PASS。`uloop get-logs --project-path ./moorestech_client --log-ty
 
 - [ ] **Step 2: Task 1 と同じ 5 本を流す**
 
-Task 1 Step 2 と同じ手順・同じ 5 本。
+Task 1 Step 2 と同じ手順・同じ 5 本と、Task 1 Step 2b で PASS したシナリオ。
 Expected: ベースラインで PASS だったものは全部 PASS。動画で、研究画面・チャレンジ一覧・機械 UI・時刻表タブ・獲得通知が変更前と同じに描かれている（各本 1 枚ずつスクショを抜いて `baseline.md` に並べる）
 
 - [ ] **Step 3: 食い違いの扱い**
@@ -1971,14 +2067,14 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D3 | `BlueprintNameInputWebBridge` は Web 依存部分が無い（モーダルサービスを呼ぶだけ）ので全体を `Client.Game` の entry point `BlueprintNameInputModalBridge` へ移す。Web 無しでは BP 名入力を開くと保留モーダルが解決されず状態は開いたまま（移す前も Web 無しでは開いたまま何も起きない）。ローカライズキー名 `WebModal*` は変えない（マスタの CSV に及ぶため） | 状態部分だけを切り出すと中身が残らない | agent 既定（ユーザー未裁定） |
 | D4 | 状態クラスは `IInitializable` の entry point（`RegisterEntryPoint<…>().AsSelf()`）にし、購読をコンストラクタでなく `Initialize()` で張る。登録は新設 `MainGameUiStateRegistration` に集める | Web の有無と無関係に起動時に作らないと、遅延生成で起動直後のイベント（完了・通知）を取りこぼす。前例 `NetworkDisconnectState`。イベント配信の開始（`VanillaApiEvent.InitializeDispatch`）は `StartGame` と `WebUiGameBinder.Bind` の後なので、購読開始が Bind 時から DI 構築時へ早まっても受け取るイベントは同じ | agent 既定（ユーザー未裁定） |
 | D5 | Tier9 の open PR #1551（`feat/tier9-compute-data-loop`）・#1552（`feat/tier9-fusion-elevator-endgame`）との衝突を最小にする切り方: 両 PR が触るのは `WebUiGameBinder.cs` の action 登録行への 1〜2 行の挿入（`ElectricToGearSetOutputModeActionHandler` の後と `MachineRecipeSelectActionHandler` の後）、`BlockInventoryTopic.TrackBlock` の 2 行コメント削除、`BlockDetailDtoBuilder.cs` への 2〜3 行の挿入。そこで (a) Tier9 と重なるブロック詳細の移設を最後の実装タスク（Task 10）に回し、着手時に Tier9 がマージ済みなら先に master を取り込む、(b) `WebUiGameBinder` の action 登録ブロックでは Tier9 の挿入位置に隣り合う行（`TrainWebUiActionRegistration.Register` の行など）を変えず、変えるのは `FilterSplitter` の 2 行と `ResearchComplete` の 1 行だけにする、(c) `BlockDetailDtoBuilder.cs` は using の 1 行だけ、(d) `TrackBlock` の 2 行コメント削除は移動先の `OpenBlockDetailTracker.Track` で衝突解消時に Tier9 側に合わせてよい（どちらでも挙動は同じ） | ユーザー指示「plan を書く前に両 PR の差分を見て、衝突を最小にする切り方を判断記録に書く」。差分は `git diff origin/master...origin/<branch>` で確認（2026-10-26、両 PR とも OPEN） | agent 既定（ユーザー未裁定） |
-| D6 | ブロック詳細の分け方: `OpenBlockDetailTracker` は「どのブロックを開いているか」と「何を監視するか」（ブロック状態イベントの購読・電力網／ギア網／フィルタ分岐器のネットワーク取得）だけを持ち、UI 状態遷移とサブインベントリ更新を自分で購読して解決し直す。読み口は `TrackedBlock` と変化通知だけで、解決し直すメソッドは private（アダプタは読むだけ）。Web 帯域のための再配信方針（ギア連続値の間引き・ベルト統計窓での出し直し・パイプの中身を前回配信と比べること）はアダプタに残す。挙動の差: 追跡の開始・解除が移す前の「フレーム末の BuildJson」から「遷移・スロット更新の直後（同じフレーム）」へ早まる。`OnStateChanged` は新ステートの `OnEnter` 後に発火し、中身の読み込み完了で `OnSubInventoryUpdated` が発火するので、解決結果（読み込み中は追跡しない→読み込み後に追跡）は移す前と同じ。ブロック撤去中に開いていた場合は `SubInventoryState` が閉じて遷移を起こすので、配信直前の解決し直しは要らない。ホスト停止時に移す前は `TrackBlock(null)` で追跡を外していたが、追跡は DI 側に移ったので外さない（ホスト停止はゲーム終了時だけ） | Web 無しで状態を取れることが完了条件。配置検査（Phase 1.5）で、アダプタから状態を書き換える経路と Web 専用の再配信方針を Client.Game に持たせる形を違反として直した。配信タイミング（フレーム末の畳み込み・4 フレーム間引き）はアダプタに残るので Web 側の挙動は不変 | agent 既定（ユーザー未裁定） |
+| D6 | ブロック詳細の分け方: `OpenBlockDetailTracker` は「どのブロックを開いているか」と「何を監視するか」（ブロック状態イベントの購読・電力網／ギア網／フィルタ分岐器のネットワーク取得）だけを持ち、UI 状態遷移とサブインベントリ更新を自分で購読して解決し直す。読み口は `TrackedBlock` と変化通知だけで、解決し直すメソッドは private（アダプタは読むだけ）。Web 帯域のための再配信方針（ギア連続値の間引き・ベルト統計窓での出し直し・パイプの中身を前回配信と比べること）はアダプタに残す。挙動の差: 追跡の開始・解除が移す前の「フレーム末の BuildJson」から「遷移・スロット更新の直後（同じフレーム）」へ早まる。`OnStateChanged` は新ステートの `OnEnter` 後に発火し、中身の読み込み完了で `OnSubInventoryUpdated` が発火するので、解決結果（読み込み中は追跡しない→読み込み後に追跡）は移す前と同じ。開いているブロックが撤去された場合は `SubInventoryState` が次の Update で閉じて遷移を起こし tracker が外れる。撤去したフレームから閉じるまでの間に配信があると古いブロックを読みかねないので、アダプタは配信の直前に「そのブロックがまだ置かれているか」だけを読み取り専用で確かめ、移す前と同じく閉として出す。パイプ比較の基準も、移す前と同じく配信する DTO を組む瞬間に控える（追跡が変わった時点で控えると、同じフレームで流体が届いたときに配信値と基準がずれるため）。ホスト停止時に移す前は `TrackBlock(null)` で追跡を外していたが、追跡は DI 側に移ったので外さない（ホスト停止はゲーム終了時だけ） | Web 無しで状態を取れることが完了条件。配置検査（Phase 1.5）で、アダプタから状態を書き換える経路と Web 専用の再配信方針を Client.Game に持たせる形を違反として直した。配信タイミング（フレーム末の畳み込み・4 フレーム間引き）はアダプタに残るので Web 側の挙動は不変 | agent 既定（ユーザー未裁定） |
 | D7 | `BlockInventoryTopic` のコメント「4tick 間隔」と実装 `Observable.IntervalFrame(4)` の食い違い: 意図は「連続値（トルク・RPM）は変化時 publish だと毎フレーム出るので、固定間隔で間引いて WS 帯域とギア網走査を抑える」（`docs/webui/archive/cef-webui-migration-todo.md:173`「例: 4tick」、`docs/webui/plans/phase-b1-gear-blocks.md:25`、導入コミット `5f4ef4af40`）。「4tick」は間隔の例示で、単位の意図は無かった。実装（4 フレーム）を変えず、コメントを「4 フレーム間隔（WS 帯域の間引き）」に直す。間引きは計画 §3.2 どおりアダプタ側に残し、UITK では毎フレーム読む | 挙動は変えない指示。間引きは Web 帯域のためのもので状態ではない | agent 既定（ユーザー未裁定） |
 | D8 | `EventLanguageGate` は型だけを `Client.Game/InGame/EventMode/` へ移し（メンバーを public に）、DI には載せない。作り手（`EventModeStartGate`、DI 構築より前）と、Web の topic/action への渡し方（`EventLanguageGateBinder.Bind(hub, bool)`）は変えない。計画 §2.1 0-4 は移す先を「Client.Game の DI」としているが、同じ計画 §5 は言語ゲートを「DI より前に出す全画面ゲート」とし、UITK 側の出し方を段階 5 で決めるとしている | ゲートは `StartGame` より前に待機が終わるので、DI から取れる時点では常に待機していない。DI 側に使い手がいない（配置検査 Phase 2 で違反として検出）。Web から外す目的（Web 以外の描く側が触れる型にする）は型の移動で満たす | agent 既定（ユーザー未裁定）。PR 本文「ユーザーに見てほしい判断」に置く |
 | D9 | 0-10 のスイッチは SessionState の印を起動時に消費する形（`WebUiHostEditorSkip.Apply()`）。メニュー項目は作らない | 前例 `PlaytestStartGateBypass`（読んだら消費・EnteredEditMode で消す）。印が次の Play に漏れると hub 前提のテストが落ちるため消費型にする。人が手で切り替える入口は CEF 無し起動ラダー（§4.4）を DSL に載せる albof.6 で必要になったら足す（YAGNI） | agent 既定（ユーザー未裁定） |
 | D10 | Web 無しのブロック詳細プローブは、`UIStateControl.RequestTransition(SubInventory)`（文脈なし。`SubInventoryState` がエラーログを 1 回出す）で状態を先に入れてから `BlockSubInventoryOpener.Open`（`OnEnter` に文脈を渡し、読み込み完了で `OnSubInventoryUpdated` が出る）で実プレイと同じ文脈で開き直す。エラーログは `LogAssert.Expect` で明示する | `UIStateControl` に文脈付き遷移の入口が無く、テスト専用 public を足すのは規約違反。入力注入で F キーを押す経路はテストの範囲を超える | agent 既定（ユーザー未裁定） |
-| D11 | 回帰の録画は「移した topic に触る」5 本（`ui-state-transition-matrix`・`walk-while-menus-open`・`ui-place-then-open-machine`・`train-timetable-via-ui`・`vein-hand-mining-smoke`）に絞り、変更前後で突き合わせる。研究・チャレンジ・通知・BP を直接触る既存シナリオ（`research-node-state-label`・`server-notification-smoke`・`tutorial-*`・`blueprint-copy-paste-via-ui`）は bd `moorestech-wwxy` で壊れていると記録済みなので使わず、その状態は `WebUiHostlessStateAvailabilityTest` と既存の wire 契約テストで押さえる | ランタイム挙動（UI）に触れるため録画は必須。壊れたシナリオの修理は本 PR の範囲外 | agent 既定（ユーザー未裁定） |
+| D11 | 回帰の録画は「移した topic に触る」5 本（`ui-state-transition-matrix`・`walk-while-menus-open`・`ui-place-then-open-machine`・`train-timetable-via-ui`・`vein-hand-mining-smoke`）を変更前後で突き合わせる。研究・チャレンジ・通知・BP を直接触る 4 本（`research-node-state-label`・`server-notification-smoke`・`blueprint-copy-paste-via-ui`・`blueprint-right-click-delete-via-ui`）は bd `moorestech-wwxy` で壊れていると記録されているので、変更前に 1 回だけ流し、PASS したものだけ回帰対象に加える（Task 1 Step 2b）。チャレンジ完了の経路は録画で踏まないので単体テスト（Task 6 Step 5）で押さえる | ランタイム挙動（UI）に触れるため録画は必須。一律に外さず実測で決める（user-simulator の予測: 画面に出る変更で録画を省くと問われる）。壊れたシナリオの修理は本 PR の範囲外 | agent 既定（ユーザー未裁定） |
 | D12 | ランタイム挙動に触れる判定: 触れる（UI 状態遷移の通知機構・topic の配信経路・起動順）。unityプレイ録画テスト（Task 1・11）と EditModeInPlayingTest（Task 3〜10）の両方を入れる | moores-writing-plans の録画テスト規定 | 本 plan |
-| D13 | 設計検査 Phase 2.6 の発火への裁定（ユーザー不在のため agent が決めた）。強: 5-A（tracker の null と bool の並立）→ bool を tracker から外したので解消。5-I（`TryGetWebName` の bool を捨てる）→ 捨てずに、名前が引けなければ送らずエラーログ（Task 7）。検査7（D2 と計画の字面の食い違い）→ D2 のまま、PR 本文で見てもらう。弱: `TryConsumePipeContentsChange` の 3 理由 → tracker から外しアダプタの移す前のコードのまま（解消）。ゲートの合成 bool → ゲート作成を変えないので解消。「開いているか」の判定がアダプタと tracker の 2 か所 → アダプタは列車の分岐と閉の判定にだけ使い、ブロックの解決は tracker だけが行う形にしたのでこのまま。`CancelPendingRequest` の呼び口 2 つ（BP 入力が閉じたとき／Web ホスト停止時）→ 所有者はサービス、呼ぶのは別の理由の 2 者で、移す前と同じ（移す前はホスト停止時に static 経由で呼んでいた）のでこのまま。終了経路の削除 3 か所 → いずれもゲーム寿命へ移した物の破棄で、AGENTS.md「ゲーム寿命の dispose は考慮不要」に当たるのでこのまま。Client.Game の具象型を WebUiHost が直接受け取る → 既存の WebUiHost は Client.Game の具象（`ProgressBarState` 等）を直接受け取っており、契約層は無いのでこのまま | AskUserQuestion 禁止の指示。各項目の理由は左に記載 | agent 既定（ユーザー未裁定） |
+| D13 | 設計検査 Phase 2.6 の発火への裁定（ユーザー不在のため agent が決めた）。強: 5-A（tracker の null と bool の並立）→ bool を tracker から外したので解消。5-I（`TryGetWebName` の bool を捨てる）→ 捨てずに、名前が引けなければ送らずエラーログ（Task 7）。検査7（D2 と計画の字面の食い違い）→ D2 のまま、PR 本文で見てもらう。弱: `TryConsumePipeContentsChange` の 3 理由 → tracker から外しアダプタの移す前のコードのまま（解消）。ゲートの合成 bool → ゲート作成を変えないので解消。「開いているか」の判定がアダプタと tracker の 2 か所 → アダプタは列車の分岐と閉の判定にだけ使い、ブロックの解決は tracker だけが行う形にしたのでこのまま。`CancelPendingRequest` の呼び口 2 つ（BP 入力が閉じたとき／Web ホスト停止時）→ 所有者はサービス、呼ぶのは別の理由の 2 者で、移す前と同じ（移す前はホスト停止時に static 経由で呼んでいた）のでこのまま。終了経路の削除 3 か所 → いずれもゲーム寿命へ移した物の破棄で、AGENTS.md「ゲーム寿命の dispose は考慮不要」に当たるのでこのまま。Client.Game の具象型を WebUiHost が直接受け取る → 既存の WebUiHost は Client.Game の具象（`ProgressBarState` 等）を直接受け取っており、契約層は無いのでこのまま。再検査で追加: 5-E（tracker が撤去を購読しない）→ アダプタが配信直前に置かれているかを確かめる形で解消（D6）。検査7（D8 と計画 §2.1「移す先は DI」の食い違い）→ D8 のまま。上位計画 `docs/uitk-migration/plan.md` は本レーンの持ち物ではないので書き換えず、PR 本文で見てもらう。検査6（`param is IGearConnectors` と `TryGetNodeIndex` が tracker とアダプタの両方に出る）→ tracker はネットワーク取得の要否、アダプタは Web 帯域の間引きの要否で、問いが違うのでこのまま | AskUserQuestion 禁止の指示。各項目の理由は左に記載 | agent 既定（ユーザー未裁定） |
 | D14 | `ResearchNodeStateStore` の初期値は移す前と同じく空（`InitialHandshakeResponse` の研究状態から初期化しない）。研究画面へ入るたびにサーバーから取り直す駆動も同じ | 抽出 PR は挙動を変えない。handshake から初期化すると、研究画面を開く前に Web へ送る `research.tree` の中身が変わる | agent 既定（ユーザー未裁定） |
 | D15 | 時刻表の fetcher・tracker・`OpenTrainUnitResolver` は `Client.Game/InGame/Train/Timetable/`、ブロック詳細の tracker・cache は `Client.Game/InGame/UI/BlockDetail/` に置く。同じ「開いているサブインベントリの追跡」役なのに置き場が割れる | 時刻表の型（Datastore・EventHandler）は既に `Train/Timetable` にあり、時刻表の取得役をそこから離すと時刻表の型が UI 側と列車側に割れる。ブロック詳細には既存のドメインディレクトリが無いので UI 側に置く | agent 既定（ユーザー未裁定） |
 | D16 | `ModalTopic.Dispose`（Web ホスト停止）で保留中のモーダルを cancel で解決する挙動は残す。UITK と併存すると、Web ホストの停止が UITK 側のモーダルも取り消す | 移す前と同じ挙動（`WebSocketHub.ClearBindings` が static 経由で呼んでいた）。ホスト停止はゲーム終了時だけなので実害は無い。UITK がモーダルを描く段で、保留の解決を描く側ごとに分けるかを決める | agent 既定（ユーザー未裁定） |
