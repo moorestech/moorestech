@@ -148,7 +148,7 @@ Expected: 各本の `result.json` の合否と動画パス
 - Consumes: なし
 - Produces: `public IObservable<UIStateEnum> UIStateControl.OnStateChanged`（遷移のたびに新しい `CurrentState` を 1 回流す。購読時に現在値は流さない）。後続タスクの状態クラスはすべてこれを `Subscribe` する
 
-- [ ] **Step 1: `UIStateControl` を書き換える**
+- [x] **Step 1: `UIStateControl` を書き換える**
 
 ```csharp
 // 16 行目の event を置き換える
@@ -161,7 +161,7 @@ _onStateChanged.OnNext(CurrentState);
 ```
 `using UniRx;` は既にある。`event Action` が消えたら `using System;` は `IDisposable` のため残す。
 
-- [ ] **Step 2: Client.Game 側の購読 2 か所を直す**
+- [x] **Step 2: Client.Game 側の購読 2 か所を直す**
 
 `BugReportUiStatePusher.Initialize()`（ゲーム寿命。解除しない）:
 ```csharp
@@ -174,7 +174,7 @@ _uiStateControl.OnStateChanged.Subscribe(OnUiStateChanged).AddTo(_eventSubscript
 ```
 （`_eventSubscriptions` は 31 行目の `CompositeDisposable` で、119 行目などで `.AddTo(_eventSubscriptions)` に使われている。`Dispose()` が既に `_eventSubscriptions.Dispose()` する）
 
-- [ ] **Step 3: WebUiHost 側の購読 6 か所を同じ形に直す**
+- [x] **Step 3: WebUiHost 側の購読 6 か所を同じ形に直す**
 
 各クラスに `private readonly IDisposable _uiStateSubscription;` を足し、コンストラクタの `_uiStateControl.OnStateChanged += X;` を次へ、`Dispose()` の `-= X;` を `_uiStateSubscription.Dispose();` へ置き換える（`X` は各クラスの既存ハンドラ名: `BlockInventoryTopic`・`UiStateTopic`・`ResearchTopic`・`BuildMenuTopic` は `OnStateChanged`、`TrainRidingTopic`・`OpenTrainTimetableTracker` は `OnUiStateChanged`）:
 ```csharp
@@ -182,7 +182,7 @@ _uiStateSubscription = _uiStateControl.OnStateChanged.Subscribe(OnStateChanged);
 ```
 `OpenTrainTimetableTracker` は既存の `_subscriptions`（`CompositeDisposable`）へ `.AddTo(_subscriptions)` で入れ、`Dispose()` の `-=` 行を消すだけでよい。各ファイルに `using UniRx;` が無ければ足す。
 
-- [ ] **Step 4: 取り残しを確かめる**
+- [x] **Step 4: 取り残しを確かめる**
 
 Run: `grep -rn "OnStateChanged +=\|OnStateChanged -=" moorestech_client/Assets/Scripts | grep -v "_subStateController\|onStateChanged ="`
 Expected: 0 件（`MapObjectDistanceVisibilityController` の `_cullingGroup.onStateChanged = ` は別物）
@@ -192,7 +192,7 @@ Expected: 0 件（`MapObjectDistanceVisibilityController` の `_cullingGroup.onS
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi|WebUiHost|EventMode|BugReport)\."`
 Expected: ErrorCount 0 / 全 PASS（失敗があれば、変更前から落ちているかを `git stash` ではなく一時 WIP コミットの前後で確かめて報告に書く）
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/UIStateControl.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/Capture/BugReportUiStatePusher.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Playtest/Progress/ProgressRecorder.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics
