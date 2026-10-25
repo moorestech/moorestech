@@ -1,34 +1,30 @@
-using System;
-using Client.Game.InGame.UI.Blueprint;
+using Client.Game.InGame.UI.Modal;
 using Client.Localization;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using UniRx;
+using VContainer.Unity;
 
-namespace Client.WebUiHost.Game
+namespace Client.Game.InGame.UI.Blueprint
 {
     /// <summary>
-    /// BP名入力状態の開閉を購読し、入力モーダルへ転送して応答を書き戻すブリッジ。
-    /// 状態権威は BlueprintNameInputState のまま。
-    /// Bridges the blueprint-name state to the web input modal, writing the reply back to the state.
-    /// BlueprintNameInputState stays the state authority.
+    /// BP名入力状態の開閉を購読し、入力モーダルへ転送して応答を書き戻す。状態権威は BlueprintNameInputState のまま
+    /// Bridges the blueprint-name state to the input modal and writes the reply back; BlueprintNameInputState stays the state authority
     /// </summary>
-    public class BlueprintNameInputWebBridge : IDisposable
+    public sealed class BlueprintNameInputModalBridge : IInitializable
     {
         private readonly BlueprintNameInputState _state;
-        private readonly WebUiModalService _modalService;
-        private readonly IDisposable _subscription;
+        private readonly ModalRequestService _modalService;
 
-        public BlueprintNameInputWebBridge(BlueprintNameInputState state, WebUiModalService modalService)
+        public BlueprintNameInputModalBridge(BlueprintNameInputState state, ModalRequestService modalService)
         {
             _state = state;
             _modalService = modalService;
-            _subscription = _state.OnOpenChanged.Subscribe(OnOpenChanged);
         }
 
-        public void Dispose()
+        public void Initialize()
         {
-            _subscription.Dispose();
+            _state.OnOpenChanged.Subscribe(OnOpenChanged);
         }
 
         private void OnOpenChanged(bool isOpen)

@@ -53,6 +53,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "Editor限定スイッチを付けたのにWebホストが起動した");
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                 Assert.IsNotNull(resolver);
+                await ModalStateProbe.AssertAvailableAsync(resolver);
             }
 
             #endregion

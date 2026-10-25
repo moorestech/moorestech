@@ -2,29 +2,14 @@ using System;
 using Cysharp.Threading.Tasks;
 using UniRx;
 
-namespace Client.WebUiHost.Game
+namespace Client.Game.InGame.UI.Modal
 {
     /// <summary>
-    /// Web UI へモーダル要求を push し、Web からの応答を待つブリッジサービス。
-    /// 合成ルート(WebUiGameBinder)で1度生成され Instance に公開される。将来のプロデューサは
-    /// WebUiModalService.Instance.RequestModal を呼ぶ(VContainer 登録はアセンブリ依存方向の
-    /// 制約=Client.Game→Client.WebUiHost を張れないため不可なので静的所有とする)。
-    /// Bridge service that pushes modal requests to the Web UI and awaits the web reply.
-    /// Constructed once at the composition root (WebUiGameBinder) and exposed via Instance; future
-    /// producers call WebUiModalService.Instance.RequestModal. VContainer registration is impossible
-    /// (Client.Game cannot reference Client.WebUiHost), so it uses static ownership instead.
+    /// 保留中のモーダル要求を1件持ち、描く側（Web・将来のUITK）からの応答で解決する。出す側（BP名入力など）はRequest系を呼ぶ
+    /// Holds the single pending modal request and resolves it with the reply from the presenter (web, later UITK); producers such as the blueprint-name input call the Request methods
     /// </summary>
-    public class WebUiModalService
+    public class ModalRequestService
     {
-        // 合成ルートで生成された唯一のインスタンス。プロデューサ配線の解決口
-        // The single instance built at the composition root; the resolution point for producer wiring
-        public static WebUiModalService Instance { get; private set; }
-
-        public WebUiModalService()
-        {
-            Instance = this;
-        }
-
         // 現在保留中のモーダル要求。なければ null
         // The currently pending modal request, or null when none
         public ModalRequest Pending { get; private set; }
@@ -79,10 +64,12 @@ namespace Client.WebUiHost.Game
             return source.Task;
         }
 
-        // 保留中の要求だけを cancel 解決する（Instance は維持。ビュー側クローズ等の要求単位キャンセル用）
-        // Cancel-resolve only the pending request, keeping Instance (per-request cancel, e.g. view closed)
+        // 保留中の要求だけを cancel 解決する（ビュー側クローズ等の要求単位キャンセル用）
+        // Cancel-resolve only the pending request, per-request cancel, e.g. view closed
         public void CancelPendingRequest()
         {
+            // silent-ok: 保留無しの取消は冪等操作 / 呼出元はPendingの変化通知を購読する
+            // An empty cancellation is idempotent; callers observe pending-state changes.
             if (_pendingSource == null && Pending == null) return;
             var source = _pendingSource;
             _pendingSource = null;
@@ -92,21 +79,12 @@ namespace Client.WebUiHost.Game
             source?.TrySetResult(("cancel", null));
         }
 
-        // バインド解除時に保留要求を cancel で解決し解決口を閉じる（await リーク防止）
-        // On unbind, cancel-resolve the pending request and close the resolution point (prevents leaked awaits)
-        public void CancelPending()
-        {
-            CancelPendingRequest();
-
-            // 自分が現行 Instance なら破棄扱いにして解決口を閉じる
-            // If this is the current Instance, treat it as disposed and close the resolution point
-            if (ReferenceEquals(Instance, this)) Instance = null;
-        }
-
         // Web からの応答。id 不一致は古い応答なので無視する
         // Reply from the web; ignore id mismatches as stale responses
         public bool Respond(string id, string result, string text)
         {
+            // silent-ok: 遅延した応答は現要求を変更しない / action呼出元がfalseを受け取る
+            // Stale replies leave the current request intact; the action caller receives false.
             if (_pendingSource == null || id == null || id != _pendingId) return false;
 
             var source = _pendingSource;
@@ -120,27 +98,4 @@ namespace Client.WebUiHost.Game
         }
     }
 
-    /// <summary>
-    /// 保留中モーダル要求の内容
-    /// Contents of a pending modal request
-    /// </summary>
-    public class ModalRequest
-    {
-        public string Id;
-        public string Title;
-        public string Message;
-        public string ButtonText;
-        public ModalVariant Variant;
-        public bool RequiresInput;
-    }
-
-    /// <summary>
-    /// モーダルの表示種別。web の "confirm" | "error" に対応
-    /// Modal display kind; maps to the web's "confirm" | "error"
-    /// </summary>
-    public enum ModalVariant
-    {
-        Confirm,
-        Error,
-    }
 }

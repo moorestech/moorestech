@@ -112,9 +112,6 @@ namespace Client.WebUiHost.Boot
             }
             _actionHandlers.Clear();
 
-            // 保留中モーダルの await を放置しないよう cancel で解決する
-            // Resolve any pending modal await with cancel so it is not left dangling
-            WebUiModalService.Instance?.CancelPending();
         }
 
         // 全接続のうち指定トピックを購読している接続に event を配信

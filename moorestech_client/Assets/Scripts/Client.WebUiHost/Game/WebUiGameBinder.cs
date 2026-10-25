@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.Modal;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
@@ -67,9 +68,9 @@ namespace Client.WebUiHost.Game
             // Create inventory topic and register it (the equipment model supplies the selection state)
             var inventoryTopic = new InventoryTopic(hub, controller, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
-            // モーダルブリッジサービスを生成（topic と action で共有）
-            // Create the modal bridge service (shared by topic and action)
-            var modalService = new WebUiModalService();
+            // モーダルの保留要求はClient.GameのDIが持つ
+            // Resolve the pending modal request state owned by Client.Game DI
+            var modalService = resolver.Resolve<ModalRequestService>();
             // モーダルトピックを登録
             // Register the modal topic
             var modalTopic = new ModalTopic(hub, modalService);
@@ -144,17 +145,15 @@ namespace Client.WebUiHost.Game
             var challengeState = new ChallengeTopicState(hub, initialHandshake);
             hub.RegisterTopic(ChallengeTreeTopic.TopicName, new ChallengeTreeTopic(challengeState));
             hub.RegisterTopic(ChallengeCurrentTopic.TopicName, new ChallengeCurrentTopic(challengeState));
-            // ビルドメニュートピックを登録（BP名入力ブリッジも同時に張る）
-            // Register the build-menu topic (also wires the blueprint-name input bridge)
+            // ビルドメニュートピックを登録
+            // Register the build-menu topic
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
             var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
             var buildMenuSelection = resolver.Resolve<BuildMenuSelection>();
-            var blueprintNameInputState = resolver.Resolve<BlueprintNameInputState>();
             var constructionWalletQuery = resolver.Resolve<ConstructionWalletQuery>();
             var thumbnails = resolver.Resolve<IBlueprintThumbnailLookup>();
             var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller, thumbnails);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
-            new BlueprintNameInputWebBridge(blueprintNameInputState, modalService);
             // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();

@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.Modal;
 using System;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -15,12 +16,12 @@ namespace Client.WebUiHost.Game.Topics
         public const string TopicName = "ui.modal";
 
         private readonly WebSocketHub _hub;
-        private readonly WebUiModalService _service;
+        private readonly ModalRequestService _service;
         private readonly IDisposable _subscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public ModalTopic(WebSocketHub hub, WebUiModalService service)
+        public ModalTopic(WebSocketHub hub, ModalRequestService service)
         {
             _hub = hub;
             _service = service;
@@ -39,6 +40,10 @@ namespace Client.WebUiHost.Game.Topics
         {
             _disposed = true;
             _subscription.Dispose();
+
+            // ホスト停止で保留中のawaitをcancelで解決する
+            // Resolve the pending await with cancel when the host stops
+            _service.CancelPendingRequest();
         }
 
         // INFRA-7 デバウンス規約: 同フレームで要求が置換されてもフレーム末の最終状態だけ配信する
