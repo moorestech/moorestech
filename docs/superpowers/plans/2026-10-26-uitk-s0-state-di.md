@@ -1418,7 +1418,7 @@ git commit -m "refactor(notification): 通知の連番と移行告知をClient.G
 - Consumes: なし
 - Produces: `Client.Game.InGame.EventMode.EventLanguageGate`: `public EventLanguageGate(bool startsWaiting)`、`public bool IsWaitingSelection { get; private set; }`、`public IObservable<Unit> OnWaitingChanged`、`public UniTask WaitForSelectionAsync()`、`public EventLanguageSelectionResult TrySelectLanguage(string languageCode)`、`enum EventLanguageSelectionResult`（同じファイル）。作り手・寿命・渡し方（`EventModeStartGate` が作り、`EventLanguageGateBinder.Bind(hub, bool)` で Web の topic/action へ束ねる）は変えない
 
-- [ ] **Step 1: ゲートを移して公開範囲を広げる**
+- [x] **Step 1: ゲートを移して公開範囲を広げる**
 
 ```bash
 S=moorestech_client/Assets/Scripts
@@ -1433,7 +1433,7 @@ namespace を `Client.Game.InGame.EventMode` にし、`internal` の 4 メンバ
 ```
 ロジックは変えない。
 
-- [ ] **Step 2: 参照側の using を直す**
+- [x] **Step 2: 参照側の using を直す**
 
 上の Files の 7 ファイルのうち `EventLanguageGate`・`EventLanguageSelectionResult` を参照するものに `using Client.Game.InGame.EventMode;` を足す（`Client.WebUiHost.Game.EventMode` の using は Binder・Topic を使うファイルでは残す）。コンパイルエラーで残りを拾う。
 
@@ -1442,7 +1442,7 @@ namespace を `Client.Game.InGame.EventMode` にし、`internal` の 4 メンバ
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.EventMode\.|Boot\.EventLanguageGateCursorTest" --timeout-seconds 1500`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/EventMode moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests
