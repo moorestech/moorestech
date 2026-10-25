@@ -926,6 +926,10 @@ bd note moorestech-albof.2 "Task1-3 完了: HttpListener専用待受・起動配
 
 ### Task 4: Windows 検証機の配布ビルドで確かめる（完了条件 R8）
 
+Task 4 実行時判断（agent 既定・ユーザー未裁定）: 外部uploadを起動しないため、ケース2/3もphase1を使う。必要なら送信した本番remote snippetでsmokeの終了を一時保留する。実機側は一意の専用パスとPID/絶対exeパスの一致で所有を確かめ、他プロセスの名前killや既存フォルダの一括削除をしない。各ケースのワールドは既存の `MOORESTECH_DEFAULT_WORLD_DIRECTORY` で専用ディレクトリへ隔離する。Harmonyの本文サイズだけで `Expect: 100-continue` を断定せず、明示送信の実際のHTTP traceで確認する。
+
+実測: 2026-10-26、コード57bd4b4709のWindows配布ビルドでR7/R8全3ケースPASS。既存CLIで2・Harmony20,777777,20・client/server別スレッド、2597 bytesの実Expectヘッダと100 Continue→200 OKを確認。Task5条件不成立。最終build-infoはdirty=Trueであり、詳細とログ全体の残差は `docs/research/2026-10-26-remote-exec-own-listener-windows.md` を参照。
+
 **Files:**
 - Create: `docs/research/2026-10-26-remote-exec-own-listener-windows.md`（記録）
 
@@ -935,7 +939,7 @@ bd note moorestech-albof.2 "Task1-3 完了: HttpListener専用待受・起動配
 
 前例: `docs/research/2026-09-27-remote-exec-e2e.md`。検証機は自動ログイン後にロック画面になるので、「ゲーム開始後」は入力を要しない `--playtestSmoke` に `--remoteExec` を足して作り、その間に要求を送る。Steam 初期化のため作業フォルダに `steam_appid.txt`（`1958160`）を置く。Steam（playtest-staging）には上げない。
 
-- [ ] **Step 1: Windows の配布ビルドを焼く**
+- [x] **Step 1: Windows の配布ビルドを焼く**
 
 batchmode は同じプロジェクトを開いた Editor と同時に走れない。`moores-wt status` で自分の worktree（`uitk-s0-remote-exec`）の Editor pid を確かめて `kill <pid>` で止めてから:
 
@@ -954,7 +958,7 @@ MOORESTECH_MASTER_DATA_ROOT="$HOME/hermes-agent/data/worktrees/moorestech_master
 
 Expected: 終了コード 0、`$RUN/build-windows/moorestech.exe`・`moorestech_Data/RemoteExec/0Harmony.dll`・`moorestech_Data/StreamingAssets/WebUi/dist` が在る。pin worktree が無ければ `moores-wt status` の表示に従って用意する（ピンは `.moorestech-external-revisions.json` が正）。
 
-- [ ] **Step 2: 検証機を起こして作業フォルダへ持ち込む**
+- [x] **Step 2: 検証機を起こして作業フォルダへ持ち込む**
 
 ```bash
 . $HOME/hermes-agent/data/services/playtest/env.sh
@@ -968,7 +972,7 @@ verify_ssh_remote "powershell -NoProfile -Command \"Set-Content -NoNewline -Path
 
 （WoL 待ちは前景で回す。600 秒で到達しなければ止めて記録に書く）
 
-- [ ] **Step 3: 検証機側の起動スクリプトを置く**
+- [x] **Step 3: 検証機側の起動スクリプトを置く**
 
 `$RUN/launch.ps1`（リポジトリには入れない。検証用の使い捨て）を書いて scp する。`run-smoke.ps1` の `Start-SteamInInteractiveSession` と同じく使い捨てのスケジュールタスクで対話セッションに起動する:
 
@@ -1007,7 +1011,7 @@ scp -o BatchMode=yes "$RUN/probe.ps1" "$MOORESTECH_VERIFY_USER@$MOORESTECH_VERIF
 probe() { verify_ssh_remote "powershell -NoProfile -ExecutionPolicy Bypass -File C:/moorestech-remote-exec-listener/probe.ps1"; }
 ```
 
-- [ ] **Step 4: ケース 1 — `--remoteExec` なしでは待受が開かない（R8-2）**
+- [x] **Step 4: ケース 1 — `--remoteExec` なしでは待受が開かない（R8-2）**
 
 ```bash
 verify_ssh_remote "powershell -NoProfile -ExecutionPolicy Bypass -File C:/moorestech-remote-exec-listener/launch.ps1 -Arguments \"--playtestSmoke --smokePhase phase1 --smokeResultDirectory C:/moorestech-remote-exec-listener/r1\""
@@ -1022,7 +1026,7 @@ verify_ssh_remote "powershell -NoProfile -Command \"try { Invoke-WebRequest -Use
 
 Expected: `404`（Kestrel のポートが 25050 でなければ probe の Listen ポートのうち 25050 帯の値を使う）
 
-- [ ] **Step 5: ケース 2 — `--remoteExec` 付きで `Succeeded` と Harmony（R8-1・R7）**
+- [x] **Step 5: ケース 2 — `--remoteExec` 付きで `Succeeded` と Harmony（R8-1・R7）**
 
 phase1 のゲームが自分で終わるのを待つ（`probe` で `pid=` が消えるまで 10 秒おきに前景で確認、最長 300 秒）。その後:
 
@@ -1056,7 +1060,7 @@ Expected: `return 1 + 1;` → stdout の JSON が `"outcome":"Succeeded"`・`"re
 
 ゲームが smoke を終えて自分で閉じるまでに送り切れなかったら（`Connection refused`・access.json の pid 消失）、phase1（新規ワールド生成で長い）に `--remoteExec` を付けて同じ 3 本を送り直す。
 
-- [ ] **Step 6: ケース 3 — Web ホストを失敗させても遠隔実行は開く（R8-3）**
+- [x] **Step 6: ケース 3 — Web ホストを失敗させても遠隔実行は開く（R8-3）**
 
 ゲームが閉じたのを probe で確かめてから:
 
@@ -1071,7 +1075,7 @@ verify_ssh_remote "powershell -NoProfile -Command \"Rename-Item 'C:/moorestech-r
 
 Expected: Player.log に `[WebUiHost] production artifact rejected` と `[RemoteExec] 待受を開きました`、Listen ポートに 25050 帯（Kestrel）が無く 25100 帯が在る、`return 1 + 1;` が `Succeeded`・exit 0。
 
-- [ ] **Step 7: 警告語を確かめ、記録を書いてコミットする**
+- [x] **Step 7: 警告語を確かめ、記録を書いてコミットする**
 
 各ケースの Player.log の `[RemoteExec]`・`[WebUiHost]` 行を `拒否|refus|Exception|Error|書けません|開けません|failed|失敗` で grep し、意図したもの（ケース 3 の `production artifact rejected`）以外が 0 件（ケース 1 の Kestrel の 404 は経路が無いだけでログを出さない）であることを確かめる。合否は肯定行の有無ではなくこの警告語ゼロで判定する。
 
