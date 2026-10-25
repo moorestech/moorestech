@@ -98,3 +98,37 @@ class GateBoundaryTest(unittest.TestCase):
         code, _, err = self.run_gate()
         self.assertEqual(code, 1, err)
         self.assertIn("引用されていない", err)
+
+    def test_new_exact_path_in_switched_bundle_is_red(self):
+        self.check_new_owned_path("切替済み", "切替済み", False, 1)
+
+    def test_new_shared_path_with_web_owner_is_green(self):
+        self.check_new_owned_path("切替済み", "切替済み", True, 0)
+
+    def test_new_path_during_switch_with_record_is_green(self):
+        self.check_new_owned_path("暗転", "切替済み", False, 0)
+
+    def test_new_path_during_rollback_is_green(self):
+        self.check_new_owned_path("切替済み", "暗転", False, 0)
+
+    def check_new_owned_path(self, base_state, head_state, shared, expected):
+        # base に所有行がないパスを同じ PR で登録する
+        # Register a new path and its ownership in the same PR
+        path = "moorestech_web/webui/src/new.ts"
+        self.repo.commit("base state", {LEDGER_PATH: "<!-- base state -->\n" + self.ledger(base_state, [])})
+        self.repo.git("checkout", "-q", "-b", "pr")
+        changed = self.repo.commit("add web path", {path: "new"})
+        owner = "UITK" if head_state == "切替済み" else "Web"
+        head_rows = [("HUD", "2", owner, "`src/features/commonHud/`"),
+                     ("shell", "5", "Web", "`src/`"),
+                     ("new", "2", owner, "`src/new.ts`")]
+        if shared:
+            head_rows.append(("shared", "5", "Web", "`src/new.ts`"))
+        records = [(2, changed[:10], "写した", "UITK")] if base_state != head_state else []
+        ledger = ledger_text({2: (head_state, f"`{self.start[:10]}`")}, head_rows, records)
+        self.repo.commit("register ownership", {LEDGER_PATH: ledger})
+        code, _, err = self.run_gate()
+        self.assertEqual(code, expected, err)
+        if expected:
+            self.assertIn("G1-2", err)
+            self.assertIn(path, err)

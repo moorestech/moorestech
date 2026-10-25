@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from .git_history import ChangedFile, CommitFiles
 from .ledger import Ledger, STATE_SWITCHED
-from .ownership import is_retired, owning_bundles, uncovered_sources
+from .ownership import owning_bundles, uncovered_sources
 
 RULE_COVERAGE = "G1-0 台帳の網羅"
 RULE_SWITCH = "G1-1 切替の記帳"
@@ -24,12 +24,15 @@ def check_coverage(head: Ledger, tracked_sources: tuple[str, ...]) -> tuple[Viol
 
 
 def check_retired_changes(base: Ledger, head: Ledger, changed: tuple[ChangedFile, ...]) -> tuple[Violation, ...]:
-    # 削除は通す。base と head の両方で切替済みのパスだけ落とす（切替を戻す PR は通る）
-    # Deletions pass; only paths retired in both base and head fail, so a rollback PR passes
+    # 新規パスも現在の所有束で判定し、今回切替・戻し・削除は通す
+    # Use current owners even for new paths; allow switching, rollback and deletion
     return tuple(
         Violation(RULE_RETIRED, f"{change.path}（{change.status}）は切替済みの束 {sorted(owning_bundles(change.path, head.rows))} の Web パス。描かれないコードなので UITK 側を直す")
         for change in changed
-        if change.status != "D" and is_retired(change.path, base) and is_retired(change.path, head))
+        for owners in (owning_bundles(change.path, head.rows),)
+        if change.status != "D" and owners and all(
+            base.bundles[bundle_id].state == STATE_SWITCHED
+            and head.bundles[bundle_id].state == STATE_SWITCHED for bundle_id in owners))
 
 
 def switching_bundles(base: Ledger, head: Ledger) -> tuple[int, ...]:

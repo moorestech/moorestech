@@ -7,7 +7,7 @@ from pathlib import Path
 
 import uitk_web_follow_testrepo  # noqa: F401  (sys.path に .github/scripts を足す)
 from uitk_web_follow.cli import LEDGER_PATH
-from uitk_web_follow.ledger import STATE_SWITCHED, parse_ledger
+from uitk_web_follow.ledger import STATE_SWITCHED, STATE_WEB, parse_ledger
 from uitk_web_follow.checks import check_retired_changes, unrecorded_commits
 from uitk_web_follow.git_history import ChangedFile, CommitFiles
 from uitk_web_follow.ownership import WEB_SOURCE_ROOT, owning_bundles, uncovered_sources
@@ -54,7 +54,10 @@ class RealLedgerTest(unittest.TestCase):
                 for bundle in owners:
                     commits = (CommitFiles("a" * 40, (path,)),)
                     self.assertEqual(unrecorded_commits(self.ledger, bundle, commits, {"a" * 40: owning_bundles(path, self.ledger.rows)}), ("a" * 40,))
-                    bundles = {**self.ledger.bundles, bundle: replace(self.ledger.bundles[bundle], state=STATE_SWITCHED)}
+                    # 実台帳の進捗から独立して共有所有を検証する
+                    # Verify shared ownership independently of live migration progress
+                    bundles = {key: replace(value, state=STATE_WEB) for key, value in self.ledger.bundles.items()}
+                    bundles[bundle] = replace(bundles[bundle], state=STATE_SWITCHED)
                     shared = replace(self.ledger, bundles=bundles)
                     self.assertEqual(check_retired_changes(shared, shared, (ChangedFile("M", path),)), ())
 
