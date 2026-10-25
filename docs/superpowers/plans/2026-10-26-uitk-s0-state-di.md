@@ -2018,7 +2018,7 @@ git commit -m "refactor(block-detail): 開いているブロックの追跡と�
 
 - [ ] **Step 1: C# テスト一式**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi|WebUiHost|EventMode|BugReport|Playtest)\.|EditModeInPlayingTest\.(BlockInventory|Boot|BugReport|Hostless)\.|EditModeInPlayingTest\.(EventLanguageGateCursorTest|LocalPlayEmbeddedServerBootTest|RemotePlayServerBootTest)" --timeout-seconds 1500`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi|WebUiHost|EventMode|BugReport|Playtest|Player|UIState)\.|EditModeInPlayingTest\.(BlockInventory|Boot|BugReport|Hostless)\.|EditModeInPlayingTest\.(EventLanguageGateCursorTest|LocalPlayEmbeddedServerBootTest|RemotePlayServerBootTest)" --timeout-seconds 1500`
 Expected: 全 PASS。`uloop get-logs --project-path ./moorestech_client --log-type Error` が、意図した 1 件（`SubInventoryState: サブインベントリソースが指定されていません`、Hostless のプローブ）以外 0 件
 
 - [ ] **Step 2: Task 1 と同じ 5 本を流す**
@@ -2095,3 +2095,5 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D24 | Task8のcursor filterとTask11のBoot回帰filterは実namespaceに合わせ、EventLanguageGateCursorTest・LocalPlayEmbeddedServerBootTest・RemotePlayServerBootTestを明示対象にする | Bootはフォルダ名で3クラスのnamespaceには含まれず、元regexでは対象が0件だった。仕様の起動回帰を省略せず、実行XMLで各caseの包含を照合する | agent 既定（ユーザー未裁定） |
 
 | D25 | Hostlessのブロック詳細probeは既存テスト前例の実足場を用意し、+2境界配置を余裕ある+1隣接配置へ補正する。空セルと既存InteractReachQueryのReachableを前提assertしてからtracker/network/閉後解除を検証する。配置した電気ブロックは既存統合テスト同様に隔離worldの正規shutdownへ寿命を預け、probe末尾でdatastore直操作による削除を追加しない | 無改変単独runで地面不足10件・out of range・Flushed未到達を再現し、正本InteractDistance2fに対し+2が境界と確認した。落下だけを原因と断定せず、物理や製品距離定数を変えず正規の操作前提を満たす。追加RemoveBlock cleanupだけを外した独立対照でdestroyed例外0/Flushed1を確認し、server専用Threadとの境界を無視する余分なcleanupを除く | agent 既定（ユーザー未裁定） |
+
+| D26 | 言語選択待機前にUI/Playerの更新を所有クラスのAwakeで停止し、UIはInitializeの状態入場完了、Playerは既存StartPlayerRuntimeで開始する。PlayerObjectController同居interfaceは別ファイルへ移し200行未満を保ち、既存Player fixtureはinactive rootで参照配線後activateへ揃える | 現headと変更前baseの同一観測で、DI未完了なのに辞書/Inputがnullの実個体がenabled/active=Trueのまま更新し、3箇所各69件のNREを再現した。明白な既存未初期化NREを所有側の正規寿命へ揃えて直し、third-party本体改変やテストだけの無効化・null補完を避ける。cursorの期待外ログ検出を赤→緑で確認し、元の待機/cursor/初期化未完了assertを保つ。変更するPlayer fixture群とUIState回帰群を最終regexへ追加する | agent 既定（ユーザー未裁定） |
