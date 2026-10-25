@@ -379,7 +379,7 @@ git commit -m "feat(webui-host): Webホストを起動しないEditor限定ス�
   - `Client.Game.InGame.UI.Modal.ModalRequest`（フィールド `Id`・`Title`・`Message`・`ButtonText`・`Variant`・`RequiresInput`）、`enum ModalVariant { Confirm, Error }`
   - `Client.Starter.Registration.MainGameUiStateRegistration.Register(ContainerBuilder builder)`
 
-- [ ] **Step 1: ファイルを移す**
+- [x] **Step 1: ファイルを移す**
 
 ```bash
 S=moorestech_client/Assets/Scripts
@@ -391,7 +391,7 @@ git mv $S/Client.WebUiHost/Game/BlueprintNameInputWebBridge.cs.meta $S/Client.Ga
 ```
 （新設ディレクトリ `Modal` 自体の `.meta` は Unity が生成する）
 
-- [ ] **Step 2: `ModalRequestService` を書き換える**
+- [x] **Step 2: `ModalRequestService` を書き換える**
 
 `WebUiModalService` から次を変える。中身のロジック（`RequestCore` の「最新要求を先に確定し、前の要求を cancel で解決する」順序、`CancelPendingRequest`、`Respond` の id 照合）は一字も変えない。
 - namespace を `Client.Game.InGame.UI.Modal`、クラス名を `ModalRequestService` にする
@@ -435,7 +435,7 @@ namespace Client.Game.InGame.UI.Modal
 }
 ```
 
-- [ ] **Step 3: `BlueprintNameInputModalBridge` を entry point にする**
+- [x] **Step 3: `BlueprintNameInputModalBridge` を entry point にする**
 
 ```csharp
 using Client.Game.InGame.UI.Modal;
@@ -474,7 +474,7 @@ namespace Client.Game.InGame.UI.Blueprint
 ```
 `OnOpenChanged` 本体は移動元のまま（`IDisposable`・`Dispose()`・`_subscription` は削除。ゲーム寿命のため）。`Mooresmaster.Localization.Generated` が `Client.Game` から見えない場合は、`Client.Game` 内の既存利用（`Client.Game/InGame/UI/UIState/State/DebugBlockInfoState.cs`）と同じ using にそろえる。
 
-- [ ] **Step 4: DI 登録を新設する**
+- [x] **Step 4: DI 登録を新設する**
 
 `Client.Starter/Registration/MainGameUiStateRegistration.cs`:
 ```csharp
@@ -506,7 +506,7 @@ namespace Client.Starter.Registration
             MainGameUiStateRegistration.Register(builder);
 ```
 
-- [ ] **Step 5: WebUiHost 側をアダプタにする**
+- [x] **Step 5: WebUiHost 側をアダプタにする**
 
 `ModalTopic`: フィールドとコンストラクタ引数の型を `ModalRequestService` にし、`using Client.Game.InGame.UI.Modal;` を足す。`Dispose()` を次にする（Web ホストの停止で保留中の await を cancel で解決する従来の挙動を、`WebSocketHub.ClearBindings` の static 呼び出しからアダプタの Dispose へ移す）:
 ```csharp
@@ -535,7 +535,7 @@ namespace Client.Starter.Registration
 ```
 （70-76 行目の `new WebUiModalService()` とモーダルトピック登録を置き換える）。152 行目 `var blueprintNameInputState = resolver.Resolve<BlueprintNameInputState>();` と 157 行目 `new BlueprintNameInputWebBridge(blueprintNameInputState, modalService);` を削除し、147-148 行目のコメントを「ビルドメニュートピックを登録」だけにする（BP 名入力の橋渡しは DI の entry point に移った）。`ModalRespondActionHandler(modalService)` の行は変えない。不要になった `using Client.Game.InGame.UI.Blueprint;` が他で使われていなければ消す。
 
-- [ ] **Step 6: Web 無しのプローブを書いてテストへ足す**
+- [x] **Step 6: Web 無しのプローブを書いてテストへ足す**
 
 `Client.Tests/EditModeInPlayingTest/Hostless/ModalStateProbe.cs`:
 ```csharp
@@ -576,12 +576,12 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 await ModalStateProbe.AssertAvailableAsync(resolver);
 ```
 
-- [ ] **Step 7: コンパイルとテスト**
+- [x] **Step 7: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi|WebUiHost)\.|Hostless\.WebUiHostlessStateAvailabilityTest" --timeout-seconds 1200`
 Expected: ErrorCount 0 / 全 PASS（`WireContractTest` のモーダル fixture 3 件を含む）
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Modal moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Blueprint moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless
@@ -2080,3 +2080,4 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D16 | `ModalTopic.Dispose`（Web ホスト停止）で保留中のモーダルを cancel で解決する挙動は残す。UITK と併存すると、Web ホストの停止が UITK 側のモーダルも取り消す | 移す前と同じ挙動（`WebSocketHub.ClearBindings` が static 経由で呼んでいた）。ホスト停止はゲーム終了時だけなので実害は無い。UITK がモーダルを描く段で、保留の解決を描く側ごとに分けるかを決める | agent 既定（ユーザー未裁定） |
 | D17 | ベースライン初回2本は入力環境障害のattemptとして保存し、録画前に現行録画skillのde-risk入力確認とEditor/GameViewフォーカス（今回背景動作は要件外）を行って無改変シナリオを再実行する | walk後のfocused=False・keyboard/mouse=Falseを観測し、focus後TrueとなりQueueStateEvent TabでPlayerInventoryへ実遷移を観測。UI回帰の証拠を得るため、対象UIへ届かない環境失敗を同合否の基準にしない | agent 既定（ユーザー未裁定） |
 | D18 | 正規runnerのboot応答がalready playingとなった未投入シナリオは、正規preflight後にboot EDCを一度だけ実行し、今回のSessionDirectoryとready.markerを一致実証してから原文シナリオを一度だけ注入して回収する | 同一bootコードを再送するrunnerの経路でalready playingが反復した。新規sessionの実証により既存world混入を防ぎ、DSL/runnerやシナリオを変更せず必要な実測を得る | agent 既定（ユーザー未裁定） |
+| D19 | 新設したUI純状態のディレクトリは既存WebUiGateClassification.RulesへCategory.Infraとして登録する | 既存Blueprint/BuildMenu/ProgressBarと同じ役割。新しい状態ファイルを正しく分類する付随変更であり、albof.4所有のG1 Web追従ゲート機構には触れない | agent 既定（ユーザー未裁定） |
