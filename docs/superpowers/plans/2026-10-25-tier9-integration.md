@@ -46,8 +46,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件（再検査で違反0件） / G1・G3 を Server.MasterGate.Editor へ移し G6 を tools/tier9_balance へ一本化。nodeGraph の --check を CI に載せない件は A27 に記録
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強1・弱9・第3バケツ18（修正後の再検査: 新規 強0・弱3・第3バケツ1） / 残る強は G6 Check の None と kind の二重表現（5-A）。裁定は判断記録に記す
 
 ---
 ## タスク一覧（実行順）
@@ -2236,7 +2236,7 @@ git -C $W push
 **Interfaces:**
 - Consumes: 出荷マスタの JSON（`items/blocks/fluids/machineRecipes/research/cleanRoom`）。S1 handoff「Task D1 Step 1」の sim のコードブロック（`$W/docs/superpowers/plans/2026-10-23-tier9-s1-master-content-handoff.md`）。
 - Produces（P2 が区間の中身を書くときの約束）:
-  - S1 の sim `design/tier9-balance/sim/`（値の正本。判断記録 A22）。名前は S1 handoff「Task D1」Interfaces の Produces どおり: `params` の `LINE_SI_PER_S`・`CLASS_PARAMS`・`DIES_PER_WAFER`・`PROMOTION_CAP`・`QUALITY_REDUCTION_CAP`・`DIE_TABLES`・`MODULES`・`STACK_LIMITS`・`RECIPES`・`POWER`・`POLLUTION`・`FILTER_Q`・`FILTER_CAPACITY`・`THRESHOLDS`、`timeline.RESEARCH` と `timeline.run(クラス)["done"]`（研究名 → 完了時刻[h]）、`targets.evaluate() -> [(目標, 合否, 実測)]`。sim は互いをトップレベル名で import するので、使う側（Task 12 の `sections/s1/sim_bridge.py`）が `design/tier9-balance/sim` を `sys.path` に足す。
+  - S1 の sim `design/tier9-balance/sim/`（値の正本。判断記録 A22）。名前は S1 handoff「Task D1」Interfaces の Produces どおり: `params` の `LINE_SI_PER_S`・`CLASS_PARAMS`・`DIES_PER_WAFER`・`PROMOTION_CAP`・`QUALITY_REDUCTION_CAP`・`DIE_TABLES`・`MODULES`・`STACK_LIMITS`・`RECIPES`・`POWER`・`POLLUTION`・`FILTER_Q`・`FILTER_CAPACITY`・`THRESHOLDS`、`timeline.RESEARCH`・`timeline.run(クラス)["done"]`（研究名 → 完了時刻[h]）・`timeline.line_rate`・`timeline.EXTRA_LINES_AT_H`（Task 22 の S3 区間が使う）、`targets.evaluate() -> [(目標, 合否, 実測)]`。sim は互いをトップレベル名で import するので、使う側（Task 12 の `sections/s1/sim_bridge.py`）が `design/tier9-balance/sim` を `sys.path` に足す。
   - 区間モジュールは `evaluate(view: MasterView) -> SectionResult(name, checks, hours)` を持つ。`name` は `hour_targets.SECTION_HOURS` のキー（`s1_semiconductor` / `s2_compute_loop` / `s3_endgame`）。
   - 検査の作り方:
     - `checks.matches(name, sim_value, json_value, tolerance)`: JSON が引けず None なら FAIL。
@@ -4618,7 +4618,7 @@ GL=$W/moorestech_client/PlaytestResults/tier9-gates                             
 - 照合: G6（`cd $MW && python3 tools/tier9_balance/run.py`）。S1 の値は `[s1_semiconductor] match` の行で見る。
 
 **下書きからの横断的な訂正**（以下の各タスクで具体化する）:
-1. 置き場を `design/tier9-semiconductor-balance/` から `design/tier9-balance/` に変える。G6 と同じ場所に置くため。
+1. 置き場を `design/tier9-semiconductor-balance/` から `design/tier9-balance/` に変える。S1・S2・S3 の sim・spec・apply・台帳を 1 か所にまとめるため（判定の G6 は `tools/tier9_balance/`。A22）。
 2. S1 で必須化した `allowQualityModule`（ElectricMachine・GearMachine・CleanRoomMachine）と `levelInheritance`（全機械レシピ）を、S2・S3 の新規行すべてに入れる。
 3. 拠点の `unlockBlock` を「軌道エレベーターの建設」に戻す（裁定3）。S1 のマスタ 32874fe が消したもの。
 4. 仮ブロック 3 種（拠点・発射台・核融合炉）は、index ではなく GUID で、正式な blockType の全文に置き換える。
@@ -6848,7 +6848,7 @@ Expected:
 #!/usr/bin/env python3
 # 核融合と反物質の検査（S3 引き継ぎ「旧 Task 4」）。炉1基の差し引き電力・抽出装置の台数・反物質機の電力・爆弾をそろえる時間
 # Fusion and antimatter checks (S3 handoff "old Task 4"): reactor net power, extractor count, fabricator power and bomb stocking time
-# 目標の根拠: ADR 0090（差し引きはガソリン発電機数台分）、S3 の R3・R5
+# 目標の根拠: ADR 0093（核融合の差し引き電力。統合で 0090 から振り直し。差し引きはガソリン発電機数台分）、S3 の R3・R5
 # Targets: ADR 0090 (net equals a few gasoline generators) and S3 R3/R5
 from checks import lookup_failed, target_range
 from sections import recipe_rates
@@ -7174,6 +7174,8 @@ git -C $MW push
 | GPU衛星の成果と 1 便の資材・建造秒 | 10/20/40/80/160、資材は筐体20・燃料20・コンピュータ5、建造120 秒＋打ち上げ15 秒（S2 引き継ぎ A・B） | 同上。上流（鋼鉄板・プラスチック・ガソリン・固形燃料）が既存の工場規模から外れないこと（S2 引き継ぎ F） |
 | S3 の機械の値（炉の出力と燃料、抽出装置・反物質機の電力とレシピ、拠点の昇降秒と電力） | S3 引き継ぎ「旧 Task 1」「旧 Task 6 Step 5」 | 炉 1 基の差し引き電力がガソリン発電機 3〜5 台分。抽出装置は 2〜8 台。反物質機 1 台の電力は炉の差し引き 3〜6 基分。爆弾をそろえる時間 0.5〜3 h。昇降時間はロケット建造の 1.5〜4 倍（S3 引き継ぎ「旧 Task 4」「旧 Task 12」の check 行） |
 | 全体 | — | Tier9 全体 15〜25 h、S1 区間 6〜8 h、計算データ 4〜6 h、S3 区間 5〜11 h（`.decisions/2026-10-23-Tier9の目標プレイ時間は半導体解放からクリアまでで15〜25時間.md`） |
+
+**録画の制約（G6 の目標と別に守る）:** 段4（Task 28 Step 5）は GPU衛星Lv1 の建造・打ち上げ・飛行・到着を実時間で待つ。録画は `run-scenario.sh:56` の `RESULT_TIMEOUT=420` 秒を超えると result.json を待たずに NG になる。そのため、`BuildSeconds`＋打ち上げ秒＋Lv1 の飛行秒の合計を 300 秒以下に保つ（残り 120 秒は PlayMode の起動約 26 秒、段の前準備、建造待ちの余裕 60 秒の分）。G6 の目標と両立しないときは、値を動かさずに人へ上げる条件に回す（判断記録「実装中に人へ上げる条件」）。録画のために `RESULT_TIMEOUT` を伸ばす変更はしない（やらないこと: 録画 DSL への時間加速の追加と同じく、録画の枠を変える変更だから）。
 
 - [ ] **Step 1: G6 を回し、FAIL を見る**  Run: `cd $MW && python3 tools/tier9_balance/run.py > $GL/p2-13-g6-first.txt; echo "exit=$?"; grep '^FAIL' $GL/p2-13-g6-first.txt`  Expected:
 - 区間ごとの `target`・`match`・`lookup` の行と、`[overall]` の目標時間の行が出る。
@@ -8578,13 +8580,13 @@ git commit -m "Task 27: W13 混在ベルトでの代用の自動揃えの裁定�
 
 - [ ] **Step 5: 不具合と裁定された場合だけ**  bd に `bd create` で課題を積み（`--parent` は統合の親タスク）、moores-grill-with-docs を起動する。修正が入ったら、Task 28 Step 2 に書いた assert を段1b に足して流し直す。仕様の場合は何もしない。段1b の期待値は、Step 2 の本文どおり（本段に W13 は現れない）。
 
-**完了判定:** `.decisions/` に W13 の裁定ファイルがあり、出所にユーザーの原文がある。`w13.md` に Step 1 の実測と故障シナリオがある。不具合の場合は、bd の課題番号と、修正後の段1b の `result.json`（Success: true）がある。
+**完了判定:** `w13.md` に Step 1 の実測と故障シナリオがある。ユーザー裁定が既にあれば（plan 作成時に問うた。判断記録「ユーザー裁定」節を見る）それに従う。無ければ SDD の deferred-questions に登録し、既定 (A) 仕様として Task 28 へ進む（`.decisions/` への記入は、ユーザーが答えたときにコントローラが原文つきで行う。明示裁定以外を `.decisions/` に書かない）。不具合と裁定された場合は、bd の課題番号と、修正後の段1b の `result.json`（Success: true）がある。
 
 ---
 
 ## P6 最終検証の受け渡し
 
-裁定 2026-10-25「Tier9 統合の最終検証の通しプレイはユーザー本人が行う」の (3) と (4)。(1) 自動ゲートと CI、(2) 録画7段がすべて通ってから着手する（ORCH の合流 J3 の後。全ブランチレビューと PR 作成を済ませた後）。
+裁定 2026-10-25「Tier9 統合の最終検証の通しプレイはユーザー本人が行う」の (3) と (4)。(1) 自動ゲートと CI、(2) 録画7段がすべて通ってから着手する（ORCH の合流 J3 の後）。順序は Task 30（ビルド・セーブ・チェックリスト）→ Task 31（評価役2体）→ Task 32（全ブランチレビュー。反映が判定経路に触れたら評価役をやり直す）→ Task 33（PR）。評価役は PR を出す前に判定する（ユーザー規約「外に出す前に別の評価役2体」）。
 
 ### Task 31: 目的だけを渡す別の評価役2体
 
@@ -8617,7 +8619,8 @@ git commit -m "Task 27: W13 混在ベルトでの代用の自動揃えの裁定�
 - この worktree: `<worktree path>`。Unity Editor はここで自分のものを使う（`moores-wt status` で確かめる）
 - コードとマスタ JSON の読解。Unity のテスト実行（uloop）
 - unityプレイ録画テスト（`.agents/skills/unity-playmode-recorded-playtest`）で、自分でシナリオを書いて実際に遊ぶこと。Tier8 終盤のセーブ `<world dir>` は `PLAYTEST_WORLD_DIRECTORY=<world dir>`（`PLAYTEST_MAP_MODE`・`PLAYTEST_SEED` も同じスキルの run-scenario.sh の説明に従う）で起動できる
-- シナリオの中で前提を揃える裏口は、Tier9 に入る前の状態を作るときだけ使ってよい。Tier9 の中身（Tier9 の研究・Tier9 の機械の加工・打ち上げ・昇降）は、本物の加工・本物の待ち・UI 経由の研究で通すこと
+- Tier9 を実時間で通すと 15〜25 時間かかり、録画 1 回は約 7 分で打ち切られる（時間加速は無い）。そのため、区切りごとの前提はシナリオの裏口（アイテム付与・ブロック解放・研究の完了扱い）で揃えてよい。ただし各区切りの最後の工程（その区切りで初めて作るもの・初めて動く機械・打ち上げや昇降の 1 回）は、本物の加工・本物の待ち・UI 経由の操作で通すこと
+- 使った裏口は、verdict.md に 1 件ずつ「何を・どの区切りで・なぜ」の形で申告する。申告の無い裏口を使った判定は無効とする
 
 ## 読まないもの
 `docs/superpowers/plans/2026-10-25-tier9-*`、`../moorestech_logs/harness/tier9-integration/`（`eval/<round>-<自分>/` を除く）、`.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/`。理由: 実装側の見立てに引きずられないため。
@@ -8665,6 +8668,7 @@ git -C ../moorestech_logs add harness/tier9-integration/eval && git -C ../moores
 候補と推奨:
 - (1) 推奨: テスター 76561198366804062 の現在のワールド。研究44件を完了し、103.5時間遊んでいる。build playtest-20261021-2150・master 0d129c8（`moorestech_logs/harness/playtest/progress/…/20261023_173353_f42bfbb6/record.json`）。6ノードのうち5件と、旧「ロケット」`019e3af0-7b1c…` を完了しているので、リセットの実物の検査にもなる。手に入れる手段はゲーム内の報告。報告のバンドルにはワールドのスナップショットが入る（同じテスターの 10-13 の報告 `reports/76561198366804062/20261013_164615_94f71a95/snapshots/tick_3712713.json` に、worldVersion・研究・ブロック7796件が入っていた）。ユーザーから本人に、今のワールドでゲーム内の報告を1回送ってもらうよう頼む。閲覧は本人とエージェントに限る。
 - (2) 代替: ユーザー自身の Tier8 終盤セーブ。あれば `ssh winbuild` で Windows の `Saves\<world>` から取る。
+- 依頼は W1 の開始時にユーザーが出す（オーケストレーション §5）。J3 までに (1) が届かなければ (2) に切り替える。どちらも無ければ J3 で止めてユーザーに聞く。
 - (3) 不採用: 10-13 のスナップショット（研究26件・worldVersion 3）に裏口で研究を足す。Tier8 の工場が無いまま研究だけ進んだ状態になり、「Tier8 終盤から遊ぶ」にならない。
 
 届いたら、次の2つを行う:
@@ -8726,6 +8730,11 @@ Expected: `Success: true`、Error ログ0件。`<scratch>/tier8-world-smoke` の
 
 - [ ] **Step 4: Windows の配布ビルドを焼いて staging に上げる**
 
+先に winbuild の既定ワールドを退避する。検証機の smoke の phase1 が既定ワールド（`GameSystemPaths.DefaultWorldDirectory`＝`Saves\\world_1`）を `DeleteDefaultWorldDirectory()` で消すため（`StandalonePlaytestSmokeBootstrap.cs:86-90`）。ユーザーが遊ぶ PC が winbuild でなければ、この退避は不要。
+```bash
+ssh winbuild "powershell -Command \"if (Test-Path \$env:APPDATA\\.moorestech\\Saves\\world_1) { Rename-Item \$env:APPDATA\\.moorestech\\Saves\\world_1 world_1.bak-$(date +%Y%m%d-%H%M) }\""
+```
+
 moores-playtest-release スキルの手順1を使う（失敗したら手順2）。パッチノート（手順3）と playtest への反映（手順5）は行わない。テスターへの配布は裁定で棄却されている。
 ```bash
 . ~/hermes-agent/data/services/playtest/env.sh
@@ -8740,17 +8749,17 @@ Steam Guard のコードを求められたら、ユーザーに入力を頼む�
 
 - [ ] **Step 5: ユーザーの Windows にセーブを置く**
 
-ユーザーが遊ぶ PC が自宅の Windows（`ssh winbuild`）である前提。違う PC なら、置く手順をチェックリストに書いてユーザーに渡す。
+ユーザーが遊ぶ PC が自宅の Windows（`ssh winbuild`）である前提。違う PC なら、置く手順をチェックリストに書いてユーザーに渡す。Step 4 の検証が終わった後に行う。いま `world_1` にあるのは smoke が作ったワールドなので、退避せずに置き換える。ユーザー自身のワールドは Step 4 の前に `world_1.bak-<日時>` へ退避してある。
 ```bash
-ssh winbuild "powershell -Command \"if (Test-Path \$env:APPDATA\\.moorestech\\Saves\\world_1) { Rename-Item \$env:APPDATA\\.moorestech\\Saves\\world_1 world_1.bak-$(date +%Y%m%d-%H%M) }\""
+ssh winbuild "powershell -Command \"Remove-Item -Recurse -Force \$env:APPDATA\\.moorestech\\Saves\\world_1 -ErrorAction SilentlyContinue\""
 scp -r <scratch>/tier8-world winbuild:'AppData/Roaming/.moorestech/Saves/world_1'
-ssh winbuild "powershell -Command \"Get-ChildItem \$env:APPDATA\\.moorestech\\Saves\\world_1\""
+scp -r <scratch>/tier8-world winbuild:'AppData/Roaming/.moorestech/Saves/tier9-start-original'
+shasum -a 256 <scratch>/tier8-world/save.json
+ssh winbuild "powershell -Command \"(Get-FileHash \$env:APPDATA\\.moorestech\\Saves\\world_1\\save.json -Algorithm SHA256).Hash\""
 ```
-Expected: `world_1` の下に `save.json` があり、元の `world_1` は `world_1.bak-<日時>` として残っている。複製を置くので、事前確認で退避ができた方（`tier8-world-smoke`）ではなく、原本 `tier8-world` を置く。
+Expected: 2つのハッシュが一致する（大文字・小文字は無視して比べる）。`tier9-start-original` はやり直し用の原本である。チェックリストに「やり直すときは `world_1` を消して `tier9-start-original` を `world_1` にコピーする」と書く。複製を置くので、事前確認で退避ができた方（`tier8-world-smoke`）ではなく、原本 `tier8-world` を置く。
 
-要確認（実装時に確かめる）は次の2点:
-- 検証機と同じ PC で、`playtest-staging` の検証が `world_1` を使わない。`run-smoke.ps1` が別の場所（`--smokeResultDirectory`）を使うかを、README:152-158 で確かめる。
-- 出展モードとの併用は禁止されている（README:127）。
+ユーザーの通しプレイが終わるまで、winbuild で playtest の検証（`verify-on-windows.sh`・`release-playtest.sh`）を回さない。回すと phase1 が置いたセーブを消す。`handoff/build.md` にこの占有を書く。
 
 - [ ] **Step 6: チェックリストを作って共有する**
 
@@ -8798,7 +8807,7 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
   - 対象は本体 `origin/master...feat/tier9-integrated` とマスタ `origin/master...feat/tier9-integrated`（マスタは別 repo なので、同スキルの分割深掘りに含めて 1 回で回す）
   - 記録は `../moorestech_logs/harness/` へ書く（featureブランチに記録ファイルをコミットしない）
-- [ ] **Step 2: 指摘の反映がソースの判定経路・条件式・その評価時点に触れたら、Task 28 の録画（該当段）と Task 31 の評価役 2 体を反映後のバイナリでやり直す**（ユニットテスト通過・ログ無音は代替にならない）
+- [ ] **Step 2: 指摘の反映がソースの判定経路・条件式・その評価時点に触れたら、Task 28 の録画（該当段）と Task 31 の評価役 2 体を反映後のバイナリでやり直す**（ユニットテスト通過・ログ無音は代替にならない）。反映がランタイムのコードかマスタに触れたら、Task 30 の Step 4（staging のビルド）と Step 5（セーブを置き直す）もやり直す。Step 4 の検証が既定ワールドを消すため
 - [ ] **Step 3: compile と P1 の健全性ゲート（Task 9 の正規表現）、G1・G2・G3・G6 を再実行する**
   Run: Task 9 Step のコマンド、Task 2・10・11・3 の各 Run 行
   Expected: すべて PASS
@@ -8823,7 +8832,7 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
   Run: `gh pr close <番号> --comment "統合 PR <URL> に置き換えました"`（マスタは `-R moorestech/moorestech_master`）
 - [ ] **Step 3: bd `moorestech-xyuaf.2` に PR の URL と「ユーザー通しプレイ待ち」を note し、`moores-wt rm` で作業 worktree を畳む（セッション B の worktree も含む。未 push があれば畳まない）**
 
-**完了判定:** 両 PR が作成済みで CI が全 pass（Unity 全 shard・Web・Mooresmaster・Win/Mac ビルド・`shipped-master-gate`）、旧 5 PR が閉じられている、`git status` が clean で全コミットが push 済み
+**完了判定:** 両 PR が作成済みで CI が全 pass（Unity 全 shard・Web・Mooresmaster・Win/Mac ビルド・`shipped-master-gate`）、旧 5 PR が閉じられている、`git status` が clean で全コミットが push 済み、winbuild の `Saves\world_1\save.json` の SHA256 が `<scratch>/tier8-world/save.json` と一致し、staging のビルド ID が `handoff/build.md` の値と同じ（Task 30 Step 5 のコマンドで確かめる）
 
 全実装タスク完了＝完了ではない。PR未作成のまま終わるのはplan未完了である。
 ## 死活表（統合で置き換え・削除するものにぶら下がる操作）
@@ -8880,10 +8889,11 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - A19 G3 は研究コストを最大スタックで分けて主インベントリへ入れる（`ItemStack` は最大スタック超で例外を投げるため、1 スタックで作ると検査が例外で落ちて「入り切らない」を判定できない）
 - A20 G5 は、Task 7 が解放の記録を消すことに合わせ、ブロック 3 件と表示 8 件の記録が残っていないことを assert する
 - A21 mooreseditor の `server_v8/mods/moorestechAlphaMod_8/.mooreseditor/nodeGraph.v1.json` を統合マスタに合わせる。消した GUID のノードを除き、新しい研究・アイテムのノードを足し、「参照先の消えたノード 0 件・research.json と研究ノードが 1 対 1」を検査する（前例 `tools/plan6_nodegraph_migration/migrate_nodegraph.py`。nodeGraph の取り残しで master-refine の並び順が壊れた事故がある）。設計検査 Phase 2.5 の V2
-- A22 G6 の照合は `tools/tier9_balance/` の 1 か所に集め、入口は `run.py` だけにする。`design/tier9-balance/` は sim・spec・apply・guids の置き場に限る（S1 handoff の `verify_master.py`・`verify_checks.py` は作らず、8 項目は `sections/s1_semiconductor.py` の `checks.matches` として書く）。S3 の検査は `sections/s3_endgame.py`。設計検査 V1。A6 のうち「S3 の検査も同じ apply・verify に乗せる」はこれで置き換える
+- A22 G6 の照合は `tools/tier9_balance/` の 1 か所に集め、入口は `run.py` だけにする。`design/tier9-balance/` は sim・spec・apply・guids の置き場に限る（S1 handoff の `verify_master.py`・`verify_checks.py` は作らず、8 項目は `sections/s1/` 配下と入口 `sections/s1_semiconductor.py` の `checks.matches` として書く）。S2・S3 の検査は `sections/s2/`・`sections/s3/` 配下と入口 `sections/s2_compute_loop.py`・`sections/s3_endgame.py`。設計検査 V1。A6 のうち「S3 の検査も同じ apply・verify に乗せる」はこれで置き換える
 - A23 G1・G3 は `moorestech_server/Assets/Scripts/Editor/` の Editor asmdef に置く（CI ゲートを `-executeMethod` で走らせる前例 `PlatformCompileCheck.cs` と同じ置き場。マスタの場所は常に `-masterDataRoot` で明示して渡す）。A7 の client 側の置き場はこれで置き換える。設計検査 N1
+- A27 nodeGraph の `--check` は CI に載せず、各スライス末尾と Task 23 の手元ゲートで回す（強制は規則が破られてから足す。再検査 B5）
 - A24 移行部品は「全部品を先に検査し、全部が通ってから書き換える」2 段の interface（`IV7ToV8MigrationPart.TryPrepare` / `ApplyAndSummarize`）にする。master の前例（V3ToV4 の static Filler と結果型）と S1 の V8ToV9（先に検査）で前例が割れているため、部品が 5 つある本 step では、1 部品の拒否で途中まで書き換えた JObject が残らない形を選ぶ。新しい定型として扱う。設計検査 N2
-- A25 G6 の S2 区間（Task 19 Step 5）の所要時間は、計算データを消費する研究ごとの便数の合計 × 1 便の秒（`buildSeconds`＋`launchSeconds`）÷ 発射台 1 台とする（S2 引き継ぎ F「1便/135秒を1台で回す」）。各研究の便数は、その研究の前提（祖先）で解放済みの GPU衛星のうち、1 便の計算データが最も多いもので払った数にする。プレイヤーの研究順に依らず、必ず使える衛星だけで数えるため。研究コストの照合は、消費先の顔ぶれ（`COMPUTE_CONSUMERS`）とアップグレード LvN の製作上限 = N の 2 つ。工場の台数は、打ち上げ資材と GPU衛星Lv1 の直のレシピと、その 1 段上流を、1 レシピ 4 台以下で判定する。4 台は S2 引き継ぎ F の作者メモ「変な工場建設は要求しない」を数にした agent 前提で、Task 23 の調整では動かさない。研究コストの値そのものは照合せず、所要時間の判定に任せる。Task 23 で動かす値であり、二重に持つと調整のたびに 2 か所を直すことになるため
+- A25 G6 の S2 区間（Task 19 Step 5）の所要時間は、計算データを消費する研究ごとの便数の合計 × 1 便の秒（`buildSeconds`＋`launchSeconds`）÷ 発射台 1 台とする（S2 引き継ぎ F「1便/135秒を1台で回す」）。各研究の便数は、その研究の前提（祖先）で解放済みの GPU衛星のうち、1 便の計算データが最も多いもので払った数にする。プレイヤーの研究順に依らず、必ず使える衛星だけで数えるため。研究コストの照合は、消費先の顔ぶれ（`COMPUTE_CONSUMERS`）とアップグレード LvN の製作上限 = N の 2 つ。工場の台数は、打ち上げ資材と GPU衛星Lv1 の直のレシピと、その 1 段上流を、1 レシピ 4 台以下で判定する。4 台は S2 引き継ぎ F の作者メモ「変な工場建設は要求しない」を数にした agent 前提で、Task 23 の調整では動かさない。研究コストの値そのものは照合せず、所要時間の判定に任せる。Task 23 で動かす値であり、二重に持つと調整のたびに 2 か所を直すことになるため 打ち上げ資材のうちコンピュータ（Tier8 までの既存の製品）と、GPU衛星Lv1 の入力 GPULv1（S1 区間の工程）は、このレシピ台数の判定の対象外とする（需要は `demand` に積むが、台数はそれぞれの既存の工場・S1 区間で見る）。再検査の備考から
 - A26 G6 の S3 区間（Task 22 Step 6）の所要時間は、次の 3 つの和とする。S3 の下書きに式が無かったので、統合で足した。
   - 研究 4 つ（金属超精密加工・核融合炉・軌道エレベーターの建設・反物質爆弾）を順に払う時間。1 つの研究は、品目ごとに並行して作り、最も遅い品目で決まる。
   - unlockBlock を持つ研究 1 つにつき 0.5 h の建設時間。
@@ -8894,4 +8904,5 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - G3 で研究コストが主インベントリに入り切らない（コスト・スタック上限・払い方のどれを変えるかは裁定）
 - 混在ベルトで上位品が下位へ変換される挙動（W13）を仕様とするか（既定: 仕様として P5 段1 の期待値に書く）
 - G6 の目標時間に、パラメータ調整で収まらない区間がある
+- 段4 の録画の実時間（建造＋打ち上げ＋Lv1 の飛行で 300 秒以下）と G6 の目標が両立しない
 - 評価役 2 体のどちらかが不合格を出し、直し方が仕様の選択になる
