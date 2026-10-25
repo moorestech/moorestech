@@ -1,13 +1,12 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Train.Timetable;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using UniRx;
 using UnityEngine;
 
-namespace Client.WebUiHost.Game.Topics
+namespace Client.Game.InGame.Train.Timetable
 {
     // 時刻表タブを開いた列車の時刻表を取り寄せ、失敗を覚える
     // Fetch the timetable of the train whose timetable tab is open, and remember trains that could not be fetched
@@ -42,7 +41,7 @@ namespace Client.WebUiHost.Game.Topics
             // タブが開いている間だけ新着通知を待ち受ける（Closeで切る）
             // Listen for delivered timetables only while the tab is open; Close disposes the subscription
             _timetableUpdatedSubscription ??= _timetableLookup.OnTimetableUpdated.Subscribe(OnTimetableDelivered);
-            if (_requestedTrainUnitInstanceId == trainUnitInstanceId) return;
+            if (_requestedTrainUnitInstanceId == trainUnitInstanceId) return; // silent-ok: 同じ取得の重複要求を抑える / 開いているタブは既存の取得結果を表示する
             // 打ち切りは旧列車IDのまま行い、放棄したのがどの取得か判るようにする
             // Cancel while the old train id is still set so the log names the abandoned fetch
             var token = RestartCancellation();
@@ -66,7 +65,7 @@ namespace Client.WebUiHost.Game.Topics
         // When coupling, splitting, or a late car snapshot changes the open car's train, refetch only while the tab is open
         public void FollowOpenTrainChange(TrainUnitInstanceId trainUnitInstanceId)
         {
-            if (!_isTimetableTabOpen) return;
+            if (!_isTimetableTabOpen) return; // silent-ok: 閉じたタブの取得は不要 / 次のタブ操作で利用者が取得結果を見る
             RequestForOpenedTab(trainUnitInstanceId);
         }
 
@@ -91,13 +90,13 @@ namespace Client.WebUiHost.Game.Topics
         {
             // 削除でも同じ通知が飛ぶため、実体がある時だけ解除する
             // Removal raises the same notification, so only an existing timetable releases the latches
-            if (!_timetableLookup.TryGet(trainUnitInstanceId, out _)) return;
+            if (!_timetableLookup.TryGet(trainUnitInstanceId, out _)) return; // silent-ok: 削除通知では取得ラッチを解除しない / タブが取得中か取得不可を表示する
             if (_unavailableTrainUnitInstanceId == trainUnitInstanceId)
             {
                 Debug.Log($"[TrainTimetableFetcher] timetable delivered; releasing unavailable latch: {trainUnitInstanceId}");
                 _unavailableTrainUnitInstanceId = null;
             }
-            if (!_isFetchInFlight || _requestedTrainUnitInstanceId != trainUnitInstanceId) return;
+            if (!_isFetchInFlight || _requestedTrainUnitInstanceId != trainUnitInstanceId) return; // silent-ok: 別列車の通知では取得状態を変えない / 対象タブは対応する応答を表示する
             Debug.Log($"[TrainTimetableFetcher] timetable delivered while fetching; releasing in-flight latch: {trainUnitInstanceId}");
             _isFetchInFlight = false;
         }
@@ -167,7 +166,7 @@ namespace Client.WebUiHost.Game.Topics
                 // 応答なしは「列車が無い」と区別してログする
                 // Log no-response separately from "no train"; only the latest request decides what follows
                 Debug.LogWarning($"[TrainTimetableFetcher] no response for timetable request: {trainUnitInstanceId}");
-                if (generation != _requestGeneration) return;
+                if (generation != _requestGeneration) return; // silent-ok: 旧要求は現要求の状態を上書きしない / タブに現要求の取得結果が表示される
                 // 再試行は要求する列車ごとに1回まで
                 // Retry at most once per requested train so a deterministic failure does not keep requesting
                 if (_retriedForRequestedTrain)
@@ -182,7 +181,7 @@ namespace Client.WebUiHost.Game.Topics
 
             void MarkUnavailable()
             {
-                if (generation != _requestGeneration) return;
+                if (generation != _requestGeneration) return; // silent-ok: 旧要求は現要求の状態を上書きしない / タブに現要求の取得結果が表示される
                 _isFetchInFlight = false;
                 _unavailableTrainUnitInstanceId = trainUnitInstanceId;
                 _onFetchFailed.OnNext(Unit.Default);

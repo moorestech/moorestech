@@ -84,8 +84,8 @@ namespace Client.WebUiHost.Game
             // ブロックインベントリトピックを登録（時刻表の取得担当は時刻表タブのactionと共有）
             // Register the block-inventory topic (the timetable fetcher is shared with the timetable-tab action)
             var trainUnitClientCache = resolver.Resolve<TrainUnitClientCache>();
-            var timetableFetcher = new TrainTimetableFetcher(resolver.Resolve<IClientTrainTimetableMutator>(), resolver.Resolve<IClientTrainTimetableLookup>());
-            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher, resolver.Resolve<BeltTransportClientCache>(), resolver.Resolve<FluidNetworkClientCache>());
+            var timetableFetcher = resolver.Resolve<TrainTimetableFetcher>();
+            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher, resolver.Resolve<OpenTrainTimetableTracker>(), resolver.Resolve<BeltTransportClientCache>(), resolver.Resolve<FluidNetworkClientCache>());
             hub.RegisterTopic(BlockInventoryTopic.TopicName, blockInventoryTopic);
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)

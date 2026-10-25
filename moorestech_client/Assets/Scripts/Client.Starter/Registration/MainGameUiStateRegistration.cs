@@ -1,3 +1,4 @@
+using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Modal;
@@ -32,6 +33,11 @@ namespace Client.Starter.Registration
             // 通知の連番と移行告知。サーバー通知とローカル拒否を購読するため起動時に作る
             // Notification numbering and the migration notice; built at startup because they subscribe to server notifications and local refusals
             builder.RegisterEntryPoint<NotificationFeed>().AsSelf();
+
+            // 時刻表タブの取得と、開いている車両の所属列車の追跡
+            // Timetable-tab fetching and tracking of the open car's owning train
+            builder.Register<TrainTimetableFetcher>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<OpenTrainTimetableTracker>().AsSelf();
         }
     }
 }

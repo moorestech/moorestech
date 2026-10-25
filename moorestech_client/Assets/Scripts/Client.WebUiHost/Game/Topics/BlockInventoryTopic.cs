@@ -56,7 +56,7 @@ namespace Client.WebUiHost.Game.Topics
         // Task 8 の action handler がスナップショット反映に使う公開口
         // Public access point used by Task 8 action handlers to apply snapshots
         public BlockNetworkInfoCache NetworkCache => _networkCache;
-        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher timetableFetcher, BeltTransportClientCache beltCache, FluidNetworkClientCache fluidCache)
+        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher timetableFetcher, OpenTrainTimetableTracker openTrainTimetableTracker, BeltTransportClientCache beltCache, FluidNetworkClientCache fluidCache)
         {
             _trainUnitClientCache = trainUnitClientCache;
             _beltCache = beltCache;
@@ -71,7 +71,7 @@ namespace Client.WebUiHost.Game.Topics
             _timetableFetcher = timetableFetcher;
             // 時刻表更新・取得失敗・所属列車の変化で再配信する
             // Republish on the open train's timetable updates, fetch failures, and owning-train changes
-            _openTrainTimetableTracker = new OpenTrainTimetableTracker(subInventoryState, uiStateControl, trainUnitClientCache, timetables, timetableFetcher);
+            _openTrainTimetableTracker = openTrainTimetableTracker;
             _trainTimetableSubscription = _openTrainTimetableTracker.OnRepublishRequested.Subscribe(_ => SchedulePublish());
             _hub = hub;
             _uiStateControl = uiStateControl;
@@ -101,7 +101,6 @@ namespace Client.WebUiHost.Game.Topics
             _continuousSampleSubscription.Dispose();
             _beltWindowSubscription.Dispose();
             _trainTimetableSubscription.Dispose();
-            _openTrainTimetableTracker.Dispose();
             _networkCache.OnUpdated -= SchedulePublish;
             TrackBlock(null);
         }

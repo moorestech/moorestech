@@ -1,24 +1,23 @@
 using System;
-using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
-using Client.WebUiHost.Game.Topics.BlockDetail;
 using Game.Train.Unit;
 using UniRx;
+using VContainer.Unity;
 
-namespace Client.WebUiHost.Game.Topics
+namespace Client.Game.InGame.Train.Timetable
 {
     // 開いている車両の所属列車を追い、再配信と再取得をまとめる
     // Track the open car's owning train and gather timetable republish triggers and refetches
-    public class OpenTrainTimetableTracker : IDisposable
+    public sealed class OpenTrainTimetableTracker : IInitializable
     {
         private readonly SubInventoryState _subInventoryState;
         private readonly UIStateControl _uiStateControl;
         private readonly TrainUnitClientCache _trainUnitClientCache;
+        private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _fetcher;
         private readonly Subject<Unit> _onRepublishRequested = new();
-        private readonly CompositeDisposable _subscriptions = new();
         private TrainUnitInstanceId? _openTrainUnitInstanceId;
         public IObservable<Unit> OnRepublishRequested => _onRepublishRequested;
 
@@ -27,29 +26,28 @@ namespace Client.WebUiHost.Game.Topics
             _subInventoryState = subInventoryState;
             _uiStateControl = uiStateControl;
             _trainUnitClientCache = trainUnitClientCache;
+            _timetables = timetables;
             _fetcher = fetcher;
+        }
+
+        public void Initialize()
+        {
             // 開閉で取得状態を忘れ、開いている列車を解決し直す
             // Forget the fetch state on open/close (UI-state transitions) and re-resolve the open train
-            _uiStateControl.OnStateChanged.Subscribe(OnUiStateChanged).AddTo(_subscriptions);
+            _uiStateControl.OnStateChanged.Subscribe(_ => OnUiStateChanged());
             // 開いている列車の時刻表更新と取得失敗で再配信する
             // Republish on the open train's timetable updates and on fetch failures
-            timetables.OnTimetableUpdated
+            _timetables.OnTimetableUpdated
                 .Where(id => _openTrainUnitInstanceId == id)
-                .Subscribe(_ => _onRepublishRequested.OnNext(Unit.Default))
-                .AddTo(_subscriptions);
-            _fetcher.OnFetchFailed.Subscribe(_onRepublishRequested.OnNext).AddTo(_subscriptions);
+                .Subscribe(_ => _onRepublishRequested.OnNext(Unit.Default));
+            _fetcher.OnFetchFailed.Subscribe(_onRepublishRequested.OnNext);
             // 所属列車が変わったら再配信・再取得する
             // Republish and refetch when coupling, splitting, or a late car snapshot changes the owning train
-            _trainUnitClientCache.OnUnitApplied.Subscribe(_ => OnTrainUnitApplied()).AddTo(_subscriptions);
-            _trainUnitClientCache.OnUnitRemoved.Subscribe(_ => OnTrainUnitApplied()).AddTo(_subscriptions);
+            _trainUnitClientCache.OnUnitApplied.Subscribe(_ => OnTrainUnitApplied());
+            _trainUnitClientCache.OnUnitRemoved.Subscribe(_ => OnTrainUnitApplied());
         }
 
-        public void Dispose()
-        {
-            _subscriptions.Dispose();
-        }
-
-        private void OnUiStateChanged(UIStateEnum state)
+        private void OnUiStateChanged()
         {
             _fetcher.Close();
             _openTrainUnitInstanceId = ResolveOpenTrainUnitInstanceId();
@@ -58,7 +56,7 @@ namespace Client.WebUiHost.Game.Topics
         private void OnTrainUnitApplied()
         {
             var resolved = ResolveOpenTrainUnitInstanceId();
-            if (resolved == _openTrainUnitInstanceId) return;
+            if (resolved == _openTrainUnitInstanceId) return; // silent-ok: 同じ所属列車なら再取得不要 / 既存の時刻表表示を維持する
             _openTrainUnitInstanceId = resolved;
             if (resolved.HasValue) _fetcher.FollowOpenTrainChange(resolved.Value);
             _onRepublishRequested.OnNext(Unit.Default);
@@ -66,7 +64,7 @@ namespace Client.WebUiHost.Game.Topics
 
         private TrainUnitInstanceId? ResolveOpenTrainUnitInstanceId()
         {
-            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _trainUnitClientCache, out var trainUnitInstanceId)) return null;
+            if (!OpenTrainUnitResolver.TryResolveOpenTrain(_subInventoryState, _trainUnitClientCache, out var trainUnitInstanceId)) return null; // silent-ok: 列車を開いていない状態も正常 / 描画側が列車なしを表示する
             return trainUnitInstanceId;
         }
     }

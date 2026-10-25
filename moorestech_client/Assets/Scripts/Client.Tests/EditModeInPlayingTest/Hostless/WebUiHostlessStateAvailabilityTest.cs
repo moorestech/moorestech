@@ -65,6 +65,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                     await ResearchStateProbe.AssertAvailableAsync(resolver);
                     ChallengeStateProbe.AssertAvailable(resolver);
                     NotificationStateProbe.AssertAvailable(resolver);
+                    await TimetableStateProbe.AssertAvailableAsync(resolver);
 
                     // Unityが破棄する前に保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants before Unity destroys the scene
