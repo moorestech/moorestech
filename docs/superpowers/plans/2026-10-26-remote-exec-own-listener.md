@@ -625,6 +625,20 @@ namespace Client.Tests.RemoteExec
         }
 
         [Test]
+        public void 探索帯がWebUiのKestrel帯とVite帯に重ならない()
+        {
+            // ポート帯の台帳は2アセンブリに割れるので、重ならないことを機械で固定する
+            // The port bands live in two assemblies, so their disjointness is pinned mechanically
+            var start = RemoteExecHttpListener.BasePort;
+            var end = start + RemoteExecHttpListener.PortSearchRange;
+            foreach (var otherStart in new[] { Client.WebUiHost.Common.WebUiPortConfig.KestrelBasePort, Client.WebUiHost.Common.WebUiPortConfig.ViteBasePort })
+            {
+                var otherEnd = otherStart + Client.WebUiHost.Common.WebUiPortConfig.PortSearchRange;
+                Assert.IsTrue(end <= otherStart || otherEnd <= start, $"遠隔実行の帯 {start}..{end - 1} が {otherStart}..{otherEnd - 1} と重なる");
+            }
+        }
+
+        [Test]
         public void 基準ポートが使用中なら次のポートで開く()
         {
             var blocker = new TcpListener(IPAddress.Loopback, RemoteExecHttpListener.BasePort);
@@ -809,7 +823,7 @@ Run: `grep -rn "Microsoft.AspNetCore" moorestech_client/Assets/Scripts/Client.Re
 Expected: どちらも 0 件
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.RemoteExec\.|PlaytestBootUnityCallbackBindingTest"`
-Expected: 全 PASS（`RemoteExecEndpointFailureTest` 4 件・`RemoteExecHttpListenerTest` 3 件・既存の `RemoteExecCompilerTest`/`RemoteExecHarmonyTest`/`RemoteExecLedgerTest`/`RemoteExecRunnerTest` 等・`PlaytestBootUnityCallbackBindingTest`）
+Expected: 全 PASS（`RemoteExecEndpointFailureTest` 4 件・`RemoteExecHttpListenerTest` 4 件・既存の `RemoteExecCompilerTest`/`RemoteExecHarmonyTest`/`RemoteExecLedgerTest`/`RemoteExecRunnerTest` 等・`PlaytestBootUnityCallbackBindingTest`）
 
 - [ ] **Step 7: コミットする（Task 1 と合わせて 1 コミット）**
 
@@ -1061,7 +1075,7 @@ Expected: Player.log に `[WebUiHost] production artifact rejected` と `[Remote
 
 各ケースの Player.log の `[RemoteExec]`・`[WebUiHost]` 行を `拒否|refus|Exception|Error|書けません|開けません|failed|失敗` で grep し、意図したもの（ケース 3 の `production artifact rejected`）以外が 0 件（ケース 1 の Kestrel の 404 は経路が無いだけでログを出さない）であることを確かめる。合否は肯定行の有無ではなくこの警告語ゼロで判定する。
 
-`docs/research/2026-10-26-remote-exec-own-listener-windows.md` に、対象コミット・ビルド方法・3 ケースの出力抜粋（JSON・exit・probe の Listen ポート・Player.log 行）・警告語 grep の結果・未検証の残差を前例 `docs/research/2026-09-27-remote-exec-e2e.md` の節立て（実施方法と plan からの差分／結果／未検証・残差）で書く。
+`docs/research/2026-10-26-remote-exec-own-listener-windows.md` に、対象コミット・ビルド方法・3 ケースの出力抜粋（ケース 2 の Harmony 送信は本文が 1KB を超え `Expect: 100-continue` 付きの要求になるので、「本文の大きい要求」の実測を兼ねたと明記する）（JSON・exit・probe の Listen ポート・Player.log 行）・警告語 grep の結果・未検証の残差を前例 `docs/research/2026-09-27-remote-exec-e2e.md` の節立て（実施方法と plan からの差分／結果／未検証・残差）で書く。
 
 ```bash
 git add docs/research/2026-10-26-remote-exec-own-listener-windows.md
@@ -1206,3 +1220,4 @@ bd note moorestech-albof.2 "HttpListenerが配布ビルドで動かず(b)最小K
 - 実行環境が `HttpListener` を持たない場合は `HttpListener.IsSupported` の分岐で理由を残して諦める。型の読み込み失敗（stripping で型が消えた等）は try-catch で包まない（AGENTS.md の外部境界の列挙に当たらないため）。その場合は `--remoteExec` 付きの起動だけが初期化で例外を出して止まり、Task 4 のケース 2 で必ず表に出て Task 5 へ進む判断材料になる。出所: agent 判断（再検査の注目点を受けて）。
 - `RemoteExecLaunchOption.ResolveFromCommandLine` の無効分岐は `RemoteExecActivation.Deactivate()` を呼ぶ（同じアセンブリ内で判定役が撤去を呼び返す形になる）。撤去の手順を 1 か所に保つことを優先した。無効起動の撤去を `ActivateIfRequested` 側へ移す案は、撤去が `BeginCurrentSessionMarks` より後ろへずれるので採らない。出所: agent 判断。
 - Phase 2.6 再検査の弱 2 件（`Stop()` の呼び口が Editor の後片付けを含めて多い → `Deactivate` のコメントに「Editor の後片付けはソケットだけ」と書いて字面を合わせる／PR 本文の節の波及 → Task 7 Step 1 に「リファクタ提案」節と並び順を足す）は両方採った。出所: agent 既定（ユーザー未裁定）。
+- user-simulator review（Fable 判事）: 適用推奨 0・Warning 3・要裁定 0。Warning は 3 件とも反映した。(1) ポート帯の台帳が 2 アセンブリに割れる → `RemoteExecHttpListenerTest` に Kestrel 帯・Vite 帯と重ならない検査を足した（`Client.Tests` は両方を参照できる）。(2) 探索帯 20 ポートを塞ぐ `待受を開けなければHarmonyも接続情報も用意しない` は、別 worktree の Editor が同じ瞬間に `RemoteExecEndpointTest` を回すと相手側が「空きポートが無い」で落ちうる（塞ぐのはミリ秒単位。再実行で解消）。(3) 検証機の Harmony 送信は `Expect: 100-continue` 付きの大きい要求の実測を兼ねると記録に書く。出所: シミュレーター予測（agent 既定で反映。ユーザー未承認）。
