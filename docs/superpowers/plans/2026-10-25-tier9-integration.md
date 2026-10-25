@@ -156,7 +156,7 @@ MASTER=$MW/server_v8/mods/moorestechAlphaMod_8/master
   - マスタ repo の main（`origin/master`）にも Tier9 の仮ブロックがすでにあるので、G2 は main でも 65 件の FAIL で赤い（上の実測）。
   - そのため、ゲートの CI は統合ブランチに載せる。P2 が緑にしてから統合 PR ごと main へ入る。main に単独で入れると、全員の push が赤くなる。
 - **G1・G3（C#）:** 本体 `moorestech_server/Assets/Scripts/Editor/MasterGate/` に置く。Editor 専用の asmdef `Server.MasterGate.Editor` を作る（判断記録 A23。CI ゲートの前例 `PlatformCompileCheck.cs` と同じ `Editor/` 配下、サブディレクトリの asmdef は前例 `Editor/SchemaWatch/Server.SchemaWatch.Editor.asmdef`）。CI は新しいワークフロー `.github/workflows/shipped-master-gate.yml` に置く（前例 `platform-compile.yml`）。
-- 1 ファイル 200 行以下、1 ディレクトリ 10 ファイルまで（AGENTS.md）。G2 は 21 ファイル・計 1082 行で、最大は `model/machine_sources.py` の 116 行。
+- 1 ファイル 200 行以下、1 ディレクトリ 10 ファイルまで（AGENTS.md）。G2 は `tools/progression/` の 21 ファイル・計 1096 行と、共通部品 `tools/master_common/` の 2 ファイル・計 25 行で、最大は `model/machine_sources.py` の 127 行。
 
 ### G2 が見ないもの（他のゲートが受け持つ）
 
@@ -185,6 +185,7 @@ G2 は「入手できるか」だけを見る、量のない静的モデルで�
 - Create: `moorestech_master:tools/progression/check.py`、`…/allowlist.py`、`…/report.py`、`…/goals.json`、`…/allowlist.json`
 - Create: `moorestech_master:tools/progression/model/{__init__,master_data,unlock_index,reach_state,basic_sources,machine_sources,orbital_sources,fixpoint,research_walk}.py`
 - Create: `moorestech_master:tools/progression/audits/{__init__,progress,catalog,item_consumers}.py`
+- Create: `moorestech_master:tools/master_common/{__init__,research_ancestors}.py`（研究の祖先集合。G2 と G6 の共通部品。Task 12 が同じパッケージに `json_text.py` を足す。判断記録 A32）
 - Test: `moorestech_master:tools/progression/tests/{fixture_master,test_gate_basics,test_gate_tier9}.py`
 - Modify: `moorestech_master:tools/research_sync/progression_check.py`（import 用の `ProgressionModel` だけを残し、中身を新モデルへの委譲に差し替える。G2 の入口は `tools/progression/check.py` の 1 つ）
 - Create: `moorestech_master:.github/workflows/master-gates.yml`
@@ -201,6 +202,7 @@ G2 は「入手できるか」だけを見る、量のない静的モデルで�
   - カテゴリ: `unreachableResearch zeroCostResearch implicitPrerequisites unobtainableItems neverUnlockedBlocks deadRecipes fluidPorts unusedItems`（`allowlist.CATEGORIES`）。goal は許可リストに載せられない。
   - `--emit-order` の JSON: `{"order":[{"researchNodeGuid","name","wave","unlockBlockGuids":[…],"unlockMachineRecipeGuids":[…]}]}`（段の順、同じ段の中はマスタの並び順）。
   - 許可リスト `tools/progression/allowlist.json`: `{カテゴリ: {キー: 理由}}`。implicitPrerequisites のキーは `ノードGUID|アイテムGUID`。
+  - 共通部品 `tools/master_common/research_ancestors.py` の `ancestors_including_self(research_rows) -> dict[研究GUID, set[研究GUID]]`（自分を含む。自分を除く集合は呼び側が `- {guid}` で作る。Task 19 の G6 が使う）。
 
 - [ ] **Step 1: マスタ統合 worktree を用意する**（Task 1 Step 1〜2 と同じ作り方。P0 が先に走ったときだけ作る。すでにあれば何もしない）
 ```bash
@@ -223,7 +225,8 @@ Expected: 新しく作ったときは `TREE-OK` が出る。どちらの場合�
     - `reach_state.py`: 入手済みの集合と入手経路のラベル。
     - `*_sources.py`: 入手経路の種類ごと。
     - `fixpoint.py`: 増えなくなるまで回す。
-    - `research_walk.py`: 研究を段ごとに進める。
+    - `research_walk.py`: 研究を段ごとに進める。前提不足・コスト不足の判定（`missing_prerequisites`・`missing_costs`）もここに置き、audits はこれを呼ぶ（同じ述語を 2 か所に書かない。判断記録 A32）。
+    - `unlock_index.py` の解放済みの述語は 1 本（`_unlocked`）。「どこかの研究が解放するか」は全ノード完了の集合 `all_nodes` を渡して同じ述語で判定し、研究順の書き出しも索引から引く（判断記録 A32）。
 
 `tools/progression/model/master_data.py`:
 ```python
@@ -318,6 +321,9 @@ class UnlockIndex:
     def __init__(self, research, recipe_nodes_override):
         self.block_nodes, self.recipe_nodes, self.craft_nodes = {}, {}, {}
         self.give_items, self.craft_caps = {}, {}
+        # 全ノードを完了した集合。「どこかの研究が解放するか」は解放済みの述語にこの集合を渡して判定する
+        # The set with every node completed; "unlocked by some research" is the unlocked predicate under this set
+        self.all_nodes = frozenset(node['researchNodeGuid'] for node in research)
         for node in research:
             guid = node['researchNodeGuid']
             for action in node['clearedActions']:
@@ -354,13 +360,31 @@ class UnlockIndex:
         return cap
 
     def is_block_unlocked(self, block, completed):
-        return block.get('initialUnlocked') or bool(self.block_nodes.get(block['blockGuid'], set()) & completed)
+        return _unlocked(block, self.block_nodes.get(block['blockGuid'], set()), completed)
 
     def is_recipe_unlocked(self, recipe, completed):
-        return recipe.get('initialUnlocked') or bool(self.recipe_nodes.get(recipe['machineRecipeGuid'], set()) & completed)
+        return _unlocked(recipe, self.recipe_nodes.get(recipe['machineRecipeGuid'], set()), completed)
 
     def is_craft_unlocked(self, craft, completed):
-        return craft.get('initialUnlocked') or bool(self.craft_nodes.get(craft['craftRecipeGuid'], set()) & completed)
+        return _unlocked(craft, self.craft_nodes.get(craft['craftRecipeGuid'], set()), completed)
+
+    def can_ever_unlock_block(self, block):
+        return self.is_block_unlocked(block, self.all_nodes)
+
+    def can_ever_unlock_recipe(self, recipe):
+        return self.is_recipe_unlocked(recipe, self.all_nodes)
+
+    def blocks_unlocked_by(self, node):
+        # G3 の研究順に書く「この研究の完了で解放されるもの」。解放の索引から引き、clearedActions を読み直さない
+        # What completing this node unlocks, for the G3 research order; read from the index, not clearedActions again
+        return [g for g, nodes in self.block_nodes.items() if node in nodes]
+
+    def recipes_unlocked_by(self, node):
+        return [g for g, nodes in self.recipe_nodes.items() if node in nodes]
+
+
+def _unlocked(entry, unlocking_nodes, completed):
+    return bool(entry.get('initialUnlocked')) or bool(unlocking_nodes & completed)
 ```
 
 `tools/progression/model/reach_state.py`:
@@ -514,16 +538,29 @@ def _family_index(data, entries):
     return found[0] if len(found) == 1 else None
 
 
-def _inherit(state, recipe, label):
-    # 継承元レベルLの変種が手元にあり（上限つきなら製作上限以下）、他の入力が揃えば継承先のLv Lが出る
-    # With source variant L in hand (at or below the craft cap when capped) and other inputs met, target Lv L comes out
-    data = state.data
-    src, dst = _family_index(data, recipe['inputItems']), _family_index(data, recipe['outputItems'])
-    if src is None or dst is None:
+def _expand_family_input(state, recipe, label, expand):
+    # 族基準の入力が1つに決まらなければ普通のレシピとして扱い、他の入力が揃うときだけ expand(族基準の位置) を回す
+    # Treat the recipe as plain unless exactly one family-base input exists; run expand(base index) only when the other inputs are met
+    src = _family_index(state.data, recipe['inputItems'])
+    if src is None:
         return _plain(state, recipe, label)
     others = [x['itemGuid'] for i, x in enumerate(recipe['inputItems']) if i != src]
     if not state.has_all(others):
         return False
+    return expand(src)
+
+
+def _inherit(state, recipe, label):
+    # 継承元レベルLの変種が手元にあり（上限つきなら製作上限以下）、他の入力が揃えば継承先のLv Lが出る
+    # With source variant L in hand (at or below the craft cap when capped) and other inputs met, target Lv L comes out
+    dst = _family_index(state.data, recipe['outputItems'])
+    if dst is None:
+        return _plain(state, recipe, label)
+    return _expand_family_input(state, recipe, label, lambda src: _emit_inherited(state, recipe, label, src, dst))
+
+
+def _emit_inherited(state, recipe, label, src, dst):
+    data = state.data
     src_variants = data.variants_of(recipe['inputItems'][src]['itemGuid'])
     dst_base = recipe['outputItems'][dst]['itemGuid']
     dst_variants = data.variants_of(dst_base)
@@ -538,15 +575,13 @@ def _inherit(state, recipe, label):
 
 
 def _dicing(state, recipe, row, label):
+    return _expand_family_input(state, recipe, label, lambda src: _emit_dies(state, recipe, row, label, src))
+
+
+def _emit_dies(state, recipe, row, label, src):
     # ダイシングはグレードgのウェハをダイ表 gradeDieTables[g-1] の率>0 のレベルへ振り分ける（DicingOutputRewriter）
     # Dicing splits a grade-g wafer into the die levels whose gradeDieTables[g-1] rate is above zero (DicingOutputRewriter)
     data = state.data
-    src = _family_index(data, recipe['inputItems'])
-    if src is None:
-        return _plain(state, recipe, label)
-    others = [x['itemGuid'] for i, x in enumerate(recipe['inputItems']) if i != src]
-    if not state.has_all(others):
-        return False
     wafers = data.variants_of(recipe['inputItems'][src]['itemGuid'])
     dies = data.variants_of(row['dieItemGuid'])
     changed = False
@@ -662,10 +697,19 @@ class WalkResult:
         self.completed = {s.guid for s in steps}
 
 
-def prerequisites_done(node, completed):
+def cost_guids(node):
+    return [c['itemGuid'] for c in node.get('consumeItems') or []]
+
+
+def missing_prerequisites(node, completed):
     # 自分自身を前提に書いたものは飛ばす（ResearchDataStore.ArePrerequisitesCompleted と同じ）
     # A node listing itself as a prerequisite is skipped (same as ResearchDataStore.ArePrerequisitesCompleted)
-    return all(p == node['researchNodeGuid'] or p in completed for p in node.get('prevResearchNodeGuids') or [])
+    guid = node['researchNodeGuid']
+    return [p for p in node.get('prevResearchNodeGuids') or [] if p != guid and p not in completed]
+
+
+def missing_costs(node, have):
+    return [g for g in cost_guids(node) if g not in have]
 
 
 def walk(data, index):
@@ -673,35 +717,45 @@ def walk(data, index):
     while True:
         state = obtainable(data, index, completed)
         ready = [n for n in data.research
-                 if n['researchNodeGuid'] not in completed and prerequisites_done(n, completed)
-                 and state.has_all(c['itemGuid'] for c in n.get('consumeItems') or [])]
+                 if n['researchNodeGuid'] not in completed and not missing_prerequisites(n, completed)
+                 and not missing_costs(n, state.have)]
         if not ready:
             return WalkResult(steps, state)
         wave += 1
         for node in ready:
-            routes = {c['itemGuid']: state.have[c['itemGuid']] for c in node.get('consumeItems') or []}
+            routes = {g: state.have[g] for g in cost_guids(node)}
             steps.append(WalkStep(wave, node['researchNodeGuid'], routes))
             completed.add(node['researchNodeGuid'])
+```
+
+研究の祖先集合は G6 の上流の需要（Task 19 `recipe_rates`）も使うので、`tools/` 直下の共通パッケージに置く（判断記録 A32）。`mkdir -p $MW/tools/master_common && touch $MW/tools/master_common/__init__.py` を実行する（`__init__.py` は空）。
+
+`tools/master_common/research_ancestors.py`:
+```python
+#!/usr/bin/env python3
+# 研究の祖先集合（自分を含む）。G2 の暗黙の前提と G6 の上流の需要が同じ導出を使う。自分を除く集合は呼び側が {guid} を引く
+# Research ancestor sets including self, shared by G2 implicit prerequisites and G6 upstream demand; callers subtract {guid} to exclude self
+# 未定義の前提は祖先に入れない（G2 は到達不能として、G6 は lookup_failed として別に拾う）。循環は辿り直さずに打ち切る
+# Unknown prerequisites are left out (G2 reports them as unreachable, G6 as lookup_failed); cycles are cut instead of revisited
 
 
-def ancestors_of(data):
-    # 祖先集合（自分を含む）。未定義の前提は祖先に入れず、到達不能として audits が拾う
-    # Ancestor sets including self; unknown prerequisites are left out and audits report them as unreachable
+def ancestors_including_self(research_rows):
+    by_guid = {r['researchNodeGuid']: r for r in research_rows}
     result = {}
 
     def visit(guid, stack):
         if guid in result:
             return result[guid]
-        if guid in stack or guid not in data.research_by_guid:
+        if guid in stack or guid not in by_guid:
             return set()
         found = {guid}
-        for prev in data.research_by_guid[guid].get('prevResearchNodeGuids') or []:
+        for prev in by_guid[guid].get('prevResearchNodeGuids') or []:
             found |= visit(prev, stack | {guid})
         result[guid] = found
         return found
 
-    for node in data.research:
-        visit(node['researchNodeGuid'], frozenset())
+    for row in research_rows:
+        visit(row['researchNodeGuid'], frozenset())
     return result
 ```
 
@@ -716,8 +770,9 @@ def ancestors_of(data):
 #!/usr/bin/env python3
 # 研究の進行に関する検査: 到達できない研究・目標・祖先だけでは払えないコスト（ADR 0033 の暗黙の前提）
 # Progress audits: unreachable research, goals, and costs not payable with ancestors alone (ADR 0033 implicit prerequisites)
+from master_common.research_ancestors import ancestors_including_self
 from model.fixpoint import obtainable
-from model.research_walk import ancestors_of
+from model.research_walk import missing_costs, missing_prerequisites
 
 
 class Problem:
@@ -733,10 +788,8 @@ def unreachable_research(data, result):
         guid = node['researchNodeGuid']
         if guid in result.completed:
             continue
-        missing_prev = [data.research_name(p) for p in node.get('prevResearchNodeGuids') or []
-                        if p != guid and p not in result.completed]
-        missing_cost = [data.item_name(c['itemGuid']) for c in node.get('consumeItems') or []
-                        if c['itemGuid'] not in result.final_state.have]
+        missing_prev = [data.research_name(p) for p in missing_prerequisites(node, result.completed)]
+        missing_cost = [data.item_name(g) for g in missing_costs(node, result.final_state.have)]
         problems.append(Problem('unreachableResearch', guid,
                                 f"{node['researchNodeName']}: 前提未完了={missing_prev} 入手できないコスト={missing_cost}"))
     return problems
@@ -768,13 +821,12 @@ def implicit_prerequisites(data, index):
     # 祖先だけを完了した状態でコストが揃わないノード。別枝の研究を暗黙に要求している
     # Nodes whose cost is not met with only their ancestors completed; they implicitly require another branch
     problems = []
-    for guid, ancestors in ancestors_of(data).items():
+    for guid, ancestors in ancestors_including_self(data.research).items():
         state = obtainable(data, index, ancestors - {guid})
         node = data.research_by_guid[guid]
-        for cost in node.get('consumeItems') or []:
-            if cost['itemGuid'] not in state.have:
-                problems.append(Problem('implicitPrerequisites', f"{guid}|{cost['itemGuid']}",
-                                        f"{node['researchNodeName']}: コスト {data.item_name(cost['itemGuid'])} が祖先だけでは入手できない"))
+        for item_guid in missing_costs(node, state.have):
+            problems.append(Problem('implicitPrerequisites', f"{guid}|{item_guid}",
+                                    f"{node['researchNodeName']}: コスト {data.item_name(item_guid)} が祖先だけでは入手できない"))
     return problems
 
 
@@ -806,7 +858,7 @@ def unobtainable_items(data, result):
 def never_unlocked_blocks(data, index, result):
     problems = []
     for guid, block in data.blocks.items():
-        if not block.get('initialUnlocked') and guid not in index.block_nodes:
+        if not index.can_ever_unlock_block(block):
             problems.append(Problem('neverUnlockedBlocks', guid, f"{block['name']}: どの研究も unlockBlock しない"))
         elif not result.final_state.block_usable(guid):
             problems.append(Problem('neverUnlockedBlocks', guid, f"{block['name']}: 解放はされるが建設コストが入手できない"))
@@ -817,9 +869,9 @@ def dead_recipes(data, index):
     problems = []
     for recipe in data.machine_recipes:
         guid, block = recipe['machineRecipeGuid'], data.blocks.get(recipe['blockGuid'])
-        if not recipe.get('initialUnlocked') and guid not in index.recipe_nodes:
+        if not index.can_ever_unlock_recipe(recipe):
             problems.append(Problem('deadRecipes', guid, f"{_describe(data, recipe)}: どの研究も解放しない"))
-        elif block is not None and not block.get('initialUnlocked') and recipe['blockGuid'] not in index.block_nodes:
+        elif block is not None and not index.can_ever_unlock_block(block):
             problems.append(Problem('deadRecipes', guid, f"{_describe(data, recipe)}: 機械 {block['name']} が解放されない"))
     return problems
 
@@ -983,21 +1035,13 @@ def print_verdict(verdict, goal_failures):
     print(f'== RESULT: {"FAIL" if total else "PASS"} ({total} failures, {len(verdict.allowed)} allowed)')
 
 
-def write_order(path, data, result):
-    # G3（Unity の研究ウォーク）が読む。波の順に並べた研究GUIDと、各段で解放されるブロック・機械レシピ
-    # Read by G3 (the Unity research walk): research GUIDs in wave order and the blocks/recipes each step unlocks
-    rows = []
-    for step in result.steps:
-        node = data.research_by_guid[step.guid]
-        blocks, recipes = [], []
-        for action in node['clearedActions']:
-            param = action['gameActionParam']
-            if action['gameActionType'] == 'unlockBlock':
-                blocks.extend(param['unlockBlockGuids'])
-            elif action['gameActionType'] == 'unlockMachineRecipe':
-                recipes.extend(param['unlockMachineRecipeGuids'])
-        rows.append({'researchNodeGuid': step.guid, 'name': node['researchNodeName'], 'wave': step.wave,
-                     'unlockBlockGuids': blocks, 'unlockMachineRecipeGuids': recipes})
+def write_order(path, data, index, result):
+    # G3（Unity の研究ウォーク）が読む。波の順に並べた研究GUIDと、各段で解放されるブロック・機械レシピ（解放の索引から引く）
+    # Read by G3 (the Unity research walk): research GUIDs in wave order and the blocks/recipes each step unlocks (from the unlock index)
+    rows = [{'researchNodeGuid': step.guid, 'name': data.research_name(step.guid), 'wave': step.wave,
+             'unlockBlockGuids': index.blocks_unlocked_by(step.guid),
+             'unlockMachineRecipeGuids': index.recipes_unlocked_by(step.guid)}
+            for step in result.steps]
     with open(path, 'w', encoding='utf-8') as f:
         json.dump({'order': rows}, f, ensure_ascii=False, indent=2)
         f.write('\n')
@@ -1015,7 +1059,10 @@ import json
 import os
 import sys
 
+# tools/progression と、共通部品 master_common を置く tools/ の両方を import できるようにする
+# Make both tools/progression and tools/ (home of the shared master_common package) importable
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from audits import catalog as audits_catalog  # noqa: E402
 from audits import progress as audits_progress  # noqa: E402
 from allowlist import judge, load_allowlist  # noqa: E402
@@ -1057,7 +1104,7 @@ def main(argv):
     print_route(data, result)
     print_verdict(verdict, goal_failures)
     if args.emit_order:
-        write_order(args.emit_order, data, result)
+        write_order(args.emit_order, data, index, result)
     return 1 if verdict.failed or goal_failures else 0
 
 
@@ -1442,6 +1489,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'progression'))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from audits import progress as audits_progress  # noqa: E402
 from model.master_data import MasterData  # noqa: E402
 from model.unlock_index import UnlockIndex  # noqa: E402
@@ -1535,7 +1583,7 @@ jobs:
 
 - [ ] **Step 12: コミットして push する**
 ```bash
-git -C $MW add tools/progression tools/research_sync/progression_check.py .github/workflows/master-gates.yml
+git -C $MW add tools/progression tools/master_common tools/research_sync/progression_check.py .github/workflows/master-gates.yml
 git -C $MW commit -m "tools: 到達性ゲート G2 を絶対判定で作り直し、軌道到着・レベル継承・クリーンルーム抽選をモデルに入れて CI に載せる"
 git -C $MW push -u origin feat/tier9-integrated
 ```
