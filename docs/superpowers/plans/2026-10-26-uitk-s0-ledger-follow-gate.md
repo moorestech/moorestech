@@ -513,7 +513,7 @@ git commit -m "feat(uitk): 移行台帳のパーサと Web パスの持ち主判
   - `cli.py`: `LEDGER_PATH="docs/uitk/TODO.md"`・`main(argv:list[str]) -> int`（0=緑・1=赤）。引数 `--root`（既定 `.`）・`--base`（必須）・`--head`（必須）
   - 入口: `python3 .github/scripts/check-uitk-web-follow.py --base <rev> --head <rev>`
 
-- [ ] **Step 1: `git_history.py` を書く**
+- [x] **Step 1: `git_history.py` を書く**
 
 ```python
 """Thin git wrappers the UITK Web follow gate reads history through."""
@@ -604,7 +604,7 @@ def tracked_files(root: Path, rev: str, prefix: str) -> tuple[str, ...]:
     return tuple(line for line in _git(root, "ls-tree", "-r", "--name-only", rev, "--", prefix).splitlines() if line)
 ```
 
-- [ ] **Step 2: `checks.py` を書く**
+- [x] **Step 2: `checks.py` を書く**
 
 ```python
 """UITK Web follow gate (G1) rules over the base and head ledgers and git history."""
@@ -663,7 +663,7 @@ def check_switch_records(bundle_id: int, unrecorded: tuple[str, ...]) -> tuple[V
         for sha in unrecorded)
 ```
 
-- [ ] **Step 3: `cli.py` を書く**
+- [x] **Step 3: `cli.py` を書く**
 
 ```python
 """Command line entry of the UITK Web follow gate (G1)."""
@@ -756,7 +756,7 @@ def _emit(report: list[str], violations: list[Violation]) -> None:
             stream.write("\n".join(lines) + "\n")
 ```
 
-- [ ] **Step 4: 入口 `check-uitk-web-follow.py` を書く**
+- [x] **Step 4: 入口 `check-uitk-web-follow.py` を書く**
 
 ```python
 #!/usr/bin/env python3
@@ -772,7 +772,7 @@ from uitk_web_follow.cli import main  # noqa: E402
 sys.exit(main(sys.argv[1:]))
 ```
 
-- [ ] **Step 5: シナリオテスト `test_uitk_web_follow_gate.py` を書く**
+- [x] **Step 5: シナリオテスト `test_uitk_web_follow_gate.py` を書く**
 
 一時 repo で「master に台帳と Web ファイル → master で Web 変更 → PR ブランチで台帳を書き換え」を作り、`main(["--root", root, "--base", "master", "--head", "pr"])` の戻り値と出力を見る。
 
@@ -917,12 +917,12 @@ if __name__ == "__main__":
 
 注: 赤を期待するテストは、別の理由（台帳の読み違い）で赤になっていないことを `assertIn("G1-1" / "G1-2" / "G1-0", err)` で必ず確かめる。緑を期待するテストが落ちたら原因を読めるよう、`assertEqual(code, 0, err)` の形で `err` を渡す（`run_gate` が `err` を返すように揃える）
 
-- [ ] **Step 6: テストを実行して通ることを確認する**
+- [x] **Step 6: テストを実行して通ることを確認する**
 
 Run: `python3 -m unittest discover -s .github/scripts/tests -p 'test_uitk_web_follow_*.py' -v`
 Expected: 全件 `ok`。赤のシナリオ（`..._is_red`）は G1 が 1 を返し、緑は 0 を返して通る
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add .github/scripts/uitk_web_follow/git_history.py .github/scripts/uitk_web_follow/checks.py .github/scripts/uitk_web_follow/cli.py .github/scripts/check-uitk-web-follow.py .github/scripts/tests/test_uitk_web_follow_gate.py
