@@ -56,6 +56,19 @@ class LedgerParseTest(unittest.TestCase):
         self.parse_error(ledger_text({}, [HUD], []).replace("## 追従記録", "## 記録"), "追従記録")
 
 
+    def test_missing_leading_pipe_cannot_hide_retired_owner(self):
+        text = ledger_text({2: (STATE_SWITCHED, f"`{SHA[:10]}`")}, [
+            SHELL, ("commonHud", "2", "UITK", "`src/features/commonHud/`"),
+        ], [])
+        self.parse_error(text.replace("| commonHud |", "commonHud |"), "行頭")
+
+    def test_indented_row_keeps_retired_owner(self):
+        text = ledger_text({2: (STATE_SWITCHED, f"`{SHA[:10]}`")}, [
+            SHELL, ("commonHud", "2", "UITK", "`src/features/commonHud/`"),
+        ], [])
+        ledger = self.parse_ok(text.replace("| commonHud |", "  | commonHud |"))
+        self.assertTrue(is_retired("moorestech_web/webui/src/features/commonHud/a.tsx", ledger))
+
     def test_rejects_duplicate_bundle(self):
         text = ledger_text({}, [HUD], [])
         self.parse_error(text.replace("| 1 | 命綱 | Web | — | — |", "| 1 | 命綱 | Web | — | — |\n| 1 | 重複 | Web | — | — |"), "重複")

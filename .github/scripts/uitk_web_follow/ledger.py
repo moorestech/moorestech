@@ -100,15 +100,20 @@ def _table(lines: list[str], heading: str, header: tuple[str, ...], errors: list
     if lines.count(heading) != 1:
         errors.append(f"見出し「{heading}」が無いか重複している")
         return []
-    index = lines.index(heading) + 1
-    while index < len(lines) and not lines[index].startswith("|") and not lines[index].startswith("## "):
-        index += 1
+    # 次の見出しまで検査し、先頭パイプ欠落で読取りを打ち切らない
+    # Inspect the entire section so a missing leading pipe cannot truncate ownership
     table = []
-    while index < len(lines) and lines[index].startswith("|"):
-        if not lines[index].endswith("|"):
+    for raw_line in lines[lines.index(heading) + 1:]:
+        line = raw_line.strip()
+        if line.startswith("## "):
+            break
+        if "|" not in line:
+            continue  # silent-ok: 表外の説明と空行 / 表の構造は下で検証する
+        if not line.startswith("|"):
+            errors.append(f"「{heading}」の表の行頭に | が無い")
+        if not line.endswith("|"):
             errors.append(f"「{heading}」の表の行末に | が無い")
-        table.append(tuple(cell.strip() for cell in lines[index][1:-1].split("|")))
-        index += 1
+        table.append(tuple(cell.strip() for cell in line[1:-1].split("|")))
     if not table or table[0] != header:
         errors.append(f"「{heading}」の表の見出しが「{' | '.join(header)}」ではない")
         return []
