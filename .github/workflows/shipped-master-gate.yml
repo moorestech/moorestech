@@ -1,0 +1,76 @@
+# PRごとに、ピン先の出荷マスタを本番と同じ経路で読めるかを検査する（G1）。テストはピン先マスタを読めない（check-test-external-dependencies.py）ため専用ワークフローで読む
+# Per PR, check the pinned shipped master loads through the production path (G1); tests may not read it (check-test-external-dependencies.py), so a dedicated workflow does
+name: Shipped Master Gate
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  gate:
+    name: Shipped Master Gate (G1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ピン先SHAの解決と非公開master repoのcheckoutは run_test.yml の unity_test_shard と同じ手順
+      # Pin resolution and the private master checkout follow unity_test_shard in run_test.yml
+      - name: Read pinned master repository revision.
+        id: master_revision
+        shell: bash
+        run: |
+          commit_hash=$(jq -er '.repositories[] | select(.key == "moorestech_master") | .commitHash' .moorestech-external-revisions.json)
+          echo "commit_hash=$commit_hash" >> "$GITHUB_OUTPUT"
+
+      - name: Generate github token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: Check out pinned master repository.
+        uses: actions/checkout@v4
+        with:
+          repository: moorestech/moorestech_master
+          token: ${{ steps.generate_token.outputs.token }}
+          ref: ${{ steps.master_revision.outputs.commit_hash }}
+          path: moorestech_master
+
+      # 保存はmasterのcache-warm.ymlだけが行う。path・キーは platform-compile.yml の Windows 行と逐語一致させる
+      # Only master's cache-warm.yml saves; path and key match the Windows row of platform-compile.yml verbatim
+      - uses: actions/cache/restore@v4
+        with:
+          path: moorestech_server/Library
+          key: Library_compile_server_StandaloneWindows64-${{ github.sha }}
+          restore-keys: |
+            Library_compile_server_StandaloneWindows64-
+
+      # buildMethodはプレイヤービルドをせず EditorApplication.Exit の終了コードで合否を返す（platform-compile.yml と同じ使い方）。置き場は推測させず必ず渡す
+      # The buildMethod builds no player and reports via the EditorApplication.Exit code (same usage as platform-compile.yml); the master location is always passed
+      - name: Shipped master gate
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4.8.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          buildMethod: Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine
+          targetPlatform: StandaloneWindows64
+          allowDirtyBuild: true
+          projectPath: moorestech_server/
+          versioning: None
+          customParameters: '-masterDataRoot /github/workspace/moorestech_master'
