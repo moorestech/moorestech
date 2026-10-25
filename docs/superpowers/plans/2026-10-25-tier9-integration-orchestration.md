@@ -22,12 +22,18 @@
 
 | セッション | ホスト | 作業場所 | 担当 | 寿命 |
 |---|---|---|---|---|
-| A（主） | Codex `gpt-6.1-sol`、moores-subagent-driven-development の SDD 本体（per-task） | `~/hermes-agent/data/worktrees/moorestech/tier9-integrated`（branch `feat/tier9-integrated`）。J1 以降はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（moorestech_master の branch `feat/tier9-integrated`）も使う | W1: Task 4〜11 / W2: Task 12〜24 / W3: Task 27〜29 / W4: Task 30〜33 | 全期間 |
-| B（副） | Codex `gpt-6.1-sol`、同 SDD | W1: マスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（Task 1 で作る。moorestech_master の branch `feat/tier9-integrated`）。W2: 本体 worktree `~/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests`（branch `feat/tier9-integrated-tests`、J1 後の本体 `feat/tier9-integrated` から切る） | W1: Task 1〜3 / W2: Task 25〜26 | J2 で終了 |
+| A（主） | pi agent（`openai/gpt-6.1-sol`・`--thinking high`）、moores-subagent-driven-development の SDD 本体（per-task） | `~/hermes-agent/data/worktrees/moorestech/tier9-integrated`（branch `feat/tier9-integrated`）。J1 以降はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（moorestech_master の branch `feat/tier9-integrated`）も使う | W1: Task 4〜11 / W2: Task 12〜24 / W3: Task 27〜29 / W4: Task 30〜33 | 全期間 |
+| B（副） | pi agent（同じモデル・同じ thinking）、同 SDD | W1: マスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（Task 1 で作る。moorestech_master の branch `feat/tier9-integrated`）。W2: 本体 worktree `~/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests`（branch `feat/tier9-integrated-tests`、J1 後の本体 `feat/tier9-integrated` から切る） | W1: Task 1〜3 / W2: Task 25〜26 | J2 で終了 |
 
-起動は `~/bin/cmux-agent-pane -C <worktree> -a cxd -m gpt-6.1-sol --prompt-file <依頼文>`。依頼文は §6。
+実装はすべて Mac mini 上で動かす。MacBook Pro はセーブの出所（Task 30 Step 1）と、完成後にユーザーが遊ぶ機械（Task 33 Step 4）として使うだけ。
 
-**Codex 枠の確認（起動前と各合流点）:** A・B と moores-code-review の Codex runner は同じ ChatGPT 週次枠を使う。起動前と J1〜J3 で、`~/.codex/sessions` の最新 rollout の `rate_limits.primary.used_percent` と、リセットまでの時間を見る。次のどちらかなら、以後のセッションは Claude Code（`-a ccd -m opus --permission-mode full`）で起動する: 起動前に 50% 以上、または合流点で残りの wave を賄えない見込み（W2 は 1 wave で 30〜40% を目安にする）。切り替えるときは、動いているセッションに区切りで push させてから止める。Task 32 の全ブランチレビューは、残量が 40% 未満なら Codex runner でなく Claude Code ホストの moores-code-review で回す。
+起動（pi は `cmux-agent-pane` の `-a` に無い）: 依頼文（§6）を各 worktree の `.superpowers/sdd/start-prompt.md` に置き、`cmux new-workspace` で worktree 名のワークスペースを作ってから、そのペインへ `cmux send` で `cd <worktree> && pi --approve --model openai/gpt-6.1-sol --thinking high "$(< .superpowers/sdd/start-prompt.md)"` を送る。新しい worktree で「Trust project folder?」が出たら既定の Trust を選ぶ。受理は `cmux read-screen` で確かめる。
+
+pi ホストでの差分（§6 の依頼文に入れてある）:
+- pi には Agent・Workflow ツールが無い。SDD の subagent は前景の `codex exec -m gpt-6.1-sol -o <file>.final.md` か `claude -p --model <ティア> --session-id <uuid>` で派遣し、結論は `.final.md` から読む。moores-code-review は `references/codex-host.md` の runner で回す
+- `~/bin/dev-server-reaper-unity.py` は pi を Unity Editor の所有者と認識しない。Editor を起動するときは owner receipt を登録する（`docs/development/macmini/unity-editor.md` の手動登録手順）
+
+**Codex 枠の確認（起動前と各合流点）:** pi の A・B、その子の `codex exec`、moores-code-review の Codex runner は、すべて同じ ChatGPT 週次枠を使う。起動前と J1〜J3 で、`~/.codex/sessions` の最新 rollout の `rate_limits.primary.used_percent` と、リセットまでの時間を見る。次のどちらかなら、以後のセッションは Claude Code（`~/bin/cmux-agent-pane -C <worktree> -a ccd -m opus --permission-mode full --prompt-file <依頼文>`）で起動する: 起動前に 50% 以上、または合流点で残りの wave を賄えない見込み（W2 は 1 wave で 30〜40% を目安にする）。切り替えるときは、動いているセッションに区切りで push させてから止める。Task 32 の全ブランチレビューは、残量が 40% 未満なら Codex runner でなく Claude Code ホストの moores-code-review で回す。
 
 **SDD は 1 セッション内で実装 subagent を並列に出さない**（スキルの規則）。並列化はセッションを分けることで得る。同じブランチを 2 セッションで同時に書かない。マスタ統合ブランチは W1 の間は B だけ、J1 以降は A だけが書く（B は J1 で push して手を離す）。W2 の B の成果は本体の `feat/tier9-integrated-tests` に積み、J2 で A がマージする。
 
@@ -58,7 +64,7 @@
 |---|---|---|
 | W1 開始時 | A が plan Task 30 Step 1（MacBook Pro の `world_1` のコピーに旧コスト0研究の完了を立てる）を先に済ませる。`ssh devmac` が届くよう MacBook Pro の蓋を開けておいてもらう | 届かなければ W1 の他のタスクを進め、J1 までに再試行する。J3 までに用意できなければ J3 で止めてユーザーに聞く |
 | 随時 | plan の欠陥・仕様の選択（SDD の deferred-questions に溜まったもの） | 推奨案で進め、まとめて 1 回提示 |
-| W4 末 | 通しプレイ（Tier8 終盤セーブ→最終研究、裏口なし） | ユーザー本人（裁定済み）。plan の Task 30 が受け渡しのチェックリストとセーブを用意する。通しプレイが終わるまで staging と winbuild の検証を占有する |
+| W4 末（PR と CI の後） | 通しプレイ（Tier8 終盤セーブ→最終研究、裏口なし）。MacBook Pro の Steam の Mac 版で、全部が完成してから遊ぶ | ユーザー本人（裁定済み）。plan の Task 30 がビルド・チェックリスト・置き方を用意し、Task 33 Step 4 が MacBook Pro にセーブを置く。蓋が閉じていて届かなければ、最終報告でユーザーに頼む。通しプレイが終わるまで staging を占有する |
 
 ## 6. 開始依頼文
 
@@ -73,6 +79,9 @@ moores-subagent-driven-development スキルを使って、以下の実装plan�
 - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
 - 進捗管理はmoores-subagent-driven-developmentスキルの規定に従ってください（SDD本体はplanのチェックボックス＋進捗台帳が正）
 - 合流点では越える条件を証拠で確かめ、満たさなければ先へ進まないでください。セッション B の成果は B のブランチからマージで取り込みます
+- このセッションは pi ホストです。Agent・Workflow ツールが無いので、SDD の subagent は前景の `codex exec -m gpt-6.1-sol -o <file>.final.md`（結論は .final.md から読む）か `claude -p --model <ティア> --session-id <uuid>` で派遣し、moores-code-review は references/codex-host.md の runner で回してください。バックグラウンドのポーリングで待たず、全部前景で実行してください
+- dev-server-reaper は pi を Unity Editor の所有者と認識しません。Editor を起動したら docs/development/macmini/unity-editor.md の手順で owner receipt を登録してください
+- 区切り（タスク完了ごと）でコミットして push してください
 - 起動直後と各合流点で、オーケストレーション §2 の「Codex 枠の確認」を行ってください。W1 の最初に plan Task 30 Step 1（Tier8 終盤セーブの用意）だけを先に済ませてください（オーケストレーション §5）
 - planの最終タスク群（moores-code-reviewによる全ブランチレビュー→pr-createでPR作成・コンフリクト解消まで）は省略不可です。PRが作成されセッションを閉じられる状態になるまで完了扱いにしないでください。moores-code-review は references/codex-host.md の runner で実行してください
 - 私は寝ているので、確認を待たず進められるだけ進めてください。止まるのは解決不能な障害か取り返し不能な破壊的操作だけです
@@ -89,6 +98,9 @@ moores-subagent-driven-development スキルを使って、以下の実装plan�
 - W2 は Task 25〜26。J1（本体 feat/tier9-integrated に Task 4〜11 が push 済み）を確かめてから、moores-wt new feat/tier9-integrated-tests --from origin/feat/tier9-integrated で作った worktree で行う
 - W2 の成果は feat/tier9-integrated-tests へ push したら終わりで、本体統合ブランチへのマージはセッション A が行います。閉じタスク（全ブランチレビュー・PR 作成）は担当しません
 - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
+- このセッションは pi ホストです。Agent・Workflow ツールが無いので、SDD の subagent は前景の `codex exec -m gpt-6.1-sol -o <file>.final.md`（結論は .final.md から読む）か `claude -p --model <ティア> --session-id <uuid>` で派遣し、moores-code-review は references/codex-host.md の runner で回してください。バックグラウンドのポーリングで待たず、全部前景で実行してください
+- dev-server-reaper は pi を Unity Editor の所有者と認識しません。Editor を起動したら docs/development/macmini/unity-editor.md の手順で owner receipt を登録してください
+- 区切り（タスク完了ごと）でコミットして push してください
 - 私は寝ているので、確認を待たず進められるだけ進めてください。止まるのは解決不能な障害か取り返し不能な破壊的操作だけです
 ```
 
@@ -96,4 +108,4 @@ moores-subagent-driven-development スキルを使って、以下の実装plan�
 
 - 各セッションは区切り（タスク完了・合流点）ごとに bd `moorestech-xyuaf.2` へ 1 行 note を残す
 - 完了通知は信じず、`git log` と進捗台帳・ログファイルの実在で確かめる
-- W4 末にユーザーへ渡すもの: 統合 PR とマスタ PR の URL、G1〜G6 の出力、録画 7 本、評価役 2 体の判定、通しプレイのチェックリストとセーブ
+- W4 末にユーザーへ渡すもの: 統合 PR とマスタ PR の URL、G1〜G6 の出力、録画 7 本、評価役 2 体の判定、通しプレイのチェックリストの URL、MacBook Pro に置いたセーブ（退避した元のワールドの名前）
