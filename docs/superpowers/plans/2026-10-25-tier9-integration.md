@@ -30,7 +30,7 @@
 - 新しいゲームプレイ機能の追加（S1〜S3 の範囲を超える機構）。録画 DSL への時間加速・段の境目のセーブの追加
 - ストーリー上のクリアの定義（最終研究で終端。既存裁定 `2026-10-23-ストーリークリアは定義せず反物質爆弾を規定量作る仮の研究で終端にする`）
 - 統合で衝突しない既存コードのリファクタ
-- Steam の playtest 公開ブランチへの反映（ユーザーの通しプレイ用に staging へ上げるところまで）
+- 配布ビルドと Steam への反映（staging も含む）。ユーザーは MacBook Pro の Unity Editor で、PR のブランチを開いて遊ぶ
 
 ## Global Constraints
 
@@ -81,7 +81,7 @@
 | W3 | A | 28 | 録画 7 段（8 本） | P5 |
 | W3 | A | 29 | A11 撮り直しと「State is null」の再観測 | P5 |
 | — | — | J3 | 合流点 | — |
-| W4 | A | 30 | Windows 配布ビルド・Tier8 終盤セーブ・通しプレイのチェックリスト | P6 |
+| W4 | A | 30 | Tier8 終盤セーブ・通しプレイのチェックリスト | P6 |
 | W4 | A | 31 | 目的だけを渡す別の評価役 2 体 | P6 |
 | W4 | A | 32 | 全ブランチレビュー（moores-code-review） | 閉じ |
 | W4 | A | 33 | PR 作成（本体・マスタ）とセッション終了可能状態 | 閉じ |
@@ -9163,7 +9163,7 @@ git -C ../moorestech_logs add harness/tier9-integration/eval && git -C ../moores
 
 **完了判定:** 同じ `<round>` の `eval/<round>-a/verdict.md` と `eval/<round>-b/verdict.md` が、どちらも1行目 `VERDICT: PASS`。それより前の round の FAIL の指摘は、全部が「直した（bd 番号と追加した検査）」か「ユーザーの判断済み（`.decisions/` のファイル）」のどちらかで閉じている。
 
-### Task 30: 配布ビルド（staging）・Tier8 終盤セーブ・ユーザーに渡すチェックリスト
+### Task 30: Tier8 終盤セーブ・ユーザーに渡すチェックリスト
 
 **Files:**
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-0-tier8-save-smoke.cs`（Tier8 終盤セーブの事前確認）
@@ -9171,8 +9171,8 @@ git -C ../moorestech_logs add harness/tier9-integration/eval && git -C ../moores
 - 記録: `../moorestech_logs/harness/tier9-integration/handoff/`（ビルドの run ディレクトリ名・promotion.md の写し・セーブの出所・事前確認の result.json）
 
 **Interfaces:**
-- Consumes: 統合 PR の head（`origin/feat/tier9-integrated`）。ピンが指すマスタ統合 PR の push 済みコミット。`scripts/playtest/release-playtest.sh`（S3 先端の `scripts/playtest/README.md:69-96`）。`GameSystemPaths`: Windows のセーブは `C:\Users\<user>\AppData\Roaming\.moorestech\Saves\world_1`（master の `Game.Paths/GameSystemPaths.cs:20,33,45`）。ワールドの直下には `save.json` などがある（master の `Game.Paths/WorldDataDirectory.cs:150-152`）
-- Produces: `playtest-staging` に上がった Windows ビルドの ID。検証済みの Tier8 終盤セーブ。チェックリストの共有 URL
+- Consumes: 統合 PR の head（`origin/feat/tier9-integrated`）。ピンが指すマスタ統合 PR の push 済みコミット
+- Produces: 検証済みの Tier8 終盤セーブ。MacBook Pro にセーブを置く `place-save.sh`。チェックリストの共有 URL
 
 - [ ] **Step 1: Tier8 終盤セーブを用意する**
 
@@ -9263,25 +9263,9 @@ uloop get-logs --project-path ./moorestech_client --log-type Error
 
 Expected: `Success: true`、Error ログ0件。`<scratch>/tier8-world-smoke` の下に、元の版の退避（`BackupSaveJsonPath(<元の版>)`）ができている。落ちた場合は止まり、セーブの版と Error の先頭行を P1（セーブ移行）の担当に返す。ユーザーには渡さない。
 
-- [ ] **Step 4: 配布ビルドを焼いて staging に上げる**
+- [ ] **Step 4: MacBook Pro にセーブを置く手順を用意する（置くのは Task 33 Step 3）**
 
-ユーザーは MacBook Pro の Steam で、全部が完成してから（Task 33 の後に）遊ぶ（ユーザー発言 2026-10-25「通しプレイはproでやるけど、全部が完成してから通しプレイで遊びたい」）。ビルドは Windows と Mac を両方焼く。Windows 版は検証機の通し検証に使い、Mac 版をユーザーが遊ぶ。
-
-moores-playtest-release スキルの手順1を使う（失敗したら手順2）。パッチノート（手順3）と playtest への反映（手順5）は行わない。テスターへの配布は裁定で棄却されている。
-```bash
-. ~/hermes-agent/data/services/playtest/env.sh
-cd ~/hermes-agent/data/repos/moorestech
-MOORESTECH_BUILD_BRANCH=feat/tier9-integrated scripts/playtest/release-playtest.sh origin/feat/tier9-integrated
-```
-`MOORESTECH_BUILD_BRANCH` を付ける理由: 要求コミットが `origin/$MOORESTECH_BUILD_BRANCH` に含まれないと、ビルド前に止まるため（README:80。既定は master）。
-
-Expected: Windows と Mac のビルド・成果物の検査・`steamcmd +run_app_build` が成功する。検証機の phase1/phase2 が通る。Mac 版は moores-playtest-release スキルの Mac の確認手順（Mac mini の Steam で起動を見る）まで通す。`~/hermes-agent/data/services/playtest/runs/<label>/promotion.md` ができる。
-
-Steam Guard のコードを求められたら、ユーザーに入力を頼む（スキルの手順に従う）。staging は共用である。この run の後に、別のビルドを `playtest-staging` に上げない。ユーザーの通しプレイが終わるまで、staging を占有する。run ディレクトリ名とビルド ID を `handoff/build.md` に書く。
-
-- [ ] **Step 5: MacBook Pro にセーブを置く手順を用意する（置くのは Task 33 Step 4）**
-
-ユーザーは全部が完成してから遊ぶので、セーブを置くのは PR 作成と CI の全 pass の後（Task 33 Step 4）にする。ここでは手順を `../moorestech_logs/harness/tier9-integration/handoff/place-save.sh` に書いて、`bash -n` で構文を確かめるだけにする。MacBook Pro の `world_1` はユーザーが今遊んでいる本物のワールドなので、消さずに日時つきの名前へ退避する。
+ユーザーは MacBook Pro の Unity Editor で、全部が完成してから遊ぶ（ユーザー発言 2026-10-25「通しプレイはproでやるけど、全部が完成してから通しプレイで遊びたい」「macbook proのunityエディタであそぶから、ビルドは不要」）。配布ビルドは焼かない。セーブを置くのは PR 作成と CI の全 pass の後（Task 33 Step 3）にする。Editor の既定ワールドも `~/Library/Application Support/moorestech/saves/world_1`（MacBook Pro で実測したセーブの置き場）。ここでは手順を `../moorestech_logs/harness/tier9-integration/handoff/place-save.sh` に書いて、`bash -n` で構文を確かめるだけにする。MacBook Pro の `world_1` はユーザーが今遊んでいる本物のワールドなので、消さずに日時つきの名前へ退避する。
 ```bash
 #!/bin/bash
 # MacBook Pro のワールドを退避し、旧コスト0研究の完了を立てた Tier8 終盤セーブを world_1 とやり直し用の原本として置く
@@ -9300,10 +9284,10 @@ echo "OK: placed world_1 (sha256 $LOCAL), backup world_1.bak-$STAMP"
 ```
 Expected: `bash -n place-save.sh` が何も出さない。複製を置くので、事前確認で退避ができた方（`tier8-world-smoke`）ではなく、原本 `tier8-world` を渡す。
 
-- [ ] **Step 6: チェックリストを作って共有する**
+- [ ] **Step 5: チェックリストを作って共有する**
 
 `../moorestech_logs/harness/tier9-integration/handoff/checklist.html` を簡易 HTML で書く。中身は次の5つ:
-- 起動: MacBook Pro の Steam → moorestech → プロパティ → ベータで `playtest-staging` を選ぶ（パスワードはチェックリストに書かず、ユーザーに別に伝える）。ビルド ID が `build.md` の値であることを確かめる。ワールド `world_1` を開く。元のワールドは `world_1.bak-<日時>` に退避してあること、やり直すときは `world_1` を消して `tier9-start-original` を `world_1` にコピーすることを書く。
+- 起動: MacBook Pro の `~/moorestech` で `git fetch origin && git switch feat/tier9-integrated`（手元に未コミットの変更があれば先に退避する。plan 作成時は `.moorestech-external-revisions.json` に変更があり、master から 33 コミット遅れていた）。`~/moorestech_master` はピン（`.moorestech-external-revisions.json` の moorestech_master の revision）に合わせる。Editor の外部リポジトリ同期（`Client.Editor.RepositorySync`）か `git -C ~/moorestech_master fetch origin && git -C ~/moorestech_master checkout <ピンのコミット>` で行う。Unity Editor で `moorestech_client` を開き、Play してワールド `world_1` を開く。元のワールドは `world_1.bak-<日時>` に退避してあること、やり直すときは `world_1` を消して `tier9-start-original` を `world_1` にコピーすることを書く。
 - 裏口なしの定義: コマンド・デバッグメニュー・セーブの編集を使わない。
 - 確かめる道筋。各項目に「できた／詰まった（どこで・何分）」の記入欄を付ける:
   1. 半導体ライン: クリーンルーム・IPA・切断・成膜・EUV・ダイシング・パッケージング。混ざったダイの仕分けと、止まった理由の表示。
@@ -9315,19 +9299,18 @@ Expected: `bash -n place-save.sh` が何も出さない。複製を置くので�
   7. 反物質と反物質爆弾。
   8. 最終研究。
 - 移行の確認: 開いた直後に、コスト0で完了していた Tier9 研究（フィルター分岐器・機械オーバークロック・金属超精密加工・核融合炉・反物質爆弾・軌道エレベーターの建設）が未完了に戻り、それらの解放（核融合炉・拠点・発射台）が外れていること。他の進行は残っていること。
-- 報告: 詰まったら、ゲーム内の報告を送る（MacBook Pro の Mac 版からでも同じ受け口に届く）。報告のバンドルは `../moorestech_logs/harness/playtest/reports/<steamid>/` に届く。合計のプレイ時間と、待ちが長いと感じた箇所を最後に書く。
+- 報告: 詰まったら、ゲーム内の報告を送る（Editor からでも同じ受け口に届く）。報告のバンドルは `../moorestech_logs/harness/playtest/reports/<steamid>/` に届く。合計のプレイ時間と、待ちが長いと感じた箇所を最後に書く。
 
 Run: `share-put ../moorestech_logs/harness/tier9-integration/handoff/checklist.html -n tier9-playthrough-checklist`。出た URL を、統合 PR の本文と最終報告に書く。
 ```bash
-git -C ../moorestech_logs add harness/tier9-integration/handoff && git -C ../moorestech_logs commit -m "tier9: 通しプレイの受け渡し（ビルド・セーブの出所・チェックリスト）"
+git -C ../moorestech_logs add harness/tier9-integration/handoff && git -C ../moorestech_logs commit -m "tier9: 通しプレイの受け渡し（セーブの出所・置き方・チェックリスト）"
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-0-tier8-save-smoke.cs
 git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 ```
 
-**完了判定:** 次の4つが揃っている:
-- `handoff/build.md` に `playtest-staging` のビルド ID と run ディレクトリがあり、その run の `promotion.md` がある（Windows の phase1/phase2 が合格）。
+**完了判定:** 次の3つが揃っている:
 - `handoff/save-origin.md` にセーブの出所と sha256 がある。事前確認の `result.json` が `Success: true`。
-- `handoff/place-save.sh` があり、`bash -n` が通る（実際に置くのは Task 33 Step 4）。
+- `handoff/place-save.sh` があり、`bash -n` が通る（実際に置くのは Task 33 Step 3）。
 - チェックリストの共有 URL が、統合 PR の本文にある。
 
 ---
@@ -9346,7 +9329,7 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
   - 対象は本体 `origin/master...feat/tier9-integrated` とマスタ `origin/master...feat/tier9-integrated`（マスタは別 repo なので、同スキルの分割深掘りに含めて 1 回で回す）
   - 記録は `../moorestech_logs/harness/` へ書く（featureブランチに記録ファイルをコミットしない）
-- [ ] **Step 2: 指摘の反映がソースの判定経路・条件式・その評価時点に触れたら、Task 28 の録画（該当段）と Task 31 の評価役 2 体を反映後のバイナリでやり直す**（ユニットテスト通過・ログ無音は代替にならない）。反映がランタイムのコードかマスタに触れたら、Task 30 の Step 4（staging のビルド）もやり直す。ユーザーが遊ぶビルドを最後のコードに揃えるため
+- [ ] **Step 2: 指摘の反映がソースの判定経路・条件式・その評価時点に触れたら、Task 28 の録画（該当段）と Task 31 の評価役 2 体を反映後のバイナリでやり直す**（ユニットテスト通過・ログ無音は代替にならない）
 - [ ] **Step 3: compile と P1 の健全性ゲート（Task 9 の正規表現）、G1・G2・G3・G6 を再実行する**
   Run: Task 9 Step のコマンド、Task 2・10・11・3 の各 Run 行
   Expected: すべて PASS
@@ -9360,7 +9343,7 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - Modify: `.moorestech-external-revisions.json`（マスタ統合 PR の最終 push 済みコミットを指していなければ更新）
 
 **Interfaces:**
-- Consumes: Task 32 の両ブランチ、Task 31 の評価役の合格、Task 30 のビルド・セーブ・チェックリスト
+- Consumes: Task 32 の両ブランチ、Task 31 の評価役の合格、Task 30 のセーブ・置き方・チェックリスト
 - Produces: 本体統合 PR とマスタ統合 PR の URL
 
 - [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
@@ -9369,12 +9352,12 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
   - 版の確認はオーケストレーション §3 の J2・J3 で済ませてある。ここでもう一度確かめ、master が版8へ上がっていたら、セーブ移行を V8→V9 へ繰り下げ、Task 26（G5）と Task 30 Step 3（Tier8 セーブの事前確認）をやり直してから出す（AGENTS.md のセーブ形式の規則）。繰り下げが Task 31 の後に起きたら、Task 32 Step 2 の規則で評価役もやり直す
 - [ ] **Step 2: #1551・#1552・#1554（本体）と #87・#88（マスタ）に、統合 PR へのリンクを付けたコメントを書いて閉じる**
   Run: `gh pr close <番号> --comment "統合 PR <URL> に置き換えました"`（マスタは `-R moorestech/moorestech_master`）
-- [ ] **Step 4: MacBook Pro にセーブを置き、チェックリストの URL を渡す**  両 PR が作成済みで CI が全 pass になってから行う（ユーザーは全部が完成してから遊ぶ）。staging のビルドが PR の head より古ければ、先に Task 30 Step 4 をやり直す。
+- [ ] **Step 3: MacBook Pro にセーブを置き、チェックリストの URL を渡す**  両 PR が作成済みで CI が全 pass になってから行う（ユーザーは全部が完成してから遊ぶ）。チェックリストの起動手順のブランチとピンのコミットが、PR の head と一致していることを確かめてから渡す。
   Run: `bash ../moorestech_logs/harness/tier9-integration/handoff/place-save.sh <scratch>/tier8-world`
   Expected: `OK: placed world_1 …`。`ssh devmac` が届かない（MacBook Pro の蓋が閉じている）ときは止まらず、最終報告の「ユーザーの残タスク」に「MacBook Pro を開いて、セーブを置くよう伝える」と書く
-- [ ] **Step 3: bd `moorestech-xyuaf.2` に PR の URL と「ユーザー通しプレイ待ち」を note し、`moores-wt rm` で作業 worktree を畳む（セッション B の worktree も含む。未 push があれば畳まない）**
+- [ ] **Step 4: bd `moorestech-xyuaf.2` に PR の URL と「ユーザー通しプレイ待ち」を note し、`moores-wt rm` で作業 worktree を畳む（セッション B の worktree も含む。未 push があれば畳まない）**
 
-**完了判定:** 両 PR が作成済みで CI が全 pass（Unity 全 shard・Web・Mooresmaster・Win/Mac ビルド・`shipped-master-gate`）、旧 5 PR が閉じられている、`git status` が clean で全コミットが push 済み、Step 4 の `place-save.sh` が `OK` を出し、staging のビルド ID が `handoff/build.md` の値と同じで、そのビルドが PR の head のコミットから焼かれている
+**完了判定:** 両 PR が作成済みで CI が全 pass（Unity 全 shard・Web・Mooresmaster・Win/Mac ビルド・`shipped-master-gate`）、旧 5 PR が閉じられている、`git status` が clean で全コミットが push 済み、Step 3 の `place-save.sh` が `OK` を出している
 
 全実装タスク完了＝完了ではない。PR未作成のまま終わるのはplan未完了である。
 ## 死活表（統合で置き換え・削除するものにぶら下がる操作）
@@ -9444,7 +9427,7 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
   - 反物質製造装置 2 台で最終研究の爆弾をそろえる時間。
   毎秒の量は次のとおり。ICチップLv1 は S1 sim のクラス B（S1 研究完了後の 3 ライン。A8 と同じクラス）から引く。鋼鉄板・コンピュータ・制御モータは Tier8 終盤の工場から S3 に回せる台数（電気炉 4・電気汎用工作装置 2・同 2。agent 前提）× マスタのレシピで出す。計算データは S2 区間の便数で数え、二重に数えない。台数・建設時間・爆弾の機械 2 台は前提であり、Task 23 の調整では動かさない
 - A28 Codex の週次枠が足りないときは、セッション A・B・評価役B・Task 32 のレビューを Claude Code（opus）で起動し直す。基準はオーケストレーション §2「Codex 枠の確認」。無人で止まらないように、ユーザーに聞かずに既定で切り替える（出所: シミュレーター予測の Warning → agent 判断）
-- A29 ユーザーは MacBook Pro の Steam（Mac 版）で、全部が完成してから遊ぶ（ユーザー発言 2026-10-25）。セーブは Task 33 Step 4 で、PR と CI の後に置く。MacBook Pro の `world_1` は本物のワールドなので、日時つきの名前へ退避し、やり直し用の原本 `tier9-start-original` も並べる。検証機（winbuild）の smoke が既定ワールドを消す件（`StandalonePlaytestSmokeBootstrap.cs:86-90`）は、ユーザーが winbuild で遊ばないので対象外（出所: ユーザー発言と実コードの確認 → agent 判断）
+- A29 ユーザーは MacBook Pro の Unity Editor で、PR のブランチを開いて、全部が完成してから遊ぶ（ユーザー発言 2026-10-25）。配布ビルドと staging への反映は行わない。セーブは Task 33 Step 3 で、PR と CI の後に置く。MacBook Pro の `world_1` は本物のワールドなので、日時つきの名前へ退避し、やり直し用の原本 `tier9-start-original` も並べる。MacBook Pro の repo は触らず、ブランチの切り替えはチェックリストでユーザーに任せる（手元に未コミットの変更があるため）
 - A30 段4 の録画が待つ実時間を 300 秒以下に保つことを、Task 23 のバランス調整の制約にする。`RESULT_TIMEOUT` は伸ばさない（出所: シミュレーター予測の Warning → agent 判断）
 - A31 G6 の「マスタから引けない」は判別子 1 本で表す。`Check` は状態値（`ok`／`lookup_failed`／`not_positive` など）を 1 つ持ち、None を合図に使わない。値を返す関数（`output_per_second`・`evaluate_launches`・`launches_for`・`PowerResult`・`item_rates`・`research_hours_for`）も、値と状態の組を返す。セーブ移行の `TryGetNestedArray` は「無い／null／配列」の 3 状態を返す（型閉包 5-A。出所: シミュレーター予測・確信高→前提宣言、ユーザーの拒否権の行使なし 2026-10-25）
 - A32 型閉包の弱い指摘は次の 3 束を直す: (1) nodegraph_sync と tier9_balance の中で 2 回以上出る述語・導出を 1 本にまとめる（検査6 の (a)〜(g)）、(2) G1 の `MasterHolder.Load` を呼ぶ口を 1 つにし、static のマスタを書き換える所有者を決める（5-F）、(3) GPU衛星かどうか・レシピの入力を、名前の前方一致と既定値 `''` でなく GUID か levelFamily で判定する（5-B）。他の弱（5-C の合成 bool・失敗理由の bool＋string・`unlockMachineRecipe` の書き手 2 者・DI コンテナの終了の所有者・網羅 switch）は Task 32 の全ブランチレビューに任せる（出所: 同上）

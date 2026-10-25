@@ -6,7 +6,7 @@
 
 ```
             W1（並行）                     W2（並行）                       W3（直列）       W4（直列）
- code  ── A: P1 コード統合 ─ G1/G3 batch ─┬─ A: P2 マスタ投入 S1→S2→S3 ─ ピン更新 ─┬─ G3 ─ P5 録画7段 ─┬─ T30 ビルド・セーブ・チェックリスト
+ code  ── A: P1 コード統合 ─ G1/G3 batch ─┬─ A: P2 マスタ投入 S1→S2→S3 ─ ピン更新 ─┬─ G3 ─ P5 録画7段 ─┬─ T30 セーブ・チェックリスト
  master ─ B: G2 チェッカー・G6 の枠 ──────┤                                        │                    │  → T31 評価役2体
  tests                                    └─ B: P4 G4 結合・G5 ゴールデンセーブ ──┘                    │  → T32 全ブランチレビュー
                                                                                                         │  → T33 PR×2
@@ -14,7 +14,7 @@
               合流点 J1                                                       合流点 J2           合流点 J3
 ```
 
-- クリティカルパス: P1 → G1 → P2(S1→S2→S3) → ピン更新 → P5 → T30 ビルド・セーブ → T31 評価役 → T32 レビュー → T33 PR → ユーザー通しプレイ（評価役は PR を出す前に判定する。T32 の反映が判定経路に触れたら T31 をやり直す）
+- クリティカルパス: P1 → G1 → P2(S1→S2→S3) → ピン更新 → P5 → T30 セーブ・チェックリスト → T31 評価役 → T32 レビュー → T33 PR → ユーザー通しプレイ（評価役は PR を出す前に判定する。T32 の反映が判定経路に触れたら T31 をやり直す）
 - Tier8 終盤セーブの用意（T30 Step 1）は MacBook Pro の蓋が開いているときしかできないので、A が W1 の最初に先に済ませる（§5）
 - 目安: W1 2日 / W2 3日 / W3 2日 / W4 1日（エージェント作業で 7〜10 日）
 
@@ -25,7 +25,7 @@
 | A（主） | pi agent（`openai/gpt-6.1-sol`・`--thinking high`）、moores-subagent-driven-development の SDD 本体（per-task） | `~/hermes-agent/data/worktrees/moorestech/tier9-integrated`（branch `feat/tier9-integrated`）。J1 以降はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（moorestech_master の branch `feat/tier9-integrated`）も使う | W1: Task 4〜11 / W2: Task 12〜24 / W3: Task 27〜29 / W4: Task 30〜33 | 全期間 |
 | B（副） | pi agent（同じモデル・同じ thinking）、同 SDD | 起動場所（SDD の台帳を置く所）は本体 worktree `~/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests`（branch `feat/tier9-integrated-tests`。起動前に `moores-wt new feat/tier9-integrated-tests --dir tier9-integrated-tests --from origin/feat/tier9-integrated --no-editor` で作る）。W1 の編集先はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（Task 1 で作る。moorestech_master の branch `feat/tier9-integrated`）。W2 は J1 を確かめてから、本体 worktree に `origin/feat/tier9-integrated` を通常マージして Task 25〜26 を行う | W1: Task 1〜3 / W2: Task 25〜26 | J2 で終了 |
 
-実装はすべて Mac mini 上で動かす。MacBook Pro はセーブの出所（Task 30 Step 1）と、完成後にユーザーが遊ぶ機械（Task 33 Step 4）として使うだけ。
+実装はすべて Mac mini 上で動かす。MacBook Pro はセーブの出所（Task 30 Step 1）と、完成後にユーザーが Unity Editor で遊ぶ機械（Task 33 Step 3）として使うだけ。配布ビルドは焼かない。
 
 起動（pi は `cmux-agent-pane` の `-a` に無い）: 依頼文（§6）を各 worktree の `.superpowers/sdd/start-prompt.md` に置き、`cmux new-workspace` で worktree 名のワークスペースを作ってから、そのペインへ `cmux send` で `cd <worktree> && pi --approve --model openai/gpt-6.1-sol --thinking high "$(< .superpowers/sdd/start-prompt.md)"` を送る。新しい worktree で「Trust project folder?」が出たら既定の Trust を選ぶ。受理は `cmux read-screen` で確かめる。
 
@@ -64,7 +64,7 @@ pi ホストでの差分（§6 の依頼文に入れてある）:
 |---|---|---|
 | W1 開始時 | A が plan Task 30 Step 1（MacBook Pro の `world_1` のコピーに旧コスト0研究の完了を立てる）を先に済ませる。`ssh devmac` が届くよう MacBook Pro の蓋を開けておいてもらう | 届かなければ W1 の他のタスクを進め、J1 までに再試行する。J3 までに用意できなければ J3 で止めてユーザーに聞く |
 | 随時 | plan の欠陥・仕様の選択（SDD の deferred-questions に溜まったもの） | 推奨案で進め、まとめて 1 回提示 |
-| W4 末（PR と CI の後） | 通しプレイ（Tier8 終盤セーブ→最終研究、裏口なし）。MacBook Pro の Steam の Mac 版で、全部が完成してから遊ぶ | ユーザー本人（裁定済み）。plan の Task 30 がビルド・チェックリスト・置き方を用意し、Task 33 Step 4 が MacBook Pro にセーブを置く。蓋が閉じていて届かなければ、最終報告でユーザーに頼む。通しプレイが終わるまで staging を占有する |
+| W4 末（PR と CI の後） | 通しプレイ（Tier8 終盤セーブ→最終研究、裏口なし）。MacBook Pro の Unity Editor で PR のブランチを開いて、全部が完成してから遊ぶ（配布ビルドは焼かない） | ユーザー本人（裁定済み）。plan の Task 30 がチェックリストと置き方を用意し、Task 33 Step 3 が MacBook Pro にセーブを置く。蓋が閉じていて届かなければ、最終報告でユーザーに頼む |
 
 ## 6. 開始依頼文
 
