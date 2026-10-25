@@ -6576,7 +6576,7 @@ git -C $MW commit -m "master: 計算データ・GPU衛星・積荷表・ロケ�
 
 ### Task 19: ロケット技術と半導体のアップグレード研究 Lv2〜Lv5、S2 スライスのゲート（S2 引き継ぎ E。裁定4）
 
-**Files:** Create: `moorestech_master:design/tier9-balance/spec/07_rocket_research.json` / Modify: `.../master/research.json`、`localization.csv`、`guids.json`、`.../.mooreseditor/nodeGraph.v1.json`（Step 3 の同期） / Create（G6 の S2 区間。Step 5）: `moorestech_master:tools/tier9_balance/sections/{recipe_rates,s2/__init__,s2/launch_plan,s2/factory_load}.py`、`tools/tier9_balance/tests/{s2s3_fixture,test_s2_compute_loop}.py` / Modify（Step 5。Task 3 の空の区間を全文置き換え）: `tools/tier9_balance/sections/s2_compute_loop.py` / Create（控え）: `$GL/p2-9-s2-g1.txt`、`$GL/p2-9-s2-g2.txt`、`$GL/p2-9-s2-nodegraph.txt`、`$GL/p2-9-s2-g6.txt`
+**Files:** Create: `moorestech_master:design/tier9-balance/spec/07_rocket_research.json` / Modify: `.../master/{research,items,blocks}.json`（items・blocksはmaster-refineの並び順）・`localization.csv`、`guids.json`、`.../.mooreseditor/nodeGraph.v1.json`（Step 3 の同期） / Create（G6 の S2 区間。Step 5）: `moorestech_master:tools/tier9_balance/sections/{recipe_rates,s2/__init__,s2/launch_plan,s2/factory_load}.py`、`tools/tier9_balance/tests/{s2s3_fixture,test_s2_compute_loop}.py` / Modify（Step 5。Task 3 の空の区間を全文置き換え）: `tools/tier9_balance/sections/s2_compute_loop.py` / Create（控え）: `$GL/p2-9-s2-g1.txt`、`$GL/p2-9-s2-g2.txt`、`$GL/p2-9-s2-nodegraph.txt`、`$GL/p2-9-s2-g6.txt`
 
 **Interfaces:**
 - Consumes:
@@ -6634,7 +6634,7 @@ cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger gui
 cd $MW && python3 tools/research_sync/sync_machine_recipe_unlocks.py | grep -E "^(MOVE|ORPHAN|STALE|DEAD-END)|moves," ; python3 tools/research_sync/sync_machine_recipe_unlocks.py --check; echo "check=$?"
 ```
 Expected: apply が `applied 7 spec files; issued 4 new guids`。sync は `0 moves, … 0 orphans, 0 stale` で、`DEAD-END` が無い。`check=0`。`MOVE` が出たら Task 17 Step 2 と同じ手順で spec 07 を直す。
-- [ ] **Step 3: nodeGraph を統合マスタに合わせる**（判断記録 A21。master-refine はこの Task に無いので、ゲートの前に流す）
+- [ ] **Step 3: nodeGraph を統合マスタに合わせ、master-refine A/Bも回す**（判断記録A21。Task18で保持された発射台sortPriority0を最終値と誤認しないため、研究解放・nodeGraph同期の後に並び順と研究座標を再計算する。再apply→syncでも再計算値が保持されることを確認する）
 ```bash
 cd $MW && python3 tools/nodegraph_sync/sync_nodegraph.py > $GL/p2-9-s2-nodegraph-sync.txt; echo "ng=$?"; cat $GL/p2-9-s2-nodegraph-sync.txt
 git -C $MW diff --stat -- server_v8/mods/moorestechAlphaMod_8/.mooreseditor
