@@ -56,8 +56,8 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
     // The items (recipe views) and blocks one research unlocked in old masters
     public sealed class ResearchUnlockGuids
     {
-        public IReadOnlyList<Guid> ItemGuids { get; }
-        public IReadOnlyList<Guid> BlockGuids { get; }
+        public readonly IReadOnlyList<Guid> ItemGuids;
+        public readonly IReadOnlyList<Guid> BlockGuids;
 
         public ResearchUnlockGuids(IReadOnlyList<Guid> itemGuids, IReadOnlyList<Guid> blockGuids)
         {
