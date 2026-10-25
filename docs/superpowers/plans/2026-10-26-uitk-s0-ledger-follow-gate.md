@@ -1865,3 +1865,5 @@ PR を作ったら `bd note moorestech-albof.4 "PR #<番号> 作成。台帳・G
 - 構成補正: 履歴境界の責務は`history_ownership.py`、動画の準備と切出しは`videoCapture.ts`、実DOMの遅延・欠落回帰は`tests/reference/captureReadiness.spec.ts`へ分け、各コード200行未満と撮影ディレクトリ10ファイル以内を保つ。
 
 - 撮影内容の補正: 配信待ちの状態はポーズトップには描画されないため、同じ`1-pause-delivery-pending`でバグ報告画面を開き「送信待ち 3件」を確認して撮る。切断は切断メッセージ、toastは実エラー本文、研究の枠は実outline要素を待つ。存在するだけの親コンテナを完成条件にしない。
+
+- WorldPinの脈動動画は画面外の矢印を使う。正本の`worldPin.module.css`は`.arrow svg`だけを脈動させ、画面内ピンは静止するため。動画名と保存する演出を一致させ、撮影定義を使ったブラウザ回帰でも実行中のscale(1.08)キーフレームを確認する。

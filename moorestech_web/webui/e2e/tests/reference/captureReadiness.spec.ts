@@ -113,3 +113,20 @@ function pixelDifference(expected: Buffer, actual: Buffer): number {
   for (let index = 0; index < actual.length; index += 1) total += Math.abs(actual[index] - expected[index]);
   return total / actual.length;
 }
+
+// 動画の定義自身が脈動する対象を選んでいることを検査する
+// Verify the video definition selects the target that actually pulses
+test("world pin reference selects the animated off-screen arrow", async () => {
+  const host = await startMockHost(root, port);
+  const page = await browser.newPage();
+  try {
+    const video = referenceVideos.find((entry) => entry.id === "2-world-pin-pulse")!;
+    await openShot(page, baseUrl, video);
+    const transforms = await page.getByTestId("world-pin-arrow-map-object-pin").locator("svg").evaluate((svg) =>
+      svg.getAnimations().flatMap((animation) => (animation.effect as KeyframeEffect).getKeyframes().map((frame) => String(frame.transform))));
+    expect(transforms).toContain("scale(1.08)");
+  } finally {
+    await page.close();
+    await stopMockHost(host);
+  }
+});

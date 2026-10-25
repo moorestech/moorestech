@@ -12,7 +12,7 @@ export const referenceVideos: ReferenceVideo[] = [
     steps: [visible("hotbar-grid"), { kind: "control", path: topic("notificationItemEarned") }, content("notification-row", ["5"]), { kind: "wait", ms: 1500 }, { kind: "control", path: topic("notificationItemEarnedAgain") }, content("notification-row", ["8"]),
       { kind: "wait", ms: 1000 }, { kind: "control", path: topic("notificationAchievement") }, content("notification-row", ["8", "研究完了"]), content("notification-row", [])] },
   { id: "2-key-control-hint-pulse", bundle: 2, ledgerRow: LedgerRows.keyControlHint, controls: [topic("tutorialKeyControl"), ui("GameScreen")], durationMs: 3000, steps: [visible("key-control-hint")] },
-  { id: "2-world-pin-pulse", bundle: 2, ledgerRow: LedgerRows.worldPin, controls: [ui("GameScreen"), "/__worldpin?x=0.6&y=0.4"], durationMs: 3000, steps: [visible("world-pin-map-object-pin")] },
+  { id: "2-world-pin-pulse", bundle: 2, ledgerRow: LedgerRows.worldPin, controls: [ui("GameScreen"), "/__worldpin?on=0&dx=1&dy=0.3"], durationMs: 3000, steps: [visible("world-pin-arrow-map-object-pin")] },
   { id: "4-drag-guide", bundle: 4, ledgerRow: LedgerRows.dragGuide, controls: [topic("tutorialDragGuide"), ui("PlayerInventory")], durationMs: 4000, steps: [visible("tutorial-drag-guide")] },
   { id: "5-tutorial-pulse", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialOutlineWithLabel"), ui("GameScreen")], durationMs: 3000, steps: [visible("tutorial-highlight-label")] },
 ];
