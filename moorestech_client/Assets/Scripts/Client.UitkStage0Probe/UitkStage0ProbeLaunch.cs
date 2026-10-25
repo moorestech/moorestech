@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Client.Common;
+using Client.Game.InGame.BugReport.Playtest;
 using CefUnity.Runtime;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -25,6 +26,10 @@ namespace Client.UitkStage0Probe
             // In the Editor the probes are wired by hand through uloop, so nothing auto-spawns
             if (Application.isEditor) return;
             SceneManager.sceneLoaded += OnSceneLoaded;
+
+            // 無人計測では同意画面に答える人が居ない。前例（playtestSmoke）と同じく無人宣言で閉じたゲートにし、未読のまま送信もしない
+            // Nobody answers the consent screen in unattended runs; like playtestSmoke, declare unattended so gates close and nothing uploads while unread
+            if (HasArgument(AutoStartLocalArgument)) PlaytestStartGateBypass.DeclareUnattendedProcess("uitkStage0AutoCapture");
             Debug.Log($"[UitkProbe] launch hook installed args={string.Join(" ", Environment.GetCommandLineArgs().Skip(1))}");
         }
 
