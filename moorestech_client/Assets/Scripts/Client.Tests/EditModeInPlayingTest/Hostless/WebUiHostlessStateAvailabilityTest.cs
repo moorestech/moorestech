@@ -48,14 +48,26 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
             {
                 await LoadMainGame();
 
-                // スイッチが効き、起動失敗と同じHub=nullの経路を通ったことを前提として固定する
-                // Pin the precondition that the switch worked and the boot went down the hub-null path
-                Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "Editor限定スイッチを付けたのにWebホストが起動した");
-                var resolver = ClientDIContext.DIContainer.DIContainerResolver;
-                Assert.IsNotNull(resolver);
-                await ModalStateProbe.AssertAvailableAsync(resolver);
-                await ResearchStateProbe.AssertAvailableAsync(resolver);
-                ChallengeStateProbe.AssertAvailable(resolver);
+                // 起動ログを排出してから、全プローブの想定外エラーを検査する
+                // Drain startup logs, then validate unexpected errors across all probes
+                await UniTask.Yield();
+                LogAssert.ignoreFailingMessages = false;
+                try
+                {
+                    // スイッチが効き、起動失敗と同じHub=nullの経路を通ったことを前提として固定する
+                    // Pin the precondition that the switch worked and the boot went down the hub-null path
+                    Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "Editor限定スイッチを付けたのにWebホストが起動した");
+                    var resolver = ClientDIContext.DIContainer.DIContainerResolver;
+                    Assert.IsNotNull(resolver);
+                    await ModalStateProbe.AssertAvailableAsync(resolver);
+                    await ResearchStateProbe.AssertAvailableAsync(resolver);
+                    ChallengeStateProbe.AssertAvailable(resolver);
+                    await UniTask.Yield();
+                }
+                finally
+                {
+                    LogAssert.ignoreFailingMessages = true;
+                }
             }
 
             #endregion
