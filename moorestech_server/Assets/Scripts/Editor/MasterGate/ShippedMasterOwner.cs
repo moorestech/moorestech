@@ -1,8 +1,10 @@
 using System;
 using System.IO;
 using Core.Master;
+using Microsoft.Extensions.DependencyInjection;
 using Mod.Config;
 using Mod.Loader;
+using Server.Boot;
 using UnityEngine;
 
 namespace Server.MasterGate.Editor
@@ -16,6 +18,23 @@ namespace Server.MasterGate.Editor
         // この Editor で最後に読み込みが通った置き場。失敗した読み込みの後はここへ戻す（ドメインリロードで消える）
         // The location whose load last passed in this Editor; a failed load is followed by a reload of it (cleared by a domain reload)
         private static string _lastLoadedServerDataDirectory;
+
+        // G3: 本番の起動と同じ DI 構築でサーバーを組む。Create の中でもう一度マスタを読むので、G1 が通った置き場でだけ組む
+        // G3: build the server with the production DI container; Create reloads the master, so it only builds on a location whose G1 load passed
+        public static bool TryCreateServer(string serverDataDirectory, out ServiceProvider serviceProvider, out string failure)
+        {
+            if (serverDataDirectory != _lastLoadedServerDataDirectory)
+            {
+                serviceProvider = null;
+                failure = $"[ShippedMasterOwner] FAIL the server is built only on the directory whose G1 load last passed: {serverDataDirectory} (last passing: {_lastLoadedServerDataDirectory})";
+                Debug.LogError(failure);
+                return false;
+            }
+
+            (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(serverDataDirectory));
+            failure = null;
+            return true;
+        }
 
         // G1: 出荷マスタを本番と同じ経路（ModsResource → MasterHolder.Load）で読み、ローダーと起動時検証が通るかを判定する
         // G1: load the shipped master through the production path (ModsResource -> MasterHolder.Load) and judge whether the loader and boot validation pass

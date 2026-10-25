@@ -17,11 +17,30 @@ namespace Server.MasterGate.Editor
             EditorApplication.Exit(passed ? 0 : 1);
         }
 
-        // G1 の唯一の入口（batch・手元の G1 関数・Task 11 の RunAll がここを通る）
-        // The single G1 entry (batch, the local G1 function and Task 11's RunAll all go through it)
+        // CI の入口。G1 → G3 の順に回す（-masterDataRoot と、-researchOrder に G2 の出力が要る）
+        // CI entry: run G1 then G3 (needs -masterDataRoot and -researchOrder pointing at G2's output)
+        public static void RunFromCommandLine()
+        {
+            var passed = MasterGateArguments.TryResolveServerDataDirectory(out var serverDataDirectory)
+                         && RunAll(serverDataDirectory, MasterGateArguments.FindResearchOrderPath());
+            EditorApplication.Exit(passed ? 0 : 1);
+        }
+
+        // G1 の唯一の入口（batch・手元の G1 関数・RunAll がここを通る）
+        // The single G1 entry (batch, the local G1 function and RunAll all go through it)
         public static bool RunLoadGate(string serverDataDirectory, out string failure)
         {
             return ShippedMasterOwner.TryLoad(serverDataDirectory, out failure);
+        }
+
+        // Editor を閉じずに判定する入口（uloop execute-dynamic-code から呼ぶ）。G1 が落ちたら G3 は回さない
+        // Judge without quitting the Editor (called from uloop execute-dynamic-code); G3 is skipped when G1 fails
+        public static bool RunAll(string serverDataDirectory, string researchOrderPath)
+        {
+            if (!RunLoadGate(serverDataDirectory, out _)) return false;
+            if (!ResearchWalkOrderFile.TryRead(researchOrderPath, out var steps, out _)) return false;
+            if (!ShippedMasterOwner.TryCreateServer(serverDataDirectory, out var serviceProvider, out _)) return false;
+            return ResearchWalkRunner.Run(serviceProvider, steps, out _);
         }
     }
 }

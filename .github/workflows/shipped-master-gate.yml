@@ -1,5 +1,5 @@
-# PRごとに、ピン先の出荷マスタを本番と同じ経路で読めるかを検査する（G1）。テストはピン先マスタを読めない（check-test-external-dependencies.py）ため専用ワークフローで読む
-# Per PR, check the pinned shipped master loads through the production path (G1); tests may not read it (check-test-external-dependencies.py), so a dedicated workflow does
+# PRごとに、ピン先の出荷マスタを本番と同じ経路で読めるか（G1）と、G2 の研究順で全研究を完了できるか（G3）を検査する。テストはピン先マスタを読めない（check-test-external-dependencies.py）ため専用ワークフローで読む
+# Per PR, check the pinned shipped master loads through the production path (G1) and every research completes in G2's order (G3); tests may not read it (check-test-external-dependencies.py), so a dedicated workflow does
 name: Shipped Master Gate
 
 on:
@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   gate:
-    name: Shipped Master Gate (G1)
+    name: Shipped Master Gate (G1+G3)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -58,6 +58,14 @@ jobs:
           restore-keys: |
             Library_compile_server_StandaloneWindows64-
 
+      # G3 の研究順はピン先マスタの G2 が書く。G2 の合否はマスタ repo の CI が持つので、ここでは研究順が書けたかだけで落とす
+      # The pinned master's G2 writes G3's research order; G2's verdict belongs to the master repo CI, so this step only fails when no order was written
+      - name: Emit research order from G2
+        shell: bash
+        run: |
+          python3 moorestech_master/tools/progression/check.py --emit-order "$GITHUB_WORKSPACE/research_order.json" > g2.txt || echo "::warning::G2 is red on the pinned master ($(tail -1 g2.txt)); the master repo CI owns that verdict"
+          test -f "$GITHUB_WORKSPACE/research_order.json"
+
       # buildMethodはプレイヤービルドをせず EditorApplication.Exit の終了コードで合否を返す（platform-compile.yml と同じ使い方）。置き場は推測させず必ず渡す
       # The buildMethod builds no player and reports via the EditorApplication.Exit code (same usage as platform-compile.yml); the master location is always passed
       - name: Shipped master gate
@@ -68,9 +76,9 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           unityVersion: 6000.3.8f1
-          buildMethod: Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine
+          buildMethod: Server.MasterGate.Editor.ShippedMasterGateEntry.RunFromCommandLine
           targetPlatform: StandaloneWindows64
           allowDirtyBuild: true
           projectPath: moorestech_server/
           versioning: None
-          customParameters: '-masterDataRoot /github/workspace/moorestech_master'
+          customParameters: '-masterDataRoot /github/workspace/moorestech_master -researchOrder /github/workspace/research_order.json'

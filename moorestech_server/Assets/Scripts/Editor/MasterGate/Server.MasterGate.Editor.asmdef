@@ -12,7 +12,8 @@
         "Game.UnlockState",
         "Mod.Config",
         "Mod.Loader",
-        "Server.Boot"
+        "Server.Boot",
+        "Server.Protocol"
     ],
     "includePlatforms": [
         "Editor"
