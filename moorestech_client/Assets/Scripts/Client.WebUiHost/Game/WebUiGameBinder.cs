@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.BlockDetail;
 using Client.Game.InGame.UI.Notification;
 using Client.Game.InGame.UI.Modal;
 using Client.Game.InGame.UI.Research;
@@ -85,7 +86,8 @@ namespace Client.WebUiHost.Game
             // Register the block-inventory topic (the timetable fetcher is shared with the timetable-tab action)
             var trainUnitClientCache = resolver.Resolve<TrainUnitClientCache>();
             var timetableFetcher = resolver.Resolve<TrainTimetableFetcher>();
-            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher, resolver.Resolve<OpenTrainTimetableTracker>(), resolver.Resolve<BeltTransportClientCache>(), resolver.Resolve<FluidNetworkClientCache>());
+            var blockNetworkInfoCache = resolver.Resolve<BlockNetworkInfoCache>();
+            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, resolver.Resolve<OpenBlockDetailTracker>(), blockNetworkInfoCache, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher, resolver.Resolve<OpenTrainTimetableTracker>(), resolver.Resolve<BeltTransportClientCache>(), resolver.Resolve<FluidNetworkClientCache>());
             hub.RegisterTopic(BlockInventoryTopic.TopicName, blockInventoryTopic);
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
@@ -181,8 +183,8 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchNodeStateStore));
-            hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
-            hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
+            hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockNetworkInfoCache));
+            hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockNetworkInfoCache));
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher);

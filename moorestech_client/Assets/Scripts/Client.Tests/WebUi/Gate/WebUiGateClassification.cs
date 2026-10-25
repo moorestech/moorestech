@@ -64,6 +64,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械本体"),
             new Rule("Client.Game/InGame/UI/Inventory", Category.Infra, "サブインベントリ論理モデル（uGUIビューは全削除済み: ADR 0052）"),
             new Rule("Client.Game/InGame/UI/BuildMenu", Category.Infra, "ビルドメニュー選択の論理状態"),
+            new Rule("Client.Game/InGame/UI/BlockDetail", Category.Infra, "開いているブロックの追跡とネットワーク情報"),
             new Rule("Client.Game/InGame/UI/Blueprint", Category.Infra, "BP名入力の論理状態"),
             new Rule("Client.Game/InGame/UI/Modal", Category.Infra, "モーダル要求の論理状態（表示は描画側が担当）"),
             new Rule("Client.Game/InGame/UI/Research", Category.Infra, "研究ノードの論理状態（表示は描画側が担当）"),

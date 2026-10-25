@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.BlockDetail;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.Challenge;
@@ -38,6 +39,11 @@ namespace Client.Starter.Registration
             // Timetable-tab fetching and tracking of the open car's owning train
             builder.Register<TrainTimetableFetcher>(Lifetime.Singleton);
             builder.RegisterEntryPoint<OpenTrainTimetableTracker>().AsSelf();
+
+            // 開いているブロックのネットワーク情報と、その監視の張り替え
+            // Network aggregates of the open block, and re-wiring of its monitoring
+            builder.Register<BlockNetworkInfoCache>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<OpenBlockDetailTracker>().AsSelf();
         }
     }
 }
