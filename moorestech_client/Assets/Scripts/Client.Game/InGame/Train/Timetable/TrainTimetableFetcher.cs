@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Train.Timetable
     {
         private readonly IClientTrainTimetableMutator _timetables;
         private readonly IClientTrainTimetableLookup _timetableLookup;
-        private readonly Subject<Unit> _onFetchFailed = new();
+        private readonly Subject<UniRx.Unit> _onFetchFailed = new();
         // タブが開いている事実と再要求を抑える取得ラッチは別物
         // Whether the tab is open (kept until close) differs from the re-request latch; the tracker owns the open train id
         private bool _isTimetableTabOpen;
@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Train.Timetable
         private bool _retriedForRequestedTrain;
         private bool _isFetchInFlight;
         private IDisposable _timetableUpdatedSubscription;
-        public IObservable<Unit> OnFetchFailed => _onFetchFailed;
+        public IObservable<UniRx.Unit> OnFetchFailed => _onFetchFailed;
 
         public TrainTimetableFetcher(IClientTrainTimetableMutator timetables, IClientTrainTimetableLookup timetableLookup)
         {
@@ -184,7 +184,7 @@ namespace Client.Game.InGame.Train.Timetable
                 if (generation != _requestGeneration) return; // silent-ok: 旧要求は現要求の状態を上書きしない / タブに現要求の取得結果が表示される
                 _isFetchInFlight = false;
                 _unavailableTrainUnitInstanceId = trainUnitInstanceId;
-                _onFetchFailed.OnNext(Unit.Default);
+                _onFetchFailed.OnNext(UniRx.Unit.Default);
             }
 
             #endregion

@@ -17,9 +17,9 @@ namespace Client.Game.InGame.Train.Timetable
         private readonly TrainUnitClientCache _trainUnitClientCache;
         private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _fetcher;
-        private readonly Subject<Unit> _onRepublishRequested = new();
+        private readonly Subject<UniRx.Unit> _onRepublishRequested = new();
         private TrainUnitInstanceId? _openTrainUnitInstanceId;
-        public IObservable<Unit> OnRepublishRequested => _onRepublishRequested;
+        public IObservable<UniRx.Unit> OnRepublishRequested => _onRepublishRequested;
 
         public OpenTrainTimetableTracker(SubInventoryState subInventoryState, UIStateControl uiStateControl, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher fetcher)
         {
@@ -39,7 +39,7 @@ namespace Client.Game.InGame.Train.Timetable
             // Republish on the open train's timetable updates and on fetch failures
             _timetables.OnTimetableUpdated
                 .Where(id => _openTrainUnitInstanceId == id)
-                .Subscribe(_ => _onRepublishRequested.OnNext(Unit.Default));
+                .Subscribe(_ => _onRepublishRequested.OnNext(UniRx.Unit.Default));
             _fetcher.OnFetchFailed.Subscribe(_onRepublishRequested.OnNext);
             // 所属列車が変わったら再配信・再取得する
             // Republish and refetch when coupling, splitting, or a late car snapshot changes the owning train
@@ -59,7 +59,7 @@ namespace Client.Game.InGame.Train.Timetable
             if (resolved == _openTrainUnitInstanceId) return; // silent-ok: 同じ所属列車なら再取得不要 / 既存の時刻表表示を維持する
             _openTrainUnitInstanceId = resolved;
             if (resolved.HasValue) _fetcher.FollowOpenTrainChange(resolved.Value);
-            _onRepublishRequested.OnNext(Unit.Default);
+            _onRepublishRequested.OnNext(UniRx.Unit.Default);
         }
 
         private TrainUnitInstanceId? ResolveOpenTrainUnitInstanceId()
