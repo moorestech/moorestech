@@ -23,7 +23,7 @@
 - R11 G5 ゴールデンセーブ: master 版 7 形式のセーブを V8 へ変換してワールドとしてロードでき、R2・R3 の部品の効果が assert される
 - R12 G6 バランス: シミュレーションの値とマスタ JSON の値の照合でずれ0、目標時間（S1 区間 6〜8 時間＝S1 handoff の裁定、全体・計算データ・S3 区間は S2/S3 plan の目標）に収まる。ずれれば exit 1
 - R13 録画: 出荷マスタで 7 段（チップライン／モジュール・GPU／抽選 UI／打ち上げ→計算データ／計算データでの研究／核融合・エレベーター／反物質→最終研究）を撮り、result.json 全 pass・Error ログ0。各段の最後の工程は本物で動かし、少なくとも 1 本は飛行を本当に待つ。A11 を撮り直す
-- R14 最終検証: 目的だけを渡した別の評価役 2 体が実物で合格を出す。1 体でも不合格なら直し、基準は緩めない。そのうえでユーザーに通しプレイのチェックリストと Tier8 終盤セーブを渡す（裁定 `2026-10-25-Tier9統合の最終検証の通しプレイはユーザー本人が行う`）
+- R14 最終検証: 目的だけを渡した別の評価役 2 体が実物で合格を出す。1 体でも不合格なら直し、基準は緩めない。そのうえでユーザーに通しプレイのチェックリストを渡し、MacBook Pro の既存 `world_1` をそのまま開いてもらう（事前確認用セーブは書き戻さない）（裁定 `2026-10-25-Tier9統合の最終検証の通しプレイはユーザー本人が行う`）
 - R15 PR: 本体の統合 PR とマスタの統合 PR が作成され、本体のピンはマスタ統合 PR の push 済みコミットを指す。#1551・#1552・#1554・#87・#88 は統合 PR へのリンクを付けて閉じる
 
 ### やらないこと
@@ -1843,22 +1843,24 @@ namespace Server.MasterGate.Editor
   - 参照不足で `Newtonsoft` や `Microsoft.Extensions.DependencyInjection` が解決できないエラーが出たら、asmdef に `"overrideReferences": true` と `"precompiledReferences": ["Newtonsoft.Json.dll", "Microsoft.Extensions.DependencyInjection.dll", "Microsoft.Extensions.DependencyInjection.Abstractions.dll"]` を足す。
   - 要確認（実装時にこのコンパイルで確かめる。dll 名は `Server.Boot` が実際に解決している dll を `find $W/moorestech_server/Assets -name 'Microsoft.Extensions.DependencyInjection*.dll'` で読む）。
 
-- [ ] **Step 6: 本体のピンが指すマスタで G1 が通ることを確かめる**
-  - ピン先 `630fdce` は本体の今のコードと対になっている。
-  - `$MW`（#87 込み）は、P1 で S2 のスキーマが入るまでは読めない場合がある。そのため参考として回すだけにする。
+- [ ] **Step 6: push済みB統合マスタを明示入力にしてW1のG1正例を確かめ、現ピンの未達も残す**
+  - ユーザー裁定 2026-10-25（判断記録 A34）。W1の正例は `1cf0df8fbae21d1c34395c5afafceeee2a5b3113` のarchiveを明示する。実行前後のHEAD・clean状態・remote SHAとarchiveの出所を保存する。
+  - 現ピン `630fdce` はS3必須 `orbitalPayloads` を持たず、実測でFAILしている。補完・optional化・先行ピン更新で隠さない。最終ピンでの受入れはTask24後に必ず取り直す。
 ```bash
+W1_MASTER_SHA=1cf0df8fbae21d1c34395c5afafceeee2a5b3113
+mkdir -p $GL/w1-master && git -C $MW archive $W1_MASTER_SHA server_v8 | tar -x -C $GL/w1-master
 PIN=$(jq -er '.repositories[] | select(.key == "moorestech_master") | .commitHash' $W/.moorestech-external-revisions.json)
 rm -rf $GL/pin-master && mkdir -p $GL/pin-master && git -C $MC archive $PIN server_v8 | tar -x -C $GL/pin-master
+G1 $GL/w1-master/server_v8
 G1 $GL/pin-master/server_v8
-G1 $MW/server_v8
 ```
 Expected:
-- 1 本目は `G1 PASS`。`cd $W && uloop get-logs --project-path ./moorestech_client --log-type Log` に `[ShippedMasterOwner] LOAD PASS …/pin-master/server_v8 research=44` が出る。
-- 2 本目は、P1 完了後なら `G1 PASS`。P1 前に `FAIL` が出たら、その全文を `$GL/g1-mw-before-p1.txt` に控える（P1 の受け入れで再確認する）。そのときは続けて `[ShippedMasterOwner] RESTORED static master from …/pin-master/server_v8 …` が Log に出る。
+- 1本目は `G1 PASS`、`[ShippedMasterOwner] LOAD PASS …/w1-master/server_v8 research=44`。
+- 2本目の原ピンは `orbitalPayloads` 欠損でFAILし、所有者が成功済みw1-masterへRESTOREDする。これは現ピンの未達を示す記録であり、成功と読み替えない。Step7の前に正常入力を明示して通した状態を保つ。
 
 - [ ] **Step 7: マスタを 1 か所わざと壊して、G1 が落ちることを確かめる**（必須キー `allowQualityModule` を ElectricMachine の 1 行から消す）
 ```bash
-rm -rf $GL/g1-broken && cp -R $GL/pin-master $GL/g1-broken
+rm -rf $GL/g1-broken && cp -R $GL/w1-master $GL/g1-broken
 python3 - "$GL/g1-broken/server_v8/mods/moorestechAlphaMod_8/master/blocks.json" <<'EOF'
 import json, sys
 path = sys.argv[1]
@@ -1875,7 +1877,7 @@ cd $W && uloop get-logs --project-path ./moorestech_client --log-type Log | grep
 Expected:
 - `broke 石窯` が出る（ElectricMachine の先頭行）。
 - 壊したほうは `[ShippedMasterOwner] LOAD FAIL MasterHolder.Load threw for …/g1-broken/server_v8:` で始まる文字列を返し、同じ行が Error ログに出る。例外の型と、本文に `allowQualityModule` が出るかは要確認（実装時にこの出力で確かめる。どちらでも FAIL なら合格）。
-- 最後の grep は `[ShippedMasterOwner] RESTORED static master from …/pin-master/server_v8 after the failed load of …/g1-broken/server_v8` を出す。所有者が Step 6 で通ったマスタへ戻したので、正常なマスタで G1 を回し直す手順は要らない（判断記録 A32）。
+- 最後の grep は `[ShippedMasterOwner] RESTORED static master from …/w1-master/server_v8 after the failed load of …/g1-broken/server_v8` を出す。所有者がStep6で通ったB統合マスタへ戻したことを、復旧後のstaticマスタの値とともに保存する（判断記録 A32・A34）。
 
 - [ ] **Step 8: batch（`-executeMethod`）でも同じ判定になることを確かめる**
   - Editor を開いたままでは同じプロジェクトを batch で開けない。そのため、自分の Editor（`moores-wt status` で所有を確認する）を閉じてから回し、終わったら `uloop launch` で戻す。
@@ -1883,7 +1885,7 @@ Expected:
   - 3 本目は `-masterDataRoot` を付けずに回し、置き場を推測せず落ちることを確かめる。
 ```bash
 UNITY=/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Contents/MacOS/Unity
-$UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -masterDataRoot $GL/pin-master -logFile - | grep 'ShippedMasterOwner\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
+$UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -masterDataRoot $GL/w1-master -logFile - | grep 'ShippedMasterOwner\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
 $UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -masterDataRoot $GL/g1-broken -logFile - | grep 'ShippedMasterOwner\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
 $UNITY -batchmode -nographics -projectPath $W/moorestech_client -executeMethod Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGateFromCommandLine -logFile - | grep 'ShippedMasterOwner\|\[MasterGate\]'; echo "exit=${pipestatus[1]}"
 ```
@@ -1989,11 +1991,12 @@ git -C $W commit -m "ci: 出荷マスタを本番の経路で読むロードゲ�
 git -C $W push
 ```
 
-**完了判定:**
-- Step 6 の 1 本目が `G1 PASS` になる。
-- Step 7 の壊したマスタで FAIL の文字列と Error ログが出る。
-- Step 8 の終了コードが 0/1/1 に分かれる（3 本目は `-masterDataRoot` 無しで `[MasterGate] FAIL … is required`）。
-- push 後の PR で `Shipped Master Gate (G1)` の check が success になる。ピン先は本体のコードと対なので通る見込み。失敗した場合は、ログの `[ShippedMasterOwner]` 行で原因を読む。
+**W1完了判定（ユーザー裁定2026-10-25、A34）:**
+- Step6のpush済みB統合マスタ `1cf0df8` を明示した正例が `G1 PASS research=44`。原ピン630fdceのFAILも保存されている。
+- Step7で同じB統合マスタを破損させた負例がFAIL・Errorログを出し、正常なw1-masterへRESTOREDする。
+- Step8の同じ正例・破損負例・引数なしのbatch終了コードが0/1/1に分かれる。
+- 実装と証拠をpush・保存し、Task9/10の独立再レビューが承認されるまでJ1を通さない。
+- **最終出荷受入れは未完了のまま維持する。** Task24で最終統合マスタPRのpush済みコミットをピンにした後、最終ピンでG1/G3・正負例・batchを取り直し、統合PRの `Shipped Master Gate (G1+G3)` を含むCI合格をTask33完了までに必ず確認する。W1の成功はこの代替ではない。
 
 ---
 
@@ -2280,13 +2283,13 @@ namespace Server.MasterGate.Editor
   Run: `cd $W && uloop compile --project-path ./moorestech_client`
   Expected: エラー 0。
 
-- [x] **Step 5: ピン先のマスタで G2 に研究順を書かせ、G3 を回す**
-  - Task 10 Step 6 の `$GL/pin-master` を使う。
+- [x] **Step 5: W1の明示B統合マスタでG2に研究順を書かせ、G3を回す**
+  - W1ではTask10 Step6の明示B統合マスタarchive `$GL/w1-master` を使う（A34）。現ピンのG1 FAILは別に保存する。Task24後は最終ピンで同じG3を必ず取り直す。
   - G2 の判定は赤でも、研究順は書かれる（`check.py` は判定の前に `write_order` を呼ぶ）。
 ```bash
-python3 $MW/tools/progression/check.py --master-dir $GL/pin-master/server_v8/mods/moorestechAlphaMod_8/master --emit-order $GL/research_order.json > /dev/null; echo "g2 exit=$? (赤でよい)"
+python3 $MW/tools/progression/check.py --master-dir $GL/w1-master/server_v8/mods/moorestechAlphaMod_8/master --emit-order $GL/research_order.json > /dev/null; echo "g2 exit=$? (赤でよい)"
 python3 -c "import json;print(len(json.load(open('$GL/research_order.json'))['order']))"
-cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code "return Server.MasterGate.Editor.ShippedMasterGateEntry.RunAll(\"$GL/pin-master/server_v8\", \"$GL/research_order.json\") ? \"G3 PASS\" : \"G3 FAIL\";"
+cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code "return Server.MasterGate.Editor.ShippedMasterGateEntry.RunAll(\"$GL/w1-master/server_v8\", \"$GL/research_order.json\") ? \"G3 PASS\" : \"G3 FAIL\";"
 cd $W && uloop get-logs --project-path ./moorestech_client --log-type All | grep '\[ResearchWalk\]\|\[ShippedMasterOwner\]' | tee $GL/g3-base.txt
 ```
 Expected:
@@ -2309,7 +2312,7 @@ order.insert(0, moved)
 print('moved', moved['name'])
 json.dump(doc, open(sys.argv[2], 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
 EOF
-cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code "return Server.MasterGate.Editor.ShippedMasterGateEntry.RunAll(\"$GL/pin-master/server_v8\", \"$GL/research_order_broken.json\") ? \"G3 PASS\" : \"G3 FAIL\";"
+cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code "return Server.MasterGate.Editor.ShippedMasterGateEntry.RunAll(\"$GL/w1-master/server_v8\", \"$GL/research_order_broken.json\") ? \"G3 PASS\" : \"G3 FAIL\";"
 cd $W && uloop get-logs --project-path ./moorestech_client --log-type Error | grep '\[ResearchWalk\] FAIL'
 ```
 Expected:
@@ -4970,9 +4973,12 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Research|Unlock|WireContract|BlockDetail|WebUiTopic|BlockInventory" --timeout-seconds 1500`
   Expected: `Success: true`
 
-- [ ] **Step 5: サーバーテスト全体**（S3 が master から33コミット遅れていたことによる食い違いを拾う唯一の手段。MERGE.md 3章4）
-  Run: `uloop run-tests --project-path ./moorestech_client --filter-type assembly --filter-value "Server.Tests" --timeout-seconds 1500`
-  Expected: `Success: true`。タイムアウトした場合は2つに分けて流す: `--filter-type regex --filter-value "^Tests\.UnitTest\."` と `--filter-type regex --filter-value "^Tests\.CombinedTest\."`（いずれも `--timeout-seconds 1500`）
+- [ ] **Step 5: サーバーテスト全体の原結果と、既存CI範囲の自動回帰を分けて保存する**（ユーザー裁定2026-10-25、A33）
+  原実行: `uloop run-tests --project-path ./moorestech_client --filter-type assembly --filter-value "Server.Tests" --timeout-seconds 1500`
+  - 原実行のW1結果は3,319件中3,298 PASS・21 FAIL。失敗21件はすべて既存 `IgnoreCI` の手動Surface検査であり、失敗と手動検査の未達をPR本文にも残す。全assembly成功とは書かない。
+  - 自動回帰の受入れは既存CI `.github/scripts/unity-test-shard-filter.sh` と同じ `!IgnoreCI` 範囲。uloopにカテゴリ除外がないため、原XMLの継承Categoryから対象クラスを列挙したregexで別実行する。W1の列挙regexは `.superpowers/sdd/task-9-evidence/step5-ci-scope.regex`、実行は `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$(< .superpowers/sdd/task-9-evidence/step5-ci-scope.regex)" --timeout-seconds 1500`。
+  - Expected: CI範囲の `Success: true`（W1は3,298/3,298 PASS）。原XMLの非IgnoreCIケースと採用runのfullname多重集合が欠け0・余り0で一致し、Tier9起因の除外が0であることを照合する。新たなテストが増えた後は現行XMLから再列挙し、3,298件固定にして増分を落とさない。
+  - 新規IgnoreCI・期待値緩和・マスタ補完で緑にしない。原実行21 FAILを既存CIの成功へ置き換えて記録しない。
 
 - [x] **Step 6: webui の型検査と vitest（CI の `webui-test` ジョブと同じ3本）と、テストの外部依存の検査**
   ```bash
@@ -4989,7 +4995,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 - [x] **Step 8: push**
   `git push origin feat/tier9-integrated`
 
-**完了判定:** Step 1〜7 の出力がすべて期待どおりで、その結果を P6 の PR 本文用に保存してある（compile 結果・各 run-tests の `TestCount`/`FailedCount`・tsc/vitest の要約）。`git log origin/feat/tier9-integrated -1` が手元の HEAD と一致する。
+**完了判定:** Step1〜4・6〜7が期待どおりで、Step5は既存CI範囲の全PASSと原実行21 FAIL・手動検査未達を区別して保存してある（compile・各runの件数・CI対象の多重集合一致・Tier9追加除外0・tsc/vitest要約）。独立再レビューを承認後にJ1を判定する。`git log origin/feat/tier9-integrated -1` が手元のHEADと一致する（ユーザー裁定2026-10-25、A33）。
 
 ---
 
@@ -7803,6 +7809,7 @@ git push
 - `git -C $W show HEAD:.moorestech-external-revisions.json` の commitHash が `git -C $MW rev-parse origin/feat/tier9-integrated` と一致する。
 - playwright が 1 passed。
 - Editor のエラーログにマスタのロード失敗が無い。
+- Task24のピン更新後、最終ピンを明示してG1/G3全ノード・G1必須キー破損負例と復旧・G3順序破壊負例・batch終了コードを再検証する（A34）。統合PRの `Shipped Master Gate (G1+G3)` を含むCI合格はTask33完了までの必須条件として残し、W1成功で代替しない。
 **量感:** 本体の差分は 5 行（ピン 1 行、fixture 3 行、spec.ts 1 行）。
 
 ---
@@ -9172,7 +9179,7 @@ git -C ../moorestech_logs add harness/tier9-integration/eval && git -C ../moores
 
 **Interfaces:**
 - Consumes: 統合 PR の head（`origin/feat/tier9-integrated`）。ピンが指すマスタ統合 PR の push 済みコミット
-- Produces: 検証済みの Tier8 終盤セーブ。MacBook Pro にセーブを置く `place-save.sh`。チェックリストの共有 URL
+- Produces: 検証済みの Tier8 終盤セーブ（Mac mini の scratch。評価役が使う）。チェックリストの共有 URL
 
 - [x] **Step 1: Tier8 終盤セーブを用意する**
 
@@ -9263,31 +9270,10 @@ uloop get-logs --project-path ./moorestech_client --log-type Error
 
 Expected: `Success: true`、Error ログ0件。`<scratch>/tier8-world-smoke` の下に、元の版の退避（`BackupSaveJsonPath(<元の版>)`）ができている。落ちた場合は止まり、セーブの版と Error の先頭行を P1（セーブ移行）の担当に返す。ユーザーには渡さない。
 
-- [ ] **Step 4: MacBook Pro にセーブを置く手順を用意する（置くのは Task 33 Step 3）**
-
-ユーザーは MacBook Pro の Unity Editor で、全部が完成してから遊ぶ（ユーザー発言 2026-10-25「通しプレイはproでやるけど、全部が完成してから通しプレイで遊びたい」「macbook proのunityエディタであそぶから、ビルドは不要」）。配布ビルドは焼かない。セーブを置くのは PR 作成と CI の全 pass の後（Task 33 Step 3）にする。Editor の既定ワールドも `~/Library/Application Support/moorestech/saves/world_1`（MacBook Pro で実測したセーブの置き場）。ここでは手順を `../moorestech_logs/harness/tier9-integration/handoff/place-save.sh` に書いて、`bash -n` で構文を確かめるだけにする。MacBook Pro の `world_1` はユーザーが今遊んでいる本物のワールドなので、消さずに日時つきの名前へ退避する。
-```bash
-#!/bin/bash
-# MacBook Pro のワールドを退避し、旧コスト0研究の完了を立てた Tier8 終盤セーブを world_1 とやり直し用の原本として置く
-# Back up the MacBook Pro world, then place the flagged late-Tier8 save as world_1 and as a pristine copy for retries
-set -euo pipefail
-SRC="$1"   # <scratch>/tier8-world
-SAVES='~/Library/Application\ Support/moorestech/saves'
-STAMP=$(date +%Y%m%d-%H%M)
-ssh -o ConnectTimeout=8 devmac "cd $SAVES && if [ -d world_1 ]; then mv world_1 world_1.bak-$STAMP; fi && rm -rf tier9-start-original"
-scp -r "$SRC" "devmac:$SAVES/world_1"
-scp -r "$SRC" "devmac:$SAVES/tier9-start-original"
-LOCAL=$(shasum -a 256 "$SRC/save.json" | cut -d' ' -f1)
-REMOTE=$(ssh devmac "shasum -a 256 $SAVES/world_1/save.json" | cut -d' ' -f1)
-[ "$LOCAL" = "$REMOTE" ] || { echo "NG: sha256 mismatch local=$LOCAL remote=$REMOTE" >&2; exit 1; }
-echo "OK: placed world_1 (sha256 $LOCAL), backup world_1.bak-$STAMP"
-```
-Expected: `bash -n place-save.sh` が何も出さない。複製を置くので、事前確認で退避ができた方（`tier8-world-smoke`）ではなく、原本 `tier8-world` を渡す。
-
-- [ ] **Step 5: チェックリストを作って共有する**
+- [ ] **Step 4: チェックリストを作って共有する**
 
 `../moorestech_logs/harness/tier9-integration/handoff/checklist.html` を簡易 HTML で書く。中身は次の5つ:
-- 起動: MacBook Pro の `~/moorestech` で `git fetch origin && git switch feat/tier9-integrated`（手元に未コミットの変更があれば先に退避する。plan 作成時は `.moorestech-external-revisions.json` に変更があり、master から 33 コミット遅れていた）。`~/moorestech_master` はピン（`.moorestech-external-revisions.json` の moorestech_master の revision）に合わせる。Editor の外部リポジトリ同期（`Client.Editor.RepositorySync`）か `git -C ~/moorestech_master fetch origin && git -C ~/moorestech_master checkout <ピンのコミット>` で行う。Unity Editor で `moorestech_client` を開き、Play してワールド `world_1` を開く。元のワールドは `world_1.bak-<日時>` に退避してあること、やり直すときは `world_1` を消して `tier9-start-original` を `world_1` にコピーすることを書く。
+- 起動: MacBook Pro の `~/moorestech` で `git fetch origin && git switch feat/tier9-integrated`（手元に未コミットの変更があれば先に退避する。plan 作成時は `.moorestech-external-revisions.json` に変更があり、master から 33 コミット遅れていた）。`~/moorestech_master` はピン（`.moorestech-external-revisions.json` の moorestech_master の revision）に合わせる。Editor の外部リポジトリ同期（`Client.Editor.RepositorySync`）か `git -C ~/moorestech_master fetch origin && git -C ~/moorestech_master checkout <ピンのコミット>` で行う。Unity Editor で `moorestech_client` を開き、Play して、いつもの `world_1` をそのまま開く。セーブは置き換えない。ロード時に移行（版6→8）が掛かり、元の版の save.json はゲームが `Backups/<版>/` に退避する（ユーザー発言 2026-10-25「マイグレーションするんだから別に不要じゃない？」）。MacBook Pro側のワールドをエージェントが退避・削除・上書きする手順は用意しない。
 - 裏口なしの定義: コマンド・デバッグメニュー・セーブの編集を使わない。
 - 確かめる道筋。各項目に「できた／詰まった（どこで・何分）」の記入欄を付ける:
   1. 半導体ライン: クリーンルーム・IPA・切断・成膜・EUV・ダイシング・パッケージング。混ざったダイの仕分けと、止まった理由の表示。
@@ -9298,7 +9284,7 @@ Expected: `bash -n place-save.sh` が何も出さない。複製を置くので�
   6. 軌道エレベーターの建設の研究。拠点の解放、ケーブルの打ち上げ、接続、昇降。
   7. 反物質と反物質爆弾。
   8. 最終研究。
-- 移行の確認: 開いた直後に、コスト0で完了していた Tier9 研究（フィルター分岐器・機械オーバークロック・金属超精密加工・核融合炉・反物質爆弾・軌道エレベーターの建設）が未完了に戻り、それらの解放（核融合炉・拠点・発射台）が外れていること。他の進行は残っていること。
+- 移行の確認: 開いた直後に、Tier8 までの進行（研究・工場）が残っていること。旧コスト0研究のリセットは、手元のワールドではそれらが未完了なので起きない。リセットは Step 3 の事前確認（完了フラグを立てたコピー）と G5 で確かめ済み。
 - 報告: 詰まったら、ゲーム内の報告を送る（Editor からでも同じ受け口に届く）。報告のバンドルは `../moorestech_logs/harness/playtest/reports/<steamid>/` に届く。合計のプレイ時間と、待ちが長いと感じた箇所を最後に書く。
 
 Run: `share-put ../moorestech_logs/harness/tier9-integration/handoff/checklist.html -n tier9-playthrough-checklist`。出た URL を、統合 PR の本文と最終報告に書く。
@@ -9308,9 +9294,8 @@ git add .agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-0-
 git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 ```
 
-**完了判定:** 次の3つが揃っている:
+**完了判定:** 次の2つが揃っている:
 - `handoff/save-origin.md` にセーブの出所と sha256 がある。事前確認の `result.json` が `Success: true`。
-- `handoff/place-save.sh` があり、`bash -n` が通る（実際に置くのは Task 33 Step 3）。
 - チェックリストの共有 URL が、統合 PR の本文にある。
 
 ---
@@ -9352,12 +9337,10 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
   - 版の確認はオーケストレーション §3 の J2・J3 で済ませてある。ここでもう一度確かめ、master が版8へ上がっていたら、セーブ移行を V8→V9 へ繰り下げ、Task 26（G5）と Task 30 Step 3（Tier8 セーブの事前確認）をやり直してから出す（AGENTS.md のセーブ形式の規則）。繰り下げが Task 31 の後に起きたら、Task 32 Step 2 の規則で評価役もやり直す
 - [ ] **Step 2: #1551・#1552・#1554（本体）と #87・#88（マスタ）に、統合 PR へのリンクを付けたコメントを書いて閉じる**
   Run: `gh pr close <番号> --comment "統合 PR <URL> に置き換えました"`（マスタは `-R moorestech/moorestech_master`）
-- [ ] **Step 3: MacBook Pro にセーブを置き、チェックリストの URL を渡す**  両 PR が作成済みで CI が全 pass になってから行う（ユーザーは全部が完成してから遊ぶ）。チェックリストの起動手順のブランチとピンのコミットが、PR の head と一致していることを確かめてから渡す。
-  Run: `bash ../moorestech_logs/harness/tier9-integration/handoff/place-save.sh <scratch>/tier8-world`
-  Expected: `OK: placed world_1 …`。`ssh devmac` が届かない（MacBook Pro の蓋が閉じている）ときは止まらず、最終報告の「ユーザーの残タスク」に「MacBook Pro を開いて、セーブを置くよう伝える」と書く
+- [ ] **Step 3: チェックリストの URL を渡す**  両 PR が作成済みで CI が全 pass になってから行う（ユーザーは全部が完成してから遊ぶ）。チェックリストの起動手順のブランチとピンのコミットが、PR の head と一致していることを確かめてから渡す。MacBook Pro のセーブには触らない（ユーザーは手元の `world_1` をそのまま開き、ロード時に移行が掛かる）
 - [ ] **Step 4: bd `moorestech-xyuaf.2` に PR の URL と「ユーザー通しプレイ待ち」を note し、`moores-wt rm` で作業 worktree を畳む（セッション B の worktree も含む。未 push があれば畳まない）**
 
-**完了判定:** 両 PR が作成済みで CI が全 pass（Unity 全 shard・Web・Mooresmaster・Win/Mac ビルド・`shipped-master-gate`）、旧 5 PR が閉じられている、`git status` が clean で全コミットが push 済み、Step 3 の `place-save.sh` が `OK` を出している
+**完了判定:** 両 PR が作成済みで CI が全 pass（Unity 全 shard・Web・Mooresmaster・Win/Mac ビルド・`shipped-master-gate`）、旧 5 PR が閉じられている、`git status` が clean で全コミットが push 済み、Step 3 でチェックリストの URL を最終報告に書いている
 
 全実装タスク完了＝完了ではない。PR未作成のまま終わるのはplan未完了である。
 ## 死活表（統合で置き換え・削除するものにぶら下がる操作）
@@ -9427,9 +9410,11 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
   - 反物質製造装置 2 台で最終研究の爆弾をそろえる時間。
   毎秒の量は次のとおり。ICチップLv1 は S1 sim のクラス B（S1 研究完了後の 3 ライン。A8 と同じクラス）から引く。鋼鉄板・コンピュータ・制御モータは Tier8 終盤の工場から S3 に回せる台数（電気炉 4・電気汎用工作装置 2・同 2。agent 前提）× マスタのレシピで出す。計算データは S2 区間の便数で数え、二重に数えない。台数・建設時間・爆弾の機械 2 台は前提であり、Task 23 の調整では動かさない
 - A28 Codex の週次枠が足りないときは、セッション A・B・評価役B・Task 32 のレビューを Claude Code（opus）で起動し直す。基準はオーケストレーション §2「Codex 枠の確認」。無人で止まらないように、ユーザーに聞かずに既定で切り替える（出所: シミュレーター予測の Warning → agent 判断）
-- A29 ユーザーは MacBook Pro の Unity Editor で、PR のブランチを開いて、全部が完成してから遊ぶ（ユーザー発言 2026-10-25）。配布ビルドと staging への反映は行わない。セーブは Task 33 Step 3 で、PR と CI の後に置く。MacBook Pro の `world_1` は本物のワールドなので、日時つきの名前へ退避し、やり直し用の原本 `tier9-start-original` も並べる。MacBook Pro の repo は触らず、ブランチの切り替えはチェックリストでユーザーに任せる（手元に未コミットの変更があるため）
+- A29 ユーザーは MacBook Pro の Unity Editor で、PR のブランチを開いて、全部が完成してから遊ぶ（ユーザー発言 2026-10-25）。配布ビルドと staging への反映は行わない。セーブは置き換えず、手元の `world_1` をそのまま開いてロード時の移行に任せる（ユーザー発言「マイグレーションするんだから別に不要じゃない？」）。Task 30 Step 1 のコピーは Mac mini 側の事前確認（Step 3）と評価役（Task 31）のためだけに使い、MacBook Pro へは書き戻さない。MacBook Pro の repo も触らない
 - A30 段4 の録画が待つ実時間を 300 秒以下に保つことを、Task 23 のバランス調整の制約にする。`RESULT_TIMEOUT` は伸ばさない（出所: シミュレーター予測の Warning → agent 判断）
 - A31 G6 の「マスタから引けない」は判別子 1 本で表す。`Check` は状態値（`ok`／`lookup_failed`／`not_positive` など）を 1 つ持ち、None を合図に使わない。値を返す関数（`output_per_second`・`evaluate_launches`・`launches_for`・`PowerResult`・`item_rates`・`research_hours_for`）も、値と状態の組を返す。セーブ移行の `TryGetNestedArray` は「無い／null／配列」の 3 状態を返す（型閉包 5-A。出所: シミュレーター予測・確信高→前提宣言、ユーザーの拒否権の行使なし 2026-10-25）
+- A33 Task9の自動回帰受入れは既存CIと同じIgnoreCI除外範囲とする（W1は3298/3298）。原実行3319中21FAILと手動検査未達を明記し、Tier9起因の除外は追加しない。出所: ユーザー裁定2026-10-25、`.decisions/2026-10-25-Tier9のW1受入れを既存CI範囲とB統合マスタで検証し最終ピンの受入れは維持する.md`。
+- A34 Task10のW1正例はpush済みB統合マスタ1cf0df8を明示し、G1正例・破損負例・復旧・batch0/1/1と独立再レビューを要求する。最終ピンでのG1/G3・CI合格はTask24後の必須条件として維持する。J1通過後だけB（cmux surface:1026）のTasks25〜26を解放する。出所: 同日のユーザー裁定、同上の決定記録。
 - A32 型閉包の弱い指摘は次の 3 束を直す: (1) nodegraph_sync と tier9_balance の中で 2 回以上出る述語・導出を 1 本にまとめる（検査6 の (a)〜(g)）、(2) G1 の `MasterHolder.Load` を呼ぶ口を 1 つにし、static のマスタを書き換える所有者を決める（5-F）、(3) GPU衛星かどうか・レシピの入力を、名前の前方一致と既定値 `''` でなく GUID か levelFamily で判定する（5-B）。他の弱（5-C の合成 bool・失敗理由の bool＋string・`unlockMachineRecipe` の書き手 2 者・DI コンテナの終了の所有者・網羅 switch）は Task 32 の全ブランチレビューに任せる（出所: 同上）
 
 ### 本PR外のリファクタ提案（第3バケツ。plan のタスクにしない。Task 32 のレビュー依頼文にこの節を写す）

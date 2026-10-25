@@ -25,7 +25,7 @@
 | A（主） | pi agent（`openai/gpt-6.1-sol`・`--thinking high`）、moores-subagent-driven-development の SDD 本体（per-task） | `~/hermes-agent/data/worktrees/moorestech/tier9-integrated`（branch `feat/tier9-integrated`）。J1 以降はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（moorestech_master の branch `feat/tier9-integrated`）も使う | W1: Task 4〜11 / W2: Task 12〜24 / W3: Task 27〜29 / W4: Task 30〜33 | 全期間 |
 | B（副） | pi agent（同じモデル・同じ thinking）、同 SDD | 起動場所（SDD の台帳を置く所）は本体 worktree `~/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests`（branch `feat/tier9-integrated-tests`。起動前に `moores-wt new feat/tier9-integrated-tests --dir tier9-integrated-tests --from origin/feat/tier9-integrated --no-editor` で作る）。W1 の編集先はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（Task 1 で作る。moorestech_master の branch `feat/tier9-integrated`）。W2 は J1 を確かめてから、本体 worktree に `origin/feat/tier9-integrated` を通常マージして Task 25〜26 を行う | W1: Task 1〜3 / W2: Task 25〜26 | J2 で終了 |
 
-実装はすべて Mac mini 上で動かす。MacBook Pro はセーブの出所（Task 30 Step 1）と、完成後にユーザーが Unity Editor で遊ぶ機械（Task 33 Step 3）として使うだけ。配布ビルドは焼かない。
+実装はすべて Mac mini 上で動かす。MacBook Pro は、事前確認用のセーブのコピー元（Task 30 Step 1。済み）と、完成後にユーザーが Unity Editor で遊ぶ機械として使うだけ。配布ビルドは焼かず、セーブも書き戻さない。
 
 起動（pi は `cmux-agent-pane` の `-a` に無い）: 依頼文（§6）を各 worktree の `.superpowers/sdd/start-prompt.md` に置き、`cmux new-workspace` で worktree 名のワークスペースを作ってから、そのペインへ `cmux send` で `cd <worktree> && pi --approve --model openai/gpt-6.1-sol --thinking high "$(< .superpowers/sdd/start-prompt.md)"` を送る。新しい worktree で「Trust project folder?」が出たら既定の Trust を選ぶ。受理は `cmux read-screen` で確かめる。
 
@@ -41,9 +41,11 @@ pi ホストでの差分（§6 の依頼文に入れてある）:
 
 | 合流点 | 越える条件（全部） | 確かめ方 |
 |---|---|---|
-| J1（W1→W2） | A: P1 の全タスクと G1/G3 の batch が `feat/tier9-integrated` に push 済み、compile エラー0、P1 の最終テスト正規表現が全 pass。B: Task 1〜3 がマスタ統合ブランチに push 済みで、G2 が#88+#87 のマージ結果に掛けて既知の欠落（入手不能・解放されないブロック）が赤で出て、わざと壊した fixture で exit 1 | `git log origin/feat/tier9-integrated` の `Task N:` コミット、`.superpowers/sdd/progress.md` の complete 行、G2 の実行ログ（`moorestech_logs/harness/tier9-integration/` に保存） |
+| J1（W1→W2） | A: Tasks4〜11とG1/G3 batchが `feat/tier9-integrated` にpush済み、compileエラー0、P1の最終テスト正規表現が全PASS。Task9の自動回帰は既存CIと同じIgnoreCI除外範囲（W1は3298/3298）で、原実行21FAILと手動検査未達を保存しTier9起因の除外を足さない。Task10はpush済みBマスタ `1cf0df8` を明示したG1正例・破損負例・復旧・batch0/1/1が成立し、Task9/10の独立再レビューが承認済み。B: Tasks1〜3がpush済み、G2の既知欠落が赤、破損fixtureでexit1 | `Task N:` コミット・remote SHA、両台帳のcomplete行、G1/G3の入力SHAと実ログ・batch終了コード、CI範囲の多重集合一致、独立再レビュー、G2の原結果とmutation実ログ（moorestech_logs）。ユーザー裁定2026-10-25、plan A33・A34 |
 | J2（W2→W3） | A: Task 12〜24 が完了し、マスタ統合ブランチで G1 緑・G2 緑（許可リスト外の詰み0）・G6 緑、マスタ統合 PR 作成済み。B: Task 25・26 が `feat/tier9-integrated-tests` で pass し push 済み。origin/master のセーブ版が 7 のまま | A が本体へ `feat/tier9-integrated-tests` を通常マージし、compile と G4・G5 を自分の Editor で再実行して pass。版は下の「版の確認」 |
 | J3（W3→W4） | ピンがマスタ統合 PR の push 済みコミットを指す。G3 全ノード true。P5 の 7 段の result.json が全 pass、Error ログ0、動画を確認済み。A11 撮り直し済み。origin/master のセーブ版が 7 のまま。Tier8 終盤セーブが手元にある | result.json と動画のパス、G3 のログ、版の確認、`handoff/save-origin.md` |
+
+**W1の入力と最終受入れ（ユーザー裁定2026-10-25）:** 現ピン630fdceのG1は `orbitalPayloads` 欠損でFAILしており、W1成功に置き換えて記録しない。Task24で最終統合マスタPRのpush済みコミットへピンを向けた後、最終ピンでG1/G3・正負例・batchを再検証し、統合PRのCI合格も必須条件として維持する。J1通過後だけ、Aは `cmux send --surface surface:1026` でBへ証拠と再開を伝え、BのTasks25〜26を解放する。
 
 **版の確認（J2・J3）:** `git fetch origin && git show origin/master:moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs | grep CurrentVersion`。7 なら越える。8 以上なら、A が origin/master をマージし、V7→V8 の部品を新しい版の後ろ（例: V8→V9）へ繰り下げ、G5 の入力に master の新しい版のセーブを足してから越える（AGENTS.md のセーブ形式の規則）。繰り下げは P1 のセーブ移行の担当範囲として、同じ wave の中で直す。
 
@@ -64,7 +66,7 @@ pi ホストでの差分（§6 の依頼文に入れてある）:
 |---|---|---|
 | W1 開始時 | A が plan Task 30 Step 1（MacBook Pro の `world_1` のコピーに旧コスト0研究の完了を立てる）を先に済ませる。`ssh devmac` が届くよう MacBook Pro の蓋を開けておいてもらう | 届かなければ W1 の他のタスクを進め、J1 までに再試行する。J3 までに用意できなければ J3 で止めてユーザーに聞く |
 | 随時 | plan の欠陥・仕様の選択（SDD の deferred-questions に溜まったもの） | 推奨案で進め、まとめて 1 回提示 |
-| W4 末（PR と CI の後） | 通しプレイ（Tier8 終盤セーブ→最終研究、裏口なし）。MacBook Pro の Unity Editor で PR のブランチを開いて、全部が完成してから遊ぶ（配布ビルドは焼かない） | ユーザー本人（裁定済み）。plan の Task 30 がチェックリストと置き方を用意し、Task 33 Step 3 が MacBook Pro にセーブを置く。蓋が閉じていて届かなければ、最終報告でユーザーに頼む |
+| W4 末（PR と CI の後） | 通しプレイ（手元の `world_1` から最終研究まで、裏口なし）。MacBook Pro の Unity Editor で PR のブランチを開いて遊ぶ。セーブは置き換えず、ロード時の移行に任せる | ユーザー本人（裁定済み）。plan の Task 30 がチェックリストを用意し、Task 33 Step 3 が URL を渡す |
 
 ## 6. 開始依頼文
 
