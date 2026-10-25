@@ -90,9 +90,10 @@
 
 Web 版の全画面と主要な状態（移行後も「意図した見た目」を辿るため）。mock-host（DEMO の高密度データとプレースホルダアイコン）で撮った。画素の一致は目標にしない（計画 §4.6）。
 
-- 撮影元: moorestech `869b2d4264`。撮り方: `moorestech_web/webui/e2e/uitk-reference/capture.ts`（撮影表は同じディレクトリの `referenceShots.ts`・`referenceVideos.ts`）
-- 置き場: `moorestech_logs` の `uitk/reference-captures/web-869b2d4264/`（一覧は `index.md`、機械向けは `manifest.json`）
-- URL: https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-869b2d4264
+- 撮影元: moorestech `a9d5123537`。撮り方: `moorestech_web/webui/e2e/uitk-reference/capture.ts`（撮影表は同じディレクトリの `referenceShots.ts`・`referenceVideos.ts`）
+- 置き場: `moorestech_logs` の `uitk/reference-captures/web-a9d5123537/`（一覧は `index.md`、機械向けは `manifest.json`）
+- URL: https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-a9d5123537
+- 目視検査: 同じ置き場の `visual-review.md` と `qa/` に全64静止画・全5動画の確認とフレーム証拠を残す。通知動画は入場・集約・全退出を含む12秒、ほかは3〜4秒
 - 各行の `参照キャプチャ` 列は撮影 id（PNG は `<id>.png`、動画は `<id>.webm`）。束を切り替える前に撮り直したら、ここの撮影元と置き場を新しい方へ書き換える
 
 ## 未撮影
