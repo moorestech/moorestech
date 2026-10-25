@@ -1763,7 +1763,7 @@ Expected: unittest `OK`、G1 は `違反なし`・終了コード 0
 
 ### Task 6: 全ブランチレビュー
 
-- [ ] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+- [x] **Step 1: 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
 Codex ホストでは moores-code-review の `references/codex-host.md` の runner（`scripts/codex_workflow_runner/run.mjs`）で同じ台本を回す。確定した機械的修正は当て、設計判断は PR 本文の「ユーザーに見てほしい判断」へ書く。指摘の反映がソースの判定経路（G1 の規則・台帳パーサ）に触れたら、Task 2・3 の unittest と実 repo の G1 実行を回し直してから完了にする。
 
