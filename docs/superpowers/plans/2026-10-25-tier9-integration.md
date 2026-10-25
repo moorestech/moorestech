@@ -7277,7 +7277,7 @@ Expected: `[1000] [1000]`、`SpaceElevatorBase 宇宙 5`、`False`。
 **Interfaces:**
 - Consumes: Task 19 のロケット技術と、G6 の `sections/recipe_rates.py`・`tests/s2s3_fixture.py`。Task 20・Task 21 のブロック・レシピ・アイテム。上の「裁定2 との整合」の表。S1 の sim の `timeline.line_rate(class, done)`・`timeline.RESEARCH`・`timeline.EXTRA_LINES_AT_H`（Task 3 Step 7）。
 - Produces:
-  - G6 の S3 区間 `sections/s3_endgame.evaluate(view) -> SectionResult('s3_endgame', checks, hours)`（Step 6）。
+  - G6 の S3 区間 `sections/s3_endgame.evaluate(view) -> SectionResult('s3_endgame', checks, hours: Resolved)`（Step 6）。
   - 研究「最終研究」`01a167e9-21f6-7d26-a990-e7d6d78750d0`（反物質爆弾 10 個を消費し、何も解放しない。ゴール）。
   - 5 ノードのコストと解放。
   - フィルター分岐器のノードは無くなる。
