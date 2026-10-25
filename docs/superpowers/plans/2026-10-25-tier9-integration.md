@@ -7357,7 +7357,7 @@ Expected:
 - 許可リストの差分は空。
 - 赤が残ったら、その行の要素を spec 06〜10 で直す。許可リストに足して黙らせることはしない。
 - [ ] **Step 6: G6 の S3 区間を書く**（判断記録 A26。S3 の機械・拠点・研究がそろうのはこの Task なのでここで書く。値の確定は Task 23）
-  - 検査: S3 引き継ぎ「旧 Task 4」「旧 Task 12」の `check` 行を関数に直す。`sys.exit` は `lookup_failed` に、`check(..., 1, 1)` は `checks.matches` に替える。
+  - 検査: S3 引き継ぎ「旧 Task 4」「旧 Task 12」の `check` 行を関数に直す。`sys.exit` は引けない `Resolved`（`lookup_failed`）と `checks.unreadable` の行に、`check(..., 1, 1)` は `checks.matches` に替える。`PowerResult`（差し引き電力・爆弾をそろえる時間）、品目の毎秒、研究を払う時間、区間の時間はどれも `Resolved` で返し、差し引きが 0 以下なら `require_positive` で `not_positive` にして、それで割る比も同じ状態で落とす（判断記録 A31）。上流の需要の積み上げは `recipe_rates.chain_machines`、積荷表の行は `MasterView.payload_row`、研究のコストの品目は GUID で引く（判断記録 A32）。
   - 旧 Task 12 の `ROCKET_BUILD_SECONDS_KEY` は `buildSeconds`（Task 3 の引き継ぎ）。
   - 所要時間: 次の 3 つを足す。
     - S3 の研究 4 つ（金属超精密加工→核融合炉→軌道エレベーターの建設→反物質爆弾）を順に払う時間。1 つの研究は、品目ごとに最も遅い品目で決まる。
@@ -7379,7 +7379,7 @@ Expected:
 # Fusion and antimatter checks (S3 handoff "old Task 4"): reactor net power, extractor count, fabricator power and bomb stocking time
 # 目標の根拠: ADR 0093（核融合の差し引き電力。統合で 0090 から振り直し。差し引きはガソリン発電機数台分）、S3 の R3・R5
 # Targets: ADR 0090 (net equals a few gasoline generators) and S3 R3/R5
-from checks import lookup_failed, target_range
+import checks
 from sections import recipe_rates
 
 # 最終研究の爆弾は反物質製造装置2台でそろえる前提（S3 引き継ぎ「旧 Task 4」）
@@ -7388,57 +7388,59 @@ FABRICATORS_FOR_BOMBS = 2
 
 
 class PowerResult:
-    # 後段（エレベーターの電力比・所要時間）が使う中間値。引けなければ None のまま
-    # Intermediate values reused by later checks (elevator power ratio and hours); None when unreadable
-    def __init__(self):
-        self.net_power = None
-        self.bomb_hours = None
+    # 後段（エレベーターの電力比・所要時間）が使う中間値。どちらも Resolved で、差し引きが 0 以下なら not_positive（判断記録 A31）
+    # Intermediate values reused later (elevator power ratio, hours); both are Resolved, and a net of zero or less is not_positive (decision A31)
+    def __init__(self, net_power, bomb_hours):
+        self.net_power = net_power
+        self.bomb_hours = bomb_hours
 
 
 def check_power(view):
-    rows, result = [], PowerResult()
-    gasoline = view.block_param('ガソリンエンジン発電機', 'fuelFluids')
-    reactor = view.block_param('核融合炉', 'fuelFluids')
+    gasoline = view.block_param('ガソリンエンジン発電機', 'fuelFluids').then(lambda f: checks.element(f, 0, '発電機の fuelFluids'))
+    reactor = view.block_param('核融合炉', 'fuelFluids').then(lambda f: checks.element(f, 0, '核融合炉の fuelFluids'))
     extractor_power = view.block_param('重水素抽出装置', 'requiredPower')
-    _, deuterium_per_extractor = recipe_rates.output_per_second(view, '重水素抽出装置', '重水素')
-    if not gasoline or not reactor or extractor_power is None or not deuterium_per_extractor:
-        return rows + [lookup_failed('核融合炉の差し引き電力', '発電機の fuelFluids・抽出装置の requiredPower・重水素レシピのどれかが無い')], result
+    extract = recipe_rates.output_per_second(view, '重水素抽出装置', '重水素')
+    inputs = [gasoline, reactor, extractor_power, extract]
+    if checks.failures(inputs):
+        net = checks.carried_failure(inputs, '核融合炉の差し引き電力')
+        bomb_hours = checks.carried_failure(inputs, '反物質の爆弾をそろえる時間')
+        return [checks.unreadable('target', '核融合炉の差し引き電力', net)], PowerResult(net, bomb_hours)
 
     # 炉1基の重水素消費を賄う抽出装置の台数と差し引き電力
     # Extractors needed to feed one reactor and the resulting net power
-    extractors = (reactor[0]['amount'] / reactor[0]['time']) / deuterium_per_extractor
-    result.net_power = reactor[0]['power'] - extractors * extractor_power
-    rows.append(target_range('炉1基の差し引き電力（ガソリン発電機何台分）', round(result.net_power / gasoline[0]['power'], 2), 3, 5))
-    rows.append(target_range('炉1基に要る抽出装置の台数', round(extractors, 2), 2, 8))
-    rows += check_antimatter(view, result, deuterium_per_extractor, extractor_power)
-    return rows, result
+    extractors = (reactor.value['amount'] / reactor.value['time']) / extract.value.per_second
+    net_value = reactor.value['power'] - extractors * extractor_power.value
+    net = checks.require_positive(checks.resolved(net_value), '炉1基の発電から抽出装置の電力を引いた差し引き')
+    rows = [checks.target_range('炉1基の差し引き電力（ガソリン発電機何台分）', checks.resolved(round(net_value / gasoline.value['power'], 2)), 3, 5),
+            checks.target_range('炉1基に要る抽出装置の台数', checks.resolved(round(extractors, 2)), 2, 8)]
+    antimatter_rows, bomb_hours = check_antimatter(view, net, extract.value.per_second, extractor_power.value)
+    return rows + antimatter_rows, PowerResult(net, bomb_hours)
 
 
-def check_antimatter(view, result, deuterium_per_extractor, extractor_power):
+def check_antimatter(view, net, deuterium_per_extractor, extractor_power):
+    # 戻り値は（検査の行, 爆弾をそろえる時間[h] の Resolved）
+    # Returns (check rows, bomb stocking hours as a Resolved)
     fabricator_power = view.block_param('反物質製造装置', 'requiredPower')
-    antimatter_recipe, antimatter_per_second = recipe_rates.output_per_second(view, '反物質製造装置', '反物質')
-    bomb_recipe = view.recipe_by_output('電気汎用工作装置', '反物質爆弾')
+    antimatter = recipe_rates.output_per_second(view, '反物質製造装置', '反物質')
+    deuterium_in = antimatter.then(lambda rate: view.recipe_input_amount(rate.recipe, '重水素'))
+    antimatter_per_bomb = view.recipe_by_output('電気汎用工作装置', '反物質爆弾').then(lambda r: view.recipe_input_amount(r, '反物質'))
     final_bombs = view.research_cost('最終研究', '反物質爆弾')
-    fabricator_inputs = recipe_rates.inputs_by_name(view, antimatter_recipe) if antimatter_recipe else {}
-    bomb_inputs = recipe_rates.inputs_by_name(view, bomb_recipe) if bomb_recipe else {}
-    if fabricator_power is None or not antimatter_per_second or final_bombs is None or '重水素' not in fabricator_inputs or '反物質' not in bomb_inputs:
-        return [lookup_failed('反物質の電力と爆弾', '反物質製造装置の requiredPower・重水素を使う反物質レシピ・反物質を使う爆弾レシピ・最終研究の爆弾のどれかが無い')]
+    inputs = [fabricator_power, antimatter, deuterium_in, antimatter_per_bomb, final_bombs]
+    if checks.failures(inputs):
+        failure = checks.carried_failure(inputs, '反物質の電力と爆弾')
+        return [checks.unreadable('target', '反物質の電力と爆弾', failure)], failure
 
-    # 反物質機1台の電力（自分の重水素をつくる抽出装置を含む）
-    # Power per fabricator including the extractors that make its deuterium
-    deuterium_in = fabricator_inputs['重水素'] / antimatter_recipe['time']
-    total_power = fabricator_power + deuterium_in / deuterium_per_extractor * extractor_power
-    # 差し引きが0以下なら比は出せないので None で FAIL にする（炉の行も同時に FAIL している）
-    # A non-positive net has no ratio, so None fails it (the reactor row fails at the same time)
-    ratio = round(total_power / result.net_power, 2) if result.net_power > 0 else None
-    rows = [target_range('反物質製造装置1台の電力（炉の差し引き何基分）', ratio, 3, 6)]
+    # 反物質機1台の電力（自分の重水素をつくる抽出装置を含む）。差し引きが 0 以下なら比は not_positive のまま FAIL
+    # Power per fabricator including the extractors that make its deuterium; a non-positive net keeps the ratio not_positive
+    deuterium_per_second = deuterium_in.value / antimatter.value.recipe['time']
+    total_power = fabricator_power.value + deuterium_per_second / deuterium_per_extractor * extractor_power
+    rows = [checks.target_range('反物質製造装置1台の電力（炉の差し引き何基分）', net.map(lambda n: round(total_power / n, 2)), 3, 6)]
 
     # 2台で最終研究の爆弾をそろえる時間
     # Time for two fabricators to stock the final research bombs
-    antimatter_per_bomb = bomb_inputs['反物質']
-    result.bomb_hours = final_bombs * antimatter_per_bomb / (FABRICATORS_FOR_BOMBS * antimatter_per_second) / 3600
-    rows.append(target_range(f'反物質製造装置{FABRICATORS_FOR_BOMBS}台で最終研究の爆弾をそろえる時間[h]', round(result.bomb_hours, 2), 0.5, 3))
-    return rows
+    hours = final_bombs.value * antimatter_per_bomb.value / (FABRICATORS_FOR_BOMBS * antimatter.value.per_second) / 3600
+    rows.append(checks.target_range(f'反物質製造装置{FABRICATORS_FOR_BOMBS}台で最終研究の爆弾をそろえる時間[h]', checks.resolved(round(hours, 2)), 0.5, 3))
+    return rows, checks.resolved(hours)
 ```
 
 `tools/tier9_balance/sections/s3/graphene_elevator_checks.py`:
@@ -7446,7 +7448,7 @@ def check_antimatter(view, result, deuterium_per_extractor, extractor_power):
 #!/usr/bin/env python3
 # グラフェンと宇宙エレベーターの検査（S3 引き継ぎ「旧 Task 4」のグラフェン、「旧 Task 12」のエレベーター）
 # Graphene and space elevator checks (graphene from S3 handoff "old Task 4", the elevator from "old Task 12")
-from checks import lookup_failed, matches, target_range
+import checks
 from sections import recipe_rates
 
 CABLE = 'グラフェンケーブル'
@@ -7457,20 +7459,16 @@ CABLE_CHAIN = (('電気汎用工作装置', CABLE), ('電気炉', 'グラフェ�
 
 def check_graphene(view):
     cable_row = cable_payload_row(view)
-    if cable_row is None:
-        return [lookup_failed(f'{CABLE} の積荷表の行', 'items.json の orbitalPayloads に無い')]
-    demand, machines = {CABLE: cable_row['countPerLaunch'] / 3600}, 0.0
+    if not cable_row.ok:
+        return [checks.unreadable('target', f'{CABLE} の積荷表の行', cable_row)]
+    demand, machines = {}, 0.0
+    recipe_rates.add_demand(demand, cable_row.value['payloadItemGuid'], cable_row.value['countPerLaunch'] / 3600)
     for block, output in CABLE_CHAIN:
-        recipe, per_machine = recipe_rates.output_per_second(view, block, output)
-        if recipe is None or not per_machine:
-            return [lookup_failed(f'{block}（{output}）のレシピ', 'machineRecipes.json に1本に決まる行が無い')]
-        rate = demand.get(output, 0.0)
-        machines += rate / per_machine
-        # このレシピを回す分の入力を上流の需要へ積む
-        # Add this recipe's inputs to the upstream demand
-        for name, amount in recipe_rates.inputs_by_name(view, recipe).items():
-            demand[name] = demand.get(name, 0.0) + rate / (per_machine * recipe['time']) * amount
-    return [target_range('1便分のケーブルを1時間で作る機械台数（戻し炉を除く）', round(machines, 2), 1, 12)]
+        rate = recipe_rates.output_per_second(view, block, output)
+        if not rate.ok:
+            return [checks.unreadable('target', f'{block}（{output}）のレシピ', rate)]
+        machines += recipe_rates.chain_machines(demand, rate.value)
+    return [checks.target_range('1便分のケーブルを1時間で作る機械台数（戻し炉を除く）', checks.resolved(round(machines, 2)), 1, 12)]
 
 
 def check_elevator(view, net_power):
@@ -7479,19 +7477,18 @@ def check_elevator(view, net_power):
     cables = view.block_param('宇宙エレベーター拠点', 'cablesPerElevator')
     climb = view.block_param('宇宙エレベーター拠点', 'climbSeconds')
     power = view.block_param('宇宙エレベーター拠点', 'requiredPower')
-    rocket_build = view.block_param('ロケット発射台', 'buildSeconds')
+    rocket_build = checks.require_positive(view.block_param('ロケット発射台', 'buildSeconds'), 'ロケット発射台の buildSeconds')
     cable_row = cable_payload_row(view)
-    if None in (cables, climb, power, rocket_build) or cable_row is None:
-        return [lookup_failed('宇宙エレベーター拠点の値', '拠点の cablesPerElevator・climbSeconds・requiredPower、発射台の buildSeconds、ケーブルの積荷表の行のどれかが無い')]
-    power_ratio = round(power / net_power, 2) if net_power and net_power > 0 else None
-    return [matches('1エレベーター分のケーブル（積荷表の1便）', cable_row['countPerLaunch'], cables, 0),
-            target_range('昇降時間 / ロケット建造時間', round(climb / rocket_build, 2), 1.5, 4),
-            target_range('昇降中の電力 / 炉1基の差し引き電力', power_ratio, 0.1, 0.5)]
+    inputs = [cables, climb, power, rocket_build, cable_row]
+    if checks.failures(inputs):
+        return [checks.unreadable('target', '宇宙エレベーター拠点の値', checks.carried_failure(inputs, '宇宙エレベーター拠点の値'))]
+    return [checks.matches('1エレベーター分のケーブル（積荷表の1便）', cable_row.value['countPerLaunch'], cables, 0),
+            checks.target_range('昇降時間 / ロケット建造時間', checks.resolved(round(climb.value / rocket_build.value, 2)), 1.5, 4),
+            checks.target_range('昇降中の電力 / 炉1基の差し引き電力', net_power.map(lambda n: round(power.value / n, 2)), 0.1, 0.5)]
 
 
 def cable_payload_row(view):
-    guid = recipe_rates.guid_of(view, CABLE)
-    return next((r for r in view.items_doc.get('orbitalPayloads', []) if r['payloadItemGuid'] == guid), None)
+    return view.guid_of(CABLE).then(view.payload_row)
 ```
 
 `tools/tier9_balance/sections/s3/hours_model.py`:
@@ -7499,7 +7496,7 @@ def cable_payload_row(view):
 #!/usr/bin/env python3
 # S3 区間の所要時間の見積もり（判断記録 A26）。S3 の研究を順に払う時間＋解放した設備の建設時間＋最終研究の爆弾をそろえる時間
 # Hour estimate of the S3 section (decision A26): paying the S3 research in order, building the unlocked facilities and stocking the final bombs
-from checks import lookup_failed
+import checks
 from sections import recipe_rates
 from sections.s1 import sim_bridge  # noqa: F401  S1 sim を検索パスへ足す / puts the S1 sim on the search path
 import timeline
@@ -7520,46 +7517,50 @@ BUILD_HOURS_PER_UNLOCK = 0.5
 
 
 def estimate_hours(view, bomb_hours):
-    rows = []
-    rates = item_rates(view, rows)
-    research_hours = [research_hours_for(view, node, rates, rows) for node in S3_RESEARCH]
-    if rates is None or bomb_hours is None or None in research_hours:
-        return rows, None
+    # 戻り値は（検査の行, 所要時間[h] の Resolved）。研究・毎秒・爆弾のどれかが引けなければ、その状態を時間へ引き継ぐ
+    # Returns (check rows, hours as a Resolved); an unreadable research, rate or bomb time passes its state on to the hours
+    rows, rates = item_rates(view)
+    research = {node: rates.then(lambda found: research_hours_for(view, node, found)) for node in S3_RESEARCH}
+    if rates.ok:
+        rows += [checks.unreadable('target', f'研究 {node} を払う時間', h) for node, h in research.items() if not h.ok]
+    values = [bomb_hours] + list(research.values())
+    if checks.failures(values):
+        return rows, checks.carried_failure(values, 'S3 の所要時間')
     builds = sum(1 for node in S3_RESEARCH for a in view.research[node]['clearedActions'] if a['gameActionType'] == 'unlockBlock')
-    return rows, sum(research_hours) + builds * BUILD_HOURS_PER_UNLOCK + bomb_hours
+    return rows, checks.resolved(sum(h.value for h in research.values()) + builds * BUILD_HOURS_PER_UNLOCK + bomb_hours.value)
 
 
-def item_rates(view, rows):
+def item_rates(view):
+    # 戻り値は（毎秒が引けない品目の行, 品目 GUID → 毎秒 の Resolved）
+    # Returns (rows for items without a readable rate, a Resolved of item GUID -> per second)
     # ICチップは S1 sim のクラス B・S1 研究完了後のライン構成で毎秒（判断記録 A8 と同じクラス）
     # IC chips per second from the S1 sim's class-B lines after all S1 research (same class as decision A8)
     lines = 1 + len(timeline.EXTRA_LINES_AT_H)
-    rates = {CHIP: timeline.line_rate('B', {n['name'] for n in timeline.RESEARCH})[0] * lines / 60}
+    chip_per_second = timeline.line_rate('B', {n['name'] for n in timeline.RESEARCH})[0] * lines / 60
+    found = {CHIP: view.guid_of(CHIP).map(lambda guid: (guid, chip_per_second))}
     for item, (block, count) in FACTORY.items():
-        _, per_machine = recipe_rates.output_per_second(view, block, item)
-        if not per_machine:
-            rows.append(lookup_failed(f'{block}（{item}）のレシピ', 'machineRecipes.json に1本に決まる行が無い'))
-            return None
-        rates[item] = per_machine * count
-    return rates
+        found[item] = recipe_rates.output_per_second(view, block, item).map(lambda rate: (rate.output_guid, rate.per_second * count))
+    rows = [checks.unreadable('target', f'{item} の毎秒', value) for item, value in found.items() if not value.ok]
+    if rows:
+        return rows, checks.carried_failure(list(found.values()), 'S3 の品目の毎秒')
+    return rows, checks.resolved(dict(value.value for value in found.values()))
 
 
-def research_hours_for(view, node_name, rates, rows):
-    # 研究1つを払う時間。品目ごとのラインは並行して動くので、最も遅い品目で決まる
-    # Time to pay one research; item lines run in parallel, so the slowest item decides it
-    node = view.research.get(node_name)
-    if node is None or rates is None:
-        rows.append(lookup_failed(f'研究 {node_name}', 'research.json に無いか、品目の毎秒が引けない'))
-        return None
-    names, seconds = recipe_rates.guid_names(view), [0.0]
-    for cost in node['consumeItems']:
-        item = names.get(cost['itemGuid'], '?')
-        if item in COUNTED_ELSEWHERE:
+def research_hours_for(view, node_name, rates):
+    # 研究1つを払う時間の Resolved。品目ごとのラインは並行して動くので、最も遅い品目で決まる
+    # Time to pay one research as a Resolved; item lines run in parallel, so the slowest item decides it
+    if node_name not in view.research:
+        return checks.unresolved(f'研究「{node_name}」が research.json に無い')
+    # silent-ok: マスタに無い品目は研究のコストにも正しく現れないので除外の対象が無いだけ / コストに未知の GUID があれば毎秒の無い品目として lookup_failed の行が出る
+    elsewhere = {g.value for g in map(view.guid_of, COUNTED_ELSEWHERE) if g.ok}
+    seconds = [0.0]
+    for cost in view.research[node_name]['consumeItems']:
+        if cost['itemGuid'] in elsewhere:
             continue
-        if item not in rates:
-            rows.append(lookup_failed(f'{node_name} の {item}', '所要時間の見積もりに毎秒が無い品目（FACTORY に足す）'))
-            return None
-        seconds.append(cost['itemCount'] / rates[item])
-    return max(seconds) / 3600
+        if cost['itemGuid'] not in rates:
+            return checks.unresolved(f'{view.label_of(cost["itemGuid"])} の毎秒が無い（FACTORY に足す）')
+        seconds.append(cost['itemCount'] / rates[cost['itemGuid']])
+    return checks.resolved(max(seconds) / 3600)
 ```
 
 `tools/tier9_balance/sections/s3_endgame.py`（Task 3 の空の区間を全文置き換える）:
@@ -7609,7 +7610,7 @@ class S3EndgameTest(unittest.TestCase):
         self.assertEqual([], failed(result))
         # 研究は鋼鉄板が律速で 8625 秒、建設 4 回 × 0.5 h、爆弾 3000 秒
         # Research is steel-bound at 8625 s, four builds x 0.5 h, and bombs take 3000 s
-        self.assertAlmostEqual((8625 + 3000) / 3600 + 2.0, result.hours, places=3)
+        self.assertAlmostEqual((8625 + 3000) / 3600 + 2.0, result.hours.value, places=3)
 
     def test_cable_count_mismatch_fails(self):
         master = build_master()
@@ -7622,14 +7623,19 @@ class S3EndgameTest(unittest.TestCase):
         extract['time'] = 16
         rows = s3_endgame.evaluate(view_of(master)).checks
         self.assertFalse(find(rows, '炉1基の差し引き電力')[0].passed)
+        # 差し引きが 0 以下になると、それで割る比は欠損とは別の not_positive で落ちる
+        # Once the net is zero or less, ratios divided by it fail as not_positive, distinct from a missing value
+        self.assertEqual('not_positive', find(rows, '反物質製造装置1台の電力')[0].status)
+        self.assertEqual('not_positive', find(rows, '昇降中の電力')[0].status)
 
     def test_unknown_research_item_fails_and_hours_vanish(self):
         master = build_master()
         fusion = next(n for n in master['research.json']['data'] if n['researchNodeName'] == '核融合炉')
         fusion['consumeItems'].append({'itemGuid': guid('銅板'), 'itemCount': 10})
         result = s3_endgame.evaluate(view_of(master))
-        self.assertEqual(['核融合炉 の 銅板'], failed(result))
-        self.assertIsNone(result.hours)
+        self.assertEqual(['研究 核融合炉 を払う時間'], failed(result))
+        self.assertIn('銅板 の毎秒が無い', find(result.checks, '研究 核融合炉 を払う時間')[0].detail)
+        self.assertEqual('lookup_failed', result.hours.status)
 
 
 if __name__ == '__main__':
@@ -7642,25 +7648,25 @@ cd $MW && python3 -m unittest discover -s tools/tier9_balance/tests 2>&1 | tail 
 ls $MW/tools/tier9_balance/sections | wc -l; wc -l $MW/tools/tier9_balance/sections/s3/*.py $MW/tools/tier9_balance/sections/s3_endgame.py | tail -1
 ```
   Expected:
-  - 自己テストは `Ran 15 tests` / `OK`（枠 7・S2 4・S3 4）。
+  - 自己テストは `Ran 17 tests` / `OK`（枠 8・S2 5・S3 4）。
   - `sections/` の直下は 8 件（`.py` 5 本と `s1/`・`s2/`・`s3/`。`__pycache__` があれば 9 件）。1 ディレクトリ 10 ファイル以下に収まる。
-  - S3 の 5 ファイルは合計 193 行で、どれも 200 行以下。
+  - S3 の 5 ファイルは合計 194 行で、どれも 200 行以下。
 - [ ] **Step 7: 照合と出荷検査**
 ```bash
-(cd $MW && python3 tools/tier9_balance/run.py) > $GL/p2-12-s3-g6.txt; echo "s1-fail=$(grep -cE '^FAIL \[s1_semiconductor\] (match|lookup)' $GL/p2-12-s3-g6.txt)"
-echo "s23-fail=$(grep -cE '^FAIL \[(s2_compute_loop|s3_endgame)\] (match|lookup)' $GL/p2-12-s3-g6.txt)"; grep -E '^FAIL \[(s2_compute_loop|s3_endgame)\]|^(PASS|FAIL) \[overall\]' $GL/p2-12-s3-g6.txt
+(cd $MW && python3 tools/tier9_balance/run.py) > $GL/p2-12-s3-g6.txt; echo "s1-fail=$(grep '^FAIL \[s1_semiconductor\] ' $GL/p2-12-s3-g6.txt | grep -vc ' target out_of_range ')"
+echo "s23-fail=$(grep -E '^FAIL \[(s2_compute_loop|s3_endgame)\] ' $GL/p2-12-s3-g6.txt | grep -vc ' target out_of_range ')"; grep -E '^FAIL \[(s2_compute_loop|s3_endgame)\]|^(PASS|FAIL) \[overall\]' $GL/p2-12-s3-g6.txt
 cd $MW && python3 scripts/check_shipped_data_contracts.py; echo "contracts=$?"
 grep -c "019e3aab-32c6\|019e3af5-e750\|019eeaa7-45b6\|3a13a5a9-d254" $MOD/master/*.json $MOD/localization/localization.csv $MOD/.mooreseditor/nodeGraph.v1.json | grep -v ":0$"
 ```
 Expected:
 - `s1-fail=0`（G6 の S1 区間の照合 8 項目に FAIL が無い）。
-- `s23-fail=0`（S2・S3 の区間の照合と名前の引き当てに FAIL が無い。Task 19 で残っていた 2 ノードの計算データはこの Task で入る）。
+- `s23-fail=0`（S2・S3 の区間に、目標外〈`target out_of_range`〉以外の FAIL が無い。照合の `mismatch` も、引き当ての `lookup_failed`・`not_positive` も無い。Task 19 で残っていた 2 ノードの計算データはこの Task で入る）。
 - 2 つ目の grep は、目標（`target`）の FAIL と `[overall]` の 4 行を出す。仮値のままなら次のとおり（最小マスタで同じ値を実測。出荷マスタでの一致は推測）:
-  - `FAIL [s3_endgame] target 昇降時間 / ロケット建造時間: 5.0（目標 1.5〜4）`（climbSeconds 600 ÷ buildSeconds 120）
-  - `FAIL [overall] target s2_compute_loop の所要時間[h]: 3.75（目標 4.0〜6.0）`（便数 100 × 135 秒）
-  - `PASS [overall] target s1_semiconductor の所要時間[h]: 6.266666666666667（目標 6.0〜8.0）`（Task 12 Step 6 と同じ）
-  - `PASS [overall] target s3_endgame の所要時間[h]: 5.229…（目標 5.0〜11.0）`（研究 8625 秒＋建設 4 回 × 0.5 h＋爆弾 3000 秒）
-  - `PASS [overall] target Tier9 全体の所要時間[h]: 15.24…（目標 15.0〜25.0）`
+  - `FAIL [s3_endgame] target out_of_range 昇降時間 / ロケット建造時間: 5.0（目標 1.5〜4）`（climbSeconds 600 ÷ buildSeconds 120）
+  - `FAIL [overall] target out_of_range s2_compute_loop の所要時間[h]: 3.75（目標 4.0〜6.0）`（便数 100 × 135 秒）
+  - `PASS [overall] target ok s1_semiconductor の所要時間[h]: 6.266666666666667（目標 6.0〜8.0）`（Task 12 Step 6 と同じ）
+  - `PASS [overall] target ok s3_endgame の所要時間[h]: 5.229…（目標 5.0〜11.0）`（研究 8625 秒＋建設 4 回 × 0.5 h＋爆弾 3000 秒）
+  - `PASS [overall] target ok Tier9 全体の所要時間[h]: 15.24…（目標 15.0〜25.0）`
   - S2・S3 の目標時間と値は Task 23 で緑にする。
 - `contracts=0`。
 - 最後の grep は何も出さない（フィルター分岐器・旧 3D プリンタ・超純水・旧 EUV レシピが全マスタと nodeGraph から消えている）。
@@ -7676,7 +7682,7 @@ git -C $MW push
 - G1 が PASS、許可リストの差分が空。
 - nodeGraph の検査が `ng=0`（G2 と同じ並びで、参照先の消えたノード 0 件・research.json と研究ノードが 1 対 1・配置と解放が一致）。
 - 赤から緑への進み方が `$GL/p2-1-base-g2.txt` → `p2-7-s1-g2.txt` → `p2-9-s2-g2.txt` → `p2-12-s3-g2.txt` の 4 ファイルで追える。
-- G6 の自己テストが `Ran 15 tests` / `OK`、`s1-fail=0`・`s23-fail=0`。`[s2_compute_loop] empty`・`[s3_endgame] empty` の行が無い。
+- G6 の自己テストが `Ran 17 tests` / `OK`、`s1-fail=0`・`s23-fail=0`。`[s2_compute_loop] section empty`・`[s3_endgame] section empty` の行が無い。
 **量感:** JSON 約 +180 行（パッチ 4 ノードで約 150 行、最終研究約 25 行。フィルター分岐器のノード約 −20 行）。localization +4 行・−2 行。Python 約 +240 行（区間 5 ファイル約 190 行、自己テスト約 50 行）。
 
 ---
@@ -7707,8 +7713,8 @@ git -C $MW push
 **録画の制約（G6 の目標と別に守る）:** 段4（Task 28 Step 5）は GPU衛星Lv1 の建造・打ち上げ・飛行・到着を実時間で待つ。録画は `run-scenario.sh:56` の `RESULT_TIMEOUT=420` 秒を超えると result.json を待たずに NG になる。そのため、段4 が実時間で待つ秒の合計（1 便目の `BuildSeconds`＋打ち上げ秒＋Lv1 の飛行秒、2 便目の自動建造を最後まで待つならその `BuildSeconds` も）を 300 秒以下に保つ（残り 120 秒は PlayMode の起動約 26 秒、段の前準備、建造待ちの余裕 60 秒の分）。G6 の目標と両立しないときは、値を動かさずに人へ上げる条件に回す（判断記録「実装中に人へ上げる条件」）。録画のために `RESULT_TIMEOUT` を伸ばす変更はしない（やらないこと: 録画 DSL への時間加速の追加と同じく、録画の枠を変える変更だから）。
 
 - [ ] **Step 1: G6 を回し、FAIL を見る**  Run: `cd $MW && python3 tools/tier9_balance/run.py > $GL/p2-13-g6-first.txt; echo "exit=$?"; grep '^FAIL' $GL/p2-13-g6-first.txt`  Expected:
-- 区間ごとの `target`・`match`・`lookup` の行と、`[overall]` の目標時間の行が出る。
-- `empty` の行は無い（S2・S3 の区間は Task 19・Task 22 が入れた）。
+- 区間ごとの `target`・`match` の行（状態つき）と、`[overall]` の目標時間の行が出る。
+- `section empty` の行は無い（S2・S3 の区間は Task 19・Task 22 が入れた）。`lookup_failed`・`not_positive` の FAIL も無い（あれば値でなくマスタの欠けなので、Task 22 Step 7 に戻る）。
 - 初回は exit 1 でよい。仮値のままなら、S2・S3 の FAIL は Task 22 Step 7 の 2 行（昇降時間の比 5.0 と S2 の所要時間 3.75 h）。
 - [ ] **Step 2: FAIL を決まった順に 1 つずつ直して回し直す。** 1 回の試行で動かすのは 1 つの値だけにする。
   - S1 区間は S1 handoff「Task D1 Step 3」の順。
@@ -7720,7 +7726,7 @@ git -C $MW push
     - 昇降時間の比は、拠点の `climbSeconds` を発射台の `buildSeconds` の 1.5〜4 倍（建造 120 秒なら 180〜480 秒）にする。
     - S3 の所要時間は、研究の律速品目（仮値では鋼鉄板）・建設回数・爆弾をそろえる時間で決まる（判断記録 A26）。
 
-  値は `sim/params.py`・`sim/timeline.py` を正とし、同じ値を該当する spec に書く。そのうえで「apply → sync → sync --check」を流し、G6 を回し直す（食い違いは `[s1_semiconductor] match` の FAIL で出る）。
+  値は `sim/params.py`・`sim/timeline.py` を正とし、同じ値を該当する spec に書く。そのうえで「apply → sync → sync --check」を流し、G6 を回し直す（食い違いは `[s1_semiconductor] match mismatch` の FAIL で出る）。
   - GPU衛星の成果を 400 より大きくすると、出力口 4 × スタック 100 を超えて発射台と拠点の検証で落ちる（`wf/S2S3.md` §(4)）。その場合は `outputSlotCount` も同時に上げる。
 - [ ] **Step 3: 確定した状態で全ゲートを回す**
 ```bash
@@ -7729,7 +7735,7 @@ cd $MW && python3 tools/research_sync/sync_machine_recipe_unlocks.py --check; ec
 cd $MW && python3 tools/nodegraph_sync/sync_nodegraph.py --check | tail -1; echo "ng=${pipestatus[1]}"
 G1 $MW/server_v8; (cd $MW && python3 tools/progression/check.py > /dev/null); echo "g2=$?"
 ```
-Expected: `g6=0`・`== RESULT: PASS (0 failures / … checks)`（全目標 PASS、S1 の照合 8 項目を含む `match`・`lookup` の FAIL 0）、`check=0`、`ng=0`（値だけの変更で配置と解放はずれない）、G1 PASS、`g2=0`。
+Expected: `g6=0`・`== RESULT: PASS (0 failures / … checks)`（全目標 PASS、S1 の照合 8 項目を含む `mismatch`・`lookup_failed`・`not_positive` の FAIL 0）、`check=0`、`ng=0`（値だけの変更で配置と解放はずれない）、G1 PASS、`g2=0`。
 - [ ] **Step 4: 判断記録を書く。** `DECISIONS.md` に、動かした値ごとに「前の値 → 確定値・効いた目標の行（`p2-13-g6.txt` から引用）・試行の順番」を書く。あわせて次の 1 行を書く: 「流体量は nano 化で換算しない（ADR 0090 決定 2 項目: レシピと機械タンクは double のまま。マスタの値は読み込み時に最近傍で網の単位へ変える）」。
 - [ ] **Step 5: コミットして push する**
 ```bash
