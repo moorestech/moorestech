@@ -46,6 +46,37 @@ class HistoricalOwnershipTest(unittest.TestCase):
         self.repo.commit("switch", {LEDGER_PATH: self.ledger("切替済み", "old", self.start[:10])})
         self.assertEqual(self.gate()[0], 0)
 
+    def test_late_registration_of_unowned_path_requires_record(self):
+        self.check_late_registration([], "2", (2,))
+
+    def test_late_registration_from_generic_row_requires_record(self):
+        self.check_late_registration([("shell", "5", "Web", "`src/`")], "2", (2,))
+
+    def test_late_shared_bundle_requires_its_own_record(self):
+        self.check_late_registration([("shared", "2", "Web", "`src/new/`")], "2 4", (2, 4))
+
+    def check_late_registration(self, initial_rows, final_bundles, switching):
+        # Web追加と所有登録を別コミットにし、後付けした全束の記帳を要求する
+        # Separate Web additions from registration and require records for every later owner
+        states = {bundle: ("暗転", f"`{self.start}`") for bundle in switching}
+        rows = [("old", "2", "Web", "`src/old/`")]
+        self.repo.commit("before registration", {LEDGER_PATH: ledger_text(states, rows + initial_rows, [])})
+        self.repo.git("checkout", "-qb", "pr")
+        changed = self.repo.commit("new Web path", {NEW: "new UI"})
+        registered = rows + [("new", final_bundles, "Web", "`src/new/`")]
+        self.repo.commit("register later", {LEDGER_PATH: ledger_text(states, registered, [])})
+        states = {bundle: ("切替済み", f"`{self.start}`") for bundle in switching}
+        switched_rows = [(name, bundles, "UITK", path) for name, bundles, _, path in registered]
+        records = []
+        self.repo.commit("switch", {LEDGER_PATH: ledger_text(states, switched_rows, records)})
+        for bundle in switching:
+            result, _, err = self.gate()
+            self.assertEqual(result, 1)
+            self.assertIn(f"束 {bundle} の暗転の起点より後のコミット {changed[:10]}", err)
+            records.append((bundle, changed, "写した", "UITK"))
+            self.repo.commit(f"record bundle {bundle}", {LEDGER_PATH: ledger_text(states, switched_rows, records)})
+        self.assertEqual(self.gate()[0], 0)
+
     def test_old_path_changes_and_rename_retain_previous_owner(self):
         changed = self.repo.commit("change", {OLD: "2"})
         renamed = self.repo.commit("rename", {OLD: None, NEW: "2", LEDGER_PATH: self.ledger("暗転", "new")})

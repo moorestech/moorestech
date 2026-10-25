@@ -69,7 +69,6 @@ async function runStep(page: Page, baseUrl: string, step: ShotStep): Promise<voi
     case "control": return requestMockControl(page, baseUrl, step.path);
     case "click": return page.getByTestId(step.testId).first().click();
     case "rightClickFirstChild": return page.getByTestId(step.testId).locator("> div").first().click({ button: "right" });
-    case "waitTestId": return page.getByTestId(step.testId).first().waitFor();
     case "revealSkit": return revealBlockingSkitBody(page, blockingSkitText.presentationState.body);
     case "expectVisible": {
       const target = page.getByTestId(step.testId);

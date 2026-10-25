@@ -9,7 +9,6 @@ export type ShotStep =
   | { kind: "control"; path: string }
   | { kind: "click"; testId: string }
   | { kind: "rightClickFirstChild"; testId: string }
-  | { kind: "waitTestId"; testId: string }
   | { kind: "revealSkit" }
   | { kind: "expectVisible"; testId: string; descendant: string | null }
   | { kind: "expectContent"; testId: string; texts: string[] }
@@ -76,7 +75,7 @@ export const referenceShots: ReferenceShot[] = [
   { id: "1-settings", bundle: 1, ledgerRow: LedgerRows.settings, controls: [ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-settings" }, visible("graphics-preset")] },
   { id: "1-settings-graphics-recovered", bundle: 1, ledgerRow: LedgerRows.settings, controls: [topic("graphicsRecovered"), ui("PauseMenu")], steps: [{ kind: "click", testId: "pause-menu-open-settings" }, visible("graphics-recovered")] },
   { id: "1-toast", bundle: 1, ledgerRow: LedgerRows.toast, controls: [block("chest"), "/__action-error?type=block_inventory.split&error=invalid_slot", ui("SubInventory")],
-    steps: [{ kind: "rightClickFirstChild", testId: "chest-grid" }, { kind: "waitTestId", testId: "toast-host" }, content("toast-host", ["invalid_slot"])] },
+    steps: [{ kind: "rightClickFirstChild", testId: "chest-grid" }, content("toast-host", ["invalid_slot"])] },
   // 束 2 常駐表示
   { id: "2-game-hud", bundle: 2, ledgerRow: LedgerRows.commonHud, controls: [topic("crosshairVisible"), topic("challengeActive"), ui("GameScreen")], steps: [visible("hotbar-grid"), visible("challenge-hud"), { kind: "expectVisible", testId: "app-stage", descendant: '[data-tutorial-anchor~="game.crosshair"]' }] },
   { id: "2-mining", bundle: 2, ledgerRow: LedgerRows.progress, controls: [topic("mining"), ui("GameScreen")], steps: [visible("progress-bar")] },
@@ -112,11 +111,11 @@ export const referenceShots: ReferenceShot[] = [
   { id: "4-research", bundle: 4, ledgerRow: LedgerRows.research, controls: [topic("researchOwnedItems"), ui("ResearchTree")], steps: [visible("research-tree")] },
   // 束 5 最後
   { id: "5-challenge-list", bundle: 5, ledgerRow: LedgerRows.challengePanel, controls: [topic("challengeActive"), ui("ChallengeList")], steps: [visible("challenge-panel")] },
-  { id: "5-event-language-gate", bundle: 5, ledgerRow: LedgerRows.eventLanguageGate, controls: [topic("eventLanguageGateWaiting"), ui("GameScreen")], steps: [{ kind: "waitTestId", testId: "event-language-gate" }, visible("event-language-gate")] },
+  { id: "5-event-language-gate", bundle: 5, ledgerRow: LedgerRows.eventLanguageGate, controls: [topic("eventLanguageGateWaiting"), ui("GameScreen")], steps: [visible("event-language-gate")] },
   { id: "5-tutorial-outline-label", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialOutlineWithLabel"), ui("GameScreen")], steps: [visible("tutorial-highlight-label")] },
   { id: "5-tutorial-recipe-item", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialRecipeItem"), ui("PlayerInventory")], steps: [visible("tutorial-highlight-label")] },
   { id: "5-tutorial-research-node", bundle: 5, ledgerRow: LedgerRows.tutorialOverlay, controls: [topic("tutorialResearchNode"), ui("ResearchTree")], steps: [{ kind: "expectVisible", testId: "tutorial-overlay", descendant: '[data-kind="outline"]' }] },
   { id: "5-reconnect", bundle: 5, ledgerRow: LedgerRows.reconnect, controls: [ui("GameScreen")],
-    steps: [after("/__disconnect?holdMs=8000"), { kind: "waitTestId", testId: "reconnect-overlay" }, visible("reconnect-overlay")] },
+    steps: [after("/__disconnect?holdMs=8000"), visible("reconnect-overlay")] },
   { id: "5-japanese-inventory", bundle: 5, ledgerRow: LedgerRows.i18n, controls: [topic("japanese"), ui("PlayerInventory")], steps: [visible("main-grid")] },
 ];

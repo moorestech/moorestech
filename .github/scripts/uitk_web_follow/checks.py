@@ -39,8 +39,8 @@ def switching_bundles(base: Ledger, head: Ledger) -> tuple[int, ...]:
 
 
 def unrecorded_commits(head: Ledger, bundle_id: int, commits: tuple[CommitFiles, ...], commit_owners: dict[str, frozenset[int]]) -> tuple[str, ...]:
-    # 変更当時の所有束に対して記帳を要求する
-    # Require records for the bundles owning each change at its history boundaries
+    # 変更当時と現在の所有束に対して記帳を要求する
+    # Require records for both historical and current owners of each change
     recorded = tuple(record.commit for record in head.records if record.bundle_id == bundle_id)
     return tuple(
         commit.sha for commit in commits

@@ -23,7 +23,7 @@ def commit_owners(root: Path, head: str, commits: tuple[git_history.CommitFiles,
     errors: list[str] = []
     owners: dict[str, frozenset[int]] = {}
     for commit in commits:
-        boundaries = (commit.sha, *git_history.parents(root, commit.sha))
+        boundaries = (commit.sha, *git_history.parents(root, commit.sha), head)
         owned: set[int] = set()
         for rev in boundaries:
             if rev not in cache:
@@ -40,8 +40,8 @@ def commit_owners(root: Path, head: str, commits: tuple[git_history.CommitFiles,
                         errors.extend(f"履歴台帳 {rev[:10]}: {error}" for error in parsed.errors)
                         continue
                     cache[rev] = parsed.ledger
-            # 改名・削除の前後を合わせ、旧パスの追従義務を保持する
-            # Union both sides of renames and deletions to retain old-path obligations
+            # 過去と現在の所有を合わせ、改名・削除・後付け登録の義務を保つ
+            # Union historical and current owners to retain renamed, deleted and later-registered obligations
             for path in commit.files:
                 owned.update(owning_bundles(path, cache[rev].rows))
         owners[commit.sha] = frozenset(owned)
