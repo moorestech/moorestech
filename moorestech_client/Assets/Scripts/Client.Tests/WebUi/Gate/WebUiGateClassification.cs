@@ -60,6 +60,7 @@ namespace Client.Tests.WebUi.Gate
         {
             // --- 基盤 / Infra
             new Rule("Client.Game/Skit/SkitManager.cs", Category.Infra, "通常スキットの進行制御。UI Toolkitビューは常時伏せる"),
+            new Rule("Client.Game/InGame/EventMode", Category.Infra, "出展モード言語選択の論理状態（表示は描画側が担当）"),
             new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械本体"),
             new Rule("Client.Game/InGame/UI/Inventory", Category.Infra, "サブインベントリ論理モデル（uGUIビューは全削除済み: ADR 0052）"),
             new Rule("Client.Game/InGame/UI/BuildMenu", Category.Infra, "ビルドメニュー選択の論理状態"),
