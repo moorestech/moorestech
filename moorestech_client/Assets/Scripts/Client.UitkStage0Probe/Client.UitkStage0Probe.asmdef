@@ -5,6 +5,7 @@
         "Client.Common",
         "Client.Game",
         "Client.Input",
+        "Client.WebUiHost",
         "CefUnity.Runtime",
         "Unity.InputSystem",
         "UnityEngine.UI",

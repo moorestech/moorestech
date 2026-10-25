@@ -44,6 +44,9 @@ namespace Client.WebUiHost.Boot
                     foreach (var t in msg.Topics) conn.Topics.TryRemove(t, out _);
                     break;
                 case "action":
+                    // UITK段階0 S15の実測用（PoCブランチ限定）。届いたactionを全件ログへ出して数える
+                    // Stage-0 S15 measurement only (PoC branch): log every arriving action so they can be counted
+                    UnityEngine.Debug.Log($"[PocActionLog] type={msg.Type}");
                     // 実行は action ループへ渡す。ここで待つと書き出しの間 ping が読まれず心拍が切れる
                     // Execution is handed to the action loop; awaiting here would leave pings unread and cut the heartbeat mid-write
                     if (!conn.EnqueueAction(msg)) UnityEngine.Debug.LogWarning($"[WebSocketHub] action '{msg.Type}' dropped: connection stopping");
