@@ -1622,7 +1622,7 @@ git -C $MW push -u origin feat/tier9-integrated
 G1() { (cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code "return Server.MasterGate.Editor.ShippedMasterGateEntry.RunLoadGate(\"$1\", out var failure) ? \"G1 PASS\" : failure;"); }
 ```
 
-- [ ] **Step 1: Editor 専用 asmdef を置く**
+- [x] **Step 1: Editor 専用 asmdef を置く**
   - 参照するのは G1 と G3 が使うサーバーのアセンブリだけ。11 個の名前は、どれも `moorestech_server/Assets/Scripts/<名前>/<名前>.asmdef` として実在することを確認済み（`git grep '"name": "<名前>"' -- 'moorestech_server/*.asmdef'`）。`Client.Game` は参照しない。
   - `Microsoft.Extensions.DependencyInjection` と `Newtonsoft.Json` は自動参照の precompiled として入る見込み。`Server.Boot.asmdef` も `overrideReferences: false` のまま DI を使っている。
 
@@ -1658,7 +1658,7 @@ G1() { (cd $W && uloop execute-dynamic-code --project-path ./moorestech_client -
 }
 ```
 
-- [ ] **Step 2: 引数の解決を置く**
+- [x] **Step 2: 引数の解決を置く**
 
 `moorestech_server/Assets/Scripts/Editor/MasterGate/MasterGateArguments.cs`:
 ```csharp
@@ -1712,7 +1712,7 @@ namespace Server.MasterGate.Editor
 }
 ```
 
-- [ ] **Step 3: static マスタの所有者を置く**（出荷マスタは別 repo から来る外部入力 JSON なので、try-catch の境界例外に当たる。catch した失敗はログと戻り値の両方に残す）
+- [x] **Step 3: static マスタの所有者を置く**（出荷マスタは別 repo から来る外部入力 JSON なので、try-catch の境界例外に当たる。catch した失敗はログと戻り値の両方に残す）
   - `MasterHolder.Load` は static のマスタを書き換える。ゲートの中でこれを呼ぶのは `ShippedMasterOwner` だけにし、読み込みに失敗したら所有者が最後に通ったマスタへ戻す（判断記録 A32）。G3 の DI 構築（Task 11）も中でマスタを読むので、同じクラスに置く。
 
 `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterOwner.cs`:
@@ -1804,7 +1804,7 @@ namespace Server.MasterGate.Editor
 }
 ```
 
-- [ ] **Step 4: 入口を置く**（G1 の入口は `RunLoadGate` 1 つ。batch の入口と手元の G1 関数はここを通る。Task 11 で G3 の入口を足す）
+- [x] **Step 4: 入口を置く**（G1 の入口は `RunLoadGate` 1 つ。batch の入口と手元の G1 関数はここを通る。Task 11 で G3 の入口を足す）
 
 `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterGateEntry.cs`:
 ```csharp
@@ -1837,7 +1837,7 @@ namespace Server.MasterGate.Editor
 }
 ```
 
-- [ ] **Step 5: コンパイル**
+- [x] **Step 5: コンパイル**
   Run: `cd $W && uloop compile --project-path ./moorestech_client`
   Expected: エラー 0。
   - 参照不足で `Newtonsoft` や `Microsoft.Extensions.DependencyInjection` が解決できないエラーが出たら、asmdef に `"overrideReferences": true` と `"precompiledReferences": ["Newtonsoft.Json.dll", "Microsoft.Extensions.DependencyInjection.dll", "Microsoft.Extensions.DependencyInjection.Abstractions.dll"]` を足す。
@@ -1893,7 +1893,7 @@ Expected:
 - 3 本目は `[MasterGate] FAIL -masterDataRoot <マスタrepoの根> is required (the gate never guesses the master location)` と `exit=1`。
 - `pipestatus` は zsh の書き方。bash で回すなら `PIPESTATUS[0]` にする。
 
-- [ ] **Step 9: PR ごとのワークフローを置く**
+- [x] **Step 9: PR ごとのワークフローを置く**
   - CI でも `-masterDataRoot` で、checkout したピン先の絶対パス（`/github/workspace/moorestech_master`）を渡す。ゲートはピンを自分で解かない（判断記録 A23）。
   - 前例 `platform-compile.yml` に揃える。本体は workspace の直下に checkout し、`projectPath: moorestech_server/` で回す。ピン先は `moorestech_master/` に checkout する（Unity project の外）。
   - Library は `platform-compile.yml` と同じキー `Library_compile_server_StandaloneWindows64-` を読むだけにする（保存は `cache-warm.yml` の `warm-server-compile`）。`actions/cache` は `path` が一致しないと当たらないので、`path` も同じ `moorestech_server/Library` にする。ターゲットを Windows にするのは、その Library を再インポートなしで使うため（ゲートはプラットフォームに依存しない）。
@@ -1981,7 +1981,7 @@ jobs:
   Run: `ruby -ryaml -e 'p YAML.load_file(ARGV[0])["jobs"].keys' $W/.github/workflows/shipped-master-gate.yml`
   Expected: `["gate"]`
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 ```bash
 git -C $W add moorestech_server/Assets/Scripts/Editor/MasterGate .github/workflows/shipped-master-gate.yml
 git -C $W status --short moorestech_server/Assets/Scripts/Editor/MasterGate   # .cs 3 本・asmdef と、Unity が作った .meta が並ぶ
@@ -2023,7 +2023,7 @@ git -C $W push
   - `ShippedMasterGateEntry.RunFromCommandLine()`: CI の入口。`-researchOrder <G2 が書いた JSON>` を読む。
   - ログは成功で `[ResearchWalk] PASS <N> nodes completed in G2 order`。失敗は最初の 1 件で止まり、`[ResearchWalk] FAIL <名前> (<GUID>): <理由>`。
 
-- [ ] **Step 1: 研究順ファイルの読み手を置く**（研究順は別プロセスが書いた外部入力 JSON なので、境界の try-catch に当たる）
+- [x] **Step 1: 研究順ファイルの読み手を置く**（研究順は別プロセスが書いた外部入力 JSON なので、境界の try-catch に当たる）
 
 `moorestech_server/Assets/Scripts/Editor/MasterGate/ResearchWalkOrderFile.cs`:
 ```csharp
@@ -2099,7 +2099,7 @@ namespace Server.MasterGate.Editor
 }
 ```
 
-- [ ] **Step 2: サーバーの構築を static マスタの所有者に足し、ウォーク本体を置く**
+- [x] **Step 2: サーバーの構築を static マスタの所有者に足し、ウォーク本体を置く**
   - 本番の起動と同じ DI 構築で動かす。DI 構築（`Create`）は中で `MasterHolder.Load` を呼ぶので、ウォーク本体からは呼ばず、Task 10 の `ShippedMasterOwner` に `TryCreateServer` として足す（static マスタを書き換えるクラスを 1 つに保つ。判断記録 A32）。
   - `ShippedMasterOwner.cs` の先頭に `using Microsoft.Extensions.DependencyInjection;` と `using Server.Boot;` を足し、`_lastLoadedServerDataDirectory` の宣言の直後に次のメソッドを足す。
 ```csharp
@@ -2224,7 +2224,7 @@ namespace Server.MasterGate.Editor
 }
 ```
 
-- [ ] **Step 3: 入口に G3 を足す**（ファイル全体を次の内容に置き換える）
+- [x] **Step 3: 入口に G3 を足す**（ファイル全体を次の内容に置き換える）
 
 `moorestech_server/Assets/Scripts/Editor/MasterGate/ShippedMasterGateEntry.cs`:
 ```csharp
@@ -2276,11 +2276,11 @@ namespace Server.MasterGate.Editor
 }
 ```
 
-- [ ] **Step 4: コンパイル**
+- [x] **Step 4: コンパイル**
   Run: `cd $W && uloop compile --project-path ./moorestech_client`
   Expected: エラー 0。
 
-- [ ] **Step 5: ピン先のマスタで G2 に研究順を書かせ、G3 を回す**
+- [x] **Step 5: ピン先のマスタで G2 に研究順を書かせ、G3 を回す**
   - Task 10 Step 6 の `$GL/pin-master` を使う。
   - G2 の判定は赤でも、研究順は書かれる（`check.py` は判定の前に `write_order` を呼ぶ）。
 ```bash
@@ -2298,7 +2298,7 @@ Expected:
   - 「解放されていない」: G2 の `unlock_index.py` が実装と違う解放を当てにしている。
 - 要確認（実装時にこの Step で確かめる）: 初期の研究のコストが主インベントリに収まるか。
 
-- [ ] **Step 6: 研究順を 1 か所わざと壊して、G3 が落ちることを確かめる**（2 段目以降のノードを先頭へ動かす）
+- [x] **Step 6: 研究順を 1 か所わざと壊して、G3 が落ちることを確かめる**（2 段目以降のノードを先頭へ動かす）
 ```bash
 python3 - "$GL/research_order.json" "$GL/research_order_broken.json" <<'EOF'
 import json, sys
@@ -2317,7 +2317,7 @@ Expected:
 - 続いて `G3 FAIL` が出る。
 - Error ログに `[ResearchWalk] FAIL 原始研究2 (…): 支払い前の状態が UnresearchableAllReasons（前提の判定が G2 とずれている）` が出る。前提とコストの両方が欠けているため。状態の名前が `UnresearchableNotEnoughPreNode` でも、FAIL 行が出れば合格。
 
-- [ ] **Step 7: ワークフローを G1 → G3 に広げる**
+- [x] **Step 7: ワークフローを G1 → G3 に広げる**
   - `shipped-master-gate.yml` の `Shipped master gate` の step の直前に、次の step を足す。
   - G2 の合否はマスタ repo の CI が持つ。ここでは研究順が書けたかだけを見て、書けなければ落とす。G2 が赤いことは PR の warning 注記で見える。
 ```yaml
@@ -2338,7 +2338,7 @@ Expected:
   - Run: `ruby -ryaml -e 'y=YAML.load_file(ARGV[0]); p y["jobs"]["gate"]["steps"].map{|s| s["name"]}' $W/.github/workflows/shipped-master-gate.yml`
   - Expected: 並びの最後の 2 つが `"Emit research order from G2", "Shipped master gate"`。
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 ```bash
 git -C $W add moorestech_server/Assets/Scripts/Editor/MasterGate .github/workflows/shipped-master-gate.yml
 git -C $W commit -m "ci: 出荷マスタで G2 の研究順に全ノードを完了させる研究ウォーク G3 を G1 の job に足す"
@@ -3020,11 +3020,11 @@ git -C $MW push
 
 **マージ時点のセーブ移行の一時的な扱い（決定）:** 衝突した移行まわりは全部 S1 側（HEAD）を採る。つまり `CurrentVersion=9`、連鎖は master の V6→V7（流体）＋ S1 の V7→V8・V8→V9 のまま。S2 の V6→V7（打ち上げ履歴）と S3 の V7→V8（ケーブルプール）のステップ本体はマージ結果から消える。中身は Task 6 が `git show origin/feat/tier9-compute-data-loop:…` と `git show origin/feat/tier9-fusion-elevator-endgame:…` から部品へ移す。理由: master の V6→V7 はテスターへ出荷済みなので残すしかない。S1 側を採ればコンパイルが通る（S2/S3 のステップは同名クラスで置き換わるだけ）。一方で、`WorldSaveRequiredFieldGuard`（S2、自動マージで入る）は `rocketHasLaunchedOnce` と `spaceElevatorCablePool` を必須にしている。このため Task 6 までの間は、版7以前のセーブを使う結合テスト（`RocketLaunchHistorySaveLoadTest` の版6ケース、`SpaceElevatorUpstreamMigrationSaveLoadTest`、`LevelInheritanceSaveLoadTest.Version7…`）が赤になる。これは想定どおりで、Task 6 が緑に戻す。
 
-- [ ] **Step 1: 作業場所と取り込み元を確かめる**
+- [x] **Step 1: 作業場所と取り込み元を確かめる**
   Run: `cd $WT && pwd && git status --short && git log --oneline -1 && git fetch origin && git rev-parse --short origin/feat/tier9-fusion-elevator-endgame`
   Expected: `git status` が空。HEAD は `f246e7fd5f` かその子孫。S3 先端が `87944450d4`。S3 先端が違う場合はここで止まり、本体へ「S3 が進んだ」と報告する（以下の解き方は `87944450d4` で実測したもの）
 
-- [ ] **Step 2: 衝突を解く補助スクリプトを git dir に置く**（リポジトリには入れない）
+- [x] **Step 2: 衝突を解く補助スクリプトを git dir に置く**（リポジトリには入れない）
   ```bash
   GITDIR=$(git -C $WT rev-parse --git-dir)
   cat > "$GITDIR/tier9-resolve-hunks.py" <<'EOF'
@@ -3054,11 +3054,11 @@ git -C $MW push
   EOF
   ```
 
-- [ ] **Step 3: マージを始め、衝突一覧が23件か確かめる**
+- [x] **Step 3: マージを始め、衝突一覧が23件か確かめる**
   Run: `cd $WT && git merge --no-ff --no-commit origin/feat/tier9-fusion-elevator-endgame; git diff --name-only --diff-filter=U | wc -l`
   Expected: `23`
 
-- [ ] **Step 4: ファイル丸ごと HEAD を採るもの（add/add と生成物）**
+- [x] **Step 4: ファイル丸ごと HEAD を採るもの（add/add と生成物）**
   ```bash
   cd $WT
   S=moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps
@@ -3070,7 +3070,7 @@ git -C $MW push
   ```
   意味: V6→V7 は master の流体版を、V7→V8 は S1 版を残す。テストフォルダの GUID は S1 の `64f2f797a2a15479b874a1b82f7b7100` に揃える。`localizationKeys.ts` は Step 9 で生成し直す。
 
-- [ ] **Step 5: 衝突した塊だけ HEAD を採るもの**（自動マージされた S2/S3 の追加分は残す。`git checkout --ours` を使うとそれが消えるので使わない）
+- [x] **Step 5: 衝突した塊だけ HEAD を採るもの**（自動マージされた S2/S3 の追加分は残す。`git checkout --ours` を使うとそれが消えるので使わない）
   ```bash
   cd $WT; R="python3 $(git rev-parse --git-dir)/tier9-resolve-hunks.py"
   for f in \
@@ -3088,7 +3088,7 @@ git -C $MW push
   - `CurrentVersion=9` と、連鎖の配列（V1〜V8ToV9 の8本）は HEAD 側にする。
   - `WorldSaveAllInfo` の `SpaceElevatorCablePool`・`RocketHasLaunchedOnce` フィールド（S3 側、塊の外）は残る。
 
-- [ ] **Step 6: 両側を残すもの**
+- [x] **Step 6: 両側を残すもの**
   ```bash
   cd $WT; R="python3 $(git rev-parse --git-dir)/tier9-resolve-hunks.py"
   for f in \
@@ -3105,7 +3105,7 @@ git -C $MW push
   - `BlockInventoryDtos`: CleanRoom・CleanRoomYield・MachineInputStall の3フィールドの後に `RocketLaunchPad`。
   - `localization.csv`: S1 の清浄室・停止理由の行の後に S3 の宇宙エレベーターの行（衝突の塊は1つだけ）。キーの重複は無い（解消後の 491 レコードで実測）。
 
-- [ ] **Step 7: webui の4ファイルを手で合わせる**（Edit で塊を次の内容へ置き換える）
+- [x] **Step 7: webui の4ファイルを手で合わせる**（Edit で塊を次の内容へ置き換える）
   - `schemas/index.ts`: ファイル全体を次の18行にする（`./train` は HEAD の4行目に既にある。S3 側の `./train` を足すと二重 export になるため足さない）
     ```ts
     export * from "./common";
@@ -3152,7 +3152,7 @@ git -C $MW push
           {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} slotIndices={data.itemSlots.map((_, index) => index)} testId={itemGridTestId} /> : null}
     ```
 
-- [ ] **Step 8: テスト用マスタ（forUnitTest）の blocks/items.json を和集合で作り直す**
+- [x] **Step 8: テスト用マスタ（forUnitTest）の blocks/items.json を和集合で作り直す**
   実測した条件:
   - 両側とも、分岐点（`70ea9f85`）の配列の末尾に追記している。
   - S3 は分岐点の要素を1つも書き換えていない（blocks は HEAD 側だけが9要素を変更）。
@@ -3187,11 +3187,11 @@ git -C $MW push
   ```
   Expected: `blocks data 88` / `items data 105`。ID は GUID 基準（`ForUnitTestItemId` も `GetItemId(Guid.Parse(...))`）なので、末尾に追記した S3 分の番号がずれても影響しない。
 
-- [ ] **Step 9: 衝突が残っていないことを確かめて add する**
+- [x] **Step 9: 衝突が残っていないことを確かめて add する**
   Run: `cd $WT && git grep -nE '^(<<<<<<<|>>>>>>>|=======)( |$)' -- . ':!*.md' ; git add -A && git diff --name-only --diff-filter=U | wc -l`
   Expected: grep は0件、未解決は `0`
 
-- [ ] **Step 10: webui のローカライズ生成物を作り直し、型検査と vitest を通す**
+- [x] **Step 10: webui のローカライズ生成物を作り直し、型検査と vitest を通す**
   ```bash
   cd $WT/moorestech_web && bash setup.sh
   NODE_DIR=$(ls -d $WT/moorestech_web/node/*/ | head -1); export PATH="$NODE_DIR/bin:$PATH"; PNPM="$NODE_DIR/pnpm"
@@ -3204,7 +3204,7 @@ git -C $MW push
   ```
   Expected: tsc 2本はエラー0、vitest は全件 pass。`git status` は `localizationKeys.ts` だけを変更として出す（`contentKeys.ts` は差分なし）。
 
-- [ ] **Step 11: Editor を起動し、生成コードの印を更新させてコンパイルする**
+- [x] **Step 11: Editor を起動し、生成コードの印を更新させてコンパイルする**
   Run: `cd $WT && uloop launch ./moorestech_client && sleep 60 && git diff --stat -- moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs moorestech_client/Assets/Scripts/Client.Localization/_CompileRequester.cs && uloop compile --project-path ./moorestech_client`
   Expected:
   - `_CompileRequester.cs` が2本とも書き換わっている。SchemaWatcher（`Editor/SchemaWatch/SchemaWatcher.cs`）が `VanillaSchema/` と `Localization/` の中身の MD5 から印を作るので、統合後の値は S1・S3 のどちらとも違う値になる。2本とも書き換わっていなければ、`dummyText` を手で任意の新しい値へ変える（edit-schema スキル「3. Trigger SourceGenerator」）。
@@ -3212,7 +3212,7 @@ git -C $MW push
   - それ以外のエラーが出たら、S3 が master から33コミット遅れていることによる食い違いの可能性がある。この場合は機能を変えない最小の追従修正を、マージコミットとは別のコミット `fix(merge): …` に分け、エラーとその直し方を一覧にして本体へ報告する。
   - `.moorestech-external-revisions.json` を Unity が書き換えていたら `git checkout -- .moorestech-external-revisions.json` で戻す。
 
-- [ ] **Step 12: マージをコミットする**
+- [x] **Step 12: マージをコミットする**
   `git add -A` / `git commit -m "Merge origin/feat/tier9-fusion-elevator-endgame into feat/tier9-integrated（S2・S3 を取り込む。衝突解消のみで、セーブ移行は一時的に S1 側を残す）"`
 
 **完了判定:**
@@ -3246,7 +3246,7 @@ git -C $MW push
 
 **参照の実測（マージ後のツリー `339f303e` で、S3 が触ったファイルに限って `git grep`）:** 27行。内訳: `.decisions` 4ファイルで各1行、`docs/adr/0089-space…` 1行、compute-data-loop plan 8行、fusion-elevator-endgame plan 12行、`SpaceElevatorCablePool.cs` 2行。ほかに S2 の `SaveMigrationStepV6ToV7.cs` に「ADR 0088」が2行あったが、Task 4 で HEAD 側を採ったので消えている。master 側の `ADR 0088〜0090`（流体）への参照は `.decisions/2026-10-2[2-4]-*`・`docs/adr/0088〜0090-fluid*`・`Game.Fluid/*.cs` など多数あるので、**ファイルを限定せずに置換してはいけない**。
 
-- [ ] **Step 1: 同名クラスを移動・改名して CS0101 を解く**（.cs と .meta をまとめて git mv する）
+- [x] **Step 1: 同名クラスを移動・改名して CS0101 を解く**（.cs と .meta をまとめて git mv する）
   ```bash
   cd $WT; T=moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad
   git mv $T/SpaceElevator/SaveMigrationStepV7ToV8Test.cs $T/Migration/SaveMigrationStepV7ToV8CablePoolTest.cs
@@ -3260,7 +3260,7 @@ git -C $MW push
   - `SaveMigrationStepV7ToV8RocketHistoryTest.cs`: `public class SaveMigrationStepV6ToV7Test` → `public class SaveMigrationStepV7ToV8RocketHistoryTest`（名前空間は元から `.Migration`）。
   - 中身（テストの期待値）は Task 6 で書き直す。それまで両クラスのテストは赤になる。S2 のテストは master の流体版 V6→V7 を、S3 のテストは S1 の V7→V8 を対象に走ってしまうため。
 
-- [ ] **Step 2: ADR を改名する**
+- [x] **Step 2: ADR を改名する**
   ```bash
   cd $WT
   git mv docs/adr/0088-orbital-arrival-service-shared-by-launch-sites.md docs/adr/0091-orbital-arrival-service-shared-by-launch-sites.md
@@ -3268,7 +3268,7 @@ git -C $MW push
   git mv docs/adr/0090-fusion-net-power-from-fuel-extraction-cost.md docs/adr/0093-fusion-net-power-from-fuel-extraction-cost.md
   ```
 
-- [ ] **Step 3: 参照を対象ファイルに限って書き換える**
+- [x] **Step 3: 参照を対象ファイルに限って書き換える**
   ```bash
   cd $WT && python3 - <<'EOF'
   import re, pathlib
@@ -3294,15 +3294,15 @@ git -C $MW push
   ```
   Expected: 8ファイルすべて `changed`。S3 側の plan にある「ADR 0090」は全部、核融合 ADR の意味で使われている（S3 の分岐点 `70ea9f85` には流体の ADR 0088〜0090 がまだ無いことを確認済み）。
 
-- [ ] **Step 4: 書き換え漏れと誤爆が無いことを確かめる**
+- [x] **Step 4: 書き換え漏れと誤爆が無いことを確かめる**
   Run: `cd $WT && git grep -nE "0088-orbital|0089-space-elevator|0090-fusion-net" ; git -c core.quotePath=false grep -nE "ADR ?0?(088|089|090)" -- .decisions/2026-10-23-* docs/adr/009[1-3]-* docs/superpowers/plans/2026-10-23-tier9-* moorestech_server/Assets/Scripts/Game.SpaceElevator ; git diff --stat HEAD -- docs/adr/0088-fluid* docs/adr/0089-fluid* docs/adr/0090-fluid* moorestech_server/Assets/Scripts/Game.Fluid`
   Expected: grep 2本とも0件。流体側の diff は空。
 
-- [ ] **Step 5: コンパイル**
+- [x] **Step 5: コンパイル**
   Run: `cd $WT && uloop compile --project-path ./moorestech_client`
   Expected: エラー0
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
   `git add -A` / `git commit -m "fix(merge): 同名の移行テストクラスを部品別の名前へ移し、S3 の ADR を 0091〜0093 へ振り直す"`
 
 **完了判定:**
@@ -3361,7 +3361,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 - 拒否するときは `SaveMigrationStepResult.Failed(reason)` を返す。例外は使わない。
 - どの部品も冪等にする（バックアップから戻して再実行する運用があるため。save-migration スキル Gotchas）。
 
-- [ ] **Step 1: 旧ステップを消し、部品フォルダを移す**
+- [x] **Step 1: 旧ステップを消し、部品フォルダを移す**
   ```bash
   cd $WT; S=moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps
   git rm $S/SaveMigrationStepV8ToV9.cs $S/SaveMigrationStepV8ToV9.cs.meta \
@@ -3370,7 +3370,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   git mv $S/V8ToV9.meta $S/V7ToV8.meta
   ```
 
-- [ ] **Step 2: 部品のインターフェースと、部品が共有するセーブ JSON の辿り方を作る** `Steps/V7ToV8/IV7ToV8MigrationPart.cs`・`Steps/V7ToV8/V7ToV8SaveJson.cs`
+- [x] **Step 2: 部品のインターフェースと、部品が共有するセーブ JSON の辿り方を作る** `Steps/V7ToV8/IV7ToV8MigrationPart.cs`・`Steps/V7ToV8/V7ToV8SaveJson.cs`
   ```csharp
   using Newtonsoft.Json.Linq;
 
@@ -3451,7 +3451,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 3: 継承レベルの部品を作る** `Steps/V7ToV8/MachineInheritedLevelFiller.cs`（S1 `SaveMigrationStepV7ToV8.cs` の移植。判定は変えず、検査と書き換えだけを分けた）
+- [x] **Step 3: 継承レベルの部品を作る** `Steps/V7ToV8/MachineInheritedLevelFiller.cs`（S1 `SaveMigrationStepV7ToV8.cs` の移植。判定は変えず、検査と書き換えだけを分けた）
   ```csharp
   using System.Collections.Generic;
   using Newtonsoft.Json.Linq;
@@ -3517,7 +3517,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 4: 清浄室機械の液体スロットの部品を書き直す** `Steps/V7ToV8/CleanRoomMachineFluidSlotFiller.cs`（S1 V8ToV9 の static 版を、インスタンスの部品にする）
+- [x] **Step 4: 清浄室機械の液体スロットの部品を書き直す** `Steps/V7ToV8/CleanRoomMachineFluidSlotFiller.cs`（S1 V8ToV9 の static 版を、インスタンスの部品にする）
   W17 も吸収する。processor キーの値が JSON の null のとき、S1 は拒否していた。ここでは、ロード側の `BlockComponentStateReader.TryRead`（`Game.Block.Interface/Component/BlockComponentStateReader.cs:46-53`）と同じく「復元を見送る」扱いにして飛ばし、飛ばした台数を step のログに残す。同じ step の継承レベル部品も null を飛ばすので、step の中で扱いが揃う。この選び方は起草者メモ1。
   ```csharp
   using System.Collections.Generic;
@@ -3592,7 +3592,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 5: 初回打ち上げ履歴の部品を作る** `Steps/V7ToV8/RocketLaunchHistoryFiller.cs`（S2 `SaveMigrationStepV6ToV7.cs` の移植）
+- [x] **Step 5: 初回打ち上げ履歴の部品を作る** `Steps/V7ToV8/RocketLaunchHistoryFiller.cs`（S2 `SaveMigrationStepV6ToV7.cs` の移植）
   S2 との違いは、既に真偽値があるときに拒否せず素通しすること。冪等にするためと、`SpaceElevatorUpstreamMigrationSaveLoadTest` の `[TestCase(7, true)]`（履歴を既に持つ版7）を通すため。真偽値でない値は従来どおり拒否する（起草者メモ2）。
   ```csharp
   using Newtonsoft.Json.Linq;
@@ -3639,7 +3639,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 6: ケーブルプールの部品を作る** `Steps/V7ToV8/SpaceElevatorCablePoolFiller.cs`（S3 `SaveMigrationStepV7ToV8.cs` の移植）
+- [x] **Step 6: ケーブルプールの部品を作る** `Steps/V7ToV8/SpaceElevatorCablePoolFiller.cs`（S3 `SaveMigrationStepV7ToV8.cs` の移植）
   明示 null も欠損と同じく0で補う（履歴の部品と揃える）。
   ```csharp
   using Newtonsoft.Json.Linq;
@@ -3687,7 +3687,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 7: ステップ本体を書き直す** `Steps/SaveMigrationStepV7ToV8.cs`（ファイル全体を置き換える。.meta は S1 のまま）
+- [x] **Step 7: ステップ本体を書き直す** `Steps/SaveMigrationStepV7ToV8.cs`（ファイル全体を置き換える。.meta は S1 のまま）
   ```csharp
   using System.Collections.Generic;
   using Game.SaveLoad.Migration.Steps.V7ToV8;
@@ -3743,7 +3743,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 8: 現在版と連鎖の配列を直す**
+- [x] **Step 8: 現在版と連鎖の配列を直す**
   - `WorldSaveAllInfo.cs:27`: `public const int CurrentVersion = 9;` → `public const int CurrentVersion = 8;`
   - `SaveAndEventServiceRegistration.cs:117`、`SaveLoadPreparerTestFixture.cs:38`、`SaveMigrationChainTest.cs:138` の3か所の配列から、末尾の `, new SaveMigrationStepV8ToV9()` を消して、次の7本にする:
     ```csharp
@@ -3751,7 +3751,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
     ```
   `SaveMigrationChain.ForCurrentVersion` は構築時に、`FromVersion` が `1..CurrentVersion-1`（＝1..7）を欠番・重複なく覆っているかを検証する。
 
-- [ ] **Step 9: テストファイルを移して空ける**
+- [x] **Step 9: テストファイルを移して空ける**
   ```bash
   cd $WT; T=moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/Migration
   git mv $T/SaveMigrationStepV7ToV8Test.cs $T/SaveMigrationStepV7ToV8InheritedLevelTest.cs
@@ -3761,7 +3761,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   git rm $T/SaveMigrationStepV8ToV9UnlockRevokeTest.cs $T/SaveMigrationStepV8ToV9UnlockRevokeTest.cs.meta
   ```
 
-- [ ] **Step 10: 継承レベルのテストを書き直す** `$T/SaveMigrationStepV7ToV8InheritedLevelTest.cs`（S1 の V7ToV8Test を移植）
+- [x] **Step 10: 継承レベルのテストを書き直す** `$T/SaveMigrationStepV7ToV8InheritedLevelTest.cs`（S1 の V7ToV8Test を移植）
   S1 の `InvalidOuterMachineStateReturnsFailureTest` にあった「連鎖ごと止まる」確認は、全体のテスト（Step 14）の `部品が拒否すると連鎖は版を刻まず止まるTest` へ移す。
   ```csharp
   using System.Text.RegularExpressions;
@@ -3866,7 +3866,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 11: 液体スロットのテストを書き直す** `$T/SaveMigrationStepV7ToV8CleanRoomFluidTest.cs`（S1 の V8ToV9Test を移植し、W17 のケースを足す）
+- [x] **Step 11: 液体スロットのテストを書き直す** `$T/SaveMigrationStepV7ToV8CleanRoomFluidTest.cs`（S1 の V8ToV9Test を移植し、W17 のケースを足す）
   ```csharp
   using System.Text.RegularExpressions;
   using Game.SaveLoad.Migration.Steps;
@@ -4010,7 +4010,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 12: 打ち上げ履歴のテストを書き直す** `$T/SaveMigrationStepV7ToV8RocketHistoryTest.cs`（S2 の V6ToV7Test を移植。真偽値の素通しを足す）
+- [x] **Step 12: 打ち上げ履歴のテストを書き直す** `$T/SaveMigrationStepV7ToV8RocketHistoryTest.cs`（S2 の V6ToV7Test を移植。真偽値の素通しを足す）
   ```csharp
   using System.Text.RegularExpressions;
   using Game.SaveLoad.Migration.Steps;
@@ -4084,7 +4084,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 13: ケーブルプールのテストを書き直す** `$T/SaveMigrationStepV7ToV8CablePoolTest.cs`（S3 の V7ToV8Test を移植）
+- [x] **Step 13: ケーブルプールのテストを書き直す** `$T/SaveMigrationStepV7ToV8CablePoolTest.cs`（S3 の V7ToV8Test を移植）
   拒否ケースには `world` を足してある。S3 のままだと、先に走る継承レベル部品が world 欠損で拒否してしまい、プール部品の拒否を確かめられないため。
   ```csharp
   using System.Text.RegularExpressions;
@@ -4145,7 +4145,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 14: 全体のテストを作る** `$T/SaveMigrationStepV7ToV8Test.cs`
+- [x] **Step 14: 全体のテストを作る** `$T/SaveMigrationStepV7ToV8Test.cs`
   master 版7の実形を JSON で書き、全部品の変換・途中で拒否したときに何も書き換えないこと・冪等性・版6からの連鎖を確かめる。
   ```csharp
   using System.Text.RegularExpressions;
@@ -4277,7 +4277,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 15: 版を名指しする結合テストを直す**
+- [x] **Step 15: 版を名指しする結合テストを直す**
   - `CleanRoomMachineFluidTest.cs:81-104`: メソッド名を `VersionEightStateLoadsAfterMigrationTest` → `VersionSevenStateLoadsAfterMigrationTest` に変え、中身は次の差分にする。
     ```csharp
                 // 版7の形（液体キー無し）を作り、V7→V8 を通した状態から実ロードする
@@ -4300,19 +4300,19 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
     ```
   `LevelInheritanceSaveLoadTest.Version7PlainMachineLoadsWithoutInheritedLevelTest` は変更しない。版7と名乗らせたセーブが新しい V7→V8 を通り、履歴とプールの節は現行セーブ由来の値がそのまま素通しされる。
 
-- [ ] **Step 16: Unity に .meta を作らせてコンパイル**（新規の .cs が5本〔部品3本・共有の辿り方1本・テスト1本〕と interface 1本あるので再起動する。save-migration スキル Gotchas）
+- [x] **Step 16: Unity に .meta を作らせてコンパイル**（新規の .cs が5本〔部品3本・共有の辿り方1本・テスト1本〕と interface 1本あるので再起動する。save-migration スキル Gotchas）
   Run: `cd $WT && uloop launch ./moorestech_client --restart && uloop compile --project-path ./moorestech_client && git status --short | grep '\.meta$'`
   Expected: compile エラー0。新しい `.meta` は6本（`V7ToV8/IV7ToV8MigrationPart.cs.meta`・`V7ToV8SaveJson.cs.meta`・`MachineInheritedLevelFiller.cs.meta`・`RocketLaunchHistoryFiller.cs.meta`・`SpaceElevatorCablePoolFiller.cs.meta`・`Migration/SaveMigrationStepV7ToV8Test.cs.meta`）。
 
-- [ ] **Step 17: テスト**
+- [x] **Step 17: テスト**
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveMigration|SaveLoadPreparer|MigrationLoad|LevelInheritanceSaveLoad|CleanRoomMachineFluid|RocketLaunchHistorySaveLoad|SpaceElevatorUpstreamMigration|SaveTickAndRandomState" --timeout-seconds 900`
   Expected: `Success: true`、失敗0。Task 4 の時点で赤だった `RocketLaunchHistorySaveLoadTest`・`SpaceElevatorUpstreamMigrationSaveLoadTest`・`LevelInheritanceSaveLoadTest` が緑に戻る。
 
-- [ ] **Step 18: 行数と本数を確かめる**
+- [x] **Step 18: 行数と本数を確かめる**
   Run: `cd $WT && wc -l moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V7ToV8/*.cs moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/SaveMigrationStepV7ToV8.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/Migration/*.cs && ls moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/*.cs | wc -l`
   Expected: どれも200行以下。Steps 直下の .cs は `7`
 
-- [ ] **Step 19: コミット**
+- [x] **Step 19: コミット**
   `git add -A` / `git commit -m "fix(save): Tier9 統合のセーブ移行を V7→V8 の1本に畳み、継承レベル・液体スロット・初回打ち上げ履歴・ケーブルプールを部品に分ける（CurrentVersion=8、S1 の V8→V9 と解放取り消しを外す）"`
 
 **完了判定:**
@@ -4374,7 +4374,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   - `public abstract class NestedSaveArray`、その派生 `public sealed class MissingNestedSaveArray : NestedSaveArray`・`public sealed class ExplicitNullNestedSaveArray : NestedSaveArray`・`public sealed class PresentNestedSaveArray : NestedSaveArray { public readonly JArray Array; }`（配列は Present の型だけが持つ）
   - `V7ToV8SaveJson.TryGetNestedArray(JObject save, string sectionKey, string arrayKey, out NestedSaveArray result, out string failureReason) -> bool`（false は形が違うときの拒否だけ）
 
-- [ ] **Step 1: 対象表を作る** `Steps/V7ToV8/ZeroCostTier9ResearchResetTable.cs`
+- [x] **Step 1: 対象表を作る** `Steps/V7ToV8/ZeroCostTier9ResearchResetTable.cs`
   ```csharp
   using System;
   using System.Collections.Generic;
@@ -4446,7 +4446,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 2: 共有の辿り方に「無い／null／配列」の3状態を返す `TryGetNestedArray` を足し、リセット部品を作る** `Steps/V7ToV8/NestedSaveArray.cs`・`Steps/V7ToV8/V7ToV8SaveJson.cs`・`Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs`
+- [x] **Step 2: 共有の辿り方に「無い／null／配列」の3状態を返す `TryGetNestedArray` を足し、リセット部品を作る** `Steps/V7ToV8/NestedSaveArray.cs`・`Steps/V7ToV8/V7ToV8SaveJson.cs`・`Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs`
   結果の状態は型で表す（bool と配列の null の組で「拒否／節なし／配列あり」を表さない。配列は `PresentNestedSaveArray` だけが持つので、状態を見ずに配列を読む誤りがコンパイルで起きない。判断記録 A31、型閉包の再検査 5-A 2行目）。拒否（形が違う）だけは他の `TryPrepare` と同じく bool の false と理由で返す。
 
   `Steps/V7ToV8/NestedSaveArray.cs`:
@@ -4613,7 +4613,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 3: ステップに5つ目の部品を足す** `Steps/SaveMigrationStepV7ToV8.cs`
+- [x] **Step 3: ステップに5つ目の部品を足す** `Steps/SaveMigrationStepV7ToV8.cs`
   ```diff
   -    // V7→V8移行: Tier9統合で増えたセーブの形を機能ごとの部品で足す（継承レベル・清浄室機械の液体スロット・初回打ち上げ履歴・ケーブルプール）
   -    // V7->V8 migration: add the save shapes introduced by the Tier9 integration through one part per feature (inherited level, clean-room fluid slots, first-launch history, cable pool)
@@ -4625,7 +4625,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
                };
   ```
 
-- [ ] **Step 4: 部品のテストを作る** `Tests/UnitTest/Game/SaveLoad/Migration/SaveMigrationStepV7ToV8ResearchResetTest.cs`
+- [x] **Step 4: 部品のテストを作る** `Tests/UnitTest/Game/SaveLoad/Migration/SaveMigrationStepV7ToV8ResearchResetTest.cs`
   ```csharp
   using System.Text.RegularExpressions;
   using Game.SaveLoad.Migration.Steps;
@@ -4780,13 +4780,13 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 5: 全体のテストに研究の確認を足す** `SaveMigrationStepV7ToV8Test.cs` の `版7のセーブに全部品の変換が入るTest` の末尾（`worldVersion` の assert の前）へ:
+- [x] **Step 5: 全体のテストに研究の確認を足す** `SaveMigrationStepV7ToV8Test.cs` の `版7のセーブに全部品の変換が入るTest` の末尾（`worldVersion` の assert の前）へ:
   ```csharp
               Assert.IsTrue(JToken.DeepEquals(new JArray("019e3ad9-46e2-73fd-9555-8c1d0245d26d"), save["research"]["CompletedResearchGuids"]));
               Assert.AreEqual(0, ((JArray)save["gameUnlockState"]["itemUnlockStateInfos"]).Count);
   ```
 
-- [ ] **Step 6: 部品が頼るロード時の振る舞いを実ロードで確かめる結合テストを作る** `Tests/CombinedTest/Game/Research/ResearchUnlockRecordFallbackLoadTest.cs`
+- [x] **Step 6: 部品が頼るロード時の振る舞いを実ロードで確かめる結合テストを作る** `Tests/CombinedTest/Game/Research/ResearchUnlockRecordFallbackLoadTest.cs`
   テスト用マスタの「Test Research 4」は Test3 アイテム（`initialUnlocked: false`）のレシピ表示を解放する。解放の記録を消したセーブを読み込み、研究が完了のまま残っていれば解放され、研究の完了も外していれば解放されないことを見る。
   ```csharp
   using System;
@@ -4838,15 +4838,15 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   ```
   テスト用マスタで Test3 を解放するのは研究4だけ（`forUnitTest/master` を `1234-000000000003` で grep し、challenge 側に解放が無いことを確認済み）。
 
-- [ ] **Step 7: .meta を作らせてコンパイル**（新規の .cs が5本）
+- [x] **Step 7: .meta を作らせてコンパイル**（新規の .cs が5本）
   Run: `cd $WT && uloop launch ./moorestech_client --restart && uloop compile --project-path ./moorestech_client && git status --short | grep '\.meta$'`
   Expected: エラー0。新しい `.meta` は5本（`ZeroCostTier9ResearchResetTable.cs.meta`・`ZeroCostTier9ResearchResetter.cs.meta`・`NestedSaveArray.cs.meta`・`SaveMigrationStepV7ToV8ResearchResetTest.cs.meta`・`ResearchUnlockRecordFallbackLoadTest.cs.meta`）。
 
-- [ ] **Step 8: テスト**
+- [x] **Step 8: テスト**
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveMigrationStepV7ToV8|ResearchUnlockRecordFallbackLoad|ResearchDataStore|SaveLoadPreparer" --timeout-seconds 900`
   Expected: `Success: true`、失敗0
 
-- [ ] **Step 9: コミット**
+- [x] **Step 9: コミット**
   `git add -A` / `git commit -m "fix(save): 旧マスタでコスト0のまま完了した Tier9 研究6ノードの完了を V7→V8 で外し、その研究が解放した記録を消す（裁定2）"`
 
 **完了判定:**
@@ -4868,7 +4868,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 
 なぜ必要か: 通常のロード経路（`SaveLoadPreparer`）は、先に `ResearchSectionPruner` を通す。そこで読めない GUID は警告付きで残り、マスタに無い研究は消える。しかし `WorldLoaderFromJson.Load(string)` を直接呼ぶ経路は刈り込みを通らないので、ここでの無音スキップに誰も気づけない（AGENTS.md「fail-closed で…無視する経路はログへ必ず出す」）。
 
-- [ ] **Step 1: `LoadResearchData` の foreach を次に置き換える**（`UnityEngine.Debug` は、`ResearchConsumeItemsUtil.cs:25` と同じく完全修飾で書き、using は足さない）
+- [x] **Step 1: `LoadResearchData` の foreach を次に置き換える**（`UnityEngine.Debug` は、`ResearchConsumeItemsUtil.cs:25` と同じく完全修飾で書き、using は足さない）
   ```csharp
               foreach (var guidString in saveData.CompletedResearchGuids)
               {
@@ -4897,7 +4897,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
               }
   ```
 
-- [ ] **Step 2: テストを作る** `Tests/CombinedTest/Game/Research/ResearchDataStoreLoadWarningTest.cs`
+- [x] **Step 2: テストを作る** `Tests/CombinedTest/Game/Research/ResearchDataStoreLoadWarningTest.cs`
   ```csharp
   using System.Collections.Generic;
   using System.Text.RegularExpressions;
@@ -4932,11 +4932,11 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 3: コンパイルとテスト**
+- [x] **Step 3: コンパイルとテスト**
   Run: `cd $WT && uloop launch ./moorestech_client --restart && uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "ResearchDataStore|CompleteResearch|MissingMasterPrune" --timeout-seconds 600`
   Expected: compile エラー0、テストは失敗0
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
   `git add -A` / `git commit -m "fix(research): 完了済み研究のロードで GUID が読めない・マスタに無いときに警告を残す"`
 
 **完了判定:**
@@ -4954,19 +4954,19 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 - Consumes: Task 4〜Task 8 のコミット
 - Produces: P2 以降が前提にする「コードは緑」の証拠一式（下の出力を P6 の PR 本文に貼る）
 
-- [ ] **Step 1: クリーンにコンパイルし、エラーログが無いことを確かめる**
+- [x] **Step 1: クリーンにコンパイルし、エラーログが無いことを確かめる**
   Run: `cd $WT && uloop clear-console --project-path ./moorestech_client && uloop compile --project-path ./moorestech_client && uloop get-logs --project-path ./moorestech_client --log-type Error`
   Expected: compile エラー0、Error ログ0件
 
-- [ ] **Step 2: セーブまわりのテスト**（クラス名から組んだ正規表現。`git grep -hE "public (sealed )?class [A-Za-z0-9_]+"` の結果から、統合で触れた機能の語を拾った）
+- [x] **Step 2: セーブまわりのテスト**（クラス名から組んだ正規表現。`git grep -hE "public (sealed )?class [A-Za-z0-9_]+"` の結果から、統合で触れた機能の語を拾った）
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveMigration|SaveLoad|MigrationLoad|MissingMasterPrune|MissingMasterItemPrune|MissingMasterRailPrune|SaveTickAndRandomState" --timeout-seconds 1500`
   Expected: `Success: true`
 
-- [ ] **Step 3: Tier9 の機能のテスト**
+- [x] **Step 3: Tier9 の機能のテスト**
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "RocketLaunch|Orbital|SpaceElevator|CleanRoom|ElectricGenerator|PowerGenerator|GearToElectricGenerator|LevelInherit|LevelFamily|MachineUpgrade|ModuleSlot|MachineModuleSlot" --timeout-seconds 1500`
   Expected: `Success: true`
 
-- [ ] **Step 4: 研究・解放・Web UI ホストのテスト**（Task 4 で衝突した DTO と webui 契約を含む）
+- [x] **Step 4: 研究・解放・Web UI ホストのテスト**（Task 4 で衝突した DTO と webui 契約を含む）
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Research|Unlock|WireContract|BlockDetail|WebUiTopic|BlockInventory" --timeout-seconds 1500`
   Expected: `Success: true`
 
@@ -4974,7 +4974,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type assembly --filter-value "Server.Tests" --timeout-seconds 1500`
   Expected: `Success: true`。タイムアウトした場合は2つに分けて流す: `--filter-type regex --filter-value "^Tests\.UnitTest\."` と `--filter-type regex --filter-value "^Tests\.CombinedTest\."`（いずれも `--timeout-seconds 1500`）
 
-- [ ] **Step 6: webui の型検査と vitest（CI の `webui-test` ジョブと同じ3本）と、テストの外部依存の検査**
+- [x] **Step 6: webui の型検査と vitest（CI の `webui-test` ジョブと同じ3本）と、テストの外部依存の検査**
   ```bash
   NODE_DIR=$(ls -d $WT/moorestech_web/node/*/ | head -1); export PATH="$NODE_DIR/bin:$PATH"; PNPM="$NODE_DIR/pnpm"
   cd $WT/moorestech_web && "$PNPM" --dir webui exec tsc -b --force && "$PNPM" --dir webui exec tsc -p e2e/tsconfig.json --noEmit && "$PNPM" --dir webui exec vitest run
@@ -4982,11 +4982,11 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   ```
   Expected: 3本ともエラー0・失敗0。外部依存の検査は exit 0（テストが本番マスタを読んでいない）
 
-- [ ] **Step 7: P1 で触ったファイルの行数**
+- [x] **Step 7: P1 で触ったファイルの行数**
   Run: `cd $WT && M=$(git log --merges -1 --format=%H) && { git diff --name-only --diff-filter=AMR $M..HEAD -- '*.cs' '*.ts' '*.tsx'; echo moorestech_web/webui/src/bridge/contract/schemas/inventory.ts; echo moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/BlockDetailDtoBuilder.cs; } | sort -u | xargs wc -l | awk '$2 != "total" && $1 > 200'`
   Expected: 出力なし
 
-- [ ] **Step 8: push**
+- [x] **Step 8: push**
   `git push origin feat/tier9-integrated`
 
 **完了判定:** Step 1〜7 の出力がすべて期待どおりで、その結果を P6 の PR 本文用に保存してある（compile 結果・各 run-tests の `TestCount`/`FailedCount`・tsc/vitest の要約）。`git log origin/feat/tier9-integrated -1` が手元の HEAD と一致する。
