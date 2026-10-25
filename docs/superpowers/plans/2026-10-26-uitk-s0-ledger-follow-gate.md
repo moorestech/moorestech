@@ -249,6 +249,9 @@ def _row(cells: tuple[str, ...], bundles: dict[int, Bundle], errors: list[str]) 
     if not ids or any(not value.isdigit() or int(value) not in bundles for value in ids):
         errors.append(f"行「{name}」の束「{raw_bundles}」が 1〜5 の空白区切りではない")
         return None
+    if raw_paths not in EMPTY_CELLS and CODE_SPAN.sub("", raw_paths).strip():
+        errors.append(f"行「{name}」の Web パスに引用されていない文字列がある: {raw_paths}")
+        return None
     paths = tuple(WEB_UI_ROOT + path for path in CODE_SPAN.findall(raw_paths))
     if not paths:
         errors.append(f"行「{name}」に Web パスが無い")
@@ -584,7 +587,7 @@ def changed_files(root: Path, base: str, head: str) -> tuple[ChangedFile, ...]:
 def web_commits(root: Path, start: str, head: str) -> tuple[CommitFiles, ...]:
     # start より後で Web を触った非マージコミットを、触ったファイルごと返す
     # Return non-merge commits after start that touched Web, with the files each touched
-    output = _git(root, "log", "--no-merges", "--no-renames", "--format=@%H", "--name-only", f"{start}..{head}", "--", WEB_ROOT)
+    output = _git(root, "log", "--full-history", "--no-merges", "--no-renames", "--format=@%H", "--name-only", f"{start}..{head}", "--", WEB_ROOT)
     commits: list[CommitFiles] = []
     sha: str | None = None
     files: list[str] = []
@@ -994,7 +997,7 @@ git commit -m "feat(uitk): Web 追従ゲート G1 の規則と入口を足し、
 | notification（獲得通知） | 機能 | 2 | Web | `src/features/notification/` `e2e/tests/notification/` `e2e/captures/capture-connection-line-notifications.ts` | 確認=演出は実時間 | — | — |
 | skit（会話窓・選択肢・ツールバー・暗転） | 機能 | 2 | Web | `src/features/skit/` `src/app/skitTokens.css` `e2e/tests/skit.spec.ts` `e2e/mock-host/skitActions.ts` `e2e/capture-skit.ts` | 確認=演出は実時間 | — | — |
 | challenge: CurrentChallengeHud | 機能 | 2 | Web | `src/features/challenge/CurrentChallengeHud.tsx` `src/features/challenge/CurrentChallengeHud.module.css` `e2e/tests/challenge/` `e2e/challenge-hud/` `e2e/support/challengeHudAssertions.ts` | — | — | — |
-| tutorial: KeyControlHintHud | 機能 | 2 | Web | `src/features/tutorial/KeyControlHintHud.tsx` `src/features/tutorial/KeyControlHintHud.test.ts` `src/features/tutorial/keyControlHint.module.css` | 確認=演出は実時間 | — | — |
+| tutorial: KeyControlHintHud | 機能 | 2 | Web | `src/features/tutorial/KeyControlHintHud.tsx` `src/features/tutorial/KeyControlHintHud.test.ts` `src/features/tutorial/keyControlHint.module.css` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/index.ts` `e2e/tests/system/tutorial.spec.ts` | 確認=演出は実時間 | — | — |
 | tutorial: WorldPinOverlay | 機能 | 2 | Web | `src/features/tutorial/WorldPinOverlay.tsx` `src/features/tutorial/worldPin.module.css` `e2e/tests/system/worldPin.spec.ts` `e2e/capture-world-pin-arrow.ts` | 確認=演出は実時間 | — | — |
 | CursorTooltip | 共通部品 | 2 | Web | `src/shared/tooltip/` | — | — | — |
 | オーバーレイ: 背景スキット | オーバーレイ | 2 | Web | `src/app/App.tsx` `e2e/tests/phaseC4.spec.ts` | 前回は状態機械だけで洗い出して見落とした（`docs/uitk-migration/research/understand-shipping.md` §6.2） | — | — |
@@ -1016,13 +1019,13 @@ git commit -m "feat(uitk): Web 追従ゲート G1 の規則と入口を足し、
 | blockInventory 特殊族: ロケット（Tier9 #1551） | 機能 | 4 | Web | `src/features/blockInventory/details/rocket/` | — | — | — |
 | blockInventory 特殊族: 宇宙エレベーター（Tier9 #1552） | 機能 | 4 | Web | `src/features/blockInventory/details/spaceElevator/` | — | — | — |
 | research（研究ツリー・詳細ペイン） | 機能 | 4 | Web | `src/features/research/` `e2e/tests/research/` `e2e/mock-host/researchFixtures.ts` `e2e/capture-research-qa.ts` `e2e/support/panSettle.ts` | — | — | — |
-| tutorial: DragGuide（インベントリ内） | 機能 | 4 | Web | `src/features/tutorial/overlay/DragGuide.tsx` | 確認=演出は実時間 | — | — |
+| tutorial: DragGuide（インベントリ内） | 機能 | 4 | Web | `src/features/tutorial/overlay/DragGuide.tsx` `src/features/tutorial/overlay/style.module.css` `src/features/tutorial/overlay/TutorialOverlay.tsx` `src/features/tutorial/overlay/TutorialOverlay.test.ts` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/index.ts` | 確認=演出は実時間 | — | — |
 | itemMove（掴みの計画） | 共通部品 | 4 | Web | `src/shared/itemMove/` `e2e/tests/regression/itemSlot.spec.ts` | — | — | — |
 | ownedCounts | 共通部品 | 4 | Web | `src/shared/ownedCounts.ts` `src/shared/ownedCounts.test.ts` | — | — | — |
 | treeView（パン・ズーム・線） | 共通部品 | 4 5 | Web | `src/shared/treeView/` | — | — | — |
 | challenge: ChallengePanel | 機能 | 5 | Web | `src/features/challenge/` `e2e/tests/challenge.spec.ts` | 様式化 (a) | — | — |
 | eventLanguageGate（出展モードの言語選択） | 機能 | 5 | Web | `src/features/eventLanguageGate/` | — | — | — |
-| tutorial: TutorialOverlay（ハイライト枠） | 機能 | 5 | Web | `src/features/tutorial/` `e2e/tests/system/tutorial.spec.ts` `e2e/tests/system/tutorialHighlightClip.spec.ts` `e2e/support/pulseFreeze.ts` `e2e/mock-host/topics/tutorialControls.ts` | 確認=演出は実時間 | — | — |
+| tutorial: TutorialOverlay（ハイライト枠） | 機能 | 5 | Web | `src/features/tutorial/` `e2e/tests/system/tutorial.spec.ts` `e2e/tests/system/tutorialHighlightClip.spec.ts` `e2e/support/pulseFreeze.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/overlay/style.module.css` `src/features/tutorial/overlay/TutorialOverlay.tsx` `src/features/tutorial/overlay/TutorialOverlay.test.ts` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `src/features/tutorial/index.ts` | 確認=演出は実時間 | — | — |
 | tutorialAnchor（アンカーの登録と解決） | 共通部品 | 1 2 3 4 5 | Web | `src/shared/tutorialAnchor/` | — | — | — |
 | shared/ui（枠・スロット・ボタン・ゲージ） | 共通部品 | 1 2 3 4 5 | Web | `src/shared/ui/` `src/shared/clamp01.ts` `src/shared/clamp01.test.ts` `src/shared/materialTooltipText.ts` `src/app/slotTokens.css` `src/app/iconTextOutlineDesign.test.ts` `e2e/capture-iconbutton.ts` `e2e/capture-icon-text-outline.ts` `e2e/support/layoutAssertions.ts` | 様式化 (a) | — | — |
 | i18n | 横断 | 1 2 3 4 5 | Web | `src/shared/i18n/` `scripts/` `e2e/tests/system/i18n.spec.ts` `e2e/mock-host/localization/` `e2e/mock-host/topics/dictionaryControl.ts` | — | — | — |
@@ -1307,7 +1310,7 @@ git commit -m "test(webui): mock-host のチュートリアル scenario を分�
 
 **Interfaces:**
 - Consumes: Task 4 の `TopicScenario`（`tutorialDragGuide` を含む）、既存 `../support/mockControl` の `requestMockControl(page, baseUrl, path)`、`../mock-host/server.ts`（`MOCK_PORT`・`MOCK_DEMO`、標準出力 `mock-host on <port>`）
-- Produces: `referenceShots: ReferenceShot[]`・`referenceVideos: ReferenceVideo[]`・`ShotStep`・`ShotSetup`（`referenceShots.ts`）、`startMockHost(webuiRoot:string, port:number): Promise<ChildProcess>`・`stopMockHost(child:ChildProcess): Promise<void>`・`openShot(page:Page, baseUrl:string, setup:ShotSetup): Promise<void>`・`referenceViewport`（`shotRunner.ts`）、`writeCaptureIndex(outputDirectory:string, entries:CaptureEntry[], sourceCommit:string): Promise<void>`・`CaptureEntry`（`captureIndex.ts`）。成果物: `<出力先>/<id>.png`・`<id>.webm`・`manifest.json`・`index.md`
+- Produces: `referenceShots: ReferenceShot[]`・`referenceVideos: ReferenceVideo[]`・`ShotStep`・`ShotSetup`（`referenceShots.ts`）、`startMockHost(webuiRoot:string, port:number): Promise<ChildProcess>`・`stopMockHost(child:ChildProcess): Promise<void>`・`openShot(page:Page, baseUrl:string, setup:ShotSetup): Promise<void>`・`referenceViewport`（`shotRunner.ts`）、`writeCaptureIndex(outputDirectory:string, entries:CaptureEntry[], sourceCommit:string, viewport:{width:number; height:number}): Promise<void>`・`CaptureEntry`（`captureIndex.ts`）。成果物: `<出力先>/<id>.png`・`<id>.webm`・`manifest.json`・`index.md`
 
 - [x] **Step 1: `referenceShots.ts`（撮影表）を書く**
 
@@ -1363,7 +1366,7 @@ export type LedgerRow = (typeof LedgerRows)[keyof typeof LedgerRows];
 // Bundle number, shared by the shot table, the video table, and the manifest
 export type BundleId = 1 | 2 | 3 | 4 | 5;
 
-export type ReferenceShot = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow };
+type ReferenceShot = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow };
 
 export const ui = (state: string, subState?: string) => subState === undefined ? `/__uistate?state=${state}` : `/__uistate?state=${state}&subState=${subState}`;
 export const topic = (scenario: TopicScenario) => `/__topic-control?scenario=${scenario}`;
@@ -1441,7 +1444,7 @@ import { LedgerRows, topic, ui, type BundleId, type LedgerRow, type ShotSetup } 
 
 // 動きでしか意図が伝わらない演出の短い動画
 // Short videos for effects whose intent only shows in motion
-export type ReferenceVideo = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow; durationMs: number };
+type ReferenceVideo = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow; durationMs: number };
 
 export const referenceVideos: ReferenceVideo[] = [
   { id: "2-notification-enter-aggregate-exit", bundle: 2, ledgerRow: LedgerRows.notification, controls: [ui("GameScreen")], durationMs: 9000,
@@ -1460,13 +1463,11 @@ export const referenceVideos: ReferenceVideo[] = [
 ```ts
 import { spawn, type ChildProcess } from "node:child_process";
 import type { Page } from "@playwright/test";
-import { requestMockControl } from "../support/mockControl";
+import { requestMockControl, revealBlockingSkitBody } from "../support/mockControl";
+import { blockingSkitText } from "../mock-host/fixtures";
 import type { ShotSetup, ShotStep } from "./referenceShots";
 
 export const referenceViewport = { width: 1280, height: 720 } as const;
-// スキットの blocking fixture の本文（capture-skit.ts と同じ定数）
-// Body text of the blocking skit fixture (same constant as capture-skit.ts)
-const BLOCKING_BODY = "Blocking message";
 
 // 撮影ごとに mock-host を別プロセスで起こし、前の撮影の状態を持ち越さない（外部プロセス境界）
 // Start a fresh mock-host process per shot so no state leaks between shots (external process boundary)
@@ -1495,7 +1496,7 @@ export async function startMockHost(webuiRoot: string, port: number): Promise<Ch
 }
 
 export async function stopMockHost(child: ChildProcess): Promise<void> {
-  if (child.exitCode !== null) return;
+  if (child.exitCode !== null || child.signalCode !== null) return; // silent-ok: 終了済み / 呼出元が後片付けを続行
   const exited = new Promise<void>((resolve) => child.once("exit", () => resolve()));
   child.kill();
   await exited;
@@ -1519,24 +1520,15 @@ async function runStep(page: Page, baseUrl: string, step: ShotStep): Promise<voi
     case "click": return page.getByTestId(step.testId).first().click();
     case "rightClickFirstChild": return page.getByTestId(step.testId).locator("> div").first().click({ button: "right" });
     case "waitTestId": return page.getByTestId(step.testId).first().waitFor();
-    case "revealSkit": return revealSkitBody(page);
+    case "revealSkit": return revealBlockingSkitBody(page, blockingSkitText.presentationState.body);
     case "wait": return page.waitForTimeout(step.ms);
   }
 }
 
-// タイプライターを実ユーザーと同じくクリックで全文表示へ進める（capture-skit.ts と同じ手順）
-// Reveal the full typewriter line with a click like a real user (same procedure as capture-skit.ts)
-async function revealSkitBody(page: Page): Promise<void> {
-  const skitWindow = page.getByTestId("blocking-skit");
-  await skitWindow.waitFor();
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    if ((await skitWindow.textContent())?.includes(BLOCKING_BODY)) return;
-    await skitWindow.click();
-    await page.waitForTimeout(100);
-  }
-  throw new Error(`skit body never completed: ${BLOCKING_BODY}`);
-}
+
 ```
+
+`e2e/support/mockControl.ts` の `revealBlockingSkitBody(page: Page, expectedBody: string): Promise<void>` に全文表示操作を集約する。表示済みならクリックで次場面へ進むため、毎回クリック前に本文を確認する。`shotRunner.ts` と `capture-skit.ts` は共に `blockingSkitText.presentationState.body` を渡す。`capture-skit.ts` のfixture importは `MOCK_DEMO` 設定後に行う。
 
 `5-event-language-gate` は `app-stage` の待機で止まらないか確かめる（ゲートは stage の外に重なるだけで stage は出る想定。止まったら `openShot` の `app-stage` 待機をその撮影だけ外すのではなく、ゲートの撮影の `steps` 先頭の `waitTestId` で代える形に直す）。
 
@@ -1553,8 +1545,8 @@ export type CaptureEntry = { id: string; bundle: BundleId; ledgerRow: LedgerRow;
 
 // manifest と束ごとの一覧（GitHub でそのまま見られる Markdown）を書く
 // Write the manifest and a per-bundle index Markdown that renders on GitHub
-export async function writeCaptureIndex(outputDirectory: string, entries: CaptureEntry[], sourceCommit: string): Promise<void> {
-  await writeFile(join(outputDirectory, "manifest.json"), JSON.stringify({ sourceCommit, viewport: "1280x720", mockHostDemo: true, entries }, null, 2));
+export async function writeCaptureIndex(outputDirectory: string, entries: CaptureEntry[], sourceCommit: string, viewport: { width: number; height: number }): Promise<void> {
+  await writeFile(join(outputDirectory, "manifest.json"), JSON.stringify({ sourceCommit, viewport: `${viewport.width}x${viewport.height}`, mockHostDemo: true, entries }, null, 2));
   const lines = [`# Web UI 参照キャプチャ（moorestech ${sourceCommit}）`, "",
     "UI Toolkit 移行で Web 版の「意図した見た目」を辿るための撮影。mock-host（DEMO）で撮った。台帳は moorestech の `docs/uitk/TODO.md`。", ""];
   for (const bundle of [1, 2, 3, 4, 5] as const) {
@@ -1639,7 +1631,7 @@ async function main(): Promise<void> {
     await browser.close();
   }
   await rm(join(outputDirectory, ".video-tmp"), { recursive: true, force: true });
-  await writeCaptureIndex(outputDirectory, entries, sourceCommit);
+  await writeCaptureIndex(outputDirectory, entries, sourceCommit, referenceViewport);
 }
 
 // 外部境界（ブラウザ・子プロセス）の失敗を終了コードへ変える

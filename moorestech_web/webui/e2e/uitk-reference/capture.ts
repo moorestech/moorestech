@@ -70,7 +70,7 @@ async function main(): Promise<void> {
     await browser.close();
   }
   await rm(join(outputDirectory, ".video-tmp"), { recursive: true, force: true });
-  await writeCaptureIndex(outputDirectory, entries, sourceCommit);
+  await writeCaptureIndex(outputDirectory, entries, sourceCommit, referenceViewport);
 }
 
 // 外部境界（ブラウザ・子プロセス）の失敗を終了コードへ変える

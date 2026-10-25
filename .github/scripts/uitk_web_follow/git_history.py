@@ -66,7 +66,7 @@ def changed_files(root: Path, base: str, head: str) -> tuple[ChangedFile, ...]:
 def web_commits(root: Path, start: str, head: str) -> tuple[CommitFiles, ...]:
     # start より後で Web を触った非マージコミットを、触ったファイルごと返す
     # Return non-merge commits after start that touched Web, with the files each touched
-    output = _git(root, "log", "--no-merges", "--no-renames", "--format=@%H", "--name-only", f"{start}..{head}", "--", WEB_ROOT)
+    output = _git(root, "log", "--full-history", "--no-merges", "--no-renames", "--format=@%H", "--name-only", f"{start}..{head}", "--", WEB_ROOT)
     commits: list[CommitFiles] = []
     sha: str | None = None
     files: list[str] = []

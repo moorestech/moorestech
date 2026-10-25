@@ -77,3 +77,16 @@ export async function setTopicScenarioRevision(page: Page, scenario: TopicScenar
 export async function setWoodItemGuid(page: Page, itemGuid: string) {
   return requestMockControl(page, "", `/__item-master?woodGuid=${encodeURIComponent(itemGuid)}`);
 }
+
+// 全文表示済みのクリックは次へ進むため先に判定する
+// Check first: clicking a fully revealed line advances the scene
+export async function revealBlockingSkitBody(page: Page, expectedBody: string): Promise<void> {
+  const skitWindow = page.getByTestId("blocking-skit");
+  await skitWindow.waitFor();
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    if ((await skitWindow.textContent())?.includes(expectedBody)) return;
+    await skitWindow.click();
+    await page.waitForTimeout(100);
+  }
+  throw new Error(`blocking body never completed: ${expectedBody}`);
+}

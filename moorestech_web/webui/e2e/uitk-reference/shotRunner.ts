@@ -1,12 +1,10 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import type { Page } from "@playwright/test";
-import { requestMockControl } from "../support/mockControl";
+import { requestMockControl, revealBlockingSkitBody } from "../support/mockControl";
+import { blockingSkitText } from "../mock-host/fixtures";
 import type { ShotSetup, ShotStep } from "./referenceShots";
 
 export const referenceViewport = { width: 1280, height: 720 } as const;
-// スキットの blocking fixture の本文（capture-skit.ts と同じ定数）
-// Body text of the blocking skit fixture (same constant as capture-skit.ts)
-const BLOCKING_BODY = "Blocking message";
 
 // 撮影ごとに mock-host を別プロセスで起こし、前の撮影の状態を持ち越さない（外部プロセス境界）
 // Start a fresh mock-host process per shot so no state leaks between shots (external process boundary)
@@ -36,7 +34,7 @@ export async function startMockHost(webuiRoot: string, port: number): Promise<Ch
 }
 
 export async function stopMockHost(child: ChildProcess): Promise<void> {
-  if (child.exitCode !== null) return;
+  if (child.exitCode !== null || child.signalCode !== null) return; // silent-ok: 終了済み / 呼出元が後片付けを続行
   const exited = new Promise<void>((resolve) => child.once("exit", () => resolve()));
   child.kill();
   await exited;
@@ -60,20 +58,7 @@ async function runStep(page: Page, baseUrl: string, step: ShotStep): Promise<voi
     case "click": return page.getByTestId(step.testId).first().click();
     case "rightClickFirstChild": return page.getByTestId(step.testId).locator("> div").first().click({ button: "right" });
     case "waitTestId": return page.getByTestId(step.testId).first().waitFor();
-    case "revealSkit": return revealSkitBody(page);
+    case "revealSkit": return revealBlockingSkitBody(page, blockingSkitText.presentationState.body);
     case "wait": return page.waitForTimeout(step.ms);
   }
-}
-
-// タイプライターを実ユーザーと同じくクリックで全文表示へ進める（capture-skit.ts と同じ手順）
-// Reveal the full typewriter line with a click like a real user (same procedure as capture-skit.ts)
-async function revealSkitBody(page: Page): Promise<void> {
-  const skitWindow = page.getByTestId("blocking-skit");
-  await skitWindow.waitFor();
-  for (let attempt = 0; attempt < 20; attempt += 1) {
-    if ((await skitWindow.textContent())?.includes(BLOCKING_BODY)) return;
-    await skitWindow.click();
-    await page.waitForTimeout(100);
-  }
-  throw new Error(`skit body never completed: ${BLOCKING_BODY}`);
 }

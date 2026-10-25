@@ -2,7 +2,7 @@ import { LedgerRows, topic, ui, type BundleId, type LedgerRow, type ShotSetup } 
 
 // 動きでしか意図が伝わらない演出の短い動画
 // Short videos for effects whose intent only shows in motion
-export type ReferenceVideo = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow; durationMs: number };
+type ReferenceVideo = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow; durationMs: number };
 
 export const referenceVideos: ReferenceVideo[] = [
   { id: "2-notification-enter-aggregate-exit", bundle: 2, ledgerRow: LedgerRows.notification, controls: [ui("GameScreen")], durationMs: 9000,

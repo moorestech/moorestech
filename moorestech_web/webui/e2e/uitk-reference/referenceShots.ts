@@ -49,7 +49,7 @@ export type LedgerRow = (typeof LedgerRows)[keyof typeof LedgerRows];
 // Bundle number, shared by the shot table, the video table, and the manifest
 export type BundleId = 1 | 2 | 3 | 4 | 5;
 
-export type ReferenceShot = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow };
+type ReferenceShot = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow };
 
 export const ui = (state: string, subState?: string) => subState === undefined ? `/__uistate?state=${state}` : `/__uistate?state=${state}&subState=${subState}`;
 export const topic = (scenario: TopicScenario) => `/__topic-control?scenario=${scenario}`;

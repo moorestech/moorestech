@@ -49,6 +49,10 @@ class LedgerParseTest(unittest.TestCase):
     def test_rejects_row_without_paths(self):
         self.parse_error(ledger_text({}, [("空", "2", "Web", "—")], []), "Web パスが無い")
 
+    def test_rejects_mixed_quoted_and_unquoted_paths(self):
+        paths = "`src/other.ts` src/features/commonHud/Crosshair.tsx"
+        self.parse_error(ledger_text({}, [("mixed", "2", "Web", paths)], []), "引用されていない")
+
     def test_rejects_renamed_header(self):
         self.parse_error(ledger_text({}, [HUD], []).replace("| 束 | 中身 |", "| 段階 | 中身 |"), "表の見出し")
 

@@ -58,7 +58,7 @@ test("背景クリックで cancel を送る", async ({ page }) => {
 // 撮影用BP入力も実際のmodal描画と応答経路を使う
 // The reference blueprint input uses the real modal rendering and response path
 test("BP名入力fixtureは入力後の確定値を送る", async ({ page }) => {
-  await requestMockControl(page, "http://127.0.0.1:5273", "/__modal?show=1&kind=blueprint");
+  await requestMockControl(page, "", "/__modal?show=1&kind=blueprint");
   await page.goto("/");
   await expect(page.getByTestId("modal-input")).toBeVisible();
   await expect(page.getByTestId("modal-button")).toBeDisabled();

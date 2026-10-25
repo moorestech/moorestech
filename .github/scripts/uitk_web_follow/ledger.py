@@ -156,6 +156,9 @@ def _row(cells: tuple[str, ...], bundles: dict[int, Bundle], errors: list[str]) 
     if not ids or any(not value.isascii() or not value.isdigit() or int(value) not in bundles for value in ids):
         errors.append(f"行「{name}」の束「{raw_bundles}」が 1〜5 の空白区切りではない")
         return None
+    if raw_paths not in EMPTY_CELLS and CODE_SPAN.sub("", raw_paths).strip():
+        errors.append(f"行「{name}」の Web パスに引用されていない文字列がある: {raw_paths}")
+        return None
     raw_web_paths = CODE_SPAN.findall(raw_paths)
     if any(path.startswith("/") or "\\" in path or any(part in ("", ".", "..") for part in path.rstrip("/").split("/")) for path in raw_web_paths):
         errors.append(f"行「{name}」の Web パスが正規の相対パスではない: {raw_paths}")
