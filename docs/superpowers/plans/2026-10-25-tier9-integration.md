@@ -2989,7 +2989,7 @@ git -C $MW push
 - Delete: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/SaveMigrationStepV8ToV9.cs`(+`.meta`) / `…/Steps/V8ToV9/UnimplementedBlockUnlockRevoker.cs`(+`.meta`)
 - Move: `…/Steps/V8ToV9/`（フォルダと `V8ToV9.meta`）→ `…/Steps/V7ToV8/`（`V7ToV8.meta`）
 - Modify（移動後に全面書き直し）: `…/Steps/V7ToV8/CleanRoomMachineFluidSlotFiller.cs`
-- Create: `…/Steps/V7ToV8/IV7ToV8MigrationPart.cs` / `…/Steps/V7ToV8/MachineInheritedLevelFiller.cs` / `…/Steps/V7ToV8/RocketLaunchHistoryFiller.cs` / `…/Steps/V7ToV8/SpaceElevatorCablePoolFiller.cs`
+- Create: `…/Steps/V7ToV8/IV7ToV8MigrationPart.cs` / `…/Steps/V7ToV8/V7ToV8SaveJson.cs` / `…/Steps/V7ToV8/MachineInheritedLevelFiller.cs` / `…/Steps/V7ToV8/RocketLaunchHistoryFiller.cs` / `…/Steps/V7ToV8/SpaceElevatorCablePoolFiller.cs`
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/Composition/SaveAndEventServiceRegistration.cs` / `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SaveLoadPreparerTestFixture.cs` / `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/SaveMigrationChainTest.cs`（連鎖の配列）
 - Move＋書き直し（テスト。`T=moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/Migration`）:
   - `$T/SaveMigrationStepV7ToV8Test.cs`(S1) → `$T/SaveMigrationStepV7ToV8InheritedLevelTest.cs`
@@ -3004,6 +3004,7 @@ git -C $MW push
 - Produces（Task 7 が使う）:
   - `namespace Game.SaveLoad.Migration.Steps.V7ToV8`
   - `public interface IV7ToV8MigrationPart { bool TryPrepare(JObject save, out string failureReason); string ApplyAndSummarize(); }`
+  - `public static class V7ToV8SaveJson { bool IsAbsentOrNull(JToken); bool IsExplicitNull(JToken); bool Reject(string reason, out string failureReason); bool TryCollectBlockStates(JObject save, out List<JObject> states, out string failureReason); }`（部品が共有する辿り方。Task 7 が `TryGetNestedArray` を足す）
   - `public sealed class SaveMigrationStepV7ToV8 : ISaveMigrationStep`（`FromVersion => 7`。`Migrate` の中で `IV7ToV8MigrationPart[] parts` を並べる）
   - `WorldSaveAllInfo.CurrentVersion == 8`
 
@@ -3011,13 +3012,15 @@ git -C $MW push
 ```
 Game.SaveLoad/Migration/Steps/              .cs 7本（V1ToV2〜V6ToV7 は master のまま、V7ToV8 は作り直し）
   V2ToV3/  V3ToV4/                          既存
-  V7ToV8/                                   .cs 7本（Task 7 後）
+  V7ToV8/                                   .cs 9本（Task 7 後）
     IV7ToV8MigrationPart.cs                 約20行
-    MachineInheritedLevelFiller.cs          約75行（S1 の SaveMigrationStepV7ToV8 を移植）
-    CleanRoomMachineFluidSlotFiller.cs      約80行（S1 の V8ToV9 部品を移植。W17 を吸収）
+    V7ToV8SaveJson.cs                       約60行（部品が共有する辿り方。Task 7 で TryGetNestedArray を足して約85行）
+    NestedSaveArray.cs                      約40行（Task 7 で新設。save[節][配列] の 無い／null／配列 の3状態）
+    MachineInheritedLevelFiller.cs          約60行（S1 の SaveMigrationStepV7ToV8 を移植）
+    CleanRoomMachineFluidSlotFiller.cs      約70行（S1 の V8ToV9 部品を移植。W17 を吸収）
     RocketLaunchHistoryFiller.cs            約45行（S2 の SaveMigrationStepV6ToV7 を移植）
     SpaceElevatorCablePoolFiller.cs         約45行（S3 の SaveMigrationStepV7ToV8 を移植）
-    ZeroCostTier9ResearchResetter.cs        約120行（Task 7 で新設）
+    ZeroCostTier9ResearchResetter.cs        約110行（Task 7 で新設）
     ZeroCostTier9ResearchResetTable.cs      約70行（Task 7 で新設）
 Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 ```
@@ -3036,7 +3039,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   git mv $S/V8ToV9.meta $S/V7ToV8.meta
   ```
 
-- [ ] **Step 2: 部品のインターフェースを作る** `Steps/V7ToV8/IV7ToV8MigrationPart.cs`
+- [ ] **Step 2: 部品のインターフェースと、部品が共有するセーブ JSON の辿り方を作る** `Steps/V7ToV8/IV7ToV8MigrationPart.cs`・`Steps/V7ToV8/V7ToV8SaveJson.cs`
   ```csharp
   using Newtonsoft.Json.Linq;
 
@@ -3055,6 +3058,64 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
           // 検査で集めた対象だけを書き換え、ログに載せる要約を返す
           // Rewrite only what inspection collected and return a summary for the log
           string ApplyAndSummarize();
+      }
+  }
+  ```
+
+  `Steps/V7ToV8/V7ToV8SaveJson.cs`（欠損と null の判定・world→ブロック→state の走査・拒否理由の返し方を、部品ごとに複製せず 1 か所に置く。判断記録 A32）:
+  ```csharp
+  using System.Collections.Generic;
+  using Newtonsoft.Json.Linq;
+
+  namespace Game.SaveLoad.Migration.Steps.V7ToV8
+  {
+      /// <summary>
+      /// 版7→8の部品が共有するセーブ JSON の辿り方。欠損と null の判定・world→ブロック→state の走査・拒否理由の返し方を 1 か所に置く
+      /// Save-JSON walking shared by the version 7-to-8 parts; the absent/null tests, the world->block->state walk and refusal returns live in one place
+      /// </summary>
+      public static class V7ToV8SaveJson
+      {
+          // キーが無いか、値が JSON の null（どちらも「値が無い」として扱う箇所で使う）
+          // The key is absent or its value is JSON null (used where both mean "no value")
+          public static bool IsAbsentOrNull(JToken token)
+          {
+              return token == null || token.Type == JTokenType.Null;
+          }
+
+          // キーはあり、値が JSON の null（欠損と分けて数える箇所で使う）
+          // The key exists and its value is JSON null (used where it is counted apart from absence)
+          public static bool IsExplicitNull(JToken token)
+          {
+              return token != null && token.Type == JTokenType.Null;
+          }
+
+          // 拒否理由を out に入れて false を返す（TryPrepare の拒否の書き方を 1 つにする）
+          // Put the refusal reason into the out parameter and return false (one way to refuse in TryPrepare)
+          public static bool Reject(string reason, out string failureReason)
+          {
+              failureReason = reason;
+              return false;
+          }
+
+          // world 配列の各ブロックの state を集める。state の無いブロックは機械ではないので飛ばし、形が違えば拒否する
+          // Collect each world block's state; blocks without state are not machines and are skipped, a wrong shape is refused
+          public static bool TryCollectBlockStates(JObject save, out List<JObject> states, out string failureReason)
+          {
+              states = new List<JObject>();
+              failureReason = null;
+              if (!(save["world"] is JArray world)) return Reject($"セーブのworldが配列ではありません。 type={save["world"]?.Type}", out failureReason);
+
+              foreach (var blockToken in world)
+              {
+                  if (!(blockToken is JObject block)) return Reject($"world要素がオブジェクトではありません。 type={blockToken.Type}", out failureReason);
+                  var stateToken = block["state"];
+                  if (IsAbsentOrNull(stateToken)) continue;
+                  if (!(stateToken is JObject state)) return Reject($"world要素のstateがオブジェクトではありません。 type={stateToken.Type}", out failureReason);
+                  states.Add(state);
+              }
+
+              return true;
+          }
       }
   }
   ```
@@ -3084,38 +3145,31 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 
           public bool TryPrepare(JObject save, out string failureReason)
           {
-              failureReason = null;
-              if (!(save["world"] is JArray world)) return Reject($"セーブのworldが配列ではありません。 type={save["world"]?.Type}", out failureReason);
+              // world→ブロック→state の走査と拒否文は全部品で共有する
+              // The world->block->state walk and its refusal texts are shared by every part
+              if (!V7ToV8SaveJson.TryCollectBlockStates(save, out var states, out failureReason)) return false;
 
-              foreach (var blockToken in world)
+              foreach (var state in states)
               {
-                  if (!(blockToken is JObject block)) return Reject($"world要素がオブジェクトではありません。 type={blockToken.Type}", out failureReason);
-
-                  // stateが無いブロックは機械ではないので対象外
-                  // A block without state is not a machine, so it is out of scope
-                  var stateToken = block["state"];
-                  if (stateToken == null || stateToken.Type == JTokenType.Null) continue;
-                  if (!(stateToken is JObject state)) return Reject($"world要素のstateがオブジェクトではありません。 type={stateToken.Type}", out failureReason);
-
                   // 通常機械はprocessorサブオブジェクトへ足す
                   // A normal machine gets the key inside its processor sub-object
                   var vanillaToken = state[VanillaMachineSaveKey];
-                  if (vanillaToken != null && vanillaToken.Type != JTokenType.Null)
+                  if (!V7ToV8SaveJson.IsAbsentOrNull(vanillaToken))
                   {
-                      if (!(vanillaToken is JObject vanilla)) return Reject($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}", out failureReason);
+                      if (!(vanillaToken is JObject vanilla)) return V7ToV8SaveJson.Reject($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}", out failureReason);
                       var processorToken = vanilla["processor"];
                       // processorの明示nullはロード側も警告して復元を見送るので、止めずに台数だけ残す（清浄室機械の部品と同じ扱い）
                       // An explicit null processor is skipped with a warning by the loader too, so count it instead of refusing
-                      if (processorToken != null && processorToken.Type == JTokenType.Null) _nullVanillaProcessorCount++;
-                      else if (!(processorToken is JObject processor)) return Reject($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={processorToken?.Type}", out failureReason);
+                      if (V7ToV8SaveJson.IsExplicitNull(processorToken)) _nullVanillaProcessorCount++;
+                      else if (!(processorToken is JObject processor)) return V7ToV8SaveJson.Reject($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={processorToken?.Type}", out failureReason);
                       else if (!processor.ContainsKey(InheritedLevelKey)) _vanillaProcessors.Add(processor);
                   }
 
                   // クリーンルーム機械は直下へ足す
                   // A clean-room machine gets the key at its top level
                   var cleanRoomToken = state[CleanRoomMachineSaveKey];
-                  if (cleanRoomToken == null || cleanRoomToken.Type == JTokenType.Null) continue;
-                  if (!(cleanRoomToken is JObject cleanRoom)) return Reject($"{CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}", out failureReason);
+                  if (V7ToV8SaveJson.IsAbsentOrNull(cleanRoomToken)) continue;
+                  if (!(cleanRoomToken is JObject cleanRoom)) return V7ToV8SaveJson.Reject($"{CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}", out failureReason);
                   if (!cleanRoom.ContainsKey(InheritedLevelKey)) _cleanRoomProcessors.Add(cleanRoom);
               }
 
@@ -3127,12 +3181,6 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
               foreach (var processor in _vanillaProcessors) processor[InheritedLevelKey] = JValue.CreateNull();
               foreach (var cleanRoom in _cleanRoomProcessors) cleanRoom[InheritedLevelKey] = JValue.CreateNull();
               return $"継承レベルを足した通常機械={_vanillaProcessors.Count}台 クリーンルーム機械={_cleanRoomProcessors.Count}台 processorが null で飛ばした通常機械={_nullVanillaProcessorCount}台";
-          }
-
-          private static bool Reject(string reason, out string failureReason)
-          {
-              failureReason = reason;
-              return false;
           }
       }
   }
@@ -3163,16 +3211,12 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 
           public bool TryPrepare(JObject save, out string failureReason)
           {
-              failureReason = null;
-              if (!(save["world"] is JArray world)) return Reject($"セーブのworldが配列ではありません。 type={save["world"]?.Type}", out failureReason);
+              // world→ブロック→state の走査と拒否文は全部品で共有する
+              // The world->block->state walk and its refusal texts are shared by every part
+              if (!V7ToV8SaveJson.TryCollectBlockStates(save, out var states, out failureReason)) return false;
 
-              foreach (var blockToken in world)
+              foreach (var state in states)
               {
-                  if (!(blockToken is JObject block)) return Reject($"world要素がオブジェクトではありません。 type={blockToken.Type}", out failureReason);
-                  var stateToken = block["state"];
-                  if (stateToken == null || stateToken.Type == JTokenType.Null) continue;
-                  if (!(stateToken is JObject state)) return Reject($"world要素のstateがオブジェクトではありません。 type={stateToken.Type}", out failureReason);
-
                   // 清浄室機械以外はキーが無いので対象外
                   // Blocks other than clean-room machines lack the key and are out of scope
                   var processorToken = state[ProcessorSaveKey];
@@ -3180,21 +3224,21 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 
                   // 明示nullはロード側も警告して復元を見送る形なので、止めずに台数だけ残す
                   // An explicit null is also skipped with a warning by the loader, so count it instead of refusing
-                  if (processorToken.Type == JTokenType.Null)
+                  if (V7ToV8SaveJson.IsExplicitNull(processorToken))
                   {
                       _nullProcessorCount++;
                       continue;
                   }
 
-                  if (!(processorToken is JObject processorState)) return Reject($"{ProcessorSaveKey} がオブジェクトではありません。 type={processorToken.Type}", out failureReason);
+                  if (!(processorToken is JObject processorState)) return V7ToV8SaveJson.Reject($"{ProcessorSaveKey} がオブジェクトではありません。 type={processorToken.Type}", out failureReason);
                   var inputToken = processorState[InputFluidSlotKey];
                   var outputToken = processorState[OutputFluidSlotKey];
                   // 液体キーの明示nullは欠損と同じく空配列で補う（判断記録 A3）
                   // An explicit null fluid key is filled like a missing one (decision A3)
-                  var inputMissing = inputToken == null || inputToken.Type == JTokenType.Null;
-                  var outputMissing = outputToken == null || outputToken.Type == JTokenType.Null;
-                  if (!inputMissing && !(inputToken is JArray)) return Reject($"{InputFluidSlotKey} が配列ではありません。 type={inputToken.Type}", out failureReason);
-                  if (!outputMissing && !(outputToken is JArray)) return Reject($"{OutputFluidSlotKey} が配列ではありません。 type={outputToken.Type}", out failureReason);
+                  var inputMissing = V7ToV8SaveJson.IsAbsentOrNull(inputToken);
+                  var outputMissing = V7ToV8SaveJson.IsAbsentOrNull(outputToken);
+                  if (!inputMissing && !(inputToken is JArray)) return V7ToV8SaveJson.Reject($"{InputFluidSlotKey} が配列ではありません。 type={inputToken.Type}", out failureReason);
+                  if (!outputMissing && !(outputToken is JArray)) return V7ToV8SaveJson.Reject($"{OutputFluidSlotKey} が配列ではありません。 type={outputToken.Type}", out failureReason);
                   if (inputMissing || outputMissing) _targets.Add(processorState);
               }
 
@@ -3207,17 +3251,11 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
               // Add empty arrays only where a fluid key is missing
               foreach (var processorState in _targets)
               {
-                  if (processorState[InputFluidSlotKey] == null || processorState[InputFluidSlotKey].Type == JTokenType.Null) processorState[InputFluidSlotKey] = new JArray();
-                  if (processorState[OutputFluidSlotKey] == null || processorState[OutputFluidSlotKey].Type == JTokenType.Null) processorState[OutputFluidSlotKey] = new JArray();
+                  if (V7ToV8SaveJson.IsAbsentOrNull(processorState[InputFluidSlotKey])) processorState[InputFluidSlotKey] = new JArray();
+                  if (V7ToV8SaveJson.IsAbsentOrNull(processorState[OutputFluidSlotKey])) processorState[OutputFluidSlotKey] = new JArray();
               }
 
               return $"液体スロットを足した清浄室機械={_targets.Count}台 processorが null で飛ばした清浄室機械={_nullProcessorCount}台";
-          }
-
-          private static bool Reject(string reason, out string failureReason)
-          {
-              failureReason = reason;
-              return false;
           }
       }
   }
@@ -3247,7 +3285,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 
               // 欠損と明示nullは未打ち上げで補う
               // Fill both absence and an explicit null with not-launched
-              if (history == null || history.Type == JTokenType.Null)
+              if (V7ToV8SaveJson.IsAbsentOrNull(history))
               {
                   _fillTarget = save;
                   return true;
@@ -3295,7 +3333,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 
               // 欠損と明示nullは0のプールで補う
               // Fill both absence and an explicit null with an empty pool
-              if (existing == null || existing.Type == JTokenType.Null)
+              if (V7ToV8SaveJson.IsAbsentOrNull(existing))
               {
                   _fillTarget = save;
                   return true;
@@ -3931,9 +3969,9 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
     ```
   `LevelInheritanceSaveLoadTest.Version7PlainMachineLoadsWithoutInheritedLevelTest` は変更しない。版7と名乗らせたセーブが新しい V7→V8 を通り、履歴とプールの節は現行セーブ由来の値がそのまま素通しされる。
 
-- [ ] **Step 16: Unity に .meta を作らせてコンパイル**（新規の .cs が4本〔部品3本とテスト1本〕あるので再起動する。save-migration スキル Gotchas）
+- [ ] **Step 16: Unity に .meta を作らせてコンパイル**（新規の .cs が5本〔部品3本・共有の辿り方1本・テスト1本〕と interface 1本あるので再起動する。save-migration スキル Gotchas）
   Run: `cd $WT && uloop launch ./moorestech_client --restart && uloop compile --project-path ./moorestech_client && git status --short | grep '\.meta$'`
-  Expected: compile エラー0。新しい `.meta` は5本（`V7ToV8/IV7ToV8MigrationPart.cs.meta`・`MachineInheritedLevelFiller.cs.meta`・`RocketLaunchHistoryFiller.cs.meta`・`SpaceElevatorCablePoolFiller.cs.meta`・`Migration/SaveMigrationStepV7ToV8Test.cs.meta`）。
+  Expected: compile エラー0。新しい `.meta` は6本（`V7ToV8/IV7ToV8MigrationPart.cs.meta`・`V7ToV8SaveJson.cs.meta`・`MachineInheritedLevelFiller.cs.meta`・`RocketLaunchHistoryFiller.cs.meta`・`SpaceElevatorCablePoolFiller.cs.meta`・`Migration/SaveMigrationStepV7ToV8Test.cs.meta`）。
 
 - [ ] **Step 17: テスト**
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveMigration|SaveLoadPreparer|MigrationLoad|LevelInheritanceSaveLoad|CleanRoomMachineFluid|RocketLaunchHistorySaveLoad|SpaceElevatorUpstreamMigration|SaveTickAndRandomState" --timeout-seconds 900`
@@ -3991,17 +4029,19 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 - 表のアイテム・ブロックの `initialUnlocked` は、630fdce ではすべて `false`。
 
 **Files:**
-- Create: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V7ToV8/ZeroCostTier9ResearchResetTable.cs` / `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs`
-- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/SaveMigrationStepV7ToV8.cs`
+- Create: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V7ToV8/ZeroCostTier9ResearchResetTable.cs` / `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs` / `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V7ToV8/NestedSaveArray.cs`
+- Modify: `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/SaveMigrationStepV7ToV8.cs` / `moorestech_server/Assets/Scripts/Game.SaveLoad/Migration/Steps/V7ToV8/V7ToV8SaveJson.cs`（`TryGetNestedArray` を足す）
 - Test（Create）: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/Migration/SaveMigrationStepV7ToV8ResearchResetTest.cs` / `moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/Research/ResearchUnlockRecordFallbackLoadTest.cs`
 - Test（Modify）: `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/SaveLoad/Migration/SaveMigrationStepV7ToV8Test.cs`
 
 **Interfaces:**
-- Consumes: `IV7ToV8MigrationPart`（Task 6）、`ResearchDataStoreTest.CompleteResearchForTest(ServiceProvider, Guid)`・`ResearchDataStoreTest.Research4Guid`・`ResearchDataStoreTest.Test3ItemGuid`（既存。`Tests/CombinedTest/Game/ResearchDataStoreTest.cs:24-26,165`）
+- Consumes: `IV7ToV8MigrationPart`・`V7ToV8SaveJson`（Task 6）、`ResearchDataStoreTest.CompleteResearchForTest(ServiceProvider, Guid)`・`ResearchDataStoreTest.Research4Guid`・`ResearchDataStoreTest.Test3ItemGuid`（既存。`Tests/CombinedTest/Game/ResearchDataStoreTest.cs:24-26,165`）
 - Produces:
   - `public static class ZeroCostTier9ResearchResetTable { public static readonly IReadOnlyDictionary<Guid, ResearchUnlockGuids> UnlocksByResearch; }`
   - `public sealed class ResearchUnlockGuids { IReadOnlyList<Guid> ItemGuids; IReadOnlyList<Guid> BlockGuids; }`
   - `public sealed class ZeroCostTier9ResearchResetter : IV7ToV8MigrationPart`
+  - `public enum NestedSaveArrayState { Missing, ExplicitNull, Present }`、`public readonly struct NestedSaveArray { NestedSaveArrayState State; JArray Array /* Present のときだけ。他は InvalidOperationException */; static Missing() / ExplicitNull() / Present(JArray) }`
+  - `V7ToV8SaveJson.TryGetNestedArray(JObject save, string sectionKey, string arrayKey, out NestedSaveArray result, out string failureReason) -> bool`（false は形が違うときの拒否だけ）
 
 - [ ] **Step 1: 対象表を作る** `Steps/V7ToV8/ZeroCostTier9ResearchResetTable.cs`
   ```csharp
@@ -4075,7 +4115,95 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   }
   ```
 
-- [ ] **Step 2: リセット部品を作る** `Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs`
+- [ ] **Step 2: 共有の辿り方に「無い／null／配列」の3状態を返す `TryGetNestedArray` を足し、リセット部品を作る** `Steps/V7ToV8/NestedSaveArray.cs`・`Steps/V7ToV8/V7ToV8SaveJson.cs`・`Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs`
+  結果の状態は enum 1 つで表す（bool と配列の null の組で「拒否／節なし／配列あり」を表さない。判断記録 A31）。拒否（形が違う）だけは他の `TryPrepare` と同じく bool の false と理由で返す。
+
+  `Steps/V7ToV8/NestedSaveArray.cs`:
+  ```csharp
+  using System;
+  using Newtonsoft.Json.Linq;
+
+  namespace Game.SaveLoad.Migration.Steps.V7ToV8
+  {
+      // save[節][配列] を辿った結果の状態。Missing=節か配列のキーが無い、ExplicitNull=どちらかが JSON の null、Present=配列がある
+      // State of walking save[section][array]: Missing = a key is absent, ExplicitNull = one of them is JSON null, Present = the array exists
+      public enum NestedSaveArrayState
+      {
+          Missing,
+          ExplicitNull,
+          Present,
+      }
+
+      /// <summary>
+      /// save[節][配列] を辿った結果。状態は State の1つで表し、配列は Present のときだけ読める
+      /// The result of walking save[section][array]; the state is the single State value and the array is readable only when Present
+      /// </summary>
+      public readonly struct NestedSaveArray
+      {
+          public readonly NestedSaveArrayState State;
+          private readonly JArray _array;
+
+          private NestedSaveArray(NestedSaveArrayState state, JArray array)
+          {
+              State = state;
+              _array = array;
+          }
+
+          public static NestedSaveArray Missing()
+          {
+              return new NestedSaveArray(NestedSaveArrayState.Missing, new JArray());
+          }
+
+          public static NestedSaveArray ExplicitNull()
+          {
+              return new NestedSaveArray(NestedSaveArrayState.ExplicitNull, new JArray());
+          }
+
+          public static NestedSaveArray Present(JArray array)
+          {
+              return new NestedSaveArray(NestedSaveArrayState.Present, array);
+          }
+
+          // Present 以外で読むのは呼び出し側の分岐漏れなので、空配列で黙って続けず例外で止める
+          // Reading it in any other state is a missed branch in the caller, so stop with an exception instead of silently iterating nothing
+          public JArray Array => State == NestedSaveArrayState.Present
+              ? _array
+              : throw new InvalidOperationException($"NestedSaveArray.Array は Present のときだけ読める。 state={State}");
+      }
+  }
+  ```
+
+  `Steps/V7ToV8/V7ToV8SaveJson.cs`（Task 6 Step 2 のクラスの `TryCollectBlockStates` の後ろに、次のメソッドを足す）:
+  ```csharp
+          // save[sectionKey][arrayKey] を辿り、無い／null／配列の3状態を result に入れる。形が違えば拒否する
+          // Walk save[sectionKey][arrayKey] and put one of absent/null/array into result; a wrong shape is refused
+          public static bool TryGetNestedArray(JObject save, string sectionKey, string arrayKey, out NestedSaveArray result, out string failureReason)
+          {
+              result = NestedSaveArray.Missing();
+              failureReason = null;
+              var sectionToken = save[sectionKey];
+              if (sectionToken == null) return true;
+              if (IsExplicitNull(sectionToken))
+              {
+                  result = NestedSaveArray.ExplicitNull();
+                  return true;
+              }
+              if (!(sectionToken is JObject section)) return Reject($"{sectionKey} がオブジェクトではありません。 type={sectionToken.Type}", out failureReason);
+
+              var arrayToken = section[arrayKey];
+              if (arrayToken == null) return true;
+              if (IsExplicitNull(arrayToken))
+              {
+                  result = NestedSaveArray.ExplicitNull();
+                  return true;
+              }
+              if (!(arrayToken is JArray found)) return Reject($"{sectionKey}.{arrayKey} が配列ではありません。 type={arrayToken.Type}", out failureReason);
+              result = NestedSaveArray.Present(found);
+              return true;
+          }
+  ```
+
+  `Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs`:
   セーブのキーは実測した値。`research.CompletedResearchGuids` は、`ResearchSaveJsonObject` に JsonProperty が無いため大文字始まりになる（`ResearchSectionPruner.cs:15` と同じ）。`gameUnlockState.itemUnlockStateInfos[].guid` と `blockUnlockStateInfos[].guid` は `GameUnlockStateDatastoreController.cs` の JsonProperty と `ItemUnlockStateInfo.cs:32`・`BlockUnlockStateInfo.cs:31` から取った。
   ```csharp
   using System;
@@ -4109,11 +4237,11 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
 
           public bool TryPrepare(JObject save, out string failureReason)
           {
-              // 完了一覧から対象ノードを集める。研究節の無いセーブは外すものが無い
-              // Collect target nodes from the completed list; a save without a research section has nothing to remove
-              if (!TryGetNestedArray(save, ResearchKey, CompletedResearchGuidsKey, out var completed, out failureReason)) return false;
-              if (completed == null) return true;
-              foreach (var entry in completed)
+              // 完了一覧から対象ノードを集める。研究節か完了一覧が無い・null のセーブは外すものが無い
+              // Collect target nodes from the completed list; a save whose research section or list is absent or null has nothing to remove
+              if (!V7ToV8SaveJson.TryGetNestedArray(save, ResearchKey, CompletedResearchGuidsKey, out var completed, out failureReason)) return false;
+              if (completed.State != NestedSaveArrayState.Present) return true;
+              foreach (var entry in completed.Array)
               {
                   // 読めない値は後段の刈り込みが警告して残すので、ここでは対象ノードだけを拾う
                   // The later pruner warns about unreadable values, so only target nodes are picked here
@@ -4145,34 +4273,18 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
               return $"コスト0研究のリセット: 完了を外した研究={_resetResearchGuids.Count}件[{string.Join(",", _resetResearchGuids)}] 消した解放記録={_unlockRecords.Count}件";
           }
 
-          // 解放状態の配列から対象GUIDの記録を集める。解放状態や配列の無いセーブは消すものが無い
-          // Collect records of target GUIDs from an unlock-state array; a save without the section or array has nothing to delete
+          // 解放状態の配列から対象GUIDの記録を集める。解放状態の節か配列が無い・null のセーブは消すものが無い
+          // Collect records of target GUIDs from an unlock-state array; a save whose section or array is absent or null has nothing to delete
           private bool TryCollectRecords(JObject save, string infosKey, HashSet<Guid> targetGuids, out string failureReason)
           {
-              if (!TryGetNestedArray(save, GameUnlockStateKey, infosKey, out var infos, out failureReason)) return false;
-              if (infos == null) return true;
-              foreach (var infoToken in infos)
+              if (!V7ToV8SaveJson.TryGetNestedArray(save, GameUnlockStateKey, infosKey, out var infos, out failureReason)) return false;
+              if (infos.State != NestedSaveArrayState.Present) return true;
+              foreach (var infoToken in infos.Array)
               {
-                  if (!(infoToken is JObject info)) return Reject($"{GameUnlockStateKey}.{infosKey} の要素がオブジェクトではありません。 type={infoToken.Type}", out failureReason);
+                  if (!(infoToken is JObject info)) return V7ToV8SaveJson.Reject($"{GameUnlockStateKey}.{infosKey} の要素がオブジェクトではありません。 type={infoToken.Type}", out failureReason);
                   if (TryReadGuid(info[GuidKey], out var guid) && targetGuids.Contains(guid)) _unlockRecords.Add(info);
               }
 
-              return true;
-          }
-
-          // save[sectionKey][arrayKey]を辿る。どちらかが欠損かnullならarray=nullで成功、形が違えば拒否する
-          // Walk save[sectionKey][arrayKey]; absence or null yields array=null with success, a wrong shape is refused
-          private static bool TryGetNestedArray(JObject save, string sectionKey, string arrayKey, out JArray array, out string failureReason)
-          {
-              array = null;
-              failureReason = null;
-              var sectionToken = save[sectionKey];
-              if (sectionToken == null || sectionToken.Type == JTokenType.Null) return true;
-              if (!(sectionToken is JObject section)) return Reject($"{sectionKey} がオブジェクトではありません。 type={sectionToken.Type}", out failureReason);
-              var arrayToken = section[arrayKey];
-              if (arrayToken == null || arrayToken.Type == JTokenType.Null) return true;
-              if (!(arrayToken is JArray found)) return Reject($"{sectionKey}.{arrayKey} が配列ではありません。 type={arrayToken.Type}", out failureReason);
-              array = found;
               return true;
           }
 
@@ -4180,12 +4292,6 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
           {
               guid = Guid.Empty;
               return token is JValue { Type: JTokenType.String } value && Guid.TryParse((string)value, out guid);
-          }
-
-          private static bool Reject(string reason, out string failureReason)
-          {
-              failureReason = reason;
-              return false;
           }
       }
   }
@@ -4416,9 +4522,9 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   ```
   テスト用マスタで Test3 を解放するのは研究4だけ（`forUnitTest/master` を `1234-000000000003` で grep し、challenge 側に解放が無いことを確認済み）。
 
-- [ ] **Step 7: .meta を作らせてコンパイル**（新規の .cs が4本）
+- [ ] **Step 7: .meta を作らせてコンパイル**（新規の .cs が5本）
   Run: `cd $WT && uloop launch ./moorestech_client --restart && uloop compile --project-path ./moorestech_client && git status --short | grep '\.meta$'`
-  Expected: エラー0。新しい `.meta` は4本。
+  Expected: エラー0。新しい `.meta` は5本（`ZeroCostTier9ResearchResetTable.cs.meta`・`ZeroCostTier9ResearchResetter.cs.meta`・`NestedSaveArray.cs.meta`・`SaveMigrationStepV7ToV8ResearchResetTest.cs.meta`・`ResearchUnlockRecordFallbackLoadTest.cs.meta`）。
 
 - [ ] **Step 8: テスト**
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "SaveMigrationStepV7ToV8|ResearchUnlockRecordFallbackLoad|ResearchDataStore|SaveLoadPreparer" --timeout-seconds 900`
