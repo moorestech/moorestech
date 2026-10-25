@@ -16,6 +16,7 @@ namespace Client.UitkStage0Probe
         public const string WithCefArgument = "--uitkWithCef";
         public const string LayersArgument = "--uitkProbeLayers";
         public const string AutoCaptureArgument = "--uitkProbeAutoCapture";
+        public const string AutoStartLocalArgument = "--uitkAutoStartLocal";
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
@@ -29,6 +30,9 @@ namespace Client.UitkStage0Probe
 
         private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            // 無人計測ではタイトルの「ローカルで開始」をプレイヤーと同じボタン経路で押す（同意ゲートも通る）
+            // For unattended runs, press the title's start-local through the same button path a player uses (gates included)
+            if (scene.name == SceneConstant.MainMenuSceneName && HasArgument(AutoStartLocalArgument)) UitkAutoStartLocal.PressSoon();
             if (scene.name != SceneConstant.MainGameSceneName) return;
 
             // sceneLoadedはStartより前に来るので、ここで止めればCEFは初期化されずIMEモードも書かれない
