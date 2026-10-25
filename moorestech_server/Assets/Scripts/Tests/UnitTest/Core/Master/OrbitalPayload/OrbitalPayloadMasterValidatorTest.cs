@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Core.Master.OrbitalPayload
             // DIの生成でマスタが読み込まれ、検証エラーなら例外で落ちる
             // Building the container loads the master and would throw on a validation error
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            Assert.AreEqual(4, MasterHolder.ItemMaster.Items.OrbitalPayloads.Length);
+            Assert.AreEqual(6, MasterHolder.ItemMaster.Items.OrbitalPayloads.Length);
         }
 
         [TestCase("countPerLaunch", 101, "exceeds level-1 stack")]
