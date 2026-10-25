@@ -43,8 +43,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反0件・修正0件 / 注目点3件（撮影ごとの別プロセス・moorestech_logs の新しい使い方・G1 のパッケージ分割）は判断記録 9〜13 に理由あり。範囲外の備考（全部 Web を固定するテストは最初の暗転 PR で赤になる）を受けてそのテストを外した
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強3・弱6・第3バケツ4 / 強は全部取り込むか段階1へ申し送り、弱は3件を取り込み3件はこのまま（判断記録「設計検査 Phase 2.6 の裁定」）
 
 ---
 
@@ -558,7 +558,12 @@ def resolve_commit(root: Path, rev: str) -> str | None:
 
 
 def is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
-    return _succeeds(root, "merge-base", "--is-ancestor", ancestor, descendant)
+    # 終了コード 0=祖先・1=祖先でない。それ以外は git の失敗として落とす
+    # Exit 0 means ancestor and 1 means not; anything else is a git failure and raises
+    result = subprocess.run(["git", "merge-base", "--is-ancestor", ancestor, descendant], cwd=root, capture_output=True, text=True)
+    if result.returncode not in (0, 1):
+        raise subprocess.CalledProcessError(result.returncode, result.args, result.stdout, result.stderr)
+    return result.returncode == 0
 
 
 def read_file_at(root: Path, rev: str, path: str) -> str | None:
@@ -670,7 +675,7 @@ from pathlib import Path
 
 from . import git_history
 from .checks import RULE_SWITCH, Violation, check_coverage, check_retired_changes, check_switch_records, switching_bundles, unrecorded_commits
-from .ledger import empty_ledger, parse_ledger
+from .ledger import STATE_WEB, empty_ledger, parse_ledger
 from .ownership import WEB_SOURCE_ROOT
 
 LEDGER_PATH = "docs/uitk/TODO.md"
@@ -716,7 +721,9 @@ def main(argv: list[str]) -> int:
     report: list[str] = []
     switching = switching_bundles(base, head)
     for bundle_id, bundle in sorted(head.bundles.items()):
-        if bundle.dark_start is None:
+        # 状態で分岐する。起点は Web 以外の束にだけあることをパーサが保証している
+        # Branch on the state; the parser guarantees a start exists exactly for non-Web bundles
+        if bundle.state == STATE_WEB or bundle.dark_start is None:
             continue
         start = git_history.resolve_commit(root, bundle.dark_start)
         if start is None or not git_history.is_ancestor(root, start, args.head):
@@ -1106,7 +1113,7 @@ from pathlib import Path
 
 import uitk_web_follow_testrepo  # noqa: F401  (sys.path に .github/scripts を足す)
 from uitk_web_follow.cli import LEDGER_PATH
-from uitk_web_follow.ledger import STATE_WEB, parse_ledger
+from uitk_web_follow.ledger import parse_ledger
 from uitk_web_follow.ownership import WEB_SOURCE_ROOT, uncovered_sources
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -1130,11 +1137,7 @@ class RealLedgerTest(unittest.TestCase):
         features = sorted({path[len(FEATURES):].split("/")[0] for path in self.sources if path.startswith(FEATURES)})
         listed = " ".join(path for row in self.ledger.rows for path in row.web_paths)
         self.assertEqual([feature for feature in features if f"{FEATURES}{feature}/" not in listed], [])
-        self.assertEqual(len(features), 20)
-
-    def test_initial_owner_table_is_all_web(self):
-        self.assertTrue(all(bundle.state == STATE_WEB for bundle in self.ledger.bundles.values()))
-        self.assertTrue(all(row.owner == "Web" for row in self.ledger.rows))
+        self.assertGreaterEqual(len(features), 20)
 
     def test_tier9_special_family_rows_are_bundle_four(self):
         for name in ("details/rocket/", "details/spaceElevator/"):
@@ -1146,7 +1149,7 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-注: `len(features) == 20` は master の現状の数で、`features` に機能が増えたら（Tier9 は `blockInventory` の下なので増えない）このテストを直す前に台帳へ行を足す。数を固定するのは、20 機能という計画の前提が崩れたことに気づくため。
+注: 所有表の初版が全部 Web であることや機能の数をちょうど 20 に固定することはしない（最初の暗転 PR や、行付きで足した新しい機能で無関係に赤になるため）。束の状態と所有者の整合はパーサが、新しい機能の行の有無は G1(0) と上の機能ごとの照合が毎回見る。
 
 - [ ] **Step 5: CI `.github/workflows/uitk-web-follow-gate.yml` を書く**
 
@@ -1354,9 +1357,12 @@ export const LedgerRows = {
   reconnect: "オーバーレイ: 再接続・辞書エラー・エラー境界",
   i18n: "i18n",
 } as const;
-type LedgerRow = (typeof LedgerRows)[keyof typeof LedgerRows];
+export type LedgerRow = (typeof LedgerRows)[keyof typeof LedgerRows];
+// 束の番号。撮影表・動画表・manifest で同じ型を使う
+// Bundle number, shared by the shot table, the video table, and the manifest
+export type BundleId = 1 | 2 | 3 | 4 | 5;
 
-export type ReferenceShot = ShotSetup & { id: string; bundle: 1 | 2 | 3 | 4 | 5; ledgerRow: LedgerRow };
+export type ReferenceShot = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow };
 
 export const ui = (state: string, subState?: string) => subState === undefined ? `/__uistate?state=${state}` : `/__uistate?state=${state}&subState=${subState}`;
 export const topic = (scenario: TopicScenario) => `/__topic-control?scenario=${scenario}`;
@@ -1430,11 +1436,11 @@ export const referenceShots: ReferenceShot[] = [
 - [ ] **Step 2: `referenceVideos.ts`（動画の撮影表）を書く**
 
 ```ts
-import { LedgerRows, topic, ui, type ShotSetup } from "./referenceShots";
+import { LedgerRows, topic, ui, type BundleId, type LedgerRow, type ShotSetup } from "./referenceShots";
 
 // 動きでしか意図が伝わらない演出の短い動画
 // Short videos for effects whose intent only shows in motion
-export type ReferenceVideo = ShotSetup & { id: string; bundle: 2 | 4 | 5; ledgerRow: (typeof LedgerRows)[keyof typeof LedgerRows]; durationMs: number };
+export type ReferenceVideo = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow; durationMs: number };
 
 export const referenceVideos: ReferenceVideo[] = [
   { id: "2-notification-enter-aggregate-exit", bundle: 2, ledgerRow: LedgerRows.notification, controls: [ui("GameScreen")], durationMs: 9000,
@@ -1467,10 +1473,21 @@ export async function startMockHost(webuiRoot: string, port: number): Promise<Ch
   const child = spawn(process.execPath, ["--import", "tsx", "e2e/mock-host/server.ts"], {
     cwd: webuiRoot, env: { ...process.env, MOCK_PORT: String(port), MOCK_DEMO: "1" }, stdio: ["ignore", "pipe", "inherit"],
   });
+  // 待受の合図か、先に終了か、15 秒の期限のどれかで決着させる
+  // Settle on the listening line, an early exit, or a 15 second deadline
   await new Promise<void>((resolve, reject) => {
-    child.once("exit", (code) => reject(new Error(`mock-host exited before listening (code ${code})`)));
+    const deadline = setTimeout(() => {
+      child.kill();
+      reject(new Error(`mock-host did not listen within 15s on ${port}`));
+    }, 15_000);
+    child.once("exit", (code) => {
+      clearTimeout(deadline);
+      reject(new Error(`mock-host exited before listening (code ${code})`));
+    });
     child.stdout?.on("data", (chunk: Buffer) => {
-      if (chunk.toString().includes(`mock-host on ${port}`)) resolve();
+      if (!chunk.toString().includes(`mock-host on ${port}`)) return;
+      clearTimeout(deadline);
+      resolve();
     });
   });
   return child;
@@ -1529,8 +1546,9 @@ async function revealSkitBody(page: Page): Promise<void> {
 ```ts
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import type { BundleId, LedgerRow } from "./referenceShots";
 
-export type CaptureEntry = { id: string; bundle: number; ledgerRow: string; file: string; kind: "image" | "video" };
+export type CaptureEntry = { id: string; bundle: BundleId; ledgerRow: LedgerRow; file: string; kind: "image" | "video" };
 
 // manifest と束ごとの一覧（GitHub でそのまま見られる Markdown）を書く
 // Write the manifest and a per-bundle index Markdown that renders on GitHub
@@ -1538,7 +1556,7 @@ export async function writeCaptureIndex(outputDirectory: string, entries: Captur
   await writeFile(join(outputDirectory, "manifest.json"), JSON.stringify({ sourceCommit, viewport: "1280x720", mockHostDemo: true, entries }, null, 2));
   const lines = [`# Web UI 参照キャプチャ（moorestech ${sourceCommit}）`, "",
     "UI Toolkit 移行で Web 版の「意図した見た目」を辿るための撮影。mock-host（DEMO）で撮った。台帳は moorestech の `docs/uitk/TODO.md`。", ""];
-  for (const bundle of [1, 2, 3, 4, 5]) {
+  for (const bundle of [1, 2, 3, 4, 5] as const) {
     lines.push(`## 束 ${bundle}`, "");
     for (const entry of entries.filter((candidate) => candidate.bundle === bundle)) {
       lines.push(`### ${entry.id}（${entry.ledgerRow}）`, "", entry.kind === "image" ? `![${entry.id}](${entry.file})` : `動画: [${entry.file}](${entry.file})`, "");
@@ -1575,17 +1593,25 @@ async function main(): Promise<void> {
   const sourceCommit = execFileSync("git", ["rev-parse", "--short=10", "HEAD"], { cwd: webuiRoot, encoding: "utf8" }).trim();
   const entries: CaptureEntry[] = [];
   const browser = await chromium.launch();
+  // ブラウザは成功・失敗のどちらでも閉じる
+  // Close the browser on both the success and the failure path
+  try {
 
   // 静止画: 撮影ごとに mock-host と context を作り直す
   // Stills: recreate the mock-host and the context for every shot
   for (const shot of referenceShots) {
     const host = await startMockHost(webuiRoot, port);
-    const context = await browser.newContext({ viewport: referenceViewport });
-    const page = await context.newPage();
-    await openShot(page, baseUrl, shot);
-    await page.screenshot({ path: join(outputDirectory, `${shot.id}.png`) });
-    await context.close();
-    await stopMockHost(host);
+    // 失敗しても子プロセスと context を残さない（前例 challenge-hud/capture.ts の finally と同じ）
+    // Never leak the child process or the context on failure (same as the finally in challenge-hud/capture.ts)
+    try {
+      const context = await browser.newContext({ viewport: referenceViewport });
+      const page = await context.newPage();
+      await openShot(page, baseUrl, shot);
+      await page.screenshot({ path: join(outputDirectory, `${shot.id}.png`) });
+      await context.close();
+    } finally {
+      await stopMockHost(host);
+    }
     entries.push({ id: shot.id, bundle: shot.bundle, ledgerRow: shot.ledgerRow, file: `${shot.id}.png`, kind: "image" });
   }
 
@@ -1593,6 +1619,7 @@ async function main(): Promise<void> {
   // Videos: wait the duration inside a recordVideo context, then save after closing it
   for (const video of referenceVideos) {
     const host = await startMockHost(webuiRoot, port);
+    try {
     const context = await browser.newContext({ viewport: referenceViewport, recordVideo: { dir: join(outputDirectory, ".video-tmp"), size: referenceViewport } });
     const page = await context.newPage();
     await openShot(page, baseUrl, video);
@@ -1602,10 +1629,14 @@ async function main(): Promise<void> {
     if (recording === null) throw new Error(`video was not recorded: ${video.id}`);
     await recording.saveAs(join(outputDirectory, `${video.id}.webm`));
     await recording.delete();
-    await stopMockHost(host);
+    } finally {
+      await stopMockHost(host);
+    }
     entries.push({ id: video.id, bundle: video.bundle, ledgerRow: video.ledgerRow, file: `${video.id}.webm`, kind: "video" });
   }
-  await browser.close();
+  } finally {
+    await browser.close();
+  }
   await rm(join(outputDirectory, ".video-tmp"), { recursive: true, force: true });
   await writeCaptureIndex(outputDirectory, entries, sourceCommit);
 }
@@ -1618,7 +1649,7 @@ void main().catch((error: unknown) => {
 });
 ```
 
-注: 失敗した撮影があればその場で全体を止める（黙って次へ進まない）。止まったら撮影表のその 1 件を直し、出力先を空にして最初から撮り直す。
+注: 上の `try`/`finally`（`catch` は無い）は子プロセス・ブラウザという外部境界の後片付けで、失敗は握り潰さずそのまま `main().catch` まで上げて終了コード 1 にする。字下げは写すときに整える。失敗した撮影があればその場で全体を止める（黙って次へ進まない）。止まったら撮影表のその 1 件を直し、出力先を空にして最初から撮り直す。
 
 `knip.json` の `entry` に `"e2e/uitk-reference/capture.ts"` を足す（`"e2e/challenge-hud/capture.ts"` の次の行）。
 
@@ -1782,6 +1813,21 @@ PR を作ったら `bd note moorestech-albof.4 "PR #<番号> 作成。台帳・G
 12. 置き場は `moorestech_logs`（`share-put` ではない）。理由: 移行の終わり（段階 5）まで数か月残す必要があり、git で残り、チームが GitHub から辿れる。書き込みは本体 clone ではなく別 worktree から行う（logs-sync hook との競合を避ける。README の落とし穴）
 13. mock-host のチュートリアル scenario を `tutorialControls.ts` へ分ける。理由: `tutorialDragGuide` を足すと `topicControls.ts` が 200 行を超える。前例: `pauseMenuControls.ts` の分け方
 14. 写す・捨てるの記録の中身（写し先の書き方）は自由文にし、`捨てた` だけ理由を必須にする。理由: 裁定の文言が「写した」か「捨てた（理由）」
+
+**設計検査 Phase 2.6 の裁定**（AskUserQuestion の代わりに agent が推奨で決めた。agent 既定（ユーザー未裁定））
+- 強〈5-A1〉`Bundle` の状態と `dark_start: str|None` の 2 表現 → 取り込む（一部）: cli は `state` で分岐し、起点は Web 以外にだけあることをパーサが保証する。Python で判別 union の型を作るのは見送る（不変条件は境界のパーサ 1 か所で検査し、誤りは赤になる）
+- 強〈5-I2〉撮影表・動画表・manifest の束番号と行名の型がばらばら → 取り込む: `BundleId` と `LedgerRow` を `referenceShots.ts` に 1 本置き、3 か所で使う
+- 強〈検査7-1〉台帳の所有者列と計画 §3.3 R2（所有表は (画面状態, 面)→所有者 のコード表）の食い違い → 両立させる: 台帳の所有者列は束の状態から決まる写しで、正はコード表。コード表は段階 1 で作るので、そのときに「コード表と台帳の所有者列が一致する」テストを足す（段階 1 の plan への申し送り。bd `moorestech-albof.4` の note にも残す）。今はコード表が無いので、計画 0-8 の「所有表の初版（全部 Web）もここで置く」に従う
+- 弱〈5-C3〉git の「該当なし」と「失敗」を同じ False に畳む → `is_ancestor` を取り込む（終了コード 0/1 以外は例外）。`read_file_at`・`resolve_commit` はこのまま（rev は先に解決済みで、`cat-file -e` の失敗はファイルが無いことだけを表す）
+- 弱〈5-F5〉撮影の後片付けが成功経路だけ → 取り込む（`try`/`finally`。前例 `challenge-hud/capture.ts`）
+- 弱〈5-F6〉mock-host の起動待ちに期限が無い → 取り込む（15 秒）。撮影中の `waitForTimeout` は尺そのものなのでこのまま
+- 弱〈5-C6〉台帳の 3 状態（無し・読めない・読めた）を `None` と誤りの列で分ける／〈5-C4〉スキットの本文の未着／〈検査6-4〉「全束が切替済み」の判定が 2 か所 → このまま（どれも 1 関数の中で閉じていて、取り違えると赤になる側に倒れる）
+
+**本PR外のリファクタ提案（第3バケツ。PR 本文の「本PR外のリファクタ提案」節に写す。この PR では直さない）**
+- `e2e/uitk-reference/shotRunner.ts` の `revealSkitBody` ⇔ `e2e/capture-skit.ts` の `showBlockingBody`（同じ手順）
+- `e2e/uitk-reference/referenceShots.ts` の `ui()`・`topic()`・`block()` ⇔ `e2e/support/mockControl.ts` の `setUiState`・`setTopicScenario`・`setBlock`（同じ URL の組み立て。前者は撮影表のデータとして文字列が要る）
+- `e2e/uitk-reference/shotRunner.ts` の `startMockHost`・`openShot` ⇔ `e2e/challenge-hud/serverLifecycle.ts`・`pageCapture.ts`（判断記録 11 で別プロセスへ逸脱）
+- `.github/scripts/uitk_web_follow/git_history.py` の `tracked_files` ⇔ `.github/scripts/check-test-external-dependencies.py` の `tracked_test_sources`
 
 **unityプレイ録画テストを入れない**: この plan はランタイム挙動（ゲームプレイ・入力・カメラ・UI・エンティティ表示）に触れない。変えるのは CI・docs・Web の e2e の撮影スクリプトと mock-host（テスト基盤）だけで、`src/` と C# は 1 行も変えない。
 
