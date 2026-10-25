@@ -60,7 +60,9 @@ import type {
   WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
+  SpaceElevatorStatusSchema,
   TrainPlatformModeSchema,
+  RocketLaunchPadDataSchema,
   TrainTimetableDataSchema,
   TrainTimetableStationSchema,
   TrainTimetableStopSchema,
@@ -125,6 +127,8 @@ export type CleanRoomSummaryData = z.infer<typeof CleanRoomSummaryDataSchema>;
 export type CleanRoomYieldData = z.infer<typeof CleanRoomYieldDataSchema>;
 export type CleanRoomYieldFetchedData = Extract<CleanRoomYieldData, { fetchState: "fetched" }>;
 export type GearToElectricGenerationState = z.infer<typeof GearToElectricGenerationStateSchema>;
+export type SpaceElevatorStatus = z.infer<typeof SpaceElevatorStatusSchema>;
+export type RocketLaunchPadData = z.infer<typeof RocketLaunchPadDataSchema>;
 export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;
 export type TrainTimetableStation = z.infer<typeof TrainTimetableStationSchema>;

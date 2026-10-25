@@ -138,9 +138,17 @@ namespace Game.Block.Factory.BlockTemplate
                 }
             }
             
+            // processor だけ null の外部セーブ（版7→8移行が通す形）は、インベントリを残して加工状態の復元だけ見送る
+            // An external save whose processor alone is null (a shape the V7->V8 migration lets through) keeps its inventories and skips only the processing state
+            var processorJson = jsonObject.Processor;
+            if (processorJson == null)
+            {
+                Debug.LogWarning($"通常機械のセーブ状態の processor が null のため、加工状態の復元を見送り待機・未選択で開始します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
+                return new VanillaMachineProcessorComponent(vanillaMachineInputInventory, vanillaMachineOutputInventory, requestPower, idlePowerRate, machineModuleEffectComponent);
+            }
+
             // 加工中ジョブは Processor のサブオブジェクトの平らなキーから組む（レシピがマスタから消えていれば null で、加工中の状態は Idle へ戻る）
             // Build the running job from the Processor sub-object's flat keys (null when its recipe left the master; a mid-job state then falls back to Idle)
-            var processorJson = jsonObject.Processor;
             var processingJob = MachineProcessingJob.RestoreFromFlatSave(processorJson.RecipeGuidStr, processorJson.RemainingSeconds, processorJson.PendingOutputs, processorJson.InheritedLevel);
 
             // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）

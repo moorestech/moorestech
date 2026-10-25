@@ -30,6 +30,7 @@ namespace Client.WebUiHost.Game.Topics
         public GearNetworkDto GearNetwork;
         public FilterSplitterDto FilterSplitter;
         public ElectricToGearDetailDto ElectricToGear;
+        public SpaceElevatorDetailDto SpaceElevator;
         public GearToElectricDetailDto GearToElectric;
         public string Error;
         public TrainPlatformDetailDto TrainPlatform;
@@ -39,6 +40,7 @@ namespace Client.WebUiHost.Game.Topics
         public CleanRoomDetailDto CleanRoom;
         public CleanRoomYieldDetailDto CleanRoomYield;
         public MachineInputStallDetailDto MachineInputStall;
+        public RocketLaunchPadDetailDto RocketLaunchPad;
     }
 
     public class BlockItemSlotDto

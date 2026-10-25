@@ -23,13 +23,13 @@ namespace Server.Protocol.PacketResponse
     public class RemoveBlockProtocol : IPacketResponse
     {
         public const string ProtocolTag = "va:removeBlock";
-        
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly TrainRailPositionManager _railPositionManager;
         private readonly ConstructionWalletService _constructionWallet;
         private readonly IRailGraphDatastore _railGraphDatastore;
         private readonly IBeltTransportLookup _beltTransportLookup;
         private readonly IBeltTransportMutation _beltTransportMutation;
+        private readonly Game.SpaceElevator.SpaceElevatorConnectionService _spaceElevatorConnections;
 
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
@@ -39,13 +39,12 @@ namespace Server.Protocol.PacketResponse
             _railGraphDatastore = serviceProvider.GetService<IRailGraphDatastore>();
             _beltTransportLookup = serviceProvider.GetService<IBeltTransportLookup>();
             _beltTransportMutation = serviceProvider.GetService<IBeltTransportMutation>();
+            _spaceElevatorConnections = serviceProvider.GetRequiredService<Game.SpaceElevator.SpaceElevatorConnectionService>();
         }
-        
         public ProtocolMessagePackBase GetResponse(byte[] payload, int requesterPlayerId)
         {
             var data = MessagePackSerializer.Deserialize<RemoveBlockProtocolMessagePack>(payload);
-            
-            var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
+                var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return Refuse(RemoveBlockFailureReason.Unknown);
             // Undoは設置時の個体だけを撤去する
             // Undo removes only the instance created by that placement
@@ -53,6 +52,8 @@ namespace Server.Protocol.PacketResponse
                 block.BlockInstanceId.AsPrimitive() != data.ExpectedBlockInstanceIdInt.Value)
                 return Refuse(RemoveBlockFailureReason.InstanceChanged);
             if (!RailBlockRemovalGuard.CanRemove(block, _railPositionManager)) return Refuse(RemoveBlockFailureReason.NodeInUseByTrain);
+
+            if (!_spaceElevatorConnections.CanRemove(block)) return Refuse(RemoveBlockFailureReason.CablePoolFull);
 
             // 財布に返却物を問い合わせ（確定は後段）
             // Ask the wallet what to refund (finalized further down)
@@ -63,8 +64,7 @@ namespace Server.Protocol.PacketResponse
             var railRefundItems = RailRemovalRefundCalculator.CreateRefundItems(block, _railGraphDatastore);
             if (!TryInsertRefundItems(out var refundItems))
                 return Refuse(RemoveBlockFailureReason.InventoryFull);
-            
-            // 返却した搬送中のアイテムを組から取り除いてから削除する。同tickの後続の撤去・再構築で二度出てこない
+                // 返却した搬送中のアイテムを組から取り除いてから削除する。同tickの後続の撤去・再構築で二度出てこない
             // Take the refunded carried items out of the assembly before deleting, so later removals and the rebuild in this tick never see them again
             _beltTransportMutation.DiscardConnectionRemovalItems(block);
             ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
@@ -78,10 +78,8 @@ namespace Server.Protocol.PacketResponse
             // 財布の変更通知は撤去1回につき1通へ集約する
             // Collapse the wallet notifications into one per removal
             _constructionWallet.FlushRemainingCountChanges();
-            
-            return RemoveBlockResponseMessagePack.CreateSuccess();
-            
-            #region Internal
+                return RemoveBlockResponseMessagePack.CreateSuccess();
+                #region Internal
 
             RemoveBlockResponseMessagePack Refuse(RemoveBlockFailureReason reason)
             {
@@ -95,20 +93,15 @@ namespace Server.Protocol.PacketResponse
             {
                 var playerMainInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
                 items = GetRefundItems();
-                
-                return playerMainInventory.InsertionCheck(items);
+                        return playerMainInventory.InsertionCheck(items);
             }
-            
-            
-            List<IItemStack> GetRefundItems()
+                    List<IItemStack> GetRefundItems()
             {
                 var result = new List<IItemStack>();
-                
-                // 建設コストの返却は財布の指示に従うだけ
+                        // 建設コストの返却は財布の指示に従うだけ
                 // The construction-cost refund simply follows the wallet's instruction
                 result.AddRange(removalPlan.ItemsToRefund);
-                
-                // 開けるインベントリのスロットを返す。ベルコンのようにスロットを持たないblockは何も返さない
+                        // 開けるインベントリのスロットを返す。ベルコンのようにスロットを持たないblockは何も返さない
                 // Refund the slots of an openable inventory; blocks without slots, such as belts, refund nothing
                 if (ServerContext.WorldBlockDatastore.TryGetBlock<IOpenableBlockInventoryComponent>(data.Pos, out var blockInventory))
                 {
@@ -117,38 +110,31 @@ namespace Server.Protocol.PacketResponse
                         result.Add(blockInventory.GetItem(i));
                     }
                 }
-                
-                // その他の返却すべきアイテム情報を取得する
-                // Get refundable item information before block removal
-                if (block.ComponentManager.TryGetComponent(out IGetRefundItemsInfo refundInfo))
+                // 全コンポーネントの返却を合算する
+                // Collect refunds from every component before removal
+                foreach (var refundInfo in block.ComponentManager.GetComponents<IGetRefundItemsInfo>())
                 {
                     result.AddRange(refundInfo.GetRefundItems());
                 }
-                
-                // 搬出元の撤去で消える合流内部segmentの中身を合算する
+                        // 搬出元の撤去で消える合流内部segmentの中身を合算する
                 // Include the contents of merge internal segments that vanish when this source is removed
                 result.AddRange(_beltTransportLookup.GetConnectionRemovalRefundItems(block));
                 result.AddRange(railRefundItems);
                 return result;
             }
-            
-            void InsertItemsToPlayerInventory(List<IItemStack> items)
+                void InsertItemsToPlayerInventory(List<IItemStack> items)
             {
                 var playerMainInventory = _playerInventoryDataStore.GetInventoryData(requesterPlayerId).MainOpenableInventory;
                 playerMainInventory.InsertItem(items);
             }
-            
-            #endregion
+                #endregion
         }
-        
-        
         [MessagePackObject]
         public class RemoveBlockProtocolMessagePack : ProtocolMessagePackBase
         {
             [Key(3)] public Vector3IntMessagePack Pos { get; set; }
             [Key(4)] public int? ExpectedBlockInstanceIdInt { get; set; }
-            
-            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+                [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public RemoveBlockProtocolMessagePack() { }
             public RemoveBlockProtocolMessagePack(Vector3Int pos)
             {
@@ -195,6 +181,7 @@ namespace Server.Protocol.PacketResponse
             Unknown,
             InventoryFull,
             InstanceChanged,
+            CablePoolFull,
         }
     }
 }

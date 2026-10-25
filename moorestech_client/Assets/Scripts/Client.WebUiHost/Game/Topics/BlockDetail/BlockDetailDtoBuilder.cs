@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Block.Interface.Component;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.FluidNetwork;
@@ -23,6 +24,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             var param = block.BlockMasterElement.BlockParam;
             ElectricToGearDetailDtoBuilder.Apply(dto, block, param);
+            SpaceElevatorDetailDtoBuilder.Apply(dto, block, param);
 
             // ベルト: クライアントの複製が数えた搬出統計
             // Belts: exit statistics counted by the client's replica
@@ -40,6 +42,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // 機械: 継承元のレベルで止まった理由
             // Machines: the reason the inflow stalled on the inheritance source level
             MachineInputStallDetailDtoBuilder.Apply(dto, cache);
+            RocketLaunchPadDetailDtoBuilder.Apply(dto, block);
 
             // 機械系: CommonMachine + MachineBlock の両 StateDetail が揃うブロックのみ
             // Machines: only blocks carrying both CommonMachine and MachineBlock state details

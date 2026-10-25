@@ -49,6 +49,13 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<SetElectricToGearOutputModeResponse>(request, ct);
         }
 
+        public async UniTask<(ConnectSpaceElevatorResponse response, PacketWaitCompletionReason reason)> ConnectSpaceElevator(
+            Vector3Int position, BlockInstanceId expectedInstanceId, CancellationToken ct)
+        {
+            var request = new ConnectSpaceElevatorRequest(position, expectedInstanceId);
+            return await _packetExchangeManager.GetPacketResponseWithReason<ConnectSpaceElevatorResponse>(request, ct);
+        }
+
         // Get/SetMode/SetFilterItemを統合
         // Filter splitter state request (single endpoint for Get/SetMode/SetFilterItem)
         public async UniTask<FilterSplitterStateProtocol.FilterSplitterStateResponse> SendFilterSplitterStateRequest(
@@ -63,6 +70,13 @@ namespace Client.Network.API.Requests
             MachineRecipeSelectionProtocol.MachineRecipeSelectionRequest request, CancellationToken ct)
         {
             return await _packetExchangeManager.GetPacketResponse<MachineRecipeSelectionProtocol.MachineRecipeSelectionResponse>(request, ct);
+        }
+
+        public async UniTask<(RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse response, PacketWaitCompletionReason reason)> SendRocketLaunchPadCommand(
+            Vector3Int position, RocketLaunchPadCommandProtocol.RocketLaunchPadCommandOperation operation, BlockInstanceId expectedInstanceId, CancellationToken ct)
+        {
+            var request = new RocketLaunchPadCommandProtocol.RocketLaunchPadCommandRequest(position, operation, expectedInstanceId);
+            return await _packetExchangeManager.GetPacketResponseWithReason<RocketLaunchPadCommandProtocol.RocketLaunchPadCommandResponse>(request, ct);
         }
 
         // BP Create/GetAll/Deleteを1メソッドで統合

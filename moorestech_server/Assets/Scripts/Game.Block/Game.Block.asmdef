@@ -2,6 +2,8 @@
     "name": "Game.Block",
     "rootNamespace": "",
     "references": [
+        "Game.Orbit",
+        "Game.SpaceElevator",
         "Core.Item.Interface",
         "Game.Block.Interface",
         "Core.Update",

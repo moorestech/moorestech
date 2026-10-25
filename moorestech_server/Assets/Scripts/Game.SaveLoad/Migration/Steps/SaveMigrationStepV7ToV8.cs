@@ -1,65 +1,40 @@
+using System.Collections.Generic;
+using Game.SaveLoad.Migration.Steps.V7ToV8;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V7→V8移行: 通常機械とクリーンルーム機械の加工状態に継承レベル null を明示で足す（版7に継承レシピは無いため「継承しない」が正しい）
-    // V7→V8 migration: add an explicit null inherited level to normal and clean-room machine processing state (version 7 had no inheritance recipes, so "no inheritance" is exact)
+    // V7→V8移行: Tier9統合で変わるセーブの形を機能ごとの部品で直す（継承レベル・清浄室機械の液体スロット・初回打ち上げ履歴・ケーブルプール・コスト0研究のリセット）
+    // V7->V8 migration: adjust the save shapes changed by the Tier9 integration through one part per feature (inherited level, clean-room fluid slots, first-launch history, cable pool, zero-cost research reset)
     public sealed class SaveMigrationStepV7ToV8 : ISaveMigrationStep
     {
-        // コンポーネントのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
-        // Component SaveKeys (typeof FullName); the step never references live types, so they are kept as strings
-        private const string VanillaMachineSaveKey = "Game.Block.Blocks.Machine.VanillaMachineSaveComponent";
-        private const string CleanRoomMachineSaveKey = "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent";
-        private const string InheritedLevelKey = "inheritedLevel";
-
         public int FromVersion => 7;
 
         public SaveMigrationStepResult Migrate(JObject save)
         {
-            if (!(save["world"] is JArray world)) return Fail($"セーブのworldが配列ではないため変換できません。 type={save["world"]?.Type}");
-
-            var vanillaCount = 0;
-            var cleanRoomCount = 0;
-            foreach (var blockToken in world)
+            var parts = new IV7ToV8MigrationPart[]
             {
-                if (!(blockToken is JObject block)) return Fail($"world要素がオブジェクトではないため変換できません。 type={blockToken.Type}");
+                new MachineInheritedLevelFiller(),
+                new CleanRoomMachineFluidSlotFiller(),
+                new RocketLaunchHistoryFiller(),
+                new SpaceElevatorCablePoolFiller(),
+                new ZeroCostTier9ResearchResetter(),
+            };
 
-                // stateが無いブロックは機械ではないので対象外
-                // A block without state is not a machine, so it is out of scope
-                var stateToken = block["state"];
-                if (stateToken == null || stateToken.Type == JTokenType.Null) continue;
-                if (!(stateToken is JObject state)) return Fail($"world要素のstateがオブジェクトではありません。 type={stateToken.Type}");
-
-                // 通常機械はprocessorサブオブジェクトへ足す
-                // A normal machine gets the key inside its processor sub-object
-                var vanillaToken = state[VanillaMachineSaveKey];
-                if (vanillaToken != null && vanillaToken.Type != JTokenType.Null)
-                {
-                    if (!(vanillaToken is JObject vanilla)) return Fail($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}");
-                    if (!(vanilla["processor"] is JObject processor)) return Fail($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={vanilla["processor"]?.Type}");
-                    if (!processor.ContainsKey(InheritedLevelKey))
-                    {
-                        processor[InheritedLevelKey] = JValue.CreateNull();
-                        vanillaCount++;
-                    }
-                }
-
-                // クリーンルーム機械は直下へ足す
-                // A clean-room machine gets the key at its top level
-                var cleanRoomToken = state[CleanRoomMachineSaveKey];
-                if (cleanRoomToken != null && cleanRoomToken.Type != JTokenType.Null)
-                {
-                    if (!(cleanRoomToken is JObject cleanRoom)) return Fail($"{CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}");
-                    if (!cleanRoom.ContainsKey(InheritedLevelKey))
-                    {
-                        cleanRoom[InheritedLevelKey] = JValue.CreateNull();
-                        cleanRoomCount++;
-                    }
-                }
+            // 先に全部品を検査し、どれかが拒否したら原本を書き換えない
+            // Inspect every part first so a refusal never leaves the original half-rewritten
+            foreach (var part in parts)
+            {
+                if (!part.TryPrepare(save, out var reason)) return Fail(reason);
             }
 
-            Debug.Log($"セーブを版7から版8へ変換しました。継承レベルを足した通常機械={vanillaCount}台 クリーンルーム機械={cleanRoomCount}台");
+            // 検査を通った対象だけを書き換える
+            // Rewrite only the targets that passed inspection
+            var summaries = new List<string>();
+            foreach (var part in parts) summaries.Add(part.ApplyAndSummarize());
+
+            Debug.Log($"セーブを版7から版8へ変換しました。{string.Join(" / ", summaries)}");
             return SaveMigrationStepResult.Converted(save);
 
             #region Internal

@@ -75,6 +75,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(RideActionProtocol.ProtocolTag, new RideActionProtocol(serviceProvider));
             _packetResponseDictionary.Add(RemoveTrainCarProtocol.ProtocolTag, new RemoveTrainCarProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetTrainPlatformTransferModeProtocol.ProtocolTag, new SetTrainPlatformTransferModeProtocol(serviceProvider));
+            _packetResponseDictionary.Add(RocketLaunchPadCommandProtocol.ProtocolTag, new RocketLaunchPadCommandProtocol(serviceProvider));
             _packetResponseDictionary.Add(TrainScheduleEditProtocol.ProtocolTag, new TrainScheduleEditProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetTrainTimetableProtocol.ProtocolTag, new GetTrainTimetableProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetTrainStationNameProtocol.ProtocolTag, new SetTrainStationNameProtocol(serviceProvider));
@@ -82,6 +83,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(MachineRecipeSelectionProtocol.ProtocolTag, new MachineRecipeSelectionProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMachineInputStallProtocol.ProtocolTag, new GetMachineInputStallProtocol(serviceProvider));
             _packetResponseDictionary.Add(SetElectricToGearOutputModeProtocol.ProtocolTag, new SetElectricToGearOutputModeProtocol(serviceProvider));
+            _packetResponseDictionary.Add(ConnectSpaceElevatorProtocol.ProtocolTag, new ConnectSpaceElevatorProtocol(serviceProvider));
             _packetResponseDictionary.Add(BlueprintProtocol.ProtocolTag, new BlueprintProtocol(serviceProvider));
             _packetResponseDictionary.Add(HotbarProtocol.ProtocolTag, new HotbarProtocol(serviceProvider));
         }

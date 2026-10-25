@@ -39,7 +39,7 @@ namespace Server.Boot.Loop.PacketProcessing
             _tickEndPacketQueue = tickEndPacketQueue;
         }
 
-        public void StartListen(CancellationToken token)
+        public void StartListen(CancellationToken token, CancellationToken shutdownNotice)
         {
             var buffer = new byte[4096];
 
@@ -60,6 +60,12 @@ namespace Server.Boot.Loop.PacketProcessing
             catch (OperationCanceledException)
             {
                 Debug.Log("切断されました");
+            }
+            // 外部Socketの受信だけを分類し、終了意思のないResetや内部例外は既存のErrorへ残す
+            // Classify only external socket receives; resets without shutdown intent and internal faults remain errors
+            catch (SocketException exception) when (token.IsCancellationRequested || shutdownNotice.IsCancellationRequested)
+            {
+                Debug.Log($"サーバー終了中のSocket受信を終了しました: {exception.SocketErrorCode}");
             }
             catch (Exception e)
             {

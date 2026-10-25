@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Core.Master;
 using Game.SaveLoad.Pruning.Items;
+using Game.SaveLoad.Pruning.Blocks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -74,7 +75,11 @@ namespace Game.SaveLoad.Pruning.Sections
                     var instanceId = (int?)block["instanceId"];
                     foreach (var state in states.Properties().ToList())
                     {
+                        var firstRemoved = result.EmptiedItemStacks.Count;
                         walker.Walk(state.Value, PrunedItemOrigin.BlockState(SaveSectionName, instanceId, state.Name));
+                        // 実際に除去した燃料だけを、その保存状態の所有境界で停止へ整える
+                        // Normalize only actually pruned fuel to stopped at the owning save-state boundary
+                        ElectricGeneratorFuelStatePruner.StopWhenFuelRemoved(state, result.EmptiedItemStacks.Skip(firstRemoved));
                     }
                 }
 

@@ -117,6 +117,38 @@ properties:
           schemaId: items
           foreignKeyIdPath: /data/[*]/itemGuid
           displayElementPath: /data/[*]/name
+# 軌道へ運べる積荷の表。打ち上げ口（発射台・エレベーター拠点）はここに載る積荷だけを扱い、軌道到着で打ち上げ成果を出す
+# Table of cargo that can be sent to orbit; launch sites only handle cargo listed here and yield the arrival outputs on orbital arrival
+- key: orbitalPayloads
+  type: array
+  overrideCodeGeneratePropertyName: OrbitalPayloadMasterElement
+  items:
+    type: object
+    properties:
+    - key: payloadItemGuid
+      type: uuid
+      foreignKey:
+        schemaId: items
+        foreignKeyIdPath: /data/[*]/itemGuid
+        displayElementPath: /data/[*]/name
+    - key: countPerLaunch
+      type: integer
+      default: 1
+    - key: arrivalOutputs
+      type: array
+      overrideCodeGeneratePropertyName: OrbitalArrivalOutputElement
+      items:
+        type: object
+        properties:
+        - key: itemGuid
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
+        - key: count
+          type: integer
+          default: 1
 - key: itemStackLevelTables
   type: array
   overrideCodeGeneratePropertyName: ItemStackLevelTableMasterElement

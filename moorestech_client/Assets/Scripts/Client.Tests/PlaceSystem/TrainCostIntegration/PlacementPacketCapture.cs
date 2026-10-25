@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Linq;
+using Server.Util;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -51,6 +53,22 @@ namespace Client.Tests.PlaceSystem.TrainCostIntegration
             Assert.IsTrue(_peer.Poll(1000000, SelectMode.SelectRead));
             var probe = new byte[_peer.Available];
             Assert.Greater(_peer.Receive(probe), 0);
+        }
+
+        internal byte[] ReadRequest()
+        {
+            var parser = new PacketBufferParser();
+            var bytes = new byte[4096];
+            // TCP分割を許容し、送信された実バイト列だけを復号する
+            // Allow TCP fragmentation and decode only bytes actually sent
+            while (true)
+            {
+                Assert.IsTrue(_peer.Poll(1000000, SelectMode.SelectRead), "要求が送信されていない");
+                var count = _peer.Receive(bytes);
+                Assert.That(count, Is.GreaterThan(0));
+                var packets = parser.Parse(bytes, count).ToList();
+                if (packets.Count != 0) return packets.Single();
+            }
         }
 
         internal void AssertNoRequest()

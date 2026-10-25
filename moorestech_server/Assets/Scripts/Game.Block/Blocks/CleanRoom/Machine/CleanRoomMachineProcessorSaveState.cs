@@ -91,8 +91,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 
             void RestoreFluids(CleanRoomMachineProcessorSaveJsonObject data)
             {
-                // キーは版9の保存とマイグレーションで必ずある。欠けたセーブは液体を黙って捨てず、継承レベルの欠けと同じく明示の例外でロードを止める
-                // Version-9 saves and the migration always write the keys; a save missing them stops the load with an explicit exception, like a missing inherited level, instead of silently dropping fluid
+                // キーは版8の保存と版7からのマイグレーションで必ずある。欠けたセーブは液体を黙って捨てず、継承レベルの欠けと同じく明示の例外でロードを止める
+                // Version-8 saves and the migration from version 7 always write the keys; a save missing them stops the load with an explicit exception, like a missing inherited level, instead of silently dropping fluid
                 if (data.InputFluidSlot == null || data.OutputFluidSlot == null)
                 {
                     throw new InvalidOperationException($"清浄室機械のセーブに液体タンクのキーがありません。 inputFluidSlot={(data.InputFluidSlot == null ? "missing" : "present")} outputFluidSlot={(data.OutputFluidSlot == null ? "missing" : "present")}");

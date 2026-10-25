@@ -44,6 +44,21 @@ ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrie
 ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨
 ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen,적재
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し,Entladen,하역
+ui.blockInventory.rocketMaterials,Materials,Materials,資材,Materialien,자재
+ui.blockInventory.rocketPayloads,Payloads,Payloads,積荷,Nutzlasten,적재물
+ui.blockInventory.rocketOutputs,Output,Output,出力,Ausgabe,출력
+ui.blockInventory.rocketBuild,Build,Build,建造,Bauen,건조
+ui.blockInventory.rocketLaunch,Launch,Launch,発射,Starten,발사
+ui.blockInventory.rocketStatusIdle,Waiting for cargo,Waiting for cargo,積み込み待ち,Wartet auf Fracht,적재 대기
+ui.blockInventory.rocketStatusAwaitingBuild,Ready to build,Ready to build,建造できます,Bereit zum Bauen,건조 가능
+ui.blockInventory.rocketStatusBuilding,Building rocket,Building rocket,ロケットを建造中,Rakete wird gebaut,로켓 건조 중
+ui.blockInventory.rocketStatusAwaitingLaunch,Ready to launch,Ready to launch,発射できます,Startbereit,발사 가능
+ui.blockInventory.rocketStatusReadyToLaunch,Launching soon,Launching soon,まもなく打ち上げ,Start in Kürze,곧 발사
+ui.blockInventory.rocketStatusLaunching,Launching,Launching,打ち上げ中,Startet,발사 중
+ui.blockInventory.rocketWaitMissingMaterials,Not enough materials,Not enough materials,資材が足りません,Nicht genug Material,자재 부족
+ui.blockInventory.rocketWaitMissingPayload,No payload loaded,No payload loaded,積荷がありません,Keine Nutzlast,적재물 없음
+ui.blockInventory.rocketWaitOutputFull,Output is full,Output is full,出力がいっぱいです,Ausgabe ist voll,출력이 가득 참
+ui.blockInventory.rocketWaitNoPower,No power,No power,電力がありません,Kein Strom,전력 없음
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze,업그레이드 슬롯
 ui.blockInventory.moduleSlotStackLimit,Up to {limit} per slot,Up to {limit} per slot,1スロット上限 {limit},Max. {limit} pro Platz,슬롯당 최대 {limit}
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute,분당 생산량
@@ -221,6 +236,7 @@ ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,�
 ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。,Der Block konnte nicht entfernt werden.,블록을 삭제하지 못했습니다.
 ui.delete.stationInternalRail,Rails inside a station cannot be deleted.,Rails inside a station cannot be deleted.,駅内部のレールは削除できません。,Gleise innerhalb eines Bahnhofs können nicht entfernt werden.,역 내부의 레일은 삭제할 수 없습니다.
 ui.delete.unknownError,Unknown error,Unknown error,不明なエラー,Unbekannter Fehler,알 수 없는 오류
+ui.delete.cablePoolFull,The cable pool is full. Connect another base to make room before removing.,The cable pool is full. Connect another base to make room before removing.,返却先のケーブルプールが満杯です。別の拠点を接続して空きを作ってから撤去してください。,Der Kabelvorrat ist voll. Verbinde vor dem Entfernen eine weitere Basis um Platz zu schaffen.,반환할 케이블 풀이 가득 찼습니다. 다른 기지를 연결해 공간을 확보한 뒤 철거하세요.
 ui.delete.inventoryFull,Inventory is full. Make room for the refunded items before removing.,Inventory is full. Make room for the refunded items before removing.,インベントリがいっぱいです。返却されるアイテムの空きを作ってから撤去してください。,Das Inventar ist voll. Schaffe Platz für die zurückerstatteten Gegenstände.,인벤토리가 가득 찼습니다. 반환될 아이템의 공간을 확보한 뒤 철거하세요.
 ui.keyHint.key.tab,Tab,Tab,Tab,Tab,Tab
 ui.keyHint.key.b,B,B,B,B,B
@@ -461,3 +477,15 @@ ui.blockInventory.cleanRoomYieldInfoLabel,Draw details,Draw details,抽選の中
 ui.blockInventory.cleanRoomYieldPendingDrawLabel,Fixed draw waiting for output space,Fixed draw waiting for output space,確定済み・出力の空き待ちの抽選,Feststehende Ziehung wartet auf Ausgabeplatz,출력 공간을 기다리는 확정된 추첨
 ui.blockInventory.cleanRoomYieldNextDrawLabel,Next new draw (current conditions),Next new draw (current conditions),次の新規抽選（今の条件）,Nächste neue Ziehung (aktuelle Bedingungen),다음 새 추첨 (현재 조건)
 ui.blockInventory.machineInputStallInfoLabel,Inflow stall,Inflow stall,搬入停止の理由,Zufuhrstopp,반입 정지 이유
+ui.blockInventory.spaceElevatorConnect,Connect,Connect,接続する,Verbinden,연결
+ui.blockInventory.spaceElevatorPool,Cable pool: {pool} / {required},Cable pool: {pool} / {required},ケーブルのプール: {pool} / 必要 {required},Kabelvorrat: {pool} / {required},케이블 풀: {pool} / {required}
+ui.blockInventory.spaceElevatorStatusInsufficientCable,Not enough cable. Launch graphene cables to fill the pool,Not enough cable. Launch graphene cables to fill the pool,ケーブルが足りません。グラフェンケーブルを打ち上げてプールを満たしてください,Nicht genug Kabel. Starte Graphenkabel,케이블이 부족합니다. 그래핀 케이블을 발사하세요
+ui.blockInventory.spaceElevatorStatusReadyToConnect,Not connected; ready to connect,Not connected; ready to connect,未接続（接続できます）,Nicht verbunden; bereit,연결 안 됨 (연결 가능)
+ui.blockInventory.spaceElevatorStatusWaitingSatellite,Waiting for a GPU satellite,Waiting for a GPU satellite,GPU衛星を待っています,Warte auf GPU-Satelliten,GPU 위성 대기 중
+ui.blockInventory.spaceElevatorStatusClimbing,Climbing,Climbing,昇降中,Steigt auf,상승 중
+ui.blockInventory.spaceElevatorStatusLowPower,Climbing slowly (low power),Climbing slowly (low power),電力不足で遅くなっています,Langsam (zu wenig Strom),전력 부족으로 느려짐
+ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until the result fits,Output full; waiting until the result fits,出口が満杯のため、成果が入るまで待っています,Ausgang voll; wartet bis das Ergebnis passt,출구가 가득 차 결과가 들어갈 때까지 대기 중
+ui.blockInventory.spaceElevatorSatelliteInput,GPU satellite input,GPU satellite input,GPU衛星の入口,GPU-Satelliten-Eingang,GPU 위성 입구
+ui.blockInventory.spaceElevatorResultOutput,Result output,Result output,成果の出口,Ergebnisausgang,결과 출구
+ui.blockInventory.spaceElevatorStatusInletBlocked,Remove the unsupported item from the inlet,Remove the unsupported item from the inlet,入口の運べないアイテムを取り出してください,Entferne den nicht transportierbaren Gegenstand aus dem Eingang,입구에서 운반할 수 없는 아이템을 꺼내세요
+ui.blockInventory.detailLoading,Waiting for status,Waiting for status,状態の取得を待っています,Warte auf Status,상태를 기다리는 중입니다

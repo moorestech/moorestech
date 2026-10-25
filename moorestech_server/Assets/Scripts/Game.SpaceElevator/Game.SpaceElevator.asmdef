@@ -1,0 +1,22 @@
+{
+  "name": "Game.SpaceElevator",
+  "rootNamespace": "",
+  "references": [
+    "Game.Block.Interface",
+    "Game.World.Interface",
+    "Core.Master",
+    "Core.Item.Interface",
+    "Game.Context",
+    "Game.Orbit",
+    "UniRx"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
