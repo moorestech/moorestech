@@ -1,4 +1,6 @@
 using System.Collections;
+using Client.Game.Common;
+using UnityEngine;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -63,6 +65,12 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                     await ResearchStateProbe.AssertAvailableAsync(resolver);
                     ChallengeStateProbe.AssertAvailable(resolver);
                     NotificationStateProbe.AssertAvailable(resolver);
+
+                    // Unityが破棄する前に保存と終了参加者の完了を待つ
+                    // Await saving and shutdown participants before Unity destroys the scene
+                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+                    Debug.Log($"[HostlessShutdown] result:{flushResult}");
+                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
                     await UniTask.Yield();
                 }
                 finally
