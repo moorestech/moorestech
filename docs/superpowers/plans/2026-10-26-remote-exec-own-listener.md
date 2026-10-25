@@ -1227,3 +1227,11 @@ bd note moorestech-albof.2 "HttpListenerが配布ビルドで動かず(b)最小K
 - user-simulator review（Fable 判事）: 適用推奨 0・Warning 3・要裁定 0。Warning は 3 件とも反映した。(1) ポート帯の台帳が 2 アセンブリに割れる → `RemoteExecHttpListenerTest` に Kestrel 帯・Vite 帯と重ならない検査を足した（`Client.Tests` は両方を参照できる）。(2) 探索帯 20 ポートを塞ぐ `待受を開けなければHarmonyも接続情報も用意しない` は、別 worktree の Editor が同じ瞬間に `RemoteExecEndpointTest` を回すと相手側が「空きポートが無い」で落ちうる（塞ぐのはミリ秒単位。再実行で解消）。(3) 検証機の Harmony 送信は `Expect: 100-continue` 付きの大きい要求の実測を兼ねると記録に書く。出所: シミュレーター予測（agent 既定で反映。ユーザー未承認）。
 
 - Task 1–2 実装時のコンパイル依存: Task 3 の `RemoteExecEndpointTest` は `ActivateIfRequested()` の引数削除だけ先行して同一コミットに含め、待受・検査の変更は Task 3 の別コミットにする。出所: agent 既定（ユーザー未裁定）。Task 1 Step 8 の一時的なエラー観測は省き、Task 1–2 をまとめた通常 compile で ErrorCount 0 を確認した。
+
+## 実行中断記録（Task 6）
+
+- Task1〜4はそれぞれの対象SHAで実装・タスクレビュー・実機受入を完了した。Task5不要。最終runnerは25/25応答、33発火・失敗0、shape gate PASS。自動修正2コミットのコンパイルは未完了、Refix RF1-C1とD2〜D4は未収束、bug-pass未実行。
+- 独立再現は動的コードとローカルNUnitの両方式で自動承認審査に拒否された。迂回せず中断する。最終受入が未完了のため、draft PR作成を本planの完了とは扱わない。
+- D1は現セッションのユーザー指示でRequirements/Global Constraints/判断記録を共通制約とするため現行planを維持する。実機成功後のKestrel置換はR9条件と切断検知追加の非目標に反する。切断済み未開始要求も実行され得る帰結をPRに明記。元裁定改訂はagent既定（ユーザー未裁定）のまま。
+- D2〜D4は推奨Aを選ぶ予定（agent 既定（ユーザー未裁定））だが、独立再現未完了のため未適用。
+- 残差追跡: moorestech-albof.2.1, moorestech-albof.2.2, moorestech-albof.2.3, moorestech-albof.2.4, moorestech-albof.2.5, moorestech-albof.2.6, moorestech-albof.2.7。

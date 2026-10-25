@@ -110,3 +110,15 @@ R7・R8の指定範囲に未完了はない。手動UI操作・ゲームプレ�
 - 終了時 `UserPacketHandler.ReceiveProcess` のSocketException: r1:512、r2:521、r3:500。
 - 起動時 `d3d12: failed to query info queue interface (0x80004002)`: 全ケース17行。故障とは未判定。
 - 最終build-infoのdirty=Trueとビルド時の自動ピン同期は上記のとおり。生成物の同梱元は0d129c、コードは57bdのまま。自動ピン差分を本変更には含めていない。
+
+## 追跡issueと最終レビュー状態
+
+- `moorestech-albof.2.1`: Windows配布起動時UnityDebugSheet CanvasGroupDrawerBackdropのNullReferenceを調査
+- `moorestech-albof.2.2`: Windows終了時WebSocketHubのcloseとreceive loop faultを調査
+- `moorestech-albof.2.3`: Windows終了時UserPacketHandler.ReceiveProcessのSocketExceptionを調査
+- `moorestech-albof.2.4`: Windows起動時d3d12 info queue query失敗の影響を確認
+- `moorestech-albof.2.5`: 配布ビルド中の外部ピン自動同期が最終build-infoをdirtyにする
+- `moorestech-albof.2.6`: Editor SearchDatabase例外と遠隔実行PlayModeテストの周辺ログを切り分ける
+- `moorestech-albof.2.7`: 検証機でExplorer経由の計画外電源OFFが連続する条件を調査
+
+この実機合格はコード `57bd4b4709` に対するもの。最終レビューの自動反映 `fd635bf73d`・`11ada59aa4` はコンパイル・実機再確認が未完了で、合格を引き継がない。Refix RF1-C1（取消中の再入による待受所有権喪失）は静的指摘のまま未収束。D2〜D4の独立再現作業が自動承認審査に2回拒否され、修正・bug-passを完了できていない。draft PRは未完了の引継ぎ用である。未実行の再現fixtureは製品のテストツリーへ含めずSDDアーカイブへ退避した。
