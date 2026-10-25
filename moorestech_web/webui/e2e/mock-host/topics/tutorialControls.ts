@@ -9,8 +9,8 @@ export const TUTORIAL_RESEARCH_NODE_PADDING_PX = 8;
 type TutorialData = TopicPayloads[typeof Topics.tutorialPresentation];
 const tutorial = (data: TutorialData) => ({ kind: "set" as const, topic: Topics.tutorialPresentation, data });
 
-// チュートリアル表示の scenario 群。topicControls から展開する
-// Tutorial presentation scenarios, spread into topicControls
+// 表示制御の展開元
+// Source of presentation controls
 export const tutorialControls = {
   tutorialOutline: () => tutorial({
     revision: 1,

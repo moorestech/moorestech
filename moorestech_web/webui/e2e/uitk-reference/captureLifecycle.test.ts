@@ -34,8 +34,6 @@ test.each(["image", "video"])("%s cleanup settles after the host has already exi
   expect(browserClosed).toBe(true);
 }, 3000);
 
-// 寸法を変えた撮影でもmanifestが実設定を記録する
-// The manifest must follow a changed capture viewport
 test("manifest records the supplied viewport", async () => {
   const directory = await mkdtemp(join(tmpdir(), "uitk-index-"));
   try {

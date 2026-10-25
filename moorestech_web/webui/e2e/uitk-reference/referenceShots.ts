@@ -1,7 +1,7 @@
 import type { TopicScenario } from "../mock-host/topics/topicControls";
 
-// 参照キャプチャの撮影表。束・台帳の行・mock-host の制御・画面操作を 1 件ずつ持つ
-// Reference capture shot table: bundle, ledger row, mock-host controls, and page steps per shot
+// 撮影単位は束・台帳行・制御・操作
+// Each shot groups a bundle, ledger row, controls, and steps
 
 export type ShotStep =
   | { kind: "control"; path: string }
