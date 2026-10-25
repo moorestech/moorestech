@@ -35,7 +35,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.Tooltip;
 using VContainer;
-using Client.Network.API;
+using Client.Game.InGame.UI.Challenge;
 namespace Client.WebUiHost.Game
 {
     /// <summary>
@@ -140,12 +140,11 @@ namespace Client.WebUiHost.Game
             // Register the research-tree topic (the DI store owns the states)
             var researchNodeStateStore = resolver.Resolve<ResearchNodeStateStore>();
             hub.RegisterTopic(ResearchTopic.TopicName, new ResearchTopic(hub, researchNodeStateStore));
-            // チャレンジツリーと常駐HUDは同じイベント駆動状態を共有する
-            // The challenge tree and persistent HUD share the same event-driven state
-            var initialHandshake = resolver.Resolve<InitialHandshakeResponse>();
-            var challengeState = new ChallengeTopicState(hub, initialHandshake);
-            hub.RegisterTopic(ChallengeTreeTopic.TopicName, new ChallengeTreeTopic(challengeState));
-            hub.RegisterTopic(ChallengeCurrentTopic.TopicName, new ChallengeCurrentTopic(challengeState));
+            // チャレンジツリーと常駐HUDは同じ状態（DI）を購読する。Subjectは購読順に配るので、tree→currentの配信順はこの登録順で保つ
+            // The challenge tree and persistent HUD subscribe to the same DI state; Subject delivers in subscription order, so this registration order keeps tree before current
+            var challengeProgressState = resolver.Resolve<ChallengeProgressState>();
+            hub.RegisterTopic(ChallengeTreeTopic.TopicName, new ChallengeTreeTopic(hub, challengeProgressState));
+            hub.RegisterTopic(ChallengeCurrentTopic.TopicName, new ChallengeCurrentTopic(hub, challengeProgressState));
             // ビルドメニュートピックを登録
             // Register the build-menu topic
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();

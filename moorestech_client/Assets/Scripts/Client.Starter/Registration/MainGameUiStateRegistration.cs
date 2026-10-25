@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Blueprint;
+using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Modal;
 using Client.Game.InGame.UI.Research;
 using VContainer;
@@ -22,6 +23,10 @@ namespace Client.Starter.Registration
             // 研究画面への遷移と所持変化を起動時から購読する
             // Subscribe to research screen transitions and inventory changes from startup
             builder.RegisterEntryPoint<ResearchNodeStateStore>().AsSelf();
+
+            // チャレンジの完了イベントを起動時から購読する
+            // Subscribe to challenge completion events from startup
+            builder.RegisterEntryPoint<ChallengeProgressState>().AsSelf();
         }
     }
 }
