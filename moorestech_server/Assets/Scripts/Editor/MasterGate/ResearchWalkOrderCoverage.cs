@@ -8,9 +8,9 @@ namespace Server.MasterGate.Editor
     ///     G3 が「全ノード」を歩くことの保証。研究順の GUID 集合が、ロード済みマスタの全研究 GUID と重複なく一致するかを歩く前に確かめる
     ///     Guarantees G3 walks every node: before walking, check the order's GUIDs match all loaded research GUIDs exactly, with no duplicates
     /// </summary>
-    public static class ResearchWalkOrderCoverage
+    internal static class ResearchWalkOrderCoverage
     {
-        public static bool TryCheck(IReadOnlyList<ResearchWalkStep> steps, IReadOnlyCollection<Guid> loadedResearchGuids, out string failure)
+        internal static bool TryCheck(IReadOnlyList<ResearchWalkStep> steps, IReadOnlyCollection<Guid> loadedResearchGuids, out string failure)
         {
             // G2 は未到達の研究を順に書かないので、部分的な順や空の順を完走しても全ノードの完了にはならない
             // G2 omits unreachable research, so finishing a partial or empty order does not mean every node completed
