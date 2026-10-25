@@ -1843,7 +1843,7 @@ namespace Server.MasterGate.Editor
   - 参照不足で `Newtonsoft` や `Microsoft.Extensions.DependencyInjection` が解決できないエラーが出たら、asmdef に `"overrideReferences": true` と `"precompiledReferences": ["Newtonsoft.Json.dll", "Microsoft.Extensions.DependencyInjection.dll", "Microsoft.Extensions.DependencyInjection.Abstractions.dll"]` を足す。
   - 要確認（実装時にこのコンパイルで確かめる。dll 名は `Server.Boot` が実際に解決している dll を `find $W/moorestech_server/Assets -name 'Microsoft.Extensions.DependencyInjection*.dll'` で読む）。
 
-- [ ] **Step 6: push済みB統合マスタを明示入力にしてW1のG1正例を確かめ、現ピンの未達も残す**
+- [x] **Step 6: push済みB統合マスタを明示入力にしてW1のG1正例を確かめ、現ピンの未達も残す**
   - ユーザー裁定 2026-10-25（判断記録 A34）。W1の正例は `1cf0df8fbae21d1c34395c5afafceeee2a5b3113` のarchiveを明示する。実行前後のHEAD・clean状態・remote SHAとarchiveの出所を保存する。
   - 現ピン `630fdce` はS3必須 `orbitalPayloads` を持たず、実測でFAILしている。補完・optional化・先行ピン更新で隠さない。最終ピンでの受入れはTask24後に必ず取り直す。
 ```bash
@@ -1858,7 +1858,7 @@ Expected:
 - 1本目は `G1 PASS`、`[ShippedMasterOwner] LOAD PASS …/w1-master/server_v8 research=44`。
 - 2本目の原ピンは `orbitalPayloads` 欠損でFAILし、所有者が成功済みw1-masterへRESTOREDする。これは現ピンの未達を示す記録であり、成功と読み替えない。Step7の前に正常入力を明示して通した状態を保つ。
 
-- [ ] **Step 7: マスタを 1 か所わざと壊して、G1 が落ちることを確かめる**（必須キー `allowQualityModule` を ElectricMachine の 1 行から消す）
+- [x] **Step 7: マスタを 1 か所わざと壊して、G1 が落ちることを確かめる**（必須キー `allowQualityModule` を ElectricMachine の 1 行から消す）
 ```bash
 rm -rf $GL/g1-broken && cp -R $GL/w1-master $GL/g1-broken
 python3 - "$GL/g1-broken/server_v8/mods/moorestechAlphaMod_8/master/blocks.json" <<'EOF'
@@ -1879,7 +1879,7 @@ Expected:
 - 壊したほうは `[ShippedMasterOwner] LOAD FAIL MasterHolder.Load threw for …/g1-broken/server_v8:` で始まる文字列を返し、同じ行が Error ログに出る。例外の型と、本文に `allowQualityModule` が出るかは要確認（実装時にこの出力で確かめる。どちらでも FAIL なら合格）。
 - 最後の grep は `[ShippedMasterOwner] RESTORED static master from …/w1-master/server_v8 after the failed load of …/g1-broken/server_v8` を出す。所有者がStep6で通ったB統合マスタへ戻したことを、復旧後のstaticマスタの値とともに保存する（判断記録 A32・A34）。
 
-- [ ] **Step 8: batch（`-executeMethod`）でも同じ判定になることを確かめる**
+- [x] **Step 8: batch（`-executeMethod`）でも同じ判定になることを確かめる**
   - Editor を開いたままでは同じプロジェクトを batch で開けない。そのため、自分の Editor（`moores-wt status` で所有を確認する）を閉じてから回し、終わったら `uloop launch` で戻す。
   - 手元は client project で回す。手元の worktree は client の Library しか持たず（moores-wt が複製するのは client の Library）、サーバーのスクリプトは `tech.moores.server` パッケージとして同じクラスが入るため。CI は前例どおり `moorestech_server/` で回す（Step 9）。
   - 3 本目は `-masterDataRoot` を付けずに回し、置き場を推測せず落ちることを確かめる。
@@ -4973,7 +4973,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Research|Unlock|WireContract|BlockDetail|WebUiTopic|BlockInventory" --timeout-seconds 1500`
   Expected: `Success: true`
 
-- [ ] **Step 5: サーバーテスト全体の原結果と、既存CI範囲の自動回帰を分けて保存する**（ユーザー裁定2026-10-25、A33）
+- [x] **Step 5: サーバーテスト全体の原結果と、既存CI範囲の自動回帰を分けて保存する**（ユーザー裁定2026-10-25、A33）
   原実行: `uloop run-tests --project-path ./moorestech_client --filter-type assembly --filter-value "Server.Tests" --timeout-seconds 1500`
   - 原実行のW1結果は3,319件中3,298 PASS・21 FAIL。失敗21件はすべて既存 `IgnoreCI` の手動Surface検査であり、失敗と手動検査の未達をPR本文にも残す。全assembly成功とは書かない。
   - 自動回帰の受入れは既存CI `.github/scripts/unity-test-shard-filter.sh` と同じ `!IgnoreCI` 範囲。uloopにカテゴリ除外がないため、原XMLの継承Categoryから対象クラスを列挙したregexで別実行する。W1の列挙regexは `.superpowers/sdd/task-9-evidence/step5-ci-scope.regex`、実行は `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "$(< .superpowers/sdd/task-9-evidence/step5-ci-scope.regex)" --timeout-seconds 1500`。
@@ -9104,7 +9104,7 @@ git -C ../moorestech_logs commit -m "tier9-integration: W13 の実測と故障�
 
 ## P6 最終検証の受け渡し
 
-裁定 2026-10-25「Tier9 統合の最終検証の通しプレイはユーザー本人が行う」の (3) と (4)。(1) 自動ゲートと CI、(2) 録画7段がすべて通ってから着手する（ORCH の合流 J3 の後）。順序は Task 30（ビルド・セーブ・チェックリスト）→ Task 31（評価役2体）→ Task 32（全ブランチレビュー。反映が判定経路に触れたら評価役をやり直す）→ Task 33（PR）。評価役は PR を出す前に判定する（ユーザー規約「外に出す前に別の評価役2体」）。
+裁定 2026-10-25「Tier9 統合の最終検証の通しプレイはユーザー本人が行う」の (3) と (4)。(1) 自動ゲートと CI、(2) 録画7段がすべて通ってから着手する（ORCH の合流 J3 の後）。順序は Task 30（scratchセーブの事前確認・チェックリスト）→ Task 31（評価役2体）→ Task 32（全ブランチレビュー。反映が判定経路に触れたら評価役をやり直す）→ Task 33（PR）。評価役は PR を出す前に判定する（ユーザー規約「外に出す前に別の評価役2体」）。
 
 ### Task 31: 目的だけを渡す別の評価役2体
 
@@ -9175,7 +9175,7 @@ git -C ../moorestech_logs add harness/tier9-integration/eval && git -C ../moores
 **Files:**
 - Create: `.agents/skills/unity-playmode-recorded-playtest/scenarios/tier9/tier9-0-tier8-save-smoke.cs`（Tier8 終盤セーブの事前確認）
 - Create: `../moorestech_logs/harness/tier9-integration/handoff/checklist.html`（ユーザーに渡すチェックリスト）
-- 記録: `../moorestech_logs/harness/tier9-integration/handoff/`（ビルドの run ディレクトリ名・promotion.md の写し・セーブの出所・事前確認の result.json）
+- 記録: `../moorestech_logs/harness/tier9-integration/handoff/`（セーブの出所・事前確認の result.json・チェックリストURL。配布ビルド・promotion.md・MacBook Proへのセーブ書戻しは不要）
 
 **Interfaces:**
 - Consumes: 統合 PR の head（`origin/feat/tier9-integrated`）。ピンが指すマスタ統合 PR の push 済みコミット
