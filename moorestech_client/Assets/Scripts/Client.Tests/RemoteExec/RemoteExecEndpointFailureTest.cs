@@ -8,7 +8,10 @@ using Client.RemoteExec;
 using Client.RemoteExec.Access;
 using Client.RemoteExec.Run;
 using Cysharp.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using Client.RemoteExec.Listen;
+using System.Net.Sockets;
+using System.Net;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -35,6 +38,7 @@ namespace Client.Tests.RemoteExec
         [TearDown]
         public void TearDown()
         {
+            RemoteExecActivation.Deactivate();
             RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
             RemoteExecAccessFile.Remove();
             _files.Restore();
@@ -42,34 +46,39 @@ namespace Client.Tests.RemoteExec
         }
 
         [Test]
-        public void WebUi起動失敗ではポート値に関係なく接続情報を発行しない()
+        public void 待受を開けなければHarmonyも接続情報も用意しない()
         {
+            // 探索帯の全ポートを塞ぎ、待受を開けない起動を作る
+            // Occupy every port in the search band to create a boot that cannot open the listener
+            var blockers = new List<TcpListener>();
+            for (var port = RemoteExecHttpListener.BasePort; port < RemoteExecHttpListener.BasePort + RemoteExecHttpListener.PortSearchRange; port++)
+            {
+                var blocker = new TcpListener(IPAddress.Loopback, port);
+                // OSのネットワーク境界。他プロセスが既に使っているポートは塞がっているのでそのまま数える
+                // OS network boundary; a port another process already holds is blocked anyway and counts as such
+                try { blocker.Start(); blockers.Add(blocker); }
+                catch (SocketException) { Debug.Log($"[Test] ポート {port} は既に使用中"); }
+            }
             LogAssert.Expect(LogType.Warning, new Regex("--remoteExec が指定された"));
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
 
-            LogAssert.Expect(LogType.Error, new Regex("Web UI サーバーの実ポートが確定していない"));
-            RemoteExecActivation.ActivateIfRequested(false, 12345);
-            Assert.IsNull(RemoteExecAccessFile.Token);
+            LogAssert.Expect(LogType.Error, new Regex("空きポートが無いため待受を開けません"));
+            RemoteExecActivation.ActivateIfRequested();
 
-            // ポート未確定でもHarmonyを読む前に断る。読んだ後で断ると入口だけ永久に閉じた状態が残る
-            // An unresolved port is refused before Harmony loads; refusing afterwards would leave patching enabled with the entry shut forever
-            LogAssert.Expect(LogType.Error, new Regex("Web UI サーバーの実ポートが確定していない"));
-            RemoteExecActivation.ActivateIfRequested(true, null);
+            foreach (var blocker in blockers) blocker.Stop();
             Assert.IsNull(RemoteExecAccessFile.Token);
+            Assert.IsFalse(File.Exists(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
         }
 
         [Test]
         public async Task 無効起動では要求を404で隠して理由をログに残す()
         {
             RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
-            var context = new DefaultHttpContext();
-            context.Request.Method = "POST";
-            context.Response.Body = new MemoryStream();
 
             LogAssert.Expect(LogType.Warning, new Regex("起動オプションが無いため要求を404で拒否"));
-            await RemoteExecEndpoint.HandleAsync(context);
+            var response = await RemoteExecEndpoint.HandleAsync(PostRequest(null, "{}"), CancellationToken.None);
 
-            Assert.AreEqual(404, context.Response.StatusCode);
+            Assert.AreEqual(404, response.StatusCode);
             Assert.AreEqual(0, _files.ReadLedgerEntries().Length);
         }
 
@@ -82,18 +91,12 @@ namespace Client.Tests.RemoteExec
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
             LogAssert.Expect(LogType.Warning, new Regex("入口を開きました"));
             RemoteExecAccessFile.Issue(0);
-            var context = new DefaultHttpContext();
-            context.Request.Method = "POST";
-            context.Request.Headers.AppendCommaSeparatedValues(RemoteExecAccessFile.HeaderName, new[] { RemoteExecAccessFile.Token });
-            context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes("{\"code\":\"throw new System.InvalidOperationException(\\\"execution failure\\\");\",\"target\":\"client\"}"));
-            context.Response.Body = new MemoryStream();
 
             LogAssert.Expect(LogType.Warning, new Regex("送信コードの実行に失敗しました"));
-            await RemoteExecEndpoint.HandleAsync(context);
+            var result = await RemoteExecEndpoint.HandleAsync(PostRequest(RemoteExecAccessFile.Token, "{\"code\":\"throw new System.InvalidOperationException(\\\"execution failure\\\");\",\"target\":\"client\"}"), CancellationToken.None);
 
-            context.Response.Body.Position = 0;
-            var response = JObject.Parse(new StreamReader(context.Response.Body).ReadToEnd());
-            Assert.AreEqual(200, context.Response.StatusCode);
+            var response = JObject.Parse(result.SerializeBody());
+            Assert.AreEqual(200, result.StatusCode);
             Assert.AreEqual("RuntimeException", response.Value<string>("outcome"));
             StringAssert.Contains("execution failure", response.Value<string>("exception"));
             var entries = _files.ReadLedgerEntries();
@@ -110,17 +113,15 @@ namespace Client.Tests.RemoteExec
         public async Task 入口の拒否も実行結果と同じJSONで返す()
         {
             RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
-            var context = new DefaultHttpContext();
-            context.Request.Method = "POST";
-            context.Response.Body = new MemoryStream();
 
             LogAssert.Expect(LogType.Warning, new Regex("起動オプションが無いため要求を404で拒否"));
-            await RemoteExecEndpoint.HandleAsync(context);
-
-            context.Response.Body.Position = 0;
-            var response = JObject.Parse(new StreamReader(context.Response.Body).ReadToEnd());
+            var response = JObject.Parse((await RemoteExecEndpoint.HandleAsync(PostRequest(null, "{}"), CancellationToken.None)).SerializeBody());
             Assert.AreEqual("Unauthorized", response.Value<string>("outcome"));
             StringAssert.Contains("起動オプションが無い", response.Value<string>("rejectionReason"));
+        }
+        private static RemoteExecHttpRequest PostRequest(string token, string body)
+        {
+            return new RemoteExecHttpRequest(RemoteExecEndpoint.Path, "POST", false, token, new MemoryStream(Encoding.UTF8.GetBytes(body)));
         }
     }
 }

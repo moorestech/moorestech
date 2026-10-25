@@ -127,7 +127,7 @@
   - `public static void Client.RemoteExec.RemoteExecActivation.ActivateIfRequested()`（引数なし）、`public static void Deactivate()`（待受停止＋`access.json` 撤去）
   - `internal static void RemoteExecAccessFile.Issue(int port)`（`int?` から `int` へ）
 
-- [ ] **Step 1: 要求・応答 DTO を書く**
+- [x] **Step 1: 要求・応答 DTO を書く**
 
 `moorestech_client/Assets/Scripts/Client.RemoteExec/RemoteExecHttpRequest.cs`:
 
@@ -196,7 +196,7 @@ namespace Client.RemoteExec
 }
 ```
 
-- [ ] **Step 2: `RemoteExecEndpoint` を DTO の関数に書き換える**
+- [x] **Step 2: `RemoteExecEndpoint` を DTO の関数に書き換える**
 
 `moorestech_client/Assets/Scripts/Client.RemoteExec/RemoteExecEndpoint.cs` を次の内容で置き換える（判定の順・ステータス・拒否文は現行と同じ。経路違いの 404 だけが新しい）:
 
@@ -283,7 +283,7 @@ namespace Client.RemoteExec
 }
 ```
 
-- [ ] **Step 3: 待受（`RemoteExecHttpListener`）を書く**
+- [x] **Step 3: 待受（`RemoteExecHttpListener`）を書く**
 
 `moorestech_client/Assets/Scripts/Client.RemoteExec/Listen/RemoteExecHttpListener.cs`:
 
@@ -390,7 +390,7 @@ namespace Client.RemoteExec.Listen
 }
 ```
 
-- [ ] **Step 4: 変換と送信（`RemoteExecHttpExchange`）を書く**
+- [x] **Step 4: 変換と送信（`RemoteExecHttpExchange`）を書く**
 
 `moorestech_client/Assets/Scripts/Client.RemoteExec/Listen/RemoteExecHttpExchange.cs`:
 
@@ -440,7 +440,7 @@ namespace Client.RemoteExec.Listen
 }
 ```
 
-- [ ] **Step 4b: Editor の後片付けを書く**
+- [x] **Step 4b: Editor の後片付けを書く**
 
 置き換え元の Kestrel は `WebUiHostEditorCleanup` が Play 終了・ドメインリロード・Editor 終了で止めている。待受も同じ 3 契機で閉じる（Play 中の再コンパイルで古いドメインのソケットが残らないように）。`moorestech_client/Assets/Scripts/Client.RemoteExec/Listen/RemoteExecListenerEditorCleanup.cs`:
 
@@ -475,7 +475,7 @@ namespace Client.RemoteExec.Listen
 
 （`access.json` の撤去は既存どおり `Application.quitting` → `OnGameShutdown` → `Deactivate` が担う。ここは待受のソケットだけを閉じる）
 
-- [ ] **Step 5: 有効化・撤去・接続情報を書き換える**
+- [x] **Step 5: 有効化・撤去・接続情報を書き換える**
 
 `moorestech_client/Assets/Scripts/Client.RemoteExec/RemoteExecActivation.cs` を置き換える:
 
@@ -546,7 +546,7 @@ namespace Client.RemoteExec
             }
 ```
 
-- [ ] **Step 6: `RemoteExecEndpointFailureTest` を DTO で書き直す**
+- [x] **Step 6: `RemoteExecEndpointFailureTest` を DTO で書き直す**
 
 `moorestech_client/Assets/Scripts/Client.Tests/RemoteExec/RemoteExecEndpointFailureTest.cs` の変更:
 - `using Microsoft.AspNetCore.Http;` を削除し、`using Client.RemoteExec.Listen;`・`using System.Net.Sockets;`・`using System.Net;`・`using System.Collections.Generic;` を足す
@@ -595,7 +595,7 @@ namespace Client.RemoteExec
   - `送信コードの実行時例外を失敗応答と台帳へ残す`: `RemoteExecAccessFile.Issue(0);` はそのまま（`int` 引数）。`var response = await RemoteExecEndpoint.HandleAsync(PostRequest(RemoteExecAccessFile.Token, "{\"code\":\"throw new System.InvalidOperationException(\\\"execution failure\\\");\",\"target\":\"client\"}"), CancellationToken.None);` → `var json = JObject.Parse(response.SerializeBody());` で `Assert.AreEqual(200, response.StatusCode)`・`outcome`=`RuntimeException`・`exception` に `execution failure`（台帳の 4 検査は現行のまま）
   - `入口の拒否も実行結果と同じJSONで返す`: `var json = JObject.Parse((await RemoteExecEndpoint.HandleAsync(PostRequest(null, "{}"), CancellationToken.None)).SerializeBody());` → `outcome`=`Unauthorized`、`rejectionReason` に `起動オプションが無い`
 
-- [ ] **Step 7: `RemoteExecHttpListenerTest` を書く**
+- [x] **Step 7: `RemoteExecHttpListenerTest` を書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/RemoteExec/RemoteExecHttpListenerTest.cs`:
 
@@ -687,7 +687,7 @@ namespace Client.Tests.RemoteExec
 }
 ```
 
-- [ ] **Step 8: コンパイルする（Task 2 の呼び出し側修正前なので、エラーは呼び出し側の 3 箇所だけのはず）**
+- [x] **Step 8: コンパイルする（Task 2 の呼び出し側修正前なので、エラーは呼び出し側の 3 箇所だけのはず）**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラーは `WebUiEndpoints.cs`（`HandleAsync(HttpContext)` 不一致）・`InitializeScenePipeline.cs`（`ActivateIfRequested` の引数）・`RemoteExecEndpointTest.cs`／`PlaytestBootUnityCallbackBindingTest.cs` のみ。`Client.RemoteExec` 内のエラーは 0。ここではコミットせず Task 2 へ進む（Task 1 と Task 2 は 1 コミットにまとめる。コンパイルが通らないコミットを作らないため）。
@@ -708,7 +708,7 @@ Expected: エラーは `WebUiEndpoints.cs`（`HandleAsync(HttpContext)` 不一�
 - Consumes: Task 1 の `RemoteExecActivation.ActivateIfRequested()`・`Deactivate()`
 - Produces: 起動順 `ResolveFromCommandLine` → `BeginCurrentSessionMarks` → `ActivateIfRequested()` → `WebUiStartup.StartAsync`。`WebUiHost.KestrelPort` は存在しない
 
-- [ ] **Step 1: Web UI 側の相乗りを外す**
+- [x] **Step 1: Web UI 側の相乗りを外す**
 
 `WebUiEndpoints.cs` の次のブロック（現 97〜103 行）を丸ごと削除する:
 
@@ -734,7 +734,7 @@ Expected: エラーは `WebUiEndpoints.cs`（`HandleAsync(HttpContext)` 不一�
 
 （削除前に `grep -rn "KestrelPort" moorestech_client/Assets moorestech_server/Assets --include='*.cs'` で、使い手が `InitializeScenePipeline.cs` と `PlaytestBootUnityCallbackBindingTest.cs` だけであることを確かめる。他に居たら削除せず残し、bd note に理由を書く）
 
-- [ ] **Step 2: 起動配線を Web UI より前へ移す**
+- [x] **Step 2: 起動配線を Web UI より前へ移す**
 
 `InitializeScenePipeline.cs` の現 62〜79 行（`ResolveFromCommandLine` から `OnGameShutdown.Subscribe(... Deactivate())` まで）を次にする:
 
@@ -768,7 +768,7 @@ Expected: エラーは `WebUiEndpoints.cs`（`HandleAsync(HttpContext)` 不一�
 
 触ったら: `bd note moorestech-albof.2 "albof.3の持ち物 WebUiStartup.cs:19 のログ文から『遠隔実行も開きません』を削った（遠隔実行がWebから独立したため）。WebUiHost.KestrelPort も使い手が消えたので削除。マージ時に衝突したら albof.3 側の構造に合わせてこの2点だけ再適用する"`
 
-- [ ] **Step 3: 起動順の検査を書き換える**
+- [x] **Step 3: 起動順の検査を書き換える**
 
 `PlaytestBootUnityCallbackBindingTest.cs` のテスト `InitializeScenePipeline_WebUi起動後の実ポートで遠隔実行を有効化する`（現 51〜65 行）を次で置き換え、`using Client.WebUiHost.Boot;` が不要になれば削除する:
 
@@ -789,7 +789,7 @@ Expected: エラーは `WebUiEndpoints.cs`（`HandleAsync(HttpContext)` 不一�
         }
 ```
 
-- [ ] **Step 4: ADR 0072 を改訂する**
+- [x] **Step 4: ADR 0072 を改訂する**
 
 `docs/adr/0072-remote-exec-in-distributed-builds.md`:
 - 2 行目 `状態: 採択` を `状態: 採択（2026-10-26 改訂: 入口の待受）` にする
@@ -805,7 +805,7 @@ Expected: エラーは `WebUiEndpoints.cs`（`HandleAsync(HttpContext)` 不一�
 
 （Task 5 で (b) に切り替えた場合は、この段落を Task 5 Step 4 の文面に差し替える）
 
-- [ ] **Step 5: README を直す**
+- [x] **Step 5: README を直す**
 
 `scripts/playtest/README.md` の「## 遠隔実行（開発者向け）」節の「ゲーム開始後に、C# のメソッド本体をファイルまたは標準入力から送る。」を次の 2 行にする:
 
@@ -814,7 +814,7 @@ Expected: エラーは `WebUiEndpoints.cs`（`HandleAsync(HttpContext)` 不一�
 入口は Web UI とは別の専用の待受（`127.0.0.1:25100` から上）で、Web UI が起動に失敗しても使える。ポートは `access.json` に書かれる。
 ```
 
-- [ ] **Step 6: コンパイルし、EditMode テストを回す**
+- [x] **Step 6: コンパイルし、EditMode テストを回す**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: ErrorCount 0
@@ -825,7 +825,7 @@ Expected: どちらも 0 件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.RemoteExec\.|PlaytestBootUnityCallbackBindingTest"`
 Expected: 全 PASS（`RemoteExecEndpointFailureTest` 4 件・`RemoteExecHttpListenerTest` 4 件・既存の `RemoteExecCompilerTest`/`RemoteExecHarmonyTest`/`RemoteExecLedgerTest`/`RemoteExecRunnerTest` 等・`PlaytestBootUnityCallbackBindingTest`）
 
-- [ ] **Step 7: コミットする（Task 1 と合わせて 1 コミット）**
+- [x] **Step 7: コミットする（Task 1 と合わせて 1 コミット）**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.RemoteExec moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.Tests/RemoteExec moorestech_client/Assets/Scripts/Client.Tests/Playtest/PlaytestBootUnityCallbackBindingTest.cs docs/adr/0072-remote-exec-in-distributed-builds.md scripts/playtest/README.md
@@ -1221,3 +1221,5 @@ bd note moorestech-albof.2 "HttpListenerが配布ビルドで動かず(b)最小K
 - `RemoteExecLaunchOption.ResolveFromCommandLine` の無効分岐は `RemoteExecActivation.Deactivate()` を呼ぶ（同じアセンブリ内で判定役が撤去を呼び返す形になる）。撤去の手順を 1 か所に保つことを優先した。無効起動の撤去を `ActivateIfRequested` 側へ移す案は、撤去が `BeginCurrentSessionMarks` より後ろへずれるので採らない。出所: agent 判断。
 - Phase 2.6 再検査の弱 2 件（`Stop()` の呼び口が Editor の後片付けを含めて多い → `Deactivate` のコメントに「Editor の後片付けはソケットだけ」と書いて字面を合わせる／PR 本文の節の波及 → Task 7 Step 1 に「リファクタ提案」節と並び順を足す）は両方採った。出所: agent 既定（ユーザー未裁定）。
 - user-simulator review（Fable 判事）: 適用推奨 0・Warning 3・要裁定 0。Warning は 3 件とも反映した。(1) ポート帯の台帳が 2 アセンブリに割れる → `RemoteExecHttpListenerTest` に Kestrel 帯・Vite 帯と重ならない検査を足した（`Client.Tests` は両方を参照できる）。(2) 探索帯 20 ポートを塞ぐ `待受を開けなければHarmonyも接続情報も用意しない` は、別 worktree の Editor が同じ瞬間に `RemoteExecEndpointTest` を回すと相手側が「空きポートが無い」で落ちうる（塞ぐのはミリ秒単位。再実行で解消）。(3) 検証機の Harmony 送信は `Expect: 100-continue` 付きの大きい要求の実測を兼ねると記録に書く。出所: シミュレーター予測（agent 既定で反映。ユーザー未承認）。
+
+- Task 1–2 実装時のコンパイル依存: Task 3 の `RemoteExecEndpointTest` は `ActivateIfRequested()` の引数削除だけ先行して同一コミットに含め、待受・検査の変更は Task 3 の別コミットにする。出所: agent 既定（ユーザー未裁定）。Task 1 Step 8 の一時的なエラー観測は省き、Task 1–2 をまとめた通常 compile で ErrorCount 0 を確認した。

@@ -52,7 +52,7 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 RemoteExecLaunchOption.ResolveFromCommandLine(Array.Empty<string>());
                 await kestrel.StartAsync(new WebSocketHub());
                 var url = $"http://127.0.0.1:{kestrel.ActualPort}{RemoteExecEndpoint.Path}";
-                RemoteExecActivation.ActivateIfRequested(true, kestrel.ActualPort);
+                RemoteExecActivation.ActivateIfRequested();
                 Assert.IsFalse(File.Exists(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
                 using (var disabled = await SendAsync(client, url, HttpMethod.Post, "{}", null, null))
                     Assert.AreEqual(HttpStatusCode.NotFound, disabled.StatusCode);
@@ -60,7 +60,7 @@ namespace Client.Tests.EditModeInPlayingTest.RemoteExec
                 // 本番経路でトークン/ポート取得
                 // Get token/port through the production path
                 RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
-                RemoteExecActivation.ActivateIfRequested(true, kestrel.ActualPort);
+                RemoteExecActivation.ActivateIfRequested();
                 var access = JObject.Parse(File.ReadAllText(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
                 var token = access.Value<string>("token");
                 Assert.AreEqual(kestrel.ActualPort, access.Value<int>("port"));

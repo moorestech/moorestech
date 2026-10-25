@@ -16,16 +16,11 @@ namespace Client.RemoteExec.Access
         internal static string Token { get; private set; }
         public static string DirectoryPath => GameSystemPaths.RemoteExecDirectory;
 
-        // ポート未確定では発行しない。0は実ポート域外で、書けば届かない入口を名乗る
-        // Never issue before the port is known; 0 is outside the real port range and would advertise an entry nothing can reach
-        internal static void Issue(int? port)
+        // 待受を開けたポートだけを受け取る。開けなかった起動では呼ばれない
+        // Receives only a port the listener actually opened; a boot that failed to open never calls this
+        internal static void Issue(int port)
         {
             Token = null;
-            if (port == null)
-            {
-                Debug.LogError("[RemoteExec] Web UI の実ポートが未確定のため入口を開けません（遠隔実行は使えません）");
-                return;
-            }
             var bytes = new byte[32];
             using (var rng = RandomNumberGenerator.Create()) rng.GetBytes(bytes);
             var token = BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
@@ -35,11 +30,11 @@ namespace Client.RemoteExec.Access
             try
             {
                 RemoteExecDirectory.EnsureCreated(DirectoryPath);
-                var json = new JObject { ["port"] = port.Value, ["token"] = token, ["processId"] = System.Diagnostics.Process.GetCurrentProcess().Id };
+                var json = new JObject { ["port"] = port, ["token"] = token, ["processId"] = System.Diagnostics.Process.GetCurrentProcess().Id };
                 var path = Path.Combine(DirectoryPath, FileName);
                 File.WriteAllText(path, json.ToString());
                 Token = token;
-                Debug.LogWarning($"[RemoteExec] 入口を開きました port:{port.Value} access:{path}");
+                Debug.LogWarning($"[RemoteExec] 入口を開きました port:{port} access:{path}");
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {
