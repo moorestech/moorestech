@@ -9,8 +9,10 @@ using UnityEngine;
 
 namespace Client.RemoteExec.Listen
 {
-    // HttpListenerの要求をDTOへ写し、入口の応答を書き戻す
-    // Map an HttpListener request into the DTO and write the entry's response back
+    // - HTTP要求をDTO化
+    // - 応答をHTTPへ書き戻す
+    // - Convert HTTP requests to DTOs
+    // - Write responses back over HTTP
     internal static class RemoteExecHttpExchange
     {
         internal static async UniTask HandleAsync(HttpListenerContext context, CancellationToken lifetime)

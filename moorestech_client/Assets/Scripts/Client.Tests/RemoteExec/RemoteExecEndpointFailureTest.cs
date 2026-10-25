@@ -52,8 +52,8 @@ namespace Client.Tests.RemoteExec
         [Test]
         public void 待受を開けなければHarmonyも接続情報も用意しない()
         {
-            // 探索帯の全ポートを塞ぎ、待受を開けない起動を作る
-            // Occupy every port in the search band to create a boot that cannot open the listener
+            // 全探索ポートを塞ぎ起動失敗を作る
+            // Block every searched port to force startup failure
             var blockers = new List<TcpListener>();
             for (var port = RemoteExecHttpListener.BasePort; port < RemoteExecHttpListener.BasePort + RemoteExecHttpListener.PortSearchRange; port++)
             {
@@ -153,8 +153,8 @@ namespace Client.Tests.RemoteExec
             var lifetime = (CancellationTokenSource)typeof(RemoteExecHttpListener)
                 .GetField("_lifetime", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
 
-            // 本番の送信コードに例外を投げる取消コールバックを残す
-            // Register a throwing cancellation callback through the production submitted-code path
+            // 本番経路に取消時の例外を仕込む
+            // Inject a throwing cancellation callback through the production path
             var body = new JObject
             {
                 ["code"] = "cancellationToken.Register(() => throw new System.InvalidOperationException(\"cancel failure\")); return 1;",
