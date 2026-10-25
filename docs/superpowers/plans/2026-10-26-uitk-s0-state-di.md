@@ -1466,7 +1466,7 @@ git commit -m "refactor(event-mode): 出展モードの言語ゲートをClient.
 - Consumes: Task 2 の `UIStateControl.OnStateChanged`、Task 4 の `MainGameUiStateRegistration.Register`
 - Produces: namespace `Client.Game.InGame.Train.Timetable` の `TrainTimetableFetcher`（公開 API は移す前と同じ）、`OpenTrainTimetableTracker : IInitializable`（`IObservable<Unit> OnRepublishRequested`、`void Initialize()`。`IDisposable` は外す）、`OpenTrainUnitResolver`（静的、API 不変）。`BlockInventoryTopic` のコンストラクタは `OpenTrainTimetableTracker openTrainTimetableTracker` を受け取る（自分で作らない）
 
-- [ ] **Step 1: 3 ファイルを移す**
+- [x] **Step 1: 3 ファイルを移す**
 
 ```bash
 S=moorestech_client/Assets/Scripts
@@ -1478,7 +1478,7 @@ done
 ```
 3 ファイルの namespace を `Client.Game.InGame.Train.Timetable` にし、`using Client.WebUiHost.Game.Topics.BlockDetail;` を消す（同じ namespace になる）。
 
-- [ ] **Step 2: `OpenTrainTimetableTracker` を entry point にする**
+- [x] **Step 2: `OpenTrainTimetableTracker` を entry point にする**
 
 コンストラクタは依存の保持だけにし、購読をすべて `Initialize()` へ移す。`IDisposable`・`Dispose()`・`_subscriptions` を外す（ゲーム寿命）。`timetables` はフィールド `_timetables` に保持する:
 ```csharp
@@ -1521,11 +1521,11 @@ done
 ```
 `OnUiStateChanged(UIStateEnum state)` は引数を使っていないので `OnUiStateChanged()` にする。`OnTrainUnitApplied`・`ResolveOpenTrainUnitInstanceId` は変えない。クラスは `IInitializable` のため `using VContainer.Unity;` を足す。
 
-- [ ] **Step 3: `BlockInventoryTopic` が tracker を受け取るようにする**
+- [x] **Step 3: `BlockInventoryTopic` が tracker を受け取るようにする**
 
 コンストラクタ引数の `TrainTimetableFetcher timetableFetcher` の後に `OpenTrainTimetableTracker openTrainTimetableTracker` を足し、73 行目の `new OpenTrainTimetableTracker(...)` を `_openTrainTimetableTracker = openTrainTimetableTracker;` に、`Dispose()` の `_openTrainTimetableTracker.Dispose();` を削除する（`_trainTimetableSubscription.Dispose();` は残す）。`using Client.Game.InGame.Train.Timetable;` は既にある。
 
-- [ ] **Step 4: 登録と binder**
+- [x] **Step 4: 登録と binder**
 
 `MainGameUiStateRegistration.Register` に足す（`using Client.Game.InGame.Train.Timetable;`）:
 ```csharp
@@ -1536,11 +1536,11 @@ done
 ```
 `WebUiGameBinder` 84 行目を `var timetableFetcher = resolver.Resolve<TrainTimetableFetcher>();` にし、85 行目の `new BlockInventoryTopic(...)` の `timetableFetcher,` の後に `resolver.Resolve<OpenTrainTimetableTracker>(),` を足す。`TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher);` の行（188 行目）は変えない（Tier9 の挿入行と隣り合うため）。
 
-- [ ] **Step 5: using を直す**
+- [x] **Step 5: using を直す**
 
 移した 3 型を参照する WebUiHost のファイルと `TrainTimetableFetcherTest` に `using Client.Game.InGame.Train.Timetable;` を足し、`using Client.WebUiHost.Game.Topics.BlockDetail;` が `OpenTrainUnitResolver` のためだけにあったなら消す。コンパイルエラーで残りを拾う。
 
-- [ ] **Step 6: プローブ**
+- [x] **Step 6: プローブ**
 
 `Hostless/TimetableStateProbe.cs`:
 ```csharp
