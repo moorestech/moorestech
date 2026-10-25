@@ -39,8 +39,8 @@ namespace Client.RemoteExec.Listen
             {
                 var listener = new HttpListener();
                 listener.Prefixes.Add($"http://127.0.0.1:{port}/");
-                // OSのネットワーク境界。使用中ポートのbind失敗だけを隔離して次を試す
-                // OS network boundary; only an occupied-port bind failure is isolated before trying the next port
+                // OSのネットワーク境界。bind失敗を隔離し理由を残して次を試す
+                // OS network boundary; isolate a bind failure and report its reason before trying the next port
                 try
                 {
                     listener.Start();
@@ -48,7 +48,7 @@ namespace Client.RemoteExec.Listen
                 catch (Exception e) when (e is HttpListenerException || e is SocketException)
                 {
                     listener.Close();
-                    Debug.Log($"[RemoteExec] ポート {port} は使えないため次を試します: {e.Message}");
+                    Debug.LogWarning($"[RemoteExec] ポート {port} は使えないため次を試します: {e.Message}");
                     continue;
                 }
 
@@ -59,43 +59,61 @@ namespace Client.RemoteExec.Listen
                 return port;
             }
 
-            Debug.LogError($"[RemoteExec] 空きポートが無いため待受を開けません（遠隔実行は使えません） {BasePort}..{BasePort + PortSearchRange - 1}");
+            Debug.LogError($"[RemoteExec] 探索帯で待受を開けませんでした（遠隔実行は使えません） {BasePort}..{BasePort + PortSearchRange - 1}");
             return null;
+
+            #region Internal
+
+            // 受付はスレッドプールで回す。メインスレッドが止まっていてもserver実行の要求は受け取れる
+            // Accept on the thread pool so server-target requests still arrive while the main thread is stalled
+            async UniTaskVoid AcceptLoopAsync(HttpListener listener, CancellationToken lifetime)
+            {
+                while (!lifetime.IsCancellationRequested)
+                {
+                    HttpListenerContext context;
+                    // OSのネットワーク境界。停止による中断と想定外の故障を分けて扱う
+                    // OS network boundary; a stop-induced interruption is told apart from an unexpected fault
+                    try
+                    {
+                        context = await listener.GetContextAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception e) when (e is HttpListenerException || e is ObjectDisposedException || e is InvalidOperationException)
+                    {
+                        // silent-ok: Stop() による中断で、閉じたことは Stop() が「待受を閉じました」でログ済み / 開発者が Player.log で気づく
+                        if (lifetime.IsCancellationRequested) return;
+                        Debug.LogError($"[RemoteExec] 待受が要求を受け取れなくなりました（遠隔実行は使えません。再起動で復旧）: {e}");
+                        return;
+                    }
+                    RemoteExecHttpExchange.HandleAsync(context, lifetime).Forget(e => Debug.LogError($"[RemoteExec] 要求の処理に失敗しました: {e}"));
+                }
+            }
+
+            #endregion
         }
+
+        internal static string StopFailureReason { get; private set; }
 
         internal static void Stop()
         {
+            StopFailureReason = null;
             // silent-ok: 待受未作成・停止済みの冪等な操作で解放対象が無い / 開いた待受の停止は下のログで開発者に届く
             if (_listener == null) return;
-            _lifetime.Cancel();
-            _listener.Close();
+            // 停止対象を固定し、取消中の再入で新世代を消さない
+            // Capture and detach this generation before cancellation can reenter startup
+            var listener = _listener;
+            var lifetime = _lifetime;
             _listener = null;
             _lifetime = null;
-            Debug.Log("[RemoteExec] 待受を閉じました");
-        }
-
-        // 受付はスレッドプールで回す。メインスレッドが止まっていてもserver実行の要求は受け取れる
-        // Accept on the thread pool so server-target requests still arrive while the main thread is stalled
-        private static async UniTaskVoid AcceptLoopAsync(HttpListener listener, CancellationToken lifetime)
-        {
-            while (!lifetime.IsCancellationRequested)
+            // 送信コードの取消コールバックは外部コードの実行境界
+            // Cancellation callbacks execute externally submitted code at this boundary
+            try { lifetime.Cancel(); }
+            catch (AggregateException e)
             {
-                HttpListenerContext context;
-                // OSのネットワーク境界。停止による中断と想定外の故障を分けて扱う
-                // OS network boundary; a stop-induced interruption is told apart from an unexpected fault
-                try
-                {
-                    context = await listener.GetContextAsync().ConfigureAwait(false);
-                }
-                catch (Exception e) when (e is HttpListenerException || e is ObjectDisposedException || e is InvalidOperationException)
-                {
-                    // silent-ok: Stop() による中断で、閉じたことは Stop() が「待受を閉じました」でログ済み / 開発者が Player.log で気づく
-                    if (lifetime.IsCancellationRequested) return;
-                    Debug.LogError($"[RemoteExec] 待受が要求を受け取れなくなりました（遠隔実行は使えません。再起動で復旧）: {e}");
-                    return;
-                }
-                RemoteExecHttpExchange.HandleAsync(context, lifetime).Forget(e => Debug.LogError($"[RemoteExec] 要求の処理に失敗しました: {e}"));
+                StopFailureReason = $"取消コールバック失敗（待受は撤去）: {e}";
+                Debug.LogError($"[RemoteExec] {StopFailureReason}");
             }
+            listener.Close();
+            Debug.Log("[RemoteExec] 待受を閉じました");
         }
     }
 }

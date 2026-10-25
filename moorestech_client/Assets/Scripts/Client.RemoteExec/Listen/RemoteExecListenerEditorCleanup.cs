@@ -13,13 +13,17 @@ namespace Client.RemoteExec.Listen
             AssemblyReloadEvents.beforeAssemblyReload += RemoteExecHttpListener.Stop;
             EditorApplication.quitting += RemoteExecHttpListener.Stop;
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
-        }
 
-        // Reload Domain=offではbeforeAssemblyReloadが来ないため、Play終了の直前にも閉じる
-        // With Reload Domain off beforeAssemblyReload never fires, so also close right before leaving play mode
-        private static void OnPlayModeStateChanged(PlayModeStateChange state)
-        {
-            if (state == PlayModeStateChange.ExitingPlayMode) RemoteExecHttpListener.Stop();
+            #region Internal
+
+            // Reload Domain=offではbeforeAssemblyReloadが来ないため、Play終了の直前にも閉じる
+            // With Reload Domain off beforeAssemblyReload never fires, so also close right before leaving play mode
+            void OnPlayModeStateChanged(PlayModeStateChange state)
+            {
+                if (state == PlayModeStateChange.ExitingPlayMode) RemoteExecHttpListener.Stop();
+            }
+
+            #endregion
         }
     }
 }

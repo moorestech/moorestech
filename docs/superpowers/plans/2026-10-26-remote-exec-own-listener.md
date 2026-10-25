@@ -1211,7 +1211,7 @@ bd note moorestech-albof.2 "HttpListenerが配布ビルドで動かず(b)最小K
 - 待受のポートは Kestrel の前例（`KestrelServer.StartAsync` の基準ポートから上へ bind を試す）に合わせ、25100 から 20 ポートを探索する。OS 自動採番（ポート 0）にしないのは、`HttpListener` に bind した実ポートを返す API が無いため（ポート 0 のプレフィックスを Mono が受け付けるかは未確認＝推測を避けて前例に寄せた）。出所: agent 判断。
 - 送信者の切断で実行を取り消さない。Kestrel では `RequestAborted` が切断を伝えたが、`HttpListener` には要求ごとの中断通知が無い。取り消しのトークンは待受の寿命（`Stop()` で取り消し）だけにする。実行は最後まで走り、届かない応答は `応答を届けられませんでした`（WARNING）に残る。結果の 7 種（`Cancelled` を含む）は変えない。出所: agent 判断（ADR 0072 の 2026-10-26 改訂に明記）。
 - 遠隔実行を開く時機を Web UI の起動より前（起動印の確定直後）へ移す。Web ホストの起動待ち（Vite の疎通確認など）で止まっていても遠隔実行が使えるようにするため。台帳（`RemoteExecLedger`）は `BeginCurrentSessionMarks` の中で初期化されるので、この順で間に合う。出所: agent 判断。
-- 受付ループは `ConfigureAwait(false)` でスレッドプールに置く。メインスレッドが止まっているときでも server 実行の要求を受け取れるようにするため（client 実行は `RemoteExecRunner` がメインスレッドへ切り替えるので、メインが止まっていれば待つ。これは現行と同じ）。出所: agent 判断。
+- 受付ループは `ConfigureAwait(false)` でスレッドプールに置く。メインスレッドが止まっているときでも server 実行の要求を受け取れるようにするため（client/server 両対象とも `RemoteExecRunner` がコンパイル等の準備でメインスレッドへ切り替えるため、メインが止まっていれば実行準備は待つ。HTTP 受付の継続とコード実行の進行は別であり、これは現行と同じ）。出所: agent 判断。
 - `RemoteExecEndpoint` は DTO（`RemoteExecHttpRequest` → `RemoteExecHttpResponse`）の関数にし、待受の種類（`HttpListener`／Kestrel）は `RemoteExecHttpExchange` だけが知る。(b) へ切り替えても入口の判定とテストが変わらないようにするため。interface にせず具象 DTO にしたのは、実装が 1 つで差し替える場面が無いため（YAGNI）。出所: agent 判断。
 - 専用待受は `/api/remote-exec` 以外の経路を 404（`BadRequest`・理由ログ付き）で返す。待受を遠隔実行の専用にしたので、他の経路を受ける理由が無いため。出所: agent 判断。
 - `WebUiHost.KestrelPort` を削除し、`WebUiStartup.cs:19` のログ文を直す（どちらも albof.3 の持ち物）。前者は使い手が本 PR で消えるため（使われない public を残さない規約）、後者は「遠隔実行も開きません」が誤りになるため。どちらも数行で、衝突したら albof.3 側の構造に合わせて再適用する。出所: agent 判断（bd note で albof.3 側へ知らせる）。

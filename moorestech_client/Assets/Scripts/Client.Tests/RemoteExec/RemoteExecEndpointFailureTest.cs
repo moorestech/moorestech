@@ -1,5 +1,9 @@
 using System;
 using System.IO;
+using System.Reflection;
+using Client.RemoteExec.Loading;
+using Client.Game.Common;
+using UniRx;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -57,17 +61,35 @@ namespace Client.Tests.RemoteExec
                 // OSのネットワーク境界。他プロセスが既に使っているポートは塞がっているのでそのまま数える
                 // OS network boundary; a port another process already holds is blocked anyway and counts as such
                 try { blocker.Start(); blockers.Add(blocker); }
-                catch (SocketException) { Debug.Log($"[Test] ポート {port} は既に使用中"); }
+                catch (SocketException e) when (e.SocketErrorCode == SocketError.AddressAlreadyInUse) { Debug.LogWarning($"[Test] ポート {port} は既に使用中"); }
             }
+            // アセンブリを別ロードし、ローダーのstatic状態を未初期化に隔離する
+            // Load a separate assembly instance to isolate uninitialized loader statics
+            var isolated = Assembly.Load(File.ReadAllBytes(typeof(RemoteExecActivation).Assembly.Location));
+            var loader = isolated.GetType(typeof(RemoteExecHarmonyLoader).FullName, true);
+            var registered = loader.GetField("_resolverRegistered", BindingFlags.Static | BindingFlags.NonPublic);
+            var harmony = loader.GetField("_harmony", BindingFlags.Static | BindingFlags.NonPublic);
+            Assert.AreEqual(false, registered.GetValue(null));
+            Assert.IsNull(harmony.GetValue(null));
+            var activation = isolated.GetType(typeof(RemoteExecActivation).FullName, true);
             LogAssert.Expect(LogType.Warning, new Regex("--remoteExec が指定された"));
-            RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
-
-            LogAssert.Expect(LogType.Error, new Regex("空きポートが無いため待受を開けません"));
-            RemoteExecActivation.ActivateIfRequested();
-
-            foreach (var blocker in blockers) blocker.Stop();
-            Assert.IsNull(RemoteExecAccessFile.Token);
-            Assert.IsFalse(File.Exists(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
+            isolated.GetType(typeof(RemoteExecLaunchOption).FullName, true)
+                .GetMethod("ResolveFromCommandLine").Invoke(null, new object[] { new[] { "--remoteExec" } });
+            try
+            {
+                LogAssert.Expect(LogType.Error, new Regex("探索帯で待受を開けませんでした"));
+                activation.GetMethod("ActivateIfRequested").Invoke(null, null);
+                Assert.AreEqual(false, registered.GetValue(null), "起動拒否前にHarmony resolverを登録した");
+                Assert.IsNull(harmony.GetValue(null));
+                Assert.IsNull(isolated.GetType(typeof(RemoteExecAccessFile).FullName, true)
+                    .GetProperty("Token", BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic).GetValue(null));
+                Assert.IsFalse(File.Exists(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
+            }
+            finally
+            {
+                activation.GetMethod("Deactivate").Invoke(null, null);
+                foreach (var blocker in blockers) blocker.Stop();
+            }
         }
 
         [Test]
@@ -118,6 +140,53 @@ namespace Client.Tests.RemoteExec
             var response = JObject.Parse((await RemoteExecEndpoint.HandleAsync(PostRequest(null, "{}"), CancellationToken.None)).SerializeBody());
             Assert.AreEqual("Unauthorized", response.Value<string>("outcome"));
             StringAssert.Contains("起動オプションが無い", response.Value<string>("rejectionReason"));
+        }
+        [Test]
+        public async Task 取消コールバック例外でも撤去後の処理へ進む()
+        {
+            LogAssert.Expect(LogType.Warning, new Regex("--remoteExec が指定された"));
+            RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
+            var port = RemoteExecHttpListener.Start();
+            Assert.IsNotNull(port);
+            LogAssert.Expect(LogType.Warning, new Regex("入口を開きました"));
+            RemoteExecAccessFile.Issue(port.Value);
+            var lifetime = (CancellationTokenSource)typeof(RemoteExecHttpListener)
+                .GetField("_lifetime", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+
+            // 本番の送信コードに例外を投げる取消コールバックを残す
+            // Register a throwing cancellation callback through the production submitted-code path
+            var body = new JObject
+            {
+                ["code"] = "cancellationToken.Register(() => throw new System.InvalidOperationException(\"cancel failure\")); return 1;",
+                ["target"] = "client",
+            }.ToString();
+            var result = await RemoteExecEndpoint.HandleAsync(PostRequest(RemoteExecAccessFile.Token, body), lifetime.Token);
+            Assert.AreEqual("Succeeded", JObject.Parse(result.SerializeBody()).Value<string>("outcome"));
+            LogAssert.Expect(LogType.Error, new Regex("取消コールバック失敗"));
+            GameShutdownEvent.ResetForNewSession();
+            var participant = new ObservedShutdownParticipant();
+            GameShutdownEvent.RegisterParticipant(participant);
+            using var subscription = GameShutdownEvent.OnGameShutdown.Subscribe(_ => RemoteExecActivation.Deactivate());
+            var shutdown = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+            Assert.AreEqual(ShutdownFlushResult.Flushed, shutdown);
+            Assert.IsTrue(participant.WasFlushed);
+            GameShutdownEvent.ResetForNewSession();
+
+            // 撤去後へ到達し、失敗理由と接続情報の消去を確認する
+            // Reach the continuation and verify the failure reason and withdrawn access details
+            StringAssert.Contains("cancel failure", RemoteExecHttpListener.StopFailureReason);
+            Assert.IsNull(RemoteExecAccessFile.Token);
+            Assert.IsFalse(File.Exists(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
+        }
+
+        private sealed class ObservedShutdownParticipant : IGameShutdownParticipant
+        {
+            internal bool WasFlushed { get; private set; }
+            public UniTask<ShutdownFlushResult> FlushOnShutdownAsync()
+            {
+                WasFlushed = true;
+                return UniTask.FromResult(ShutdownFlushResult.Flushed);
+            }
         }
         private static RemoteExecHttpRequest PostRequest(string token, string body)
         {

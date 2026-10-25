@@ -14,17 +14,17 @@ namespace Client.RemoteExec
         };
 
         public int StatusCode { get; }
-        public RemoteExecResult Result { get; }
+        private readonly RemoteExecResult _result;
 
         internal RemoteExecHttpResponse(int statusCode, RemoteExecResult result)
         {
             StatusCode = statusCode;
-            Result = result;
+            _result = result;
         }
 
         internal string SerializeBody()
         {
-            return JsonConvert.SerializeObject(Result, BodySettings);
+            return JsonConvert.SerializeObject(_result, BodySettings);
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Client.Tests.RemoteExec
             // OSのネットワーク境界。他プロセスが既に基準ポートを使っていても「使用中」の前提は同じ
             // OS network boundary; if another process already holds the base port the "occupied" premise still holds
             try { blocker.Start(); }
-            catch (SocketException) { Debug.Log("[Test] 基準ポートは既に使用中"); }
+            catch (SocketException e) when (e.SocketErrorCode == SocketError.AddressAlreadyInUse) { Debug.LogWarning("[Test] 基準ポートは既に使用中"); }
             var port = RemoteExecHttpListener.Start();
             blocker.Stop();
 
@@ -64,7 +64,7 @@ namespace Client.Tests.RemoteExec
             var refused = false;
             using var client = new TcpClient();
             try { await client.ConnectAsync(IPAddress.Loopback, port.Value); }
-            catch (SocketException) { refused = true; }
+            catch (SocketException e) when (e.SocketErrorCode == SocketError.ConnectionRefused) { refused = true; }
             Assert.IsTrue(refused);
         }
 
