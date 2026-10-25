@@ -2662,7 +2662,9 @@ class MasterView:
 def _one(found, what):
     if len(found) == 1:
         return resolved(found[0])
-    return unresolved(f'{what} が {"無い" if not found else f"{len(found)} 件あり1つに決まらない"}')
+    if not found:
+        return unresolved(f'{what} が無い')
+    return unresolved(f'{what} が {len(found)} 件あり1つに決まらない')
 ```
 
 `tools/tier9_balance/run.py`:
@@ -5029,7 +5031,7 @@ GL=$W/moorestech_client/PlaytestResults/tier9-gates                             
 - **G6: tier9_balance。** Task 3 の枠 `tools/tier9_balance/` に、S1 区間（Task 12）・S2 区間（Task 19 Step 5）・S3 区間（Task 22 Step 6。S3 引き継ぎ「旧 Task 4」「旧 Task 12」を `sections/s3_endgame.py` と `sections/s3/` に書いたもの）を入れたもの。この節では `G6` と書き、`cd $MW && python3 tools/tier9_balance/run.py` を指す。入口はこれ 1 つ（判断記録 A22）。
   - 目標時間を判定し、sim の値と JSON の値を照合する。どちらかが外れれば exit 1。
   - S1 の sim は `$B/sim/`（Task 3 Step 7 が置く。値の正本）。`params` の定数と `timeline.RESEARCH` は S1 handoff「Task D1」Interfaces の Produces と同じ名前で、Task 12 の `sections/s1/` がこれを import して照合 8 項目を `checks.matches` で出す。
-  - S1 の照合が全部通ったかは `grep -E '^FAIL \[s1_semiconductor\] (match|lookup)'` が何も出さないことで見る（S2・S3 の区間が空のうちは G6 全体は exit 1 のまま。S2・S3 の照合は `grep -E '^FAIL \[(s2_compute_loop|s3_endgame)\] (match|lookup)'` で同じように見る）。
+  - 行は `PASS|FAIL [区間] 種類 状態 名前: 詳細`（Task 3。状態は `ok`・`mismatch`・`out_of_range`・`lookup_failed`・`not_positive`・`empty`）。S1 の照合と引き当てが全部通ったかは、目標外（`target out_of_range`。値の確定は Task 23）を除いた FAIL の数 `grep '^FAIL \[s1_semiconductor\] ' <出力> | grep -vc ' target out_of_range '` が 0 であることで見る（S2・S3 の区間が空のうちは G6 全体は exit 1 のまま。S2・S3 は区間名を `s2_compute_loop`・`s3_endgame` に替えて同じように見る）。
 
 **JSON の書き方（全スライス共通）:** マスタ JSON は手で書かない。S1 handoff の方式で、名前で参照する spec（`$B/spec/NN_*.json`）を GUID 台帳 `$B/guids.json` から適用スクリプトで流し込む。
 - 適用: `cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json`
@@ -5102,12 +5104,13 @@ git -C $MW push -u origin feat/tier9-integrated
 - Create: `moorestech_master:tools/tier9_balance/sections/s1/{__init__,sim_bridge,lookup,structure_checks,recipe_checks,cleanroom_checks,item_checks}.py`
 - Modify: `moorestech_master:tools/tier9_balance/sections/s1_semiconductor.py`（Task 3 の空の区間を、目標判定・所要時間・照合 8 項目に置き換える）
 - Create: `moorestech_master:tools/nodegraph_sync/{sync_nodegraph,graph_io,graph_edits,spatial_unlock,placement,unlock_sync,audit}.py`
+- Create: `moorestech_master:tools/master_common/json_text.py`（末尾改行を保つ JSON の読み書き。`apply/master_io.py` と `nodegraph_sync/graph_io.py` が共有する。判断記録 A32）
 - Test: `moorestech_master:tools/nodegraph_sync/tests/test_nodegraph_sync.py`
 - S1 handoff「Task D2 Step 2」の照合 2 本（D2 の Files にある照合用 CLI と検査関数のファイル）は作らない。その 8 項目は `sections/s1/` に `checks.matches` として書く（判断記録 A22）
 
 **Interfaces:**
 - Consumes:
-  - Task 3 の枠（`checks.matches` / `checks.lookup_failed` / `Check` / `SectionResult`、`MasterView` の `items` `items_doc` `blocks` `fluids` `recipes` `research` `clean_room` `master_dir` `block_param`）。
+  - Task 3 の枠（`checks.Resolved`・`resolved`・`field`・`element`・`failures`・`require_positive`・`matches`・`sim_target`・`lookup_failed`・`SectionResult`、`MasterView` の `items` `items_doc` `blocks` `fluids` `recipes` `research` `clean_room` `families` `master_dir` `block_param` `guid_of` `input_guid` `label_of` `recipe_input_amount`、`master_view.entry_guid`）。
   - Task 3 Step 7 の sim `$B/sim/`: `params` の定数、`timeline.RESEARCH`・`timeline.run`、`targets.evaluate`。名前は S1 handoff「Task D1」Interfaces の Produces どおり。
   - 前例 `moorestech_master:tools/plan6_nodegraph_migration/migrate_nodegraph.py`（nodeGraph の取り残しで、消えたアイテムを参照するノードが 69 件残った事故の後始末。消えた参照の機械検証と、エディタの空間割り当て〈2 パスの範囲法〉の移植を持つ）。
 - Produces:
@@ -5120,10 +5123,11 @@ git -C $MW push -u origin feat/tier9-integrated
     - `buildMenuSubCategories`（`{category, name, en, guid}`）
     - `orbitalPayloads`（`payloadItemGuid` で upsert）
   - G6 の区間 `s1_semiconductor`（`sections/s1_semiconductor.evaluate(view) -> SectionResult`）:
-    - `targets.evaluate()` の 12 行を `Check('target', 目標, 合否, 実測)` として出す。
-    - S1 handoff「Task D2」の照合 8 項目を、次の関数が `checks.matches`（引けないものは `checks.lookup_failed`）の行として出す。`structure` → `structure_checks.check_structure`、`upstream ratio` → `recipe_checks.check_upstream_ratio`、`recipes = params` → `recipe_checks.check_recipes_match_params`、`power / filter = params` → `recipe_checks.check_power_and_filter`、`cleanRoom = params` → `cleanroom_checks.check_cleanroom_values`、`quality module permission` → `item_checks.check_quality_module_permission`、`modules = params` → `item_checks.check_modules`、`research = params` → `item_checks.check_research_costs`。
-    - `hours` は `timeline.run('B')["done"]["モジュールスタック拡張II"]`（判断記録 A8）。
-    - 出力の行は `PASS|FAIL [s1_semiconductor] target|match|lookup <名前>: <詳細>`。S1 の照合が全部通ったことは `grep -E '^FAIL \[s1_semiconductor\] (match|lookup)'` が何も出さないことで判定する。
+    - `targets.evaluate()` の 12 行を `checks.sim_target(目標, 合否, 実測)` として出す。
+    - S1 handoff「Task D2」の照合 8 項目を、次の関数が `checks.matches` の行として出す（引けない値は `lookup_failed` の `Resolved` を渡し、その状態の行になる。判断記録 A31）。`structure` → `structure_checks.check_structure`、`upstream ratio` → `recipe_checks.check_upstream_ratio`、`recipes = params` → `recipe_checks.check_recipes_match_params`、`power / filter = params` → `recipe_checks.check_power_and_filter`、`cleanRoom = params` → `cleanroom_checks.check_cleanroom_values`、`quality module permission` → `item_checks.check_quality_module_permission`、`modules = params` → `item_checks.check_modules`、`research = params` → `item_checks.check_research_costs`。
+    - `hours` は `timeline.run('B')["done"]["モジュールスタック拡張II"]` を `Resolved` で持つ（sim で完了しなければ `lookup_failed`。判断記録 A8）。
+    - 出力の行は `PASS|FAIL [s1_semiconductor] target|match <状態> <名前>: <詳細>`。S1 の照合と引き当てが全部通ったことは、`grep '^FAIL \[s1_semiconductor\] ' <出力> | grep -vc ' target out_of_range '` が 0 であることで判定する。
+    - S1 の `sections/s1/lookup.py` の `S1Lookup` は、台帳のレシピを `recipe_guid(key)`・`recipe(key)` で `Resolved` として返す。名前の相互引きは `MasterView` に寄せる（判断記録 A32）。機械名 → ブロック名の読み替えは `recipe_checks.block_for_machine` の 1 か所。
   - CLI `python3 tools/nodegraph_sync/sync_nodegraph.py [--mod-dir DIR] [--check]`（判断記録 A21）:
     - 書き込みモード: 参照先の消えたノードと線を除き、research.json にある研究のノードを足し、研究どうしの `dependency` 線を `prevResearchNodeGuids` に揃え、解放ノード（item・block・train）を足す・動かす・どの研究にも割り当たらない位置へ退避する。1 行目に `pruned N nodes / M edges; research nodes +R; dependency edges +A -S; unlock nodes moved X added Y parked Z` を出す。置けなかったものは `UNPLACED …` 行。
     - 検査（`--check` は検査だけ）: 参照先の消えたノード・線が 0 件、research.json と研究ノードが 1 対 1、研究どうしの線が前提と一致、エディタの空間割り当てが research.json の解放（`unlockItemRecipeView`・`unlockBlock`・`unlockTrainCar`）と一致。違反は `FAIL …` で 1 件ずつ出し、末尾は `== NODEGRAPH: PASS|FAIL (k failures)`。1 件でもあれば exit 1 で、書き込みモードでもファイルを書かない。
@@ -5136,7 +5140,42 @@ S1 handoff「Task D2」の Step 1 の 5 ファイルを使い、Step 2 の照合
 (a) `master_io.py`: 対象に `buildMenu` を足し、元のファイルの末尾改行の有無を保つ。
 - 理由（実測）: 起点 f9370e7 では `cleanRoom.json` だけが末尾改行あり、他は改行なし。下書きの「改行なしで書く」では、空の spec を流しても cleanRoom が 1 バイト変わり、D2 Step 4 が通らない。
 - 確認方法: 7 ファイルと localization.csv を `json.dumps(indent=2, ensure_ascii=False)`（csv は `lineterminator="\n"`）で往復させると、改行を保った場合はすべて一致した。
+- 末尾改行を保つ JSON の読み書きは、Step 8 の nodeGraph 同期（`graph_io.load_graph`・`save_graph`）も同じことをするので、共通部品 `tools/master_common/json_text.py` に 1 本だけ置き、両方から使う（判断記録 A32。パッケージ `tools/master_common/` は Task 2 が作る）。
+
+`tools/master_common/json_text.py`:
 ```python
+#!/usr/bin/env python3
+# マスタ・nodeGraph の JSON を、元ファイルの末尾改行の有無を保って読み書きする（apply と nodegraph_sync の共通部品。判断記録 A32）
+# Read/write master and nodeGraph JSON keeping the original trailing newline (shared by apply and nodegraph_sync; decision A32)
+# 書式はインデント2・非ASCIIそのまま。起点 f9370e7 では cleanRoom.json だけ末尾改行ありで、他は改行なし
+# Format is indent 2 with raw non-ASCII; at base f9370e7 only cleanRoom.json ends with a newline, the rest do not
+import json
+from pathlib import Path
+
+
+def has_trailing_newline(path):
+    return Path(path).read_text(encoding='utf-8').endswith('\n')
+
+
+def read_json_keeping_newline(path):
+    text = Path(path).read_text(encoding='utf-8')
+    return json.loads(text), text.endswith('\n')
+
+
+def write_json_keeping_newline(path, doc, trailing_newline):
+    text = json.dumps(doc, indent=2, ensure_ascii=False) + ('\n' if trailing_newline else '')
+    Path(path).write_text(text, encoding='utf-8')
+```
+
+`master_io.py` の差分（`MASTER_FILES` と `save_master` を置き換え、ファイル先頭の import の後に `sys` の import と検索パスの 2 行を足す）:
+```python
+import sys
+
+# 末尾改行を保つ読み書きは tools/master_common/json_text.py の 1 本を使う（nodegraph_sync と共有）
+# Reuse the single newline-keeping reader/writer in tools/master_common/json_text.py (shared with nodegraph_sync)
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools"))
+from master_common.json_text import has_trailing_newline, write_json_keeping_newline  # noqa: E402
+
 MASTER_FILES = ["items", "fluids", "blocks", "machineRecipes", "research", "cleanRoom", "buildMenu"]
 
 
@@ -5145,8 +5184,7 @@ def save_master(mod_dir, master):
     # Indent 2, raw non-ASCII, trailing newline as in the original (round-trips research.json that sync writes with a newline)
     for name in MASTER_FILES:
         path = Path(mod_dir) / "master" / f"{name}.json"
-        ending = "\n" if path.read_text(encoding="utf-8").endswith("\n") else ""
-        path.write_text(json.dumps(master[name], indent=2, ensure_ascii=False) + ending, encoding="utf-8")
+        write_json_keeping_newline(path, master[name], has_trailing_newline(path))
 ```
 
 (b) `apply/apply_extras.py`（新規）: 統合で足す 6 キーを処理する。`apply_spec.py` は下書きで約 125 行あり、ここに足すと 200 行を超えるので別ファイルにする。
@@ -5219,9 +5257,9 @@ def assert_removed_absent(master, removed):
 ```
 
 - [ ] **Step 2: G6 の S1 区間の照合を置く**（S1 handoff「Task D2 Step 2」の 8 項目を、`checks.matches` の行に書き直したもの。判断記録 A22）
-  - 書き直しの規則: 元の「失敗理由の文字列リスト」は、1 値ごとの `checks.matches(名前, sim の値, JSON の値, 許容差)` にする。「あってはならないもの」（超純水の残り・仮コスト・chipDraws など）は `none_of` が違反 1 件ごとに `matches(…, 0, 1, 0)` を出し、違反が無ければ `matches(…, 0, 0, 0)` を 1 行出す。台帳かマスタに無い名前は例外にせず `checks.lookup_failed` にする（Task 12 の時点では工程レシピが台帳に無いので、その行は lookup の FAIL になる）。
-  - 下書きからの訂正 2 点をここに入れる。① ICチップLv1 を消費する研究は S1 の 7 ノードに限って数える（S2・S3 を積むとロケット技術・金属超精密加工・核融合炉・軌道エレベーターの建設・反物質爆弾も消費するため。下書きのままだと最後に `12 nodes` で落ちる）。② ダイは名前の前方一致ではなく levelFamily「シリコンダイ」で判別する（S1 handoff「設計検査の持ち越し」5 項目目）。
-  - 1 ディレクトリ 10 ファイルまで・1 ファイル 200 行以下に収めるため、`sections/` の下に `s1/` を切る。判断記録 A22 の「`sections/s1_semiconductor.py` の `checks.matches`」は、区間 `s1_semiconductor` の `evaluate` が返す行として満たす（`s1_semiconductor.py` が `s1/` の 8 関数を呼んで行を集める）（`sections/` は `.py` 4 本と `s1/`、`s1/` は 7 本。最大は `structure_checks.py` の 77 行）。
+  - 書き直しの規則: 元の「失敗理由の文字列リスト」は、1 値ごとの `checks.matches(名前, sim の値, JSON の値, 許容差)` にする。「あってはならないもの」（超純水の残り・仮コスト・chipDraws など）は `none_of` が違反 1 件ごとに `matches(…, 0, 1, 0)` を出し、違反が無ければ `matches(…, 0, 0, 0)` を 1 行出す。台帳かマスタに無い名前は例外にせず、引けない `Resolved`（`lookup_failed`）として `matches` に渡すか、値を作れない検査を `checks.lookup_failed('match', …)` の行にする（Task 12 の時点では工程レシピが台帳に無いので、その行は `match lookup_failed` の FAIL になる）。
+  - 下書きからの訂正 3 点をここに入れる。① ICチップLv1 を消費する研究は S1 の 7 ノードに限って数える（S2・S3 を積むとロケット技術・金属超精密加工・核融合炉・軌道エレベーターの建設・反物質爆弾も消費するため。下書きのままだと最後に `12 nodes` で落ちる）。② ダイは名前の前方一致ではなく levelFamily「シリコンダイ」で判別する（S1 handoff「設計検査の持ち越し」5 項目目）。③ レシピの入力も名前の前方一致で当てない。params の入力名を `MasterView.input_guid` で GUID に直し（アイテム名・levelFamily 名〈基準アイテム〉・液体名のどれか 1 つに当たること）、その GUID の入力行が 1 つに決まるかを `recipe_input_amount` で引く（判断記録 A32）。
+  - 1 ディレクトリ 10 ファイルまで・1 ファイル 200 行以下に収めるため、`sections/` の下に `s1/` を切る。判断記録 A22 の「`sections/s1_semiconductor.py` の `checks.matches`」は、区間 `s1_semiconductor` の `evaluate` が返す行として満たす（`s1_semiconductor.py` が `s1/` の 8 関数を呼んで行を集める）（`sections/` は `.py` 4 本と `s1/`、`s1/` は 7 本。最大は `structure_checks.py` の 79 行）。
 
 `tools/tier9_balance/sections/s1/__init__.py`:
 ```python
@@ -5250,8 +5288,8 @@ if str(SIM_DIR) not in sys.path:
 
 
 def load_ledger():
-    # 台帳が無いときは空を返し、引けない名前は呼び出し側が lookup_failed で FAIL にする
-    # Return an empty ledger when absent; callers fail the unresolved names via lookup_failed
+    # 台帳が無いときは空を返す。台帳に無いレシピキーは S1Lookup が lookup_failed の Resolved にし、その行が FAIL になる
+    # Return an empty ledger when absent; S1Lookup turns a missing recipe key into a lookup_failed Resolved and that row fails
     if not LEDGER_PATH.exists():
         return {}
     return json.loads(LEDGER_PATH.read_text(encoding='utf-8'))
@@ -5260,8 +5298,8 @@ def load_ledger():
 `tools/tier9_balance/sections/s1/lookup.py`:
 ```python
 #!/usr/bin/env python3
-# S1 の照合が使う GUID と名前の相互引き。引けないものは例外にせず None を返す
-# GUID/name lookups for the S1 checks; anything missing returns None instead of raising
+# S1 の照合が使う台帳のレシピの引き当てとローカライズ行。引けたかどうかは Resolved の状態で返す（判断記録 A31）
+# Ledger recipe lookups and localization rows for the S1 checks; whether a lookup worked is a Resolved state (decision A31)
 import csv
 import os
 
@@ -5272,32 +5310,17 @@ class S1Lookup:
     def __init__(self, view, ledger):
         self.view = view
         self.items_doc = view.items_doc
-        self._item_names = {i['itemGuid']: name for name, i in view.items.items()}
-        self._fluid_names = {f['fluidGuid']: name for name, f in view.fluids.items()}
-        self._block_names = {b['blockGuid']: name for name, b in view.blocks.items()}
         self._recipes = {r['machineRecipeGuid']: r for r in view.recipes}
         self.recipe_guids = {k.split(':', 1)[1]: v for k, v in ledger.items() if k.startswith('recipe:')}
         self.ledger = ledger
 
-    def item_name(self, guid):
-        return self._item_names.get(guid)
-
-    def fluid_name(self, guid):
-        return self._fluid_names.get(guid)
-
-    def block_name(self, guid):
-        return self._block_names.get(guid)
-
-    def block_param(self, name, key):
-        return self.view.block_param(name, key)
+    def recipe_guid(self, key):
+        return checks.field(self.recipe_guids, key, '台帳 guids.json の recipe キー')
 
     def recipe(self, key):
         # 台帳の recipe:<key> から GUID を引き、その GUID のレシピを返す
         # Resolve recipe:<key> in the ledger to a GUID and return that recipe
-        return self._recipes.get(self.recipe_guids.get(key))
-
-    def input_count(self, recipe, item_name):
-        return next((i['count'] for i in recipe['inputItems'] if self.item_name(i['itemGuid']) == item_name), None)
+        return self.recipe_guid(key).then(lambda guid: checks.field(self._recipes, guid, f'machineRecipes.json（台帳の recipe:{key}）'))
 
     def localization_keys(self):
         path = os.path.join(self.view.master_dir, '..', 'localization', 'localization.csv')
@@ -5307,16 +5330,16 @@ class S1Lookup:
             return {row[0] for row in csv.reader(source) if row}
 
 
-def missing_recipe(key):
-    return checks.lookup_failed(f'レシピ {key}', '台帳 guids.json の recipe キーか machineRecipes.json の行が無い')
+def missing_recipe(key, recipe):
+    return checks.lookup_failed('match', f'レシピ {key}', recipe.reason)
 
 
 def none_of(name, offenders):
     # 「あってはならないもの」の検査。違反1件ごとに1行、違反が無ければ0件の1行を出す
     # A "must be absent" check: one row per offender, or a single zero row when there are none
     if not offenders:
-        return [checks.matches(name, 0, 0, 0)]
-    return [checks.matches(f'{name}: {offender}', 0, 1, 0) for offender in offenders]
+        return [checks.matches(name, 0, checks.resolved(0), 0)]
+    return [checks.matches(f'{name}: {offender}', 0, checks.resolved(1), 0) for offender in offenders]
 ```
 
 `tools/tier9_balance/sections/s1/structure_checks.py`:
@@ -5338,6 +5361,7 @@ IC_CHIP_LV1 = 'f6dd7835-0845-4877-87d0-b719d037ae7d'
 RENAMED_ITEMS = ['019e3c14-b270-716f-84e5-c0b06a97592b', '019e3c25-78f1-70ec-be1b-2c2cdd9297bb',
                  '019e3b02-b9fd-73c7-9538-ef13b0f755f1', '019e3c26-9808-765d-ace7-ea1845a7e072']
 S1_FAMILY_COUNT = 11
+DIE_FAMILY, FAILED_DIE = 'シリコンダイ', '失敗したシリコンダイ'
 
 
 def check_structure(lk):
@@ -5353,25 +5377,26 @@ def check_structure(lk):
     # levelFamilies は S1 の 11 族以上あり、どれも 5 段で基準が先頭
     # levelFamilies hold at least the 11 S1 families, each of 5 levels with the base first
     families = items_doc.get('levelFamilies', [])
-    rows.append(checks.matches('levelFamilies の不足数（S1 の 11 族に対して）', 0, max(0, S1_FAMILY_COUNT - len(families)), 0))
+    shortage = checks.resolved(max(0, S1_FAMILY_COUNT - len(families)))
+    rows.append(checks.matches('levelFamilies の不足数（S1 の 11 族に対して）', 0, shortage, 0))
     rows += none_of('5 段で基準が先頭になっていない levelFamily', [f['name'] for f in families
                     if len(f['levelItemGuids']) != 5 or f['levelItemGuids'][0] != f['baseItemGuid']])
     rows += none_of('cleanRoom に残る旧チップ抽選 chipDraws', ['chipDraws'] if 'chipDraws' in view.clean_room else [])
-    rows += _die_stacks(lk, families)
+    rows += _die_stacks(lk)
     rows += _chip_research_use(view)
     return rows + _localization(lk)
 
 
-def _die_stacks(lk, families):
+def _die_stacks(lk):
     # ダイと失敗ダイのスタック上限が 1 ウェハ分×2 以上。ダイは名前の前方一致ではなく levelFamily で判別する
     # Dies and failed dies stack to at least two wafers; dies are identified by levelFamily, not by name prefix
-    die_family = next((f for f in families if f['name'] == 'シリコンダイ'), None)
-    failed_die = lk.view.items.get('失敗したシリコンダイ')
-    if die_family is None or failed_die is None:
-        return [checks.lookup_failed('ダイのスタック上限', 'levelFamily「シリコンダイ」かアイテム「失敗したシリコンダイ」が無い')]
+    view = lk.view
+    if DIE_FAMILY not in view.families or FAILED_DIE not in view.items:
+        return [checks.lookup_failed('match', 'ダイのスタック上限', f'levelFamily「{DIE_FAMILY}」かアイテム「{FAILED_DIE}」が無い')]
     tables = {t['tableGuid']: min(t['stackCounts']) for t in lk.items_doc.get('itemStackLevelTables', [])}
-    targets = set(die_family['levelItemGuids']) | {failed_die['itemGuid']}
-    short = [lk.item_name(i['itemGuid']) for i in lk.items_doc['data'] if i['itemGuid'] in targets
+    targets = set(view.families[DIE_FAMILY]['levelItemGuids']) | {view.items[FAILED_DIE]['itemGuid']}
+    # silent-ok: 表の無いアイテムは上限 0 として「足りない」側に数える / 足りない行は none_of の FAIL として G6 の出力に出る
+    short = [i['name'] for i in lk.items_doc['data'] if i['itemGuid'] in targets
              and tables.get(i.get('stackLevelTableGuid'), 0) < DIES_PER_WAFER * 2]
     return none_of(f'スタック上限が {DIES_PER_WAFER * 2} 未満のダイ', short)
 
@@ -5382,8 +5407,8 @@ def _chip_research_use(view):
     s1_names = {node['name'] for node in RESEARCH}
     uses = [c['itemCount'] for name, n in view.research.items() if name in s1_names
             for c in n['consumeItems'] if c['itemGuid'] == IC_CHIP_LV1]
-    return [checks.matches('ICチップLv1 を消費する S1 研究の数', len(RESEARCH), len(uses), 0),
-            checks.matches('S1 研究の ICチップLv1 合計', sum(n['chips'] for n in RESEARCH), sum(uses), 0)]
+    return [checks.matches('ICチップLv1 を消費する S1 研究の数', len(RESEARCH), checks.resolved(len(uses)), 0),
+            checks.matches('S1 研究の ICチップLv1 合計', sum(n['chips'] for n in RESEARCH), checks.resolved(sum(uses)), 0)]
 
 
 def _localization(lk):
@@ -5406,34 +5431,43 @@ def _localization(lk):
 # S1 照合「upstream ratio」「recipes = params」「power / filter = params」（S1 handoff D2 Step 2 の照合関数のうち 3 つ）
 # S1 "upstream ratio", "recipes = params", "power / filter = params" (three of the S1 handoff D2 Step 2 check functions)
 import checks
+from master_view import entry_guid
 from params import FILTER_CAPACITY, FILTER_Q, LINE_SI_PER_S, POWER, RECIPES
 from sections.s1.lookup import missing_recipe
 
-# sim のレシピ名 → 台帳のレシピキー / sim の機械名 → ブロック名
-# Sim recipe name -> ledger recipe key / sim machine name -> block name
+# sim のレシピ名 → 台帳のレシピキー / sim の機械名 → ブロック名（名前が同じ機械は載せない）
+# Sim recipe name -> ledger recipe key / sim machine name -> block name (machines with the same name are not listed)
 PARAM_TO_RECIPE = {'シリコンウェハ': ['ウェハ切断'], 'トランジスタ設置済みウェハ': ['成膜'], 'EUV層': ['EUV1層', 'EUV2層', 'EUV3層'],
                    'ダイ': ['ダイシング'], 'ICチップ': ['パッケージング']}
 MACHINE_TO_BLOCK = {'EUV露光装置': 'EUV露光式半導体製造装置', '空気清浄機': 'クリーンルーム空気清浄機'}
 IPA = 'イソプロピルアルコール'
+# 上流の台数比の期待値（炉だけが2倍で、粉砕と化学が同数）
+# Expected upstream machine ratios (only the furnace doubles; crusher and chemical plant are equal)
+RATIO_TARGETS = (('上流の台数比 電気炉/電気粉砕機', 2.0), ('上流の台数比 化学プラント/電気粉砕機', 1.0))
 EPS = 1e-9
+
+
+def block_for_machine(machine):
+    return MACHINE_TO_BLOCK.get(machine, machine)
 
 
 def check_upstream_ratio(lk):
     # 基準ライン1本の 粉砕:炉:化学 の台数を実マスタのレシピ時間から出し、炉だけが2倍（粉砕と化学が同数）かを見る
     # Count crusher:furnace:chemical machines for one line from the real recipes; only the furnace is doubled
-    metal, furnace, sand = lk.recipe('高純度シリコン'), lk.recipe('金属シリコン'), lk.recipe('砂')
-    missing = [k for k, r in (('高純度シリコン', metal), ('金属シリコン', furnace), ('砂', sand)) if r is None]
-    if missing:
-        return [missing_recipe(k) for k in missing]
+    found = {k: lk.recipe(k) for k in ('高純度シリコン', '金属シリコン', '砂')}
+    if checks.failures(found.values()):
+        return [missing_recipe(k, r) for k, r in found.items() if not r.ok]
+    metal, furnace, sand = (found[k].value for k in ('高純度シリコン', '金属シリコン', '砂'))
+    sand_in = checks.require_positive(lk.view.recipe_input_amount(furnace, '砂'), '電気炉のレシピの入力「砂」')
+    if not sand_in.ok:
+        return [checks.matches(name, expected, sand_in, 1e-6) for name, expected in RATIO_TARGETS]
     chem = LINE_SI_PER_S * metal['time'] / metal['outputItems'][0]['count']
     metal_per_s = LINE_SI_PER_S * metal['inputItems'][0]['count']
     furn = metal_per_s * furnace['time'] / furnace['outputItems'][0]['count']
-    sand_per_s = metal_per_s * (lk.input_count(furnace, '砂') or 0) / furnace['outputItems'][0]['count']
+    sand_per_s = metal_per_s * sand_in.value / furnace['outputItems'][0]['count']
     crush = sand_per_s * sand['time'] / sand['outputItems'][0]['count']
-    if crush == 0:
-        return [checks.lookup_failed('上流の台数比', '電気炉のレシピに入力「砂」が無い')]
-    return [checks.matches('上流の台数比 電気炉/電気粉砕機', 2.0, furn / crush, 1e-6),
-            checks.matches('上流の台数比 化学プラント/電気粉砕機', 1.0, chem / crush, 1e-6)]
+    measured = {RATIO_TARGETS[0][0]: furn / crush, RATIO_TARGETS[1][0]: chem / crush}
+    return [checks.matches(name, expected, checks.resolved(measured[name]), 1e-6) for name, expected in RATIO_TARGETS]
 
 
 def check_recipes_match_params(lk):
@@ -5441,36 +5475,35 @@ def check_recipes_match_params(lk):
     for name, spec in RECIPES.items():
         for key in PARAM_TO_RECIPE.get(name, [name]):
             recipe = lk.recipe(key)
-            rows += [missing_recipe(key)] if recipe is None else _recipe_rows(lk, key, spec, recipe)
+            rows += _recipe_rows(lk, key, spec, recipe.value) if recipe.ok else [missing_recipe(key, recipe)]
     return rows
 
 
 def _recipe_rows(lk, key, spec, recipe):
-    # 機械・時間・入力・IPA・出力数を params の1行と突き合わせる
-    # Match machine, time, inputs, IPA and output count against one params row
-    block = MACHINE_TO_BLOCK.get(spec['machine'], spec['machine'])
-    rows = [checks.matches(f'レシピ {key} の機械が {block}', 1, int(lk.block_name(recipe['blockGuid']) == block), 0),
-            checks.matches(f'レシピ {key} の時間', spec['time'], recipe['time'], EPS)]
-    inputs = [(lk.item_name(i['itemGuid']) or '', i['count']) for i in recipe['inputItems']]
-    inputs += [(lk.fluid_name(f['fluidGuid']) or '', f['amount']) for f in recipe['inputFluids']]
+    # 機械・時間・入力・IPA・出力数を params の1行と突き合わせる。入力は名前の前方一致でなく GUID で引く（判断記録 A32）
+    # Match machine, time, inputs, IPA and output count with one params row; inputs are found by GUID, not name prefix (decision A32)
+    view, block = lk.view, block_for_machine(spec['machine'])
+    machine = checks.field(view.blocks, block, 'blocks.json').map(lambda b: int(recipe['blockGuid'] == b['blockGuid']))
+    rows = [checks.matches(f'レシピ {key} の機械が {block}', 1, machine, 0),
+            checks.matches(f'レシピ {key} の時間', spec['time'], checks.resolved(recipe['time']), EPS)]
     for item, count in spec.get('in', {}).items():
-        found = next((c for n, c in inputs if n.startswith(item) and c == count), None)
-        rows.append(checks.matches(f'レシピ {key} の入力 {item}', count, found, 0))
+        rows.append(checks.matches(f'レシピ {key} の入力 {item}', count, view.recipe_input_amount(recipe, item), 0))
     if 'ipa' in spec:
-        ipa = sum(f['amount'] for f in recipe['inputFluids'] if lk.fluid_name(f['fluidGuid']) == IPA)
+        ipa = view.guid_of(IPA).map(lambda g: sum(f['amount'] for f in recipe['inputFluids'] if entry_guid(f) == g))
         rows.append(checks.matches(f'レシピ {key} の IPA', spec['ipa'], ipa, EPS))
     out = recipe['outputItems'][0]['count'] if recipe['outputItems'] else recipe['outputFluids'][0]['amount']
-    rows.append(checks.matches(f'レシピ {key} の出力数', spec['out'], out, EPS))
+    rows.append(checks.matches(f'レシピ {key} の出力数', spec['out'], checks.resolved(out), EPS))
     return rows
 
 
 def check_power_and_filter(lk):
+    view, cleaner = lk.view, block_for_machine('空気清浄機')
     rows = []
     for machine, power in POWER.items():
-        block = MACHINE_TO_BLOCK.get(machine, machine)
-        rows.append(checks.matches(f'{block} の消費電力', power, lk.block_param(block, 'requiredPower'), EPS))
-    rows.append(checks.matches('空気清浄機の毎秒除去量', FILTER_Q, lk.block_param('クリーンルーム空気清浄機', 'removalVolumePerSecond'), EPS))
-    rows.append(checks.matches('空気清浄機のフィルター容量', FILTER_CAPACITY, lk.block_param('クリーンルーム空気清浄機', 'filterCapacity'), EPS))
+        block = block_for_machine(machine)
+        rows.append(checks.matches(f'{block} の消費電力', power, view.block_param(block, 'requiredPower'), EPS))
+    rows.append(checks.matches('空気清浄機の毎秒除去量', FILTER_Q, view.block_param(cleaner, 'removalVolumePerSecond'), EPS))
+    rows.append(checks.matches('空気清浄機のフィルター容量', FILTER_CAPACITY, view.block_param(cleaner, 'filterCapacity'), EPS))
     return rows
 ```
 
@@ -5490,11 +5523,15 @@ EPS = 1e-9
 
 def check_cleanroom_values(lk):
     room = lk.view.clean_room
-    rows = [checks.matches(f'汚染係数 {k}', v, room.get('pollution', {}).get(k), EPS) for k, v in POLLUTION.items()]
+    pollution = room.get('pollution', {})
+    rows = [checks.matches(f'汚染係数 {k}', v, checks.field(pollution, k, 'cleanRoom.json の pollution'), EPS)
+            for k, v in POLLUTION.items()]
     by_class = {row['className']: row for row in room.get('thresholds', [])}
     for class_name, expected in CLASS_PARAMS.items():
+        row = checks.field(by_class, class_name, 'cleanRoom.json の thresholds')
         for key in CLASS_VALUE_KEYS:
-            rows.append(checks.matches(f'クラス{class_name} の {key}', expected[key], by_class.get(class_name, {}).get(key), EPS))
+            value = row.then(lambda r: checks.field(r, key, f'クラス{class_name} の行'))
+            rows.append(checks.matches(f'クラス{class_name} の {key}', expected[key], value, EPS))
     return rows + _role_rows(lk, room)
 
 
@@ -5502,37 +5539,39 @@ def _role_rows(lk, room):
     # 役割表が工程レシピと G1/Lv1 品を指し、上限・ダイ数・ダイ表が params と同じ
     # Role rows point at the stage recipes and G1/Lv1 items, with caps, dies per wafer and die tables from params
     keys = ['成膜', 'ダイシング'] + [k for k, _ in EUV_LAYERS]
-    guids = {k: lk.recipe_guids.get(k) for k in keys}
-    if None in guids.values():
-        return [missing_recipe(k) for k, g in guids.items() if g is None]
+    found = {k: lk.recipe_guid(k) for k in keys}
+    if checks.failures(found.values()):
+        return [missing_recipe(k, g) for k, g in found.items() if not g.ok]
+    guids, label = {k: g.value for k, g in found.items()}, lk.view.label_of
     draws, exposures, dicings = room.get('waferGradeDraws', []), room.get('layerExposures', []), room.get('dicings', [])
-    draw_rows = [(d['machineRecipeGuid'], lk.item_name(d['gradedWaferItemGuid'])) for d in draws]
-    euv_rows = {e['machineRecipeGuid']: (lk.item_name(e['layeredWaferItemGuid']), lk.item_name(e['failedWaferItemGuid'])) for e in exposures}
+    draw_rows = [(d['machineRecipeGuid'], label(d['gradedWaferItemGuid'])) for d in draws]
+    euv_rows = {e['machineRecipeGuid']: (label(e['layeredWaferItemGuid']), label(e['failedWaferItemGuid'])) for e in exposures}
     euv_expected = {guids[k]: (name, '失敗したパターンウェハ') for k, name in EUV_LAYERS}
-    dicing_rows = [(d['machineRecipeGuid'], lk.item_name(d['dieItemGuid']), lk.item_name(d['failedDieItemGuid'])) for d in dicings]
-    rows = [checks.matches('waferGradeDraws が成膜の 1 行', 1, int(draw_rows == [(guids['成膜'], 'トランジスタ設置済みウェハG1')]), 0),
-            checks.matches('layerExposures が EUV の 3 行', 1, int(len(exposures) == 3 and euv_rows == euv_expected), 0),
-            checks.matches('dicings がダイシングの 1 行', 1,
-                           int(dicing_rows == [(guids['ダイシング'], 'シリコンダイLv1', '失敗したシリコンダイ')]), 0)]
-    rows += [checks.matches('成膜の昇格上限', PROMOTION_CAP, d['maxPromotionChance'], EPS) for d in draws]
-    rows += [checks.matches('EUV の失敗低減上限', QUALITY_REDUCTION_CAP, e['maxFailReduction'], EPS) for e in exposures]
+    dicing_rows = [(d['machineRecipeGuid'], label(d['dieItemGuid']), label(d['failedDieItemGuid'])) for d in dicings]
+    shape = (('waferGradeDraws が成膜の 1 行', draw_rows == [(guids['成膜'], 'トランジスタ設置済みウェハG1')]),
+             ('layerExposures が EUV の 3 行', len(exposures) == 3 and euv_rows == euv_expected),
+             ('dicings がダイシングの 1 行', dicing_rows == [(guids['ダイシング'], 'シリコンダイLv1', '失敗したシリコンダイ')]))
+    rows = [checks.matches(name, 1, checks.resolved(int(same)), 0) for name, same in shape]
+    rows += [checks.matches('成膜の昇格上限', PROMOTION_CAP, checks.resolved(d['maxPromotionChance']), EPS) for d in draws]
+    rows += [checks.matches('EUV の失敗低減上限', QUALITY_REDUCTION_CAP, checks.resolved(e['maxFailReduction']), EPS) for e in exposures]
     for d in dicings:
-        rows.append(checks.matches('ダイシングの損失低減上限', QUALITY_REDUCTION_CAP, d['maxLossReduction'], EPS))
-        rows.append(checks.matches('1 ウェハのダイ数', DIES_PER_WAFER, d['diesPerWafer'], 0))
+        rows.append(checks.matches('ダイシングの損失低減上限', QUALITY_REDUCTION_CAP, checks.resolved(d['maxLossReduction']), EPS))
+        rows.append(checks.matches('1 ウェハのダイ数', DIES_PER_WAFER, checks.resolved(d['diesPerWafer']), 0))
         rows += _die_table_rows(d)
     return rows
 
 
 def _die_table_rows(dicing):
-    # ウェハの等級 g ごとのダイ表（Lv1..Lvg の確率）を1値ずつ照合する。段数の食い違いは欠けた側を None で落とす
-    # Match each grade's die table (Lv1..Lvg rates) value by value; a length mismatch fails via None on the missing side
+    # ウェハの等級 g ごとのダイ表（Lv1..Lvg の確率）を1値ずつ照合する。段数が足りない側は引けない（lookup_failed）として落とす
+    # Match each grade's die table (Lv1..Lvg rates) value by value; a missing level fails as unreadable (lookup_failed)
     tables = [t['levelRates'] for t in dicing.get('gradeDieTables', [])]
-    rows = [checks.matches('ダイ表の等級数', len(DIE_TABLES), len(tables), 0)]
+    rows = [checks.matches('ダイ表の等級数', len(DIE_TABLES), checks.resolved(len(tables)), 0)]
     for grade in sorted(DIE_TABLES):
         actual = tables[grade - 1] if grade - 1 < len(tables) else []
         for level, rate in enumerate(DIE_TABLES[grade], start=1):
-            rows.append(checks.matches(f'ダイ表 G{grade} Lv{level}', rate, actual[level - 1] if level - 1 < len(actual) else None, EPS))
-        rows.append(checks.matches(f'ダイ表 G{grade} の段数', len(DIE_TABLES[grade]), len(actual), 0))
+            value = checks.element(actual, level - 1, f'ダイ表 G{grade}')
+            rows.append(checks.matches(f'ダイ表 G{grade} Lv{level}', rate, value, EPS))
+        rows.append(checks.matches(f'ダイ表 G{grade} の段数', len(DIE_TABLES[grade]), checks.resolved(len(actual)), 0))
     return rows
 ```
 
@@ -5555,45 +5594,41 @@ EPS = 1e-9
 
 
 def check_quality_module_permission(lk):
-    rows = []
-    for name, allowed in QUALITY_ALLOWED.items():
-        value = lk.block_param(name, 'allowQualityModule')
-        rows.append(checks.matches(f'{name} の allowQualityModule', int(allowed), None if value is None else int(value), 0))
-    return rows
+    return [checks.matches(f'{name} の allowQualityModule', int(allowed), lk.view.block_param(name, 'allowQualityModule').map(int), 0)
+            for name, allowed in QUALITY_ALLOWED.items()]
 
 
 def check_modules(lk):
     modules = lk.items_doc.get('modules', [])
-    rows = [checks.matches('モジュールの数', MODULE_COUNT, len(modules), 0)]
+    rows = [checks.matches('モジュールの数', MODULE_COUNT, checks.resolved(len(modules)), 0)]
     for m in modules:
         axis = MODULES.get(m['effectAxis'], [])
         if not 1 <= m['tier'] <= len(axis):
-            rows.append(checks.lookup_failed(f'{m["name"]} の効果', f'params.MODULES に {m["effectAxis"]} の tier {m["tier"]} が無い'))
+            rows.append(checks.lookup_failed('match', f'{m["name"]} の効果', f'params.MODULES に {m["effectAxis"]} の tier {m["tier"]} が無い'))
             continue
         effect, tradeoff = axis[m['tier'] - 1]
-        rows.append(checks.matches(f'{m["name"]} の effectValue', effect, m['effectValue'], EPS))
-        rows.append(checks.matches(f'{m["name"]} の tradeoffValue', tradeoff, m['tradeoffValue'], EPS))
+        rows.append(checks.matches(f'{m["name"]} の effectValue', effect, checks.resolved(m['effectValue']), EPS))
+        rows.append(checks.matches(f'{m["name"]} の tradeoffValue', tradeoff, checks.resolved(m['tradeoffValue']), EPS))
     levels = [level['stackLimit'] for level in lk.items_doc.get('moduleSlotStackLimitLevels', [])]
-    rows.append(checks.matches('モジュールスタック上限の段数', len(STACK_LIMITS), len(levels), 0))
+    rows.append(checks.matches('モジュールスタック上限の段数', len(STACK_LIMITS), checks.resolved(len(levels)), 0))
     for i, limit in enumerate(STACK_LIMITS):
-        rows.append(checks.matches(f'モジュールスタック上限 段{i + 1}', limit, levels[i] if i < len(levels) else None, 0))
+        rows.append(checks.matches(f'モジュールスタック上限 段{i + 1}', limit, checks.element(levels, i, 'moduleSlotStackLimitLevels'), 0))
     return rows
 
 
 def check_research_costs(lk):
     rows = []
     for node in RESEARCH:
-        target = lk.view.research.get(node['name'])
-        if target is None:
-            rows.append(checks.lookup_failed(f'研究 {node["name"]}', 'research.json に無い'))
+        if node['name'] not in lk.view.research:
+            rows.append(checks.lookup_failed('match', f'研究 {node["name"]}', 'research.json に無い'))
             continue
-        # コストは 4 品だけで、各数が timeline.RESEARCH と同じ（0 の品はコストに載らない）
-        # The cost has only the four items, each equal to timeline.RESEARCH (zero items are absent)
-        cost = {lk.item_name(c['itemGuid']): c['itemCount'] for c in target['consumeItems']}
-        for item, field in COST_ITEMS:
-            rows.append(checks.matches(f'研究 {node["name"]} の {item}', node[field], cost.get(item, 0), 0))
-        extra = sorted(str(name) for name in cost if name not in {item for item, _ in COST_ITEMS})
-        rows.append(checks.matches(f'研究 {node["name"]} の余計なコスト {extra}', 0, len(extra), 0))
+        # コストは 4 品だけで、各数が timeline.RESEARCH と同じ（0 の品はコストに載らないので 0 と比べる）
+        # The cost has only the four items, each equal to timeline.RESEARCH (zero items are absent, so compare with 0)
+        cost = {lk.view.label_of(c['itemGuid']): c['itemCount'] for c in lk.view.research[node['name']]['consumeItems']}
+        for item, count_key in COST_ITEMS:
+            rows.append(checks.matches(f'研究 {node["name"]} の {item}', node[count_key], checks.resolved(cost.get(item, 0)), 0))
+        extra = sorted(name for name in cost if name not in {item for item, _ in COST_ITEMS})
+        rows.append(checks.matches(f'研究 {node["name"]} の余計なコスト {extra}', 0, checks.resolved(len(extra)), 0))
     return rows
 ```
 
@@ -5604,7 +5639,7 @@ def check_research_costs(lk):
 # S1 semiconductor (unlock to the last S1 research): the sim's target judgements and hours plus eight params-versus-master matches
 # 所要時間はクラス B の「モジュールスタック拡張II」完了時刻（判断記録 A8）
 # The hours are the class-B finish time of "モジュールスタック拡張II" (decision A8)
-from checks import Check, SectionResult
+import checks
 from sections.s1 import cleanroom_checks, item_checks, recipe_checks, sim_bridge, structure_checks
 from sections.s1.lookup import S1Lookup
 import targets
@@ -5616,13 +5651,13 @@ HOURS_CLASS = 'B'
 
 def evaluate(view):
     lk = S1Lookup(view, sim_bridge.load_ledger())
-    rows = [Check('target', name, passed, measured) for name, passed, measured in targets.evaluate()]
+    rows = [checks.sim_target(name, passed, measured) for name, passed, measured in targets.evaluate()]
     for check in (structure_checks.check_structure, recipe_checks.check_upstream_ratio, recipe_checks.check_recipes_match_params,
                   recipe_checks.check_power_and_filter, cleanroom_checks.check_cleanroom_values,
                   item_checks.check_quality_module_permission, item_checks.check_modules, item_checks.check_research_costs):
         rows += check(lk)
-    hours = timeline.run(HOURS_CLASS)['done'].get(LAST_S1_RESEARCH)
-    return SectionResult('s1_semiconductor', rows, hours)
+    hours = checks.field(timeline.run(HOURS_CLASS)['done'], LAST_S1_RESEARCH, f'sim のクラス{HOURS_CLASS}の完了時刻')
+    return checks.SectionResult('s1_semiconductor', rows, hours)
 ```
 
 - [ ] **Step 3: 台帳を作る。** S1 handoff「Task D2 Step 3」の `guids.json` 19 行をそのまま書く。S2・S3 の固定 GUID は spec 側の `guid` で入る（`set_fixed` が記録する）ので、ここには書かない。工程レシピ（`recipe:砂` など）は Task 13〜15 の初回適用で台帳に発行される。
@@ -5659,15 +5694,15 @@ Expected: `applied 0 spec files; issued 0 new guids` の後、`git status` の�
 ```bash
 cd $MW && python3 tools/tier9_balance/run.py > $GL/p2-2-g6-base.txt; echo "g6=$?"
 tail -1 $GL/p2-2-g6-base.txt
-awk '{print $1, $2, $3}' $GL/p2-2-g6-base.txt | sort | uniq -c
+awk '{print $1, $2, $3, $4}' $GL/p2-2-g6-base.txt | sort | uniq -c
 python3 -m unittest discover -s tools/tier9_balance/tests 2>&1 | tail -1
 ```
 Expected（本 plan 作成時に、起点 f9370e7 の tree と 19 行の台帳で同じコードを scratch で実測）:
 - `g6=1`。末尾は `== RESULT: FAIL (83 failures / 122 checks)`。
-- `[s1_semiconductor]` の内訳は、`target` が PASS 11・FAIL 1（`S1 6〜8時間（クラスA）` の 5.83 h）、`match` が PASS 27・FAIL 46、`lookup` が FAIL 31。lookup の FAIL は工程レシピが台帳に無い・研究がまだ無いもの（Task 13〜17 で消える）。
-- `[overall]` は `s1_semiconductor の所要時間[h]: 6.266666666666667（目標 6.0〜8.0）` が PASS、S2・S3・全体の 3 行が FAIL。`[s2_compute_loop] empty` と `[s3_endgame] empty` が FAIL。
-- 例外で止まらない（引けない名前はすべて `lookup` の FAIL になる）。
-- 枠の自己テストは `OK`（S1 区間が sim を import しても 7 本とも通る）。
+- `[s1_semiconductor]` の内訳は、`target ok` 11・`target out_of_range` 1（`S1 6〜8時間（クラスA）` の 5.83 h）、`match ok` 27・`match mismatch` 38・`match lookup_failed` 39。`lookup_failed` は工程レシピが台帳に無い・専用機と研究がまだ無いもの（Task 13〜17 で消える）。照合の FAIL 77 は、A31 の前の書き方の `match` 46 と `lookup` 31 の和と同じで、行ごとの合否も変わらない（本 plan の書き換え時に同じ起点で突き合わせた）。
+- `[overall]` は `PASS [overall] target ok s1_semiconductor の所要時間[h]: 6.266666666666667（目標 6.0〜8.0）`。S2・S3・全体の 3 行が `target empty` の FAIL。`[s2_compute_loop] section empty` と `[s3_endgame] section empty` が FAIL。
+- 例外で止まらない（引けない名前はすべて `lookup_failed` の FAIL になる）。
+- 枠の自己テストは `OK`（S1 区間が sim を import しても 8 本とも通る）。
 
 - [ ] **Step 7: 値を 1 か所わざと食い違わせ、S1 の照合が落ちることを確かめる**（マスタのコピーで電気炉の消費電力を 1 上げる。`$MW` は書き換えない）
 ```bash
@@ -5683,20 +5718,25 @@ print('broke', target['name'], target['blockParam']['requiredPower'])
 EOF
 cd $MW && python3 tools/tier9_balance/run.py --master-dir $GL/g6-broken/master | grep '電気炉 の消費電力'
 ```
-Expected: `broke 電気炉 31` の後に `FAIL [s1_semiconductor] match 電気炉 の消費電力: sim=30 json=31 許容差=1e-09`（壊す前は同じ行が PASS。本 plan 作成時に実測）。
+Expected: `broke 電気炉 31` の後に `FAIL [s1_semiconductor] match mismatch 電気炉 の消費電力: sim=30 json=31 許容差=1e-09`（壊す前は同じ行が `PASS … match ok …`。本 plan 作成時に実測）。
 
 - [ ] **Step 8: nodeGraph 同期ツールを置く**（判断記録 A21。前例 `tools/plan6_nodegraph_migration/migrate_nodegraph.py` と同じ流儀: マスタ repo の `tools/<目的>/` に置き、マスタ JSON は読むだけ、グラフは検査が全部通ったときだけ書き、違反があれば exit 1）
   - 前例との違い: 前例は一度きりの移行で、旧 GUID の対応を git 履歴から復元した。こちらは各スライスの末尾で何度でも流す同期なので、履歴は読まず「今のマスタと research.json」だけを正にする。recipe 線の消えた参照は外し、参照が 0 になった線は消す（前例のように buildCost 線へ変えない。統合で消すのはレシピそのものなので、関係が残らない）。
   - 置き場の決め方（`placement.py`）: 新しい研究ノードは前提の研究ノードの右に候補を並べ、重ならず既存ノードの割り当てを 1 つも変えない最初の位置。解放ノードはその研究ノードの右下に候補を並べ、1 パス目でその研究に割り当たり重ならない最初の位置。どこにも割り当てたくないノード（解放から外れたもの）は、最左の研究より左・全ノードより下へ退避する（2 パスとも対象外になる）。
-  - 1 ディレクトリ 10 ファイルまで: `tools/nodegraph_sync/` は 7 本と `tests/`。最大は `unlock_sync.py` の 66 行。
+  - 同じ述語・導出を 2 か所に書かない（判断記録 A32）: 研究ノードの抽出 `research_nodes`、研究の解放の列挙 `unlock_targets`、参照先の消えたノード・レシピ参照の述語 `MasterIndex.is_dangling_node`・`is_dead_recipe_ref` は `graph_io.py`。1 パス目・2 パス目のゾーン述語 `in_pass1_zone`・`in_pass2_zone` と、割り当て → (研究, 種類, GUID) の導出 `unlock_triples` は `spatial_unlock.py`。同期側（`prune_dangling`・`place_unlock`・`sync_unlock_nodes`）と検査側（`audit`）が同じものを呼ぶ。
+  - 1 ディレクトリ 10 ファイルまで: `tools/nodegraph_sync/` は 7 本と `tests/`。最大は `graph_io.py` の 75 行。
 
 `tools/nodegraph_sync/graph_io.py`:
 ```python
 #!/usr/bin/env python3
 # nodeGraph.v1.json とマスタ JSON の読み書き。マスタは読むだけで、グラフは元の末尾改行の有無を保って書く
 # Read/write nodeGraph.v1.json and the master JSON; the master is read-only and the graph keeps its original trailing newline
+# 研究ノードの抽出・研究の解放の列挙・参照先の消えたノードの述語は、ここの 1 本を全モジュールが使う（判断記録 A32）
+# Research-node extraction, research unlock listing and the dangling predicates live here once for every module (decision A32)
 import json
 from pathlib import Path
+
+from master_common.json_text import read_json_keeping_newline, write_json_keeping_newline
 
 UNLOCK_KINDS = {
     # ノードの種類 → (研究の gameActionType, gameActionParam のキー)
@@ -5705,6 +5745,21 @@ UNLOCK_KINDS = {
     'block': ('unlockBlock', 'unlockBlockGuids'),
     'train': ('unlockTrainCar', 'unlockTrainCarGuids'),
 }
+MASTER_NODE_TYPES = ('item', 'block', 'train', 'research')
+
+
+def research_nodes(graph):
+    return [n for n in graph['nodes'] if n.get('type') == 'research']
+
+
+def unlock_targets(research):
+    # 研究 1 つの clearedActions から (ノードの種類, 対象GUID) を並び順に出す
+    # Yield (node type, target GUID) from one research's clearedActions in order
+    for action in research.get('clearedActions', []):
+        for kind, (action_type, key) in UNLOCK_KINDS.items():
+            if action.get('gameActionType') == action_type:
+                for guid in action['gameActionParam'].get(key, []):
+                    yield kind, guid
 
 
 class MasterIndex:
@@ -5723,16 +5778,16 @@ class MasterIndex:
         recipes = load('craftRecipes.json')['data'], load('machineRecipes.json')['data']
         self.recipe_guids = {r['craftRecipeGuid'] for r in recipes[0]} | {r['machineRecipeGuid'] for r in recipes[1]}
 
+    def is_dangling_node(self, node):
+        return node.get('type') in MASTER_NODE_TYPES and node['masterGuid'] not in self.valid[node['type']]
+
+    def is_dead_recipe_ref(self, ref):
+        return ref['masterGuid'] not in self.recipe_guids
+
     def expected_unlocks(self):
         # research.json の解放を (研究GUID, ノードの種類, 対象GUID) の集合にする
         # Turn research.json unlocks into a set of (research GUID, node type, target GUID)
-        pairs = set()
-        for node in self.research:
-            for action in node.get('clearedActions', []):
-                for kind, (action_type, key) in UNLOCK_KINDS.items():
-                    if action.get('gameActionType') == action_type:
-                        pairs.update((node['researchNodeGuid'], kind, g) for g in action['gameActionParam'].get(key, []))
-        return pairs
+        return {(n['researchNodeGuid'], kind, guid) for n in self.research for kind, guid in unlock_targets(n)}
 
     def prerequisites(self):
         return {(p, n['researchNodeGuid']) for n in self.research for p in n.get('prevResearchNodeGuids', [])}
@@ -5743,13 +5798,11 @@ def graph_path(mod_dir):
 
 
 def load_graph(mod_dir):
-    text = graph_path(mod_dir).read_text(encoding='utf-8')
-    return json.loads(text), text.endswith('\n')
+    return read_json_keeping_newline(graph_path(mod_dir))
 
 
 def save_graph(mod_dir, graph, trailing_newline):
-    text = json.dumps(graph, ensure_ascii=False, indent=2) + ('\n' if trailing_newline else '')
-    graph_path(mod_dir).write_text(text, encoding='utf-8')
+    write_json_keeping_newline(graph_path(mod_dir), graph, trailing_newline)
 ```
 
 `tools/nodegraph_sync/spatial_unlock.py`:
@@ -5757,19 +5810,31 @@ def save_graph(mod_dir, graph, trailing_newline):
 #!/usr/bin/env python3
 # mooreseditor が保存時に研究の解放を決める空間割り当て（2 パスの範囲法）の移植。前例 plan6 migrate_nodegraph.py と同じ規則
 # Port of mooreseditor's save-time spatial unlock (two-pass zone method); same rules as the plan6 migrate_nodegraph.py precedent
-from graph_io import UNLOCK_KINDS
+from graph_io import UNLOCK_KINDS, research_nodes
 
 
 def pos(node):
     return node['position']['x'], node['position']['y']
 
 
-def nearest(research_nodes, node, eligible):
+def in_pass1_zone(rx, ry, x, y):
+    # 1 パス目: 研究の右下側（R.x < n.x かつ R.y <= n.y）
+    # Pass 1: the research's right/lower zone (R.x < n.x and R.y <= n.y)
+    return rx < x and ry <= y
+
+
+def in_pass2_zone(rx, ry, x, y):
+    # 2 パス目: 研究の真下側（R.x >= n.x かつ R.y < n.y）
+    # Pass 2: the zone below the research (R.x >= n.x and R.y < n.y)
+    return rx >= x and ry < y
+
+
+def nearest(candidates, node, eligible):
     # 条件を満たす研究のうちマンハッタン距離が最小のもの（同距離はグラフの並び順で先のもの）
     # The eligible research with the smallest Manhattan distance (ties go to the earlier one in graph order)
     x, y = pos(node)
     best, best_d = None, float('inf')
-    for research in research_nodes:
+    for research in candidates:
         rx, ry = pos(research)
         if eligible(rx, ry, x, y):
             d = abs(x - rx) + abs(y - ry)
@@ -5781,32 +5846,36 @@ def nearest(research_nodes, node, eligible):
 def assign(graph):
     # ノード id → 割り当てられた研究 GUID（割り当て無しは載らない）
     # Node id -> assigned research GUID (unassigned nodes are absent)
-    research_nodes = [n for n in graph['nodes'] if n.get('type') == 'research']
+    candidates = research_nodes(graph)
     unlockable = [n for n in graph['nodes'] if n.get('type') in UNLOCK_KINDS]
     result = {}
-    # 1 パス目: 研究の右下側（R.x < n.x かつ R.y <= n.y）
-    # Pass 1: the research's right/lower zone (R.x < n.x and R.y <= n.y)
     for node in unlockable:
-        best = nearest(research_nodes, node, lambda rx, ry, x, y: rx < x and ry <= y)
+        best = nearest(candidates, node, in_pass1_zone)
         if best:
             result[node['id']] = best['masterGuid']
-    # 2 パス目: 残りを研究の真下側（R.x >= n.x かつ R.y < n.y）。最左の研究より左のノードは対象外
-    # Pass 2: the rest go to the zone below (R.x >= n.x and R.y < n.y); nodes left of the leftmost research are skipped
-    min_rx = min((pos(r)[0] for r in research_nodes), default=0)
+    # 2 パス目は残りだけ。最左の研究より左のノードは対象外
+    # Pass 2 takes only the rest; nodes left of the leftmost research are skipped
+    min_rx = min((pos(r)[0] for r in candidates), default=0)
     for node in unlockable:
         if node['id'] in result or pos(node)[0] < min_rx:
             continue
-        best = nearest(research_nodes, node, lambda rx, ry, x, y: rx >= x and ry < y)
+        best = nearest(candidates, node, in_pass2_zone)
         if best:
             result[node['id']] = best['masterGuid']
     return result
 
 
-def computed_unlocks(graph):
-    # 空間割り当てを (研究GUID, ノードの種類, 対象GUID) の集合にする（エディタが保存で research.json に書く値）
-    # Turn the spatial assignment into (research GUID, node type, target GUID); what the editor writes to research.json on save
+def unlock_triples(graph, assigned):
+    # 割り当てを (研究GUID, ノードの種類, 対象GUID) の集合にする
+    # Turn an assignment into a set of (research GUID, node type, target GUID)
     nodes = {n['id']: n for n in graph['nodes']}
-    return {(research, nodes[i]['type'], nodes[i]['masterGuid']) for i, research in assign(graph).items()}
+    return {(research, nodes[i]['type'], nodes[i]['masterGuid']) for i, research in assigned.items()}
+
+
+def computed_unlocks(graph):
+    # エディタが保存で research.json に書く値（空間割り当ての結果）
+    # What the editor writes to research.json on save (the result of the spatial assignment)
+    return unlock_triples(graph, assign(graph))
 ```
 
 `tools/nodegraph_sync/graph_edits.py`:
@@ -5814,13 +5883,13 @@ def computed_unlocks(graph):
 #!/usr/bin/env python3
 # 参照先の消えたノード・線を除き、研究どうしの dependency 線を research.json の前提にそろえる
 # Drop nodes/edges whose master target is gone and align research-to-research dependency edges with research.json prerequisites
-MASTER_NODE_TYPES = ('item', 'block', 'train', 'research')
+from graph_io import research_nodes
 
 
 def prune_dangling(graph, index):
     # マスタに無い GUID を指すノードと、その端を持つ線を消す。recipe 線は消えたレシピ参照だけを外し、空になれば線ごと消す
     # Remove nodes pointing at GUIDs missing from the master and edges touching them; recipe edges lose dead refs and vanish when empty
-    removed = [n for n in graph['nodes'] if n.get('type') in MASTER_NODE_TYPES and n['masterGuid'] not in index.valid[n['type']]]
+    removed = [n for n in graph['nodes'] if index.is_dangling_node(n)]
     removed_ids = {n['id'] for n in removed}
     graph['nodes'] = [n for n in graph['nodes'] if n['id'] not in removed_ids]
     kept_edges = []
@@ -5828,7 +5897,7 @@ def prune_dangling(graph, index):
         if edge['source'] in removed_ids or edge['target'] in removed_ids:
             continue
         if edge.get('edgeType') == 'recipe':
-            edge['recipes'] = [r for r in edge.get('recipes', []) if r['masterGuid'] in index.recipe_guids]
+            edge['recipes'] = [r for r in edge.get('recipes', []) if not index.is_dead_recipe_ref(r)]
             if not edge['recipes']:
                 continue
         kept_edges.append(edge)
@@ -5838,13 +5907,13 @@ def prune_dangling(graph, index):
 
 
 def research_node_ids(graph):
-    return {n['masterGuid']: n['id'] for n in graph['nodes'] if n.get('type') == 'research'}
+    return {n['masterGuid']: n['id'] for n in research_nodes(graph)}
 
 
 def research_dependency_pairs(graph):
     # 研究ノードどうしの dependency 線を (前提GUID, 研究GUID) で返す
     # Return research-to-research dependency edges as (prerequisite GUID, research GUID)
-    guid_of = {n['id']: n['masterGuid'] for n in graph['nodes'] if n.get('type') == 'research'}
+    guid_of = {n['id']: n['masterGuid'] for n in research_nodes(graph)}
     return {(guid_of[e['source']], guid_of[e['target']]): e for e in graph['edges']
             if e.get('edgeType') == 'dependency' and e['source'] in guid_of and e['target'] in guid_of}
 
@@ -5868,7 +5937,8 @@ def sync_dependencies(graph, index):
 #!/usr/bin/env python3
 # 新しい研究ノードと解放ノードの置き場を決める。既存ノードの割り当てを変えず、空間割り当てが research.json と一致する位置だけを選ぶ
 # Choose positions for new research and unlock nodes: keep existing assignments and accept only spots whose spatial unlock matches research.json
-from spatial_unlock import assign, nearest, pos
+from graph_io import research_nodes
+from spatial_unlock import assign, in_pass1_zone, nearest, pos
 
 OVERLAP = (180, 80)
 RESEARCH_STEP = (400, 280)
@@ -5901,13 +5971,13 @@ def place_research(graph, guid, anchor):
 def place_unlock(graph, node, research):
     # 研究ノードの右下に候補を並べ、1 パス目でその研究に割り当たり重ならない最初の位置へ動かす
     # Lay candidates right/below the research node and move to the first that pass 1 assigns to it without overlap
-    research_nodes = [n for n in graph['nodes'] if n.get('type') == 'research']
+    candidates = research_nodes(graph)
     rx, ry = pos(research)
     for j in range(0, 12):
         for i in range(0, 4):
             x, y = rx + 60 + UNLOCK_STEP[0] * i, ry + UNLOCK_STEP[1] * j
             node['position'] = {'x': x, 'y': y}
-            best = nearest(research_nodes, node, lambda qx, qy, nx, ny: qx < nx and qy <= ny)
+            best = nearest(candidates, node, in_pass1_zone)
             if best is research and not overlaps(graph, x, y, node['id']):
                 return True
     return False
@@ -5916,7 +5986,7 @@ def place_unlock(graph, node, research):
 def park(graph, nodes):
     # どの研究にも割り当てたくないノードを、最左の研究より左・全ノードより下へ並べる（2 パスとも対象外になる）
     # Line up nodes that must stay unassigned left of the leftmost research and below every node (both passes skip them)
-    research_x = [n['position']['x'] for n in graph['nodes'] if n.get('type') == 'research']
+    research_x = [n['position']['x'] for n in research_nodes(graph)]
     left = min(research_x) - 600
     bottom = max(n['position']['y'] for n in graph['nodes']) + 300
     for k, node in enumerate(nodes):
@@ -5929,9 +5999,9 @@ def park(graph, nodes):
 # 研究ノードの不足を足し、解放ノードの空間割り当てを research.json の解放と一致させる（足す・動かす・どこにも割り当てない位置へ退避する）
 # Add missing research nodes and make the unlock nodes' spatial assignment equal research.json (add, move, or park unassigned)
 from graph_edits import research_node_ids
-from graph_io import UNLOCK_KINDS
+from graph_io import UNLOCK_KINDS, research_nodes, unlock_targets
 from placement import park, place_research, place_unlock
-from spatial_unlock import assign
+from spatial_unlock import assign, unlock_triples
 
 
 def add_missing_research(graph, index):
@@ -5951,19 +6021,18 @@ def add_missing_research(graph, index):
 
 def sync_unlock_nodes(graph, index):
     expected = index.expected_unlocks()
-    nodes = {n['id']: n for n in graph['nodes']}
     assigned = assign(graph)
-    satisfied = {(r, nodes[i]['type'], nodes[i]['masterGuid']) for i, r in assigned.items()} & expected
+    satisfied = unlock_triples(graph, assigned) & expected
     # 正しく割り当たっていないノードは動かしてよい（間違った研究に付いたもの・解放対象なのに割り当て無しのもの）
     # Nodes not correctly assigned may move: those on the wrong research and unlock targets left unassigned
     unlocked_targets = {(kind, guid) for _, kind, guid in expected}
     free = [n for n in graph['nodes'] if n.get('type') in UNLOCK_KINDS
             and (assigned.get(n['id']), n['type'], n['masterGuid']) not in expected
             and (n['id'] in assigned or (n['type'], n['masterGuid']) in unlocked_targets)]
-    research_by_guid = {n['masterGuid']: n for n in graph['nodes'] if n.get('type') == 'research'}
+    research_by_guid = {n['masterGuid']: n for n in research_nodes(graph)}
     moved, added, unplaced = [], [], []
     for research in index.research:
-        for kind, guid in _unlock_list(research):
+        for kind, guid in unlock_targets(research):
             pair = (research['researchNodeGuid'], kind, guid)
             if pair in satisfied:
                 continue
@@ -5983,14 +6052,6 @@ def sync_unlock_nodes(graph, index):
     parked = [n for n in free if n['id'] in assigned]
     park(graph, parked)
     return moved, added, parked, unplaced
-
-
-def _unlock_list(research):
-    for action in research.get('clearedActions', []):
-        for kind, (action_type, key) in UNLOCK_KINDS.items():
-            if action.get('gameActionType') == action_type:
-                for guid in action['gameActionParam'].get(key, []):
-                    yield kind, guid
 ```
 
 `tools/nodegraph_sync/audit.py`:
@@ -6000,23 +6061,23 @@ def _unlock_list(research):
 # Check the nodeGraph matches the integrated master; return one string per violation, empty means pass
 from collections import Counter
 
-from graph_edits import MASTER_NODE_TYPES, research_dependency_pairs
+from graph_edits import research_dependency_pairs
+from graph_io import research_nodes
 from spatial_unlock import computed_unlocks
 
 
 def audit(graph, index):
     errors = []
-    # 参照先の消えたノード・線が 0 件
-    # Zero nodes or edges whose master target is gone
-    errors += [f'dangling node {n["id"]} ({n["type"]}): {n["masterGuid"]}' for n in graph['nodes']
-               if n.get('type') in MASTER_NODE_TYPES and n['masterGuid'] not in index.valid[n['type']]]
+    # 参照先の消えたノード・線が 0 件（述語は同期側の prune_dangling と同じ MasterIndex のもの）
+    # Zero nodes or edges whose master target is gone (the same MasterIndex predicates as prune_dangling)
+    errors += [f'dangling node {n["id"]} ({n["type"]}): {n["masterGuid"]}' for n in graph['nodes'] if index.is_dangling_node(n)]
     errors += [f'dangling recipe ref in edge {e["id"]}: {r["masterGuid"]}' for e in graph['edges'] if e.get('edgeType') == 'recipe'
-               for r in e.get('recipes', []) if r['masterGuid'] not in index.recipe_guids]
+               for r in e.get('recipes', []) if index.is_dead_recipe_ref(r)]
     node_ids = {n['id'] for n in graph['nodes']}
     errors += [f'edge {e["id"]} points at a missing node' for e in graph['edges'] if e['source'] not in node_ids or e['target'] not in node_ids]
     # research.json と研究ノードが 1 対 1
     # research.json and research nodes are one-to-one
-    counts = Counter(n['masterGuid'] for n in graph['nodes'] if n.get('type') == 'research')
+    counts = Counter(n['masterGuid'] for n in research_nodes(graph))
     errors += [f'research node missing: {g}' for g in sorted(index.valid['research'] - set(counts))]
     errors += [f'research node duplicated x{c}: {g}' for g, c in sorted(counts.items()) if c > 1]
     # 研究どうしの線が前提と一致し、空間割り当てが解放と一致する（エディタが保存しても research.json が変わらない）
@@ -6041,7 +6102,10 @@ import argparse
 import sys
 from pathlib import Path
 
+# tools/nodegraph_sync と、共通部品 master_common を置く tools/ の両方を import できるようにする
+# Make both tools/nodegraph_sync and tools/ (home of the shared master_common package) importable
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from audit import audit  # noqa: E402
 from graph_edits import prune_dangling, sync_dependencies  # noqa: E402
 from graph_io import MasterIndex, load_graph, save_graph  # noqa: E402
@@ -6184,16 +6248,16 @@ Expected（本 plan 作成時に、起点 f9370e7 の tree を scratch に展開
   - `unlock extra by position` 5 件。上の消えた item 2 件と、S1 のマスタ 32874fe が解放を外したブロック 3 件（核融合炉・宇宙エレベーター拠点・ロケット発射台。配置上はまだ研究の下にある）。
 - 参考（scratch で実測）: 同じ起点で書き込みモードを流すと `pruned 2 nodes / 2 edges; research nodes +0; dependency edges +0 -0; unlock nodes moved 0 added 0 parked 3` の後 `== NODEGRAPH: PASS (0 failures)` になり、もう一度流すと何も変えない（冪等）。
 
-- [ ] **Step 10: 行数を確かめる**  Run: `wc -l $B/apply/*.py $MW/tools/tier9_balance/sections/*.py $MW/tools/tier9_balance/sections/s1/*.py $MW/tools/nodegraph_sync/*.py $MW/tools/nodegraph_sync/tests/*.py`  Expected: どのファイルも 200 行未満。
+- [ ] **Step 10: 行数を確かめる**  Run: `wc -l $B/apply/*.py $MW/tools/tier9_balance/sections/*.py $MW/tools/tier9_balance/sections/s1/*.py $MW/tools/nodegraph_sync/*.py $MW/tools/nodegraph_sync/tests/*.py $MW/tools/master_common/*.py`  Expected: どのファイルも 200 行未満。
 - [ ] **Step 11: コミット**
 ```bash
-git -C $MW add design/tier9-balance/apply design/tier9-balance/guids.json design/tier9-balance/README.md tools/tier9_balance/sections tools/nodegraph_sync
+git -C $MW add design/tier9-balance/apply design/tier9-balance/guids.json design/tier9-balance/README.md tools/tier9_balance/sections tools/nodegraph_sync tools/master_common/json_text.py
 git -C $MW commit -m "design/tools: Tier9 マスタの適用スクリプトと GUID 台帳、G6 の S1 区間の照合、nodeGraph 同期ツールを置く"
 ```
 
 **完了判定:**
 - Step 5 で `git status` が空。
-- Step 6 で `[s1_semiconductor]` の `target`・`match`・`lookup` 行が出て、例外で止まらない。枠の自己テストが `OK`。
+- Step 6 で `[s1_semiconductor]` の `target`・`match` 行が状態つき（`ok`・`out_of_range`・`mismatch`・`lookup_failed`）で出て、例外で止まらない。枠の自己テストが `OK`。
 - Step 7 で電気炉の行が FAIL になる。
 - Step 9 で同期ツールの自己テストが `OK`、統合マスタの検査が `10 failures` で赤い（各スライスの末尾で緑にする）。
 - Step 10 ですべて 200 行未満。
@@ -6209,7 +6273,7 @@ D9（録画 3 本）は出荷マスタ録画 7 段の段 1〜3（チップライ
 
 S1 handoff「設計検査の持ち越し」8 項目の行き先:
 - sim の 3 項目と「研究での Lv2 の数え方」は G6（P0）。
-- `startswith` は Task 12（`sections/s1/structure_checks.py` の `_die_stacks` がダイを levelFamily で判別する）。
+- `startswith` は Task 12（`sections/s1/structure_checks.py` の `_die_stacks` がダイを levelFamily で判別し、`recipe_checks._recipe_rows` がレシピの入力を `MasterView.input_guid` の GUID で照合する）。
 - `KNOWN_ORPHANS` は Task 15。
 - ハッチの搬送上限は Task 15 と Task 23。
 - 照合と起動時検証の重複は、G1 を正とすることで解消する（G6 の S1 区間は sim と JSON の値の照合だけを持つ）。
@@ -6381,7 +6445,7 @@ Expected:
 - [ ] **Step 4: sortPriority と研究座標を再計算する。** S1 handoff「Task D7 Step 3」を使う。スクリプトは `$W/.agents/skills/master-refine/scripts/` にある（`.claude/skills` は symlink）。
 - [ ] **Step 5: 研究と解放を確かめる。** S1 handoff「Task D7 Step 4」の python（研究の数と解放の数を出す 1 本目）を使う。最後の照合の行は、次の G6 の行に置き換える。
 ```bash
-cd $MW && python3 tools/tier9_balance/run.py | grep -E '^(PASS|FAIL) \[s1_semiconductor\] (match|lookup) 研究 '
+cd $MW && python3 tools/tier9_balance/run.py | grep -E '^(PASS|FAIL) \[s1_semiconductor\] match [a-z_]+ 研究 '
 ```
   Expected は `7 <timeline.RESEARCH の chips 合計>`・`11 True 38`。2 つ目は下書きの `11 True 48` から変わる。G6 の行は S1 の 7 ノード × 5 行（4 品の数と余計なコスト）がすべて `PASS` で、`FAIL` が無い。
 - [ ] **Step 6: S1 スライスのゲート**
@@ -6389,7 +6453,7 @@ cd $MW && python3 tools/tier9_balance/run.py | grep -E '^(PASS|FAIL) \[s1_semico
 G1 $MW/server_v8 2>&1 | tee $GL/p2-7-s1-g1.txt
 (cd $MW && python3 tools/progression/check.py) > $GL/p2-7-s1-g2.txt 2>&1; echo "G2 exit=$?"
 (cd $MW && python3 tools/nodegraph_sync/sync_nodegraph.py --check) > $GL/p2-7-s1-nodegraph.txt; echo "ng=$?"; tail -1 $GL/p2-7-s1-nodegraph.txt
-(cd $MW && python3 tools/tier9_balance/run.py) > $GL/p2-7-s1-g6.txt; grep -E '^FAIL \[s1_semiconductor\] (match|lookup)' $GL/p2-7-s1-g6.txt; echo "s1-fail=$(grep -cE '^FAIL \[s1_semiconductor\] (match|lookup)' $GL/p2-7-s1-g6.txt)"
+(cd $MW && python3 tools/tier9_balance/run.py) > $GL/p2-7-s1-g6.txt; grep '^FAIL \[s1_semiconductor\] ' $GL/p2-7-s1-g6.txt | grep -v ' target out_of_range '; echo "s1-fail=$(grep '^FAIL \[s1_semiconductor\] ' $GL/p2-7-s1-g6.txt | grep -vc ' target out_of_range ')"
 ```
 Expected:
 - G1 は PASS。
@@ -6397,7 +6461,7 @@ Expected:
 - ウェハ G3〜G5・ダイ/チップ Lv3〜Lv5・モジュールと GPU の Lv2 以上は、S2 の研究で製作上限が上がるまで赤のままでよい。
 - 解放されないブロックの一覧に、専用機 5 種とクリーンルーム系 6 種が出ない。
 - nodeGraph は `ng=0`・`== NODEGRAPH: PASS (0 failures)`（Step 4 の master-refine は research.json の座標と sortPriority しか変えないので、Step 3 の結果は崩れない）。
-- G6 の S1 区間は `s1-fail=0`（照合 8 項目の `match`・`lookup` 行に FAIL が無い）。G6 全体は S2・S3 の区間が空なので exit 1 のままでよい。S1 の `target` 行の FAIL（クラス A の時間など）は Task 23 で直す。
+- G6 の S1 区間は `s1-fail=0`（照合 8 項目に `mismatch`・`lookup_failed` などの FAIL が無い）。G6 全体は S2・S3 の区間が空なので exit 1 のままでよい。S1 の `target out_of_range` の FAIL（クラス A の時間など）は Task 23 で直す。
 - [ ] **Step 7: コミットして push する**
 ```bash
 git -C $MW add design/tier9-balance/spec/05_research.json server_v8/mods/moorestechAlphaMod_8/master server_v8/mods/moorestechAlphaMod_8/localization/localization.csv server_v8/mods/moorestechAlphaMod_8/.mooreseditor/nodeGraph.v1.json
