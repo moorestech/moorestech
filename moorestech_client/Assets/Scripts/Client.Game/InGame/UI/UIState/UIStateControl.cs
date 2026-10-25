@@ -20,6 +20,13 @@ namespace Client.Game.InGame.UI.UIState
         private UIStateEnum? _webTransitionRequest;
         private IDisposable _subStateMovementLockSubscription;
 
+        // DIと初期画面への入場が済むまで入力更新を停止する
+        // Stop input updates until DI and the initial state entry are complete
+        private void Awake()
+        {
+            enabled = false;
+        }
+
         [Inject]
         public void Construct(UIStateDictionary uiStateDictionary, IPlayerObjectController playerObjectController)
         {
@@ -31,6 +38,7 @@ namespace Client.Game.InGame.UI.UIState
         {
             CurrentState = initialState;
             EnterState(CurrentState, initialContext);
+            enabled = true;
         }
 
         // 現stateが入れ子ポーズを持つ画面かの解決口。Web境界はこの1箇所だけを見る（ADR 0035）

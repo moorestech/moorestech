@@ -51,9 +51,9 @@ namespace Client.Tests.EditModeInPlayingTest
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
             yield return new EnterPlayMode(expectDomainReload: true);
 
-            // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
-            // Prevent test failure from test framework internal errors during EnterPlayMode.
-            LogAssert.ignoreFailingMessages = true;
+            // 正規起動前から待機終了まで、想定外エラーをテスト失敗として検出する
+            // Detect unexpected errors from before normal startup through the end of the wait
+            LogAssert.ignoreFailingMessages = false;
 
             yield return Body().ToCoroutine();
 
