@@ -96,11 +96,11 @@
   - `ownership.py`: 定数 `WEB_SOURCE_ROOT="moorestech_web/webui/src/"`。関数 `owning_rows(path:str, rows:tuple[Row,...]) -> tuple[Row,...]`・`owning_bundles(path:str, rows:tuple[Row,...]) -> frozenset[int]`・`is_retired(path:str, ledger:Ledger) -> bool`・`uncovered_sources(paths:tuple[str,...], rows:tuple[Row,...]) -> tuple[str,...]`
   - `uitk_web_follow_testrepo.py`: `ledger_text(states:dict[int,tuple[str,str]], rows:list[tuple[str,str,str,str]], records:list[tuple[int,str,str,str]]) -> str`・`class TestRepo`（`root:Path`・`git(*args)->str`・`commit(message:str, files:dict[str,str|None])->str`・`cleanup()`）。`sys.path` に `.github/scripts` を足す
 
-- [ ] **Step 1: パッケージ印を置く**
+- [x] **Step 1: パッケージ印を置く**
 
 `.github/scripts/uitk_web_follow/__init__.py` は空ファイル。
 
-- [ ] **Step 2: `ledger.py` を書く**
+- [x] **Step 2: `ledger.py` を書く**
 
 ```python
 """Parse docs/uitk/TODO.md into bundles, rows and follow records for the UITK Web follow gate (G1)."""
@@ -282,7 +282,7 @@ def _record(cells: tuple[str, ...], bundles: dict[int, Bundle], errors: list[str
     return FollowRecord(int(raw_id), commit, verdict, note)
 ```
 
-- [ ] **Step 3: `ownership.py` を書く**
+- [x] **Step 3: `ownership.py` を書く**
 
 ```python
 """Resolve which ledger rows and bundles own a repository path; the longest matching Web path wins."""
@@ -329,7 +329,7 @@ def uncovered_sources(paths: tuple[str, ...], rows: tuple[Row, ...]) -> tuple[st
     return tuple(path for path in paths if path.startswith(WEB_SOURCE_ROOT) and not owning_rows(path, rows))
 ```
 
-- [ ] **Step 4: テスト用の組み立て `uitk_web_follow_testrepo.py` を書く**
+- [x] **Step 4: テスト用の組み立て `uitk_web_follow_testrepo.py` を書く**
 
 ```python
 """Temporary git repositories and ledger text shared by the UITK Web follow gate tests."""
@@ -393,7 +393,7 @@ class TestRepo:
         return self.git("rev-parse", "HEAD")
 ```
 
-- [ ] **Step 5: 単体テスト `test_uitk_web_follow_ledger.py` を書く**
+- [x] **Step 5: 単体テスト `test_uitk_web_follow_ledger.py` を書く**
 
 ```python
 import unittest
@@ -482,12 +482,12 @@ if __name__ == "__main__":
     unittest.main()
 ```
 
-- [ ] **Step 6: テストを実行して通ることを確認する**
+- [x] **Step 6: テストを実行して通ることを確認する**
 
 Run: `python3 -m unittest discover -s .github/scripts/tests -p 'test_uitk_web_follow_ledger.py' -v`
 Expected: 全件 `ok`、末尾 `OK`
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add .github/scripts/uitk_web_follow/__init__.py .github/scripts/uitk_web_follow/ledger.py .github/scripts/uitk_web_follow/ownership.py .github/scripts/tests/uitk_web_follow_testrepo.py .github/scripts/tests/test_uitk_web_follow_ledger.py
