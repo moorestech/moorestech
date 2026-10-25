@@ -58,8 +58,8 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(PadPosition, 100);
             if (hasLaunched) LaunchCable(pad);
 
-            // 版6は履歴なし、S2版7は履歴あり・プール節なしの実ファイルにする
-            // Write V6 without history and S2 V7 with history but without the pool section
+            // 版6は履歴なし、版7は履歴を既に持つ形（部品は素通しする）。どちらもプール節なしの実ファイルにする
+            // Write V6 without history and V7 already carrying history (the part passes it through), both without the pool section
             var save = Capture(original);
             save["worldVersion"] = version;
             save.Remove("spaceElevatorCablePool");

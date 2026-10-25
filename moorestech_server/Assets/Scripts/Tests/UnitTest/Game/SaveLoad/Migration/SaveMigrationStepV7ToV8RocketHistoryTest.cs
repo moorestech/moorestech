@@ -10,14 +10,14 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
     public class SaveMigrationStepV7ToV8RocketHistoryTest
     {
         [Test]
-        public void 版6のセーブに未打ち上げの履歴が足され他の節は残る()
+        public void 版7のセーブに未打ち上げの履歴が足され他の節は残るTest()
         {
-            var save = JObject.Parse("{\"worldVersion\":6,\"world\":[{\"blockGuid\":\"x\"}],\"cleanRoomRooms\":[]}");
+            // プールの節を先に持たせ、履歴以外の差分が出ないようにする
+            // Give the pool section up front so the only difference is the history
+            var save = JObject.Parse("{\"worldVersion\":7,\"world\":[{\"blockGuid\":\"x\"}],\"cleanRoomRooms\":[],\"spaceElevatorCablePool\":{\"cableCount\":0}}");
             var original = (JObject)save.DeepClone();
 
-            // 履歴以外の木と版番号はステップで書き換えない
-            // The step must not change other sections or stamp a version
-            var result = new SaveMigrationStepV6ToV7().Migrate(save);
+            var result = new SaveMigrationStepV7ToV8().Migrate(save);
 
             Assert.IsTrue(result.IsConverted, result.FailureReason);
             Assert.AreEqual(JTokenType.Boolean, result.Save["rocketHasLaunchedOnce"].Type);
@@ -28,41 +28,43 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
         }
 
         [Test]
-        public void nullの履歴は未打ち上げで補う()
+        public void nullの履歴は未打ち上げで補うTest()
         {
-            var save = JObject.Parse("{\"worldVersion\":6,\"rocketHasLaunchedOnce\":null}");
+            var save = JObject.Parse("{\"worldVersion\":7,\"world\":[],\"rocketHasLaunchedOnce\":null}");
 
-            var result = new SaveMigrationStepV6ToV7().Migrate(save);
+            var result = new SaveMigrationStepV7ToV8().Migrate(save);
 
             Assert.IsTrue(result.IsConverted, result.FailureReason);
             Assert.IsFalse(result.Save["rocketHasLaunchedOnce"].Value<bool>());
         }
 
-        [TestCase("true")]
-        [TestCase("false")]
+        [TestCase(true)]
+        [TestCase(false)]
+        public void 真偽値の履歴は素通しするTest(bool launched)
+        {
+            var save = new JObject { ["worldVersion"] = 7, ["world"] = new JArray(), ["rocketHasLaunchedOnce"] = launched };
+
+            var result = new SaveMigrationStepV7ToV8().Migrate(save);
+
+            Assert.IsTrue(result.IsConverted, result.FailureReason);
+            Assert.AreEqual(launched, result.Save["rocketHasLaunchedOnce"].Value<bool>());
+        }
+
         [TestCase("1")]
         [TestCase("\"launched\"")]
         [TestCase("{}")]
         [TestCase("[]")]
-        public void 履歴が既にある版6は上書きせず変換しない(string historyJson)
+        public void 真偽値でない履歴は上書きせず変換しないTest(string historyJson)
         {
-            var save = JObject.Parse($"{{\"worldVersion\":6,\"rocketHasLaunchedOnce\":{historyJson}}}");
+            var save = JObject.Parse($"{{\"worldVersion\":7,\"world\":[],\"rocketHasLaunchedOnce\":{historyJson}}}");
             var original = (JObject)save.DeepClone();
-            LogAssert.Expect(LogType.Warning, new Regex("版6から版7へ変換できません"));
+            LogAssert.Expect(LogType.Warning, new Regex("版7から版8へ変換できません"));
 
-            // 想定外の旧版は理由付きで拒否し、既存値を失わない
-            // Refuse an unexpected legacy shape with a reason, preserving its existing value
-            var result = new SaveMigrationStepV6ToV7().Migrate(save);
+            var result = new SaveMigrationStepV7ToV8().Migrate(save);
 
             Assert.IsFalse(result.IsConverted);
             StringAssert.Contains("rocketHasLaunchedOnce", result.FailureReason);
             Assert.IsTrue(JToken.DeepEquals(original, save));
-        }
-
-        [Test]
-        public void FromVersionは6である()
-        {
-            Assert.AreEqual(6, new SaveMigrationStepV6ToV7().FromVersion);
         }
     }
 }

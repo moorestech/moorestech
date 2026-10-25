@@ -80,8 +80,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             loadedHistory.RecordLaunch();
             loadProvider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-            // 移行前の原本と退避を保ち、再保存には版7のfalseが出る
-            // Preserve the original and archive, and re-save false in version 7
+            // 移行前の原本と退避を保ち、再保存には現在版のfalseが出る
+            // Preserve the original and archive, and re-save false in the current version
             Assert.IsFalse(loadedHistory.HasLaunchedOnce);
             Assert.AreEqual(original, File.ReadAllText(sourcePath));
             Assert.AreEqual(original, File.ReadAllText(loadProvider.GetRequiredService<WorldDataDirectory>().BackupSaveJsonPath(6)));
