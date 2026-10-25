@@ -606,7 +606,7 @@ git commit -m "refactor(modal): モーダルの保留要求とBP名入力の橋�
 - Consumes: Task 2 の `IObservable<UIStateEnum> UIStateControl.OnStateChanged`、Task 4 の `MainGameUiStateRegistration.Register`
 - Produces: `Client.Game.InGame.UI.Research.ResearchNodeStateStore`: `IReadOnlyDictionary<Guid, ResearchNodeState> NodeStates { get; private set; }`（初期値は空の Dictionary）、`IObservable<Unit> OnNodeStatesChanged`、`void ApplyNodeStates(Dictionary<Guid, ResearchNodeState> nodeStates)`、`void Initialize()`。`ResearchNodeDtoFactory.Create(ResearchNodeMasterElement master, IReadOnlyDictionary<Guid, ResearchNodeState> states)`
 
-- [ ] **Step 1: `ResearchNodeStateStore` を書く**
+- [x] **Step 1: `ResearchNodeStateStore` を書く**
 
 ```csharp
 using System;
@@ -707,7 +707,7 @@ namespace Client.Game.InGame.UI.Research
 }
 ```
 
-- [ ] **Step 2: `ResearchTopic` をアダプタにする**
+- [x] **Step 2: `ResearchTopic` をアダプタにする**
 
 ```csharp
 using System;
@@ -768,7 +768,7 @@ namespace Client.WebUiHost.Game.Topics
 `ResearchNodeDtoFactory.Create` の第 2 引数の型を `IReadOnlyDictionary<Guid, ResearchNodeState>` にする（本体は `GetValueOrDefault` だけなのでそのまま通る）。
 `ResearchCompleteActionHandler`: フィールドとコンストラクタ引数を `ResearchNodeStateStore _store` にし、`_researchTopic.ApplyNodeStates(...)` を `_store.ApplyNodeStates(response.NodeState.ToDictionary());` に、`using Client.WebUiHost.Game.Topics;` を `using Client.Game.InGame.UI.Research;` に替える。
 
-- [ ] **Step 3: 登録と binder**
+- [x] **Step 3: 登録と binder**
 
 `MainGameUiStateRegistration.Register` に足す（`using Client.Game.InGame.UI.Research;`）:
 ```csharp
@@ -785,7 +785,7 @@ namespace Client.WebUiHost.Game.Topics
 ```
 （137-140 行目を置き換え）。183 行目を `hub.RegisterAction(new ResearchCompleteActionHandler(researchNodeStateStore));` にする。
 
-- [ ] **Step 4: プローブ**
+- [x] **Step 4: プローブ**
 
 `Hostless/ResearchStateProbe.cs`:
 ```csharp
@@ -822,12 +822,12 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
 ```
 テストの `Body()` 末尾に `await ResearchStateProbe.AssertAvailableAsync(resolver);` を足す。
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.WebUi\.Research|Client\.Tests\.WebUi\.WireContract|Hostless\.WebUiHostlessStateAvailabilityTest" --timeout-seconds 1200`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Research moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter/Registration moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless
@@ -2081,3 +2081,4 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D17 | ベースライン初回2本は入力環境障害のattemptとして保存し、録画前に現行録画skillのde-risk入力確認とEditor/GameViewフォーカス（今回背景動作は要件外）を行って無改変シナリオを再実行する | walk後のfocused=False・keyboard/mouse=Falseを観測し、focus後TrueとなりQueueStateEvent TabでPlayerInventoryへ実遷移を観測。UI回帰の証拠を得るため、対象UIへ届かない環境失敗を同合否の基準にしない | agent 既定（ユーザー未裁定） |
 | D18 | 正規runnerのboot応答がalready playingとなった未投入シナリオは、正規preflight後にboot EDCを一度だけ実行し、今回のSessionDirectoryとready.markerを一致実証してから原文シナリオを一度だけ注入して回収する | 同一bootコードを再送するrunnerの経路でalready playingが反復した。新規sessionの実証により既存world混入を防ぎ、DSL/runnerやシナリオを変更せず必要な実測を得る | agent 既定（ユーザー未裁定） |
 | D19 | 新設したUI純状態のディレクトリは既存WebUiGateClassification.RulesへCategory.Infraとして登録する | 既存Blueprint/BuildMenu/ProgressBarと同じ役割。新しい状態ファイルを正しく分類する付随変更であり、albof.4所有のG1 Web追従ゲート機構には触れない | agent 既定（ユーザー未裁定） |
+| D20 | 現ホストで正規のUnity所有receiptが作れないため、長い検証前にEditor稼働時間を確かめ、既存MIN_AGE_MIN（現在30分）を跨ぐ場合はタスク区切りで自分のPIDだけを停止し、Editor予算と空き容量を再確認してuloop launchする | reaperログで旧PID59245の所有者未確認による停止を実測。常駐処理・wrapper・偽の所有者情報へ変更を加えず、検証中の停止を避ける | agent 既定（ユーザー未裁定） |
