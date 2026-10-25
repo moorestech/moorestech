@@ -19,6 +19,39 @@ namespace Tests.UnitTest.Core.Other
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _itemStackFactory = ServerContext.ItemStackFactory;
         }
+
+        [TestCase(int.MaxValue, 1)]
+        [TestCase(1500000000, 1500000000)]
+        [TestCase(int.MaxValue, int.MaxValue)]
+        public void AddItemPreservesCountsBeyondIntRange(int existingCount, int incomingCount)
+        {
+            var itemId = ForUnitTestItemId.ComputeDataId;
+            var master = MasterHolder.ItemMaster.GetItemMaster(itemId);
+            var counts = MasterHolder.ItemMaster.GetStackLevelTable(master.StackLevelTableGuid).StackCounts;
+            var originalLimit = counts[0];
+            counts[0] = int.MaxValue;
+            try
+            {
+                // 有効な正数スタック同士の合計と余りをlongで検証する
+                // Verify long totals and remainders for two valid positive stacks
+                var existing = _itemStackFactory.Create(itemId, existingCount);
+                var incoming = _itemStackFactory.Create(itemId, incomingCount);
+                var result = existing.AddItem(incoming);
+                var total = (long)result.ProcessResultItemStack.Count + result.RemainderItemStack.Count;
+                TestContext.WriteLine($"existing={existingCount}; incoming={incomingCount}; stored={result.ProcessResultItemStack.Count}; remainder={result.RemainderItemStack.Count}; total={total}");
+                Assert.AreEqual((long)existingCount + incomingCount, total);
+                Assert.AreEqual(int.MaxValue, result.ProcessResultItemStack.Count);
+                Assert.AreEqual((long)existingCount + incomingCount - int.MaxValue, result.RemainderItemStack.Count);
+                Assert.AreEqual(itemId, result.ProcessResultItemStack.Id);
+                Assert.AreEqual(itemId, result.RemainderItemStack.Id);
+            }
+            finally
+            {
+                // 他テストへ上限変更を持ち越さない
+                // Keep the stack limit change isolated from other tests
+                counts[0] = originalLimit;
+            }
+        }
         
         [TestCase(1, 1, 1, 1, 2, 0, 1, EmptyItemId)]
         [TestCase(1, 5, 1, 1, 6, 0, 1, EmptyItemId)]

@@ -171,6 +171,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
 
             Assert.AreEqual(4, stripped, "電線2端＋チェーン2端の種類キーを消せていません");
             save["worldVersion"] = 3;
+            save.Remove("rocketHasLaunchedOnce");
             return save;
         }
     }

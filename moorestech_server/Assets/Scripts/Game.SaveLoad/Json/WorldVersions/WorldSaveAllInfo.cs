@@ -10,6 +10,7 @@ using Game.PlayerIdentity;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
+using Game.SpaceElevator.Save;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Game.UnlockState;
@@ -45,10 +46,12 @@ namespace Game.SaveLoad.Json.WorldVersions
             Dictionary<string, int> itemStackLevels,
             int inventorySlotLevel,
             List<CleanRoomSaveData> cleanRoomRooms,
+            bool? rocketHasLaunchedOnce,
             List<PlayerMiningCooldownSaveJsonObject> miningCooldowns,
             ulong[] randomState,
             List<string> backfilledFields,
-            PlayersSaveJsonObject players)
+            PlayersSaveJsonObject players,
+            SpaceElevatorCablePoolSaveData spaceElevatorCablePool)
         {
             World = world;
             Inventory = inventory;
@@ -68,10 +71,12 @@ namespace Game.SaveLoad.Json.WorldVersions
             ItemStackLevels = itemStackLevels ?? new Dictionary<string, int>();
             InventorySlotLevel = inventorySlotLevel;
             CleanRoomRooms = cleanRoomRooms ?? new List<CleanRoomSaveData>();
+            RocketHasLaunchedOnce = rocketHasLaunchedOnce;
             MiningCooldowns = miningCooldowns;
             RandomState = randomState;
             BackfilledFields = backfilledFields;
             Players = players;
+            SpaceElevatorCablePool = spaceElevatorCablePool;
         }
 
         [JsonProperty("players")] public PlayersSaveJsonObject Players { get; }
@@ -95,6 +100,13 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
         [JsonProperty("cleanRoomRooms")] public List<CleanRoomSaveData> CleanRoomRooms { get; }
+
+        // 欠損は null のまま残し、復元前の必須欠損検査で止める
+        // A missing section stays null and is stopped by the required-field check before restoring
+        [JsonProperty("spaceElevatorCablePool")] public SpaceElevatorCablePoolSaveData SpaceElevatorCablePool { get; }
+        // 未打ち上げと欠損を区別し、現在版の欠損はロード時に拒否する
+        // Distinguish not-yet-launched from absent, rejecting absence when loading the current version
+        [JsonProperty("rocketHasLaunchedOnce")] public bool? RocketHasLaunchedOnce { get; }
 
         // 手掘りクールダウンは再生の受理判定に効く。欠損を空で埋めると保存前に拒否された採掘が再生で通る
         // The hand-mining cooldown decides what a replay accepts; filling an absent list with an empty one lets rejected mining through

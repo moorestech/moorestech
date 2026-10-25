@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { payloadsOf } from "../../support/actions";
-import { setBlock } from "../../support/mockControl";
+import { payloadsOf } from "../../../support/actions";
+import { setBlock } from "../../../support/mockControl";
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");

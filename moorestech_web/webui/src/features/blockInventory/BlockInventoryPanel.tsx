@@ -8,6 +8,7 @@ import {
 import { GamePanel, IconButton } from "@/shared/ui";
 import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
+import RocketLaunchPadCommandAction from "./details/rocket/RocketLaunchPadCommandAction";
 import TrainInventoryBody from "./train/TrainInventoryBody";
 import { buildMachineRecipeSelectionRows } from "./details/machine/machineRecipeSelectionLogic";
 import { blockNameKey, L, useI18n, type TranslationKey } from "@/shared/i18n";
@@ -32,6 +33,9 @@ export default function BlockInventoryPanel() {
   const title = data.source === "train"
     ? t(L.ui.blockInventory.trainInventory)
     : t(blockNameKey(data.blockGuid));
+  // 内容幅の発射台はタイトルに操作幅を予約し、絶対配置のボタンとの重なりを防ぐ
+  // Reserve the action width in the content-sized launch pad title to avoid overlapping the absolute button
+  const isRocketLaunchPad = data.source === "block" && data.blockType === "RocketLaunchPad";
 
   // レシピ選択を持つ機械だけ研究パネル同等のviewer〜items占有大型パネルへ広げる
   // Only recipe-capable machines expand to the research-sized panel spanning viewer..items
@@ -48,7 +52,9 @@ export default function BlockInventoryPanel() {
     >
       <GamePanel
         variant="default"
-        title={title}
+        title={isRocketLaunchPad ? <span style={{ paddingRight: "calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))" }}>{title}</span> : title}
+        titleAction={isRocketLaunchPad && !inventoryError
+          ? <RocketLaunchPadCommandAction detail={data.rocketLaunchPad} /> : undefined}
         style={{
           paddingBottom: "var(--block-panel-bottom-safe-area)",
           // 内容量幅の小型パネルは右余白が10pxしかなくフェード帯で途切れて見えるため、左と対称の右余白を足す

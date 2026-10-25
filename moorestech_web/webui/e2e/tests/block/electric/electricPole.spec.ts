@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { setBlock } from "../../support/mockControl";
+import { setBlock } from "../../../support/mockControl";
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");

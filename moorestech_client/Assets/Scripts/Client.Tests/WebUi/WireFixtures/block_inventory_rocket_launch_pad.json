@@ -1,0 +1,21 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "RocketLaunchPad",
+  "identifier": "(8, 0, 4)",
+  "blockGuid": "88888888-8888-4888-8888-888888888888",
+  "itemSlots": [
+    { "itemId": 3, "count": 20 },
+    { "itemId": 0, "count": 0 },
+    { "itemId": 0, "count": 0 }
+  ],
+  "fluidSlots": [],
+  "rocketLaunchPad": {
+    "phase": "awaitingBuildCommand",
+    "waitReason": "none",
+    "progress": 0.0,
+    "materialSlots": [0],
+    "payloadSlots": [1],
+    "outputSlots": [2]
+  }
+}

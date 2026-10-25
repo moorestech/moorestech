@@ -37,6 +37,12 @@ describe("resolveBlockComponent", () => {
     expect(blockComponents.ElectricToGearGenerator).not.toBe(SectionStackView);
   });
 
+  it("SpaceElevatorBaseは接続ボタンを持つ専用ビューへ登録する", () => {
+    expect(blockComponents).toHaveProperty("SpaceElevatorBase");
+    expect(resolveBlockComponent("SpaceElevatorBase")).not.toBe(SectionStackView);
+  });
+
+
   it.each(["TrainStation", "TrainItemPlatform", "TrainFluidPlatform", "ElectricPole"])(
     "%sはPhase B2専用ビューへ登録する",
     (blockType) => {

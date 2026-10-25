@@ -2,6 +2,8 @@
     "name": "Game.SaveLoad",
     "rootNamespace": "",
     "references": [
+        "Game.Orbit",
+        "Game.SpaceElevator",
         "Game.PlayerIdentity",
         "Game.PlayerConnection",
         "Core.Item",

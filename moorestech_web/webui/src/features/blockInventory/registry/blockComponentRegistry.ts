@@ -1,9 +1,11 @@
-import type { ComponentType } from "react";
+import { createElement, type ComponentType } from "react";
 import type { BlockInventoryOpen } from "@/bridge";
 import FilterSplitterInventory from "../views/FilterSplitterInventory";
 import ElectricToGearInventory from "../views/ElectricToGearInventory";
 import SectionStackView from "../views/SectionStackView";
 import ElectricPoleInventory from "../views/ElectricPoleInventory";
+import SpaceElevatorInventory from "../views/SpaceElevatorInventory";
+import RocketLaunchPadInventory from "../views/RocketLaunchPadInventory";
 import TrainPlatformInventory from "../views/TrainPlatformInventory";
 
 // blockType別の静的レジストリ
@@ -23,6 +25,15 @@ export const blockComponents: Record<string, BlockInventoryComponent> = {
   TrainItemPlatform: TrainPlatformInventory,
   TrainFluidPlatform: TrainPlatformInventory,
   ElectricPole: ElectricPoleInventory,
+  SpaceElevatorBase: SpaceElevatorInventory,
+  RocketLaunchPad: ({ data }) => {
+    // 種別確定地点で専用入力を作り、未着の詳細はそのまま渡す
+    // Construct dedicated input at the type boundary, preserving pending detail
+    if (data.blockType !== "RocketLaunchPad") throw new Error(`RocketLaunchPad view received ${data.blockType}`);
+    return createElement(RocketLaunchPadInventory, {
+      data: { itemSlots: data.itemSlots, blockType: data.blockType, rocketLaunchPad: data.rocketLaunchPad },
+    });
+  },
 };
 
 // 未登録種別は共通ビューへ戻す

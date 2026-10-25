@@ -9174,7 +9174,7 @@ git -C ../moorestech_logs add harness/tier9-integration/eval && git -C ../moores
 - Consumes: 統合 PR の head（`origin/feat/tier9-integrated`）。ピンが指すマスタ統合 PR の push 済みコミット
 - Produces: 検証済みの Tier8 終盤セーブ。MacBook Pro にセーブを置く `place-save.sh`。チェックリストの共有 URL
 
-- [ ] **Step 1: Tier8 終盤セーブを用意する**
+- [x] **Step 1: Tier8 終盤セーブを用意する**
 
 出所は裁定 `2026-10-25-通しプレイの開始セーブはMacBookProのセーブに旧コスト0研究の完了を手で立ててから移行する` のとおり、MacBook Pro（`ssh devmac`。蓋が開いているときだけ届く）の `~/Library/Application Support/moorestech/saves/world_1`。plan 作成時の実測: `save.json` は 10-22 15:29・worldVersion 6・完了研究 38 件・sha256 `454bab3830ca910f688598f16b787886927e33d4d81ecd78497cc891cb02c9c0`、`world.json` は `mapMode: template`・`seed: 0`。リセット対象の 6 ノードと旧「ロケット」はどれも未完了だった。版 6 なので、統合版では V6→V7（流体）と V7→V8 の 2 段が掛かる。
 

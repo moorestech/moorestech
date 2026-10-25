@@ -34,7 +34,7 @@ namespace Core.Inventory
             //インベントリのアイテムをコピー
             var inventoryCopy = new List<IItemStack>(_inventory);
             //挿入を実行する
-            var result = InventoryInsertItem.InsertItem(itemStacks, inventoryCopy, _itemStackFactory, _option);
+            var result = InventoryInsertItem.InsertItem(itemStacks, inventoryCopy, _option);
             //結果のアイテム数が0だったら挿入可能
             return result.Count == 0;
         }
@@ -133,7 +133,7 @@ namespace Core.Inventory
         
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            return InventoryInsertItem.InsertItem(itemStack, _inventory, _itemStackFactory, _option, InvokeEvent);
+            return InventoryInsertItem.InsertItem(itemStack, _inventory, _option, InvokeEvent);
         }
         
         public IItemStack InsertItem(ItemId itemId, int count)
@@ -143,7 +143,7 @@ namespace Core.Inventory
         
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            return InventoryInsertItem.InsertItem(itemStacks, _inventory, _itemStackFactory, _option, InvokeEvent);
+            return InventoryInsertItem.InsertItem(itemStacks, _inventory, _option, InvokeEvent);
         }
 
         #endregion

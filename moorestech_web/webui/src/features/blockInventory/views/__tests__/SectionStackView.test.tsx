@@ -48,7 +48,7 @@ describe("SectionStackView", () => {
     ["Chest", "chest-grid", null, true, true],
     ["ElectricMachine", null, "machine-fluid-slots", false, false],
     ["GearMachine", null, "machine-fluid-slots", false, false],
-    ["ElectricGenerator", "generator-fuel-grid", null, true, true],
+    ["ElectricGenerator", "generator-fuel-grid", "generator-fluid-slots", false, false],
     ["FuelGearGenerator", "generator-fuel-grid", null, true, true],
     ["SimpleGearGenerator", "generator-fuel-grid", null, true, true],
     ["ElectricMiner", "miner-output-grid", null, true, true],
