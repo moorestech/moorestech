@@ -187,7 +187,7 @@ _uiStateSubscription = _uiStateControl.OnStateChanged.Subscribe(OnStateChanged);
 Run: `grep -rn "OnStateChanged +=\|OnStateChanged -=" moorestech_client/Assets/Scripts | grep -v "_subStateController\|onStateChanged ="`
 Expected: 0 件（`MapObjectDistanceVisibilityController` の `_cullingGroup.onStateChanged = ` は別物）
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi|WebUiHost|EventMode|BugReport)\."`
 Expected: ErrorCount 0 / 全 PASS（失敗があれば、変更前から落ちているかを `git stash` ではなく一時 WIP コミットの前後で確かめて報告に書く）
