@@ -2367,13 +2367,18 @@ git -C $W push
 - Consumes: 出荷マスタの JSON（`items/blocks/fluids/machineRecipes/research/cleanRoom`）。S1 handoff「Task D1 Step 1」の sim のコードブロック（`$W/docs/superpowers/plans/2026-10-23-tier9-s1-master-content-handoff.md`）。
 - Produces（P2 が区間の中身を書くときの約束）:
   - S1 の sim `design/tier9-balance/sim/`（値の正本。判断記録 A22）。名前は S1 handoff「Task D1」Interfaces の Produces どおり: `params` の `LINE_SI_PER_S`・`CLASS_PARAMS`・`DIES_PER_WAFER`・`PROMOTION_CAP`・`QUALITY_REDUCTION_CAP`・`DIE_TABLES`・`MODULES`・`STACK_LIMITS`・`RECIPES`・`POWER`・`POLLUTION`・`FILTER_Q`・`FILTER_CAPACITY`・`THRESHOLDS`、`timeline.RESEARCH`・`timeline.run(クラス)["done"]`（研究名 → 完了時刻[h]）・`timeline.line_rate`・`timeline.EXTRA_LINES_AT_H`（Task 22 の S3 区間が使う）、`targets.evaluate() -> [(目標, 合否, 実測)]`。sim は互いをトップレベル名で import するので、使う側（Task 12 の `sections/s1/sim_bridge.py`）が `design/tier9-balance/sim` を `sys.path` に足す。
-  - 区間モジュールは `evaluate(view: MasterView) -> SectionResult(name, checks, hours)` を持つ。`name` は `hour_targets.SECTION_HOURS` のキー（`s1_semiconductor` / `s2_compute_loop` / `s3_endgame`）。
-  - 検査の作り方:
-    - `checks.matches(name, sim_value, json_value, tolerance)`: JSON が引けず None なら FAIL。
-    - `checks.target_range(name, value, low, high)`
-    - `checks.lookup_failed(name, reason)`
-  - `MasterView` が名前で引くもの: `items / blocks / fluids / recipes / research / clean_room`（`items_doc` は items.json の全体、`master_dir` は読んだ master の置き場）、`block_param(block_name, key)`、`recipe_by_output(block_name, output_name)`（0 本か 2 本以上なら None）、`research_cost(node_name, item_name)`。どれも引けなければ例外ではなく None を返す。
-  - `python3 tools/tier9_balance/run.py [--master-dir DIR]`: 1 行ずつ `PASS|FAIL [区間] 種類 名前: 詳細` を出し、最後に `== RESULT: PASS|FAIL (k failures / n checks)` を出す。FAIL が 1 件でもあれば exit 1。検査 0 件の区間と、所要時間が None の区間も FAIL にする。
+  - 区間モジュールは `evaluate(view: MasterView) -> SectionResult(name, checks, hours: Resolved)` を持つ。`name` は `hour_targets.SECTION_HOURS` のキー（`s1_semiconductor` / `s2_compute_loop` / `s3_endgame`）。`hours` は時間[h]を `Resolved` で持つ（中身が未実装の区間は `unimplemented(理由)`）。
+  - 値の状態（判断記録 A31。None を「引けない」の合図に使わない）:
+    - `checks.Resolved(status, value, reason)`。`status` は `ok` / `lookup_failed` / `not_positive` / `empty` のどれか。`value` は `ok` のときだけ読め、それ以外で読むと `ValueError`。`.ok`、`.map(変換)`（引けた値だけ変換）、`.then(次の引き当て)`（Resolved を返す関数をつなぐ）を持つ。
+    - 作り方: `resolved(v)`、`unresolved(理由)`（lookup_failed）、`nonpositive(v, 理由)`、`unimplemented(理由)`（empty）、`require_positive(Resolved, 理由)`（0 以下を not_positive にする）、`failures([Resolved]) -> 引けないものの list`、`carried_failure([Resolved], 何の値か)`（最初の失敗の状態を導いた値へ引き継ぐ）、`field(dict, key, どこ)`、`element(list, index, どこ)`。
+  - 検査の作り方（`Check(kind, status, name, detail)`。`kind` は `target` / `match` / `section` の 3 つ、`status` は上の値の状態に `mismatch` / `out_of_range` を足したもの。`passed` は `status == 'ok'`）:
+    - `checks.matches(name, sim_value, json_value: Resolved, tolerance)`: JSON が引けなければ、その状態（`lookup_failed` など）の行になる。
+    - `checks.target_range(name, value: Resolved, low, high)`: 引けなければその状態、範囲外は `out_of_range`。
+    - `checks.sim_target(name, passed, measured)`: S1 sim の `targets.evaluate()` の 1 行を写す。
+    - `checks.lookup_failed(kind, name, reason)`: 値を作れない検査を、種類つきで `lookup_failed` の行にする。
+  - `MasterView` が名前で引くもの: `items / blocks / fluids / recipes / research / clean_room / families / payload_rows`（`items_doc` は items.json の全体、`master_dir` は読んだ master の置き場）。引き当ては `Resolved` を返す: `block_param(block_name, key)`、`guid_of(name)`（アイテム名か液体名）、`input_guid(name)`（アイテム名・levelFamily 名〈基準アイテム〉・液体名のどれか 1 つ）、`name_of(guid)`、`payload_row(item_guid)`、`recipe_by_output(block_name, output_name)`（0 本と 2 本以上は理由を分ける）、`recipe_input_amount(recipe, input_name)`、`research_cost(node_name, item_name)`。表示用の `label_of(guid)`（引けなければ `?GUID`）。モジュール関数 `entry_guid(entry)`・`entry_amount(entry)`（レシピ・積荷の 1 行の GUID と量。アイテムと液体を 1 か所で正規化する。判断記録 A32）。
+  - `python3 tools/tier9_balance/run.py [--master-dir DIR]`: 1 行ずつ `PASS|FAIL [区間] 種類 状態 名前: 詳細` を出し、最後に `== RESULT: PASS|FAIL (k failures / n checks)` を出す。FAIL が 1 件でもあれば exit 1。検査 0 件の区間（`section empty`）と、所要時間が引けない区間も FAIL にする。
+  - 「照合と引き当てに FAIL が無い」の判定は、区間の FAIL 行から `target out_of_range`（目標外。値の確定は Task 23）を除いた数が 0 であること: `grep '^FAIL \[<区間>\] ' <出力> | grep -vc ' target out_of_range '`。
   - 目標時間: S1 6〜8 h（S1 handoff RD11、`docs/superpowers/plans/2026-10-23-tier9-s1-master-content-handoff.md:20`）、S2 計算データのループ 4〜6 h（S2 plan `…tier9-compute-data-loop.md:3568`）、S3 5〜11 h、全体 15〜25 h（S3 plan R23 `…tier9-fusion-elevator-endgame.md:3393`）。
 
 - [ ] **Step 1: 判定の部品を置く**
@@ -2381,21 +2386,115 @@ git -C $W push
 `tools/tier9_balance/checks.py`:
 ```python
 #!/usr/bin/env python3
-# バランス検査の1行。目標範囲の判定と、sim の値と JSON の値の照合の2種類だけを作る
-# One balance check row; only two kinds exist: a target-range judgement and a sim-versus-JSON match
+# バランス検査の1行と、マスタから引いた値の状態。状態は1つの値で持ち、None を「引けない」の合図に使わない（判断記録 A31）
+# One balance check row and the state of a value read from the master; one status value, never None as "unreadable" (decision A31)
+
+# 値の状態（Resolved.status）と検査の状態（Check.status）の語彙。ok 以外はすべて FAIL
+# Vocabulary of value states (Resolved.status) and check states (Check.status); everything but ok fails
+OK = 'ok'
+MISMATCH = 'mismatch'
+OUT_OF_RANGE = 'out_of_range'
+LOOKUP_FAILED = 'lookup_failed'
+NOT_POSITIVE = 'not_positive'
+EMPTY = 'empty'
+# 検査の種類。目標範囲・sim との照合・区間そのもの（検査0件）の3つだけ
+# Check kinds: a target range, a sim match, or the section itself (zero checks)
+KINDS = ('target', 'match', 'section')
+
+
+class Resolved:
+    # マスタから引いた値か、引けなかった理由。value は status が ok のときだけ読め、それ以外で読むと ValueError
+    # A value read from the master, or why it could not be; value is readable only when status is ok, otherwise ValueError
+    def __init__(self, status, value, reason):
+        self.status = status
+        self._value = value
+        self.reason = reason
+
+    @property
+    def ok(self):
+        return self.status == OK
+
+    @property
+    def value(self):
+        if self.status != OK:
+            raise ValueError(f'status={self.status} の値は読めない: {self.reason}')
+        return self._value
+
+    def map(self, convert):
+        # 引けた値だけを変換し、引けなかった状態と理由はそのまま渡す
+        # Convert only a readable value; an unreadable state and its reason pass through unchanged
+        return resolved(convert(self._value)) if self.ok else self
+
+    def then(self, lookup):
+        # 引けた値で次の引き当て（Resolved を返す）をつなぐ
+        # Chain the next lookup (which returns a Resolved) from a readable value
+        return lookup(self._value) if self.ok else self
+
+
+def resolved(value):
+    return Resolved(OK, value, '')
+
+
+def unresolved(reason):
+    return Resolved(LOOKUP_FAILED, None, reason)
+
+
+def nonpositive(value, reason):
+    # 0 以下の値は欠損と分けて持つ。値そのものは理由の文に残し、数としては読ませない
+    # Keep a non-positive value apart from a missing one; the number stays in the reason text and is not readable
+    return Resolved(NOT_POSITIVE, None, f'{value} が 0 以下（{reason}）')
+
+
+def unimplemented(reason):
+    return Resolved(EMPTY, None, reason)
+
+
+def require_positive(value, reason):
+    # 割り算の分母に使う値。引けなければそのまま、0 以下なら not_positive にする
+    # A value used as a divisor; pass an unreadable one through, and turn zero or less into not_positive
+    if not value.ok:
+        return value
+    return value if value.value > 0 else nonpositive(value.value, reason)
+
+
+def failures(values):
+    return [v for v in values if not v.ok]
+
+
+def carried_failure(values, what):
+    # 入力のうち最初に引けなかったものの状態を、そこから導く値へ引き継ぐ
+    # Carry the state of the first unreadable input over to the value derived from the inputs
+    bad = failures(values)
+    if not bad:
+        raise ValueError(f'{what}: 引き継ぐ失敗が無い（呼び出し側の誤り）')
+    return Resolved(bad[0].status, None, f'{what}: {bad[0].reason}')
+
+
+def field(mapping, key, where):
+    return resolved(mapping[key]) if key in mapping else unresolved(f'{where} に {key} が無い')
+
+
+def element(sequence, index, where):
+    return resolved(sequence[index]) if 0 <= index < len(sequence) else unresolved(f'{where} に {index + 1} 番目が無い')
 
 
 class Check:
-    def __init__(self, kind, name, passed, detail):
+    def __init__(self, kind, status, name, detail):
+        if kind not in KINDS:
+            raise ValueError(f'未知の検査の種類 {kind}')
         self.kind = kind
+        self.status = status
         self.name = name
-        self.passed = passed
         self.detail = detail
+
+    @property
+    def passed(self):
+        return self.status == OK
 
 
 class SectionResult:
-    # hours はその区間の所要時間の見積もり（時間）。区間に所要時間が無いものは None を許さず、全体判定が拾う
-    # hours is the section's playtime estimate in hours; None is not allowed and the overall judgement reports it
+    # hours はその区間の所要時間の見積もり[h]を Resolved で持つ。引けない・未実装は状態で表し、全体判定が FAIL にする
+    # hours holds the section's playtime estimate [h] as a Resolved; unreadable or unimplemented is a state the overall judgement fails
     def __init__(self, name, checks, hours):
         self.name = name
         self.checks = checks
@@ -2403,19 +2502,34 @@ class SectionResult:
 
 
 def target_range(name, value, low, high):
-    passed = value is not None and low <= value <= high
-    return Check('target', name, passed, f'{value}（目標 {low}〜{high}）')
+    goal = f'（目標 {low}〜{high}）'
+    if not value.ok:
+        return Check('target', value.status, name, f'{value.reason}{goal}')
+    status = OK if low <= value.value <= high else OUT_OF_RANGE
+    return Check('target', status, name, f'{value.value}{goal}')
 
 
 def matches(name, sim_value, json_value, tolerance):
-    # JSON 側が引けなかった（None）ときも食い違いとして落とす
-    # A JSON value that could not be read (None) also fails as a mismatch
-    passed = json_value is not None and abs(sim_value - json_value) <= tolerance
-    return Check('match', name, passed, f'sim={sim_value} json={json_value} 許容差={tolerance}')
+    # JSON 側は Resolved で受ける。引けなければ、その状態（lookup_failed など）の行になる
+    # The JSON side comes as a Resolved; when unreadable, the row takes its state (lookup_failed and so on)
+    if not json_value.ok:
+        return Check('match', json_value.status, name, f'sim={sim_value} json を引けない: {json_value.reason}')
+    status = OK if abs(sim_value - json_value.value) <= tolerance else MISMATCH
+    return Check('match', status, name, f'sim={sim_value} json={json_value.value} 許容差={tolerance}')
 
 
-def lookup_failed(name, reason):
-    return Check('lookup', name, False, reason)
+def sim_target(name, passed, measured):
+    # S1 sim の targets.evaluate() の1行。合否は sim が出したものを写す
+    # One row of the S1 sim's targets.evaluate(); the verdict is copied from the sim
+    return Check('target', OK if passed else OUT_OF_RANGE, name, str(measured))
+
+
+def lookup_failed(kind, name, reason):
+    return Check(kind, LOOKUP_FAILED, name, reason)
+
+
+def empty_section():
+    return Check('section', EMPTY, '検査', '検査が0件（区間の中身が未実装）')
 ```
 
 `tools/tier9_balance/hour_targets.py`（S1 の sim にある `targets.py` と名前がぶつからないように別名にする）:
@@ -2423,7 +2537,7 @@ def lookup_failed(name, reason):
 #!/usr/bin/env python3
 # Tier9 の時間配分の目標（S1 裁定と S2/S3 の引き継ぎ）。区間ごとの範囲と、全区間の合計の範囲を判定する
 # Tier9 time-budget targets (S1 ruling and the S2/S3 handoffs); judge each section's range and the total of all sections
-from checks import target_range
+from checks import carried_failure, failures, resolved, target_range
 
 SECTION_HOURS = {
     's1_semiconductor': (6.0, 8.0),
@@ -2438,8 +2552,10 @@ def judge_hours(results):
     for result in results:
         low, high = SECTION_HOURS[result.name]
         checks.append(target_range(f'{result.name} の所要時間[h]', result.hours, low, high))
+    # 合計は全区間の時間が引けたときだけ出す。欠けた区間があれば、その状態を合計の行へ引き継ぐ
+    # The total exists only when every section has hours; a missing section passes its state on to the total row
     hours = [r.hours for r in results]
-    total = sum(hours) if all(h is not None for h in hours) else None
+    total = carried_failure(hours, '所要時間の無い区間がある') if failures(hours) else resolved(sum(h.value for h in hours))
     checks.append(target_range('Tier9 全体の所要時間[h]', total, *TOTAL_HOURS))
     return checks
 ```
@@ -2447,10 +2563,22 @@ def judge_hours(results):
 `tools/tier9_balance/master_view.py`:
 ```python
 #!/usr/bin/env python3
-# 出荷マスタを名前で引く読み取り専用の窓口。引けない名前は例外にせず None を返し、呼び出し側が lookup_failed で FAIL にする
-# Read-only name lookups over the shipped master; a missing name returns None instead of raising, and callers fail it via lookup_failed
+# 出荷マスタを名前で引く読み取り専用の窓口。引けたかどうかは Resolved の状態で返し、例外も None も使わない（判断記録 A31）
+# Read-only name lookups over the shipped master; whether a lookup worked is a Resolved state, never an exception or None (decision A31)
 import json
 import os
+
+from checks import field, resolved, unresolved
+
+
+def entry_guid(entry):
+    # レシピ・積荷・資材の1行の GUID。アイテムは itemGuid、液体は fluidGuid を持つ
+    # The GUID of one recipe/payload/material row; items carry itemGuid and fluids carry fluidGuid
+    return entry['itemGuid'] if 'itemGuid' in entry else entry['fluidGuid']
+
+
+def entry_amount(entry):
+    return entry['count'] if 'count' in entry else entry['amount']
 
 
 class MasterView:
@@ -2469,30 +2597,72 @@ class MasterView:
         self.recipes = load('machineRecipes.json')['data']
         self.research = {r['researchNodeName']: r for r in load('research.json')['data']}
         self.clean_room = load('cleanRoom.json')['data'][0]
+        self.families = {f['name']: f for f in self.items_doc.get('levelFamilies', [])}
+        self.payload_rows = {r['payloadItemGuid']: r for r in self.items_doc.get('orbitalPayloads', [])}
+        self._names = {i['itemGuid']: n for n, i in self.items.items()}
+        self._names.update({f['fluidGuid']: n for n, f in self.fluids.items()})
 
     def block_param(self, block_name, key):
-        block = self.blocks.get(block_name)
-        if block is None:
-            return None
-        return (block.get('blockParam') or {}).get(key)
+        if block_name not in self.blocks:
+            return unresolved(f'ブロック「{block_name}」が blocks.json に無い')
+        param = self.blocks[block_name].get('blockParam') or {}
+        return resolved(param[key]) if key in param else unresolved(f'ブロック「{block_name}」の blockParam に {key} が無い')
+
+    def guid_of(self, name):
+        # アイテム名か液体名から GUID を引く。両方に同じ名前があれば1つに決まらないので引けない扱い
+        # Find a GUID by item or fluid name; a name present as both is ambiguous and counts as unreadable
+        found = [m[name][k] for m, k in ((self.items, 'itemGuid'), (self.fluids, 'fluidGuid')) if name in m]
+        return _one(found, f'アイテム・液体「{name}」')
+
+    def input_guid(self, name):
+        # sim のレシピ入力の名前を GUID にする。アイテム名・levelFamily 名（基準アイテム）・液体名のどれか1つに当たること
+        # Turn a sim recipe input name into a GUID: exactly one of an item name, a levelFamily name (its base item) or a fluid name
+        found = {self.items[name]['itemGuid']} if name in self.items else set()
+        found |= {self.families[name]['baseItemGuid']} if name in self.families else set()
+        found |= {self.fluids[name]['fluidGuid']} if name in self.fluids else set()
+        return _one(sorted(found), f'レシピ入力「{name}」（アイテム・levelFamily・液体）')
+
+    def name_of(self, guid):
+        return resolved(self._names[guid]) if guid in self._names else unresolved(f'GUID {guid} が items.json・fluids.json に無い')
+
+    def label_of(self, guid):
+        # 表示と名前の突き合わせ用の名前。引けない GUID は「?GUID」にし、どの実名とも一致しないので比べた行が FAIL する
+        # A name for display and name comparison; an unknown GUID becomes "?GUID", matching no real name, so the compared row fails
+        return self._names[guid] if guid in self._names else f'?{guid}'
+
+    def payload_row(self, item_guid):
+        return field(self.payload_rows, item_guid, 'items.json の orbitalPayloads')
 
     def recipe_by_output(self, block_name, output_name):
-        # 機械名と出力名（アイテムか液体）でレシピを1本引く。0本または2本以上なら None
-        # Find exactly one recipe by machine and output name (item or fluid); None for zero or several
-        block = self.blocks.get(block_name)
-        target = self.items.get(output_name) or self.fluids.get(output_name)
-        if block is None or target is None:
-            return None
-        guid = target.get('itemGuid') or target.get('fluidGuid')
-        found = [r for r in self.recipes if r['blockGuid'] == block['blockGuid']
-                 and any(o.get('itemGuid', o.get('fluidGuid')) == guid for o in r['outputItems'] + r['outputFluids'])]
-        return found[0] if len(found) == 1 else None
+        # 機械名と出力名（アイテムか液体）でレシピを1本引く。0本と2本以上は理由を分けて引けない扱いにする
+        # Find exactly one recipe by machine and output name (item or fluid); zero and several are unreadable with separate reasons
+        if block_name not in self.blocks:
+            return unresolved(f'ブロック「{block_name}」が blocks.json に無い')
+        block_guid = self.blocks[block_name]['blockGuid']
+        return self.guid_of(output_name).then(lambda guid: _one(
+            [r for r in self.recipes if r['blockGuid'] == block_guid
+             and any(entry_guid(o) == guid for o in r['outputItems'] + r['outputFluids'])],
+            f'{block_name} の出力「{output_name}」のレシピ'))
+
+    def recipe_input_amount(self, recipe, input_name):
+        # レシピの入力のうち、名前が指す GUID の行の量。行が1つに決まらなければ引けない扱い
+        # The amount of the recipe input row the name points at; unreadable unless exactly one row matches
+        return self.input_guid(input_name).then(lambda guid: _one(
+            [entry_amount(e) for e in recipe['inputItems'] + recipe['inputFluids'] if entry_guid(e) == guid],
+            f'レシピ {recipe["machineRecipeGuid"]} の入力「{input_name}」'))
 
     def research_cost(self, node_name, item_name):
-        node, item = self.research.get(node_name), self.items.get(item_name)
-        if node is None or item is None:
-            return None
-        return next((c['itemCount'] for c in node['consumeItems'] if c['itemGuid'] == item['itemGuid']), None)
+        if node_name not in self.research:
+            return unresolved(f'研究「{node_name}」が research.json に無い')
+        return self.guid_of(item_name).then(lambda guid: _one(
+            [c['itemCount'] for c in self.research[node_name]['consumeItems'] if c['itemGuid'] == guid],
+            f'研究「{node_name}」のコスト「{item_name}」'))
+
+
+def _one(found, what):
+    if len(found) == 1:
+        return resolved(found[0])
+    return unresolved(f'{what} が {"無い" if not found else f"{len(found)} 件あり1つに決まらない"}')
 ```
 
 `tools/tier9_balance/run.py`:
@@ -2500,14 +2670,14 @@ class MasterView:
 #!/usr/bin/env python3
 # Tier9 バランスゲート（G6）。各区間の sim と出荷マスタを照合し、目標時間を判定する。1件でも FAIL なら exit 1
 # Tier9 balance gate (G6): match each section's sim against the shipped master and judge the hour targets; exit 1 on any FAIL
-# 検査0件の区間も FAIL にする（空の検査で緑にしない）
-# A section with zero checks also fails, so an empty check can never turn green
+# 検査0件の区間も FAIL にする（空の検査で緑にしない）。行は「PASS|FAIL [区間] 種類 状態 名前: 詳細」
+# A section with zero checks also fails, so an empty check can never turn green; rows read "PASS|FAIL [section] kind status name: detail"
 import argparse
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from checks import Check  # noqa: E402
+from checks import empty_section  # noqa: E402
 from hour_targets import judge_hours  # noqa: E402
 from master_view import MasterView  # noqa: E402
 from sections import SECTIONS  # noqa: E402
@@ -2521,7 +2691,7 @@ def run(view, sections):
     rows = []
     for result in results:
         if not result.checks:
-            rows.append((result.name, Check('empty', '検査', False, '検査が0件（区間の中身が未実装）')))
+            rows.append((result.name, empty_section()))
         rows.extend((result.name, c) for c in result.checks)
     rows.extend(('overall', c) for c in judge_hours(results))
     return rows
@@ -2533,7 +2703,7 @@ def main(argv):
     args = parser.parse_args(argv)
     rows = run(MasterView(args.master_dir), SECTIONS)
     for section, check in rows:
-        print(f"{'PASS' if check.passed else 'FAIL'} [{section}] {check.kind} {check.name}: {check.detail}")
+        print(f"{'PASS' if check.passed else 'FAIL'} [{section}] {check.kind} {check.status} {check.name}: {check.detail}")
     failures = sum(1 for _, c in rows if not c.passed)
     print(f'== RESULT: {"FAIL" if failures else "PASS"} ({failures} failures / {len(rows)} checks)')
     return 1 if failures else 0
@@ -2543,7 +2713,7 @@ if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
 ```
 
-- [ ] **Step 2: 区間の並びと 3 つの空の区間を置く**（P2 で中身を書くまでは、検査 0 件・所要時間なしで赤い）
+- [ ] **Step 2: 区間の並びと 3 つの空の区間を置く**（P2 で中身を書くまでは、検査 0 件・所要時間は未実装〈`empty`〉で赤い）
 
 `tools/tier9_balance/sections/__init__.py`:
 ```python
@@ -2559,13 +2729,13 @@ SECTIONS = (s1_semiconductor, s2_compute_loop, s3_endgame)
 #!/usr/bin/env python3
 # S1 半導体（半導体製造の解放→S1 最後の研究）。Task 12 で sim の目標判定・所要時間と照合 8 項目（sections/s1/）を書く
 # S1 semiconductor (unlock to last S1 research); Task 12 fills in the sim's targets and hours plus the eight matches (sections/s1/)
-# P2 で中身を書くまでは検査0件・所要時間なしを返し、ゲートは赤のまま
-# Until P2 fills it, it returns zero checks and no hours, so the gate stays red
-from checks import SectionResult
+# P2 で中身を書くまでは検査0件・所要時間は未実装（empty）を返し、ゲートは赤のまま
+# Until P2 fills it, it returns zero checks and unimplemented (empty) hours, so the gate stays red
+from checks import SectionResult, unimplemented
 
 
 def evaluate(view):
-    return SectionResult('s1_semiconductor', [], None)
+    return SectionResult('s1_semiconductor', [], unimplemented('区間の中身が未実装（Task 12 で書く）'))
 ```
 
 `tools/tier9_balance/sections/s2_compute_loop.py`:
@@ -2573,13 +2743,13 @@ def evaluate(view):
 #!/usr/bin/env python3
 # S2 計算データのループ（打ち上げ→計算データ→アップグレード研究）。Task 19 で台数計算と研究コストの照合を書く
 # S2 compute-data loop (launch to data to upgrade research); Task 19 writes the machine-count math and research-cost matching
-# Task 19 で中身を書くまでは検査0件・所要時間なしを返し、ゲートは赤のまま
-# Until Task 19 fills it, it returns zero checks and no hours, so the gate stays red
-from checks import SectionResult
+# Task 19 で中身を書くまでは検査0件・所要時間は未実装（empty）を返し、ゲートは赤のまま
+# Until Task 19 fills it, it returns zero checks and unimplemented (empty) hours, so the gate stays red
+from checks import SectionResult, unimplemented
 
 
 def evaluate(view):
-    return SectionResult('s2_compute_loop', [], None)
+    return SectionResult('s2_compute_loop', [], unimplemented('区間の中身が未実装（Task 19 で書く）'))
 ```
 
 `tools/tier9_balance/sections/s3_endgame.py`:
@@ -2587,22 +2757,22 @@ def evaluate(view):
 #!/usr/bin/env python3
 # S3 終盤（核融合・反物質・グラフェン・エレベーター）。Task 22 で S3 plan 旧 Task 4/12 の検査を関数に直して書く
 # S3 endgame (fusion, antimatter, graphene, elevator); Task 22 rewrites the S3 plan's old Task 4/12 checks as functions
-# Task 22 で中身を書くまでは検査0件・所要時間なしを返し、ゲートは赤のまま
-# Until Task 22 fills it, it returns zero checks and no hours, so the gate stays red
-from checks import SectionResult
+# Task 22 で中身を書くまでは検査0件・所要時間は未実装（empty）を返し、ゲートは赤のまま
+# Until Task 22 fills it, it returns zero checks and unimplemented (empty) hours, so the gate stays red
+from checks import SectionResult, unimplemented
 
 
 def evaluate(view):
-    return SectionResult('s3_endgame', [], None)
+    return SectionResult('s3_endgame', [], unimplemented('区間の中身が未実装（Task 22 で書く）'))
 ```
 
-- [ ] **Step 3: 枠の自己テストを置く**（全部合えば通る／sim と JSON の食い違い・JSON が引けない・区間の所要時間が範囲外・検査 0 件・所要時間なしは、それぞれ落ちる／合計は区間の和で、境界を含む）
+- [ ] **Step 3: 枠の自己テストを置く**（全部合えば通る／sim と JSON の食い違い〈mismatch〉・JSON が引けない〈lookup_failed〉・0 以下〈not_positive。値も読めない〉・区間の所要時間が範囲外〈out_of_range〉・検査 0 件〈section empty〉・所要時間なし〈状態が合計へ引き継がれる〉は、それぞれ落ちる／合計は区間の和で、境界を含む）
 
 `tools/tier9_balance/tests/test_balance_frame.py`:
 ```python
 #!/usr/bin/env python3
-# バランスゲートの枠: 全部合えば通り、照合の食い違い・目標外・検査0件・所要時間欠落のどれでも失敗する
-# Balance gate frame: passes when all agree, fails on a mismatch, an out-of-range target, zero checks or a missing hour estimate
+# バランスゲートの枠: 全部合えば通り、照合の食い違い・引けない値・0以下・目標外・検査0件・所要時間欠落のどれでも状態つきで失敗する
+# Balance gate frame: passes when all agree, and fails with a status on a mismatch, unreadable or non-positive value, out-of-range target, zero checks or missing hours
 import os
 import sys
 import unittest
@@ -2620,47 +2790,64 @@ class FakeSection:
         return checks.SectionResult(self.name, self.rows, self.hours)
 
 
+def ok_row():
+    return checks.matches('値', 1.0, checks.resolved(1.0), 0.0)
+
+
 def sections(s1_rows, s1_hours):
-    ok = [checks.matches('値', 1.0, 1.0, 0.0)]
     return [FakeSection('s1_semiconductor', s1_rows, s1_hours),
-            FakeSection('s2_compute_loop', ok, 5.0), FakeSection('s3_endgame', ok, 7.0)]
+            FakeSection('s2_compute_loop', [ok_row()], checks.resolved(5.0)),
+            FakeSection('s3_endgame', [ok_row()], checks.resolved(7.0))]
+
+
+def dies(json_value):
+    return [checks.matches('ダイ数', 300, json_value, 0)]
 
 
 def failed(rows):
-    return [f'{s}:{c.kind}:{c.name}' for s, c in rows if not c.passed]
+    return [f'{s}:{c.kind}:{c.status}:{c.name}' for s, c in rows if not c.passed]
 
 
 class BalanceFrameTest(unittest.TestCase):
     def test_all_agree_passes(self):
-        rows = run.run(None, sections([checks.matches('ダイ数', 300, 300, 0)], 7.0))
+        rows = run.run(None, sections(dies(checks.resolved(300)), checks.resolved(7.0)))
         self.assertEqual([], failed(rows))
 
     def test_sim_json_mismatch_fails(self):
-        rows = run.run(None, sections([checks.matches('ダイ数', 300, 250, 0)], 7.0))
-        self.assertEqual(['s1_semiconductor:match:ダイ数'], failed(rows))
+        rows = run.run(None, sections(dies(checks.resolved(250)), checks.resolved(7.0)))
+        self.assertEqual(['s1_semiconductor:match:mismatch:ダイ数'], failed(rows))
 
-    def test_unreadable_json_value_fails(self):
-        rows = run.run(None, sections([checks.matches('ダイ数', 300, None, 0)], 7.0))
-        self.assertEqual(['s1_semiconductor:match:ダイ数'], failed(rows))
+    def test_unreadable_json_value_fails_as_lookup(self):
+        rows = run.run(None, sections(dies(checks.unresolved('cleanRoom.json に dicings が無い')), checks.resolved(7.0)))
+        self.assertEqual(['s1_semiconductor:match:lookup_failed:ダイ数'], failed(rows))
+
+    def test_nonpositive_divisor_is_its_own_state_and_unreadable(self):
+        value = checks.require_positive(checks.resolved(0.0), '1台の毎秒')
+        self.assertEqual(checks.NOT_POSITIVE, value.status)
+        with self.assertRaises(ValueError):
+            value.value
+        rows = run.run(None, sections([checks.target_range('台数', value, 0.0, 4.0)], checks.resolved(7.0)))
+        self.assertEqual(['s1_semiconductor:target:not_positive:台数'], failed(rows))
 
     def test_section_hours_out_of_range_fails(self):
-        rows = run.run(None, sections([checks.matches('ダイ数', 300, 300, 0)], 9.0))
-        self.assertIn('overall:target:s1_semiconductor の所要時間[h]', failed(rows))
+        rows = run.run(None, sections(dies(checks.resolved(300)), checks.resolved(9.0)))
+        self.assertIn('overall:target:out_of_range:s1_semiconductor の所要時間[h]', failed(rows))
 
     def test_total_is_sum_of_sections_with_inclusive_bounds(self):
-        many = [checks.matches('値', 1.0, 1.0, 0.0)]
-        rows = run.run(None, [FakeSection('s1_semiconductor', many, 6.0), FakeSection('s2_compute_loop', many, 4.0),
-                              FakeSection('s3_endgame', many, 5.0)])
+        rows = run.run(None, [FakeSection('s1_semiconductor', [ok_row()], checks.resolved(6.0)),
+                              FakeSection('s2_compute_loop', [ok_row()], checks.resolved(4.0)),
+                              FakeSection('s3_endgame', [ok_row()], checks.resolved(5.0))])
         self.assertEqual([], failed(rows))
         self.assertIn('15.0（目標 15.0〜25.0）', [c.detail for s, c in rows if s == 'overall'][-1])
 
     def test_empty_section_fails(self):
-        rows = run.run(None, sections([], 7.0))
-        self.assertIn('s1_semiconductor:empty:検査', failed(rows))
+        rows = run.run(None, sections([], checks.resolved(7.0)))
+        self.assertIn('s1_semiconductor:section:empty:検査', failed(rows))
 
-    def test_missing_hours_fails(self):
-        rows = run.run(None, sections([checks.matches('ダイ数', 300, 300, 0)], None))
-        self.assertIn('overall:target:Tier9 全体の所要時間[h]', failed(rows))
+    def test_missing_hours_carry_their_state_to_the_total(self):
+        rows = run.run(None, sections(dies(checks.resolved(300)), checks.unimplemented('未実装')))
+        self.assertEqual(['overall:target:empty:s1_semiconductor の所要時間[h]', 'overall:target:empty:Tier9 全体の所要時間[h]'],
+                         failed(rows))
 
 
 if __name__ == '__main__':
@@ -2669,14 +2856,14 @@ if __name__ == '__main__':
 
 - [ ] **Step 4: 自己テストを回す**（`test_sim_json_mismatch_fails` が「値を 1 か所わざと食い違わせると落ちる」の確認にあたる）
   Run: `cd $MW && python3 -m unittest discover -s tools/tier9_balance/tests`
-  Expected: `Ran 7 tests in …` / `OK`。
+  Expected: `Ran 8 tests in …` / `OK`。
 
 - [ ] **Step 5: 統合マスタで回し、中身が無いため赤いことを控える**
   Run: `cd $MW && python3 tools/tier9_balance/run.py > $GL/g6-base.txt; echo "exit=$?"; cat $GL/g6-base.txt`
   Expected: `exit=1`。7 行の FAIL が出る。
-  - `[s1_semiconductor] empty`、`[s2_compute_loop] empty`、`[s3_endgame] empty`
-  - `[overall] target` の区間ごとの所要時間 3 行（`None（目標 6.0〜8.0）` など）
-  - 全体 1 行（`None（目標 15.0〜25.0）`）
+  - `FAIL [s1_semiconductor] section empty 検査: 検査が0件（区間の中身が未実装）`。`[s2_compute_loop]`・`[s3_endgame]` も同じ。
+  - 区間ごとの所要時間 3 行。例: `FAIL [overall] target empty s1_semiconductor の所要時間[h]: 区間の中身が未実装（Task 12 で書く）（目標 6.0〜8.0）`。
+  - 全体 1 行: `FAIL [overall] target empty Tier9 全体の所要時間[h]: 所要時間の無い区間がある: 区間の中身が未実装（Task 12 で書く）（目標 15.0〜25.0）`。
   - 末尾は `== RESULT: FAIL (7 failures / 7 checks)`。
 
 - [ ] **Step 6: 1 か所わざと壊して照合が落ちることを、本物のマスタでも確かめる**（一時的な区間を外から差し込む。ファイルは作らない）
@@ -2692,16 +2879,18 @@ class Probe:
     def __init__(self, name, json_value):
         self.name, self.json_value = name, json_value
     def evaluate(self, v):
-        return checks.SectionResult(self.name, [checks.matches('probe', 1.0, self.json_value, 0.0)], HOURS[self.name])
-ok = [Probe('s1_semiconductor', 1.0), Probe('s2_compute_loop', 1.0), Probe('s3_endgame', 1.0)]
-bad = [Probe('s1_semiconductor', 2.0), Probe('s2_compute_loop', 1.0), Probe('s3_endgame', view.research_cost('存在しない研究', '銅板'))]
-print('ok', [f'{s}:{c.kind}' for s, c in run.run(view, ok) if not c.passed])
-print('bad', [f'{s}:{c.kind}' for s, c in run.run(view, bad) if not c.passed])
+        rows = [checks.matches('probe', 1.0, self.json_value, 0.0)]
+        return checks.SectionResult(self.name, rows, checks.resolved(HOURS[self.name]))
+one, two = checks.resolved(1.0), checks.resolved(2.0)
+ok = [Probe('s1_semiconductor', one), Probe('s2_compute_loop', one), Probe('s3_endgame', one)]
+bad = [Probe('s1_semiconductor', two), Probe('s2_compute_loop', one), Probe('s3_endgame', view.research_cost('存在しない研究', '銅板'))]
+print('ok', [f'{s}:{c.kind}:{c.status}' for s, c in run.run(view, ok) if not c.passed])
+print('bad', [f'{s}:{c.kind}:{c.status}' for s, c in run.run(view, bad) if not c.passed])
 EOF
 ```
 Expected（#88+#87 のマージ結果で実測）:
 - `ok []` が出る。区間の時間 7/5/7 はどれも範囲内で、合計 19 も 15〜25 に入る。
-- `bad ['s1_semiconductor:match', 's3_endgame:match']` が出る。S1 は sim 1.0 と JSON 2.0 が食い違う。S3 は存在しない名前を引いた結果が None で、例外を出さずに FAIL になる。
+- `bad ['s1_semiconductor:match:mismatch', 's3_endgame:match:lookup_failed']` が出る。S1 は sim 1.0 と JSON 2.0 が食い違う。S3 は存在しない名前を引いた結果が `lookup_failed` の `Resolved` で、例外を出さずにその状態の FAIL になる。
 
 - [ ] **Step 7: S1 の sim 7 本を `design/tier9-balance/sim/` に置く**（判断記録 A22: 値の正本の sim は `design/` 側、照合と判定は `tools/tier9_balance/` 側に一本化する）
   - 置き場の差分: S1 handoff「Task D1」の `design/tier9-semiconductor-balance/sim/` を `design/tier9-balance/sim/` に変える（P2 節の横断訂正 1）。中身は 1 文字も変えない。
@@ -2772,21 +2961,21 @@ git -C $MW push
 **P2 への引き継ぎ（下書きに対する差分。区間の中身は P2 が書く）:**
 - **S1（S1 handoff「Task D1」「Task D2」、RD11・RD12）:**
   - sim の 7 本はこの Task の Step 7 が `design/tier9-balance/sim/` に置いた（値の正本）。
-  - `sections/s1_semiconductor.py` の中身は Task 12 が書く。`targets.evaluate()` の結果を `Check('target', …)` へ写し、D2 の照合 8 項目は `sections/s1/` に `checks.matches` として書く（判断記録 A22。D2 の照合用 CLI は作らない）。
-  - `hours` には `timeline.run('B')` の S1 最後の研究の完了時刻を入れる（判断記録 A8）。
+  - `sections/s1_semiconductor.py` の中身は Task 12 が書く。`targets.evaluate()` の結果を `checks.sim_target` へ写し、D2 の照合 8 項目は `sections/s1/` に `checks.matches` として書く（判断記録 A22。D2 の照合用 CLI は作らない）。
+  - `hours` には `timeline.run('B')` の S1 最後の研究の完了時刻を `Resolved` で入れる（判断記録 A8）。
   - ゲートの入口は `run.py` だけ。sim を単体で回して表を見るのは値を決めるときの参考で、P2 の完了判定には使わない。
 - **S3（S3 plan「旧 Task 4」「旧 Task 12」）:**
   - `tools/balance/tier9_endgame_balance.py` は作らない。
-  - 検査は Task 22 Step 6 が `sections/s3_endgame.py` と `sections/s3/` に関数として書き、`MasterView` で引く。名前が引けないときは `sys.exit` ではなく `lookup_failed` を使う。
+  - 検査は Task 22 Step 6 が `sections/s3_endgame.py` と `sections/s3/` に関数として書き、`MasterView` で引く。名前が引けないときは `sys.exit` ではなく、引けない `Resolved` を `matches`・`target_range` に渡す（判断記録 A31）。
   - 旧 Task 12 の「ロケット1機の建造時間」のキーは S3 ブランチの `VanillaSchema/blocks.yml:1116` の `buildSeconds`（`_s3blocks.yml` で確認）。
   - S3 区間の `hours`（5〜11 h）の見積もりは下書きに無いので、Task 22 Step 6 の `sections/s3/hours_model.py` で式を足す（判断記録 A26）。
 - **S2（S2 plan「統合タスクへ引き継ぐマスタの中身」の計算データのループ）:** Task 19 Step 5 が `sections/s2_compute_loop.py` と `sections/s2/` に、計算データを消費する研究ごとの便数、1 便を回す工場の台数、4〜6 h の所要時間を書く（判断記録 A25）。
 - **S3 plan の他の指示:** `progression_check.py # 詰みが増えない` は、Task 2 以降は `python3 tools/progression/check.py`（絶対判定の G2）で回す。「増えない」ではなく「許可リスト外が 0」で判定される。
 
 **完了判定:**
-- Step 4 で `Ran 7 tests` / `OK` が出る。
+- Step 4 で `Ran 8 tests` / `OK` が出る。
 - Step 5 で `exit=1`・`7 failures / 7 checks` になる。
-- Step 6 で `ok []` と、`bad` に `match` の FAIL 2 件が出る。
+- Step 6 で `ok []` と、`bad` に `match` の FAIL 2 件（`mismatch` と `lookup_failed`）が出る。
 - Step 7 で sim 7 本が置かれ、`missing []` と `300 7 6.266666666666667` が出る。
 - `gh run list -R moorestech/moorestech_master -b feat/tier9-integrated -w "Master Gates" -L 1` の run で、`Balance gate self-test` が success、`Tier9 balance` が failure になる（P2 で緑にする）。
 
