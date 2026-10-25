@@ -964,6 +964,7 @@ git commit -m "feat(uitk): Web 追従ゲート G1 の規則と入口を足し、
 - 切替を戻すときは `状態` を `暗転` に戻す（G1 は base と head の両方で切替済みのパスだけを落とす）
 - `Web パス` は `moorestech_web/webui/` からの相対。末尾 `/` はディレクトリ、それ以外はファイル。ファイルの持ち主は最長一致の行（同じ長さなら全部）
 - `moorestech_web/webui/src/` の下のファイルはどれかの行に入っていなければならない（G1 が落とす）。新しい Web 画面を足すときは、ここに行を足すか既存の行のパスに入れる
+- `e2e/` の下に新しい spec・fixture・撮影スクリプトを足すときは、その画面の行の `Web パス` に足す。足さないと受け皿の「Web の検証基盤」（束 5）の持ち物になり、その束の切替で記帳を求められない（G1 は `e2e/` の網羅を検査しない）
 - セルに `|` を書かない。空欄は `—`
 
 ## 束
@@ -1778,6 +1779,9 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 - [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
 
 PR 本文に必ず入れる:
+- 冒頭に「PR #1555（裁定 4 のファイルと計画の追従ゲート版）に依存する。#1555 を先にマージする」の 1 行（台帳が #1555 の裁定ファイルと計画 §4.7 の追従ゲート版を出典にするため）
+- 「ユーザーに見てほしい判断」節に、上の agent 既定に加えて次の帰結 2 点: (a) G1(0) の網羅のため台帳の行は 20 機能＋オーバーレイだけでなく共有部品・横断層まで約 48 行になった (b) 束 1〜5 を全部持つ共有行（`shared/ui`・`tutorialAnchor`・`i18n`・`uiState`・画面のマウント点）は、同じコミットを束ごとに最大 5 回記帳することになる（各束の切替で Web 側の変更を見直すため。重いと判断されたら共有行の束を減らす）
+- 「本PR外のリファクタ提案」節に、判断記録の第3バケツ 4 件
 - 「ユーザーに見てほしい判断」節: このplanの `## 判断記録（ADR）` のうち「agent 既定（ユーザー未裁定）」の項目を全部
 - 参照キャプチャの URL（https://github.com/moorestech/moorestech_logs/tree/main/uitk/reference-captures/web-<sha10>）
 - G1 の赤のテスト名（`test_switch_with_unrecorded_web_change_is_red`・`test_change_to_switched_bundle_web_path_is_red`・`test_uncovered_new_screen_is_red`）と、PR の CI で G1 のジョブが緑であること
@@ -1828,6 +1832,8 @@ PR を作ったら `bd note moorestech-albof.4 "PR #<番号> 作成。台帳・G
 - `e2e/uitk-reference/referenceShots.ts` の `ui()`・`topic()`・`block()` ⇔ `e2e/support/mockControl.ts` の `setUiState`・`setTopicScenario`・`setBlock`（同じ URL の組み立て。前者は撮影表のデータとして文字列が要る）
 - `e2e/uitk-reference/shotRunner.ts` の `startMockHost`・`openShot` ⇔ `e2e/challenge-hud/serverLifecycle.ts`・`pageCapture.ts`（判断記録 11 で別プロセスへ逸脱）
 - `.github/scripts/uitk_web_follow/git_history.py` の `tracked_files` ⇔ `.github/scripts/check-test-external-dependencies.py` の `tracked_test_sources`
+
+**user-simulator review（Fable 判事）の反映**: 適用推奨 0・Warning 4・要裁定 0。Warning は全部取り込んだ（PR #1555 への依存を PR 本文に書く・`e2e/` の新しいファイルを行に足す運用を台帳に書く・共有行の最大 5 回の記帳と約 48 行への増加を PR 本文の「ユーザーに見てほしい判断」に書く）。出所: agent 判断（判事の予測による）
 
 **unityプレイ録画テストを入れない**: この plan はランタイム挙動（ゲームプレイ・入力・カメラ・UI・エンティティ表示）に触れない。変えるのは CI・docs・Web の e2e の撮影スクリプトと mock-host（テスト基盤）だけで、`src/` と C# は 1 行も変えない。
 
