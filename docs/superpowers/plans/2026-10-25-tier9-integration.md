@@ -46,8 +46,8 @@
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件（再検査で違反0件） / G1・G3 を Server.MasterGate.Editor へ移し G6 を tools/tier9_balance へ一本化。nodeGraph の --check を CI に載せない件は A27 に記録
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強1・弱9・第3バケツ18（修正後の再検査: 新規 強0・弱3・第3バケツ1） / 残る強は G6 Check の None と kind の二重表現（5-A）。裁定は判断記録に記す
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件（再検査2回とも違反0件。A31・A32 反映後の新規パターンは Owner の復旧管理・Resolved/NestedSaveArray の結果型・tools/master_common の3件） / G1・G3 を Server.MasterGate.Editor へ移し G6 を tools/tier9_balance へ一本化。nodeGraph の --check を CI に載せない件は A27 に記録
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強1・弱9・第3バケツ18（再検査2回目: 新規 強0・弱3・第3バケツ1、A31・A32 反映後の3回目: 新規 強1・弱0・第3バケツ3） / 5-A は A31 で判別子に直し、3回目の強（NestedSaveArray の配列を Present 以外で読むと例外）は派生型に分けて解消。弱は A32 の3束を直し残りは Task 32 へ
 
 ---
 ## タスク一覧（実行順）
@@ -4371,7 +4371,7 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   - `public static class ZeroCostTier9ResearchResetTable { public static readonly IReadOnlyDictionary<Guid, ResearchUnlockGuids> UnlocksByResearch; }`
   - `public sealed class ResearchUnlockGuids { IReadOnlyList<Guid> ItemGuids; IReadOnlyList<Guid> BlockGuids; }`
   - `public sealed class ZeroCostTier9ResearchResetter : IV7ToV8MigrationPart`
-  - `public enum NestedSaveArrayState { Missing, ExplicitNull, Present }`、`public readonly struct NestedSaveArray { NestedSaveArrayState State; JArray Array /* Present のときだけ。他は InvalidOperationException */; static Missing() / ExplicitNull() / Present(JArray) }`
+  - `public abstract class NestedSaveArray`、その派生 `public sealed class MissingNestedSaveArray : NestedSaveArray`・`public sealed class ExplicitNullNestedSaveArray : NestedSaveArray`・`public sealed class PresentNestedSaveArray : NestedSaveArray { public readonly JArray Array; }`（配列は Present の型だけが持つ）
   - `V7ToV8SaveJson.TryGetNestedArray(JObject save, string sectionKey, string arrayKey, out NestedSaveArray result, out string failureReason) -> bool`（false は形が違うときの拒否だけ）
 
 - [ ] **Step 1: 対象表を作る** `Steps/V7ToV8/ZeroCostTier9ResearchResetTable.cs`
@@ -4447,59 +4447,44 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
   ```
 
 - [ ] **Step 2: 共有の辿り方に「無い／null／配列」の3状態を返す `TryGetNestedArray` を足し、リセット部品を作る** `Steps/V7ToV8/NestedSaveArray.cs`・`Steps/V7ToV8/V7ToV8SaveJson.cs`・`Steps/V7ToV8/ZeroCostTier9ResearchResetter.cs`
-  結果の状態は enum 1 つで表す（bool と配列の null の組で「拒否／節なし／配列あり」を表さない。判断記録 A31）。拒否（形が違う）だけは他の `TryPrepare` と同じく bool の false と理由で返す。
+  結果の状態は型で表す（bool と配列の null の組で「拒否／節なし／配列あり」を表さない。配列は `PresentNestedSaveArray` だけが持つので、状態を見ずに配列を読む誤りがコンパイルで起きない。判断記録 A31、型閉包の再検査 5-A 2行目）。拒否（形が違う）だけは他の `TryPrepare` と同じく bool の false と理由で返す。
 
   `Steps/V7ToV8/NestedSaveArray.cs`:
   ```csharp
-  using System;
   using Newtonsoft.Json.Linq;
 
   namespace Game.SaveLoad.Migration.Steps.V7ToV8
   {
-      // save[節][配列] を辿った結果の状態。Missing=節か配列のキーが無い、ExplicitNull=どちらかが JSON の null、Present=配列がある
-      // State of walking save[section][array]: Missing = a key is absent, ExplicitNull = one of them is JSON null, Present = the array exists
-      public enum NestedSaveArrayState
+      /// <summary>
+      /// save[節][配列] を辿った結果。無い・JSON の null・配列ありを派生型で分け、配列は配列ありの型だけが持つ
+      /// The result of walking save[section][array]; absent, JSON null and present are separate subtypes, and only the present one carries the array
+      /// </summary>
+      public abstract class NestedSaveArray
       {
-          Missing,
-          ExplicitNull,
-          Present,
       }
 
-      /// <summary>
-      /// save[節][配列] を辿った結果。状態は State の1つで表し、配列は Present のときだけ読める
-      /// The result of walking save[section][array]; the state is the single State value and the array is readable only when Present
-      /// </summary>
-      public readonly struct NestedSaveArray
+      // 節か配列のキーが無い
+      // A section or array key is absent
+      public sealed class MissingNestedSaveArray : NestedSaveArray
       {
-          public readonly NestedSaveArrayState State;
-          private readonly JArray _array;
+      }
 
-          private NestedSaveArray(NestedSaveArrayState state, JArray array)
+      // 節か配列のどちらかが JSON の null
+      // Either the section or the array is JSON null
+      public sealed class ExplicitNullNestedSaveArray : NestedSaveArray
+      {
+      }
+
+      // 配列がある
+      // The array exists
+      public sealed class PresentNestedSaveArray : NestedSaveArray
+      {
+          public readonly JArray Array;
+
+          public PresentNestedSaveArray(JArray array)
           {
-              State = state;
-              _array = array;
+              Array = array;
           }
-
-          public static NestedSaveArray Missing()
-          {
-              return new NestedSaveArray(NestedSaveArrayState.Missing, new JArray());
-          }
-
-          public static NestedSaveArray ExplicitNull()
-          {
-              return new NestedSaveArray(NestedSaveArrayState.ExplicitNull, new JArray());
-          }
-
-          public static NestedSaveArray Present(JArray array)
-          {
-              return new NestedSaveArray(NestedSaveArrayState.Present, array);
-          }
-
-          // Present 以外で読むのは呼び出し側の分岐漏れなので、空配列で黙って続けず例外で止める
-          // Reading it in any other state is a missed branch in the caller, so stop with an exception instead of silently iterating nothing
-          public JArray Array => State == NestedSaveArrayState.Present
-              ? _array
-              : throw new InvalidOperationException($"NestedSaveArray.Array は Present のときだけ読める。 state={State}");
       }
   }
   ```
@@ -4510,13 +4495,13 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
           // Walk save[sectionKey][arrayKey] and put one of absent/null/array into result; a wrong shape is refused
           public static bool TryGetNestedArray(JObject save, string sectionKey, string arrayKey, out NestedSaveArray result, out string failureReason)
           {
-              result = NestedSaveArray.Missing();
+              result = new MissingNestedSaveArray();
               failureReason = null;
               var sectionToken = save[sectionKey];
               if (sectionToken == null) return true;
               if (IsExplicitNull(sectionToken))
               {
-                  result = NestedSaveArray.ExplicitNull();
+                  result = new ExplicitNullNestedSaveArray();
                   return true;
               }
               if (!(sectionToken is JObject section)) return Reject($"{sectionKey} がオブジェクトではありません。 type={sectionToken.Type}", out failureReason);
@@ -4525,11 +4510,11 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
               if (arrayToken == null) return true;
               if (IsExplicitNull(arrayToken))
               {
-                  result = NestedSaveArray.ExplicitNull();
+                  result = new ExplicitNullNestedSaveArray();
                   return true;
               }
               if (!(arrayToken is JArray found)) return Reject($"{sectionKey}.{arrayKey} が配列ではありません。 type={arrayToken.Type}", out failureReason);
-              result = NestedSaveArray.Present(found);
+              result = new PresentNestedSaveArray(found);
               return true;
           }
   ```
@@ -4571,8 +4556,8 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
               // 完了一覧から対象ノードを集める。研究節か完了一覧が無い・null のセーブは外すものが無い
               // Collect target nodes from the completed list; a save whose research section or list is absent or null has nothing to remove
               if (!V7ToV8SaveJson.TryGetNestedArray(save, ResearchKey, CompletedResearchGuidsKey, out var completed, out failureReason)) return false;
-              if (completed.State != NestedSaveArrayState.Present) return true;
-              foreach (var entry in completed.Array)
+              if (!(completed is PresentNestedSaveArray presentCompleted)) return true;
+              foreach (var entry in presentCompleted.Array)
               {
                   // 読めない値は後段の刈り込みが警告して残すので、ここでは対象ノードだけを拾う
                   // The later pruner warns about unreadable values, so only target nodes are picked here
@@ -4609,8 +4594,8 @@ Tests/UnitTest/Game/SaveLoad/Migration/     .cs 6本（Task 7 後）
           private bool TryCollectRecords(JObject save, string infosKey, HashSet<Guid> targetGuids, out string failureReason)
           {
               if (!V7ToV8SaveJson.TryGetNestedArray(save, GameUnlockStateKey, infosKey, out var infos, out failureReason)) return false;
-              if (infos.State != NestedSaveArrayState.Present) return true;
-              foreach (var infoToken in infos.Array)
+              if (!(infos is PresentNestedSaveArray presentInfos)) return true;
+              foreach (var infoToken in presentInfos.Array)
               {
                   if (!(infoToken is JObject info)) return V7ToV8SaveJson.Reject($"{GameUnlockStateKey}.{infosKey} の要素がオブジェクトではありません。 type={infoToken.Type}", out failureReason);
                   if (TryReadGuid(info[GuidKey], out var guid) && targetGuids.Contains(guid)) _unlockRecords.Add(info);
