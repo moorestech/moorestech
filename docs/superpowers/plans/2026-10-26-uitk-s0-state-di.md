@@ -1439,7 +1439,7 @@ namespace を `Client.Game.InGame.EventMode` にし、`internal` の 4 メンバ
 
 - [ ] **Step 3: コンパイルとテスト**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.EventMode\.|Boot\.EventLanguageGateCursorTest" --timeout-seconds 1500`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.EventMode\.|EditModeInPlayingTest\.EventLanguageGateCursorTest" --timeout-seconds 1500`
 Expected: ErrorCount 0 / 全 PASS
 
 - [x] **Step 4: コミット**
@@ -2018,7 +2018,7 @@ git commit -m "refactor(block-detail): 開いているブロックの追跡と�
 
 - [ ] **Step 1: C# テスト一式**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi|WebUiHost|EventMode|BugReport|Playtest)\.|EditModeInPlayingTest\.(BlockInventory|Boot|BugReport|Hostless)\." --timeout-seconds 1500`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi|WebUiHost|EventMode|BugReport|Playtest)\.|EditModeInPlayingTest\.(BlockInventory|Boot|BugReport|Hostless)\.|EditModeInPlayingTest\.(EventLanguageGateCursorTest|LocalPlayEmbeddedServerBootTest|RemotePlayServerBootTest)" --timeout-seconds 1500`
 Expected: 全 PASS。`uloop get-logs --project-path ./moorestech_client --log-type Error` が、意図した 1 件（`SubInventoryState: サブインベントリソースが指定されていません`、Hostless のプローブ）以外 0 件
 
 - [ ] **Step 2: Task 1 と同じ 5 本を流す**
@@ -2089,3 +2089,9 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D21 | HostlessのModalプローブはBP解放・実ブロック・公開selection遷移を前提にし、生成GUID・選択リセット・thumbnail完了と自分の生成物だけのcleanupまで待つ。起動後1フレームから全プローブとcleanup完了後1フレームまでLogAssertの失敗無視を解除し、標準runnerが想定外error/exceptionを検出する。全probe後は既存統合テストの前例に従い正規終了をawaitしFlushedをassertしてからExitPlayModeへ進む | 元サンプルは実DIのコピー購読者へSelectingStartのまま確定を流し、Task4/5/6のPassed XMLへBeginCreate例外を隠していた。独立再現とログ検出のみの赤実測で確認した。NoUnexpectedReceivedは通常Logも失敗にする実測があるため用いず、赤実測済みの標準runnerのerror/exception検出を使う。終了時エラーはprobe無し対照でも再現し、Task3比較はflush完了が未観測で原因未確定。既存PlaytestReportAndProgressTestの正規終了awaitをテストcleanupの既定とし実測で検証する。プロダクション終了処理を推測で変更しない | agent 既定（ユーザー未裁定） |
 
 | D22 | BlockInventoryTopicのWeb専用再配信方針はTopics/Inventory/BlockInventoryRepublishPolicyへ分け、Topicは購読/JSON配信の窓口にする | Task10抽出後もTopicが208行となるため、空白圧縮せず連続値・ベルト・パイプ比較の役割で分割する。新規コード追加先10ファイル以下を優先し、既存多数のTopics直下ではなくInventory階層へ置く。状態追跡はClient.Game、Web帯域の方針はWebUiHostに保つ | agent 既定（ユーザー未裁定） |
+
+| D23 | WebSocketHubの受信フレーム組立はinternal WebSocketReceiveLoopへ分け、Boot/Transportへ置く | 全ブランチ検査でTask4変更対象のHubだけ225行と判明。既存WebSocketConnection/MessageDispatcherと同じ役割分割にし、受信本文・公開API・接続所有・停止順序は保つ。空白圧縮やpartialを使わず200行未満と新設dir10以下を満たす | agent 既定（ユーザー未裁定） |
+
+| D24 | Task8のcursor filterとTask11のBoot回帰filterは実namespaceに合わせ、EventLanguageGateCursorTest・LocalPlayEmbeddedServerBootTest・RemotePlayServerBootTestを明示対象にする | Bootはフォルダ名で3クラスのnamespaceには含まれず、元regexでは対象が0件だった。仕様の起動回帰を省略せず、実行XMLで各caseの包含を照合する | agent 既定（ユーザー未裁定） |
+
+| D25 | Hostlessのブロック詳細probeは既存テスト前例の実足場を用意し、+2境界配置を余裕ある+1隣接配置へ補正する。空セルと既存InteractReachQueryのReachableを前提assertしてからtracker/network/閉後解除を検証する。配置した電気ブロックは既存統合テスト同様に隔離worldの正規shutdownへ寿命を預け、probe末尾でdatastore直操作による削除を追加しない | 無改変単独runで地面不足10件・out of range・Flushed未到達を再現し、正本InteractDistance2fに対し+2が境界と確認した。落下だけを原因と断定せず、物理や製品距離定数を変えず正規の操作前提を満たす。追加RemoveBlock cleanupだけを外した独立対照でdestroyed例外0/Flushed1を確認し、server専用Threadとの境界を無視する余分なcleanupを除く | agent 既定（ユーザー未裁定） |
