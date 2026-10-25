@@ -6501,7 +6501,7 @@ git -C $MW push
   - 小分類「生産/宇宙」`d2000000-0000-4000-8000-000200000005`。
   - レシピキー: `ロケット筐体素材` `01a167cf-afa0-7add-8407-eec71456f4f3`、`ロケット燃料` `01a167cf-afa3-7c4f-82b7-c0d4f6d513c6`、`GPU衛星Lv1`〜`GPU衛星Lv5`（新規採番）。
 
-- [ ] **Step 1: spec 06 を書く。** 値は S2 引き継ぎ A〜D の仮値（D12）。ブロックの `element` は「B. 発射台」の JSON 全文をそのまま使う。下書きとの違いは次のとおり。
+- [x] **Step 1: spec 06 を書く。** 値は S2 引き継ぎ A〜D の仮値（D12）。ブロックの `element` は「B. 発射台」の JSON 全文をそのまま使う。下書きとの違いは次のとおり。
   - GPU の名前は Task 16 の `GPULv1`〜`GPULv5` に揃える。
   - レシピ 7 本すべてに `levelInheritance: "None"` を入れる。下書き D には無く、入れないとロード時に落ちる（S1 のスキーマ `machineRecipes.yml:93`）。GPU衛星は継承レシピにしない（S2 の裁定 D13）。
   - 発射台は RocketLaunchPad で、ElectricMachine ではないので `allowQualityModule` を入れない。
@@ -6547,9 +6547,9 @@ git -C $MW push
 ```
   `element` の中身は文字列ではなく、S2 引き継ぎ「B」の JSON オブジェクト（`blockType` `category` `subCategory` `sortPriority` `blockSize` `blockPrefabAddressablesPath` `openable` `requiredItems` `blockParam`）に、`name` 以外の既存キー（`imagePath: ""`・`initialUnlocked: false`・`placementsPerCost: 1`）を足したものにする。上の山括弧は説明のための置き換え表記で、spec に文字列として書かない。
 
-- [ ] **Step 2: 発射台の prefab の重複を確かめる**（S2 引き継ぎ「B」の末尾の指示）  Run: `grep -rn 'Block/Rocket"' $MW/server_v8/mods`  Expected: `moorestechAlphaMod_8` の中では発射台の 1 件だけ。
-- [ ] **Step 3: 適用する**  Expected: `applied 6 spec files; issued 5 new guids`（GPU衛星のレシピ 5 本。他はすべて固定 GUID）
-- [ ] **Step 4: 結果を確かめる**
+- [x] **Step 2: 発射台の prefab の重複を確かめる**（S2 引き継ぎ「B」の末尾の指示）  Run: `grep -rn 'Block/Rocket"' $MW/server_v8/mods`  Expected: `moorestechAlphaMod_8` の中では発射台の 1 件だけ。
+- [x] **Step 3: 適用する**  Expected: `applied 6 spec files; issued 5 new guids`（GPU衛星のレシピ 5 本。他はすべて固定 GUID）
+- [x] **Step 4: 結果を確かめる**
 ```bash
 python3 -c "
 import json; m='$MOD/master/'; i=json.load(open(m+'items.json')); b=json.load(open(m+'blocks.json'))['data']; bm=json.load(open(m+'buildMenu.json'))
@@ -6564,8 +6564,8 @@ RocketLaunchPad 宇宙 ['buildSeconds', 'connectionHeightRange', 'connectionRang
 5 [10, 20, 40, 80, 160]
 ['原始加工', '電気機械', '化学', '半導体', '宇宙']
 ```
-- [ ] **Step 5: ロードを確かめる**（発射台を全文に置き換えたので、スライス末尾を待たずに読み込みを確かめる）  Run: `G1 $MW/server_v8`  Expected: PASS。`[OrbitalPayload]` や RocketLaunchPad の検証エラーが出たら、その PropertyPath の要素を spec 06 で直す。
-- [ ] **Step 6: コミット**
+- [x] **Step 5: ロードを確かめる**（発射台を全文に置き換えたので、スライス末尾を待たずに読み込みを確かめる）  Run: `G1 $MW/server_v8`  Expected: PASS。`[OrbitalPayload]` や RocketLaunchPad の検証エラーが出たら、その PropertyPath の要素を spec 06 で直す。
+- [x] **Step 6: コミット**
 ```bash
 git -C $MW add design/tier9-balance/spec/06_rocket_compute.json design/tier9-balance/guids.json server_v8/mods/moorestechAlphaMod_8/master server_v8/mods/moorestechAlphaMod_8/localization/localization.csv
 git -C $MW commit -m "master: 計算データ・GPU衛星・積荷表・ロケット発射台・生産/宇宙と S2 のレシピを入れる"
@@ -7159,8 +7159,8 @@ git -C $MW push
 - 下書きの燃料量（10 / 2 秒）と抽出レシピ（水 100 → 重水素 10、8 秒）はそのまま使い、妥当かどうかは Task 23 の G6（炉 1 基の差し引き電力がガソリン発電機 3〜5 台分）で判定する。
 - 換算しない理由は Task 23 の判断記録に書く。
 
-- [ ] **Step 1: 既存モデルの寸法を測る。** S3 引き継ぎ「旧 Task 1 Step 3」の dynamic code を使う。`cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code '<同節の C#>'` で 5 モデルの size を読む。各 blockSize は size を切り上げた整数にし、コネクタの offset は同節の規則で直す。
-- [ ] **Step 2: spec 08 を書く。** 値は S3 引き継ぎ「旧 Task 1 Step 2〜4」の JSON（液体 1・アイテム 1・ブロック 3・レシピ 3）。下書きに対する訂正は次の 4 点。
+- [x] **Step 1: 既存モデルの寸法を測る。** S3 引き継ぎ「旧 Task 1 Step 3」の dynamic code を使う。`cd $W && uloop execute-dynamic-code --project-path ./moorestech_client --code '<同節の C#>'` で 5 モデルの size を読む。各 blockSize は size を切り上げた整数にし、コネクタの offset は同節の規則で直す。
+- [x] **Step 2: spec 08 を書く。** 値は S3 引き継ぎ「旧 Task 1 Step 2〜4」の JSON（液体 1・アイテム 1・ブロック 3・レシピ 3）。下書きに対する訂正は次の 4 点。
   - (a) ElectricMachine 2 行（重水素抽出装置・反物質製造装置）の `blockParam` に `"allowQualityModule": false` を足す。品質が効く抽選が無いため。S1 の判断記録「品質モジュールは抽選に品質が効く機械だけ true」に従う。下書きのままではロード時に落ちる。
   - (b) レシピ 3 本に `levelInheritance: "None"` を足す。
   - (c) 核融合炉は ElectricGenerator なので `allowQualityModule` を入れない。`openable: true` は下書きどおり（Task 24 の e2e fixture に効く）。
@@ -7171,8 +7171,8 @@ git -C $MW push
   - アイテムは `"items": [{"name": "反物質", "guid": "01a167e9-21b5-7479-9060-995505f43137", "en": "Antimatter", "sortPriority": 1605}]`。
   - ブロックは `"blocks"` に 3 件。`element` は下書きの JSON から `blockGuid` と `name` を除いたもの。新規 2 件は `"guid"` を固定 GUID にする。核融合炉は既存の名前で解決する。
   - レシピは `"machineRecipes"` に 3 件。`guid` は表の固定値、入力と出力は名前参照（例: `{"key": "重水素", "guid": "01a167e9-21dc-7eb1-a240-8345ed8fbd40", "block": "@block:重水素抽出装置", "time": 8, "levelInheritance": "None", "inputItems": [], "inputFluids": [["@fluid:水", 100]], "outputItems": [], "outputFluids": [["@fluid:重水素", 10]]}`）。
-- [ ] **Step 3: 適用する**  Expected: `applied 8 spec files; issued 0 new guids`（すべて固定 GUID）
-- [ ] **Step 4: 結果とロードを確かめる**
+- [x] **Step 3: 適用する**  Expected: `applied 8 spec files; issued 0 new guids`（すべて固定 GUID）
+- [x] **Step 4: 結果とロードを確かめる**
 ```bash
 python3 -c "
 import json; m='$MOD/master/'; b={e['name']:e for e in json.load(open(m+'blocks.json'))['data']}
@@ -7181,7 +7181,7 @@ r=json.load(open(m+'machineRecipes.json'))['data']; print(all('levelInheritance'
 G1 $MW/server_v8
 ```
 Expected: `ElectricGenerator 20000 False False`、`True`、G1 PASS。
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 ```bash
 git -C $MW add design/tier9-balance/spec/08_fusion_antimatter.json design/tier9-balance/guids.json server_v8/mods/moorestechAlphaMod_8/master server_v8/mods/moorestechAlphaMod_8/localization/localization.csv
 git -C $MW commit -m "master: 重水素・核融合炉・重水素抽出装置・反物質・反物質製造装置と爆弾レシピを入れる"
