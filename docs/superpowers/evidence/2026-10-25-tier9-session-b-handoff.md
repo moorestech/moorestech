@@ -1,5 +1,7 @@
 # Tier9 統合 — セッション B の W1 引き渡し
 
+> 以下はW1／当初J1停止時の歴史記録。ユーザー裁定・Aの再検証でJ1は通過し、BのTask25〜26も完了した。現時点の引き渡しは [W2／J2用証拠](2026-10-25-tier9-session-b-j2-handoff.md) を参照。
+
 ## 状態と担当境界
 
 W1 の Task 1〜3 をマスタ repo の `feat/tier9-integrated` に push 済み。最終 HEAD は `1cf0df8fbae21d1c34395c5afafceeee2a5b3113`。各タスクの実装者とタスクレビュアーは別の前景 subagent。
