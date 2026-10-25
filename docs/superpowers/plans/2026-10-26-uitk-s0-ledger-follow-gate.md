@@ -1227,7 +1227,7 @@ git commit -am "fix(uitk): 台帳の行を実 repo の Web ファイルに合わ
 - Consumes: 既存 `../fixtures`（`researchableNodeGuid`・`TUTORIAL_RECIPE_ITEM_ID`・`OUTLINE_LABEL_TUTORIAL_GUID`・`KEY_CONTROL_TUTORIAL_GUID`）、`../../../src/shared/tutorialAnchor/anchorIds`（`recipeItemAnchorId`・`researchNodeAnchorId`・`TutorialAnchorIds`）
 - Produces: `export const tutorialControls`（キー: 既存 6 本＋`tutorialDragGuide`）、`export const TUTORIAL_RESEARCH_NODE_PADDING_PX = 8`。`topicControls.ts` は `...tutorialControls` を展開し、`export { TUTORIAL_RESEARCH_NODE_PADDING_PX } from "./tutorialControls";` で既存 import（`e2e/tests/system/tutorialHighlightClip.spec.ts`）を保つ。`TopicScenario` に `"tutorialDragGuide"` が入る（Task 5 が使う）
 
-- [ ] **Step 1: `tutorialControls.ts` を書く**
+- [x] **Step 1: `tutorialControls.ts` を書く**
 
 既存の `pauseMenuControls.ts` と同じ形（`{ kind: "set", topic, data }` を返す関数の表）で、`topicControls.ts` の 6 本を中身を変えずに移し、`tutorialDragGuide` を足す:
 
@@ -1265,14 +1265,14 @@ export const tutorialControls = {
 
 上のブロックの「↓ … ここへ移す」の 2 行は作業指示なので、ファイルには写さず、`topicControls.ts` の 6 本（`tutorialOutline`・`tutorialResearchNode`・`tutorialRecipeItem`・`tutorialEmpty`・`tutorialOutlineWithLabel`・`tutorialKeyControl`）の定義に置き換える。各定義の `control(Topics.tutorialPresentation, X)` を `tutorial(X)` に変えるだけで、中身と付いているコメントはそのまま移す。`researchNodeAnchorId` は移した `tutorialResearchNode` が使う。`tutorialDragGuide` の `data` が `TutorialPresentationData` の型に合わなければ（`elements` の dragGuide に必須の項目が足りない等）、`src/bridge/contract/schemas/presentation.ts` の `TutorialDragGuideSchema` に合わせて直す。
 
-- [ ] **Step 2: `topicControls.ts` から 6 本と定数を消し、展開と再 export を足す**
+- [x] **Step 2: `topicControls.ts` から 6 本と定数を消し、展開と再 export を足す**
 
 - `export const TUTORIAL_RESEARCH_NODE_PADDING_PX = 8;` とその直前のコメント 2 行を消し、`export { TUTORIAL_RESEARCH_NODE_PADDING_PX } from "./tutorialControls";` に置き換える
 - `const controls = {` の直後の `...pauseMenuControls,` の次行に `...tutorialControls,` を足し、`import { tutorialControls } from "./tutorialControls";` を足す
 - 6 本の定義（コメントごと）を消す。使われなくなった import（`recipeItemAnchorId`・`researchNodeAnchorId`）を消す
 - `wc -l` で 200 行未満を確かめる
 
-- [ ] **Step 3: 型検査と既存の e2e（チュートリアル系）を回す**
+- [x] **Step 3: 型検査と既存の e2e（チュートリアル系）を回す**
 
 Run:
 ```bash
@@ -1284,7 +1284,7 @@ cd moorestech_web/webui
 ```
 Expected: tsc はエラー 0。playwright は全件 passed。落ちる spec があれば、移設前のコミットに対して同じ 3 本を回して比べる（`git log -1 --format=%H -- moorestech_web/webui/e2e/mock-host/topics/topicControls.ts` の 1 つ前のコミットを `git worktree` ではなく `git checkout <sha> -- moorestech_web/webui/e2e/mock-host/topics/` で一時的に戻して回し、`git checkout HEAD -- moorestech_web/webui/e2e/mock-host/topics/` で戻す）。移設前から落ちるものは移設の原因ではないので、件名を `bd note moorestech-albof.4` に残して進む。移設で落ちたものは直す
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_web/webui/e2e/mock-host/topics/tutorialControls.ts moorestech_web/webui/e2e/mock-host/topics/topicControls.ts
