@@ -8544,7 +8544,7 @@ git -C ../moorestech_logs add harness/tier9-integration/p5/a11 && git -C ../moor
 ### Task 27: W13（混在ベルトで代用スロットの上位品が下位へ変わる）を仕様か不具合か確かめる
 
 **Files:**
-- Create（裁定が出たら）: `.decisions/2026-10-2X-混在ベルトで代用スロットの上位品を下位へ揃える挙動は<仕様|不具合>.md`
+- 裁定（plan 作成時に記録済み）: `.decisions/2026-10-25-混在ベルトの代用スロットで上位品を下位へ揃える挙動は仕様とする.md`
 - 記録: `../moorestech_logs/harness/tier9-integration/p5/w13.md`
 - Modify（不具合の場合だけ）: Task 28 段1b の末尾（Step 2 に書いた assert）
 
@@ -8565,22 +8565,13 @@ git -C ../moorestech_logs add harness/tier9-integration/p5/a11 && git -C ../moor
   - 結果: 後から Lv1 が来ると、スロットの Lv2 が全部 Lv1 に変わる。その Lv2 は GPU衛星Lv2 の材料に使えなくなる（Lv2 を作るには、継承元で研究の上限まで上げた分の材料と時間がかかる）。
   - 揃えない場合の帰結: 混在ベルトで Lv2 がスロットに入ったままになり、Lv1 が積めずにベルトが詰まる。止まった理由の表示（2026-10-24 の裁定）は、継承元スロット向けの表示である。
 
-- [ ] **Step 3: 本体（コントローラ）が、判定を1行でユーザーに出す**  AskUserQuestion の推奨は「仕様（S1 の設計どおり。混在ベルトは詰まらせず、上位品を代用に使い切る）」。ORCH 53行の既定値と同じ。選択肢には次を並べる:
-  - (A) 仕様: 推奨
-  - (B) 不具合: 揃えずに戻す。混在ベルトは詰まり、プレイヤーが仕分ける
-  - (C) 不具合: 代用スロットでも止まった理由を出す
-
-  (B) と (C) は挙動の変更なので、実装前に moores-grill-with-docs が要る（AGENTS.md の HARD GATE）。そのことも併記する。subagent の場合は自分で聞かず、`w13.md` を書いて本体へ返す。
-
-- [ ] **Step 4: 裁定を記録する**  回答を `.decisions/2026-10-2X-混在ベルトで代用スロットの上位品を下位へ揃える挙動は<仕様|不具合>.md` に、「決定/棄却案/理由/出所（ユーザーの原文）/リンク（w13.md）」の数行で書く（CLAUDE.md の裁定の記録規約）。
+- [ ] **Step 3: 裁定どおり仕様として扱う**  裁定は plan 作成時に出ている（(A) 揃えて流し続ける）。`w13.md` の末尾に「裁定: 仕様（`.decisions/2026-10-25-混在ベルトの代用スロットで上位品を下位へ揃える挙動は仕様とする.md`）」と書く。段1b の期待値は Step 2 の本文どおりで、本段に W13 は現れない。コードは変えない。
 ```bash
-git add .decisions/2026-10-2X-*.md
-git commit -m "Task 27: W13 混在ベルトでの代用の自動揃えの裁定を記録"
+git -C ../moorestech_logs add harness/tier9-integration/p5/w13.md
+git -C ../moorestech_logs commit -m "tier9-integration: W13 の実測と故障シナリオ（裁定: 仕様）"
 ```
 
-- [ ] **Step 5: 不具合と裁定された場合だけ**  bd に `bd create` で課題を積み（`--parent` は統合の親タスク）、moores-grill-with-docs を起動する。修正が入ったら、Task 28 Step 2 に書いた assert を段1b に足して流し直す。仕様の場合は何もしない。段1b の期待値は、Step 2 の本文どおり（本段に W13 は現れない）。
-
-**完了判定:** `w13.md` に Step 1 の実測と故障シナリオがある。ユーザー裁定が既にあれば（plan 作成時に問うた。判断記録「ユーザー裁定」節を見る）それに従う。無ければ SDD の deferred-questions に登録し、既定 (A) 仕様として Task 28 へ進む（`.decisions/` への記入は、ユーザーが答えたときにコントローラが原文つきで行う。明示裁定以外を `.decisions/` に書かない）。不具合と裁定された場合は、bd の課題番号と、修正後の段1b の `result.json`（Success: true）がある。
+**完了判定:** `w13.md` に Step 1 の実測（2 テストが Passed）・故障シナリオ・裁定の行がある。
 
 ---
 
@@ -8663,25 +8654,49 @@ git -C ../moorestech_logs add harness/tier9-integration/eval && git -C ../moores
 - Consumes: 統合 PR の head（`origin/feat/tier9-integrated`）。ピンが指すマスタ統合 PR の push 済みコミット。`scripts/playtest/release-playtest.sh`（S3 先端の `scripts/playtest/README.md:69-96`）。`GameSystemPaths`: Windows のセーブは `C:\Users\<user>\AppData\Roaming\.moorestech\Saves\world_1`（master の `Game.Paths/GameSystemPaths.cs:20,33,45`）。ワールドの直下には `save.json` などがある（master の `Game.Paths/WorldDataDirectory.cs:150-152`）
 - Produces: `playtest-staging` に上がった Windows ビルドの ID。検証済みの Tier8 終盤セーブ。チェックリストの共有 URL
 
-- [ ] **Step 1: Tier8 終盤セーブを手に入れる**
+- [ ] **Step 1: Tier8 終盤セーブを用意する**
 
-候補と推奨:
-- (1) 推奨: テスター 76561198366804062 の現在のワールド。研究44件を完了し、103.5時間遊んでいる。build playtest-20261021-2150・master 0d129c8（`moorestech_logs/harness/playtest/progress/…/20261023_173353_f42bfbb6/record.json`）。6ノードのうち5件と、旧「ロケット」`019e3af0-7b1c…` を完了しているので、リセットの実物の検査にもなる。手に入れる手段はゲーム内の報告。報告のバンドルにはワールドのスナップショットが入る（同じテスターの 10-13 の報告 `reports/76561198366804062/20261013_164615_94f71a95/snapshots/tick_3712713.json` に、worldVersion・研究・ブロック7796件が入っていた）。ユーザーから本人に、今のワールドでゲーム内の報告を1回送ってもらうよう頼む。閲覧は本人とエージェントに限る。
-- (2) 代替: ユーザー自身の Tier8 終盤セーブ。あれば `ssh winbuild` で Windows の `Saves\<world>` から取る。
-- 依頼は W1 の開始時にユーザーが出す（オーケストレーション §5）。J3 までに (1) が届かなければ (2) に切り替える。どちらも無ければ J3 で止めてユーザーに聞く。
-- (3) 不採用: 10-13 のスナップショット（研究26件・worldVersion 3）に裏口で研究を足す。Tier8 の工場が無いまま研究だけ進んだ状態になり、「Tier8 終盤から遊ぶ」にならない。
+出所は裁定 `2026-10-25-通しプレイの開始セーブはMacBookProのセーブに旧コスト0研究の完了を手で立ててから移行する` のとおり、MacBook Pro（`ssh devmac`。蓋が開いているときだけ届く）の `~/Library/Application Support/moorestech/saves/world_1`。plan 作成時の実測: `save.json` は 10-22 15:29・worldVersion 6・完了研究 38 件・sha256 `454bab3830ca910f688598f16b787886927e33d4d81ecd78497cc891cb02c9c0`、`world.json` は `mapMode: template`・`seed: 0`。リセット対象の 6 ノードと旧「ロケット」はどれも未完了だった。版 6 なので、統合版では V6→V7（流体）と V7→V8 の 2 段が掛かる。
 
-届いたら、次の2つを行う:
-- `<scratch>/tier8-world/save.json` に置く（スナップショットの JSON をそのまま `save.json` にする）。
-- 出所（報告のバンドルのパス、または取得元）と sha256 を `../moorestech_logs/harness/tier9-integration/handoff/save-origin.md` に書く。
+1) コピーを取る。ワールドの直下のうち、ゲームが読むものだけを持ってくる（`backup/`・`pruned/`・`snapshots/`・`*.bak*`・`save.before-*` は持ってこない）。
+```bash
+mkdir -p <scratch>/tier8-world-original
+scp devmac:'~/Library/Application\ Support/moorestech/saves/world_1/{save.json,map.json,world.json}' <scratch>/tier8-world-original/
+shasum -a 256 <scratch>/tier8-world-original/save.json
+```
+Expected: sha256 が上の実測値と同じ。違えば、ユーザーがその後も遊んだということなので、新しい値を `save-origin.md` に書いて進める。
 
-テスターのセーブはリポジトリにコミットしない。置き場は `../moorestech_logs` の非公開の場所か scratch に限る。
+2) コピーに、旧マスタでコスト0だった研究の完了と、それらが解放していたものの解放を手で立てる。テスターのセーブと同じ状態を作り、リセット部品（Task 7）を実物で通すため。立てるのは Task 26 の `ResetResearchGuids` 6 件と旧「ロケット」`019e3af0-7b1c-77de-9197-87d276c84392`（統合マスタに無いので `ResearchSectionPruner` が落とす。A4）、`ResetBlockGuids` 3 件、`ResetItemViewGuids` 8 件。値は Task 26 の定数から写す。
+```bash
+cp -R <scratch>/tier8-world-original <scratch>/tier8-world
+python3 - <scratch>/tier8-world/save.json <<'PY'
+import json, sys
+path = sys.argv[1]
+save = json.load(open(path))
+research = ["019e3aab-32c6-7166-a184-d761153c2498", "019e3ae2-5005-7439-b242-9b7b3191a2c3", "019e3af5-f2e6-76de-a80f-5e66e79fa35d",
+            "019e3af0-297f-726e-8a02-0a8518124e6d", "019e3aef-a149-746b-8fad-159e0434cb51", "01a16291-4094-7369-a87f-5dfe2197d25e",
+            "019e3af0-7b1c-77de-9197-87d276c84392"]
+blocks = ["01a162f1-ab04-76e2-94cf-dc713edeb63b", "01a162aa-cec0-738c-93c5-f58adc87fa7f", "01a162b0-7769-7419-af24-bb35528b93d2"]
+item_views = ["01a162ab-07ba-73c1-9dd6-38e1e867663b", "019e3af5-e750-71ae-ab09-2b98f3db9913", "01a16290-f793-748b-a0b0-91d44be0d4ab", "01a16297-4724-73b9-82c3-2e77120be77d",
+              "01a16297-6665-765d-8e19-96d357394c3e", "01a16297-a7f5-759b-91ba-be4021ca3bf2", "01a162a4-9334-7286-a8ba-7daf9c0f407a", "01a162a8-e435-73d0-bddb-08533819b80e"]
+completed = save["research"]["CompletedResearchGuids"]
+completed.extend(g for g in research if g not in completed)
+unlock = save["gameUnlockState"]
+print("block の例:", json.dumps(unlock["blockUnlockStateInfos"][:1]))
+print("item の例:", json.dumps(unlock["itemUnlockStateInfos"][:1]))
+PY
+```
+最後の 2 行の出力で、`blockUnlockStateInfos` と `itemUnlockStateInfos` の 1 件の形（キー名と、解放済みを表す値）を見る。同じ形で、`blocks` と `item_views` の GUID を解放済みとして足す（既にある GUID は値だけ解放済みに変える）。形は G5 の版 7 fixture（Task 26 Step 1）と同じはずなので、そちらの書き方を写してよい。足したら `json.dump(save, open(path, "w"))` で書き戻す。版（`worldVersion`）は 6 のまま変えない。
+
+3) 記録する。`../moorestech_logs/harness/tier9-integration/handoff/save-origin.md` に、出所のパス・元の sha256・足した GUID の一覧・足した後の sha256・元の完了研究の件数（38）を書く。あわせて、元の 38 件のうち統合マスタの `research.json` に無い GUID の数を数えて書く（`ResearchSectionPruner` が落とすので、残る件数から引く）。
+
+ユーザーのセーブはリポジトリにコミットしない。置き場は scratch と `../moorestech_logs` の非公開の場所に限る。
 
 - [ ] **Step 2: Tier8 終盤セーブの事前確認シナリオを書く**
 
 `scenarios/tier9/tier9-0-tier8-save-smoke.cs`:
 ```csharp
-// Tier8 終盤のセーブが統合版でロードでき、コスト0で完了していた Tier9 研究とその解放が外れ、他の進行が残ることを確かめる
+// Tier8 終盤のセーブ（版6）が統合版でロードでき、コスト0で完了していた Tier9 研究とその解放が外れ、他の進行が残ることを確かめる
 // Confirm the late-Tier8 save loads on the integrated build, zero-cost Tier9 research and its unlocks are reset, and other progress remains
 using System;
 using System.Linq;
@@ -8697,7 +8712,7 @@ var resetResearch = new[]
     "019e3af0-297f-726e-8a02-0a8518124e6d", "019e3aef-a149-746b-8fad-159e0434cb51", "01a16291-4094-7369-a87f-5dfe2197d25e",
 }.Select(Guid.Parse).ToArray();
 var resetBlocks = new[] { "01a162f1-ab04-76e2-94cf-dc713edeb63b", "01a162aa-cec0-738c-93c5-f58adc87fa7f", "01a162b0-7769-7419-af24-bb35528b93d2" }.Select(Guid.Parse).ToArray();
-var minimumKeptResearch = 30; // テスターの記録は44件、うちリセット対象は最大6件。残りが大きく減ったら移行の事故として止める
+var minimumKeptResearch = 38; // 元の完了38件。統合マスタに無い件数を Step 1 の記録から引いて置き換える。大きく減ったら移行の事故として止める
 var options = new PlaytestRunOptions { Record = false };
 return PlaytestRunner.Run("tier9-0-tier8-save-smoke", options, async p =>
 {
@@ -8714,17 +8729,17 @@ return PlaytestRunner.Run("tier9-0-tier8-save-smoke", options, async p =>
     await p.Screenshot("01-loaded-tier8-save");
 });
 ```
-`minimumKeptResearch` は、Step 1 で手に入ったセーブの元の完了件数から決める。値は「元の件数 − 元の件数のうちリセット対象に入る件数」。上の 30 は、テスターの記録（44件、リセット対象は5件と旧ロケット）から置いた初期値。手に入ったら、元の件数を `save-origin.md` に書き、この値をそれに合わせる。
+`minimumKeptResearch` は、Step 1 の `save-origin.md` の値で置き換える。値は「元の完了件数 38 − そのうち統合マスタに無い件数」。手で足したリセット対象の 7 件は数えない（全部外れるため）。
 
 - [ ] **Step 3: 統合版の Editor で事前確認を流す**
 
 セーブは複製を使う（ロードで `Backups/<版>/save.json` に退避されるため、原本を汚さない）。
 ```bash
 cp -R <scratch>/tier8-world <scratch>/tier8-world-smoke
-PLAYTEST_WORLD_DIRECTORY=<scratch>/tier8-world-smoke PLAYTEST_MAP_MODE=<セーブの地図の種類> PLAYTEST_SEED=<セーブの種> "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/tier9/tier9-0-tier8-save-smoke.cs" "$MW"
+PLAYTEST_WORLD_DIRECTORY=<scratch>/tier8-world-smoke PLAYTEST_MAP_MODE=template PLAYTEST_SEED=0 "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/tier9/tier9-0-tier8-save-smoke.cs" "$MW"
 uloop get-logs --project-path ./moorestech_client --log-type Error
 ```
-`PLAYTEST_MAP_MODE`/`PLAYTEST_SEED` の値の決め方は `run-scenario.sh:19-26,105-109` と、その固定ワールド起動の説明に従う。セーブの `setting` から読めるなら、そこから写す（要確認: 実装時に run-scenario.sh の固定ワールドの検査を読んで確かめる）。
+`PLAYTEST_MAP_MODE=template`・`PLAYTEST_SEED=0`（Step 1 の `world.json` の値。`fixed-world-environment.sh` は 3 つの変数が揃っていて種が整数であることを検査する）。
 
 Expected: `Success: true`、Error ログ0件。`<scratch>/tier8-world-smoke` の下に、元の版の退避（`BackupSaveJsonPath(<元の版>)`）ができている。落ちた場合は止まり、セーブの版と Error の先頭行を P1（セーブ移行）の担当に返す。ユーザーには渡さない。
 
@@ -8860,6 +8875,8 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 ## 判断記録（ADR）
 
 ### ユーザー裁定（`.decisions/`）
+- `2026-10-25-混在ベルトの代用スロットで上位品を下位へ揃える挙動は仕様とする.md`（W13。シミュレーター予測→ユーザー承認 2026-10-25）
+- `2026-10-25-通しプレイの開始セーブはMacBookProのセーブに旧コスト0研究の完了を手で立ててから移行する.md`（Task 30 Step 1）
 - `2026-10-25-Tier9統合PRのセーブ移行はV7からV8の1本に部品として畳む.md`
 - `2026-10-25-Tier9統合で未実装3ブロックの解放取り消しをやめコスト0で完了済みのTier9研究をリセットする.md`（S1 の `2026-10-25-未実装の仮ブロック3種は研究解放を外し保存済みの解放も戻す.md` を覆す）
 - `2026-10-25-宇宙エレベーター拠点は最終研究の必須経路にせず軌道エレベーターの建設で解放する.md`
@@ -8902,10 +8919,11 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - A28 Codex の週次枠が足りないときは、セッション A・B・評価役B・Task 32 のレビューを Claude Code（opus）で起動し直す。基準はオーケストレーション §2「Codex 枠の確認」。無人で止まらないように、ユーザーに聞かずに既定で切り替える（出所: シミュレーター予測の Warning → agent 判断）
 - A29 検証機の smoke の phase1 は既定ワールド `Saves\world_1` を消す（`StandalonePlaytestSmokeBootstrap.cs:86-90`）。そのため、ユーザーのワールドの退避は Task 30 Step 4（ビルド・検証）の前に行い、Tier8 セーブは検証の後に置き、やり直し用の原本 `tier9-start-original` も並べて置く。通しプレイが終わるまで、winbuild で検証を回さない（出所: シミュレーター予測の Warning を実コードで確認 → agent 判断）
 - A30 段4 の録画が待つ実時間を 300 秒以下に保つことを、Task 23 のバランス調整の制約にする。`RESULT_TIMEOUT` は伸ばさない（出所: シミュレーター予測の Warning → agent 判断）
+- A31 G6 の「マスタから引けない」は判別子 1 本で表す。`Check` は状態値（`ok`／`lookup_failed`／`not_positive` など）を 1 つ持ち、None を合図に使わない。値を返す関数（`output_per_second`・`evaluate_launches`・`launches_for`・`PowerResult`・`item_rates`・`research_hours_for`）も、値と状態の組を返す。セーブ移行の `TryGetNestedArray` は「無い／null／配列」の 3 状態を返す（型閉包 5-A。出所: シミュレーター予測・確信高→前提宣言、ユーザーの拒否権の行使なし 2026-10-25）
+- A32 型閉包の弱い指摘は次の 3 束を直す: (1) nodegraph_sync と tier9_balance の中で 2 回以上出る述語・導出を 1 本にまとめる（検査6 の (a)〜(g)）、(2) G1 の `MasterHolder.Load` を呼ぶ口を 1 つにし、static のマスタを書き換える所有者を決める（5-F）、(3) GPU衛星かどうか・レシピの入力を、名前の前方一致と既定値 `''` でなく GUID か levelFamily で判定する（5-B）。他の弱（5-C の合成 bool・失敗理由の bool＋string・`unlockMachineRecipe` の書き手 2 者・DI コンテナの終了の所有者・網羅 switch）は Task 32 の全ブランチレビューに任せる（出所: 同上）
 
 ### 実装中に人へ上げる条件（SDD の deferred-questions に溜め、まとめて 1 回提示）
 - G3 で研究コストが主インベントリに入り切らない（コスト・スタック上限・払い方のどれを変えるかは裁定）
-- 混在ベルトで上位品が下位へ変換される挙動（W13）を仕様とするか（既定: 仕様として P5 段1 の期待値に書く）
 - G6 の目標時間に、パラメータ調整で収まらない区間がある
 - 段4 の録画の実時間（建造＋打ち上げ＋Lv1 の飛行で 300 秒以下）と G6 の目標が両立しない
 - 評価役 2 体のどちらかが不合格を出し、直し方が仕様の選択になる
