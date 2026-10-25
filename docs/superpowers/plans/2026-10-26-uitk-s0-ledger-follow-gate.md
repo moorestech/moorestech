@@ -945,7 +945,7 @@ git commit -m "feat(uitk): Web 追従ゲート G1 の規則と入口を足し、
 - Consumes: Task 1 の `parse_ledger`・`uncovered_sources`、Task 2 の `cli.main` と入口
 - Produces: `docs/uitk/TODO.md`（Task 5 が `## 参照キャプチャ`・`## 未撮影`・各行の `参照キャプチャ` 列を埋める）
 
-- [ ] **Step 1: 台帳 `docs/uitk/TODO.md` を書く**
+- [x] **Step 1: 台帳 `docs/uitk/TODO.md` を書く**
 
 全文（Task 5 で参照キャプチャの節と列を埋める。それ以外はこのまま）:
 
@@ -1074,7 +1074,7 @@ git commit -m "feat(uitk): Web 追従ゲート G1 の規則と入口を足し、
 | S9 | 日本語 IME（人手） | bd `moorestech-albof.8` | 未着手 |
 ````
 
-- [ ] **Step 2: 処遇表 `docs/uitk/disposition.md` を書く（枠だけ）**
+- [x] **Step 2: 処遇表 `docs/uitk/disposition.md` を書く（枠だけ）**
 
 ```markdown
 # 写さない Web テストの処遇
@@ -1085,7 +1085,7 @@ git commit -m "feat(uitk): Web 追従ゲート G1 の規則と入口を足し、
 |---|---|---|---|---|
 ```
 
-- [ ] **Step 3: 旧 MIGRATION.md を archive へ移し、案内を置く**
+- [x] **Step 3: 旧 MIGRATION.md を archive へ移し、案内を置く**
 
 ```bash
 git mv docs/webui/MIGRATION.md docs/webui/archive/MIGRATION-uGUI-to-Web-2026-07-18.md
@@ -1105,7 +1105,7 @@ Web UI から UI Toolkit への移行（裁定 `.decisions/2026-10-18-CEFを撤�
 - 写さないテストの処遇: `docs/uitk/disposition.md`
 ```
 
-- [ ] **Step 4: 実 repo の台帳テスト `test_uitk_web_follow_real_ledger.py` を書く**
+- [x] **Step 4: 実 repo の台帳テスト `test_uitk_web_follow_real_ledger.py` を書く**
 
 ```python
 import subprocess
@@ -1152,7 +1152,7 @@ if __name__ == "__main__":
 
 注: 所有表の初版が全部 Web であることや機能の数をちょうど 20 に固定することはしない（最初の暗転 PR や、行付きで足した新しい機能で無関係に赤になるため）。束の状態と所有者の整合はパーサが、新しい機能の行の有無は G1(0) と上の機能ごとの照合が毎回見る。
 
-- [ ] **Step 5: CI `.github/workflows/uitk-web-follow-gate.yml` を書く**
+- [x] **Step 5: CI `.github/workflows/uitk-web-follow-gate.yml` を書く**
 
 ```yaml
 name: UITK Web Follow Gate
@@ -1192,7 +1192,7 @@ jobs:
         run: python3 .github/scripts/check-uitk-web-follow.py --base "$BASE_SHA" --head HEAD
 ```
 
-- [ ] **Step 6: 実 repo で G1 とテストを回して通ることを確認する**
+- [x] **Step 6: 実 repo で G1 とテストを回して通ることを確認する**
 
 Run:
 ```bash
@@ -1203,12 +1203,12 @@ python3 .github/scripts/check-uitk-web-follow.py --base origin/master --head HEA
 ```
 Expected: unittest は全件 `ok`。G1 は `G1: base … に台帳が無いので全束を Web とみなす` と `G1: 起点を持つ束は無い`（summary 側）・`G1: 違反なし` を出して終了コード 0。違反が出たら台帳の行を直す（ゲートを緩めない）
 
-- [ ] **Step 7: 手で赤を 1 回見る（台帳を壊したら赤）**
+- [x] **Step 7: 手で赤を 1 回見る（台帳を壊したら赤）**
 
 Run: `sed 's/| 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | Web |/| 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 凍結 |/' docs/uitk/TODO.md > "$TMPDIR/todo-broken.md" && python3 -c "import sys; sys.path.insert(0, '.github/scripts'); from uitk_web_follow.ledger import parse_ledger; print(parse_ledger(open('$TMPDIR/todo-broken.md', encoding='utf-8').read()).errors)"`
 Expected: `束 1 の状態「凍結」は …` を含む誤りが出る。作業ツリーの台帳は変えない
 
-- [ ] **Step 8: コミット（Step 6 で済み。追加の修正があればここでコミット）**
+- [x] **Step 8: コミット（Step 6 で済み。追加の修正があればここでコミット）**
 
 ```bash
 git status --short
