@@ -7175,7 +7175,7 @@ git -C $MW push
 | S3 の機械の値（炉の出力と燃料、抽出装置・反物質機の電力とレシピ、拠点の昇降秒と電力） | S3 引き継ぎ「旧 Task 1」「旧 Task 6 Step 5」 | 炉 1 基の差し引き電力がガソリン発電機 3〜5 台分。抽出装置は 2〜8 台。反物質機 1 台の電力は炉の差し引き 3〜6 基分。爆弾をそろえる時間 0.5〜3 h。昇降時間はロケット建造の 1.5〜4 倍（S3 引き継ぎ「旧 Task 4」「旧 Task 12」の check 行） |
 | 全体 | — | Tier9 全体 15〜25 h、S1 区間 6〜8 h、計算データ 4〜6 h、S3 区間 5〜11 h（`.decisions/2026-10-23-Tier9の目標プレイ時間は半導体解放からクリアまでで15〜25時間.md`） |
 
-**録画の制約（G6 の目標と別に守る）:** 段4（Task 28 Step 5）は GPU衛星Lv1 の建造・打ち上げ・飛行・到着を実時間で待つ。録画は `run-scenario.sh:56` の `RESULT_TIMEOUT=420` 秒を超えると result.json を待たずに NG になる。そのため、`BuildSeconds`＋打ち上げ秒＋Lv1 の飛行秒の合計を 300 秒以下に保つ（残り 120 秒は PlayMode の起動約 26 秒、段の前準備、建造待ちの余裕 60 秒の分）。G6 の目標と両立しないときは、値を動かさずに人へ上げる条件に回す（判断記録「実装中に人へ上げる条件」）。録画のために `RESULT_TIMEOUT` を伸ばす変更はしない（やらないこと: 録画 DSL への時間加速の追加と同じく、録画の枠を変える変更だから）。
+**録画の制約（G6 の目標と別に守る）:** 段4（Task 28 Step 5）は GPU衛星Lv1 の建造・打ち上げ・飛行・到着を実時間で待つ。録画は `run-scenario.sh:56` の `RESULT_TIMEOUT=420` 秒を超えると result.json を待たずに NG になる。そのため、段4 が実時間で待つ秒の合計（1 便目の `BuildSeconds`＋打ち上げ秒＋Lv1 の飛行秒、2 便目の自動建造を最後まで待つならその `BuildSeconds` も）を 300 秒以下に保つ（残り 120 秒は PlayMode の起動約 26 秒、段の前準備、建造待ちの余裕 60 秒の分）。G6 の目標と両立しないときは、値を動かさずに人へ上げる条件に回す（判断記録「実装中に人へ上げる条件」）。録画のために `RESULT_TIMEOUT` を伸ばす変更はしない（やらないこと: 録画 DSL への時間加速の追加と同じく、録画の枠を変える変更だから）。
 
 - [ ] **Step 1: G6 を回し、FAIL を見る**  Run: `cd $MW && python3 tools/tier9_balance/run.py > $GL/p2-13-g6-first.txt; echo "exit=$?"; grep '^FAIL' $GL/p2-13-g6-first.txt`  Expected:
 - 区間ごとの `target`・`match`・`lookup` の行と、`[overall]` の目標時間の行が出る。
@@ -8602,7 +8602,7 @@ git commit -m "Task 27: W13 混在ベルトでの代用の自動揃えの裁定�
 - 評価役A: Claude Code（`~/bin/cmux-agent-pane -C eval-a -a ccd -m opus --permission-mode full --prompt-file <prompt>`）
 - 評価役B: Codex（`~/bin/cmux-agent-pane -C eval-b -a cxd -m gpt-6.1-sol --prompt-file <prompt>`）
 
-どちらも、起動の前に `moores-wt new tmp/tier9-eval-a --dir tier9-eval-a --from origin/feat/tier9-integrated`（B も同じ形）で自分の worktree を作る。Editor の数は合わせて 2〜3 本に抑える。A（本体）の Editor は、評価の間は畳む。Codex の週次枠は pi 本体と共有している（メモリ「pi本体とcodexレビューは同じ枠」）。起動の前に `ccuse` で枠を確かめる。足りなければ、評価役B も Claude Code（opus）の別セッションにするかをユーザーに聞く。
+どちらも、起動の前に `moores-wt new tmp/tier9-eval-a --dir tier9-eval-a --from origin/feat/tier9-integrated`（B も同じ形）で自分の worktree を作る。Editor の数は合わせて 2〜3 本に抑える。A（本体）の Editor は、評価の間は畳む。Codex の週次枠は pi 本体と共有している（メモリ「pi本体とcodexレビューは同じ枠」）。起動の前に、オーケストレーション §2「Codex 枠の確認」の方法で枠を確かめる。足りなければ、評価役B を Claude Code（opus）の別セッションで起動する（判断記録 A28）。ユーザーには聞かない。
 
 - [ ] **Step 1: 依頼文を書く**  `../moorestech_logs/harness/tier9-integration/eval/prompt.md`（`<…>` は起動時に埋める）:
 ```markdown
@@ -8827,7 +8827,7 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - [ ] **Step 1: セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
   - マスタ統合 PR を先に作り（base: moorestech_master の master）、本体ピンがその PR の push 済みコミットを指すことを `git show HEAD:.moorestech-external-revisions.json` で確かめてから本体統合 PR を作る
   - 本体 PR 本文に: G1・G2（通った経路と許可した詰みの印字）・G3・G6 の出力、G4・G5 の結果、録画 7 段の result.json と動画、評価役 2 体の判定、ユーザー通しプレイのチェックリストとセーブの場所、マスタ統合 PR の URL
-  - master が版8へ上がっていたら、セーブ移行を V8→V9 へ繰り下げてから出す（AGENTS.md のセーブ形式の規則）
+  - 版の確認はオーケストレーション §3 の J2・J3 で済ませてある。ここでもう一度確かめ、master が版8へ上がっていたら、セーブ移行を V8→V9 へ繰り下げ、Task 26（G5）と Task 30 Step 3（Tier8 セーブの事前確認）をやり直してから出す（AGENTS.md のセーブ形式の規則）。繰り下げが Task 31 の後に起きたら、Task 32 Step 2 の規則で評価役もやり直す
 - [ ] **Step 2: #1551・#1552・#1554（本体）と #87・#88（マスタ）に、統合 PR へのリンクを付けたコメントを書いて閉じる**
   Run: `gh pr close <番号> --comment "統合 PR <URL> に置き換えました"`（マスタは `-R moorestech/moorestech_master`）
 - [ ] **Step 3: bd `moorestech-xyuaf.2` に PR の URL と「ユーザー通しプレイ待ち」を note し、`moores-wt rm` で作業 worktree を畳む（セッション B の worktree も含む。未 push があれば畳まない）**
@@ -8899,6 +8899,9 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
   - unlockBlock を持つ研究 1 つにつき 0.5 h の建設時間。
   - 反物質製造装置 2 台で最終研究の爆弾をそろえる時間。
   毎秒の量は次のとおり。ICチップLv1 は S1 sim のクラス B（S1 研究完了後の 3 ライン。A8 と同じクラス）から引く。鋼鉄板・コンピュータ・制御モータは Tier8 終盤の工場から S3 に回せる台数（電気炉 4・電気汎用工作装置 2・同 2。agent 前提）× マスタのレシピで出す。計算データは S2 区間の便数で数え、二重に数えない。台数・建設時間・爆弾の機械 2 台は前提であり、Task 23 の調整では動かさない
+- A28 Codex の週次枠が足りないときは、セッション A・B・評価役B・Task 32 のレビューを Claude Code（opus）で起動し直す。基準はオーケストレーション §2「Codex 枠の確認」。無人で止まらないように、ユーザーに聞かずに既定で切り替える（出所: シミュレーター予測の Warning → agent 判断）
+- A29 検証機の smoke の phase1 は既定ワールド `Saves\world_1` を消す（`StandalonePlaytestSmokeBootstrap.cs:86-90`）。そのため、ユーザーのワールドの退避は Task 30 Step 4（ビルド・検証）の前に行い、Tier8 セーブは検証の後に置き、やり直し用の原本 `tier9-start-original` も並べて置く。通しプレイが終わるまで、winbuild で検証を回さない（出所: シミュレーター予測の Warning を実コードで確認 → agent 判断）
+- A30 段4 の録画が待つ実時間を 300 秒以下に保つことを、Task 23 のバランス調整の制約にする。`RESULT_TIMEOUT` は伸ばさない（出所: シミュレーター予測の Warning → agent 判断）
 
 ### 実装中に人へ上げる条件（SDD の deferred-questions に溜め、まとめて 1 回提示）
 - G3 で研究コストが主インベントリに入り切らない（コスト・スタック上限・払い方のどれを変えるかは裁定）
