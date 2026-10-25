@@ -13,7 +13,8 @@ namespace Client.Game.InGame.UI.UIState
         private UIStateDictionary _uiStateDictionary;
         private IPlayerObjectController _playerObjectController;
 
-        public event Action<UIStateEnum> OnStateChanged;
+        private readonly Subject<UIStateEnum> _onStateChanged = new();
+        public IObservable<UIStateEnum> OnStateChanged => _onStateChanged;
         public UIStateEnum CurrentState { get; private set; }
 
         private UIStateEnum? _webTransitionRequest;
@@ -66,7 +67,7 @@ namespace Client.Game.InGame.UI.UIState
             CurrentState = nextContext.NextStateEnum;
             EnterState(CurrentState, nextContext);
 
-            OnStateChanged?.Invoke(CurrentState);
+            _onStateChanged.OnNext(CurrentState);
 
             #region Internal
 

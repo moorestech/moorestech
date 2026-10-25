@@ -26,6 +26,7 @@ namespace Client.WebUiHost.Game.Topics
     public class BlockInventoryTopic : ITopicHandler, IDisposable
     {
         public const string TopicName = "block_inventory.current";
+        private readonly IDisposable _uiStateSubscription;
         private readonly TrainUnitClientCache _trainUnitClientCache;
         private readonly BeltTransportClientCache _beltCache;
         private readonly FluidNetworkClientCache _fluidCache;
@@ -77,7 +78,7 @@ namespace Client.WebUiHost.Game.Topics
             _subInventoryState = subInventoryState;
             // 開閉（UIステート遷移）とスロット更新の両方を購読して push する
             // Subscribe to open/close (UI-state transitions) and slot updates, then push
-            _uiStateControl.OnStateChanged += OnStateChanged;
+            _uiStateSubscription = _uiStateControl.OnStateChanged.Subscribe(OnStateChanged);
             _subInventorySubscription = _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => SchedulePublish());
             // ネットワーク取得完了でも再配信する
             // Republish when a network fetch completes
@@ -95,7 +96,7 @@ namespace Client.WebUiHost.Game.Topics
         public void Dispose()
         {
             _disposed = true;
-            _uiStateControl.OnStateChanged -= OnStateChanged;
+            _uiStateSubscription.Dispose();
             _subInventorySubscription.Dispose();
             _continuousSampleSubscription.Dispose();
             _beltWindowSubscription.Dispose();

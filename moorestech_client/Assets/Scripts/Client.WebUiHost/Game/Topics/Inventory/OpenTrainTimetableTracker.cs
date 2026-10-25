@@ -30,7 +30,7 @@ namespace Client.WebUiHost.Game.Topics
             _fetcher = fetcher;
             // 開閉で取得状態を忘れ、開いている列車を解決し直す
             // Forget the fetch state on open/close (UI-state transitions) and re-resolve the open train
-            _uiStateControl.OnStateChanged += OnUiStateChanged;
+            _uiStateControl.OnStateChanged.Subscribe(OnUiStateChanged).AddTo(_subscriptions);
             // 開いている列車の時刻表更新と取得失敗で再配信する
             // Republish on the open train's timetable updates and on fetch failures
             timetables.OnTimetableUpdated
@@ -46,7 +46,6 @@ namespace Client.WebUiHost.Game.Topics
 
         public void Dispose()
         {
-            _uiStateControl.OnStateChanged -= OnUiStateChanged;
             _subscriptions.Dispose();
         }
 

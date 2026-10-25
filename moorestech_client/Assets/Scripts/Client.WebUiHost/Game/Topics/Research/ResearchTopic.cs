@@ -21,6 +21,7 @@ namespace Client.WebUiHost.Game.Topics
     {
         public const string TopicName = "research.tree";
 
+        private readonly IDisposable _uiStateSubscription;
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly IDisposable _inventorySubscription;
@@ -36,7 +37,7 @@ namespace Client.WebUiHost.Game.Topics
 
             // state遷移を購読し、ResearchTree 突入で状態を取り直す
             // Subscribe to state transitions and refetch states on entering ResearchTree
-            _uiStateControl.OnStateChanged += OnStateChanged;
+            _uiStateSubscription = _uiStateControl.OnStateChanged.Subscribe(OnStateChanged);
 
             // 充足の正本はサーバーstateなので、所持が動いたら研究画面表示中は取り直す
             // Server state owns sufficiency, so refetch on inventory moves while the research screen is up
@@ -53,7 +54,7 @@ namespace Client.WebUiHost.Game.Topics
         public void Dispose()
         {
             _disposed = true;
-            _uiStateControl.OnStateChanged -= OnStateChanged;
+            _uiStateSubscription.Dispose();
             _inventorySubscription.Dispose();
             _cts?.Cancel();
             _cts?.Dispose();
