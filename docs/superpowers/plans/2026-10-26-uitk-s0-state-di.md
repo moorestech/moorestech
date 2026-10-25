@@ -100,12 +100,12 @@
 - Consumes: なし
 - Produces: ベースラインの合否表（Task 11 が同じシナリオを流して突き合わせる）
 
-- [ ] **Step 1: Editor の予算を確かめて起動する**
+- [x] **Step 1: Editor の予算を確かめて起動する**
 
 Run: `moores-wt status` → 動いている Editor が 3 本未満であることを確認。`cd moorestech_web/webui && pnpm install --frozen-lockfile && cd -`、`uloop launch --project-path ./moorestech_client`
 Expected: Editor 起動。3 本以上なら Task 2 のコード作業（Editor 不要部分）を先に進め、空いてから戻る
 
-- [ ] **Step 2: unity-playmode-recorded-playtest スキルを読み、次の 5 本を変更前のコード（HEAD = `b40795d82b06e8ff39ca3b073ae57ff349e0d23a`（この実行の変更前コミット））で流す**
+- [x] **Step 2: unity-playmode-recorded-playtest スキルを読み、次の 5 本を変更前のコード（HEAD = `b40795d82b06e8ff39ca3b073ae57ff349e0d23a`（この実行の変更前コミット））で流す**
 
 対象（移した topic に触るもの。壊れている bd `moorestech-wwxy` の 10 本は除外済み）:
 1. `misc/ui-state-transition-matrix.cs`（UI 状態遷移・研究画面・チャレンジ一覧。0-5 と研究）
@@ -117,15 +117,15 @@ Expected: Editor 起動。3 本以上なら Task 2 のコード作業（Editor �
 Run: スキルの `scripts/run-scenario.sh` の手順どおり（第 3 引数のマスタ指定は `docs/development/worktree-and-review-pitfalls.md` に従う）
 Expected: 各本の `result.json` の合否と動画パス
 
-- [ ] **Step 2b: 壊れていると記録された関連シナリオを 1 回だけ流す**
+- [x] **Step 2b: 壊れていると記録された関連シナリオを 1 回だけ流す**
 
 研究・チャレンジ・通知・BP を直接触る `research-node-state-label`・`server-notification-smoke`・`blueprint-copy-paste-via-ui`・`blueprint-right-click-delete-via-ui` を、同じ変更前コードで 1 回ずつ流す（bd `moorestech-wwxy` で壊れていると記録されている）。PASS したものは回帰対象に加え（Task 11 でも流す）、FAIL したものは result.json のパスと失敗理由 1 行を baseline.md に残して除外する。シナリオの修理は本 PR の範囲外
 
-- [ ] **Step 3: 合否表を書く**
+- [x] **Step 3: 合否表を書く**
 
 `../moorestech_logs/harness/albof3/baseline.md` に「シナリオ／合否／result.json のパス／失敗ならその理由 1 行」を書く。変更前から失敗しているものは Task 11 で「変更前から失敗」として扱う（直さない。`bd note moorestech-albof.3` に 1 行残す）
 
-- [ ] **Step 4: 記録する**
+- [x] **Step 4: 記録する**
 
 `../moorestech_logs` の README の手順でコミットする（feature ブランチにはコミットしない）。`bd note moorestech-albof.3 "ベースライン録画5本: <合否の要約>"`
 
