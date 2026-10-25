@@ -1,5 +1,6 @@
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.Modal;
+using Client.Game.InGame.UI.Research;
 using VContainer;
 using VContainer.Unity;
 
@@ -17,6 +18,10 @@ namespace Client.Starter.Registration
             // The pending modal request and the bridge from the blueprint-name input to the modal
             builder.Register<ModalRequestService>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BlueprintNameInputModalBridge>();
+
+            // 研究画面への遷移と所持変化を起動時から購読する
+            // Subscribe to research screen transitions and inventory changes from startup
+            builder.RegisterEntryPoint<ResearchNodeStateStore>().AsSelf();
         }
     }
 }

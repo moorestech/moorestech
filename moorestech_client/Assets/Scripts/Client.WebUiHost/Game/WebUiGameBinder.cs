@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Modal;
+using Client.Game.InGame.UI.Research;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
@@ -135,10 +136,10 @@ namespace Client.WebUiHost.Game
                 .Resolve<ItemRecipeViewerDataContainer>();
             var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
-            // 研究ツリートピックを登録（充足の正本はサーバーstateなので所持変化でも取り直す）
-            // Register the research-tree topic (server state owns sufficiency, so inventory moves refetch too)
-            var researchTopic = new ResearchTopic(hub, uiStateControl, controller);
-            hub.RegisterTopic(ResearchTopic.TopicName, researchTopic);
+            // 研究ツリートピックを登録（状態はDIのストアが持つ）
+            // Register the research-tree topic (the DI store owns the states)
+            var researchNodeStateStore = resolver.Resolve<ResearchNodeStateStore>();
+            hub.RegisterTopic(ResearchTopic.TopicName, new ResearchTopic(hub, researchNodeStateStore));
             // チャレンジツリーと常駐HUDは同じイベント駆動状態を共有する
             // The challenge tree and persistent HUD share the same event-driven state
             var initialHandshake = resolver.Resolve<InitialHandshakeResponse>();
@@ -179,7 +180,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
-            hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
+            hub.RegisterAction(new ResearchCompleteActionHandler(researchNodeStateStore));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));

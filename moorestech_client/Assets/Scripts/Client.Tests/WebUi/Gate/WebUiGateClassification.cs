@@ -65,6 +65,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/BuildMenu", Category.Infra, "ビルドメニュー選択の論理状態"),
             new Rule("Client.Game/InGame/UI/Blueprint", Category.Infra, "BP名入力の論理状態"),
             new Rule("Client.Game/InGame/UI/Modal", Category.Infra, "モーダル要求の論理状態（表示は描画側が担当）"),
+            new Rule("Client.Game/InGame/UI/Research", Category.Infra, "研究ノードの論理状態（表示は描画側が担当）"),
             new Rule("Client.Game/InGame/UI/Challenge", Category.Infra, "チャレンジ進行の論理状態"),
             new Rule("Client.Game/InGame/UI/Crosshair", Category.Infra, "クロスヘア表示可否の論理状態"),
             new Rule("Client.Game/InGame/UI/ProgressBar", Category.Infra, "進捗の論理状態（ui.progressのデータ源）"),

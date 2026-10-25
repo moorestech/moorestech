@@ -54,6 +54,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                 Assert.IsNotNull(resolver);
                 await ModalStateProbe.AssertAvailableAsync(resolver);
+                await ResearchStateProbe.AssertAvailableAsync(resolver);
             }
 
             #endregion
