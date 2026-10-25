@@ -23,7 +23,7 @@
 | セッション | ホスト | 作業場所 | 担当 | 寿命 |
 |---|---|---|---|---|
 | A（主） | pi agent（`openai/gpt-6.1-sol`・`--thinking high`）、moores-subagent-driven-development の SDD 本体（per-task） | `~/hermes-agent/data/worktrees/moorestech/tier9-integrated`（branch `feat/tier9-integrated`）。J1 以降はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（moorestech_master の branch `feat/tier9-integrated`）も使う | W1: Task 4〜11 / W2: Task 12〜24 / W3: Task 27〜29 / W4: Task 30〜33 | 全期間 |
-| B（副） | pi agent（同じモデル・同じ thinking）、同 SDD | W1: マスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（Task 1 で作る。moorestech_master の branch `feat/tier9-integrated`）。W2: 本体 worktree `~/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests`（branch `feat/tier9-integrated-tests`、J1 後の本体 `feat/tier9-integrated` から切る） | W1: Task 1〜3 / W2: Task 25〜26 | J2 で終了 |
+| B（副） | pi agent（同じモデル・同じ thinking）、同 SDD | 起動場所（SDD の台帳を置く所）は本体 worktree `~/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests`（branch `feat/tier9-integrated-tests`。起動前に `moores-wt new feat/tier9-integrated-tests --dir tier9-integrated-tests --from origin/feat/tier9-integrated --no-editor` で作る）。W1 の編集先はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（Task 1 で作る。moorestech_master の branch `feat/tier9-integrated`）。W2 は J1 を確かめてから、本体 worktree に `origin/feat/tier9-integrated` を通常マージして Task 25〜26 を行う | W1: Task 1〜3 / W2: Task 25〜26 | J2 で終了 |
 
 実装はすべて Mac mini 上で動かす。MacBook Pro はセーブの出所（Task 30 Step 1）と、完成後にユーザーが遊ぶ機械（Task 33 Step 4）として使うだけ。
 
@@ -95,7 +95,8 @@ moores-subagent-driven-development スキルを使って、以下の実装plan�
 - plan: docs/superpowers/plans/2026-10-25-tier9-integration.md（origin/feat/tier9-integrated から読む）
 - オーケストレーション: docs/superpowers/plans/2026-10-25-tier9-integration-orchestration.md（あなたはセッション B。担当タスク・作業場所・合流点はこの文書の §2〜§3 に従う）
 - W1 は Task 1〜3。Task 1 がマスタ統合 worktree /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated（moorestech_master の branch feat/tier9-integrated）を作る。Task 3 を push したらマスタ統合ブランチから手を離す（以後はセッション A が書く）
-- W2 は Task 25〜26。J1（本体 feat/tier9-integrated に Task 4〜11 が push 済み）を確かめてから、moores-wt new feat/tier9-integrated-tests --from origin/feat/tier9-integrated で作った worktree で行う
+- 作業場所: 本体 worktree /Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests（branch feat/tier9-integrated-tests。SDD の台帳はここに置く）
+- W2 は Task 25〜26。J1（本体 feat/tier9-integrated に Task 4〜11 が push 済み）を確かめてから、この worktree に origin/feat/tier9-integrated を通常マージして行う
 - W2 の成果は feat/tier9-integrated-tests へ push したら終わりで、本体統合ブランチへのマージはセッション A が行います。閉じタスク（全ブランチレビュー・PR 作成）は担当しません
 - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
 - このセッションは pi ホストです。Agent・Workflow ツールが無いので、SDD の subagent は前景の `codex exec -m gpt-6.1-sol -o <file>.final.md`（結論は .final.md から読む）か `claude -p --model <ティア> --session-id <uuid>` で派遣し、moores-code-review は references/codex-host.md の runner で回してください。バックグラウンドのポーリングで待たず、全部前景で実行してください
