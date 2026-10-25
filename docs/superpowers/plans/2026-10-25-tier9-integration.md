@@ -5037,7 +5037,7 @@ GL=$W/moorestech_client/PlaytestResults/tier9-gates                             
 **JSON の書き方（全スライス共通）:** マスタ JSON は手で書かない。S1 handoff の方式で、名前で参照する spec（`$B/spec/NN_*.json`）を GUID 台帳 `$B/guids.json` から適用スクリプトで流し込む。
 - 適用: `cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json`
 - 研究の解放割り当て: `cd $MW && python3 tools/research_sync/sync_machine_recipe_unlocks.py`
-  - 解放同期則（ADR 0033）で `unlockMachineRecipe` を組み直し、末尾に改行を付けて書く（`sync_machine_recipe_unlocks.py:195`）。
+  - 解放同期則（ADR 0033）で `unlockMachineRecipe` を組み直し、共通 `master_common/json_text.py` で原文の末尾改行の有無を保つ（Task17でmaster-refineとの改行競合を赤/緑で修正）。
   - 研究の解放がまだ無いスライスの途中では、孤児レシピで exit 2 になる。そのため**スライス末尾でだけ**流す。
   - spec を直したら、必ず「apply → sync」の組で流す。
 - 照合: G6（`cd $MW && python3 tools/tier9_balance/run.py`）。S1 の値は `[s1_semiconductor] match` の行で見る。
@@ -5136,7 +5136,7 @@ git -C $MW push -u origin feat/tier9-integrated
 
 S1 handoff「Task D2」の Step 1 の 5 ファイルを使い、Step 2 の照合 2 ファイルは置かない。差分は次のとおり。
 
-- [ ] **Step 1: S1 handoff「Task D2 Step 1」の 5 ファイルを `$B/apply/` に置き、次の差分を当てる**
+- [x] **Step 1: S1 handoff「Task D2 Step 1」の 5 ファイルを `$B/apply/` に置き、次の差分を当てる**
 
 (a) `master_io.py`: 対象に `buildMenu` を足し、元のファイルの末尾改行の有無を保つ。
 - 理由（実測）: 起点 f9370e7 では `cleanRoom.json` だけが末尾改行あり、他は改行なし。下書きの「改行なしで書く」では、空の spec を流しても cleanRoom が 1 バイト変わり、D2 Step 4 が通らない。
@@ -5257,7 +5257,7 @@ def assert_removed_absent(master, removed):
     ax.assert_removed_absent(master, removed)
 ```
 
-- [ ] **Step 2: G6 の S1 区間の照合を置く**（S1 handoff「Task D2 Step 2」の 8 項目を、`checks.matches` の行に書き直したもの。判断記録 A22）
+- [x] **Step 2: G6 の S1 区間の照合を置く**（S1 handoff「Task D2 Step 2」の 8 項目を、`checks.matches` の行に書き直したもの。判断記録 A22）
   - 書き直しの規則: 元の「失敗理由の文字列リスト」は、1 値ごとの `checks.matches(名前, sim の値, JSON の値, 許容差)` にする。「あってはならないもの」（超純水の残り・仮コスト・chipDraws など）は `none_of` が違反 1 件ごとに `matches(…, 0, 1, 0)` を出し、違反が無ければ `matches(…, 0, 0, 0)` を 1 行出す。台帳かマスタに無い名前は例外にせず、引けない `Resolved`（`lookup_failed`）として `matches` に渡すか、値を作れない検査を `checks.lookup_failed('match', …)` の行にする（Task 12 の時点では工程レシピが台帳に無いので、その行は `match lookup_failed` の FAIL になる）。
   - 下書きからの訂正 3 点をここに入れる。① ICチップLv1 を消費する研究は S1 の 7 ノードに限って数える（S2・S3 を積むとロケット技術・金属超精密加工・核融合炉・軌道エレベーターの建設・反物質爆弾も消費するため。下書きのままだと最後に `12 nodes` で落ちる）。② ダイは名前の前方一致ではなく levelFamily「シリコンダイ」で判別する（S1 handoff「設計検査の持ち越し」5 項目目）。③ レシピの入力も名前の前方一致で当てない。params の入力名を `MasterView.input_guid` で GUID に直し（アイテム名・levelFamily 名〈基準アイテム〉・液体名のどれか 1 つに当たること）、その GUID の入力行が 1 つに決まるかを `recipe_input_amount` で引く（判断記録 A32）。
   - 1 ディレクトリ 10 ファイルまで・1 ファイル 200 行以下に収めるため、`sections/` の下に `s1/` を切る。判断記録 A22 の「`sections/s1_semiconductor.py` の `checks.matches`」は、区間 `s1_semiconductor` の `evaluate` が返す行として満たす（`s1_semiconductor.py` が `s1/` の 8 関数を呼んで行を集める）（`sections/` は `.py` 4 本と `s1/`、`s1/` は 7 本。最大は `structure_checks.py` の 79 行）。
@@ -5661,9 +5661,9 @@ def evaluate(view):
     return checks.SectionResult('s1_semiconductor', rows, hours)
 ```
 
-- [ ] **Step 3: 台帳を作る。** S1 handoff「Task D2 Step 3」の `guids.json` 19 行をそのまま書く。S2・S3 の固定 GUID は spec 側の `guid` で入る（`set_fixed` が記録する）ので、ここには書かない。工程レシピ（`recipe:砂` など）は Task 13〜15 の初回適用で台帳に発行される。
+- [x] **Step 3: 台帳を作る。** S1 handoff「Task D2 Step 3」の `guids.json` 19 行をそのまま書く。S2・S3 の固定 GUID は spec 側の `guid` で入る（`set_fixed` が記録する）ので、ここには書かない。工程レシピ（`recipe:砂` など）は Task 13〜15 の初回適用で台帳に発行される。
 
-- [ ] **Step 4: README を置く**（D1 の README は sim の使い方と照合 CLI を書いていたが、A22 で照合の入口が変わったので書き直す）
+- [x] **Step 4: README を置く**（D1 の README は sim の使い方と照合 CLI を書いていたが、A22 で照合の入口が変わったので書き直す）
 
 `design/tier9-balance/README.md`:
 ````markdown
@@ -5685,13 +5685,13 @@ python3 tools/tier9_balance/run.py
 ```
 ````
 
-- [ ] **Step 5: 空の spec で往復一致を確かめる**
+- [x] **Step 5: 空の spec で往復一致を確かめる**
 ```bash
 cd $B && mkdir -p /tmp/p2-empty-spec && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir /tmp/p2-empty-spec --ledger guids.json && git -C $MW status --short server_v8
 ```
 Expected: `applied 0 spec files; issued 0 new guids` の後、`git status` の出力が空。
 
-- [ ] **Step 6: G6 を回し、S1 区間の行が出ることと、中身がまだ無いため赤いことを控える**
+- [x] **Step 6: G6 を回し、S1 区間の行が出ることと、中身がまだ無いため赤いことを控える**
 ```bash
 cd $MW && python3 tools/tier9_balance/run.py > $GL/p2-2-g6-base.txt; echo "g6=$?"
 tail -1 $GL/p2-2-g6-base.txt
@@ -5705,7 +5705,7 @@ Expected（本 plan 作成時に、起点 f9370e7 の tree と 19 行の台帳�
 - 例外で止まらない（引けない名前はすべて `lookup_failed` の FAIL になる）。
 - 枠の自己テストは `OK`（S1 区間が sim を import しても 8 本とも通る）。
 
-- [ ] **Step 7: 値を 1 か所わざと食い違わせ、S1 の照合が落ちることを確かめる**（マスタのコピーで電気炉の消費電力を 1 上げる。`$MW` は書き換えない）
+- [x] **Step 7: 値を 1 か所わざと食い違わせ、S1 の照合が落ちることを確かめる**（マスタのコピーで電気炉の消費電力を 1 上げる。`$MW` は書き換えない）
 ```bash
 rm -rf $GL/g6-broken && mkdir -p $GL/g6-broken && cp -R $MOD/master $MOD/localization $GL/g6-broken/
 python3 - "$GL/g6-broken/master/blocks.json" <<'EOF'
@@ -5721,7 +5721,7 @@ cd $MW && python3 tools/tier9_balance/run.py --master-dir $GL/g6-broken/master |
 ```
 Expected: `broke 電気炉 31` の後に `FAIL [s1_semiconductor] match mismatch 電気炉 の消費電力: sim=30 json=31 許容差=1e-09`（壊す前は同じ行が `PASS … match ok …`。本 plan 作成時に実測）。
 
-- [ ] **Step 8: nodeGraph 同期ツールを置く**（判断記録 A21。前例 `tools/plan6_nodegraph_migration/migrate_nodegraph.py` と同じ流儀: マスタ repo の `tools/<目的>/` に置き、マスタ JSON は読むだけ、グラフは検査が全部通ったときだけ書き、違反があれば exit 1）
+- [x] **Step 8: nodeGraph 同期ツールを置く**（判断記録 A21。前例 `tools/plan6_nodegraph_migration/migrate_nodegraph.py` と同じ流儀: マスタ repo の `tools/<目的>/` に置き、マスタ JSON は読むだけ、グラフは検査が全部通ったときだけ書き、違反があれば exit 1）
   - 前例との違い: 前例は一度きりの移行で、旧 GUID の対応を git 履歴から復元した。こちらは各スライスの末尾で何度でも流す同期なので、履歴は読まず「今のマスタと research.json」だけを正にする。recipe 線の消えた参照は外し、参照が 0 になった線は消す（前例のように buildCost 線へ変えない。統合で消すのはレシピそのものなので、関係が残らない）。
   - 置き場の決め方（`placement.py`）: 新しい研究ノードは前提の研究ノードの右に候補を並べ、重ならず既存ノードの割り当てを 1 つも変えない最初の位置。解放ノードはその研究ノードの右下に候補を並べ、1 パス目でその研究に割り当たり重ならない最初の位置。どこにも割り当てたくないノード（解放から外れたもの）は、最左の研究より左・全ノードより下へ退避する（2 パスとも対象外になる）。
   - 同じ述語・導出を 2 か所に書かない（判断記録 A32）: 研究ノードの抽出 `research_nodes`、研究の解放の列挙 `unlock_targets`、参照先の消えたノード・レシピ参照の述語 `MasterIndex.is_dangling_node`・`is_dead_recipe_ref` は `graph_io.py`。1 パス目・2 パス目のゾーン述語 `in_pass1_zone`・`in_pass2_zone` と、割り当て → (研究, 種類, GUID) の導出 `unlock_triples` は `spatial_unlock.py`。同期側（`prune_dangling`・`place_unlock`・`sync_unlock_nodes`）と検査側（`audit`）が同じものを呼ぶ。
@@ -6236,7 +6236,7 @@ if __name__ == '__main__':
     unittest.main()
 ```
 
-- [ ] **Step 9: 同期ツールの自己テストと、統合マスタでの検査を回す**（このタスクでは書き込みモードは流さない。流すのは各スライスの末尾）
+- [x] **Step 9: 同期ツールの自己テストと、統合マスタでの検査を回す**（このタスクでは書き込みモードは流さない。流すのは各スライスの末尾）
 ```bash
 cd $MW && python3 -m unittest discover -s tools/nodegraph_sync/tests 2>&1 | grep -E '^(Ran|OK|FAILED)'
 cd $MW && python3 tools/nodegraph_sync/sync_nodegraph.py --check > $GL/p2-2-nodegraph-base.txt; echo "ng=$?"; cat $GL/p2-2-nodegraph-base.txt
@@ -6249,8 +6249,8 @@ Expected（本 plan 作成時に、起点 f9370e7 の tree を scratch に展開
   - `unlock extra by position` 5 件。上の消えた item 2 件と、S1 のマスタ 32874fe が解放を外したブロック 3 件（核融合炉・宇宙エレベーター拠点・ロケット発射台。配置上はまだ研究の下にある）。
 - 参考（scratch で実測）: 同じ起点で書き込みモードを流すと `pruned 2 nodes / 2 edges; research nodes +0; dependency edges +0 -0; unlock nodes moved 0 added 0 parked 3` の後 `== NODEGRAPH: PASS (0 failures)` になり、もう一度流すと何も変えない（冪等）。
 
-- [ ] **Step 10: 行数を確かめる**  Run: `wc -l $B/apply/*.py $MW/tools/tier9_balance/sections/*.py $MW/tools/tier9_balance/sections/s1/*.py $MW/tools/nodegraph_sync/*.py $MW/tools/nodegraph_sync/tests/*.py $MW/tools/master_common/*.py`  Expected: どのファイルも 200 行未満。
-- [ ] **Step 11: コミット**
+- [x] **Step 10: 行数を確かめる**  Run: `wc -l $B/apply/*.py $MW/tools/tier9_balance/sections/*.py $MW/tools/tier9_balance/sections/s1/*.py $MW/tools/nodegraph_sync/*.py $MW/tools/nodegraph_sync/tests/*.py $MW/tools/master_common/*.py`  Expected: どのファイルも 200 行未満。
+- [x] **Step 11: コミット**
 ```bash
 git -C $MW add design/tier9-balance/apply design/tier9-balance/guids.json design/tier9-balance/README.md tools/tier9_balance/sections tools/nodegraph_sync tools/master_common/json_text.py
 git -C $MW commit -m "design/tools: Tier9 マスタの適用スクリプトと GUID 台帳、G6 の S1 区間の照合、nodeGraph 同期ツールを置く"
@@ -6292,15 +6292,15 @@ S1 handoff「設計検査の持ち越し」8 項目の行き先:
   - 化学プラントの口: アイテム入口 (3,0,0) −z、液体入力 2 個（タンク 0 = 既存口 (3,1,0)、タンク 1 = 新口 (2,1,0)）、液体出力 1 個（新口 (2,1,10)）。
   - この口は S2 のロケット燃料レシピの前提にもなる（Task 18）。ロケット燃料は固形燃料をアイテム入口から入れ、ガソリンを `inputFluids` の先頭としてタンク 0（口 (3,1,0)）で受ける。
 
-- [ ] **Step 1: spec 01 を書く。** 中身は S1 handoff「Task D3 Step 1」の JSON をそのまま使う。値は `$B/sim/params.py` の `RECIPES` と照らし、違えば params の値で書く。
+- [x] **Step 1: spec 01 を書く。** 中身は S1 handoff「Task D3 Step 1」の JSON をそのまま使う。値は `$B/sim/params.py` の `RECIPES` と照らし、違えば params の値で書く。
 
   下書きに対する訂正は無い。超純水の削除（`removeFluids`）、化学プラントの `patchBlocks`、9 本すべての `levelInheritance: "None"` は、下書きに既に入っている。
-- [ ] **Step 2: 適用する**  Run: `cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json`  Expected: `applied 1 spec files; issued 14 new guids`
-- [ ] **Step 3: 結果を確かめる。** S1 handoff「Task D3 Step 3」のコマンドを使う（`$MOD` は上の変数）。
+- [x] **Step 2: 適用する**  Run: `cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json`  Expected: `applied 1 spec files; issued 14 new guids`
+- [x] **Step 3: 結果を確かめる。** S1 handoff「Task D3 Step 3」のコマンドを使う（`$MOD` は上の変数）。
 
   Expected: 超純水 `019eeaa7-45b6` の GUID が全マスタから消えている。続けて `2 1 2 1 [[3, 0, 0]]` が出る。
-- [ ] **Step 4: 2 回目の適用で差分が出ないことを確かめる**  Run: `cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json && git -C $MW diff --stat | tail -1`  Expected: `issued 0 new guids`。diff の行数は Step 2 の直後と同じ。
-- [ ] **Step 5: コミット**  S1 handoff「Task D3 Step 5」と同じ（`design/tier9-semiconductor-balance` を `design/tier9-balance` に読み替える）。
+- [x] **Step 4: 2 回目の適用で差分が出ないことを確かめる**  Run: `cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json && git -C $MW diff --stat | tail -1`  Expected: `issued 0 new guids`。diff の行数は Step 2 の直後と同じ。
+- [x] **Step 5: コミット**  S1 handoff「Task D3 Step 5」と同じ（`design/tier9-semiconductor-balance` を `design/tier9-balance` に読み替える）。
 
 **完了判定:** Step 3 の 2 行と、Step 4 の `issued 0`。
 **量感:** JSON 約 +350 行（レシピ 9 本で約 270 行、化学プラント約 40 行、アイテム 2 件約 26 行）。localization +11 行・−1 行。
@@ -6313,10 +6313,10 @@ S1 handoff「設計検査の持ち越し」8 項目の行き先:
 - Consumes: Task 13 の状態。
 - Produces: S1 handoff「Task D4」Interfaces の名前（ウェハ G1〜G5 の 4 工程、ダイ・チップ Lv1〜Lv5、levelFamily 6 件、スタック表「ダイ」[600]）。ICチップの levelFamily は、Task 19 の研究消費の代用と、S2 の GPU衛星の入力の前提になる。
 
-- [ ] **Step 1: spec 02 を書く。** S1 handoff「Task D4 Step 1」の JSON をそのまま使う。訂正は無い。
-- [ ] **Step 2: 適用する**  Expected: `applied 2 spec files; issued 29 new guids`
-- [ ] **Step 3: ファミリーを確かめる。** S1 handoff「Task D4 Step 3」のコマンドを使う。Expected: 同節の 6 行。
-- [ ] **Step 4: コミット**  S1 handoff「Task D4 Step 4」と同じ（置き場を読み替える）。
+- [x] **Step 1: spec 02 を書く。** S1 handoff「Task D4 Step 1」の JSON をそのまま使う。訂正は無い。
+- [x] **Step 2: 適用する**  Expected: `applied 2 spec files; issued 29 new guids`
+- [x] **Step 3: ファミリーを確かめる。** S1 handoff「Task D4 Step 3」のコマンドを使う。Expected: 同節の 6 行。
+- [x] **Step 4: コミット**  S1 handoff「Task D4 Step 4」と同じ（置き場を読み替える）。
 
 **完了判定:** Step 3 の 6 行が一致する。
 **量感:** JSON 約 +380 行（アイテム 22 件で約 290 行、ファミリー約 60 行）。localization +26 行。
@@ -6332,7 +6332,7 @@ S1 handoff「設計検査の持ち越し」8 項目の行き先:
 - Consumes: Task 13・Task 14 の名前。S1 本体の prefab アドレス 5 種（S1 handoff「Task D5」Interfaces）。
 - Produces: ブロック名とレシピキー（S1 handoff「Task D5」Interfaces の Produces）。CleanRoomMachine 5 種の `allowQualityModule` は、成膜・EUV・ダイシングが true、ウェハ切断機・パッケージング装置が false。
 
-- [ ] **Step 1: spec 03 を書く。** 土台は S1 handoff「Task D5 Step 1」の JSON。次の 3 点を変える。
+- [x] **Step 1: spec 03 を書く。** 土台は S1 handoff「Task D5 Step 1」の JSON。次の 3 点を変える。
 
 (a) 下書きは専用機 4 種にブロックと同名のアイテムを作るが、これをやめる。既存の同名アイテム 6 件（クリーンルームブロック `019e3e76-24e5…`・アイテムハッチ `019e3e76-5094…`・パイプコネクタ `019e3e76-8867…`・ドア `019e3e76-b511…`・空気清浄機 `019e3e76-e150…`・EUV `019e3c20-f9f5…`）も消す。
 - 根拠（実測）: f9370e7 で 6 件ともどの機械レシピの出力にも無い。ブロックの `itemGuid` キーはスキーマ `blocks.yml` に無い死にキーで、6 行だけが持っている。
@@ -6356,19 +6356,19 @@ spec の差分:
 
 (c) `removeMachineRecipes: ["3a13a5a9-d254-40f9-be93-e24c9ebfdfaf"]` は下書きどおり残す。旧 EUV レシピの削除で、`removeItems` の EUV アイテムを参照する残りも消える。
 
-- [ ] **Step 2: `KNOWN_ORPHANS` を空にする。** 旧 EUV レシピが消えると、`sync_machine_recipe_unlocks.py:146-148` の陳腐化検査が exit 2 を出すため。
+- [x] **Step 2: `KNOWN_ORPHANS` を空にする。** 旧 EUV レシピが消えると、`sync_machine_recipe_unlocks.py:146-148` の陳腐化検査が exit 2 を出すため。
 ```python
 # 既知の孤児レシピ → 期待する欠損GUID集合（既存データ）。欠損集合が完全一致するときだけ許可する
 # Known orphan recipe -> expected missing GUID set (pre-existing data). Allowed only when the missing set matches exactly
 KNOWN_ORPHANS = {}
 ```
-- [ ] **Step 3: 適用する**  Expected: `applied 3 spec files; issued 24 new guids`。内訳はブロック 4・レシピ 7・コネクタ 13。下書きの 28 から、アイテム 4 件の分が減る。
-- [ ] **Step 4: 結果を確かめる。** S1 handoff「Task D5 Step 3」のコマンドに 1 行足す:
+- [x] **Step 3: 適用する**  Expected: `applied 3 spec files; issued 24 new guids`。内訳はブロック 4・レシピ 7・コネクタ 13。下書きの 28 から、アイテム 4 件の分が減る。
+- [x] **Step 4: 結果を確かめる。** S1 handoff「Task D5 Step 3」のコマンドに 1 行足す:
 ```bash
 python3 -c "import json; i=json.load(open('$MOD/master/items.json'))['data']; b=json.load(open('$MOD/master/blocks.json'))['data']; print(sum('itemGuid' in e for e in b), [e['name'] for e in i if e['name'] in {x['name'] for x in b}])"
 ```
 Expected: 同節の 8 行がそのまま出る（最上位キーは死にキー 2 つが消えて 3 つ、旧 EUV は False、CleanRoomMachine は 5 種、…、`PASS quality module permission`）。続けて `0 []`（同名アイテムと `itemGuid` キーが 0 件）。
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 ```bash
 git -C $MW add design/tier9-balance/spec/03_cleanroom_machines.json design/tier9-balance/guids.json server_v8/mods/moorestechAlphaMod_8/master server_v8/mods/moorestechAlphaMod_8/localization/localization.csv tools/research_sync/sync_machine_recipe_unlocks.py
 git -C $MW commit -m "master: Tier9 専用機5種と工程レシピ・クリーンルームの値・建設コストを入れ、旧 EUV レシピとブロック同名の孤児アイテムを消す"
@@ -6390,7 +6390,7 @@ git -C $MW commit -m "master: Tier9 専用機5種と工程レシピ・クリー�
   - モジュールの family・継承レシピ・Lv1 は、S1 handoff「Task D6」Interfaces の値。
   - 名前は `GPULv1`〜`GPULv5`（下の訂正）。Task 18 の GPU衛星レシピと、録画の節のシナリオがこの名前で引く。
 
-- [ ] **Step 1: spec 04 を書く。** 土台は S1 handoff「Task D6 Step 1」の JSON。訂正は GPU の名前だけ。
+- [x] **Step 1: spec 04 を書く。** 土台は S1 handoff「Task D6 Step 1」の JSON。訂正は GPU の名前だけ。
   - 下書きの `GPU`・`GPU Lv2`〜`GPU Lv5`（空白あり、Lv1 は無印）を、`GPULv1`〜`GPULv5` に揃える。英語名は `GPU Lv1`〜`GPU Lv5`。他の段階アイテム（`ICチップLv2`・`GPU衛星Lv1`）の「空白なし・Lv1 明示」に合わせるため（判断を仰ぐ点 2）。
   - GUID は固定なので、台帳には新しい名前で記録される。
   - 同じ spec の levelFamily の `levels`、レシピの `outputItems`、モジュールが参照する名前も揃える。
@@ -6403,9 +6403,9 @@ git -C $MW commit -m "master: Tier9 専用機5種と工程レシピ・クリー�
 ```
   - levelFamily: `{"name": "GPU", "guid": "01a167ed-2700-7371-9f95-168966ff60bc", "levels": ["GPULv1", "GPULv2", "GPULv3", "GPULv4", "GPULv5"]}`
   - レシピ `GPU` の出力: `[["@item:GPULv1", 1]]`
-- [ ] **Step 2: 適用する**  Expected: `applied 4 spec files; issued 36 new guids`
-- [ ] **Step 3: 結果を確かめる。** S1 handoff「Task D6 Step 3」のコマンドを使う。Expected: `20 [3, 6, 10]`・ファミリー 5 件・3 行目が `GPULv2`・`PASS modules = params`。
-- [ ] **Step 4: コミット**  S1 handoff「Task D6 Step 4」と同じ（置き場を読み替える）。
+- [x] **Step 2: 適用する**  Expected: `applied 4 spec files; issued 36 new guids`
+- [x] **Step 3: 結果を確かめる。** S1 handoff「Task D6 Step 3」のコマンドを使う。Expected: `20 [3, 6, 10]`・ファミリー 5 件・3 行目が `GPULv2`・`PASS modules = params`。
+- [x] **Step 4: コミット**  S1 handoff「Task D6 Step 4」と同じ（置き場を読み替える）。
 
 **完了判定:** Step 3 の 4 行。
 **量感:** JSON 約 +730 行（アイテム 25 件で約 325 行、modules 20 件で約 180 行、ファミリー約 50 行、レシピ 5 本で約 150 行）。localization +25 行。
@@ -6421,17 +6421,17 @@ git -C $MW commit -m "master: Tier9 専用機5種と工程レシピ・クリー�
   - 機械オーバークロック `019e3ae2-5005-7439-b242-9b7b3191a2c3` の前提を「品質モジュール」へ付け替え、コストと解放を入れる（裁定2 の対象ノード 1 つ目。GUID は変えない）。
   - GPU設計 `01a167f3-bd74-73f8-8c43-1869db833299` は Task 19 のロケット技術の前提になる。
 
-- [ ] **Step 1: spec 05 を書く。** 土台は S1 handoff「Task D7 Step 1」の JSON。訂正は次の 2 点。
-  - (a) 「半導体製造」の `unlockItemRecipeView` から、ブロックと同名のアイテム 10 件を外す（Task 15 (a) で消すため）。外すのはクリーンルームブロック・ドア・アイテムハッチ・パイプコネクタ・空気清浄機・ウェハ切断機・成膜装置・EUV露光式半導体製造装置・ダイシング装置・パッケージング装置。表示の解放は 48 件から 38 件になる（素材 8・ウェハ 20・ダイ 5・チップ 5）。`unlockBlock` の 11 件はそのまま残す。
+- [x] **Step 1: spec 05 を書く。** 土台は S1 handoff「Task D7 Step 1」の JSON。訂正は次の 2 点。
+  - (a) 「半導体製造」の `unlockItemRecipeView` から、ブロックと同名のアイテム 10 件を外す（Task 15 (a) で消すため）。外すのはクリーンルームブロック・ドア・アイテムハッチ・パイプコネクタ・空気清浄機・ウェハ切断機・成膜装置・EUV露光式半導体製造装置・ダイシング装置・パッケージング装置。表示の解放は下書き48件から同名アイテム10件を除いた38件に、孤児になった砂レシピの表示1件を足すため39件になる（Task17でsyncの実拒否を確認して修正・独立レビュー承認）。`unlockBlock` の11件はそのまま残す。
   - (b) 「GPU設計」の `unlockItemRecipeView` と `iconItem` を `@item:GPULv1` にする（Task 16 の改名）。
-- [ ] **Step 2: 適用し、研究の解放を同期する**
+- [x] **Step 2: 適用し、研究の解放を同期する**
 ```bash
 cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json
 cd $MW && python3 tools/research_sync/sync_machine_recipe_unlocks.py | tail -3 && python3 tools/research_sync/sync_machine_recipe_unlocks.py --check; echo "check=$?"
 ```
 Expected: apply が `applied 5 spec files; issued 0 new guids`。sync は `0 orphans`・`0 stale` で、`DEAD-END` 行が無い。最後に `check=0`。
 - `MOVE` が出たら、そのレシピを spec 05 の移動先ノードの `unlockMachineRecipe` へ書き直す。そのうえで Step 2 をやり直し、apply 後に `MOVE` が 0 になるまで繰り返す。
-- [ ] **Step 3: nodeGraph を統合マスタに合わせる**（判断記録 A21。master-refine は nodeGraph の配置を基準に並び順と座標を計算するので、その前に流す）
+- [x] **Step 3: nodeGraph を統合マスタに合わせる**（判断記録 A21。master-refine は nodeGraph の配置を基準に並び順と座標を計算するので、その前に流す）
 ```bash
 cd $MW && python3 tools/nodegraph_sync/sync_nodegraph.py > $GL/p2-7-s1-nodegraph-sync.txt; echo "ng=$?"; cat $GL/p2-7-s1-nodegraph-sync.txt
 git -C $MW diff --stat -- server_v8/mods/moorestechAlphaMod_8/.mooreseditor
@@ -6443,13 +6443,13 @@ Expected:
   - `research nodes +6`。S1 の新しい研究 6 ノード（品質モジュール・省エネモジュール・生産性モジュール・GPU設計・モジュールスタック拡張I・II）。機械オーバークロックは既存のノードを使う。
   - `parked` に、解放の外れた核融合炉・宇宙エレベーター拠点・ロケット発射台の 3 件が入る（Task 19・Task 22 で研究の下へ戻る）。
 - `UNPLACED` が出たら、その研究ノードの周りで候補の格子が埋まっている。検査は緩めず、`placement.py` の候補の範囲（研究は `range(1, 9)`、解放は `range(0, 12)`）を広げて流し直す。
-- [ ] **Step 4: sortPriority と研究座標を再計算する。** S1 handoff「Task D7 Step 3」を使う。スクリプトは `$W/.agents/skills/master-refine/scripts/` にある（`.claude/skills` は symlink）。
-- [ ] **Step 5: 研究と解放を確かめる。** S1 handoff「Task D7 Step 4」の python（研究の数と解放の数を出す 1 本目）を使う。最後の照合の行は、次の G6 の行に置き換える。
+- [x] **Step 4: sortPriority と研究座標を再計算する。** S1 handoff「Task D7 Step 3」を使う。スクリプトは `$W/.agents/skills/master-refine/scripts/` にある（`.claude/skills` は symlink）。
+- [x] **Step 5: 研究と解放を確かめる。** S1 handoff「Task D7 Step 4」の python（研究の数と解放の数を出す 1 本目）を使う。最後の照合の行は、次の G6 の行に置き換える。
 ```bash
 cd $MW && python3 tools/tier9_balance/run.py | grep -E '^(PASS|FAIL) \[s1_semiconductor\] match [a-z_]+ 研究 '
 ```
-  Expected は `7 <timeline.RESEARCH の chips 合計>`・`11 True 38`。2 つ目は下書きの `11 True 48` から変わる。G6 の行は S1 の 7 ノード × 5 行（4 品の数と余計なコスト）がすべて `PASS` で、`FAIL` が無い。
-- [ ] **Step 6: S1 スライスのゲート**
+  Expected は `7 <timeline.RESEARCH の chips 合計>`・`11 True 39`。2つ目は下書き48→同名10件削除の38という見積もりに、syncが必須とした砂の表示1件を加えた実値（Task17承認済み）。G6 の行は S1 の 7 ノード × 5 行（4 品の数と余計なコスト）がすべて `PASS` で、`FAIL` が無い。
+- [x] **Step 6: S1 スライスのゲート**
 ```bash
 G1 $MW/server_v8 2>&1 | tee $GL/p2-7-s1-g1.txt
 (cd $MW && python3 tools/progression/check.py) > $GL/p2-7-s1-g2.txt 2>&1; echo "G2 exit=$?"
@@ -6463,7 +6463,7 @@ Expected:
 - 解放されないブロックの一覧に、専用機 5 種とクリーンルーム系 6 種が出ない。
 - nodeGraph は `ng=0`・`== NODEGRAPH: PASS (0 failures)`（Step 4 の master-refine は research.json の座標と sortPriority しか変えないので、Step 3 の結果は崩れない）。
 - G6 の S1 区間は `s1-fail=0`（照合 8 項目に `mismatch`・`lookup_failed` などの FAIL が無い）。G6 全体は S2・S3 の区間が空なので exit 1 のままでよい。S1 の `target out_of_range` の FAIL（クラス A の時間など）は Task 23 で直す。
-- [ ] **Step 7: コミットして push する**
+- [x] **Step 7: コミットして push する**
 ```bash
 git -C $MW add design/tier9-balance/spec/05_research.json server_v8/mods/moorestechAlphaMod_8/master server_v8/mods/moorestechAlphaMod_8/localization/localization.csv server_v8/mods/moorestechAlphaMod_8/.mooreseditor/nodeGraph.v1.json
 git -C $MW commit -m "master: Tier9 S1 の研究（モジュール・GPU設計・スタック拡張）と半導体製造の解放内容を入れる"
