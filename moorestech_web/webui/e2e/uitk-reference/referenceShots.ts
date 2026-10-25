@@ -97,7 +97,7 @@ export const referenceShots: ReferenceShot[] = [
   // 束 3 建築
   { id: "3-build-menu", bundle: 3, ledgerRow: LedgerRows.buildMenu, controls: [ui("BuildMenu")], steps: [] },
   { id: "3-hotbar-equipment-empty", bundle: 3, ledgerRow: LedgerRows.hotbar, controls: [topic("equipmentEmpty"), ui("GameScreen")], steps: [] },
-  { id: "3-modal", bundle: 3, ledgerRow: LedgerRows.modal, controls: [ui("GameScreen"), "/__modal?show=1"], steps: [] },
+  { id: "3-modal", bundle: 3, ledgerRow: LedgerRows.modal, controls: [ui("GameScreen"), "/__modal?show=1&kind=blueprint"], steps: [] },
   // 束 4 持ち物
   { id: "4-player-inventory", bundle: 4, ledgerRow: LedgerRows.inventory, controls: [ui("PlayerInventory")], steps: [] },
   { id: "4-player-inventory-full", bundle: 4, ledgerRow: LedgerRows.inventory, controls: [topic("inventoryEveryRowFilled"), ui("PlayerInventory")], steps: [] },

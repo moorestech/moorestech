@@ -120,7 +120,8 @@ export function createMockHttpServer(): Server {
     // Test-only: toggle the modal and push an event to subscribers
     if (url.startsWith("/__modal")) {
       const show = new URL(url, "http://x").searchParams.get("show") === "1";
-      state.currentModal = show ? clone(fx.modalSample) : null;
+      const blueprint = new URL(url, "http://x").searchParams.get("kind") === "blueprint";
+      state.currentModal = show ? clone(blueprint ? fx.blueprintNameModal : fx.modalSample) : null;
       for (const ws of subscribersOf(Topics.modal)) send(ws, { op: "event", topic: Topics.modal, data: { modal: state.currentModal } });
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true }));
