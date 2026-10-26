@@ -82,7 +82,7 @@ describe("CursorTooltip", () => {
   it("renders every line in order", () => {
     setDictionaries("english", {
       [L.ui.tooltip.placeBlockedByTerrain]: "Blocked by terrain",
-      // 辞書はこのテストが注入するので、ここで検証できるのは{pN}補間の責務だけ
+      // 辞書はこのテストが注入するので、ここで検証できるのは名前付き補間の責務だけ
       // The dictionary is injected by this test, so only the named interpolation responsibility is verified here
       [L.ui.tooltip.placeMaterialShortage]: "Missing item: {itemName} {ownedCount}/{requiredCount}",
     }, {}, {});

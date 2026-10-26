@@ -81,7 +81,7 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     // 実ペイロードの研究名パラメータまで検証する(Web側テンプレ「Research completed: {research}」に流し込まれる値)
     // Assert the actual research-name param carried in the payload (fed into the web template "Research completed: {research}")
     var achievement = received.Last(n => n.Category == NotificationCategory.Achievement && n.MessageId == "achievement.researchCompleted");
-    p.Assert(achievement.MessageParams.ContainsKey("research"), $"実績通知に研究のGuid(research)が載る 実際:{string.Join(",", achievement.MessageParams)}");
+    p.Assert(achievement.MessageParams.TryGetValue("research", out var researchParam) && researchParam == "原始研究1", $"実績通知の研究名パラメータが『原始研究1』 実際:{string.Join(",", achievement.MessageParams)}");
 
     await UntilHudVisible("notification-host", 10f);
     await p.Screenshot("03-achievement-notification");
