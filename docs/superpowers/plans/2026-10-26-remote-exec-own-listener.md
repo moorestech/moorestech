@@ -1173,18 +1173,18 @@ bd note moorestech-albof.2 "HttpListenerが配布ビルドで動かず(b)最小K
 
 ### Task 6: 全ブランチレビュー（省略不可）
 
-- [ ] **Step 1: 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。** Codex ホストでは `references/codex-host.md` の runner で実行する。
-- [ ] **Step 2: レビュー指摘の反映が判定経路・条件式・評価時点（入口の許可判定・有効化の順序・待受の開閉）に触れたら、反映後のコードで Task 3 Step 2 の EditModeInPlayingTest を再実施し、さらに Task 4（検証機）を焼き直して再実施してから完了とする。** ユニットテスト通過・ログ無音は代替にならない。
-- [ ] **Step 3: 残課題の起票。** plan・記録・進捗台帳に書いた「未検証」「残差」を 1 件ずつ `bd create --parent moorestech-albof.2` し、記録の末尾に issue id を列挙する。
+- [x] **Step 1: 必ず moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。** Codex ホストでは `references/codex-host.md` の runner で実行する。
+- [x] **Step 2: レビュー指摘の反映が判定経路・条件式・評価時点（入口の許可判定・有効化の順序・待受の開閉）に触れたら、反映後のコードで Task 3 Step 2 の EditModeInPlayingTest を再実施し、さらに Task 4（検証機）を焼き直して再実施してから完了とする。** ユニットテスト通過・ログ無音は代替にならない。
+- [x] **Step 3: 残課題の起票。** plan・記録・進捗台帳に書いた「未検証」「残差」を 1 件ずつ `bd create --parent moorestech-albof.2` し、記録の末尾に issue id を列挙する。
 
 ### Task 7: PR を作り、セッションを閉じられる状態にする（省略不可）
 
-- [ ] **Step 1: セッション終了可能状態にすること: pr-create スキルで PR を作成し、master とのコンフリクトがあれば master をマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。** マージ方式はマージコミット（Squash しない）。PR は作成までで止め、マージしない（moorestech の規約）。PR 本文に次の 2 節を入れる:
+- [x] **Step 1: セッション終了可能状態にすること: pr-create スキルで PR を作成し、master とのコンフリクトがあれば master をマージして解消・コンパイル確認のうえ push する（解消の実作業は pr-create 経由で opus subagent に委譲される）。** マージ方式はマージコミット（Squash しない）。PR は作成までで止め、マージしない（moorestech の規約）。PR 本文に次の 2 節を入れる:
   - 「ユーザーに見てほしい判断」: 本 plan の `## 判断記録（ADR）` のうち出所が「agent 既定（ユーザー未裁定）」の項目をすべて列挙する
   - 「ユーザーに見てほしい判断」の先頭には、ADR 0072 の元のユーザー裁定（入口は既存の Web UI サーバーに足す・専用の待ち受けは棄却）を agent 既定で覆したことを置く
   - 「他レーンへの影響」: albof.3 の持ち物 `WebUiStartup.cs:19`（ログ文）と `WebUiHost.KestrelPort`（削除）を触ったこと
   - 「本 PR 外のリファクタ提案」: 既存側 `Client.WebUiHost/Boot/KestrelServer.cs`／新設側 `Client.RemoteExec/Listen/RemoteExecHttpListener.cs`／同じ「基準ポートから上へ bind を試す」探索（統合するなら両アセンブリの下に共通層が要る。段階 5 で Web 用 Kestrel を消すなら統合は不要）
-- [ ] **Step 2: 全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。** `bd note moorestech-albof.2 "PR #<番号> 作成"` を残す。worktree の片付け（`moores-wt rm`）はこの環境の規約どおり PR 作成後に行う。
+- [x] **Step 2: 全作業がコミット・push 済みで、このセッションをそのまま閉じても PR がマージ可能な状態になっていることを確認して終える。** `bd note moorestech-albof.2 "PR #<番号> 作成"` を残す。worktree の片付け（`moores-wt rm`）はこの環境の規約どおり PR 作成後に行う。
 
 ---
 
@@ -1245,3 +1245,5 @@ bd note moorestech-albof.2 "HttpListenerが配布ビルドで動かず(b)最小K
 - Refix（Step 7 の D2/D4 反映 diff）: applied-diff-correctness（opus）で Critical 0・Warning 0。
 - Step 7.5 bug-pass（Claude の Workflow・6 系統全回収、Codex 系統は課金回避のため不起動）: Critical BP-C1（不正チャンク本文で入口が例外で抜け、送信側が応答待ちで止まる）を 6 系統一致の静的推論として採用・自動適用したが、独立再現では Mono の HttpListener が自ら 400 を 0.03 秒で返し、送信側は止まらなかった（例外型 `HttpListenerException` が Endpoint の catch を素通りすることは指摘どおり）。再現できないため自動適用を取り消した。出所: agent 既定（ユーザー未裁定）。手順は `.superpowers/sdd/repro/bp-c1.md`。
 - bug-pass の残 Warning 3 件（`Close()` 例外時に `_isStopping` が戻らない／`ReadToEndAsync` が取消を受けない／Host が `localhost` だと HttpListener が 400）はいずれも再現手順を構成できず、直さず PR に列挙する。出所: agent 既定（ユーザー未裁定）。
+- Task 6 Step 1: moores-code-review は Claude の系統だけで回した（Refix・bug-pass。③ Codex 外部監査と bug-pass の Codex バグ狩りは、課金を避けるため未実行）。Step 2: 反映後の最終 head `cc725eb040` で EditModeInPlayingTest 2/2 合格、Task 4 の Windows 3 ケースも配布ビルドを焼き直して合格（研究記録の「最終 head での再確認」節）。Step 3: 残差を moorestech-albof.2.8〜.12 に起票した。
+- Task 7 は指揮（moorestech-f2）の指示で、UITK 段階 0 の統合 PR へ切り替えた。PR #1557 は触らない。`origin/feature/uitk-stage0` と `origin/master` を取り込んで push し、統合 PR 用の本文下書きを `.superpowers/sdd/pr-handoff/body.md` に置いた。出所: ユーザー指示（2026-10-26 13:49「PRは1本に統合したい」の指揮経由の伝達）。
