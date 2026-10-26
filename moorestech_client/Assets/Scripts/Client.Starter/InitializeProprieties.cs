@@ -8,8 +8,8 @@ namespace Client.Starter
 {
     public class InitializeProprieties
     {
-        // 許容ポート範囲。文言へは{p0}で供給する
-        // The allowed port range; the wording receives it through {p0}
+        // 許容ポート範囲。文言へは名前付き枠{max}/{min}で供給する
+        // The allowed port range; the wording receives it through named placeholders {max}/{min}
         private const int MinExclusivePort = 1024;
         private const int MaxPort = 65535;
 
