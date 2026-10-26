@@ -104,9 +104,9 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
 
     // Unity側の行だけでなくWeb UIまで描画が通っていることを、確実に表示中のこの瞬間に確認する
     // Confirm the lines reach the actual Web UI rendering, checked at this moment when the tooltip is certainly shown
-    var tooltipDom = await Client.Playtest.WebUi.PlaytestDomQuery.Query("cursor-tooltip", 3f);
-    p.Note($"[Web UI DOM] found={tooltipDom.Found} text={tooltipDom.Text}");
-    p.Assert(tooltipDom.Found && !string.IsNullOrWhiteSpace(tooltipDom.Text), "Web UIのcursor-tooltipが実際に描画されている");
+    var tooltipDom = await PlaytestUiElementOps.FindUi("cursor-tooltip");
+    p.Note($"[Web UI DOM] found={tooltipDom.IsFound} text={tooltipDom.Text}");
+    p.Assert(tooltipDom.IsFound && !string.IsNullOrWhiteSpace(tooltipDom.Text), "Web UIのcursor-tooltipが実際に描画されている");
 
     SemanticInput.MouseButtonUp(0);
     await UniTask.DelayFrame(10);
