@@ -102,7 +102,7 @@
 
 - [x] **Step 1: Editor の予算を確かめて起動する**
 
-Run: `moores-wt status` → 動いている Editor が 2 本未満であることを確認。`cd moorestech_web/webui && pnpm install --frozen-lockfile && cd -`、`uloop launch --project-path ./moorestech_client`
+Run: `pgrep -fl "Unity.app/Contents/MacOS/Unity -projectPath"` → 動いている Editor が 2 本未満であることを確認。`cd moorestech_web/webui && pnpm install --frozen-lockfile && cd -`、`uloop launch --project-path ./moorestech_client`
 Expected: Editor 起動。2 本以上なら Task 2 のコード作業（Editor 不要部分）を先に進め、空いてから戻る
 
 - [x] **Step 2: unity-playmode-recorded-playtest スキルを読み、次の 5 本を変更前のコード（HEAD = `b40795d82b06e8ff39ca3b073ae57ff349e0d23a`（この実行の変更前コミット））で流す**
