@@ -7,7 +7,7 @@
 |---|---|---|---|---|---|
 | building/delete-tool/delete-hold-mode-reentry | 照会置換 | true / 16 / - / - | true / 16 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_201010/delete-hold-mode-reentry/result.json`。 |  |
 | building/delete-tool/delete-hold-text-focus | 照会置換 | true / 20 / - / - | true / 20 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_201152/delete-hold-text-focus/result.json`。 |  |
-| building/placement-reason-tooltip | 照会置換 | true / 14 / - / - | | |  |
+| building/placement-reason-tooltip | 照会置換 | true / 14 / - / - | true / 14 / - / -（同条件2回） | 一致 | 重複警告 0 件。変更後 `20261026_201815`、`20261026_202005`、旧版 `20261026_202311`、`20261026_202446` のresult.json。同じGameViewタブ選択・IgnoreFocus・AlwaysGameView・デバイス有効化をRun前に適用。前提未整備の変更後2回 `20261026_201444`、`20261026_201600` はBuild menu前でfalse/0、元結果は保持。 |  |
 | building/terrain-sink-normal-and-belt-via-ui | 照会置換 | true / 20 / - / - | | |  |
 | building/ui-place-then-open-machine | 照会置換 | false / 6 / Web側のblock inventoryパネルが描画されている / - | | | 1回目の結果。再現確認は後続で実施 |
 | connect/electric-wire-tool-extend-chain-via-ui | 照会置換 | true / 16 / - / - | | |  |
