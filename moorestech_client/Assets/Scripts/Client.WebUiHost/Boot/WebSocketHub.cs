@@ -173,10 +173,11 @@ namespace Client.WebUiHost.Boot
             if (_connections.IsEmpty) WebUiInputExclusivity.SetState(false, false);
         }
 
-        public async Task CloseAllAsync()
+        public async Task<WebSocketCloseResult> CloseAllAsync()
         {
-            await WebSocketConnectionCloser.CloseAllAsync(_connections.Values);
+            var result = await WebSocketConnectionCloser.CloseAllAsync(_connections.Values);
             _connections.Clear();
+            return result;
         }
 
         // 受信ループと切り離して action を到着順に1本ずつ実行する。長い action が ping の読み出しを塞がないため

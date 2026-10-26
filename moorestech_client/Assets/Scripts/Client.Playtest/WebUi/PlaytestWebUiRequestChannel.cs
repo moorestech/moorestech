@@ -60,12 +60,24 @@ namespace Client.Playtest.WebUi
         public async UniTask<WebUiChannelResponse<TResult>> Await(string requestId, float timeoutSeconds)
         {
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
-            while (Time.realtimeSinceStartup < deadline)
+            while (true)
             {
                 // 停止と無応答を区別し、応答済み状態は一度だけ取り出す
                 // Distinguish stopped sessions from silence and consume a terminal result once
                 if (!_pending.TryGetValue(requestId, out var pending))
                     return new WebUiChannelResponse<TResult>(WebUiResponseState.Stopped, null, "UI session stopped");
+                // 正規送信元が確定した拒否理由は、その後の期限・切断で失わせない
+                // Preserve an authenticated rejection across later deadline or disconnect changes
+                if (pending.Response.State == WebUiResponseState.Rejected)
+                {
+                    _pending.Remove(requestId);
+                    return pending.Response;
+                }
+                if (Time.realtimeSinceStartup >= deadline)
+                {
+                    _pending.Remove(requestId);
+                    return new WebUiChannelResponse<TResult>(WebUiResponseState.TimedOut, null, "Web response deadline expired");
+                }
                 if (!pending.IsCurrentConnection())
                 {
                     _pending.Remove(requestId);
@@ -78,8 +90,6 @@ namespace Client.Playtest.WebUi
                 }
                 await UniTask.Yield();
             }
-            _pending.Remove(requestId);
-            return new WebUiChannelResponse<TResult>(WebUiResponseState.TimedOut, null, "Web response deadline expired");
         }
 
         public void Stop(string requestId) => _pending.Remove(requestId);
