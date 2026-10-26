@@ -5,7 +5,7 @@ import { initPlaytestTopicResponder } from "./playtestTopicResponder";
 import { findByTestId, isElementVisible } from "./testIdElement";
 
 type DomSetTextRequest = { requestId: string; testid: string; text: string };
-type DomSetTextStatus = "applied" | "notFound" | "notTextField" | "notInteractable" | "valueMismatch";
+type DomSetTextStatus = "ambiguous" | "applied" | "notFound" | "notTextField" | "notInteractable" | "valueMismatch";
 type DomSetTextResult = {
   requestId: string;
   status: DomSetTextStatus;
@@ -48,6 +48,7 @@ async function applyText(request: DomSetTextRequest): Promise<DomSetTextResult> 
   let { element, matchCount } = findByTestId(request.testid);
   const reply = (status: DomSetTextStatus, actualValue: string): DomSetTextResult =>
     ({ requestId: request.requestId, status, matchCount, actualValue });
+  if (matchCount > 1) return reply("ambiguous", "");
   if (element === null) return reply("notFound", "");
   if (!isTextField(element)) return reply("notTextField", "");
   if (element.matches(":disabled") || element.readOnly || !isElementVisible(element, element.getBoundingClientRect())) {
@@ -69,6 +70,7 @@ async function applyText(request: DomSetTextRequest): Promise<DomSetTextResult> 
   // Check on the next task whether a re-render reverted the value
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
   ({ element, matchCount } = findByTestId(request.testid));
+  if (matchCount > 1) return reply("ambiguous", "");
   if (element === null) return reply("notFound", "");
   if (!isTextField(element)) return reply("notTextField", "");
   return reply(element.value === request.text ? "applied" : "valueMismatch", element.value);

@@ -1,7 +1,10 @@
 using Client.Playtest.UiElements;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Client.WebUiHost.Game.Actions;
+using System;
+using Client.WebUiHost.Boot.Transport;
+using Client.WebUiHost.Cef;
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Playtest.WebUi
@@ -21,7 +24,7 @@ namespace Client.Playtest.WebUi
     {
         private const string SetTextTopic = "playtest.dom_set_text";
         private readonly PlaytestWebUiRequestChannel<DomSetTextResult> _channel = new();
-        public readonly IActionHandler ResultHandler;
+        public readonly IConnectionActionHandler ResultHandler;
 
         public PlaytestDomSetText()
         {
@@ -30,8 +33,18 @@ namespace Client.Playtest.WebUi
 
         public async UniTask<WebUiChannelResponse<DomSetTextResult>> Request(WebSocketHub hub, string testid, string text, float timeoutSeconds)
         {
-            var requestId = _channel.Open();
-            hub.Publish(SetTextTopic, WebUiJson.Serialize(new DomSetTextRequest { RequestId = requestId, Testid = testid, Text = text }));
+            if (!WebUiCefConnection.TryGetConnection(hub, out var connectionId))
+            {
+                Debug.LogWarning("[PlaytestUi] No registered CEF connection");
+                return new WebUiChannelResponse<DomSetTextResult>(WebUiResponseState.Stopped, null, "No registered CEF connection");
+            }
+            if (!(timeoutSeconds > 0f)) throw new TimeoutException("UI request deadline expired before delivery");
+            var requestId = _channel.Open(connectionId, hub);
+            if (!hub.PublishTo(connectionId, SetTextTopic, WebUiJson.Serialize(new DomSetTextRequest { RequestId = requestId, Testid = testid, Text = text })))
+            {
+                _channel.Stop(requestId);
+                return new WebUiChannelResponse<DomSetTextResult>(WebUiResponseState.Stopped, null, "CEF disconnected or not subscribed");
+            }
             return await _channel.Await(requestId, timeoutSeconds);
         }
 

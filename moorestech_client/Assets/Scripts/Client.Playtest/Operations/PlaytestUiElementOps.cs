@@ -19,7 +19,7 @@ namespace Client.Playtest.Operations
 
         public static UniTask<UiElementSnapshot> FindUi(string testid)
         {
-            return PlaytestUiLocatorSession.Locator.Find(testid);
+            return PlaytestUiLocatorSession.Locator.Find(testid, ActionTimeoutSeconds);
         }
 
         public static async UniTask ClickUi(string testid)
@@ -31,10 +31,12 @@ namespace Client.Playtest.Operations
         {
             // 安定中心へ実マウス経路でクリック
             // Click the settled center through the real mouse path
-            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, timeoutSeconds);
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
             LogResolved(target);
-            await SemanticInput.MouseGlideTo(target.ScreenRect.center, MouseGlideSeconds);
+            await SemanticInput.MouseGlideTo(target.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
             await UniTask.DelayFrame(1);
+            UiElementScreenPointResolver.RemainingSeconds(deadline, testid);
             await SemanticInput.Click();
         }
 
@@ -42,9 +44,10 @@ namespace Client.Playtest.Operations
         {
             // クリック同様の安定中心へ移動のみ
             // Only move to the center using the click stability check
-            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, ActionTimeoutSeconds);
+            var deadline = Time.realtimeSinceStartup + ActionTimeoutSeconds;
+            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
             LogResolved(target);
-            await SemanticInput.MouseGlideTo(target.ScreenRect.center, MouseGlideSeconds);
+            await SemanticInput.MouseGlideTo(target.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
             await UniTask.DelayFrame(1);
         }
 
@@ -56,7 +59,9 @@ namespace Client.Playtest.Operations
             var lastStatus = UiElementLookupStatus.NotFound;
             while (Time.realtimeSinceStartup <= deadline)
             {
-                var snapshot = await FindUi(testid);
+                var snapshot = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+                lastStatus = snapshot.Status;
+                if (Time.realtimeSinceStartup >= deadline) break;
                 UiElementScreenPointResolver.ThrowIfAmbiguous(snapshot);
                 if (UiElementScreenPointResolver.IsClickable(snapshot))
                 {
@@ -73,16 +78,19 @@ namespace Client.Playtest.Operations
         {
             // 領域上の実ホイールで枠外要素を表示
             // Use real wheel input over the scroll area to reveal clipped elements
-            var scrollArea = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, scrollAreaTestid, timeoutSeconds);
-            await SemanticInput.MouseGlideTo(scrollArea.ScreenRect.center, MouseGlideSeconds);
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var scrollArea = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, scrollAreaTestid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+            await SemanticInput.MouseGlideTo(scrollArea.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
             var lastStatus = UiElementLookupStatus.NotFound;
             while (Time.realtimeSinceStartup <= deadline)
             {
-                var target = await FindUi(testid);
+                var target = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+                lastStatus = target.Status;
+                if (Time.realtimeSinceStartup >= deadline) break;
                 UiElementScreenPointResolver.ThrowIfAmbiguous(target);
                 if (UiElementScreenPointResolver.IsClickable(target)) return;
                 lastStatus = target.Status;
+                UiElementScreenPointResolver.RemainingSeconds(deadline, testid);
                 SemanticInput.MouseWheel(-120f);
                 await UniTask.DelayFrame(5);
             }
@@ -97,8 +105,9 @@ namespace Client.Playtest.Operations
             UiElementSnapshot last = null;
             while (Time.realtimeSinceStartup <= deadline)
             {
-                var snapshot = await FindUi(testid);
+                var snapshot = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
                 last = snapshot;
+                if (Time.realtimeSinceStartup >= deadline) break;
                 switch (snapshot.Status)
                 {
                     case UiElementLookupStatus.Found:
@@ -124,35 +133,9 @@ namespace Client.Playtest.Operations
             await SetText(testid, text, ActionTimeoutSeconds);
         }
 
-        public static async UniTask SetText(string testid, string text, float timeoutSeconds)
+        public static UniTask SetText(string testid, string text, float timeoutSeconds)
         {
-            // 欄の出現・有効化を期限内で待ち、置き換えた値が保たれたら完了とする
-            // Wait for the field to appear and enable, completing once the replaced value holds
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
-            var lastStatus = UiSetTextStatus.NotFound;
-            while (Time.realtimeSinceStartup <= deadline)
-            {
-                var result = await PlaytestUiLocatorSession.Locator.SetText(testid, text);
-                if (result.Status == UiSetTextStatus.Applied)
-                {
-                    Debug.Log($"[PlaytestUi] {testid} text set by {result.Renderer}");
-                    return;
-                }
-                if (IsPermanentFailure(result.Status))
-                    throw new InvalidOperationException($"UI text input rejected ({result.Status}, actual '{result.ActualValue}'): {testid}");
-                lastStatus = result.Status;
-                await UniTask.DelayFrame(2);
-            }
-            throw new TimeoutException($"UI text input did not apply (last: {lastStatus}): {testid}");
-
-            #region Internal
-
-            bool IsPermanentFailure(UiSetTextStatus status)
-            {
-                return status == UiSetTextStatus.NotTextField || status == UiSetTextStatus.ValueMismatch || status == UiSetTextStatus.Ambiguous;
-            }
-
-            #endregion
+            return PlaytestTextInputOps.SetText(testid, text, timeoutSeconds);
         }
 
         private static void LogResolved(UiElementSnapshot snapshot)

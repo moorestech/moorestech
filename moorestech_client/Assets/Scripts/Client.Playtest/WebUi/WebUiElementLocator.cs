@@ -1,3 +1,5 @@
+using System;
+using Client.WebUiHost.Cef;
 using Client.Playtest.UiElements;
 using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
@@ -46,20 +48,22 @@ namespace Client.Playtest.WebUi
 
         public bool IsAvailable()
         {
-            return CefScreenMapper.IsWebUiAvailable() && TryGetRegisteredHub(out _);
+            return CefScreenMapper.IsWebUiAvailable() && TryGetRegisteredHub(out var hub) && WebUiCefConnection.TryGetConnection(hub, out _);
         }
 
-        public async UniTask<UiElementSnapshot> Find(string testid)
+        public async UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
             if (!TryGetRegisteredHub(out var hub)) return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
-            var response = await _domQuery.Query(hub, testid, ResponseTimeoutSeconds);
+            var response = await _domQuery.Query(hub, testid, Mathf.Min(ResponseTimeoutSeconds, remainingSeconds));
+            if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
             if (!response.HasResponse)
             {
                 // 応答なしを「見つからない」と区別できるよう理由を残す
                 // Leave the reason so no-answer is distinguishable from not-found
-                Debug.LogWarning($"[PlaytestUi] Web UI gave no lookup answer (timeout {ResponseTimeoutSeconds}s or session stopped): {testid}");
+                Debug.LogWarning($"[PlaytestUi] Web UI gave no lookup answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
                 return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
             }
+            if (response.Result.MatchCount > 1) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
             if (!response.Result.Found) return UiElementSnapshot.NotFound(testid, UiRenderer.Web);
 
             // CSS pxの矩形をdevicePixelRatioでCEFブラウザpxへ換算してから画面へ写す
@@ -70,8 +74,7 @@ namespace Client.Playtest.WebUi
             if (!IsFinite(browserRect.xMin) || !IsFinite(browserRect.yMin) ||
                 !IsFinite(browserRect.xMax) || !IsFinite(browserRect.yMax))
             {
-                Debug.LogWarning($"[PlaytestUi] Web element '{testid}' has a rect outside finite browser coordinates");
-                return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
+                throw new InvalidOperationException($"Invalid Web response for {testid}: rect outside finite browser coordinates");
             }
             if (!CefScreenMapper.TryBrowserRectToScreenRect(browserRect, out var screenRect))
             {
@@ -97,30 +100,23 @@ namespace Client.Playtest.WebUi
             #endregion
         }
 
-        public async UniTask<UiSetTextResult> SetText(string testid, string text)
+        public async UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds)
         {
             if (!TryGetRegisteredHub(out var hub)) return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
-            var response = await _domSetText.Request(hub, testid, text, ResponseTimeoutSeconds);
+            var response = await _domSetText.Request(hub, testid, text, Mathf.Min(ResponseTimeoutSeconds, remainingSeconds));
+            if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
             if (!response.HasResponse)
             {
-                Debug.LogWarning($"[PlaytestUi] Web UI gave no text-input answer (timeout {ResponseTimeoutSeconds}s or session stopped): {testid}");
+                Debug.LogWarning($"[PlaytestUi] Web UI gave no text-input answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
                 return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
             }
-            WarnDuplicate(testid, response.Result.MatchCount);
             return new UiSetTextResult(response.Result.Status, UiRenderer.Web, response.Result.ActualValue);
         }
 
         internal static UiElementSnapshot ToSnapshot(string testid, DomQueryResult result, Rect screenRect)
         {
-            WarnDuplicate(testid, result.MatchCount);
+            if (result.MatchCount > 1) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
             return UiElementSnapshot.Found(testid, UiRenderer.Web, result.Visible, result.HitTestPassed, screenRect, result.Text, result.StateFlags);
-        }
-
-        private static void WarnDuplicate(string testid, int matchCount)
-        {
-            // 段階0のWeb版は先頭一致を保ち、重複は警告だけにする（改名前と合否を変えないため）
-            // Stage-0 Web keeps first-match semantics and only warns on duplicates so pass/fail stays as before
-            if (1 < matchCount) Debug.LogWarning($"[PlaytestUi] testid '{testid}' matched {matchCount} Web elements; using the first");
         }
 
         private bool TryGetRegisteredHub(out WebSocketHub hub)
@@ -145,8 +141,8 @@ namespace Client.Playtest.WebUi
             // Open receivers and input when Hub and CEF appear after session start
             if (_sessionActive && hub != null && !ReferenceEquals(hub, _registeredHub))
             {
-                hub.RegisterAction(_domQuery.ResultHandler);
-                hub.RegisterAction(_domSetText.ResultHandler);
+                hub.ConnectionActions.Register(_domQuery.ResultHandler);
+                hub.ConnectionActions.Register(_domSetText.ResultHandler);
                 _registeredHub = hub;
             }
             if (_sessionActive && CefScreenMapper.IsWebUiAvailable()) CefInputForwarder.StartForwarding();

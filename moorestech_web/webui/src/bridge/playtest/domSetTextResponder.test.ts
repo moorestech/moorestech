@@ -143,6 +143,20 @@ describe("プレイテストの文字入力", () => {
     expect(payload).toMatchObject({ status: "notTextField" });
   });
 
+  it("重複testidではどの欄も書き換えずambiguousを返す", async () => {
+    const inputs = ["first", "second"].map((value) => {
+      const input = document.createElement("input");
+      input.dataset.testid = "desc";
+      input.value = value;
+      document.body.append(input);
+      vi.spyOn(input, "getBoundingClientRect").mockReturnValue(new DOMRect(10, 10, 100, 20));
+      return input;
+    });
+    const [, payload] = await setText("desc", "requested");
+    expect(payload).toMatchObject({ status: "ambiguous", matchCount: 2 });
+    expect(inputs.map((input) => input.value)).toEqual(["first", "second"]);
+  });
+
   it("見つからなければnotFound", async () => {
     const [, payload] = await setText("missing", "x");
     expect(payload).toMatchObject({ status: "notFound", matchCount: 0, actualValue: "" });

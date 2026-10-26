@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は moores-subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** プレイテストDSLのWeb UI操作を `IUiElementLocator`（照会・文字入力）の背後へ移し、`ClickWebUi` 系を `ClickUi` 系へ一度に改名して、段階1でUITK版ロケータを interface 変更なしに差し込める形にする。
+**Goal:** プレイテストDSLのWeb UI操作を `IUiElementLocator`（照会・文字入力）の背後へ移し、`ClickWebUi` 系を `ClickUi` 系へ一度に改名して、段階1でUITK版ロケータをD17の残予算付きinterfaceに差し込める形にする。
 
 **Architecture:** `Client.Playtest/UiElements/` に描画系非依存の型（interface・照会結果・文字入力結果・セッション）を置き、`Client.Playtest/WebUi/` に Web 版の実装（既存の DOM 照会 WS 往復に、状態フラグ・一致件数と、新設の文字入力 WS 往復を足したもの）を閉じ込める。DSL の操作（`PlaytestUiElementOps`）とシナリオは interface だけを見る。Web 側は `bridge/playtest/` に文字入力の応答器を足し、DOM 照会の応答に `matchCount`・`stateFlags` を足す。
 
@@ -10,7 +10,7 @@
 
 ## Requirements
 
-1. `IUiElementLocator` を新設し、`Find(testid)`（可視・クリック可否・画面矩形・文字列・状態フラグを返す1回照会）と `SetText(testid, text)` と `IsAvailable()` を持つ。受け入れ: Task 3 の NUnit が通り、`PlaytestUiElementOps` とシナリオが interface 経由でだけ照会している（`grep -rn 'PlaytestDomQuery\|CefScreenMapper\|CefInputForwarder' .agents/skills/unity-playmode-recorded-playtest moorestech_client/Assets/Scripts/Client.Playtest/Operations` が0件）
+1. `IUiElementLocator` を新設し、`Find(testid, remainingSeconds)`（可視・クリック可否・画面矩形・文字列・状態フラグを返す1回照会）と `SetText(testid, text, remainingSeconds)` と `IsAvailable()` を持つ。受け入れ: Task 3 の NUnit が通り、`PlaytestUiElementOps` とシナリオが interface 経由でだけ照会している（`grep -rn 'PlaytestDomQuery\|CefScreenMapper\|CefInputForwarder' .agents/skills/unity-playmode-recorded-playtest moorestech_client/Assets/Scripts/Client.Playtest/Operations` が0件）
 2. この段で作るロケータ実装は Web 版だけ。受け入れ: `IUiElementLocator` の実装クラスが `WebUiElementLocator` 1つ
 3. Web 版 `SetText` は対象の `input`/`textarea` の値をネイティブ setter で置き換えて `input` イベントを流す（IME を通さない。段階1の UITK 版が `TextField.value` を設定して ChangeEvent を流すのと同じ意味）。受け入れ: vitest で React の制御 textarea の state が更新される／`pause-menu-hierarchy` と `developer-report-delivery` が `p.SetText` で説明文を入れて改名前と同じ合否になる
 4. 状態フラグを抽象化する。Web は `data-testid` 以外の `data-*` 属性のうち値が空か `"true"` のものの名前（`data-selected="true"` → `selected`）。受け入れ: vitest と NUnit で `HasStateFlag("selected")` が真になる
@@ -18,12 +18,12 @@
 6. シナリオ内の `PlaytestDomQuery`・`DomQueryResult`・`CefScreenMapper`・`CefInputForwarder` の直接呼び出しを、ロケータの照会 API（`PlaytestUiElementOps.FindUi`・`p.SetText`・`PlaytestUiLocatorSession`）へ置き換える。`PlaytestDomQuery`・`CefScreenMapper`・`CefInputForwarder` は `internal` にして、シナリオから見えなくする
 7. 改名・置換した 37 本のうち、壊れている 7 本を除く 30 本の合否が、改名前（この worktree の未変更 HEAD＝origin/master `e855a58667`）と同じ。照会 API へ置き換える 18 本は 1 本ずつ置換→実行→突き合わせる。受け入れ: `docs/uitk-migration/stage0-dsl-parity.md` の表で全 30 行が「一致」
 8. スキル文書 `write-scenario.md`・`input-injection.md`・`place-blocks-via-ui.md`・`run-scenario.md`（`.agents/skills/unity-playmode-recorded-playtest/references/`）を同じ PR で新 API に直す
-9. 計画 §4.4 の UITK 版手順（`Query(name:…)` 列挙で 0 件再試行・2 件以上失敗、`resolvedStyle`＋`worldBound` の可視判定、`panel.Pick` の被覆判定、両系で同じ testid が見つかったら失敗）を、段階1で interface を変えずに足せる。受け入れ: Requirements 9 の対応表（「段階1の差し込み点」節）の各手順が既存の型のどのメンバーで表せるかが書けている
+9. 計画 §4.4 の UITK 版手順（`Query(name:…)` 列挙で 0 件再試行・2 件以上失敗、`resolvedStyle`＋`worldBound` の可視判定、`panel.Pick` の被覆判定、両系で同じ testid が見つかったら失敗）を、段階1でD17の必須残予算を持つinterfaceを変えずに足せる。受け入れ: Requirements 9 の対応表（「段階1の差し込み点」節）の各手順が既存の型のどのメンバーで表せるかが書けている
 10. PR 本文に「#1348（`feature/belt-conveyor-replace-impl`）のシナリオ `belt-replace-tier-via-ui.cs` と `input-injection.md`・`PlaytestDriver.cs`・`PlaytestRunner.cs` に改名の追従が要る」と書く
 
 **やらないこと**
 - UITK 版ロケータ・両系照合の合成ロケータ（段階1）
-- Web UI の機能変更（`features/` 配下は触らない。触るのは `bridge/playtest/`・`bridge/transport/protocol.ts` の topic 1 行・`main.tsx` の初期化 1 行だけ）
+- Web UI の機能変更（`features/` 配下は触らない。接続元識別のため `bridge/transport/webSocketClient.ts` も変更する。D20参照）
 - シナリオの操作手順の変更（置換は同じ意味の API への付け替えだけ。説明文入力の `SendCharEvent` ループ→`p.SetText` は付け替えとして扱う。判断記録 D5）
 - 壊れている 10 本（bd `moorestech-wwxy` 本文 8 本＋NOTES 2 本）の修理。うち改名対象に入る 7 本は文字列置換だけ行い、合否の突き合わせから外す
 - `HideDeadCefOverlay`（`CefUnity.Runtime` 直参照の vein-terrain 4 本）と `Client.Input.WebUiInputExclusivity` の参照（DSL の外。段階1以降）
@@ -41,7 +41,7 @@
 - .meta は手で作らない（`git mv` した .cs の .meta は一緒に `git mv` する。新規 .cs の .meta は Unity が作ったものをコミットする）
 - Unity Editor の予算: Mac mini の同時 Editor は全セッション合計 2 本まで。起動前に `moores-wt status` で本数を確かめ、2 本以上なら Editor の要らないタスク（Task 2・Task 6 の文書）を先に進める
 - Web UI を PlayMode で動かす前に `cd moorestech_web/webui && pnpm install --frozen-lockfile`（node_modules を別 checkout から複製しない）。Editor の Web UI は Vite dev server で配信されるので、`bridge/playtest/` の変更はビルド不要で PlayMode に載る
-- 他レーンの持ち物（`Client.RemoteExec`・`WebUiEndpoints.cs`・`InitializeScenePipeline.cs`・`Client.WebUiHost` の topic 状態部分・`WebUiGameBinder`・`WebUiStartup.cs`・`UIStateControl`・`docs/uitk/`・`docs/webui/MIGRATION.md`）には触らない。触る必要が出たら `bd note moorestech-albof.6` に書いてマージで解く
+- D20のCEF接続登録/単送に必要なHost経路は変更し、stage0の受信分割を保持する。それ以外の他レーンの持ち物（`Client.RemoteExec`・`WebUiEndpoints.cs`・`InitializeScenePipeline.cs`・`Client.WebUiHost` の topic 状態部分・`WebUiGameBinder`・`WebUiStartup.cs`・`UIStateControl`・`docs/uitk/`・`docs/webui/MIGRATION.md`）には触らない。触る必要が出たら `bd note moorestech-albof.6` に書いてマージで解く
 - Steam・Discord など外へ出す操作はしない
 
 **改名表（旧名は残さない）**
@@ -65,7 +65,7 @@
 
 | 旧（シナリオ内） | 新 |
 |---|---|
-| `PlaytestDomQuery.Query(id, t)`（`Client.Playtest.WebUi.` 修飾付きも） | `PlaytestUiElementOps.FindUi(id)`（応答待ちの上限は Web 版内部の 3 秒。判断記録 D4） |
+| `PlaytestDomQuery.Query(id, t)`（`Client.Playtest.WebUi.` 修飾付きも） | `PlaytestUiElementOps.FindUi(id)`（操作残予算とWeb内部3秒の小さい方。判断記録D17） |
 | `DomQueryResult`（型名） | `UiElementSnapshot`（`using Client.Playtest.UiElements;` を足す） |
 | `.Found` | `.IsFound` |
 | `.Visible` | `.Visible` |
@@ -679,7 +679,7 @@ git commit -m "feat(webui-playtest): DOM照会に状態フラグと一致件数�
 **Interfaces:**
 - Consumes: Task 2 の wire 契約（`matchCount`・`stateFlags`・`playtest.dom_set_text`・`playtest.dom_set_text_result`）
 - Produces（Task 4・5 が使う）:
-  - `public interface IUiElementLocator { bool IsAvailable(); UniTask<UiElementSnapshot> Find(string testid); UniTask<UiSetTextResult> SetText(string testid, string text); }`（namespace `Client.Playtest.UiElements`）
+  - `public interface IUiElementLocator { bool IsAvailable(); UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds); UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds); }`（namespace `Client.Playtest.UiElements`）
   - `public class UiElementSnapshot`（readonly フィールド `Testid`・`Status`・`Renderer`・`Visible`・`Clickable`・`ScreenRect`・`Text`・`StateFlags`、`bool IsFound`、`bool HasStateFlag(string)`、static `Found(...)`・`NotFound(string, UiRenderer)`・`Ambiguous(string, UiRenderer)`・`Unavailable(string, UiRenderer)`）
   - `public enum UiElementLookupStatus { Found, NotFound, Ambiguous, RendererUnavailable }`
   - `public enum UiRenderer { Web }`
@@ -697,10 +697,14 @@ using Cysharp.Threading.Tasks;
 namespace Client.Playtest.UiElements
 {
     /// <summary>
-    ///     testidでUI要素を照会し文字を入れる、描画系に依存しない窓口
-    ///     Web版（CEF）を段階0で、UITK版と両系照合の合成を段階1で同じinterfaceに実装する
-    ///     Renderer-independent gateway that looks up UI elements by testid and enters text
-    ///     Web (CEF) is implemented in stage 0; UITK and the both-renderer composite implement the same interface in stage 1
+    ///     ・描画系非依存の窓口
+    ///     ・testid照会と文字入力
+    ///     ・段階0はWeb版
+    ///     ・段階1はUITK版と両系合成
+    ///     ・Renderer-independent gateway
+    ///     ・Lookup by testid and text input
+    ///     ・Stage 0 implements Web
+    ///     ・Stage 1 implements UITK and the both-renderer composite
     /// </summary>
     public interface IUiElementLocator
     {
@@ -710,11 +714,11 @@ namespace Client.Playtest.UiElements
 
         // 1回だけ照会する。待ち・再試行は呼び出し側が持つ
         // Look up once; waiting and retries belong to the caller
-        UniTask<UiElementSnapshot> Find(string testid);
+        UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds);
 
         // テキスト欄の値を置き換えて変更イベントを流す。IMEは通さない
         // Replace a text field's value and raise its change event without IME
-        UniTask<UiSetTextResult> SetText(string testid, string text);
+        UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds);
     }
 }
 ```
@@ -885,25 +889,32 @@ namespace Client.Playtest.UiElements
 `UiElements/PlaytestUiLocatorSession.cs`:
 
 ```csharp
+using System;
 using Client.Playtest.WebUi;
 
 namespace Client.Playtest.UiElements
 {
     /// <summary>
-    ///     シナリオが使うロケータを1か所で持ち、照会の受け口と入力転送を開閉する
-    ///     Holds the locator used by scenarios in one place and opens/closes query receivers and input forwarding
+    ///     ・シナリオ共通のロケータ保持
+    ///     ・照会受け口と入力転送の開閉
+    ///     ・Shared locator for scenarios
+    ///     ・Query receiver and input forwarding lifecycle
     /// </summary>
     public static class PlaytestUiLocatorSession
     {
         private static readonly WebUiElementLocator WebLocator = new();
-        // 段階1でUITK版と両系照合の合成へ差し替える
-        // Replaced by the UITK + both-renderer composite in stage 1
+        private static int _generation;
+        private static bool _active;
+        // 段階1はUITK版と両系合成に交換
+        // Replace with UITK and the both-renderer composite in stage 1
         public static readonly IUiElementLocator Locator = WebLocator;
 
         // 冪等。PlaytestRunnerとRun前のprobeの両方から呼ばれる
         // Idempotent; called from both PlaytestRunner and pre-Run probes
         public static void Start()
         {
+            if (!_active) _generation++;
+            _active = true;
             WebLocator.StartSession();
         }
 
@@ -911,7 +922,21 @@ namespace Client.Playtest.UiElements
         // Stop forwarding and discard pending responses regardless of outcome
         public static void Stop()
         {
+            _active = false;
             WebLocator.StopSession();
+        }
+        // 開始した実行だけに再送を許す
+        // Permit retries only from the execution that started the operation
+        internal static int CaptureGeneration()
+        {
+            RequireGeneration(_generation);
+            return _generation;
+        }
+
+        internal static void RequireGeneration(int generation)
+        {
+            if (!_active || generation != _generation)
+                throw new InvalidOperationException("UI operation belongs to a stopped session");
         }
     }
 }
@@ -925,80 +950,108 @@ namespace Client.Playtest.UiElements
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Client.WebUiHost.Boot;
+using Client.WebUiHost.Cef;
 using UnityEngine;
 
 namespace Client.Playtest.WebUi
 {
-    /// <summary>
-    ///     Web UIへの要求をrequestIdで保留し、action応答で解決する
-    ///     Holds Web UI requests by requestId and resolves them from action responses
-    /// </summary>
+    internal enum WebUiResponseState { Pending, Responded, Rejected, TimedOut, Stopped }
+
+    // 要求の終端状態と拒否理由を保持する
+    // Preserve terminal request state and its rejection reason
+    internal readonly struct WebUiChannelResponse<TResult> where TResult : class
+    {
+        public readonly WebUiResponseState State;
+        public readonly TResult Result;
+        public readonly string Reason;
+        public bool HasResponse => State == WebUiResponseState.Responded;
+
+        public WebUiChannelResponse(WebUiResponseState state, TResult result, string reason)
+        {
+            State = state;
+            Result = result;
+            Reason = reason;
+        }
+    }
+
     internal class PlaytestWebUiRequestChannel<TResult> where TResult : class
     {
-        private readonly Dictionary<string, TResult> _pending = new();
+        private readonly Dictionary<string, PendingRequest> _pending = new();
 
-        public string Open()
+        public string Open(Guid connectionId, WebSocketHub hub)
         {
-            // 配信前に保留登録し、即時応答も取りこぼさない
-            // Register as pending before publishing so even an immediate response is retained
             var requestId = Guid.NewGuid().ToString();
-            _pending[requestId] = null;
+            _pending.Add(requestId, new PendingRequest(connectionId, hub));
             return requestId;
+        }
+
+        // payloadの内容を拒否する前に実際の接続元を照合する
+        // Check the actual sender before rejecting any payload contents
+        public bool Accepts(string requestId, Guid connectionId)
+        {
+            if (_pending.TryGetValue(requestId, out var pending) && pending.ConnectionId == connectionId &&
+                pending.Response.State == WebUiResponseState.Pending && pending.IsCurrentConnection()) return true;
+            Debug.LogWarning($"[PlaytestUi] Rejected response from unrelated connection or completed request: {requestId}");
+            return false;
         }
 
         public void Resolve(string requestId, TResult result)
         {
-            // タイムアウト済みの遅延応答は捨て、待機中のrequestIdだけを解決する
-            // Drop late responses after timeout and resolve only requestIds still pending
-            if (_pending.ContainsKey(requestId)) _pending[requestId] = result;
+            _pending[requestId].Response = new WebUiChannelResponse<TResult>(WebUiResponseState.Responded, result, string.Empty);
+        }
+
+        public void Reject(string requestId, string reason)
+        {
+            _pending[requestId].Response = new WebUiChannelResponse<TResult>(WebUiResponseState.Rejected, null, reason);
         }
 
         public async UniTask<WebUiChannelResponse<TResult>> Await(string requestId, float timeoutSeconds)
         {
-            // 応答をフレーム単位で待ち、期限切れは応答なしとして返す
-            // Poll per frame and report no response once the deadline passes
-            var startedAt = Time.realtimeSinceStartup;
-            while (Time.realtimeSinceStartup - startedAt <= timeoutSeconds)
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            while (Time.realtimeSinceStartup < deadline)
             {
-                // Resetで保留が消えたら、待ち続けず応答なしとして返す
-                // When Reset dropped the pending entry, stop waiting and report no response
-                if (!_pending.TryGetValue(requestId, out var result)) return WebUiChannelResponse<TResult>.TimedOut();
-                if (result != null)
+                // 停止と無応答を区別し、応答済み状態は一度だけ取り出す
+                // Distinguish stopped sessions from silence and consume a terminal result once
+                if (!_pending.TryGetValue(requestId, out var pending))
+                    return new WebUiChannelResponse<TResult>(WebUiResponseState.Stopped, null, "UI session stopped");
+                if (!pending.IsCurrentConnection())
                 {
                     _pending.Remove(requestId);
-                    return WebUiChannelResponse<TResult>.Responded(result);
+                    return new WebUiChannelResponse<TResult>(WebUiResponseState.Stopped, null, "CEF connection changed or disconnected");
+                }
+                if (pending.Response.State != WebUiResponseState.Pending)
+                {
+                    _pending.Remove(requestId);
+                    return pending.Response;
                 }
                 await UniTask.Yield();
             }
             _pending.Remove(requestId);
-            return WebUiChannelResponse<TResult>.TimedOut();
+            return new WebUiChannelResponse<TResult>(WebUiResponseState.TimedOut, null, "Web response deadline expired");
         }
 
-        public void Reset()
-        {
-            _pending.Clear();
-        }
-    }
+        public void Stop(string requestId) => _pending.Remove(requestId);
 
-    internal readonly struct WebUiChannelResponse<TResult> where TResult : class
-    {
-        public readonly bool HasResponse;
-        public readonly TResult Result;
+        public void Reset() => _pending.Clear();
 
-        private WebUiChannelResponse(bool hasResponse, TResult result)
+        private sealed class PendingRequest
         {
-            HasResponse = hasResponse;
-            Result = result;
-        }
+            public readonly Guid ConnectionId;
+            private readonly WebSocketHub _hub;
+            public WebUiChannelResponse<TResult> Response;
 
-        public static WebUiChannelResponse<TResult> Responded(TResult result)
-        {
-            return new WebUiChannelResponse<TResult>(true, result);
-        }
+            public PendingRequest(Guid connectionId, WebSocketHub hub)
+            {
+                ConnectionId = connectionId;
+                _hub = hub;
+                Response = new WebUiChannelResponse<TResult>(WebUiResponseState.Pending, null, string.Empty);
+            }
 
-        public static WebUiChannelResponse<TResult> TimedOut()
-        {
-            return new WebUiChannelResponse<TResult>(false, null);
+            public bool IsCurrentConnection()
+            {
+                return WebUiCefConnection.TryGetConnection(_hub, out var current) && current == ConnectionId;
+            }
         }
     }
 }
@@ -1008,13 +1061,16 @@ namespace Client.Playtest.WebUi
 
 ```csharp
 using System.Collections.Generic;
+using System.Globalization;
 using Newtonsoft.Json.Linq;
 
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     Web UIから届くaction payload（外部入力）を型ごとに読む
-    ///     Reads action payloads arriving from the Web UI (external input) field by field
+    ///     ・Web外部入力の読取り
+    ///     ・actionの値を型別に検証
+    ///     ・Read external Web input
+    ///     ・Validate action values by type
     /// </summary>
     internal static class WebUiPayloadReader
     {
@@ -1044,16 +1100,22 @@ namespace Client.Playtest.WebUi
             value = 0f;
             var token = payload?[name];
             if (token?.Type != JTokenType.Float && token?.Type != JTokenType.Integer) return false;
-            value = (float)token;
-            return !float.IsNaN(value) && !float.IsInfinity(value);
+            // JSON表現は現在のカルチャに左右されないので、数値parseにも同じカルチャを使う
+            // JSON formatting is culture-independent, so parse numbers with the matching culture
+            return float.TryParse(token.ToString(Newtonsoft.Json.Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out value) &&
+                   !float.IsNaN(value) && !float.IsInfinity(value);
         }
 
         public static bool TryReadNonNegativeInt(JObject payload, string name, out int value)
         {
             value = 0;
             if (payload?[name] is not JValue { Type: JTokenType.Integer } token) return false;
-            value = (int)token;
-            return 0 <= value;
+            // 外部JSONの整数はint範囲を超え得るため、変換例外を起こさず拒否する
+            // External JSON integers can exceed int range, so reject them without a conversion exception
+            if (!long.TryParse(token.ToString(Newtonsoft.Json.Formatting.None), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)) return false;
+            if (parsed < 0 || int.MaxValue < parsed) return false;
+            value = (int)parsed;
+            return true;
         }
 
         public static bool TryReadStringArray(JObject payload, string name, out string[] values)
@@ -1081,7 +1143,10 @@ namespace Client.Playtest.WebUi
 ```csharp
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Client.WebUiHost.Game.Actions;
+using System;
+using Client.WebUiHost.Boot.Transport;
+using Client.WebUiHost.Cef;
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Playtest.WebUi
@@ -1102,14 +1167,18 @@ namespace Client.Playtest.WebUi
     }
 
     /// <summary>
-    ///     Web UIへtestidのDOM矩形・文字列・状態フラグを問い合わせる
-    ///     Queries the Web UI for a testid's DOM rect, text, and state flags
+    ///     ・testidでWeb照会
+    ///     ・DOM矩形と文字列を取得
+    ///     ・状態フラグを取得
+    ///     ・Query Web by testid
+    ///     ・Read DOM rect and text
+    ///     ・Read state flags
     /// </summary>
     internal class PlaytestDomQuery
     {
         private const string QueryTopic = "playtest.dom_query";
         private readonly PlaytestWebUiRequestChannel<DomQueryResult> _channel = new();
-        public readonly IActionHandler ResultHandler;
+        public readonly IConnectionActionHandler ResultHandler;
 
         public PlaytestDomQuery()
         {
@@ -1118,8 +1187,18 @@ namespace Client.Playtest.WebUi
 
         public async UniTask<WebUiChannelResponse<DomQueryResult>> Query(WebSocketHub hub, string testid, float timeoutSeconds)
         {
-            var requestId = _channel.Open();
-            hub.Publish(QueryTopic, WebUiJson.Serialize(new DomQueryRequest { RequestId = requestId, Testid = testid }));
+            if (!WebUiCefConnection.TryGetConnection(hub, out var connectionId))
+            {
+                Debug.LogWarning("[PlaytestUi] No registered CEF connection");
+                return new WebUiChannelResponse<DomQueryResult>(WebUiResponseState.Stopped, null, "No registered CEF connection");
+            }
+            if (!(timeoutSeconds > 0f)) throw new TimeoutException("UI request deadline expired before delivery");
+            var requestId = _channel.Open(connectionId, hub);
+            if (!hub.PublishTo(connectionId, QueryTopic, WebUiJson.Serialize(new DomQueryRequest { RequestId = requestId, Testid = testid })))
+            {
+                _channel.Stop(requestId);
+                return new WebUiChannelResponse<DomQueryResult>(WebUiResponseState.Stopped, null, "CEF disconnected or not subscribed");
+            }
             return await _channel.Await(requestId, timeoutSeconds);
         }
 
@@ -1149,17 +1228,22 @@ namespace Client.Playtest.WebUi
 `WebUi/DomQueryResultActionHandler.cs`:
 
 ```csharp
+using System;
+using Client.WebUiHost.Boot.Transport;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     playtest.dom_query_result を検証して保留中の照会へ渡す
-    ///     Validates playtest.dom_query_result and hands it to the pending query
+    ///     ・DOM照会応答の検証
+    ///     ・保留中の照会へ転送
+    ///     ・Validate DOM query responses
+    ///     ・Forward to pending queries
     /// </summary>
-    internal class DomQueryResultActionHandler : IActionHandler
+    internal class DomQueryResultActionHandler : IConnectionActionHandler
     {
         private readonly PlaytestWebUiRequestChannel<DomQueryResult> _channel;
 
@@ -1170,12 +1254,18 @@ namespace Client.Playtest.WebUi
 
         public string ActionType => "playtest.dom_query_result";
 
-        public UniTask<ActionResult> ExecuteAsync(JObject payload)
+        public UniTask<ActionResult> ExecuteAsync(Guid connectionId, JObject payload)
         {
             // WS外部入力を型ごとに検証し、不正な応答を保留へ混入させない
             // Validate each externally sourced WS value before admitting it to pending
-            if (!WebUiPayloadReader.TryReadNonEmptyString(payload, "requestId", out var requestId) ||
-                !WebUiPayloadReader.TryReadBool(payload, "found", out var found) ||
+            if (!WebUiPayloadReader.TryReadNonEmptyString(payload, "requestId", out var requestId))
+            {
+                Debug.LogWarning("[PlaytestUi] Rejected response without requestId");
+                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+            }
+            if (!_channel.Accepts(requestId, connectionId))
+                return UniTask.FromResult(ActionResult.Fail("unrelated_response"));
+            if (!WebUiPayloadReader.TryReadBool(payload, "found", out var found) ||
                 !WebUiPayloadReader.TryReadBool(payload, "visible", out var visible) ||
                 !WebUiPayloadReader.TryReadFloat(payload, "x", out var x) ||
                 !WebUiPayloadReader.TryReadFloat(payload, "y", out var y) ||
@@ -1187,6 +1277,8 @@ namespace Client.Playtest.WebUi
                 !WebUiPayloadReader.TryReadNonNegativeInt(payload, "matchCount", out var matchCount) ||
                 !WebUiPayloadReader.TryReadStringArray(payload, "stateFlags", out var stateFlags))
             {
+                Debug.LogWarning("[PlaytestUi] Rejected malformed playtest.dom_query_result payload");
+                _channel.Reject(requestId, "Malformed or inconsistent DomQueryResult payload");
                 return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
             }
 
@@ -1206,7 +1298,12 @@ namespace Client.Playtest.WebUi
                 MatchCount = matchCount,
                 StateFlags = stateFlags,
             };
-            if (!PlaytestDomQuery.IsValidResult(result)) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+            if (!PlaytestDomQuery.IsValidResult(result))
+            {
+                Debug.LogWarning("[PlaytestUi] Rejected inconsistent playtest.dom_query_result payload");
+                _channel.Reject(requestId, "Malformed or inconsistent DomQueryResult payload");
+                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+            }
             _channel.Resolve(requestId, result);
             return UniTask.FromResult(ActionResult.Success());
         }
@@ -1220,7 +1317,10 @@ namespace Client.Playtest.WebUi
 using Client.Playtest.UiElements;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Client.WebUiHost.Game.Actions;
+using System;
+using Client.WebUiHost.Boot.Transport;
+using Client.WebUiHost.Cef;
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Playtest.WebUi
@@ -1240,7 +1340,7 @@ namespace Client.Playtest.WebUi
     {
         private const string SetTextTopic = "playtest.dom_set_text";
         private readonly PlaytestWebUiRequestChannel<DomSetTextResult> _channel = new();
-        public readonly IActionHandler ResultHandler;
+        public readonly IConnectionActionHandler ResultHandler;
 
         public PlaytestDomSetText()
         {
@@ -1249,8 +1349,18 @@ namespace Client.Playtest.WebUi
 
         public async UniTask<WebUiChannelResponse<DomSetTextResult>> Request(WebSocketHub hub, string testid, string text, float timeoutSeconds)
         {
-            var requestId = _channel.Open();
-            hub.Publish(SetTextTopic, WebUiJson.Serialize(new DomSetTextRequest { RequestId = requestId, Testid = testid, Text = text }));
+            if (!WebUiCefConnection.TryGetConnection(hub, out var connectionId))
+            {
+                Debug.LogWarning("[PlaytestUi] No registered CEF connection");
+                return new WebUiChannelResponse<DomSetTextResult>(WebUiResponseState.Stopped, null, "No registered CEF connection");
+            }
+            if (!(timeoutSeconds > 0f)) throw new TimeoutException("UI request deadline expired before delivery");
+            var requestId = _channel.Open(connectionId, hub);
+            if (!hub.PublishTo(connectionId, SetTextTopic, WebUiJson.Serialize(new DomSetTextRequest { RequestId = requestId, Testid = testid, Text = text })))
+            {
+                _channel.Stop(requestId);
+                return new WebUiChannelResponse<DomSetTextResult>(WebUiResponseState.Stopped, null, "CEF disconnected or not subscribed");
+            }
             return await _channel.Await(requestId, timeoutSeconds);
         }
 
@@ -1272,18 +1382,23 @@ namespace Client.Playtest.WebUi
 `WebUi/DomSetTextResultActionHandler.cs`:
 
 ```csharp
+using System;
+using Client.WebUiHost.Boot.Transport;
 using Client.Playtest.UiElements;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     playtest.dom_set_text_result を検証して保留中の文字入力へ渡す
-    ///     Validates playtest.dom_set_text_result and hands it to the pending text input
+    ///     ・文字入力応答の検証
+    ///     ・保留中の文字入力へ転送
+    ///     ・Validate text-input responses
+    ///     ・Forward to pending text-input requests
     /// </summary>
-    internal class DomSetTextResultActionHandler : IActionHandler
+    internal class DomSetTextResultActionHandler : IConnectionActionHandler
     {
         private readonly PlaytestWebUiRequestChannel<DomSetTextResult> _channel;
 
@@ -1294,34 +1409,54 @@ namespace Client.Playtest.WebUi
 
         public string ActionType => "playtest.dom_set_text_result";
 
-        public UniTask<ActionResult> ExecuteAsync(JObject payload)
+        public UniTask<ActionResult> ExecuteAsync(Guid connectionId, JObject payload)
         {
             // WS外部入力を型ごとに検証し、未知の状態語は契約不整合として拒否する
             // Validate external WS input and reject unknown status words as contract mismatches
-            if (!WebUiPayloadReader.TryReadNonEmptyString(payload, "requestId", out var requestId) ||
-                !WebUiPayloadReader.TryReadString(payload, "status", out var statusWord) ||
+            if (!WebUiPayloadReader.TryReadNonEmptyString(payload, "requestId", out var requestId))
+            {
+                Debug.LogWarning("[PlaytestUi] Rejected response without requestId");
+                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+            }
+            if (!_channel.Accepts(requestId, connectionId))
+                return UniTask.FromResult(ActionResult.Fail("unrelated_response"));
+            if (!WebUiPayloadReader.TryReadString(payload, "status", out var statusWord) ||
                 !TryParseStatus(statusWord, out var status) ||
                 !WebUiPayloadReader.TryReadNonNegativeInt(payload, "matchCount", out var matchCount) ||
                 !WebUiPayloadReader.TryReadString(payload, "actualValue", out var actualValue))
             {
+                Debug.LogWarning("[PlaytestUi] Rejected malformed playtest.dom_set_text_result payload");
+                _channel.Reject(requestId, "Malformed or inconsistent DomSetTextResult payload");
+                return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
+            }
+            if ((status == UiSetTextStatus.NotFound) != (matchCount == 0) ||
+                (status == UiSetTextStatus.Ambiguous) != (matchCount > 1))
+            {
+                Debug.LogWarning("[PlaytestUi] Rejected inconsistent playtest.dom_set_text_result match count");
+                _channel.Reject(requestId, "Malformed or inconsistent DomSetTextResult payload");
                 return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
             }
 
             _channel.Resolve(requestId, new DomSetTextResult { Status = status, MatchCount = matchCount, ActualValue = actualValue });
             return UniTask.FromResult(ActionResult.Success());
-        }
 
-        private static bool TryParseStatus(string word, out UiSetTextStatus status)
-        {
-            switch (word)
+            #region Internal
+
+            bool TryParseStatus(string word, out UiSetTextStatus status)
             {
-                case "applied": status = UiSetTextStatus.Applied; return true;
-                case "notFound": status = UiSetTextStatus.NotFound; return true;
-                case "notTextField": status = UiSetTextStatus.NotTextField; return true;
-                case "notInteractable": status = UiSetTextStatus.NotInteractable; return true;
-                case "valueMismatch": status = UiSetTextStatus.ValueMismatch; return true;
-                default: status = UiSetTextStatus.RendererUnavailable; return false;
+                switch (word)
+                {
+                    case "ambiguous": status = UiSetTextStatus.Ambiguous; return true;
+                    case "applied": status = UiSetTextStatus.Applied; return true;
+                    case "notFound": status = UiSetTextStatus.NotFound; return true;
+                    case "notTextField": status = UiSetTextStatus.NotTextField; return true;
+                    case "notInteractable": status = UiSetTextStatus.NotInteractable; return true;
+                    case "valueMismatch": status = UiSetTextStatus.ValueMismatch; return true;
+                    default: status = UiSetTextStatus.RendererUnavailable; return false;
+                }
             }
+
+            #endregion
         }
     }
 }
@@ -1380,6 +1515,8 @@ namespace Client.Playtest.WebUi
 `WebUi/WebUiElementLocator.cs`:
 
 ```csharp
+using System;
+using Client.WebUiHost.Cef;
 using Client.Playtest.UiElements;
 using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
@@ -1388,8 +1525,10 @@ using UnityEngine;
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     IUiElementLocatorのWeb（CEF）版。DOM照会と文字入力をWS往復で行う
-    ///     Web (CEF) implementation of IUiElementLocator; DOM lookups and text input go over WS round trips
+    ///     ・Web版ロケータ
+    ///     ・WS往復でDOM照会と文字入力
+    ///     ・Web locator implementation
+    ///     ・DOM lookup and text input over WS round trips
     /// </summary>
     internal class WebUiElementLocator : IUiElementLocator
     {
@@ -1399,30 +1538,26 @@ namespace Client.Playtest.WebUi
         private readonly PlaytestDomQuery _domQuery = new();
         private readonly PlaytestDomSetText _domSetText = new();
         private WebSocketHub _registeredHub;
+        private bool _sessionActive;
         private bool _warnedUnregistered;
 
         public void StartSession()
         {
-            // 前回実行の保留を捨て、同一Hubへの二重登録を避ける
-            // Discard pending requests from earlier runs and avoid double registration on the same hub
-            _domQuery.Reset();
-            _domSetText.Reset();
-            _warnedUnregistered = false;
-            var hub = global::Client.WebUiHost.Boot.WebUiHost.Hub;
-            if (hub != null && !ReferenceEquals(hub, _registeredHub))
+            // 有効なセッションの保留を保ち、新規開始時だけ初期化する
+            // Preserve active requests and reset only when starting a new session
+            if (!_sessionActive)
             {
-                hub.RegisterAction(_domQuery.ResultHandler);
-                hub.RegisterAction(_domSetText.ResultHandler);
-                _registeredHub = hub;
+                _domQuery.Reset();
+                _domSetText.Reset();
+                _warnedUnregistered = false;
+                _sessionActive = true;
             }
-
-            // CEFが使えるときだけInputSystemのマウスをCEFへ転送する
-            // Forward InputSystem mouse input to CEF only while CEF is available
-            if (CefScreenMapper.IsWebUiAvailable()) CefInputForwarder.StartForwarding();
+            EnsureSessionBindings();
         }
 
         public void StopSession()
         {
+            _sessionActive = false;
             CefInputForwarder.StopForwarding();
             _domQuery.Reset();
             _domSetText.Reset();
@@ -1430,20 +1565,22 @@ namespace Client.Playtest.WebUi
 
         public bool IsAvailable()
         {
-            return CefScreenMapper.IsWebUiAvailable();
+            return CefScreenMapper.IsWebUiAvailable() && TryGetRegisteredHub(out var hub) && WebUiCefConnection.TryGetConnection(hub, out _);
         }
 
-        public async UniTask<UiElementSnapshot> Find(string testid)
+        public async UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
             if (!TryGetRegisteredHub(out var hub)) return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
-            var response = await _domQuery.Query(hub, testid, ResponseTimeoutSeconds);
+            var response = await _domQuery.Query(hub, testid, Mathf.Min(ResponseTimeoutSeconds, remainingSeconds));
+            if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
             if (!response.HasResponse)
             {
                 // 応答なしを「見つからない」と区別できるよう理由を残す
                 // Leave the reason so no-answer is distinguishable from not-found
-                Debug.LogWarning($"[PlaytestUi] Web UI gave no lookup answer (timeout {ResponseTimeoutSeconds}s or session stopped): {testid}");
+                Debug.LogWarning($"[PlaytestUi] Web UI gave no lookup answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
                 return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
             }
+            if (response.Result.MatchCount > 1) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
             if (!response.Result.Found) return UiElementSnapshot.NotFound(testid, UiRenderer.Web);
 
             // CSS pxの矩形をdevicePixelRatioでCEFブラウザpxへ換算してから画面へ写す
@@ -1451,52 +1588,81 @@ namespace Client.Playtest.WebUi
             var result = response.Result;
             var ratio = result.DevicePixelRatio;
             var browserRect = new Rect(result.X * ratio, result.Y * ratio, result.Width * ratio, result.Height * ratio);
+            if (!IsFinite(browserRect.xMin) || !IsFinite(browserRect.yMin) ||
+                !IsFinite(browserRect.xMax) || !IsFinite(browserRect.yMax))
+            {
+                throw new InvalidOperationException($"Invalid Web response for {testid}: rect outside finite browser coordinates");
+            }
             if (!CefScreenMapper.TryBrowserRectToScreenRect(browserRect, out var screenRect))
             {
                 Debug.LogWarning($"[PlaytestUi] Web element '{testid}' was found but the CEF surface could not map its rect");
                 return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
             }
+            // 端の画面外写像は保ち、操作中心だけは描画面内に限定する
+            // Allow offscreen edges but require the interaction center to stay on the surface
+            if (result.HitTestPassed && !CefScreenMapper.TryBrowserToScreen(browserRect.center, out _))
+            {
+                Debug.LogWarning($"[PlaytestUi] Web element '{testid}' center is outside the CEF surface");
+                result.HitTestPassed = false;
+            }
             return ToSnapshot(testid, result, screenRect);
+
+            #region Internal
+
+            bool IsFinite(float value)
+            {
+                return !float.IsNaN(value) && !float.IsInfinity(value);
+            }
+
+            #endregion
         }
 
-        public async UniTask<UiSetTextResult> SetText(string testid, string text)
+        public async UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds)
         {
             if (!TryGetRegisteredHub(out var hub)) return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
-            var response = await _domSetText.Request(hub, testid, text, ResponseTimeoutSeconds);
+            var response = await _domSetText.Request(hub, testid, text, Mathf.Min(ResponseTimeoutSeconds, remainingSeconds));
+            if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
             if (!response.HasResponse)
             {
-                Debug.LogWarning($"[PlaytestUi] Web UI gave no text-input answer (timeout {ResponseTimeoutSeconds}s or session stopped): {testid}");
+                Debug.LogWarning($"[PlaytestUi] Web UI gave no text-input answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
                 return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
             }
-            WarnDuplicate(testid, response.Result.MatchCount);
             return new UiSetTextResult(response.Result.Status, UiRenderer.Web, response.Result.ActualValue);
         }
 
         internal static UiElementSnapshot ToSnapshot(string testid, DomQueryResult result, Rect screenRect)
         {
-            WarnDuplicate(testid, result.MatchCount);
+            if (result.MatchCount > 1) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
             return UiElementSnapshot.Found(testid, UiRenderer.Web, result.Visible, result.HitTestPassed, screenRect, result.Text, result.StateFlags);
-        }
-
-        private static void WarnDuplicate(string testid, int matchCount)
-        {
-            // 段階0のWeb版は先頭一致を保ち、重複は警告だけにする（改名前と合否を変えないため）
-            // Stage-0 Web keeps first-match semantics and only warns on duplicates so pass/fail stays as before
-            if (1 < matchCount) Debug.LogWarning($"[PlaytestUi] testid '{testid}' matched {matchCount} Web elements; using the first");
         }
 
         private bool TryGetRegisteredHub(out WebSocketHub hub)
         {
             // 受け口未登録で送ると期限まで応答を待つだけなので、即座に応答不能として返す
             // Sending without registered receivers only waits out the deadline, so report unavailable immediately
+            EnsureSessionBindings();
             hub = global::Client.WebUiHost.Boot.WebUiHost.Hub;
-            if (hub != null && ReferenceEquals(hub, _registeredHub)) return true;
+            if (_sessionActive && hub != null && ReferenceEquals(hub, _registeredHub)) return true;
             if (!_warnedUnregistered)
             {
                 Debug.LogWarning("[PlaytestUi] Web UI lookup skipped: no hub or receivers not registered on it (call PlaytestUiLocatorSession.Start)");
                 _warnedUnregistered = true;
             }
             return false;
+        }
+
+        private void EnsureSessionBindings()
+        {
+            var hub = global::Client.WebUiHost.Boot.WebUiHost.Hub;
+            // HubとCEFがセッション開始後に現れた場合も、その時点で受け口と入力を開く
+            // Open receivers and input when Hub and CEF appear after session start
+            if (_sessionActive && hub != null && !ReferenceEquals(hub, _registeredHub))
+            {
+                hub.ConnectionActions.Register(_domQuery.ResultHandler);
+                hub.ConnectionActions.Register(_domSetText.ResultHandler);
+                _registeredHub = hub;
+            }
+            if (_sessionActive && CefScreenMapper.IsWebUiAvailable()) CefInputForwarder.StartForwarding();
         }
     }
 }
@@ -1518,7 +1684,8 @@ namespace Client.Playtest.WebUi
 `Client.Tests/Playtest/PlaytestWebUiLocatorContractTest.cs`:
 
 ```csharp
-using System.Text.RegularExpressions;
+using Client.Tests.Playtest.UiMapping;
+using System.Globalization;
 using Client.Playtest.UiElements;
 using Client.Playtest.WebUi;
 using Newtonsoft.Json.Linq;
@@ -1533,11 +1700,12 @@ namespace Client.Tests.Playtest
         [Test]
         public void DomQueryResultWithFlagsResolvesPendingRequest()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
             var handler = new DomQueryResultActionHandler(channel);
-            var requestId = channel.Open();
+            var requestId = channel.Open(fixture.CefId, fixture.Hub);
 
-            var actionResult = handler.ExecuteAsync(QueryPayload(requestId, true, 1, new JArray("selected"))).GetAwaiter().GetResult();
+            var actionResult = handler.ExecuteAsync(fixture.CefId, QueryPayload(requestId, true, 1, new JArray("selected"))).GetAwaiter().GetResult();
             var response = channel.Await(requestId, 1f).GetAwaiter().GetResult();
 
             Assert.IsTrue(actionResult.Ok);
@@ -1549,11 +1717,13 @@ namespace Client.Tests.Playtest
         [Test]
         public void DomQueryResultWithoutStateFlagsIsRejected()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
-            var payload = QueryPayload(channel.Open(), true, 1, new JArray());
+            var payload = QueryPayload(channel.Open(fixture.CefId, fixture.Hub), true, 1, new JArray());
             payload.Remove("stateFlags");
 
-            var actionResult = new DomQueryResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
+            LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected malformed playtest.dom_query_result payload");
+            var actionResult = new DomQueryResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
 
             Assert.IsFalse(actionResult.Ok);
             Assert.AreEqual("invalid_payload", actionResult.Error);
@@ -1562,16 +1732,17 @@ namespace Client.Tests.Playtest
         [Test]
         public void FoundWithZeroMatchesIsRejected()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
-            var actionResult = new DomQueryResultActionHandler(channel).ExecuteAsync(QueryPayload(channel.Open(), true, 0, new JArray())).GetAwaiter().GetResult();
+            LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected inconsistent playtest.dom_query_result payload");
+            var actionResult = new DomQueryResultActionHandler(channel).ExecuteAsync(fixture.CefId, QueryPayload(channel.Open(fixture.CefId, fixture.Hub), true, 0, new JArray())).GetAwaiter().GetResult();
             Assert.IsFalse(actionResult.Ok);
         }
 
         [Test]
-        public void SnapshotCarriesFieldsAndWarnsOnDuplicates()
+        public void SnapshotCarriesFieldsForUniqueElement()
         {
-            var result = new DomQueryResult { Found = true, Visible = true, HitTestPassed = true, Text = "送信", MatchCount = 2, StateFlags = new[] { "selected" } };
-            LogAssert.Expect(LogType.Warning, new Regex("matched 2 Web elements"));
+            var result = new DomQueryResult { Found = true, Visible = true, HitTestPassed = true, Text = "送信", MatchCount = 1, StateFlags = new[] { "selected" } };
 
             var snapshot = WebUiElementLocator.ToSnapshot("bug-report-send", result, new Rect(10f, 20f, 30f, 40f));
 
@@ -1598,11 +1769,12 @@ namespace Client.Tests.Playtest
         [TestCase("valueMismatch", UiSetTextStatus.ValueMismatch)]
         public void SetTextResultMapsStatusWord(string word, UiSetTextStatus expected)
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomSetTextResult>();
-            var requestId = channel.Open();
+            var requestId = channel.Open(fixture.CefId, fixture.Hub);
             var payload = new JObject { ["requestId"] = requestId, ["status"] = word, ["matchCount"] = 1, ["actualValue"] = "abc" };
 
-            var actionResult = new DomSetTextResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
+            var actionResult = new DomSetTextResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
             var response = channel.Await(requestId, 1f).GetAwaiter().GetResult();
 
             Assert.IsTrue(actionResult.Ok);
@@ -1613,8 +1785,9 @@ namespace Client.Tests.Playtest
         [Test]
         public void AwaitStopsWaitingOnceReset()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
-            var requestId = channel.Open();
+            var requestId = channel.Open(fixture.CefId, fixture.Hub);
             channel.Reset();
 
             // Resetで保留が消えたら、期限を待たずに応答なしで返る
@@ -1627,10 +1800,59 @@ namespace Client.Tests.Playtest
         [Test]
         public void UnknownSetTextStatusIsRejected()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomSetTextResult>();
-            var payload = new JObject { ["requestId"] = channel.Open(), ["status"] = "typed", ["matchCount"] = 1, ["actualValue"] = "" };
-            var actionResult = new DomSetTextResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
+            var payload = new JObject { ["requestId"] = channel.Open(fixture.CefId, fixture.Hub), ["status"] = "typed", ["matchCount"] = 1, ["actualValue"] = "" };
+            LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected malformed playtest.dom_set_text_result payload");
+            var actionResult = new DomSetTextResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
             Assert.IsFalse(actionResult.Ok);
+        }
+
+        [Test]
+        public void OversizedMatchCountIsRejectedWithoutConversionException()
+        {
+            using var fixture = new PlaytestConnectionFixture();
+            var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
+            var payload = QueryPayload(channel.Open(fixture.CefId, fixture.Hub), true, 1, new JArray());
+            payload["matchCount"] = long.MaxValue;
+            LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected malformed playtest.dom_query_result payload");
+
+            var result = new DomQueryResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
+
+            Assert.IsFalse(result.Ok);
+        }
+
+        [TestCase("en-US")]
+        [TestCase("ja-JP")]
+        [TestCase("fr-FR")]
+        public void FloatingPayloadIsIndependentOfCurrentCulture(string cultureName)
+        {
+            var originalCulture = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+                var payload = new JObject { ["x"] = new JValue(1.5) };
+
+                Assert.IsTrue(WebUiPayloadReader.TryReadFloat(payload, "x", out var value));
+                Assert.AreEqual(1.5f, value);
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = originalCulture;
+            }
+        }
+
+        [Test]
+        public void AppliedWithZeroMatchesIsRejected()
+        {
+            using var fixture = new PlaytestConnectionFixture();
+            var channel = new PlaytestWebUiRequestChannel<DomSetTextResult>();
+            var payload = new JObject { ["requestId"] = channel.Open(fixture.CefId, fixture.Hub), ["status"] = "applied", ["matchCount"] = 0, ["actualValue"] = "abc" };
+            LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected inconsistent playtest.dom_set_text_result match count");
+
+            var result = new DomSetTextResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
+
+            Assert.IsFalse(result.Ok);
         }
 
         private static JObject QueryPayload(string requestId, bool found, int matchCount, JArray stateFlags)
@@ -1700,21 +1922,32 @@ namespace Client.Playtest.UiElements
             // Retry hidden, covered, or moving elements as transient until the deadline
             while (Time.realtimeSinceStartup <= deadline)
             {
-                var first = await locator.Find(testid);
-                ThrowIfAmbiguous(first);
+                var first = await locator.Find(testid, RemainingSeconds(deadline, testid));
                 lastStatus = first.Status;
+                if (Time.realtimeSinceStartup >= deadline) break;
+                ThrowIfAmbiguous(first);
                 if (IsClickable(first))
                 {
                     // 2フレーム後も同じ矩形ならレイアウトが落ち着いたとみなす
                     // Treat the layout as settled when the rect is unchanged two frames later
                     await UniTask.DelayFrame(2);
-                    var second = await locator.Find(testid);
+                    if (Time.realtimeSinceStartup >= deadline) break;
+                    var second = await locator.Find(testid, RemainingSeconds(deadline, testid));
+                    lastStatus = second.Status;
+                    if (Time.realtimeSinceStartup >= deadline) break;
                     ThrowIfAmbiguous(second);
                     if (IsClickable(second) && second.ScreenRect == first.ScreenRect) return second;
                 }
                 await UniTask.DelayFrame(2);
             }
             throw new TimeoutException($"UI element could not be resolved (last: {lastStatus}): {testid}");
+        }
+
+        internal static float RemainingSeconds(float deadline, string testid)
+        {
+            var remaining = deadline - Time.realtimeSinceStartup;
+            if (!(remaining > 0f)) throw new TimeoutException($"UI operation deadline expired: {testid}");
+            return remaining;
         }
 
         public static bool IsClickable(UiElementSnapshot snapshot)
@@ -1750,19 +1983,19 @@ using UnityEngine;
 namespace Client.Playtest.Operations
 {
     /// <summary>
-    ///     testidのUI要素をロケータで解決し、セマンティック入力で操作する（描画系に依存しない）
-    ///     Resolves testid UI elements through the locator and operates them with semantic input (renderer-independent)
+    ///     ・描画系非依存の要素解決
+    ///     ・セマンティック入力操作
+    ///     ・Renderer-independent element resolution
+    ///     ・Semantic input operations
     /// </summary>
     public static class PlaytestUiElementOps
     {
         private const float ActionTimeoutSeconds = 15f;
         private const float MouseGlideSeconds = 0.3f;
 
-        // PlaytestBuildMenuOps・Driver・シナリオでBlockGuid由来testid生成を共有し、契約の二重定義を防ぐ
-        // Share BlockGuid-derived testid generation across build-menu ops, the driver, and scenarios to prevent drift
         public static UniTask<UiElementSnapshot> FindUi(string testid)
         {
-            return PlaytestUiLocatorSession.Locator.Find(testid);
+            return PlaytestUiLocatorSession.Locator.Find(testid, ActionTimeoutSeconds);
         }
 
         public static async UniTask ClickUi(string testid)
@@ -1772,34 +2005,39 @@ namespace Client.Playtest.Operations
 
         public static async UniTask ClickUi(string testid, float timeoutSeconds)
         {
-            // 安定した要素中心へ移動し、実プレイヤーと同じマウス経路でクリックする
-            // Move to the settled element center and click through the same mouse path as a real player
-            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, timeoutSeconds);
+            // 安定中心へ実マウス経路でクリック
+            // Click the settled center through the real mouse path
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
             LogResolved(target);
-            await SemanticInput.MouseGlideTo(target.ScreenRect.center, MouseGlideSeconds);
+            await SemanticInput.MouseGlideTo(target.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
             await UniTask.DelayFrame(1);
+            UiElementScreenPointResolver.RemainingSeconds(deadline, testid);
             await SemanticInput.Click();
         }
 
         public static async UniTask HoverUi(string testid)
         {
-            // クリックと同じ安定性判定を通し、対象中心へのポインタ移動だけを行う
-            // Apply the same stability check as clicks, then only move the pointer to the target center
-            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, ActionTimeoutSeconds);
+            // クリック同様の安定中心へ移動のみ
+            // Only move to the center using the click stability check
+            var deadline = Time.realtimeSinceStartup + ActionTimeoutSeconds;
+            var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
             LogResolved(target);
-            await SemanticInput.MouseGlideTo(target.ScreenRect.center, MouseGlideSeconds);
+            await SemanticInput.MouseGlideTo(target.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
             await UniTask.DelayFrame(1);
         }
 
         public static async UniTask WaitUiElement(string testid, float timeoutSeconds)
         {
-            // 可視かつ中心が実際にヒットするまで照会を繰り返す
-            // Repeat lookups until the element is visible and its center genuinely hits
+            // 可視かつ中心ヒットまで再照会
+            // Repeat lookups until visible with a center hit
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
             var lastStatus = UiElementLookupStatus.NotFound;
             while (Time.realtimeSinceStartup <= deadline)
             {
-                var snapshot = await FindUi(testid);
+                var snapshot = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+                lastStatus = snapshot.Status;
+                if (Time.realtimeSinceStartup >= deadline) break;
                 UiElementScreenPointResolver.ThrowIfAmbiguous(snapshot);
                 if (UiElementScreenPointResolver.IsClickable(snapshot))
                 {
@@ -1814,18 +2052,21 @@ namespace Client.Playtest.Operations
 
         public static async UniTask ScrollDownUntilUiElementIsClickable(string testid, string scrollAreaTestid, float timeoutSeconds)
         {
-            // スクロール領域へポインタを置き、枠外のスロットを実際のホイール入力で表示領域へ送る
-            // Put the pointer on the scroll area and wheel clipped slots into view with real wheel input
-            var scrollArea = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, scrollAreaTestid, timeoutSeconds);
-            await SemanticInput.MouseGlideTo(scrollArea.ScreenRect.center, MouseGlideSeconds);
+            // 領域上の実ホイールで枠外要素を表示
+            // Use real wheel input over the scroll area to reveal clipped elements
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var scrollArea = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, scrollAreaTestid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+            await SemanticInput.MouseGlideTo(scrollArea.ScreenRect.center, Mathf.Min(MouseGlideSeconds, UiElementScreenPointResolver.RemainingSeconds(deadline, testid)));
             var lastStatus = UiElementLookupStatus.NotFound;
             while (Time.realtimeSinceStartup <= deadline)
             {
-                var target = await FindUi(testid);
+                var target = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+                lastStatus = target.Status;
+                if (Time.realtimeSinceStartup >= deadline) break;
                 UiElementScreenPointResolver.ThrowIfAmbiguous(target);
                 if (UiElementScreenPointResolver.IsClickable(target)) return;
                 lastStatus = target.Status;
+                UiElementScreenPointResolver.RemainingSeconds(deadline, testid);
                 SemanticInput.MouseWheel(-120f);
                 await UniTask.DelayFrame(5);
             }
@@ -1834,19 +2075,33 @@ namespace Client.Playtest.Operations
 
         public static async UniTask WaitUiTextContains(string testid, string expected, float timeoutSeconds)
         {
-            // 再描画を待ち、対象要素の実表示文字列を検証する
-            // Wait for re-rendering and verify the element's rendered text
+            // 再描画後の実表示文字列を検証
+            // Verify rendered text after re-rendering
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
-            var lastText = string.Empty;
+            UiElementSnapshot last = null;
             while (Time.realtimeSinceStartup <= deadline)
             {
-                var snapshot = await FindUi(testid);
-                UiElementScreenPointResolver.ThrowIfAmbiguous(snapshot);
-                if (snapshot.IsFound && snapshot.Visible && snapshot.Text.Contains(expected)) return;
-                lastText = snapshot.Text;
+                var snapshot = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+                last = snapshot;
+                if (Time.realtimeSinceStartup >= deadline) break;
+                switch (snapshot.Status)
+                {
+                    case UiElementLookupStatus.Found:
+                        if (snapshot.Visible && snapshot.Text.Contains(expected)) return;
+                        break;
+                    case UiElementLookupStatus.NotFound:
+                    case UiElementLookupStatus.RendererUnavailable:
+                        break; // silent-ok: 次の照会を待つ / 期限切れ例外に最終状態を記録する
+                    case UiElementLookupStatus.Ambiguous:
+                        UiElementScreenPointResolver.ThrowIfAmbiguous(snapshot);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unknown UI lookup status: {snapshot.Status}");
+                }
                 await UniTask.DelayFrame(2);
             }
-            throw new TimeoutException($"UI text did not contain '{expected}' (last: '{lastText}'): {testid}");
+            var lastDescription = last == null ? "no lookup completed" : $"{last.Status}, renderer: {last.Renderer}, visible: {last.Visible}, text: '{last.Text}'";
+            throw new TimeoutException($"UI text did not contain '{expected}' (last: {lastDescription}): {testid}");
         }
 
         public static async UniTask SetText(string testid, string text)
@@ -1854,35 +2109,9 @@ namespace Client.Playtest.Operations
             await SetText(testid, text, ActionTimeoutSeconds);
         }
 
-        public static async UniTask SetText(string testid, string text, float timeoutSeconds)
+        public static UniTask SetText(string testid, string text, float timeoutSeconds)
         {
-            // 欄の出現・有効化を期限内で待ち、置き換えた値が保たれたら完了とする
-            // Wait for the field to appear and enable, completing once the replaced value holds
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
-            var lastStatus = UiSetTextStatus.NotFound;
-            while (Time.realtimeSinceStartup <= deadline)
-            {
-                var result = await PlaytestUiLocatorSession.Locator.SetText(testid, text);
-                if (result.Status == UiSetTextStatus.Applied)
-                {
-                    Debug.Log($"[PlaytestUi] {testid} text set by {result.Renderer}");
-                    return;
-                }
-                if (IsPermanentFailure(result.Status))
-                    throw new InvalidOperationException($"UI text input rejected ({result.Status}, actual '{result.ActualValue}'): {testid}");
-                lastStatus = result.Status;
-                await UniTask.DelayFrame(2);
-            }
-            throw new TimeoutException($"UI text input did not apply (last: {lastStatus}): {testid}");
-
-            #region Internal
-
-            bool IsPermanentFailure(UiSetTextStatus status)
-            {
-                return status == UiSetTextStatus.NotTextField || status == UiSetTextStatus.ValueMismatch || status == UiSetTextStatus.Ambiguous;
-            }
-
-            #endregion
+            return PlaytestTextInputOps.SetText(testid, text, timeoutSeconds);
         }
 
         private static void LogResolved(UiElementSnapshot snapshot)
@@ -1914,8 +2143,12 @@ using UnityEngine;
 namespace Client.Playtest
 {
     /// <summary>
-    ///     PlaytestDriverの待機系操作の本体。待機中の表示とTimeline記録を伴う
-    ///     Bodies of PlaytestDriver's wait operations, with the waiting overlay and Timeline record
+    ///     ・待機操作の本体
+    ///     ・待機表示
+    ///     ・タイムライン記録
+    ///     ・Wait operation implementations
+    ///     ・Waiting overlay
+    ///     ・Timeline recording
     /// </summary>
     internal class PlaytestWaitActions
     {
@@ -2097,7 +2330,7 @@ grep -rnE 'ClickWebUi|HoverWebUi|UntilWebUiElement|CloseWebUiPanel|PlaytestWebUi
 
 - [ ] **Step 2: 改名だけの 12 本を流し、表を埋める**
 
-Task 5 では 1 本流すごとに、重複 testid の警告も数えて表の備考に `重複警告 N 件（testid: …）` と書く（挙動は変えない。D3 の実測。段階1で Web 版の扱いを見直す材料）:
+Task 5 では 1 本流すごとに、重複 testid の警告も数えて表の備考に `重複警告 N 件（testid: …）` と書く（D19により重複は拒否する。旧新の結果差があれば表へ明記する）:
 
 ```bash
 uloop get-logs --project-path ./moorestech_client --log-type Warning | grep -o "testid '[^']*' matched [0-9]* Web elements" | sort | uniq -c
@@ -2291,7 +2524,7 @@ git commit -m "docs(playtest-skill): DSLのUi系APIとロケータ・SetText・�
 - [ ] **Step 1:** pr-create スキルで PR を作る。本文に必ず入れるもの:
   - 合否突き合わせの集計と `docs/uitk-migration/stage0-dsl-parity.md` への参照
   - 「#1348（`feature/belt-conveyor-replace-impl`）がマージされる前後どちらでも、`belt-replace-tier-via-ui.cs`・`input-injection.md`・`PlaytestDriver.cs`・`PlaytestRunner.cs` の旧名（`ClickWebUi` 系・`PlaytestDomQuery`・`CefInputForwarder`）を改名表に沿って追従させる必要がある」
-  - 「ユーザーに見てほしい判断」節: 判断記録 D1〜D14 のうち「agent 既定（ユーザー未裁定）」の行
+  - 「ユーザーに見てほしい判断」節: 判断記録 D1〜D20 のうち「agent 既定（ユーザー未裁定）」の行
   - 「本PR外のリファクタ提案」節: 既存 `moorestech_web/webui/src/shared/tutorialAnchor/resolveAnchor.ts` の `resolveTutorialAnchor` と新設 `bridge/playtest/testIdElement.ts` の `findByTestId`＋`isElementVisible` は、data 属性で要素を引き、一致件数で重複を見て、hidden・aria-hidden・display・visibility・面積で可視を判定する同じ役割（設計検査 Phase 2.6 の第3バケツ。このPRでは統合しない）
   - 録画 2 本の目視所見
 - [ ] **Step 2:** master とのコンフリクトがあれば master をマージして解消し、コンパイル確認のうえ push する
@@ -2309,17 +2542,22 @@ planning 中の判断:
 |---|---|---|---|---|---|
 | D1 | Web 版 `SetText` の方式 | WS 往復（`playtest.dom_set_text`）で Web 側がネイティブ setter＋`input` イベント | (b) クリック後に CEF の `SendCharEvent` を 1 文字ずつ送る（既存 2 シナリオの方式） | (b) は追記にしかならず「値を置き換える」契約を満たせない（全選択＋削除のキー注入が要る）。結果の値を確かめる手段も無い。(a) は UITK 版（`TextField.value`＋ChangeEvent）と同じ意味になり、適用後の値を返せる | agent 既定（ユーザー未裁定） |
 | D2 | 状態フラグの Web 表現 | `data-testid` 以外の `data-*` で値が空か `"true"` のものの名前 | 属性名を個別に列挙する許可リスト | 計画「Web は属性、UITK はクラス」に沿い、`data-selected={x \|\| undefined}` 等の既存の書き方をそのまま拾える。値付き属性（`data-kind="bug"`）は状態ではないので除く | agent 既定（ユーザー未裁定） |
-| D3 | 同じ testid が複数ある場合の Web 版（Task 5 で警告件数を実測して表に残す） | 先頭一致を保ち警告ログ（`Ambiguous` は返さない） | Web 版も `Ambiguous` で失敗させる | 完了条件が「改名前と合否が同じ」で、既存シナリオが重複 testid に依存していないかは実測していない。UITK 版・両系照合は `Ambiguous` で失敗させる（§4.4）。段階1で Web 版の扱いを見直す | agent 既定（ユーザー未裁定）。user-simulator 予測も (a) 維持・確信中（シミュレーター予測、ユーザー未承認） |
-| D4 | `Find` に応答待ちの上限を引数で渡すか | 渡さない。Web 版内部で 3 秒。応答が無いときは警告ログを出す | `Find(testid, timeout)` | 応答待ちは WS 往復を持つ Web 版だけの事情で、UITK 版は同期で返る。interface に描画系の事情を入れない。旧シナリオの 1〜10 秒は応答待ちの上限で、通常は数フレームで返る。代償: Web が応答しないとき、`WaitUiElement(id, 1f)` 等の待ちが指定秒を最大 3 秒超えて終わる | agent 既定（ユーザー未裁定） |
+| D3 | Web重複testid | D19へ移行: 書込前にAmbiguousで拒否 | 先頭採用 | 誤対象への書込と成功記録を防ぐ | agent既定（ユーザー未裁定） |
+| D4 | 応答待ち上限 | D17へ移行: 必須残予算とWeb内部3秒のmin | 固定3秒だけ | 指定期限を越える要求・副作用を防ぐ | agent既定（ユーザー未裁定） |
 | D5 | 説明文入力の `SendCharEvent` ループを `p.SetText` へ替えるのは「操作手順の変更」か | 付け替えとして行う（2 本。pauseは同じCEF前提Assertが実行2回分減る〈41→39〉、developerは1件減る〈8→7〉） | CEF 直参照を残す | シナリオから CEF への直参照を無くすのが 0-7 の目的で、手順（クリック→入力→送信）は変えない。打鍵経路の検証は IME と同じく §4.9 の人手の範囲 | agent 既定（ユーザー未裁定）。user-simulator 予測も (a) 付け替え・確信高（シミュレーター予測、ユーザー未承認） |
 | D6 | `ScreenRect` の座標系 | Unity スクリーン座標（左下原点） | CSS 互換の左上原点 | `SemanticInput.MouseGlideTo`・`Screen.width/height` と同じ座標系で、UITK 版もパネル座標→画面座標へ写すため。上下比較の向きが逆になるシナリオ 1 本（`rotary-generator-ui`）は検査式を書き換える | agent 既定（ユーザー未裁定） |
 | D7 | interface の実装が 1 つ（抽象の受益者） | 段階0で interface を置く | 段階1まで具象クラスのまま | 計画 §4.4 が Web 版と UITK 版の 2 本と両系照合を定め、段階1の UITK 版が受益者として名指しできる。0-7 の要件が interface の導入そのもの | 計画 §2.1 0-7 |
 | D8 | `CloseWebUiPanel` の新名 | `CloseBuildMenuPanel` | `CloseUiPanel` | 実処理は `build-menu-close` のクリックで、汎用の「パネルを閉じる」ではない（AGENTS.md「名前は実処理と一致させる」） | agent 既定（ユーザー未裁定） |
 | D9 | `PlaytestDriver.cs`（215 行）の分割 | 待機表示つき 4 メソッド（`UntilUiElement`・`WaitUiState`・`WaitBlockGameObject`・`WaitSeconds`）の本体を root の `PlaytestWaitActions`（reporter だけを受け取る）へ移し、Driver は 1 行委譲 | (1) `p.Ui.ClickUi` のようなサブファサード化 (2) `PlaceBlockViaUi` 等を Driver を逆参照する下請けへ移す (3) `this PlaytestDriver` 拡張メソッド（`PlaytestInteractOps` の前例） | (1) はシナリオの呼び方が変わり機械置換で済まない。(2) は前例 `PlaytestHotbarDriver` と依存の向きが逆（配置検査 F1）。(3) は Driver の public API しか使えず `BeginWait`・`Step` を呼べない。`Until` は `Func<bool>` の受け口を増やさないため Driver に残す | agent 既定（ユーザー未裁定）。配置検査 F1 で修正 |
 | D11 | `UiElementSnapshot` を判別子＋ペイロード型に分けるか（Phase 2.6 5-B 強。`UiSetTextResult` は下の別扱い） | 分けない。`Status` と、Found 以外は空値（`Visible=false`・`Clickable=false`・`Rect.zero`・空文字・空集合）のフィールドを 1 つの型に置き、ctor を private にして factory 4 つ（`Found`・`NotFound`・`Ambiguous`・`Unavailable`）だけで作らせる | `Status` ＋ Found 時だけの nullable ペイロード | 空値はどれも「見えない・押せない・文字なし」で安全側に倒れ、誤って読んでも合格側へ転ばない。ペイロードを分けるとシナリオの `s.IsFound && s.Text.Contains(…)` が null 判定の連鎖になる。シナリオはレビュー対象外の使い捨て台本（`.decisions/2026-08-16-…`）。`UiSetTextResult` は public ctor の struct のまま: `ActualValue` は `Applied` 以外（`ValueMismatch`・`NotInteractable`）でも診断に意味を持つ値で、Found 時だけのペイロードではないため | agent 既定（ユーザー未裁定） |
-| D12 | Phase 2.6 の弱 6 件 | 2 件を直す（`PlaytestWebUiRequestChannel.Await` が Reset 後に期限まで待ち続ける → 即時に応答なし／`IsValidResult` の有限値判定が `TryReadFloat` と二重 → 削除）。残りはこのまま: 5-C `Try*` の失敗理由（呼び出し側でログ済み）、5-F `Start/Stop` の 2 か所呼び出し（冪等にして Runner と probe の両方が使う前提）、5-F `CancellationToken` 無し（既存 DSL に前例が無く、シナリオ全体の打ち切りは `PlaytestRunner` の `.Timeout` が持つ）、5-G 契約型の置き場（同じ Editor 限定 asmdef の中）、検査6 の期限ループ・判定の繰り返し（既存 `PlaytestWebUiOps` の形を保つ） | — | 直すのは誤動作に至る 1 件と純粋な重複 1 件だけ | agent 既定（ユーザー未裁定） |
+| D12 | 拒否理由と操作寿命 | D16/D18へ移行: 拒否理由を契約例外へ、セッション世代で旧再送を終了 | ログだけ、Runner.Timeoutだけ | 不正応答の再試行と次実行への旧入力を防ぐ。Start/Stop冪等、有限値境界検証は維持 | agent既定（ユーザー未裁定） |
 | D13 | `PlaytestUiLocatorSession`（`UiElements/`）が `WebUiElementLocator`（`WebUi/`）を直接 new する（配置検査の注目点） | このまま。Session はロケータの組み立て役で、描画系非依存の型と同じ場所に置く。開閉（`StartSession`/`StopSession`）は interface に入れない | Session を root へ置く／開閉を interface に入れる | 開閉は WS 受け口と CEF 入力転送という Web 版だけの事情で、UITK 版は開閉が要らない。段階1の差し替えは Session の 1 行（と開閉の委譲）で済み、interface は変わらない | agent 既定（ユーザー未裁定） |
 | D14 | プレイテスト橋渡しが DOM へ書く（`domQueryResponder.ts` の「読み取るだけ」の線を `domSetTextResponder.ts` で越える。配置検査の注目点） | 書く応答器を別ファイルに分け、照会の応答器は読み取り専用のまま保つ | `CefInputForwarder` に文字転送を足し `SemanticInput` から打鍵する | §4.4 で UITK 版 `SetText` は値の設定と決まっており、Web 版も同じ意味にする（D1）。打鍵案は追記にしかならない | agent 既定（ユーザー未裁定） |
 | D10 | unityプレイ録画テスト | 含める（Task 5 の 30 本の合否突き合わせ＋Task 7 の録画 2 本） | — | DSL はプレイテストの入力経路そのもの | — |
 
 | D15 | NUnit検証の対象 | `Client.Tests.Playtest.` とWireContractActionNamesTestをアンカー/名前空間境界付きで選択 | `Client.Tests.Playtest` の前方一致 | 前方一致はPlaytestReceiverの明示本番送信テストにも一致する。ローカル検証を本番送信へ接続しない | agent既定（ユーザー未裁定） |
+| D16 | 契約不正応答 | A: channel内部状態/ReasonとReject、locator契約例外からresult.Errorへ | 公開InvalidResponse追加 | 拒否理由を失わず終了。D12を部分変更、公開enumは維持 | agent既定（ユーザー未裁定） |
+| D17 | 操作期限 | A: Find/SetTextに必須remainingSeconds、Webは既存3秒とのmin、再送/副作用前検査 | tokenによる期限取消 | 0.1秒要求が3秒待たず、期限後の入力を防ぐ。Requirements1/9とD4を更新 | agent既定（ユーザー未裁定） |
+| D18 | 実行寿命 | A: Sessionの世代をSetText開始時に捕捉、await後/再送前検査 | 全層CancellationToken | Stop→Startで旧操作が次実行へ再送しない。D12を更新、送信済み副作用の巻戻しは含まない | agent既定（ユーザー未裁定） |
+| D19 | 重複testid | A: Find/SetTextともAmbiguous、DOM setter前に拒否 | 可視候補が1件なら採用 | 誤欄を書換えてから失敗する経路をなくす。D3/D11を更新、旧新比較差を記録 | agent既定（ユーザー未裁定） |
+| D20 | CEF接続相関 | A: LoadUrl識別値→WS接続登録、PublishTo単送、pendingと実応答元を照合 | 排他購読lease | 外部ブラウザだけの成功や複数ページ書込を防ぐ。Host配送は汎用、CEF登録はCef層。broadcast前提/他レーン境界を更新 | agent既定（ユーザー未裁定） |

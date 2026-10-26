@@ -120,7 +120,7 @@ Run内の説明文入力は、欄をクリックした直後に `await p.SetText
 
 状態フラグ: Web は `data-testid` 以外の `data-*` 属性のうち値が空か `true` のもの（`data-selected="true"` → `HasStateFlag("selected")`）。
 シナリオは描画系の内部型を直接参照せず、照会と入力に上の API を使う。
-同じ testid が複数あると Web 版は先頭を使い `[PlaytestUi] … matched N Web elements` を警告する（UITK 版は失敗させる予定）。
+同じtestidが複数あるとFind/SetTextはAmbiguousで失敗する。SetTextはDOMを書き換える前に拒否する。ロケータを直接使う場合はFind(testid, remainingSeconds)、SetText(testid, text, remainingSeconds)へ残予算を必ず渡す。Web通信上限は既存3秒との小さい方。Stop後の旧SetText再試行は終了する。
 
 testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する。ビルドメニューのエントリは
 `build-menu-entry-{kind}-{id}`（kind: block/trainCar/connectTool/blueprintCopy/blueprint、
@@ -170,3 +170,5 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
 複数ブロック連結・UI操作・列車などは、Plan/general-purposeサブエージェントに
 「前提手順の連鎖 / 各操作の呼び出し経路（legacy Input直読みの有無をgrep）/ 絶対座標とconnector offsetの表 /
 API実在確認 / Step単位の実行計画」を調査・出力させてから書く。
+
+CEF向け要求は実際のCEF起動へ対応付けた接続だけに配信する。外部ブラウザが表示されていてもCEFのIsAvailableにはならない。不正応答は契約例外となりresult.Errorへ理由が残る。

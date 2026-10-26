@@ -1,6 +1,9 @@
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Client.WebUiHost.Game.Actions;
+using System;
+using Client.WebUiHost.Boot.Transport;
+using Client.WebUiHost.Cef;
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 
 namespace Client.Playtest.WebUi
@@ -32,7 +35,7 @@ namespace Client.Playtest.WebUi
     {
         private const string QueryTopic = "playtest.dom_query";
         private readonly PlaytestWebUiRequestChannel<DomQueryResult> _channel = new();
-        public readonly IActionHandler ResultHandler;
+        public readonly IConnectionActionHandler ResultHandler;
 
         public PlaytestDomQuery()
         {
@@ -41,8 +44,18 @@ namespace Client.Playtest.WebUi
 
         public async UniTask<WebUiChannelResponse<DomQueryResult>> Query(WebSocketHub hub, string testid, float timeoutSeconds)
         {
-            var requestId = _channel.Open();
-            hub.Publish(QueryTopic, WebUiJson.Serialize(new DomQueryRequest { RequestId = requestId, Testid = testid }));
+            if (!WebUiCefConnection.TryGetConnection(hub, out var connectionId))
+            {
+                Debug.LogWarning("[PlaytestUi] No registered CEF connection");
+                return new WebUiChannelResponse<DomQueryResult>(WebUiResponseState.Stopped, null, "No registered CEF connection");
+            }
+            if (!(timeoutSeconds > 0f)) throw new TimeoutException("UI request deadline expired before delivery");
+            var requestId = _channel.Open(connectionId, hub);
+            if (!hub.PublishTo(connectionId, QueryTopic, WebUiJson.Serialize(new DomQueryRequest { RequestId = requestId, Testid = testid })))
+            {
+                _channel.Stop(requestId);
+                return new WebUiChannelResponse<DomQueryResult>(WebUiResponseState.Stopped, null, "CEF disconnected or not subscribed");
+            }
             return await _channel.Await(requestId, timeoutSeconds);
         }
 

@@ -19,22 +19,32 @@ namespace Client.Playtest.UiElements
             // Retry hidden, covered, or moving elements as transient until the deadline
             while (Time.realtimeSinceStartup <= deadline)
             {
-                var first = await locator.Find(testid);
-                ThrowIfAmbiguous(first);
+                var first = await locator.Find(testid, RemainingSeconds(deadline, testid));
                 lastStatus = first.Status;
+                if (Time.realtimeSinceStartup >= deadline) break;
+                ThrowIfAmbiguous(first);
                 if (IsClickable(first))
                 {
                     // 2フレーム後も同じ矩形ならレイアウトが落ち着いたとみなす
                     // Treat the layout as settled when the rect is unchanged two frames later
                     await UniTask.DelayFrame(2);
-                    var second = await locator.Find(testid);
+                    if (Time.realtimeSinceStartup >= deadline) break;
+                    var second = await locator.Find(testid, RemainingSeconds(deadline, testid));
                     lastStatus = second.Status;
+                    if (Time.realtimeSinceStartup >= deadline) break;
                     ThrowIfAmbiguous(second);
                     if (IsClickable(second) && second.ScreenRect == first.ScreenRect) return second;
                 }
                 await UniTask.DelayFrame(2);
             }
             throw new TimeoutException($"UI element could not be resolved (last: {lastStatus}): {testid}");
+        }
+
+        internal static float RemainingSeconds(float deadline, string testid)
+        {
+            var remaining = deadline - Time.realtimeSinceStartup;
+            if (!(remaining > 0f)) throw new TimeoutException($"UI operation deadline expired: {testid}");
+            return remaining;
         }
 
         public static bool IsClickable(UiElementSnapshot snapshot)

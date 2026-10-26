@@ -1,8 +1,12 @@
+using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Playtest.WebUi;
 using Client.WebUiHost.Boot;
+using Client.WebUiHost.Cef;
+using Object = UnityEngine.Object;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -20,6 +24,7 @@ namespace Client.Tests.Playtest.UiMapping
         private GameObject _sampleObject;
         private WebUiElementLocator _locator;
         private WebSocketHub _hub;
+        private Guid _connectionId;
 
         [SetUp]
         public void Initialize()
@@ -52,6 +57,13 @@ namespace Client.Tests.Playtest.UiMapping
             SaveAndSet(sampleField, sample);
             SaveAndSet(typeof(CefScreenMapper).GetField("_rawImage", StaticFields), image);
             _hub = new WebSocketHub();
+            _connectionId = Guid.NewGuid();
+            var connection = new WebSocketConnection(null, _connectionId);
+            connection.Topics.TryAdd("playtest.dom_query", 0);
+            var connections = (ConcurrentDictionary<Guid, WebSocketConnection>)typeof(WebSocketHub).GetField("_connections", InstanceFields).GetValue(_hub);
+            connections.TryAdd(_connectionId, connection);
+            var navigation = WebUiCefConnection.BeginNavigation(_hub);
+            Assert.IsTrue(WebUiCefConnection.TryRegister(_hub, navigation, _connectionId));
             SaveAndSet(typeof(global::Client.WebUiHost.Boot.WebUiHost).GetField("_hub", StaticFields), _hub);
             _locator = new WebUiElementLocator();
             _locator.StartSession();
@@ -61,6 +73,7 @@ namespace Client.Tests.Playtest.UiMapping
         public void Restore()
         {
             _locator?.StopSession();
+            WebUiCefConnection.Release(_hub, _connectionId);
             foreach (var saved in _saved) saved.Field.SetValue(null, saved.Value);
             _saved.Clear();
             Object.DestroyImmediate(_sampleObject);
@@ -70,7 +83,7 @@ namespace Client.Tests.Playtest.UiMapping
         [UnityTest]
         public IEnumerator FindMapsCssDprAndTopOriginThroughRealSurface()
         {
-            var lookup = _locator.Find("target").GetAwaiter();
+            var lookup = _locator.Find("target", 3f).GetAwaiter();
             Reply(10f, 20f, 30f, 40f, 2f);
             while (!lookup.IsCompleted) yield return null;
             var snapshot = lookup.GetResult();
@@ -84,7 +97,7 @@ namespace Client.Tests.Playtest.UiMapping
         [UnityTest]
         public IEnumerator RepeatedStartPreservesPendingLookupAndRejectsOffscreenCenter()
         {
-            var lookup = _locator.Find("target").GetAwaiter();
+            var lookup = _locator.Find("target", 3f).GetAwaiter();
             _locator.StartSession();
             Reply(210f, 10f, 20f, 20f, 1f);
             LogAssert.Expect(LogType.Warning, "[PlaytestUi] Web element 'target' center is outside the CEF surface");
@@ -101,9 +114,9 @@ namespace Client.Tests.Playtest.UiMapping
             // Respond to the ID issued by Find so its full mapping path executes
             var query = typeof(WebUiElementLocator).GetField("_domQuery", InstanceFields).GetValue(_locator);
             var channel = typeof(PlaytestDomQuery).GetField("_channel", InstanceFields).GetValue(query);
-            var pending = (Dictionary<string, DomQueryResult>)channel.GetType().GetField("_pending", InstanceFields).GetValue(channel);
+            var pending = (IDictionary)channel.GetType().GetField("_pending", InstanceFields).GetValue(channel);
             Assert.AreEqual(1, pending.Count);
-            var requestId = new List<string>(pending.Keys)[0];
+            var requestId = new List<string>(System.Linq.Enumerable.Cast<string>(pending.Keys))[0];
             var payload = new JObject
             {
                 ["requestId"] = requestId, ["found"] = true, ["visible"] = true,
@@ -111,7 +124,7 @@ namespace Client.Tests.Playtest.UiMapping
                 ["devicePixelRatio"] = ratio, ["hitTestPassed"] = true,
                 ["text"] = "target", ["matchCount"] = 1, ["stateFlags"] = new JArray(),
             };
-            Assert.IsTrue(_hub.ResolveAction("playtest.dom_query_result").ExecuteAsync(payload).GetAwaiter().GetResult().Ok);
+            Assert.IsTrue(_hub.ConnectionActions.Resolve("playtest.dom_query_result").ExecuteAsync(_connectionId, payload).GetAwaiter().GetResult().Ok);
         }
 
         private void SaveAndSet(FieldInfo field, object value)

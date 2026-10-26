@@ -1,3 +1,4 @@
+using System;
 using Client.Playtest.WebUi;
 
 namespace Client.Playtest.UiElements
@@ -11,6 +12,8 @@ namespace Client.Playtest.UiElements
     public static class PlaytestUiLocatorSession
     {
         private static readonly WebUiElementLocator WebLocator = new();
+        private static int _generation;
+        private static bool _active;
         // 段階1はUITK版と両系合成に交換
         // Replace with UITK and the both-renderer composite in stage 1
         public static readonly IUiElementLocator Locator = WebLocator;
@@ -19,6 +22,8 @@ namespace Client.Playtest.UiElements
         // Idempotent; called from both PlaytestRunner and pre-Run probes
         public static void Start()
         {
+            if (!_active) _generation++;
+            _active = true;
             WebLocator.StartSession();
         }
 
@@ -26,7 +31,21 @@ namespace Client.Playtest.UiElements
         // Stop forwarding and discard pending responses regardless of outcome
         public static void Stop()
         {
+            _active = false;
             WebLocator.StopSession();
+        }
+        // 開始した実行だけに再送を許す
+        // Permit retries only from the execution that started the operation
+        internal static int CaptureGeneration()
+        {
+            RequireGeneration(_generation);
+            return _generation;
+        }
+
+        internal static void RequireGeneration(int generation)
+        {
+            if (!_active || generation != _generation)
+                throw new InvalidOperationException("UI operation belongs to a stopped session");
         }
     }
 }

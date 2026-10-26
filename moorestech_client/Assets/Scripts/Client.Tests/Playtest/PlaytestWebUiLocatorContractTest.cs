@@ -1,5 +1,5 @@
+using Client.Tests.Playtest.UiMapping;
 using System.Globalization;
-using System.Text.RegularExpressions;
 using Client.Playtest.UiElements;
 using Client.Playtest.WebUi;
 using Newtonsoft.Json.Linq;
@@ -14,11 +14,12 @@ namespace Client.Tests.Playtest
         [Test]
         public void DomQueryResultWithFlagsResolvesPendingRequest()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
             var handler = new DomQueryResultActionHandler(channel);
-            var requestId = channel.Open();
+            var requestId = channel.Open(fixture.CefId, fixture.Hub);
 
-            var actionResult = handler.ExecuteAsync(QueryPayload(requestId, true, 1, new JArray("selected"))).GetAwaiter().GetResult();
+            var actionResult = handler.ExecuteAsync(fixture.CefId, QueryPayload(requestId, true, 1, new JArray("selected"))).GetAwaiter().GetResult();
             var response = channel.Await(requestId, 1f).GetAwaiter().GetResult();
 
             Assert.IsTrue(actionResult.Ok);
@@ -30,12 +31,13 @@ namespace Client.Tests.Playtest
         [Test]
         public void DomQueryResultWithoutStateFlagsIsRejected()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
-            var payload = QueryPayload(channel.Open(), true, 1, new JArray());
+            var payload = QueryPayload(channel.Open(fixture.CefId, fixture.Hub), true, 1, new JArray());
             payload.Remove("stateFlags");
 
             LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected malformed playtest.dom_query_result payload");
-            var actionResult = new DomQueryResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
+            var actionResult = new DomQueryResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
 
             Assert.IsFalse(actionResult.Ok);
             Assert.AreEqual("invalid_payload", actionResult.Error);
@@ -44,17 +46,17 @@ namespace Client.Tests.Playtest
         [Test]
         public void FoundWithZeroMatchesIsRejected()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
             LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected inconsistent playtest.dom_query_result payload");
-            var actionResult = new DomQueryResultActionHandler(channel).ExecuteAsync(QueryPayload(channel.Open(), true, 0, new JArray())).GetAwaiter().GetResult();
+            var actionResult = new DomQueryResultActionHandler(channel).ExecuteAsync(fixture.CefId, QueryPayload(channel.Open(fixture.CefId, fixture.Hub), true, 0, new JArray())).GetAwaiter().GetResult();
             Assert.IsFalse(actionResult.Ok);
         }
 
         [Test]
-        public void SnapshotCarriesFieldsAndWarnsOnDuplicates()
+        public void SnapshotCarriesFieldsForUniqueElement()
         {
-            var result = new DomQueryResult { Found = true, Visible = true, HitTestPassed = true, Text = "送信", MatchCount = 2, StateFlags = new[] { "selected" } };
-            LogAssert.Expect(LogType.Warning, new Regex("matched 2 Web elements"));
+            var result = new DomQueryResult { Found = true, Visible = true, HitTestPassed = true, Text = "送信", MatchCount = 1, StateFlags = new[] { "selected" } };
 
             var snapshot = WebUiElementLocator.ToSnapshot("bug-report-send", result, new Rect(10f, 20f, 30f, 40f));
 
@@ -81,11 +83,12 @@ namespace Client.Tests.Playtest
         [TestCase("valueMismatch", UiSetTextStatus.ValueMismatch)]
         public void SetTextResultMapsStatusWord(string word, UiSetTextStatus expected)
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomSetTextResult>();
-            var requestId = channel.Open();
+            var requestId = channel.Open(fixture.CefId, fixture.Hub);
             var payload = new JObject { ["requestId"] = requestId, ["status"] = word, ["matchCount"] = 1, ["actualValue"] = "abc" };
 
-            var actionResult = new DomSetTextResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
+            var actionResult = new DomSetTextResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
             var response = channel.Await(requestId, 1f).GetAwaiter().GetResult();
 
             Assert.IsTrue(actionResult.Ok);
@@ -96,8 +99,9 @@ namespace Client.Tests.Playtest
         [Test]
         public void AwaitStopsWaitingOnceReset()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
-            var requestId = channel.Open();
+            var requestId = channel.Open(fixture.CefId, fixture.Hub);
             channel.Reset();
 
             // Resetで保留が消えたら、期限を待たずに応答なしで返る
@@ -110,22 +114,24 @@ namespace Client.Tests.Playtest
         [Test]
         public void UnknownSetTextStatusIsRejected()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomSetTextResult>();
-            var payload = new JObject { ["requestId"] = channel.Open(), ["status"] = "typed", ["matchCount"] = 1, ["actualValue"] = "" };
+            var payload = new JObject { ["requestId"] = channel.Open(fixture.CefId, fixture.Hub), ["status"] = "typed", ["matchCount"] = 1, ["actualValue"] = "" };
             LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected malformed playtest.dom_set_text_result payload");
-            var actionResult = new DomSetTextResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
+            var actionResult = new DomSetTextResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
             Assert.IsFalse(actionResult.Ok);
         }
 
         [Test]
         public void OversizedMatchCountIsRejectedWithoutConversionException()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomQueryResult>();
-            var payload = QueryPayload(channel.Open(), true, 1, new JArray());
+            var payload = QueryPayload(channel.Open(fixture.CefId, fixture.Hub), true, 1, new JArray());
             payload["matchCount"] = long.MaxValue;
             LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected malformed playtest.dom_query_result payload");
 
-            var result = new DomQueryResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
+            var result = new DomQueryResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
 
             Assert.IsFalse(result.Ok);
         }
@@ -153,11 +159,12 @@ namespace Client.Tests.Playtest
         [Test]
         public void AppliedWithZeroMatchesIsRejected()
         {
+            using var fixture = new PlaytestConnectionFixture();
             var channel = new PlaytestWebUiRequestChannel<DomSetTextResult>();
-            var payload = new JObject { ["requestId"] = channel.Open(), ["status"] = "applied", ["matchCount"] = 0, ["actualValue"] = "abc" };
+            var payload = new JObject { ["requestId"] = channel.Open(fixture.CefId, fixture.Hub), ["status"] = "applied", ["matchCount"] = 0, ["actualValue"] = "abc" };
             LogAssert.Expect(LogType.Warning, "[PlaytestUi] Rejected inconsistent playtest.dom_set_text_result match count");
 
-            var result = new DomSetTextResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
+            var result = new DomSetTextResultActionHandler(channel).ExecuteAsync(fixture.CefId, payload).GetAwaiter().GetResult();
 
             Assert.IsFalse(result.Ok);
         }

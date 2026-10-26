@@ -1,82 +1,108 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Client.WebUiHost.Boot;
+using Client.WebUiHost.Cef;
 using UnityEngine;
 
 namespace Client.Playtest.WebUi
 {
-    /// <summary>
-    ///     ・要求ID単位の保留
-    ///     ・action応答による解決
-    ///     ・Pending requests keyed by request ID
-    ///     ・Resolution by action responses
-    /// </summary>
+    internal enum WebUiResponseState { Pending, Responded, Rejected, TimedOut, Stopped }
+
+    // 要求の終端状態と拒否理由を保持する
+    // Preserve terminal request state and its rejection reason
+    internal readonly struct WebUiChannelResponse<TResult> where TResult : class
+    {
+        public readonly WebUiResponseState State;
+        public readonly TResult Result;
+        public readonly string Reason;
+        public bool HasResponse => State == WebUiResponseState.Responded;
+
+        public WebUiChannelResponse(WebUiResponseState state, TResult result, string reason)
+        {
+            State = state;
+            Result = result;
+            Reason = reason;
+        }
+    }
+
     internal class PlaytestWebUiRequestChannel<TResult> where TResult : class
     {
-        private readonly Dictionary<string, TResult> _pending = new();
+        private readonly Dictionary<string, PendingRequest> _pending = new();
 
-        public string Open()
+        public string Open(Guid connectionId, WebSocketHub hub)
         {
-            // 配信前に保留登録し、即時応答も取りこぼさない
-            // Register as pending before publishing so even an immediate response is retained
             var requestId = Guid.NewGuid().ToString();
-            _pending[requestId] = null;
+            _pending.Add(requestId, new PendingRequest(connectionId, hub));
             return requestId;
+        }
+
+        // payloadの内容を拒否する前に実際の接続元を照合する
+        // Check the actual sender before rejecting any payload contents
+        public bool Accepts(string requestId, Guid connectionId)
+        {
+            if (_pending.TryGetValue(requestId, out var pending) && pending.ConnectionId == connectionId &&
+                pending.Response.State == WebUiResponseState.Pending && pending.IsCurrentConnection()) return true;
+            Debug.LogWarning($"[PlaytestUi] Rejected response from unrelated connection or completed request: {requestId}");
+            return false;
         }
 
         public void Resolve(string requestId, TResult result)
         {
-            // タイムアウト済みの遅延応答は捨て、待機中のrequestIdだけを解決する
-            // Drop late responses after timeout and resolve only requestIds still pending
-            if (_pending.ContainsKey(requestId)) _pending[requestId] = result;
+            _pending[requestId].Response = new WebUiChannelResponse<TResult>(WebUiResponseState.Responded, result, string.Empty);
+        }
+
+        public void Reject(string requestId, string reason)
+        {
+            _pending[requestId].Response = new WebUiChannelResponse<TResult>(WebUiResponseState.Rejected, null, reason);
         }
 
         public async UniTask<WebUiChannelResponse<TResult>> Await(string requestId, float timeoutSeconds)
         {
-            // 毎フレーム待機し期限切れは応答なし
-            // Wait per frame and return no response on timeout
-            var startedAt = Time.realtimeSinceStartup;
-            while (Time.realtimeSinceStartup - startedAt <= timeoutSeconds)
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            while (Time.realtimeSinceStartup < deadline)
             {
-                // Resetで保留が消えたら、待ち続けず応答なしとして返す
-                // When Reset dropped the pending entry, stop waiting and report no response
-                if (!_pending.TryGetValue(requestId, out var result)) return WebUiChannelResponse<TResult>.TimedOut();
-                if (result != null)
+                // 停止と無応答を区別し、応答済み状態は一度だけ取り出す
+                // Distinguish stopped sessions from silence and consume a terminal result once
+                if (!_pending.TryGetValue(requestId, out var pending))
+                    return new WebUiChannelResponse<TResult>(WebUiResponseState.Stopped, null, "UI session stopped");
+                if (!pending.IsCurrentConnection())
                 {
                     _pending.Remove(requestId);
-                    return WebUiChannelResponse<TResult>.Responded(result);
+                    return new WebUiChannelResponse<TResult>(WebUiResponseState.Stopped, null, "CEF connection changed or disconnected");
+                }
+                if (pending.Response.State != WebUiResponseState.Pending)
+                {
+                    _pending.Remove(requestId);
+                    return pending.Response;
                 }
                 await UniTask.Yield();
             }
             _pending.Remove(requestId);
-            return WebUiChannelResponse<TResult>.TimedOut();
+            return new WebUiChannelResponse<TResult>(WebUiResponseState.TimedOut, null, "Web response deadline expired");
         }
 
-        public void Reset()
-        {
-            _pending.Clear();
-        }
-    }
+        public void Stop(string requestId) => _pending.Remove(requestId);
 
-    internal readonly struct WebUiChannelResponse<TResult> where TResult : class
-    {
-        public readonly bool HasResponse;
-        public readonly TResult Result;
+        public void Reset() => _pending.Clear();
 
-        private WebUiChannelResponse(bool hasResponse, TResult result)
+        private sealed class PendingRequest
         {
-            HasResponse = hasResponse;
-            Result = result;
-        }
+            public readonly Guid ConnectionId;
+            private readonly WebSocketHub _hub;
+            public WebUiChannelResponse<TResult> Response;
 
-        public static WebUiChannelResponse<TResult> Responded(TResult result)
-        {
-            return new WebUiChannelResponse<TResult>(true, result);
-        }
+            public PendingRequest(Guid connectionId, WebSocketHub hub)
+            {
+                ConnectionId = connectionId;
+                _hub = hub;
+                Response = new WebUiChannelResponse<TResult>(WebUiResponseState.Pending, null, string.Empty);
+            }
 
-        public static WebUiChannelResponse<TResult> TimedOut()
-        {
-            return new WebUiChannelResponse<TResult>(false, null);
+            public bool IsCurrentConnection()
+            {
+                return WebUiCefConnection.TryGetConnection(_hub, out var current) && current == ConnectionId;
+            }
         }
     }
 }

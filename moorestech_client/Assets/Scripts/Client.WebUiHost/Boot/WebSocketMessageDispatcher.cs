@@ -98,7 +98,8 @@ namespace Client.WebUiHost.Boot
             if (string.IsNullOrEmpty(msg.RequestId)) return;
 
             var handler = msg.Type == null ? null : _hub.ResolveAction(msg.Type);
-            if (handler == null)
+            var connectionHandler = msg.Type == null ? null : _hub.ConnectionActions.Resolve(msg.Type);
+            if (handler == null && connectionHandler == null)
             {
                 conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "unknown_action"));
                 return;
@@ -110,7 +111,7 @@ namespace Client.WebUiHost.Boot
 
             // 停止処理と競合した場合はハンドラを実行しない（解体済みゲーム状態の保護）
             // Skip execution if shutdown cleared the registry while we awaited the main thread
-            if (_hub.ResolveAction(msg.Type) == null)
+            if (_hub.ResolveAction(msg.Type) == null && _hub.ConnectionActions.Resolve(msg.Type) == null)
             {
                 await UniTask.SwitchToTaskPool();
                 conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "host_stopping"));
@@ -127,7 +128,9 @@ namespace Client.WebUiHost.Boot
                 // Catch handler exceptions at the boundary and always return a result to keep the connection alive (2-C)
                 try
                 {
-                    return await handler.ExecuteAsync(msg.Payload);
+                    return connectionHandler != null
+                        ? await connectionHandler.ExecuteAsync(conn.Id, msg.Payload)
+                        : await handler.ExecuteAsync(msg.Payload);
                 }
                 catch (Exception e)
                 {

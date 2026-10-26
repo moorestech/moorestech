@@ -20,10 +20,10 @@ namespace Client.Playtest.UiElements
 
         // 1回だけ照会する。待ち・再試行は呼び出し側が持つ
         // Look up once; waiting and retries belong to the caller
-        UniTask<UiElementSnapshot> Find(string testid);
+        UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds);
 
         // テキスト欄の値を置き換えて変更イベントを流す。IMEは通さない
         // Replace a text field's value and raise its change event without IME
-        UniTask<UiSetTextResult> SetText(string testid, string text);
+        UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds);
     }
 }
