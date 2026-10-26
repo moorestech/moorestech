@@ -107,3 +107,6 @@ Editor待機中の統合: origin/feature/uitk-stage0 af027e1dfdをマージコ�
 
 待機解除: OS終了通知で35502退出。残存54299の1本を起動前再確認する条件でpurpose_reviewへ正式runtime引継ぎ。最終observer6aaf1a22fとD31/D38/D39 helperを統合しwalk/matrix独立1回→machine有効録画→compileを実行。自PIDはroot返却後停止。root監視PID57064は終了通知で正常終了。
 追加suite来歴監査: ClaudeログL1062/1064のcebe push後05:57:36起動と全1013case05:58:10以降〜06:08:56を確認、旧e58XMLと開始時刻一致0件。root XML21秒は全体所要ではないがcebe後1013PASSを支持（logs ad947bf8e）。
+
+Task 12: complete（既存レビューClaude40/Codex0・bug-pass12を実物照合しrecords/eval-log保存、s5exit0/欠員0）。反映後BP25/25、独立walk14/14/matrix25/26（既存hint差のみ）/machine6/6、原文SHA一致。途中walk検索focus/matrix3キーFAILは実在し独立再現せず、原因未確定として本文/原本保持。保存1013/1013の実行来歴確認済み。final compile Success/Error0/Warning0、rootが97324をkillし残存は他54299のみ。logs18809d7fb。
+Task 13: complete（ユーザー裁定で個別PRは作らず、origin/feature/uitk-stage0 af027e1dfd取込e07fc7b1c3、G1違反0/69testsPASS、最終本文pr-body.md作成）。目的評価2系統GO。最終commit/push後、自lock reason一致時だけpinをunlockし、lane-done3行とworkspace archiveをlogsへ保存する。統合担当が本レーンをfeature/uitk-stage0へ取り込む。

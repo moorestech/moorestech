@@ -2125,3 +2125,7 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D38 | 録画用world ID `6df5338e7262a057` の今回生成済みcore（world.json・map.json・terrain）を専用退避先へSHA付きで保存し、次boot前に同IDのcoreが欠けていれば同一bytesだけ復元する。他IDと製品コードは変更しない | 同じマスタのlegacy bootでcore生成完了後に別レーン起動と同時期の欠落・再生成を実測。StaleWorldCacheCollectorは他IDの全ディレクトリを削除する構造であり、並列起動との厳密因果は未確定。自分の今回生成物だけを再使用し、生成モード・seed・world IDを保って繰り返しの生成待ちを避ける | agent 既定（ユーザー未裁定） |
 
 | D39 | D31の補助スクリプトは開始時に自Editorのlogを開いてFDを保持し、終了時にfstatのinode照合と開始offsetからの採取後closeする。原文投入前にCEFの利用可否も観測する | 別Editor再起動による2回のlog rotateで開始時inodeのパスが失われ、machineの全raw区間を回収できなかった。Console・動画・resultは保存し欠損を明示。FD保持で同じログ実体を読む。machineではCEF Init code -6とLoadUrl NREを実測し、DOM比較の前提が成立していなかった | agent 既定（ユーザー未裁定） |
+
+## 実行完了記録
+
+Task12/13はprogress.mdで完了。反映後録画はBP25/25、独立walk14/14、matrix25/26（変更前のhint12/7のみFAIL）、machine6/6。途中の検索focus/3キー遷移失敗は原本保持・原因未確定。独立観測の負荷差とsprint内部未観測を本文に開示し、環境原因とは断定しない。C#一式1013/1013のcebe後実行来歴を確認した。origin/feature/uitk-stage0取込にC#差分なし、G1違反0/69testsPASS、最終Unity compileはError0/Warning0。個別PRを作らず統合#1559用本文とlane-doneを残す。所有Editorはすべて停止。証拠はlogs/harness/albof3/task12-independent-observer/、レビュー記録はlogs/harness/moores-code-review/records/2026-10-26-uitk-s0-state-di.md。
