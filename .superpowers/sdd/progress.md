@@ -110,3 +110,5 @@ Editor待機中の統合: origin/feature/uitk-stage0 af027e1dfdをマージコ�
 
 Task 12: complete（既存レビューClaude40/Codex0・bug-pass12を実物照合しrecords/eval-log保存、s5exit0/欠員0）。反映後BP25/25、独立walk14/14/matrix25/26（既存hint差のみ）/machine6/6、原文SHA一致。途中walk検索focus/matrix3キーFAILは実在し独立再現せず、原因未確定として本文/原本保持。保存1013/1013の実行来歴確認済み。final compile Success/Error0/Warning0、rootが97324をkillし残存は他54299のみ。logs18809d7fb。
 Task 13: complete（ユーザー裁定で個別PRは作らず、origin/feature/uitk-stage0 af027e1dfd取込e07fc7b1c3、G1違反0/69testsPASS、最終本文pr-body.md作成）。目的評価2系統GO。最終commit/push後、自lock reason一致時だけpinをunlockし、lane-done3行とworkspace archiveをlogsへ保存する。統合担当が本レーンをfeature/uitk-stage0へ取り込む。
+
+Editor枠返却通知: 指揮の追加指示に従いeditor-releasedへ2026-10-26T17:10:30+09:00/PID97324停止済みを1行記録。停止時刻は実行ログのkill成功応答、現在ps不在を確認。今後再びEditorが必要ならeditor-slot-grantedが作成されるまで前景で待つ。現時点で再起動不要。
