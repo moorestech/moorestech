@@ -93,7 +93,7 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
         var deadline = UnityEngine.Time.realtimeSinceStartup + timeoutSeconds;
         while (UnityEngine.Time.realtimeSinceStartup < deadline)
         {
-            var result = await Client.Playtest.UiElements.PlaytestUiElementOps.FindUi(testid);
+            var result = await Client.Playtest.Operations.PlaytestUiElementOps.FindUi(testid);
             if (result.IsFound && 0 < result.ScreenRect.width) return;
             await UniTask.Delay(TimeSpan.FromMilliseconds(250), ignoreTimeScale: true);
         }
