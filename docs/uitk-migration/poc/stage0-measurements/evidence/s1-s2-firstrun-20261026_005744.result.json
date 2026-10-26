@@ -1,0 +1,109 @@
+{
+    "RunName": "uitk-s1-s2",
+    "Success": true,
+    "Error": "",
+    "StartedAt": "2026-10-26T00:58:26.5159730+09:00",
+    "FinishedAt": "2026-10-26T00:58:56.6948580+09:00",
+    "Asserts": [
+        {
+            "Label": "framereader a_game",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader b_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader c_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader d_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader e_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader f_inv",
+            "Passed": true,
+            "Message": "condition met"
+        },
+        {
+            "Label": "framereader g_game",
+            "Passed": true,
+            "Message": "condition met"
+        }
+    ],
+    "Timeline": [
+        "    0.7s [NOTE] [Playtest] env config: FreeBlockPlacement=True, CreateFlatGround=True, SpawnPosition=(0.00, 33.50, 0.00)",
+        "    0.7s [STEP] デバッグ環境をセットアップ",
+        "    1.4s [STEP] 開幕スキットをSkipインテントで飛ばす",
+        "    7.0s [WAIT] 1.5秒",
+        "    8.8s [STEP] スクリーンショット: 00_warmup",
+        "    9.0s [NOTE] a_game front=10 back=-10 F1475",
+        "    9.0s [WAIT] 1秒",
+        "   10.0s [WAIT] framereader a_game",
+        "   10.1s [PASS] framereader a_game",
+        "   10.1s [STEP] スクリーンショット: a_game_screencapture_F1507",
+        "   10.2s [WAIT] 1秒",
+        "   11.1s [STEP] キー入力: Tab",
+        "   11.8s [WAIT] 1.5秒",
+        "   13.5s [NOTE] b_inv front=10 back=-10 F1609",
+        "   13.5s [WAIT] 1秒",
+        "   14.5s [WAIT] framereader b_inv",
+        "   14.6s [PASS] framereader b_inv",
+        "   14.6s [STEP] スクリーンショット: b_inv_screencapture_F1641",
+        "   14.7s [WAIT] 1秒",
+        "   15.8s [NOTE] c_inv front=-1 back=-10 F1677",
+        "   15.8s [WAIT] 1秒",
+        "   16.8s [WAIT] framereader c_inv",
+        "   16.9s [PASS] framereader c_inv",
+        "   16.9s [STEP] スクリーンショット: c_inv_screencapture_F1709",
+        "   17.0s [WAIT] 1秒",
+        "   18.1s [NOTE] d_inv front=0 back=-10 F1745",
+        "   18.1s [WAIT] 1秒",
+        "   19.1s [WAIT] framereader d_inv",
+        "   19.2s [PASS] framereader d_inv",
+        "   19.2s [STEP] スクリーンショット: d_inv_screencapture_F1777",
+        "   19.3s [WAIT] 1秒",
+        "   20.4s [NOTE] e_inv front=10 back=1 F1813",
+        "   20.4s [WAIT] 1秒",
+        "   21.4s [WAIT] framereader e_inv",
+        "   21.5s [PASS] framereader e_inv",
+        "   21.5s [STEP] スクリーンショット: e_inv_screencapture_F1845",
+        "   21.6s [WAIT] 1秒",
+        "   22.8s [NOTE] f_inv front=1 back=-1 F1881",
+        "   22.8s [WAIT] 1秒",
+        "   23.8s [WAIT] framereader f_inv",
+        "   23.9s [PASS] framereader f_inv",
+        "   23.9s [STEP] スクリーンショット: f_inv_screencapture_F1913",
+        "   23.9s [WAIT] 1秒",
+        "   24.9s [STEP] キー入力: Tab",
+        "   25.5s [WAIT] 1秒",
+        "   26.7s [NOTE] g_game front=10 back=-10 F1998",
+        "   26.7s [WAIT] 1秒",
+        "   27.8s [WAIT] framereader g_game",
+        "   27.9s [PASS] framereader g_game",
+        "   27.9s [STEP] スクリーンショット: g_game_screencapture_F2030",
+        "   27.9s [WAIT] 1秒"
+    ],
+    "ErrorLogs": [],
+    "Screenshots": [
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/00_warmup.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/a_game_screencapture_F1507.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/b_inv_screencapture_F1641.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/c_inv_screencapture_F1709.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/d_inv_screencapture_F1777.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/e_inv_screencapture_F1845.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/f_inv_screencapture_F1913.png",
+        "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/g_game_screencapture_F2030.png"
+    ],
+    "RecordingPath": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-stage0-measure/moorestech_client/PlaytestResults/20261026_005744/uitk-s1-s2/recording.mp4"
+}
