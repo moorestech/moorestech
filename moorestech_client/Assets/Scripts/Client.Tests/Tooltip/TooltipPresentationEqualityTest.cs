@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Tooltip;
+using Client.Localization;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UniRx;
