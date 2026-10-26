@@ -8,8 +8,8 @@
 | building/delete-tool/delete-hold-mode-reentry | 照会置換 | true / 16 / - / - | true / 16 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_201010/delete-hold-mode-reentry/result.json`。 |  |
 | building/delete-tool/delete-hold-text-focus | 照会置換 | true / 20 / - / - | true / 20 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_201152/delete-hold-text-focus/result.json`。 |  |
 | building/placement-reason-tooltip | 照会置換 | true / 14 / - / - | true / 14 / - / -（同条件2回） | 一致 | 重複警告 0 件。変更後 `20261026_201815`、`20261026_202005`、旧版 `20261026_202311`、`20261026_202446` のresult.json。同じGameViewタブ選択・IgnoreFocus・AlwaysGameView・デバイス有効化をRun前に適用。前提未整備の変更後2回 `20261026_201444`、`20261026_201600` はBuild menu前でfalse/0、元結果は保持。 |  |
-| building/terrain-sink-normal-and-belt-via-ui | 照会置換 | true / 20 / - / - | | |  |
-| building/ui-place-then-open-machine | 照会置換 | false / 6 / Web側のblock inventoryパネルが描画されている / - | | | 1回目の結果。再現確認は後続で実施 |
+| building/terrain-sink-normal-and-belt-via-ui | 照会置換 | true / 20 / - / - | false / 1 / - / PlaceBlock遷移timeout（2回） | 旧版再測定待ち | 変更後 `20261026_203643`、`20261026_203756` のresult.json。Run前に共通GameView入力正規化を適用。重複警告 0 件。現時点で原因未確定、原本改名・照会置換後の入力順は未変更。 |  |
+| building/ui-place-then-open-machine | 照会置換 | false / 6 / Web側のblock inventoryパネルが描画されている / - | true / 6 / - / -（同条件2回） | 不一致・調査中 | 変更後 `20261026_202829`、`20261026_202948`、旧版同条件 `20261026_203144`、`20261026_203306` のresult.jsonと `02-machine-ui-opened.png`。前段5 Assertは全PASS。旧スクショは右側石窯パネル未描画、新スクショは描画済み。4回とも重複警告 0 件。描画時刻差は推測であり原因未確定。 | 1回目の結果。再現確認は後続で実施 |
 | connect/electric-wire-tool-extend-chain-via-ui | 照会置換 | true / 16 / - / - | | |  |
 | connect/rotary-generator-ui | 照会置換 | false / 38 / DOM状態文字列: 発電中, DOM状態がサーバーenumと一致, サーバー供給量, 需要消失後のサーバー状態は待機中・供給0 / TimeoutException: Until '需要消失後のサーバー状態は待機中・供給0' timed out after 30s | | |  |
 | graphics-quality/quality-ui-switching | 照会置換 | false / 0 / - / シナリオのコンパイル失敗(result.json無し): CS0103 renderer/pipe/waterLevelView/networkPipes/networkWater 未定義 | | |  |
