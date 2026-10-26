@@ -6,7 +6,6 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
-using Client.Playtest.WebUi;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.UIState;
@@ -79,8 +78,8 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     var platformView = await p.WaitBlockGameObject(platformPosition);
     await Open(platformView.GetComponentsInChildren<Collider>().First(c => c.enabled));
     await CheckFluid("train-platform-fluid-slots","80 / 100","液体PF");
-    var platformDom = await PlaytestDomQuery.Query("train-platform-mode",5);
-    p.Assert(platformDom.Found && platformDom.Text.Contains("積込") && platformDom.Text.Contains("卸し"),"PF積込/卸し切替を表示");
+    var platformDom = await PlaytestUiElementOps.FindUi("train-platform-mode");
+    p.Assert(platformDom.IsFound && platformDom.Text.Contains("積込") && platformDom.Text.Contains("卸し"),"PF積込/卸し切替を表示");
     p.Note("PF画面="+platformDom.Text);
     await p.Screenshot("02-platform-water80");
     await p.WaitSeconds(1f);
@@ -148,15 +147,15 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     }
     async UniTask CheckFluid(string testid,string expected,string label)
     {
-        var dom = await PlaytestDomQuery.Query(testid,10);
+        var dom = await PlaytestUiElementOps.FindUi(testid);
         var started = Time.realtimeSinceStartup;
-        while ((!dom.Found || !dom.Text.Contains(expected)) && Time.realtimeSinceStartup-started<10)
+        while ((!dom.IsFound || !dom.Text.Contains(expected)) && Time.realtimeSinceStartup-started<10)
         {
             await UniTask.Yield();
-            dom = await PlaytestDomQuery.Query(testid,2);
+            dom = await PlaytestUiElementOps.FindUi(testid);
         }
         p.Note(label+" DOM="+dom.Text);
-        p.Assert(dom.Found&&dom.Visible,label+"の液体スロットが可視");
+        p.Assert(dom.IsFound&&dom.Visible,label+"の液体スロットが可視");
         p.Assert(dom.Text.Contains("水"),label+"の液体名が水");
         p.Assert(dom.Text.Contains(expected),label+"の量容量="+expected);
     }
