@@ -4,6 +4,7 @@
     "src/main.tsx!",
     "e2e/capture-*.ts",
     "e2e/challenge-hud/capture.ts",
+    "e2e/uitk-reference/capture.ts",
     "e2e/mock-host/server.ts",
     "screenshot.mjs",
     "scripts/*.mjs",
@@ -16,5 +17,6 @@
   },
   "vitest": true,
   "ignore": ["eslint-rules/*.d.ts"],
-  "ignoreDependencies": ["globals", "tsx"]
+  "ignoreDependencies": ["globals", "tsx"],
+  "ignoreBinaries": ["ffmpeg", "ffprobe"]
 }
