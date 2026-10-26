@@ -97,3 +97,5 @@ D35進行中: cursor_cleanupのみsource/runtime専有。初期化済6class7call
 Claude Code区間(12:48-16:00): D35 revert・C#一式1013/1013・moores-code-review(Codex0/Claude40)+bug-pass反映済 HEAD cebe8c5721。ここから Codex（codex-handoff.md）。残り: Task12録画4本再実行→review記録→uitk-stage0取込→pr-body.md→lane-done.md。
 
 Codex再引継ぎ: cwd/clean/HEAD f6b8d13018を確認。Task12 post-review録画4本をrecordingへ、既存review成果物の突合とrecords/eval-log記録をreview_prepへ派遣。実装タスクの再派遣なし。Editor11539を停止しfresh29993、マシン上限2を維持。統合裁定はorigin/feature/uitk-stage0から全文読了。個別PRを作らず統合branch取込・compile・push・pr-body/lane-doneで閉じる。
+
+Task12録画途中: fresh29993はshared snapshot6df core欠落でgenerated生成→ready16:19。matrix初回25/26は事前live照合欠落の運用attemptとして保持し通常手順で再録予定。walkは検索focus待ちtimeoutの新FAIL（4/5途中中断）、purpose_reviewが独立調査中。machine次bootで別レーン別ID起動と同時期にcore再欠落/生成待ち。StaleWorldCacheCollector他ID削除構造を確認、親bdへ共有。D38で自分の今回生成coreの専用退避/SHAと同ID欠落時だけ同一bytes復元を採用、他ID/製品不変。
