@@ -46,8 +46,8 @@ namespace Client.Tests.PlaceSystem.Feedback
             var itemName = Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid));
             CollectionAssert.AreEqual(new[] { new LocalizationTextParam("itemName", itemName),
                 new LocalizationTextParam("ownedCount", "0"), new LocalizationTextParam("requiredCount", "11") }, line.TextParams);
-            // 実辞書の全枠が生成値で埋まることを確かめる
-            // Check that generated values fill every placeholder in the real dictionary
+            // 実辞書の全枠を生成値で埋める
+            // Fill every real-dictionary placeholder with generated values
             var template = Localize.Get(line.Key);
             StringAssert.Contains("{itemName}", template);
             StringAssert.Contains("{ownedCount}", template);

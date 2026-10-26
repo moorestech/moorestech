@@ -56,8 +56,8 @@ namespace Client.Tests.Mining
             Assert.AreSame(focusState, next);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.NamedRequiredItems.Key, ShownTooltipKey());
 
-            // 名前が{name}・必要ツールが{items}
-            // Pin the ordering: the name is {name} and the required tools are {items}
+            // 名称・ツールの順で枠を照合
+            // Check placeholders in name/tool order
             var shownParams = ShownTooltipParams();
             Assert.AreEqual(2, shownParams.Count);
             Assert.AreEqual(new LocalizationTextParam("name", Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid))), shownParams[0]);

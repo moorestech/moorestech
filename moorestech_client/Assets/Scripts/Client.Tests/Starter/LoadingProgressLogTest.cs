@@ -53,8 +53,8 @@ namespace Client.Tests.Starter
             var elapsed = stopwatch.Elapsed.ToString();
             Assert.AreEqual(Localize.GetFormatted(LocalizationKeys.Ui.Loading.ServerConnected, new[] { new LocalizationTextParam("elapsed", elapsed) }), lines[1]);
 
-            // {chunkCount}にチャンク数、{elapsed}に経過時間が入ることを固定する
-            // Pins that {chunkCount} takes the chunk count and {elapsed} the elapsed time
+            // チャンク数と経過時間の枠を照合
+            // Check the chunk-count and elapsed-time placeholders
             Assert.AreEqual(Localize.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { new LocalizationTextParam("chunkCount", "3"), new LocalizationTextParam("elapsed", elapsed) }), lines[2]);
             StringAssert.Contains("3", lines[2]);
         }

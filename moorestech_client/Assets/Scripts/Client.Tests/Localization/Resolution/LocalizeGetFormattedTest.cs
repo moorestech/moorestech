@@ -13,8 +13,6 @@ namespace Client.Tests.Localization.Resolution
         {
             Localize.Initialize();
 
-            // 名前付きの枠を埋める
-            // Fill a named placeholder
             var text = Localize.GetFormatted(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { new LocalizationTextParam("count", "3") });
 
             StringAssert.Contains("3", text);

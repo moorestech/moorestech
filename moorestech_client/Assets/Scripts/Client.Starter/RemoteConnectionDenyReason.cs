@@ -6,8 +6,8 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Starter
 {
     /// <summary>
-    /// リモート接続を拒んだ理由。文言キーと、その名前付き枠へ供給する値を一組で運ぶ
-    /// Why a remote connection was refused: the wording key together with the values its named placeholders receive
+    /// ・文言キーと名前付き値の組
+    /// Pairs a wording key with named values
     /// </summary>
     public readonly struct RemoteConnectionDenyReason
     {

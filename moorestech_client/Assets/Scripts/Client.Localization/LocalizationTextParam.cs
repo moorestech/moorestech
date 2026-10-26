@@ -2,8 +2,8 @@ using System;
 
 namespace Client.Localization
 {
-    // 翻訳文の名前付き差し込み1個。{Name}をValueで埋める
-    // One named substitution in a translated text; {Name} is replaced by Value
+    // ・{Name}をValueで置換
+    // Replaces {Name} with Value
     public readonly struct LocalizationTextParam : IEquatable<LocalizationTextParam>
     {
         public readonly string Name;
