@@ -2101,3 +2101,5 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D27 | BugReport公開タイムアウトfixtureは製品呼出し後に接続保留をassertし、同期で接続を受理する。非同期acceptの登録を必要としない方法へ替え、切断・子孫終了・資料復元等の元assertは保つ | 全体一式でfd1034/1026のIOSelector例外が再発し、独立の低FD→高FD対照で非同期登録だけが失敗、同期受理は成功した。製品のtimeoutや公開確認は変えず、fixtureの待機方式を補正する。FD高値の生成元と別caseのaccepted未完了の厳密原因は未確定として残す | agent 既定（ユーザー未裁定） |
 
 | D28 | cursorの言語待機検証は元assertをすべて終えた後、正規終了をawaitしてFlushedを確認してからExitPlayModeへ進む | CEF正常の独立単独/最小列でも終了時socket例外を2回再現した。言語ゲート前に終了参加者が登録されるため、待機を人工通過せずD21と同じ保存/終了完了待ちを適用できる。例外免責や製品shutdownの推測変更を避ける | agent 既定（ユーザー未裁定） |
+
+| D29 | 実再現したMachineModule/Recipe fixtureは元assert後に正規保存終了をawaitしFlushedを確認してからExitPlayModeへ進み、LoadMainGame後から終了完了まで期待外ログを検出する | 独立単独/最小列でreset→破棄済ServerStarter→FlushFailedを両classに再現。製品終了処理を変えずD21/D28同形のtest終了責務を満たす。未再現のBundle/Repeatは変更しない | agent 既定（ユーザー未裁定） |

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -58,39 +59,57 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 await LoadMainGame();
 
-                // 機械設置、レシピ未選択を確認
-                // Place the machine and confirm no recipe is selected initially.
-                var pos = new Vector3Int(0, 0, 0);
-                var serverBlock = PlaceBlock(MachineBlockName, pos, BlockDirection.North);
-                var processor = serverBlock.GetComponent<VanillaMachineProcessorComponent>();
-                Assert.AreEqual(System.Guid.Empty, processor.SelectedRecipeGuid, "recipe already selected before the test acted");
+                // 起動ログを排出し、機能検証と正規終了の想定外エラーを検出する
+                // Drain startup logs and detect unexpected errors through the checks and normal shutdown
+                await UniTask.Yield();
+                LogAssert.ignoreFailingMessages = false;
+                try
+                {
+                    // 機械設置、レシピ未選択を確認
+                    // Place the machine and confirm no recipe is selected initially.
+                    var pos = new Vector3Int(0, 0, 0);
+                    var serverBlock = PlaceBlock(MachineBlockName, pos, BlockDirection.North);
+                    var processor = serverBlock.GetComponent<VanillaMachineProcessorComponent>();
+                    Assert.AreEqual(System.Guid.Empty, processor.SelectedRecipeGuid, "recipe already selected before the test acted");
 
-                var blockGameObject = await WaitBlockGameObjectSpawn(pos);
+                    var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
-                // レシピをマスタから引く（2件）
-                // Derive the block's recipes from the master (two in the test master data).
-                var blockGuid = blockGameObject.BlockMasterElement.BlockGuid;
-                var blockRecipes = new List<MachineRecipeMasterElement>();
-                foreach (var recipe in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
-                    if (recipe.BlockGuid == blockGuid) blockRecipes.Add(recipe);
-                Assert.AreEqual(2, blockRecipes.Count, "test master data recipe count mismatch");
+                    // レシピをマスタから引く（2件）
+                    // Derive the block's recipes from the master (two in the test master data).
+                    var blockGuid = blockGameObject.BlockMasterElement.BlockGuid;
+                    var blockRecipes = new List<MachineRecipeMasterElement>();
+                    foreach (var recipe in MasterHolder.MachineRecipesMaster.MachineRecipes.Data)
+                        if (recipe.BlockGuid == blockGuid) blockRecipes.Add(recipe);
+                    Assert.AreEqual(2, blockRecipes.Count, "test master data recipe count mismatch");
 
-                var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
+                    var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                // Web UIが使う登録済みハンドラをhubから引いて1件目を選択
-                // Select the first recipe through the registered handler the Web UI uses, resolved from the hub
-                var targetGuid = blockRecipes[0].MachineRecipeGuid;
-                var setResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = targetGuid.ToString() });
-                Assert.IsTrue(setResult.Ok, $"select action failed: {setResult.Error}");
-                Assert.AreEqual(targetGuid, processor.SelectedRecipeGuid, "selected recipe did not reach the server");
+                    // Web UIが使う登録済みハンドラをhubから引いて1件目を選択
+                    // Select the first recipe through the registered handler the Web UI uses, resolved from the hub
+                    var targetGuid = blockRecipes[0].MachineRecipeGuid;
+                    var setResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = targetGuid.ToString() });
+                    Assert.IsTrue(setResult.Ok, $"select action failed: {setResult.Error}");
+                    Assert.AreEqual(targetGuid, processor.SelectedRecipeGuid, "selected recipe did not reach the server");
 
-                // 解除も同じ経路で往復することを確認する
-                // Confirm clearing round-trips through the same path.
-                var clearResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "clear" });
-                Assert.IsTrue(clearResult.Ok, $"clear action failed: {clearResult.Error}");
-                Assert.AreEqual(System.Guid.Empty, processor.SelectedRecipeGuid, "clear did not reach the server");
+                    // 解除も同じ経路で往復することを確認する
+                    // Confirm clearing round-trips through the same path.
+                    var clearResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "clear" });
+                    Assert.IsTrue(clearResult.Ok, $"clear action failed: {clearResult.Error}");
+                    Assert.AreEqual(System.Guid.Empty, processor.SelectedRecipeGuid, "clear did not reach the server");
 
-                BlockSubInventoryOpener.Close(subInventoryState);
+                    BlockSubInventoryOpener.Close(subInventoryState);
+
+                    // 元の機能検証後に、保存と終了参加者の完了を待つ
+                    // Await saving and shutdown participants after the original functional checks
+                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+                    Debug.Log($"[MachineRecipeShutdown] result:{flushResult}");
+                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
+                    await UniTask.Yield();
+                }
+                finally
+                {
+                    LogAssert.ignoreFailingMessages = true;
+                }
             }
 
             #endregion
