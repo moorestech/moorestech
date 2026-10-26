@@ -36,7 +36,9 @@ namespace Client.Playtest.WebUi
             value = 0f;
             var token = payload?[name];
             if (token?.Type != JTokenType.Float && token?.Type != JTokenType.Integer) return false;
-            return float.TryParse(token.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out value) &&
+            // JSON表現は現在のカルチャに左右されないので、数値parseにも同じカルチャを使う
+            // JSON formatting is culture-independent, so parse numbers with the matching culture
+            return float.TryParse(token.ToString(Newtonsoft.Json.Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out value) &&
                    !float.IsNaN(value) && !float.IsInfinity(value);
         }
 
@@ -46,7 +48,7 @@ namespace Client.Playtest.WebUi
             if (payload?[name] is not JValue { Type: JTokenType.Integer } token) return false;
             // 外部JSONの整数はint範囲を超え得るため、変換例外を起こさず拒否する
             // External JSON integers can exceed int range, so reject them without a conversion exception
-            if (!long.TryParse(token.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)) return false;
+            if (!long.TryParse(token.ToString(Newtonsoft.Json.Formatting.None), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)) return false;
             if (parsed < 0 || int.MaxValue < parsed) return false;
             value = (int)parsed;
             return true;

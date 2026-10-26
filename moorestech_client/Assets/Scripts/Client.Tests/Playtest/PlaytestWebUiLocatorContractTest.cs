@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Client.Playtest.UiElements;
 using Client.Playtest.WebUi;
@@ -127,6 +128,26 @@ namespace Client.Tests.Playtest
             var result = new DomQueryResultActionHandler(channel).ExecuteAsync(payload).GetAwaiter().GetResult();
 
             Assert.IsFalse(result.Ok);
+        }
+
+        [TestCase("en-US")]
+        [TestCase("ja-JP")]
+        [TestCase("fr-FR")]
+        public void FloatingPayloadIsIndependentOfCurrentCulture(string cultureName)
+        {
+            var originalCulture = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(cultureName);
+                var payload = new JObject { ["x"] = new JValue(1.5) };
+
+                Assert.IsTrue(WebUiPayloadReader.TryReadFloat(payload, "x", out var value));
+                Assert.AreEqual(1.5f, value);
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = originalCulture;
+            }
         }
 
         [Test]
