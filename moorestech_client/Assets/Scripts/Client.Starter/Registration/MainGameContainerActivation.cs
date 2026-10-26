@@ -28,7 +28,6 @@ namespace Client.Starter.Registration
             resolver.Resolve<TrainCarObjectDatastore>();
             resolver.Resolve<ChallengeManager>();
             resolver.Resolve<PlayerSystemContainer>();
-            resolver.Resolve<SkitUI>();
             resolver.Resolve<HotbarSelectionReconciler>();
         }
 

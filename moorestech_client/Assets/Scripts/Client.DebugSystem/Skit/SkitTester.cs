@@ -23,7 +23,6 @@ namespace Client.DebugSystem.Skit
         [SerializeField] private SkitManager skitManager;
         [SerializeField] private BlockGameObjectDataStore blockGameObjectDataStore;
         [SerializeField] private EnvironmentRoot environmentRoot;
-        [SerializeField] private SkitUI skitUI;
         
         private IObjectResolver _resolver;
         
@@ -43,7 +42,6 @@ namespace Client.DebugSystem.Skit
             builder.RegisterComponent(skitManager);
             builder.RegisterComponent(blockGameObjectDataStore);
             builder.RegisterComponent(environmentRoot);
-            builder.RegisterComponent(skitUI);
             // SkitManagerはIReadOnlyList<ITutorialWorldPin>でピンをまとめて抑止する
             // SkitManager suppresses pins as a whole through IReadOnlyList<ITutorialWorldPin>
             builder.RegisterInstance<IReadOnlyList<ITutorialWorldPin>>(new List<ITutorialWorldPin> { new MapObjectTest() });

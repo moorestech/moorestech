@@ -85,7 +85,6 @@ namespace Client.Starter
         [SerializeField] private TrainCarPreviewController trainCarObjectPreviewController;
         
         [SerializeField] private SkitManager skitManager;
-        [SerializeField] private SkitUI skitUI;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
         [SerializeField] private InGameCameraController inGameCameraController;
@@ -140,7 +139,6 @@ namespace Client.Starter
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();
-            builder.RegisterComponent(skitUI);
             builder.RegisterComponent(backgroundSkitManager);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
