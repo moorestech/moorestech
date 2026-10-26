@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Client.WebUiHost.Vite;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -7,38 +8,26 @@ namespace Client.WebUiHost.Boot.Transport
 {
     internal static class WebUiHostShutdown
     {
-        internal static async UniTask<WebSocketCloseResult> StopAsync(ViteSupervisor vite, WebSocketHub hub, KestrelServer kestrel)
+        internal static async UniTask<WebUiStopResult> StopAsync(ViteSupervisor vite, WebSocketHub hub, KestrelServer kestrel)
         {
+            var resourceFailures = new Dictionary<string, string>();
             var closeResult = new WebSocketCloseResult(new(), new());
             // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）
             // Isolate and log each stop step so one failure cannot skip the remaining steps (2-B)
             if (vite != null)
             {
-                // Vite kill はメインスレッドで同期実行（Process.Kill はメインスレッド前提）
-                // Kill Vite synchronously on the main thread (Process.Kill assumes main thread)
+                // ViteのOSプロセス終了境界を隔離し、欠損を結果へ残す
+                // Isolate the Vite OS process termination boundary and retain the failure in the result
                 try { vite.Stop(); }
-                catch (Exception e) { Debug.LogWarning($"[WebUiHost] vite kill failed: {e.GetBaseException().Message}"); }
+                catch (Exception e) { RecordFailure("Vite process", e, resourceFailures); }
             }
 
             // Kestrel/WS 停止はスレッドプールへ逃がしてメインスレッドを解放
             // Move Kestrel/WS shutdown off the main thread via UniTask.SwitchToTaskPool
             await UniTask.SwitchToTaskPool();
 
-            // セーブデータ/Mod 切替に備えてアイコンキャッシュを破棄する
-            // Drop icon caches in case the save data / mod set changes
-            try
-            {
-                Game.Icons.IconEndpoint.ClearAllCaches();
-            }
-            catch (Exception e) { Debug.LogWarning($"[WebUiHost] icon cache clear failed: {e.GetBaseException().Message}"); }
-
             if (hub != null)
             {
-                // トピック/アクションのバインド解除
-                // Release topic/action bindings
-                try { hub.ClearBindings(); }
-                catch (Exception e) { Debug.LogWarning($"[WebUiHost] clear bindings failed: {e.GetBaseException().Message}"); }
-
                 // WebSocketネットワーク送信の失敗結果を保持し、Kestrel停止まで続ける
                 // Retain WebSocket network transmission failures and continue through Kestrel shutdown
                 closeResult = await hub.CloseAllAsync();
@@ -46,15 +35,26 @@ namespace Client.WebUiHost.Boot.Transport
 
             if (kestrel != null)
             {
-                // Kestrel 停止でポートを確実に解放する（次回 Start の port 5050 衝突を防ぐ）
-                // Stop Kestrel to release the port for sure (prevents port 5050 collision on next Start)
+                // Kestrelのネットワークリスナー停止境界を隔離して欠損を返す
+                // Isolate Kestrel network listener shutdown and return its failure
                 try { await kestrel.StopAsync(); }
-                catch (Exception e) { Debug.LogWarning($"[WebUiHost] kestrel stop failed: {e.GetBaseException().Message}"); }
+                catch (Exception e) { RecordFailure("Kestrel listener", e, resourceFailures); }
             }
 
-            if (closeResult.Succeeded) Debug.Log("[WebUiHost] stopped");
-            else Debug.LogError($"[WebUiHost] stopped with unterminated WebSockets: {string.Join(", ", closeResult.UnterminatedConnections)}");
-            return closeResult;
+            // 内部状態の解除は外部資源停止後に行い、内部障害でネットワーク停止を飛ばさない
+            // Clear internal state after external resources so internal faults cannot skip network shutdown
+            Game.Icons.IconEndpoint.ClearAllCaches();
+            hub?.ClearBindings();
+            var result = new WebUiStopResult(closeResult, resourceFailures);
+            if (result.Succeeded) Debug.Log("[WebUiHost] stopped");
+            else Debug.LogError($"[WebUiHost] shutdown incomplete; sockets: {string.Join(", ", closeResult.UnterminatedConnections)}; resources: {string.Join(", ", resourceFailures)}");
+            return result;
+        }
+
+        private static void RecordFailure(string resource, Exception error, Dictionary<string, string> failures)
+        {
+            failures.Add(resource, error.GetBaseException().Message);
+            Debug.LogError($"[WebUiHost] {resource} stop failed: {failures[resource]}");
         }
     }
 }

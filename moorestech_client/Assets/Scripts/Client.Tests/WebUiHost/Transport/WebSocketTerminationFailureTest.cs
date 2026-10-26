@@ -80,7 +80,7 @@ namespace Client.Tests.WebUiHost.Transport
             LogAssert.Expect(LogType.Error, new Regex("abort failed"));
             LogAssert.Expect(LogType.Error, new Regex("dispose failed"));
             LogAssert.Expect(LogType.Error, new Regex("unterminated"));
-            if (host) LogAssert.Expect(LogType.Error, new Regex("stopped with unterminated"));
+            if (host) LogAssert.Expect(LogType.Error, new Regex("shutdown incomplete"));
         }
     }
 }

@@ -22,7 +22,7 @@ namespace Client.WebUiHost.Boot
         private static WebSocketHub _hub;
         private static readonly WebUiHostShutdownParticipant ShutdownParticipant = new();
 
-        private static Task<WebSocketCloseResult> _stopTask = Task.FromResult(new WebSocketCloseResult(new(), new()));
+        private static Task<WebUiStopResult> _stopTask = Task.FromResult(new WebUiStopResult(new WebSocketCloseResult(new(), new()), new()));
         public static WebSocketHub Hub => _hub;
 
         // 未起動はnull。0は実ポート域外の値で、書けば「届かない入口」を正常系の数字として名乗る
@@ -120,13 +120,13 @@ namespace Client.WebUiHost.Boot
             StopAsync().Forget(e => Debug.LogWarning($"[WebUiHost] stop faulted: {e.GetBaseException().Message}"));
         }
 
-        public static UniTask<WebSocketCloseResult> StopAsync()
+        public static UniTask<WebUiStopResult> StopAsync()
         {
             if (_stopTask.IsCompleted) _stopTask = StopCoreAsync().AsTask();
             return _stopTask.AsUniTask();
         }
 
-        private static async UniTask<WebSocketCloseResult> StopCoreAsync()
+        private static async UniTask<WebUiStopResult> StopCoreAsync()
         {
             // フィールドをローカルへ退避し即 null 化する。二重 Stop を冪等にし、以後の Start を再試行可能にする
             // Move fields to locals and null them immediately; makes double-stop idempotent and lets a later Start retry
@@ -152,7 +152,7 @@ namespace Client.WebUiHost.Boot
             Stop();
             Task.WhenAny(_stopTask, Task.Delay(timeout)).GetAwaiter().GetResult();
             if (_stopTask.Status == TaskStatus.RanToCompletion && !_stopTask.Result.Succeeded)
-                Debug.LogError("[WebUiHost] editor cleanup completed with failed WebSocket closes");
+                Debug.LogError("[WebUiHost] editor cleanup completed with shutdown failures");
             if (_stopTask.IsFaulted)
             {
                 Debug.LogWarning($"[WebUiHost] stop faulted: {_stopTask.Exception?.GetBaseException().Message}");

@@ -54,7 +54,7 @@ namespace Client.Tests.WebUiHost.Transport
             while (!stopping.IsCompleted) yield return null;
             var result = stopping.GetResult();
             Assert.IsTrue(result.Succeeded);
-            StringAssert.Contains("injected close output failure", result.CloseErrors[id]);
+            StringAssert.Contains("injected close output failure", result.Connections.CloseErrors[id]);
             Assert.IsNull(global::Client.WebUiHost.Boot.WebUiHost.Hub);
             Assert.IsFalse(hub.HasConnections);
         }
