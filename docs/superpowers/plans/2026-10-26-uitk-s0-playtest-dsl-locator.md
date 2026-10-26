@@ -39,7 +39,7 @@
 - コメントは日本語1行＋英語1行のセット（AGENTS.md）
 - .cs を変えたら `uloop compile --project-path ./moorestech_client` で ErrorCount 0 を確かめる
 - .meta は手で作らない（`git mv` した .cs の .meta は一緒に `git mv` する。新規 .cs の .meta は Unity が作ったものをコミットする）
-- Unity Editor の予算: Mac mini の同時 Editor は全セッション合計 3 本まで。起動前に `moores-wt status` で本数を確かめ、3 本以上なら Editor の要らないタスク（Task 2・Task 6 の文書）を先に進める
+- Unity Editor の予算: Mac mini の同時 Editor は全セッション合計 2 本まで。起動前に `moores-wt status` で本数を確かめ、2 本以上なら Editor の要らないタスク（Task 2・Task 6 の文書）を先に進める
 - Web UI を PlayMode で動かす前に `cd moorestech_web/webui && pnpm install --frozen-lockfile`（node_modules を別 checkout から複製しない）。Editor の Web UI は Vite dev server で配信されるので、`bridge/playtest/` の変更はビルド不要で PlayMode に載る
 - 他レーンの持ち物（`Client.RemoteExec`・`WebUiEndpoints.cs`・`InitializeScenePipeline.cs`・`Client.WebUiHost` の topic 状態部分・`WebUiGameBinder`・`WebUiStartup.cs`・`UIStateControl`・`docs/uitk/`・`docs/webui/MIGRATION.md`）には触らない。触る必要が出たら `bd note moorestech-albof.6` に書いてマージで解く
 - Steam・Discord など外へ出す操作はしない
@@ -133,7 +133,7 @@
 cd <worktree の root（ブランチ feature/uitk-s0-dsl）> && pwd
 git status --short   # 空であること（plan ファイルのコミット以外の変更が無い）
 git diff --stat e855a58667 HEAD   # 差分が docs/superpowers/plans/ の plan ファイルだけであること
-moores-wt status     # Editor 本数を確認。3本以上なら Task 2 を先に進めて空きを待つ
+moores-wt status     # Editor 本数を確認。2本以上なら Task 2 を先に進めて空きを待つ
 (cd moorestech_web/webui && pnpm install --frozen-lockfile)
 uloop launch ./moorestech_client
 uloop compile --project-path ./moorestech_client
