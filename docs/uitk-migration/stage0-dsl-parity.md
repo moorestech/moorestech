@@ -28,8 +28,8 @@
 | connect/electric-wire-tool-isolated-place-via-ui | 改名のみ | false / 1 / - / TimeoutException: Web UI element did not become available: build-menu-panel | | | `PlaytestResults/20261026_163555/electric-wire-tool-isolated-place-via-ui/result.json` |
 | connect/electric-wire-tool-pole-cycle-rotate-via-ui | 改名のみ | false / 18 / 対照実験: ゲーム画面のホイールで装備選択が変わる (前=0 後=0), ゴーストの名前ラベルが選択中の電柱種を示す 実際:'', 後対照: ツール解除後は同じホイールで装備が切り替わる (前=0 後=0) / - | | | `PlaytestResults/20261026_164255/electric-wire-tool-pole-cycle-rotate-via-ui/result.json` |
 | connect/electric-wire-tool-pole-ghost-hide-paths-check | 改名のみ | false / 1 / - / TimeoutException: Web UI element did not become available: build-menu-panel | | | `PlaytestResults/20261026_164841/electric-wire-tool-pole-ghost-hide-paths-check/result.json` |
-| connect/electric-wire-tool-pole-ghost-visibility-check | 改名のみ | 未測定 | | |  |
-| misc/localization-language-switch-via-ui | 改名のみ | 未測定 | | |  |
+| connect/electric-wire-tool-pole-ghost-visibility-check | 改名のみ | false / 1 / - / TimeoutException: Web UI element did not become available: build-menu-panel | | | `PlaytestResults/20261026_165245/electric-wire-tool-pole-ghost-visibility-check/result.json` |
+| misc/localization-language-switch-via-ui | 改名のみ | false / 6 / 未翻訳の車両名はEnglishでも原文へフォールバックする / - | | | `PlaytestResults/20261026_165538/localization-language-switch-via-ui/result.json` |
 | misc/walk-while-menus-open | 改名のみ | 未測定 | | |  |
 | misc/webui-buildmenu-click | 改名のみ | 未測定 | | |  |
 | train/train-station-default-name | 改名のみ | 未測定 | | |  |
