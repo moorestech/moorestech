@@ -6596,7 +6596,7 @@ git -C $MW commit -m "master: 計算データ・GPU衛星・積荷表・ロケ�
 - ロケット技術の前提は、下書きの仮の「半導体製造」から「GPU設計」に付け替える（下書き E の補足「GPU を解放する研究は S1 が決めるので付け替える」）。
 - GPU衛星 Lv2〜Lv5 のレシピは、解放同期則でアップグレード研究 LvN へ移る見込み（推測。入力の GPU LvN の表示がアップグレード LvN にあるため）。下書きの「ロケット技術が 5 本とも解放する」とは違う。spec は最初から LvN のノードに置き、Step 2 の sync で `MOVE` が 0 になることで確かめる。
 
-- [ ] **Step 1: spec 07 を書く。** コストは仮値。計算データは段ごとに倍にし、Task 23 で G6 が確定する。ロケット技術のコストは S2 下書き E の仮値のまま。
+- [x] **Step 1: spec 07 を書く。** コストは仮値。計算データは段ごとに倍にし、Task 23 で G6 が確定する。ロケット技術のコストは S2 下書き E の仮値のまま。
 ```json
 {
   "research": [
@@ -6628,13 +6628,13 @@ git -C $MW commit -m "master: 計算データ・GPU衛星・積荷表・ロケ�
   - `level` を N に。
   - `@recipe:GPU衛星LvN` に。
   - 表示 5 件と `iconItem` を LvN に。
-- [ ] **Step 2: 適用し、研究の解放を同期する**（S1 と S2 の研究がそろったので sync が通る）
+- [x] **Step 2: 適用し、研究の解放を同期する**（S1 と S2 の研究がそろったので sync が通る）
 ```bash
 cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json
 cd $MW && python3 tools/research_sync/sync_machine_recipe_unlocks.py | grep -E "^(MOVE|ORPHAN|STALE|DEAD-END)|moves," ; python3 tools/research_sync/sync_machine_recipe_unlocks.py --check; echo "check=$?"
 ```
 Expected: apply が `applied 7 spec files; issued 4 new guids`。sync は `0 moves, … 0 orphans, 0 stale` で、`DEAD-END` が無い。`check=0`。`MOVE` が出たら Task 17 Step 2 と同じ手順で spec 07 を直す。
-- [ ] **Step 3: nodeGraph を統合マスタに合わせ、master-refine A/Bも回す**（判断記録A21。Task18で保持された発射台sortPriority0を最終値と誤認しないため、研究解放・nodeGraph同期の後に並び順と研究座標を再計算する。再apply→syncでも再計算値が保持されることを確認する）
+- [x] **Step 3: nodeGraph を統合マスタに合わせ、master-refine A/Bも回す**（判断記録A21。Task18で保持された発射台sortPriority0を最終値と誤認しないため、研究解放・nodeGraph同期の後に並び順と研究座標を再計算する。再apply→syncでも再計算値が保持されることを確認する）
   - ブロックの並び順は、master-refine 操作 A が blockGuid と研究の unlockBlock の対象から items と同じ規則で items とは独立に算出する（裁定 `2026-10-26-ブロックの並び順は研究解放とnodeGraphから独立算出する`）。block→item の参照や同名の推測で item の値を写さない（全ブロックが itemGuid を持たないため、旧規則では全件が再計算されなかった）。apply は既存行の sortPriority を保持するので、spec の block の sortPriority は初回の仮値で、refine A の結果が正になる。
 ```bash
 cd $MW && python3 tools/nodegraph_sync/sync_nodegraph.py > $GL/p2-9-s2-nodegraph-sync.txt; echo "ng=$?"; cat $GL/p2-9-s2-nodegraph-sync.txt
@@ -6647,7 +6647,7 @@ Expected:
 - `UNPLACED` が出たら、検査は緩めず、`placement.py` の候補の範囲（研究は `range(1, 9)`、解放は `range(0, 12)`）を広げて流し直す。
 - master-refine A の blocks の一覧で、全ブロックが 0 以外の値（100 始まり 10 刻み）を持ち、根拠が `INIT`・`RES <- 研究名`・`ORPHAN` のどれかで出る。ロケット発射台は `RES <- ロケット技術`。核融合炉・宇宙エレベーター拠点・重水素抽出装置・反物質製造装置は解放の研究が Task 22 で入るまで `ORPHAN` として末尾に並ぶ（0 のまま残らない）。電柱・レールの相対順は変わらない（コネクトツールが sortPriority 最小を自動設置するため）。
 - 再 apply → research sync → nodeGraph sync → master-refine A/B の後も、mod の全ファイルがバイト一致する。
-- [ ] **Step 4: S2 スライスのゲート**
+- [x] **Step 4: S2 スライスのゲート**
 ```bash
 G1 $MW/server_v8 2>&1 | tee $GL/p2-9-s2-g1.txt
 (cd $MW && python3 tools/progression/check.py) > $GL/p2-9-s2-g2.txt 2>&1; echo "G2 exit=$?"
@@ -6659,7 +6659,7 @@ Expected:
 - 研究ロケット技術とアップグレード Lv2〜Lv5 は到達可能。
 - 解放されないブロックの一覧から発射台が消える。
 - nodeGraph は `ng=0`・`== NODEGRAPH: PASS (0 failures)`。
-- [ ] **Step 5: G6 の S2 区間を書く**（判断記録 A25。S2 のアイテム・発射台・研究がそろうのはこの Task なのでここで書く。値の確定は Task 23）
+- [x] **Step 5: G6 の S2 区間を書く**（判断記録 A25。S2 のアイテム・発射台・研究がそろうのはこの Task なのでここで書く。値の確定は Task 23）
   - 所要時間: 計算データを消費する研究ごとに便数を出す。払うのは、前提の研究（祖先）で解放済みの GPU衛星のうち、1 便の計算データが最も多いもの。便数の合計 × 1 便の秒（`buildSeconds`＋`launchSeconds`）÷ 発射台 1 台を時間にする。便数・1 便の秒・時間はどれも `Resolved` で持ち、1 つでも引けなければ時間はその状態を引き継ぐ（判断記録 A31）。
   - GPU衛星の判別: levelFamily「GPU衛星」の各レベルを衛星とし、1 便の計算データは積荷表の行を GUID で引く（`MasterView.payload_row`）。積荷表の行が無いレベルは `target lookup_failed` の行を出す。名前の前方一致と既定値 `''` では判定しない（判断記録 A32）。
   - 研究コストの照合: 計算データを消費する研究の顔ぶれが `COMPUTE_CONSUMERS`（アップグレード Lv2〜Lv5・軌道エレベーターの建設・反物質爆弾）と一致すること。アップグレード LvN の `unlockLevelInheritanceCraftLevel.level` が N であること（Lv2 の行を写して作るので写し残しを拾う。action が 0 個と 2 個以上は `checks.single` で理由を分ける）。どちらも `checks.matches` の行で、コストが無いものは `match lookup_failed`、想定外の消費先は `match mismatch`。
@@ -7129,7 +7129,7 @@ wc -l $MW/tools/tier9_balance/sections/recipe_rates.py $MW/tools/tier9_balance/s
   - `FAIL [overall] target lookup_failed s2_compute_loop の所要時間[h]: S2 の所要時間: …` は FAIL のまま（便数の引けない 2 ノードの状態を引き継ぐ）。数値は Task 22 の後に出る。
   - どのファイルも 200 行以下（最長は `s2s3_fixture.py` の 116 行）。
   - 工場の台数が `target lookup_failed`（レシピが 1 本に決まらない）か `target not_positive`（毎秒が 0 以下）で FAIL したら、検査は緩めない。その機械に同じ出力のレシピが 2 本ある原因を spec で確かめて直す。起点 f9370e7 では、`UPSTREAM_RECIPES` の 4 品目はどれも 1 本だった（実測）。
-- [ ] **Step 6: コミットして push する**
+- [x] **Step 6: コミットして push する**
 ```bash
 git -C $MW add design/tier9-balance/spec/07_rocket_research.json design/tier9-balance/guids.json server_v8/mods/moorestechAlphaMod_8/master server_v8/mods/moorestechAlphaMod_8/localization/localization.csv server_v8/mods/moorestechAlphaMod_8/.mooreseditor/nodeGraph.v1.json tools/tier9_balance
 git -C $MW commit -m "master: ロケット技術と半導体のアップグレード研究 Lv2〜Lv5（製作上限を段ごとに上げる）と G6 の S2 区間を入れる"
@@ -7210,7 +7210,7 @@ git -C $MW commit -m "master: 重水素・核融合炉・重水素抽出装置�
   - 積荷表のケーブル行（1 便 1000 本・成果なし）。
   - 拠点 `01a162aa-cec0-738c-93c5-f58adc87fa7f` を SpaceElevatorBase の全文にする。
 
-- [ ] **Step 1: spec 09 を書く。** 値は S3 引き継ぎの各節の JSON をそのまま使う。
+- [x] **Step 1: spec 09 を書く。** 値は S3 引き継ぎの各節の JSON をそのまま使う。
   - 「旧 Task 2 Step 1」: 3D プリンタのブロック。blockSize は Task 20 Step 1 の実測値を使う。
   - 「旧 Task 2 Step 2」: レシピ 6 本。
   - 「旧 Task 5 Step 3」: スタック表と積荷表の行。
@@ -7222,8 +7222,8 @@ git -C $MW commit -m "master: 重水素・核融合炉・重水素抽出装置�
   - (c) 旧アイテムは `"removeItems": ["019e3af5-e750-71ae-ab09-2b98f3db9913"]` で消す。研究「金属超精密加工」の `unlockItemRecipeView` に残っている参照は、Task 22 の `patchResearch` が解放を丸ごと置き換えることで消える。消し残しがあれば `assert_removed_absent` が止める。
   - (d) 拠点は SpaceElevatorBase で、ElectricMachine ではないので `allowQualityModule` は入れない。`category: 生産`・`subCategory: 宇宙` は Task 18 の小分類を使う。
   - (e) 積荷表のケーブル行は `"orbitalPayloads": [{"payloadItemGuid": "@item:グラフェンケーブル", "countPerLaunch": 1000, "arrivalOutputs": []}]`、スタック表は `"stackTables": [{"name": "グラフェンケーブル", "guid": "01a167e9-21f9-70a8-be5e-08c2ba6895c9", "stackCounts": [1000]}]`、割り当ては `"patchItems": [{"name": "グラフェンケーブル", "set": {"stackLevelTableGuid": "@stackTable:グラフェンケーブル"}}]` と書く。キー名は S2 の `items.yml` の `orbitalPayloads`（`payloadItemGuid`・`countPerLaunch`・`arrivalOutputs`）で確認済み（`wf/S2S3.md` §(1)）。
-- [ ] **Step 2: 適用する**（Task 22 の研究がまだ無いので、`assert_removed_absent` が「金属超精密加工」に残る旧アイテムの参照で止まる。そのため、このタスクは spec 09 と spec 10 を同時に置いてから適用する。手順上は Step 1 の後に Task 22 Step 1 を書き、ここで両方を適用する）  Run: `cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json`  Expected: `applied 10 spec files; issued 0 new guids`
-- [ ] **Step 3: 結果を確かめる**
+- [x] **Step 2: 適用する**（Task 22 の研究がまだ無いので、`assert_removed_absent` が「金属超精密加工」に残る旧アイテムの参照で止まる。そのため、このタスクは spec 09 と spec 10 を同時に置いてから適用する。手順上は Step 1 の後に Task 22 Step 1 を書き、ここで両方を適用する）  Run: `cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json`  Expected: `applied 10 spec files; issued 0 new guids`
+- [x] **Step 3: 結果を確かめる**
 ```bash
 python3 -c "
 import json; m='$MOD/master/'; i=json.load(open(m+'items.json')); b={e['blockGuid']:e for e in json.load(open(m+'blocks.json'))['data']}
@@ -7233,7 +7233,7 @@ s=b['01a162aa-cec0-738c-93c5-f58adc87fa7f']; print(s['blockType'], s['subCategor
 print(any(e['itemGuid'].startswith('019e3af5-e750') for e in i['data']))"
 ```
 Expected: `[1000] [1000]`、`SpaceElevatorBase 宇宙 5`、`False`。
-- [ ] **Step 4: コミット**（Task 22 Step 8 のコミットとまとめる。spec 09 と 10 は同時に適用しないと途中の状態が作れないため）
+- [x] **Step 4: コミット**（Task 22 Step 8 のコミットとまとめる。spec 09 と 10 は同時に適用しないと途中の状態が作れないため）
 
 **完了判定:** Step 3 の 3 行。ロードは Task 22 Step 5 の G1 で確かめる。
 **量感:** JSON 約 +300 行（3D プリンタ約 55 行、拠点約 55 行、レシピ 6 本約 180 行、スタック表と積荷表約 15 行。アイテム 1 件約 −13 行）。localization +2 行・−1 行。
@@ -7283,7 +7283,7 @@ Expected: `[1000] [1000]`、`SpaceElevatorBase 宇宙 5`、`False`。
   - 5 ノードのコストと解放。
   - フィルター分岐器のノードは無くなる。
 
-- [ ] **Step 1: spec 10 を書く。** 値は S3 引き継ぎの 3 節（「旧 Task 1 Step 5」の核融合炉・反物質爆弾、「旧 Task 2 Step 3」の金属超精密加工・軌道エレベーターの建設・最終研究、「旧 Task 5 Step 4」の (a)(b)(c) と反物質爆弾の計算データ）。下書きに対する訂正は次の 4 点。
+- [x] **Step 1: spec 10 を書く。** 値は S3 引き継ぎの 3 節（「旧 Task 1 Step 5」の核融合炉・反物質爆弾、「旧 Task 2 Step 3」の金属超精密加工・軌道エレベーターの建設・最終研究、「旧 Task 5 Step 4」の (a)(b)(c) と反物質爆弾の計算データ）。下書きに対する訂正は次の 4 点。
   - (a) **拠点の解放を「軌道エレベーターの建設」に戻す（裁定3）。** S3 の (a)「unlockBlock から発射台を外す」は、S1 のマスタ 32874fe が action を丸ごと消す前の形を前提にしている。統合では、解放を `unlockBlock [宇宙エレベーター拠点]` として新しく書く。
   - (b) 「軌道エレベーターの建設」の表示からロケット筐体素材・燃料を外す（S3 の (a)）。これらの表示はロケット技術（Task 19）へ移っている。
   - (c) 「軌道エレベーターの建設」の UIPosition の固定値 `[4590, 0]` は書かない。Step 4 の再計算（Task 17 Step 4 と同じ master-refine）に任せる。
@@ -7321,7 +7321,7 @@ Expected: `[1000] [1000]`、`SpaceElevatorBase 宇宙 5`、`False`。
   ]
 }
 ```
-- [ ] **Step 2: 適用し、研究の解放を揃える**（Task 21 Step 2 の適用はこの手順と同じ 1 回）
+- [x] **Step 2: 適用し、研究の解放を揃える**（Task 21 Step 2 の適用はこの手順と同じ 1 回）
 ```bash
 cd $B && python3 apply/apply_spec.py --mod-dir $MOD --spec-dir spec --ledger guids.json
 cd $MW && python3 tools/research_sync/sync_machine_recipe_unlocks.py | grep -E "^(MOVE|ORPHAN|STALE|DEAD-END)|moves," ; python3 tools/research_sync/sync_machine_recipe_unlocks.py --check; echo "check=$?"
@@ -7330,7 +7330,7 @@ Expected:
 - apply が `applied 10 spec files; issued 0 new guids`。
 - sync は `0 orphans, 0 stale` で、`DEAD-END` が無い。レシピの行き先は S3 引き継ぎ「旧 Task 1 Step 7」「旧 Task 2 Step 5」の Expected どおり: 重水素は核融合炉、反物質と爆弾は反物質爆弾、グラフェン 4 本は軌道エレベーターの建設、3D プリンタの 2 本は金属超精密加工。
 - `check=0`。
-- [ ] **Step 3: nodeGraph を統合マスタに合わせる**（判断記録 A21。Step 4 の master-refine の前に流す）
+- [x] **Step 3: nodeGraph を統合マスタに合わせる**（判断記録 A21。Step 4 の master-refine の前に流す）
 ```bash
 cd $MW && python3 tools/nodegraph_sync/sync_nodegraph.py > $GL/p2-12-s3-nodegraph-sync.txt; echo "ng=$?"; cat $GL/p2-12-s3-nodegraph-sync.txt
 git -C $MW diff --stat -- server_v8/mods/moorestechAlphaMod_8/.mooreseditor
@@ -7339,12 +7339,12 @@ Expected:
 - `ng=0`。末尾は `== NODEGRAPH: PASS (0 failures)` で、`UNPLACED` 行が無い。diff は `nodeGraph.v1.json` の 1 ファイルだけ。
 - 1 行目の見込み（推測）: `pruned` に研究「フィルター分岐器」`019e3aab-32c6…` と旧「金属3Dプリンタ」アイテム `019e3af5-e750…` のノード（設計検査 V2 が #87 で実測した 4 件のうち、Task 17 で消えなかった 2 件）。`research nodes +1`（最終研究）。`dependency edges` の増減は前提の張り替え分（金属超精密加工 ← 機械オーバークロック、軌道エレベーターの建設 ← 金属超精密加工・ロケット技術、最終研究 ← 反物質爆弾。フィルター分岐器の線はノードと一緒に消える）。`moved` に宇宙エレベーター拠点（軌道エレベーターの建設の下へ）と核融合炉（核融合炉の研究の下へ）。
 - `UNPLACED` が出たら、検査は緩めず、`placement.py` の候補の範囲（研究は `range(1, 9)`、解放は `range(0, 12)`）を広げて流し直す。
-- [ ] **Step 4: sortPriority と研究座標を再計算する**（Task 17 Step 4 と同じ master-refine の 2 本）
+- [x] **Step 4: sortPriority と研究座標を再計算する**（Task 17 Step 4 と同じ master-refine の 2 本）
 ```bash
 cd $W && python3 .agents/skills/master-refine/scripts/recalc_sort_priority.py --mod-dir "$MOD" --quiet && python3 .agents/skills/master-refine/scripts/recalc_research_positions.py --mod-dir "$MOD" | tail -1
 ```
 Expected: 並び順と座標の再計算が通る（`updated <件数> nodes -> …/research.json`）。
-- [ ] **Step 5: S3 スライスのゲート（ここで G2 を緑にする）**
+- [x] **Step 5: S3 スライスのゲート（ここで G2 を緑にする）**
 ```bash
 G1 $MW/server_v8 2>&1 | tee $GL/p2-12-s3-g1.txt
 (cd $MW && python3 tools/progression/check.py) > $GL/p2-12-s3-g2.txt 2>&1; echo "G2 exit=$?"
@@ -7357,7 +7357,7 @@ Expected:
 - nodeGraph は `ng=0`・`== NODEGRAPH: PASS (0 failures)`。
 - 許可リストの差分は空。
 - 赤が残ったら、その行の要素を spec 06〜10 で直す。許可リストに足して黙らせることはしない。
-- [ ] **Step 6: G6 の S3 区間を書く**（判断記録 A26。S3 の機械・拠点・研究がそろうのはこの Task なのでここで書く。値の確定は Task 23）
+- [x] **Step 6: G6 の S3 区間を書く**（判断記録 A26。S3 の機械・拠点・研究がそろうのはこの Task なのでここで書く。値の確定は Task 23）
   - 検査: S3 引き継ぎ「旧 Task 4」「旧 Task 12」の `check` 行を関数に直す。`sys.exit` は引けない `Resolved`（`lookup_failed`）と `checks.unreadable` の行に、`check(..., 1, 1)` は `checks.matches` に替える。`PowerResult`（差し引き電力・爆弾をそろえる時間）、品目の毎秒、研究を払う時間、区間の時間はどれも `Resolved` で返し、差し引きが 0 以下なら `require_positive` で `not_positive` にして、それで割る比も同じ状態で落とす（判断記録 A31）。上流の需要の積み上げは `recipe_rates.chain_machines`、積荷表の行は `MasterView.payload_row`、研究のコストの品目は GUID で引く（判断記録 A32）。
   - 旧 Task 12 の `ROCKET_BUILD_SECONDS_KEY` は `buildSeconds`（Task 3 の引き継ぎ）。
   - 所要時間: 次の 3 つを足す。
@@ -7652,7 +7652,7 @@ ls $MW/tools/tier9_balance/sections | wc -l; wc -l $MW/tools/tier9_balance/secti
   - 自己テストは `Ran 17 tests` / `OK`（枠 8・S2 5・S3 4）。
   - `sections/` の直下は 8 件（`.py` 5 本と `s1/`・`s2/`・`s3/`。`__pycache__` があれば 9 件）。1 ディレクトリ 10 ファイル以下に収まる。
   - S3 の 5 ファイルは合計 194 行で、どれも 200 行以下。
-- [ ] **Step 7: 照合と出荷検査**
+- [x] **Step 7: 照合と出荷検査**
 ```bash
 (cd $MW && python3 tools/tier9_balance/run.py) > $GL/p2-12-s3-g6.txt; echo "s1-fail=$(grep '^FAIL \[s1_semiconductor\] ' $GL/p2-12-s3-g6.txt | grep -vc ' target out_of_range ')"
 echo "s23-fail=$(grep -E '^FAIL \[(s2_compute_loop|s3_endgame)\] ' $GL/p2-12-s3-g6.txt | grep -vc ' target out_of_range ')"; grep -E '^FAIL \[(s2_compute_loop|s3_endgame)\]|^(PASS|FAIL) \[overall\]' $GL/p2-12-s3-g6.txt
@@ -7671,7 +7671,7 @@ Expected:
   - S2・S3 の目標時間と値は Task 23 で緑にする。
 - `contracts=0`。
 - 最後の grep は何も出さない（フィルター分岐器・旧 3D プリンタ・超純水・旧 EUV レシピが全マスタと nodeGraph から消えている）。
-- [ ] **Step 8: コミットして push する**（Task 21 の分とまとめる）
+- [x] **Step 8: コミットして push する**（Task 21 の分とまとめる）
 ```bash
 git -C $MW add design/tier9-balance/spec/09_graphene_printer_elevator.json design/tier9-balance/spec/10_endgame_research.json design/tier9-balance/guids.json server_v8/mods/moorestechAlphaMod_8/master server_v8/mods/moorestechAlphaMod_8/localization/localization.csv server_v8/mods/moorestechAlphaMod_8/.mooreseditor/nodeGraph.v1.json tools/tier9_balance
 git -C $MW commit -m "master: グラフェン工程・金属3Dプリンタ・宇宙エレベーター拠点・Tier9 終盤の研究と最終研究と G6 の S3 区間を入れ、フィルター分岐器ノードを消す"
