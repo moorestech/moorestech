@@ -22,7 +22,7 @@ namespace Client.WebUiHost.Vite
                 if (exitCode == 1) Debug.Log($"[WebUiHost] no child processes for owned Vite pid={pid}");
                 else if (exitCode != 0) childFailure = $"child stop command exit={exitCode}";
 #else
-                if (exitCode != 0 && !process.HasExited) childFailure = $"tree stop command exit={exitCode}";
+                if (exitCode != 0) childFailure = $"tree stop command exit={exitCode}";
 #endif
             }
             catch (Exception error)
