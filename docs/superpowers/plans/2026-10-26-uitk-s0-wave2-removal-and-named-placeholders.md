@@ -863,3 +863,8 @@ git merge --no-ff origin/feature/uitk-stage0 -m "Merge branch 'feature/uitk-stag
 なし。
 
 | D21 | Task8 C09のSkitManagerへの適用だけを撤回し、publicの資産ロード入口とprivateのロード済み再生入口を役割境界として保持する。PreProcess/Cleanupはprivate再生入口のInternalに戻す。失敗cleanupテストは既存private overloadを反射で呼び、新設Addressables providerを除去する。広域1166件では解放待ち180秒timeout、同じ最終headの単独classは6/6成功、beforeManager参照数0対1を実測したため、style集約のためだけに生じた全体状態依存fixtureを維持しない。Presenter側C09・他レビュー修正・旧UI撤去は保持する | agent 既定（ユーザー未裁定）。Task9 finalの広域XML13:10:03Z〜13:13:42Zと単独class XML13:14:45Z。参照数差の根本原因は未確定で、推測を製品不具合の根拠にはしない |
+
+| D22 | Task6最終再録画は本branchのDSLで、fixed templateの独立worldと上空足場top200・既存SetFlyingによる位置保持・実地表probe・実照準ray・pointer-over解除をscratchの準備条件にする。元の数量/必要距離/採掘/削除/素材不足/配線費用のassertを維持する。環境の訂正をF所有の原版シナリオへ広げない | agent 既定（ユーザー未裁定） |
+| D23 | pauseシナリオのメニュー中advance/skip成功期待を、現行のintent停止契約へ訂正する。拒否intent_not_allowed・revision不変・menu維持をassertし、実Escで閉じてからblocking-skitの実クリックで再開/完了しGameScreen/menu閉鎖を検証する。製品のポーズ/スキット挙動は変えない。旧シナリオの「メニューを開いたままskip成功」を検証済みとはしない | agent 既定（ユーザー未裁定） |
+| D24 | Task6では通常GPU描画の受入未達（albof.10）と、既存software描画による同一製品コードの操作/表示検証を区別する。新Editor/一意TMPDIR・可視/サイズ/加速接続・子PIDを観測し、GPU textureNULL/frame0を確認した後、診断processの初回CefRuntime.Initialize(false)だけで既存TryGetBuffer経路を使う。製品/Prefab/EditorSettingsを変更せず、検証processを最後に終了する | agent 既定（ユーザー未裁定） |
+| D25 | F境界のAssets外シナリオの型/API追随を原版へ戻す。placementの旧位置配列snapshot比較をName/ValueでownedCount=1/requiredCount=3の厳密比較へ替え、2口のsnapshot診断をName=Valueへ直す。terrainの既存5引数呼出しは現行4引数APIに合わせ未使用out引数だけ除く。scratchでの同じ厳密比較61PASS、両原版のEDCコンパイル成功を証拠とする。原版の高さ/Skip/数量/操作は変えない | agent 既定（ユーザー未裁定） |
