@@ -17,6 +17,7 @@ namespace Client.Tests.Playtest.UiMapping
         private const BindingFlags StaticFields = BindingFlags.Static | BindingFlags.NonPublic;
         private readonly List<(FieldInfo Field, object Value)> _saved = new();
         private GameObject _surface;
+        private GameObject _sampleObject;
         private WebUiElementLocator _locator;
         private WebSocketHub _hub;
 
@@ -26,8 +27,12 @@ namespace Client.Tests.Playtest.UiMapping
             // 実ブラウザを起動せず、実RawImageの座標系とCSS応答を使う
             // Use a real RawImage coordinate system and CSS response without starting a browser
             _surface = new GameObject("Mapping test", typeof(RectTransform), typeof(Canvas));
-            _surface.SetActive(false);
             _surface.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            var canvasRect = _surface.GetComponent<RectTransform>();
+            canvasRect.anchorMin = canvasRect.anchorMax = Vector2.zero;
+            canvasRect.pivot = Vector2.zero;
+            canvasRect.sizeDelta = new Vector2(200f, 200f);
+            canvasRect.position = Vector3.zero;
             var imageObject = new GameObject("Surface", typeof(RectTransform), typeof(RawImage));
             imageObject.transform.SetParent(_surface.transform, false);
             var image = imageObject.GetComponent<RawImage>();
@@ -39,7 +44,9 @@ namespace Client.Tests.Playtest.UiMapping
             // 既存の非公開キャッシュを差し替え、終了時に元のシーン状態へ戻す
             // Substitute existing private caches and restore the original scene state afterward
             var sampleField = typeof(CefScreenMapper).GetField("_sample", StaticFields);
-            var sample = _surface.AddComponent(sampleField.FieldType);
+            _sampleObject = new GameObject("Inactive mapping browser");
+            _sampleObject.SetActive(false);
+            var sample = _sampleObject.AddComponent(sampleField.FieldType);
             sampleField.FieldType.GetField("_currentWidth", InstanceFields).SetValue(sample, 200);
             sampleField.FieldType.GetField("_currentHeight", InstanceFields).SetValue(sample, 200);
             SaveAndSet(sampleField, sample);
@@ -56,6 +63,7 @@ namespace Client.Tests.Playtest.UiMapping
             _locator?.StopSession();
             foreach (var saved in _saved) saved.Field.SetValue(null, saved.Value);
             _saved.Clear();
+            Object.DestroyImmediate(_sampleObject);
             Object.DestroyImmediate(_surface);
         }
 
