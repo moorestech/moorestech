@@ -30,7 +30,7 @@
 - `Func<>` 禁止・partial 禁止・デフォルト引数禁止・単純 getter/setter プロパティ禁止（`{ get; }` の不変プロパティは `RemoteExecResult` の前例どおり可）。
 - `.meta` は手で作らない（Unity が生成したものをコミットする）。asmdef は JSON なので Edit で編集してよい。
 - `.cs` を変えたら必ず `uloop compile --project-path ./moorestech_client` を通す。
-- Unity Editor は Mac mini 全体で同時 3 本まで。起動前に `moores-wt status` で本数を確かめ、3 本以上なら Editor の要らない作業（ADR・README・スクリプトテスト）を先に進める。自分の Editor は `uloop launch --project-path ./moorestech_client` で起動し、止めるときは `moores-wt status` で自分の pid を確かめて `kill <pid>`（`pkill` 禁止）。
+- Unity Editor は Mac mini 全体で同時 2 本まで。起動前に毎回 `pgrep -fl "Unity.app/Contents/MacOS/Unity -projectPath"` で本数を数え、2 本以上なら Editor の要らない作業（ADR・README・スクリプトテスト）を先に進める。自分の Editor は `uloop launch --project-path ./moorestech_client` で起動し、止めるときは `moores-wt status` で自分の pid を確かめて `kill <pid>`（`pkill` 禁止）。
 - 長い処理はバックグラウンドのポーリングで待たず、前景で実行する。区切り（タスク）ごとにコミットする。
 - 他レーンの持ち物（albof.1/.3/.4、第 2 波の .5/.6/.7）には触らない。本 plan で例外的に触る albof.3 の持ち物は `WebUiStartup.cs` のログ文 1 行と `WebUiHost.cs` の `KestrelPort` 削除だけで、触ったら `bd note moorestech-albof.2 "…"` を残す。
 - Steam・Discord など外へ出す操作はしない。検証機への持ち込みは scp。
