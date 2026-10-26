@@ -850,6 +850,8 @@ git merge --no-ff origin/feature/uitk-stage0 -m "Merge branch 'feature/uitk-stag
 | D16 | user-simulator の指摘（e2e モックの追随・テストの波及 21 件と `MiningFocusStateEarnItemNameTest`・コメントの直し・08-21 契約の記述・Windows の基準差分の書き方）を plan に反映した | シミュレーター予測（適用済み・ユーザー未確認） |
 | D15 | `LocalizationTextParam.ToString()` はログ表示用。テスト専用の public ではなく、ログ・デバッガ表示にも効くので残す（設計検査の注目点） | agent 既定（ユーザー未裁定） |
 
+| D17 | Task6で通知シナリオの研究パラメータは表示名でなく送信研究GUIDとの厳密一致を検証する。旧p0時代もGUID送信だった。既知削除済みGUIDの原版はwwxy対象として残し、現行pinの研究GUID・必要素材を使うscratch録画で独立再現と再検証を行う。画面表示名は別途DOM・スクショで確認する | agent 既定（ユーザー未裁定） |
+
 ### 本PR外のリファクタ提案（第3バケツ）
 
 なし。
