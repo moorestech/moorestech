@@ -60,7 +60,7 @@ async function applyText(request: DomSetTextRequest): Promise<DomSetTextResult> 
     ({ requestId: request.requestId, status, matchCount, actualValue });
   if (element === null) return reply("notFound", "");
   if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLTextAreaElement)) return reply("notTextField", "");
-  if (element.disabled || element.readOnly || !isElementVisible(element, element.getBoundingClientRect())) {
+  if (element.matches(":disabled") || element.readOnly || !isElementVisible(element, element.getBoundingClientRect())) {
     return reply("notInteractable", element.value);
   }
 

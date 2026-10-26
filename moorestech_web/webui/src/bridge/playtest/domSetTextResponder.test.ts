@@ -37,12 +37,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-// 制御textareaを描画し、onChangeの観測値を保存する
-// Render a controlled textarea and record its onChange value
-function renderControlledTextarea(disabled: boolean) {
+// 制御textareaとstate表示を描画し、onChangeの観測値も保存する
+// Render the controlled textarea and state display, and record the onChange value
+function renderControlledTextarea(disabled: boolean, inDisabledFieldset: boolean) {
   function Field() {
     const [value, setValue] = useState("");
-    return createElement("textarea", {
+    const textarea = createElement("textarea", {
       "data-testid": "desc",
       value,
       disabled,
@@ -51,6 +51,9 @@ function renderControlledTextarea(disabled: boolean) {
         setValue(e.currentTarget.value);
       },
     });
+    return createElement("div", null,
+      inDisabledFieldset ? createElement("fieldset", { disabled: true }, textarea) : textarea,
+      createElement("output", { "data-testid": "state-value" }, value));
   }
   const container = document.createElement("div");
   document.body.append(container);
@@ -70,17 +73,29 @@ async function setText(testid: string, text: string) {
 
 describe("プレイテストの文字入力", () => {
   it("制御textareaのonChangeが走り、値が保たれればappliedを返す", async () => {
-    renderControlledTextarea(false);
+    renderControlledTextarea(false, false);
     const [action, payload] = await setText("desc", "日本語の本文");
     expect(action).toBe("playtest.dom_set_text_result");
     expect(payload).toMatchObject({ requestId: "r", status: "applied", matchCount: 1, actualValue: "日本語の本文" });
     expect(observed).toBe("日本語の本文");
+    expect(document.querySelector('[data-testid="state-value"]')?.textContent).toBe("日本語の本文");
   });
 
   it("disabledの欄はnotInteractableで値を変えない", async () => {
-    renderControlledTextarea(true);
+    renderControlledTextarea(true, false);
     const [, payload] = await setText("desc", "x");
     expect(payload).toMatchObject({ status: "notInteractable", actualValue: "" });
+  });
+
+  it("disabled fieldset内の欄はnotInteractableで値を変えない", async () => {
+    renderControlledTextarea(false, true);
+    const textarea = document.querySelector<HTMLTextAreaElement>("textarea")!;
+    expect(textarea.disabled).toBe(false);
+    expect(textarea.matches(":disabled")).toBe(true);
+    const [, payload] = await setText("desc", "injected");
+    expect(payload).toMatchObject({ status: "notInteractable", actualValue: "" });
+    expect(textarea.value).toBe("");
+    expect(document.querySelector('[data-testid="state-value"]')?.textContent).toBe("");
   });
 
   it("テキスト欄でない要素はnotTextField", async () => {
