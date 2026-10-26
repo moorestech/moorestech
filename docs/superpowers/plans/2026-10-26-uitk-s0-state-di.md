@@ -2113,3 +2113,5 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D33 | 録画前のGameView入力環境は原値を記録してEditor経由で確認し、既存PlaytestUiOps同形のHierarchy→GameView遷移後に実入力成立を照合する。試した自分のPlayFocused設定は録画後にPlayUnfocusedへ明示復帰する | PlayFocused setterはその場で読めたが次bootでPlayUnfocusedへ戻り、設定変更の成功や根因解消は断定しない。既存focus遷移後にShift/focused/device成立を実測し原文を投入した。背景設定/製品/OS入力を変えず原値復帰を証拠へ残す | agent 既定（ユーザー未裁定） |
 
 | D34 | 稼働中のWorldSnapshotRingを開始するBundle成功/Repeat fixtureは、小さな具体ServerTickEndTestStepを共有しawait RunOnServerAsyncでサーバーティック末尾から開始する | D32最小列でRepeat tick205の出自欠落Errorを実測し、独立単独では未再現。実競合原因は未確定だが稼働中server状態をmainから触る2callsiteを既存Belt fixtureの所有thread前例へ揃える。正規省略値null・元assert・製品リング・ログ検出は変えない | agent 既定（ユーザー未裁定） |
+
+| D35 | 今回追加した初期化済6class7callsiteは元assert/Flushedassert直後に既存VanillaApi.Disconnectを呼び、既存NetworkConst.UpdateIntervalSecondsの2周期以上をguardfalseのまま観測してからExitPlayModeへ進む | 独立BP25/25成功後の実証でclient位置Send/受信例外0を観測し、既存Close契約への整合を確認。serverreset/WSは残り原因未確定なので全例外解消とはしない。cursorはDI前の別前提、既存他2callsiteは終了後assertが異なるため対象を限定する | agent 既定（ユーザー未裁定） |

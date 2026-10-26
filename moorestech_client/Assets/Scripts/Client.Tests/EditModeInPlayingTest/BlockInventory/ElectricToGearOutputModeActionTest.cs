@@ -1,5 +1,6 @@
 using System.Collections;
 using Client.Game.Common;
+using Client.Tests.EditModeInPlayingTest.Util.Network;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using Cysharp.Threading.Tasks;
@@ -91,7 +92,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
                     Debug.Log($"[ElectricToGearShutdown] result:{flushResult}");
                     Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    await InitializedClientEndpointCleanup.DisconnectAndObserveAsync();
                 }
                 finally
                 {

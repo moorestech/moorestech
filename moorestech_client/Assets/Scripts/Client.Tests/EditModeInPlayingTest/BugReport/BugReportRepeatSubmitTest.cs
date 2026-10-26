@@ -6,6 +6,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.Common;
+using Client.Tests.EditModeInPlayingTest.Util.Network;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.BugReport;
 using Client.Tests.EditModeInPlayingTest.Util.World;
@@ -89,7 +90,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
                     Debug.Log($"[RepeatShutdown] result:{flushResult}");
                     Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    await InitializedClientEndpointCleanup.DisconnectAndObserveAsync();
                 }
                 finally
                 {
