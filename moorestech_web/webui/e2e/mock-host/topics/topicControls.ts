@@ -1,10 +1,10 @@
+import { tutorialControls } from "./tutorialControls";
 import { pauseMenuControls } from "./pauseMenuControls";
 import type { ServerResponse } from "node:http";
 import { WebSocket } from "ws";
 import { Topics } from "../../../src/bridge/transport/protocol";
 import type { TopicPayloads } from "../../../src/bridge/transport/protocol";
 import { L } from "../../../src/shared/i18n/generated/localizationKeys";
-import { recipeItemAnchorId, researchNodeAnchorId } from "../../../src/shared/tutorialAnchor/anchorIds";
 import * as fx from "../fixtures";
 import { state, topicSubscribers } from "../state";
 import { clone, send, setTopicRevision } from "../wire";
@@ -16,12 +16,11 @@ const control = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]
 // broadcast値は既に開いているページを既定へ戻すためだけに使い、overrideは持たせない
 // The broadcast value only resets pages that are already open; no override is stored
 const clearingControl = <T extends keyof TopicPayloads>(topic: T, data: TopicPayloads[T]) => ({ kind: "clear" as const, topic, data });
-// spec共有のSSOT値
-// SSOT value shared with the spec
-export const TUTORIAL_RESEARCH_NODE_PADDING_PX = 8;
+export { TUTORIAL_RESEARCH_NODE_PADDING_PX } from "./tutorialControls";
 export { serveDictionary } from "./dictionaryControl";
 const controls = {
   ...pauseMenuControls,
+  ...tutorialControls,
   placement: () => control(Topics.placementMode, {
     selectedTargetType: "raw", selectedName: "Assembler", height: 3, unavailableReason: "", wheelOwnedByTool: false,
   }),
@@ -94,45 +93,6 @@ const controls = {
   // 後片付け用の空値リセット口
   // Reset hook for spec teardown
   notificationClear: () => control(Topics.notification, {}),
-  tutorialOutline: () => control(Topics.tutorialPresentation, {
-    revision: 1,
-    sessions: [{
-      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
-      elements: [{
-        kind: "outline" as const,
-        elementId: "tutorial-highlight-1",
-        anchorId: "game.crosshair",
-        paddingPx: 8, blocksPointerInput: false,
-      }],
-    }],
-  }),
-  // パンでクリップ境界を跨ぐノード
-  // A node that crosses the clip edge on pan
-  tutorialResearchNode: () => control(Topics.tutorialPresentation, {
-    revision: 1,
-    sessions: [{
-      tutorialSessionId: "tutorial-session-research", challengeId: "tutorial-challenge-research",
-      elements: [{
-        kind: "outline" as const,
-        elementId: "tutorial-highlight-research",
-        anchorId: researchNodeAnchorId(fx.researchableNodeGuid),
-        paddingPx: TUTORIAL_RESEARCH_NODE_PADDING_PX, blocksPointerInput: false,
-      }],
-    }],
-  }),
-  // アイテム一覧の1段目セルをラベル付きで指す。ScrollAreaのクリップでラベルが落ちないことの検証用
-  // Points at a first-row item-list cell with a label, to verify the ScrollArea clip does not drop it
-  tutorialRecipeItem: () => control(Topics.tutorialPresentation, {
-    revision: 4,
-    sessions: [{
-      tutorialSessionId: "tutorial-session-recipe-item", challengeId: "tutorial-challenge-recipe-item",
-      elements: [{
-        kind: "outline" as const, elementId: "tutorial-highlight-recipe-item",
-        anchorId: recipeItemAnchorId(fx.TUTORIAL_RECIPE_ITEM_ID),
-        paddingPx: 8, blocksPointerInput: false, labelTutorialGuid: fx.OUTLINE_LABEL_TUTORIAL_GUID,
-      }],
-    }],
-  }),
   // 一覧を溢れさせる/既定へ戻す。スクロール時の挙動を実データ件数で検証するため
   // Overflow the list / restore the default, so scrolling behavior is verified with a real item count
   itemListLarge: () => control(Topics.itemList, clone(fx.demoItemList)),
@@ -142,27 +102,6 @@ const controls = {
   // Overflow the recipe list / restore the default, so the container-decides-height rule is verified with a real recipe count
   machineRecipesOverflow: () => control(Topics.machineRecipes, clone(fx.overflowingMachineRecipes)),
   machineRecipesDefault: () => clearingControl(Topics.machineRecipes, clone(fx.machineRecipes)),
-  tutorialEmpty: () => control(Topics.tutorialPresentation, { revision: 0, sessions: [] }),
-  tutorialOutlineWithLabel: () => control(Topics.tutorialPresentation, {
-    revision: 2,
-    sessions: [{
-      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
-      elements: [{
-        kind: "outline" as const, elementId: "tutorial-highlight-2", anchorId: "game.crosshair",
-        paddingPx: 8, blocksPointerInput: false, labelTutorialGuid: fx.OUTLINE_LABEL_TUTORIAL_GUID,
-      }],
-    }],
-  }),
-  tutorialKeyControl: () => control(Topics.tutorialPresentation, {
-    revision: 3,
-    sessions: [{
-      tutorialSessionId: "tutorial-session-1", challengeId: "tutorial-challenge-1",
-      elements: [{
-        kind: "keyControl" as const, elementId: "tutorial-key-1",
-        tutorialGuid: fx.KEY_CONTROL_TUTORIAL_GUID, keyName: "Tab", uiState: "GameScreen",
-      }],
-    }],
-  }),
   // DEMO時のinventory topicはdemoInventory(itemId1=木材を含まない)へ差し替わるため、
   // 研究ツリーfixtureが前提とする所持itemId1×15を復元する（研究可能状態の目視QA用）
   // The demo-mode inventory topic swaps to demoInventory (no itemId1/wood), so restore the
