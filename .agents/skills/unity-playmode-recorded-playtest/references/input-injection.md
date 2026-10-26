@@ -42,8 +42,8 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
 
 移行済みのゲーム内画面UI（ビルドメニュー・インベントリ等）はWeb UI一本（ADR 0052）で、`CommonSlotView`等のuGUIビューは撤去済み。EventSystem直叩き（`ExecuteEvents.pointerDown/UpHandler`）で押せる対象は無い。ADR 0052の例外4種（MainMenu/ローディング・mapObject HPバー・デバッグUI・CEF描画面）はuGUIのまま。
 
-- Web UIの要素は `data-testid` で指定し、DSLの `ClickWebUi(testid)` / `HoverWebUi(testid)` / `UntilWebUiElement(testid, timeout)` を使う（DOM矩形→座標逆変換→注入マウス→`CefInputForwarder`。write-scenario.mdのWeb UI操作参照）
-- ビルドメニューは `OpenBuildMenuAndSelectBlock(name)`（`PlaytestBuildMenuOps`。CEFが使えなければ例外）
+- 画面UIの要素は `data-testid` で指定し、DSLの `ClickUi(testid)` / `HoverUi(testid)` / `UntilUiElement(testid, timeout)` / `SetText(testid, text)` を使う（ロケータが要素を解決→注入マウス。Web 版は DOM 矩形→座標逆変換→入力転送。write-scenario.mdのUI操作参照）
+- ビルドメニューは `OpenBuildMenuAndSelectBlock(name)`（`PlaytestBuildMenuOps`。UIの描画系が15秒以内に使えなければ例外）
 - uGUI型（`BuildMenuView`/`ItemSlotView`/`CommonSlotView`/`BlueprintNameInputView`/`CrosshairView`）を参照する旧シナリオはコンパイルできない。雛形にしない
 
 ## ワールドクリックの座標
