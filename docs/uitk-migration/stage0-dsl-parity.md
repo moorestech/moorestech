@@ -21,9 +21,9 @@
 | misc/sprint/sprint-invalid-recovery | 照会置換 | false / 4 / 起動時に不正保存値をToggleへ実修復, 復旧後の方式Toggle, 復旧通知状態あり / TimeoutException: Web UI text did not contain '走り設定を復旧しました。方式を選ぶと通知が消えます。': pause-menu | | |  |
 | misc/vein-hand-mining-smoke | 照会置換 | false / 0 / - / シナリオのコンパイル失敗(result.json無し): CS1061 PlaytestDriver.GiveItemToHotbar/SelectHotbar 未定義, CS1501 Select 引数 | | |  |
 | playtest-receiver/developer-report-delivery | 照会置換 | 未測定 | | |  |
-| train/fluid-inventory-via-interact | 照会置換 | 未測定 | | |  |
-| building/blueprint-large-paste-flicker | 改名のみ | 未測定 | | |  |
-| building/blueprint-place-like-block | 改名のみ | 未測定 | | |  |
+| train/fluid-inventory-via-interact | 照会置換 | false / 12 / 未構築のタンクへ持ち越しで水40を注入, タンクの液体名が水, タンクの量容量=40 / 5,000, 液体PFの液体名が水, 液体PFの量容量=80 / 100, PF積込/卸し切替を表示, 貨車View出現 / TimeoutException: Until '貨車View出現' timed out after 30s | | | `PlaytestResults/20261026_144657/fluid-inventory-via-interact/result.json`。再実行は boot 応答待ち5分超で中断 |
+| building/blueprint-large-paste-flicker | 改名のみ | true / 16 / - / - | | | `PlaytestResults/20261026_150611/blueprint-large-paste-flicker/result.json` |
+| building/blueprint-place-like-block | 改名のみ | true / 28 / - / - | | | `PlaytestResults/20261026_162414/blueprint-place-like-block/result.json`、generated world・seed 12345（新規パス） |
 | building/blueprint-terrain-sink-partial-paste | 改名のみ | 未測定 | | |  |
 | connect/electric-wire-tool-isolated-place-via-ui | 改名のみ | 未測定 | | |  |
 | connect/electric-wire-tool-pole-cycle-rotate-via-ui | 改名のみ | 未測定 | | |  |
