@@ -16,7 +16,6 @@ using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Common.Debug;
 using Client.Playtest.Input;
-using Client.Playtest.WebUi;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.EnergySystem;

@@ -15,7 +15,6 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
-using Client.Playtest.WebUi;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
