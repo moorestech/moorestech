@@ -98,6 +98,13 @@ namespace Client.Tests.EditModeInPlayingTest
                     // The real cursor is visible while waiting
                     Assert.IsTrue(Cursor.visible, "言語選択ゲートの待機中にカーソルが非表示");
                     Assert.AreEqual(CursorLockMode.None, Cursor.lockState, "言語選択ゲートの待機中にカーソルがロックされている");
+
+                    // 元の待機検証を終えてから、言語ゲートを通さず実終了の完了を待つ
+                    // Await real shutdown after the original waiting checks without passing the language gate
+                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+                    Debug.Log($"[CursorShutdown] result:{flushResult}");
+                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
+                    await UniTask.Yield();
                 }
                 finally
                 {

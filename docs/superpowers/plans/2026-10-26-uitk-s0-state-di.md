@@ -2097,3 +2097,7 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D25 | Hostlessのブロック詳細probeは既存テスト前例の実足場を用意し、+2境界配置を余裕ある+1隣接配置へ補正する。空セルと既存InteractReachQueryのReachableを前提assertしてからtracker/network/閉後解除を検証する。配置した電気ブロックは既存統合テスト同様に隔離worldの正規shutdownへ寿命を預け、probe末尾でdatastore直操作による削除を追加しない | 無改変単独runで地面不足10件・out of range・Flushed未到達を再現し、正本InteractDistance2fに対し+2が境界と確認した。落下だけを原因と断定せず、物理や製品距離定数を変えず正規の操作前提を満たす。追加RemoveBlock cleanupだけを外した独立対照でdestroyed例外0/Flushed1を確認し、server専用Threadとの境界を無視する余分なcleanupを除く | agent 既定（ユーザー未裁定） |
 
 | D26 | 言語選択待機前にUI/Playerの更新を所有クラスのAwakeで停止し、UIはInitializeの状態入場完了、Playerは既存StartPlayerRuntimeで開始する。PlayerObjectController同居interfaceは別ファイルへ移し200行未満を保ち、既存Player fixtureはinactive rootで参照配線後activateへ揃える | 現headと変更前baseの同一観測で、DI未完了なのに辞書/Inputがnullの実個体がenabled/active=Trueのまま更新し、3箇所各69件のNREを再現した。明白な既存未初期化NREを所有側の正規寿命へ揃えて直し、third-party本体改変やテストだけの無効化・null補完を避ける。cursorの期待外ログ検出を赤→緑で確認し、元の待機/cursor/初期化未完了assertを保つ。変更するPlayer fixture群とUIState回帰群を最終regexへ追加する | agent 既定（ユーザー未裁定） |
+
+| D27 | BugReport公開タイムアウトfixtureは製品呼出し後に接続保留をassertし、同期で接続を受理する。非同期acceptの登録を必要としない方法へ替え、切断・子孫終了・資料復元等の元assertは保つ | 全体一式でfd1034/1026のIOSelector例外が再発し、独立の低FD→高FD対照で非同期登録だけが失敗、同期受理は成功した。製品のtimeoutや公開確認は変えず、fixtureの待機方式を補正する。FD高値の生成元と別caseのaccepted未完了の厳密原因は未確定として残す | agent 既定（ユーザー未裁定） |
+
+| D28 | cursorの言語待機検証は元assertをすべて終えた後、正規終了をawaitしてFlushedを確認してからExitPlayModeへ進む | CEF正常の独立単独/最小列でも終了時socket例外を2回再現した。言語ゲート前に終了参加者が登録されるため、待機を人工通過せずD21と同じ保存/終了完了待ちを適用できる。例外免責や製品shutdownの推測変更を避ける | agent 既定（ユーザー未裁定） |
