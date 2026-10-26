@@ -6635,14 +6635,18 @@ cd $MW && python3 tools/research_sync/sync_machine_recipe_unlocks.py | grep -E "
 ```
 Expected: apply が `applied 7 spec files; issued 4 new guids`。sync は `0 moves, … 0 orphans, 0 stale` で、`DEAD-END` が無い。`check=0`。`MOVE` が出たら Task 17 Step 2 と同じ手順で spec 07 を直す。
 - [ ] **Step 3: nodeGraph を統合マスタに合わせ、master-refine A/Bも回す**（判断記録A21。Task18で保持された発射台sortPriority0を最終値と誤認しないため、研究解放・nodeGraph同期の後に並び順と研究座標を再計算する。再apply→syncでも再計算値が保持されることを確認する）
+  - ブロックの並び順は、master-refine 操作 A が blockGuid と研究の unlockBlock の対象から items と同じ規則で items とは独立に算出する（裁定 `2026-10-26-ブロックの並び順は研究解放とnodeGraphから独立算出する`）。block→item の参照や同名の推測で item の値を写さない（全ブロックが itemGuid を持たないため、旧規則では全件が再計算されなかった）。apply は既存行の sortPriority を保持するので、spec の block の sortPriority は初回の仮値で、refine A の結果が正になる。
 ```bash
 cd $MW && python3 tools/nodegraph_sync/sync_nodegraph.py > $GL/p2-9-s2-nodegraph-sync.txt; echo "ng=$?"; cat $GL/p2-9-s2-nodegraph-sync.txt
 git -C $MW diff --stat -- server_v8/mods/moorestechAlphaMod_8/.mooreseditor
+cd $W && python3 .agents/skills/master-refine/scripts/recalc_sort_priority.py --mod-dir "$MOD" && python3 .agents/skills/master-refine/scripts/recalc_research_positions.py --mod-dir "$MOD" --quiet
 ```
 Expected:
 - `ng=0`。末尾は `== NODEGRAPH: PASS (0 failures)` で、`UNPLACED` 行が無い。diff は `nodeGraph.v1.json` の 1 ファイルだけ。
 - 1 行目の見込み（推測）: `research nodes +5`（ロケット技術と半導体のアップグレード研究 Lv2〜Lv5）、`dependency edges +5`（ロケット技術 ← GPU設計、Lv2 ← ロケット技術、Lv3〜Lv5 ← 1 つ前の段）。`moved` にロケット発射台（Task 17 Step 3 の退避先からロケット技術の下へ）。GPU衛星 Lv1〜Lv5・計算データなど表示の解放のノードは `moved` か `added` に入る。
 - `UNPLACED` が出たら、検査は緩めず、`placement.py` の候補の範囲（研究は `range(1, 9)`、解放は `range(0, 12)`）を広げて流し直す。
+- master-refine A の blocks の一覧で、全ブロックが 0 以外の値（100 始まり 10 刻み）を持ち、根拠が `INIT`・`RES <- 研究名`・`ORPHAN` のどれかで出る。ロケット発射台は `RES <- ロケット技術`。核融合炉・宇宙エレベーター拠点・重水素抽出装置・反物質製造装置は解放の研究が Task 22 で入るまで `ORPHAN` として末尾に並ぶ（0 のまま残らない）。電柱・レールの相対順は変わらない（コネクトツールが sortPriority 最小を自動設置するため）。
+- 再 apply → research sync → nodeGraph sync → master-refine A/B の後も、mod の全ファイルがバイト一致する。
 - [ ] **Step 4: S2 スライスのゲート**
 ```bash
 G1 $MW/server_v8 2>&1 | tee $GL/p2-9-s2-g1.txt
@@ -9367,7 +9371,7 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 | 化学プラントのタンク構成（液体入力 1 → 2、液体出力 1・アイテム入口 (3,0,0) を追加） | 既存 4 レシピ（液体 1 → アイテム 1）で動かす、既存の口 (3,1,0) と出力 (3,0,10) を使う、ロードする | 生きる | タンク 0 と口 (3,1,0) は変わらない（Task 13 の Produces）。ロードは min(保存数, 今のタンク数) で読む（`BlockTemplateUtil.cs:121-138`）。挙動の変化（死ではない）: 新しい口 (2,1,0)/(2,1,10) の隣に既に置かれていたパイプは新たにつながる |
 | 研究リセット（6 ノードの完了と、解放記録 11 件を消す） | 6 ノードが付けていた解放 | 意図どおり外れる | 対象 GUID を解放する経路は research.json だけ（challenges は 0 件）。記録を消すとマスタの初期値（どれも `initialUnlocked:false`）になり、他の研究・チャレンジのやり直しが付け直す分だけ戻る |
 | 旧ステップ（S1 V8→V9・S2 V6→V7・S3 V7→V8）を畳む | 開発者のセーブ（版8・9）のロード | テスターは生きる、開発セーブは対象外 | 裁定1 と A16 で確定済み（裁定事項ではない） |
-| nodeGraph と master-refine | mooreseditor のグラフ表示・編集、Tier9 アイテムの sortPriority | 生きる | 同上。新規の研究・アイテムもグラフへ足してから master-refine を回す（A21） |
+| nodeGraph と master-refine | mooreseditor のグラフ表示・編集、Tier9 アイテム・ブロックの sortPriority | 生きる | 同上。新規の研究・アイテム・ブロックもグラフへ足してから master-refine を回す（A21）。ブロックは unlockBlock から items と独立に並ぶ |
 
 退化する操作は無い（nodeGraph は A21 で同期する）。
 
@@ -9381,6 +9385,7 @@ git commit -m "Task 30: Tier8 終盤セーブの事前確認シナリオ"
 - `2026-10-25-宇宙エレベーター拠点は最終研究の必須経路にせず軌道エレベーターの建設で解放する.md`
 - `2026-10-25-半導体のアップグレード研究はLv2からLv5の4ノードにする.md`
 - `2026-10-25-Tier9統合の最終検証の通しプレイはユーザー本人が行う.md`
+- `2026-10-26-ブロックの並び順は研究解放とnodeGraphから独立算出する.md`（Task 19 Step 3。master-refine 操作 A の block の旧 item 連動規則を置き換える）
 - 既存の S1/S2/S3 時点の裁定（各 plan の判断記録と `.decisions/2026-10-2[3-5]-*`）はそのまま有効。特に `2026-10-23-Tier9のマスタの中身はS1からS3の実装後に統合タスクでまとめて入れる.md`、`2026-10-23-ストーリークリアは定義せず反物質爆弾を規定量作る仮の研究で終端にする.md`、`2026-10-23-アイテムハッチに搬送量の上限を足して大部屋集約を有利にする.md`（N は統合のバランスで決める）
 
 ### planning 中の判断（agent 判断。出所「plan 作成時の agent 判断」）
