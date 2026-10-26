@@ -33,5 +33,5 @@
 | misc/walk-while-menus-open | 改名のみ | false / 0 / - / TimeoutException: UI state did not reach PlayerInventory (current: GameScreen) | | | `PlaytestResults/20261026_173554/walk-while-menus-open/result.json` |
 | misc/webui-buildmenu-click | 改名のみ | true / 3 / - / - | | | `PlaytestResults/20261026_173832/webui-buildmenu-click/result.json`。boot応答喪失後、同sessionのreadyを確認して手動注入 |
 | train/train-station-default-name | 改名のみ | false / 2 / サーバー駅名: Coal Station (actual=Log Station), 駅名の初期同期: Coal Station / TimeoutException: Until '駅名の初期同期: Coal Station' timed out after 15s | | | `PlaytestResults/20261026_174241/train-station-default-name/result.json`。boot応答喪失後、同sessionのreadyを確認して手動注入 |
-| train/train-timetable-via-ui | 改名のみ | 未測定 | | |  |
-| graphics-quality/quality-recovery-ui | 照会置換 | 未測定 | | |  |
+| train/train-timetable-via-ui | 改名のみ | false / 0 / - / シナリオのコンパイル失敗(result.json無し): CS1061 VanillaApiWithResponse.PlaceTrainOnRail 未定義 | | | `PlaytestResults/scratch/task1-baseline/train-timetable-via-ui.final.log` |
+| graphics-quality/quality-recovery-ui | 照会置換 | false / 0 / - / シナリオ注入失敗(result.json無し): Exceed Timeout:00:00:15（PauseMenu事前検証） | | | `PlaytestResults/scratch/task1-baseline/quality-recovery-ui.recovery-inject.json`。boot応答喪失後、同sessionのreadyを確認して手動注入 |
