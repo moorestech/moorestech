@@ -12,13 +12,12 @@
 | building/ui-place-then-open-machine | 照会置換 | false / 6 / Web側のblock inventoryパネルが描画されている / - | | | 1回目の結果。再現確認は後続で実施 |
 | connect/electric-wire-tool-extend-chain-via-ui | 照会置換 | true / 16 / - / - | | |  |
 | connect/rotary-generator-ui | 照会置換 | false / 38 / DOM状態文字列: 発電中, DOM状態がサーバーenumと一致, サーバー供給量, 需要消失後のサーバー状態は待機中・供給0 / TimeoutException: Until '需要消失後のサーバー状態は待機中・供給0' timed out after 30s | | |  |
-| graphics-quality/quality-recovery-ui | 照会置換 | 未測定 | | |  |
 | graphics-quality/quality-ui-switching | 照会置換 | false / 0 / - / シナリオのコンパイル失敗(result.json無し) | | | HEADのシナリオが CS0103 (renderer/pipe/waterLevelView/networkPipes/networkWater 未定義)で投入できない。基準失敗 |
 | misc/cursor-tooltip-follows-crosshair | 照会置換 | false / 7 / 退避先の隅にツールチップが追従した（前提がWeb側へ届いた） / TimeoutException: UI state did not reach PlayerInventory (current: GameScreen) | | |  |
 | misc/feedback-report-labels | 照会置換 | true / 2 / - / - | | |  |
-| misc/pause-menu-hierarchy | 照会置換 | 未測定 | | |  |
-| misc/sprint/sprint-toggle-mode | 照会置換 | 未測定 | | |  |
-| misc/sprint/sprint-hold-restart | 照会置換 | 未測定 | | |  |
+| misc/pause-menu-hierarchy | 照会置換 | false / 1 / - / TimeoutException: UI state did not reach PauseMenu (current: GameScreen) | | |  |
+| misc/sprint/sprint-toggle-mode | 照会置換 | true / 40 / - / - | | |  |
+| misc/sprint/sprint-hold-restart | 照会置換 | true / 15 / - / - | | |  |
 | misc/sprint/sprint-invalid-recovery | 照会置換 | 未測定 | | |  |
 | misc/vein-hand-mining-smoke | 照会置換 | 未測定 | | |  |
 | playtest-receiver/developer-report-delivery | 照会置換 | 未測定 | | |  |
@@ -35,3 +34,4 @@
 | misc/webui-buildmenu-click | 改名のみ | 未測定 | | |  |
 | train/train-station-default-name | 改名のみ | 未測定 | | |  |
 | train/train-timetable-via-ui | 改名のみ | 未測定 | | |  |
+| graphics-quality/quality-recovery-ui | 照会置換 | 未測定 | | |  |
