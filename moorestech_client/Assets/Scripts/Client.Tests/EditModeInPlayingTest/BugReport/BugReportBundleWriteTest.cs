@@ -8,6 +8,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util.BugReport;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using Cysharp.Threading.Tasks;
 using Game.Context;
@@ -55,7 +56,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
                     // テスト起動は常時記録オフなので、リングだけ明示的に開始する
                     // Test boots disable always-on capture, so start the ring explicitly
-                    ServerContext.GetService<WorldSnapshotRing>().Start(null, null, null);
+                    await new StartWorldSnapshotRingStep().RunOnServerAsync();
                     await UniTask.Delay(1000);
 
                     var before = BugReportSubmitUtil.ExistingBundles();

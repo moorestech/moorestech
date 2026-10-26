@@ -7,10 +7,9 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util.BugReport;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using Cysharp.Threading.Tasks;
-using Game.Context;
-using Game.SaveLoad.Snapshot;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UniRx;
@@ -46,7 +45,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 {
                     await TestPlayerGround.AssertGroundedAsync();
                     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
-                    ServerContext.GetService<WorldSnapshotRing>().Start(null, null, null);
+                    await new StartWorldSnapshotRingStep().RunOnServerAsync();
                     await UniTask.Delay(1000);
                     var pauseMenu = resolver.Resolve<PauseMenuStateService>();
                     var opened = 0;
