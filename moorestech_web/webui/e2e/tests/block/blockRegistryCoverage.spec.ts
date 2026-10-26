@@ -14,6 +14,7 @@ const intentionalGeneric = new Set([
   "Chest",
   "CleanRoomAirFilter",
   "CleanRoomMachine",
+  "ElectricGenerator",
   "ElectricMachine",
   "ElectricMiner",
   "FuelGearGenerator",
