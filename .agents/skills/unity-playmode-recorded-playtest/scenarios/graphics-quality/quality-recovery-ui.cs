@@ -11,7 +11,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations.Ui;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -36,7 +36,7 @@ var hadPreference = PlayerPrefs.HasKey("GraphicsQuality");
 var savedPreference = PlayerPrefs.GetString("GraphicsQuality");
 var savedSettings = GraphicsQualityPreference.Current;
 var savedRecovered = GraphicsQualityPreference.RecoveredInvalidPreference;
-return PlaytestRunner.Run("quality-recovery-ui", new PlaytestRunOptions { Record = true }, async p =>
+return PlaytestRunner.Run("quality-recovery-ui", new PlaytestRunOptions { Record = false }, async p =>
 {
     try
     {
@@ -51,7 +51,7 @@ return PlaytestRunner.Run("quality-recovery-ui", new PlaytestRunOptions { Record
         await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
         await p.ClickUi("pause-menu-open-settings");
         await PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable("graphics-recovered", "pause-menu-body", 15f);
-        var notice = await PlaytestDomQuery.Query("graphics-recovered", 5f);
+        var notice = await PlaytestUiElementOps.FindUi("graphics-recovered");
         p.Assert(notice.Visible && notice.Text.Contains("画質設定を中に復旧しました"), "実ホストtopicの復旧通知がUIへ届いた");
         p.Note($"[RECOVERY] before={GraphicsQualityPreference.RecoveredInvalidPreference} text={notice.Text}");
         await p.Screenshot("01-real-host-recovered");
@@ -59,8 +59,8 @@ return PlaytestRunner.Run("quality-recovery-ui", new PlaytestRunOptions { Record
         await p.ClickUi("graphics-shadows-on");
         await p.Until(() => !GraphicsQualityPreference.RecoveredInvalidPreference, 10f, "同値の明示選択で復旧通知解除");
         await p.WaitSeconds(0.5f);
-        var cleared = await PlaytestDomQuery.Query("graphics-recovered", 5f);
-        p.Assert(!cleared.Found, "実ホストの解除topicがUIへ届いた");
+        var cleared = await PlaytestUiElementOps.FindUi("graphics-recovered");
+        p.Assert(!cleared.IsFound, "実ホストの解除topicがUIへ届いた");
         await p.Screenshot("02-real-host-recovery-cleared");
         await p.PressKey(Key.Escape);
         await p.PressKey(Key.Escape);
