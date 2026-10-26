@@ -27,7 +27,7 @@ if (control.CurrentState != UIStateEnum.PauseMenu) throw new System.Exception("E
 await Client.Playtest.Input.SemanticInput.TapKey(Key.Escape);
 await UniTask.DelayFrame(3);
 
-return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { Record = false }, async p =>
+return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { Record = true }, async p =>
 {
     // 非表示のGameViewが録画開始を止めないよう表タブへ出す
     // Bring GameView forward so hidden rendering cannot stall recording

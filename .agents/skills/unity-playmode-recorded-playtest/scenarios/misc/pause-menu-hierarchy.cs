@@ -27,7 +27,7 @@ using UnityEngine.InputSystem;
 using VContainer;
 using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarEntityObject;
 
-var options = new PlaytestRunOptions { Record = false };
+var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
 {
     // Game ViewがScene Viewの裏タブだと描画されず、Recorderが初回フレーム待ちでtimeScale=0に固定しスキットのscaled Delayが返らないため表タブへ出す

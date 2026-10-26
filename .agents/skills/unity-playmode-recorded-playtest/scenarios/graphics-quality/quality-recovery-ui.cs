@@ -36,7 +36,7 @@ var hadPreference = PlayerPrefs.HasKey("GraphicsQuality");
 var savedPreference = PlayerPrefs.GetString("GraphicsQuality");
 var savedSettings = GraphicsQualityPreference.Current;
 var savedRecovered = GraphicsQualityPreference.RecoveredInvalidPreference;
-return PlaytestRunner.Run("quality-recovery-ui", new PlaytestRunOptions { Record = false }, async p =>
+return PlaytestRunner.Run("quality-recovery-ui", new PlaytestRunOptions { Record = true }, async p =>
 {
     try
     {
