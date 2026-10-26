@@ -18,9 +18,18 @@ namespace Client.RemoteExec.Listen
 
         private static HttpListener _listener;
         private static CancellationTokenSource _lifetime;
+        private static bool _isStopping;
 
         internal static int? Start()
         {
+            // 停止中の取消コールバックから開くと外側のStartに上書きされ、閉じられない待受が残るため拒否する
+            // Refuse opening from a cancellation callback mid-stop; the outer Start would overwrite it and leave an unclosable listener
+            if (_isStopping)
+            {
+                Debug.LogError("[RemoteExec] 待受の停止中に再び開く要求が来たため拒否しました（取消コールバックからの再有効化は受け付けません）");
+                return null;
+            }
+
             // Editorの再生し直しで前回の待受が残っていても二重に開かない
             // Never open twice even if an Editor replay left the previous listener open
             Stop();
@@ -104,6 +113,7 @@ namespace Client.RemoteExec.Listen
             var lifetime = _lifetime;
             _listener = null;
             _lifetime = null;
+            _isStopping = true;
             // 送信コードの取消コールバックは外部コードの実行境界
             // Cancellation callbacks execute externally submitted code at this boundary
             try { lifetime.Cancel(); }
@@ -113,6 +123,7 @@ namespace Client.RemoteExec.Listen
                 Debug.LogError($"[RemoteExec] {StopFailureReason}");
             }
             listener.Close();
+            _isStopping = false;
             Debug.Log("[RemoteExec] 待受を閉じました");
         }
     }
