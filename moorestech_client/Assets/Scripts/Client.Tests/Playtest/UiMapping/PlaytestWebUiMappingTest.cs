@@ -90,7 +90,7 @@ namespace Client.Tests.Playtest.UiMapping
 
             // DPR乗算とY反転のどちらを除いても期待矩形から外れる
             // Removing either DPR scaling or Y inversion changes the expected rectangle
-            Assert.AreEqual(new Rect(20f, 80f, 60f, 80f), snapshot.ScreenRect);
+            AssertScreenRect(new Rect(20f, 80f, 60f, 80f), snapshot.ScreenRect);
             Assert.IsTrue(snapshot.Clickable);
         }
 
@@ -105,7 +105,18 @@ namespace Client.Tests.Playtest.UiMapping
             var snapshot = lookup.GetResult();
             Assert.IsTrue(snapshot.IsFound);
             Assert.IsFalse(snapshot.Clickable);
-            Assert.AreEqual(new Rect(210f, 170f, 20f, 20f), snapshot.ScreenRect);
+            AssertScreenRect(new Rect(210f, 170f, 20f, 20f), snapshot.ScreenRect);
+        }
+
+        private static void AssertScreenRect(Rect expected, Rect actual)
+        {
+            // 変換時の浮動小数点丸めだけを許容し、1px未満の誤差でも検出する
+            // Tolerate floating-point rounding while still detecting subpixel mapping errors
+            const float tolerance = 0.001f;
+            Assert.That(actual.x, Is.EqualTo(expected.x).Within(tolerance));
+            Assert.That(actual.y, Is.EqualTo(expected.y).Within(tolerance));
+            Assert.That(actual.width, Is.EqualTo(expected.width).Within(tolerance));
+            Assert.That(actual.height, Is.EqualTo(expected.height).Within(tolerance));
         }
 
         private void Reply(float x, float y, float width, float height, float ratio)

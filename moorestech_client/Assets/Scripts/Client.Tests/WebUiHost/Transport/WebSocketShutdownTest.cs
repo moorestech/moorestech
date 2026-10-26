@@ -12,6 +12,10 @@ namespace Client.Tests.WebUiHost.Transport
 {
     public class WebSocketShutdownTest
     {
+        private WebUiHostTestContext _lifetime;
+        [SetUp] public void BeginLifetime() => _lifetime = new WebUiHostTestContext();
+        [TearDown] public void EndLifetime() => _lifetime.Dispose();
+
         [UnityTest]
         public IEnumerator FailedCloseReportsIdentityAndStillClosesOtherConnections()
         {

@@ -22,7 +22,7 @@ namespace Client.WebUiHost.Boot
         private static WebSocketHub _hub;
         private static readonly WebUiHostShutdownParticipant ShutdownParticipant = new();
 
-        private static Task<WebUiStopResult> _stopTask = Task.FromResult(new WebUiStopResult(new WebSocketCloseResult(new(), new()), new()));
+        private static Task<WebUiStopResult> _stopTask;
         public static WebSocketHub Hub => _hub;
 
         // 未起動はnull。0は実ポート域外の値で、書けば「届かない入口」を正常系の数字として名乗る
@@ -37,7 +37,7 @@ namespace Client.WebUiHost.Boot
         {
             // 前回の停止完了を待つ（連続 Start/Stop での自ポート衝突を避ける）
             // Wait for the previous stop to complete (avoids colliding with our own ports on rapid restart)
-            if (!_stopTask.IsCompleted)
+            if (_stopTask != null && !_stopTask.IsCompleted)
             {
                 // 前回停止の fault は StopAsync 内でログ済み。ここでは待つだけで再 throw させない（2-B）
                 // The previous stop's fault is already logged inside StopAsync; only wait here, do not rethrow (2-B)
@@ -45,6 +45,9 @@ namespace Client.WebUiHost.Boot
             }
             GameShutdownEvent.RegisterParticipant(ShutdownParticipant);
             if (_kestrel != null) return true;
+            // 新しいHost起動を開始するときだけ停止結果の世代を更新する
+            // Reset the retained stop result only when starting a new host lifetime
+            _stopTask = null;
 
             // ローカルで起動し、成功後にフィールドへ代入する。途中失敗時は起動済みを片付け null 残留させない（2-A）
             // Start into locals and assign fields only on success; on partial failure, tear down and leave fields null (2-A)
@@ -122,7 +125,7 @@ namespace Client.WebUiHost.Boot
 
         public static UniTask<WebUiStopResult> StopAsync()
         {
-            if (_stopTask.IsCompleted) _stopTask = StopCoreAsync().AsTask();
+            if (_stopTask == null) _stopTask = StopCoreAsync().AsTask();
             return _stopTask.AsUniTask();
         }
 

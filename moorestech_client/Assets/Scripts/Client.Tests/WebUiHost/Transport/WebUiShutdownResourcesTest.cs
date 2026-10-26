@@ -19,6 +19,10 @@ namespace Client.Tests.WebUiHost.Transport
 {
     public class WebUiShutdownResourcesTest
     {
+        private WebUiHostTestContext _lifetime;
+        [SetUp] public void BeginLifetime() => _lifetime = new WebUiHostTestContext();
+        [TearDown] public void EndLifetime() => _lifetime.Dispose();
+
         [UnityTest]
         public IEnumerator ProcessFailureDoesNotSkipListenerAndBothResourcesAreReported()
         {
