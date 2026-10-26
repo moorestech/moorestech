@@ -864,3 +864,5 @@ git merge --no-ff origin/feature/uitk-stage0 -m "Merge branch 'feature/uitk-stag
 ### 本PR外のリファクタ提案（第3バケツ）
 
 なし。
+
+| D27 | Task6通常GPU再録画で背景時keyboard/mouse無効を実測したため、scratch gateだけInputSettings.IgnoreFocus/AllDeviceInputAlwaysGoesToGameView・runInBackground・device再有効化を一時適用し、元数量/操作/assertを維持する。元値へ戻し診断hookを解除、製品/原版/設定ファイルへ保存しない。通常GPU289assertと実画像を独立評価へ再提出し、受入前はbd close/lane-doneしない | agent 既定（ユーザー未裁定）。task-6-gpu-recovered/report.md・manifest.json、PRへ申し送り |
