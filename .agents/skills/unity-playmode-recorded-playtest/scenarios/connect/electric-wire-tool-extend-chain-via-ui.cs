@@ -173,9 +173,7 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     await p.WaitSeconds(0.5f);
     await p.Screenshot("03-origin-released-by-right-click");
     p.Note("右クリックで起点が解除され、接続プレビューが消えた");
-
     #region Internal
-
     // 対象電柱のClickCollider中心へ照準する（装飾サブメッシュ回避）
     // Aim at the pole's ClickCollider center (avoids decorative sub-meshes)
     async UniTask AimAtPole(Vector3Int blockPos)
@@ -186,7 +184,6 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
         await p.AimAt(clickCollider.bounds.center);
         await UniTask.DelayFrame(3);
     }
-
     // 2つの電柱コネクタが相互に結線を保持していれば結線済みと判定する
     // Two poles count as connected when either connector holds the other
     bool Connected(Vector3Int a, Vector3Int b)
@@ -198,6 +195,5 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
         var cb = blockB.ComponentManager.GetComponent<IElectricWireConnector>();
         return ca.ContainsWireConnection(cb.BlockInstanceId) || cb.ContainsWireConnection(ca.BlockInstanceId);
     }
-
     #endregion
 });
