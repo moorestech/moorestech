@@ -21,6 +21,8 @@
         "Client.Starter",
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
+        "Unity.UI.TestFramework.Runtime",
+        "Unity.UI.TestFramework.Editor",
         "Client.Common",
         "Client.Input",
         "Client.Mod",
