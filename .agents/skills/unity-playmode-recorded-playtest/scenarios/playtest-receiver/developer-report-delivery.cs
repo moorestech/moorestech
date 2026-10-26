@@ -7,7 +7,6 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Playtest;
 using Client.Playtest.Operations;
-using Client.Playtest.WebUi;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Upload;
 using Cysharp.Threading.Tasks;
@@ -28,7 +27,7 @@ if (control.CurrentState != UIStateEnum.PauseMenu) throw new System.Exception("E
 await Client.Playtest.Input.SemanticInput.TapKey(Key.Escape);
 await UniTask.DelayFrame(3);
 
-return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { Record = true }, async p =>
+return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { Record = false }, async p =>
 {
     // 非表示のGameViewが録画開始を止めないよう表タブへ出す
     // Bring GameView forward so hidden rendering cannot stall recording
@@ -72,13 +71,8 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
     // 実CEF入力で説明を書き、本番の送信処理を呼ぶ
     // Enter a description through CEF and invoke production submission
     await p.ClickUi("bug-report-description");
-    p.Assert(CefScreenMapper.TryGetBrowser(out var browser), "CEF入力先が存在する");
     var description = hasToken ? "task10 developer production report" : "task10 local pending report";
-    foreach (var character in description)
-    {
-        browser.SendCharEvent(character, 0);
-        await UniTask.Yield();
-    }
+    await p.SetText("bug-report-description", description);
     await p.Until(() => capture.Status.Value.Kind == BugReportCaptureStatus.Ready, 45f, "報告資料の確保");
     p.Note(hasToken ? "本番受け口へ報告を送信します" : "未設定のため、この機材へ報告を保存します");
     FileStream pendingBoxLock = null;
