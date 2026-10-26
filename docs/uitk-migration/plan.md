@@ -25,6 +25,8 @@
 
 ほかの論点は agent の既定として進め、台帳に記録する（§7.2）。
 
+**段階 0 の中で裁定したもの（2026-10-26。一覧は §7.1）**: 旧 SkitUI の削除（0-12）、差し込み記法の名前付きへの統一（0-6）、Codex で進められない段階 0 の実装を Claude Code で進めること、UITK が主パネルを出しているあいだの Web の全面オフ（R1・§3.8・S15）。
+
 **何を移すか**
 - CEF（cef-unity）と Web UI 一式を、C#・UXML・USS の UI Toolkit（以下 UITK）に置き換える
   - React の本番コード: TS/TSX 12.2k 行＋CSS 3.4k 行（テスト除く。features・shared・app・bridge。実測）
@@ -82,13 +84,13 @@
 | 0-3 | 遠隔実行を Kestrel から切り離す（裁定 3） | 下の「0-3」 |
 | 0-4 | 状態を Hub の外へ移す（抽出 PR。挙動は変えない） | 下の「0-4」 |
 | 0-5 | `UIStateControl.OnStateChanged` を UniRx にする | 今は `event Action<UIStateEnum>`（`Scripts/Client.Game/InGame/UI/UIState/UIStateControl.cs:16`）。AGENTS.md「イベント発火に Action を使わない」に反している |
-| 0-6 | 差し込み記法を名前付きにする（§7.2） | 下の「0-6」 |
+| 0-6 | 差し込み記法を名前付きに統一する（2026-10-26 裁定） | 下の「0-6」 |
 | 0-7 | DSL を描画系に依存しない形にする（この段は Web 実装だけ） | 下の「0-7」 |
 | 0-8 | 台帳・参照キャプチャ | 下の「0-8」 |
 | 0-9 | 追従ゲート（裁定 4） | G1（§4.7）を段階 0 の最初の PR で入れる。Web の変更は止めない。新しい Web 画面が入ったら台帳のその束の行に足す（例: Tier9 の #1551・#1552 が足す `blockInventory/details/{rocket,spaceElevator}` は段階 4 の特殊族） |
 | 0-10 | Web ホストを起動しない Editor 限定スイッチ | `#if UNITY_EDITOR` で囲み、ファイル末尾に置く。Hub が null の経路（起動失敗と同じ形）を PlayMode で再現する。ラダー（§4.4）の土台 |
 | 0-11 | bd | epic を立て、段階と単位を子にする。派生は `--parent` で系譜を残す |
-| 0-12 | 旧 UITK の SkitUI を消す（純削除） | `SkitUI.prefab`（UIDocument・`SkitPanelSettings`）、`Scripts/Client.Skit/UI/SkitUI.cs`、`SkitPresentationMode` を消す（bd `moorestech-lnsf.8`）。`SkitManager.cs:197` が true に固定しているので、非 Web の分岐は死にコード。prefab とシーンの参照は uloop で外す。段階 1 からパネルが 1 枚になる |
+| 0-12 | 旧 UITK の SkitUI を消す（純削除。2026-10-26 裁定） | `SkitUI.prefab`（UIDocument・`SkitPanelSettings`）、`Scripts/Client.Skit/UI/SkitUI.cs`、`SkitPresentationMode` を消す（bd `moorestech-lnsf.8`）。`SkitManager.cs:197` が true に固定しているので、非 Web の分岐は死にコード。prefab とシーンの参照は uloop で外す。段階 1 からパネルが 1 枚になる |
 
 **0-3 遠隔実行**
 - `/api/remote-exec` は Web UI の Kestrel に相乗りしている（`Scripts/Client.WebUiHost/Boot/WebUiEndpoints.cs:97-101`、ADR 0072）。Web ホストの起動に失敗すると遠隔実行も開かず（`WebUiStartup.cs:19`）、検証機で CEF の不具合を調べる手段まで失う
@@ -149,8 +151,8 @@
 
 **作業（基盤。設計は §3）**
 - UI ルート: `GameUiRoot`（UIDocument 1 枚）を MainGameUI.prefab に事前配置する（`uloop execute-dynamic-code`）。PanelSettings は Scale With Screen Size、基準 1280×720、Expand。層 enum と層コンテナ（`PickingMode.Ignore` を既定にする）
-- ルータと所有表: SCREEN_TRAITS の C# 版、所有表（R2）、Web への委譲（R1）、Editor 限定の上書き（R4）
-- 入力: `UiPointerHitTest` に Pick を論理和で足す（呼び出し側の 23 ファイル・28 か所は変えない。実測）。`WebUiInputExclusivity` を `UiInputExclusivity` へ改名して汎用化する。入力欄以外は `focusable=false`
+- ルータと所有表: SCREEN_TRAITS の C# 版、所有表（R2）、Web への委譲と全面オフ（R1）、Editor 限定の上書き（R4）
+- 入力: `UiPointerHitTest` に Pick を論理和で足す（呼び出し側の 23 ファイル・28 か所は変えない。実測）。UITK が主パネルを出しているあいだは Web の値を読まない（§3.8）。`WebUiInputExclusivity` を `UiInputExclusivity` へ改名して汎用化する。入力欄以外は `focusable=false`
   - ESC ラッチ。レーンの先頭で、TextField の上の ESC を EventSystem と `UIStateControl.Update` のどちらが先に処理するかを確かめ（S5）、置き場を決める
   - UI 専用のアクション資産で、MainGame の `DefaultInputActions`（`Assets/Scenes/Game/MainGame.unity:8435`）を uloop で差し替える。レーンの先頭で、資産で WASD・矢印の Navigate、Space・Enter の Submit を止められるかを確かめ（S4）、止められなければルートで NavigationSubmitEvent を打ち消す
 - テーマ: レーンの先頭で、Linear 色空間の半透明 3 案（実機で決め直す・α の近似補正・sRGB の RT で合成）と、10〜13px の文字（720p・1080p・4K）を実機で比べ（S7）、§7.2 の既定を確かめる。`Tokens.uss` に全トークン約 238 個を機械的に移す。`Theme.uss` は PoC の `PocControls.uss`（146 行、PoC ブランチ）を初版にする
@@ -163,7 +165,7 @@
 
 **作業（画面）**
 - `PauseMenuState` と `PauseMenuStateService` は C# のまま使い、ビューと Presenter だけを作る。`pause_menu.*` と `bug_report.submit` のハンドラを、型付きコマンドと JSON アダプタに分ける（host §3）
-- ポーズ系の状態では、Web は暗幕も操作できる要素も描かない（R1）。常駐 HUD（ホットバー・装備 HUD）は、Web が表示だけで描き続ける
+- ポーズ系の状態（入れ子の列車中・スキット中を含む）では、Web を全面的にオフにする（R1）。常駐 HUD（ホットバー・装備 HUD）、列車 HUD、スキットの表示も、ポーズのあいだは消える
 - 操作音は、ビューからサウンドのサービスを直接呼ぶ。ポーズのボタンとトーストは §0 の様式化に従う
 - GamePanel の初出で、720p と 21:9 の 2 解像度を 1 回撮る（§4.6）
 - 切替 PR の 1 周期後の削除 PR で、Web の `features/pauseMenu`・`features/settings`・テスト・`App.tsx` のマウントを消す
@@ -171,17 +173,17 @@
 **完了条件**
 - 共通条件（§2.0）を満たす。ラダー 1 `uitk-lifeline`（§4.4）が緑。本文は SetText で入れ、IME は §4.9 の人手で確かめる
 - 報告バンドルの manifest に、CEF の生の値 3 つ（§3.11）が入っている。最後の WS 受信から閾値を超えたとき、入力排他の Web 側の値が無視される（L0）
-- 委譲中の Web が action を発行しない（S15 の受入。action ログが 0 件）。ポーズ系の状態で、Web が暗幕と操作できる要素を描いていない
+- ポーズ系の状態で、CEF の RawImage が非表示で、CEF へ入力が転送されず、Web が action を発行しない（action ログが 0 件）。ポーズを閉じた直後に、ポーズ前の Web の pointerOverUi・textInputFocused が効かない（L0）
 - IME の手動確認（Windows と Mac）の記録がある。バグ報告の本文（複数行）で、変換・確定・取消と、変換中の ESC で画面が閉じないことを見る
 - 入れ子ポーズの 2 経路（スキット中・列車中）の録画がある。最初の L1 テストが既存 CI で通る（S13）
 
-**出荷**: テスターから見える変化は、ポーズ画面の見た目（半透明の濃さ・字の太さ・ボタンの様式）と、ポーズ中に Web の HUD が UITK の幕の下に入ること。パッチノートに書く（§2.0）。
+**出荷**: テスターから見える変化は、ポーズ画面の見た目（半透明の濃さ・字の太さ・ボタンの様式）と、ポーズ中に Web の HUD（ホットバー・装備 HUD・列車 HUD）とスキットの表示が消えること。パッチノートに書く（§2.0）。
 
 **リスクと潰し方**
 
 | リスク | 潰し方 |
 |---|---|
-| ESC が二重に処理される | ESC は C# の UIState に一本化する。ポーズ系の Web の ESC 経路は、委譲中は動かない。ESC ラッチを L1 で固定する |
+| ESC が二重に処理される | ESC は C# の UIState に一本化する。ポーズ系の Web の ESC 経路は、委譲中は CEF へ入力を転送しないので動かない。ESC ラッチを L1 で固定する |
 | 入れ子ポーズで、UITK のポーズが Web のスキット窓の下に隠れる | S1 で前後を確定し、録画で確かめる。段階 2 でスキットも UITK になる |
 | 言語切替で、片方の系だけが再描画される | 同じ録画で両系を確かめる |
 | 基盤を作り込みすぎて段階 1 が長引く | 部品は「その段で使うもの」だけを作る（§3.4）。例外は全画面が使う基盤（層・入力・テーマ・i18n・アンカーの登録簿）と UiMotion |
@@ -370,7 +372,7 @@
 
 | # | 規則 | 守り方 |
 |---|---|---|
-| R1 | 同じ画面状態で、同じ位置に両系の操作できる要素を置かない。主パネルが UITK の状態では、Web は表示だけにし、入力を受けない | 委譲中の Web は document 全体を `pointer-events: none` にし、キー処理を止める（S15 で効くかを確かめる）。CEF は RawImage 全面で入力を受け続け、領域単位で止める API が無いため（host §1） |
+| R1 | 同じ画面状態で、同じ位置に両系の操作できる要素を置かない。UITK が主パネル（幕を張る画面）かモーダルを出しているあいだは、Web を全面的にオフにする（2026-10-26 裁定） | CEF の RawImage を隠し、CEF への入力の転送を止め、Unity 側は Web の pointerOverUi と textInputFocused を読まない。閉じたら Web の古い値を捨ててから描画と転送を戻す。Web 側の `pointer-events: none` には頼らない（S15 で pointerOverUi が true のまま固まった。PR #1558）。CEF は RawImage 全面で入力を受け、領域単位で止める API が無いため（host §1）。オフにする範囲は §7.2 |
 | R2 | 所有表は「(画面状態, 面) → Web か UITK」の静的なコード表。どの組も所有者はちょうど 1 つ | 所有表を (画面状態, 面) → 所有者 の辞書にして型で担保する。Web へは `ui_state.current` に委譲の印を足して伝え、Web の `screenForUiState` は委譲画面で主パネルを描かない |
 | R3 | 面を移すときは「切替 PR → 1 周期 → 削除 PR」の 2 本にする。削除 PR で、Web の該当コンポーネント・document 全域のキー処理・テストを全部消す | 1 周期 ＝ 切替を含むビルドの playtest 反映から 7 日以上、かつその間の Discord と受け口の報告を 1 回見た後。前例は ADR 0052 の抽出 PR・削除 PR の型。延ばすならユーザーの裁定を取る。戻すのは切替 PR の 1 行で、戻しの PR は当日中に通常の配布工程で反映を指示する（Mac 確認は `--skip-mac-check` 可） |
 | R4 | 暗転中の束の所有者は Web のまま。Editor 限定の上書きでだけ UITK にして検証する。配布物に切替フラグを入れない | 上書きの API は `#if UNITY_EDITOR` の中でファイル末尾に置く。外から参照すると、日次ビルドがプレイヤービルドで落として知らせる |
@@ -432,13 +434,13 @@
 
 ### 3.8 入力とフォーカス
 
-入力の裁きは `UiPointerHitTest` と `UiInputExclusivity` の 2 か所だけで行う。共存中はどちらも UITK と Web の論理和にする（input §3.7）。最後の WS 受信から閾値を超えたら、Web 側の値は無視する（§3.11）。
+入力の裁きは `UiPointerHitTest` と `UiInputExclusivity` の 2 か所だけで行う。共存中、主パネルが Web か無い状態では、どちらも UITK と Web の論理和にする（input §3.7）。UITK が主パネルかモーダルを出しているあいだは Web の値を読まず、閉じたときに捨てる（R1）。最後の WS 受信から閾値を超えたら、Web 側の値は無視する（§3.11）。
 
 | 項目 | 方針 | 根拠 |
 |---|---|---|
 | UI 用のアクション資産 | moorestech 専用の資産を作る。Point・Click・RightClick・MiddleClick・ScrollWheel は残し、Navigate は空、Submit と Cancel は使わない | `DefaultInputActions` は Navigate に WASD を含み、メニュー中も WASD で歩く仕様（`.decisions/2026-10-01-メニュー中の視点は回さず移動だけ解放する.md`）とぶつかる |
 | フォーカス | 入力欄以外は `focusable=false`。Tab の既定のフォーカス移動はアクション資産では止められない（Unity の仕様で、Tab は入力モジュールを通らない）ので、ルートで打ち消す（Web の `activeLayer.ts:36` と同じ）。Space・Enter でボタンが押されず、Tab でフォーカスが動かないことを L1 で固定する | `.decisions/2026-10-01-Web UI全体で文字入力欄以外のSpace既定動作を封じる.md`、`…クラフトボタンはSpaceに反応させずジャンプ専用にする.md` |
-| ポインタ | `UiPointerHitTest.IsPointerOverAnyUi` を次の形にする。ロック中は false。そうでなければ「UITK の Pick が層コンテナ以外を返す」か「Web の pointerOverUi（共存中だけ）」か「EventSystem（デバッグ用の uGUI）」 | input §3.3 の案 A。呼び出し側の 23 ファイル・28 か所は変えない（実測）。EventSystem 判定は ADR 0052 の agent 前提 1 |
+| ポインタ | `UiPointerHitTest.IsPointerOverAnyUi` を次の形にする。ロック中は false。そうでなければ「UITK の Pick が層コンテナ以外を返す」か「Web の pointerOverUi（共存中で、Web が全面オフでないときだけ）」か「EventSystem（デバッグ用の uGUI）」 | input §3.3 の案 A。呼び出し側の 23 ファイル・28 か所は変えない（実測）。EventSystem 判定は ADR 0052 の agent 前提 1 |
 | ホイール | ホイールを通す印を USS のクラス（`wheel-passthrough`）にし、Pick の結果の祖先で判定する | 装備の循環は段階 4 で C# の 1 か所へ移す（UI の上なら止める、印のある HUD の上は通す、建築ツールが占有中なら止める、1 枠以下なら何もしない） |
 | 文字入力 | ルートで `FocusInEvent`・`FocusOutEvent` を TrickleDown で受ける。フォーカス中の要素が TextField かを、`UiInputExclusivity` の ReactiveProperty へ同期で書く | 同じスレッド・同じフレームで書くので、lock も `ObserveOnMainThread` も要らない。`.decisions/2026-10-01-文字入力欄にフォーカス中は移動を止めたままにする.md` をテストで守る |
 | ESC | 「このフレームの ESC は UI が使った」というラッチを、`InputKey` の抑止判定に足す。入力欄での ESC はフォーカスを外すだけにする | 今は WS の遅れで偶然防げているだけ（`docs/webui/design/input-focus-exclusivity.md`） |
@@ -609,7 +611,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 
 ### 4.8 実測（段階 0）
 
-段階 0 で行うのは、段階 1 の前提になる 5 本。すべて未実測。1 本 1 日で打ち切り、証拠付きで台帳に書く。
+段階 0 で行うのは、段階 1 の前提になる 5 本。1 本 1 日で打ち切り、証拠付きで台帳に書く。PR #1558 の報告では S1・S2・S3 が合格、S15 が不可（下の表）。S9 は人手の確認待ち（bd `moorestech-albof.8`）。
 
 | # | 確かめること | 不可だったときの手 |
 |---|---|---|
@@ -617,7 +619,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 | S2 | Unity Recorder（`PlaytestRecorder.cs:33` の GameViewInputSettings）、`PlaytestScreenshot`、バグ報告の `ScreenFrameReader`（`CaptureScreenshotIntoRenderTexture`）に、UITK が写るか | 撮影経路を ScreenCapture の連番へ直すまで、段階 1 に入らない（**赤信号**。§6） |
 | S3 | `QueueStateEvent` で注入した入力が、`InputSystemUIInputModule` を経て UITK に届くか。パネル座標と画面座標の往復。`IsPointerOverGameObject` が UITK を拾うか | 入力資産・EventSystem・注入経路を直す。UITK のイベントの直接合成は L1 に限り、L4 の代わりにしない（L4 は実際の入力経路を確かめる層のため） |
 | S9 | **日本語 IME**（Windows 検証機の配布ビルドと Mac）。単行・複数行で、変換・確定・取消・ESC を試す。フォーカスを往復した後に入力が戻るか。CEF を起動した状態と、CEF を初期化しない状態の 2 条件で同じ手順を行う。後者は S9 用の PoC ビルドを、CEF の起動を外してもう 1 本焼く（使い捨て。Editor 限定スイッチは配布ビルドで効かず、配布物に切替フラグも入れないため）。CEF の常時 `imeCompositionMode=On` が結果を変えるため | **赤信号**（§6） |
-| S15 | 委譲中の Web を `pointer-events: none` にしたとき、CEF 経由の pointerOverUi が false になり、Web が action を出さないか | 委譲中の状態では、Web の HUD も描かない（ポーズ中に HUD が消える） |
+| S15 | 委譲中の Web を `pointer-events: none` にしたとき、CEF 経由の pointerOverUi が false になり、Web が action を出さないか。**不可**: action は止まったが、pointerOverUi が true のまま固まった（PR #1558） | 委譲中の状態では、Web の HUD も描かない（ポーズ中に HUD が消える）。2026-10-26 の裁定で、UITK が主パネルかモーダルを出しているあいだは Web を全面的にオフにする（R1） |
 
 - S13（UI Test Framework が CI の batchmode で動くか）は、段階 1 の最初の L1 テスト（本番テーマの要素で schedule と transition を進める）を既存 CI に載せて確かめる。動かなければ §6 の 3
 - ほかは作業の中で確かめる: S4・S5（入力）、S7（半透明と小さい文字）、S10（フォント）は段階 1 の各レーンの先頭（§2.2）。S12（`dotnet test`）は L0 レーンの先頭（§3.13）。S14（`HttpListener`）は 0-3 の完了条件
@@ -687,12 +689,21 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 | 確認（旧 D18） | UI の演出の時間源 | (a) 実時間（パネルのスケジューラ） (b) GameUpdater のティック | **(a)** | ポーズ中もポーズ画面の演出は動くべき。AGENTS.md「経過時間は GameUpdater のティック加算だけ」は、サーバーのゲームロジックの規則と読む。この読み方の確認 | AGENTS.md の解釈 |
 | 様式化（旧 D14） | Mantine の素の見た目の画面（トースト・チャレンジ・列車 HUD・ポーズのボタン） | (a) 移すときに、ホワイトリストの語彙で様式化する (b) 今の見た目を再現する | **(a)**。4 画面を同じ語彙で一度に決める | Mantine の既定は再現の正本にならない。負債 `moorestech-cgm` も閉じられる。語彙は ref-webui-design のホワイトリストで共通 | ADR 0014 の「他の Button は今回触らない」を、移行の範囲で解く |
 
+**段階 0 の中で出た論点（2026-10-26 裁定済み）**
+
+| 論点 | 裁定 | 計画への反映 | 記録 |
+|---|---|---|---|
+| 旧 UITK の SkitUI | 削除し、会話 UI の予備を持たない | 0-12 | `.decisions/2026-10-26-旧UITKのSkitUIは削除し会話UIの予備を持たない.md` |
+| 差し込み記法（旧 D8） | 名前付きに統一し、`GetFormatted` も名前付きに改める。全言語一致テストは残す | 0-6・§7.3 | `.decisions/2026-10-26-翻訳文の差し込みは名前付きに統一しGetFormattedも名前付きに改める.md` |
+| Codex で進められない実装 | 段階 0 の遠隔実行・状態の移設・DSL の残りは、Claude Code で進める | §7.3 | `.decisions/2026-10-26-UITK段階0でCodexで進められない実装はClaude-Codeで進める.md` |
+| S15 の不可（委譲中の Web の入力） | UITK が主パネルを出しているあいだは、Web を全面的にオフにする。Web の HUD も消える | R1・§2.2・§3.8・§4.8・§7.2 | `.decisions/2026-10-26-UITKの主パネル表示中はWeb-UIを全面的にオフにする.md` |
+
 ### 7.2 agent の既定として進め、台帳に記録するもの（大きく外れたら裁定に上げる）
 
 - 仕様の正本（旧 D3）: Web のテスト名を NUnit へ写し、削除 PR で突き合わせる（§4.1）。見た目の意図は参照キャプチャで辿る
 - 完了の定義（旧 D4）: §5.1 の 5 項目。議論の記録の「Kestrel ホスト削除」は裁定 3 の結果に合わせる
 - AI 向けの作法（旧 D5）: §3.12 を `ref-uitk-design`・L2・moores-code-review の UITK 観点で固める
-- 差し込み記法（旧 D8）: C# の補間器を名前付きに対応させる（必須。Web が今解いている 44 キーのため）。位置指定 `{pN}` の 32 キーは同じ PR で名前付きへ機械的に書き換える。型付きの書式メソッドの生成器は作らない（0-6）
+- Web を全面オフにする範囲（S15 の裁定の読み方）: UITK が主パネル（Web の `SCREEN_TRAITS` で幕を張る画面。`web/shared/uiState/uiScreenRouting.ts`）かモーダルを出しているあいだだけ。幕の無い状態（GameScreen・PlaceBlock・DeleteBar・Story・TrainHUDScreen）では、HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・トースト・スキットが UITK でも Web を消さない。段階 2 以降は常駐表示が UITK になり、表示のたびに消すと未移行の Web 画面とホットバーまで消え続けるため
 - 半透明と小さい文字（旧 D10）: トークン表に UITK 列を持ち、部品を作る段で実機で決める。12px 以下は 13px へ上げる
 - アニメーション基盤（旧 D11）: 自作の UiMotion（100〜150 行、時計を注入）を段階 1 で作る。要件が増えたら LitMotion v2.0.2
 - 画像（旧 D12）: ビットマップは使わない。面と図形は Painter2D と頂点カラーのメッシュ。単純なアイコン（×・ピン・矢印）は Painter2D の命令で描き、既存の SVG を流用したいアイコン（スキットの 6 種など）は VectorImage を許す
@@ -713,7 +724,8 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 | ADR 0072（遠隔実行の入口は Web UI の Kestrel） | 待受を切り離す（裁定 3）。同じ PR で改訂する | 段階 0 |
 | ADR 0006 決定 5（マスタ由来の表示名は Web の辞書で解決） | 「ビュー側（UITK）で解決」へ改める。DTO が Guid とキーだけを運ぶ原則は保つ | 段階 1 |
 | 議論の記録「見た目は uloop screenshot で自己確認」「完了の定義に Kestrel 削除」 | ScreenCapture 系へ改める（rendering モードに UITK が写らない。PoC の実測）。Kestrel は裁定 3 の結果に合わせる | 段階 0 |
-| `.decisions/2026-08-26-プレースホルダ規約は全言語一致テストで守る.md` | パリティテストは残す。「`GetFormatted` のシグネチャは変えない」は、0-6 の統一の時点で位置指定から名前付きへ改める | 段階 0 |
+| `.decisions/2026-08-26-プレースホルダ規約は全言語一致テストで守る.md` | パリティテストは残す。「`GetFormatted` のシグネチャは変えない」は、0-6 の統一の時点で位置指定から名前付きへ改める（2026-10-26 裁定） | 段階 0 |
+| `.decisions/2026-10-16-moores-writing-plansの実装引き継ぎはCodexセッションに固定する.md` | 段階 0 のうち Codex で進められない遠隔実行・状態の移設・DSL の残りは、例外として Claude Code で進める（2026-10-26 裁定） | 段階 0 |
 
 **実装の節を書き換える ADR・裁定**（その段で触り、撤去の 5e で改訂か廃止をまとめて記録する）
 - ADR 0013・0017（段階 2〜5 は通知を隠す一時的な逸脱）、0016、0019、0020・0074、0021、0024、0052、0057、0071
@@ -723,7 +735,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 ### 7.4 ユーザーにしてもらう作業
 
 - **§0 の残りの裁定 3 件・確認 1 件・様式化**を、段階 0 の前に 1 回で答える（裁定 4 は 2026-10-26 に済み）
-- **日本語 IME の手動確認**（Mac と Windows 検証機の配布ビルド。§4.9 の 3 回）
+- **日本語 IME の手動確認**（Mac と Windows 検証機の配布ビルド。§4.9 の 3 回。段階 0 の S9 は bd `moorestech-albof.8`）
 - **段階ごとの短い目視**（1 回ずつ。staging ビルドで、反映の前）
 - **独立レビューの裁定**（切替 PR と段階 1 の基盤 PR だけ）
 - **マージと playtest への反映**: 波ごとに PR をマージし、各段階の配布ビルドを playtest へ反映する。戻しの PR は当日中に反映を指示する
