@@ -32,6 +32,6 @@
 | misc/localization-language-switch-via-ui | 改名のみ | false / 6 / 未翻訳の車両名はEnglishでも原文へフォールバックする / - | | | `PlaytestResults/20261026_165538/localization-language-switch-via-ui/result.json` |
 | misc/walk-while-menus-open | 改名のみ | false / 0 / - / TimeoutException: UI state did not reach PlayerInventory (current: GameScreen) | | | `PlaytestResults/20261026_173554/walk-while-menus-open/result.json` |
 | misc/webui-buildmenu-click | 改名のみ | true / 3 / - / - | | | `PlaytestResults/20261026_173832/webui-buildmenu-click/result.json`。boot応答喪失後、同sessionのreadyを確認して手動注入 |
-| train/train-station-default-name | 改名のみ | 未測定 | | |  |
+| train/train-station-default-name | 改名のみ | false / 2 / サーバー駅名: Coal Station (actual=Log Station), 駅名の初期同期: Coal Station / TimeoutException: Until '駅名の初期同期: Coal Station' timed out after 15s | | | `PlaytestResults/20261026_174241/train-station-default-name/result.json`。boot応答喪失後、同sessionのreadyを確認して手動注入 |
 | train/train-timetable-via-ui | 改名のみ | 未測定 | | |  |
 | graphics-quality/quality-recovery-ui | 照会置換 | 未測定 | | |  |
