@@ -784,6 +784,8 @@ bd note moorestech-albof.5 "Windowsビルド: Plugins/x86_64の差分はquickjs_
 
 ## Task 8: moores-code-review でブランチ全体をレビューする（必須・省略不可）
 
+現行の実行手順は `.superpowers/sdd/codex-handoff.md`「Codex 側で守ること」を優先する。以下の Claude Code 前提の③省略は引き継ぎ前の手順であり、現在は Codex runner で③を含めて実施する。独立レビューを統合 PR #1559 に1回とする出所は、PR数の裁定からの推論ではなく、コミット `5aa46b3ed4` の `.decisions/2026-10-26-UITK段階0の統合PRの独立レビューだけはCodexのクレジットで1回回す.md`（13:49回答と見積もり後14:31「3 ok」を記録）および同 handoff の明示指示。これはレーンの moores-code-review・修正後評価を省く制限ではない。
+
 - [ ] **Step 1:** moores-code-review スキルを `origin/feature/uitk-stage0...HEAD` に対して実行する。**Claude Code ホストの既定どおり Workflow で回す。③ Codex 外部監査は省く**（理由: Codex の週次枠が 100% で、使うとクレジットの課金になる。`.decisions/2026-10-26-UITK段階0でCodexで進められない実装はClaude-Codeで進める.md`。独立レビューは統合 PR に 1 回だけ行う）。省いた系統と理由を pr-body の「省いた系統」に書く
 - [ ] **Step 2:** 機械的な指摘はスキルの規定どおり適用し、設計判断はユーザーに聞かず推奨案で決めて `## 判断記録（ADR）` に「agent 既定（ユーザー未裁定）」で追記し、pr-body の「ユーザーに見てほしい判断」に並べる
 - [ ] **Step 3:** 指摘の反映がツールチップ・通知・スキットの判定経路や条件式に触れたら、Task 6 の該当シナリオを反映後のバイナリで回し直す
@@ -837,8 +839,8 @@ git merge --no-ff origin/feature/uitk-stage0 -m "Merge branch 'feature/uitk-stag
 | D3a | サーバー側の改修範囲: `NotificationMessagePack.cs`（`MessageParams` を `Dictionary<string,string>` に）、`AchievementNotificationWiring.cs`（研究・チャレンジ完了を `research`・`challenge` の名前で送る）、`PlaceBlockProtocol.cs:72`（`undoRestoreSkipped` を `count`）、`BlueprintPasteOperationHandler.cs:156`（`denied.blueprint.*` を `count`）。どれも送る値の名前を足すだけで、状態・判定・同期の 3 点セットには触れない | agent 既定（ユーザー未裁定）・D3 の帰結 |
 | D4 | 名前は Global Constraints の対応表で決めた。既存の名前付きキーで使われている名前（`count`・`itemName`・`ownedCount`・`requiredCount`・`name`）を優先して再利用した | agent 既定（ユーザー未裁定） |
 | D5 | 通知の値は `Dictionary<string,string>` で、名前の取り違えを型で閉じない（Phase 2.6 弱）。補間器のエラーログ（C# 側）と録画のスクショ（Web 側）で気づく。メッセージごとの型を作るのは移行計画 §7.3 の「型付きの書式メソッドを作らない」裁定の趣旨に合わないため見送る | agent 既定（ユーザー未裁定） |
-| D6 | `LocalizationTextParam.ToString()` を `name=value` にし、F レーンの録画シナリオ（`placement-reason-tooltip.cs`・`terrain-default-y-poles-and-pier-via-ui.cs` の `string.Join`）を書き換えずに済ませる | agent 既定（ユーザー未裁定） |
-| D7 | 作業順は「Editor 不要の Task 1〜3 → Editor 枠が空いてから Task 4 以降」。Editor はマシン全体で 2 本まで、次の枠は B が先 | ユーザー裁定 2026-10-26 13:24「2本で」（指揮セッション moorestech-f2 経由） |
+| D6 | 【履歴・D20で置換】`LocalizationTextParam.ToString()` を `name=value` にし、F レーンの録画シナリオ（`placement-reason-tooltip.cs`・`terrain-default-y-poles-and-pier-via-ui.cs` の `string.Join`）を書き換えずに済ませる | agent 既定（ユーザー未裁定） |
+| D7 | Editor はマシン全体で 2 本まで。作業順は Editor 不要の Task 1〜3 を先行し、枠は C → B → 第2波で回す | 2本上限のみユーザー裁定 2026-10-26 13:24「2本で」。順序・B優先は `.superpowers/sdd/codex-handoff.md` の指揮運用指示であり、同引用のユーザー裁定ではない |
 | D8 | `.decisions/2026-08-21` のツールチップ契約（`lines[{textKey,textParams}]`）は形を保ち、`textParams` の中身だけを配列から名前付きの record に替える。08-26 の「GetFormatted のシグネチャは変えない」は 10-26 裁定で改められている | 10-26 裁定の帰結 |
 | D9 | ランタイム挙動（ツールチップ・通知・ロード画面・スキット）に触れるので、unityプレイ録画テスト（Task 6）を入れる | moores-writing-plans の必須規則 |
 | D10 | moores-code-review は Workflow で回し、③ Codex 外部監査は省く。PR は作らず、統合ブランチを取り込んで push し、本文の下書きを `.superpowers/sdd/pr-body.md` に書く | ユーザー指示 2026-10-26（本 plan の依頼文）・`.decisions/2026-10-26-UITK段階0のPRは1本に統合する.md` |
@@ -848,9 +850,13 @@ git merge --no-ff origin/feature/uitk-stage0 -m "Merge branch 'feature/uitk-stag
 | D13 | 翻訳が欠けたときの扱い（`translate`・`translateExternalKey` の戻り値をそのまま表示に使う）は今の Web の i18n の規約のまま変えない（Phase 2.6 弱 5-I。本 plan は名前の置換だけ） | agent 既定（ユーザー未裁定） |
 | D14 | スキットのコマンドのキャンセル経路と `UniTask.Delay(ms, isSkip)`（第 2 引数は ignoreTimeScale）は既存のまま触らない。非 Web 分岐を削るだけの純削除にとどめる（Phase 2.6 弱 5-F） | agent 既定（ユーザー未裁定） |
 | D16 | user-simulator の指摘（e2e モックの追随・テストの波及 21 件と `MiningFocusStateEarnItemNameTest`・コメントの直し・08-21 契約の記述・Windows の基準差分の書き方）を plan に反映した | シミュレーター予測（適用済み・ユーザー未確認） |
-| D15 | `LocalizationTextParam.ToString()` はログ表示用。テスト専用の public ではなく、ログ・デバッガ表示にも効くので残す（設計検査の注目点） | agent 既定（ユーザー未裁定） |
+| D15 | 【履歴・D20で置換】`LocalizationTextParam.ToString()` はログ表示用。テスト専用の public ではなく、ログ・デバッガ表示にも効くので残す（設計検査の注目点） | agent 既定（ユーザー未裁定） |
 
 | D17 | Task6で通知シナリオの研究パラメータは表示名でなく送信研究GUIDとの厳密一致を検証する。旧p0時代もGUID送信だった。既知削除済みGUIDの原版はwwxy対象として残し、現行pinの研究GUID・必要素材を使うscratch録画で独立再現と再検証を行う。画面表示名は別途DOM・スクショで確認する | agent 既定（ユーザー未裁定） |
+
+| D18 | Task8 D01/C10は案Bを採用。統合PRの独立レビュー1回の出所を別裁定 `5aa46b3ed4` と handoff に補う。過去の `.decisions` は書き換えず、PR数だけから回数を推論しない。既存の回数裁定を新たに作る判断ではなく、出所訂正の採択 | agent 既定（ユーザー未裁定）。根拠のユーザー回答は当該既存裁定の13:49・14:31記録、現行手順はユーザーが従うよう指定した handoff |
+| D19 | Task8 D02/RC1の推奨を採用。C06は不要using5口の削除と、StoryContextExtensionの必要using1口の除外に訂正。BackgroundSkitVoicePlayerの未修飾型参照があるため保持する。コードは既に保持されており変更不要。runnerの未収束判定は勝手に消さず後続評価で確認する | agent 既定（ユーザー未裁定）。review run 2026-10-26-1916-uitk-s0-wave2-8fc7886b のRC1と型参照照合 |
+| D20 | D6/D15のToString維持をC07に従い覆す。本番値型のToStringは削除済みで、name=value整形はPlaytest診断側の2口が所有する。旧D6/D15は履歴としてのみ残す | agent 既定（ユーザー未裁定）。Task8 C07適用結果と現行ソース照合 |
 
 ### 本PR外のリファクタ提案（第3バケツ）
 
