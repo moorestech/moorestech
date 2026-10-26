@@ -77,7 +77,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             Assert.AreEqual(DeleteCompletionKind.Unconfirmed, firstResults[^1].Kind);
             Assert.AreEqual(DeleteCompletionKind.Unconfirmed, secondResults[^1].Kind);
             Assert.AreEqual(1, sender.Sent.Count);
-            events.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateOperationDenied("denied.removeTrainCarInventoryFull", Array.Empty<string>())));
+            events.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateOperationDenied("denied.removeTrainCarInventoryFull", new Dictionary<string, string>())));
             Assert.AreEqual(DeleteCompletionKind.Rejected, firstResults[^1].Kind);
             Assert.AreEqual(DeleteCompletionKind.Pending, secondResults[^1].Kind);
             Assert.AreEqual(2, sender.Sent.Count);

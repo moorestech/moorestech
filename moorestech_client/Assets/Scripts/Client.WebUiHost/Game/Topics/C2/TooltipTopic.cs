@@ -36,7 +36,7 @@ namespace Client.WebUiHost.Game.Topics
             return new TooltipDto
             {
                 Visible = presentation.Visible,
-                Lines = presentation.Lines.Select(line => new TooltipLineDto { TextKey = line.Key.Key, TextParams = line.TextParams }).ToArray(),
+                Lines = presentation.Lines.Select(line => new TooltipLineDto { TextKey = line.Key.Key, TextParams = line.TextParams.ToDictionary(textParam => textParam.Name, textParam => textParam.Value) }).ToArray(),
             };
         }
     }
@@ -50,6 +50,6 @@ namespace Client.WebUiHost.Game.Topics
     public class TooltipLineDto
     {
         public string TextKey;
-        public IReadOnlyList<string> TextParams;
+        public IReadOnlyDictionary<string, string> TextParams;
     }
 }

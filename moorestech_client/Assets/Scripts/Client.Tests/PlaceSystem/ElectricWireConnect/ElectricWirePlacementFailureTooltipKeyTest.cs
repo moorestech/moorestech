@@ -71,11 +71,11 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
 
             Assert.AreEqual(2, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(WireMaterialGuid)), feedback.Lines[0].TextParams[0]);
-            Assert.AreEqual("0", feedback.Lines[0].TextParams[1]);
-            Assert.AreEqual("1", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(WireMaterialGuid)), feedback.Lines[0].TextParams[0].Value);
+            Assert.AreEqual("0", feedback.Lines[0].TextParams[1].Value);
+            Assert.AreEqual("1", feedback.Lines[0].TextParams[2].Value);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireCost.Key, feedback.Lines[1].Key.Key);
-            CollectionAssert.AreEqual(new[] { "1" }, feedback.Lines[1].TextParams);
+            CollectionAssert.AreEqual(new[] { new LocalizationTextParam("count", "1") }, feedback.Lines[1].TextParams);
 
             #region Internal
 
@@ -109,8 +109,8 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             // 所持2でも電線1+予約2=3が必要なため不足行が出る
             // Holding 2 still falls short of 1 wire + 2 reserved = 3, so the shortage line appears
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("2", feedback.Lines[0].TextParams[1]);
-            Assert.AreEqual("3", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual("2", feedback.Lines[0].TextParams[1].Value);
+            Assert.AreEqual("3", feedback.Lines[0].TextParams[2].Value);
 
             #region Internal
 

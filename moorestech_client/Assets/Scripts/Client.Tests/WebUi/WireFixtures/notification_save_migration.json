@@ -2,5 +2,5 @@
   "seq": 1,
   "category": "saveMigration",
   "messageId": "saveMigration.missingMasterPruned",
-  "messageParams": ["3", "4", "5"]
+  "messageParams": { "blockCount": "3", "itemStackCount": "4", "researchCount": "5" }
 }

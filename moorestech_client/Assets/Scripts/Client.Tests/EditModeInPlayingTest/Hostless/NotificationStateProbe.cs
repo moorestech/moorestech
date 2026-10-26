@@ -17,7 +17,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
             var received = new List<SequencedNotification>();
             using var subscription = feed.OnNotified.Subscribe(received.Add);
 
-            var message = NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new[] { "2" });
+            var message = NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new System.Collections.Generic.Dictionary<string, string> { ["count"] = "2" });
             resolver.Resolve<ClientLocalNotificationSource>().Notify(message);
 
             Assert.AreEqual(1, received.Count, "ローカル通知がfeedに流れない");

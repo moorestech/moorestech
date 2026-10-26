@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -178,7 +179,7 @@ namespace Client.Starter
                 // The refusal travels in the result itself; copying it into an outer variable would create a second truth
                 if (connectionResult.Refusal.HasValue) return connectionResult;
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
-                loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
+                loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, new LocalizationTextParam("chunkCount", fetchedChunkCount.ToString()));
                 return connectionResult;
             }
 

@@ -59,7 +59,7 @@ namespace Client.Tests.Interact
             Assert.AreSame(InputManager.Playable.Interact, openable.Actions[0].Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.InteractOpenBlock.Key, openable.Actions[0].HintKey.Key);
             var blockGuid = openable.GetComponent<BlockGameObject>().BlockMasterElement.BlockGuid;
-            Assert.AreEqual(new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(blockGuid)) }, openable.Actions[0].HintParams);
+            Assert.AreEqual(new[] { new LocalizationTextParam("name", Localize.GetContent(ContentLocalizationKeys.BlockName(blockGuid))) }, openable.Actions[0].HintParams);
 
             var result = openable.Actions[0].Execute();
             Assert.IsTrue(result.IsHandled);
