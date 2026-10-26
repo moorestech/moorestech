@@ -3,7 +3,7 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -35,15 +35,15 @@ return PlaytestRunner.Run("feedback-report-labels", new PlaytestRunOptions { Rec
     await p.ClickUi("pause-menu-open-bug-report");
     await p.ClickUi("bug-report-kind-feedback");
     await PlaytestUiElementOps.WaitUiTextContains("bug-report-send", "感想", 15f);
-    var feedback = await PlaytestDomQuery.Query("bug-report-send", 5f);
-    p.Assert(feedback.Found && feedback.Text == "感想を送信", "感想のボタンは感想を送信");
+    var feedback = await PlaytestUiElementOps.FindUi("bug-report-send");
+    p.Assert(feedback.IsFound && feedback.Text == "感想を送信", "感想のボタンは感想を送信");
     await p.Screenshot("feedback-button");
 
     p.Note("バグへ戻し従来の送信ボタンを確認する");
     await p.ClickUi("bug-report-kind-bug");
     await PlaytestUiElementOps.WaitUiTextContains("bug-report-send", "バグ", 15f);
-    var bug = await PlaytestDomQuery.Query("bug-report-send", 5f);
-    p.Assert(bug.Found && bug.Text == "バグ報告を送信", "バグのボタンは従来文言");
+    var bug = await PlaytestUiElementOps.FindUi("bug-report-send");
+    p.Assert(bug.IsFound && bug.Text == "バグ報告を送信", "バグのボタンは従来文言");
     await p.Screenshot("bug-button");
     inputSettings.backgroundBehavior = backgroundBehavior;
     inputSettings.editorInputBehaviorInPlayMode = editorInputBehavior;
