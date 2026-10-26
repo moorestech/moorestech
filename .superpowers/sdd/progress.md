@@ -95,3 +95,5 @@ D32独立review Needs fixes（足場/終了仕様準拠、snapshotErrorで未gre
 D35進行中: cursor_cleanupのみsource/runtime専有。初期化済6class7callsite（Module/Recipe/Electric/Bundle2/Repeat/Hostless）へFlushedassert直後Disconnect→既存NetworkConst2周期観測、guardfalseを維持。cursorDI前/他既存2callsite/製品scope外。compile→target7一回→独立review。root代替候補は『flushTask=FireAsync; Disconnect; await flushTask; Flushed; 2周期』だが未採用/未実測、現案targetでserverresetが残る時だけ独立検討する。途中で方針を勝手に変更しない。
 
 Claude Code区間(12:48-16:00): D35 revert・C#一式1013/1013・moores-code-review(Codex0/Claude40)+bug-pass反映済 HEAD cebe8c5721。ここから Codex（codex-handoff.md）。残り: Task12録画4本再実行→review記録→uitk-stage0取込→pr-body.md→lane-done.md。
+
+Codex再引継ぎ: cwd/clean/HEAD f6b8d13018を確認。Task12 post-review録画4本をrecordingへ、既存review成果物の突合とrecords/eval-log記録をreview_prepへ派遣。実装タスクの再派遣なし。Editor11539を停止しfresh29993、マシン上限2を維持。統合裁定はorigin/feature/uitk-stage0から全文読了。個別PRを作らず統合branch取込・compile・push・pr-body/lane-doneで閉じる。
