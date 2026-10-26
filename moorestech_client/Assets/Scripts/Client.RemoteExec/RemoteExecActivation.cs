@@ -1,14 +1,15 @@
 using Client.RemoteExec.Access;
+using Client.RemoteExec.Listen;
 using Client.RemoteExec.Loading;
 using UnityEngine;
 
 namespace Client.RemoteExec
 {
-    // Web UI起動後、有効な起動だけでHarmonyと接続情報を用意する
-    // Prepare Harmony and access details only for enabled boots after Web UI startup
+    // 有効な起動だけで専用の待受・Harmony・接続情報を用意する。Web UIの起動結果には依らない
+    // Prepare the dedicated listener, Harmony and access details only on enabled boots, independent of the Web UI startup
     public static class RemoteExecActivation
     {
-        public static void ActivateIfRequested(bool webUiStarted, int? kestrelPort)
+        public static void ActivateIfRequested()
         {
             if (!RemoteExecLaunchOption.IsEnabled)
             {
@@ -17,22 +18,21 @@ namespace Client.RemoteExec
             }
             // 入口を開けるかはHarmonyを読む前に決める。読んだ後で断ると、パッチ能力だけ得て入口が永久に閉じた状態が残る
             // Whether the entry can open is decided before loading Harmony; refusing afterwards would leave patching enabled with the entry shut forever
-            if (!webUiStarted || kestrelPort == null)
-            {
-                Debug.LogError($"[RemoteExec] Web UI サーバーの実ポートが確定していないため遠隔実行を開けません started:{webUiStarted} port:{kestrelPort}");
-                return;
-            }
+            var port = RemoteExecHttpListener.Start();
+            // silent-ok: 開けない理由は Start() が LogError 済み / 開発者が Player.log と remote-exec.sh の接続失敗で気づく
+            if (port == null) return;
 
             // DLLを読み接続情報を発行
             // Load the DLL and publish access details
             RemoteExecHarmonyLoader.Load();
-            RemoteExecAccessFile.Issue(kestrelPort);
+            RemoteExecAccessFile.Issue(port.Value);
         }
 
-        // 正常終了で入口を撤去する。呼び出し側（終了イベントの購読者）が唯一の発火点
-        // A clean exit withdraws the entry; the caller subscribing to the shutdown event is its only trigger
+        // 入口（待受と接続情報）の撤去はここ1つに集める。呼ぶのは終了イベントの購読者と無効な起動の判定。Editorの後片付けは待受のソケットだけを閉じる
+        // Withdrawing the entry (listener and access details) lives here alone, called by the shutdown subscriber and the disabled-boot resolution; the Editor cleanup closes only the listener socket
         public static void Deactivate()
         {
+            RemoteExecHttpListener.Stop();
             RemoteExecAccessFile.Remove();
         }
     }

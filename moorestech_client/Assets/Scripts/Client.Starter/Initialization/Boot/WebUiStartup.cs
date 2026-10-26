@@ -25,7 +25,7 @@ namespace Client.Starter.Initialization.Boot
             try
             {
                 var started = await Client.WebUiHost.Boot.WebUiHost.StartAsync(exitToken);
-                if (!started) Debug.LogWarning("[WebUiHost] 起動が完了せず、遠隔実行も開きません");
+                if (!started) Debug.LogWarning("[WebUiHost] 起動が完了しなかったため、Web UIなしで続行します");
                 return started;
             }
             catch (Exception e) when (e is not OperationCanceledException)
