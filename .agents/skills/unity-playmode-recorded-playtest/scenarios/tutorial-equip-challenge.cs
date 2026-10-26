@@ -70,7 +70,7 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
         .FirstOrDefault(x => x.ToAnchorId == "equipment.selected-slot");
     p.Assert(dragGuide != null, "ドラッグ矢印が選択中装備枠を指している");
     if (dragGuide != null) p.Assert(dragGuide.FromAnchorId == $"inventory.item-{stoneToolItemGuid}", "ドラッグ矢印の始点が石器スロットである");
-    var keyHintDom = await PollUntilAsync(async () => (await Client.Playtest.WebUi.PlaytestDomQuery.Query("key-control-hint", 1f)).Found, 20);
+    var keyHintDom = await PollUntilAsync(async () => (await Client.Playtest.UiElements.PlaytestUiElementOps.FindUi("key-control-hint")).IsFound, 20);
     p.Assert(keyHintDom, "key-control-hintがWeb HUDに描画された");
     // 赤字と矢印の56px/3200msはcomputed styleがブリッジを越えないため、スクリーンショットの目視でのみ確認できる
     // The red text and the 56px/3200ms arrow cannot cross the bridge as computed style, so screenshots are the only check
@@ -136,8 +136,8 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
     p.Note("研究画面の説明文を確認する");
     await p.PressKey(UnityEngine.InputSystem.Key.R);
     await p.WaitSeconds(1.5f);
-    var researchPane = await Client.Playtest.WebUi.PlaytestDomQuery.Query("research-detail-pane", 5f);
-    p.Assert(researchPane.Found, "research-detail-paneが表示された");
+    var researchPane = await Client.Playtest.UiElements.PlaytestUiElementOps.FindUi("research-detail-pane");
+    p.Assert(researchPane.IsFound, "research-detail-paneが表示された");
     p.Assert(!researchPane.Text.Contains("New Research Description"), "研究説明文がプレースホルダのままでない");
     await p.Screenshot("07-research-description");
     await p.PressKey(UnityEngine.InputSystem.Key.R);

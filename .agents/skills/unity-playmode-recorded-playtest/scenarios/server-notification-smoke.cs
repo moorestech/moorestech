@@ -93,8 +93,8 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
         var deadline = UnityEngine.Time.realtimeSinceStartup + timeoutSeconds;
         while (UnityEngine.Time.realtimeSinceStartup < deadline)
         {
-            var result = await Client.Playtest.WebUi.PlaytestDomQuery.Query(testid, 2f);
-            if (result.Found && 0 < result.Width) return;
+            var result = await Client.Playtest.UiElements.PlaytestUiElementOps.FindUi(testid);
+            if (result.IsFound && 0 < result.ScreenRect.width) return;
             await UniTask.Delay(TimeSpan.FromMilliseconds(250), ignoreTimeScale: true);
         }
         throw new Exception($"HUD要素が可視にならない: {testid}");

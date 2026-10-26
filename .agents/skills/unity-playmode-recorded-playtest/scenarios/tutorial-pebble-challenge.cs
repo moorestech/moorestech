@@ -38,7 +38,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     // Verify 2b: opening skit renders in the Web HUD
     p.Note("開幕スキット(blocking-skit)の表示を待つ");
     var skitShown = await PollUntilAsync(async () =>
-        (await Client.Playtest.WebUi.PlaytestDomQuery.Query("blocking-skit", 1f)).Found, 30);
+        (await Client.Playtest.UiElements.PlaytestUiElementOps.FindUi("blocking-skit")).IsFound, 30);
     p.Assert(skitShown, "開幕スキット(blocking-skit)がWeb HUDに表示された");
     await p.Screenshot("01-skit-and-challenge");
 
@@ -53,7 +53,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     }, 15);
     p.Assert(skipAccepted, "Skipインテントが受理された");
     var skitGone = await PollUntilAsync(async () =>
-        !(await Client.Playtest.WebUi.PlaytestDomQuery.Query("blocking-skit", 1f)).Found, 30);
+        !(await Client.Playtest.UiElements.PlaytestUiElementOps.FindUi("blocking-skit")).IsFound, 30);
     p.Assert(skitGone, "開幕スキットが終了した");
 
     // 検証3: 小石ピン(mapObjectPin=WorldPin "map-object-pin")が登録・表示される
@@ -68,7 +68,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
         p.Note($"pin tutorialGuid='{pin.TutorialGuid}' onScreen={pin.OnScreen}");
     }
     var pinOverlay = await PollUntilAsync(async () =>
-        (await Client.Playtest.WebUi.PlaytestDomQuery.Query("world-pin-overlay", 1f)).Found, 15);
+        (await Client.Playtest.UiElements.PlaytestUiElementOps.FindUi("world-pin-overlay")).IsFound, 15);
     p.Assert(pinOverlay, "world-pin-overlayがWeb HUDに表示された");
     await p.Screenshot("02-world-pin");
 
