@@ -5,8 +5,8 @@
 
 | シナリオ | 種別 | 基準 Success / Assert数 / 失敗Assert / Error先頭 | 変更後 Success / Assert数 / 失敗Assert / Error先頭 | 判定 | 備考 |
 |---|---|---|---|---|---|
-| building/delete-tool/delete-hold-mode-reentry | 照会置換 | true / 16 / - / - | | |  |
-| building/delete-tool/delete-hold-text-focus | 照会置換 | true / 20 / - / - | | |  |
+| building/delete-tool/delete-hold-mode-reentry | 照会置換 | true / 16 / - / - | true / 16 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_201010/delete-hold-mode-reentry/result.json`。 |  |
+| building/delete-tool/delete-hold-text-focus | 照会置換 | true / 20 / - / - | true / 20 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_201152/delete-hold-text-focus/result.json`。 |  |
 | building/placement-reason-tooltip | 照会置換 | true / 14 / - / - | | |  |
 | building/terrain-sink-normal-and-belt-via-ui | 照会置換 | true / 20 / - / - | | |  |
 | building/ui-place-then-open-machine | 照会置換 | false / 6 / Web側のblock inventoryパネルが描画されている / - | | | 1回目の結果。再現確認は後続で実施 |
@@ -14,7 +14,7 @@
 | connect/rotary-generator-ui | 照会置換 | false / 38 / DOM状態文字列: 発電中, DOM状態がサーバーenumと一致, サーバー供給量, 需要消失後のサーバー状態は待機中・供給0 / TimeoutException: Until '需要消失後のサーバー状態は待機中・供給0' timed out after 30s | | |  |
 | graphics-quality/quality-ui-switching | 照会置換 | false / 0 / - / シナリオのコンパイル失敗(result.json無し): CS0103 renderer/pipe/waterLevelView/networkPipes/networkWater 未定義 | | |  |
 | misc/cursor-tooltip-follows-crosshair | 照会置換 | false / 7 / 退避先の隅にツールチップが追従した（前提がWeb側へ届いた） / TimeoutException: UI state did not reach PlayerInventory (current: GameScreen) | | |  |
-| misc/feedback-report-labels | 照会置換 | true / 2 / - / - | | |  |
+| misc/feedback-report-labels | 照会置換 | true / 2 / - / - | true / 2 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_200826/feedback-report-labels/result.json`。 |  |
 | misc/pause-menu-hierarchy | 照会置換 | false / 1 / - / TimeoutException: UI state did not reach PauseMenu (current: GameScreen) | | |  |
 | misc/sprint/sprint-toggle-mode | 照会置換 | true / 40 / - / - | | |  |
 | misc/sprint/sprint-hold-restart | 照会置換 | true / 15 / - / - | | |  |
