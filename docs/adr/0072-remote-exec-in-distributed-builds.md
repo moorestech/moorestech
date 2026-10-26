@@ -59,5 +59,5 @@
 - 読み込んだアセンブリは解放されないため、実行のたびにメモリが少しずつ増える。長時間の計測では、遠隔実行自身の増加分を差し引いて読む。
 
 2026-10-26 改訂（入口の待受）: 遠隔実行の入口を Web UI の Kestrel から外し、`Client.RemoteExec` が持つ専用の `System.Net.HttpListener`（`127.0.0.1`、25100 から上へ 20 ポートを探索）で開く。Web ホストの起動に失敗しても遠隔実行は開き、検証機で CEF の不具合を調べる手段が残る。開く時機は起動印の確定直後で、Web UI の起動より前。変えたのは待受だけで、トークン・`access.json`（`port`・`token`・`processId`）・`--remoteExec`・パス `/api/remote-exec`・結果の 7 種・送信側 CLI は変えない。無効な起動では待受そのものを開かず、要求は接続拒否になる（以前の 404 と入口の拒否ログは出ず、起動ログ「起動オプションが無いため遠隔実行は無効です」が残る）。送信者の切断は検知しない（`HttpListener` に要求ごとの中断通知が無いため。実行は最後まで走り、届かなかった応答はログに残る）。配布ビルド（Windows x64・Mono・stripping 既定）で `HttpListener` が動くことを検証機で確認した。既存CLIのSucceeded・Harmony差し込みと解除・オプションなしの待受不在・WebUi成果物の欠落時にも遠隔実行が開くこと・2597 bytesのExpect: 100-continue要求を確認した（`docs/research/2026-10-26-remote-exec-own-listener-windows.md`）。
-  出所: agent 既定（ユーザー未裁定）。UI Toolkit 移行計画 `docs/uitk-migration/plan.md` 裁定 3 の推奨 (a)、2026-10-26 ユーザー指示「動く前提で並列で開始して」により推奨を agent 既定として進めた。
+  出所: ユーザー裁定（2026-10-26「2 ok」、`.decisions/2026-10-26-遠隔実行の待受はWeb-UIのKestrelから外しHttpListenerにする.md`）。UI Toolkit 移行計画 `docs/uitk-migration/plan.md` 裁定 3 の推奨 (a) を agent 既定で先行実装し、後からユーザーが採択した。
   棄却案: (b) 遠隔実行専用の最小 Kestrel（Kestrel と AspNetCore 系 NuGet が遠隔実行のためだけに残る。`HttpListener` が配布ビルドで動かない場合の代替）／(c) 専用の TCP 待受（HTTP の解釈を自前で持つことになる）／現状維持（Web ホストの起動失敗で遠隔実行も開かない）
