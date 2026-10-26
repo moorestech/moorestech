@@ -2046,6 +2046,8 @@ Codex ホストでは moores-code-review の `references/codex-host.md` の runn
 
 ## Task 13: PR を作ってセッションを閉じられる状態にする
 
+**後続のユーザー裁定を優先:** 本レーン単独のPRは作らない。`origin/feature/uitk-stage0` を取り込み、コンパイル確認してpushし、統合PR #1559用の `.superpowers/sdd/pr-body.md` と3行の `lane-done.md` を残す。独立レビュー待ちラベルは付けない。根拠: `.decisions/2026-10-26-UITK段階0のPRは1本に統合する.md`、`codex-handoff.md`。以下のPR作成手順は当初計画の履歴であり、この完了手順に読み替える。
+
 - [ ] **セッション終了可能状態にすること: pr-createスキルでPRを作成し、masterとのコンフリクトがあればmasterをマージして解消・コンパイル確認のうえpushする（解消の実作業はpr-create経由でopus subagentに委譲される）。全作業がコミット・push済みで、このセッションをそのまま閉じてもPRがマージ可能な状態になっていることを確認して終える**
 
 PR 本文に次の節を入れる:
