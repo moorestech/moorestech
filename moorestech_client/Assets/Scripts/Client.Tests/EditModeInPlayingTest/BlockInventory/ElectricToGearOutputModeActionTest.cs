@@ -1,5 +1,4 @@
 using System.Collections;
-using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using Cysharp.Threading.Tasks;
@@ -64,8 +63,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 try
                 {
                     await TestPlayerGround.AssertGroundedAsync();
-                    // テストブロックを配置し、サーバーコンポーネントの初期選択が0であることを確認
-                    // Place the test block and confirm the server component's initial selection is 0.
+                    // ブロック配置し初期選択0を確認
+                    // Place the block and confirm initial selection 0
                     var pos = new Vector3Int(0, 0, 0);
                     var serverBlock = PlaceBlock(BlockName, pos, BlockDirection.North);
                     var component = serverBlock.GetComponent<ElectricToGearGeneratorComponent>();
@@ -74,13 +73,13 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     var blockGameObject = await WaitBlockGameObjectSpawn(pos);
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                    // Web UIが使う登録済みハンドラをhubから引いて行index 2を選択
-                    // Select row index 2 through the registered handler the Web UI uses, resolved from the hub
+                    // 登録ハンドラで行2を選択
+                    // Select row 2 via the registered handler
                     var result = await WebUiActionInvoker.ExecuteAsync("electric_to_gear.set_output_mode", new JObject { ["modeIndex"] = 2 });
                     Assert.IsTrue(result.Ok, $"action failed: {result.Error}");
 
-                    // ネットワーク往復後にサーバーの選択indexが2になることを確認
-                    // Confirm the server selected index becomes 2 after the network round-trip.
+                    // 往復後の選択2を確認
+                    // Confirm selection 2 after the round-trip
                     for (var i = 0; i < 120 && component.SelectedIndex != 2; i++) await UniTask.Yield();
                     Assert.AreEqual(2, component.SelectedIndex, "row select did not reach server SelectedIndex");
 
@@ -88,10 +87,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
                     // 元assert後に保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants after the original assertions
-                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-                    Debug.Log($"[ElectricToGearShutdown] result:{flushResult}");
-                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    await AssertIntentionalShutdownFlushedAsync("ElectricToGearShutdown");
                 }
                 finally
                 {

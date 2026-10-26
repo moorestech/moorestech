@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -59,8 +58,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 await LoadMainGame();
 
-                // 起動ログを排出し、機能検証と正規終了の想定外エラーを検出する
-                // Drain startup logs and detect unexpected errors through the checks and normal shutdown
+                // 起動ログ排出し想定外エラー検出
+                // Drain startup logs and detect unexpected errors
                 await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 try
@@ -84,8 +83,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                    // Web UIが使う登録済みハンドラをhubから引いて1件目を選択
-                    // Select the first recipe through the registered handler the Web UI uses, resolved from the hub
+                    // 登録ハンドラで1件目を選択
+                    // Select the first recipe via the registered handler
                     var targetGuid = blockRecipes[0].MachineRecipeGuid;
                     var setResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = targetGuid.ToString() });
                     Assert.IsTrue(setResult.Ok, $"select action failed: {setResult.Error}");
@@ -101,10 +100,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
                     // 元の機能検証後に、保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants after the original functional checks
-                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-                    Debug.Log($"[MachineRecipeShutdown] result:{flushResult}");
-                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    await AssertIntentionalShutdownFlushedAsync("MachineRecipeShutdown");
                 }
                 finally
                 {

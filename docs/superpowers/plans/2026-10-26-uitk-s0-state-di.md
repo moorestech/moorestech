@@ -42,7 +42,7 @@
 - 移した状態クラスの DI 登録は `Client.Starter/Registration/MainGameUiStateRegistration.cs` に集める（前例: `MainGameModelRegistration` の「Web用の論理モデルを登録」節・`NetworkDisconnectState` の `RegisterEntryPoint<…>().AsSelf()`）
 - コンパイル: `uloop compile --project-path ./moorestech_client`（ErrorCount 0）。Domain Reload 中エラーは 45 秒待って再試行
 - テスト: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`
-- **Unity Editor の予算**: 全セッション合計で同時 3 本まで。Editor を起動する前に `moores-wt status` で本数を確かめ、3 本以上動いていたら Editor の要らない作業を先に進める。Editor は `uloop launch` で起動する（`moores-wt new` の `--no-editor` で作成済みの worktree）
+- **Unity Editor の予算**: マシン全体で同時 2 本まで（ユーザー裁定 2026-10-26 13:24）。Editor を起動する前に `pgrep -fl "Unity.app/Contents/MacOS/Unity -projectPath"` で本数を確かめ、2 本以上動いていたら Editor の要らない作業を先に進める。Editor は `uloop launch` で起動する（`moores-wt new` の `--no-editor` で作成済みの worktree）
 - Web UI を PlayMode で動かす前に `cd moorestech_web/webui && pnpm install --frozen-lockfile` を済ませる（`node_modules` を別 checkout から複製しない）
 - 長い処理はバックグラウンドのポーリングで待たず、全部前景で実行する。区切り（タスク）ごとにコミットする
 - 他レーンの持ち物（上の「やらないこと」）に触る必要が出たら、触らずに `bd note moorestech-albof.3 "…"` を残す
@@ -102,8 +102,8 @@
 
 - [x] **Step 1: Editor の予算を確かめて起動する**
 
-Run: `moores-wt status` → 動いている Editor が 3 本未満であることを確認。`cd moorestech_web/webui && pnpm install --frozen-lockfile && cd -`、`uloop launch --project-path ./moorestech_client`
-Expected: Editor 起動。3 本以上なら Task 2 のコード作業（Editor 不要部分）を先に進め、空いてから戻る
+Run: `moores-wt status` → 動いている Editor が 2 本未満であることを確認。`cd moorestech_web/webui && pnpm install --frozen-lockfile && cd -`、`uloop launch --project-path ./moorestech_client`
+Expected: Editor 起動。2 本以上なら Task 2 のコード作業（Editor 不要部分）を先に進め、空いてから戻る
 
 - [x] **Step 2: unity-playmode-recorded-playtest スキルを読み、次の 5 本を変更前のコード（HEAD = `b40795d82b06e8ff39ca3b073ae57ff349e0d23a`（この実行の変更前コミット））で流す**
 
@@ -2117,3 +2117,5 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D35 | 今回追加した初期化済6class7callsiteは元assert/Flushedassert直後に既存VanillaApi.Disconnectを呼び、既存NetworkConst.UpdateIntervalSecondsの2周期以上をguardfalseのまま観測してからExitPlayModeへ進む | 独立BP25/25成功後の実証でclient位置Send/受信例外0を観測し、既存Close契約への整合を確認。serverreset/WSは残り原因未確定なので全例外解消とはしない。cursorはDI前の別前提、既存他2callsiteは終了後assertが異なるため対象を限定する | agent 既定（ユーザー未裁定） |
 
 | D36 | D35（1783aa1a8a）を revert し、初期化済 fixture は D34 の形（Flushed assert 後 1 frame で検出を戻して ExitPlayMode）へ戻す。server の UserPacketHandler が client の明示 Close による ECONNRESET を「ロジックによるエラー」として Error 出力する挙動は、この PR では直さず `moorestech-albof.3.4` へ記録する | D35 の 7 case は Flushed 後の明示 Disconnect で全件 server 受信 reset の Error を出し 0/7 赤。Disconnect を flush await 前へ移した比較（logs `harness/albof3/task11-endpoint-order-experiment`）でも同じ Error が出た。server 受信ループと client 切断はこのブランチで未変更（`git diff b40795d82b..HEAD` に `Server.Boot`・`Client.Network` 無し）。D34 では同対象が厳格検出のまま全 PASS。抽出 PR で server の切断判定を変えない | agent 既定（ユーザー未裁定） |
+
+| D37 | moores-code-review の設計判断 D-1（モーダル結果の型）は案A: `ModalRequestService` に `ConfirmResult`/`CancelResult` の const を置き、`Respond` は 2 値以外を LogError + false で拒否する。enum 化（案B）は UITK が同じサービスを呼ぶ段で決める | Web 以外の描く側が "Confirm" などで応答すると、true が返るのに BP 名の確定が黙って取り消される。案A で症状は消え、シグネチャと wire は変わらない。レビューの推奨どおり | agent 既定（ユーザー未裁定） |

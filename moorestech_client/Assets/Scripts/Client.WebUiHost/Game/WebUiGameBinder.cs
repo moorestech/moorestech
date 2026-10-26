@@ -71,8 +71,8 @@ namespace Client.WebUiHost.Game
             // Create inventory topic and register it (the equipment model supplies the selection state)
             var inventoryTopic = new InventoryTopic(hub, controller, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
-            // モーダルの保留要求はClient.GameのDIが持つ
-            // Resolve the pending modal request state owned by Client.Game DI
+            // 保留要求はDIが持つ
+            // The DI owns the pending request
             var modalService = resolver.Resolve<ModalRequestService>();
             // モーダルトピックを登録
             // Register the modal topic
@@ -139,8 +139,8 @@ namespace Client.WebUiHost.Game
                 .Resolve<ItemRecipeViewerDataContainer>();
             var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
-            // 研究ツリートピックを登録（状態はDIのストアが持つ）
-            // Register the research-tree topic (the DI store owns the states)
+            // 研究ツリートピック登録
+            // Register the research-tree topic
             var researchNodeStateStore = resolver.Resolve<ResearchNodeStateStore>();
             hub.RegisterTopic(ResearchTopic.TopicName, new ResearchTopic(hub, researchNodeStateStore));
             // チャレンジツリーと常駐HUDは同じ状態（DI）を購読する。Subjectは購読順に配るので、tree→currentの配信順はこの登録順で保つ

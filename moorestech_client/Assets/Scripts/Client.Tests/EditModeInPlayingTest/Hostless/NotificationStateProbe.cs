@@ -7,8 +7,8 @@ using VContainer;
 
 namespace Client.Tests.EditModeInPlayingTest.Hostless
 {
-    // ローカルの拒否通知がWebホスト無しでも連番付きでfeedに流れることを確かめる
-    // Verifies a local refusal flows through the feed with a sequence number, without the web host
+    // 拒否通知が連番でfeedに流れる
+    // A refusal flows through the feed with a sequence
     internal static class NotificationStateProbe
     {
         public static void AssertAvailable(IObjectResolver resolver)

@@ -51,8 +51,8 @@ namespace Client.Tests.EditModeInPlayingTest
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
             yield return new EnterPlayMode(expectDomainReload: true);
 
-            // 正規起動前から待機終了まで、想定外エラーをテスト失敗として検出する
-            // Detect unexpected errors from before normal startup through the end of the wait
+            // 想定外エラーを失敗として検出
+            // Detect unexpected errors as failures
             LogAssert.ignoreFailingMessages = false;
 
             yield return Body().ToCoroutine();
@@ -99,12 +99,9 @@ namespace Client.Tests.EditModeInPlayingTest
                     Assert.IsTrue(Cursor.visible, "言語選択ゲートの待機中にカーソルが非表示");
                     Assert.AreEqual(CursorLockMode.None, Cursor.lockState, "言語選択ゲートの待機中にカーソルがロックされている");
 
-                    // 元の待機検証を終えてから、言語ゲートを通さず実終了の完了を待つ
-                    // Await real shutdown after the original waiting checks without passing the language gate
-                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-                    Debug.Log($"[CursorShutdown] result:{flushResult}");
-                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    // 言語ゲート無しで実終了を待つ
+                    // Await real shutdown without the language gate
+                    await AssertIntentionalShutdownFlushedAsync("CursorShutdown");
                 }
                 finally
                 {

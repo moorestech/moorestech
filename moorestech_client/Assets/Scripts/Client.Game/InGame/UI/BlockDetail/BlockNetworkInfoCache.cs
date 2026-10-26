@@ -26,16 +26,12 @@ namespace Client.Game.InGame.UI.BlockDetail
         public IObservable<Unit> OnUpdated => _onUpdated;
 
         private CancellationTokenSource _cts;
-        private Vector3Int _currentPos = new(int.MinValue, int.MinValue, int.MinValue);
 
-        // 開いたブロックに合わせて取得を開始する。ブロックが変わったら前の取得を打ち切る
-        // Start fetching for the opened block; cancel previous fetches when the block changes
+        // 前の取得を打ち切り、開いたブロックの取得を始める。同一個体と閉状態の判定は OpenBlockDetailTracker が持つ
+        // Cancel previous fetches and start for the opened block; OpenBlockDetailTracker owns the same-instance and closed checks
         public void Track(BlockGameObject block, bool electric, bool gear, bool filterSplitter)
         {
-            if (block != null && block.BlockPosInfo.OriginalPos == _currentPos && _cts != null) return; // silent-ok: 同じブロックの取得は既に継続中 / 購読者へ既存ループが結果を通知する
             Clear();
-            if (block == null) return; // silent-ok: 閉状態は取得しない / 描画側が閉状態を表示する
-            _currentPos = block.BlockPosInfo.OriginalPos;
             _cts = new CancellationTokenSource();
             if (electric) PollElectric(block, _cts.Token).Forget();
             if (gear) PollGear(block, _cts.Token).Forget();
@@ -50,7 +46,6 @@ namespace Client.Game.InGame.UI.BlockDetail
             Electric = null;
             GearNetwork = null;
             FilterSplitter = null;
-            _currentPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
         }
 
         // action handler が SetMode/SetFilterItem 応答のスナップショットを反映する書き込み口

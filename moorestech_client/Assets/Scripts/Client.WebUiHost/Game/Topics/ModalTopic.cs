@@ -41,8 +41,8 @@ namespace Client.WebUiHost.Game.Topics
             _disposed = true;
             _subscription.Dispose();
 
-            // ホスト停止で保留中のawaitをcancelで解決する
-            // Resolve the pending await with cancel when the host stops
+            // 停止時に保留awaitをcancel
+            // Cancel the pending await on stop
             _service.CancelPendingRequest();
         }
 

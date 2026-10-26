@@ -16,8 +16,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
 namespace Client.Tests.EditModeInPlayingTest.Hostless
 {
-    // ブロックのサブインベントリを開くと、Webホスト無しでもtrackerがそのブロックを追い、ネットワーク情報を取得することを確かめる
-    // Verifies opening a block's sub-inventory makes the tracker follow it and fetch network info, without the web host
+    // 開くとtrackerが追い網情報を取得
+    // Opening makes the tracker fetch network info
     internal static class BlockDetailStateProbe
     {
         private const string BlockName = "TestElectricToGearGeneratorUI";
@@ -65,8 +65,8 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
             Assert.IsNull(networkCache.FilterSplitter);
             Debug.Log("[HostlessBlockDetail] tracking, networks and close verified");
 
-            // 電力ブロックは隔離worldの正規終了へ預け、稼働tickと競合する直接削除をしない
-            // Let normal isolated-world shutdown own the electric block instead of deleting it alongside live ticks
+            // 電力ブロックは正規終了へ預ける
+            // Leave the electric block to normal shutdown
         }
 
         // 到達前提が崩れた場合は閾値を変えず、実Colliderと最近点の距離を示す

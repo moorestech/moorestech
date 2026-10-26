@@ -72,8 +72,8 @@ namespace Client.Tests.BugReport.Repository
 
                 // transportの切断と、空repoへ復元できる資料の完成を確認する
                 // Verify transport closure and completed evidence restorable into an empty repository
-                // 高FD時もMonoの非同期登録へ依存せず、待受済み接続だけを同期受理する
-                // Accept only the queued connection synchronously without Mono async registration at high FD values
+                // 待受済み接続だけ同期受理
+                // Accept only the queued connection synchronously
                 listener.Server.Blocking = false;
                 using var client = listener.AcceptTcpClient();
                 client.Client.Blocking = true;

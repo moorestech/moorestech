@@ -18,8 +18,8 @@ namespace Client.WebUiHost.Game.Topics
         {
             _hub = hub;
             _state = state;
-            // 完了GUIDはeventだけへ載せ、snapshotではnullに戻す
-            // Include the completed GUID only in the event; snapshots return null
+            // 完了GUIDはeventのみ
+            // Completed GUID goes only in the event
             _subscription = _state.OnChallengeCompleted.Subscribe(completedGuid => _hub.Publish(TopicName, BuildJson(completedGuid.ToString())));
         }
 

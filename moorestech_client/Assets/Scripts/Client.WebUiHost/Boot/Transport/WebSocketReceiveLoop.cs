@@ -34,8 +34,8 @@ namespace Client.WebUiHost.Boot.Transport
                     return;
                 }
 
-                // Text 以外（Binary 等）は Web UI プロトコル対象外なので破棄する（2-C）
-                // Discard non-Text frames (Binary etc.); they are outside the Web UI protocol (2-C)
+                // Text以外は対象外で破棄
+                // Discard non-Text frames (out of protocol)
                 if (result.MessageType != WebSocketMessageType.Text)
                 {
                     messageBytes.Clear();

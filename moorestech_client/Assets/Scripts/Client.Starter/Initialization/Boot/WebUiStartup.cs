@@ -10,8 +10,8 @@ namespace Client.Starter.Initialization.Boot
         internal static async UniTask<bool> StartAsync(CancellationToken exitToken)
         {
 #if UNITY_EDITOR
-            // Editor限定スイッチの印があれば、起動失敗と同じHub=nullの経路で続ける
-            // With the Editor-only switch marked, continue down the same hub-null path as a startup failure
+            // 印があれば起動失敗と同経路
+            // With the mark, follow the startup-failure path
             if (WebUiHostEditorSkip.ConsumeSkipMark())
             {
                 Debug.LogWarning("[WebUiHost] Editor限定スイッチによりWebホストを起動しません（Hub=nullで続行）");
@@ -60,8 +60,8 @@ namespace Client.Starter.Initialization.Boot
             if (state == UnityEditor.PlayModeStateChange.EnteredEditMode) UnityEditor.SessionState.EraseBool(SessionStateKey);
         }
 
-        // 自動起動の入口（テストのPlayMode突入・今後のCEF無し起動ラダー）から呼ぶ
-        // Called from unattended entry points (a test entering Play Mode, the future no-CEF boot ladder)
+        // 自動起動の入口から呼ぶ
+        // Called from unattended entry points
         public static void Apply()
         {
             UnityEditor.SessionState.SetBool(SessionStateKey, true);

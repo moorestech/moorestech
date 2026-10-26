@@ -22,8 +22,8 @@ namespace Client.Tests.WebUi.Challenge
             var state = new ChallengeProgressState(vanillaApiEvent, CreateHandshake(initialCategories));
             state.Initialize();
 
-            // 完了の通知時点でカテゴリが差し替わっていることを、購読の中で見る
-            // Observe inside the subscription that categories were already replaced when the completion is notified
+            // 通知時点で差替済みを購読内で見る
+            // Observe replaced categories inside the subscription
             var completedGuid = Guid.NewGuid();
             Guid? received = null;
             var replacedBeforeNotify = false;
@@ -49,8 +49,8 @@ namespace Client.Tests.WebUi.Challenge
             Assert.AreEqual(0, state.Categories.Count);
         }
 
-        // handshakeのうちチャレンジ以外は読まないので、他は空で組む（前例 UIStateTestFixtureBase.CreateHandshakeResponse）
-        // Only challenges are read from the handshake, so the rest stays empty (precedent: UIStateTestFixtureBase.CreateHandshakeResponse)
+        // チャレンジ以外は空で組む(前例UIStateTestFixtureBase)
+        // Non-challenge handshake parts stay empty (precedent: UIStateTestFixtureBase)
         private static InitialHandshakeResponse CreateHandshake(List<ChallengeCategoryResponse> challenges)
         {
 #pragma warning disable CS0618

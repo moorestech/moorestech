@@ -1,5 +1,4 @@
 using System.Collections;
-using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using UnityEngine;
 using Client.Game.InGame.Context;
@@ -15,8 +14,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Hostless
 {
     /// <summary>
-    /// Webホストを起動しないPlayModeでも、Webから移した論理状態がDIから取れることを確かめる（UITK段階0の完了条件）
-    /// Verifies the logical states moved out of the web host are resolvable from DI in a Play Mode without the web host (UITK stage 0 exit criterion)
+    /// Web無しでもDIから状態が取れる
+    /// States resolve from DI without the web host
     /// </summary>
     [Category("CiShardClientPlay2")]
     public class WebUiHostlessStateAvailabilityTest
@@ -52,36 +51,33 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 await LoadMainGame();
                 var ground = TestPlayerGround.Create();
 
-                // 起動ログを排出してから、全プローブの想定外エラーを検査する
-                // Drain startup logs, then validate unexpected errors across all probes
+                // 起動ログ排出し全probe検査
+                // Drain startup logs and validate all probes
                 await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 try
                 {
                     await TestPlayerGround.AssertGroundedAsync();
-                    // スイッチが効き、起動失敗と同じHub=nullの経路を通ったことを前提として固定する
-                    // Pin the precondition that the switch worked and the boot went down the hub-null path
+                    // Hub=null経路を前提に固定
+                    // Pin the hub-null path as a precondition
                     Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "Editor限定スイッチを付けたのにWebホストが起動した");
                     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                     Assert.IsNotNull(resolver);
                     await ModalStateProbe.AssertAvailableAsync(resolver);
                     await ResearchStateProbe.AssertAvailableAsync(resolver);
-                    ChallengeStateProbe.AssertAvailable(resolver);
+                    await ChallengeStateProbe.AssertAvailableAsync(resolver);
                     NotificationStateProbe.AssertAvailable(resolver);
                     await TimetableStateProbe.AssertAvailableAsync(resolver);
                     await BlockDetailStateProbe.AssertAvailableAsync(resolver);
 
-                    // Unityが破棄する前に保存と終了参加者の完了を待つ
-                    // Await saving and shutdown participants before Unity destroys the scene
-                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-                    Debug.Log($"[HostlessShutdown] result:{flushResult}");
-                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    // 破棄前に保存・終了を待つ
+                    // Await saving and shutdown before destruction
+                    await AssertIntentionalShutdownFlushedAsync("HostlessShutdown");
                 }
                 finally
                 {
-                    // 終了の完了まで支えた、自分の足場だけを最後に除去する
-                    // Remove only our ground after it has supported the player through shutdown
+                    // 自分の足場だけ除去
+                    // Remove only our ground
                     Object.DestroyImmediate(ground);
                     LogAssert.ignoreFailingMessages = true;
                 }

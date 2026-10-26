@@ -10,8 +10,8 @@ using UniRx;
 namespace Client.WebUiHost.Game.Topics
 {
     /// <summary>
-    /// research.tree トピック: 研究マスタ + ResearchNodeStateStore の状態を合成して push
-    /// research.tree topic: merges the research master with ResearchNodeStateStore's states and pushes them
+    /// 研究マスタと状態を合成して配信
+    /// Merges research master and states and pushes them
     /// </summary>
     public class ResearchTopic : ITopicHandler, IDisposable
     {
@@ -26,8 +26,8 @@ namespace Client.WebUiHost.Game.Topics
             _hub = hub;
             _store = store;
 
-            // 状態の差し替えごとに全量を同期で配信する（移す前の ApplyNodeStates と同じタイミング）
-            // Publish the full tree synchronously on every replacement, the same timing as the former ApplyNodeStates
+            // 差し替えごとに全量を同期配信
+            // Publish the full tree synchronously per replacement
             _subscription = _store.OnNodeStatesChanged.Subscribe(_ => _hub.Publish(TopicName, BuildJson()));
         }
 

@@ -8,8 +8,8 @@ using VContainer.Unity;
 namespace Client.Game.InGame.UI.Blueprint
 {
     /// <summary>
-    /// BP名入力状態の開閉を購読し、入力モーダルへ転送して応答を書き戻す。状態権威は BlueprintNameInputState のまま
-    /// Bridges the blueprint-name state to the input modal and writes the reply back; BlueprintNameInputState stays the state authority
+    /// BP名入力の開閉をモーダルへ転送
+    /// Bridges blueprint-name open/close to the modal
     /// </summary>
     public sealed class BlueprintNameInputModalBridge : IInitializable
     {
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.UI.Blueprint
 
                 // 確定は空白のみを弾いて状態へ書き戻す（web側でも確定無効化済みの二重防御）
                 // Confirm rejects whitespace-only before writing back (double guard; the web disables confirm too)
-                if (result == "confirm" && !string.IsNullOrWhiteSpace(text)) _state.Confirm(text);
+                if (result == ModalRequestService.ConfirmResult && !string.IsNullOrWhiteSpace(text)) _state.Confirm(text);
                 else _state.Cancel();
             }
 

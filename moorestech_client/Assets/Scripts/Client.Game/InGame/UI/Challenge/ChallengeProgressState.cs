@@ -10,8 +10,8 @@ using VContainer.Unity;
 namespace Client.Game.InGame.UI.Challenge
 {
     /// <summary>
-    /// チャレンジの全カテゴリ（handshakeの初期値と完了イベントの全量）を持ち、完了を通知する
-    /// Holds every challenge category (the handshake's initial value and each completion event's full state) and notifies completions
+    /// 全カテゴリを持ち完了を通知
+    /// Holds every category and notifies completions
     /// </summary>
     public sealed class ChallengeProgressState : IInitializable
     {
@@ -29,8 +29,8 @@ namespace Client.Game.InGame.UI.Challenge
 
         public void Initialize()
         {
-            // 既存の完了イベントを購読し、全量状態で置き換える
-            // Subscribe to the existing completion event and replace the state with its full snapshot
+            // 完了購読で全量置換
+            // Replace the state on completion
             _vanillaApiEvent.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
         }
 

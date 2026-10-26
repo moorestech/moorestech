@@ -41,8 +41,8 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
 
             try
             {
-                // 一時ワールドでBPを正規解放し、空いているセルにコピー対象を置く
-                // Unlock blueprints in the temporary world and place a copy target in an empty cell
+                // BPを解放しコピー対象を置く
+                // Unlock BPs and place a copy target
                 var unlock = ServerContext.GetService<IGameUnlockStateDataController>();
                 unlock.UnlockBlueprint();
                 Assert.IsTrue(unlock.IsBlueprintUnlocked);
@@ -51,18 +51,18 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 Assert.IsNotNull(placedBlock);
                 await WaitBlockGameObjectSpawn(position);
 
-                // 実コピー系の公開遷移で、範囲確定後の名前入力局面を作る
-                // Use the real copy system's public transitions to reach naming after range selection
+                // 範囲確定後の名前入力局面
+                // Reach naming after range selection
                 selection.SelectStart(placedBlock.BlockPositionInfo.OriginalPos);
                 selection.SelectEnd(placedBlock.BlockPositionInfo.OriginalPos);
                 Assert.AreEqual(BlueprintCopyPhase.AwaitingName, selection.Phase);
                 nameInput.Open();
                 Assert.IsNotNull(modal.Pending, "BP名入力を開いても入力モーダルが保留されない");
                 Assert.IsTrue(modal.Pending.RequiresInput);
-                Assert.IsTrue(modal.Respond(modal.Pending.Id, "confirm", blueprintName));
+                Assert.IsTrue(modal.Respond(modal.Pending.Id, ModalRequestService.ConfirmResult, blueprintName));
 
-                // 名前通知だけで終えず、実コピー応答と非同期サムネイル撮影を待つ
-                // Wait beyond the name notification for the real copy response and asynchronous thumbnail capture
+                // コピー応答と撮影を待つ
+                // Wait for the copy response and capture
                 for (var i = 0; i < 600; i++)
                 {
                     var created = library.Blueprints.SingleOrDefault(blueprint => blueprint.Name == blueprintName);
@@ -80,8 +80,8 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
             {
                 try
                 {
-                    // 固有名で作ったBPだけを削除し、キャッシュと撮影結果の除去まで待つ
-                    // Delete only this uniquely named blueprint and wait until cache and thumbnail removal finish
+                    // 固有名のBPだけ削除
+                    // Delete only the uniquely named BP
                     var created = library.Blueprints.SingleOrDefault(blueprint => blueprint.Name == blueprintName);
                     if (created != null)
                     {
@@ -95,8 +95,8 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 }
                 finally
                 {
-                    // 前提検証に失敗しても、自分で設置したブロックだけを取り除く
-                    // Remove only the block placed by this probe even when a precondition fails
+                    // 自設置ブロックだけ除去
+                    // Remove only the block we placed
                     if (placedBlock != null)
                     {
                         Assert.IsTrue(RemoveBlock(position));

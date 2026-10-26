@@ -49,10 +49,10 @@ namespace Client.WebUiHost.Game.Topics
             _timetableFetcher = timetableFetcher;
             _beltCache = beltCache;
             _fluidCache = fluidCache;
-            _republishPolicy = new BlockInventoryRepublishPolicy(tracker, fluidCache);
+            _republishPolicy = new BlockInventoryRepublishPolicy(fluidCache);
 
-            // 追跡ブロックの張り替えで再配信の方針を導き直す（購読前に既に追跡中なら今の分も）
-            // Re-derive the republish policy when the tracked block changes (and for one already tracked before subscribing)
+            // 追跡替えで再配信方針を導き直す
+            // Re-derive republish policy on tracking change
             _republishPolicy.SetTrackedBlock(tracker.TrackedBlock);
             tracker.OnTrackedBlockChanged.Subscribe(_republishPolicy.SetTrackedBlock).AddTo(_subscriptions);
             tracker.OnTrackedBlockStateChanged.Subscribe(_ => OnTrackedBlockStateChanged()).AddTo(_subscriptions);
@@ -112,35 +112,24 @@ namespace Client.WebUiHost.Game.Topics
                 return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, _timetables, _timetableFetcher, ClientDIContext.BlockGameObjectDataStore));
             }
 
-            // 開いているブロックの解決はtrackerが遷移・スロット更新のたびに済ませている。ここは読むだけにする
-            // The tracker already resolves the open block on every transition and slot update; only read it here
+            // 開いているブロックの解決はtrackerが遷移・スロット更新・設置/撤去のたびに済ませている。ここは読むだけにする
+            // The tracker already resolves the open block on every transition, slot update and place/remove; only read it here
             var block = _tracker.TrackedBlock;
-            if (block == null || _subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource blockSource || !IsStillPlaced(blockSource, block))
+            if (block == null || _subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource blockSource)
             {
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
             _republishPolicy.CapturePipeBaselineIfPending(block);
             var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache, _fluidCache);
             return WebUiJson.Serialize(dto);
-
-            #region Internal
-
-            // 撤去されたフレームから閉じる遷移（次のUpdate）までの間は、移す前と同じく閉として出す（撤去済みのGameObjectを読まない）
-            // Between a removal and the closing transition on the next Update, publish closed as before (never read a removed GameObject)
-            bool IsStillPlaced(BlockSubInventorySource source, BlockGameObject tracked)
-            {
-                return ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(source.BlockPosition, out var placed) && ReferenceEquals(placed, tracked);
-            }
-
-            #endregion
         }
         private void PublishContinuousSample()
         {
             _continuousSamplePending = false;
             SchedulePublish();
         }
-        // INFRA-7 デバウンス規約: 中間状態を畳んでフレーム末に一度だけ全量配信する
-        // INFRA-7 debounce rule: fold intermediate states and publish once at end of frame
+        // 中間を畳みフレーム末に全量配信
+        // Fold intermediates, publish once at frame end
         private void SchedulePublish()
         {
             if (_publishScheduled) return; // silent-ok: 同フレームの再配信を畳む / 予約済み配信が最新DTOを届ける

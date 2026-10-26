@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Threading;
 using Client.Game.InGame.Context;
-using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -66,14 +65,14 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 await LoadMainGame();
 
-                // 起動ログを排出し、機能検証と正規終了の想定外エラーを検出する
-                // Drain startup logs and detect unexpected errors through the checks and normal shutdown
+                // 起動ログ排出し想定外エラー検出
+                // Drain startup logs and detect unexpected errors
                 await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 try
                 {
-                    // 機械を設置し、クライアント側のBlockGameObjectがスポーンするまで待機
-                    // Place the machine and wait until the client-side BlockGameObject spawns.
+                    // 機械設置しスポーン待ち
+                    // Place the machine and wait for spawn
                     var pos = new Vector3Int(0, 0, 0);
                     PlaceBlock(MachineBlockName, pos, BlockDirection.North);
                     var blockGameObject = await WaitBlockGameObjectSpawn(pos);
@@ -83,22 +82,22 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
                     Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, subInventoryState.CurrentSubInventory.Count, "unified slot count mismatch");
 
-                    // モジュールアイテムをプレイヤーへ付与し、付与先のメインスロット番号を特定する
-                    // Give the player a module item and locate the main inventory slot it landed in.
+                    // モジュール付与し枠番号特定
+                    // Give a module and locate its slot
                     await GiveItem(ModuleItemName, 1);
                     var moduleItemId = FindItemId(ModuleItemName);
                     var playerInventory = await ClientContext.VanillaApi.Response.Inventory.GetMyPlayerInventory(CancellationToken.None);
                     var mainSlot = playerInventory.MainInventory.FindIndex(item => item.Id == moduleItemId);
                     Assert.GreaterOrEqual(mainSlot, 0, "module item not found in player main inventory");
 
-                    // 既存の移動プロトコル（InventoryType.Block＋スロット番号）でモジュールスロットへ装着する
-                    // Equip into the module slot via the existing move protocol (InventoryType.Block + slot number).
+                    // 既存プロトコルで装着
+                    // Equip via the existing move protocol
                     ClientContext.VanillaApi.SendOnly.ItemMove(1, ItemMoveType.SwapSlot,
                         InventoryIdentifierMessagePack.CreateMainMessage(), mainSlot,
                         InventoryIdentifierMessagePack.CreateBlockMessage(pos), ModuleRangeStart);
 
-                    // 既存のインベントリ取得プロトコルへ装着が反映されるまでポーリングして確認
-                    // Poll the existing inventory request protocol until the equip is reflected.
+                    // 装着反映をポーリング確認
+                    // Poll until the equip is reflected
                     var blockIdentifier = InventoryIdentifierMessagePack.CreateBlockMessage(pos);
                     var inventoryResponse = await ClientContext.VanillaApi.Response.Inventory.GetInventory(blockIdentifier, CancellationToken.None);
                     for (var i = 0; i < 30 && inventoryResponse.Items[ModuleRangeStart].Id != moduleItemId; i++)
@@ -122,10 +121,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
                     // 元の機能検証後に、保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants after the original functional checks
-                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-                    Debug.Log($"[MachineModuleShutdown] result:{flushResult}");
-                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    await AssertIntentionalShutdownFlushedAsync("MachineModuleShutdown");
                 }
                 finally
                 {

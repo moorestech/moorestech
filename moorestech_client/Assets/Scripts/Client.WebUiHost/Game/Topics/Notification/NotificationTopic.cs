@@ -44,8 +44,8 @@ namespace Client.WebUiHost.Game.Topics
             if (TrySerialize(notification, out var json)) _hub.Publish(TopicName, json);
         }
 
-        // Webのカテゴリ名が引けない通知は送らずエラーログに残す。feedが定義済みに絞っているので、ここで落ちるのは対応表の追加漏れだけ
-        // A notification without a web category name is not sent and is logged as an error; the feed already narrowed to defined categories, so only a missing table entry lands here
+        // 未定義値はfeedが既に落とす
+        // Undefined values are already dropped by the feed
         private static bool TrySerialize(SequencedNotification notification, out string json)
         {
             var message = notification.Message;
@@ -55,24 +55,27 @@ namespace Client.WebUiHost.Game.Topics
                 json = null;
                 return false;
             }
-            json = WebUiJson.Serialize(ToDto(notification, webCategory));
+            json = WebUiJson.Serialize(ToDto(webCategory));
             return true;
-        }
 
-        private static NotificationDto ToDto(SequencedNotification notification, string webCategory)
-        {
-            var message = notification.Message;
-            return new NotificationDto
+            #region Internal
+
+            NotificationDto ToDto(string webCategory)
             {
-                Seq = notification.Seq,
-                Category = webCategory,
-                MessageId = message.MessageId,
-                MessageParams = message.MessageParams,
-                ItemId = message.ItemId == ItemMaster.EmptyItemId ? null : (int?)message.ItemId.AsPrimitive(),
-                // countは獲得通知だけが持つ。他カテゴリはキーごと省略しWeb側の判別unionを保つ
-                // Only earned notifications carry a count; other categories omit the key entirely to keep the web's discriminated union honest
-                Count = message.Category == NotificationCategory.ItemEarned ? message.Count : (int?)null,
-            };
+                return new NotificationDto
+                {
+                    Seq = notification.Seq,
+                    Category = webCategory,
+                    MessageId = message.MessageId,
+                    MessageParams = message.MessageParams,
+                    ItemId = message.ItemId == ItemMaster.EmptyItemId ? null : (int?)message.ItemId.AsPrimitive(),
+                    // countは獲得通知のみ
+                    // Only earned notifications carry count
+                    Count = message.Category == NotificationCategory.ItemEarned ? message.Count : (int?)null,
+                };
+            }
+
+            #endregion
         }
     }
 

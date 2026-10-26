@@ -1,15 +1,21 @@
 using System;
 using Cysharp.Threading.Tasks;
 using UniRx;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.Modal
 {
     /// <summary>
-    /// 保留中のモーダル要求を1件持ち、描く側（Web・将来のUITK）からの応答で解決する。出す側（BP名入力など）はRequest系を呼ぶ
-    /// Holds the single pending modal request and resolves it with the reply from the presenter (web, later UITK); producers such as the blueprint-name input call the Request methods
+    /// 保留モーダル要求を持ち応答で解決
+    /// Holds the pending modal request, resolved by reply
     /// </summary>
     public class ModalRequestService
     {
+        // 描く側に依らない結果の2値。これ以外の応答は拒否する
+        // The two renderer-independent results; any other reply is rejected
+        public const string ConfirmResult = "confirm";
+        public const string CancelResult = "cancel";
+
         // 現在保留中のモーダル要求。なければ null
         // The currently pending modal request, or null when none
         public ModalRequest Pending { get; private set; }
@@ -60,12 +66,12 @@ namespace Client.Game.InGame.UI.Modal
             };
             _onPendingChanged.OnNext(Unit.Default);
 
-            previousSource?.TrySetResult(("cancel", null));
+            previousSource?.TrySetResult((CancelResult, null));
             return source.Task;
         }
 
-        // 保留中の要求だけを cancel 解決する（ビュー側クローズ等の要求単位キャンセル用）
-        // Cancel-resolve only the pending request, per-request cancel, e.g. view closed
+        // 保留中の要求だけcancel解決
+        // Cancel-resolve only the pending request
         public void CancelPendingRequest()
         {
             // silent-ok: 保留無しの取消は冪等操作 / 呼出元はPendingの変化通知を購読する
@@ -76,7 +82,7 @@ namespace Client.Game.InGame.UI.Modal
             _pendingId = null;
             Pending = null;
             _onPendingChanged.OnNext(Unit.Default);
-            source?.TrySetResult(("cancel", null));
+            source?.TrySetResult((CancelResult, null));
         }
 
         // Web からの応答。id 不一致は古い応答なので無視する
@@ -86,6 +92,13 @@ namespace Client.Game.InGame.UI.Modal
             // silent-ok: 遅延した応答は現要求を変更しない / action呼出元がfalseを受け取る
             // Stale replies leave the current request intact; the action caller receives false.
             if (_pendingSource == null || id == null || id != _pendingId) return false;
+            // 2値以外は描く側の不具合なので、黙って取消扱いにせず拒否して知らせる
+            // Anything but the two results is a renderer bug, so reject it loudly instead of silently cancelling
+            if (result != ConfirmResult && result != CancelResult)
+            {
+                Debug.LogError($"ModalRequestService: 不明なモーダル結果 '{result}' を拒否しました（{ConfirmResult} か {CancelResult} のみ）");
+                return false;
+            }
 
             var source = _pendingSource;
             _pendingSource = null;

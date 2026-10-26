@@ -12,8 +12,8 @@ using VContainer.Unity;
 namespace Client.Game.InGame.UI.BlockDetail
 {
     /// <summary>
-    /// サブインベントリで開いているブロックを追い、そのブロック状態イベントの購読とネットワーク情報の取得を張り替える
-    /// Tracks the block open in the sub-inventory and re-wires its block-state event subscription and network fetches
+    /// 開いたブロックを追い購読を張替
+    /// Tracks the open block and re-wires its subscriptions
     /// </summary>
     public sealed class OpenBlockDetailTracker : IInitializable
     {
@@ -41,14 +41,18 @@ namespace Client.Game.InGame.UI.BlockDetail
 
         public void Initialize()
         {
-            // 開閉（UIステート遷移）とスロット更新のたびに、開いているブロックを解決し直す
-            // Re-resolve the open block on every open/close (UI-state transition) and slot update
+            // 開閉・スロット更新で再解決
+            // Re-resolve on open/close and slot update
             _uiStateControl.OnStateChanged.Subscribe(_ => Refresh());
             _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => Refresh());
+            // 開いている間の撤去・同座標の差し替えでも、破棄済みの個体を追わないよう解決し直す
+            // Re-resolve on removal or same-position replacement so a destroyed instance is never tracked
+            _blockGameObjectDataStore.OnBlockPlaced.Subscribe(_ => Refresh());
+            _blockGameObjectDataStore.OnBlockRemoved.Subscribe(_ => Refresh());
         }
 
-        // SubInventory 状態かつ発生元がブロックのときだけ追跡する（列車等の非ブロックは追跡しない）
-        // Track only in the SubInventory state with a block source (non-block sources like trains are not tracked)
+        // ブロック発生元の時だけ追跡
+        // Track only when the source is a block
         private void Refresh()
         {
             var open = _uiStateControl.CurrentState == UIStateEnum.SubInventory && _subInventoryState.CurrentSubInventory != null;
@@ -58,37 +62,41 @@ namespace Client.Game.InGame.UI.BlockDetail
                 return;
             }
             Track(null);
-        }
 
-        // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える
-        // Switch the tracked block, re-wiring the state-event subscription and network fetches
-        private void Track(BlockGameObject block)
-        {
-            if (ReferenceEquals(TrackedBlock, block)) return; // silent-ok: 同じ追跡先は購読を維持する / 既存の通知が描画側へ届く
-            // 前のブロックの state イベント購読を解除する
-            // Unsubscribe the previous block's state event
-            _blockStateSubscription?.Dispose();
-            _blockStateSubscription = null;
-            TrackedBlock = block;
-            if (block == null)
+            #region Internal
+
+            // 追跡切替で購読と取得を張替
+            // Re-wire subscription and fetches on switch
+            void Track(BlockGameObject block)
             {
-                _networkCache.Clear();
-                _onTrackedBlockChanged.OnNext(null);
-                return;
+                if (ReferenceEquals(TrackedBlock, block)) return; // silent-ok: 同じ追跡先は購読を維持する / 既存の通知が描画側へ届く
+                // 前ブロックの購読解除
+                // Unsubscribe the previous block
+                _blockStateSubscription?.Dispose();
+                _blockStateSubscription = null;
+                TrackedBlock = block;
+                if (block == null)
+                {
+                    _networkCache.Clear();
+                    _onTrackedBlockChanged.OnNext(null);
+                    return;
+                }
+
+                // uGUIと同じタグを購読し再配信契機に
+                // Subscribe the uGUI event tag as republish trigger
+                var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);
+                _blockStateSubscription = _vanillaApiEvent.SubscribeEventResponse(eventTag, _ => _onTrackedBlockStateChanged.OnNext(Unit.Default));
+                // ネットワーク所属はマスタの接続paramが答える。blockTypeの列挙は新種別を取りこぼす
+                // The master's connection params answer which networks a block joins; enumerating blockTypes drops new kinds
+                var param = block.BlockMasterElement.BlockParam;
+                var electric = param is IElectricWireConnectParam;
+                var gear = param is IGearConnectors;
+                var filterSplitter = block.BlockMasterElement.BlockType == "FilterSplitter";
+                _networkCache.Track(block, electric, gear, filterSplitter);
+                _onTrackedBlockChanged.OnNext(block);
             }
 
-            // uGUI BlockGameObject と同じ per-block イベントタグを直接購読して再配信トリガにする
-            // Directly subscribe the same per-block event tag as uGUI BlockGameObject as the republish trigger
-            var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);
-            _blockStateSubscription = _vanillaApiEvent.SubscribeEventResponse(eventTag, _ => _onTrackedBlockStateChanged.OnNext(Unit.Default));
-            // ネットワーク所属はマスタの接続paramが答える。blockTypeの列挙は新種別を取りこぼす
-            // The master's connection params answer which networks a block joins; enumerating blockTypes drops new kinds
-            var param = block.BlockMasterElement.BlockParam;
-            var electric = param is IElectricWireConnectParam;
-            var gear = param is IGearConnectors;
-            var filterSplitter = block.BlockMasterElement.BlockType == "FilterSplitter";
-            _networkCache.Track(block, electric, gear, filterSplitter);
-            _onTrackedBlockChanged.OnNext(block);
+            #endregion
         }
     }
 }

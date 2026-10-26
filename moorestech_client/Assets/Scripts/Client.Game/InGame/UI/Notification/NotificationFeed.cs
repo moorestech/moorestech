@@ -9,8 +9,8 @@ using VContainer.Unity;
 namespace Client.Game.InGame.UI.Notification
 {
     /// <summary>
-    /// サーバー通知とクライアント側の拒否を1本にまとめて連番を振る。接続時1回きりの移行告知だけは初期データとして持ち続ける
-    /// Merges server notifications and client-side refusals into one numbered feed; only the once-per-connect migration notice is kept as initial data
+    /// 通知と拒否を束ね連番を振る
+    /// Merges notifications and refusals into a numbered feed
     /// </summary>
     public sealed class NotificationFeed : IInitializable
     {

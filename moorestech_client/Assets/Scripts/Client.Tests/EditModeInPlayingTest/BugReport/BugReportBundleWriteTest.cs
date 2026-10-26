@@ -6,7 +6,6 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.BugReport;
 using Client.Tests.EditModeInPlayingTest.Util.World;
@@ -54,8 +53,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     await TestPlayerGround.AssertGroundedAsync();
                     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
 
-                    // テスト起動は常時記録オフなので、リングだけ明示的に開始する
-                    // Test boots disable always-on capture, so start the ring explicitly
+                    // リングだけ明示開始
+                    // Start only the ring explicitly
                     await new StartWorldSnapshotRingStep().RunOnServerAsync();
                     await UniTask.Delay(1000);
 
@@ -63,8 +62,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                     Assert.IsFalse(session.Status.Value.Missing.Contains("serverSnapshot"), "サーバースナップショットの確保に失敗した");
 
-                    // 実際の送信はバグ報告画面から行われるので、その画面にいる状態から送る
-                    // Real sends happen from the bug-report page, so send while standing on it
+                    // 報告画面から送る
+                    // Send from the bug-report page
                     resolver.Resolve<PauseMenuStateService>().ShowPage(PauseMenuPage.BugReport);
                     var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
                     var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
@@ -86,8 +85,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     Assert.IsTrue(File.Exists(Path.Combine(bundle, "logs", "unity.log")), "Unityログが同梱されていない");
                     Assert.IsTrue(File.Exists(Path.Combine(bundle, "repo", "head.diff")), "未コミット差分が同梱されていない");
 
-                    // 録画はテスト起動で止めてあるので、動画は無く欠損として載っていなければならない
-                    // The recording ring is off in test boots, so the video must be absent and recorded as missing
+                    // 動画は欠損として載る
+                    // The video is recorded as missing
                     Assert.IsFalse(File.Exists(Path.Combine(bundle, "video.mp4")), "録画を止めてあるのに動画がある");
                     Assert.IsTrue(missing.Contains("video"), "動画が無いのに欠損にも載っていない");
 
@@ -96,10 +95,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
                     // 元assert後に保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants after the original assertions
-                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-                    Debug.Log($"[BundleShutdown] result:{flushResult}");
-                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    await EditModeInPlayingTestUtil.AssertIntentionalShutdownFlushedAsync("BundleShutdown");
                 }
                 finally
                 {
@@ -145,8 +141,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                     Assert.IsTrue(session.Status.Value.Missing.Contains("serverSnapshot"), "拒否されたのに確保状態が欠損を持っていない");
 
-                    // 実際の送信はバグ報告画面から行われるので、その画面にいる状態から送る
-                    // Real sends happen from the bug-report page, so send while standing on it
+                    // 報告画面から送る
+                    // Send from the bug-report page
                     resolver.Resolve<PauseMenuStateService>().ShowPage(PauseMenuPage.BugReport);
                     var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", PlaytestReportKind.Bug, before);
                     var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
@@ -162,7 +158,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     Assert.IsTrue(missing.Contains("snapshots"), "スナップショット置き場が無かったことがmanifestに残っていない");
                     Assert.IsTrue(missing.Contains("video"), "動画の欠損がmanifestに残っていない");
                     Assert.IsTrue(missing.Contains("serverData"), "サーバーデータを特定できなかったことがmanifestに残っていない");
-                    Assert.IsTrue(((JArray)manifest["missing"]).All(item => ((string)item["reason"]).Length > 0), "理由の無い欠損がある");
+                    Assert.IsTrue(((JArray)manifest["missing"]).All(item => 0 < ((string)item["reason"]).Length), "理由の無い欠損がある");
                     Assert.AreEqual(0, ((JArray)manifest["snapshotFiles"]).Count, "確保に失敗したのにスナップショットが載っている");
 
 
@@ -171,10 +167,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
                     // 元assert後に保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants after the original assertions
-                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-                    Debug.Log($"[BundleShutdown] result:{flushResult}");
-                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    await EditModeInPlayingTestUtil.AssertIntentionalShutdownFlushedAsync("BundleShutdown");
                 }
                 finally
                 {

@@ -5,7 +5,6 @@ using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Game.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.Tests.EditModeInPlayingTest.Util.BugReport;
 using Client.Tests.EditModeInPlayingTest.Util.World;
@@ -52,8 +51,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     using var subscription = pauseMenu.OnPauseMenuOpened.Subscribe(_ => opened++);
                     var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
 
-                    // 書き出しに先立って時刻を進め、再確保した記録が最初のEscapeと異なることを検出する
-                    // Advance before writing so fresh records can be distinguished from the first Escape moment
+                    // 時刻を進め再確保を検出
+                    // Advance time to detect fresh records
                     await UniTask.Delay(1000);
                     var before = BugReportSubmitUtil.ExistingBundles();
                     pauseMenu.ShowPage(PauseMenuPage.BugReport);
@@ -62,8 +61,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     Assert.AreEqual(UIStateEnum.PauseMenu, resolver.Resolve<UIStateControl>().CurrentState);
                     await BugReportSubmitUtil.WaitCapture(session);
 
-                    // ポーズを開き直さず二件目を送り、二つの独立した完成済みバンドルを確かめる
-                    // Send again without reopening the pause and verify two independent completed bundles
+                    // 再オープンせず2件目を送る
+                    // Send the second without reopening
                     pauseMenu.ShowPage(PauseMenuPage.BugReport);
                     var second = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "二件目", PlaytestReportKind.Bug, BugReportSubmitUtil.ExistingBundles());
                     Assert.AreNotEqual(first, second);
@@ -86,10 +85,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
                     // 元assert後に保存と終了参加者の完了を待つ
                     // Await saving and shutdown participants after the original assertions
-                    var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-                    Debug.Log($"[RepeatShutdown] result:{flushResult}");
-                    Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await UniTask.Yield();
+                    await EditModeInPlayingTestUtil.AssertIntentionalShutdownFlushedAsync("RepeatShutdown");
                 }
                 finally
                 {

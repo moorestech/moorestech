@@ -6,8 +6,8 @@ using VContainer;
 
 namespace Client.Tests.EditModeInPlayingTest.Hostless
 {
-    // 研究画面へ入ると、Webホスト無しでもストアがサーバーから状態を取り直すことを確かめる
-    // Verifies the store refetches node states from the server on entering the research screen, without the web host
+    // 研究突入でストアが取り直す
+    // Entering research makes the store refetch
     internal static class ResearchStateProbe
     {
         public static async UniTask AssertAvailableAsync(IObjectResolver resolver)
