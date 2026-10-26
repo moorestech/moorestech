@@ -51,9 +51,9 @@ namespace Client.Tests.EditModeInPlayingTest
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
             yield return new EnterPlayMode(expectDomainReload: true);
 
-            // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
-            // Prevent test failure from test framework internal errors during EnterPlayMode.
-            LogAssert.ignoreFailingMessages = true;
+            // 想定外エラーを失敗として検出
+            // Detect unexpected errors as failures
+            LogAssert.ignoreFailingMessages = false;
 
             yield return Body().ToCoroutine();
 
@@ -98,6 +98,10 @@ namespace Client.Tests.EditModeInPlayingTest
                     // The real cursor is visible while waiting
                     Assert.IsTrue(Cursor.visible, "言語選択ゲートの待機中にカーソルが非表示");
                     Assert.AreEqual(CursorLockMode.None, Cursor.lockState, "言語選択ゲートの待機中にカーソルがロックされている");
+
+                    // 言語ゲート無しで実終了を待つ
+                    // Await real shutdown without the language gate
+                    await AssertIntentionalShutdownFlushedAsync("CursorShutdown");
                 }
                 finally
                 {

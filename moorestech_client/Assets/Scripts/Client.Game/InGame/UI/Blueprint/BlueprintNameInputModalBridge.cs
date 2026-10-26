@@ -1,34 +1,30 @@
-using System;
-using Client.Game.InGame.UI.Blueprint;
+using Client.Game.InGame.UI.Modal;
 using Client.Localization;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using UniRx;
+using VContainer.Unity;
 
-namespace Client.WebUiHost.Game
+namespace Client.Game.InGame.UI.Blueprint
 {
     /// <summary>
-    /// BP名入力状態の開閉を購読し、入力モーダルへ転送して応答を書き戻すブリッジ。
-    /// 状態権威は BlueprintNameInputState のまま。
-    /// Bridges the blueprint-name state to the web input modal, writing the reply back to the state.
-    /// BlueprintNameInputState stays the state authority.
+    /// BP名入力の開閉をモーダルへ転送
+    /// Bridges blueprint-name open/close to the modal
     /// </summary>
-    public class BlueprintNameInputWebBridge : IDisposable
+    public sealed class BlueprintNameInputModalBridge : IInitializable
     {
         private readonly BlueprintNameInputState _state;
-        private readonly WebUiModalService _modalService;
-        private readonly IDisposable _subscription;
+        private readonly ModalRequestService _modalService;
 
-        public BlueprintNameInputWebBridge(BlueprintNameInputState state, WebUiModalService modalService)
+        public BlueprintNameInputModalBridge(BlueprintNameInputState state, ModalRequestService modalService)
         {
             _state = state;
             _modalService = modalService;
-            _subscription = _state.OnOpenChanged.Subscribe(OnOpenChanged);
         }
 
-        public void Dispose()
+        public void Initialize()
         {
-            _subscription.Dispose();
+            _state.OnOpenChanged.Subscribe(OnOpenChanged);
         }
 
         private void OnOpenChanged(bool isOpen)
@@ -56,7 +52,7 @@ namespace Client.WebUiHost.Game
 
                 // 確定は空白のみを弾いて状態へ書き戻す（web側でも確定無効化済みの二重防御）
                 // Confirm rejects whitespace-only before writing back (double guard; the web disables confirm too)
-                if (result == "confirm" && !string.IsNullOrWhiteSpace(text)) _state.Confirm(text);
+                if (result == ModalRequestService.ConfirmResult && !string.IsNullOrWhiteSpace(text)) _state.Confirm(text);
                 else _state.Cancel();
             }
 

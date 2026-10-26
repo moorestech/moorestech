@@ -107,6 +107,7 @@ namespace Client.Starter
 
             MainGameModelRegistration.Register(builder, initialHandshakeResponse, saveGenerationWaiter, collectsPlaytestRecords);
             MainGameInteractionRegistration.Register(builder, initialHandshakeResponse);
+            MainGameUiStateRegistration.Register(builder);
 
             
             //Hierarchy上にあるcomponent

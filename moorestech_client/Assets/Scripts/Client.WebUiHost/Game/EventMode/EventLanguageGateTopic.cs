@@ -1,3 +1,4 @@
+using Client.Game.InGame.EventMode;
 using System;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
