@@ -104,3 +104,6 @@ Task12録画最新: BP25/25PASS（有効D31、logs667950283）、matrix有効22/
 
 Editor待機中の統合: origin/feature/uitk-stage0 af027e1dfdをマージコミットe07fc7b1c3で取込/push、競合0・取込C#差分0。G1違反なし、Python追従gate単体69/69PASS（74.181s）。Unity compileは枠待ち。
 独立追加観測: purpose_reviewがscratch/focus-observerを準備、review_prep監査で副作用getter/cleanup不確定を指摘→6aaf1a22fで設定修復getterも削除しinstall時UI/Player各1回検索へ。原文無改変・D31注入前に生state/保持値だけを観測、cleanupはexit/JSON Success/Result一致必須。未投入。所有Editor全停止、外部35502/54299稼働で全体上限2。master pin lock維持。次は枠が空き次第purpose_reviewへ正式runtime引継ぎしwalk/matrix独立観測→machine有効録画→compile→完了台帳。
+
+待機解除: OS終了通知で35502退出。残存54299の1本を起動前再確認する条件でpurpose_reviewへ正式runtime引継ぎ。最終observer6aaf1a22fとD31/D38/D39 helperを統合しwalk/matrix独立1回→machine有効録画→compileを実行。自PIDはroot返却後停止。root監視PID57064は終了通知で正常終了。
+追加suite来歴監査: ClaudeログL1062/1064のcebe push後05:57:36起動と全1013case05:58:10以降〜06:08:56を確認、旧e58XMLと開始時刻一致0件。root XML21秒は全体所要ではないがcebe後1013PASSを支持（logs ad947bf8e）。
