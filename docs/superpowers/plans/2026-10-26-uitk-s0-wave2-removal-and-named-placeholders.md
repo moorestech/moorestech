@@ -860,9 +860,9 @@ git merge --no-ff origin/feature/uitk-stage0 -m "Merge branch 'feature/uitk-stag
 | D24 | Task6では通常GPU描画の受入未達（albof.10）と、既存software描画による同一製品コードの操作/表示検証を区別する。新Editor/一意TMPDIR・可視/サイズ/加速接続・子PIDを観測し、GPU textureNULL/frame0を確認した後、診断processの初回CefRuntime.Initialize(false)だけで既存TryGetBuffer経路を使う。製品/Prefab/EditorSettingsを変更せず、検証processを最後に終了する | agent 既定（ユーザー未裁定） |
 | D25 | F境界のAssets外シナリオの型/API追随を原版へ戻す。placementの旧位置配列snapshot比較をName/ValueでownedCount=1/requiredCount=3の厳密比較へ替え、2口のsnapshot診断をName=Valueへ直す。terrainの既存5引数呼出しは現行4引数APIに合わせ未使用out引数だけ除く。scratchでの同じ厳密比較61PASS、両原版のEDCコンパイル成功を証拠とする。原版の高さ/Skip/数量/操作は変えない | agent 既定（ユーザー未裁定） |
 | D26 | 通常GPUの実画像受入が未達のためalbof.5/.7を閉じずlane-doneを作らない。CEFログのMTLSharedEvent失敗に加え、Metal単体とLaunchServices独立GUIでもshared event生成nullを実測した。CPU成功はGPU受入へ代替しない。OS/GPU状態リセットの切り分けは常駐サービスと他セッションへ影響するため承認・調整前に実行しない。再起動が必ず改善するとは未確認。再開時はMetal単体probe成功を先に確かめ、その後通常GPUでTask6を再実行する | agent 既定（ユーザー未裁定）。gpu-normal-path-report.mdと独立最終評価NG、bd albof.10 |
+| D27 | Task6通常GPU再録画で背景時keyboard/mouse無効を実測したため、scratch gateだけInputSettings.IgnoreFocus/AllDeviceInputAlwaysGoesToGameView・runInBackground・device再有効化を一時適用し、元数量/操作/assertを維持する。元値へ戻し診断hookを解除、製品/原版/設定ファイルへ保存しない。通常GPU289assertと実画像を独立評価へ再提出し、受入前はbd close/lane-doneしない | agent 既定（ユーザー未裁定）。task-6-gpu-recovered/report.md・manifest.json、PRへ申し送り |
+| D28 | D26の保留は、Metal probe回復後の通常GPU=true・実画像・録画5本289/289・独立受入2体GOを根拠に解除する。albof.5/.7/.10を閉じ、lane-doneと統合本文を引き継ぐ。OS再起動はしていない。残留BugReporter停止後の回復は観測したが、因果・根本原因・恒久性は未確定で過去のGPU失敗/CPU検証を保持する | agent 既定（ユーザー未裁定）。2026-10-27 task-6-gpu-recoveredとfinal-acceptance-a/b-r2 |
 
 ### 本PR外のリファクタ提案（第3バケツ）
 
 なし。
-
-| D27 | Task6通常GPU再録画で背景時keyboard/mouse無効を実測したため、scratch gateだけInputSettings.IgnoreFocus/AllDeviceInputAlwaysGoesToGameView・runInBackground・device再有効化を一時適用し、元数量/操作/assertを維持する。元値へ戻し診断hookを解除、製品/原版/設定ファイルへ保存しない。通常GPU289assertと実画像を独立評価へ再提出し、受入前はbd close/lane-doneしない | agent 既定（ユーザー未裁定）。task-6-gpu-recovered/report.md・manifest.json、PRへ申し送り |
