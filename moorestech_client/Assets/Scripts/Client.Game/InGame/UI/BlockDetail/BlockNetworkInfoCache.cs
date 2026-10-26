@@ -1,12 +1,13 @@
 using System;
 using System.Threading;
+using UniRx;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.WebUiHost.Game.Topics.BlockDetail
+namespace Client.Game.InGame.UI.BlockDetail
 {
     /// <summary>
     /// 開いているブロックのネット集約情報をキャッシュ
@@ -21,19 +22,16 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot Electric { get; private set; }
         public GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot GearNetwork { get; private set; }
         public FilterSplitterStateProtocol.FilterSplitterStateResponse FilterSplitter { get; private set; }
-        public event Action OnUpdated;
+        private readonly Subject<Unit> _onUpdated = new();
+        public IObservable<Unit> OnUpdated => _onUpdated;
 
         private CancellationTokenSource _cts;
-        private Vector3Int _currentPos = new(int.MinValue, int.MinValue, int.MinValue);
 
-        // 開いたブロックに合わせて取得を開始する。ブロックが変わったら前の取得を打ち切る
-        // Start fetching for the opened block; cancel previous fetches when the block changes
+        // 前の取得を打ち切り、開いたブロックの取得を始める。同一個体と閉状態の判定は OpenBlockDetailTracker が持つ
+        // Cancel previous fetches and start for the opened block; OpenBlockDetailTracker owns the same-instance and closed checks
         public void Track(BlockGameObject block, bool electric, bool gear, bool filterSplitter)
         {
-            if (block != null && block.BlockPosInfo.OriginalPos == _currentPos && _cts != null) return;
             Clear();
-            if (block == null) return;
-            _currentPos = block.BlockPosInfo.OriginalPos;
             _cts = new CancellationTokenSource();
             if (electric) PollElectric(block, _cts.Token).Forget();
             if (gear) PollGear(block, _cts.Token).Forget();
@@ -48,7 +46,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             Electric = null;
             GearNetwork = null;
             FilterSplitter = null;
-            _currentPos = new Vector3Int(int.MinValue, int.MinValue, int.MinValue);
         }
 
         // action handler が SetMode/SetFilterItem 応答のスナップショットを反映する書き込み口
@@ -56,7 +53,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public void ApplyFilterSplitterSnapshot(FilterSplitterStateProtocol.FilterSplitterStateResponse response)
         {
             FilterSplitter = response;
-            OnUpdated?.Invoke();
+            _onUpdated.OnNext(Unit.Default);
         }
 
         private async UniTaskVoid PollElectric(BlockGameObject block, CancellationToken ct)
@@ -66,9 +63,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             while (!ct.IsCancellationRequested)
             {
                 var response = await ClientContext.VanillaApi.Response.World.GetElectricNetworkInfo(block.BlockInstanceId, ct);
-                if (ct.IsCancellationRequested) return;
+                if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
                 Electric = response?.Info;
-                OnUpdated?.Invoke();
+                _onUpdated.OnNext(Unit.Default);
                 await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
             }
         }
@@ -80,7 +77,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             while (!ct.IsCancellationRequested)
             {
                 var response = await ClientContext.VanillaApi.Response.World.GetGearNetworkInfo(block.BlockInstanceId, ct);
-                if (ct.IsCancellationRequested) return;
+                if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
 
                 // 通信失敗は網未所属(Info=null)と区別し、前回値を保って停止理由行を消さない
                 // Keep the last snapshot on a transport failure so it is not confused with non-membership (Info == null)
@@ -92,7 +89,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 }
 
                 GearNetwork = response.Info;
-                OnUpdated?.Invoke();
+                _onUpdated.OnNext(Unit.Default);
                 await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
             }
         }
@@ -101,10 +98,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateGetRequest(pos);
             var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, ct);
-            if (ct.IsCancellationRequested) return;
+            if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
             // 取得失敗（未配置/別ブロック）は空スナップショットで上書きせず無視する（uGUI と同じガード）
             // Ignore fetch failures instead of overwriting with an empty snapshot (same guard as uGUI)
-            if (response == null || !response.Success) return;
+            if (response == null || !response.Success) return; // silent-ok: 取得失敗時は既存スナップショットを保つ / 描画側へ未取得または前回値が残る
             ApplyFilterSplitterSnapshot(response);
         }
     }

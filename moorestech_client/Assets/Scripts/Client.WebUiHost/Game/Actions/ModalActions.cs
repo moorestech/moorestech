@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.Modal;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -11,9 +12,9 @@ namespace Client.WebUiHost.Game.Actions
     {
         public string ActionType => "ui.modal.respond";
 
-        private readonly WebUiModalService _service;
+        private readonly ModalRequestService _service;
 
-        public ModalRespondActionHandler(WebUiModalService service)
+        public ModalRespondActionHandler(ModalRequestService service)
         {
             _service = service;
         }
@@ -28,7 +29,7 @@ namespace Client.WebUiHost.Game.Actions
             if (payload["result"] is not JValue { Type: JTokenType.String } resultValue) return UniTask.FromResult(ActionResult.Fail("invalid_result"));
 
             var result = (string)resultValue;
-            if (result != "confirm" && result != "cancel") return UniTask.FromResult(ActionResult.Fail("invalid_result"));
+            if (result != ModalRequestService.ConfirmResult && result != ModalRequestService.CancelResult) return UniTask.FromResult(ActionResult.Fail("invalid_result"));
 
             // 入力モーダルの text は任意（無ければ null）
             // The input modal's text is optional (null when absent)

@@ -1,90 +1,82 @@
-using Client.Game.InGame.UI.Notification;
 using System;
 using System.Collections.Generic;
-using UniRx;
-using Client.Network.API;
+using Client.Game.InGame.UI.Notification;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using MessagePack;
 using Server.Event.Notification;
+using UniRx;
 using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics
 {
-    // notification.events トピック: サーバー通知イベントをWebへ中継する。接続時1回きりの告知だけはsnapshotで再提示する
-    // notification.events topic: relays server notifications to the web; only the once-per-connect notice is re-served in the snapshot
     public sealed class NotificationTopic : ITopicHandler, IDisposable
     {
         public const string TopicName = "notification.events";
 
         private readonly WebSocketHub _hub;
+        private readonly NotificationFeed _feed;
         private readonly IDisposable _subscription;
-        private readonly IDisposable _localSubscription;
-        private long _seq;
 
-        // 除去件数の告知はサーバー接続時に1回しか来ない。Web未購読の間に配ると失われるので初期データとして持ち続ける
-        // The prune notice arrives only once per server connection; publishing it while the web is unsubscribed loses it, so it is kept as initial data
-        private NotificationDto _saveMigrationNotice;
-
-        public NotificationTopic(WebSocketHub hub, IVanillaApiEvent vanillaApiEvent, ClientLocalNotificationSource localNotificationSource)
+        public NotificationTopic(WebSocketHub hub, NotificationFeed feed)
         {
             _hub = hub;
-            _subscription = vanillaApiEvent.SubscribeEventResponse(NotificationService.EventTag, OnNotification);
-
-            // クライアント側の拒否も同じ表示へ流す
-            // Relay client-side refusals through the same display
-            _localSubscription = localNotificationSource.OnNotification.Subscribe(Publish);
+            _feed = feed;
+            _subscription = _feed.OnNotified.Subscribe(Publish);
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
         {
             // 通常の通知は揮発で再生しない。除去件数の告知だけを返し、同じseqの再表示はWeb側が弾く
             // Ordinary notifications are transient; only the prune notice is returned and the web drops a repeat of the same seq
-            var notice = _saveMigrationNotice;
-            return UniTask.FromResult(notice == null ? "{}" : WebUiJson.Serialize(notice));
+            var notice = _feed.SaveMigrationNotice;
+            if (notice == null || !TrySerialize(notice, out var json)) return UniTask.FromResult("{}");
+            return UniTask.FromResult(json);
         }
 
         public void Dispose()
         {
             _subscription.Dispose();
-            _localSubscription.Dispose();
         }
 
-        private void OnNotification(byte[] payload)
+        private void Publish(SequencedNotification notification)
         {
-            Publish(MessagePackSerializer.Deserialize<NotificationMessagePack>(payload));
+            if (TrySerialize(notification, out var json)) _hub.Publish(TopicName, json);
         }
 
-        private void Publish(NotificationMessagePack message)
+        // 未定義値はfeedが既に落とす
+        // Undefined values are already dropped by the feed
+        private static bool TrySerialize(SequencedNotification notification, out string json)
         {
-
-            // throwは購読パイプを貫き配信を止める
-            // A throw would pierce the subscription pipe and halt all event delivery
+            var message = notification.Message;
             if (!NotificationCategoryTable.TryGetWebName(message.Category, out var webCategory))
             {
-                Debug.LogWarning($"[NotificationTopic] dropped notification with unknown category: {message.Category}");
-                return;
+                Debug.LogError($"[NotificationTopic] no web category name for {message.Category}; notification seq {notification.Seq} was not sent");
+                json = null;
+                return false;
+            }
+            json = WebUiJson.Serialize(ToDto(webCategory));
+            return true;
+
+            #region Internal
+
+            NotificationDto ToDto(string webCategory)
+            {
+                return new NotificationDto
+                {
+                    Seq = notification.Seq,
+                    Category = webCategory,
+                    MessageId = message.MessageId,
+                    MessageParams = message.MessageParams,
+                    ItemId = message.ItemId == ItemMaster.EmptyItemId ? null : (int?)message.ItemId.AsPrimitive(),
+                    // countは獲得通知のみ
+                    // Only earned notifications carry count
+                    Count = message.Category == NotificationCategory.ItemEarned ? message.Count : (int?)null,
+                };
             }
 
-            _seq++;
-            var dto = new NotificationDto
-            {
-                Seq = _seq,
-                Category = webCategory,
-                MessageId = message.MessageId,
-                MessageParams = message.MessageParams,
-                ItemId = message.ItemId == ItemMaster.EmptyItemId ? null : (int?)message.ItemId.AsPrimitive(),
-                // countは獲得通知だけが持つ。他カテゴリはキーごと省略しWeb側の判別unionを保つ
-                // Only earned notifications carry a count; other categories omit the key entirely to keep the web's discriminated union honest
-                Count = message.Category == NotificationCategory.ItemEarned ? message.Count : (int?)null,
-            };
-
-            // 再接続で届いた新しい告知は新しいseqで置き換え、再接続のたびに出し直す契約を保つ
-            // A notice from a reconnect replaces the old one with a new seq, keeping the re-show-per-reconnect contract
-            if (message.Category == NotificationCategory.SaveMigration) _saveMigrationNotice = dto;
-            _hub.Publish(TopicName, WebUiJson.Serialize(dto));
+            #endregion
         }
     }
 
