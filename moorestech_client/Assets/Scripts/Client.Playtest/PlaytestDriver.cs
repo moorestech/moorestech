@@ -35,6 +35,7 @@ namespace Client.Playtest
         private readonly PlaytestResult _result;
         private readonly string _runDirectory;
         private readonly PlaytestReporter _reporter;
+        private readonly PlaytestWaitActions _waits;
         // ホットバー操作のサブファサード
         // Sub-facade for hotbar operations (EnterBuildMode/ExitBuildMode/AssignHotbar/UnlockConnectTool)
         public PlaytestHotbarDriver Hotbar { get; }
@@ -44,6 +45,7 @@ namespace Client.Playtest
             _runDirectory = runDirectory;
             _reporter = new PlaytestReporter(result);
             Hotbar = new PlaytestHotbarDriver(_reporter);
+            _waits = new PlaytestWaitActions(_reporter);
         }
         // AIナレーション用。今から何をするか・何が起きたかを動画とTimelineに残す
         // For AI narration: records what's about to happen / what happened, into the video and Timeline
@@ -88,13 +90,7 @@ namespace Client.Playtest
             return PlaytestBlockOps.RemoveBlock(position);
         }
         public IBlock GetBlock(Vector3Int position) => PlaytestBlockOps.GetBlock(position);
-        public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position)
-        {
-            var waitEntry = _reporter.BeginWait($"ブロック生成待ち: {position}");
-            var blockGameObject = await PlaytestBlockOps.WaitBlockGameObjectSpawn(position, 15f);
-            _reporter.EndWait(waitEntry);
-            return blockGameObject;
-        }
+        public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position) => await _waits.WaitBlockGameObject(position);
         // ---- UI経路操作 / UI-route operations ----
         public UIStateEnum CurrentUiState => PlaytestUiOps.CurrentUiState();
         public void UnlockBlock(string blockName)
@@ -111,25 +107,15 @@ namespace Client.Playtest
             await GiveConstructionCost(blockName, blockCount);
         }
         public async UniTask PressKey(Key key) => await _reporter.Act($"キー入力: {key}", () => SemanticInput.TapKey(key));
-        public async UniTask ClickWebUi(string testid) => await _reporter.Act($"Web UIクリック: {testid}", () => PlaytestWebUiOps.ClickWebUi(testid));
-        public async UniTask HoverWebUi(string testid) => await _reporter.Act($"Web UIホバー: {testid}", () => PlaytestWebUiOps.HoverWebUi(testid));
-        public async UniTask UntilWebUiElement(string testid, float timeoutSeconds)
-        {
-            // DOM要素待ちを待機表示し、成功後も録画用の操作間隔を確保する
-            // Show DOM waiting and retain the recording pace after success
-            var waitEntry = _reporter.BeginWait($"Web UI要素待ち: {testid}");
-            await PlaytestWebUiOps.WaitWebUiElement(testid, timeoutSeconds);
-            _reporter.EndWait(waitEntry);
-            await UniTask.Delay(TimeSpan.FromSeconds(PlaytestReporter.ActionIntervalSeconds), ignoreTimeScale: true);
-        }
-        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
-        public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
-        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds)
-        {
-            var waitEntry = _reporter.BeginWait($"UI状態待ち: {state}");
-            await PlaytestUiOps.WaitUiState(state, timeoutSeconds);
-            _reporter.EndWait(waitEntry);
-        }
+        public async UniTask ClickUi(string testid) => await _reporter.Act($"UIクリック: {testid}", () => PlaytestUiElementOps.ClickUi(testid));
+        public async UniTask HoverUi(string testid) => await _reporter.Act($"UIホバー: {testid}", () => PlaytestUiElementOps.HoverUi(testid));
+        public async UniTask UntilUiElement(string testid, float timeoutSeconds) => await _waits.UntilUiElement(testid, timeoutSeconds);
+        // テキスト欄の値を置き換える（IMEは通さない）
+        // Replace a text field's value (bypassing IME)
+        public async UniTask SetText(string testid, string text) => await _reporter.Act($"UI文字入力: {testid}", () => PlaytestUiElementOps.SetText(testid, text));
+        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(PlaytestUiElementOps.BuildMenuBlockTestId(blockName));
+        public async UniTask CloseBuildMenuPanel() => await ClickUi("build-menu-close");
+        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await _waits.WaitUiState(state, timeoutSeconds);
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestBuildMenuOps.OpenBuildMenuAndSelectBlock(blockName));
         // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提
         // Skips the opening skit and lands on the game screen; the precondition for every hotbar and build-menu operation
@@ -199,11 +185,7 @@ namespace Client.Playtest
             _reporter.EndWait(waitEntry);
             _reporter.RecordUntilResult(true, label, "condition met");
         }
-        public async UniTask WaitSeconds(float seconds)
-        {
-            _reporter.BeginWait($"{seconds:0.#}秒");
-            await UniTask.Delay(TimeSpan.FromSeconds(seconds));
-        }
+        public async UniTask WaitSeconds(float seconds) => await _waits.WaitSeconds(seconds);
         public async UniTask<string> Screenshot(string name)
         {
             _reporter.Step($"スクリーンショット: {name}");

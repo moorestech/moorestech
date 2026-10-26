@@ -32,13 +32,13 @@ namespace Client.Playtest.Operations.Ui
                 if (await PlaytestUiOps.PollUiState(UIStateEnum.BuildMenu, 4f)) break;
             }
             _playtest.Assert(_playtest.CurrentUiState == UIStateEnum.BuildMenu, $"ビルドメニューが開く ({entryTestid})");
-            await _playtest.UntilWebUiElement("build-menu-panel", 15f);
-            await _playtest.ClickWebUi(categoryTestid);
-            await PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable(entryTestid, "build-menu-scroll-area", 15f);
+            await _playtest.UntilUiElement("build-menu-panel", 15f);
+            await _playtest.ClickUi(categoryTestid);
+            await PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable(entryTestid, "build-menu-scroll-area", 15f);
             var deadline = Time.realtimeSinceStartup + 20f;
             while (_playtest.CurrentUiState != UIStateEnum.PlaceBlock && Time.realtimeSinceStartup < deadline)
             {
-                await _playtest.ClickWebUi(entryTestid);
+                await _playtest.ClickUi(entryTestid);
                 await UniTask.DelayFrame(10);
             }
             _playtest.Assert(_playtest.CurrentUiState == UIStateEnum.PlaceBlock, $"エントリ選択でPlaceBlockへ遷移: {entryTestid}");
