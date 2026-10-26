@@ -90,3 +90,18 @@ MouseCursorTooltipState.cs:24はShow(owner,key,Array.Empty<LocalizationTextParam
 - moorestech_web/webui/src/shared/tooltip/CursorTooltip.tsx
 
 継続追加: CursorTooltip.test.tsのコメント、server-notification-smoke.csの値検証、本報告。
+
+## レビュー後のPlaywright追加調査
+- task-2-review.mdを全文確認。server-notification-smokeのImportantはcontroller指示によりTask 6の実測まで据え置く。
+- Node26で`/usr/bin/time -p node node_modules/typescript/bin/tsc -b`はreal 7.54秒、user 9.19秒、sys 0.69秒、終了0。
+- `MOORESTECH_E2E=true /usr/bin/time -p pnpm build`はreal 19.60秒、user 13.17秒、sys 1.48秒、終了0。viteは6.02秒。ログは/tmp/uitk-task2-tscb.logと/tmp/uitk-task2-build.log。
+- configのwebServerは`pnpm build && node --import tsx e2e/mock-host/server.ts`、cwdはwebui、port5273、timeout120000ms。mock-hostは同じdistを配信する。初回timeoutの原因は単体計測で再現せず、マシン負荷の影響は推測に留める。timeout値・製品コード・起動コマンドは変更しない。
+- 計測後、`pnpm test:e2e e2e/tests/notification e2e/tests/system/commonHud.spec.ts`を実行。既定120秒のままwebServer起動成功、通知6件とHUD5件成功、HUD1件は既存の言語fixture不整合で失敗。ログ/tmp/uitk-task2-e2e-focused.logとerror-context.mdにcommonHud.spec.ts:22のExpected Delete Mode / Received 削除モードを記録。
+- ref-webui-designの既定に従い、英語を期待する当該テストへenglishを明示し、afterEachでjapaneseに戻す。表示側の挙動・期待値は変更しない。
+- Node20のjsdom ERR_REQUIRE_ESMは依存・実行環境の問題として残る。Node26のDEP0205、NO_COLOR警告、Viteの500kB chunk警告も成功件数と分けて記録する。
+
+### 追加検証の最終結果
+- fixture修正後、同じ`pnpm test:e2e e2e/tests/notification e2e/tests/system/commonHud.spec.ts`で12/12成功（1.5分）、終了0。e2e用tsc、既定webServerによる本番ビルド、実Chromium描画を含む。ログ/tmp/uitk-task2-e2e-focused-fixed.log。
+- 通知の入退場・固定幅・獲得数累積・背面層序、tooltipの表示・複数行順序・位置・visibility連動を実ブラウザで検証した。全e2e suiteの成功を意味しない（今回の変更に関連する5specを選択）。
+- 実行PIDは1回目Playwright46509、webServer52397、2回目Playwright62090、webServer68725を確認。完了後に残存が無いことを確認。常駐プロセスへは触れていない。
+- 最終状態: Task2のWebブラウザ検証未完了は解消。server-notification-smokeの旧値assertion ImportantとC#コンパイルはそれぞれTask6/Task4の所有者へ引き継ぐ。
