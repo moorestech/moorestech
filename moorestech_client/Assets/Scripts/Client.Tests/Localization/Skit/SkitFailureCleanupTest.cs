@@ -17,7 +17,6 @@ namespace Client.Tests.Localization.Skit
     public class SkitFailureCleanupTest
     {
         private const string SkitKey = "skit.opening.7.body";
-
         private readonly List<GameObject> _createdObjects = new();
 
         [TearDown]
@@ -41,18 +40,28 @@ namespace Client.Tests.Localization.Skit
 
             // 失敗したskitはfinallyだけで後始末し、まだ隠していないpinには触れない
             // A failed skit cleans up solely in finally and never touches a pin it has not hidden
-            using var invalidTitle = new Playback.InvalidTitleSkitAsset();
-            var startTask = manager.StartSkit(Playback.InvalidTitleSkitAsset.Address).AsTask();
-            // Editor更新を止めずロード完了を待つ
-            // Keep Editor updates running while awaiting asset loading
-            while (!startTask.IsCompleted) yield return null;
+            yield return UnityEngine.AddressableAssets.Addressables.InitializeAsync();
+            var invalidTitle = new Playback.InvalidTitleSkitAsset();
+            using (invalidTitle)
+            {
+                yield return invalidTitle.Initialize();
+                var startTask = manager.StartSkit(Playback.InvalidTitleSkitAsset.Address).AsTask();
+                // Editor更新を止めずロード完了を待つ
+                // Keep Editor updates running while awaiting asset loading
+                while (!startTask.IsCompleted) yield return null;
 
-            Assert.ThrowsAsync<ArgumentException>(async () => await startTask);
-            Assert.IsFalse(manager.IsPlayingSkit);
-            Assert.AreEqual(0, mapObjectPin.SetActiveCallCount);
-            Assert.AreEqual(0, veinPin.SetActiveCallCount);
+                Assert.ThrowsAsync<ArgumentException>(async () => await startTask);
+                invalidTitle.AssertManagerOwnsCachedReference();
+                Assert.IsFalse(manager.IsPlayingSkit);
+                Assert.AreEqual(0, mapObjectPin.SetActiveCallCount);
+                Assert.AreEqual(0, veinPin.SetActiveCallCount);
+            }
 
-
+            // 遅延完了通知まで含め資産の単一破棄を確かめる
+            // Verify a single asset destruction after deferred completion callbacks
+            yield return invalidTitle.WaitForReleaseAsync().ToCoroutine();
+            Assert.AreEqual(1, invalidTitle.ReleaseCount);
+            Assert.IsTrue(invalidTitle.IsAssetDestroyed);
         }
 
         [Test]
