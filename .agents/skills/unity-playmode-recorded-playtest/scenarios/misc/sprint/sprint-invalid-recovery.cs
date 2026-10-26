@@ -39,7 +39,7 @@ await PlaytestUiOps.WaitUiState(UIStateEnum.PlayerInventory, 10f);
 // Verify DOM responses before recording and always clean up probe forwarding
 PlaytestDomQuery.RegisterHandler();
 CefInputForwarder.StartForwarding();
-try { await PlaytestWebUiOps.WaitWebUiElement("inventory-sort", 15f); }
+try { await PlaytestUiElementOps.WaitUiElement("inventory-sort", 15f); }
 finally
 {
     CefInputForwarder.StopForwarding();
@@ -68,13 +68,13 @@ return PlaytestRunner.Run("sprint-invalid-recovery", new PlaytestRunOptions { Re
         // Confirm recovery in the real settings page and dismiss it by selecting the same mode
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.PauseMenu, 10f);
-        await p.ClickWebUi("pause-menu-open-settings");
-        await PlaytestWebUiOps.WaitWebUiTextContains("pause-menu", message, 10f);
+        await p.ClickUi("pause-menu-open-settings");
+        await PlaytestUiElementOps.WaitUiTextContains("pause-menu", message, 10f);
         var before = await PlaytestDomQuery.Query("pause-menu", 3f);
         p.Note("復旧通知表示: " + before.Text);
         p.Assert(before.Found && before.Text.Contains(message), "実設定ページに復旧通知を表示");
         await p.Screenshot("01-recovery-notice");
-        await p.ClickWebUi("sprint-mode-option-toggle");
+        await p.ClickUi("sprint-mode-option-toggle");
         await p.Until(() => !SprintInputModePreference.RecoveredInvalidPreference, 10f, "同値選択で復旧通知解除");
         await p.WaitSeconds(0.5f);
         var after = await PlaytestDomQuery.Query("pause-menu", 3f);
@@ -82,7 +82,7 @@ return PlaytestRunner.Run("sprint-invalid-recovery", new PlaytestRunOptions { Re
         p.Assert(after.Found && !after.Text.Contains(message), "実設定ページの復旧通知が消える");
         p.Assert(PlayerPrefs.GetString("SprintInputMode") == "Toggle", "同値選択後もToggleを保存");
         await p.Screenshot("02-recovery-acknowledged");
-        await p.ClickWebUi("pause-menu-back");
+        await p.ClickUi("pause-menu-back");
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
         p.Assert(!inputs.sprint, "同値選択とメニュー復帰後も歩きを維持");

@@ -52,12 +52,12 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     var generatorObject = await p.WaitBlockGameObject(generatorPos);
     p.Assert(generatorBlock != null && p.GetBlock(generatorPos) != null, "発電機がサーバーに設置された");
     await OpenGenerator();
-    await p.UntilWebUiElement("gear-to-electric-section", 15f);
+    await p.UntilUiElement("gear-to-electric-section", 15f);
     p.Assert(Localize.TrySetChosenLanguage("japanese"), "録画の表示言語を日本語に設定");
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Stopped, 15f, "RPM不足で停止中");
     await VerifyPanel("停止中（RPM不足）", false);
     await p.Screenshot("rotary-generator-stopped");
-    await p.ClickWebUi("block-inventory-close");
+    await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     // 蒸気機関から二段の20対10歯噛合で40 RPMへ増速する
@@ -104,7 +104,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     p.Hotbar.UnlockConnectTool("電線");
     await p.GiveItem("銅のワイヤー", 64);
     await p.Hotbar.AssignHotbar(0, "電線");
-    await p.ClickWebUi("hotbar-slot-0");
+    await p.ClickUi("hotbar-slot-0");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await AimAtClickCollider(generatorObject);
     p.Assert(BlockClickDetectUtil.TryGetCursorOnBlock(out var sourceTarget) && sourceTarget == generatorObject, "電線起点クリック前の実ヒットが発電機");
@@ -121,7 +121,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
              rpm.AsPrimitive() >= 40f, "発電中の実RPMは最低40以上");
     await p.ExitToGameScreen();
     await OpenGenerator();
-    await p.UntilWebUiElement("gear-to-electric-section", 15f);
+    await p.UntilUiElement("gear-to-electric-section", 15f);
     await VerifyPanel("発電中", true);
     await p.Screenshot("rotary-generator-generating");
 

@@ -162,7 +162,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     }
     async UniTask Close()
     {
-        await p.ClickWebUi("block-inventory-close");
+        await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen,15);
     }
     #endregion

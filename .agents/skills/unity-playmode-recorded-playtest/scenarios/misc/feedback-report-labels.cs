@@ -28,20 +28,20 @@ return PlaytestRunner.Run("feedback-report-labels", new PlaytestRunOptions { Rec
     await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
     // 保存済み言語に依存せず、日本語の期待値へ設定画面から揃える
     // Set Japanese through settings so assertions do not depend on the saved locale
-    await p.ClickWebUi("pause-menu-open-settings");
-    await p.ClickWebUi("language-select-option-japanese");
-    await p.UntilWebUiElement("pause-menu-locale-japanese", 15f);
-    await p.ClickWebUi("pause-menu-back");
-    await p.ClickWebUi("pause-menu-open-bug-report");
-    await p.ClickWebUi("bug-report-kind-feedback");
-    await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-send", "感想", 15f);
+    await p.ClickUi("pause-menu-open-settings");
+    await p.ClickUi("language-select-option-japanese");
+    await p.UntilUiElement("pause-menu-locale-japanese", 15f);
+    await p.ClickUi("pause-menu-back");
+    await p.ClickUi("pause-menu-open-bug-report");
+    await p.ClickUi("bug-report-kind-feedback");
+    await PlaytestUiElementOps.WaitUiTextContains("bug-report-send", "感想", 15f);
     var feedback = await PlaytestDomQuery.Query("bug-report-send", 5f);
     p.Assert(feedback.Found && feedback.Text == "感想を送信", "感想のボタンは感想を送信");
     await p.Screenshot("feedback-button");
 
     p.Note("バグへ戻し従来の送信ボタンを確認する");
-    await p.ClickWebUi("bug-report-kind-bug");
-    await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-send", "バグ", 15f);
+    await p.ClickUi("bug-report-kind-bug");
+    await PlaytestUiElementOps.WaitUiTextContains("bug-report-send", "バグ", 15f);
     var bug = await PlaytestDomQuery.Query("bug-report-send", 5f);
     p.Assert(bug.Found && bug.Text == "バグ報告を送信", "バグのボタンは従来文言");
     await p.Screenshot("bug-button");

@@ -39,7 +39,7 @@ await PlaytestUiOps.WaitUiState(UIStateEnum.PlayerInventory, 10f);
 // Verify DOM responses before recording and always clean up probe forwarding
 PlaytestDomQuery.RegisterHandler();
 CefInputForwarder.StartForwarding();
-try { await PlaytestWebUiOps.WaitWebUiElement("inventory-sort", 15f); }
+try { await PlaytestUiElementOps.WaitUiElement("inventory-sort", 15f); }
 finally
 {
     CefInputForwarder.StopForwarding();

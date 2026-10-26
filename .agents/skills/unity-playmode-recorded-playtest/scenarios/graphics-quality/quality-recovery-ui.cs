@@ -49,14 +49,14 @@ return PlaytestRunner.Run("quality-recovery-ui", new PlaytestRunOptions { Record
         p.Assert(GraphicsQualityPreference.RecoveredInvalidPreference, "実起動の不正保存値を復旧済み");
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
-        await p.ClickWebUi("pause-menu-open-settings");
-        await PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable("graphics-recovered", "pause-menu-body", 15f);
+        await p.ClickUi("pause-menu-open-settings");
+        await PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable("graphics-recovered", "pause-menu-body", 15f);
         var notice = await PlaytestDomQuery.Query("graphics-recovered", 5f);
         p.Assert(notice.Visible && notice.Text.Contains("画質設定を中に復旧しました"), "実ホストtopicの復旧通知がUIへ届いた");
         p.Note($"[RECOVERY] before={GraphicsQualityPreference.RecoveredInvalidPreference} text={notice.Text}");
         await p.Screenshot("01-real-host-recovered");
-        await PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable("graphics-shadows-on", "pause-menu-body", 15f);
-        await p.ClickWebUi("graphics-shadows-on");
+        await PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable("graphics-shadows-on", "pause-menu-body", 15f);
+        await p.ClickUi("graphics-shadows-on");
         await p.Until(() => !GraphicsQualityPreference.RecoveredInvalidPreference, 10f, "同値の明示選択で復旧通知解除");
         await p.WaitSeconds(0.5f);
         var cleared = await PlaytestDomQuery.Query("graphics-recovered", 5f);

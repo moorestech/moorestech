@@ -54,24 +54,24 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
     p.Note("ポーズ画面からバグ報告を開き、送信状況を確認します");
     await p.PressKey(Key.Escape);
     await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
-    await p.ClickWebUi("pause-menu-open-settings");
-    await p.UntilWebUiElement("language-select", 15f);
-    await p.ClickWebUi("language-select-option-japanese");
-    await p.UntilWebUiElement("pause-menu-locale-japanese", 15f);
-    await p.ClickWebUi("pause-menu-back");
+    await p.ClickUi("pause-menu-open-settings");
+    await p.UntilUiElement("language-select", 15f);
+    await p.ClickUi("language-select-option-japanese");
+    await p.UntilUiElement("pause-menu-locale-japanese", 15f);
+    await p.ClickUi("pause-menu-back");
     await p.Until(() => menu.CurrentPage.Value == PauseMenuPage.Top, 15f, "設定から戻る");
-    await p.ClickWebUi("pause-menu-open-bug-report");
-    await p.UntilWebUiElement("bug-report-description", 15f);
+    await p.ClickUi("pause-menu-open-bug-report");
+    await p.UntilUiElement("bug-report-description", 15f);
     if (!hasToken)
     {
-        await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "開発者トークンが未設定", 15f);
+        await PlaytestUiElementOps.WaitUiTextContains("bug-report-delivery", "開発者トークンが未設定", 15f);
         p.Assert(PlaytestDeliveryStatusBoard.Current.Value is PlaytestDeliveryLocalOnly, "資格情報なしはローカル保存");
         await p.Screenshot("02-local-only");
     }
 
     // 実CEF入力で説明を書き、本番の送信処理を呼ぶ
     // Enter a description through CEF and invoke production submission
-    await p.ClickWebUi("bug-report-description");
+    await p.ClickUi("bug-report-description");
     p.Assert(CefScreenMapper.TryGetBrowser(out var browser), "CEF入力先が存在する");
     var description = hasToken ? "task10 developer production report" : "task10 local pending report";
     foreach (var character in description)
@@ -97,16 +97,16 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
                 if (readyBox != null) pendingBoxLock = PlaytestOutboxAccess.AcquireBox(readyBox);
             });
         }
-        await p.ClickWebUi("bug-report-send");
+        await p.ClickUi("bug-report-send");
         await p.Until(() => Directory.GetDirectories(outbox).Except(previous).Any(d => File.Exists(Path.Combine(d, "READY"))), 120f, "新しいREADY箱");
         var box = Directory.GetDirectories(outbox).Except(previous).First(d => File.Exists(Path.Combine(d, "READY")));
         p.Note("報告ID: " + Path.GetFileName(box));
         await p.Until(() => menu.CurrentPage.Value == PauseMenuPage.Top, 15f, "送信後のトップ");
-        await p.ClickWebUi("pause-menu-open-bug-report");
+        await p.ClickUi("pause-menu-open-bug-report");
         if (hasToken)
         {
             p.Assert(pendingBoxLock != null, "検証用の実箱ロックを取得した");
-            await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "送信待ち", 15f);
+            await PlaytestUiElementOps.WaitUiTextContains("bug-report-delivery", "送信待ち", 15f);
             p.Assert(!File.Exists(Path.Combine(box, "UPLOADED")), "検証用ロック中は未送信の実箱を保持する");
             await p.Screenshot("03-pending");
             pendingSubscription.Dispose();
@@ -116,14 +116,14 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
             p.Note("検証用ロックを解除し、本番Runnerへ送信を再要求します");
             resolver.Resolve<IPlaytestUploadRequester>().RequestUpload();
             await p.Until(() => File.Exists(Path.Combine(box, "UPLOADED")), 240f, "本番への送信完了印");
-            await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "すべての報告を送信しました", 30f);
+            await PlaytestUiElementOps.WaitUiTextContains("bug-report-delivery", "すべての報告を送信しました", 30f);
             p.Assert(PlaytestDeliveryStatusBoard.Current.Value is PlaytestDeliveryAllSent, "全報告の送信が完了");
             await p.Screenshot("04-all-sent");
         }
         else
         {
             p.Assert(!File.Exists(Path.Combine(box, "UPLOADED")), "未設定時に送信しない");
-            await PlaytestWebUiOps.WaitWebUiTextContains("bug-report-delivery", "開発者トークンが未設定", 15f);
+            await PlaytestUiElementOps.WaitUiTextContains("bug-report-delivery", "開発者トークンが未設定", 15f);
             await p.Screenshot("03-local-saved");
         }
     }

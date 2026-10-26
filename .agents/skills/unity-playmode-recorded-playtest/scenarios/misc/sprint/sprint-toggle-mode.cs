@@ -41,7 +41,7 @@ await PlaytestUiOps.WaitUiState(UIStateEnum.PlayerInventory, 10f);
 // Verify DOM responses before recording and always clean up probe forwarding
 PlaytestDomQuery.RegisterHandler();
 CefInputForwarder.StartForwarding();
-try { await PlaytestWebUiOps.WaitWebUiElement("inventory-sort", 15f); }
+try { await PlaytestUiElementOps.WaitUiElement("inventory-sort", 15f); }
 finally
 {
     CefInputForwarder.StopForwarding();
@@ -119,12 +119,12 @@ return PlaytestRunner.Run("sprint-toggle-mode", options, async p =>
         p.Note("e: ポーズ設定でホールドに変更");
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.PauseMenu, 10f);
-        await p.ClickWebUi("pause-menu-open-settings");
-        await p.ClickWebUi("sprint-mode-option-hold");
+        await p.ClickUi("pause-menu-open-settings");
+        await p.ClickUi("sprint-mode-option-hold");
         await p.Until(() => SprintInputModePreference.Current == SprintInputMode.Hold, 10f, "Hold設定反映");
         p.Assert(PlayerPrefs.GetString("SprintInputMode") == "Hold", "HoldをPlayerPrefsへ保存");
         await p.Screenshot("04-settings-hold");
-        await p.ClickWebUi("pause-menu-back");
+        await p.ClickUi("pause-menu-back");
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
         await BeginMovement();

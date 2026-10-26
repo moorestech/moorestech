@@ -115,9 +115,9 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
         while (Time.realtimeSinceStartup < openDeadline && p.CurrentUiState != UIStateEnum.BuildMenu) await UniTask.DelayFrame(5);
     }
     p.Assert(p.CurrentUiState == UIStateEnum.BuildMenu, "ビルドメニューが開く");
-    await p.UntilWebUiElement("build-menu-panel", 15f);
-    await p.ClickWebUi("build-menu-category-d1000000-0000-4000-8000-000000000009");
-    await p.ClickWebUi($"build-menu-entry-connectTool-{wireToolGuid:D}");
+    await p.UntilUiElement("build-menu-panel", 15f);
+    await p.ClickUi("build-menu-category-d1000000-0000-4000-8000-000000000009");
+    await p.ClickUi($"build-menu-entry-connectTool-{wireToolGuid:D}");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
     p.Assert((placeController.CurrentTarget as ConnectToolPlacementTarget)?.ConnectToolGuid == wireToolGuid, "電線接続ツールが選択される");
     await p.Screenshot("00-wire-tool-selected");

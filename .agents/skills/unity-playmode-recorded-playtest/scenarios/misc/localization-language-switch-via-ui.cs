@@ -19,7 +19,7 @@ var dieselLocomotiveTestId = "build-menu-entry-trainCar-019f0d20-d52e-7172-8b55-
 var windDrillGuid = Guid.Parse("934c0ef9-b76e-4058-8fc8-0ad74afbdcd0");
 var steamLocomotiveGuid = Guid.Parse("9e3215d5-175e-4600-adee-2c32f786d124");
 var dieselLocomotiveGuid = Guid.Parse("019f0d20-d52e-7172-8b55-bd9b79b6feb1");
-var windDrillEntryTestId = PlaytestWebUiOps.BuildMenuBlockTestId("風力掘削機");
+var windDrillEntryTestId = PlaytestUiElementOps.BuildMenuBlockTestId("風力掘削機");
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("localization-language-switch-via-ui", options, async p =>
@@ -42,12 +42,12 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     // Hover to capture it in the detail sidebar
     p.Note("日本語のまま2種の機関車をホバーし、別名で表示されることを確認する");
     await OpenBuildMenu();
-    await p.ClickWebUi(transportCategoryTestId);
-    await p.HoverWebUi(steamLocomotiveTestId);
-    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", "蒸気機関車", 15f);
+    await p.ClickUi(transportCategoryTestId);
+    await p.HoverUi(steamLocomotiveTestId);
+    await PlaytestUiElementOps.WaitUiTextContains("build-menu-detail", "蒸気機関車", 15f);
     await p.Screenshot("01-traincar-steam-japanese");
-    await p.HoverWebUi(dieselLocomotiveTestId);
-    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", "ディーゼル機関車", 15f);
+    await p.HoverUi(dieselLocomotiveTestId);
+    await PlaytestUiElementOps.WaitUiTextContains("build-menu-detail", "ディーゼル機関車", 15f);
     await p.Screenshot("02-traincar-diesel-japanese");
 
     // 車両名はマスタのnameが正で、addressablePath末尾ではないことを辞書経路で固定する
@@ -58,13 +58,13 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
         "ディーゼル機関車が同一addressablePathでも別名で解決される");
 
     p.Note("日本語のままブロック名と配置HUDを確認する");
-    await p.ClickWebUi(miningCategoryTestId);
-    await p.HoverWebUi(windDrillEntryTestId);
-    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", "風力掘削機", 15f);
+    await p.ClickUi(miningCategoryTestId);
+    await p.HoverUi(windDrillEntryTestId);
+    await PlaytestUiElementOps.WaitUiTextContains("build-menu-detail", "風力掘削機", 15f);
     await p.Screenshot("03-block-preview-japanese");
     await p.ClickBuildMenuBlock("風力掘削機");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
-    await PlaytestWebUiOps.WaitWebUiTextContains("placement-mode-hud", "風力掘削機", 15f);
+    await PlaytestUiElementOps.WaitUiTextContains("placement-mode-hud", "風力掘削機", 15f);
     await p.Screenshot("04-placement-hud-japanese");
 
     // 英語へ切替え、辞書revisionのpushだけでWebの表示名が張り替わることを確認する
@@ -77,13 +77,13 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
 
     p.Note("英語でブロック名と配置HUDが英語化されることを確認する");
     await OpenBuildMenu();
-    await p.ClickWebUi(miningCategoryTestId);
-    await p.HoverWebUi(windDrillEntryTestId);
-    await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", "Wind Drill", 15f);
+    await p.ClickUi(miningCategoryTestId);
+    await p.HoverUi(windDrillEntryTestId);
+    await PlaytestUiElementOps.WaitUiTextContains("build-menu-detail", "Wind Drill", 15f);
     await p.Screenshot("05-block-preview-english");
     await p.ClickBuildMenuBlock("風力掘削機");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
-    await PlaytestWebUiOps.WaitWebUiTextContains("placement-mode-hud", "Wind Drill", 15f);
+    await PlaytestUiElementOps.WaitUiTextContains("placement-mode-hud", "Wind Drill", 15f);
     await p.Screenshot("06-placement-hud-english");
 
     // 車両はmod辞書に訳が無いため、English時も原文へフォールバックするのが期待動作
@@ -91,8 +91,8 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     p.Note("未翻訳の車両名はEnglishでも原文へフォールバックする");
     await p.ExitToGameScreen();
     await OpenBuildMenu();
-    await p.ClickWebUi(transportCategoryTestId);
-    await p.HoverWebUi(steamLocomotiveTestId);
+    await p.ClickUi(transportCategoryTestId);
+    await p.HoverUi(steamLocomotiveTestId);
     await p.Screenshot("07-traincar-steam-english");
     p.Assert(Localize.GetContent(ContentLocalizationKeys.TrainCarName(steamLocomotiveGuid)) == "蒸気機関車",
         "未翻訳の車両名はEnglishでも原文へフォールバックする");
@@ -111,12 +111,12 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     {
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
-        await p.UntilWebUiElement("pause-menu", 15f);
-        await p.ClickWebUi("pause-menu-open-settings");
-        await p.ClickWebUi($"language-select-option-{locale}");
-        await p.UntilWebUiElement($"pause-menu-locale-{locale}", 15f);
+        await p.UntilUiElement("pause-menu", 15f);
+        await p.ClickUi("pause-menu-open-settings");
+        await p.ClickUi($"language-select-option-{locale}");
+        await p.UntilUiElement($"pause-menu-locale-{locale}", 15f);
         await p.PressKey(Key.Escape);
-        await p.UntilWebUiElement("pause-menu-open-settings", 15f);
+        await p.UntilUiElement("pause-menu-open-settings", 15f);
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.GameScreen, 15f);
     }
@@ -124,7 +124,7 @@ return PlaytestRunner.Run("localization-language-switch-via-ui", options, async 
     async UniTask OpenBuildMenu()
     {
         await p.PressKey(Key.B);
-        await p.UntilWebUiElement("build-menu-panel", 15f);
+        await p.UntilUiElement("build-menu-panel", 15f);
     }
 
     #endregion

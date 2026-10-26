@@ -75,12 +75,12 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
         foreach (var id in new[] { "pause-menu-save", "pause-menu-save-and-quit", "pause-menu-open-settings", "pause-menu-open-bug-report" })
         {
-            await p.UntilWebUiElement(id, 15f);
+            await p.UntilUiElement(id, 15f);
             var rect = await PlaytestDomQuery.Query(id, 5f);
             p.Assert(rect.Visible && rect.X >= 0 && rect.Y >= 0 && rect.X + rect.Width <= Screen.width && rect.Y + rect.Height <= Screen.height, $"トップ見切れなし {id}: {rect.X},{rect.Y},{rect.Width},{rect.Height}");
         }
         await p.Screenshot("02-pause-top");
-        await p.ClickWebUi("pause-menu-open-settings");
+        await p.ClickUi("pause-menu-open-settings");
         await Choose("graphics-preset-low");
         AssertPreset(GraphicsQualityPreset.Low, 300f, false, 0.5f);
         await CloseSettings();
@@ -95,7 +95,7 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         await p.Screenshot("04-high-game");
         await OpenSettings();
         await Choose("graphics-shadows-off");
-        await p.UntilWebUiElement("graphics-preset-custom", 15f);
+        await p.UntilUiElement("graphics-preset-custom", 15f);
         p.Assert(!GraphicsQualityPresets.TryMatch(GraphicsQualityPreference.Current, out _), "影だけオフでカスタム");
         await p.Screenshot("05-custom-settings");
         await CloseSettings();
@@ -144,14 +144,14 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
     }
     async UniTask Choose(string id)
     {
-        await PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable(id, "pause-menu-body", 15f);
-        await p.ClickWebUi(id);
+        await PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable(id, "pause-menu-body", 15f);
+        await p.ClickUi(id);
     }
     async UniTask OpenSettings()
     {
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
-        await p.ClickWebUi("pause-menu-open-settings");
+        await p.ClickUi("pause-menu-open-settings");
     }
     async UniTask CloseSettings()
     {
