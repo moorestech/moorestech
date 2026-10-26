@@ -1235,3 +1235,10 @@ bd note moorestech-albof.2 "HttpListenerが配布ビルドで動かず(b)最小K
 - D1は現セッションのユーザー指示でRequirements/Global Constraints/判断記録を共通制約とするため現行planを維持する。実機成功後のKestrel置換はR9条件と切断検知追加の非目標に反する。切断済み未開始要求も実行され得る帰結をPRに明記。元裁定改訂はagent既定（ユーザー未裁定）のまま。
 - D2〜D4は推奨Aを選ぶ予定（agent 既定（ユーザー未裁定））だが、独立再現未完了のため未適用。
 - 残差追跡: moorestech-albof.2.1, moorestech-albof.2.2, moorestech-albof.2.3, moorestech-albof.2.4, moorestech-albof.2.5, moorestech-albof.2.6, moorestech-albof.2.7。
+
+## Task 6 再開記録（Claude Code 引継ぎ）
+
+- 独立再現は Editor を使わず、Unity 同梱の MonoBleedingEdge（Editor と同じランタイム）で製品の `.cs` をそのままコンパイルし、`UnityEngine.Debug` と UniTask の型だけを代役にした台で行った（ポートは再現ごとに 26100/26200/26300 帯へ置換）。Editor 同時起動の上限が 2 本になり枠が空かなかったため。台と報告は `.superpowers/sdd/repro/`（記録 repo へ書き戻す）。出所: agent 判断。
+- D4 / RF1-C1: 再現した（取消コールバック中の再入 Start が開いた待受が、外側 Start の上書き後に `Stop()` で閉じられず接続可能なまま残った）。推奨 A（停止遷移中の再入 Start を理由ログ付きで拒否し null を返す）で修正し、`RemoteExecListenerReentryTest` で固定した。出所: agent 既定（ユーザー未裁定）。
+- D2: 再現した（応答前の切断で書き込みが IOException になり、WARNING のみで Task は成功完了、Forget の失敗経路に乗らない。RST 切断と 20MB 以上の通常切断で発生、100B の通常切断では書き込みが成功して発生しない）。推奨 A（理由ログと Abort を残し、待受停止による中断以外は元例外を再 throw）で修正し、`RemoteExecHttpExchangeDeliveryTest` で固定した。出所: agent 既定（ユーザー未裁定）。
+- D3: 人為注入でのみ再現（`_listener` を外から Close/Abort すると受付ループが LogError で抜け、`_listener`/`_lifetime` が残る。製品内に `Stop()` 以外で待受を閉じる経路は無く、不正クライアントの fuzz でも受付ループは落ちなかった。注入時もポートは接続拒否になり、送信側は応答待ちで固まらない）。ユーザー指示「再現できたものだけ直す」に従い直さない。出所: agent 既定（ユーザー未裁定）。
