@@ -1,6 +1,5 @@
 using System.Collections;
 using Client.Game.Common;
-using Client.Tests.EditModeInPlayingTest.Util.Network;
 using Client.Tests.EditModeInPlayingTest.Util.World;
 using UnityEngine;
 using Client.Game.InGame.Context;
@@ -77,7 +76,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                     var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
                     Debug.Log($"[HostlessShutdown] result:{flushResult}");
                     Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await InitializedClientEndpointCleanup.DisconnectAndObserveAsync();
+                    await UniTask.Yield();
                 }
                 finally
                 {

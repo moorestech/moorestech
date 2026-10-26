@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.Common;
-using Client.Tests.EditModeInPlayingTest.Util.Network;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -105,7 +104,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                     var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
                     Debug.Log($"[MachineRecipeShutdown] result:{flushResult}");
                     Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
-                    await InitializedClientEndpointCleanup.DisconnectAndObserveAsync();
+                    await UniTask.Yield();
                 }
                 finally
                 {
