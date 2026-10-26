@@ -844,27 +844,23 @@ git merge --no-ff origin/feature/uitk-stage0 -m "Merge branch 'feature/uitk-stag
 | D8 | `.decisions/2026-08-21` のツールチップ契約（`lines[{textKey,textParams}]`）は形を保ち、`textParams` の中身だけを配列から名前付きの record に替える。08-26 の「GetFormatted のシグネチャは変えない」は 10-26 裁定で改められている | 10-26 裁定の帰結 |
 | D9 | ランタイム挙動（ツールチップ・通知・ロード画面・スキット）に触れるので、unityプレイ録画テスト（Task 6）を入れる | moores-writing-plans の必須規則 |
 | D10 | moores-code-review は Workflow で回し、③ Codex 外部監査は省く。PR は作らず、統合ブランチを取り込んで push し、本文の下書きを `.superpowers/sdd/pr-body.md` に書く | ユーザー指示 2026-10-26（本 plan の依頼文）・`.decisions/2026-10-26-UITK段階0のPRは1本に統合する.md` |
-
 | D11 | `LocalizationTextParam` は Interface 層へ切り出さず `Client.Localization` に置く。運ぶのはクライアント内（Client.Game・Client.Starter・Client.WebUiHost・Client.Playtest はすでに Client.Localization を参照）だけで、サーバーは `Dictionary<string,string>` で別に持つ（Phase 2.6 弱 5-G） | agent 既定（ユーザー未裁定） |
 | D12 | Web の通知で、内容キーに引き直す値（`research`・`challenge`）の名前が欠けていたら `console.warn` を出して素通しする（Phase 2.6 弱 5-C）。console は開発時にしか見えないが、画面に生の `{research}` が出るのでテスターの報告でも気づける | agent 既定（ユーザー未裁定） |
 | D13 | 翻訳が欠けたときの扱い（`translate`・`translateExternalKey` の戻り値をそのまま表示に使う）は今の Web の i18n の規約のまま変えない（Phase 2.6 弱 5-I。本 plan は名前の置換だけ） | agent 既定（ユーザー未裁定） |
 | D14 | スキットのコマンドのキャンセル経路と `UniTask.Delay(ms, isSkip)`（第 2 引数は ignoreTimeScale）は既存のまま触らない。非 Web 分岐を削るだけの純削除にとどめる（Phase 2.6 弱 5-F） | agent 既定（ユーザー未裁定） |
 | D16 | user-simulator の指摘（e2e モックの追随・テストの波及 21 件と `MiningFocusStateEarnItemNameTest`・コメントの直し・08-21 契約の記述・Windows の基準差分の書き方）を plan に反映した | シミュレーター予測（適用済み・ユーザー未確認） |
 | D15 | 【履歴・D20で置換】`LocalizationTextParam.ToString()` はログ表示用。テスト専用の public ではなく、ログ・デバッガ表示にも効くので残す（設計検査の注目点） | agent 既定（ユーザー未裁定） |
-
 | D17 | Task6で通知シナリオの研究パラメータは表示名でなく送信研究GUIDとの厳密一致を検証する。旧p0時代もGUID送信だった。既知削除済みGUIDの原版はwwxy対象として残し、現行pinの研究GUID・必要素材を使うscratch録画で独立再現と再検証を行う。画面表示名は別途DOM・スクショで確認する | agent 既定（ユーザー未裁定） |
-
 | D18 | Task8 D01/C10は案Bを採用。統合PRの独立レビュー1回の出所を別裁定 `5aa46b3ed4` と handoff に補う。過去の `.decisions` は書き換えず、PR数だけから回数を推論しない。既存の回数裁定を新たに作る判断ではなく、出所訂正の採択 | agent 既定（ユーザー未裁定）。根拠のユーザー回答は当該既存裁定の13:49・14:31記録、現行手順はユーザーが従うよう指定した handoff |
 | D19 | Task8 D02/RC1の推奨を採用。C06は不要using5口の削除と、StoryContextExtensionの必要using1口の除外に訂正。BackgroundSkitVoicePlayerの未修飾型参照があるため保持する。コードは既に保持されており変更不要。runnerの未収束判定は勝手に消さず後続評価で確認する | agent 既定（ユーザー未裁定）。review run 2026-10-26-1916-uitk-s0-wave2-8fc7886b のRC1と型参照照合 |
 | D20 | D6/D15のToString維持をC07に従い覆す。本番値型のToStringは削除済みで、name=value整形はPlaytest診断側の2口が所有する。旧D6/D15は履歴としてのみ残す | agent 既定（ユーザー未裁定）。Task8 C07適用結果と現行ソース照合 |
-
-### 本PR外のリファクタ提案（第3バケツ）
-
-なし。
-
 | D21 | Task8 C09のSkitManagerへの適用だけを撤回し、publicの資産ロード入口とprivateのロード済み再生入口を役割境界として保持する。PreProcess/Cleanupはprivate再生入口のInternalに戻す。失敗cleanupテストは既存private overloadを反射で呼び、新設Addressables providerを除去する。広域1166件では解放待ち180秒timeout、同じ最終headの単独classは6/6成功、beforeManager参照数0対1を実測したため、style集約のためだけに生じた全体状態依存fixtureを維持しない。Presenter側C09・他レビュー修正・旧UI撤去は保持する | agent 既定（ユーザー未裁定）。Task9 finalの広域XML13:10:03Z〜13:13:42Zと単独class XML13:14:45Z。参照数差の根本原因は未確定で、推測を製品不具合の根拠にはしない |
-
 | D22 | Task6最終再録画は本branchのDSLで、fixed templateの独立worldと上空足場top200・既存SetFlyingによる位置保持・実地表probe・実照準ray・pointer-over解除をscratchの準備条件にする。元の数量/必要距離/採掘/削除/素材不足/配線費用のassertを維持する。環境の訂正をF所有の原版シナリオへ広げない | agent 既定（ユーザー未裁定） |
 | D23 | pauseシナリオのメニュー中advance/skip成功期待を、現行のintent停止契約へ訂正する。拒否intent_not_allowed・revision不変・menu維持をassertし、実Escで閉じてからblocking-skitの実クリックで再開/完了しGameScreen/menu閉鎖を検証する。製品のポーズ/スキット挙動は変えない。旧シナリオの「メニューを開いたままskip成功」を検証済みとはしない | agent 既定（ユーザー未裁定） |
 | D24 | Task6では通常GPU描画の受入未達（albof.10）と、既存software描画による同一製品コードの操作/表示検証を区別する。新Editor/一意TMPDIR・可視/サイズ/加速接続・子PIDを観測し、GPU textureNULL/frame0を確認した後、診断processの初回CefRuntime.Initialize(false)だけで既存TryGetBuffer経路を使う。製品/Prefab/EditorSettingsを変更せず、検証processを最後に終了する | agent 既定（ユーザー未裁定） |
 | D25 | F境界のAssets外シナリオの型/API追随を原版へ戻す。placementの旧位置配列snapshot比較をName/ValueでownedCount=1/requiredCount=3の厳密比較へ替え、2口のsnapshot診断をName=Valueへ直す。terrainの既存5引数呼出しは現行4引数APIに合わせ未使用out引数だけ除く。scratchでの同じ厳密比較61PASS、両原版のEDCコンパイル成功を証拠とする。原版の高さ/Skip/数量/操作は変えない | agent 既定（ユーザー未裁定） |
+| D26 | 通常GPUの実画像受入が未達のためalbof.5/.7を閉じずlane-doneを作らない。CEFログのMTLSharedEvent失敗に加え、Metal単体とLaunchServices独立GUIでもshared event生成nullを実測した。CPU成功はGPU受入へ代替しない。OS/GPU状態リセットの切り分けは常駐サービスと他セッションへ影響するため承認・調整前に実行しない。再起動が必ず改善するとは未確認。再開時はMetal単体probe成功を先に確かめ、その後通常GPUでTask6を再実行する | agent 既定（ユーザー未裁定）。gpu-normal-path-report.mdと独立最終評価NG、bd albof.10 |
+
+### 本PR外のリファクタ提案（第3バケツ）
+
+なし。
