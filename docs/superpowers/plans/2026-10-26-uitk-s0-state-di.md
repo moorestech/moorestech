@@ -1437,7 +1437,7 @@ namespace を `Client.Game.InGame.EventMode` にし、`internal` の 4 メンバ
 
 上の Files の 7 ファイルのうち `EventLanguageGate`・`EventLanguageSelectionResult` を参照するものに `using Client.Game.InGame.EventMode;` を足す（`Client.WebUiHost.Game.EventMode` の using は Binder・Topic を使うファイルでは残す）。コンパイルエラーで残りを拾う。
 
-- [ ] **Step 3: コンパイルとテスト**
+- [x] **Step 3: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.EventMode\.|EditModeInPlayingTest\.EventLanguageGateCursorTest" --timeout-seconds 1500`
 Expected: ErrorCount 0 / 全 PASS
@@ -1577,12 +1577,12 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
 （`TrainUnitInstanceId` の namespace が `Game.Train.Unit` でなければ、`TrainTimetableFetcher.cs` の using にそろえる）
 テストの `Body()` 末尾に `await TimetableStateProbe.AssertAvailableAsync(resolver);` を足す。
 
-- [ ] **Step 7: コンパイルとテスト**
+- [x] **Step 7: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.WebUiHost\.|Client\.Tests\.WebUi\.|Hostless\.WebUiHostlessStateAvailabilityTest" --timeout-seconds 1500`
 Expected: ErrorCount 0 / 全 PASS
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/Train/Timetable moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter/Registration moorestech_client/Assets/Scripts/Client.Tests
@@ -1614,12 +1614,12 @@ git commit -m "refactor(train-timetable): 時刻表の取得役と開いてい�
 
 **分け方（どちらに何が残るか）**: tracker（Client.Game）は「どのブロックを開いているか」と「そのブロックの何を監視するか」（ブロック状態イベントの購読、電力網・ギア網・フィルタ分岐器のネットワーク取得）だけを持つ。Web 帯域のための再配信方針（ギア連続値の 4 フレーム間引き、ベルト統計の窓での出し直し、パイプの中身を前回の配信と比べること）はアダプタ（`BlockInventoryTopic`）に残す。毎フレーム読む UITK はこれらを要らない（判断記録 D6・D7）。
 
-- [ ] **Step 1: Tier9 の 2 本がマージ済みかを確かめ、済んでいれば先に取り込む**
+- [x] **Step 1: Tier9 の 2 本がマージ済みかを確かめ、済んでいれば先に取り込む**
 
 Run: `git fetch origin && gh pr view 1551 --json state -q .state && gh pr view 1552 --json state -q .state`
 Expected: どちらかが `MERGED` なら `git merge origin/master` → `uloop compile` → コミットしてから次へ。`OPEN` のままなら取り込まずに進む（衝突は閉じタスクの pr-create が解く。判断記録 D5）
 
-- [ ] **Step 2: `BlockNetworkInfoCache` を移して UniRx にする**
+- [x] **Step 2: `BlockNetworkInfoCache` を移して UniRx にする**
 
 ```bash
 S=moorestech_client/Assets/Scripts
@@ -1634,7 +1634,7 @@ namespace を `Client.Game.InGame.UI.BlockDetail` にし、`public event Action 
 ```
 ポーリング・取得・ガードのロジックは変えない。
 
-- [ ] **Step 3: `OpenBlockDetailTracker` を書く**
+- [x] **Step 3: `OpenBlockDetailTracker` を書く**
 
 移す前の `BlockInventoryTopic.BuildJson` の「開いているブロックの解決」と、`TrackBlock` のうち監視の張り替え（ブロック状態イベントの購読・ネットワーク取得）をここへ移す。ブロック状態イベントの購読は `ClientContext.VanillaApi.Event` と同じインスタンスである DI の `IVanillaApiEvent`、ブロックの解決は `ClientDIContext.BlockGameObjectDataStore` と同じインスタンスである DI の `BlockGameObjectDataStore` で行う。
 ```csharp
@@ -1735,7 +1735,7 @@ namespace Client.Game.InGame.UI.BlockDetail
 ```
 （`IVanillaApiEvent.SubscribeEventResponse` の戻り値が `IDisposable` であることは、移す前の `_blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(...)` と同じ。型名・namespace が合わなければ移す前の `BlockInventoryTopic.cs` の using にそろえる）
 
-- [ ] **Step 4: `BlockInventoryTopic` をアダプタにする**
+- [x] **Step 4: `BlockInventoryTopic` をアダプタにする**
 
 フィールド・コンストラクタ・`Dispose`・`OnTrackedBlockChanged`・`CapturePipeBaseline`・`HasPipeContentsChanged`・`OnTrackedBlockStateChanged`・`BuildJson` を次にする。`TrackBlock`、`NetworkCache` プロパティ、`_networkCache = new()`、`_trackedBlock`、`_blockStateSubscription`、個別の `IDisposable` フィールド群は削除する。`SchedulePublish`（INFRA-7 のフレーム末の畳み込み）と `PublishContinuousSample` はそのまま残す。
 ```csharp
@@ -1902,11 +1902,11 @@ namespace Client.Game.InGame.UI.BlockDetail
 ```
 （移す前の `Dispose` が呼んでいた `TrackBlock(null)` は、追跡が DI 側に移りホスト停止と無関係になったので呼ばない。判断記録 D6）。不要になった using（`Server.Event.EventReceive`・`Client.WebUiHost.Game.Topics.BlockDetail` 等）を整理し、`Client.Game.InGame.UI.BlockDetail` を足す。`Core.Master`（`FluidId`）・`Mooresmaster.Model.BlocksModule`（`IGearConnectors`・`IBeltSpeedParam`）・`Client.Game.InGame.Block`（`BlockGameObject`）は残る。
 
-- [ ] **Step 5: フィルタ分岐器の action をキャッシュ直結にする**
+- [x] **Step 5: フィルタ分岐器の action をキャッシュ直結にする**
 
 `FilterSplitterSetModeActionHandler`・`FilterSplitterSetFilterItemActionHandler` の `BlockInventoryTopic _blockInventoryTopic` を `BlockNetworkInfoCache _networkCache` にし、`_blockInventoryTopic.NetworkCache.ApplyFilterSplitterSnapshot(response);` を `_networkCache.ApplyFilterSplitterSnapshot(response);` にする。`using Client.WebUiHost.Game.Topics;` を `using Client.Game.InGame.UI.BlockDetail;` に替える。
 
-- [ ] **Step 6: 登録と binder**
+- [x] **Step 6: 登録と binder**
 
 `MainGameUiStateRegistration.Register` に足す（`using Client.Game.InGame.UI.BlockDetail;`）:
 ```csharp
@@ -1922,11 +1922,11 @@ namespace Client.Game.InGame.UI.BlockDetail
 ```
 184-185 行目の `blockInventoryTopic` を `blockNetworkInfoCache` に替える（2 行だけ。前後の行は触らない）。
 
-- [ ] **Step 7: using を直す**
+- [x] **Step 7: using を直す**
 
 `BlockDetailDtoBuilder.cs`・`BlockInventoryDtoFactory.cs`・`GearToElectricDetailDtoBuilderTest.cs`・`FluidBlockDetailDtoBuilderTest.cs` に `using Client.Game.InGame.UI.BlockDetail;` を足す。コンパイルエラーで残りを拾う。
 
-- [ ] **Step 8: プローブ**
+- [x] **Step 8: プローブ**
 
 `Hostless/BlockDetailStateProbe.cs`:
 ```csharp
@@ -1988,17 +1988,17 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
 （`BlockSubInventoryOpener.Open` が `SubInventoryState.OnEnter` を直接呼んでも `OnSubInventoryUpdated` が発火しない場合は、`TrackedBlock` が張り替わらずここで落ちる。そのときは `BlockSubInventoryOpener.Open` の中身と `SubInventoryState` のどの時点で `OnSubInventoryUpdated` が出るかを読み、tracker の購読元が実プレイの開く経路（F キー→`RequestTransition`＋文脈→`OnEnter`→読込完了）で必ず発火するものかを確かめてから、プローブ側の開き方を実プレイ側に寄せる。tracker の購読元を変えたら判断記録 D6 に追記する。置いた位置が地形と重なって置けなければ `+ new Vector3Int(0, 0, 2)` などへずらし、理由を報告に書く）
 テストの `Body()` 末尾に `await BlockDetailStateProbe.AssertAvailableAsync(resolver);` を足す。
 
-- [ ] **Step 9: コンパイルとテスト**
+- [x] **Step 9: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.WebUi\.|Client\.Tests\.WebUiHost\.|EditModeInPlayingTest\.BlockInventory\.|Hostless\.WebUiHostlessStateAvailabilityTest" --timeout-seconds 1500`
 Expected: ErrorCount 0 / 全 PASS（`ElectricToGearOutputModeActionTest`・`MachineRecipeSelectRoundTripTest`・`MachineModuleSlotRoundTripTest` は hub 経由で `block_inventory` 系 action を実行する回帰）
 
-- [ ] **Step 10: 200 行・10 ファイルを確かめる**
+- [x] **Step 10: 200 行・10 ファイルを確かめる**
 
 Run: `wc -l moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockInventoryTopic.cs moorestech_client/Assets/Scripts/Client.Game/InGame/UI/BlockDetail/*.cs moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs`、`ls moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Hostless/*.cs | wc -l`
 Expected: 各 200 行未満、Hostless は 10 ファイル以下。`BlockInventoryTopic.cs` は移す前 229 行で、`TrackBlock` と解決部分が抜けて 200 行を下回る見込み。下回らなければ、`OnTrackedBlockChanged`・`HasPipeContentsChanged` の再配信方針を同じディレクトリの `BlockInventoryRepublishPolicy`（アダプタ専用の内部クラス）へ分ける。`WebUiGameBinder.cs` は移す前 197 行。超えたら Task 10 の中で、トピック登録を責務ごとの静的登録クラスへ分ける（前例 `C4WebUiRegistration`・`HotbarWebUiRegistration`）
 
-- [ ] **Step 11: コミット**
+- [x] **Step 11: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/BlockDetail moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Starter/Registration moorestech_client/Assets/Scripts/Client.Tests
@@ -2016,21 +2016,21 @@ git commit -m "refactor(block-detail): 開いているブロックの追跡と�
 - Consumes: Task 1 のベースライン合否表、Task 2〜10 の全変更
 - Produces: 変更前後の合否の突き合わせ（PR 本文に貼る）
 
-- [ ] **Step 1: C# テスト一式**
+- [x] **Step 1: C# テスト一式**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.(WebUi|WebUiHost|EventMode|BugReport|Playtest|Player|UIState)\.|EditModeInPlayingTest\.(BlockInventory|Boot|BugReport|Hostless)\.|EditModeInPlayingTest\.(EventLanguageGateCursorTest|LocalPlayEmbeddedServerBootTest|RemotePlayServerBootTest)" --timeout-seconds 1500`
 Expected: 全 PASS。`uloop get-logs --project-path ./moorestech_client --log-type Error` が、意図した 1 件（`SubInventoryState: サブインベントリソースが指定されていません`、Hostless のプローブ）以外 0 件
 
-- [ ] **Step 2: Task 1 と同じ 5 本を流す**
+- [x] **Step 2: Task 1 と同じ 5 本を流す**
 
 Task 1 Step 2 と同じ手順・同じ 5 本と、Task 1 Step 2b で PASS したシナリオ。
 Expected: ベースラインで PASS だったものは全部 PASS。動画で、研究画面・チャレンジ一覧・機械 UI・時刻表タブ・獲得通知が変更前と同じに描かれている（各本 1 枚ずつスクショを抜いて `baseline.md` に並べる）
 
-- [ ] **Step 3: 食い違いの扱い**
+- [x] **Step 3: 食い違いの扱い**
 
 ベースラインと合否が違うものは、原因をログの行か動画のフレームで特定してから直す（推測で直さない）。直したらそのシナリオだけ流し直す。
 
-- [ ] **Step 4: 記録**
+- [x] **Step 4: 記録**
 
 `baseline.md` に変更後の列を足して `../moorestech_logs` へコミット。`bd note moorestech-albof.3 "回帰: C#一式PASS・録画5本 <合否>"`
 
