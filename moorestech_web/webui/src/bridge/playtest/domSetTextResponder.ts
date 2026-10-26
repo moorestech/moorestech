@@ -13,20 +13,10 @@ type DomSetTextResult = {
   actualValue: string;
 };
 
-let disposeResponder: (() => void) | null = null;
-
 // プレイテストの文字入力要求を一度だけ受け付ける
 // Register playtest text-input reception once
 export function initDomSetTextResponder(): () => void {
-  if (disposeResponder !== null) return disposeResponder;
-  const disposeTopic = initPlaytestTopicResponder(Topics.playtestDomSetText, respond);
-  const dispose = () => {
-    if (disposeResponder !== dispose) return;
-    disposeTopic();
-    disposeResponder = null;
-  };
-  disposeResponder = dispose;
-  return dispose;
+  return initPlaytestTopicResponder(Topics.playtestDomSetText, respond);
 }
 
 function respond(request: unknown) {
@@ -55,11 +45,11 @@ function isDomSetTextRequest(value: unknown): value is DomSetTextRequest {
 }
 
 async function applyText(request: DomSetTextRequest): Promise<DomSetTextResult> {
-  const { element, matchCount } = findByTestId(request.testid);
+  let { element, matchCount } = findByTestId(request.testid);
   const reply = (status: DomSetTextStatus, actualValue: string): DomSetTextResult =>
     ({ requestId: request.requestId, status, matchCount, actualValue });
   if (element === null) return reply("notFound", "");
-  if (!(element instanceof HTMLInputElement) && !(element instanceof HTMLTextAreaElement)) return reply("notTextField", "");
+  if (!isTextField(element)) return reply("notTextField", "");
   if (element.matches(":disabled") || element.readOnly || !isElementVisible(element, element.getBoundingClientRect())) {
     return reply("notInteractable", element.value);
   }
@@ -78,5 +68,15 @@ async function applyText(request: DomSetTextRequest): Promise<DomSetTextResult> 
   // 次のタスクで再描画による値の巻き戻りを確認する
   // Check on the next task whether a re-render reverted the value
   await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  ({ element, matchCount } = findByTestId(request.testid));
+  if (element === null) return reply("notFound", "");
+  if (!isTextField(element)) return reply("notTextField", "");
   return reply(element.value === request.text ? "applied" : "valueMismatch", element.value);
+}
+
+// 文字置換の契約に合う入力種だけを許可する
+// Accept only input types that support the text replacement contract
+function isTextField(element: Element): element is HTMLInputElement | HTMLTextAreaElement {
+  return element instanceof HTMLTextAreaElement || (element instanceof HTMLInputElement &&
+    ["text", "search", "tel", "url", "email", "password"].includes(element.type));
 }

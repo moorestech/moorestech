@@ -58,7 +58,7 @@
 | `PlaytestWebUiOps.WaitWebUiElement` | `PlaytestUiElementOps.WaitUiElement` |
 | `PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable` | `PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable` |
 | `PlaytestWebUiOps.WaitWebUiTextContains` | `PlaytestUiElementOps.WaitUiTextContains` |
-| `PlaytestWebUiOps.BuildMenuBlockTestId` | `PlaytestUiElementOps.BuildMenuBlockTestId` |
+| `PlaytestWebUiOps.BuildMenuBlockTestId` | `PlaytestBuildMenuOps.BuildMenuBlockTestId` |
 | （新） | `p.SetText(testid, text)`・`PlaytestUiElementOps.SetText(testid, text, t)`・`PlaytestUiElementOps.FindUi(testid)` |
 
 **照会 API への置換表（Task 5 で 1 本ずつ使う）**
@@ -1670,7 +1670,8 @@ Expected: ErrorCount 0 / 全 PASS
 - Consumes: Task 3 の `IUiElementLocator`・`UiElementSnapshot`・`UiElementLookupStatus`・`UiSetTextResult`・`UiSetTextStatus`・`PlaytestUiLocatorSession`
 - Produces（Task 5・6 のシナリオと文書が使う）:
   - `PlaytestDriver`: `UniTask ClickUi(string testid)`・`UniTask HoverUi(string testid)`・`UniTask UntilUiElement(string testid, float timeoutSeconds)`・`UniTask SetText(string testid, string text)`・`UniTask ClickBuildMenuBlock(string blockName)`・`UniTask CloseBuildMenuPanel()`
-  - `public static class PlaytestUiElementOps`（namespace `Client.Playtest.Operations`）: `string BuildMenuBlockTestId(string)`・`UniTask<UiElementSnapshot> FindUi(string)`・`UniTask ClickUi(string)`・`UniTask ClickUi(string, float)`・`UniTask HoverUi(string)`・`UniTask WaitUiElement(string, float)`・`UniTask ScrollDownUntilUiElementIsClickable(string, string, float)`・`UniTask WaitUiTextContains(string, string, float)`・`UniTask SetText(string, string)`（待ち上限は `ClickUi(string)` と同じ `ActionTimeoutSeconds`）・`UniTask SetText(string, string, float)`
+  - `Client.Playtest.Operations.Ui.PlaytestBuildMenuOps`: `string BuildMenuBlockTestId(string)`（BlockGuid由来のtestidを所有）。
+  - `public static class PlaytestUiElementOps`（namespace `Client.Playtest.Operations`）: `UniTask<UiElementSnapshot> FindUi(string)`・`UniTask ClickUi(string)`・`UniTask ClickUi(string, float)`・`UniTask HoverUi(string)`・`UniTask WaitUiElement(string, float)`・`UniTask ScrollDownUntilUiElementIsClickable(string, string, float)`・`UniTask WaitUiTextContains(string, string, float)`・`UniTask SetText(string, string)`（待ち上限は `ClickUi(string)` と同じ `ActionTimeoutSeconds`）・`UniTask SetText(string, string, float)`
   - `internal class PlaytestWaitActions`（namespace `Client.Playtest`。Driver の private フィールドからだけ使い、シナリオへの 2 本目の道を作らない）: ctor `(PlaytestReporter)`、`UntilUiElement(string, float)`・`WaitUiState(UIStateEnum, float)`・`WaitBlockGameObject(Vector3Int)`・`WaitSeconds(float)`
 
 - [ ] **Step 1: 安定待ちの解決を移す**
@@ -1743,7 +1744,6 @@ git mv moorestech_client/Assets/Scripts/Client.Playtest/Operations/PlaytestWebUi
 using System;
 using Client.Playtest.Input;
 using Client.Playtest.UiElements;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -1760,12 +1760,6 @@ namespace Client.Playtest.Operations
 
         // PlaytestBuildMenuOps・Driver・シナリオでBlockGuid由来testid生成を共有し、契約の二重定義を防ぐ
         // Share BlockGuid-derived testid generation across build-menu ops, the driver, and scenarios to prevent drift
-        public static string BuildMenuBlockTestId(string blockName)
-        {
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
-            return $"build-menu-entry-block-{blockGuid}";
-        }
-
         public static UniTask<UiElementSnapshot> FindUi(string testid)
         {
             return PlaytestUiLocatorSession.Locator.Find(testid);
@@ -1979,7 +1973,7 @@ namespace Client.Playtest
         // テキスト欄の値を置き換える（IMEは通さない）
         // Replace a text field's value (bypassing IME)
         public async UniTask SetText(string testid, string text) => await _reporter.Act($"UI文字入力: {testid}", () => PlaytestUiElementOps.SetText(testid, text));
-        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(PlaytestUiElementOps.BuildMenuBlockTestId(blockName));
+        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(PlaytestBuildMenuOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseBuildMenuPanel() => await ClickUi("build-menu-close");
 ```
 
@@ -2030,7 +2024,7 @@ namespace Client.Playtest
             }
 ```
 
-- `webUiTestid` → `entryTestid`、`PlaytestWebUiOps.BuildMenuBlockTestId` → `PlaytestUiElementOps.BuildMenuBlockTestId`、`PlaytestWebUiOps.WaitWebUiElement` → `PlaytestUiElementOps.WaitUiElement`、`PlaytestWebUiOps.ClickWebUi` → `PlaytestUiElementOps.ClickUi`、`PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable` → `PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable`
+- `webUiTestid` → `entryTestid`、`PlaytestWebUiOps.BuildMenuBlockTestId` → `PlaytestBuildMenuOps.BuildMenuBlockTestId`、`PlaytestWebUiOps.WaitWebUiElement` → `PlaytestUiElementOps.WaitUiElement`、`PlaytestWebUiOps.ClickWebUi` → `PlaytestUiElementOps.ClickUi`、`PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable` → `PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable`
 
 `BlueprintCopyPasteScenarioChecks.cs:35-41`: `_playtest.UntilWebUiElement` → `_playtest.UntilUiElement`、`_playtest.ClickWebUi` → `_playtest.ClickUi`、`PlaytestWebUiOps.ScrollDownUntilWebUiElementIsClickable` → `PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable`
 
@@ -2093,7 +2087,7 @@ for f in $FILES; do
     -e 's/PlaytestWebUiOps\.WaitWebUiElement\(/PlaytestUiElementOps.WaitUiElement(/g' \
     -e 's/PlaytestWebUiOps\.ClickWebUi\(/PlaytestUiElementOps.ClickUi(/g' \
     -e 's/PlaytestWebUiOps\.HoverWebUi\(/PlaytestUiElementOps.HoverUi(/g' \
-    -e 's/PlaytestWebUiOps\.BuildMenuBlockTestId\(/PlaytestUiElementOps.BuildMenuBlockTestId(/g' \
+    -e 's/PlaytestWebUiOps\.BuildMenuBlockTestId\(/PlaytestBuildMenuOps.BuildMenuBlockTestId(/g' \
     "$f"
 done
 grep -rnE 'ClickWebUi|HoverWebUi|UntilWebUiElement|CloseWebUiPanel|PlaytestWebUiOps' $SC --include='*.cs'   # 0件
@@ -2188,13 +2182,13 @@ bd note moorestech-albof.6 "Task5 済み: シナリオ37本を改名・照会置
 雛形コメント（22〜25 行）を次に:
 
 ```
-// UI probeはreadyと描画系の利用可能状態を確認し、PlaytestUiLocatorSession.Start() → probeの順で実行する
-// For a UI probe, confirm ready and renderer availability, then call PlaytestUiLocatorSession.Start() → probe
-// probe失敗でRunへ進まない場合はPlaytestUiLocatorSession.Stop()で片付け、失敗理由を記録する
-// If a failed probe prevents Run, call PlaytestUiLocatorSession.Stop() and record the failure reason
+// UI probeはready → Start() → 期限付きIsAvailable()待機 → probeの順で実行する
+// For a UI probe, wait for ready, call Start(), wait for IsAvailable() with a deadline, then probe
+// 成功・失敗を問わずfinallyでPlaytestUiLocatorSession.Stop()を呼び、失敗理由を記録する
+// Always call PlaytestUiLocatorSession.Stop() in finally and record any failure reason
 ```
 
-41 行の本文中の `PlaytestDomQuery.RegisterHandler()`と`CefInputForwarder.StartForwarding()` → `PlaytestUiLocatorSession.Start()`、`CefInputForwarder.StopForwarding()`と`PlaytestDomQuery.ResetPending()` → `PlaytestUiLocatorSession.Stop()`、「CEF利用可能状態」→「描画系の利用可能状態（`PlaytestUiLocatorSession.Locator.IsAvailable()`）」。
+41 行の本文中の `PlaytestDomQuery.RegisterHandler()`と`CefInputForwarder.StartForwarding()` → `PlaytestUiLocatorSession.Start()`、`CefInputForwarder.StopForwarding()`と`PlaytestDomQuery.ResetPending()` → `PlaytestUiLocatorSession.Stop()`、「CEF利用可能状態」→「Start後の期限付きIsAvailable待機」。順序はready → Start → 期限付きIsAvailable待機 → probeとし、finallyのStopを成功・失敗の両方へ適用する。
 
 91〜106 行の節を次に置き換える:
 
@@ -2218,7 +2212,7 @@ bd note moorestech-albof.6 "Task5 済み: シナリオ37本を改名・照会置
 
 testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する。ビルドメニューのエントリは
 `build-menu-entry-{kind}-{id}`（kind: block/trainCar/connectTool/blueprintCopy/blueprint、
-idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestUiElementOps.BuildMenuBlockTestId(名前)`で組み立てる）。
+idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestBuildMenuOps.BuildMenuBlockTestId(名前)`で組み立てる）。
 表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverUi`してからScreenshotする。
 カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移で視点は変わらないため、
 シナリオ側での追加のカメラ待ちは不要。
@@ -2243,7 +2237,7 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
   画面UIはWeb UI一本（ADR 0052）でuGUI経路は撤去済み。UIの描画系が15秒以内に使えなければ`PlaytestBuildMenuOps`が例外を投げる
 ```
 
-`run-scenario.md:55` の該当文: 「Web UIをprobeする場合はreadyとCEF利用可能状態を確認し、`PlaytestDomQuery.RegisterHandler()` → `CefInputForwarder.StartForwarding()` → probeの順に実行する。probe失敗でRunへ進まない場合は`CefInputForwarder.StopForwarding()`と`PlaytestDomQuery.ResetPending()`で片付け」→「UIをprobeする場合はreadyと描画系の利用可能状態（`PlaytestUiLocatorSession.Locator.IsAvailable()`）を確認し、`PlaytestUiLocatorSession.Start()` → probeの順に実行する。probe失敗でRunへ進まない場合は`PlaytestUiLocatorSession.Stop()`で片付け」。
+`run-scenario.md:55` の該当文: 「Web UIをprobeする場合はreadyとCEF利用可能状態を確認し、`PlaytestDomQuery.RegisterHandler()` → `CefInputForwarder.StartForwarding()` → probeの順に実行する。probe失敗でRunへ進まない場合は`CefInputForwarder.StopForwarding()`と`PlaytestDomQuery.ResetPending()`で片付け」→「UIをprobeする場合はreadyを確認して`PlaytestUiLocatorSession.Start()`を呼び、期限付きで`PlaytestUiLocatorSession.Locator.IsAvailable()`を待ってからprobeする。成功・失敗を問わずfinallyで`PlaytestUiLocatorSession.Stop()`を呼び、失敗理由を記録する」。
 
 - [ ] **Step 3: 旧名が残っていないことを確かめてコミットする**
 

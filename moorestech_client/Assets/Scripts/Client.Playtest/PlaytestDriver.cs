@@ -113,7 +113,7 @@ namespace Client.Playtest
         // テキスト欄の値を置き換える（IMEは通さない）
         // Replace a text field's value (bypassing IME)
         public async UniTask SetText(string testid, string text) => await _reporter.Act($"UI文字入力: {testid}", () => PlaytestUiElementOps.SetText(testid, text));
-        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(PlaytestUiElementOps.BuildMenuBlockTestId(blockName));
+        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(Client.Playtest.Operations.Ui.PlaytestBuildMenuOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseBuildMenuPanel() => await ClickUi("build-menu-close");
         public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await _waits.WaitUiState(state, timeoutSeconds);
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestBuildMenuOps.OpenBuildMenuAndSelectBlock(blockName));

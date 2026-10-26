@@ -14,6 +14,14 @@ namespace Client.Playtest.Operations.Ui
     /// </summary>
     public static class PlaytestBuildMenuOps
     {
+        // PlaytestBuildMenuOps・Driver・シナリオでBlockGuid由来testid生成を共有し、契約の二重定義を防ぐ
+        // Share BlockGuid-derived testid generation across build-menu ops, the driver, and scenarios to prevent drift
+        public static string BuildMenuBlockTestId(string blockName)
+        {
+            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
+            return $"build-menu-entry-block-{blockGuid}";
+        }
+
         public static async UniTask OpenBuildMenuAndSelectBlock(string blockName)
         {
             // 画面UIの描画系が使えるようになるまで期限付きで待つ（CEFのブラウザ生成は非同期）
@@ -40,7 +48,7 @@ namespace Client.Playtest.Operations.Ui
             // パネル表示を待ち、BlockGuid由来の安定testidで対象エントリを選択する
             // Wait for the panel and select the entry by its stable BlockGuid-derived testid
             var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
-            var entryTestid = PlaytestUiElementOps.BuildMenuBlockTestId(blockName);
+            var entryTestid = BuildMenuBlockTestId(blockName);
             await PlaytestUiElementOps.WaitUiElement("build-menu-panel", 15f);
 
             // 全カテゴリが1本のスクロールに並ぶため、対象ブロックのカテゴリ見出しへ送って視界に入れる

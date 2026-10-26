@@ -1,7 +1,6 @@
 using System;
 using Client.Playtest.Input;
 using Client.Playtest.UiElements;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -15,14 +14,6 @@ namespace Client.Playtest.Operations
     {
         private const float ActionTimeoutSeconds = 15f;
         private const float MouseGlideSeconds = 0.3f;
-
-        // PlaytestBuildMenuOps・Driver・シナリオでBlockGuid由来testid生成を共有し、契約の二重定義を防ぐ
-        // Share BlockGuid-derived testid generation across build-menu ops, the driver, and scenarios to prevent drift
-        public static string BuildMenuBlockTestId(string blockName)
-        {
-            var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
-            return $"build-menu-entry-block-{blockGuid}";
-        }
 
         public static UniTask<UiElementSnapshot> FindUi(string testid)
         {
@@ -101,16 +92,29 @@ namespace Client.Playtest.Operations
             // 再描画を待ち、対象要素の実表示文字列を検証する
             // Wait for re-rendering and verify the element's rendered text
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
-            var lastText = string.Empty;
+            UiElementSnapshot last = null;
             while (Time.realtimeSinceStartup <= deadline)
             {
                 var snapshot = await FindUi(testid);
-                UiElementScreenPointResolver.ThrowIfAmbiguous(snapshot);
-                if (snapshot.IsFound && snapshot.Visible && snapshot.Text.Contains(expected)) return;
-                lastText = snapshot.Text;
+                last = snapshot;
+                switch (snapshot.Status)
+                {
+                    case UiElementLookupStatus.Found:
+                        if (snapshot.Visible && snapshot.Text.Contains(expected)) return;
+                        break;
+                    case UiElementLookupStatus.NotFound:
+                    case UiElementLookupStatus.RendererUnavailable:
+                        break; // silent-ok: 次の照会を待つ / 期限切れ例外に最終状態を記録する
+                    case UiElementLookupStatus.Ambiguous:
+                        UiElementScreenPointResolver.ThrowIfAmbiguous(snapshot);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"Unknown UI lookup status: {snapshot.Status}");
+                }
                 await UniTask.DelayFrame(2);
             }
-            throw new TimeoutException($"UI text did not contain '{expected}' (last: '{lastText}'): {testid}");
+            var lastDescription = last == null ? "no lookup completed" : $"{last.Status}, renderer: {last.Renderer}, visible: {last.Visible}, text: '{last.Text}'";
+            throw new TimeoutException($"UI text did not contain '{expected}' (last: {lastDescription}): {testid}");
         }
 
         public static async UniTask SetText(string testid, string text)

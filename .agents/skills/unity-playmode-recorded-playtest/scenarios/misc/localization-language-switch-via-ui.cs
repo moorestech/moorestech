@@ -19,7 +19,7 @@ var dieselLocomotiveTestId = "build-menu-entry-trainCar-019f0d20-d52e-7172-8b55-
 var windDrillGuid = Guid.Parse("934c0ef9-b76e-4058-8fc8-0ad74afbdcd0");
 var steamLocomotiveGuid = Guid.Parse("9e3215d5-175e-4600-adee-2c32f786d124");
 var dieselLocomotiveGuid = Guid.Parse("019f0d20-d52e-7172-8b55-bd9b79b6feb1");
-var windDrillEntryTestId = PlaytestUiElementOps.BuildMenuBlockTestId("風力掘削機");
+var windDrillEntryTestId = Client.Playtest.Operations.Ui.PlaytestBuildMenuOps.BuildMenuBlockTestId("風力掘削機");
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("localization-language-switch-via-ui", options, async p =>

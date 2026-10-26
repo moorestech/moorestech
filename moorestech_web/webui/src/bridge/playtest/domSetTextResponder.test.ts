@@ -39,14 +39,14 @@ afterEach(() => {
 
 // 制御textareaとstate表示を描画し、onChangeの観測値も保存する
 // Render the controlled textarea and state display, and record the onChange value
-function renderControlledTextarea(disabled: boolean, inDisabledFieldset: boolean) {
+function renderControlledField(tag: "input" | "textarea", initial: string, disabled: boolean, inDisabledFieldset: boolean) {
   function Field() {
-    const [value, setValue] = useState("");
-    const textarea = createElement("textarea", {
+    const [value, setValue] = useState(initial);
+    const textarea = createElement(tag, {
       "data-testid": "desc",
       value,
       disabled,
-      onChange: (e: { currentTarget: HTMLTextAreaElement }) => {
+      onChange: (e: { currentTarget: HTMLInputElement | HTMLTextAreaElement }) => {
         observed = e.currentTarget.value;
         setValue(e.currentTarget.value);
       },
@@ -59,7 +59,7 @@ function renderControlledTextarea(disabled: boolean, inDisabledFieldset: boolean
   document.body.append(container);
   root = createRoot(container);
   act(() => root!.render(createElement(Field)));
-  const textarea = container.querySelector("textarea")!;
+  const textarea = container.querySelector(tag)!;
   vi.spyOn(textarea, "getBoundingClientRect").mockReturnValue(new DOMRect(10, 10, 100, 20));
 }
 
@@ -72,23 +72,60 @@ async function setText(testid: string, text: string) {
 }
 
 describe("プレイテストの文字入力", () => {
-  it("制御textareaのonChangeが走り、値が保たれればappliedを返す", async () => {
-    renderControlledTextarea(false, false);
-    const [action, payload] = await setText("desc", "日本語の本文");
+  it.each([
+    ["input", "", "new"], ["input", "old", "new"], ["input", "old", ""],
+    ["textarea", "", "日本語の本文"], ["textarea", "old", "new"], ["textarea", "old", ""],
+  ] as const)("制御%sを%sから%sへ置換する", async (tag, initial, text) => {
+    renderControlledField(tag, initial, false, false);
+    const [action, payload] = await setText("desc", text);
     expect(action).toBe("playtest.dom_set_text_result");
-    expect(payload).toMatchObject({ requestId: "r", status: "applied", matchCount: 1, actualValue: "日本語の本文" });
-    expect(observed).toBe("日本語の本文");
-    expect(document.querySelector('[data-testid="state-value"]')?.textContent).toBe("日本語の本文");
+    expect(payload).toMatchObject({ requestId: "r", status: "applied", matchCount: 1, actualValue: text });
+    expect(observed).toBe(text);
+    expect(document.querySelector<HTMLInputElement | HTMLTextAreaElement>(tag)?.value).toBe(text);
+    expect(document.querySelector('[data-testid="state-value"]')?.textContent).toBe(text);
+  });
+
+  it.each(["checkbox", "radio", "file", "number", "range", "hidden", "date", "color", "button", "submit", "reset", "image"])("%sは書換前に拒否する", async (type) => {
+    const field = document.createElement("input");
+    field.type = type;
+    field.dataset.testid = "desc";
+    document.body.append(field);
+    const initial = field.value;
+    const [, payload] = await setText("desc", "hello");
+    expect(payload).toMatchObject({ status: "notTextField", matchCount: 1 });
+    expect(field.value).toBe(initial);
+    expect(field.checked).toBe(false);
+  });
+
+  it.each(["reset", "removed", "div", "file"])("入力中の%sへのDOM置換を再照会する", async (replacement) => {
+    const field = document.createElement("input");
+    field.dataset.testid = "desc";
+    document.body.append(field);
+    vi.spyOn(field, "getBoundingClientRect").mockReturnValue(new DOMRect(10, 10, 100, 20));
+    field.addEventListener("input", () => {
+      const current = document.createElement(replacement === "div" ? "div" : "input");
+      current.dataset.testid = "desc";
+      if (current instanceof HTMLInputElement) {
+        if (replacement === "file") current.type = "file";
+        else current.value = "reset";
+      }
+      if (replacement === "removed") field.remove();
+      else field.replaceWith(current);
+    });
+    const [, payload] = await setText("desc", "requested");
+    const status = replacement === "removed" ? "notFound" : replacement === "reset" ? "valueMismatch" : "notTextField";
+    expect(payload).toMatchObject({ status, actualValue: replacement === "reset" ? "reset" : "", matchCount: replacement === "removed" ? 0 : 1 });
+    expect(field.isConnected).toBe(false);
   });
 
   it("disabledの欄はnotInteractableで値を変えない", async () => {
-    renderControlledTextarea(true, false);
+    renderControlledField("textarea", "", true, false);
     const [, payload] = await setText("desc", "x");
     expect(payload).toMatchObject({ status: "notInteractable", actualValue: "" });
   });
 
   it("disabled fieldset内の欄はnotInteractableで値を変えない", async () => {
-    renderControlledTextarea(false, true);
+    renderControlledField("textarea", "", false, true);
     const textarea = document.querySelector<HTMLTextAreaElement>("textarea")!;
     expect(textarea.disabled).toBe(false);
     expect(textarea.matches(":disabled")).toBe(true);

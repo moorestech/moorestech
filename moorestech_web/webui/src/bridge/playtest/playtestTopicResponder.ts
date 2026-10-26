@@ -1,13 +1,16 @@
 import { useTopicStore } from "../store/topicStore";
 import { subscriptions } from "../transport/subscriptionManager";
 
+const responders = new Map<string, () => void>();
+
 type TopicState = ReturnType<typeof useTopicStore.getState>;
 
 // 復元完了後だけ一時イベントを購読し、新しい要求を渡す
 // Subscribe to transient events after restoration and pass along new requests
 export function initPlaytestTopicResponder(topic: string, handle: (request: unknown) => void): () => void {
+  const existing = responders.get(topic);
+  if (existing !== undefined) return existing; // silent-ok: 同じ購読を返す / 呼出元が同じ解除操作を受け取る
   let topicAcquired = false;
-  let disposed = false;
   const unsubscribeStore = useTopicStore.subscribe((state, previousState) => {
     syncTopicSubscription(state.status);
     const request = state.topics[topic];
@@ -15,12 +18,16 @@ export function initPlaytestTopicResponder(topic: string, handle: (request: unkn
   });
   syncTopicSubscription(useTopicStore.getState().status);
 
-  return () => {
-    if (disposed) return;
-    disposed = true;
+  const dispose = () => {
+    // silent-ok: 古い解除操作は新登録を保持する / 現登録の解除操作が所有する
+    if (responders.get(topic) !== dispose) return;
+    responders.delete(topic);
     unsubscribeStore();
     if (topicAcquired) subscriptions.release(topic);
   };
+
+  responders.set(topic, dispose);
+  return dispose;
 
   function syncTopicSubscription(status: TopicState["status"]) {
     // 切断時は解除し、次回の復元対象への混入を防ぐ

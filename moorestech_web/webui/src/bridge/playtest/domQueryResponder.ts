@@ -24,21 +24,10 @@ type DomQueryResult = {
   stateFlags: string[];
 };
 
-let disposeResponder: (() => void) | null = null;
-
 // DOM問い合わせの受信を一度だけ登録し、アプリ終了時に破棄できるようにする
 // Register DOM query reception once and allow teardown at application shutdown
 export function initDomQueryResponder(): () => void {
-  if (disposeResponder !== null) return disposeResponder;
-
-  const disposeTopic = initPlaytestTopicResponder(Topics.playtestDomQuery, respond);
-  const dispose = () => {
-    if (disposeResponder !== dispose) return;
-    disposeTopic();
-    disposeResponder = null;
-  };
-  disposeResponder = dispose;
-  return dispose;
+  return initPlaytestTopicResponder(Topics.playtestDomQuery, respond);
 }
 
 function respond(request: unknown) {

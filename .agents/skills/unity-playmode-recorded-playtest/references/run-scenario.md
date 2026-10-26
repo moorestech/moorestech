@@ -65,7 +65,7 @@ PLAYTEST_SEED=12345 \
 1. **preflight** (スキル同梱 `scripts/preflight.sh`): CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試しスキーマ不整合をPlayMode前に検出）
 2. **boot**: 通常は `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)`、固定worldの3変数指定時は `PrepareWorldAndEnterPlayMode(masterDir, worldDir, mapMode, seed)` をEDC 1回で実行してPlayMode突入
 3. **ready待ち**: ゲーム初期化完了イベントで書かれる `ready.marker` をファイルポーリング（EDCを連打しない）
-4. **シナリオ投入**: キー/マウスを使う場合は先に[input-injection.md](input-injection.md)のde-risk probeを読み、ready後かつ`PlaytestRunner.Run`呼び出し前のスニペットトップレベルで完了する。UIをprobeする場合はreadyと描画系の利用可能状態（`PlaytestUiLocatorSession.Locator.IsAvailable()`）を確認し、`PlaytestUiLocatorSession.Start()` → probeの順に実行する。probe失敗でRunへ進まない場合は`PlaytestUiLocatorSession.Stop()`で片付け、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認をこの段階で行い、録画開始後のコールバック内には置かない。シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済み）
+4. **シナリオ投入**: キー/マウスを使う場合は先に[input-injection.md](input-injection.md)のde-risk probeを読み、ready後かつ`PlaytestRunner.Run`呼び出し前のスニペットトップレベルで完了する。UIをprobeする場合はreadyを確認して`PlaytestUiLocatorSession.Start()`を呼び、期限付きで`PlaytestUiLocatorSession.Locator.IsAvailable()`を待ってからprobeする。成功・失敗を問わずfinallyで`PlaytestUiLocatorSession.Stop()`を呼び、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認をこの段階で行い、録画開始後のコールバック内には置かない。シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済み）
 5. **回収**: `result.json` の出現を待って表示。`Success` で exit 0/1
 
 ## 結果の読み方

@@ -22,23 +22,16 @@ namespace Client.Playtest.WebUi
 
         public void StartSession()
         {
-            // 前回実行の保留を捨て、同一Hubへの二重登録を避ける
-            // Discard pending requests from earlier runs and avoid double registration on the same hub
-            _domQuery.Reset();
-            _domSetText.Reset();
-            _warnedUnregistered = false;
-            _sessionActive = true;
-            var hub = global::Client.WebUiHost.Boot.WebUiHost.Hub;
-            if (hub != null && !ReferenceEquals(hub, _registeredHub))
+            // 有効なセッションの保留を保ち、新規開始時だけ初期化する
+            // Preserve active requests and reset only when starting a new session
+            if (!_sessionActive)
             {
-                hub.RegisterAction(_domQuery.ResultHandler);
-                hub.RegisterAction(_domSetText.ResultHandler);
-                _registeredHub = hub;
+                _domQuery.Reset();
+                _domSetText.Reset();
+                _warnedUnregistered = false;
+                _sessionActive = true;
             }
-
-            // CEFが使えるときだけInputSystemのマウスをCEFへ転送する
-            // Forward InputSystem mouse input to CEF only while CEF is available
-            if (CefScreenMapper.IsWebUiAvailable()) CefInputForwarder.StartForwarding();
+            EnsureSessionBindings();
         }
 
         public void StopSession()
@@ -83,7 +76,23 @@ namespace Client.Playtest.WebUi
                 Debug.LogWarning($"[PlaytestUi] Web element '{testid}' was found but the CEF surface could not map its rect");
                 return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
             }
+            // 端の画面外写像は保ち、操作中心だけは描画面内に限定する
+            // Allow offscreen edges but require the interaction center to stay on the surface
+            if (result.HitTestPassed && !CefScreenMapper.TryBrowserToScreen(browserRect.center, out _))
+            {
+                Debug.LogWarning($"[PlaytestUi] Web element '{testid}' center is outside the CEF surface");
+                result.HitTestPassed = false;
+            }
             return ToSnapshot(testid, result, screenRect);
+
+            #region Internal
+
+            bool IsFinite(float value)
+            {
+                return !float.IsNaN(value) && !float.IsInfinity(value);
+            }
+
+            #endregion
         }
 
         public async UniTask<UiSetTextResult> SetText(string testid, string text)
@@ -116,16 +125,8 @@ namespace Client.Playtest.WebUi
         {
             // 受け口未登録で送ると期限まで応答を待つだけなので、即座に応答不能として返す
             // Sending without registered receivers only waits out the deadline, so report unavailable immediately
+            EnsureSessionBindings();
             hub = global::Client.WebUiHost.Boot.WebUiHost.Hub;
-            // HubとCEFがセッション開始後に現れた場合も、その時点で受け口と入力を開く
-            // Open receivers and input when Hub and CEF appear after session start
-            if (_sessionActive && hub != null && !ReferenceEquals(hub, _registeredHub))
-            {
-                hub.RegisterAction(_domQuery.ResultHandler);
-                hub.RegisterAction(_domSetText.ResultHandler);
-                _registeredHub = hub;
-            }
-            if (_sessionActive && CefScreenMapper.IsWebUiAvailable()) CefInputForwarder.StartForwarding();
             if (_sessionActive && hub != null && ReferenceEquals(hub, _registeredHub)) return true;
             if (!_warnedUnregistered)
             {
@@ -135,9 +136,18 @@ namespace Client.Playtest.WebUi
             return false;
         }
 
-        private static bool IsFinite(float value)
+        private void EnsureSessionBindings()
         {
-            return !float.IsNaN(value) && !float.IsInfinity(value);
+            var hub = global::Client.WebUiHost.Boot.WebUiHost.Hub;
+            // HubとCEFがセッション開始後に現れた場合も、その時点で受け口と入力を開く
+            // Open receivers and input when Hub and CEF appear after session start
+            if (_sessionActive && hub != null && !ReferenceEquals(hub, _registeredHub))
+            {
+                hub.RegisterAction(_domQuery.ResultHandler);
+                hub.RegisterAction(_domSetText.ResultHandler);
+                _registeredHub = hub;
+            }
+            if (_sessionActive && CefScreenMapper.IsWebUiAvailable()) CefInputForwarder.StartForwarding();
         }
     }
 }

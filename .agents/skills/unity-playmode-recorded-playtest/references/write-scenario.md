@@ -20,10 +20,10 @@ using UnityEngine;
 var options = new PlaytestRunOptions { Record = false };
 // キー・マウス使用時はready後、この位置でinput-injection.mdのde-risk probeを完了する
 // For keyboard/mouse input, complete the input-injection.md de-risk probe here after ready
-// UI probeはreadyと描画系の利用可能状態を確認し、PlaytestUiLocatorSession.Start() → probeの順で実行する
-// For a UI probe, confirm ready and renderer availability, then call PlaytestUiLocatorSession.Start() → probe
-// probe失敗でRunへ進まない場合はPlaytestUiLocatorSession.Stop()で片付け、失敗理由を記録する
-// If a failed probe prevents Run, call PlaytestUiLocatorSession.Stop() and record the failure reason
+// UI probeはready → Start() → 期限付きIsAvailable()待機 → probeの順で実行する
+// For a UI probe, wait for ready, call Start(), wait for IsAvailable() with a deadline, then probe
+// 成功・失敗を問わずfinallyでPlaytestUiLocatorSession.Stop()を呼び、失敗理由を記録する
+// Always call PlaytestUiLocatorSession.Stop() in finally and record any failure reason
 return PlaytestRunner.Run("my-scenario", options, async p =>
 {
     // デバッグ環境を1行構築（無限落下防止の足場+ワープ+無料設置）。設定値は冒頭ログとTimelineに流れる
@@ -39,7 +39,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 ```
 
 調査用は`Record = false`で`result.json`の`Success`と`Asserts`を確認する。提出用の最終実行だけ`Record = true`にして、動画・期待スクショ・実プレイ視点も確認する。
-キー・マウスを使う場合は[input-injection.md](input-injection.md)のde-risk probeを`PlaytestRunner.Run`前のトップレベルで完了する。UIをprobeする場合はreadyと描画系の利用可能状態（`PlaytestUiLocatorSession.Locator.IsAvailable()`）を確認し、`PlaytestUiLocatorSession.Start()`をprobe前に呼ぶ。probe失敗でRunへ進まない場合は`PlaytestUiLocatorSession.Stop()`で片付け、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認は、`Record=true`へ切り替えた最終実行でもコールバック内に置かない。
+キー・マウスを使う場合は[input-injection.md](input-injection.md)のde-risk probeを`PlaytestRunner.Run`前のトップレベルで完了する。UIをprobeする場合はreadyを確認して`PlaytestUiLocatorSession.Start()`を呼び、期限付きで`PlaytestUiLocatorSession.Locator.IsAvailable()`を待ってからprobeする。成功・失敗を問わずfinallyで`PlaytestUiLocatorSession.Stop()`を呼び、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認は、`Record=true`へ切り替えた最終実行でもコールバック内に置かない。
 
 `PlaytestEnvironmentConfig` のフィールド（すべてpublicフィールド・デフォルト値あり）:
 `FreeBlockPlacement=true`（建築全解放+クライアント/サーバー両方のコスト無料。falseでも毎回明示保存され前回実行の残留なし）/
@@ -124,7 +124,7 @@ Run内の説明文入力は、欄をクリックした直後に `await p.SetText
 
 testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する。ビルドメニューのエントリは
 `build-menu-entry-{kind}-{id}`（kind: block/trainCar/connectTool/blueprintCopy/blueprint、
-idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestUiElementOps.BuildMenuBlockTestId(名前)`で組み立てる）。
+idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestBuildMenuOps.BuildMenuBlockTestId(名前)`で組み立てる）。
 表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverUi`してからScreenshotする。
 カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移で視点は変わらないため、
 シナリオ側での追加のカメラ待ちは不要。

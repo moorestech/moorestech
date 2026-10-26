@@ -28,6 +28,7 @@ namespace Client.Playtest.UiElements
                     // Treat the layout as settled when the rect is unchanged two frames later
                     await UniTask.DelayFrame(2);
                     var second = await locator.Find(testid);
+                    lastStatus = second.Status;
                     ThrowIfAmbiguous(second);
                     if (IsClickable(second) && second.ScreenRect == first.ScreenRect) return second;
                 }

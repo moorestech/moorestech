@@ -42,19 +42,23 @@ namespace Client.Playtest.WebUi
 
             _channel.Resolve(requestId, new DomSetTextResult { Status = status, MatchCount = matchCount, ActualValue = actualValue });
             return UniTask.FromResult(ActionResult.Success());
-        }
 
-        private static bool TryParseStatus(string word, out UiSetTextStatus status)
-        {
-            switch (word)
+            #region Internal
+
+            bool TryParseStatus(string word, out UiSetTextStatus status)
             {
-                case "applied": status = UiSetTextStatus.Applied; return true;
-                case "notFound": status = UiSetTextStatus.NotFound; return true;
-                case "notTextField": status = UiSetTextStatus.NotTextField; return true;
-                case "notInteractable": status = UiSetTextStatus.NotInteractable; return true;
-                case "valueMismatch": status = UiSetTextStatus.ValueMismatch; return true;
-                default: status = UiSetTextStatus.RendererUnavailable; return false;
+                switch (word)
+                {
+                    case "applied": status = UiSetTextStatus.Applied; return true;
+                    case "notFound": status = UiSetTextStatus.NotFound; return true;
+                    case "notTextField": status = UiSetTextStatus.NotTextField; return true;
+                    case "notInteractable": status = UiSetTextStatus.NotInteractable; return true;
+                    case "valueMismatch": status = UiSetTextStatus.ValueMismatch; return true;
+                    default: status = UiSetTextStatus.RendererUnavailable; return false;
+                }
             }
+
+            #endregion
         }
     }
 }
