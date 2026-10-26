@@ -101,3 +101,6 @@ Codex再引継ぎ: cwd/clean/HEAD f6b8d13018を確認。Task12 post-review録画
 Task12録画途中: fresh29993はshared snapshot6df core欠落でgenerated生成→ready16:19。matrix初回25/26は事前live照合欠落の運用attemptとして保持し通常手順で再録予定。walkは検索focus待ちtimeoutの新FAIL（4/5途中中断）、purpose_reviewが独立調査中。machine次bootで別レーン別ID起動と同時期にcore再欠落/生成待ち。StaleWorldCacheCollector他ID削除構造を確認、親bdへ共有。D38で自分の今回生成coreの専用退避/SHAと同ID欠落時だけ同一bytes復元を採用、他ID/製品不変。
 
 Task12録画最新: BP25/25PASS（有効D31、logs667950283）、matrix有効22/26FAIL（DeleteBar中Tab/B/Gが新FAIL・既存hint差）、walk4/5途中中断（検索focus待ちtimeout）、machine初回CEF code-6/LoadUrl NREで前提不成立。D39で自logFD保持を採用し原本全量保存。purpose_reviewが独立read-onlyで入力経路と原本を調査、原因未確定。別作業Editor追加で35502/54299/96074の3本を観測したため、Cはmachine未投入preflight終了区切りで自身96074を停止、他PID無操作。全体2本未満まで次起動しない。親bdへ枠/焦点競合疑いを連絡済み。まだTask12完了扱いしない。
+
+Editor待機中の統合: origin/feature/uitk-stage0 af027e1dfdをマージコミットe07fc7b1c3で取込/push、競合0・取込C#差分0。G1違反なし、Python追従gate単体69/69PASS（74.181s）。Unity compileは枠待ち。
+独立追加観測: purpose_reviewがscratch/focus-observerを準備、review_prep監査で副作用getter/cleanup不確定を指摘→6aaf1a22fで設定修復getterも削除しinstall時UI/Player各1回検索へ。原文無改変・D31注入前に生state/保持値だけを観測、cleanupはexit/JSON Success/Result一致必須。未投入。所有Editor全停止、外部35502/54299稼働で全体上限2。master pin lock維持。次は枠が空き次第purpose_reviewへ正式runtime引継ぎしwalk/matrix独立観測→machine有効録画→compile→完了台帳。
