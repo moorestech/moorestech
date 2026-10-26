@@ -101,6 +101,23 @@ PlaceBlock中のスポイトは照準がカーソル追従のためAltは不要�
 | `PlaytestUiElementOps.WaitUiTextContains(testid, text, timeout)` | 要素の表示文字列が `text` を含むまで待つ |
 | `PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable(testid, scrollAreaTestid, timeout)` | スクロール領域上でホイールを回して要素を表示領域へ送る |
 
+単発の照会をRun前に行う例。事前probeで開いたロケータは失敗時も閉じる。
+
+```csharp
+PlaytestUiLocatorSession.Start();
+try
+{
+    var inventorySort = await PlaytestUiElementOps.FindUi("inventory-sort");
+    if (!inventorySort.IsFound) throw new System.InvalidOperationException("inventory-sortが見つからない");
+}
+finally
+{
+    PlaytestUiLocatorSession.Stop();
+}
+```
+
+Run内の説明文入力は、欄をクリックした直後に `await p.SetText("bug-report-description", description);` を使う。設置理由の表示観測のように長いシナリオ固有処理は `PlacementReasonTooltipScenarioProbe` の使用例を参照できる。これはEditor専用の観測補助で、Driverの汎用UI入力は上のAPIを使う。
+
 状態フラグ: Web は `data-testid` 以外の `data-*` 属性のうち値が空か `true` のもの（`data-selected="true"` → `HasStateFlag("selected")`）。
 シナリオは描画系の内部型を直接参照せず、照会と入力に上の API を使う。
 同じ testid が複数あると Web 版は先頭を使い `[PlaytestUi] … matched N Web elements` を警告する（UITK 版は失敗させる予定）。

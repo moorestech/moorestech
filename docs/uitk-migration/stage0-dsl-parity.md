@@ -1,13 +1,15 @@
 # 段階0 0-7 DSL 改名・照会置換の合否突き合わせ
 
-基準: origin/master `e855a58667` と同じ改名前の製品コード（再測定時HEAD `ce393f2f97`）で Record=false。変更後はブランチ `feature/uitk-s0-dsl` で同じ前提・同じ順に測る予定。
+基準: origin/master `e855a58667` と同じ改名前の製品コード（再測定時HEAD `ce393f2f97`）で Record=false。変更後はブランチ `feature/uitk-s0-dsl` で同じ前提・同じ順に測定した。旧新を再測定した行は元の基準結果も備考に保持する。
 対象外: 壊れている 7 本（bd `moorestech-wwxy`）。
+
+集計: 一致 30 / 不一致 0（うち既存コンパイル診断一致 3、揺れ備考付き一致を含む）。対象外7本は未実行。
 
 | シナリオ | 種別 | 基準 Success / Assert数 / 失敗Assert / Error先頭 | 変更後 Success / Assert数 / 失敗Assert / Error先頭 | 判定 | 備考 |
 |---|---|---|---|---|---|
 | building/delete-tool/delete-hold-mode-reentry | 照会置換 | true / 16 / - / - | true / 16 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_201010/delete-hold-mode-reentry/result.json`。 |  |
 | building/delete-tool/delete-hold-text-focus | 照会置換 | true / 20 / - / - | true / 20 / - / - | 一致 | 重複警告 0 件。`PlaytestResults/20261026_201152/delete-hold-text-focus/result.json`。 |  |
-| building/placement-reason-tooltip | 照会置換 | true / 14 / - / - | true / 14 / - / -（同条件2回） | 一致 | 重複警告 0 件。変更後 `20261026_201815`、`20261026_202005`、旧版 `20261026_202311`、`20261026_202446` のresult.json。同じGameViewタブ選択・IgnoreFocus・AlwaysGameView・デバイス有効化をRun前に適用。前提未整備の変更後2回 `20261026_201444`、`20261026_201600` はBuild menu前でfalse/0、元結果は保持。 |  |
+| building/placement-reason-tooltip | 照会置換 | true / 14 / - / - | true / 14 / - / -（同条件2回） | 一致 | 重複警告 0 件。変更後 `20261026_201815`、`20261026_202005`、旧版 `20261026_202311`、`20261026_202446` のresult.json。同じGameViewタブ選択・IgnoreFocus・AlwaysGameView・デバイス有効化をRun前に適用。分割後 `20261027_000601` もtrue/14・Assertラベル/合否一致、Record=false・重複警告0。前提未整備の変更後2回 `20261026_201444`、`20261026_201600` はBuild menu前でfalse/0、元結果は保持。 |  |
 | building/terrain-sink-normal-and-belt-via-ui | 照会置換 | true / 20 / - / - | false / 1 / - / PlaceBlock遷移timeout（2回） | 一致（揺れ） | 元基準 true/20 を保持。旧版同条件2回 `20261026_204937`、`20261026_205048` も false/1・同じPlaceBlock遷移timeoutで変更後2回 `20261026_203643`、`20261026_203756` と一致。4回ともRun前に共通GameView入力正規化、重複警告 0 件。照会API実行前の失敗であり原因未特定。 |  |
 | building/ui-place-then-open-machine | 照会置換 | false / 6 / Web側のblock inventoryパネルが描画されている / - | false / 6 / 同じ最終Assert / -（独立2回）、先行2回は true / 6 | 一致（揺れ） | 旧版3回 `20261026_203144`、`20261026_203306`、`20261026_204204` は false/6。新版独立2回 `20261026_204347`、`20261026_204509` も false/6・同じ失敗Assert、先行2回 `20261026_202829`、`20261026_202948` は true/6。各sessionのresult.jsonと `02-machine-ui-opened.png` を保持。失敗直後の同PlayMode再照会は Web/Found/Visible。描画が後から出現した事実を観測したが原因未確定。決定的API差は再現せず、新版内で合否が揺れた。重複警告 0 件。 | 1回目の結果。再現確認は後続で実施 |
 | connect/electric-wire-tool-extend-chain-via-ui | 照会置換 | true / 16 / - / - | true / 16 / - / - | 一致 | Assertラベルを「Web UI(CEF)が利用可能」→「UIの描画系が利用可能」へ変更。重複警告 0 件。`PlaytestResults/20261026_205252/electric-wire-tool-extend-chain-via-ui/result.json`。 |  |

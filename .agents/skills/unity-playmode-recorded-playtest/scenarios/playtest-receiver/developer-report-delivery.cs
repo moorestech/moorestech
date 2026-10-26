@@ -68,8 +68,8 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
         await p.Screenshot("02-local-only");
     }
 
-    // 実CEF入力で説明を書き、本番の送信処理を呼ぶ
-    // Enter a description through CEF and invoke production submission
+    // UI欄へ説明を書き、本番の送信処理を呼ぶ
+    // Enter a description through the UI and invoke production submission
     await p.ClickUi("bug-report-description");
     var description = hasToken ? "task10 developer production report" : "task10 local pending report";
     await p.SetText("bug-report-description", description);
