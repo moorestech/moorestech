@@ -2103,3 +2103,5 @@ PR 作成後、`bd note moorestech-albof.3 "PR #<番号> 作成"`。moorestech �
 | D28 | cursorの言語待機検証は元assertをすべて終えた後、正規終了をawaitしてFlushedを確認してからExitPlayModeへ進む | CEF正常の独立単独/最小列でも終了時socket例外を2回再現した。言語ゲート前に終了参加者が登録されるため、待機を人工通過せずD21と同じ保存/終了完了待ちを適用できる。例外免責や製品shutdownの推測変更を避ける | agent 既定（ユーザー未裁定） |
 
 | D29 | 実再現したMachineModule/Recipe fixtureは元assert後に正規保存終了をawaitしFlushedを確認してからExitPlayModeへ進み、LoadMainGame後から終了完了まで期待外ログを検出する | 独立単独/最小列でreset→破棄済ServerStarter→FlushFailedを両classに再現。製品終了処理を変えずD21/D28同形のtest終了責務を満たす。未再現のBundle/Repeatは変更しない | agent 既定（ユーザー未裁定） |
+
+| D30 | Task11で変更前にも実測したshader/Steam外部初期化の異常は、既存負債が残ることと全区間Error0未達をPR本文・報告へ明記し、`moorestech-albof.3.2`（shader）・`moorestech-albof.3.3`（Steam境界）へ追跡を分ける。ログ無視・Expect追加・素材やSteam設定の変更で合格にしない | fresh base `b40795d82b`/PID67122とfeature `a224297b0e`/PID8969でMetal再定義20headerが一致（pass詳細18/20一致、2件はFORWARD/OUTLINE差）。warm base0だけでは判断せずfresh対照を追加した。base Remote/PID8969とfeature `2c79fe0724`/PID90903は同じ閉宛先→MainMenu復帰でnative Steam client未発見とSteamManager.Awake124 Error1を記録。DI抽出以前の境界不良として証拠を残し、今回の修正範囲を保つ。Task11の実行完了と全区間ログ品質の合格は区別する | agent 既定（ユーザー未裁定） |
