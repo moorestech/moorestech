@@ -21,8 +21,12 @@ namespace Client.Playtest.WebUi
     }
 
     /// <summary>
-    ///     Web UIへtestidのDOM矩形・文字列・状態フラグを問い合わせる
-    ///     Queries the Web UI for a testid's DOM rect, text, and state flags
+    ///     ・testidでWeb照会
+    ///     ・DOM矩形と文字列を取得
+    ///     ・状態フラグを取得
+    ///     ・Query Web by testid
+    ///     ・Read DOM rect and text
+    ///     ・Read state flags
     /// </summary>
     internal class PlaytestDomQuery
     {

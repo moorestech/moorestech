@@ -3,10 +3,14 @@ using Cysharp.Threading.Tasks;
 namespace Client.Playtest.UiElements
 {
     /// <summary>
-    ///     testidでUI要素を照会し文字を入れる、描画系に依存しない窓口
-    ///     Web版（CEF）を段階0で、UITK版と両系照合の合成を段階1で同じinterfaceに実装する
-    ///     Renderer-independent gateway that looks up UI elements by testid and enters text
-    ///     Web (CEF) is implemented in stage 0; UITK and the both-renderer composite implement the same interface in stage 1
+    ///     ・描画系非依存の窓口
+    ///     ・testid照会と文字入力
+    ///     ・段階0はWeb版
+    ///     ・段階1はUITK版と両系合成
+    ///     ・Renderer-independent gateway
+    ///     ・Lookup by testid and text input
+    ///     ・Stage 0 implements Web
+    ///     ・Stage 1 implements UITK and the both-renderer composite
     /// </summary>
     public interface IUiElementLocator
     {

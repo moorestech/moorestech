@@ -6,8 +6,10 @@ using UnityEngine;
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     playtest.dom_query_result を検証して保留中の照会へ渡す
-    ///     Validates playtest.dom_query_result and hands it to the pending query
+    ///     ・DOM照会応答の検証
+    ///     ・保留中の照会へ転送
+    ///     ・Validate DOM query responses
+    ///     ・Forward to pending queries
     /// </summary>
     internal class DomQueryResultActionHandler : IActionHandler
     {

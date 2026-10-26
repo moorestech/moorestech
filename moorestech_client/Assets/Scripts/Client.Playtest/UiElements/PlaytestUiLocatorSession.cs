@@ -3,14 +3,16 @@ using Client.Playtest.WebUi;
 namespace Client.Playtest.UiElements
 {
     /// <summary>
-    ///     シナリオが使うロケータを1か所で持ち、照会の受け口と入力転送を開閉する
-    ///     Holds the locator used by scenarios in one place and opens/closes query receivers and input forwarding
+    ///     ・シナリオ共通のロケータ保持
+    ///     ・照会受け口と入力転送の開閉
+    ///     ・Shared locator for scenarios
+    ///     ・Query receiver and input forwarding lifecycle
     /// </summary>
     public static class PlaytestUiLocatorSession
     {
         private static readonly WebUiElementLocator WebLocator = new();
-        // 段階1でUITK版と両系照合の合成へ差し替える
-        // Replaced by the UITK + both-renderer composite in stage 1
+        // 段階1はUITK版と両系合成に交換
+        // Replace with UITK and the both-renderer composite in stage 1
         public static readonly IUiElementLocator Locator = WebLocator;
 
         // 冪等。PlaytestRunnerとRun前のprobeの両方から呼ばれる

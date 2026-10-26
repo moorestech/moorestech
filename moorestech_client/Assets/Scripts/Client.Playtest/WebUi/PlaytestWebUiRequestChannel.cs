@@ -6,8 +6,10 @@ using UnityEngine;
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     Web UIへの要求をrequestIdで保留し、action応答で解決する
-    ///     Holds Web UI requests by requestId and resolves them from action responses
+    ///     ・要求ID単位の保留
+    ///     ・action応答による解決
+    ///     ・Pending requests keyed by request ID
+    ///     ・Resolution by action responses
     /// </summary>
     internal class PlaytestWebUiRequestChannel<TResult> where TResult : class
     {
@@ -31,8 +33,8 @@ namespace Client.Playtest.WebUi
 
         public async UniTask<WebUiChannelResponse<TResult>> Await(string requestId, float timeoutSeconds)
         {
-            // 応答をフレーム単位で待ち、期限切れは応答なしとして返す
-            // Poll per frame and report no response once the deadline passes
+            // 毎フレーム待機し期限切れは応答なし
+            // Wait per frame and return no response on timeout
             var startedAt = Time.realtimeSinceStartup;
             while (Time.realtimeSinceStartup - startedAt <= timeoutSeconds)
             {

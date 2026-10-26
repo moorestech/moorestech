@@ -7,8 +7,10 @@ using UnityEngine;
 namespace Client.Playtest.Operations
 {
     /// <summary>
-    ///     testidのUI要素をロケータで解決し、セマンティック入力で操作する（描画系に依存しない）
-    ///     Resolves testid UI elements through the locator and operates them with semantic input (renderer-independent)
+    ///     ・描画系非依存の要素解決
+    ///     ・セマンティック入力操作
+    ///     ・Renderer-independent element resolution
+    ///     ・Semantic input operations
     /// </summary>
     public static class PlaytestUiElementOps
     {
@@ -27,8 +29,8 @@ namespace Client.Playtest.Operations
 
         public static async UniTask ClickUi(string testid, float timeoutSeconds)
         {
-            // 安定した要素中心へ移動し、実プレイヤーと同じマウス経路でクリックする
-            // Move to the settled element center and click through the same mouse path as a real player
+            // 安定中心へ実マウス経路でクリック
+            // Click the settled center through the real mouse path
             var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, timeoutSeconds);
             LogResolved(target);
             await SemanticInput.MouseGlideTo(target.ScreenRect.center, MouseGlideSeconds);
@@ -38,8 +40,8 @@ namespace Client.Playtest.Operations
 
         public static async UniTask HoverUi(string testid)
         {
-            // クリックと同じ安定性判定を通し、対象中心へのポインタ移動だけを行う
-            // Apply the same stability check as clicks, then only move the pointer to the target center
+            // クリック同様の安定中心へ移動のみ
+            // Only move to the center using the click stability check
             var target = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, testid, ActionTimeoutSeconds);
             LogResolved(target);
             await SemanticInput.MouseGlideTo(target.ScreenRect.center, MouseGlideSeconds);
@@ -48,8 +50,8 @@ namespace Client.Playtest.Operations
 
         public static async UniTask WaitUiElement(string testid, float timeoutSeconds)
         {
-            // 可視かつ中心が実際にヒットするまで照会を繰り返す
-            // Repeat lookups until the element is visible and its center genuinely hits
+            // 可視かつ中心ヒットまで再照会
+            // Repeat lookups until visible with a center hit
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
             var lastStatus = UiElementLookupStatus.NotFound;
             while (Time.realtimeSinceStartup <= deadline)
@@ -69,8 +71,8 @@ namespace Client.Playtest.Operations
 
         public static async UniTask ScrollDownUntilUiElementIsClickable(string testid, string scrollAreaTestid, float timeoutSeconds)
         {
-            // スクロール領域へポインタを置き、枠外のスロットを実際のホイール入力で表示領域へ送る
-            // Put the pointer on the scroll area and wheel clipped slots into view with real wheel input
+            // 領域上の実ホイールで枠外要素を表示
+            // Use real wheel input over the scroll area to reveal clipped elements
             var scrollArea = await UiElementScreenPointResolver.ResolveClickableUntil(PlaytestUiLocatorSession.Locator, scrollAreaTestid, timeoutSeconds);
             await SemanticInput.MouseGlideTo(scrollArea.ScreenRect.center, MouseGlideSeconds);
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
@@ -89,8 +91,8 @@ namespace Client.Playtest.Operations
 
         public static async UniTask WaitUiTextContains(string testid, string expected, float timeoutSeconds)
         {
-            // 再描画を待ち、対象要素の実表示文字列を検証する
-            // Wait for re-rendering and verify the element's rendered text
+            // 再描画後の実表示文字列を検証
+            // Verify rendered text after re-rendering
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
             UiElementSnapshot last = null;
             while (Time.realtimeSinceStartup <= deadline)

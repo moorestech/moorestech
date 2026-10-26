@@ -37,8 +37,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-// 制御textareaとstate表示を描画し、onChangeの観測値も保存する
-// Render the controlled textarea and state display, and record the onChange value
+// 制御欄とstateを描画し変更通知値を保存
+// Render the controlled field and state, recording the change-event value
 function renderControlledField(tag: "input" | "textarea", initial: string, disabled: boolean, inDisabledFieldset: boolean) {
   function Field() {
     const [value, setValue] = useState(initial);

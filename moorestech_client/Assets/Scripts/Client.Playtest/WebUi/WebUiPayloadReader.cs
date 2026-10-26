@@ -5,8 +5,10 @@ using Newtonsoft.Json.Linq;
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     Web UIから届くaction payload（外部入力）を型ごとに読む
-    ///     Reads action payloads arriving from the Web UI (external input) field by field
+    ///     ・Web外部入力の読取り
+    ///     ・actionの値を型別に検証
+    ///     ・Read external Web input
+    ///     ・Validate action values by type
     /// </summary>
     internal static class WebUiPayloadReader
     {

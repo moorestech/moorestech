@@ -6,8 +6,10 @@ using UnityEngine;
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     IUiElementLocatorのWeb（CEF）版。DOM照会と文字入力をWS往復で行う
-    ///     Web (CEF) implementation of IUiElementLocator; DOM lookups and text input go over WS round trips
+    ///     ・Web版ロケータ
+    ///     ・WS往復でDOM照会と文字入力
+    ///     ・Web locator implementation
+    ///     ・DOM lookup and text input over WS round trips
     /// </summary>
     internal class WebUiElementLocator : IUiElementLocator
     {

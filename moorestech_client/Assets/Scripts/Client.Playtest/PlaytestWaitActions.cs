@@ -10,8 +10,12 @@ using UnityEngine;
 namespace Client.Playtest
 {
     /// <summary>
-    ///     PlaytestDriverの待機系操作の本体。待機中の表示とTimeline記録を伴う
-    ///     Bodies of PlaytestDriver's wait operations, with the waiting overlay and Timeline record
+    ///     ・待機操作の本体
+    ///     ・待機表示
+    ///     ・タイムライン記録
+    ///     ・Wait operation implementations
+    ///     ・Waiting overlay
+    ///     ・Timeline recording
     /// </summary>
     internal class PlaytestWaitActions
     {

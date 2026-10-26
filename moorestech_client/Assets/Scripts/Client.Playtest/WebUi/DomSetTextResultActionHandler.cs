@@ -7,8 +7,10 @@ using UnityEngine;
 namespace Client.Playtest.WebUi
 {
     /// <summary>
-    ///     playtest.dom_set_text_result を検証して保留中の文字入力へ渡す
-    ///     Validates playtest.dom_set_text_result and hands it to the pending text input
+    ///     ・文字入力応答の検証
+    ///     ・保留中の文字入力へ転送
+    ///     ・Validate text-input responses
+    ///     ・Forward to pending text-input requests
     /// </summary>
     internal class DomSetTextResultActionHandler : IActionHandler
     {
