@@ -51,10 +51,14 @@ namespace Client.WebUiHost.Game.Topics
             _fluidCache = fluidCache;
             _republishPolicy = new BlockInventoryRepublishPolicy(fluidCache);
 
-            // 追跡替えで再配信方針を導き直す
-            // Re-derive republish policy on tracking change
+            // 追跡替えで再配信方針を導き直し、開いたままの差し替え・撤去でも出し直す
+            // Re-derive republish policy on tracking change and republish even for replacement/removal while open
             _republishPolicy.SetTrackedBlock(tracker.TrackedBlock);
-            tracker.OnTrackedBlockChanged.Subscribe(_republishPolicy.SetTrackedBlock).AddTo(_subscriptions);
+            tracker.OnTrackedBlockChanged.Subscribe(block =>
+            {
+                _republishPolicy.SetTrackedBlock(block);
+                SchedulePublish();
+            }).AddTo(_subscriptions);
             tracker.OnTrackedBlockStateChanged.Subscribe(_ => OnTrackedBlockStateChanged()).AddTo(_subscriptions);
             // 搬出統計の5tickブロックが完成するたびに、開いているベルトの詳細を出し直す
             // Republish the open belt's detail each time a 5-tick block of the exit statistics completes
