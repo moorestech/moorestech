@@ -2,6 +2,7 @@ using System.Collections;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.EditModeInPlayingTest.Util.World;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -64,13 +65,15 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             async UniTask Body()
             {
                 await LoadMainGame();
+                var ground = TestPlayerGround.Create();
 
-                // 起動ログ排出し想定外エラー検出
-                // Drain startup logs and detect unexpected errors
+                // 実足場を置き、起動ログ排出後に想定外エラーを検出
+                // Place real ground, then detect unexpected errors after draining startup logs
                 await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 try
                 {
+                    await TestPlayerGround.AssertGroundedAsync();
                     // 機械設置しスポーン待ち
                     // Place the machine and wait for spawn
                     var pos = new Vector3Int(0, 0, 0);
@@ -125,6 +128,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 }
                 finally
                 {
+                    Object.DestroyImmediate(ground);
                     LogAssert.ignoreFailingMessages = true;
                 }
             }
