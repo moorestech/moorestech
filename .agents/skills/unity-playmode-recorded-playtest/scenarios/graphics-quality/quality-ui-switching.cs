@@ -10,8 +10,8 @@ using Game.Fluid;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
+using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
-using Client.Playtest.WebUi;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -76,8 +76,9 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         foreach (var id in new[] { "pause-menu-save", "pause-menu-save-and-quit", "pause-menu-open-settings", "pause-menu-open-bug-report" })
         {
             await p.UntilUiElement(id, 15f);
-            var rect = await PlaytestDomQuery.Query(id, 5f);
-            p.Assert(rect.Visible && rect.X >= 0 && rect.Y >= 0 && rect.X + rect.Width <= Screen.width && rect.Y + rect.Height <= Screen.height, $"トップ見切れなし {id}: {rect.X},{rect.Y},{rect.Width},{rect.Height}");
+            var rect = await PlaytestUiElementOps.FindUi(id);
+            var screenRect = rect.ScreenRect;
+            p.Assert(rect.Visible && screenRect.xMin >= 0 && screenRect.yMin >= 0 && screenRect.xMax <= Screen.width && screenRect.yMax <= Screen.height, $"トップ見切れなし {id}: {screenRect}");
         }
         await p.Screenshot("02-pause-top");
         await p.ClickUi("pause-menu-open-settings");
