@@ -861,3 +861,5 @@ git merge --no-ff origin/feature/uitk-stage0 -m "Merge branch 'feature/uitk-stag
 ### 本PR外のリファクタ提案（第3バケツ）
 
 なし。
+
+| D21 | Task8 C09のSkitManagerへの適用だけを撤回し、publicの資産ロード入口とprivateのロード済み再生入口を役割境界として保持する。PreProcess/Cleanupはprivate再生入口のInternalに戻す。失敗cleanupテストは既存private overloadを反射で呼び、新設Addressables providerを除去する。広域1166件では解放待ち180秒timeout、同じ最終headの単独classは6/6成功、beforeManager参照数0対1を実測したため、style集約のためだけに生じた全体状態依存fixtureを維持しない。Presenter側C09・他レビュー修正・旧UI撤去は保持する | agent 既定（ユーザー未裁定）。Task9 finalの広域XML13:10:03Z〜13:13:42Zと単独class XML13:14:45Z。参照数差の根本原因は未確定で、推測を製品不具合の根拠にはしない |
