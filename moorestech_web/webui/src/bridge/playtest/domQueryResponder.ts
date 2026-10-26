@@ -1,9 +1,8 @@
-import { ancestorClipRect } from "../../shared/tutorialAnchor/ancestorClip";
-import { useTopicStore } from "../store/topicStore";
 import { Topics } from "../transport/protocol";
-import { subscriptions } from "../transport/subscriptionManager";
 import { sendAction } from "../transport/webSocketClient";
 import { DEFAULT_ACTION_TIMEOUT_MS } from "../transport/actions";
+import { initPlaytestTopicResponder } from "./playtestTopicResponder";
+import { findByTestId, isElementVisible, readStateFlags } from "./testIdElement";
 
 type DomQueryRequest = {
   requestId: string;
@@ -21,9 +20,9 @@ type DomQueryResult = {
   devicePixelRatio: number;
   hitTestPassed: boolean;
   text: string;
+  matchCount: number;
+  stateFlags: string[];
 };
-
-type TopicState = ReturnType<typeof useTopicStore.getState>;
 
 let disposeResponder: (() => void) | null = null;
 
@@ -32,45 +31,21 @@ let disposeResponder: (() => void) | null = null;
 export function initDomQueryResponder(): () => void {
   if (disposeResponder !== null) return disposeResponder;
 
-  let topicAcquired = false;
-  const unsubscribeStore = useTopicStore.subscribe((state, previousState) => {
-    syncTopicSubscription(state.status);
-    respondToNewRequest(state, previousState);
-  });
-
+  const disposeTopic = initPlaytestTopicResponder(Topics.playtestDomQuery, respond);
   const dispose = () => {
     if (disposeResponder !== dispose) return;
-    unsubscribeStore();
-    if (topicAcquired) subscriptions.release(Topics.playtestDomQuery);
+    disposeTopic();
     disposeResponder = null;
   };
-
   disposeResponder = dispose;
-  syncTopicSubscription(useTopicStore.getState().status);
   return dispose;
-
-  function syncTopicSubscription(status: TopicState["status"]) {
-    // snapshotのないevent topicは通常topicの復元完了後だけ購読する
-    // Subscribe to the snapshot-less event topic only after regular topics restore
-    if (status === "open" && !topicAcquired) {
-      topicAcquired = true;
-      subscriptions.acquire(Topics.playtestDomQuery);
-      return;
-    }
-
-    // 切断時に解除し、次回のrestoringTopicsへ混ざることを防ぐ
-    // Release on disconnect so it never enters the next restoringTopics set
-    if (status !== "open" && topicAcquired) {
-      topicAcquired = false;
-      subscriptions.release(Topics.playtestDomQuery);
-    }
-  }
 }
 
-function respondToNewRequest(state: TopicState, previousState: TopicState) {
-  const request = state.topics[Topics.playtestDomQuery];
-  if (request === previousState.topics[Topics.playtestDomQuery]) return;
-  if (!isDomQueryRequest(request)) return;
+function respond(request: unknown) {
+  if (!isDomQueryRequest(request)) {
+    if (request !== undefined) console.warn("[playtest.dom_query] invalid request", request);
+    return;
+  }
 
   // DOMは読み取るだけに留め、クリックやスクロールなどの操作を行わない
   // Read the DOM only; never perform interactions such as clicks or scrolling
@@ -79,9 +54,10 @@ function respondToNewRequest(state: TopicState, previousState: TopicState) {
     // Unity側が拒否した応答はerror codeを残し、契約不整合を追跡可能にする
     // Preserve the error code for Unity-side rejections so contract mismatches remain diagnosable
     if (!actionResult.ok) console.warn(`[playtest.dom_query_result] rejected: ${actionResult.error ?? "unknown_error"}`);
-  }).catch(() => {
-    // 切断競合はWS境界で吸収し、Unity側の問い合わせタイムアウトへ委ねる
-    // Absorb disconnect races at the WS boundary and let the Unity query time out
+  }).catch((error: unknown) => {
+    // WS境界の失敗を記録し、Unity側では要求タイムアウトとして検出する
+    // Record WS boundary failures; Unity detects the request timeout
+    console.warn("[playtest.dom_query_result] send failed", error);
   });
 }
 
@@ -92,8 +68,7 @@ function isDomQueryRequest(value: unknown): value is DomQueryRequest {
 }
 
 function queryElement(request: DomQueryRequest): DomQueryResult {
-  const selector = `[data-testid="${CSS.escape(request.testid)}"]`;
-  const element = document.querySelector<HTMLElement>(selector);
+  const { element, matchCount } = findByTestId(request.testid);
   const devicePixelRatio = window.devicePixelRatio;
 
   if (element === null) {
@@ -108,6 +83,8 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
       devicePixelRatio,
       hitTestPassed: false,
       text: "",
+      matchCount,
+      stateFlags: [],
     };
   }
 
@@ -134,18 +111,7 @@ function queryElement(request: DomQueryRequest): DomQueryResult {
     devicePixelRatio,
     hitTestPassed,
     text: element.innerText,
+    matchCount,
+    stateFlags: readStateFlags(element),
   };
-}
-
-function isElementVisible(element: HTMLElement, rect: DOMRect): boolean {
-  if (element.hidden || element.closest('[aria-hidden="true"]')) return false;
-  const style = getComputedStyle(element);
-  if (style.display === "none" || style.visibility === "hidden") return false;
-
-  // 祖先のoverflowと画面の交差に、実際に見える面積が必要
-  // Require visible area inside both ancestor overflow clips and the viewport
-  if (rect.width <= 0 || rect.height <= 0) return false;
-  const clip = ancestorClipRect(element);
-  return Math.max(rect.left, clip.left) < Math.min(rect.right, clip.right) &&
-    Math.max(rect.top, clip.top) < Math.min(rect.bottom, clip.bottom);
 }
