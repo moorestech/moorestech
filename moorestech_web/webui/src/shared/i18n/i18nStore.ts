@@ -53,12 +53,6 @@ export function isTranslationKey(value: string): value is TranslationKey {
   return translationKeys.has(value) || CONTENT_KEY_RE.test(value);
 }
 
-// ホスト側の位置パラメータを{p0}補間値へ変換する（通知・tooltip共通の規約）
-// Convert host-side positional params into {p0} interpolation values (shared by notifications and tooltips)
-export function buildPositionalInterpolationValues(values: readonly string[]): InterpolationValues {
-  return Object.fromEntries(values.map((value, index) => [`p${index}`, value]));
-}
-
 export function setDictionaries(
   locale: string,
   dictionary: TranslationDictionary,

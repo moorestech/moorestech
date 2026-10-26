@@ -21,7 +21,7 @@ namespace Client.Game.InGame.UI.Tooltip
 
         public void Show(TooltipOwner owner, LocalizationKey key)
         {
-            Show(owner, key, Array.Empty<string>());
+            Show(owner, key, Array.Empty<LocalizationTextParam>());
         }
 
         public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<LocalizationTextParam> textParams)

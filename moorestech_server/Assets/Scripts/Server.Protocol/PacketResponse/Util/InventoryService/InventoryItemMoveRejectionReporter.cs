@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Game.Block.Blocks.Machine.Inventory;
@@ -33,10 +34,10 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
 
             if (result == InventoryItemMoveResult.RejectedPartialSwap)
             {
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMovePartialSwap", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMovePartialSwap", new Dictionary<string, string>()));
                 return;
             }
-            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveSlotRejected", Array.Empty<string>()));
+            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveSlotRejected", new Dictionary<string, string>()));
 
             #region Internal
 

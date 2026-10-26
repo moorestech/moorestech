@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
             if (result.Kind != DeleteCompletionKind.Pending)
             {
                 var message = result.Kind == DeleteCompletionKind.Unconfirmed ? "denied.deleteUnconfirmed" : "denied.deleteRejected";
-                ClientDIContext.ClientLocalNotificationSource.Notify(NotificationMessagePack.CreateOperationDenied(message, new[] { label }));
+                ClientDIContext.ClientLocalNotificationSource.Notify(NotificationMessagePack.CreateOperationDenied(message, new Dictionary<string, string> { ["target"] = label }));
             }
         }
 

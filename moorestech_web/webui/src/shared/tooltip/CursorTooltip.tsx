@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Paper, Portal } from "@mantine/core";
 import { Topics, useTopic, type TooltipLine, type VisibleTooltipData } from "@/bridge";
-import { buildPositionalInterpolationValues, translateExternalKey, useI18n, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
+import { translateExternalKey, useI18n, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 import { clampTooltipPosition } from "./tooltipPosition";
 import styles from "./style.module.css";
 
@@ -45,15 +45,11 @@ export function CursorTooltip() {
   );
 }
 
-// ホストは行ごとにキーと位置パラメータだけを送るため、各行を辞書解決＋{p0}補間して表示文字列にする
-// The host sends only a key and positional params per line, so each line is dictionary-resolved and interpolated
+// ホストは行ごとにキーと名前付きの値だけを送るため、各行を辞書解決＋補間して表示文字列にする
+// The host sends only a key and named values per line, so each line is dictionary-resolved and interpolated
 export function resolveTooltipLines(
   data: VisibleTooltipData,
   translate: (key: TranslationKey, values: InterpolationValues) => string,
 ): string[] {
-  return data.lines.map((line: TooltipLine) => translateExternalKey(
-    line.textKey,
-    translate,
-    buildPositionalInterpolationValues(line.textParams),
-  ));
+  return data.lines.map((line: TooltipLine) => translateExternalKey(line.textKey, translate, line.textParams));
 }

@@ -1,5 +1,6 @@
 using Client.Game.InGame.UI.Notification;
 using System;
+using System.Collections.Generic;
 using UniRx;
 using Client.Network.API;
 using Client.WebUiHost.Boot;
@@ -92,7 +93,7 @@ namespace Client.WebUiHost.Game.Topics
         public long Seq;
         public string Category;
         public string MessageId;
-        public string[] MessageParams;
+        public Dictionary<string, string> MessageParams;
         public int? ItemId;
         public int? Count;
     }

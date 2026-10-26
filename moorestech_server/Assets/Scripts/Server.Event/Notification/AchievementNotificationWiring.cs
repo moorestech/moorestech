@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Challenge;
 using Game.Context;
 using Game.Research;
@@ -33,27 +34,27 @@ namespace Server.Event.Notification
             // 表示名でなくGuidを送り、表示言語での名前解決はWeb側の辞書に委ねる
             // Send GUIDs instead of display names so the web resolves names in the active language
             _researchEvent.OnResearchCompleted.Subscribe(data => _notificationService.Notify(data.playerId,
-                NotificationMessagePack.CreateAchievement("achievement.researchCompleted", new[] { data.researchNode.ResearchNodeGuid.ToString() })));
+                NotificationMessagePack.CreateAchievement("achievement.researchCompleted", new Dictionary<string, string> { ["research"] = data.researchNode.ResearchNodeGuid.ToString() })));
 
             _challengeEvent.OnCompleteChallenge.Subscribe(property => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievement("achievement.challengeCompleted", new[] { property.ChallengeTask.ChallengeMasterElement.ChallengeGuid.ToString() })));
+                NotificationMessagePack.CreateAchievement("achievement.challengeCompleted", new Dictionary<string, string> { ["challenge"] = property.ChallengeTask.ChallengeMasterElement.ChallengeGuid.ToString() })));
 
             // ChallengeCategoryのアンロックはチャレンジ達成通知と重複するため配線しない（v1判断）
             // Challenge category unlock is skipped to avoid duplicating the challenge-completed notification (v1 decision)
             _unlockState.OnUnlockItem.Subscribe(itemId => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievementWithItem("achievement.unlockedItem", Array.Empty<string>(), itemId)));
+                NotificationMessagePack.CreateAchievementWithItem("achievement.unlockedItem", new Dictionary<string, string>(), itemId)));
             _unlockState.OnUnlockCraftRecipe.Subscribe(_ => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievement("achievement.unlockedCraftRecipe", Array.Empty<string>())));
+                NotificationMessagePack.CreateAchievement("achievement.unlockedCraftRecipe", new Dictionary<string, string>())));
             _unlockState.OnUnlockMachineRecipe.Subscribe(_ => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievement("achievement.unlockedMachineRecipe", Array.Empty<string>())));
+                NotificationMessagePack.CreateAchievement("achievement.unlockedMachineRecipe", new Dictionary<string, string>())));
             _unlockState.OnUnlockBlock.Subscribe(_ => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievement("achievement.unlockedBlock", Array.Empty<string>())));
+                NotificationMessagePack.CreateAchievement("achievement.unlockedBlock", new Dictionary<string, string>())));
             _unlockState.OnUnlockTrainCar.Subscribe(_ => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievement("achievement.unlockedTrainCar", Array.Empty<string>())));
+                NotificationMessagePack.CreateAchievement("achievement.unlockedTrainCar", new Dictionary<string, string>())));
             _unlockState.OnUnlockConnectTool.Subscribe(_ => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievement("achievement.unlockedConnectTool", Array.Empty<string>())));
+                NotificationMessagePack.CreateAchievement("achievement.unlockedConnectTool", new Dictionary<string, string>())));
             _unlockState.OnUnlockBlueprint.Subscribe(_ => _notificationService.NotifyAll(
-                NotificationMessagePack.CreateAchievement("achievement.unlockedBlueprint", Array.Empty<string>())));
+                NotificationMessagePack.CreateAchievement("achievement.unlockedBlueprint", new Dictionary<string, string>())));
         }
     }
 }

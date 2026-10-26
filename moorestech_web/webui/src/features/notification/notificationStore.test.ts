@@ -11,7 +11,7 @@ describe("notificationStore", () => {
     useNotificationStore.getState().addNotification({
       category: "achievement",
       messageId: "achievement.researchCompleted",
-      messageParams: ["Iron"],
+      messageParams: { research: "Iron" },
       itemId: null,
     });
     expect(useNotificationStore.getState().notifications).toHaveLength(1);
@@ -25,7 +25,7 @@ describe("notificationStore", () => {
     useNotificationStore.getState().addNotification({
       category: "operationDenied",
       messageId: "denied.craftMaterialShortage",
-      messageParams: [],
+      messageParams: {},
       itemId: 42,
     });
     expect(useNotificationStore.getState().notifications[0].itemId).toBe(42);
@@ -35,7 +35,7 @@ describe("notificationStore", () => {
     useNotificationStore.getState().addNotification({
       category: "achievement",
       messageId: "achievement.unlockedItem",
-      messageParams: [],
+      messageParams: {},
       itemId: null,
     });
     expect(Object.keys(useNotificationStore.getState().notifications[0]).sort())
@@ -89,7 +89,7 @@ describe("notificationStore", () => {
   });
 
   it("獲得以外のカテゴリは同じ内容でも集約されない", () => {
-    const unlocked = { category: "achievement" as const, messageId: "achievement.unlockedItem", messageParams: [], itemId: 7 };
+    const unlocked = { category: "achievement" as const, messageId: "achievement.unlockedItem", messageParams: {}, itemId: 7 };
     useNotificationStore.getState().addNotification(unlocked);
     useNotificationStore.getState().addNotification(unlocked);
     expect(useNotificationStore.getState().notifications).toHaveLength(2);
@@ -121,7 +121,7 @@ function earnItem(count: number, itemId: number, messageId: string) {
   useNotificationStore.getState().addNotification({
     category: "itemEarned",
     messageId,
-    messageParams: [],
+    messageParams: {},
     itemId,
     count,
   });

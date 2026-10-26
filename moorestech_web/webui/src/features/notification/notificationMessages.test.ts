@@ -5,12 +5,12 @@ import { resolveNotificationKey, resolveNotificationParams, buildInterpolationVa
 describe("notificationMessages", () => {
   it("撤去Undoの取りこぼし件数を通知文言へ渡す", () => {
     expect(resolveNotificationText(
-      { category: "operationDenied", messageId: "denied.undoRestoreSkipped", messageParams: ["2"], itemId: null, id: 1, lifetimeEpoch: 0 },
+      { category: "operationDenied", messageId: "denied.undoRestoreSkipped", messageParams: { count: "2" }, itemId: null, id: 1, lifetimeEpoch: 0 },
       (key: string) => `resolved:${key}`,
       (itemId: number) => `item:${itemId}`,
     )).toEqual({
       key: L.ui.notification.undoRestoreSkipped,
-      values: { messageId: "denied.undoRestoreSkipped", p0: "2" },
+      values: { messageId: "denied.undoRestoreSkipped", count: "2" },
     });
   });
   it("既知のmessageIdは型付きキーを返す", () => {
@@ -25,32 +25,32 @@ describe("notificationMessages", () => {
     expect(resolveNotificationKey("itemEarned.mined")).toBe(L.ui.notification.unknownMessage);
   });
   it("messageIdとparamsを補間値へ変換する", () => {
-    expect(buildInterpolationValues("known.id", ["a", "b"])).toEqual({
+    expect(buildInterpolationValues("known.id", { x: "a", y: "b" })).toEqual({
       messageId: "known.id",
-      p0: "a",
-      p1: "b",
+      x: "a",
+      y: "b",
     });
   });
   it("アイテム名とcountを補間するのは獲得通知だけ", () => {
     const translate = (key: string) => `resolved:${key}`;
     const resolveItemDisplayName = (itemId: number) => `item:${itemId}`;
     expect(resolveNotificationText(
-      { category: "itemEarned", messageId: "itemEarned.mined", messageParams: [], itemId: 7, count: 8, id: 1, lifetimeEpoch: 0 },
+      { category: "itemEarned", messageId: "itemEarned.mined", messageParams: {}, itemId: 7, count: 8, id: 1, lifetimeEpoch: 0 },
       translate,
       resolveItemDisplayName,
     )).toEqual({ key: L.ui.notification.itemEarned, values: { messageId: "itemEarned.mined", itemName: "item:7", count: 8 } });
 
     expect(resolveNotificationText(
-      { category: "operationDenied", messageId: "denied.craftResultFull", messageParams: ["a"], itemId: null, id: 2, lifetimeEpoch: 0 },
+      { category: "operationDenied", messageId: "denied.craftResultFull", messageParams: { x: "a" }, itemId: null, id: 2, lifetimeEpoch: 0 },
       translate,
       resolveItemDisplayName,
-    )).toEqual({ key: L.ui.notification.craftResultFull, values: { messageId: "denied.craftResultFull", p0: "a" } });
+    )).toEqual({ key: L.ui.notification.craftResultFull, values: { messageId: "denied.craftResultFull", x: "a" } });
   });
 
   it("獲得通知はmessageIdに依らず獲得テンプレートを使う", () => {
     const translate = (key: string) => `resolved:${key}`;
     expect(resolveNotificationText(
-      { category: "itemEarned", messageId: "itemEarned.drifted", messageParams: [], itemId: 7, count: 3, id: 1, lifetimeEpoch: 0 },
+      { category: "itemEarned", messageId: "itemEarned.drifted", messageParams: {}, itemId: 7, count: 3, id: 1, lifetimeEpoch: 0 },
       translate,
       (itemId: number) => `item:${itemId}`,
     )).toEqual({ key: L.ui.notification.itemEarned, values: { messageId: "itemEarned.drifted", itemName: "item:7", count: 3 } });
@@ -59,7 +59,7 @@ describe("notificationMessages", () => {
   it("獲得messageIdがmessage系categoryで来たら未知通知へ落とす", () => {
     const translate = (key: string) => `resolved:${key}`;
     const { key, values } = resolveNotificationText(
-      { category: "achievement", messageId: "itemEarned.mined", messageParams: [], itemId: null, id: 2, lifetimeEpoch: 0 },
+      { category: "achievement", messageId: "itemEarned.mined", messageParams: {}, itemId: null, id: 2, lifetimeEpoch: 0 },
       translate,
       (itemId: number) => `item:${itemId}`,
     );
@@ -71,7 +71,7 @@ describe("notificationMessages", () => {
     const translate = (key: string) => `resolved:${key}`;
     const resolveItemDisplayName = vi.fn(() => "should-not-be-called");
     resolveNotificationText(
-      { category: "achievement", messageId: "achievement.unlockedItem", messageParams: [], itemId: 7, id: 3, lifetimeEpoch: 0 },
+      { category: "achievement", messageId: "achievement.unlockedItem", messageParams: {}, itemId: 7, id: 3, lifetimeEpoch: 0 },
       translate,
       resolveItemDisplayName,
     );
@@ -80,27 +80,34 @@ describe("notificationMessages", () => {
   it("マスタ欠損の除去通知は3つの件数を補間する", () => {
     const translate = (key: string) => `resolved:${key}`;
     expect(resolveNotificationText(
-      { category: "saveMigration", messageId: "saveMigration.missingMasterPruned", messageParams: ["3", "4", "5"], itemId: null, id: 9, lifetimeEpoch: 0 },
+      { category: "saveMigration", messageId: "saveMigration.missingMasterPruned", messageParams: { blockCount: "3", itemStackCount: "4", researchCount: "5" }, itemId: null, id: 9, lifetimeEpoch: 0 },
       translate,
       (itemId: number) => `item:${itemId}`,
     )).toEqual({
       key: L.ui.notification.saveMigrationMissingMasterPruned,
-      values: { messageId: "saveMigration.missingMasterPruned", p0: "3", p1: "4", p2: "5" },
+      values: { messageId: "saveMigration.missingMasterPruned", blockCount: "3", itemStackCount: "4", researchCount: "5" },
     });
   });
 
   it("Guidパラメータ通知はcontentキーで表示名へ解決する", () => {
     const guid = "13C3D42F-BBBC-5EB4-8CD0-7B841EF53079";
     const translate = (key: string) => `resolved:${key}`;
-    expect(resolveNotificationParams("achievement.challengeCompleted", [guid], translate)).toEqual([
-      `resolved:challenge.${guid.toLowerCase()}.title`,
-    ]);
-    expect(resolveNotificationParams("achievement.researchCompleted", [guid], translate)).toEqual([
-      `resolved:research.${guid.toLowerCase()}.name`,
-    ]);
+    expect(resolveNotificationParams("achievement.challengeCompleted", { challenge: guid }, translate)).toEqual({
+      challenge: `resolved:challenge.${guid.toLowerCase()}.title`,
+    });
+    expect(resolveNotificationParams("achievement.researchCompleted", { research: guid }, translate)).toEqual({
+      research: `resolved:research.${guid.toLowerCase()}.name`,
+    });
   });
   it("Guidパラメータを持たない通知はparamsを素通しする", () => {
     const translate = () => "should-not-be-called";
-    expect(resolveNotificationParams("denied.craftResultFull", ["raw"], translate)).toEqual(["raw"]);
+    expect(resolveNotificationParams("denied.craftResultFull", { x: "raw" }, translate)).toEqual({ x: "raw" });
+  });
+  it("Guidの名前が欠けた通知は警告してparamsを素通しする", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const translate = () => "should-not-be-called";
+    expect(resolveNotificationParams("achievement.researchCompleted", { wrong: "g" }, translate)).toEqual({ wrong: "g" });
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
   });
 });
