@@ -30,8 +30,8 @@
 | connect/electric-wire-tool-pole-ghost-hide-paths-check | 改名のみ | false / 1 / - / TimeoutException: Web UI element did not become available: build-menu-panel | | | `PlaytestResults/20261026_164841/electric-wire-tool-pole-ghost-hide-paths-check/result.json` |
 | connect/electric-wire-tool-pole-ghost-visibility-check | 改名のみ | false / 1 / - / TimeoutException: Web UI element did not become available: build-menu-panel | | | `PlaytestResults/20261026_165245/electric-wire-tool-pole-ghost-visibility-check/result.json` |
 | misc/localization-language-switch-via-ui | 改名のみ | false / 6 / 未翻訳の車両名はEnglishでも原文へフォールバックする / - | | | `PlaytestResults/20261026_165538/localization-language-switch-via-ui/result.json` |
-| misc/walk-while-menus-open | 改名のみ | 未測定 | | |  |
-| misc/webui-buildmenu-click | 改名のみ | 未測定 | | |  |
+| misc/walk-while-menus-open | 改名のみ | false / 0 / - / TimeoutException: UI state did not reach PlayerInventory (current: GameScreen) | | | `PlaytestResults/20261026_173554/walk-while-menus-open/result.json` |
+| misc/webui-buildmenu-click | 改名のみ | true / 3 / - / - | | | `PlaytestResults/20261026_173832/webui-buildmenu-click/result.json`。boot応答喪失後、同sessionのreadyを確認して手動注入 |
 | train/train-station-default-name | 改名のみ | 未測定 | | |  |
 | train/train-timetable-via-ui | 改名のみ | 未測定 | | |  |
 | graphics-quality/quality-recovery-ui | 照会置換 | 未測定 | | |  |
