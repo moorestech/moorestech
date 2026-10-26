@@ -25,8 +25,8 @@ namespace Client.RemoteExec.Listen
             var response = await RemoteExecEndpoint.HandleAsync(request, lifetime);
             var bytes = Encoding.UTF8.GetBytes(response.SerializeBody());
 
-            // HTTP送信境界の切断を記録し、実行結果が未達だったことを残す
-            // Record disconnects at the HTTP send boundary so undelivered results remain visible
+            // HTTP送信境界の切断を記録し、待受停止以外の未達は失敗として呼び出し側へ返す
+            // Record disconnects at the HTTP send boundary and surface non-stop delivery failures to the caller
             try
             {
                 context.Response.StatusCode = response.StatusCode;
@@ -37,8 +37,16 @@ namespace Client.RemoteExec.Listen
             }
             catch (Exception e) when (e is IOException || e is HttpListenerException || e is ObjectDisposedException || e is OperationCanceledException)
             {
-                Debug.LogWarning($"[RemoteExec] 応答を届けられませんでした: {e.Message}");
                 context.Response.Abort();
+                if (lifetime.IsCancellationRequested)
+                {
+                    // 待受の停止による中断は異常でないため失敗として返さない
+                    // An interruption caused by stopping the listener is not a fault, so it is not surfaced as a failure
+                    Debug.LogWarning($"[RemoteExec] 待受の停止により応答を中断しました: {e.Message}");
+                    return;
+                }
+                Debug.LogWarning($"[RemoteExec] 応答を届けられませんでした: {e.Message}");
+                throw;
             }
         }
     }
