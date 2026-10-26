@@ -24,10 +24,10 @@
 | train/fluid-inventory-via-interact | 照会置換 | false / 12 / 未構築のタンクへ持ち越しで水40を注入, タンクの液体名が水, タンクの量容量=40 / 5,000, 液体PFの液体名が水, 液体PFの量容量=80 / 100, PF積込/卸し切替を表示, 貨車View出現 / TimeoutException: Until '貨車View出現' timed out after 30s | | | `PlaytestResults/20261026_144657/fluid-inventory-via-interact/result.json`。再実行は boot 応答待ち5分超で中断 |
 | building/blueprint-large-paste-flicker | 改名のみ | true / 16 / - / - | | | `PlaytestResults/20261026_150611/blueprint-large-paste-flicker/result.json` |
 | building/blueprint-place-like-block | 改名のみ | true / 28 / - / - | | | `PlaytestResults/20261026_162414/blueprint-place-like-block/result.json`、generated world・seed 12345（新規パス） |
-| building/blueprint-terrain-sink-partial-paste | 改名のみ | 未測定 | | |  |
-| connect/electric-wire-tool-isolated-place-via-ui | 改名のみ | 未測定 | | |  |
-| connect/electric-wire-tool-pole-cycle-rotate-via-ui | 改名のみ | 未測定 | | |  |
-| connect/electric-wire-tool-pole-ghost-hide-paths-check | 改名のみ | 未測定 | | |  |
+| building/blueprint-terrain-sink-partial-paste | 改名のみ | false / 0 / - / result.json無し: NG: game not ready within 300s | | | `PlaytestResults/scratch/task1-baseline/blueprint-terrain-sink-partial-paste.log`、generated world・seed 12345（新規パス） |
+| connect/electric-wire-tool-isolated-place-via-ui | 改名のみ | false / 1 / - / TimeoutException: Web UI element did not become available: build-menu-panel | | | `PlaytestResults/20261026_163555/electric-wire-tool-isolated-place-via-ui/result.json` |
+| connect/electric-wire-tool-pole-cycle-rotate-via-ui | 改名のみ | false / 18 / 対照実験: ゲーム画面のホイールで装備選択が変わる (前=0 後=0), ゴーストの名前ラベルが選択中の電柱種を示す 実際:'', 後対照: ツール解除後は同じホイールで装備が切り替わる (前=0 後=0) / - | | | `PlaytestResults/20261026_164255/electric-wire-tool-pole-cycle-rotate-via-ui/result.json` |
+| connect/electric-wire-tool-pole-ghost-hide-paths-check | 改名のみ | false / 1 / - / TimeoutException: Web UI element did not become available: build-menu-panel | | | `PlaytestResults/20261026_164841/electric-wire-tool-pole-ghost-hide-paths-check/result.json` |
 | connect/electric-wire-tool-pole-ghost-visibility-check | 改名のみ | 未測定 | | |  |
 | misc/localization-language-switch-via-ui | 改名のみ | 未測定 | | |  |
 | misc/walk-while-menus-open | 改名のみ | 未測定 | | |  |
