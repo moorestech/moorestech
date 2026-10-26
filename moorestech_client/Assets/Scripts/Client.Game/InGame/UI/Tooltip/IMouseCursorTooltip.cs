@@ -1,3 +1,4 @@
+using Client.Localization;
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 
@@ -17,7 +18,7 @@ namespace Client.Game.InGame.UI.Tooltip
         // Both show and hide carry an owner token, so a Hide from anyone else never clears the current tooltip
         public void Hide(TooltipOwner owner);
         public void Show(TooltipOwner owner, LocalizationKey key);
-        public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<string> textParams);
+        public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<LocalizationTextParam> textParams);
         public void Show(TooltipOwner owner, IReadOnlyList<TooltipLine> lines);
     }
 }

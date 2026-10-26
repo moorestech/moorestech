@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
@@ -23,7 +24,7 @@ namespace Client.Game.InGame.UI.Tooltip
             Show(owner, key, Array.Empty<string>());
         }
 
-        public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<string> textParams)
+        public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<LocalizationTextParam> textParams)
         {
             Show(owner, new[] { new TooltipLine(key, textParams) });
         }

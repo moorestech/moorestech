@@ -9,7 +9,7 @@ namespace Client.Tests.Tooltip
     {
         private static TooltipPresentation RequiredItems(string itemName)
         {
-            return new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { itemName }) });
+            return new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { new LocalizationTextParam("items", itemName) }) });
         }
 
         [Test]
@@ -27,7 +27,7 @@ namespace Client.Tests.Tooltip
         {
             var baseline = RequiredItems("Iron Pickaxe");
 
-            Assert.AreNotEqual(baseline, new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet, new[] { "Iron Pickaxe" }) }));
+            Assert.AreNotEqual(baseline, new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet, new[] { new LocalizationTextParam("items", "Iron Pickaxe") }) }));
             Assert.AreNotEqual(baseline, RequiredItems("Stone Pickaxe"));
             Assert.AreNotEqual(baseline, TooltipPresentation.Hidden);
             Assert.AreNotEqual(baseline, new TooltipPresentation(new[] { baseline.Lines[0], new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet) }));

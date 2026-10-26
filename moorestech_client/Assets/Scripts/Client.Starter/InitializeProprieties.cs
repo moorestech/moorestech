@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Net;
 using Client.Common;
@@ -63,13 +64,13 @@ namespace Client.Starter
 
             if (MaxPort < port)
             {
-                denyReason = new RemoteConnectionDenyReason(LocalizationKeys.Ui.MainMenu.ConnectPortTooLarge, MaxPort.ToString());
+                denyReason = new RemoteConnectionDenyReason(LocalizationKeys.Ui.MainMenu.ConnectPortTooLarge, new LocalizationTextParam("max", MaxPort.ToString()));
                 return false;
             }
 
             if (port <= MinExclusivePort)
             {
-                denyReason = new RemoteConnectionDenyReason(LocalizationKeys.Ui.MainMenu.ConnectPortTooSmall, MinExclusivePort.ToString());
+                denyReason = new RemoteConnectionDenyReason(LocalizationKeys.Ui.MainMenu.ConnectPortTooSmall, new LocalizationTextParam("min", MinExclusivePort.ToString()));
                 return false;
             }
 

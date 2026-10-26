@@ -74,7 +74,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 
                 for (var paramIndex = 0; paramIndex < leftParams.Count; paramIndex++)
                 {
-                    if (leftParams[paramIndex] != rightParams[paramIndex]) return false;
+                    if (!leftParams[paramIndex].Equals(rightParams[paramIndex])) return false;
                 }
             }
 

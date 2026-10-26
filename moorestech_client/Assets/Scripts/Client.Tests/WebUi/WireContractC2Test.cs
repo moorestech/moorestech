@@ -138,7 +138,7 @@ namespace Client.Tests.WebUi
                 new TooltipDto
                 {
                     Visible = true,
-                    Lines = new[] { new TooltipLineDto { TextKey = "ui.tooltip.requiredItems", TextParams = new[] { "Iron Pickaxe" } } },
+                    Lines = new[] { new TooltipLineDto { TextKey = "ui.tooltip.requiredItems", TextParams = new Dictionary<string, string> { { "items", "Iron Pickaxe" } } } },
                 },
                 "tooltip.json");
         }
@@ -151,7 +151,7 @@ namespace Client.Tests.WebUi
             var wire = JToken.Parse(WebUiJson.Serialize(new TooltipDto
             {
                 Visible = true,
-                Lines = new[] { new TooltipLineDto { TextKey = "ui.tooltip.requiredItems", TextParams = new[] { "Iron Pickaxe" } } },
+                Lines = new[] { new TooltipLineDto { TextKey = "ui.tooltip.requiredItems", TextParams = new Dictionary<string, string> { { "items", "Iron Pickaxe" } } } },
             }));
             var wireKeys = wire.Children<JProperty>().Select(property => property.Name).OrderBy(name => name).ToArray();
             var lineKeys = wire["lines"][0].Children<JProperty>().Select(property => property.Name).OrderBy(name => name).ToArray();

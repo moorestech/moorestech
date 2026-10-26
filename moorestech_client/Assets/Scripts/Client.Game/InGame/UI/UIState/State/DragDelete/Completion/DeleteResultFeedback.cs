@@ -1,3 +1,4 @@
+using Client.Localization;
 using UnityEngine;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
@@ -43,7 +44,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
                 var key = item.result.Kind == DeleteCompletionKind.Pending ? LocalizationKeys.Ui.Tooltip.DeleteResultPending
                     : item.result.Kind == DeleteCompletionKind.Unconfirmed ? LocalizationKeys.Ui.Tooltip.DeleteResultUnconfirmed
                     : LocalizationKeys.Ui.Tooltip.DeleteResultRejected;
-                lines.Add(new TooltipLine(key, new[] { item.label }));
+                lines.Add(new TooltipLine(key, new[] { new LocalizationTextParam("label", item.label) }));
                 if (item.result.DenyReason.HasValue) lines.Add(new TooltipLine(item.result.DenyReason.Value));
             }
         }

@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
@@ -21,7 +22,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
 
         public InputKey Key => InputManager.Playable.Interact;
         public LocalizationKey HintKey => LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory;
-        public IReadOnlyList<string> HintParams => Array.Empty<string>();
+        public IReadOnlyList<LocalizationTextParam> HintParams => Array.Empty<LocalizationTextParam>();
 
         internal TrainCarOpenInventoryInteractAction(TrainCarEntityObject trainCar, ITrainCarViewRegistry trainCarViewRegistry)
         {
@@ -46,7 +47,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
 
         public InputKey Key => InputManager.Playable.Ride;
         public LocalizationKey HintKey => LocalizationKeys.Ui.Tooltip.InteractRideTrain;
-        public IReadOnlyList<string> HintParams => Array.Empty<string>();
+        public IReadOnlyList<LocalizationTextParam> HintParams => Array.Empty<LocalizationTextParam>();
 
         internal TrainCarRideInteractAction(TrainCarEntityObject trainCar)
         {

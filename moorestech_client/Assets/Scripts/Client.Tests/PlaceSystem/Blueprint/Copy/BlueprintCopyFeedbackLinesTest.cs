@@ -14,7 +14,7 @@ namespace Client.Tests.PlaceSystem
             BlueprintCopyFeedbackLines.ReportBlocksInRange(3, feedback);
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.BlueprintCopyBlocksInRange.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("3", feedback.Lines[0].TextParams[0]);
+            Assert.AreEqual("3", feedback.Lines[0].TextParams[0].Value);
         }
 
         [Test]

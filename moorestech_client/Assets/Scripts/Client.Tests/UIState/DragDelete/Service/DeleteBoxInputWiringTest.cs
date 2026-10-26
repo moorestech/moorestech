@@ -152,7 +152,7 @@ namespace Client.Tests.UIState.DragDelete.Service
             Box.Update(Selection, lines, false, DeleteSelectionIntent.Remove);
             Assert.AreEqual(DeleteBoxPhase.SelectingEnd, Model().Phase);
             Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxNoSelectedInRange)));
-            Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange) && line.TextParams.Count == 1 && line.TextParams[0] == "0"));
+            Assert.IsTrue(lines.Exists(line => line.Key.Equals(LocalizationKeys.Ui.Tooltip.DeleteBoxSelectedInRange) && line.TextParams.Count == 1 && line.TextParams[0].Value == "0"));
             Assert.AreEqual(1, Selection.Count);
             Assert.IsTrue(Selection.IsSelected(child));
             Assert.AreEqual(0, selected.ResetCount);
