@@ -1242,3 +1242,6 @@ bd note moorestech-albof.2 "HttpListenerが配布ビルドで動かず(b)最小K
 - D4 / RF1-C1: 再現した（取消コールバック中の再入 Start が開いた待受が、外側 Start の上書き後に `Stop()` で閉じられず接続可能なまま残った）。推奨 A（停止遷移中の再入 Start を理由ログ付きで拒否し null を返す）で修正し、`RemoteExecListenerReentryTest` で固定した。出所: agent 既定（ユーザー未裁定）。
 - D2: 再現した（応答前の切断で書き込みが IOException になり、WARNING のみで Task は成功完了、Forget の失敗経路に乗らない。RST 切断と 20MB 以上の通常切断で発生、100B の通常切断では書き込みが成功して発生しない）。推奨 A（理由ログと Abort を残し、待受停止による中断以外は元例外を再 throw）で修正し、`RemoteExecHttpExchangeDeliveryTest` で固定した。出所: agent 既定（ユーザー未裁定）。
 - D3: 人為注入でのみ再現（`_listener` を外から Close/Abort すると受付ループが LogError で抜け、`_listener`/`_lifetime` が残る。製品内に `Stop()` 以外で待受を閉じる経路は無く、不正クライアントの fuzz でも受付ループは落ちなかった。注入時もポートは接続拒否になり、送信側は応答待ちで固まらない）。ユーザー指示「再現できたものだけ直す」に従い直さない。出所: agent 既定（ユーザー未裁定）。
+- Refix（Step 7 の D2/D4 反映 diff）: applied-diff-correctness（opus）で Critical 0・Warning 0。
+- Step 7.5 bug-pass（Claude の Workflow・6 系統全回収、Codex 系統は課金回避のため不起動）: Critical BP-C1（不正チャンク本文で入口が例外で抜け、送信側が応答待ちで止まる）を 6 系統一致の静的推論として採用・自動適用したが、独立再現では Mono の HttpListener が自ら 400 を 0.03 秒で返し、送信側は止まらなかった（例外型 `HttpListenerException` が Endpoint の catch を素通りすることは指摘どおり）。再現できないため自動適用を取り消した。出所: agent 既定（ユーザー未裁定）。手順は `.superpowers/sdd/repro/bp-c1.md`。
+- bug-pass の残 Warning 3 件（`Close()` 例外時に `_isStopping` が戻らない／`ReadToEndAsync` が取消を受けない／Host が `localhost` だと HttpListener が 400）はいずれも再現手順を構成できず、直さず PR に列挙する。出所: agent 既定（ユーザー未裁定）。
