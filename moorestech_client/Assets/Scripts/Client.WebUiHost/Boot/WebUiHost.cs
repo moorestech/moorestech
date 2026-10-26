@@ -7,7 +7,6 @@ using Client.WebUiHost.Boot.Transport;
 using Client.WebUiHost.Vite;
 using Client.WebUiHost.Static;
 using Cysharp.Threading.Tasks;
-using UniRx;
 using UnityEngine;
 
 namespace Client.WebUiHost.Boot
@@ -21,9 +20,9 @@ namespace Client.WebUiHost.Boot
         private static KestrelServer _kestrel;
         private static ViteSupervisor _vite;
         private static WebSocketHub _hub;
-        private static IDisposable _shutdownSubscription;
+        private static readonly WebUiHostShutdownParticipant ShutdownParticipant = new();
 
-        private static Task<WebSocketCloseResult> _stopTask = Task.FromResult(new WebSocketCloseResult(new()));
+        private static Task<WebSocketCloseResult> _stopTask = Task.FromResult(new WebSocketCloseResult(new(), new()));
         public static WebSocketHub Hub => _hub;
 
         // 未起動はnull。0は実ポート域外の値で、書けば「届かない入口」を正常系の数字として名乗る
@@ -44,9 +43,8 @@ namespace Client.WebUiHost.Boot
                 // The previous stop's fault is already logged inside StopAsync; only wait here, do not rethrow (2-B)
                 await _stopTask.ContinueWith(_ => { });
             }
+            GameShutdownEvent.RegisterParticipant(ShutdownParticipant);
             if (_kestrel != null) return true;
-
-            _shutdownSubscription ??= GameShutdownEvent.OnGameShutdown.Subscribe(_ => Stop());
 
             // ローカルで起動し、成功後にフィールドへ代入する。途中失敗時は起動済みを片付け null 残留させない（2-A）
             // Start into locals and assign fields only on success; on partial failure, tear down and leave fields null (2-A)
@@ -119,11 +117,16 @@ namespace Client.WebUiHost.Boot
         // Begin stopping (normal path). The stop task is stored as a field and fired with Forget
         public static void Stop()
         {
-            _stopTask = StopAsync().AsTask();
-            _stopTask.AsUniTask().Forget(e => Debug.LogWarning($"[WebUiHost] stop faulted: {e.GetBaseException().Message}"));
+            StopAsync().Forget(e => Debug.LogWarning($"[WebUiHost] stop faulted: {e.GetBaseException().Message}"));
         }
 
-        public static async UniTask<WebSocketCloseResult> StopAsync()
+        public static UniTask<WebSocketCloseResult> StopAsync()
+        {
+            if (_stopTask.IsCompleted) _stopTask = StopCoreAsync().AsTask();
+            return _stopTask.AsUniTask();
+        }
+
+        private static async UniTask<WebSocketCloseResult> StopCoreAsync()
         {
             // フィールドをローカルへ退避し即 null 化する。二重 Stop を冪等にし、以後の Start を再試行可能にする
             // Move fields to locals and null them immediately; makes double-stop idempotent and lets a later Start retry

@@ -9,7 +9,7 @@ namespace Client.WebUiHost.Boot.Transport
     {
         internal static async UniTask<WebSocketCloseResult> StopAsync(ViteSupervisor vite, WebSocketHub hub, KestrelServer kestrel)
         {
-            var closeResult = new WebSocketCloseResult(new());
+            var closeResult = new WebSocketCloseResult(new(), new());
             // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）
             // Isolate and log each stop step so one failure cannot skip the remaining steps (2-B)
             if (vite != null)
@@ -53,7 +53,7 @@ namespace Client.WebUiHost.Boot.Transport
             }
 
             if (closeResult.Succeeded) Debug.Log("[WebUiHost] stopped");
-            else Debug.LogError($"[WebUiHost] stopped with failed WebSocket closes: {string.Join(", ", closeResult.FailedConnections)}");
+            else Debug.LogError($"[WebUiHost] stopped with unterminated WebSockets: {string.Join(", ", closeResult.UnterminatedConnections)}");
             return closeResult;
         }
     }

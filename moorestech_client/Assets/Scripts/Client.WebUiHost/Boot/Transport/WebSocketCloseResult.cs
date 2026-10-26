@@ -7,12 +7,14 @@ namespace Client.WebUiHost.Boot.Transport
     // Return close failures by connection to the owning shutdown operation
     public sealed class WebSocketCloseResult
     {
-        public readonly IReadOnlyDictionary<Guid, string> FailedConnections;
-        public bool Succeeded => FailedConnections.Count == 0;
+        public readonly IReadOnlyDictionary<Guid, string> CloseErrors;
+        public readonly IReadOnlyDictionary<Guid, string> UnterminatedConnections;
+        public bool Succeeded => UnterminatedConnections.Count == 0;
 
-        internal WebSocketCloseResult(Dictionary<Guid, string> failedConnections)
+        internal WebSocketCloseResult(Dictionary<Guid, string> closeErrors, Dictionary<Guid, string> unterminatedConnections)
         {
-            FailedConnections = new System.Collections.ObjectModel.ReadOnlyDictionary<Guid, string>(failedConnections);
+            CloseErrors = new System.Collections.ObjectModel.ReadOnlyDictionary<Guid, string>(closeErrors);
+            UnterminatedConnections = new System.Collections.ObjectModel.ReadOnlyDictionary<Guid, string>(unterminatedConnections);
         }
     }
 }
