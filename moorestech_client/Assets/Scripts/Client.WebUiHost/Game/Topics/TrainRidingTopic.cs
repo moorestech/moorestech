@@ -18,6 +18,7 @@ namespace Client.WebUiHost.Game.Topics
     {
         public const string TopicName = "train.riding";
 
+        private readonly IDisposable _uiStateSubscription;
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly TrainHUDScreenState _trainHudState;
@@ -29,7 +30,7 @@ namespace Client.WebUiHost.Game.Topics
             _hub = hub;
             _uiStateControl = uiStateControl;
             _trainHudState = trainHudState;
-            _uiStateControl.OnStateChanged += OnUiStateChanged;
+            _uiStateSubscription = _uiStateControl.OnStateChanged.Subscribe(OnUiStateChanged);
             _presentationSubscription = _trainHudState.OnPresentationChanged.Subscribe(_ => Publish());
             _ridingEventSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 RidingStateEventPacket.EventTag, OnRidingStateEvent);
@@ -42,7 +43,7 @@ namespace Client.WebUiHost.Game.Topics
 
         public void Dispose()
         {
-            _uiStateControl.OnStateChanged -= OnUiStateChanged;
+            _uiStateSubscription.Dispose();
             _presentationSubscription.Dispose();
             _ridingEventSubscription.Dispose();
         }

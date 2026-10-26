@@ -1,3 +1,4 @@
+using Client.Game.InGame.UI.BlockDetail;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

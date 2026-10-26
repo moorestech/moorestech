@@ -1,0 +1,19 @@
+[UitkProbe] launch hook installed args=--uitkWithCef --uitkProbeAutoCapture --uitkAutoStartLocal -logFile /private/tmp/claude-501/-Users-sakastudio-hermes-agent-data-worktrees-moorestech-uitk-stage0-measure/016705d0-9ff2-45f8-aa5f-9d7e625869b2/scratchpad/macru
+[PlaytestTitleGates] 無人起動のためタイトルのゲートを出さずに進みます reason:uitkStage0AutoCapture previousExitWasClean:False consentAcknowledged:False（退避物は last-session に残り次回の対話起動で聞き直せます）
+[PlaytestTitleGates] upload not requested after consent settled: uploads are not enabled for this boot (developer mode, or an unattended boot whose consent is unread)
+[PlaytestTitleGates] step Passed
+[UitkProbe] auto start-local: invoking the title button
+[UitkProbe] spawned front so=10 back so=-10 screen=1920x932
+[UitkProbe] MainGame probes ready cefRunning=True autoCapture=True
+[UitkProbe] auto capture directory=~/Library/Application Support/sakastudio/moorestech/UitkStage0/20261026-051816 warmup=40s
+[WebUiHost] CEF LoadUrl attempt 1: http://127.0.0.1:25051/
+[UitkProbe] ScreenCapture.CaptureScreenshot requested ~/Library/Application Support/sakastudio/moorestech/UitkStage0/20261026-051816/a_front10_back-10_screencapture_F3291.png frame=3291
+[UitkProbe] ScreenFrameReader capture written ~/Library/Application Support/sakastudio/moorestech/UitkStage0/20261026-051816/a_front10_back-10_framereader_F3291.png requestedFrame=3291 frame=3293
+[UitkProbe] sortingOrder front=-1 back=-10
+[UitkProbe] ScreenCapture.CaptureScreenshot requested ~/Library/Application Support/sakastudio/moorestech/UitkStage0/20261026-051816/b_front-1_back-10_screencapture_F3333.png frame=3333
+[UitkProbe] ScreenFrameReader capture written ~/Library/Application Support/sakastudio/moorestech/UitkStage0/20261026-051816/b_front-1_back-10_framereader_F3333.png requestedFrame=3333 frame=3335
+[UitkProbe] sortingOrder front=10 back=1
+[UitkProbe] ScreenCapture.CaptureScreenshot requested ~/Library/Application Support/sakastudio/moorestech/UitkStage0/20261026-051816/c_front10_back1_screencapture_F3375.png frame=3375
+[UitkProbe] ScreenFrameReader capture written ~/Library/Application Support/sakastudio/moorestech/UitkStage0/20261026-051816/c_front10_back1_framereader_F3375.png requestedFrame=3375 frame=3377
+[UitkProbe] sortingOrder front=10 back=-10
+[UitkProbe] auto capture finished directory=~/Library/Application Support/sakastudio/moorestech/UitkStage0/20261026-051816

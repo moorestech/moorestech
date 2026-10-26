@@ -1,5 +1,5 @@
+using Client.Game.InGame.EventMode;
 using Client.Localization;
-using Client.WebUiHost.Game.EventMode;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UniRx;

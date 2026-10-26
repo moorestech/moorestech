@@ -1,10 +1,10 @@
+using Client.Game.InGame.Train.Timetable;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Network.API;
-using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using Newtonsoft.Json.Linq;

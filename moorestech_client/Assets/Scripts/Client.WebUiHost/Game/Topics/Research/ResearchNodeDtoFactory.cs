@@ -13,7 +13,7 @@ namespace Client.WebUiHost.Game.Topics
     /// </summary>
     public static class ResearchNodeDtoFactory
     {
-        public static ResearchNodeDto Create(ResearchNodeMasterElement master, Dictionary<Guid, ResearchNodeState> states)
+        public static ResearchNodeDto Create(ResearchNodeMasterElement master, IReadOnlyDictionary<Guid, ResearchNodeState> states)
         {
             // サーバー状態が無いノードは全条件未達扱い（uGUI GetValueOrDefault と同じ既定）
             // Nodes without server state default to all-reasons-unmet (same default as uGUI GetValueOrDefault)

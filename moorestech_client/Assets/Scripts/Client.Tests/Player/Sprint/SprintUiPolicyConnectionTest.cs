@@ -37,11 +37,14 @@ namespace Client.Tests.Player
             // 自機と入力の実接続を通す
             // Exercise the real player-to-input connection
             _root = new GameObject(nameof(SprintUiPolicyConnectionTest));
+            _root.SetActive(false);
             _root.AddComponent<CharacterController>();
             _inputs = StarterAssetsInputTestLifecycle.AddInitializedInputs(_root);
             var movement = _root.AddComponent<ThirdPersonController>();
             var player = _root.AddComponent<PlayerObjectController>();
             TestReflection.SetField(player, "controller", movement);
+            _root.SetActive(true);
+            TestReflection.InvokePrivate(player, "Awake");
             player.Initialize(Vector3.zero, Vector3.zero);
 
             // 移動可・走り反転不可の画面を宣言
