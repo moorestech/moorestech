@@ -4,7 +4,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
@@ -37,15 +37,13 @@ if (Application.isFocused || !Keyboard.current.enabled || !Mouse.current.enabled
     throw new System.InvalidOperationException("Background input precondition failed: " + probe);
 await SemanticInput.TapKey(Key.Tab);
 await PlaytestUiOps.WaitUiState(UIStateEnum.PlayerInventory, 10f);
-// 録画前にDOM応答も確認し、probeの転送購読を必ず片付ける
-// Verify DOM responses before recording and always clean up probe forwarding
-PlaytestDomQuery.RegisterHandler();
-CefInputForwarder.StartForwarding();
+// 録画前にUI照会を確認し、probeのロケータ購読を必ず片付ける
+// Verify UI lookup before recording and always clean up the probe locator
+PlaytestUiLocatorSession.Start();
 try { await PlaytestUiElementOps.WaitUiElement("inventory-sort", 15f); }
 finally
 {
-    CefInputForwarder.StopForwarding();
-    PlaytestDomQuery.ResetPending();
+    PlaytestUiLocatorSession.Stop();
 }
 await UniTask.Delay(System.TimeSpan.FromSeconds(0.5f));
 await SemanticInput.TapKey(Key.Tab);
