@@ -37,10 +37,10 @@ pre { background: var(--card); border: 1px solid var(--line); border-radius: 6px
 <p class="sub">bd moorestech-albof.1 ／ 計画 <code>docs/uitk-migration/plan.md</code> §4.8 ／ 実測コード: ブランチ <code>poc/uitk-stage0-measure</code> コミット <code>f41f4766b4</code>（master には入れない）／ 実測日 2026-10-26 ／ Unity 6000.3.8f1・Mac mini（Metal）</p>
 
 <div class="verdict">
-<b>段階 1: まだ入れない（2 点待ち）。</b>測った範囲で赤信号は出ていない。S2 は Mac の配布ビルド相当でも、エンコード後のバグ報告動画まで含めて写った。残っているのは次の 2 点。
+<b>段階 1: まだ入れない（S9 待ち）。</b>測った範囲で赤信号は出ていない。S2 は Mac の配布ビルド相当でも、エンコード後のバグ報告動画まで含めて写った。残っている点と、その後の扱いは次のとおり。
 <ol>
 <li>S9（IME・赤信号の項目）はユーザーの手作業での確認待ち。確認用のビルドは用意した（下の「S9 用の PoC ビルド」）。</li>
-<li>S15 は受入条件の半分（pointerOverUi が false になる）を満たしていない。下の「ユーザーに見てほしい判断」に答えてほしい。</li>
+<li>S15 は受入条件の半分（pointerOverUi が false になる）を満たしていない。これはユーザー裁定（2026-10-26）で決着した。UITK の主パネル表示中は Web UI を全面的にオフにする（下の「S15 の裁定」）。</li>
 </ol>
 <ul>
 <li><b>S1 <span class="ok">合格</span></b> — PanelSettings.sortingOrder だけで CEF の前にも後ろにも置ける。試した値では、1・10 なら前、-1・-10 なら後ろだった。0（CEF の Canvas と同じ値）では UITK が前に出たが、これは 1 回見ただけなので、設計では 0 を使わない。Web のインベントリを開いた状態で確認した。</li>
@@ -128,15 +128,9 @@ pre { background: var(--card); border: 1px solid var(--line); border-radius: 6px
 </table></div>
 <p>action の数は Unity 側の <code>WebSocketMessageDispatcher</code> で受けた action を数えている（ack と dom_query は除く。PoC 用のログ <code>[PocActionLog]</code>）。<code>html</code> だけを none にしても、子要素の <code>pointer-events: auto</code> が上書きして当たったままになる。pointer-events はキー入力を止めないので、キー処理は別に止める必要がある（計画 R1 のとおり）。</p>
 
-<h2>ユーザーに見てほしい判断（ユーザー未裁定）</h2>
-<ol>
-<li><b>S15 の受入をどう満たすか。</b>agent の推奨: 委譲中は Unity 側が Web の pointerOverUi を読まない（委譲状態を持つ Unity 側の 1 か所で無視する）。Web には <code>* {pointer-events:none !important}</code> を当て、キー処理は別に止める。
-  <ul>
-  <li>これは計画からの逸脱になる。R1・§3.8 では共存中は両系の論理和を取るとしており、§4.8 の失敗時の手は「委譲中は Web の HUD も描かない」である。</li>
-  <li>委譲が終わった直後も、次に pointermove が来るまで古い値（true）が残る（実測の restore でも、ポインタを動かすまで true だった）。ポーズを抜けた直後の最初のワールドクリックが 1 回止まるおそれがある（推測）。この対策（委譲の終了時に Web の値を捨てる）まで含めて推奨とする。</li>
-  <li>Web から「委譲に入ったら false を送る」方式は、Web の描画タイミングに依存するので採らない。§4.8 の代替案は HUD が消えるので、最後の手段に残す。</li>
-  </ul></li>
-</ol>
+<h2>S15 の裁定（ユーザー、2026-10-26）</h2>
+<p>UITK の主パネル（またはモーダル）を表示している間は、Web UI を全面的にオフにする。CEF の RawImage を隠して入力の転送を止め、Unity 側は Web の pointerOverUi と textInputFocused を読まない。閉じたら、古い値を捨ててから戻す。pointer-events には頼らない。その間は Web の HUD も消える。記録は <code>.decisions/2026-10-26-UITKの主パネル表示中はWeb-UIを全面的にオフにする.md</code>、計画の改訂（R1・§2.2・§3.8・§4.8・§7.2）は PR #1555 に入っている。</p>
+<p>この報告で agent が推奨していた案（Web は表示したまま、Unity 側で Web の値を無視する）は採らない。</p>
 <p>事実として段階 1 の担当へ渡すこと: sortingOrder を負にするだけで、パネルを CEF の後ろに置ける（追加の仕組みは要らない）。通知層を背面パネルに置くかどうかは、計画どおり段階 1 で決める。</p>
 
 <h2>S9（IME）用の PoC ビルド</h2>
