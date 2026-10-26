@@ -48,6 +48,8 @@
         "Core.BeltTransport",
         "Client.Skit",
         "Unity.Addressables.Editor",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
         "Game.UnlockState",
         "Common.Debug",
         "Game.Paths",

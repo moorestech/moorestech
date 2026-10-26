@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { createTranslator, getI18nSnapshot, setDictionaries } from "@/shared/i18n/i18nStore";
 import { L } from "@/shared/i18n";
 import { resolveNotificationKey, resolveNotificationParams, buildInterpolationValues, resolveNotificationText } from "./notificationMessages";
 
@@ -110,4 +111,21 @@ describe("notificationMessages", () => {
     expect(warn).toHaveBeenCalledTimes(1);
     warn.mockRestore();
   });
+  it.each([
+    ["saveMigration.missingMasterPruned", "saveMigration", L.ui.notification.saveMigrationMissingMasterPruned, "researchCount"],
+    ["achievement.researchCompleted", "achievement", L.ui.notification.researchCompleted, "research"],
+    ["achievement.challengeCompleted", "achievement", L.ui.notification.challengeCompleted, "challenge"],
+  ] as const)("missing values remain visible for %s", (messageId, category, key, name) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setDictionaries("english", { [key]: `Missing {${name}}` }, {}, {});
+    const t = createTranslator(getI18nSnapshot());
+    const resolved = resolveNotificationText(
+      { category, messageId, messageParams: {}, itemId: null, id: 1, lifetimeEpoch: 0 },
+      t, () => "unused",
+    );
+    expect(t(resolved.key, resolved.values)).toBe(`Missing {${name}}`);
+    expect(warn).toHaveBeenCalledWith(`[i18n] Missing interpolation value: ${key} {${name}}`);
+    warn.mockRestore();
+  });
+
 });

@@ -10,7 +10,6 @@ using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.World;
 using Client.Network.API;
-using Client.Skit.UI;
 using Game.PlayerRiding.Interface;
 using Game.Train.Unit;
 using VContainer;

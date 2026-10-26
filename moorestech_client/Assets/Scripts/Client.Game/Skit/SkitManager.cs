@@ -70,11 +70,6 @@ namespace Client.Game.Skit
                 IsPlayingSkit = false;
                 return;
             }
-            await StartSkit(storyCsv);
-        }
-        private async UniTask StartSkit(TextAsset skitJson)
-        {
-            IsPlayingSkit = true;
             _isSkip = false;
             var presentationStarted = false;
             var cameraRegistered = false;
@@ -88,10 +83,10 @@ namespace Client.Game.Skit
             {
                 // 解決器へskitTitleを渡して準備してからコマンドを読み込む
                 // Prepare the resolver with the skit title before loading commands
-                var skitTitle = SkitTitle.FromAssetName(skitJson.name);
+                var skitTitle = SkitTitle.FromAssetName(storyCsv.name);
                 localizationResolver = new SkitLocalizationResolver();
                 await localizationResolver.PrepareAsync(skitTitle);
-                var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
+                var commandsToken = (JToken)JsonConvert.DeserializeObject(storyCsv.text);
                 var commands = CommandForgeLoader.LoadCommands(commandsToken);
 
                 // 会話表示はWeb UIが唯一の担い手のため常にブロッキング表示を開始する（ADR 0052）

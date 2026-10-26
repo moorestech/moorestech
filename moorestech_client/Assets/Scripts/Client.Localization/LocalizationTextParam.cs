@@ -29,12 +29,5 @@ namespace Client.Localization
         {
             return HashCode.Combine(Name, Value);
         }
-
-        // 録画シナリオのログが名前ごと読めるようにする
-        // Keeps recorded-scenario logs readable with the name attached
-        public override string ToString()
-        {
-            return $"{Name}={Value}";
-        }
     }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Game.Challenge;
 using Game.Context;

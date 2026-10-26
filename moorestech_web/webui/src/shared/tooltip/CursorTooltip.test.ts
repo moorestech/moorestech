@@ -68,6 +68,19 @@ describe("CursorTooltip", () => {
     }, createTranslator(getI18nSnapshot()))).toEqual(["Requires: Iron Pickaxe, Stone Pickaxe"]);
   });
 
+  it("preserves a missing count and warns once across renders", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    setDictionaries("english", { [L.ui.tooltip.placeWireCost]: "Wire x{count}" }, {}, {});
+    const data = { visible: true as const, lines: [{ textKey: L.ui.tooltip.placeWireCost, textParams: {} }] };
+    expect(resolveTooltipLines(data, createTranslator(getI18nSnapshot()))).toEqual(["Wire x{count}"]);
+    resolveTooltipLines(data, createTranslator(getI18nSnapshot()));
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn).toHaveBeenCalledWith(`[i18n] Missing interpolation value: ${L.ui.tooltip.placeWireCost} {count}`);
+    data.lines[0].textParams = { count: "0" };
+    expect(resolveTooltipLines(data, createTranslator(getI18nSnapshot()))).toEqual(["Wire x0"]);
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
   it("resolves a content key from the dictionary without a raw-text fallback", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     setDictionaries("english", { [itemNameKey(ironIngotGuid)]: "Iron Ingot" }, {}, {});

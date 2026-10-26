@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.ChallengesModule;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Localization.Skit
 {
@@ -26,10 +28,11 @@ namespace Client.Tests.Localization.Skit
             _createdObjects.Clear();
         }
 
-        [Test]
-        public void SkitFailureRestoresPlaybackStateAndLeavesUntouchedMapPinAlone()
+        [UnityTest]
+        public IEnumerator SkitFailureRestoresPlaybackStateAndLeavesUntouchedMapPinAlone()
         {
             var root = new GameObject("SkitManagerTest");
+            _createdObjects.Add(root);
             root.SetActive(false);
             var manager = root.AddComponent<SkitManager>();
             var mapObjectPin = new RecordingWorldPin();
@@ -38,21 +41,18 @@ namespace Client.Tests.Localization.Skit
 
             // 失敗したskitはfinallyだけで後始末し、まだ隠していないpinには触れない
             // A failed skit cleans up solely in finally and never touches a pin it has not hidden
-            var startSkit = typeof(SkitManager).GetMethod(
-                "StartSkit",
-                BindingFlags.Instance | BindingFlags.NonPublic,
-                null,
-                new[] { typeof(TextAsset) },
-                null);
-            var invalidTitleAsset = new TextAsset("[]");
-            var startTask = (UniTask)startSkit.Invoke(manager, new object[] { invalidTitleAsset });
+            using var invalidTitle = new Playback.InvalidTitleSkitAsset();
+            var startTask = manager.StartSkit(Playback.InvalidTitleSkitAsset.Address).AsTask();
+            // Editor更新を止めずロード完了を待つ
+            // Keep Editor updates running while awaiting asset loading
+            while (!startTask.IsCompleted) yield return null;
 
             Assert.ThrowsAsync<ArgumentException>(async () => await startTask);
             Assert.IsFalse(manager.IsPlayingSkit);
             Assert.AreEqual(0, mapObjectPin.SetActiveCallCount);
             Assert.AreEqual(0, veinPin.SetActiveCallCount);
 
-            UnityEngine.Object.DestroyImmediate(root);
+
         }
 
         [Test]

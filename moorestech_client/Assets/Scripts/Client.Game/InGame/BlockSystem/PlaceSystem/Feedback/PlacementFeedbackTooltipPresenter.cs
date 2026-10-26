@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.Tooltip;
 
@@ -46,7 +45,30 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
             {
                 // 所有者が自分でなければ他者が上書きしているので出し直す
                 // If we are not the owner, someone else overwrote the tooltip and we must show again
-                return ReferenceEquals(_tooltip.CurrentOwner, _tooltipOwner) && IsSameLines(feedback.Lines, _lastShown);
+                return ReferenceEquals(_tooltip.CurrentOwner, _tooltipOwner) && IsSameLines();
+            }
+
+            // 毎フレーム走るためLINQ列挙子を作らず添字ループで比較する
+            // Compares by index instead of LINQ enumerators because it runs every frame
+            bool IsSameLines()
+            {
+                if (feedback.Lines.Count != _lastShown.Length) return false;
+
+                for (var lineIndex = 0; lineIndex < feedback.Lines.Count; lineIndex++)
+                {
+                    if (feedback.Lines[lineIndex].Key.Key != _lastShown[lineIndex].Key.Key) return false;
+
+                    var leftParams = feedback.Lines[lineIndex].TextParams;
+                    var rightParams = _lastShown[lineIndex].TextParams;
+                    if (leftParams.Count != rightParams.Count) return false;
+
+                    for (var paramIndex = 0; paramIndex < leftParams.Count; paramIndex++)
+                    {
+                        if (!leftParams[paramIndex].Equals(rightParams[paramIndex])) return false;
+                    }
+                }
+
+                return true;
             }
 
             #endregion
@@ -58,27 +80,5 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
             _tooltip.Hide(_tooltipOwner);
         }
 
-        // 毎フレーム走るためLINQ列挙子を作らず添字ループで比較する
-        // Compares by index instead of LINQ enumerators because it runs every frame
-        private static bool IsSameLines(IReadOnlyList<TooltipLine> left, IReadOnlyList<TooltipLine> right)
-        {
-            if (left.Count != right.Count) return false;
-
-            for (var lineIndex = 0; lineIndex < left.Count; lineIndex++)
-            {
-                if (left[lineIndex].Key.Key != right[lineIndex].Key.Key) return false;
-
-                var leftParams = left[lineIndex].TextParams;
-                var rightParams = right[lineIndex].TextParams;
-                if (leftParams.Count != rightParams.Count) return false;
-
-                for (var paramIndex = 0; paramIndex < leftParams.Count; paramIndex++)
-                {
-                    if (!leftParams[paramIndex].Equals(rightParams[paramIndex])) return false;
-                }
-            }
-
-            return true;
-        }
     }
 }

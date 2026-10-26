@@ -42,9 +42,18 @@ namespace Client.Tests.PlaceSystem.Feedback
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid)), feedback.Lines[0].TextParams[0].Value);
-            Assert.AreEqual("0", feedback.Lines[0].TextParams[1].Value);
-            Assert.AreEqual("11", feedback.Lines[0].TextParams[2].Value);
+            var line = feedback.Lines[0];
+            var itemName = Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid));
+            CollectionAssert.AreEqual(new[] { new LocalizationTextParam("itemName", itemName),
+                new LocalizationTextParam("ownedCount", "0"), new LocalizationTextParam("requiredCount", "11") }, line.TextParams);
+            // 実辞書の全枠が生成値で埋まることを確かめる
+            // Check that generated values fill every placeholder in the real dictionary
+            var template = Localize.Get(line.Key);
+            StringAssert.Contains("{itemName}", template);
+            StringAssert.Contains("{ownedCount}", template);
+            StringAssert.Contains("{requiredCount}", template);
+            Assert.AreEqual(template.Replace("{itemName}", itemName).Replace("{ownedCount}", "0").Replace("{requiredCount}", "11"),
+                Localize.GetFormatted(line.Key, line.TextParams));
         }
 
         [Test]

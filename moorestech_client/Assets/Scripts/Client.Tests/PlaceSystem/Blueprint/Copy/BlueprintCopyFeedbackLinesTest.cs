@@ -2,6 +2,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using Client.Localization;
 
 namespace Client.Tests.PlaceSystem
 {
@@ -14,7 +15,7 @@ namespace Client.Tests.PlaceSystem
             BlueprintCopyFeedbackLines.ReportBlocksInRange(3, feedback);
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.BlueprintCopyBlocksInRange.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("3", feedback.Lines[0].TextParams[0].Value);
+            Assert.AreEqual(new LocalizationTextParam("count", "3"), feedback.Lines[0].TextParams[0]);
         }
 
         [Test]
