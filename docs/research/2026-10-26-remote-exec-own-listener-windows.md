@@ -122,3 +122,16 @@ R7・R8の指定範囲に未完了はない。手動UI操作・ゲームプレ�
 - `moorestech-albof.2.7`: 検証機でExplorer経由の計画外電源OFFが連続する条件を調査
 
 この実機合格はコード `57bd4b4709` に対するもの。最終レビューの自動反映 `fd635bf73d`・`11ada59aa4` はコンパイル・実機再確認が未完了で、合格を引き継がない。Refix RF1-C1（取消中の再入による待受所有権喪失）は静的指摘のまま未収束。D2〜D4の独立再現作業が自動承認審査に2回拒否され、修正・bug-passを完了できていない。draft PRは未完了の引継ぎ用である。未実行の再現fixtureは製品のテストツリーへ含めずSDDアーカイブへ退避した。
+
+## 最終 head での再確認（2026-10-26 夜）
+
+対象コード: `cc725eb0402f654b75646a95d665b36a856e1d38`（RF1-C1/D4・D2 の修正後。統合ブランチと master の取り込み前で、取り込みで `Client.RemoteExec` は変わっていない）。R8 の 3 ケースはすべて合格。
+
+- 前回と同じ入口 `SteamPlaytestBuildCli.WindowsSteamPlaytestBuild` を batchmode で実行し、exit 0・`Build Result :Succeeded`。master pin は `0d129c8b`、`masterDirty:false`、build-info は前回と同じく `dirty:true`（自動生成の StreamingAssets。退避済み）。pin の自動変更は無かった。
+- 配布物 6,664,588,123 bytes を丸ごと LAN 経由で検証機の新しい root `C:/remote-exec-listener-20261026-172117` へ送り、総バイト数（+`steam_appid.txt` 7 bytes）と `Client.RemoteExec.dll` の SHA256 `59EE4B81…6100` の一致を確かめた。Steam 配布・アップロードはしていない。
+- ケース 1（フラグなし、r1b）: Listen は `127.0.0.1:25050` のみ、`access.json=none`、Kestrel の `POST /api/remote-exec` は 404、phase1 `success:true` で自然終了。r1 は phase1 が早く終わり実行中の probe を取れなかったため、起動直後から probe する r1b でやり直した。
+- ケース 2（フラグあり、r2）: Listen は `127.0.0.1:25100` と `25050`、access.json は `port=25100/processId` 一致。`return 1 + 1;`→`2`、Harmony→`20,777777,20`、client スレッド `1`、server スレッド `23`（サーバーキュー準備完了を確かめてから送信。準備前の 1 回目は `ServerUnavailable` を正しく返した）。すべて exit 0・stderr 0。2,597 bytes の要求で `[RemoteExecWireProbe] Expect=100-continue ContentLength=2597`。quit 後に「待受を閉じました」「入口を撤去しました」、pid・access.json なし。
+- ケース 3（WebUi 改名、r3）: Listen は `127.0.0.1:25100` のみ、artifact 拒否と「Web UIなしで続行」のログ、`return 1 + 1;`→`2`。終了後 pid・access.json なし、WebUi を戻し `WebUi-restored=True`・`game-process-count=0`。
+- 各ケースの `[RemoteExec]`/`[WebUiHost]` 行の警告語 grep は r1=0・r1b=0・r2=0・r3=0。ログ全体の NullReference/SocketException は無効起動の r1 にも同数出ており、既知の albof.2.1・.2.3 と同じ扱い。
+
+原ログと JSON: `/Users/sakastudio/hermes-agent/data/services/playtest/runs/remote-exec-listener-20261026-172117`（`evidence/<case>/Player.log`、`r2-*.json/.exit/.stderr`、`r3-*.json`、`r2-expect.log`、`windows-copy-verification.log`）。
