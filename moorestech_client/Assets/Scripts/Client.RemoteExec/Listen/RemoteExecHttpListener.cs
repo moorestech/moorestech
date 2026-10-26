@@ -90,27 +90,11 @@ namespace Client.RemoteExec.Listen
                     {
                         // silent-ok: Stop() による中断で、閉じたことは Stop() が「待受を閉じました」でログ済み / 開発者が Player.log で気づく
                         if (lifetime.IsCancellationRequested) return;
-                        Debug.LogError($"[RemoteExec] 待受が要求を受け取れなくなりました（入口を撤去します。再起動で復旧）: {e}");
-                        WithdrawFaultedGenerationAsync(listener).Forget();
+                        Debug.LogError($"[RemoteExec] 待受が要求を受け取れなくなりました（遠隔実行は使えません。再起動で復旧）: {e}");
                         return;
                     }
                     RemoteExecHttpExchange.HandleAsync(context, lifetime).Forget(e => Debug.LogError($"[RemoteExec] 要求の処理に失敗しました: {e}"));
                 }
-            }
-
-            // 受付の故障を所有者へ返し、接続情報が有効な入口として残らないようにする
-            // Report the accept fault to the owner so the access details never linger as a live entry
-            async UniTaskVoid WithdrawFaultedGenerationAsync(HttpListener faulted)
-            {
-                await UniTask.SwitchToMainThread();
-                // 撤去までに再開された新しい世代は壊れていないので消さない
-                // A newer generation started before this point is healthy, so it is left alone
-                if (_listener != faulted)
-                {
-                    Debug.LogWarning("[RemoteExec] 故障した待受は既に置き換わっていたため撤去しません");
-                    return;
-                }
-                RemoteExecActivation.Deactivate();
             }
 
             #endregion
