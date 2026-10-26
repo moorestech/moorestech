@@ -2044,7 +2044,7 @@ Expected: 0 件
 
 - [ ] **Step 5: コンパイルとテスト**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestWebUiLocatorContractTest|WireContractActionNamesTest|Client.Tests.Playtest"`
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value '^(Client\.Tests\.Playtest\.|Client\.Tests\.WebUi\.WireContractActionNamesTest(\.|$))'`
 Expected: ErrorCount 0 / 全 PASS。`uloop get-logs --project-path ./moorestech_client --log-type Error` が 0 件
 
 - [ ] **Step 6: 疎通を 1 本で確かめる**
@@ -2327,3 +2327,5 @@ planning 中の判断:
 | D13 | `PlaytestUiLocatorSession`（`UiElements/`）が `WebUiElementLocator`（`WebUi/`）を直接 new する（配置検査の注目点） | このまま。Session はロケータの組み立て役で、描画系非依存の型と同じ場所に置く。開閉（`StartSession`/`StopSession`）は interface に入れない | Session を root へ置く／開閉を interface に入れる | 開閉は WS 受け口と CEF 入力転送という Web 版だけの事情で、UITK 版は開閉が要らない。段階1の差し替えは Session の 1 行（と開閉の委譲）で済み、interface は変わらない | agent 既定（ユーザー未裁定） |
 | D14 | プレイテスト橋渡しが DOM へ書く（`domQueryResponder.ts` の「読み取るだけ」の線を `domSetTextResponder.ts` で越える。配置検査の注目点） | 書く応答器を別ファイルに分け、照会の応答器は読み取り専用のまま保つ | `CefInputForwarder` に文字転送を足し `SemanticInput` から打鍵する | §4.4 で UITK 版 `SetText` は値の設定と決まっており、Web 版も同じ意味にする（D1）。打鍵案は追記にしかならない | agent 既定（ユーザー未裁定） |
 | D10 | unityプレイ録画テスト | 含める（Task 5 の 30 本の合否突き合わせ＋Task 7 の録画 2 本） | — | DSL はプレイテストの入力経路そのもの | — |
+
+| D15 | NUnit検証の対象 | `Client.Tests.Playtest.` とWireContractActionNamesTestをアンカー/名前空間境界付きで選択 | `Client.Tests.Playtest` の前方一致 | 前方一致はPlaytestReceiverの明示本番送信テストにも一致する。ローカル検証を本番送信へ接続しない | agent既定（ユーザー未裁定） |
