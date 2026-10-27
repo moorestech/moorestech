@@ -18,20 +18,6 @@ namespace Game.Block.Blocks.Machine.Upgrade
 
         private readonly Subject<int> _onStackLimitChanged = new();
 
-        private void UnlockLevel(int level)
-        {
-            // レベルは下がらない冪等操作。範囲 0..最大 は MachineUpgradeGameActionValidator が起動時に保証するので丸めず、範囲外は呼び出し側の誤りとして止める（製作上限と同じ扱い）
-            // Idempotent and never decreasing; MachineUpgradeGameActionValidator guarantees 0..max at boot, so no clamping and an out-of-range level stops as a caller bug (same as the craft cap)
-            if (level < 0 || ModuleSlotStackLimitMasterUtil.GetMaxLevel() < level) throw new ArgumentOutOfRangeException(nameof(level), level, $"モジュールスロットのスタックレベルが段階表の範囲 0..{ModuleSlotStackLimitMasterUtil.GetMaxLevel()} の外です");
-            // silent-ok: 同じか下のレベルは研究のロード時再実行・チャレンジとの重なりで正常に来る / 現在の上限は機械UIのモジュール欄（C9）に出る
-            if (level <= CurrentLevel) return;
-
-            // 上限値が同じでも段階の変化を同期する
-            // Synchronize every level increase even when the limit stays equal
-            CurrentLevel = level;
-            _onStackLimitChanged.OnNext(CurrentStackLimit);
-        }
-
         public void ApplyUnlockModuleSlotStackLevelAction(GameActionElement action)
         {
             if (action.GameActionType != GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel)
@@ -40,6 +26,24 @@ namespace Game.Block.Blocks.Machine.Upgrade
                 return;
             }
             UnlockLevel(((UnlockModuleSlotStackLevelGameActionParam)action.GameActionParam).Level);
+
+            #region Internal
+
+            void UnlockLevel(int level)
+            {
+                // レベルは下がらない冪等操作。範囲 0..最大 は MachineUpgradeGameActionValidator が起動時に保証するので丸めず、範囲外は呼び出し側の誤りとして止める（製作上限と同じ扱い）
+                // Idempotent and never decreasing; MachineUpgradeGameActionValidator guarantees 0..max at boot, so no clamping and an out-of-range level stops as a caller bug (same as the craft cap)
+                if (level < 0 || ModuleSlotStackLimitMasterUtil.GetMaxLevel() < level) throw new ArgumentOutOfRangeException(nameof(level), level, $"モジュールスロットのスタックレベルが段階表の範囲 0..{ModuleSlotStackLimitMasterUtil.GetMaxLevel()} の外です");
+                // silent-ok: 同じか下のレベルは研究のロード時再実行・チャレンジとの重なりで正常に来る / 現在の上限は機械UIのモジュール欄（C9）に出る
+                if (level <= CurrentLevel) return;
+
+                // 上限値が同じでも段階の変化を同期する
+                // Synchronize every level increase even when the limit stays equal
+                CurrentLevel = level;
+                _onStackLimitChanged.OnNext(CurrentStackLimit);
+            }
+
+            #endregion
         }
     }
 }

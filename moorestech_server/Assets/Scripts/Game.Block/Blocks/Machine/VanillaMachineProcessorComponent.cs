@@ -57,15 +57,14 @@ namespace Game.Block.Blocks.Machine
         {
             _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
             _context.BindSelectedRecipe(selectedRecipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(selectedRecipe));
-            // 加工状態を復元
-            // Restore processing state
-            CurrentState = currentState;
+            // 加工中レシピか選択レシピが欠けた加工中セーブ（出力詰まり含む）は破損のため、ジョブも捨ててIdleへ戻す
+            // A mid-job save (output blockage included) missing either the processing or selected recipe is corrupt, so drop the job too and fall back to Idle
+            var isMidJob = currentState == ProcessState.Processing || currentState == ProcessState.OutputBlocked;
+            var isCorrupt = isMidJob && (processingJob == null || selectedRecipe == null);
+            if (isCorrupt) UnityEngine.Debug.LogWarning($"[VanillaMachineProcessorComponent] 加工中セーブのジョブか選択レシピが欠けているためIdleへ戻します 状態:{currentState}");
+            processingJob = isCorrupt ? null : processingJob;
+            CurrentState = isCorrupt ? ProcessState.Idle : currentState;
             _processingState = new ProcessingMachineProcessState(_context, processingJob);
-
-            // 加工中レシピか選択レシピのいずれかが欠けた加工中セーブ（出力詰まり含む）は破損データのためIdleへ戻す
-            // A mid-job save (output blockage included) missing either the processing or selected recipe is corrupt, so fall back to Idle
-            var isMidJob = CurrentState == ProcessState.Processing || CurrentState == ProcessState.OutputBlocked;
-            if (isMidJob && (processingJob == null || selectedRecipe == null)) CurrentState = ProcessState.Idle;
 
             _stateHandlers = new IMachineProcessState[]
                 {

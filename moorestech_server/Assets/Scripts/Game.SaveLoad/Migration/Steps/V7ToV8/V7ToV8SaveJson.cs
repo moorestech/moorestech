@@ -9,6 +9,10 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
     /// </summary>
     public static class V7ToV8SaveJson
     {
+        // 清浄室機械ProcessorのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
+        // The clean-room processor's SaveKey (typeof FullName); the step never references live types, so it is kept as a string
+        public const string CleanRoomMachineSaveKey = "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent";
+
         // キーが無いか、値が JSON の null（どちらも「値が無い」として扱う箇所で使う）
         // The key is absent or its value is JSON null (used where both mean "no value")
         public static bool IsAbsentOrNull(JToken token)
@@ -51,17 +55,17 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
             return true;
         }
 
-        // save[sectionKey][arrayKey] を辿り、無い／null／配列の3状態を result に入れる。形が違えば拒否する
-        // Walk save[sectionKey][arrayKey] and put one of absent/null/array into result; a wrong shape is refused
+        // save[sectionKey][arrayKey] を辿り、無い（null 含む）／配列の2状態を result に入れる。形が違えば拒否する
+        // Walk save[sectionKey][arrayKey] and put one of absent(incl. null)/array into result; a wrong shape is refused
         public static bool TryGetNestedArray(JObject save, string sectionKey, string arrayKey, out NestedSaveArray result, out string failureReason)
         {
-            result = new MissingNestedSaveArray();
+            result = new AbsentNestedSaveArray();
             failureReason = null;
             var sectionToken = save[sectionKey];
             if (sectionToken == null) return true;
             if (IsExplicitNull(sectionToken))
             {
-                result = new ExplicitNullNestedSaveArray();
+                result = new AbsentNestedSaveArray();
                 return true;
             }
             if (!(sectionToken is JObject section)) return Reject($"{sectionKey} がオブジェクトではありません。 type={sectionToken.Type}", out failureReason);
@@ -70,7 +74,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
             if (arrayToken == null) return true;
             if (IsExplicitNull(arrayToken))
             {
-                result = new ExplicitNullNestedSaveArray();
+                result = new AbsentNestedSaveArray();
                 return true;
             }
             if (!(arrayToken is JArray found)) return Reject($"{sectionKey}.{arrayKey} が配列ではありません。 type={arrayToken.Type}", out failureReason);

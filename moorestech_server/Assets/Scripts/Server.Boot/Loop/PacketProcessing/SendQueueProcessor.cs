@@ -75,8 +75,8 @@ namespace Server.Boot.Loop.PacketProcessing
                     SendAll(dataToSend);
                 }
             }
-            // 終了中に相手が先に切れた送信失敗は想定内。受信側（UserPacketHandler）と同じ条件で分類し、終了意思の無い失敗は従来どおりErrorに残す
-            // A send failing because the peer left during shutdown is expected; classify it on the receive side's (UserPacketHandler) condition and keep failures without shutdown intent as errors
+            // 外部境界（ネットワーク送信）: 終了中に相手が先に切れた送信失敗は想定内。受信側（UserPacketHandler）と同じ条件で分類し、終了意思の無い失敗は従来どおりErrorに残す
+            // External boundary (network send): a send failing because the peer left during shutdown is expected; classify it on the receive side's (UserPacketHandler) condition and keep failures without shutdown intent as errors
             catch (SocketException exception) when (!_cancellationTokenSource.IsCancellationRequested && (_serverCancellation.IsCancellationRequested || _shutdownNotice.IsCancellationRequested))
             {
                 Debug.Log($"サーバー終了中のSocket送信を終了しました: {exception.SocketErrorCode}");

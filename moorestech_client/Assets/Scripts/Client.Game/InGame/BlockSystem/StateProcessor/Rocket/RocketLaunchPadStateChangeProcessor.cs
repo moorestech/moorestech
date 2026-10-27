@@ -31,6 +31,14 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.Rocket
         {
             var detail = blockState.GetStateDetail<RocketLaunchPadStateDetail>(RocketLaunchPadStateDetail.BlockStateDetailKey);
 
+            // 必須の状態詳細が欠けたら不整合を通知する
+            // Report a mismatch when the required state detail is missing
+            if (detail == null)
+            {
+                Debug.LogError("[RocketLaunchPadStateChangeProcessor] RocketLaunchPad state detail is missing");
+                return;
+            }
+
             // 建造完了から発射終了まで本体を表示
             // Show the body from build completion through launch end
             body.gameObject.SetActive(detail.Phase is RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch or RocketLaunchPadPhase.Launching);

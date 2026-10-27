@@ -24,7 +24,7 @@ namespace Server.MasterGate.Editor
             // Report every duplicate, unknown (absent from the master) and missing (absent from the order) GUID in the reason
             var loaded = new HashSet<Guid>(loadedResearchGuids);
             var ordered = new HashSet<Guid>(steps.Select(step => step.ResearchNodeGuid));
-            var duplicates = steps.GroupBy(step => step.ResearchNodeGuid).Where(group => group.Count() > 1).Select(group => $"{group.First().Name} ({group.Key}) x{group.Count()}").ToList();
+            var duplicates = steps.GroupBy(step => step.ResearchNodeGuid).Where(group => 1 < group.Count()).Select(group => $"{group.First().Name} ({group.Key}) x{group.Count()}").ToList();
             var unknown = steps.Where(step => !loaded.Contains(step.ResearchNodeGuid)).Select(step => $"{step.Name} ({step.ResearchNodeGuid})").Distinct().ToList();
             var missing = loaded.Where(guid => !ordered.Contains(guid)).Select(guid => guid.ToString()).ToList();
             if (duplicates.Count == 0 && unknown.Count == 0 && missing.Count == 0)

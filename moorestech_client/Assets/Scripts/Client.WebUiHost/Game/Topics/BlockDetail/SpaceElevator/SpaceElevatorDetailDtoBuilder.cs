@@ -2,7 +2,6 @@ using Client.Game.InGame.Block;
 using Client.WebUiHost.Game.Topics;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
-using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
@@ -13,13 +12,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // silent-ok: 他種別の詳細は対象のビルダーが処理する / 各専用ビルダーが担当する
             if (param is not SpaceElevatorBaseBlockParam elevatorParam) return;
             var state = block.GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
-            // 初回の状態が届く前は未着として何も詰めない（webui は詳細なしで描く）
-            // Before the first state arrives nothing is filled; the webui renders without the detail
-            if (state == null)
-            {
-                Debug.LogWarning("SpaceElevatorBase の状態詳細が未着のため DTO を保留します");
-                return;
-            }
+            // silent-ok: 初回の状態を受け取る前だけ詳細を省き、受信後の再配信で埋まる / ケーブル表示と接続ボタンが出ないことでパネル上で気づく
+            if (state == null) return;
 
             dto.SpaceElevator = new SpaceElevatorDetailDto
             {

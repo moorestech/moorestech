@@ -12,9 +12,6 @@ namespace Core.Master.Validator.Item
         {
             var logs = "";
 
-            // 初期レベルの最大スタック数はItemStack生成が生の例外で落ちるため、ここで先に弾く
-            // ItemStack creation throws raw past the level-1 max stack, so it is rejected here first
-
             foreach (var initial in items.InitialEquipmentItems)
             {
                 if (!allItemGuids.Contains(initial.ItemGuid))

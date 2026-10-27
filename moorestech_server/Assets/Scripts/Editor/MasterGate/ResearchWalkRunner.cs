@@ -71,7 +71,7 @@ namespace Server.MasterGate.Editor
                     var stacks = ServerContext.ItemStackFactory.CreateSplitStacks(MasterHolder.ItemMaster.GetItemId(cost.ItemGuid), cost.ItemCount);
                     var overflow = 0;
                     foreach (var stack in stacks) overflow += inventory.InsertItem(stack).Count;
-                    if (overflow > 0) return Fail(step, $"コスト {cost.ItemGuid} x{cost.ItemCount} のうち {overflow} 個が主インベントリに入らない（最大スタックで分けた {stacks.Count} 枠）");
+                    if (0 < overflow) return Fail(step, $"コスト {cost.ItemGuid} x{cost.ItemCount} のうち {overflow} 個が主インベントリに入らない（最大スタックで分けた {stacks.Count} 枠）");
                 }
 
                 var after = research.GetResearchNodeStates(playerId)[step.ResearchNodeGuid];

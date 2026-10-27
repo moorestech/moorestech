@@ -64,10 +64,15 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             }
             state = (ProcessState)saveData.State;
 
-            // 加工中（出力詰まり含む）でジョブか選択レシピを復元できない場合は破損扱いでIdleへ戻す
-            // A mid-job state (output blockage included) that cannot restore its job or selected recipe is corrupt and falls back to Idle
+            // 加工中（出力詰まり含む）でジョブか選択レシピを復元できない場合は破損扱いで、ジョブも捨ててIdleへ戻す
+            // A mid-job state (output blockage included) that cannot restore its job or selected recipe is corrupt, so drop the job too and fall back to Idle
             var isMidJob = state == ProcessState.Processing || state == ProcessState.OutputBlocked;
-            if (isMidJob && (processingJob == null || selectedRecipe == null)) state = ProcessState.Idle;
+            if (isMidJob && (processingJob == null || selectedRecipe == null))
+            {
+                Debug.LogWarning($"[CleanRoomMachineProcessorSaveState] 加工中セーブのジョブまたは選択レシピが欠けているためIdleへ戻します 状態:{state}");
+                state = ProcessState.Idle;
+                processingJob = null;
+            }
 
             #region Internal
 

@@ -26,7 +26,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
 
             // 破損段階の補正と実在積荷を分ける
             // Separate corrupt-stage recovery from retaining existing loaded cargo
-            var holdsCargo = save.Phase == (int)RocketLaunchPadPhase.Building || save.Phase == (int)RocketLaunchPadPhase.AwaitingLaunchCommand || save.Phase == (int)RocketLaunchPadPhase.ReadyToLaunch;
+            var holdsCargo = save.Phase.HasValue && RocketLaunchPadSaveConverter.HoldsCargo((RocketLaunchPadPhase)save.Phase.Value);
             if (!holdsCargo || save.CargoPayload == null || save.CargoMaterials == null || save.CargoMaterials.Any(item => item == null))
                 return; // silent-ok: 構造破損は既存の段階復元が補正 / RestoreStageが理由を警告する
             if (IsPhysical(save.CargoPayload, out var payloadId) &&

@@ -12,7 +12,6 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
         // コンポーネントのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
         // Component SaveKeys (typeof FullName); the step never references live types, so they are kept as strings
         private const string VanillaMachineSaveKey = "Game.Block.Blocks.Machine.VanillaMachineSaveComponent";
-        private const string CleanRoomMachineSaveKey = "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent";
         private const string InheritedLevelKey = "inheritedLevel";
 
         private readonly List<JObject> _vanillaProcessors = new();
@@ -34,18 +33,18 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
                 {
                     if (!(vanillaToken is JObject vanilla)) return V7ToV8SaveJson.Reject($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}", out failureReason);
                     var processorToken = vanilla["processor"];
-                    // processorの明示nullはロード側も警告して復元を見送るので、止めずに台数だけ残す（清浄室機械の部品と同じ扱い）
-                    // An explicit null processor is skipped with a warning by the loader too, so count it instead of refusing
-                    if (V7ToV8SaveJson.IsExplicitNull(processorToken)) _nullVanillaProcessorCount++;
+                    // processorのキー欠落と明示nullはロード側も許容（警告して復元を見送る）ので、止めずに台数だけ残す（清浄室機械の部品と同じ扱い）
+                    // An absent or explicit-null processor is tolerated by the loader too (skipped with a warning), so count it instead of refusing
+                    if (V7ToV8SaveJson.IsAbsentOrNull(processorToken)) _nullVanillaProcessorCount++;
                     else if (!(processorToken is JObject processor)) return V7ToV8SaveJson.Reject($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={processorToken?.Type}", out failureReason);
                     else if (!processor.ContainsKey(InheritedLevelKey)) _vanillaProcessors.Add(processor);
                 }
 
                 // クリーンルーム機械は直下へ足す
                 // A clean-room machine gets the key at its top level
-                var cleanRoomToken = state[CleanRoomMachineSaveKey];
+                var cleanRoomToken = state[V7ToV8SaveJson.CleanRoomMachineSaveKey];
                 if (V7ToV8SaveJson.IsAbsentOrNull(cleanRoomToken)) continue;
-                if (!(cleanRoomToken is JObject cleanRoom)) return V7ToV8SaveJson.Reject($"{CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}", out failureReason);
+                if (!(cleanRoomToken is JObject cleanRoom)) return V7ToV8SaveJson.Reject($"{V7ToV8SaveJson.CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}", out failureReason);
                 if (!cleanRoom.ContainsKey(InheritedLevelKey)) _cleanRoomProcessors.Add(cleanRoom);
             }
 

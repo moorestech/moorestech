@@ -50,6 +50,32 @@ namespace Server.MasterGate.Editor
             _lastLoadedServerDataDirectory = serverDataDirectory;
             Debug.Log($"[ShippedMasterOwner] LOAD PASS {serverDataDirectory} research={MasterHolder.ResearchMaster.GetAllResearches().Count}");
             return true;
+
+            #region Internal
+
+            void RestoreLastLoaded(string failedServerDataDirectory)
+            {
+                // 壊れたマスタで読みかけた static を後続の dynamic code に残さないため、最後に通ったマスタを読み直す
+                // Reload the last passing master so later dynamic code never runs on a half-loaded broken static master
+                if (_lastLoadedServerDataDirectory == null)
+                {
+                    Debug.LogWarning($"[ShippedMasterOwner] static master is half-loaded from {failedServerDataDirectory} and no earlier load passed in this Editor session; run G1 on a good master before anything reads MasterHolder");
+                    return;
+                }
+
+                if (TryLoadMaster(_lastLoadedServerDataDirectory, out var restoreFailure))
+                {
+                    Debug.Log($"[ShippedMasterOwner] RESTORED static master from {_lastLoadedServerDataDirectory} after the failed load of {failedServerDataDirectory}");
+                    return;
+                }
+
+                // 戻す先も読めなくなった（ファイルが変わった）ので戻す先を捨て、理由を残す
+                // The restore target no longer loads either (its files changed), so forget it and log why
+                Debug.LogError($"[ShippedMasterOwner] FAIL could not restore the static master: {restoreFailure}");
+                _lastLoadedServerDataDirectory = null;
+            }
+
+            #endregion
         }
 
         private static bool TryLoadMaster(string serverDataDirectory, out string failure)
@@ -79,28 +105,6 @@ namespace Server.MasterGate.Editor
 
             failure = null;
             return true;
-        }
-
-        private static void RestoreLastLoaded(string failedServerDataDirectory)
-        {
-            // 壊れたマスタで読みかけた static を後続の dynamic code に残さないため、最後に通ったマスタを読み直す
-            // Reload the last passing master so later dynamic code never runs on a half-loaded broken static master
-            if (_lastLoadedServerDataDirectory == null)
-            {
-                Debug.LogWarning($"[ShippedMasterOwner] static master is half-loaded from {failedServerDataDirectory} and no earlier load passed in this Editor session; run G1 on a good master before anything reads MasterHolder");
-                return;
-            }
-
-            if (TryLoadMaster(_lastLoadedServerDataDirectory, out var restoreFailure))
-            {
-                Debug.Log($"[ShippedMasterOwner] RESTORED static master from {_lastLoadedServerDataDirectory} after the failed load of {failedServerDataDirectory}");
-                return;
-            }
-
-            // 戻す先も読めなくなった（ファイルが変わった）ので戻す先を捨て、理由を残す
-            // The restore target no longer loads either (its files changed), so forget it and log why
-            Debug.LogError($"[ShippedMasterOwner] FAIL could not restore the static master: {restoreFailure}");
-            _lastLoadedServerDataDirectory = null;
         }
     }
 }

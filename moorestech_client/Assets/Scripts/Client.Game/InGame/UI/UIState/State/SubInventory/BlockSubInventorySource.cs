@@ -63,13 +63,6 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             return true;
         }
 
-        public bool TryGetBlockInstanceId(out BlockInstanceId instanceId)
-        {
-            var found = TryResolveBlockGameObject(out var block);
-            instanceId = found ? block.BlockInstanceId : default;
-            return found;
-        }
-
         // 「開いた位置の今の表示は何か」を答える唯一の口。撤去済みの墓標はfake-null比較で落とす
         // The single answer to what the opened position's current view is, dropping a stale tombstone by fake-null compare
         private bool TryResolveBlockGameObject(out BlockGameObject blockGameObject)

@@ -15,6 +15,7 @@ import CleanRoomYieldSection from "../details/cleanRoom/CleanRoomYieldSection";
 import MachineInputStallSection from "../details/machineInputStall/MachineInputStallSection";
 import PumpSection from "../details/pump/PumpSection";
 import { ElectricNetworkSection, GearNetworkSection } from "../details/NetworkSections";
+import { allSlotIndices } from "../details/detailLogic";
 
 type SectionStackViewConfig = {
   itemGridTestId: string | null;
@@ -67,7 +68,7 @@ export default function SectionStackView({ data, fillsPanelHeight }: { data: Blo
       {data.cleanRoom ? <CleanRoomSection cleanRoom={data.cleanRoom} /> : null}
       {data.cleanRoomYield ? <CleanRoomYieldSection cleanRoomYield={data.cleanRoomYield} /> : null}
       {data.machineInputStall ? <MachineInputStallSection stall={data.machineInputStall} /> : null}
-      {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} slotIndices={data.itemSlots.map((_, index) => index)} testId={itemGridTestId} /> : null}
+      {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} slotIndices={allSlotIndices(data.itemSlots.length)} testId={itemGridTestId} /> : null}
       {data.machine ? <MachineSection data={data} machine={data.machine} fillsPanelHeight={fillsPanelHeight} /> : null}
       <MinerSection data={data} />
       <PumpSection data={data} />

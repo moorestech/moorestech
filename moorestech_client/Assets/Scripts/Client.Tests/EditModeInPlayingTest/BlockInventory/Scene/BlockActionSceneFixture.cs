@@ -74,7 +74,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             // Playシーン破棄後に複製だけを削除し、元シーンは保存しない
             // Delete only the copy after play scenes are destroyed; never save the original
             var folder = SessionState.GetString(FolderKey, "");
-            for (var i = SceneManager.sceneCount - 1; i >= 0; i--)
+            for (var i = SceneManager.sceneCount - 1; 0 <= i; i--)
             {
                 var scene = SceneManager.GetSceneAt(i);
                 if (scene.path.StartsWith(folder + "/", StringComparison.Ordinal)) EditorSceneManager.CloseScene(scene, true);

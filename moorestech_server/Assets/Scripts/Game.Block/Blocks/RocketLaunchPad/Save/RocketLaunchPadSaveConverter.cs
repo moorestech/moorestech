@@ -89,6 +89,13 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
             #endregion
         }
 
+        // 実在の積荷を持つ段階の集合。検証と復元がこの1か所を見る
+        // The set of phases that hold real cargo; validation and restore both read this one place
+        internal static bool HoldsCargo(RocketLaunchPadPhase phase)
+        {
+            return phase is RocketLaunchPadPhase.Building or RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch;
+        }
+
         public static RocketLaunchPadStage RestoreStage(RocketLaunchPadSaveJsonObject saveData, RocketLaunchPadSlotLayout layout)
         {
             if (!saveData.Phase.HasValue || !Enum.IsDefined(typeof(RocketLaunchPadPhase), saveData.Phase.Value))
@@ -97,7 +104,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
             if (saveData.CargoMaterials == null) return FallBackToIdle("cargoMaterialsが欠損しています");
             if (saveData.CargoMaterials.Any(item => item == null)) return FallBackToIdle("cargoMaterialsのnull要素が欠損しています");
             var phase = (RocketLaunchPadPhase)saveData.Phase.Value;
-            var holdsCargo = phase is RocketLaunchPadPhase.Building or RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch;
+            var holdsCargo = HoldsCargo(phase);
 
             // 生DTOを検証してから生成し、捨てる積荷は実体化しない
             // Validate raw DTOs before creation and never instantiate discarded cargo
@@ -109,7 +116,8 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
                 {
                     RocketLaunchPadPhase.Idle => IdleStage.Instance,
                     RocketLaunchPadPhase.AwaitingBuildCommand => AwaitingBuildCommandStage.Instance,
-                    _ => new LaunchingStage(RestoreRemainingTicks()),
+                    RocketLaunchPadPhase.Launching => new LaunchingStage(RestoreRemainingTicks()),
+                    _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, "積荷を持たない段階として未対応の値です"),
                 };
             }
             var payloadId = Guid.TryParse(saveData.CargoPayload.ItemGuidStr, out var payloadGuid) ? MasterHolder.ItemMaster.GetItemIdOrNull(payloadGuid) : null;
@@ -121,7 +129,8 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
             {
                 RocketLaunchPadPhase.Building => new BuildingStage(cargo, RestoreRemainingTicks()),
                 RocketLaunchPadPhase.AwaitingLaunchCommand => new AwaitingLaunchCommandStage(cargo),
-                _ => new ReadyToLaunchStage(cargo),
+                RocketLaunchPadPhase.ReadyToLaunch => new ReadyToLaunchStage(cargo),
+                _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, "積荷を持つ段階として未対応の値です"),
             };
 
             #region Internal

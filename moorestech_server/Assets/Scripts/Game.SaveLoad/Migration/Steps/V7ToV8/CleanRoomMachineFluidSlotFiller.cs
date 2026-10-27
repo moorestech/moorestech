@@ -9,9 +9,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
     /// </summary>
     public sealed class CleanRoomMachineFluidSlotFiller : IV7ToV8MigrationPart
     {
-        // 清浄室機械ProcessorのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
-        // The clean-room processor's SaveKey (typeof FullName); the step never references live types, so it is kept as a string
-        private const string ProcessorSaveKey = "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent";
+        private const string ProcessorSaveKey = V7ToV8SaveJson.CleanRoomMachineSaveKey;
         private const string InputFluidSlotKey = "inputFluidSlot";
         private const string OutputFluidSlotKey = "outputFluidSlot";
 

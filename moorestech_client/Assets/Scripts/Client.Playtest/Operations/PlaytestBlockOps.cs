@@ -40,7 +40,9 @@ namespace Client.Playtest.Operations
             // Place directly into the server datastore at the tick end (bypasses the production protocol)
             var blockId = ResolveBlockId(blockName);
             IBlock block = null;
-            await PlaytestServerThreadAction.RunAsync($"place {blockName} at {position}", () => ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, direction, Array.Empty<BlockCreateParam>(), out block));
+            var placed = false;
+            await PlaytestServerThreadAction.RunAsync($"place {blockName} at {position}", () => placed = ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, direction, Array.Empty<BlockCreateParam>(), out block));
+            if (!placed) throw new InvalidOperationException($"設置拒否 pos={position} block={blockName}");
             return block;
         }
 

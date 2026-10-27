@@ -24,14 +24,6 @@ namespace Game.Block.Blocks.Machine.Upgrade
             return _capTable.GetCraftCap(familyBaseItemGuid);
         }
 
-        private void UnlockCraftCap(Guid familyBaseItemGuid, int level)
-        {
-            // 冪等で上がる方向だけ。レベルの範囲 1..ファミリー長 は MachineUpgradeGameActionValidator が起動時に保証する
-            // Idempotent and only rising; MachineUpgradeGameActionValidator guarantees the 1..family-length range at boot
-            if (!_capTable.TryRaise(familyBaseItemGuid, level)) return;
-            _onCraftCapUnlocked.OnNext((familyBaseItemGuid, level));
-        }
-
         public void ApplyUnlockLevelInheritanceCraftLevelAction(GameActionElement action)
         {
             if (action.GameActionType != GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel)
@@ -45,6 +37,18 @@ namespace Game.Block.Blocks.Machine.Upgrade
             {
                 UnlockCraftCap(targetGuid, param.Level);
             }
+
+            #region Internal
+
+            void UnlockCraftCap(Guid familyBaseItemGuid, int level)
+            {
+                // 冪等で上がる方向だけ。レベルの範囲 1..ファミリー長 は MachineUpgradeGameActionValidator が起動時に保証する
+                // Idempotent and only rising; MachineUpgradeGameActionValidator guarantees the 1..family-length range at boot
+                if (!_capTable.TryRaise(familyBaseItemGuid, level)) return;
+                _onCraftCapUnlocked.OnNext((familyBaseItemGuid, level));
+            }
+
+            #endregion
         }
     }
 }

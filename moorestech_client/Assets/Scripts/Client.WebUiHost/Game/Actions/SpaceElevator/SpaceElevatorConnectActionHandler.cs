@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Client.Network.API;
 using Client.Game.InGame.Context;
@@ -38,7 +39,7 @@ namespace Client.WebUiHost.Game.Actions
             {
                 PacketWaitCompletionReason.Timeout => "connect_timeout",
                 PacketWaitCompletionReason.DeserializeFailed => "connect_invalid_response",
-                _ => "connect_invalid_response",
+                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, "未知の通信結果"),
             });
             if (response == null) return Fail("connect_invalid_response");
             return response.Result switch
@@ -50,7 +51,7 @@ namespace Client.WebUiHost.Game.Actions
                 SpaceElevatorConnectResult.InvalidRequest => Fail("connect_invalid_request"),
                 SpaceElevatorConnectResult.BlockNotFound => Fail("connect_block_not_found"),
                 SpaceElevatorConnectResult.InstanceMismatch => Fail("connect_instance_mismatch"),
-                _ => Fail("connect_invalid_response"),
+                _ => throw new ArgumentOutOfRangeException(nameof(response.Result), response.Result, "未知の接続結果"),
             };
             #region Internal
             ActionResult Fail(string reason)
