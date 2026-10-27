@@ -22,10 +22,15 @@ namespace Client.RemoteExec
             // silent-ok: 開けない理由は Start() が LogError 済み / 開発者が Player.log と remote-exec.sh の接続失敗で気づく
             if (port == null) return;
 
-            // DLLを読み接続情報を発行
-            // Load the DLL and publish access details
+            // 接続情報を書けなければ誰も入口へ届かないので、Harmony を読む前に待受を閉じる
+            // Without written access details nobody can reach the entry, so close the listener before loading Harmony
+            if (!RemoteExecAccessFile.Issue(port.Value))
+            {
+                RemoteExecHttpListener.Stop();
+                Debug.LogError("[RemoteExec] 接続情報を書けなかったため入口を閉じました（遠隔実行は使えません）");
+                return;
+            }
             RemoteExecHarmonyLoader.Load();
-            RemoteExecAccessFile.Issue(port.Value);
         }
 
         // 入口（待受と接続情報）の撤去はここ1つに集める。呼ぶのは終了イベントの購読者と無効な起動の判定。Editorの後片付けは待受のソケットだけを閉じる

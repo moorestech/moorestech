@@ -16,9 +16,9 @@ namespace Client.RemoteExec.Access
         internal static string Token { get; private set; }
         public static string DirectoryPath => GameSystemPaths.RemoteExecDirectory;
 
-        // 待受を開けたポートだけを受け取る。開けなかった起動では呼ばれない
-        // Receives only a port the listener actually opened; a boot that failed to open never calls this
-        internal static void Issue(int port)
+        // 待受を開けたポートだけを受け取る。書けたかを返す
+        // Receives only a port the listener actually opened; returns whether it was written
+        internal static bool Issue(int port)
         {
             Token = null;
             var bytes = new byte[32];
@@ -35,10 +35,12 @@ namespace Client.RemoteExec.Access
                 File.WriteAllText(path, json.ToString());
                 Token = token;
                 Debug.LogWarning($"[RemoteExec] 入口を開きました port:{port} access:{path}");
+                return true;
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {
                 Debug.LogError($"[RemoteExec] access.json を書けませんでした（遠隔実行は使えません）: {e.Message}");
+                return false;
             }
         }
 
