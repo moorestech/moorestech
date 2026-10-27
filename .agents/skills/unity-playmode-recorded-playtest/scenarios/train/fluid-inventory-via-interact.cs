@@ -17,6 +17,7 @@ using Game.Block.Interface.Extension;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.TrainRail;
 using Game.Block.Blocks.TrainRail.ContainerComponents;
+using Game.Context;
 using Game.Fluid;
 using Game.Train.Unit;
 using Game.Train.Unit.Containers;
@@ -56,12 +57,21 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     // タンクを通常の照準とF操作で開く
     // Open the tank through normal aiming and F interaction
     p.Note("タンクに水40を準備し、照準→Fで開く");
-    await p.PlaceBlockDirect("液体タンク",tankPosition,BlockDirection.North);
     // 設置直後(tick末尾の網の組み直しより前)に入れるので持ち越しに入り、最初の組み直しで網へ移る。網に入った後の直接投入はクライアント側のコピーと食い違うので許さない
     // Injected right after placement (before the tick-end network rebuild) so it lands in the holdover and moves into the network on the first rebuild; injecting into a built-in pipe would diverge from the client-side copy
-    var tank = p.GetBlock(tankPosition).GetComponent<FluidPipeComponent>();
-    var tankRemainder = tank.AddLiquid(new FluidStack(40,water),default);
-    p.Assert(tank.NodeIndex<0 && tankRemainder.Amount==0,"未構築のタンクへ持ち越しで水40を注入");
+    // 設置と注入を同じtick末尾で行う。別々に流すと間のtickで網が組まれ、持ち越しに入らない
+    // Place and inject in the same tick end; running them separately lets the tick in between build the network
+    var tankBlockId = PlaytestBlockOps.ResolveBlockId("液体タンク");
+    var tankNodeIndexAtInject = 0;
+    var tankRemainderAmount = -1d;
+    await p.RunOnServer("液体タンクを設置して水40を持ち越しへ入れる", () =>
+    {
+        ServerContext.WorldBlockDatastore.TryAddBlock(tankBlockId, tankPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var tankBlock);
+        var tank = tankBlock.GetComponent<FluidPipeComponent>();
+        tankNodeIndexAtInject = tank.NodeIndex;
+        tankRemainderAmount = tank.AddLiquid(new FluidStack(40,water),default).Amount;
+    });
+    p.Assert(tankNodeIndexAtInject<0 && tankRemainderAmount==0,"未構築のタンクへ持ち越しで水40を注入");
     var tankView = await p.WaitBlockGameObject(tankPosition);
     await Open(tankView.GetComponentsInChildren<Collider>().First(c => c.enabled));
     await CheckFluid("fluid-pipe-fluid-slots","40 / 5,000","タンク");
@@ -75,7 +85,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     await p.PlaceBlockDirect("液体プラットフォーム",platformPosition,BlockDirection.North);
     var platform = p.GetBlock(platformPosition);
     var pf = platform.GetComponent<TrainPlatformFluidContainerComponent>();
-    pf.AddLiquid(new FluidStack(80,water),default);
+    await p.RunOnServer("液体PFに水80を入れる", () => pf.AddLiquid(new FluidStack(80,water),default));
     var platformView = await p.WaitBlockGameObject(platformPosition);
     await Open(platformView.GetComponentsInChildren<Collider>().First(c => c.enabled));
     await CheckFluid("train-platform-fluid-slots","80 / 100","液体PF");
@@ -90,7 +100,9 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     // Invoke internal setup through reflection without widening the product API
     var transferType = typeof(TrainPlatformFluidContainerComponent).Assembly.GetType("Game.Block.Blocks.TrainRail.ContainerComponents.TrainPlatformFluidTransfer", true);
     var transfer = transferType.GetMethod("Transfer", BindingFlags.Static | BindingFlags.NonPublic);
-    p.Assert((double)transfer.Invoke(null, new object[] { pf.Container.Container, reserve })==80,"準備用にPF水80を退避");
+    var reservedAmount = 0d;
+    await p.RunOnServer("準備用にPFの水を退避する", () => reservedAmount = (double)transfer.Invoke(null, new object[] { pf.Container.Container, reserve }));
+    p.Assert(reservedAmount==80,"準備用にPF水80を退避");
 
     // 貨車を空のPFへドッキングし初期在庫を開く
     // Dock the car at the empty platform and open its initial inventory
@@ -103,13 +115,17 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     fluid.AddLiquid(new FluidStack(10,water));
     car.SetContainer(new FluidTrainCarContainer(fluid));
     var position = new RailPosition(new List<IRailNode>{exit,entry},car.Length,0);
-    var train = new TrainUnit(position,new List<TrainCar>{car},p.ServerService<TrainRailPositionManager>(),p.ServerService<TrainDiagramManager>());
-    p.ServerService<ITrainUnitMutationDatastore>().RegisterTrain(train);
-    p.ServerService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshot(train);
-    train.trainDiagram.AddEntry(position.GetNodeApproaching(),TrainDiagram.DepartureConditionType.WaitForTicks,10000);
-    train.TurnOnAutoRun();
+    TrainUnit train = null;
+    await p.RunOnServer("液体貨車の列車を登録してドッキングさせる", () =>
+    {
+        train = new TrainUnit(position,new List<TrainCar>{car},p.ServerService<TrainRailPositionManager>(),p.ServerService<TrainDiagramManager>());
+        p.ServerService<ITrainUnitMutationDatastore>().RegisterTrain(train);
+        p.ServerService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshot(train);
+        train.trainDiagram.AddEntry(position.GetNodeApproaching(),TrainDiagram.DepartureConditionType.WaitForTicks,10000);
+        train.TurnOnAutoRun();
+        train.trainUnitStationDocking.TryDockWhenStopped();
+    });
     p.Assert(train.IsAutoRun,"停車ダイヤの自動運転でドッキングを維持");
-    train.trainUnitStationDocking.TryDockWhenStopped();
     await p.Until(()=>car.IsDocked,15,"貨車ドッキング");
     var registry = UnityEngine.Object.FindFirstObjectByType<TrainCarObjectDatastore>();
     await p.Until(()=>registry.TryGetEntity(car.TrainCarInstanceId,out var e)&&e.Interactable!=null,30,"貨車View出現");
@@ -122,7 +138,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     // 通常tick搬送後のDOM更新を画面を開いたまま確認する
     // Verify DOM refresh after normal tick transfer while keeping the panel open
     p.Note("PFへ水80を戻し、開いた貨車画面が90へ更新されるまで待つ");
-    pf.AddLiquid(new FluidStack(reserve.Amount,reserve.FluidId),default);
+    await p.RunOnServer("PFへ退避した水を戻す", () => pf.AddLiquid(new FluidStack(reserve.Amount,reserve.FluidId),default));
     await p.Until(()=>Math.Abs(fluid.Amount-90)<0.001,20,"通常tickで貨車へ80搬送");
     p.Assert(pf.Container.Container.Amount==0,"PF残量0");
     p.Assert(p.CurrentUiState==UIStateEnum.SubInventory,"貨車画面を開いたまま搬送");

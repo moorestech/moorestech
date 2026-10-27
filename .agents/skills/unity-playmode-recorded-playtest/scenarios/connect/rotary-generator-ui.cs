@@ -88,7 +88,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     var fluid = p.GetBlock(steamPos).GetComponent<FuelGearGeneratorFluidComponent>();
     var steamId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("e2a5d2e5-3fa5-47e2-9fc0-68c8552523f8"));
     var steamSupplyActive = true;
-    RefillSteamEveryFrame().Forget();
+    RefillSteamEveryTick().Forget();
     await p.Until(() => Detail().CurrentRpm >= 40f && Detail().GenerationState == GearToElectricGenerationState.Idle, 90f, "40 RPM以上で需要なし待機");
     p.Assert(!fluid.IsPipeDisconnected, "蒸気補給が継続している");
 
@@ -137,14 +137,13 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
 
     #region Internal
 
-    // 補給はtickより細かいフレーム単位で行い、UI操作中も5tick連続の未補給（切断判定）を作らない。失敗で抜けてもPlayMode終了か撤去で止まる
-    // Refill per frame (finer than a tick) so UI steps never leave 5 ticks unrefilled; on failure it still stops with PlayMode exit or block removal
-    async UniTaskVoid RefillSteamEveryFrame()
+    // 補給は毎tick末尾に1回行い、UI操作中も5tick連続の未補給（切断判定）を作らない。tickと競合しないようtick末尾で書く。失敗で抜けてもPlayMode終了か撤去で止まる
+    // Refill once at every tick end so UI steps never leave 5 ticks unrefilled; writing at the tick end avoids racing the tick. On failure it still stops with PlayMode exit or block removal
+    async UniTaskVoid RefillSteamEveryTick()
     {
         while (steamSupplyActive && Application.isPlaying && !fluid.IsDestroy)
         {
-            fluid.AddLiquid(new FluidStack(1d, steamId), default);
-            await UniTask.Yield();
+            await p.RunOnServer("蒸気を1補給する", () => fluid.AddLiquid(new FluidStack(1d, steamId), default));
         }
     }
 

@@ -190,10 +190,16 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
         // 室外の発電機へ燃料を直接入れ、電線で清浄機と機械へ給電する（接続処理が電力網を dirty にする）
         // Fuel an outdoor generator directly and wire it to the purifier and machine; connecting marks the network dirty
         var generatorBlock = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-15, 32, -15), BlockDirection.North);
-        generatorBlock.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(400, MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"))), default);
         var (generatorConnector, filterConnector, machineConnector) = (generatorBlock.GetComponent<IElectricWireConnector>(), filter.GetComponent<IElectricWireConnector>(), machine.GetComponent<IElectricWireConnector>());
         var freeCost = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
-        p.Assert(ElectricWireSystemUtil.TryConnectBothSides(generatorConnector, filterConnector, freeCost), "電線 発電機→清浄機");
-        p.Assert(ElectricWireSystemUtil.TryConnectBothSides(generatorConnector, machineConnector, freeCost), "電線 発電機→EUV");
+        var (wiredFilter, wiredMachine) = (false, false);
+        await p.RunOnServer("発電機に給油して清浄機と機械へ配線する", () =>
+        {
+            generatorBlock.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(400, MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"))), default);
+            wiredFilter = ElectricWireSystemUtil.TryConnectBothSides(generatorConnector, filterConnector, freeCost);
+            wiredMachine = ElectricWireSystemUtil.TryConnectBothSides(generatorConnector, machineConnector, freeCost);
+        });
+        p.Assert(wiredFilter, "電線 発電機→清浄機");
+        p.Assert(wiredMachine, "電線 発電機→EUV");
     }
 });

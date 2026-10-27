@@ -59,7 +59,7 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     p.Note("供給チェストに鉄インゴットを入れて流し始める");
     var itemId = PlaytestItemOps.ResolveItemId("鉄インゴット");
     var source = p.GetBlock(sourcePosition).ComponentManager.GetComponent<IOpenableBlockInventoryComponent>();
-    source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 30));
+    await p.RunOnServer("供給チェストに鉄インゴット30個を入れる", () => source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 30)));
     var sinkA = p.GetBlock(sinkAPosition).ComponentManager.GetComponent<IOpenableBlockInventoryComponent>();
     var sinkB = p.GetBlock(sinkBPosition).ComponentManager.GetComponent<IOpenableBlockInventoryComponent>();
 
@@ -94,7 +94,7 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     p.Note("撤去した位置へ再設置し、供給を20個足す。流れが戻り、受けAが再び増える");
     await p.PlaceBlockDirect("ベルトコンベア", removedPosition, BlockDirection.North);
     await p.WaitBlockGameObject(removedPosition);
-    source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, CountOf(source, itemId) + 20));
+    await p.RunOnServer("供給チェストに鉄インゴットを20個足す", () => source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, CountOf(source, itemId) + 20)));
     var countAAfterReplace = CountOf(sinkA, itemId);
     await p.Until(() => countAAfterReplace + 3 <= CountOf(sinkA, itemId), 90f, "再設置後に受けAが3個増えた");
     await p.Screenshot("05-belt-replaced");

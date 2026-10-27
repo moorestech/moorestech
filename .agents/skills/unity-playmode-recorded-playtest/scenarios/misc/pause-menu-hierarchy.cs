@@ -182,12 +182,15 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     async UniTask<TrainCarEntityObject> PrepareAndRideTrain()
     {
         var a = new Vector3Int(10, 32, 6); var b = new Vector3Int(10, 32, 22);
-        PlacePier(a); PlacePier(b);
+        await PlacePier(a); await PlacePier(b);
         await p.WaitBlockGameObject(a); await p.WaitBlockGameObject(b);
         var railA = p.GetBlock(a).GetComponent<RailComponent>(); var railB = p.GetBlock(b).GetComponent<RailComponent>();
-        railA.FrontNode.ConnectNode(railB.FrontNode); railB.BackNode.ConnectNode(railA.BackNode);
         var master = MasterHolder.TrainUnitMaster.Train.TrainCars.First(trainCar => trainCar.Length <= 7);
-        p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
+        await p.RunOnServer("レール2本を接続して列車を解放する", () =>
+        {
+            railA.FrontNode.ConnectNode(railB.FrontNode); railB.BackNode.ConnectNode(railA.BackNode);
+            p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
+        });
         foreach (var required in master.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
         var position = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);
         var response = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(position, master.TrainCarGuid, CancellationToken.None);
@@ -200,12 +203,14 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         return spawned;
     }
 
-    void PlacePier(Vector3Int position)
+    async UniTask PlacePier(Vector3Int position)
     {
         var blockId = PlaytestBlockOps.ResolveBlockId("レール橋脚");
         var detail = new RailBridgePierComponentStateDetail(RailComponent.ToVector3(BlockDirection.North));
         var parameters = new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, MessagePackSerializer.Serialize(detail)) };
-        p.Assert(ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, BlockDirection.North, parameters, out _), $"レール橋脚を配置 {position}");
+        var placed = false;
+        await p.RunOnServer($"レール橋脚を配置 {position}", () => placed = ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, BlockDirection.North, parameters, out _));
+        p.Assert(placed, $"レール橋脚を配置 {position}");
     }
 
     #endregion

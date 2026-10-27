@@ -58,10 +58,13 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         // Connecting exit(front)→other entry(front) also creates the reverse back-side edge (docs/train/TrainSystemNotes.md)
         RailComponent ExitOf(List<RailComponent> rails) => rails.First(r => r.FrontNode.StationRef.NodeRole == StationNodeRole.Exit);
         RailComponent EntryOf(List<RailComponent> rails) => rails.First(r => r.FrontNode.StationRef.NodeRole == StationNodeRole.Entry);
-        ExitOf(railsA).FrontNode.ConnectNode(EntryOf(railsB).FrontNode);
-        ExitOf(railsB).FrontNode.ConnectNode(EntryOf(railsA).FrontNode);
-        stationA.GetComponent<TrainStationComponent>().SetStationName("北駅");
-        stationB.GetComponent<TrainStationComponent>().SetStationName("南駅");
+        await p.RunOnServer("駅2基を結線して命名する", () =>
+        {
+            ExitOf(railsA).FrontNode.ConnectNode(EntryOf(railsB).FrontNode);
+            ExitOf(railsB).FrontNode.ConnectNode(EntryOf(railsA).FrontNode);
+            stationA.GetComponent<TrainStationComponent>().SetStationName("北駅");
+            stationB.GetComponent<TrainStationComponent>().SetStationName("南駅");
+        });
 
         // ===== 機関車 =====
         // ===== Locomotive =====
@@ -69,7 +72,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         var resolver = ClientDIContext.DIContainer.DIContainerResolver;
         var clientUnlockState = resolver.Resolve<IGameUnlockStateData>();
         var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => 0 < c.TractionForce);
-        p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(carMaster.TrainCarGuid);
+        await p.RunOnServer("機関車を解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(carMaster.TrainCarGuid));
         await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(carMaster.TrainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロック同期");
         foreach (var required in carMaster.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
         var trainLength = TrainLengthConverter.ToRailUnits(carMaster.Length);

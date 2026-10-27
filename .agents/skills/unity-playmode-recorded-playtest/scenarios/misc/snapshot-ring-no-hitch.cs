@@ -23,8 +23,8 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
 
     // tickへ差し込む購読口・末尾リストは無いので、取り込み時間はシナリオ側からCapture()を直接呼んで測る
     // There is no tick hook or tick-end list to inject into, so capture time is measured by calling Capture() directly from the scenario
-    // Capture()はtickスレッド専用の契約だが、建設を終えた静止ワールドで読むだけなので計測用途に限り許す（tick進行と重なった回は値が膨らむ）
-    // Capture() is contracted to the tick thread, but reading a settled world is tolerated for measurement only (runs overlapping a tick read high)
+    // Capture()はtickスレッド専用の契約なので、tick末尾で呼んでその中で時間を測る
+    // Capture() is contracted to the tick thread, so call it at the tick end and time it there
 
     // 取り込み時間のブロック数依存を見るため、素のワールド→土台のみ→チェスト込みの3段で測る
     // Measure captures at three scales (bare world, foundations only, plus chests) to expose the per-block dependency
@@ -67,7 +67,7 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
     {
         if (written.Success) Interlocked.Increment(ref writtenSnapshotCount);
     });
-    ring.Start(null, null, null);
+    await p.RunOnServer("常時記録リングを開始する", () => ring.Start(null, null, null));
     p.Note("ring started");
     var worst = await MeasureCaptures("ring-on");
     p.Assert(worst <= 20d, $"取り込みが20ms以内 (worst {worst:F1}ms)");
@@ -96,9 +96,13 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
         var worstMilliseconds = 0d;
         for (var i = 0; i < 5; i++)
         {
-            var captureWatch = Stopwatch.StartNew();
-            assembler.Capture();
-            var milliseconds = captureWatch.Elapsed.TotalMilliseconds;
+            var milliseconds = 0d;
+            await p.RunOnServer($"取り込み時間を測る {label}#{i}", () =>
+            {
+                var captureWatch = Stopwatch.StartNew();
+                assembler.Capture();
+                milliseconds = captureWatch.Elapsed.TotalMilliseconds;
+            });
             if (worstMilliseconds < milliseconds) worstMilliseconds = milliseconds;
             p.Note($"capture[{label}]#{i}: {milliseconds:F1}ms");
             await p.WaitSeconds(0.5f);

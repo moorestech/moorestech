@@ -58,8 +58,14 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.WaitBlockGameObject(sideChest);
     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
     var wireTool = MasterHolder.ConnectToolMaster.All.First(tool => tool.Name == "電線").ConnectToolGuid;
-    p.Assert(ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, true, out var reasonAb), $"電柱同士を結線 理由:{reasonAb}");
-    p.Assert(ElectricWireSystemUtil.TryConnect(poleB, oven, playerId, wireTool, true, out var reasonBo), $"電柱→石窯を結線 理由:{reasonBo}");
+    var (wiredAb, reasonAb, wiredBo, reasonBo) = (false, default(Server.Protocol.PacketResponse.Util.ElectricWire.Placement.ElectricWirePlacementFailureReason), false, default(Server.Protocol.PacketResponse.Util.ElectricWire.Placement.ElectricWirePlacementFailureReason));
+    await p.RunOnServer("電柱同士と電柱→石窯を結線する", () =>
+    {
+        wiredAb = ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, true, out reasonAb);
+        wiredBo = ElectricWireSystemUtil.TryConnect(poleB, oven, playerId, wireTool, true, out reasonBo);
+    });
+    p.Assert(wiredAb, $"電柱同士を結線 理由:{reasonAb}");
+    p.Assert(wiredBo, $"電柱→石窯を結線 理由:{reasonBo}");
     p.WarpPlayer(new Vector3(5f, 33.5f, -6f));
 
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;

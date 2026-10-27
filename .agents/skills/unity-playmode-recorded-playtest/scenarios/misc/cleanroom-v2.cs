@@ -48,20 +48,27 @@ return PlaytestRunner.Run("cleanroom-v2", options, async p =>
     var machineBlock = await p.PlaceBlockDirect("EUV露光式半導体製造装置", new Vector3Int(2, 33, 2), BlockDirection.North);
     var filterItemId = PlaytestItemOps.ResolveItemId("クリーンルームフィルター");
     Core.Inventory.IOpenableInventory filterInventory = filterBlock.GetComponent<IOpenableBlockInventoryComponent>();
-    filterInventory.SetItem(0, filterItemId, 5);
+    await p.RunOnServer("清浄機にフィルター5個を装填する", () => filterInventory.SetItem(0, filterItemId, 5));
 
     // 発電機を部屋の外に設置してガソリンを直接注入し、電線で清浄機と機械へ給電する
     // Place a gasoline generator outside, fuel it directly, and wire power to the filter and machine
     var generatorBlock = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-15, 32, -15), BlockDirection.North);
     var gasolineId = MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"));
-    generatorBlock.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(400, gasolineId), FluidContainer.Empty);
     var genConn = generatorBlock.GetComponent<IElectricWireConnector>();
     var filterConn = filterBlock.GetComponent<IElectricWireConnector>();
     var machineConn = machineBlock.GetComponent<IElectricWireConnector>();
     var freeCost = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
-    p.Assert(ElectricWireSystemUtil.TryConnectBothSides(genConn, filterConn, freeCost), "wire gen->filter");
-    p.Assert(ElectricWireSystemUtil.TryConnectBothSides(genConn, machineConn, freeCost), "wire gen->machine");
-    p.ServerService<IElectricWireNetworkDatastore>().RebuildAround(genConn, filterConn, machineConn);
+    var wiredFilter = false;
+    var wiredMachine = false;
+    await p.RunOnServer("発電機に給油して清浄機と機械へ配線する", () =>
+    {
+        generatorBlock.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(400, gasolineId), FluidContainer.Empty);
+        wiredFilter = ElectricWireSystemUtil.TryConnectBothSides(genConn, filterConn, freeCost);
+        wiredMachine = ElectricWireSystemUtil.TryConnectBothSides(genConn, machineConn, freeCost);
+        p.ServerService<IElectricWireNetworkDatastore>().RebuildAround(genConn, filterConn, machineConn);
+    });
+    p.Assert(wiredFilter, "wire gen->filter");
+    p.Assert(wiredMachine, "wire gen->machine");
 
     // 密閉部屋が検出され、給電された清浄機によりクラスAが成立するのを待つ
     // Wait for the sealed room to be detected and promoted to class A by the powered filter
@@ -74,7 +81,7 @@ return PlaytestRunner.Run("cleanroom-v2", options, async p =>
     // Insert wafers and confirm processing starts and a chip is produced (extra wafers cover EUV failures)
     var waferId = PlaytestItemOps.ResolveItemId("完成パターンウェハ");
     Core.Inventory.IOpenableInventory machineInventory = machineBlock.GetComponent<IOpenableBlockInventoryComponent>();
-    machineInventory.SetItem(0, waferId, 8);
+    await p.RunOnServer("機械にウェハ8枚を入れる", () => machineInventory.SetItem(0, waferId, 8));
     var processor = machineBlock.GetComponent<Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent>();
     await p.Until(() => processor.CurrentState == ProcessState.Processing, 15f, "machine processing");
     var chipIds = new[]

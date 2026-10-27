@@ -128,9 +128,18 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         // 水を持ち越しで入れた隣のパイプを足す。網は充填率(水位)で釣り合うので、同じパイプの水位は 網の総量 / 網の総容量 に向かう。サーバーの量と材質の両方がそこへ届いてから撮影する
         // Add a neighbor pipe prefilled through its holdover; the network balances by fill rate, so this pipe's level approaches total water / total capacity. Capture only after both the server amount and the material reach it
         var water = MasterHolder.FluidMaster.GetFluidId(new System.Guid("9eae6979-d56a-4991-9107-b8161acec430"));
-        var neighbor = (await p.PlaceBlockDirect("鉄のパイプ", neighborPosition, BlockDirection.East)).GetComponent<FluidPipeComponent>();
-        var remainder = neighbor.AddLiquid(new FluidStack(added, water), default);
-        p.Assert(neighbor.NodeIndex < 0 && remainder.Amount == 0, $"未構築の隣パイプへ持ち越しで水{added}を注入");
+        // 設置と注入を同じtick末尾で行う。別々に流すと間のtickで網が組まれ、持ち越しに入らない
+        // Place and inject in the same tick end; running them separately lets the tick in between build the network
+        var pipeBlockId = Client.Playtest.Operations.PlaytestBlockOps.ResolveBlockId("鉄のパイプ");
+        var (nodeIndexAtInject, remainderAmount) = (0, -1d);
+        await p.RunOnServer($"隣のパイプ{neighborPosition}を設置して水{added}を持ち越しへ入れる", () =>
+        {
+            Game.Context.ServerContext.WorldBlockDatastore.TryAddBlock(pipeBlockId, neighborPosition, BlockDirection.East, System.Array.Empty<BlockCreateParam>(), out var neighborBlock);
+            var neighbor = neighborBlock.GetComponent<FluidPipeComponent>();
+            nodeIndexAtInject = neighbor.NodeIndex;
+            remainderAmount = neighbor.AddLiquid(new FluidStack(added, water), default).Amount;
+        });
+        p.Assert(nodeIndexAtInject < 0 && remainderAmount == 0, $"未構築の隣パイプへ持ち越しで水{added}を注入");
         networkWater += added;
         networkPipes++;
         var expected = (float)(networkWater / (pipe.Capacity * networkPipes));

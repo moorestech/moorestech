@@ -58,8 +58,11 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     // Connect the nodes directly (same path as the PlaceTrainCarOnRailProtocolTest server test)
     var railA = p.GetBlock(pierAPos).GetComponent<RailComponent>();
     var railB = p.GetBlock(pierBPos).GetComponent<RailComponent>();
-    railA.FrontNode.ConnectNode(railB.FrontNode);
-    railB.BackNode.ConnectNode(railA.BackNode);
+    await p.RunOnServer("橋脚2本のレールを接続する", () =>
+    {
+        railA.FrontNode.ConnectNode(railB.FrontNode);
+        railB.BackNode.ConnectNode(railA.BackNode);
+    });
 
     p.Note("貨車をアンロックしレール上へ設置する");
 
@@ -67,7 +70,7 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     // Unlock the cargo car (length 7, fits the 12-block span) server-side, then wait for the client mirror
     var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => c.Length <= 7);
     var trainCarGuid = carMaster.TrainCarGuid;
-    p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid);
+    await p.RunOnServer("貨車を解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid));
     await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(trainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロックのクライアント同期");
 
     // 建設コスト（RequiredItems）をサーバー在庫へ付与する

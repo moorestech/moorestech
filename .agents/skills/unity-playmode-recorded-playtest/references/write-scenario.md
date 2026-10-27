@@ -122,7 +122,8 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
 1. **ブロック/アイテムはマスタの日本語Name**で指定（「木のチェスト」「鉄インゴット」）。実在名は
    `<master>/mods/*/master/blocks.json` / `items.json` で確認。存在しない名前は即例外
 2. **シナリオ内では全アセンブリが使える**（EDCは全ロード済みアセンブリ参照）。assertで
-   `Game.Gear.Common.GearNetworkDatastore` 等サーバー内部も直接読める。Driver本体(asmdef)は制限あり
+   `Game.Gear.Common.GearNetworkDatastore` 等サーバー内部も直接読める。Driver本体(asmdef)は制限あり。
+   ただし`ServerService<T>()`や`GetBlock`で得たサーバーのオブジェクトへの書き込みは`RunOnServer`の中だけで行う（tickと競合するため）
 3. **状態構築はDirect系、検証対象の操作はUI経路/本番プロトコル**と使い分ける。UI設置は
    インベントリの`RequiredItems`を消費し未解放ブロックは置けない（Directは両方無視）
 4. **搬送ライン系は投入前に接続数をassert**:

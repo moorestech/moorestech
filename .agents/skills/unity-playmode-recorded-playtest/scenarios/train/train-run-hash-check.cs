@@ -50,8 +50,8 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         var pierAPos = new Vector3Int(10, 32, 4);
         var pierBPos = new Vector3Int(10, 32, 64);
 
-        PlacePierDirect(pierAPos);
-        PlacePierDirect(pierBPos);
+        await PlacePierDirect(pierAPos);
+        await PlacePierDirect(pierBPos);
 
         // クライアント側のブロック生成はPlaceBlockイベントpushのみで届く（同期検証を兼ねる）
         // Client-side block objects arrive only via pushed PlaceBlock events (doubles as a sync check)
@@ -61,8 +61,11 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         var railA = p.GetBlock(pierAPos).GetComponent<RailComponent>();
         var railB = p.GetBlock(pierBPos).GetComponent<RailComponent>();
         p.Assert(railA != null && railB != null, "両橋脚にRailComponentが生成されている");
-        railA.FrontNode.ConnectNode(railB.FrontNode);
-        railB.BackNode.ConnectNode(railA.BackNode);
+        await p.RunOnServer("橋脚2本のレールを接続する", () =>
+        {
+            railA.FrontNode.ConnectNode(railB.FrontNode);
+            railB.BackNode.ConnectNode(railA.BackNode);
+        });
 
         // ===== 機関車の設置 =====
         // ===== Spawn locomotive =====
@@ -74,7 +77,7 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         // Self-propulsion needs a locomotive with tractionForce > 0 (cargo cars have zero)
         var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => 0 < c.TractionForce);
         var trainCarGuid = carMaster.TrainCarGuid;
-        p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid);
+        await p.RunOnServer("機関車を解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid));
         await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(trainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロックのクライアント同期");
 
         foreach (var required in carMaster.RequiredItems)
@@ -103,8 +106,11 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         await p.WaitSeconds(1f);
 
         var train = p.ServerService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First();
-        train.trainDiagram.AddEntry(railB.FrontNode);
-        train.TurnOnAutoRun();
+        await p.RunOnServer("時刻表に橋脚Bを足して自動運転にする", () =>
+        {
+            train.trainDiagram.AddEntry(railB.FrontNode);
+            train.TurnOnAutoRun();
+        });
 
         await p.Until(() => 0.0 < train.CurrentSpeed, 15f, "列車が加速開始");
         var carBefore = SpawnedCar().transform.position;
@@ -147,14 +153,15 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
 
     // TrainRailは生成時create param必須のため、サーバーテストTrainTestHelperと同経路で直設置する
     // TrainRail blocks need a spawn-time create param, so place them like the TrainTestHelper server test
-    void PlacePierDirect(Vector3Int pos)
+    async UniTask PlacePierDirect(Vector3Int pos)
     {
         var blockId = PlaytestBlockOps.ResolveBlockId("レール橋脚");
         var railVector = RailComponent.ToVector3(BlockDirection.North);
         if (railVector == Vector3.zero) railVector = Vector3.forward;
         var stateDetail = new RailBridgePierComponentStateDetail(railVector);
         var createParams = new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, MessagePackSerializer.Serialize(stateDetail)) };
-        var created = ServerContext.WorldBlockDatastore.TryAddBlock(blockId, pos, BlockDirection.North, createParams, out _);
+        var created = false;
+        await p.RunOnServer($"橋脚サーバー直設置 {pos}", () => created = ServerContext.WorldBlockDatastore.TryAddBlock(blockId, pos, BlockDirection.North, createParams, out _));
         p.Assert(created, $"橋脚サーバー直設置 {pos}");
     }
 
