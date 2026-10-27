@@ -20,7 +20,7 @@ namespace Client.Playtest.Operations
                 var result = await PlaytestUiLocatorSession.Locator.SetText(testid, text, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
                 PlaytestUiLocatorSession.RequireGeneration(generation);
                 lastStatus = result.Status;
-                if (Time.realtimeSinceStartup >= deadline) break;
+                if (deadline <= Time.realtimeSinceStartup) break;
                 if (result.Status == UiSetTextStatus.Applied)
                 {
                     Debug.Log($"[PlaytestUi] {testid} text set by {result.Renderer}");

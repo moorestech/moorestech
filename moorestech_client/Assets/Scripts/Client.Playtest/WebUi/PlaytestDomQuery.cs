@@ -49,7 +49,7 @@ namespace Client.Playtest.WebUi
                 Debug.LogWarning("[PlaytestUi] No registered CEF connection");
                 return new WebUiChannelResponse<DomQueryResult>(WebUiResponseState.Stopped, null, "No registered CEF connection");
             }
-            if (!(timeoutSeconds > 0f)) throw new TimeoutException("UI request deadline expired before delivery");
+            if (!(0f < timeoutSeconds)) throw new TimeoutException("UI request deadline expired before delivery");
             var requestId = _channel.Open(connectionId, hub);
             if (!hub.PublishTo(connectionId, QueryTopic, WebUiJson.Serialize(new DomQueryRequest { RequestId = requestId, Testid = testid })))
             {

@@ -73,7 +73,7 @@ namespace Client.Playtest.WebUi
                     _pending.Remove(requestId);
                     return pending.Response;
                 }
-                if (Time.realtimeSinceStartup >= deadline)
+                if (deadline <= Time.realtimeSinceStartup)
                 {
                     _pending.Remove(requestId);
                     return new WebUiChannelResponse<TResult>(WebUiResponseState.TimedOut, null, "Web response deadline expired");

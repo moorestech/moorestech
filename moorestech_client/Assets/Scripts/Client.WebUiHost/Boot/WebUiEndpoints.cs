@@ -83,7 +83,7 @@ namespace Client.WebUiHost.Boot
                     var ws = WebSocket.CreateFromStream(stream, isServer: true, subProtocol: null, keepAliveInterval: TimeSpan.FromSeconds(30));
                     var connectionId = Guid.NewGuid();
                     var navigationId = context.Request.Query["cefNavigation"].ToString();
-                    if (navigationId.Length > 0 && !WebUiCefConnection.TryRegister(hub, navigationId, connectionId))
+                    if (0 < navigationId.Length && !WebUiCefConnection.TryRegister(hub, navigationId, connectionId))
                     {
                         await ws.CloseAsync(WebSocketCloseStatus.PolicyViolation, "CEF registration rejected", context.RequestAborted);
                         return;

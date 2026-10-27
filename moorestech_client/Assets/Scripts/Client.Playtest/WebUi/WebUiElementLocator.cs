@@ -63,7 +63,7 @@ namespace Client.Playtest.WebUi
                 Debug.LogWarning($"[PlaytestUi] Web UI gave no lookup answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
                 return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
             }
-            if (response.Result.MatchCount > 1) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
+            if (1 < response.Result.MatchCount) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
             if (!response.Result.Found) return UiElementSnapshot.NotFound(testid, UiRenderer.Web);
 
             // CSS pxの矩形をdevicePixelRatioでCEFブラウザpxへ換算してから画面へ写す
@@ -115,7 +115,7 @@ namespace Client.Playtest.WebUi
 
         internal static UiElementSnapshot ToSnapshot(string testid, DomQueryResult result, Rect screenRect)
         {
-            if (result.MatchCount > 1) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
+            if (1 < result.MatchCount) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
             return UiElementSnapshot.Found(testid, UiRenderer.Web, result.Visible, result.HitTestPassed, screenRect, result.Text, result.StateFlags);
         }
 

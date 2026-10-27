@@ -21,17 +21,17 @@ namespace Client.Playtest.UiElements
             {
                 var first = await locator.Find(testid, RemainingSeconds(deadline, testid));
                 lastStatus = first.Status;
-                if (Time.realtimeSinceStartup >= deadline) break;
+                if (deadline <= Time.realtimeSinceStartup) break;
                 ThrowIfAmbiguous(first);
                 if (IsClickable(first))
                 {
                     // 2フレーム同矩形なら安定とみなす
                     // Same rect after two frames means the layout settled
                     await UniTask.DelayFrame(2);
-                    if (Time.realtimeSinceStartup >= deadline) break;
+                    if (deadline <= Time.realtimeSinceStartup) break;
                     var second = await locator.Find(testid, RemainingSeconds(deadline, testid));
                     lastStatus = second.Status;
-                    if (Time.realtimeSinceStartup >= deadline) break;
+                    if (deadline <= Time.realtimeSinceStartup) break;
                     ThrowIfAmbiguous(second);
                     if (IsClickable(second) && second.ScreenRect == first.ScreenRect) return second;
                 }
@@ -43,7 +43,7 @@ namespace Client.Playtest.UiElements
         internal static float RemainingSeconds(float deadline, string testid)
         {
             var remaining = deadline - Time.realtimeSinceStartup;
-            if (!(remaining > 0f)) throw new TimeoutException($"UI operation deadline expired: {testid}");
+            if (!(0f < remaining)) throw new TimeoutException($"UI operation deadline expired: {testid}");
             return remaining;
         }
 

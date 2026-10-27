@@ -61,7 +61,7 @@ namespace Client.Playtest.Operations
             {
                 var snapshot = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
                 lastStatus = snapshot.Status;
-                if (Time.realtimeSinceStartup >= deadline) break;
+                if (deadline <= Time.realtimeSinceStartup) break;
                 UiElementScreenPointResolver.ThrowIfAmbiguous(snapshot);
                 if (UiElementScreenPointResolver.IsClickable(snapshot))
                 {
@@ -86,7 +86,7 @@ namespace Client.Playtest.Operations
             {
                 var target = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
                 lastStatus = target.Status;
-                if (Time.realtimeSinceStartup >= deadline) break;
+                if (deadline <= Time.realtimeSinceStartup) break;
                 UiElementScreenPointResolver.ThrowIfAmbiguous(target);
                 if (UiElementScreenPointResolver.IsClickable(target)) return;
                 lastStatus = target.Status;
@@ -107,7 +107,7 @@ namespace Client.Playtest.Operations
             {
                 var snapshot = await PlaytestUiLocatorSession.Locator.Find(testid, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
                 last = snapshot;
-                if (Time.realtimeSinceStartup >= deadline) break;
+                if (deadline <= Time.realtimeSinceStartup) break;
                 switch (snapshot.Status)
                 {
                     case UiElementLookupStatus.Found:

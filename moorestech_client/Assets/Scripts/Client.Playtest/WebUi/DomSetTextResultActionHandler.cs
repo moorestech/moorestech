@@ -46,7 +46,7 @@ namespace Client.Playtest.WebUi
                 return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
             }
             if ((status == UiSetTextStatus.NotFound) != (matchCount == 0) ||
-                (status == UiSetTextStatus.Ambiguous) != (matchCount > 1))
+                (status == UiSetTextStatus.Ambiguous) != (1 < matchCount))
             {
                 Debug.LogWarning("[PlaytestUi] Rejected inconsistent playtest.dom_set_text_result match count");
                 _channel.Reject(requestId, "Malformed or inconsistent DomSetTextResult payload");
