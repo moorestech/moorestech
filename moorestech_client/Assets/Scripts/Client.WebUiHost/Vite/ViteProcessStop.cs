@@ -17,7 +17,7 @@ namespace Client.WebUiHost.Vite
             // Isolate the child-stop external process boundary and still stop the owned parent
             try
             {
-                var exitCode = ViteProcessKiller.KillProcessTree(pid);
+                var exitCode = VitePidTerminator.KillProcessTree(pid);
 #if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
                 if (exitCode == 1) Debug.Log($"[WebUiHost] no child processes for owned Vite pid={pid}");
                 else if (exitCode != 0) childFailure = $"child stop command exit={exitCode}";

@@ -7,24 +7,11 @@ using Debug = UnityEngine.Debug;
 namespace Client.WebUiHost.Vite
 {
     /// <summary>
-    /// Vite/NodeをOSコマンドで停止(kill/ポート掃除)
-    /// Stops Vite/Node native processes via OS commands (process-tree kill, port sweep)
+    /// 自インスタンスの Vite pid を記録し、残留・孤児の Vite を探して止める。止める OS コマンドは VitePidTerminator が持つ
+    /// Records this instance's Vite pid and finds lingering or orphaned Vite to stop; VitePidTerminator owns the OS stop commands
     /// </summary>
-    public static class ViteProcessKiller
+    public static class VitePidTracker
     {
-        // 子の停止コマンド結果を本人processの終了確認へ渡す
-        // Return the child termination command result to the owner termination check
-        internal static int KillProcessTree(int pid)
-        {
-#if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
-            return ViteProcessCommand.Run("/usr/bin/pkill", $"-KILL -P {pid}");
-#elif UNITY_EDITOR_WIN
-            return ViteProcessCommand.Run(@"C:\Windows\System32\taskkill.exe", $"/F /T /PID {pid}");
-#else
-            throw new PlatformNotSupportedException("Vite process termination requires an Editor platform");
-#endif
-        }
-
 #if UNITY_EDITOR
         // SessionState キー。ドメインリロードを跨いで自インスタンスの Vite (pid, port, webuiRoot) を追跡する
         // SessionState keys tracking this instance's Vite (pid, port, webuiRoot) across domain reloads
