@@ -42,7 +42,7 @@ namespace Client.Tests.WebUiHost.Transport
                 .GetField("_connections", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(hub);
             connections.TryAdd(brokenId, new WebSocketConnection(broken, brokenId));
             connections.TryAdd(healthyId, new WebSocketConnection(healthy, healthyId));
-            LogAssert.Expect(LogType.Error, new Regex($"close failed.* for {brokenId}"));
+            LogAssert.Expect(LogType.Error, new Regex($@"close failed[\s\S]* for {brokenId}"));
             var closing = hub.CloseAllAsync();
             while (!closing.IsCompleted) yield return null;
             var result = closing.GetAwaiter().GetResult();
