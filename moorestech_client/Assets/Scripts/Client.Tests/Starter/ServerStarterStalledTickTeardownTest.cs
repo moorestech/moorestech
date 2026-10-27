@@ -46,8 +46,9 @@ namespace Client.Tests.Starter
             var saveJsonPath = WorldDataDirectory.FromWorldRoot(worldRoot).SaveJsonFilePath;
             var savedWhileStalled = File.Exists(saveJsonPath);
 
-            // tickを再開させてスレッドの終了と書き出しの後始末を待ってから、ワールドを消す
-            // Resume the tick, wait for the thread to end and the writer to settle, then delete the world
+            // tickを再開させてスレッドの終了と書き出しの後始末を待ってから、ワールドを消す。再開したtickは閉じた書き出しへ投入しようとして例外ログを出す
+            // Resume the tick, wait for the thread to end and the writer to settle, then delete the world; the resumed tick logs an exception enqueueing into the closed writer
+            LogAssert.Expect(LogType.Exception, new Regex("marked as complete with regards to additions"));
             release.Set();
             var threadEnded = gameUpdateThread.Join(TimeSpan.FromSeconds(15));
             yield return WaitUntilDone(blocker, 15f);
