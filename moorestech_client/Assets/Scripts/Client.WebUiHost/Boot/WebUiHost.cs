@@ -122,7 +122,9 @@ namespace Client.WebUiHost.Boot
 
         public static UniTask<WebUiStopResult> StopAsync()
         {
-            if (_stopTask == null) _stopTask = StopCoreAsync().AsTask();
+            // 停止結果の保持後に起動が完了してフィールドが埋まったら、その分を止めるため作り直す
+            // Rebuild when a start finished after the stop result was kept and filled the fields, so they are stopped too
+            if (_stopTask == null || _kestrel != null || _vite != null || _hub != null) _stopTask = StopCoreAsync().AsTask();
             return _stopTask.AsUniTask();
         }
 
