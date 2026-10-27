@@ -54,13 +54,14 @@ namespace Client.Tests.WebUiHost.Transport
             connections.TryAdd(id, new WebSocketConnection(socket, id));
             field.SetValue(null, hub);
             LogAssert.Expect(LogType.Error, new Regex("close failed"));
-            var stopping = global::Client.WebUiHost.Boot.WebUiHost.StopAsync().GetAwaiter();
-            while (!stopping.IsCompleted) yield return null;
-            var result = stopping.GetResult();
+            // 停止のスレッドプール上のログと LogScope の毎フレーム列挙を競合させないよう、フレームを譲らず待つ
+            // Block without yielding so thread-pool stop logs cannot race LogScope's per-frame enumeration
+            var result = WebUiHostTestContext.StopWithoutYield();
             Assert.IsTrue(result.Succeeded);
             StringAssert.Contains("injected close output failure", result.Connections.CloseErrors[id]);
             Assert.IsNull(global::Client.WebUiHost.Boot.WebUiHost.Hub);
             Assert.IsFalse(hub.HasConnections);
+            yield break;
         }
 
     }
