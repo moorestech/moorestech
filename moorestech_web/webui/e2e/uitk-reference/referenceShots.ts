@@ -50,7 +50,8 @@ export const LedgerRows = {
 export type LedgerRow = (typeof LedgerRows)[keyof typeof LedgerRows];
 // 束の番号。撮影表・動画表・manifest で同じ型を使う
 // Bundle number, shared by the shot table, the video table, and the manifest
-export type BundleId = 1 | 2 | 3 | 4 | 5;
+export const BundleIds = [1, 2, 3, 4, 5] as const;
+export type BundleId = (typeof BundleIds)[number];
 
 type ReferenceShot = ShotSetup & { id: string; bundle: BundleId; ledgerRow: LedgerRow };
 
