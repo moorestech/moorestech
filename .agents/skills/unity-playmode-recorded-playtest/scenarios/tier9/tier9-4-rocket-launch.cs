@@ -68,7 +68,8 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     var satelliteId = PlaytestItemOps.ResolveItemId("GPU衛星Lv1");
     await LoadOneLaunch();
     await p.Until(() => Phase() == RocketLaunchPadPhase.AwaitingBuildCommand, 10f, "建造の合図待ちになった");
-    await p.WaitBlockGameObject(padPos);
+    var padObject = await p.WaitBlockGameObject(padPos);
+    await p.Until(() => !padObject.IsPlayingPlaceAnimation, 30f, "発射台の設置演出が終わった");
     await p.Screenshot("01-awaiting-build");
 
     // 発射台を開いて建造ボタンを押し、建造は実時間で待つ（DSL に時間を進める手段は無い）
@@ -91,7 +92,10 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     await p.Until(() => Phase() == RocketLaunchPadPhase.Launching, 5f, "上昇が始まった");
     await p.ClickWebUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-    p.WarpPlayer(new Vector3(5f, 32.5f, -40f));
+    // 足場の南端から台を見上げる（GameScreen の視点はポインタの移動量で上へ振る）
+    // Look up at the pad from the scaffold's south edge (GameScreen look pitches up with pointer delta)
+    p.WarpPlayer(new Vector3(5f, 32.5f, -22f));
+    for (var frame = 0; frame < 40; frame++) { SemanticInput.MouseDragBy(new Vector2(0f, 4f)); await UniTask.Yield(); }
     await p.WaitSeconds(Mathf.Min(5f, param.LaunchSeconds * 0.5f));
     await p.Screenshot("05-rising");
 
