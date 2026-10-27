@@ -37,14 +37,14 @@ return PlaytestRunner.Run("blueprint-large-paste-flicker", options, async p =>
 
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
-    p.Hotbar.UnlockBlueprint();
-    p.UnlockBlock("木のチェスト");
+    await p.Hotbar.UnlockBlueprint();
+    await p.UnlockBlock("木のチェスト");
 
     // 8x8 のチェスト群（64ブロック）を置く
     // Place an 8x8 chest field (64 blocks)
     for (var x = 0; x < 8; x++)
     for (var z = 0; z < 8; z++)
-        p.PlaceBlockDirect("木のチェスト", new Vector3Int(2 + x, 32, 2 + z), BlockDirection.North);
+        await p.PlaceBlockDirect("木のチェスト", new Vector3Int(2 + x, 32, 2 + z), BlockDirection.North);
     await p.WaitBlockGameObject(new Vector3Int(9, 32, 9));
     p.WarpPlayer(new Vector3(6f, 36f, -8f));
 
@@ -116,7 +116,7 @@ return PlaytestRunner.Run("blueprint-large-paste-flicker", options, async p =>
     // 60個分の素材だけ持ち、既存チェストとの重なりで必要数が 64個分↔56個分 をまたぐように往復する
     // Hold materials for 60 chests and glide so overlaps swing the requirement between 64 and 56 chests
     DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, false);
-    for (var i = 0; i < 2; i++) { p.GiveItemDirect("木の棒", 60); p.GiveItemDirect("木の板", 60); }
+    for (var i = 0; i < 2; i++) { await p.GiveItemDirect("木の棒", 60); await p.GiveItemDirect("木の板", 60); }
     p.WarpPlayer(new Vector3(-3f, 36f, -8f));
     await p.WaitSeconds(1f);
     await GlideAndCountMissing("c-shortage-boundary", new Vector3(-8f, 32f, 6.5f), new Vector3(1.5f, 32f, 6.5f));

@@ -54,13 +54,14 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `SkipOpeningSkit()` | 開幕スキットをSkipインテントで飛ばし`GameScreen`到達まで待つ。スキット中は全UI入力が塞がるため**`SetupDebugEnvironment`直後の定型2行目** |
 | `SetupFlatGround()` | 足場(50x4x50 @ y30、**上面y=32ちょうど**、`GroundGameObject`付与)生成+ワープのみ（旧API・互換） |
 | `WarpPlayer(pos)` / `PlayerPosition` | テレポート/現在地。UI設置前に対象範囲の中央へワープ推奨 |
-| `GiveItemDirect(name, count)` | サーバーインベントリ直挿入（即時） |
+| `await GiveItemDirect(name, count)` | サーバーインベントリ直挿入（サーバーtick末尾で実行し完了を待つ） |
 | `GiveItem(name, count)` | 本番giveコマンド経路＋サーバー在庫反映待ち |
-| `UnlockBlock(name)` | サーバー側アンロック→イベントでクライアント（ビルドメニュー）同期 |
+| `await UnlockBlock(name)` | サーバー側アンロック（tick末尾）→イベントでクライアント（ビルドメニュー）同期 |
 | `GiveConstructionCost(name, blockCount)` | マスタ`RequiredItems`×個数をgive経路で付与＋クライアント同期待ち |
 | `PrepareBlockForUiPlacement(name, blockCount)` | ↑2つの複合。**UI設置の前提はこれ1行** |
-| `PlaceBlockDirect(name, pos, dir)` | サーバー直設置（インベントリ非消費・アンロック不問） |
-| `RemoveBlock(pos)` / `GetBlock(pos)` | サーバーデータストアの削除/取得（GetBlockはassertにも使う） |
+| `await PlaceBlockDirect(name, pos, dir)` | サーバー直設置（インベントリ非消費・アンロック不問）。tick末尾で実行し完了を待って`IBlock`を返す |
+| `await RemoveBlock(pos)` / `GetBlock(pos)` | サーバーデータストアの削除/取得（GetBlockはassertにも使う） |
+| `await RunOnServer(label, () => ...)` | シナリオ独自のサーバー書き込み（機械への投入・配線・レシピ選択・研究の完了扱い等）をtick末尾で実行し完了を待つ。サーバー状態はtickと別スレッドで書くと列挙中のコレクションを壊すため、`IBlock`のコンポーネントや`ServerService<T>()`への書き込みはこの中で行う。中で`p.Assert`等のDSLは呼ばず、結果を変数に取り出してから外で検証する |
 
 ### UI経路操作（実プレイヤーと同じキーマウ経路＝検証対象）
 | API | 用途 |
@@ -71,7 +72,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |
 | `Hotbar.SelectHotbar(slot)` | 数字キー注入（slot 0→キー1）。建築モードのトグル: 割当済み対象を持って入り、同じ枠で抜ける |
 | `Hotbar.AssignHotbar(slot, targetName)` | ビルドメニューと同一供給源(`PlacementTargetCatalog.UnlockedEntries`)から表示名でホットバーへ割当てる |
-| `Hotbar.UnlockConnectTool(name)` | 接続ツール(電線/レール/歯車チェーン)のアンロック。ブロックとは別枠の状態で、`Hotbar.AssignHotbar`前に必要 |
+| `await Hotbar.UnlockConnectTool(name)` | 接続ツール(電線/レール/歯車チェーン)のアンロック。ブロックとは別枠の状態で、`Hotbar.AssignHotbar`前に必要 |
 | `PressKey(key)` | 任意キーのタップ（UnityEngine.InputSystem.Key） |
 | `AimAt(worldPos)` / `AimAtPlaceOrigin(name, origin)` | マウス絶対座標照準（後者は設置原点→フットプリント中心の逆算込み） |
 | `ClickPlace()` | 左クリック（押下→2フレーム→解放。設置はGetKeyUpで確定するため解放必須） |
@@ -113,7 +114,7 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
 | `WaitBlockGameObject(pos)` | クライアント側View出現待ち（スクショ前・ポール起点確定前に必須） |
 | `WaitSeconds(s)` / `Screenshot(name)` | 短い演出待ち/GameViewスクショ（UIオーバーレイ込み） |
 | `CountItem(name)` | サーバー在庫数 |
-| `SendCommand(cmd)` / `ServerService<T>()` | 低レベル脱出口（VanillaApi / ServerContext DI） |
+| `SendCommand(cmd)` / `ServerService<T>()` | 低レベル脱出口（VanillaApi / ServerContext DI）。`ServerService<T>()`経由の書き込みは`RunOnServer`の中で行う |
 | `Note(message)` | AIナレーション。動画左上のログとresult.jsonのTimelineに記録 |
 
 ## 書き方の規則

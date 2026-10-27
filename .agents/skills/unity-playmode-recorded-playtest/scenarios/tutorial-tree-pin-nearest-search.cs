@@ -44,7 +44,7 @@ return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =
     p.Assert(skipAccepted, "Skipインテントが受理された");
 
     p.Note("小石3個と石器クラフトでチャレンジ#1・#2を消化する");
-    p.GiveItemDirect("小石", 3);
+    await p.GiveItemDirect("小石", 3);
     var c1Done = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges
         .Any(c => c.ChallengeGuid == challenge1), 30);
     p.Assert(c1Done, "チャレンジ#1(小石を3個拾う)が完了した");

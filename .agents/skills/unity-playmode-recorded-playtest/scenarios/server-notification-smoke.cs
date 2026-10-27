@@ -69,8 +69,8 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     // === Goal2: 実績通知 ===
     // === Goal2: achievement notification ===
     p.Note("研究に必要な素材(木の板x5・木の棒x5)を付与する");
-    p.GiveItemDirect("木の板", 5);
-    p.GiveItemDirect("木の棒", 5);
+    await p.GiveItemDirect("木の板", 5);
+    await p.GiveItemDirect("木の棒", 5);
     await p.WaitSeconds(0.5f);
 
     var achievementBefore = AchievementResearchCount();

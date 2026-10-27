@@ -28,8 +28,8 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
 
     // ポールの建設コストと、延長ごとに消費されるチェーン素材（鉄のワイヤー）の在庫を用意する
     // Stock the pole's construction cost and the chain material (iron wire) consumed by each extension
-    p.UnlockBlock("歯車チェーンポール");
-    p.Hotbar.UnlockConnectTool("歯車チェーン");
+    await p.UnlockBlock("歯車チェーンポール");
+    await p.Hotbar.UnlockConnectTool("歯車チェーン");
     await p.GiveConstructionCost("歯車チェーンポール", 10);
     await p.GiveItem("鉄のワイヤー", 100);   // give命令は1回=1スタックのため、maxStack(100)以内に収める
 

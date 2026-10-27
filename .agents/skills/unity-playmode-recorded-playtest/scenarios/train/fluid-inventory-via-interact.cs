@@ -56,7 +56,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     // タンクを通常の照準とF操作で開く
     // Open the tank through normal aiming and F interaction
     p.Note("タンクに水40を準備し、照準→Fで開く");
-    p.PlaceBlockDirect("液体タンク",tankPosition,BlockDirection.North);
+    await p.PlaceBlockDirect("液体タンク",tankPosition,BlockDirection.North);
     // 設置直後(tick末尾の網の組み直しより前)に入れるので持ち越しに入り、最初の組み直しで網へ移る。網に入った後の直接投入はクライアント側のコピーと食い違うので許さない
     // Injected right after placement (before the tick-end network rebuild) so it lands in the holdover and moves into the network on the first rebuild; injecting into a built-in pipe would diverge from the client-side copy
     var tank = p.GetBlock(tankPosition).GetComponent<FluidPipeComponent>();
@@ -72,7 +72,7 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     // PF表示と切替を確認してから液体を退避する
     // Verify platform display and controls before reserving its fluid
     p.Note("液体PFに水80を準備し、Fで開いて表示を確認する");
-    p.PlaceBlockDirect("液体プラットフォーム",platformPosition,BlockDirection.North);
+    await p.PlaceBlockDirect("液体プラットフォーム",platformPosition,BlockDirection.North);
     var platform = p.GetBlock(platformPosition);
     var pf = platform.GetComponent<TrainPlatformFluidContainerComponent>();
     pf.AddLiquid(new FluidStack(80,water),default);

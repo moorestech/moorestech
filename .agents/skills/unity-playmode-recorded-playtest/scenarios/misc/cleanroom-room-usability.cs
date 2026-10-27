@@ -45,7 +45,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     p.WarpPlayer(outsidePosition);
     for (var x = -2; x <= 8; x++)
     for (var z = -6; z <= 8; z++)
-        p.PlaceBlockDirect(PanelName, new Vector3Int(x, 32, z), BlockDirection.North);
+        await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 32, z), BlockDirection.North);
     await p.WaitBlockGameObject(new Vector3Int(6, 32, 4));
     await p.WaitSeconds(1f);
     #region パネルを Shift+R で縦にして UI で置く / Stand a panel upright with Shift+R and place it via the UI
@@ -68,19 +68,19 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     for (var x = 0; x <= 6; x++)
     for (var z = 0; z <= 6; z++)
     {
-        p.PlaceBlockDirect(PanelName, new Vector3Int(x, 35, z), BlockDirection.North);
+        await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 35, z), BlockDirection.North);
         if (x != 0 && x != 6 && z != 0 && z != 6) continue;
         foreach (var cell in new[] { new Vector3Int(x, 33, z), new Vector3Int(x, 34, z) }.Where(cell => !(x == 3 && z == 0) && cell != uiPanelCell && cell != hatchCell))
-            if (x == 0) p.PlaceBlockDirect(PanelName, cell, BlockDirection.UpWest);
-            else if (x == 6) p.PlaceBlockDirect(PanelName, cell, BlockDirection.DownEast);
-            else if (z == 0) p.PlaceBlockDirect(PanelName, cell, BlockDirection.UpSouth);
-            else p.PlaceBlockDirect("クリーンルームブロック", cell, BlockDirection.North);
+            if (x == 0) await p.PlaceBlockDirect(PanelName, cell, BlockDirection.UpWest);
+            else if (x == 6) await p.PlaceBlockDirect(PanelName, cell, BlockDirection.DownEast);
+            else if (z == 0) await p.PlaceBlockDirect(PanelName, cell, BlockDirection.UpSouth);
+            else await p.PlaceBlockDirect("クリーンルームブロック", cell, BlockDirection.North);
     }
-    p.PlaceBlockDirect("クリーンルームドア", new Vector3Int(3, 33, 0), BlockDirection.North);
-    p.PlaceBlockDirect("クリーンルームアイテムハッチ", hatchCell, BlockDirection.North);
-    var filterBlock = p.PlaceBlockDirect("クリーンルーム空気清浄機", new Vector3Int(1, 33, 5), BlockDirection.North);
-    var machineBlock = p.PlaceBlockDirect("EUV露光式半導体製造装置", new Vector3Int(3, 33, 3), BlockDirection.North);
-    WirePower(filterBlock, machineBlock);
+    await p.PlaceBlockDirect("クリーンルームドア", new Vector3Int(3, 33, 0), BlockDirection.North);
+    await p.PlaceBlockDirect("クリーンルームアイテムハッチ", hatchCell, BlockDirection.North);
+    var filterBlock = await p.PlaceBlockDirect("クリーンルーム空気清浄機", new Vector3Int(1, 33, 5), BlockDirection.North);
+    var machineBlock = await p.PlaceBlockDirect("EUV露光式半導体製造装置", new Vector3Int(3, 33, 3), BlockDirection.North);
+    await WirePower(filterBlock, machineBlock);
     await p.WaitBlockGameObject(new Vector3Int(3, 33, 0));
     // 床(水平)・西(UpWest)・南(UpSouth)・UIで置いた東(縦)の板が、それぞれ自分のセルの中に描かれる
     // The floor (flat), west (UpWest), south (UpSouth) and UI-placed east (upright) plates each render inside their own cell
@@ -101,7 +101,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     await p.Screenshot("02-inside-room");
     #endregion
     #region 清浄機のUIでフィルターを入れる / Load filters through the purifier UI
-    p.GiveItemDirect("クリーンルームフィルター", 5);
+    await p.GiveItemDirect("クリーンルームフィルター", 5);
     var filterItemId = PlaytestItemOps.ResolveItemId("クリーンルームフィルター");
     var localInventory = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
     await p.Until(() => FindMainSlot(localInventory, filterItemId) >= 0, 10f, "フィルターがクライアントのインベントリに届いた");
@@ -185,11 +185,11 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     string FirstTooltipKey() => TooltipKeys().FirstOrDefault() ?? string.Empty;
     Transform[] ActiveMarkers() => UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None)
         .Where(renderer => renderer.gameObject.activeInHierarchy && renderer.gameObject.name == "CleanRoomLeakMarker").Select(renderer => renderer.transform).ToArray();
-    void WirePower(IBlock filter, IBlock machine)
+    async UniTask WirePower(IBlock filter, IBlock machine)
     {
         // 室外の発電機へ燃料を直接入れ、電線で清浄機と機械へ給電する（接続処理が電力網を dirty にする）
         // Fuel an outdoor generator directly and wire it to the purifier and machine; connecting marks the network dirty
-        var generatorBlock = p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-15, 32, -15), BlockDirection.North);
+        var generatorBlock = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-15, 32, -15), BlockDirection.North);
         generatorBlock.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(400, MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"))), default);
         var (generatorConnector, filterConnector, machineConnector) = (generatorBlock.GetComponent<IElectricWireConnector>(), filter.GetComponent<IElectricWireConnector>(), machine.GetComponent<IElectricWireConnector>());
         var freeCost = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());

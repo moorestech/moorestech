@@ -33,7 +33,7 @@ return PlaytestRunner.Run("delete-ctrl-deselect-and-hold-tiers", new PlaytestRun
         p.Assert(p.GetBlock(new Vector3Int(x, 200, z)) == null, $"準備: fixture範囲({x},200,{z})は空いている");
     foreach (var cell in cells)
     {
-        PlaytestBlockOps.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
+        await PlaytestBlockOps.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
         await p.WaitSeconds(0.5f);
     }
     foreach (var cell in cells) await p.WaitBlockGameObject(cell);

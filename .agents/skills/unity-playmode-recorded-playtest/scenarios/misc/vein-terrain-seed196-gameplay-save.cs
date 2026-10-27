@@ -70,7 +70,7 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
     var ironOutcrop = UnityEngine.Object.FindFirstObjectByType<OutcropGameObjectDatastore>().SearchNearestOutcrop(new Guid(ironVeinGuid), Center(ironVein));
     var ironCollider = ironOutcrop.GetComponentsInChildren<Collider>(true).OrderByDescending(c => c.bounds.size.sqrMagnitude).First();
     p.Note($"[pv] 手掘り: 鉄鉱石露頭 {ironOutcrop.name} 本体={ironCollider.name} center={ironCollider.bounds.center} ext={ironCollider.bounds.extents}");
-    p.GiveItemDirect("石の斧", 1);
+    await p.GiveItemDirect("石の斧", 1);
     await p.EquipItem("石の斧", 0);
     var stand = ironCollider.bounds.center - forward * (Mathf.Max(ironCollider.bounds.extents.x, ironCollider.bounds.extents.z) + 1.2f);
     p.WarpPlayer(new Vector3(stand.x, SampleTerrain(stand.x, stand.z) + 1f, stand.z));

@@ -48,7 +48,7 @@ return PlaytestRunner.Run("blueprint-koujyou2-self-hit", new PlaytestRunOptions 
     InputSystem.EnableDevice(Mouse.current);
     if (mode == "controlled") await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
-    p.Hotbar.UnlockBlueprint();
+    await p.Hotbar.UnlockBlueprint();
 
     // 原本BPを通常のライブラリとビルドメニューに登録する。
     // Register the original blueprint through the normal library and build menu.

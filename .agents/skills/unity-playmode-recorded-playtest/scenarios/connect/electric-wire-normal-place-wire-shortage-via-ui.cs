@@ -38,7 +38,7 @@ return PlaytestRunner.Run("electric-wire-normal-place-wire-shortage-via-ui", opt
     // 電柱を解放し、建設コストちょうど1本分だけ渡す（配線用の余剰電線を持たせない）
     // Unlock the pole and grant exactly one pole's construction cost, leaving no spare wire for wiring
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
-    p.UnlockBlock("電柱");
+    await p.UnlockBlock("電柱");
     await p.GiveConstructionCost("電柱", 1);
     p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid);
 
@@ -46,7 +46,7 @@ return PlaytestRunner.Run("electric-wire-normal-place-wire-shortage-via-ui", opt
     // Place one existing pole as the neighbouring equipment (3 blocks from the new position, in range)
     var existingPolePos = new Vector3Int(5, 32, 4);
     var targetPos = new Vector3Int(8, 32, 4);
-    p.PlaceBlockDirect("電柱", existingPolePos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", existingPolePos, BlockDirection.North);
     await p.WaitBlockGameObject(existingPolePos);
 
     TextMeshPro AutoConnectLabel() => UnityEngine.Object

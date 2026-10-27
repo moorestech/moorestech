@@ -75,7 +75,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     // 検証4: 小石3個入手 → チャレンジ#1完了 → #2「石器を作る」解放
     // Verify 4: acquire 3 pebbles -> complete challenge #1 -> unlock #2
     p.Note("小石を3個付与してチャレンジ#1(inInventoryItem)を完了させる");
-    p.GiveItemDirect("小石", 3);
+    await p.GiveItemDirect("小石", 3);
     await p.WaitSeconds(0.5f);
     p.Assert(3 <= p.CountItem("小石"), "小石が3個以上インベントリにある");
 

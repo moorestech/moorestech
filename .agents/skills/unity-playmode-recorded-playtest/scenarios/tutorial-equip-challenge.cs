@@ -50,7 +50,7 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
     // 検証2: 小石3個→石器クラフトで「石器を装備する」が現在目標になる（ADR 0029 の新チャレンジ）
     // Verify 2: 3 pebbles -> craft -> the new "equip the stone tool" challenge becomes current
     p.Note("小石3個付与→石器クラフトで装備チャレンジまで進める");
-    p.GiveItemDirect("小石", 3);
+    await p.GiveItemDirect("小石", 3);
     await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges.Any(c => c.ChallengeGuid == pebbleChallenge), 30);
     Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.Craft(stoneToolRecipe);
     var craftDone = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges.Any(c => c.ChallengeGuid == craftStoneTool), 30);

@@ -61,9 +61,9 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     var poleAPos = new Vector3Int(5, 32, 4);
     var poleBPos = new Vector3Int(11, 32, 4);
     var poleCPos = new Vector3Int(11, 32, 10);
-    p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
-    p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
-    p.PlaceBlockDirect("電柱", poleCPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleCPos, BlockDirection.North);
     var poleAGo = await p.WaitBlockGameObject(poleAPos);
     var poleBGo = await p.WaitBlockGameObject(poleBPos);
     await p.WaitBlockGameObject(poleCPos);

@@ -32,16 +32,16 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     var sourcePosition = new Vector3Int(0, 32, 3);
     var sinkAPosition = new Vector3Int(0, 32, 12);
     var sinkBPosition = new Vector3Int(3, 32, 7);
-    p.PlaceBlockDirect("鉄のミニコンベアチェスト", sourcePosition, BlockDirection.North);
-    for (var z = 4; z <= 6; z++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
-    p.PlaceBlockDirect("ベルトコンベア分岐器", new Vector3Int(0, 32, 7), BlockDirection.North);
-    for (var z = 8; z <= 9; z++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
-    for (var z = 7; z <= 9; z++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-1, 32, z), BlockDirection.North);
-    p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-1, 32, 10), BlockDirection.East);
-    for (var z = 10; z <= 11; z++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
-    p.PlaceBlockDirect("鉄のミニコンベアチェスト", sinkAPosition, BlockDirection.North);
-    for (var x = 1; x <= 2; x++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(x, 32, 7), BlockDirection.East);
-    p.PlaceBlockDirect("鉄のミニコンベアチェスト", sinkBPosition, BlockDirection.East);
+    await p.PlaceBlockDirect("鉄のミニコンベアチェスト", sourcePosition, BlockDirection.North);
+    for (var z = 4; z <= 6; z++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア分岐器", new Vector3Int(0, 32, 7), BlockDirection.North);
+    for (var z = 8; z <= 9; z++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
+    for (var z = 7; z <= 9; z++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-1, 32, z), BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-1, 32, 10), BlockDirection.East);
+    for (var z = 10; z <= 11; z++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
+    await p.PlaceBlockDirect("鉄のミニコンベアチェスト", sinkAPosition, BlockDirection.North);
+    for (var x = 1; x <= 2; x++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(x, 32, 7), BlockDirection.East);
+    await p.PlaceBlockDirect("鉄のミニコンベアチェスト", sinkBPosition, BlockDirection.East);
     await p.WaitBlockGameObject(sinkAPosition);
     await p.WaitBlockGameObject(sinkBPosition);
 
@@ -80,7 +80,7 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     p.Note("流れている途中で直線の2本めを撤去する。供給側で詰まり、受けAへの到着が止まる");
     var removedPosition = new Vector3Int(0, 32, 5);
     var segmentsBeforeRemoval = datastore.Assembly.Segments.Length;
-    p.Assert(p.RemoveBlock(removedPosition), "ベルトを撤去した");
+    p.Assert(await p.RemoveBlock(removedPosition), "ベルトを撤去した");
     await p.Until(() => cache.Replica.Segments.Length != segmentsBeforeRemoval && cache.Replica.Segments.Length == datastore.Assembly.Segments.Length, 30f, "撤去後に複製が組み直された");
     // 撤去直後の1本(0,4)に1個入ったら供給は詰まる。以後は供給チェストが減らない
     // The single belt left at (0,4) takes one item and then the supply stalls; the source chest stops decreasing
@@ -92,7 +92,7 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     p.Assert(TickGap() < 40, $"撤去後もクライアントtickが追従している(差={TickGap()})");
 
     p.Note("撤去した位置へ再設置し、供給を20個足す。流れが戻り、受けAが再び増える");
-    p.PlaceBlockDirect("ベルトコンベア", removedPosition, BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", removedPosition, BlockDirection.North);
     await p.WaitBlockGameObject(removedPosition);
     source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, CountOf(source, itemId) + 20));
     var countAAfterReplace = CountOf(sinkA, itemId);

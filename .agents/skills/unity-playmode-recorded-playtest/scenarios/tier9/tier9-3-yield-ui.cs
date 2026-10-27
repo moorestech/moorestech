@@ -41,7 +41,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     // 半導体製造の研究を前提ごと完了扱いにする
     // Mark the semiconductor research done with all prerequisites
     var researchStore = p.ServerService<IResearchDataStore>();
-    researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(semiconductorResearch).Select(g => g.ToString()).ToList() });
+    await p.RunOnServer("半導体製造の研究を完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(semiconductorResearch).Select(g => g.ToString()).ToList() }));
     p.Assert(researchStore.IsResearchCompleted(semiconductorResearch), "semiconductor research completed");
 
     // 床のパネルを敷き、専用機5種を1列に置いて、壁を建てる前に設置演出の終わった見た目を撮る
@@ -49,8 +49,9 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     p.Note("専用機5種を1列に置き、見た目の違いを撮る");
     for (var x = 0; x <= 22; x++)
     for (var z = 0; z <= 10; z++)
-        p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 32, z), BlockDirection.North);
-    var machines = machineNames.Select((name, i) => Place(name, new Vector3Int(2 + i * 4, 33, 6))).ToArray();
+        await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 32, z), BlockDirection.North);
+    var machines = new IBlock[machineNames.Length];
+    for (var i = 0; i < machineNames.Length; i++) machines[i] = await Place(machineNames[i], new Vector3Int(2 + i * 4, 33, 6));
     p.WarpPlayer(new Vector3(11.5f, 32.5f, -6f));
     await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 32f) < 0.05f, 5f, "地面(y=32.0)に着地した");
     foreach (var machine in machines)
@@ -63,16 +64,16 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     // 壁・ドア・天井で閉じ、清浄機2台にフィルターを入れて給電し、クラスが付くまで待つ
     // Close the room with walls, door and ceiling, load two air filters, power everything and wait for a class
     p.Note("部屋を閉じて清浄機を動かし、クラスが付くのを待つ");
-    BuildWallsAndCeiling();
-    foreach (var x in new[] { 1, 21 }) Give(Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 2)), 0, "クリーンルームフィルター", 5);
-    PowerAll();
+    await BuildWallsAndCeiling();
+    foreach (var x in new[] { 1, 21 }) await Give(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 2)), 0, "クリーンルームフィルター", 5);
+    await PowerAll();
     await p.Until(() => p.ServerService<CleanRoomDatastore>().TryGetCleanRoom(machines[1], out var r) && r.ThresholdIndex < MasterHolder.CleanRoomMaster.OutThresholdIndex, 30f, "clean room classified");
 
     // 抽選欄は役割レシピを選んだ機械にだけ出るので、成膜・EUV1層・ダイシングを選ぶ
     // The draw section only shows for a selected role recipe, so select deposition, EUV layer 1 and dicing
-    SelectRecipeByFirstOutput(machines[1], "トランジスタ設置済みウェハG1");
-    SelectRecipeByFirstOutput(machines[2], "1層パターンウェハG1");
-    SelectRecipeByFirstOutput(machines[3], "シリコンダイLv1");
+    await SelectRecipeByFirstOutput(machines[1], "トランジスタ設置済みウェハG1");
+    await SelectRecipeByFirstOutput(machines[2], "1層パターンウェハG1");
+    await SelectRecipeByFirstOutput(machines[3], "シリコンダイLv1");
 
     // 室内に入り、3台の機械UIで抽選欄の行を確かめて撮る
     // Step inside and check and shoot the draw rows in the three machine UIs
@@ -95,16 +96,16 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         return done;
     }
 
-    IBlock Place(string name, Vector3Int pos)
+    async UniTask<IBlock> Place(string name, Vector3Int pos)
     {
-        var block = p.PlaceBlockDirect(name, pos, BlockDirection.North);
+        var block = await p.PlaceBlockDirect(name, pos, BlockDirection.North);
         consumers.Add(block);
         return block;
     }
 
-    void Give(IBlock block, int slot, string item, int count) => block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(slot, PlaytestItemOps.ResolveItemId(item), count);
+    async UniTask Give(IBlock block, int slot, string item, int count) => await p.RunOnServer($"{item} x{count} を {block.BlockMasterElement.Name} へ入れる", () => block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(slot, PlaytestItemOps.ResolveItemId(item), count));
 
-    void BuildWallsAndCeiling()
+    async UniTask BuildWallsAndCeiling()
     {
         // 内寸 x1..21 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 のパネルにする
         // Interior x1..21 / z1..9 / y33..36; the ceiling is y37 panels so the third-person camera (about 2.9 m above the feet) stays under it inside
@@ -112,14 +113,14 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         for (var x = 0; x <= 22; x++)
         for (var z = 0; z <= 10; z++)
         {
-            p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 37, z), BlockDirection.North);
+            await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 37, z), BlockDirection.North);
             if (x != 0 && x != 22 && z != 0 && z != 10) continue;
-            for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
+            for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
         }
-        p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
+        await p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
     }
 
-    void SelectRecipeByFirstOutput(IBlock block, string firstOutputName)
+    async UniTask SelectRecipeByFirstOutput(IBlock block, string firstOutputName)
     {
         // その機械の工程レシピのうち、最初の出力が指定アイテムのものを選ぶ
         // Select the machine's stage recipe whose first output is the given item
@@ -127,7 +128,9 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == block.BlockMasterElement.BlockGuid && r.OutputItems.Any() && r.OutputItems.First().ItemGuid == output);
         var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10);
         block.ComponentManager.TryGetComponent<IMachineRecipeSelectorComponent>(out var selector);
-        p.Assert(selector.SetSelectedRecipe(recipe, overflow) == MachineRecipeSelectionResult.Success, $"select recipe -> {firstOutputName}");
+        var result = MachineRecipeSelectionResult.Success;
+        await p.RunOnServer($"{block.BlockMasterElement.Name} のレシピを選ぶ", () => result = selector.SetSelectedRecipe(recipe, overflow));
+        p.Assert(result == MachineRecipeSelectionResult.Success, $"select recipe -> {firstOutputName}");
     }
 
     async UniTask CheckYieldUi(IBlock machine, string screenshotName, string[] rowTestIds)
@@ -149,18 +152,22 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 
-    void PowerAll()
+    async UniTask PowerAll()
     {
         // 室外の発電機 → 広範囲電柱 → 室内の機械と清浄機へ配線する（結線で電力網の再構築は自動で予約される）
         // Wire the outdoor generator -> wide-range pole -> the machines and air filters inside (wiring schedules the network rebuild)
-        var generator = p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-6, 32, -14), BlockDirection.North);
+        var generator = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-6, 32, -14), BlockDirection.North);
         var gasoline = MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"));
-        generator.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(2000, gasoline), default);
-        var pole = p.PlaceBlockDirect("広範囲電柱", new Vector3Int(11, 32, -3), BlockDirection.North).GetComponent<IElectricWireConnector>();
+        var pole = (await p.PlaceBlockDirect("広範囲電柱", new Vector3Int(11, 32, -3), BlockDirection.North)).GetComponent<IElectricWireConnector>();
         var free = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
-        p.Assert(ElectricWireSystemUtil.TryConnectBothSides(generator.GetComponent<IElectricWireConnector>(), pole, free), "wire generator -> pole");
-        foreach (var block in consumers)
-            p.Assert(ElectricWireSystemUtil.TryConnectBothSides(pole, block.GetComponent<IElectricWireConnector>(), free), $"wire pole -> {block.BlockMasterElement.Name}");
+        var wired = new List<(bool connected, string label)>();
+        await p.RunOnServer("発電機に給油して全消費ブロックへ配線する", () =>
+        {
+            generator.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(2000, gasoline), default);
+            wired.Add((ElectricWireSystemUtil.TryConnectBothSides(generator.GetComponent<IElectricWireConnector>(), pole, free), "wire generator -> pole"));
+            foreach (var block in consumers) wired.Add((ElectricWireSystemUtil.TryConnectBothSides(pole, block.GetComponent<IElectricWireConnector>(), free), $"wire pole -> {block.BlockMasterElement.Name}"));
+        });
+        foreach (var (connected, label) in wired) p.Assert(connected, label);
     }
 
     #endregion

@@ -62,7 +62,7 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
         // 実ブロックの設置アニメ後と対象部品数を観測する
         // Observe real components after the block placement animation
         var origin = new Vector3Int(658, 96, 610);
-        var engine = p.PlaceBlockDirect("蒸気機関", origin, BlockDirection.North);
+        var engine = await p.PlaceBlockDirect("蒸気機関", origin, BlockDirection.North);
         var view = await p.WaitBlockGameObject(origin);
         await p.Until(() => !view.IsPlayingPlaceAnimation, 15f, "Effects off中の新設置アニメ完了");
         var vfx = view.GetComponentsInChildren<VisualEffect>(true);
@@ -89,7 +89,7 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
         railB.BackNode.ConnectNode(railA.BackNode);
         var master = MasterHolder.TrainUnitMaster.Train.TrainCars.First(v => v.TractionForce > 0);
         p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
-        foreach (var item in master.RequiredItems) p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(item.ItemGuid).Name, item.Count);
+        foreach (var item in master.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(item.ItemGuid).Name, item.Count);
         var position = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);
         var response = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(position, master.TrainCarGuid, CancellationToken.None);
         p.Assert(response != null && response.Success, "機関車の本番設置プロトコル成功");

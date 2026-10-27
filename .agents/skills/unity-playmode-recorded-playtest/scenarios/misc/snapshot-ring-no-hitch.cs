@@ -35,7 +35,7 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
     var placeWall = Stopwatch.StartNew();
     for (var i = 0; i < foundationCount; i++)
     {
-        p.PlaceBlockDirect("基本土台", new Vector3Int(200 + i % 85 * 5, 40, 200 + i / 85 * 5), BlockDirection.North);
+        await p.PlaceBlockDirect("基本土台", new Vector3Int(200 + i % 85 * 5, 40, 200 + i / 85 * 5), BlockDirection.North);
         if (i % 500 == 499) await UniTask.Yield();
     }
     p.Note($"foundations placed blocks={ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count}");
@@ -43,7 +43,7 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
 
     for (var i = 0; i < chestCount; i++)
     {
-        p.PlaceBlockDirect("木のチェスト", new Vector3Int(900 + i % 40 * 2, 40, 900 + i / 40 * 2), BlockDirection.North);
+        await p.PlaceBlockDirect("木のチェスト", new Vector3Int(900 + i % 40 * 2, 40, 900 + i / 40 * 2), BlockDirection.North);
         if (i % 500 == 499) await UniTask.Yield();
     }
     var blockCount = ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count;

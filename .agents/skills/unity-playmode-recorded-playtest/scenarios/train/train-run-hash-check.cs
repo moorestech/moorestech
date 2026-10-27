@@ -79,7 +79,7 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
 
         foreach (var required in carMaster.RequiredItems)
         {
-            p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
+            await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
         }
 
         // A.Front→B.Front辺上に、B.Frontへ長い助走を残して配置する（先頭がlist[0]へ向かう）

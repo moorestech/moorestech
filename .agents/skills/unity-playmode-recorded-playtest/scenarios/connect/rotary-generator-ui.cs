@@ -48,7 +48,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     await p.WaitSeconds(0.5f);
 
     p.Note("駆動源なしの回転発電機を F キーで開き、停止表示を確認する");
-    var generatorBlock = p.PlaceBlockDirect("回転発電機", generatorPos, BlockDirection.North);
+    var generatorBlock = await p.PlaceBlockDirect("回転発電機", generatorPos, BlockDirection.North);
     var generatorObject = await p.WaitBlockGameObject(generatorPos);
     p.Assert(generatorBlock != null && p.GetBlock(generatorPos) != null, "発電機がサーバーに設置された");
     await OpenGenerator();
@@ -63,13 +63,13 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     // 蒸気機関から二段の20対10歯噛合で40 RPMへ増速する
     // Increase steam-engine speed to 40 RPM through two 20-to-10 tooth meshes
     p.Note("蒸気機関と二段増速歯車を直設置し、歯車網の連結を確認する");
-    p.PlaceBlockDirect("蒸気機関", steamPos, BlockDirection.North);
+    await p.PlaceBlockDirect("蒸気機関", steamPos, BlockDirection.North);
     await p.WaitSeconds(0.5f);
-    p.PlaceBlockDirect("大きな鉄の歯車", largeFirst, BlockDirection.East);
+    await p.PlaceBlockDirect("大きな鉄の歯車", largeFirst, BlockDirection.East);
     await p.WaitSeconds(0.5f);
-    p.PlaceBlockDirect("鉄の歯車", small, BlockDirection.East);
+    await p.PlaceBlockDirect("鉄の歯車", small, BlockDirection.East);
     await p.WaitSeconds(0.5f);
-    p.PlaceBlockDirect("大きな鉄の歯車", largeSecond, BlockDirection.East);
+    await p.PlaceBlockDirect("大きな鉄の歯車", largeSecond, BlockDirection.East);
     await p.WaitSeconds(0.5f);
     foreach (var position in new[] { steamPos, largeFirst, small, largeSecond })
     {
@@ -95,13 +95,13 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     // 実際のホットバーと電線ツールのクリック操作で需要を接続する
     // Connect demand with the real hotbar and wire-tool click path
     p.Note("電気採掘機を設置し、電線ツールで発電機へ結線する");
-    var minerBlock = p.PlaceBlockDirect("電気採掘機", minerPos, BlockDirection.North);
+    var minerBlock = await p.PlaceBlockDirect("電気採掘機", minerPos, BlockDirection.North);
     var minerObject = await p.WaitBlockGameObject(minerPos);
     p.Assert(minerBlock != null, "電気採掘機がサーバーに設置された");
     var generatorWire = generatorBlock.GetComponent<IElectricWireConnector>();
     var minerWire = minerBlock.GetComponent<IElectricWireConnector>();
     p.Assert(!generatorWire.ContainsWireConnection(minerBlock.BlockInstanceId), "結線前は電線がない");
-    p.Hotbar.UnlockConnectTool("電線");
+    await p.Hotbar.UnlockConnectTool("電線");
     await p.GiveItem("銅のワイヤー", 64);
     await p.Hotbar.AssignHotbar(0, "電線");
     await p.ClickWebUi("hotbar-slot-0");
@@ -128,7 +128,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     // 需要を除いた次の電力tickで供給量がゼロへ戻ることを確認する
     // Verify supply returns to zero on an electric tick after demand removal
     p.Note("採掘機を外し、開いたパネルが待機中と供給0へ同期することを確認する");
-    p.Assert(p.RemoveBlock(minerPos), "電力需要を撤去した");
+    p.Assert(await p.RemoveBlock(minerPos), "電力需要を撤去した");
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Idle &&
                         Mathf.Approximately(Detail().GeneratedElectricPower, 0f), 30f, "需要消失後のサーバー状態は待機中・供給0");
     await VerifyPanel("待機中（需要なし）", false);

@@ -34,10 +34,10 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
 
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
-    p.Hotbar.UnlockBlueprint();
+    await p.Hotbar.UnlockBlueprint();
 
-    p.PlaceBlockDirect("木のチェスト", new Vector3Int(2, 32, 2), BlockDirection.North);
-    p.PlaceBlockDirect("石窯", new Vector3Int(10, 32, 2), BlockDirection.North);
+    await p.PlaceBlockDirect("木のチェスト", new Vector3Int(2, 32, 2), BlockDirection.North);
+    await p.PlaceBlockDirect("石窯", new Vector3Int(10, 32, 2), BlockDirection.North);
     await p.WaitBlockGameObject(new Vector3Int(2, 32, 2));
     await p.WaitBlockGameObject(new Vector3Int(10, 32, 2));
     p.WarpPlayer(new Vector3(6f, 33.5f, -5f));

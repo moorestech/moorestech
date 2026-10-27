@@ -66,7 +66,7 @@ return PlaytestRunner.Run("placement-guided-tutorials", options, async p =>
     // 2. アンカーとなる燃料式風車をUI経路で置く
     // 2. Place the anchor windmill through the UI path
     p.Note("アンカーになる燃料式風車を置く");
-    p.PlaceBlockDirect(windmillName, windmillOrigin, BlockDirection.North);
+    await p.PlaceBlockDirect(windmillName, windmillOrigin, BlockDirection.North);
     await p.WaitBlockGameObject(windmillOrigin);
     await p.WaitSeconds(0.5f);
 
@@ -152,7 +152,7 @@ return PlaytestRunner.Run("placement-guided-tutorials", options, async p =>
     // 6. 風車→シャフト→粉砕機が1つの歯車ネットワークになることを確認する
     // 6. Confirm the windmill, shaft, and crusher end up in one gear network
     p.Note("粉砕機を並べ、風車からシャフト越しに歯車が繋がるかを確認する");
-    p.PlaceBlockDirect(crusherName, crusherOrigin, BlockDirection.North);
+    await p.PlaceBlockDirect(crusherName, crusherOrigin, BlockDirection.North);
     await p.WaitBlockGameObject(crusherOrigin);
     await p.WaitSeconds(0.5f);
 

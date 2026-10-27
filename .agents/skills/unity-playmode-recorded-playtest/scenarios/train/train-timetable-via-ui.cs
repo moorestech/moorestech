@@ -45,8 +45,8 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         p.Note("駅2基を直設置し、A出口→B入口、B出口→A入口を結線する");
         var stationAPos = new Vector3Int(10, 32, 4);
         var stationBPos = new Vector3Int(10, 32, 64);
-        p.PlaceBlockDirect("蒸気機関車駅", stationAPos, BlockDirection.North);
-        p.PlaceBlockDirect("蒸気機関車駅", stationBPos, BlockDirection.North);
+        await p.PlaceBlockDirect("蒸気機関車駅", stationAPos, BlockDirection.North);
+        await p.PlaceBlockDirect("蒸気機関車駅", stationBPos, BlockDirection.North);
         await p.WaitBlockGameObject(stationAPos);
         await p.WaitBlockGameObject(stationBPos);
         var stationA = p.GetBlock(stationAPos);
@@ -71,7 +71,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => 0 < c.TractionForce);
         p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(carMaster.TrainCarGuid);
         await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(carMaster.TrainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロック同期");
-        foreach (var required in carMaster.RequiredItems) p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
+        foreach (var required in carMaster.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
         var trainLength = TrainLengthConverter.ToRailUnits(carMaster.Length);
         var exitA = ExitOf(railsA).FrontNode;
         var entryA = EntryOf(railsA).FrontNode;

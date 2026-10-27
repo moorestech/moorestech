@@ -26,8 +26,8 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     // ホットバー1=ポール、2=チェーン接続ツール。両方ともホットバー割当前にアンロックが要る（ブロックと接続ツールは別枠）
     // Hotbar 1 = pole, 2 = chain connect tool. Both need unlocking before hotbar assignment (blocks and connect tools use separate unlock buckets)
-    p.UnlockBlock("歯車チェーンポール");
-    p.Hotbar.UnlockConnectTool("歯車チェーン");
+    await p.UnlockBlock("歯車チェーンポール");
+    await p.Hotbar.UnlockConnectTool("歯車チェーン");
     await p.GiveConstructionCost("歯車チェーンポール", 5);
     await p.GiveItem("鉄のワイヤー", 64);
     await p.Hotbar.AssignHotbar(0, "歯車チェーンポール");

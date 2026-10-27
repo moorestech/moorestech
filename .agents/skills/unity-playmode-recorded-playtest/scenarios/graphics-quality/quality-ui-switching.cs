@@ -58,7 +58,7 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         var origin = new Vector3Int(659, 96, 630);
         var neighborPositions = new[] { new Vector3Int(660, 96, 630), new Vector3Int(661, 96, 630), new Vector3Int(662, 96, 630) };
         p.Assert(p.GetBlock(origin) == null && neighborPositions.All(c => p.GetBlock(c) == null), "孤立パイプと隣のセルは空");
-        var block = p.PlaceBlockDirect("鉄のパイプ", origin, BlockDirection.East);
+        var block = await p.PlaceBlockDirect("鉄のパイプ", origin, BlockDirection.East);
         var view = await p.WaitBlockGameObject(origin);
         await p.Until(() => !view.IsPlayingPlaceAnimation, 15f, "パイプ設置アニメ完了");
         var waterLevelView = view.GetComponentInChildren<FluidPipeWaterLevelView>();
@@ -128,7 +128,7 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         // 水を持ち越しで入れた隣のパイプを足す。網は充填率(水位)で釣り合うので、同じパイプの水位は 網の総量 / 網の総容量 に向かう。サーバーの量と材質の両方がそこへ届いてから撮影する
         // Add a neighbor pipe prefilled through its holdover; the network balances by fill rate, so this pipe's level approaches total water / total capacity. Capture only after both the server amount and the material reach it
         var water = MasterHolder.FluidMaster.GetFluidId(new System.Guid("9eae6979-d56a-4991-9107-b8161acec430"));
-        var neighbor = p.PlaceBlockDirect("鉄のパイプ", neighborPosition, BlockDirection.East).GetComponent<FluidPipeComponent>();
+        var neighbor = (await p.PlaceBlockDirect("鉄のパイプ", neighborPosition, BlockDirection.East)).GetComponent<FluidPipeComponent>();
         var remainder = neighbor.AddLiquid(new FluidStack(added, water), default);
         p.Assert(neighbor.NodeIndex < 0 && remainder.Amount == 0, $"未構築の隣パイプへ持ち越しで水{added}を注入");
         networkWater += added;

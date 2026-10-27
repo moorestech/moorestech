@@ -22,7 +22,7 @@ return PlaytestRunner.Run("mining-progress-bar-smoke", options, async p =>
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 20f, "GameScreenに到達");
 
     p.Note("石の斧を装備枠1に装着する");
-    p.GiveItemDirect("石の斧", 1);
+    await p.GiveItemDirect("石の斧", 1);
     await p.WaitSeconds(1f);
     await p.EquipItem("石の斧", 0);
 

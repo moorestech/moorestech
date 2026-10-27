@@ -40,7 +40,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.WaitUiState(UIStateEnum.GameScreen, 15f);
 
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
-    p.Hotbar.UnlockConnectTool("レール");
+    await p.Hotbar.UnlockConnectTool("レール");
     await p.PrepareBlockForUiPlacement("レール橋脚", 5);
     foreach (var item in new[] { "補強棒材", "鉄板" }) await p.GiveItem(item, 64);
     var railTool = ToolGuid("レール");

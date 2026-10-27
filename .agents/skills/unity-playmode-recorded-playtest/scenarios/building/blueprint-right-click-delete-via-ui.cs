@@ -29,12 +29,12 @@ return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async 
     // コピー元ブロックを1つ直設置する
     // Place a single source block directly
     var chestPos = new Vector3Int(2, 32, 2);
-    p.PlaceBlockDirect("木のチェスト", chestPos, BlockDirection.North);
+    await p.PlaceBlockDirect("木のチェスト", chestPos, BlockDirection.North);
     await p.WaitBlockGameObject(chestPos);
 
     // BP機能を解放（未解放時メニュー非表示）
     // Unlock the blueprint feature (otherwise it never appears in the build menu)
-    p.Hotbar.UnlockBlueprint();
+    await p.Hotbar.UnlockBlueprint();
 
     // BPコピーツールを選択しドラッグでBP「delbp」を作成する
     // Select the copy tool and create blueprint "delbp" via drag

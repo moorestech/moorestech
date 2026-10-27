@@ -74,7 +74,7 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     // Grant the car's construction cost (RequiredItems) into the server inventory
     foreach (var required in carMaster.RequiredItems)
     {
-        p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
+        await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
     }
 
     // 本番プロトコルで車両を設置しentity生成を待つ
@@ -110,9 +110,9 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
 
     var poleAPos = GroundPoint(5f, -3f);
     var poleBPos = GroundPoint(5f, 3f);
-    p.GiveItemDirect("電線", 64);
-    p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
-    p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
+    await p.GiveItemDirect("電線", 64);
+    await p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
     await p.WaitBlockGameObject(poleAPos);
     await p.WaitBlockGameObject(poleBPos);
 

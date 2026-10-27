@@ -29,7 +29,7 @@ return PlaytestRunner.Run("delete-tool-box-select-hold-confirm", options, async 
     for (var x = 1; x <= 11; x++)
     for (var z = 1; z <= 8; z++)
         p.Assert(p.GetBlock(new Vector3Int(x, 32, z)) == null, $"準備: fixture範囲({x},32,{z})は空いている");
-    foreach (var cell in cells) PlaytestBlockOps.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
+    foreach (var cell in cells) await PlaytestBlockOps.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
     foreach (var cell in cells) await p.WaitBlockGameObject(cell);
     await p.Screenshot("01-prepared");
 

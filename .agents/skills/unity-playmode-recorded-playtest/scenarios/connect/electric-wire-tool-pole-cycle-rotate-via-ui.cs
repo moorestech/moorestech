@@ -47,8 +47,8 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     // Unlock all three pole types; with fewer than two the cycle assert would be vacuous
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
     await p.PrepareBlockForUiPlacement("電柱", 2);
-    p.UnlockBlock("高圧電柱");
-    p.UnlockBlock("広範囲電柱");
+    await p.UnlockBlock("高圧電柱");
+    await p.UnlockBlock("広範囲電柱");
     p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid);
     await p.GiveItem("銅のワイヤー", 64);
 

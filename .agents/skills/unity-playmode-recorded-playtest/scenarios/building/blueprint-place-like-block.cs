@@ -39,10 +39,10 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
 
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
-    p.Hotbar.UnlockBlueprint();
-    p.Hotbar.UnlockConnectTool("電線");
-    p.UnlockBlock("電柱");
-    p.UnlockBlock("石窯");
+    await p.Hotbar.UnlockBlueprint();
+    await p.Hotbar.UnlockConnectTool("電線");
+    await p.UnlockBlock("電柱");
+    await p.UnlockBlock("石窯");
 
     // 電柱2本と石窯を置き、電柱同士と電柱→石窯を電線でつなぐ（外接箱は x6・y5・z5）
     // Place two poles and an oven, wiring pole-pole and pole-oven (extent is x6, y5, z5)
@@ -50,10 +50,10 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     var poleB = new Vector3Int(7, 32, 2);
     var oven = new Vector3Int(4, 32, 4);
     var sideChest = new Vector3Int(-12, 32, 22);
-    p.PlaceBlockDirect("電柱", poleA, BlockDirection.North);
-    p.PlaceBlockDirect("電柱", poleB, BlockDirection.North);
-    p.PlaceBlockDirect("石窯", oven, BlockDirection.North);
-    p.PlaceBlockDirect("木のチェスト", sideChest, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleA, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleB, BlockDirection.North);
+    await p.PlaceBlockDirect("石窯", oven, BlockDirection.North);
+    await p.PlaceBlockDirect("木のチェスト", sideChest, BlockDirection.North);
     await p.WaitBlockGameObject(oven);
     await p.WaitBlockGameObject(sideChest);
     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
@@ -143,7 +143,7 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.ClickWebUi(bpEntry);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     var heldBefore = required.ToDictionary(r => r.itemId, r => p.CountItem(ItemName(r.itemId)));
-    foreach (var (itemId, count) in required) p.GiveItemDirect(ItemName(itemId), count);
+    foreach (var (itemId, count) in required) await p.GiveItemDirect(ItemName(itemId), count);
     await AimAndSettle(new Vector3(-10f, 32f, 8.5f));
     await p.Until(() => probe.AreAllGhostsColored(3, true), 10f, "素材が揃うとゴーストが青");
     await p.ClickPlace();
@@ -158,7 +158,7 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.Screenshot("06-pasted-with-wires");
 
     p.Note("8. ドラッグで3個並べる・素材は2個分 → 始点側の2個だけ置かれる");
-    foreach (var (itemId, count) in BlueprintPasteGhostProbe.RequiredItems(bp, 2)) p.GiveItemDirect(ItemName(itemId), count);
+    foreach (var (itemId, count) in BlueprintPasteGhostProbe.RequiredItems(bp, 2)) await p.GiveItemDirect(ItemName(itemId), count);
     p.WarpPlayer(new Vector3(8f, 33.5f, 12f));
     await AimAndSettle(new Vector3(3f, 32f, 22.5f));
     await p.Until(() => probe.AreAllGhostsColored(3, true), 10f, "列の始点で2個分の素材が同期されゴーストが青");

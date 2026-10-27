@@ -35,7 +35,7 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
 
     // 電線ツールはinitialUnlocked=falseのため、解放しないとビルドメニューに出ず選択できない
     // The wire tool is initialUnlocked=false, so without unlocking it never appears in the build menu
-    p.Hotbar.UnlockConnectTool("電線");
+    await p.Hotbar.UnlockConnectTool("電線");
 
     // 電線接続ツールの消費素材（銅のワイヤー）はインベントリ在庫から自動消費される（クライアント在庫を自動選択するため同期込みで付与）
     // The wire connect tool's material (copper wire) is auto-consumed from inventory stock (grant with sync so the client mirror reflects it)
@@ -45,8 +45,8 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
     // Place two poles directly (distance 6 <= maxWireLength 12)
     var poleAPos = new Vector3Int(2, 32, 2);
     var poleBPos = new Vector3Int(8, 32, 2);
-    p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
-    p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
     await p.WaitBlockGameObject(poleAPos);
     await p.WaitBlockGameObject(poleBPos);
 
@@ -81,7 +81,7 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
     // 電力範囲表示: 電柱ブロックをメニュー選択中のみEnergizedRangeObjectが既存電柱位置に出る
     // Energized range: EnergizedRangeObject boxes appear at existing poles only while a pole block is selected
     await p.ExitToGameScreen();
-    p.UnlockBlock("電柱");
+    await p.UnlockBlock("電柱");
     var unlockStateData = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
     var poleGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId("電柱")).BlockGuid;
     await p.Until(() => unlockStateData.BlockUnlockStateInfos.TryGetValue(poleGuid, out var info) && info.IsUnlocked, 10f, "電柱アンロックのクライアント同期");

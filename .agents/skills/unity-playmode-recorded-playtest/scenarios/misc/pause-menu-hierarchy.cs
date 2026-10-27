@@ -188,7 +188,7 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         railA.FrontNode.ConnectNode(railB.FrontNode); railB.BackNode.ConnectNode(railA.BackNode);
         var master = MasterHolder.TrainUnitMaster.Train.TrainCars.First(trainCar => trainCar.Length <= 7);
         p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
-        foreach (var required in master.RequiredItems) p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
+        foreach (var required in master.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
         var position = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);
         var response = await ClientContext.VanillaApi.Response.Train.PlaceTrainOnRail(position, master.TrainCarGuid, CancellationToken.None);
         p.Assert(response != null && response.Success, "乗車用の列車を本番プロトコルで配置できる");

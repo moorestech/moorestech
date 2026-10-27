@@ -25,7 +25,7 @@ return PlaytestRunner.Run("delete-hold-text-focus", new PlaytestRunOptions { Rec
     foreach (var cell in new[] { a, b })
     {
         p.Assert(p.GetBlock(cell) == null, $"fixture空き:{cell}");
-        p.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
+        await p.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
         await p.WaitBlockGameObject(cell);
     }
     await p.WaitSeconds(3f);

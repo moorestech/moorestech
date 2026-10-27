@@ -53,7 +53,7 @@ return PlaytestRunner.Run("electric-wire-tool-isolated-place-via-ui", options, a
     // 既存電柱を1本だけ直設置する（新設位置から距離3＝接続範囲内なので、自動配線があれば必ず繋がる配置）
     // Place a single existing pole; the new pole lands 3 blocks away (in range), so any auto-wiring would connect
     var neighborPolePos = new Vector3Int(5, 32, 4);
-    p.PlaceBlockDirect("電柱", neighborPolePos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", neighborPolePos, BlockDirection.North);
     var neighborGo = await p.WaitBlockGameObject(neighborPolePos);
 
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;

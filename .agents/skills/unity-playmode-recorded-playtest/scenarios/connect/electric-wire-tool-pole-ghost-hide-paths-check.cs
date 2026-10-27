@@ -44,7 +44,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-hide-paths-check", opti
     // 接続先候補として既存電柱を1本、直設置しておく
     // Pre-place one pole directly to serve as a connectable hover target
     var targetPolePos = new Vector3Int(8, 32, 10);
-    p.PlaceBlockDirect("電柱", targetPolePos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", targetPolePos, BlockDirection.North);
     var targetPoleGo = await p.WaitBlockGameObject(targetPolePos);
     var targetCollider = targetPoleGo.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
 
@@ -83,7 +83,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-hide-paths-check", opti
     await p.WaitSeconds(0.3f);
 
     var secondPolePos = new Vector3Int(8, 32, 4);
-    p.PlaceBlockDirect("電柱", secondPolePos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", secondPolePos, BlockDirection.North);
     var secondPoleGo = await p.WaitBlockGameObject(secondPolePos);
     var secondCollider = secondPoleGo.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
 

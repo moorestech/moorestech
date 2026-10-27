@@ -42,30 +42,30 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     var ipaId = MasterHolder.FluidMaster.GetFluidId(MasterHolder.FluidMaster.Fluids.Data.First(f => f.Name == "イソプロピルアルコール").FluidGuid);
     var consumers = new List<IBlock>();
     var researchStore = p.ServerService<IResearchDataStore>();
-    researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() });
+    await p.RunOnServer("研究を前提ごと完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
     await p.Until(() => research.All(researchStore.IsResearchCompleted), 15f, "半導体製造の研究が完了扱いになった");
 
     // 部屋の中にパッケージング2台を並べる。A の入口 (5,33,6) の手前、B の入口 (8,33,6) の手前に搬入路を作る
     // Place two packaging machines in the room; feed paths end in front of A's inlet (5,33,6) and B's inlet (8,33,6)
     p.Note("クリーンルームにパッケージング装置 A・B を置き、給電する");
-    BuildRoom();
-    var packagingA = Place("パッケージング装置", new Vector3Int(4, 33, 6));
-    var packagingB = Place("パッケージング装置", new Vector3Int(7, 33, 6));
+    await BuildRoom();
+    var packagingA = await Place("パッケージング装置", new Vector3Int(4, 33, 6));
+    var packagingB = await Place("パッケージング装置", new Vector3Int(7, 33, 6));
     var packagingRecipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == packagingA.BlockMasterElement.BlockGuid).MachineRecipeGuid;
-    foreach (var machine in new[] { packagingA, packagingB }) SelectRecipe(machine, packagingRecipe);
-    foreach (var x in new[] { 11, 12 }) Give(Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 8)), 0, "クリーンルームフィルター", 5);
-    PowerAll();
+    foreach (var machine in new[] { packagingA, packagingB }) await SelectRecipe(machine, packagingRecipe);
+    foreach (var x in new[] { 11, 12 }) await Give(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 8)), 0, "クリーンルームフィルター", 5);
+    await PowerAll();
     await p.Until(() => p.ServerService<CleanRoomDatastore>().TryGetCleanRoom(packagingA, out var r) && r.ThresholdIndex < MasterHolder.CleanRoomMaster.OutThresholdIndex, 30f, "クリーンルームが判定された");
-    foreach (var machine in new[] { packagingA, packagingB }) Give(machine, 1, "ICチップ基板", 20);
+    foreach (var machine in new[] { packagingA, packagingB }) await Give(machine, 1, "ICチップ基板", 20);
 
     // A の継承元に Lv1 を置き、分岐器→ベルトで Lv2 を届けると止まって理由が出る。ベルトへの押し込みは tick 内だけ受け付けるので、分岐器（block 更新で押す）へ入れる
     // With Lv1 in A's source slot, Lv2 via splitter -> belt stalls it with a reason; belts accept pushes only in-tick, so items go into the splitter (it pushes during block updates)
     p.Note("パッケージングA に Lv1 ダイを置き、分岐器とベルトで Lv2 ダイを届ける");
-    Give(packagingA, 0, "シリコンダイLv1", 1);
-    p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(5, 33, 5), BlockDirection.North);
-    var splitter = p.PlaceBlockDirect("フィルター分岐器", new Vector3Int(6, 33, 5), BlockDirection.North).GetComponent<VanillaFilterSplitterComponent>();
+    await Give(packagingA, 0, "シリコンダイLv1", 1);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(5, 33, 5), BlockDirection.North);
+    var splitter = (await p.PlaceBlockDirect("フィルター分岐器", new Vector3Int(6, 33, 5), BlockDirection.North)).GetComponent<VanillaFilterSplitterComponent>();
     p.Assert(splitter.DirectionCount == 3, $"フィルター分岐器の方向数が3（{splitter.DirectionCount}）");
-    AllowOnly(splitter, 0, "シリコンダイLv1", "シリコンダイLv2");
+    await AllowOnly(splitter, 0, "シリコンダイLv1", "シリコンダイLv2");
     await p.WaitSeconds(0.5f);
     await p.Until(() => splitter.InsertItem(ServerContext.ItemStackFactory.Create(PlaytestItemOps.ResolveItemId("シリコンダイLv2"), 1), InsertItemContext.Empty).Count == 0, 10f, "分岐器へ シリコンダイLv2 を入れた");
     await OpenMachine(packagingA);
@@ -79,12 +79,12 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     // 止まっていた Lv2 はベルトごと撤去し、B への搬入路を足して、分岐器の -x 側（A）は Lv1 だけ、+x 側（B）は Lv2 だけを通す
     // Remove the stuck Lv2 with its belt, add the path to B, and let the splitter's -x (A) pass only Lv1 and +x (B) only Lv2
     p.Note("フィルター分岐器で Lv1 を A、Lv2 を B へ仕分ける");
-    p.RemoveBlock(new Vector3Int(5, 33, 5));
-    p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(5, 33, 5), BlockDirection.North);
-    p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(7, 33, 5), BlockDirection.East);
-    p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(8, 33, 5), BlockDirection.North);
-    AllowOnly(splitter, 0, "シリコンダイLv1");
-    AllowOnly(splitter, 2, "シリコンダイLv2");
+    await p.RemoveBlock(new Vector3Int(5, 33, 5));
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(5, 33, 5), BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(7, 33, 5), BlockDirection.East);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(8, 33, 5), BlockDirection.North);
+    await AllowOnly(splitter, 0, "シリコンダイLv1");
+    await AllowOnly(splitter, 2, "シリコンダイLv2");
     p.Note($"分岐器の設定: {splitter.GetBlueprintSettingsJson()}");
     await p.WaitSeconds(0.5f);
     foreach (var die in Enumerable.Range(0, 19).Select(i => i % 2 == 0 ? "シリコンダイLv2" : "シリコンダイLv1"))
@@ -112,8 +112,8 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         return done;
     }
 
-    IBlock Place(string name, Vector3Int pos) { var block = p.PlaceBlockDirect(name, pos, BlockDirection.North); consumers.Add(block); return block; }
-    void Give(IBlock block, int slot, string item, int count) => block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(slot, PlaytestItemOps.ResolveItemId(item), count);
+    async UniTask<IBlock> Place(string name, Vector3Int pos) { var block = await p.PlaceBlockDirect(name, pos, BlockDirection.North); consumers.Add(block); return block; }
+    async UniTask Give(IBlock block, int slot, string item, int count) => await p.RunOnServer($"{item} x{count} を {block.BlockMasterElement.Name} へ入れる", () => block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(slot, PlaytestItemOps.ResolveItemId(item), count));
 
     // パッケージングの IPA は機械のタンクへ直接入れる（tick 外にパイプへ注入すると流体網の複製がサーバーと食い違うため）
     // Pour packaging IPA straight into machine tanks (injecting into pipes outside the tick desyncs the fluid replica)
@@ -121,19 +121,24 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
 
     int Count(IBlock block, string itemName) => block.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Where(s => s.Count > 0 && s.Id == PlaytestItemOps.ResolveItemId(itemName)).Sum(s => s.Count);
 
-    void SelectRecipe(IBlock block, Guid recipeGuid)
+    async UniTask SelectRecipe(IBlock block, Guid recipeGuid)
     {
         block.ComponentManager.TryGetComponent<IMachineRecipeSelectorComponent>(out var selector);
-        p.Assert(selector.SetSelectedRecipe(MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid), new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10)) == MachineRecipeSelectionResult.Success, $"select recipe {recipeGuid}");
+        var result = MachineRecipeSelectionResult.Success;
+        await p.RunOnServer("パッケージングのレシピを選ぶ", () => result = selector.SetSelectedRecipe(MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid), new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10)));
+        p.Assert(result == MachineRecipeSelectionResult.Success, $"select recipe {recipeGuid}");
     }
 
-    void AllowOnly(VanillaFilterSplitterComponent component, int direction, params string[] itemNames)
+    async UniTask AllowOnly(VanillaFilterSplitterComponent component, int direction, params string[] itemNames)
     {
         // 方向の添字は outputConnects の順（北向きで 0=-x・1=+z・2=+x）。0 は A 側、2 は B 側。指定外のフィルター枠は空にする
         // Direction indices follow outputConnects (facing north 0=-x, 1=+z, 2=+x); 0 leads to A and 2 to B; unlisted filter slots are cleared
-        component.SetMode(direction, FilterSplitterMode.Whitelist);
-        for (var slot = 0; slot < component.FilterSlotCountPerDirection; slot++)
-            component.SetFilterItem(direction, slot, slot < itemNames.Length ? PlaytestItemOps.ResolveItemId(itemNames[slot]) : ItemMaster.EmptyItemId);
+        await p.RunOnServer($"分岐器の方向{direction}を {string.Join("・", itemNames)} だけにする", () =>
+        {
+            component.SetMode(direction, FilterSplitterMode.Whitelist);
+            for (var slot = 0; slot < component.FilterSlotCountPerDirection; slot++)
+                component.SetFilterItem(direction, slot, slot < itemNames.Length ? PlaytestItemOps.ResolveItemId(itemNames[slot]) : ItemMaster.EmptyItemId);
+        });
     }
 
     async UniTask OpenMachine(IBlock block)
@@ -164,7 +169,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         return false;
     }
 
-    void BuildRoom()
+    async UniTask BuildRoom()
     {
         // 内寸 x1..13 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 にする
         // Interior x1..13 / z1..9 / y33..36; the ceiling sits at y37 so the third-person camera (about 2.9 m above the feet) stays under it when opening UIs inside
@@ -172,25 +177,29 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         for (var x = 0; x <= 14; x++)
         for (var z = 0; z <= 10; z++)
         {
-            p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 32, z), BlockDirection.North);
-            p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 37, z), BlockDirection.North);
+            await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 32, z), BlockDirection.North);
+            await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 37, z), BlockDirection.North);
             if (x != 0 && x != 14 && z != 0 && z != 10) continue;
-            for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
+            for (var y = x == door.x && z == door.z ? 35 : 33; y <= 36; y++) await p.PlaceBlockDirect("クリーンルームブロック", new Vector3Int(x, y, z), BlockDirection.North);
         }
-        p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
+        await p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
     }
 
-    void PowerAll()
+    async UniTask PowerAll()
     {
         // 室外の発電機 → 広範囲電柱 → 全消費ブロックへ配線する（結線で電力網の再構築は自動で予約される）
         // Wire the outdoor generator -> wide-range pole -> every consumer block (wiring schedules the network rebuild)
-        var generator = p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-12, 32, -20), BlockDirection.North);
-        generator.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(2000, MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"))), default);
-        var pole = p.PlaceBlockDirect("広範囲電柱", new Vector3Int(-2, 32, -3), BlockDirection.North).GetComponent<IElectricWireConnector>();
+        var generator = await p.PlaceBlockDirect("ガソリンエンジン発電機", new Vector3Int(-12, 32, -20), BlockDirection.North);
+        var pole = (await p.PlaceBlockDirect("広範囲電柱", new Vector3Int(-2, 32, -3), BlockDirection.North)).GetComponent<IElectricWireConnector>();
         var free = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
-        p.Assert(ElectricWireSystemUtil.TryConnectBothSides(generator.GetComponent<IElectricWireConnector>(), pole, free), "wire generator -> pole");
-        foreach (var block in consumers)
-            p.Assert(ElectricWireSystemUtil.TryConnectBothSides(pole, block.GetComponent<IElectricWireConnector>(), free), $"wire pole -> {block.BlockMasterElement.Name}");
+        var wired = new List<(bool connected, string label)>();
+        await p.RunOnServer("発電機に給油して全消費ブロックへ配線する", () =>
+        {
+            generator.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(2000, MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"))), default);
+            wired.Add((ElectricWireSystemUtil.TryConnectBothSides(generator.GetComponent<IElectricWireConnector>(), pole, free), "wire generator -> pole"));
+            foreach (var block in consumers) wired.Add((ElectricWireSystemUtil.TryConnectBothSides(pole, block.GetComponent<IElectricWireConnector>(), free), $"wire pole -> {block.BlockMasterElement.Name}"));
+        });
+        foreach (var (connected, label) in wired) p.Assert(connected, label);
     }
 
     #endregion

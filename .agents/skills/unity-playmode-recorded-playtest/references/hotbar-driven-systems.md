@@ -14,8 +14,8 @@
 await p.SkipOpeningSkit();
 
 // 1. アンロック（ブロックと接続ツールは別枠のアンロック状態を持つ）
-p.UnlockBlock("歯車チェーンポール");
-p.Hotbar.UnlockConnectTool("歯車チェーン");   // 接続ツール(電線/レール/歯車チェーン)を使うときだけ必要
+await p.UnlockBlock("歯車チェーンポール");
+await p.Hotbar.UnlockConnectTool("歯車チェーン");   // 接続ツール(電線/レール/歯車チェーン)を使うときだけ必要
 
 // 2. 在庫を用意する（ブロックは建設コスト、接続ツールは距離×マスタcountの多素材消費）
 await p.GiveConstructionCost("歯車チェーンポール", 10);
@@ -42,7 +42,7 @@ place systemの分岐は`context.Target`の型（`BlockPlacementTarget` / `Conne
 - クリック2回目以降: 新ポール設置＋起点との**チェーン自動結線**（`ExtendGearChainPole`プロトコル1発）。
   ポールの消費はブロックの`RequiredItems`、チェーンの消費は**歯車チェーン接続ツールのマスタ駆動**（distance-based。下記参照）
 - 内部的にも接続ツールのGuidを要求する: `ConnectToolCatalog.TryResolveDefaultConnectToolGuid`が**未解放なら早期returnで設置自体が不成立**になる。
-  ポールのブロックだけでなく`Hotbar.UnlockConnectTool("歯車チェーン")`も忘れない
+  ポールのブロックだけでなく`await p.Hotbar.UnlockConnectTool("歯車チェーン")`も忘れない
 - **起点のリセット＝セグメント分離**: `await p.Hotbar.SelectHotbar(slot)`（同キーで抜ける）でplace systemがDisable→ResetStateされ
   延長起点がnullに戻る。別セグメントを作るときは同キーで再度入り直す（割当は残っているので`Hotbar.AssignHotbar`のやり直し不要）
 - 設置1回ごとに待つ（応答消費→起点確定に時間がかかる）:
