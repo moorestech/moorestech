@@ -1,13 +1,13 @@
-// 送れずに残った報告を手元で救う操作。件数と書き出しの状態はC#が配る
-// Controls that rescue reports left unsent; counts and export state are published by C#
+// 送れず残った報告を救う操作。件数・状態はC#が配る
+// Controls rescuing unsent reports; counts and state come from C#
 import { Button } from "@mantine/core";
 import { dispatchAction, type PauseMenuData } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 type Props = {
-  // 未送信・送信できない件数。読めないときは null（BugReportForm が一度だけ絞り込む）
-  // Pending and failed counts; null when unreadable (BugReportForm narrows them once)
+  // 未送信・送信不可の件数。読めないときnull
+  // Pending and failed counts; null when unreadable
   counts: { pendingCount: number; failedCount: number } | null;
   inventoryUnavailable: boolean;
   exportStatus: PauseMenuData["export"];

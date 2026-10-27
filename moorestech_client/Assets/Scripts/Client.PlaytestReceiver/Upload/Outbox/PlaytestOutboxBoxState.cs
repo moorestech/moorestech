@@ -5,8 +5,8 @@ namespace Client.PlaytestReceiver.Upload
 {
     public enum PlaytestOutboxBoxKind { NotReady, Delivered, Pending, Failed }
 
-    // 箱1つの配送状態の正本。件数表示・再送・書き出しはここだけで箱を分類する
-    // The single source of a box's delivery state; inventory, resend and export classify boxes only here
+    // 箱1つの配送状態の正本。件数・再送・書き出しが共有
+    // The single source of a box's delivery state; inventory, resend and export share it
     public static class PlaytestOutboxBoxState
     {
         public static PlaytestOutboxBoxKind Classify(string boxDirectory)

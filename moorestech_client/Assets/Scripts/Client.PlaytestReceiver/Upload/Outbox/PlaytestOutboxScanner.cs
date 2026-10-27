@@ -10,8 +10,8 @@ using Client.PlaytestReceiver.Upload.Attempt;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // outboxの走査と印の名前の正本。箱の状態は PlaytestOutboxBoxState が決め、箱の中の何を送るのかはここだけが決める
-    // Owns the outbox scan and the marker names; box state is decided by PlaytestOutboxBoxState and what inside a box ships is decided only here
+    // outbox走査と印名の正本。箱の状態は BoxState、送る中身はここが決める
+    // Owns the outbox scan and marker names; box state is PlaytestOutboxBoxState's, what ships is decided only here
     public static class PlaytestOutboxScanner
     {
         // READYはバグ報告の書き出し側（BugReportOutbox）が打つ印。別アセンブリなので名前の一致はテストで固定する
@@ -46,8 +46,8 @@ namespace Client.PlaytestReceiver.Upload
             var reason = File.ReadAllText(path);
             if (reason.StartsWith(CompletionHoldPrefix, StringComparison.Ordinal) ||
                 reason == "repo/commit-evidence: Editorで元SHAの資料補完が必要です") return true;
-            // 旧Editorの理由は未補完の実体と照合する
-            // Match legacy Editor reasons against evidence still awaiting completion
+            // 旧Editor理由は未補完の実体と照合
+            // Match legacy Editor reasons against evidence awaiting completion
             var legacy = reason == "元repoまたはmanifestのSHAを特定できないため送信を保留しました" ||
                          System.Text.RegularExpressions.Regex.IsMatch(reason, @"\A元SHA [0-9a-fA-F]{40} を指定repoで確認できません: ");
             if (!legacy) return false; // silent-ok: 他の恒久失敗は維持 / 保留印と画面に残る

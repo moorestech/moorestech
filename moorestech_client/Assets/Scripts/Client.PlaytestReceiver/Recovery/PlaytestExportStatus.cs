@@ -29,8 +29,8 @@ namespace Client.PlaytestReceiver.Recovery
         public PlaytestExportFailed(string reason) { Reason = reason; }
     }
 
-    // 書き出しの進行をWeb UIへ渡す板。配送状況の板と同じく再生の跨ぎで初期値へ戻す
-    // Board carrying export progress to the Web UI; like the delivery board it resets between play sessions
+    // 書き出しの進行をWeb UIへ渡す板。再生の跨ぎで初期値へ戻す
+    // Board carrying export progress to the Web UI; resets between play sessions
     public static class PlaytestExportStatusBoard
     {
         private static readonly ReactiveProperty<PlaytestExportStatus> _current = new(PlaytestExportIdle.Instance);

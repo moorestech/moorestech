@@ -4,8 +4,8 @@ using Game.Paths;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // 走査するoutboxと、その箱の中身の格付けの組。合成ルートが実パスで組み、テストは一時ディレクトリで組む
-    // The outboxes to scan, each paired with how its boxes' contents rank; composition roots build it from real paths and tests from temp directories
+    // outboxと箱内パス格付けの組。合成ルートが実パスで組む
+    // Pairs each outbox with its content ranking; composition roots build it from real paths
     public sealed class PlaytestOutboxDirectories
     {
         public readonly string ReportOutbox;

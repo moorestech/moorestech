@@ -23,8 +23,8 @@ export function BugReportForm({ status, delivery, exportStatus, draft }: Props) 
 
   const trimmedDescription = draft.description.trim();
 
-  // 在庫の件数はここで一度だけ絞り込み、件数の行と再送・書き出しのボタンの両方へ渡す
-  // Narrow the inventory once here and feed both the count line and the resend/export buttons
+  // 件数はここで一度だけ絞り、行とボタンの両方へ渡す
+  // Narrow counts once here and feed both the count line and the buttons
   const inventory = delivery.kind === "allSent" ? null : delivery.inventory;
   const knownCounts = inventory?.kind === "known" ? { pendingCount: inventory.pendingCount, failedCount: inventory.failedCount } : null;
   const inventoryUnavailable = inventory?.kind === "unavailable";

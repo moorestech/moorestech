@@ -5,8 +5,8 @@ using Client.PlaytestReceiver.Recovery;
 
 namespace Client.WebUiHost.Game.Topics
 {
-    // 書き出し状態ごとの値だけを送り、null値はWebUiJsonで省略する
-    // Send only the fields of each export state; WebUiJson omits null fields
+    // 状態ごとの値だけ送り、nullはWebUiJsonで省略
+    // Send only each state's fields; WebUiJson omits nulls
     public sealed class PlaytestExportDto
     {
         public readonly string Kind;

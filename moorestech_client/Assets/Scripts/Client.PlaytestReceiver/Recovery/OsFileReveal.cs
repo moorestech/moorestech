@@ -6,8 +6,8 @@ namespace Client.PlaytestReceiver.Recovery
 {
     public interface IPlaytestFileReveal
     {
-        // ファイルマネージャでファイルを選んだ状態で開く。開けなければfalse
-        // Opens the file manager with the file selected; false when it could not
+        // ファイルを選択状態で開く。開けなければfalse
+        // Opens the file selected in the file manager; false when it could not
         bool Reveal(string filePath);
     }
 

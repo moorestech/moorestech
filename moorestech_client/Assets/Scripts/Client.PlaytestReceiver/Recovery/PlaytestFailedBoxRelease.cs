@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Recovery
 {
-    // 送れなかった箱の失敗印と試行回数だけを外し、次の走行の対象へ戻す。宣言済み・見送りの記録は残す
-    // Removes only the failure and attempt markers so the next run picks the box up again; declaration and skip records stay
+    // 失敗印と試行回数だけ外し次の走行へ戻す。宣言・見送りは残す
+    // Removes only failure and attempt markers for the next run; declaration and skip records stay
     public static class PlaytestFailedBoxRelease
     {
         public static int ReleaseAll(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)

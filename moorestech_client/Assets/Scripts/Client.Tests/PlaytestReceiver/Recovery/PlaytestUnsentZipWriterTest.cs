@@ -37,7 +37,7 @@ namespace Client.Tests.PlaytestReceiver.Recovery
             MakeBox("reports", "sent1", "READY", "UPLOADED");
             MakeBox("progress", "progress1", "READY");
 
-            var result = PlaytestUnsentZipWriter.Write(_directories, PlaytestOutboxScope.ReportsAndProgress, _zip, new DateTime(2026, 10, 27, 11, 0, 0, DateTimeKind.Utc));
+            var result = PlaytestUnsentZipWriter.Write(_directories, PlaytestOutboxScope.ReportsAndProgress, new FileStream(_zip, FileMode.CreateNew), new DateTime(2026, 10, 27, 11, 0, 0, DateTimeKind.Utc));
 
             Assert.AreEqual(3, result.BoxCount);
             CollectionAssert.IsEmpty(result.Missing);
@@ -60,7 +60,7 @@ namespace Client.Tests.PlaytestReceiver.Recovery
         {
             MakeBox("reports", "r1", "READY");
             MakeBox("progress", "g1", "READY");
-            var result = PlaytestUnsentZipWriter.Write(_directories, PlaytestOutboxScope.ReportsOnly, _zip, DateTime.UtcNow);
+            var result = PlaytestUnsentZipWriter.Write(_directories, PlaytestOutboxScope.ReportsOnly, new FileStream(_zip, FileMode.CreateNew), DateTime.UtcNow);
             Assert.AreEqual(1, result.BoxCount);
         }
 
@@ -75,7 +75,7 @@ namespace Client.Tests.PlaytestReceiver.Recovery
             using (new FileStream(locked, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
             {
                 UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("export skipped"));
-                var result = PlaytestUnsentZipWriter.Write(_directories, PlaytestOutboxScope.ReportsOnly, _zip, DateTime.UtcNow);
+                var result = PlaytestUnsentZipWriter.Write(_directories, PlaytestOutboxScope.ReportsOnly, new FileStream(_zip, FileMode.CreateNew), DateTime.UtcNow);
                 Assert.AreEqual(1, result.BoxCount);
                 Assert.AreEqual("reports/r1/locked.bin", result.Missing.Single().Item);
             }

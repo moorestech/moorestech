@@ -16,15 +16,15 @@ namespace Client.PlaytestReceiver.Recovery
         public PlaytestUnsentZipResult(int boxCount, IReadOnlyList<PlaytestExportMissing> missing) { BoxCount = boxCount; Missing = missing; }
     }
 
-    // 未送信の箱を提出用のzip 1本にまとめる。読めない箱・ファイルは飛ばして一覧に残す
-    // Packs unsent boxes into one zip for hand-in; unreadable boxes and files are skipped and listed
+    // 未送信の箱をzip1本へまとめる。読めないものは欠落として一覧化
+    // Packs unsent boxes into one zip; unreadable ones are listed as missing
     public static class PlaytestUnsentZipWriter
     {
-        public static PlaytestUnsentZipResult Write(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope, string zipPath, DateTime exportedAtUtc)
+        public static PlaytestUnsentZipResult Write(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope, Stream zipStream, DateTime exportedAtUtc)
         {
             var boxes = new JArray();
             var missing = new List<PlaytestExportMissing>();
-            using (var archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
             {
                 AddOutbox(archive, "reports", directories.ReportOutbox);
                 if (scope.IncludesProgress()) AddOutbox(archive, "progress", directories.ProgressOutbox);
@@ -86,13 +86,23 @@ namespace Client.PlaytestReceiver.Recovery
                     Skip(entryName, error);
                     return;
                 }
-                // zipへの書き込み失敗は欠落にせず、書き出し自体の失敗としてPackUnsentへ届かせる
-                // A zip write failure is not a missing item; it propagates to PackUnsent as an export failure
+                // 読み出し中の失敗も欠落にするため、先にメモリへ読み切ってからzipへ書く
+                // Read fully into memory first so a mid-read failure is also listed as missing
+                var buffer = new MemoryStream();
                 using (source)
                 {
-                    using var target = archive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Fastest).Open();
-                    source.CopyTo(target);
+                    try { source.CopyTo(buffer); }
+                    catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                    {
+                        Skip(entryName, error);
+                        return;
+                    }
                 }
+                // zipへの書き込み失敗は欠落にせず、書き出し自体の失敗としてPackUnsentへ届かせる
+                // A zip write failure is not a missing item; it propagates to PackUnsent as an export failure
+                using var target = archive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Fastest).Open();
+                buffer.Position = 0;
+                buffer.CopyTo(target);
             }
 
             void Skip(string item, Exception error)

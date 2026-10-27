@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Recovery
 {
-    // バグ報告画面からの再送・書き出しの入口。outboxへの読み書きは配送と同じ門で直列化する
-    // Entry point for resend and export from the bug-report page; outbox access shares the delivery gate
+    // 再送・書き出しの入口。outbox読み書きは配送と同じ門で直列化
+    // Entry point for resend and export; outbox access shares the delivery gate
     public sealed class PlaytestOutboxRecovery
     {
         private readonly IPlaytestUploadRequester _uploadRequester;
@@ -35,8 +35,8 @@ namespace Client.PlaytestReceiver.Recovery
             ExportUnsentAsync(CurrentScope()).Forget();
         }
 
-        // 画面の件数と同じ範囲を対象にするため、現在の配送経路から範囲を引く
-        // Use the current delivery route's scope so the targets match the displayed counts
+        // 画面の件数と同じ範囲を配送経路から引く
+        // Take the scope from the delivery route so targets match the displayed counts
         private static PlaytestOutboxScope CurrentScope()
         {
             return PlaytestDeliveryRouteResolver.ResolveCurrent().Scope;
@@ -74,7 +74,13 @@ namespace Client.PlaytestReceiver.Recovery
                     // Round-trip with the token so even a non-IO exception returns to the main thread before the gate is released
                     await UniTask.RunOnThreadPool(() => { packed = PackUnsent(scope, zipPath, exportedAt); }, cancellationToken: cancellationToken);
                 }
-                finally { PlaytestOutboxAccess.Gate.Release(); }
+                finally
+                {
+                    // 取り消しがワーカー上で投げられた窓でも、メインへ戻ってから解放と後始末をする
+                    // Even when cancellation throws on the worker, return to the main thread before release and cleanup
+                    await UniTask.SwitchToMainThread();
+                    PlaytestOutboxAccess.Gate.Release();
+                }
                 cancellationToken.ThrowIfCancellationRequested();
                 FinishExport(packed, zipPath);
             }
@@ -84,8 +90,8 @@ namespace Client.PlaytestReceiver.Recovery
             }
         }
 
-        // 二度押しと書き出し先の欠如をここで止め、書き出し中へ進める。進めないときはnull
-        // Stops a second press and a missing destination here, then enters running; null when it cannot start
+        // 二度押し・出力先欠如を止め書き出し中へ。不可ならnull
+        // Stops a second press or missing destination, then enters running; null when it cannot
         internal string BeginExport()
         {
             if (PlaytestExportStatusBoard.Current.Value is PlaytestExportRunning)
@@ -117,19 +123,28 @@ namespace Client.PlaytestReceiver.Recovery
             #endregion
         }
 
-        // zipを書く。zip自体を書けなければ途中のzipを消して失敗を返す。どのスレッドからでも呼べる
-        // Writes the zip; when the zip itself cannot be written, removes the partial file and returns failure; callable from any thread
+        // zipを書く。失敗時は途中のzipを消す。任意スレッド可
+        // Writes the zip; removes the partial file on failure; callable from any thread
         internal PlaytestExportStatus PackUnsent(PlaytestOutboxScope scope, string zipPath, DateTime exportedAtUtc)
         {
-            // 外部ディスクIO境界。容量不足・権限でzip自体を書けなければ失敗にする
-            // External disk IO boundary: failing to write the zip itself (disk full, permissions) is an export failure
+            // 外部ディスクIO境界。他クライアントが同名で先に作ったzipは消さず、作成失敗はそのまま失敗にする
+            // External disk IO boundary: a creation failure never deletes a zip another client made first
+            FileStream stream;
+            try { stream = new FileStream(zipPath, FileMode.CreateNew, FileAccess.Write); }
+            catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+            {
+                return new PlaytestExportFailed($"{error.GetType().Name}: {error.Message}");
+            }
+            // 作成できた後の失敗（容量不足・権限）だけ、自分が作った途中のzipを消す
+            // Only failures after our own creation (disk full, permissions) remove our partial zip
             try
             {
-                var result = PlaytestUnsentZipWriter.Write(_directories, scope, zipPath, exportedAtUtc);
+                var result = PlaytestUnsentZipWriter.Write(_directories, scope, stream, exportedAtUtc);
                 return new PlaytestExportDone(zipPath, result.BoxCount, result.Missing, false);
             }
             catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
             {
+                stream.Dispose();
                 DeletePartial(zipPath);
                 return new PlaytestExportFailed($"{error.GetType().Name}: {error.Message}");
             }
@@ -150,8 +165,8 @@ namespace Client.PlaytestReceiver.Recovery
             #endregion
         }
 
-        // 結果を画面へ出す。成功ならファイルマネージャでzipを選んで開く。メインスレッドで呼ぶ
-        // Publishes the outcome; on success opens the file manager with the zip selected; call on the main thread
+        // 結果を画面へ出しzipを選択表示。メインスレッド専用
+        // Publishes the outcome and reveals the zip; main thread only
         internal void FinishExport(PlaytestExportStatus packed, string zipPath)
         {
             if (packed is PlaytestExportFailed failed)

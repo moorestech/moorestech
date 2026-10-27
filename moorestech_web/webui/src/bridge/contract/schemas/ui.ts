@@ -86,7 +86,7 @@ const DeliveryStatusSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("refused"), inventory: PlaytestDeliveryInventorySchema }).strict(),
   z.object({ kind: z.literal("allSent") }).strict(),
 ]);
-// 書き出しの状態ごとの必須値を契約で固定する
+// 書き出し状態ごとの必須値を契約で固定
 // Pin the required fields of each export state at the boundary
 const ExportStatusSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("idle") }).strict(),

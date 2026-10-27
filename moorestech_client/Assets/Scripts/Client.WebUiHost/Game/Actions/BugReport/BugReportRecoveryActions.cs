@@ -19,8 +19,8 @@ namespace Client.WebUiHost.Game.Actions
         }
     }
 
-    // 未送信の報告のzip書き出し。数分かかり得るため受理だけ返し、進行はtopicで届く
-    // Zip export of unsent reports; it can take minutes, so only acceptance returns and progress arrives on the topic
+    // 未送信報告のzip書き出し。受理だけ返し進行はtopicで届く
+    // Zip export of unsent reports; only acceptance returns, progress arrives on the topic
     public class BugReportExportUnsentActionHandler : IActionHandler
     {
         private readonly PlaytestOutboxRecovery _recovery;
