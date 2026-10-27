@@ -57,6 +57,22 @@ def per_event_us(result):
     return (total - response) / calls * 1000
 
 
+def dispatch_ms_excluding_response(result):
+    total = marker(result, "PacketExchange.DispatchReceivedPackets")
+    response = marker(result, "PacketExchange.RouteResponse") or 0
+    if total is None:
+        return None
+    return total - response
+
+
+def block_states_per_second(result):
+    # 束の前は状態イベント1件＝1ブロック分なので、ブロック状態の件数を合算して同じ物差しにする
+    events = result["events"]
+    if "blockStatesPerSecond" in events:
+        return events["blockStatesPerSecond"]
+    return sum(v["perSecond"] for k, v in events["byKind"].items() if k.startswith("va:event:changeBlockState"))
+
+
 def stats(values):
     values = [v for v in values if v is not None]
     if not values:
@@ -124,6 +140,9 @@ def main(paths):
     row("受信イベント 件/秒", lambda r: r["events"]["eventsPerSecond"], 0)
     # 表示状態に左右されにくい指標。ワールド定期取得（RouteResponse）を除いたイベント1件あたりの受信処理
     row("受信処理 µs/件（応答を除く）", lambda r: per_event_us(r))
+    # 束ねるとイベント件数の意味が変わるので、フレームあたりの受信処理時間とブロック状態の件数で比べる
+    row("受信処理 ms/フレーム（応答を除く）", lambda r: dispatch_ms_excluding_response(r))
+    row("ブロック状態 件/秒", lambda r: block_states_per_second(r), 0, lower_is_better=False)
     row("受信 payload KB/秒", lambda r: r["events"]["payloadBytesPerSecond"] / 1024, 0)
     for name in FIXED_MARKERS:
         row(f"`{name}` ms", lambda r, n=name: marker(r, n))

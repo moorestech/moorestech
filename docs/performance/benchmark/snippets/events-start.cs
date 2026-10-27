@@ -11,18 +11,25 @@ var field = pem.GetType().GetField("_eventPacketSubject", bf);
 var original = (Subject<Server.Event.EventMessagePack>)field.GetValue(pem);
 var counts = new Dictionary<string, double[]>();
 var comboByTag = new Dictionary<string, string>();
+var blockStates = new double[1];
 var wrap = new Subject<Server.Event.EventMessagePack>();
 wrap.Subscribe(e => {
   var tag = e.Tag; var paren = tag.IndexOf(":(");
   var kind = paren < 0 ? tag : tag.Substring(0, paren);
   if (kind == Server.Event.EventReceive.ChangeBlockStateEventPacket.EventTag) {
-    // 状態キーの組み合わせはタグ（＝ブロック）ごとに初回だけ復号してキャッシュする
-    if (!comboByTag.TryGetValue(tag, out var combo)) {
-      var m = MessagePack.MessagePackSerializer.Deserialize<Server.Event.EventReceive.BlockStateMessagePack>(e.Payload);
-      combo = string.Join("+", m.CurrentStateDetail.Keys.OrderBy(x => x));
-      comboByTag[tag] = combo;
+    // 束の中の各件を、状態キーの組み合わせ別に数える。組み合わせは座標ごとに初回だけ求める
+    var bundle = MessagePack.MessagePackSerializer.Deserialize<Server.Event.EventReceive.BlockStatesTickBundleMessagePack>(e.Payload);
+    foreach (var m in bundle.States) {
+      var key = m.Position.ToString();
+      if (!comboByTag.TryGetValue(key, out var combo)) {
+        combo = string.Join("+", m.CurrentStateDetail.Keys.OrderBy(x => x));
+        comboByTag[key] = combo;
+      }
+      var stateKind = "blockState|" + combo;
+      if (!counts.TryGetValue(stateKind, out var sc)) { sc = new double[2]; counts[stateKind] = sc; }
+      sc[0]++;
+      blockStates[0]++;
     }
-    kind = kind + "|" + combo;
   }
   if (!counts.TryGetValue(kind, out var c)) { c = new double[2]; counts[kind] = c; }
   c[0]++; c[1] += e.Payload.Length;
@@ -31,6 +38,7 @@ wrap.Subscribe(e => {
 field.SetValue(pem, wrap);
 var dom = AppDomain.CurrentDomain;
 dom.SetData("bench_ev_counts", counts); dom.SetData("bench_ev_tags", comboByTag);
+dom.SetData("bench_ev_blockstates", blockStates);
 dom.SetData("bench_ev_pem", pem); dom.SetData("bench_ev_original", original);
 dom.SetData("bench_ev_time", UnityEngine.Time.realtimeSinceStartupAsDouble);
 return "event hook installed";

@@ -43,6 +43,7 @@
 - Profiler の窓は短く保つ（このワールドで長く記録すると Editor がメモリ不足でクラッシュした実績がある）。
 - **fps は Editor の表示状態で大きく変わる。** 2026-10-22 のベースライン4回では、同じコード・同じワールドで 6.3〜6.5fps の回と 10.6〜11.1fps の回に分かれた。差は受信処理ではなく、表示待ちや PlayerLoop の外の Editor 処理（合わせて約50ms/フレーム）で、誰かが画面をリモートで見ていたかどうかなどが原因と推測している（未確認）。
 - 環境に左右されにくいのは「受信処理 µs/件（応答を除く）」（4回とも 30〜31µs）と「受信イベント 件/秒」。改善の効果はまずこの2つで判断し、fps は参考にする。
+- **ブロック状態の束ね（ADR 0088）の前後で、イベントの数え方が変わる。** 束ねた後は「受信イベント 件/秒」に束1件が1件として入り、「受信処理 µs/件」は束1件あたりの値になるので、束の前とは比べられない。前後の比較は「受信処理 ms/フレーム（応答を除く）」と「ブロック状態 件/秒」で行う。`snippets/events-start.cs` は束の型を参照するので、束の前のコミットを測るときは、そのコミットの時点の `events-start.cs` と `events-collect.cs` を使う（`git show <commit>:docs/performance/benchmark/snippets/events-start.cs`）。Profiler の `BlockState.Deserialize` は、束の前はブロック1件ごと、束の後は束1回ごとの計測になるので、ms は比べられるが calls は比べられない。
 
 ## 結果 JSON の中身（schemaVersion 1）
 | キー | 内容 |
@@ -54,7 +55,7 @@
 | `fps` | Profiler なしの fps とフレーム ms 平均 |
 | `profiler.frameMs` | Profiler 記録中のフレーム時間の平均・p50・p95・最大 |
 | `profiler.markers` | マーカーごとの1フレームあたり totalMs・selfMs・calls。主要マーカー、`PacketExchange.*`・`BlockState.*` の全部、self 上位20を含む |
-| `events` | 受信イベントの件数/秒・payload バイト/秒、状態イベントを出したブロック数。`byKind` はタグ種別ごとの内訳で、ブロック状態は状態キーの組み合わせ別 |
+| `events` | 受信イベントの件数/秒・payload バイト/秒、ブロック状態の件数/秒（`blockStatesPerSecond`。束の中身の件数。束の前の結果には無い）、状態を出したブロック数（`blockStateSenders`。束の前はタグ数、束の後は座標数）。`byKind` はタグ種別ごとの内訳で、ブロック状態は状態キーの組み合わせ別（束の後は `blockState|<組み合わせ>` に件数だけ入る） |
 
 ## スニペット一覧（`snippets/`）
 | ファイル | 役割 |
