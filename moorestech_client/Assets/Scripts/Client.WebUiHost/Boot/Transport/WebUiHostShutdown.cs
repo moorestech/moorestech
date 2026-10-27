@@ -10,14 +10,19 @@ namespace Client.WebUiHost.Boot.Transport
     {
         internal static async UniTask<WebUiStopResult> StopAsync(ViteSupervisor vite, WebSocketHub hub, KestrelServer kestrel)
         {
+            // 最初の await より前に停止中を確定し、停止待ちの間に action を実行させない
+            // Commit the stopping state before the first await so no action runs while stopping
+            hub?.SetStopping();
             var resourceFailures = new Dictionary<string, string>();
             var closeResult = new WebSocketCloseResult(new());
             // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）
             // Isolate and log each stop step so one failure cannot skip the remaining steps (2-B)
             if (vite != null)
             {
-                // ViteのOSプロセス終了境界を隔離し、欠損を結果へ残す
-                // Isolate the Vite OS process termination boundary and retain the failure in the result
+                // 外部プロセス（Viteと子の終了コマンド）境界を隔離し、欠損を結果へ残す
+                // Isolate the external process boundary (Vite and its child kill commands) and keep the failure in the result
+                // Process.Kill はメインスレッド前提なので、スレッドプールへ移る前に同期で止める
+                // Process.Kill assumes the main thread, so stop it synchronously before moving to the thread pool
                 try { vite.Stop(); }
                 catch (Exception e) { RecordFailure("Vite process", e, resourceFailures); }
             }

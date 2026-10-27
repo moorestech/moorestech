@@ -27,12 +27,20 @@ namespace Client.WebUiHost.Boot
         private readonly WebSocketMessageDispatcher _dispatcher;
         private readonly WebSocketReceiveLoop _receiver;
         public readonly ConnectionActionRegistry ConnectionActions;
+        // 停止が始まったら以後の action を実行させない
+        // Once stopping begins, no further action executes
+        public bool IsStopping { get; private set; }
 
         public WebSocketHub()
         {
             ConnectionActions = new ConnectionActionRegistry(this);
             _dispatcher = new WebSocketMessageDispatcher(this);
             _receiver = new WebSocketReceiveLoop(_dispatcher);
+        }
+
+        public void SetStopping()
+        {
+            IsStopping = true;
         }
 
         // 登録済みtopicハンドラの解決口。未登録はnull

@@ -109,10 +109,11 @@ namespace Client.WebUiHost.Boot
             // Handlers touch game state, so always run them on the main thread
             await UniTask.SwitchToMainThread();
 
-            // 停止処理と競合した場合はハンドラを実行しない（解体済みゲーム状態の保護）
-            // Skip execution if shutdown cleared the registry while we awaited the main thread
-            if (_hub.ResolveAction(msg.Type) == null && _hub.ConnectionActions.Resolve(msg.Type) == null)
+            // 停止が始まった・登録が外れた場合はハンドラを実行しない（解体中のゲーム状態の保護）
+            // Skip execution once stopping began or the registry was cleared while we awaited the main thread
+            if (_hub.IsStopping || (_hub.ResolveAction(msg.Type) == null && _hub.ConnectionActions.Resolve(msg.Type) == null))
             {
+                UnityEngine.Debug.LogWarning($"[WebSocketHub] action '{msg.Type}' rejected: host_stopping");
                 await UniTask.SwitchToTaskPool();
                 conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "host_stopping"));
                 return;
