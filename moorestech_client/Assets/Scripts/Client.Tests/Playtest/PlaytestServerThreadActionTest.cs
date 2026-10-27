@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -111,6 +113,43 @@ namespace Client.Tests.Playtest
             yield return WaitUntilDone(probe, 15f);
             Assert.AreEqual(UniTaskStatus.Succeeded, probe.Status);
             Assert.IsFalse(lateRan, "時間切れで失敗扱いにした処理が後から実行された");
+        }
+
+        [UnityTest]
+        public IEnumerator 受理確認の直後に停止した未開始の処理は実行されない()
+        {
+            LogAssert.Expect(LogType.Error, new Regex("処理完了前にサーバーが停止しました: stop blocker"));
+            LogAssert.Expect(LogType.Error, new Regex("未開始のままサーバーが停止したため取り消しました: stop late"));
+
+            // 先頭の処理でtickを止め、後ろの処理を受理済み・未開始のまま留める
+            // Freeze the tick with the first action so the one behind it stays admitted but unstarted
+            using var release = new ManualResetEventSlim(false);
+            using var blockerStarted = new ManualResetEventSlim(false);
+            var blocker = PlaytestServerThreadAction.RunAsync("stop blocker", () => { blockerStarted.Set(); release.Wait(TimeSpan.FromSeconds(30)); });
+            var deadline = Time.realtimeSinceStartup + 15f;
+            while (!blockerStarted.IsSet && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.IsTrue(blockerStarted.IsSet, "先頭の処理がtickで始まらなかった");
+            var lateRan = false;
+            var late = PlaytestServerThreadAction.RunAsync("stop late", () => lateRan = true);
+            var lateAction = PendingActions().Single();
+
+            // Drainが受理確認を通った直後に停止が割り込み、その後でtickが実行に入った順序を再現する
+            // Reproduce the order where a stop slips in right after Drain's admission check and the tick then enters Run
+            typeof(ServerInstanceManager).GetMethod("StopThreadActions", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(ServerStarterTestBoot.InstanceManager(_starter), null);
+            lateAction.Run();
+            Assert.IsFalse(lateRan, "停止で失敗と報告した処理が後から実行された");
+            Assert.AreEqual(UniTaskStatus.Faulted, late.Status);
+            Assert.Throws<InvalidOperationException>(() => late.GetAwaiter().GetResult());
+
+            release.Set();
+            yield return WaitUntilDone(blocker, 15f);
+            Assert.Throws<InvalidOperationException>(() => blocker.GetAwaiter().GetResult());
+        }
+
+        private static IServerThreadAction[] PendingActions()
+        {
+            var pending = (Queue<IServerThreadAction>)typeof(ServerThreadActionQueue).GetField("_pending", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(ServerThreadActionQueueAccess.Current);
+            return pending.ToArray();
         }
 
         private Thread GameUpdateThread()

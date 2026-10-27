@@ -81,7 +81,12 @@ namespace Client.Playtest.Core
 
         public void OnServerStopped()
         {
-            Debug.LogError($"[Playtest] 処理完了前にサーバーが停止しました: {_label}");
+            // 未開始なら取り消す。Drainが受理確認を通った直後に停止が来ても、失敗と報告した処理を後から走らせない
+            // Cancel it if not started, so work reported as failed never runs late even when the stop lands right after Drain admitted it
+            if (Interlocked.CompareExchange(ref _state, StateCancelled, StateQueued) == StateQueued)
+                Debug.LogError($"[Playtest] 未開始のままサーバーが停止したため取り消しました: {_label}");
+            else
+                Debug.LogError($"[Playtest] 処理完了前にサーバーが停止しました: {_label}");
             _failure = new InvalidOperationException($"Server stopped before the playtest server action completed: {_label}");
             CompleteOnMainThread();
         }
