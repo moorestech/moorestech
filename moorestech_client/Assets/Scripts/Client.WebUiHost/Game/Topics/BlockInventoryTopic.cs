@@ -13,7 +13,6 @@ using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
-using Server.Event.EventReceive;
 using UniRx;
 namespace Client.WebUiHost.Game.Topics
 {
@@ -178,12 +177,9 @@ namespace Client.WebUiHost.Game.Topics
                 _networkCache.Clear();
                 return;
             }
-            // uGUI BlockGameObject と同じ per-block イベントタグを直接購読して再配信トリガにする
-            // Directly subscribe the same per-block event tag as uGUI BlockGameObject as the republish trigger
-            var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);
-            _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(
-                eventTag,
-                _ => OnTrackedBlockStateChanged());
+            // 束の振り分けで追跡ブロックに状態が届いたら再配信する
+            // Republish whenever bundle routing delivers a state to the tracked block
+            _blockStateSubscription = block.OnBlockStateChanged.Subscribe(_ => OnTrackedBlockStateChanged());
             // ネットワーク所属はマスタの接続paramが答える。blockTypeの列挙は新種別を取りこぼす
             // The master's connection params answer which networks a block joins; enumerating blockTypes drops new kinds
             var param = block.BlockMasterElement.BlockParam;

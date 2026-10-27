@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game.Block.Interface;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -70,11 +69,6 @@ namespace Server.Event.EventReceive
 
             var payload = MessagePackSerializer.Serialize(new BlockStatesTickBundleMessagePack(states));
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
-        }
-
-        public static string CreateSpecifiedBlockEventTag(BlockPositionInfo posInfo)
-        {
-            return $"{EventTag}:{posInfo.OriginalPos}";
         }
 
         // ブロック削除時に差分記録と溜めた状態を掃除する。放置すると同座標に再設置された別ブロックへ旧状態が届きうる
