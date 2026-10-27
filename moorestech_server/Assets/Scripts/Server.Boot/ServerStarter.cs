@@ -40,8 +40,8 @@ namespace Server.Boot
             // Force one final write of the world; unlike the networked Save it needs no arrival wait. A folded server is not asked, since nobody would capture it and it would stay pending forever
             if (!_serverFinished) _startServer?.RequestSave();
 
-            // 破棄経路が先に畳んだら、その中で保存を消化し終えているので待ちを打ち切る
-            // If the teardown folded the server first, it already drained the save, so stop waiting
+            // 破棄経路が先に畳んだら、終了時の世界はその中で書き出し済みなので待ちを打ち切る
+            // If the teardown folded the server first, it already wrote the final world, so stop waiting
             for (var frame = 0; frame < SaveFlushWaitFrameLimit && !_serverFinished && _startServer != null && _startServer.HasPendingSave; frame++)
             {
                 await UniTask.Yield(PlayerLoopTiming.Update);
@@ -103,6 +103,10 @@ namespace Server.Boot
             if (_serverFinished) return;
             _serverFinished = true;
             Debug.Log("サーバーを終了します");
+
+            // Play停止・強制終了ではクライアントの終了表明より先にここへ来ることがある。畳んだ後の要求は誰も書けないので、終了時の世界はここで要求しDisposeに書き出させる
+            // On a play stop or forced quit this can run before the client's shutdown declaration; nobody can write a request after folding, so request the final world here and let Dispose write it
+            _startServer?.RequestSave();
             _startServer?.Dispose();
             Debug.Log("サーバーを終了しました");
         }
