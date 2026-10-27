@@ -24,15 +24,23 @@ def check_coverage(head: Ledger, tracked_sources: tuple[str, ...]) -> tuple[Viol
 
 
 def check_retired_changes(base: Ledger, head: Ledger, changed: tuple[ChangedFile, ...]) -> tuple[Violation, ...]:
-    # 新規パスも現在の所有束で判定し、今回切替・戻し・削除は通す
-    # Use current owners even for new paths; allow switching, rollback and deletion
+    # 新規パスも所有束で判定し、今回切替・戻し・削除は通す
+    # Use owners even for new paths; allow switching, rollback and deletion
+    # head の行を消しても保護が外れないよう、base と head の両方の所有束で判定する
+    # Judge by both base and head owners so deleting a head row cannot drop the protection
+    def retired_owners(change: ChangedFile) -> tuple[int, ...]:
+        for owners in (owning_bundles(change.path, head.rows), owning_bundles(change.path, base.rows)):
+            if owners and all(
+                    base.bundles[bundle_id].state == STATE_SWITCHED
+                    and head.bundles[bundle_id].state == STATE_SWITCHED for bundle_id in owners):
+                return tuple(sorted(owners))
+        return ()
+
     return tuple(
-        Violation(RULE_RETIRED, f"{change.path}（{change.status}）は切替済みの束 {sorted(owning_bundles(change.path, head.rows))} の Web パス。描かれないコードなので UITK 側を直す")
+        Violation(RULE_RETIRED, f"{change.path}（{change.status}）は切替済みの束 {list(owners)} の Web パス。描かれないコードなので UITK 側を直す")
         for change in changed
-        for owners in (owning_bundles(change.path, head.rows),)
-        if change.status != "D" and owners and all(
-            base.bundles[bundle_id].state == STATE_SWITCHED
-            and head.bundles[bundle_id].state == STATE_SWITCHED for bundle_id in owners))
+        for owners in (retired_owners(change),)
+        if change.status != "D" and owners)
 
 
 def switching_bundles(base: Ledger, head: Ledger) -> tuple[int, ...]:

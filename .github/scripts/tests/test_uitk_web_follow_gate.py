@@ -150,6 +150,13 @@ class RetiredBundleTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("G1-2", err)
 
+    def test_removing_row_cannot_unretire_web_path(self):
+        no_hud = [row for row in rows("UITK", "UITK") if row[0] != "commonHud"]
+        self.repo.commit("drop row and fix", {HUD_FILE: "v2\n", LEDGER_PATH: ledger_text({2: ("切替済み", f"`{self.start[:10]}`")}, no_hud, [])})
+        code, err = self.run_gate()
+        self.assertEqual(code, 1, err)
+        self.assertIn("G1-2", err)
+
     def test_delete_of_switched_bundle_web_path_is_green(self):
         self.repo.commit("delete", {HUD_FILE: None})
         code, *_, err = self.run_gate()
