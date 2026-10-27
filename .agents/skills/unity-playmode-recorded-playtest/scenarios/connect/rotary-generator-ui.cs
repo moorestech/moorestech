@@ -84,7 +84,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     var steamId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("e2a5d2e5-3fa5-47e2-9fc0-68c8552523f8"));
     var steamSupplyActive = true;
     using var stopSteamSupply = Disposable.Create(() => steamSupplyActive = false);
-    var steamSupply = RefillSteamPeriodically();
+    var steamSupply = RefillSteamEveryTick();
     await p.Until(() => Detail().CurrentRpm >= 40f && Detail().GenerationState == GearToElectricGenerationState.Idle, 90f, "40 RPM以上で需要なし待機");
     p.Assert(!fluid.IsPipeDisconnected, "蒸気補給が継続している");
     // 実際のホットバーと電線ツールのクリック操作で需要を接続する
@@ -130,14 +130,13 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     steamSupplyActive = false;
     await steamSupply;
     #region Internal
-    // 0.1秒毎にtick末尾で補給する。間隔は切断判定（5tick連続の未補給）より短く、1回の1は消費（1/秒）の20tick分を賄う。毎tick補給するとTimelineとログが補給行で埋まる
-    // Refill at the tick end every 0.1 s: shorter than the 5-tick no-refill disconnect, and one unit covers 20 ticks of the 1/s burn; refilling every tick floods the Timeline and log
-    async UniTask RefillSteamPeriodically()
+    // 毎tick末尾に1回補給する。蒸気機関は5tick連続の未補給で切断扱いになり加速をやり直すので、間引くと負荷の高いEditorで40 RPMに届かない
+    // Refill once at every tick end: the engine treats 5 unrefilled ticks as a disconnect and restarts acceleration, so throttling misses 40 RPM on a loaded Editor
+    async UniTask RefillSteamEveryTick()
     {
         while (steamSupplyActive && Application.isPlaying && !fluid.IsDestroy)
         {
             await p.RunOnServer("蒸気を補給する", () => fluid.AddLiquid(new FluidStack(1d, steamId), default));
-            await UniTask.Delay(TimeSpan.FromSeconds(0.1f), DelayType.Realtime);
         }
     }
     GearToElectricGeneratorBlockStateDetail Detail()
