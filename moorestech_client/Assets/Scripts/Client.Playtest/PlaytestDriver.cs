@@ -87,8 +87,8 @@ namespace Client.Playtest
             _reporter.Step($"撤去: {position}");
             return await PlaytestBlockOps.RemoveBlock(position);
         }
-        // シナリオ独自のサーバー書き込み（機械への投入・配線・レシピ選択等）をtick末尾で実行し完了を待つ
-        // Run a scenario's own server write (machine insert, wiring, recipe select, ...) at the tick end and await it
+        // シナリオ独自のサーバー書き込みをtick末尾で実行し完了を待つ。シナリオスクリプトから任意の処理を受けるDSLなので、処理を引数で受ける形を規約の例外として採る
+        // Run a scenario's own server write at the tick end and await it; this DSL accepts arbitrary work from scenario scripts, so taking the work as an argument is a deliberate exception to the callback rule
         public async UniTask RunOnServer(string label, Action serverAction)
         {
             _reporter.Step($"サーバー操作: {label}");
