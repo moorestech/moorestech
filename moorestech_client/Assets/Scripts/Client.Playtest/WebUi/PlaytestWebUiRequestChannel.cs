@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using Cysharp.Threading.Tasks;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Cef;
@@ -44,7 +45,10 @@ namespace Client.Playtest.WebUi
             }
             if (!(0f < timeoutSeconds)) throw new TimeoutException("UI request deadline expired before delivery");
             var requestId = Open(connectionId, hub);
-            var payload = JObject.Parse(WebUiJson.Serialize(requestBody));
+            // 日時の形をした文字列を書き換えないよう、日時解釈を切って読み直す
+            // Reparse with date handling off so date-shaped strings are not rewritten
+            var reader = new JsonTextReader(new StringReader(WebUiJson.Serialize(requestBody))) { DateParseHandling = DateParseHandling.None };
+            var payload = JObject.Load(reader);
             payload["requestId"] = requestId;
             if (!hub.PublishTo(connectionId, topic, payload.ToString(Formatting.None)))
             {
