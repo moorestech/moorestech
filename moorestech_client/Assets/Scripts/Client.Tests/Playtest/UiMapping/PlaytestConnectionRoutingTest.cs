@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Text.RegularExpressions;
 using Client.Playtest.UiElements;
+using Cysharp.Threading.Tasks;
 using Client.Playtest.WebUi;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Cef;
@@ -43,6 +44,17 @@ namespace Client.Tests.Playtest.UiMapping
             cefAction.GetResult();
             Assert.AreEqual(UiSetTextStatus.Applied, pending.GetResult().Result.Status);
             Assert.IsTrue(JObject.Parse(fixture.Read(fixture.Cef))["ok"].Value<bool>());
+        }
+
+        [Test]
+        public void DateLikeTextIsDeliveredVerbatim()
+        {
+            // 日時の形をした入力文字列も、送信時に日時として解釈し直さず原文のまま届ける
+            // Date-shaped input text reaches CEF verbatim instead of being reparsed as a date
+            using var fixture = new PlaytestConnectionFixture();
+            const string dateLikeText = "2026-10-28T12:00:00.000+09:00";
+            new PlaytestDomSetText().Request(fixture.Hub, "field", dateLikeText, 1f).Forget();
+            StringAssert.Contains(dateLikeText, fixture.Read(fixture.Cef));
         }
 
         [Test]
