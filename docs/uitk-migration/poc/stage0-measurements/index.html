@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UITK 段階0 実測</title>
+<style>
+:root { --bg:#f6f6f4; --fg:#1d1f23; --sub:#5b6270; --card:#ffffff; --line:#e1e3e7; --ok:#1f7a45; --mid:#8a6a1c; --ng:#a33232; --accent:#c9771c; }
+@media (prefers-color-scheme: dark) { :root { --bg:#16181c; --fg:#e8eaed; --sub:#9aa3ad; --card:#1f2228; --line:#2f343c; --ok:#5fd08f; --mid:#e3b54d; --ng:#ff7b7b; --accent:#f2a640; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font: 15px/1.7 -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
+h1 { font-size: 26px; margin: 8px 0 4px; }
+h2 { font-size: 20px; margin: 40px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 16px; margin: 24px 0 6px; }
+.sub { color: var(--sub); font-size: 13px; }
+.verdict { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--accent); border-radius: 8px; padding: 14px 18px; margin: 16px 0; }
+table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; color: var(--sub); font-weight: 600; }
+.tbl { overflow-x: auto; }
+.ok { color: var(--ok); font-weight: 700; white-space: nowrap; }
+.mid { color: var(--mid); font-weight: 700; white-space: nowrap; }
+.ng { color: var(--ng); font-weight: 700; white-space: nowrap; }
+img { max-width: 100%; border-radius: 6px; border: 1px solid var(--line); display: block; margin: 8px 0; }
+figure { margin: 12px 0; }
+figcaption { color: var(--sub); font-size: 13px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+code { font-size: 13px; background: var(--card); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; overflow-wrap: anywhere; }
+pre { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow-x: auto; font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+<h1>UITK 段階0 実測（S1・S2・S3・S15）</h1>
+<p class="sub">bd moorestech-albof.1 ／ 計画 <code>docs/uitk-migration/plan.md</code> §4.8 ／ 実測コード: ブランチ <code>poc/uitk-stage0-measure</code> コミット <code>f41f4766b4</code>（master には入れない）／ 実測日 2026-10-26 ／ Unity 6000.3.8f1・Mac mini（Metal）</p>
+
+<div class="verdict">
+<b>段階 1: まだ入れない（S9 待ち）。</b>測った範囲で赤信号は出ていない。S2 は Mac の配布ビルド相当でも、エンコード後のバグ報告動画まで含めて写った。残っている点と、その後の扱いは次のとおり。
+<ol>
+<li>S9（IME・赤信号の項目）はユーザーの手作業での確認待ち。確認用のビルドは用意した（下の「S9 用の PoC ビルド」）。</li>
+<li>S15 は受入条件の半分（pointerOverUi が false になる）を満たしていない。これはユーザー裁定（2026-10-26）で決着した。UITK の主パネル表示中は Web UI を全面的にオフにする（下の「S15 の裁定」）。</li>
+</ol>
+<ul>
+<li><b>S1 <span class="ok">合格</span></b> — PanelSettings.sortingOrder だけで CEF の前にも後ろにも置ける。試した値では、1・10 なら前、-1・-10 なら後ろだった。0（CEF の Canvas と同じ値）では UITK が前に出たが、これは 1 回見ただけなので、設計では 0 を使わない。Web のインベントリを開いた状態で確認した。</li>
+<li><b>S2 <span class="ok">合格</span></b> — Editor では Unity Recorder・PlaytestScreenshot・ScreenFrameReader の 3 経路すべてに UITK と CEF が写り、前後関係も画面どおりだった。Mac の配布ビルド相当でも、ScreenFrameReader（3 組）と、バグ報告が実際に使う GameFrameRecorder のエンコード済み動画（mp4 の区間）の両方に UITK と CEF の HUD が写り、前後も合っていた。判定は画像を目で見て行った。動画で確かめたのは front=10／back=-10 の組だけ。</li>
+<li><b>S3 <span class="ok">合格</span></b> — QueueStateEvent で注入したクリックが、InputSystemUIInputModule を通って UITK のボタンに届く（pointerdown 1 回・click 1 回）。UITK が受け取ったイベントのパネル座標は、画面座標から換算した値と一致した（1 点・倍率 1.5 で確認。パネル→画面の向きは独立には確かめていない）。IsPointerOverGameObject も UITK を拾う。カーソルがロックされている間（通常のゲーム画面）は届かないが、これは今の Web の画面と同じで、期待どおりの挙動。</li>
+<li><b>S15 <span class="ng">不合格（受入の半分）</span></b> — <code>* { pointer-events: none !important }</code> にすると、当たり判定のある要素が 0 になり、クリックしても action は 0 件だった（確かめたのは左クリック 1 回だけ。キー・ホイール・ドラッグは試していない）。<code>html</code> 要素だけを none にする方式では 32 要素が当たったままで、クリックすると action が 1 件出た。どちらの方式でも、CEF 経由の pointerOverUi は切替時の値（true）のまま固まった。原因は、切替の後に Web へ pointermove が届かなくなることだと推測している（Web 側で回数は数えていない）。</li>
+</ul>
+</div>
+
+<h2>判定の一覧</h2>
+<div class="tbl"><table>
+<tr><th>項目</th><th>判定</th><th>証拠（数値・ログ）</th></tr>
+<tr><td>S1 前後</td><td class="ok">合格</td><td>CEF の Canvas は Overlay・order 0。front=10/back=-10、front=-1、front=0、back=1、front=1/back=-1 の 5 組を、インベントリ表示中（UIState=PlayerInventory）に撮影（F1392〜F1664）</td></tr>
+<tr><td>S2 (1) Recorder</td><td class="ok">写る</td><td>recording.mp4 の 23.5 秒のフレームに、パネルの前後と F 番号の透かしが写る</td></tr>
+<tr><td>S2 (2) PlaytestScreenshot</td><td class="ok">写る</td><td>各組の <code>*_screencapture_F*.png</code></td></tr>
+<tr><td>S2 (3) ScreenFrameReader</td><td class="ok">Editor で写る</td><td><code>*_framereader_F*.png</code>（画像を目で見て判定。シナリオの Assert は撮影が終わったかしか見ていない）。Editor では 1280x720 の左上に Game ビューのウィンドウ全体が入り、残りが白くなる。CEF も同じ写り方なので UITK とは無関係の Editor の癖だと推測している（プローブ無しの対照は撮っていない）</td></tr>
+<tr><td>S2 (3) 配布ビルド</td><td class="ok">写る</td><td>Mac のローカル配布ビルド（f41f4766b4）で、<code>*_framereader_F3291/F3333/F3375.png</code>（3 組）と、<code>BugReports/recording/pid_16948/.../seg_05.mp4</code>（F5035〜F5658）に写る</td></tr>
+<tr><td>S3 注入→UITK</td><td class="ok">合格</td><td>ロック解除中（パネル座標は eventPanel が UITK の実イベントの値）: <code>screen=(1143,399) screenToPanel=(1714.5,481.5) eventPanel=(1714.5,481.5) downs=1 clicks=1</code>、<code>IsPointerOverGameObject=True</code></td></tr>
+<tr><td>S3 ロック中</td><td>届かない（期待どおり）</td><td><code>lock=Locked eventPanel=none downs=0 clicks=0 IsPointerOverGameObject=False</code></td></tr>
+<tr><td>S15 action</td><td class="ok">0 件（!important 版・左クリックのみ）</td><td>all-none-important: <code>elementsStillHittable=0</code>、click 後の action 0 件。root-none: <code>elementsStillHittable=32</code>、<code>hotbar.select</code> が 1 件出た</td></tr>
+<tr><td>S15 pointerOverUi</td><td class="ng">false にならない</td><td>切替後、何も無いワールドへポインタを動かしても <code>webPointerOverUi=True</code>（F1567・F1754）。restore の後に動かすと False に戻る（F1662・F1847）</td></tr>
+</table></div>
+
+<h2>S1: UITK パネルと CEF の前後</h2>
+<p>プローブは 2 枚のパネル。前用のパネル（マゼンタの板とオレンジの「S3 PROBE」ボタン）と、後ろ用のパネル（シアンの帯と左の板）。どちらにも <code>F{frame} t={秒}</code> の透かしを描いている。Tab で Web のインベントリを開き、sortingOrder の組を変えながら撮った。板の上の <code>UITK FRONT so=10</code>／<code>UITK BACK so=-10</code> という文字は生成時に書いたまま更新していない。その時点の値は、左上の透かし（<code>FRONT so=…</code>／<code>BACK so=…</code>）のほうを見てほしい。</p>
+<div class="grid2">
+<figure><img src="img/s1_b_front10_back-10.jpg" alt=""><figcaption>front=10 / back=-10（F1392）。マゼンタの板と PROBE ボタンはインベントリより前。シアンは後ろで、インベントリの格子がシアンの上に出ている</figcaption></figure>
+<figure><img src="img/s1_c_front-1.jpg" alt=""><figcaption>front=-1（F1460）。PROBE ボタンが Web のレシピ枠の後ろに沈み、マゼンタの板もホットバーの後ろに回る</figcaption></figure>
+<figure><img src="img/s1_d_front0.jpg" alt=""><figcaption>front=0（F1528）。CEF と同じ値。この 1 回では UITK が前に出た（同じ値のときの順は保証されていないので、0 は使わない）</figcaption></figure>
+<figure><img src="img/s1_e_back1.jpg" alt=""><figcaption>back=1（F1596）。シアンがインベントリの格子とヒントを覆う。1 以上は前に出る</figcaption></figure>
+<figure><img src="img/s1_f_front1_back-1.jpg" alt=""><figcaption>front=1 / back=-1（F1664）。±1 でも前後に分かれる</figcaption></figure>
+</div>
+
+<h3>指揮セッションからの確認: Tab が効かなかった件と、HUD だけで判定していた件</h3>
+<p>1 回目の撮影（run <code>20261026_005744</code>）では Tab の後もインベントリが開かず、b_inv〜f_inv はワールドと HUD だけで撮れていた。HUD のホットバーで前後は読めていたものの、全画面の Web パネルでは確かめていなかったので、撮り直した。</p>
+<ul>
+<li><b>UITK のフォーカスが Tab を食っていたのではない。</b>撮り直しでは、プローブを出す前の対照で <code>before Tab state=GameScreen → after Tab state=PlayerInventory</code>、プローブを出した後も <code>with probe: after Tab state=PlayerInventory</code> になった（run <code>20261026_040840</code>）。プローブのボタンは <code>focusable=false</code> で、Editor での実測では IME 画面を出していない。</li>
+<li><b>原因（推測）:</b> Editor が前面にいない間、Input System がデバイスを無効にしていた。同じ時間帯の S3 の前の診断で <code>focused=False bg=ResetAndDisableNonBackgroundDevices kb=False mouse=False mousePos=(0.00, 0.00)</code> を観測している（Console から転記した行を <code>evidence/log-excerpts.txt</code> に置いた）。シナリオの実行中だけ IgnoreFocus／AllDeviceInputAlwaysGoesToGameView に切り替え、終わったら元に戻すようにしてから、注入が届くようになった。1 回目の実行そのものではデバイスの状態を記録していないので、推測と書いておく。</li>
+</ul>
+<div class="grid2">
+<figure><img src="img/s1_firstrun_no_input.jpg" alt=""><figcaption>1 回目の d_inv（F1777）。インベントリが開いていない</figcaption></figure>
+<figure><img src="img/s1_control_tab.jpg" alt=""><figcaption>撮り直しの対照（プローブなし）。Tab でインベントリが開く</figcaption></figure>
+</div>
+
+<h2>S2: 録画・スクショ・バグ報告動画への写り込み</h2>
+<div class="grid2">
+<figure><img src="img/s2_path1_recorder.jpg" alt=""><figcaption>(1) Unity Recorder（GameViewInputSettings）。recording.mp4 の 23.5 秒。back=1 でシアンがインベントリより前に出ている状態まで写っている</figcaption></figure>
+<figure><img src="img/s2_path3_framereader_editor.jpg" alt=""><figcaption>(3) ScreenFrameReader（CaptureScreenshotIntoRenderTexture → AsyncGPUReadback）。Editor では Game ビューのウィンドウ全体が写るが、UITK・CEF ともに写っている</figcaption></figure>
+<figure><img src="img/s2_path2_screenshot_game.jpg" alt=""><figcaption>(2) PlaytestScreenshot（ゲーム画面、F1258）</figcaption></figure>
+</div>
+<h3>配布ビルド相当（Mac）での経路(3): 写る</h3>
+<p>ブランチ f41f4766b4 を batchmode で焼き（<code>UitkStage0PocBuildCli.MacLocalRelease</code>）、<code>--uitkWithCef --uitkProbeAutoCapture --uitkAutoStartLocal</code> で起動した。タイトルの同意ゲートは、前例の playtestSmoke と同じく無人宣言で閉じた（<code>reason:uitkStage0AutoCapture ... consentAcknowledged:False</code>、<code>uploads are not enabled for this boot</code>）。何も外へ送っていない。ゲーム画面に入ってから 40 秒後に、3 組を ScreenFrameReader で撮った。Player.log の該当行は <code>evidence/mac-build-player-excerpt.txt</code> にある。</p>
+<div class="grid2">
+<figure><img src="img/s2b_framereader_a_front10_back-10.jpg" alt=""><figcaption>配布ビルド・ScreenFrameReader、front=10 / back=-10（F3291）。シアンは Web の操作ヒントとホットバーの後ろ、マゼンタはホットバーの前</figcaption></figure>
+<figure><img src="img/s2b_framereader_b_front-1.jpg" alt=""><figcaption>front=-1（F3333）。マゼンタの板がホットバーのスロットの後ろに回る</figcaption></figure>
+<figure><img src="img/s2b_framereader_c_back1.jpg" alt=""><figcaption>back=1（F3375）。シアンが Web の操作ヒントとホットバーを覆う</figcaption></figure>
+<figure><img src="img/s2b_bugreport_video_seg05.jpg" alt=""><figcaption>バグ報告の動画（GameFrameRecorder がエンコードした seg_05.mp4 の先頭、F5035）。UITK の板・透かしと、Web の HUD が両方写っている</figcaption></figure>
+</div>
+<p>ScreenFrameReader は 1920x932 のウィンドウを 1280x720 に縮めて撮るので、縦横比が少し潰れる。これは今の経路の挙動で、UITK とは関係しない。</p>
+<h3>1 回目の配布ビルド: 壊れたまま Succeeded</h3>
+<p>1 回目は GUI の Editor から <code>PlayerBuildRequest.ForLocalDevelopment(StandaloneOSX)</code> を焼いた（Addressables のクリーンビルドを含めて 28 分）。Unity は <code>Build Result :Succeeded</code>（TotalSize 3211595421。Console の行を <code>evidence/log-excerpts.txt</code> に転記した）を返したものの、ディスクの空きが約 100MB しかなく、<code>Contents/Resources/Data</code> には <code>data.unity3d.tmp</code>（29MB）だけが残っていた。起動すると <code>No GlobalGameManagers file was found ... quitting player!</code> で即終了する。ビルドが壊れていても成功として通ってしまうこの問題は、bd <code>moorestech-albof.1.1</code> に積んだ。その後、同じ worktree を片付けて空きが戻ってから batchmode で焼き直したのが、上の 2 回目である。</p>
+<p>CEF が初期化に失敗する（code -6）ことがあった。そのときの Player.log には <code>Opening in existing browser session.</code> の直後に <code>CEF initialization failed (code -6)</code> が出ていた（<code>evidence/mac-build-cef-fail-excerpt.txt</code>）。同じ時刻に別レーンの Editor が cef-unity-server を数分おきに起動していたので、同じ会社名・製品名のプロセス同士で CEF のセッションを取り合っているのが原因だと推測している。他の CEF が動いていない瞬間に起動し直したら、初期化に成功した。</p>
+
+<h2>S3: 入力注入 → UITK</h2>
+<div class="grid2">
+<figure><img src="img/s3_a_locked.jpg" alt=""><figcaption>A: カーソルがロックされたゲーム画面。同じ座標にクリックを注入しても UITK にイベントが来ない（downs=0）</figcaption></figure>
+<figure><img src="img/s3_b_altfree.jpg" alt=""><figcaption>B: LeftAlt でカーソルを解放した状態。pointerdown と click が届き、イベントのパネル座標が ScreenToPanel の結果と一致する</figcaption></figure>
+</div>
+<ul>
+<li>EventSystem.IsPointerOverGameObject はボタン（picking=Position）の上で True、picking=Ignore の板の上で False。ゲーム側の UiPointerHitTest は、板の下にある Web のホットバーを拾って True になった（<code>webPointerOverUi=True</code>）。</li>
+<li>UITK の画面で操作するには、今の Web の画面と同じく、カーソルを解放する状態遷移が要る。</li>
+</ul>
+
+<h2>S15: 委譲中の Web の入力停止</h2>
+<div class="grid2">
+<figure><img src="img/s15_baseline.jpg" alt=""><figcaption>baseline。ホットバーのスロットをクリックすると <code>hotbar.select</code> が 1 件出る</figcaption></figure>
+<figure><img src="img/s15_all-none-important.jpg" alt=""><figcaption>all-none-important。当たる要素 0、action 0 件。ただし <code>UiPointerHitTest=True</code> のまま（webPointerOverUi が固まる）</figcaption></figure>
+</div>
+<div class="tbl"><table>
+<tr><th>方式</th><th>当たる要素</th><th>クリック時の action</th><th>何も無い所へ動かした後の webPointerOverUi</th></tr>
+<tr><td>baseline</td><td>—</td><td>1（hotbar.select）</td><td>False</td></tr>
+<tr><td><code>html { pointer-events:none }</code></td><td>32</td><td class="ng">1（hotbar.select）</td><td class="ng">True</td></tr>
+<tr><td><code>* { pointer-events:none !important }</code></td><td>0</td><td class="ok">0</td><td class="ng">True</td></tr>
+<tr><td>restore</td><td>106</td><td>1</td><td>False（動かした時点で戻る）</td></tr>
+</table></div>
+<p>action の数は Unity 側の <code>WebSocketMessageDispatcher</code> で受けた action を数えている（ack と dom_query は除く。PoC 用のログ <code>[PocActionLog]</code>）。<code>html</code> だけを none にしても、子要素の <code>pointer-events: auto</code> が上書きして当たったままになる。pointer-events はキー入力を止めないので、キー処理は別に止める必要がある（計画 R1 のとおり）。</p>
+
+<h2>S15 の裁定（ユーザー、2026-10-26）</h2>
+<p>UITK の主パネル（またはモーダル）を表示している間は、Web UI を全面的にオフにする。CEF の RawImage を隠して入力の転送を止め、Unity 側は Web の pointerOverUi と textInputFocused を読まない。閉じたら、古い値を捨ててから戻す。pointer-events には頼らない。その間は Web の HUD も消える。記録は <code>.decisions/2026-10-26-UITKの主パネル表示中はWeb-UIを全面的にオフにする.md</code>、計画の改訂（R1・§2.2・§3.8・§4.8・§7.2）は PR #1555 に入っている。</p>
+<p>この報告で agent が推奨していた案（Web は表示したまま、Unity 側で Web の値を無視する）は採らない。</p>
+<p>事実として段階 1 の担当へ渡すこと: sortingOrder を負にするだけで、パネルを CEF の後ろに置ける（追加の仕組みは要らない）。通知層を背面パネルに置くかどうかは、計画どおり段階 1 で決める。</p>
+
+<h2>S9（IME）用の PoC ビルド</h2>
+<p>ブランチ f41f4766b4 から焼いた。Steam には上げていない。確認はユーザーの手作業で、手順は bd <code>moorestech-albof.8</code> と、置き場の index.html に書いた。</p>
+<ul>
+<li>Mac: https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-10-26-uitk-s9-ime-mac/ （tailnet 内。zip 4.3GB。展開と起動の手順は同じ場所の index.html）</li>
+<li>Windows: <code>ssh winbuild</code> の <code>C:\uitk-s9-ime-win\</code>（906 ファイル・6.67GB を転送し、件数とバイト数が一致することを確かめた。起動はまだ確かめていない）</li>
+<li>起動引数を付けなければ CEF を初期化しない。<code>--uitkWithCef</code> を付けると CEF ありで比べられる。ゲーム画面に単行と複数行の TextField、IME の状態（imeCompositionMode・変換中文字列・フォーカス）、イベントのログが出る。F8 で表示を切り替える。</li>
+<li>焼く口: batchmode で <code>-executeMethod Client.Editor.Build.UitkStage0PocBuildCli.MacLocalRelease</code>、Windows は <code>-buildTarget StandaloneWindows64 ... WindowsLocalRelease</code>（出力先は環境変数 <code>UITK_POC_BUILD_OUTPUT</code>）</li>
+</ul>
+
+<h2>実測中の環境の障害</h2>
+<ul>
+<li>dev-server-reaper が実測中の Editor を落とした。<code>~/.local/bin/uloop</code> が素のバイナリで上書きされ、所有 receipt を書くラッパーを経由しなくなっていたため。ラッパーの symlink を戻して復旧した。</li>
+<li>別の worktree の CEF と重なると、こちらの CEF が code -6 で初期化に失敗し、Web が白紙になった（原因の推測は S2 の節に書いた）。撮り直しは、他に CEF が動いていないことを確かめてから行った。</li>
+<li>ディスク満杯。Addressables のビルドが SBP の書き込み失敗で落ちた（BuildCache を消して再実行）。その後、プレイヤーが壊れたまま Succeeded になった（上記）。本番の常駐サービスが同じボリュームに居るので、Editor と worktree を片付けて空きを戻してから焼き直した。</li>
+</ul>
+
+<h2>証拠ファイル</h2>
+<p><code>evidence/</code> に、各実行の result.json（Timeline に数値の行がある）と、Console から転記した行（<code>log-excerpts.txt</code>）、壊れたビルドの Player.log とディレクトリ一覧、2 回目のビルドの Player.log の抜粋を置いた。</p>
+
+<h2>再現</h2>
+<pre>git checkout poc/uitk-stage0-measure   # f41f4766b4
+# Editor（PlayMode）。プレイテスト DSL の run-scenario.sh で実行する
+poc-scenarios/uitk-stage0/s1-s2-layer-capture.cs   # S1・S2
+poc-scenarios/uitk-stage0/s3-s15-input.cs          # S3・S15
+# プローブ: moorestech_client/Assets/Scripts/Client.UitkStage0Probe/
+# S15 の Web 側: moorestech_web/webui/src/bridge/playtest/pocPointerEventsProbe.ts</pre>
+</main>
+</body>
+</html>

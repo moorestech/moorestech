@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse
                         if (!success)
                         {
                             Debug.LogWarning($"[GearChainConnectionEdit] connect denied: {connectFailure} posA={data.PosAVector} posB={data.PosBVector} player={requesterPlayerId}");
-                            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainConnect.{connectFailure}", Array.Empty<string>()));
+                            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainConnect.{connectFailure}", new Dictionary<string, string>()));
                         }
                         break;
 
@@ -68,7 +68,7 @@ namespace Server.Protocol.PacketResponse
                         if (!success)
                         {
                             Debug.LogWarning($"[GearChainConnectionEdit] disconnect denied: {disconnectFailure} posA={data.PosAVector} posB={data.PosBVector} player={requesterPlayerId}");
-                            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainDisconnect.{disconnectFailure}", Array.Empty<string>()));
+                            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.gearChainDisconnect.{disconnectFailure}", new Dictionary<string, string>()));
                         }
                         break;
 

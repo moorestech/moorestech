@@ -1,18 +1,14 @@
 using System;
-using System.Threading;
 using Client.Skit.Context;
 using Client.Skit.Localization;
 using Client.Skit.Skit;
 using Client.Skit.UI;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 namespace CommandForgeGenerator.Command
 {
     public partial class TextCommand
     {
-        private const float TextDuration = 0.05f;
-        private const float WaitDuration = 1f;
         private const float SkipDuration = 0.1f;
         
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
@@ -30,72 +26,14 @@ namespace CommandForgeGenerator.Command
 
             // 表示文字列だけを解決し、音声照合はJSON原文を維持する
             // Resolve display text only while voice lookup keeps the JSON source body
-            var skitUi = storyContext.GetSkitUI();
             var skitActionContext = storyContext.GetService<ISkitActionContext>();
-            var presentationMode = storyContext.GetService<SkitPresentationMode>();
 
-            // Webモードでは全文snapshotをpushし、Unity側のintent待機だけを行う
-            // In Web mode, push the full snapshot and wait only for a Unity-owned intent
-            if (presentationMode.WebUiEnabled)
-            {
-                return await ExecuteWebPresentationAsync(
-                    line.SpeakerName,
-                    line.DisplayBody,
-                    skitActionContext);
-            }
-            
-            if (skitActionContext.IsSkip)
-            {
-                skitUi.SetText(line.SpeakerName, line.DisplayBody);
-                await UniTask.Delay(TimeSpan.FromSeconds(SkipDuration));
-                return null;
-            }
-            
-            var setTextTaskCancellationTokenSource = new CancellationTokenSource();
-            UniTask<bool> setTextTask = UniTask.Create(factory: async () =>
-            {
-                skitUi.SetText(line.SpeakerName, "");
-                
-                for (var i = 0; i < line.DisplayBody.Length; i++)
-                {
-                    var bodySlice = line.DisplayBody.Substring(0, i + 1);
-                    skitUi.SetText(line.SpeakerName, bodySlice);
-                    await UniTask.Delay(TimeSpan.FromSeconds(TextDuration), cancellationToken: setTextTaskCancellationTokenSource.Token);
-                }
-            }).SuppressCancellationThrow();
-            
-            var voiceClip = storyContext.GetVoiceDefine()
-                .GetVoiceClip(CharacterId, line.VoiceSourceBody);
-            var character = storyContext.GetCharacter(CharacterId);
-            
-            if (voiceClip != null) character.PlayVoice(voiceClip);
-            
-            // 文字送りを止め、全てを表示する
-            while (setTextTask.Status != UniTaskStatus.Succeeded && setTextTask.Status != UniTaskStatus.Canceled && setTextTask.Status != UniTaskStatus.Faulted && !setTextTaskCancellationTokenSource.IsCancellationRequested)
-            {
-                if (Input.GetMouseButtonDown(0) || skitActionContext.IsSkip)
-                {
-                    setTextTaskCancellationTokenSource.Cancel();
-                    await UniTask.Yield();
-                    skitUi.SetText(line.SpeakerName, line.DisplayBody);
-                    character.StopVoice();
-                    break;
-                }
-                await UniTask.Yield();
-            }
-            
-            // 次のコマンドへ移行
-            var waitStartTime = Time.timeAsDouble;
-            while (true)
-            {
-                if (skitActionContext.IsAuto && Time.timeAsDouble - waitStartTime >= WaitDuration || Input.GetMouseButtonDown(0) || skitActionContext.IsSkip)
-                {
-                    await UniTask.Yield();
-                    return null;
-                }
-                
-                await UniTask.Yield();
-            }
+            // 全文snapshotをpushし、Unity側のintentを待つ
+            // Push the full snapshot and wait for a Unity-owned intent
+            return await ExecuteWebPresentationAsync(
+                line.SpeakerName,
+                line.DisplayBody,
+                skitActionContext);
 
             #region Internal
 

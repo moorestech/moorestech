@@ -27,7 +27,6 @@ using Client.Game.InGame.UI.Tooltip;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
-using Client.Skit.UI;
 using Client.Starter.Registration;
 using CommandForgeGenerator.Command;
 using UnityEngine;
@@ -85,7 +84,6 @@ namespace Client.Starter
         [SerializeField] private TrainCarPreviewController trainCarObjectPreviewController;
         
         [SerializeField] private SkitManager skitManager;
-        [SerializeField] private SkitUI skitUI;
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
         [SerializeField] private InGameCameraController inGameCameraController;
@@ -107,6 +105,7 @@ namespace Client.Starter
 
             MainGameModelRegistration.Register(builder, initialHandshakeResponse, saveGenerationWaiter, collectsPlaytestRecords);
             MainGameInteractionRegistration.Register(builder, initialHandshakeResponse);
+            MainGameUiStateRegistration.Register(builder);
 
             
             //Hierarchy上にあるcomponent
@@ -140,7 +139,6 @@ namespace Client.Starter
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();
-            builder.RegisterComponent(skitUI);
             builder.RegisterComponent(backgroundSkitManager);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();

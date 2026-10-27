@@ -1,3 +1,4 @@
+using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State;
 using Client.WebUiHost.Boot;

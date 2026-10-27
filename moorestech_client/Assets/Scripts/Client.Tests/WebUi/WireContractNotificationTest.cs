@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.UI.Notification;
 using System.IO;
 using Client.Tests.Inventory;
@@ -26,7 +27,7 @@ namespace Client.Tests.WebUi
                 Seq = 1,
                 Category = "itemEarned",
                 MessageId = "itemEarned.mined",
-                MessageParams = System.Array.Empty<string>(),
+                MessageParams = new System.Collections.Generic.Dictionary<string, string>(),
                 ItemId = 5,
                 Count = 8,
             };
@@ -44,7 +45,7 @@ namespace Client.Tests.WebUi
                 Seq = 2,
                 Category = "operationDenied",
                 MessageId = "denied.miningInventoryFull",
-                MessageParams = System.Array.Empty<string>(),
+                MessageParams = new System.Collections.Generic.Dictionary<string, string>(),
                 ItemId = null,
                 Count = null,
             };
@@ -60,7 +61,7 @@ namespace Client.Tests.WebUi
             // 実topicへサーバー通知を流し、配信形とsnapshot再提示の両方をfixtureで固定する
             // Feed a server notification through the real topic and pin both the wire shape and the snapshot re-serve
             var vanillaApiEvent = new CapturingVanillaApiEvent();
-            var topic = new NotificationTopic(new WebSocketHub(), vanillaApiEvent, new ClientLocalNotificationSource());
+            var topic = CreateTopic(new WebSocketHub(), vanillaApiEvent, new ClientLocalNotificationSource());
             vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateSaveMigrationPruned(3, 4, 5)));
 
             AssertMatchesFixture(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult(), "notification_save_migration.json");
@@ -72,8 +73,8 @@ namespace Client.Tests.WebUi
             // 除去告知以外は揮発。snapshotへ載せると購読し直しのたびに再表示される
             // Everything but the prune notice is transient; serving it in the snapshot would re-show it on every resubscribe
             var vanillaApiEvent = new CapturingVanillaApiEvent();
-            var topic = new NotificationTopic(new WebSocketHub(), vanillaApiEvent, new ClientLocalNotificationSource());
-            vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", System.Array.Empty<string>())));
+            var topic = CreateTopic(new WebSocketHub(), vanillaApiEvent, new ClientLocalNotificationSource());
+            vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", new Dictionary<string, string>())));
 
             Assert.AreEqual("{}", topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
         }
@@ -83,8 +84,8 @@ namespace Client.Tests.WebUi
         {
             var hub = new WebSocketHub();
             var source = new ClientLocalNotificationSource();
-            var topic = new NotificationTopic(hub, new CapturingVanillaApiEvent(), source);
-            var message = NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new[] { "2" });
+            var topic = CreateTopic(hub, new CapturingVanillaApiEvent(), source);
+            var message = NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new System.Collections.Generic.Dictionary<string, string> { ["count"] = "2" });
 
             // ローカル拒否は再購読で再生しない
             // Local refusals are not replayed on resubscription
@@ -97,6 +98,15 @@ namespace Client.Tests.WebUi
             topic.Dispose();
             source.Notify(message);
             Assert.AreEqual(1, hub.GetTopicRevision(NotificationTopic.TopicName));
+        }
+
+        // 本番と同じくfeedを初期化してからtopicを載せる
+        // Initialize the feed before mounting the topic, as production does
+        private static NotificationTopic CreateTopic(WebSocketHub hub, CapturingVanillaApiEvent vanillaApiEvent, ClientLocalNotificationSource source)
+        {
+            var feed = new NotificationFeed(vanillaApiEvent, source);
+            feed.Initialize();
+            return new NotificationTopic(hub, feed);
         }
 
         private static void AssertMatchesFixture(object dto, string fixtureName)

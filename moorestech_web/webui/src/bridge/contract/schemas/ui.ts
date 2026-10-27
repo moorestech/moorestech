@@ -129,11 +129,11 @@ export const PlacementModeDataSchema = z.discriminatedUnion("selectedTargetType"
 ]);
 export const CrosshairDataSchema = z.object({ visible: z.boolean() });
 export const UiVisibilityDataSchema = z.object({ visible: z.boolean() });
-// tooltipは辞書キーと{p0}補間パラメータの行配列のみを受け取り、生の表示文字列も寸法値も受け付けない
-// Tooltips accept only an array of lines (dictionary key + {p0} params) — never raw display text, never sizes
+// tooltipは辞書キーと名前付き補間値の行配列のみを受け取り、生の表示文字列も寸法値も受け付けない
+// Tooltips accept only an array of lines (dictionary key + named interpolation values) — never raw display text, never sizes
 export const TooltipLineSchema = z.object({
   textKey: z.string(),
-  textParams: z.array(z.string()),
+  textParams: z.record(z.string(), z.string()),
 }).strict();
 
 // 表示状態は行から導出されるものなので、表示なら1行以上・非表示なら0行という対応をスキーマ側で固定する
@@ -155,7 +155,7 @@ const MessageNotificationSchema = z.object({
   seq: z.number(),
   category: z.enum(["achievement", "operationDenied", "saveMigration"]),
   messageId: z.string(),
-  messageParams: z.array(z.string()),
+  messageParams: z.record(z.string(), z.string()),
   // シリアライザ揺れでnullが来ても弾かないよう外部境界として広めに受ける
   // Widened as an external boundary so serializer drift sending null is not rejected
   itemId: z.number().nullable().optional(),
@@ -167,7 +167,7 @@ const ItemEarnedNotificationSchema = z.object({
   seq: z.number(),
   category: z.literal("itemEarned"),
   messageId: z.string(),
-  messageParams: z.array(z.string()),
+  messageParams: z.record(z.string(), z.string()),
   itemId: z.number(),
   count: z.number().int().positive(),
 });

@@ -44,13 +44,22 @@ namespace Client.Playtest.Operations.Ui.ScenarioProbes
             var presentation = Tooltip().GetPresentation();
             if (!presentation.Visible) return "(hidden)";
             return string.Join(" / ", presentation.Lines.Select(line =>
-                line.TextParams.Count == 0 ? line.Key.Key : line.Key.Key + "[" + string.Join(",", line.TextParams) + "]"));
+                line.TextParams.Count == 0 ? line.Key.Key : line.Key.Key + "[" + string.Join(",", line.TextParams.Select(param => param.Name + "=" + param.Value)) + "]"));
         }
 
         public bool HasKey(string key)
         {
             var presentation = Tooltip().GetPresentation();
             return presentation.Visible && presentation.Lines.Any(line => line.Key.Key == key);
+        }
+
+        public bool HasTextParam(string key, string paramName, string paramValue)
+        {
+            // 名前付き差し込みを行キーと名前で照合する
+            // Match a named placeholder by line key and name
+            var presentation = Tooltip().GetPresentation();
+            return presentation.Visible && presentation.Lines.Any(line => line.Key.Key == key &&
+                line.TextParams.Any(param => param.Name == paramName && param.Value == paramValue));
         }
 
         public bool IsOnScreen(Vector3 worldPosition)

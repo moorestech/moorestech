@@ -40,6 +40,9 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   trainFluidPlatform: fx.blockTrainFluidPlatform,
   electricPole: fx.blockElectricPole,
 };
+// 開くfixtureだけを登録表から導出して撮影側へ渡す
+// Derive capture names from registered open fixtures
+export const openBlockFixtureNames = Object.keys(BLOCK_FIXTURES).filter((name) => BLOCK_FIXTURES[name].open);
 const DIST = fileURLToPath(new URL("../../dist", import.meta.url));
 // DEMO(採点用): 高密度データとプレースホルダアイコンを配信
 // DEMO (scoring): serve dense data and placeholder icons
@@ -120,7 +123,8 @@ export function createMockHttpServer(): Server {
     // Test-only: toggle the modal and push an event to subscribers
     if (url.startsWith("/__modal")) {
       const show = new URL(url, "http://x").searchParams.get("show") === "1";
-      state.currentModal = show ? clone(fx.modalSample) : null;
+      const blueprint = new URL(url, "http://x").searchParams.get("kind") === "blueprint";
+      state.currentModal = show ? clone(blueprint ? fx.blueprintNameModal : fx.modalSample) : null;
       for (const ws of subscribersOf(Topics.modal)) send(ws, { op: "event", topic: Topics.modal, data: { modal: state.currentModal } });
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true }));

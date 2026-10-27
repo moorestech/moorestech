@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -64,19 +65,19 @@ namespace Client.Starter
             // Resolve launch arguments before capturing the current session origin
             Client.RemoteExec.RemoteExecLaunchOption.ResolveFromCommandLine(Environment.GetCommandLineArgs());
             Playtest.PreviousSessionStartupTasks.BeginCurrentSessionMarks();
-            // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
-            // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
-            var exitToken = Application.exitCancellationToken;
-            var webUiStarted = await Initialization.Boot.WebUiStartup.StartAsync(exitToken);
-            // Web UI の実ポートが確定してから遠隔実行を有効化する
-            // Activate remote exec after the Web UI's actual port is known
-            Client.RemoteExec.RemoteExecActivation.ActivateIfRequested(webUiStarted, Client.WebUiHost.Boot.WebUiHost.KestrelPort);
+            // 遠隔実行はWeb UIより先に専用の待受で開く。Webホストが起動に失敗してもCEFの不具合を調べられるようにする
+            // Remote exec opens on its own listener before the Web UI, so a failed Web host still leaves CEF faults diagnosable
+            Client.RemoteExec.RemoteExecActivation.ActivateIfRequested();
             // 正常終了で遠隔実行の入口を撤去する。終了イベントを知らないClient.RemoteExecへここから配線する
             // A clean exit withdraws the remote-exec entry; Client.RemoteExec does not know the shutdown event, so it is wired from here
             // 無効な起動は入口を持たないので購読もしない（同じ置き場を使う他プロセスの入口に触る理由が無い）
             // A disabled boot owns no entry and does not subscribe, having no reason to touch another process's entry in the shared location
             if (Client.RemoteExec.RemoteExecLaunchOption.IsEnabled)
                 GameShutdownEvent.OnGameShutdown.Subscribe(_ => Client.RemoteExec.RemoteExecActivation.Deactivate());
+            // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
+            // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
+            var exitToken = Application.exitCancellationToken;
+            await Initialization.Boot.WebUiStartup.StartAsync(exitToken);
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);
@@ -178,7 +179,7 @@ namespace Client.Starter
                 // The refusal travels in the result itself; copying it into an outer variable would create a second truth
                 if (connectionResult.Refusal.HasValue) return connectionResult;
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
-                loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
+                loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, new LocalizationTextParam("chunkCount", fetchedChunkCount.ToString()));
                 return connectionResult;
             }
 

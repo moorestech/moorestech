@@ -1,3 +1,4 @@
+using Client.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,7 +64,7 @@ namespace Client.Playtest.Operations.Ui
 
         public bool TooltipHasParam(string value)
         {
-            return _tooltip.GetPresentation().Lines.Any(line => 0 < line.TextParams.Count && line.TextParams[0] == value);
+            return _tooltip.GetPresentation().Lines.Any(line => line.TextParams.Any(textParam => textParam.Name == "count" && textParam.Value == value));
         }
 
         public List<Vector3> ActiveGhostPositions()

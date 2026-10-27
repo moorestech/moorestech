@@ -1,6 +1,6 @@
 // messageId→表示テンプレートの対応表。文言はWeb側が所有しサーバーは構造化IDのみ送る
 // Maps messageId to display templates; the web owns wording, the server sends structured ids only
-import { L, buildPositionalInterpolationValues, challengeTitleKey, researchNameKey, type TranslationKey } from "@/shared/i18n";
+import { L, challengeTitleKey, researchNameKey, type TranslationKey } from "@/shared/i18n";
 import type { GameNotification } from "./notificationStore";
 
 const notificationKeys = new Map<string, TranslationKey>([
@@ -81,28 +81,31 @@ export function resolveNotificationKey(messageId: string): TranslationKey {
   return notificationKeys.get(messageId) ?? L.ui.notification.unknownMessage;
 }
 
-// Guidパラメータを持つ通知のcontentキー組み立て表。サーバーは表示名でなくGuidを送る
-// Content-key builders for GUID-bearing notifications; the server sends GUIDs, not display names
-const contentParamKeyBuilders = new Map<string, (guid: string) => TranslationKey>([
-  ["achievement.researchCompleted", researchNameKey],
-  ["achievement.challengeCompleted", challengeTitleKey],
+// Guidを運ぶ通知の、値の名前とcontentキー組み立て。サーバーは表示名でなくGuidを送る
+// Value name and content-key builder for GUID-bearing notifications; the server sends GUIDs, not display names
+const contentParamKeyBuilders = new Map<string, { name: string; buildKey: (guid: string) => TranslationKey }>([
+  ["achievement.researchCompleted", { name: "research", buildKey: researchNameKey }],
+  ["achievement.challengeCompleted", { name: "challenge", buildKey: challengeTitleKey }],
 ]);
 
 export function resolveNotificationParams(
   messageId: string,
-  messageParams: string[],
+  messageParams: Record<string, string>,
   translate: (key: TranslationKey) => string,
-): string[] {
-  const buildContentKey = contentParamKeyBuilders.get(messageId);
-  if (!buildContentKey) return messageParams;
-  return messageParams.map((guid) => translate(buildContentKey(guid)));
+): Record<string, string> {
+  const builder = contentParamKeyBuilders.get(messageId);
+  if (!builder) return messageParams;
+  // 名前が欠けた通知は生の枠のまま出るので、開発時に気づけるよう警告する
+  // A notification missing the named value shows a raw token, so warn so developers notice
+  if (!Object.hasOwn(messageParams, builder.name)) {
+    console.warn(`[notification] ${messageId}: missing param ${builder.name}`);
+    return messageParams;
+  }
+  return { ...messageParams, [builder.name]: translate(builder.buildKey(messageParams[builder.name])) };
 }
 
-export function buildInterpolationValues(messageId: string, messageParams: string[]) {
-  return {
-    messageId,
-    ...buildPositionalInterpolationValues(messageParams),
-  };
+export function buildInterpolationValues(messageId: string, messageParams: Record<string, string>) {
+  return { ...messageParams, messageId };
 }
 
 // 表示キーと補間値を同じnarrowから作り、アイテム名とcountを持つのは獲得通知だけという不変条件を1箇所に閉じる

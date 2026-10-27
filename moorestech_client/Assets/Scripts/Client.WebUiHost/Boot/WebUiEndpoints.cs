@@ -108,13 +108,6 @@ namespace Client.WebUiHost.Boot
                     return;
                 }
 
-                if (path == Client.RemoteExec.RemoteExecEndpoint.Path)
-                {
-                    // 有効判定と拒否理由はエンドポイントに集約する
-                    // Keep activation checks and rejection reasons in the endpoint
-                    await Client.RemoteExec.RemoteExecEndpoint.HandleAsync(context);
-                    return;
-                }
 
                 if (path == Game.LocalizationLanguagesEndpoint.Path)
                 {

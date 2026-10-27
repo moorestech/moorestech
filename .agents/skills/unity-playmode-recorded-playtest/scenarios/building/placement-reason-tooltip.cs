@@ -53,7 +53,7 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     var dragSnapshot = probe.Snapshot();
     p.Note($"[3セルドラッグ中] tooltip = {dragSnapshot}");
     p.Assert(probe.HasKey("ui.tooltip.placeMaterialShortage"), "3セルドラッグ中に素材不足行が出る");
-    p.Assert(dragSnapshot.Contains(",1,3"), "素材不足行が「所持1/必要3」である");
+    p.Assert(probe.HasTextParam("ui.tooltip.placeMaterialShortage", "ownedCount", "1") && probe.HasTextParam("ui.tooltip.placeMaterialShortage", "requiredCount", "3"), "素材不足行が「所持1/必要3」である");
     await p.Screenshot("01-material-shortage");
 
     // Unity側の行だけでなくWeb UIまで描画が通っていることを、確実に表示中のこの瞬間に確認する

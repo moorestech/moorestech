@@ -19,7 +19,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             var itemGuid = MasterHolder.ItemMaster.GetItemMaster(shortage.ItemId).ItemGuid;
             var itemName = Localize.GetContent(ContentLocalizationKeys.ItemName(itemGuid));
-            return new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage, new[] { itemName, shortage.Held.ToString(), shortage.Required.ToString() });
+            return new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage, new[]
+            {
+                new LocalizationTextParam("itemName", itemName),
+                new LocalizationTextParam("ownedCount", shortage.Held.ToString()),
+                new LocalizationTextParam("requiredCount", shortage.Required.ToString()),
+            });
         }
     }
 }
