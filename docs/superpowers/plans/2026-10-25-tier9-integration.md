@@ -9229,7 +9229,7 @@ PY
 
 ユーザーのセーブはリポジトリにコミットしない。置き場は scratch と `../moorestech_logs` の非公開の場所に限る。
 
-- [ ] **Step 2: Tier8 終盤セーブの事前確認シナリオを書く**
+- [x] **Step 2: Tier8 終盤セーブの事前確認シナリオを書く**
 
 `scenarios/tier9/tier9-0-tier8-save-smoke.cs`:
 ```csharp
@@ -9268,7 +9268,7 @@ return PlaytestRunner.Run("tier9-0-tier8-save-smoke", options, async p =>
 ```
 `minimumKeptResearch` は、Step 1 の `save-origin.md` の値で置き換える。値は「元の完了件数 38 − そのうち統合マスタに無い件数」。手で足したリセット対象の 7 件は数えない（全部外れるため）。
 
-- [ ] **Step 3: 統合版の Editor で事前確認を流す**
+- [x] **Step 3: 統合版の Editor で事前確認を流す**
 
 セーブは複製を使う（ロードで `Backups/<版>/save.json` に退避されるため、原本を汚さない）。
 ```bash
@@ -9280,7 +9280,7 @@ uloop get-logs --project-path ./moorestech_client --log-type Error
 
 Expected: `Success: true`、Error ログ0件。`<scratch>/tier8-world-smoke` の下に、元の版の退避（`BackupSaveJsonPath(<元の版>)`）ができている。落ちた場合は止まり、セーブの版と Error の先頭行を P1（セーブ移行）の担当に返す。ユーザーには渡さない。
 
-- [ ] **Step 4: チェックリストを作って共有する**
+- [x] **Step 4: チェックリストを作って共有する**
 
 `../moorestech_logs/harness/tier9-integration/handoff/checklist.html` を簡易 HTML で書く。中身は次の5つ:
 - 起動: MacBook Pro の `~/moorestech` で `git fetch origin && git switch feat/tier9-integrated`（手元に未コミットの変更があれば先に退避する。plan 作成時は `.moorestech-external-revisions.json` に変更があり、master から 33 コミット遅れていた）。`~/moorestech_master` はピン（`.moorestech-external-revisions.json` の moorestech_master の revision）に合わせる。Editor の外部リポジトリ同期（`Client.Editor.RepositorySync`）か `git -C ~/moorestech_master fetch origin && git -C ~/moorestech_master checkout <ピンのコミット>` で行う。Unity Editor で `moorestech_client` を開き、Play して、いつもの `world_1` をそのまま開く。セーブは置き換えない。ロード時に移行（版6→8）が掛かり、元の版の save.json はゲームが `Backups/<版>/` に退避する（ユーザー発言 2026-10-25「マイグレーションするんだから別に不要じゃない？」）。MacBook Pro側のワールドをエージェントが退避・削除・上書きする手順は用意しない。
