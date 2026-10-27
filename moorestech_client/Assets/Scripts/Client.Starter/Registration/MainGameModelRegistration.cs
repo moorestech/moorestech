@@ -73,6 +73,8 @@ namespace Client.Starter.Registration
             builder.RegisterInstance(PlaytestOutboxDirectories.FromGameSystemPaths());
             builder.RegisterInstance<IPlaytestSteamTicketProvider>(new PlaytestSteamTicketProvider());
             builder.Register<PlaytestUploadRunner>(Lifetime.Singleton).As<IPlaytestUploadRequester>();
+            builder.Register<IPlaytestExportDestination, DesktopExportDestination>(Lifetime.Singleton);
+            builder.Register<IPlaytestFileReveal, OsFileReveal>(Lifetime.Singleton);
             builder.Register<PlaytestOutboxRecovery>(Lifetime.Singleton);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             builder.RegisterEntryPoint<PlaytestBootUploadTrigger>();

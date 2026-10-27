@@ -77,7 +77,7 @@ namespace Client.Tests.PlaytestReceiver.Recovery
         {
             var box = MakeBox("reports", "a", "READY", "UPLOAD_FAILED");
             var requester = new CountingRequester();
-            new PlaytestOutboxRecovery(requester, _directories).ResendFailedAsync(PlaytestOutboxScope.ReportsAndProgress).GetAwaiter().GetResult();
+            new PlaytestOutboxRecovery(requester, _directories, null, null).ResendFailedAsync(PlaytestOutboxScope.ReportsAndProgress).GetAwaiter().GetResult();
             Assert.IsFalse(File.Exists(Path.Combine(box, "UPLOAD_FAILED")));
             Assert.AreEqual(1, requester.Count);
         }
