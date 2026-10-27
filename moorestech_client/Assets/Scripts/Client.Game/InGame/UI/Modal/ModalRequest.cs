@@ -23,4 +23,14 @@ namespace Client.Game.InGame.UI.Modal
         Confirm,
         Error,
     }
+
+    /// <summary>
+    /// モーダルの結果。描く側に依らない2値
+    /// Modal result; the two renderer-independent values
+    /// </summary>
+    public enum ModalResult
+    {
+        Confirm,
+        Cancel,
+    }
 }

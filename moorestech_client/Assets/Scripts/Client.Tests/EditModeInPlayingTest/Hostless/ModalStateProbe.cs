@@ -59,7 +59,7 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 nameInput.Open();
                 Assert.IsNotNull(modal.Pending, "BP名入力を開いても入力モーダルが保留されない");
                 Assert.IsTrue(modal.Pending.RequiresInput);
-                Assert.IsTrue(modal.Respond(modal.Pending.Id, ModalRequestService.ConfirmResult, blueprintName));
+                Assert.IsTrue(modal.Respond(modal.Pending.Id, ModalResult.Confirm, blueprintName));
 
                 // コピー応答と撮影を待つ
                 // Wait for the copy response and capture

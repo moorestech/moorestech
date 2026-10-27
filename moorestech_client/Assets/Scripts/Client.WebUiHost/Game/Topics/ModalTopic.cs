@@ -40,10 +40,6 @@ namespace Client.WebUiHost.Game.Topics
         {
             _disposed = true;
             _subscription.Dispose();
-
-            // 停止時に保留awaitをcancel
-            // Cancel the pending await on stop
-            _service.CancelPendingRequest();
         }
 
         // INFRA-7 デバウンス規約: 同フレームで要求が置換されてもフレーム末の最終状態だけ配信する

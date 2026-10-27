@@ -25,21 +25,21 @@ namespace Client.Game.InGame.UI.Blueprint
         public void Initialize()
         {
             _state.OnOpenChanged.Subscribe(OnOpenChanged);
-        }
-
-        private void OnOpenChanged(bool isOpen)
-        {
-            if (isOpen)
-            {
-                RequestAndRespond().Forget();
-                return;
-            }
-
-            // 状態側クローズ（確定/キャンセル/Disable）でwebモーダルも畳む（解決済みならno-op）
-            // State-side close (confirm/cancel/Disable) also dismisses the web modal (no-op when already resolved)
-            _modalService.CancelPendingRequest();
 
             #region Internal
+
+            void OnOpenChanged(bool isOpen)
+            {
+                if (isOpen)
+                {
+                    RequestAndRespond().Forget();
+                    return;
+                }
+
+                // 状態側クローズ（確定/キャンセル/Disable）でwebモーダルも畳む（解決済みならno-op）
+                // State-side close (confirm/cancel/Disable) also dismisses the web modal (no-op when already resolved)
+                _modalService.CancelPendingRequest();
+            }
 
             async UniTaskVoid RequestAndRespond()
             {
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.UI.Blueprint
 
                 // 確定は空白のみを弾いて状態へ書き戻す（web側でも確定無効化済みの二重防御）
                 // Confirm rejects whitespace-only before writing back (double guard; the web disables confirm too)
-                if (result == ModalRequestService.ConfirmResult && !string.IsNullOrWhiteSpace(text)) _state.Confirm(text);
+                if (result == ModalResult.Confirm && !string.IsNullOrWhiteSpace(text)) _state.Confirm(text);
                 else _state.Cancel();
             }
 

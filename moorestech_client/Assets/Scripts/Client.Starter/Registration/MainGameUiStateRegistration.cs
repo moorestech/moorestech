@@ -18,9 +18,9 @@ namespace Client.Starter.Registration
     {
         public static void Register(ContainerBuilder builder)
         {
-            // モーダル要求とBP名橋渡し
-            // Modal request and blueprint-name bridge
-            builder.Register<ModalRequestService>(Lifetime.Singleton);
+            // モーダル要求（ゲーム終了で取消）とBP名橋渡し
+            // Modal request (cancelled at game shutdown) and blueprint-name bridge
+            builder.RegisterEntryPoint<ModalRequestService>().AsSelf();
             builder.RegisterEntryPoint<BlueprintNameInputModalBridge>();
 
             // 研究遷移と所持変化を購読
