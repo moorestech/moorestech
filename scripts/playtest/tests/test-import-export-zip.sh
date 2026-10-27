@@ -96,4 +96,17 @@ for reserved in AUTOFIX_QUEUED run.env ready; do
   [ -z "$(find "$P" -name '20261019_150326_bug1*')" ] || { echo "NG: $reserved 入りの箱が置かれた"; exit 1; }
   grep -qE '予約名|大文字小文字' "$TMP/res.log" || { echo "NG: $reserved の理由がログに無い"; cat "$TMP/res.log"; exit 1; }
 done
+# MARKER_NAMES が C# の印の定数（PlaytestOutboxScanner の *Marker）と一致する。片方だけ増えると印が資料として取り込まれる
+# MARKER_NAMES must equal the C# marker constants; a one-sided addition would import a marker as payload
+SCANNER="$HERE/../../../moorestech_client/Assets/Scripts/Client.PlaytestReceiver/Upload/Outbox/PlaytestOutboxScanner.cs"
+python3 -I - "$SCANNER" "$HERE/../lib" <<'PY' || { echo "NG: 印の一覧が C# とずれている"; exit 1; }
+import re, sys
+sys.path.insert(0, sys.argv[2])
+import import_export_zip
+cs = set(re.findall(r'const string \w+Marker = "([^"]+)"', open(sys.argv[1], encoding="utf-8").read()))
+py = set(import_export_zip.MARKER_NAMES)
+if cs != py or not cs:
+    print(f"C#={sorted(cs)} python={sorted(py)}", file=sys.stderr)
+    sys.exit(1)
+PY
 echo OK

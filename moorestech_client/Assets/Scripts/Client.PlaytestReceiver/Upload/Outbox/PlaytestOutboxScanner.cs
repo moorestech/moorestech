@@ -10,8 +10,8 @@ using Client.PlaytestReceiver.Upload.Attempt;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // outboxの走査と印の名前の正本。どの箱が未送で、箱の中の何を送るのかはここだけが決める
-    // Owns the outbox scan and the marker names; which boxes are pending and what inside them ships is decided only here
+    // outboxの走査と印の名前の正本。箱の状態は PlaytestOutboxBoxState が決め、箱の中の何を送るのかはここだけが決める
+    // Owns the outbox scan and the marker names; box state is decided by PlaytestOutboxBoxState and what inside a box ships is decided only here
     public static class PlaytestOutboxScanner
     {
         // READYはバグ報告の書き出し側（BugReportOutbox）が打つ印。別アセンブリなので名前の一致はテストで固定する
@@ -75,18 +75,17 @@ namespace Client.PlaytestReceiver.Upload
             {
                 foreach (var directory in EnumerateBoxDirectories(outbox))
                 {
-                    string[] markers;
+                    PlaytestOutboxBoxKind boxKind;
                     // 外部ディスク境界。読めない箱を隔離し、件数不明は在庫表示へ残す
                     // Isolate unreadable boxes at the disk boundary; inventory still exposes the unknown count
-                    try { markers = ReadMarkers(directory); }
+                    try { boxKind = PlaytestOutboxBoxState.Classify(directory); }
                     catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
                     {
                         UnityEngine.Debug.LogWarning($"[PlaytestReceiver] cannot scan box {directory}: {error.Message}");
                         continue;
                     }
-                    if (!markers.Contains(ReadyMarker)) continue;
-                    if (IsDelivered(markers)) continue;
-                    if (markers.Contains(FailedMarker) && !CanResume(directory, filePolicy, includeCompletionHolds)) continue;
+                    if (boxKind == PlaytestOutboxBoxKind.NotReady || boxKind == PlaytestOutboxBoxKind.Delivered) continue;
+                    if (boxKind == PlaytestOutboxBoxKind.Failed && !CanResume(directory, filePolicy, includeCompletionHolds)) continue;
                     yield return new PlaytestOutboxBox(directory, Path.GetFileName(directory), kind, filePolicy);
                 }
             }
@@ -156,18 +155,6 @@ namespace Client.PlaytestReceiver.Upload
                 // silent-ok: 未作成のoutboxには箱がない / 作成後の次回要求で再走査する
                 return Array.Empty<string>();
             }
-        }
-
-        private static string[] ReadMarkers(string directory)
-        {
-            // File.Existsは権限拒否もfalseへ畳むため、箱の読取成功を先に確定する
-            // File.Exists folds access denial into false, so verify box enumeration before classifying markers
-            return Directory.GetFiles(directory).Select(Path.GetFileName).ToArray();
-        }
-
-        private static bool IsDelivered(string[] markers)
-        {
-            return markers.Contains(UploadedMarker) || markers.Contains(ShippedMarker);
         }
 
         public static IReadOnlyList<string> ListPayloadFiles(string boxDirectory)

@@ -10,7 +10,7 @@ const pendingOnly: PauseMenuData["delivery"] = { kind: "pending", inventory: { k
 const idle: PauseMenuData["export"] = { kind: "idle" };
 
 const byTestId = (r: ReturnType<typeof renderDelivery> extends Promise<infer T> ? T : never, id: string) =>
-  r.root.findAll((n) => n.props["data-testid"] === id);
+  r.root.findAll((n) => typeof n.type === "string" && n.props["data-testid"] === id);
 
 it("送信できない報告があるときだけ再送ボタンを出し、押すと action を出す", async () => {
   const r = await renderDelivery({ kind: "ready", missing: [] }, failed, idle);

@@ -87,6 +87,16 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void UPLOAD_FAILEDが同名ディレクトリの箱も画面と同じく送信対象にしない()
+        {
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            var blocked = MakeBox(directories.ReportOutbox, "20260913_122000_dddd", withReady: true);
+            Directory.CreateDirectory(Path.Combine(blocked, PlaytestOutboxScanner.FailedMarker));
+
+            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories, Client.PlaytestReceiver.Delivery.PlaytestOutboxScope.ReportsAndProgress));
+        }
+
+        [Test]
         public void 旧SHIPPED箱を再送も未送件数にも含めない()
         {
             var directories = PlaytestOutboxTestBoxes.Directories(_root);

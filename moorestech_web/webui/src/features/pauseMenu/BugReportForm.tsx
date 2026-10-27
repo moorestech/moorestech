@@ -23,6 +23,12 @@ export function BugReportForm({ status, delivery, exportStatus, draft }: Props) 
 
   const trimmedDescription = draft.description.trim();
 
+  // 在庫の件数はここで一度だけ絞り込み、件数の行と再送・書き出しのボタンの両方へ渡す
+  // Narrow the inventory once here and feed both the count line and the resend/export buttons
+  const inventory = delivery.kind === "allSent" ? null : delivery.inventory;
+  const knownCounts = inventory?.kind === "known" ? { pendingCount: inventory.pendingCount, failedCount: inventory.failedCount } : null;
+  const inventoryUnavailable = inventory?.kind === "unavailable";
+
   // 送信してよいかの判定はC#が持ち、結論が kind で届く。ここで条件を組み立て直すと判定が2本になる
   // C# owns whether a send may start and delivers the verdict as the kind; rebuilding the conditions here would make two rules
   const blocked = trimmedDescription.length === 0 || status.kind !== "ready" || sending;
@@ -78,14 +84,14 @@ export function BugReportForm({ status, delivery, exportStatus, draft }: Props) 
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
       <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}{describeFailedDelivery()}</span>
-      <BugReportRecoveryControls delivery={delivery} exportStatus={exportStatus} />
+      <BugReportRecoveryControls counts={knownCounts} inventoryUnavailable={inventoryUnavailable} exportStatus={exportStatus} />
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );
 
   function describeFailedDelivery(): string {
-    if (delivery.kind === "allSent" || delivery.inventory.kind !== "known" || delivery.inventory.failedCount === 0) return "";
-    return ` / ${t(L.ui.bugReport.deliveryFailed, { count: delivery.inventory.failedCount })}`;
+    if (knownCounts === null || knownCounts.failedCount === 0) return "";
+    return ` / ${t(L.ui.bugReport.deliveryFailed, { count: knownCounts.failedCount })}`;
   }
 
   // 送信可否とは独立した配送状況を伝える

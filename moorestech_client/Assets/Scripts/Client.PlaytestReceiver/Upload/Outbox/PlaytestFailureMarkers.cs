@@ -8,8 +8,10 @@ namespace Client.PlaytestReceiver.Upload
     {
         public static void Clear(string boxDirectory)
         {
-            File.Delete(Path.Combine(boxDirectory, PlaytestOutboxScanner.FailedMarker));
+            // 失敗印を最後に消す。途中で失敗しても箱はFailedのまま残り、報告と状態が一致する
+            // Remove the failure marker last so a mid-way failure leaves the box Failed, matching the reported result
             File.Delete(Path.Combine(boxDirectory, PlaytestOutboxScanner.AttemptsMarker));
+            File.Delete(Path.Combine(boxDirectory, PlaytestOutboxScanner.FailedMarker));
         }
     }
 }

@@ -77,17 +77,21 @@ namespace Client.PlaytestReceiver.Recovery
 
             void AddFile(ZipArchive archive, string entryName, string file)
             {
-                // 外部ディスク境界。他プロセスのロックや消失で読めないファイルは欠落にする
-                // External disk boundary: files locked by another process or gone are listed as missing
-                try
-                {
-                    using var source = File.OpenRead(file);
-                    using var target = archive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Fastest).Open();
-                    source.CopyTo(target);
-                }
+                // 外部ディスク境界。他プロセスのロックや消失で読めないファイルだけを欠落にする
+                // External disk boundary: only files locked by another process or gone are listed as missing
+                FileStream source;
+                try { source = File.OpenRead(file); }
                 catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
                 {
                     Skip(entryName, error);
+                    return;
+                }
+                // zipへの書き込み失敗は欠落にせず、書き出し自体の失敗としてPackUnsentへ届かせる
+                // A zip write failure is not a missing item; it propagates to PackUnsent as an export failure
+                using (source)
+                {
+                    using var target = archive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Fastest).Open();
+                    source.CopyTo(target);
                 }
             }
 

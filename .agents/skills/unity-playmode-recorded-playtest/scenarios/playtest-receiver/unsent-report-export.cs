@@ -119,7 +119,9 @@ return PlaytestRunner.Run("unsent-report-export", new PlaytestRunOptions { Recor
 
     // zipの中身を確かめ、再送が走っていない（失敗印が残る）ことも確かめる
     // Inspect the zip contents and confirm no resend ran (the failure marker remains)
-    using (var archive = ZipFile.OpenRead(done.ZipPath))
+    // 動的コンパイルでZipFileが別アセンブリの同名型に解決されるため、ZipArchiveを直接開く
+    // Open ZipArchive directly because dynamic compilation can resolve ZipFile to a same-named type in another assembly
+    using (var archive = new ZipArchive(File.OpenRead(done.ZipPath), ZipArchiveMode.Read))
     {
         var entries = archive.Entries.Select(e => e.FullName).ToArray();
         p.Note("zipの中身: " + string.Join(", ", entries));

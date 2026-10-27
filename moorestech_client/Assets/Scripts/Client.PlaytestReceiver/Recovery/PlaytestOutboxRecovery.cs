@@ -59,21 +59,23 @@ namespace Client.PlaytestReceiver.Recovery
             var zipPath = BeginExport();
             if (zipPath == null) return;
             var exportedAt = DateTime.UtcNow;
+            var cancellationToken = Application.exitCancellationToken;
             // 想定外の例外で抜けても書き出し中のまま固めない。理由はForgetのログとPlayer.logに出る
             // Never stay frozen in running after an unexpected exception; its reason reaches the Forget log and Player.log
             try
             {
                 // 配送の走行と同時に箱を読まない。大きなzipはワーカーで書く
                 // Never read boxes alongside an upload run; large zips are written on a worker
-                await PlaytestOutboxAccess.Gate.WaitAsync(Application.exitCancellationToken);
-                PlaytestExportStatus packed;
+                await PlaytestOutboxAccess.Gate.WaitAsync(cancellationToken);
+                PlaytestExportStatus packed = null;
                 try
                 {
-                    await UniTask.SwitchToThreadPool();
-                    packed = PackUnsent(scope, zipPath, exportedAt);
-                    await UniTask.SwitchToMainThread();
+                    // トークン付きで往復し、非IO例外でもメインへ戻ってからGateを解放する
+                    // Round-trip with the token so even a non-IO exception returns to the main thread before the gate is released
+                    await UniTask.RunOnThreadPool(() => { packed = PackUnsent(scope, zipPath, exportedAt); }, cancellationToken: cancellationToken);
                 }
                 finally { PlaytestOutboxAccess.Gate.Release(); }
+                cancellationToken.ThrowIfCancellationRequested();
                 FinishExport(packed, zipPath);
             }
             finally
@@ -98,7 +100,21 @@ namespace Client.PlaytestReceiver.Recovery
                 return null;
             }
             PlaytestExportStatusBoard.Set(PlaytestExportRunning.Instance);
-            return Path.Combine(directory, $"moorestech-reports-{DateTime.Now:yyyyMMdd-HHmmss}.zip");
+            return ChooseFreeZipPath(directory);
+
+            #region Internal
+
+            string ChooseFreeZipPath(string folder)
+            {
+                // 同じ秒の再押下で先にできた正常なzipを上書き・削除しないよう空き名を選ぶ
+                // Pick a free name so a same-second second press never touches the zip that already exists
+                var stem = $"moorestech-reports-{DateTime.Now:yyyyMMdd-HHmmss}";
+                var candidate = Path.Combine(folder, stem + ".zip");
+                for (var suffix = 2; File.Exists(candidate); suffix++) candidate = Path.Combine(folder, $"{stem}-{suffix}.zip");
+                return candidate;
+            }
+
+            #endregion
         }
 
         // zipを書く。zip自体を書けなければ途中のzipを消して失敗を返す。どのスレッドからでも呼べる
@@ -117,6 +133,21 @@ namespace Client.PlaytestReceiver.Recovery
                 DeletePartial(zipPath);
                 return new PlaytestExportFailed($"{error.GetType().Name}: {error.Message}");
             }
+
+            #region Internal
+
+            void DeletePartial(string partialZipPath)
+            {
+                // 外部ディスクIO境界。消せない途中のzipはログに残し、画面は失敗のまま出す
+                // External disk IO boundary: a partial zip that cannot be removed is logged; the screen still shows the failure
+                try { if (File.Exists(partialZipPath)) File.Delete(partialZipPath); }
+                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] cannot remove partial export {partialZipPath}: {error.Message}");
+                }
+            }
+
+            #endregion
         }
 
         // 結果を画面へ出す。成功ならファイルマネージャでzipを選んで開く。メインスレッドで呼ぶ
@@ -137,17 +168,6 @@ namespace Client.PlaytestReceiver.Recovery
         internal static void FailIfStillRunning()
         {
             if (PlaytestExportStatusBoard.Current.Value is PlaytestExportRunning) Fail("export ended unexpectedly; see Player.log");
-        }
-
-        private static void DeletePartial(string zipPath)
-        {
-            // 外部ディスクIO境界。消せない途中のzipはログに残し、画面は失敗のまま出す
-            // External disk IO boundary: a partial zip that cannot be removed is logged; the screen still shows the failure
-            try { if (File.Exists(zipPath)) File.Delete(zipPath); }
-            catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
-            {
-                Debug.LogWarning($"[PlaytestReceiver] cannot remove partial export {zipPath}: {error.Message}");
-            }
         }
 
         private static void Fail(string reason)

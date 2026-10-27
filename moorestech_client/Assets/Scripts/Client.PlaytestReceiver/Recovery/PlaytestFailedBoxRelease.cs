@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Upload;
 using UnityEngine;
@@ -22,11 +23,23 @@ namespace Client.PlaytestReceiver.Recovery
             int Release(string outbox)
             {
                 var count = 0;
-                foreach (var box in PlaytestOutboxScanner.EnumerateBoxDirectories(outbox))
+                foreach (var box in ListBoxes(outbox))
                 {
                     if (IsFailed(box) && TryRelease(box)) count++;
                 }
                 return count;
+            }
+
+            string[] ListBoxes(string outbox)
+            {
+                // 外部ディスク境界。列挙できないoutboxは0件として扱い、送信要求まで進める
+                // External disk boundary: an outbox that cannot be listed counts as empty so the upload request still goes out
+                try { return PlaytestOutboxScanner.EnumerateBoxDirectories(outbox).ToArray(); }
+                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] cannot list outbox for resend {outbox}: {error.Message}");
+                    return Array.Empty<string>();
+                }
             }
 
             bool IsFailed(string box)

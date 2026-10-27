@@ -6,21 +6,21 @@ import { L, useI18n } from "@/shared/i18n";
 import styles from "./style.module.css";
 
 type Props = {
-  delivery: PauseMenuData["delivery"];
+  // 未送信・送信できない件数。読めないときは null（BugReportForm が一度だけ絞り込む）
+  // Pending and failed counts; null when unreadable (BugReportForm narrows them once)
+  counts: { pendingCount: number; failedCount: number } | null;
+  inventoryUnavailable: boolean;
   exportStatus: PauseMenuData["export"];
 };
 
-export function BugReportRecoveryControls({ delivery, exportStatus }: Props) {
+export function BugReportRecoveryControls({ counts, inventoryUnavailable, exportStatus }: Props) {
   const { t } = useI18n();
   const exporting = exportStatus.kind === "running";
 
   // 件数が読めないときも書き出しだけは出す。読めない箱の救出が書き出しの役目のため
   // Export stays available even when counts are unreadable, because rescuing such boxes is its job
-  const inventory = delivery.kind === "allSent" ? null : delivery.inventory;
-  const known = inventory?.kind === "known" ? inventory : null;
-  const unknown = inventory?.kind === "unavailable";
-  const showResend = known !== null && known.failedCount > 0;
-  const showExport = unknown || (known !== null && known.pendingCount + known.failedCount > 0);
+  const showResend = counts !== null && counts.failedCount > 0;
+  const showExport = inventoryUnavailable || (counts !== null && counts.pendingCount + counts.failedCount > 0);
   const statusLine = describeExport();
 
   return (
