@@ -36,6 +36,7 @@ namespace Server.Event.EventReceive
             ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(QueueChangedState);
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
+            ServerContext.WorldBlockUpdateEvent.OnTickEndStatesCommitted.Subscribe(_ => BroadcastPendingStates());
         }
 
         // 購読経路用。前回と同一ペイロードなら溜めない
@@ -57,9 +58,9 @@ namespace Server.Event.EventReceive
             QueueState(pos, messagePack, payload);
         }
 
-        // tick末尾に1回呼ぶ。変化0件なら送らない
-        // Called once at tick end by MasterTickUpdater; nothing is sent for a tick without changes
-        public void BroadcastPendingStates()
+        // tick末尾の通知で1回送る。変化0件なら送らない
+        // Sent once on the tick-end signal; nothing is sent for a tick without changes
+        private void BroadcastPendingStates()
         {
             if (_pendingStates.Count == 0) return;
 

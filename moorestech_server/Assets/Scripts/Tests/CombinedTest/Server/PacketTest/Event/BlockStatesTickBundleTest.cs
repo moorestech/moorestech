@@ -27,10 +27,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var world = ServerContext.WorldBlockDatastore;
             var changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
 
+            // tickで自ら状態を出さないチェストに置き、ダミー状態だけを見る
+            // Use a chest, which raises no state of its own during a tick, so only the dummy states are observed
             var firstPos = new Vector3Int(20, 0, 20);
             var secondPos = new Vector3Int(22, 0, 20);
-            world.TryAddBlock(ForUnitTestModBlockId.MachineId, firstPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            world.TryAddBlock(ForUnitTestModBlockId.MachineId, secondPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            world.TryAddBlock(ForUnitTestModBlockId.ChestId, firstPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            world.TryAddBlock(ForUnitTestModBlockId.ChestId, secondPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 1);
             GameUpdater.UpdateOneTick();
             sink.TakeAll();
@@ -56,14 +58,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         public void NothingPendingSendsNoEventTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 1);
-            changeBlockStateEventPacket.BroadcastPendingStates();
+            GameUpdater.UpdateOneTick();
             sink.TakeAll();
 
-            changeBlockStateEventPacket.BroadcastPendingStates();
+            GameUpdater.UpdateOneTick();
 
-            Assert.AreEqual(0, sink.TakeAll().Count, "溜めた状態が無ければ何も送らないべき");
+            Assert.AreEqual(0, sink.TakeAll().Count(e => e.Tag == ChangeBlockStateEventPacket.EventTag), "溜めた状態が無ければ何も送らないべき");
         }
 
         [Test]
@@ -78,12 +79,12 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var pos = new Vector3Int(24, 0, 24);
             world.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 1);
-            changeBlockStateEventPacket.BroadcastPendingStates();
+            GameUpdater.UpdateOneTick();
             sink.TakeAll();
 
             changeBlockStateEventPacket.QueueChangedState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } }), world.GetOriginPosBlock(pos)));
             world.RemoveBlock(pos, BlockRemoveReason.ManualRemove);
-            changeBlockStateEventPacket.BroadcastPendingStates();
+            GameUpdater.UpdateOneTick();
 
             var positions = EventTestUtil.ExtractBlockStates(sink.TakeAll()).Select(s => (Vector3Int)s.Position).ToList();
             CollectionAssert.DoesNotContain(positions, pos, "撤去したブロックの状態は捨てられるべき");

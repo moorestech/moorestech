@@ -1,5 +1,6 @@
 using System.Linq;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -45,11 +46,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsNotNull(response);
             Assert.AreEqual(0, response.Count);
             
-            serviceProvider.GetService<ChangeBlockStateEventPacket>().BroadcastPendingStates();
+            GameUpdater.UpdateOneTick();
 
             // イベントが発行されたことを確認
             // Ensure the bundle event was published
-            var events = sink.TakeAll();
+            var events = sink.TakeAll().Where(e => e.Tag == ChangeBlockStateEventPacket.EventTag).ToList();
             Assert.AreEqual(1, events.Count);
             Assert.AreEqual(ChangeBlockStateEventPacket.EventTag, events[0].Tag);
 
@@ -81,10 +82,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsNotNull(response);
             Assert.AreEqual(0, response.Count);
             
-            serviceProvider.GetService<ChangeBlockStateEventPacket>().BroadcastPendingStates();
+            GameUpdater.UpdateOneTick();
 
             // イベントが発行されていないことを確認
-            var events = sink.TakeAll();
+            var events = sink.TakeAll().Where(e => e.Tag == ChangeBlockStateEventPacket.EventTag).ToList();
             Assert.AreEqual(0, events.Count);
         }
     }

@@ -7,7 +7,8 @@
     "Game.EnergySystem",
     "Core.Const",
     "Core.Master",
-    "Game.Map.Interface"
+    "Game.Map.Interface",
+    "UniRx"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
