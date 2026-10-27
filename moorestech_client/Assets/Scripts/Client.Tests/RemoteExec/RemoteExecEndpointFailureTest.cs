@@ -112,7 +112,8 @@ namespace Client.Tests.RemoteExec
             LogAssert.Expect(LogType.Warning, new Regex("--remoteExec が指定された"));
             RemoteExecLaunchOption.ResolveFromCommandLine(new[] { "--remoteExec" });
             LogAssert.Expect(LogType.Warning, new Regex("入口を開きました"));
-            RemoteExecAccessFile.Issue(0);
+            Assert.IsTrue(RemoteExecAccessFile.Stage(0));
+            Assert.IsTrue(RemoteExecAccessFile.Publish());
 
             LogAssert.Expect(LogType.Warning, new Regex("送信コードの実行に失敗しました"));
             var result = await RemoteExecEndpoint.HandleAsync(PostRequest(RemoteExecAccessFile.Token, "{\"code\":\"throw new System.InvalidOperationException(\\\"execution failure\\\");\",\"target\":\"client\"}"), CancellationToken.None);
@@ -149,7 +150,8 @@ namespace Client.Tests.RemoteExec
             var port = RemoteExecHttpListener.Start();
             Assert.IsNotNull(port);
             LogAssert.Expect(LogType.Warning, new Regex("入口を開きました"));
-            RemoteExecAccessFile.Issue(port.Value);
+            Assert.IsTrue(RemoteExecAccessFile.Stage(port.Value));
+            Assert.IsTrue(RemoteExecAccessFile.Publish());
             var lifetime = (CancellationTokenSource)typeof(RemoteExecHttpListener)
                 .GetField("_lifetime", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
 

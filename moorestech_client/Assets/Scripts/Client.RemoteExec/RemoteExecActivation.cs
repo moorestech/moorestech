@@ -22,19 +22,27 @@ namespace Client.RemoteExec
             // silent-ok: 開けない理由は Start() が LogError 済み / 開発者が Player.log と remote-exec.sh の接続失敗で気づく
             if (port == null) return;
 
-            // 接続情報を書けなければ誰も入口へ届かないので、Harmony を読む前に待受を閉じる
-            // Without written access details nobody can reach the entry, so close the listener before loading Harmony
-            if (!RemoteExecAccessFile.Issue(port.Value))
+            // 接続情報を書けなければ誰も入口へ届かないので、外から見えない公開待ちで確かめ、書けなければ Harmony を読む前に入口を閉じる
+            // Without written access details nobody can reach the entry, so check with an invisible staged file and close the entry before loading Harmony when it fails
+            if (!RemoteExecAccessFile.Stage(port.Value))
             {
-                RemoteExecHttpListener.Stop();
+                Deactivate();
                 Debug.LogError("[RemoteExec] 接続情報を書けなかったため入口を閉じました（遠隔実行は使えません）");
                 return;
             }
             RemoteExecHarmonyLoader.Load();
+
+            // 入口は Harmony を読み終えてから見せる。先に見えると、読み込み前に届いた要求が Harmony 無しでコンパイルされる
+            // Reveal the entry only after Harmony has loaded; otherwise a request arriving earlier compiles without Harmony
+            if (!RemoteExecAccessFile.Publish())
+            {
+                Deactivate();
+                Debug.LogError("[RemoteExec] 接続情報を公開できなかったため入口を閉じました（遠隔実行は使えません）");
+            }
         }
 
-        // 入口（待受と接続情報）の撤去はここ1つに集める。呼ぶのは終了イベントの購読者と無効な起動の判定。Editorの後片付けは待受のソケットだけを閉じる
-        // Withdrawing the entry (listener and access details) lives here alone, called by the shutdown subscriber and the disabled-boot resolution; the Editor cleanup closes only the listener socket
+        // 入口（待受と接続情報）の撤去はここ1つに集める。呼ぶのは終了イベントの購読者・無効な起動の判定・有効化の途中失敗。Editorの後片付けは待受のソケットだけを閉じる
+        // Withdrawing the entry (listener and access details) lives here alone, called by the shutdown subscriber, the disabled-boot resolution and a failed activation; the Editor cleanup closes only the listener socket
         public static void Deactivate()
         {
             RemoteExecHttpListener.Stop();
