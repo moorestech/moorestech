@@ -177,7 +177,7 @@ namespace Client.WebUiHost.Game.Topics
                 _networkCache.Clear();
                 return;
             }
-            // 束の振り分けで追跡ブロックに状態が届いたら再配信する
+            // 束で追跡ブロックに届いたら再配信
             // Republish whenever bundle routing delivers a state to the tracked block
             _blockStateSubscription = block.OnBlockStateChanged.Subscribe(_ => OnTrackedBlockStateChanged());
             // ネットワーク所属はマスタの接続paramが答える。blockTypeの列挙は新種別を取りこぼす

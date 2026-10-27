@@ -39,8 +39,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Clear the event queue
             sink.TakeAll();
 
-            changeBlockStateEventPacket.ChangeState((blockState, blockData));
-            changeBlockStateEventPacket.ChangeState((blockState, blockData));
+            changeBlockStateEventPacket.QueueChangedState((blockState, blockData));
+            changeBlockStateEventPacket.QueueChangedState((blockState, blockData));
             changeBlockStateEventPacket.BroadcastPendingStates();
 
             var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         [Test]
-        // 同じtick内でペイロードが2回変わったら、後の状態の1件だけが載る
+        // 同tick内で2回変化したら後の1件だけ載る
         // When the payload changes twice within one tick, only the later state is bundled
         public void ChangedPayloadWithinOneTickKeepsLatestTest()
         {
@@ -69,8 +69,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var firstState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } });
             var secondState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 2 } });
 
-            changeBlockStateEventPacket.ChangeState((firstState, blockData));
-            changeBlockStateEventPacket.ChangeState((secondState, blockData));
+            changeBlockStateEventPacket.QueueChangedState((firstState, blockData));
+            changeBlockStateEventPacket.QueueChangedState((secondState, blockData));
             changeBlockStateEventPacket.BroadcastPendingStates();
 
             var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         [Test]
-        // 送信を挟んでペイロードが変わったら、それぞれのtickの束に載る
+        // 送信を挟んで変化したら各tickの束に載る
         // When the payload changes across a broadcast, each tick's bundle carries it
         public void ChangedPayloadAcrossTicksIsBroadcastEachTimeTest()
         {
@@ -100,9 +100,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var firstState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } });
             var secondState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 2 } });
 
-            changeBlockStateEventPacket.ChangeState((firstState, blockData));
+            changeBlockStateEventPacket.QueueChangedState((firstState, blockData));
             changeBlockStateEventPacket.BroadcastPendingStates();
-            changeBlockStateEventPacket.ChangeState((secondState, blockData));
+            changeBlockStateEventPacket.QueueChangedState((secondState, blockData));
             changeBlockStateEventPacket.BroadcastPendingStates();
 
             var events = sink.TakeAll();
@@ -113,7 +113,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         [Test]
         // 強制送信経路は同一ペイロードでも必ず積まれる
         // The force path always queues, even for an identical payload
-        public void ForceChangeStateAlwaysBroadcastsTest()
+        public void QueueStateForInitialPullAlwaysQueuesTest()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
@@ -130,9 +130,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Clear the event queue
             sink.TakeAll();
 
-            changeBlockStateEventPacket.ForceChangeState((blockState, blockData));
+            changeBlockStateEventPacket.QueueStateForInitialPull((blockState, blockData));
             changeBlockStateEventPacket.BroadcastPendingStates();
-            changeBlockStateEventPacket.ForceChangeState((blockState, blockData));
+            changeBlockStateEventPacket.QueueStateForInitialPull((blockState, blockData));
             changeBlockStateEventPacket.BroadcastPendingStates();
 
             var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
@@ -155,7 +155,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 前回ペイロードとして記録させる
             // Record the payload as the previously broadcast one
-            changeBlockStateEventPacket.ChangeState((blockState, blockData));
+            changeBlockStateEventPacket.QueueChangedState((blockState, blockData));
             changeBlockStateEventPacket.BroadcastPendingStates();
 
             var playerId = 1;
@@ -192,17 +192,17 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             world.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var firstBlockData = world.GetOriginPosBlock(pos);
 
-            // (1) 設置＋ChangeStateでペイロード記録
-            // (1) Place, then ChangeState records the payload
-            changeBlockStateEventPacket.ChangeState((sharedState, firstBlockData));
+            // (1) 設置し状態を記録
+            // (1) Place, then QueueChangedState records the payload
+            changeBlockStateEventPacket.QueueChangedState((sharedState, firstBlockData));
 
             // (2) 削除（削除イベント発火→Block.Destroy()の順）
             // (2) Remove (fires remove event, then Block.Destroy())
             world.RemoveBlock(pos, BlockRemoveReason.ManualRemove);
 
-            // (3) Destroy中発火を模し、削除直後に同一(state, blockData)でChangeStateを呼びstale再登録を再現
+            // (3) 削除直後の再登録（stale）を再現
             // (3) Simulate a Destroy()-time event: re-register the stale entry right after removal
-            changeBlockStateEventPacket.ChangeState((sharedState, firstBlockData));
+            changeBlockStateEventPacket.QueueChangedState((sharedState, firstBlockData));
 
             var playerId = 1;
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
@@ -216,9 +216,9 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var secondBlockData = world.GetOriginPosBlock(pos);
             sink.TakeAll();
 
-            // (6) 再設置ブロックのstateでChangeState（既定状態がstale値と一致するケースを模す）
-            // (6) ChangeState with the re-placed block's state (mirrors a default state matching the stale value)
-            changeBlockStateEventPacket.ChangeState((sharedState, secondBlockData));
+            // (6) 再設置ブロックのstateでQueueChangedState（既定状態がstale値と一致するケースを模す）
+            // (6) QueueChangedState with the re-placed block's state (mirrors a default state matching the stale value)
+            changeBlockStateEventPacket.QueueChangedState((sharedState, secondBlockData));
             changeBlockStateEventPacket.BroadcastPendingStates();
 
             // (7) staleエントリの掃除により必ず1件積まれるべき

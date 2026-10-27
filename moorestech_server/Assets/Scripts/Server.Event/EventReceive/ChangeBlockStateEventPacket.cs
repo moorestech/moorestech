@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
-    // ブロック状態の変化を座標ごとの最新1件に溜め、tick末尾に1イベントへ束ねて全員へ送る（ADR 0088）
+    // 座標別の最新状態をtick末尾に束ねて送信
     // Keeps the latest block state per position and broadcasts them as one bundled event at tick end (ADR 0088)
     public class ChangeBlockStateEventPacket : IBootInitializable
     {
@@ -18,9 +18,9 @@ namespace Server.Event.EventReceive
 
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        // 位置ごとの最終送信ペイロード（差分検知用）
-        // Last sent payload per position, for diff detection
-        private readonly Dictionary<Vector3Int, byte[]> _lastBroadcastPayloads = new();
+        // 位置ごとの最後に積んだペイロード（差分検知用）
+        // Last queued payload per position, for diff detection
+        private readonly Dictionary<Vector3Int, byte[]> _lastQueuedPayloads = new();
 
         // tick末尾の送信まで溜める、座標ごとの最新状態
         // Latest state per position, held until the tick-end broadcast
@@ -33,31 +33,31 @@ namespace Server.Event.EventReceive
 
         public void Load()
         {
-            ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
+            ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(QueueChangedState);
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
 
         // 購読経路用。前回と同一ペイロードなら溜めない
-        // Subscription path: skip when the payload matches the last sent
-        public void ChangeState((BlockState state, WorldBlockData blockData) state)
+        // Subscription path: skip when the payload matches the last queued
+        public void QueueChangedState((BlockState state, WorldBlockData blockData) state)
         {
             var (pos, messagePack, payload) = SerializeState(state);
 
-            if (_lastBroadcastPayloads.TryGetValue(pos, out var lastPayload) && payload.AsSpan().SequenceEqual(lastPayload)) return;
+            if (_lastQueuedPayloads.TryGetValue(pos, out var lastPayload) && payload.AsSpan().SequenceEqual(lastPayload)) return;
 
             QueueState(pos, messagePack, payload);
         }
 
         // 初期pull経路専用。差分スキップ禁止
         // Initial-pull path only: diff-skip is forbidden
-        public void ForceChangeState((BlockState state, WorldBlockData blockData) state)
+        public void QueueStateForInitialPull((BlockState state, WorldBlockData blockData) state)
         {
             var (pos, messagePack, payload) = SerializeState(state);
             QueueState(pos, messagePack, payload);
         }
 
-        // tick末尾にMasterTickUpdaterから1回だけ呼ぶ。変化0件のtickは送らない
+        // tick末尾に1回呼ぶ。変化0件なら送らない
         // Called once at tick end by MasterTickUpdater; nothing is sent for a tick without changes
         public void BroadcastPendingStates()
         {
@@ -98,13 +98,13 @@ namespace Server.Event.EventReceive
         // The diff record and the pending state are always updated together
         private void QueueState(Vector3Int pos, BlockStateMessagePack messagePack, byte[] payload)
         {
-            _lastBroadcastPayloads[pos] = payload;
+            _lastQueuedPayloads[pos] = payload;
             _pendingStates[pos] = messagePack;
         }
 
         private void ForgetPosition(Vector3Int pos)
         {
-            _lastBroadcastPayloads.Remove(pos);
+            _lastQueuedPayloads.Remove(pos);
             _pendingStates.Remove(pos);
         }
     }
@@ -136,7 +136,7 @@ namespace Server.Event.EventReceive
         }
     }
 
-    // 1tick分のブロック状態の束。座標ごとに最新の1件だけが入る
+    // 1tick分の状態の束。座標ごとに最新1件のみ
     // One tick's bundle of block states; holds only the latest entry per position
     [MessagePackObject]
     public class BlockStatesTickBundleMessagePack

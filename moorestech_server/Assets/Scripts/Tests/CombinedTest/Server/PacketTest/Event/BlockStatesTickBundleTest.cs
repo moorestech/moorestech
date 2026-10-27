@@ -14,12 +14,12 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
-    // ブロック状態の束（ADR 0088）の送信タイミングと掃除を検証
+    // 状態の束の送信タイミングと掃除を検証
     // Verifies when the block-state bundle (ADR 0088) is sent and how it is cleaned up
     public class BlockStatesTickBundleTest
     {
         [Test]
-        // tickを進めると、そのtickに溜めた状態が1イベントで届く
+        // tickを進めると溜めた状態が1イベントで届く
         // Advancing a tick delivers the states pending in that tick as one event
         public void TickEndBroadcastsPendingStatesAsOneEventTest()
         {
@@ -37,8 +37,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             // 2ブロックへ同じtick内に状態を溜める
             // Queue states for two blocks within the same tick
-            changeBlockStateEventPacket.ChangeState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } }), world.GetOriginPosBlock(firstPos)));
-            changeBlockStateEventPacket.ChangeState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } }), world.GetOriginPosBlock(secondPos)));
+            changeBlockStateEventPacket.QueueChangedState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } }), world.GetOriginPosBlock(firstPos)));
+            changeBlockStateEventPacket.QueueChangedState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } }), world.GetOriginPosBlock(secondPos)));
             Assert.AreEqual(0, sink.Events.Count(e => e.Tag == ChangeBlockStateEventPacket.EventTag), "tick末尾まで送られないべき");
 
             GameUpdater.UpdateOneTick();
@@ -81,7 +81,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             changeBlockStateEventPacket.BroadcastPendingStates();
             sink.TakeAll();
 
-            changeBlockStateEventPacket.ChangeState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } }), world.GetOriginPosBlock(pos)));
+            changeBlockStateEventPacket.QueueChangedState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } }), world.GetOriginPosBlock(pos)));
             world.RemoveBlock(pos, BlockRemoveReason.ManualRemove);
             changeBlockStateEventPacket.BroadcastPendingStates();
 

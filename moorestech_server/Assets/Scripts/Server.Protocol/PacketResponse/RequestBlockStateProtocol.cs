@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
-    // ブロックのステートをリクエストする。返答は直接返さず、そのtick末尾のブロック状態の束に載せて返す
+    // 状態を要求。返答はtick末尾の束に載せる
     // Requests a block's state; the reply is not returned directly but rides on this tick's block-state bundle
     public class RequestBlockStateProtocol : IPacketResponse
     {
@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
             
             // 初期pullのため差分スキップ禁止で発行
             // Fire without diff-skip for the initial pull
-            _changeBlockStateEventPacket.ForceChangeState((blockState, blockData));
+            _changeBlockStateEventPacket.QueueStateForInitialPull((blockState, blockData));
             
             return null;
         }

@@ -1,4 +1,4 @@
-// フックを外し、毎秒のイベント件数・payloadバイト数・ブロック状態の件数をJSONで返す
+// フックを外し集計をJSON返却
 using System;
 using System.Linq;
 using System.Collections.Generic;

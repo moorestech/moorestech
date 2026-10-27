@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Block
         public BlockInstanceId BlockInstanceId { get; private set; }
         public BlockMasterElement BlockMasterElement { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
-        public List<IBlockStateChangeProcessor> BlockStateChangeProcessors { get; private set; }
+        public List<IBlockStateChangeProcessor> BlockStateChangeProcessors { get; private set; } = new();
         // 最近傍索引の墓標。撤去済みのブロックを木の組み直し無しに候補から外す
         // Tombstone for the nearest index; a removed block leaves the candidates without rebuilding the tree
         public bool IsSearchable { get; private set; } = true;
@@ -34,7 +34,7 @@ namespace Client.Game.InGame.Block
         public BlockInteractable Interactable { get; private set; }
         public IObservable<BlockGameObject> OnFinishedPlaceAnimation => _onFinishedPlaceAnimation;
         private readonly Subject<BlockGameObject> _onFinishedPlaceAnimation = new();
-        // サーバーから状態が届いた直後に発火する。WebUIの再配信などが購読する
+        // 状態受信直後に発火（WebUIが購読）
         // Fires right after a state arrives from the server; WebUI republishing subscribes to it
         public IObservable<BlockStateMessagePack> OnBlockStateChanged => _onBlockStateChanged;
         private readonly Subject<BlockStateMessagePack> _onBlockStateChanged = new();
@@ -88,7 +88,7 @@ namespace Client.Game.InGame.Block
             // Turn off preview-only object
             _previewOnlyObjectsView = new BlockPreviewOnlyObjectsView(BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false));
             
-            // ブロックの初期状態をサーバーに問い合わせる。返事はtick末尾の束でBlockStateEventHandlerから届く
+            // 初期状態を要求。返答はtick末尾の束で届く
             // Ask the server for the initial block state; the reply arrives via BlockStateEventHandler in the tick-end bundle
             RequestInitialBlockState();
             // バウンディングボックス用オブジェクトを作成
@@ -146,7 +146,7 @@ namespace Client.Game.InGame.Block
         }
         // 届いた状態を全プロセッサへ渡す。1プロセッサの例外で他のプロセッサや他のブロックの反映を止めない
         // Passes an arrived state to every processor; one processor's exception never stops the others or other blocks
-        public void ApplyBlockState(BlockStateMessagePack state)
+        internal void ApplyBlockState(BlockStateMessagePack state)
         {
             foreach (var processor in BlockStateChangeProcessors)
             {

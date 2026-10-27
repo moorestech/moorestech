@@ -17,7 +17,7 @@ wrap.Subscribe(e => {
   var tag = e.Tag; var paren = tag.IndexOf(":(");
   var kind = paren < 0 ? tag : tag.Substring(0, paren);
   if (kind == Server.Event.EventReceive.ChangeBlockStateEventPacket.EventTag) {
-    // 束の中の各件を、状態キーの組み合わせ別に数える。組み合わせは座標ごとに初回だけ求める
+    // キー組合せ別に集計（座標ごと初回のみ算出）
     var bundle = MessagePack.MessagePackSerializer.Deserialize<Server.Event.EventReceive.BlockStatesTickBundleMessagePack>(e.Payload);
     foreach (var m in bundle.States) {
       var key = m.Position.ToString();

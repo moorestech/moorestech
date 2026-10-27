@@ -8,7 +8,7 @@ using VContainer.Unity;
 namespace Client.Game.InGame.World
 {
     /// <summary>
-    ///     tick末尾に届くブロック状態の束を1回だけ読み、座標でブロックへ振り分ける（ADR 0088）
+    ///     tick末尾の状態の束を座標でブロックへ振り分ける
     ///     Reads the tick-end block-state bundle once and routes each entry to its block by position (ADR 0088)
     /// </summary>
     public class BlockStateEventHandler : IInitializable
@@ -35,7 +35,7 @@ namespace Client.Game.InGame.World
 
             foreach (var state in bundle.States)
             {
-                // 撤去直後などで座標にブロックが無い件は読み飛ばす
+                // 座標にブロックが無い件は読み飛ばす
                 // Skip entries whose position has no block, e.g. right after removal
                 Vector3Int position = state.Position;
                 if (!_blockGameObjectDataStore.TryGetBlockGameObject(position, out var block))
