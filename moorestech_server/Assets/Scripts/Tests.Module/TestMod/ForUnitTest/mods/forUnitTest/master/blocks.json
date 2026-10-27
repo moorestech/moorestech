@@ -7844,7 +7844,9 @@
       "placementsPerCost": 1,
       "blockParam": {
         "carriedPayloadItemGuids": [
-          "5e1ea7a0-0002-4000-8000-000000000002"
+          "5e1ea7a0-0002-4000-8000-000000000002",
+          "00000000-0000-0000-c0de-000000000061",
+          "00000000-0000-0000-c0de-000000000062"
         ],
         "cableItemGuid": "5e1ea7a0-0002-4000-8000-000000000001",
         "cablesPerElevator": 100,

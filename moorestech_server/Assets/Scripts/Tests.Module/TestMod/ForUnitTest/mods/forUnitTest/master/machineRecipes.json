@@ -567,6 +567,80 @@
       "outputFluids": [],
       "machineRecipeGuid": "aadd680b-334c-4294-a6d7-37ea2f8a7527",
       "levelInheritance": "Inherit"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "00000000-0000-0000-c0de-000000000041"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000051"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0011",
+      "levelInheritance": "InheritUpToUnlocked"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000051"
+        },
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000061"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0012",
+      "levelInheritance": "None"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000052"
+        },
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000062"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0013",
+      "levelInheritance": "None"
     }
   ]
 }
