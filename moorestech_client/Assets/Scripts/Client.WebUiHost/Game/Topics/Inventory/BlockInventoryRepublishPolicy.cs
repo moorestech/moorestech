@@ -14,8 +14,8 @@ namespace Client.WebUiHost.Game.Topics.Inventory
         // The adapter owns the policy
         public bool SampleContinuously { get; private set; }
         public bool RepublishOnBeltWindow { get; private set; }
-        // 連続値と同間隔で変化回だけ出し直す
-        // Sample at the continuous interval, republish on change only
+        // パイプの中身はブロック状態イベントで届かずクライアント側のコピーが毎tick進めるので、連続値と同じ間隔で見て、量か流体の種類が前回の配信から変わった回だけ出し直す
+        // Pipe contents no longer arrive as block state events but advance in the client-side copy every tick, so they are sampled at the continuous-sample interval and republished only when the amount or fluid id changed since the last publish
         // 基準は最初のDTO作成時の値
         // Baseline is the value at first DTO build
         private BlockGameObject _trackedBlock;

@@ -119,10 +119,8 @@ namespace Client.WebUiHost.Game.Topics
             // 開いているブロックの解決はtrackerが遷移・スロット更新・設置/撤去のたびに済ませている。ここは読むだけにする
             // The tracker already resolves the open block on every transition, slot update and place/remove; only read it here
             var block = _tracker.TrackedBlock;
-            if (block == null || _subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource blockSource)
-            {
-                return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
-            }
+            var blockSource = _tracker.TrackedSource;
+            if (block == null) return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             _republishPolicy.CapturePipeBaselineIfPending(block);
             var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache, _fluidCache);
             return WebUiJson.Serialize(dto);

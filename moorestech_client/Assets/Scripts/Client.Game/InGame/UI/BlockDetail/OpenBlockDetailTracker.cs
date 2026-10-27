@@ -27,6 +27,9 @@ namespace Client.Game.InGame.UI.BlockDetail
         private IDisposable _blockStateSubscription;
 
         public BlockGameObject TrackedBlock { get; private set; }
+        // 追跡中ブロックを開いた発生元。追跡なしは null
+        // The source that opened the tracked block; null when nothing is tracked
+        public BlockSubInventorySource TrackedSource { get; private set; }
         public IObservable<BlockGameObject> OnTrackedBlockChanged => _onTrackedBlockChanged;
         public IObservable<Unit> OnTrackedBlockStateChanged => _onTrackedBlockStateChanged;
 
@@ -58,17 +61,18 @@ namespace Client.Game.InGame.UI.BlockDetail
             var open = _uiStateControl.CurrentState == UIStateEnum.SubInventory && _subInventoryState.CurrentSubInventory != null;
             if (open && _subInventoryState.CurrentSubInventorySource is BlockSubInventorySource blockSource && _blockGameObjectDataStore.TryGetBlockGameObject(blockSource.BlockPosition, out var block))
             {
-                Track(block);
+                Track(block, blockSource);
                 return;
             }
-            Track(null);
+            Track(null, null);
 
             #region Internal
 
             // 追跡切替で購読と取得を張替
             // Re-wire subscription and fetches on switch
-            void Track(BlockGameObject block)
+            void Track(BlockGameObject block, BlockSubInventorySource source)
             {
+                TrackedSource = source;
                 if (ReferenceEquals(TrackedBlock, block)) return; // silent-ok: 同じ追跡先は購読を維持する / 既存の通知が描画側へ届く
                 // 前ブロックの購読解除
                 // Unsubscribe the previous block
