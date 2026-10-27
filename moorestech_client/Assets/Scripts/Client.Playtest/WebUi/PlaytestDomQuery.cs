@@ -42,21 +42,9 @@ namespace Client.Playtest.WebUi
             ResultHandler = new DomQueryResultActionHandler(_channel);
         }
 
-        public async UniTask<WebUiChannelResponse<DomQueryResult>> Query(WebSocketHub hub, string testid, float timeoutSeconds)
+        public UniTask<WebUiChannelResponse<DomQueryResult>> Query(WebSocketHub hub, string testid, float timeoutSeconds)
         {
-            if (!WebUiCefConnection.TryGetConnection(hub, out var connectionId))
-            {
-                Debug.LogWarning("[PlaytestUi] No registered CEF connection");
-                return new WebUiChannelResponse<DomQueryResult>(WebUiResponseState.Stopped, null, "No registered CEF connection");
-            }
-            if (!(0f < timeoutSeconds)) throw new TimeoutException("UI request deadline expired before delivery");
-            var requestId = _channel.Open(connectionId, hub);
-            if (!hub.PublishTo(connectionId, QueryTopic, WebUiJson.Serialize(new DomQueryRequest { RequestId = requestId, Testid = testid })))
-            {
-                _channel.Stop(requestId);
-                return new WebUiChannelResponse<DomQueryResult>(WebUiResponseState.Stopped, null, "CEF disconnected or not subscribed");
-            }
-            return await _channel.Await(requestId, timeoutSeconds);
+            return _channel.Send(hub, QueryTopic, new DomQueryRequest { Testid = testid }, timeoutSeconds);
         }
 
         public void Reset()
@@ -75,7 +63,6 @@ namespace Client.Playtest.WebUi
 
         private class DomQueryRequest
         {
-            public string RequestId;
             public string Testid;
         }
     }

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Cef;
+using Client.WebUiHost.Common;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Client.Playtest.WebUi
@@ -29,6 +32,27 @@ namespace Client.Playtest.WebUi
     internal class PlaytestWebUiRequestChannel<TResult> where TResult : class
     {
         private readonly Dictionary<string, PendingRequest> _pending = new();
+
+        // 登録済みCEF接続へ要求を送り、終端状態まで待つ。本文には要求IDを足して送る
+        // Send a request to the registered CEF connection and await its terminal state; the body gains the request id
+        public async UniTask<WebUiChannelResponse<TResult>> Send(WebSocketHub hub, string topic, object requestBody, float timeoutSeconds)
+        {
+            if (!WebUiCefConnection.TryGetConnection(hub, out var connectionId))
+            {
+                Debug.LogWarning("[PlaytestUi] No registered CEF connection");
+                return new WebUiChannelResponse<TResult>(WebUiResponseState.Stopped, null, "No registered CEF connection");
+            }
+            if (!(0f < timeoutSeconds)) throw new TimeoutException("UI request deadline expired before delivery");
+            var requestId = Open(connectionId, hub);
+            var payload = JObject.Parse(WebUiJson.Serialize(requestBody));
+            payload["requestId"] = requestId;
+            if (!hub.PublishTo(connectionId, topic, payload.ToString(Formatting.None)))
+            {
+                Stop(requestId);
+                return new WebUiChannelResponse<TResult>(WebUiResponseState.Stopped, null, "CEF disconnected or not subscribed");
+            }
+            return await Await(requestId, timeoutSeconds);
+        }
 
         public string Open(Guid connectionId, WebSocketHub hub)
         {

@@ -31,21 +31,9 @@ namespace Client.Playtest.WebUi
             ResultHandler = new DomSetTextResultActionHandler(_channel);
         }
 
-        public async UniTask<WebUiChannelResponse<DomSetTextResult>> Request(WebSocketHub hub, string testid, string text, float timeoutSeconds)
+        public UniTask<WebUiChannelResponse<DomSetTextResult>> Request(WebSocketHub hub, string testid, string text, float timeoutSeconds)
         {
-            if (!WebUiCefConnection.TryGetConnection(hub, out var connectionId))
-            {
-                Debug.LogWarning("[PlaytestUi] No registered CEF connection");
-                return new WebUiChannelResponse<DomSetTextResult>(WebUiResponseState.Stopped, null, "No registered CEF connection");
-            }
-            if (!(0f < timeoutSeconds)) throw new TimeoutException("UI request deadline expired before delivery");
-            var requestId = _channel.Open(connectionId, hub);
-            if (!hub.PublishTo(connectionId, SetTextTopic, WebUiJson.Serialize(new DomSetTextRequest { RequestId = requestId, Testid = testid, Text = text })))
-            {
-                _channel.Stop(requestId);
-                return new WebUiChannelResponse<DomSetTextResult>(WebUiResponseState.Stopped, null, "CEF disconnected or not subscribed");
-            }
-            return await _channel.Await(requestId, timeoutSeconds);
+            return _channel.Send(hub, SetTextTopic, new DomSetTextRequest { Testid = testid, Text = text }, timeoutSeconds);
         }
 
         public void Reset()
@@ -55,7 +43,6 @@ namespace Client.Playtest.WebUi
 
         private class DomSetTextRequest
         {
-            public string RequestId;
             public string Testid;
             public string Text;
         }

@@ -54,15 +54,9 @@ namespace Client.Playtest.WebUi
         public async UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
             if (!TryGetRegisteredHub(out var hub)) return UiElementSnapshot.Unavailable(testid);
-            var response = await _domQuery.Query(hub, testid, Mathf.Min(ResponseTimeoutSeconds, remainingSeconds));
-            if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
-            if (!response.HasResponse)
-            {
-                // 応答なしを「見つからない」と区別できるよう理由を残す
-                // Leave the reason so no-answer is distinguishable from not-found
-                Debug.LogWarning($"[PlaytestUi] Web UI gave no lookup answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
-                return UiElementSnapshot.Unavailable(testid);
-            }
+            var budget = ResponseBudget(remainingSeconds);
+            var response = await _domQuery.Query(hub, testid, budget);
+            if (!HasAnswer(response, testid, "lookup", budget)) return UiElementSnapshot.Unavailable(testid);
             if (1 < response.Result.MatchCount) return UiElementSnapshot.Ambiguous(testid);
             if (!response.Result.Found) return UiElementSnapshot.NotFound(testid);
 
@@ -103,14 +97,25 @@ namespace Client.Playtest.WebUi
         public async UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds)
         {
             if (!TryGetRegisteredHub(out var hub)) return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, string.Empty);
-            var response = await _domSetText.Request(hub, testid, text, Mathf.Min(ResponseTimeoutSeconds, remainingSeconds));
-            if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
-            if (!response.HasResponse)
-            {
-                Debug.LogWarning($"[PlaytestUi] Web UI gave no text-input answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
-                return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, string.Empty);
-            }
+            var budget = ResponseBudget(remainingSeconds);
+            var response = await _domSetText.Request(hub, testid, text, budget);
+            if (!HasAnswer(response, testid, "text-input", budget)) return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, string.Empty);
             return new UiSetTextResult(response.Result.Status, response.Result.ActualValue);
+        }
+
+        private static float ResponseBudget(float remainingSeconds)
+        {
+            return Mathf.Min(ResponseTimeoutSeconds, remainingSeconds);
+        }
+
+        // 不正応答は失敗させ、応答なしは「見つからない」と区別できるよう理由を残す
+        // Fail on an invalid response, and log the reason so no-answer is distinguishable from not-found
+        private static bool HasAnswer<TResult>(WebUiChannelResponse<TResult> response, string testid, string operation, float budget) where TResult : class
+        {
+            if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
+            if (response.HasResponse) return true;
+            Debug.LogWarning($"[PlaytestUi] Web UI gave no {operation} answer ({response.State}: {response.Reason}, budget {budget}s): {testid}");
+            return false;
         }
 
         internal static UiElementSnapshot ToSnapshot(string testid, DomQueryResult result, Rect screenRect)
