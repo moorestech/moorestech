@@ -72,7 +72,10 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
     var cost = upgrade.ConsumeItems.Single();
     var computeDataName = MasterHolder.ItemMaster.GetItemMaster(cost.ItemGuid).Name;
     p.Note($"{computeDataName} x{cost.ItemCount} を持ち、研究ツリーで {upgrade.ResearchNodeName} を研究する");
-    await p.GiveItem(computeDataName, cost.ItemCount);
+    // give コマンドは1スタックの上限を超える個数を受け付けないので、上限ずつ分けて渡す
+    // The give command rejects counts above one stack's limit, so hand over one stack at a time
+    var maxStack = Core.Item.ItemStackLevelDataStore.Instance.GetMaxStack(MasterHolder.ItemMaster.GetItemId(cost.ItemGuid));
+    for (var given = 0; given < cost.ItemCount; given += maxStack) await p.GiveItem(computeDataName, Math.Min(maxStack, cost.ItemCount - given));
     await p.Until(() => p.CountItem(computeDataName) == cost.ItemCount, 10f, $"{computeDataName} x{cost.ItemCount} を持った");
     await p.PressKey(Key.R);
     await p.WaitUiState(UIStateEnum.ResearchTree, 10f);
