@@ -36,9 +36,10 @@ namespace Client.Tests.Starter
             // EditMode never calls Start, so perform the same boot it does on creation
             typeof(ServerStarter).GetMethod("Start", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(starter, null);
 
-            // 書き出し待ちに入った直後にPlay停止と同じ即時破棄を起こす
-            // Right after the flush wait begins, destroy immediately as a play stop does
+            // 書き出し待ちに入った直後にPlay停止と同じ順で畳む。EditModeのDestroyImmediateはOnDestroyを呼ばないので、Unityが呼ぶ分をここで呼んでから破棄する
+            // Right after the flush wait begins, fold in the play-stop order; EditMode's DestroyImmediate skips OnDestroy, so call what Unity would call before destroying
             var shutdown = starter.ShutdownAsync();
+            typeof(ServerStarter).GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(starter, null);
             Object.DestroyImmediate(gameObject);
 
             for (var frame = 0; frame < 600 && shutdown.Status == UniTaskStatus.Pending; frame++) yield return null;

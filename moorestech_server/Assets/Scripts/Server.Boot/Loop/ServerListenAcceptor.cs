@@ -57,7 +57,7 @@ namespace Server.Boot.Loop
                 EnableKeepAlive(client);
 
                 // 送信・受信キュープロセッサを作成
-                var sendQueueProcessor = new SendQueueProcessor(client);
+                var sendQueueProcessor = new SendQueueProcessor(client, token, shutdownNotice);
                 var packetResponseContext = new PacketResponseContext(sendQueueProcessor);
                 var receiveQueueProcessor = new ReceiveQueueProcessor(
                     packetResponseCreator, sendQueueProcessor, packetResponseContext, tickEndPacketQueue, receivedPacketLog);

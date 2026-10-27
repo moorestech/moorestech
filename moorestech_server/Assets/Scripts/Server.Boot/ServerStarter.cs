@@ -13,6 +13,10 @@ namespace Server.Boot
         private ServerInstanceManager _startServer;
         private string[] _args = Array.Empty<string>();
 
+        // Unityの破棄経路（OnApplicationQuit・OnDestroy）がサーバーを畳み終えたか。Play停止や強制終了ではShutdownAsyncの待ちより先に来る
+        // Whether Unity's teardown (OnApplicationQuit/OnDestroy) already folded the server; on a play stop or forced quit it arrives before ShutdownAsync's wait ends
+        private bool _serverFinished;
+
         // サーバーが実際にバインドしたポート。起動完了まで0
         // The port the server actually bound; 0 until startup completes
         public int BoundPort => _startServer?.BoundPort ?? 0;
@@ -32,16 +36,22 @@ namespace Server.Boot
         // The single shutdown contract that flushes pending saves before folding; every teardown goes through here
         public async UniTask<ServerSaveFlushResult> ShutdownAsync()
         {
-            // 終了時点の世界を必ず1回書き出させる。通信経由のSaveと違い到達待ちが要らない
-            // Force one final write of the world; unlike the networked Save it needs no arrival wait
-            _startServer?.RequestSave();
+            // 終了時点の世界を必ず1回書き出させる。通信経由のSaveと違い到達待ちが要らない。畳み終えたサーバーには要求しない（取り込む者がおらず永久に保留になる）
+            // Force one final write of the world; unlike the networked Save it needs no arrival wait. A folded server is not asked, since nobody would capture it and it would stay pending forever
+            if (!_serverFinished) _startServer?.RequestSave();
 
-            for (var frame = 0; frame < SaveFlushWaitFrameLimit && _startServer != null && _startServer.HasPendingSave; frame++)
+            // 破棄経路が先に畳んだら、その中で保存を消化し終えているので待ちを打ち切る
+            // If the teardown folded the server first, it already drained the save, so stop waiting
+            for (var frame = 0; frame < SaveFlushWaitFrameLimit && !_serverFinished && _startServer != null && _startServer.HasPendingSave; frame++)
             {
                 await UniTask.Yield(PlayerLoopTiming.Update);
             }
 
             var flushResult = ResolveFlushResult();
+
+            // 破棄経路が先に来たときは自分のGameObjectはもう無い。受付の停止も破棄もそちらで済んでいる
+            // When the teardown came first this GameObject is already gone; admission and destruction were both handled there
+            if (_serverFinished) return flushResult;
 
             // 終了完了を返す前に受付を閉じ、遅延破棄までの実行を防ぐ
             // Close admission before reporting shutdown, ahead of deferred destruction
@@ -88,6 +98,10 @@ namespace Server.Boot
         
         private void FinishServer()
         {
+            // OnApplicationQuitとOnDestroyの両方から来るので、2回目は畳まない
+            // Both OnApplicationQuit and OnDestroy arrive here, so the second one does not fold again
+            if (_serverFinished) return;
+            _serverFinished = true;
             Debug.Log("サーバーを終了します");
             _startServer?.Dispose();
             Debug.Log("サーバーを終了しました");

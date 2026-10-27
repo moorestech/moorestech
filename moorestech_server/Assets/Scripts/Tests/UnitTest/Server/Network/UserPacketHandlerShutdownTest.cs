@@ -27,7 +27,7 @@ namespace Tests.UnitTest.Server.Network
             using var cancellation = new CancellationTokenSource();
             using var shutdownNotice = new CancellationTokenSource();
             using var entered = new ManualResetEventSlim();
-            var sender = new SendQueueProcessor(accepted);
+            var sender = new SendQueueProcessor(accepted, cancellation.Token, shutdownNotice.Token);
             var queue = new TickEndPacketQueue();
             var context = new PacketResponseContext(sender);
             var receiver = new ReceiveQueueProcessor(null, sender, context, queue, null);

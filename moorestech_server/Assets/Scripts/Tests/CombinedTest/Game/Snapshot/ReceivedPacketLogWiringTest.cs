@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using Core.Update;
 using Game.Context;
 using Game.Map.Interface.Json;
@@ -40,7 +41,7 @@ namespace Tests.CombinedTest.Game.Snapshot
             using var listener = CreateBoundLoopbackListener();
             using var clientSocket = ConnectTo(listener);
             using var acceptedSocket = listener.Accept();
-            var sender = new SendQueueProcessor(acceptedSocket);
+            var sender = new SendQueueProcessor(acceptedSocket, CancellationToken.None, CancellationToken.None);
 
             try
             {
@@ -83,7 +84,7 @@ namespace Tests.CombinedTest.Game.Snapshot
             using var listener = CreateBoundLoopbackListener();
             using var clientSocket = ConnectTo(listener);
             using var acceptedSocket = listener.Accept();
-            var sendQueueProcessor = new SendQueueProcessor(acceptedSocket);
+            var sendQueueProcessor = new SendQueueProcessor(acceptedSocket, CancellationToken.None, CancellationToken.None);
 
             try
             {

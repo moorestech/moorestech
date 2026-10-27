@@ -22,9 +22,16 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly Thread _sendThread;
         private readonly CancellationTokenSource _cancellationTokenSource = new();
 
-        public SendQueueProcessor(Socket client)
+        // サーバー停止とUnity停止の意思。受信側と同じく、終了中に相手が先に消えた送信失敗を内部エラーと区別するために持つ
+        // Server-stop and Unity-exit intents; like the receive side, they tell a send failure from a peer that vanished during shutdown apart from an internal error
+        private readonly CancellationToken _serverCancellation;
+        private readonly CancellationToken _shutdownNotice;
+
+        public SendQueueProcessor(Socket client, CancellationToken serverCancellation, CancellationToken shutdownNotice)
         {
             _client = client;
+            _serverCancellation = serverCancellation;
+            _shutdownNotice = shutdownNotice;
 
             // 送信スレッドを起動
             _sendThread = new Thread(SendThreadLoop);
@@ -67,6 +74,13 @@ namespace Server.Boot.Loop.PacketProcessing
                     var dataToSend = _sendQueue.Take(token);
                     SendAll(dataToSend);
                 }
+            }
+            // 終了中に相手が先に切れた送信失敗は想定内。受信側（UserPacketHandler）と同じ条件で分類し、終了意思の無い失敗は従来どおりErrorに残す
+            // A send failing because the peer left during shutdown is expected; classify it on the receive side's (UserPacketHandler) condition and keep failures without shutdown intent as errors
+            catch (SocketException exception) when (!_cancellationTokenSource.IsCancellationRequested && (_serverCancellation.IsCancellationRequested || _shutdownNotice.IsCancellationRequested))
+            {
+                Debug.Log($"サーバー終了中のSocket送信を終了しました: {exception.SocketErrorCode}");
+                ShutdownForReceive();
             }
             catch (Exception e)
             {
