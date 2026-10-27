@@ -2561,3 +2561,6 @@ planning 中の判断:
 | D18 | 実行寿命 | A: Sessionの世代をSetText開始時に捕捉、await後/再送前検査 | 全層CancellationToken | Stop→Startで旧操作が次実行へ再送しない。D12を更新、送信済み副作用の巻戻しは含まない | agent既定（ユーザー未裁定） |
 | D19 | 重複testid | A: Find/SetTextともAmbiguous、DOM setter前に拒否 | 可視候補が1件なら採用 | 誤欄を書換えてから失敗する経路をなくす。D3/D11を更新、旧新比較差を記録 | agent既定（ユーザー未裁定） |
 | D20 | CEF接続相関 | A: LoadUrl識別値→WS接続登録、PublishTo単送、pendingと実応答元を照合 | 排他購読lease | 外部ブラウザだけの成功や複数ページ書込を防ぐ。Host配送は汎用、CEF登録はCef層。broadcast前提/他レーン境界を更新 | agent既定（ユーザー未裁定） |
+| D21 | stage0取込の.meta衝突 | Boot/Transport の folder.meta と WebSocketReceiveLoop.cs.meta は統合ブランチ側のguidを採用 | F側guidを採用 | 同一内容の.csを両レーンが独立に抽出しguidだけ違った。統合ブランチ側は既に他レーンへ取り込まれているため | agent既定（ユーザー未裁定） |
+| D22 | 置換シナリオの名前付き差し込み追随 | F形（probe分離・FindUi）を正とし、所持1/必要3を probe.HasTextParam(ownedCount/requiredCount) で照合 | stage0形へ戻す | 指示「FのDSLの形を正とし第2波の追随を載せ直す」に従う。Snapshotもname=value表記へ | agent既定（ユーザー未裁定） |
+| D23 | 統合後NUnitの停止テスト競合 | テストの停止待ちを内部停止タスクの同期待ちへ（フレームを譲らない）。製品の停止スレッドは変えない | 製品の停止ログをメインスレッドへ戻す | 失敗はUnityTestのLogScope毎フレーム列挙とスレッドプールのLogErrorの競合で、製品の挙動ではない | agent既定（ユーザー未裁定） |
