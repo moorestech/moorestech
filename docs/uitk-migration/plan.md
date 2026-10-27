@@ -136,7 +136,7 @@
 | 遠隔実行の載せ替えで、検証機の運用（以降の全段階の検証路）が止まる | 旧経路と新経路の切替を 1 PR にまとめ、検証機で通してから master へ入れる |
 | DSL の改名でシナリオが壊れる | 機械的な置換に限る。照会 API への置き換えは 1 本ずつ合否を突き合わせる |
 
-**規模と並列（推測）**: 同時に走らせるのは Editor 要 2 本＋Editor 不要 2 本（§3.13 の勘定）。Editor の要る作業は 3 レーン（遠隔実行／状態の移設と 0-5／DSL）と実測 1 本（S1・S2・S3・S15 を順に）で、0-6 と 0-12 は先に空いたレーンが持つ。Editor の要らない作業は OneJS・台帳・追従ゲート・参照キャプチャの Web 側。S9（IME）は人手（§4.9）。
+**規模と並列（推測）**: 同時に走らせるのは Editor 要 2 本＋Editor 不要 2 本（§3.13 の勘定）。Editor の要る作業は 3 レーン（遠隔実行／状態の移設と 0-5／DSL）と実測 1 本（S1・S2・S3・S15 を順に）で、0-6 と 0-12 は先に空いたレーンが持つ。Editor の要らない作業は OneJS・台帳・追従ゲート・参照キャプチャの Web 側。S9（IME）は Editor 不要の自動操作（§4.9）。
 
 ### 2.2 段階 1 基盤と命綱
 
@@ -173,10 +173,10 @@
 - 切替 PR の 1 周期後の削除 PR で、Web の `features/pauseMenu`・`features/settings`・テスト・`App.tsx` のマウントを消す
 
 **完了条件**
-- 共通条件（§2.0）を満たす。ラダー 1 `uitk-lifeline`（§4.4）が緑。本文は SetText で入れ、IME は §4.9 の人手で確かめる
+- 共通条件（§2.0）を満たす。ラダー 1 `uitk-lifeline`（§4.4）が緑。本文は SetText で入れ、IME は §4.9 の合成キーで確かめる
 - 報告バンドルの manifest に、CEF の生の値 3 つ（§3.11）が入っている。最後の WS 受信から閾値を超えたとき、入力排他の Web 側の値が無視される（L0）
 - ポーズ系の状態で、CEF の RawImage が非表示で、CEF へ入力が転送されず、Web が action を発行しない（action ログが 0 件）。ポーズを閉じた直後に、ポーズ前の Web の pointerOverUi・textInputFocused が効かない（L0）
-- IME の手動確認（Windows と Mac）の記録がある。バグ報告の本文（複数行）で、変換・確定・取消と、変換中の ESC で画面が閉じないことを見る
+- IME の確認（Windows と Mac。§4.9 の合成キー）の記録がある。バグ報告の本文（複数行）で、変換・確定・取消と、変換中の ESC で画面が閉じないこと、S9 で見つかった要件（§4.9）を満たすことを見る
 - 入れ子ポーズの 2 経路（スキット中・列車中）の録画がある。最初の L1 テストが既存 CI で通る（S13）
 
 **出荷**: テスターから見える変化は、ポーズ画面の見た目（半透明の濃さ・字の太さ・ボタンの様式）と、ポーズ中に Web の HUD（ホットバー・装備 HUD・列車 HUD）とスキットの表示が消えること。パッチノートに書く（§2.0）。
@@ -288,7 +288,7 @@
 切替後の流れ: staging → 検証機・Mac → playtest。1 周期後に削除 PR を出す（R3）。
 
 **完了条件**
-- 共通条件（§2.0）を満たす。ラダー `uitk-production-loop` と `uitk-research-train`（§4.4）が緑。駅名は SetText で入れ、IME は §4.9 の人手
+- 共通条件（§2.0）を満たす。ラダー `uitk-production-loop` と `uitk-research-train`（§4.4）が緑。駅名は SetText で入れ、IME は §4.9 の合成キー
 - 移すテスト（§4.1。tests §2）: インベントリ・装備（P 20・C 16・L 57）、レシピ（P 18・C 10・L 19）、ブロック UI（P 42・C 27・L 45）、列車（P 6・C 6・L 14）、研究（P 18・C 21・L 37）
 - 機械 UI を開いたまま中身が更新される録画を、UITK で通す（`.decisions/2026-10-18-液体UIは開いたままRefresh更新をunityプレイ録画テストで検証する.md`）
 - マスタのアンカー（`recipe.craft-button` と研究ノード 7 件）が実ゲームで解決する
@@ -445,9 +445,9 @@
 | ポインタ | `UiPointerHitTest.IsPointerOverAnyUi` を次の形にする。ロック中は false。そうでなければ「UITK の Pick が層コンテナ以外を返す」か「Web の pointerOverUi（共存中で、Web が全面オフでないときだけ）」か「EventSystem（デバッグ用の uGUI）」 | input §3.3 の案 A。呼び出し側の 23 ファイル・28 か所は変えない（実測）。EventSystem 判定は ADR 0052 の agent 前提 1 |
 | ホイール | ホイールを通す印を USS のクラス（`wheel-passthrough`）にし、Pick の結果の祖先で判定する | 装備の循環は段階 4 で C# の 1 か所へ移す（UI の上なら止める、印のある HUD の上は通す、建築ツールが占有中なら止める、1 枠以下なら何もしない） |
 | 文字入力 | ルートで `FocusInEvent`・`FocusOutEvent` を TrickleDown で受ける。フォーカス中の要素が TextField かを、`UiInputExclusivity` の ReactiveProperty へ同期で書く | 同じスレッド・同じフレームで書くので、lock も `ObserveOnMainThread` も要らない。`.decisions/2026-10-01-文字入力欄にフォーカス中は移動を止めたままにする.md` をテストで守る |
-| ESC | 「このフレームの ESC は UI が使った」というラッチを、`InputKey` の抑止判定に足す。入力欄での ESC はフォーカスを外すだけにする | 今は WS の遅れで偶然防げているだけ（`docs/webui/design/input-focus-exclusivity.md`） |
+| ESC | 「このフレームの ESC は UI が使った」というラッチを、`InputKey` の抑止判定に足す。入力欄での ESC はフォーカスを外すだけにする。UITK の TextField の既定の ESC 処理（値をフォーカス時の値へ戻し、同じフレームで再フォーカスする。S9）も止める | 今は WS の遅れで偶然防げているだけ（`docs/webui/design/input-focus-exclusivity.md`） |
 | キー処理の置き場 | 画面のキー処理（ESC・←→・Enter でのクラフトとスキット送り）は、C# の UIState か画面の Presenter に集める | Web の document 全域のキー処理は削除 PR で消す（host §7.3） |
-| IME | CEF が常時 `imeCompositionMode=On` にしている。共存中にこれが UITK の TextField と取り合うかは S9 で確かめる | input §1。CEF が消えればゲーム中の常時 ON も消える |
+| IME | CEF は初期化時に 1 回だけ `imeCompositionMode=On` にする。UITK の TextField はフォーカスで On、外れると Auto にするため、一度使うと Web の入力欄で日本語が打てなくなり、未フォーカスのワールドでも IME が効く（S9）。モードは入力排他と同じ 1 か所で決め、UITK か Web の入力欄にフォーカスがあるときだけ On にする | input §1・S9。CEF が消えれば Web 側の条件も消える |
 | ゲームパッド | UI のパッド操作は作らない | ADR 0082（sprint-toggle）の 7 項で「ゲームパッドは正式対応外」 |
 | `activeInputHandler` | Both（2）のまま。InputSystem だけにするかは、完了の後に別に判断する | IME の実装次第（推測） |
 
@@ -584,7 +584,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 | 4 | `uitk-research-train` | 研究を 1 つ完了 → 駅名を日本語で付ける（駅名は SetText）→ 時刻表を組んで自動運転を入れる |
 | 5 | `uitk-challenge-gate` | チャレンジ一覧を開く → 出展モードの言語ゲートを通る |
 
-本文と駅名は SetText で入れ、IME は §4.9 の人手で確かめる。
+本文と駅名は SetText で入れ、IME は §4.9 の合成キーで確かめる。
 
 ### 4.5 アンカーの付け替え
 
@@ -613,14 +613,14 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 
 ### 4.8 実測（段階 0）
 
-段階 0 で行うのは、段階 1 の前提になる 5 本。1 本 1 日で打ち切り、証拠付きで台帳に書く。PR #1558 の報告では S1・S2・S3 が合格、S15 が不可（下の表）。S9 は人手の確認待ち（bd `moorestech-albof.8`）。
+段階 0 で行うのは、段階 1 の前提になる 5 本。1 本 1 日で打ち切り、証拠付きで台帳に書く。PR #1558 の報告では S1・S2・S3 が合格、S15 が不可（下の表）。S9 は 2026-10-28 に OS 段の合成キーで確かめ、成立した（下の表。bd `moorestech-albof.8`）。
 
 | # | 確かめること | 不可だったときの手 |
 |---|---|---|
 | S1 | UITK パネルと CEF の Canvas の前後を、PanelSettings の sortingOrder で決められるか（CEF の Canvas は Overlay・sortingOrder 0。実測）。背面パネルを足せるか | CEF の Canvas の sortingOrder を動かす。それでも駄目なら、委譲中に Web を空にする範囲を広げる |
 | S2 | Unity Recorder（`PlaytestRecorder.cs:33` の GameViewInputSettings）、`PlaytestScreenshot`、バグ報告の `ScreenFrameReader`（`CaptureScreenshotIntoRenderTexture`）に、UITK が写るか | 撮影経路を ScreenCapture の連番へ直すまで、段階 1 に入らない（**赤信号**。§6） |
 | S3 | `QueueStateEvent` で注入した入力が、`InputSystemUIInputModule` を経て UITK に届くか。パネル座標と画面座標の往復。`IsPointerOverGameObject` が UITK を拾うか | 入力資産・EventSystem・注入経路を直す。UITK のイベントの直接合成は L1 に限り、L4 の代わりにしない（L4 は実際の入力経路を確かめる層のため） |
-| S9 | **日本語 IME**（Windows 検証機の配布ビルドと Mac）。単行・複数行で、変換・確定・取消・ESC を試す。フォーカスを往復した後に入力が戻るか。CEF を起動した状態と、CEF を初期化しない状態の 2 条件で同じ手順を行う。後者は S9 用の PoC ビルドを、CEF の起動を外してもう 1 本焼く（使い捨て。Editor 限定スイッチは配布ビルドで効かず、配布物に切替フラグも入れないため）。CEF の常時 `imeCompositionMode=On` が結果を変えるため | **赤信号**（§6） |
+| S9 | **日本語 IME**（Windows 検証機の配布ビルドと Mac）。単行・複数行で、変換・確定・取消・ESC を試す。フォーカスを往復した後に入力が戻るか。CEF を起動した状態と、CEF を初期化しない状態の 2 条件で同じ手順を行う。後者は S9 用の PoC ビルドを、CEF の起動を外してもう 1 本焼く（使い捨て。Editor 限定スイッチは配布ビルドで効かず、配布物に切替フラグも入れないため）。CEF の常時 `imeCompositionMode=On` が結果を変えるため。**成立**（2026-10-28。Mac mini と Windows 検証機で OS 段の合成キー）: 両条件・単行と複数行で、変換・確定・変換中の取消・フォーカス往復が通った。確定後の ESC・CEF との IME モードの取り合い・候補窓の位置などは段階 1 の要件にした（§4.9）。証拠 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-10-28-uitk-s9-ime-result/ | **赤信号**（§6）。当たらなかった |
 | S15 | 委譲中の Web を `pointer-events: none` にしたとき、CEF 経由の pointerOverUi が false になり、Web が action を出さないか。**不可**: action は止まったが、pointerOverUi が true のまま固まった（PR #1558） | 委譲中の状態では、Web の HUD も描かない（ポーズ中に HUD が消える）。2026-10-26 の裁定で、UITK が主パネルかモーダルを出しているあいだは Web を全面的にオフにする（R1） |
 
 - S13（UI Test Framework が CI の batchmode で動くか）は、段階 1 の最初の L1 テスト（本番テーマの要素で schedule と transition を進める）を既存 CI に載せて確かめる。動かなければ §6 の 3
@@ -628,10 +628,12 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 
 ### 4.9 IME と実機
 
-- IME は自動操作では確かめられない。人が Mac と Windows 検証機の配布ビルドで確かめる。回数は 3 回に絞る
-  - 段階 0: S9（2 条件）。オーナーの週次の反映作業と同じ日に置き、PoC ビルドはその日の反映の後に staging へ上げる
-  - 段階 1: バグ報告（本番で最初の入力欄。複数行）
+- IME は OS 段の合成キーで自動に確かめられる（S9 で実証）。InputSystem への注入（`QueueStateEvent`）は OS の IME を通らないので使えない。Mac は cua-driver の press_key か osascript の key code（入力ソースの切替は key code 104／102）、Windows は `SendInput` の仮想キーコード＋スキャンコード（`KEYEVENTF_UNICODE` は IME を通らない。対話セッションの scheduled task から送る）。手順と道具は S9 の報告（bd `moorestech-albof.8`）。確かめるのは配布ビルドで 3 回
+  - 段階 0: S9（2 条件）。2026-10-28 に済んだ
+  - 段階 1: バグ報告（本番で最初の入力欄。複数行）。S9 で見つかった次の要件を満たすことも見る（bd `moorestech-albof.12`）: 確定後の ESC で値を戻さずフォーカスだけ外す、IME のモードを入力排他と同じ 1 か所で決める（§3.8）、候補窓をキャレットの位置に出す（Mac は上下反転、Windows はキャレット座標の約 1.5 倍に出ていた）、変換中の文字に下線を付ける、クリックで全選択しない
   - 段階 5: 撤去の後、CEF を含まない配布ビルドで入力欄を一巡する
+- 人が見るのは、実キーボードで打ったときの体感（遅れ・候補窓のちらつき）と、全画面・他の解像度での候補窓の位置だけ。段階 1 と段階 5 の目視（§7.4）に含める
+- 変換中の文字列も値として ChangeEvent に乗る（S9）。値を購読する側（文字数の検証・即時の絞り込み）は、未確定の文字列でも壊れないように作る
 - 段階 3・4 の入力欄（検索・BP 名・駅名）は同じ TextField 部品を使うので、部品を変えない限り L1 と録画で済ませる。部品を変えたら、その段で 1 回足す
 - 実機で見る項目: UI スケールと DPI、Steam オーバーレイ、言語 4 種（数値の書式とフォールバックを含む）、Ctrl+U・カットシーン・出展モード
 
@@ -664,7 +666,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 
 | # | リスク | 兆候・検知 | 潰し方 | 赤信号か |
 |---|---|---|---|---|
-| 1 | 日本語 IME が UITK の TextField で成立しない | S9 | ユーザーへすぐ上げる。2 条件（CEF あり・なし）の結果を切り分けてから、IME の composition を自前で扱う TextField を作るか、文字入力のある画面（バグ報告・検索・駅名・BP 名）だけ Web に残すかを決める。後者は完了を遅らせ、命綱の報告を日本語で書けない期間を作る | **赤** |
+| 1 | 日本語 IME が UITK の TextField で成立しない | S9（2026-10-28 に成立を確認） | ユーザーへすぐ上げる。2 条件（CEF あり・なし）の結果を切り分けてから、IME の composition を自前で扱う TextField を作るか、文字入力のある画面（バグ報告・検索・駅名・BP 名）だけ Web に残すかを決める。後者は完了を遅らせ、命綱の報告を日本語で書けない期間を作る | **赤** |
 | 2 | 録画・バグ報告の動画に UITK が写らない | S2 | 撮影経路を直すまで段階 1 に入らない。写らないまま進むと、録画での検証とテスターの報告動画が全部欠ける | **赤** |
 | 3 | UI Test Framework が CI の batchmode で動かない | 段階 1 の最初の L1 テスト（S13） | 原因を調べて直す。直せないと分かった時点で、L1 をローカルの Editor レーンへ移すかを裁定に上げ、並列度を下げた日程に組み直す。transition が進まなければ UiMotion の時計を差し込む | 中 |
 | 4 | 並行セッションとの衝突（液体 UI が `BlockInventoryTopic` を触る等） | マージ時の衝突 | integrator が共有ファイルを直列で持つ。topic 群ごとに短い作業窓を bd で告知する | 中 |
@@ -738,7 +740,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 ### 7.4 ユーザーにしてもらう作業
 
 - §0 の裁定・確認・様式化は、2026-10-26 にすべて済んだ
-- **日本語 IME の手動確認**（Mac と Windows 検証機の配布ビルド。§4.9 の 3 回。段階 0 の S9 は bd `moorestech-albof.8`）
+- **日本語 IME の実キーボードでの体感**（段階 1 と段階 5 の目視に含める。IME の合否は §4.9 の合成キーで確かめる。段階 0 の S9 は 2026-10-28 に済んだ）
 - **段階ごとの短い目視**（1 回ずつ。staging ビルドで、反映の前）
 - **独立レビューの裁定**（切替 PR と段階 1 の基盤 PR だけ）
 - **マージと playtest への反映**: 波ごとに PR をマージし、各段階の配布ビルドを playtest へ反映する。戻しの PR は当日中に反映を指示する
