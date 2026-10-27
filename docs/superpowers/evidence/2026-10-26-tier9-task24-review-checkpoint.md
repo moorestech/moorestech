@@ -1,4 +1,4 @@
-# Tier9 Task24: 最終pin検証・全体レビュー後の裁定待ち
+# Tier9 Task24: 最終pin検証・全体レビュー後の検証コード修正
 
 ## 現在地
 
@@ -35,7 +35,9 @@ moores-code-reviewを指定のCodex runnerで実行した。初回solはmodel ca
 3. 別役が既存スタック上限3/6/10、研究段階ごとの製作Tier、実3枠、支払済み装備・在庫繰越を使う条件付き収支を検討した。既存室内13台/ラインの範囲で成膜の品質だけを上位化し、速度モジュールを適用すれば、前段からの在庫で後段の需要を満たす算術例がある。
 4. ただし開始装備はチップ3570＋他材料、工作装置6555秒を要する。そのS1内の支払・製造待ち、上流機械・電力・搬送、GPU→衛星の仕掛時間が未接続なので、この条件付き例をG6合格にはしない。
 
-## 裁定案（未承認）
+## 検証コード修正の方針（質問撤回・controller既定）
+
+ユーザーの「なにが意思決定の軸なの？」という指摘を受け、以下を人間の選択として上げた質問は撤回した。ユーザーがAを選んだという承認ではない。既存仕様・費用・目標を維持する検証不具合の修正はcontrollerがAを既定として判断する。D05も既存runtimeへ整合させる。実際のゲーム内数値/目標の変更が必要と実測された場合のみ相談する。以下の別案は技術的な比較記録として残し、承認待ちに使わない。
 
 ### ① D01＋C08: 実製作と段階別生産をどうモデル化するか
 
@@ -71,4 +73,4 @@ SDD workspace: `moorestech_logs/harness/sdd/feat-tier9-integrated/workspace/` �
 
 全体レビュー: `moorestech_logs/harness/moores-code-review/runs/2026-10-26-1759-tier9-master-edf1fb7f-c383-4746-8bec-4dddd9d144da/`。design.mdと追加のadjudication-reportを併読する。sdd-archiveでworkspaceを同期し、logsのcommitは既存hookの所有とする。
 
-裁定後はW7 snapshot→モデル/検査修正→関連回帰・全G6→反映差分Refix→bug-pass→独立評価2体→master PR→新pin QA再検証→Task24独立承認→J2の順。Surface隔離・未確定15件、J2 G4/G5、録画、元save、CI/paired PRも残る。規約の選択系統を独自の縮退レビューに置き換えない。
+w7-s0はMASTERdb92f0aで取得済み（24b0605caa391bc14ee6c568a21bdbe636f1699e）。モデル/検査修正→関連回帰・全G6→反映差分Refix→bug-pass→独立評価2体→master PR→新pin QA再検証→Task24独立承認→J2の順。Surface隔離・未確定15件、J2 G4/G5、録画、元save、CI/paired PRも残る。規約の選択系統を独自の縮退レビューに置き換えない。
