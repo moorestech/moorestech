@@ -107,6 +107,10 @@ namespace Client.Tests.EditModeInPlayingTest
                 {
                     initializedSubscription.Dispose();
                     EventModeTestEnvironment.Restore(EventModeTestEnvironment.ExhibitionEnableKeys, savedEnvValues);
+
+                    // 検出は保存終了までとし、Play終了の後片付け（Linux CIのCEF停止の例外など）は他のPlayModeテストと同じく検出の外に置く
+                    // Detection ends at the shutdown save; the play-exit teardown (e.g. the CEF shutdown exception on Linux CI) stays outside it like other PlayMode tests
+                    LogAssert.ignoreFailingMessages = true;
                 }
             }
 
