@@ -53,7 +53,7 @@ namespace Client.PlaytestReceiver.BoxFilePolicies
             foreach (var file in skipped)
             {
                 var recordedReason = "配送不能: " + file.Reason;
-                if (missing.Any(item => (string)item["item"] == file.Path && (string)item["reason"] == recordedReason)) continue; // silent-ok: 既に同じ欠損が記録済み / manifest.missing に残っている
+                if (missing.Any(item => item is JObject row && (string)row["item"] == file.Path && (string)row["reason"] == recordedReason)) continue; // silent-ok: 既に同じ欠損が記録済み / manifest.missing に残っている
                 missing.Add(new JObject { ["item"] = file.Path, ["reason"] = recordedReason });
             }
             File.WriteAllText(path, manifest.ToString());

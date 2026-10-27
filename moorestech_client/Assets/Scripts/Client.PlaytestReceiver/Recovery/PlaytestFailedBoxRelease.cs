@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Newtonsoft.Json;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Upload.Attempt;
 using Client.PlaytestReceiver.Upload;
@@ -26,26 +27,9 @@ namespace Client.PlaytestReceiver.Recovery
                 var count = 0;
                 foreach (var box in ListBoxes(outbox))
                 {
-                    if (IsFailed(box) && !IsHeld(box, filePolicy) && TryRelease(box)) count++;
+                    if (IsReleasable(box, filePolicy) && TryRelease(box)) count++;
                 }
                 return count;
-            }
-
-            bool IsHeld(string box, IPlaytestBoxFilePolicy filePolicy)
-            {
-                // 容量保留は走行が自動再開、補完保留はEditorの補完待ち。印を外すとmanifestの後始末を飛ばす
-                // Capacity holds resume by the run and completion holds await the Editor; unmarking would skip manifest cleanup
-                if (filePolicy.CanResumeHold(box))
-                {
-                    Debug.LogWarning($"[PlaytestReceiver] resend keeps capacity hold (the run resumes it automatically): {box}");
-                    return true;
-                }
-                if (PlaytestOutboxScanner.IsCompletionHold(box))
-                {
-                    Debug.LogWarning($"[PlaytestReceiver] resend keeps completion hold (waiting for the Editor to complete it): {box}");
-                    return true;
-                }
-                return false;
             }
 
             string[] ListBoxes(string outbox)
@@ -60,12 +44,20 @@ namespace Client.PlaytestReceiver.Recovery
                 }
             }
 
-            bool IsFailed(string box)
+            bool IsReleasable(string box, IPlaytestBoxFilePolicy filePolicy)
             {
-                // 外部ディスク境界。読めない箱1つで残りの箱の再送を止めない
-                // External disk boundary: one unreadable box never stops the rest from being resent
-                try { return PlaytestOutboxBoxState.Classify(box) == PlaytestOutboxBoxKind.Failed; }
-                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                // 外部ディスク・JSON境界。読めない箱は印を外さず残し、残りの箱の再送を止めない
+                // External disk and JSON boundary: an unreadable box keeps its marker and never stops the rest from being resent
+                try
+                {
+                    if (PlaytestOutboxBoxState.Classify(box) != PlaytestOutboxBoxKind.Failed) return false;
+                    // 容量保留は走行が自動再開、補完保留はEditorの補完待ち。印を外すとmanifestの後始末を飛ばす
+                    // Capacity holds resume by the run and completion holds await the Editor; unmarking would skip manifest cleanup
+                    if (!PlaytestOutboxScanner.IsHold(box, filePolicy, true)) return true;
+                    Debug.LogWarning($"[PlaytestReceiver] resend keeps a hold the run or the Editor resumes: {box}");
+                    return false;
+                }
+                catch (Exception error) when (error is IOException || error is UnauthorizedAccessException || error is JsonException)
                 {
                     Debug.LogWarning($"[PlaytestReceiver] cannot release {box}: {error.Message}");
                     return false;

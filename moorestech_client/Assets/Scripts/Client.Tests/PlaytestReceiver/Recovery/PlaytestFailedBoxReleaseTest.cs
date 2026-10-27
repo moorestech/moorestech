@@ -87,7 +87,7 @@ namespace Client.Tests.PlaytestReceiver.Recovery
         {
             var box = MakeBox("reports", "cap", "READY");
             File.WriteAllText(Path.Combine(box, "UPLOAD_FAILED"), "repo/commits.bundle: too-large");
-            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("capacity hold"));
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("resend keeps a hold"));
             Assert.AreEqual(0, PlaytestFailedBoxRelease.ReleaseAll(_directories, PlaytestOutboxScope.ReportsAndProgress));
             Assert.AreEqual("repo/commits.bundle: too-large", File.ReadAllText(Path.Combine(box, "UPLOAD_FAILED")));
         }
@@ -97,9 +97,24 @@ namespace Client.Tests.PlaytestReceiver.Recovery
         {
             var box = MakeBox("reports", "comp", "READY");
             File.WriteAllText(Path.Combine(box, "UPLOAD_FAILED"), PlaytestOutboxScanner.CompletionHoldPrefix + "repo/commit-evidence: x");
-            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("completion hold"));
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("resend keeps a hold"));
             Assert.AreEqual(0, PlaytestFailedBoxRelease.ReleaseAll(_directories, PlaytestOutboxScope.ReportsAndProgress));
             Assert.IsTrue(File.Exists(Path.Combine(box, "UPLOAD_FAILED")));
+        }
+
+        [Test]
+        public void UnreadableHoldBoxKeepsMarkerAndOtherBoxesStillResend()
+        {
+            var broken = MakeBox("reports", "a-broken", "READY");
+            File.WriteAllText(Path.Combine(broken, "UPLOAD_FAILED"), "元repoまたはmanifestのSHAを特定できないため送信を保留しました");
+            File.WriteAllText(Path.Combine(broken, "manifest.json"), "{ broken");
+            var healthy = MakeBox("reports", "b-healthy", "READY", "UPLOAD_FAILED");
+            var requester = new CountingRequester();
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("cannot release"));
+            new PlaytestOutboxRecovery(requester, _directories, null, null).ResendFailedAsync(new PlaytestSteamRoute()).GetAwaiter().GetResult();
+            Assert.IsTrue(File.Exists(Path.Combine(broken, "UPLOAD_FAILED")));
+            Assert.IsFalse(File.Exists(Path.Combine(healthy, "UPLOAD_FAILED")));
+            Assert.AreEqual(1, requester.Count);
         }
 
         [Test]

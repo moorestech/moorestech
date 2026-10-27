@@ -93,13 +93,20 @@ namespace Client.PlaytestReceiver.Upload
             #endregion
         }
 
+        // 容量保留か補完保留か。読めなければ例外を投げ、呼び手が箱単位で隔離する
+        // Capacity or completion hold; throws when unreadable so each caller isolates it per box
+        internal static bool IsHold(string directory, IPlaytestBoxFilePolicy filePolicy, bool includeCompletionHolds)
+        {
+            return filePolicy.CanResumeHold(directory) || (includeCompletionHolds && IsCompletionHold(directory));
+        }
+
         private static bool CanResume(string directory, IPlaytestBoxFilePolicy filePolicy, bool includeCompletionHolds)
         {
             // 外部ディスク・JSON境界。読めない箱だけ保留し、印を画面へ残す
             // Isolate external disk and JSON failures to this box; preserve its visible failure marker
             try
             {
-                return filePolicy.CanResumeHold(directory) || (includeCompletionHolds && IsCompletionHold(directory));
+                return IsHold(directory, filePolicy, includeCompletionHolds);
             }
             catch (Exception error) when (error is IOException || error is UnauthorizedAccessException || error is JsonException)
             {
