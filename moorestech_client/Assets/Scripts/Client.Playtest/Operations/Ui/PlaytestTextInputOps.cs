@@ -23,7 +23,7 @@ namespace Client.Playtest.Operations
                 if (deadline <= Time.realtimeSinceStartup) break;
                 if (result.Status == UiSetTextStatus.Applied)
                 {
-                    Debug.Log($"[PlaytestUi] {testid} text set by {result.Renderer}");
+                    Debug.Log($"[PlaytestUi] {testid} text set");
                     return;
                 }
                 if (IsPermanentFailure(result.Status))

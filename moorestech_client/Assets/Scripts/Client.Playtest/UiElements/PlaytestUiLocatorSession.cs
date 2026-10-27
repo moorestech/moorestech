@@ -11,12 +11,11 @@ namespace Client.Playtest.UiElements
     /// </summary>
     public static class PlaytestUiLocatorSession
     {
-        private static readonly WebUiElementLocator WebLocator = new();
-        private static int _generation;
-        private static bool _active;
         // 段階1はUITK版と両系合成に交換
         // Replace with UITK and the both-renderer composite in stage 1
-        public static readonly IUiElementLocator Locator = WebLocator;
+        public static readonly IUiElementLocator Locator = new WebUiElementLocator();
+        private static int _generation;
+        private static bool _active;
 
         // 冪等。PlaytestRunnerとRun前のprobeの両方から呼ばれる
         // Idempotent; called from both PlaytestRunner and pre-Run probes
@@ -24,7 +23,7 @@ namespace Client.Playtest.UiElements
         {
             if (!_active) _generation++;
             _active = true;
-            WebLocator.StartSession();
+            Locator.StartSession();
         }
 
         // 成否にかかわらず転送を止め、次回実行へ応答を持ち越さない
@@ -32,7 +31,7 @@ namespace Client.Playtest.UiElements
         public static void Stop()
         {
             _active = false;
-            WebLocator.StopSession();
+            Locator.StopSession();
         }
         // 開始した実行だけに再送を許す
         // Permit retries only from the execution that started the operation

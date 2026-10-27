@@ -128,7 +128,7 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
 表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverUi`してからScreenshotする。
 カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移で視点は変わらないため、
 シナリオ側での追加のカメラ待ちは不要。
-仕組み: DSL は `IUiElementLocator`（`PlaytestUiLocatorSession.Locator`）だけを見る。Web 版は DOM 矩形を WS 往復（`playtest.dom_query`）で取得し、Unity スクリーン座標へ逆変換して `SemanticInput` で注入する。注入マウスはプレイテスト専用の入力転送経路を通る（パッケージの legacy Input 転送は注入不感のため）。文字入力は `playtest.dom_set_text` の往復でネイティブ setter＋`input` イベント。どの描画系で解決したかは `[PlaytestUi] <testid> resolved by Web` のログに出る。
+仕組み: DSL は `IUiElementLocator`（`PlaytestUiLocatorSession.Locator`）だけを見る。Web 版は DOM 矩形を WS 往復（`playtest.dom_query`）で取得し、Unity スクリーン座標へ逆変換して `SemanticInput` で注入する。注入マウスはプレイテスト専用の入力転送経路を通る（パッケージの legacy Input 転送は注入不感のため）。文字入力は `playtest.dom_set_text` の往復でネイティブ setter＋`input` イベント。解決した要素は `[PlaytestUi] <testid> resolved` のログに出る。
 
 ### 検証・待機・記録
 | API | 用途 |

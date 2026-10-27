@@ -28,7 +28,7 @@ namespace Client.Tests.WebUiHost.Transport
             connections.TryAdd(failedId, new WebSocketConnection(failed, failedId));
             var healthyId = Guid.NewGuid();
             connections.TryAdd(healthyId, new WebSocketConnection(healthy, healthyId));
-            LogAssert.Expect(LogType.Error, new Regex("close failed"));
+            LogAssert.Expect(LogType.Error, new Regex($"close failed: .*injected close output failure.* for {failedId}"));
             var closing = hub.CloseAllAsync();
             while (!closing.IsCompleted) yield return null;
             var result = closing.GetAwaiter().GetResult();
@@ -36,10 +36,8 @@ namespace Client.Tests.WebUiHost.Transport
             Assert.AreEqual(1, healthy.CloseAttempts);
             Assert.That(failed.State, Is.EqualTo(System.Net.WebSockets.WebSocketState.Closed).Or.EqualTo(System.Net.WebSockets.WebSocketState.Aborted));
             Assert.That(healthy.State, Is.EqualTo(System.Net.WebSockets.WebSocketState.Closed).Or.EqualTo(System.Net.WebSockets.WebSocketState.Aborted));
-            Assert.IsFalse(hub.HasConnections);
+            Assert.IsTrue(connections.IsEmpty);
             Assert.IsTrue(result.Succeeded);
-            Assert.AreEqual(1, result.CloseErrors.Count);
-            StringAssert.Contains("injected close output failure", result.CloseErrors[failedId]);
         }
         [UnityTest]
         public IEnumerator HostStopRetainsRecoveredCloseErrorAfterReleasingItsHub()
@@ -53,14 +51,13 @@ namespace Client.Tests.WebUiHost.Transport
                 .GetField("_connections", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(hub);
             connections.TryAdd(id, new WebSocketConnection(socket, id));
             field.SetValue(null, hub);
-            LogAssert.Expect(LogType.Error, new Regex("close failed"));
+            LogAssert.Expect(LogType.Error, new Regex($"close failed: .*injected close output failure.* for {id}"));
             // 停止のスレッドプール上のログと LogScope の毎フレーム列挙を競合させないよう、フレームを譲らず待つ
             // Block without yielding so thread-pool stop logs cannot race LogScope's per-frame enumeration
             var result = WebUiHostTestContext.StopWithoutYield();
             Assert.IsTrue(result.Succeeded);
-            StringAssert.Contains("injected close output failure", result.Connections.CloseErrors[id]);
             Assert.IsNull(global::Client.WebUiHost.Boot.WebUiHost.Hub);
-            Assert.IsFalse(hub.HasConnections);
+            Assert.IsTrue(connections.IsEmpty);
             yield break;
         }
 

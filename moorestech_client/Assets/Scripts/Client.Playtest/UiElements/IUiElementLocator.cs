@@ -14,6 +14,14 @@ namespace Client.Playtest.UiElements
     /// </summary>
     public interface IUiElementLocator
     {
+        // 照会の受け口と入力転送を開く。冪等
+        // Open the query receiver and input forwarding; idempotent
+        void StartSession();
+
+        // 転送を止め、未完了の照会を次の実行へ持ち越さない
+        // Stop forwarding and keep pending lookups out of the next run
+        void StopSession();
+
         // 照会先の描画系がいま応答できるか
         // Whether the backing renderer can answer right now
         bool IsAvailable();

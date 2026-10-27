@@ -31,8 +31,6 @@ namespace Client.Tests.WebUiHost.Transport
             var result = closing.GetAwaiter().GetResult();
             Assert.IsFalse(result.Succeeded);
             Assert.AreEqual(1, socket.DisposeAttempts);
-            StringAssert.Contains("abort failed", result.CloseErrors[id]);
-            StringAssert.Contains("dispose failed", result.CloseErrors[id]);
             StringAssert.Contains("Open", result.UnterminatedConnections[id]);
         }
 
@@ -61,13 +59,12 @@ namespace Client.Tests.WebUiHost.Transport
             var socket = new CloseFailureSocket(true, true, false);
             Add(hub, socket, id);
             LogAssert.Expect(LogType.Error, new Regex("close failed"));
-            LogAssert.Expect(LogType.Error, new Regex("abort failed"));
+            LogAssert.Expect(LogType.Error, new Regex($"abort failed.* for {id}"));
             var closing = hub.CloseAllAsync();
             while (!closing.IsCompleted) yield return null;
             var result = closing.GetAwaiter().GetResult();
             Assert.IsTrue(result.Succeeded);
             Assert.AreEqual(System.Net.WebSockets.WebSocketState.Closed, socket.State);
-            StringAssert.Contains("abort failed", result.CloseErrors[id]);
             Assert.IsEmpty(result.UnterminatedConnections);
         }
 

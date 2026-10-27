@@ -53,7 +53,7 @@ namespace Client.Playtest.WebUi
 
         public async UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
-            if (!TryGetRegisteredHub(out var hub)) return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
+            if (!TryGetRegisteredHub(out var hub)) return UiElementSnapshot.Unavailable(testid);
             var response = await _domQuery.Query(hub, testid, Mathf.Min(ResponseTimeoutSeconds, remainingSeconds));
             if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
             if (!response.HasResponse)
@@ -61,10 +61,10 @@ namespace Client.Playtest.WebUi
                 // 応答なしを「見つからない」と区別できるよう理由を残す
                 // Leave the reason so no-answer is distinguishable from not-found
                 Debug.LogWarning($"[PlaytestUi] Web UI gave no lookup answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
-                return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
+                return UiElementSnapshot.Unavailable(testid);
             }
-            if (1 < response.Result.MatchCount) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
-            if (!response.Result.Found) return UiElementSnapshot.NotFound(testid, UiRenderer.Web);
+            if (1 < response.Result.MatchCount) return UiElementSnapshot.Ambiguous(testid);
+            if (!response.Result.Found) return UiElementSnapshot.NotFound(testid);
 
             // CSS pxの矩形をdevicePixelRatioでCEFブラウザpxへ換算してから画面へ写す
             // Convert the CSS-pixel rect to CEF browser pixels with devicePixelRatio, then map to the screen
@@ -79,7 +79,7 @@ namespace Client.Playtest.WebUi
             if (!CefScreenMapper.TryBrowserRectToScreenRect(browserRect, out var screenRect))
             {
                 Debug.LogWarning($"[PlaytestUi] Web element '{testid}' was found but the CEF surface could not map its rect");
-                return UiElementSnapshot.Unavailable(testid, UiRenderer.Web);
+                return UiElementSnapshot.Unavailable(testid);
             }
             // 端の画面外写像は保ち、操作中心だけは描画面内に限定する
             // Allow offscreen edges but require the interaction center to stay on the surface
@@ -102,21 +102,21 @@ namespace Client.Playtest.WebUi
 
         public async UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds)
         {
-            if (!TryGetRegisteredHub(out var hub)) return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
+            if (!TryGetRegisteredHub(out var hub)) return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, string.Empty);
             var response = await _domSetText.Request(hub, testid, text, Mathf.Min(ResponseTimeoutSeconds, remainingSeconds));
             if (response.State == WebUiResponseState.Rejected) throw new InvalidOperationException($"Invalid Web response for {testid}: {response.Reason}");
             if (!response.HasResponse)
             {
                 Debug.LogWarning($"[PlaytestUi] Web UI gave no text-input answer ({response.State}: {response.Reason}, budget {Mathf.Min(ResponseTimeoutSeconds, remainingSeconds)}s): {testid}");
-                return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, UiRenderer.Web, string.Empty);
+                return new UiSetTextResult(UiSetTextStatus.RendererUnavailable, string.Empty);
             }
-            return new UiSetTextResult(response.Result.Status, UiRenderer.Web, response.Result.ActualValue);
+            return new UiSetTextResult(response.Result.Status, response.Result.ActualValue);
         }
 
         internal static UiElementSnapshot ToSnapshot(string testid, DomQueryResult result, Rect screenRect)
         {
-            if (1 < result.MatchCount) return UiElementSnapshot.Ambiguous(testid, UiRenderer.Web);
-            return UiElementSnapshot.Found(testid, UiRenderer.Web, result.Visible, result.HitTestPassed, screenRect, result.Text, result.StateFlags);
+            if (1 < result.MatchCount) return UiElementSnapshot.Ambiguous(testid);
+            return UiElementSnapshot.Found(testid, result.Visible, result.HitTestPassed, screenRect, result.Text, result.StateFlags);
         }
 
         private bool TryGetRegisteredHub(out WebSocketHub hub)

@@ -162,7 +162,7 @@ namespace Client.Tests.RemoteExec
             }.ToString();
             var result = await RemoteExecEndpoint.HandleAsync(PostRequest(RemoteExecAccessFile.Token, body), lifetime.Token);
             Assert.AreEqual("Succeeded", JObject.Parse(result.SerializeBody()).Value<string>("outcome"));
-            LogAssert.Expect(LogType.Error, new Regex("取消コールバック失敗"));
+            LogAssert.Expect(LogType.Error, new Regex(@"取消コールバック失敗[\s\S]*cancel failure"));
             GameShutdownEvent.ResetForNewSession();
             var participant = new ObservedShutdownParticipant();
             GameShutdownEvent.RegisterParticipant(participant);
@@ -172,9 +172,8 @@ namespace Client.Tests.RemoteExec
             Assert.IsTrue(participant.WasFlushed);
             GameShutdownEvent.ResetForNewSession();
 
-            // 撤去後へ到達し、失敗理由と接続情報の消去を確認する
-            // Reach the continuation and verify the failure reason and withdrawn access details
-            StringAssert.Contains("cancel failure", RemoteExecHttpListener.StopFailureReason);
+            // 撤去後へ到達し、接続情報の消去を確認する（失敗理由は上のログ期待で確かめる）
+            // Reach the continuation and verify withdrawn access details (the failure reason is checked by the expected log above)
             Assert.IsNull(RemoteExecAccessFile.Token);
             Assert.IsFalse(File.Exists(Path.Combine(RemoteExecAccessFile.DirectoryPath, "access.json")));
         }

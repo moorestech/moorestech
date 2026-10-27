@@ -63,7 +63,6 @@ namespace Client.Tests.RemoteExec.Listen
 
             Assert.IsTrue(reentered, "取消コールバックへ到達しませんでした");
             Assert.IsNull(listenerAfterInnerActivate[0], "停止中の再入で待受が作られました");
-            Assert.IsNull(RemoteExecHttpListener.StopFailureReason, "取消コールバックが失敗扱いになりました");
 
             // 撤去後は旧世代・新世代どちらのポートも閉じている
             // After withdrawal neither the old nor the new generation's port accepts connections

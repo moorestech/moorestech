@@ -12,7 +12,6 @@ namespace Client.Playtest.UiElements
     {
         public readonly string Testid;
         public readonly UiElementLookupStatus Status;
-        public readonly UiRenderer Renderer;
         // 祖先のクリップと画面の内側に見える面積がある
         // Has visible area inside ancestor clips and the screen
         public readonly bool Visible;
@@ -27,11 +26,10 @@ namespace Client.Playtest.UiElements
         // State names built from data-* attributes on Web and USS classes on UITK
         public readonly IReadOnlyCollection<string> StateFlags;
 
-        private UiElementSnapshot(string testid, UiElementLookupStatus status, UiRenderer renderer, bool visible, bool clickable, Rect screenRect, string text, IReadOnlyCollection<string> stateFlags)
+        private UiElementSnapshot(string testid, UiElementLookupStatus status, bool visible, bool clickable, Rect screenRect, string text, IReadOnlyCollection<string> stateFlags)
         {
             Testid = testid;
             Status = status;
-            Renderer = renderer;
             Visible = visible;
             Clickable = clickable;
             ScreenRect = screenRect;
@@ -50,29 +48,29 @@ namespace Client.Playtest.UiElements
             return false;
         }
 
-        public static UiElementSnapshot Found(string testid, UiRenderer renderer, bool visible, bool clickable, Rect screenRect, string text, IReadOnlyCollection<string> stateFlags)
+        public static UiElementSnapshot Found(string testid, bool visible, bool clickable, Rect screenRect, string text, IReadOnlyCollection<string> stateFlags)
         {
-            return new UiElementSnapshot(testid, UiElementLookupStatus.Found, renderer, visible, clickable, screenRect, text, stateFlags);
+            return new UiElementSnapshot(testid, UiElementLookupStatus.Found, visible, clickable, screenRect, text, stateFlags);
         }
 
-        public static UiElementSnapshot NotFound(string testid, UiRenderer renderer)
+        public static UiElementSnapshot NotFound(string testid)
         {
-            return Empty(testid, UiElementLookupStatus.NotFound, renderer);
+            return Empty(testid, UiElementLookupStatus.NotFound);
         }
 
-        public static UiElementSnapshot Ambiguous(string testid, UiRenderer renderer)
+        public static UiElementSnapshot Ambiguous(string testid)
         {
-            return Empty(testid, UiElementLookupStatus.Ambiguous, renderer);
+            return Empty(testid, UiElementLookupStatus.Ambiguous);
         }
 
-        public static UiElementSnapshot Unavailable(string testid, UiRenderer renderer)
+        public static UiElementSnapshot Unavailable(string testid)
         {
-            return Empty(testid, UiElementLookupStatus.RendererUnavailable, renderer);
+            return Empty(testid, UiElementLookupStatus.RendererUnavailable);
         }
 
-        private static UiElementSnapshot Empty(string testid, UiElementLookupStatus status, UiRenderer renderer)
+        private static UiElementSnapshot Empty(string testid, UiElementLookupStatus status)
         {
-            return new UiElementSnapshot(testid, status, renderer, false, false, Rect.zero, string.Empty, Array.Empty<string>());
+            return new UiElementSnapshot(testid, status, false, false, Rect.zero, string.Empty, Array.Empty<string>());
         }
     }
 }

@@ -12,7 +12,6 @@ namespace Client.WebUiHost.Boot.Transport
         {
             // 最大 2 秒タイムアウト付きで Close フレームを送信
             // Send Close frames with a 2-second timeout to avoid blocking forever
-            var failures = new Dictionary<Guid, string>();
             var unterminated = new Dictionary<Guid, string>();
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
             foreach (var conn in connections)
@@ -26,16 +25,16 @@ namespace Client.WebUiHost.Boot.Transport
                 catch (Exception e)
                 {
                     var reason = e.GetBaseException().Message;
-                    RecordFailure(conn.Id, "close failed: " + reason, failures);
+                    LogFailure(conn.Id, "close failed: " + reason);
                     // Close送信が失敗した本人Socketを強制切断する
                     // Abort only this socket after its Close frame network send fails
                     try { conn.WebSocket.Abort(); }
-                    catch (Exception abortError) { RecordFailure(conn.Id, "abort failed: " + abortError.Message, failures); }
+                    catch (Exception abortError) { LogFailure(conn.Id, "abort failed: " + abortError.Message); }
                 }
                 // ネットワーク資源解放も隔離し、CloseSentを終了済みと誤認しない
                 // Isolate network resource disposal and never mistake CloseSent for termination
                 try { conn.WebSocket.Dispose(); }
-                catch (Exception disposeError) { RecordFailure(conn.Id, "dispose failed: " + disposeError.Message, failures); }
+                catch (Exception disposeError) { LogFailure(conn.Id, "dispose failed: " + disposeError.Message); }
                 var state = conn.WebSocket.State;
                 if (state != WebSocketState.Closed && state != WebSocketState.Aborted)
                 {
@@ -44,12 +43,11 @@ namespace Client.WebUiHost.Boot.Transport
                     UnityEngine.Debug.LogError($"[WebSocketHub] unterminated {conn.Id}: {reason}");
                 }
             }
-            return new WebSocketCloseResult(failures, unterminated);
+            return new WebSocketCloseResult(unterminated);
         }
 
-        private static void RecordFailure(Guid id, string reason, Dictionary<Guid, string> failures)
+        private static void LogFailure(Guid id, string reason)
         {
-            failures[id] = failures.TryGetValue(id, out var previous) ? previous + "; " + reason : reason;
             UnityEngine.Debug.LogError($"[WebSocketHub] {reason} for {id}");
         }
     }

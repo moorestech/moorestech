@@ -100,11 +100,8 @@ namespace Client.RemoteExec.Listen
             #endregion
         }
 
-        internal static string StopFailureReason { get; private set; }
-
         internal static void Stop()
         {
-            StopFailureReason = null;
             // silent-ok: 待受未作成・停止済みの冪等な操作で解放対象が無い / 開いた待受の停止は下のログで開発者に届く
             if (_listener == null) return;
             // 停止対象を固定し、取消中の再入で新世代を消さない
@@ -119,8 +116,7 @@ namespace Client.RemoteExec.Listen
             try { lifetime.Cancel(); }
             catch (AggregateException e)
             {
-                StopFailureReason = $"取消コールバック失敗（待受は撤去）: {e}";
-                Debug.LogError($"[RemoteExec] {StopFailureReason}");
+                Debug.LogError($"[RemoteExec] 取消コールバック失敗（待受は撤去）: {e}");
             }
             listener.Close();
             _isStopping = false;

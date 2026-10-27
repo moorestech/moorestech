@@ -124,7 +124,7 @@ namespace Client.Playtest.Operations
                 }
                 await UniTask.DelayFrame(2);
             }
-            var lastDescription = last == null ? "no lookup completed" : $"{last.Status}, renderer: {last.Renderer}, visible: {last.Visible}, text: '{last.Text}'";
+            var lastDescription = last == null ? "no lookup completed" : $"{last.Status}, visible: {last.Visible}, text: '{last.Text}'";
             throw new TimeoutException($"UI text did not contain '{expected}' (last: {lastDescription}): {testid}");
         }
 
@@ -140,9 +140,9 @@ namespace Client.Playtest.Operations
 
         private static void LogResolved(UiElementSnapshot snapshot)
         {
-            // どの描画系で解決したかを残す（段階1以降の切替確認に使う）
-            // Record which renderer resolved the element (used to confirm cutovers from stage 1)
-            Debug.Log($"[PlaytestUi] {snapshot.Testid} resolved by {snapshot.Renderer}");
+            // 解決した要素をログへ残す
+            // Log the resolved element
+            Debug.Log($"[PlaytestUi] {snapshot.Testid} resolved");
         }
     }
 }

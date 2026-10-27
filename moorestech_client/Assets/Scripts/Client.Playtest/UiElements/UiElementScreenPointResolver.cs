@@ -57,7 +57,7 @@ namespace Client.Playtest.UiElements
             // 重複testidはどれを押すか決められないため待たずに失敗させる
             // Duplicate testids cannot pick a target, so fail without waiting
             if (snapshot.Status == UiElementLookupStatus.Ambiguous)
-                throw new InvalidOperationException($"UI testid matched multiple elements ({snapshot.Renderer}): {snapshot.Testid}");
+                throw new InvalidOperationException($"UI testid matched multiple elements: {snapshot.Testid}");
         }
     }
 }

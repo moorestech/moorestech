@@ -71,7 +71,7 @@ namespace Client.Tests.Playtest
         [Test]
         public void NotFoundSnapshotIsEmpty()
         {
-            var snapshot = UiElementSnapshot.NotFound("missing", UiRenderer.Web);
+            var snapshot = UiElementSnapshot.NotFound("missing");
             Assert.IsFalse(snapshot.IsFound || snapshot.Visible || snapshot.Clickable);
             Assert.AreEqual(Rect.zero, snapshot.ScreenRect);
             Assert.AreEqual(string.Empty, snapshot.Text);

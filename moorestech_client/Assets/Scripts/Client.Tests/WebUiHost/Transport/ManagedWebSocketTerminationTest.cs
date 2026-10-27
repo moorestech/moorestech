@@ -42,13 +42,11 @@ namespace Client.Tests.WebUiHost.Transport
                 .GetField("_connections", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(hub);
             connections.TryAdd(brokenId, new WebSocketConnection(broken, brokenId));
             connections.TryAdd(healthyId, new WebSocketConnection(healthy, healthyId));
-            LogAssert.Expect(LogType.Error, new Regex("close failed"));
+            LogAssert.Expect(LogType.Error, new Regex($"close failed.* for {brokenId}"));
             var closing = hub.CloseAllAsync();
             while (!closing.IsCompleted) yield return null;
             var result = closing.GetAwaiter().GetResult();
             Assert.IsTrue(result.Succeeded);
-            Assert.IsTrue(result.CloseErrors.ContainsKey(brokenId));
-            Assert.IsFalse(result.CloseErrors.ContainsKey(healthyId));
             Assert.That(broken.State, Is.EqualTo(WebSocketState.Aborted).Or.EqualTo(WebSocketState.Closed));
             Assert.That(healthy.State, Is.EqualTo(WebSocketState.Aborted).Or.EqualTo(WebSocketState.Closed));
             Debug.Log($"Actual socket final states: broken={broken.State}, healthy={healthy.State}");

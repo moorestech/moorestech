@@ -11,7 +11,7 @@ namespace Client.WebUiHost.Boot.Transport
         internal static async UniTask<WebUiStopResult> StopAsync(ViteSupervisor vite, WebSocketHub hub, KestrelServer kestrel)
         {
             var resourceFailures = new Dictionary<string, string>();
-            var closeResult = new WebSocketCloseResult(new(), new());
+            var closeResult = new WebSocketCloseResult(new());
             // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）
             // Isolate and log each stop step so one failure cannot skip the remaining steps (2-B)
             if (vite != null)
