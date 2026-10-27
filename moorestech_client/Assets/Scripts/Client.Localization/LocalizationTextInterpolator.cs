@@ -13,6 +13,7 @@ namespace Client.Localization
 
         internal static string Interpolate(string keyForLog, string template, IReadOnlyList<LocalizationTextParam> textParams)
         {
+            ReportDuplicateParamNames();
             var builder = new StringBuilder(template.Length);
             var cursor = 0;
             foreach (Match match in PlaceholderPattern.Matches(template))
@@ -25,6 +26,21 @@ namespace Client.Localization
             return builder.ToString();
 
             #region Internal
+
+            // 同名は前から探す ResolvePlaceholder で先勝ちになる。重複は黙らずエラーログで知らせる（TooltipTopic と同じ規則）
+            // ResolvePlaceholder scans from the front, so a duplicate name resolves first-wins; it is logged as an error (same rule as TooltipTopic)
+            void ReportDuplicateParamNames()
+            {
+                for (var later = 1; later < textParams.Count; later++)
+                {
+                    for (var earlier = 0; earlier < later; earlier++)
+                    {
+                        if (textParams[earlier].Name != textParams[later].Name) continue;
+                        Debug.LogError($"[Localize] {keyForLog}: duplicate param '{textParams[later].Name}'; the first value wins");
+                        break;
+                    }
+                }
+            }
 
             string ResolvePlaceholder(Match match)
             {

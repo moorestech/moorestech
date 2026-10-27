@@ -17,7 +17,7 @@ namespace Client.Tests.Tooltip
     public class TooltipTopicDuplicateParamTest
     {
         [Test]
-        public void 同名パラメータは後勝ちで辞書化しエラーログを出す()
+        public void 同名パラメータは先勝ちで辞書化しエラーログを出す()
         {
             var presentation = new TooltipPresentation(new[] { new TooltipLine(
                 LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { new LocalizationTextParam("items", "Iron"), new LocalizationTextParam("items", "Copper") }) });
@@ -25,7 +25,7 @@ namespace Client.Tests.Tooltip
             LogAssert.Expect(LogType.Error, new Regex("items"));
             var dto = TooltipTopic.ToDto(presentation);
 
-            Assert.AreEqual("Copper", dto.Lines[0].TextParams["items"]);
+            Assert.AreEqual("Iron", dto.Lines[0].TextParams["items"]);
         }
 
         [Test]

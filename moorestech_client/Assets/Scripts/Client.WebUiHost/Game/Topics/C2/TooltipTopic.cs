@@ -42,15 +42,19 @@ namespace Client.WebUiHost.Game.Topics
 
             #region Internal
 
-            // 同名パラメータは後勝ちで詰め、黙って上書きせずエラーログに残す
-            // Later duplicates win, but are logged as errors instead of being overwritten silently
+            // 同名パラメータは C# の補間器と同じく先勝ちで詰め、重複はエラーログで知らせる
+            // Duplicate names keep the first value like the C# interpolator, and each duplicate is logged as an error
             Dictionary<string, string> ToParamDictionary(TooltipLine line)
             {
                 var textParams = new Dictionary<string, string>();
                 foreach (var textParam in line.TextParams)
                 {
-                    if (textParams.ContainsKey(textParam.Name)) Debug.LogError($"[TooltipTopic] duplicate tooltip param '{textParam.Name}' in line '{line.Key.Key}'; the later value wins");
-                    textParams[textParam.Name] = textParam.Value;
+                    if (textParams.ContainsKey(textParam.Name))
+                    {
+                        Debug.LogError($"[TooltipTopic] duplicate tooltip param '{textParam.Name}' in line '{line.Key.Key}'; the first value wins");
+                        continue;
+                    }
+                    textParams.Add(textParam.Name, textParam.Value);
                 }
                 return textParams;
             }

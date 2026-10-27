@@ -1,5 +1,8 @@
+using System.Text.RegularExpressions;
 using Client.Localization;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Localization.Resolution
 {
@@ -17,6 +20,21 @@ namespace Client.Tests.Localization.Resolution
             });
 
             Assert.AreEqual("{b}/2", text);
+        }
+
+        [Test]
+        public void DuplicateParamNameUsesFirstValueAndReportsError()
+        {
+            // 同名パラメータは先勝ちで埋め、重複をエラーログで知らせる
+            // A duplicate name fills with the first value and is reported as an error
+            LogAssert.Expect(LogType.Error, new Regex(@"test\.key.*'count'"));
+            var text = LocalizationTextInterpolator.Interpolate("test.key", "x{count}", new[]
+            {
+                new LocalizationTextParam("count", "1"),
+                new LocalizationTextParam("count", "2"),
+            });
+
+            Assert.AreEqual("x1", text);
         }
     }
 }
