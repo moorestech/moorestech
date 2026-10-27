@@ -30,7 +30,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 var research = new[] { "01a16291-4094-7369-a87f-5dfe2197d25e", "019e3af0-297f-726e-8a02-0a8518124e6d" }.Select(Guid.Parse).ToArray(); // 軌道エレベーターの建設・核融合炉
-var (reactorPos, elevatorPos) = (new Vector3Int(0, 32, 0), new Vector3Int(22, 32, 0));
+var (reactorPos, elevatorPos) = (new Vector3Int(-20, 32, 0), new Vector3Int(2, 32, 0));
 return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SetupFlatGround();
@@ -40,7 +40,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     // Terrain (mesas, rocks) spawns in front of the reactor and base and blocks aim and view, so stop its display and spawning
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
-    p.WarpPlayer(new Vector3(15f, 32.5f, -15f));
+    p.WarpPlayer(new Vector3(0f, 32.5f, -15f));
     var deuteriumId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("01a167e9-21b2-7bb0-b6a3-0f17d349704e"));
     var cableId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a16290-f793-748b-a0b0-91d44be0d4ab"));
     var satelliteId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("01a167cf-af8b-7894-8de6-593ee30289c0"));
@@ -68,7 +68,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     // Place the base and power it from the reactor through a wide-range pole
     p.Note("宇宙エレベーター拠点を置き、核融合炉と電線でつなぐ");
     var elevator = await p.PlaceBlockDirect("宇宙エレベーター拠点", elevatorPos, BlockDirection.North);
-    var pole = (await p.PlaceBlockDirect("広範囲電柱", new Vector3Int(20, 32, -3), BlockDirection.North)).GetComponent<IElectricWireConnector>();
+    var pole = (await p.PlaceBlockDirect("広範囲電柱", new Vector3Int(0, 32, -3), BlockDirection.North)).GetComponent<IElectricWireConnector>();
     var free = new ConnectionLineRecord(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"), Array.Empty<ConnectToolMaterialCost>());
     var wired = new List<bool>();
     await p.RunOnServer("炉 → 電柱 → 拠点を配線する", () =>
