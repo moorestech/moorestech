@@ -40,7 +40,7 @@ return PlaytestRunner.Run("electric-wire-normal-place-wire-shortage-via-ui", opt
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
     await p.UnlockBlock("電柱");
     await p.GiveConstructionCost("電柱", 1);
-    p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid);
+    await p.RunOnServer("電線ツールを解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
 
     // 既存の電気設備として電柱を1本直設置する（新設位置から距離3＝接続範囲内）
     // Place one existing pole as the neighbouring equipment (3 blocks from the new position, in range)

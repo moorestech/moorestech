@@ -47,7 +47,7 @@ return PlaytestRunner.Run("electric-wire-tool-isolated-place-via-ui", options, a
 
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
     await p.PrepareBlockForUiPlacement("電柱", 5);
-    p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid);
+    await p.RunOnServer("電線ツールを解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
     await p.GiveItem("銅のワイヤー", 64);
 
     // 既存電柱を1本だけ直設置する（新設位置から距離3＝接続範囲内なので、自動配線があれば必ず繋がる配置）

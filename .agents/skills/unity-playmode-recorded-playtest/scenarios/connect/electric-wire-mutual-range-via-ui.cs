@@ -31,7 +31,7 @@ return PlaytestRunner.Run("electric-wire-mutual-range-via-ui", options, async p 
 
     // 自動接続には電線connectToolの解放と消費アイテム(銅のワイヤー)が必要（未解放だと配線されず設置のみ）
     // Auto-connect needs the electricWire connectTool unlocked and its material item (銅のワイヤー); otherwise placement occurs without wiring
-    p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2"));
+    await p.RunOnServer("電線ツールを解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2")));
     await p.GiveItem("銅のワイヤー", 64);
 
     // 電柱3本の設置座標。A-B間はX距離6(電柱poleConnectionRange=13→±6の範囲内)、B-C間はZ距離9(範囲外)

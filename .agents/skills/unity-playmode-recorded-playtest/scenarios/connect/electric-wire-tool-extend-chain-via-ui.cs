@@ -53,7 +53,7 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     // Prepare pole unlock/cost and the wire tool unlock plus its material (銅のワイヤー)
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
     await p.PrepareBlockForUiPlacement("電柱", 5);
-    p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid);
+    await p.RunOnServer("電線ツールを解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
     await p.GiveItem("銅のワイヤー", 64);
 
     // 既存電柱3本を直設置する（直置きは自動接続されないので起点/接続先の素材になる）

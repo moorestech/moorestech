@@ -49,7 +49,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-cycle-rotate-via-ui", options
     await p.PrepareBlockForUiPlacement("電柱", 2);
     await p.UnlockBlock("高圧電柱");
     await p.UnlockBlock("広範囲電柱");
-    p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid);
+    await p.RunOnServer("電線ツールを解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
     await p.GiveItem("銅のワイヤー", 64);
 
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;

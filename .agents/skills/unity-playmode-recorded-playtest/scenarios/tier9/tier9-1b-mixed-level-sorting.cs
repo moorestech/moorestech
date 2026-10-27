@@ -67,7 +67,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     p.Assert(splitter.DirectionCount == 3, $"フィルター分岐器の方向数が3（{splitter.DirectionCount}）");
     await AllowOnly(splitter, 0, "シリコンダイLv1", "シリコンダイLv2");
     await p.WaitSeconds(0.5f);
-    await p.Until(() => splitter.InsertItem(ServerContext.ItemStackFactory.Create(PlaytestItemOps.ResolveItemId("シリコンダイLv2"), 1), InsertItemContext.Empty).Count == 0, 10f, "分岐器へ シリコンダイLv2 を入れた");
+    await InsertIntoSplitter("シリコンダイLv2");
     await OpenMachine(packagingA);
     await PlaytestWebUiOps.WaitWebUiTextContains("machine-input-stall", "シリコンダイLv2", 10f);
     var stall = await PlaytestDomQuery.Query("machine-input-stall", 3f);
@@ -87,12 +87,11 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     await AllowOnly(splitter, 2, "シリコンダイLv2");
     p.Note($"分岐器の設定: {splitter.GetBlueprintSettingsJson()}");
     await p.WaitSeconds(0.5f);
-    foreach (var die in Enumerable.Range(0, 19).Select(i => i % 2 == 0 ? "シリコンダイLv2" : "シリコンダイLv1"))
-        await p.Until(() => { Feed(); return splitter.InsertItem(ServerContext.ItemStackFactory.Create(PlaytestItemOps.ResolveItemId(die), 1), InsertItemContext.Empty).Count == 0; }, 10f, $"分岐器へ {die} を入れた");
+    foreach (var die in Enumerable.Range(0, 19).Select(i => i % 2 == 0 ? "シリコンダイLv2" : "シリコンダイLv1")) await InsertIntoSplitter(die);
 
     // 両方のパッケージングが本当に ICチップを作り、A の止まった理由は消える
     // Both packaging machines really make IC chips and A's stall reason clears
-    await p.Until(() => { Feed(); return Count(packagingA, "ICチップLv1") >= 1 && Count(packagingB, "ICチップLv2") >= 1; }, 90f, "仕分けた後に Lv1 と Lv2 の ICチップが両方出た");
+    await p.Until(() => Count(packagingA, "ICチップLv1") >= 1 && Count(packagingB, "ICチップLv2") >= 1, 90f, "仕分けた後に Lv1 と Lv2 の ICチップが両方出た");
     p.Assert(Count(packagingA, "ICチップLv2") == 0 && Count(packagingB, "ICチップLv1") == 0, "A は Lv1 だけ、B は Lv2 だけを作った");
     await OpenMachine(packagingA);
     p.Assert(await StallCleared(), "仕分けた後は A の止まった理由が消えた");
@@ -100,27 +99,31 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     await p.ClickWebUi("block-inventory-close");
     p.Note("段1b 完了");
     #region Internal
-
     IEnumerable<Guid> WithPrerequisites(IEnumerable<Guid> targets)
     {
         // 前提を辿って閉包を作る（CompleteResearch は素材と前提が揃わないと拒むため使わない）
         // Walk prerequisites into a closure (CompleteResearch refuses without items and prerequisites)
-        var done = new HashSet<Guid>();
-        var pending = new Stack<Guid>(targets);
+        var (done, pending) = (new HashSet<Guid>(), new Stack<Guid>(targets));
         while (pending.TryPop(out var guid))
             if (done.Add(guid)) foreach (var prev in MasterHolder.ResearchMaster.GetResearch(guid).PrevResearchNodeGuids) pending.Push(prev);
         return done;
     }
-
     async UniTask<IBlock> Place(string name, Vector3Int pos) { var block = await p.PlaceBlockDirect(name, pos, BlockDirection.North); consumers.Add(block); return block; }
     async UniTask Give(IBlock block, int slot, string item, int count) => await p.RunOnServer($"{item} x{count} を {block.BlockMasterElement.Name} へ入れる", () => block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(slot, PlaytestItemOps.ResolveItemId(item), count));
-
-    // パッケージングの IPA は機械のタンクへ直接入れる（tick 外にパイプへ注入すると流体網の複製がサーバーと食い違うため）
-    // Pour packaging IPA straight into machine tanks (injecting into pipes outside the tick desyncs the fluid replica)
-    void Feed() { foreach (var machine in new[] { packagingA, packagingB }) machine.GetComponent<VanillaMachineFluidInventoryComponent>().AddLiquid(new FluidStack(20, ipaId), default); }
-
+    async UniTask InsertIntoSplitter(string die)
+    {
+        // 分岐器が空くまで tick 末尾で入れ直し、そのたびにパッケージングの IPA タンクも満たす（パイプ注入は流体網の複製と食い違うため直接入れる）
+        // Retry at the tick end until the splitter takes it, topping up packaging IPA tanks each time (direct, since pipe injection desyncs the fluid replica)
+        var (rest, deadline) = (1, Time.realtimeSinceStartup + 10f);
+        while (rest > 0 && Time.realtimeSinceStartup < deadline)
+            await p.RunOnServer($"分岐器へ {die} を入れる", () =>
+            {
+                rest = splitter.InsertItem(ServerContext.ItemStackFactory.Create(PlaytestItemOps.ResolveItemId(die), 1), InsertItemContext.Empty).Count;
+                foreach (var machine in new[] { packagingA, packagingB }) machine.GetComponent<VanillaMachineFluidInventoryComponent>().AddLiquid(new FluidStack(100000, ipaId), default);
+            });
+        await p.Until(() => rest == 0, 0f, $"分岐器へ {die} を入れた");
+    }
     int Count(IBlock block, string itemName) => block.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Where(s => s.Count > 0 && s.Id == PlaytestItemOps.ResolveItemId(itemName)).Sum(s => s.Count);
-
     async UniTask SelectRecipe(IBlock block, Guid recipeGuid)
     {
         block.ComponentManager.TryGetComponent<IMachineRecipeSelectorComponent>(out var selector);
@@ -128,7 +131,6 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         await p.RunOnServer("パッケージングのレシピを選ぶ", () => result = selector.SetSelectedRecipe(MasterHolder.MachineRecipesMaster.GetRecipeElement(recipeGuid), new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10)));
         p.Assert(result == MachineRecipeSelectionResult.Success, $"select recipe {recipeGuid}");
     }
-
     async UniTask AllowOnly(VanillaFilterSplitterComponent component, int direction, params string[] itemNames)
     {
         // 方向の添字は outputConnects の順（北向きで 0=-x・1=+z・2=+x）。0 は A 側、2 は B 側。指定外のフィルター枠は空にする
@@ -140,7 +142,6 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
                 component.SetFilterItem(direction, slot, slot < itemNames.Length ? PlaytestItemOps.ResolveItemId(itemNames[slot]) : ItemMaster.EmptyItemId);
         });
     }
-
     async UniTask OpenMachine(IBlock block)
     {
         // F は射程2mなので南面の1m手前（搬入ベルトの西隣）に着地し、Alt のカーソル照準で南面を狙って開く（cleanroom-room-usability と同じ手順）
@@ -155,20 +156,15 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         SemanticInput.KeyUp(Key.LeftAlt);
         await p.UntilWebUiElement("block-inventory-close", 10f);
     }
-
     async UniTask<bool> StallCleared()
     {
         // 表示の更新は最大1秒なので、3秒まで欄が消えるのを待つ
         // The display refreshes within a second, so wait up to 3 seconds for the row to go away
         var deadline = Time.realtimeSinceStartup + 3f;
         while (Time.realtimeSinceStartup < deadline)
-        {
-            if (!(await PlaytestDomQuery.Query("machine-input-stall", 1f)).Found) return true;
-            await UniTask.Delay(200);
-        }
+            if (!(await PlaytestDomQuery.Query("machine-input-stall", 1f)).Found) return true; else await UniTask.Delay(200);
         return false;
     }
-
     async UniTask BuildRoom()
     {
         // 内寸 x1..13 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 にする
@@ -184,7 +180,6 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         }
         await p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
     }
-
     async UniTask PowerAll()
     {
         // 室外の発電機 → 広範囲電柱 → 全消費ブロックへ配線する（結線で電力網の再構築は自動で予約される）
@@ -201,6 +196,5 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         });
         foreach (var (connected, label) in wired) p.Assert(connected, label);
     }
-
     #endregion
 });

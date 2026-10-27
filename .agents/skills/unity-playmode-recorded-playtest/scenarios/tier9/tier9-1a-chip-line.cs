@@ -64,7 +64,7 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     var euv = await PlaceStage("EUV露光式半導体製造装置", new Vector3Int(10, 33, 1), "1層パターンウェハG1");
     var dicing = await PlaceStage("ダイシング装置", new Vector3Int(2, 33, 5), "シリコンダイLv1");
     var packaging = await PlaceStage("パッケージング装置", new Vector3Int(6, 33, 5), "ICチップLv1");
-    foreach (var x in new[] { 10, 12 }) await Give(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 5)), 0, "クリーンルームフィルター", 5);
+    foreach (var x in new[] { 10, 12 }) await GiveWithFluids(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 5)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
     await p.Until(() => p.ServerService<CleanRoomDatastore>().TryGetCleanRoom(cutter, out var r) && r.ThresholdIndex < MasterHolder.CleanRoomMaster.OutThresholdIndex, 30f, "clean room classified");
     foreach (var cell in new[] { new Vector3Int(14, 36, 10), new Vector3Int(7, 33, 0), new Vector3Int(0, 32, -26) }) await p.WaitBlockGameObject(cell);
@@ -72,50 +72,49 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
 
     // IPA が化学プラントから出て、切断 → 成膜 → EUV の各工程が出力を出す
     // IPA comes out of the chemical plant, then slicing, deposition and EUV each produce output
-    await p.Until(() => { Feed(); return ipaOutPipe.GetComponent<Game.Block.Blocks.Fluid.IFluidInventory>().GetFluidInventory().Any(f => f.FluidId == ipaId && f.Amount > 0); }, 60f, "IPA produced");
+    await p.RunOnServer("IPA・ナフサ・水をタンクいっぱいまで入れる", FillFluids);
+    await p.Until(() => ipaOutPipe.GetComponent<Game.Block.Blocks.Fluid.IFluidInventory>().GetFluidInventory().Any(f => f.FluidId == ipaId && f.Amount > 0), 60f, "IPA produced");
     p.Note("高純度シリコン→ウェハ→成膜→EUV の順に各工程へ素材を入れる");
-    await Give(cutter, 0, "高純度シリコン", 20);
-    await p.Until(() => { Feed(); return Count(cutter, "シリコンウェハ") > 0; }, 60f, "wafer sliced");
-    await Give(depo, 0, "シリコンウェハ", 2);
-    await p.Until(() => { Feed(); return Count(depo, "トランジスタ設置済みウェハ") > 0; }, 60f, "transistor wafer deposited");
-    await Give(euv, 0, "トランジスタ設置済みウェハG1", 4);
-    await p.Until(() => { Feed(); return Count(euv, "1層パターンウェハ") + Count(euv, "失敗したパターンウェハ") > 0; }, 60f, "EUV layer exposed");
+    await GiveWithFluids(cutter, 0, "高純度シリコン", 20);
+    await p.Until(() => Count(cutter, "シリコンウェハ") > 0, 60f, "wafer sliced");
+    await GiveWithFluids(depo, 0, "シリコンウェハ", 2);
+    await p.Until(() => Count(depo, "トランジスタ設置済みウェハ") > 0, 60f, "transistor wafer deposited");
+    await GiveWithFluids(euv, 0, "トランジスタ設置済みウェハG1", 4);
+    await p.Until(() => Count(euv, "1層パターンウェハ") + Count(euv, "失敗したパターンウェハ") > 0, 60f, "EUV layer exposed");
 
     // ダイシング（G2 完成ウェハ）で Lv1 と Lv2 のダイが出る
     // Dicing a G2 finished wafer yields Lv1 and Lv2 dies
     p.Note("G2 の完成ウェハをダイシングして Lv1/Lv2 ダイを取る");
-    await Give(dicing, 0, "完成パターンウェハG2", 1);
-    await p.Until(() => { Feed(); return Count(dicing, "シリコンダイLv1") >= 10 && Count(dicing, "シリコンダイLv2") >= 10; }, 60f, "Lv1 and Lv2 dies diced");
+    await GiveWithFluids(dicing, 0, "完成パターンウェハG2", 1);
+    await p.Until(() => Count(dicing, "シリコンダイLv1") >= 10 && Count(dicing, "シリコンダイLv2") >= 10, 60f, "Lv1 and Lv2 dies diced");
     await ShootMachine(dicing, "02-dies");
 
     // パッケージングで Lv1 → ICチップLv1、Lv2 → ICチップLv2（継承レシピ）。出力スロットは1つなので Lv1 を取り出してから Lv2 を流す
     // Packaging turns Lv1 dies into IC chip Lv1 and Lv2 into IC chip Lv2 (inheritance); the single output slot means Lv1 is taken out before Lv2
     p.Note("Lv1 ダイと Lv2 ダイを順にパッケージングする");
-    await Give(packaging, 1, "ICチップ基板", 2);
+    await GiveWithFluids(packaging, 1, "ICチップ基板", 2);
     await MoveDies("シリコンダイLv1");
-    await p.Until(() => { Feed(); return Count(packaging, "ICチップLv1") > 0; }, 30f, "IC chip Lv1 packaged");
+    await p.Until(() => Count(packaging, "ICチップLv1") > 0, 30f, "IC chip Lv1 packaged");
     await ShootMachine(packaging, "03-chips-lv1");
     p.Note($"ICチップLv1 x{Count(packaging, "ICチップLv1")} を取り出し、Lv2 ダイを入れる");
     await p.RunOnServer("ICチップLv1 を取り出す", () => { foreach (var slot in Enumerable.Range(0, Slots(packaging).GetSlotSize()).Where(s => Slots(packaging).GetItem(s).Id == PlaytestItemOps.ResolveItemId("ICチップLv1"))) Slots(packaging).SetItem(slot, ServerContext.ItemStackFactory.CreatEmpty()); });
     await MoveDies("シリコンダイLv2");
-    await p.Until(() => { Feed(); return Count(packaging, "ICチップLv2") > 0; }, 30f, "IC chip Lv2 packaged");
+    await p.Until(() => Count(packaging, "ICチップLv2") > 0, 30f, "IC chip Lv2 packaged");
     await ShootMachine(packaging, "03-chips");
     p.Note("段1a 完了");
     #region Internal
-
     IEnumerable<Guid> WithPrerequisites(IEnumerable<Guid> targets)
     {
         // 前提を辿って閉包を作る（CompleteResearch は素材と前提が揃わないと拒むため使わない）
         // Walk prerequisites into a closure (CompleteResearch refuses without items and prerequisites)
-        var done = new HashSet<Guid>();
-        var pending = new Stack<Guid>(targets);
+        var (done, pending) = (new HashSet<Guid>(), new Stack<Guid>(targets));
         while (pending.TryPop(out var guid))
             if (done.Add(guid)) foreach (var prev in MasterHolder.ResearchMaster.GetResearch(guid).PrevResearchNodeGuids) pending.Push(prev);
         return done;
     }
     async UniTask<IBlock> Place(string name, Vector3Int pos) { var block = await p.PlaceBlockDirect(name, pos, BlockDirection.North); consumers.Add(block); return block; }
     IOpenableBlockInventoryComponent Slots(IBlock block) => block.GetComponent<IOpenableBlockInventoryComponent>();
-    async UniTask Give(IBlock block, int slot, string item, int count) => await p.RunOnServer($"{item} x{count} を {block.BlockMasterElement.Name} へ入れる", () => Slots(block).SetItem(slot, PlaytestItemOps.ResolveItemId(item), count));
+    async UniTask GiveWithFluids(IBlock block, int slot, string item, int count) => await p.RunOnServer($"{item} x{count} を {block.BlockMasterElement.Name} へ入れ、液体を満たす", () => { Slots(block).SetItem(slot, PlaytestItemOps.ResolveItemId(item), count); FillFluids(); });
     int Count(IBlock block, string prefix) => Slots(block).InventoryItems.Where(s => s.Count > 0 && MasterHolder.ItemMaster.GetItemMaster(s.Id).Name.StartsWith(prefix)).Sum(s => s.Count);
     FluidId FluidIdOf(string name) => MasterHolder.FluidMaster.GetFluidId(MasterHolder.FluidMaster.Fluids.Data.First(f => f.Name == name).FluidGuid);
     async UniTask<IBlock> PlaceStage(string name, Vector3Int origin, string firstOutputName)
@@ -127,24 +126,21 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
         await SelectRecipe(machine, MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == machine.BlockMasterElement.BlockGuid && r.OutputItems.Any() && r.OutputItems.First().ItemGuid == output));
         return machine;
     }
-    void Feed()
+    void FillFluids()
     {
-        // 工程機械へ IPA、化学プラントへナフサと水を直接入れる（タンクはレシピの束縛で決まる）
-        // Pour IPA into stage machines and naphtha/water into the chemical plant (tanks follow the recipe binding)
-        foreach (var stage in stages) stage.GetComponent<VanillaMachineFluidInventoryComponent>().AddLiquid(new FluidStack(50, ipaId), default);
-        foreach (var fluid in new[] { "ナフサ", "水" }) chem.GetComponent<VanillaMachineFluidInventoryComponent>().AddLiquid(new FluidStack(50, FluidIdOf(fluid)), default);
+        // サーバー tick 内で工程機械へ IPA、化学プラントへナフサと水をタンクいっぱいまで入れる（各工程は1回の加工で足り、溢れた分は捨てる）
+        // Inside the server tick, fill stage tanks with IPA and the chemical plant with naphtha/water (one craft per stage suffices; overflow is dropped)
+        foreach (var stage in stages) stage.GetComponent<VanillaMachineFluidInventoryComponent>().AddLiquid(new FluidStack(100000, ipaId), default);
+        foreach (var fluid in new[] { "ナフサ", "水" }) chem.GetComponent<VanillaMachineFluidInventoryComponent>().AddLiquid(new FluidStack(100000, FluidIdOf(fluid)), default);
     }
-
-    async UniTask MoveDies(string dieName)
+    async UniTask MoveDies(string dieName) => await p.RunOnServer($"{dieName} x10 をダイシングからパッケージングへ移し、液体を満たす", () =>
     {
-        var id = PlaytestItemOps.ResolveItemId(dieName);
-        await p.RunOnServer($"{dieName} x10 をダイシングから取り出す", () =>
-        {
-            var slot = Enumerable.Range(0, Slots(dicing).GetSlotSize()).First(s => Slots(dicing).GetItem(s).Id == id && Slots(dicing).GetItem(s).Count >= 10);
-            Slots(dicing).SetItem(slot, id, Slots(dicing).GetItem(slot).Count - 10);
-        });
-        await Give(packaging, 0, dieName, 10);
-    }
+        var (id, dicingSlots) = (PlaytestItemOps.ResolveItemId(dieName), Slots(dicing));
+        var slot = Enumerable.Range(0, dicingSlots.GetSlotSize()).First(s => dicingSlots.GetItem(s).Id == id && dicingSlots.GetItem(s).Count >= 10);
+        dicingSlots.SetItem(slot, id, dicingSlots.GetItem(slot).Count - 10);
+        Slots(packaging).SetItem(0, id, 10);
+        FillFluids();
+    });
     async UniTask SelectRecipe(IBlock block, Mooresmaster.Model.MachineRecipesModule.MachineRecipeMasterElement recipe)
     {
         block.ComponentManager.TryGetComponent<IMachineRecipeSelectorComponent>(out var selector);
@@ -152,7 +148,6 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
         await p.RunOnServer($"{block.BlockMasterElement.Name} のレシピを選ぶ", () => result = selector.SetSelectedRecipe(recipe, new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10)));
         p.Assert(result == MachineRecipeSelectionResult.Success, $"select recipe {recipe.MachineRecipeGuid}");
     }
-
     async UniTask ShootMachine(IBlock block, string screenshotName)
     {
         // F は射程2mなので南面の1m手前に着地し、Alt のカーソル照準で南面を狙って機械 UI を開いて撮る（cleanroom-room-usability と同じ手順）
@@ -170,7 +165,6 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
         await p.ClickWebUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
-
     async UniTask BuildRoom()
     {
         // 内寸 x1..13 / z1..9 / y33..36。室内で機械 UI を開くとき三人称カメラ（足元+約2.9m）が天井より下に来るよう、天井は y37 にする
@@ -186,7 +180,6 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
         }
         await p.PlaceBlockDirect("クリーンルームドア", door, BlockDirection.North);
     }
-
     async UniTask PowerAll()
     {
         // 室外の発電機 → 広範囲電柱 → 全消費ブロックへ配線する（結線で電力網の再構築は自動で予約される）
