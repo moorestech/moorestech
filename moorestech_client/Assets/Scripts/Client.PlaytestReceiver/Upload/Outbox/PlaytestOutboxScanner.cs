@@ -24,8 +24,9 @@ namespace Client.PlaytestReceiver.Upload
         public const string CompletionHoldPrefix = "evidence-completion-required: ";
         public const string LockMarker = "UPLOAD_LOCK";
         public const string DeclaredMarker = "UPLOAD_DECLARED";
+        public const string ShippedMarker = "SHIPPED";
 
-        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker, DeclaredMarker, LockMarker, "SHIPPED" };
+        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker, DeclaredMarker, LockMarker, ShippedMarker };
 
         public static IReadOnlyList<PlaytestOutboxBox> ScanPending(PlaytestOutboxDirectories directories, PlaytestOutboxScope scope)
         {
@@ -72,7 +73,7 @@ namespace Client.PlaytestReceiver.Upload
 
             IEnumerable<PlaytestOutboxBox> ScanOne(string outbox, PlaytestUploadKind kind, IPlaytestBoxFilePolicy filePolicy)
             {
-                foreach (var directory in EnumerateOutboxDirectories(outbox))
+                foreach (var directory in EnumerateBoxDirectories(outbox))
                 {
                     string[] markers;
                     // 外部ディスク境界。読めない箱を隔離し、件数不明は在庫表示へ残す
@@ -132,24 +133,20 @@ namespace Client.PlaytestReceiver.Upload
             {
                 // 存在しないoutboxはまだ報告を作っていない状態
                 // An absent outbox means no report has been created yet
-                foreach (var directory in EnumerateOutboxDirectories(outbox))
+                foreach (var directory in EnumerateBoxDirectories(outbox))
                 {
-                    var markers = ReadMarkers(directory);
-                    if (!markers.Contains(ReadyMarker)) continue;
-                    if (IsDelivered(markers)) continue;
-                    // 印を書けない同名ディレクトリも失敗として画面へ残す
-                    // A directory blocking the failure marker also remains visible as failed
-                    var blockedMarker = Directory.Exists(Path.Combine(directory, FailedMarker));
-                    if (blockedMarker) UnityEngine.Debug.LogWarning($"[PlaytestReceiver] failure marker is a directory: {directory}");
-                    if (blockedMarker || markers.Contains(FailedMarker)) failed++;
-                    else pending++;
+                    switch (PlaytestOutboxBoxState.Classify(directory))
+                    {
+                        case PlaytestOutboxBoxKind.Failed: failed++; break;
+                        case PlaytestOutboxBoxKind.Pending: pending++; break;
+                    }
                 }
             }
 
             #endregion
         }
 
-        private static string[] EnumerateOutboxDirectories(string outbox)
+        public static IReadOnlyList<string> EnumerateBoxDirectories(string outbox)
         {
             // 外部ディスク境界。未作成だけを空扱いし、権限エラーは呼び手へ伝える
             // External disk boundary: only an absent root is empty; access failures reach the caller
@@ -170,7 +167,7 @@ namespace Client.PlaytestReceiver.Upload
 
         private static bool IsDelivered(string[] markers)
         {
-            return markers.Contains(UploadedMarker) || markers.Contains("SHIPPED");
+            return markers.Contains(UploadedMarker) || markers.Contains(ShippedMarker);
         }
 
         public static IReadOnlyList<string> ListPayloadFiles(string boxDirectory)
