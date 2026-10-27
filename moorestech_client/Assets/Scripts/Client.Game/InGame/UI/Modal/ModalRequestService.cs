@@ -21,9 +21,11 @@ namespace Client.Game.InGame.UI.Modal
         public IObservable<Unit> OnPendingChanged => _onPendingChanged;
         private readonly Subject<Unit> _onPendingChanged = new();
 
-        private string _pendingId;
         private UniTaskCompletionSource<(ModalResult result, string text)> _pendingSource;
         private int _nextId;
+        // 最後に発行した要求ID。保留が解けても残し、置き換えられた旧要求を見分ける
+        // The last issued request id; kept after the pending request resolves to tell replaced requests apart
+        private string _latestIssuedId;
 
         public void Initialize()
         {
@@ -36,31 +38,33 @@ namespace Client.Game.InGame.UI.Modal
         // Show a modal and await its result
         public async UniTask<ModalResult> RequestModal(string title, string message, string buttonText, ModalVariant variant)
         {
-            var (result, _) = await RequestCore(title, message, buttonText, variant, false);
+            var (_, response) = RequestCore(title, message, buttonText, variant, false);
+            var (result, _) = await response;
             return result;
         }
 
-        // 入力付きモーダルを出して (結果, 入力テキスト) を待つ（キャンセル時 text は null）
-        // Show an input modal and await (result, entered text); text is null on cancel
-        public UniTask<(ModalResult result, string text)> RequestInputModal(string title, string message, string buttonText)
+        // 入力付きモーダルを出し、自分の要求IDと (結果, 入力テキスト) の待ちを返す（キャンセル時 text は null）
+        // Show an input modal and return its own request id with the wait for (result, entered text); text is null on cancel
+        public (string requestId, UniTask<(ModalResult result, string text)> response) RequestInputModal(string title, string message, string buttonText)
         {
             return RequestCore(title, message, buttonText, ModalVariant.Confirm, true);
         }
 
-        private UniTask<(ModalResult result, string text)> RequestCore(string title, string message, string buttonText, ModalVariant variant, bool requiresInput)
+        private (string requestId, UniTask<(ModalResult result, string text)> response) RequestCore(string title, string message, string buttonText, ModalVariant variant, bool requiresInput)
         {
             // 最新要求の状態を先に確定し、既存要求は再入しても上書きしない順序で cancel 解決する
             // Commit the latest request state first, then cancel the previous request without reentrant overwrites
             var previousSource = _pendingSource;
 
             _nextId++;
-            _pendingId = _nextId.ToString();
+            var requestId = _nextId.ToString();
+            _latestIssuedId = requestId;
             var source = new UniTaskCompletionSource<(ModalResult result, string text)>();
             _pendingSource = source;
 
             Pending = new ModalRequest
             {
-                Id = _pendingId,
+                Id = requestId,
                 Title = title,
                 Message = message,
                 ButtonText = buttonText,
@@ -70,14 +74,14 @@ namespace Client.Game.InGame.UI.Modal
             _onPendingChanged.OnNext(Unit.Default);
 
             previousSource?.TrySetResult((ModalResult.Cancel, null));
-            return source.Task;
+            return (requestId, source.Task);
         }
 
         // 最後に出した要求か。置き換えで cancel 解決された旧要求を見分ける
         // Whether this is the latest issued request; tells apart old requests cancelled by replacement
         public bool IsLatestRequest(string id)
         {
-            return id == _nextId.ToString();
+            return id == _latestIssuedId;
         }
 
         // 保留中の要求だけcancel解決
@@ -89,7 +93,6 @@ namespace Client.Game.InGame.UI.Modal
             if (_pendingSource == null && Pending == null) return;
             var source = _pendingSource;
             _pendingSource = null;
-            _pendingId = null;
             Pending = null;
             _onPendingChanged.OnNext(Unit.Default);
             source?.TrySetResult((ModalResult.Cancel, null));
@@ -101,11 +104,10 @@ namespace Client.Game.InGame.UI.Modal
         {
             // silent-ok: 遅延した応答は現要求を変更しない / action呼出元がfalseを受け取る
             // Stale replies leave the current request intact; the action caller receives false.
-            if (_pendingSource == null || id == null || id != _pendingId) return false;
+            if (_pendingSource == null || id == null || id != Pending.Id) return false;
 
             var source = _pendingSource;
             _pendingSource = null;
-            _pendingId = null;
             Pending = null;
             _onPendingChanged.OnNext(Unit.Default);
 

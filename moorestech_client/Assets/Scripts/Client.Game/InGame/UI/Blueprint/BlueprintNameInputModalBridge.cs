@@ -44,14 +44,13 @@ namespace Client.Game.InGame.UI.Blueprint
 
             async UniTaskVoid RequestAndRespond()
             {
-                // 要求時点の言語で文言を解決しpush
-                // Resolve texts in the request-time language and push
-                var request = _modalService.RequestInputModal(
+                // 要求時点の言語で文言を解決してpushし、要求IDは戻り値で受け取る（呼んだ後の Pending は同期購読者が差し替え得る）
+                // Resolve texts in the request-time language and push; take the id from the return value, as a synchronous subscriber may replace Pending after the call
+                var (requestId, response) = _modalService.RequestInputModal(
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalTitle),
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalMessage),
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalConfirm));
-                var requestId = _modalService.Pending.Id;
-                var (result, text) = await request;
+                var (result, text) = await response;
 
                 // 確定は空白のみを弾いて状態へ書き戻す（web側でも確定無効化済みの二重防御）
                 // Confirm rejects whitespace-only before writing back (double guard; the web disables confirm too)
