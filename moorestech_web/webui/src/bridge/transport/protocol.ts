@@ -71,6 +71,9 @@ export const Topics = {
   // プレイテスト要求は snapshot を持たない一時イベントとして扱う
   // Playtest requests are transient events without snapshots
   playtestDomQuery: "playtest.dom_query",
+  // プレイテストの文字入力要求もsnapshotを持たない一時イベント
+  // Playtest text-input requests are also transient events without snapshots
+  playtestDomSetText: "playtest.dom_set_text",
   // ゲーム内通知も一時イベント
   // In-game notifications are also transient events
   notification: "notification.events",

@@ -176,11 +176,7 @@ namespace Client.WebUiHost.Vite
         {
             if (_process == null) return;
 
-            if (!_process.HasExited)
-            {
-                ViteProcessKiller.KillProcessTree(_process.Id);
-                _process.WaitForExit(2000);
-            }
+            ViteProcessStop.Terminate(_process);
 
             _process.Dispose();
             _process = null;

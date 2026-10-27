@@ -11,10 +11,6 @@ using Cysharp.Threading.Tasks;
 
 namespace Client.WebUiHost.Boot
 {
-    /// <summary>
-    /// トピックハンドラのインターフェース
-    /// Interface for topic handlers
-    /// </summary>
     public interface ITopicHandler
     {
         // 新規購読者に現在値を snapshot として返す
@@ -22,10 +18,6 @@ namespace Client.WebUiHost.Boot
         UniTask<string> GetSnapshotJsonAsync();
     }
 
-    /// <summary>
-    /// WS 接続の集約・購読管理・トピック配信
-    /// Aggregates WS connections, manages subscriptions, dispatches topic events
-    /// </summary>
     public class WebSocketHub
     {
         private readonly ConcurrentDictionary<Guid, WebSocketConnection> _connections = new();
@@ -34,9 +26,11 @@ namespace Client.WebUiHost.Boot
         private readonly ConcurrentDictionary<string, long> _topicRevisions = new();
         private readonly WebSocketMessageDispatcher _dispatcher;
         private readonly WebSocketReceiveLoop _receiver;
+        public readonly ConnectionActionRegistry ConnectionActions;
 
         public WebSocketHub()
         {
+            ConnectionActions = new ConnectionActionRegistry(this);
             _dispatcher = new WebSocketMessageDispatcher(this);
             _receiver = new WebSocketReceiveLoop(_dispatcher);
         }
@@ -88,6 +82,8 @@ namespace Client.WebUiHost.Boot
         // Register an action handler (called by WebUiGameBinder)
         public void RegisterAction(IActionHandler handler)
         {
+            if (ConnectionActions.Resolve(handler.ActionType) != null)
+                throw new InvalidOperationException($"Action already registered with connection context: {handler.ActionType}");
             if (!_actionHandlers.TryAdd(handler.ActionType, handler))
             {
                 // 同名 ActionType の二重登録は実装ミスなので警告して上書きする
@@ -112,6 +108,7 @@ namespace Client.WebUiHost.Boot
                 (kv.Value as IDisposable)?.Dispose();
             }
             _actionHandlers.Clear();
+            ConnectionActions.Clear();
 
         }
 
@@ -132,12 +129,28 @@ namespace Client.WebUiHost.Boot
             }
         }
 
+        public bool HasConnection(Guid connectionId) => _connections.ContainsKey(connectionId);
+
+        // 送信時にも購読を確認し、対象の1接続だけへ渡す
+        // Check subscription at send time and deliver to exactly one connection
+        public bool PublishTo(Guid connectionId, string topic, string dataJson)
+        {
+            if (!_connections.TryGetValue(connectionId, out var connection) || !connection.Topics.ContainsKey(topic))
+            {
+                UnityEngine.Debug.LogWarning($"[WebSocketHub] Directed delivery rejected: disconnected or unsubscribed ({topic})");
+                return false;
+            }
+            var revision = _topicRevisions.AddOrUpdate(topic, 1, (_, current) => checked(current + 1));
+            if (connection.EnqueueSend(WebSocketEnvelope.BuildEnvelope("event", topic, revision, dataJson))) return true;
+            UnityEngine.Debug.LogWarning($"[WebSocketHub] Directed delivery rejected: connection stopping ({topic})");
+            return false;
+        }
+
         // 新規接続を受け入れ、送受信ループを開始
         // Accept a new connection and start its send/receive loops
-        public async Task HandleConnectionAsync(WebSocket webSocket, CancellationToken ct)
+        public async Task HandleConnectionAsync(WebSocket webSocket, CancellationToken ct, Guid id)
         {
-            var id = Guid.NewGuid();
-            var conn = new WebSocketConnection(webSocket);
+            var conn = new WebSocketConnection(webSocket, id);
             _connections[id] = conn;
 
             // 送信ループと受信ループを同時実行し、fault は完了時に必ずログへ残す
@@ -157,25 +170,11 @@ namespace Client.WebUiHost.Boot
             if (_connections.IsEmpty) WebUiInputExclusivity.SetState(false, false);
         }
 
-        public async Task CloseAllAsync()
+        public async Task<WebSocketCloseResult> CloseAllAsync()
         {
-            // 最大 2 秒タイムアウト付きで Close フレームを送信
-            // Send Close frames with a 2-second timeout to avoid blocking forever
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-            foreach (var conn in _connections.Values)
-            {
-                // 1 接続の close 失敗が他接続の close を止めないよう境界で隔離する（2-B）
-                // Isolate each close so one connection's failure cannot skip the rest (2-B)
-                try
-                {
-                    await conn.CloseAsync(cts.Token);
-                }
-                catch (Exception e)
-                {
-                    UnityEngine.Debug.LogWarning($"[WebSocketHub] close failed: {e.GetBaseException().Message}");
-                }
-            }
+            var result = await WebSocketConnectionCloser.CloseAllAsync(_connections.Values);
             _connections.Clear();
+            return result;
         }
 
         // 受信ループと切り離して action を到着順に1本ずつ実行する。長い action が ping の読み出しを塞がないため
@@ -189,7 +188,5 @@ namespace Client.WebUiHost.Boot
                 await _dispatcher.HandleActionAsync(conn, msg);
             }
         }
-
-
     }
 }

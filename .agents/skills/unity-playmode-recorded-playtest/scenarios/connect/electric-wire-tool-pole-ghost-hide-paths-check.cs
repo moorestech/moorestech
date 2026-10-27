@@ -61,9 +61,9 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-hide-paths-check", opti
         var openDeadline = Time.realtimeSinceStartup + 4f;
         while (Time.realtimeSinceStartup < openDeadline && p.CurrentUiState != UIStateEnum.BuildMenu) await UniTask.DelayFrame(5);
     }
-    await p.UntilWebUiElement("build-menu-panel", 15f);
-    await p.ClickWebUi("build-menu-category-d1000000-0000-4000-8000-000000000009");
-    await p.ClickWebUi($"build-menu-entry-connectTool-{wireToolGuid:D}");
+    await p.UntilUiElement("build-menu-panel", 15f);
+    await p.ClickUi("build-menu-category-d1000000-0000-4000-8000-000000000009");
+    await p.ClickUi($"build-menu-entry-connectTool-{wireToolGuid:D}");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 15f);
 
     // ===== 1. 空間照準ではゴーストが点く（修正の再確認） =====

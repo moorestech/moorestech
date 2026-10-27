@@ -63,14 +63,14 @@ return PlaytestRunner.Run("walk-while-menus-open", options, async p =>
     p.Note("ビルドメニューの検索欄にフォーカス中はwasd・Spaceを押しても動かない");
     await p.PressKey(Key.B);
     await p.WaitUiState(UIStateEnum.BuildMenu, 5f);
-    await p.ClickWebUi("build-menu-search");
+    await p.ClickUi("build-menu-search");
     await p.Until(() => WebUiInputExclusivity.IsTextInputFocused, 5f, "検索欄に文字入力フォーカスが入る");
     var beforeTyping = p.PlayerPosition;
     foreach (var typedKey in new[] { Key.W, Key.A, Key.S, Key.D, Key.Space }) await p.PressKey(typedKey);
     var typingWalk = await WalkForward();
     var typingMoved = Vector3.Distance(beforeTyping, p.PlayerPosition);
     p.Assert(typingWalk < 0.05f && typingMoved < 0.05f, $"検索欄にフォーカス中は動かない ({typingMoved:F2}m)");
-    await p.CloseWebUiPanel();
+    await p.CloseBuildMenuPanel();
     await p.WaitUiState(UIStateEnum.GameScreen, 5f);
     await p.Until(() => !WebUiInputExclusivity.IsTextInputFocused, 5f, "閉じると文字入力フォーカスが外れる");
     var resumedWalk = await WalkForward();

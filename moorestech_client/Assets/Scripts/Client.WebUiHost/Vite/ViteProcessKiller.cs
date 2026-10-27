@@ -12,35 +12,17 @@ namespace Client.WebUiHost.Vite
     /// </summary>
     public static class ViteProcessKiller
     {
-        // 親pid直下の子(pnpm経由node)をkill
-        // Kill direct children of the parent pid (node spawned via pnpm)
-        public static void KillProcessTree(int pid)
+        // 子の停止コマンド結果を本人processの終了確認へ渡す
+        // Return the child termination command result to the owner termination check
+        internal static int KillProcessTree(int pid)
         {
 #if UNITY_EDITOR_OSX || UNITY_EDITOR_LINUX
-            RunDetached("/usr/bin/pkill", $"-P {pid}");
+            return ViteProcessCommand.Run("/usr/bin/pkill", $"-KILL -P {pid}");
 #elif UNITY_EDITOR_WIN
-            RunDetached(@"C:\Windows\System32\taskkill.exe", $"/F /T /PID {pid}");
+            return ViteProcessCommand.Run(@"C:\Windows\System32\taskkill.exe", $"/F /T /PID {pid}");
+#else
+            throw new PlatformNotSupportedException("Vite process termination requires an Editor platform");
 #endif
-        }
-
-        // 外部コマンドをfire-and-forgetで実行
-        // Run an external command fire-and-forget; return value and exit status are ignored
-        public static void RunDetached(string fileName, string arguments)
-        {
-            if (!File.Exists(fileName)) return;
-            var psi = new ProcessStartInfo
-            {
-                FileName = fileName,
-                Arguments = arguments,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-            };
-            var p = Process.Start(psi);
-            if (p == null) return;
-            p.WaitForExit(1500);
-            p.Dispose();
         }
 
 #if UNITY_EDITOR
@@ -120,10 +102,11 @@ namespace Client.WebUiHost.Vite
         private static void KillPid(int pid)
         {
 #if UNITY_EDITOR_WIN
-            RunDetached(@"C:\Windows\System32\taskkill.exe", $"/F /PID {pid}");
+            var exitCode = ViteProcessCommand.Run(@"C:\Windows\System32\taskkill.exe", $"/F /PID {pid}");
 #else
-            RunDetached("/bin/kill", $"-9 {pid}");
+            var exitCode = ViteProcessCommand.Run("/bin/kill", $"-9 {pid}");
 #endif
+            if (exitCode != 0) throw new InvalidOperationException($"Vite cleanup command failed for {pid}: exit={exitCode}");
         }
 
         // listenするpidを返す。無ければ0

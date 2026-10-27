@@ -4,7 +4,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Playtest;
 using Client.Playtest.Input;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
@@ -37,15 +37,13 @@ if (Application.isFocused || !Keyboard.current.enabled || !Mouse.current.enabled
     throw new System.InvalidOperationException("Background input precondition failed: " + probe);
 await SemanticInput.TapKey(Key.Tab);
 await PlaytestUiOps.WaitUiState(UIStateEnum.PlayerInventory, 10f);
-// 録画前にDOM応答も確認し、probeの転送購読を必ず片付ける
-// Verify DOM responses before recording and always clean up probe forwarding
-PlaytestDomQuery.RegisterHandler();
-CefInputForwarder.StartForwarding();
-try { await PlaytestWebUiOps.WaitWebUiElement("inventory-sort", 15f); }
+// 録画前にUI照会を確認し、probeのロケータ購読を必ず片付ける
+// Verify UI lookup before recording and always clean up the probe locator
+PlaytestUiLocatorSession.Start();
+try { await PlaytestUiElementOps.WaitUiElement("inventory-sort", 15f); }
 finally
 {
-    CefInputForwarder.StopForwarding();
-    PlaytestDomQuery.ResetPending();
+    PlaytestUiLocatorSession.Stop();
 }
 await UniTask.Delay(System.TimeSpan.FromSeconds(0.5f));
 await SemanticInput.TapKey(Key.Tab);
@@ -119,12 +117,12 @@ return PlaytestRunner.Run("sprint-toggle-mode", options, async p =>
         p.Note("e: ポーズ設定でホールドに変更");
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.PauseMenu, 10f);
-        await p.ClickWebUi("pause-menu-open-settings");
-        await p.ClickWebUi("sprint-mode-option-hold");
+        await p.ClickUi("pause-menu-open-settings");
+        await p.ClickUi("sprint-mode-option-hold");
         await p.Until(() => SprintInputModePreference.Current == SprintInputMode.Hold, 10f, "Hold設定反映");
         p.Assert(PlayerPrefs.GetString("SprintInputMode") == "Hold", "HoldをPlayerPrefsへ保存");
         await p.Screenshot("04-settings-hold");
-        await p.ClickWebUi("pause-menu-back");
+        await p.ClickUi("pause-menu-back");
         await p.PressKey(Key.Escape);
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
         await BeginMovement();

@@ -82,7 +82,7 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.PressKey(Key.E);
     await p.AimAt(new Vector3(10.5f, 32f, 8.5f));
     await p.ClickPlace();
-    await p.UntilWebUiElement("modal-input", 10f);
+    await p.UntilUiElement("modal-input", 10f);
     nameState.Confirm("wired-bp");
     await p.Until(() => datastore.Blueprints.Any(b => b.Name == "wired-bp"), 15f, "BP『wired-bp』が登録される");
     var bp = datastore.Blueprints.First(b => b.Name == "wired-bp");
@@ -132,15 +132,15 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     var required = BlueprintPasteGhostProbe.RequiredItems(bp, 1);
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.BuildMenu, 10f);
-    await p.ClickWebUi(BlueprintCategory);
-    await p.HoverWebUi(bpEntry);
+    await p.ClickUi(BlueprintCategory);
+    await p.HoverUi(bpEntry);
     foreach (var (itemId, count) in required)
-        await PlaytestWebUiOps.WaitWebUiTextContains("build-menu-detail", $"{p.CountItem(ItemName(itemId))}/{count}", 10f);
+        await PlaytestUiElementOps.WaitUiTextContains("build-menu-detail", $"{p.CountItem(ItemName(itemId))}/{count}", 10f);
     p.Assert(0 < required.Count, $"詳細サイドバーに必要素材 {string.Join(", ", required.Select(r => $"{ItemName(r.itemId)}x{r.count}"))}");
     await p.Screenshot("05-build-menu-required-materials");
 
     p.Note("7. 素材を1個分持たせて貼る: 3ブロックと電線2本がサーバーに出る");
-    await p.ClickWebUi(bpEntry);
+    await p.ClickUi(bpEntry);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     var heldBefore = required.ToDictionary(r => r.itemId, r => p.CountItem(ItemName(r.itemId)));
     foreach (var (itemId, count) in required) p.GiveItemDirect(ItemName(itemId), count);

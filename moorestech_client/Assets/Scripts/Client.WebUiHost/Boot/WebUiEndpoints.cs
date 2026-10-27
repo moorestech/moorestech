@@ -5,12 +5,12 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.WebUiHost.Common;
+using Client.WebUiHost.Cef;
 using Client.WebUiHost.Assets;
 using Client.WebUiHost.Static;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-
 namespace Client.WebUiHost.Boot
 {
     /// <summary>
@@ -81,7 +81,21 @@ namespace Client.WebUiHost.Boot
                     // System.Net.WebSockets.WebSocket をサーバ側として生成
                     // Create server-side WebSocket from the raw stream
                     var ws = WebSocket.CreateFromStream(stream, isServer: true, subProtocol: null, keepAliveInterval: TimeSpan.FromSeconds(30));
-                    await hub.HandleConnectionAsync(ws, context.RequestAborted);
+                    var connectionId = Guid.NewGuid();
+                    var navigationId = context.Request.Query["cefNavigation"].ToString();
+                    if (navigationId.Length > 0 && !WebUiCefConnection.TryRegister(hub, navigationId, connectionId))
+                    {
+                        await ws.CloseAsync(WebSocketCloseStatus.PolicyViolation, "CEF registration rejected", context.RequestAborted);
+                        return;
+                    }
+                    try
+                    {
+                        await hub.HandleConnectionAsync(ws, context.RequestAborted, connectionId);
+                    }
+                    finally
+                    {
+                        WebUiCefConnection.Release(hub, connectionId);
+                    }
                     return;
                 }
 

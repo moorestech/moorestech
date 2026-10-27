@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using Client.WebUiHost.Game.Actions;
+using Client.WebUiHost.Boot.Transport;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -44,10 +45,14 @@ namespace Client.Tests.WebUi
                 var types = System.AppDomain.CurrentDomain.GetAssemblies()
                     .Where(a => a.GetName().Name.StartsWith("Client."))
                     .SelectMany(a => a.GetTypes())
-                    .Where(t => typeof(IActionHandler).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                    .Where(t => (typeof(IActionHandler).IsAssignableFrom(t) || typeof(IConnectionActionHandler).IsAssignableFrom(t)) && !t.IsInterface && !t.IsAbstract);
                 // ハンドラのコンストラクタはゲーム状態の依存を要求するため、生成せずに ActionType だけを読む
                 // Handler constructors demand game-state dependencies, so read ActionType without constructing them
-                return types.Select(t => ((IActionHandler)FormatterServices.GetUninitializedObject(t)).ActionType).ToList();
+                return types.Select(t =>
+                {
+                    var instance = FormatterServices.GetUninitializedObject(t);
+                    return instance is IConnectionActionHandler sourced ? sourced.ActionType : ((IActionHandler)instance).ActionType;
+                }).ToList();
             }
 
             string LoadFixture(string fixtureName)

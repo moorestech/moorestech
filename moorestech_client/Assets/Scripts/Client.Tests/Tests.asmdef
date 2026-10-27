@@ -90,6 +90,7 @@
         "MessagePack.Annotations.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "Microsoft.Extensions.DependencyInjection.dll",
+        "Microsoft.AspNetCore.Hosting.Abstractions.dll",
         "Microsoft.AspNetCore.Http.dll",
         "Microsoft.AspNetCore.Http.Abstractions.dll",
         "Microsoft.AspNetCore.Http.Features.dll",

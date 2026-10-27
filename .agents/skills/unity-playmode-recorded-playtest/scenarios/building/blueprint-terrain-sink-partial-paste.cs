@@ -75,7 +75,7 @@ return PlaytestRunner.Run("blueprint-terrain-sink-partial-paste", options, async
     await p.ClickPlace();
     await p.AimAt(new Vector3(11.5f, 160f, 2.5f));
     await p.ClickPlace();
-    await p.UntilWebUiElement("modal-input", 10f);
+    await p.UntilUiElement("modal-input", 10f);
     nameState.Confirm("terrain-sink-bp");
     await p.Until(() => datastore.Blueprints.Any(b => b.Name == "terrain-sink-bp"), 15f, "BP『terrain-sink-bp』が登録される");
     var blueprint = datastore.Blueprints.First(b => b.Name == "terrain-sink-bp");

@@ -1,0 +1,47 @@
+using System;
+using Client.Playtest.UiElements;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+
+namespace Client.Playtest.Operations
+{
+    internal static class PlaytestTextInputOps
+    {
+        internal static async UniTask SetText(string testid, string text, float timeoutSeconds)
+        {
+            // 欄の出現・有効化を期限内で待ち、置き換えた値が保たれたら完了とする
+            // Wait for the field to appear and enable, completing once the replaced value holds
+            var generation = PlaytestUiLocatorSession.CaptureGeneration();
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var lastStatus = UiSetTextStatus.NotFound;
+            while (Time.realtimeSinceStartup <= deadline)
+            {
+                PlaytestUiLocatorSession.RequireGeneration(generation);
+                var result = await PlaytestUiLocatorSession.Locator.SetText(testid, text, UiElementScreenPointResolver.RemainingSeconds(deadline, testid));
+                PlaytestUiLocatorSession.RequireGeneration(generation);
+                lastStatus = result.Status;
+                if (Time.realtimeSinceStartup >= deadline) break;
+                if (result.Status == UiSetTextStatus.Applied)
+                {
+                    Debug.Log($"[PlaytestUi] {testid} text set by {result.Renderer}");
+                    return;
+                }
+                if (IsPermanentFailure(result.Status))
+                    throw new InvalidOperationException($"UI text input rejected ({result.Status}, actual '{result.ActualValue}'): {testid}");
+                lastStatus = result.Status;
+                await UniTask.DelayFrame(2);
+            }
+            throw new TimeoutException($"UI text input did not apply (last: {lastStatus}): {testid}");
+
+            #region Internal
+
+            bool IsPermanentFailure(UiSetTextStatus status)
+            {
+                return status == UiSetTextStatus.NotTextField || status == UiSetTextStatus.ValueMismatch || status == UiSetTextStatus.Ambiguous;
+            }
+
+            #endregion
+        }
+
+    }
+}

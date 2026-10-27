@@ -73,7 +73,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
 
     p.Note("終点クリックで名前入力が開く。Web側キャンセル（nameState.Cancel＝モーダルの閉じる/ESC相当）で終点選択へ戻る（始点は残る）");
     await p.ClickPlace();
-    await p.UntilWebUiElement("modal-input", 10f);
+    await p.UntilUiElement("modal-input", 10f);
     p.Assert(isNameOpen, "名前入力が開く");
     nameState.Cancel();
     await UniTask.DelayFrame(5);
@@ -83,7 +83,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
 
     p.Note("もう一度終点クリックし、今度はゲーム側の右短押しで終点選択へ戻る");
     await p.ClickPlace();
-    await p.UntilWebUiElement("modal-input", 10f);
+    await p.UntilUiElement("modal-input", 10f);
     await p.RightShortClick();
     await UniTask.DelayFrame(5);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, $"右短押し後もPlaceBlock 実際:{p.CurrentUiState}");
@@ -95,7 +95,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.PressKey(Key.Q);
     await p.AimAt(new Vector3(4.5f, 32f, 4.5f));
     await p.ClickPlace();
-    await p.UntilWebUiElement("modal-input", 10f);
+    await p.UntilUiElement("modal-input", 10f);
     nameState.Confirm("chest-bp");
     await p.Until(() => datastore.Blueprints.Any(b => b.Name == "chest-bp"), 15f, "BP『chest-bp』が登録される");
     await UniTask.DelayFrame(10);
@@ -144,13 +144,13 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.Until(() => ClientDIContext.BlueprintThumbnailLookup.Contains(chestBp.BlueprintGuid), 20f, "サムネイル撮影完了");
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.BuildMenu, 10f);
-    await p.ClickWebUi(BlueprintCategory);
-    await p.HoverWebUi($"build-menu-entry-blueprint-{chestBp.BlueprintGuid:D}");
+    await p.ClickUi(BlueprintCategory);
+    await p.HoverUi($"build-menu-entry-blueprint-{chestBp.BlueprintGuid:D}");
     await p.Screenshot("06-thumbnail-in-build-menu");
-    await p.CloseWebUiPanel();
+    await p.CloseBuildMenuPanel();
     await p.ExitToGameScreen();
     await p.Hotbar.AssignHotbar(0, "chest-bp");
-    await p.UntilWebUiElement("hotbar-slot-0", 10f);
+    await p.UntilUiElement("hotbar-slot-0", 10f);
     await UniTask.DelayFrame(5);
     await p.Screenshot("07-thumbnail-in-hotbar");
 

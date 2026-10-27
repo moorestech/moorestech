@@ -10,7 +10,6 @@ using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Playtest;
 using Client.Playtest.Operations;
-using Client.Playtest.WebUi;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.TrainRail;
@@ -62,11 +61,11 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     await AssertTop("01-top-four-buttons");
 
     p.Note("通常画面: 設定へ進み、Escapeでトップへ1段戻る");
-    await p.ClickWebUi("pause-menu-open-settings");
+    await p.ClickUi("pause-menu-open-settings");
     await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Settings, 15f, "設定pageへの遷移");
-    await p.UntilWebUiElement("language-select", 15f);
-    await p.ClickWebUi("language-select-option-japanese");
-    await p.UntilWebUiElement("pause-menu-locale-japanese", 15f);
+    await p.UntilUiElement("language-select", 15f);
+    await p.ClickUi("language-select-option-japanese");
+    await p.UntilUiElement("pause-menu-locale-japanese", 15f);
     p.Assert(p.CurrentUiState == UIStateEnum.PauseMenu, "設定中もPauseMenuが開いている");
     await p.Screenshot("02-settings");
     await p.PressKey(Key.Escape);
@@ -79,7 +78,7 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     await OpenBugReport();
     await EnterDescription(firstDescription);
     await p.Screenshot("04-first-draft");
-    await p.ClickWebUi("pause-menu-back");
+    await p.ClickUi("pause-menu-back");
     await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Top, 15f, "報告画面からトップへ戻る");
     await OpenBugReport();
     await p.Screenshot("05-first-draft-restored");
@@ -111,9 +110,9 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     await AssertTop("09-train-top-four-buttons");
 
     p.Note("列車HUD: 設定へ進み、Escapeで入れ子ポーズのトップへ戻る");
-    await p.ClickWebUi("pause-menu-open-settings");
+    await p.ClickUi("pause-menu-open-settings");
     await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Settings, 15f, "列車HUDで設定pageへ遷移");
-    await p.UntilWebUiElement("language-select", 15f);
+    await p.UntilUiElement("language-select", 15f);
     await p.Screenshot("10-train-settings");
     await p.PressKey(Key.Escape);
     await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Top, 15f, "列車HUDの設定からトップへ戻る");
@@ -134,51 +133,41 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     {
         await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Top, 15f, "ポーズトップpage");
         foreach (var id in new[] { "pause-menu-save", "pause-menu-save-and-quit", "pause-menu-open-settings", "pause-menu-open-bug-report" })
-            await p.UntilWebUiElement(id, 15f);
+            await p.UntilUiElement(id, 15f);
         p.Assert(pauseMenu.CurrentPage.Value == PauseMenuPage.Top, "トップ4ボタンの所有pageがTop");
         await p.Screenshot(screenshot);
     }
-
     async UniTask OpenBugReport()
     {
-        await p.ClickWebUi("pause-menu-open-bug-report");
+        await p.ClickUi("pause-menu-open-bug-report");
         await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.BugReport, 15f, "バグ報告pageへの遷移");
-        await p.UntilWebUiElement("bug-report-description", 15f);
+        await p.UntilUiElement("bug-report-description", 15f);
     }
-
     async UniTask EnterDescription(string description)
     {
-        await p.ClickWebUi("bug-report-description");
-        p.Assert(CefScreenMapper.TryGetBrowser(out var browser), "CEF browserを解決してtextareaへ入力できる");
-        foreach (var character in description)
-        {
-            browser.SendCharEvent(character, 0);
-            await UniTask.Yield();
-        }
-        await p.UntilWebUiElement("bug-report-send", 15f);
+        await p.ClickUi("bug-report-description");
+        await p.SetText("bug-report-description", description);
+        await p.UntilUiElement("bug-report-send", 15f);
     }
-
     async UniTask SubmitAndAssertBundle(string description, int expectedNewCount, string screenshot)
     {
         await p.Until(() => captureSession.Status.Value.Kind == BugReportCaptureStatus.Ready, 30f, "バグ報告の確保が送信可能になる");
         // トーストは押した時点の確保状態の欠損で出る
         // The toast reports the gaps held by the capture state at click time
         var clickMissing = captureSession.Status.Value.Missing.ToList();
-        await p.ClickWebUi("bug-report-send");
+        await p.ClickUi("bug-report-send");
         await p.Until(() => ReadyBugBoxes().Except(existingBugBoxes).Count() == expectedNewCount, 60f, $"bug outboxが{expectedNewCount}箱増える");
         var created = ReadyBugBoxes().Except(existingBugBoxes).Select(ReadManifest).ToList();
         p.Assert(created.Count == expectedNewCount, $"READY済みbug manifestが{expectedNewCount}件");
         p.Assert(created.Any(manifest => (string)manifest["description"] == description && (string)manifest["kind"] == "bug"), $"manifestはkind=bugで説明文を保持: {description}");
         await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Top, 15f, "送信後にトップへ戻る");
         p.Assert(p.CurrentUiState == UIStateEnum.PauseMenu, "送信後もPauseMenuが開いている");
-        await PlaytestWebUiOps.WaitWebUiTextContains("toast-host", clickMissing.Count == 0 ? "outbox" : clickMissing[0], 15f);
+        await PlaytestUiElementOps.WaitUiTextContains("toast-host", clickMissing.Count == 0 ? "outbox" : clickMissing[0], 15f);
         p.Note($"送信時の欠損: {(clickMissing.Count == 0 ? "なし" : string.Join(",", clickMissing))}");
         await p.Screenshot(screenshot);
     }
-
     IEnumerable<string> ReadyBugBoxes() => Directory.GetDirectories(outbox).Where(directory => File.Exists(Path.Combine(directory, "READY")) && File.Exists(Path.Combine(directory, BugReportBundleLayout.ManifestFileName))).Where(directory => (string)ReadManifest(directory)["kind"] == "bug");
     JObject ReadManifest(string directory) => JObject.Parse(File.ReadAllText(Path.Combine(directory, BugReportBundleLayout.ManifestFileName)));
-
     async UniTask<TrainCarEntityObject> PrepareAndRideTrain()
     {
         var a = new Vector3Int(10, 32, 6); var b = new Vector3Int(10, 32, 22);
@@ -199,7 +188,6 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         await p.AimAt(collider.bounds.center); await p.PressRide();
         return spawned;
     }
-
     void PlacePier(Vector3Int position)
     {
         var blockId = PlaytestBlockOps.ResolveBlockId("レール橋脚");
@@ -207,6 +195,5 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         var parameters = new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, MessagePackSerializer.Serialize(detail)) };
         p.Assert(ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, BlockDirection.North, parameters, out _), $"レール橋脚を配置 {position}");
     }
-
     #endregion
 });

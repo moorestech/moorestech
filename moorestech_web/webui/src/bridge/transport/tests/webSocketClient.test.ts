@@ -29,7 +29,7 @@ beforeEach(() => {
   vi.resetModules();
   openedUrls.length = 0;
   sockets.length = 0;
-  vi.stubGlobal("location", { host: "example.test" });
+  vi.stubGlobal("location", { host: "example.test", protocol: "http:", hash: "" });
   vi.stubGlobal("WebSocket", WebSocketStub);
 });
 
@@ -40,19 +40,19 @@ afterEach(() => {
 
 describe("WebSocket bridge initialization", () => {
   it("import だけでは WebSocket 接続を開始しない", async () => {
-    await import("./webSocketClient");
+    await import("../webSocketClient");
 
     expect(openedUrls).toEqual([]);
   });
 
   it("未初期化の action は disconnected として reject する", async () => {
-    const { sendAction } = await import("./webSocketClient");
+    const { sendAction } = await import("../webSocketClient");
 
     await expect(sendAction("debug.echo", {}, 5000)).rejects.toThrow("disconnected");
   });
 
   it("initBridge は WebSocket 接続を一度だけ開始する", async () => {
-    const { initBridge } = await import("./webSocketClient");
+    const { initBridge } = await import("../webSocketClient");
 
     initBridge();
     initBridge();
@@ -63,7 +63,7 @@ describe("WebSocket bridge initialization", () => {
   // https配信でws:のままだとmixed contentでブラウザが接続を拒否し、UIが何も描画されないまま止まる
   // Keeping ws: under https makes the browser refuse the connection outright, leaving the UI blank
   it("initBridge はページのスキームに合わせ https では wss を使う", async () => {
-    const { initBridge } = await import("./webSocketClient");
+    const { initBridge } = await import("../webSocketClient");
 
     const original = location.protocol;
     Object.defineProperty(location, "protocol", { value: "https:", configurable: true });
@@ -75,12 +75,22 @@ describe("WebSocket bridge initialization", () => {
     }
   });
 
+  it("CEFナビゲーション値をWS接続と再接続へ渡す", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("location", { host: "example.test", protocol: "http:", hash: "#cefNavigation=launch-id" });
+    const { initBridge } = await import("../webSocketClient");
+    initBridge();
+    sockets[0].close();
+    await vi.advanceTimersByTimeAsync(100);
+    expect(openedUrls).toEqual(["ws://example.test/ws?cefNavigation=launch-id", "ws://example.test/ws?cefNavigation=launch-id"]);
+  });
+
   it("initBridge は命令的読み出し対象を pin し一時購読解除後も最新値を保持する", async () => {
-    const { initBridge } = await import("./webSocketClient");
-    const { subscriptions } = await import("./subscriptionManager");
-    const { Topics } = await import("./protocol");
-    const { deliverTopicPayload } = await import("../store/topicStore");
-    const { readTopic } = await import("../store/useTopic");
+    const { initBridge } = await import("../webSocketClient");
+    const { subscriptions } = await import("../subscriptionManager");
+    const { Topics } = await import("../protocol");
+    const { deliverTopicPayload } = await import("../../store/topicStore");
+    const { readTopic } = await import("../../store/useTopic");
 
     initBridge();
     expect(new Set(subscriptions.subscribedTopics())).toEqual(new Set([
@@ -100,9 +110,9 @@ describe("WebSocket bridge initialization", () => {
 
   it("切断後に全購読 topic の snapshot が揃うまで restoring を維持する", async () => {
     vi.useFakeTimers();
-    const { initBridge } = await import("./webSocketClient");
-    const { Topics } = await import("./protocol");
-    const { useTopicStore } = await import("../store/topicStore");
+    const { initBridge } = await import("../webSocketClient");
+    const { Topics } = await import("../protocol");
+    const { useTopicStore } = await import("../../store/topicStore");
     initBridge();
     sockets[0].open();
     expect(useTopicStore.getState().status).toBe("restoring");
@@ -128,8 +138,8 @@ describe("WebSocket bridge initialization", () => {
   // A 15s heartbeat racing a 120s action turns a written bug report into a silent failure
   it("応答待ちの action がある間は無応答でも socket を閉じない", async () => {
     vi.useFakeTimers();
-    const { initBridge, sendAction } = await import("./webSocketClient");
-    const { useTopicStore } = await import("../store/topicStore");
+    const { initBridge, sendAction } = await import("../webSocketClient");
+    const { useTopicStore } = await import("../../store/topicStore");
     // action の待ちタイマーは window 経由で張られるため、偽タイマーごと window として見せる
     // The action's wait timer is set through window, so window is exposed as the faked global itself
     vi.stubGlobal("window", globalThis);
@@ -147,8 +157,8 @@ describe("WebSocket bridge initialization", () => {
 
   it("pong が途絶えると socket を閉じて再接続状態へ移る", async () => {
     vi.useFakeTimers();
-    const { initBridge } = await import("./webSocketClient");
-    const { useTopicStore } = await import("../store/topicStore");
+    const { initBridge } = await import("../webSocketClient");
+    const { useTopicStore } = await import("../../store/topicStore");
     initBridge();
     sockets[0].open();
 
