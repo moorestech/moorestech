@@ -29,6 +29,10 @@ namespace Client.Playtest.Core
         // The tick and main threads race to start or cancel, so the state transitions exactly once
         private int _state = StateQueued;
 
+        // 待ち手へ渡す失敗。nullなら成功として完了させる
+        // The failure handed to the awaiter; null completes it as a success
+        private Exception _failure;
+
         private PlaytestServerThreadAction(string label, Action serverAction)
         {
             _label = label;
@@ -69,18 +73,17 @@ namespace Client.Playtest.Core
             catch (Exception exception)
             {
                 Debug.LogError($"[Playtest] tick末尾の処理が例外で失敗しました: {_label}\n{exception}");
-                _queue.Release(this);
-                CompleteOnMainThread(() => _completion.TrySetException(exception));
-                return;
+                _failure = exception;
             }
             _queue.Release(this);
-            CompleteOnMainThread(() => _completion.TrySetResult());
+            CompleteOnMainThread();
         }
 
         public void OnServerStopped()
         {
             Debug.LogError($"[Playtest] 処理完了前にサーバーが停止しました: {_label}");
-            CompleteOnMainThread(() => _completion.TrySetException(new InvalidOperationException($"Server stopped before the playtest server action completed: {_label}")));
+            _failure = new InvalidOperationException($"Server stopped before the playtest server action completed: {_label}");
+            CompleteOnMainThread();
         }
 
         private void CancelOnTimeout()
@@ -96,16 +99,26 @@ namespace Client.Playtest.Core
             Debug.LogError($"[Playtest] tick末尾の処理が{CompletionTimeoutSeconds}秒以内に終わりません（tickの中で止まっています）: {_label}");
         }
 
-        private static void CompleteOnMainThread(Action complete)
+        private void CompleteOnMainThread()
         {
             // 完了源は続きを完了させたスレッドで同期実行する。成功・失敗とも続きをメインスレッドで走らせるため、通知自体をメインスレッドへ渡す
             // The completion source runs continuations synchronously on the completing thread; post the notification itself so success and failure both continue on the main thread
             if (PlayerLoopHelper.IsMainThread)
             {
-                complete();
+                PublishCompletion();
                 return;
             }
-            UniTask.Post(complete, PlayerLoopTiming.Update);
+            UniTask.Post(PublishCompletion, PlayerLoopTiming.Update);
+        }
+
+        private void PublishCompletion()
+        {
+            if (_failure != null)
+            {
+                _completion.TrySetException(_failure);
+                return;
+            }
+            _completion.TrySetResult();
         }
     }
 }
