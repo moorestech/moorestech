@@ -3,6 +3,7 @@ using Client.Localization;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using UniRx;
+using UnityEngine;
 using VContainer.Unity;
 
 namespace Client.Game.InGame.UI.Blueprint
@@ -45,15 +46,29 @@ namespace Client.Game.InGame.UI.Blueprint
             {
                 // 要求時点の言語で文言を解決しpush
                 // Resolve texts in the request-time language and push
-                var (result, text) = await _modalService.RequestInputModal(
+                var request = _modalService.RequestInputModal(
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalTitle),
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalMessage),
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalConfirm));
+                var requestId = _modalService.Pending.Id;
+                var (result, text) = await request;
 
                 // 確定は空白のみを弾いて状態へ書き戻す（web側でも確定無効化済みの二重防御）
                 // Confirm rejects whitespace-only before writing back (double guard; the web disables confirm too)
-                if (result == ModalResult.Confirm && !string.IsNullOrWhiteSpace(text)) _state.Confirm(text);
-                else _state.Cancel();
+                if (result == ModalResult.Confirm && !string.IsNullOrWhiteSpace(text))
+                {
+                    _state.Confirm(text);
+                    return;
+                }
+
+                // 新しい要求に置き換えられた cancel で閉じると、新しい要求まで取り消してしまう
+                // Closing on a cancel caused by replacement would also cancel the newer request
+                if (!_modalService.IsLatestRequest(requestId))
+                {
+                    Debug.LogWarning($"[BlueprintNameInputModalBridge] modal request {requestId} was replaced by a newer request; keeping the name input open");
+                    return;
+                }
+                _state.Cancel();
             }
 
             #endregion

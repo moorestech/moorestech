@@ -73,6 +73,13 @@ namespace Client.Game.InGame.UI.Modal
             return source.Task;
         }
 
+        // 最後に出した要求か。置き換えで cancel 解決された旧要求を見分ける
+        // Whether this is the latest issued request; tells apart old requests cancelled by replacement
+        public bool IsLatestRequest(string id)
+        {
+            return id == _nextId.ToString();
+        }
+
         // 保留中の要求だけcancel解決
         // Cancel-resolve only the pending request
         public void CancelPendingRequest()
