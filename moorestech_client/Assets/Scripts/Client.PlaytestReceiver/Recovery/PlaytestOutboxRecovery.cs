@@ -55,7 +55,13 @@ namespace Client.PlaytestReceiver.Recovery
             // 走行中の配送が終わるまで待ってから印を外す。走行が箱を数えている最中に印を変えない
             // Wait for any in-flight run before unmarking so markers never change under a counting run
             await PlaytestOutboxAccess.Gate.WaitAsync(Application.exitCancellationToken);
-            try { PlaytestFailedBoxRelease.ReleaseAll(_directories, route.Scope); }
+            try
+            {
+                // 走行の結末が拒否なら印を外さない。外すと失敗理由だけが消える
+                // Keep markers when the run ended refused; unmarking would only erase the failure reason
+                if (PlaytestDeliveryStatusBoard.Current.Value is PlaytestDeliveryRefused) Debug.LogWarning("[PlaytestReceiver] resend keeps failure markers because the receiver refused the session");
+                else PlaytestFailedBoxRelease.ReleaseAll(_directories, route.Scope);
+            }
             finally { PlaytestOutboxAccess.Gate.Release(); }
             // 解除できた数に関わらず要求する。走行が件数表示を最新にする
             // Request regardless of the released count; the run refreshes the displayed counts

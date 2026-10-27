@@ -37,6 +37,14 @@ it("localOnly では失敗があっても再送は出さず書き出しは出す
   act(() => r.unmount());
 });
 
+it("refused では失敗があっても再送は出さず書き出しは出す", async () => {
+  const refused = { kind: "refused", inventory: { kind: "known", pendingCount: 0, failedCount: 2 } } as PauseMenuData["delivery"];
+  const r = await renderDelivery({ kind: "ready", missing: [] }, refused, idle);
+  expect(byTestId(r, "bug-report-resend-failed")).toHaveLength(0);
+  expect(byTestId(r, "bug-report-export-unsent")).toHaveLength(1);
+  act(() => r.unmount());
+});
+
 it("すべて送信済みなら両方とも出さない", async () => {
   const r = await renderDelivery({ kind: "ready", missing: [] }, { kind: "allSent" }, idle);
   expect(byTestId(r, "bug-report-resend-failed")).toHaveLength(0);

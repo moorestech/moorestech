@@ -129,6 +129,22 @@ namespace Client.Tests.PlaytestReceiver.Recovery
             Assert.AreEqual(1, requester.Count);
         }
 
+        [Test]
+        public void RefusedBoardResendKeepsMarkersAndRequestsUploadOnce()
+        {
+            var box = MakeBox("reports", "a", "READY", "UPLOAD_FAILED");
+            var requester = new CountingRequester();
+            PlaytestDeliveryStatusBoard.Set(new PlaytestDeliveryRefused(new PlaytestOutboxDeliveryCounts(0, 1)));
+            try
+            {
+                UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("refused the session"));
+                new PlaytestOutboxRecovery(requester, _directories, null, null).ResendFailedAsync(new PlaytestSteamRoute()).GetAwaiter().GetResult();
+                Assert.IsTrue(File.Exists(Path.Combine(box, "UPLOAD_FAILED")));
+                Assert.AreEqual(1, requester.Count);
+            }
+            finally { PlaytestDeliveryStatusBoard.ResetOnPlayMode(); }
+        }
+
         private string MakeBox(string outbox, string id, params string[] markers)
         {
             var box = Directory.CreateDirectory(Path.Combine(_root, outbox, id)).FullName;
