@@ -109,19 +109,34 @@ namespace Client.WebUiHost.Boot
             // Handlers touch game state, so always run them on the main thread
             await UniTask.SwitchToMainThread();
 
-            // 停止が始まった・登録が外れた場合はハンドラを実行しない（解体中のゲーム状態の保護）
-            // Skip execution once stopping began or the registry was cleared while we awaited the main thread
-            if (_hub.IsStopping || (_hub.ResolveAction(msg.Type) == null && _hub.ConnectionActions.Resolve(msg.Type) == null))
+            // 停止が始まったらハンドラを実行しない（解体中のゲーム状態の保護）。停止かどうかは IsStopping だけで決める
+            // Skip execution once stopping began (protects game state being torn down); only IsStopping decides stopping
+            if (_hub.IsStopping)
             {
-                UnityEngine.Debug.LogWarning($"[WebSocketHub] action '{msg.Type}' rejected: host_stopping");
-                await UniTask.SwitchToTaskPool();
-                conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "host_stopping"));
+                await RejectAsync("host_stopping", "the host is stopping");
+                return;
+            }
+
+            // 待つ間に登録が外れた action は停止と名乗らず、未知の action として理由付きで返す
+            // An action whose registration was cleared meanwhile is not reported as stopping but as unknown, with the reason logged
+            if (_hub.ResolveAction(msg.Type) == null && _hub.ConnectionActions.Resolve(msg.Type) == null)
+            {
+                await RejectAsync("unknown_action", "its registration was cleared while waiting for the main thread");
                 return;
             }
 
             var result = await ExecuteHandlerAsync();
             await UniTask.SwitchToTaskPool();
             conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, result.Ok, result.Error));
+
+            #region Internal
+
+            async UniTask RejectAsync(string error, string reason)
+            {
+                UnityEngine.Debug.LogWarning($"[WebSocketHub] action '{msg.Type}' rejected: {error} ({reason})");
+                await UniTask.SwitchToTaskPool();
+                conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, error));
+            }
 
             async UniTask<ActionResult> ExecuteHandlerAsync()
             {
@@ -139,6 +154,8 @@ namespace Client.WebUiHost.Boot
                     return ActionResult.Fail("internal_error");
                 }
             }
+
+            #endregion
         }
 
         // snapshot 生成はメインスレッドでゲーム状態を読むため例外があり得る。境界で握って bool 化する（2-C）
