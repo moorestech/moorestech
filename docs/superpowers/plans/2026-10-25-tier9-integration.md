@@ -7766,7 +7766,7 @@ git -C $MW push
   - 本体ピン `moorestech_master.commitHash == <MASTER_SHA>`。
   - `run-scenario.sh` が HEAD とピンの一致する master worktree として `$MW` を選べる状態（S1 handoff「Task D9」Interfaces の自動選択）。
 
-- [ ] **Step 1: マスタ PR を作る**（AGENTS.md「関連リポジトリ」: 別 repo の変更も push して PR を作る。マージはしない。#87 と #88 は最終節で「統合 PR に置き換え」として閉じる）
+- [x] **Step 1: マスタ PR を作る**（AGENTS.md「関連リポジトリ」: 別 repo の変更も push して PR を作る。マージはしない。#87 と #88 は最終節で「統合 PR に置き換え」として閉じる）
 ```bash
 MASTER_SHA=$(git -C $MW rev-parse HEAD); git -C $MW status --short; git -C $MW log origin/feat/tier9-integrated..HEAD --oneline   # 未 push が無いこと
 gh pr create -R moorestech/moorestech_master --base master --head feat/tier9-integrated \
@@ -7780,8 +7780,8 @@ gh pr create -R moorestech/moorestech_master --base master --head feat/tier9-int
 - 末尾の生成の記載（system の帰属行）。
 
 Expected: PR の URL が出る。
-- [ ] **Step 2: 本体のピンを向ける。** S1 handoff「Task D8 Step 3」の Python を `$W` で `MASTER_SHA` に対して流す。  Expected: `1 file changed, 1 insertion(+), 1 deletion(-)`
-- [ ] **Step 3: e2e fixture を出荷マスタから作り直す**
+- [x] **Step 2: 本体のピンを向ける。** S1 handoff「Task D8 Step 3」の Python を `$W` で `MASTER_SHA` に対して流す。  Expected: `1 file changed, 1 insertion(+), 1 deletion(-)`
+- [x] **Step 3: e2e fixture を出荷マスタから作り直す**
 ```bash
 cd $W && python3 - "$MOD/master/blocks.json" moorestech_web/webui/e2e/fixtures/v8-block-ui-registry.json <<'EOF'
 import json, sys
@@ -7797,17 +7797,17 @@ Expected: 差分は 3 行の追加だけ: `ElectricGenerator` true（核融合�
 - `ElectricGenerator` false の行は、ガソリンエンジン発電機などが残るので消えない。
 - `Block` false も、基本土台・アスファルト土台が残るので消えない。
 - それ以外の差分が出たら（P1 のマージ結果と出荷マスタの openable の食い違い。例: `CleanRoomAirFilter`）、P1 の解決と照らして原因を特定する。
-- [ ] **Step 4: 発電機を意図的 Generic に入れる。** 専用 view を作らず、汎用の SectionStackView で出すため（S3 引き継ぎ「旧 Task 3 Step 4」）。`RocketLaunchPad` と `SpaceElevatorBase` はレジストリ登録済み（S3 ブランチ `blockComponentRegistry.ts:28-29`）なので足さない。`blockRegistryCoverage.spec.ts` の `intentionalGeneric` の `"ElectricMachine",` の前に 1 行足す:
+- [x] **Step 4: 発電機を意図的 Generic に入れる。** 専用 view を作らず、汎用の SectionStackView で出すため（S3 引き継ぎ「旧 Task 3 Step 4」）。`RocketLaunchPad` と `SpaceElevatorBase` はレジストリ登録済み（S3 ブランチ `blockComponentRegistry.ts:28-29`）なので足さない。`blockRegistryCoverage.spec.ts` の `intentionalGeneric` の `"ElectricMachine",` の前に 1 行足す:
 ```ts
   "ElectricGenerator",
 ```
-- [ ] **Step 5: e2e とロードを確かめる**
+- [x] **Step 5: e2e とロードを確かめる**
 ```bash
 cd $W/moorestech_web/webui && npx playwright test --config e2e/playwright.config.ts e2e/tests/block/blockRegistryCoverage.spec.ts
 cd $W && uloop get-logs --project-path ./moorestech_client --log-type Error | grep -E "MooresmasterLoaderException|\[BlockMaster\]|\[ItemMaster\]" ; echo "grep=$?"
 ```
 Expected: playwright は 1 passed。Editor でピンのマスタを読み直した後（RepositorySync がピンへ checkout する。S2 引き継ぎ G）、grep は `grep=1`（該当行なし）。
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 ```bash
 cd $W && git add .moorestech-external-revisions.json moorestech_web/webui/e2e/fixtures/v8-block-ui-registry.json moorestech_web/webui/e2e/tests/block/blockRegistryCoverage.spec.ts
 git commit -m "chore: Tier9 統合マスタ（moorestech_master feat/tier9-integrated）へピンを向け、e2e の block UI fixture を出荷マスタから作り直す"
