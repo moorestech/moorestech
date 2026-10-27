@@ -51,9 +51,9 @@ namespace Client.WebUiHost.Vite
             var root = UnityEditor.SessionState.GetString(SessionKeyViteRoot, "");
             if (pid == 0 || port == 0) return;
 
-            if (FindPidOnPort(port) == pid && (root == "" || GetProcessCwd(pid) == root))
+            if (FindPidOnPort(port) == pid && (root == "" || GetProcessCwd(pid) == root) && !VitePidTerminator.TryKill(pid, out var failure))
             {
-                KillPid(pid);
+                throw new InvalidOperationException(failure);
             }
             UnityEditor.SessionState.EraseInt(SessionKeyVitePid);
             UnityEditor.SessionState.EraseInt(SessionKeyVitePort);
@@ -71,7 +71,9 @@ namespace Client.WebUiHost.Vite
                 if (GetProcessCwd(pid) != normalizedRoot) continue;
 
                 Debug.Log($"[WebUiHost] killing orphaned vite (pid={pid})");
-                KillPid(pid);
+                // 1件の失敗で残りの掃除を止めない
+                // One failure does not stop sweeping the rest
+                if (!VitePidTerminator.TryKill(pid, out var failure)) Debug.LogError($"[WebUiHost] orphaned vite cleanup failed; continuing: {failure}");
             }
         }
 
@@ -97,16 +99,6 @@ namespace Client.WebUiHost.Vite
         private static string NormalizeRoot(string webuiRoot)
         {
             return Path.GetFullPath(webuiRoot).TrimEnd(Path.DirectorySeparatorChar);
-        }
-
-        private static void KillPid(int pid)
-        {
-#if UNITY_EDITOR_WIN
-            var exitCode = ViteProcessCommand.Run(@"C:\Windows\System32\taskkill.exe", $"/F /PID {pid}");
-#else
-            var exitCode = ViteProcessCommand.Run("/bin/kill", $"-9 {pid}");
-#endif
-            if (exitCode != 0) throw new InvalidOperationException($"Vite cleanup command failed for {pid}: exit={exitCode}");
         }
 
         // listenするpidを返す。無ければ0
