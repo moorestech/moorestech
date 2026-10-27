@@ -43,9 +43,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     // 開始位置(0,33.5,0)は壁の角になるので、建てる前に室外へ退く。床は室外まで北向き(水平)のパネルで敷く
     // The spawn (0,33.5,0) becomes a wall corner, so step outside first; the floor is north-facing (flat) panels reaching outdoors
     p.WarpPlayer(outsidePosition);
-    for (var x = -2; x <= 8; x++)
-    for (var z = -6; z <= 8; z++)
-        await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 32, z), BlockDirection.North);
+    for (var x = -2; x <= 8; x++) for (var z = -6; z <= 8; z++) await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 32, z), BlockDirection.North);
     await p.WaitBlockGameObject(new Vector3Int(6, 32, 4));
     await p.WaitSeconds(1f);
     #region パネルを Shift+R で縦にして UI で置く / Stand a panel upright with Shift+R and place it via the UI
@@ -157,7 +155,6 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     await p.WaitSeconds(2f);
     SemanticInput.KeyUp(Key.LeftAlt);
     #endregion
-    // ローカル関数 / Local functions
     async UniTask AssertPanelPlateInCell(Vector3Int cell, bool expectUpright)
     {
         // 板の描画範囲がセルの中に収まり、縦なら高さ1・厚さ0.1、横なら高さ0.1になる
@@ -183,8 +180,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     int FindMainSlot(ILocalPlayerInventory inventory, ItemId itemId) => Enumerable.Range(0, inventory.MainSlotCount).Where(i => inventory[i].Id == itemId && 0 < inventory[i].Count).DefaultIfEmpty(-1).First();
     string[] TooltipKeys() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>().GetPresentation() is { Visible: true } shown ? shown.Lines.Select(line => line.Key.Key).ToArray() : Array.Empty<string>();
     string FirstTooltipKey() => TooltipKeys().FirstOrDefault() ?? string.Empty;
-    Transform[] ActiveMarkers() => UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None)
-        .Where(renderer => renderer.gameObject.activeInHierarchy && renderer.gameObject.name == "CleanRoomLeakMarker").Select(renderer => renderer.transform).ToArray();
+    Transform[] ActiveMarkers() => UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None).Where(renderer => renderer.gameObject.activeInHierarchy && renderer.gameObject.name == "CleanRoomLeakMarker").Select(renderer => renderer.transform).ToArray();
     async UniTask WirePower(IBlock filter, IBlock machine)
     {
         // 室外の発電機へ燃料を直接入れ、電線で清浄機と機械へ給電する（接続処理が電力網を dirty にする）
@@ -196,8 +192,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
         await p.RunOnServer("発電機に給油して清浄機と機械へ配線する", () =>
         {
             generatorBlock.GetComponent<VanillaElectricGeneratorComponent>().AddLiquid(new FluidStack(400, MasterHolder.FluidMaster.GetFluidId(new Guid("019eded2-7454-76da-8943-84c4e7a59179"))), default);
-            wiredFilter = ElectricWireSystemUtil.TryConnectBothSides(generatorConnector, filterConnector, freeCost);
-            wiredMachine = ElectricWireSystemUtil.TryConnectBothSides(generatorConnector, machineConnector, freeCost);
+            (wiredFilter, wiredMachine) = (ElectricWireSystemUtil.TryConnectBothSides(generatorConnector, filterConnector, freeCost), ElectricWireSystemUtil.TryConnectBothSides(generatorConnector, machineConnector, freeCost));
         });
         p.Assert(wiredFilter, "電線 発電機→清浄機");
         p.Assert(wiredMachine, "電線 発電機→EUV");

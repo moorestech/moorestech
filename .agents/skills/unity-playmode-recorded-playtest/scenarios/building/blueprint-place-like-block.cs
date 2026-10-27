@@ -43,7 +43,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.Hotbar.UnlockConnectTool("電線");
     await p.UnlockBlock("電柱");
     await p.UnlockBlock("石窯");
-
     // 電柱2本と石窯を置き、電柱同士と電柱→石窯を電線でつなぐ（外接箱は x6・y5・z5）
     // Place two poles and an oven, wiring pole-pole and pole-oven (extent is x6, y5, z5)
     var poleA = new Vector3Int(2, 32, 2);
@@ -67,7 +66,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     p.Assert(wiredAb, $"電柱同士を結線 理由:{reasonAb}");
     p.Assert(wiredBo, $"電柱→石窯を結線 理由:{reasonBo}");
     p.WarpPlayer(new Vector3(5f, 33.5f, -6f));
-
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var nameState = resolver.Resolve<BlueprintNameInputState>();
     var tooltip = resolver.Resolve<MouseCursorTooltipState>();
@@ -107,7 +105,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     p.Note("5. 配線ゴースト（PreviewWireLine）が2本見える");
     p.Assert(probe.ActiveWireLineCount() == 2, $"配線ゴースト2本 実際:{probe.ActiveWireLineCount()}");
     await p.Screenshot("01-ground-ghost-with-wires");
-
     p.Note("3. 既存チェスト(-12,32,22)の+X面へ向ける: 最小x=面(-11)・最小y=カーソル段(32)・z中心");
     p.WarpPlayer(new Vector3(-4f, 33.5f, 12f));
     await AimAndSettle(new Vector3(-11.0f, 32.5f, 22.5f));
@@ -121,7 +118,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.Screenshot("03-side-face-height2");
     await p.PressKey(Key.Q);
     await p.PressKey(Key.Q);
-
     p.Note("6. 無料設置OFF・素材なし: ゴースト赤・tooltipに不足行・クリックしても置かれない");
     DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, false);
     p.WarpPlayer(new Vector3(-10f, 33.5f, -4f));
@@ -133,7 +129,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.ClickPlace();
     await p.WaitSeconds(1f);
     p.Assert(p.GetBlock(groundOrigin) == null, "素材不足ではクリックしても置かれない");
-
     p.Note("9. ビルドメニューのBPエントリにホバー: 詳細に必要素材（所持0/必要）が出る");
     var required = BlueprintPasteGhostProbe.RequiredItems(bp, 1);
     await p.PressKey(Key.Tab);

@@ -39,10 +39,8 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     var panes = (System.Collections.IList)dockArea.GetType().GetField("m_Panes", tabFlags).GetValue(dockArea);
     dockArea.GetType().GetProperty("selected", tabFlags).SetValue(dockArea, panes.IndexOf(gameView));
     await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
-
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkit();
-
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var pauseMenu = resolver.Resolve<PauseMenuStateService>();
     var captureSession = resolver.Resolve<BugReportCaptureSession>();
@@ -53,14 +51,12 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     var forbiddenLogCount = 0;
     Application.LogCallback countForbidden = (condition, _, type) => { if ((type == LogType.Warning || type == LogType.Error || type == LogType.Exception) && forbiddenLogs.Any(condition.Contains)) forbiddenLogCount++; };
     Application.logMessageReceived += countForbidden;
-
     // 通常画面でトップ、設定、報告2件、閉じる操作を一続きで確認する
     // Verify top, settings, two reports, and closing as one flow from the normal game screen
     p.Note("通常画面: Escapeでポーズのトップ4ボタンを開く");
     await p.PressKey(Key.Escape);
     await p.WaitUiState(UIStateEnum.PauseMenu, 15f);
     await AssertTop("01-top-four-buttons");
-
     p.Note("通常画面: 設定へ進み、Escapeでトップへ1段戻る");
     await p.ClickWebUi("pause-menu-open-settings");
     await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Settings, 15f, "設定pageへの遷移");
@@ -73,7 +69,6 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Top, 15f, "設定からトップへ戻る");
     p.Assert(p.CurrentUiState == UIStateEnum.PauseMenu, "設定から戻ってもPauseMenuが開いている");
     await p.Screenshot("03-settings-escape-top");
-
     const string firstDescription = "pause hierarchy first report";
     p.Note("通常画面: バグ報告を書き、戻って再度開いても下書きが残ることを確認する");
     await OpenBugReport();
@@ -84,18 +79,15 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     await OpenBugReport();
     await p.Screenshot("05-first-draft-restored");
     await SubmitAndAssertBundle(firstDescription, 1, "06-first-submit-toast");
-
     const string secondDescription = "pause hierarchy second report";
     p.Note("通常画面: 同じポーズ内で再確保された2件目のバグ報告を送る");
     await OpenBugReport();
     await EnterDescription(secondDescription);
     await SubmitAndAssertBundle(secondDescription, 2, "07-second-submit-toast");
-
     p.Note("通常画面: トップのEscapeでゲームへ戻る");
     await p.PressKey(Key.Escape);
     await p.WaitUiState(UIStateEnum.GameScreen, 15f);
     await p.Screenshot("08-back-to-game");
-
     // 列車を準備して実際に乗車し、外側TrainHUDを保った入れ子ポーズを確認する
     // Prepare and ride a train, then verify nested pause while the outer TrainHUD remains active
     p.Note("列車をレールへ配置し、実プレイヤー操作で乗車する");
@@ -103,13 +95,11 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     var trainHud = resolver.Resolve<UIStateDictionary>().GetState(UIStateEnum.TrainHUDScreen) as TrainHUDScreenState;
     await p.Until(() => p.CurrentUiState == UIStateEnum.TrainHUDScreen && trainHud.IsRiding, 15f, "列車HUDで乗車済み");
     p.Assert(car != null, "乗車対象のTrainCarEntityObjectが存在する");
-
     p.Note("列車HUD: Escapeで入れ子ポーズのトップ4ボタンを開く");
     await p.PressKey(Key.Escape);
     await p.Until(() => trainHud.SubState == NestedPauseSubStateEnum.PauseMenuScreen, 15f, "列車HUDの入れ子ポーズ表示");
     p.Assert(p.CurrentUiState == UIStateEnum.TrainHUDScreen, "入れ子ポーズ中も外側はTrainHUDScreen");
     await AssertTop("09-train-top-four-buttons");
-
     p.Note("列車HUD: 設定へ進み、Escapeで入れ子ポーズのトップへ戻る");
     await p.ClickWebUi("pause-menu-open-settings");
     await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Settings, 15f, "列車HUDで設定pageへ遷移");
@@ -119,7 +109,6 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Top, 15f, "列車HUDの設定からトップへ戻る");
     p.Assert(trainHud.SubState == NestedPauseSubStateEnum.PauseMenuScreen, "設定から戻っても入れ子ポーズが開いている");
     await p.Screenshot("11-train-settings-escape-top");
-
     p.Note("列車HUD: トップのEscapeで列車操作へ戻る");
     await p.PressKey(Key.Escape);
     await p.Until(() => trainHud.SubState == NestedPauseSubStateEnum.GameScreen, 15f, "入れ子ポーズを閉じる");
@@ -138,14 +127,12 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         p.Assert(pauseMenu.CurrentPage.Value == PauseMenuPage.Top, "トップ4ボタンの所有pageがTop");
         await p.Screenshot(screenshot);
     }
-
     async UniTask OpenBugReport()
     {
         await p.ClickWebUi("pause-menu-open-bug-report");
         await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.BugReport, 15f, "バグ報告pageへの遷移");
         await p.UntilWebUiElement("bug-report-description", 15f);
     }
-
     async UniTask EnterDescription(string description)
     {
         await p.ClickWebUi("bug-report-description");
@@ -157,7 +144,6 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         }
         await p.UntilWebUiElement("bug-report-send", 15f);
     }
-
     async UniTask SubmitAndAssertBundle(string description, int expectedNewCount, string screenshot)
     {
         await p.Until(() => captureSession.Status.Value.Kind == BugReportCaptureStatus.Ready, 30f, "バグ報告の確保が送信可能になる");
@@ -175,10 +161,8 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         p.Note($"送信時の欠損: {(clickMissing.Count == 0 ? "なし" : string.Join(",", clickMissing))}");
         await p.Screenshot(screenshot);
     }
-
     IEnumerable<string> ReadyBugBoxes() => Directory.GetDirectories(outbox).Where(directory => File.Exists(Path.Combine(directory, "READY")) && File.Exists(Path.Combine(directory, BugReportBundleLayout.ManifestFileName))).Where(directory => (string)ReadManifest(directory)["kind"] == "bug");
     JObject ReadManifest(string directory) => JObject.Parse(File.ReadAllText(Path.Combine(directory, BugReportBundleLayout.ManifestFileName)));
-
     async UniTask<TrainCarEntityObject> PrepareAndRideTrain()
     {
         var a = new Vector3Int(10, 32, 6); var b = new Vector3Int(10, 32, 22);
@@ -202,7 +186,6 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         await p.AimAt(collider.bounds.center); await p.PressRide();
         return spawned;
     }
-
     async UniTask PlacePier(Vector3Int position)
     {
         var blockId = PlaytestBlockOps.ResolveBlockId("レール橋脚");
