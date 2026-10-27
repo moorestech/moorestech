@@ -28,11 +28,14 @@ namespace Client.WebUiHost.Cef
         {
             lock (Gate)
             {
-                if (!ReferenceEquals(hub, _hub) || navigationId != _navigationId || _connectionId != Guid.Empty)
+                if (!ReferenceEquals(hub, _hub) || navigationId != _navigationId)
                 {
-                    Debug.LogWarning("[WebUiHost] CEF connection registration rejected: stale navigation or connection already registered");
+                    Debug.LogWarning("[WebUiHost] CEF connection registration rejected: stale navigation");
                     return false;
                 }
+                // 同じナビゲーションの再接続（ページの再読込）は最新の接続で上書きする
+                // A reconnect under the same navigation (a page reload) overwrites with the latest connection
+                if (_connectionId != Guid.Empty) Debug.LogWarning($"[WebUiHost] CEF connection replaced under the same navigation: {_connectionId} -> {connectionId}");
                 _connectionId = connectionId;
                 return true;
             }
