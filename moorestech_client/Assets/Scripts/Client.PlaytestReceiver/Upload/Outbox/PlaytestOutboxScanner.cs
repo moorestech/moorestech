@@ -63,7 +63,7 @@ namespace Client.PlaytestReceiver.Upload
         {
             var boxes = new List<PlaytestOutboxBox>();
             boxes.AddRange(ScanOne(directories.ReportOutbox, PlaytestUploadKind.Report, directories.ReportFilePolicy));
-            if (scope == PlaytestOutboxScope.ReportsAndProgress) boxes.AddRange(ScanOne(directories.ProgressOutbox, PlaytestUploadKind.Progress, directories.ProgressFilePolicy));
+            if (scope.IncludesProgress()) boxes.AddRange(ScanOne(directories.ProgressOutbox, PlaytestUploadKind.Progress, directories.ProgressFilePolicy));
 
             // 箱のIDは yyyyMMdd_HHmmss_<hex> なので辞書順が時刻順になる。古い順に送る
             // Bundle ids are yyyyMMdd_HHmmss_<hex>, so lexicographic order is chronological; ship oldest first
@@ -118,7 +118,7 @@ namespace Client.PlaytestReceiver.Upload
             try
             {
                 Count(directories.ReportOutbox);
-                if (scope == PlaytestOutboxScope.ReportsAndProgress) Count(directories.ProgressOutbox);
+                if (scope.IncludesProgress()) Count(directories.ProgressOutbox);
                 return new PlaytestOutboxDeliveryCounts(pending, failed);
             }
             catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)

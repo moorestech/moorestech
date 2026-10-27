@@ -30,6 +30,7 @@ using Client.Game.InGame.UnlockState;
 using Client.Network.API;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Recovery;
 using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
 using Client.Starter.PlaytestSmoke;
@@ -72,6 +73,7 @@ namespace Client.Starter.Registration
             builder.RegisterInstance(PlaytestOutboxDirectories.FromGameSystemPaths());
             builder.RegisterInstance<IPlaytestSteamTicketProvider>(new PlaytestSteamTicketProvider());
             builder.Register<PlaytestUploadRunner>(Lifetime.Singleton).As<IPlaytestUploadRequester>();
+            builder.Register<PlaytestOutboxRecovery>(Lifetime.Singleton);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             builder.RegisterEntryPoint<PlaytestBootUploadTrigger>();
 #endif
