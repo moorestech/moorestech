@@ -96,7 +96,7 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     // Look up at the pad from the scaffold's south edge (GameScreen look pitches up with pointer delta)
     p.WarpPlayer(new Vector3(5f, 32.5f, -22f));
     for (var frame = 0; frame < 40; frame++) { SemanticInput.MouseDragBy(new Vector2(0f, 4f)); await UniTask.Yield(); }
-    await p.WaitSeconds(Mathf.Min(5f, param.LaunchSeconds * 0.5f));
+    await p.WaitSeconds(Mathf.Min(2.5f, param.LaunchSeconds * 0.2f));
     await p.Screenshot("05-rising");
 
     // 計算データが到着の表どおり出力口に入り、初打ち上げ済みになる
