@@ -8581,7 +8581,7 @@ git -C ../moorestech_logs add harness/tier9-integration/g5-fixture && git -C ../
   - 共通: `block-inventory-close`
 - Produces: 8本の `result.json`（全 pass）と録画。ORCH J3 の証拠になる
 
-- [ ] **Step 1: 段1a チップライン（D9 の下書きを移す）**
+- [x] **Step 1: 段1a チップライン（D9 の下書きを移す）**
 
 下書き: `docs/superpowers/plans/2026-10-23-tier9-s1-master-content-handoff.md` の「Task D9」にある `tier9-chip-line.cs`（目安 2268〜2470行）を、`scenarios/tier9/tier9-1a-chip-line.cs` に写す。差分は次の4点:
 1. `PlaytestRunner.Run("tier9-chip-line", …)` → `PlaytestRunner.Run("tier9-1a-chip-line", …)`
@@ -8594,7 +8594,7 @@ MasterHolder.ResearchMaster.GetAllResearches().Single(r => r.ResearchNodeName ==
 
 前提: 研究の閉包、部屋（`BuildRoom`）、給電（`PowerAll`）、各工程への素材の直投入。本物の工程: IPA の化学プラントでの生成、切断・成膜・EUV・ダイシング・パッケージングの各加工。Assert: 下書きの `Until` 8件と `clean room classified`。スクショ: `01-room-and-line`・`02-dies`・`03-chips`。
 
-- [ ] **Step 2: 段1b 混在ベルトの仕分けと止まった理由（新規。下書きにコードが無い。`review-s1h-typeclosure.md:10` L2841）**
+- [x] **Step 2: 段1b 混在ベルトの仕分けと止まった理由（新規。下書きにコードが無い。`review-s1h-typeclosure.md:10` L2841）**
 
 裁定 2026-10-24「レベルの混ざったチップはプレイヤーが仕分け、止まった理由を機械UIに出す」の通しの確認。ダイシングの出力は Lv1 と Lv2 が混ざる。混ざったダイがパッケージング（継承レシピ。継承元スロットは混ぜない＝`MachineInputSlotBinding.cs:100-102`）へ届くと止まり、機械 UI に「レベルの違う品（…）が届いて止まっています」が出る。フィルター分岐器で Lv1 と Lv2 を別のパッケージングへ分けると、両方が流れる。最後の工程は、仕分けたあとに両方のパッケージングが ICチップを本当に作るところ。
 
@@ -8723,7 +8723,7 @@ p.Assert(Count(gpuSatelliteMachine, "GPULv2") == 0 && beltRemainderHasLv2, "代�
 
 Assert: 研究完了、部屋の判定、止まった理由の出現と文言、入口への投入4件、両方の ICチップが出たこと、理由が消えたこと。スクショ: `04-mixed-level-stall`・`05-sorted-both-flowing`。
 
-- [ ] **Step 3: 段2 モジュールと GPU（D9 の下書きを移す）**
+- [x] **Step 3: 段2 モジュールと GPU（D9 の下書きを移す）**
 
 下書き: 同じ handoff の Task D9 にある `tier9-modules-gpu.cs`（目安 2472〜2604行）を、`scenarios/tier9/tier9-2-modules-gpu.cs` に写す。差分は次の2点:
 1. `Run` の名前を `"tier9-2-modules-gpu"` にする。
@@ -8731,11 +8731,11 @@ Assert: 研究完了、部屋の判定、止まった理由の出現と文言、
 
 最後の工程は、GPU の機械が GPU を本当に出すところ。下書きの最後の `Until` がそれに当たる。スクショ名は下書きのとおり。
 
-- [ ] **Step 4: 段3 抽選 UI（D9 の下書きを移す）**
+- [x] **Step 4: 段3 抽選 UI（D9 の下書きを移す）**
 
 下書き: 同じ Task D9 にある `tier9-yield-ui.cs`（目安 2606〜2768行）を、`scenarios/tier9/tier9-3-yield-ui.cs` に写す。差分は `Run` の名前を `"tier9-3-yield-ui"` にするだけ。最後の工程は、成膜・EUV・ダイシングの各機械で抽選欄の行（`clean-room-yield-max-grade`・`clean-room-yield-promotion-chance`・`clean-room-yield-layer-fail-rate`・`clean-room-yield-die-loss-rate`）が描画されるところ。描画は UI 経由の本物で、下書きのとおり。
 
-- [ ] **Step 5: 段4 打ち上げ→計算データ（S2 の下書きを移し、誤り2つを直す。飛行を本当に待つ段）**
+- [x] **Step 5: 段4 打ち上げ→計算データ（S2 の下書きを移し、誤り2つを直す。飛行を本当に待つ段）**
 
 下書き: `docs/superpowers/plans/2026-10-23-tier9-compute-data-loop.md` の「H. unityプレイ録画テスト（D37）」（目安 3580〜3692行）を、`scenarios/tier9/tier9-4-rocket-launch.cs` に写す。差分は次の6点:
 1. `processor.Phase` は private で読めない。全部を `Phase()` に替え、`#region Internal` に次を足す（読み方は `RocketLaunchPadTestUtil.cs:24-28` と同じ観測口）:
@@ -8754,7 +8754,7 @@ RocketLaunchPadPhase Phase()
 
 `using` に `System.Linq` と `Game.Block.Interface.State`（`RocketLaunchPadStateDetail`）を足す。前提: 発射台・発電機の直置き、資材と GPU衛星Lv1 の直投入、研究の閉包。本物の工程: UI の建造ボタン、建造の実時間、UI の発射ボタン、上昇、到着。Assert: 下書きの Until 群、`first launch recorded`、2便目の自動建造。スクショ: `01-awaiting-build`〜`07-auto-building`。画像で確かめる点は下書きの3点（01〜03 で本体が見えない、04 で見える、05 でロケットが台より上）。
 
-- [ ] **Step 6: 段5 計算データでの研究→製作上限→上位レベルの本物の加工（新規）**
+- [x] **Step 6: 段5 計算データでの研究→製作上限→上位レベルの本物の加工（新規）**
 
 前提: 計算データの入手は段4で本物を見たので、ここではプレイヤーへ直接渡す。研究ツリー（R キー）から UI で「半導体のアップグレード Lv2」を研究し、計算データが消え、製作上限が 2 になる。それまで断られていた ICチップLv2 から、GPU Lv2 が本当に作られる。最後の工程は、UI 経由の研究と、そのあとの本物の加工。
 
@@ -8862,7 +8862,7 @@ return PlaytestRunner.Run("tier9-5-compute-research", options, async p =>
 
 前提: 研究の閉包、機械の直置き・給電、計算データの直渡し。本物の工程: UI の研究と、Lv2 の加工。スクショ: `01-lv2-refused-before-research`・`02-upgrade-node-detail`・`03-upgrade-researched`・`04-lv2-product-crafted`。
 
-- [ ] **Step 7: 段6 核融合とエレベーター（S3 の下書きを移し、最後の工程を「昇り切って成果が出る」まで延ばす）**
+- [x] **Step 7: 段6 核融合とエレベーター（S3 の下書きを移し、最後の工程を「昇り切って成果が出る」まで延ばす）**
 
 下書き: `docs/superpowers/plans/2026-10-23-tier9-fusion-elevator-endgame.md` の「旧 Task 13: unityプレイ録画テスト」（目安 3904〜4077行）を、`scenarios/tier9/tier9-6-fusion-elevator.cs` に写す。差分は次の4点:
 1. `Run` の名前を `"tier9-6-fusion-elevator"` にする。
@@ -8882,7 +8882,7 @@ await p.Screenshot("05-elevator-delivered");
 
 撤去でプールが戻る確認（下書き 88〜90行）は残す。Assert とスクショは下書きの `01`〜`04` に `05-elevator-delivered` を足す。Expected の Error ログの検査（下書き 131行）は、共通の決まりの「Error 0件」に含まれる。
 
-- [ ] **Step 8: 段7 反物質→反物質爆弾→最終研究（新規）**
+- [x] **Step 8: 段7 反物質→反物質爆弾→最終研究（新規）**
 
 前提: 研究の閉包（最終研究 `01a167e9-21f6-7d26-a990-e7d6d78750d0` の前提）。核融合炉を電源にする（炉は 20000、反物質製造装置は 12000。`s3plan.md` 旧 Task 1 の blocks.json 行 114・145。値は P2 で変わりうるので、assert で確かめる）。
 
@@ -9014,11 +9014,11 @@ return PlaytestRunner.Run("tier9-7-antimatter-final-research", options, async p 
 
 スクショ: `01-antimatter-made`・`02-bomb-made`・`03-final-research-detail`・`04-final-research-complete`。
 
-- [ ] **Step 9: SKILL.md のカテゴリ一覧に tier9 を足す**
+- [x] **Step 9: SKILL.md のカテゴリ一覧に tier9 を足す**
 
 `.agents/skills/unity-playmode-recorded-playtest/SKILL.md` で、シナリオのカテゴリを並べている行（`review-s1h-placement.md:72` が「SKILL.md:90」と指す行）に、`tier9`（Tier9 の録画7段）を1語足す。
 
-- [ ] **Step 10: 8本を順に前景で流す**
+- [x] **Step 10: 8本を順に前景で流す**
 
 Run（段ごとに。`<file>` を `tier9-1a-chip-line` → `tier9-1b-mixed-level-sorting` → `tier9-2-modules-gpu` → `tier9-3-yield-ui` → `tier9-4-rocket-launch` → `tier9-5-compute-research` → `tier9-6-fusion-elevator` → `tier9-7-antimatter-final-research` の順に替える）:
 ```bash
@@ -9028,11 +9028,11 @@ uloop get-logs --project-path ./moorestech_client --log-type Error
 ```
 Expected: どの段も run-scenario.sh が exit 0 で終わり、`result.json` が `Success: true`、Asserts が全部 Passed。Error ログが0件。落ちたら原因を直して流し直す。座標だけの問題ならシナリオを直す。本体の不具合なら本体を直し、bd に記録し、該当する自動テストを足す。各段の `result.json` と Error ログの出力を `../moorestech_logs/harness/tier9-integration/p5/<file>/` に写す。
 
-- [ ] **Step 11: 動画とスクショを目で確かめる**
+- [x] **Step 11: 動画とスクショを目で確かめる**
 
 各段のスクショを Read で開き、段ごとに書いた見え方を確かめる。段4は下書きの3点、段1b は理由の文言と、仕分け後に両方の機械に製品があること。結果を `../moorestech_logs/harness/tier9-integration/p5/README.md` に1段1行で書く。全段の録画を `share-put` し、URL を同じ README に書く。
 
-- [ ] **Step 12: コミット**
+- [x] **Step 12: コミット**
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/tier9 .agents/skills/unity-playmode-recorded-playtest/SKILL.md
 git commit -m "Task 28: 出荷マスタでのTier9録画7段（チップライン・混在仕分け・モジュールGPU・抽選UI・打ち上げ・計算データ研究・核融合エレベーター・最終研究）"
@@ -9056,9 +9056,9 @@ git -C ../moorestech_logs add harness/tier9-integration/p5 && git -C ../mooreste
 - 事実: S1 では `ElectricGenerator` も、この処理を付ける型に入っている（S1 先端の `Client.Game/InGame/Context/BlockGameObjectPrefabContainer.cs:146-154`）。S3 はこの型から `ElectricGenerator` を外した（S3 先端の同ファイル:146-153）。
 - 推測: 統合で S3 側の変更が入っていれば、発電機にこの処理が付かなくなり、0 回になる。Step 1 と Step 3 で確かめる。
 
-- [ ] **Step 1: 統合ブランチで発電機が外れていることを確かめる**  Run: `git show HEAD:moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlockGameObjectPrefabContainer.cs | grep -n -A8 "bool IsCommonMachine"`  Expected: 列挙に `ElectricGenerator` が無い（S3 と同じ）。有れば、P1 の衝突解消で S1 側が残っている。P1 の担当に戻し、S3 側へ直す。
+- [x] **Step 1: 統合ブランチで発電機が外れていることを確かめる**  Run: `git show HEAD:moorestech_client/Assets/Scripts/Client.Game/InGame/Context/BlockGameObjectPrefabContainer.cs | grep -n -A8 "bool IsCommonMachine"`  Expected: 列挙に `ElectricGenerator` が無い（S3 と同じ）。有れば、P1 の衝突解消で S1 側が残っている。P1 の担当に戻し、S3 側へ直す。
 
-- [ ] **Step 2: A11 を流す**
+- [x] **Step 2: A11 を流す**
 ```bash
 uloop clear-console --project-path ./moorestech_client
 "$SKILL/scripts/run-scenario.sh" ./moorestech_client "$SKILL/scenarios/misc/cleanroom-room-usability.cs" "$MW"
@@ -9066,9 +9066,9 @@ uloop get-logs --project-path ./moorestech_client --log-type Error
 ```
 Expected: `Success: true`。崩れた場合（S1.md:157 の推測。EUV が IPA 必須・モジュール 3 スロットになった）は、`result.json` の Error の先頭行と、最後に PASS した Assert で地点を特定する。シナリオの前提値（EUV の寸法・IPA の注入・モジュール数）を出荷マスタに合わせて直し、流し直す。本体のコードは直さない（A11 は検証資産。本体の不具合が見えたら bd に積んで Task 28 と同じ扱いにする）。
 
-- [ ] **Step 3: 「State is null」を数える**  Run: `uloop get-logs --project-path ./moorestech_client --log-type Error | grep -c "State is null"`  Expected: `0`。1以上なら、ログの `Name:` と `Pos:` から、どのブロックかを記録する。そのブロックの型がサーバーで `CommonMachineBlockStateDetail` を出しているか（`GetBlockStateDetails`）を読み、原因を「推測」と明記して bd に積む。直し方の推奨は、そのブロックの型を `IsCommonMachine` から外すか、正しい状態処理を付けるか。Task 28 の段6・段7（核融合炉＝ElectricGenerator を使う）の Error ログにも同じ行が無いことを、Task 28 の記録で突き合わせる。
+- [x] **Step 3: 「State is null」を数える**  Run: `uloop get-logs --project-path ./moorestech_client --log-type Error | grep -c "State is null"`  Expected: `0`。1以上なら、ログの `Name:` と `Pos:` から、どのブロックかを記録する。そのブロックの型がサーバーで `CommonMachineBlockStateDetail` を出しているか（`GetBlockStateDetails`）を読み、原因を「推測」と明記して bd に積む。直し方の推奨は、そのブロックの型を `IsCommonMachine` から外すか、正しい状態処理を付けるか。Task 28 の段6・段7（核融合炉＝ElectricGenerator を使う）の Error ログにも同じ行が無いことを、Task 28 の記録で突き合わせる。
 
-- [ ] **Step 4: 記録してコミットする**  `result.json`・Error ログ・観測の1行（「State is null: N 回。出たブロック: …」）を `../moorestech_logs/harness/tier9-integration/p5/a11/` に置く。
+- [x] **Step 4: 記録してコミットする**  `result.json`・Error ログ・観測の1行（「State is null: N 回。出たブロック: …」）を `../moorestech_logs/harness/tier9-integration/p5/a11/` に置く。
 ```bash
 git add .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/cleanroom-room-usability.cs
 git commit -m "Task 29: A11 を出荷マスタの EUV・IPA に合わせて撮り直す"
@@ -9094,15 +9094,15 @@ git -C ../moorestech_logs add harness/tier9-integration/p5/a11 && git -C ../moor
 - `.decisions/` に、この挙動の裁定は無い。PR #1554 の本文には「意図確認のみ」とある。
 - 2026-10-24 の裁定（混ぜない・格下げしない）が対象にしているのは、継承元スロット。代用スロットではない。
 
-- [ ] **Step 1: 挙動を実測する**  Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "LevelFamilySubstituteMachineTest"`  Expected: 全 Passed。特に `AutomatedInflowAlignsToLowerLevelTest`（スロットの Lv2 に Lv1 が来ると両方 Lv1 になる）と `InheritanceSourceSlotNeverAlignsTest`（継承元では揃えない）が通る。これで「代用スロットでは下位へ揃い、継承元では揃わない」が観測できる。
+- [x] **Step 1: 挙動を実測する**  Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "LevelFamilySubstituteMachineTest"`  Expected: 全 Passed。特に `AutomatedInflowAlignsToLowerLevelTest`（スロットの Lv2 に Lv1 が来ると両方 Lv1 になる）と `InheritanceSourceSlotNeverAlignsTest`（継承元では揃えない）が通る。これで「代用スロットでは下位へ揃い、継承元では揃わない」が観測できる。
 
-- [ ] **Step 2: Tier9 での故障シナリオを1つ書く**  `../moorestech_logs/harness/tier9-integration/p5/w13.md` に次を書く（実測の値は Step 1 の結果から写す）:
+- [x] **Step 2: Tier9 での故障シナリオを1つ書く**  `../moorestech_logs/harness/tier9-integration/p5/w13.md` に次を書く（実測の値は Step 1 の結果から写す）:
   - 入力: GPU衛星Lv1 のレシピ（入力は GPU の基準＝Lv1 を要求する代用）を選んだ機械に、GPU Lv1 と Lv2 が混ざったベルトがつながっている。
   - 状態: 機械の GPU スロットに Lv2 が先に入っている。
   - 結果: 後から Lv1 が来ると、スロットの Lv2 が全部 Lv1 に変わる。その Lv2 は GPU衛星Lv2 の材料に使えなくなる（Lv2 を作るには、継承元で研究の上限まで上げた分の材料と時間がかかる）。
   - 揃えない場合の帰結: 混在ベルトで Lv2 がスロットに入ったままになり、Lv1 が積めずにベルトが詰まる。止まった理由の表示（2026-10-24 の裁定）は、継承元スロット向けの表示である。
 
-- [ ] **Step 3: 裁定どおり仕様として扱う**  裁定は plan 作成時に出ている（(A) 揃えて流し続ける）。`w13.md` の末尾に「裁定: 仕様（`.decisions/2026-10-25-混在ベルトの代用スロットで上位品を下位へ揃える挙動は仕様とする.md`）」と書く。段1b の期待値は Step 2 の本文どおりで、本段に W13 は現れない。コードは変えない。
+- [x] **Step 3: 裁定どおり仕様として扱う**  裁定は plan 作成時に出ている（(A) 揃えて流し続ける）。`w13.md` の末尾に「裁定: 仕様（`.decisions/2026-10-25-混在ベルトの代用スロットで上位品を下位へ揃える挙動は仕様とする.md`）」と書く。段1b の期待値は Step 2 の本文どおりで、本段に W13 は現れない。コードは変えない。
 ```bash
 git -C ../moorestech_logs add harness/tier9-integration/p5/w13.md
 git -C ../moorestech_logs commit -m "tier9-integration: W13 の実測と故障シナリオ（裁定: 仕様）"
