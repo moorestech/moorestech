@@ -6,6 +6,7 @@ using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
 using UniRx;
+using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -36,8 +37,25 @@ namespace Client.WebUiHost.Game.Topics
             return new TooltipDto
             {
                 Visible = presentation.Visible,
-                Lines = presentation.Lines.Select(line => new TooltipLineDto { TextKey = line.Key.Key, TextParams = line.TextParams.ToDictionary(textParam => textParam.Name, textParam => textParam.Value) }).ToArray(),
+                Lines = presentation.Lines.Select(line => new TooltipLineDto { TextKey = line.Key.Key, TextParams = ToParamDictionary(line) }).ToArray(),
             };
+
+            #region Internal
+
+            // 同名パラメータは後勝ちで詰め、黙って上書きせずエラーログに残す
+            // Later duplicates win, but are logged as errors instead of being overwritten silently
+            Dictionary<string, string> ToParamDictionary(TooltipLine line)
+            {
+                var textParams = new Dictionary<string, string>();
+                foreach (var textParam in line.TextParams)
+                {
+                    if (textParams.ContainsKey(textParam.Name)) Debug.LogError($"[TooltipTopic] duplicate tooltip param '{textParam.Name}' in line '{line.Key.Key}'; the later value wins");
+                    textParams[textParam.Name] = textParam.Value;
+                }
+                return textParams;
+            }
+
+            #endregion
         }
     }
 
