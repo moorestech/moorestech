@@ -131,7 +131,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     // The item hatch is openable=false in the master, so it has no interact hint and shows the room summary (class, air, purifiers)
     await p.Until(() => (TooltipKeys().Contains(LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key) || TooltipKeys().Contains(LocalizationKeys.Ui.Tooltip.CleanRoomClassOut.Key)) && TooltipKeys().Contains(LocalizationKeys.Ui.Tooltip.CleanRoomAir.Key) && TooltipKeys().Contains(LocalizationKeys.Ui.Tooltip.CleanRoomFilters.Key), 5f, "ハッチのツールチップに部屋の要約(クラス・濃度・清浄機)が出た");
     p.Note($"ハッチのツールチップ行={string.Join(",", TooltipKeys())}");
-    await PlaytestWebUiOps.WaitWebUiTextContains("cursor-tooltip", "Purifiers 1", 5f);
+    await PlaytestWebUiOps.WaitWebUiTextContains("cursor-tooltip", Client.Localization.Localize.GetFormatted(LocalizationKeys.Ui.Tooltip.CleanRoomFilters, new[] { "1" }), 5f);
     await p.Screenshot("05a-hatch-tooltip");
     await p.AimAt(doorAimPoint);
     await p.Until(() => FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key || FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomClassOut.Key, 5f, "ドアのツールチップ先頭行が部屋クラス");
@@ -148,7 +148,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     var observedKeys = new System.Collections.Generic.HashSet<string>();
     for (var watchEnd = Time.realtimeSinceStartup + 2.5f; Time.realtimeSinceStartup < watchEnd; await UniTask.Yield()) observedKeys.Add(FirstTooltipKey());
     p.Assert(observedKeys.SetEquals(new[] { LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed.Key }) && ActiveMarkers().Length == 1, $"2.5秒間ツールチップ先頭行が未密閉のまま・漏れマーカー1個(観測キー={string.Join(",", observedKeys)})");
-    await PlaytestWebUiOps.WaitWebUiTextContains("cursor-tooltip", "Not sealed: 1 gaps", 5f);
+    await PlaytestWebUiOps.WaitWebUiTextContains("cursor-tooltip", Client.Localization.Localize.GetFormatted(LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed, new[] { "1" }), 5f);
     await p.Screenshot("06-door-tooltip-leak");
     // 外した東の壁はドアの正面からは見えないので、南東の室外から東の壁を狙い漏れマーカーを録画に残す（Altは最後に離す）
     // The removed east wall is hidden from the door front, so aim at the east wall from the south-east and keep the marker on the recording (Alt is released last)
