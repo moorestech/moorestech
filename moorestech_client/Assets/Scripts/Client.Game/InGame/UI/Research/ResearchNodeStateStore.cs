@@ -43,6 +43,19 @@ namespace Client.Game.InGame.UI.Research
             // Server state owns sufficiency, so refetch on inventory moves while the research screen is up
             _inventoryController.LocalPlayerInventory.OnItemChange.Subscribe(_ => RefreshWhileResearchScreenActive());
             _inventoryController.OnInventoryRefreshed.Subscribe(_ => RefreshWhileResearchScreenActive());
+
+            #region Internal
+
+            void OnStateChanged(UIStateEnum state)
+            {
+                // 突入時のみ取り直す（uGUIと同じ）
+                // Refetch only on entry (same as uGUI)
+                _researchScreenActive = state == UIStateEnum.ResearchTree;
+                if (!_researchScreenActive) return; // silent-ok: 閉画面では取得不要 / 次回突入で最新状態を取得する
+                StartRefresh();
+            }
+
+            #endregion
         }
 
         // complete応答の全状態を反映
@@ -51,15 +64,6 @@ namespace Client.Game.InGame.UI.Research
         {
             NodeStates = nodeStates;
             _onNodeStatesChanged.OnNext(Unit.Default);
-        }
-
-        private void OnStateChanged(UIStateEnum state)
-        {
-            // 突入時のみ取り直す（uGUIと同じ）
-            // Refetch only on entry (same as uGUI)
-            _researchScreenActive = state == UIStateEnum.ResearchTree;
-            if (!_researchScreenActive) return; // silent-ok: 閉画面では取得不要 / 次回突入で最新状態を取得する
-            StartRefresh();
         }
 
         // 閉画面の所持変化は無視

@@ -22,8 +22,8 @@ namespace Client.Playtest.UiElements
         // Look up once; waiting and retries belong to the caller
         UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds);
 
-        // テキスト欄の値を置き換えて変更イベントを流す。IMEは通さない
-        // Replace a text field's value and raise its change event without IME
+        // 値を置換し変更イベント発火。IME非経由
+        // Replace the value and fire change events, bypassing IME
         UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds);
     }
 }

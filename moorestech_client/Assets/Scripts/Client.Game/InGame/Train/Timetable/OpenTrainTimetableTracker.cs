@@ -32,11 +32,11 @@ namespace Client.Game.InGame.Train.Timetable
 
         public void Initialize()
         {
-            // 開閉で取得状態を忘れ、開いている列車を解決し直す
-            // Forget the fetch state on open/close (UI-state transitions) and re-resolve the open train
+            // 開閉で取得状態を破棄し再解決
+            // Drop fetch state on open/close and re-resolve
             _uiStateControl.OnStateChanged.Subscribe(_ => OnUiStateChanged());
-            // 開いている列車の時刻表更新と取得失敗で再配信する
-            // Republish on the open train's timetable updates and on fetch failures
+            // 時刻表更新・取得失敗で再配信
+            // Republish on timetable updates and fetch failures
             _timetables.OnTimetableUpdated
                 .Where(id => _openTrainUnitInstanceId == id)
                 .Subscribe(_ => _onRepublishRequested.OnNext(UniRx.Unit.Default));
@@ -45,12 +45,16 @@ namespace Client.Game.InGame.Train.Timetable
             // Republish and refetch when coupling, splitting, or a late car snapshot changes the owning train
             _trainUnitClientCache.OnUnitApplied.Subscribe(_ => OnTrainUnitApplied());
             _trainUnitClientCache.OnUnitRemoved.Subscribe(_ => OnTrainUnitApplied());
-        }
 
-        private void OnUiStateChanged()
-        {
-            _fetcher.Close();
-            _openTrainUnitInstanceId = ResolveOpenTrainUnitInstanceId();
+            #region Internal
+
+            void OnUiStateChanged()
+            {
+                _fetcher.Close();
+                _openTrainUnitInstanceId = ResolveOpenTrainUnitInstanceId();
+            }
+
+            #endregion
         }
 
         private void OnTrainUnitApplied()

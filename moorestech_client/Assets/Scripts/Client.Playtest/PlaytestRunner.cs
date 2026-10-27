@@ -44,8 +44,8 @@ namespace Client.Playtest
                 {
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
-                    // UI照会の受け口を開き、CEF利用時だけ入力転送を実行中に有効化する
-                    // Open UI lookup receivers and enable input forwarding while CEF is in use
+                    // UI照会口を開き、CEF時のみ入力転送
+                    // Open the UI query entry; forward input only with CEF
                     PlaytestUiLocatorSession.Start();
 
                     // 録画に焼き込むオーバーレイを初期化し、開始ナレーションを流す

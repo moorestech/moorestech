@@ -32,21 +32,25 @@ namespace Client.Game.InGame.UI.Challenge
             // 完了購読で全量置換
             // Replace the state on completion
             _vanillaApiEvent.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnCompletedChallenge);
-        }
 
-        private void OnCompletedChallenge(byte[] packet)
-        {
-            var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);
-            var categories = new List<ChallengeCategoryResponse>();
-            foreach (var category in message.ChallengeCategories)
+            #region Internal
+
+            void OnCompletedChallenge(byte[] packet)
             {
-                var master = MasterHolder.ChallengeMaster.GetChallengeCategory(category.ChallengeCategoryGuid);
-                var current = category.CurrentChallengeGuids.ConvertAll(MasterHolder.ChallengeMaster.GetChallenge);
-                var completed = category.CompletedChallengeGuids.ConvertAll(MasterHolder.ChallengeMaster.GetChallenge);
-                categories.Add(new ChallengeCategoryResponse(master, category.IsUnlocked, current, completed));
+                var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(packet);
+                var categories = new List<ChallengeCategoryResponse>();
+                foreach (var category in message.ChallengeCategories)
+                {
+                    var master = MasterHolder.ChallengeMaster.GetChallengeCategory(category.ChallengeCategoryGuid);
+                    var current = category.CurrentChallengeGuids.ConvertAll(MasterHolder.ChallengeMaster.GetChallenge);
+                    var completed = category.CompletedChallengeGuids.ConvertAll(MasterHolder.ChallengeMaster.GetChallenge);
+                    categories.Add(new ChallengeCategoryResponse(master, category.IsUnlocked, current, completed));
+                }
+                Categories = categories;
+                _onChallengeCompleted.OnNext(message.CompletedChallengeGuid);
             }
-            Categories = categories;
-            _onChallengeCompleted.OnNext(message.CompletedChallengeGuid);
+
+            #endregion
         }
     }
 }

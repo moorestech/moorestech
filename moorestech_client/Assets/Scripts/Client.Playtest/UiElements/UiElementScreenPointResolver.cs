@@ -15,8 +15,8 @@ namespace Client.Playtest.UiElements
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
             var lastStatus = UiElementLookupStatus.NotFound;
 
-            // 未表示・被覆中・変動中の要素は一時状態として期限内で再試行する
-            // Retry hidden, covered, or moving elements as transient until the deadline
+            // 未表示・被覆・変動中は期限内再試行
+            // Retry hidden, covered or moving elements within the deadline
             while (Time.realtimeSinceStartup <= deadline)
             {
                 var first = await locator.Find(testid, RemainingSeconds(deadline, testid));
@@ -25,8 +25,8 @@ namespace Client.Playtest.UiElements
                 ThrowIfAmbiguous(first);
                 if (IsClickable(first))
                 {
-                    // 2フレーム後も同じ矩形ならレイアウトが落ち着いたとみなす
-                    // Treat the layout as settled when the rect is unchanged two frames later
+                    // 2フレーム同矩形なら安定とみなす
+                    // Same rect after two frames means the layout settled
                     await UniTask.DelayFrame(2);
                     if (Time.realtimeSinceStartup >= deadline) break;
                     var second = await locator.Find(testid, RemainingSeconds(deadline, testid));

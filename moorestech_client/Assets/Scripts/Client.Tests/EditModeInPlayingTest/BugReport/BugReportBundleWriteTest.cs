@@ -44,8 +44,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
             {
                 await EditModeInPlayingTestUtil.LoadMainGame();
                 var ground = TestPlayerGround.Create();
-                // 実足場と検出境界を、機能検証から保存終了まで保つ
-                // Keep real ground and unexpected-error detection through the checks and shutdown
+                // 足場・検出境界を保存終了まで保つ
+                // Keep ground and error detection until shutdown saves
                 await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 try
@@ -93,8 +93,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     await BugReportPauseMenuAssert.AssertReturnedToTop(resolver);
                     Directory.Delete(bundle, true);
 
-                    // 元assert後に保存と終了参加者の完了を待つ
-                    // Await saving and shutdown participants after the original assertions
+                    // assert後に保存・終了待ち
+                    // After asserts, await save and shutdown
                     await EditModeInPlayingTestUtil.AssertIntentionalShutdownFlushedAsync("BundleShutdown");
                 }
                 finally
@@ -127,8 +127,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // Report without starting the ring: the server rejects the immediate request and the capture settles as missing
                 await EditModeInPlayingTestUtil.LoadMainGame();
                 var ground = TestPlayerGround.Create();
-                // 実足場と検出境界を、機能検証から保存終了まで保つ
-                // Keep real ground and unexpected-error detection through the checks and shutdown
+                // 足場・検出境界を保存終了まで保つ
+                // Keep ground and error detection until shutdown saves
                 await UniTask.Yield();
                 LogAssert.ignoreFailingMessages = false;
                 try
@@ -165,8 +165,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                     await BugReportPauseMenuAssert.AssertReturnedToTop(resolver);
                     Directory.Delete(bundle, true);
 
-                    // 元assert後に保存と終了参加者の完了を待つ
-                    // Await saving and shutdown participants after the original assertions
+                    // assert後に保存・終了待ち
+                    // After asserts, await save and shutdown
                     await EditModeInPlayingTestUtil.AssertIntentionalShutdownFlushedAsync("BundleShutdown");
                 }
                 finally

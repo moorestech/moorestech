@@ -28,8 +28,8 @@ namespace Client.Playtest
 
         public async UniTask UntilUiElement(string testid, float timeoutSeconds)
         {
-            // 要素待ちを待機表示し、成功後も録画用の操作間隔を確保する
-            // Show element waiting and retain the recording pace after success
+            // 待機表示し成功後も操作間隔を確保
+            // Show the wait and keep the action interval after success
             var waitEntry = _reporter.BeginWait($"UI要素待ち: {testid}");
             await PlaytestUiElementOps.WaitUiElement(testid, timeoutSeconds);
             _reporter.EndWait(waitEntry);

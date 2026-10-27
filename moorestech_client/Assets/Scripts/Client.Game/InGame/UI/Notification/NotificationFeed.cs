@@ -37,11 +37,15 @@ namespace Client.Game.InGame.UI.Notification
             // クライアント側の拒否も同じ表示へ流す
             // Relay client-side refusals through the same display
             _localNotificationSource.OnNotification.Subscribe(Publish);
-        }
 
-        private void OnServerNotification(byte[] payload)
-        {
-            Publish(MessagePackSerializer.Deserialize<NotificationMessagePack>(payload));
+            #region Internal
+
+            void OnServerNotification(byte[] payload)
+            {
+                Publish(MessagePackSerializer.Deserialize<NotificationMessagePack>(payload));
+            }
+
+            #endregion
         }
 
         private void Publish(NotificationMessagePack message)

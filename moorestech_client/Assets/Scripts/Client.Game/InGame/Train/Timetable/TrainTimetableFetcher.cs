@@ -52,6 +52,36 @@ namespace Client.Game.InGame.Train.Timetable
             _retriedForRequestedTrain = false;
             _isFetchInFlight = true;
             FetchTimetableAsync(trainUnitInstanceId, ++_requestGeneration, token).Forget();
+
+            #region Internal
+
+            // 手元に正しい時刻表が届いたら取得不可・取得中のラッチを下ろす
+            // A delivered timetable releases the unavailable and in-flight latches so held data is never withheld
+            void OnTimetableDelivered(TrainUnitInstanceId deliveredTrainUnitInstanceId)
+            {
+                // 削除でも同じ通知が飛ぶため、実体がある時だけ解除する
+                // Removal raises the same notification, so only an existing timetable releases the latches
+                if (!_timetableLookup.TryGet(deliveredTrainUnitInstanceId, out _)) return; // silent-ok: 削除通知では取得ラッチを解除しない / タブが取得中か取得不可を表示する
+                if (_unavailableTrainUnitInstanceId == deliveredTrainUnitInstanceId)
+                {
+                    Debug.Log($"[TrainTimetableFetcher] timetable delivered; releasing unavailable latch: {deliveredTrainUnitInstanceId}");
+                    _unavailableTrainUnitInstanceId = null;
+                }
+                if (!_isFetchInFlight || _requestedTrainUnitInstanceId != deliveredTrainUnitInstanceId) return; // silent-ok: 別列車の通知では取得状態を変えない / 対象タブは対応する応答を表示する
+                Debug.Log($"[TrainTimetableFetcher] timetable delivered while fetching; releasing in-flight latch: {deliveredTrainUnitInstanceId}");
+                _isFetchInFlight = false;
+            }
+
+            // 走っている取得を打ち切って新しいトークンを配る
+            // Cancel the running fetch and hand out a fresh token
+            CancellationToken RestartCancellation()
+            {
+                CancelInFlightFetch();
+                _cts = new CancellationTokenSource();
+                return _cts.Token;
+            }
+
+            #endregion
         }
 
         // 列車が引けなくてもタブを開いた事実は残す
@@ -84,23 +114,6 @@ namespace Client.Game.InGame.Train.Timetable
             _isFetchInFlight = false;
         }
 
-        // 手元に正しい時刻表が届いたら取得不可・取得中のラッチを下ろす
-        // A delivered timetable releases the unavailable and in-flight latches so held data is never withheld
-        private void OnTimetableDelivered(TrainUnitInstanceId trainUnitInstanceId)
-        {
-            // 削除でも同じ通知が飛ぶため、実体がある時だけ解除する
-            // Removal raises the same notification, so only an existing timetable releases the latches
-            if (!_timetableLookup.TryGet(trainUnitInstanceId, out _)) return; // silent-ok: 削除通知では取得ラッチを解除しない / タブが取得中か取得不可を表示する
-            if (_unavailableTrainUnitInstanceId == trainUnitInstanceId)
-            {
-                Debug.Log($"[TrainTimetableFetcher] timetable delivered; releasing unavailable latch: {trainUnitInstanceId}");
-                _unavailableTrainUnitInstanceId = null;
-            }
-            if (!_isFetchInFlight || _requestedTrainUnitInstanceId != trainUnitInstanceId) return; // silent-ok: 別列車の通知では取得状態を変えない / 対象タブは対応する応答を表示する
-            Debug.Log($"[TrainTimetableFetcher] timetable delivered while fetching; releasing in-flight latch: {trainUnitInstanceId}");
-            _isFetchInFlight = false;
-        }
-
         public bool IsUnavailable(TrainUnitInstanceId trainUnitInstanceId)
         {
             return _unavailableTrainUnitInstanceId == trainUnitInstanceId;
@@ -111,15 +124,6 @@ namespace Client.Game.InGame.Train.Timetable
         public bool IsFetchInFlight(TrainUnitInstanceId trainUnitInstanceId)
         {
             return _isFetchInFlight && _requestedTrainUnitInstanceId == trainUnitInstanceId;
-        }
-
-        // 走っている取得を打ち切って新しいトークンを配る
-        // Cancel the running fetch and hand out a fresh token
-        private CancellationToken RestartCancellation()
-        {
-            CancelInFlightFetch();
-            _cts = new CancellationTokenSource();
-            return _cts.Token;
         }
 
         // 放棄した取得は無音にせずログへ残す

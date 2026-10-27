@@ -28,8 +28,8 @@ namespace Client.Localization
 
             string ResolvePlaceholder(Match match)
             {
-                // 名前が一致する値を探し、無ければ枠を残して開発者へ知らせる
-                // Find the value with the matching name; otherwise keep the token and tell the developer
+                // 一致値を探し、無ければ枠残しで通知
+                // Find the matching value; keep the slot and report if missing
                 var name = match.Groups[1].Value;
                 foreach (var textParam in textParams)
                 {

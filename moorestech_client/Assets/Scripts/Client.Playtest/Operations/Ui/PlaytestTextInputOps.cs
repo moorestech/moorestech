@@ -9,8 +9,8 @@ namespace Client.Playtest.Operations
     {
         internal static async UniTask SetText(string testid, string text, float timeoutSeconds)
         {
-            // 欄の出現・有効化を期限内で待ち、置き換えた値が保たれたら完了とする
-            // Wait for the field to appear and enable, completing once the replaced value holds
+            // 欄の出現・有効化を待ち、値保持で完了
+            // Wait for the field to appear and enable; done when the value holds
             var generation = PlaytestUiLocatorSession.CaptureGeneration();
             var deadline = Time.realtimeSinceStartup + timeoutSeconds;
             var lastStatus = UiSetTextStatus.NotFound;

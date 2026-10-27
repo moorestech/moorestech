@@ -43,8 +43,8 @@ namespace Client.Game.InGame.UI.Blueprint
 
             async UniTaskVoid RequestAndRespond()
             {
-                // モーダル文言は要求時点の言語で辞書解決してpushする
-                // Resolve modal texts from the dictionary at request time before pushing
+                // 要求時点の言語で文言を解決しpush
+                // Resolve texts in the request-time language and push
                 var (result, text) = await _modalService.RequestInputModal(
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalTitle),
                     Localize.Get(LocalizationKeys.Ui.Blueprint.WebModalMessage),

@@ -12,8 +12,8 @@ namespace Client.Game.InGame.UI.Modal
     /// </summary>
     public class ModalRequestService : IInitializable
     {
-        // 現在保留中のモーダル要求。なければ null
-        // The currently pending modal request, or null when none
+        // 保留中の要求。なしはnull
+        // Pending request, or null
         public ModalRequest Pending { get; private set; }
 
         // Pending が変化したら発火する（topic 再配信のトリガ）
