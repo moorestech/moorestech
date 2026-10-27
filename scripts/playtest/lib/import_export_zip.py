@@ -41,6 +41,11 @@ def unpack(zip_path: str, target: str) -> int:
         for name in archive.namelist():
             if is_unsafe_entry(name):
                 return fail(f"zip に不正なエントリ名がある（何も展開しない）: {name!r}")
+        # 大文字小文字だけ違う同名エントリは APFS で上書きし合う（ready が READY を潰す等）ので展開前に拒否する
+        # Entries differing only by case overwrite each other on APFS (ready clobbering READY), so reject before extracting
+        folded = [name.casefold() for name in archive.namelist()]
+        if len(set(folded)) != len(folded):
+            return fail("zip に大文字小文字だけが違う同名エントリがある（何も展開しない）")
         archive.extractall(target)
     export_path = os.path.join(target, "export.json")
     if not os.path.isfile(export_path):

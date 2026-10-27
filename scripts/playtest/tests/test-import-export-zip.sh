@@ -85,4 +85,15 @@ rc=0; run_import "$TMP/evil.zip" > "$TMP/evil.log" 2>&1 || rc=$?
 [ -z "$(find "$P" -type d \( -name reports -o -name progress \))" ] || { echo "NG: 不正 zip なのに箱が置かれた"; exit 1; }
 [ ! -e "$TMP/evil" ] || { echo "NG: zip の外へ書かれた"; exit 1; }
 grep -q '不正なエントリ名' "$TMP/evil.log" || { echo "NG: 不正エントリの理由が無い"; exit 1; }
+
+# 予約名（印・run.env・大文字小文字違いの ready）を含む箱は置かれず、理由がログに出る
+# Boxes carrying reserved names (markers, run.env, case-variant ready) are not placed and the reason is logged
+for reserved in AUTOFIX_QUEUED run.env ready; do
+  rm -rf "$LOGS/harness/playtest/reports" "$LOGS/harness/playtest/progress"
+  make_zip "$TMP/res.zip" "reports/20261019_150326_bug1/$reserved"
+  rc=0; run_import "$TMP/res.zip" > "$TMP/res.log" 2>&1 || rc=$?
+  [ "$rc" -eq 1 ] || { echo "NG: $reserved 入りの終了コードが $rc"; exit 1; }
+  [ -z "$(find "$P" -name '20261019_150326_bug1*')" ] || { echo "NG: $reserved 入りの箱が置かれた"; exit 1; }
+  grep -qE '予約名|大文字小文字' "$TMP/res.log" || { echo "NG: $reserved の理由がログに無い"; cat "$TMP/res.log"; exit 1; }
+done
 echo OK

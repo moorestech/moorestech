@@ -46,6 +46,17 @@ import_one() {
     || { log "ERROR: 箱を整形できない（steamId が無い等）: $sub/${id}（飛ばす）"; rm -rf "$staged"; return 1; }
   python3 -I "$HERE/lib/safe_segment.py" segment "$steam_id" \
     || { log "ERROR: steamId が安全なパスセグメントでない: $sub/${id}（飛ばす）"; rm -rf "$staged"; return 1; }
+  # 受け口経路（ingest.sh）と同じ予約名検査を通す。zip は外部入力なので印・run.env の偽装を置く前に弾く
+  # Run the receiver path's reserved-name check (ingest.sh): the zip is external input, so reject forged markers/run.env before placing
+  local ready_rc=0
+  python3 -I "$HERE/lib/safe_segment.py" ready-files "$staged/READY" > /dev/null || ready_rc=$?
+  case "$ready_rc" in
+    0|5) ;;
+    3) log "ERROR: READY 本文に files[] が無い: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
+    4) log "ERROR: READY 本文の files[] に不正なパスを含む: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
+    6) log "ERROR: READY 本文の files[] が取り込み側の予約名（ingest.json・READY・AUTOFIX_* 等）と衝突: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
+    *) log "ERROR: READY 本文の解析に失敗（exit ${ready_rc}）: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
+  esac
   local dest="$PLAYTEST_DIR/$sub/$steam_id/$id" partial="$PLAYTEST_DIR/$sub/$steam_id/$id.partial"
   if [ -d "$dest" ]; then
     log "取り込み済み。飛ばす: $sub/$steam_id/$id"; rm -rf "$staged"; return 0
