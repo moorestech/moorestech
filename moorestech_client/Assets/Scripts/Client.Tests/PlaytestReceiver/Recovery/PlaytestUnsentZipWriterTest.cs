@@ -83,6 +83,20 @@ namespace Client.Tests.PlaytestReceiver.Recovery
             Assert.IsNotNull(archive.GetEntry("reports/r1/payload.txt"));
         }
 
+        [Test]
+        public void LargeFileIsStoredWithItsFullContent()
+        {
+            var box = MakeBox("reports", "r1", "READY");
+            var content = new byte[5 * 1024 * 1024 + 123];
+            new Random(7).NextBytes(content);
+            File.WriteAllBytes(Path.Combine(box, "big.bin"), content);
+            PlaytestUnsentZipWriter.Write(_directories, PlaytestOutboxScope.ReportsOnly, new FileStream(_zip, FileMode.CreateNew), DateTime.UtcNow);
+            using var archive = ZipFile.OpenRead(_zip);
+            using var stored = new MemoryStream();
+            using (var entry = archive.GetEntry("reports/r1/big.bin").Open()) entry.CopyTo(stored);
+            CollectionAssert.AreEqual(content, stored.ToArray());
+        }
+
         private string MakeBox(string outbox, string id, params string[] markers)
         {
             var box = Directory.CreateDirectory(Path.Combine(_root, outbox, id)).FullName;

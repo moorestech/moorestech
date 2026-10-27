@@ -77,8 +77,40 @@ namespace Client.Tests.PlaytestReceiver.Recovery
         {
             var box = MakeBox("reports", "a", "READY", "UPLOAD_FAILED");
             var requester = new CountingRequester();
-            new PlaytestOutboxRecovery(requester, _directories, null, null).ResendFailedAsync(PlaytestOutboxScope.ReportsAndProgress).GetAwaiter().GetResult();
+            new PlaytestOutboxRecovery(requester, _directories, null, null).ResendFailedAsync(new PlaytestSteamRoute()).GetAwaiter().GetResult();
             Assert.IsFalse(File.Exists(Path.Combine(box, "UPLOAD_FAILED")));
+            Assert.AreEqual(1, requester.Count);
+        }
+
+        [Test]
+        public void CapacityHoldBoxKeepsItsMarkerAndIsNotCounted()
+        {
+            var box = MakeBox("reports", "cap", "READY");
+            File.WriteAllText(Path.Combine(box, "UPLOAD_FAILED"), "repo/commits.bundle: too-large");
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("capacity hold"));
+            Assert.AreEqual(0, PlaytestFailedBoxRelease.ReleaseAll(_directories, PlaytestOutboxScope.ReportsAndProgress));
+            Assert.AreEqual("repo/commits.bundle: too-large", File.ReadAllText(Path.Combine(box, "UPLOAD_FAILED")));
+        }
+
+        [Test]
+        public void CompletionHoldBoxKeepsItsMarker()
+        {
+            var box = MakeBox("reports", "comp", "READY");
+            File.WriteAllText(Path.Combine(box, "UPLOAD_FAILED"), PlaytestOutboxScanner.CompletionHoldPrefix + "repo/commit-evidence: x");
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("completion hold"));
+            Assert.AreEqual(0, PlaytestFailedBoxRelease.ReleaseAll(_directories, PlaytestOutboxScope.ReportsAndProgress));
+            Assert.IsTrue(File.Exists(Path.Combine(box, "UPLOAD_FAILED")));
+        }
+
+        [Test]
+        public void LocalOnlyRouteResendKeepsMarkersAndRequestsUploadOnce()
+        {
+            var box = MakeBox("reports", "a", "READY", "UPLOAD_FAILED");
+            var requester = new CountingRequester();
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("local-only"));
+            var route = new PlaytestLocalOnlyRoute(PlaytestLocalOnlyReason.DistributionUnavailable, PlaytestOutboxScope.ReportsAndProgress, "x");
+            new PlaytestOutboxRecovery(requester, _directories, null, null).ResendFailedAsync(route).GetAwaiter().GetResult();
+            Assert.IsTrue(File.Exists(Path.Combine(box, "UPLOAD_FAILED")));
             Assert.AreEqual(1, requester.Count);
         }
 

@@ -29,6 +29,14 @@ it("送信待ちだけなら再送は出さず書き出しは出す", async () =
   act(() => r.unmount());
 });
 
+it("localOnly では失敗があっても再送は出さず書き出しは出す", async () => {
+  const localOnly: PauseMenuData["delivery"] = { kind: "localOnly", reason: "distributionUnavailable", inventory: { kind: "known", pendingCount: 1, failedCount: 3 } };
+  const r = await renderDelivery({ kind: "ready", missing: [] }, localOnly, idle);
+  expect(byTestId(r, "bug-report-resend-failed")).toHaveLength(0);
+  expect(byTestId(r, "bug-report-export-unsent")).toHaveLength(1);
+  act(() => r.unmount());
+});
+
 it("すべて送信済みなら両方とも出さない", async () => {
   const r = await renderDelivery({ kind: "ready", missing: [] }, { kind: "allSent" }, idle);
   expect(byTestId(r, "bug-report-resend-failed")).toHaveLength(0);

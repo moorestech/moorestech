@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Recovery
 {
-    // 再送・書き出しの入口。outbox読み書きは配送と同じ門で直列化
-    // Entry point for resend and export; outbox access shares the delivery gate
+    // 再送・書き出しの入口。印の変更は配送と同じ門で直列化
+    // Entry point for resend and export; marker changes share the delivery gate
     public sealed class PlaytestOutboxRecovery
     {
         private readonly IPlaytestUploadRequester _uploadRequester;
@@ -27,7 +27,7 @@ namespace Client.PlaytestReceiver.Recovery
 
         public void RequestResendFailed()
         {
-            ResendFailedAsync(CurrentScope()).Forget();
+            ResendFailedAsync(PlaytestDeliveryRouteResolver.ResolveCurrent()).Forget();
         }
 
         public void RequestExportUnsent()
@@ -42,12 +42,20 @@ namespace Client.PlaytestReceiver.Recovery
             return PlaytestDeliveryRouteResolver.ResolveCurrent().Scope;
         }
 
-        internal async UniTask ResendFailedAsync(PlaytestOutboxScope scope)
+        internal async UniTask ResendFailedAsync(PlaytestDeliveryRoute route)
         {
+            // 送れない経路で印を外すと失敗理由だけが消える。印は残して走行に表示を更新させる
+            // Unmarking on a route that cannot send would only erase the failure reason; keep markers and let the run refresh
+            if (route is PlaytestLocalOnlyRoute)
+            {
+                Debug.LogWarning("[PlaytestReceiver] resend keeps failure markers because the delivery route is local-only");
+                _uploadRequester.RequestUpload();
+                return;
+            }
             // 走行中の配送が終わるまで待ってから印を外す。走行が箱を数えている最中に印を変えない
             // Wait for any in-flight run before unmarking so markers never change under a counting run
             await PlaytestOutboxAccess.Gate.WaitAsync(Application.exitCancellationToken);
-            try { PlaytestFailedBoxRelease.ReleaseAll(_directories, scope); }
+            try { PlaytestFailedBoxRelease.ReleaseAll(_directories, route.Scope); }
             finally { PlaytestOutboxAccess.Gate.Release(); }
             // 解除できた数に関わらず要求する。走行が件数表示を最新にする
             // Request regardless of the released count; the run refreshes the displayed counts
@@ -64,23 +72,13 @@ namespace Client.PlaytestReceiver.Recovery
             // Never stay frozen in running after an unexpected exception; its reason reaches the Forget log and Player.log
             try
             {
-                // 配送の走行と同時に箱を読まない。大きなzipはワーカーで書く
-                // Never read boxes alongside an upload run; large zips are written on a worker
-                await PlaytestOutboxAccess.Gate.WaitAsync(cancellationToken);
+                // 読むだけなのでGateは取らない。走行と同時に読んでずれても欠落か取り込み側の「取り込み済みは飛ばす」に吸収される
+                // Read-only so no gate is taken; a skew against a running upload is absorbed by missing items or import's skip-already-imported
                 PlaytestExportStatus packed = null;
-                try
-                {
-                    // トークン付きで往復し、非IO例外でもメインへ戻ってからGateを解放する
-                    // Round-trip with the token so even a non-IO exception returns to the main thread before the gate is released
-                    await UniTask.RunOnThreadPool(() => { packed = PackUnsent(scope, zipPath, exportedAt); }, cancellationToken: cancellationToken);
-                }
-                finally
-                {
-                    // 取り消しがワーカー上で投げられた窓でも、メインへ戻ってから解放と後始末をする
-                    // Even when cancellation throws on the worker, return to the main thread before release and cleanup
-                    await UniTask.SwitchToMainThread();
-                    PlaytestOutboxAccess.Gate.Release();
-                }
+                // トークン付きで往復し、非IO例外でもメインへ戻ってから後始末する
+                // Round-trip with the token so even a non-IO exception returns to the main thread before cleanup
+                try { await UniTask.RunOnThreadPool(() => { packed = PackUnsent(scope, zipPath, exportedAt); }, cancellationToken: cancellationToken); }
+                finally { await UniTask.SwitchToMainThread(); }
                 cancellationToken.ThrowIfCancellationRequested();
                 FinishExport(packed, zipPath);
             }

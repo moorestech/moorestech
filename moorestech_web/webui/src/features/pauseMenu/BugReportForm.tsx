@@ -28,6 +28,9 @@ export function BugReportForm({ status, delivery, exportStatus, draft }: Props) 
   const inventory = delivery.kind === "allSent" ? null : delivery.inventory;
   const knownCounts = inventory?.kind === "known" ? { pendingCount: inventory.pendingCount, failedCount: inventory.failedCount } : null;
   const inventoryUnavailable = inventory?.kind === "unavailable";
+  // 送れない経路（localOnly）で再送すると失敗理由だけが消えるので、再送は出さない
+  // Resending on a route that cannot send would only erase the failure reason, so hide resend there
+  const resendAvailable = delivery.kind !== "localOnly";
 
   // 送信してよいかの判定はC#が持ち、結論が kind で届く。ここで条件を組み立て直すと判定が2本になる
   // C# owns whether a send may start and delivers the verdict as the kind; rebuilding the conditions here would make two rules
@@ -84,7 +87,7 @@ export function BugReportForm({ status, delivery, exportStatus, draft }: Props) 
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
       <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}{describeFailedDelivery()}</span>
-      <BugReportRecoveryControls counts={knownCounts} inventoryUnavailable={inventoryUnavailable} exportStatus={exportStatus} />
+      <BugReportRecoveryControls counts={knownCounts} resendAvailable={resendAvailable} inventoryUnavailable={inventoryUnavailable} exportStatus={exportStatus} />
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );

@@ -9,17 +9,18 @@ type Props = {
   // 未送信・送信不可の件数。読めないときnull
   // Pending and failed counts; null when unreadable
   counts: { pendingCount: number; failedCount: number } | null;
+  resendAvailable: boolean;
   inventoryUnavailable: boolean;
   exportStatus: PauseMenuData["export"];
 };
 
-export function BugReportRecoveryControls({ counts, inventoryUnavailable, exportStatus }: Props) {
+export function BugReportRecoveryControls({ counts, resendAvailable, inventoryUnavailable, exportStatus }: Props) {
   const { t } = useI18n();
   const exporting = exportStatus.kind === "running";
 
   // 件数が読めないときも書き出しだけは出す。読めない箱の救出が書き出しの役目のため
   // Export stays available even when counts are unreadable, because rescuing such boxes is its job
-  const showResend = counts !== null && counts.failedCount > 0;
+  const showResend = resendAvailable && counts !== null && counts.failedCount > 0;
   const showExport = inventoryUnavailable || (counts !== null && counts.pendingCount + counts.failedCount > 0);
   const statusLine = describeExport();
 

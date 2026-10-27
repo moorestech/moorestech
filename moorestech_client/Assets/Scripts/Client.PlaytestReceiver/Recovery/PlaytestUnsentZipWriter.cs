@@ -86,23 +86,27 @@ namespace Client.PlaytestReceiver.Recovery
                     Skip(entryName, error);
                     return;
                 }
-                // 読み出し中の失敗も欠落にするため、先にメモリへ読み切ってからzipへ書く
-                // Read fully into memory first so a mid-read failure is also listed as missing
-                var buffer = new MemoryStream();
+                // GB級の資料でも溢れないよう固定長バッファで流す。読み出しの失敗だけ欠落にして打ち切る(途中までのエントリは残る)
+                // Stream through a fixed buffer so GB-scale evidence never overflows; only a read failure is missing and stops (earlier bytes stay in the entry)
                 using (source)
                 {
-                    try { source.CopyTo(buffer); }
-                    catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                    // zipへの書き込み失敗は欠落にせず、書き出し自体の失敗としてPackUnsentへ届かせる
+                    // A zip write failure is not a missing item; it propagates to PackUnsent as an export failure
+                    using var target = archive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Fastest).Open();
+                    var buffer = new byte[81920];
+                    while (true)
                     {
-                        Skip(entryName, error);
-                        return;
+                        int read;
+                        try { read = source.Read(buffer, 0, buffer.Length); }
+                        catch (Exception error) when (error is IOException || error is UnauthorizedAccessException)
+                        {
+                            Skip(entryName, error);
+                            return;
+                        }
+                        if (read == 0) return;
+                        target.Write(buffer, 0, read);
                     }
                 }
-                // zipへの書き込み失敗は欠落にせず、書き出し自体の失敗としてPackUnsentへ届かせる
-                // A zip write failure is not a missing item; it propagates to PackUnsent as an export failure
-                using var target = archive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Fastest).Open();
-                buffer.Position = 0;
-                buffer.CopyTo(target);
             }
 
             void Skip(string item, Exception error)
