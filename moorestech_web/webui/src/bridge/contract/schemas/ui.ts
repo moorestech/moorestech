@@ -86,10 +86,25 @@ const DeliveryStatusSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("refused"), inventory: PlaytestDeliveryInventorySchema }).strict(),
   z.object({ kind: z.literal("allSent") }).strict(),
 ]);
+// 書き出しの状態ごとの必須値を契約で固定する
+// Pin the required fields of each export state at the boundary
+const ExportStatusSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("idle") }).strict(),
+  z.object({ kind: z.literal("running") }).strict(),
+  z.object({
+    kind: z.literal("done"),
+    zipPath: z.string().min(1),
+    boxCount: z.number().int().nonnegative(),
+    missing: z.array(z.object({ item: z.string(), reason: z.string() }).strict()),
+    revealed: z.boolean(),
+  }).strict(),
+  z.object({ kind: z.literal("failed"), reason: z.string().min(1) }).strict(),
+]);
 export const PauseMenuDataSchema = z.object({
   disconnected: z.boolean(),
   bugReport: BugReportStatusSchema,
   delivery: DeliveryStatusSchema,
+  export: ExportStatusSchema,
   page: z.enum(["top", "settings", "bugReport"]),
 });
 const PlacementModeCommonFields = {

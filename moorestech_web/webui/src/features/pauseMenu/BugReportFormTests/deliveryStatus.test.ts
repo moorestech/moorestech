@@ -13,7 +13,7 @@ const cases: [PauseMenuData["delivery"], string][] = [
 ];
 
 it.each(cases)("送信状況 %j と送信可否を同時に表示する", async (delivery, expected) => {
-  const renderer = await renderDelivery({ kind: "noSession", missing: [] }, delivery);
+  const renderer = await renderDelivery({ kind: "noSession", missing: [] }, delivery, { kind: "idle" });
   await act(async () => loadProductionDictionaries("japanese"));
   expect(renderer.root.findByProps({ "data-testid": "bug-report-delivery" }).children.join("")).toBe(expected);
   expect(statusTexts(renderer)).toHaveLength(1);
@@ -22,17 +22,17 @@ it.each(cases)("送信状況 %j と送信可否を同時に表示する", async 
 
 
 it.each(["japanese", "english", "german", "korean"])("%s辞書で配送不能件数と復旧案内を出す", async locale => {
-  const renderer = await renderDelivery({ kind: "ready", missing: [] }, { kind: "pending", inventory: { kind: "known", pendingCount: 0, failedCount: 2 } });
+  const renderer = await renderDelivery({ kind: "ready", missing: [] }, { kind: "pending", inventory: { kind: "known", pendingCount: 0, failedCount: 2 } }, { kind: "idle" });
   await act(async () => loadProductionDictionaries(locale));
   const text = renderer.root.findByProps({ "data-testid": "bug-report-delivery" }).children.join("");
   expect(text).toContain("2");
   expect(text).not.toContain("ui.bugReport.deliveryFailed");
-  expect(text).toMatch(/再送復旧|recover|Wiederherstellung|재전송 복구/);
+  expect(text).not.toMatch(/再送復旧|recover|Wiederherstellung|재전송 복구/);
   act(() => renderer.unmount());
 });
 
 it.each(["japanese", "english", "german", "korean"])("%s辞書で件数不明を完了や0件にしない", async locale => {
-  const renderer = await renderDelivery({ kind: "ready", missing: [] }, { kind: "pending", inventory: { kind: "unavailable", reason: "access denied" } });
+  const renderer = await renderDelivery({ kind: "ready", missing: [] }, { kind: "pending", inventory: { kind: "unavailable", reason: "access denied" } }, { kind: "idle" });
   await act(async () => loadProductionDictionaries(locale));
   const text = renderer.root.findByProps({ "data-testid": "bug-report-delivery" }).children.join("");
   expect(text).toContain("access denied");
@@ -42,7 +42,7 @@ it.each(["japanese", "english", "german", "korean"])("%s辞書で件数不明を
 });
 
 it.each(cases.filter(([delivery]) => delivery.kind === "refused" || delivery.kind === "localOnly"))("件数不明でも配送理由 %j を保持する", async (delivery, expected) => {
-  const renderer = await renderDelivery({ kind: "ready", missing: [] }, { ...delivery, inventory: { kind: "unavailable", reason: "access denied" } } as PauseMenuData["delivery"]);
+  const renderer = await renderDelivery({ kind: "ready", missing: [] }, { ...delivery, inventory: { kind: "unavailable", reason: "access denied" } } as PauseMenuData["delivery"], { kind: "idle" });
   await act(async () => loadProductionDictionaries("japanese"));
   const text = renderer.root.findByProps({ "data-testid": "bug-report-delivery" }).children.join("");
   expect(text).toContain(expected.split("（")[0]);

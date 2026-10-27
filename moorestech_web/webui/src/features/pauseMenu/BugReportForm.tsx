@@ -6,16 +6,18 @@ import { dispatchAction, PauseMenuReportKinds, type PauseMenuData, type PauseMen
 import { emitToast } from "@/features/toast";
 import { L, useI18n } from "@/shared/i18n";
 import { ModeSwitch } from "@/shared/ui";
+import { BugReportRecoveryControls } from "./BugReportRecoveryControls";
 import type { BugReportDraft } from "./useBugReportDraft";
 import styles from "./style.module.css";
 
 type Props = {
   status: PauseMenuData["bugReport"];
   delivery: PauseMenuData["delivery"];
+  exportStatus: PauseMenuData["export"];
   draft: BugReportDraft;
 };
 
-export function BugReportForm({ status, delivery, draft }: Props) {
+export function BugReportForm({ status, delivery, exportStatus, draft }: Props) {
   const { t } = useI18n();
   const [sending, setSending] = useState(false);
 
@@ -76,6 +78,7 @@ export function BugReportForm({ status, delivery, draft }: Props) {
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
       <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}{describeFailedDelivery()}</span>
+      <BugReportRecoveryControls delivery={delivery} exportStatus={exportStatus} />
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );
