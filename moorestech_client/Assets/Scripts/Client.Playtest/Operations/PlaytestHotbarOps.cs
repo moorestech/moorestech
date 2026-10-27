@@ -3,6 +3,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.UI.UIState;
+using Client.Playtest.Core;
 using Client.Playtest.Input;
 using Client.Playtest.Operations.Ui;
 using Core.Master;
@@ -67,12 +68,12 @@ namespace Client.Playtest.Operations
             #endregion
         }
 
-        public static void UnlockConnectToolServerSide(string toolName)
+        public static async UniTask UnlockConnectToolServerSide(string toolName)
         {
             // 接続ツールはBlockUnlockStateInfosと別枠(ConnectToolUnlockStateInfos)のため、ブロックのアンロックとは独立に必要
             // Connect tools live in a separate unlock bucket (ConnectToolUnlockStateInfos), so this is required independently of block unlocks
             var connectToolGuid = ResolveConnectToolGuid();
-            ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(connectToolGuid);
+            await PlaytestServerThreadAction.RunAsync($"unlock connect tool {toolName}", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(connectToolGuid));
 
             #region Internal
 
@@ -88,11 +89,11 @@ namespace Client.Playtest.Operations
             #endregion
         }
 
-        public static void UnlockBlueprintServerSide()
+        public static async UniTask UnlockBlueprintServerSide()
         {
             // ブループリントはBlockUnlockStateInfosと別枠(単一bool)のため、接続ツール同様に独立して解放が必要
             // Blueprint lives in a separate unlock bucket (a single bool), so this is required independently, like connect tools
-            ServerContext.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
+            await PlaytestServerThreadAction.RunAsync("unlock blueprint", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockBlueprint());
         }
     }
 }

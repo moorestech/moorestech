@@ -66,10 +66,10 @@ namespace Client.Playtest
         }
         public Vector3 PlayerPosition => PlayerSystemContainer.Instance.PlayerObjectController.Position;
         // ---- アイテム / Items ----
-        public void GiveItemDirect(string itemName, int count)
+        public async UniTask GiveItemDirect(string itemName, int count)
         {
             _reporter.Step($"give(direct): {itemName} x{count}");
-            PlaytestItemOps.GiveItemDirect(itemName, count);
+            await PlaytestItemOps.GiveItemDirect(itemName, count);
         }
         public async UniTask GiveItem(string itemName, int count) => await _reporter.Act($"give: {itemName} x{count}", () => PlaytestItemOps.GiveItemViaCommand(itemName, count, 10f));
         public int CountItem(string itemName) => PlaytestItemOps.CountItem(ClientContext.PlayerConnectionSetting.PlayerId, PlaytestItemOps.ResolveItemId(itemName));
@@ -77,59 +77,47 @@ namespace Client.Playtest
         // slot is the zero-based equipment slot; equipping also selects it (server-authoritative mining reads the selected equipment)
         public async UniTask EquipItem(string itemName, int equipmentSlot) => await _reporter.Act($"装備{equipmentSlot + 1}へ装着: {itemName}", () => PlaytestItemOps.EquipItem(itemName, equipmentSlot, 15f));
         // ---- ブロック / Blocks ----
-        public IBlock PlaceBlockDirect(string blockName, Vector3Int position, BlockDirection direction)
+        public async UniTask<IBlock> PlaceBlockDirect(string blockName, Vector3Int position, BlockDirection direction)
         {
             _reporter.Step($"設置(direct): {blockName} at {position}");
-            return PlaytestBlockOps.PlaceBlockDirect(blockName, position, direction);
+            return await PlaytestBlockOps.PlaceBlockDirect(blockName, position, direction);
         }
-        public bool RemoveBlock(Vector3Int position)
+        public async UniTask<bool> RemoveBlock(Vector3Int position)
         {
             _reporter.Step($"撤去: {position}");
-            return PlaytestBlockOps.RemoveBlock(position);
+            return await PlaytestBlockOps.RemoveBlock(position);
+        }
+        // シナリオ独自のサーバー書き込み（機械への投入・配線・レシピ選択等）をtick末尾で実行し完了を待つ
+        // Run a scenario's own server write (machine insert, wiring, recipe select, ...) at the tick end and await it
+        public async UniTask RunOnServer(string label, Action serverAction)
+        {
+            _reporter.Step($"サーバー操作: {label}");
+            await PlaytestServerThreadAction.RunAsync(label, serverAction);
         }
         public IBlock GetBlock(Vector3Int position) => PlaytestBlockOps.GetBlock(position);
-        public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position)
-        {
-            var waitEntry = _reporter.BeginWait($"ブロック生成待ち: {position}");
-            var blockGameObject = await PlaytestBlockOps.WaitBlockGameObjectSpawn(position, 15f);
-            _reporter.EndWait(waitEntry);
-            return blockGameObject;
-        }
+        public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position) => await PlaytestRecordedWaits.WaitBlockGameObject(_reporter, position);
         // ---- UI経路操作 / UI-route operations ----
         public UIStateEnum CurrentUiState => PlaytestUiOps.CurrentUiState();
-        public void UnlockBlock(string blockName)
+        public async UniTask UnlockBlock(string blockName)
         {
             _reporter.Step($"アンロック: {blockName}");
-            PlaytestBlockOps.UnlockBlockServerSide(blockName);
+            await PlaytestBlockOps.UnlockBlockServerSide(blockName);
         }
         public async UniTask GiveConstructionCost(string blockName, int blockCount) => await _reporter.Act($"建設コスト付与: {blockName} x{blockCount}", () => PlaytestItemOps.GiveConstructionCost(blockName, blockCount, 15f));
         public async UniTask PrepareBlockForUiPlacement(string blockName, int blockCount)
         {
             // UI設置の前提を1行で整える: アンロック＋建設コスト付与（クライアント在庫反映待ち込み）
             // One-liner setup for UI placement: unlock plus construction-cost grant (waits for client inventory sync)
-            UnlockBlock(blockName);
+            await UnlockBlock(blockName);
             await GiveConstructionCost(blockName, blockCount);
         }
         public async UniTask PressKey(Key key) => await _reporter.Act($"キー入力: {key}", () => SemanticInput.TapKey(key));
         public async UniTask ClickWebUi(string testid) => await _reporter.Act($"Web UIクリック: {testid}", () => PlaytestWebUiOps.ClickWebUi(testid));
         public async UniTask HoverWebUi(string testid) => await _reporter.Act($"Web UIホバー: {testid}", () => PlaytestWebUiOps.HoverWebUi(testid));
-        public async UniTask UntilWebUiElement(string testid, float timeoutSeconds)
-        {
-            // DOM要素待ちを待機表示し、成功後も録画用の操作間隔を確保する
-            // Show DOM waiting and retain the recording pace after success
-            var waitEntry = _reporter.BeginWait($"Web UI要素待ち: {testid}");
-            await PlaytestWebUiOps.WaitWebUiElement(testid, timeoutSeconds);
-            _reporter.EndWait(waitEntry);
-            await UniTask.Delay(TimeSpan.FromSeconds(PlaytestReporter.ActionIntervalSeconds), ignoreTimeScale: true);
-        }
+        public async UniTask UntilWebUiElement(string testid, float timeoutSeconds) => await PlaytestRecordedWaits.UntilWebUiElement(_reporter, testid, timeoutSeconds);
         public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
-        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds)
-        {
-            var waitEntry = _reporter.BeginWait($"UI状態待ち: {state}");
-            await PlaytestUiOps.WaitUiState(state, timeoutSeconds);
-            _reporter.EndWait(waitEntry);
-        }
+        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await PlaytestRecordedWaits.WaitUiState(_reporter, state, timeoutSeconds);
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestBuildMenuOps.OpenBuildMenuAndSelectBlock(blockName));
         // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提
         // Skips the opening skit and lands on the game screen; the precondition for every hotbar and build-menu operation
@@ -199,11 +187,7 @@ namespace Client.Playtest
             _reporter.EndWait(waitEntry);
             _reporter.RecordUntilResult(true, label, "condition met");
         }
-        public async UniTask WaitSeconds(float seconds)
-        {
-            _reporter.BeginWait($"{seconds:0.#}秒");
-            await UniTask.Delay(TimeSpan.FromSeconds(seconds));
-        }
+        public async UniTask WaitSeconds(float seconds) => await PlaytestRecordedWaits.WaitSeconds(_reporter, seconds);
         public async UniTask<string> Screenshot(string name)
         {
             _reporter.Step($"スクリーンショット: {name}");

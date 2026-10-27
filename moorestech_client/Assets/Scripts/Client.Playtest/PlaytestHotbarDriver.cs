@@ -38,20 +38,20 @@ namespace Client.Playtest
         // Assigns by display name from the same source as the build menu (PlacementTargetCatalog.UnlockedEntries); locked targets cannot be assigned
         public async UniTask AssignHotbar(int slot, string targetName) => await _reporter.Act($"ホットバー{slot + 1}へ割当: {targetName}", () => PlaytestHotbarOps.AssignHotbar(slot, targetName, 15f));
 
-        public void UnlockConnectTool(string toolName)
+        public async UniTask UnlockConnectTool(string toolName)
         {
             // 接続ツール(電線/レール/歯車チェーン等)はブロックとは別枠のアンロック状態を持つため、AssignHotbar前に必要
             // Connect tools (wire/rail/gear chain, etc.) hold a separate unlock state from blocks, so this precedes AssignHotbar
             _reporter.Step($"接続ツールをアンロック: {toolName}");
-            PlaytestHotbarOps.UnlockConnectToolServerSide(toolName);
+            await PlaytestHotbarOps.UnlockConnectToolServerSide(toolName);
         }
 
-        public void UnlockBlueprint()
+        public async UniTask UnlockBlueprint()
         {
             // ブループリントはブロックとは別枠のアンロック状態を持つため、AssignHotbar前に必要
             // Blueprint holds a separate unlock state from blocks, so this precedes AssignHotbar
             _reporter.Step("ブループリントをアンロック");
-            PlaytestHotbarOps.UnlockBlueprintServerSide();
+            await PlaytestHotbarOps.UnlockBlueprintServerSide();
         }
     }
 }
