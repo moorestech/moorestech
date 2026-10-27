@@ -120,7 +120,7 @@ namespace Client.Playtest.WebUi
             }
         }
 
-        public void Stop(string requestId) => _pending.Remove(requestId);
+        private void Stop(string requestId) => _pending.Remove(requestId);
 
         public void Reset() => _pending.Clear();
 
