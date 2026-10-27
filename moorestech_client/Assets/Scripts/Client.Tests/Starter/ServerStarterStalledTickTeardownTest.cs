@@ -7,7 +7,6 @@ using System.Threading;
 using Client.Playtest.Core;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
-using Game.SaveLoad;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Loop;
@@ -46,14 +45,12 @@ namespace Client.Tests.Starter
             var saveJsonPath = WorldDataDirectory.FromWorldRoot(worldRoot).SaveJsonFilePath;
             var savedWhileStalled = File.Exists(saveJsonPath);
 
-            // tickを再開させてスレッドの終了と書き出しの後始末を待ってから、ワールドを消す。再開したtickは閉じた書き出しへ投入しようとして例外ログを出す
-            // Resume the tick, wait for the thread to end and the writer to settle, then delete the world; the resumed tick logs an exception enqueueing into the closed writer
+            // tickを再開させ、スレッドの終了を待ってからワールドを消す。再開したtickは閉じた書き出しへ投入しようとして例外ログを出し、何も書かない
+            // Resume the tick and wait for the thread to end before deleting the world; the resumed tick logs an exception enqueueing into the closed writer and writes nothing
             LogAssert.Expect(LogType.Exception, new Regex("marked as complete with regards to additions"));
             release.Set();
             var threadEnded = gameUpdateThread.Join(TimeSpan.FromSeconds(15));
             yield return WaitUntilDone(blocker, 15f);
-            var coordinator = (WorldSaveCoordinator)typeof(ServerInstanceManager).GetField("_worldSaveCoordinator", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(manager);
-            coordinator.WaitForPendingWrites();
             if (Directory.Exists(worldRoot)) Directory.Delete(worldRoot, true);
 
             Assert.IsFalse(savedWhileStalled, "tickが動いたまま終了時セーブを取り込んで書き出した");
