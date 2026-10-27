@@ -146,7 +146,12 @@ namespace Server.Boot
 
                 // 最後のtickより後に届いた要求（終了セーブ等）は取り込む者がいない。tickは止まっているので、ここで取り込んで書き出しへ投入する
                 // A request that landed after the final tick (the shutdown save, etc.) has nobody to capture it; the tick is stopped, so capture and enqueue it here
-                _worldSaveCoordinator.SaveIfRequested();
+                // tickが止まり切っていなければ世界はまだ書き換わっている。並行に取り込むと列挙中の変更や壊れたセーブになるので取り込まない
+                // If the tick has not stopped the world is still changing; capturing concurrently corrupts enumeration or the save, so skip it
+                if (_gameUpdateThread != null && _gameUpdateThread.IsAlive)
+                    Debug.LogError("ゲーム更新threadが停止しないため、終了時に要求されたセーブを取り込めません（世界は最後に書き出した時点までしか保存されません）");
+                else
+                    _worldSaveCoordinator.SaveIfRequested();
 
                 // 待ち切れなかったことを終了経路の側でも残す。書き出し側のログだけではどの待ちが明けなかったか分からない
                 // Record the timeout on the shutdown path too; the writer's own log does not say which wait failed to clear

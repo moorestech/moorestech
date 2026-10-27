@@ -17,6 +17,10 @@ namespace Server.Boot
         // Whether Unity's teardown (OnApplicationQuit/OnDestroy) already folded the server; on a play stop or forced quit it arrives before ShutdownAsync's wait ends
         private bool _serverFinished;
 
+        // ShutdownAsyncが終了時の世界を書き出し終えたか。終えていれば破棄経路で同じ世界をもう一度書かない
+        // Whether ShutdownAsync already wrote the final world; if so the teardown does not write the same world again
+        private bool _finalSaveFlushed;
+
         // サーバーが実際にバインドしたポート。起動完了まで0
         // The port the server actually bound; 0 until startup completes
         public int BoundPort => _startServer?.BoundPort ?? 0;
@@ -48,6 +52,7 @@ namespace Server.Boot
             }
 
             var flushResult = ResolveFlushResult();
+            _finalSaveFlushed = flushResult == ServerSaveFlushResult.Flushed;
 
             // 破棄経路が先に来たときは自分のGameObjectはもう無い。受付の停止も破棄もそちらで済んでいる
             // When the teardown came first this GameObject is already gone; admission and destruction were both handled there
@@ -106,7 +111,9 @@ namespace Server.Boot
 
             // Play停止・強制終了ではクライアントの終了表明より先にここへ来ることがある。畳んだ後の要求は誰も書けないので、終了時の世界はここで要求しDisposeに書き出させる
             // On a play stop or forced quit this can run before the client's shutdown declaration; nobody can write a request after folding, so request the final world here and let Dispose write it
-            _startServer?.RequestSave();
+            // 通常終了でShutdownAsyncが書き出しを確定させた後は、メインスレッドで世界を取り込み直す2回目の書き出しをしない
+            // After a normal quit where ShutdownAsync confirmed the write, skip a second write that would recapture the world on the main thread
+            if (!_finalSaveFlushed) _startServer?.RequestSave();
             _startServer?.Dispose();
             Debug.Log("サーバーを終了しました");
         }
