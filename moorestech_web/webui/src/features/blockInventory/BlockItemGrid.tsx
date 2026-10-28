@@ -1,3 +1,5 @@
+import { Stack, Text } from "@mantine/core";
+import { useI18n, type TranslationKey } from "@/shared/i18n";
 import { ItemSlot, SlotGrid } from "@/shared/ui";
 import type { SlotData } from "@/bridge";
 import { useBlockSlotGestures } from "./useBlockSlotGestures";
@@ -25,5 +27,22 @@ export default function BlockItemGrid({ itemSlots, slotIndices, testId }: { item
         />
       ))}
     </SlotGrid>
+  );
+}
+
+// 用途ラベルの見た目を入出力グリッド間で揃える
+// Keep purpose labels consistent across input and output grids
+export function BlockItemGridGroup({ labelKey, ...grid }: {
+  labelKey: TranslationKey;
+  itemSlots: SlotData[];
+  slotIndices: number[];
+  testId: string;
+}) {
+  const { t } = useI18n();
+  return (
+    <Stack gap={4}>
+      <Text size="sm" c="var(--text-muted)">{t(labelKey)}</Text>
+      <BlockItemGrid {...grid} />
+    </Stack>
   );
 }

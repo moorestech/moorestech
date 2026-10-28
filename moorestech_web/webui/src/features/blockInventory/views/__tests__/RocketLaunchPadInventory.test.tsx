@@ -36,9 +36,17 @@ function frameIn(root: ReactTestInstance, group: string) {
 }
 
 describe("RocketLaunchPadInventory through the real panel", () => {
-  it("requires rocket data at the dedicated view boundary", () => {
-    expectTypeOf<BlockInventoryOpen>().not.toMatchTypeOf<Parameters<typeof RocketLaunchPadInventory>[0]["data"]>();
-    expectTypeOf<Parameters<typeof RocketLaunchPadInventory>[0]["data"]["blockType"]>().toEqualTypeOf<"RocketLaunchPad">();
+  it("accepts panel data and narrows inside the dedicated view", () => {
+    expectTypeOf<BlockInventoryOpen>().toEqualTypeOf<Parameters<typeof RocketLaunchPadInventory>[0]["data"]>();
+  });
+
+  it("a mismatched registry key shows pending detail without throwing", () => {
+    mock.block = { ...mock.block, blockType: "Chest" };
+    let tree!: ReturnType<typeof create>;
+    act(() => { tree = create(createElement(RocketLaunchPadInventory, { data: mock.block })); });
+    expect(hostById(tree.root, "rocket-launch-pad-loading")).toBeDefined();
+    expect(hostById(tree.root, "rocket-launch-pad-view")).toBeUndefined();
+    act(() => { tree.unmount(); });
   });
 
   it("waits for initial detail and renders when the topic arrives", () => {

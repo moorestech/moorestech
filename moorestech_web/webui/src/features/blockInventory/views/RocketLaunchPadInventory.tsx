@@ -1,36 +1,25 @@
 import { Stack, Text } from "@mantine/core";
-import type { BlockInventoryOpen, RocketLaunchPadData } from "@/bridge";
-import { L, useI18n, type TranslationKey } from "@/shared/i18n";
+import type { BlockInventoryOpen } from "@/bridge";
+import { L, useI18n } from "@/shared/i18n";
 import { GaugeBar } from "@/shared/ui";
-import BlockItemGrid from "../BlockItemGrid";
+import { BlockItemGridGroup } from "../BlockItemGrid";
 import { rocketStatusKey } from "../details/rocket/rocketLaunchPadLogic";
 
-type RocketViewData = Pick<BlockInventoryOpen, "itemSlots"> & {
-  blockType: "RocketLaunchPad";
-  rocketLaunchPad: RocketLaunchPadData | undefined;
-};
-
-export default function RocketLaunchPadInventory({ data }: { data: RocketViewData }) {
+export default function RocketLaunchPadInventory({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
-  const detail = data.rocketLaunchPad;
+  const detail = data.blockType === "RocketLaunchPad" ? data.rocketLaunchPad : undefined;
   // 詳細未着は取得待ちとして伝える
   // Show pending details as loading
   if (!detail) return <Text size="sm" c="var(--text-muted)" data-testid="rocket-launch-pad-loading">{t(L.ui.blockInventory.detailLoading)}</Text>;
 
-  const group = (labelKey: TranslationKey, indices: number[], testId: string) => (
-    <Stack gap={4}>
-      <Text size="sm" c="var(--text-muted)">{t(labelKey)}</Text>
-      <BlockItemGrid itemSlots={data.itemSlots} slotIndices={indices} testId={testId} />
-    </Stack>
-  );
 
   return (
     <Stack gap="sm" data-testid="rocket-launch-pad-view">
-      {group(L.ui.blockInventory.rocketMaterials, detail.materialSlots, "rocket-launch-pad-material-slots")}
-      {group(L.ui.blockInventory.rocketPayloads, detail.payloadSlots, "rocket-launch-pad-payload-slots")}
+      <BlockItemGridGroup itemSlots={data.itemSlots} labelKey={L.ui.blockInventory.rocketMaterials} slotIndices={detail.materialSlots} testId="rocket-launch-pad-material-slots" />
+      <BlockItemGridGroup itemSlots={data.itemSlots} labelKey={L.ui.blockInventory.rocketPayloads} slotIndices={detail.payloadSlots} testId="rocket-launch-pad-payload-slots" />
       <Text size="sm" c="var(--text-high-contrast)" data-testid="rocket-launch-pad-status">{t(rocketStatusKey(detail))}</Text>
       <GaugeBar value={detail.progress} testId="rocket-launch-pad-progress" />
-      {group(L.ui.blockInventory.rocketOutputs, detail.outputSlots, "rocket-launch-pad-output-slots")}
+      <BlockItemGridGroup itemSlots={data.itemSlots} labelKey={L.ui.blockInventory.rocketOutputs} slotIndices={detail.outputSlots} testId="rocket-launch-pad-output-slots" />
     </Stack>
   );
 }

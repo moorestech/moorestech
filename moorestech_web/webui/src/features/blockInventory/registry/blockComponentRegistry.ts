@@ -1,4 +1,4 @@
-import { createElement, type ComponentType } from "react";
+import { type ComponentType } from "react";
 import type { BlockInventoryOpen } from "@/bridge";
 import FilterSplitterInventory from "../views/FilterSplitterInventory";
 import ElectricToGearInventory from "../views/ElectricToGearInventory";
@@ -6,6 +6,7 @@ import SectionStackView from "../views/SectionStackView";
 import ElectricPoleInventory from "../views/ElectricPoleInventory";
 import SpaceElevatorInventory from "../views/SpaceElevatorInventory";
 import RocketLaunchPadInventory from "../views/RocketLaunchPadInventory";
+import RocketLaunchPadCommandAction from "../details/rocket/RocketLaunchPadCommandAction";
 import TrainPlatformInventory from "../views/TrainPlatformInventory";
 
 // blockType別の静的レジストリ
@@ -15,29 +16,28 @@ import TrainPlatformInventory from "../views/TrainPlatformInventory";
 // 大型パネル（高さ確定面）かどうかはパネルが決め、器の伸長が要るビューだけが受け取る
 // The panel decides whether this is the height-determining large panel; only views needing to stretch read it
 export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryOpen; fillsPanelHeight: boolean }>;
-export const blockComponents: Record<string, BlockInventoryComponent> = {
-  FilterSplitter: FilterSplitterInventory,
-  Shaft: SectionStackView,
-  Gear: SectionStackView,
-  GearBeltConveyor: SectionStackView,
-  ElectricToGearGenerator: ElectricToGearInventory,
-  TrainStation: TrainPlatformInventory,
-  TrainItemPlatform: TrainPlatformInventory,
-  TrainFluidPlatform: TrainPlatformInventory,
-  ElectricPole: ElectricPoleInventory,
-  SpaceElevatorBase: SpaceElevatorInventory,
-  RocketLaunchPad: ({ data }) => {
-    // 種別確定地点で専用入力を作り、未着の詳細はそのまま渡す
-    // Construct dedicated input at the type boundary, preserving pending detail
-    if (data.blockType !== "RocketLaunchPad") throw new Error(`RocketLaunchPad view received ${data.blockType}`);
-    return createElement(RocketLaunchPadInventory, {
-      data: { itemSlots: data.itemSlots, blockType: data.blockType, rocketLaunchPad: data.rocketLaunchPad },
-    });
-  },
+type BlockInventoryComponents = {
+  body: BlockInventoryComponent;
+  titleAction?: ComponentType<{ data: BlockInventoryOpen }>;
+};
+export const blockComponents: Record<string, BlockInventoryComponents> = {
+  FilterSplitter: { body: FilterSplitterInventory },
+  Shaft: { body: SectionStackView },
+  Gear: { body: SectionStackView },
+  GearBeltConveyor: { body: SectionStackView },
+  ElectricToGearGenerator: { body: ElectricToGearInventory },
+  TrainStation: { body: TrainPlatformInventory },
+  TrainItemPlatform: { body: TrainPlatformInventory },
+  TrainFluidPlatform: { body: TrainPlatformInventory },
+  ElectricPole: { body: ElectricPoleInventory },
+  SpaceElevatorBase: { body: SpaceElevatorInventory },
+  RocketLaunchPad: { body: RocketLaunchPadInventory, titleAction: RocketLaunchPadCommandAction },
 };
 
 // 未登録種別は共通ビューへ戻す
 // Unknown blockType falls back to a generic view (fluid blocks etc. won't crash before a dedicated UI lands)
-export function resolveBlockComponent(blockType: string): BlockInventoryComponent {
-  return blockComponents[blockType] ?? SectionStackView;
+const defaultComponents: BlockInventoryComponents = { body: SectionStackView };
+
+export function resolveBlockComponent(blockType: string): BlockInventoryComponents {
+  return blockComponents[blockType] ?? defaultComponents;
 }

@@ -32,6 +32,7 @@ describe("SpaceElevatorInventory", () => {
     const data: BlockInventoryOpen = {
       open: true, source: "block", blockType: "SpaceElevatorBase", identifier: "block:20",
       blockGuid: "99999999-9999-4999-8999-999999999999", fluidSlots: [],
+      spaceElevator: { satelliteInputSlots: [2], outputSlots: [3, 0, 1], connected: true, cablePoolAmount: 0, cablesPerElevator: 1000, climbProgress: 0, status: "waitingSatellite" },
       itemSlots: Array.from({ length: 4 }, (_, i) => ({ itemId: empty ? 0 : i + 1, count: empty ? 0 : i + 2 })),
     };
     const before = structuredClone(data);
@@ -50,7 +51,8 @@ describe("SpaceElevatorInventory", () => {
     // 分割した全枠で左・Shift・右・収集のindexが保持される
     // Every split slot preserves its index for left, Shift, right, and collect gestures
     const slots = [...input.findAllByType(ItemSlot), ...output.findAllByType(ItemSlot)];
-    slots.forEach((slot, index) => {
+    slots.forEach((slot, position) => {
+      const index = [2, 3, 0, 1][position];
       vi.clearAllMocks();
       expect(slot.props.itemId).toBe(before.itemSlots[index].itemId);
       expect(slot.props.count).toBe(before.itemSlots[index].count);
