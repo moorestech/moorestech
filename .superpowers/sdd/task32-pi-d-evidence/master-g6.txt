@@ -1,0 +1,400 @@
+{"cwd": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated", "argv": ["python3", "tools/tier9_balance/run.py"], "exit": 0}
+PASS [s1_semiconductor] target ok S1 6〜8時間（クラスA）: 6.333333333333333h
+PASS [s1_semiconductor] target ok Lv1 中心＋少数 Lv2（クラスA）: Lv2 3.4%
+PASS [s1_semiconductor] target ok S1 6〜8時間（クラスB）: 6.666666666666667h
+PASS [s1_semiconductor] target ok Lv1 中心＋少数 Lv2（クラスB）: Lv2 2.5%
+PASS [s1_semiconductor] target ok S1 6〜8時間（クラスC）: 7.333333333333333h
+PASS [s1_semiconductor] target ok Lv1 中心＋少数 Lv2（クラスC）: Lv2 1.7%
+PASS [s1_semiconductor] target ok 3層成功≒50%（クラスC・品質なし）: 51.2%
+PASS [s1_semiconductor] target ok 上流は電気炉だけ約2倍: 粉砕:炉:化学 = 2.00:4.00:2.00
+PASS [s1_semiconductor] target ok 大部屋集約が有利（目標クラスA）: 清浄機 3 vs 7台・ハッチ 4 vs 15基
+PASS [s1_semiconductor] target ok 大部屋集約が有利（目標クラスB）: 清浄機 2 vs 5台・ハッチ 4 vs 15基
+PASS [s1_semiconductor] target ok 大部屋集約が有利（目標クラスC）: 清浄機 1 vs 5台・ハッチ 4 vs 15基
+PASS [s1_semiconductor] target ok クラスを上げて良品合計と Lv2 以上が減らない: 6構成
+PASS [s1_semiconductor] match ok 超純水の GUID が残るファイル: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 仮コストのままのブロック: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok levelFamilies の不足数（S1 の 11 族に対して）: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 5 段で基準が先頭になっていない levelFamily: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok cleanRoom に残る旧チップ抽選 chipDraws: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok スタック上限が 600 未満のダイ: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok ICチップLv1 を消費する S1 研究の数: sim=7 json=7 許容差=0
+PASS [s1_semiconductor] match ok S1 研究の ICチップLv1 合計: sim=23000 json=23000 許容差=0
+PASS [s1_semiconductor] match ok ローカライズ行の欠け: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 上流の台数比 電気炉/電気粉砕機: sim=2.0 json=2.0 許容差=1e-06
+PASS [s1_semiconductor] match ok 上流の台数比 化学プラント/電気粉砕機: sim=1.0 json=1.0 許容差=1e-06
+PASS [s1_semiconductor] match ok レシピ 砂 の機械が 電気粉砕機: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 砂 の時間: sim=2.0 json=2 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ 砂 の入力品目と数量 期待={'60daab46-bce2-4d09-b895-d872bef3f9c3': 1} 実際={'60daab46-bce2-4d09-b895-d872bef3f9c3': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 砂 の出力品目と数量 期待={'019e07bc-6430-7338-be0b-d1117b25fb7a': 1} 実際={'019e07bc-6430-7338-be0b-d1117b25fb7a': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 砂 の確定出力 019e07bc-6430-7338-be0b-d1117b25fb7a: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 金属シリコン の機械が 電気炉: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 金属シリコン の時間: sim=8.0 json=8 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ 金属シリコン の入力品目と数量 期待={'019e07bc-6430-7338-be0b-d1117b25fb7a': 2, 'f882df45-5651-4aec-b871-a9f885a5f75f': 1} 実際={'019e07bc-6430-7338-be0b-d1117b25fb7a': 2, 'f882df45-5651-4aec-b871-a9f885a5f75f': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 金属シリコン の出力品目と数量 期待={'01a17349-9327-763a-9219-5a1b4713496e': 1} 実際={'01a17349-9327-763a-9219-5a1b4713496e': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 金属シリコン の確定出力 01a17349-9327-763a-9219-5a1b4713496e: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 高純度シリコン の機械が 化学プラント: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 高純度シリコン の時間: sim=4.0 json=4 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ 高純度シリコン の入力品目と数量 期待={'01a17349-9327-763a-9219-5a1b4713496e': 1} 実際={'01a17349-9327-763a-9219-5a1b4713496e': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 高純度シリコン の出力品目と数量 期待={'019e3c14-9157-75df-be7c-ed1e41ad212a': 1} 実際={'019e3c14-9157-75df-be7c-ed1e41ad212a': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 高純度シリコン の確定出力 019e3c14-9157-75df-be7c-ed1e41ad212a: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ IPA の機械が 化学プラント: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ IPA の時間: sim=2.0 json=2 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ IPA の入力品目と数量 期待={'019eded2-657c-74b9-a5b8-4ebc3ca56a9b': 5, '9eae6979-d56a-4991-9107-b8161acec430': 15} 実際={'019eded2-657c-74b9-a5b8-4ebc3ca56a9b': 5, '9eae6979-d56a-4991-9107-b8161acec430': 15}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ IPA の出力品目と数量 期待={'019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 20} 実際={'019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 20}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ウェハ切断 の機械が ウェハ切断機: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ウェハ切断 の時間: sim=8.0 json=8 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ ウェハ切断 の入力品目と数量 期待={'019e3c14-9157-75df-be7c-ed1e41ad212a': 10, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 10} 実際={'019e3c14-9157-75df-be7c-ed1e41ad212a': 10, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 10}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ウェハ切断 の出力品目と数量 期待={'019e3afc-4662-73ea-adef-b838adfad381': 1} 実際={'019e3afc-4662-73ea-adef-b838adfad381': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ウェハ切断 の確定出力 019e3afc-4662-73ea-adef-b838adfad381: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 成膜 の機械が 成膜装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 成膜 の時間: sim=10.0 json=10 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ 成膜 の入力品目と数量 期待={'019e3afc-4662-73ea-adef-b838adfad381': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 10} 実際={'019e3afc-4662-73ea-adef-b838adfad381': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 10}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 成膜 の出力品目と数量 期待={'019e3c14-b270-716f-84e5-c0b06a97592b': 1} 実際={'019e3c14-b270-716f-84e5-c0b06a97592b': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 成膜 の確定出力 019e3c14-b270-716f-84e5-c0b06a97592b: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV1層 の機械が EUV露光式半導体製造装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV1層 の時間: sim=15.0 json=15 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ EUV1層 の入力品目と数量 期待={'019e3c14-b270-716f-84e5-c0b06a97592b': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 5} 実際={'019e3c14-b270-716f-84e5-c0b06a97592b': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 5}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV1層 の出力品目と数量 期待={'019e3c25-78f1-70ec-be1b-2c2cdd9297bb': 1, '019e3ec7-f417-751f-9d89-2490baa12a36': 1} 実際={'019e3c25-78f1-70ec-be1b-2c2cdd9297bb': 1, '019e3ec7-f417-751f-9d89-2490baa12a36': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV2層 の機械が EUV露光式半導体製造装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV2層 の時間: sim=15.0 json=15 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ EUV2層 の入力品目と数量 期待={'019e3c25-78f1-70ec-be1b-2c2cdd9297bb': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 5} 実際={'019e3c25-78f1-70ec-be1b-2c2cdd9297bb': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 5}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV2層 の出力品目と数量 期待={'01a17356-2aff-701f-9a1c-1745ca409137': 1, '019e3ec7-f417-751f-9d89-2490baa12a36': 1} 実際={'01a17356-2aff-701f-9a1c-1745ca409137': 1, '019e3ec7-f417-751f-9d89-2490baa12a36': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV3層 の機械が EUV露光式半導体製造装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV3層 の時間: sim=15.0 json=15 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ EUV3層 の入力品目と数量 期待={'01a17356-2aff-701f-9a1c-1745ca409137': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 5} 実際={'01a17356-2aff-701f-9a1c-1745ca409137': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 5}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ EUV3層 の出力品目と数量 期待={'019e3b02-b9fd-73c7-9538-ef13b0f755f1': 1, '019e3ec7-f417-751f-9d89-2490baa12a36': 1} 実際={'019e3b02-b9fd-73c7-9538-ef13b0f755f1': 1, '019e3ec7-f417-751f-9d89-2490baa12a36': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ダイシング の機械が ダイシング装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ダイシング の時間: sim=18.0 json=18 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ ダイシング の入力品目と数量 期待={'019e3b02-b9fd-73c7-9538-ef13b0f755f1': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 20} 実際={'019e3b02-b9fd-73c7-9538-ef13b0f755f1': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 20}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ダイシング の出力品目と数量 期待={'019e3c26-9808-765d-ace7-ea1845a7e072': 300, '01a17356-2aff-701f-9a1c-174e55eb20f8': 300, '01a17356-2aff-701f-9a1c-174f781ba191': 300, '01a17356-2aff-701f-9a1c-1750b8ac3222': 300, '01a17356-2aff-701f-9a1c-175178dfda4c': 300, '019e3ec8-189d-7391-8ea2-45e69b3c21bb': 300} 実際={'019e3c26-9808-765d-ace7-ea1845a7e072': 300, '01a17356-2aff-701f-9a1c-174e55eb20f8': 300, '01a17356-2aff-701f-9a1c-174f781ba191': 300, '01a17356-2aff-701f-9a1c-1750b8ac3222': 300, '01a17356-2aff-701f-9a1c-175178dfda4c': 300, '019e3ec8-189d-7391-8ea2-45e69b3c21bb': 300}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ パッケージング の機械が パッケージング装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ パッケージング の時間: sim=3.0 json=3 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ パッケージング の入力品目と数量 期待={'019e3c26-9808-765d-ace7-ea1845a7e072': 10, '019e3b03-0dc4-7328-a74d-684aa710f1a8': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 1} 実際={'019e3c26-9808-765d-ace7-ea1845a7e072': 10, '019e3b03-0dc4-7328-a74d-684aa710f1a8': 1, '019eeaa7-59f5-753d-bd10-ef32bc05ea0b': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ パッケージング の出力品目と数量 期待={'f6dd7835-0845-4877-87d0-b719d037ae7d': 1} 実際={'f6dd7835-0845-4877-87d0-b719d037ae7d': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ パッケージング の確定出力 f6dd7835-0845-4877-87d0-b719d037ae7d: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ICチップ基板 の機械が 電気汎用工作装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ICチップ基板 の時間: sim=3.0 json=3 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ ICチップ基板 の入力品目と数量 期待={'019e3aaa-af6f-7527-8689-01f4ebd65426': 1, '019e0a92-1907-707a-8625-630d86a076ee': 1} 実際={'019e3aaa-af6f-7527-8689-01f4ebd65426': 1, '019e0a92-1907-707a-8625-630d86a076ee': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ICチップ基板 の出力品目と数量 期待={'019e3b03-0dc4-7328-a74d-684aa710f1a8': 1} 実際={'019e3b03-0dc4-7328-a74d-684aa710f1a8': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ ICチップ基板 の確定出力 019e3b03-0dc4-7328-a74d-684aa710f1a8: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 鋼鉄フレーム の機械が 電気汎用工作装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 鋼鉄フレーム の時間: sim=6.0 json=6 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ 鋼鉄フレーム の入力品目と数量 期待={'019e3a98-cfe5-73eb-bf6a-a564400bdb4f': 3, '019e3aaa-af6f-7527-8689-01f4ebd65426': 2} 実際={'019e3a98-cfe5-73eb-bf6a-a564400bdb4f': 3, '019e3aaa-af6f-7527-8689-01f4ebd65426': 2}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 鋼鉄フレーム の出力品目と数量 期待={'01a17349-9327-763a-9219-5a1c82daee82': 1} 実際={'01a17349-9327-763a-9219-5a1c82daee82': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 鋼鉄フレーム の確定出力 01a17349-9327-763a-9219-5a1c82daee82: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ クリーンルームフィルター の機械が 電気汎用工作装置: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ クリーンルームフィルター の時間: sim=4.0 json=4 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ クリーンルームフィルター の入力品目と数量 期待={'019e3aaa-af6f-7527-8689-01f4ebd65426': 4, '293917b2-4654-4442-badb-a907cfab3e1f': 10} 実際={'019e3aaa-af6f-7527-8689-01f4ebd65426': 4, '293917b2-4654-4442-badb-a907cfab3e1f': 10}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ クリーンルームフィルター の出力品目と数量 期待={'f4431bb1-35b9-4934-be95-de1641c65fd7': 1} 実際={'f4431bb1-35b9-4934-be95-de1641c65fd7': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ クリーンルームフィルター の確定出力 f4431bb1-35b9-4934-be95-de1641c65fd7: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 失敗ウェハ再生 の機械が 電気粉砕機: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 失敗ウェハ再生 の時間: sim=4.0 json=4 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ 失敗ウェハ再生 の入力品目と数量 期待={'019e3ec7-f417-751f-9d89-2490baa12a36': 1} 実際={'019e3ec7-f417-751f-9d89-2490baa12a36': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 失敗ウェハ再生 の出力品目と数量 期待={'019e3c14-9157-75df-be7c-ed1e41ad212a': 5} 実際={'019e3c14-9157-75df-be7c-ed1e41ad212a': 5}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 失敗ウェハ再生 の確定出力 019e3c14-9157-75df-be7c-ed1e41ad212a: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 失敗ダイ再生 の機械が 電気粉砕機: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 失敗ダイ再生 の時間: sim=4.0 json=4 許容差=1e-09
+PASS [s1_semiconductor] match ok レシピ 失敗ダイ再生 の入力品目と数量 期待={'019e3ec8-189d-7391-8ea2-45e69b3c21bb': 60} 実際={'019e3ec8-189d-7391-8ea2-45e69b3c21bb': 60}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 失敗ダイ再生 の出力品目と数量 期待={'019e3c14-9157-75df-be7c-ed1e41ad212a': 1} 実際={'019e3c14-9157-75df-be7c-ed1e41ad212a': 1}: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok レシピ 失敗ダイ再生 の確定出力 019e3c14-9157-75df-be7c-ed1e41ad212a: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok ウェハ切断機 の消費電力: sim=80 json=80 許容差=1e-09
+PASS [s1_semiconductor] match ok 成膜装置 の消費電力: sim=150 json=150 許容差=1e-09
+PASS [s1_semiconductor] match ok EUV露光式半導体製造装置 の消費電力: sim=250 json=250 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイシング装置 の消費電力: sim=120 json=120 許容差=1e-09
+PASS [s1_semiconductor] match ok パッケージング装置 の消費電力: sim=60 json=60 許容差=1e-09
+PASS [s1_semiconductor] match ok 電気粉砕機 の消費電力: sim=40 json=40 許容差=1e-09
+PASS [s1_semiconductor] match ok 電気炉 の消費電力: sim=30 json=30 許容差=1e-09
+PASS [s1_semiconductor] match ok 化学プラント の消費電力: sim=75 json=75 許容差=1e-09
+PASS [s1_semiconductor] match ok 電気汎用工作装置 の消費電力: sim=20 json=20 許容差=1e-09
+PASS [s1_semiconductor] match ok クリーンルーム空気清浄機 の消費電力: sim=150 json=150 許容差=1e-09
+PASS [s1_semiconductor] match ok 空気清浄機の毎秒除去量: sim=5.0 json=5 許容差=1e-09
+PASS [s1_semiconductor] match ok 空気清浄機のフィルター容量: sim=20000 json=20000 許容差=1e-09
+PASS [s1_semiconductor] match ok クリーンルームアイテムハッチの毎秒の搬送上限: sim=4.0 json=4 許容差=1e-09
+PASS [s1_semiconductor] match ok 汚染係数 aVolume: sim=0.02 json=0.02 許容差=1e-09
+PASS [s1_semiconductor] match ok 汚染係数 aSurface: sim=0.04 json=0.04 許容差=1e-09
+PASS [s1_semiconductor] match ok 汚染係数 aConnector: sim=3.0 json=3.0 許容差=1e-09
+PASS [s1_semiconductor] match ok 汚染係数 aMachine: sim=2.0 json=2.0 許容差=1e-09
+PASS [s1_semiconductor] match ok 汚染係数 kHatch: sim=4.0 json=4.0 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスA の qualityMultiplier: sim=1.0 json=1.0 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスA の layerFailRate: sim=0.1 json=0.1 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスA の dieLossRate: sim=0.15 json=0.15 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスB の qualityMultiplier: sim=0.75 json=0.75 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスB の layerFailRate: sim=0.15 json=0.15 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスB の dieLossRate: sim=0.22 json=0.22 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスC の qualityMultiplier: sim=0.5 json=0.5 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスC の layerFailRate: sim=0.2 json=0.2 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスC の dieLossRate: sim=0.3 json=0.3 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスD の qualityMultiplier: sim=0.25 json=0.25 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスD の layerFailRate: sim=0.25 json=0.25 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスD の dieLossRate: sim=0.38 json=0.38 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスA の maxConcentration: sim=10 json=10 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスA の requiredAirChangeRate: sim=0.0167 json=0.0167 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスB の maxConcentration: sim=50 json=50 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスB の requiredAirChangeRate: sim=0.0083 json=0.0083 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスC の maxConcentration: sim=200 json=200 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスC の requiredAirChangeRate: sim=0.0042 json=0.0042 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスD の maxConcentration: sim=1000 json=1000 許容差=1e-09
+PASS [s1_semiconductor] match ok クラスD の requiredAirChangeRate: sim=0.0014 json=0.0014 許容差=1e-09
+PASS [s1_semiconductor] match ok waferGradeDraws が成膜の 1 行: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok layerExposures が EUV の 3 行: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok dicings がダイシングの 1 行: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok 成膜の昇格上限: sim=0.6 json=0.6 許容差=1e-09
+PASS [s1_semiconductor] match ok EUV の失敗低減上限: sim=0.6 json=0.6 許容差=1e-09
+PASS [s1_semiconductor] match ok EUV の失敗低減上限: sim=0.6 json=0.6 許容差=1e-09
+PASS [s1_semiconductor] match ok EUV の失敗低減上限: sim=0.6 json=0.6 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイシングの損失低減上限: sim=0.6 json=0.6 許容差=1e-09
+PASS [s1_semiconductor] match ok 1 ウェハのダイ数: sim=300 json=300 許容差=0
+PASS [s1_semiconductor] match ok ダイ表の等級数: sim=5 json=5 許容差=0
+PASS [s1_semiconductor] match ok ダイ表 G1 Lv1: sim=1.0 json=1.0 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G1 の段数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok ダイ表 G2 Lv1: sim=0.7 json=0.7 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G2 Lv2: sim=0.3 json=0.3 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G2 の段数: sim=2 json=2 許容差=0
+PASS [s1_semiconductor] match ok ダイ表 G3 Lv1: sim=0.55 json=0.55 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G3 Lv2: sim=0.3 json=0.3 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G3 Lv3: sim=0.15 json=0.15 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G3 の段数: sim=3 json=3 許容差=0
+PASS [s1_semiconductor] match ok ダイ表 G4 Lv1: sim=0.45 json=0.45 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G4 Lv2: sim=0.3 json=0.3 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G4 Lv3: sim=0.17 json=0.17 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G4 Lv4: sim=0.08 json=0.08 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G4 の段数: sim=4 json=4 許容差=0
+PASS [s1_semiconductor] match ok ダイ表 G5 Lv1: sim=0.4 json=0.4 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G5 Lv2: sim=0.28 json=0.28 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G5 Lv3: sim=0.18 json=0.18 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G5 Lv4: sim=0.09 json=0.09 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G5 Lv5: sim=0.05 json=0.05 許容差=1e-09
+PASS [s1_semiconductor] match ok ダイ表 G5 の段数: sim=5 json=5 許容差=0
+PASS [s1_semiconductor] match ok 成膜装置 の allowQualityModule: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok EUV露光式半導体製造装置 の allowQualityModule: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok ダイシング装置 の allowQualityModule: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok ウェハ切断機 の allowQualityModule: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok パッケージング装置 の allowQualityModule: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok モジュールの数: sim=20 json=20 許容差=0
+PASS [s1_semiconductor] match ok モジュールの axis/tier: 欠け=[] 重複=[] 未知=[]: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok 品質モジュールLv1 の effectValue: sim=0.04 json=0.04 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv1 の tradeoffValue: sim=0.05 json=0.05 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv2 の effectValue: sim=0.06 json=0.06 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv2 の tradeoffValue: sim=0.05 json=0.05 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv3 の effectValue: sim=0.08 json=0.08 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv3 の tradeoffValue: sim=0.05 json=0.05 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv4 の effectValue: sim=0.1 json=0.1 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv4 の tradeoffValue: sim=0.05 json=0.05 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv5 の effectValue: sim=0.12 json=0.12 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv5 の tradeoffValue: sim=0.05 json=0.05 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv1 の effectValue: sim=0.1 json=0.1 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv1 の tradeoffValue: sim=0.2 json=0.2 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv2 の effectValue: sim=0.15 json=0.15 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv2 の tradeoffValue: sim=0.2 json=0.2 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv3 の effectValue: sim=0.2 json=0.2 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv3 の tradeoffValue: sim=0.2 json=0.2 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv4 の effectValue: sim=0.25 json=0.25 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv4 の tradeoffValue: sim=0.2 json=0.2 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv5 の effectValue: sim=0.3 json=0.3 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv5 の tradeoffValue: sim=0.2 json=0.2 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv1 の effectValue: sim=0.15 json=0.15 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv1 の tradeoffValue: sim=0.0 json=0 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv2 の effectValue: sim=0.2 json=0.2 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv2 の tradeoffValue: sim=0.0 json=0 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv3 の effectValue: sim=0.25 json=0.25 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv3 の tradeoffValue: sim=0.0 json=0 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv4 の effectValue: sim=0.3 json=0.3 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv4 の tradeoffValue: sim=0.0 json=0 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv5 の effectValue: sim=0.35 json=0.35 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv5 の tradeoffValue: sim=0.0 json=0 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv1 の effectValue: sim=0.03 json=0.03 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv1 の tradeoffValue: sim=0.08 json=0.08 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv2 の effectValue: sim=0.045 json=0.045 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv2 の tradeoffValue: sim=0.08 json=0.08 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv3 の effectValue: sim=0.06 json=0.06 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv3 の tradeoffValue: sim=0.08 json=0.08 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv4 の effectValue: sim=0.075 json=0.075 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv4 の tradeoffValue: sim=0.08 json=0.08 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv5 の effectValue: sim=0.09 json=0.09 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv5 の tradeoffValue: sim=0.08 json=0.08 許容差=1e-09
+PASS [s1_semiconductor] match ok モジュールスタック上限の段数: sim=3 json=3 許容差=0
+PASS [s1_semiconductor] match ok モジュールスタック上限 段1: sim=3 json=3 許容差=0
+PASS [s1_semiconductor] match ok モジュールスタック上限 段2: sim=6 json=6 許容差=0
+PASS [s1_semiconductor] match ok モジュールスタック上限 段3: sim=10 json=10 許容差=0
+PASS [s1_semiconductor] match ok 品質モジュールLv1 1個の ICチップLv1: sim=5 json=5 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv1 1個の 発展電子回路: sim=5 json=5 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv1 1個の 鋼鉄フレーム: sim=1 json=1 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv1 の sim に無い入力 []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 品質モジュールLv1 の製作秒: sim=10.0 json=10 許容差=1e-09
+PASS [s1_semiconductor] match ok 品質モジュールLv1 の確定出力数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok 速度モジュールLv1 1個の ICチップLv1: sim=5 json=5 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv1 1個の 制御モータ: sim=2 json=2 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv1 1個の 鋼鉄フレーム: sim=1 json=1 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv1 の sim に無い入力 []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 速度モジュールLv1 の製作秒: sim=10.0 json=10 許容差=1e-09
+PASS [s1_semiconductor] match ok 速度モジュールLv1 の確定出力数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok 省エネモジュールLv1 1個の ICチップLv1: sim=5 json=5 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv1 1個の 被覆銅線: sim=10 json=10 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv1 1個の 鋼鉄フレーム: sim=1 json=1 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv1 の sim に無い入力 []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 省エネモジュールLv1 の製作秒: sim=10.0 json=10 許容差=1e-09
+PASS [s1_semiconductor] match ok 省エネモジュールLv1 の確定出力数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok 生産性モジュールLv1 1個の ICチップLv1: sim=10 json=10 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv1 1個の コンピュータ: sim=2 json=2 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv1 1個の 鋼鉄フレーム: sim=2 json=2 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv1 の sim に無い入力 []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 生産性モジュールLv1 の製作秒: sim=15.0 json=15 許容差=1e-09
+PASS [s1_semiconductor] match ok 生産性モジュールLv1 の確定出力数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] match ok 研究 品質モジュール の ICチップLv1: sim=1000 json=1000 許容差=0
+PASS [s1_semiconductor] match ok 研究 品質モジュール の 鋼鉄フレーム: sim=150 json=150 許容差=0
+PASS [s1_semiconductor] match ok 研究 品質モジュール の コンピュータ: sim=60 json=60 許容差=0
+PASS [s1_semiconductor] match ok 研究 品質モジュール の 制御モータ: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 品質モジュール の余計なコスト []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 機械オーバークロック の ICチップLv1: sim=1500 json=1500 許容差=0
+PASS [s1_semiconductor] match ok 研究 機械オーバークロック の 鋼鉄フレーム: sim=150 json=150 許容差=0
+PASS [s1_semiconductor] match ok 研究 機械オーバークロック の コンピュータ: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 機械オーバークロック の 制御モータ: sim=120 json=120 許容差=0
+PASS [s1_semiconductor] match ok 研究 機械オーバークロック の余計なコスト []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 省エネモジュール の ICチップLv1: sim=1500 json=1500 許容差=0
+PASS [s1_semiconductor] match ok 研究 省エネモジュール の 鋼鉄フレーム: sim=150 json=150 許容差=0
+PASS [s1_semiconductor] match ok 研究 省エネモジュール の コンピュータ: sim=60 json=60 許容差=0
+PASS [s1_semiconductor] match ok 研究 省エネモジュール の 制御モータ: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 省エネモジュール の余計なコスト []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 GPU設計 の ICチップLv1: sim=2000 json=2000 許容差=0
+PASS [s1_semiconductor] match ok 研究 GPU設計 の 鋼鉄フレーム: sim=200 json=200 許容差=0
+PASS [s1_semiconductor] match ok 研究 GPU設計 の コンピュータ: sim=120 json=120 許容差=0
+PASS [s1_semiconductor] match ok 研究 GPU設計 の 制御モータ: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 GPU設計 の余計なコスト []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張I の ICチップLv1: sim=3000 json=3000 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張I の 鋼鉄フレーム: sim=200 json=200 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張I の コンピュータ: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張I の 制御モータ: sim=150 json=150 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張I の余計なコスト []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 生産性モジュール の ICチップLv1: sim=4000 json=4000 許容差=0
+PASS [s1_semiconductor] match ok 研究 生産性モジュール の 鋼鉄フレーム: sim=300 json=300 許容差=0
+PASS [s1_semiconductor] match ok 研究 生産性モジュール の コンピュータ: sim=150 json=150 許容差=0
+PASS [s1_semiconductor] match ok 研究 生産性モジュール の 制御モータ: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 生産性モジュール の余計なコスト []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張II の ICチップLv1: sim=10000 json=10000 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張II の 鋼鉄フレーム: sim=400 json=400 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張II の コンピュータ: sim=200 json=200 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張II の 制御モータ: sim=200 json=200 許容差=0
+PASS [s1_semiconductor] match ok 研究 モジュールスタック拡張II の余計なコスト []: sim=0 json=0 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン 鋼鉄板 のレシピと電気炉が S1 開始時に解放済み: sim=True json=True 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン 鋼鉄板 の電気炉の秒: sim=3.0 json=3 許容差=1e-09
+PASS [s1_semiconductor] match ok 供給ライン 鋼鉄板 の1回の個数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] target ok 供給ライン 鋼鉄板 の電気炉の台数（hours_model.FACTORY（Tier8 終盤の工場の取り分））: 4（目標 1〜4.0）
+PASS [s1_semiconductor] match ok 供給ライン 鋼鉄板 の台数が hours_model.FACTORY と同じ: sim=4 json=4 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン コンピュータ のレシピと電気汎用工作装置が S1 開始時に解放済み: sim=True json=True 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン コンピュータ の電気汎用工作装置の秒: sim=3.0 json=3 許容差=1e-09
+PASS [s1_semiconductor] match ok 供給ライン コンピュータ の1回の個数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] target ok 供給ライン コンピュータ の電気汎用工作装置の台数（hours_model.FACTORY（Tier8 終盤の工場の取り分））: 2（目標 1〜4.0）
+PASS [s1_semiconductor] match ok 供給ライン コンピュータ の台数が hours_model.FACTORY と同じ: sim=2 json=2 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン 制御モータ のレシピと電気汎用工作装置が S1 開始時に解放済み: sim=True json=True 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン 制御モータ の電気汎用工作装置の秒: sim=5.0 json=5 許容差=1e-09
+PASS [s1_semiconductor] match ok 供給ライン 制御モータ の1回の個数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] target ok 供給ライン 制御モータ の電気汎用工作装置の台数（hours_model.FACTORY（Tier8 終盤の工場の取り分））: 2（目標 1〜4.0）
+PASS [s1_semiconductor] match ok 供給ライン 制御モータ の台数が hours_model.FACTORY と同じ: sim=2 json=2 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン 鋼鉄フレーム のレシピと電気汎用工作装置が S1 開始時に解放済み: sim=True json=True 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン 鋼鉄フレーム の電気汎用工作装置の秒: sim=6.0 json=6 許容差=1e-09
+PASS [s1_semiconductor] match ok 供給ライン 鋼鉄フレーム の1回の個数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] target ok 供給ライン 鋼鉄フレーム の電気汎用工作装置の台数（発射台1台の定常台数の切上げ（最低1台））: 1（目標 1〜4.0）
+PASS [s1_semiconductor] match ok 供給ライン 発展電子回路 のレシピと電気汎用工作装置が S1 開始時に解放済み: sim=True json=True 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン 発展電子回路 の電気汎用工作装置の秒: sim=10.0 json=10 許容差=1e-09
+PASS [s1_semiconductor] match ok 供給ライン 発展電子回路 の1回の個数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] target ok 供給ライン 発展電子回路 の電気汎用工作装置の台数（発射台1台の定常台数の切上げ（最低1台））: 1（目標 1〜4.0）
+PASS [s1_semiconductor] match ok 供給ライン 被覆銅線 のレシピと電気汎用工作装置が S1 開始時に解放済み: sim=True json=True 許容差=0
+PASS [s1_semiconductor] match ok 供給ライン 被覆銅線 の電気汎用工作装置の秒: sim=1.5 json=1.5 許容差=1e-09
+PASS [s1_semiconductor] match ok 供給ライン 被覆銅線 の1回の個数: sim=1 json=1 許容差=0
+PASS [s1_semiconductor] target ok 供給ライン 被覆銅線 の電気汎用工作装置の台数（発射台1台の定常台数の切上げ（最低1台））: 1（目標 1〜4.0）
+PASS [s1_semiconductor] target ok S1 クラスBの供給ライン: 鋼鉄板 電気炉×4（hours_model.FACTORY（Tier8 終盤の工場の取り分）・3.000 h から 1.3333/秒）・コンピュータ 電気汎用工作装置×2（hours_model.FACTORY（Tier8 終盤の工場の取り分）・3.000 h から 0.6667/秒）・制御モータ 電気汎用工作装置×2（hours_model.FACTORY（Tier8 終盤の工場の取り分）・3.000 h から 0.4000/秒）・鋼鉄フレーム 電気汎用工作装置×1（発射台1台の定常台数の切上げ（最低1台）・3.000 h から 0.1667/秒）・発展電子回路 電気汎用工作装置×1（発射台1台の定常台数の切上げ（最低1台）・3.000 h から 0.1000/秒）・被覆銅線 電気汎用工作装置×1（発射台1台の定常台数の切上げ（最低1台）・3.000 h から 0.6667/秒）
+PASS [s1_semiconductor] target ok S1 クラスBの直接部材の収支（開始在庫 0・供給ラインの上流は含まない）: コンピュータ 供給 8800.0・支払 824.0・在庫 7976.0・制御モータ 供給 5280.0・支払 560.0・在庫 4720.0・発展電子回路 供給 1320.0・支払 510.0・在庫 810.0・被覆銅線 供給 8800.0・支払 300.0・在庫 8500.0・鋼鉄フレーム 供給 2200.0・支払 1961.0・在庫 239.0・鋼鉄板 供給 17600.0・支払 0.0・在庫 17600.0
+PASS [s1_semiconductor] target ok S1 クラスBの用途別の支払: モジュール EfficiencyLv1: 被覆銅線 300・モジュール EfficiencyLv1: 鋼鉄フレーム 30・モジュール ProductivityLv1: コンピュータ 234・モジュール ProductivityLv1: 鋼鉄フレーム 234・モジュール QualityLv1: 発展電子回路 510・モジュール QualityLv1: 鋼鉄フレーム 102・モジュール SpeedLv1: 制御モータ 90・モジュール SpeedLv1: 鋼鉄フレーム 45・研究 GPU設計: コンピュータ 120・研究 GPU設計: 鋼鉄フレーム 200・研究 モジュールスタック拡張I: 制御モータ 150・研究 モジュールスタック拡張I: 鋼鉄フレーム 200・研究 モジュールスタック拡張II: コンピュータ 200・研究 モジュールスタック拡張II: 制御モータ 200・研究 モジュールスタック拡張II: 鋼鉄フレーム 400・研究 品質モジュール: コンピュータ 60・研究 品質モジュール: 鋼鉄フレーム 150・研究 機械オーバークロック: 制御モータ 120・研究 機械オーバークロック: 鋼鉄フレーム 150・研究 生産性モジュール: コンピュータ 150・研究 生産性モジュール: 鋼鉄フレーム 300・研究 省エネモジュール: コンピュータ 60・研究 省エネモジュール: 鋼鉄フレーム 150
+PASS [s1_semiconductor] target ok S1 クラスBの部材不足の待ち: なし
+PASS [s1_semiconductor] target ok S1 クラスBの需要に供給源がある: 全品目に供給ライン
+PASS [s2_compute_loop] match ok 計算データを消費する研究の数: sim=6 json=6 許容差=0
+PASS [s2_compute_loop] match ok 半導体のアップグレード研究Lv2 の製作上限: sim=2 json=2 許容差=0
+PASS [s2_compute_loop] match ok 半導体のアップグレード研究Lv3 の製作上限: sim=3 json=3 許容差=0
+PASS [s2_compute_loop] match ok 半導体のアップグレード研究Lv4 の製作上限: sim=4 json=4 許容差=0
+PASS [s2_compute_loop] match ok 半導体のアップグレード研究Lv5 の製作上限: sim=5 json=5 許容差=0
+PASS [s2_compute_loop] target ok 半導体のアップグレード研究Lv2 の便（GPU衛星Lv1×15）の時系列: S2 開始から 4022.0 秒で完了・発射 15/15・発射台の待ち 発射台の準備待ち 1912秒・打ち上げ資材の不足 100秒・GPU に払ったチップ Lv1 300・完了時のモジュール支払累計 [2355.0, 0.0, 0.0, 0.0, 0.0]・チップ在庫 [15178.103, 1623.202, 0.0, 0.0, 0.0]
+PASS [s2_compute_loop] target ok 半導体のアップグレード研究Lv3 の便（GPU衛星Lv2×15）の時系列: S2 開始から 6083.0 秒で完了・発射 15/15・発射台の待ち GPU・衛星の製作待ち 36秒・GPU に払ったチップ Lv2 300・完了時のモジュール支払累計 [2355.0, 150.0, 0.0, 0.0, 0.0]・チップ在庫 [22705.877, 2341.193, 245.228, 0.0, 0.0]
+PASS [s2_compute_loop] target ok 半導体のアップグレード研究Lv4 の便（GPU衛星Lv3×15）の時系列: S2 開始から 8144.0 秒で完了・発射 15/15・発射台の待ち GPU・衛星の製作待ち 36秒・GPU に払ったチップ Lv3 300・完了時のモジュール支払累計 [2355.0, 150.0, 150.0, 0.0, 0.0]・チップ在庫 [29439.833, 3911.528, 292.421, 139.508, 0.0]
+PASS [s2_compute_loop] target ok 半導体のアップグレード研究Lv5 の便（GPU衛星Lv4×15）の時系列: S2 開始から 10455.0 秒で完了・発射 15/15・発射台の待ち GPU・衛星の製作待ち 106秒・ICチップLv4 の不足 180秒・GPU に払ったチップ Lv4 300・完了時のモジュール支払累計 [2355.0, 150.0, 150.0, 0.0, 0.0]・チップ在庫 [36742.843, 5716.124, 877.11, 12.749, 0.0]
+PASS [s2_compute_loop] target ok 軌道エレベーターの建設 の便（GPU衛星Lv1×20）の時系列: S2 開始から 13155.0 秒で完了・発射 20/20・発射台の待ち なし・GPU に払ったチップ Lv1 400・完了時のモジュール支払累計 [2355.0, 150.0, 150.0, 0.0, 0.0]・チップ在庫 [44422.067, 7824.48, 1560.217, 215.151, 0.0]
+PASS [s2_compute_loop] target ok 反物質爆弾 の便（GPU衛星Lv1×40）の時系列: S2 開始から 18555.0 秒で完了・発射 40/40・発射台の待ち なし・GPU に払ったチップ Lv1 800・完了時のモジュール支払累計 [2355.0, 150.0, 150.0, 0.0, 0.0]・チップ在庫 [61860.514, 12041.192, 2926.432, 619.955, 0.0]
+PASS [s2_compute_loop] target ok S2 の装着変更が置いた設備・上流・ハッチに収まる: 超過なし
+PASS [s2_compute_loop] target ok S2 開始時に未完の前提 ロケット技術 を払う: チップ {'Lv1': 100}・部材 {'鋼鉄板': 1000, 'コンピュータ': 300}・S2 開始から 112.0 秒で完了・チップ待ち ICチップLv1 112秒
+PASS [s2_compute_loop] target ok ロケット発射台を払って建てる: 建設費 {'鋼鉄板': 200, 'コンピュータ': 50, '制御モータ': 20}・S2 開始から 112.0 秒で払い 1912.0 秒に完成（建設 1800 秒）
+PASS [s2_compute_loop] target ok 専用の機械 モジュールの製作機（MODULE_CRAFTERS） の台数: 1（目標 1〜4.0）
+PASS [s2_compute_loop] target ok 専用の機械 GPU の製作機（GPU_CRAFTERS） の台数: 1（目標 1〜4.0）
+PASS [s2_compute_loop] target ok 専用の機械 GPU衛星の製作機（SATELLITE_CRAFTERS） の台数: 1（目標 1〜4.0）
+PASS [s2_compute_loop] target ok 専用の機械 ロケット筐体素材 の電気汎用工作装置（factory_load の1便/135秒の定常台数の切上げ） の台数: 2（目標 1〜4.0）
+PASS [s2_compute_loop] target ok 専用の機械 ロケット燃料 の化学プラント（factory_load の1便/135秒の定常台数の切上げ） の台数: 2（目標 1〜4.0）
+PASS [s2_compute_loop] target ok S1〜S2 クラスB（S2 終点まで）の供給ライン: 鋼鉄板 電気炉×4（hours_model.FACTORY（Tier8 終盤の工場の取り分）・3.000 h から 1.3333/秒）・コンピュータ 電気汎用工作装置×2（hours_model.FACTORY（Tier8 終盤の工場の取り分）・3.000 h から 0.6667/秒）・制御モータ 電気汎用工作装置×2（hours_model.FACTORY（Tier8 終盤の工場の取り分）・3.000 h から 0.4000/秒）・鋼鉄フレーム 電気汎用工作装置×1（発射台1台の定常台数の切上げ（最低1台）・3.000 h から 0.1667/秒）・発展電子回路 電気汎用工作装置×1（発射台1台の定常台数の切上げ（最低1台）・3.000 h から 0.1000/秒）・被覆銅線 電気汎用工作装置×1（発射台1台の定常台数の切上げ（最低1台）・3.000 h から 0.6667/秒）・ロケット筐体素材 電気汎用工作装置×2（factory_load の1便/135秒の定常台数の切上げ・7.198 h から 0.2000/秒）・ロケット燃料 化学プラント×2（factory_load の1便/135秒の定常台数の切上げ・7.198 h から 0.2500/秒）
+PASS [s2_compute_loop] target ok S1〜S2 クラスB（S2 終点まで）の直接部材の収支（開始在庫 0・供給ラインの上流は含まない）: コンピュータ 供給 21170.7・支払 2614.0・在庫 18556.7・ロケット燃料 供給 4161.0・支払 2400.0・在庫 1761.0・ロケット筐体素材 供給 3328.8・支払 2400.0・在庫 928.8・制御モータ 供給 12702.4・支払 580.0・在庫 12122.4・発展電子回路 供給 3175.6・支払 1110.0・在庫 2065.6・被覆銅線 供給 21170.7・支払 1500.0・在庫 19670.7・鋼鉄フレーム 供給 5292.7・支払 2321.0・在庫 2971.7・鋼鉄板 供給 42341.3・支払 2400.0・在庫 39941.3
+PASS [s2_compute_loop] target ok S1〜S2 クラスB（S2 終点まで）の用途別の支払: GPU: コンピュータ 240・GPU: 被覆銅線 1200・GPU: 鋼鉄フレーム 240・モジュール EfficiencyLv1: 被覆銅線 300・モジュール EfficiencyLv1: 鋼鉄フレーム 30・モジュール ProductivityLv1: コンピュータ 234・モジュール ProductivityLv1: 鋼鉄フレーム 234・モジュール QualityLv1: 発展電子回路 810・モジュール QualityLv1: 鋼鉄フレーム 162・モジュール QualityLv2: 発展電子回路 150・モジュール QualityLv2: 鋼鉄フレーム 30・モジュール QualityLv3: 発展電子回路 150・モジュール QualityLv3: 鋼鉄フレーム 30・モジュール SpeedLv1: 制御モータ 90・モジュール SpeedLv1: 鋼鉄フレーム 45・ロケット発射台の建設: コンピュータ 50・ロケット発射台の建設: 制御モータ 20・ロケット発射台の建設: 鋼鉄板 200・発射: コンピュータ 600・発射: ロケット燃料 2400・発射: ロケット筐体素材 2400・研究 GPU設計: コンピュータ 120・研究 GPU設計: 鋼鉄フレーム 200・研究 モジュールスタック拡張I: 制御モータ 150・研究 モジュールスタック拡張I: 鋼鉄フレーム 200・研究 モジュールスタック拡張II: コンピュータ 200・研究 モジュールスタック拡張II: 制御モータ 200・研究 モジュールスタック拡張II: 鋼鉄フレーム 400・研究 ロケット技術: コンピュータ 300・研究 ロケット技術: 鋼鉄板 1000・研究 品質モジュール: コンピュータ 60・研究 品質モジュール: 鋼鉄フレーム 150・研究 機械オーバークロック: 制御モータ 120・研究 機械オーバークロック: 鋼鉄フレーム 150・研究 生産性モジュール: コンピュータ 150・研究 生産性モジュール: 鋼鉄フレーム 300・研究 省エネモジュール: コンピュータ 60・研究 省エネモジュール: 鋼鉄フレーム 150・衛星: コンピュータ 600・衛星: 鋼鉄板 1200
+PASS [s2_compute_loop] target ok S1〜S2 クラスB（S2 終点まで）の部材不足の待ち: 発射: ロケット燃料 7.198 h から 80 秒待ち・最大 20.0 不足・発射: ロケット筐体素材 7.198 h から 100 秒待ち・最大 20.0 不足
+PASS [s2_compute_loop] target ok S1〜S2 クラスB（S2 終点まで）の需要に供給源がある: 全品目に供給ライン
+PASS [s2_compute_loop] target ok 1便/135秒に要る電気汎用工作装置（ロケット筐体素材）の台数: 1.4814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok 1便/135秒に要る化学プラント（ロケット燃料）の台数: 1.1851851851851851（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok 1便/135秒に要る電気汎用工作装置（GPU衛星Lv1）の台数: 0.22222222222222224（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok 1便/135秒に要る電気汎用工作装置（GPULv1）の台数: 0.14814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok 1便/135秒に要る電気汎用工作装置（コンピュータ）の台数: 0.26666666666666666（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok 1便/135秒に要る電気炉（鋼鉄板）の台数: 2.0（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok 1便/135秒に要る化学プラント（プラスチック）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok 1便/135秒に要る石油蒸留機（ガソリン）の台数: 2.4691358024691357（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok 1便/135秒に要る化学プラント（固形燃料）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る電気汎用工作装置（ロケット筐体素材）の台数: 1.4814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る化学プラント（ロケット燃料）の台数: 1.1851851851851851（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る電気汎用工作装置（GPU衛星Lv2）の台数: 0.22222222222222224（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る電気汎用工作装置（GPULv2）の台数: 0.14814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る電気汎用工作装置（コンピュータ）の台数: 0.26666666666666666（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る電気炉（鋼鉄板）の台数: 2.0（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る化学プラント（プラスチック）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る石油蒸留機（ガソリン）の台数: 2.4691358024691357（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv2: 1便/135秒に要る化学プラント（固形燃料）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る電気汎用工作装置（ロケット筐体素材）の台数: 1.4814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る化学プラント（ロケット燃料）の台数: 1.1851851851851851（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る電気汎用工作装置（GPU衛星Lv3）の台数: 0.22222222222222224（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る電気汎用工作装置（GPULv3）の台数: 0.14814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る電気汎用工作装置（コンピュータ）の台数: 0.26666666666666666（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る電気炉（鋼鉄板）の台数: 2.0（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る化学プラント（プラスチック）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る石油蒸留機（ガソリン）の台数: 2.4691358024691357（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv3: 1便/135秒に要る化学プラント（固形燃料）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る電気汎用工作装置（ロケット筐体素材）の台数: 1.4814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る化学プラント（ロケット燃料）の台数: 1.1851851851851851（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る電気汎用工作装置（GPU衛星Lv4）の台数: 0.22222222222222224（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る電気汎用工作装置（GPULv4）の台数: 0.14814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る電気汎用工作装置（コンピュータ）の台数: 0.26666666666666666（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る電気炉（鋼鉄板）の台数: 2.0（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る化学プラント（プラスチック）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る石油蒸留機（ガソリン）の台数: 2.4691358024691357（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv4: 1便/135秒に要る化学プラント（固形燃料）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気汎用工作装置（ロケット筐体素材）の台数: 1.4814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る化学プラント（ロケット燃料）の台数: 1.1851851851851851（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気汎用工作装置（GPU衛星Lv1）の台数: 0.22222222222222224（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気汎用工作装置（GPULv1）の台数: 0.14814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気汎用工作装置（コンピュータ）の台数: 0.26666666666666666（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気炉（鋼鉄板）の台数: 2.0（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る化学プラント（プラスチック）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る石油蒸留機（ガソリン）の台数: 2.4691358024691357（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る化学プラント（固形燃料）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気汎用工作装置（ロケット筐体素材）の台数: 1.4814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る化学プラント（ロケット燃料）の台数: 1.1851851851851851（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気汎用工作装置（GPU衛星Lv1）の台数: 0.22222222222222224（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気汎用工作装置（GPULv1）の台数: 0.14814814814814814（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気汎用工作装置（コンピュータ）の台数: 0.26666666666666666（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る電気炉（鋼鉄板）の台数: 2.0（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る化学プラント（プラスチック）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る石油蒸留機（ガソリン）の台数: 2.4691358024691357（目標 0.0〜4.0）
+PASS [s2_compute_loop] target ok GPU衛星Lv1: 1便/135秒に要る化学プラント（固形燃料）の台数: 0.5925925925925926（目標 0.0〜4.0）
+PASS [s3_endgame] target ok 炉1基の差し引き電力（ガソリン発電機何台分）: 4.0（目標 3〜5）
+PASS [s3_endgame] target ok 炉1基に要る抽出装置の台数: 4.0（目標 2〜8）
+PASS [s3_endgame] target ok 反物質製造装置1台の電力（炉の差し引き何基分）: 4.333333333333334（目標 3〜6）
+PASS [s3_endgame] target ok 反物質製造装置2台で最終研究の爆弾をそろえる時間[h]: 0.8333333333333334（目標 0.5〜3）
+PASS [s3_endgame] target ok 1便分のケーブルを1時間で作る機械台数（戻し炉を除く）: 1.0（目標 1〜12）
+PASS [s3_endgame] match ok 1エレベーター分のケーブル（積荷表の1便）: sim=1000 json=1000 許容差=0
+PASS [s3_endgame] target ok 昇降時間 / ロケット建造時間: 2.0（目標 1.5〜4）
+PASS [s3_endgame] target ok 昇降中の電力 / 炉1基の差し引き電力: 0.5（目標 0.1〜0.5）
+PASS [overall] target ok s1_semiconductor の所要時間[h]: 6.666666666666667（目標 6.0〜8.0）
+PASS [overall] target ok s2_compute_loop の所要時間[h]: 5.158333333333333（目標 4.0〜6.0）
+PASS [overall] target ok s3_endgame の所要時間[h]: 5.229166666666667（目標 5.0〜11.0）
+PASS [overall] target ok Tier9 全体の所要時間[h]: 17.054166666666667（目標 15.0〜25.0）
+== RESULT: PASS (0 failures / 398 checks)

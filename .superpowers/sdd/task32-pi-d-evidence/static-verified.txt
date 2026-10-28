@@ -1,0 +1,10 @@
+{"cwd": ".", "argv": ["python3", ".superpowers/sdd/task32-pi-d-evidence/static_checks.py"], "exit": 0}
+applied 11 spec files; issued 0 new guids
+GearMachine JSON sweep: 50 blocks, no removed keys
+GearMachine schema constants: PASS
+C# length and added-file directory limits: PASS (105 files)
+No added Func/partial, no ServerService, CurrentVersion=8: PASS
+Assembly dependency graph: PASS
+Generator DLL moorestech_client: 8bb2a580687ae790b8f4f56343b1370dac8703e013525ab0eff68ccf3b01dc85
+Generator DLL moorestech_server: 8bb2a580687ae790b8f4f56343b1370dac8703e013525ab0eff68ccf3b01dc85
+Master reapply byte idempotency: PASS (97 tracked files)

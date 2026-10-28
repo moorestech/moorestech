@@ -1,0 +1,62 @@
+{"cwd": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated", "argv": ["python3", "-m", "unittest", "discover", "-s", "tools/progression/tests", "-v"], "exit": 0}
+test_allowlisted_problem_passes_and_is_printed (test_gate_basics.GateBasicsTest.test_allowlisted_problem_passes_and_is_printed) ... ok
+test_block_never_unlocked_fails (test_gate_basics.GateBasicsTest.test_block_never_unlocked_fails) ... ok
+test_goal_cannot_be_allowlisted (test_gate_basics.GateBasicsTest.test_goal_cannot_be_allowlisted) ... ok
+test_implicit_prerequisite_fails (test_gate_basics.GateBasicsTest.test_implicit_prerequisite_fails) ... ok
+test_missing_recipe_fails (test_gate_basics.GateBasicsTest.test_missing_recipe_fails) ... ok
+test_reasonless_allowlist_fails (test_gate_basics.GateBasicsTest.test_reasonless_allowlist_fails) ... ok
+test_sound_master_passes_and_prints_route (test_gate_basics.GateBasicsTest.test_sound_master_passes_and_prints_route) ... ok
+test_stale_allowlist_fails (test_gate_basics.GateBasicsTest.test_stale_allowlist_fails) ... ok
+test_unused_item_fails (test_gate_basics.GateBasicsTest.test_unused_item_fails) ... ok
+test_zero_cost_research_fails (test_gate_basics.GateBasicsTest.test_zero_cost_research_fails) ... ok
+test_missing_required_inheritance_is_not_defaulted (test_gate_contracts.GateContractsTest.test_missing_required_inheritance_is_not_defaulted) ... ok
+test_null_allowlist_reason_is_reasonless (test_gate_contracts.GateContractsTest.test_null_allowlist_reason_is_reasonless) ... ok
+test_order_is_emitted_on_failure_for_reachable_prefix (test_gate_contracts.GateContractsTest.test_order_is_emitted_on_failure_for_reachable_prefix) ... ok
+test_order_preserves_waves_master_order_and_unlock_guids (test_gate_contracts.GateContractsTest.test_order_preserves_waves_master_order_and_unlock_guids) ... ok
+test_research_cycle_fails_closed (test_gate_contracts.GateContractsTest.test_research_cycle_fails_closed) ... ok
+test_self_prerequisite_matches_runtime (test_gate_contracts.GateContractsTest.test_self_prerequisite_matches_runtime) ... ok
+test_unknown_allowlist_category_fails_closed (test_gate_contracts.GateContractsTest.test_unknown_allowlist_category_fails_closed) ... ok
+test_unknown_prerequisite_fails_closed (test_gate_contracts.GateContractsTest.test_unknown_prerequisite_fails_closed) ... ok
+test_full_reduction_keeps_optional_unequipped_loss_route (test_gate_tier9.DicingOutputTest.test_full_reduction_keeps_optional_unequipped_loss_route) ... ok
+test_multiple_classes_union_outputs_independent_of_order (test_gate_tier9.DicingOutputTest.test_multiple_classes_union_outputs_independent_of_order) ... ok
+test_no_attainable_class_produces_no_dies (test_gate_tier9.DicingOutputTest.test_no_attainable_class_produces_no_dies) ... ok
+test_original_review_reproduction_fails_gate (test_gate_tier9.DicingOutputTest.test_original_review_reproduction_fails_gate) ... ok
+test_positive_reduction_allows_good_and_failed_die (test_gate_tier9.DicingOutputTest.test_positive_reduction_allows_good_and_failed_die) ... ok
+test_reduction_requires_obtainable_effective_quality (test_gate_tier9.DicingOutputTest.test_reduction_requires_obtainable_effective_quality) ... ok
+test_total_loss_without_reduction_blocks_good_die_and_goal (test_gate_tier9.DicingOutputTest.test_total_loss_without_reduction_blocks_good_die_and_goal) ... ok
+test_zero_loss_has_no_failed_die (test_gate_tier9.DicingOutputTest.test_zero_loss_has_no_failed_die) ... ok
+test_craft_cap_left_at_one_fails (test_gate_tier9.GateTier9Test.test_craft_cap_left_at_one_fails) ... ok
+test_craft_cap_research_unlocks_lv2 (test_gate_tier9.GateTier9Test.test_craft_cap_research_unlocks_lv2) ... ok
+test_dicing_table_without_lv2_rate_fails (test_gate_tier9.GateTier9Test.test_dicing_table_without_lv2_rate_fails) ... ok
+test_dicing_table_yields_lv2 (test_gate_tier9.GateTier9Test.test_dicing_table_yields_lv2) ... ok
+test_fluid_recipe_without_inflow_fails (test_gate_tier9.GateTier9Test.test_fluid_recipe_without_inflow_fails) ... ok
+test_missing_payload_row_fails (test_gate_tier9.GateTier9Test.test_missing_payload_row_fails) ... ok
+test_orbital_arrival_reaches_goal (test_gate_tier9.GateTier9Test.test_orbital_arrival_reaches_goal) ... ok
+test_ancestors_are_complete_regardless_of_row_order (test_model_contracts.ModelContractsTest.test_ancestors_are_complete_regardless_of_row_order) ... ok
+test_ancestors_include_self_and_exclude_unknown_guids (test_model_contracts.ModelContractsTest.test_ancestors_include_self_and_exclude_unknown_guids) ... ok
+test_elevator_requires_cable_and_carried_payload (test_model_contracts.ModelContractsTest.test_elevator_requires_cable_and_carried_payload) ... ok
+test_initial_equipment_and_tool_mining (test_model_contracts.ModelContractsTest.test_initial_equipment_and_tool_mining) ... ok
+test_launch_requires_materials (test_model_contracts.ModelContractsTest.test_launch_requires_materials) ... ok
+test_legacy_wrapper_preserves_names_and_recipe_override (test_model_contracts.ModelContractsTest.test_legacy_wrapper_preserves_names_and_recipe_override) ... ok
+test_locked_recipe_requires_inheritance_field (test_model_contracts.ModelContractsTest.test_locked_recipe_requires_inheritance_field) ... ok
+test_non_quality_module_has_equipment_use (test_model_contracts.ModelContractsTest.test_non_quality_module_has_equipment_use) ... ok
+test_quality_module_must_be_equippable (test_model_contracts.ModelContractsTest.test_quality_module_must_be_equippable) ... ok
+test_required_quality_module_flag_is_not_defaulted (test_model_contracts.ModelContractsTest.test_required_quality_module_flag_is_not_defaulted) ... ok
+test_research_reward_is_available_only_after_completion (test_model_contracts.ModelContractsTest.test_research_reward_is_available_only_after_completion) ... ok
+test_uncapped_inheritance_ignores_craft_cap (test_model_contracts.ModelContractsTest.test_uncapped_inheritance_ignores_craft_cap) ... ok
+test_unlock_craft_uses_recipe_guid (test_model_contracts.ModelContractsTest.test_unlock_craft_uses_recipe_guid) ... ok
+test_unlock_item_view_does_not_unlock_craft (test_model_contracts.ModelContractsTest.test_unlock_item_view_does_not_unlock_craft) ... ok
+test_zero_chance_quality_promotion_fails (test_model_contracts.ModelContractsTest.test_zero_chance_quality_promotion_fails) ... ok
+test_zero_probability_output_is_not_obtainable (test_model_contracts.ModelContractsTest.test_zero_probability_output_is_not_obtainable) ... ok
+test_certain_failure_has_no_success_in_gate_and_sync (test_review_regressions.ReviewRegressionsTest.test_certain_failure_has_no_success_in_gate_and_sync) ... ok
+test_dead_recipe_is_judged_by_final_state_not_by_new_outputs (test_review_regressions.ReviewRegressionsTest.test_dead_recipe_is_judged_by_final_state_not_by_new_outputs) ... ok
+test_other_inputs_fluids_and_unlocks_remain_required (test_review_regressions.ReviewRegressionsTest.test_other_inputs_fluids_and_unlocks_remain_required) ... ok
+test_positive_rates_preserve_quality_inheritance (test_review_regressions.ReviewRegressionsTest.test_positive_rates_preserve_quality_inheritance) ... ok
+test_quality_must_be_reachable_and_equippable (test_review_regressions.ReviewRegressionsTest.test_quality_must_be_reachable_and_equippable) ... ok
+test_zero_and_cancelled_costs_are_not_required_or_consumed (test_review_regressions.ReviewRegressionsTest.test_zero_and_cancelled_costs_are_not_required_or_consumed) ... ok
+test_zero_failure_has_no_failed_wafer (test_review_regressions.ReviewRegressionsTest.test_zero_failure_has_no_failed_wafer) ... ok
+
+----------------------------------------------------------------------
+Ran 56 tests in 0.177s
+
+OK

@@ -1,0 +1,22 @@
+{"cwd": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated", "argv": ["python3", "-m", "unittest", "discover", "-s", "design/tier9-balance/apply/tests", "-v"], "exit": 1}
+test_all_keys_forward_refs_and_reapplication (test_apply_spec.ApplySpecTest.test_all_keys_forward_refs_and_reapplication) ... ok
+test_empty_spec_preserves_every_byte (test_apply_spec.ApplySpecTest.test_empty_spec_preserves_every_byte) ... ok
+test_fixed_guid_conflict_does_not_write (test_apply_spec.ApplySpecTest.test_fixed_guid_conflict_does_not_write) ... ok
+test_gear_keys_removed_by_type_and_reapply_cannot_restore_them (test_apply_spec.ApplySpecTest.test_gear_keys_removed_by_type_and_reapply_cannot_restore_them) ... FAIL
+test_missing_spec_directory_is_not_an_empty_spec (test_apply_spec.ApplySpecTest.test_missing_spec_directory_is_not_an_empty_spec) ... ok
+test_removal_with_live_reference_does_not_write (test_apply_spec.ApplySpecTest.test_removal_with_live_reference_does_not_write) ... ok
+test_removed_item_in_untouched_master_does_not_write (test_apply_spec.ApplySpecTest.test_removed_item_in_untouched_master_does_not_write) ... ok
+
+======================================================================
+FAIL: test_gear_keys_removed_by_type_and_reapply_cannot_restore_them (test_apply_spec.ApplySpecTest.test_gear_keys_removed_by_type_and_reapply_cannot_restore_them)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated/design/tier9-balance/apply/tests/test_apply_spec.py", line 75, in test_gear_keys_removed_by_type_and_reapply_cannot_restore_them
+    self.assertEqual(0, self.run_cli().returncode)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.314s
+
+FAILED (failures=1)

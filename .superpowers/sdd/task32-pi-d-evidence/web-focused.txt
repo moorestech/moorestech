@@ -1,0 +1,28 @@
+{"cwd": "moorestech_web/webui", "argv": ["pnpm", "exec", "vitest", "run", "src/features/research/researchLogic.test.ts", "src/bridge/contract"], "exit": 0}
+
+ RUN  v2.1.9 /Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/moorestech_web/webui
+
+ ✓ src/bridge/contract/schemas/__tests__/presentation.test.ts (11 tests) 4ms
+ ✓ src/bridge/contract/schemas/__tests__/buildMenu.test.ts (10 tests) 4ms
+ ✓ src/bridge/contract/schemas/__tests__/inventory.test.ts (50 tests) 9ms
+ ✓ src/bridge/contract/schemas/__tests__/guidValidation.test.ts (22 tests) 6ms
+ ✓ src/bridge/contract/__tests__/blockInventoryValidators.test.ts (27 tests) 9ms
+ ✓ src/bridge/contract/validators.test.ts (20 tests) 10ms
+ ✓ src/bridge/contract/wireContract.test.ts (37 tests) 15ms
+ ✓ src/bridge/contract/schemas/__tests__/ui.test.ts (12 tests) 9ms
+ ✓ src/features/research/researchLogic.test.ts (21 tests) 10ms
+ ✓ src/bridge/contract/schemas/__tests__/contentIdentity.test.ts (10 tests) 4ms
+ ✓ src/bridge/contract/contentGuidContracts.test.ts (3 tests) 8ms
+ ✓ src/bridge/contract/wireContract.machineUpgrade.test.ts (18 tests) 9ms
+ ✓ src/bridge/contract/schemas/rocketLaunchPad/index.test.ts (15 tests) 10ms
+ ✓ src/bridge/contract/actionNames.test.ts (2 tests) 2ms
+ ✓ src/bridge/contract/wireContract.trainTimetable.test.ts (2 tests) 5ms
+ ✓ src/bridge/contract/schemas/spaceElevator/index.test.ts (14 tests) 9ms
+ ✓ src/bridge/contract/wireContract.research.test.ts (3 tests) 14ms
+ ✓ src/bridge/contract/eventLanguageGateContract.test.ts (2 tests) 2ms
+
+ Test Files  18 passed (18)
+      Tests  279 passed (279)
+   Start at  22:20:53
+   Duration  815ms (transform 499ms, setup 0ms, collect 2.44s, tests 137ms, environment 2ms, prepare 748ms)
+

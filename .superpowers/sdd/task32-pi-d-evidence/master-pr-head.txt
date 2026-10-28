@@ -1,0 +1,2 @@
+{"cwd": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated", "argv": ["gh", "pr", "view", "89", "--json", "headRefName,headRefOid,url"], "exit": 0}
+{"headRefName":"feat/tier9-integrated","headRefOid":"3a9e4af2673a301d87c34d4207b683f3b3158560","url":"https://github.com/moorestech/moorestech_master/pull/89"}
