@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Linq;
+using Game.Block.Blocks.SpaceElevator;
 using Client.Game.InGame.Block;
 using Client.WebUiHost.Game.Topics;
 using Game.Block.Interface.State;
@@ -17,6 +20,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             dto.SpaceElevator = new SpaceElevatorDetailDto
             {
+                // サーバーが使う入口と出口の配置をそのまま配信する
+                // Publish the inlet and outlet layout used by the server
+                SatelliteInputSlots = new List<int> { SpaceElevatorBaseInventoryComponent.SatelliteSlot },
+                OutputSlots = Enumerable.Range(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, elevatorParam.OutputSlotCount).ToList(),
                 Connected = state.IsConnected,
                 CablePoolAmount = state.CablePoolAmount,
                 // 1エレベーター分の量はマスタ値なので param から引く

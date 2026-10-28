@@ -7,6 +7,8 @@
   "itemSlots": [],
   "fluidSlots": [],
   "spaceElevator": {
+    "satelliteInputSlots": [0],
+    "outputSlots": [1, 2],
     "connected": true,
     "cablePoolAmount": 250,
     "cablesPerElevator": 1000,

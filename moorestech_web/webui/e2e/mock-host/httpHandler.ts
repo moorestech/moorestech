@@ -34,6 +34,7 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   gearGenerator: fx.blockGearGenerator,
   electricToGear: fx.blockElectricToGear,
   spaceElevator: fx.blockSpaceElevator,
+  spaceElevatorReordered: fx.blockSpaceElevatorReordered,
   spaceElevatorLoading: fx.blockSpaceElevatorLoading,
   spaceElevatorInsufficient: fx.blockSpaceElevatorInsufficient,
   spaceElevatorClimbing: fx.blockSpaceElevatorClimbing,

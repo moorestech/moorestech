@@ -96,3 +96,21 @@ test("詳細の取得待ちから接続可能へ遷移する", async ({ page }, 
   await expect(page.getByTestId("space-elevator-connect")).toBeEnabled();
   await page.screenshot({ path: testInfo.outputPath("space-elevator-ready.png") });
 });
+
+// 配信された群の順序と元添字をそのまま操作へ渡す
+// Keep host group ordering and original indices in gesture payloads
+test("ホストが並べ替えた入口と出口の添字を描画と操作に使う", async ({ page }, testInfo) => {
+  await setBlock(page, "spaceElevatorReordered");
+  await page.goto("/");
+  await expect(page.getByTestId("space-elevator-input-grid-slot-2")).toBeVisible();
+  const outputs = page.getByTestId("space-elevator-output-grid").locator("> div");
+  await expect(outputs.nth(0)).toHaveAttribute("data-testid", "space-elevator-output-grid-slot-1");
+  await expect(outputs.nth(1)).toHaveAttribute("data-testid", "space-elevator-output-grid-slot-0");
+  await expect(outputs.nth(0)).toContainText("7");
+  await expect(outputs.nth(1)).toContainText("4");
+  const before = (await payloadsOf(page, "block_inventory.move_item")).length;
+  await outputs.nth(1).click();
+  await expect.poll(async () => (await payloadsOf(page, "block_inventory.move_item")).slice(before))
+    .toEqual([{ from: { area: "block", slot: 0 }, to: { area: "grab", slot: 0 }, count: 4 }]);
+  await page.screenshot({ path: testInfo.outputPath("space-elevator-reordered.png") });
+});

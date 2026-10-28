@@ -20,7 +20,8 @@ describe("SpaceElevator receive boundary", () => {
   it.each([
     ["status", "unknown"], ["cablePoolAmount", -1], ["cablePoolAmount", 0.5],
     ["cablesPerElevator", 0], ["climbProgress", -0.1], ["climbProgress", 1.1],
-    ["extraField", true],
+    ["satelliteInputSlots", [-1]], ["outputSlots", [1.5]], ["outputSlots", undefined],
+    ["satelliteInputSlots", undefined], ["extraField", true],
   ])("%s=%s を拒否する", (key, value) => {
     expect(BlockInventoryOpenSchema.safeParse({ ...fixture, spaceElevator: { ...detail, [key]: value } }).success).toBe(false);
   });

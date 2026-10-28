@@ -76,7 +76,7 @@ export const blockSpaceElevator = {
   itemSlots: [{ itemId: 0, count: 0 }, { itemId: 2, count: 4 }, { itemId: 2, count: 7 }],
   fluidSlots: [],
   electricNetwork: { totalGeneratePower: 4000, totalRequiredPower: 2000, consumerCount: 1, powerRate: 1 },
-  spaceElevator: { connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect" },
+  spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect" },
 } satisfies BlockInventoryWireData;
 
 // 不足・昇降・出口待ちの受入状態
@@ -87,7 +87,7 @@ export const blockSpaceElevatorInsufficient = {
 } satisfies BlockInventoryWireData;
 export const blockSpaceElevatorClimbing = {
   ...blockSpaceElevator,
-  spaceElevator: { connected: true, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0.5, status: "climbing" },
+  spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: true, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0.5, status: "climbing" },
 } satisfies BlockInventoryWireData;
 export const blockSpaceElevatorOutputBlocked = {
   ...blockSpaceElevatorClimbing,
@@ -98,3 +98,11 @@ export const blockSpaceElevatorOutputBlocked = {
 // 詳細未着をwireで省略する過渡状態
 // Transient wire state that omits the pending detail
 export const blockSpaceElevatorLoading = { ...blockSpaceElevator, spaceElevator: undefined } satisfies BlockInventoryWireData;
+
+// 並び替えたホスト添字を使い、画面側の連続帯への依存を検出する
+// Reordered host indices detect views that infer contiguous slot groups
+export const blockSpaceElevatorReordered = {
+  ...blockSpaceElevator,
+  itemSlots: [{ itemId: 2, count: 4 }, { itemId: 2, count: 7 }, { itemId: 0, count: 0 }],
+  spaceElevator: { ...blockSpaceElevator.spaceElevator, satelliteInputSlots: [2], outputSlots: [1, 0] },
+} satisfies BlockInventoryWireData;

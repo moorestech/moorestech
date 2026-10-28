@@ -6,7 +6,7 @@ function base(): Extract<BlockInventoryWireData, { open: true; source: "block" }
   return {
     open: true, source: "block", blockType: "SpaceElevatorBase", identifier: "block:20",
     blockGuid: "99999999-9999-4999-8999-999999999999", itemSlots: [], fluidSlots: [],
-    spaceElevator: { connected: false, cablePoolAmount: 150, cablesPerElevator: 100, climbProgress: 0, status: "readyToConnect" },
+    spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: false, cablePoolAmount: 150, cablesPerElevator: 100, climbProgress: 0, status: "readyToConnect" },
   };
 }
 

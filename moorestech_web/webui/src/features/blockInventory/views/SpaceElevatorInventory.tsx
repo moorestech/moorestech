@@ -5,17 +5,16 @@ import BlockItemGrid from "../BlockItemGrid";
 import { ElectricNetworkSection } from "../details/NetworkSections";
 import { toSpaceElevatorDetailState } from "../details/spaceElevator/spaceElevatorDetailState";
 import SpaceElevatorSection from "../details/spaceElevator/SpaceElevatorSection";
-import { allSlotIndices } from "../details/detailLogic";
 
 // 入出力を分けても、機械UIと同じく元のサーバースロットindexで操作する
 // Like the machine UI, keep server slot indices when separating the inlet and outlets
 export default function SpaceElevatorInventory({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
-  const indices = allSlotIndices(data.itemSlots.length);
-  const groups = [
-    { label: L.ui.blockInventory.spaceElevatorSatelliteInput, testId: "space-elevator-input-grid", indices: indices.slice(0, 1) },
-    { label: L.ui.blockInventory.spaceElevatorResultOutput, testId: "space-elevator-output-grid", indices: indices.slice(1) },
-  ];
+  const detail = data.spaceElevator;
+  const groups = detail ? [
+    { label: L.ui.blockInventory.spaceElevatorSatelliteInput, testId: "space-elevator-input-grid", indices: detail.satelliteInputSlots },
+    { label: L.ui.blockInventory.spaceElevatorResultOutput, testId: "space-elevator-output-grid", indices: detail.outputSlots },
+  ] : [];
 
   return (
     <Stack gap="sm" data-testid="space-elevator-view">

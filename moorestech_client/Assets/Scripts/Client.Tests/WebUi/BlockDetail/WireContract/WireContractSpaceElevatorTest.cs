@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Game.Block.Blocks.SpaceElevator;
 using System.IO;
 using System.Reflection;
 using Client.Game.InGame.BeltTransport;
@@ -41,7 +43,7 @@ namespace Client.Tests.WebUi.BlockDetail
                 BlockGuid = "99999999-9999-4999-8999-999999999999",
                 ItemSlots = new List<BlockItemSlotDto>(),
                 FluidSlots = new List<BlockFluidSlotDto>(),
-                SpaceElevator = new SpaceElevatorDetailDto { Connected = true, CablePoolAmount = 250, CablesPerElevator = 1000, ClimbProgress = 0.5f, Status = "climbing" },
+                SpaceElevator = new SpaceElevatorDetailDto { SatelliteInputSlots = new List<int> { 0 }, OutputSlots = new List<int> { 1, 2 }, Connected = true, CablePoolAmount = 250, CablesPerElevator = 1000, ClimbProgress = 0.5f, Status = "climbing" },
             };
 
             // 共有fixtureと厳密照合する
@@ -67,9 +69,12 @@ namespace Client.Tests.WebUi.BlockDetail
             var dto = new BlockInventoryDto();
             BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
             var required = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).CablesPerElevator;
+            var outputCount = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).OutputSlotCount;
             Object.DestroyImmediate(block.gameObject);
 
             Assert.IsNotNull(dto.SpaceElevator);
+            CollectionAssert.AreEqual(new[] { SpaceElevatorBaseInventoryComponent.SatelliteSlot }, dto.SpaceElevator.SatelliteInputSlots);
+            CollectionAssert.AreEqual(Enumerable.Range(SpaceElevatorBaseInventoryComponent.FirstOutputSlot, outputCount), dto.SpaceElevator.OutputSlots);
             Assert.AreEqual(true, dto.SpaceElevator.Connected);
             Assert.AreEqual(250, dto.SpaceElevator.CablePoolAmount);
             Assert.AreEqual(required, dto.SpaceElevator.CablesPerElevator);
@@ -78,11 +83,10 @@ namespace Client.Tests.WebUi.BlockDetail
         }
 
         [Test]
-        public void PendingDetailIsOmittedWithWarning()
+        public void PendingDetailIsOmittedUntilStateArrives()
         {
             var block = CreateBlock(null);
             var dto = new BlockInventoryDto();
-            LogAssert.Expect(LogType.Warning, "SpaceElevatorBase の状態詳細が未着のため DTO を保留します");
             SpaceElevatorDetailDtoBuilder.Apply(dto, block, block.BlockMasterElement.BlockParam);
             Object.DestroyImmediate(block.gameObject);
             Assert.IsNull(dto.SpaceElevator);

@@ -20,8 +20,8 @@ namespace Game.Block.Blocks.SpaceElevator
     // The base's slots: slot 0 takes satellites to carry, the rest hold results; only the outlets are pushed to adjacent belts
     public class SpaceElevatorBaseInventoryComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent, ISortExcludedSlots
     {
-        private const int SatelliteSlot = 0;
-        private const int FirstOutputSlot = 1;
+        public const int SatelliteSlot = 0;
+        public const int FirstOutputSlot = 1;
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
         public IReadOnlyCollection<int> SortExcludedSlots => Enumerable.Range(0, _slotCount).ToArray();

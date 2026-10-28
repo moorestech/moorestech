@@ -2,6 +2,8 @@ import { z } from "zod";
 
 export const SpaceElevatorStatusSchema = z.enum(["readyToConnect", "insufficientCable", "waitingSatellite", "climbing", "lowPower", "outputBlocked", "inletBlocked"]);
 export const SpaceElevatorDataSchema = z.object({
+  satelliteInputSlots: z.array(z.number().int().nonnegative()),
+  outputSlots: z.array(z.number().int().nonnegative()),
   connected: z.boolean(),
   cablePoolAmount: z.number().int().nonnegative(),
   cablesPerElevator: z.number().int().positive(),

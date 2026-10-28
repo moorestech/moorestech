@@ -33,7 +33,7 @@ function renderSection(spaceElevator: SpaceElevatorData | undefined) {
   act(() => { tree = create(createElement(SpaceElevatorSection, { state: toSpaceElevatorDetailState(data) })); });
   return tree;
 }
-const unconnected: SpaceElevatorData = { connected: false, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0, status: "insufficientCable" };
+const unconnected: SpaceElevatorData = { satelliteInputSlots: [0], outputSlots: [1, 2], connected: false, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0, status: "insufficientCable" };
 
 // サーバー状態を信頼し、残量の比較から接続可否を再導出しない
 // Trust the server status instead of deriving connectability again from pool amounts
