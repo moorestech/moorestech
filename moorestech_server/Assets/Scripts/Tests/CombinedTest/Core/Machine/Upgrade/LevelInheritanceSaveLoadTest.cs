@@ -63,16 +63,18 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
         }
 
         [Test]
-        public void InheritanceJobWithoutLevelStopsLoadingTest()
+        public void InheritanceJobWithoutLevelDropsJobWithoutFillingLv1Test()
         {
-            // 継承レシピの加工中ジョブから継承レベルを消すと、Lv1 で補わずロードが止まる
-            // Stripping the level from an inheritance job stops loading instead of filling in Lv1
+            // 継承レシピの加工中ジョブから継承レベルを消すと、Lv1 で補わずジョブだけを警告付きで捨てる
+            // Stripping the level from an inheritance job drops only that job with a warning instead of filling in Lv1
             var save = BuildInheritanceProcessingSave();
             Assert.IsTrue(ProcessorJson(save).Remove("inheritedLevel"));
             var (_, loadProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var loader = loadProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-            var exception = Assert.Catch<Exception>(() => loader.Load(save.ToString()));
-            StringAssert.Contains("継承レベル", exception.ToString());
+            LogAssert.Expect(LogType.Warning, new Regex("現行レシピと継承設定が異なるためジョブを破棄します"));
+            (loadProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(save.ToString());
+            Assert.AreEqual(ProcessState.Idle, GetProcessor().CurrentState);
+            var resaved = JObject.Parse(loadProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
+            Assert.AreEqual(JTokenType.Null, ProcessorJson(resaved)["inheritedLevel"].Type);
         }
 
         [Test]

@@ -38,7 +38,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
                 JObject.Parse("{\"blockGuid\":\"x\",\"state\":{\"ChestComponent\":{\"items\":[]}}}"),
                 JObject.Parse("{\"blockGuid\":\"y\"}"),
                 JObject.Parse("{\"blockGuid\":\"z\",\"state\":null}"),
-                new JObject { ["state"] = new JObject { [ProcessorKey] = JObject.Parse("{\"inheritedLevel\":null,\"inputFluidSlot\":[{\"fluidGuid\":\"g\",\"amount\":5}],\"outputFluidSlot\":[]}") } });
+                new JObject { ["state"] = new JObject { [ProcessorKey] = JObject.Parse("{\"inheritedLevel\":null,\"powerMultiplier\":null,\"inputFluidSlot\":[{\"fluidGuid\":\"g\",\"amount\":5}],\"outputFluidSlot\":[]}") } });
             var originalWorld = save["world"].DeepClone();
 
             var result = new SaveMigrationStepV7ToV8().Migrate(save);
