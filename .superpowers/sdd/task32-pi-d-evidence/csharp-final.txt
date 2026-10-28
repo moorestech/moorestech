@@ -1,2 +1,0 @@
-{"cwd": ".", "argv": ["/Users/sakastudio/.dotnet/dotnet", "run", "--project", ".superpowers/sdd/task32-pi-d-evidence/syntaxcheck/syntaxcheck.csproj", "--", ".superpowers/sdd/task32-pi-d-evidence/csharp-files.txt"], "exit": 0}
-Parsed 105 files; failures=0

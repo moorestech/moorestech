@@ -1,5 +1,0 @@
-{"cwd": "mooresmaster", "argv": ["/Users/sakastudio/.dotnet/dotnet", "test", "mooresmaster.Tests/mooresmaster.Tests.csproj", "--no-build", "--no-restore", "--verbosity", "quiet"], "exit": 0}
-/Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/mooresmaster/mooresmaster.Tests/bin/Debug/net8.0/mooresmaster.Tests.dll (.NETCoreApp,Version=v8.0) のテスト実行
-合計 1 個のテスト ファイルが指定されたパターンと一致しました。
-
-成功!   -失敗:     0、合格:   302、スキップ:     0、合計:   302、期間: 1 s - mooresmaster.Tests.dll (net8.0)

@@ -1,1 +1,0 @@
-{"cwd": "moorestech_web/webui", "argv": ["pnpm", "exec", "tsc", "-b", "--pretty", "false"], "exit": 0}

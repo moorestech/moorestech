@@ -1,5 +1,0 @@
-{"cwd": ".", "argv": ["python3", ".superpowers/sdd/task32-pi-d-evidence/static_checks.py"], "exit": 1}
-Traceback (most recent call last):
-  File "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/.superpowers/sdd/task32-pi-d-evidence/static_checks.py", line 7, in <module>
-    import yaml
-ModuleNotFoundError: No module named 'yaml'

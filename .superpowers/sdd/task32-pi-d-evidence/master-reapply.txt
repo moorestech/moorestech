@@ -1,2 +1,0 @@
-{"cwd": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated", "argv": ["python3", "design/tier9-balance/apply/apply_spec.py", "--mod-dir", "server_v8/mods/moorestechAlphaMod_8", "--spec-dir", "design/tier9-balance/spec", "--ledger", "design/tier9-balance/guids.json"], "exit": 0}
-applied 11 spec files; issued 0 new guids

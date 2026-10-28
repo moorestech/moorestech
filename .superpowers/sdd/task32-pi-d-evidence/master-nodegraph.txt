@@ -1,2 +1,0 @@
-{"cwd": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated", "argv": ["python3", "tools/nodegraph_sync/sync_nodegraph.py", "--check"], "exit": 0}
-== NODEGRAPH: PASS (0 failures)
