@@ -28,20 +28,20 @@ namespace Client.Tests.Playtest.RecordedWaits
         private PlaytestDriver _driver;
 
         [UnitySetUp]
-        public IEnumerator SetUp() => UniTask.ToCoroutine(async () =>
+        public IEnumerator SetUp()
         {
-            // 実サーバーのtick開始を待つ
-            // Wait until reads and writes can use the real server's tick boundary
+            // 実サーバーのtick開始を待つ。UnitySetUpはEditModeでyield反復子の状態欄を読むためToCoroutineを使わない
+            // Wait for the real server's tick boundary; EditMode UnitySetUp reads the yield iterator state field, so avoid ToCoroutine
             _worldRoot = ServerStarterTestBoot.NewWorldRoot();
             _starter = ServerStarterTestBoot.Boot(_worldRoot);
             var deadline = Time.realtimeSinceStartup + 30f;
-            while (!(ServerThreadActionQueueAccess.Current?.HasDrainedThisLifetime ?? false) && Time.realtimeSinceStartup < deadline) await UniTask.Yield();
+            while (!(ServerThreadActionQueueAccess.Current?.HasDrainedThisLifetime ?? false) && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.IsTrue(ServerThreadActionQueueAccess.Current?.HasDrainedThisLifetime ?? false);
             PlaytestOverlay.State.Reset();
             _result = new PlaytestResult();
             _driver = new PlaytestDriver(_result, _worldRoot);
-            await _driver.RunOnServer("研究を未完了へ戻す", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject()));
-        });
+            yield return _driver.RunOnServer("研究を未完了へ戻す", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject())).ToCoroutine();
+        }
 
         [TearDown]
         public void TearDown()

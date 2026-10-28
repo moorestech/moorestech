@@ -58,7 +58,9 @@ namespace Tests.CombinedTest.Core.Machine.Save
             var (block, inventory, processor) = PlaceMachine(Vector3Int.one);
             var recipe = LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid);
             MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
-            inventory.SetItem(ModuleRangeStart, MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000005")), 1);
+            // 品質モジュール不可の機械なので時間を延ばす生産性モジュールを使う
+            // This machine rejects quality modules, so a productivity module stretches the time instead
+            inventory.SetItem(ModuleRangeStart, MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000002")), 1);
             inventory.InsertItem(Create(ForUnitTestLevelInheritanceIds.Source(2), 2));
             inventory.InsertItem(CreateTest1(1));
             AdvanceTicksWithFullPower(1, processor);
