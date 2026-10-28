@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Core.Machine.Save
             Assert.AreEqual(20u, GameUpdater.SecondsToTicks(recipe.Time));
             Assert.AreEqual(30u, GameUpdater.SecondsToTicks(before.RemainingSeconds));
 
-            // 開始後の装備撤去で旧ジョブの再計算時間が残量を下回る
+            // 装備撤去で再計算時間が残量を下回る
             // Removing the module after start makes the legacy recomputed duration shorter than the remaining work
             inventory.SetItem(ModuleRangeStart, ServerContext.ItemStackFactory.CreatEmpty());
             var states = SaveLoadJsonTestHelper.ThroughJson(block.GetSaveState());

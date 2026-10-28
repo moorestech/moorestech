@@ -20,22 +20,22 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         // Every new role must implement its own serialization
         internal abstract JObject CaptureDrawRecord();
 
-        internal static CleanRoomYieldPreviewResult RestoreDrawRecord(JObject record)
+        internal static CleanRoomYieldPreviewResult RestoreDrawRecord(JObject drawRecord)
         {
-            if (record == null) return null;
-            return (string)record["kind"] switch
+            if (drawRecord == null) return null;
+            return (string)drawRecord["kind"] switch
             {
                 "waferGrade" => new WaferGradePreview(Required<int>("maxGrade"), Required<double>("promotionChance")),
                 "layerExposure" => new LayerExposurePreview(Required<double>("layerFailRate")),
                 "dicing" => new DicingPreview(Required<double>("dieLossRate")),
-                _ => throw new InvalidOperationException($"未対応の保存抽選記録です:{record["kind"]}"),
+                _ => throw new InvalidOperationException($"未対応の保存抽選記録です:{drawRecord["kind"]}"),
             };
 
             #region Internal
             T Required<T>(string key)
             {
-                if (record[key] == null || record[key].Type == JTokenType.Null) throw new InvalidOperationException($"保存抽選記録の必須キーがありません:{key}");
-                return record[key].Value<T>();
+                if (drawRecord[key] == null || drawRecord[key].Type == JTokenType.Null) throw new InvalidOperationException($"保存抽選記録の必須キーがありません:{key}");
+                return drawRecord[key].Value<T>();
             }
             #endregion
         }

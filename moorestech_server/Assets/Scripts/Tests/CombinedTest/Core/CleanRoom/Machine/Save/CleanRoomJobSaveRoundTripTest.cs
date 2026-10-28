@@ -60,7 +60,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             var after = (CleanRoomMachineProcessorSaveJsonObject)restoredProcessor.GetSaveState();
             Assert.AreEqual(before.RemainingSeconds, after.RemainingSeconds);
             Assert.IsTrue(JToken.DeepEquals(JArray.FromObject(before.PendingOutputs), JArray.FromObject(after.PendingOutputs)));
-            // 旧形式の20tick再計算・残り30tickを再保存しても次のロードが通る
+            // 旧形式を再保存しても残り30tickを保つ
             // Re-saving a legacy job with 20 computed ticks and 30 remaining ticks must stay loadable
             Assert.AreEqual(20u, GameUpdater.SecondsToTicks(MasterHolder.MachineRecipesMaster.GetRecipeElement(ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe).Time));
             Assert.AreEqual(30u, GameUpdater.SecondsToTicks(before.RemainingSeconds));
@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
                 _ => throw new ArgumentOutOfRangeException(nameof(kind)),
             });
 
-            // 既存wireを復元し、型自身の保存を二往復して率を比較する
+            // 既存wireを二往復して率を保つ
             // Restore the existing wire format and compare rates after two captures by the concrete role
             var restored = CleanRoomYieldPreviewResult.RestoreDrawRecord(wire);
             var expectedType = kind switch

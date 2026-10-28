@@ -96,7 +96,7 @@ namespace Client.Tests.WebUi.BlockDetail
             var pending = capture.Api.Response.Block.ConnectSpaceElevator(Vector3Int.zero, new BlockInstanceId(123), CancellationToken.None);
             capture.ReadRequest();
 
-            // 非Receivedへ壊れた本文を添えても復号せず理由だけを返す
+            // 非受信の壊れた本文を復号しない
             // Even a malformed payload on a non-Received completion must pass the reason through without decoding
             var bytes = hasResponse ? MessagePackSerializer.Serialize(new ConnectSpaceElevatorResponse(SpaceElevatorConnectResult.Connected)) : new byte[] { 0xc1 };
             capture.Waiters.Single().Value.WaitSubject.OnNext((bytes, reason));
