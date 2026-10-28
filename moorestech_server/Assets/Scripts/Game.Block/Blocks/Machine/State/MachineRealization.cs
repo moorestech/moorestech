@@ -17,17 +17,19 @@ namespace Game.Block.Blocks.Machine.State
         public readonly int? InheritedLevel;
         public readonly List<IItemStack> Outputs;
         public readonly uint TotalTicks;
+        public readonly float PowerMultiplier;
 
         // 差し替え口が確定時に使った値の記録（清浄室は抽選に使った率）。差し替えの無い出力は null
         // Record of the values the rewrite hook used when fixing (the clean room's draw rates); null when nothing was rewritten
         public readonly IRealizedOutputDrawRecord DrawRecord;
 
-        public MachineRealization(MachineRecipeMasterElement recipe, int? inheritedLevel, List<IItemStack> outputs, uint totalTicks, IRealizedOutputDrawRecord drawRecord)
+        public MachineRealization(MachineRecipeMasterElement recipe, int? inheritedLevel, List<IItemStack> outputs, uint totalTicks, float powerMultiplier, IRealizedOutputDrawRecord drawRecord)
         {
             Recipe = recipe;
             InheritedLevel = inheritedLevel;
             Outputs = outputs;
             TotalTicks = totalTicks;
+            PowerMultiplier = powerMultiplier;
             DrawRecord = drawRecord;
         }
 

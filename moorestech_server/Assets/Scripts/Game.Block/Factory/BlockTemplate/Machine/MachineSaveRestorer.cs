@@ -83,7 +83,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
 
             // 加工中ジョブは Processor のサブオブジェクトの平らなキーから組む（レシピがマスタから消えていれば null で、加工中の状態は Idle へ戻る）
             // Build the running job from the Processor sub-object's flat keys (null when its recipe left the master; a mid-job state then falls back to Idle)
-            var processingJob = MachineProcessingJob.RestoreFromFlatSave(processorJson.RecipeGuidStr, processorJson.RemainingSeconds, processorJson.PendingOutputs, processorJson.InheritedLevel, processorJson.TotalTicks, processorJson.ConsumedInputItemGuids);
+            var processingJob = MachineProcessingJob.RestoreFromFlatSave(processorJson.RecipeGuidStr, processorJson.RemainingSeconds, processorJson.PendingOutputs, processorJson.InheritedLevel, processorJson.TotalTicks, processorJson.ConsumedInputItemGuids, processorJson.PowerMultiplier);
 
             // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
             // Restore the selected recipe; a GUID missing from the master falls back to unselected

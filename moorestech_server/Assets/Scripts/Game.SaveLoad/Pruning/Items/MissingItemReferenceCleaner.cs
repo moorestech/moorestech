@@ -68,6 +68,20 @@ namespace Game.SaveLoad.Pruning.Items
             property.Value = JValue.CreateNull();
         }
 
+        // 消費実品の欠損を退避し、復元入口がジョブ全体を破棄できる印を残す
+        // Archive missing consumed identities and mark them so restoration discards the entire job
+        public void ClearConsumedInputIfMissing(JToken item, PrunedItemOrigin origin)
+        {
+            if (!TryReadMissingItemGuid(item, out var guidText)) return;
+            Record(_result.EmptiedItemStacks, new JObject
+            {
+                ["origin"] = origin.ToJson(),
+                ["kind"] = BareGuidKind,
+                [ItemStackJsonKeys.ItemGuid] = guidText,
+            }, guidText);
+            item.Replace(JValue.CreateNull());
+        }
+
         // modを外すと数千件になるのでguidごとに集約して1行にまとめる
         // Dropping a mod can empty thousands of references, so the report is aggregated per guid into one line
         public void LogRemovedItemReferences(string sectionName)

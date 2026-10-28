@@ -46,10 +46,12 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             {
                 var saved = (JObject)states[processor.SaveKey];
                 saved.Property("totalTicks").Remove();
+                saved.Property("powerMultiplier").Remove();
                 saved.Property("consumedInputItemGuids").Remove();
                 saved.Property("pendingRealization").Remove();
                 LogAssert.Expect(LogType.Warning, new Regex("確定結果の節が無い"));
                 LogAssert.Expect(LogType.Warning, new Regex("確定時間が無い"));
+                LogAssert.Expect(LogType.Warning, new Regex("確定電力倍率が無い"));
             }
 
             // JSON往復で加工残量・出力・消費したG2を復元する
@@ -71,6 +73,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             restoredProcessor = restored.GetComponent<CleanRoomMachineProcessorComponent>();
             var afterAgain = (CleanRoomMachineProcessorSaveJsonObject)restoredProcessor.GetSaveState();
             Assert.AreEqual(after.TotalTicks, afterAgain.TotalTicks);
+            Assert.AreEqual(after.PowerMultiplier, afterAgain.PowerMultiplier);
             Assert.AreEqual(after.RemainingSeconds, afterAgain.RemainingSeconds);
             if (legacy) LogAssert.Expect(LogType.Warning, new Regex("消費した変種が不明で基準品で返却"));
             var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10);

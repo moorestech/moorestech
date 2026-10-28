@@ -12,6 +12,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         // V8では確定時間・消費実品・待機抽選をそのまま保存する
         // V8 preserves fixed time, consumed identities and waiting draws
         [JsonProperty("totalTicks")] public uint? TotalTicks;
+        [JsonProperty("powerMultiplier")] public float? PowerMultiplier;
         [JsonProperty("consumedInputItemGuids")] public List<string> ConsumedInputItemGuids;
         [JsonProperty("pendingRealization")] public MachineRealizationSaveJsonObject PendingRealization;
 

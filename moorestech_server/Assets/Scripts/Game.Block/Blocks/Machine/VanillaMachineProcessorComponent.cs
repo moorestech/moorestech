@@ -74,7 +74,7 @@ namespace Game.Block.Blocks.Machine
         internal void RestorePendingRealization(MachineRealizationSaveJsonObject saved)
         {
             if (saved?.DrawRecord != null) throw new InvalidOperationException("通常機械の確定結果に未対応の抽選記録があります");
-            _idleState.RestorePending(saved?.Restore(null));
+            _idleState.RestorePending(saved?.Restore(null, _context.EffectComponent));
         }
         public BlockStateDetail[] GetBlockStateDetails()
         {
@@ -164,6 +164,7 @@ namespace Game.Block.Blocks.Machine
             return new VanillaMachineProcessorSaveJsonObject
             {
                 TotalTicks = _processingState.TotalTicks,
+                PowerMultiplier = _processingState.PowerMultiplier,
                 ConsumedInputItemGuids = _processingState.ConsumedInputItemIds?.Select(id => MasterHolder.ItemMaster.GetItemMaster(id).ItemGuid.ToString()).ToList(),
                 PendingRealization = MachineRealizationSaveJsonObject.Capture(_idleState, null),
                 State = (int)CurrentState,

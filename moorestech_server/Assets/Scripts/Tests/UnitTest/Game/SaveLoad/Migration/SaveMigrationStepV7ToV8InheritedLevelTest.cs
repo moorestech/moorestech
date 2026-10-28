@@ -26,10 +26,12 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
             Assert.IsTrue(result.IsConverted, result.FailureReason);
             var migratedVanilla = (JObject)result.Save["world"][0]["state"][VanillaKey];
             Assert.AreEqual(JTokenType.Null, migratedVanilla["processor"]["inheritedLevel"].Type);
+            Assert.AreEqual(JTokenType.Null, migratedVanilla["processor"]["powerMultiplier"].Type);
             Assert.AreEqual(1, migratedVanilla["processor"]["state"].Value<int>());
             Assert.AreEqual("r", migratedVanilla["processor"]["recipeGuid"].Value<string>());
             var migratedCleanRoom = (JObject)result.Save["world"][1]["state"][CleanRoomKey];
             Assert.AreEqual(JTokenType.Null, migratedCleanRoom["inheritedLevel"].Type);
+            Assert.AreEqual(JTokenType.Null, migratedCleanRoom["powerMultiplier"].Type);
             Assert.AreEqual(3, migratedCleanRoom["cycleCount"].Value<int>());
         }
 

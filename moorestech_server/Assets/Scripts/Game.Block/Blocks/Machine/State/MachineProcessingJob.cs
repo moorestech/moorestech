@@ -20,6 +20,7 @@ namespace Game.Block.Blocks.Machine.State
         public readonly MachineRecipeMasterElement Recipe;
         public readonly uint RemainingTicks;
         public readonly uint? TotalTicks;
+        public readonly float? PowerMultiplier;
         public readonly List<ItemId> ConsumedInputItemIds;
 
         // 保留出力。保留出力を持たない旧セーブは null で、完了時に一度だけ確定する
@@ -30,7 +31,7 @@ namespace Game.Block.Blocks.Machine.State
         // 1..max for an inheritance recipe, null for a non-inheritance recipe
         public readonly int? InheritedLevel;
 
-        public MachineProcessingJob(MachineRecipeMasterElement recipe, uint remainingTicks, List<IItemStack> pendingOutputs, int? inheritedLevel, uint? totalTicks, List<ItemId> consumedInputItemIds)
+        public MachineProcessingJob(MachineRecipeMasterElement recipe, uint remainingTicks, List<IItemStack> pendingOutputs, int? inheritedLevel, uint? totalTicks, List<ItemId> consumedInputItemIds, float? powerMultiplier)
         {
             // レシピと合わない継承レベルはセーブ破損かマイグレーション漏れなので、Lv1 などで黙って補わずに止める
             // An inherited level that does not fit the recipe means a corrupt save or a missed migration, so stop instead of silently filling in Lv1
@@ -40,6 +41,9 @@ namespace Game.Block.Blocks.Machine.State
                 throw new InvalidOperationException($"加工ジョブの時間が不正です recipe:{recipe.MachineRecipeGuid}");
             if (consumedInputItemIds != null && consumedInputItemIds.Count != recipe.InputItems.Length)
                 throw new InvalidOperationException($"加工ジョブの消費実品数が不正です recipe:{recipe.MachineRecipeGuid}");
+            if (powerMultiplier.HasValue && (float.IsNaN(powerMultiplier.Value) || float.IsInfinity(powerMultiplier.Value) || powerMultiplier.Value <= 0f))
+                throw new InvalidOperationException($"加工ジョブの電力倍率が不正です recipe:{recipe.MachineRecipeGuid}");
+            PowerMultiplier = powerMultiplier;
             TotalTicks = totalTicks;
             ConsumedInputItemIds = consumedInputItemIds;
             Recipe = recipe;
@@ -50,7 +54,7 @@ namespace Game.Block.Blocks.Machine.State
 
         // セーブの平らなキーからジョブを組む。ジョブが無いか、レシピがマスタから消えていれば null
         // Builds the job from a save's flat keys; null when there is no job or its recipe has left the master
-        public static MachineProcessingJob RestoreFromFlatSave(string recipeGuidStr, double remainingSeconds, List<ItemStackSaveJsonObject> pendingOutputs, int? inheritedLevel, uint? totalTicks, List<string> consumedInputItemGuids)
+        public static MachineProcessingJob RestoreFromFlatSave(string recipeGuidStr, double remainingSeconds, List<ItemStackSaveJsonObject> pendingOutputs, int? inheritedLevel, uint? totalTicks, List<string> consumedInputItemGuids, float? powerMultiplier)
         {
             // ジョブ無しは Guid.Empty で保存される（清浄室機械の旧セーブはキー自体が無く null）
             // No job is saved as Guid.Empty (old clean-room saves lack the key, so it is null)
@@ -67,9 +71,26 @@ namespace Game.Block.Blocks.Machine.State
                 return null;
             }
 
+            // マスタ変更と除去済み実品はジョブ単位で処理し、欠損をID解決へ渡さない
+            // Handle changed masters and pruned identities per job before resolving item ids
+            if (!MachineRecipeLevelInheritanceUtil.IsValidInheritedLevel(recipe, inheritedLevel))
+            {
+                Debug.LogWarning($"[MachineProcessingJob] 現行レシピと継承設定が異なるためジョブを破棄します recipe:{recipeGuid}");
+                return null;
+            }
+            if (consumedInputItemGuids != null && consumedInputItemGuids.Any(guid => string.IsNullOrEmpty(guid) || !MasterHolder.ItemMaster.ExistItemId(Guid.Parse(guid))))
+            {
+                Debug.LogWarning($"[MachineProcessingJob] 消費実品がマスタから除去されたためジョブを破棄します recipe:{recipeGuid}");
+                return null;
+            }
+            if (consumedInputItemGuids != null && consumedInputItemGuids.Count != recipe.InputItems.Length)
+            {
+                Debug.LogWarning($"[MachineProcessingJob] 現行レシピと消費実品数が異なるため旧ジョブの返却方式で復元します recipe:{recipeGuid}");
+                consumedInputItemGuids = null;
+            }
             var restoredOutputs = pendingOutputs?.Select(item => item.ToItemStack()).ToList();
             var consumed = consumedInputItemGuids?.Select(guid => MasterHolder.ItemMaster.GetItemId(Guid.Parse(guid))).ToList();
-            return new MachineProcessingJob(recipe, GameUpdater.SecondsToTicks(remainingSeconds), restoredOutputs, inheritedLevel, totalTicks, consumed);
+            return new MachineProcessingJob(recipe, GameUpdater.SecondsToTicks(remainingSeconds), restoredOutputs, inheritedLevel, totalTicks, consumed, powerMultiplier);
         }
     }
 }

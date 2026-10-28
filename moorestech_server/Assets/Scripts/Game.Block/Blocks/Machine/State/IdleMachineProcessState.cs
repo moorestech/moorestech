@@ -54,7 +54,7 @@ namespace Game.Block.Blocks.Machine.State
 
             // 確定時の加工時間ごと ProcessingState へ渡して遷移する
             // Hand the job with its realized processing time to ProcessingState and transition
-            _processingState.SetProcessing(recipe, _pendingRealization.Outputs, inheritedLevel, _pendingRealization.TotalTicks);
+            _processingState.SetProcessing(recipe, _pendingRealization.Outputs, inheritedLevel, _pendingRealization.TotalTicks, _pendingRealization.PowerMultiplier);
             _pendingRealization = null;
             return ProcessState.Processing;
         }

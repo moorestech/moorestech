@@ -52,7 +52,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public CleanRoomMachineProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
             _moduleInventory = module;
-            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe, out var pendingRealization);
+            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, effect, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe, out var pendingRealization);
             _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
             _yieldDrawDecorator = new CleanRoomYieldDrawDecorator(blockInstanceId, cycleCount);
             _context.SetRealizedOutputDecorator(_yieldDrawDecorator);

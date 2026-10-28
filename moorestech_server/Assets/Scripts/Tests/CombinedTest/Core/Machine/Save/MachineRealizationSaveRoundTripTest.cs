@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using Mooresmaster.Model.ItemsModule;
 using Core.Master;
 using Core.Update;
 using System.Text.RegularExpressions;
@@ -28,8 +30,8 @@ namespace Tests.CombinedTest.Core.Machine.Save
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var (block, inventory, processor) = PlaceMachine(Vector3Int.one);
             MachineRecipeSelectTestUtil.SelectRecipe(block, LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid));
-            var quality = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000005"));
-            inventory.SetItem(ModuleRangeStart, quality, 1);
+            var speedModule = MasterHolder.ItemMaster.Items.Modules.First(module => module.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            inventory.SetItem(ModuleRangeStart, MasterHolder.ItemMaster.GetItemId(speedModule.ItemGuid), 1);
             inventory.SetItem(InputSlotCount, CreateTest1(1));
             inventory.InsertItem(Create(ForUnitTestLevelInheritanceIds.Source(2), 2));
             inventory.InsertItem(CreateTest1(1));
@@ -48,6 +50,8 @@ namespace Tests.CombinedTest.Core.Machine.Save
             restored.Update();
             Assert.AreEqual(ProcessState.Processing, restored.CurrentState);
             Assert.AreEqual((uint)fixedState["totalTicks"], restored.GetSaveJsonObject().TotalTicks);
+            Assert.AreEqual(1f + speedModule.TradeoffValue, restored.GetSaveJsonObject().PowerMultiplier);
+            Assert.AreEqual(restored.RequestPower * (1f + speedModule.TradeoffValue), restored.EffectiveRequestPower, 0.0001f);
             Assert.IsTrue(JToken.DeepEquals(fixedState["outputs"], JArray.FromObject(restored.GetSaveJsonObject().PendingOutputs)));
         }
         [TestCase(false)]
@@ -78,10 +82,12 @@ namespace Tests.CombinedTest.Core.Machine.Save
                 var saved = (JObject)states[VanillaMachineSaveComponent.SaveKeyStatic];
                 var job = (JObject)saved["processor"];
                 job.Property("totalTicks").Remove();
+                job.Property("powerMultiplier").Remove();
                 job.Property("consumedInputItemGuids").Remove();
                 job.Property("pendingRealization").Remove();
                 LogAssert.Expect(LogType.Warning, new Regex("確定結果の節が無い"));
                 LogAssert.Expect(LogType.Warning, new Regex("確定時間が無い.*totalTicks:30 remainingTicks:30"));
+                LogAssert.Expect(LogType.Warning, new Regex("確定電力倍率が無い"));
             }
             for (var round = 0; round < 2; round++)
             {
@@ -90,6 +96,7 @@ namespace Tests.CombinedTest.Core.Machine.Save
                 processor = block.GetComponent<VanillaMachineProcessorComponent>();
                 var after = processor.GetSaveJsonObject();
                 Assert.AreEqual(before.TotalTicks, after.TotalTicks);
+                Assert.AreEqual(before.PowerMultiplier, after.PowerMultiplier);
                 Assert.AreEqual(before.RemainingSeconds, after.RemainingSeconds);
                 Assert.IsTrue(JToken.DeepEquals(JArray.FromObject(before.PendingOutputs), JArray.FromObject(after.PendingOutputs)));
                 states = SaveLoadJsonTestHelper.ThroughJson(block.GetSaveState());
@@ -97,11 +104,33 @@ namespace Tests.CombinedTest.Core.Machine.Save
         }
 
         [Test]
+        public void PendingRealizationWithChangedInheritanceIsDroppedOnLoad()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (block, inventory, processor) = PlaceMachine(Vector3Int.one);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid));
+            inventory.SetItem(InputSlotCount, CreateTest1(1));
+            inventory.InsertItem(Create(ForUnitTestLevelInheritanceIds.Source(2), 2));
+            inventory.InsertItem(CreateTest1(1));
+            AdvanceTicksWithFullPower(1, processor);
+
+            // 保存時に継承ありだったジョブを非継承レシピで開く状況を作る
+            // Model a saved inherited realization being opened with a non-inheritance recipe
+            var states = SaveLoadJsonTestHelper.ThroughJson(block.GetSaveState());
+            var saved = (JObject)states[VanillaMachineSaveComponent.SaveKeyStatic];
+            saved["processor"]["pendingRealization"]["inheritedLevel"] = 2;
+            LogAssert.Expect(LogType.Warning, new Regex("現行レシピと継承設定が異なるため待機抽選を破棄"));
+            var restored = ServerContext.BlockFactory.Load(block.BlockGuid, block.BlockInstanceId, states,
+                new BlockPositionInfo(new Vector3Int(20, 0, 20), BlockDirection.North, Vector3Int.one));
+            Assert.IsNull(restored.GetComponent<VanillaMachineProcessorComponent>().GetSaveJsonObject().PendingRealization);
+        }
+
+        [Test]
         public void CurrentJobRejectsRemainingTimeBeyondSavedTotal()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var recipe = LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid);
-            Assert.Throws<InvalidOperationException>(() => new MachineProcessingJob(recipe, 30u, null, null, 20u, null));
+            Assert.Throws<InvalidOperationException>(() => new MachineProcessingJob(recipe, 30u, null, null, 20u, null, 1f));
         }
     }
 }

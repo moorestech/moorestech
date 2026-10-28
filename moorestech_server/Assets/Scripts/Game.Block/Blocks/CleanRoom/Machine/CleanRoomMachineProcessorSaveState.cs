@@ -10,6 +10,7 @@ using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.State;
+using Game.Block.Blocks.Machine.Module;
 using Game.Context;
 using Game.Fluid;
 using Game.Block.Factory.BlockTemplate;
@@ -30,6 +31,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             {
                 CycleCount = cycleCount,
                 TotalTicks = processingState.TotalTicks,
+                PowerMultiplier = processingState.PowerMultiplier,
                 ConsumedInputItemGuids = processingState.ConsumedInputItemIds?.Select(id => MasterHolder.ItemMaster.GetItemMaster(id).ItemGuid.ToString()).ToList(),
                 PendingRealization = MachineRealizationSaveJsonObject.Capture(idleState, idleState.TryGetPendingRealization(out var pending) ? ((CleanRoomYieldPreviewResult)pending.DrawRecord)?.CaptureDrawRecord() : null),
                 State = (int)currentState,
@@ -46,7 +48,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             };
         }
 
-        public static void Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out MachineProcessingJob processingJob, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe, out MachineRealization pendingRealization)
+        public static void Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, MachineModuleEffectComponent effect, out ProcessState state, out MachineProcessingJob processingJob, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe, out MachineRealization pendingRealization)
         {
             state = ProcessState.Idle;
             processingJob = null;
@@ -58,13 +60,13 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             if (!BlockComponentStateReader.TryRead<CleanRoomMachineProcessorSaveJsonObject>(componentStates, saveKey, out var saveData)) return;
             MachineRealizationSaveJsonObject.WarnIfLegacy(JObject.FromObject(componentStates[saveKey]));
             cycleCount = saveData.CycleCount;
-            pendingRealization = saveData.PendingRealization?.Restore(CleanRoomYieldPreviewResult.RestoreDrawRecord(saveData.PendingRealization.DrawRecord));
             RestoreSlots(saveData);
+            pendingRealization = saveData.PendingRealization?.Restore(CleanRoomYieldPreviewResult.RestoreDrawRecord(saveData.PendingRealization.DrawRecord), effect);
             BlockTemplateUtil.RestoreMachineFluids(saveData.InputFluidSlot, saveData.OutputFluidSlot, input, output, true);
 
             // 加工中ジョブは平らなキーから組む（レシピがマスタから消えていれば null）
             // Build the running job from the flat keys (null when its recipe left the master)
-            processingJob = MachineProcessingJob.RestoreFromFlatSave(saveData.RecipeGuidStr, saveData.RemainingSeconds, saveData.PendingOutputs, saveData.InheritedLevel, saveData.TotalTicks, saveData.ConsumedInputItemGuids);
+            processingJob = MachineProcessingJob.RestoreFromFlatSave(saveData.RecipeGuidStr, saveData.RemainingSeconds, saveData.PendingOutputs, saveData.InheritedLevel, saveData.TotalTicks, saveData.ConsumedInputItemGuids, saveData.PowerMultiplier);
 
             // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
             // Restore the selected recipe; a GUID missing from the master falls back to unselected

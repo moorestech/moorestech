@@ -31,6 +31,7 @@ namespace Game.Block.Blocks.Machine.State
         public Guid RecipeGuid => CurrentRecipe?.MachineRecipeGuid ?? Guid.Empty;
 
         public uint TotalTicks { get; private set; }
+        public float PowerMultiplier => _context.ProcessingPowerMultiplier;
         public uint RemainingTicks  { get; private set; }
 
         public IReadOnlyList<IItemStack> PendingOutputs => _pendingOutputs;
@@ -65,14 +66,20 @@ namespace Game.Block.Blocks.Machine.State
                 restoredTotalTicks = Math.Max(MachineRealization.ComputeTotalTicks(restoredJob.Recipe, _context.EffectComponent.AggregateCurrent()), restoredJob.RemainingTicks);
                 UnityEngine.Debug.LogWarning($"旧加工ジョブに確定時間が無いため現在の効果と残量から復元します recipe:{restoredJob.Recipe.MachineRecipeGuid} totalTicks:{restoredTotalTicks} remainingTicks:{restoredJob.RemainingTicks}");
             }
-            SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel, restoredTotalTicks.Value);
+            var restoredPower = restoredJob.PowerMultiplier;
+            if (!restoredPower.HasValue)
+            {
+                restoredPower = _context.EffectComponent.AggregateCurrent().PowerMultiplier;
+                UnityEngine.Debug.LogWarning($"旧加工ジョブに確定電力倍率が無いため現在の効果から復元します recipe:{restoredJob.Recipe.MachineRecipeGuid} powerMultiplier:{restoredPower}");
+            }
+            SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel, restoredTotalTicks.Value, restoredPower.Value);
             RemainingTicks = restoredJob.RemainingTicks;
             _consumedInputItemIds = restoredJob.ConsumedInputItemIds;
         }
 
         // 加工するジョブをIdle、ロードから設定。加工時間は確定済みの値を受け取り、ここでモジュール効果を取り直さない
         // Set the processing job from Idle or on load; the processing time arrives already fixed and the module effect is never re-read here
-        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel, uint totalTicks)
+        public void SetProcessing(MachineRecipeMasterElement recipe, List<IItemStack> pendingOutputs, int? inheritedLevel, uint totalTicks, float powerMultiplier)
         {
             // 待機からの開始もここを通る。継承レベルがレシピと合わなければ束縛の破れなので、黙って補わずに止める（復元の値は MachineProcessingJob が先に閉じている）
             // Starting from idle also passes here; a level that does not fit the recipe means a broken binding, so stop instead of filling it in (restored values are already closed by MachineProcessingJob)
@@ -82,6 +89,7 @@ namespace Game.Block.Blocks.Machine.State
             InheritedLevel = inheritedLevel;
             _pendingOutputs = pendingOutputs;
             TotalTicks = totalTicks;
+            _context.SetProcessingPowerMultiplier(powerMultiplier);
         }
 
         // 開始時に入力を消費し残りtickを設定する

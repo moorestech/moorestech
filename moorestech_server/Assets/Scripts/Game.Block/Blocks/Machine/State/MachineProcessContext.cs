@@ -37,20 +37,13 @@ namespace Game.Block.Blocks.Machine.State
         // Realized-output rewrite hook; only the clean room installs one and the normal machine leaves it null
         private IRealizedOutputDecorator _realizedOutputDecorator;
 
-        private float _processingPowerMultiplier;
-        private ulong _processingPowerMultiplierTick = ulong.MaxValue;
+        // 加工時間と同時に確定した電力倍率をジョブが設定する
+        // The job sets the power multiplier fixed together with its processing time
+        public float ProcessingPowerMultiplier { get; private set; }
 
-        // 加工中の効果倍率はtick単位のスナップショット。同一tickの全読み手が同じ分母基準を見る
-        // The processing multiplier is snapshotted per tick so every reader within a tick shares one basis
-        public float ProcessingPowerMultiplier
+        internal void SetProcessingPowerMultiplier(float powerMultiplier)
         {
-            get
-            {
-                if (_processingPowerMultiplierTick == GameUpdater.CurrentTick) return _processingPowerMultiplier;
-                _processingPowerMultiplierTick = GameUpdater.CurrentTick;
-                _processingPowerMultiplier = EffectComponent.AggregateCurrent().PowerMultiplier;
-                return _processingPowerMultiplier;
-            }
+            ProcessingPowerMultiplier = powerMultiplier;
         }
 
         public MachineProcessContext(
@@ -131,7 +124,7 @@ namespace Game.Block.Blocks.Machine.State
             var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel, out var setCount);
             IRealizedOutputDrawRecord drawRecord = null;
             if (_realizedOutputDecorator != null) outputs = _realizedOutputDecorator.Decorate(recipe, inheritedLevel, effect, setCount, outputs, out drawRecord);
-            return new MachineRealization(recipe, inheritedLevel, outputs, MachineRealization.ComputeTotalTicks(recipe, effect), drawRecord);
+            return new MachineRealization(recipe, inheritedLevel, outputs, MachineRealization.ComputeTotalTicks(recipe, effect), effect.PowerMultiplier, drawRecord);
         }
 
         // 実現出力の差し替え口を差し込む（清浄室のチップ抽選）。未設定なら抽選結果をそのまま使う
