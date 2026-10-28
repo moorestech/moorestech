@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Core.Inventory;
 using Core.Master;
 using Game.Block.Blocks.CleanRoom.Machine;
+using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;

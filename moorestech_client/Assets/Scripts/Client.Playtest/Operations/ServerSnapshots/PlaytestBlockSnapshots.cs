@@ -50,7 +50,7 @@ namespace Client.Playtest.Operations
         public static async UniTask<ProcessState> ReadMachineState(this PlaytestDriver driver, IBlock block)
         {
             var state = ProcessState.Idle;
-            await PlaytestServerThreadAction.RunAsync("機械の加工状態を読む", () => state = block.GetComponent<IMachineProcessStateReader>().CurrentState);
+            await PlaytestServerThreadAction.RunAsync("機械の加工状態を読む", () => state = ((IMachineProcessStateReader)block.GetComponent<IMachineRecipeSelectorComponent>()).CurrentState);
             return state;
         }
 

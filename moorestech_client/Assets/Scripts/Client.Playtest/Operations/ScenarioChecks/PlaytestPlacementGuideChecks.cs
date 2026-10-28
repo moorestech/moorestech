@@ -39,8 +39,11 @@ namespace Client.Playtest.Operations
 
             var minerBlockId = MasterHolder.BlockMaster.GetBlockId(BlockGuidOf(minerName));
             var restrictionState = ClientDIContext.DIContainer.DIContainerResolver.Resolve<VeinRestrictedPlacementState>();
-            restrictionState.SetRestriction(targetVeinTypeGuid, minerBlockId);
-            p.Assert(restrictionState.IsRestrictedBlock(minerBlockId), "風力掘削機に対象鉱脈限定の制限がかかった");
+            // 制限の解除は入れた所有者だけが行えるので、検査専用の所有者GUIDで入れて同じGUIDで外す
+            // Only the owner that set the restriction may clear it, so use a check-only owner GUID for both
+            var checkOwnerGuid = Guid.NewGuid();
+            restrictionState.SetRestriction(checkOwnerGuid, targetVeinTypeGuid, minerBlockId);
+            p.Assert(restrictionState.TryGetRestrictedVeinType(minerBlockId, out var restrictedVeinGuid) && restrictedVeinGuid == targetVeinTypeGuid, "風力掘削機に対象鉱脈限定の制限がかかった");
 
             var veinCenter = targetVein.Bounds.center;
             // 範囲表示はカメラから96m以内の鉱脈を描くので、対象鉱脈の真上やや南へ立って画に収める
@@ -74,7 +77,7 @@ namespace Client.Playtest.Operations
             await p.Screenshot("05-vein-restricted-highlight");
 
             p.Note("制限を解除し、鉱脈表示が種別表示へ戻ることを確認する");
-            restrictionState.Clear();
+            restrictionState.Clear(checkOwnerGuid);
             await p.WaitSeconds(0.5f);
             var afterClearHighlighted = rangeViewRoot == null
                 ? 0

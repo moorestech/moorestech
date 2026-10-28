@@ -6,6 +6,7 @@ using Newtonsoft.Json.Linq;
 using UnityEngine.TestTools;
 using Core.Master;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
@@ -163,7 +164,7 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             // 加工中の返却は消費した実品（投入した変種）で戻る
             // A mid-process refund returns the consumed variant that was inserted (refunds go to input slots first, then overflow, so count both)
             if (legacy)
-                foreach (var input in Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid).InputItems)
+                foreach (var input in LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid).InputItems)
                     if (input.IsRemain != true) LogAssert.Expect(LogType.Warning, new Regex("消費した変種が不明で基準品で返却"));
             var overflow = CreateOverflow(10);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, processor.ClearSelectedRecipe(overflow));

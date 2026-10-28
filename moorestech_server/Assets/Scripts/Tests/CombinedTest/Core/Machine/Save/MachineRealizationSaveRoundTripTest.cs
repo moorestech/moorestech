@@ -1,6 +1,7 @@
 using System;
 using Core.Master;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -21,7 +22,7 @@ namespace Tests.CombinedTest.Core.Machine.Save
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var (block, inventory, processor) = PlaceMachine(Vector3Int.one);
-            MachineRecipeSelectTestUtil.SelectRecipe(block, Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid));
+            MachineRecipeSelectTestUtil.SelectRecipe(block, LevelInheritanceTestHelper.Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid));
             var quality = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000005"));
             inventory.SetItem(ModuleRangeStart, quality, 1);
             inventory.SetItem(InputSlotCount, CreateTest1(1));

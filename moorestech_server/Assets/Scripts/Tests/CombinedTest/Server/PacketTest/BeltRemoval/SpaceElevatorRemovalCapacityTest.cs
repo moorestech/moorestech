@@ -27,7 +27,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var connections = ServerContext.GetService<SpaceElevatorConnectionService>();
             var removals = ServerContext.GetService<IBlockRemovalReservationService>();
             pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = 100 });
-            Assert.AreEqual(Game.Block.Interface.Component.SpaceElevatorConnectResult.Connected, connections.Connect(block));
+            Assert.AreEqual(global::Game.Block.Interface.Component.SpaceElevatorConnectResult.Connected, connections.Connect(block));
             pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue });
             removals.ReserveRemoval(block.BlockInstanceId, BlockRemoveReason.ManualRemove);
             removals.ApplyReservedRemovals();
