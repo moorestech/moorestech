@@ -1,0 +1,12 @@
+
+ RUN  v2.1.9 /Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/moorestech_web/webui
+
+ ✓ e2e/mock-host/tests/spaceElevatorConnect.test.ts (3 tests) 1ms
+ ✓ src/bridge/contract/schemas/spaceElevator/index.test.ts (14 tests) 3ms
+ ✓ src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx (11 tests) 6ms
+
+ Test Files  3 passed (3)
+      Tests  28 passed (28)
+   Start at  21:12:37
+   Duration  426ms (transform 183ms, setup 0ms, collect 336ms, tests 11ms, environment 0ms, prepare 90ms)
+

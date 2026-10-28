@@ -1,0 +1,51 @@
+base=a1c904dd14
+Unity起動・コンパイル・NUnit実行: 未実施（依頼文の担当分離）
+新規C#ファイル: 0（meta生成不要）
+125 lines moorestech_client/Assets/Scripts/Client.Tests/WebUi/BlockDetail/WireContract/WireContractSpaceElevatorTest.cs
+ 15 lines moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/SpaceElevator/SpaceElevatorDetailDto.cs
+ 55 lines moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail/SpaceElevator/SpaceElevatorDetailDtoBuilder.cs
+118 lines moorestech_server/Assets/Scripts/Core.Inventory/InventoryInsertItem.cs
+ 53 lines moorestech_server/Assets/Scripts/Core.Master/Validator/Item/ItemInitialEquipmentValidator.cs
+100 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadCargoLoader.cs
+187 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadInventoryComponent.cs
+ 69 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadLaunchSequence.cs
+ 98 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadOutputSlots.cs
+166 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/RocketLaunchPadProcessorComponent.cs
+ 37 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Stage/ReadyToLaunchStage.cs
+ 34 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/RocketLaunchPad/Stage/RocketLaunchPadStageExecution.cs
+199 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorBaseInventoryComponent.cs
+191 lines moorestech_server/Assets/Scripts/Game.Block/Blocks/SpaceElevator/SpaceElevatorClimberComponent.cs
+ 76 lines moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/Rocket/VanillaRocketLaunchPadTemplate.cs
+ 50 lines moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/SpaceElevator/VanillaSpaceElevatorBaseTemplate.cs
+ 83 lines moorestech_server/Assets/Scripts/Game.Block/Factory/VanillaIBlockTemplates.cs
+198 lines moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/Regression/RocketLaunchPadArrivalCommitTest.cs
+181 lines moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/Regression/RocketLaunchPadDuplicateOutputTest.cs
+ 99 lines moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/Regression/RocketLaunchPadLocalInventoryTest.cs
+167 lines moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadInventoryTest.cs
+152 lines moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/RocketLaunchPad/RocketLaunchPadOutputFullTest.cs
+182 lines moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Robustness/SpaceElevatorMultipleOutputTest.cs
+127 lines moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/SpaceElevator/Robustness/SpaceElevatorSaveBoundaryTest.cs
+170 lines moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Inventory/SharedInsertionOrderTest.cs
+108 lines moorestech_web/webui/e2e/mock-host/fixtures/blocks/energyFixtures.ts
+189 lines moorestech_web/webui/e2e/mock-host/httpHandler.ts
+ 32 lines moorestech_web/webui/e2e/mock-host/tests/spaceElevatorConnect.test.ts
+116 lines moorestech_web/webui/e2e/tests/block/spaceElevator/spaceElevator.spec.ts
+ 28 lines moorestech_web/webui/src/bridge/contract/schemas/spaceElevator/index.test.ts
+ 12 lines moorestech_web/webui/src/bridge/contract/schemas/spaceElevator/index.ts
+ 92 lines moorestech_web/webui/src/features/blockInventory/BlockInventoryPanel.localization.test.ts
+ 97 lines moorestech_web/webui/src/features/blockInventory/BlockInventoryPanel.tsx
+ 48 lines moorestech_web/webui/src/features/blockInventory/BlockItemGrid.tsx
+ 22 lines moorestech_web/webui/src/features/blockInventory/details/rocket/RocketLaunchPadCommandAction.tsx
+ 72 lines moorestech_web/webui/src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorInventory.test.tsx
+ 83 lines moorestech_web/webui/src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx
+ 57 lines moorestech_web/webui/src/features/blockInventory/registry/blockComponentRegistry.test.ts
+ 43 lines moorestech_web/webui/src/features/blockInventory/registry/blockComponentRegistry.ts
+ 25 lines moorestech_web/webui/src/features/blockInventory/views/RocketLaunchPadInventory.tsx
+ 27 lines moorestech_web/webui/src/features/blockInventory/views/SpaceElevatorInventory.tsx
+169 lines moorestech_web/webui/src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx
+ 93 lines moorestech_web/webui/src/features/research/researchLogic.ts
+コード行数: 全変更ファイル200行未満 PASS
+追加C#: partial/Func/try/catch=0 PASS
+git diff --check: PASS
+Playwrightポート15397: 終了後LISTENなし
+記録PID: 75022/75297（通常）, 79497/79814（DEMO）; 全て終了済み

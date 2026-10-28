@@ -3,6 +3,8 @@ using System.Linq;
 using Game.Orbit;
 using System.Collections.ObjectModel;
 using Core.Inventory;
+using Game.Block.Blocks.Service;
+using Game.Block.Interface.Event;
 using UniRx;
 using Core.Item.Interface;
 using Core.Master;
@@ -135,7 +137,6 @@ namespace Game.Block.Blocks.SpaceElevator
             _itemDataStoreService.SetItem(SatelliteSlot, result.ProcessResultItemStack);
             return result.RemainderItemStack;
         }
-
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             CheckDestroy(this);
@@ -158,7 +159,6 @@ namespace Game.Block.Blocks.SpaceElevator
             if (itemStack.Count == 0) return true;
             return slot == SatelliteSlot && IsCarriedPayload(itemStack.Id);
         }
-
         public object GetSaveState()
         {
             CheckDestroy(this);

@@ -1,0 +1,24 @@
+全コマンド前景実行。cwd は BODY、pnpm --dir は BODY/moorestech_web/webui。
+1. pnpm --dir moorestech_web/webui exec tsc -b --pretty false
+   exit=0 / c9-typecheck.log, web-typecheck.log
+2. pnpm --dir moorestech_web/webui exec tsc -p e2e/tsconfig.json --noEmit --pretty false
+   exit=0 / c9-e2e-typecheck.log, web-e2e-typecheck.log
+3. pnpm --dir moorestech_web/webui exec vitest run src/bridge/contract/schemas/spaceElevator/index.test.ts src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx e2e/mock-host/tests/spaceElevatorConnect.test.ts
+   exit=0 / 28 tests / c9-vitest.log
+4. pnpm --dir moorestech_web/webui exec vitest run
+   初回 exit=1: 6 failed / 1352 passed（旧レジストリ期待値と旧エレベーターfixtureを修正）/ web-vitest-initial.log
+5. pnpm --dir moorestech_web/webui exec vitest run src/features/blockInventory/registry/blockComponentRegistry.test.ts src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorInventory.test.tsx
+   exit=0 / 17 tests / web-vitest-fix.log
+6. pnpm --dir moorestech_web/webui exec vitest run
+   exit=0 / 165 files, 1358 tests / web-vitest.log
+7. pnpm --dir moorestech_web/webui lint
+   exit=0 / web-lint.log
+8. pnpm --dir moorestech_web/webui exec playwright test --config e2e/.task32-pi-c.config.ts e2e/tests/block/spaceElevator/spaceElevator.spec.ts
+   exit=0 / 9 tests / playwright.log
+9. pnpm --dir moorestech_web/webui exec playwright test --config e2e/.task32-pi-c.config.ts e2e/tests/block/spaceElevator/spaceElevator.spec.ts --grep 詳細の取得待ち
+   MOCK_DEMO=1（config env）, exit=0 / 1 test / playwright-visual-demo.log
+10. git diff --check
+   exit=0
+11. lsof -nP -iTCP:15397 -sTCP:LISTEN / ps -o pid,ppid,command -p 75022,75297,79497,79814
+   終了後該当プロセス・LISTENなし
+Playwright専用configはbaseを継承し、port/baseURL=15397・reuseExistingServer=false・workers=1、webServer.command='pnpm build && node --import tsx e2e/mock-host/server.ts'、MOORESTECH_E2E=true。DEMO実行ではMOCK_DEMO=1。configは終了時削除。
