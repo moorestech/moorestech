@@ -144,20 +144,13 @@ namespace Client.Game.InGame.Block
             await _rendererShaderAnimation.RemoveAnimation();
             Destroy(gameObject);
         }
-        // 届いた状態を全プロセッサへ渡す。1プロセッサの例外で他のプロセッサや他のブロックの反映を止めない
-        // Passes an arrived state to every processor; one processor's exception never stops the others or other blocks
+        // 届いた状態を全プロセッサへ渡す。例外は隔離しない（ADR 0088）
+        // Passes an arrived state to every processor; exceptions are not isolated here (ADR 0088)
         internal void ApplyBlockState(BlockStateMessagePack state)
         {
             foreach (var processor in BlockStateChangeProcessors)
             {
-                try
-                {
-                    using (BlockStateProfilerMarkers.ForProcessor(processor).Auto()) processor.OnChangeState(state);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError($"Name:{BlockMasterElement.Name} Pos: {BlockPosInfo.OriginalPos} BlockStateChangeProcessorの{processor.GetType().Name}で例外が発生しました。\n{e.Message}\n{e.StackTrace}");
-                }
+                using (BlockStateProfilerMarkers.ForProcessor(processor).Auto()) processor.OnChangeState(state);
             }
             _blockStateMessagePack = state;
             _onBlockStateChanged.OnNext(state);
