@@ -8,6 +8,7 @@ using Game.Context;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
+using Tests.CombinedTest.Core.Machine.Upgrade;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
