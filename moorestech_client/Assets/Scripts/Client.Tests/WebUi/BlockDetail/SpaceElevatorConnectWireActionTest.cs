@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -32,7 +33,7 @@ namespace Client.Tests.WebUi.BlockDetail
         [TearDown] public void RestoreContext()
         {
             TestReflection.SetStaticProperty(typeof(ClientContext), "VanillaApi", _previousApi);
-            if (_owner != null) Object.DestroyImmediate(_owner);
+            if (_owner != null) UnityEngine.Object.DestroyImmediate(_owner);
         }
 
         [TestCase(SpaceElevatorConnectResult.Connected, PacketWaitCompletionReason.Received, null)]
@@ -42,7 +43,8 @@ namespace Client.Tests.WebUi.BlockDetail
         [TestCase(SpaceElevatorConnectResult.InvalidRequest, PacketWaitCompletionReason.Received, "connect_invalid_request")]
         [TestCase(SpaceElevatorConnectResult.BlockNotFound, PacketWaitCompletionReason.Received, "connect_block_not_found")]
         [TestCase(SpaceElevatorConnectResult.InstanceMismatch, PacketWaitCompletionReason.Received, "connect_instance_mismatch")]
-        [TestCase((SpaceElevatorConnectResult)999, PacketWaitCompletionReason.Received, "connect_invalid_response")]
+        [TestCase((SpaceElevatorConnectResult)999, PacketWaitCompletionReason.Received, null)]
+        [TestCase(SpaceElevatorConnectResult.Connected, (PacketWaitCompletionReason)999, null)]
         [TestCase(SpaceElevatorConnectResult.Connected, PacketWaitCompletionReason.Timeout, "connect_timeout")]
         [TestCase(SpaceElevatorConnectResult.Connected, PacketWaitCompletionReason.DeserializeFailed, "connect_invalid_response")]
         public void RequestCarriesIdentityAndPreservesEveryResult(SpaceElevatorConnectResult result, PacketWaitCompletionReason reason, string error)
@@ -71,7 +73,14 @@ namespace Client.Tests.WebUi.BlockDetail
                 LogAssert.Expect(LogType.Error, new Regex("デシリアライズに失敗しました"));
             if (error != null) LogAssert.Expect(LogType.Warning, $"[SpaceElevatorConnect] 接続要求を拒否: {error}");
             var bytes = reason == PacketWaitCompletionReason.DeserializeFailed ? new byte[] { 0xc1 } : MessagePackSerializer.Serialize(new ConnectSpaceElevatorResponse(result));
-            capture.Waiters.Single().Value.WaitSubject.OnNext((bytes, reason == PacketWaitCompletionReason.Timeout ? reason : PacketWaitCompletionReason.Received));
+            capture.Waiters.Single().Value.WaitSubject.OnNext((bytes, reason == PacketWaitCompletionReason.DeserializeFailed ? PacketWaitCompletionReason.Received : reason));
+            // 未知の列挙値は契約違反として例外を保つ
+            // Preserve contract violations as exceptions for unknown enum values
+            if (!Enum.IsDefined(typeof(SpaceElevatorConnectResult), result) || !Enum.IsDefined(typeof(PacketWaitCompletionReason), reason))
+            {
+                Assert.Throws<ArgumentOutOfRangeException>(() => pending.GetAwaiter().GetResult());
+                return;
+            }
             var actual = pending.GetAwaiter().GetResult();
             Assert.AreEqual(error == null, actual.Ok);
             Assert.AreEqual(error, actual.Error);
