@@ -1,8 +1,12 @@
 import { z } from "zod";
 
-// 照会欄ごとに、載ってよい親ブロックの種別。ホストが欄を追う判定（BlockNetworkInfoCache.Track）と同じ集合
-// Parent block types each query section may ride on; the same sets as the host's tracking decision (BlockNetworkInfoCache.Track)
+// 親種別が決まっている詳細欄の許可表
+// Allowed parents for detail sections restricted to specific block types
 const DETAIL_SECTION_PARENT_BLOCK_TYPES = {
+  spaceElevator: ["SpaceElevatorBase"],
+  rocketLaunchPad: ["RocketLaunchPad"],
+  gearToElectric: ["GearToElectricGenerator"],
+  electricToGear: ["ElectricToGearGenerator"],
   cleanRoom: ["CleanRoomMachine", "CleanRoomAirFilter"],
   cleanRoomYield: ["CleanRoomMachine"],
   machineInputStall: ["ElectricMachine", "GearMachine", "CleanRoomMachine"],

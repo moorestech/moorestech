@@ -12,14 +12,14 @@ const STATE_TRAITS: Record<ResearchNodeState, ResearchStateTraits> = {
   unresearchableAllReasons: { preNodeMet: false, itemsSufficient: false },
 };
 
-// 特定変種を先に確保し、基準要求に残りを配る
-// Reserve exact variants before allocating leftovers to base requirements
+// サーバーと同じ2パスで単一受付→複数受付を各宣言順に割り当てる
+// Match the server's two passes: single acceptance, then multiple acceptance, both in declaration order
 export function allocateResearchItems(node: ResearchNodeData, owned: Map<number, number> | null): number[] | null {
   if (owned === null) return null;
   const remaining = new Map(owned);
   const allocated = node.consumeItems.map(() => 0);
   const order = node.consumeItems.map((item, index) => ({ item, index }))
-    .sort((a, b) => a.item.acceptedItemIds.length - b.item.acceptedItemIds.length);
+    .sort((a, b) => Number(a.item.acceptedItemIds.length !== 1) - Number(b.item.acceptedItemIds.length !== 1));
   for (const { item, index } of order) {
     for (const id of item.acceptedItemIds) {
       const amount = Math.min(remaining.get(id) ?? 0, item.count - allocated[index]);

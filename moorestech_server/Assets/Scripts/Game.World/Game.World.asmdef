@@ -3,6 +3,7 @@
   "rootNamespace": "",
   "references": [
     "Game.World.Interface",
+    "Game.SpaceElevator",
     "Core.Util",
     "Core.Const",
     "Game.EnergySystem",

@@ -99,6 +99,17 @@ describe("deriveResearchButton", () => {
   });
 });
 
+describe("allocateResearchItems", () => {
+  it("複数受付同士は受付数で並べ替えず宣言順で配分する", () => {
+    const n = node("overlap", 0, 0, { consumeItems: [
+      { itemId: 1, count: 1, acceptedItemIds: [1, 2, 3] },
+      { itemId: 1, count: 1, acceptedItemIds: [1, 2] },
+      { itemId: 3, count: 1, acceptedItemIds: [3] },
+    ] });
+    expect(allocateResearchItems(n, new Map([[1, 1], [3, 1]]))).toEqual([1, 0, 1]);
+  });
+});
+
 describe("isConsumeItemLacking", () => {
   it("所持数が判明していれば不足を検出する", () => {
     const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1] }] });

@@ -1,5 +1,7 @@
 using System.Linq;
 using Core.BeltTransport;
+using Game.Block.Interface;
+using Game.World.Interface.DataStore;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -15,6 +17,35 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class SpaceElevatorRemovalCapacityTest
     {
+        [Test]
+        public void ReservedRemovalChecksCapacityAndRefundsOnlyOnceAfterRetry()
+        {
+            var world = BeltRemovalRefundTestWorld.CreateServer();
+            var position = new Vector3Int(20, 0, 0);
+            var block = world.Place(ForUnitTestModBlockId.TestSpaceElevatorBase, position);
+            var pool = ServerContext.GetService<SpaceElevatorCablePool>();
+            var connections = ServerContext.GetService<SpaceElevatorConnectionService>();
+            var removals = ServerContext.GetService<IBlockRemovalReservationService>();
+            pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = 100 });
+            Assert.AreEqual(Game.Block.Interface.Component.SpaceElevatorConnectResult.Connected, connections.Connect(block));
+            pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue });
+            removals.ReserveRemoval(block.BlockInstanceId, BlockRemoveReason.ManualRemove);
+            removals.ApplyReservedRemovals();
+            Assert.AreSame(block, ServerContext.WorldBlockDatastore.GetBlock(position));
+            Assert.AreEqual(int.MaxValue, pool.Amount);
+
+            // 空きができた後の再予約だけが撤去と一度の返却を行う
+            // Only a new reservation after capacity frees removes and refunds once
+            var other = world.Place(ForUnitTestModBlockId.TestSpaceElevatorBase, new Vector3Int(30, 0, 0));
+            connections.Connect(other);
+            removals.ReserveRemoval(block.BlockInstanceId, BlockRemoveReason.ManualRemove);
+            removals.ApplyReservedRemovals();
+            Assert.IsNull(ServerContext.WorldBlockDatastore.GetBlock(position));
+            Assert.AreEqual(int.MaxValue, pool.Amount);
+            removals.ApplyReservedRemovals();
+            Assert.AreEqual(int.MaxValue, pool.Amount);
+        }
+
         [Test]
         public void PoolOverflowRejectsBeforeDiscardingMergeItemsAndRetryRefundsOnce()
         {
