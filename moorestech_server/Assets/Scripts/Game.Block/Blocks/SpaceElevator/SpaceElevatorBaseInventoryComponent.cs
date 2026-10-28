@@ -3,6 +3,7 @@ using System.Linq;
 using Game.Orbit;
 using System.Collections.ObjectModel;
 using Core.Inventory;
+using Game.Block.Blocks.Connector;
 using Game.Block.Blocks.Service;
 using Game.Block.Interface.Event;
 using UniRx;
