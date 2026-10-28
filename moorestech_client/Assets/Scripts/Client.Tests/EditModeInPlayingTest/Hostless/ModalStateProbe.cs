@@ -8,6 +8,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.Modal;
 using Client.Tests.Common;
+using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Context;
@@ -47,7 +48,11 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                 unlock.UnlockBlueprint();
                 Assert.IsTrue(unlock.IsBlueprintUnlocked);
                 Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(position));
-                placedBlock = PlaceBlock("量子チェスト", position, BlockDirection.North);
+                // tick と取り合わないよう、置くのもサーバーの tick 末尾で行う
+                // Place at the server tick end too, so it never races the tick
+                var place = new PlaceChestAtTickEnd(position);
+                await place.RunOnServerAsync();
+                placedBlock = place.PlacedBlock;
                 Assert.IsNotNull(placedBlock);
                 await WaitBlockGameObjectSpawn(position);
 
@@ -99,11 +104,47 @@ namespace Client.Tests.EditModeInPlayingTest.Hostless
                     // Remove only the block we placed
                     if (placedBlock != null)
                     {
-                        Assert.IsTrue(RemoveBlock(position));
+                        // メインスレッドから消すと、tick 中のチェスト更新が破棄済みの部品に触れて例外になる
+                        // Removing from the main thread lets the in-tick chest update touch the destroyed component and throw
+                        var remove = new RemoveBlockAtTickEnd(position);
+                        await remove.RunOnServerAsync();
+                        Assert.IsTrue(remove.Removed);
                         for (var i = 0; i < 600 && ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(position, out _); i++) await UniTask.Yield();
                         Assert.IsFalse(ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(position, out _));
                     }
                 }
+            }
+        }
+
+        private sealed class PlaceChestAtTickEnd : ServerTickEndTestStep
+        {
+            private readonly Vector3Int _position;
+            public IBlock PlacedBlock { get; private set; }
+
+            public PlaceChestAtTickEnd(Vector3Int position)
+            {
+                _position = position;
+            }
+
+            protected override void Execute()
+            {
+                PlacedBlock = PlaceBlock("量子チェスト", _position, BlockDirection.North);
+            }
+        }
+
+        private sealed class RemoveBlockAtTickEnd : ServerTickEndTestStep
+        {
+            private readonly Vector3Int _position;
+            public bool Removed { get; private set; }
+
+            public RemoveBlockAtTickEnd(Vector3Int position)
+            {
+                _position = position;
+            }
+
+            protected override void Execute()
+            {
+                Removed = RemoveBlock(_position);
             }
         }
     }
