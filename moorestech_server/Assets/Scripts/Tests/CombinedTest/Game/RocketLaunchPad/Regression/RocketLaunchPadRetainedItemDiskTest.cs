@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -33,7 +34,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
         [TestCase("input")]
         [TestCase("output")]
         [TestCase("cargo")]
-        public void MasterChangeCannotDiscardExistingItemsOnDiskLoad(string change)
+        public void MasterChangeRetainsExistingItemsOnDiskLoad(string change)
         {
             _root = Path.Combine(Path.GetTempPath(), $"pad-retained-items-{Guid.NewGuid()}");
             var mod = Path.Combine(_root, "mod");
@@ -60,6 +61,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             RocketLaunchPadTestUtil.FillMaterials(pad);
             var layout = RocketLaunchPadTestUtil.GetLayout(pad);
             pad.GetComponent<IOpenableBlockInventoryComponent>().SetItem(layout.OutputSlots[1], ForUnitTestItemId.ComputeDataId, 1);
+            var beforeItems = pad.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Concat(pad.GetComponent<RocketLaunchPadProcessorComponent>().GetRefundItems())
+                .GroupBy(item => item.Id).ToDictionary(group => group.Key, group => group.Sum(item => item.Count));
             var text = original.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
             var directory = WorldDataDirectory.FromWorldRoot(Path.Combine(_root, "world"));
             Directory.CreateDirectory(Path.GetDirectoryName(directory.SaveJsonFilePath));
@@ -82,11 +85,19 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             File.WriteAllText(blocksPath, blocks.ToString());
             var options = new MoorestechServerDIContainerOptions(mod) { worldDataDirectory = WorldDataDirectory.FromServerDataMap(mod, directory.SaveJsonFilePath) };
             var (_, loaded) = new MoorestechServerDIContainerGenerator().Create(options);
-            LogAssert.Expect(LogType.Error, new Regex("実在品.*ロードを拒否"));
-            var error = Assert.Throws<Exception>(() => loaded.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize());
-            StringAssert.Contains("実在品", error.ToString());
+            if (change != "output")
+            {
+                LogAssert.Expect(LogType.Warning, new Regex("現在の表に合わない"));
+                LogAssert.Expect(LogType.Warning, new Regex("スロットへ戻します"));
+            }
+            loaded.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
+            var restored = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero);
+            var afterItems = restored.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Concat(restored.GetComponent<RocketLaunchPadProcessorComponent>().GetRefundItems())
+                .GroupBy(item => item.Id).ToDictionary(group => group.Key, group => group.Sum(item => item.Count));
+            foreach (var pair in beforeItems) Assert.AreEqual(pair.Value, afterItems.GetValueOrDefault(pair.Key));
+            Assert.AreEqual(change == "output" ? RocketLaunchPadPhase.AwaitingLaunchCommand : RocketLaunchPadPhase.Idle,
+                RocketLaunchPadTestUtil.ReadState(restored.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
             CollectionAssert.AreEqual(bytes, File.ReadAllBytes(directory.SaveJsonFilePath));
-            CollectionAssert.AreEqual(bytes, File.ReadAllBytes(Path.Combine(_root, "world", "backup", WorldSaveAllInfo.CurrentVersion.ToString(), "save.json")));
         }
     }
 }

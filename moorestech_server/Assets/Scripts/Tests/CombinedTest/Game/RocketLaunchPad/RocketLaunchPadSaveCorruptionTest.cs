@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Core.Item.Interface;
 using Core.Update;
@@ -20,14 +21,14 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
     public class RocketLaunchPadSaveCorruptionTest
     {
         [Test]
-        public void 入れ口の無い実在品はロードを拒否する()
+        public void 入れ口の無い実在品は回収欄に保持する()
         {
             var save = RocketLaunchPadSaveTestUtil.CreateSavedWorld(RocketLaunchPadPhase.Building);
             var state = RocketLaunchPadSaveTestUtil.State(save);
             var item = new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 1));
             ((JArray)state["inputItems"]).Add(JObject.FromObject(item));
-            LogAssert.Expect(LogType.Error, new Regex("実在品.*ロードを拒否"));
-            Assert.Throws<Exception>(() => RocketLaunchPadSaveTestUtil.Load(save));
+            var loaded = RocketLaunchPadSaveTestUtil.Load(save);
+            Assert.AreEqual(1, loaded.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Where(stack => stack.Id == ForUnitTestItemId.ComputeDataId).Sum(stack => stack.Count));
         }
 
         [TestCase(0)]
@@ -40,16 +41,12 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             var state = RocketLaunchPadSaveTestUtil.State(save);
             var itemId = count == 0 ? ItemMaster.EmptyItemId : count == 1 ? ForUnitTestItemId.ComputeDataId : ForUnitTestItemId.CablePayloadId;
             state["cargoPayload"] = JObject.FromObject(new ItemStackSaveJsonObject(ServerContext.ItemStackFactory.Create(itemId, count)));
-            if (0 < count)
-            {
-                LogAssert.Expect(LogType.Error, new Regex("実在品.*ロードを拒否"));
-                Assert.Throws<Exception>(() => RocketLaunchPadSaveTestUtil.Load(save));
-                return;
-            }
-            LogAssert.Expect(LogType.Warning, new Regex("打ち上げられないため積荷を捨てます"));
+            LogAssert.Expect(LogType.Warning, new Regex("現在の表に合わない"));
+            LogAssert.Expect(LogType.Warning, new Regex("スロットへ戻します"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
             Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
             Assert.IsEmpty(loaded.GetComponent<RocketLaunchPadProcessorComponent>().GetRefundItems());
+            if (0 < count) Assert.IsTrue(loaded.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Any(stack => stack.Id == itemId && stack.Count == count));
         }
 
         [Test]
@@ -107,9 +104,14 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             if (guid != null) item["itemGuid"] = guid;
             RocketLaunchPadSaveTestUtil.State(save)[field][0] = item;
             var valid = guid == "00000000-0000-0000-0000-000000000000";
-            if (!valid) LogAssert.Expect(LogType.Warning, new Regex(field == "cargoMaterials" ? "打ち上げられない" : "復元できない品"));
+            if (field == "cargoMaterials")
+            {
+                LogAssert.Expect(LogType.Warning, new Regex("現在の表に合わない"));
+                LogAssert.Expect(LogType.Warning, new Regex("打ち上げられない"));
+            }
+            else if (!valid) LogAssert.Expect(LogType.Warning, new Regex("復元できない品"));
             var loaded = RocketLaunchPadSaveTestUtil.Load(save);
-            Assert.AreEqual(!valid && field == "cargoMaterials" ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Building,
+            Assert.AreEqual(field == "cargoMaterials" ? RocketLaunchPadPhase.Idle : RocketLaunchPadPhase.Building,
                 RocketLaunchPadTestUtil.ReadState(loaded.GetComponent<RocketLaunchPadProcessorComponent>()).Phase);
             var restored = JObject.FromObject(RocketLaunchPadSaveTestUtil.Capture(loaded));
             if (field == "outputItems") Assert.AreEqual(0, (int)restored[field][0]["count"]);

@@ -84,7 +84,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
             RocketLaunchPadSaveConverter.RestoreSlots(saveData, _layout, _slots);
             if (!saveData.NextPayloadIndex.HasValue) Debug.LogWarning("発射台のセーブに巡回位置が無いため先頭から探します");
             _cargoLoader.SetNextPayloadIndex(saveData.NextPayloadIndex.GetValueOrDefault());
-            _sequence.SetStage(RocketLaunchPadSaveConverter.RestoreStage(saveData, _layout));
+            _sequence.SetStage(RocketLaunchPadStageRestorer.RestoreStage(saveData, _layout, _slots));
 
             // 初打ち上げ済みのワールドで発射の合図待ちのまま保存された台は、通知を受けた台と同じく打ち上げ待ちへ移す（履歴はブロックより先にロードされる）
             // Pads saved awaiting the launch command in an already-launched world move to ready-to-launch like notified pads (history loads before blocks)

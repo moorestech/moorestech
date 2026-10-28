@@ -29,7 +29,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
                 CargoMaterials = cargo.Materials.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
                 NextPayloadIndex = nextPayloadIndex,
                 InputItems = items.Take(layout.OutputSlotStart).Where(item => 0 < item.Count).Select(item => new ItemStackSaveJsonObject(item)).ToList(),
-                OutputItems = layout.OutputSlots.Select(slot => new ItemStackSaveJsonObject(items[slot])).ToList(),
+                OutputItems = items.Skip(layout.OutputSlotStart).Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
 
             #region Internal
@@ -51,14 +51,19 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
                 var id = Guid.TryParse(input.ItemGuidStr, out var inputGuid) ? MasterHolder.ItemMaster.GetItemIdOrNull(inputGuid) : null;
                 if (id.HasValue && layout.TryGetInputSlot(id.Value, out var slot) && IsValidSlot(input))
                     slots.SetItemWithoutEvent(slot, input.ToItemStack());
+                else if (0 < input.Count && CanCreate(input)) continue; // silent-ok: 回収品は出力復元後に保持 / 下の回収ループで出力欄へ戻す
                 else CountDiscarded(input);
             }
             for (var i = 0; i < saveData.OutputItems.Count; i++)
             {
                 var output = saveData.OutputItems[i];
                 if (i < layout.OutputSlotCount && IsValidSlot(output)) slots.SetItemWithoutEvent(layout.OutputSlots[i], output.ToItemStack());
+                else if (0 < output.Count && CanCreate(output)) RocketLaunchPadCargoRecovery.ReturnItem(output, layout, slots);
                 else CountDiscarded(output);
             }
+            foreach (var input in saveData.InputItems)
+                if (0 < input.Count && CanCreate(input) && !layout.TryGetInputSlot(input.ToItemStack().Id, out _))
+                    RocketLaunchPadCargoRecovery.ReturnItem(input, layout, slots);
             if (0 < droppedCount || 0 < invalidRecords)
                 Debug.LogWarning($"発射台のスロット構成または保存値が無効なため、復元できない品を {droppedCount} 個捨てました 不正レコード:{invalidRecords} 件");
 
@@ -94,69 +99,6 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
         internal static bool HoldsCargo(RocketLaunchPadPhase phase)
         {
             return phase is RocketLaunchPadPhase.Building or RocketLaunchPadPhase.AwaitingLaunchCommand or RocketLaunchPadPhase.ReadyToLaunch;
-        }
-
-        public static RocketLaunchPadStage RestoreStage(RocketLaunchPadSaveJsonObject saveData, RocketLaunchPadSlotLayout layout)
-        {
-            if (!saveData.Phase.HasValue || !Enum.IsDefined(typeof(RocketLaunchPadPhase), saveData.Phase.Value))
-                return FallBackToIdle($"段階の値が不明です 段階:{saveData.Phase}");
-            if (saveData.CargoPayload == null) return FallBackToIdle("cargoPayloadが欠損しています");
-            if (saveData.CargoMaterials == null) return FallBackToIdle("cargoMaterialsが欠損しています");
-            if (saveData.CargoMaterials.Any(item => item == null)) return FallBackToIdle("cargoMaterialsのnull要素が欠損しています");
-            var phase = (RocketLaunchPadPhase)saveData.Phase.Value;
-            var holdsCargo = HoldsCargo(phase);
-
-            // 生DTOを検証してから生成し、捨てる積荷は実体化しない
-            // Validate raw DTOs before creation and never instantiate discarded cargo
-            if (!holdsCargo)
-            {
-                if (0 < saveData.CargoPayload.Count || saveData.CargoMaterials.Any(item => 0 < item.Count))
-                    Debug.LogWarning($"発射台のセーブで積荷を持たない段階に積荷があったため捨てます 段階:{phase}");
-                return phase switch
-                {
-                    RocketLaunchPadPhase.Idle => IdleStage.Instance,
-                    RocketLaunchPadPhase.AwaitingBuildCommand => AwaitingBuildCommandStage.Instance,
-                    RocketLaunchPadPhase.Launching => new LaunchingStage(RestoreRemainingTicks()),
-                    _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, "積荷を持たない段階として未対応の値です"),
-                };
-            }
-            var payloadId = Guid.TryParse(saveData.CargoPayload.ItemGuidStr, out var payloadGuid) ? MasterHolder.ItemMaster.GetItemIdOrNull(payloadGuid) : null;
-            if (!payloadId.HasValue || !layout.TryGetPayloadRequirement(payloadId.Value, out var requirement) || saveData.CargoPayload.Count != requirement.Count ||
-                !CanCreate(saveData.CargoPayload) || !saveData.CargoMaterials.All(CanCreate))
-                return FallBackToIdle($"積荷が今の1便ぶんと合わず打ち上げられないため積荷を捨てます 段階:{phase}");
-            var cargo = new RocketCargo(saveData.CargoPayload.ToItemStack(), saveData.CargoMaterials.Select(item => item.ToItemStack()).ToList());
-            return phase switch
-            {
-                RocketLaunchPadPhase.Building => new BuildingStage(cargo, RestoreRemainingTicks()),
-                RocketLaunchPadPhase.AwaitingLaunchCommand => new AwaitingLaunchCommandStage(cargo),
-                RocketLaunchPadPhase.ReadyToLaunch => new ReadyToLaunchStage(cargo),
-                _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, "積荷を持つ段階として未対応の値です"),
-            };
-
-            #region Internal
-
-            uint RestoreRemainingTicks()
-            {
-                // 進行中の段階は残り1tick以上。壊れた0以下の値は警告して1tickにする
-                // Progressing stages need one tick; warn and repair non-positive remaining time
-                if (!saveData.RemainingSeconds.HasValue)
-                {
-                    Debug.LogWarning($"発射台のセーブの残り時間が欠落しているため1tickにします 段階:{phase}");
-                    return 1;
-                }
-                var ticks = GameUpdater.SecondsToTicks(saveData.RemainingSeconds.Value);
-                if (0 < ticks) return ticks;
-                Debug.LogWarning($"発射台のセーブの残り時間が0以下のため1tickにします 段階:{phase} 残り秒:{saveData.RemainingSeconds}");
-                return 1;
-            }
-
-            RocketLaunchPadStage FallBackToIdle(string reason)
-            {
-                Debug.LogWarning($"発射台のセーブを待機として読み込みます {reason}");
-                return IdleStage.Instance;
-            }
-
-            #endregion
         }
 
         // 保持するスタックだけが現在の上限内で生成可能かを調べる

@@ -26,12 +26,12 @@ namespace Game.Block.Blocks.RocketLaunchPad
         internal IObservable<Unit> OnInventoryChanged => _inventoryChanged;
         internal OpenableInventoryItemDataStoreService ItemDataStoreService => _slots;
 
-        internal RocketLaunchPadInventoryComponent(BlockInstanceId blockInstanceId, RocketLaunchPadSlotLayout layout, BlockOpenableInventoryUpdateEvent inventoryEvent)
+        internal RocketLaunchPadInventoryComponent(BlockInstanceId blockInstanceId, RocketLaunchPadSlotLayout layout, BlockOpenableInventoryUpdateEvent inventoryEvent, int slotCount)
         {
             _layout = layout;
             // 在庫の書き込み元で局所通知とネットワーク通知を束ねる
             // Bind local and network notifications at the inventory write owner
-            _slots = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, layout.TotalSlotCount);
+            _slots = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotCount);
             #region Internal
             void InvokeEvent(int slot, IItemStack itemStack)
             {

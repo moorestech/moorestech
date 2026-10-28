@@ -3,6 +3,7 @@ using UniRx;
 using Game.Block.Blocks;
 using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.RocketLaunchPad;
+using Game.Block.Blocks.RocketLaunchPad.Save;
 using Game.Block.Blocks.Service;
 using Game.Block.Event;
 using Game.Block.Interface;
@@ -46,7 +47,7 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
 
             // 全スロットを1つの保管に持ち、入れ口と出力口の制限はインベントリ側で掛ける
             // Keep every slot in one store and apply input/output restrictions in the inventory component
-            var inventory = new RocketLaunchPadInventoryComponent(blockInstanceId, layout, _blockInventoryEvent);
+            var inventory = new RocketLaunchPadInventoryComponent(blockInstanceId, layout, _blockInventoryEvent, RocketLaunchPadCargoRecovery.SlotCount(componentStates, layout));
             var subscriptions = new CompositeDisposable();
             var slots = inventory.ItemDataStoreService;
             var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);

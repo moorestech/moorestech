@@ -15,12 +15,12 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
             // 実在品の置き場を復元前に検査
             // Validate storage for existing items before restoring any inventory
             foreach (var input in save.InputItems)
-                if (IsPhysical(input, out var id) && (!layout.TryGetInputSlot(id, out _) || !RocketLaunchPadSaveConverter.CanCreate(input)))
+                if (IsPhysical(input, out var id) && !RocketLaunchPadSaveConverter.CanCreate(input))
                     Fail("inputItems", input);
             for (var i = 0; i < save.OutputItems.Count; i++)
             {
                 var output = save.OutputItems[i];
-                if (IsPhysical(output, out _) && (layout.OutputSlotCount <= i || !RocketLaunchPadSaveConverter.CanCreate(output)))
+                if (IsPhysical(output, out _) && !RocketLaunchPadSaveConverter.CanCreate(output))
                     Fail($"outputItems[{i}]", output);
             }
 
@@ -29,11 +29,20 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
             var holdsCargo = save.Phase.HasValue && RocketLaunchPadSaveConverter.HoldsCargo((RocketLaunchPadPhase)save.Phase.Value);
             if (!holdsCargo || save.CargoPayload == null || save.CargoMaterials == null || save.CargoMaterials.Any(item => item == null))
                 return; // silent-ok: 構造破損は既存の段階復元が補正 / RestoreStageが理由を警告する
-            if (IsPhysical(save.CargoPayload, out var payloadId) &&
-                (!layout.TryGetPayloadRequirement(payloadId, out var requirement) || save.CargoPayload.Count != requirement.Count || !RocketLaunchPadSaveConverter.CanCreate(save.CargoPayload)))
-                Fail("cargoPayload", save.CargoPayload);
+            if (IsPhysical(save.CargoPayload, out _) && !RocketLaunchPadSaveConverter.CanCreate(save.CargoPayload)) Fail("cargoPayload", save.CargoPayload);
             foreach (var material in save.CargoMaterials)
                 if (IsPhysical(material, out _) && !RocketLaunchPadSaveConverter.CanCreate(material)) Fail("cargoMaterials", material);
+            if (!IsRetainableCargo(save, layout)) Debug.LogWarning("発射台の積荷が現在の表に合わないため実在品をスロットへ保持し待機へ戻します");
+        }
+
+        internal static bool IsRetainableCargo(RocketLaunchPadSaveJsonObject save, RocketLaunchPadSlotLayout layout)
+        {
+            if (save.CargoPayload == null || save.CargoMaterials == null || save.CargoMaterials.Any(item => item == null)) return false;
+            if (!IsPhysical(save.CargoPayload, out var id) || !layout.TryGetPayloadRequirement(id, out var payload) || save.CargoPayload.Count != payload.Count ||
+                !RocketLaunchPadSaveConverter.CanCreate(save.CargoPayload) || !save.CargoMaterials.All(RocketLaunchPadSaveConverter.CanCreate)) return false;
+            var actual = save.CargoMaterials.Where(item => 0 < item.Count).ToList();
+            return actual.Count == layout.Materials.Count && layout.Materials.All(required =>
+                actual.Count(item => IsPhysical(item, out var materialId) && materialId == required.ItemId && item.Count == required.Count) == 1);
         }
 
         private static bool IsPhysical(ItemStackSaveJsonObject item, out ItemId id)

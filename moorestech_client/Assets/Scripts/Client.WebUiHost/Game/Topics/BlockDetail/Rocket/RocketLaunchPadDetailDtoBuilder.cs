@@ -34,7 +34,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 Progress = state.Progress,
                 MaterialSlots = layout.MaterialSlots.ToList(),
                 PayloadSlots = layout.PayloadSlots.ToList(),
-                OutputSlots = layout.OutputSlots.ToList(),
+                OutputSlots = Enumerable.Range(layout.OutputSlotStart, dto.ItemSlots.Count - layout.OutputSlotStart).ToList(),
             };
 
             #region Internal
