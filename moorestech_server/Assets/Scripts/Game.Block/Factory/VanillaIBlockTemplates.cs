@@ -76,7 +76,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirFilter, new VanillaCleanRoomAirFilterTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomMachine, new VanillaCleanRoomMachineTemplate(blockInventoryEvent));
             BlockTypesDictionary.Add(BlockTypeConst.SpaceElevatorBase, new VanillaSpaceElevatorBaseTemplate());
-            BlockTypesDictionary.Add(BlockTypeConst.RocketLaunchPad, new VanillaRocketLaunchPadTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.RocketLaunchPad, new VanillaRocketLaunchPadTemplate(blockInventoryEvent));
         }
     }
 }

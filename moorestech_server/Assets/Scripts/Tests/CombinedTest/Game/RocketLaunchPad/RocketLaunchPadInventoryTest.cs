@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
+using Game.Block.Event;
+using Game.Block.Factory.BlockTemplate.Rocket;
+using UniRx;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
@@ -41,6 +44,30 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             _blockInventory = block.GetComponent<IBlockInventory>();
             _inventory = block.GetComponent<IOpenableBlockInventoryComponent>();
             _layout = new RocketLaunchPadSlotLayout((RocketLaunchPadBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.RocketLaunchPadId).BlockParam);
+        }
+
+        [Test]
+        public void テンプレートに注入した通知先へ在庫と出力の更新を届ける()
+        {
+            var customEvent = new BlockOpenableInventoryUpdateEvent();
+            var received = new List<int>();
+            var worldChanges = 0;
+            using var customSubscription = customEvent.OnInventoryUpdated.Subscribe(change => received.Add(change.Slot));
+            using var worldSubscription = ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated.Subscribe(_ => worldChanges++);
+            var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.RocketLaunchPadId);
+            var block = new VanillaRocketLaunchPadTemplate(customEvent).New(master, BlockInstanceId.Create(),
+                new BlockPositionInfo(Position, BlockDirection.North, Vector3Int.one), Array.Empty<BlockCreateParam>());
+            var inventory = block.GetComponent<global::Game.Block.Blocks.RocketLaunchPad.RocketLaunchPadInventoryComponent>();
+            var localChanges = 0;
+            using var localSubscription = inventory.OnInventoryChanged.Subscribe(_ => localChanges++);
+
+            // 入力も成果用保管も同じ在庫所有の通知口を使う
+            // Both inputs and output storage use the inventory-owned notification path
+            inventory.SetItem(1, ForUnitTestItemId.RocketFuelId, 1);
+            inventory.ItemDataStoreService.SetItem(_layout.OutputSlots[0], ForUnitTestItemId.ComputeDataId, 1);
+            CollectionAssert.AreEqual(new[] { 1, _layout.OutputSlots[0] }, received);
+            Assert.AreEqual(2, localChanges);
+            Assert.AreEqual(0, worldChanges);
         }
 
         [Test]

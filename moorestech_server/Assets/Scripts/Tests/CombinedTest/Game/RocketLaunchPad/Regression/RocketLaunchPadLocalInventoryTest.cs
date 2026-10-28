@@ -68,10 +68,11 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             output.PushToConnected(); AssertInvalidated();
             Assert.AreEqual(11, networkChanges - before);
 
-            // 台の破棄で購読だけでなくTemplate所有の通知源も解放する
-            // Destroying the pad releases the template-owned source as well as its subscription
+            // 在庫の破棄で通知源を解放し、処理部の破棄で購読を解放する
+            // Destroying the inventory releases its source and destroying the processor releases subscriptions
             var lifetime = (CompositeDisposable)ReadField(processor, "_subscriptions");
-            var source = (Subject<Unit>)System.Linq.Enumerable.First(lifetime);
+            var source = ((RocketLaunchPadInventoryComponent)inventory).OnInventoryChanged;
+            inventory.Destroy();
             processor.Destroy();
             Assert.IsTrue(lifetime.IsDisposed);
             Assert.Throws<System.ObjectDisposedException>(() => source.Subscribe(_ => { }));

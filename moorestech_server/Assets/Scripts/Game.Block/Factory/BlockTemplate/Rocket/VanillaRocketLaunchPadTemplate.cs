@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using UniRx;
-using Core.Inventory;
-using Core.Item.Interface;
 using Game.Block.Blocks;
 using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.RocketLaunchPad;
@@ -9,7 +7,6 @@ using Game.Block.Blocks.Service;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Event;
 using Game.Context;
 using Game.Orbit;
 using Game.SpaceElevator;
@@ -25,6 +22,13 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
     /// </summary>
     public class VanillaRocketLaunchPadTemplate : IBlockTemplate
     {
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryEvent;
+
+        public VanillaRocketLaunchPadTemplate(BlockOpenableInventoryUpdateEvent blockInventoryEvent)
+        {
+            _blockInventoryEvent = blockInventoryEvent;
+        }
+
         public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
         {
             return Create(null, blockMasterElement, blockInstanceId, blockPositionInfo);
@@ -35,16 +39,16 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
             return Create(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private static IBlock Create(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock Create(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var param = (RocketLaunchPadBlockParam)blockMasterElement.BlockParam;
             var layout = new RocketLaunchPadSlotLayout(param);
 
             // 全スロットを1つの保管に持ち、入れ口と出力口の制限はインベントリ側で掛ける
             // Keep every slot in one store and apply input/output restrictions in the inventory component
-            var inventoryChanges = new Subject<Unit>();
-            var subscriptions = new CompositeDisposable(inventoryChanges);
-            var slots = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, layout.TotalSlotCount);
+            var inventory = new RocketLaunchPadInventoryComponent(blockInstanceId, layout, _blockInventoryEvent);
+            var subscriptions = new CompositeDisposable();
+            var slots = inventory.ItemDataStoreService;
             var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
             var beltOutput = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connector);
             var arrivalService = ServerContext.GetService<IOrbitalArrivalService>();
@@ -52,31 +56,21 @@ namespace Game.Block.Factory.BlockTemplate.Rocket
             var cablePool = ServerContext.GetService<SpaceElevatorCablePool>();
 
             var processor = componentStates == null
-                ? new RocketLaunchPadProcessorComponent(param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventoryChanges, subscriptions)
-                : new RocketLaunchPadProcessorComponent(componentStates, param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventoryChanges, subscriptions);
+                ? new RocketLaunchPadProcessorComponent(param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventory.OnInventoryChanged, subscriptions)
+                : new RocketLaunchPadProcessorComponent(componentStates, param, layout, slots, beltOutput, arrivalService, launchHistory, cablePool, inventory.OnInventoryChanged, subscriptions);
             var electric = new RocketLaunchPadElectricComponent(blockInstanceId, processor);
             var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, electric, componentStates);
 
             var components = new List<IBlockComponent>
             {
                 connector,
-                new RocketLaunchPadInventoryComponent(layout, slots),
+                inventory,
                 electric,
                 wireConnector,
                 processor,
             };
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
 
-            #region Internal
-
-            void InvokeEvent(int slot, IItemStack itemStack)
-            {
-                inventoryChanges.OnNext(Unit.Default);
-                var blockInventoryUpdate = (BlockOpenableInventoryUpdateEvent)ServerContext.BlockOpenableInventoryUpdateEvent;
-                blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(blockInstanceId, slot, itemStack));
-            }
-
-            #endregion
         }
     }
 }

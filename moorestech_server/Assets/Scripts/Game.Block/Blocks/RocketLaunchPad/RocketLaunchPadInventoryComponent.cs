@@ -1,3 +1,5 @@
+using System;
+using UniRx;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -5,6 +7,9 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.Component;
+using Game.Block.Event;
+using Game.Block.Interface;
+using Game.Block.Interface.Event;
 using Game.Context;
 using static Game.Block.Interface.BlockException;
 
@@ -17,10 +22,23 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
 
-        internal RocketLaunchPadInventoryComponent(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots)
+        private readonly Subject<Unit> _inventoryChanged = new();
+        internal IObservable<Unit> OnInventoryChanged => _inventoryChanged;
+        internal OpenableInventoryItemDataStoreService ItemDataStoreService => _slots;
+
+        internal RocketLaunchPadInventoryComponent(BlockInstanceId blockInstanceId, RocketLaunchPadSlotLayout layout, BlockOpenableInventoryUpdateEvent inventoryEvent)
         {
             _layout = layout;
-            _slots = slots;
+            // 在庫の書き込み元で局所通知とネットワーク通知を束ねる
+            // Bind local and network notifications at the inventory write owner
+            _slots = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, layout.TotalSlotCount);
+            #region Internal
+            void InvokeEvent(int slot, IItemStack itemStack)
+            {
+                _inventoryChanged.OnNext(Unit.Default);
+                inventoryEvent.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(blockInstanceId, slot, itemStack));
+            }
+            #endregion
         }
 
         public IReadOnlyList<IItemStack> InventoryItems
@@ -163,6 +181,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
         public void Destroy()
         {
             IsDestroy = true;
+            _inventoryChanged.Dispose();
         }
     }
 }
