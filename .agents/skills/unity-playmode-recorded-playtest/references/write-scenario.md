@@ -61,7 +61,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `PrepareBlockForUiPlacement(name, blockCount)` | ↑2つの複合。**UI設置の前提はこれ1行** |
 | `await PlaceBlockDirect(name, pos, dir)` | サーバー直設置（インベントリ非消費・アンロック不問）。tick末尾で実行し完了を待って`IBlock`を返す |
 | `await RemoveBlock(pos)` / `GetBlock(pos)` | サーバーデータストアの削除/取得（GetBlockはassertにも使う） |
-| `await RunOnServer(label, () => ...)` | シナリオ独自のサーバー書き込み（機械への投入・配線・レシピ選択・研究の完了扱い等）をtick末尾で実行し完了を待つ。サーバー状態はtickと別スレッドで書くと列挙中のコレクションを壊すため、`IBlock`のコンポーネントや`ServerService<T>()`への書き込みはこの中で行う。中で`p.Assert`等のDSLは呼ばず、結果を変数に取り出してから外で検証する |
+| `await RunOnServer(label, () => ...)` | シナリオ独自のサーバー書き込み（機械への投入・配線・レシピ選択・研究の完了扱い等）をtick末尾で実行し完了を待つ。サーバー状態はtickと別スレッドで書くと列挙中のコレクションを壊すため、`IBlock`のコンポーネントや`ServerContext.GetService<T>()`で得たサービスへの書き込みはこの中で行う。中で`p.Assert`等のDSLは呼ばず、結果を変数に取り出してから外で検証する |
 
 ### UI経路操作（実プレイヤーと同じキーマウ経路＝検証対象）
 | API | 用途 |
@@ -114,7 +114,8 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
 | `WaitBlockGameObject(pos)` | クライアント側View出現待ち（スクショ前・ポール起点確定前に必須） |
 | `WaitSeconds(s)` / `Screenshot(name)` | 短い演出待ち/GameViewスクショ（UIオーバーレイ込み） |
 | `CountItem(name)` | サーバー在庫数 |
-| `SendCommand(cmd)` / `ServerService<T>()` | 低レベル脱出口（VanillaApi / ServerContext DI）。`ServerService<T>()`経由の書き込みは`RunOnServer`の中で行う |
+| `SendCommand(cmd)` | VanillaApi経由でコマンドを送る |
+| `ReadCompletedResearch()` / `ReadGearNetworks(blocks)` / `ReadTrainState(train)` | サーバーtick内で可変状態を複製して返す。可変サービスをシナリオへ持ち出さない |
 | `Note(message)` | AIナレーション。動画左上のログとresult.jsonのTimelineに記録 |
 
 ## 書き方の規則
@@ -123,7 +124,7 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
    `<master>/mods/*/master/blocks.json` / `items.json` で確認。存在しない名前は即例外
 2. **シナリオ内では全アセンブリが使える**（EDCは全ロード済みアセンブリ参照）。assertで
    `Game.Gear.Common.GearNetworkDatastore` 等サーバー内部も直接読める。Driver本体(asmdef)は制限あり。
-   ただし`ServerService<T>()`や`GetBlock`で得たサーバーのオブジェクトへの書き込みは`RunOnServer`の中だけで行う（tickと競合するため）
+   サーバーのオブジェクトへの書き込みは`RunOnServer`の中だけで行う。可変状態の読取は専用のsnapshot APIか、`RunOnServer`で値を複製してから行う（tickとの競合を防ぐため）
 3. **状態構築はDirect系、検証対象の操作はUI経路/本番プロトコル**と使い分ける。UI設置は
    インベントリの`RequiredItems`を消費し未解放ブロックは置けない（Directは両方無視）
 4. **搬送ライン系は投入前に接続数をassert**:
@@ -132,8 +133,8 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
    （＝そのブロックは搬入を受けない仕様。例: 素の木のチェスト→コンベアチェストを使う）
 5. **歯車ネットワークのassert**（連結検証の定石）:
    ```csharp
-   var gearNetworkDatastore = p.ServerService<Game.Gear.Common.GearNetworkDatastore>();
-   // posのブロックの所属NW: TryGetGearNetwork(blockInstanceId, out network)でnetwork.NetworkIdを取る
+   var networkIds = await p.ReadGearNetworks(new[] { p.GetBlock(firstPos), p.GetBlock(secondPos) });
+   p.Assert(networkIds[0].HasValue && networkIds[0].Equals(networkIds[1]), "同一ネットワーク");
    ```
 6. 複数ブロック連結はYAMLの`inputConnects[].offset`/`outputConnects[].offset`を
    「OriginalPos + offset = 絶対座標」で先に表にする（手書き座標は「設置は成功するが繋がらない」を生む）

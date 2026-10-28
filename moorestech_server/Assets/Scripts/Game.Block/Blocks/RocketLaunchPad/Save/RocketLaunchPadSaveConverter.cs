@@ -46,6 +46,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
             RocketLaunchPadRetainedItemValidator.Validate(saveData, layout);
             long droppedCount = 0;
             var invalidRecords = 0;
+            var recoveredRecords = 0;
             foreach (var input in saveData.InputItems)
             {
                 var id = Guid.TryParse(input.ItemGuidStr, out var inputGuid) ? MasterHolder.ItemMaster.GetItemIdOrNull(inputGuid) : null;
@@ -58,12 +59,20 @@ namespace Game.Block.Blocks.RocketLaunchPad.Save
             {
                 var output = saveData.OutputItems[i];
                 if (i < layout.OutputSlotCount && IsValidSlot(output)) slots.SetItemWithoutEvent(layout.OutputSlots[i], output.ToItemStack());
-                else if (0 < output.Count && CanCreate(output)) RocketLaunchPadCargoRecovery.ReturnItem(output, layout, slots);
+                else if (0 < output.Count && CanCreate(output))
+                {
+                    RocketLaunchPadCargoRecovery.ReturnItem(output, layout, slots);
+                    recoveredRecords++;
+                }
                 else CountDiscarded(output);
             }
             foreach (var input in saveData.InputItems)
                 if (0 < input.Count && CanCreate(input) && !layout.TryGetInputSlot(input.ToItemStack().Id, out _))
+                {
                     RocketLaunchPadCargoRecovery.ReturnItem(input, layout, slots);
+                    recoveredRecords++;
+                }
+            if (0 < recoveredRecords) Debug.LogWarning($"発射台の入れ口から外れた品または超過出力を回収欄へ保持しました 件数:{recoveredRecords}");
             if (0 < droppedCount || 0 < invalidRecords)
                 Debug.LogWarning($"発射台のスロット構成または保存値が無効なため、復元できない品を {droppedCount} 個捨てました 不正レコード:{invalidRecords} 件");
 

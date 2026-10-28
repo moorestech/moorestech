@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Reflection;
 using Client.Game.InGame.BeltTransport;
@@ -90,7 +91,7 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.IsNull(pending.RocketLaunchPad);
             typeof(BlockGameObject).GetField("_blockStateMessagePack", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(block, new BlockStateMessagePack(state, Vector3Int.zero));
-            var dto = new BlockInventoryDto();
+            var dto = new BlockInventoryDto { ItemSlots = Enumerable.Range(0, layout.TotalSlotCount).Select(_ => new BlockItemSlotDto()).ToList() };
             BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
             // 状態受信済みでも取得失敗の在庫には発射台の添字を載せない
             // Omit launch pad indices for failed inventory even when state has arrived
@@ -103,7 +104,6 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.IsEmpty(failed.ItemSlots);
             Assert.IsNull(failed.RocketLaunchPad);
             Assert.IsNull(JObject.Parse(WebUiJson.Serialize(failed))["rocketLaunchPad"]);
-            Object.DestroyImmediate(gameObject);
 
             Assert.AreEqual(wirePhase, dto.RocketLaunchPad.Phase);
             Assert.AreEqual(wireReason, dto.RocketLaunchPad.WaitReason);
@@ -111,6 +111,10 @@ namespace Client.Tests.WebUi.BlockDetail
             CollectionAssert.AreEqual(layout.MaterialSlots, dto.RocketLaunchPad.MaterialSlots);
             CollectionAssert.AreEqual(layout.PayloadSlots, dto.RocketLaunchPad.PayloadSlots);
             CollectionAssert.AreEqual(layout.OutputSlots, dto.RocketLaunchPad.OutputSlots);
+            dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = 3, Count = 1 });
+            BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
+            CollectionAssert.AreEqual(layout.OutputSlots.Concat(new[] { layout.TotalSlotCount }), dto.RocketLaunchPad.OutputSlots);
+            Object.DestroyImmediate(gameObject);
         }
     }
 }

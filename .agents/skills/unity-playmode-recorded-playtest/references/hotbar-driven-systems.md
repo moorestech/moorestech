@@ -87,15 +87,9 @@ System.Func<Vector3Int, Vector3> poleClickPoint = pos =>
 ## 検証の定石: 歯車ネットワーク所属
 
 ```csharp
-var gearNetworkDatastore = p.ServerService<Game.Gear.Common.GearNetworkDatastore>();
-System.Func<Vector3Int, Game.Gear.Common.GearNetworkId?> networkOf = pos =>
-{
-    var block = p.GetBlock(pos);
-    if (block == null) return null;
-    return gearNetworkDatastore.TryGetGearNetwork(block.BlockInstanceId, out var network) ? network.NetworkId : (Game.Gear.Common.GearNetworkId?)null;
-};
-p.Assert(networkOf(a1).Equals(networkOf(a2)), "同一セグメント");
-p.Assert(!networkOf(a1).Equals(networkOf(b1)), "別セグメント");
+var networkIds = await p.ReadGearNetworks(new[] { p.GetBlock(a1), p.GetBlock(a2), p.GetBlock(b1) });
+p.Assert(networkIds[0].HasValue && networkIds[0].Equals(networkIds[1]), "同一セグメント");
+p.Assert(networkIds[0].HasValue && !networkIds[0].Equals(networkIds[2]), "別セグメント");
 ```
 
 - 孤立ポールも単独ネットワークに所属する（nullは「ブロック不在」を意味する）
