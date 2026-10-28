@@ -51,8 +51,8 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             var directory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, Path.Combine(_root, "save.json"));
             var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory) { worldDataDirectory = directory });
             var pool = ServerContext.GetService<SpaceElevatorCablePool>();
-            pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue });
             var pad = Prepare();
+            pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue });
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var before = JObject.FromObject(processor.GetSaveState());
             var refunds = processor.GetRefundItems().Select(i => (i.Id, i.Count)).ToArray();

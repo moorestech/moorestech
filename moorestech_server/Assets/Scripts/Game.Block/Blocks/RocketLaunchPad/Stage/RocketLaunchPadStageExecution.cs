@@ -1,6 +1,5 @@
 using Core.Update;
 using Game.Block.Interface.State;
-using Game.Orbit;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Blocks.RocketLaunchPad.Stage
@@ -11,7 +10,6 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
     {
         internal readonly RocketLaunchPadCargoLoader CargoLoader;
         internal readonly RocketLaunchPadOutputSlots OutputSlots;
-        internal readonly IOrbitalArrivalService ArrivalService;
         internal readonly RocketLaunchHistory LaunchHistory;
         internal readonly float RequiredPower;
         internal readonly uint BuildTotalTicks;
@@ -19,11 +17,10 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
         internal RocketLaunchPadStage Stage { get; private set; } = IdleStage.Instance;
         internal RocketLaunchPadWaitReason WaitReason { get; private set; }
 
-        internal RocketLaunchPadStageExecution(RocketLaunchPadBlockParam param, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory)
+        internal RocketLaunchPadStageExecution(RocketLaunchPadBlockParam param, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, RocketLaunchHistory launchHistory)
         {
             CargoLoader = cargoLoader;
             OutputSlots = outputSlots;
-            ArrivalService = arrivalService;
             LaunchHistory = launchHistory;
             RequiredPower = param.RequiredPower;
             BuildTotalTicks = GameUpdater.SecondsToTicks(param.BuildSeconds);

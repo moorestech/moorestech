@@ -1,6 +1,9 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Core.Inventory;
+using System.Collections.Generic;
+using UniRx;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -53,16 +56,15 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
                 var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
                 inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1], itemId, existingCount);
                 var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
-                var field = typeof(RocketLaunchPadProcessorComponent).GetField("_outputSlots", BindingFlags.Instance | BindingFlags.NonPublic);
-                var outputSlots = (RocketLaunchPadOutputSlots)field.GetValue(processor);
                 var arrival = new IItemStack[] { ServerContext.ItemStackFactory.Create(itemId, arrivalCount) };
-                Assert.IsTrue(outputSlots.CanStore(arrival));
+                var outputSlots = CreateOutputSlots(pad, processor, arrival);
+                Assert.IsTrue(outputSlots.CanAcceptArrival(ForUnitTestItemId.SatellitePayloadId, 1));
                 Assert.AreEqual(0, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count);
                 Assert.AreEqual(existingCount, inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count);
 
                 // 同種枠を先に満たし、intを超える総数をlongで比較する
                 // Fill the matching slot first and compare totals above int range using long
-                Assert.IsTrue(outputSlots.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1, new FixedOutputArrivalService(arrival), out _));
+                Assert.IsTrue(outputSlots.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1, out _));
                 var expectedTotal = (long)existingCount + arrivalCount;
                 var actualTotal = (long)inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count + inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count;
                 TestContext.WriteLine($"existing={existingCount}; arrival={arrivalCount}; slots=[{inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0]).Count},{inventory.GetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[1]).Count}]; total={actualTotal}; expected={expectedTotal}");
@@ -94,15 +96,30 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
             inventory.SetItem(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[2], ForUnitTestItemId.ComputeDataId, 99);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
-            var output = (RocketLaunchPadOutputSlots)typeof(RocketLaunchPadProcessorComponent).GetField("_outputSlots", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(processor);
             var arrival = new[] { ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 2) };
 
             // 通常在庫の近傍順[空,A1,A100]とは違う先頭順を保持する
             // Preserve first-empty order instead of the normal inventory's proximity order [empty,A1,A100]
-            Assert.IsTrue(output.CanStore(arrival));
+            var changed = new List<int>();
+            using var subscription = ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
+                .Where(change => change.BlockInstanceId == pad.BlockInstanceId).Subscribe(change => changed.Add(change.Slot));
+            var output = CreateOutputSlots(pad, processor, arrival);
+            Assert.IsTrue(output.CanAcceptArrival(ForUnitTestItemId.SatellitePayloadId, 1));
             CollectionAssert.AreEqual(new[] { 0, 0, 99 }, inventory.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).Select(item => item.Count));
-            Assert.IsTrue(output.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1, new FixedOutputArrivalService(arrival), out _));
+            Assert.IsTrue(output.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1, out _));
             CollectionAssert.AreEqual(new[] { 1, 0, 100 }, inventory.InventoryItems.Skip(RocketLaunchPadTestUtil.GetLayout(pad).OutputSlotStart).Select(item => item.Count));
+            CollectionAssert.AreEqual(new[] { RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[0], RocketLaunchPadTestUtil.GetLayout(pad).OutputSlots[2] }, changed);
+        }
+
+        private static RocketLaunchPadOutputSlots CreateOutputSlots(global::Game.Block.Interface.IBlock pad, RocketLaunchPadProcessorComponent processor, IItemStack[] outputs)
+        {
+            var slots = (OpenableInventoryItemDataStoreService)typeof(RocketLaunchPadProcessorComponent)
+                .GetField("_slots", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(processor);
+            return new RocketLaunchPadOutputSlots(RocketLaunchPadTestUtil.GetLayout(pad), slots,
+                new global::Game.Block.Blocks.Service.ConnectingInventoryListPriorityInsertItemService(pad.BlockInstanceId,
+                    global::Game.Block.Factory.BlockTemplate.BlockTemplateUtil.CreateInventoryConnector(
+                        ((Mooresmaster.Model.BlocksModule.RocketLaunchPadBlockParam)pad.BlockMasterElement.BlockParam).InventoryConnectors, pad.BlockPositionInfo)),
+                ServerContext.GetService<global::Game.SpaceElevator.SpaceElevatorCablePool>(), new FixedOutputArrivalService(outputs));
         }
 
         [Test]

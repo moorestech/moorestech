@@ -61,11 +61,11 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             inventory.InsertItem(ForUnitTestItemId.RocketFuelId, 1); AssertInvalidated();
             inventory.InsertItem(new List<IItemStack> { fuel }); AssertInvalidated();
             slots.SetItem(1, fuel); AssertInvalidated();
-            var output = (RocketLaunchPadOutputSlots)ReadField(processor, "_outputSlots");
-            Assert.IsTrue(output.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1,
-                new FixedOutputArrivalService(new[] { ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 1) }), out _)); AssertInvalidated();
             var layout = new RocketLaunchPadSlotLayout((Mooresmaster.Model.BlocksModule.RocketLaunchPadBlockParam)pad.BlockMasterElement.BlockParam);
-            new RocketLaunchPadOutputSlots(layout, slots, new AcceptAll(), ServerContext.GetService<global::Game.SpaceElevator.SpaceElevatorCablePool>()).PushToConnected(); AssertInvalidated();
+            var output = new RocketLaunchPadOutputSlots(layout, slots, new AcceptAll(), ServerContext.GetService<global::Game.SpaceElevator.SpaceElevatorCablePool>(),
+                new FixedOutputArrivalService(new[] { ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ComputeDataId, 1) }));
+            Assert.IsTrue(output.TryCompleteArrival(ForUnitTestItemId.SatellitePayloadId, 1, out _)); AssertInvalidated();
+            output.PushToConnected(); AssertInvalidated();
             Assert.AreEqual(11, networkChanges - before);
 
             // 台の破棄で購読だけでなくTemplate所有の通知源も解放する

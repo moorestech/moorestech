@@ -2,7 +2,6 @@ using System;
 using Game.Block.Blocks.RocketLaunchPad.Stage;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
-using Game.Orbit;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Blocks.RocketLaunchPad
@@ -18,9 +17,9 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private ulong _waitGeneration = 1;
         private ulong _processedWaitGeneration;
 
-        public RocketLaunchPadLaunchSequence(RocketLaunchPadBlockParam param, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService, RocketLaunchHistory launchHistory)
+        public RocketLaunchPadLaunchSequence(RocketLaunchPadBlockParam param, RocketLaunchPadCargoLoader cargoLoader, RocketLaunchPadOutputSlots outputSlots, RocketLaunchHistory launchHistory)
         {
-            _execution = new RocketLaunchPadStageExecution(param, cargoLoader, outputSlots, arrivalService, launchHistory);
+            _execution = new RocketLaunchPadStageExecution(param, cargoLoader, outputSlots, launchHistory);
         }
 
         public void SetStage(RocketLaunchPadStage stage)

@@ -7,6 +7,8 @@ using Game.Block.Blocks.Service;
 using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface;
+using Game.Context;
+using Game.Orbit;
 using Game.Block.Interface.Component;
 using Mooresmaster.Model.BlocksModule;
 
@@ -18,7 +20,7 @@ namespace Game.Block.Factory.BlockTemplate.SpaceElevator
         {
             var param = (SpaceElevatorBaseBlockParam)blockMasterElement.BlockParam;
             var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
-            var inventory = new SpaceElevatorBaseInventoryComponent(blockInstanceId, param, new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connector));
+            var inventory = new SpaceElevatorBaseInventoryComponent(blockInstanceId, param, new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connector), ServerContext.GetService<IOrbitalArrivalService>());
             var climber = new SpaceElevatorClimberComponent(param, inventory);
             return Assemble(null, blockMasterElement, blockInstanceId, blockPositionInfo, connector, inventory, climber);
         }
@@ -27,7 +29,7 @@ namespace Game.Block.Factory.BlockTemplate.SpaceElevator
         {
             var param = (SpaceElevatorBaseBlockParam)blockMasterElement.BlockParam;
             var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
-            var inventory = new SpaceElevatorBaseInventoryComponent(componentStates, blockInstanceId, param, new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connector));
+            var inventory = new SpaceElevatorBaseInventoryComponent(componentStates, blockInstanceId, param, new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connector), ServerContext.GetService<IOrbitalArrivalService>());
             var climber = new SpaceElevatorClimberComponent(componentStates, param, inventory);
             return Assemble(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo, connector, inventory, climber);
         }

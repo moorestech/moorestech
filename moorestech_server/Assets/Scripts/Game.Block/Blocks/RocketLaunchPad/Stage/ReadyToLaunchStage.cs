@@ -13,7 +13,7 @@ namespace Game.Block.Blocks.RocketLaunchPad.Stage
             // silent-ok: 出力口の空きが変わるまで再検査不要 / UIは出力満杯を表示する
             if (!reevaluateWait) return;
             var payload = Cargo.Payload;
-            if (!execution.OutputSlots.TryCompleteArrival(payload.Id, payload.Count, execution.ArrivalService, out var denyReason))
+            if (!execution.OutputSlots.TryCompleteArrival(payload.Id, payload.Count, out var denyReason))
             {
                 execution.SetWaitReason(denyReason);
                 return; // silent-ok: 出力口の空き待ちは通常の待機 / UIの待ち理由でプレイヤーに伝える

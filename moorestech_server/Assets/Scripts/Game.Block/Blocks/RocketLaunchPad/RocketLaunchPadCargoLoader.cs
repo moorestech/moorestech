@@ -4,7 +4,6 @@ using Core.Item.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Game.Block.Interface.State;
-using Game.Orbit;
 
 namespace Game.Block.Blocks.RocketLaunchPad
 {
@@ -19,14 +18,12 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly RocketLaunchPadSlotLayout _layout;
         private readonly OpenableInventoryItemDataStoreService _slots;
         private readonly RocketLaunchPadOutputSlots _outputSlots;
-        private readonly IOrbitalArrivalService _arrivalService;
 
-        public RocketLaunchPadCargoLoader(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, RocketLaunchPadOutputSlots outputSlots, IOrbitalArrivalService arrivalService)
+        public RocketLaunchPadCargoLoader(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, RocketLaunchPadOutputSlots outputSlots)
         {
             _layout = layout;
             _slots = slots;
             _outputSlots = outputSlots;
-            _arrivalService = arrivalService;
         }
 
         public void SetNextPayloadIndex(int nextPayloadIndex)
@@ -83,7 +80,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
                 var payload = _layout.Payloads[index];
                 if (!HasRequirement(_layout.PayloadSlot(index), payload)) continue;
                 anyReady = true;
-                if (!_outputSlots.CanStore(_arrivalService.PreviewArrivalOutputs(payload.ItemId, payload.Count))) continue;
+                if (!_outputSlots.CanAcceptArrival(payload.ItemId, payload.Count)) continue;
                 payloadIndex = index;
                 return RocketLaunchPadWaitReason.None;
             }

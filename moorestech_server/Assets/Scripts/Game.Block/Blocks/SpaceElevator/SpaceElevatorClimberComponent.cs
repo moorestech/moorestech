@@ -8,7 +8,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Game.Context;
-using Game.Orbit;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
@@ -31,7 +30,6 @@ namespace Game.Block.Blocks.SpaceElevator
         private readonly Subject<Unit> _onChangeBlockState = new();
         private readonly SpaceElevatorBaseBlockParam _param;
         private readonly SpaceElevatorBaseInventoryComponent _inventory;
-        private readonly IOrbitalArrivalService _orbitalArrivalService;
         private readonly uint _climbTotalTicks;
         private readonly IDisposable _inventorySubscription;
         private readonly IDisposable _stackLevelSubscription;
@@ -48,7 +46,6 @@ namespace Game.Block.Blocks.SpaceElevator
         {
             _param = param;
             _inventory = inventory;
-            _orbitalArrivalService = ServerContext.GetService<IOrbitalArrivalService>();
             _climbTotalTicks = GameUpdater.SecondsToTicks(param.ClimbSeconds);
             _climbingSatellite = ServerContext.ItemStackFactory.CreatEmpty();
             // 在庫変更で待機条件を再評価する
@@ -100,7 +97,7 @@ namespace Game.Block.Blocks.SpaceElevator
                 // 頂上では成果が出口へ入りきるときだけ渡す。入らなければ頂上で待つ
                 // At the top, hand over only when the result fits the outlets; otherwise wait at the top
                 _inventoryChanged = true;
-                _outputBlocked = !_inventory.TryCompleteArrival(_climbingSatellite.Id, _orbitalArrivalService);
+                _outputBlocked = !_inventory.TryCompleteArrival(_climbingSatellite.Id);
                 // 容量不足は実通知まで待つ。例外時の再試行予約は到着呼出し前に残す
                 // Wait for a real event when full; reserve retries before arrival so exceptions retain them
                 _inventoryChanged = !_outputBlocked;
@@ -117,7 +114,7 @@ namespace Game.Block.Blocks.SpaceElevator
                 IItemStack satellite = null;
                 ItemId satelliteId;
                 var result = IsConnected
-                    ? _inventory.TryTakeSatelliteForClimb(_orbitalArrivalService, out satellite, out satelliteId)
+                    ? _inventory.TryTakeSatelliteForClimb(out satellite, out satelliteId)
                     : _inventory.PeekSatellite(out satelliteId) == SatelliteInletState.NotCarried ? SatelliteTakeResult.NotCarried : SatelliteTakeResult.Empty;
                 _inletNotCarried = result == SatelliteTakeResult.NotCarried;
                 // 運べないアイテムが入口を塞いだら、その tick に1回だけ開発者ログへ出す

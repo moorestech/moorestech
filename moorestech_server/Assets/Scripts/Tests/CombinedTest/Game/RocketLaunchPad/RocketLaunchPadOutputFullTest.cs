@@ -9,6 +9,8 @@ using Game.Block.Interface.State;
 using Game.Context;
 using Game.World.Interface.DataStore;
 using Game.Orbit;
+using Game.SpaceElevator;
+using Game.SpaceElevator.Save;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -49,6 +51,32 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad
             GameUpdater.RunFrames(1);
             Assert.AreEqual(RocketLaunchPadPhase.Building, RocketLaunchPadTestUtil.ReadState(processor).Phase);
             Assert.AreEqual(0, inventory.GetItem(3).Count);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ケーブルプール満杯なら資材を消費せず建造前に待つ(bool launchedOnce)
+        {
+            if (launchedOnce) ServerContext.GetService<RocketLaunchHistory>().RecordLaunch();
+            var pool = ServerContext.GetService<SpaceElevatorCablePool>();
+            pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue });
+            var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
+            RocketLaunchPadTestUtil.FillOneLaunch(pad, ForUnitTestItemId.TestElevatorCable, 50);
+            var inventory = pad.GetComponent<IOpenableBlockInventoryComponent>();
+            var before = inventory.InventoryItems.ToArray();
+            var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
+
+            // 建造前も到着時と同じプール容量を検査し、入力を保持する
+            // Check the same pool capacity before building as at arrival, preserving inputs
+            GameUpdater.RunFrames(5);
+            Assert.AreEqual(RocketLaunchPadPhase.Idle, RocketLaunchPadTestUtil.ReadState(processor).Phase);
+            Assert.AreEqual(RocketLaunchPadWaitReason.OutputFull, RocketLaunchPadTestUtil.ReadState(processor).WaitReason);
+            CollectionAssert.AreEqual(before, inventory.InventoryItems);
+            Assert.IsEmpty(processor.GetRefundItems());
+            pool.Restore(new SpaceElevatorCablePoolSaveData { CableCount = int.MaxValue - 50 });
+            GameUpdater.RunFrames(1);
+            Assert.AreEqual(launchedOnce ? RocketLaunchPadPhase.Building : RocketLaunchPadPhase.AwaitingBuildCommand,
+                RocketLaunchPadTestUtil.ReadState(processor).Phase);
         }
 
         [Test]

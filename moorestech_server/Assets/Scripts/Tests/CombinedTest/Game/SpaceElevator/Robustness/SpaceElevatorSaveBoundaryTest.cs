@@ -74,7 +74,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             LogAssert.Expect(LogType.Error, new Regex("出口縮小.*ロードを中断"));
             Assert.Throws<InvalidOperationException>(() => new SpaceElevatorBaseInventoryComponent(new Dictionary<string, object> { { inventory.SaveKey, items } },
                 block.BlockInstanceId, param, new ConnectingInventoryListPriorityInsertItemService(block.BlockInstanceId,
-                    block.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>())));
+                    block.GetComponent<BlockConnectorComponent<IBlockInventory, BeltInventoryConnectionContext>>()), ServerContext.GetService<global::Game.Orbit.IOrbitalArrivalService>()));
             Assert.AreEqual(3, items.Count);
             Assert.AreEqual(1, items[2].Count);
         }

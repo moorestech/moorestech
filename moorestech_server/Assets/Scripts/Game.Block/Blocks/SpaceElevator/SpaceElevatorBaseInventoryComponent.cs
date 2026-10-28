@@ -3,16 +3,13 @@ using System.Linq;
 using Game.Orbit;
 using System.Collections.ObjectModel;
 using Core.Inventory;
-using Game.Block.Blocks.Service;
 using UniRx;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Blocks.Connector;
 using System;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.Block.Interface.Event;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
@@ -31,15 +28,17 @@ namespace Game.Block.Blocks.SpaceElevator
         public string SaveKey { get; } = typeof(SpaceElevatorBaseInventoryComponent).FullName;
         internal IObservable<Unit> OnInventoryChanged => _inventoryChanged;
         private readonly Subject<Unit> _inventoryChanged = new();
+        private readonly IOrbitalArrivalService _arrivalService;
         private readonly int[] _outputSlots;
         private readonly int _slotCount;
         private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly HashSet<ItemId> _carriedPayloadIds = new();
-        public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter)
+        public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService)
         {
             BlockInstanceId = blockInstanceId;
             _blockInventoryInserter = blockInventoryInserter;
+            _arrivalService = arrivalService;
             _slotCount = FirstOutputSlot + param.OutputSlotCount;
             _outputSlots = Enumerable.Range(FirstOutputSlot, param.OutputSlotCount).ToArray();
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, _slotCount);
@@ -53,8 +52,8 @@ namespace Game.Block.Blocks.SpaceElevator
             }
             #endregion
         }
-        public SpaceElevatorBaseInventoryComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter) :
-            this(blockInstanceId, param, blockInventoryInserter)
+        public SpaceElevatorBaseInventoryComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService) :
+            this(blockInstanceId, param, blockInventoryInserter, arrivalService)
         {
             // ロード時はまだワールドに登録されていないのでイベントを出さない
             // Loading does not fire events because the block is not registered in the world yet
@@ -87,7 +86,7 @@ namespace Game.Block.Blocks.SpaceElevator
         }
         // 収納確認から取り出しまでを在庫の所有者が完結する
         // The inventory owner checks capacity and takes the satellite together
-        internal SatelliteTakeResult TryTakeSatelliteForClimb(IOrbitalArrivalService arrivalService, out IItemStack satellite, out ItemId satelliteId)
+        internal SatelliteTakeResult TryTakeSatelliteForClimb(out IItemStack satellite, out ItemId satelliteId)
         {
             CheckDestroy(this);
             satellite = ServerContext.ItemStackFactory.CreatEmpty();
@@ -95,7 +94,7 @@ namespace Game.Block.Blocks.SpaceElevator
             // silent-ok: 通常の入口待機 / 呼出側が理由を状態詳細と初回ログへ反映する
             if (inlet != SatelliteInletState.Carriable) return inlet == SatelliteInletState.Empty ? SatelliteTakeResult.Empty : SatelliteTakeResult.NotCarried;
             // silent-ok: 成果の収納待機 / 呼出側が出口待ちをUIへ配信する
-            if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), arrivalService.PreviewArrivalOutputs(satelliteId, 1), out _)) return SatelliteTakeResult.OutputBlocked;
+            if (!InventoryInsertItem.TryFillAllPreferringExisting(_arrivalService.PreviewArrivalOutputs(satelliteId, 1), CopyOutlets())) return SatelliteTakeResult.OutputBlocked;
             var stack = _itemDataStoreService.GetItem(SatelliteSlot);
             _itemDataStoreService.SetItem(SatelliteSlot, stack.SubItem(1));
             satellite = ServerContext.ItemStackFactory.Create(stack.Id, 1);
@@ -103,13 +102,14 @@ namespace Game.Block.Blocks.SpaceElevator
         }
         // 一度だけ模擬し、到着成功後に同じ配置を確定する
         // Simulate once and commit that placement after arrival succeeds
-        internal bool TryCompleteArrival(ItemId satelliteId, IOrbitalArrivalService arrivalService)
+        internal bool TryCompleteArrival(ItemId satelliteId)
         {
             CheckDestroy(this);
-            var outputs = arrivalService.PreviewArrivalOutputs(satelliteId, 1);
+            var outputs = _arrivalService.PreviewArrivalOutputs(satelliteId, 1);
+            var simulated = CopyOutlets();
             // silent-ok: 容量不足では到着させない / 昇降機が出口待ちをUIと初回ログへ反映する
-            if (!SpaceElevatorOutputSimulation.TryStack(CopyOutlets(), outputs, out var simulated)) return false;
-            arrivalService.Arrive(satelliteId, 1);
+            if (!InventoryInsertItem.TryFillAllPreferringExisting(outputs, simulated)) return false;
+            _arrivalService.Arrive(satelliteId, 1);
             for (var i = 0; i < simulated.Count; i++)
             {
                 var current = _itemDataStoreService.GetItem(FirstOutputSlot + i);

@@ -39,6 +39,23 @@ namespace Core.Inventory
             return Fill(item, slots, slotOrder, null);
         }
 
+        // 複製した枠へ同種優先で全量を試し、確定と通知は呼出側へ任せる
+        // Try all items on copied slots, preferring matching stacks; callers commit and notify
+        public static bool TryFillAllPreferringExisting(IReadOnlyList<IItemStack> items, List<IItemStack> slots)
+        {
+            foreach (var item in items)
+            {
+                var order = new List<int>();
+                for (var i = 0; i < slots.Count; i++)
+                    if (0 < slots[i].Count && slots[i].Id == item.Id) order.Add(i);
+                for (var i = 0; i < slots.Count; i++)
+                    if (slots[i].Count == 0) order.Add(i);
+                // silent-ok: 模擬失敗では原本を確定しない / 呼出側が容量待ちをUIへ通知する
+                if (0 < InsertInOrder(item, slots, order).Count) return false;
+            }
+            return true;
+        }
+
         private static IItemStack Fill(IItemStack item, IList<IItemStack> slots, IEnumerable<int> order, Action<int> onSlotUpdate)
         {
             // silent-ok: 空入力には充填も通知も不要 / 空の余りをそのまま呼出側へ返す

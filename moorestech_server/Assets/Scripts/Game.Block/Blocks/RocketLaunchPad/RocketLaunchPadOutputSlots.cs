@@ -20,19 +20,24 @@ namespace Game.Block.Blocks.RocketLaunchPad
         private readonly OpenableInventoryItemDataStoreService _slots;
         private readonly IBlockInventoryInserter _beltOutput;
         private readonly SpaceElevatorCablePool _cablePool;
+        private readonly IOrbitalArrivalService _arrivalService;
         private bool _waitingForCableCapacity;
 
-        public RocketLaunchPadOutputSlots(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, SpaceElevatorCablePool cablePool)
+        public RocketLaunchPadOutputSlots(RocketLaunchPadSlotLayout layout, OpenableInventoryItemDataStoreService slots, IBlockInventoryInserter beltOutput, SpaceElevatorCablePool cablePool, IOrbitalArrivalService arrivalService)
         {
             _layout = layout;
             _slots = slots;
             _beltOutput = beltOutput;
             _cablePool = cablePool;
+            _arrivalService = arrivalService;
         }
 
-        public bool CanStore(IReadOnlyList<IItemStack> outputs) => TrySimulate(outputs, out _);
+        public bool CanAcceptArrival(ItemId itemId, int count)
+        {
+            return _cablePool.CanAcceptArrival(itemId, count) && TrySimulate(_arrivalService.PreviewArrivalOutputs(itemId, count), out _);
+        }
 
-        public bool TryCompleteArrival(ItemId itemId, int count, IOrbitalArrivalService arrivalService, out RocketLaunchPadWaitReason denyReason)
+        public bool TryCompleteArrival(ItemId itemId, int count, out RocketLaunchPadWaitReason denyReason)
         {
             // プール不足は積荷を保持して待つ
             // Keep cargo and wait when the cable pool cannot accept the entire arrival
@@ -47,13 +52,19 @@ namespace Game.Block.Blocks.RocketLaunchPad
 
             // 到着受理後に模擬配置を確定
             // Determine placement before notification and commit that placement after acceptance
-            if (!TrySimulate(arrivalService.PreviewArrivalOutputs(itemId, count), out var simulated))
+            if (!TrySimulate(_arrivalService.PreviewArrivalOutputs(itemId, count), out var simulated))
             {
                 denyReason = RocketLaunchPadWaitReason.OutputFull;
                 return false; // silent-ok: 出口待ちは通常の待機 / 呼出側がUIの待ち理由へ反映する
             }
-            arrivalService.Arrive(itemId, count);
-            for (var i = 0; i < _layout.OutputSlots.Count; i++) _slots.SetItem(_layout.OutputSlots[i], simulated[i]);
+            _arrivalService.Arrive(itemId, count);
+            for (var i = 0; i < _layout.OutputSlots.Count; i++)
+            {
+                var current = _slots.GetItem(_layout.OutputSlots[i]);
+                // silent-ok: 不変スロットの通知を抑える / 同じ在庫値は既にUIへ通知済み
+                if (simulated[i].Id == current.Id && simulated[i].Count == current.Count) continue;
+                _slots.SetItem(_layout.OutputSlots[i], simulated[i]);
+            }
             denyReason = RocketLaunchPadWaitReason.None;
             return true;
         }
@@ -63,9 +74,7 @@ namespace Game.Block.Blocks.RocketLaunchPad
             // 建造前と到着直前に同じ配置規則を使う
             // Use the same placement rules before construction and arrival
             simulated = CopyOutputSlots();
-            foreach (var output in outputs)
-                if (0 < FillInOrder(simulated, output).Count) return false;
-            return true;
+            return InventoryInsertItem.TryFillAllPreferringExisting(outputs, simulated);
 
             #region Internal
             List<IItemStack> CopyOutputSlots()
@@ -75,17 +84,6 @@ namespace Game.Block.Blocks.RocketLaunchPad
                 return copy;
             }
 
-            // 同種枠を先に埋め別品目の空枠を残す
-            // Fill existing matching stacks before empty slots to preserve room for other items
-            IItemStack FillInOrder(List<IItemStack> slots, IItemStack item)
-            {
-                var order = new List<int>();
-                for (var i = 0; i < slots.Count; i++)
-                    if (slots[i].Id == item.Id) order.Add(i);
-                for (var i = 0; i < slots.Count; i++)
-                    if (slots[i].Count == 0) order.Add(i);
-                return InventoryInsertItem.InsertInOrder(item, slots, order);
-            }
             #endregion
         }
 

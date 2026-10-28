@@ -1,5 +1,10 @@
 using System.Linq;
+using Core.Inventory;
 using Core.Item;
+using Game.Block.Blocks.Service;
+using Game.Block.Factory.BlockTemplate;
+using Game.Block.Interface;
+using Mooresmaster.Model.BlocksModule;
 using Core.Item.Interface;
 using Game.Block.Blocks.SpaceElevator;
 using Game.Block.Interface.State;
@@ -23,10 +28,11 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         public void 空きの後ろに同種があれば確認で原本を変えず全成果を格納する()
         {
             var block = PlaceBase(Vector3Int.zero);
-            var inventory = block.GetComponent<SpaceElevatorBaseInventoryComponent>();
+            var outputs = ServerContext.GetService<IOrbitalArrivalService>().PreviewArrivalOutputs(ForUnitTestItemId.TestElevatorSatellite, 1);
+            var arrival = new FixedArrival(outputs);
+            var inventory = CreateInventory(block, arrival);
             inventory.SetItem(2, ForUnitTestItemId.TestElevatorReward, 5);
             var before = inventory.InventoryItems.ToArray();
-            var outputs = ServerContext.GetService<IOrbitalArrivalService>().PreviewArrivalOutputs(ForUnitTestItemId.TestElevatorSatellite, 1);
             var changes = 0;
             using var subscription = ServerContext.BlockOpenableInventoryUpdateEvent.OnInventoryUpdated
                 .Where(change => change.BlockInstanceId == block.BlockInstanceId).Subscribe(_ => changes++);
@@ -35,7 +41,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             // Use the exact I1 counterexample and check the preview has no side effects
             Assert.AreEqual(10, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestElevatorReward));
             Assert.AreEqual(10, ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.RocketComputerId));
-            var fits = SpaceElevatorOutputSimulation.TryStack(inventory.InventoryItems.Skip(1).ToList(), outputs, out _);
+            var fits = InventoryInsertItem.TryFillAllPreferringExisting(outputs, inventory.InventoryItems.Skip(1).ToList());
             for (var i = 0; i < before.Length; i++) Assert.AreSame(before[i], inventory.GetItem(i));
             Assert.AreEqual(0, changes);
             Assert.AreEqual(5, outputs[0].Count);
@@ -44,8 +50,7 @@ namespace Tests.CombinedTest.Game.SpaceElevator
 
             // 実挿入も同じ配置となり、両出口だけを通知する
             // Real insertion uses the same placement and notifies both outlets only
-            var arrival = new FixedArrival(outputs);
-            Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite, arrival));
+            Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite));
             Assert.AreEqual(1, arrival.Previews);
             Assert.AreEqual(1, arrival.Arrivals);
             AssertOutputs(inventory);
@@ -56,21 +61,22 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [TestCase(false)]
         public void 同属性だけを既存スタックに加算する(bool matchingMetadata)
         {
-            var inventory = PlaceBase(Vector3Int.zero).GetComponent<SpaceElevatorBaseInventoryComponent>();
+            var block = PlaceBase(Vector3Int.zero);
             var existing = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 5).SetMeta("quality", new TestMeta1());
-            inventory.SetItem(2, existing);
             var incoming = ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 5)
                 .SetMeta("quality", matchingMetadata ? (ItemStackMetaData)new TestMeta1() : new TestMeta2());
             var outputs = new[] { incoming, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.RocketComputerId, 5) };
+            var inventory = CreateInventory(block, new FixedArrival(outputs));
+            inventory.SetItem(2, existing);
 
             // 同IDでも属性が違えば空き2枠が必要で、1枠では拒否する
             // Different metadata needs two free slots even for the same ID and cannot fit one
-            Assert.AreEqual(matchingMetadata, SpaceElevatorOutputSimulation.TryStack(inventory.InventoryItems.Skip(1).ToList(), outputs, out _));
+            Assert.AreEqual(matchingMetadata, InventoryInsertItem.TryFillAllPreferringExisting(outputs, inventory.InventoryItems.Skip(1).ToList()));
             Assert.AreSame(existing, inventory.GetItem(2));
             Assert.AreEqual(0, inventory.GetItem(1).Count);
             if (matchingMetadata)
             {
-                Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite, new FixedArrival(outputs)));
+                Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite));
                 AssertOutputs(inventory);
                 Assert.IsInstanceOf<TestMeta1>(inventory.GetItem(2).GetMeta("quality"));
             }
@@ -79,15 +85,15 @@ namespace Tests.CombinedTest.Game.SpaceElevator
         [Test]
         public void 同種の残容量を使い切ってから余りを空きへ置く()
         {
-            var inventory = PlaceBase(Vector3Int.zero).GetComponent<SpaceElevatorBaseInventoryComponent>();
-            inventory.SetItem(2, ForUnitTestItemId.TestElevatorReward, 8);
             var outputs = new[] { ServerContext.ItemStackFactory.Create(ForUnitTestItemId.TestElevatorReward, 5) };
+            var inventory = CreateInventory(PlaceBase(Vector3Int.zero), new FixedArrival(outputs));
+            inventory.SetItem(2, ForUnitTestItemId.TestElevatorReward, 8);
 
             // 既存8へ2を加え、残り3だけが空きへ入る
             // Add two to the existing eight and put only the remaining three into the empty slot
-            Assert.IsTrue(SpaceElevatorOutputSimulation.TryStack(inventory.InventoryItems.Skip(1).ToList(), outputs, out _));
+            Assert.IsTrue(InventoryInsertItem.TryFillAllPreferringExisting(outputs, inventory.InventoryItems.Skip(1).ToList()));
             Assert.AreEqual(8, inventory.GetItem(2).Count);
-            Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite, new FixedArrival(outputs)));
+            Assert.IsTrue(inventory.TryCompleteArrival(ForUnitTestItemId.TestElevatorSatellite));
             Assert.AreEqual(10, inventory.GetItem(2).Count);
             Assert.AreEqual(ForUnitTestItemId.TestElevatorReward, inventory.GetItem(1).Id);
             Assert.AreEqual(3, inventory.GetItem(1).Count);
@@ -143,6 +149,14 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(1, arrivals);
             Assert.AreEqual(SpaceElevatorBaseStatus.WaitingSatellite, ReadDetail(block).Status);
             Assert.AreEqual(0f, block.GetComponent<SpaceElevatorClimberComponent>().RequestPower);
+        }
+
+        private static SpaceElevatorBaseInventoryComponent CreateInventory(IBlock block, IOrbitalArrivalService arrival)
+        {
+            var param = (SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam;
+            var connector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, block.BlockPositionInfo);
+            return new SpaceElevatorBaseInventoryComponent(block.BlockInstanceId, param,
+                new ConnectingInventoryListPriorityInsertItemService(block.BlockInstanceId, connector), arrival);
         }
 
         private sealed class FixedArrival : IOrbitalArrivalService

@@ -118,6 +118,31 @@ namespace Tests.UnitTest.Core.Inventory
             CollectionAssert.AreEqual(emptyInput ? new int[0] : new[] { 0 }, changed);
         }
 
+        [TestCase(false, true)]
+        [TestCase(true, false)]
+        public void 全量模擬は属性一致の既存枠を優先し原本を保持する(bool incompatibleMetadata, bool fits)
+        {
+            var factory = ServerContext.ItemStackFactory;
+            var item = ForUnitTestItemId.ComputeDataId;
+            var original = new List<IItemStack> { factory.CreatEmpty(), factory.Create(item, 99) };
+            var copy = original.ToList();
+            var incoming = incompatibleMetadata
+                ? factory.Create(item, 1, new Dictionary<string, ItemStackMetaData> { ["test"] = new TestMeta1() })
+                : factory.Create(item, 1);
+            var outputs = new[] { incoming, factory.Create(ForUnitTestItemId.RocketFuelId, 1) };
+
+            // 一致枠を埋めれば別品目が空枠を使え、不一致なら全量を置けない
+            // Matching stacks leave the empty slot for another item; incompatible stacks cannot fit all
+            Assert.AreEqual(fits, InventoryInsertItem.TryFillAllPreferringExisting(outputs, copy));
+            Assert.AreEqual(0, original[0].Count);
+            Assert.AreEqual(99, original[1].Count);
+            if (fits)
+            {
+                Assert.AreEqual(ForUnitTestItemId.RocketFuelId, copy[0].Id);
+                Assert.AreEqual(100, copy[1].Count);
+            }
+        }
+
         private sealed class ReadCountingItemStack : IItemStack
         {
             private readonly IItemStack inner;
