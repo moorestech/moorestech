@@ -67,7 +67,7 @@ namespace Client.Playtest.Operations
             {
                 var block = ServerContext.WorldBlockDatastore.GetBlock(position);
                 if (block != null && !ServerContext.GetService<SpaceElevatorConnectionService>().CanRemove(block)) return;
-                removed = ServerContext.WorldBlockDatastore.RemoveBlock(CancellationToken cancellationToken, position, BlockRemoveReason.ManualRemove);
+                removed = ServerContext.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
             });
             return removed;
         }
