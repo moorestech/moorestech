@@ -16,6 +16,7 @@ namespace Game.SaveLoad.Migration.Steps
             var parts = new IV7ToV8MigrationPart[]
             {
                 new MachineInheritedLevelFiller(),
+                new ElectricGeneratorFuelStateNormalizer(),
                 new CleanRoomMachineFluidSlotFiller(),
                 new RocketLaunchHistoryFiller(),
                 new SpaceElevatorCablePoolFiller(),
