@@ -1713,14 +1713,7 @@
         },
         "fluidContainerCount": 0,
         "fluidContainerCapacity": 0,
-        "fluidInventoryConnectors": {
-          "inflowConnects": [],
-          "outflowConnects": []
-        },
-        "innerTankCapacity": 0,
         "innerTankCount": 0,
-        "outputTankCount": 0,
-        "inputTankCount": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,

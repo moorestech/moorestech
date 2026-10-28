@@ -222,7 +222,13 @@ properties:
               implementationInterface:
                 - IMachineParam
                 - IGearMachineParam
-              properties:
+              # 歯車機械のタンクは存在しない。共通口の値だけを定数として生成する
+        # Gear machines have no tanks; generate only constant values for the shared interface
+        interfacePropertyConstants:
+          inputTankCount: 0
+          outputTankCount: 0
+          innerTankCapacity: 0
+        properties:
                 - key: inputSlotCount
                   type: integer
                   default: 1
@@ -242,18 +248,7 @@ properties:
                   default: 5
                 - key: gear
                   ref: gear
-                - key: inputTankCount
-                  type: integer
-                  default: 0
-                - key: outputTankCount
-                  type: integer
-                  default: 0
-                - key: innerTankCapacity
-                  type: number
-                  default: 0
-                - key: fluidInventoryConnectors
-                  ref: fluidInventoryConnects
-            - when: SimpleGearGenerator
+              - when: SimpleGearGenerator
               type: object
               properties:
                 - key: teethCount
