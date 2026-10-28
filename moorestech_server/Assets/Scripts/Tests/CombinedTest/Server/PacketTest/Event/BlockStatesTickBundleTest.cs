@@ -5,6 +5,7 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.State;
 using Game.Context;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -88,6 +89,42 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var positions = EventTestUtil.ExtractBlockStates(sink.TakeAll()).Select(s => (Vector3Int)s.Position).ToList();
             CollectionAssert.DoesNotContain(positions, pos, "撤去したブロックの状態は捨てられるべき");
+        }
+
+        [Test]
+        // 手組みした束のバイト列が束の型をシリアライズしたものと一致する
+        // The hand-built bundle bytes match a serialization of the bundle type
+        public void HandBuiltBundleMatchesSerializedBundleTypeTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
+
+            var firstPos = new Vector3Int(26, 0, 26);
+            var secondPos = new Vector3Int(28, 0, 26);
+            world.TryAddBlock(ForUnitTestModBlockId.ChestId, firstPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            world.TryAddBlock(ForUnitTestModBlockId.ChestId, secondPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 1);
+            GameUpdater.UpdateOneTick();
+            sink.TakeAll();
+
+            changeBlockStateEventPacket.QueueChangedState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 3 } }), world.GetOriginPosBlock(firstPos)));
+            changeBlockStateEventPacket.QueueChangedState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 4 } }), world.GetOriginPosBlock(secondPos)));
+            GameUpdater.UpdateOneTick();
+
+            // 受信側の型で読めて、中身が溜めた状態と一致する
+            // The receiver's type reads it, and the content matches the queued states
+            var payload = sink.TakeAll().Single(e => e.Tag == ChangeBlockStateEventPacket.EventTag).Payload;
+            var bundle = MessagePackSerializer.Deserialize<BlockStatesTickBundleMessagePack>(payload);
+            Assert.AreEqual(2, bundle.States.Length);
+            var dummyByPosition = bundle.States.ToDictionary(state => (Vector3Int)state.Position, state => state.CurrentStateDetail["dummy"][0]);
+            Assert.AreEqual(3, dummyByPosition[firstPos]);
+            Assert.AreEqual(4, dummyByPosition[secondPos]);
+
+            // 束の型を普通にシリアライズしたバイト列と同一である
+            // The bytes are identical to an ordinary serialization of the bundle type
+            var reserialized = MessagePackSerializer.Serialize(new BlockStatesTickBundleMessagePack(bundle.States));
+            CollectionAssert.AreEqual(reserialized, payload, "手組みの束は束の型のシリアライズと同じバイト列であるべき");
         }
     }
 }
