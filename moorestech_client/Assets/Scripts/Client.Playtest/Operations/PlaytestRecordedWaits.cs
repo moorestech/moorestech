@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest.Core;
@@ -15,14 +16,16 @@ namespace Client.Playtest.Operations
     /// </summary>
     public sealed class PlaytestRecordedWaits
     {
+        private readonly CancellationToken _cancellationToken;
         private readonly PlaytestReporter _reporter;
         private readonly PlaytestOverlayLogEntry _entry;
         private readonly string _label;
         private readonly float _timeoutSeconds;
         private readonly float _deadline;
 
-        private PlaytestRecordedWaits(PlaytestReporter reporter, string label, float timeoutSeconds)
+        private PlaytestRecordedWaits(PlaytestReporter reporter, string label, float timeoutSeconds, CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             _reporter = reporter;
             _label = label;
             _timeoutSeconds = timeoutSeconds;
@@ -32,7 +35,7 @@ namespace Client.Playtest.Operations
 
         // 条件評価を外へ残し、表示・成否・期限を扱う
         // Keep condition evaluation with the caller; own the wait display, result and deadline here
-        public static PlaytestRecordedWaits Begin(PlaytestReporter reporter, string label, float timeoutSeconds) => new(reporter, label, timeoutSeconds);
+        public static PlaytestRecordedWaits Begin(PlaytestReporter reporter, string label, float timeoutSeconds, CancellationToken cancellationToken) => new(reporter, label, timeoutSeconds, cancellationToken);
 
         public void Complete()
         {
@@ -40,12 +43,13 @@ namespace Client.Playtest.Operations
             _reporter.RecordUntilResult(true, _label, "condition met");
         }
 
-        public void CheckTimeout()
+        public void CheckTimeout(string observation)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
             if (_deadline < Time.realtimeSinceStartup)
             {
-                _reporter.RecordUntilResult(false, _label, $"Until timeout after {_timeoutSeconds}s");
-                throw new TimeoutException($"Until '{_label}' timed out after {_timeoutSeconds}s");
+                _reporter.RecordUntilResult(false, _label, $"Until timeout after {_timeoutSeconds}s: {observation}");
+                throw new TimeoutException($"Until '{_label}' timed out after {_timeoutSeconds}s: {observation}");
             }
         }
 

@@ -15,7 +15,7 @@ namespace Client.Playtest.Operations
         public static async UniTask<GearNetworkId?[]> ReadGearNetworks(this PlaytestDriver driver, IBlock[] blocks)
         {
             var ids = new GearNetworkId?[blocks.Length];
-            await PlaytestServerThreadAction.RunAsync("歯車網の所属を複製する", () =>
+            await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "歯車網の所属を複製する", () =>
             {
                 var store = ServerContext.GetService<GearNetworkDatastore>();
                 for (var i = 0; i < blocks.Length; i++)
@@ -31,7 +31,7 @@ namespace Client.Playtest.Operations
             {
                 var ids = await driver.ReadGearNetworks(new[] { first, second });
                 if (ids[0].HasValue && ids[0].Equals(ids[1])) { wait.Complete(); return; }
-                wait.CheckTimeout();
+                wait.CheckTimeout($"expected connected networks, actual first={ids[0]}, second={ids[1]}");
                 await UniTask.Yield();
             }
         }

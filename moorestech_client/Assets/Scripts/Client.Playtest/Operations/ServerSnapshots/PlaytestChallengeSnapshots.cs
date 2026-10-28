@@ -15,7 +15,7 @@ namespace Client.Playtest.Operations
         public static async UniTask<bool> ReadChallenge(this PlaytestDriver driver, Guid guid, bool completed)
         {
             var found = false;
-            await PlaytestServerThreadAction.RunAsync("チャレンジ状態を読む", () =>
+            await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "チャレンジ状態を読む", () =>
             {
                 var info = ServerContext.GetService<ChallengeDatastore>().CurrentChallengeInfo;
                 found = completed ? info.CompletedChallenges.Any(item => item.ChallengeGuid == guid) :
@@ -30,7 +30,7 @@ namespace Client.Playtest.Operations
             while (true)
             {
                 if (await driver.ReadChallenge(guid, completed)) { wait.Complete(); return; }
-                wait.CheckTimeout();
+                wait.CheckTimeout($"challenge={guid}, expected completed={completed} membership=true, actual membership=false");
                 await UniTask.Yield();
             }
         }

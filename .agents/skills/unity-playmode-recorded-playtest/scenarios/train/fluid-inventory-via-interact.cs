@@ -131,9 +131,9 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     var docked = false;
     while (!docked)
     {
-        await PlaytestServerThreadAction.RunAsync("貨車の接岸状態を読む", () => docked = car.IsDocked);
+        await PlaytestServerThreadAction.RunAsync(p.CancellationToken, "貨車の接岸状態を読む", () => docked = car.IsDocked);
         if (docked) break;
-        dockWait.CheckTimeout();
+        dockWait.CheckTimeout("expected=true, actual=condition false");
         await UniTask.Yield();
     }
     dockWait.Complete();

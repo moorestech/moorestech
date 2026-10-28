@@ -13,7 +13,7 @@ namespace Client.Playtest.Operations
         public static async UniTask<(int Entries, bool AutoRun, double Speed)> ReadTrainState(this PlaytestDriver driver, TrainUnit train)
         {
             var state = (Entries: 0, AutoRun: false, Speed: 0d);
-            await PlaytestServerThreadAction.RunAsync("列車状態を複製する", () => state = (train.trainDiagram.Entries.Count, train.IsAutoRun, train.CurrentSpeed));
+            await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "列車状態を複製する", () => state = (train.trainDiagram.Entries.Count, train.IsAutoRun, train.CurrentSpeed));
             return state;
         }
 
@@ -25,7 +25,7 @@ namespace Client.Playtest.Operations
                 var state = await driver.ReadTrainState(train);
                 if ((!entries.HasValue || state.Entries == entries.Value) && (!autoRun.HasValue || state.AutoRun == autoRun.Value) &&
                     (!moving.HasValue || (state.Speed > 0) == moving.Value)) { wait.Complete(); return; }
-                wait.CheckTimeout();
+                wait.CheckTimeout($"expected entries={entries}, autoRun={autoRun}, moving={moving}; actual entries={state.Entries}, autoRun={state.AutoRun}, speed={state.Speed}");
                 await UniTask.Yield();
             }
         }

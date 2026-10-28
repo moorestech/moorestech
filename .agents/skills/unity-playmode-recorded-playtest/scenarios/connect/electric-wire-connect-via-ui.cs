@@ -78,7 +78,7 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
     var wireWait = p.BeginWait(15f, "クリック結線で2本が同一セグメントになる");
     while (!(await ReadWireState()).same)
     {
-        wireWait.CheckTimeout();
+        wireWait.CheckTimeout("expected=true, actual=condition false");
         await UniTask.Yield();
     }
     wireWait.Complete();
@@ -100,7 +100,7 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
     async UniTask<(int count, bool same)> ReadWireState()
     {
         var state = (count: 0, same: false);
-        await PlaytestServerThreadAction.RunAsync("電力網の所属を読む", () =>
+        await PlaytestServerThreadAction.RunAsync(p.CancellationToken, "電力網の所属を読む", () =>
         {
             var store = ServerContext.GetService<IElectricWireNetworkDatastore>();
             state = (store.SegmentCount, store.TryGetEnergySegment(p.GetBlock(poleAPos).BlockInstanceId, out var segment) && segment.EnergyTransformers.ContainsKey(p.GetBlock(poleBPos).BlockInstanceId));

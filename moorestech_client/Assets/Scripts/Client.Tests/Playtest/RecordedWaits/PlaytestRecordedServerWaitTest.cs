@@ -39,7 +39,7 @@ namespace Client.Tests.Playtest.RecordedWaits
             Assert.IsTrue(ServerThreadActionQueueAccess.Current?.HasDrainedThisLifetime ?? false);
             PlaytestOverlay.State.Reset();
             _result = new PlaytestResult();
-            _driver = new PlaytestDriver(_result, _worldRoot);
+            _driver = new PlaytestDriver(_result, _worldRoot, System.Threading.CancellationToken.None);
             yield return _driver.RunOnServer("研究を未完了へ戻す", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject())).ToCoroutine();
         }
 
@@ -76,7 +76,10 @@ namespace Client.Tests.Playtest.RecordedWaits
             const string label = "未完了の研究を待つ";
             var wait = _driver.WaitForResearch(new[] { ForUnitTestLevelInheritanceIds.CraftCapResearchGuid }, Array.Empty<Guid>(), 0f, label);
             yield return WaitForCompletion(wait);
-            Assert.Throws<TimeoutException>(() => wait.GetAwaiter().GetResult());
+            var error = Assert.Throws<TimeoutException>(() => wait.GetAwaiter().GetResult());
+            Assert.That(error.Message, Does.Contain("expected"));
+            Assert.That(error.Message, Does.Contain("actual"));
+            Assert.That(_result.Asserts.Single().Message, Does.Contain("actual"));
             AssertRecordedResult(label, false);
         }
 
@@ -86,7 +89,10 @@ namespace Client.Tests.Playtest.RecordedWaits
             const string label = "存在しない完了チャレンジを待つ";
             var wait = _driver.WaitForChallenge(Guid.NewGuid(), true, 0f, label);
             yield return WaitForCompletion(wait);
-            Assert.Throws<TimeoutException>(() => wait.GetAwaiter().GetResult());
+            var error = Assert.Throws<TimeoutException>(() => wait.GetAwaiter().GetResult());
+            Assert.That(error.Message, Does.Contain("expected"));
+            Assert.That(error.Message, Does.Contain("actual"));
+            Assert.That(_result.Asserts.Single().Message, Does.Contain("actual"));
             AssertRecordedResult(label, false);
         }
 

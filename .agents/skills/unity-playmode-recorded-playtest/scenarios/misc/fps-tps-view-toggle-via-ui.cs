@@ -134,7 +134,7 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     var placeWait = p.BeginWait(10f, "FPS画面中央照準でブロックが設置される");
     while (await p.ReadWorldBlockCount() != beforeFpsPlace + 1)
     {
-        placeWait.CheckTimeout();
+        placeWait.CheckTimeout("expected=true, actual=condition false");
         await UniTask.Yield();
     }
     placeWait.Complete();

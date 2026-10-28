@@ -59,7 +59,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     var connectWait = p.BeginWait(15f, "準備: 橋脚E-Fがレールで繋がる");
     while (!(await RailSignature()).Contains("->"))
     {
-        connectWait.CheckTimeout();
+        connectWait.CheckTimeout("expected=true, actual=condition false");
         await UniTask.Yield();
     }
     connectWait.Complete();
@@ -133,7 +133,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     async UniTask<string> RailSignature()
     {
         var signature = "missing";
-        await PlaytestServerThreadAction.RunAsync("レール接続を複製する", () =>
+        await PlaytestServerThreadAction.RunAsync(p.CancellationToken, "レール接続を複製する", () =>
         {
             var e = RailOf(pierE); var f = RailOf(pierF); var datastore = ServerContext.GetService<Game.Train.RailGraph.RailGraphDatastore>();
             if (e == null || f == null) { signature = "missing"; return; }

@@ -144,9 +144,9 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
         var placementWait = p.BeginWait(15f, $"{blockName}が鉱脈上に設置された");
         while (placed == null)
         {
-            await PlaytestServerThreadAction.RunAsync("鉱脈上の設置物を読む", () => placed = FindOnVein(blockGuid, vein));
+            await PlaytestServerThreadAction.RunAsync(p.CancellationToken, "鉱脈上の設置物を読む", () => placed = FindOnVein(blockGuid, vein));
             if (placed != null) break;
-            placementWait.CheckTimeout();
+            placementWait.CheckTimeout("expected=true, actual=condition false");
             await UniTask.Yield();
         }
         placementWait.Complete();

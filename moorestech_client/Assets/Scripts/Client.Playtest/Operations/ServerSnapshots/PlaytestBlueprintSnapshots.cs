@@ -19,13 +19,13 @@ namespace Client.Playtest.Operations
             while (true)
             {
                 BlueprintJsonObject snapshot = null;
-                await PlaytestServerThreadAction.RunAsync("BP登録状態を複製する", () =>
+                await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "BP登録状態を複製する", () =>
                 {
                     var found = ServerContext.GetService<IBlueprintDatastore>().Blueprints.FirstOrDefault(item => item.Name == name);
                     if (found != null) snapshot = JsonConvert.DeserializeObject<BlueprintJsonObject>(JsonConvert.SerializeObject(found));
                 });
                 if ((snapshot != null) == present) { wait.Complete(); return snapshot; }
-                wait.CheckTimeout();
+                wait.CheckTimeout($"blueprint={name}, expected present={present}, actual present={snapshot != null}");
                 await UniTask.Yield();
             }
         }

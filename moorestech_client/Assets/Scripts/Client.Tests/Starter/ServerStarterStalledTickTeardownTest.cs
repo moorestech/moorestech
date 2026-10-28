@@ -34,7 +34,7 @@ namespace Client.Tests.Starter
             // Fold through the play-stop teardown while a tick-end action holds the tick thread
             using var release = new ManualResetEventSlim(false);
             using var blockerStarted = new ManualResetEventSlim(false);
-            var blocker = PlaytestServerThreadAction.RunAsync("stall blocker", () => { blockerStarted.Set(); release.Wait(TimeSpan.FromSeconds(60)); });
+            var blocker = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "stall blocker", () => { blockerStarted.Set(); release.Wait(TimeSpan.FromSeconds(60)); });
             while (!blockerStarted.IsSet && Time.realtimeSinceStartup < deadline + 15f) yield return null;
             Assert.IsTrue(blockerStarted.IsSet, "tickを止める処理が始まらなかった");
             LogAssert.Expect(LogType.Error, new Regex("処理完了前にサーバーが停止しました: stall blocker"));

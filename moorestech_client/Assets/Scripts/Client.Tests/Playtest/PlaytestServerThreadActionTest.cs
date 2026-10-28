@@ -48,7 +48,7 @@ namespace Client.Tests.Playtest
         {
             var actionThreadId = -1;
             var continuedOnMainThread = false;
-            var task = PlaytestServerThreadAction.RunAsync("thread probe", () => actionThreadId = Thread.CurrentThread.ManagedThreadId);
+            var task = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "thread probe", () => actionThreadId = Thread.CurrentThread.ManagedThreadId);
             task.GetAwaiter().OnCompleted(() => continuedOnMainThread = PlayerLoopHelper.IsMainThread);
             yield return WaitUntilDone(task, 15f);
 
@@ -62,7 +62,7 @@ namespace Client.Tests.Playtest
         {
             LogAssert.Expect(LogType.Error, new Regex("tick末尾の処理が例外で失敗しました: throw probe"));
             var continuedOnMainThread = false;
-            var task = PlaytestServerThreadAction.RunAsync("throw probe", () => throw new InvalidOperationException("scenario failure"));
+            var task = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "throw probe", () => throw new InvalidOperationException("scenario failure"));
             task.GetAwaiter().OnCompleted(() => continuedOnMainThread = PlayerLoopHelper.IsMainThread);
             yield return WaitUntilDone(task, 15f);
 
@@ -80,7 +80,7 @@ namespace Client.Tests.Playtest
             typeof(ServerInstanceManager).GetMethod("StopThreadActions", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(ServerStarterTestBoot.InstanceManager(_starter), null);
 
             var ran = false;
-            var task = PlaytestServerThreadAction.RunAsync("after stop", () => ran = true);
+            var task = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "after stop", () => ran = true);
 
             Assert.AreEqual(UniTaskStatus.Faulted, task.Status, "停止後の呼び出しが待ちに入った");
             Assert.Throws<InvalidOperationException>(() => task.GetAwaiter().GetResult());
@@ -96,10 +96,10 @@ namespace Client.Tests.Playtest
             // 先頭の処理でtickを止め、後ろの処理を時間切れにさせる
             // Freeze the tick with the first action so the one behind it times out
             using var release = new ManualResetEventSlim(false);
-            var blocker = PlaytestServerThreadAction.RunAsync("blocker", () => release.Wait(TimeSpan.FromSeconds(30)));
+            var blocker = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "blocker", () => release.Wait(TimeSpan.FromSeconds(30)));
             yield return null;
             var lateRan = false;
-            var late = PlaytestServerThreadAction.RunAsync("late", () => lateRan = true);
+            var late = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "late", () => lateRan = true);
             yield return WaitUntilDone(late, 20f);
             Assert.AreEqual(UniTaskStatus.Faulted, late.Status, "tickが止まっているのに時間切れにならなかった");
             Assert.Throws<TimeoutException>(() => late.GetAwaiter().GetResult());
@@ -109,7 +109,7 @@ namespace Client.Tests.Playtest
             release.Set();
             yield return WaitUntilDone(blocker, 20f);
             Assert.Throws<TimeoutException>(() => blocker.GetAwaiter().GetResult());
-            var probe = PlaytestServerThreadAction.RunAsync("after release", () => { });
+            var probe = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "after release", () => { });
             yield return WaitUntilDone(probe, 15f);
             Assert.AreEqual(UniTaskStatus.Succeeded, probe.Status);
             Assert.IsFalse(lateRan, "時間切れで失敗扱いにした処理が後から実行された");
@@ -125,12 +125,12 @@ namespace Client.Tests.Playtest
             // Freeze the tick with the first action so the one behind it stays admitted but unstarted
             using var release = new ManualResetEventSlim(false);
             using var blockerStarted = new ManualResetEventSlim(false);
-            var blocker = PlaytestServerThreadAction.RunAsync("stop blocker", () => { blockerStarted.Set(); release.Wait(TimeSpan.FromSeconds(30)); });
+            var blocker = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "stop blocker", () => { blockerStarted.Set(); release.Wait(TimeSpan.FromSeconds(30)); });
             var deadline = Time.realtimeSinceStartup + 15f;
             while (!blockerStarted.IsSet && Time.realtimeSinceStartup < deadline) yield return null;
             Assert.IsTrue(blockerStarted.IsSet, "先頭の処理がtickで始まらなかった");
             var lateRan = false;
-            var late = PlaytestServerThreadAction.RunAsync("stop late", () => lateRan = true);
+            var late = PlaytestServerThreadAction.RunAsync(System.Threading.CancellationToken.None, "stop late", () => lateRan = true);
             var lateAction = PendingActions().Single();
 
             // Drainが受理確認を通った直後に停止が割り込み、その後でtickが実行に入った順序を再現する
@@ -144,6 +144,34 @@ namespace Client.Tests.Playtest
             release.Set();
             yield return WaitUntilDone(blocker, 15f);
             Assert.Throws<InvalidOperationException>(() => blocker.GetAwaiter().GetResult());
+        }
+
+        [UnityTest]
+        public IEnumerator シナリオ終了は未開始操作と後続操作を取り消す()
+        {
+            using var release = new ManualResetEventSlim(false);
+            using var started = new ManualResetEventSlim(false);
+            using var lifetime = new CancellationTokenSource();
+            var blocker = PlaytestServerThreadAction.RunAsync(CancellationToken.None, "lifetime blocker", () => { started.Set(); release.Wait(TimeSpan.FromSeconds(30)); });
+            var deadline = Time.realtimeSinceStartup + 5f;
+            while (!started.IsSet && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.IsTrue(started.IsSet);
+            var ran = false;
+            var pending = PlaytestServerThreadAction.RunAsync(lifetime.Token, "lifetime pending", () => ran = true);
+            LogAssert.Expect(LogType.Error, new Regex("シナリオ終了で未開始の操作を取り消しました: lifetime pending"));
+            lifetime.Cancel();
+            yield return WaitUntilDone(pending, 2f);
+            Assert.Throws<OperationCanceledException>(() => pending.GetAwaiter().GetResult());
+            LogAssert.Expect(LogType.Error, new Regex("終了済みシナリオのサーバー操作を拒否しました: lifetime next"));
+            var next = PlaytestServerThreadAction.RunAsync(lifetime.Token, "lifetime next", () => ran = true);
+            Assert.Throws<OperationCanceledException>(() => next.GetAwaiter().GetResult());
+            release.Set();
+            yield return WaitUntilDone(blocker, 5f);
+            blocker.GetAwaiter().GetResult();
+            var probe = PlaytestServerThreadAction.RunAsync(CancellationToken.None, "lifetime probe", () => { });
+            yield return WaitUntilDone(probe, 5f);
+            probe.GetAwaiter().GetResult();
+            Assert.IsFalse(ran, "終了したシナリオの操作がtick再開後に実行された");
         }
 
         private static IServerThreadAction[] PendingActions()

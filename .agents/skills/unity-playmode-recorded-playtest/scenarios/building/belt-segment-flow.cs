@@ -117,7 +117,7 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
         {
             var count = await p.ReadBeltSegmentCount();
             if (count > 0 && cache.Replica != null && cache.Replica.Segments.Length == count && (!previous.HasValue || count != previous.Value)) { wait.Complete(); return; }
-            wait.CheckTimeout();
+            wait.CheckTimeout("expected=true, actual=condition false");
             await UniTask.Yield();
         }
     }

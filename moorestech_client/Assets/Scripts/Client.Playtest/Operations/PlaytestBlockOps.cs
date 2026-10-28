@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Playtest.Core;
@@ -9,6 +10,7 @@ using Game.Context;
 using Game.SpaceElevator;
 using Game.UnlockState;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Playtest.Operations
 {
@@ -27,34 +29,45 @@ namespace Client.Playtest.Operations
             throw new ArgumentException($"Block not found: {blockName}");
         }
 
-        public static async UniTask UnlockBlockServerSide(string blockName)
+        public static async UniTask UnlockBlockServerSide(CancellationToken cancellationToken, string blockName)
         {
             // サーバー側でアンロックし、UnlockedEventPacket経由でクライアントのビルドメニューへ同期させる
             // Unlock on the server; the UnlockedEventPacket syncs it to the client build menu
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ResolveBlockId(blockName)).BlockGuid;
-            await PlaytestServerThreadAction.RunAsync($"unlock block {blockName}", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid));
+            await PlaytestServerThreadAction.RunAsync(cancellationToken, $"unlock block {blockName}", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockBlock(blockGuid));
+            // 解放通知がクライアントへ届くまで後続の割当を待たせる
+            // Wait for the client unlock event before allowing the next assignment
+            var clientState = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
+            var deadline = Time.realtimeSinceStartup + 15f;
+            while (!clientState.BlockUnlockStateInfos.TryGetValue(blockGuid, out var info) || !info.IsUnlocked)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (deadline < Time.realtimeSinceStartup)
+                    throw new TimeoutException($"Client unlock not reflected within 15s: {blockName}");
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            }
         }
 
-        public static async UniTask<IBlock> PlaceBlockDirect(string blockName, Vector3Int position, BlockDirection direction)
+        public static async UniTask<IBlock> PlaceBlockDirect(CancellationToken cancellationToken, string blockName, Vector3Int position, BlockDirection direction)
         {
             // サーバーのデータストアへtick末尾で直接設置する（本番プロトコル非経由）
             // Place directly into the server datastore at the tick end (bypasses the production protocol)
             var blockId = ResolveBlockId(blockName);
             IBlock block = null;
             var placed = false;
-            await PlaytestServerThreadAction.RunAsync($"place {blockName} at {position}", () => placed = ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, direction, Array.Empty<BlockCreateParam>(), out block));
+            await PlaytestServerThreadAction.RunAsync(cancellationToken, $"place {blockName} at {position}", () => placed = ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, direction, Array.Empty<BlockCreateParam>(), out block));
             if (!placed) throw new InvalidOperationException($"設置拒否 pos={position} block={blockName}");
             return block;
         }
 
-        public static async UniTask<bool> RemoveBlock(Vector3Int position)
+        public static async UniTask<bool> RemoveBlock(CancellationToken cancellationToken, Vector3Int position)
         {
             var removed = false;
-            await PlaytestServerThreadAction.RunAsync($"remove block at {position}", () =>
+            await PlaytestServerThreadAction.RunAsync(cancellationToken, $"remove block at {position}", () =>
             {
                 var block = ServerContext.WorldBlockDatastore.GetBlock(position);
                 if (block != null && !ServerContext.GetService<SpaceElevatorConnectionService>().CanRemove(block)) return;
-                removed = ServerContext.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
+                removed = ServerContext.WorldBlockDatastore.RemoveBlock(CancellationToken cancellationToken, position, BlockRemoveReason.ManualRemove);
             });
             return removed;
         }

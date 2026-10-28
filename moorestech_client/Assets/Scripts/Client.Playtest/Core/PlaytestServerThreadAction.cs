@@ -39,10 +39,15 @@ namespace Client.Playtest.Core
             _serverAction = serverAction;
         }
 
-        public static async UniTask RunAsync(string label, Action serverAction)
+        public static async UniTask RunAsync(CancellationToken cancellationToken, string label, Action serverAction)
         {
             // 現サーバーのtick末尾へ渡す。受理されなければ即座に失敗を返す
             // Hand the work to the current server's tick end; fail immediately when it is not admitted
+            if (cancellationToken.IsCancellationRequested)
+            {
+                Debug.LogError($"[Playtest] 終了済みシナリオのサーバー操作を拒否しました: {label}");
+                cancellationToken.ThrowIfCancellationRequested();
+            }
             var action = new PlaytestServerThreadAction(label, serverAction);
             action._queue = ServerThreadActionQueueAccess.Current;
             if (action._queue == null || !action._queue.TryEnqueue(action))
@@ -53,6 +58,7 @@ namespace Client.Playtest.Core
 
             // 時間切れなら未開始の処理を取り消す。timeScaleに左右されない実時間で測る
             // On timeout cancel the not-yet-started work; measure in real time so timeScale cannot stretch it
+            using var cancellationRegistration = cancellationToken.Register(action.CancelOnScenarioEnd);
             using var timeoutSource = new CancellationTokenSource();
             timeoutSource.Token.Register(action.CancelOnTimeout);
             await action._completion.Task.Timeout(TimeSpan.FromSeconds(CompletionTimeoutSeconds), DelayType.Realtime, PlayerLoopTiming.Update, timeoutSource);
@@ -88,6 +94,21 @@ namespace Client.Playtest.Core
             else
                 Debug.LogError($"[Playtest] 処理完了前にサーバーが停止しました: {_label}");
             _failure = new InvalidOperationException($"Server stopped before the playtest server action completed: {_label}");
+            CompleteOnMainThread();
+        }
+
+        private void CancelOnScenarioEnd()
+        {
+            // 終了済みシナリオの未開始操作はキューから除く
+            // Release queued work when its owning scenario ends
+            if (Interlocked.CompareExchange(ref _state, StateCancelled, StateQueued) == StateQueued)
+            {
+                _queue.Release(this);
+                Debug.LogError($"[Playtest] シナリオ終了で未開始の操作を取り消しました: {_label}");
+            }
+            else
+                Debug.LogError($"[Playtest] シナリオ終了時に操作が開始済みです: {_label}");
+            _failure = new OperationCanceledException($"Scenario ended before server action completed: {_label}");
             CompleteOnMainThread();
         }
 

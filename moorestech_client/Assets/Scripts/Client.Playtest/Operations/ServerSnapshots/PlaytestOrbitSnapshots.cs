@@ -17,7 +17,7 @@ namespace Client.Playtest.Operations
         public static async UniTask<IReadOnlyList<IItemStack>> ReadArrivalOutputs(this PlaytestDriver driver, ItemId payloadId, int count)
         {
             IReadOnlyList<IItemStack> outputs = null;
-            await PlaytestServerThreadAction.RunAsync("到着成果を複製する", () =>
+            await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "到着成果を複製する", () =>
                 outputs = ServerContext.GetService<IOrbitalArrivalService>().PreviewArrivalOutputs(payloadId, count).ToArray());
             return outputs;
         }
@@ -30,9 +30,9 @@ namespace Client.Playtest.Operations
             while (true)
             {
                 var amount = 0;
-                await PlaytestServerThreadAction.RunAsync("ケーブル残量を読む", () => amount = ServerContext.GetService<SpaceElevatorCablePool>().Amount);
+                await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "ケーブル残量を読む", () => amount = ServerContext.GetService<SpaceElevatorCablePool>().Amount);
                 if (amount == expected) { wait.Complete(); return; }
-                wait.CheckTimeout();
+                wait.CheckTimeout($"cables expected={expected}, actual={amount}");
                 await UniTask.Yield();
             }
         }

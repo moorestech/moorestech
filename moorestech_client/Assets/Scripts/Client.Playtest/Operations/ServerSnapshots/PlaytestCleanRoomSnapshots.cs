@@ -16,11 +16,13 @@ namespace Client.Playtest.Operations
             var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
-                var ready = false;
-                await PlaytestServerThreadAction.RunAsync("清浄室のクラスを読む", () =>
-                    ready = ServerContext.GetService<CleanRoomDatastore>().TryGetCleanRoom(block, out var room) && room.ThresholdIndex == threshold);
-                if (ready) { wait.Complete(); return; }
-                wait.CheckTimeout();
+                int? actualThreshold = null;
+                await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "清浄室のクラスを読む", () =>
+                {
+                    if (ServerContext.GetService<CleanRoomDatastore>().TryGetCleanRoom(block, out var room)) actualThreshold = room.ThresholdIndex;
+                });
+                if (actualThreshold == threshold) { wait.Complete(); return; }
+                wait.CheckTimeout($"expected threshold={threshold}, actual threshold={actualThreshold}, detected={actualThreshold.HasValue}");
                 await UniTask.Yield();
             }
         }
@@ -32,12 +34,13 @@ namespace Client.Playtest.Operations
             var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
-                var ready = false;
-                await PlaytestServerThreadAction.RunAsync("清浄室の検出とクラスを読む", () =>
-                    ready = ServerContext.GetService<CleanRoomDatastore>().TryGetCleanRoom(block, out var room) &&
-                        (!requireClass || room.ThresholdIndex < MasterHolder.CleanRoomMaster.OutThresholdIndex));
-                if (ready) { wait.Complete(); return; }
-                wait.CheckTimeout();
+                int? actualThreshold = null;
+                await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "清浄室の検出とクラスを読む", () =>
+                {
+                    if (ServerContext.GetService<CleanRoomDatastore>().TryGetCleanRoom(block, out var room)) actualThreshold = room.ThresholdIndex;
+                });
+                if (actualThreshold.HasValue && (!requireClass || actualThreshold.Value < MasterHolder.CleanRoomMaster.OutThresholdIndex)) { wait.Complete(); return; }
+                wait.CheckTimeout($"expected detected=true, requireClass={requireClass}, actual threshold={actualThreshold}, detected={actualThreshold.HasValue}");
                 await UniTask.Yield();
             }
         }

@@ -16,7 +16,7 @@ namespace Client.Playtest.Operations
         public static async UniTask<HashSet<Guid>> ReadCompletedResearch(this PlaytestDriver driver)
         {
             HashSet<Guid> result = null;
-            await PlaytestServerThreadAction.RunAsync("研究の完了状態を複製する", () =>
+            await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "研究の完了状態を複製する", () =>
                 result = new HashSet<Guid>(ServerContext.GetService<IResearchDataStore>().GetSaveJsonObject().CompletedResearchGuids.Select(Guid.Parse)));
             return result;
         }
@@ -28,7 +28,7 @@ namespace Client.Playtest.Operations
             {
                 var completed = await driver.ReadCompletedResearch();
                 if (required.All(completed.Contains) && excluded.All(guid => !completed.Contains(guid))) { wait.Complete(); return; }
-                wait.CheckTimeout();
+                wait.CheckTimeout($"expected required=[{string.Join(",", required)}], excluded=[{string.Join(",", excluded)}], actual completed=[{string.Join(",", completed)}]");
                 await UniTask.Yield();
             }
         }

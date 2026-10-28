@@ -1,3 +1,4 @@
+using System.Threading;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest.Core;
 using Client.Playtest.Operations;
@@ -15,10 +16,12 @@ namespace Client.Playtest
         // The transition timeout for entering and leaving build mode
         private const float UiStateTimeoutSeconds = 10f;
 
+        private readonly CancellationToken _cancellationToken;
         private readonly PlaytestReporter _reporter;
 
-        public PlaytestHotbarDriver(PlaytestReporter reporter)
+        public PlaytestHotbarDriver(PlaytestReporter reporter, CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             _reporter = reporter;
         }
 
@@ -43,7 +46,7 @@ namespace Client.Playtest
             // 接続ツール(電線/レール/歯車チェーン等)はブロックとは別枠のアンロック状態を持つため、AssignHotbar前に必要
             // Connect tools (wire/rail/gear chain, etc.) hold a separate unlock state from blocks, so this precedes AssignHotbar
             _reporter.Step($"接続ツールをアンロック: {toolName}");
-            await PlaytestHotbarOps.UnlockConnectToolServerSide(toolName);
+            await PlaytestHotbarOps.UnlockConnectToolServerSide(_cancellationToken, toolName);
         }
 
         public async UniTask UnlockBlueprint()
@@ -51,7 +54,7 @@ namespace Client.Playtest
             // ブループリントはブロックとは別枠のアンロック状態を持つため、AssignHotbar前に必要
             // Blueprint holds a separate unlock state from blocks, so this precedes AssignHotbar
             _reporter.Step("ブループリントをアンロック");
-            await PlaytestHotbarOps.UnlockBlueprintServerSide();
+            await PlaytestHotbarOps.UnlockBlueprintServerSide(_cancellationToken);
         }
     }
 }
