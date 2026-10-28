@@ -70,7 +70,7 @@ namespace Tests.Util.Throughput
             else
             {
                 _replica = BeltTransportReplicaAssembler.Assemble(BeltDiffReplayTestUtil.Datastore().CaptureFullState());
-                Assert.AreEqual(BeltDiffReplayTestUtil.ServerHash(), BeltTransportStateHash.Compute(_replica.CaptureFullState()), $"hash right after the rebuild at tick {Tick}");
+                Assert.AreEqual(BeltDiffReplayTestUtil.ServerHash(), BeltTransportStateHash.Compute(_replica.Shapes, _replica.Segments), $"hash right after the rebuild at tick {Tick}");
             }
             _exitCounter.Observe();
         }

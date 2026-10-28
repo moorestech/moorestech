@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UITK エディタ PoC</title>
+<style>
+:root { --bg:#f6f6f4; --fg:#1d1f23; --sub:#5b6270; --card:#ffffff; --line:#e1e3e7; --ok:#1f7a45; --mid:#8a6a1c; --ng:#a33232; --accent:#c9771c; }
+@media (prefers-color-scheme: dark) { :root { --bg:#16181c; --fg:#e8eaed; --sub:#9aa3ad; --card:#1f2228; --line:#2f343c; --ok:#5fd08f; --mid:#e3b54d; --ng:#ff7b7b; --accent:#f2a640; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font: 15px/1.7 -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif; }
+main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 80px; }
+h1 { font-size: 26px; margin: 8px 0 4px; }
+h2 { font-size: 20px; margin: 40px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h3 { font-size: 16px; margin: 24px 0 6px; }
+.sub { color: var(--sub); font-size: 13px; }
+.verdict { background: var(--card); border: 1px solid var(--line); border-left: 5px solid var(--accent); border-radius: 8px; padding: 14px 18px; margin: 16px 0; }
+.verdict b { font-size: 17px; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 8px; overflow: hidden; font-size: 14px; }
+th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { font-size: 12px; color: var(--sub); font-weight: 600; }
+.tbl { overflow-x: auto; }
+.ok { color: var(--ok); font-weight: 700; white-space: nowrap; }
+.mid { color: var(--mid); font-weight: 700; white-space: nowrap; }
+.ng { color: var(--ng); font-weight: 700; white-space: nowrap; }
+img { max-width: 100%; border-radius: 6px; border: 1px solid var(--line); display: block; margin: 8px 0; }
+figure { margin: 12px 0; }
+figcaption { color: var(--sub); font-size: 13px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+ul { padding-left: 20px; }
+li { margin: 4px 0; }
+code { font-size: 13px; background: rgba(127,127,127,0.15); padding: 1px 5px; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+</style>
+</head>
+</head>
+<body>
+<main>
+<h1>UITK PoC 第2弾 — React Flow 相当のノード編集と、Figma 風のベクター編集</h1>
+<div class="sub">2026-10-22 / ブランチ <code>poc/uitk-hard-cases</code>（commit de6c68621c）/ Unity 6000.3.8f1・UI Toolkit ランタイム / Mac mini・Game ビュー 1920×1080・vSync なし / 第1弾: <a href="../hard-cases/index.html">難所 PoC</a></div>
+
+<div class="verdict">
+<b>判定: どちらも UITK で作れた。</b>
+<ul>
+<li><b>ノード編集</b>: React Flow の基本操作（ポート接続・付け替え・範囲選択・方眼吸着・大きさ変更・ミニマップ・元に戻す）が、C# 約1,200行ですべて動いた。</li>
+<li><b>ベクター編集</b>: 矩形・楕円・ペン（ベジェ曲線）・回転込みの取っ手・スマートガイドが、約1,500行で動いた。</li>
+<li><b>Web と違って自前で持つもの</b>:
+<ul>
+<li>線や図形の当たり判定（Painter2D に無い）</li>
+<li>描き直しを小さく保つ層の分け方</li>
+<li>重さの勘所（<code>usageHints</code> と <code>translate</code>）</li>
+</ul></li>
+<li><b>数の上限の目安</b>:
+<ul>
+<li>ノードは 2,000 個（要素 約2万）でも 1 つのドラッグは 1.2ms で軽い。ただし全部を同時に動かすと 82ms。</li>
+<li>図形は 5,000 個でもパン・ズームは滑らか（1.7ms）。ただし図形の層を描き直すたびに 50〜86ms かかる。全部を同時にドラッグすると約 20fps に落ちる。1,000 個なら描き直しは 11〜14ms。</li>
+</ul></li>
+<li><b>未着手</b>: ブール演算・テキスト編集・SVG 書き出し。</li>
+</ul>
+</div>
+
+<h2>一覧</h2>
+<div class="tbl">
+<table>
+<tr><th>対象</th><th>動いたもの</th><th>実装（C#行）</th><th>負荷（UITK の更新＋描画、平均）</th></tr>
+<tr><td>ノード編集<br><span class="sub">React Flow 相当</span></td><td>出力→入力のドラッグ接続（破線の予告線・落とし先の強調）、つながった入力を掴んで付け替え、占有ポートへの接続で置き換え、範囲選択・Shift 追加、複数ノードの一括移動、方眼吸着、右下の取っ手で大きさ変更、辺のクリック選択と Delete、Cmd+Z / Shift+Cmd+Z、ミニマップ（クリックで移動）、ホイールズーム・右ドラッグでパン、全体表示</td><td class="num">1,208<br><span class="sub">＋USS 158・共通の取り消し 73</span></td><td>2,000ノード・2,064辺:<br>待機 0.03ms / パン 6ms<br>1つドラッグ 1.2ms<br>全部ドラッグ 82ms</td></tr>
+<tr><td>ベクター編集<br><span class="sub">Figma 風</span></td><td>矩形・楕円（Shift で正方形）、ペン（クリック=角、ドラッグ=曲線、最初の点で閉じる）、選択・範囲選択、8方向の取っ手での大きさ変更（回転中も対角を固定、Shift で縦横比）、回転（Shift で15°刻み）、スマートガイド（辺・中心への吸着と線表示）、Delete・元に戻す、拡大時の描き直し切替</td><td class="num">1,488<br><span class="sub">＋USS 55</span></td><td>5,000図形:<br>パン・ズーム 1.7ms<br>1つドラッグ 開始・終了に各1回 50〜86ms<br>全部ドラッグ 約50ms/フレーム</td></tr>
+</table>
+</div>
+<p class="sub">負荷は ProfilerRecorder で読んだ <code>UIElementsUpdatePanels</code>＋<code>UIElementsRepaintPanels</code> と、メインスレッドのフレーム時間。操作は PlayMode にポインタ・キーのイベントを毎フレーム注入して 2.5〜4 秒続け、その間を測った。</p>
+
+<h2>1. ノード編集（React Flow 相当）</h2>
+<figure><img src="img/ne_overview.jpg" alt=""><figcaption>範囲選択した4ノードを方眼に吸着させながら移動したところ。動かしたノードは最前面に出て、右下のミニマップでは選択中が橙になる</figcaption></figure>
+<div class="grid2">
+<figure><img src="img/ne_connect.jpg" alt=""><figcaption>出力ポートからドラッグ中。予告線は破線、落とし先の入力ポートは拡大して橙になる</figcaption></figure>
+<figure><img src="img/ne_marquee.jpg" alt=""><figcaption>何も無い所からの範囲選択。枠に掛かったノードがその場で選ばれる</figcaption></figure>
+</div>
+<figure><img src="img/ne_2000.jpg" alt=""><figcaption>2,000ノード・2,064辺を全体表示（要素数 19,744）。待機中のフレーム時間は 2.4ms</figcaption></figure>
+
+<h3>負荷と、効いた2つの設定</h3>
+<div class="tbl">
+<table>
+<tr><th>操作（2,000ノード）</th><th>最初の実装</th><th>改善後</th><th>効いたこと</th></tr>
+<tr><td>パン</td><td class="num">83ms（<code>usageHints</code> なし）</td><td class="num">6ms</td><td>内容を載せる親要素に <code>UsageHints.GroupTransform</code>。拡大・平行移動が子孫の再計算にならない。同じ時点の比較で 83ms→9ms と<b>約9倍の差</b>。その後の改修（ミニマップの描き直しの間引き等）を経て 6ms</td></tr>
+<tr><td>1つドラッグ</td><td class="num">13ms</td><td class="num">1.2ms</td><td>ノードの位置を <code>left/top</code> ではなく <code>translate</code> で持つ（レイアウトが走らない）＋ドラッグ中は動くノードに付く辺だけを別の層で描き直す</td></tr>
+<tr><td>全部ドラッグ</td><td class="num">167ms</td><td class="num">82ms</td><td>同上。残りは 2,064 本の辺を毎フレーム描き直す分。実用上この操作は稀</td></tr>
+</table>
+</div>
+<table style="margin-top:8px">
+<tr><th>ノード数</th><th>待機</th><th>パン</th><th>1つドラッグ</th><th>全部ドラッグ</th></tr>
+<tr><td>200</td><td class="num">0.02ms</td><td class="num">1.0ms</td><td class="num">0.15ms</td><td class="num">2.1ms</td></tr>
+<tr><td>1,000</td><td class="num">0.02ms</td><td class="num">3.4ms</td><td class="num">0.44ms</td><td class="num">9.5ms</td></tr>
+<tr><td>2,000</td><td class="num">0.03ms</td><td class="num">6.0ms</td><td class="num">1.2ms</td><td class="num">82ms</td></tr>
+</table>
+<ul>
+<li>大きさ0の要素でも Painter2D の描画は出るし、子要素の当たり判定も効く。無限キャンバスの「世界」要素は大きさを持たなくてよい</li>
+<li>辺の当たり判定は、ベジェ曲線を20分割した折れ線との距離で自作した（Painter2D には当たり判定が無い）</li>
+<li>パンの残り6msは、ミニマップと方眼を消しても約8割残る。約2万要素の位置の更新をたどる分と推測。React Flow の「表示範囲外は描かない」に当たる仕組み（範囲外ノードの非表示）は未実装</li>
+</ul>
+<figure style="max-width:420px"><img src="img/ne_minimap_bleed.jpg" alt=""><figcaption>不透明度95%のミニマップ背景から、後ろのノードの見出し（青）と辺が透ける。Linear 色空間の合成で 5% でも目に見える（B 値 26→49 と計算が一致）。<b>パネル背景は不透明色で塗る</b></figcaption></figure>
+
+<h2>2. ベクター編集（Figma 風）</h2>
+<div class="grid2">
+<figure><img src="img/ve_guides.jpg" alt=""><figcaption>ドラッグ中のスマートガイド。他の図形の辺・中心に5px以内で吸着し、合った線を桃色で出す</figcaption></figure>
+<figure><img src="img/ve_rotate.jpg" alt=""><figcaption>105°回転した矩形を右下の取っ手で拡大。左上の角は世界座標で動かない（402.80, 52.73 のまま）。回転の取っ手は図形の「上」方向に付く</figcaption></figure>
+<figure><img src="img/ve_pen_draft.jpg" alt=""><figcaption>ペンで描画中。ドラッグした点は対称の取っ手を持つ</figcaption></figure>
+<figure><img src="img/ve_pen_closed.jpg" alt=""><figcaption>最初の点を押して閉じた図形。選択枠は制御点ではなく曲線そのものを包む</figcaption></figure>
+</div>
+<figure><img src="img/ve_5000.jpg" alt=""><figcaption>5,000図形（矩形・楕円・星形、一部は回転）を10%で全体表示</figcaption></figure>
+
+<h3>図形数と負荷</h3>
+<p>全図形を1枚の層に Painter2D で描き、ビューの拡大・平行移動は要素の変形（GPU）で当てる。ドラッグ中は、動かす図形だけを操作層へ移して毎フレーム描く。</p>
+<div class="tbl">
+<table>
+<tr><th>場面</th><th>1,000図形</th><th>5,000図形</th></tr>
+<tr><td>パン・ズーム（GPU で拡大するだけ）</td><td class="num">0.7ms/フレーム</td><td class="num">1.7ms/フレーム</td></tr>
+<tr><td>静止層を1回描き直す（ドラッグの開始・終了、描き直し方式でズームが止まった瞬間）</td><td class="num">11〜14ms</td><td class="num">50〜86ms</td></tr>
+<tr><td>うち描画コールバック（パスを積む時間）</td><td class="num">約2ms</td><td class="num">9〜12ms</td></tr>
+<tr><td>全部ドラッグ中（毎フレーム全部を描き直す）</td><td class="num">約12ms/フレーム</td><td class="num">約50ms/フレーム（約20fps）</td></tr>
+</table>
+</div>
+<ul>
+<li>描き直しの費用は図形数にほぼ比例する（1図形あたり約11µs）。同じ内容を5フレームおきに描き直させても毎回同じだけかかった。描画コールバックでパスを積む時間は2割弱で、残りは UITK の描画更新（<code>UIElementsRepaintPanels</code>）の中でかかる。内訳（塗りの三角形分割・メッシュの転送）までは切り分けていない</li>
+<li>1,000図形なら、ドラッグの開始・終了の引っかかりは1フレーム落ちる程度で済む。5,000図形級なら、層を空間で区切って（タイル化）一度に描き直す量を減らす設計が要る</li>
+</ul>
+
+<h3>拡大したときの画質</h3>
+<p>「GPU で拡大するだけ」（等倍で描いた形を要素の変形で拡大）と、「拡大時に描き直す」（今の倍率で描き直す）を、同じ場所で撮り比べた。</p>
+<div class="grid2">
+<figure><img src="img/ve_z10_gpu.jpg" alt=""><figcaption>10倍・GPU で拡大するだけ</figcaption></figure>
+<figure><img src="img/ve_z10_redraw.jpg" alt=""><figcaption>10倍・描き直す。違いは見えない</figcaption></figure>
+<figure><img src="img/ve_z64_gpu.jpg" alt=""><figcaption>64倍・GPU で拡大するだけ。楕円の縁がわずかに折れ線になる（中央付近の角）</figcaption></figure>
+<figure><img src="img/ve_z64_redraw.jpg" alt=""><figcaption>64倍・描き直す。滑らか</figcaption></figure>
+</div>
+<div class="grid2">
+<figure style="max-width:240px"><img src="img/ve_miter_gpu.jpg" alt=""><figcaption>星の鋭い角（10倍・GPU）</figcaption></figure>
+<figure style="max-width:240px"><img src="img/ve_miter_redraw.jpg" alt=""><figcaption>同じ角（10倍・描き直す）。線の角（マイター）の尖り方が描画の倍率で変わる</figcaption></figure>
+</div>
+<ul>
+<li>縁のぼけは、どちらの方式でも出なかった。10倍までは「GPU で拡大するだけ」で十分で、描き直しの負担も無い</li>
+<li>64倍では描き直しが要る。描き直す範囲は表示範囲の3倍に絞り、ズームが止まって0.15秒後に描く</li>
+<li>鋭い角の形が倍率で変わるので、拡大の方式を途中で切り替えると角の見た目が跳ねる</li>
+</ul>
+
+<h2>3. Web と比べて自前で持ったもの</h2>
+<div class="tbl">
+<table>
+<tr><th>機能</th><th>Web での手段</th><th>UITK でやったこと</th></tr>
+<tr><td>線・図形の当たり判定</td><td>SVG の要素ごとのイベント、<code>isPointInPath</code></td><td>図形ごとに単位座標へ戻して内外判定。パスは折れ線にして偶奇則と線までの距離（約80行）</td></tr>
+<tr><td>描き直しの範囲を絞る</td><td>React Flow の仮想化、canvas の部分再描画</td><td>静止層と操作層、動く辺だけの層、ミニマップの間引き</td></tr>
+<tr><td>元に戻す・やり直す</td><td>状態管理ライブラリ</td><td>コマンド方式の履歴（73行、両デモで共通）</td></tr>
+<tr><td>スマートガイド</td><td>（Figma 独自）</td><td>辺・中心の9本ずつを総当たり（約60行）</td></tr>
+<tr><td>ブール演算（合体・切り抜き）</td><td>paper.js 等</td><td class="ng">未着手</td></tr>
+<tr><td>テキスト編集・SVG 書き出し</td><td>contenteditable / 標準</td><td class="ng">未検証</td></tr>
+</table>
+</div>
+<ul>
+<li>ブール演算は画面の仕組みとは無関係な幾何計算なので、C# の多角形演算ライブラリ（Clipper2 等）を入れれば UITK 側の制約は無い</li>
+</ul>
+
+<h2>4. 移行計画への示唆</h2>
+<ul>
+<li>研究ツリー・レシピ木のようなノード図は、今回のノード編集の部分集合で足りる。数百ノードなら最適化なしでも余裕がある</li>
+<li>どの画面でも、拡大縮小する親要素には <code>UsageHints.GroupTransform</code>、頻繁に動く要素の位置は <code>translate</code>、半透明のパネル背景は避ける。この3点は共通部品の規約に入れる</li>
+<li>地図や配線図のように数千の図形を描く画面を作るなら、最初から層分けとタイル化を前提にする</li>
+</ul>
+</main>
+</body>
+</html>

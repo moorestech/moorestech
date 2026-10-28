@@ -10,8 +10,6 @@ namespace Client.Game.InGame.Block
     public static class BlockStateProfilerMarkers
     {
         public static readonly ProfilerMarker DeserializeBlockState = new("BlockState.Deserialize");
-        public static readonly ProfilerMarker FluidPipeGetStateDetail = new("BlockState.FluidPipe.GetStateDetail");
-        public static readonly ProfilerMarker FluidPipeApplyWaterLevel = new("BlockState.FluidPipe.ApplyWaterLevel");
 
         private static readonly Dictionary<Type, ProfilerMarker> ProcessorMarkers = new();
 

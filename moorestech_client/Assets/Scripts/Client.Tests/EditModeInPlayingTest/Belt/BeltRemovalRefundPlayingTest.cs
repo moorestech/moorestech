@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Context;
@@ -16,6 +17,7 @@ using Server.Protocol.PacketResponse;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using Client.Tests.EditModeInPlayingTest.Util;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
 namespace Client.Tests.EditModeInPlayingTest
@@ -57,14 +59,13 @@ namespace Client.Tests.EditModeInPlayingTest
                     var testCase = testCases[index];
                     ClearInventory();
                     var position = new Vector3Int(100 + index * 3, 100, 100);
-                    var block = PlaceBlock(testCase.BlockName, position, BlockDirection.North);
-                    Assert.IsNotNull(block);
-                    transport.RebuildIfDirty();
-                    var layout = transport.Assembly.Layouts.Single(entry => entry.Cells.Any(cell => cell.Position == position));
                     var item = new BeltItem(itemId, ItemInstanceId.Create(), BeltEntryDirection.FromBack);
-                    transport.Assembly.Segments[layout.Index].RestoreItems(new[] { new BeltItemState(item, 100) });
-                    var refund = transport.GetOwnedRefundItems(block.BlockInstanceId).Single();
-                    Assert.AreEqual(item.ItemInstanceId, refund.ItemInstanceId);
+                    var placement = new PlaceBeltCarryingItem(testCase.BlockName, position, item, transport);
+                    await placement.RunOnServerAsync();
+                    var block = placement.Block;
+                    Assert.IsNotNull(block);
+                    Assert.AreEqual(1, placement.MatchedLayoutCount);
+                    Assert.AreEqual(item.ItemInstanceId, placement.Refunds.Single().ItemInstanceId);
                     Assert.AreEqual(0, Count());
 
                     // 歯車では満杯拒否後に同じ撤去を再試行
@@ -79,7 +80,7 @@ namespace Client.Tests.EditModeInPlayingTest
                         Assert.AreEqual(RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull, denied.FailureReason);
                         Assert.AreSame(block, ServerContext.WorldBlockDatastore.GetBlock(position));
                         CollectionAssert.AreEqual(before, inventory.InventoryItems);
-                        Assert.AreEqual(1, transport.GetOwnedRefundItems(block.BlockInstanceId).Count);
+                        Assert.AreEqual(1, await ReadOwnedRefundCount(block));
                         Debug.Log($"[BeltRemovalRefundPlaying] denied={denied.FailureReason} carried=1 refunded={Count()} tick={GameUpdater.CurrentTick}");
                         ClearInventory();
                     }
@@ -94,9 +95,16 @@ namespace Client.Tests.EditModeInPlayingTest
                     Debug.Log($"[BeltRemovalRefundPlaying] removed={testCase.BlockName} success={response.Success} refunded={Count()} tick={tick}");
                     for (var frame = 0; frame < 300 && GameUpdater.CurrentTick == tick; frame++) await UniTask.Yield();
                     Assert.Greater(GameUpdater.CurrentTick, tick, "The running server must advance a real tick.");
-                    Assert.IsEmpty(transport.GetOwnedRefundItems(block.BlockInstanceId));
+                    Assert.AreEqual(0, await ReadOwnedRefundCount(block));
                     Assert.AreEqual(1, Count());
                     Debug.Log($"[BeltRemovalRefundPlaying] after-tick carried=0 refunded={Count()} tick={GameUpdater.CurrentTick}");
+                }
+
+                async UniTask<int> ReadOwnedRefundCount(IBlock target)
+                {
+                    var read = new ReadOwnedRefundCountStep(target.BlockInstanceId, transport);
+                    await read.RunOnServerAsync();
+                    return read.Count;
                 }
 
                 int Count()
@@ -111,6 +119,63 @@ namespace Client.Tests.EditModeInPlayingTest
             }
 
             #endregion
+        }
+
+        // ベルトを置いて網を作り直し、搬送中アイテムを1つ載せて返却物を読む
+        // Places a belt, rebuilds the network, loads one carried item and reads the refunds
+        private sealed class PlaceBeltCarryingItem : ServerTickEndTestStep
+        {
+            private readonly string _blockName;
+            private readonly Vector3Int _position;
+            private readonly BeltItem _item;
+            private readonly BeltTransportDatastore _transport;
+
+            public IBlock Block { get; private set; }
+            public int MatchedLayoutCount { get; private set; }
+            public IReadOnlyList<IItemStack> Refunds { get; private set; }
+
+            public PlaceBeltCarryingItem(string blockName, Vector3Int position, BeltItem item, BeltTransportDatastore transport)
+            {
+                _blockName = blockName;
+                _position = position;
+                _item = item;
+                _transport = transport;
+            }
+
+            protected override void Execute()
+            {
+                Block = PlaceBlock(_blockName, _position, BlockDirection.North);
+                _transport.RebuildIfDirty();
+
+                // 一致数はメインスレッドで検証する。ここで例外を投げると更新ループに握られて待ちが打ち切りまで続く
+                // The match count is asserted on the main thread; throwing here would be swallowed by the update loop and stall the wait
+                var layouts = _transport.Assembly.Layouts.Where(entry => entry.Cells.Any(cell => cell.Position == _position)).ToArray();
+                MatchedLayoutCount = layouts.Length;
+                if (layouts.Length != 1) return;
+                _transport.Assembly.Segments[layouts[0].Index].RestoreItems(new[] { new BeltItemState(_item, 100) });
+                Refunds = _transport.GetOwnedRefundItems(Block.BlockInstanceId);
+            }
+        }
+
+        // 搬送tickと重ならない時点でblockの返却物を数える
+        // Counts a block's refunds at a point that never overlaps the transport tick
+        private sealed class ReadOwnedRefundCountStep : ServerTickEndTestStep
+        {
+            private readonly BlockInstanceId _blockInstanceId;
+            private readonly BeltTransportDatastore _transport;
+
+            public int Count { get; private set; }
+
+            public ReadOwnedRefundCountStep(BlockInstanceId blockInstanceId, BeltTransportDatastore transport)
+            {
+                _blockInstanceId = blockInstanceId;
+                _transport = transport;
+            }
+
+            protected override void Execute()
+            {
+                Count = _transport.GetOwnedRefundItems(_blockInstanceId).Count;
+            }
         }
     }
 }

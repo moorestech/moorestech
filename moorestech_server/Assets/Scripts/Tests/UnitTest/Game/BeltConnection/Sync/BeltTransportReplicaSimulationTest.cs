@@ -55,7 +55,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             // 実際に状態が動いたうえで一致していること、項目ごとにも一致していること
             // The state actually moved, and it also matches field by field
             Assert.AreNotEqual(initialHash, HashOf(assembly), "the server state changed over the run");
-            BeltFullStateAssert.AreEqual(CaptureOf(assembly), replica.CaptureFullState());
+            BeltFullStateAssert.AreEqual(CaptureOf(assembly), BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments));
         }
 
         [Test]
@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             }
             Assert.AreEqual(3, handoffs, "three handoffs into the chest");
             Assert.AreEqual(3, TotalCount(Inventory(chest)), "the chest received all three items");
-            Assert.AreEqual(0, ItemCount(replica.CaptureFullState()), "the replica is empty as well");
+            Assert.AreEqual(0, ItemCount(BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments)), "the replica is empty as well");
         }
 
         [Test]
@@ -106,7 +106,7 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             }
             Assert.Greater(firstHandoffTick, 0, "the server handed an item off");
             Assert.AreEqual(firstHandoffTick, firstDivergenceTick, "divergence starts exactly at the server's handoff");
-            Assert.AreEqual(3, ItemCount(replica.CaptureFullState()), "the replica still holds all three items");
+            Assert.AreEqual(3, ItemCount(BeltTransportFullStateCapture.Capture(replica.Shapes, replica.Segments)), "the replica still holds all three items");
         }
 
         [Test]

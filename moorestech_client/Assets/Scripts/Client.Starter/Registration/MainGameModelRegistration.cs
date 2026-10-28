@@ -2,6 +2,7 @@ using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BeltTransport.Network;
+using Client.Game.InGame.FluidNetwork.Network;
 using Client.Game.InGame.Block.GearRotation;
 using Client.Game.InGame.GraphicsQuality.Appliers;
 using Client.Game.InGame.Block.Preview;
@@ -94,7 +95,9 @@ namespace Client.Starter.Registration
             // presenterと索引cacheを登録
             // Register event-driven presenters and index caches
             builder.RegisterEntryPoint<CommonMachineBlockStateChangeProcessor>();
-            builder.RegisterEntryPoint<WorldDataHandler>();
+            // 周期取得は持たず、生成時にハンドシェイクの全量を適用して設置・撤去イベントを購読するだけなので、起動時に1度解決する
+            // Holds no polling; it applies the handshake full state and subscribes to place/remove events on construction, so it is resolved once at startup
+            builder.Register<WorldDataHandler>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BlockStateEventHandler>();
             builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
@@ -112,6 +115,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
             builder.RegisterEntryPoint<BeltTransportEventNetworkHandler>();
+            builder.RegisterEntryPoint<FluidNetworkEventNetworkHandler>();
             // 時刻表はtick同期の外でUI用に保持する
             // Keep timetables for the UI outside the tick-synchronized path
             builder.Register<ClientTrainTimetableDatastore>(Lifetime.Singleton).As<IClientTrainTimetableLookup>().As<IClientTrainTimetableMutator>().AsSelf();

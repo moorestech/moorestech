@@ -2,14 +2,15 @@ using System;
 using Core.BeltTransport;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Block.Blocks.BeltConveyor.Sync.Replica;
 using Game.Block.Blocks.BeltConveyor.Sync.State;
 using NUnit.Framework;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.BeltConnection.Sync
 {
-    // 全量のハッシュが等しい入力で安定し、どの1項目を変えても変わるか
-    // Whether the full-state hash is stable for equal inputs and changes whenever any single field changes
+    // 組のハッシュが等しい入力で安定し、どの1項目を変えても変わるか。全量から Core segment を組み、本番と同じ直接の経路で混ぜる
+    // Whether the assembly hash is stable for equal inputs and changes whenever any single field changes; Core segments are assembled from the full state and mixed through the same direct path as production
     public class BeltTransportStateHashTest
     {
         [Test]
@@ -21,8 +22,8 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
         [Test]
         public void EmptyStateHashIsDeterministicAndDiffersFromNonEmpty()
         {
-            var empty = BeltTransportStateHash.Compute(new BeltTransportFullState(Array.Empty<BeltSegmentState>()));
-            Assert.AreEqual(empty, BeltTransportStateHash.Compute(new BeltTransportFullState(Array.Empty<BeltSegmentState>())));
+            var empty = Hash(new BeltTransportFullState(Array.Empty<BeltSegmentState>()));
+            Assert.AreEqual(empty, Hash(new BeltTransportFullState(Array.Empty<BeltSegmentState>())));
             Assert.AreNotEqual(empty, Hash(new Spec()));
         }
 
@@ -80,18 +81,26 @@ namespace Tests.UnitTest.Game.BeltConnection.Sync
             Assert.AreNotEqual(Hash(new Spec()), Hash(changed), field);
         }
 
+        // 同じ segment でも番号が入れ替われば別の値になる(配線はそのまま、並びだけ入れ替える)
+        // The same segments hash differently once their indices swap (wiring untouched, only the order changes)
         [Test]
         public void SwappingSegmentOrderChangesHash()
         {
-            var spec = new Spec();
-            var state = spec.Build();
-            var swapped = new BeltTransportFullState(new[] { state.Segments[1], state.Segments[0] });
-            Assert.AreNotEqual(BeltTransportStateHash.Compute(state), BeltTransportStateHash.Compute(swapped));
+            var replica = BeltTransportReplicaAssembler.Assemble(new Spec().Build());
+            var swappedShapes = new[] { replica.Shapes[1], replica.Shapes[0] };
+            var swappedSegments = new[] { replica.Segments[1], replica.Segments[0] };
+            Assert.AreNotEqual(BeltTransportStateHash.Compute(replica.Shapes, replica.Segments), BeltTransportStateHash.Compute(swappedShapes, swappedSegments));
         }
 
         private static uint Hash(Spec spec)
         {
-            return BeltTransportStateHash.Compute(spec.Build());
+            return Hash(spec.Build());
+        }
+
+        private static uint Hash(BeltTransportFullState fullState)
+        {
+            var replica = BeltTransportReplicaAssembler.Assemble(fullState);
+            return BeltTransportStateHash.Compute(replica.Shapes, replica.Segments);
         }
 
         // 2本(1マスの通常segment → 合流segment)の全量を項目から組む。既定値を1つだけ書き換えて差を作る

@@ -2,6 +2,7 @@ using System;
 using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
+using Client.Game.InGame.FluidNetwork;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
@@ -11,6 +12,7 @@ using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics.BlockDetail;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
@@ -25,8 +27,14 @@ namespace Client.WebUiHost.Game.Topics
         public const string TopicName = "block_inventory.current";
         private readonly TrainUnitClientCache _trainUnitClientCache;
         private readonly BeltTransportClientCache _beltCache;
+        private readonly FluidNetworkClientCache _fluidCache;
         private readonly IDisposable _beltWindowSubscription;
         private bool _republishOnBeltWindow;
+        // パイプの中身はブロック状態イベントで届かずクライアント側のコピーが毎tick進めるので、連続値と同じ間隔で見て、量か流体の種類が前回の配信から変わった回だけ出し直す
+        // Pipe contents no longer arrive as block state events but advance in the client-side copy every tick, so they are sampled at the continuous-sample interval and republished only when the amount or fluid id changed since the last publish
+        private bool _republishOnFluidReplica;
+        private long _publishedPipeAmount;
+        private FluidId _publishedPipeFluidId;
         private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _timetableFetcher;
         private readonly OpenTrainTimetableTracker _openTrainTimetableTracker;
@@ -46,10 +54,11 @@ namespace Client.WebUiHost.Game.Topics
         // Task 8 の action handler がスナップショット反映に使う公開口
         // Public access point used by Task 8 action handlers to apply snapshots
         public BlockNetworkInfoCache NetworkCache => _networkCache;
-        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher timetableFetcher, BeltTransportClientCache beltCache)
+        public BlockInventoryTopic(WebSocketHub hub, UIStateControl uiStateControl, SubInventoryState subInventoryState, TrainUnitClientCache trainUnitClientCache, IClientTrainTimetableLookup timetables, TrainTimetableFetcher timetableFetcher, BeltTransportClientCache beltCache, FluidNetworkClientCache fluidCache)
         {
             _trainUnitClientCache = trainUnitClientCache;
             _beltCache = beltCache;
+            _fluidCache = fluidCache;
             // 搬出統計の5tickブロックが完成するたびに、開いているベルトの詳細を出し直す
             // Republish the open belt's detail each time a 5-tick block of the exit statistics completes
             _beltWindowSubscription = beltCache.ExitStatistics.OnWindowAdvanced.Subscribe(_ =>
@@ -75,7 +84,7 @@ namespace Client.WebUiHost.Game.Topics
             // ギア連続値を4tick間隔で配信する
             // Sample RPM/torque and other continuous values every four ticks, publishing only the latest state
             _continuousSampleSubscription = Observable.IntervalFrame(4)
-                .Where(_ => _continuousSamplePending)
+                .Where(_ => _continuousSamplePending || HasPipeContentsChanged())
                 .Subscribe(_ => PublishContinuousSample());
         }
         public UniTask<string> GetSnapshotJsonAsync()
@@ -102,6 +111,19 @@ namespace Client.WebUiHost.Game.Topics
         {
             _continuousSamplePending = false;
             SchedulePublish();
+        }
+        // 開いているパイプの量・流体の種類をクライアント側のコピーから読み、前回の配信と違えば控えて true を返す(変わらない間は送らない)
+        // Read the open pipe's amount and fluid id from the client-side copy; when they differ from the last publish, remember them and return true (nothing is sent while unchanged)
+        private bool HasPipeContentsChanged()
+        {
+            if (!_republishOnFluidReplica || !_fluidCache.TryGetNodeIndex(_trackedBlock.BlockPosInfo.OriginalPos, out var pipeNode)) return false;
+            var network = _fluidCache.Replica.Network;
+            var amount = network.NodeAmounts[pipeNode];
+            var fluidId = network.NodeFluidIds[pipeNode];
+            if (amount == _publishedPipeAmount && fluidId == _publishedPipeFluidId) return false;
+            _publishedPipeAmount = amount;
+            _publishedPipeFluidId = fluidId;
+            return true;
         }
         private void OnTrackedBlockStateChanged()
         {
@@ -157,7 +179,7 @@ namespace Client.WebUiHost.Game.Topics
                 return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
             }
             TrackBlock(block);
-            var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache);
+            var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache, _fluidCache);
             return WebUiJson.Serialize(dto);
         }
         // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える
@@ -174,8 +196,17 @@ namespace Client.WebUiHost.Game.Topics
             {
                 _sampleContinuously = false;
                 _republishOnBeltWindow = false;
+                _republishOnFluidReplica = false;
                 _networkCache.Clear();
                 return;
+            }
+            // 開いた時点でコピーに載っていないパイプは、載るまで中身を出さない(調べ直さない)。載っていれば今の中身を配信済みとして控え、最初の配信は通常の開く経路に任せる
+            // A pipe not yet in the copy when opened shows no contents until reopened (no re-check); when present, the current contents count as published and the first publish goes through the normal open path
+            _republishOnFluidReplica = _fluidCache.TryGetNodeIndex(block.BlockPosInfo.OriginalPos, out var pipeNode);
+            if (_republishOnFluidReplica)
+            {
+                _publishedPipeAmount = _fluidCache.Replica.Network.NodeAmounts[pipeNode];
+                _publishedPipeFluidId = _fluidCache.Replica.Network.NodeFluidIds[pipeNode];
             }
             // 束で追跡ブロックに届いたら再配信
             // Republish whenever bundle routing delivers a state to the tracked block

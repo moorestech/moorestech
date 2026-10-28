@@ -3,6 +3,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.BeltTransportSync;
+using Server.Event.EventReceive.FluidNetworkSync;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
@@ -26,13 +27,14 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var handshake = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack("steam:1"));
             var response = packetResponse.GetPacketResponse(handshake, context);
 
-            // GetPacketResponseが返った時点でsinkに両snapshotが積まれている＝応答より先にワイヤへ載る
-            // Both snapshots are already in the sink when the response returns, so they precede it on the wire
+            // GetPacketResponseが返った時点でsinkに全snapshot(レール・列車・ベルト・流体)が積まれている＝応答より先にワイヤへ載る
+            // Every snapshot (rail, train, belt, fluid) is already in the sink when the response returns, so they precede it on the wire
             Assert.IsTrue(0 < response.Count);
-            Assert.AreEqual(3, sink.Events.Count);
+            Assert.AreEqual(4, sink.Events.Count);
             Assert.AreEqual(TrainFullSnapshotEventPacket.RailGraphFullSnapshotEventTag, sink.Events[0].Tag);
             Assert.AreEqual(TrainFullSnapshotEventPacket.TrainUnitFullSnapshotEventTag, sink.Events[1].Tag);
             Assert.AreEqual(BeltTransportFullSnapshotEventPacket.EventTag, sink.Events[2].Tag);
+            Assert.AreEqual(FluidNetworkFullSnapshotEventPacket.EventTag, sink.Events[3].Tag);
         }
 
         // snapshot pushがtickSequenceIdを新規消費しないことを確認（seq穴の防止）

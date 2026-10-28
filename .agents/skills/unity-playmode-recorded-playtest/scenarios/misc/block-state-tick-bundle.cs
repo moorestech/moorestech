@@ -1,14 +1,9 @@
-using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
 using Client.Playtest;
-using Core.Master;
 using Cysharp.Threading.Tasks;
-using Game.Block.Blocks.Fluid;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
-using Game.Fluid;
+using Game.Gear.Common;
 using Server.Event.EventReceive;
-using UniRx;
 using UnityEngine;
 
 return PlaytestRunner.Run("block-state-tick-bundle", new PlaytestRunOptions { Record = true }, async p =>
@@ -24,34 +19,28 @@ return PlaytestRunner.Run("block-state-tick-bundle", new PlaytestRunOptions { Re
     var bundleSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(ChangeBlockStateEventPacket.EventTag, _ => bundleCount++);
 
     var origin = new Vector3Int(3, 32, 3);
-    await PlacePipeAndCheckWater(origin, 100f, "1回目");
+    await PlaceGearAndCheckState(origin, "1回目");
 
     // 撤去して同じ座標に置き直しても状態が届く
     // State still arrives after removing and re-placing at the same position
     p.RemoveBlock(origin);
-    await p.Until(() => p.GetBlock(origin) == null, 10f, "パイプ撤去");
+    await p.Until(() => p.GetBlock(origin) == null, 10f, "歯車撤去");
     await p.WaitSeconds(1f);
-    await PlacePipeAndCheckWater(origin, 50f, "再設置後");
+    await PlaceGearAndCheckState(origin, "再設置後");
 
     p.Assert(bundleCount > 0, $"束イベントを受信した count={bundleCount}");
     p.Note($"[BUNDLE] received={bundleCount}");
     bundleSubscription.Dispose();
 
     #region Internal
-    async UniTask PlacePipeAndCheckWater(Vector3Int pos, float amount, string label)
+    async UniTask PlaceGearAndCheckState(Vector3Int pos, string label)
     {
-        var block = p.PlaceBlockDirect("鉄のパイプ", pos, BlockDirection.East);
+        // 新しいBlockGameObjectは状態を持たず、束の振り分けでのみ歯車状態が入る
+        // A fresh BlockGameObject holds no state; the gear state only arrives through bundle routing
+        p.PlaceBlockDirect("鉄の歯車", pos, BlockDirection.East);
         var view = await p.WaitBlockGameObject(pos);
-        await p.Until(() => !view.IsPlayingPlaceAnimation, 15f, $"{label} 設置アニメ完了");
-        var changedCount = 0;
-        var changedSubscription = view.OnBlockStateChanged.Subscribe(_ => changedCount++);
-        var processor = view.GetComponentInChildren<FluidPipeStateChangeProcessor>();
-        var water = MasterHolder.FluidMaster.GetFluidId(new System.Guid("9eae6979-d56a-4991-9107-b8161acec430"));
-        block.GetComponent<FluidPipeComponent>().Node.AddExternal(new FluidStack(amount, water));
-        await p.Until(() => processor.DebugCurrentFluidPipeState != null && processor.DebugCurrentFluidPipeState.Amount == amount, 15f, $"{label} 水位受信 {amount}");
-        p.Assert(changedCount > 0, $"{label} OnBlockStateChangedが発火 count={changedCount}");
-        await p.Screenshot($"water-{label}");
-        changedSubscription.Dispose();
+        await p.Until(() => view.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey) != null, 15f, $"{label} 歯車状態受信");
+        await p.Screenshot($"gear-{label}");
     }
     #endregion
 });

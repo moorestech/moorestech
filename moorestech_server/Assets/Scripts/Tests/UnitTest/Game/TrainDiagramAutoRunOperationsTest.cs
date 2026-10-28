@@ -120,10 +120,15 @@ namespace Tests.UnitTest.Game
 
             var forwardEntry = diagram.Entries[1].Node;
             var deadEndEntry = diagram.Entries[2].Node;
-            var reverseEntry = diagram.Entries[3].Node;
+            var behindNode = diagram.Entries[3].Node;
 
+            // 反転後の列車は後方ノードの反対側ノードへ向かって走るので、停車先はそちらにする（このシナリオの線路は順方向の辺しか持たない）
+            // After reversing the train runs toward the behind node's opposite node, so that is the stop (this scenario's track has forward edges only)
             diagram.HandleNodeRemoval(forwardEntry);
             diagram.HandleNodeRemoval(deadEndEntry);
+            diagram.HandleNodeRemoval(behindNode);
+            var reverseEntry = behindNode.OppositeNode;
+            diagram.AddEntry(reverseEntry);
             diagram.Entries[0].SetDepartureWaitTicks(0);
 
             Assert.AreSame(scenario.StationExitFront, diagram.GetCurrentNode(),
@@ -139,14 +144,17 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(trainUnit.IsAutoRun, "auto-run should remain enabled after departure preparation.");
             Assert.AreEqual(0d, trainUnit.CurrentSpeed, "the undock tick itself should not move the train yet.");
 
-            trainUnit.Update();
-
+            // 反転は停車中の発車処理で経路を確かめてから行う
+            // The reverse happens in the stopped departure tick, after the route has been checked
             var tickDiff = trainUnit.GetTickDiff();
 
             Assert.IsTrue(tickDiff.isReversedThisTick,
-                "the first movement tick after undocking should report an automatic reverse.");
+                "the departure tick should report an automatic reverse.");
             Assert.IsFalse(frontCar.IsFacingForward,
                 "the car should face backward after the automatic reverse departure.");
+
+            trainUnit.Update();
+
             Assert.Greater(trainUnit.CurrentSpeed, 0d,
                 "the reverse departure tick should begin accelerating immediately.");
             Assert.AreSame(reverseEntry, diagram.GetCurrentNode(),
