@@ -77,6 +77,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
 
         [TestCase(0.0)]
         [TestCase(-1.0)]
+        [TestCase(double.NaN)]
         public void NonPositiveCapIsRejectedByValidationTest(double maxItemsPerSecond)
         {
             var blocksJToken = PrepareBlocksJson();
@@ -88,11 +89,30 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             StringAssert.Contains($"[BlockMaster] Name:TestCleanRoomItemHatch has maxItemsPerSecond:{(float)maxItemsPerSecond} that is not positive", errorLogs);
         }
 
-        [Test]
-        public void FractionalPositiveCapPassesValidationTest()
+        // int.MaxValueはfloatで2^31へ丸まり搬送側のint換算をあふれるので、無限大・3e9と同じく拒否する
+        // int.MaxValue rounds to 2^31 as float and overflows the hatch's int conversion, so it is rejected like infinity and 3e9
+        [TestCase(2147483647.0)]
+        [TestCase(3e9)]
+        [TestCase(double.PositiveInfinity)]
+        public void CapAboveIntRangeIsRejectedByValidationTest(double maxItemsPerSecond)
         {
             var blocksJToken = PrepareBlocksJson();
-            FindBlockParam(blocksJToken, "TestCleanRoomItemHatch")["maxItemsPerSecond"] = 0.5;
+            FindBlockParam(blocksJToken, "TestCleanRoomItemHatch")["maxItemsPerSecond"] = maxItemsPerSecond;
+
+            var isValid = BlockMasterUtil.Validate(new BlockMaster(blocksJToken).Blocks, out var errorLogs);
+
+            Assert.IsFalse(isValid);
+            StringAssert.Contains($"[BlockMaster] Name:TestCleanRoomItemHatch has maxItemsPerSecond:{(float)maxItemsPerSecond} that exceeds int.MaxValue", errorLogs);
+        }
+
+        // 2147483520はint.MaxValue以下で最大のfloat
+        // 2147483520 is the largest float not above int.MaxValue
+        [TestCase(0.5)]
+        [TestCase(2147483520.0)]
+        public void PositiveCapWithinIntRangePassesValidationTest(double maxItemsPerSecond)
+        {
+            var blocksJToken = PrepareBlocksJson();
+            FindBlockParam(blocksJToken, "TestCleanRoomItemHatch")["maxItemsPerSecond"] = maxItemsPerSecond;
 
             var isValid = BlockMasterUtil.Validate(new BlockMaster(blocksJToken).Blocks, out var errorLogs);
 

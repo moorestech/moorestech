@@ -172,6 +172,7 @@ namespace Game.Block.Blocks.Machine.State
             InheritedLevel = null;
             TotalTicks = 0;
             RemainingTicks = 0;
+            _context.SetProcessingPowerMultiplier(0f);
         }
     }
 }
