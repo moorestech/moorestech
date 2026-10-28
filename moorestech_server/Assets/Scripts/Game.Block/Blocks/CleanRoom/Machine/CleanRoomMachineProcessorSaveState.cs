@@ -31,7 +31,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 CycleCount = cycleCount,
                 TotalTicks = processingState.TotalTicks,
                 ConsumedInputItemGuids = processingState.ConsumedInputItemIds?.Select(id => MasterHolder.ItemMaster.GetItemMaster(id).ItemGuid.ToString()).ToList(),
-                PendingRealization = MachineRealizationSaveJsonObject.Capture(idleState, idleState.TryGetPendingRealization(out var pending) ? CleanRoomDrawRecordSave.Capture(pending.DrawRecord) : null),
+                PendingRealization = MachineRealizationSaveJsonObject.Capture(idleState, idleState.TryGetPendingRealization(out var pending) ? ((CleanRoomYieldPreviewResult)pending.DrawRecord)?.CaptureDrawRecord() : null),
                 State = (int)currentState,
                 RemainingSeconds = GameUpdater.TicksToSeconds(processingState.RemainingTicks),
                 RecipeGuidStr = processingState.RecipeGuid.ToString(),
@@ -58,7 +58,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             if (!BlockComponentStateReader.TryRead<CleanRoomMachineProcessorSaveJsonObject>(componentStates, saveKey, out var saveData)) return;
             MachineRealizationSaveJsonObject.WarnIfLegacy(JObject.FromObject(componentStates[saveKey]));
             cycleCount = saveData.CycleCount;
-            pendingRealization = saveData.PendingRealization?.Restore(CleanRoomDrawRecordSave.Restore(saveData.PendingRealization.DrawRecord));
+            pendingRealization = saveData.PendingRealization?.Restore(CleanRoomYieldPreviewResult.RestoreDrawRecord(saveData.PendingRealization.DrawRecord));
             RestoreSlots(saveData);
             BlockTemplateUtil.RestoreMachineFluids(saveData.InputFluidSlot, saveData.OutputFluidSlot, input, output, true);
 

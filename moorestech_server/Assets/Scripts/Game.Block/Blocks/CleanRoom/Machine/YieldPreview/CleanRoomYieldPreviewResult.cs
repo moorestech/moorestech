@@ -1,4 +1,6 @@
+using System;
 using Game.Block.Blocks.Machine.State;
+using Newtonsoft.Json.Linq;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 {
@@ -13,6 +15,30 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         private protected CleanRoomYieldPreviewResult()
         {
         }
+
+        // 新しい役割も保存の実装を必須とする
+        // Every new role must implement its own serialization
+        internal abstract JObject CaptureDrawRecord();
+
+        internal static CleanRoomYieldPreviewResult RestoreDrawRecord(JObject record)
+        {
+            if (record == null) return null;
+            return (string)record["kind"] switch
+            {
+                "waferGrade" => new WaferGradePreview(Required<int>("maxGrade"), Required<double>("promotionChance")),
+                "layerExposure" => new LayerExposurePreview(Required<double>("layerFailRate")),
+                "dicing" => new DicingPreview(Required<double>("dieLossRate")),
+                _ => throw new InvalidOperationException($"未対応の保存抽選記録です:{record["kind"]}"),
+            };
+
+            #region Internal
+            T Required<T>(string key)
+            {
+                if (record[key] == null || record[key].Type == JTokenType.Null) throw new InvalidOperationException($"保存抽選記録の必須キーがありません:{key}");
+                return record[key].Value<T>();
+            }
+            #endregion
+        }
     }
 
     // 未選択か、役割表に無いレシピ
@@ -24,6 +50,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         private NoRolePreview()
         {
         }
+
+        internal override JObject CaptureDrawRecord() => throw new InvalidOperationException("保存できない抽選記録です:NoRolePreview");
     }
 
     // 部屋が稼働を許さない（未密閉・クラス不足）。停止理由は A7 の状態が配る
@@ -35,6 +63,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         private NotOperablePreview()
         {
         }
+
+        internal override JObject CaptureDrawRecord() => throw new InvalidOperationException("保存できない抽選記録です:NotOperablePreview");
     }
 
     public sealed class WaferGradePreview : CleanRoomYieldPreviewResult
@@ -47,6 +77,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
             MaxGrade = maxGrade;
             PromotionChance = promotionChance;
         }
+
+        internal override JObject CaptureDrawRecord() => new JObject { ["kind"] = "waferGrade", ["maxGrade"] = MaxGrade, ["promotionChance"] = PromotionChance };
     }
 
     public sealed class LayerExposurePreview : CleanRoomYieldPreviewResult
@@ -57,6 +89,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         {
             LayerFailRate = layerFailRate;
         }
+
+        internal override JObject CaptureDrawRecord() => new JObject { ["kind"] = "layerExposure", ["layerFailRate"] = LayerFailRate };
     }
 
     public sealed class DicingPreview : CleanRoomYieldPreviewResult
@@ -67,5 +101,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         {
             DieLossRate = dieLossRate;
         }
+
+        internal override JObject CaptureDrawRecord() => new JObject { ["kind"] = "dicing", ["dieLossRate"] = DieLossRate };
     }
 }

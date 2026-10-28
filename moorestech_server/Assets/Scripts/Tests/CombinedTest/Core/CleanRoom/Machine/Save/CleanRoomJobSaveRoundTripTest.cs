@@ -5,6 +5,7 @@ using Core.Inventory;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.CleanRoom.Machine;
+using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -77,6 +78,44 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             var returned = restored.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Concat(overflow.InventoryItems);
             Assert.AreEqual(1, returned.Where(item => item.Id == ForUnitTestItemId.TestGradedWaferG2).Sum(item => item.Count));
             Assert.AreEqual(0, returned.Where(item => item.Id == ForUnitTestItemId.TestGradedWaferG1).Sum(item => item.Count));
+        }
+        [TestCase("waferGrade")]
+        [TestCase("layerExposure")]
+        [TestCase("dicing")]
+        public void DrawRecordPreservesWireShapeAndRatesThroughJson(string kind)
+        {
+            var wire = JObject.Parse(kind switch
+            {
+                "waferGrade" => "{ 'kind': 'waferGrade', 'maxGrade': 3, 'promotionChance': 0.125 }",
+                "layerExposure" => "{ 'kind': 'layerExposure', 'layerFailRate': 0.25 }",
+                "dicing" => "{ 'kind': 'dicing', 'dieLossRate': 0.375 }",
+                _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+            });
+
+            // 既存wireを復元し、型自身の保存を二往復して率を比較する
+            // Restore the existing wire format and compare rates after two captures by the concrete role
+            var restored = CleanRoomYieldPreviewResult.RestoreDrawRecord(wire);
+            var expectedType = kind switch
+            {
+                "waferGrade" => typeof(WaferGradePreview),
+                "layerExposure" => typeof(LayerExposurePreview),
+                "dicing" => typeof(DicingPreview),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+            };
+            Assert.AreEqual(expectedType, restored.GetType());
+            var captured = JObject.Parse(restored.CaptureDrawRecord().ToString());
+            Assert.IsTrue(JToken.DeepEquals(wire, captured));
+            Assert.IsTrue(JToken.DeepEquals(wire, CleanRoomYieldPreviewResult.RestoreDrawRecord(captured).CaptureDrawRecord()));
+        }
+
+        [Test]
+        public void DrawRecordRejectsUnknownKindsMissingRatesAndNonDrawStates()
+        {
+            Assert.IsNull(CleanRoomYieldPreviewResult.RestoreDrawRecord(null));
+            Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(new JObject { ["kind"] = "unknown" }));
+            Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(new JObject { ["kind"] = "dicing" }));
+            Assert.Throws<InvalidOperationException>(() => NoRolePreview.Instance.CaptureDrawRecord());
+            Assert.Throws<InvalidOperationException>(() => NotOperablePreview.Instance.CaptureDrawRecord());
         }
     }
 }
