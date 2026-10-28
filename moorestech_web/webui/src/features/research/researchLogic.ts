@@ -30,6 +30,8 @@ export function allocateResearchItems(node: ResearchNodeData, owned: Map<number,
   return allocated;
 }
 
+// 1件ごとの不足強調は表示専用でボタン活性には使わず、完了と未受信では出さない
+// Per-item shortages are display-only, never enable buttons, and stay hidden when completed or pending
 export function isConsumeItemLacking(node: ResearchNodeData, required: number, allocated: number | null): boolean {
   return allocated !== null && node.state !== "completed" && allocated < required;
 }

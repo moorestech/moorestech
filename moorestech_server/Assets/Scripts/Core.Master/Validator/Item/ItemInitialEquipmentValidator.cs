@@ -21,6 +21,8 @@ namespace Core.Master.Validator.Item
                 }
                 if (initial.ItemCount <= 0)
                     logs += $"[ItemMaster.initialEquipmentItems] ItemGuid:{initial.ItemGuid} has non-positive ItemCount:{initial.ItemCount}\n";
+                // 初期レベルの最大スタック数を超えると初期装備投入時のItemStack生成が生の例外で落ちるため、ここで先に弾く
+                // ItemStack creation throws raw past the initial-level max stack on grant, so reject it here first
                 logs += InitialLevelMaxStackValidation(initial.ItemGuid, initial.ItemCount);
             }
             if (items.EquipmentSlotCount < items.InitialEquipmentItems.Length)
