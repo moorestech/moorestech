@@ -9,7 +9,7 @@ var pem = dom.GetData("bench_ev_pem");
 pem.GetType().GetField("_eventPacketSubject", bf).SetValue(pem, dom.GetData("bench_ev_original"));
 double secs = UnityEngine.Time.realtimeSinceStartupAsDouble - (double)dom.GetData("bench_ev_time");
 var counts = (Dictionary<string, double[]>)dom.GetData("bench_ev_counts");
-var tags = (Dictionary<string, string>)dom.GetData("bench_ev_tags");
+var tags = (Dictionary<UnityEngine.Vector3Int, string>)dom.GetData("bench_ev_tags");
 var blockStates = (double[])dom.GetData("bench_ev_blockstates");
 var ci = System.Globalization.CultureInfo.InvariantCulture;
 var total = counts.Where(k => !k.Key.StartsWith("blockState|")).Sum(k => k.Value[0]); var bytes = counts.Values.Sum(v => v[1]);

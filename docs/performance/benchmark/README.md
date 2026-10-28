@@ -55,7 +55,7 @@
 | `fps` | Profiler なしの fps とフレーム ms 平均 |
 | `profiler.frameMs` | Profiler 記録中のフレーム時間の平均・p50・p95・最大 |
 | `profiler.markers` | マーカーごとの1フレームあたり totalMs・selfMs・calls。主要マーカー、`PacketExchange.*`・`BlockState.*` の全部、self 上位20を含む |
-| `events` | 受信イベントの件数/秒・payload バイト/秒、ブロック状態の件数/秒（`blockStatesPerSecond`。束の中身の件数。束の前の結果には無い）、状態を出したブロック数（`blockStateSenders`。束の前はタグ数、束の後は座標数）。`byKind` はタグ種別ごとの内訳で、ブロック状態は状態キーの組み合わせ別（束の後は `blockState|<組み合わせ>` に件数だけ入る） |
+| `events` | 受信イベントの件数/秒・payload バイト/秒、ブロック状態の件数/秒（`blockStatesPerSecond`。束の中身の件数。束の前の結果には無い）、状態を出したブロック数（`blockStateSenders`。束の前はタグ数、束の後は最初の1束に載った座標数）。`byKind` はタグ種別ごとの内訳で、ブロック状態は状態キーの組み合わせ別（束の後は `blockState|<組み合わせ>` に件数だけ入る。件数は束の配列ヘッダで数え、組み合わせは最初の1束だけ全件復号して座標から引く。最初の1束に無かった座標は `blockState|未分類`） |
 
 ## スニペット一覧（`snippets/`）
 | ファイル | 役割 |
