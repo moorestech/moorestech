@@ -42,8 +42,11 @@ namespace Client.Tests.WebUi
             {
                 // Client.* の全アセンブリを走査し、Client.Playtest 等の web 契約外ハンドラも漏らさず数える
                 // Scan every Client.* assembly so handlers outside the web contract (e.g. Client.Playtest) are also counted
+                // テスト用の差し替えハンドラは契約ではないため、このテスト自身のアセンブリは数えない
+                // Test-double handlers are not part of the contract, so skip this test's own assembly
+                var testAssembly = typeof(WireContractActionNamesTest).Assembly;
                 var types = System.AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => a.GetName().Name.StartsWith("Client."))
+                    .Where(a => a.GetName().Name.StartsWith("Client.") && a != testAssembly)
                     .SelectMany(a => a.GetTypes())
                     .Where(t => (typeof(IActionHandler).IsAssignableFrom(t) || typeof(IConnectionActionHandler).IsAssignableFrom(t)) && !t.IsInterface && !t.IsAbstract);
                 // ハンドラのコンストラクタはゲーム状態の依存を要求するため、生成せずに ActionType だけを読む
