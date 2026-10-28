@@ -83,9 +83,10 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
                 processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
                 Assert.AreEqual(before, Newtonsoft.Json.JsonConvert.SerializeObject(processor.GetSaveState()));
                 Assert.IsTrue(WaitForClassA(serviceProvider.GetService<CleanRoomDatastore>(), filter, machine, TickCap));
-                // 復元直後の機械は部屋効果の初回push前なので、1tick進めて効果を受け取らせる
-                // A just-restored machine has not received its first room-effect push, so advance one tick to deliver it
-                RunTicks(filter, machine, 1);
+                // 復元直後は部屋効果の初回push前で1tickだけHaltedを経由するので、出力待ちのIdleへ戻るまで進める
+                // Before the first room-effect push a restored machine passes one Halted tick, so advance until it is back to output-blocked Idle
+                RunTicks(filter, machine, 2);
+                Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
                 var restored = ReadWaferGrade(packet, machine);
                 Assert.AreEqual(2, restored.PendingDraw.MaxGrade);
                 Assert.AreEqual(0.9, restored.PendingDraw.PromotionChance, Tolerance);
