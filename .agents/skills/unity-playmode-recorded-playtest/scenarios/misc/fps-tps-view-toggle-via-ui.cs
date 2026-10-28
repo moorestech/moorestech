@@ -131,12 +131,13 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     p.Assert(Cursor.lockState != CursorLockMode.Locked, "FPS建設でもUI側のカーソル解放を維持");
     var beforeFpsPlace = await p.ReadWorldBlockCount();
     await p.ClickPlace();
-    var placeDeadline = Time.realtimeSinceStartup + 10f;
+    var placeWait = p.BeginWait(10f, "FPS画面中央照準でブロックが設置される");
     while (await p.ReadWorldBlockCount() != beforeFpsPlace + 1)
     {
-        if (placeDeadline < Time.realtimeSinceStartup) throw new System.TimeoutException("FPS設置の待機が時間切れです");
+        placeWait.CheckTimeout();
         await UniTask.Yield();
     }
+    placeWait.Complete();
     await p.Screenshot("08-fps-center-placed");
 
     // 7: 削除モードへ遷移してもFPSが維持される

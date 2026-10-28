@@ -65,7 +65,7 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     var packaging = await PlaceStage("パッケージング装置", new Vector3Int(6, 33, 5), "ICチップLv1");
     foreach (var x in new[] { 10, 12 }) await GiveWithFluids(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 5)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
-    await p.WaitForCleanRoom(cutter, true, 30f);
+    await p.WaitForCleanRoom(cutter, true, 30f, "clean room classified");
     foreach (var cell in new[] { new Vector3Int(14, 36, 10), new Vector3Int(7, 33, 0), new Vector3Int(0, 32, -26) }) await p.WaitBlockGameObject(cell);
     await p.Screenshot("01-room-and-line");
 

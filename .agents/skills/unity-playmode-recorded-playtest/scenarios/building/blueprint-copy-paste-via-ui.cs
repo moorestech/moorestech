@@ -97,9 +97,8 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     nameState.Confirm("chest-bp");
-    await p.WaitForBlueprint("chest-bp", true, 15f);
+    var chestBp = await p.WaitForBlueprint("chest-bp", true, 15f, "BP『chest-bp』が登録される");
     await UniTask.DelayFrame(10);
-    var chestBp = await p.WaitForBlueprint("chest-bp", true, 15f);
     p.Assert(chestBp.Blocks.Count == 1 && chestBp.Blocks[0].Offset == Vector3Int.zero, $"BPはチェスト1個・オフセット(0,0,0) 実際:{chestBp.Blocks.Count}/{(chestBp.Blocks.Count > 0 ? chestBp.Blocks[0].Offset.ToString() : "-")}");
 
     p.Note("側面ヒット: チェスト東面(3.0,32.5,2.5)の始点セルは(3,32,2)（旧実装は(3,33,2)）。範囲内0なら確定を拒む");

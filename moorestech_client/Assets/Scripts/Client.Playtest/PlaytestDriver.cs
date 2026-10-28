@@ -172,20 +172,15 @@ namespace Client.Playtest
         {
             // 固定sleepの代替。条件成立をフレームポーリングで待ち、結果も記録する
             // Replacement for fixed sleeps: poll per frame until the condition holds, recording the outcome
-            var waitEntry = _reporter.BeginWait(label);
-            var startTime = Time.realtimeSinceStartup;
+            var wait = BeginWait(timeoutSeconds, label);
             while (!condition())
             {
-                if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
-                {
-                    _reporter.RecordUntilResult(false, label, $"Until timeout after {timeoutSeconds}s");
-                    throw new TimeoutException($"Until '{label}' timed out after {timeoutSeconds}s");
-                }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
-            _reporter.EndWait(waitEntry);
-            _reporter.RecordUntilResult(true, label, "condition met");
+            wait.Complete();
         }
+        public PlaytestRecordedWaits BeginWait(float timeoutSeconds, string label) => PlaytestRecordedWaits.Begin(_reporter, label, timeoutSeconds);
         public async UniTask WaitSeconds(float seconds) => await PlaytestRecordedWaits.WaitSeconds(_reporter, seconds);
         public async UniTask<string> Screenshot(string name)
         {

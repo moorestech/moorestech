@@ -2,6 +2,7 @@ using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest.Core;
+using Client.Playtest.Overlay;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -12,8 +13,42 @@ namespace Client.Playtest.Operations
     ///     待機を実況記録（待機行・完了印）付きで行う操作群。PlaytestDriverの待機系APIの本体
     ///     Waits recorded with a wait line and completion mark; the bodies behind PlaytestDriver's wait APIs
     /// </summary>
-    public static class PlaytestRecordedWaits
+    public sealed class PlaytestRecordedWaits
     {
+        private readonly PlaytestReporter _reporter;
+        private readonly PlaytestOverlayLogEntry _entry;
+        private readonly string _label;
+        private readonly float _timeoutSeconds;
+        private readonly float _deadline;
+
+        private PlaytestRecordedWaits(PlaytestReporter reporter, string label, float timeoutSeconds)
+        {
+            _reporter = reporter;
+            _label = label;
+            _timeoutSeconds = timeoutSeconds;
+            _entry = reporter.BeginWait(label);
+            _deadline = Time.realtimeSinceStartup + timeoutSeconds;
+        }
+
+        // 条件評価を外へ残し、表示・成否・期限を扱う
+        // Keep condition evaluation with the caller; own the wait display, result and deadline here
+        public static PlaytestRecordedWaits Begin(PlaytestReporter reporter, string label, float timeoutSeconds) => new(reporter, label, timeoutSeconds);
+
+        public void Complete()
+        {
+            _reporter.EndWait(_entry);
+            _reporter.RecordUntilResult(true, _label, "condition met");
+        }
+
+        public void CheckTimeout()
+        {
+            if (_deadline < Time.realtimeSinceStartup)
+            {
+                _reporter.RecordUntilResult(false, _label, $"Until timeout after {_timeoutSeconds}s");
+                throw new TimeoutException($"Until '{_label}' timed out after {_timeoutSeconds}s");
+            }
+        }
+
         public static async UniTask<BlockGameObject> WaitBlockGameObject(PlaytestReporter reporter, Vector3Int position)
         {
             var waitEntry = reporter.BeginWait($"ブロック生成待ち: {position}");

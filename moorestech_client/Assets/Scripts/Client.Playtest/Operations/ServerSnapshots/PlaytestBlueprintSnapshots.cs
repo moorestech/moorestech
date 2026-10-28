@@ -13,9 +13,9 @@ namespace Client.Playtest.Operations
     // Copy the mutable registry and blueprint contents inside the tick
     public static class PlaytestBlueprintSnapshots
     {
-        public static async UniTask<BlueprintJsonObject> WaitForBlueprint(this PlaytestDriver driver, string name, bool present, float timeoutSeconds)
+        public static async UniTask<BlueprintJsonObject> WaitForBlueprint(this PlaytestDriver driver, string name, bool present, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
                 BlueprintJsonObject snapshot = null;
@@ -24,8 +24,8 @@ namespace Client.Playtest.Operations
                     var found = ServerContext.GetService<IBlueprintDatastore>().Blueprints.FirstOrDefault(item => item.Name == name);
                     if (found != null) snapshot = JsonConvert.DeserializeObject<BlueprintJsonObject>(JsonConvert.SerializeObject(found));
                 });
-                if ((snapshot != null) == present) return snapshot;
-                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException($"BP登録待ちが時間切れです name:{name} present:{present}");
+                if ((snapshot != null) == present) { wait.Complete(); return snapshot; }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
         }

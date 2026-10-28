@@ -24,15 +24,15 @@ namespace Client.Playtest.Operations
 
         // プールの可変値をtick内で読み、待機はメインスレッドで進める
         // Read the mutable pool inside the tick and drive waiting on the main thread
-        public static async UniTask WaitForCableCount(this PlaytestDriver driver, int expected, float timeoutSeconds)
+        public static async UniTask WaitForCableCount(this PlaytestDriver driver, int expected, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
                 var amount = 0;
                 await PlaytestServerThreadAction.RunAsync("ケーブル残量を読む", () => amount = ServerContext.GetService<SpaceElevatorCablePool>().Amount);
-                if (amount == expected) return;
-                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException($"ケーブル残量待ちが時間切れです expected:{expected} actual:{amount}");
+                if (amount == expected) { wait.Complete(); return; }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
         }

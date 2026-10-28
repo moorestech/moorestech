@@ -61,7 +61,7 @@ return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async 
 
     // サーバー登録を確認する
     // Confirm server-side registration
-    await p.WaitForBlueprint("delbp", true, 15f);
+    await p.WaitForBlueprint("delbp", true, 15f, "サーバーにBP『delbp』が登録される");
 
     // メニューを開きBPスロットの表示を確認する
     // Open the menu and confirm the blueprint slot is listed
@@ -75,7 +75,7 @@ return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async 
     // Right-click the blueprint slot, then verify server-side deletion and slot removal
     var slot = FindTextSlot("delbp");
     ClickUi(slot.GetComponentInChildren<CommonSlotView>(true).gameObject, PointerEventData.InputButton.Right, false);
-    await p.WaitForBlueprint("delbp", false, 15f);
+    await p.WaitForBlueprint("delbp", false, 15f, "右クリックでサーバーからBPが削除される");
     await p.Until(() => FindTextSlot("delbp") == null, 15f, "メニューからBPスロットが消滅する");
     await p.Screenshot("03-menu-after-delete");
     await p.ExitToGameScreen();

@@ -76,8 +76,7 @@ return PlaytestRunner.Run("blueprint-large-paste-flicker", options, async p =>
     await p.UntilWebUiElement("modal-input", 10f);
     p.Assert(isNameOpen, "名前入力が開く");
     nameState.Confirm("large-chest-bp");
-    await p.WaitForBlueprint("large-chest-bp", true, 15f);
-    var largeBp = await p.WaitForBlueprint("large-chest-bp", true, 15f);
+    var largeBp = await p.WaitForBlueprint("large-chest-bp", true, 15f, "BP『large-chest-bp』が登録される");
     p.Assert(largeBp.Blocks.Count == 64, $"BPはチェスト64個 実際:{largeBp.Blocks.Count}");
     await p.PressKey(Key.Escape);
 

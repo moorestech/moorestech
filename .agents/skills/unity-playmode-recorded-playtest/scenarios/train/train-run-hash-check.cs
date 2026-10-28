@@ -113,7 +113,7 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
             train.TurnOnAutoRun();
         });
 
-        await p.WaitForTrainState(train, null, null, true, 15f);
+        await p.WaitForTrainState(train, null, null, true, 15f, "列車が加速開始");
         var carBefore = SpawnedCar().transform.position;
         await p.Screenshot("02-train-running");
 

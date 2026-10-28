@@ -50,7 +50,7 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var cache = resolver.Resolve<BeltTransportClientCache>();
     var tickState = resolver.Resolve<TrainUnitTickState>();
-    await WaitReplicaSegments(null);
+    await WaitReplicaSegments(null, "複製のsegment本数がサーバーと一致");
     p.Note($"segment本数 server={(await p.ReadBeltSegmentCount())} client={cache.Replica.Segments.Length}");
     await p.Screenshot("01-line-built");
 
@@ -65,8 +65,8 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     await p.Screenshot("02-items-on-belt");
 
     p.Note("分岐器が前・左・右へ配り、前と左は合流して受けAへ、右は受けBへ届く");
-    await p.WaitForItemCount(sinkA, itemId, 6, null, 90f);
-    await p.WaitForItemCount(sinkB, itemId, 3, null, 90f);
+    await p.WaitForItemCount(sinkA, itemId, 6, null, 90f, "受けAに6個(前と左の合流)");
+    await p.WaitForItemCount(sinkB, itemId, 3, null, 90f, "受けBに3個(右の分岐)");
     await p.Screenshot("03-both-sinks-receiving");
 
     p.Note("クライアントの列車tickが進み続けている(ベルトのハッシュ照合で止まっていない)");
@@ -79,7 +79,7 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     var removedPosition = new Vector3Int(0, 32, 5);
     var segmentsBeforeRemoval = (await p.ReadBeltSegmentCount());
     p.Assert(await p.RemoveBlock(removedPosition), "ベルトを撤去した");
-    await WaitReplicaSegments(segmentsBeforeRemoval);
+    await WaitReplicaSegments(segmentsBeforeRemoval, "撤去後に複製が組み直された");
     // 撤去直後の1本(0,4)に1個入ったら供給は詰まる。以後は供給チェストが減らない
     // The single belt left at (0,4) takes one item and then the supply stalls; the source chest stops decreasing
     await p.WaitSeconds(2f);
@@ -95,12 +95,12 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     var sourceBeforeTopUp = await p.ReadItemCount(source, itemId);
     await p.RunOnServer("供給チェストに鉄インゴットを20個足す", () => source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, sourceBeforeTopUp + 20)));
     var countAAfterReplace = (await p.ReadItemCount(sinkA, itemId));
-    await p.WaitForItemCount(sinkA, itemId, countAAfterReplace + 3, null, 90f);
+    await p.WaitForItemCount(sinkA, itemId, countAAfterReplace + 3, null, 90f, "再設置後に受けAが3個増えた");
     await p.Screenshot("05-belt-replaced");
 
     p.Note("最後まで列車tickが追従し、供給が尽きたあとベルト上の表示物が消える");
     p.Assert((await TickGap()) < 40, $"最後までクライアントtickが追従している(差={await TickGap()})");
-    await p.WaitForItemCount(source, itemId, 0, 0, 120f);
+    await p.WaitForItemCount(source, itemId, 0, 0, 120f, "供給チェストが空になった");
     await p.Until(() => DisplayedItemCount() == 0, 60f, "ベルト上の表示物が全て消えた");
     // 供給は30+20個。撤去したマスに載っていたアイテムは消滅する仕様なので、合計はそこから撤去時の載り分(高々1個)を引いた数
     // 30+20 items were supplied; items on the removed cell vanish by design, so the total is that minus what sat on the cell at removal (at most one)
@@ -110,14 +110,14 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
 
     #region Internal
 
-    async UniTask WaitReplicaSegments(int? previous)
+    async UniTask WaitReplicaSegments(int? previous, string label)
     {
-        var deadline = Time.realtimeSinceStartup + 30f;
+        var wait = p.BeginWait(30f, label);
         while (true)
         {
             var count = await p.ReadBeltSegmentCount();
-            if (count > 0 && cache.Replica != null && cache.Replica.Segments.Length == count && (!previous.HasValue || count != previous.Value)) return;
-            if (deadline < Time.realtimeSinceStartup) throw new System.TimeoutException("ベルト複製のsegment一致待ちが時間切れです");
+            if (count > 0 && cache.Replica != null && cache.Replica.Segments.Length == count && (!previous.HasValue || count != previous.Value)) { wait.Complete(); return; }
+            wait.CheckTimeout();
             await UniTask.Yield();
         }
     }

@@ -73,7 +73,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         p.Assert(p.GetBlock(position) != null, $"駆動系ブロック設置 {position}");
         await p.WaitBlockGameObject(position);
     }
-    await p.WaitForConnectedGears(p.GetBlock(steamPos), generatorBlock, 15f);
+    await p.WaitForConnectedGears(p.GetBlock(steamPos), generatorBlock, 15f, "発電機の歯車網確定");
     // 蒸気はシナリオ側のループで継続補給する。途中で失敗して抜けても、スコープの破棄で補給を止める
     // Keep refilling steam from a scenario-side loop; even when a failure exits early, disposing the scope stops it
     var fluid = p.GetBlock(steamPos).GetComponent<FuelGearGeneratorFluidComponent>();

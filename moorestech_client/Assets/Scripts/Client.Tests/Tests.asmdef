@@ -44,6 +44,7 @@
         "CefUnity.Runtime",
         "Client.Build.Policy",
         "Client.Playtest",
+        "Client.Playtest.Overlay",
         "Core.BeltTransport",
         "Client.Skit",
         "Unity.Addressables.Editor",

@@ -11,6 +11,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Playtest;
+using Client.Playtest.Core;
 using Client.Playtest.Operations.Ui;
 using Client.Playtest.Input;
 using Cysharp.Threading.Tasks;
@@ -55,12 +56,13 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.Hotbar.EnterBuildMode(1);
     await p.AimAt(RailAreaCenter(pierE, pierF)); await p.ClickPlace(); await p.WaitSeconds(0.3f);
     await p.AimAt(RailAreaCenter(pierF, pierE)); await p.ClickPlace();
-    var connectDeadline = Time.realtimeSinceStartup + 15f;
+    var connectWait = p.BeginWait(15f, "準備: 橋脚E-Fがレールで繋がる");
     while (!(await RailSignature()).Contains("->"))
     {
-        if (connectDeadline < Time.realtimeSinceStartup) throw new TimeoutException("橋脚のレール接続待ちが時間切れです");
+        connectWait.CheckTimeout();
         await UniTask.Yield();
     }
+    connectWait.Complete();
     await p.Hotbar.ExitBuildMode(1);
 
     // Step 1: 橋脚Eをホバーで赤表示し、撤去するとレールも消えて素材が返る
@@ -131,7 +133,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     async UniTask<string> RailSignature()
     {
         var signature = "missing";
-        await p.RunOnServer("レール接続を複製する", () =>
+        await PlaytestServerThreadAction.RunAsync("レール接続を複製する", () =>
         {
             var e = RailOf(pierE); var f = RailOf(pierF); var datastore = ServerContext.GetService<Game.Train.RailGraph.RailGraphDatastore>();
             if (e == null || f == null) { signature = "missing"; return; }

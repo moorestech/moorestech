@@ -17,15 +17,15 @@ namespace Client.Playtest.Operations
             return state;
         }
 
-        public static async UniTask WaitForTrainState(this PlaytestDriver driver, TrainUnit train, int? entries, bool? autoRun, bool? moving, float timeoutSeconds)
+        public static async UniTask WaitForTrainState(this PlaytestDriver driver, TrainUnit train, int? entries, bool? autoRun, bool? moving, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
                 var state = await driver.ReadTrainState(train);
                 if ((!entries.HasValue || state.Entries == entries.Value) && (!autoRun.HasValue || state.AutoRun == autoRun.Value) &&
-                    (!moving.HasValue || (state.Speed > 0) == moving.Value)) return;
-                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException("列車状態の待機が時間切れです");
+                    (!moving.HasValue || (state.Speed > 0) == moving.Value)) { wait.Complete(); return; }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
         }

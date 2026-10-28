@@ -15,6 +15,7 @@ using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
+using Client.Playtest.Core;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Core.Master;
@@ -74,12 +75,13 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
 
     // サーバー側でセグメントが統合されるまで待つ
     // Wait until the server merges the two segments into one
-    var wireDeadline = Time.realtimeSinceStartup + 15f;
+    var wireWait = p.BeginWait(15f, "クリック結線で2本が同一セグメントになる");
     while (!(await ReadWireState()).same)
     {
-        if (wireDeadline < Time.realtimeSinceStartup) throw new System.TimeoutException("電線の結線待ちが時間切れです");
+        wireWait.CheckTimeout();
         await UniTask.Yield();
     }
+    wireWait.Complete();
     await p.Screenshot("03-connected");
 
     // 電力範囲表示: 電柱ブロックをメニュー選択中のみEnergizedRangeObjectが既存電柱位置に出る
@@ -98,7 +100,7 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
     async UniTask<(int count, bool same)> ReadWireState()
     {
         var state = (count: 0, same: false);
-        await p.RunOnServer("電力網の所属を読む", () =>
+        await PlaytestServerThreadAction.RunAsync("電力網の所属を読む", () =>
         {
             var store = ServerContext.GetService<IElectricWireNetworkDatastore>();
             state = (store.SegmentCount, store.TryGetEnergySegment(p.GetBlock(poleAPos).BlockInstanceId, out var segment) && segment.EnergyTransformers.ContainsKey(p.GetBlock(poleBPos).BlockInstanceId));

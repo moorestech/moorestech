@@ -24,16 +24,15 @@ namespace Client.Playtest.Operations
             return found;
         }
 
-        public static async UniTask<bool> WaitForChallenge(this PlaytestDriver driver, Guid guid, bool completed, float timeoutSeconds)
+        public static async UniTask WaitForChallenge(this PlaytestDriver driver, Guid guid, bool completed, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
-            while (Time.realtimeSinceStartup < deadline)
+            var wait = driver.BeginWait(timeoutSeconds, label);
+            while (true)
             {
-                if (await driver.ReadChallenge(guid, completed)) return true;
+                if (await driver.ReadChallenge(guid, completed)) { wait.Complete(); return; }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
-            Debug.LogWarning($"[Playtest] チャレンジ待ちが時間切れです guid:{guid} completed:{completed}");
-            return false;
         }
     }
 }

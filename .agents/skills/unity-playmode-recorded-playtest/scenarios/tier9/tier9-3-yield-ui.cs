@@ -66,7 +66,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     await BuildWallsAndCeiling();
     foreach (var x in new[] { 1, 21 }) await Give(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 2)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
-    await p.WaitForCleanRoom(machines[1], true, 30f);
+    await p.WaitForCleanRoom(machines[1], true, 30f, "clean room classified");
 
     // 抽選欄は役割レシピを選んだ機械にだけ出るので、成膜・EUV1層・ダイシングを選ぶ
     // The draw section only shows for a selected role recipe, so select deposition, EUV layer 1 and dicing

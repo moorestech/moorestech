@@ -81,7 +81,7 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     // 結線反映を条件待機し、同一ネットワークになったことを検証
     // Wait for the connection to land, then verify both poles share one network
-    await p.WaitForConnectedGears(p.GetBlock(c1), p.GetBlock(c2), 15f);
+    await p.WaitForConnectedGears(p.GetBlock(c1), p.GetBlock(c2), 15f, "クリック結線で同一ネットワーク化");
     await p.Hotbar.ExitBuildMode(1);
     await p.Screenshot("02-connected");
 });

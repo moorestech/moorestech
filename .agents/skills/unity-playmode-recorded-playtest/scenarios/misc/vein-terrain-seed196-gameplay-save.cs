@@ -18,6 +18,7 @@ using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
+using Client.Playtest.Core;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Core.Master;
@@ -140,13 +141,15 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
         await p.ClickPlace();
         var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
         WorldBlockData placed = null;
-        var placementDeadline = Time.realtimeSinceStartup + 15f;
+        var placementWait = p.BeginWait(15f, $"{blockName}が鉱脈上に設置された");
         while (placed == null)
         {
-            await p.RunOnServer("鉱脈上の設置物を読む", () => placed = FindOnVein(blockGuid, vein));
-            if (placementDeadline < Time.realtimeSinceStartup) throw new TimeoutException($"鉱脈上の設置待ちが時間切れです:{blockName}");
+            await PlaytestServerThreadAction.RunAsync("鉱脈上の設置物を読む", () => placed = FindOnVein(blockGuid, vein));
+            if (placed != null) break;
+            placementWait.CheckTimeout();
             await UniTask.Yield();
         }
+        placementWait.Complete();
         var origin = placed.BlockPositionInfo.OriginalPos;
         await p.WaitBlockGameObject(origin);
         await p.Hotbar.ExitBuildMode(0);

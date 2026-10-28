@@ -23,12 +23,12 @@ namespace Client.Playtest.Operations
 
         public static async UniTask WaitForResearch(this PlaytestDriver driver, Guid[] required, Guid[] excluded, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
                 var completed = await driver.ReadCompletedResearch();
-                if (required.All(completed.Contains) && excluded.All(guid => !completed.Contains(guid))) return;
-                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException(label);
+                if (required.All(completed.Contains) && excluded.All(guid => !completed.Contains(guid))) { wait.Complete(); return; }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
         }

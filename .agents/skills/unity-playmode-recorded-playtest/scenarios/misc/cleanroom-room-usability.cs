@@ -85,7 +85,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
         await AssertPanelPlateInCell(plateCell, upright);
     // 密閉された部屋が検出されるのを待つ（クラスは問わない）
     // Wait for the sealed room to be detected, whatever its class
-    await p.WaitForCleanRoom(machineBlock, false, 15f);
+    await p.WaitForCleanRoom(machineBlock, false, 15f, "部屋が検出された");
     await p.Screenshot("01-room-built");
     #region ドアを歩いて通る / Walk through the door
     p.WarpPlayer(outsidePosition);

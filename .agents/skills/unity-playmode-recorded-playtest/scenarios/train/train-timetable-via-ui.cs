@@ -110,7 +110,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         await p.ClickWebUi($"train-timetable-station-{stationBPos.x}_{stationBPos.y}_{stationBPos.z}-add");
         await p.UntilWebUiElement("train-timetable-stop-1", 5f);
         await p.ClickWebUi("train-timetable-apply");
-        await p.WaitForTrainState(train, 2, null, null, 10f);
+        await p.WaitForTrainState(train, 2, null, null, 10f, "サーバーの時刻表が2駅になる");
         var station0Matches = false;
         await p.RunOnServer("時刻表の停車駅を読む", () => station0Matches = ReferenceEquals(train.trainDiagram.Entries[0].Node.StationRef.StationBlock, stationA));
         p.Assert(station0Matches, "1駅目は北駅");
@@ -123,11 +123,11 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         // ===== UI: auto-run on → moving =====
         p.Note("自動運転ONで出発を待つ");
         await p.ClickWebUi("train-timetable-auto-run-on");
-        await p.WaitForTrainState(train, null, true, null, 10f);
+        await p.WaitForTrainState(train, null, true, null, 10f, "サーバーの自動運転がON");
         await p.ClickWebUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
         var before = SpawnedCar().transform.position;
-        await p.WaitForTrainState(train, null, null, true, 15f);
+        await p.WaitForTrainState(train, null, null, true, 15f, "列車が加速開始（1秒待機後に発車）");
         await p.WaitSeconds(3f);
         await p.Screenshot("03-running");
         var moved = (SpawnedCar().transform.position - before).magnitude;
@@ -144,9 +144,9 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         p.Assert(timetableRequestCount == 2, $"開き直して時刻表タブを選ぶと再取得する (count={timetableRequestCount})");
         await PlaytestWebUiOps.WaitWebUiTextContains("train-timetable-stops", "南駅", 10f);
         await p.ClickWebUi("train-timetable-auto-run-off");
-        await p.WaitForTrainState(train, null, false, null, 10f);
+        await p.WaitForTrainState(train, null, false, null, 10f, "サーバーの自動運転がOFF");
         await p.ClickWebUi("block-inventory-close");
-        await p.WaitForTrainState(train, null, null, false, 30f);
+        await p.WaitForTrainState(train, null, null, false, 30f, "惰性停止");
         await p.Screenshot("04-stopped");
 
         p.Assert(mismatchCount == 0, $"Hash mismatch警告0件 (count={mismatchCount})");

@@ -74,7 +74,7 @@ return PlaytestRunner.Run("cleanroom-v2", options, async p =>
     // 密閉部屋が検出され、給電された清浄機によりクラスAが成立するのを待つ
     // Wait for the sealed room to be detected and promoted to class A by the powered filter
     var outIndex = MasterHolder.CleanRoomMaster.OutThresholdIndex;
-    await p.WaitForCleanRoomClass(machineBlock, 0, 20f);
+    await p.WaitForCleanRoomClass(machineBlock, 0, 20f, "class A established");
     await p.Screenshot("02-class-a");
 
     // ウェハを投入して加工開始とチップ産出を確認する（EUV失敗20%を見込み複数投入）
@@ -83,20 +83,20 @@ return PlaytestRunner.Run("cleanroom-v2", options, async p =>
     Core.Inventory.IOpenableInventory machineInventory = machineBlock.GetComponent<IOpenableBlockInventoryComponent>();
     await p.RunOnServer("機械にウェハ8枚を入れる", () => machineInventory.SetItem(0, waferId, 8));
     var processor = machineBlock.GetComponent<Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent>();
-    await p.WaitForMachineState(machineBlock, new[] { ProcessState.Processing }, 15f);
+    await p.WaitForMachineState(machineBlock, new[] { ProcessState.Processing }, 15f, "machine processing");
     var chipIds = new[]
     {
         PlaytestItemOps.ResolveItemId("ICチップLv1"), PlaytestItemOps.ResolveItemId("ICチップLv2"),
         PlaytestItemOps.ResolveItemId("ICチップLv3"), PlaytestItemOps.ResolveItemId("ICチップLv4"),
     };
-    await p.WaitForItemPrefix(machineBlock.GetComponent<IOpenableBlockInventoryComponent>(), "ICチップ", 1, 60f);
+    await p.WaitForItemPrefix(machineBlock.GetComponent<IOpenableBlockInventoryComponent>(), "ICチップ", 1, 60f, "chip produced");
     await p.Screenshot("03-chip-output");
 
     // 壁を1枚破壊して密閉を崩し、機械がHaltedへ遷移することを確認する
     // Break one wall to breach the seal and confirm the machine transitions to Halted
     var breachPos = new Vector3Int(6, 33, 3);
     await p.RemoveBlock(breachPos);
-    await p.WaitForMachineState(machineBlock, new[] { ProcessState.Halted }, 10f);
+    await p.WaitForMachineState(machineBlock, new[] { ProcessState.Halted }, 10f, "machine halted after breach");
     var roomGone = false;
     await p.RunOnServer("密閉解除後の部屋の有無を読む", () => roomGone = !ServerContext.GetService<CleanRoomDatastore>().TryGetCleanRoom(machineBlock, out _));
     p.Assert(roomGone, "room dissolved after breach");
@@ -105,8 +105,8 @@ return PlaytestRunner.Run("cleanroom-v2", options, async p =>
     // 壁を戻して再密閉し、部屋がOutから浄化されてクラスAへ復帰、機械が加工再開するのを確認する
     // Reseal the wall and confirm the room re-purifies from Out back to class A and the machine resumes
     await p.PlaceBlockDirect("クリーンルームブロック", breachPos, BlockDirection.North);
-    await p.WaitForCleanRoomClass(machineBlock, 0, 20f);
-    await p.WaitForMachineState(machineBlock, new[] { ProcessState.Processing, ProcessState.Idle }, 20f);
+    await p.WaitForCleanRoomClass(machineBlock, 0, 20f, "room reclassified A after reseal");
+    await p.WaitForMachineState(machineBlock, new[] { ProcessState.Processing, ProcessState.Idle }, 20f, "machine recovered from halted");
     p.Assert((await p.ReadMachineState(machineBlock)) != ProcessState.Halted, "machine not halted after recovery");
     await p.Screenshot("05-recovered");
 });

@@ -31,8 +31,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
 
     // 検証2a: チャレンジ#1「小石を3個拾う」がサーバーのカレントに存在する
     // Verify 2a: challenge #1 is the server's current challenge
-    var c1Current = await p.WaitForChallenge(challenge1, false, 30);
-    p.Assert(c1Current, "チャレンジ#1(小石を3個拾う)がカレントに存在する");
+    await p.WaitForChallenge(challenge1, false, 30, "チャレンジ#1(小石を3個拾う)がカレントに存在する");
 
     // 検証2b: 開幕スキット(100_start_game=blocking)がWeb HUDに表示される
     // Verify 2b: opening skit renders in the Web HUD
@@ -79,21 +78,17 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     await p.WaitSeconds(0.5f);
     p.Assert(3 <= p.CountItem("小石"), "小石が3個以上インベントリにある");
 
-    var c1Done = await p.WaitForChallenge(challenge1, true, 30);
-    p.Assert(c1Done, "チャレンジ#1(小石を3個拾う)が完了した");
+    await p.WaitForChallenge(challenge1, true, 30, "チャレンジ#1(小石を3個拾う)が完了した");
 
-    var c2Unlocked = await p.WaitForChallenge(challenge2, false, 30);
-    p.Assert(c2Unlocked, "チャレンジ#2(石器を作る)が解放された");
+    await p.WaitForChallenge(challenge2, false, 30, "チャレンジ#2(石器を作る)が解放された");
     await p.Screenshot("03-challenge2-unlocked");
 
     // 検証5: 石器クラフト→#2完了→#3(伐採)解放。木ピンでmapObject「木」の実行時解決を確認
     // Verify 5: craft stone tool -> #2 done -> #3 unlocked; tree pin proves mapObject 木 resolves at runtime
     p.Note("石器をクラフトしてチャレンジ#2(createItem)を完了させる");
     Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.Craft(stoneToolRecipe);
-    var c2Done = await p.WaitForChallenge(challenge2, true, 30);
-    p.Assert(c2Done, "チャレンジ#2(石器を作る)が完了した");
-    var c3Unlocked = await p.WaitForChallenge(challenge3, false, 30);
-    p.Assert(c3Unlocked, "チャレンジ#3(伐採)が解放された");
+    await p.WaitForChallenge(challenge2, true, 30, "チャレンジ#2(石器を作る)が完了した");
+    await p.WaitForChallenge(challenge3, false, 30, "チャレンジ#3(伐採)が解放された");
 
     p.Note("木ピンの表示を待つ(mapObject「木」の解決検証)");
     // ピンIDは全mapObjectPin共通の固定値のため、小石ピン残留と区別するtutorialGuidも照合する
@@ -123,9 +118,8 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
             await p.WaitSeconds(stoneToolAttackSpeedSeconds);
         }
 
-        var c3Done = await p.WaitForChallenge(challenge3, true, 30);
+        await p.WaitForChallenge(challenge3, true, 30, "チャレンジ#3(伐採)が完了した");
         p.Assert(3 <= p.CountItem("原木"), "原木が3個以上インベントリにある");
-        p.Assert(c3Done, "チャレンジ#3(伐採)が完了した");
         await p.Screenshot("05-tree-felled");
     }
 

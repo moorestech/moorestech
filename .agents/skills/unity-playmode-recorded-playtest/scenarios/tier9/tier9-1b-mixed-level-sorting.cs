@@ -54,7 +54,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     foreach (var machine in new[] { packagingA, packagingB }) await SelectRecipe(machine, packagingRecipe);
     foreach (var x in new[] { 11, 12 }) await Give(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 8)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
-    await p.WaitForCleanRoom(packagingA, true, 30f);
+    await p.WaitForCleanRoom(packagingA, true, 30f, "クリーンルームが判定された");
     foreach (var machine in new[] { packagingA, packagingB }) await Give(machine, 1, "ICチップ基板", 20);
 
     // A の継承元に Lv1 を置き、分岐器→ベルトで Lv2 を届けると止まって理由が出る。ベルトへの押し込みは tick 内だけ受け付けるので、分岐器（block 更新で押す）へ入れる

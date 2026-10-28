@@ -52,12 +52,10 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
     // Verify 2: 3 pebbles -> craft -> the new "equip the stone tool" challenge becomes current
     p.Note("小石3個付与→石器クラフトで装備チャレンジまで進める");
     await p.GiveItemDirect("小石", 3);
-    await p.WaitForChallenge(pebbleChallenge, true, 30);
+    await p.WaitForChallenge(pebbleChallenge, true, 30, "チャレンジ「小石を3個拾う」が完了した");
     Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.Craft(stoneToolRecipe);
-    var craftDone = await p.WaitForChallenge(craftStoneTool, true, 30);
-    p.Assert(craftDone, "チャレンジ「石器を作る」が完了した");
-    var equipCurrent = await p.WaitForChallenge(equipStoneTool, false, 30);
-    p.Assert(equipCurrent, "チャレンジ「石器を装備する」が現在目標になった");
+    await p.WaitForChallenge(craftStoneTool, true, 30, "チャレンジ「石器を作る」が完了した");
+    await p.WaitForChallenge(equipStoneTool, false, 30, "チャレンジ「石器を装備する」が現在目標になった");
 
     // 検証3: 装備誘導のkeyControlヒントとドラッグ矢印がサーバー指定どおり提示される
     // Verify 3: the equip guidance publishes the key hint and the drag guide exactly as the master specifies
@@ -89,10 +87,8 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
     // Verify 4: equipping the stone tool into the selected slot completes the challenge and advances to felling
     p.Note("石器を選択中装備枠へ装備する");
     await p.EquipItem("石器", 0);
-    var equipDone = await p.WaitForChallenge(equipStoneTool, true, 30);
-    p.Assert(equipDone, "チャレンジ「石器を装備する」が装備で達成された");
-    var fellCurrent = await p.WaitForChallenge(fellTree, false, 30);
-    p.Assert(fellCurrent, "チャレンジ「木を伐採して原木を入手する」が現在目標になった");
+    await p.WaitForChallenge(equipStoneTool, true, 30, "チャレンジ「石器を装備する」が装備で達成された");
+    await p.WaitForChallenge(fellTree, false, 30, "チャレンジ「木を伐採して原木を入手する」が現在目標になった");
     await p.Screenshot("04-equip-done");
 
     // 検証5: 木ピンがearnItem指定で解決し、原木を落とす木に刺さる（旧mapObject直指定からの移行）
@@ -124,9 +120,8 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
             Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.AttackMapObject(nearestTree.InstanceId);
             await p.WaitSeconds(stoneToolAttackSpeedSeconds);
         }
-        var fellDone = await p.WaitForChallenge(fellTree, true, 30);
+        await p.WaitForChallenge(fellTree, true, 30, "チャレンジ「木を伐採して原木を入手する」が完了した");
         p.Assert(3 <= p.CountItem("原木"), "原木が3個以上インベントリにある");
-        p.Assert(fellDone, "チャレンジ「木を伐採して原木を入手する」が完了した");
         await p.Screenshot("06-tree-felled");
     }
 

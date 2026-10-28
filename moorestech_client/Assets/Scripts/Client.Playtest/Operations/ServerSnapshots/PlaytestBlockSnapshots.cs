@@ -35,14 +35,14 @@ namespace Client.Playtest.Operations
             return count;
         }
 
-        public static async UniTask WaitForItemCount(this PlaytestDriver driver, IOpenableBlockInventoryComponent inventory, ItemId id, int min, int? max, float timeoutSeconds)
+        public static async UniTask WaitForItemCount(this PlaytestDriver driver, IOpenableBlockInventoryComponent inventory, ItemId id, int min, int? max, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
                 var count = await driver.ReadItemCount(inventory, id);
-                if (min <= count && (!max.HasValue || count <= max.Value)) return;
-                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException($"在庫数待ちが時間切れです actual:{count} min:{min} max:{max}");
+                if (min <= count && (!max.HasValue || count <= max.Value)) { wait.Complete(); return; }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
         }
@@ -54,26 +54,27 @@ namespace Client.Playtest.Operations
             return state;
         }
 
-        public static async UniTask WaitForMachineState(this PlaytestDriver driver, IBlock block, ProcessState[] allowed, float timeoutSeconds)
+        public static async UniTask WaitForMachineState(this PlaytestDriver driver, IBlock block, ProcessState[] allowed, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var wait = driver.BeginWait(timeoutSeconds, label);
             while (!allowed.Contains(await driver.ReadMachineState(block)))
             {
-                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException("機械状態の待機が時間切れです");
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
+            wait.Complete();
         }
 
-        public static async UniTask WaitForItemPrefix(this PlaytestDriver driver, IOpenableBlockInventoryComponent inventory, string prefix, int minimum, float timeoutSeconds)
+        public static async UniTask WaitForItemPrefix(this PlaytestDriver driver, IOpenableBlockInventoryComponent inventory, string prefix, int minimum, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
                 var count = 0;
                 await PlaytestServerThreadAction.RunAsync("対象品の個数を読む", () => count = inventory.InventoryItems
                     .Where(item => item.Count > 0 && MasterHolder.ItemMaster.GetItemMaster(item.Id).Name.StartsWith(prefix)).Sum(item => item.Count));
-                if (minimum <= count) return;
-                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException($"対象品の待機が時間切れです:{prefix}");
+                if (minimum <= count) { wait.Complete(); return; }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
         }

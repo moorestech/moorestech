@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Client.Playtest;
+using Client.Playtest.Core;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
@@ -126,14 +127,16 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
         train.trainUnitStationDocking.TryDockWhenStopped();
     });
     p.Assert((await p.ReadTrainState(train)).AutoRun,"停車ダイヤの自動運転でドッキングを維持");
-    var dockDeadline = Time.realtimeSinceStartup + 15f;
+    var dockWait = p.BeginWait(15f, "貨車ドッキング");
     var docked = false;
     while (!docked)
     {
-        await p.RunOnServer("貨車の接岸状態を読む", () => docked = car.IsDocked);
-        if (dockDeadline < Time.realtimeSinceStartup) throw new System.TimeoutException("貨車の接岸待ちが時間切れです");
+        await PlaytestServerThreadAction.RunAsync("貨車の接岸状態を読む", () => docked = car.IsDocked);
+        if (docked) break;
+        dockWait.CheckTimeout();
         await UniTask.Yield();
     }
+    dockWait.Complete();
     var registry = UnityEngine.Object.FindFirstObjectByType<TrainCarObjectDatastore>();
     await p.Until(()=>registry.TryGetEntity(car.TrainCarInstanceId,out var e)&&e.Interactable!=null,30,"貨車View出現");
     registry.TryGetEntity(car.TrainCarInstanceId,out var entity);

@@ -76,8 +76,7 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
 
     // 検証1: 研究3の後は「風力掘削機を設置する」がカレントで、ピンは原木鉱脈の露頭を指す
     // Verify 1: after research 3 the wind-drill challenge is current and its pin sits on a log-vein outcrop
-    var windDrillCurrent = await p.WaitForChallenge(placeWindDrill, false, 30);
-    p.Assert(windDrillCurrent, "研究3の後に「風力掘削機を設置する」がカレントになった");
+    await p.WaitForChallenge(placeWindDrill, false, 30, "研究3の後に「風力掘削機を設置する」がカレントになった");
     var windDrillPinShown = await PollUntil(() => pinStore.GetCurrent().Pins
         .Any(x => x.PinId == "vein-pin" && x.TutorialGuid == windDrillPinTutorial), 30);
     p.Assert(windDrillPinShown, "風力掘削機設置のveinPinが表示された");
@@ -95,16 +94,14 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
     // Verify 2: after placing the drill, research 4 is current (not clay)
     p.Note("風力掘削機を直設置して次の目標が研究4になることを確認する");
     await p.PlaceBlockDirect("風力掘削機", Vector3Int.RoundToInt(p.PlayerPosition) + new Vector3Int(3, 0, 3), Game.Block.Interface.BlockDirection.North);
-    var r4Current = await p.WaitForChallenge(completeResearch4, false, 30);
-    p.Assert(r4Current, "風力掘削機設置の後に「原始研究4を完了する」がカレントになった");
+    await p.WaitForChallenge(completeResearch4, false, 30, "風力掘削機設置の後に「原始研究4を完了する」がカレントになった");
     p.Assert(!await p.ReadChallenge(obtainClay, false), "粘土入手はまだカレントでない");
 
     // 検証3: 研究4完了の後に粘土入手がカレントになり、粘土鉱脈ピンが出る
     // Verify 3: after research 4, clay becomes current with a clay-vein pin
     await p.GiveItemDirect("木の板", 20); await p.GiveItemDirect("木の棒", 20); await p.GiveItemDirect("砕いた石材", 10);
     api.CompleteResearch(research4);
-    var clayCurrent = await p.WaitForChallenge(obtainClay, false, 30);
-    p.Assert(clayCurrent, "研究4の後に「粘土を入手する」がカレントになった");
+    await p.WaitForChallenge(obtainClay, false, 30, "研究4の後に「粘土を入手する」がカレントになった");
     var clayPinShown = await PollUntil(() => pinStore.GetCurrent().Pins
         .Any(x => x.PinId == "vein-pin" && x.TutorialGuid == clayPinTutorial), 30);
     p.Assert(clayPinShown, "粘土入手のveinPinが表示された");

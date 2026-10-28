@@ -78,8 +78,7 @@ return PlaytestRunner.Run("blueprint-terrain-sink-partial-paste", options, async
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     nameState.Confirm("terrain-sink-bp");
-    await p.WaitForBlueprint("terrain-sink-bp", true, 15f);
-    var blueprint = await p.WaitForBlueprint("terrain-sink-bp", true, 15f);
+    var blueprint = await p.WaitForBlueprint("terrain-sink-bp", true, 15f, "BP『terrain-sink-bp』が登録される");
     p.Assert(blueprint.Blocks.Count == 8, $"BPは8ブロック 実際:{blueprint.Blocks.Count}");
     await p.PressKey(Key.Escape);
 

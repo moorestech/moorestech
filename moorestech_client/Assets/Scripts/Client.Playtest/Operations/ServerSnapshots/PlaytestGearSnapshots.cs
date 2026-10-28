@@ -24,14 +24,14 @@ namespace Client.Playtest.Operations
             return ids;
         }
 
-        public static async UniTask WaitForConnectedGears(this PlaytestDriver driver, IBlock first, IBlock second, float timeoutSeconds)
+        public static async UniTask WaitForConnectedGears(this PlaytestDriver driver, IBlock first, IBlock second, float timeoutSeconds, string label)
         {
-            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var wait = driver.BeginWait(timeoutSeconds, label);
             while (true)
             {
                 var ids = await driver.ReadGearNetworks(new[] { first, second });
-                if (ids[0].HasValue && ids[0].Equals(ids[1])) return;
-                if (deadline < Time.realtimeSinceStartup) throw new TimeoutException("歯車網の接続待ちが時間切れです");
+                if (ids[0].HasValue && ids[0].Equals(ids[1])) { wait.Complete(); return; }
+                wait.CheckTimeout();
                 await UniTask.Yield();
             }
         }

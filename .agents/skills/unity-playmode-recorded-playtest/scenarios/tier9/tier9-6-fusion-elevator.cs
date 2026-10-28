@@ -97,7 +97,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     await p.Until(() => Detail().CablePoolAmount == cablesPerElevator, 10f, $"プールが{cablesPerElevator}本になった");
     await p.ClickWebUi("space-elevator-connect");
     await p.Until(() => Detail().IsConnected, 10f, "拠点が接続済みになった");
-    await p.WaitForCableCount(0, 10f);
+    await p.WaitForCableCount(0, 10f, "プールから1エレベーター分が引かれた");
     var cableObject = elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Cable").gameObject;
     var climberObject = elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Climber");
     await p.Until(() => cableObject.activeSelf, 10f, "ケーブルが現れた");
@@ -140,7 +140,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     // Removing the connected base returns one elevator's worth to the pool
     p.Note($"接続済みの拠点を撤去し、プールに{cablesPerElevator}本が戻ることを確かめる");
     p.Assert(await p.RemoveBlock(elevatorPos), "拠点を撤去した");
-    await p.WaitForCableCount(cablesPerElevator, 10f);
+    await p.WaitForCableCount(cablesPerElevator, 10f, $"プールに{cablesPerElevator}本が戻った");
     p.Note("段6 完了");
 
     #region Internal

@@ -87,8 +87,7 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     nameState.Confirm("wired-bp");
-    await p.WaitForBlueprint("wired-bp", true, 15f);
-    var bp = await p.WaitForBlueprint("wired-bp", true, 15f);
+    var bp = await p.WaitForBlueprint("wired-bp", true, 15f, "BP『wired-bp』が登録される");
     var minOffset = bp.Blocks.Aggregate(new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue), (m, b) => Vector3Int.Min(m, b.Offset));
     p.Assert(bp.Blocks.Count == 3 && minOffset == Vector3Int.zero, $"BPは3ブロック・オフセット最小(0,0,0) 実際:{bp.Blocks.Count}/{minOffset}");
     p.Assert(bp.Wires.Count == 2, $"BPに電線2本 実際:{bp.Wires.Count}");
