@@ -11,6 +11,8 @@ using Client.Tests.Starter;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.Research;
+using Game.SpaceElevator;
+using Game.SpaceElevator.Save;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Loop;
@@ -93,6 +95,21 @@ namespace Client.Tests.Playtest.RecordedWaits
             Assert.That(error.Message, Does.Contain("expected"));
             Assert.That(error.Message, Does.Contain("actual"));
             Assert.That(_result.Asserts.Single().Message, Does.Contain("actual"));
+            AssertRecordedResult(label, false);
+        }
+
+        [UnityTest]
+        public IEnumerator CableTimeoutRecordsExpectedAndObservedCounts()
+        {
+            // 残量5本のまま0本を待たせ、期待値と実測値が結果と例外の両方に残ることを見る
+            // Wait for zero cables while five remain, and check both the result and the exception keep expected and observed values
+            const string label = "ケーブルが0本に戻る";
+            yield return _driver.RunOnServer("ケーブル残量を5本にする", () => ServerContext.GetService<SpaceElevatorCablePool>().Restore(new SpaceElevatorCablePoolSaveData { CableCount = 5 })).ToCoroutine();
+            var wait = _driver.WaitForCableCount(0, 0f, label);
+            yield return WaitForCompletion(wait);
+            var error = Assert.Throws<TimeoutException>(() => wait.GetAwaiter().GetResult());
+            Assert.That(error.Message, Does.Contain("cables expected=0, actual=5"));
+            Assert.That(_result.Asserts.Single().Message, Does.Contain("cables expected=0, actual=5"));
             AssertRecordedResult(label, false);
         }
 
