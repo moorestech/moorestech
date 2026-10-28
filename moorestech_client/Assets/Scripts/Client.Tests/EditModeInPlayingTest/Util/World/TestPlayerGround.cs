@@ -11,6 +11,8 @@ namespace Client.Tests.EditModeInPlayingTest.Util.World
     // Supplies real ground for the player in the terrain-free test world
     internal static class TestPlayerGround
     {
+        private const float GroundedTimeoutSeconds = 5f;
+
         public static GameObject Create()
         {
             var position = PlayerSystemContainer.Instance.PlayerObjectController.Position;
@@ -34,8 +36,18 @@ namespace Client.Tests.EditModeInPlayingTest.Util.World
             // 地表探査と接地を確認
             // Verify the ground probe and contact
             Assert.IsTrue(GroundHeightProbe.TryGetGroundPoint(player.Position.x, player.Position.z, out _));
-            for (var i = 0; i < 120 && !character.isGrounded; i++) await UniTask.NextFrame();
-            Assert.IsTrue(character.isGrounded, $"足場へ接地しない player:{player.Position}");
+
+            // 足場を置く前の落下ぶんを落ち切るまで待つ。フレームの速さは環境で桁違いなので、回数でなく実時間で区切る
+            // Wait until the fall begun before the ground existed completes; frame rate varies by orders across environments, so bound by real time, not frame count
+            var startPosition = player.Position;
+            var deadline = Time.realtimeSinceStartup + GroundedTimeoutSeconds;
+            var frames = 0;
+            while (!character.isGrounded && Time.realtimeSinceStartup < deadline)
+            {
+                await UniTask.NextFrame();
+                frames++;
+            }
+            Assert.IsTrue(character.isGrounded, $"足場へ接地しない player:{player.Position} start:{startPosition} frames:{frames}");
             Debug.Log($"[TestPlayerGround] grounded player:{player.Position}");
         }
     }
