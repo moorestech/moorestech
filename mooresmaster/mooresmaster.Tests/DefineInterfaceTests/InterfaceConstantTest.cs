@@ -78,6 +78,17 @@ public class InterfaceConstantTest
         Assert.DoesNotContain("FluidInventoryConnectors", gear);
     }
 
+    [Fact]
+    public void SandboxBlockSchemaKeepsValidYamlIndentation()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !Directory.Exists(Path.Combine(root.FullName, "VanillaSchema"))) root = root.Parent;
+        Assert.NotNull(root);
+        var text = File.ReadAllText(Path.Combine(root!.FullName, "mooresmaster/mooresmaster.SandBox/schema/blocks.yml"));
+        var parsed = mooresmaster.Generator.Yaml.YamlParser.Parse("sandbox-blocks.yml", text);
+        Assert.NotNull(parsed);
+    }
+
     [Theory]
     [InlineData("inputTankCount: 0", "missing: 0")]
     [InlineData("inputTankCount: 0", "inputTankCount: 0.5")]
