@@ -52,7 +52,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public CleanRoomMachineProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
             _moduleInventory = module;
-            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe);
+            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe, out var pendingRealization);
             _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
             _yieldDrawDecorator = new CleanRoomYieldDrawDecorator(blockInstanceId, cycleCount);
             _context.SetRealizedOutputDecorator(_yieldDrawDecorator);
@@ -61,6 +61,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _processingState = new ProcessingMachineProcessState(_context, processingJob);
             _haltedState = new HaltedMachineProcessState(_processingState, _yieldDrawDecorator.CurrentEffect.CanOperate);
             _idleState = new IdleMachineProcessState(_context, _processingState);
+            _idleState.RestorePending(pendingRealization);
             _stateHandlers = new IMachineProcessState[]
                 {
                     _idleState,
@@ -124,11 +125,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            // 待機中の確定済み抽選は保存しないので、その抽選の前の値を書く。ロード後の最初の確定が同じシードで引く
-            // The idle pending draw is not saved, so save the count from before that draw; the first realization after load then uses the same seed
-            var cycleCount = _yieldDrawDecorator.CycleCount;
-            if (_idleState.TryGetPendingRealization(out var pending) && pending.DrawRecord != null) cycleCount--;
-            return CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, cycleCount, _context.SelectedRecipe);
+            // 確定結果とカウンタを同じ時点で保存し、巻き戻さない
+            // Save the realization and its counter at the same point without rewinding
+            return CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _yieldDrawDecorator.CycleCount, _context.SelectedRecipe, _idleState);
         }
 
         public void Update()

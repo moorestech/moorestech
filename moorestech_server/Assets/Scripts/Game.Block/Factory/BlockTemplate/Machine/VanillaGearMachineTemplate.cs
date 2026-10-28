@@ -57,7 +57,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
             // Load the parameters or create new ones
             var processor = componentStates == null
                 ? new VanillaMachineProcessorComponent(input, output, requirePower, gearConsumption.IdlePowerRate, effectComponent)
-                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, gearConsumption.IdlePowerRate, blockMasterElement);
+                : MachineSaveRestorer.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, gearConsumption.IdlePowerRate, blockMasterElement);
             var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);

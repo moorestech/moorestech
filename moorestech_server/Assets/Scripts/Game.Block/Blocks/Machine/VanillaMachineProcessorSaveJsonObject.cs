@@ -2,11 +2,18 @@ using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Newtonsoft.Json;
+using Game.Block.Blocks.Machine.State.Save;
 
 namespace Game.Block.Blocks.Machine
 {
     public class VanillaMachineProcessorSaveJsonObject
     {
+        // V8では確定時間・消費実品・待機抽選をそのまま保存する
+        // V8 preserves fixed time, consumed identities and waiting draws
+        [JsonProperty("totalTicks")] public uint? TotalTicks;
+        [JsonProperty("consumedInputItemGuids")] public List<string> ConsumedInputItemGuids;
+        [JsonProperty("pendingRealization")] public MachineRealizationSaveJsonObject PendingRealization;
+
         [JsonProperty("state")]
         public int State;
 

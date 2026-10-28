@@ -88,7 +88,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var effectComponent = new MachineModuleEffectComponent(module);
-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, machineParam.IdlePowerRate, blockMasterElement);
+            var processor = MachineSaveRestorer.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, machineParam.IdlePowerRate, blockMasterElement);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);

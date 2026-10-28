@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
 using Core.Master;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.OutputRewrite;
@@ -26,15 +28,33 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
             // A halted room effect has no class values, so report it as halted instead of building numbers
             if (!cleanRoomEffect.TryGetClassYield(out var classYield)) return NotOperablePreview.Instance;
 
-            // 役割の型ごとに、抽選と同じ式の口から値を出す
-            // Per role type, take the values from the same formula entry points as the draw
-            return role switch
+            return Evaluate(role, classYield, moduleEffect, null, null, out _);
+        }
+
+        // Previewと実抽選を同じ役割分岐で選ぶ
+        // Select preview and actual draw through one role dispatch
+        internal static CleanRoomYieldPreviewResult Evaluate(CleanRoomRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect,
+            CleanRoomYieldRollContext? roll, int? inheritedLevel, out List<IItemStack> outputs)
+        {
+            outputs = null;
+            switch (role)
             {
-                WaferGradeRecipeRole waferGrade => new WaferGradePreview(CleanRoomRoleRates.MaxWaferGrade(waferGrade, moduleEffect), CleanRoomRoleRates.PromotionChance(waferGrade, classYield, moduleEffect)),
-                LayerExposureRecipeRole layerExposure => new LayerExposurePreview(CleanRoomRoleRates.LayerFailRate(layerExposure, classYield, moduleEffect)),
-                DicingRecipeRole dicing => new DicingPreview(CleanRoomRoleRates.DieLossRate(dicing, classYield, moduleEffect)),
-                _ => throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role"),
-            };
+                case WaferGradeRecipeRole wafer:
+                    if (roll.HasValue) outputs = WaferGradeOutputRewriter.Rewrite(wafer, roll.Value);
+                    return new WaferGradePreview(CleanRoomRoleRates.MaxWaferGrade(wafer, moduleEffect), CleanRoomRoleRates.PromotionChance(wafer, classYield, moduleEffect));
+                case LayerExposureRecipeRole layer:
+                    if (roll.HasValue) outputs = LayerExposureOutputRewriter.Rewrite(layer, roll.Value);
+                    return new LayerExposurePreview(CleanRoomRoleRates.LayerFailRate(layer, classYield, moduleEffect));
+                case DicingRecipeRole dicing:
+                    if (roll.HasValue)
+                    {
+                        if (!inheritedLevel.HasValue) throw new InvalidOperationException("ダイシングの抽選に継承グレードがありません");
+                        outputs = DicingOutputRewriter.Rewrite(dicing, inheritedLevel.Value, roll.Value);
+                    }
+                    return new DicingPreview(CleanRoomRoleRates.DieLossRate(dicing, classYield, moduleEffect));
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role");
+            }
         }
     }
 }

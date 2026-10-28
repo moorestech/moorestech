@@ -9,6 +9,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Component;
+using Game.Fluid;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
@@ -68,108 +69,28 @@ namespace Game.Block.Factory.BlockTemplate
             return (input, output, module);
         }
         
-        public static VanillaMachineProcessorComponent MachineLoadState(Dictionary<string, object> componentStates,
-            VanillaMachineInputInventory vanillaMachineInputInventory,
-            VanillaMachineOutputInventory vanillaMachineOutputInventory,
-            VanillaMachineModuleInventory vanillaMachineModuleInventory,
-            MachineModuleEffectComponent machineModuleEffectComponent,
-            float requestPower, float idlePowerRate, BlockMasterElement blockMasterElement)
+        // 必須キーの扱いだけを分け、両機械の超過ログと復元規則を揃える
+        // Vary only missing-key handling; share overflow logging and restoration for both machine kinds
+        internal static void RestoreMachineFluids(List<FluidContainerSaveJsonObject> inputs, List<FluidContainerSaveJsonObject> outputs,
+            VanillaMachineInputInventory input, VanillaMachineOutputInventory output, bool requireKeys)
         {
-            var jsonObject = BlockComponentStateReader.Read<VanillaMachineJsonObject>(componentStates, VanillaMachineSaveComponent.SaveKeyStatic);
+            if (requireKeys && (inputs == null || outputs == null))
+                throw new InvalidOperationException($"清浄室機械のセーブに液体タンクのキーがありません。 inputFluidSlot={(inputs == null ? "missing" : "present")} outputFluidSlot={(outputs == null ? "missing" : "present")}");
+            Restore(inputs, input.FluidInputSlot, "input");
+            Restore(outputs, output.FluidOutputSlot, "output");
 
-            // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
-            // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
-            var inputItems = jsonObject.InputSlot.Select(item => item.ToItemStack()).ToList();
-            for (var i = 0; i < inputItems.Count; i++)
+            #region Internal
+            void Restore(List<FluidContainerSaveJsonObject> saved, IReadOnlyList<FluidContainer> tanks, string side)
             {
-                if (vanillaMachineInputInventory.InputSlot.Count <= i)
+                if (saved == null) return; // silent-ok: 通常機械の旧セーブは液体節なし / 液体を保存していない旧形式のため復元対象なし
+                if (tanks.Count < saved.Count) Debug.LogError($"機械のタンク数がセーブより少ないため、超過分の液体は消失します。 {side}={saved.Count}->{tanks.Count}");
+                for (var i = 0; i < saved.Count && i < tanks.Count; i++)
                 {
-                    Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
-                    break;
-                }
-                vanillaMachineInputInventory.SetItemWithoutEvent(i, inputItems[i]);
-            }
-
-            var outputItems = jsonObject.OutputSlot.Select(item => item.ToItemStack()).ToList();
-            for (var i = 0; i < outputItems.Count; i++)
-            {
-                if (vanillaMachineOutputInventory.OutputSlot.Count <= i)
-                {
-                    Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
-                    break;
-                }
-                vanillaMachineOutputInventory.SetItemWithoutEvent(i, outputItems[i]);
-            }
-
-            // モジュールスロットを復元（旧セーブはキー無し）
-            // Restore module slots (older saves lack the key)
-            if (jsonObject.ModuleSlot != null)
-            {
-                var moduleItems = jsonObject.ModuleSlot.Select(item => item.ToItemStack()).ToList();
-                for (var i = 0; i < moduleItems.Count; i++)
-                {
-                    if (vanillaMachineModuleInventory.ModuleSlot.Count <= i)
-                    {
-                        Debug.LogError($"ロードするデータのインベントリサイズが超過しています。一部のアイテムは消失します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
-                        break;
-                    }
-                    vanillaMachineModuleInventory.SetItemWithoutEvent(i, moduleItems[i]);
+                    tanks[i].FluidId = saved[i].FluidId;
+                    tanks[i].Amount = saved[i].Amount;
                 }
             }
-
-            // Load fluid data if present
-            if (jsonObject.InputFluidSlot != null)
-            {
-                for (var i = 0; i < jsonObject.InputFluidSlot.Count && i < vanillaMachineInputInventory.FluidInputSlot.Count; i++)
-                {
-                    var fluidData = jsonObject.InputFluidSlot[i];
-                    vanillaMachineInputInventory.FluidInputSlot[i].FluidId = fluidData.FluidId;
-                    vanillaMachineInputInventory.FluidInputSlot[i].Amount = fluidData.Amount;
-                }
-            }
-            
-            if (jsonObject.OutputFluidSlot != null)
-            {
-                for (var i = 0; i < jsonObject.OutputFluidSlot.Count && i < vanillaMachineOutputInventory.FluidOutputSlot.Count; i++)
-                {
-                    var fluidData = jsonObject.OutputFluidSlot[i];
-                    vanillaMachineOutputInventory.FluidOutputSlot[i].FluidId = fluidData.FluidId;
-                    vanillaMachineOutputInventory.FluidOutputSlot[i].Amount = fluidData.Amount;
-                }
-            }
-            
-            // processor だけ null の外部セーブ（版7→8移行が通す形）は、インベントリを残して加工状態の復元だけ見送る
-            // An external save whose processor alone is null (a shape the V7->V8 migration lets through) keeps its inventories and skips only the processing state
-            var processorJson = jsonObject.Processor;
-            if (processorJson == null)
-            {
-                Debug.LogWarning($"通常機械のセーブ状態の processor が null のため、加工状態の復元を見送り待機・未選択で開始します。ブロック名:{blockMasterElement.Name} Guid:{blockMasterElement.BlockGuid}");
-                return new VanillaMachineProcessorComponent(vanillaMachineInputInventory, vanillaMachineOutputInventory, requestPower, idlePowerRate, machineModuleEffectComponent);
-            }
-
-            // 加工中ジョブは Processor のサブオブジェクトの平らなキーから組む（レシピがマスタから消えていれば null で、加工中の状態は Idle へ戻る）
-            // Build the running job from the Processor sub-object's flat keys (null when its recipe left the master; a mid-job state then falls back to Idle)
-            var processingJob = MachineProcessingJob.RestoreFromFlatSave(processorJson.RecipeGuidStr, processorJson.RemainingSeconds, processorJson.PendingOutputs, processorJson.InheritedLevel);
-
-            // 選択レシピを復元。GUIDがマスタから消えていれば未選択に戻す（機械は停止するが壊れない）
-            // Restore the selected recipe; a GUID missing from the master falls back to unselected
-            MachineRecipeMasterElement selectedRecipe = null;
-            if (!string.IsNullOrEmpty(processorJson.SelectedRecipeGuidStr) && Guid.TryParse(processorJson.SelectedRecipeGuidStr, out var selectedGuid))
-            {
-                selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(selectedGuid);
-            }
-
-            var processor = new VanillaMachineProcessorComponent(
-                vanillaMachineInputInventory,
-                vanillaMachineOutputInventory,
-                (ProcessState)processorJson.State,
-                processingJob,
-                requestPower,
-                idlePowerRate,
-                machineModuleEffectComponent,
-                selectedRecipe);
-
-            return processor;
+            #endregion
         }
     }
 }

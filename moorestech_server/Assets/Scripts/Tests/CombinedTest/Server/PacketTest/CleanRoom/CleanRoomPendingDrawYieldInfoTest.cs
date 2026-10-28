@@ -36,8 +36,9 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
         private const double Tolerance = 1e-6;
         private static readonly Guid TestQualityModuleItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000005");
 
-        [Test]
-        public void RemovingQualityModuleWhileOutputFullKeepsDrawTimeRatesAndProcessingTimeTest()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void RemovingQualityModuleWhileOutputFullKeepsDrawTimeRatesAndProcessingTimeTest(bool saveReload)
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var filter = BuildSmallCleanRoomWithFilter();
@@ -65,6 +66,27 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
             Assert.IsNotNull(view.PendingDraw);
             Assert.AreEqual(2, view.PendingDraw.MaxGrade);
             Assert.AreEqual(0.9, view.PendingDraw.PromotionChance, Tolerance);
+
+            if (saveReload)
+            {
+                // 部屋と機械を含むワールド全体を保存し、別DIで復元する
+                // Save the whole world including the room and machine, then restore through another DI container
+                var filterPos = filter.BlockPositionInfo.OriginalPos;
+                var machinePos = machine.BlockPositionInfo.OriginalPos;
+                var before = Newtonsoft.Json.JsonConvert.SerializeObject(processor.GetSaveState());
+                var text = SaveLoadJsonTestHelper.AssembleSaveJson(serviceProvider);
+                (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+                SaveLoadJsonTestHelper.LoadFromJson(serviceProvider, text);
+                filter = ServerContext.WorldBlockDatastore.GetBlock(filterPos);
+                machine = ServerContext.WorldBlockDatastore.GetBlock(machinePos);
+                inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
+                processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
+                Assert.AreEqual(before, Newtonsoft.Json.JsonConvert.SerializeObject(processor.GetSaveState()));
+                Assert.IsTrue(WaitForClassA(serviceProvider.GetService<CleanRoomDatastore>(), filter, machine, TickCap));
+                var restored = ReadWaferGrade(packet, machine);
+                Assert.AreEqual(2, restored.PendingDraw.MaxGrade);
+                Assert.AreEqual(0.9, restored.PendingDraw.PromotionChance, Tolerance);
+            }
 
             // 出力を空けると確定済みの抽選で加工が始まり、待っていた抽選は応答から消える
             // Freeing the output starts work on the fixed draw, and the waiting draw leaves the response

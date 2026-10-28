@@ -53,17 +53,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // 抽選に使う率を表示と同じ式で記録し、出力待ちの間はこの値を確定済みの効果として見せる
             // Record the draw's rates through the display's own formula, shown as the fixed effect while the outputs wait
             var context = StartCycle();
-            drawRecord = CleanRoomYieldPreview.Compute(recipe, CurrentEffect, moduleEffect);
-
-            // 役割の型ごとに書き換え器へ渡す
-            // Hand each role type to its rewriter
-            return role switch
-            {
-                WaferGradeRecipeRole waferGrade => WaferGradeOutputRewriter.Rewrite(waferGrade, context),
-                LayerExposureRecipeRole layerExposure => LayerExposureOutputRewriter.Rewrite(layerExposure, context),
-                DicingRecipeRole dicing => DicingOutputRewriter.Rewrite(dicing, RequireGradeLevel(), context),
-                _ => throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role"),
-            };
+            drawRecord = CleanRoomYieldPreview.Evaluate(role, context.ClassYield, moduleEffect, context, inheritedLevel, out var outputs);
+            return outputs;
 
             #region Internal
 
@@ -85,14 +76,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                 // Rewriters edit a copy of the factory's first set and repeat it by the factory's set count (the extra set shares the draw)
                 var factorySet = realizedOutputs.GetRange(0, recipe.OutputItems.Length);
                 return new CleanRoomYieldRollContext(classYield, moduleEffect, factorySet, setCount, random);
-            }
-
-            // グレードを受け継ぐ役割は継承レシピ（役割の検証が保証）。継承レベルが無いのは壊れたジョブなので黙って続けない
-            // Grade-inheriting roles are inheritance recipes (guaranteed by validation); a missing level means a broken job, so do not continue silently
-            int RequireGradeLevel()
-            {
-                if (inheritedLevel is not int gradeLevel) throw new InvalidOperationException($"グレードを受け継ぐ清浄室工程に継承レベルがありません。 block={_blockInstanceId} recipe={recipe.MachineRecipeGuid}");
-                return gradeLevel;
             }
 
             #endregion

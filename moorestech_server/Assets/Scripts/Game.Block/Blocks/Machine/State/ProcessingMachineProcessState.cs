@@ -21,8 +21,8 @@ namespace Game.Block.Blocks.Machine.State
         // Inherited level of the running job; null for non-inheritance recipes or no job (used by refunds and saves)
         public int? InheritedLevel { get; private set; }
 
-        // 開始時に消費した入力の実品ID（返却用）。セーブから復元したジョブは null
-        // Item ids of the inputs consumed at start (for refunds); null for a job restored from a save
+        // 開始時の入力実品ID。旧セーブで不明な場合だけnull
+        // Input identities at start; null only for legacy saves without the record
         public IReadOnlyList<ItemId> ConsumedInputItemIds => _consumedInputItemIds;
         private List<ItemId> _consumedInputItemIds;
 
@@ -57,11 +57,13 @@ namespace Game.Block.Blocks.Machine.State
             _context = context;
             if (restoredJob == null) return;
 
-            // セーブの残りtickごと加工を復元する。総tickは保存しないので進捗表示用に今の効果から求める。産出予定nullの旧セーブは完了時に再抽選する
-            // Restore processing with the saved remaining ticks; total ticks are not saved, so derive them for the progress display from the current effect; old saves with null pending outputs re-roll on completion
-            var restoredTotalTicks = MachineRealization.ComputeTotalTicks(restoredJob.Recipe, _context.EffectComponent.AggregateCurrent());
+            // 旧ジョブだけ現在の効果から時間を補い、欠落を開発者へ知らせる
+            // Only legacy jobs derive their time from current effects, with an explicit warning
+            if (!restoredJob.TotalTicks.HasValue) UnityEngine.Debug.LogWarning($"旧加工ジョブに確定時間が無いため現在の効果で復元します recipe:{restoredJob.Recipe.MachineRecipeGuid}");
+            var restoredTotalTicks = restoredJob.TotalTicks ?? MachineRealization.ComputeTotalTicks(restoredJob.Recipe, _context.EffectComponent.AggregateCurrent());
             SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel, restoredTotalTicks);
             RemainingTicks = restoredJob.RemainingTicks;
+            _consumedInputItemIds = restoredJob.ConsumedInputItemIds;
         }
 
         // 加工するジョブをIdle、ロードから設定。加工時間は確定済みの値を受け取り、ここでモジュール効果を取り直さない

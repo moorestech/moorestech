@@ -1,8 +1,15 @@
 using System;
 using Core.Item;
+using System.Text.RegularExpressions;
+using Game.SaveLoad.Migration.Steps;
+using Newtonsoft.Json.Linq;
+using UnityEngine.TestTools;
 using Core.Master;
 using Game.Block.Blocks.Machine;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Context;
 using Game.Block.Interface.MachineUpgrade;
 using NUnit.Framework;
 using Server.Boot;
@@ -117,8 +124,10 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             Assert.AreEqual(ForUnitTestLevelInheritanceIds.Source(2), inventory.GetItem(0).Id);
         }
 
-        [Test]
-        public void RecipeChangeRefundsConsumedVariantTest()
+        [TestCase(false, false)]
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        public void RecipeChangeRefundsConsumedVariantTest(bool saveReload, bool legacy)
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
@@ -128,12 +137,38 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
             AdvanceTicksWithFullPower(2, processor);
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
+            if (saveReload)
+            {
+                // 実際のJSON往復でも上位変種の消費記録を保つ
+                // Preserve consumed higher-variant identities through real JSON serialization
+                var states = SaveLoadJsonTestHelper.ThroughJson(block.GetSaveState());
+                if (legacy)
+                {
+                    var saved = (JObject)states[VanillaMachineSaveComponent.SaveKeyStatic];
+                    var job = (JObject)saved["processor"];
+                    job.Property("pendingRealization").Remove();
+                    job.Property("consumedInputItemGuids").Remove();
+                    job.Property("totalTicks").Remove();
+                    var oldWorld = new JObject { ["worldVersion"] = 7, ["world"] = new JArray(new JObject { ["state"] = new JObject { [VanillaMachineSaveComponent.SaveKeyStatic] = saved } }) };
+                    Assert.IsTrue(new SaveMigrationStepV7ToV8().Migrate(oldWorld).IsConverted);
+                    LogAssert.Expect(LogType.Warning, new Regex("確定結果の節が無い"));
+                    LogAssert.Expect(LogType.Warning, new Regex("確定時間が無い"));
+                }
+                block = ServerContext.BlockFactory.Load(block.BlockGuid, block.BlockInstanceId, states,
+                    new BlockPositionInfo(new Vector3Int(20, 0, 20), BlockDirection.North, Vector3Int.one));
+                inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+                processor = block.GetComponent<VanillaMachineProcessorComponent>();
+            }
+
             // 加工中の返却は消費した実品（投入した変種）で戻る
             // A mid-process refund returns the consumed variant that was inserted (refunds go to input slots first, then overflow, so count both)
+            if (legacy)
+                foreach (var input in Recipe(ForUnitTestLevelInheritanceIds.SubstituteRecipeGuid).InputItems)
+                    if (input.IsRemain != true) LogAssert.Expect(LogType.Warning, new Regex("消費した変種が不明で基準品で返却"));
             var overflow = CreateOverflow(10);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, processor.ClearSelectedRecipe(overflow));
-            Assert.AreEqual(2, CountItem(inventory, 0, InputSlotCount, ForUnitTestLevelInheritanceIds.Source(2)) + CountItem(overflow, 0, 10, ForUnitTestLevelInheritanceIds.Source(2)));
-            Assert.AreEqual(0, CountItem(inventory, 0, InputSlotCount, ForUnitTestLevelInheritanceIds.Source(1)) + CountItem(overflow, 0, 10, ForUnitTestLevelInheritanceIds.Source(1)));
+            Assert.AreEqual(legacy ? 0 : 2, CountItem(inventory, 0, InputSlotCount, ForUnitTestLevelInheritanceIds.Source(2)) + CountItem(overflow, 0, 10, ForUnitTestLevelInheritanceIds.Source(2)));
+            Assert.AreEqual(legacy ? 2 : 0, CountItem(inventory, 0, InputSlotCount, ForUnitTestLevelInheritanceIds.Source(1)) + CountItem(overflow, 0, 10, ForUnitTestLevelInheritanceIds.Source(1)));
         }
 
         [Test]

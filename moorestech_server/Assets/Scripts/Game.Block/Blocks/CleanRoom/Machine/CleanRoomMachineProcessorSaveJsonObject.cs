@@ -3,11 +3,18 @@ using System.Collections.Generic;
 using Core.Item.Interface;
 using Game.Fluid;
 using Newtonsoft.Json;
+using Game.Block.Blocks.Machine.State.Save;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
     public class CleanRoomMachineProcessorSaveJsonObject
     {
+        // V8では確定時間・消費実品・待機抽選をそのまま保存する
+        // V8 preserves fixed time, consumed identities and waiting draws
+        [JsonProperty("totalTicks")] public uint? TotalTicks;
+        [JsonProperty("consumedInputItemGuids")] public List<string> ConsumedInputItemGuids;
+        [JsonProperty("pendingRealization")] public MachineRealizationSaveJsonObject PendingRealization;
+
         [JsonProperty("cycleCount")] public uint CycleCount;
         [JsonProperty("state")] public int State;
         [JsonProperty("remainingSeconds")] public double RemainingSeconds;

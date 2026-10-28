@@ -19,6 +19,8 @@ namespace Game.Block.Blocks.Machine.State
     {
         public readonly MachineRecipeMasterElement Recipe;
         public readonly uint RemainingTicks;
+        public readonly uint? TotalTicks;
+        public readonly List<ItemId> ConsumedInputItemIds;
 
         // 保留出力。保留出力を持たない旧セーブは null で、完了時に一度だけ確定する
         // Pending outputs; null for old saves without them, realized once on completion
@@ -28,12 +30,18 @@ namespace Game.Block.Blocks.Machine.State
         // 1..max for an inheritance recipe, null for a non-inheritance recipe
         public readonly int? InheritedLevel;
 
-        public MachineProcessingJob(MachineRecipeMasterElement recipe, uint remainingTicks, List<IItemStack> pendingOutputs, int? inheritedLevel)
+        public MachineProcessingJob(MachineRecipeMasterElement recipe, uint remainingTicks, List<IItemStack> pendingOutputs, int? inheritedLevel, uint? totalTicks, List<ItemId> consumedInputItemIds)
         {
             // レシピと合わない継承レベルはセーブ破損かマイグレーション漏れなので、Lv1 などで黙って補わずに止める
             // An inherited level that does not fit the recipe means a corrupt save or a missed migration, so stop instead of silently filling in Lv1
             if (!MachineRecipeLevelInheritanceUtil.IsValidInheritedLevel(recipe, inheritedLevel)) throw new InvalidOperationException($"加工中ジョブの継承レベルが不正です recipe={recipe.MachineRecipeGuid} inheritedLevel={inheritedLevel}");
 
+            if (totalTicks == 0 || totalTicks.HasValue && remainingTicks > totalTicks.Value)
+                throw new InvalidOperationException($"加工ジョブの時間が不正です recipe:{recipe.MachineRecipeGuid}");
+            if (consumedInputItemIds != null && consumedInputItemIds.Count != recipe.InputItems.Length)
+                throw new InvalidOperationException($"加工ジョブの消費実品数が不正です recipe:{recipe.MachineRecipeGuid}");
+            TotalTicks = totalTicks;
+            ConsumedInputItemIds = consumedInputItemIds;
             Recipe = recipe;
             RemainingTicks = remainingTicks;
             PendingOutputs = pendingOutputs;
@@ -42,7 +50,7 @@ namespace Game.Block.Blocks.Machine.State
 
         // セーブの平らなキーからジョブを組む。ジョブが無いか、レシピがマスタから消えていれば null
         // Builds the job from a save's flat keys; null when there is no job or its recipe has left the master
-        public static MachineProcessingJob RestoreFromFlatSave(string recipeGuidStr, double remainingSeconds, List<ItemStackSaveJsonObject> pendingOutputs, int? inheritedLevel)
+        public static MachineProcessingJob RestoreFromFlatSave(string recipeGuidStr, double remainingSeconds, List<ItemStackSaveJsonObject> pendingOutputs, int? inheritedLevel, uint? totalTicks, List<string> consumedInputItemGuids)
         {
             // ジョブ無しは Guid.Empty で保存される（清浄室機械の旧セーブはキー自体が無く null）
             // No job is saved as Guid.Empty (old clean-room saves lack the key, so it is null)
@@ -60,7 +68,8 @@ namespace Game.Block.Blocks.Machine.State
             }
 
             var restoredOutputs = pendingOutputs?.Select(item => item.ToItemStack()).ToList();
-            return new MachineProcessingJob(recipe, GameUpdater.SecondsToTicks(remainingSeconds), restoredOutputs, inheritedLevel);
+            var consumed = consumedInputItemGuids?.Select(guid => MasterHolder.ItemMaster.GetItemId(Guid.Parse(guid))).ToList();
+            return new MachineProcessingJob(recipe, GameUpdater.SecondsToTicks(remainingSeconds), restoredOutputs, inheritedLevel, totalTicks, consumed);
         }
     }
 }

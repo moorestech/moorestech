@@ -29,9 +29,8 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             {
                 var input = recipe.InputItems[i];
                 if (input.IsRemain.HasValue && input.IsRemain.Value) continue;
-                var itemId = MachineRecipeLevelInheritanceUtil.ResolveInputItemId(recipe, i, inheritedLevel);
-                if (consumedInputItemIds != null) itemId = consumedInputItemIds[i];
-                else UnityEngine.Debug.LogWarning($"復元ジョブのため消費した変種が不明で基準品で返却した recipe={recipe.MachineRecipeGuid} slot={i}");
+                var itemId = consumedInputItemIds != null ? consumedInputItemIds[i] : MachineRecipeLevelInheritanceUtil.ResolveInputItemId(recipe, i, inheritedLevel);
+                if (consumedInputItemIds == null) UnityEngine.Debug.LogWarning($"復元ジョブのため消費した変種が不明で基準品で返却した recipe={recipe.MachineRecipeGuid} slot={i}");
                 stacks.Add(ServerContext.ItemStackFactory.Create(itemId, input.Count));
             }
             return stacks;

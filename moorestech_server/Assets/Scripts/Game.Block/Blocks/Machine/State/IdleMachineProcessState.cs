@@ -19,6 +19,8 @@ namespace Game.Block.Blocks.Machine.State
             _processingState = processingState;
         }
 
+        internal void RestorePending(MachineRealization realization) => _pendingRealization = realization;
+
         public ProcessState State => ProcessState.Idle;
         public void OnEnter() { }
         public void OnExit() { }
