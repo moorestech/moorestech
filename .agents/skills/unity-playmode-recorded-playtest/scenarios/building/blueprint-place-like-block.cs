@@ -1,3 +1,4 @@
+using Game.Context;
 // BPを外接箱1個のブロックとして置く: 地面/側面の置き位置・E高さ・配線ゴースト・素材不足・電線復元・列の素材上限・ビルドメニュー素材・静止表示
 // Places a blueprint as one extent block: ground/side origins, E height, wire ghosts, shortage, wire restore, run material cap, menu cost, steady display
 // 環境変数なしの起動は OutcropSurfacePlacement の初期化失敗で ready に届かないため、PLAYTEST_WORLD_DIRECTORY/PLAYTEST_MAP_MODE=generated/PLAYTEST_SEED を付けて実行する
@@ -71,8 +72,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     var tooltip = resolver.Resolve<MouseCursorTooltipState>();
     var checks = new BlueprintCopyPasteScenarioChecks(p, tooltip);
     var probe = new BlueprintPasteGhostProbe(tooltip);
-    var datastore = p.ServerService<IBlueprintDatastore>();
-    var worldBlocks = p.ServerService<Game.World.Interface.DataStore.IWorldBlockDatastore>();
     var size = new Vector3Int(6, 5, 5);
     const string ToolCategory = "build-menu-category-d1000000-0000-4000-8000-000000000009";
     const string CopyToolEntry = "build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d";
@@ -88,8 +87,8 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     nameState.Confirm("wired-bp");
-    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "wired-bp"), 15f, "BP『wired-bp』が登録される");
-    var bp = datastore.Blueprints.First(b => b.Name == "wired-bp");
+    await p.WaitForBlueprint("wired-bp", true, 15f);
+    var bp = await p.WaitForBlueprint("wired-bp", true, 15f);
     var minOffset = bp.Blocks.Aggregate(new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue), (m, b) => Vector3Int.Min(m, b.Offset));
     p.Assert(bp.Blocks.Count == 3 && minOffset == Vector3Int.zero, $"BPは3ブロック・オフセット最小(0,0,0) 実際:{bp.Blocks.Count}/{minOffset}");
     p.Assert(bp.Wires.Count == 2, $"BPに電線2本 実際:{bp.Wires.Count}");

@@ -6,6 +6,7 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Context;
+using Game.SpaceElevator;
 using Game.UnlockState;
 using UnityEngine;
 
@@ -49,7 +50,12 @@ namespace Client.Playtest.Operations
         public static async UniTask<bool> RemoveBlock(Vector3Int position)
         {
             var removed = false;
-            await PlaytestServerThreadAction.RunAsync($"remove block at {position}", () => removed = ServerContext.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove));
+            await PlaytestServerThreadAction.RunAsync($"remove block at {position}", () =>
+            {
+                var block = ServerContext.WorldBlockDatastore.GetBlock(position);
+                if (block != null && !ServerContext.GetService<SpaceElevatorConnectionService>().CanRemove(block)) return;
+                removed = ServerContext.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.ManualRemove);
+            });
             return removed;
         }
 

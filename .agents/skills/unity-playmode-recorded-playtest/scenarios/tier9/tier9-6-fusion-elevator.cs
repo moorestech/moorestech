@@ -1,3 +1,4 @@
+using Game.Context;
 // 出荷マスタで核融合炉を動かして宇宙エレベーター拠点へ給電し、ケーブルで接続して GPU衛星Lv1 が昇り切り出口に成果が出ることを確かめる
 // On the shipped master, run a fusion reactor to power the space elevator base, connect it with cables, and see a GPU satellite Lv1 climb all the way and deliver
 using System;
@@ -47,10 +48,11 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
 
     // 軌道エレベーターの建設と核融合炉を前提ごと完了扱いにし、拠点が研究から解放されたことを確かめる
     // Mark orbital elevator construction and fusion reactor done with prerequisites, then confirm the base is unlocked by research
-    var researchStore = p.ServerService<IResearchDataStore>();
-    await p.RunOnServer("軌道エレベーターの建設と核融合炉を前提ごと完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
-    await p.Until(() => research.All(researchStore.IsResearchCompleted), 15f, "軌道エレベーターの建設と核融合炉が完了扱いになった");
-    p.Assert(p.ServerService<IGameUnlockStateDataController>().BlockUnlockStateInfos[Guid.Parse("01a162aa-cec0-738c-93c5-f58adc87fa7f")].IsUnlocked, "軌道エレベーターの建設で拠点が解放された");
+    await p.RunOnServer("軌道エレベーターの建設と核融合炉を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "軌道エレベーターの建設と核融合炉が完了扱いになった");
+    var baseUnlocked = false;
+    await p.RunOnServer("サーバーの判定結果を読む", () => baseUnlocked = ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[Guid.Parse("01a162aa-cec0-738c-93c5-f58adc87fa7f")].IsUnlocked);
+    p.Assert(baseUnlocked, "軌道エレベーターの建設で拠点が解放された");
 
     // 核融合炉に重水素を入れて開き、稼働表示と燃料タンクを確かめる
     // Fuel the fusion reactor with deuterium, open it and check the operating display and fuel tank
@@ -91,11 +93,11 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     // Fill the pool with one cable launch arriving in orbit, then connect (the real launch was covered in stage 4)
     var cablesPerElevator = ((SpaceElevatorBaseBlockParam)elevator.BlockMasterElement.BlockParam).CablesPerElevator;
     p.Note($"グラフェンケーブル1便（{cablesPerElevator}本）の軌道到着をサーバーで起こし、接続ボタンを押す");
-    await p.RunOnServer("ケーブル1便を軌道へ到着させる", () => p.ServerService<IOrbitalArrivalService>().Arrive(cableId, cablesPerElevator));
+    await p.RunOnServer("ケーブル1便を軌道へ到着させる", () => ServerContext.GetService<IOrbitalArrivalService>().Arrive(cableId, cablesPerElevator));
     await p.Until(() => Detail().CablePoolAmount == cablesPerElevator, 10f, $"プールが{cablesPerElevator}本になった");
     await p.ClickWebUi("space-elevator-connect");
     await p.Until(() => Detail().IsConnected, 10f, "拠点が接続済みになった");
-    await p.Until(() => p.ServerService<SpaceElevatorCablePool>().Amount == 0, 10f, "プールから1エレベーター分が引かれた");
+    await p.WaitForCableCount(0, 10f);
     var cableObject = elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Cable").gameObject;
     var climberObject = elevatorObject.GetComponentsInChildren<Transform>(true).First(t => t.name == "Climber");
     await p.Until(() => cableObject.activeSelf, 10f, "ケーブルが現れた");
@@ -119,7 +121,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     // 昇り切ると到着の表どおりの成果が出口に出る（電力不足で遅くなる分を見込んで待ちは3倍）
     // On reaching the top the arrival-table output appears at the outlet (the wait is tripled for low-power slowdown)
     var climbSeconds = ((SpaceElevatorBaseBlockParam)elevator.BlockMasterElement.BlockParam).ClimbSeconds;
-    var expected = p.ServerService<IOrbitalArrivalService>().PreviewArrivalOutputs(satelliteId, 1);
+    var expected = (await p.ReadArrivalOutputs(satelliteId, 1));
     p.Assert(expected.Count > 0, $"GPU衛星Lv1 1便の到着成果がある（先頭 {MasterHolder.ItemMaster.GetItemMaster(expected[0].Id).Name} x{expected[0].Count}）");
     p.Note($"昇降 {climbSeconds} 秒を早送りせずに待つ");
     var deadline = Time.realtimeSinceStartup + climbSeconds * 3f + 10f;
@@ -138,7 +140,7 @@ return PlaytestRunner.Run("tier9-6-fusion-elevator", new PlaytestRunOptions { Re
     // Removing the connected base returns one elevator's worth to the pool
     p.Note($"接続済みの拠点を撤去し、プールに{cablesPerElevator}本が戻ることを確かめる");
     p.Assert(await p.RemoveBlock(elevatorPos), "拠点を撤去した");
-    await p.Until(() => p.ServerService<SpaceElevatorCablePool>().Amount == cablesPerElevator, 10f, $"プールに{cablesPerElevator}本が戻った");
+    await p.WaitForCableCount(cablesPerElevator, 10f);
     p.Note("段6 完了");
 
     #region Internal

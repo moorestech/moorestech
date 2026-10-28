@@ -1,3 +1,4 @@
+using Game.Context;
 // gameplay-saveで保存したseed196 revision5 worldを再ロードし、設置ブロック・地表高・r16・生成版が保存前と同じかを <world>.vtg-expect.json と照合する
 // tour/gameplay-saveと同じPLAYTEST_WORLD_DIRECTORYで3回目に起動する。スクショは全てプレイヤー視点(Camera.main)
 // Reload the seed-196 revision-5 world saved by gameplay-save and compare placed blocks, terrain heights, r16 files and generator version against <world>.vtg-expect.json.
@@ -27,7 +28,8 @@ return PlaytestRunner.Run("vein-terrain-seed196-reload-verify", options, async p
 
     // 保存前に書いた期待値を読む。無ければgameplay-saveが完走していないので以降は無意味
     // Read the expectations written before saving; without them gameplay-save never finished and nothing below means anything
-    var world = p.ServerService<WorldDataDirectory>();
+    WorldDataDirectory world = null;
+    await p.RunOnServer("ワールドの保存先を読む", () => world = ServerContext.GetService<WorldDataDirectory>());
     var expectPath = world.Root.TrimEnd('/', '\\') + ".vtg-expect.json";
     p.Assert(File.Exists(expectPath), $"期待値ファイルがある {expectPath}");
     var expect = JObject.Parse(File.ReadAllText(expectPath));

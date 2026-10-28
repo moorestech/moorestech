@@ -46,9 +46,8 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
     var upgrade = MasterHolder.ResearchMaster.GetAllResearches().Single(r => CraftLevel(r)?.Level == 2);
     var productBaseGuid = MasterHolder.ItemMaster.GetItemMaster(PlaytestItemOps.ResolveItemId(productBaseName)).ItemGuid;
     p.Assert(CraftLevel(upgrade).TargetItemGuids.Contains(productBaseGuid), $"{productBaseName} がアップグレード Lv2（{upgrade.ResearchNodeName}）の対象に入っている");
-    var researchStore = p.ServerService<IResearchDataStore>();
-    await p.RunOnServer("アップグレード Lv2 の前提を完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(upgrade.PrevResearchNodeGuids).Select(g => g.ToString()).ToList() }));
-    await p.Until(() => upgrade.PrevResearchNodeGuids.All(researchStore.IsResearchCompleted) && !researchStore.IsResearchCompleted(upgrade.ResearchNodeGuid), 15f, "アップグレード Lv2 の前提だけが完了扱いになった");
+    await p.RunOnServer("アップグレード Lv2 の前提を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(upgrade.PrevResearchNodeGuids).Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(upgrade.PrevResearchNodeGuids, new[] { upgrade.ResearchNodeGuid }, 15f, "アップグレード Lv2 の前提だけが完了扱いになった");
 
     // 製品の上限つき継承レシピの機械を置いて給電し、上限1では Lv2 の継承元が断られる
     // Place and power the machine of the product's capped recipe; at cap 1 the Lv2 source is refused
@@ -83,9 +82,11 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
     await p.UntilWebUiElement($"research-button-{upgrade.ResearchNodeGuid}", 10f);
     await p.Screenshot("02-upgrade-node-detail");
     await p.ClickWebUi($"research-button-{upgrade.ResearchNodeGuid}");
-    await p.Until(() => researchStore.IsResearchCompleted(upgrade.ResearchNodeGuid), 10f, "UI からアップグレード Lv2 を研究した");
+    await p.WaitForResearch(new[] { upgrade.ResearchNodeGuid }, Array.Empty<Guid>(), 10f, "UI からアップグレード Lv2 を研究した");
     await p.Until(() => p.CountItem(computeDataName) == 0, 10f, "計算データが研究で消費された");
-    p.Assert(p.ServerService<ILevelInheritanceCraftCapLookup>().GetCraftCap(productBaseGuid) == 2, "製作上限が 2 になった");
+    var capIsTwo = false;
+    await p.RunOnServer("サーバーの判定結果を読む", () => capIsTwo = ServerContext.GetService<ILevelInheritanceCraftCapLookup>().GetCraftCap(productBaseGuid) == 2);
+    p.Assert(capIsTwo, "製作上限が 2 になった");
     await p.Screenshot("03-upgrade-researched");
     await p.PressKey(Key.Escape);
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);

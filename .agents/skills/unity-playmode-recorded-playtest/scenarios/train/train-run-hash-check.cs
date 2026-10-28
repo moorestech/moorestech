@@ -77,7 +77,7 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         // Self-propulsion needs a locomotive with tractionForce > 0 (cargo cars have zero)
         var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => 0 < c.TractionForce);
         var trainCarGuid = carMaster.TrainCarGuid;
-        await p.RunOnServer("機関車を解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid));
+        await p.RunOnServer("機関車を解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid));
         await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(trainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロックのクライアント同期");
 
         foreach (var required in carMaster.RequiredItems)
@@ -105,14 +105,15 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         p.SendCommand("addFuelToAllTrainCarsCommand");
         await p.WaitSeconds(1f);
 
-        var train = p.ServerService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First();
+        Game.Train.Unit.TrainUnit train = null;
+        await p.RunOnServer("検証対象の列車を取得する", () => train = ServerContext.GetService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First());
         await p.RunOnServer("時刻表に橋脚Bを足して自動運転にする", () =>
         {
             train.trainDiagram.AddEntry(railB.FrontNode);
             train.TurnOnAutoRun();
         });
 
-        await p.Until(() => 0.0 < train.CurrentSpeed, 15f, "列車が加速開始");
+        await p.WaitForTrainState(train, null, null, true, 15f);
         var carBefore = SpawnedCar().transform.position;
         await p.Screenshot("02-train-running");
 
@@ -120,7 +121,7 @@ return PlaytestRunner.Run("train-run-hash-check", options, async p =>
         // Run until arrival (speed returns to zero) or 30 seconds, watching for hash mismatches
         p.Note("走行監視中（到着または30秒でhash検証へ）");
         var elapsed = 0f;
-        while (0.0 < train.CurrentSpeed && elapsed < 30f)
+        while (0.0 < (await p.ReadTrainState(train)).Speed && elapsed < 30f)
         {
             await p.WaitSeconds(1f);
             elapsed += 1f;

@@ -1,3 +1,4 @@
+using Game.Context;
 // ⚠ 旧uGUI版（BuildMenuView等）を置き換えたWeb UI版。名前入力の文字打ちだけは状態へ直接書く（Webモーダルの文字入力はDSL未対応）
 // Web-UI rewrite replacing the old uGUI scenario; only the name text is written to the state directly (DSL cannot type into the web modal)
 // 検証: 1クリック始点/終点・E高さ・右短押しで終点選択へ戻る・側面ヒットの始点セル・範囲内0の拒否・貼り付けE・ドラッグ列5個・サムネイル
@@ -48,7 +49,6 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     var checks = new BlueprintCopyPasteScenarioChecks(p, resolver.Resolve<MouseCursorTooltipState>());
     var isNameOpen = false;
     using var nameSubscription = nameState.OnOpenChanged.Subscribe(value => isNameOpen = value);
-    var datastore = p.ServerService<IBlueprintDatastore>();
 
     const string ToolCategory = "build-menu-category-d1000000-0000-4000-8000-000000000009";
     const string CopyToolEntry = "build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d";
@@ -97,9 +97,9 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     nameState.Confirm("chest-bp");
-    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "chest-bp"), 15f, "BP『chest-bp』が登録される");
+    await p.WaitForBlueprint("chest-bp", true, 15f);
     await UniTask.DelayFrame(10);
-    var chestBp = datastore.Blueprints.First(b => b.Name == "chest-bp");
+    var chestBp = await p.WaitForBlueprint("chest-bp", true, 15f);
     p.Assert(chestBp.Blocks.Count == 1 && chestBp.Blocks[0].Offset == Vector3Int.zero, $"BPはチェスト1個・オフセット(0,0,0) 実際:{chestBp.Blocks.Count}/{(chestBp.Blocks.Count > 0 ? chestBp.Blocks[0].Offset.ToString() : "-")}");
 
     p.Note("側面ヒット: チェスト東面(3.0,32.5,2.5)の始点セルは(3,32,2)（旧実装は(3,33,2)）。範囲内0なら確定を拒む");

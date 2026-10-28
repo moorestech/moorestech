@@ -1,3 +1,5 @@
+using Client.Playtest.Operations;
+using Game.Context;
 // 大きいBP（8x8チェスト64個）の貼り付けゴーストが、カーソル静止中に点滅しないことを確かめる
 // Verifies that a large blueprint (8x8 = 64 chests) paste ghost does not flicker while the cursor holds still
 // 比較として、通常設置の木のチェストを同じ地点で静止させたときのゴースト表示も記録する
@@ -54,7 +56,6 @@ return PlaytestRunner.Run("blueprint-large-paste-flicker", options, async p =>
     var probe = new BlueprintPasteGhostProbe(resolver.Resolve<MouseCursorTooltipState>());
     var isNameOpen = false;
     using var nameSubscription = nameState.OnOpenChanged.Subscribe(value => isNameOpen = value);
-    var datastore = p.ServerService<IBlueprintDatastore>();
 
     var pasteAimPoint = new Vector3(-11.5f, 32f, 8.5f);
     const string ToolCategory = "build-menu-category-d1000000-0000-4000-8000-000000000009";
@@ -75,8 +76,8 @@ return PlaytestRunner.Run("blueprint-large-paste-flicker", options, async p =>
     await p.UntilWebUiElement("modal-input", 10f);
     p.Assert(isNameOpen, "名前入力が開く");
     nameState.Confirm("large-chest-bp");
-    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "large-chest-bp"), 15f, "BP『large-chest-bp』が登録される");
-    var largeBp = datastore.Blueprints.First(b => b.Name == "large-chest-bp");
+    await p.WaitForBlueprint("large-chest-bp", true, 15f);
+    var largeBp = await p.WaitForBlueprint("large-chest-bp", true, 15f);
     p.Assert(largeBp.Blocks.Count == 64, $"BPはチェスト64個 実際:{largeBp.Blocks.Count}");
     await p.PressKey(Key.Escape);
 

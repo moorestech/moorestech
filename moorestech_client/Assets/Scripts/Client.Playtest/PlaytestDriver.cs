@@ -160,7 +160,6 @@ namespace Client.Playtest
             _reporter.Step($"コマンド送信: {command}");
             ClientContext.VanillaApi.SendOnly.SendCommand(command);
         }
-        public TService ServerService<TService>() => ServerContext.GetService<TService>();
         // ---- 検証 / Verification ----
         public void Assert(bool condition, string label)
         {

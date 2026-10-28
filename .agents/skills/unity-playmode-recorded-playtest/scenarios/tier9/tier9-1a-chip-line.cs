@@ -44,9 +44,8 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     // 半導体製造と S1 の研究を前提ごと完了扱いにする（解放アクションも再実行される）
     // Mark the semiconductor and S1 research done with all prerequisites (unlock actions are replayed)
     p.Note("半導体製造と S1 の研究を前提ごと完了させる");
-    var researchStore = p.ServerService<IResearchDataStore>();
-    await p.RunOnServer("研究を前提ごと完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
-    await p.Until(() => research.All(researchStore.IsResearchCompleted), 15f, "S1 research completed");
+    await p.RunOnServer("研究を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "S1 research completed");
 
     // 化学プラントで ナフサ＋水 → IPA を回す。液体は機械のタンクへ直接入れる（tick 外にパイプへ注入すると流体網の複製がサーバーと食い違うため）
     // Run naphtha + water -> IPA; fluids go straight into machine tanks (injecting into pipes outside the tick desyncs the fluid replica)
@@ -66,7 +65,7 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     var packaging = await PlaceStage("パッケージング装置", new Vector3Int(6, 33, 5), "ICチップLv1");
     foreach (var x in new[] { 10, 12 }) await GiveWithFluids(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 5)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
-    await p.Until(() => p.ServerService<CleanRoomDatastore>().TryGetCleanRoom(cutter, out var r) && r.ThresholdIndex < MasterHolder.CleanRoomMaster.OutThresholdIndex, 30f, "clean room classified");
+    await p.WaitForCleanRoom(cutter, true, 30f);
     foreach (var cell in new[] { new Vector3Int(14, 36, 10), new Vector3Int(7, 33, 0), new Vector3Int(0, 32, -26) }) await p.WaitBlockGameObject(cell);
     await p.Screenshot("01-room-and-line");
 

@@ -1,3 +1,4 @@
+using Game.Context;
 // 電線ツール孤立設置E2E(受け入れ3): 起点なしの空間クリックで電柱が単体設置され、接続0本のままそれが次の起点になる
 // 検証項目: 近く(距離3=範囲内)に既存電柱があっても新設電柱の接続数は0、電線消費0、設置後に新電柱が起点になりプレビュー線がそこから出る
 // Isolated pole placement E2E (acceptance 3): clicking empty space with no origin places a standalone pole with zero connections that becomes the next origin.
@@ -47,7 +48,7 @@ return PlaytestRunner.Run("electric-wire-tool-isolated-place-via-ui", options, a
 
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
     await p.PrepareBlockForUiPlacement("電柱", 5);
-    await p.RunOnServer("電線ツールを解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
+    await p.RunOnServer("電線ツールを解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
     await p.GiveItem("銅のワイヤー", 64);
 
     // 既存電柱を1本だけ直設置する（新設位置から距離3＝接続範囲内なので、自動配線があれば必ず繋がる配置）

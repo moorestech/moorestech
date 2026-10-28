@@ -1,3 +1,4 @@
+using Game.Context;
 // 電線接続の範囲ボックス相互判定E2E検証(設置時自動接続経路): 電柱をUI設置し、範囲内の電柱へは自動接続され範囲外へは接続されないことを実証する
 // 検証項目: 電柱設置の自動接続が「相互範囲内の最寄り電柱1本」を選ぶ。A-B距離6(範囲±6内)は自動接続成立、B-C距離10(範囲外)は接続されずCは独立
 // Electric wire mutual range-box judgement E2E (auto-connect on placement): placing a pole auto-connects to an in-range pole, not to an out-of-range one.
@@ -31,7 +32,7 @@ return PlaytestRunner.Run("electric-wire-mutual-range-via-ui", options, async p 
 
     // 自動接続には電線connectToolの解放と消費アイテム(銅のワイヤー)が必要（未解放だと配線されず設置のみ）
     // Auto-connect needs the electricWire connectTool unlocked and its material item (銅のワイヤー); otherwise placement occurs without wiring
-    await p.RunOnServer("電線ツールを解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2")));
+    await p.RunOnServer("電線ツールを解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2")));
     await p.GiveItem("銅のワイヤー", 64);
 
     // 電柱3本の設置座標。A-B間はX距離6(電柱poleConnectionRange=13→±6の範囲内)、B-C間はZ距離9(範囲外)

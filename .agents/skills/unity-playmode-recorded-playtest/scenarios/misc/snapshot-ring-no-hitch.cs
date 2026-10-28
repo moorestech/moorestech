@@ -19,7 +19,6 @@ var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 
 return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
 {
     await p.WaitSeconds(3f);
-    var assembler = ServerContext.GetService<AssembleSaveJsonText>();
 
     // tickへ差し込む購読口・末尾リストは無いので、取り込み時間はシナリオ側からCapture()を直接呼んで測る
     // There is no tick hook or tick-end list to inject into, so capture time is measured by calling Capture() directly from the scenario
@@ -38,7 +37,7 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
         await p.PlaceBlockDirect("基本土台", new Vector3Int(200 + i % 85 * 5, 40, 200 + i / 85 * 5), BlockDirection.North);
         if (i % 500 == 499) await UniTask.Yield();
     }
-    p.Note($"foundations placed blocks={ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count}");
+    p.Note($"foundations placed blocks={await BlockCount()}");
     await MeasureCaptures("foundations-only");
 
     for (var i = 0; i < chestCount; i++)
@@ -46,7 +45,7 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
         await p.PlaceBlockDirect("木のチェスト", new Vector3Int(900 + i % 40 * 2, 40, 900 + i / 40 * 2), BlockDirection.North);
         if (i % 500 == 499) await UniTask.Yield();
     }
-    var blockCount = ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count;
+    var blockCount = await BlockCount();
     p.Note($"blocks={blockCount} placed in {placeWall.Elapsed.TotalSeconds:F1}s");
 
     // リングを止めたまま進行を測り、この環境そのものが持つtick遅れを基準値にする
@@ -61,13 +60,17 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
 
     // 書き出し完了はtickスレッドから通知されるので、開始時の基準取り込みを含む成功数を原子的に数える
     // Write completions arrive on the tick thread, so successes including the start baseline are counted atomically
-    var ring = ServerContext.GetService<WorldSnapshotRing>();
     var writtenSnapshotCount = 0;
-    var writtenSubscription = ring.OnSnapshotWritten.Subscribe(written =>
+    IDisposable writtenSubscription = null;
+    await p.RunOnServer("常時記録リングを購読して開始する", () =>
     {
-        if (written.Success) Interlocked.Increment(ref writtenSnapshotCount);
+        var ring = ServerContext.GetService<WorldSnapshotRing>();
+        writtenSubscription = ring.OnSnapshotWritten.Subscribe(written =>
+        {
+            if (written.Success) Interlocked.Increment(ref writtenSnapshotCount);
+        });
+        ring.Start(null, null, null);
     });
-    await p.RunOnServer("常時記録リングを開始する", () => ring.Start(null, null, null));
     p.Note("ring started");
     var worst = await MeasureCaptures("ring-on");
     p.Assert(worst <= 20d, $"取り込みが20ms以内 (worst {worst:F1}ms)");
@@ -91,6 +94,13 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
 
     #region Internal
 
+    async UniTask<int> BlockCount()
+    {
+        var count = 0;
+        await p.RunOnServer("ブロック数を読む", () => count = ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
+        return count;
+    }
+
     async UniTask<double> MeasureCaptures(string label)
     {
         var worstMilliseconds = 0d;
@@ -100,7 +110,7 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
             await p.RunOnServer($"取り込み時間を測る {label}#{i}", () =>
             {
                 var captureWatch = Stopwatch.StartNew();
-                assembler.Capture();
+                ServerContext.GetService<AssembleSaveJsonText>().Capture();
                 milliseconds = captureWatch.Elapsed.TotalMilliseconds;
             });
             if (worstMilliseconds < milliseconds) worstMilliseconds = milliseconds;

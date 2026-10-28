@@ -72,7 +72,7 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         var resolver = ClientDIContext.DIContainer.DIContainerResolver;
         var clientUnlockState = resolver.Resolve<IGameUnlockStateData>();
         var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => 0 < c.TractionForce);
-        await p.RunOnServer("機関車を解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(carMaster.TrainCarGuid));
+        await p.RunOnServer("機関車を解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(carMaster.TrainCarGuid));
         await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(carMaster.TrainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロック同期");
         foreach (var required in carMaster.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
         var trainLength = TrainLengthConverter.ToRailUnits(carMaster.Length);
@@ -84,8 +84,10 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         await p.Until(() => SpawnedCar() != null, 15f, "車両entity出現");
         p.SendCommand("addFuelToAllTrainCarsCommand");
         await p.WaitSeconds(1f);
-        var train = p.ServerService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First();
-        p.Assert(train.trainDiagram.Entries.Count == 0 && !train.IsAutoRun, "初期は時刻表が空で自動運転OFF");
+        Game.Train.Unit.TrainUnit train = null;
+        await p.RunOnServer("検証対象の列車を取得する", () => train = ServerContext.GetService<ITrainUnitLookupDatastore>().GetRegisteredTrains().First());
+        var initial = await p.ReadTrainState(train);
+        p.Assert(initial.Entries == 0 && !initial.AutoRun, "初期は時刻表が空で自動運転OFF");
 
         // ===== UI: 時刻表を設定 =====
         // ===== UI: configure the timetable =====
@@ -108,20 +110,24 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         await p.ClickWebUi($"train-timetable-station-{stationBPos.x}_{stationBPos.y}_{stationBPos.z}-add");
         await p.UntilWebUiElement("train-timetable-stop-1", 5f);
         await p.ClickWebUi("train-timetable-apply");
-        await p.Until(() => train.trainDiagram.Entries.Count == 2, 10f, "サーバーの時刻表が2駅になる");
-        p.Assert(ReferenceEquals(train.trainDiagram.Entries[0].Node.StationRef.StationBlock, stationA), "1駅目は北駅");
-        p.Assert(ReferenceEquals(train.trainDiagram.Entries[1].Node.StationRef.StationBlock, stationB), "2駅目は南駅");
+        await p.WaitForTrainState(train, 2, null, null, 10f);
+        var station0Matches = false;
+        await p.RunOnServer("時刻表の停車駅を読む", () => station0Matches = ReferenceEquals(train.trainDiagram.Entries[0].Node.StationRef.StationBlock, stationA));
+        p.Assert(station0Matches, "1駅目は北駅");
+        var station1Matches = false;
+        await p.RunOnServer("時刻表の停車駅を読む", () => station1Matches = ReferenceEquals(train.trainDiagram.Entries[1].Node.StationRef.StationBlock, stationB));
+        p.Assert(station1Matches, "2駅目は南駅");
         await p.Screenshot("02-timetable-applied");
 
         // ===== UI: 自動運転ON → 走行 =====
         // ===== UI: auto-run on → moving =====
         p.Note("自動運転ONで出発を待つ");
         await p.ClickWebUi("train-timetable-auto-run-on");
-        await p.Until(() => train.IsAutoRun, 10f, "サーバーの自動運転がON");
+        await p.WaitForTrainState(train, null, true, null, 10f);
         await p.ClickWebUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
         var before = SpawnedCar().transform.position;
-        await p.Until(() => 0.0 < train.CurrentSpeed, 15f, "列車が加速開始（1秒待機後に発車）");
+        await p.WaitForTrainState(train, null, null, true, 15f);
         await p.WaitSeconds(3f);
         await p.Screenshot("03-running");
         var moved = (SpawnedCar().transform.position - before).magnitude;
@@ -138,9 +144,9 @@ return PlaytestRunner.Run("train-timetable-via-ui", options, async p =>
         p.Assert(timetableRequestCount == 2, $"開き直して時刻表タブを選ぶと再取得する (count={timetableRequestCount})");
         await PlaytestWebUiOps.WaitWebUiTextContains("train-timetable-stops", "南駅", 10f);
         await p.ClickWebUi("train-timetable-auto-run-off");
-        await p.Until(() => !train.IsAutoRun, 10f, "サーバーの自動運転がOFF");
+        await p.WaitForTrainState(train, null, false, null, 10f);
         await p.ClickWebUi("block-inventory-close");
-        await p.Until(() => train.CurrentSpeed <= 0.0, 30f, "惰性停止");
+        await p.WaitForTrainState(train, null, null, false, 30f);
         await p.Screenshot("04-stopped");
 
         p.Assert(mismatchCount == 0, $"Hash mismatch警告0件 (count={mismatchCount})");

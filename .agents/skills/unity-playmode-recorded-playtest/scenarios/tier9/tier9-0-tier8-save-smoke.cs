@@ -1,3 +1,5 @@
+using Client.Playtest.Operations;
+using Game.Context;
 // Tier8 終盤のセーブ（版6）が統合版でロードでき、コスト0で完了していた Tier9 研究とその解放が外れ、他の進行が残ることを確かめる
 // Confirm the late-Tier8 save loads on the integrated build, zero-cost Tier9 research and its unlocks are reset, and other progress remains
 // 固定world入口で起動する（PLAYTEST_WORLD_DIRECTORY=セーブの複製 / PLAYTEST_MAP_MODE=template / PLAYTEST_SEED=0）。ロードで原本の版が Backups へ退避されるので原本は渡さない
@@ -25,12 +27,17 @@ return PlaytestRunner.Run("tier9-0-tier8-save-smoke", options, async p =>
     // ロード直後の研究と解放を読み、リセットの効果と他の進行の残りを確かめる
     // Read research and unlocks right after loading to check the reset and that other progress remains
     await p.SkipOpeningSkitIfPlaying();
-    var research = p.ServerService<IResearchDataStore>();
-    var completed = MasterHolder.ResearchMaster.GetAllResearches().Count(r => research.IsResearchCompleted(r.ResearchNodeGuid));
+    var research = await p.ReadCompletedResearch();
+    var completed = research.Count;
     p.Note($"完了済みの研究 {completed} 件");
-    foreach (var guid in resetResearch) p.Assert(!research.IsResearchCompleted(guid), $"リセット対象 {guid} は未完了");
-    var unlocks = p.ServerService<IGameUnlockStateDataController>();
-    foreach (var guid in resetBlocks) p.Assert(!unlocks.BlockUnlockStateInfos.TryGetValue(guid, out var info) || !info.IsUnlocked, $"本番ブロック {guid} は未解放");
+    foreach (var guid in resetResearch) p.Assert(!research.Contains(guid), $"リセット対象 {guid} は未完了");
+    var unlocked = new System.Collections.Generic.List<Guid>();
+    await p.RunOnServer("ブロックの解放状態を複製する", () =>
+    {
+        var unlocks = ServerContext.GetService<IGameUnlockStateDataController>();
+        unlocked.AddRange(resetBlocks.Where(guid => unlocks.BlockUnlockStateInfos.TryGetValue(guid, out var info) && info.IsUnlocked));
+    });
+    foreach (var guid in resetBlocks) p.Assert(!unlocked.Contains(guid), $"本番ブロック {guid} は未解放");
     p.Assert(completed >= minimumKeptResearch, $"Tier8 までの研究が残っている（{completed} 件）");
     await p.Screenshot("01-loaded-tier8-save");
 });

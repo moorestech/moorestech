@@ -1,3 +1,4 @@
+using Game.Context;
 // 歯車チェーンポールのセグメント構築検証（UI経路・複雑シナリオプローブ）:
 // ポール5本をキーマウス操作のみで設置し、2本連結セグメントと3本連結セグメントを作る。
 // ポール設置はホットバー割当駆動（設置対象IDを割当てた枠を建築モードで保持＝設置＋チェーン自動接続）。
@@ -74,17 +75,10 @@ return PlaytestRunner.Run("gear-chain-pole-via-ui", options, async p =>
 
     // 歯車ネットワーク所属を検証: A1-A2同一 / B1-B2-B3同一 / AとBは別ネットワーク
     // Verify gear network membership: A1-A2 together, B1-B2-B3 together, A and B distinct
-    var gearNetworkDatastore = p.ServerService<GearNetworkDatastore>();
-    System.Func<Vector3Int, GearNetworkId?> networkOf = pos =>
-    {
-        var block = p.GetBlock(pos);
-        if (block == null) return null;
-        return gearNetworkDatastore.TryGetGearNetwork(block.BlockInstanceId, out var network) ? network.NetworkId : (GearNetworkId?)null;
-    };
-
-    p.Assert(networkOf(a1) != null, "A1がネットワークに所属");
-    p.Assert(networkOf(a1) != null && networkOf(a1).Equals(networkOf(a2)), "A1-A2が同一ネットワーク（2本セグメント）");
-    p.Assert(networkOf(b1) != null && networkOf(b1).Equals(networkOf(b2)) && networkOf(b2).Equals(networkOf(b3)), "B1-B2-B3が同一ネットワーク（3本セグメント）");
-    p.Assert(networkOf(a1) != null && networkOf(b1) != null && !networkOf(a1).Equals(networkOf(b1)), "AとBは別ネットワーク（セグメント分離）");
+    var networkIds = await p.ReadGearNetworks(new[] { p.GetBlock(a1), p.GetBlock(a2), p.GetBlock(b1), p.GetBlock(b2), p.GetBlock(b3) });
+    p.Assert(networkIds[0] != null, "A1がネットワークに所属");
+    p.Assert(networkIds[0] != null && networkIds[0].Equals(networkIds[1]), "A1-A2が同一ネットワーク（2本セグメント）");
+    p.Assert(networkIds[2] != null && networkIds[2].Equals(networkIds[3]) && networkIds[3].Equals(networkIds[4]), "B1-B2-B3が同一ネットワーク（3本セグメント）");
+    p.Assert(networkIds[0] != null && networkIds[2] != null && !networkIds[0].Equals(networkIds[2]), "AとBは別ネットワーク（セグメント分離）");
     await p.Screenshot("02-verified");
 });

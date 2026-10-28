@@ -1,3 +1,4 @@
+using Game.Context;
 using System;
 using System.IO;
 using System.Linq;
@@ -53,13 +54,16 @@ return PlaytestRunner.Run("blueprint-koujyou2-self-hit", new PlaytestRunOptions 
     // 原本BPを通常のライブラリとビルドメニューに登録する。
     // Register the original blueprint through the normal library and build menu.
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
-    var datastore = p.ServerService<IBlueprintDatastore>();
-    var matches = datastore.Blueprints.Where(value => value.BlueprintGuid == bp.BlueprintGuid).ToArray();
-    if (matches.Length > 1) throw new InvalidOperationException("Saved blueprint has duplicate original GUID entries");
-    var existing = matches.SingleOrDefault();
-    if (existing == null) await p.RunOnServer("原本BPをサーバーへ登録する", () => datastore.Register(bp));
-    else if (!JToken.DeepEquals(JToken.FromObject(existing), JToken.FromObject(bp)))
-        throw new InvalidOperationException("Saved blueprint has the original GUID but different payload");
+    await p.RunOnServer("原本BPを照合して登録する", () =>
+    {
+        var datastore = ServerContext.GetService<IBlueprintDatastore>();
+        var matches = datastore.Blueprints.Where(value => value.BlueprintGuid == bp.BlueprintGuid).ToArray();
+        if (matches.Length > 1) throw new InvalidOperationException("Saved blueprint has duplicate original GUID entries");
+        var existing = matches.SingleOrDefault();
+        if (existing == null) datastore.Register(bp);
+        else if (!JToken.DeepEquals(JToken.FromObject(existing), JToken.FromObject(bp)))
+            throw new InvalidOperationException("Saved blueprint has the original GUID but different payload");
+    });
     await resolver.Resolve<ClientBlueprintLibrary>().Refresh(Camera.main.GetCancellationTokenOnDestroy());
     var tooltip = resolver.Resolve<MouseCursorTooltipState>();
     var checks = new BlueprintCopyPasteScenarioChecks(p, tooltip);

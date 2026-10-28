@@ -118,15 +118,22 @@ return PlaytestRunner.Run("fluid-inventory-via-interact", options, async p =>
     TrainUnit train = null;
     await p.RunOnServer("液体貨車の列車を登録してドッキングさせる", () =>
     {
-        train = new TrainUnit(position,new List<TrainCar>{car},p.ServerService<TrainRailPositionManager>(),p.ServerService<TrainDiagramManager>());
-        p.ServerService<ITrainUnitMutationDatastore>().RegisterTrain(train);
-        p.ServerService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshot(train);
+        train = new TrainUnit(position,new List<TrainCar>{car},ServerContext.GetService<TrainRailPositionManager>(),ServerContext.GetService<TrainDiagramManager>());
+        ServerContext.GetService<ITrainUnitMutationDatastore>().RegisterTrain(train);
+        ServerContext.GetService<ITrainUnitSnapshotNotifyEvent>().NotifySnapshot(train);
         train.trainDiagram.AddEntry(position.GetNodeApproaching(),TrainDiagram.DepartureConditionType.WaitForTicks,10000);
         train.TurnOnAutoRun();
         train.trainUnitStationDocking.TryDockWhenStopped();
     });
-    p.Assert(train.IsAutoRun,"停車ダイヤの自動運転でドッキングを維持");
-    await p.Until(()=>car.IsDocked,15,"貨車ドッキング");
+    p.Assert((await p.ReadTrainState(train)).AutoRun,"停車ダイヤの自動運転でドッキングを維持");
+    var dockDeadline = Time.realtimeSinceStartup + 15f;
+    var docked = false;
+    while (!docked)
+    {
+        await p.RunOnServer("貨車の接岸状態を読む", () => docked = car.IsDocked);
+        if (dockDeadline < Time.realtimeSinceStartup) throw new System.TimeoutException("貨車の接岸待ちが時間切れです");
+        await UniTask.Yield();
+    }
     var registry = UnityEngine.Object.FindFirstObjectByType<TrainCarObjectDatastore>();
     await p.Until(()=>registry.TryGetEntity(car.TrainCarInstanceId,out var e)&&e.Interactable!=null,30,"貨車View出現");
     registry.TryGetEntity(car.TrainCarInstanceId,out var entity);

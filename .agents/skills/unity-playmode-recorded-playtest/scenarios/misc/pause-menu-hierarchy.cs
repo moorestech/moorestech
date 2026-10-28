@@ -27,7 +27,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 using TrainCarEntityObject = Client.Game.InGame.Train.View.Object.Core.TrainCarEntityObject;
-
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
 {
@@ -116,9 +115,7 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
     await p.Screenshot("12-train-hud-restored");
     p.Assert(forbiddenLogCount == 0, $"禁止された警告・拒否・例外ログが0件 (count={forbiddenLogCount})");
     Application.logMessageReceived -= countForbidden;
-
     #region Internal
-
     async UniTask AssertTop(string screenshot)
     {
         await p.Until(() => pauseMenu.CurrentPage.Value == PauseMenuPage.Top, 15f, "ポーズトップpage");
@@ -173,7 +170,7 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         await p.RunOnServer("レール2本を接続して列車を解放する", () =>
         {
             railA.FrontNode.ConnectNode(railB.FrontNode); railB.BackNode.ConnectNode(railA.BackNode);
-            p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
+            ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
         });
         foreach (var required in master.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
         var position = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);
@@ -195,6 +192,5 @@ return PlaytestRunner.Run("pause-menu-hierarchy", options, async p =>
         await p.RunOnServer($"レール橋脚を配置 {position}", () => placed = ServerContext.WorldBlockDatastore.TryAddBlock(blockId, position, BlockDirection.North, parameters, out _));
         p.Assert(placed, $"レール橋脚を配置 {position}");
     }
-
     #endregion
 });

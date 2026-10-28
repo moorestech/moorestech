@@ -17,7 +17,6 @@ using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
-using Game.CleanRoom;
 using Game.EnergySystem;
 using Game.Fluid;
 using Mooresmaster.Localization.Generated;
@@ -86,7 +85,7 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
         await AssertPanelPlateInCell(plateCell, upright);
     // 密閉された部屋が検出されるのを待つ（クラスは問わない）
     // Wait for the sealed room to be detected, whatever its class
-    await p.Until(() => p.ServerService<CleanRoomDatastore>().TryGetCleanRoom(machineBlock, out _), 15f, "部屋が検出された");
+    await p.WaitForCleanRoom(machineBlock, false, 15f);
     await p.Screenshot("01-room-built");
     #region ドアを歩いて通る / Walk through the door
     p.WarpPlayer(outsidePosition);

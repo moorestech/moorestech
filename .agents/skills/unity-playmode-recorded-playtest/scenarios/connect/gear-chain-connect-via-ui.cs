@@ -1,3 +1,4 @@
+using Game.Context;
 // チェーン接続ツール結線モードの検証（UI経路）: 孤立ポール2本を設置し「別ネットワーク」を確認した後、
 // 歯車チェーン接続ツールをホットバーで保持してポールA→ポールBの順にクリックし、結線されて同一ネットワークになることを検証する。
 // 結線がキーマウ操作（ポールクリック→ChainConnectSend）から発火することの直接の証明。
@@ -53,24 +54,18 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     // 結線前の前提を検証: 両ポールは別ネットワーク
     // Pre-connection premise: the two poles belong to different networks
-    var gearNetworkDatastore = p.ServerService<GearNetworkDatastore>();
-    System.Func<Vector3Int, GearNetworkId?> networkOf = pos =>
-    {
-        var block = p.GetBlock(pos);
-        if (block == null) return null;
-        return gearNetworkDatastore.TryGetGearNetwork(block.BlockInstanceId, out var network) ? network.NetworkId : (GearNetworkId?)null;
-    };
-    p.Assert(networkOf(c1) != null && networkOf(c2) != null && !networkOf(c1).Equals(networkOf(c2)), "結線前は別ネットワーク（孤立設置の確認）");
+    var networkIds = await p.ReadGearNetworks(new[] { p.GetBlock(c1), p.GetBlock(c2) });
+    p.Assert(networkIds[0] != null && networkIds[1] != null && !networkIds[0].Equals(networkIds[1]), "結線前は別ネットワーク（孤立設置の確認）");
     await p.Screenshot("01-isolated-poles");
 
     // ポールの接続エリアコライダー中心を照準点にする（skillの定石: collider.bounds.center）
     // Aim at the pole's connect-area collider center (skill rule of thumb: collider.bounds.center)
-    System.Func<Vector3Int, Vector3> poleClickPoint = pos =>
+    Vector3 poleClickPoint(Vector3Int pos)
     {
         var blockObject = Client.Game.InGame.Context.ClientDIContext.BlockGameObjectDataStore.GetBlockGameObject(pos);
         var areaCollider = blockObject.GetComponentInChildren<GearChainPoleConnectAreaCollider>(true);
         return areaCollider.GetComponent<Collider>().bounds.center;
-    };
+    }
 
     // 接続ツールを保持し建築モードへ
     // Hold the connect tool to enter build mode
@@ -86,7 +81,7 @@ return PlaytestRunner.Run("gear-chain-connect-via-ui", options, async p =>
 
     // 結線反映を条件待機し、同一ネットワークになったことを検証
     // Wait for the connection to land, then verify both poles share one network
-    await p.Until(() => networkOf(c1) != null && networkOf(c1).Equals(networkOf(c2)), 15f, "クリック結線で同一ネットワーク化");
+    await p.WaitForConnectedGears(p.GetBlock(c1), p.GetBlock(c2), 15f);
     await p.Hotbar.ExitBuildMode(1);
     await p.Screenshot("02-connected");
 });

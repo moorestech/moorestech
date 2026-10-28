@@ -32,7 +32,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using VContainer;
-
 var ironVeinGuid = "fe3ccb53-4902-4191-a4bd-c8fe1f8a086d";
 var waterVeinGuid = "ca978c1e-4ce9-4096-849b-ffbf277206dc";
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 380f };
@@ -52,10 +51,10 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
     p.Note($"[env-workaround] 非前面Editorでキーボードが無効化されるため入力設定を一時変更 ({savedBackground}/{savedEditorInput} -> IgnoreFocus/AllDeviceInputAlwaysGoesToGameView)");
     var mapData = await ClientContext.VanillaApi.Response.World.GetMapData(default);
     var meta = mapData.TerrainMeta;
-    var world = p.ServerService<WorldDataDirectory>();
+    WorldDataDirectory world = null;
+    await p.RunOnServer("ワールドの保存先を読む", () => world = ServerContext.GetService<WorldDataDirectory>());
     p.Note($"[world] root={world.Root} generator={meta.GeneratorVersion} id={meta.WorldId} saveExists={File.Exists(world.SaveJsonFilePath)}");
     p.Assert(meta.GeneratorVersion == "5.0.0" && meta.WorldSeed == 196, "tourで作ったrevision5・seed196 worldを開いている");
-
     // 地形を上書きしないよう足場は作らず、無料設置(全建築解放)だけ有効にしてスポーンへ留まる
     // No scaffold (it would cover real terrain); enable free placement (all builds unlocked) only and stay at spawn
     var spawn = p.PlayerPosition;
@@ -63,7 +62,6 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
     var terrains = Terrain.activeTerrains.Where(t => t.name.StartsWith("Terrain_")).ToArray();
     var forward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized is var f && f.sqrMagnitude > 0.1f ? f : Vector3.forward;
     var minLand = (double)SurfaceEnvelope.GeneratedV5.SeaY + SurfaceEnvelope.GeneratedV5.MaximumWaveRise + SurfaceEnvelope.GeneratedV5.LandClearance;
-
     // 1: 手掘り。最寄り鉄鉱石露頭の本体(最大Collider)の手前に立ち、視点を下げて画面中央レイを当ててF長押しで掘る
     // 1: Hand mining: stand before the nearest iron outcrop's main collider, pitch the view down onto it, and hold F
     var ironVein = NearestVein(ironVeinGuid);
@@ -81,19 +79,16 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
     await p.Until(() => oreBefore < p.CountItem("鉄鉱石"), 15f, "手掘りで鉄鉱石が増えた");
     p.Note($"[pv] 手掘り結果: 鉄鉱石 {oreBefore} -> {p.CountItem("鉄鉱石")}");
     await p.Screenshot("pv-01-hand-mined");
-
     // 2-3: 採掘機を鉄鉱石鉱脈へ、ポンプを水鉱脈へ置き、保持中の範囲表示も検査する
     // 2-3: Place the miner on the iron vein and the pump on the water vein, checking the range display while held
     var miner = await PlaceOnVein("原始的な採掘機", ironVein, "02-miner");
     var pump = await PlaceOnVein("歯車ポンプ", NearestVein(waterVeinGuid), "04-pump");
-
     // 4: ポーズメニューの「セーブ」と同じGameSaveRequester.Save()を呼び、save.jsonの更新を待つ
     // 4: Call GameSaveRequester.Save(), the very request the pause-menu Save button sends, and wait for save.json
     p.Note("[env-workaround] CEF不調でポーズメニュー(Web UI)が出ないため、セーブボタンと同じGameSaveRequester.Save()を直接呼ぶ");
     var savedBefore = File.Exists(world.SaveJsonFilePath) ? File.GetLastWriteTimeUtc(world.SaveJsonFilePath) : DateTime.MinValue;
     ClientDIContext.DIContainer.DIContainerResolver.Resolve<GameSaveRequester>().Save();
     await p.Until(() => File.Exists(world.SaveJsonFilePath) && savedBefore < File.GetLastWriteTimeUtc(world.SaveJsonFilePath), 60f, "セーブ要求でsave.jsonが書き出された");
-
     // 5: 再ロード照合の期待値。設置2件・固定点と鉱脈中心とタイル中心の地表高・全r16のSHA256
     // 5: Reload expectations: both placed blocks, terrain heights at fixed points, vein centers and tile centers, and every r16 SHA256
     var points = new List<Vector3> { new Vector3(438.5f, 0f, -401.5f), new Vector3(-336.43f, 0f, 405.76f), Center(ironVein), Center(NearestVein(waterVeinGuid)) };
@@ -107,9 +102,7 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
     await p.Screenshot("pv-06-saved");
     (inputSettings.backgroundBehavior, inputSettings.editorInputBehaviorInPlayMode) = (savedBackground, savedEditorInput);
     p.Note("保存完了・入力設定を復元。シナリオ終了後ランナーがPlayModeを止める(=終了)。同じworldでreload-verifyを起動する");
-
     #region Internal
-
     async UniTask PitchViewOnto(OutcropGameObject outcrop)
     {
         // GameScreenの照準は画面中央固定(ADR 0008)。低い露頭は実プレイヤー同様、Look(ポインタdelta)で視点を下げて中央レイを2m内に当てる
@@ -147,7 +140,13 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
         await p.ClickPlace();
         var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId(blockName)).BlockGuid;
         WorldBlockData placed = null;
-        await p.Until(() => (placed = FindOnVein(blockGuid, vein)) != null, 15f, $"{blockName}が鉱脈上に設置された");
+        var placementDeadline = Time.realtimeSinceStartup + 15f;
+        while (placed == null)
+        {
+            await p.RunOnServer("鉱脈上の設置物を読む", () => placed = FindOnVein(blockGuid, vein));
+            if (placementDeadline < Time.realtimeSinceStartup) throw new TimeoutException($"鉱脈上の設置待ちが時間切れです:{blockName}");
+            await UniTask.Yield();
+        }
         var origin = placed.BlockPositionInfo.OriginalPos;
         await p.WaitBlockGameObject(origin);
         await p.Hotbar.ExitBuildMode(0);
@@ -193,6 +192,5 @@ return PlaytestRunner.Run("vein-terrain-seed196-gameplay-save", options, async p
         dockArea.GetType().GetProperty("selected", flags).SetValue(dockArea, panes.IndexOf(gameView));
         await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
     }
-
     #endregion
 });

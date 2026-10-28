@@ -1,3 +1,5 @@
+using Client.Playtest.Operations;
+using Game.Context;
 // 生成ワールドの斜面で、鉄の歯車ベルトコンベア・分岐機を含むBPの貼り付けを確かめる（ADR 0081 R6〜R8・#1499の元症状）
 // (a) 高さオフセット0で斜面の上をゆっくり動かしても、ゴーストが1フレームも欠けない（点滅しない）
 // (b) Qで1段以上下げて一部が丘に食い込む位置で貼ると、埋まるブロックだけ赤く「地形に埋まっています」が出て、貼付後は残りだけ置かれる
@@ -62,7 +64,6 @@ return PlaytestRunner.Run("blueprint-terrain-sink-partial-paste", options, async
     var tooltipState = resolver.Resolve<MouseCursorTooltipState>();
     var checks = new BlueprintCopyPasteScenarioChecks(p, tooltipState);
     var probe = new BlueprintPasteGhostProbe(tooltipState);
-    var datastore = p.ServerService<IBlueprintDatastore>();
     const string ToolCategory = "build-menu-category-d1000000-0000-4000-8000-000000000009";
     const string CopyToolEntry = "build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d";
     const string BlueprintCategory = "build-menu-category-d1000000-0000-4000-8000-000000000010";
@@ -77,8 +78,8 @@ return PlaytestRunner.Run("blueprint-terrain-sink-partial-paste", options, async
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     nameState.Confirm("terrain-sink-bp");
-    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "terrain-sink-bp"), 15f, "BP『terrain-sink-bp』が登録される");
-    var blueprint = datastore.Blueprints.First(b => b.Name == "terrain-sink-bp");
+    await p.WaitForBlueprint("terrain-sink-bp", true, 15f);
+    var blueprint = await p.WaitForBlueprint("terrain-sink-bp", true, 15f);
     p.Assert(blueprint.Blocks.Count == 8, $"BPは8ブロック 実際:{blueprint.Blocks.Count}");
     await p.PressKey(Key.Escape);
 

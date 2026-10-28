@@ -52,9 +52,8 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     // 半導体製造と S1 の研究を前提ごと完了扱いにする（解放アクションも再実行される）
     // Mark the semiconductor and S1 research done with all prerequisites (unlock actions are replayed)
     p.Note("半導体製造と S1 の研究を前提ごと完了させる");
-    var researchStore = p.ServerService<IResearchDataStore>();
-    await p.RunOnServer("半導体製造と S1 の研究を完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
-    await p.Until(() => research.All(researchStore.IsResearchCompleted), 15f, "S1 research completed");
+    await p.RunOnServer("半導体製造と S1 の研究を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "S1 research completed");
 
     // 電気汎用工作装置を5台並べて給電し、各レシピを選んで材料を入れる
     // Place five powered electric workshops, select each recipe and insert its inputs

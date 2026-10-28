@@ -40,9 +40,8 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
 
     // 半導体製造の研究を前提ごと完了扱いにする
     // Mark the semiconductor research done with all prerequisites
-    var researchStore = p.ServerService<IResearchDataStore>();
-    await p.RunOnServer("半導体製造の研究を完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(semiconductorResearch).Select(g => g.ToString()).ToList() }));
-    p.Assert(researchStore.IsResearchCompleted(semiconductorResearch), "semiconductor research completed");
+    await p.RunOnServer("半導体製造の研究を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(semiconductorResearch).Select(g => g.ToString()).ToList() }));
+    p.Assert((await p.ReadCompletedResearch()).Contains(semiconductorResearch), "semiconductor research completed");
 
     // 床のパネルを敷き、専用機5種を1列に置いて、壁を建てる前に設置演出の終わった見た目を撮る
     // Lay the panel floor, line up the five machines and shoot their looks (after the placement effect) before the walls go up
@@ -67,7 +66,7 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     await BuildWallsAndCeiling();
     foreach (var x in new[] { 1, 21 }) await Give(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 2)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
-    await p.Until(() => p.ServerService<CleanRoomDatastore>().TryGetCleanRoom(machines[1], out var r) && r.ThresholdIndex < MasterHolder.CleanRoomMaster.OutThresholdIndex, 30f, "clean room classified");
+    await p.WaitForCleanRoom(machines[1], true, 30f);
 
     // 抽選欄は役割レシピを選んだ機械にだけ出るので、成膜・EUV1層・ダイシングを選ぶ
     // The draw section only shows for a selected role recipe, so select deposition, EUV layer 1 and dicing

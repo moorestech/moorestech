@@ -44,9 +44,8 @@ return PlaytestRunner.Run("tier9-7-antimatter-final-research", new PlaytestRunOp
     p.WarpPlayer(new Vector3(5f, 32.5f, -12f));
     var deuterium = MasterHolder.FluidMaster.GetFluidId(deuteriumGuid);
     var finalResearch = MasterHolder.ResearchMaster.GetResearch(finalResearchGuid);
-    var researchStore = p.ServerService<IResearchDataStore>();
-    await p.RunOnServer("最終研究の前提を完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(finalResearch.PrevResearchNodeGuids).Select(g => g.ToString()).ToList() }));
-    await p.Until(() => finalResearch.PrevResearchNodeGuids.All(researchStore.IsResearchCompleted) && !researchStore.IsResearchCompleted(finalResearchGuid), 15f, "最終研究の前提だけが完了扱いになった");
+    await p.RunOnServer("最終研究の前提を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(finalResearch.PrevResearchNodeGuids).Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(finalResearch.PrevResearchNodeGuids, new[] { finalResearchGuid }, 15f, "最終研究の前提だけが完了扱いになった");
 
     // 反物質製造装置と電気汎用工作装置を置き、核融合炉で給電する。炉の出力が製造装置の要求以上であることを先に確かめる
     // Place the antimatter maker and the electric workshop powered by a fusion reactor; first check the reactor output covers the maker
@@ -98,7 +97,7 @@ return PlaytestRunner.Run("tier9-7-antimatter-final-research", new PlaytestRunOp
     await p.UntilWebUiElement($"research-button-{finalResearchGuid}", 10f);
     await p.Screenshot("03-final-research-detail");
     await p.ClickWebUi($"research-button-{finalResearchGuid}");
-    await p.Until(() => researchStore.IsResearchCompleted(finalResearchGuid), 10f, "UI から最終研究を完了した");
+    await p.WaitForResearch(new[] { finalResearchGuid }, Array.Empty<Guid>(), 10f, "UI から最終研究を完了した");
     await p.Until(() => p.CountItem(bombName) == 0, 10f, $"{bombName} {bombCost} 個が消費された");
     await p.Screenshot("04-final-research-complete");
     p.Note("段7 完了");

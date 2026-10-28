@@ -36,7 +36,6 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     var viewModeController = ClientDIContext.DIContainer.DIContainerResolver.Resolve<PlayerViewModeController>();
     var playerRenderers = UnityEngine.Object.FindFirstObjectByType<PlayerObjectController>().GetComponentsInChildren<Renderer>(true);
     var crosshairDot = CrosshairView.Instance.transform.Find("Dot").gameObject;
-    System.Func<int> countBlocks = () => ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count;
 
     // 1: ゲーム画面の初期状態は三人称（クロスヘア無し・自機表示）
     // 1: The game screen starts in third-person (no crosshair, player visible)
@@ -130,9 +129,14 @@ return PlaytestRunner.Run("fps-tps-view-toggle-via-ui", options, async p =>
     await p.Until(() => viewModeController.GetCurrentMode() == PlayerViewMode.FirstPerson, 5f, "建設モード中にFirstPersonへ切替");
     p.Assert(crosshairDot.activeInHierarchy, "FPS建設でクロスヘア表示");
     p.Assert(Cursor.lockState != CursorLockMode.Locked, "FPS建設でもUI側のカーソル解放を維持");
-    var beforeFpsPlace = countBlocks();
+    var beforeFpsPlace = await p.ReadWorldBlockCount();
     await p.ClickPlace();
-    await p.Until(() => countBlocks() == beforeFpsPlace + 1, 10f, "FPS画面中央照準でブロックが設置される");
+    var placeDeadline = Time.realtimeSinceStartup + 10f;
+    while (await p.ReadWorldBlockCount() != beforeFpsPlace + 1)
+    {
+        if (placeDeadline < Time.realtimeSinceStartup) throw new System.TimeoutException("FPS設置の待機が時間切れです");
+        await UniTask.Yield();
+    }
     await p.Screenshot("08-fps-center-placed");
 
     // 7: 削除モードへ遷移してもFPSが維持される

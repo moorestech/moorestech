@@ -1,3 +1,4 @@
+using Game.Context;
 // 通常設置の電線不足ゲートE2E(受け入れ6): 電線を持たずに既存設備の近くへ電柱を通常設置すると「アイテム不足： 銅のワイヤー」が出て設置されない
 // 検証項目: 電線不足時のラベル文言と設置拒否、対照として電線を補充すると同じ操作で設置できる
 // Normal placement wire-shortage gate E2E (acceptance 6): placing a pole near existing equipment without wire shows アイテム不足： 銅のワイヤー and is refused.
@@ -40,7 +41,7 @@ return PlaytestRunner.Run("electric-wire-normal-place-wire-shortage-via-ui", opt
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
     await p.UnlockBlock("電柱");
     await p.GiveConstructionCost("電柱", 1);
-    await p.RunOnServer("電線ツールを解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
+    await p.RunOnServer("電線ツールを解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
 
     // 既存の電気設備として電柱を1本直設置する（新設位置から距離3＝接続範囲内）
     // Place one existing pole as the neighbouring equipment (3 blocks from the new position, in range)

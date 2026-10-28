@@ -90,7 +90,7 @@ return PlaytestRunner.Run("quality-effects-train", new PlaytestRunOptions { Reco
         {
             railA.FrontNode.ConnectNode(railB.FrontNode);
             railB.BackNode.ConnectNode(railA.BackNode);
-            p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
+            ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(master.TrainCarGuid);
         });
         foreach (var item in master.RequiredItems) await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(item.ItemGuid).Name, item.Count);
         var position = new RailPosition(new List<IRailNode> { railA.BackNode, railB.BackNode }, TrainLengthConverter.ToRailUnits(master.Length), 0);

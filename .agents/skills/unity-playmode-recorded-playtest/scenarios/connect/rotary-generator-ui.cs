@@ -1,3 +1,4 @@
+using Game.Context;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -25,7 +26,6 @@ using MessagePack;
 using UniRx;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
 {
@@ -73,11 +73,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         p.Assert(p.GetBlock(position) != null, $"駆動系ブロック設置 {position}");
         await p.WaitBlockGameObject(position);
     }
-    var gears = p.ServerService<GearNetworkDatastore>();
-    await p.Until(() => gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out _), 15f, "発電機の歯車網確定");
-    p.Assert(gears.TryGetGearNetwork(p.GetBlock(steamPos).BlockInstanceId, out var steamNetwork) &&
-             gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out var generatorNetwork) &&
-             steamNetwork.NetworkId.Equals(generatorNetwork.NetworkId), "蒸気機関から発電機まで同一歯車網");
+    await p.WaitForConnectedGears(p.GetBlock(steamPos), generatorBlock, 15f);
     // 蒸気はシナリオ側のループで継続補給する。途中で失敗して抜けても、スコープの破棄で補給を止める
     // Keep refilling steam from a scenario-side loop; even when a failure exits early, disposing the scope stops it
     var fluid = p.GetBlock(steamPos).GetComponent<FuelGearGeneratorFluidComponent>();
@@ -111,9 +107,15 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
                         minerWire.ContainsWireConnection(generatorBlock.BlockInstanceId), 15f, "実操作で双方向電線接続");
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Generating &&
                         Detail().GeneratedElectricPower > 0f, 30f, "実需要へ供給して発電中");
-    p.Assert(gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out var activeNetwork) &&
+    var activeRpmEnough = false;
+    await p.RunOnServer("発電機の実RPMを読む", () =>
+    {
+        var gears = ServerContext.GetService<GearNetworkDatastore>();
+        activeRpmEnough = gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out var activeNetwork) &&
              activeNetwork.TryResolveRotation(generatorBlock.BlockInstanceId, out var rpm, out _) &&
-             rpm.AsPrimitive() >= 40f, "発電中の実RPMは最低40以上");
+             rpm.AsPrimitive() >= 40f;
+    });
+    p.Assert(activeRpmEnough, "発電中の実RPMは最低40以上");
     await p.ExitToGameScreen();
     await OpenGenerator();
     await p.UntilWebUiElement("gear-to-electric-section", 15f);
@@ -141,9 +143,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     }
     GearToElectricGeneratorBlockStateDetail Detail()
     {
-        var component = generatorBlock.GetComponent<GearToElectricGeneratorComponent>();
-        var value = component.GetBlockStateDetails().First(d => d.Key == GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
-        return MessagePackSerializer.Deserialize<GearToElectricGeneratorBlockStateDetail>(value.Value);
+        return generatorObject.GetStateDetail<GearToElectricGeneratorBlockStateDetail>(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
     }
     async UniTask AimAtClickCollider(BlockGameObject blockObject)
     {

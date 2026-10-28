@@ -41,9 +41,8 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     p.WarpPlayer(new Vector3(6.5f, 33.2f, 1.5f));
     var ipaId = MasterHolder.FluidMaster.GetFluidId(MasterHolder.FluidMaster.Fluids.Data.First(f => f.Name == "イソプロピルアルコール").FluidGuid);
     var consumers = new List<IBlock>();
-    var researchStore = p.ServerService<IResearchDataStore>();
-    await p.RunOnServer("研究を前提ごと完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
-    await p.Until(() => research.All(researchStore.IsResearchCompleted), 15f, "半導体製造の研究が完了扱いになった");
+    await p.RunOnServer("研究を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(research).Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(research, Array.Empty<Guid>(), 15f, "半導体製造の研究が完了扱いになった");
 
     // 部屋の中にパッケージング2台を並べる。A の入口 (5,33,6) の手前、B の入口 (8,33,6) の手前に搬入路を作る
     // Place two packaging machines in the room; feed paths end in front of A's inlet (5,33,6) and B's inlet (8,33,6)
@@ -55,7 +54,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     foreach (var machine in new[] { packagingA, packagingB }) await SelectRecipe(machine, packagingRecipe);
     foreach (var x in new[] { 11, 12 }) await Give(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 8)), 0, "クリーンルームフィルター", 5);
     await PowerAll();
-    await p.Until(() => p.ServerService<CleanRoomDatastore>().TryGetCleanRoom(packagingA, out var r) && r.ThresholdIndex < MasterHolder.CleanRoomMaster.OutThresholdIndex, 30f, "クリーンルームが判定された");
+    await p.WaitForCleanRoom(packagingA, true, 30f);
     foreach (var machine in new[] { packagingA, packagingB }) await Give(machine, 1, "ICチップ基板", 20);
 
     // A の継承元に Lv1 を置き、分岐器→ベルトで Lv2 を届けると止まって理由が出る。ベルトへの押し込みは tick 内だけ受け付けるので、分岐器（block 更新で押す）へ入れる

@@ -1,3 +1,4 @@
+using Game.Context;
 // スポイト拡張E2E検証: ミドルクリックで電線と列車車両を設置ターゲットへピックする
 // 検証項目: GameScreen中の電線ピック→PlaceBlock遷移+電線接続ツール選択、PlaceBlock中の列車ピック→TrainCarPlacementTargetへの持ち替え
 // Placement-pick extension E2E: middle-click eyedrops an electric wire and a train car into placement targets.
@@ -70,7 +71,7 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     // Unlock the cargo car (length 7, fits the 12-block span) server-side, then wait for the client mirror
     var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => c.Length <= 7);
     var trainCarGuid = carMaster.TrainCarGuid;
-    await p.RunOnServer("貨車を解放する", () => p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid));
+    await p.RunOnServer("貨車を解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid));
     await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(trainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロックのクライアント同期");
 
     // 建設コスト（RequiredItems）をサーバー在庫へ付与する

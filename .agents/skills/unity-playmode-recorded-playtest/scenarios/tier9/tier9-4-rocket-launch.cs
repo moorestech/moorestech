@@ -1,3 +1,4 @@
+using Game.Context;
 // 出荷マスタで発射台に1便を積み、UI の建造・発射ボタンから実時間の建造と上昇を経て計算データが届き、2便目は合図なしで建造が始まることを確かめる
 // On the shipped master, load one launch, build and launch from the UI in real time, receive compute data, and see the second launch build without commands
 using System;
@@ -41,9 +42,8 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
 
     // ロケット技術を前提ごと完了扱いにする（発射台と資材のレシピが解放される）
     // Mark rocket technology done with its prerequisites (unlocks the pad and material recipes)
-    var researchStore = p.ServerService<IResearchDataStore>();
-    await p.RunOnServer("ロケット技術を前提ごと完了扱いにする", () => researchStore.LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(new[] { rocketResearch }).Select(g => g.ToString()).ToList() }));
-    await p.Until(() => researchStore.IsResearchCompleted(rocketResearch), 15f, "ロケット技術が完了扱いになった");
+    await p.RunOnServer("ロケット技術を前提ごと完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(new[] { rocketResearch }).Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(new[] { rocketResearch }, Array.Empty<Guid>(), 15f, "ロケット技術が完了扱いになった");
 
     // 発射台と発電機を置き、広範囲電柱で給電する
     // Place the pad and a generator and power the pad through a wide-range pole
@@ -102,10 +102,12 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     // 計算データが到着の表どおり出力口に入り、初打ち上げ済みになる
     // Compute data lands in the output slots as the arrival table says, and the world is marked as launched
     var computeDataId = PlaytestItemOps.ResolveItemId("計算データ");
-    var expected = p.ServerService<IOrbitalArrivalService>().PreviewArrivalOutputs(satelliteId, 1).Where(s => s.Id == computeDataId).Sum(s => s.Count);
+    var expected = (await p.ReadArrivalOutputs(satelliteId, 1)).Where(s => s.Id == computeDataId).Sum(s => s.Count);
     p.Assert(expected > 0, $"GPU衛星Lv1 1便の到着成果に計算データがある（{expected} 個）");
     await p.Until(() => CountInOutputs() == expected, param.LaunchSeconds + 30f, $"計算データ {expected} 個が出力口に届いた");
-    p.Assert(p.ServerService<RocketLaunchHistory>().HasLaunchedOnce, "first launch recorded");
+    var hasLaunched = false;
+    await p.RunOnServer("サーバーの判定結果を読む", () => hasLaunched = ServerContext.GetService<RocketLaunchHistory>().HasLaunchedOnce);
+    p.Assert(hasLaunched, "first launch recorded");
     await p.Until(() => Phase() == RocketLaunchPadPhase.Idle, 20f, "打ち上げが終わり待機に戻った");
     await OpenPad();
     await p.UntilWebUiElement("rocket-launch-pad-output-slots", 10f);
