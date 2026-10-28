@@ -51,6 +51,24 @@ class RecalcSortCliTest(unittest.TestCase):
         self.assertEqual(EXPECTED_ITEMS, names)
         self.assertEqual(expected_priorities(len(EXPECTED_ITEMS)), priorities)
 
+    def test_empty_roles_finish_successfully_after_writing(self):
+        # 片方だけ空・両方空でも保存後の集計が失敗しない
+        # Empty roles must not fail reporting after files have been written
+        for empty_roles in (("items",), ("blocks",), ("items", "blocks")):
+            with self.subTest(empty_roles=empty_roles):
+                mod = build_mod()
+                mod["master/research.json"]["data"] = []
+                mod[".mooreseditor/nodeGraph.v1.json"]["nodes"] = []
+                for role in empty_roles:
+                    mod[f"master/{role}.json"]["data"] = []
+                write_mod(self.mod_dir, mod, False)
+                done = subprocess.run([sys.executable, "-B", str(SCRIPT), "--mod-dir", str(self.mod_dir), "--quiet"], capture_output=True, text=True)
+                self.assertEqual(0, done.returncode, done.stderr)
+                for role in empty_roles:
+                    self.assertIn(f"Updated 0 {role}", done.stdout)
+                    self.assertEqual(([], []), names_and_priorities(self.mod_dir, f"{role}.json"))
+                self.assertEqual(len(empty_roles), done.stdout.count("sortPriority range: none"))
+
     def test_rerun_is_byte_identical(self):
         self.assertEqual(0, run_cli(self.mod_dir).returncode)
         first = {p: p.read_bytes() for p in sorted(self.mod_dir.rglob("*.json"))}

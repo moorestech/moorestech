@@ -4,6 +4,7 @@ using Core.Inventory;
 using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Context;
+using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Tests.Module.TestMod;
@@ -79,6 +80,31 @@ namespace Tests.UnitTest.Game.SaveLoad.PowerGenerator
             Assert.Throws<InvalidOperationException>(() => service.Restore(save));
             Assert.IsFalse(service.IsBurning);
             Assert.AreEqual(0, service.RemainingFuelTicks);
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        public void NoFluidFuelRejectsInputAndPreservesSavedResidualTest(double residual)
+        {
+            var service = Create(out var param);
+            var fluidGuid = param.FuelFluids[0].FluidGuid;
+            var fluidId = MasterHolder.FluidMaster.GetFluidId(fluidGuid);
+            service._fluidFuelSettings.Clear();
+            service.Restore(new VanillaElectricGeneratorSaveJsonObject
+            {
+                ActiveFuelType = "None",
+                FluidTank = new VanillaElectricGeneratorFluidSaveJsonObject { FluidGuidStr = fluidGuid.ToString(), Amount = residual },
+            });
+
+            // 新規搬入は全量戻し、保存済み残液は保持する
+            // Return all new input while preserving saved residual fluid
+            var remainder = service.AddLiquid(new FluidStack(1, fluidId));
+            Assert.AreEqual(1, remainder.Amount);
+            Assert.AreEqual(fluidId, remainder.FluidId);
+            var saved = new VanillaElectricGeneratorSaveJsonObject();
+            service.WriteSaveData(saved);
+            Assert.AreEqual(residual, saved.FluidTank.Amount);
+            Assert.AreEqual(fluidGuid.ToString(), saved.FluidTank.FluidGuidStr);
         }
 
         [TestCase("999", null)]

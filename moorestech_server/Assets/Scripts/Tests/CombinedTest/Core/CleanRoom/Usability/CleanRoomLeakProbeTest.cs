@@ -42,6 +42,22 @@ namespace Tests.CombinedTest.Core.CleanRoom.Usability
             Assert.IsTrue(report.OpeningCells.All(cell => cell.y == 4));
         }
 
+        [TestCase(0, 0, 0)]
+        [TestCase(0, 0, 2)]
+        public void CornerAndEdgeBoundaryFindOppositeHoleTest(int x, int y, int z)
+        {
+            CleanRoomHatchTest.CreateServer();
+            CleanRoomDetectionTest.BuildBox(Vector3Int.zero, new Vector3Int(4, 4, 4));
+            var hole = new Vector3Int(4, 2, 2);
+            ServerContext.WorldBlockDatastore.RemoveBlock(hole, BlockRemoveReason.ManualRemove);
+
+            // 面近傍に内側が無い角と辺からも穴へ届く
+            // Reach the hole from corners and edges with no interior face neighbor
+            var report = AsOpenings(CleanRoomLeakProbe.ProbeFromBoundary(ServerContext.WorldBlockDatastore, new[] { new Vector3Int(x, y, z) }));
+            Assert.AreEqual(1, report.TotalOpeningCount);
+            Assert.AreEqual(hole, report.OpeningCells[0]);
+        }
+
         [Test]
         public void OversizedSealedBoxIsTooLargeTest()
         {

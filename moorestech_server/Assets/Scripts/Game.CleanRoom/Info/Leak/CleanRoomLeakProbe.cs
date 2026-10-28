@@ -25,13 +25,16 @@ namespace Game.CleanRoom.Info.Leak
 
         public static CleanRoomLeakReport ProbeFromBoundary(IWorldBlockDatastore world, IReadOnlyList<Vector3Int> boundaryCells)
         {
-            // 境界ブロックの両側（6近傍の空き）を種の候補にし、より囲まれた側を後で選ぶ
-            // Both sides of the boundary block (free six-neighbors) become candidates; the more enclosed side wins later
+            // 角や辺の内側にも届く26近傍から種を選ぶ
+            // Include 26 neighbors so seeds reach interiors from corners and edges
             var candidates = new List<Vector3Int>();
             foreach (var cell in boundaryCells)
-            foreach (var direction in CleanRoomLeakRays.Directions)
+            for (var x = -1; x <= 1; x++)
+            for (var y = -1; y <= 1; y++)
+            for (var z = -1; z <= 1; z++)
             {
-                var neighbor = cell + direction;
+                if (x == 0 && y == 0 && z == 0) continue;
+                var neighbor = cell + new Vector3Int(x, y, z);
                 if (candidates.Contains(neighbor) || CleanRoomLeakRays.IsBoundary(world, neighbor)) continue;
                 candidates.Add(neighbor);
             }

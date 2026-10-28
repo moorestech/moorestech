@@ -31,9 +31,9 @@ namespace Client.Game.InGame.CleanRoom
 
             void OnRoomInfoUpdated()
             {
-                // 読めた値が無い（消失・読めない応答・非対応）なら表示を消す。通信失敗の間は最後の値を出し続ける。警告はポーラーが出している
-                // Without a value read (vanished, unreadable or unsupported), clear the display; a transport failure keeps the last value; the poller already logged the warning
-                if (!_poller.TryGetSnapshot(out var view))
+                // 最新値が無ければ古い表示と印を消す。失敗理由はポーラーが警告する
+                // Clear stale text and markers without a fresh value; the poller logs failures
+                if (_poller.GetLatest(out var view) != BlockInfoFetchState.Fetched)
                 {
                     ClearDisplay();
                     return;

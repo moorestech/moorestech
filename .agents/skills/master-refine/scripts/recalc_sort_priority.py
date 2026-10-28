@@ -63,9 +63,10 @@ def main():
 
     for role, placements, names, changed in recalc(args.mod_dir):
         priorities = [p.priority for p in placements]
+        priority_range = f"{min(priorities)} - {max(priorities)}" if priorities else "none"
         counts = {kind: sum(1 for p in placements if p.kind == kind) for kind in (sort_order.INITIAL, sort_order.RESEARCH, sort_order.ORPHAN)}
         print(f"\nUpdated {len(placements)} {role.label} ({'written' if changed else 'unchanged'}). "
-              f"sortPriority range: {min(priorities)} - {max(priorities)}. "
+              f"sortPriority range: {priority_range}. "
               f"INIT {counts[sort_order.INITIAL]} / RES {counts[sort_order.RESEARCH]} / ORPHAN {counts[sort_order.ORPHAN]}")
         if not args.quiet:
             print(f"=== Final order ({role.label}) ===")

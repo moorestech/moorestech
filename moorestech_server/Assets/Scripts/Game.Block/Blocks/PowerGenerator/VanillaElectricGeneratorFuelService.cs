@@ -171,8 +171,10 @@ namespace Game.Block.Blocks.PowerGenerator
 
         public FluidStack AddLiquid(FluidStack fluidStack)
         {
-            // タンク容量が無い場合は全量返す
-            // Return the full stack when no tank capacity exists
+            // 燃料設定のないタンクは残液保持専用で、新規搬入を拒否する
+            // Tanks without fuel settings retain residual fluid but reject new input
+            if (_fluidFuelSettings.Count == 0) // silent-ok: 通常の搬入拒否 / 呼出側が全量返却を受け取る
+                return fluidStack;
             if (_fuelFluidContainer == null) return fluidStack;
             return _fuelFluidContainer.AddLiquid(fluidStack).Remainder;
         }
