@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Core.Inventory;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.CleanRoom.Machine;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
@@ -58,8 +59,19 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             var after = (CleanRoomMachineProcessorSaveJsonObject)restoredProcessor.GetSaveState();
             Assert.AreEqual(before.RemainingSeconds, after.RemainingSeconds);
             Assert.IsTrue(JToken.DeepEquals(JArray.FromObject(before.PendingOutputs), JArray.FromObject(after.PendingOutputs)));
-            if (!legacy) Assert.AreEqual(before.TotalTicks, after.TotalTicks);
-            else LogAssert.Expect(LogType.Warning, new Regex("消費した変種が不明で基準品で返却"));
+            // 旧形式の20tick再計算・残り30tickを再保存しても次のロードが通る
+            // Re-saving a legacy job with 20 computed ticks and 30 remaining ticks must stay loadable
+            Assert.AreEqual(20u, GameUpdater.SecondsToTicks(MasterHolder.MachineRecipesMaster.GetRecipeElement(ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe).Time));
+            Assert.AreEqual(30u, GameUpdater.SecondsToTicks(before.RemainingSeconds));
+            Assert.AreEqual(before.TotalTicks, after.TotalTicks);
+            var savedAgain = SaveLoadJsonTestHelper.ThroughJson(restored.GetSaveState());
+            restored = ServerContext.BlockFactory.Load(restored.BlockGuid, restored.BlockInstanceId, savedAgain,
+                new BlockPositionInfo(new Vector3Int(40, 0, 40), BlockDirection.North, Vector3Int.one));
+            restoredProcessor = restored.GetComponent<CleanRoomMachineProcessorComponent>();
+            var afterAgain = (CleanRoomMachineProcessorSaveJsonObject)restoredProcessor.GetSaveState();
+            Assert.AreEqual(after.TotalTicks, afterAgain.TotalTicks);
+            Assert.AreEqual(after.RemainingSeconds, afterAgain.RemainingSeconds);
+            if (legacy) LogAssert.Expect(LogType.Warning, new Regex("消費した変種が不明で基準品で返却"));
             var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, restoredProcessor.ClearSelectedRecipe(overflow));
             var returned = restored.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Concat(overflow.InventoryItems);

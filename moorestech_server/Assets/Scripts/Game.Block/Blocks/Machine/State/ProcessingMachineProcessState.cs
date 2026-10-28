@@ -59,9 +59,13 @@ namespace Game.Block.Blocks.Machine.State
 
             // 旧ジョブだけ現在の効果から時間を補い、欠落を開発者へ知らせる
             // Only legacy jobs derive their time from current effects, with an explicit warning
-            if (!restoredJob.TotalTicks.HasValue) UnityEngine.Debug.LogWarning($"旧加工ジョブに確定時間が無いため現在の効果で復元します recipe:{restoredJob.Recipe.MachineRecipeGuid}");
-            var restoredTotalTicks = restoredJob.TotalTicks ?? MachineRealization.ComputeTotalTicks(restoredJob.Recipe, _context.EffectComponent.AggregateCurrent());
-            SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel, restoredTotalTicks);
+            var restoredTotalTicks = restoredJob.TotalTicks;
+            if (!restoredTotalTicks.HasValue)
+            {
+                restoredTotalTicks = Math.Max(MachineRealization.ComputeTotalTicks(restoredJob.Recipe, _context.EffectComponent.AggregateCurrent()), restoredJob.RemainingTicks);
+                UnityEngine.Debug.LogWarning($"旧加工ジョブに確定時間が無いため現在の効果と残量から復元します recipe:{restoredJob.Recipe.MachineRecipeGuid} totalTicks:{restoredTotalTicks} remainingTicks:{restoredJob.RemainingTicks}");
+            }
+            SetProcessing(restoredJob.Recipe, restoredJob.PendingOutputs, restoredJob.InheritedLevel, restoredTotalTicks.Value);
             RemainingTicks = restoredJob.RemainingTicks;
             _consumedInputItemIds = restoredJob.ConsumedInputItemIds;
         }
