@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Runtime.Serialization;
@@ -84,6 +85,25 @@ namespace Client.Tests.WebUi.BlockDetail
             var actual = pending.GetAwaiter().GetResult();
             Assert.AreEqual(error == null, actual.Ok);
             Assert.AreEqual(error, actual.Error);
+        }
+        [TestCase(PacketWaitCompletionReason.Received, true)]
+        [TestCase(PacketWaitCompletionReason.Timeout, false)]
+        [TestCase(PacketWaitCompletionReason.DeserializeFailed, false)]
+        [TestCase((PacketWaitCompletionReason)999, false)]
+        public void PacketCompletionPreservesReasonAndDecodesOnlyReceived(PacketWaitCompletionReason reason, bool hasResponse)
+        {
+            using var capture = new PlacementPacketCapture();
+            var pending = capture.Api.Response.Block.ConnectSpaceElevator(Vector3Int.zero, new BlockInstanceId(123), CancellationToken.None);
+            capture.ReadRequest();
+
+            // 非Receivedへ壊れた本文を添えても復号せず理由だけを返す
+            // Even a malformed payload on a non-Received completion must pass the reason through without decoding
+            var bytes = hasResponse ? MessagePackSerializer.Serialize(new ConnectSpaceElevatorResponse(SpaceElevatorConnectResult.Connected)) : new byte[] { 0xc1 };
+            capture.Waiters.Single().Value.WaitSubject.OnNext((bytes, reason));
+            var actual = pending.GetAwaiter().GetResult();
+            Assert.AreEqual(reason, actual.reason);
+            Assert.AreEqual(hasResponse, actual.response != null);
+            if (hasResponse) Assert.AreEqual(SpaceElevatorConnectResult.Connected, actual.response.Result);
         }
     }
 }

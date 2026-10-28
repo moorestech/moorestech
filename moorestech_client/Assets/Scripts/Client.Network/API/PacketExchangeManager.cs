@@ -172,6 +172,10 @@ namespace Client.Network.API
                     return (null, PacketWaitCompletionReason.Timeout);
                 }
 
+                // 非受信理由は本文を復号せず呼び出し側へ保つ
+                // Preserve non-receipt reasons for callers without decoding the payload
+                if (reason != PacketWaitCompletionReason.Received) return (null, reason);
+
                 try
                 {
                     var deserialized = MessagePackSerializer.Deserialize<TResponse>(data);
