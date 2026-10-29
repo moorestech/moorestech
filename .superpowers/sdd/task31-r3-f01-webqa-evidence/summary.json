@@ -1,0 +1,30 @@
+{
+  "sha": "7fd8f95723407b5d9418744078644ff3c6a498a5",
+  "vitest": {
+    "files": 166,
+    "passed": 1385,
+    "failed": 0
+  },
+  "playwright": {
+    "startTime": "2026-10-29T14:58:04.138Z",
+    "duration": 55546.376,
+    "expected": 143,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "matrix": {
+    "startTime": "2026-10-29T15:03:19.415Z",
+    "duration": 19022.709,
+    "expected": 48,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "minimumBodyCssHeight": 321,
+  "minimumBodyVisualHeight": 267.7474060058594,
+  "falseTransitionsPassed": 48,
+  "consoleErrors": 0,
+  "pageErrors": 0,
+  "operationalDeviationCount": 1
+}

@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { measure, inside } from './measure.mjs';
 const qa = '/Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui';
@@ -14,6 +15,20 @@ for (const locale of locales) for (const filters of [20, 30]) for (const height 
   test(`${locale}-${filters}-${height}-${mode}`, async ({ page }, testInfo) => {
     const name = `${locale}-${filters}-${height}-${mode}`;
     const record = { name, locale, filters, viewport: { width: 1280, height }, mode, wire: [], consoleErrors: [], pageErrors: [] };
+    // 自分の前景runner以下だけをPID台帳にする。
+    // Record only descendants of this foreground runner in the PID ledger.
+    const root = JSON.parse(fs.readFileSync(path.join(evidence, 'matrix.json'), 'utf8')).ownerPid;
+    const processes = execFileSync('ps', ['-axo', 'pid=,ppid=,comm='], { encoding: 'utf8' }).trim().split('\n').map(line => {
+      const [, pid, ppid, command] = line.match(/^\s*(\d+)\s+(\d+)\s+(.+)$/);
+      return { pid: Number(pid), ppid: Number(ppid), command };
+    });
+    const owned = new Set([root]);
+    for (let pass = 0; pass < processes.length; pass++) {
+      const size = owned.size;
+      processes.filter(p => owned.has(p.ppid)).forEach(p => owned.add(p.pid));
+      if (size === owned.size) break;
+    }
+    record.processes = processes.filter(p => owned.has(p.pid));
     let shortage = true;
     page.on('pageerror', error => record.pageErrors.push(error.message));
     page.on('console', msg => { if (msg.type() === 'error') record.consoleErrors.push(msg.text()); });
@@ -39,8 +54,11 @@ for (const locale of locales) for (const filters of [20, 30]) for (const height 
       await page.setViewportSize({ width: 1280, height });
       const fixture = mode === 'selection' ? 'cleanRoomMachine20FiltersSelecting' : 'cleanRoomMachine20Filters';
       expect((await page.request.get(`/__block?type=${fixture}`)).ok()).toBe(true);
+      expect((await page.request.get('/__uistate?state=SubInventory')).ok()).toBe(true);
+      record.uiState = 'SubInventory';
       const dictionary = await (await page.request.get(`/api/i18n/${locale}`)).json();
       await page.goto('/');
+      await expect(page.getByRole('heading', { name: dictionary['ui.recipe.catalogTitle'], exact: true })).toHaveCount(0);
       await expect(page.getByTestId('machine-wait-reason')).toHaveText(dictionary[reasonKey]);
       await expect(page.getByTestId('machine-state-label')).toHaveText(dictionary['ui.blockInventory.machineStateIdle']);
       const bodyId = mode === 'inventory' ? 'machine-inventory-body' : 'machine-recipe-selection';
@@ -62,6 +80,7 @@ for (const locale of locales) for (const filters of [20, 30]) for (const height 
       record.footerItems = {};
       await page.screenshot({ path: path.join(evidence, 'images', `${name}.png`) });
       expect(record.scroller.clientHeight).toBeGreaterThanOrEqual(120);
+      expect(record.scroller.rect.height).toBeGreaterThanOrEqual(120);
       expect(record.tail.hit).toBe(true);
       expect(inside(record.tail.rect, record.scroller.rect, 0.5)).toBe(true);
       for (const id of ['machine-state-label', 'machine-power-rate', 'machine-wait-reason']) {
@@ -88,6 +107,7 @@ for (const locale of locales) for (const filters of [20, 30]) for (const height 
       record.errors = testInfo.errors;
       fs.writeFileSync(path.join(evidence, 'results', `${name}.json`), JSON.stringify(record, null, 2));
       await page.request.get('/__block?type=closed');
+      await page.request.get('/__uistate?state=PlayerInventory');
     }
   });
 }

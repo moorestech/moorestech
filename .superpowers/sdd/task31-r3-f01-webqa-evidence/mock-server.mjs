@@ -16,8 +16,8 @@ const filename = path.join(evidence, `server-${meta.port}.json`);
 fs.writeFileSync(filename, JSON.stringify(meta, null, 2));
 // 所有サーバーの停止を証拠へ残す。
 // Record shutdown of this owned server as evidence.
-process.on('SIGTERM', () => {
-  fs.writeFileSync(filename, JSON.stringify({ ...meta, end: new Date().toISOString(), signal: 'SIGTERM' }, null, 2));
+for (const signal of ['SIGTERM', 'SIGINT']) process.on(signal, () => {
+  fs.writeFileSync(filename, JSON.stringify({ ...meta, end: new Date().toISOString(), signal }, null, 2));
   process.exit(0);
 });
 server.listen(meta.port, '127.0.0.1', () => console.log(`QA mock on ${meta.port}, PID ${process.pid}`));

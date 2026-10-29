@@ -1,11 +1,10 @@
-import { createRequire } from 'node:module';
 const qa = '/Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui';
-const require = createRequire(`${qa}/package.json`);
-const tseslint = require('typescript-eslint');
-// 既存設定にはe2e対象が無い。scratchでTS構文検査だけを明示する。
-// Existing config has no e2e selector; explicitly run TS syntax lint from scratch.
-export default [{
-  basePath: qa,
-  files: ['e2e/**/*.{ts,tsx}'],
-  languageOptions: { parser: tseslint.parser, parserOptions: { ecmaFeatures: { jsx: true }, sourceType: 'module' } },
-}];
+const { default: original } = await import(`${qa}/eslint.config.mjs`);
+// 製品設定は変えず、既存ルールの対象srcだけをe2eへ写して明示検査する。
+// Keep product config intact and explicitly apply its existing rules with src selectors mapped to e2e.
+export default original.map(config => {
+  const mapped = { ...config, basePath: qa };
+  if (config.files) mapped.files = config.files.map(pattern => pattern.replace(/^src\//, 'e2e/'));
+  if (config.ignores) mapped.ignores = config.ignores.map(pattern => pattern.replace(/^src\//, 'e2e/'));
+  return mapped;
+});

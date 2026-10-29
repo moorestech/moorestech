@@ -11,6 +11,7 @@ const env = { ...process.env, MOORESTECH_E2E: 'true' };
 // アイコン404の単体契約を守る。実画像モードはブラウザ配信時だけ使う。
 // Keep the unit-test 404 contract; real-image mode is only for browser serving.
 delete env.MOCK_DEMO;
+meta.env = { MOORESTECH_E2E: env.MOORESTECH_E2E, MOCK_DEMO: null, QA_MATRIX: env.QA_MATRIX ?? null };
 const child = spawn(command, args, { cwd, stdio: ['ignore', output, output], env });
 meta.pid = child.pid;
 fs.writeFileSync(path.join(evidence, `${name}.json`), JSON.stringify(meta, null, 2));
