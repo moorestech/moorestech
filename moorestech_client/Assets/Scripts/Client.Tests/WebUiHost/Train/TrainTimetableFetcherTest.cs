@@ -1,4 +1,5 @@
 using Client.Game.InGame.Train.Timetable;
+using Client.Ui.State.Train;
 using Game.Train.Unit;
 using NUnit.Framework;
 

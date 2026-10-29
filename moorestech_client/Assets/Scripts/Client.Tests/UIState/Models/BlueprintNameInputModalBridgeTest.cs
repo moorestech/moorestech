@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Blueprint;
-using Client.Game.InGame.UI.Modal;
+using Client.Ui.State.Blueprint;
+using Client.Ui.State.Modal;
 using Client.Localization;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;

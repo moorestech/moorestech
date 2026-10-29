@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.UI.Challenge;
+using Client.Ui.State.Challenge;
 using Client.Network.API;
 using Client.Tests.Inventory;
 using MessagePack;

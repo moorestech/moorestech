@@ -1,12 +1,13 @@
-using Client.Game.InGame.UI.Modal;
+using Client.Game.InGame.UI.Blueprint;
 using Client.Localization;
+using Client.Ui.State.Modal;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.UI.Blueprint
+namespace Client.Ui.State.Blueprint
 {
     /// <summary>
     /// BP名入力の開閉をモーダルへ転送

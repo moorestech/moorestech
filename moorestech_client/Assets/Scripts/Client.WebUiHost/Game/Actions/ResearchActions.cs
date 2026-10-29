@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Research;
+using Client.Ui.State.Research;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 

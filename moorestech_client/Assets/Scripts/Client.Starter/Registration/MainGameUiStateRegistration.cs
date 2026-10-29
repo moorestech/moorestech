@@ -1,10 +1,10 @@
-using Client.Game.InGame.UI.BlockDetail;
-using Client.Game.InGame.Train.Timetable;
-using Client.Game.InGame.UI.Blueprint;
-using Client.Game.InGame.UI.Challenge;
-using Client.Game.InGame.UI.Modal;
-using Client.Game.InGame.UI.Notification;
-using Client.Game.InGame.UI.Research;
+using Client.Ui.State.BlockDetail;
+using Client.Ui.State.Train;
+using Client.Ui.State.Blueprint;
+using Client.Ui.State.Challenge;
+using Client.Ui.State.Modal;
+using Client.Ui.State.Notification;
+using Client.Ui.State.Research;
 using VContainer;
 using VContainer.Unity;
 

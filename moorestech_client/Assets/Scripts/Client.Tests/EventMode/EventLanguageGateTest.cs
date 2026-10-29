@@ -1,4 +1,4 @@
-using Client.Game.InGame.EventMode;
+using Client.Ui.State.EventMode;
 using Client.Localization;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;

@@ -1,4 +1,4 @@
-using Client.Game.InGame.Train.Timetable;
+using Client.Ui.State.Train;
 using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;

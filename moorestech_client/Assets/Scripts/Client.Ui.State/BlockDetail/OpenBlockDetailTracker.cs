@@ -9,7 +9,7 @@ using Server.Event.EventReceive;
 using UniRx;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.UI.BlockDetail
+namespace Client.Ui.State.BlockDetail
 {
     /// <summary>
     /// 開いたブロックを追い購読を張替

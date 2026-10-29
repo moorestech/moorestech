@@ -1,4 +1,4 @@
-using Client.Game.InGame.UI.BlockDetail;
+using Client.Ui.State.BlockDetail;
 using System.Collections.Generic;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.Block;

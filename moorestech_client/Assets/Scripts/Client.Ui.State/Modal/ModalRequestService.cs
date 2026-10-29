@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using UniRx;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.UI.Modal
+namespace Client.Ui.State.Modal
 {
     /// <summary>
     /// 保留モーダル要求を持ち応答で解決

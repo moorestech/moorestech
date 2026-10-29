@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Notification;
+using Client.Ui.State.Notification;
 using System.IO;
 using Client.Tests.Inventory;
 using Client.WebUiHost.Boot;

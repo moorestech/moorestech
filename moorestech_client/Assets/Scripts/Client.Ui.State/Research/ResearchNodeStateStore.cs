@@ -10,7 +10,7 @@ using UniRx;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.UI.Research
+namespace Client.Ui.State.Research
 {
     /// <summary>
     /// 研究ノード状態を持ち取り直す

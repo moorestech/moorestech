@@ -3,7 +3,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.Interact.Selection;
 using Game.Context;
 using Game.World.Interface.DataStore;
-using Client.Game.InGame.UI.BlockDetail;
+using Client.Ui.State.BlockDetail;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.BlockInventory;
 using Cysharp.Threading.Tasks;

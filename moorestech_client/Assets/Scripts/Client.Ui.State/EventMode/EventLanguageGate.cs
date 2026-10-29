@@ -3,7 +3,7 @@ using Client.Localization;
 using Cysharp.Threading.Tasks;
 using UniRx;
 
-namespace Client.Game.InGame.EventMode
+namespace Client.Ui.State.EventMode
 {
     /// <summary>
     /// 言語が選ばれるまでゲーム開始を止める出展モードの開始ゲート。

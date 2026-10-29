@@ -1,6 +1,6 @@
 using Server.Event.Notification;
 
-namespace Client.Game.InGame.UI.Notification
+namespace Client.Ui.State.Notification
 {
     /// <summary>
     /// 連番を振った通知。描く側は同じ連番の再表示を弾く

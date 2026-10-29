@@ -1,4 +1,4 @@
-using Client.Game.InGame.UI.Modal;
+using Client.Ui.State.Modal;
 using System;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;

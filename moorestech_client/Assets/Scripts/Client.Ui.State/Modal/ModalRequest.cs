@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.UI.Modal
+namespace Client.Ui.State.Modal
 {
     /// <summary>
     /// 保留中モーダル要求の内容

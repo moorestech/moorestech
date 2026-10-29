@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.UI.Notification;
+using Client.Ui.State.Notification;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Core.Master;

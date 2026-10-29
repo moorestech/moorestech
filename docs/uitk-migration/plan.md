@@ -100,8 +100,8 @@
 - 配布ビルドは Mono で、`managedStrippingLevel` は Standalone 未設定（既定）。この設定で `HttpListener` が動かなければ、遠隔実行専用の最小 Kestrel にする
 
 **0-4 状態の移設**
-- 対象: `ResearchTopic._nodeStates`、`ChallengeTopicState`、`BlockNetworkInfoCache`、`BlockInventoryTopic.TrackBlock` の監視判断、`OpenTrainTimetableTracker`・`TrainTimetableFetcher`、`NotificationTopic` の連番と移行告知、`WebUiModalService`（static をやめ、`Client.Game` のインターフェースにする）、`BlueprintNameInputWebBridge` の状態部分、`EventLanguageGate`
-- 移す先は `Client.Game` の DI（MainGameStarter の LifetimeScope）。今はこれらが `WebUiGameBinder.Bind()` の中でしか作られず、Hub が null だと丸ごと作られない（`Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs:48-55`）
+- 対象: `ResearchTopic._nodeStates`、`ChallengeTopicState`、`BlockNetworkInfoCache`、`BlockInventoryTopic.TrackBlock` の監視判断、`OpenTrainTimetableTracker`・`TrainTimetableFetcher`、`NotificationTopic` の連番と移行告知、`WebUiModalService`（static をやめ、`Client.Ui.State` の DI サービスにする）、`BlueprintNameInputWebBridge` の状態部分、`EventLanguageGate`
+- 移す先は `Client.Ui.State` アセンブリ（`Client.Game` を参照し、`Client.Game` からは参照されない）の型で、登録は MainGameStarter の LifetimeScope。今はこれらが `WebUiGameBinder.Bind()` の中でしか作られず、Hub が null だと丸ごと作られない（`Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs:48-55`）。置き場の裁定は `.decisions/2026-10-29-UIの画面状態はClient.Gameに置かず専用アセンブリClient.Ui.Stateに置く.md`
 - 移した topic は「型付きの購読元」と「JSON アダプタ」に分ける（§3.2）。前例は ADR 0052 の「抽出 PR と削除 PR の 2 本」
 
 **0-6 差し込み記法**
@@ -347,7 +347,7 @@
 
 ### 3.1 置き場と構成
 
-- **asmdef**: `Client.Ui` を新設する。名前に技術名（Uitk）を入れない（Web という名前の改名を繰り返さないため）。参照先は `Client.Game`（モデル・コマンド・状態の正本）、`Client.Input`、`Client.Localization`。`Client.Game` は `Client.Ui` を参照せず、モーダルの要求などはインターフェース越しにする。DI は既存の VContainer、イベントは UniRx
+- **asmdef**: 描画の `Client.Ui` と画面状態の `Client.Ui.State`（段階 0 で新設済み）の 2 つにする。名前に技術名（Uitk）を入れない（Web という名前の改名を繰り返さないため）。参照の向きは `Client.Game` ← `Client.Ui.State` ← {`Client.Ui`・`Client.WebUiHost`}。`Client.Ui` は描画と操作だけを持ち、画面状態・ViewModel・UI コマンドは `Client.Ui.State` に置く。`Client.Ui.State` を `Client.Ui` に含めないのは、共存規則 R1 で `Client.Ui` が WebUiHost を触るため（WebUiHost も状態を読むので、同じアセンブリだと循環する）。`Client.Game` はどちらも参照せず、ゲーム側から UI へ頼む要求（モーダル等）はインターフェース越しにする。DI は既存の VContainer、イベントは UniRx
 - **ディレクトリ**: 基盤 `Client.Ui/Foundation/{Root,Layers,Routing,Input,Motion,Tooltip,DragDrop,Modal,Anchor,Text,Theme}`、部品 `Client.Ui/Components/<部品>`、画面 `Client.Ui/Screens/<機能>/`。AGENTS.md の上限（1 ディレクトリ 10 ファイル、1 ファイル 200 行）に合わせる
 - **3 層**: View は VisualElement を組むだけで、MonoBehaviour に依存しない。Presenter はモデルを購読して View へ push し、操作を型付きコマンドへ渡す。Mount は `GameUiRoot` に載せる薄い層。テストでは `UITestFixture` の `rootVisualElement` に同じ View を組める（tests §5.3）
 - **アセットのロード**: UXML と USS は機能の横に置き、1 か所の `UiAssetCatalog` を通してロードする。起動時に全部ロードし、欠けていたら起動の段階で止める（AGENTS.md「必須の値は最も早い段階で止める」）。L2 で参照パスの実在を検査する
@@ -355,8 +355,8 @@
 
 ### 3.2 データ購読層
 
-- **正本には手を入れない**: `Client.Game`・`Client.Skit`・`Client.Input`・`Client.Localization`・サーバー（host §7.5 R2）。サーバー状態の同期（イベントパケット＋初期データ＋購読）も変えない。UITK 化はクライアントの内側だけの話
-- **topic を 2 つに分ける**: ①型付きのスナップショットと変化通知（`IReadOnlyReactiveProperty<XxxViewModel>`）を `Client.Game` に置く。②それを JSON にするアダプタ（Web が使う）。分けるのは、その段で使う topic だけ。撤去の 5c で②を消す
+- **ゲームの正本には手を入れない**: `Client.Game`・`Client.Skit`・`Client.Input`・`Client.Localization`・サーバー（host §7.5 R2）。サーバー状態の同期（イベントパケット＋初期データ＋購読）も変えない。UITK 化はクライアントの内側だけの話。画面のための状態は正本ではないので `Client.Ui.State` に置く
+- **topic を 2 つに分ける**: ①型付きのスナップショットと変化通知（`IReadOnlyReactiveProperty<XxxViewModel>`）を `Client.Ui.State` に置く。②それを JSON にするアダプタ（Web が使う）。分けるのは、その段で使う topic だけ。撤去の 5c で②を消す
 - **フレーム末の畳み込みと間引き**: フレーム末に 1 回へ畳む処理（PostLateUpdate）は残す（中間状態を描かないため）。WS の帯域のための間引き（`ui.progress` の 100ms と歯車の `IntervalFrame(4)`）はアダプタ側へ移し、UITK では毎フレーム読む。`BlockInventoryTopic` はコメント（4tick）と実装（`IntervalFrame(4)`）が食い違っているので、移植するときに意図を確かめる
 - **ViewModel**: 不変の sealed class にする。判別 union は抽象基底と sealed 派生で表す。zod の不変条件をこの型へ移す（FluidSlot、変換機の詳細、Tooltip、Hotbar の 9 枠、PlacementMode）
 - **コマンド**: action ごとに型付きメソッドにし、`CommandResult`（Accepted か、Rejected と理由の enum）を返す。前提条件の検証（state の一致・解放判定・遷移許可表）はコマンド側に置き、共存中も両系が同じ検証を通る。拒否の理由は開発者ログへ出す（AGENTS.md の fail-closed）。良性の拒否（Web の `BENIGN_ERRORS`）は理由の性質として enum に持ち、トーストを出すかどうかをそれで決める

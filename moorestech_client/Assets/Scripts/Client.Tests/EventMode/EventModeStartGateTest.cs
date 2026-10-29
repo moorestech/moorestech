@@ -1,4 +1,4 @@
-using Client.Game.InGame.EventMode;
+using Client.Ui.State.EventMode;
 using System;
 using System.Collections;
 using System.Collections.Generic;

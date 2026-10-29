@@ -3,7 +3,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Game.Train.Unit;
 
-namespace Client.Game.InGame.Train.Timetable
+namespace Client.Ui.State.Train
 {
     // 開いている車両インベントリから所属列車IDを引く
     // Resolve the owning train id of the open car inventory from received snapshots
