@@ -33,6 +33,13 @@ namespace Game.Block.Blocks.Machine.State
             DrawRecord = drawRecord;
         }
 
+        // この確定結果が、いま揃っている入力（レシピと継承レベルの組）のものか。組が違えば確定し直す対象になる
+        // Whether this result belongs to the currently ready input (recipe and inherited level); a different pair must be realized anew
+        public bool IsRealizedFor(MachineRecipeMasterElement recipe, int? inheritedLevel)
+        {
+            return Recipe == recipe && InheritedLevel == inheritedLevel;
+        }
+
         // レシピ時間にモジュールの時間倍率を掛けた加工tick数（最低1tick）
         // Processing ticks as the recipe time times the module time multiplier (at least one tick)
         public static uint ComputeTotalTicks(MachineRecipeMasterElement recipe, MachineModuleEffect effect)

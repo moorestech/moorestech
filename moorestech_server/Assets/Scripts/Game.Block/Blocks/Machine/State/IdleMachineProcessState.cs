@@ -40,10 +40,11 @@ namespace Game.Block.Blocks.Machine.State
         // After an off-tick state rewrite (enter, restore, recipe change), re-check output space against the held result only; never draws or realizes
         internal void RefreshOutputSpaceWait()
         {
+            // 保持中の結果が選択レシピのものに限って入力を見る（tick外で入力判定の呼び出しを増やさない）
+            // Look at inputs only when the held result is for the selected recipe (no extra off-tick input checks)
             var recipe = _context.SelectedRecipe;
-            IsWaitingForOutputSpace = _pendingRealization != null && recipe == _pendingRealization.Recipe
-                && _context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel) && inheritedLevel == _pendingRealization.InheritedLevel
-                && !CanStorePending(recipe);
+            IsWaitingForOutputSpace = _pendingRealization != null && _pendingRealization.Recipe == recipe
+                && _context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel) && IsPendingStuckFor(recipe, inheritedLevel);
         }
 
         public bool TryGetPendingRealization(out MachineRealization realization)
@@ -67,14 +68,14 @@ namespace Game.Block.Blocks.Machine.State
 
             // レシピか継承レベルが変わったときだけ新規に確定する。同じ組で待機している間は既存の確定結果を使い回す
             // Realize anew only when the recipe or inherited level changed; while waiting on the same pair, reuse the result
-            if (_pendingRealization == null || _pendingRealization.Recipe != recipe || _pendingRealization.InheritedLevel != inheritedLevel)
+            if (_pendingRealization == null || !_pendingRealization.IsRealizedFor(recipe, inheritedLevel))
             {
                 _pendingRealization = _context.CreateRealization(recipe, inheritedLevel);
             }
 
             // 入りきらなければ確定結果を保持したまま待ち、その理由を表示へ出す
             // When it does not fit, keep the realized result and publish the wait reason
-            IsWaitingForOutputSpace = !CanStorePending(recipe);
+            IsWaitingForOutputSpace = IsPendingStuckFor(recipe, inheritedLevel);
             if (IsWaitingForOutputSpace) return ProcessState.Idle;
 
             // 確定時の加工時間ごと ProcessingState へ渡して遷移する
@@ -84,9 +85,12 @@ namespace Game.Block.Blocks.Machine.State
             return ProcessState.Processing;
         }
 
-        private bool CanStorePending(MachineRecipeMasterElement recipe)
+        // 出力空き待ちの判定の正本。保持中の結果が揃った入力の組のもので、かつ出力先に入りきらないか（tick内と tick外の両方がここを通る）
+        // The single source of the output-space wait: the held result matches the ready input pair and does not fit the output (both tick and off-tick paths use it)
+        private bool IsPendingStuckFor(MachineRecipeMasterElement recipe, int? inheritedLevel)
         {
-            return _context.OutputInventory.CanStoreOutputs(_pendingRealization.Outputs, MachineOutputFactoryUtil.CreateFluidOutputs(recipe));
+            return _pendingRealization.IsRealizedFor(recipe, inheritedLevel)
+                && !_context.OutputInventory.CanStoreOutputs(_pendingRealization.Outputs, MachineOutputFactoryUtil.CreateFluidOutputs(recipe));
         }
     }
 }
