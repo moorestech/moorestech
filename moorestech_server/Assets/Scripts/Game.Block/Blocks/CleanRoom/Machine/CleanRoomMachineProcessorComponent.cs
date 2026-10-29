@@ -29,8 +29,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         // Halted requests no power and operating states share the normal machine multipliers; the context owns the derivation
         public float EffectiveRequestPower => _context.EffectiveRequestPower(CurrentState);
 
-        public IObservable<Unit> OnChangeBlockState => _changeState;
-        private readonly Subject<Unit> _changeState = new();
+        public IObservable<Unit> OnChangeBlockState => _statePublisher.OnChangeBlockState;
+        private readonly MachineStateChangePublisher _statePublisher = new();
 
         private readonly MachineProcessContext _context;
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
@@ -47,8 +47,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         internal IMachinePendingRealizationReader PendingRealizationReader => _idleState;
 
         private readonly HaltedMachineProcessState _haltedState;
-        private ProcessState _lastState = ProcessState.Idle;
-        private bool _lastOutputSpaceShort;
 
         public CleanRoomMachineProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
@@ -78,7 +76,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            return MachineStateDetailFactory.Create(_context, _processingState, _idleState, CurrentState, _lastState);
+            return MachineStateDetailFactory.Create(_context, _processingState, _idleState, CurrentState, _statePublisher.LastState);
         }
 
         public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
@@ -90,9 +88,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 
             var validation = MachineRecipeSelectionUtil.ValidateSelection(_context.InputInventory, recipe);
             if (validation != MachineRecipeSelectionResult.Success) return validation;
+
             // 同一レシピの再設定はジョブを中断しないno-op
             // Re-selecting the same recipe is a no-op that never cancels the job
             if (recipe.MachineRecipeGuid == SelectedRecipeGuid) return MachineRecipeSelectionResult.Success;
+
             return ChangeSelection(recipe, refundOverflowInventory);
         }
 
@@ -116,7 +116,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         {
             BlockException.CheckDestroy(this);
             _context.SuppliedPower += power;
-            if (CurrentState == ProcessState.Idle) _changeState.OnNext(Unit.Default);
+            if (CurrentState == ProcessState.Idle) _statePublisher.Publish();
         }
 
         public string SaveKey { get; } = typeof(CleanRoomMachineProcessorComponent).FullName;
@@ -142,13 +142,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             else UpdateCurrentState();
             // ステート変化時・出力空き不足の理由が変わった時・処理中はイベントを発火させる
             // Fire the event on a state change, an output-space-short reason change, or while processing
-            var outputSpaceShort = MachineStateDetailFactory.IsOutputSpaceShort(CurrentState, _idleState);
-            if (_lastState != CurrentState || _lastOutputSpaceShort != outputSpaceShort || CurrentState == ProcessState.Processing)
-            {
-                _changeState.OnNext(Unit.Default);
-                _lastState = CurrentState;
-                _lastOutputSpaceShort = outputSpaceShort;
-            }
+            _statePublisher.PublishIfChanged(CurrentState, _idleState);
             #region Internal
             void ForceHaltedWithoutCompletingJob()
             {
@@ -185,14 +179,16 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // Delegate the shared flow (job refund, rebind, unbound-slot refund) to the util
             var result = MachineRecipeSelectionUtil.ApplyRecipeChange(_context, _processingState, recipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe), refundOverflowInventory);
             if (result != MachineRecipeSelectionResult.Success) return result;
+
             // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される
             // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions
             if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
+
             // 状態を書き換えたので、公開中の分母と出力空き不足を新しい選択で取り直してから通知する（旧レシピの理由を残さない）
             // The state was rewritten, so re-derive the published denominator and output-space reason under the new selection before notifying
             _context.RelatchPublishedRequestPower(CurrentState);
             _idleState.RefreshOutputSpaceWait();
-            _changeState.OnNext(Unit.Default);
+            _statePublisher.Publish();
             return MachineRecipeSelectionResult.Success;
         }
     }

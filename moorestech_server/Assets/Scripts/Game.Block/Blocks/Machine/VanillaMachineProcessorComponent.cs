@@ -29,14 +29,12 @@ namespace Game.Block.Blocks.Machine
         // Requested power rate for the active state; the gear machine's requested torque rate also derives from here
         public float EffectiveRequestPowerRate => _context.EffectiveRequestPowerRate(CurrentState);
         public float EffectiveRequestPower => _context.EffectiveRequestPower(CurrentState);
-        public IObservable<Unit> OnChangeBlockState => _changeState;
-        private readonly Subject<Unit> _changeState = new();
+        public IObservable<Unit> OnChangeBlockState => _statePublisher.OnChangeBlockState;
+        private readonly MachineStateChangePublisher _statePublisher = new();
         private readonly MachineProcessContext _context;
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
         private readonly ProcessingMachineProcessState _processingState;
         private readonly IdleMachineProcessState _idleState;
-        private ProcessState _lastState = ProcessState.Idle;
-        private bool _lastOutputSpaceShort;
         // 新規作成
         // For new creation
         public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
@@ -80,7 +78,7 @@ namespace Game.Block.Blocks.Machine
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            return MachineStateDetailFactory.Create(_context, _processingState, _idleState, CurrentState, _lastState);
+            return MachineStateDetailFactory.Create(_context, _processingState, _idleState, CurrentState, _statePublisher.LastState);
         }
         public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
         public bool TryGetSelectedRecipe(out MachineRecipeMasterElement recipe) => (recipe = _context.SelectedRecipe) != null;
@@ -111,7 +109,7 @@ namespace Game.Block.Blocks.Machine
             // The state was rewritten, so re-derive the published denominator and output-space reason under the new selection before notifying
             _context.RelatchPublishedRequestPower(CurrentState);
             _idleState.RefreshOutputSpaceWait();
-            _changeState.OnNext(Unit.Default);
+            _statePublisher.Publish();
             return MachineRecipeSelectionResult.Success;
         }
         public void SupplyExternalPower(float power)
@@ -122,7 +120,7 @@ namespace Game.Block.Blocks.Machine
             _context.SuppliedPower += power;
             // アイドル中はUpdateが状態変化を出さないため、給電時に明示通知しないとidle→加工遷移がクライアントへ届かない
             // While idle, Update emits no state change, so without this explicit notice the idle-to-processing transition never reaches the client
-            if (CurrentState == ProcessState.Idle) _changeState.OnNext(Unit.Default);
+            if (CurrentState == ProcessState.Idle) _statePublisher.Publish();
         }
         public void Update()
         {
@@ -145,13 +143,7 @@ namespace Game.Block.Blocks.Machine
             }
             // ステート変化時・出力空き不足の理由が変わった時・処理中はイベントを発火させる
             // Fire the event on a state change, an output-space-short reason change, or while processing
-            var outputSpaceShort = MachineStateDetailFactory.IsOutputSpaceShort(CurrentState, _idleState);
-            if (_lastState != CurrentState || _lastOutputSpaceShort != outputSpaceShort || CurrentState == ProcessState.Processing)
-            {
-                _changeState.OnNext(Unit.Default);
-                _lastState = CurrentState;
-                _lastOutputSpaceShort = outputSpaceShort;
-            }
+            _statePublisher.PublishIfChanged(CurrentState, _idleState);
         }
         public bool IsDestroy { get; private set; }
         public void Destroy()
