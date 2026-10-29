@@ -334,7 +334,7 @@ git commit -m "docs(uitk): 画面状態の置き場を Client.Ui.State に改め
 
 セッション終了可能状態にすること。この作業は統合 PR #1559 の一部なので、新しい PR は作らない（`.decisions/2026-10-26-UITK段階0のPRは1本に統合する.md`）。
 
-- [ ] **Step 1: 作業ブランチを push し、統合ブランチへマージコミットで取り込む**
+- [x] **Step 1: 作業ブランチを push し、統合ブランチへマージコミットで取り込む**
 
 先にこのworktreeの Editor を止める（`moores-wt status` で `editor=<pid>` を見て `kill <pid>`。動いたまま checkout すると再インポートが走る）。
 
@@ -350,7 +350,7 @@ git checkout -q refactor/uitk-ui-state-assembly
 
 `origin/feature/uitk-stage0` が `ffab18e83a` から進んでいて衝突したら、pr-create スキルの衝突解消手順に従って解き、Task 1 Step 7〜8 を回してから push する。master との衝突は `gh pr view 1559 --json mergeable,mergeStateStatus` で確かめ、`CONFLICTING` なら pr-create スキルの手順で master を統合ブランチへマージして解く
 
-- [ ] **Step 2: PR #1559 の本文の「取り込み済み」表に 1 行足す**
+- [x] **Step 2: PR #1559 の本文の「取り込み済み」表に 1 行足す**
 
 `BODY=$(mktemp -t pr1559body); gh pr view 1559 --json body -q .body > "$BODY"` で本文を取り出し、表の `feature/uitk-s0-dsl` の行の次に次の行を足して `gh pr edit 1559 --body-file "$BODY"` で戻す:
 
@@ -358,7 +358,7 @@ git checkout -q refactor/uitk-ui-state-assembly
 | `refactor/uitk-ui-state-assembly` | 画面状態 13 ファイルを `Client.Game` から新設の `Client.Ui.State` へ移す（挙動は変えない移動。2026-10-29 裁定 `.decisions/2026-10-29-UIの画面状態はClient.Gameに置かず専用アセンブリClient.Ui.Stateに置く.md`。計画 §3.1・§3.2 も改訂） |
 ```
 
-- [ ] **Step 3: CI と mergeable を確かめる**
+- [x] **Step 3: CI と mergeable を確かめる**
 
 ```bash
 gh pr checks 1559 --watch --fail-fast
@@ -366,7 +366,7 @@ gh pr view 1559 --json mergeable,mergeStateStatus,headRefOid
 ```
 Expected: 全 pass、`MERGEABLE` / `CLEAN`、headRefOid が Step 1 のマージコミット
 
-- [ ] **Step 4: worktree を畳む**
+- [x] **Step 4: worktree を畳む**
 
 ```bash
 git -C /Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-ui-state-assembly status --short
