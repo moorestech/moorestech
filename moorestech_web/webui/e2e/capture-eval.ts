@@ -37,7 +37,7 @@ async function main() {
   const page = await context.newPage();
 
   await page.goto(`http://127.0.0.1:${PORT}/`);
-  await page.getByRole("heading", { name: "CRAFT RECIPE" }).waitFor();
+  await page.getByRole("heading", { name: "クラフトレシピ" }).waitFor();
 
   // レシピを1件選択して選択枠を表示させる（状態パリティの要件）
   // Select one recipe so the selection frame is visible (state-parity requirement)

@@ -12,7 +12,7 @@ const viewport = (page: Page) => scrollAreaViewport(scrollRoot(page));
 
 const openPlankRecipes = async (page: Page) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
   await expect(page.getByTestId("recipe-entry-list")).toBeVisible();
 };
