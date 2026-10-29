@@ -4,8 +4,7 @@ import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
 import MachineStateRow from "./rows/MachineStateRow";
 import LackHighlightText from "./LackHighlightText";
-import { machineWaitReasonKey } from "./detailLogic";
-import { useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import styles from "../style.module.css";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionList from "./machine/recipeSelection/MachineRecipeSelectionList";
@@ -36,15 +35,12 @@ export default function MachineSection({ data, machine, fillsPanelHeight, leadin
   // 歯車駆動の不足赤は網の停止理由行が担うため、充足率の赤は電力駆動だけに残す（ADR 0056）
   // Gear-driven shortage red belongs to the network stop-reason row, so only electric drive keeps the rate red (ADR 0056)
   const highlightPowerShortage = data.gear === undefined;
-  // 出力空き不足の理由は状態ラベルの隣に添え、どちらのモードでも見えるフッタに置く
-  // The output-space reason sits beside the state label in the footer so both modes show it
-  const waitReasonKey = machineWaitReasonKey(machine.outputSpaceShort);
-  // 状態ラベル+充足率を共通フッタに表示
-  // The state label and satisfaction rate stay visible in both modes as the shared footer (ADR 0010)
+  // 状態ラベル+充足率を共通フッタに表示。出力空き不足のときだけ理由を隣に添え、入力切れの待機と見分ける
+  // The shared footer shows the state label and rate (ADR 0010); only an output-space shortage adds the reason, telling it apart from input starvation
   const footer = (
     <Group justify="center" gap="xs">
       <MachineStateRow currentState={machine.currentState} currentPower={machine.currentPower} requestPower={machine.requestPower} highlightPowerShortage={highlightPowerShortage} stateTestId="machine-state-label" powerRateTestId="machine-power-rate" />
-      {waitReasonKey === null ? null : <LackHighlightText insufficient size="sm" testId="machine-wait-reason">{t(waitReasonKey)}</LackHighlightText>}
+      {machine.outputSpaceShort ? <LackHighlightText insufficient size="sm" testId="machine-wait-reason">{t(L.ui.blockInventory.machineWaitOutputSpaceShort)}</LackHighlightText> : null}
     </Group>
   );
 

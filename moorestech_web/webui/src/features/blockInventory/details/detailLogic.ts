@@ -72,12 +72,6 @@ const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay>
   halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
 };
 
-// 機械の待機理由。公開状態はidleのまま、出力先の空き不足のときだけ理由文を足す（入力切れの待機と見分ける）
-// The machine's wait reason; the state stays idle and only an output-space shortage adds a reason, telling it apart from input starvation
-export function machineWaitReasonKey(outputSpaceShort: boolean): TranslationKey | null {
-  return outputSpaceShort ? L.ui.blockInventory.machineWaitOutputSpaceShort : null;
-}
-
 // 発電文言と不足トーンを一表で決定
 // Resolve generation labels and insufficient tones in one table
 type GearToElectricStateDisplay = {
