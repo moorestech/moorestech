@@ -10,5 +10,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public List<int> MaterialSlots;
         public List<int> PayloadSlots;
         public List<int> OutputSlots;
+        public List<InputSlotBindingDto> SlotBindings;
     }
 }

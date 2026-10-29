@@ -19,6 +19,8 @@ describe("rocket launch pad wire boundary", () => {
   it.each([
     { phase: "unknown" }, { waitReason: "unknown" }, { progress: -0.1 }, { progress: 1.1 },
     { progress: Number.NaN }, { materialSlots: [-1] }, { payloadSlots: [0.5] }, { outputSlots: ["2"] }, { extra: true },
+    { slotBindings: undefined }, { slotBindings: [{ slot: 0, acceptedItemIds: [3] }] },
+    { slotBindings: [{ slot: 0, acceptedItemIds: [3] }, { slot: 2, acceptedItemIds: [4] }] }, { slotBindings: [{ slot: 0, acceptedItemIds: [-1] }, { slot: 1, acceptedItemIds: [4] }] },
   ])("rejects malformed state %j", (bad) => {
     expect(BlockInventoryOpenSchema.safeParse({ ...fixture, rocketLaunchPad: { ...detail, ...bad } }).success).toBe(false);
   });

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Block.Blocks.SpaceElevator;
 using Client.Game.InGame.Block;
+using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
@@ -31,6 +32,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 CablesPerElevator = elevatorParam.CablesPerElevator,
                 ClimbProgress = state.ClimbProgress,
                 Status = ToWireStatus(state.Status),
+                // 入口の受け付けIDはサーバーの配置可否と同じ定義から引く
+                // The inlet's accepted IDs come from the same definition as the server's placement check
+                SlotBindings = new List<InputSlotBindingDto>
+                {
+                    new() { Slot = SpaceElevatorBaseInventoryComponent.SatelliteSlot, AcceptedItemIds = WebUiItemIdListUtil.ToPrimitiveIds(SpaceElevatorCarriedPayloads.ItemIds(elevatorParam)) },
+                },
             };
             #region Internal
             string ToWireStatus(SpaceElevatorBaseStatus status)

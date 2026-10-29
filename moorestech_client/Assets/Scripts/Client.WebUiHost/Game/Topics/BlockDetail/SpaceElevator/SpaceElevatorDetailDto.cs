@@ -11,5 +11,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public int CablesPerElevator;
         public float ClimbProgress;
         public string Status;
+        public List<InputSlotBindingDto> SlotBindings;
     }
 }

@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.SpaceElevator
         private readonly int _slotCount;
         private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        private readonly HashSet<ItemId> _carriedPayloadIds = new();
+        private readonly SpaceElevatorCarriedPayloads _carriedPayloads;
         public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService)
         {
             BlockInstanceId = blockInstanceId;
@@ -45,7 +45,7 @@ namespace Game.Block.Blocks.SpaceElevator
             _slotCount = FirstOutputSlot + param.OutputSlotCount;
             _outputSlots = Enumerable.Range(FirstOutputSlot, param.OutputSlotCount).ToArray();
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, _slotCount);
-            foreach (var payloadGuid in param.CarriedPayloadItemGuids) _carriedPayloadIds.Add(MasterHolder.ItemMaster.GetItemId(payloadGuid));
+            _carriedPayloads = new SpaceElevatorCarriedPayloads(param);
             #region Internal
             void InvokeEvent(int slot, IItemStack itemStack)
             {
@@ -63,7 +63,7 @@ namespace Game.Block.Blocks.SpaceElevator
             var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
             SpaceElevatorInventoryRestorer.Restore(itemJsons, _itemDataStoreService, _slotCount, blockInstanceId);
         }
-        internal bool IsCarriedPayload(ItemId itemId) { return _carriedPayloadIds.Contains(itemId); }
+        internal bool IsCarriedPayload(ItemId itemId) { return _carriedPayloads.Contains(itemId); }
         // 入口の中身を見る。運べないアイテムはマスタを変えた後のロードでだけ残る
         // Peek at the inlet; a non-carried item only remains after loading with a changed master
         internal SatelliteInletState PeekSatellite(out ItemId satelliteId)
@@ -141,17 +141,7 @@ namespace Game.Block.Blocks.SpaceElevator
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             CheckDestroy(this);
-            var slot = _itemDataStoreService.GetItem(SatelliteSlot);
-            foreach (var itemStack in itemStacks)
-            {
-                // silent-ok: 搬送の事前確認は在庫を変えない / 呼び出し側が返値で詰まりを認識する
-                if (!IsCarriedPayload(itemStack.Id)) return false;
-                var result = slot.AddItem(itemStack);
-                // silent-ok: 満杯の通常拒否 / 呼び出し側と入口UIに残数が届く
-                if (0 < result.RemainderItemStack.Count) return false;
-                slot = result.ProcessResultItemStack;
-            }
-            return true;
+            return _carriedPayloads.CanAcceptAll(_itemDataStoreService.GetItem(SatelliteSlot), itemStacks);
         }
         // 入口は積荷だけ、出口は取り出し（空にする）だけを許す
         // The inlet accepts only payloads and the outlets only taking out (emptying)

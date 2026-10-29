@@ -16,6 +16,10 @@
     "progress": 0.0,
     "materialSlots": [0],
     "payloadSlots": [1],
-    "outputSlots": [2]
+    "outputSlots": [2],
+    "slotBindings": [
+      { "slot": 0, "acceptedItemIds": [3] },
+      { "slot": 1, "acceptedItemIds": [4] }
+    ]
   }
 }

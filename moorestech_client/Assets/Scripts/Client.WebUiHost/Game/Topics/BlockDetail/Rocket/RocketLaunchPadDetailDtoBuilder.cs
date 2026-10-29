@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Block;
 using Game.Block.Interface.Component;
@@ -35,9 +36,17 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 MaterialSlots = layout.MaterialSlots.ToList(),
                 PayloadSlots = layout.PayloadSlots.ToList(),
                 OutputSlots = Enumerable.Range(layout.OutputSlotStart, dto.ItemSlots.Count - layout.OutputSlotStart).ToList(),
+                SlotBindings = layout.MaterialSlots.Concat(layout.PayloadSlots).Select(CreateBinding).ToList(),
             };
 
             #region Internal
+
+            // サーバーの配置可否（RocketLaunchPadInventoryComponent.IsAllowedToPlace）と同じ要求アイテムを受け付けIDとして載せる
+            // Publish the same required item the server's placement check (RocketLaunchPadInventoryComponent.IsAllowedToPlace) accepts
+            InputSlotBindingDto CreateBinding(int slot)
+            {
+                return new InputSlotBindingDto { Slot = slot, AcceptedItemIds = new List<int> { layout.RequirementAt(slot).ItemId.AsPrimitive() } };
+            }
 
             string ToWirePhase(RocketLaunchPadPhase phase)
             {

@@ -40,6 +40,14 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public List<int> AcceptedItemIds;
     }
 
+    // 入れ口スロットとそこへ入れられるアイテムID（サーバーの配置可否と同じ定義から作る）。発射台・宇宙エレベーターが使う
+    // An inlet slot and the item IDs it accepts, built from the server's own placement definition; used by launch pads and space elevators
+    public class InputSlotBindingDto
+    {
+        public int Slot;
+        public List<int> AcceptedItemIds;
+    }
+
     public class MachineTankBindingDto
     {
         // 液体行index（入力タンク→出力タンクの連結順）

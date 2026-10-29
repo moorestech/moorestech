@@ -43,7 +43,8 @@ namespace Client.Tests.WebUi.BlockDetail
                 BlockGuid = "99999999-9999-4999-8999-999999999999",
                 ItemSlots = new List<BlockItemSlotDto>(),
                 FluidSlots = new List<BlockFluidSlotDto>(),
-                SpaceElevator = new SpaceElevatorDetailDto { SatelliteInputSlots = new List<int> { 0 }, OutputSlots = new List<int> { 1, 2 }, Connected = true, CablePoolAmount = 250, CablesPerElevator = 1000, ClimbProgress = 0.5f, Status = "climbing" },
+                SpaceElevator = new SpaceElevatorDetailDto { SatelliteInputSlots = new List<int> { 0 }, OutputSlots = new List<int> { 1, 2 }, Connected = true, CablePoolAmount = 250, CablesPerElevator = 1000, ClimbProgress = 0.5f, Status = "climbing",
+                    SlotBindings = new List<InputSlotBindingDto> { new() { Slot = 0, AcceptedItemIds = new List<int> { 5 } } } },
             };
 
             // 共有fixtureと厳密照合する
@@ -70,6 +71,7 @@ namespace Client.Tests.WebUi.BlockDetail
             BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
             var required = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).CablesPerElevator;
             var outputCount = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).OutputSlotCount;
+            var carriedIds = ((SpaceElevatorBaseBlockParam)block.BlockMasterElement.BlockParam).CarriedPayloadItemGuids.Select(guid => MasterHolder.ItemMaster.GetItemId(guid).AsPrimitive()).ToList();
             Object.DestroyImmediate(block.gameObject);
 
             Assert.IsNotNull(dto.SpaceElevator);
@@ -80,6 +82,12 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.AreEqual(required, dto.SpaceElevator.CablesPerElevator);
             Assert.AreEqual(0.5f, dto.SpaceElevator.ClimbProgress);
             Assert.AreEqual(wireStatus, dto.SpaceElevator.Status);
+            // 入口だけが受け付け情報を持ち、マスタの運ぶ積荷をそのまま載せる（出口は投入先にしない）
+            // Only the inlet carries accepted items, listing the master's carried payloads as-is (outlets are never insertion targets)
+            Assert.AreEqual(1, dto.SpaceElevator.SlotBindings.Count);
+            Assert.AreEqual(SpaceElevatorBaseInventoryComponent.SatelliteSlot, dto.SpaceElevator.SlotBindings[0].Slot);
+            CollectionAssert.IsNotEmpty(carriedIds, "テスト前提: 運ぶ積荷がマスタにあること");
+            CollectionAssert.AreEqual(carriedIds, dto.SpaceElevator.SlotBindings[0].AcceptedItemIds);
         }
 
         [Test]

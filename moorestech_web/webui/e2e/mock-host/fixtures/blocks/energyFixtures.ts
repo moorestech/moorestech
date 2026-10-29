@@ -76,7 +76,7 @@ export const blockSpaceElevator = {
   itemSlots: [{ itemId: 0, count: 0 }, { itemId: 2, count: 4 }, { itemId: 2, count: 7 }],
   fluidSlots: [],
   electricNetwork: { totalGeneratePower: 4000, totalRequiredPower: 2000, consumerCount: 1, powerRate: 1 },
-  spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect" },
+  spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect", slotBindings: [{ slot: 0, acceptedItemIds: [5] }] },
 } satisfies BlockInventoryWireData;
 
 // 不足・昇降・出口待ちの受入状態
@@ -87,7 +87,7 @@ export const blockSpaceElevatorInsufficient = {
 } satisfies BlockInventoryWireData;
 export const blockSpaceElevatorClimbing = {
   ...blockSpaceElevator,
-  spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: true, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0.5, status: "climbing" },
+  spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: true, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0.5, status: "climbing", slotBindings: [{ slot: 0, acceptedItemIds: [5] }] },
 } satisfies BlockInventoryWireData;
 export const blockSpaceElevatorOutputBlocked = {
   ...blockSpaceElevatorClimbing,
@@ -104,5 +104,5 @@ export const blockSpaceElevatorLoading = { ...blockSpaceElevator, spaceElevator:
 export const blockSpaceElevatorReordered = {
   ...blockSpaceElevator,
   itemSlots: [{ itemId: 2, count: 4 }, { itemId: 2, count: 7 }, { itemId: 0, count: 0 }],
-  spaceElevator: { ...blockSpaceElevator.spaceElevator, satelliteInputSlots: [2], outputSlots: [1, 0] },
+  spaceElevator: { ...blockSpaceElevator.spaceElevator, satelliteInputSlots: [2], outputSlots: [1, 0], slotBindings: [{ slot: 2, acceptedItemIds: [5] }] },
 } satisfies BlockInventoryWireData;

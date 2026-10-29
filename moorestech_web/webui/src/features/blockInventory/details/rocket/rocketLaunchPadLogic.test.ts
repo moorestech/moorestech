@@ -6,6 +6,7 @@ import { rocketCommandButton, rocketStatusKey } from "./rocketLaunchPadLogic";
 const detail: RocketLaunchPadData = {
   phase: "readyToLaunch", waitReason: "none", progress: 0,
   materialSlots: [0], payloadSlots: [1], outputSlots: [2],
+  slotBindings: [{ slot: 0, acceptedItemIds: [3] }, { slot: 1, acceptedItemIds: [4] }],
 };
 
 describe("rocket launch pad presentation", () => {

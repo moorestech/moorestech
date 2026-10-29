@@ -48,6 +48,7 @@ namespace Client.Tests.WebUi.BlockDetail
                 {
                     Phase = "awaitingBuildCommand", WaitReason = "none", Progress = 0f,
                     MaterialSlots = new List<int> { 0 }, PayloadSlots = new List<int> { 1 }, OutputSlots = new List<int> { 2 },
+                    SlotBindings = new List<InputSlotBindingDto> { new() { Slot = 0, AcceptedItemIds = new List<int> { 3 } }, new() { Slot = 1, AcceptedItemIds = new List<int> { 4 } } },
                 },
             };
             var actual = JToken.Parse(WebUiJson.Serialize(dto));
@@ -111,6 +112,11 @@ namespace Client.Tests.WebUi.BlockDetail
             CollectionAssert.AreEqual(layout.MaterialSlots, dto.RocketLaunchPad.MaterialSlots);
             CollectionAssert.AreEqual(layout.PayloadSlots, dto.RocketLaunchPad.PayloadSlots);
             CollectionAssert.AreEqual(layout.OutputSlots, dto.RocketLaunchPad.OutputSlots);
+            // 各入れ口の受け付けIDはサーバーの配置可否と同じ要求アイテムで、出力枠は束縛に含めない
+            // Each inlet's accepted ID is the required item the server's placement check uses; output slots are never bound
+            CollectionAssert.AreEqual(layout.MaterialSlots.Concat(layout.PayloadSlots), dto.RocketLaunchPad.SlotBindings.Select(binding => binding.Slot));
+            foreach (var binding in dto.RocketLaunchPad.SlotBindings)
+                CollectionAssert.AreEqual(new[] { layout.RequirementAt(binding.Slot).ItemId.AsPrimitive() }, binding.AcceptedItemIds);
             dto.ItemSlots.Add(new BlockItemSlotDto { ItemId = 3, Count = 1 });
             BlockDetailDtoBuilder.Apply(dto, block, new BlockNetworkInfoCache(), new BeltTransportClientCache(new BeltSegmentExitStatisticsTable()), new FluidNetworkClientCache());
             CollectionAssert.AreEqual(layout.OutputSlots.Concat(new[] { layout.TotalSlotCount }), dto.RocketLaunchPad.OutputSlots);

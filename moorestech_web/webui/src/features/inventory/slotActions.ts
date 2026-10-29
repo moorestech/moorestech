@@ -1,15 +1,13 @@
 import { dispatchAction, readItemMaster, readTopic, Topics } from "@/bridge";
-import type { BlockInventoryData, PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
+import type { PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import {
   dispatchPlanned,
   planPlayerDoubleClick,
   planPlayerLeftClick,
   planPlayerRightClick,
-  type BlockSlotRestriction,
   type PlayerSlotContext,
 } from "@/shared/itemMove";
-import { boundMachineInputSlotsForItem } from "@/features/blockInventory/details/machine/machineSlotGhosts";
-import { splitSlotIndices } from "@/features/blockInventory/details/detailLogic";
+import { resolveBlockSlotRestriction } from "./blockSlotRestriction";
 import { SplitDragSession } from "./splitDrag";
 
 const splitDrag = new SplitDragSession((slots) => void dispatchAction("inventory.split_drag", { slots }));
@@ -84,18 +82,4 @@ function resolveSlot(inventory: PlayerInventoryData, ref: SlotRef): SlotData | u
   if (ref.area === "grab") return inventory.grab;
   if (ref.area === "equipment") return inventory.equipment[ref.slot];
   return inventory.mainSlots[ref.slot];
-}
-
-// 機械の入力帯だけを束縛で絞り、出力帯・モジュール帯は候補に残す（束縛はホスト配信のslotBindingsが正本）。
-// 機械以外（チェスト等）は無制限
-// Only the machine's input band is narrowed by the binding; the output and module bands stay candidates
-// (the host-published slotBindings are the source of truth). Non-machines (chests etc.) stay unrestricted
-function resolveBlockSlotRestriction(block: BlockInventoryData | null, itemId: number): BlockSlotRestriction {
-  if (!block?.open || block.source !== "block" || !block.machine) return { kind: "unrestricted" };
-  const machine = block.machine;
-  if (machine.slotBindings.length === 0) return { kind: "unrestricted" };
-
-  const { output, module } = splitSlotIndices(machine.slotLayout, block.itemSlots.length);
-  const boundInputs = boundMachineInputSlotsForItem(machine, block.itemSlots.length, itemId);
-  return { kind: "bound", candidateIndices: [...boundInputs, ...output, ...module] };
 }

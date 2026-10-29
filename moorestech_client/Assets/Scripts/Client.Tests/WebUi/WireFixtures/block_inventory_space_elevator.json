@@ -13,6 +13,9 @@
     "cablePoolAmount": 250,
     "cablesPerElevator": 1000,
     "climbProgress": 0.5,
-    "status": "climbing"
+    "status": "climbing",
+    "slotBindings": [
+      { "slot": 0, "acceptedItemIds": [5] }
+    ]
   }
 }

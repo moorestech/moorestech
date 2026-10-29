@@ -32,7 +32,7 @@ describe("SpaceElevatorInventory", () => {
     const data: BlockInventoryOpen = {
       open: true, source: "block", blockType: "SpaceElevatorBase", identifier: "block:20",
       blockGuid: "99999999-9999-4999-8999-999999999999", fluidSlots: [],
-      spaceElevator: { satelliteInputSlots: [2], outputSlots: [3, 0, 1], connected: true, cablePoolAmount: 0, cablesPerElevator: 1000, climbProgress: 0, status: "waitingSatellite" },
+      spaceElevator: { satelliteInputSlots: [2], outputSlots: [3, 0, 1], connected: true, cablePoolAmount: 0, cablesPerElevator: 1000, climbProgress: 0, status: "waitingSatellite", slotBindings: [{ slot: 2, acceptedItemIds: [5] }] },
       itemSlots: Array.from({ length: 4 }, (_, i) => ({ itemId: empty ? 0 : i + 1, count: empty ? 0 : i + 2 })),
     };
     const before = structuredClone(data);

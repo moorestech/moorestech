@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { InputSlotBindingSchema, refineBindingsCoverInputSlots } from "../common";
 
 // 発射台の段階・待ち理由・進み具合と、C# が並べたスロット群の絶対添字。C# の RocketLaunchPadDetailDtoBuilder と1対1
 // Launch pad phase, wait reason, progress and the slot group indices laid out by C#; mirrors RocketLaunchPadDetailDtoBuilder one-to-one
@@ -12,4 +13,7 @@ export const RocketLaunchPadDataSchema = z.object({
   materialSlots: SlotIndexListSchema,
   payloadSlots: SlotIndexListSchema,
   outputSlots: SlotIndexListSchema,
-}).strict();
+  // 資材・積荷の各入れ口が受け付けるアイテム。Shift配分はこれで宛先を絞る
+  // Items accepted by each material/payload inlet; Shift allocation narrows its destinations with these
+  slotBindings: z.array(InputSlotBindingSchema),
+}).strict().superRefine((data, ctx) => refineBindingsCoverInputSlots(data.slotBindings, [...data.materialSlots, ...data.payloadSlots], ctx));
