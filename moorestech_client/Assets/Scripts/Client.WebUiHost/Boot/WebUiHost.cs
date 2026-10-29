@@ -3,10 +3,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Client.Game.Common;
 using Client.WebUiHost.Common;
+using Client.WebUiHost.Boot.Transport;
 using Client.WebUiHost.Vite;
 using Client.WebUiHost.Static;
 using Cysharp.Threading.Tasks;
-using UniRx;
 using UnityEngine;
 
 namespace Client.WebUiHost.Boot
@@ -20,14 +20,11 @@ namespace Client.WebUiHost.Boot
         private static KestrelServer _kestrel;
         private static ViteSupervisor _vite;
         private static WebSocketHub _hub;
-        private static IDisposable _shutdownSubscription;
+        private static readonly WebUiHostShutdownParticipant ShutdownParticipant = new();
 
-        private static Task _stopTask = Task.CompletedTask;
+        private static Task<WebUiStopResult> _stopTask;
         public static WebSocketHub Hub => _hub;
 
-        // 未起動はnull。0は実ポート域外の値で、書けば「届かない入口」を正常系の数字として名乗る
-        // Not started is null; 0 is outside the real port range and would pose as a normal value for an unreachable entry
-        public static int? KestrelPort => _kestrel?.ActualPort;
 
         public static string WebUiUrl => _webUiUrl;
         private static string _webUiUrl;
@@ -37,15 +34,17 @@ namespace Client.WebUiHost.Boot
         {
             // 前回の停止完了を待つ（連続 Start/Stop での自ポート衝突を避ける）
             // Wait for the previous stop to complete (avoids colliding with our own ports on rapid restart)
-            if (!_stopTask.IsCompleted)
+            if (_stopTask != null && !_stopTask.IsCompleted)
             {
                 // 前回停止の fault は StopAsync 内でログ済み。ここでは待つだけで再 throw させない（2-B）
                 // The previous stop's fault is already logged inside StopAsync; only wait here, do not rethrow (2-B)
                 await _stopTask.ContinueWith(_ => { });
             }
+            GameShutdownEvent.RegisterParticipant(ShutdownParticipant);
             if (_kestrel != null) return true;
-
-            _shutdownSubscription ??= GameShutdownEvent.OnGameShutdown.Subscribe(_ => Stop());
+            // 新しいHost起動を開始するときだけ停止結果の世代を更新する
+            // Reset the retained stop result only when starting a new host lifetime
+            _stopTask = null;
 
             // ローカルで起動し、成功後にフィールドへ代入する。途中失敗時は起動済みを片付け null 残留させない（2-A）
             // Start into locals and assign fields only on success; on partial failure, tear down and leave fields null (2-A)
@@ -118,11 +117,18 @@ namespace Client.WebUiHost.Boot
         // Begin stopping (normal path). The stop task is stored as a field and fired with Forget
         public static void Stop()
         {
-            _stopTask = StopAsync().AsTask();
-            _stopTask.AsUniTask().Forget(e => Debug.LogWarning($"[WebUiHost] stop faulted: {e.GetBaseException().Message}"));
+            StopAsync().Forget(e => Debug.LogWarning($"[WebUiHost] stop faulted: {e.GetBaseException().Message}"));
         }
 
-        public static async UniTask StopAsync()
+        public static UniTask<WebUiStopResult> StopAsync()
+        {
+            // 停止結果の保持後に起動が完了してフィールドが埋まったら、その分を止めるため作り直す
+            // Rebuild when a start finished after the stop result was kept and filled the fields, so they are stopped too
+            if (_stopTask == null || _kestrel != null || _vite != null || _hub != null) _stopTask = StopCoreAsync().AsTask();
+            return _stopTask.AsUniTask();
+        }
+
+        private static async UniTask<WebUiStopResult> StopCoreAsync()
         {
             // フィールドをローカルへ退避し即 null 化する。二重 Stop を冪等にし、以後の Start を再試行可能にする
             // Move fields to locals and null them immediately; makes double-stop idempotent and lets a later Start retry
@@ -138,50 +144,7 @@ namespace Client.WebUiHost.Boot
             _webUiUrl = null;
             WebUiPortConfig.SetBrowserPort(0);
 
-            // 各停止ステップを個別に隔離してログし、1 つが失敗しても全ステップを完走させる（2-B）
-            // Isolate and log each stop step so one failure cannot skip the remaining steps (2-B)
-            if (vite != null)
-            {
-                // Vite kill はメインスレッドで同期実行（Process.Kill はメインスレッド前提）
-                // Kill Vite synchronously on the main thread (Process.Kill assumes main thread)
-                try { vite.Stop(); }
-                catch (Exception e) { Debug.LogWarning($"[WebUiHost] vite kill failed: {e.GetBaseException().Message}"); }
-            }
-
-            // Kestrel/WS 停止はスレッドプールへ逃がしてメインスレッドを解放
-            // Move Kestrel/WS shutdown off the main thread via UniTask.SwitchToTaskPool
-            await UniTask.SwitchToTaskPool();
-
-            // セーブデータ/Mod 切替に備えてアイコンキャッシュを破棄する
-            // Drop icon caches in case the save data / mod set changes
-            try
-            {
-                Game.Icons.IconEndpoint.ClearAllCaches();
-            }
-            catch (Exception e) { Debug.LogWarning($"[WebUiHost] icon cache clear failed: {e.GetBaseException().Message}"); }
-
-            if (hub != null)
-            {
-                // トピック/アクションのバインド解除
-                // Release topic/action bindings
-                try { hub.ClearBindings(); }
-                catch (Exception e) { Debug.LogWarning($"[WebUiHost] clear bindings failed: {e.GetBaseException().Message}"); }
-
-                // 全 WS 接続を close（送信ループと競合しない CloseAsync 経由）
-                // Close all WS connections (via CloseAsync, which does not race the send loop)
-                try { await hub.CloseAllAsync(); }
-                catch (Exception e) { Debug.LogWarning($"[WebUiHost] close all failed: {e.GetBaseException().Message}"); }
-            }
-
-            if (kestrel != null)
-            {
-                // Kestrel 停止でポートを確実に解放する（次回 Start の port 5050 衝突を防ぐ）
-                // Stop Kestrel to release the port for sure (prevents port 5050 collision on next Start)
-                try { await kestrel.StopAsync(); }
-                catch (Exception e) { Debug.LogWarning($"[WebUiHost] kestrel stop failed: {e.GetBaseException().Message}"); }
-            }
-
-            Debug.Log("[WebUiHost] stopped");
+            return await WebUiHostShutdown.StopAsync(vite, hub, kestrel);
         }
 
         // Editor フックから呼ぶ同期停止。停止タスクの完了を最大 timeout まで待つ
@@ -190,6 +153,8 @@ namespace Client.WebUiHost.Boot
         {
             Stop();
             Task.WhenAny(_stopTask, Task.Delay(timeout)).GetAwaiter().GetResult();
+            if (_stopTask.Status == TaskStatus.RanToCompletion && !_stopTask.Result.Succeeded)
+                Debug.LogError("[WebUiHost] editor cleanup completed with shutdown failures");
             if (_stopTask.IsFaulted)
             {
                 Debug.LogWarning($"[WebUiHost] stop faulted: {_stopTask.Exception?.GetBaseException().Message}");

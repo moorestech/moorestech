@@ -9,6 +9,7 @@ import { AppErrorBoundary } from "@/app/AppErrorBoundary";
 import "@/app/index.css";
 import { initBridge, setToastSink } from "@/bridge";
 import { initDomQueryResponder } from "./bridge/playtest/domQueryResponder";
+import { initDomSetTextResponder } from "./bridge/playtest/domSetTextResponder";
 import { emitToast } from "@/features/toast";
 import { I18nProvider } from "@/shared/i18n";
 
@@ -20,6 +21,7 @@ initBridge();
 // 通常topicの復元後にプレイテスト用DOM問い合わせの待受を開始する
 // Start listening for playtest DOM queries after regular topics restore
 initDomQueryResponder();
+initDomSetTextResponder();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

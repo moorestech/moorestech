@@ -1,4 +1,9 @@
+using Client.Ui.State.BlockDetail;
+using Client.Ui.State.Notification;
+using Client.Ui.State.Modal;
+using Client.Ui.State.Research;
 using Client.Game.InGame.Train.Timetable;
+using Client.Ui.State.Train;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.FluidNetwork;
@@ -34,7 +39,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.Tooltip;
 using VContainer;
-using Client.Network.API;
+using Client.Ui.State.Challenge;
 namespace Client.WebUiHost.Game
 {
     /// <summary>
@@ -68,9 +73,9 @@ namespace Client.WebUiHost.Game
             // Create inventory topic and register it (the equipment model supplies the selection state)
             var inventoryTopic = new InventoryTopic(hub, controller, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
-            // モーダルブリッジサービスを生成（topic と action で共有）
-            // Create the modal bridge service (shared by topic and action)
-            var modalService = new WebUiModalService();
+            // 保留要求はDIが持つ
+            // The DI owns the pending request
+            var modalService = resolver.Resolve<ModalRequestService>();
             // モーダルトピックを登録
             // Register the modal topic
             var modalTopic = new ModalTopic(hub, modalService);
@@ -82,8 +87,9 @@ namespace Client.WebUiHost.Game
             // ブロックインベントリトピックを登録（時刻表の取得担当は時刻表タブのactionと共有）
             // Register the block-inventory topic (the timetable fetcher is shared with the timetable-tab action)
             var trainUnitClientCache = resolver.Resolve<TrainUnitClientCache>();
-            var timetableFetcher = new TrainTimetableFetcher(resolver.Resolve<IClientTrainTimetableMutator>(), resolver.Resolve<IClientTrainTimetableLookup>());
-            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher, resolver.Resolve<BeltTransportClientCache>(), resolver.Resolve<FluidNetworkClientCache>());
+            var timetableFetcher = resolver.Resolve<TrainTimetableFetcher>();
+            var blockNetworkInfoCache = resolver.Resolve<BlockNetworkInfoCache>();
+            var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState, resolver.Resolve<OpenBlockDetailTracker>(), blockNetworkInfoCache, trainUnitClientCache, resolver.Resolve<IClientTrainTimetableLookup>(), timetableFetcher, resolver.Resolve<OpenTrainTimetableTracker>(), resolver.Resolve<BeltTransportClientCache>(), resolver.Resolve<FluidNetworkClientCache>());
             hub.RegisterTopic(BlockInventoryTopic.TopicName, blockInventoryTopic);
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
@@ -113,7 +119,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, resolver.Resolve<UIRoot>()));
             // 通知トピックを登録
             // Register the notification topic
-            hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, ClientContext.VanillaApi.Event, ClientDIContext.ClientLocalNotificationSource));
+            hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub, resolver.Resolve<NotificationFeed>()));
             // ゲーム内ツールチップ状態を Web へ接続する
             // Connect the in-game tooltip state to the web
             hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, resolver.Resolve<MouseCursorTooltipState>()));
@@ -135,27 +141,24 @@ namespace Client.WebUiHost.Game
                 .Resolve<ItemRecipeViewerDataContainer>();
             var itemListTopic = new RecipeViewerItemListTopic(hub, recipeContainer);
             hub.RegisterTopic(RecipeViewerItemListTopic.TopicName, itemListTopic);
-            // 研究ツリートピックを登録（充足の正本はサーバーstateなので所持変化でも取り直す）
-            // Register the research-tree topic (server state owns sufficiency, so inventory moves refetch too)
-            var researchTopic = new ResearchTopic(hub, uiStateControl, controller);
-            hub.RegisterTopic(ResearchTopic.TopicName, researchTopic);
-            // チャレンジツリーと常駐HUDは同じイベント駆動状態を共有する
-            // The challenge tree and persistent HUD share the same event-driven state
-            var initialHandshake = resolver.Resolve<InitialHandshakeResponse>();
-            var challengeState = new ChallengeTopicState(hub, initialHandshake);
-            hub.RegisterTopic(ChallengeTreeTopic.TopicName, new ChallengeTreeTopic(challengeState));
-            hub.RegisterTopic(ChallengeCurrentTopic.TopicName, new ChallengeCurrentTopic(challengeState));
-            // ビルドメニュートピックを登録（BP名入力ブリッジも同時に張る）
-            // Register the build-menu topic (also wires the blueprint-name input bridge)
+            // 研究ツリートピック登録
+            // Register the research-tree topic
+            var researchNodeStateStore = resolver.Resolve<ResearchNodeStateStore>();
+            hub.RegisterTopic(ResearchTopic.TopicName, new ResearchTopic(hub, researchNodeStateStore));
+            // チャレンジツリーと常駐HUDは同じ状態（DI）を購読する。Subjectは購読順に配るので、tree→currentの配信順はこの登録順で保つ
+            // The challenge tree and persistent HUD subscribe to the same DI state; Subject delivers in subscription order, so this registration order keeps tree before current
+            var challengeProgressState = resolver.Resolve<ChallengeProgressState>();
+            hub.RegisterTopic(ChallengeTreeTopic.TopicName, new ChallengeTreeTopic(hub, challengeProgressState));
+            hub.RegisterTopic(ChallengeCurrentTopic.TopicName, new ChallengeCurrentTopic(hub, challengeProgressState));
+            // ビルドメニュートピックを登録
+            // Register the build-menu topic
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
             var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
             var buildMenuSelection = resolver.Resolve<BuildMenuSelection>();
-            var blueprintNameInputState = resolver.Resolve<BlueprintNameInputState>();
             var constructionWalletQuery = resolver.Resolve<ConstructionWalletQuery>();
             var thumbnails = resolver.Resolve<IBlueprintThumbnailLookup>();
             var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller, thumbnails);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
-            new BlueprintNameInputWebBridge(blueprintNameInputState, modalService);
             // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
@@ -181,9 +184,9 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
-            hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
-            hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
-            hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
+            hub.RegisterAction(new ResearchCompleteActionHandler(researchNodeStateStore));
+            hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockNetworkInfoCache));
+            hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockNetworkInfoCache));
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher);

@@ -1,0 +1,112 @@
+using System;
+using System.Threading;
+using UniRx;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Context;
+using Cysharp.Threading.Tasks;
+using Server.Protocol.PacketResponse;
+using UnityEngine;
+
+namespace Client.Ui.State.BlockDetail
+{
+    /// <summary>
+    /// 開いているブロックのネット集約情報をキャッシュ
+    /// - electric/gear: 1秒ポーリング
+    /// - filter: 開時1回取得
+    /// Caches network aggregates for the open block
+    /// - electric/gear: 1s polling
+    /// - filter: fetched once on open
+    /// </summary>
+    public class BlockNetworkInfoCache
+    {
+        public GetElectricNetworkInfoProtocol.ElectricNetworkInfoSnapshot Electric { get; private set; }
+        public GetGearNetworkInfoProtocol.GearNetworkInfoSnapshot GearNetwork { get; private set; }
+        public FilterSplitterStateProtocol.FilterSplitterStateResponse FilterSplitter { get; private set; }
+        private readonly Subject<Unit> _onUpdated = new();
+        public IObservable<Unit> OnUpdated => _onUpdated;
+
+        private CancellationTokenSource _cts;
+
+        // 前の取得を打ち切り、開いたブロックの取得を始める。同一個体と閉状態の判定は OpenBlockDetailTracker が持つ
+        // Cancel previous fetches and start for the opened block; OpenBlockDetailTracker owns the same-instance and closed checks
+        public void Track(BlockGameObject block, bool electric, bool gear, bool filterSplitter)
+        {
+            Clear();
+            _cts = new CancellationTokenSource();
+            if (electric) PollElectric(block, _cts.Token).Forget();
+            if (gear) PollGear(block, _cts.Token).Forget();
+            if (filterSplitter) FetchFilterSplitter(block.BlockPosInfo.OriginalPos, _cts.Token).Forget();
+
+            #region Internal
+
+            async UniTaskVoid PollElectric(BlockGameObject block, CancellationToken ct)
+            {
+                // uGUI ElectricNetworkInfoView と同じ1秒間隔ポーリング
+                // Same 1-second polling as uGUI ElectricNetworkInfoView
+                while (!ct.IsCancellationRequested)
+                {
+                    var response = await ClientContext.VanillaApi.Response.World.GetElectricNetworkInfo(block.BlockInstanceId, ct);
+                    if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
+                    Electric = response?.Info;
+                    _onUpdated.OnNext(Unit.Default);
+                    await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
+                }
+            }
+
+            async UniTaskVoid PollGear(BlockGameObject block, CancellationToken ct)
+            {
+                // PollElectric と同じ1秒間隔ポーリング（開いている間ずっと停止理由行を追随させる）
+                // Same 1-second polling as PollElectric, so the stop-reason row stays live while open
+                while (!ct.IsCancellationRequested)
+                {
+                    var response = await ClientContext.VanillaApi.Response.World.GetGearNetworkInfo(block.BlockInstanceId, ct);
+                    if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
+
+                    // 通信失敗は網未所属(Info=null)と区別し、前回値を保って停止理由行を消さない
+                    // Keep the last snapshot on a transport failure so it is not confused with non-membership (Info == null)
+                    if (response == null)
+                    {
+                        Debug.LogWarning($"[BlockNetworkInfoCache] GetGearNetworkInfo failed for block {block.BlockInstanceId}; keeping the previous gear network snapshot");
+                        await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
+                        continue;
+                    }
+
+                    GearNetwork = response.Info;
+                    _onUpdated.OnNext(Unit.Default);
+                    await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
+                }
+            }
+
+            async UniTaskVoid FetchFilterSplitter(Vector3Int pos, CancellationToken ct)
+            {
+                var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateGetRequest(pos);
+                var response = await ClientContext.VanillaApi.Response.Block.SendFilterSplitterStateRequest(request, ct);
+                if (ct.IsCancellationRequested) return; // silent-ok: 追跡変更後の古い取得結果は破棄する / 新しい追跡の購読者が現在値を表示する
+                // 取得失敗（未配置/別ブロック）は空スナップショットで上書きせず無視する（uGUI と同じガード）
+                // Ignore fetch failures instead of overwriting with an empty snapshot (same guard as uGUI)
+                if (response == null || !response.Success) return; // silent-ok: 取得失敗時は既存スナップショットを保つ / 描画側へ未取得または前回値が残る
+                ApplyFilterSplitterSnapshot(response);
+            }
+
+            #endregion
+        }
+
+        public void Clear()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
+            Electric = null;
+            GearNetwork = null;
+            FilterSplitter = null;
+        }
+
+        // action handler が SetMode/SetFilterItem 応答のスナップショットを反映する書き込み口
+        // Write access for action handlers to apply SetMode/SetFilterItem response snapshots
+        public void ApplyFilterSplitterSnapshot(FilterSplitterStateProtocol.FilterSplitterStateResponse response)
+        {
+            FilterSplitter = response;
+            _onUpdated.OnNext(Unit.Default);
+        }
+    }
+}

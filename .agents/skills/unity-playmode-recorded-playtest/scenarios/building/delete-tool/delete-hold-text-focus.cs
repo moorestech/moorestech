@@ -3,7 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Input;
 using Client.Playtest;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
@@ -50,7 +50,7 @@ return PlaytestRunner.Run("delete-hold-text-focus", new PlaytestRunOptions { Rec
     await AimAtGround(p, new Vector3Int(8,32,8));
     await p.PressKey(Key.B);
     await p.WaitUiState(UIStateEnum.BuildMenu, 5f);
-    await p.ClickWebUi("build-menu-search");
+    await p.ClickUi("build-menu-search");
     await p.Until(() => WebUiInputExclusivity.IsTextInputFocused && WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), 5f, "検索欄focusでKeyboard抑止が入る");
     await p.Screenshot("02-text-focused");
     // 抑止と実キー状態を別々に観測する
@@ -66,7 +66,7 @@ return PlaytestRunner.Run("delete-hold-text-focus", new PlaytestRunOptions { Rec
     p.Note($"再押下: rawF={Keyboard.current.fKey.isPressed} focus={WebUiInputExclusivity.IsTextInputFocused} suppressed={WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard)} state={p.CurrentUiState}");
     p.Assert(Keyboard.current.fKey.isPressed, "モード外で実F再押下を観測");
     p.Assert(WebUiInputExclusivity.IsTextInputFocused && WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "F解放/再押下の両端で検索欄抑止が続く");
-    await p.CloseWebUiPanel();
+    await p.CloseBuildMenuPanel();
     await p.WaitUiState(UIStateEnum.GameScreen, 5f);
     await p.Until(() => !WebUiInputExclusivity.IsTextInputFocused && !WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), 5f, "検索欄を閉じて抑止が外れる");
     p.Assert(Keyboard.current.fKey.isPressed, "閉じる操作もF保持を維持");
@@ -78,9 +78,9 @@ return PlaytestRunner.Run("delete-hold-text-focus", new PlaytestRunOptions { Rec
     await p.Until(() => progress.IsShown && progress.CurrentProgress > 0f && progress.CurrentProgress < 1f, 5f, "再入場後の新しい保持で進捗が開始");
     p.Note($"再入場: rawF={Keyboard.current.fKey.isPressed} progress={progress.CurrentProgress:F3} focus={WebUiInputExclusivity.IsTextInputFocused}");
     p.Assert(p.GetBlock(b) != null, "進捗途中ではBを残す");
-    var dom = await PlaytestDomQuery.Query("progress-bar", 1f);
-    p.Note($"進捗DOM: found={dom.Found} visible={dom.Visible} hit={dom.HitTestPassed}");
-    p.Assert(dom.Found && dom.Visible, "表示専用の進捗DOMが可視");
+    var dom = await PlaytestUiElementOps.FindUi("progress-bar");
+    p.Note($"進捗DOM: found={dom.IsFound} visible={dom.Visible} hit={dom.Clickable}");
+    p.Assert(dom.IsFound && dom.Visible, "表示専用の進捗DOMが可視");
     await p.Screenshot("03-reentry-progress");
     await p.Until(() => p.GetBlock(b) == null, 15f, "Fを離さずBの撤去まで完了");
     SemanticInput.KeyUp(Key.F);

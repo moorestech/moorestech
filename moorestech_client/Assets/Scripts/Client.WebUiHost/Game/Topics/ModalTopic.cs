@@ -1,3 +1,4 @@
+using Client.Ui.State.Modal;
 using System;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -15,12 +16,12 @@ namespace Client.WebUiHost.Game.Topics
         public const string TopicName = "ui.modal";
 
         private readonly WebSocketHub _hub;
-        private readonly WebUiModalService _service;
+        private readonly ModalRequestService _service;
         private readonly IDisposable _subscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public ModalTopic(WebSocketHub hub, WebUiModalService service)
+        public ModalTopic(WebSocketHub hub, ModalRequestService service)
         {
             _hub = hub;
             _service = service;

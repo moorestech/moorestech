@@ -36,7 +36,7 @@ return PlaytestRunner.Run("terrain-sink-normal-and-belt-via-ui", options, async 
 
     // ツールチップのWeb UI描画をDOMで確かめるため、照会ハンドラを先に登録する
     // Register the DOM query handler first so the tooltip's Web UI rendering can be checked
-    Client.Playtest.WebUi.PlaytestDomQuery.RegisterHandler();
+    Client.Playtest.UiElements.PlaytestUiLocatorSession.Start();
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
@@ -87,8 +87,8 @@ return PlaytestRunner.Run("terrain-sink-normal-and-belt-via-ui", options, async 
     p.Assert(previewB.Count == 1 && Mathf.RoundToInt(previewB[0].Position.y) == sunkB, $"プレビューは1段下のY={sunkB} 実際:{string.Join(";", previewB.Select(s => s.Position))}");
     p.Assert(previewB.Count == 1 && previewB[0].IsNotPlaceable, $"1段下げたプレビューは赤 実際:{(previewB.Count > 0 ? previewB[0].Color.ToString() : "-")}");
     p.Assert(HasTooltipKey(TerrainKey), $"「地形に埋まっています」が出る tooltip={TooltipText()}");
-    var tooltipDom = await Client.Playtest.WebUi.PlaytestDomQuery.Query("cursor-tooltip", 3f);
-    p.Assert(tooltipDom.Found && (tooltipDom.Text.Contains("地形に埋まっています") || tooltipDom.Text.Contains("Blocked by terrain")), $"Web UIのツールチップに「地形に埋まっています」が描画される 実際:found={tooltipDom.Found} text={tooltipDom.Text}");
+    var tooltipDom = await PlaytestUiElementOps.FindUi("cursor-tooltip");
+    p.Assert(tooltipDom.IsFound && (tooltipDom.Text.Contains("地形に埋まっています") || tooltipDom.Text.Contains("Blocked by terrain")), $"Web UIのツールチップに「地形に埋まっています」が描画される 実際:found={tooltipDom.IsFound} text={tooltipDom.Text}");
     await p.Screenshot("02-chest-sunk-red");
     await p.ClickPlace();
     await p.WaitSeconds(1.5f);

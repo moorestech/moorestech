@@ -1,5 +1,5 @@
+using Client.Ui.State.EventMode;
 using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.EventMode;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 

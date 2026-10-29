@@ -2,20 +2,16 @@ import { useMemo, useSyncExternalStore } from "react";
 import { VanillaLocalizationKeys, type VanillaLocalizationKey } from "./generated/localizationKeys";
 import type { ContentLocalizationKey } from "./contentKeys";
 import { resolvePreDictionaryText } from "./preDictionaryText";
-
 export const FALLBACK_LOCALE = "english";
-
 // 原文はlocaleではなくClient側の予約名。同じ辞書URLで取得する
 // Source is a reserved Client-side name rather than a locale, fetched from the same dictionary URL
 export const SOURCE_LOCALE = "source";
-
 export type TranslationDictionary = Readonly<Record<string, string>>;
 export type InterpolationValues = Readonly<Record<string, string | number>>;
 export type TranslationKey = VanillaLocalizationKey | ContentLocalizationKey;
 // statusは取得ライフサイクルだけを表す。表示できる辞書の有無はdictionariesが持つ
 // status expresses only the fetch lifecycle; whether a displayable dictionary exists lives in dictionaries
 export type I18nStatus = "uninitialized" | "loading" | "ready" | "error";
-
 export type DictionaryContent =
   | { kind: "none" }
   | {
@@ -42,6 +38,7 @@ let snapshot: I18nSnapshot = {
 };
 const listeners = new Set<() => void>();
 let warnedMissingTranslationKeys = new Set<TranslationKey>();
+let warnedMissingInterpolationValues = new Set<string>();
 let warnedUnknownExternalKeys = new Set<string>();
 const translationKeys = new Set<string>(VanillaLocalizationKeys);
 
@@ -51,12 +48,6 @@ const CONTENT_KEY_RE = /^[a-z][a-zA-Z]*\.[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-
 
 export function isTranslationKey(value: string): value is TranslationKey {
   return translationKeys.has(value) || CONTENT_KEY_RE.test(value);
-}
-
-// ホスト側の位置パラメータを{p0}補間値へ変換する（通知・tooltip共通の規約）
-// Convert host-side positional params into {p0} interpolation values (shared by notifications and tooltips)
-export function buildPositionalInterpolationValues(values: readonly string[]): InterpolationValues {
-  return Object.fromEntries(values.map((value, index) => [`p${index}`, value]));
 }
 
 export function setDictionaries(
@@ -73,6 +64,7 @@ export function setDictionaries(
     dictionaries: { kind: "loaded", dictionary, fallbackDictionary, sourceDictionary },
   };
   warnedMissingTranslationKeys = new Set<TranslationKey>();
+  warnedMissingInterpolationValues = new Set<string>();
   warnedUnknownExternalKeys = new Set<string>();
   notifyListeners();
 }
@@ -101,6 +93,7 @@ export type Translation =
 
 export function createTranslationResolver(current: I18nSnapshot) {
   const warnedKeysForGeneration = warnedMissingTranslationKeys;
+  const warnedValuesForGeneration = warnedMissingInterpolationValues;
   const dictionaries = current.dictionaries;
   return (key: TranslationKey, values: InterpolationValues): Translation => {
     // 表示できる辞書が無い状態は、キー欠落とは別の状態として呼び出し側へ渡す
@@ -122,8 +115,17 @@ export function createTranslationResolver(current: I18nSnapshot) {
       return { kind: "keyMissing", key };
     }
 
-    const text = template.replace(/\{([^{}]+)\}/g, (token, name: string) =>
-      Object.hasOwn(values, name) ? String(values[name]) : token);
+    // 未充足枠は残し、同じ辞書では一度だけ診断する
+    // Preserve missing placeholders and diagnose each once per dictionary generation
+    const text = template.replace(/\{([^{}]+)\}/g, (token, name: string) => {
+      if (Object.hasOwn(values, name)) return String(values[name]);
+      const warningKey = JSON.stringify([key, name]);
+      if (!warnedValuesForGeneration.has(warningKey)) {
+        warnedValuesForGeneration.add(warningKey);
+        console.warn(`[i18n] Missing interpolation value: ${key} {${name}}`);
+      }
+      return token;
+    });
     return { kind: "resolved", text };
   };
 }

@@ -10,6 +10,7 @@
 using Client.Playtest;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using UnityEngine;
@@ -19,10 +20,10 @@ using UnityEngine;
 var options = new PlaytestRunOptions { Record = false };
 // キー・マウス使用時はready後、この位置でinput-injection.mdのde-risk probeを完了する
 // For keyboard/mouse input, complete the input-injection.md de-risk probe here after ready
-// Web UI probeはreadyとCEF利用可能状態を確認し、PlaytestDomQuery.RegisterHandler() → CefInputForwarder.StartForwarding() → probeの順で実行する
-// For a Web UI probe, confirm ready and CEF availability, then call PlaytestDomQuery.RegisterHandler() → CefInputForwarder.StartForwarding() → probe
-// probe失敗でRunへ進まない場合はCefInputForwarder.StopForwarding()とPlaytestDomQuery.ResetPending()で片付け、失敗理由を記録する
-// If a failed probe prevents Run, call CefInputForwarder.StopForwarding() and PlaytestDomQuery.ResetPending(), and record the failure reason
+// UI probeはready → Start() → 期限付きIsAvailable()待機 → probeの順で実行する
+// For a UI probe, wait for ready, call Start(), wait for IsAvailable() with a deadline, then probe
+// 成功・失敗を問わずfinallyでPlaytestUiLocatorSession.Stop()を呼び、失敗理由を記録する
+// Always call PlaytestUiLocatorSession.Stop() in finally and record any failure reason
 return PlaytestRunner.Run("my-scenario", options, async p =>
 {
     // デバッグ環境を1行構築（無限落下防止の足場+ワープ+無料設置）。設定値は冒頭ログとTimelineに流れる
@@ -38,7 +39,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 ```
 
 調査用は`Record = false`で`result.json`の`Success`と`Asserts`を確認する。提出用の最終実行だけ`Record = true`にして、動画・期待スクショ・実プレイ視点も確認する。
-キー・マウスを使う場合は[input-injection.md](input-injection.md)のde-risk probeを`PlaytestRunner.Run`前のトップレベルで完了する。Web UIをprobeする場合はreadyとCEF利用可能状態を確認し、`PlaytestDomQuery.RegisterHandler()`と`CefInputForwarder.StartForwarding()`をprobe前に呼ぶ。probe失敗でRunへ進まない場合は`CefInputForwarder.StopForwarding()`と`PlaytestDomQuery.ResetPending()`で片付け、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認は、`Record=true`へ切り替えた最終実行でもコールバック内に置かない。
+キー・マウスを使う場合は[input-injection.md](input-injection.md)のde-risk probeを`PlaytestRunner.Run`前のトップレベルで完了する。UIをprobeする場合はreadyを確認して`PlaytestUiLocatorSession.Start()`を呼び、期限付きで`PlaytestUiLocatorSession.Locator.IsAvailable()`を待ってからprobeする。成功・失敗を問わずfinallyで`PlaytestUiLocatorSession.Stop()`を呼び、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認は、`Record=true`へ切り替えた最終実行でもコールバック内に置かない。
 
 `PlaytestEnvironmentConfig` のフィールド（すべてpublicフィールド・デフォルト値あり）:
 `FreeBlockPlacement=true`（建築全解放+クライアント/サーバー両方のコスト無料。falseでも毎回明示保存され前回実行の残留なし）/
@@ -65,7 +66,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 ### UI経路操作（実プレイヤーと同じキーマウ経路＝検証対象）
 | API | 用途 |
 |---|---|
-| `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→スロット選択→PlaceBlock遷移＋選択後0.6s待機。**画面UIはWeb UI一本のためDOMクリック経路のみ（CEFが15秒以内に使えなければ例外。uGUI経路は撤去済み）** |
+| `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→スロット選択→PlaceBlock遷移＋選択後0.6s待機。**スロットはUIロケータ経由でクリックする。描画系が15秒以内に使えなければ例外** |
 | `PlaceBlockViaUi(name, origin, dir)` | 単クリック設置の統合操作（**向きはNorth固定**）。設置反映Until込み |
 | `DragPlaceViaUi(name, from, to)` | ドラッグ設置（ベルト等）。**向きは経路から自動解決** |
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |
@@ -87,23 +88,47 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 シナリオ側でAltホールドを書き写さず`PickWithAltHold`を呼ぶこと（実体は`Client.Playtest.Operations.PlaytestPickOps`）。
 PlaceBlock中のスポイトは照準がカーソル追従のためAltは不要で、`AimAt`＋`MiddleClick`でよい。
 
-### Web UI (CEF) 操作（web-ui系ブランチのReact画面向け。DOM座標を自動解決し通常マウス経路でクリック）
+### UI 操作（testid で要素を解決し通常マウス経路で操作。描画系に依存しない）
 | API | 用途 |
 |---|---|
-| `ClickWebUi(testid)` | `data-testid`の要素中心へ注入マウスを滑走→クリック。矩形2回一致(React安定)+`elementFromPoint`被覆チェック込み。要素出現まで内部リトライ(15s) |
-| `HoverWebUi(testid)` | 同解決でポインタ移動のみ（ツールチップ検証等） |
-| `UntilWebUiElement(testid, timeout)` | 要素が可視かつクリック可能（遮蔽なし）になるまで待つ |
+| `ClickUi(testid)` | `testid` の要素中心へ注入マウスを滑走→クリック。2 回照会の矩形一致（レイアウト安定）＋被覆チェック込み。要素出現まで内部リトライ（15s） |
+| `HoverUi(testid)` | 同解決でポインタ移動のみ（ツールチップ検証等） |
+| `UntilUiElement(testid, timeout)` | 要素が可視かつクリック可能（遮蔽なし）になるまで待つ |
+| `SetText(testid, text)` | テキスト欄の値を置き換えて変更イベントを流す（IME は通さない。Web は input/textarea、段階1以降の UITK は TextField）。欄の出現・有効化まで内部リトライ（15s） |
 | `ClickBuildMenuBlock(blockName)` | ビルドメニューのブロックスロットを1行でクリック（testid `build-menu-entry-block-{BlockGuid}` を自動解決） |
-| `CloseWebUiPanel()` | 共通閉じるボタン（`build-menu-close`）をクリック |
+| `CloseBuildMenuPanel()` | ビルドメニューの閉じるボタン（`build-menu-close`）をクリック |
+| `PlaytestUiElementOps.FindUi(testid)` | 1 回照会して `UiElementSnapshot` を返す（`IsFound`・`Visible`・`Clickable`・`ScreenRect`〈Unity スクリーン座標・左下原点〉・`Text`・`HasStateFlag(name)`）。待たない |
+| `PlaytestUiElementOps.WaitUiTextContains(testid, text, timeout)` | 要素の表示文字列が `text` を含むまで待つ |
+| `PlaytestUiElementOps.ScrollDownUntilUiElementIsClickable(testid, scrollAreaTestid, timeout)` | スクロール領域上でホイールを回して要素を表示領域へ送る |
+
+単発の照会をRun前に行う例。事前probeで開いたロケータは失敗時も閉じる。
+
+```csharp
+PlaytestUiLocatorSession.Start();
+try
+{
+    var inventorySort = await PlaytestUiElementOps.FindUi("inventory-sort");
+    if (!inventorySort.IsFound) throw new System.InvalidOperationException("inventory-sortが見つからない");
+}
+finally
+{
+    PlaytestUiLocatorSession.Stop();
+}
+```
+
+Run内の説明文入力は、欄をクリックした直後に `await p.SetText("bug-report-description", description);` を使う。設置理由の表示観測のように長いシナリオ固有処理は `PlacementReasonTooltipScenarioProbe` の使用例を参照できる。これはEditor専用の観測補助で、Driverの汎用UI入力は上のAPIを使う。
+
+状態フラグ: Web は `data-testid` 以外の `data-*` 属性のうち値が空か `true` のもの（`data-selected="true"` → `HasStateFlag("selected")`）。
+シナリオは描画系の内部型を直接参照せず、照会と入力に上の API を使う。
+同じtestidが複数あるとFind/SetTextはAmbiguousで失敗する。SetTextはDOMを書き換える前に拒否する。ロケータを直接使う場合はFind(testid, remainingSeconds)、SetText(testid, text, remainingSeconds)へ残予算を必ず渡す。Web通信上限は既存3秒との小さい方。Stop後の旧SetText再試行は終了する。
 
 testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する。ビルドメニューのエントリは
 `build-menu-entry-{kind}-{id}`（kind: block/trainCar/connectTool/blueprintCopy/blueprint、
-idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestWebUiOps.BuildMenuBlockTestId(名前)`で組み立てる）。
-表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverWebUi`してからScreenshotする。
+idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestBuildMenuOps.BuildMenuBlockTestId(名前)`で組み立てる）。
+表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverUi`してからScreenshotする。
 カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移で視点は変わらないため、
 シナリオ側での追加のカメラ待ちは不要。
-仕組み: DOM矩形をWS往復(`playtest.dom_query`)で取得→CEFブラウザ座標→Unityスクリーン座標へ逆変換→
-`SemanticInput`で注入→プレイテスト専用`CefInputForwarder`がInputSystemマウスをCEFへ転送（パッケージのlegacy Input転送は注入不感のため）。
+仕組み: DSL は `IUiElementLocator`（`PlaytestUiLocatorSession.Locator`）だけを見る。Web 版は DOM 矩形を WS 往復（`playtest.dom_query`）で取得し、Unity スクリーン座標へ逆変換して `SemanticInput` で注入する。注入マウスはプレイテスト専用の入力転送経路を通る（パッケージの legacy Input 転送は注入不感のため）。文字入力は `playtest.dom_set_text` の往復でネイティブ setter＋`input` イベント。解決した要素は `[PlaytestUi] <testid> resolved` のログに出る。
 
 ### 検証・待機・記録
 | API | 用途 |
@@ -145,3 +170,5 @@ idは種別を問わず設置対象のGuid文字列。blockのtestidは`Playtest
 複数ブロック連結・UI操作・列車などは、Plan/general-purposeサブエージェントに
 「前提手順の連鎖 / 各操作の呼び出し経路（legacy Input直読みの有無をgrep）/ 絶対座標とconnector offsetの表 /
 API実在確認 / Step単位の実行計画」を調査・出力させてから書く。
+
+CEF向け要求は実際のCEF起動へ対応付けた接続だけに配信する。外部ブラウザが表示されていてもCEFのIsAvailableにはならない。不正応答は契約例外となりresult.Errorへ理由が残る。

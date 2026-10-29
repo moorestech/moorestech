@@ -21,6 +21,8 @@
         "Client.Starter",
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
+        "Unity.UI.TestFramework.Runtime",
+        "Unity.UI.TestFramework.Editor",
         "Client.Common",
         "Client.Input",
         "Client.Mod",
@@ -46,6 +48,8 @@
         "Core.BeltTransport",
         "Client.Skit",
         "Unity.Addressables.Editor",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
         "Game.UnlockState",
         "Common.Debug",
         "Game.Paths",
@@ -71,7 +75,8 @@
         "Game.Construction",
         "Game.Map.Interface",
         "Client.PlaytestReceiver",
-        "Client.RemoteExec"
+        "Client.RemoteExec",
+        "Client.Ui.State"
     ],
     "includePlatforms": [
         "Editor"
@@ -86,6 +91,7 @@
         "MessagePack.Annotations.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",
         "Microsoft.Extensions.DependencyInjection.dll",
+        "Microsoft.AspNetCore.Hosting.Abstractions.dll",
         "Microsoft.AspNetCore.Http.dll",
         "Microsoft.AspNetCore.Http.Abstractions.dll",
         "Microsoft.AspNetCore.Http.Features.dll",

@@ -15,36 +15,72 @@ namespace Client.RemoteExec.Access
         internal const string FileName = "access.json";
         internal static string Token { get; private set; }
         public static string DirectoryPath => GameSystemPaths.RemoteExecDirectory;
+        // 公開待ちの接続情報の置き場。プロセスごとに分け、同時に起動した別プロセスと混ざらないようにする
+        // Where the staged access details wait, one per process so concurrent boots never mix
+        private static string StagedPath => Path.Combine(DirectoryPath, $"access-staged-{System.Diagnostics.Process.GetCurrentProcess().Id}.json");
+        private static string _stagedToken;
+        private static int _stagedPort;
 
-        // ポート未確定では発行しない。0は実ポート域外で、書けば届かない入口を名乗る
-        // Never issue before the port is known; 0 is outside the real port range and would advertise an entry nothing can reach
-        internal static void Issue(int? port)
+        // 待受を開けたポートで接続情報を公開待ちに書く。外から見えない形で、Harmony を読む前に書けるかを確かめる
+        // Stage the access details for the opened port, checking invisibly before Harmony loads that they can be written
+        internal static bool Stage(int port)
         {
             Token = null;
-            if (port == null)
+            _stagedToken = null;
+
+            // 正式な場所がディレクトリに塞がれていると公開で移せないので、ここで断る
+            // A directory occupying the official place would block the publishing move, so refuse here
+            var path = Path.Combine(DirectoryPath, FileName);
+            if (Directory.Exists(path))
             {
-                Debug.LogError("[RemoteExec] Web UI の実ポートが未確定のため入口を開けません（遠隔実行は使えません）");
-                return;
+                Debug.LogError($"[RemoteExec] access.json を書けませんでした（遠隔実行は使えません）: 置き場がディレクトリで塞がれています {path}");
+                return false;
             }
+
             var bytes = new byte[32];
             using (var rng = RandomNumberGenerator.Create()) rng.GetBytes(bytes);
             var token = BitConverter.ToString(bytes).Replace("-", "").ToLowerInvariant();
-
-            // ディスクIO境界。書けたトークンだけを公開する
-            // Publish only a persisted token at this disk IO boundary
+            // ディスクIO境界。書けた接続情報だけを公開の候補にする
+            // Disk IO boundary; only persisted access details become a candidate for publishing
             try
             {
                 RemoteExecDirectory.EnsureCreated(DirectoryPath);
-                var json = new JObject { ["port"] = port.Value, ["token"] = token, ["processId"] = System.Diagnostics.Process.GetCurrentProcess().Id };
-                var path = Path.Combine(DirectoryPath, FileName);
-                File.WriteAllText(path, json.ToString());
-                Token = token;
-                Debug.LogWarning($"[RemoteExec] 入口を開きました port:{port.Value} access:{path}");
+                var json = new JObject { ["port"] = port, ["token"] = token, ["processId"] = System.Diagnostics.Process.GetCurrentProcess().Id };
+                File.WriteAllText(StagedPath, json.ToString());
             }
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {
                 Debug.LogError($"[RemoteExec] access.json を書けませんでした（遠隔実行は使えません）: {e.Message}");
+                return false;
             }
+            _stagedToken = token;
+            _stagedPort = port;
+            Debug.Log($"[RemoteExec] 接続情報を公開待ちに書きました（Harmony を読み終えてから公開します） staged:{StagedPath}");
+            return true;
+        }
+
+        // 公開待ちを正式な場所へ移して入口を開く。トークンを先に有効にし、読んですぐの要求を「トークン未発行」で拒まない
+        // Open the entry by moving the staged file into place; the token goes live first so a request right after reading is not refused
+        internal static bool Publish()
+        {
+            var path = Path.Combine(DirectoryPath, FileName);
+            Token = _stagedToken;
+            _stagedToken = null;
+            // ディスクIO境界。移せなければトークンも戻し、入口の撤去は呼び出し側の Deactivate に任せる
+            // Disk IO boundary; when the move fails the token is withdrawn too, and the caller's Deactivate removes the entry
+            try
+            {
+                if (File.Exists(path)) File.Delete(path);
+                File.Move(StagedPath, path);
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                Token = null;
+                Debug.LogError($"[RemoteExec] access.json を公開できませんでした（遠隔実行は使えません）: {e.Message}");
+                return false;
+            }
+            Debug.LogWarning($"[RemoteExec] 入口を開きました port:{_stagedPort} access:{path}");
+            return true;
         }
 
         // 無効な起動と正常終了で撤去する。残すと死んだプロセスのトークンが有効な入口として読まれる
@@ -52,6 +88,8 @@ namespace Client.RemoteExec.Access
         internal static void Remove()
         {
             Token = null;
+            _stagedToken = null;
+            RemoveStaged();
             var path = Path.Combine(DirectoryPath, FileName);
             // 置き場はプロセス非依存の1ファイル。他プロセスの生きた入口を消さないよう所有者を確かめる
             // The location is one process-independent file, so ownership is checked before deleting another process's live entry
@@ -71,6 +109,20 @@ namespace Client.RemoteExec.Access
             catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
             {
                 Debug.LogError($"[RemoteExec] access.json を撤去できませんでした（死んだプロセスのトークンが残ります） {path}: {e.Message}");
+            }
+        }
+
+        // 公開待ちは自プロセスだけの物なので、所有者を確かめずに消す。ディスクIO境界で、消せなければ理由を残す
+        // The staged file belongs to this process alone, so it is deleted unchecked; at this disk IO boundary a failure leaves its reason
+        private static void RemoveStaged()
+        {
+            try
+            {
+                if (File.Exists(StagedPath)) File.Delete(StagedPath);
+            }
+            catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
+            {
+                Debug.LogError($"[RemoteExec] 公開待ちの接続情報を撤去できませんでした（トークンが残ります） {StagedPath}: {e.Message}");
             }
         }
 

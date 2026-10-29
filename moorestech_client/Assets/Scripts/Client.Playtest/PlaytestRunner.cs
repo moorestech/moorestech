@@ -2,7 +2,7 @@ using System;
 using Client.Playtest.Core;
 using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -44,10 +44,9 @@ namespace Client.Playtest
                 {
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
-                    // DOM応答ハンドラを登録し、CEF利用時だけInputSystem転送を実行中に有効化する
-                    // Register the DOM response handler and enable InputSystem forwarding only while CEF is in use
-                    PlaytestDomQuery.RegisterHandler();
-                    if (CefScreenMapper.IsWebUiAvailable()) CefInputForwarder.StartForwarding();
+                    // UI照会口を開き、CEF時のみ入力転送
+                    // Open the UI query entry; forward input only with CEF
+                    PlaytestUiLocatorSession.Start();
 
                     // 録画に焼き込むオーバーレイを初期化し、開始ナレーションを流す
                     // Initialize the overlay baked into the recording and post the opening narration
@@ -65,10 +64,9 @@ namespace Client.Playtest
                     result.Error = $"{exception.GetType().Name}: {exception.Message}\n{exception.StackTrace}";
                 }
 
-                // 成否にかかわらず転送を止め、次回実行へDOM応答を持ち越さない
-                // Stop forwarding and discard pending DOM responses regardless of success or failure
-                CefInputForwarder.StopForwarding();
-                PlaytestDomQuery.ResetPending();
+                // 成否にかかわらず転送を止め、次回実行へ照会応答を持ち越さない
+                // Stop forwarding and discard pending lookups regardless of success or failure
+                PlaytestUiLocatorSession.Stop();
 
                 // 後始末して結果を書き出す（result.jsonの出現が完走シグナル）
                 // Clean up and write the result (result.json's appearance signals completion)

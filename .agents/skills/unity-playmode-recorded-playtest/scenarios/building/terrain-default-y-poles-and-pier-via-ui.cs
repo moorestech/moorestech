@@ -75,7 +75,7 @@ return PlaytestRunner.Run("terrain-default-y-poles-and-pier-via-ui", options, as
         var center = new Vector2(origin.x + size.x / 2f, origin.y + size.z / 2f);
         var expectedY = DefaultCellY(origin, size);
         GroundHeightProbe.TryGetGroundPoint(center.x, center.y, out var ground);
-        GroundHeightProbe.TryGetFootprintMaxGroundHeight(new Vector3Int(origin.x, 0, origin.y), BlockDirection.North, size, out var footprintMax, out _);
+        GroundHeightProbe.TryGetFootprintMaxGroundHeight(new Vector3Int(origin.x, 0, origin.y), BlockDirection.North, size, out var footprintMax);
         p.Note($"{blockName}: 原点({origin.x},{origin.y}) フットプリント地表最高={footprintMax:F3} 既定Y={expectedY}");
 
         // 照準先が画面左のキー操作ヘルプ（UI）に重なるとクリックが無効になるため、対象の真南へ立って画面中央で狙う
@@ -133,6 +133,6 @@ return PlaytestRunner.Run("terrain-default-y-poles-and-pier-via-ui", options, as
     string TooltipText()
     {
         var presentation = tooltip.GetPresentation();
-        return presentation.Visible ? string.Join(" / ", presentation.Lines.Select(line => line.TextParams.Count == 0 ? line.Key.Key : line.Key.Key + "[" + string.Join(",", line.TextParams) + "]")) : "(hidden)";
+        return presentation.Visible ? string.Join(" / ", presentation.Lines.Select(line => line.TextParams.Count == 0 ? line.Key.Key : line.Key.Key + "[" + string.Join(",", line.TextParams.Select(param => param.Name + "=" + param.Value)) + "]")) : "(hidden)";
     }
 });

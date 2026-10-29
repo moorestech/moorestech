@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
@@ -181,6 +182,16 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             var itemStack = ServerContext.ItemStackFactory.Create(itemId, count);
 
             return blockInventory.InsertItem(itemStack, InsertItemContext.Empty);
+        }
+
+        // 意図した終了を待ち、保存と終了参加者が完了したことを確かめる
+        // Await an intentional exit and verify saving and shutdown participants completed
+        public static async UniTask AssertIntentionalShutdownFlushedAsync(string logLabel)
+        {
+            var flushResult = await GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
+            Debug.Log($"[{logLabel}] result:{flushResult}");
+            Assert.AreEqual(ShutdownFlushResult.Flushed, flushResult);
+            await UniTask.Yield();
         }
     }
 }

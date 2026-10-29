@@ -200,7 +200,8 @@ bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-window
 
 Steam の起動オプション欄へ `--remoteExec` を付けてゲームを起動する。
 Windows では `steam.exe -applaunch <appid> --remoteExec` でも指定できる。
-ゲーム開始後に、C# のメソッド本体をファイルまたは標準入力から送る。
+ゲーム開始の初期化（ワールドに入る直前）から、C# のメソッド本体をファイルまたは標準入力から送れる。
+入口は Web UI とは別の専用の待受（`127.0.0.1:25100` から上）で、Web UI が起動に失敗しても使える。ポートは `access.json` に書かれる。
 
 ```bash
 scripts/playtest/remote-exec.sh snippet.cs

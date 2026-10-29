@@ -41,7 +41,8 @@
         "com.rlabrecque.steamworks.net",
         "Game.PlayerIdentity",
         "Client.RemoteExec",
-        "Client.Input"
+        "Client.Input",
+        "Client.Ui.State"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -11,7 +11,7 @@ namespace Client.Playtest.WebUi
     ///     Unityスクリーン座標とCEFブラウザ座標を相互変換する
     ///     Converts between Unity screen coordinates and CEF browser coordinates
     /// </summary>
-    public static class CefScreenMapper
+    internal static class CefScreenMapper
     {
         private const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
         private static readonly FieldInfo BrowserField = typeof(CefUnityBrowserSample).GetField("_browser", PrivateInstance);
@@ -65,6 +65,24 @@ namespace Client.Playtest.WebUi
             screenPosition = default;
             if (!TryGetMappingContext(out var rawImage, out var browserWidth, out var browserHeight)) return false;
             if (browserPosition.x < 0f || browserWidth < browserPosition.x || browserPosition.y < 0f || browserHeight < browserPosition.y) return false;
+            return TryMapBrowserToScreen(rawImage, browserWidth, browserHeight, browserPosition, out screenPosition);
+        }
+
+        public static bool TryBrowserRectToScreenRect(Rect browserRect, out Rect screenRect)
+        {
+            // 画面外へはみ出す矩形も写すため、範囲検査をせず両隅を線形に写す
+            // Map both corners linearly without bounds checks so partially offscreen rects still map
+            screenRect = default;
+            if (!TryGetMappingContext(out var rawImage, out var browserWidth, out var browserHeight)) return false;
+            if (!TryMapBrowserToScreen(rawImage, browserWidth, browserHeight, new Vector2(browserRect.xMin, browserRect.yMax), out var cornerA)) return false;
+            if (!TryMapBrowserToScreen(rawImage, browserWidth, browserHeight, new Vector2(browserRect.xMax, browserRect.yMin), out var cornerB)) return false;
+            screenRect = Rect.MinMaxRect(Mathf.Min(cornerA.x, cornerB.x), Mathf.Min(cornerA.y, cornerB.y), Mathf.Max(cornerA.x, cornerB.x), Mathf.Max(cornerA.y, cornerB.y));
+            return true;
+        }
+
+        private static bool TryMapBrowserToScreen(RawImage rawImage, int browserWidth, int browserHeight, Vector2 browserPosition, out Vector2 screenPosition)
+        {
+            screenPosition = default;
 
             // CEFの上原点座標をRawImageの下原点ローカル座標へ逆変換する
             // Invert CEF's top-origin coordinates into RawImage's bottom-origin local space

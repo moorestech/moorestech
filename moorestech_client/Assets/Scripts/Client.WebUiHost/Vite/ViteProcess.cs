@@ -62,14 +62,14 @@ namespace Client.WebUiHost.Vite
             void SweepOrphanVitesBeforeSpawn()
             {
 #if UNITY_EDITOR
-                ViteProcessKiller.KillOrphansOfThisWorkspace(webuiRoot);
+                VitePidTracker.KillOrphansOfThisWorkspace(webuiRoot);
 #endif
             }
 
             void RecordSpawnedForCleanup(bool isReady)
             {
 #if UNITY_EDITOR
-                if (isReady) ViteProcessKiller.RecordSpawned(_process.Id, _actualPort, webuiRoot);
+                if (isReady) VitePidTracker.RecordSpawned(_process.Id, _actualPort, webuiRoot);
 #endif
             }
 
@@ -176,11 +176,7 @@ namespace Client.WebUiHost.Vite
         {
             if (_process == null) return;
 
-            if (!_process.HasExited)
-            {
-                ViteProcessKiller.KillProcessTree(_process.Id);
-                _process.WaitForExit(2000);
-            }
+            ViteProcessStop.Terminate(_process);
 
             _process.Dispose();
             _process = null;

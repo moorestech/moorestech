@@ -26,7 +26,7 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     p.Note("開幕スキット(blocking-skit)の表示を待つ");
     var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
     var skitShown = await PollUntilAsync(async () =>
-        (await Client.Playtest.WebUi.PlaytestDomQuery.Query("blocking-skit", 1f)).Found, 30);
+        (await PlaytestUiElementOps.FindUi("blocking-skit")).IsFound, 30);
     p.Assert(skitShown, "開幕スキット(blocking-skit)がWeb HUDに表示された");
 
     // 受理されるまでSkipを試み、終了はskip自身では満たせないDOM消失で確かめる
@@ -39,7 +39,7 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     }, 15);
     p.Assert(skipAccepted, "開幕スキットのSkipインテントが受理された");
     var skitGone = await PollUntilAsync(async () =>
-        !(await Client.Playtest.WebUi.PlaytestDomQuery.Query("blocking-skit", 1f)).Found, 30);
+        !(await PlaytestUiElementOps.FindUi("blocking-skit")).IsFound, 30);
     p.Assert(skitGone, "開幕スキットが終了した");
 
     // 11種・1775件を検証

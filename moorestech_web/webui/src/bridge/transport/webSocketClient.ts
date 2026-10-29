@@ -174,7 +174,11 @@ const PINNED_TOPICS = [
 // A ws: URL from an https page is rejected outright as mixed content, so follow the page's scheme
 function bridgeSocketUrl() {
   const scheme = location.protocol === "https:" ? "wss" : "ws";
-  return `${scheme}://${location.host}/ws`;
+  // CEF起動時だけ渡された識別値を接続へ結び付ける
+  // Bind the identity supplied only at CEF navigation to this connection
+  const navigation = new URLSearchParams(location.hash.slice(1)).get("cefNavigation");
+  const query = navigation === null ? "" : `?cefNavigation=${encodeURIComponent(navigation)}`;
+  return `${scheme}://${location.host}/ws${query}`;
 }
 
 export function initBridge() {
