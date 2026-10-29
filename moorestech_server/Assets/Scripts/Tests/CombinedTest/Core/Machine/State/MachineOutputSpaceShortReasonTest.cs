@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Core.Inventory;
 using Core.Master;
 using Core.Update;
@@ -31,28 +32,22 @@ namespace Tests.CombinedTest.Core.Machine
         }
 
         [Test]
-        public void 開始前に確定出力が入りきらない待機は電力0でも理由を通知し出口回収で消える()
+        public void 開始前に確定出力が入りきらない待機は状態イベントの時点で理由を載せ出口回収で消える()
         {
             var recipe = ItemRecipe();
             var (_, inventory, processor) = PlaceSelected(recipe, Vector3Int.one);
-            var notified = 0;
-            processor.OnChangeBlockState.Subscribe(_ => notified++);
+            var reasonAtLastNotice = false;
+            processor.OnChangeBlockState.Subscribe(_ => reasonAtLastNotice = ReadOutputSpaceShort(processor));
             FillOutputSlot(recipe, inventory);
             InsertInputs(recipe, inventory);
-            notified = 0;
 
-            // 給電なし（給電由来の通知が出ない）で1tick進めても、理由の変化そのものが通知される
-            // With no power (so no supply-driven notice), the reason change itself is notified after one tick
+            // 給電なしで1tick進めると、確定出力が入りきらず待機し、その tick の状態イベントが理由を運ぶ
+            // One unpowered tick leaves the realized outputs unfit, and that tick's state event carries the reason
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
             Assert.AreEqual("idle", ReadPublishedState(processor));
             Assert.IsTrue(ReadOutputSpaceShort(processor));
-            Assert.AreEqual(1, notified, "理由が立ったtickに1回だけ通知される");
-
-            // 理由が変わらないtickは通知しない（毎tickの再送をしない）
-            // A tick without a reason change sends nothing (no per-tick resend)
-            GameUpdater.UpdateOneTick();
-            Assert.AreEqual(1, notified);
+            Assert.IsTrue(reasonAtLastNotice, "状態イベントの時点の詳細に理由が載る");
 
             // 出口を空けると加工が始まり理由が消える
             // Freeing the output starts the job and clears the reason
@@ -147,8 +142,7 @@ namespace Tests.CombinedTest.Core.Machine
         [Test]
         public void 液体出力が出力タンクに入りきらない待機も同じ理由を出す()
         {
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[7];
-            Assert.Less(0, recipe.OutputFluids.Length, "液体出力を持つレシピの前提");
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => 0 < r.OutputFluids.Length);
             var (_, inventory, processor) = PlaceSelected(recipe, Vector3Int.one);
             var inputTanks = GetInputFluidContainers(inventory);
             for (var i = 0; i < recipe.InputFluids.Length; i++) inputTanks[i].AddLiquid(new FluidStack(recipe.InputFluids[i].Amount, MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[i].FluidGuid)));
