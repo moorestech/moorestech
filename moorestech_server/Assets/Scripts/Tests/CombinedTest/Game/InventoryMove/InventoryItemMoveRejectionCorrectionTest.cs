@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Core.Inventory;
@@ -86,21 +85,28 @@ namespace Tests.CombinedTest.Game.InventoryMove
             InventoryMoveCorrectionEvents.AssertMainUpdate(events, 0, setup.UnboundItemId, 3);
         }
 
-        [Test]
-        public void MoveIntoMissingBlockLogsAndResendsResolvedSideOnly()
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        [TestCase(false, false)]
+        public void UnresolvedMoveNotifiesRequesterAndCorrectsResolvedSideOnly(bool fromResolved, bool toResolved)
         {
             var setup = Setup();
             setup.Main.SetItem(0, Stack(setup.UnboundItemId, 3));
             DrainSinks(setup);
 
-            // 消えたブロック宛ては持物側だけ訂正
-            // A move into a removed (missing) block logs the rejection and corrects only the resolved player side
-            LogAssert.Expect(LogType.Warning, new Regex(Regex.Escape("[InventoryItemMoveProtocol] Move rejected: result=UnresolvedInventory ") + ".*toResolved=False"));
-            SendMove(setup.Packet, 3, InventoryIdentifierMessagePack.CreateMainMessage(), 0, InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(50, 0, 50)), 0);
+            // 欠損元・欠損先・双方欠損を同じ拒否経路で検証
+            // Verify missing source, destination, and both through the same rejection path
+            var missing = InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(50, 0, 50));
+            var main = InventoryIdentifierMessagePack.CreateMainMessage();
+            LogAssert.Expect(LogType.Warning, new Regex($"Move rejected: result=UnresolvedInventory .*fromResolved={fromResolved}.*toResolved={toResolved}"));
+            SendMove(setup.Packet, 3, fromResolved ? main : missing, 0, toResolved ? main : missing, 0);
 
             var events = setup.RequesterSink.TakeAll();
-            InventoryMoveCorrectionEvents.AssertMainUpdate(events, 0, setup.UnboundItemId, 3);
+            InventoryMoveCorrectionEvents.AssertUnresolvedNotification(events);
+            Assert.AreEqual(fromResolved || toResolved ? 1 : 0, InventoryMoveCorrectionEvents.SlotUpdateEvents(events).Count);
+            if (fromResolved || toResolved) InventoryMoveCorrectionEvents.AssertMainUpdate(events, 0, setup.UnboundItemId, 3);
             Assert.IsFalse(events.Any(e => e.Tag == UnifiedInventoryEventPacket.EventTag), "存在しないブロックの訂正は送らない");
+            Assert.IsEmpty(setup.OtherSink.TakeAll(), "通知と訂正は要求者以外へ送らない");
             Assert.AreEqual(Stack(setup.UnboundItemId, 3), setup.Main.GetItem(0), "拒否でサーバー在庫は変わらない");
         }
 

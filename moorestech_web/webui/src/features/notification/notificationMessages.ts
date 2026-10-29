@@ -20,6 +20,7 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["denied.deleteUnconfirmed", L.ui.notification.deleteUnconfirmed],
   ["denied.deleteRejected", L.ui.notification.deleteRejected],
   ["denied.removeTrainCarInventoryFull", L.ui.notification.removeTrainCarInventoryFull],
+  ["denied.inventoryMoveUnresolved", L.ui.blockInventory.inventoryOpenFailed],
   ["denied.inventoryOpenFailed", L.ui.blockInventory.inventoryOpenFailed],
   ["denied.inventoryDetailLoading", L.ui.blockInventory.detailLoading],
   ["denied.inventoryMoveSlotRejected", L.ui.notification.inventoryMoveSlotRejected],

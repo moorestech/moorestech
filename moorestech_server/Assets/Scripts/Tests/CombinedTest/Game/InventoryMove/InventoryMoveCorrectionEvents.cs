@@ -4,6 +4,7 @@ using Core.Master;
 using MessagePack;
 using NUnit.Framework;
 using Server.Event;
+using Server.Event.Notification;
 using Server.Event.EventReceive;
 using Server.Event.EventReceive.UnifiedInventoryEvent;
 using Server.Util.MessagePack;
@@ -19,6 +20,17 @@ namespace Tests.CombinedTest.Game.InventoryMove
         {
             var slotTags = new[] { MainInventoryUpdateEventPacket.EventTag, GrabInventoryUpdateEventPacket.EventTag, UnifiedInventoryEventPacket.EventTag };
             return events.Where(e => slotTags.Contains(e.Tag)).ToList();
+        }
+
+        public static void AssertUnresolvedNotification(List<EventMessagePack> events)
+        {
+            // 拒否理由は要求者へ1件だけ届く
+            // Exactly one rejection reason reaches the requester
+            var notifications = events.Where(e => e.Tag == NotificationService.EventTag)
+                .Select(e => MessagePackSerializer.Deserialize<NotificationMessagePack>(e.Payload)).ToList();
+            Assert.AreEqual(1, notifications.Count);
+            Assert.AreEqual(NotificationCategory.OperationDenied, notifications[0].Category);
+            Assert.AreEqual("denied.inventoryMoveUnresolved", notifications[0].MessageId);
         }
 
         public static void AssertMainUpdate(List<EventMessagePack> events, int slot, ItemId itemId, int count)

@@ -23,6 +23,9 @@ describe("notificationMessages", () => {
     expect(resolveNotificationKey("denied.inventoryDetailLoading")).toBe(L.ui.blockInventory.detailLoading);
     expect(resolveNotificationKey("denied.inventoryMoveSlotRejected")).toBe(L.ui.notification.inventoryMoveSlotRejected);
   });
+  it("未解決在庫の拒否は利用不可の文言へ解決する", () => {
+    expect(resolveNotificationKey("denied.inventoryMoveUnresolved")).toBe(L.ui.blockInventory.inventoryOpenFailed);
+  });
   it("未知のmessageIdは専用キーで可視化する", () => {
     expect(resolveNotificationKey("unknown.id")).toBe(L.ui.notification.unknownMessage);
   });
