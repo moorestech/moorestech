@@ -328,7 +328,7 @@ git commit -m "docs(uitk): 画面状態の置き場を Client.Ui.State に改め
 
 必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。比較の基点は `origin/feature/uitk-stage0`（`ffab18e83a`）にする（master を基点にすると段階 0 全体が対象に入るため）。pi ホストでは codex-host の runner で回す。始める前に `~/.codex/sessions` の最新 rollout の `rate_limits.primary.used_percent` を見て、90% を超えていたら作業ブランチを push して止まり、報告する（クレジットは使わない）。レビュー指摘の反映がソースの判定経路・条件式に触れたら、Task 1 Step 8 のテストを反映後に回し直す。
 
-- [ ] **Step 1: moores-code-review を基点 `origin/feature/uitk-stage0` で実行し、指摘を反映してコミットする**
+- [x] **Step 1: moores-code-review を基点 `origin/feature/uitk-stage0` で実行し、指摘を反映してコミットする**
 
 ### Task 4: 統合ブランチへ取り込み、PR #1559 をマージ可能な状態にする
 
