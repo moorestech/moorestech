@@ -3,14 +3,16 @@ import { WATER_FLUID_GUID } from "../contentLocalizationFixtures";
 import { blockMachine } from "./machineFixtures";
 
 const airFilterAt = (x: number) => ({ x, y: 33, z: 5, powerRatio: 1, filterItemCount: 5, filterRemainingRatio: 0.5 });
+const UNSELECTED_RECIPE_GUID = "00000000-0000-0000-0000-000000000000";
 
 // 部屋欄付きの大型機械パネル。入力タンクにIPA相当の液体
 // Interior machine: the large recipe-selected panel topped by the room section, with fluid (the real IPA stand-in) in the input tank
-function cleanRoomMachineWith(airFilterCount: number, identifier: string) {
+function cleanRoomMachineWith(airFilterCount: number, identifier: string, selectedRecipeGuid: string) {
   return {
     ...blockMachine,
     blockType: "CleanRoomMachine",
     identifier,
+    machine: { ...blockMachine.machine, selectedRecipeGuid },
     fluidSlots: [{ fluidId: 1, amount: 50, capacity: 100.0, fluidGuid: WATER_FLUID_GUID }, { fluidId: 0, amount: 0, capacity: 100.0, fluidGuid: "" }],
     cleanRoom: {
       fetchState: "fetched",
@@ -27,10 +29,15 @@ function cleanRoomMachineWith(airFilterCount: number, identifier: string) {
   } satisfies BlockInventoryWireData;
 }
 
-// 清浄機2台: 実機で液体行が電力行に重なった再現形
-// Two purifiers: the shape that overlapped the fluid row onto the power row in the real game
-export const blockCleanRoomMachine = cleanRoomMachineWith(2, "block:40");
+const selected = blockMachine.machine.selectedRecipeGuid;
 
-// 清浄機が多く部屋欄が伸びる部屋
-// A room with many purifiers: checks the footer is not pushed out as the room section grows
-export const blockCleanRoomMachineManyFilters = cleanRoomMachineWith(8, "block:41");
+// 台数は部屋の上限が無いため境目と多台数の両方を持つ。最大体積4096のクラスAは14台以上を要する
+// Purifier counts are uncapped per room, so keep both the boundary and many-unit shapes; a max-volume class-A room needs 14+
+export const cleanRoomBlockFixtures: Record<string, BlockInventoryWireData> = {
+  cleanRoomMachine: cleanRoomMachineWith(2, "block:40", selected),
+  cleanRoomMachineManyFilters: cleanRoomMachineWith(8, "block:41", selected),
+  cleanRoomMachineNoFilters: cleanRoomMachineWith(0, "block:42", selected),
+  cleanRoomMachine16Filters: cleanRoomMachineWith(16, "block:43", selected),
+  cleanRoomMachine20Filters: cleanRoomMachineWith(20, "block:44", selected),
+  cleanRoomMachine20FiltersSelecting: cleanRoomMachineWith(20, "block:45", UNSELECTED_RECIPE_GUID),
+};

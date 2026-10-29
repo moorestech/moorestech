@@ -1,6 +1,6 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
-import { setBlock } from "../../support/mockControl";
-import { scrollAreaRootOf, scrollAreaViewport, scrollAreaAncestorViewportOf } from "../../support/layoutAssertions";
+import { setBlock } from "../../../support/mockControl";
+import { scrollAreaRootOf, scrollAreaViewport, scrollAreaAncestorViewportOf } from "../../../support/layoutAssertions";
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");

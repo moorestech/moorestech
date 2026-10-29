@@ -127,3 +127,15 @@ export async function expectAtViewportTopCorner(
   expect(layout.topGap).toBeGreaterThanOrEqual(0);
   expect(layout.topGap).toBeLessThan(maximumGap);
 }
+
+// スクロールで届いた要素が祖先視口に収まり、中心をクリックできるか。DOM存在だけでは0px視口の潰れを見逃す
+// Scrolls an element into its ancestor viewport and checks it lies inside and is hit at its center; mere DOM presence misses a 0px viewport
+export async function expectReachableInScrollViewport(locator: Locator) {
+  await locator.scrollIntoViewIfNeeded();
+  const [box, viewportBox] = await Promise.all([locator.boundingBox(), scrollAreaAncestorViewportOf(locator).boundingBox()]);
+  expect(box).not.toBeNull();
+  expect(viewportBox).not.toBeNull();
+  expect(box!.y).toBeGreaterThanOrEqual(viewportBox!.y - 0.5);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewportBox!.y + viewportBox!.height + 0.5);
+  await expectHitTestWithin(locator);
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Group, ScrollArea, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
@@ -11,7 +11,11 @@ import { buildMachineRecipeSelectionRows, hasSelectedRecipe } from "./machine/ma
 
 // 機械: 未選択→レシピ選択モード、選択済→インベントリモード。ヘッダで選択モードへ戻れる（ADR 0042）
 // Machine: unselected → recipe-selection mode, selected → inventory mode; the header returns to selection (ADR 0042)
-export default function MachineSection({ data, machine, fillsPanelHeight }: { data: BlockInventoryOpen; machine: MachineDetailData; fillsPanelHeight: boolean }) {
+// leadingContent は本文の前に同じスクロール器で並べる文脈欄。無い機械は null
+// leadingContent is the context shown ahead of the body in the same scroller; machines without one pass null
+type Props = { data: BlockInventoryOpen; machine: MachineDetailData; fillsPanelHeight: boolean; leadingContent: ReactNode };
+
+export default function MachineSection({ data, machine, fillsPanelHeight, leadingContent }: Props) {
   const machineRecipes = useTopic(Topics.machineRecipes);
   // 選択モードで最後に要求したレシピGUIDを覚える。サーバーの選択がこれと一致した時点で閉じるので、
   // 同一レシピを選び直しても閉じられ、拒否された間は選択モードに留まる（C14）
@@ -49,9 +53,10 @@ export default function MachineSection({ data, machine, fillsPanelHeight }: { da
   // Stretch only on the height-determining panel; on auto-height panels this stops stretching just as its parent does
   const stretchClassName = fillsPanelHeight ? styles.fillPanelHeight : undefined;
   // 大型面の本文は器高でスクロール
-  // On the height-determining panel the body sits in a container-sized scroller, so shrinking under the room section never overlaps the footer (same base as the train inventory)
+  // On the height-determining panel the body sits in a container-sized scroller and never overlaps the footer (same base as the train inventory)
   const inventoryContent = (
     <Stack gap="sm">
+      {leadingContent}
       {selectedRow === undefined ? null : <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />}
       <MachineInventoryBody data={data} />
     </Stack>
@@ -61,7 +66,7 @@ export default function MachineSection({ data, machine, fillsPanelHeight }: { da
   return (
     <Stack className={stretchClassName} gap="sm" data-testid="machine-section">
       {showSelection ? (
-        <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
+        <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} leadingContent={leadingContent} />
       ) : (
         fillsPanelHeight ? <ScrollArea className={styles.machineInventoryScroll} type="auto">{inventoryContent}</ScrollArea> : inventoryContent
       )}
