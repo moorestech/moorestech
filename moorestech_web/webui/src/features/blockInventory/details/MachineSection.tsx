@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Group, Stack } from "@mantine/core";
+import { Group, ScrollArea, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
 import MachineStateRow from "./rows/MachineStateRow";
@@ -48,6 +48,14 @@ export default function MachineSection({ data, machine, fillsPanelHeight }: { da
   // 伸ばすのは高さ確定面だけ。高さ自動の面では親と同じく伸長を止める
   // Stretch only on the height-determining panel; on auto-height panels this stops stretching just as its parent does
   const stretchClassName = fillsPanelHeight ? styles.fillPanelHeight : undefined;
+  // 高さ確定面では本文を器の高さのスクローラへ入れ、部屋欄で縮んでも溢れがフッタへ重ならない（列車インベントリと同じ土台）
+  // On the height-determining panel the body sits in a container-sized scroller, so shrinking under the room section never overlaps the footer (same base as the train inventory)
+  const inventoryContent = (
+    <Stack gap="sm">
+      {selectedRow === undefined ? null : <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />}
+      <MachineInventoryBody data={data} />
+    </Stack>
+  );
   // 外殻がフッタと伸長を1箇所で持ち、モードで分かれるのは中身だけ。これで両モードのフッタ位置が揃う
   // One shell owns the footer and the stretch while only the body branches, keeping the footer at the same height in both modes
   return (
@@ -55,10 +63,7 @@ export default function MachineSection({ data, machine, fillsPanelHeight }: { da
       {showSelection ? (
         <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
       ) : (
-        <Stack className={stretchClassName} gap="sm">
-          {selectedRow === undefined ? null : <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />}
-          <MachineInventoryBody data={data} />
-        </Stack>
+        fillsPanelHeight ? <ScrollArea className={styles.machineInventoryScroll} type="auto">{inventoryContent}</ScrollArea> : inventoryContent
       )}
       {footer}
     </Stack>

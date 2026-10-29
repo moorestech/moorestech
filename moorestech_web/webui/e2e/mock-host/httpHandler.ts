@@ -23,6 +23,8 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   closed: fx.blockClosed,
   machine: fx.blockMachine,
   gearMachine: fx.blockGearMachine,
+  cleanRoomMachine: fx.blockCleanRoomMachine,
+  cleanRoomMachineManyFilters: fx.blockCleanRoomMachineManyFilters,
   generator: fx.blockGenerator,
   miner: fx.blockMiner,
   filterSplitter: fx.blockFilterSplitter,

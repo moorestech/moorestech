@@ -37,3 +37,9 @@
   flex: 1;
   min-height: 0;
 }
+
+/* 高さ確定面の機械インベントリ本文。部屋欄などで器が縮んだぶんは本文がスクロールし、共通フッタへ重ならない */
+/* Machine inventory body on the height-determining panel: when the room section shrinks it, the body scrolls instead of overlapping the shared footer */
+.machineInventoryScroll {
+  composes: scroll from "../../shared/ui/panelBodyScrollArea.module.css";
+}
