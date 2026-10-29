@@ -50,7 +50,8 @@ describe("発射台のShift配分", () => {
     const block = rocketPad();
     if (!block.open || block.source !== "block") throw new Error("fixture must be an open block");
     const { rocketLaunchPad: _pending, ...rest } = block;
-    expect(resolveBlockSlotRestriction(rest, PAYLOAD_ITEM)).toEqual({ kind: "bound", candidateIndices: [] });
+    expect(resolveBlockSlotRestriction(rest, PAYLOAD_ITEM)).toEqual({ kind: "detailLoading" });
+    expect(shiftPlan(rest, PAYLOAD_ITEM, 3)).toEqual({ kind: "detailLoading" });
   });
 });
 
@@ -67,7 +68,19 @@ describe("宇宙エレベーターのShift配分", () => {
     const block = spaceElevator();
     if (!block.open || block.source !== "block") throw new Error("fixture must be an open block");
     const { spaceElevator: _pending, ...rest } = block;
-    expect(resolveBlockSlotRestriction(rest, SATELLITE_ITEM)).toEqual({ kind: "bound", candidateIndices: [] });
+    expect(resolveBlockSlotRestriction(rest, SATELLITE_ITEM)).toEqual({ kind: "detailLoading" });
+    expect(shiftPlan(rest, SATELLITE_ITEM, 3)).toEqual({ kind: "detailLoading" });
+  });
+});
+
+describe("取得失敗した在庫", () => {
+  it.each([rocketPad, spaceElevator])("詳細の有無によらず失敗を返し空在庫を探索しない", (createBlock) => {
+    const block = createBlock();
+    if (!block.open || block.source !== "block") throw new Error("fixture must be an open block");
+    const failed = { ...block, error: "openFailed" as const, itemSlots: [] };
+    expect(shiftPlan(failed, SATELLITE_ITEM, 3)).toEqual({ kind: "inventoryOpenFailed" });
+    const { spaceElevator: _elevator, rocketLaunchPad: _pad, ...withoutDetail } = failed;
+    expect(shiftPlan(withoutDetail, SATELLITE_ITEM, 3)).toEqual({ kind: "inventoryOpenFailed" });
   });
 });
 

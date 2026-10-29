@@ -5,10 +5,10 @@ import type { PlannedAction } from "./plannedAction";
 export const GRAB: SlotRef = { area: "grab", slot: 0 };
 
 // プレイヤースロット操作の判定材料。blockItemSlots はブロックUI開時のみ非null（Shift配分の宛先になる）
-// blockSlotRestriction は「無制限」か「候補index列」かの2択を呼び出し側が値で確定させて渡す（判定は具体側の責務）
+// blockSlotRestriction は候補と取得状態を具体側が確定して渡す
 // Inputs for player-slot decisions; blockItemSlots is non-null only while a block UI is open (Shift target).
-// blockSlotRestriction is settled by the caller as either unrestricted or an explicit candidate list (the decision belongs to the concrete side)
-export type BlockSlotRestriction = { kind: "unrestricted" } | { kind: "bound"; candidateIndices: number[] };
+// The concrete caller settles both candidates and their fetch state
+export type BlockSlotRestriction = { kind: "unrestricted" } | { kind: "bound"; candidateIndices: number[] } | { kind: "inventoryOpenFailed" } | { kind: "detailLoading" };
 
 export type PlayerSlotContext = {
   inventory: PlayerInventoryData;
@@ -19,7 +19,7 @@ export type PlayerSlotContext = {
 
 // 左クリックの帰結（拒否を含む）
 // Left-click outcome: actions to dispatch, beginSplitDrag to start the drag, or noAcceptingBlockSlot when no slot accepts the item and nothing is sent
-export type PlayerLeftClickPlan = { kind: "actions"; actions: PlannedAction[] } | { kind: "beginSplitDrag" } | { kind: "noAcceptingBlockSlot" };
+export type PlayerLeftClickPlan = { kind: "actions"; actions: PlannedAction[] } | { kind: "beginSplitDrag" } | { kind: "noAcceptingBlockSlot" } | { kind: "inventoryOpenFailed" } | { kind: "detailLoading" };
 
 // 左クリック: grab保持中の空スロットはsplitDrag開始 / 全量置き / Shiftなら配分移動 / 中身ありなら全量掴み
 // Left click: an empty slot while holding grab begins split-drag / place-all / allocate on Shift / pick the whole stack when filled
@@ -53,6 +53,9 @@ export function planPlayerDoubleClick(ref: SlotRef): PlannedAction[] {
 function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): PlayerLeftClickPlan {
   const blockItemSlots = ctx.blockItemSlots;
   if (blockItemSlots) {
+    // 取得状態は通知側へ理由を保って渡す
+    // Preserve the fetch state for the notification caller
+    if (ctx.blockSlotRestriction.kind === "inventoryOpenFailed" || ctx.blockSlotRestriction.kind === "detailLoading") return ctx.blockSlotRestriction;
     // 受入枠が無いのは拒否として区別して返す
     // A bound restriction with no accepting slot is a refusal, not a no-op; return it distinctly so the caller can surface why
     if (ctx.blockSlotRestriction.kind === "bound" && ctx.blockSlotRestriction.candidateIndices.length === 0) return { kind: "noAcceptingBlockSlot" };

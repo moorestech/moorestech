@@ -14,18 +14,18 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
     ///     Resends the current contents of both ends of a rejected move to the requester only, via the existing slot update events.
     ///     The client updates its display before sending and a rejection writes nothing (so no update event fires), making this the only correction path on rejection
     /// </summary>
-    public class InventoryItemMoveRejectionCorrector
+    internal class InventoryItemMoveRejectionCorrector
     {
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        public InventoryItemMoveRejectionCorrector(EventProtocolProvider eventProtocolProvider)
+        internal InventoryItemMoveRejectionCorrector(EventProtocolProvider eventProtocolProvider)
         {
             _eventProtocolProvider = eventProtocolProvider;
         }
 
         // 未解決側はnullで来るので送らない
         // An unresolved side (e.g. a removed block) arrives as null; there is no real inventory to match, so nothing is sent for it
-        public void Resend(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, IOpenableInventory fromInventory, int fromSlot, InventoryIdentifierMessagePack toIdentifier, IOpenableInventory toInventory, int toSlot)
+        internal void Resend(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, IOpenableInventory fromInventory, int fromSlot, InventoryIdentifierMessagePack toIdentifier, IOpenableInventory toInventory, int toSlot)
         {
             if (fromInventory != null) ResendSlot(fromIdentifier, fromInventory, fromSlot);
             if (toInventory != null) ResendSlot(toIdentifier, toInventory, toSlot);

@@ -1,6 +1,6 @@
 import { test, expect, type Locator, type Page } from "@playwright/test";
 import { setBlock } from "../../support/mockControl";
-import { scrollAreaRootOf, scrollAreaViewport } from "../../support/layoutAssertions";
+import { scrollAreaRootOf, scrollAreaViewport, scrollAreaAncestorViewportOf } from "../../support/layoutAssertions";
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
@@ -24,7 +24,7 @@ function intersectionOf(a: Rect, b: Rect): Rect {
 // Compare the body side by its rect clipped to the ancestor scroll viewport; before the fix there was no viewport and the raw rect was visible
 async function visibleBoxOf(locator: Locator) {
   const box = await boxOf(locator);
-  const viewport = locator.locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-viewport')][1]");
+  const viewport = scrollAreaAncestorViewportOf(locator);
   if (await viewport.count() === 0) return box;
   return intersectionOf(box, await boxOf(viewport));
 }

@@ -15,6 +15,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         {
             // silent-ok: 他種別の詳細は対象のビルダーが処理する / 各専用ビルダーが担当する
             if (param is not SpaceElevatorBaseBlockParam elevatorParam) return;
+            // silent-ok: 取得失敗時は詳細を省略 / 在庫パネルとShift通知が失敗を表示する
+            if (dto.Error != null) return;
             var state = block.GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
             // silent-ok: 初回の状態を受け取る前だけ詳細を省き、受信後の再配信で埋まる / ケーブル表示と接続ボタンが出ないことでパネル上で気づく
             if (state == null) return;
@@ -36,7 +38,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 // The inlet's accepted IDs come from the same definition as the server's placement check
                 SlotBindings = new List<InputSlotBindingDto>
                 {
-                    new() { Slot = SpaceElevatorBaseInventoryComponent.SatelliteSlot, AcceptedItemIds = WebUiItemIdListUtil.ToPrimitiveIds(SpaceElevatorCarriedPayloads.ItemIds(elevatorParam)) },
+                    new() { Slot = SpaceElevatorBaseInventoryComponent.SatelliteSlot, AcceptedItemIds = WebUiItemIdListUtil.ToPrimitiveIds(SpaceElevatorBaseInventoryComponent.GetCarriedPayloadItemIds(elevatorParam)) },
                 },
             };
             #region Internal

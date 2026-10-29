@@ -10,6 +10,10 @@ type InputSlotBinding = { slot: number; acceptedItemIds: number[] };
 export function resolveBlockSlotRestriction(block: BlockInventoryData | null, itemId: number): BlockSlotRestriction {
   if (!block?.open || block.source !== "block") return { kind: "unrestricted" };
 
+  // 取得失敗は候補探索前に呼出側へ返す
+  // Propagate fetch failure before looking up candidate slots
+  if (block.error === "openFailed") return { kind: "inventoryOpenFailed" };
+
   // 入れ口固定の種別は出力枠へ入れない
   // Launch pads and space elevators fix the accepted items per inlet, and their output slots are never insertion targets
   if (block.blockType === "RocketLaunchPad") return boundByInputSlotBindings(block.rocketLaunchPad?.slotBindings, itemId);
@@ -17,10 +21,10 @@ export function resolveBlockSlotRestriction(block: BlockInventoryData | null, it
   return resolveMachineSlotRestriction(block, itemId);
 }
 
-// 束縛未着は候補なしにし無制限へ倒さない
-// While bindings are pending there are no candidates; never fall back to unrestricted and send into refusing slots (the panel keeps showing its pending detail)
+// 束縛未着は取得待ちとして区別する
+// Keep pending bindings distinct from a confirmed refusal
 function boundByInputSlotBindings(bindings: InputSlotBinding[] | undefined, itemId: number): BlockSlotRestriction {
-  if (!bindings) return { kind: "bound", candidateIndices: [] };
+  if (!bindings) return { kind: "detailLoading" };
   return { kind: "bound", candidateIndices: bindings.filter((binding) => binding.acceptedItemIds.includes(itemId)).map((binding) => binding.slot) };
 }
 

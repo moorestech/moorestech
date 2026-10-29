@@ -6,8 +6,14 @@ export function scrollAreaRootOf(page: Page, contentTestId: string): Locator {
   return page.getByTestId(contentTestId).locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
 }
 
+const scrollAreaViewportClass = "mantine-ScrollArea-viewport";
+
 export function scrollAreaViewport(scrollRoot: Locator): Locator {
-  return scrollRoot.locator(".mantine-ScrollArea-viewport");
+  return scrollRoot.locator(`.${scrollAreaViewportClass}`);
+}
+
+export function scrollAreaAncestorViewportOf(locator: Locator): Locator {
+  return locator.locator(`xpath=ancestor::*[contains(@class, '${scrollAreaViewportClass}')][1]`);
 }
 
 export function scrollAreaVerticalBar(scrollRoot: Locator): Locator {

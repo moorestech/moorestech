@@ -41,7 +41,7 @@ namespace Client.Tests.WebUi.BlockDetail
                 BlockType = "SpaceElevatorBase",
                 Identifier = "(20, 0, 4)",
                 BlockGuid = "99999999-9999-4999-8999-999999999999",
-                ItemSlots = new List<BlockItemSlotDto>(),
+                ItemSlots = new List<BlockItemSlotDto> { new() { ItemId = 0, Count = 0 }, new() { ItemId = 0, Count = 0 }, new() { ItemId = 0, Count = 0 } },
                 FluidSlots = new List<BlockFluidSlotDto>(),
                 SpaceElevator = new SpaceElevatorDetailDto { SatelliteInputSlots = new List<int> { 0 }, OutputSlots = new List<int> { 1, 2 }, Connected = true, CablePoolAmount = 250, CablesPerElevator = 1000, ClimbProgress = 0.5f, Status = "climbing",
                     SlotBindings = new List<InputSlotBindingDto> { new() { Slot = 0, AcceptedItemIds = new List<int> { 5 } } } },
@@ -88,6 +88,19 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.AreEqual(SpaceElevatorBaseInventoryComponent.SatelliteSlot, dto.SpaceElevator.SlotBindings[0].Slot);
             CollectionAssert.IsNotEmpty(carriedIds, "テスト前提: 運ぶ積荷がマスタにあること");
             CollectionAssert.AreEqual(carriedIds, dto.SpaceElevator.SlotBindings[0].AcceptedItemIds);
+        }
+
+        [Test]
+        public void FailedInventoryOmitsDetailEvenWhenStateArrived()
+        {
+            var block = CreateBlock(new SpaceElevatorBaseStateDetail(true, 250, 0.5f, SpaceElevatorBaseStatus.Climbing));
+            var dto = new BlockInventoryDto { Error = "openFailed", ItemSlots = new List<BlockItemSlotDto>() };
+            SpaceElevatorDetailDtoBuilder.Apply(dto, block, block.BlockMasterElement.BlockParam);
+            Object.DestroyImmediate(block.gameObject);
+            var json = JObject.Parse(WebUiJson.Serialize(dto));
+            Assert.AreEqual("openFailed", (string)json["error"]);
+            Assert.IsNull(json["spaceElevator"]);
+            Assert.IsEmpty((JArray)json["itemSlots"]);
         }
 
         [Test]

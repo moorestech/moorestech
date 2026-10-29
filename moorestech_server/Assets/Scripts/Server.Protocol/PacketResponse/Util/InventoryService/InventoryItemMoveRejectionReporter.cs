@@ -53,7 +53,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
 
         // 片側未解決の拒否。通知文言が無くログのみ
         // Rejection of a move with an unresolvable side; it happens with removed blocks etc. where no notification wording applies, so it is logged only
-        public void ReportUnresolved(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, bool fromResolved, int fromSlot, InventoryIdentifierMessagePack toIdentifier, bool toResolved, int toSlot, int requestedCount)
+        internal void ReportUnresolved(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, bool fromResolved, int fromSlot, InventoryIdentifierMessagePack toIdentifier, bool toResolved, int toSlot, int requestedCount)
         {
             Debug.LogWarning($"[InventoryItemMoveProtocol] Move rejected: result=UnresolvedInventory player={requesterPlayerId} from={FormatIdentifier(fromIdentifier, requesterPlayerId)}[{fromSlot}] fromResolved={fromResolved} to={FormatIdentifier(toIdentifier, requesterPlayerId)}[{toSlot}] toResolved={toResolved} requestedCount={requestedCount}");
         }

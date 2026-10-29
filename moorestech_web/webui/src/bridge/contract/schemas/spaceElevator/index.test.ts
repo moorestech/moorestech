@@ -17,6 +17,18 @@ describe("SpaceElevator receive boundary", () => {
     expect(pending).toBeDefined();
     expect(BlockInventoryOpenSchema.safeParse(rest).success).toBe(true);
   });
+  it("成功在庫は入口と出口の添字を全て含む", () => {
+    expect(BlockInventoryOpenSchema.safeParse(fixture).success).toBe(true);
+    expect(BlockInventoryOpenSchema.safeParse({ ...fixture, itemSlots: [] }).success).toBe(false);
+    expect(BlockInventoryOpenSchema.safeParse({ ...fixture, spaceElevator: { ...detail, outputSlots: [3] } }).success).toBe(false);
+    expect(BlockInventoryOpenSchema.safeParse({ ...fixture, spaceElevator: { ...detail, satelliteInputSlots: [3], slotBindings: [{ slot: 3, acceptedItemIds: [5] }] } }).success).toBe(false);
+  });
+  it("失敗在庫は詳細を省き空在庫と失敗理由を受理する", () => {
+    const { spaceElevator: _detail, ...rest } = fixture;
+    const result = BlockInventoryOpenSchema.parse({ ...rest, error: "openFailed", itemSlots: [] });
+    expect(result.error).toBe("openFailed");
+    expect(result.spaceElevator).toBeUndefined();
+  });
   it.each([
     ["status", "unknown"], ["cablePoolAmount", -1], ["cablePoolAmount", 0.5],
     ["cablesPerElevator", 0], ["climbProgress", -0.1], ["climbProgress", 1.1],

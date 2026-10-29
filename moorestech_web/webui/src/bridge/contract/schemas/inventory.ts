@@ -167,6 +167,14 @@ export const BlockInventoryOpenSchema = z.object({
       });
     }
   }
+  if (data.spaceElevator) {
+    for (const group of ["satelliteInputSlots", "outputSlots"] as const) {
+      data.spaceElevator[group].forEach((index, entry) => {
+        if (data.itemSlots.length <= index)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["spaceElevator", group, entry], message: "Slot index exceeds itemSlots" });
+      });
+    }
+  }
   if (data.gearToElectric && data.electricToGear)
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Converter details cannot coexist" });
   refineDetailSectionParents(data, ctx);

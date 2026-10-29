@@ -8,9 +8,9 @@ namespace Client.WebUiHost.Game.Actions
     /// 在庫のアイテム移動actionを一括登録
     /// Registers the player and block inventory item-move actions together (all routed through the local inventory controller)
     /// </summary>
-    public static class InventoryWebUiActionRegistration
+    internal static class InventoryWebUiActionRegistration
     {
-        public static void Register(WebSocketHub hub, LocalPlayerInventoryController controller, SubInventoryState subInventoryState)
+        internal static void Register(WebSocketHub hub, LocalPlayerInventoryController controller, SubInventoryState subInventoryState)
         {
             hub.RegisterAction(new MoveItemActionHandler(controller));
             hub.RegisterAction(new SplitGrabActionHandler(controller));

@@ -43,7 +43,7 @@ export const slotActions: SlotActions = {
     };
     const plan = planPlayerLeftClick(ref, slot, shiftKey, ctx);
     if (plan.kind === "beginSplitDrag") { splitDrag.begin(ref); return; }
-    if (plan.kind === "noAcceptingBlockSlot") { notifyNoAcceptingBlockSlot(slot.itemId, block?.open ? block.identifier : null); return; }
+    if (plan.kind === "noAcceptingBlockSlot" || plan.kind === "inventoryOpenFailed" || plan.kind === "detailLoading") { notifyBlockedShift(plan.kind, slot.itemId, block?.open ? block.identifier : null); return; }
     dispatchPlanned(plan.actions);
   },
 
@@ -78,11 +78,12 @@ export const slotActions: SlotActions = {
   },
 };
 
-// 受入枠無しのShiftを通知とログで拒否
-// A Shift with no accepting slot is refused without sending: users get the same notice the server raises for this refusal, developers get the reason in the log
-function notifyNoAcceptingBlockSlot(itemId: number, blockIdentifier: string | null) {
-  console.warn(`[inventory.shift_move] not sent: no slot of block ${blockIdentifier ?? "(closed)"} accepts item ${itemId} (unaccepted item or bindings not yet received)`);
-  useNotificationStore.getState().addNotification({ category: "operationDenied", messageId: "denied.inventoryMoveSlotRejected", messageParams: [], itemId: null });
+// 送信しない理由を通知とログに揃える
+// Publish the same unsent reason to the notification and developer log
+function notifyBlockedShift(reason: "noAcceptingBlockSlot" | "inventoryOpenFailed" | "detailLoading", itemId: number, blockIdentifier: string | null) {
+  const messageIds = { noAcceptingBlockSlot: "denied.inventoryMoveSlotRejected", inventoryOpenFailed: "denied.inventoryOpenFailed", detailLoading: "denied.inventoryDetailLoading" };
+  console.warn(`[inventory.shift_move] not sent: ${reason} block=${blockIdentifier ?? "(closed)"} item=${itemId}`);
+  useNotificationStore.getState().addNotification({ category: "operationDenied", messageId: messageIds[reason], messageParams: [], itemId: null });
 }
 
 // 枠数が縮んだ直後の stale クリックは対象が存在しないため undefined を返し、呼び出し側が無操作で降りる

@@ -36,7 +36,7 @@ namespace Game.Block.Blocks.SpaceElevator
         private readonly int _slotCount;
         private readonly IBlockInventoryInserter _blockInventoryInserter;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
-        private readonly SpaceElevatorCarriedPayloads _carriedPayloads;
+        private readonly HashSet<ItemId> _carriedPayloads;
         public SpaceElevatorBaseInventoryComponent(BlockInstanceId blockInstanceId, SpaceElevatorBaseBlockParam param, IBlockInventoryInserter blockInventoryInserter, IOrbitalArrivalService arrivalService)
         {
             BlockInstanceId = blockInstanceId;
@@ -45,7 +45,7 @@ namespace Game.Block.Blocks.SpaceElevator
             _slotCount = FirstOutputSlot + param.OutputSlotCount;
             _outputSlots = Enumerable.Range(FirstOutputSlot, param.OutputSlotCount).ToArray();
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, _slotCount);
-            _carriedPayloads = new SpaceElevatorCarriedPayloads(param);
+            _carriedPayloads = new HashSet<ItemId>(GetCarriedPayloadItemIds(param));
             #region Internal
             void InvokeEvent(int slot, IItemStack itemStack)
             {
@@ -63,6 +63,9 @@ namespace Game.Block.Blocks.SpaceElevator
             var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
             SpaceElevatorInventoryRestorer.Restore(itemJsons, _itemDataStoreService, _slotCount, blockInstanceId);
         }
+        // 入口の受入定義を配信側と共有する
+        // Share the inlet acceptance definition with the publisher
+        public static IReadOnlyList<ItemId> GetCarriedPayloadItemIds(SpaceElevatorBaseBlockParam param) => param.CarriedPayloadItemGuids.Select(guid => MasterHolder.ItemMaster.GetItemId(guid)).ToList();
         internal bool IsCarriedPayload(ItemId itemId) { return _carriedPayloads.Contains(itemId); }
         // 入口の中身を見る。運べないアイテムはマスタを変えた後のロードでだけ残る
         // Peek at the inlet; a non-carried item only remains after loading with a changed master
@@ -141,15 +144,21 @@ namespace Game.Block.Blocks.SpaceElevator
         public bool InsertionCheck(List<IItemStack> itemStacks)
         {
             CheckDestroy(this);
-            return _carriedPayloads.CanAcceptAll(_itemDataStoreService.GetItem(SatelliteSlot), itemStacks);
+            var slot = _itemDataStoreService.GetItem(SatelliteSlot);
+            foreach (var itemStack in itemStacks)
+            {
+                // silent-ok: 搬送の事前確認は在庫を変えない / 呼び出し側が返値で詰まりを認識する
+                if (!IsCarriedPayload(itemStack.Id)) return false;
+                var result = slot.AddItem(itemStack);
+                // silent-ok: 満杯の通常拒否 / 呼び出し側と入口UIに残数が届く
+                if (0 < result.RemainderItemStack.Count) return false;
+                slot = result.ProcessResultItemStack;
+            }
+            return true;
         }
         // 入口は積荷だけ、出口は取り出し（空にする）だけを許す
         // The inlet accepts only payloads and the outlets only taking out (emptying)
-        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
-        {
-            if (itemStack.Count == 0) return true;
-            return slot == SatelliteSlot && IsCarriedPayload(itemStack.Id);
-        }
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack) => itemStack.Count == 0 || slot == SatelliteSlot && IsCarriedPayload(itemStack.Id);
         public object GetSaveState()
         {
             CheckDestroy(this);
@@ -157,14 +166,12 @@ namespace Game.Block.Blocks.SpaceElevator
             foreach (var item in _itemDataStoreService.InventoryItems) itemJson.Add(new ItemStackSaveJsonObject(item));
             return itemJson;
         }
-
         private List<IItemStack> CopyOutlets()
         {
             var outlets = new List<IItemStack>();
             for (var slot = FirstOutputSlot; slot < _slotCount; slot++) outlets.Add(_itemDataStoreService.GetItem(slot));
             return outlets;
         }
-
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context) { return InsertItem(itemStack); }
         public IItemStack InsertItem(ItemId itemId, int count) { return InsertItem(ServerContext.ItemStackFactory.Create(itemId, count)); }
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)

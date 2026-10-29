@@ -64,6 +64,10 @@ describe("planPlayerLeftClick", () => {
     expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, noAccepting)).toEqual({ kind: "noAcceptingBlockSlot" });
     expect(planPlayerLeftClick({ area: "main", slot: 1 }, slot(0, 0), true, noAccepting)).toEqual({ kind: "actions", actions: [] });
   });
+  it.each(["inventoryOpenFailed", "detailLoading"] as const)("%s は送信せず理由を返す", (kind) => {
+    const unavailable: PlayerSlotContext = { ...ctx(0, []), blockSlotRestriction: { kind } };
+    expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, unavailable)).toEqual({ kind });
+  });
   it("束縛で受け付ける枠があればそこだけへ配分する", () => {
     const bound: PlayerSlotContext = { ...ctx(0, [slot(0, 0), slot(0, 0)]), blockSlotRestriction: { kind: "bound", candidateIndices: [1] } };
     expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, bound)).toEqual({

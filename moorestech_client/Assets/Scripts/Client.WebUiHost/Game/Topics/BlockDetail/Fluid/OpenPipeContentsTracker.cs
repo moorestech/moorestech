@@ -11,7 +11,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     ///     Detects changes of the open pipe's contents (amount and fluid id) against the last published values
     ///     Pipe contents no longer arrive as block state events but advance in the client-side copy every tick, so they are sampled at the continuous-sample interval and republished only when the amount or fluid id changed since the last publish
     /// </summary>
-    public class OpenPipeContentsTracker
+    internal class OpenPipeContentsTracker
     {
         private readonly FluidNetworkClientCache _fluidCache;
         private bool _tracking;
@@ -19,14 +19,14 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         private long _publishedPipeAmount;
         private FluidId _publishedPipeFluidId;
 
-        public OpenPipeContentsTracker(FluidNetworkClientCache fluidCache)
+        internal OpenPipeContentsTracker(FluidNetworkClientCache fluidCache)
         {
             _fluidCache = fluidCache;
         }
 
         // 追跡するブロックを切り替える。nullで追跡をやめる
         // Switch the tracked block; null stops tracking
-        public void Track(BlockGameObject block)
+        internal void Track(BlockGameObject block)
         {
             if (block == null)
             {
@@ -45,7 +45,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         // 開いているパイプの量・流体の種類をクライアント側のコピーから読み、前回の配信と違えば控えて true を返す(変わらない間は送らない)
         // Read the open pipe's amount and fluid id from the client-side copy; when they differ from the last publish, remember them and return true (nothing is sent while unchanged)
-        public bool HasChangedSincePublish()
+        internal bool HasChangedSincePublish()
         {
             if (!_tracking || !_fluidCache.TryGetNodeIndex(_pipePosition, out var pipeNode)) return false;
             var network = _fluidCache.Replica.Network;
