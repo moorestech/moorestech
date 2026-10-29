@@ -1,9 +1,12 @@
 using System;
+using Core.Inventory;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Fluid;
 using NUnit.Framework;
@@ -118,8 +121,8 @@ namespace Tests.CombinedTest.Core.Machine
             // Without waiting a tick, the detail at the clear notice already drops the reason
             var reasonAtNotice = true;
             processor.OnChangeBlockState.Subscribe(_ => reasonAtNotice = ReadOutputSpaceShort(processor));
-            var overflow = new Core.Inventory.OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 100);
-            Assert.AreEqual(Game.Block.Interface.Component.MachineRecipeSelectionResult.Success, processor.ClearSelectedRecipe(overflow));
+            var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 100);
+            Assert.AreEqual(MachineRecipeSelectionResult.Success, processor.ClearSelectedRecipe(overflow));
             Assert.IsFalse(reasonAtNotice);
             Assert.IsFalse(ReadOutputSpaceShort(processor));
         }
