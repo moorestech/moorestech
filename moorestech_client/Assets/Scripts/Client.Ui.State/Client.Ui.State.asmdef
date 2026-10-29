@@ -11,6 +11,7 @@
         "Game.Train",
         "Server.Event",
         "Server.Protocol",
+        "Server.Util",
         "MessagePack",
         "UniRx",
         "UniTask",
