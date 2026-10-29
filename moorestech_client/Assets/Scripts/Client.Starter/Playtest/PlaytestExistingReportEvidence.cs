@@ -32,8 +32,7 @@ namespace Client.Starter.Playtest
                         var missing = (JArray)restored["missing"];
                         foreach (var item in System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(missing, item => (string)item["item"] == "repo/commit-evidence"))) item.Remove();
                         File.WriteAllText(manifestPath, restored.ToString());
-                        File.Delete(Path.Combine(box.Directory, PlaytestOutboxScanner.FailedMarker));
-                        File.Delete(Path.Combine(box.Directory, PlaytestOutboxScanner.AttemptsMarker));
+                        PlaytestFailureMarkers.Clear(box.Directory);
                     }
                     if (failure != null) RecordFailure();
                 }

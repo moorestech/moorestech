@@ -72,6 +72,8 @@ export type ActionPayloads = {
   "block_inventory.collect": { slot: BlockSlotRef };
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "pause_menu.save": Record<string, never>;
+  "bug_report.resend_failed": Record<string, never>;
+  "bug_report.export_unsent": Record<string, never>;
   "pause_menu.save_and_quit": Record<string, never>;
   "pause_menu.show_page": { page: PauseMenuPageName };
   "bug_report.submit": { description: string; kind: PauseMenuReportKind };
@@ -129,6 +131,8 @@ export const ACTION_TYPES = [
   "block_inventory.collect",
   "ui_state.request",
   "pause_menu.save",
+  "bug_report.resend_failed",
+  "bug_report.export_unsent",
   "pause_menu.save_and_quit",
   "pause_menu.show_page",
   "bug_report.submit",

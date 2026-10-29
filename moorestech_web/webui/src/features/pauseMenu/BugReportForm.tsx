@@ -6,20 +6,31 @@ import { dispatchAction, PauseMenuReportKinds, type PauseMenuData, type PauseMen
 import { emitToast } from "@/features/toast";
 import { L, useI18n } from "@/shared/i18n";
 import { ModeSwitch } from "@/shared/ui";
+import { BugReportRecoveryControls } from "./BugReportRecoveryControls";
 import type { BugReportDraft } from "./useBugReportDraft";
 import styles from "./style.module.css";
 
 type Props = {
   status: PauseMenuData["bugReport"];
   delivery: PauseMenuData["delivery"];
+  exportStatus: PauseMenuData["export"];
   draft: BugReportDraft;
 };
 
-export function BugReportForm({ status, delivery, draft }: Props) {
+export function BugReportForm({ status, delivery, exportStatus, draft }: Props) {
   const { t } = useI18n();
   const [sending, setSending] = useState(false);
 
   const trimmedDescription = draft.description.trim();
+
+  // 件数はここで一度だけ絞り、行とボタンの両方へ渡す
+  // Narrow counts once here and feed both the count line and the buttons
+  const inventory = delivery.kind === "allSent" ? null : delivery.inventory;
+  const knownCounts = inventory?.kind === "known" ? { pendingCount: inventory.pendingCount, failedCount: inventory.failedCount } : null;
+  const inventoryUnavailable = inventory?.kind === "unavailable";
+  // 送れない経路（localOnly）と受け口に拒否されている間（refused）は、再送すると失敗理由だけが消えるので出さない
+  // Resend would only erase the failure reason on a route that cannot send or while the receiver refuses, so hide it
+  const resendAvailable = delivery.kind !== "localOnly" && delivery.kind !== "refused";
 
   // 送信してよいかの判定はC#が持ち、結論が kind で届く。ここで条件を組み立て直すと判定が2本になる
   // C# owns whether a send may start and delivers the verdict as the kind; rebuilding the conditions here would make two rules
@@ -76,13 +87,14 @@ export function BugReportForm({ status, delivery, draft }: Props) {
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
       <span className={styles.status} data-testid="bug-report-delivery">{describeDelivery()}{describeFailedDelivery()}</span>
+      <BugReportRecoveryControls counts={knownCounts} resendAvailable={resendAvailable} inventoryUnavailable={inventoryUnavailable} exportStatus={exportStatus} />
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(reportLabels(draft.kind).send)}</Button>
     </>
   );
 
   function describeFailedDelivery(): string {
-    if (delivery.kind === "allSent" || delivery.inventory.kind !== "known" || delivery.inventory.failedCount === 0) return "";
-    return ` / ${t(L.ui.bugReport.deliveryFailed, { count: delivery.inventory.failedCount })}`;
+    if (knownCounts === null || knownCounts.failedCount === 0) return "";
+    return ` / ${t(L.ui.bugReport.deliveryFailed, { count: knownCounts.failedCount })}`;
   }
 
   // 送信可否とは独立した配送状況を伝える

@@ -7,7 +7,7 @@ type Delivery = TopicPayloads[typeof Topics.pauseMenu]["delivery"];
 // 実配信と同じ形で状態別画面を再現する
 // Reproduce each delivery state using the production payload shape
 function pause(delivery: Delivery, disconnected: boolean) {
-  return { kind: "set" as const, topic: Topics.pauseMenu, data: { disconnected, delivery, bugReport: { kind: "ready" as const, missing: [] }, page: "top" as const } };
+  return { kind: "set" as const, topic: Topics.pauseMenu, data: { disconnected, delivery, export: { kind: "idle" as const }, bugReport: { kind: "ready" as const, missing: [] }, page: "top" as const } };
 }
 // 通常fixtureを再利用し、復旧状態だけを試験用に切り替える
 // Reuse the normal fixture and vary only recovery state for tests
