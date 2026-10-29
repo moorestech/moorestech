@@ -35,6 +35,7 @@ vi.mock("@/shared/i18n", async (importOriginal) => ({
 vi.mock("@mantine/core", () => ({
   Group: ({ children, ...props }: { children: unknown }) => createElement("mock-group", props, children as never),
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
+  ScrollArea: ({ children, ...props }: { children: unknown }) => createElement("mock-scroll-area", props, children as never),
 }));
 vi.mock("./LackHighlightText", () => ({ default: (props: object) => createElement("mock-lack", props) }));
 vi.mock("./rows/PowerRateText", () => ({ default: (props: object) => createElement("mock-power", props) }));
@@ -120,5 +121,15 @@ describe("MachineSection", () => {
 
     const electricDriven = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid, "processing") }));
     expect(electricDriven.root.findByType("mock-power" as never).props.highlightShortage).toBe(true);
+  });
+
+  // 高さ確定面だけ本文をスクローラへ入れ、高さ自動の小型面は内容なりのまま
+  // Only the height-determining panel puts the body in a scroller; auto-height small panels keep their content size
+  it("インベントリ本文は大型面でだけスクローラに入る", () => {
+    const large = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid) }));
+    expect(large.root.findByType("mock-scroll-area" as never).findAllByType("mock-inventory-body" as never)).toHaveLength(1);
+    const small = create(createElement(MachineSection, { data, fillsPanelHeight: false, machine: machine(recipeGuid, blockGuid) }));
+    expect(small.root.findAllByType("mock-scroll-area" as never)).toHaveLength(0);
+    expect(small.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
   });
 });
