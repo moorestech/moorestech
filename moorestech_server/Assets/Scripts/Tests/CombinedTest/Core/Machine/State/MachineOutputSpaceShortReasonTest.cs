@@ -124,6 +124,42 @@ namespace Tests.CombinedTest.Core.Machine
         }
 
         [Test]
+        public void 別レシピへの変更の通知に旧レシピの理由を残さず次tickで新レシピの確定結果から判定する()
+        {
+            // 同じ入力で産出物だけ違う同一ブロックのレシピへ切り替える（入力はそのまま束縛に残る）
+            // Switch to a same-block recipe with identical inputs but a different product (inputs stay bound)
+            var recipe = ItemRecipe();
+            var other = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == recipe.BlockGuid && r.MachineRecipeGuid != recipe.MachineRecipeGuid
+                && r.InputItems.Select(i => (i.ItemGuid, i.Count)).SequenceEqual(recipe.InputItems.Select(i => (i.ItemGuid, i.Count))) && r.OutputItems[0].ItemGuid != recipe.OutputItems[0].ItemGuid);
+            ServerContext.GetService<IGameUnlockStateDataController>().UnlockMachineRecipe(other.MachineRecipeGuid);
+            var (_, inventory, processor) = PlaceSelected(recipe, Vector3Int.one);
+            FillOutputSlot(recipe, inventory);
+            InsertInputs(recipe, inventory);
+            GameUpdater.UpdateOneTick();
+            Assert.IsTrue(ReadOutputSpaceShort(processor));
+
+            // 変更の通知時点では旧レシピの確定結果を使わない
+            // At the change notice the old recipe's realization is not reused
+            var reasonAtNotice = true;
+            processor.OnChangeBlockState.Subscribe(_ => reasonAtNotice = ReadOutputSpaceShort(processor));
+            var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 100);
+            Assert.AreEqual(MachineRecipeSelectionResult.Success, processor.SetSelectedRecipe(other, overflow));
+            Assert.AreEqual(other.MachineRecipeGuid, processor.SelectedRecipeGuid);
+            Assert.IsFalse(reasonAtNotice, "旧レシピの理由が変更の通知に残っている");
+
+            // 次tickで新レシピを確定し、旧産出物で埋まった出口には入らないので理由が出る。出口を空けると新レシピで加工が始まる
+            // The next tick realizes the new recipe, which cannot enter the outlet full of the old product; freeing it starts the new job
+            GameUpdater.UpdateOneTick();
+            Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
+            Assert.IsTrue(ReadOutputSpaceShort(processor), "新レシピの確定結果が入りきらない待機");
+            EmptyOutputSlot(inventory);
+            GameUpdater.UpdateOneTick();
+            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            Assert.AreEqual(other.MachineRecipeGuid, processor.RecipeGuid);
+            Assert.IsFalse(ReadOutputSpaceShort(processor));
+        }
+
+        [Test]
         public void ロード直後の初期スナップショットが次tickを待たずに理由を持つ()
         {
             var recipe = ItemRecipe();
