@@ -49,8 +49,10 @@ test("last direction's filter slot is reachable by scrolling on a short window",
   await lastSlot.click({ button: "right" });
   await expect
     .poll(async () => {
+      // 記録は前のテストと共有されるため、この操作の送信である末尾を見る
+      // The action log is shared with earlier tests, so read the newest entry sent by this click
       const payloads = await payloadsOf(page, "filter_splitter.set_filter_item");
-      return payloads[0];
+      return payloads.at(-1);
     })
     .toEqual({ directionIndex: 2, slotIndex: 1, clear: true });
 });
