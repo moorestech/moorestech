@@ -29,7 +29,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             var toItem = toInventory.GetItem(toSlot);
             var toReason = DescribePlacement(toInventory, toSlot, fromItem);
             var fromReason = DescribePlacement(fromInventory, fromSlot, toItem);
-            Debug.LogWarning($"[InventoryItemMoveProtocol] Move rejected: result={result} player={requesterPlayerId} from={FormatIdentifier(fromIdentifier)}[{fromSlot}] fromItemId={fromItem.Id} fromCount={fromItem.Count} fromReason={fromReason} to={FormatIdentifier(toIdentifier)}[{toSlot}] toItemId={toItem.Id} toCount={toItem.Count} toReason={toReason} requestedCount={requestedCount}");
+            Debug.LogWarning($"[InventoryItemMoveProtocol] Move rejected: result={result} player={requesterPlayerId} from={FormatIdentifier(fromIdentifier, requesterPlayerId)}[{fromSlot}] fromItemId={fromItem.Id} fromCount={fromItem.Count} fromReason={fromReason} to={FormatIdentifier(toIdentifier, requesterPlayerId)}[{toSlot}] toItemId={toItem.Id} toCount={toItem.Count} toReason={toReason} requestedCount={requestedCount}");
 
             if (result == InventoryItemMoveResult.RejectedPartialSwap)
             {
@@ -48,17 +48,25 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 return inventory.IsAllowedToPlace(slot, itemStack) ? "Allowed" : "NotAllowed";
             }
 
-            string FormatIdentifier(InventoryIdentifierMessagePack identifier)
-            {
-                return identifier.InventoryType switch
-                {
-                    InventoryType.Block => $"Block{identifier.BlockPosition}",
-                    InventoryType.Train => $"Train({identifier.TrainCarInstanceId})",
-                    _ => $"{identifier.InventoryType}(player={requesterPlayerId})",
-                };
-            }
-
             #endregion
+        }
+
+        // 解決できない側を持つ移動の拒否。削除済みブロック等で起き、通知文言が当てはまらないためログだけに出す
+        // Rejection of a move with an unresolvable side; it happens with removed blocks etc. where no notification wording applies, so it is logged only
+        public void ReportUnresolved(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, bool fromResolved, int fromSlot, InventoryIdentifierMessagePack toIdentifier, bool toResolved, int toSlot, int requestedCount)
+        {
+            Debug.LogWarning($"[InventoryItemMoveProtocol] Move rejected: result=UnresolvedInventory player={requesterPlayerId} from={FormatIdentifier(fromIdentifier, requesterPlayerId)}[{fromSlot}] fromResolved={fromResolved} to={FormatIdentifier(toIdentifier, requesterPlayerId)}[{toSlot}] toResolved={toResolved} requestedCount={requestedCount}");
+        }
+
+        private static string FormatIdentifier(InventoryIdentifierMessagePack identifier, int requesterPlayerId)
+        {
+            if (identifier == null) return "Missing";
+            return identifier.InventoryType switch
+            {
+                InventoryType.Block => $"Block{identifier.BlockPosition}",
+                InventoryType.Train => $"Train({identifier.TrainCarInstanceId})",
+                _ => $"{identifier.InventoryType}(player={requesterPlayerId})",
+            };
         }
     }
 }

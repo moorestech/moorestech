@@ -54,15 +54,21 @@ namespace Server.Event.EventReceive.UnifiedInventoryEvent
 
         public static UnifiedInventoryEventMessagePack CreateUpdate(ISubInventoryIdentifier identifier, int slot, IItemStack item)
         {
+            return CreateUpdate(CreateMessagePack(identifier), slot, item);
+        }
+
+        // 要求が名指しした識別子のまま返す更新。拒否時の訂正はクライアントが送った識別子へ合わせる
+        // Update echoing the identifier named by a request; a rejection correction targets the identifier the client sent
+        public static UnifiedInventoryEventMessagePack CreateUpdate(InventoryIdentifierMessagePack identifier, int slot, IItemStack item)
+        {
             return new UnifiedInventoryEventMessagePack
             {
                 Tag = UnifiedInventoryEventPacket.EventTag,
                 EventType = InventoryEventType.Update,
-                Identifier = CreateMessagePack(identifier),
+                Identifier = identifier,
                 Slot = slot,
                 Item = new ItemMessagePack(item),
             };
-
         }
 
         public static UnifiedInventoryEventMessagePack CreateRemove(ISubInventoryIdentifier identifier)
