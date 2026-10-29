@@ -1,0 +1,24 @@
+{
+  "name": "playwright",
+  "command": "pnpm",
+  "args": [
+    "exec",
+    "playwright",
+    "test",
+    "--config",
+    "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/.superpowers/sdd/task31-r3-f01-webqa-evidence/playwright.config.mjs",
+    "tests/block",
+    "tests/inventory",
+    "tests/notification",
+    "tests/recipe",
+    "tests/uiState.spec.ts"
+  ],
+  "cwd": "/Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui",
+  "sha": "7fd8f95723407b5d9418744078644ff3c6a498a5",
+  "start": "2026-10-29T14:58:03.608Z",
+  "ownerPid": 33572,
+  "pid": 33583,
+  "code": 0,
+  "signal": null,
+  "end": "2026-10-29T14:58:59.699Z"
+}

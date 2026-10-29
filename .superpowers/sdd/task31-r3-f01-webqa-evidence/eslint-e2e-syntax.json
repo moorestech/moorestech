@@ -1,0 +1,19 @@
+{
+  "name": "eslint-e2e-syntax",
+  "command": "pnpm",
+  "args": [
+    "exec",
+    "eslint",
+    "--config",
+    "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/.superpowers/sdd/task31-r3-f01-webqa-evidence/eslint-e2e.config.mjs",
+    "e2e"
+  ],
+  "cwd": "/Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui",
+  "sha": "7fd8f95723407b5d9418744078644ff3c6a498a5",
+  "start": "2026-10-29T14:57:39.689Z",
+  "ownerPid": 30464,
+  "pid": 30504,
+  "code": 0,
+  "signal": null,
+  "end": "2026-10-29T14:57:40.640Z"
+}

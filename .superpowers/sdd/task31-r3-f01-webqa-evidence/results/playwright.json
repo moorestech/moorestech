@@ -1,0 +1,5180 @@
+{
+  "config": {
+    "configFile": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/.superpowers/sdd/task31-r3-f01-webqa-evidence/playwright.config.mjs",
+    "rootDir": "/Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui/e2e/tests",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/.superpowers/sdd/task31-r3-f01-webqa-evidence/results/existing-traces",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui/e2e/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.spec.ts"
+        ],
+        "timeout": 15000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/.superpowers/sdd/task31-r3-f01-webqa-evidence/results/playwright.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.60.0",
+    "workers": 1,
+    "webServer": {
+      "command": "node --import /Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui/node_modules/tsx/dist/loader.mjs /Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/.superpowers/sdd/task31-r3-f01-webqa-evidence/mock-server.mjs",
+      "cwd": "/Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui",
+      "port": 58391,
+      "reuseExistingServer": false,
+      "timeout": 30000,
+      "env": {
+        "MOCK_PORT": "58391",
+        "MOORESTECH_E2E": "true",
+        "MOCK_DEMO": "0",
+        "QA_MATRIX": "0"
+      }
+    }
+  },
+  "suites": [
+    {
+      "title": "block/blockDetails.spec.ts",
+      "file": "block/blockDetails.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "renders machine detail section",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 226,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:05.017Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-e1345e22bee47c38ec14",
+          "file": "block/blockDetails.spec.ts",
+          "line": 21,
+          "column": 3
+        },
+        {
+          "title": "renders gearMachine detail section",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 189,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:05.366Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-e6308aa3b2067ea4675b",
+          "file": "block/blockDetails.spec.ts",
+          "line": 21,
+          "column": 3
+        },
+        {
+          "title": "renders generator detail section",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 180,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:05.563Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-fa5cab7c69d6ea8852b7",
+          "file": "block/blockDetails.spec.ts",
+          "line": 21,
+          "column": 3
+        },
+        {
+          "title": "renders miner detail section",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 177,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:05.748Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-9edfccd8de5eacb40d6b",
+          "file": "block/blockDetails.spec.ts",
+          "line": 21,
+          "column": 3
+        },
+        {
+          "title": "renders filterSplitter detail section",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 183,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:05.930Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-32687ab2d61342f89cd0",
+          "file": "block/blockDetails.spec.ts",
+          "line": 21,
+          "column": 3
+        },
+        {
+          "title": "renders pump detail section",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:06.117Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-d214f47552209745718a",
+          "file": "block/blockDetails.spec.ts",
+          "line": 21,
+          "column": 3
+        },
+        {
+          "title": "renders gearPump detail section",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 175,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:06.296Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-1604b6a01e3a5eb7cd39",
+          "file": "block/blockDetails.spec.ts",
+          "line": 21,
+          "column": 3
+        },
+        {
+          "title": "歯車機械は消費トルクと基準付きRPMを赤なしで出し、網の需給行を持つ",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 191,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:06.481Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-3e39349204fa38421053",
+          "file": "block/blockDetails.spec.ts",
+          "line": 29,
+          "column": 1
+        },
+        {
+          "title": "gearMachine は充足率不足でも充足率行を赤にしない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 189,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:06.677Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-7ea58f0799332bcbf74f",
+          "file": "block/blockDetails.spec.ts",
+          "line": 47,
+          "column": 3
+        },
+        {
+          "title": "gearMiner は充足率不足でも充足率行を赤にしない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 184,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:06.872Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-2f6d88edb8731a741f85",
+          "file": "block/blockDetails.spec.ts",
+          "line": 47,
+          "column": 3
+        },
+        {
+          "title": "電力駆動の採掘機は充足率不足を赤で出す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 148,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:07.062Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-fe0c28f8d0af7364b093",
+          "file": "block/blockDetails.spec.ts",
+          "line": 56,
+          "column": 1
+        },
+        {
+          "title": "歯車発電機は発生トルクと現在RPMだけを出す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 178,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:07.214Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-ce158105cd28239fd886",
+          "file": "block/blockDetails.spec.ts",
+          "line": 62,
+          "column": 1
+        },
+        {
+          "title": "機械recipeの出力個数と秒数から分間生産数を表示する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 150,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:07.397Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-9791b23734991eb82b42",
+          "file": "block/blockDetails.spec.ts",
+          "line": 71,
+          "column": 1
+        },
+        {
+          "title": "油井は電力充足率と公称生成速度を出し鉱脈外なら警告行に切り替わる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 265,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:07.551Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-ee79d5c835cff5d9f6a2",
+          "file": "block/blockDetails.spec.ts",
+          "line": 77,
+          "column": 1
+        },
+        {
+          "title": "歯車ポンプは電力行を持たず歯車行を出す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 172,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:07.821Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "be7337e3a17271d35a0a-a2fcb5d538e8566df592",
+          "file": "block/blockDetails.spec.ts",
+          "line": 90,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/blockInventory.spec.ts",
+      "file": "block/blockInventory.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "chest の block inventory パネルが描画される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 176,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:08.003Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7a69bfe7b96ff292d878-bc348f0aeff4ead145e4",
+          "file": "block/blockInventory.spec.ts",
+          "line": 13,
+          "column": 1
+        },
+        {
+          "title": "filled スロット左クリックで block→grab の move_item を送り、grab オーバーレイが出る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 277,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:08.185Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7a69bfe7b96ff292d878-404d4349e65ee34cd372",
+          "file": "block/blockInventory.spec.ts",
+          "line": 23,
+          "column": 1
+        },
+        {
+          "title": "ブロックを閉じると panel が消える",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 180,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:08.466Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7a69bfe7b96ff292d878-3af4a5ab4f0f99496793",
+          "file": "block/blockInventory.spec.ts",
+          "line": 49,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/blockInventoryGestures.spec.ts",
+      "file": "block/blockInventoryGestures.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "空手の右クリックで block_inventory.split を送り grab に半分入る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 271,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:08.658Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e49ab76295bb623154-c90e3c5a5bb43ebf488c",
+          "file": "block/blockInventoryGestures.spec.ts",
+          "line": 16,
+          "column": 1
+        },
+        {
+          "title": "grab 保持中の右クリックで block スロットへ1個置く",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 305,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:08.934Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e49ab76295bb623154-44d9ff23b05e9ab44e5e",
+          "file": "block/blockInventoryGestures.spec.ts",
+          "line": 26,
+          "column": 1
+        },
+        {
+          "title": "ダブルクリックで block_inventory.collect を送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 198,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:09.247Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e49ab76295bb623154-b6bd1dba2a1c095814e5",
+          "file": "block/blockInventoryGestures.spec.ts",
+          "line": 37,
+          "column": 1
+        },
+        {
+          "title": "Shift+クリックで block→main へ配分移動する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 245,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:09.449Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e49ab76295bb623154-2c7d5dfb27623346a855",
+          "file": "block/blockInventoryGestures.spec.ts",
+          "line": 44,
+          "column": 1
+        },
+        {
+          "title": "block 開時は main の Shift+クリックが block へ配分移動する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 198,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:09.699Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e49ab76295bb623154-45c10590848a8a7b89cd",
+          "file": "block/blockInventoryGestures.spec.ts",
+          "line": 53,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/blockRegistryCoverage.spec.ts",
+      "file": "block/blockRegistryCoverage.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "v8マスタで専用UIを持つ全blockTypeがレジストリまたは意図的Genericに分類される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 0,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:09.909Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7a55364efcdf2a53d5a7-dc6bc896314649fd841d",
+          "file": "block/blockRegistryCoverage.spec.ts",
+          "line": 29,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+      "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter2Filters)・高さ600で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 317,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:09.919Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-32bd456f0cf45ed05416",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter2Filters)・高さ720で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 276,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:10.240Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-fb712d7a7925796b3409",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter2Filters)・高さ1080で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 280,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:10.521Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-fbd54332e006971d77c4",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter8Filters)・高さ600で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 282,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:10.806Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-32b338cb2282286f55bd",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter8Filters)・高さ720で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 276,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:11.094Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-1eb65201b4c0f7f97531",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter8Filters)・高さ1080で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 294,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:11.375Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-0c5306bc61c47c5139be",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter14Filters)・高さ600で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 296,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:11.673Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-4a01e2532fc647ce6a6d",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter14Filters)・高さ720で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 275,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:11.974Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-f08f64fc2a67834c2c97",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter14Filters)・高さ1080で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 300,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:12.254Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-6e1ad26fd210eb966bb5",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter20Filters)・高さ600で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 296,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:12.559Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-5c3c111d9aa0706d2d6e",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter20Filters)・高さ720で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 308,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:12.860Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-6d5dea38b5c12783a1f5",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter20Filters)・高さ1080で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 299,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:13.172Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-b0dbef6f986e65fb5e41",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter30Filters)・高さ600で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 293,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:13.476Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-97255e6a51a275215017",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter30Filters)・高さ720で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 293,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:13.775Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-72feb162cabb95baeff9",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter30Filters)・高さ1080で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 298,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:14.072Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-c98d1f37d65271351f5a",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter30FiltersUnconnected)・高さ600で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 300,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:14.373Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-7237358e6cc440ee0eb2",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter30FiltersUnconnected)・高さ720で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 293,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:14.677Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-4442c90ab34843d134a8",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機パネル(cleanRoomAirFilter30FiltersUnconnected)・高さ1080で部屋欄の末尾とフィルタ枠へ届き、枠がホットバーへ潜らない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 295,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:14.975Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-2975b4ee49e1d861c9a9",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 39,
+          "column": 5
+        },
+        {
+          "title": "清浄機2台・高さ720は自然高のままスクロールしない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 195,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:15.274Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a07abe206c3ecd78ea6d-f8c7bd13396fdee2a954",
+          "file": "block/cleanRoom/cleanRoomAirFilterPanel.spec.ts",
+          "line": 56,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/cleanRoom/cleanRoomMachineLayout.spec.ts",
+      "file": "block/cleanRoom/cleanRoomMachineLayout.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "清浄機2台の室内機械で液体行が電力行・状態行に重ならない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 273,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:15.481Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9590c17409a39c5606c8-7caf22e905b05a949fb1",
+          "file": "block/cleanRoom/cleanRoomMachineLayout.spec.ts",
+          "line": 51,
+          "column": 1
+        },
+        {
+          "title": "低いウィンドウで清浄機が多い部屋でもフッタは見え、本文はスクロールで液体行へ届く",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 298,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:15.758Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9590c17409a39c5606c8-61d3165bf19dda6aa08e",
+          "file": "block/cleanRoom/cleanRoomMachineLayout.spec.ts",
+          "line": 63,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+      "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "清浄機16台・高さ600でも部屋欄ごと本文がスクロールし、レシピ・スロット・液体に届きフッタが読める",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 391,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:16.066Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-41e1e373b133f65b1e29",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "title": "清浄機16台・高さ720でも部屋欄ごと本文がスクロールし、レシピ・スロット・液体に届きフッタが読める",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 410,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:16.462Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-905b14368635fd669d75",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "title": "清浄機16台・高さ1080でも部屋欄ごと本文がスクロールし、レシピ・スロット・液体に届きフッタが読める",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 395,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:16.876Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-fe96bfb6dcfc80438f50",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "title": "清浄機20台・高さ600でも部屋欄ごと本文がスクロールし、レシピ・スロット・液体に届きフッタが読める",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 396,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:17.277Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-63fc1ec4ef3fd9262782",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "title": "清浄機20台・高さ720でも部屋欄ごと本文がスクロールし、レシピ・スロット・液体に届きフッタが読める",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 409,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:17.677Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-edf4bbad127748b6c364",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "title": "清浄機20台・高さ1080でも部屋欄ごと本文がスクロールし、レシピ・スロット・液体に届きフッタが読める",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 426,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:18.090Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-3ccecb00bcffea21cb2a",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 67,
+          "column": 5
+        },
+        {
+          "title": "清浄機20台・高さ600のレシピ選択でも部屋欄と同じ視口で最後のレシピ行へ届く",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 333,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:18.520Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-bb0a5da6d7e3989cd32b",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 77,
+          "column": 3
+        },
+        {
+          "title": "清浄機20台・高さ720のレシピ選択でも部屋欄と同じ視口で最後のレシピ行へ届く",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 311,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:18.859Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-2b3a99eee009b0c1a3ef",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 77,
+          "column": 3
+        },
+        {
+          "title": "清浄機20台・高さ1080のレシピ選択でも部屋欄と同じ視口で最後のレシピ行へ届く",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 327,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:19.176Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-a804d0f353d4da2ce09c",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 77,
+          "column": 3
+        },
+        {
+          "title": "清浄機0台・高さ720の境目でも本文とフッタが使える",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 362,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:19.508Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-7b50e1d02c1849a40c33",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 88,
+          "column": 3
+        },
+        {
+          "title": "清浄機2台・高さ720の境目でも本文とフッタが使える",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 360,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:19.874Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-892eb19b3cb24c58e025",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 88,
+          "column": 3
+        },
+        {
+          "title": "清浄機8台・高さ720の境目でも本文とフッタが使える",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 369,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:20.238Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-1b7b2d0e67bcf29a5670",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 88,
+          "column": 3
+        },
+        {
+          "title": "部屋の無い大型機械は部屋欄なしで本文に届き、フッタが読める",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 336,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:20.611Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92627dbd9d9e6c6b459c-d97ead57b33840f709ef",
+          "file": "block/cleanRoom/cleanRoomManyFilters.spec.ts",
+          "line": 94,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/electric/electricPole.spec.ts",
+      "file": "block/electric/electricPole.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "電柱専用ビューに発電量・需要量・消費者数・供給率を表示する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:20.955Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1dd45f2e6d7b942118f8-15dd168a3e4627506b94",
+          "file": "block/electric/electricPole.spec.ts",
+          "line": 8,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/electric/electricToGear.spec.ts",
+      "file": "block/electric/electricToGear.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "出力モード行とStateDetail値を表示し、選択indexをaction送信する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 243,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:21.137Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a6788e182fd4267ac621-803392900c20afba437e",
+          "file": "block/electric/electricToGear.spec.ts",
+          "line": 9,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/filterSplitter.spec.ts",
+      "file": "block/filterSplitter.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "mode switch sends explicitly selected mode",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 232,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:21.388Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92268d75718d9c004977-8f6222a8ad7adfe8230a",
+          "file": "block/filterSplitter.spec.ts",
+          "line": 12,
+          "column": 1
+        },
+        {
+          "title": "right click on a filter slot sends clear",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:21.626Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92268d75718d9c004977-07791fe039f055db05ea",
+          "file": "block/filterSplitter.spec.ts",
+          "line": 26,
+          "column": 1
+        },
+        {
+          "title": "last direction's filter slot is reachable by scrolling on a short window",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 239,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:21.804Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "92268d75718d9c004977-8948f7689d5031d349a6",
+          "file": "block/filterSplitter.spec.ts",
+          "line": 40,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/fluidSlot.spec.ts",
+      "file": "block/fluidSlot.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "tank の block inventory パネルに Fluid Tank が表示される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 168,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:22.051Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f7aa53ccffa18d69e62d-7d1cce5bb44ebe875453",
+          "file": "block/fluidSlot.spec.ts",
+          "line": 12,
+          "column": 1
+        },
+        {
+          "title": "水の流体スロットが量 500 を表示する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 164,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:22.224Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f7aa53ccffa18d69e62d-56fe4b3e94968324d26d",
+          "file": "block/fluidSlot.spec.ts",
+          "line": 19,
+          "column": 1
+        },
+        {
+          "title": "Water 名のツールチップが hover で表示される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 261,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:22.392Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f7aa53ccffa18d69e62d-2a70c1934e31de8124d1",
+          "file": "block/fluidSlot.spec.ts",
+          "line": 28,
+          "column": 1
+        },
+        {
+          "title": "progress-arrow-bar のフィル幅が 50% になる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 172,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:22.657Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f7aa53ccffa18d69e62d-7e238d6fe61d9e94543e",
+          "file": "block/fluidSlot.spec.ts",
+          "line": 38,
+          "column": 1
+        },
+        {
+          "title": "通常のe2eでは液体アイコンが404になり背面フィルが残る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 166,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:22.834Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "f7aa53ccffa18d69e62d-62bfade2b4ef5881e6ae",
+          "file": "block/fluidSlot.spec.ts",
+          "line": 48,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/machineGestures.spec.ts",
+      "file": "block/machineGestures.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "機械入力スロットの空手右クリックで block_inventory.split を送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 198,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:23.011Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "bb6b45e1e6e929c7928c-12228705821d7b497f3c",
+          "file": "block/machineGestures.spec.ts",
+          "line": 16,
+          "column": 1
+        },
+        {
+          "title": "機械出力スロットのダブルクリックで collect を送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 235,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:23.213Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "bb6b45e1e6e929c7928c-303216695e71d7fea62d",
+          "file": "block/machineGestures.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "機械入力スロットの Shift+クリックで main へ配分移動する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 228,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:23.453Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "bb6b45e1e6e929c7928c-1e92d4814a33ade79355",
+          "file": "block/machineGestures.spec.ts",
+          "line": 34,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/machineRecipe.spec.ts",
+      "file": "block/machineRecipe.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "選択済機械は大型パネルでヘッダ＋レシピ分スロット＋ゴーストを出し、タブを持たない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 199,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:23.694Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-6fb18e1a1e117c20e0cc",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 31,
+          "column": 1
+        },
+        {
+          "title": "ヘッダクリックでレシピ選択モードへ戻り、行クリックでインベントリモードへ戻る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 414,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:23.897Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-c259c5e42424b7403815",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 51,
+          "column": 1
+        },
+        {
+          "title": "レシピ未選択の機械はレシピ選択モードで開く",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 180,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:24.316Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-f26386b8c39597c1be62",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 72,
+          "column": 1
+        },
+        {
+          "title": "レシピ無しブロックは小型パネルのまま",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 168,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:24.501Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-629c58194837963ebede",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 79,
+          "column": 1
+        },
+        {
+          "title": "レシピが溢れても選択リストの視口高は変わらず、そこだけがスクロールする",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 306,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:24.674Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-9e74848475d8e2c3da30",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 87,
+          "column": 1
+        },
+        {
+          "title": "フッタは選択モードとインベントリモードで同じ高さに出る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 277,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:24.983Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-53ad988a877aeb03a8cb",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 101,
+          "column": 1
+        },
+        {
+          "title": "行密度は控えめ設定どおりで、本文に3.8〜4.5行分が入る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 277,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:25.264Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-916381eed902cac59239",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 122,
+          "column": 1
+        },
+        {
+          "title": "レシピ選択行の液体はアイテムスロットと同寸の枠に収まり、量バッジを出す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 302,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:25.547Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-23b45b460d611efa77b4",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 142,
+          "column": 1
+        },
+        {
+          "title": "液体アイコンが404なら辞書の液体名を枠内に収めて出す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 272,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:25.852Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-d97ec3facf4cd1cfcd5e",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 189,
+          "column": 1
+        },
+        {
+          "title": "液体のみ出力のレシピを選ぶと選択中レシピ表示が液体スロットになる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 329,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:26.128Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a7dfb115fc9c7713347f-23adfb1b07748921749e",
+          "file": "block/machineRecipe.spec.ts",
+          "line": 220,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/spaceElevator/shiftRejection.spec.ts",
+      "file": "block/spaceElevator/shiftRejection.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "受け付けないアイテムのShiftは送らずに拒否の通知を出す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 258,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:26.467Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dc5a5c5137b1facd4d39-cb70343d744dff31a45c",
+          "file": "block/spaceElevator/shiftRejection.spec.ts",
+          "line": 31,
+          "column": 1
+        },
+        {
+          "title": "詳細の取得待ちのShiftは送らずに取得待ちを通知する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 251,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:26.730Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "dc5a5c5137b1facd4d39-bc7372c16f20ad0c5858",
+          "file": "block/spaceElevator/shiftRejection.spec.ts",
+          "line": 39,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/spaceElevator/spaceElevator.spec.ts",
+      "file": "block/spaceElevator/spaceElevator.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "接続ボタンでactionを送り、接続後は進みを出す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 271,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:26.989Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-7b2fb81309c0663be88a",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 9,
+          "column": 1
+        },
+        {
+          "title": "spaceElevatorInsufficient の状態と進捗を描画する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 178,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:27.264Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-38e5179dff45954cde2b",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 33,
+          "column": 3
+        },
+        {
+          "title": "spaceElevatorClimbing の状態と進捗を描画する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 179,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:27.446Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-4b18963a75418501150e",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 33,
+          "column": 3
+        },
+        {
+          "title": "spaceElevatorOutputBlocked の状態と進捗を描画する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 177,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:27.628Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-16f67c511c2384a0813d",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 33,
+          "column": 3
+        },
+        {
+          "title": "入口への投入は元slot0を送り出口を変えない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 381,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:27.809Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-418b6083dcabcb3caa60",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 53,
+          "column": 1
+        },
+        {
+          "title": "出口1の回収は元slot1を送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 303,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:28.193Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-fb65211d85d4b4305baf",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 71,
+          "column": 3
+        },
+        {
+          "title": "出口2の回収は元slot2を送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 310,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:28.500Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-9785773fce25ac268695",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 71,
+          "column": 3
+        },
+        {
+          "title": "詳細の取得待ちから接続可能へ遷移する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 278,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:28.815Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-de5917a38eb0465cd57c",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 88,
+          "column": 1
+        },
+        {
+          "title": "ホストが並べ替えた入口と出口の添字を描画と操作に使う",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 283,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:29.098Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "932d215a7d77d2631ee9-b538be7e71d7ee886cd6",
+          "file": "block/spaceElevator/spaceElevator.spec.ts",
+          "line": 102,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "block/trainPlatform.spec.ts",
+      "file": "block/trainPlatform.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "PFスロットを表示し、積込から卸しへ目標モードActionを送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 237,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:29.392Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e6a9fa4cdedf17bebde-c5163d589d01914cc74a",
+          "file": "block/trainPlatform.spec.ts",
+          "line": 11,
+          "column": 1
+        },
+        {
+          "title": "液体PFは液体名・アイコン・量容量と卸しモードを表示する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 176,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:29.634Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9e6a9fa4cdedf17bebde-329afb16e79a070f5c46",
+          "file": "block/trainPlatform.spec.ts",
+          "line": 25,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "inventory/equipment.spec.ts",
+      "file": "inventory/equipment.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "小さいホイール入力を累積し閾値を越えた時だけ切り替える",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 237,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:29.818Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-bc8e4532fd802069e02a",
+          "file": "inventory/equipment.spec.ts",
+          "line": 14,
+          "column": 1
+        },
+        {
+          "title": "ホイールは末尾スロットの次に先頭スロットへ回る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 457,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:30.059Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-8671cd0932f0cf9eb90e",
+          "file": "inventory/equipment.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "メインのアイテムをUI操作だけで装備スロットへ移せる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 402,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:30.519Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-0f922e131109983bfd27",
+          "file": "inventory/equipment.spec.ts",
+          "line": 45,
+          "column": 1
+        },
+        {
+          "title": "装備枠のクリックは選択ではなくアイテム移動になる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 167,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:30.925Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-ada147d48e71af47806f",
+          "file": "inventory/equipment.spec.ts",
+          "line": 64,
+          "column": 1
+        },
+        {
+          "title": "装備へ移したアイテムをホイールで選択できる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 467,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:31.096Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-30b71fe099ff8ca65aca",
+          "file": "inventory/equipment.spec.ts",
+          "line": 81,
+          "column": 1
+        },
+        {
+          "title": "装備HUDの上でもホイールで装備が切り替わる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 255,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:31.568Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-501a34d2cfa998adb1ea",
+          "file": "inventory/equipment.spec.ts",
+          "line": 94,
+          "column": 1
+        },
+        {
+          "title": "ホットバーHUDの上でもホイールで装備が切り替わる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 246,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:31.826Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-9ae3ec6aba76a13af1fe",
+          "file": "inventory/equipment.spec.ts",
+          "line": 108,
+          "column": 1
+        },
+        {
+          "title": "画面中央のクロスヘアの上でもホイールで装備が切り替わる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 189,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:32.076Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-255d7a562e5ab772f196",
+          "file": "inventory/equipment.spec.ts",
+          "line": 122,
+          "column": 1
+        },
+        {
+          "title": "ホットバー帯のスロット列外でもホイールで装備が切り替わる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 285,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:32.274Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-af97933db9b2e7535250",
+          "file": "inventory/equipment.spec.ts",
+          "line": 137,
+          "column": 1
+        },
+        {
+          "title": "持ち物画面の一覧スクロールでは装備が持ち替わらない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 367,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:32.566Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-44dc2b038c02adb7609f",
+          "file": "inventory/equipment.spec.ts",
+          "line": 151,
+          "column": 1
+        },
+        {
+          "title": "装備枠0でも装備HUDは面積を保ちアンカーが解決する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 196,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:32.936Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "38475d82ef0769a9dd4b-ba3e5a9b20a53500b312",
+          "file": "inventory/equipment.spec.ts",
+          "line": 173,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "inventory/grabOverlay.spec.ts",
+      "file": "inventory/grabOverlay.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "アイテムを掴んだ瞬間にオーバーレイがクリック座標へ表示される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 307,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:33.144Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a91ac507e49431905100-bde8be09cd772e2711e6",
+          "file": "inventory/grabOverlay.spec.ts",
+          "line": 5,
+          "column": 1
+        },
+        {
+          "title": "拡大表示でもgrab中心がカーソル位置へ追従する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 281,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:33.455Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a91ac507e49431905100-2244699f0e2ac75ececd",
+          "file": "inventory/grabOverlay.spec.ts",
+          "line": 22,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "inventory/inventory.spec.ts",
+      "file": "inventory/inventory.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "接続後にインベントリが描画される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 177,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:33.745Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d7f6011aa5f9f81b479-bcdf22f44e334cf1169c",
+          "file": "inventory/inventory.spec.ts",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "左クリックで grab オーバーレイが追従する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 281,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:33.926Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d7f6011aa5f9f81b479-69f30d50c8a49a031c22",
+          "file": "inventory/inventory.spec.ts",
+          "line": 15,
+          "column": 1
+        },
+        {
+          "title": "ダブルクリックで同種を集約し、collect はクリックされたスロットを送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 229,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:34.212Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d7f6011aa5f9f81b479-62550519cd5a0a35b021",
+          "file": "inventory/inventory.spec.ts",
+          "line": 25,
+          "column": 1
+        },
+        {
+          "title": "右クリックで inventory.split を送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 246,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:34.445Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d7f6011aa5f9f81b479-24f76711a475a15f4a9f",
+          "file": "inventory/inventory.spec.ts",
+          "line": 50,
+          "column": 1
+        },
+        {
+          "title": "grab 中の右ドラッグで通過スロットへ1個ずつ配置する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 398,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:34.695Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d7f6011aa5f9f81b479-e1ff0a7ce2fc44696089",
+          "file": "inventory/inventory.spec.ts",
+          "line": 62,
+          "column": 1
+        },
+        {
+          "title": "grab 中の左ドラッグは配分先だけを host へ送る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 493,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:35.098Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d7f6011aa5f9f81b479-6a0f0deb3ba4b149c501",
+          "file": "inventory/inventory.spec.ts",
+          "line": 82,
+          "column": 1
+        },
+        {
+          "title": "grab 中に別アイテムのスロットを押すと入れ替えの move を送りトーストを出さない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 394,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:35.594Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "7d7f6011aa5f9f81b479-8805ad551d6b7eaabb92",
+          "file": "inventory/inventory.spec.ts",
+          "line": 105,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "notification/animation.spec.ts",
+      "file": "notification/animation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "通知は左からのスライドとフェードで入場し生存尺の終端で退場する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7337,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:36.002Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "266dd03824da23dd8511-97509f3ad886abdeb7db",
+          "file": "notification/animation.spec.ts",
+          "line": 21,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "notification/fixedWidth.spec.ts",
+      "file": "notification/fixedWidth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "長さの違う通知が同時に出ても各行の横幅は固定値のまま",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 162,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:43.350Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "a3447f9ff223b1925182-7da8cc68c7586307ed6c",
+          "file": "notification/fixedWidth.spec.ts",
+          "line": 21,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "notification/itemEarned.spec.ts",
+      "file": "notification/itemEarned.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "アイテム獲得通知はアイコンとアイテム名と獲得数を出し連続獲得で数値が伸びる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 143,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:43.520Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "d5366ccbe873dcdc3f82-2ef7cc86d61e2129882a",
+          "file": "notification/itemEarned.spec.ts",
+          "line": 20,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "notification/layering.spec.ts",
+      "file": "notification/layering.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "インベントリを開いている間、通知はパネルの描画を一切変えない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 7355,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:43.671Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "slot-with-notification.png",
+                      "contentType": "image/png",
+                      "body": "iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAIAAABuYg/PAAACmklEQVR4nOyX3UuaURzHj2bBekELsi1pe9oEKaKt6SaxNYh230VFVCMid7O/IbovGBtIsIu892abFzLdBmOX2i5UfMHXK98VN+d7pui++YA0x+Co2UX4vfh5ztfH53N+z+88v4O8h7IlciW6d/cODx8vFS9ksgekkzo4VCKewxhmQia9TzqpgYEbp4VTLrlCdWFdWBfWhXUeVi6XY7EYBqFQqG6m0+lisUioRQuLx+NutzuTyVgsFkzBOD4+ViqVMAm1qGCpVAo3zeVyNpsNGCTU19e3trY2NjZGmhEVDIBoNMrhcCKRCJfLxRRjgUDA4/FIM6KCCYXC4eFhuVyOwdzc3OjoKGlJVEszGAx2ux1lSyQSPp9vdXV1aGiINC+qzObn50Ui0fb29vj4+M7OTmskQplZXZVKBdXCwGq16vX6UqmEWppMJqyA5ue0sI2NDcTNzU12OlsTaVLXt101V7OLYosHVatVGp+0lhm2iUaj2draWlxcbPgK/XNlZYVhmOXl5XA4fAmwbDarUqkcDkdDY0ROu7u7vb29Wq0WrwdelXqWrcP4fL5Op1MoFA2+1+s1Go17e3szMzP7+/tmsxkLahdWrelfHzDEqakpRIlE0tPT4/F42oX9T2hm/f399e6MJwmnUzA063w+j+3DTnEkwbkEWEPlWU1OTiKiUyP6/X40M9ZpC5ZMJp1OJw4BJIFBIBBg2dgX09PTR0dHhUIBh7hYLJZKpX8tEf88Geb2yIiAkvR86dmvnxFsubqzsLBwcPj6zdt3T5/IHz+aXV9fDwaDOB/UanUwFP+o+YRrXC7vrZtCnkQiJufPN08JOzsrvarpoulwuHCHL1+/c7mck5MfqdRvPl+g//zt/Qcte8HEhGhwcOAPAAAA///H+l41AAAABklEQVQDADKPE0QWd8PiAAAAAElFTkSuQmCC"
+                    },
+                    {
+                      "name": "slot-without-notification.png",
+                      "contentType": "image/png",
+                      "body": "iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAIAAABuYg/PAAACmklEQVR4nOyX3UuaURzHj2bBekELsi1pe9oEKaKt6SaxNYh230VFVCMid7O/IbovGBtIsIu892abFzLdBmOX2i5UfMHXK98VN+d7pui++YA0x+Co2UX4vfh5ztfH53N+z+88v4O8h7IlciW6d/cODx8vFS9ksgekkzo4VCKewxhmQia9TzqpgYEbp4VTLrlCdWFdWBfWhXUeVi6XY7EYBqFQqG6m0+lisUioRQuLx+NutzuTyVgsFkzBOD4+ViqVMAm1qGCpVAo3zeVyNpsNGCTU19e3trY2NjZGmhEVDIBoNMrhcCKRCJfLxRRjgUDA4/FIM6KCCYXC4eFhuVyOwdzc3OjoKGlJVEszGAx2ux1lSyQSPp9vdXV1aGiINC+qzObn50Ui0fb29vj4+M7OTmskQplZXZVKBdXCwGq16vX6UqmEWppMJqyA5ue0sI2NDcTNzU12OlsTaVLXt101V7OLYosHVatVGp+0lhm2iUaj2draWlxcbPgK/XNlZYVhmOXl5XA4fAmwbDarUqkcDkdDY0ROu7u7vb29Wq0WrwdelXqWrcP4fL5Op1MoFA2+1+s1Go17e3szMzP7+/tmsxkLahdWrelfHzDEqakpRIlE0tPT4/F42oX9T2hm/f399e6MJwmnUzA063w+j+3DTnEkwbkEWEPlWU1OTiKiUyP6/X40M9ZpC5ZMJp1OJw4BJIFBIBBg2dgX09PTR0dHhUIBh7hYLJZKpX8tEf88Geb2yIiAkvR86dmvnxFsubqzsLBwcPj6zdt3T5/IHz+aXV9fDwaDOB/UanUwFP+o+YRrXC7vrZtCnkQiJufPN08JOzsrvarpoulwuHCHL1+/c7mck5MfqdRvPl+g//zt/Qcte8HEhGhwcOAPAAAA///H+l41AAAABklEQVQDADKPE0QWd8PiAAAAAElFTkSuQmCC"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ea1e8a6f42ae3d7ab89-8e007f480f019d0b993c",
+          "file": "notification/layering.spec.ts",
+          "line": 21,
+          "column": 1
+        },
+        {
+          "title": "GameScreenでも通知はマウントされ続け、矩形を持つ",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 149,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:51.029Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ea1e8a6f42ae3d7ab89-14c3f1ed27a3fbe1f4db",
+          "file": "notification/layering.spec.ts",
+          "line": 99,
+          "column": 1
+        },
+        {
+          "title": "通知ホストはstageより後ろの層に立つ",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 162,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:51.181Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ea1e8a6f42ae3d7ab89-2a6d850174b5f7992729",
+          "file": "notification/layering.spec.ts",
+          "line": 112,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "recipe/itemListScroll.spec.ts",
+      "file": "recipe/itemListScroll.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "スクロール領域はパネル本文いっぱいで、既定件数では溢れずバーも出ない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 174,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:51.353Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ff67a6b3d0fdb83db81-9c6c530c02aa5408445a",
+          "file": "recipe/itemListScroll.spec.ts",
+          "line": 21,
+          "column": 1
+        },
+        {
+          "title": "パネルを超える件数で初めて縦バーが出る。横は常に出ない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 226,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:51.530Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ff67a6b3d0fdb83db81-220a07b17fc4d2f0cc01",
+          "file": "recipe/itemListScroll.spec.ts",
+          "line": 46,
+          "column": 1
+        },
+        {
+          "title": "溢れていない一覧の最上段でもチュートリアルのラベルが出る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 213,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:51.760Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ff67a6b3d0fdb83db81-9794d98ef616d42d06d2",
+          "file": "recipe/itemListScroll.spec.ts",
+          "line": 58,
+          "column": 1
+        },
+        {
+          "title": "アンカーがスクロールで隠れ始めたらラベルを引っ込め、完全に隠れたら枠も消す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 283,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:51.976Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ff67a6b3d0fdb83db81-077d2a605eb28c8ca366",
+          "file": "recipe/itemListScroll.spec.ts",
+          "line": 67,
+          "column": 1
+        },
+        {
+          "title": "クリップ境界はグリッドからハイライトの逃げぶん離れ、枠が削られない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 189,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:52.263Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ff67a6b3d0fdb83db81-1bf8732960198ad6bff4",
+          "file": "recipe/itemListScroll.spec.ts",
+          "line": 93,
+          "column": 1
+        },
+        {
+          "title": "7段は溢れず、最下段までスクロールしても最終段に逃げが残る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 297,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:52.457Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "1ff67a6b3d0fdb83db81-7f17335ecbb59e188fb3",
+          "file": "recipe/itemListScroll.spec.ts",
+          "line": 124,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "recipe/recipe.spec.ts",
+      "file": "recipe/recipe.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "秒数は矢印の上に出し、クラフトボタンは秒数を持たない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 196,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:52.770Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0572b020e5571f5b12e2-4ab5b26ec5066e9e025e",
+          "file": "recipe/recipe.spec.ts",
+          "line": 10,
+          "column": 1
+        },
+        {
+          "title": "正本のヘッダ装飾、1段時の無スクロールバー、主要構造を保つ",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 271,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:52.970Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0572b020e5571f5b12e2-1060d30b83ce6af161dc",
+          "file": "recipe/recipe.spec.ts",
+          "line": 21,
+          "column": 1
+        },
+        {
+          "title": "アイテム選択でレシピ表示、長押しで素材が尽きるまで連続クラフトする",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 2060,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:53.245Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0572b020e5571f5b12e2-70c9a4ec907aa109b5a6",
+          "file": "recipe/recipe.spec.ts",
+          "line": 56,
+          "column": 1
+        },
+        {
+          "title": "リスト上をドラッグしてもアイテム選択は変わらない（スクロール操作扱い）",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 385,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:55.309Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0572b020e5571f5b12e2-640d25f84cddde34f92b",
+          "file": "recipe/recipe.spec.ts",
+          "line": 87,
+          "column": 1
+        },
+        {
+          "title": "押下後にボタンから外れるとクラフトが止まり経過時間がリセットされる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 880,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:55.697Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0572b020e5571f5b12e2-203c9b646879d0cbbabd",
+          "file": "recipe/recipe.spec.ts",
+          "line": 116,
+          "column": 1
+        },
+        {
+          "title": "複数レシピはクラフト優先の単一リストで同時に表示される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 248,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:56.581Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0572b020e5571f5b12e2-bd2f391471c76d729a70",
+          "file": "recipe/recipe.spec.ts",
+          "line": 145,
+          "column": 1
+        },
+        {
+          "title": "クラフトエントリが複数でもチュートリアルアンカーは1件だけ付く",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 249,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:56.832Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0572b020e5571f5b12e2-591dd95384a4a57e3148",
+          "file": "recipe/recipe.spec.ts",
+          "line": 167,
+          "column": 1
+        },
+        {
+          "title": "クラフト可能数0のアイテムは個数バッジを出さない",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 154,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:57.084Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "0572b020e5571f5b12e2-51b09bb51f981e47dea1",
+          "file": "recipe/recipe.spec.ts",
+          "line": 185,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "recipe/recipeListScroll.spec.ts",
+      "file": "recipe/recipeListScroll.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "レシピが溢れてもリストの視口高は変わらず、縦バーだけが出る",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 317,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:57.248Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4982fdfd8e0b7078eddc-90790e6c06aea87c316f",
+          "file": "recipe/recipeListScroll.spec.ts",
+          "line": 24,
+          "column": 1
+        },
+        {
+          "title": "クリップ境界はエントリからハイライトの逃げぶん離れ、最下段までスクロールしても保たれる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 290,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:57.569Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "4982fdfd8e0b7078eddc-4ed10838e0462251070c",
+          "file": "recipe/recipeListScroll.spec.ts",
+          "line": 32,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "recipe/slotTooltip.spec.ts",
+      "file": "recipe/slotTooltip.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "ツールチップはMantine既定の白い角丸ではなくCursorTooltipと同じ面を使う",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 237,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:57.868Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "27b89bb4ea2287d57d89-8f045f54a715d46a59a3",
+          "file": "recipe/slotTooltip.spec.ts",
+          "line": 20,
+          "column": 1
+        },
+        {
+          "title": "祖先のスクロールでツールチップを引っ込め、ポインタを動かせば開き直す",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 482,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:58.109Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "27b89bb4ea2287d57d89-6b52ae7a1e2b5c3edff6",
+          "file": "recipe/slotTooltip.spec.ts",
+          "line": 38,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "uiState.spec.ts",
+      "file": "uiState.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "既定(PlayerInventory)でインベントリ画面が表示される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 165,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:58.599Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e90b030c52d0e36ca04d-51048c66405514bd289a",
+          "file": "uiState.spec.ts",
+          "line": 12,
+          "column": 1
+        },
+        {
+          "title": "GameScreen でパネルが消え、PlayerInventory への event で再表示される",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 178,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:58.768Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e90b030c52d0e36ca04d-96320a7168f84629ceda",
+          "file": "uiState.spec.ts",
+          "line": 17,
+          "column": 1
+        },
+        {
+          "title": "SubInventory でインベントリ+ブロックパネルが出てレシピビューアは消える",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 173,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:58.950Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e90b030c52d0e36ca04d-2bd9b80fd7baae5cab2e",
+          "file": "uiState.spec.ts",
+          "line": 28,
+          "column": 1
+        },
+        {
+          "title": "ブロックパネルの✕で ui_state.request(GameScreen) を送り画面が閉じる",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 268,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:59.129Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e90b030c52d0e36ca04d-cebfb20eba0f1693e660",
+          "file": "uiState.spec.ts",
+          "line": 39,
+          "column": 1
+        },
+        {
+          "title": "許可表で拒否されたui_state.requestはtransition_not_allowedを返し画面を維持する",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 15000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "",
+              "projectName": "",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 194,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-10-29T14:58:59.403Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "e90b030c52d0e36ca04d-ce1debe20f74127095c1",
+          "file": "uiState.spec.ts",
+          "line": 61,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-29T14:58:04.138Z",
+    "duration": 55546.376,
+    "expected": 143,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,730 @@
+
+ RUN  v2.1.9 /Users/sakastudio/hermes-agent/data/worktrees/tier9-integrated-qa/moorestech/moorestech_web/webui
+
+ ✓ src/features/buildMenu/hooks/useBuildMenuCategoryScroll.test.ts (13 tests) 10ms
+ ✓ src/bridge/contract/wireContract.test.ts (37 tests) 22ms
+ ✓ src/features/blockInventory/details/MachineSection.test.ts (9 tests) 14ms
+ ✓ src/features/research/ResearchDetailPane.test.ts (11 tests) 24ms
+ ✓ src/shared/treeView/TreeViewViewportState.test.ts (8 tests) 14ms
+ ✓ src/features/tutorial/overlay/TutorialOverlay.test.ts (17 tests) 13ms
+ ✓ src/features/inventory/EquipmentPanel/index.test.ts (14 tests) 17ms
+ ✓ src/features/tutorial/tutorialAttentionDesign.test.ts (21 tests) 5ms
+ ✓ src/shared/i18n/useI18n.test.ts (16 tests) 4ms
+ ✓ src/shared/i18n/localizationKeysFreshness.test.ts (36 tests) 19ms
+ ✓ src/features/buildMenu/logic/buildMenuGrouping.test.ts (16 tests) 3ms
+ ✓ src/features/notification/notificationServerIdCoverage.test.ts (5 tests) 14ms
+ ✓ src/features/blockInventory/blockInventoryDesign.test.ts (33 tests) 4ms
+ ✓ src/features/inventory/slotActions.test.ts (10 tests) 4ms
+ ✓ src/features/eventLanguageGate/EventLanguageGate.test.ts (8 tests) 13ms
+ ✓ src/shared/i18n/allScreensI18n.test.ts (6 tests) 284ms
+ ✓ src/bridge/contract/validators.test.ts (20 tests) 7ms
+ ✓ src/bridge/contract/__tests__/blockInventoryValidators.test.ts (27 tests) 7ms
+ ✓ src/bridge/transport/actions.test.ts (38 tests) 888ms
+ ✓ src/features/research/researchLogic.test.ts (21 tests) 6ms
+ ✓ src/shared/tooltip/CursorTooltip.test.ts (6 tests) 10ms
+ ✓ src/shared/itemMove/playerSlotPlan.test.ts (17 tests) 4ms
+ ✓ src/features/hotbar/useHotbarDragSource.test.ts (7 tests) 9ms
+ ✓ src/features/blockInventory/views/__tests__/RocketLaunchPadInventory.test.tsx (7 tests) 226ms
+ ✓ src/bridge/contract/schemas/__tests__/ui.test.ts (12 tests) 11ms
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > プリセットと一致するときはその値を選択しカスタム表示を出さない
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > カスタムのときは無選択にしてカスタム表示を1件出す
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsPresetCustom
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > 項目変更は対象と値を、プリセット選択はプリセット名を送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+ ✓ src/bridge/contract/schemas/__tests__/inventory.test.ts (50 tests) 10ms
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > 数値項目は数値で送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > graphics-render-scaleの操作値を送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > graphics-terrainの操作値を送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > graphics-ssaoの操作値を送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > graphics-postProcessingの操作値を送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > graphics-effectsの操作値を送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > graphics-mapObjectsの操作値を送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > graphics-oceanの操作値を送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > 拒否理由と対象項目を表示文言へ解決する
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > 復旧表示をtopicの解除通知まで保持し同値選択も送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-draw-distanceを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-render-scaleを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-terrainを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-shadowsを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-ssaoを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-postProcessingを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-effectsを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-mapObjectsを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topicを固定したまま連続操作とpreset直後にgraphics-oceanを送る
+[i18n] Missing translation key: ui.settings.graphics
+[i18n] Missing translation key: ui.settings.graphicsPreset
+[i18n] Missing translation key: ui.settings.graphicsPresetHigh
+[i18n] Missing translation key: ui.settings.graphicsPresetMedium
+[i18n] Missing translation key: ui.settings.graphicsPresetLow
+[i18n] Missing translation key: ui.settings.graphicsDrawDistance
+[i18n] Missing translation key: ui.settings.graphicsShadows
+[i18n] Missing translation key: ui.settings.on
+[i18n] Missing translation key: ui.settings.off
+[i18n] Missing translation key: ui.settings.graphicsSsao
+[i18n] Missing translation key: ui.settings.graphicsPostProcessing
+[i18n] Missing translation key: ui.settings.graphicsEffects
+[i18n] Missing translation key: ui.settings.graphicsMapObjects
+[i18n] Missing translation key: ui.settings.graphicsTerrainDetail
+[i18n] Missing translation key: ui.settings.graphicsTerrainFine
+[i18n] Missing translation key: ui.settings.graphicsTerrainCoarse
+[i18n] Missing translation key: ui.settings.graphicsOcean
+
+stderr | src/features/settings/GraphicsQualitySettings.test.ts > GraphicsQualitySettings > topic未着では項目を描かない
+[i18n] Missing translation key: ui.settings.graphics
+
+ ✓ src/features/settings/GraphicsQualitySettings.test.ts (23 tests) 112ms
+ ✓ src/shared/treeView/TreeViewNodeGesture.test.ts (7 tests) 8ms
+ ✓ src/features/blockInventory/train/TrainTimetableImmediate.test.ts (8 tests) 28ms
+ ✓ src/shared/uiState/uiScreenRouting.test.ts (69 tests) 6ms
+ ✓ src/features/blockInventory/details/machine/machineSlotGhosts.test.ts (10 tests) 2ms
+stderr | src/features/pauseMenu/PauseMenuPanel.test.ts > PauseMenuPanel > トップは4ボタンだけを出し、言語選択と報告欄を出さない
+[i18n] Missing translation key: ui.pauseMenu.title
+[i18n] Missing translation key: ui.game.saveGame
+[i18n] Missing translation key: ui.game.saveAndQuit
+[i18n] Missing translation key: ui.pauseMenu.settings
+[i18n] Missing translation key: ui.pauseMenu.bugReport
+
+stderr | src/features/pauseMenu/PauseMenuPanel.test.ts > PauseMenuPanel > 設定ボタンはsettingsへのshow_pageを送る
+[i18n] Missing translation key: ui.pauseMenu.title
+[i18n] Missing translation key: ui.game.saveGame
+[i18n] Missing translation key: ui.game.saveAndQuit
+[i18n] Missing translation key: ui.pauseMenu.settings
+[i18n] Missing translation key: ui.pauseMenu.bugReport
+
+stderr | src/features/pauseMenu/PauseMenuPanel.test.ts > PauseMenuPanel > 設定画面は言語選択と戻るボタンを出し、戻るはtopへのshow_pageを送る
+[i18n] Missing translation key: ui.pauseMenu.settings
+[i18n] Missing translation key: ui.pauseMenu.back
+
+stderr | src/features/pauseMenu/PauseMenuPanel.test.ts > PauseMenuPanel > バグ報告の書きかけはトップへ戻って再び開いても残る
+[i18n] Missing translation key: ui.pauseMenu.bugReport
+[i18n] Missing translation key: ui.pauseMenu.back
+[i18n] Missing translation key: ui.playtest.reportKind.label
+[i18n] Missing translation key: ui.playtest.reportKind.bug
+[i18n] Missing translation key: ui.playtest.reportKind.feedback
+[i18n] Missing translation key: ui.bugReport.placeholder
+[i18n] Missing translation key: ui.bugReport.deliveryAllSent
+[i18n] Missing translation key: ui.bugReport.send
+[i18n] Missing translation key: ui.pauseMenu.title
+[i18n] Missing translation key: ui.game.saveGame
+[i18n] Missing translation key: ui.game.saveAndQuit
+[i18n] Missing translation key: ui.pauseMenu.settings
+
+stderr | src/features/pauseMenu/PauseMenuPanel.test.ts > PauseMenuPanel > パネルを外して付け直すと書きかけは空になる
+[i18n] Missing translation key: ui.pauseMenu.bugReport
+[i18n] Missing translation key: ui.pauseMenu.back
+[i18n] Missing translation key: ui.playtest.reportKind.label
+[i18n] Missing translation key: ui.playtest.reportKind.bug
+[i18n] Missing translation key: ui.playtest.reportKind.feedback
+[i18n] Missing translation key: ui.bugReport.placeholder
+[i18n] Missing translation key: ui.bugReport.deliveryAllSent
+[i18n] Missing translation key: ui.bugReport.send
+[i18n] Missing translation key: ui.pauseMenu.bugReport
+[i18n] Missing translation key: ui.pauseMenu.back
+[i18n] Missing translation key: ui.playtest.reportKind.label
+[i18n] Missing translation key: ui.playtest.reportKind.bug
+[i18n] Missing translation key: ui.playtest.reportKind.feedback
+[i18n] Missing translation key: ui.bugReport.placeholder
+[i18n] Missing translation key: ui.bugReport.deliveryAllSent
+[i18n] Missing translation key: ui.bugReport.send
+
+ ✓ src/features/pauseMenu/PauseMenuPanel.test.ts (5 tests) 22ms
+ ✓ src/features/blockInventory/train/TrainTimetableSection.test.ts (5 tests) 9ms
+ ✓ src/features/notification/notificationMessages.test.ts (14 tests) 2ms
+ ✓ src/features/modeHud/PlacementModeHud.localization.test.ts (6 tests) 14ms
+ ✓ src/bridge/transport/webSocketClient.test.ts (8 tests) 657ms
+ ✓ src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts (6 tests) 54ms
+ ✓ src/shared/i18n/provider/dictionaryRetry.test.ts (6 tests) 7ms
+ ✓ src/bridge/contract/schemas/__tests__/buildMenu.test.ts (10 tests) 10ms
+ ✓ src/bridge/contract/schemas/__tests__/guidValidation.test.ts (22 tests) 25ms
+ ✓ src/features/notification/notificationStore.test.ts (11 tests) 6ms
+ ✓ src/features/blockInventory/details/machine/recipeSelection/MachineRecipeSelectionRow.test.ts (5 tests) 10ms
+ ✓ src/shared/ui/ModeSwitch/index.test.ts (6 tests) 9ms
+ ✓ src/bridge/store/itemMasterStore.test.ts (13 tests) 987ms
+ ✓ src/bridge/store/topicStore.test.ts (6 tests) 4ms
+ ✓ src/bridge/contract/schemas/__tests__/presentation.test.ts (11 tests) 15ms
+ ✓ src/shared/i18n/itemName/useItemName.test.ts (8 tests) 15ms
+ ✓ src/shared/ui/ItemSlot/index.test.ts (10 tests) 27ms
+ ✓ src/features/inventory/blockSlotRestriction.test.ts (8 tests) 4ms
+ ✓ src/bridge/store/fluidMasterStore.test.ts (12 tests) 904ms
+ ✓ src/shared/ui/ProgressArrowGlyph/index.test.ts (11 tests) 6ms
+ ✓ src/app/iconTextOutlineDesign.test.ts (6 tests) 3ms
+ ✓ src/features/recipe/logic/craftLogic.test.ts (9 tests) 4ms
+ ✓ src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts (8 tests) 50ms
+ ✓ src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorSection.test.tsx (11 tests) 13ms
+ ✓ src/app/zLayerTokens.test.ts (6 tests) 2ms
+ ✓ src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts (5 tests) 109ms
+ ✓ src/features/tutorial/KeyControlHintHud.test.ts (4 tests) 7ms
+ ✓ src/features/research/ResearchTreePanel.test.ts (2 tests) 15ms
+ ✓ src/features/blockInventory/BlockInventoryPanel.localization.test.ts (2 tests) 23ms
+ ✓ src/features/buildMenu/views/BuildMenuCategoryList.test.ts (2 tests) 15ms
+ ✓ src/features/blockInventory/details/__tests__/GearToElectricSection.test.ts (13 tests) 8ms
+stderr | src/shared/ui/FluidSlot/FluidSlot.icon.test.ts > FluidSlot icon > 満タンでない液体スロットはフィルとアイコンの両方を描く
+[i18n] Missing translation key: fluid.60000000-0000-4000-8000-000000000001.name
+
+stderr | src/shared/ui/FluidSlot/FluidSlot.icon.test.ts > FluidSlot icon > 液体マスタ未取得の間はフィルを描かない（フォールバック色を使わない）
+[i18n] Missing translation key: fluid.60000000-0000-4000-8000-000000000001.name
+
+stderr | src/shared/ui/FluidSlot/FluidSlot.icon.test.ts > FluidSlot icon > アイコン読み込み失敗後はimgもidテキストも出さずフィルだけ残る
+[i18n] Missing translation key: fluid.60000000-0000-4000-8000-000000000001.name
+
+ ✓ src/shared/ui/FluidSlot/FluidSlot.icon.test.ts (4 tests) 48ms
+ ✓ src/features/blockInventory/details/spaceElevator/__tests__/SpaceElevatorInventory.test.tsx (2 tests) 9ms
+ ✓ src/features/recipe/views/CraftRecipeEntry.test.ts (3 tests) 12ms
+ ✓ src/features/blockInventory/details/detailLogic.test.ts (10 tests) 10ms
+ ✓ src/shared/i18n/provider/dictionaryGeneration.test.ts (1 test) 54ms
+stderr | src/features/settings/SprintModeSelect.test.ts > SprintModeSelect > 復旧記録を表示し選択後のtopicで解除する
+[i18n] Missing translation key: ui.settings.sprintMode
+[i18n] Missing translation key: ui.settings.sprintModeRecovered
+[i18n] Missing translation key: ui.settings.sprintModeToggle
+[i18n] Missing translation key: ui.settings.sprintModeHold
+
+stderr | src/features/settings/SprintModeSelect.test.ts > SprintModeSelect > topicの現在値を選択する
+[i18n] Missing translation key: ui.settings.sprintMode
+[i18n] Missing translation key: ui.settings.sprintModeToggle
+[i18n] Missing translation key: ui.settings.sprintModeHold
+
+stderr | src/features/settings/SprintModeSelect.test.ts > SprintModeSelect > ホールド選択を設定actionへ送る
+[i18n] Missing translation key: ui.settings.sprintMode
+[i18n] Missing translation key: ui.settings.sprintModeToggle
+[i18n] Missing translation key: ui.settings.sprintModeHold
+
+stderr | src/features/settings/SprintModeSelect.test.ts > SprintModeSelect > topicのtoggleからholdへの更新を表示する
+[i18n] Missing translation key: ui.settings.sprintMode
+[i18n] Missing translation key: ui.settings.sprintModeToggle
+[i18n] Missing translation key: ui.settings.sprintModeHold
+
+stderr | src/features/settings/SprintModeSelect.test.ts > SprintModeSelect > holdの初期表示からtoggleを選択できる
+[i18n] Missing translation key: ui.settings.sprintMode
+[i18n] Missing translation key: ui.settings.sprintModeToggle
+[i18n] Missing translation key: ui.settings.sprintModeHold
+
+stderr | src/features/settings/SprintModeSelect.test.ts > SprintModeSelect > topic未着では選択を描かない
+[i18n] Missing translation key: ui.settings.sprintMode
+
+ ✓ src/features/settings/SprintModeSelect.test.ts (6 tests) 27ms
+ ✓ src/features/recipe/views/RecipeContent.test.ts (2 tests) 7ms
+ ✓ src/features/buildMenu/views/BuildMenuSlot.test.ts (4 tests) 19ms
+ ✓ src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts (18 tests) 174ms
+ ✓ src/shared/ui/FluidSlot/FluidSlot.localization.test.ts (3 tests) 33ms
+stderr | src/features/settings/LanguageSelect.test.ts > LanguageSelect > 一覧が届いたら配信順のoptionsを並べる
+[i18n] Missing translation key: ui.settings.language
+
+stderr | src/features/settings/LanguageSelect.test.ts > LanguageSelect > 一覧が届くまでは辞書非依存リテラルの読み込み中を出しModeSwitchを描かない
+[i18n] Missing translation key: ui.settings.language
+
+ ✓ src/features/settings/LanguageSelect.test.ts (2 tests) 9ms
+ ✓ src/shared/treeView/TreeView.test.ts (2 tests) 13ms
+stderr | src/features/keyHint/KeyHintHud.test.ts > KeyHintHud > 辞書に無いキーは声高なplaceholderへ落とす
+[i18n] Missing translation key: ui.keyHint.key.tab
+[i18n] Missing translation key: ui.keyHint.text.inventory
+
+ ✓ src/features/keyHint/KeyHintHud.test.ts (4 tests) 6ms
+ ✓ src/features/blockInventory/details/__tests__/GearToElectricSection.i18n.test.ts (1 test) 13ms
+ ✓ src/features/blockInventory/details/cleanRoom/__tests__/CleanRoomSection.test.ts (4 tests) 10ms
+ ✓ src/features/blockInventory/details/__tests__/beltThroughputLogic.test.ts (7 tests) 20ms
+ ✓ src/shared/i18n/noJsxVisibleLiteral.test.ts (5 tests) 1ms
+ ✓ src/bridge/contract/schemas/__tests__/contentIdentity.test.ts (10 tests) 17ms
+ ✓ src/shared/itemMove/blockSlotPlan.test.ts (10 tests) 2ms
+ ✓ src/bridge/transport/subscriptionManager.test.ts (7 tests) 6ms
+ ✓ src/features/modeHud/modeHudDesign.test.ts (5 tests) 2ms
+ ✓ src/features/blockInventory/details/cleanRoom/__tests__/cleanRoomYieldLogic.test.ts (6 tests) 2ms
+ ✓ src/features/buildMenu/views/BuildMenuDetailSidebar.test.ts (3 tests) 6ms
+ ✓ src/features/recipe/views/MachineRecipeEntry.localization.test.ts (1 test) 7ms
+ ✓ src/features/inventory/InventoryPanel/index.test.ts (2 tests) 6ms
+ ✓ src/features/blockInventory/train/TrainInventoryBody.test.tsx (1 test) 20ms
+ ✓ src/features/blockInventory/details/machine/machineRecipeSelectionLogic.test.ts (5 tests) 3ms
+stderr | src/shared/ui/FluidAmountSlot/index.test.ts > FluidAmountSlot > 液体名が辞書に無ければツールチップのラベルを持たない
+[i18n] Missing translation key: fluid.60000000-0000-4000-8000-000000000001.name
+
+ ✓ src/shared/ui/FluidAmountSlot/index.test.ts (6 tests) 31ms
+ ✓ src/features/recipe/panels/useDragScroll.test.ts (2 tests) 12ms
+ ✓ src/shared/placementTarget/selectableTarget.test.ts (9 tests) 2ms
+ ✓ src/features/commonHud/alwaysOnHudWheel.test.ts (11 tests) 3ms
+ ✓ src/bridge/contract/contentGuidContracts.test.ts (3 tests) 4ms
+ ✓ src/features/research/ResearchNodeCard.test.ts (6 tests) 5ms
+ ✓ src/features/blockInventory/details/__tests__/GearSection.test.ts (3 tests) 4ms
+ ✓ src/bridge/contract/schemas/rocketLaunchPad/index.test.ts (19 tests) 8ms
+ ✓ src/bridge/contract/wireContract.machineUpgrade.test.ts (18 tests) 6ms
+ ✓ src/features/blockInventory/views/__tests__/TrainPlatformInventory.test.tsx (1 test) 48ms
+ ✓ src/bridge/store/languageList/languageListStore.test.ts (4 tests) 330ms
+ ✓ src/features/notification/notificationAnimationDesign.test.ts (7 tests) 1ms
+ ✓ src/features/buildMenu/logic/buildMenuScrollSpy.test.ts (12 tests) 9ms
+ ✓ src/shared/i18n/contentKeys.test.ts (22 tests) 5ms
+ ✓ src/features/blockInventory/details/cleanRoom/__tests__/CleanRoomYieldSection.test.ts (4 tests) 22ms
+ ✓ src/features/blockInventory/details/cleanRoom/__tests__/cleanRoomLogic.test.ts (6 tests) 2ms
+ ✓ src/shared/ownedCounts.test.ts (9 tests) 2ms
+ ✓ e2e/mock-host/detailActions.test.ts (3 tests) 1ms
+stderr | src/features/blockInventory/train/timetableEditLogic.test.ts > timetableEditLogic > 追加・削除・上下移動は新しいdraftを返し元を変えない
+[TrainTimetable] move ignored: stop index outside timetable 0 -1
+[TrainTimetable] move ignored: stop index outside timetable 1 1
+
+ ✓ src/features/blockInventory/train/timetableEditLogic.test.ts (6 tests) 5ms
+ ✓ src/features/blockInventory/details/machine/SelectedRecipeHeader.test.ts (2 tests) 7ms
+ ✓ src/bridge/store/topicEventDelivery.test.ts (4 tests) 12ms
+ ✓ src/bridge/contract/schemas/spaceElevator/index.test.ts (19 tests) 24ms
+ ✓ src/shared/ui/GamePanel/hudVariantDesign.test.ts (3 tests) 2ms
+ ✓ src/shared/treeView/viewport/viewport.test.ts (7 tests) 2ms
+ ✓ src/features/inventory/EquipmentPanel/equipmentLogic.test.ts (9 tests) 4ms
+ ✓ src/shared/tutorialAnchor/anchorIds.test.ts (4 tests) 3ms
+ ✓ src/features/eventLanguageGate/useLanguageSelectionAnswer.test.ts (1 test) 18ms
+ ✓ src/shared/tutorialAnchor/resolveAnchor.test.ts (4 tests) 2ms
+ ✓ src/features/blockInventory/details/machineInputStall/__tests__/MachineInputStallSection.test.ts (3 tests) 4ms
+ ✓ src/shared/itemMove/planDirectMoves.test.ts (7 tests) 2ms
+ ✓ src/features/pauseMenu/BugReportFormTests/hostSubmissionLock.test.ts (1 test) 17ms
+ ✓ src/features/recipe/logic/recipeSlotLayout.test.ts (3 tests) 2ms
+ ✓ src/shared/ui/SlotFrame/index.test.ts (2 tests) 7ms
+ ✓ src/bridge/contract/wireContract.research.test.ts (3 tests) 7ms
+ ✓ e2e/mock-host/tests/spaceElevatorConnect.test.ts (3 tests) 3ms
+ ✓ src/features/buildMenu/sessionState/buildMenuSessionState.test.ts (4 tests) 11ms
+ ✓ src/features/notification/notificationLayering.test.ts (3 tests) 1ms
+ ✓ src/shared/ui/IconButton/index.test.ts (2 tests) 4ms
+ ❯ e2e/mock-host/tests/httpHandler.test.ts (4 tests | 1 failed) 57ms
+   × icon endpoints > アイテムとブロックのアイコンURLが同じ404応答になる 55ms
+     → expected [ 200, 200 ] to deeply equal [ 404, 404 ]
+ ✓ src/features/pauseMenu/BugReportFormTests/productionSendingLabels.test.ts (8 tests) 70ms
+ ✓ src/features/blockInventory/registry/blockComponentRegistry.test.ts (15 tests) 8ms
+ ✓ src/bridge/contract/wireContract.trainTimetable.test.ts (2 tests) 5ms
+ ✓ src/features/recipe/logic/holdCraftLogic.test.ts (9 tests) 3ms
+ ✓ src/features/modal/modalLogic.test.ts (8 tests) 4ms
+ ✓ src/features/blockInventory/details/rocket/rocketLaunchPadLogic.test.ts (10 tests) 2ms
+ ✓ src/shared/ui/slotAmountFormat.test.ts (7 tests) 15ms
+ ✓ src/shared/ui/useSlotMouse.test.ts (2 tests) 2ms
+ ✓ src/bridge/contract/actionNames.test.ts (2 tests) 4ms
+ ✓ src/features/blockInventory/blockInventoryKeydown.test.ts (4 tests) 3ms
+ ✓ src/shared/ui/BarSeries/index.test.ts (2 tests) 5ms
+ ✓ src/features/blockInventory/details/machine/ModuleSlotStackLimitText.test.ts (2 tests) 9ms
+ ✓ src/bridge/contract/eventLanguageGateContract.test.ts (2 tests) 6ms
+ ✓ src/features/recipe/logic/levelInheritanceBadge.test.ts (3 tests) 1ms
+ ✓ src/app/App.architecture.test.ts (2 tests) 3ms
+ ✓ src/shared/pointerGesture/dragThreshold.test.ts (5 tests) 3ms
+ ✓ src/bridge/transport/httpEndpoints.test.ts (6 tests) 2ms
+ ✓ src/features/skit/interaction.test.ts (5 tests) 4ms
+ ✓ src/shared/tutorialAnchor/tutorialAnchor.test.ts (3 tests) 3ms
+ ✓ src/shared/treeView/treeGeometry.test.ts (3 tests) 3ms
+ ✓ src/features/hotbar/hotbarDnd.test.ts (3 tests) 1ms
+ ✓ src/shared/ui/GaugeBar/index.test.ts (4 tests) 3ms
+ ✓ src/features/blockInventory/filterSplitterLogic.test.ts (4 tests) 2ms
+ ✓ src/features/blockInventory/details/LackHighlightText/index.test.ts (2 tests) 9ms
+ ✓ src/features/blockInventory/details/blockInfoFetch/__tests__/blockInfoFetchStateLogic.test.ts (1 test) 1ms
+ ✓ src/features/toast/toastStore.test.ts (2 tests) 2ms
+ ✓ src/shared/ui/BlockSlot/index.test.ts (3 tests) 15ms
+ ✓ src/features/inventory/splitDrag.test.ts (1 test) 1ms
+ ✓ src/shared/ui/iconEndpointArchitecture.test.ts (3 tests) 1ms
+ ✓ src/shared/ui/FluidSlot/fluidLogic.test.ts (3 tests) 1ms
+ ✓ src/shared/clamp01.test.ts (4 tests) 2ms
+ ✓ src/features/research/researchAllocation.test.ts (2 tests) 3ms
+ ✓ src/features/blockInventory/details/machineInputStall/__tests__/machineInputStallLogic.test.ts (2 tests) 1ms
+ ✓ src/shared/tooltip/tooltipPosition.test.ts (1 test) 2ms
+ ✓ src/shared/uiState/activeLayer.test.ts (17 tests) 10ms
+ ✓ src/bridge/playtest/domQueryResponder.test.ts (12 tests) 74ms
+ ✓ src/features/blockInventory/details/__tests__/BeltThroughputSection.test.ts (3 tests) 10ms
+ ✓ src/features/blockInventory/views/__tests__/SectionStackView.test.tsx (18 tests) 27ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  e2e/mock-host/tests/httpHandler.test.ts > icon endpoints > アイテムとブロックのアイコンURLが同じ404応答になる
+AssertionError: expected [ 200, 200 ] to deeply equal [ 404, 404 ]
+
+- Expected
++ Received
+
+  Array [
+-   404,
+-   404,
++   200,
++   200,
+  ]
+
+ ❯ e2e/mock-host/tests/httpHandler.test.ts:42:48
+     40|     );
+     41| 
+     42|     expect(responses.map((res) => res.status)).toEqual([404, 404]);
+       |                                                ^
+     43|   });
+     44| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 165 passed (166)
+      Tests  1 failed | 1384 passed (1385)
+   Start at  23:56:15
+   Duration  8.33s (transform 2.93s, setup 0ms, collect 27.71s, tests 6.38s, environment 1.82s, prepare 6.83s)
+
+JSON report written to /Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated/.superpowers/sdd/task31-r3-f01-webqa-evidence/results/vitest.json
