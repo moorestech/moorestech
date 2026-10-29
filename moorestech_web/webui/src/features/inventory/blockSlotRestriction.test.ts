@@ -13,9 +13,9 @@ const spaceElevator = (): BlockInventoryData => BlockInventoryOpenSchema.parse(l
 const PAYLOAD_ITEM = 4;
 const SATELLITE_ITEM = 5;
 
-// Shift+クリックで持物slot0の全量を配分したときの宛先スロット列
-// Destination slots planned for a Shift-click allocating main slot 0
-function shiftDestinations(block: BlockInventoryData, itemId: number, count: number): number[] {
+// Shift+クリックで持物slot0の全量を配分したときの帰結
+// Outcome planned for a Shift-click allocating main slot 0
+function shiftPlan(block: BlockInventoryData, itemId: number, count: number) {
   if (!block.open) throw new Error("fixture must be open");
   const ctx: PlayerSlotContext = {
     inventory: { mainSlots: [{ itemId, count }], grab: { itemId: 0, count: 0 }, equipment: [], selectedEquipment: 0, equipmentSelectionConfirmationRevision: 0 },
@@ -23,7 +23,13 @@ function shiftDestinations(block: BlockInventoryData, itemId: number, count: num
     blockItemSlots: block.itemSlots,
     blockSlotRestriction: resolveBlockSlotRestriction(block, itemId),
   };
-  const plan = planPlayerLeftClick({ area: "main", slot: 0 }, { itemId, count }, true, ctx);
+  return planPlayerLeftClick({ area: "main", slot: 0 }, { itemId, count }, true, ctx);
+}
+
+// 配分の宛先スロット列
+// Destination slots of the allocation
+function shiftDestinations(block: BlockInventoryData, itemId: number, count: number): number[] {
+  const plan = shiftPlan(block, itemId, count);
   if (plan.kind !== "actions") throw new Error("shift click must plan actions");
   return plan.actions.map((action) => {
     if (action.type !== "block_inventory.move_item") throw new Error(`unexpected ${action.type}`);
@@ -36,8 +42,8 @@ describe("発射台のShift配分", () => {
     expect(shiftDestinations(rocketPad(), PAYLOAD_ITEM, 10)).toEqual([1]);
   });
 
-  it("どの枠も受け付けないアイテムは送らない", () => {
-    expect(shiftDestinations(rocketPad(), 99, 10)).toEqual([]);
+  it("どの枠も受け付けないアイテムは送らず拒否として返す", () => {
+    expect(shiftPlan(rocketPad(), 99, 10)).toEqual({ kind: "noAcceptingBlockSlot" });
   });
 
   it("受け付け情報が未着なら無制限へ倒さず送らない", () => {
@@ -54,7 +60,7 @@ describe("宇宙エレベーターのShift配分", () => {
     if (!block.open) throw new Error("fixture must be open");
     const withSlots = { ...block, itemSlots: [{ itemId: 0, count: 0 }, { itemId: 0, count: 0 }, { itemId: 0, count: 0 }] };
     expect(shiftDestinations(withSlots, SATELLITE_ITEM, 3)).toEqual([0]);
-    expect(shiftDestinations(withSlots, 99, 3)).toEqual([]);
+    expect(shiftPlan(withSlots, 99, 3)).toEqual({ kind: "noAcceptingBlockSlot" });
   });
 
   it("受け付け情報が未着なら送らない", () => {

@@ -7,6 +7,7 @@ import {
   planPlayerRightClick,
   type PlayerSlotContext,
 } from "@/shared/itemMove";
+import { useNotificationStore } from "@/features/notification";
 import { resolveBlockSlotRestriction } from "./blockSlotRestriction";
 import { SplitDragSession } from "./splitDrag";
 
@@ -42,6 +43,7 @@ export const slotActions: SlotActions = {
     };
     const plan = planPlayerLeftClick(ref, slot, shiftKey, ctx);
     if (plan.kind === "beginSplitDrag") { splitDrag.begin(ref); return; }
+    if (plan.kind === "noAcceptingBlockSlot") { notifyNoAcceptingBlockSlot(slot.itemId, block?.open ? block.identifier : null); return; }
     dispatchPlanned(plan.actions);
   },
 
@@ -75,6 +77,13 @@ export const slotActions: SlotActions = {
     dispatchPlanned(planPlayerDoubleClick(ref));
   },
 };
+
+// 受け付ける枠が無いShiftは送らずに拒否する。サーバーが同じ拒否で出す通知と同じ文言をユーザーへ出し、開発者へは理由をログで残す
+// A Shift with no accepting slot is refused without sending: users get the same notice the server raises for this refusal, developers get the reason in the log
+function notifyNoAcceptingBlockSlot(itemId: number, blockIdentifier: string | null) {
+  console.warn(`[inventory.shift_move] not sent: no slot of block ${blockIdentifier ?? "(closed)"} accepts item ${itemId} (unaccepted item or bindings not yet received)`);
+  useNotificationStore.getState().addNotification({ category: "operationDenied", messageId: "denied.inventoryMoveSlotRejected", messageParams: [], itemId: null });
+}
 
 // 枠数が縮んだ直後の stale クリックは対象が存在しないため undefined を返し、呼び出し側が無操作で降りる
 // A stale click right after the slot count shrinks has no target, so return undefined and let callers bail out
