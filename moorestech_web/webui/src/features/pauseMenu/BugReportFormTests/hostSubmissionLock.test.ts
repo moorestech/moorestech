@@ -14,7 +14,7 @@ it("応答待ちが終了してもホスト送信中は感想の種別と本文�
   // ホスト処理はローカル応答待ちより長く続く
   // Host processing outlives the local response wait
   act(() => { void sendButton(renderer).props.onClick(); });
-  act(() => renderer.update(createElement(BugReportForm, { delivery: { kind: "allSent" }, status: { kind: "submitting", missing: [] }, draft })));
+  act(() => renderer.update(createElement(BugReportForm, { delivery: { kind: "allSent" }, exportStatus: { kind: "idle" }, status: { kind: "submitting", missing: [] }, draft })));
   await act(async () => { resolveSubmit(false); });
   expect(modeSwitch(renderer).props.disabled).toBe(true);
   expect(renderer.root.findByProps({ "data-testid": "bug-report-description" }).props.disabled).toBe(true);
@@ -25,7 +25,7 @@ it("応答待ちが終了してもホスト送信中は感想の種別と本文�
 
   // ホスト処理完了で書きかけを編集できる
   // Editing resumes when host processing finishes
-  act(() => renderer.update(createElement(BugReportForm, { delivery: { kind: "allSent" }, status: { kind: "ready", missing: [] }, draft })));
+  act(() => renderer.update(createElement(BugReportForm, { delivery: { kind: "allSent" }, exportStatus: { kind: "idle" }, status: { kind: "ready", missing: [] }, draft })));
   expect(modeSwitch(renderer).props.disabled).toBe(false);
   expect(renderer.root.findByProps({ "data-testid": "bug-report-description" }).props.disabled).toBe(false);
   expect(sendButton(renderer).props.disabled).toBe(false);

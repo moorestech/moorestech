@@ -26,6 +26,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
+using Client.PlaytestReceiver.Recovery;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
@@ -195,6 +196,8 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
             hub.RegisterAction(new PauseMenuShowPageActionHandler(resolver.Resolve<PauseMenuStateService>()));
             hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportSubmitter>(), resolver.Resolve<PauseMenuStateService>()));
+            hub.RegisterAction(new BugReportResendFailedActionHandler(resolver.Resolve<PlaytestOutboxRecovery>()));
+            hub.RegisterAction(new BugReportExportUnsentActionHandler(resolver.Resolve<PlaytestOutboxRecovery>()));
         }
     }
 }
