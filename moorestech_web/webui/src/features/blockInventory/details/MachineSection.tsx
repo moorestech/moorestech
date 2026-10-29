@@ -3,6 +3,9 @@ import { Group, ScrollArea, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
 import MachineStateRow from "./rows/MachineStateRow";
+import LackHighlightText from "./LackHighlightText";
+import { machineWaitReasonKey } from "./detailLogic";
+import { useI18n } from "@/shared/i18n";
 import styles from "../style.module.css";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionList from "./machine/recipeSelection/MachineRecipeSelectionList";
@@ -17,6 +20,7 @@ type Props = { data: BlockInventoryOpen; machine: MachineDetailData; fillsPanelH
 
 export default function MachineSection({ data, machine, fillsPanelHeight, leadingContent }: Props) {
   const machineRecipes = useTopic(Topics.machineRecipes);
+  const { t } = useI18n();
   // 選択モードで最後に要求したレシピGUIDを覚える。サーバーの選択がこれと一致した時点で閉じるので、
   // 同一レシピを選び直しても閉じられ、拒否された間は選択モードに留まる（C14）
   // Remember the recipe GUID last requested in selection mode; the mode closes once the server's selection
@@ -32,11 +36,15 @@ export default function MachineSection({ data, machine, fillsPanelHeight, leadin
   // 歯車駆動の不足赤は網の停止理由行が担うため、充足率の赤は電力駆動だけに残す（ADR 0056）
   // Gear-driven shortage red belongs to the network stop-reason row, so only electric drive keeps the rate red (ADR 0056)
   const highlightPowerShortage = data.gear === undefined;
+  // 出力空き不足の理由は状態ラベルの隣に添え、どちらのモードでも見えるフッタに置く
+  // The output-space reason sits beside the state label in the footer so both modes show it
+  const waitReasonKey = machineWaitReasonKey(machine.outputSpaceShort);
   // 状態ラベル+充足率を共通フッタに表示
   // The state label and satisfaction rate stay visible in both modes as the shared footer (ADR 0010)
   const footer = (
     <Group justify="center" gap="xs">
       <MachineStateRow currentState={machine.currentState} currentPower={machine.currentPower} requestPower={machine.requestPower} highlightPowerShortage={highlightPowerShortage} stateTestId="machine-state-label" powerRateTestId="machine-power-rate" />
+      {waitReasonKey === null ? null : <LackHighlightText insufficient size="sm" testId="machine-wait-reason">{t(waitReasonKey)}</LackHighlightText>}
     </Group>
   );
 

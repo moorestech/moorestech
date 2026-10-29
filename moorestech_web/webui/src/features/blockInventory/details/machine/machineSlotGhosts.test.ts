@@ -15,6 +15,7 @@ const machine: MachineDetailData = {
   currentState: "idle",
   currentPower: 0,
   requestPower: 0,
+  outputSpaceShort: false,
   slotLayout: layout,
   slotBindings: [
     { slot: 0, itemId: 1, count: 2, acceptedItemIds: [1, 11, 12] },

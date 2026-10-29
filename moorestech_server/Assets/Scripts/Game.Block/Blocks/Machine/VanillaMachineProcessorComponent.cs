@@ -36,6 +36,7 @@ namespace Game.Block.Blocks.Machine
         private readonly ProcessingMachineProcessState _processingState;
         private readonly IdleMachineProcessState _idleState;
         private ProcessState _lastState = ProcessState.Idle;
+        private bool _lastOutputSpaceShort;
         // 新規作成
         // For new creation
         public VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
@@ -79,7 +80,7 @@ namespace Game.Block.Blocks.Machine
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            return MachineStateDetailFactory.Create(_context, _processingState, CurrentState, _lastState);
+            return MachineStateDetailFactory.Create(_context, _processingState, _idleState, CurrentState, _lastState);
         }
         public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
         public bool TryGetSelectedRecipe(out MachineRecipeMasterElement recipe) => (recipe = _context.SelectedRecipe) != null;
@@ -106,9 +107,10 @@ namespace Game.Block.Blocks.Machine
             var result = MachineRecipeSelectionUtil.ApplyRecipeChange(_context, _processingState, recipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe), refundOverflowInventory);
             if (result != MachineRecipeSelectionResult.Success) return result;
             if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
-            // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
-            // The state was rewritten, so re-derive the published denominator on the new state before notifying
+            // 状態を書き換えたので、公開中の分母と出力空き不足を新しい選択で取り直してから通知する（旧レシピの理由を残さない）
+            // The state was rewritten, so re-derive the published denominator and output-space reason under the new selection before notifying
             _context.RelatchPublishedRequestPower(CurrentState);
+            _idleState.RefreshOutputSpaceWait();
             _changeState.OnNext(Unit.Default);
             return MachineRecipeSelectionResult.Success;
         }
@@ -141,12 +143,14 @@ namespace Game.Block.Blocks.Machine
                 CurrentState = nextState;
                 _stateHandlers[nextState].OnEnter();
             }
-            // ステート変化時か処理中はイベントを発火させる
-            // Fire the event on a state change or while processing
-            if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
+            // ステート変化時・出力空き不足の理由が変わった時・処理中はイベントを発火させる
+            // Fire the event on a state change, an output-space-short reason change, or while processing
+            var outputSpaceShort = MachineStateDetailFactory.IsOutputSpaceShort(CurrentState, _idleState);
+            if (_lastState != CurrentState || _lastOutputSpaceShort != outputSpaceShort || CurrentState == ProcessState.Processing)
             {
                 _changeState.OnNext(Unit.Default);
                 _lastState = CurrentState;
+                _lastOutputSpaceShort = outputSpaceShort;
             }
         }
         public bool IsDestroy { get; private set; }

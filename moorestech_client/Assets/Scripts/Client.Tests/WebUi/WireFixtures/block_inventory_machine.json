@@ -23,6 +23,7 @@
     "currentState": "processing",
     "currentPower": 80.0,
     "requestPower": 100.0,
+    "outputSpaceShort": false,
     "slotLayout": { "input": 2, "output": 1, "module": 1, "inputTank": 1 },
     "slotBindings": [ { "slot": 0, "itemId": 3, "count": 2, "acceptedItemIds": [ 3 ] }, { "slot": 2, "itemId": 7, "count": 3, "acceptedItemIds": [ 7 ] } ],
     "tankBindings": [ { "tank": 0, "fluidGuid": "cccccccc-dddd-4eee-8fff-aaaaaaaaaaaa", "amount": 25.5 } ]

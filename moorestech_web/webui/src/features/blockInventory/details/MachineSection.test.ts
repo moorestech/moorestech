@@ -48,10 +48,15 @@ import MachineSection from "./MachineSection";
 function machine(selectedRecipeGuid: string, machineBlockGuid: string, currentState: MachineDetailData["currentState"] = "idle"): MachineDetailData {
   return {
     recipeGuid: emptyGuid, selectedRecipeGuid, blockGuid: machineBlockGuid, recipeTime: 7,
-    outputItems: [], currentState, currentPower: 0, requestPower: 0,
+    outputItems: [], currentState, currentPower: 0, requestPower: 0, outputSpaceShort: false,
     slotLayout: { input: 2, output: 1, module: 0, inputTank: 0 },
     slotBindings: [], tankBindings: [],
   };
+}
+// 描画済みの不足トーン文言を testId で拾う（コンポーネント層とホスト層の二重一致を避ける）
+// Pick rendered lack-tone texts by testId, avoiding the double match of component and host layers
+function lackTexts(tree: ReturnType<typeof create>, testId: string) {
+  return tree.root.findAllByType("mock-lack" as never).filter((node) => node.props.testId === testId);
 }
 const data = { open: true, itemSlots: [], fluidSlots: [], progress: null } as unknown as BlockInventoryOpen;
 
@@ -131,5 +136,23 @@ describe("MachineSection", () => {
     const small = create(createElement(MachineSection, { data, leadingContent: null, fillsPanelHeight: false, machine: machine(recipeGuid, blockGuid) }));
     expect(small.root.findAllByType("mock-scroll-area" as never)).toHaveLength(0);
     expect(small.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
+  });
+
+  it("出力空き不足の機械は状態ラベルを待機中のままにし、両モードのフッタで理由を不足トーンで出す（F01）", () => {
+    const blocked = { ...machine(recipeGuid, blockGuid), outputSpaceShort: true };
+    const tree = create(createElement(MachineSection, { data, leadingContent: null, fillsPanelHeight: true, machine: blocked }));
+    const reason = lackTexts(tree, "machine-wait-reason");
+    expect(reason).toHaveLength(1);
+    expect(reason[0].props.insufficient).toBe(true);
+    expect(reason[0].props.children).toBe("ui.blockInventory.machineWaitOutputSpaceShort");
+    expect(lackTexts(tree, "machine-state-label")[0].props.children).toBe("ui.blockInventory.machineStateIdle");
+    const selecting = create(createElement(MachineSection, { data, leadingContent: null, fillsPanelHeight: true, machine: { ...blocked, selectedRecipeGuid: emptyGuid } }));
+    expect(selecting.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
+    expect(lackTexts(selecting, "machine-wait-reason")).toHaveLength(1);
+  });
+
+  it("出力空き不足でない機械は理由を出さない（入力切れの待機と区別するため理由は空き不足のときだけ）", () => {
+    const tree = create(createElement(MachineSection, { data, leadingContent: null, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid) }));
+    expect(lackTexts(tree, "machine-wait-reason")).toHaveLength(0);
   });
 });

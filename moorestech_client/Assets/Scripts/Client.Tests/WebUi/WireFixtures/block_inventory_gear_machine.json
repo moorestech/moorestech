@@ -16,6 +16,7 @@
     "currentState": "idle",
     "currentPower": 0.0,
     "requestPower": 0.0,
+    "outputSpaceShort": true,
     "slotLayout": { "input": 1, "output": 1, "module": 0, "inputTank": 0 },
     "slotBindings": [],
     "tankBindings": []

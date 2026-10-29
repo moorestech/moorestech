@@ -66,6 +66,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                     CurrentState = ToCamelCase(common.CurrentStateType),
                     CurrentPower = common.CurrentPower,
                     RequestPower = common.RequestPower,
+                    OutputSpaceShort = machineState.IsOutputSpaceShort,
                     SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount, InputTank = machineParam.InputTankCount },
                     SlotBindings = MachineSlotBindingDtoBuilder.BuildSlotBindings(selectedRecipe, machineParam),
                     TankBindings = MachineSlotBindingDtoBuilder.BuildTankBindings(selectedRecipe, machineParam),

@@ -57,6 +57,9 @@ export const MachineDetailDataSchema = z.object({
   currentState: MachineProcessStateSchema,
   currentPower: z.number(),
   requestPower: z.number(),
+  // 出力先の空き不足で待っているか（公開状態はidleのまま、理由だけを別に持つ）
+  // Whether the machine waits on output space (the published state stays idle; only the reason is carried)
+  outputSpaceShort: z.boolean(),
   slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number(), inputTank: z.number() }),
   // 選択レシピの束縛はホストが配信する正本。Web側で束縛規則を再導出しない
   // The selected recipe's binding is published by the host as the single source; the Web side never re-derives the rule

@@ -20,6 +20,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public string CurrentState;
         public float CurrentPower;
         public float RequestPower;
+
+        // 出力先の空き不足で待っているか。公開状態ラベル（idle）とは別に理由だけを渡す
+        // Whether the machine waits on output space; carries only the reason, separate from the published state label (idle)
+        public bool OutputSpaceShort;
         public SlotLayoutDto SlotLayout;
 
         // 選択レシピが束縛するスロット・タンクの正本。Web側は束縛規則を再導出せずこれを読むだけにする

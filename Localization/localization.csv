@@ -42,6 +42,7 @@ ui.blockInventory.gearToElectricMeasurementTiming,Generation state and supplied 
 ui.blockInventory.gearToElectricSuppliedPower,Supplied power {current} / max {max},Supplied power {current} / max {max},供給電力 {current} / 最大 {max},Gelieferte Leistung {current} / max. {max},공급 전력 {current} / 최대 {max}
 ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrieb,가동 중
 ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨
+ui.blockInventory.machineWaitOutputSpaceShort,Not enough output space,Not enough output space,出力先の空きが不足しています,Nicht genug Platz in der Ausgabe,출력 공간이 부족합니다
 ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen,적재
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し,Entladen,하역
 ui.blockInventory.rocketMaterials,Materials,Materials,資材,Materialien,자재

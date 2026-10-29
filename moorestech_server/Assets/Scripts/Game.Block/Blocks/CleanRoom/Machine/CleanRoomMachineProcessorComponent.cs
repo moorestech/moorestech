@@ -48,6 +48,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 
         private readonly HaltedMachineProcessState _haltedState;
         private ProcessState _lastState = ProcessState.Idle;
+        private bool _lastOutputSpaceShort;
 
         public CleanRoomMachineProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
@@ -77,7 +78,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            return MachineStateDetailFactory.Create(_context, _processingState, CurrentState, _lastState);
+            return MachineStateDetailFactory.Create(_context, _processingState, _idleState, CurrentState, _lastState);
         }
 
         public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
@@ -89,11 +90,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 
             var validation = MachineRecipeSelectionUtil.ValidateSelection(_context.InputInventory, recipe);
             if (validation != MachineRecipeSelectionResult.Success) return validation;
-
             // 同一レシピの再設定はジョブを中断しないno-op
             // Re-selecting the same recipe is a no-op that never cancels the job
             if (recipe.MachineRecipeGuid == SelectedRecipeGuid) return MachineRecipeSelectionResult.Success;
-
             return ChangeSelection(recipe, refundOverflowInventory);
         }
 
@@ -141,12 +140,14 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _context.LatchTickPower(CurrentState);
             if (!_yieldDrawDecorator.CurrentEffect.CanOperate && CurrentState != ProcessState.Halted) ForceHaltedWithoutCompletingJob();
             else UpdateCurrentState();
-            // ステート変化時か処理中はイベントを発火させる
-            // Fire the event on a state change or while processing
-            if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
+            // ステート変化時・出力空き不足の理由が変わった時・処理中はイベントを発火させる
+            // Fire the event on a state change, an output-space-short reason change, or while processing
+            var outputSpaceShort = MachineStateDetailFactory.IsOutputSpaceShort(CurrentState, _idleState);
+            if (_lastState != CurrentState || _lastOutputSpaceShort != outputSpaceShort || CurrentState == ProcessState.Processing)
             {
                 _changeState.OnNext(Unit.Default);
                 _lastState = CurrentState;
+                _lastOutputSpaceShort = outputSpaceShort;
             }
             #region Internal
             void ForceHaltedWithoutCompletingJob()
@@ -184,14 +185,13 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // Delegate the shared flow (job refund, rebind, unbound-slot refund) to the util
             var result = MachineRecipeSelectionUtil.ApplyRecipeChange(_context, _processingState, recipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe), refundOverflowInventory);
             if (result != MachineRecipeSelectionResult.Success) return result;
-
             // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される
             // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions
             if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
-
-            // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
-            // The state was rewritten, so re-derive the published denominator on the new state before notifying
+            // 状態を書き換えたので、公開中の分母と出力空き不足を新しい選択で取り直してから通知する（旧レシピの理由を残さない）
+            // The state was rewritten, so re-derive the published denominator and output-space reason under the new selection before notifying
             _context.RelatchPublishedRequestPower(CurrentState);
+            _idleState.RefreshOutputSpaceWait();
             _changeState.OnNext(Unit.Default);
             return MachineRecipeSelectionResult.Success;
         }

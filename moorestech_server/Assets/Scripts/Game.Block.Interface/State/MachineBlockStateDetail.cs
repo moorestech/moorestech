@@ -25,16 +25,23 @@ namespace Game.Block.Interface.State
         /// </summary>
         [Key(2)] public string SelectedRecipeGuid;
 
-        public MachineBlockStateDetail(float processingRate, Guid machineRecipeGuid, Guid selectedRecipeGuid)
+        /// <summary>
+        ///    出力先の空きが足りず次の加工を始められない・完了を払い出せないか
+        ///    Whether the machine waits because the output side lacks space to start or pay out a job
+        /// </summary>
+        [Key(3)] public bool IsOutputSpaceShort;
+
+        public MachineBlockStateDetail(float processingRate, Guid machineRecipeGuid, Guid selectedRecipeGuid, bool isOutputSpaceShort)
         {
+            IsOutputSpaceShort = isOutputSpaceShort;
             ProcessingRate = processingRate;
             MachineRecipeGuid = machineRecipeGuid.ToString();
             SelectedRecipeGuid = selectedRecipeGuid.ToString();
         }
 
-        public static BlockStateDetail CreateState(float processingRate, Guid machineRecipeGuid, Guid selectedRecipeGuid)
+        public static BlockStateDetail CreateState(float processingRate, Guid machineRecipeGuid, Guid selectedRecipeGuid, bool isOutputSpaceShort)
         {
-            var stateDetail = new MachineBlockStateDetail(processingRate, machineRecipeGuid, selectedRecipeGuid);
+            var stateDetail = new MachineBlockStateDetail(processingRate, machineRecipeGuid, selectedRecipeGuid, isOutputSpaceShort);
             return new BlockStateDetail(BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
         }
 

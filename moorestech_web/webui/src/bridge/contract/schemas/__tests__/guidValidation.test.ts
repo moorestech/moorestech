@@ -26,6 +26,7 @@ const machineDetail = {
   currentState: "processing",
   currentPower: 10,
   requestPower: 20,
+  outputSpaceShort: false,
   slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
 };
 

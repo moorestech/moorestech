@@ -1,4 +1,5 @@
 using Game.Block.Blocks.Machine.State.Util;
+using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.State
 {
@@ -19,11 +20,31 @@ namespace Game.Block.Blocks.Machine.State
             _processingState = processingState;
         }
 
-        internal void RestorePending(MachineRealization realization) => _pendingRealization = realization;
+        // 直近の判定で、確定済み出力が出力先に入りきらず待っているか（出力空き不足の表示理由）
+        // Whether the latest check found the realized outputs not fitting the output side (the output-space-short display reason)
+        public bool IsWaitingForOutputSpace { get; private set; }
+
+        internal void RestorePending(MachineRealization realization)
+        {
+            _pendingRealization = realization;
+            // 復元直後の初期スナップショットが次tickを待たずに理由を出せるよう、確定済み結果で判定し直す
+            // Re-check with the restored result so the first snapshot after loading carries the reason without waiting a tick
+            RefreshOutputSpaceWait();
+        }
 
         public ProcessState State => ProcessState.Idle;
-        public void OnEnter() { }
+        public void OnEnter() => RefreshOutputSpaceWait();
         public void OnExit() { }
+
+        // tick外で状態が書き換わった後（入場・復元・レシピ変更）に、確定済み結果のまま出力空きだけを判定し直す。抽選・確定はしない
+        // After an off-tick state rewrite (enter, restore, recipe change), re-check output space against the held result only; never draws or realizes
+        internal void RefreshOutputSpaceWait()
+        {
+            var recipe = _context.SelectedRecipe;
+            IsWaitingForOutputSpace = _pendingRealization != null && recipe == _pendingRealization.Recipe
+                && _context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel) && inheritedLevel == _pendingRealization.InheritedLevel
+                && !CanStorePending(recipe);
+        }
 
         public bool TryGetPendingRealization(out MachineRealization realization)
         {
@@ -38,7 +59,11 @@ namespace Game.Block.Blocks.Machine.State
             var recipe = _context.SelectedRecipe;
             // 入力が欠けても確定済みの抽選は捨てない（出し入れで引き直せないように）。レシピと継承レベルの組が変われば下で確定し直す
             // Keep the fixed draw when inputs go missing (so taking items out and back cannot re-roll); a changed recipe/level pair is realized anew below
-            if (recipe == null || !_context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel)) return ProcessState.Idle;
+            if (recipe == null || !_context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel))
+            {
+                IsWaitingForOutputSpace = false;
+                return ProcessState.Idle;
+            }
 
             // レシピか継承レベルが変わったときだけ新規に確定する。同じ組で待機している間は既存の確定結果を使い回す
             // Realize anew only when the recipe or inherited level changed; while waiting on the same pair, reuse the result
@@ -47,16 +72,21 @@ namespace Game.Block.Blocks.Machine.State
                 _pendingRealization = _context.CreateRealization(recipe, inheritedLevel);
             }
 
-            if (!_context.OutputInventory.CanStoreOutputs(_pendingRealization.Outputs, MachineOutputFactoryUtil.CreateFluidOutputs(recipe)))
-            {
-                return ProcessState.Idle;
-            }
+            // 入りきらなければ確定結果を保持したまま待ち、その理由を表示へ出す
+            // When it does not fit, keep the realized result and publish the wait reason
+            IsWaitingForOutputSpace = !CanStorePending(recipe);
+            if (IsWaitingForOutputSpace) return ProcessState.Idle;
 
             // 確定時の加工時間ごと ProcessingState へ渡して遷移する
             // Hand the job with its realized processing time to ProcessingState and transition
             _processingState.SetProcessing(recipe, _pendingRealization.Outputs, inheritedLevel, _pendingRealization.TotalTicks, _pendingRealization.PowerMultiplier);
             _pendingRealization = null;
             return ProcessState.Processing;
+        }
+
+        private bool CanStorePending(MachineRecipeMasterElement recipe)
+        {
+            return _context.OutputInventory.CanStoreOutputs(_pendingRealization.Outputs, MachineOutputFactoryUtil.CreateFluidOutputs(recipe));
         }
     }
 }

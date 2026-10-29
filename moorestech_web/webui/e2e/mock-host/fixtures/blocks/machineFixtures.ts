@@ -30,6 +30,7 @@ export const blockMachine = {
     currentState: "processing",
     currentPower: 80.0,
     requestPower: 100.0,
+    outputSpaceShort: false,
     slotLayout: { input: 2, output: 1, module: 1, inputTank: 1 },
     // 選択中(bbbbbbbb)のレシピ束縛。ホストが配信する正本と同じ形をmockでも持たせる
     // Binding of the selected recipe (bbbbbbbb); the mock carries the same shape the host publishes
@@ -61,6 +62,7 @@ export const blockGearMachine = {
     currentState: "processing",
     currentPower: 37.5,
     requestPower: 60.0,
+    outputSpaceShort: false,
     slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
     slotBindings: [],
     tankBindings: [],
