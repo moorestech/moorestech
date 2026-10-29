@@ -13,7 +13,7 @@ export const RocketLaunchPadDataSchema = z.object({
   materialSlots: SlotIndexListSchema,
   payloadSlots: SlotIndexListSchema,
   outputSlots: SlotIndexListSchema,
-  // 資材・積荷の各入れ口が受け付けるアイテム。Shift配分はこれで宛先を絞る
+  // 各入れ口の受け付けアイテム
   // Items accepted by each material/payload inlet; Shift allocation narrows its destinations with these
   slotBindings: z.array(InputSlotBindingSchema),
 }).strict().superRefine((data, ctx) => refineBindingsCoverInputSlots(data.slotBindings, [...data.materialSlots, ...data.payloadSlots], ctx));

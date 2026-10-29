@@ -171,17 +171,10 @@ namespace Client.WebUiHost.Game
 #endif
             LocalizationActions.Register(hub);
             SettingsActions.Register(hub);
-            hub.RegisterAction(new MoveItemActionHandler(controller));
-            hub.RegisterAction(new SplitGrabActionHandler(controller));
-            hub.RegisterAction(new SplitDragActionHandler(controller));
-            hub.RegisterAction(new CollectActionHandler(controller));
-            hub.RegisterAction(new SortInventoryActionHandler(controller));
+            InventoryWebUiActionRegistration.Register(hub, controller, subInventoryState);
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
-            hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
-            hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
-            hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));

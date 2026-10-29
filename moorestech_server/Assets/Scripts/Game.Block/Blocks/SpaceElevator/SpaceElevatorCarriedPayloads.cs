@@ -6,7 +6,7 @@ using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Blocks.SpaceElevator
 {
-    // 衛星の入口が受け付けるアイテムの定義。サーバーの配置可否・搬入確認と、表示側の受け付け情報が同じ定義を使う
+    // 衛星の入口が受け付けるアイテムの定義
     // Definition of the items the satellite inlet accepts; the server's placement/insertion checks and the display's accepted items share it
     public class SpaceElevatorCarriedPayloads
     {
@@ -27,7 +27,7 @@ namespace Game.Block.Blocks.SpaceElevator
             return _itemIds.Contains(itemId);
         }
 
-        // 全部が運ぶ積荷で、入口の1スタックへ余りなく収まるかを在庫を変えずに確かめる
+        // 全部が積荷で入口へ収まるかを確かめる
         // Checks without mutating that every stack is a carried payload and fits into the single inlet stack with no remainder
         public bool CanAcceptAll(IItemStack inletStack, List<IItemStack> itemStacks)
         {

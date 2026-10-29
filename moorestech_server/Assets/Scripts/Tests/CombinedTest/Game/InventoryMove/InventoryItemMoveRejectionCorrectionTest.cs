@@ -28,7 +28,7 @@ using static Server.Protocol.PacketResponse.InventoryItemMoveProtocol;
 
 namespace Tests.CombinedTest.Game.InventoryMove
 {
-    // 拒否された移動の両端スロットを、要求者にだけ既存の更新イベントで現在値へ訂正することを検証する
+    // 移動拒否時の訂正イベントを検証する
     // Verifies that both ends of a rejected move are corrected to their current values, to the requester only, via the existing update events
     public class InventoryItemMoveRejectionCorrectionTest
     {
@@ -45,7 +45,7 @@ namespace Tests.CombinedTest.Game.InventoryMove
 
             SendMove(setup.Packet, 3, InventoryIdentifierMessagePack.CreateMainMessage(), 0, BlockIdentifier(), 0);
 
-            // 要求者には元のスタックと空の機械スロットが届き、他プレイヤーには何も漏れない
+            // 要求者だけに元の値が届く
             // The requester receives the original stack and the empty machine slot; nothing leaks to another player
             var events = setup.RequesterSink.TakeAll();
             InventoryMoveCorrectionEvents.AssertMainUpdate(events, 0, setup.UnboundItemId, 3);
@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Game.InventoryMove
             setup.Main.SetItem(0, Stack(setup.UnboundItemId, 3));
             DrainSinks(setup);
 
-            // 削除済み（存在しない）ブロック宛ての移動は拒否ログを出し、解決できた持物側だけを訂正する
+            // 消えたブロック宛ては持物側だけ訂正
             // A move into a removed (missing) block logs the rejection and corrects only the resolved player side
             LogAssert.Expect(LogType.Warning, new Regex(Regex.Escape("[InventoryItemMoveProtocol] Move rejected: result=UnresolvedInventory ") + ".*toResolved=False"));
             SendMove(setup.Packet, 3, InventoryIdentifierMessagePack.CreateMainMessage(), 0, InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(50, 0, 50)), 0);
@@ -112,7 +112,7 @@ namespace Tests.CombinedTest.Game.InventoryMove
 
             SendMove(setup.Packet, 3, InventoryIdentifierMessagePack.CreateMainMessage(), 0, BlockIdentifier(), 0);
 
-            // 成功時は通常の変化イベントだけで、同じスロットへの重複送信は無い
+            // 成功時は訂正の重複送信が無い
             // On success only the regular change events fire, with no duplicate for the same slot
             var events = setup.RequesterSink.TakeAll();
             Assert.AreEqual(1, events.Count(e => e.Tag == MainInventoryUpdateEventPacket.EventTag));
@@ -145,7 +145,7 @@ namespace Tests.CombinedTest.Game.InventoryMove
             }
         }
 
-        // レシピ選択済みの機械を置き、要求者と別プレイヤーのsinkを登録する（他方は同じ機械を購読中）
+        // 機械を置き2人分のsinkを登録する
         // Place a recipe-selected machine and register sinks for the requester and another player (who subscribes to the same machine)
         private static CorrectionSetup Setup()
         {

@@ -82,7 +82,7 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.AreEqual(required, dto.SpaceElevator.CablesPerElevator);
             Assert.AreEqual(0.5f, dto.SpaceElevator.ClimbProgress);
             Assert.AreEqual(wireStatus, dto.SpaceElevator.Status);
-            // 入口だけが受け付け情報を持ち、マスタの運ぶ積荷をそのまま載せる（出口は投入先にしない）
+            // 入口だけがマスタの運ぶ積荷を受け付ける
             // Only the inlet carries accepted items, listing the master's carried payloads as-is (outlets are never insertion targets)
             Assert.AreEqual(1, dto.SpaceElevator.SlotBindings.Count);
             Assert.AreEqual(SpaceElevatorBaseInventoryComponent.SatelliteSlot, dto.SpaceElevator.SlotBindings[0].Slot);

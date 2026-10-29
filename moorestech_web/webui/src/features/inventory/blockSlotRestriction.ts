@@ -5,19 +5,19 @@ import { splitSlotIndices } from "@/features/blockInventory/details/detailLogic"
 
 type InputSlotBinding = { slot: number; acceptedItemIds: number[] };
 
-// Shift配分の宛先候補をブロック種別ごとに確定する。受け付け情報はホスト配信の束縛が正本で、ここで規則を再導出しない
+// Shift配分の宛先候補を種別ごとに決める
 // Settles Shift-allocation candidates per block type; the host-published bindings are the source of truth and no rule is re-derived here
 export function resolveBlockSlotRestriction(block: BlockInventoryData | null, itemId: number): BlockSlotRestriction {
   if (!block?.open || block.source !== "block") return { kind: "unrestricted" };
 
-  // 発射台と宇宙エレベーターは入れ口ごとに受け付けるアイテムが決まり、出力枠は投入先にしない
+  // 入れ口固定の種別は出力枠へ入れない
   // Launch pads and space elevators fix the accepted items per inlet, and their output slots are never insertion targets
   if (block.blockType === "RocketLaunchPad") return boundByInputSlotBindings(block.rocketLaunchPad?.slotBindings, itemId);
   if (block.blockType === "SpaceElevatorBase") return boundByInputSlotBindings(block.spaceElevator?.slotBindings, itemId);
   return resolveMachineSlotRestriction(block, itemId);
 }
 
-// 束縛が未着の間は候補なしにし、無制限へ倒して受け付けない枠へ送らない（パネルは詳細未着の表示のまま）
+// 束縛未着は候補なしにし無制限へ倒さない
 // While bindings are pending there are no candidates; never fall back to unrestricted and send into refusing slots (the panel keeps showing its pending detail)
 function boundByInputSlotBindings(bindings: InputSlotBinding[] | undefined, itemId: number): BlockSlotRestriction {
   if (!bindings) return { kind: "bound", candidateIndices: [] };

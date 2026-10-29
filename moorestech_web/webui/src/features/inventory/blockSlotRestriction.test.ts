@@ -5,7 +5,7 @@ import { loadFixture } from "../../bridge/contract/wireFixtures.test-helper";
 import { planPlayerLeftClick, type PlayerSlotContext } from "@/shared/itemMove";
 import { resolveBlockSlotRestriction } from "./blockSlotRestriction";
 
-// ホスト配信のフィクスチャ（C# の WireContract テストと共有）から受信境界を通した値を作る
+// ホスト共有フィクスチャを受信境界で読む
 // Build values through the receive boundary from the host fixtures shared with the C# WireContract tests
 const rocketPad = (): BlockInventoryData => BlockInventoryOpenSchema.parse(loadFixture("block_inventory_rocket_launch_pad.json"));
 const spaceElevator = (): BlockInventoryData => BlockInventoryOpenSchema.parse(loadFixture("block_inventory_space_elevator.json"));

@@ -38,7 +38,7 @@ namespace Server.Protocol.PacketResponse
             var toInventory = GetInventory(data.ToInventoryIdentifier, requesterPlayerId);
             var toSlot = data.ToSlot;
 
-            // 片側を解決できない移動（削除済みブロック等）は拒否し、解決できた側の先行表示だけを要求者へ訂正する
+            // 片側未解決の移動は拒否し解決側だけ訂正する
             // A move with an unresolvable side (e.g. a removed block) is rejected; only the resolved side's optimistic display is corrected for the requester
             if (fromInventory == null || toInventory == null)
             {
@@ -50,7 +50,7 @@ namespace Server.Protocol.PacketResponse
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
-                    // 移動・無操作以外は拒否なので、識別子つきでログと通知へ出し、要求者の先行表示を現在値へ戻す
+                    // 拒否はログ・通知し、要求者の表示を戻す
                     // Anything other than moved/no-op is a rejection: report it with identifiers and restore the requester's optimistic display to the current values
                     var result = InventoryItemMoveService.Move(fromInventory, fromSlot, toInventory, toSlot, data.Count);
                     if (result != InventoryItemMoveResult.Moved && result != InventoryItemMoveResult.NoOp)

@@ -51,7 +51,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             #endregion
         }
 
-        // 解決できない側を持つ移動の拒否。削除済みブロック等で起き、通知文言が当てはまらないためログだけに出す
+        // 片側未解決の拒否。通知文言が無くログのみ
         // Rejection of a move with an unresolvable side; it happens with removed blocks etc. where no notification wording applies, so it is logged only
         public void ReportUnresolved(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, bool fromResolved, int fromSlot, InventoryIdentifierMessagePack toIdentifier, bool toResolved, int toSlot, int requestedCount)
         {

@@ -112,7 +112,7 @@ namespace Client.Tests.WebUi.BlockDetail
             CollectionAssert.AreEqual(layout.MaterialSlots, dto.RocketLaunchPad.MaterialSlots);
             CollectionAssert.AreEqual(layout.PayloadSlots, dto.RocketLaunchPad.PayloadSlots);
             CollectionAssert.AreEqual(layout.OutputSlots, dto.RocketLaunchPad.OutputSlots);
-            // 各入れ口の受け付けIDはサーバーの配置可否と同じ要求アイテムで、出力枠は束縛に含めない
+            // 入れ口の受け付けIDはサーバーの要求アイテム
             // Each inlet's accepted ID is the required item the server's placement check uses; output slots are never bound
             CollectionAssert.AreEqual(layout.MaterialSlots.Concat(layout.PayloadSlots), dto.RocketLaunchPad.SlotBindings.Select(binding => binding.Slot));
             foreach (var binding in dto.RocketLaunchPad.SlotBindings)

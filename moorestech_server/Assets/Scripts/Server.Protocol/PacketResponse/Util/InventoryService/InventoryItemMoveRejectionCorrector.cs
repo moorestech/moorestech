@@ -9,7 +9,7 @@ using Server.Util.MessagePack;
 namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
     /// <summary>
-    ///     拒否された移動の両端スロットの現在値を、要求者にだけ既存のスロット更新イベントで送り直す。
+    ///     拒否された移動の両端を要求者へ現在値で送り直す。
     ///     クライアントは送信前に表示を先行更新し、サーバーは拒否時に何も書かず更新イベントも出ないため、ここが拒否時の唯一の訂正経路になる
     ///     Resends the current contents of both ends of a rejected move to the requester only, via the existing slot update events.
     ///     The client updates its display before sending and a rejection writes nothing (so no update event fires), making this the only correction path on rejection
@@ -23,7 +23,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             _eventProtocolProvider = eventProtocolProvider;
         }
 
-        // 解決できなかった側（削除済みブロック等）はnullで渡され、表示を合わせる実体が無いので送らない
+        // 未解決側はnullで来るので送らない
         // An unresolved side (e.g. a removed block) arrives as null; there is no real inventory to match, so nothing is sent for it
         public void Resend(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, IOpenableInventory fromInventory, int fromSlot, InventoryIdentifierMessagePack toIdentifier, IOpenableInventory toInventory, int toSlot)
         {
@@ -34,7 +34,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
 
             void ResendSlot(InventoryIdentifierMessagePack identifier, IOpenableInventory inventory, int slot)
             {
-                // 実在しないスロットは訂正対象の表示も無いので、ログに残して送らない
+                // 実在しないスロットはログだけ残す
                 // A nonexistent slot has no display to correct, so log it and send nothing
                 if (slot < 0 || inventory.GetSlotSize() <= slot)
                 {
@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                     return;
                 }
 
-                // 種別ごとに、成功時にクライアントが購読しているのと同じ更新イベントで現在値を送る
+                // 成功時と同じ更新イベントで現在値を送る
                 // Send the current value through the same update event the client already subscribes to on success, per inventory type
                 var item = inventory.GetItem(slot);
                 switch (identifier.InventoryType)

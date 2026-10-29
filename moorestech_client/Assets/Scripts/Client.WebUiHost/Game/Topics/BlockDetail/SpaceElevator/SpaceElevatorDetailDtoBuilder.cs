@@ -32,7 +32,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 CablesPerElevator = elevatorParam.CablesPerElevator,
                 ClimbProgress = state.ClimbProgress,
                 Status = ToWireStatus(state.Status),
-                // 入口の受け付けIDはサーバーの配置可否と同じ定義から引く
+                // 入口の受け付けIDはサーバーと同じ定義
                 // The inlet's accepted IDs come from the same definition as the server's placement check
                 SlotBindings = new List<InputSlotBindingDto>
                 {

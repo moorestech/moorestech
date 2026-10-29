@@ -41,7 +41,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             #region Internal
 
-            // サーバーの配置可否（RocketLaunchPadInventoryComponent.IsAllowedToPlace）と同じ要求アイテムを受け付けIDとして載せる
+            // サーバーの配置可否と同じ要求アイテムを載せる
             // Publish the same required item the server's placement check (RocketLaunchPadInventoryComponent.IsAllowedToPlace) accepts
             InputSlotBindingDto CreateBinding(int slot)
             {

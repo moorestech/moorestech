@@ -10,7 +10,7 @@ export const SpaceElevatorDataSchema = z.object({
   cablesPerElevator: z.number().int().positive(),
   climbProgress: z.number().min(0).max(1),
   status: SpaceElevatorStatusSchema,
-  // 衛星の入口が受け付けるアイテム。Shift配分はこれで宛先を絞る
+  // 衛星の入口の受け付けアイテム
   // Items accepted by the satellite inlet; Shift allocation narrows its destinations with these
   slotBindings: z.array(InputSlotBindingSchema),
 }).strict().superRefine((data, ctx) => refineBindingsCoverInputSlots(data.slotBindings, data.satelliteInputSlots, ctx));
