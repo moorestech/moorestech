@@ -36,7 +36,8 @@
         "VContainer",
         "Game.PlacementTarget",
         "Client.PlaytestReceiver",
-        "Client.ExternalProcess"
+        "Client.ExternalProcess",
+        "Client.Ui.State"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

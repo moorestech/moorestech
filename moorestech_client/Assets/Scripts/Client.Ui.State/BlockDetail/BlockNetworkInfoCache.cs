@@ -7,7 +7,7 @@ using Cysharp.Threading.Tasks;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 
-namespace Client.Game.InGame.UI.BlockDetail
+namespace Client.Ui.State.BlockDetail
 {
     /// <summary>
     /// 開いているブロックのネット集約情報をキャッシュ

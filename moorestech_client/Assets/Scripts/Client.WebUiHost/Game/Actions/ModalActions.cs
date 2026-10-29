@@ -1,4 +1,4 @@
-using Client.Game.InGame.UI.Modal;
+using Client.Ui.State.Modal;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;

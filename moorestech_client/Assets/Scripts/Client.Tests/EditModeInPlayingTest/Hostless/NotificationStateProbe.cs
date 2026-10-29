@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Notification;
+using Client.Ui.State.Notification;
 using NUnit.Framework;
 using Server.Event.Notification;
 using UniRx;

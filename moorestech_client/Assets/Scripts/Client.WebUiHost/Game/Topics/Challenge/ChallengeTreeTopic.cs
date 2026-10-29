@@ -1,5 +1,5 @@
 using System;
-using Client.Game.InGame.UI.Challenge;
+using Client.Ui.State.Challenge;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;

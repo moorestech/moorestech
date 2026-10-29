@@ -1,0 +1,28 @@
+{
+    "name": "Client.Ui.State",
+    "rootNamespace": "",
+    "references": [
+        "Client.Game",
+        "Client.Localization",
+        "Client.Network",
+        "Core.Master",
+        "Game.Block.Interface",
+        "Game.Research",
+        "Game.Train",
+        "Server.Event",
+        "Server.Protocol",
+        "MessagePack",
+        "UniRx",
+        "UniTask",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

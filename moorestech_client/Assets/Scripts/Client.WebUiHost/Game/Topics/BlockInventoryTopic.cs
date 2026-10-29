@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Train.Timetable;
+using Client.Ui.State.Train;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.FluidNetwork;
@@ -11,7 +12,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
-using Client.Game.InGame.UI.BlockDetail;
+using Client.Ui.State.BlockDetail;
 using Client.WebUiHost.Game.Topics.Inventory;
 using Cysharp.Threading.Tasks;
 using UniRx;

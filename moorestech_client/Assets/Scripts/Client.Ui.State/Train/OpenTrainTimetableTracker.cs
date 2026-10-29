@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.Train.Timetable;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -6,7 +7,7 @@ using Game.Train.Unit;
 using UniRx;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.Train.Timetable
+namespace Client.Ui.State.Train
 {
     // 開いている車両の所属列車を追い、再配信と再取得をまとめる
     // Track the open car's owning train and gather timetable republish triggers and refetches

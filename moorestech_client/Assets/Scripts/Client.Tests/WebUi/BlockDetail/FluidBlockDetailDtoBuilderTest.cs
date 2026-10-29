@@ -1,4 +1,4 @@
-using Client.Game.InGame.UI.BlockDetail;
+using Client.Ui.State.BlockDetail;
 using System;
 using System.Collections.Generic;
 using System.Reflection;

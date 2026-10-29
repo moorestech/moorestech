@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.UI.Notification;
 using Client.Network.API;
 using MessagePack;
 using Server.Event.Notification;
@@ -6,7 +7,7 @@ using UniRx;
 using UnityEngine;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.UI.Notification
+namespace Client.Ui.State.Notification
 {
     /// <summary>
     /// 通知と拒否を束ね連番を振る

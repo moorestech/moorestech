@@ -1,4 +1,4 @@
-using Client.Game.InGame.EventMode;
+using Client.Ui.State.EventMode;
 using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;

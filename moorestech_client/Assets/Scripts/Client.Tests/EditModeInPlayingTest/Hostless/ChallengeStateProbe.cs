@@ -1,5 +1,5 @@
 using System;
-using Client.Game.InGame.UI.Challenge;
+using Client.Ui.State.Challenge;
 using Client.Network.API;
 using Client.Tests.EditModeInPlayingTest.Playtest;
 using Cysharp.Threading.Tasks;

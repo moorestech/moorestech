@@ -1,8 +1,9 @@
-using Client.Game.InGame.UI.BlockDetail;
-using Client.Game.InGame.UI.Notification;
-using Client.Game.InGame.UI.Modal;
-using Client.Game.InGame.UI.Research;
+using Client.Ui.State.BlockDetail;
+using Client.Ui.State.Notification;
+using Client.Ui.State.Modal;
+using Client.Ui.State.Research;
 using Client.Game.InGame.Train.Timetable;
+using Client.Ui.State.Train;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.FluidNetwork;
@@ -37,7 +38,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.Tooltip;
 using VContainer;
-using Client.Game.InGame.UI.Challenge;
+using Client.Ui.State.Challenge;
 namespace Client.WebUiHost.Game
 {
     /// <summary>

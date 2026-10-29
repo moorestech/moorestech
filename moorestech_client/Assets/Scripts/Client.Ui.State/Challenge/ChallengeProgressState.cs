@@ -7,7 +7,7 @@ using Server.Event.EventReceive;
 using UniRx;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.UI.Challenge
+namespace Client.Ui.State.Challenge
 {
     /// <summary>
     /// 全カテゴリを持ち完了を通知

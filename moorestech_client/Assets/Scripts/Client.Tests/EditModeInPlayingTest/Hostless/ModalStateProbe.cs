@@ -6,7 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Copy;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Blueprint;
-using Client.Game.InGame.UI.Modal;
+using Client.Ui.State.Modal;
 using Client.Tests.Common;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Cysharp.Threading.Tasks;

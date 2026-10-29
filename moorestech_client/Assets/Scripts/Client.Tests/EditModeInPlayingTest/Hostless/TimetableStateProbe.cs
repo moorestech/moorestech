@@ -1,4 +1,4 @@
-using Client.Game.InGame.Train.Timetable;
+using Client.Ui.State.Train;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;

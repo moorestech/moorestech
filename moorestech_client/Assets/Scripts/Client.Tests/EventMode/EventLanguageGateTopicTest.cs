@@ -1,4 +1,4 @@
-using Client.Game.InGame.EventMode;
+using Client.Ui.State.EventMode;
 using Client.Localization;
 using Client.Tests.WebUi.Gate;
 using Client.WebUiHost.Boot;

@@ -3,7 +3,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
-using Client.Game.InGame.UI.BlockDetail;
+using Client.Ui.State.BlockDetail;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.FilterSplitter;

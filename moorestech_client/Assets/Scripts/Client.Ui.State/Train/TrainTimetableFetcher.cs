@@ -1,12 +1,13 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Train.Timetable;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Game.InGame.Train.Timetable
+namespace Client.Ui.State.Train
 {
     // 時刻表タブを開いた列車の時刻表を取り寄せ、失敗を覚える
     // Fetch the timetable of the train whose timetable tab is open, and remember trains that could not be fetched
