@@ -78,7 +78,7 @@ export const slotActions: SlotActions = {
   },
 };
 
-// 受け付ける枠が無いShiftは送らずに拒否する。サーバーが同じ拒否で出す通知と同じ文言をユーザーへ出し、開発者へは理由をログで残す
+// 受入枠無しのShiftを通知とログで拒否
 // A Shift with no accepting slot is refused without sending: users get the same notice the server raises for this refusal, developers get the reason in the log
 function notifyNoAcceptingBlockSlot(itemId: number, blockIdentifier: string | null) {
   console.warn(`[inventory.shift_move] not sent: no slot of block ${blockIdentifier ?? "(closed)"} accepts item ${itemId} (unaccepted item or bindings not yet received)`);

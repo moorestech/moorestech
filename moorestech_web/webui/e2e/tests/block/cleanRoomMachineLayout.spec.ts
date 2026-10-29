@@ -20,7 +20,7 @@ function intersectionOf(a: Rect, b: Rect): Rect {
   return { x, y, width: Math.min(a.x + a.width, b.x + b.width) - x, height: Math.min(a.y + a.height, b.y + b.height) - y };
 }
 
-// 本文側は祖先のスクロール視口で切った「見えている矩形」で比べる。修正前は視口が無く、要素の矩形そのものが見えていた
+// 本文側はスクロール視口で切った可視矩形で比べる
 // Compare the body side by its rect clipped to the ancestor scroll viewport; before the fix there was no viewport and the raw rect was visible
 async function visibleBoxOf(locator: Locator) {
   const box = await boxOf(locator);
@@ -29,14 +29,14 @@ async function visibleBoxOf(locator: Locator) {
   return intersectionOf(box, await boxOf(viewport));
 }
 
-// 見えている2つの矩形が面積を持って交わるか。辺が接するだけなら交差としない
+// 可視矩形が面積を持って交わるか（接触は除く）
 // Whether two visible rects overlap with area; merely touching edges is not an intersection
 async function expectNoVisibleIntersection(body: Locator, footer: Locator) {
   const overlap = intersectionOf(await visibleBoxOf(body), await boxOf(footer));
   expect(overlap.width > 0 && overlap.height > 0, `overlap ${overlap.width}x${overlap.height}`).toBe(false);
 }
 
-// フッタの状態行と充足率がパネル内に収まり、本文スクローラの可視域がフッタより上で終わるか
+// フッタがパネル内にあり、本文の可視域がその上で終わるか
 // The footer's state and rate rows stay inside the panel, and the body scroller's visible area ends above the footer
 async function expectFooterClearOfBody(page: Page) {
   const panel = await boxOf(page.getByTestId("block-inventory"));
@@ -70,7 +70,7 @@ test("低いウィンドウで清浄機が多い部屋でもフッタは見え�
   await expect(page.getByTestId("machine-power-rate")).toBeVisible();
   await expectFooterClearOfBody(page);
 
-  // 溢れた本文は器の中でスクロールし、液体行まで辿り着ける
+  // 溢れた本文はスクロールで液体行へ届く
   // The overflowing body scrolls within its container and can reach the fluid row
   const viewport = scrollAreaViewport(scrollAreaRootOf(page, "machine-inventory-body"));
   expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);

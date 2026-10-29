@@ -13,7 +13,7 @@ const spaceElevator = (): BlockInventoryData => BlockInventoryOpenSchema.parse(l
 const PAYLOAD_ITEM = 4;
 const SATELLITE_ITEM = 5;
 
-// Shift+クリックで持物slot0の全量を配分したときの帰結
+// 持物slot0全量のShift配分の帰結
 // Outcome planned for a Shift-click allocating main slot 0
 function shiftPlan(block: BlockInventoryData, itemId: number, count: number) {
   if (!block.open) throw new Error("fixture must be open");

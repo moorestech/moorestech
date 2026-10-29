@@ -17,7 +17,7 @@ export type PlayerSlotContext = {
   blockSlotRestriction: BlockSlotRestriction;
 };
 
-// 左クリックの帰結。actionsは送信するプラン、beginSplitDragはドラッグ開始の合図、noAcceptingBlockSlotは受け付ける枠が無く送らなかった拒否
+// 左クリックの帰結（拒否を含む）
 // Left-click outcome: actions to dispatch, beginSplitDrag to start the drag, or noAcceptingBlockSlot when no slot accepts the item and nothing is sent
 export type PlayerLeftClickPlan = { kind: "actions"; actions: PlannedAction[] } | { kind: "beginSplitDrag" } | { kind: "noAcceptingBlockSlot" };
 
@@ -53,7 +53,7 @@ export function planPlayerDoubleClick(ref: SlotRef): PlannedAction[] {
 function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): PlayerLeftClickPlan {
   const blockItemSlots = ctx.blockItemSlots;
   if (blockItemSlots) {
-    // 束縛で受け付ける枠が1つも無いのは無操作ではなく拒否。呼び出し側が理由を出せるよう区別して返す
+    // 受入枠が無いのは拒否として区別して返す
     // A bound restriction with no accepting slot is a refusal, not a no-op; return it distinctly so the caller can surface why
     if (ctx.blockSlotRestriction.kind === "bound" && ctx.blockSlotRestriction.candidateIndices.length === 0) return { kind: "noAcceptingBlockSlot" };
     // 候補が束縛で絞られている場合はそこだけを宛先にする。move_itemはスロット固定のswapのためサーバーが

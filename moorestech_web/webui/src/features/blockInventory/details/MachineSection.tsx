@@ -48,7 +48,7 @@ export default function MachineSection({ data, machine, fillsPanelHeight }: { da
   // 伸ばすのは高さ確定面だけ。高さ自動の面では親と同じく伸長を止める
   // Stretch only on the height-determining panel; on auto-height panels this stops stretching just as its parent does
   const stretchClassName = fillsPanelHeight ? styles.fillPanelHeight : undefined;
-  // 高さ確定面では本文を器の高さのスクローラへ入れ、部屋欄で縮んでも溢れがフッタへ重ならない（列車インベントリと同じ土台）
+  // 大型面の本文は器高でスクロール
   // On the height-determining panel the body sits in a container-sized scroller, so shrinking under the room section never overlaps the footer (same base as the train inventory)
   const inventoryContent = (
     <Stack gap="sm">

@@ -57,7 +57,7 @@ describe("planPlayerLeftClick", () => {
       ],
     });
   });
-  // 受け付ける枠が無いのは拒否として返し、理由の無い無操作（空スロット）とは区別する
+  // 受入枠無しは拒否、空スロットは無操作
   // No accepting slot comes back as a refusal, distinct from a reasonless no-op (an empty slot)
   it("束縛で受け付ける枠が無いShiftは送らず拒否を返し、空スロットは無操作のまま", () => {
     const noAccepting: PlayerSlotContext = { ...ctx(0, [slot(0, 0)]), blockSlotRestriction: { kind: "bound", candidateIndices: [] } };

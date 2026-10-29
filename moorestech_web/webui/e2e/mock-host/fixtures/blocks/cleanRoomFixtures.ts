@@ -4,7 +4,7 @@ import { blockMachine } from "./machineFixtures";
 
 const airFilterAt = (x: number) => ({ x, y: 33, z: 5, powerRatio: 1, filterItemCount: 5, filterRemainingRatio: 0.5 });
 
-// 室内機械: レシピ選択済みの大型パネルに部屋欄が乗る形。入力タンクに液体（実機のIPA相当）を入れて液体行を実量で描く
+// 部屋欄付きの大型機械パネル。入力タンクにIPA相当の液体
 // Interior machine: the large recipe-selected panel topped by the room section, with fluid (the real IPA stand-in) in the input tank
 function cleanRoomMachineWith(airFilterCount: number, identifier: string) {
   return {
@@ -31,6 +31,6 @@ function cleanRoomMachineWith(airFilterCount: number, identifier: string) {
 // Two purifiers: the shape that overlapped the fluid row onto the power row in the real game
 export const blockCleanRoomMachine = cleanRoomMachineWith(2, "block:40");
 
-// 清浄機が多い部屋: 部屋欄が伸びてもフッタが押し出されないことを見る
+// 清浄機が多く部屋欄が伸びる部屋
 // A room with many purifiers: checks the footer is not pushed out as the room section grows
 export const blockCleanRoomMachineManyFilters = cleanRoomMachineWith(8, "block:41");

@@ -35,7 +35,7 @@ SemanticInput.ReleaseAllKeys();
 var padPos = new Vector3Int(0, 32, 0);
 return PlaytestRunner.Run("tier9-4b-rocket-cargo-shift-reject", new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 180f }, async p =>
 {
-    // 仮想機器の追加とキー解放を入力系へ反映させてから操作を始める
+    // 仮想機器とキー解放の反映を待つ
     // Let the virtual devices and the key release settle in the input system before any operation
     await UniTask.DelayFrame(3);
     await p.SetupFlatGround();

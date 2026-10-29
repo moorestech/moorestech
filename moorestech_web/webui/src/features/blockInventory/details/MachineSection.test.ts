@@ -123,7 +123,7 @@ describe("MachineSection", () => {
     expect(electricDriven.root.findByType("mock-power" as never).props.highlightShortage).toBe(true);
   });
 
-  // 高さ確定面だけ本文をスクローラへ入れ、高さ自動の小型面は内容なりのまま
+  // 大型面だけ本文をスクローラへ入れる
   // Only the height-determining panel puts the body in a scroller; auto-height small panels keep their content size
   it("インベントリ本文は大型面でだけスクローラに入る", () => {
     const large = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid) }));

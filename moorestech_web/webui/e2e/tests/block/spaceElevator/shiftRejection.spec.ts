@@ -6,7 +6,7 @@ test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
 });
 
-// main0 は Wood（itemId 1）×10。昇降機の入れ口が受け付けるのは itemId 5 だけなので、受け付ける枠が無い
+// main0のWood×10は昇降機のどの枠も受け付けない
 // main0 holds Wood (itemId 1) x10; the elevator inlet accepts only itemId 5, so no slot accepts it
 async function shiftClickUnacceptedWood(page: Page) {
   const warnings: string[] = [];
@@ -17,7 +17,7 @@ async function shiftClickUnacceptedWood(page: Page) {
 
   await woodSlot.click({ modifiers: ["Shift"] });
 
-  // サーバー拒否と同じ文言の通知が出て、開発者向けの理由がログに残る
+  // サーバー拒否と同じ通知と開発者ログ
   // The same notice the server raises for this refusal appears, and the developer-facing reason is logged
   const denied = page.locator('[data-testid="notification-row"][data-category="operationDenied"]');
   await expect(denied).toContainText("このスロットには置けません");
