@@ -31,7 +31,7 @@ function cleanRoomMachineWith(airFilterCount: number, identifier: string, select
 
 const selected = blockMachine.machine.selectedRecipeGuid;
 
-// 台数は部屋の上限が無いため境目と多台数の両方を持つ。最大体積4096のクラスAは14台以上を要する
+// 台数上限が無いので境目と多台数を持つ
 // Purifier counts are uncapped per room, so keep both the boundary and many-unit shapes; a max-volume class-A room needs 14+
 export const cleanRoomBlockFixtures: Record<string, BlockInventoryWireData> = {
   cleanRoomMachine: cleanRoomMachineWith(2, "block:40", selected),

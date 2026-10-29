@@ -11,7 +11,7 @@ import { buildMachineRecipeSelectionRows, hasSelectedRecipe } from "./machine/ma
 
 // 機械: 未選択→レシピ選択モード、選択済→インベントリモード。ヘッダで選択モードへ戻れる（ADR 0042）
 // Machine: unselected → recipe-selection mode, selected → inventory mode; the header returns to selection (ADR 0042)
-// leadingContent は本文の前に同じスクロール器で並べる文脈欄。無い機械は null
+// 本文の前に同じ器で並べる文脈欄
 // leadingContent is the context shown ahead of the body in the same scroller; machines without one pass null
 type Props = { data: BlockInventoryOpen; machine: MachineDetailData; fillsPanelHeight: boolean; leadingContent: ReactNode };
 

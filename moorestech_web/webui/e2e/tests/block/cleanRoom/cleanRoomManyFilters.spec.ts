@@ -8,12 +8,12 @@ import {
   scrollAreaViewport,
 } from "../../../support/layoutAssertions";
 
-// 部屋の清浄機台数に上限は無い。最大体積のクラスAで14台以上が要るため、16・20台を合法な多台数として測る
+// 最大体積クラスAは14台以上が要る
 // Purifiers per room are uncapped; a max-volume class-A room needs 14+, so 16 and 20 are the legal many-unit shapes
 const WINDOW_HEIGHTS = [600, 720, 1080];
 const MANY_FILTER_ROOMS = [{ filters: 16, fixture: "cleanRoomMachine16Filters" }, { filters: 20, fixture: "cleanRoomMachine20Filters" }];
 const BOUNDARY_ROOMS = [{ filters: 0, fixture: "cleanRoomMachineNoFilters" }, { filters: 2, fixture: "cleanRoomMachine" }, { filters: 8, fixture: "cleanRoomMachineManyFilters" }];
-// 本文の視口が操作できる高さを保つ下限。潰れた退行（0px）を落とす
+// 本文視口の使える高さの下限
 // Floor for a usable body viewport; catches the collapsed (0px) regression
 const MIN_BODY_VIEWPORT_HEIGHT = 120;
 
@@ -28,7 +28,7 @@ async function openBlock(page: Page, fixture: string, windowHeight: number) {
   await expect(page.getByTestId("block-inventory")).toHaveAttribute("data-large", "true");
 }
 
-// フッタはスクロール器の外でパネル内に収まり、中心をクリックできる
+// フッタは器の外・パネル内でクリック可
 // The footer sits outside the scroller, inside the panel, and is hit at its center
 async function expectFooterReadable(page: Page) {
   const panel = (await page.getByTestId("block-inventory").boundingBox())!;
@@ -42,7 +42,7 @@ async function expectFooterReadable(page: Page) {
   }
 }
 
-// 部屋欄と本文が同じ一つの視口に入り、視口は使える高さでフッタより上に終わる。入れ子の縦スクロールは無い
+// 部屋欄と本文は入れ子なしの同じ視口
 // Room section and body share one viewport of usable height ending above the footer, with no nested vertical scroller
 async function expectSharedBodyViewport(page: Page, bodyTestId: string) {
   const viewport = scrollAreaViewport(scrollAreaRootOf(page, bodyTestId));

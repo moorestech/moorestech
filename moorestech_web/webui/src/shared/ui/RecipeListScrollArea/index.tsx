@@ -3,7 +3,7 @@ import { ScrollArea, Stack } from "@mantine/core";
 import styles from "./style.module.css";
 
 type Props = {
-  // 行より前に同じスクロール器で並べる内容。無い面は null
+  // 行の前に同じ器で並べる内容
   // Content shown before the rows in the same scroller; panels without any pass null
   leadingContent: ReactNode;
   children: ReactNode;
