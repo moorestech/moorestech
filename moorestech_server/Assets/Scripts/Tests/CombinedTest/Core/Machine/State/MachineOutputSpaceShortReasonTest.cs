@@ -10,6 +10,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.Fluid;
+using Game.UnlockState;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -143,6 +144,7 @@ namespace Tests.CombinedTest.Core.Machine
         public void 液体出力が出力タンクに入りきらない待機も同じ理由を出す()
         {
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => 0 < r.OutputFluids.Length);
+            ServerContext.GetService<IGameUnlockStateDataController>().UnlockMachineRecipe(recipe.MachineRecipeGuid);
             var (_, inventory, processor) = PlaceSelected(recipe, Vector3Int.one);
             var inputTanks = GetInputFluidContainers(inventory);
             for (var i = 0; i < recipe.InputFluids.Length; i++) inputTanks[i].AddLiquid(new FluidStack(recipe.InputFluids[i].Amount, MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[i].FluidGuid)));
