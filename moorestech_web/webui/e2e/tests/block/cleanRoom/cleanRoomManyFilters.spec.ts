@@ -67,6 +67,7 @@ for (const room of MANY_FILTER_ROOMS) {
     test(`清浄機${room.filters}台・高さ${windowHeight}でも部屋欄ごと本文がスクロールし、レシピ・スロット・液体に届きフッタが読める`, async ({ page }) => {
       await openBlock(page, room.fixture, windowHeight);
       await expect(page.getByTestId(`clean-room-air-filter-${room.filters - 1}`)).toBeAttached();
+      await expectReachableInScrollViewport(page.getByTestId(`clean-room-air-filter-${room.filters - 1}`));
       await expectInventoryBodyReachable(page);
     });
   }

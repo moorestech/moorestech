@@ -352,6 +352,11 @@
   /* Measured bleed of the item-list count badge (absolutely placed at bottom:-1px) below the last row's slots;
      unless the ScrollArea reserves it, even a single row yields a phantom overflow and a needless bar */
   --item-list-count-bleed: 5px;
+  /* 自然高のブロックパネル本文の器がクリップ境界を外へ広げる量。外周リング（左へ2px）と個数バッジ（bottom:-3px）を欠かさず、
+     偽の溢れも立てない値。実測（Chest1段）で6px以下はscrollHeightが2px溢れ、7pxで一致したため1px余らせる */
+  /* How far the natural-height block-panel body scroller widens its clip edge: enough to keep outer rings (2px left) and
+     count badges (bottom:-3px) whole without a phantom overflow; measured on a one-row Chest, 6px or less overflowed by 2px and 7px matched, so keep 1px spare */
+  --block-panel-body-bleed: 8px;
   /* ハイライト枠がアンカーの外へ張り出す量。逃げはスクロール領域の高さを変え段数の溢れ閾値を動かすため、
      このトークンがWeb側の正本であり実行時に書き換えない。マスタのpaddingPxはこれを超えない前提 */
   /* How far the highlight ring extends beyond its anchor. The clearance changes a scroller's height and thus its

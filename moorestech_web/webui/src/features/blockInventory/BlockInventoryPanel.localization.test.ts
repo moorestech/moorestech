@@ -38,6 +38,9 @@ vi.mock("./registry/blockComponentRegistry", () => ({
 vi.mock("./details/machine/machineRecipeSelectionLogic", () => ({
   buildMachineRecipeSelectionRows: () => [],
 }));
+vi.mock("@mantine/core", () => ({
+  ScrollArea: ({ children, ...props }: { children: unknown }) => createElement("mock-scroll-area", props, children as never),
+}));
 vi.mock("@/shared/tutorialAnchor", () => ({
   tutorialAnchor: () => ({}),
   TutorialAnchorIds: { inventoryCloseButton: "inventory-close" },

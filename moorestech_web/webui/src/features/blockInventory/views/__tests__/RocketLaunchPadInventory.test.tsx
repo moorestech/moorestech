@@ -23,6 +23,7 @@ vi.mock("@mantine/core", () => ({
   Stack: ({ children, ...props }: { children: unknown }) => createElement("section", props, children as never),
   Group: ({ children, ...props }: { children: unknown }) => createElement("main", props, children as never),
   Text: ({ children, ...props }: { children: unknown }) => createElement("p", props, children as never),
+  ScrollArea: ({ children, ...props }: { children: unknown }) => createElement("mock-scroll-area", props, children as never),
 }));
 import BlockInventoryPanel from "../../BlockInventoryPanel";
 import RocketLaunchPadInventory from "../RocketLaunchPadInventory";

@@ -1,10 +1,13 @@
-/* stageのviewer領域で持ち物パネルの右隣へ置き、上端を揃える */
-/* Places the block panel beside inventory at the top of the stage viewer area */
+/* stageのviewer領域で持ち物パネルの右隣へ置き、上端を揃える。自然高の面も大型面と同じバンド高で止め、溢れは本文がスクロールする */
+/* Places the block panel beside inventory at the top of the stage viewer area; natural-height panels stop at the same band height as large ones and the body scrolls the rest */
 .panel {
   grid-area: viewer;
   justify-self: start;
   align-self: start;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: var(--menu-content-height);
 }
 
 /* レシピ有り機械: 研究パネル同系の大型面。viewer〜items2列を占有し下端はホットバー手前(y640)で止める */
@@ -38,8 +41,21 @@
   min-height: 0;
 }
 
-/* 高さ確定面の機械インベントリ本文。部屋欄などで器が縮んだぶんは本文がスクロールし、共通フッタへ重ならない */
-/* Machine inventory body on the height-determining panel: when the room section shrinks it, the body scrolls instead of overlapping the shared footer */
+/* 高さ確定面の機械インベントリ本文。前置した部屋欄ごと器の高さでスクロールし、共通フッタへ重ならない */
+/* Machine inventory body on the height-determining panel: it scrolls with the leading room section inside the container's height, never overlapping the shared footer */
 .machineInventoryScroll {
   composes: scroll from "../../shared/ui/panelBodyScrollArea.module.css";
+}
+
+/* 自然高の面の本文の器。短ければ内容高のまま、バンド高に届いたぶんだけスクロールする */
+/* Body of a natural-height panel: content-sized while short, scrolling only past the band height */
+.naturalBodyScroll {
+  composes: scroll from "../../shared/ui/panelBodyScrollArea.module.css";
+  margin: calc(-1 * var(--block-panel-body-bleed));
+}
+
+/* 逃げはviewportのpaddingで作り、上の負マージンで相殺して本文の位置と面の大きさを動かさない */
+/* The clearance is viewport padding cancelled by the negative margin above, so neither the body position nor the panel size moves */
+.naturalBodyScroll :global(.mantine-ScrollArea-viewport) {
+  padding: var(--block-panel-body-bleed);
 }
