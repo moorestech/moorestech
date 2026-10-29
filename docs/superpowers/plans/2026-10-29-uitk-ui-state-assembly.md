@@ -104,7 +104,7 @@ grep -rlE "\b(EventLanguageGate|EventLanguageSelectionResult|OpenTrainTimetableT
 - Consumes: なし
 - Produces: アセンブリ `Client.Ui.State`。公開型は移動前と同じ名前・同じシグネチャで、名前空間だけが移動表の「新しい名前空間」になる（例: `Client.Ui.State.Modal.ModalRequestService`、`Client.Ui.State.EventMode.EventLanguageGate`）
 
-- [ ] **Step 1: 位置と Editor の本数を確かめる**
+- [x] **Step 1: 位置と Editor の本数を確かめる**
 
 ```bash
 pwd
@@ -113,7 +113,7 @@ moores-wt status
 ```
 Expected: HEAD は `ffab18e83a` かその子孫（このplanのコミット）。このworktreeの Editor は動いていない（`editor=` が付いていない。動いたまま Step 3 の移動をすると Unity が `.meta` を作り直す恐れがある）。マシン全体の Editor は自分の分を足して 2 本以下
 
-- [ ] **Step 2: asmdef を作る**
+- [x] **Step 2: asmdef を作る**
 
 `moorestech_client/Assets/Scripts/Client.Ui.State/Client.Ui.State.asmdef`:
 
@@ -131,6 +131,7 @@ Expected: HEAD は `ffab18e83a` かその子孫（このplanのコミット）�
         "Game.Train",
         "Server.Event",
         "Server.Protocol",
+        "Server.Util",
         "MessagePack",
         "UniRx",
         "UniTask",
@@ -150,7 +151,7 @@ Expected: HEAD は `ffab18e83a` かその子孫（このplanのコミット）�
 
 `Game.Block.Interface` は `TrainUnitInstanceId`（名前空間は `Game.Train.Unit` だが置き場はこのアセンブリ）・`BlockInstanceId`・`BlockPositionInfo` のために要る。コンパイルで `CS0012`（型が参照されていないアセンブリで定義されている）か `CS0246`（型が見つからない）が出たら、エラー文に出たアセンブリ名を `Client.Game.asmdef` の `references` から探して、この配列に足す。`Client.Game.asmdef` に無いものは足さない（足す必要が出たら移動ではなく設計の問題なので止めて報告する）
 
-- [ ] **Step 3: 13 ファイルを `.meta` ごと移す**
+- [x] **Step 3: 13 ファイルを `.meta` ごと移す**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-ui-state-assembly/moorestech_client/Assets/Scripts
@@ -174,7 +175,7 @@ rmdir Client.Game/InGame/EventMode Client.Game/InGame/UI/BlockDetail Client.Game
 ```
 Expected: `rmdir` が成功する（空でなければ移し漏れがあるので表と突き合わせる）
 
-- [ ] **Step 4: 移したファイルの名前空間を替える**
+- [x] **Step 4: 移したファイルの名前空間を替える**
 
 各ファイルの `namespace` 行を移動表の「新しい名前空間」へ替える。例 `Client.Ui.State/Modal/ModalRequestService.cs`:
 
@@ -188,7 +189,7 @@ namespace Client.Ui.State.Modal
 - `Client.Ui.State/Notification/NotificationFeed.cs`: Client.Game に残る `ClientLocalNotificationSource` を使うので `using Client.Game.InGame.UI.Notification;` を足す
 - `Client.Ui.State/BlockDetail/*.cs`・`Client.Ui.State/Challenge/ChallengeProgressState.cs`・`Client.Ui.State/Research/ResearchNodeStateStore.cs`: 元の名前空間に暗黙で頼っていた型があれば（コンパイルで `CS0246` が出たら）、その型の名前空間の `using` を足す
 
-- [ ] **Step 5: 参照側の asmdef と `using` を張り替える**
+- [x] **Step 5: 参照側の asmdef と `using` を張り替える**
 
 3 つの asmdef（`Client.Starter.asmdef`・`Client.WebUiHost.asmdef`・`Tests.asmdef`）の `references` 配列の末尾に `"Client.Ui.State"` を足す。
 
@@ -212,7 +213,7 @@ grep -rnE "Client\.Game\.InGame\.(EventMode|UI\.Modal|UI\.Research|UI\.BlockDeta
 ```
 Expected: 0 件
 
-- [ ] **Step 6: uGUI 監査ゲートの分類を追従させる**
+- [x] **Step 6: uGUI 監査ゲートの分類を追従させる**
 
 `moorestech_client/Assets/Scripts/Client.Tests/WebUi/Gate/WebUiGateClassification.cs`:
 
@@ -244,7 +245,7 @@ Expected: 0 件
 
 `Client.Game/InGame/UI/Blueprint`・`Challenge`・`Notification` のルールは、残るファイル（`BlueprintNameInputState`・`ChallengeManager`・`ClientLocalNotificationSource` 等）があるので消さない。
 
-- [ ] **Step 7: Editor を起動してコンパイルする**
+- [x] **Step 7: Editor を起動してコンパイルする**
 
 ```bash
 cd /Users/sakastudio/hermes-agent/data/worktrees/moorestech/uitk-ui-state-assembly
@@ -254,14 +255,14 @@ uloop get-logs --project-path ./moorestech_client --log-type Error
 ```
 Expected: ErrorCount 0。Unity が `Client.Ui.State.asmdef.meta`・`Client.Ui.State.meta` と 8 つのサブディレクトリの `.meta` を作る
 
-- [ ] **Step 8: 対象テストを回す**
+- [x] **Step 8: 対象テストを回す**
 
 ```bash
 uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.(EventMode|WebUi|WebUiHost|UIState|EditModeInPlayingTest\.Hostless)\." --timeout-seconds 1500
 ```
 Expected: 全 PASS（`WebUiGateAuditTest` と `WebUiHostlessStateAvailabilityTest` を含む）。落ちたら、`ffab18e83a` を別の worktree で同じ regex を回して、移動前から落ちていたものか比べる（移動前から落ちるものは移動の不具合ではないので報告に書く）
 
-- [ ] **Step 9: 依存の向きを確かめる**
+- [x] **Step 9: 依存の向きを確かめる**
 
 ```bash
 grep -c "Client.Ui.State" moorestech_client/Assets/Scripts/Client.Game/Client.Game.asmdef
@@ -269,7 +270,7 @@ git diff -M --name-status origin/feature/uitk-stage0 -- moorestech_client/Assets
 ```
 Expected: 1 行目 `0`、2 行目 `13`
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State moorestech_client/Assets/Scripts/Client.Ui.State.meta moorestech_client/Assets/Scripts/Client.Game moorestech_client/Assets/Scripts/Client.Starter moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests
