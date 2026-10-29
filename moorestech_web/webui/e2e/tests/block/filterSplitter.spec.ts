@@ -35,8 +35,8 @@ test("right click on a filter slot sends clear", async ({ page }) => {
     .toEqual({ directionIndex: 0, slotIndex: 0, clear: true });
 });
 
-// 3方向ぶんは高さ600でバンド高を越えるため、本文がスクロールして最後の方向のスロットまで操作できる
-// Three directions exceed the band height at 600, so the body scrolls and the last direction's slot stays operable
+// 高さ600では本文スクロールで末尾へ届く
+// At height 600 the body scrolls to reach the last slot
 test("last direction's filter slot is reachable by scrolling on a short window", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 });
   await setBlock(page, "filterSplitter");
@@ -49,8 +49,8 @@ test("last direction's filter slot is reachable by scrolling on a short window",
   await lastSlot.click({ button: "right" });
   await expect
     .poll(async () => {
-      // 記録は前のテストと共有されるため、この操作の送信である末尾を見る
-      // The action log is shared with earlier tests, so read the newest entry sent by this click
+      // 記録は共有のため末尾を見る
+      // The log is shared, so read the newest entry
       const payloads = await payloadsOf(page, "filter_splitter.set_filter_item");
       return payloads.at(-1);
     })

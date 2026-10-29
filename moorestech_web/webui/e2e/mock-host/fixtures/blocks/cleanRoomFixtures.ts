@@ -31,8 +31,8 @@ function cleanRoomMachineWith(airFilterCount: number, identifier: string, select
 
 const selected = blockMachine.machine.selectedRecipeGuid;
 
-// 清浄機自身の小型面。実ホストと同形（フィルタ1枠・液体なし・部屋の全台）で、電力網は接続時だけ載る
-// The purifier's own small panel, shaped like the real host (one filter slot, no fluids, every unit in the room); the grid rides only when connected
+// 実ホスト同形の清浄機面。電力網は接続時のみ
+// Host-shaped purifier panel; the grid rides only when connected
 function cleanRoomAirFilterWith(airFilterCount: number, identifier: string, connected: boolean) {
   return {
     open: true,

@@ -2,8 +2,8 @@ import { test, expect, type Page } from "@playwright/test";
 import { setBlock } from "../../../support/mockControl";
 import { expectReachableInScrollViewport, scrollAreaAncestorViewportOf } from "../../../support/layoutAssertions";
 
-// 清浄機自身の小型面は部屋の全台を載せる。台数に上限が無いので境目と多台数を持つ
-// The purifier's own small panel lists every unit in the room; counts are uncapped, so keep both the boundary and many-unit shapes
+// 台数上限が無いので境目と多台数を持つ
+// Counts are uncapped, so keep both the boundary and many-unit shapes
 const WINDOW_HEIGHTS = [600, 720, 1080];
 const AIR_FILTER_ROOMS = [
   { filters: 2, fixture: "cleanRoomAirFilter2Filters" },
@@ -51,8 +51,8 @@ for (const room of AIR_FILTER_ROOMS) {
   }
 }
 
-// 少数台は自然高のまま溢れず、スクロールが立たない
-// A few units keep the natural height: nothing overflows, so no scroll starts
+// 少数台は自然高でスクロールしない
+// A few units keep the natural height without scrolling
 test("清浄機2台・高さ720は自然高のままスクロールしない", async ({ page }) => {
   await openBlock(page, "cleanRoomAirFilter2Filters", 720);
   const viewport = scrollAreaAncestorViewportOf(page.getByTestId("clean-room-filter-grid"));

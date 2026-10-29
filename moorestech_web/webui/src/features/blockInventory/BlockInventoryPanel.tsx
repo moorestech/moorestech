@@ -57,10 +57,12 @@ export default function BlockInventoryPanel() {
           ? <TitleAction data={data} /> : undefined}
         style={{
           paddingBottom: "var(--block-panel-bottom-safe-area)",
-          // 内容量幅の小型パネルは右余白が10pxしかなくフェード帯で途切れて見えるため、左と対称の右余白を足す。バンド高で縮めるため最小高は0
-          // Content-sized small panels have only a 10px right padding that dies in the fade band, so mirror the left inset; min height 0 lets the band height shrink them
+          // 内容量幅の小型パネルは右余白が10pxしかなくフェード帯で途切れて見えるため、左と対称の右余白を足す
+          // Content-sized small panels have only a 10px right padding that dies in the fade band, so mirror the left inset
           ...(isLargePanel
             ? { height: "100%", boxSizing: "border-box" }
+            // バンド高まで縮める
+            // Let the band height shrink it
             : { paddingRight: "var(--block-panel-right-safe-area)", minHeight: 0 }),
         }}
       >
