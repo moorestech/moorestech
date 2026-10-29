@@ -26,8 +26,6 @@ function shiftPlan(block: BlockInventoryData, itemId: number, count: number) {
   return planPlayerLeftClick({ area: "main", slot: 0 }, { itemId, count }, true, ctx);
 }
 
-// 配分の宛先スロット列
-// Destination slots of the allocation
 function shiftDestinations(block: BlockInventoryData, itemId: number, count: number): number[] {
   const plan = shiftPlan(block, itemId, count);
   if (plan.kind !== "actions") throw new Error("shift click must plan actions");

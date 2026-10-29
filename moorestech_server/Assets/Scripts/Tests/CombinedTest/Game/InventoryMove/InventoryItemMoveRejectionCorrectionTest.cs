@@ -94,8 +94,8 @@ namespace Tests.CombinedTest.Game.InventoryMove
             setup.Main.SetItem(0, Stack(setup.UnboundItemId, 3));
             DrainSinks(setup);
 
-            // 欠損元・欠損先・双方欠損を同じ拒否経路で検証
-            // Verify missing source, destination, and both through the same rejection path
+            // 元・先・双方欠損を同じ拒否経路で検証
+            // Verify missing source, destination, or both through the same rejection path
             var missing = InventoryIdentifierMessagePack.CreateBlockMessage(new Vector3Int(50, 0, 50));
             var main = InventoryIdentifierMessagePack.CreateMainMessage();
             LogAssert.Expect(LogType.Warning, new Regex($"Move rejected: result=UnresolvedInventory .*fromResolved={fromResolved}.*toResolved={toResolved}"));

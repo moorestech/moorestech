@@ -43,8 +43,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             _publishedPipeFluidId = _fluidCache.Replica.Network.NodeFluidIds[pipeNode];
         }
 
-        // 開いているパイプの量・流体の種類をクライアント側のコピーから読み、前回の配信と違えば控えて true を返す(変わらない間は送らない)
-        // Read the open pipe's amount and fluid id from the client-side copy; when they differ from the last publish, remember them and return true (nothing is sent while unchanged)
+        // 複製の量・流体IDが変われば記録しtrue
+        // Record changed replica amount/fluid ID and return true; otherwise return false
         internal bool HasChangedSincePublish()
         {
             if (!_tracking || !_fluidCache.TryGetNodeIndex(_pipePosition, out var pipeNode)) return false;
