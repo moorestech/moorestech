@@ -288,7 +288,7 @@ Expected: `git status --short` に未追跡の `.meta` が残らない
 - Consumes: Task 1 のアセンブリ名 `Client.Ui.State`
 - Produces: なし
 
-- [ ] **Step 1: §2.1「0-4 状態の移設」の 2 行を書き換える**
+- [x] **Step 1: §2.1「0-4 状態の移設」の 2 行を書き換える**
 
 `WebUiModalService`（static をやめ、`Client.Game` のインターフェースにする） → `WebUiModalService`（static をやめ、`Client.Ui.State` の DI サービスにする）
 
@@ -298,7 +298,7 @@ Expected: `git status --short` に未追跡の `.meta` が残らない
 - 移す先は `Client.Ui.State` アセンブリ（`Client.Game` を参照し、`Client.Game` からは参照されない）の型で、登録は MainGameStarter の LifetimeScope。今はこれらが `WebUiGameBinder.Bind()` の中でしか作られず、Hub が null だと丸ごと作られない（`Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs:48-55`）。置き場の裁定は `.decisions/2026-10-29-UIの画面状態はClient.Gameに置かず専用アセンブリClient.Ui.Stateに置く.md`
 ```
 
-- [ ] **Step 2: §3.1 の asmdef の行を書き換える**
+- [x] **Step 2: §3.1 の asmdef の行を書き換える**
 
 `- **asmdef**: \`Client.Ui\` を新設する。` で始まる行を次にする:
 
@@ -306,13 +306,13 @@ Expected: `git status --short` に未追跡の `.meta` が残らない
 - **asmdef**: 描画の `Client.Ui` と画面状態の `Client.Ui.State`（段階 0 で新設済み）の 2 つにする。名前に技術名（Uitk）を入れない（Web という名前の改名を繰り返さないため）。参照の向きは `Client.Game` ← `Client.Ui.State` ← {`Client.Ui`・`Client.WebUiHost`}。`Client.Ui` は描画と操作だけを持ち、画面状態・ViewModel・UI コマンドは `Client.Ui.State` に置く。`Client.Ui.State` を `Client.Ui` に含めないのは、共存規則 R1 で `Client.Ui` が WebUiHost を触るため（WebUiHost も状態を読むので、同じアセンブリだと循環する）。`Client.Game` はどちらも参照せず、ゲーム側から UI へ頼む要求（モーダル等）はインターフェース越しにする。DI は既存の VContainer、イベントは UniRx
 ```
 
-- [ ] **Step 3: §3.2 の 2 行を書き換える**
+- [x] **Step 3: §3.2 の 2 行を書き換える**
 
 `- **正本には手を入れない**:` の行の先頭を `- **ゲームの正本には手を入れない**:` にし、末尾に「画面のための状態は正本ではないので `Client.Ui.State` に置く」を足す。
 
 `- **topic を 2 つに分ける**:` の行の `①型付きのスナップショットと変化通知（\`IReadOnlyReactiveProperty<XxxViewModel>\`）を \`Client.Game\` に置く。` を `①型付きのスナップショットと変化通知（\`IReadOnlyReactiveProperty<XxxViewModel>\`）を \`Client.Ui.State\` に置く。` にする。
 
-- [ ] **Step 4: 残りが無いことを確かめてコミットする**
+- [x] **Step 4: 残りが無いことを確かめてコミットする**
 
 ```bash
 grep -n "Client.Game" docs/uitk-migration/plan.md
