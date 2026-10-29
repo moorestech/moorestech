@@ -32,7 +32,7 @@
 - `partial`・`Func<>`・デフォルト引数は使わない
 - Unity Editor はマシン全体で 2 本まで。起動前に `moores-wt status` で本数を見る。他セッションの Editor は止めない
 - 名前空間はディレクトリと一致させる（`Client.Ui.State/<機能>/X.cs` → `namespace Client.Ui.State.<機能>`）
-- Codex の週次枠は 2026-11-02 15:08 まで切れている。Codex のクレジットは使わない（承諾なし）
+- 実行ホストは pi agent（gpt-6.1-sol）。pi 本体と moores-code-review の Codex runner は同じ Codex 週次枠を使う（2026-10-29 18:24 時点で 53%）。枠が尽きたら作業ブランチを push して止まる。Codex のクレジットは使わない（承諾なし）
 
 ## 設計検査記録
 
@@ -325,7 +325,7 @@ git commit -m "docs(uitk): 画面状態の置き場を Client.Ui.State に改め
 
 ### Task 3: moores-code-review で全ブランチレビュー
 
-必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。比較の基点は `origin/feature/uitk-stage0`（`ffab18e83a`）にする（master を基点にすると段階 0 全体が対象に入るため）。Codex の系統は週次枠切れのため外す（クレジット不使用）。レビュー指摘の反映がソースの判定経路・条件式に触れたら、Task 1 Step 8 のテストを反映後に回し直す。
+必ずmoores-code-reviewスキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。比較の基点は `origin/feature/uitk-stage0`（`ffab18e83a`）にする（master を基点にすると段階 0 全体が対象に入るため）。pi ホストでは codex-host の runner で回す。始める前に `~/.codex/sessions` の最新 rollout の `rate_limits.primary.used_percent` を見て、90% を超えていたら作業ブランチを push して止まり、報告する（クレジットは使わない）。レビュー指摘の反映がソースの判定経路・条件式に触れたら、Task 1 Step 8 のテストを反映後に回し直す。
 
 - [ ] **Step 1: moores-code-review を基点 `origin/feature/uitk-stage0` で実行し、指摘を反映してコミットする**
 
@@ -380,7 +380,7 @@ Expected: 未コミット・未 push が無く、`rm` が成功する
 - P2（名前空間）: 名前空間はディレクトリと一致させて `Client.Ui.State.<機能>` にする。時刻表は `Train/Timetable` ではなく `Train` 直下（`Client.Ui.State` の中で時刻表以外の列車の画面状態が来たら、そのときに分ける。今は 3 ファイルだけ）
 - P3（構造の守り）: 「`Client.Game` が `Client.Ui.State` を参照しない」は、`Client.Ui.State` が `Client.Game` を参照するので循環参照として Unity が拒否する。新しいテストは足さない。「新しい画面状態を `Client.Game` に足さない」は計画 §3.1 の記述で始める（規約は一番軽い形から始め、破られたら強制を足す）
 - P4（unityプレイ録画テスト）: 入れない。ランタイム挙動に触れないため（型の置き場と名前空間だけを変え、DI 登録・メソッド本体は変えない。画面に出るものは何も変わらない）。DI から状態が取れることは、Web ホストを起動しない EditModeInPlayingTest `WebUiHostlessStateAvailabilityTest` で確かめる
-- P5（実行ホスト）: Codex の週次枠が 2026-11-02 15:08 まで切れているので、実装は Claude Code（opus）の新規セッションで行う。moores-code-review の Codex 系統も外す（クレジットは承諾が無いので使わない）
+- P5（実行ホスト）: ユーザー指示「このままpi agentに依頼して」により pi agent（gpt-6.1-sol）で実行する。Codex 週次枠は 53%（10/29 18:24）で残っている
 - P6（基点）: レビューと差分確認の基点は `origin/feature/uitk-stage0`。新しい PR は作らず、統合ブランチへマージコミットで取り込む
 - P7（範囲の裁定・2026-10-29）: Phase 2.6 強1（範囲の食い違い）はユーザー裁定で決着。範囲はこの plan の 13 ファイルの移動だけ。PR #1559 が既存 `Client.Game` に入れた残りの差分（UniRx 化・NRE 修正・名前付き差し込み・旧 SkitUI 削除）は戻さない（差分を減らすための非本質的な迂回をしない）。出所はユーザー裁定（発言は `.decisions/2026-10-29-UIの画面状態はClient.Gameに置かず専用アセンブリClient.Ui.Stateに置く.md` に引用）
-- P8（実行ホスト・2026-10-29）: ユーザー「いまぱっとできる？」により、新規セッションへ渡さず、plan を書いたセッション（Claude Code）がそのまま Task 1 から実行する
+- P8（実行ホスト・2026-10-29）: ユーザー「いまぱっとできる？」の後「これ、このままpi agentに依頼して」。pi agent の新規セッションが Task 1 から実行する
