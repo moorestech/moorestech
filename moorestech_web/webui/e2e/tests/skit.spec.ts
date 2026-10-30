@@ -6,9 +6,11 @@ test.beforeEach(async ({ page }) => {
   await setSkitStage(page, "none");
 });
 
+// 後続specへ漏らさないよう、mock既定の持ち物画面へ戻す
+// Restore the mock's default inventory screen so nothing leaks into later specs
 test.afterEach(async ({ page }) => {
   await setSkitStage(page, "none");
-  await setUiState(page, "GameScreen");
+  await setUiState(page, "PlayerInventory");
 });
 
 test("blocking skit reveals, advances, and selects by choiceId", async ({ page }) => {
