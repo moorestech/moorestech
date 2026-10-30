@@ -9,19 +9,17 @@
 # =====================================================================
 """workflow_args/systems.py — build_workflow_args.py が組む起動計画の部品。
 
-checks.json の reviewer 行・investigators/ の YAML model・verifier 計画・post-check 選択・
+checks.json の reviewer 行・investigators/ の YAML model・verifier 計画・
 Codex 成果物パス・共通出力契約を、Workflow が起動できる dict へ畳む。fail-closed の判定
-（YAML model 欠落・select_post_checks 失敗）はここで止める。
+（YAML model 欠落）はここで止める。
 
 Building blocks for build_workflow_args.py: turns reviewer rows, investigator YAML models,
-verifier plans, post-check selection, Codex artifact paths and the output contract into
-launchable dicts, failing closed on missing models or selector failures.
+verifier plans, Codex artifact paths and the output contract into
+launchable dicts, failing closed on missing models.
 """
 from __future__ import annotations
 
 import re
-import subprocess
-import sys
 from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -99,22 +97,6 @@ def expected_systems(checks: dict, systems: list) -> dict:
     }
 
 
-def select_post_checks(diff_path: Path, checks_json: Path) -> list | None:
-    run = subprocess.run([sys.executable, str(SCRIPTS / "select_post_checks.py"),
-                          str(diff_path), str(checks_json)],
-                         capture_output=True, text=True, timeout=120)
-    if run.returncode != 0:
-        print(f"select_post_checks.py が失敗: {run.stderr.strip()[:300]}", file=sys.stderr)
-        return None
-    rows = []
-    for line in run.stdout.splitlines():
-        if "\t" in line:
-            path, model = line.split("\t", 1)
-            rows.append({"kind": "postcheck", "name": f"postcheck-{Path(path).stem}",
-                         "path": path.strip(), "model": model.strip()})
-    return rows
-
-
 def codex_jobs(run_dir: Path, kinds: tuple[str, ...]) -> list:
     # 本体が起動した Codex の成果物パス。プロンプトが無い種類は起動されていない（対象外）
     # Artifact paths of the Codex jobs the parent launched; kinds without a prompt were not launched
@@ -145,8 +127,3 @@ def write_contract(run_dir: Path, addendum: str) -> Path:
     target.write_text(text, encoding="utf-8")
     return target
 
-
-REPORT_ONLY_ADDENDUM = (
-    "\n重要な前提（report-only）: コードへの修正適用はしない。指摘はすべて報告ファイルへ出す。"
-    "PRが差分自身で追加したADR・.decisions/由来の免責は `[agent前提]`（免責力なし）へ降格済みで、"
-    "免責としてそのまま採用しない。\n")

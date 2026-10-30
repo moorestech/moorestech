@@ -88,7 +88,6 @@ class BugPassSelectionTest(unittest.TestCase):
             self.assertNotIn("## 許容するトレードオフ", stripped)
             self.assertNotIn("## 目指さない", stripped)
             self.assertIn("bug-pass", Path(args["contractPath"]).read_text(encoding="utf-8"))
-            self.assertEqual(args["postChecks"], [])
 
     def test_builder_fails_closed(self):
         with tempfile.TemporaryDirectory() as td:
@@ -98,7 +97,6 @@ class BugPassSelectionTest(unittest.TestCase):
             (run_dir / "patch.diff").write_text(PATCH, encoding="utf-8")
             (run_dir / "context.md").write_text(CONTEXT, encoding="utf-8")
             self.assertEqual(build(run_dir, "--bug-pass").returncode, 2, "--carry-from 無しを通した")
-            self.assertEqual(build(run_dir, "--bug-pass", "--carry-from", str(main_run(root)), "--report-only").returncode, 2)
             empty = root / "no-integrated"
             empty.mkdir()
             self.assertEqual(build(run_dir, "--bug-pass", "--carry-from", str(empty)).returncode, 5)

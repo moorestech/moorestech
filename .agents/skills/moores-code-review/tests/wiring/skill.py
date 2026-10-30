@@ -95,16 +95,11 @@ class SkillWiringTest(unittest.TestCase):
             self.assertIn("必ず回帰テストを実行", head,
                           f"scripts/{s.name} に回帰テスト必須バナーが無い")
 
-    def test_patch_builders_share_the_review_diff_exclusions(self):
-        # 除外の正本は review_diff.py。セッション側（SKILL.md Step 1）と pr-independent-review（make_patch.py）が
-        # 同じ正本を使い、素の git diff に戻らないこと（戻るとプレイテストシナリオや NuGet 本体が再びレビューに入る）
-        # Both patch builders must use review_diff.py; falling back to plain git diff re-admits scenarios and vendored NuGet
+    def test_patch_builder_uses_the_review_diff_exclusions(self):
+        # 除外の正本は review_diff.py。Step 1 の patch 生成が素の git diff に戻ると、プレイテストシナリオや NuGet 本体が再びレビューに入る
+        # Step 1 must build the patch via review_diff.py; plain git diff re-admits scenarios and vendored NuGet
         self.assertIn("scripts/review_diff.py <base>^..<last>", SKILL_MD,
                       "moores-code-review Step 1 のpatch生成が review_diff.py を経由していない")
-        independent = (REPO_ROOT / ".agents/skills/pr-independent-review/scripts/make_patch.py").read_text(encoding="utf-8")
-        self.assertIn("from review_diff import exclude_pathspecs", independent,
-                      "pr-independent-review make_patch.py が review_diff.py の除外を使っていない")
-        self.assertIn("EXCLUDES = exclude_pathspecs()", independent)
 
     def test_every_reviewer_has_frontmatter(self):
         # selector発見可能性: reviewersはfrontmatter（extensions等）を持つこと
