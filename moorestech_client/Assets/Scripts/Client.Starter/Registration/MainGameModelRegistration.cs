@@ -32,6 +32,7 @@ using Client.Network.API;
 using Game.Block.Interface.MachineUpgrade;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Recovery;
 using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
 using Client.Starter.PlaytestSmoke;
@@ -74,6 +75,9 @@ namespace Client.Starter.Registration
             builder.RegisterInstance(PlaytestOutboxDirectories.FromGameSystemPaths());
             builder.RegisterInstance<IPlaytestSteamTicketProvider>(new PlaytestSteamTicketProvider());
             builder.Register<PlaytestUploadRunner>(Lifetime.Singleton).As<IPlaytestUploadRequester>();
+            builder.Register<IPlaytestExportDestination, DesktopExportDestination>(Lifetime.Singleton);
+            builder.Register<IPlaytestFileReveal, OsFileReveal>(Lifetime.Singleton);
+            builder.Register<PlaytestOutboxRecovery>(Lifetime.Singleton);
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             builder.RegisterEntryPoint<PlaytestBootUploadTrigger>();
 #endif
@@ -106,6 +110,7 @@ namespace Client.Starter.Registration
             // 周期取得は持たず、生成時にハンドシェイクの全量を適用して設置・撤去イベントを購読するだけなので、起動時に1度解決する
             // Holds no polling; it applies the handshake full state and subscribes to place/remove events on construction, so it is resolved once at startup
             builder.Register<WorldDataHandler>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<BlockStateEventHandler>();
             builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
             builder.Register<BlockPreviewRadiusCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();

@@ -31,8 +31,7 @@ namespace Client.PlaytestReceiver.BoxFilePolicies.CommitTransfer
             foreach (var item in missing.Where(item => item is JObject && BugReportBoxFilePolicy.IsCommitBundle((string)item["item"]) &&
                          System.Text.RegularExpressions.Regex.IsMatch((string)item["reason"] ?? "", @"\A配送不能: (too-large|bundle-too-large|too-many-files)\z")).ToArray()) item.Remove();
             File.WriteAllText(path, manifest.ToString());
-            File.Delete(Path.Combine(directory, PlaytestOutboxScanner.FailedMarker));
-            File.Delete(Path.Combine(directory, PlaytestOutboxScanner.AttemptsMarker));
+            PlaytestFailureMarkers.Clear(directory);
         }
 
         internal static IReadOnlyList<PlaytestOutboxBox> Prepare(PlaytestOutboxBox box)

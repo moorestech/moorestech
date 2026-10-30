@@ -4,7 +4,7 @@
 ブラウザで一覧・絞り込み・詳細確認できるようにする Web 画面。標準ライブラリのみ（venv 不要）。
 報告データは読むだけで、書き込むのは人が付ける状態（報告の既読と関連チケットのリンク）だけ。
 
-公開先は `https://review.moores.tech/playtest/`。裁定サイトと同じ named tunnel の ingress に `path: ^/playtest` の行を足して
+公開先は `https://review.moores.tech/playtest/`。PR報告ページと同じ named tunnel（`~/hermes-agent/data/services/pr-review/cloudflared-config-moores.yml`）の ingress に `path: ^/playtest` の行を足して
 `127.0.0.1:8932` へ通し、Cloudflare Access（review.moores.tech のアプリ）で本人以外を弾く。
 テスターの SteamID・説明文・録画を出すため、Access の無い経路で公開しない（ADR 0061「閲覧は本人とエージェントのみ」）。
 

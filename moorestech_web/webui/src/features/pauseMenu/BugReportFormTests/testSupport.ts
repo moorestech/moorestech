@@ -36,6 +36,7 @@ vi.mock("@/shared/ui", () => ({
 import { BugReportForm } from "../BugReportForm";
 
 type Delivery = PauseMenuData["delivery"];
+type ExportStatus = PauseMenuData["export"];
 type Status = { kind: "noSession" | "capturing" | "submitting" | "ready"; missing: string[] };
 
 afterEach(() => {
@@ -47,13 +48,13 @@ export function getMocks() {
   return mocks;
 }
 
-function FormWithDraft({ status, delivery }: { status: Status; delivery: Delivery }) {
+function FormWithDraft({ status, delivery, exportStatus }: { status: Status; delivery: Delivery; exportStatus: ExportStatus }) {
   const draft = useBugReportDraft();
-  return createElement(BugReportForm, { status, draft, delivery });
+  return createElement(BugReportForm, { status, draft, delivery, exportStatus });
 }
 
 export async function render(status: Status): Promise<ReactTestRenderer> {
-  return renderDelivery(status, { kind: "allSent" });
+  return renderDelivery(status, { kind: "allSent" }, { kind: "idle" });
 }
 
 // 描画の初期化を共用する
@@ -80,7 +81,7 @@ export function statusTexts(renderer: ReactTestRenderer): string[] {
 }
 
 export async function renderMutableDraft(status: Status, draft: BugReportDraft): Promise<ReactTestRenderer> {
-  return renderElement(createElement(BugReportForm, { status, draft, delivery: { kind: "allSent" } }));
+  return renderElement(createElement(BugReportForm, { status, draft, delivery: { kind: "allSent" }, exportStatus: { kind: "idle" } }));
 }
 
 // 正規CSVの辞書で再描画する
@@ -96,6 +97,6 @@ export function loadProductionDictionaries(locale: string): void {
     Object.fromEntries(csv.rows.map((row) => [row.key, row.source])));
 }
 
-export async function renderDelivery(status: Status, delivery: Delivery): Promise<ReactTestRenderer> {
-  return renderElement(createElement(FormWithDraft, { status, delivery }));
+export async function renderDelivery(status: Status, delivery: Delivery, exportStatus: ExportStatus): Promise<ReactTestRenderer> {
+  return renderElement(createElement(FormWithDraft, { status, delivery, exportStatus }));
 }

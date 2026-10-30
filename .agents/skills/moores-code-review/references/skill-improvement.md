@@ -8,9 +8,7 @@ fable（moores-any-precedent-alignment・Fable全般）とCodexは高コスト�
 
 ## 観点の更新は指摘駆動で行う
 
-**見逃しの発覚経路**: 人間指摘とハーネス出力の突き合わせは pr-independent-review の **reconcileモード**が担う
-（人間のGitHubコメントを取り込み caught/missed を分類し、missedを本手順へ起票する。債務追跡は同スキルの
-`../moorestech_logs/harness/pr-independent-review/records/improvement-queue.md`）。本ファイルは発覚後の改善手法・検証・コーパスの単一の正であり、検知側の手順は持たない。
+**見逃しの発覚経路**: 見逃しは人間レビュアーが指摘したときに発覚する。本ファイルは発覚後の改善手法・検証・コーパスの単一の正であり、検知側の手順は持たない。
 
 新しい人間レビュー指摘（PRレビュー・セッション内指摘とも）が出たら:
 
@@ -35,4 +33,4 @@ fable（moores-any-precedent-alignment・Fable全般）とCodexは高コスト�
 
 - **リプレイ評価**: `eval/fixtures.tsv` + `eval/make-fixture.sh` でレビュー当時のdiffを再生成し `eval/expected-findings.md` の期待検出と突合する。reviewer・スクリプトを変更したら必ず1回流す。手順は `eval/README.md`。
 - **前向きログ**: マージ済みPRごとに `../moorestech_logs/harness/moores-code-review/eval-log.md` へ「人間指摘数・分類・ハーネス事前検出の有無・却下数」を記録する。
-  **書き手は pr-independent-review の reconcileモード**（突き合わせの実施主体がそのまま記入する。人間には書かせない）。
+  **書き手は人間指摘を受けて本手順を回すセッション**（人間には書かせない）。

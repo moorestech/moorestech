@@ -1,11 +1,11 @@
-// ---- Refix: 反映 diff（修正の前後差分）だけを applied-diff-correctness で再レビュー（report-only では省略）----
+// ---- Refix: 反映 diff（修正の前後差分）だけを applied-diff-correctness で再レビュー ----
 // レビューの出力を反映した diff はどの工程の入力にもならず誰にも再レビューされない（2026-09-08 cmux-connector c9baa79:
 // 裁定の反映が判定式の評価時点を誤り 2 日間の機能停止。事後実測で行単位reviewerはその diff で Critical 到達）。
 // 2 周目以降は「前回レビュー以降に変わった行」だけを見せ、問いを「壊れていないか・方針どおりか」に絞る。
 // A diff that applies review output is never re-reviewed otherwise (c9baa79). Later rounds see only what changed
 // since the last review and ask only "did the fix break something / does it match the stated fix".
 const REFIX_MAX_ROUNDS = A.refixMaxRounds || 3
-const refix = { enabled: !A.reportOnly, scope: apply ? apply.refix_scope : null, note: apply ? apply.refix_note : '', rounds: [], unresolved: false, loop_stuck: false }
+const refix = { enabled: true, scope: apply ? apply.refix_scope : null, note: apply ? apply.refix_note : '', rounds: [], unresolved: false, loop_stuck: false }
 if (apply) {
   if (apply.refix_scope === 'error') {
     throw new Error(`反映 diff を作れなかった（${apply.refix_note}）。修正は適用済みなので、親が refix_snapshot.py の snapshot/diff を手で通してから resumeFromRunId で再開する`)

@@ -14,7 +14,6 @@ using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
-using Server.Event.EventReceive;
 using UniRx;
 namespace Client.WebUiHost.Game.Topics
 {
@@ -178,12 +177,9 @@ namespace Client.WebUiHost.Game.Topics
                 _networkCache.Clear();
                 return;
             }
-            // uGUI BlockGameObject と同じ per-block イベントタグを直接購読して再配信トリガにする
-            // Directly subscribe the same per-block event tag as uGUI BlockGameObject as the republish trigger
-            var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);
-            _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(
-                eventTag,
-                _ => OnTrackedBlockStateChanged());
+            // 束で追跡ブロックに届いたら再配信
+            // Republish whenever bundle routing delivers a state to the tracked block
+            _blockStateSubscription = block.OnBlockStateChanged.Subscribe(_ => OnTrackedBlockStateChanged());
             // どの集約情報を追うかはキャッシュが param から決め、歯車網の追跡有無もキャッシュから読む
             // The cache decides from the param which aggregates to follow, and whether gear is tracked is read back from it
             _networkCache.Track(block);

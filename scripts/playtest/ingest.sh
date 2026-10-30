@@ -31,6 +31,8 @@ fi
 . "$HERE/lib/ingest-lock.sh"
 # shellcheck source=lib/steam-persona.sh
 . "$HERE/lib/steam-persona.sh"
+# shellcheck source=lib/logs-commit.sh
+. "$HERE/lib/logs-commit.sh"
 
 LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 PLAYTEST_DIR="$LOGS/harness/playtest"
@@ -114,35 +116,6 @@ ingest_one() {
   receiver_ack "$kind" "$steam_id" "$id" || { log "ERROR: ack 失敗 ${id}（次回に持ち越し）"; return 1; }
 }
 
-commit_logs() {
-  # 記録の commit と push は別々に判定する（scripts/bugreport/inbox-poller.sh 前例）。
-  # push だけ失敗を潰すと「届いていない」が誰にも見えなくなる
-  # Judge commit and push separately (precedent: inbox-poller.sh); swallowing a failed
-  # push alone would hide that nothing reached the remote
-  [ -d "$LOGS/.git" ] || { log "ERROR: logs repo が無い: ${LOGS}（commit しない）"; return 0; }
-  (
-    cd "$LOGS"
-    $GIT_CMD add -A harness/playtest || exit 1
-    $GIT_CMD diff --cached --quiet -- harness/playtest && exit 0
-    # 同じ index を触る他ジョブ（bug-report poller 等）が commit を挟んでも、この commit は
-    # harness/playtest だけを含める（pathspec 限定。取り込み記録が他ジョブへ混入しない）
-    # Even if another job (e.g. the bug-report poller) shares this index and commits in between,
-    # this commit stays scoped to harness/playtest via pathspec so it never mixes into their record
-    $GIT_CMD commit -qm "playtest: ingest $(now_utc)" -- harness/playtest || exit 1
-  ) || log "ERROR: logs repo の commit に失敗（次回に持ち越し）"
-  [ "$GIT_PUSH" = 1 ] || return 0
-  (
-    cd "$LOGS"
-    local ahead
-    # 数えられない（上流未設定等）を 0 と読み替えると push 漏れが無音になるので理由を出す
-    # Reading a failed count (e.g. no upstream) as 0 would silently skip the push, so log why
-    ahead="$($GIT_CMD rev-list --count '@{u}..HEAD' 2>&1)" \
-      || { log "ERROR: upstream との差を数えられず push しない: ${ahead}"; exit 0; }
-    [ "$ahead" != 0 ] || exit 0
-    $GIT_CMD push -q || exit 1
-  ) || log "ERROR: logs repo の push に失敗（次回に持ち越し）"
-}
-
 # logs repo が無ければ受け口に触る前に止める。位置から導出した既定パスは
 # 本体clone以外（タスクworktree等）で解決しないため、ここで fail-closed にする
 # Stop before touching the receiver if the logs repo is absent: a location-derived
@@ -193,5 +166,5 @@ while IFS=$'\x1f' read -r kind steam_id id ready_at; do
   fi
 done < "$ITEMS"
 
-commit_logs
+commit_logs "playtest: ingest $(now_utc)"
 log "done: 取得 $(wc -l < "$ITEMS" | tr -d ' ') 件を走査 / 成功 ${success} / 失敗 ${failed}"

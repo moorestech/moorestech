@@ -12,11 +12,11 @@ hooks:
     - matcher: "AskUserQuestion"
       hooks:
         - type: command
-          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+          command: "python3 scripts/unattended/unattended-gate.py ask"
   Stop:
     - hooks:
         - type: command
-          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py stop bugfix"
+          command: "python3 scripts/unattended/unattended-gate.py stop bugfix"
 ---
 
 # bug-report-auto-fix — バグ報告の自動再現・修正（無人実行）
@@ -205,14 +205,14 @@ Step 3 のシナリオを修正後のバイナリで再実行し `$RUN/observe-a
 ## Step 8: レビューと PR
 
 1. `moores-code-review` を実行し、機械的指摘を反映する。設計判断が要る指摘は PR 本文の「裁定事項」に列挙する（AskUserQuestion は使えない）
-2. `git push -u origin <ブランチ>` → `pr-create` スキルで PR を作る（本文: 説明文の引用・原因・修正・合成NUnit・`$RUN` のパス・欠損項目・決定性是正の有無・裁定事項）。修正前後の録画・スクショは pr-create の報告ページ（Cloudflare Access 配下の `review.moores.tech/pr/<N>/report/`）にだけ載せ、**PR本文へは添付しない**（裁定: 公開PRにはパスと説明だけ）
+2. `git push -u origin <ブランチ>` → `pr-create` スキルで PR を作る（本文: 説明文の引用・原因・修正・合成NUnit・`$RUN` のパス・欠損項目・決定性是正の有無・裁定事項）。修正前後の録画・スクショは環境ローカル規約が定める非公開の載せ先（pr-create 参照）にだけ載せ、**PR本文へは添付しない**（裁定: 公開PRにはパスと説明だけ）
 3. `gh pr ready --undo <番号>` で draft にする
 4. `bd note <id> "PR #<番号> ..."`
 
 **公開 PR に載せてよいのは「説明とパス」だけ**。バンドルは private の moorestech_logs 側にあり、
 本人とエージェントだけが閲覧する。PR 本文・コミットメッセージ・テストコードに次を持ち込まない:
 
-- 動画・フレーム・スクリーンショットの添付（修正後のプレイ録画も同じ扱い。Access 配下の報告ページURLを張るのは可）
+- 動画・フレーム・スクリーンショットの添付（修正後のプレイ録画も同じ扱い。非公開の載せ先のURLを張るのは可）
 - スナップショット JSON・パケットログ本文の貼り付け
 - 報告者のローカルパス・ワールドの中身
 

@@ -28,7 +28,7 @@ export function PauseMenuPanel() {
     switch (data.page) {
       case "top": return <PauseMenuTopPage disconnected={data.disconnected} />;
       case "settings": return <PauseMenuSubPage title={t(L.ui.pauseMenu.settings)}><LanguageSelect /><SprintModeSelect /><GraphicsQualitySettings /></PauseMenuSubPage>;
-      case "bugReport": return <PauseMenuSubPage title={t(L.ui.pauseMenu.bugReport)}><BugReportForm status={data.bugReport} delivery={data.delivery} draft={draft} /></PauseMenuSubPage>;
+      case "bugReport": return <PauseMenuSubPage title={t(L.ui.pauseMenu.bugReport)}><BugReportForm status={data.bugReport} delivery={data.delivery} exportStatus={data.export} draft={draft} /></PauseMenuSubPage>;
       default:
         console.warn(`[PauseMenuPanel] Unknown pause menu page: ${String(data.page)}. Rendering the top page.`);
         return <PauseMenuTopPage disconnected={data.disconnected} />;

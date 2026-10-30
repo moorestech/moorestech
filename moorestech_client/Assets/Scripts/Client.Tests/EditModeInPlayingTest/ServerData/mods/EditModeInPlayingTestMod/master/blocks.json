@@ -2417,6 +2417,123 @@
       "category": "テスト",
       "subCategory": "ElectricToGearGenerator",
       "placementsPerCost": 1
+    },
+    {
+      "blockGuid": "ff6c2ada-5aed-4f7a-88ca-16fda4d4dbc6",
+      "name": "テスト用パイプ",
+      "blockType": "FluidPipe",
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "Vanilla/Block/PipeStraightWindow",
+      "openable": true,
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "ef6960a3-7a06-4d20-bf4c-4c59871e4caf",
+              "option": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ],
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  -1,
+                  0
+                ]
+              ],
+              "connectorGuid": "5328a579-0a93-41b2-9438-5f3b81d1e704",
+              "option": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              }
+            }
+          ]
+        },
+        "capacity": 500,
+        "blockedRetryTicks": 3,
+        "inventoryConnectors": {
+          "inputConnects": [],
+          "outputConnects": []
+        }
+      },
+      "category": "テスト",
+      "subCategory": "FluidPipe",
+      "placementsPerCost": 1
     }
   ],
   "beltConveyorFamilies": [

@@ -22,4 +22,11 @@ namespace Client.PlaytestReceiver.Delivery
         { Reason = reason; _scope = scope; Detail = detail; }
         public override PlaytestOutboxScope Scope => _scope;
     }
+
+    // 範囲に進行記録が入るかの判定はここだけで行う
+    // The only place deciding whether a scope includes progress records
+    public static class PlaytestOutboxScopes
+    {
+        public static bool IncludesProgress(this PlaytestOutboxScope scope) { return scope == PlaytestOutboxScope.ReportsAndProgress; }
+    }
 }

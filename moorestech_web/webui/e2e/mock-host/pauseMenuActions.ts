@@ -40,6 +40,9 @@ export function applyPauseMenuAction(inv: PlayerInventoryData, type: string, pay
     applyPauseMenuShowPage(inv, payload as ActionPayloads["pause_menu.show_page"]);
     return { handled: true };
   }
+  // 再送・書き出しは受理するだけ。状態遷移はC#側の責務
+  // Resend and export are only accepted; state transitions belong to C#
+  if (type === "bug_report.resend_failed" || type === "bug_report.export_unsent") return { handled: true };
   if (type === "bug_report.submit") {
     applyPauseMenuShowPage(inv, { page: "top" });
     return { handled: true };

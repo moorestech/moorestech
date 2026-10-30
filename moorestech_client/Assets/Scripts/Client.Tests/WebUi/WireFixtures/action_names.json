@@ -22,6 +22,8 @@
     "pause_menu.save_and_quit",
     "pause_menu.show_page",
     "bug_report.submit",
+    "bug_report.resend_failed",
+    "bug_report.export_unsent",
     "research.complete",
     "machine_recipe.select",
     "filter_splitter.set_mode",
