@@ -3,7 +3,7 @@
 Prepare the canonical tree `$CANON` (a worktree pinned to origin/master) and enforce the former prose guards via exit codes.
 
 使い方 / Usage:
-    canon_setup.py --origin <起動元repo> [--allow-skew]
+    canon_setup.py --origin <起動元repo> --skill <canonから読むスキル名> [--allow-skew]
 
 worktree 置き場は `<clone置き場の親>/worktrees/moorestech/` に固定する（PC共通規約 `…/worktrees/<project>/<name>`。repos 直下に散らさない）。
 The worktree home is fixed to `<parent of the clone dir>/worktrees/moorestech/` (machine-wide `…/worktrees/<project>/<name>`; never scatter into repos/).
@@ -12,7 +12,7 @@ stdout に JSON: {"canon", "worktree_parent", "sha8", "origin_master_sha", "skew
 exit 0  … 用意完了（--allow-skew 付きで skew:true の場合を含む）
 exit 10 … origin/master の fetch / rev-parse 失敗
 exit 11 … worktree add 失敗
-exit 12 … $CANON に novelty_gate.py が無い（誤決定した$CANONで走らせない）
+exit 12 … $CANON に --skill の SKILL.md が無い（そのスキルがまだ master に入っていない）
 exit 13 … SKILL.md 同一性ガードで差分（$ORIGIN に未マージのskill改修がある。--allow-skew で続行可）
 exit 14 … $ORIGIN が git 作業ツリーでない / $CANON が $ORIGIN と同一パスになる（物差しが実行中に動く経路）
 """
@@ -23,9 +23,6 @@ import subprocess
 import sys
 import time
 
-SKILL_REL = os.path.join(".agents", "skills", "pr-independent-review")
-NOVELTY_REL = os.path.join(SKILL_REL, "scripts", "novelty_gate.py")
-SKILL_MD_REL = os.path.join(SKILL_REL, "SKILL.md")
 STALE_SECONDS = 24 * 3600
 PROJECT_NAME = "moorestech"
 
@@ -83,9 +80,11 @@ def worktree_parent(origin: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--origin", required=True)
+    ap.add_argument("--skill", required=True)
     ap.add_argument("--allow-skew", action="store_true")
     args = ap.parse_args()
     origin = os.path.realpath(args.origin)
+    skill_md_rel = os.path.join(".agents", "skills", args.skill, "SKILL.md")
 
     # $ORIGIN の妥当性 / Validate $ORIGIN
     toplevel = git(origin, "rev-parse", "--show-toplevel")
@@ -111,15 +110,16 @@ def main() -> int:
         pass
     cleaned, warnings = clean_stale_pins(origin, parent, canon)
 
-    # 実在確認は novelty_gate.py で行う（moores-code-review/SKILL.md は $PRWT 側にもあり弁別にならない）
-    # Existence check uses novelty_gate.py (moores-code-review/SKILL.md also exists in $PRWT, so it cannot discriminate)
-    if not os.path.isfile(os.path.join(canon, NOVELTY_REL)):
-        return fail(12, f"$CANON に novelty_gate.py が無い: {canon}")
+    # 未マージのスキルを古い版で走らせない / Never run a skill that has not reached master
+    if not os.path.isfile(os.path.join(canon, skill_md_rel)):
+        return fail(12, f"$CANON に {skill_md_rel} が無い: {canon}")
 
-    # SKILL.md 同一性ガード。本体は harness が $ORIGIN から読むため、差分＝「新しい指示 × 古いreviewer」の版ズレ
-    # SKILL.md identity guard: the harness reads the body from $ORIGIN, so a diff means new instructions on old reviewers
-    origin_md = os.path.join(origin, SKILL_MD_REL)
-    canon_md = os.path.join(canon, SKILL_MD_REL)
+    # SKILL.md 同一性ガード。本体は harness が $ORIGIN から読むため、差分＝「新しい指示 × 古い同梱スクリプト」の版ズレ
+    # SKILL.md identity guard: the harness reads the body from $ORIGIN, so a diff means new instructions on old bundled scripts
+    origin_md = os.path.join(origin, skill_md_rel)
+    if not os.path.isfile(origin_md):
+        return fail(12, f"$ORIGIN に {skill_md_rel} が無い: {origin}")
+    canon_md = os.path.join(canon, skill_md_rel)
     with open(origin_md, "rb") as a, open(canon_md, "rb") as b:
         skew = a.read() != b.read()
     origin_head = git(origin, "rev-parse", "HEAD").stdout.strip()
@@ -136,7 +136,7 @@ def main() -> int:
     print(json.dumps(result, ensure_ascii=False))
     if skew and not args.allow_skew:
         return fail(13, f"SKILL.md 同一性ガードで差分: $ORIGIN={origin_head} $CANON={full_sha}。"
-                        "ユーザーが続行を選んだ場合のみ --allow-skew で再実行し records の canonical: に skew を明記する")
+                        "ユーザーが続行を選んだ場合のみ --allow-skew で再実行する")
     return 0
 
 

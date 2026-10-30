@@ -9,9 +9,9 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "canon_setup.py"
-SKILL_MD = Path(".agents/skills/pr-independent-review/SKILL.md")
-NOVELTY = Path(".agents/skills/pr-independent-review/scripts/novelty_gate.py")
+SCRIPT = Path(__file__).resolve().parent.parent / "canon_setup.py"
+SKILL_NAME = "bug-report-auto-fix"
+SKILL_MD = Path(f".agents/skills/{SKILL_NAME}/SKILL.md")
 
 
 def _git(repo: Path, *args: str) -> str:
@@ -20,7 +20,7 @@ def _git(repo: Path, *args: str) -> str:
 
 def _run(origin: Path, *extra: str) -> subprocess.CompletedProcess:
     return subprocess.run(
-        [sys.executable, str(SCRIPT), "--origin", str(origin), *extra],
+        [sys.executable, str(SCRIPT), "--origin", str(origin), "--skill", SKILL_NAME, *extra],
         capture_output=True, text=True,
     )
 
@@ -35,8 +35,6 @@ def origin(tmp_path: Path) -> Path:
     _git(work, "config", "user.name", "t")
     (work / SKILL_MD).parent.mkdir(parents=True)
     (work / SKILL_MD).write_text("# skill\n")
-    (work / NOVELTY).parent.mkdir(parents=True)
-    (work / NOVELTY).write_text("print('gate')\n")
     _git(work, "add", "-A")
     _git(work, "commit", "-q", "-m", "base")
     _git(work, "push", "-q", "origin", "master")
@@ -53,7 +51,7 @@ def test_creates_pin_and_reports(origin: Path, tmp_path: Path):
     assert out["worktree_parent"] == str(parent)
     assert out["skew"] is False and out["cleaned"] == []
     assert (Path(out["canon"]) / ".last-used").exists()
-    assert (Path(out["canon"]) / NOVELTY).exists()
+    assert (Path(out["canon"]) / SKILL_MD).exists()
 
 
 def test_reuses_existing_pin_without_touching_it(origin: Path, tmp_path: Path):
@@ -108,9 +106,9 @@ def test_origin_must_be_a_worktree_root(origin: Path, tmp_path: Path):
     assert res.returncode == 14
 
 
-def test_missing_novelty_gate_is_exit_12(origin: Path, tmp_path: Path):
-    _git(origin, "rm", "-q", str(NOVELTY))
-    _git(origin, "commit", "-q", "-m", "drop gate")
+def test_skill_missing_on_master_is_exit_12(origin: Path, tmp_path: Path):
+    _git(origin, "rm", "-q", str(SKILL_MD))
+    _git(origin, "commit", "-q", "-m", "drop skill")
     _git(origin, "push", "-q", "origin", "master")
     res = _run(origin)
     assert res.returncode == 12

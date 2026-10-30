@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "unattended-gate.py"
+SCRIPT = Path(__file__).resolve().parent.parent / "unattended-gate.py"
 RUN_ID = "20260911_120000_aaaa1111"
 
 
