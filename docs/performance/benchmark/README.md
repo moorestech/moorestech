@@ -84,3 +84,74 @@
 | 2026-10-22 19:46 r1 | header-read | 43ec70bba2 | 14.08 | 70.8 | 15,534 | 23.6 | 受信パケットの振り分けで先頭のTag・SequenceIdだけを読む（bd37d03c27）。ヘッダー読み取り 10.4ms→1.5ms/フレーム |
 | 2026-10-22 19:46 r2 | header-read | 43ec70bba2 | 13.86 | 70.1 | 20,703 | 23.4 | |
 | 2026-10-22 19:46 r3 | header-read | 43ec70bba2 | 13.63 | 79.1 | 20,350 | 28.0 | |
+| 2026-10-22 20:50 r1 | before-tick-bundle | f17f162cb3 | 5.93 | 117.3 | 16,071 | 28.6 | ブロック状態の束ねの前。master のパイプの差分同期（ADR 0088）が入る前のコミットで、下の比較には使わない |
+| 2026-10-22 20:50 r2 | before-tick-bundle | f17f162cb3 | 6.27 | 113.4 | 21,356 | 22.9 | |
+| 2026-10-22 20:50 r3 | before-tick-bundle | f17f162cb3 | 6.39 | 109.1 | 21,168 | 30.6 | |
+| 2026-10-30 13:54 r1 | before-tick-bundle-on-master | 29d37feced | 24.28 | 34.7 | 3,364 | 33.2 | 束ねの前（f17f162cb3）に master 20916ea9fa をマージした windows-desktop 上だけのコミット。束の前の時点の `events-start.cs`・`events-collect.cs` で計測 |
+| 2026-10-30 13:54 r2 | before-tick-bundle-on-master | 29d37feced | 24.53 | 36.4 | 3,611 | 40.0 | |
+| 2026-10-30 13:54 r3 | before-tick-bundle-on-master | 29d37feced | 24.98 | 37.0 | 3,699 | 41.9 | |
+| 2026-10-30 14:00 r1 | tick-bundle | e20e74e495 | 25.41 | 33.2 | 51 | 1454.3 | ブロック状態を tick末尾に1イベントへ束ねる（ADR 0091）。受信処理 5.4→3.3 ms/フレーム、ブロック状態 3,520→3,212 件/秒。µs/件 は束1件あたりなので束の前と比べられない |
+| 2026-10-30 14:00 r2 | tick-bundle | e20e74e495 | 25.43 | 36.9 | 51 | 2059.0 | |
+| 2026-10-30 14:00 r3 | tick-bundle | e20e74e495 | 25.44 | 32.7 | 47 | 1320.0 | |
+
+### 2026-10-22 ブロック状態の束ね（ADR 0091）
+変更前は、2026-10-22 の `before-tick-bundle`（f17f162cb3）ではなく、それに今の master を足した `before-tick-bundle-on-master`（29d37feced）を使う。master のパイプの差分同期（ADR 0088）でブロック状態の件数が約1/5に減っており、古い変更前と比べると2つの変更の効果が混ざるため。6回とも表示待ちのマーカーが記録されていない（compare.py の警告）ので、fps は参考にとどめる。
+
+| 指標 | before-tick-bundle-on-master（3回）<br>29d37feced | tick-bundle（3回）<br>e20e74e495 |
+|---|---:|---:|
+| fps（Profiler なし） | 24.60<br><sub>24.28〜24.98</sub> | 25.43<br><sub>25.41〜25.44</sub> (+3%✅) |
+| フレーム ms 平均（Profiler なし） | 40.7<br><sub>40.0〜41.2</sub> | 39.3<br><sub>39.3〜39.3</sub> (-3%✅) |
+| フレーム ms p95（Profiler） | 61.8<br><sub>58.1〜65.1</sub> | 58.6<br><sub>56.1〜61.9</sub> (-5%) |
+| 受信イベント 件/秒 | 3,558<br><sub>3,364〜3,699</sub> | 50<br><sub>47〜51</sub> (-99%✅) |
+| 受信処理 µs/件（応答を除く） | 38.4<br><sub>33.2〜41.9</sub> | 1,611.1<br><sub>1,320.0〜2,059.0</sub> (+4099%⚠️) |
+| 受信処理 ms/フレーム（応答を除く） | 5.4<br><sub>5.0〜5.6</sub> | 3.3<br><sub>2.8〜4.1</sub> (-38%✅) |
+| ブロック状態 件/秒 | 3,520<br><sub>3,328〜3,660</sub> | 3,212<br><sub>3,156〜3,245</sub> (-9%⚠️) |
+| 受信 payload KB/秒 | 657<br><sub>625〜676</sub> | 606<br><sub>594〜615</sub> (-8%✅) |
+| `PlayerLoop` ms | 36.0<br><sub>34.7〜37.0</sub> | 34.3<br><sub>32.7〜36.9</sub> (-5%) |
+| `UniTaskLoopRunnerYieldUpdate` ms | 5.4<br><sub>5.0〜5.6</sub> | 3.3<br><sub>2.8〜4.1</sub> (-38%✅) |
+| `PacketExchange.DispatchReceivedPackets` ms | 5.4<br><sub>5.0〜5.6</sub> | 3.3<br><sub>2.8〜4.1</sub> (-38%✅) |
+| `PacketExchange.Deserialize.ProtocolBase` ms | — | — |
+| `PacketExchange.ReadPacketHeader` ms | 0.2<br><sub>0.2〜0.2</sub> | 0.0<br><sub>0.0〜0.0</sub> (-93%✅) |
+| `PacketExchange.Deserialize.EventStream` ms | 1.0<br><sub>0.8〜1.1</sub> | 0.3<br><sub>0.0〜0.9</sub> (-67%) |
+| `PacketExchange.RouteEvent` ms | 4.1<br><sub>3.9〜4.3</sub> | 3.0<br><sub>2.7〜3.2</sub> (-28%✅) |
+| `PacketExchange.RouteResponse` ms | — | — |
+| `BlockState.Deserialize` ms | 1.6<br><sub>1.5〜1.7</sub> | 1.1<br><sub>1.0〜1.3</sub> (-31%✅) |
+| `BlockState.FluidPipe.GetStateDetail` ms | — | — |
+| `BlockState.FluidPipe.ApplyWaterLevel` ms | — | — |
+| `RenderPlayModeViewCameras` ms | 10.8<br><sub>10.5〜11.1</sub> | 10.7<br><sub>10.3〜11.4</sub> (-1%) |
+| `EditorLoop` ms | 9.5<br><sub>9.3〜9.9</sub> | 9.6<br><sub>8.7〜10.2</sub> (+1%) |
+| `GC.Collect` ms | — | 0.6 |
+| `GC.Alloc` 回/フレーム | 5,244<br><sub>4,957〜5,404</sub> | 4,420<br><sub>4,282〜4,493</sub> (-16%✅) |
+
+- 受信処理は 5.4→3.3 ms/フレーム（-38%）。内訳は `RouteEvent` 4.1→3.0 ms、`Deserialize.EventStream` 1.0→0.3 ms、`ReadPacketHeader` 0.2→0.0 ms、`BlockState.Deserialize` 1.6→1.1 ms。GC.Alloc は 5,244→4,420 回/フレーム（-16%）。
+- fps は 24.6→25.4（+3%）。改善は受信処理の約2ms ぶんにとどまり、フレーム全体（約40ms）の中では小さい。
+- ブロック状態の件数は 3,520→3,212 件/秒（-9%）。tick内で同じ座標の状態が何度か変わると、最新の1件だけを送るようになったためと推測している（未確認）。
+- 受信処理 µs/件 の悪化（38→1,611）は、1件の意味が「ブロック1件」から「束1件」に変わったためで、性能の悪化ではない。
+
+参考: master のパイプの差分同期（ADR 0088）による変化（古い変更前 f17f162cb3 → 29d37feced）
+
+| 指標 | before-tick-bundle（3回）<br>f17f162cb3 | before-tick-bundle-on-master（3回）<br>29d37feced |
+|---|---:|---:|
+| fps（Profiler なし） | 6.20<br><sub>5.93〜6.39</sub> | 24.60<br><sub>24.28〜24.98</sub> (+297%✅) |
+| フレーム ms 平均（Profiler なし） | 161.5<br><sub>156.5〜168.6</sub> | 40.7<br><sub>40.0〜41.2</sub> (-75%✅) |
+| フレーム ms p95（Profiler） | 247.6<br><sub>240.2〜254.9</sub> | 61.8<br><sub>58.1〜65.1</sub> (-75%✅) |
+| 受信イベント 件/秒 | 19,532<br><sub>16,071〜21,356</sub> | 3,558<br><sub>3,364〜3,699</sub> (-82%✅) |
+| 受信処理 µs/件（応答を除く） | 27.4<br><sub>22.9〜30.6</sub> | 38.4<br><sub>33.2〜41.9</sub> (+40%⚠️) |
+| 受信処理 ms/フレーム（応答を除く） | 48.1<br><sub>45.2〜49.9</sub> | 5.4<br><sub>5.0〜5.6</sub> (-89%✅) |
+| ブロック状態 件/秒 | 19,509<br><sub>16,052〜21,332</sub> | 3,520<br><sub>3,328〜3,660</sub> (-82%⚠️) |
+| 受信 payload KB/秒 | 1,283<br><sub>1,064〜1,399</sub> | 657<br><sub>625〜676</sub> (-49%✅) |
+| `PlayerLoop` ms | 113.2<br><sub>109.1〜117.3</sub> | 36.0<br><sub>34.7〜37.0</sub> (-68%✅) |
+| `UniTaskLoopRunnerYieldUpdate` ms | 61.9<br><sub>57.9〜64.3</sub> | 5.4<br><sub>5.0〜5.6</sub> (-91%✅) |
+| `PacketExchange.DispatchReceivedPackets` ms | 61.9<br><sub>57.8〜64.3</sub> | 5.4<br><sub>5.0〜5.6</sub> (-91%✅) |
+| `PacketExchange.Deserialize.ProtocolBase` ms | — | — |
+| `PacketExchange.ReadPacketHeader` ms | 2.3<br><sub>2.2〜2.4</sub> | 0.2<br><sub>0.2〜0.2</sub> (-91%✅) |
+| `PacketExchange.Deserialize.EventStream` ms | 13.4<br><sub>10.1〜15.5</sub> | 1.0<br><sub>0.8〜1.1</sub> (-93%✅) |
+| `PacketExchange.RouteEvent` ms | 31.9<br><sub>31.7〜32.1</sub> | 4.1<br><sub>3.9〜4.3</sub> (-87%✅) |
+| `PacketExchange.RouteResponse` ms | 13.8<br><sub>12.6〜14.4</sub> | — |
+| `BlockState.Deserialize` ms | 12.7<br><sub>12.6〜13.0</sub> | 1.6<br><sub>1.5〜1.7</sub> (-87%✅) |
+| `BlockState.FluidPipe.GetStateDetail` ms | 3.6<br><sub>3.5〜3.6</sub> | — |
+| `BlockState.FluidPipe.ApplyWaterLevel` ms | 4.8<br><sub>4.6〜5.0</sub> | — |
+| `RenderPlayModeViewCameras` ms | 10.8<br><sub>9.9〜11.6</sub> | 10.8<br><sub>10.5〜11.1</sub> (+0%) |
+| `EditorLoop` ms | 13.2<br><sub>10.0〜15.6</sub> | 9.5<br><sub>9.3〜9.9</sub> (-28%✅) |
+| `GC.Collect` ms | 0.1 | — |
+| `GC.Alloc` 回/フレーム | 51,860<br><sub>47,737〜55,029</sub> | 5,244<br><sub>4,957〜5,404</sub> (-90%✅) |
