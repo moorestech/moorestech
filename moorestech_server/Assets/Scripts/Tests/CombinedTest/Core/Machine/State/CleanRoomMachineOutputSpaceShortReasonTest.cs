@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Core.Item;
+using Core.Update;
 using Game.Block.Blocks.CleanRoom.Machine;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
@@ -16,8 +18,8 @@ using static Tests.CombinedTest.Core.Machine.MachineOutputSpaceShortTestHelper;
 
 namespace Tests.CombinedTest.Core.Machine
 {
-    // 清浄室機械も通常機械と同じ出力空き不足の理由を状態詳細で出す（Task31 r3-B F01）
-    // Clean-room machines publish the same output-space-short reason as normal machines (Task31 r3-B F01)
+    // - 通常機械と共通の待機理由
+    // - The same wait reason as normal machines
     public class CleanRoomMachineOutputSpaceShortReasonTest
     {
         private const int TickCap = 4000;
@@ -32,16 +34,17 @@ namespace Tests.CombinedTest.Core.Machine
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
             var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
 
-            // 全出力スロットをG1ウェハーの上限で埋めてから、ウェハー1枚とIPAを入れる
-            // Fill every output slot to the G1 wafer cap, then load one wafer and IPA
+            // 全出口G1上限、原料1枚とIPA投入
+            // Fill all outputs to the G1 cap, then load one raw wafer and IPA
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestGradedWaferG1);
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 1);
             for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWaferG1, maxStack);
             TopUpIpa(machine, 20);
-            TickRoom(filter, machine);
+            var notices = TickRoomRecordingMachineNotices(filter, machine);
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
             Assert.AreEqual("idle", ReadPublishedState(processor));
             Assert.IsTrue(ReadOutputSpaceShort(processor));
+            CollectionAssert.AreEqual(new[] { true }, notices, "機械の更新が理由を通知しない");
 
             // 出口を空けると加工が始まり理由が消える
             // Freeing the output starts the job and clears the reason
@@ -63,8 +66,7 @@ namespace Tests.CombinedTest.Core.Machine
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 1);
             for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWaferG1, maxStack);
             TopUpIpa(machine, 20);
-            TickRoom(filter, machine);
-            Assert.IsTrue(ReadOutputSpaceShort(machine.GetComponent<CleanRoomMachineProcessorComponent>()));
+            CollectionAssert.AreEqual(new[] { true }, TickRoomRecordingMachineNotices(filter, machine), "機械の更新が理由を通知しない");
 
             // JSON往復で復元した機械は、tickを1度も回さずに理由を持つ（保持中の確定結果・入出力・選択レシピから判定）
             // The machine restored through a JSON round trip carries the reason before any tick (judged from the held result, inventories and selection)
@@ -74,6 +76,18 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(ProcessState.Idle, restoredProcessor.CurrentState);
             Assert.AreEqual("idle", ReadPublishedState(restoredProcessor));
             Assert.IsTrue(ReadOutputSpaceShort(restoredProcessor));
+        }
+
+        // 給電の事前通知より後から購読し、機械の更新が出す通知だけを記録する
+        // Subscribe after the power pre-notice so only notices from the machine update are recorded
+        private static List<bool> TickRoomRecordingMachineNotices(IBlock filter, IBlock machine)
+        {
+            EnsureFilterWiredPower(filter);
+            var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
+            processor.SupplyExternalPower(100f);
+            var notices = RecordReasonNotices(processor);
+            GameUpdater.UpdateOneTick();
+            return notices;
         }
     }
 }

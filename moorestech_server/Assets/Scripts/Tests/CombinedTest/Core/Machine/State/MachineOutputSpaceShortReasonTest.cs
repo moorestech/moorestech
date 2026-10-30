@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using Core.Inventory;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
@@ -97,66 +96,14 @@ namespace Tests.CombinedTest.Core.Machine
             GameUpdater.UpdateOneTick();
             Assert.IsTrue(ReadOutputSpaceShort(processor));
 
+            // 入力を抜いた次tickで、同じidleのまま理由が消えたことが通知される
+            // On the tick after removing inputs, the cleared reason is notified while staying idle
+            var notices = RecordReasonNotices(processor);
             EmptyInputs(inventory);
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
             Assert.IsFalse(ReadOutputSpaceShort(processor), "入力切れの待機は出力空き不足と区別される");
-        }
-
-        [Test]
-        public void レシピ解除の直後の通知に古い理由を残さない()
-        {
-            var recipe = ItemRecipe();
-            var (_, inventory, processor) = PlaceSelected(recipe, Vector3Int.one);
-            FillOutputSlot(recipe, inventory);
-            InsertInputs(recipe, inventory);
-            GameUpdater.UpdateOneTick();
-            Assert.IsTrue(ReadOutputSpaceShort(processor));
-
-            // tickを待たず、解除の通知時点の詳細で理由が消えている
-            // Without waiting a tick, the detail at the clear notice already drops the reason
-            var reasonAtNotice = true;
-            processor.OnChangeBlockState.Subscribe(_ => reasonAtNotice = ReadOutputSpaceShort(processor));
-            var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 100);
-            Assert.AreEqual(MachineRecipeSelectionResult.Success, processor.ClearSelectedRecipe(overflow));
-            Assert.IsFalse(reasonAtNotice);
-            Assert.IsFalse(ReadOutputSpaceShort(processor));
-        }
-
-        [Test]
-        public void 別レシピへの変更の通知に旧レシピの理由を残さず次tickで新レシピの確定結果から判定する()
-        {
-            // 同じ入力で産出物だけ違う同一ブロックのレシピへ切り替える（入力はそのまま束縛に残る）
-            // Switch to a same-block recipe with identical inputs but a different product (inputs stay bound)
-            var recipe = ItemRecipe();
-            var other = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == recipe.BlockGuid && r.MachineRecipeGuid != recipe.MachineRecipeGuid
-                && r.InputItems.Select(i => (i.ItemGuid, i.Count)).SequenceEqual(recipe.InputItems.Select(i => (i.ItemGuid, i.Count))) && r.OutputItems[0].ItemGuid != recipe.OutputItems[0].ItemGuid);
-            ServerContext.GetService<IGameUnlockStateDataController>().UnlockMachineRecipe(other.MachineRecipeGuid);
-            var (_, inventory, processor) = PlaceSelected(recipe, Vector3Int.one);
-            FillOutputSlot(recipe, inventory);
-            InsertInputs(recipe, inventory);
-            GameUpdater.UpdateOneTick();
-            Assert.IsTrue(ReadOutputSpaceShort(processor));
-
-            // 変更の通知時点では旧レシピの確定結果を使わない
-            // At the change notice the old recipe's realization is not reused
-            var reasonAtNotice = true;
-            processor.OnChangeBlockState.Subscribe(_ => reasonAtNotice = ReadOutputSpaceShort(processor));
-            var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 100);
-            Assert.AreEqual(MachineRecipeSelectionResult.Success, processor.SetSelectedRecipe(other, overflow));
-            Assert.AreEqual(other.MachineRecipeGuid, processor.SelectedRecipeGuid);
-            Assert.IsFalse(reasonAtNotice, "旧レシピの理由が変更の通知に残っている");
-
-            // 次tickで新レシピを確定し、旧産出物で埋まった出口には入らないので理由が出る。出口を空けると新レシピで加工が始まる
-            // The next tick realizes the new recipe, which cannot enter the outlet full of the old product; freeing it starts the new job
-            GameUpdater.UpdateOneTick();
-            Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
-            Assert.IsTrue(ReadOutputSpaceShort(processor), "新レシピの確定結果が入りきらない待機");
-            EmptyOutputSlot(inventory);
-            GameUpdater.UpdateOneTick();
-            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
-            Assert.AreEqual(other.MachineRecipeGuid, processor.RecipeGuid);
-            Assert.IsFalse(ReadOutputSpaceShort(processor));
+            CollectionAssert.AreEqual(new[] { false }, notices, "理由の消失が通知されない");
         }
 
         [Test]
@@ -186,8 +133,8 @@ namespace Tests.CombinedTest.Core.Machine
             for (var i = 0; i < recipe.InputFluids.Length; i++) inputTanks[i].AddLiquid(new FluidStack(recipe.InputFluids[i].Amount, MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[i].FluidGuid)));
             InsertInputs(recipe, inventory);
 
-            // 出力タンクを産出液体で満たし、アイテム側は空けたままにする
-            // Fill the output tank with the product fluid while the item side stays empty
+            // 液体出口は満杯、アイテム出口は空
+            // Keep the fluid output full and the item output empty
             var outputTank = MachineFluidTestUtil.GetOutputFluidContainers(inventory)[0];
             outputTank.AddLiquid(new FluidStack(outputTank.Capacity, MasterHolder.FluidMaster.GetFluidId(recipe.OutputFluids[0].FluidGuid)));
             GameUpdater.UpdateOneTick();

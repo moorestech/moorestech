@@ -52,8 +52,8 @@ namespace Tests.CombinedTest.Core.Machine
             var (_, inventory, processor) = PlaceSelected(recipe, Vector3Int.one);
             InsertInputs(recipe, inventory);
 
-            // 満額の歯車電力（baseTorque×baseRpm）を機械の電力経路へ直接与える（GearMachineIoTest と同じ）
-            // Feed full gear power (baseTorque×baseRpm) through the machine's power path, as GearMachineIoTest does
+            // 歯車の定格トルク×回転数を供給
+            // Feed full gear power (baseTorque × baseRpm) through the machine power path
             var gearParam = (GearMachineBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearMachine).BlockParam;
             var suppliedPower = (float)(gearParam.GearConsumption.BaseTorque * gearParam.GearConsumption.BaseRpm);
             processor.SupplyExternalPower(suppliedPower);

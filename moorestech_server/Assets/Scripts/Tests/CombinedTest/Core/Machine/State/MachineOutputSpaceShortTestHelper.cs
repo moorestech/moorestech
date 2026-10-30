@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Core.Item;
 using Core.Master;
@@ -12,13 +13,16 @@ using Game.Context;
 using MessagePack;
 using Mooresmaster.Model.MachineRecipesModule;
 using Tests.Util;
+using UniRx;
 using UnityEngine;
 using static Tests.CombinedTest.Core.Machine.MachineInventoryTestHelper;
 
 namespace Tests.CombinedTest.Core.Machine
 {
-    // 出力空き不足の理由テスト用に、出口を満杯にした機械を組み立てて状態詳細を読む
-    // Builds a machine whose output is full and reads its state details for the output-space-short tests
+    // - 機械配置とレシピ選択
+    // - 出口充填と状態詳細読取
+    // - Machine placement and recipe selection
+    // - Output filling and state-detail reading
     internal static class MachineOutputSpaceShortTestHelper
     {
         public static MachineRecipeMasterElement ItemRecipe()
@@ -34,8 +38,8 @@ namespace Tests.CombinedTest.Core.Machine
             return (block, block.GetComponent<VanillaMachineBlockInventoryComponent>(), block.GetComponent<VanillaMachineProcessorComponent>());
         }
 
-        // 出力スロット0を産出物の上限まで埋め、次のジョブが入りきらない状態にする
-        // Fill output slot 0 to the product's max stack so the next job cannot fit
+        // 出力スロット0を産出物の上限で埋める
+        // Fill output slot 0 to the product maximum stack
         public static void FillOutputSlot(MachineRecipeMasterElement recipe, VanillaMachineBlockInventoryComponent inventory)
         {
             var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
@@ -61,6 +65,15 @@ namespace Tests.CombinedTest.Core.Machine
         {
             var detail = processor.GetBlockStateDetails().First(d => d.Key == MachineBlockStateDetail.BlockStateDetailKey);
             return MessagePackSerializer.Deserialize<MachineBlockStateDetail>(detail.Value).IsOutputSpaceShort;
+        }
+
+        // 状態イベントごとに、その時点の理由を記録する
+        // Record the reason read at each state event
+        public static List<bool> RecordReasonNotices(IBlockStateObservable processor)
+        {
+            var notices = new List<bool>();
+            processor.OnChangeBlockState.Subscribe(_ => notices.Add(ReadOutputSpaceShort(processor)));
+            return notices;
         }
 
         public static string ReadPublishedState(IBlockStateObservable processor)
