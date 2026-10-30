@@ -1,0 +1,60 @@
+frames=121
+== UpdateFunction.Invoke self ms/frame by parent marker
+   5.56 self  calls/f=1.0  parent=VContainerUpdate
+          child 0.06ms  Instantiate
+          child 0.06ms  GC.Alloc
+          child 0.01ms  Graphics.Blit
+          child 0.00ms  Common.Debug.dll!Common.Debug::SerializableDictionary`2..ctor() [Invoke]
+          child 0.00ms  Common.Debug.dll!Common.Debug::SerializableDictionary`2.OnAfterDeserialize() [Invoke]
+   0.06 self  calls/f=1.0  parent=CefUnityEarlyUpdate
+   0.03 self  calls/f=9.2  parent=MagicaManager
+   0.03 self  calls/f=1.0  parent=CefUnityPostLateUpdate
+   0.01 self  calls/f=1.0  parent=UniTaskLoopRunnerUpdate
+          child 0.00ms  GC.Alloc
+   0.01 self  calls/f=1.0  parent=UniTaskLoopRunnerYieldUpdate
+          child 3.07ms  PacketExchange.DispatchReceivedPackets
+   0.01 self  calls/f=2.2  parent=UniTaskLoopRunnerLastYieldFixedUpdate
+   0.01 self  calls/f=1.0  parent=UniTaskLoopRunnerYieldTimeUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastYieldPostLateUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastPostLateUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerTimeUpdate
+   0.00 self  calls/f=1.0  parent=InputSystemPlayerLoopRunnerInitializationSystem
+   0.00 self  calls/f=2.2  parent=UniTaskLoopRunnerLastFixedUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskSynchronizationContext
+   0.00 self  calls/f=2.2  parent=VContainerPostFixedUpdate
+   0.00 self  calls/f=1.0  parent=VContainerStartup
+   0.00 self  calls/f=1.0  parent=VContainerInitialization
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastYieldPreLateUpdate
+   0.00 self  calls/f=1.0  parent=VContainerLateUpdate
+   0.00 self  calls/f=2.2  parent=UniTaskLoopRunnerFixedUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastPreLateUpdate
+   0.00 self  calls/f=2.2  parent=UniTaskLoopRunnerYieldFixedUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastYieldEarlyUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastYieldUpdate
+   0.00 self  calls/f=1.0  parent=VContainerPostUpdate
+   0.00 self  calls/f=2.2  parent=VContainerFixedUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastEarlyUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastPreUpdate
+   0.00 self  calls/f=1.0  parent=VContainerPostLateUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerInitialization
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastYieldPreUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastTimeUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastInitialization
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastYieldTimeUpdate
+   0.00 self  calls/f=1.0  parent=VContainerPostInitialization
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerPreUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerYieldInitialization
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerEarlyUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerPostLateUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerYieldPostLateUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerPreLateUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerLastYieldInitialization
+   0.00 self  calls/f=1.0  parent=VContainerPostStartup
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerYieldPreUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerYieldPreLateUpdate
+   0.00 self  calls/f=1.0  parent=UniTaskLoopRunnerYieldEarlyUpdate
+== UniTask runners[8] (Update)
+     2  Cysharp.Threading.Tasks.UniTask+DelayPromise
+== UniTask yielders[8] (Update)
+     1  Client.Network.API.PacketExchangeManager+<<-ctor>g__DispatchReceivedPacketsLoop|8_0>d

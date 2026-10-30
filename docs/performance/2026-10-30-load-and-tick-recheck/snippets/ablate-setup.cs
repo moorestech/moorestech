@@ -1,0 +1,20 @@
+// VContainer の Update Tick 一覧を保存し、VContainerUpdate の計測を始める
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Unity.Profiling;
+var bf = BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
+var asm = typeof(VContainer.Unity.ITickable).Assembly;
+var runners = (Array)asm.GetType("VContainer.Unity.PlayerLoopHelper").GetField("Runners", bf).GetValue(null);
+var runner = runners.GetValue(6);
+var items = new List<object>();
+foreach (var qn in new[] { "runningQueue", "waitingQueue" }) foreach (var it in (System.Collections.IEnumerable)runner.GetType().GetField(qn, bf).GetValue(runner)) items.Add(it);
+var tick = items.First(i => i.GetType().Name == "TickableLoopItem");
+var field = tick.GetType().GetField("entries", bf);
+var original = ((IReadOnlyList<VContainer.Unity.ITickable>)field.GetValue(tick)).ToArray();
+var recorder = new ProfilerRecorder("VContainerUpdate", 400);
+recorder.Start();
+var dom = AppDomain.CurrentDomain;
+dom.SetData("ab_item", tick); dom.SetData("ab_original", original); dom.SetData("ab_recorder", recorder); dom.SetData("ab_label", "all");
+return string.Join(",", original.Select((t, i) => i + ":" + t.GetType().Name)) + " | entriesType=" + field.GetValue(tick).GetType().Name;

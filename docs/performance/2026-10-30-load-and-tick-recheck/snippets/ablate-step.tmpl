@@ -1,0 +1,21 @@
+// 直前の窓の VContainerUpdate 平均を返し、REMOVE_INDEX 番の Tick を外した一覧に差し替える（-1 は全部戻す）
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Unity.Profiling;
+var dom = AppDomain.CurrentDomain;
+var tick = dom.GetData("ab_item");
+var original = (VContainer.Unity.ITickable[])dom.GetData("ab_original");
+var recorder = (ProfilerRecorder)dom.GetData("ab_recorder");
+var samples = new List<ProfilerRecorderSample>(recorder.Capacity);
+recorder.CopyTo(samples);
+var ms = samples.Count == 0 ? -1 : samples.Average(s => s.Value) / 1e6;
+var result = dom.GetData("ab_label") + " avgMs=" + ms.ToString("F3") + " frames=" + samples.Count;
+recorder.Reset();
+recorder.Start();
+int remove = REMOVE_INDEX;
+IReadOnlyList<VContainer.Unity.ITickable> next = remove < 0 ? original : original.Where((t, i) => i != remove).ToArray();
+tick.GetType().GetField("entries", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(tick, next);
+dom.SetData("ab_label", remove < 0 ? "all" : "without " + original[remove].GetType().Name);
+return result;

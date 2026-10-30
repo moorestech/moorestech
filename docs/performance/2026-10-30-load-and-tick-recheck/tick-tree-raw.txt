@@ -1,0 +1,9 @@
+frames=123
+   5.79ms calls/f=     1  VContainerUpdate
+   5.79ms calls/f=     1    UnityEngine.CoreModule.dll!::UpdateFunction.Invoke() [Invoke]
+   0.92ms calls/f=     1      TrainSimulator.AdvanceTicks
+   1.14ms calls/f=     1      TrainSimulator.BeltItems
+   0.05ms calls/f=     1        Instantiate
+   0.13ms calls/f=     1      TrainSimulator.BeltMergeCellCovers
+   2.74ms calls/f=     1      TrainSimulator.FluidPipeWaterLevels
+   0.47ms calls/f=     1      TrainSimulator.TrainVisuals
