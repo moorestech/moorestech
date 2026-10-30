@@ -11,7 +11,6 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.MachineUpgrade;
 using Game.Context;
-using Game.Research;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 #if UNITY_EDITOR
@@ -33,8 +32,6 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
     public class MachineInputLevelStallWebUiTopicTest
     {
         private const string MachineBlockName = "石の粉砕機";
-        private const string BeltBlockName = "直進高速ベルトコンベア";
-        private const string ChestBlockName = "量子チェスト";
         private static readonly Guid CrusherInheritRecipeGuid = Guid.Parse("00000000-0000-4000-8000-0000e0de0002");
         private static readonly Guid MachineUpgradeResearchGuid = Guid.Parse("e0de0000-0000-4000-8000-000000000001");
         private static readonly Guid SourceLv2ItemGuid = Guid.Parse("00000000-0000-0000-e0de-000000000012");
@@ -74,17 +71,19 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var machinePos = machineObject.BlockPosInfo.OriginalPos;
                 var machine = ServerContext.WorldBlockDatastore.GetBlock(machinePos);
 
-                // 粉砕機の南へチェスト→ベルトを北向きに一列に置き、上限つき継承レシピを選ぶ
-                // Line chest -> belt facing north south of the crusher and select the capped inheritance recipe
-                var chest = PlaceBlock(ChestBlockName, machinePos + new Vector3Int(0, 0, -2), BlockDirection.North);
-                PlaceBlock(BeltBlockName, machinePos + new Vector3Int(0, 0, -1), BlockDirection.North);
+                // 上限つき継承レシピを通常のUI経路で選ぶ
+                // Select the capped inheritance recipe through the production UI path
                 var select = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = CrusherInheritRecipeGuid.ToString() });
                 Assert.IsTrue(select.Ok, $"select action failed: {select.Error}");
 
                 // 製作上限 Lv1 の間に Lv2 の素材をチェストへ入れると、ベルトの先頭で止まり、理由が配信に載る
                 // Putting a Lv2 material in the chest under the Lv1 craft cap stalls it at the belt head and the reason reaches the topic
                 var sourceLv2 = MasterHolder.ItemMaster.GetItemId(SourceLv2ItemGuid);
-                InsertItemToBlock(chest, sourceLv2, 1);
+                var feed = new MachineInputStallFeedSetupStep(machinePos, sourceLv2);
+                await feed.RunOnServerAsync();
+                Assert.IsNotNull(feed.Chest, "the feed chest was not placed");
+                Assert.IsNotNull(feed.Belt, "the feed belt was not placed");
+                Assert.AreEqual(0, feed.RemainingSourceCount, "the Lv2 source did not fit in the chest");
                 var stall = await WaitUntilStallAppears();
                 Assert.AreEqual("aboveCraftCap", stall["reason"].Value<string>());
                 Assert.AreEqual(sourceLv2.AsPrimitive(), stall["itemId"].Value<int>());
@@ -92,7 +91,9 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 // 研究で製作上限を2へ上げると、待っていた Lv2 が入り、理由が配信から消える
                 // Raising the craft cap to 2 by research lets the waiting Lv2 in and the reason leaves the topic
                 var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-                Assert.IsTrue(ServerContext.GetService<IResearchDataStore>().CompleteResearch(MachineUpgradeResearchGuid, playerId), "research did not complete");
+                var research = new MachineInputStallResearchStep(MachineUpgradeResearchGuid, playerId);
+                await research.RunOnServerAsync();
+                Assert.IsTrue(research.Completed, "research did not complete");
                 await WaitUntilStallCleared();
 
                 // 加工後の継承出力IDと個数を検証
@@ -110,7 +111,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var output = inventory.GetItem(outputSlot);
                 Assert.AreEqual(outputId, output.Id);
                 Assert.AreEqual(recipe.OutputItems[0].Count, output.Count);
-                Assert.AreEqual(ItemMaster.EmptyItemId, chest.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Id, "the Lv2 is still in the chest");
+                Assert.AreEqual(ItemMaster.EmptyItemId, feed.Chest.GetComponent<IOpenableBlockInventoryComponent>().GetItem(0).Id, "the Lv2 is still in the chest");
 
                 await InteractKeyBlockOpener.CloseToGameScreen();
             }
