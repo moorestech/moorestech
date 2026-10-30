@@ -3,8 +3,8 @@ using UniRx;
 
 namespace Game.Block.Blocks.Machine.State.Util
 {
-    // 通常機械と清浄室機械の状態イベントを出す口。前回通知した状態を覚え、状態の変化時と加工中に通知する
-    // The state-event outlet shared by normal and clean-room machines; remembers the last notified state and notifies on a change or while processing
+    // 通常機械と清浄室機械の状態イベントを出す口。前回通知した状態を覚え、状態の変化時と加工中・出力詰まり中に通知する
+    // The state-event outlet shared by normal and clean-room machines; remembers the last notified state and notifies on a change or while processing or output-blocked
     internal sealed class MachineStateChangePublisher
     {
         public IObservable<Unit> OnChangeBlockState => _changeState;
@@ -21,12 +21,19 @@ namespace Game.Block.Blocks.Machine.State.Util
             _changeState.OnNext(Unit.Default);
         }
 
-        // tick内の遷移の後、状態が変わった時・加工中なら通知して記録を進める
-        // After the tick's transition, notify on a state change or while processing, then advance the record
-        public void PublishIfStateChanged(ProcessState currentState)
+        // tick内の遷移の後、状態変化時か毎tick詳細が動く状態なら通知して記録を進める
+        // After the tick's transition, notify on a state change or in a state whose detail moves every tick, then advance the record
+        public void PublishIfStateChangedOrDetailVaries(ProcessState currentState)
         {
-            if (LastState == currentState && currentState != ProcessState.Processing) return;
+            if (LastState == currentState && !IsDetailVaryingEveryTick(currentState)) return;
             PublishTickState(currentState);
+        }
+
+        // 加工中は進捗と電力、出力詰まり中は電力が毎tickラッチで動く。給電時の再通知はIdleだけなので、ここで運ばないと詰まり中の電力が固着する
+        // Processing moves progress and power, output blockage moves power with every tick's latch; supply re-notifies only while idle, so without this the blocked power freezes
+        private static bool IsDetailVaryingEveryTick(ProcessState state)
+        {
+            return state == ProcessState.Processing || state == ProcessState.OutputBlocked;
         }
 
         // tick内で詳細が確定した時点の通知。記録も進めるので、同じtickの遷移判定が重ねて通知しない

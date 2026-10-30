@@ -96,8 +96,8 @@ namespace Tests.CombinedTest.Core.Machine
             GameUpdater.UpdateOneTick();
             Assert.IsTrue(ReadOutputSpaceShort(processor));
 
-            // 入力を抜いた次tickで、同じidleのまま理由が消えたことが通知される
-            // On the tick after removing inputs, the cleared reason is notified while staying idle
+            // 入力を抜いた次tickで理由消失を通知
+            // The tick after removing inputs notifies the cleared reason
             var notices = RecordReasonNotices(processor);
             EmptyInputs(inventory);
             GameUpdater.UpdateOneTick();

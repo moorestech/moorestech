@@ -20,8 +20,8 @@ using UnityEngine;
 
 namespace Client.Tests.WebUi.BlockDetail
 {
-    // 受信した機械の状態詳細から、出力空き不足の理由が実Builderを通ってwireへ載る
-    // The output-space-short reason in a received machine state detail reaches the wire through the real builder
+    // 受信した理由が実Builder経由でwireへ載る
+    // The received reason reaches the wire via the real builder
     public class WireContractMachineOutputSpaceShortTest
     {
         [TestCase(true)]
@@ -34,8 +34,8 @@ namespace Client.Tests.WebUi.BlockDetail
             var machine = MachineBlockStateDetail.CreateState(0f, System.Guid.Empty, System.Guid.Empty, isOutputSpaceShort);
             var state = new BlockState(new Dictionary<string, byte[]> { { common.Key, common.Value }, { machine.Key, machine.Value } });
 
-            // 実オブジェクトへ受信状態を載せ、親Builderで合成する
-            // Put the received state on a real object and compose through the parent builder
+            // 受信状態を載せ親Builderで合成
+            // Load the state and compose via the parent builder
             var gameObject = new GameObject("MachineOutputSpaceShortWireTest");
             var block = gameObject.AddComponent<BlockGameObject>();
             typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockMasterElement)).SetValue(block, master);

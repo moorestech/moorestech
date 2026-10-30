@@ -70,8 +70,8 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(other.MachineRecipeGuid, processor.SelectedRecipeGuid);
             CollectionAssert.AreEqual(new[] { false }, notices, "旧レシピの理由が変更の通知に残っている");
 
-            // 次tickで新レシピを確定し、旧産出物で埋まった出口に入らない理由がそのtickの最後の通知で届く
-            // The next tick realizes the new recipe, and its wait on the outlet full of the old product arrives in that tick's last notice
+            // 次tickの最後の通知で新レシピの理由が届く
+            // The next tick's last notice carries the new recipe's reason
             var noticeCountBeforeTick = notices.Count;
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);

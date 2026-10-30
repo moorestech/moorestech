@@ -60,8 +60,8 @@ namespace Game.Block.Blocks.Machine
             CurrentState = isCorrupt ? ProcessState.Idle : currentState;
             _processingState = new ProcessingMachineProcessState(_context, processingJob);
             _idleState = new IdleMachineProcessState(_context, _processingState);
-            // Idleに留まったままの空き不足の変化は、tick内で判定が確定した時点の状態通知にする
-            // An output-space change while staying idle becomes the tick's state notice once the check settles
+            // Idle維持中の空き不足変化を通知
+            // Notify an idle output-space change
             _idleState.OnOutputSpaceWaitChanged.Subscribe(_ => _statePublisher.PublishTickState(CurrentState));
             _stateHandlers = new IMachineProcessState[]
                 {
@@ -144,9 +144,9 @@ namespace Game.Block.Blocks.Machine
                 CurrentState = nextState;
                 _stateHandlers[nextState].OnEnter();
             }
-            // 状態変化時と加工中に通知（Idle中の空き不足変化はIdleの通知が運ぶ）
-            // Notify on a state change or while processing (an idle wait change rides the idle state's notice)
-            _statePublisher.PublishIfStateChanged(CurrentState);
+            // 状態変化時と加工中・詰まり中に通知
+            // Notify on a change or while processing or blocked
+            _statePublisher.PublishIfStateChangedOrDetailVaries(CurrentState);
         }
         public bool IsDestroy { get; private set; }
         public void Destroy()
