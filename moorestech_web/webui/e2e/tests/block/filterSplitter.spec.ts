@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { setBlock } from "../../support/mockControl";
-import { expectReachableInScrollViewport } from "../../support/layoutAssertions";
+import { expectAbove, expectReachableInScrollViewport } from "../../support/layoutAssertions";
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
@@ -41,9 +41,7 @@ test("last direction's filter slot is reachable by scrolling on a short window",
   await page.setViewportSize({ width: 1280, height: 600 });
   await setBlock(page, "filterSplitter");
   await page.goto("/");
-  const panel = (await page.getByTestId("block-inventory").boundingBox())!;
-  const hotbar = (await page.getByTestId("hotbar-grid").boundingBox())!;
-  expect(panel.y + panel.height).toBeLessThanOrEqual(hotbar.y);
+  await expectAbove(page.getByTestId("block-inventory"), page.getByTestId("hotbar-grid"));
   const lastSlot = page.getByTestId("filter-slot-2-1");
   await expectReachableInScrollViewport(lastSlot);
   await lastSlot.click({ button: "right" });

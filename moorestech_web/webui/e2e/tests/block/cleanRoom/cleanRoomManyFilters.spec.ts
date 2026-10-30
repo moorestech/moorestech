@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { setBlock } from "../../../support/mockControl";
 import {
+  expectAbove,
   expectHitTestWithin,
   expectReachableInScrollViewport,
   scrollAreaAncestorViewportOf,
@@ -48,8 +49,7 @@ async function expectSharedBodyViewport(page: Page, bodyTestId: string) {
   const viewport = scrollAreaViewport(scrollAreaRootOf(page, bodyTestId));
   const viewportBox = (await viewport.boundingBox())!;
   expect(viewportBox.height, "body viewport height").toBeGreaterThanOrEqual(MIN_BODY_VIEWPORT_HEIGHT);
-  const footer = (await page.getByTestId("machine-state-label").boundingBox())!;
-  expect(viewportBox.y + viewportBox.height).toBeLessThanOrEqual(footer.y);
+  await expectAbove(viewport, page.getByTestId("machine-state-label"));
   await expect(viewport.getByTestId("clean-room-section")).toHaveCount(1);
   await expect(scrollAreaAncestorViewportOf(viewport)).toHaveCount(0);
 }

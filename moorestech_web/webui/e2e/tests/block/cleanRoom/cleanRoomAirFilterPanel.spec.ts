@@ -1,6 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { setBlock } from "../../../support/mockControl";
-import { expectReachableInScrollViewport, scrollAreaAncestorViewportOf } from "../../../support/layoutAssertions";
+import { expectAbove, expectReachableInScrollViewport, scrollAreaAncestorViewportOf } from "../../../support/layoutAssertions";
 
 // 台数上限が無いので境目と多台数を持つ
 // Counts are uncapped, so keep both the boundary and many-unit shapes
@@ -29,9 +29,7 @@ async function openBlock(page: Page, fixture: string, windowHeight: number) {
 // 枠の下端はホットバーより上で止まる
 // The panel frame stops above the hotbar however many rows the room adds
 async function expectPanelAboveHotbar(page: Page) {
-  const panel = (await page.getByTestId("block-inventory").boundingBox())!;
-  const hotbar = (await page.getByTestId("hotbar-grid").boundingBox())!;
-  expect(panel.y + panel.height, "panel bottom above hotbar").toBeLessThanOrEqual(hotbar.y);
+  await expectAbove(page.getByTestId("block-inventory"), page.getByTestId("hotbar-grid"));
 }
 
 for (const room of AIR_FILTER_ROOMS) {
