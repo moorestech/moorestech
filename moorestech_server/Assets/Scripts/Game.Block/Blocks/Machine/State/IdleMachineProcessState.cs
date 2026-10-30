@@ -1,5 +1,7 @@
+using System;
 using Game.Block.Blocks.Machine.State.Util;
 using Mooresmaster.Model.MachineRecipesModule;
+using UniRx;
 
 namespace Game.Block.Blocks.Machine.State
 {
@@ -20,9 +22,14 @@ namespace Game.Block.Blocks.Machine.State
             _processingState = processingState;
         }
 
-        // 直近の判定で、確定済み出力が出力先に入りきらず待っているか（出力空き不足の表示理由）
-        // Whether the latest check found the realized outputs not fitting the output side (the output-space-short display reason)
+        // 確定出力の空き待ち（直近判定）
+        // Whether the latest check found realized outputs waiting for space
         public bool IsWaitingForOutputSpace { get; private set; }
+
+        // tick内の判定でIdleに留まったまま空き待ちが変わった時だけ通知する。tick外の判定し直しは呼び出し側の明示通知に任せる
+        // Notifies only when the in-tick check stays Idle and the wait changed; off-tick re-checks leave notifying to the caller's explicit publish
+        public IObservable<Unit> OnOutputSpaceWaitChanged => _outputSpaceWaitChanged;
+        private readonly Subject<Unit> _outputSpaceWaitChanged = new();
 
         internal void RestorePending(MachineRealization realization)
         {
@@ -62,7 +69,7 @@ namespace Game.Block.Blocks.Machine.State
             // Keep the fixed draw when inputs go missing (so taking items out and back cannot re-roll); a changed recipe/level pair is realized anew below
             if (recipe == null || !_context.InputInventory.TryGetReadyInput(recipe, out var inheritedLevel))
             {
-                IsWaitingForOutputSpace = false;
+                StayIdleWithOutputSpaceWait(false);
                 return ProcessState.Idle;
             }
 
@@ -75,14 +82,27 @@ namespace Game.Block.Blocks.Machine.State
 
             // 入りきらなければ確定結果を保持したまま待ち、その理由を表示へ出す
             // When it does not fit, keep the realized result and publish the wait reason
-            IsWaitingForOutputSpace = IsPendingStuckFor(recipe, inheritedLevel);
-            if (IsWaitingForOutputSpace) return ProcessState.Idle;
+            if (IsPendingStuckFor(recipe, inheritedLevel))
+            {
+                StayIdleWithOutputSpaceWait(true);
+                return ProcessState.Idle;
+            }
 
-            // 確定時の加工時間ごと ProcessingState へ渡して遷移する
-            // Hand the job with its realized processing time to ProcessingState and transition
+            // 確定時の加工時間ごと ProcessingState へ渡して遷移する。理由の解消は遷移の状態通知が運ぶ
+            // Hand the job with its realized processing time to ProcessingState and transition; the transition's state notice carries the cleared reason
+            IsWaitingForOutputSpace = false;
             _processingState.SetProcessing(recipe, _pendingRealization.Outputs, inheritedLevel, _pendingRealization.TotalTicks, _pendingRealization.PowerMultiplier);
             _pendingRealization = null;
             return ProcessState.Processing;
+        }
+
+        // Idle維持が確定した分岐でだけ呼ぶ。状態詳細がこのtickで安定した時点の変化を通知する
+        // Call only on branches that stay Idle, so the change is notified once the detail is stable for this tick
+        private void StayIdleWithOutputSpaceWait(bool isWaiting)
+        {
+            if (IsWaitingForOutputSpace == isWaiting) return;
+            IsWaitingForOutputSpace = isWaiting;
+            _outputSpaceWaitChanged.OnNext(Unit.Default);
         }
 
         // 出力空き待ちの判定の正本。保持中の結果が揃った入力の組のもので、かつ出力先に入りきらないか（tick内と tick外の両方がここを通る）

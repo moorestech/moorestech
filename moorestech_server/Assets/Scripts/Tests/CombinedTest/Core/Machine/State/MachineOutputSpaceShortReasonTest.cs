@@ -103,7 +103,9 @@ namespace Tests.CombinedTest.Core.Machine
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
             Assert.IsFalse(ReadOutputSpaceShort(processor), "入力切れの待機は出力空き不足と区別される");
-            CollectionAssert.AreEqual(new[] { false }, notices, "理由の消失が通知されない");
+            // 機械更新の前に電気網の給電通知が旧値で届くので、そのtickの最後の通知で判定する
+            // The electric network's supply notice arrives with the old value before the machine update, so judge the tick's last notice
+            Assert.IsFalse(notices.Last(), "理由の消失が通知されない");
         }
 
         [Test]

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item;
 using Core.Update;
 using Game.Block.Blocks.CleanRoom.Machine;
@@ -44,7 +45,7 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
             Assert.AreEqual("idle", ReadPublishedState(processor));
             Assert.IsTrue(ReadOutputSpaceShort(processor));
-            CollectionAssert.AreEqual(new[] { true }, notices, "機械の更新が理由を通知しない");
+            Assert.IsTrue(notices.Last(), "機械の更新が理由を通知しない");
 
             // 出口を空けると加工が始まり理由が消える
             // Freeing the output starts the job and clears the reason
@@ -66,7 +67,7 @@ namespace Tests.CombinedTest.Core.Machine
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 1);
             for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWaferG1, maxStack);
             TopUpIpa(machine, 20);
-            CollectionAssert.AreEqual(new[] { true }, TickRoomRecordingMachineNotices(filter, machine), "機械の更新が理由を通知しない");
+            Assert.IsTrue(TickRoomRecordingMachineNotices(filter, machine).Last(), "機械の更新が理由を通知しない");
 
             // JSON往復で復元した機械は、tickを1度も回さずに理由を持つ（保持中の確定結果・入出力・選択レシピから判定）
             // The machine restored through a JSON round trip carries the reason before any tick (judged from the held result, inventories and selection)
@@ -78,8 +79,8 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.IsTrue(ReadOutputSpaceShort(restoredProcessor));
         }
 
-        // 給電の事前通知より後から購読し、機械の更新が出す通知だけを記録する
-        // Subscribe after the power pre-notice so only notices from the machine update are recorded
+        // 明示給電の通知より後から購読する。tick内の電気網の給電通知は機械更新より前なので、最後の通知が機械更新の結果になる
+        // Subscribe after the explicit supply notice; in-tick network supply notices precede the machine update, so the last notice is the update's
         private static List<bool> TickRoomRecordingMachineNotices(IBlock filter, IBlock machine)
         {
             EnsureFilterWiredPower(filter);

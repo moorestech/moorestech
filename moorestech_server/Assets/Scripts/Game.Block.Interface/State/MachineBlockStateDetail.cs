@@ -26,8 +26,8 @@ namespace Game.Block.Interface.State
         [Key(2)] public string SelectedRecipeGuid;
 
         /// <summary>
-        ///    出力先の空きが足りず次の加工を始められない・完了を払い出せないか
-        ///    Whether the machine waits because the output side lacks space to start or pay out a job
+        ///    開始前・完了後の出力空き不足
+        ///    Output-space shortage before starting or after completing a job
         /// </summary>
         [Key(3)] public bool IsOutputSpaceShort;
 

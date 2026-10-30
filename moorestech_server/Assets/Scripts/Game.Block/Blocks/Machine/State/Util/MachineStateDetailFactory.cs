@@ -23,7 +23,7 @@ namespace Game.Block.Blocks.Machine.State.Util
 
         // 出力空き不足の公開理由。加工後の出力詰まりと、開始前に確定済み出力が入りきらない待機の両方を同じ理由にする
         // The published output-space-short reason; both the post-job blockage and the pre-start wait on realized outputs share it
-        public static bool IsOutputSpaceShort(ProcessState currentState, IdleMachineProcessState idleState)
+        private static bool IsOutputSpaceShort(ProcessState currentState, IdleMachineProcessState idleState)
         {
             return currentState == ProcessState.OutputBlocked || (currentState == ProcessState.Idle && idleState.IsWaitingForOutputSpace);
         }

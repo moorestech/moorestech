@@ -61,6 +61,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _haltedState = new HaltedMachineProcessState(_processingState, _yieldDrawDecorator.CurrentEffect.CanOperate);
             _idleState = new IdleMachineProcessState(_context, _processingState);
             _idleState.RestorePending(pendingRealization);
+            // Idleに留まったままの空き不足の変化は、tick内で判定が確定した時点の状態通知にする
+            // An output-space change while staying idle becomes the tick's state notice once the check settles
+            _idleState.OnOutputSpaceWaitChanged.Subscribe(_ => _statePublisher.PublishTickState(CurrentState));
             _stateHandlers = new IMachineProcessState[]
                 {
                     _idleState,
@@ -140,9 +143,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _context.LatchTickPower(CurrentState);
             if (!_yieldDrawDecorator.CurrentEffect.CanOperate && CurrentState != ProcessState.Halted) ForceHaltedWithoutCompletingJob();
             else UpdateCurrentState();
-            // ステート変化時・出力空き不足の理由が変わった時・処理中はイベントを発火させる
-            // Fire the event on a state change, an output-space-short reason change, or while processing
-            _statePublisher.PublishIfChanged(CurrentState, _idleState);
+            // 状態変化時と加工中に通知（Idle中の空き不足変化はIdleの通知が運ぶ）
+            // Notify on a state change or while processing (an idle wait change rides the idle state's notice)
+            _statePublisher.PublishIfStateChanged(CurrentState);
             #region Internal
             void ForceHaltedWithoutCompletingJob()
             {

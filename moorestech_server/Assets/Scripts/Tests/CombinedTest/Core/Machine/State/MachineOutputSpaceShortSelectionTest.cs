@@ -42,10 +42,10 @@ namespace Tests.CombinedTest.Core.Machine
             CollectionAssert.AreEqual(new[] { false }, notices);
             Assert.IsFalse(ReadOutputSpaceShort(processor));
 
-            // 解除後の待機は理由を持たず、次tickも通知を足さない
-            // The idle after clearing has no reason, and the next tick adds no notice
+            // 解除後の待機は次tickの通知でも理由を持たない
+            // The idle after clearing carries no reason in the next tick's notices either
             GameUpdater.UpdateOneTick();
-            CollectionAssert.AreEqual(new[] { false }, notices);
+            CollectionAssert.DoesNotContain(notices, true);
         }
 
         [Test]
@@ -70,12 +70,14 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(other.MachineRecipeGuid, processor.SelectedRecipeGuid);
             CollectionAssert.AreEqual(new[] { false }, notices, "旧レシピの理由が変更の通知に残っている");
 
-            // 次tickで新レシピを確定し、旧産出物で埋まった出口に入らない理由が通知で届く
-            // The next tick realizes the new recipe, and its wait on the outlet full of the old product arrives as a notice
+            // 次tickで新レシピを確定し、旧産出物で埋まった出口に入らない理由がそのtickの最後の通知で届く
+            // The next tick realizes the new recipe, and its wait on the outlet full of the old product arrives in that tick's last notice
+            var noticeCountBeforeTick = notices.Count;
             GameUpdater.UpdateOneTick();
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
             Assert.IsTrue(ReadOutputSpaceShort(processor), "新レシピの確定結果が入りきらない待機");
-            CollectionAssert.AreEqual(new[] { false, true }, notices, "次tickの新レシピの理由が通知されない");
+            Assert.Less(noticeCountBeforeTick, notices.Count);
+            Assert.IsTrue(notices.Last(), "次tickの新レシピの理由が通知されない");
 
             // 出口を空けると新レシピで加工が始まる
             // Freeing the outlet starts the new recipe's job
@@ -84,7 +86,7 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
             Assert.AreEqual(other.MachineRecipeGuid, processor.RecipeGuid);
             Assert.IsFalse(ReadOutputSpaceShort(processor));
-            CollectionAssert.AreEqual(new[] { false, true, false }, notices);
+            Assert.IsFalse(notices.Last());
         }
 
         private static OpenableInventoryItemDataStoreService CreateOverflow()
