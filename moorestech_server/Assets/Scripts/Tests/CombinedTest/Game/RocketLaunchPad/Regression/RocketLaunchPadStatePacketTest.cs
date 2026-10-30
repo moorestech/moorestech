@@ -5,10 +5,10 @@ using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.Orbit;
+using Game.World;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
-using Server.Event.EventReceive;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
 using Tests.Util.PlayerIdentity;
@@ -27,7 +27,6 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             var pad = RocketLaunchPadTestUtil.PlacePoweredPad(Vector3Int.zero, 100);
             var processor = pad.GetComponent<RocketLaunchPadProcessorComponent>();
             var sink = EventTestUtil.RegisterCaptureSink(services, 1);
-            var tag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(pad.BlockPositionInfo);
 
             // pull・tickの待因変更を通信検証
             // Verify the initial pull and tick-driven wait-reason change over the wire
@@ -56,9 +55,13 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             #region Internal
             RocketLaunchPadStateDetail LastState()
             {
-                var events = sink.TakeAll().Where(item => item.Tag == tag).ToList();
-                Assert.IsNotEmpty(events, "発射台の状態パケットが届いていない");
-                return MessagePackSerializer.Deserialize<BlockStateMessagePack>(events.Last().Payload)
+                // tickを進めず末尾配信で通知元を検証
+                // Commit the tick-end bundle without advancing simulation to isolate the notification source
+                ServerContext.GetService<WorldBlockUpdateEvent>().OnTickEndStatesCommittedInvoke();
+                var states = EventTestUtil.ExtractBlockStates(sink.TakeAll())
+                    .Where(state => (Vector3Int)state.Position == Vector3Int.zero).ToList();
+                Assert.IsNotEmpty(states, "発射台の状態パケットが届いていない");
+                return states.Last()
                     .GetStateDetail<RocketLaunchPadStateDetail>(RocketLaunchPadStateDetail.BlockStateDetailKey);
             }
             #endregion
