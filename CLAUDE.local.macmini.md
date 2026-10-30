@@ -45,6 +45,12 @@ moores-wt status [--json]
 - 上書き: `MOORES_MAIN_WT_OK=1` をコマンドに前置（低リスク作業で本当にメイン上で実行する場合のみ）
 - 理由: cmuxは全セッションをメインワークツリーのcwdで起こすため、`moores-wt new` を踏まないセッションはそのままメインで作業してしまう
 
+## PR の成果物の載せ先（pr-create の環境ローカル規約）
+
+- すべてのPRで報告ページ `https://review.moores.tech/pr/<PR番号>/report/`（Cloudflare Access 配下）を公開し、PR本文の先頭行にそのURLだけをh1見出し（`# <URL>`）で張る。画像・動画のURLを本文に個別に並べない。tailnet（share）のURLも書かない
+- 載せる素材・manifest の書式・公開コマンドは `~/hermes-agent/data/services/pr-review/publish/README.md` が正本。pr-create の委譲プロンプトにこの2点を引き継ぐ
+- 公開スクリプトが失敗したら、報告URL無しで完了報告しない
+
 ## 詰まったら読む（Mac mini固有。詳細は `docs/development/macmini/`）
 
 - Editorがログを残さず消えた（dev-server-reaper・所有receiptの手動登録）、uloop CLIの配置、Editorの前面/非前面とCPU絞り、TestResults.xmlのマシン共通パス、Steam版起動中のCEF初期化失敗、新規worktreeのSafe Mode → `docs/development/macmini/unity-editor.md`
