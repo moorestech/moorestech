@@ -34,6 +34,9 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     await p.SetupFlatGround();
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen && Camera.main != null, 15f, "GameScreen とメインカメラに戻った");
+    // 裏口: 日本語の期待文言は機械共有の言語設定に依らないよう、保存しない一時言語として日本語を明示する（t31r3b受入と同じ）
+    // Backdoor: pin Japanese as a non-persisted temporary language so the Japanese expectations never depend on the machine-shared setting (as in t31r3b)
+    p.Assert((bool)typeof(Client.Localization.Localize).GetMethod("TryApplyLanguage", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, new object[] { "japanese", Client.Localization.LanguageOrigin.Unchosen }), "保存しない一時言語として日本語を適用した");
     // 地形(メサ・岩)は足場を突き抜けて照準と画面を狂わせるので、cleanroom-room-usability と同じく地形の表示と生成を止める
     // Terrain (mesas, rocks) pokes through the scaffold and skews aim and view, so stop its display and spawning like cleanroom-room-usability
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
@@ -74,7 +77,6 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     await p.Screenshot("04-mixed-level-stall");
     await p.ClickWebUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-
     // 止まっていた Lv2 はベルトごと撤去し、B への搬入路を足して、分岐器の -x 側（A）は Lv1 だけ、+x 側（B）は Lv2 だけを通す
     // Remove the stuck Lv2 with its belt, add the path to B, and let the splitter's -x (A) pass only Lv1 and +x (B) only Lv2
     p.Note("フィルター分岐器で Lv1 を A、Lv2 を B へ仕分ける");
@@ -87,7 +89,6 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     p.Note($"分岐器の設定: {splitter.GetBlueprintSettingsJson()}");
     await p.WaitSeconds(0.5f);
     foreach (var die in Enumerable.Range(0, 19).Select(i => i % 2 == 0 ? "シリコンダイLv2" : "シリコンダイLv1")) await InsertIntoSplitter(die);
-
     // 両方のパッケージングが本当に ICチップを作り、A の止まった理由は消える
     // Both packaging machines really make IC chips and A's stall reason clears
     await p.Until(() => Count(packagingA, "ICチップLv1") >= 1 && Count(packagingB, "ICチップLv2") >= 1, 90f, "仕分けた後に Lv1 と Lv2 の ICチップが両方出た");
