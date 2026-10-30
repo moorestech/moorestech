@@ -48,8 +48,14 @@ namespace Client.PlaytestReceiver.BoxFilePolicies
             }
             if (manifest["missing"] is not JArray missing)
                 throw new Newtonsoft.Json.JsonSerializationException("manifest.missing must be an array to record undeliverable evidence");
+            // 同じ item と reason が既にあれば足さない。再実行で同じ行が増えない
+            // Skip an item+reason already present so reruns never duplicate the row
             foreach (var file in skipped)
-                missing.Add(new JObject { ["item"] = file.Path, ["reason"] = "配送不能: " + file.Reason });
+            {
+                var recordedReason = "配送不能: " + file.Reason;
+                if (missing.Any(item => item is JObject row && (string)row["item"] == file.Path && (string)row["reason"] == recordedReason)) continue; // silent-ok: 既に同じ欠損が記録済み / manifest.missing に残っている
+                missing.Add(new JObject { ["item"] = file.Path, ["reason"] = recordedReason });
+            }
             File.WriteAllText(path, manifest.ToString());
             foreach (var file in skipped)
             {
