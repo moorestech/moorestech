@@ -35,12 +35,7 @@ namespace Tests.CombinedTest.Core.Machine
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
             var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
 
-            // 全出口G1上限、原料1枚とIPA投入
-            // Fill all outputs to the G1 cap, then load one raw wafer and IPA
-            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestGradedWaferG1);
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 1);
-            for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWaferG1, maxStack);
-            TopUpIpa(machine, 20);
+            LoadWithFullOutputsAfterSettledIdle(filter, machine);
             var notices = TickRoomRecordingMachineNotices(filter, machine);
             Assert.AreEqual(ProcessState.Idle, processor.CurrentState);
             Assert.AreEqual("idle", ReadPublishedState(processor));
@@ -62,11 +57,7 @@ namespace Tests.CombinedTest.Core.Machine
             var filter = BuildSmallCleanRoomWithFilter();
             var machine = PlaceProcessMachine();
             Assert.IsTrue(WaitForClassA(datastore, filter, machine, TickCap));
-            var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
-            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestGradedWaferG1);
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 1);
-            for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWaferG1, maxStack);
-            TopUpIpa(machine, 20);
+            LoadWithFullOutputsAfterSettledIdle(filter, machine);
             Assert.IsTrue(TickRoomRecordingMachineNotices(filter, machine).Last(), "機械の更新が理由を通知しない");
 
             // JSON往復で復元した機械は、tickを1度も回さずに理由を持つ（保持中の確定結果・入出力・選択レシピから判定）
@@ -77,6 +68,20 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(ProcessState.Idle, restoredProcessor.CurrentState);
             Assert.AreEqual("idle", ReadPublishedState(restoredProcessor));
             Assert.IsTrue(ReadOutputSpaceShort(restoredProcessor));
+        }
+
+        // 全出口G1上限と原料1枚の後、IPA投入前に1tick回す。選択でtick外に書き換わった直前状態をIdleへ揃え、状態遷移の通知が理由を運ばないようにする
+        // Fill all outputs to the G1 cap and load one raw wafer, then tick once before IPA so the off-tick previous state settles to idle and no transition notice carries the reason
+        private static void LoadWithFullOutputsAfterSettledIdle(IBlock filter, IBlock machine)
+        {
+            var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestGradedWaferG1);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 1);
+            for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWaferG1, maxStack);
+            TickRoom(filter, machine);
+            Assert.AreEqual(ProcessState.Idle, machine.GetComponent<CleanRoomMachineProcessorComponent>().CurrentState);
+            Assert.IsFalse(ReadOutputSpaceShort(machine.GetComponent<CleanRoomMachineProcessorComponent>()), "IPA投入前は入力不足で理由を持たない");
+            TopUpIpa(machine, 20);
         }
 
         // 明示給電の通知より後から購読する。tick内の電気網の給電通知は機械更新より前なので、最後の通知が機械更新の結果になる
