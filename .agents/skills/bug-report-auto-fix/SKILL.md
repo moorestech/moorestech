@@ -12,11 +12,11 @@ hooks:
     - matcher: "AskUserQuestion"
       hooks:
         - type: command
-          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+          command: "python3 scripts/unattended/unattended-gate.py ask"
   Stop:
     - hooks:
         - type: command
-          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py stop bugfix"
+          command: "python3 scripts/unattended/unattended-gate.py stop bugfix"
 ---
 
 # bug-report-auto-fix — バグ報告の自動再現・修正（無人実行）

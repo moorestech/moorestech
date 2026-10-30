@@ -10,18 +10,18 @@ hooks:
     - matcher: "AskUserQuestion"
       hooks:
         - type: command
-          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+          command: "python3 scripts/unattended/unattended-gate.py ask"
   Stop:
     - hooks:
         - type: command
-          command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py stop repair"
+          command: "python3 scripts/unattended/unattended-gate.py stop repair"
 ---
 
 # daily-build-repair — 日次ビルド失敗の前方修正（無人実行）
 
 「日次ビルド失敗」ラベル付き Issue を1件受け取り、原因を特定して前方修正のPRを作り、
 `repair-result.json` を書いて終える無人スキル。poller はこのスキルを起動するだけで、
-修復ロジック自体は持たない（`pr-independent-review` / `pr-adjudicated-apply` と同じ役割分担）。
+修復ロジック自体は持たない。
 
 ## HARD GATE
 
@@ -31,7 +31,7 @@ hooks:
 ## 最重要: 無人起動でも「repair-result.json で終える」
 
 このスキルは poller から `launch_claude` 経由で cmux ワークスペース上の**対話モード** claude で
-フォアグラウンド起動される（`pr-adjudicated-apply` と同形）。対話モードではターンを終えても
+フォアグラウンド起動される。対話モードではターンを終えても
 プロセスは消えない。**poller は `repair-result.json` の存在とプロセス生存で監視している**だけなので、
 ターンを閉じただけでは何も終わらない。
 
@@ -40,7 +40,7 @@ hooks:
   いずれの意図でも、書く前に終わる終わり方はバグである
 - Step 6 のビルド待ちのように結果が返るまで数分〜数十分かかる処理は、**同一ターン内で
   ブロッキングして待つ**。待つこと自体がこのスキルの仕事である
-- リトライは**1回のみ**（`pr-adjudicated-apply` の `MAX_APPLY_RETRY=1` と同じ思想）。
+- リトライは**1回のみ**。
   プロセスが死んで `repair-result.json` も無ければ、poller が新しいセッションで
   1回だけ作り直す。それ以上の救済は無い
 
@@ -122,7 +122,7 @@ gh pr edit <PR番号> --remove-label "ビルド検証" 2>/dev/null; gh pr edit <
 runを特定してからポーリングする。
 
 `build.yml` は `pull_request: types: [labeled]` で発火するため、無関係なラベル付与
-（poller が付ける `独立レビュー:実行中` 等）でも空run（`conclusion: skipped`）が生成されうる。
+でも空run（`conclusion: skipped`）が生成されうる。
 `--limit 1` はこの空runを掴む恐れがあるため、複数件取得して `skipped` を除外する。
 
 ```bash
