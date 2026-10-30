@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { setBlock, setTopicScenario, setTrainRiding, setUiState } from "../support/mockControl";
+import { readChallengeHudTokens } from "../support/challengeHudAssertions";
 
 test.afterEach(async ({ page }) => {
   await setTrainRiding(page, false, 0, 0);
@@ -17,7 +18,7 @@ test("乗車HUDと分岐選択を表示し、入れ子Pauseへ遷移する", asy
   // Keep the challenge HUD at the top left while riding
   await expect(page.getByTestId("challenge-hud")).toBeVisible();
   await expect(page.getByTestId("challenge-hud")).toHaveCSS("left", "24px");
-  await expect(page.getByTestId("challenge-hud")).toHaveCSS("width", "560px");
+  await expect(page.getByTestId("challenge-hud")).toHaveCSS("width", `${(await readChallengeHudTokens(page)).width}px`);
   await expect(page.getByTestId("train-riding-hud")).toBeVisible();
   await expect(page.getByTestId("train-branch-selection")).toContainText("2/3");
 
@@ -32,5 +33,5 @@ test("貨車スロットとコンテナ不在エラーを表示する", async ({
   await expect(page.getByTestId("train-inventory-slots")).toBeVisible();
 
   await setBlock(page, "trainError");
-  await expect(page.getByTestId("train-inventory-error")).toContainText("This train has no item container");
+  await expect(page.getByTestId("train-inventory-error")).toContainText("この列車にはアイテムコンテナがありません");
 });

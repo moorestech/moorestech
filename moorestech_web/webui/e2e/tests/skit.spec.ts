@@ -66,7 +66,7 @@ test("横長画面で会話帯を全幅に広げツールを実画面右上へ�
   await setSkitStage(page, "text");
 
   const skit = page.getByTestId("blocking-skit");
-  const hideUiButton = page.getByRole("button", { name: "Hide UI" });
+  const hideUiButton = page.getByRole("button", { name: "UIを非表示" });
   await expect(skit).toBeVisible();
   await expect(hideUiButton).toBeVisible();
 
@@ -74,7 +74,7 @@ test("横長画面で会話帯を全幅に広げツールを実画面右上へ�
   // Catch regressions that collapse back to stage width or lose tool contrast over a bright world
   const layout = await page.evaluate(() => {
     const skitRect = document.querySelector<HTMLElement>('[data-testid="blocking-skit"]')!.getBoundingClientRect();
-    const tool = document.querySelector<HTMLElement>('button[aria-label="Hide UI"]')!;
+    const tool = document.querySelector<HTMLElement>('button[aria-label="UIを非表示"]')!;
     const toolRect = tool.getBoundingClientRect();
     const toolStyle = getComputedStyle(tool);
     return {

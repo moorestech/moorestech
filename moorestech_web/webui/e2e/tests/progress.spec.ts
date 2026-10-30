@@ -43,11 +43,19 @@ test("採掘進捗は対象名を出さずホットバー全幅の12px上に1本
   )).toBeLessThanOrEqual(0.5);
   expect(numberTabBox!.y - (wrapperBox!.y + wrapperBox!.height)).toBeCloseTo(12, 1);
 
-  // 寒色ゲージの回帰を検証
-  // Verify the cool-token gauge regression
+  // 溝は寒色トークン、充填は世界背景から分離する白（--color-content-primary）へ上書きされる
+  // The groove keeps the cool token while the fill is overridden to the world-separating white (--color-content-primary)
   const fill = gauge.locator("> div");
+  const contentPrimary = await page.evaluate(() => {
+    const probe = document.createElement("div");
+    probe.style.backgroundColor = "var(--color-content-primary)";
+    document.body.append(probe);
+    const color = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return color;
+  });
   await expect(gauge).toHaveCSS("background-color", "rgba(10, 14, 27, 0.8)");
-  await expect(fill).toHaveCSS("background-color", "rgb(104, 106, 120)");
+  await expect(fill).toHaveCSS("background-color", contentPrimary);
   expect(await gauge.getAttribute("class")).not.toContain("mantine");
 
   // 同一接続で更新と撤去を検証

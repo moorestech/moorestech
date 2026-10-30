@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { setSkitStage, setTopicScenario, setUiState } from "../support/mockControl";
 import { expectAbove, expectSeparatedHorizontally, expectWithinViewport } from "../support/layoutAssertions";
-import { expectChallengeHudPresentation, readChallengeHudPresentation } from "../support/challengeHudAssertions";
+import { expectChallengeHudPresentation, readChallengeHudPresentation, readChallengeHudTokens } from "../support/challengeHudAssertions";
 
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "challengeActive");
@@ -102,7 +102,8 @@ test("常駐HUDをインベントリ・メニュー・操作モードで維持�
   // Follow stage scaling and remain within a smaller viewport
   await page.setViewportSize({ width: 1024, height: 576 });
   await setUiState(page, "GameScreen");
-  await expect.poll(async () => (await challengeHud.boundingBox())?.width).toBeCloseTo(560 * 1024 / 1280, 1);
+  const tokens = await readChallengeHudTokens(page);
+  await expect.poll(async () => (await challengeHud.boundingBox())?.width).toBeCloseTo(tokens.width * 1024 / 1280, 1);
   const scaledWorldPresentation = await readChallengeHudPresentation(page);
   await setUiState(page, "PlayerInventory");
   await expect(page.getByTestId("main-grid")).toBeVisible();

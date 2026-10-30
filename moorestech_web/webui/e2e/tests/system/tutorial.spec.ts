@@ -1,7 +1,29 @@
 import { expect, test, type Locator } from "@playwright/test";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
 
-const expectedOutlineBoxShadow = "rgba(255, 0, 0, 0.24) 0px 0px 0px 4px";
+// 相対色の計算値はcolor(srgb …)表記になるので、チャンネル値へ直して比べる
+// A relative color computes to color(srgb …) notation, so compare channel values
+function parseColorChannels(color: string): number[] {
+  const srgb = color.match(/^color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?\)$/);
+  if (srgb) return [...srgb.slice(1, 4).map((channel) => Math.round(Number(channel) * 255)), Number(srgb[4] ?? 1)];
+  const rgb = color.match(/^rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)$/);
+  if (rgb) return [...rgb.slice(1, 4).map(Number), Number(rgb[4] ?? 1)];
+  throw new Error(`unparsed color: ${color}`);
+}
+
+// 枠の外側4pxのグローが、枠と同じ注意赤の24%不透明で描かれることを確かめる
+// Verify the 4px outer glow uses the same attention red as the border at 24% opacity
+async function expectAttentionGlow(highlight: Locator) {
+  const { boxShadow, border } = await highlight.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { boxShadow: style.boxShadow, border: style.borderTopColor };
+  });
+  const glow = boxShadow.match(/^(.+\)) 0px 0px 0px 4px$/);
+  expect(glow, boxShadow).not.toBeNull();
+  const [red, green, blue, alpha] = parseColorChannels(glow![1]);
+  expect([red, green, blue]).toEqual(parseColorChannels(border).slice(0, 3));
+  expect(alpha).toBeCloseTo(0.24, 2);
+}
 
 // 実ブラウザで再生中の脈動を計測する。CSS文字列一致では拾えない無言死をここで捕まえる
 // Measures the pulse actually playing in a real browser; a silent death that CSS text matching misses is caught here
@@ -30,7 +52,7 @@ test("tutorial outline highlights the target without dimming the rest of the scr
   await expect(highlight).toBeVisible();
   await expect(highlight).toHaveAttribute("data-kind", "outline");
   await expect(highlight).toHaveCSS("border-top-color", "rgb(255, 0, 0)");
-  await expect(highlight).toHaveCSS("box-shadow", expectedOutlineBoxShadow);
+  await expectAttentionGlow(highlight);
   await expect(overlay).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(overlay).toHaveCSS("background-image", "none");
   await expect(overlay).toHaveCSS("filter", "none");
@@ -39,7 +61,7 @@ test("tutorial outline highlights the target without dimming the rest of the scr
   // 廃止済みkindへの変更でも暗転CSSが復活しないことを直接検査する
   // Probe the removed kind directly so restored dimming CSS cannot escape the test
   await highlight.evaluate((element) => element.setAttribute("data-kind", "spotlight"));
-  await expect(highlight).toHaveCSS("box-shadow", expectedOutlineBoxShadow);
+  await expectAttentionGlow(highlight);
 });
 
 test("outline with a label renders the label text beside the outline", async ({ page }) => {
