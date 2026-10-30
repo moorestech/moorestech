@@ -3,7 +3,7 @@
 
 使い方: publish_pr_report.py <PR番号> <manifest.json>
 manifest の書式は .agents/skills/pr-create/references/pr-report.md が正本。
-公開先は裁定サイトの報告ルート（mac-mini ローカル）。同じPRへ再実行すると丸ごと差し替える。
+公開先は review.moores.tech サイトの報告ルート（mac-mini ローカル）。同じPRへ再実行すると丸ごと差し替える。
 
 Builds a PR report page (images, videos, verification) and publishes it at review.moores.tech/pr/<N>/report/.
 Usage: publish_pr_report.py <PR number> <manifest.json>. Rerunning for the same PR replaces it wholesale.
@@ -120,7 +120,7 @@ def verify(number: str, names: list[str]) -> list[str]:
     for name in names:
         url = f"{LOCAL_SITE}/pr/{number}/report/{'' if name == 'index.html' else name}"
         try:
-            # 裁定サイトは HEAD を持たないので先頭1バイトの Range GET で確かめる
+            # review.moores.tech サイトは HEAD を持たないので先頭1バイトの Range GET で確かめる
             # The review site has no HEAD handler, so probe with a one-byte Range GET
             request = urllib.request.Request(url, headers={"Range": "bytes=0-0"})
             with urllib.request.urlopen(request, timeout=10) as res:

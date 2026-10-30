@@ -5,7 +5,7 @@ PRの成果物（画像・動画・検証結果）は、PRごとに1枚の報告
 
 ## 置き場と見え方
 
-- 公開URL: `https://review.moores.tech/pr/<PR番号>/report/`（裁定サイトと同じ Cloudflare Access 配下。公開PRから張っても外部の人には見えない）
+- 公開URL: `https://review.moores.tech/pr/<PR番号>/report/`（Cloudflare Access 配下。公開PRから張っても外部の人には見えない）
 - 実体: mac-mini の `~/hermes-agent/data/services/pr-review/reports/pr-<PR番号>/`。git には入れない
 - 公開は mac-mini で実行する。同じPRへ再実行すると丸ごと差し替わる（push で成果物が変わったら再公開する）
 
@@ -51,4 +51,4 @@ PR作業のscratch（コミットしない場所）に置く。`file` は絶対�
 python3 scripts/pr-report/publish_pr_report.py <PR番号> <manifest.json>
 ```
 
-成功すると標準出力に公開URL、標準エラーに「画像 N 枚 / 動画 M 本」が出る。公開後に裁定サイトから全ファイルを取り直して確かめ、取れないものがあれば失敗で終わる。
+成功すると標準出力に公開URL、標準エラーに「画像 N 枚 / 動画 M 本」が出る。公開後にサイトから全ファイルを取り直して確かめ、取れないものがあれば失敗で終わる。

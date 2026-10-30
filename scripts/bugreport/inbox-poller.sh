@@ -11,10 +11,9 @@ BASE="$LOGS/harness/bug-report"; INBOX="$BASE/inbox"; RUNS="$BASE/runs"
 # 隔離先は dot 始まりにする。READY 付きのまま置いても候補 glob に掴まれない
 # The quarantine directory starts with a dot so a box kept there with its READY marker never matches the candidate glob
 DUPLICATE="$INBOX/.duplicate"
-WORKTREES="${MOORESTECH_WORKTREES:-$REPO/../moorestech-worktrees}"
 CLAUDE_CMD="${CLAUDE_CMD:-claude}"
 PREPARE_CMD="${PREPARE_CMD:-$HERE/prepare-run.sh}"
-CANON_SETUP_CMD="${CANON_SETUP_CMD:-python3 $REPO/.agents/skills/pr-independent-review/scripts/canon_setup.py}"
+CANON_SETUP_CMD="${CANON_SETUP_CMD:-python3 $REPO/scripts/unattended/canon_setup.py}"
 CANON_SKILL_REL=".agents/skills/bug-report-auto-fix/SKILL.md"
 GIT_PUSH="${GIT_PUSH:-1}"
 LOCK="${TMPDIR:-/tmp}/moorestech-bugreport-poller.lock"
@@ -119,7 +118,7 @@ resolve_canon() {
   local out
   # canon_setup の SKILL.md 同一性ガードは $ORIGIN からスキル本文を読む運用のためのもので、poller は canon だけを読むため適用しない
   # canon_setup's SKILL.md identity guard exists for flows that read the skill body from $ORIGIN; the poller reads only the canon, so it does not apply
-  out="$($CANON_SETUP_CMD --origin "$REPO" --parent "$WORKTREES" --allow-skew 2> "$run/canon.err.log")" \
+  out="$($CANON_SETUP_CMD --origin "$REPO" --skill bug-report-auto-fix --allow-skew 2> "$run/canon.err.log")" \
     || { log "canon worktree を用意できなかった（canon_setup 失敗。$run/canon.err.log を確認）: $CANON_SETUP_CMD"; return 1; }
   CANON="$(printf '%s' "$out" | python3 -c "import json,sys;print(json.load(sys.stdin)['canon'])")" \
     || { log "canon_setup の出力から canon を読めなかった: $CANON_SETUP_CMD"; return 1; }

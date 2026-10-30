@@ -21,7 +21,7 @@ concatenated workflow script into the run dir, and fails closed on any selection
 usage:
   build_workflow_args.py --run-dir <RUNDIR> --patch <PATCH> --context <CONTEXT>
       --repo-root <REPO> [--checks <checks.json>] [--chunks <chunks.tsv>]
-      [--base-ref <sha>] [--report-only] [--detchecks <detchecks.json>]
+      [--base-ref <sha>]
       [--bug-pass --carry-from <本レビューの RUNDIR>]
   → <RUNDIR>/workflow-args.json と <RUNDIR>/review_workflow.js を書き、args のパスを標準出力へ
 exit: 0=ok / 2=引数の組み合わせ不正 / 3=checks.json の errors 非空 / 4=セレクタ error 行あり / 5=入力欠損・選択失敗
@@ -38,8 +38,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from workflow_args import bug_pass  # noqa: E402
 from workflow_args.assemble import workflow_script_path, write_workflow_script  # noqa: E402
 from workflow_args.systems import (  # noqa: E402
-    CODEX_KINDS, REPORT_ONLY_ADDENDUM, SCRIPTS, SKILL_ROOT, codex_jobs, expected_systems, fable_generalist,
-    investigators, resolve_chunks, select_post_checks, system, verifiers, write_contract)
+    CODEX_KINDS, SCRIPTS, SKILL_ROOT, codex_jobs, expected_systems, fable_generalist,
+    investigators, resolve_chunks, system, verifiers, write_contract)
 
 CODEX_WAIT_MAX_MINUTES = 20
 # 反映 diff 再レビューの周回上限。指摘は尽きないので収束条件は「再現可能な誤動作が無いこと」、超えたら未収束として親へ渡す
@@ -57,17 +57,13 @@ def main() -> int:
     ap.add_argument("--chunks", default=None,
                     help="既定: <run-dir>/chunks.tsv（既定パスの不在は below-threshold 扱い。明示指定の不在はエラー）")
     ap.add_argument("--base-ref", default=None, help="final.diff の比較元（Step 1 の base コミット）")
-    ap.add_argument("--report-only", action="store_true",
-                    help="pr-independent-review 用。Step 6 適用を省き post-check は patch で発火")
-    ap.add_argument("--detchecks", default=None,
-                    help="report-only 時に convention-guard へ渡す決定論JSON（既定: <run-dir>/detchecks.json）")
     ap.add_argument("--verify-by-repro", action="store_true", help="採用ロジックバグだけ隔離環境で反証・実証する")
     ap.add_argument("--bug-pass", action="store_true", help="SKILL.md Step 7.5 の最終バグ確認パス")
     ap.add_argument("--carry-from", default=None, help="bug-pass 用。前周 Warning を持ち込む本レビューの $RUNDIR")
     args = ap.parse_args()
 
-    if args.bug_pass and (args.report_only or not args.carry_from):
-        print("--bug-pass は --carry-from 必須・--report-only と併用不可（report-only では bug-pass を回さない）", file=sys.stderr)
+    if args.bug_pass and not args.carry_from:
+        print("--bug-pass は --carry-from 必須", file=sys.stderr)
         return 2
     run_dir = Path(args.run_dir).resolve()
     (run_dir / "agents").mkdir(parents=True, exist_ok=True)
@@ -82,7 +78,6 @@ def main() -> int:
         "repoRoot": str(Path(args.repo_root).resolve()),
         "skillRoot": str(SKILL_ROOT),
         "baseRef": args.base_ref,
-        "reportOnly": bool(args.report_only),
         "verifyByRepro": args.verify_by_repro,
         "reproVerifierPath": str(SKILL_ROOT / "verifiers/logic-bug-repro.md"),
         "codexWaitMaxMinutes": CODEX_WAIT_MAX_MINUTES,
@@ -136,29 +131,15 @@ def plan_review(args, run_dir: Path) -> dict | int:
     systems += investigators(chunks_path, None)
     systems += verifiers(checks.get("verifiers_to_launch", []))
 
-    post_checks, detchecks_path = [], None
-    if args.report_only:
-        # 適用が無いので最終diff＝patch・候補＝Step 2 の決定論JSON（PIR Step 6 の規定どおり）
-        # No apply step: final diff is the patch and candidates are the Step 2 deterministic JSON
-        detchecks_path = (Path(args.detchecks) if args.detchecks else run_dir / "detchecks.json").resolve()
-        if not detchecks_path.is_file():
-            print(f"report-only の detchecks が無い: {detchecks_path}", file=sys.stderr)
-            return 5
-        post_checks = select_post_checks(Path(args.patch), detchecks_path)
-        if post_checks is None:
-            return 5
-
-    contract = write_contract(run_dir, REPORT_ONLY_ADDENDUM if args.report_only else "")
+    contract = write_contract(run_dir, "")
     return {
         "userPromptPath": str(Path(args.context).resolve()),
         "checksPath": str(checks_path.resolve()),
         "chunksTsv": str(chunks_path.resolve()) if chunks_path else None,
         "chunksReason": chunks_reason,
         "contractPath": str(contract),
-        "detchecksPath": str(detchecks_path) if detchecks_path else None,
         "systems": systems,
         "expectedSystems": expected_systems(checks, systems),
-        "postChecks": post_checks,
         "codexJobs": codex_jobs(run_dir, CODEX_KINDS),
     }
 
@@ -184,10 +165,8 @@ def plan_bug_pass(args, run_dir: Path) -> dict | int:
         "chunksTsv": str(chunks_path) if chunks_path else None,
         "chunksReason": f"bug-pass(split_chunks --threshold={bug_pass.BUG_PASS_CHUNK_THRESHOLD})",
         "contractPath": str(write_contract(run_dir, bug_pass.CONTRACT_ADDENDUM)),
-        "detchecksPath": None,
         "systems": systems,
         "expectedSystems": bug_pass.expected_systems(reviewers, investigator_count),
-        "postChecks": [],
         "codexJobs": codex_jobs(run_dir, bug_pass.BUG_PASS_CODEX_KINDS),
         "carriedWarningSources": sources,
     }

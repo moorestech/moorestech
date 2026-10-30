@@ -20,8 +20,8 @@ export const meta = {
   phases: [
     { title: 'Review', detail: 'reviewer / Fable / investigator / verifier を並列発火（ファイルハンドオフ）' },
     { title: 'Integrate', detail: 'Codex の完了を待ってから opus integrator が agents/・Codex結論・checks.json を統合' },
-    { title: 'Apply', detail: '確定修正の自動適用と uloop compile と反映diffの機械的動作確認（report-only では省略）' },
-    { title: 'Refix', detail: '反映diff（修正の前後差分）だけを applied-diff-correctness で再レビューし、Critical なら直し直す（最大3周・report-only では省略）' },
+    { title: 'Apply', detail: '確定修正の自動適用と uloop compile と反映diffの機械的動作確認' },
+    { title: 'Refix', detail: '反映diff（修正の前後差分）だけを applied-diff-correctness で再レビューし、Critical なら直し直す（最大3周）' },
     { title: 'PostCheck', detail: '最終diffで post-check を発火し結果を適用（bug-pass では省略）' },
   ],
 }
@@ -38,7 +38,6 @@ if (A.systems.length === 0) {
 // build_workflow_args.py always writes mode; never fall back to review on an unknown value
 const BUG_PASS = A.mode === 'bug-pass'
 if (A.mode !== 'review' && !BUG_PASS) throw new Error(`args.mode が不正: ${A.mode}（review / bug-pass）`)
-if (BUG_PASS && A.reportOnly) throw new Error('bug-pass は report-only と併用しない（pr-independent-review からは回さない）')
 if (BUG_PASS && !Array.isArray(A.carriedWarningSources)) throw new Error('bug-pass に carriedWarningSources が無い（--carry-from を渡す）')
 
 // 再起動予算は1回（即時）。混雑で2回目も落ちたら欠員として申告し、親が再派遣する

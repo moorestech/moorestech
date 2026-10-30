@@ -9,14 +9,14 @@
 # =====================================================================
 """レビュー用 patch に入れないパスの正本と、それを付けて git diff を取る入口。
 
-moores-code-review（セッションの patch.diff）と pr-independent-review（make_patch.py）の両方がここを使う。
+moores-code-review Step 1 の patch.diff がここを使う。
 外すのは「レビューで裁かない物」だけ: 手を入れない外部物（NuGet の同梱パッケージ・ロックファイル）、
 生成物（DO NOT EDIT の自動生成コード）、バイナリ（--text 付きの diff ではバイト列がそのまま patch へ流れる）、
 Unity のシリアライズ資産（YAML。コードレビューの対象外）、使い捨てのプレイテストシナリオ。
 チームが手を入れる外部アセットのコード（Assets/Dependencies の .cs 等）は外さない。
 
 Single source of truth for paths kept out of review patches, plus an entry point that runs git diff with them.
-Both moores-code-review (the session patch.diff) and pr-independent-review (make_patch.py) use it.
+moores-code-review Step 1 builds its patch.diff through it.
 Only things reviews never judge are excluded: untouched third-party code (vendored NuGet packages, lockfiles),
 generated code (DO NOT EDIT), binaries (a --text diff would dump their bytes into the patch),
 Unity serialized assets (YAML, outside code review), and throwaway playtest scenarios.
