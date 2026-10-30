@@ -7,7 +7,6 @@ using Game.Context;
 using Game.SpaceElevator;
 using MessagePack;
 using NUnit.Framework;
-using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
@@ -57,8 +56,9 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             #region Internal
             SpaceElevatorBaseStateDetail Last(Vector3Int pos)
             {
-                var packet = sink.Events.Last(e => e.Tag == $"{ChangeBlockStateEventPacket.EventTag}:{pos}");
-                return MessagePackSerializer.Deserialize<BlockStateMessagePack>(packet.Payload)
+                EventTestUtil.CommitBlockStates();
+                var state = EventTestUtil.ExtractBlockStates(sink.Events).Last(item => (Vector3Int)item.Position == pos);
+                return state
                     .GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
             }
             void AssertPool(int count, Vector3Int pos) { Assert.AreEqual(count, Last(pos).CablePoolAmount); }
@@ -95,8 +95,9 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             #region Internal
             SpaceElevatorBaseStateDetail Last()
             {
-                var packet = sink.Events.Last(e => e.Tag == $"{ChangeBlockStateEventPacket.EventTag}:{Vector3Int.zero}");
-                return MessagePackSerializer.Deserialize<BlockStateMessagePack>(packet.Payload)
+                EventTestUtil.CommitBlockStates();
+                var state = EventTestUtil.ExtractBlockStates(sink.Events).Last(item => (Vector3Int)item.Position == Vector3Int.zero);
+                return state
                     .GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
             }
             #endregion

@@ -13,7 +13,6 @@ using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
@@ -67,13 +66,15 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             Assert.AreEqual(SpaceElevatorBaseStatus.WaitingSatellite, Last().Status);
             sink.TakeAll();
             GameUpdater.RunFrames(3);
-            Assert.IsFalse(sink.Events.Any(e => e.Tag == Tag), "idle ticks must not resend the same state");
+            Assert.IsFalse(EventTestUtil.ExtractBlockStates(sink.Events).Any(state => (Vector3Int)state.Position == Vector3Int.zero), "idle ticks must not resend the same state");
 
             #region Internal
             SpaceElevatorBaseStateDetail Last()
             {
-                Assert.IsTrue(sink.Events.Any(e => e.Tag == Tag), "inventory transition emitted no ChangeBlockStateEventPacket");
-                return MessagePackSerializer.Deserialize<BlockStateMessagePack>(sink.Events.Last(e => e.Tag == Tag).Payload)
+                EventTestUtil.CommitBlockStates();
+                var states = EventTestUtil.ExtractBlockStates(sink.Events).Where(state => (Vector3Int)state.Position == Vector3Int.zero).ToList();
+                Assert.IsNotEmpty(states, "inventory transition emitted no block state in the tick bundle");
+                return states.Last()
                     .GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey);
             }
             #endregion
@@ -100,13 +101,14 @@ namespace Tests.CombinedTest.Game.SpaceElevator
             #region Internal
             SpaceElevatorBaseStatus LastStatus()
             {
-                Assert.IsTrue(sink.Events.Any(e => e.Tag == Tag), "inventory transition emitted no ChangeBlockStateEventPacket");
-                return MessagePackSerializer.Deserialize<BlockStateMessagePack>(sink.Events.Last(e => e.Tag == Tag).Payload)
+                EventTestUtil.CommitBlockStates();
+                var states = EventTestUtil.ExtractBlockStates(sink.Events).Where(state => (Vector3Int)state.Position == Vector3Int.zero).ToList();
+                Assert.IsNotEmpty(states, "inventory transition emitted no block state in the tick bundle");
+                return states.Last()
                     .GetStateDetail<SpaceElevatorBaseStateDetail>(SpaceElevatorBaseStateDetail.BlockStateDetailKey).Status;
             }
             #endregion
         }
 
-        private static string Tag => $"{ChangeBlockStateEventPacket.EventTag}:{Vector3Int.zero}";
     }
 }
