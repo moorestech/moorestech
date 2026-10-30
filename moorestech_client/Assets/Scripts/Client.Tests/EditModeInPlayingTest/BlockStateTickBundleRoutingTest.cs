@@ -15,8 +15,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
-    ///     ブロック状態の束がクライアントで座標からブロックへ振り分けられることを確かめる（ADR 0088）。撤去して同じ座標に置き直した後も届くことまで見る
-    ///     Verifies the client routes the block-state bundle to blocks by position (ADR 0088), including after removing and re-placing at the same position
+    ///     ブロック状態の束がクライアントで座標からブロックへ振り分けられることを確かめる（ADR 0091）。撤去して同じ座標に置き直した後も届くことまで見る
+    ///     Verifies the client routes the block-state bundle to blocks by position (ADR 0091), including after removing and re-placing at the same position
     /// </summary>
     // shard割当はクラスと一緒に移動・改名される
     // The shard assignment travels with the class through moves and renames

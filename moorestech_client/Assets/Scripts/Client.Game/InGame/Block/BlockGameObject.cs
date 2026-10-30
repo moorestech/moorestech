@@ -144,8 +144,8 @@ namespace Client.Game.InGame.Block
             await _rendererShaderAnimation.RemoveAnimation();
             Destroy(gameObject);
         }
-        // 届いた状態を全プロセッサへ渡す。例外は隔離しない（ADR 0088）
-        // Passes an arrived state to every processor; exceptions are not isolated here (ADR 0088)
+        // 届いた状態を全プロセッサへ渡す。例外は隔離しない（ADR 0091）
+        // Passes an arrived state to every processor; exceptions are not isolated here (ADR 0091)
         internal void ApplyBlockState(BlockStateMessagePack state)
         {
             foreach (var processor in BlockStateChangeProcessors)

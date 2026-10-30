@@ -9,7 +9,7 @@ namespace Client.Game.InGame.World
 {
     /// <summary>
     ///     tick末尾の状態の束を座標でブロックへ振り分ける
-    ///     Reads the tick-end block-state bundle once and routes each entry to its block by position (ADR 0088)
+    ///     Reads the tick-end block-state bundle once and routes each entry to its block by position (ADR 0091)
     /// </summary>
     public class BlockStateEventHandler : IInitializable
     {

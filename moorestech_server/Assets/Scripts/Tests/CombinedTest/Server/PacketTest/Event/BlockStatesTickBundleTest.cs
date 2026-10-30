@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
     // 状態の束の送信タイミングと掃除を検証
-    // Verifies when the block-state bundle (ADR 0088) is sent and how it is cleaned up
+    // Verifies when the block-state bundle (ADR 0091) is sent and how it is cleaned up
     public class BlockStatesTickBundleTest
     {
         [Test]

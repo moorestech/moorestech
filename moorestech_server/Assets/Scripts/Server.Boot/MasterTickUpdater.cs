@@ -132,8 +132,8 @@ namespace Server.Boot
             _serverThreadActionQueue.Drain();
             _worldTopologyRebuilder.RebuildTopologiesIfDirty();
 
-            // 操作の適用と再構築で出た分まで含めて状態が出揃った合図。購読側が束にして送る（ADR 0088）
-            // Signal that this tick's block states, including those from input and rebuilds, are in; the subscriber sends them as one bundle (ADR 0088)
+            // 操作の適用と再構築で出た分まで含めて状態が出揃った合図。購読側が束にして送る（ADR 0091）
+            // Signal that this tick's block states, including those from input and rebuilds, are in; the subscriber sends them as one bundle (ADR 0091)
             _worldBlockUpdateEvent.OnTickEndStatesCommittedInvoke();
 
             // 境界: 操作の適用と再構築まで終えた状態で列車・レール・ベルト・流体のハッシュを出し、tick番号を進める。再構築したベルト・流体の全量はハッシュより前に送られている

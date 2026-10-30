@@ -12,7 +12,7 @@ using UnityEngine;
 namespace Server.Event.EventReceive
 {
     // 座標別の最新状態をtick末尾に束ねて送信
-    // Keeps the latest block state per position and broadcasts them as one bundled event at tick end (ADR 0088)
+    // Keeps the latest block state per position and broadcasts them as one bundled event at tick end (ADR 0091)
     public class ChangeBlockStateEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:blockStatesTickBundle";

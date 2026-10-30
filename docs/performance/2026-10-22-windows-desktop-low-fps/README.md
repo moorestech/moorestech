@@ -109,4 +109,4 @@
 3. `uloop control-play-mode --action Play` → `snippets/setup/skip.cs`（前回クラッシュ報告の「送らない」）→ `startlocal.cs`。
 4. ワールドの読み込み完了を待つ。`env.cs` の Renderer 数が約21.7万で止まれば定常。読み込み中は初期同期のバースト（1フレーム約1万件）が混ざる。
 5. `snippets/profiler/start.cs` → 数秒待つ → `markers.cs`。Profiler の記録は数秒に留める（長いとメモリ不足でクラッシュする）。
-6. スニペットは `uloop execute-dynamic-code --code-file <path>` で実行する。`event-hooks/` のフックは、対になる report 系のスクリプトで必ず元に戻す。`event-hooks/keys.cs` は座標入りタグ `va:event:changeBlockState:` 前提なので、ブロック状態の束ね（ADR 0088）より前のコミット専用。
+6. スニペットは `uloop execute-dynamic-code --code-file <path>` で実行する。`event-hooks/` のフックは、対になる report 系のスクリプトで必ず元に戻す。`event-hooks/keys.cs` は座標入りタグ `va:event:changeBlockState:` 前提なので、ブロック状態の束ね（ADR 0091）より前のコミット専用。

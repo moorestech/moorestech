@@ -59,7 +59,7 @@
 - (a) 明示呼び出し（採用）: 送る位置が `MasterTickUpdater.Tick()` の1ファイルに見え、「網の再構築の後・境界ハッシュの前」が並びで保証される。`MasterTickUpdater` の「処理順を購読や登録順に頼らない」方針（ADR 0087）と合う。
 - (b) 購読: tick末尾に「ブロック状態を送ってよい点」を知らせるドメインの通知が無い。既存で近いのは `TrainUpdateService.OnHashEvent`（`CompleteTick()` の中で発火）だが、これは列車の境界の通知で、ブロック状態の送信を乗せるとドメインの意味が合わない。また同じ通知の購読者どうしの順は登録順に依存し、`MasterTickUpdater` の「処理順を購読や登録順に頼らない」方針（ADR 0087）に反する。新しい通知を作ると、その発火位置を `MasterTickUpdater` に置くことになり、(a) と同じ位置に購読を1段挟むだけになる。
 
-出所: agent前提（ADR 0088「送り口は MasterTickUpdater の tick末尾から明示的に呼ぶ」）。
+出所: agent前提（ADR 0091「送り口は MasterTickUpdater の tick末尾から明示的に呼ぶ」）。
 
 データフロー（変更後）:
 
@@ -149,8 +149,8 @@ using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
-    // ブロック状態の変化を座標ごとの最新1件に溜め、tick末尾に1イベントへ束ねて全員へ送る（ADR 0088）
-    // Keeps the latest block state per position and broadcasts them as one bundled event at tick end (ADR 0088)
+    // ブロック状態の変化を座標ごとの最新1件に溜め、tick末尾に1イベントへ束ねて全員へ送る（ADR 0091）
+    // Keeps the latest block state per position and broadcasts them as one bundled event at tick end (ADR 0091)
     public class ChangeBlockStateEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:blockStatesTickBundle";
@@ -312,8 +312,8 @@ namespace Server.Event.EventReceive
 4. `Tick()` の `_worldTopologyRebuilder.RebuildTopologiesIfDirty();` の直後（`// 境界:` コメントの前）に次を入れる。
 
 ```csharp
-            // 操作の適用と再構築で出た分まで含め、このtickのブロック状態を1イベントで送る（ADR 0088）
-            // Send this tick's block states as one event, including those raised by input and rebuilds (ADR 0088)
+            // 操作の適用と再構築で出た分まで含め、このtickのブロック状態を1イベントで送る（ADR 0091）
+            // Send this tick's block states as one event, including those raised by input and rebuilds (ADR 0091)
             _changeBlockStateEventPacket.BroadcastPendingStates();
 ```
 
@@ -448,8 +448,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
-    // ブロック状態の束（ADR 0088）の送信タイミングと掃除を検証
-    // Verifies when the block-state bundle (ADR 0088) is sent and how it is cleaned up
+    // ブロック状態の束（ADR 0091）の送信タイミングと掃除を検証
+    // Verifies when the block-state bundle (ADR 0091) is sent and how it is cleaned up
     public class BlockStatesTickBundleTest
     {
         [Test]
@@ -674,8 +674,8 @@ using VContainer.Unity;
 namespace Client.Game.InGame.World
 {
     /// <summary>
-    ///     tick末尾に届くブロック状態の束を1回だけ読み、座標でブロックへ振り分ける（ADR 0088）
-    ///     Reads the tick-end block-state bundle once and routes each entry to its block by position (ADR 0088)
+    ///     tick末尾に届くブロック状態の束を1回だけ読み、座標でブロックへ振り分ける（ADR 0091）
+    ///     Reads the tick-end block-state bundle once and routes each entry to its block by position (ADR 0091)
     /// </summary>
     public class BlockStateEventHandler : IInitializable
     {
@@ -956,7 +956,7 @@ def block_states_per_second(result):
 `docs/performance/benchmark/README.md` の「### 注意」の末尾に足す。
 
 ```markdown
-- **ブロック状態の束ね（ADR 0088）の前後で、イベントの数え方が変わる。** 束ねた後は「受信イベント 件/秒」に束1件が1件として入り、「受信処理 µs/件」は束1件あたりの値になるので、束の前とは比べられない。前後の比較は「受信処理 ms/フレーム（応答を除く）」と「ブロック状態 件/秒」で行う。`snippets/events-start.cs` は束の型を参照するので、束の前のコミットを測るときは、そのコミットの時点の `events-start.cs` と `events-collect.cs` を使う（`git show <commit>:docs/performance/benchmark/snippets/events-start.cs`）。Profiler の `BlockState.Deserialize` は、束の前はブロック1件ごと、束の後は束1回ごとの計測になるので、ms は比べられるが calls は比べられない。
+- **ブロック状態の束ね（ADR 0091）の前後で、イベントの数え方が変わる。** 束ねた後は「受信イベント 件/秒」に束1件が1件として入り、「受信処理 µs/件」は束1件あたりの値になるので、束の前とは比べられない。前後の比較は「受信処理 ms/フレーム（応答を除く）」と「ブロック状態 件/秒」で行う。`snippets/events-start.cs` は束の型を参照するので、束の前のコミットを測るときは、そのコミットの時点の `events-start.cs` と `events-collect.cs` を使う（`git show <commit>:docs/performance/benchmark/snippets/events-start.cs`）。Profiler の `BlockState.Deserialize` は、束の前はブロック1件ごと、束の後は束1回ごとの計測になるので、ms は比べられるが calls は比べられない。
 ```
 
 同じ README の「## 結果 JSON の中身（schemaVersion 1）」の表の `events` 行を次にする。
@@ -968,7 +968,7 @@ def block_states_per_second(result):
 `docs/performance/2026-10-22-windows-desktop-low-fps/README.md` の「## 再計測の手順」の 6 の行末に次を足す（`snippets/event-hooks/keys.cs` が座標入りタグの接頭辞で絞っており、束ねた後は何も数えなくなるため）。
 
 ```markdown
-`event-hooks/keys.cs` は座標入りタグ `va:event:changeBlockState:` 前提なので、ブロック状態の束ね（ADR 0088）より前のコミット専用。
+`event-hooks/keys.cs` は座標入りタグ `va:event:changeBlockState:` 前提なので、ブロック状態の束ね（ADR 0091）より前のコミット専用。
 ```
 
 - [ ] **Step 4: 比較スクリプトが既存の結果で動くことを確かめる**
@@ -1016,7 +1016,7 @@ Expected: 結果 JSON 3つ。比較表が出る。`compare.py` は基準 label �
 
 - [ ] **Step 3: README の結果一覧に記録する**
 
-`docs/performance/benchmark/README.md` の「## 結果一覧」の表に、`before-tick-bundle` と `tick-bundle` の各回を1行ずつ足す。列は既存どおり（fps・PlayerLoop ms・受信イベント 件/秒・受信処理 µs/件）。メモ欄の `tick-bundle` の1行目に「ブロック状態を tick末尾に1イベントへ束ねる（ADR 0088）。受信処理 X→Y ms/フレーム、ブロック状態 N件/秒」と実測値を書く。表の下に compare.py の Markdown 表を `### 2026-10-22 ブロック状態の束ね（ADR 0088）` の見出しで貼る。改善しなかった指標・悪化した指標もそのまま書く。
+`docs/performance/benchmark/README.md` の「## 結果一覧」の表に、`before-tick-bundle` と `tick-bundle` の各回を1行ずつ足す。列は既存どおり（fps・PlayerLoop ms・受信イベント 件/秒・受信処理 µs/件）。メモ欄の `tick-bundle` の1行目に「ブロック状態を tick末尾に1イベントへ束ねる（ADR 0091）。受信処理 X→Y ms/フレーム、ブロック状態 N件/秒」と実測値を書く。表の下に compare.py の Markdown 表を `### 2026-10-22 ブロック状態の束ね（ADR 0091）` の見出しで貼る。改善しなかった指標・悪化した指標もそのまま書く。
 
 - [ ] **Step 4: コミットする**
 
@@ -1045,15 +1045,15 @@ pr-createスキルでPRを作成し、masterとのコンフリクトがあれば
 
 ## 判断記録（ADR）
 
-- 設計ADR: `docs/adr/0088-block-states-bundled-per-tick.md`（範囲・送信タイミング・クライアントの振り分け・完了基準）。`.decisions/2026-10-22-ブロック状態はtick末尾に座標ごとの最新を1イベントへ束ねて送る.md`、`.decisions/2026-10-22-ブロック状態の束ね送信の完了基準はベンチマーク前後の記録.md`。
+- 設計ADR: `docs/adr/0091-block-states-bundled-per-tick.md`（範囲・送信タイミング・クライアントの振り分け・完了基準）。`.decisions/2026-10-22-ブロック状態はtick末尾に座標ごとの最新を1イベントへ束ねて送る.md`、`.decisions/2026-10-22-ブロック状態の束ね送信の完了基準はベンチマーク前後の記録.md`。
 - grill の Codex 独立質問の段は省略した。出所: ユーザー裁定 2026-10-22 選択「省略して進める」（個人スキル codex-audit がこのマシンに無かったため）。
 - クラス名 `ChangeBlockStateEventPacket` とファイルは変えず、タグだけを `va:event:blockStatesTickBundle` に変える。出所: agent前提（クラスは今も「ブロック状態の変化を送るイベント」で、名前と処理は一致している）
 - 束の1件は型付きの `BlockStateMessagePack[]` で持ち、サーバーは差分判定用と束用で2回シリアライズする。出所: agent前提（クライアントのメインスレッドが律速。サーバーのシリアライズは別スレッドで、クライアント側で `byte[]` を1件ずつ読み直す形より単純）
 - `BlockGameObject` の状態プロセッサ呼び出しごとの try-catch は、購読ラムダから `ApplyBlockState` へそのまま移す。`_onBlockStateChanged.OnNext` は隔離の外に置き、`OnBlockStateChanged` の購読者は例外を投げない前提とする（今の唯一の購読者 `BlockInventoryTopic.OnTrackedBlockStateChanged` は `SchedulePublish` で非同期に流すだけ）。購読者が投げると `EventResponseDispatcher` の購読者単位の隔離で、その束の残りのブロックへの配送が止まる。出所: agent前提（既存の隔離の移設。try-catch の新設は Global Constraints に反するため、購読者側の契約にする）
 - 束を受けるハンドラの前例は、役割が同じ `TrainUnitTickDiffBundleEventNetworkHandler`・`BeltTransportEventNetworkHandler`（`Initialize()` で購読・`IDisposable`）とも突き合わせたうえで、`WorldDataHandler`（ctor で購読）に合わせる。列車・ベルトの `IInitialEventApplyWaitTarget` 相当は要らない（ブロック状態の初期データは各ブロックの `RequestBlockState` による pull で、初期イベントの適用を待つ対象が無い）。出所: agent前提（user-simulator review の Warning を受けて突合）
 - 座標にブロックが無い件は `Debug.Log` を出して読み飛ばす。出所: agent前提（AGENTS.md「無音の縮退は禁止」。クライアントは接続時に全ブロックを作るので、起きるのは撤去直後などに限られ、ログが溢れない見込み）
-- 同じtick内の状態の遷移（`CommonMachineBlockStateDetail.PreviousStateType`）は、上書きで失われることがある。クライアントの該当分岐は今は空で、実害は無い。出所: agent前提（`CommonMachineBlockStateChangeProcessor.OnChangeState` の確認。ADR 0088 の「座標ごとに最新1件」の帰結）
-- `ChangeBlockStateEventPacket.cs` の改修（即時送信→座標ごとの最新を溜めて `BroadcastPendingStates` で送る、`BlockStatesTickBundleMessagePack` の追加、`CreateSpecifiedBlockEventTag` の削除）。サーバー可変状態の同期の3点セットは崩さない（イベント＝束、初期データ＝`RequestBlockState` の強制送信、購読＝`BlockStateEventHandler`）。出所: ユーザー裁定 2026-10-22（ADR 0088）
+- 同じtick内の状態の遷移（`CommonMachineBlockStateDetail.PreviousStateType`）は、上書きで失われることがある。クライアントの該当分岐は今は空で、実害は無い。出所: agent前提（`CommonMachineBlockStateChangeProcessor.OnChangeState` の確認。ADR 0091 の「座標ごとに最新1件」の帰結）
+- `ChangeBlockStateEventPacket.cs` の改修（即時送信→座標ごとの最新を溜めて `BroadcastPendingStates` で送る、`BlockStatesTickBundleMessagePack` の追加、`CreateSpecifiedBlockEventTag` の削除）。サーバー可変状態の同期の3点セットは崩さない（イベント＝束、初期データ＝`RequestBlockState` の強制送信、購読＝`BlockStateEventHandler`）。出所: ユーザー裁定 2026-10-22（ADR 0091）
 - `RequestBlockStateProtocol.cs` はコメントだけを変える（応答は今どおり `ForceChangeState` 経由で、そのtick末尾の束に載る）。出所: agent前提（パケットは全部 tick末尾に処理される。`ReceiveQueueProcessor` → `TickEndPacketQueue` の確認）
 - `ChangeBlockStateEventPacket.cs` の座標・中身の取り出しと、記録の更新・掃除は、private の `SerializeState`・`QueueState`・`ForgetPosition` に1本ずつまとめる（取り出しは再検査の弱い指摘で、同じ回答③の範囲として追加）。テストの `TryAddBlock(..., out _)` と、束の型を Server.Event に置くことは、既存の書き方に合わせて据え置く。出所: シミュレーター予測→ユーザー承認 2026-10-22（Phase 2.6 の弱い指摘3件への回答「③の重複だけまとめる」）
 - 撤去アニメーション中のブロックは、最後の状態のまま止まってよい（座標の表から外れた時点で状態を受けない）。出所: シミュレーター予測（確信高）→前提宣言（拒否権つき、2026-10-22。ユーザーの拒否なし）
