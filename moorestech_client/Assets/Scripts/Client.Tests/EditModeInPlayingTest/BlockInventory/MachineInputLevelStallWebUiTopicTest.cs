@@ -130,13 +130,14 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             // Wait for the belt transport and the 1 s query until a fetched stall reaches the topic
             async UniTask<JObject> WaitUntilStallAppears()
             {
+                var firstTick = Core.Update.GameUpdater.CurrentTick;
                 var stall = await FetchedStall();
                 for (var i = 0; i < 100 && stall == null; i++)
                 {
                     await UniTask.Delay(100);
                     stall = await FetchedStall();
                 }
-                Assert.IsNotNull(stall, "a fetched machineInputStall never reached the block inventory topic");
+                Assert.IsNotNull(stall, $"a fetched machineInputStall never reached the block inventory topic; ticks: {firstTick}->{Core.Update.GameUpdater.CurrentTick}; latest topic: {await BlockInventorySnapshot()}");
                 return stall;
             }
 
