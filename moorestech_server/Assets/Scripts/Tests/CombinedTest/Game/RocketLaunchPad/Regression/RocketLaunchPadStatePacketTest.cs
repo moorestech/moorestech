@@ -57,7 +57,7 @@ namespace Tests.CombinedTest.Game.RocketLaunchPad.Regression
             {
                 // tickを進めず末尾配信で通知元を検証
                 // Commit the tick-end bundle without advancing simulation to isolate the notification source
-                ServerContext.GetService<WorldBlockUpdateEvent>().OnTickEndStatesCommittedInvoke();
+                ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnTickEndStatesCommittedInvoke();
                 var states = EventTestUtil.ExtractBlockStates(sink.TakeAll())
                     .Where(state => (Vector3Int)state.Position == Vector3Int.zero).ToList();
                 Assert.IsNotEmpty(states, "発射台の状態パケットが届いていない");
