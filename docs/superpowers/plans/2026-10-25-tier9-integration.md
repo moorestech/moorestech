@@ -9118,13 +9118,15 @@ git -C ../moorestech_logs commit -m "tier9-integration: W13 の実測と故障�
 
 ### Task 31: 目的だけを渡す別の評価役2体
 
+**今回の終了状態（r4）:** `ce3c1e79e433973b8f5969d4c9e6683ceb70a84f`でA=Claude opus、B=Codex gpt-6.1-solを各1回実行した。Aは`INCOMPLETE`（半導体・一部UIの実証未完）、Bは`PASS`（新規37レシピの実加工・最終研究UI完了を報告）。確定FAIL指摘は0件。両者PASS条件は未達のためTask33へ進まず、追加評価・補充・再評価を行わず終了する。原票・manifest・報告コミットを照合し、A51件/B258件のハッシュ不一致と欠損は0。2体のEditor/プロセス/専有worktreeは停止・退役済み、通常QAと元worldは維持。未完53系統は未実施、既知HUD2FAILは未修正として残す。正本はLOGS `harness/tier9-integration/handoff/r4-control/` と `eval/r4-{a,b}/`。以下は手順の参照であり、未チェック項目を理由に評価枠を再起動しない。
+
 **Files:**
 - Create: `../moorestech_logs/harness/tier9-integration/eval/prompt.md`（下の依頼文の本文）
 - 記録: `../moorestech_logs/harness/tier9-integration/eval/<round>-<evaluator>/verdict.md`（評価役が書く）
 
 **Interfaces:**
 - Consumes: 統合 PR の head コミットとピン先マスタ。Task 30 の Step 3 で用意した Tier8 終盤セーブの「入れ物」。評価役も同じセーブで始められるよう、Task 30 の Step 1〜3 を先に済ませる
-- Produces: 2体の `verdict.md`（`VERDICT: PASS` か `VERDICT: FAIL` と、根拠つきの指摘）
+- Produces: 2体の `verdict.md`（`VERDICT: PASS` / `VERDICT: FAIL` / `VERDICT: INCOMPLETE` と、根拠・未確認の境界）
 
 評価役の構成:
 - 評価役A: Claude Code（`~/bin/cmux-agent-pane -C eval-a -a ccd -m opus --permission-mode full --prompt-file <prompt>`）
