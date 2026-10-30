@@ -2,8 +2,6 @@ import { test, expect } from "@playwright/test";
 import { setUiState } from "../../support/mockControl";
 import { buildMenuCategoryIds, buildMenuEntryIds } from "../../mock-host/fixtures";
 
-// 閉じて開き直したときの検索・スクロール・詳細stickyの復元
-// Restoring search, scroll and the sticky detail after closing and reopening
 test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
 });

@@ -11,8 +11,8 @@ function parseColorChannels(color: string): number[] {
   throw new Error(`unparsed color: ${color}`);
 }
 
-// 枠の外側4pxのグローが、枠と同じ注意赤の24%不透明で描かれることを確かめる
-// Verify the 4px outer glow uses the same attention red as the border at 24% opacity
+// 枠と同色・外側4px・不透明度24%を検証
+// Assert the border color, a 4px outer glow and 24% opacity
 async function expectAttentionGlow(highlight: Locator) {
   const { boxShadow, border } = await highlight.evaluate((element) => {
     const style = getComputedStyle(element);

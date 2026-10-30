@@ -15,8 +15,12 @@ using static Tests.CombinedTest.Core.Machine.MachineStateDetailsTestHelper;
 
 namespace Tests.CombinedTest.Core.Machine
 {
-    // 出力詰まりの間も、毎tickラッチした電力の分子分母が状態イベントで届くことを確かめる（ADR 0010）
-    // Verifies each tick's latched power pair keeps reaching state events while output-blocked (ADR 0010)
+    // 出力詰まり中の通知を検査
+    // 毎tickのラッチ電力対を通知
+    // ADR 0010
+    // Cover notices during output blockage
+    // Notify each tick’s latched power pair
+    // ADR 0010
     public class MachineOutputBlockedPowerNoticeTest
     {
         private const int SpanTicks = 3;

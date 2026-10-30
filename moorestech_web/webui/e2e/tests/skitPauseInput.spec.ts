@@ -2,8 +2,8 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
 import { allActions } from "../support/actions";
 import { setSkitStage, setUiState } from "../support/mockControl";
 
-// ポーズ中は会話窓・選択肢・ツールの全入力口がWeb側で閉じ、再開後は開く
-// While paused every skit input (window, choices, tools) closes on the Web side, and reopens on resume
+// ポーズで全会話入力を閉じ再開で開く
+// Close all skit inputs on pause and reopen them on resume
 const SKIT_ACTIONS = ["skit.advance", "skit.select", "skit.set_auto", "skit.skip", "skit.set_ui_hidden"];
 
 test.beforeEach(async ({ page }) => {
@@ -36,8 +36,8 @@ async function clickCenterDirectly(page: Page, target: Locator): Promise<boolean
   return topmostInsideSkit;
 }
 
-// 会話窓とツールバーを共に含む最小の祖先をスキットUIの根として印を付ける
-// Mark the smallest ancestor holding both the window and the toolbar as the skit UI root
+// 窓とツールバーの最小共通祖先を根とする
+// Use the smallest common ancestor of the window and toolbar as the root
 async function markSkitRoot(page: Page) {
   await page.getByTestId("blocking-skit").evaluate((element) => {
     const toolbarButton = document.querySelector('button[aria-label="自動"]');
@@ -68,8 +68,8 @@ test("ポーズ中は会話窓とツールを実クリックしても全文表�
   await expect(skit).toBeVisible();
   expect(await skitActionCount(page)).toBe(countBefore);
 
-  // 再開後は窓クリックで全文表示し、ツールも操作を送る
-  // After resuming, a window click reveals the full body and the tools send actions
+  // 再開後は窓で全文表示・ツールで送信
+  // On resume, the window reveals the body and tools send actions
   await setUiState(page, "Story", "GameScreen");
   await expect(page.getByTestId("pause-menu")).toHaveCount(0);
   expect(await clickCenterDirectly(page, skit)).toBe(true);

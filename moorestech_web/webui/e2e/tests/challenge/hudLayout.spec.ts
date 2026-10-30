@@ -20,8 +20,8 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
   await expect(hud).not.toContainText("challenge.current");
   await expect(hud).toHaveCSS("pointer-events", "none");
 
-  // 左上固定の寸法と短い罫線が寸法トークンに従うことを検証する
-  // Verify the top-left dimensions and the short rule follow the size tokens
+  // 左上寸法と短い罫線のトークン準拠
+  // Top-left dimensions and the short rule follow the tokens
   const tokens = await readChallengeHudTokens(page);
   expect(tokens).toEqual({ width: 278, ruleWidth: 88, padding: 14 });
   await expect(hud).toHaveCSS("top", "24px");

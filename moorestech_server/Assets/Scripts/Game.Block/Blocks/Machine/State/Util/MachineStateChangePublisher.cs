@@ -3,8 +3,12 @@ using UniRx;
 
 namespace Game.Block.Blocks.Machine.State.Util
 {
-    // 通常機械と清浄室機械の状態イベントを出す口。前回通知した状態を覚え、状態の変化時と加工中・出力詰まり中に通知する
-    // The state-event outlet shared by normal and clean-room machines; remembers the last notified state and notifies on a change or while processing or output-blocked
+    // 通常・清浄室機械の状態通知
+    // 前回通知状態を保持
+    // 遷移・加工・詰まり中に通知
+    // State notices for normal and clean-room machines
+    // Retain the last notified state
+    // Notify on transitions, processing and output blockage
     internal sealed class MachineStateChangePublisher
     {
         public IObservable<Unit> OnChangeBlockState => _changeState;

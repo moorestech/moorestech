@@ -43,8 +43,8 @@ test("inventory未受信中はconnecting placeholderを表示する", async ({ p
   await setSnapshotDelay(page, 1000, "local_player.inventory");
   await page.goto("/");
 
-  // inventoryを待つ持ち物・アイテム一覧・レシピ表示が、それぞれ自分のgrid領域でplaceholderを出す
-  // The inventory, item list and recipe viewer that wait on inventory each show a placeholder in their own grid area
+  // 受信待ち3領域は各grid内に接続表示
+  // Show a connecting placeholder in each of the three pending grid areas
   const placeholders = page.getByText("接続中...", { exact: true });
   await expect(placeholders).toHaveCount(3);
   for (const placeholder of await placeholders.all()) await expect(placeholder).toBeVisible();

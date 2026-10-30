@@ -16,8 +16,12 @@ using static Tests.CombinedTest.Core.CleanRoom.Machine.CleanRoomProcessMachineTe
 
 namespace Tests.CombinedTest.Core.Machine
 {
-    // 清浄室機械も出力詰まりの間、毎tickラッチした電力の分子分母が状態イベントで届く（ADR 0010）
-    // Clean-room machines also deliver each tick's latched power pair through state events while output-blocked (ADR 0010)
+    // 清浄室の出力詰まり中を検査
+    // 毎tickのラッチ電力対を通知
+    // ADR 0010
+    // Cover clean-room output blockage
+    // Notify each tick’s latched power pair
+    // ADR 0010
     public class CleanRoomMachineOutputBlockedPowerNoticeTest
     {
         private const int TickCap = 4000;

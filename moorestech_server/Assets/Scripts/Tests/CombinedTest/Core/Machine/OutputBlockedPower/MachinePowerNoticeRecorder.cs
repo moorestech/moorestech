@@ -40,8 +40,8 @@ namespace Tests.CombinedTest.Core.Machine
             #endregion
         }
 
-        // 区間内に通知が出て、最後の通知が期待の分子分母・idle・理由ありを持つことを確かめる
-        // Assert the span notified and its last notice carries the expected power pair, idle and the reason
+        // 区間通知あり・電力対・idle・理由ありを検証
+        // Assert span notification, power pair, idle state and a present reason
         public void AssertLastNotice(int countBeforeSpan, float expectedCurrentPower, float expectedRequestPower, string span)
         {
             Assert.Less(countBeforeSpan, Count, $"{span}: 出力詰まり中に状態イベントが出ていない");
