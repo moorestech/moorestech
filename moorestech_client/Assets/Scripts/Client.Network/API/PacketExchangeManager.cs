@@ -64,12 +64,12 @@ namespace Client.Network.API
 
             void DispatchPacket(byte[] data)
             {
-                ProtocolMessagePackBase basePacket;
-                using (EventDispatchProfilerMarkers.DeserializeProtocolBase.Auto()) basePacket = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(data);
+                ProtocolPacketHeader header;
+                using (EventDispatchProfilerMarkers.ReadPacketHeader.Auto()) header = ProtocolPacketHeader.Read(data);
 
                 // イベントpushはSequenceId照合ではなくイベントストリームへ流す
                 // Route pushed events to the event stream instead of sequence matching
-                if (basePacket.Tag == EventStreamMessagePack.ProtocolTag)
+                if (header.IsEventStream)
                 {
                     EventStreamMessagePack eventPacket;
                     using (EventDispatchProfilerMarkers.DeserializeEventStream.Auto()) eventPacket = MessagePackSerializer.Deserialize<EventStreamMessagePack>(data);
@@ -78,7 +78,7 @@ namespace Client.Network.API
                 }
 
                 using var routeResponseScope = EventDispatchProfilerMarkers.RouteResponse.Auto();
-                var sequence = basePacket.SequenceId;
+                var sequence = header.SequenceId;
                 if (!_responseWaiters.ContainsKey(sequence)) return;
                 _responseWaiters[sequence].WaitSubject.OnNext((data, PacketWaitCompletionReason.Received));
                 _responseWaiters.Remove(sequence);

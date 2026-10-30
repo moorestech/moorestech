@@ -76,13 +76,11 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var events = sink.TakeAll();
             // アイドル給電イベントも並ぶため、idle→processingの遷移イベントを明示的に選択する
             // Idle supply events are also queued, so pick the idle-to-processing transition event explicitly
-            var expectedTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(machine.BlockPositionInfo);
             BlockStateMessagePack transitionStateData = null;
             BlockStateMessagePack latestStateData = null;
-            foreach (var eventMessage in events)
+            foreach (var stateData in EventTestUtil.ExtractBlockStates(events))
             {
-                if (eventMessage.Tag != expectedTag) continue;
-                var stateData = MessagePackSerializer.Deserialize<BlockStateMessagePack>(eventMessage.Payload);
+                if ((Vector3Int)stateData.Position != machine.BlockPositionInfo.OriginalPos) continue;
                 latestStateData = stateData;
                 var detail = stateData.GetStateDetail<CommonMachineBlockStateDetail>(CommonMachineBlockStateDetail.BlockStateDetailKey);
                 if (transitionStateData == null &&

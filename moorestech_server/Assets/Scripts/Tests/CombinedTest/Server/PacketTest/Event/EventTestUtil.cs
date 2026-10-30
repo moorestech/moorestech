@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
+using Server.Event.EventReceive;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -16,6 +18,19 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             // Discard initial full snapshots pushed on registration so tests start empty
             sink.TakeAll();
             return sink;
+        }
+
+        // ブロック状態の束イベントから、中身の状態を到着順に取り出す
+        // Extracts the block states from bundle events in arrival order
+        public static List<BlockStateMessagePack> ExtractBlockStates(List<EventMessagePack> events)
+        {
+            var states = new List<BlockStateMessagePack>();
+            foreach (var eventMessage in events)
+            {
+                if (eventMessage.Tag != ChangeBlockStateEventPacket.EventTag) continue;
+                states.AddRange(MessagePackSerializer.Deserialize<BlockStatesTickBundleMessagePack>(eventMessage.Payload).States);
+            }
+            return states;
         }
     }
 

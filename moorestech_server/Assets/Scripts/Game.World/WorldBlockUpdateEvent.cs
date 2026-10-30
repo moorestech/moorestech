@@ -12,11 +12,14 @@ namespace Game.World
     {
         private readonly Subject<BlockPlaceProperties> _onBlockPlaceEvent = new();
         private readonly Subject<BlockRemoveProperties> _onBlockRemoveEvent = new();
+        private readonly Subject<Unit> _onTickEndStatesCommitted = new();
         private readonly Dictionary<Vector3Int, Subject<BlockPlaceProperties>> _placeSubjectsByPos = new();
         private readonly Dictionary<Vector3Int, Subject<BlockRemoveProperties>> _removeSubjectsByPos = new();
         public IObservable<BlockPlaceProperties> OnBlockPlaceEvent => _onBlockPlaceEvent;
         
         public IObservable<BlockRemoveProperties> OnBlockRemoveEvent => _onBlockRemoveEvent;
+
+        public IObservable<Unit> OnTickEndStatesCommitted => _onTickEndStatesCommitted;
         
         public IObservable<BlockPlaceProperties> GetBlockPlaceEvent(Vector3Int subscribePos)
         {
@@ -54,6 +57,13 @@ namespace Game.World
             // Dispatch coordinate events to subjects keyed by occupied cell
             foreach (var occupiedPos in worldBlockData.BlockPositionInfo.EnumeratePositions())
                 PublishRemoveCoordinateEvent(occupiedPos, worldBlockData, removeReason);
+        }
+
+        // 操作の適用と網の再構築の後に1tick1回だけ呼ぶ
+        // Called once per tick, after input is applied and networks are rebuilt
+        public void OnTickEndStatesCommittedInvoke()
+        {
+            _onTickEndStatesCommitted.OnNext(Unit.Default);
         }
 
         private IDisposable SubscribeCoordinateEvent<TProperties>(
