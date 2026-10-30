@@ -2,6 +2,7 @@ using System;
 using Client.Game.InGame.BeltTransport.Cover;
 using Client.Game.InGame.BeltTransport.View;
 using Client.Game.InGame.FluidNetwork.View;
+using Client.Game.InGame.Train.DebugView;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.View;
 using Core.Update;
@@ -108,6 +109,7 @@ namespace Client.Game.InGame.Train.Unit
                 loopTicks = MaxCatchUpTicksPerFrame;
             }
 
+            using (TrainUnitClientSimulatorProfilerMarkers.AdvanceTicks.Auto())
             for (var i = 0; i < loopTicks; i++)
             {
                 ulong id = 0;
@@ -151,19 +153,19 @@ namespace Client.Game.InGame.Train.Unit
 
             // simulator が推定した render tick を、TrainUnit 全体の描画更新 system に渡す
             // Pass the simulator-estimated render tick to the visual update system for all TrainUnits
-            _visualUpdateSystem.UpdateAll(_estimatedClientTick, _tickState.GetTick());
+            using (TrainUnitClientSimulatorProfilerMarkers.TrainVisuals.Auto()) _visualUpdateSystem.UpdateAll(_estimatedClientTick, _tickState.GetTick());
 
             // ベルト上のアイテムの表示は列車の描画更新の後に同じ順で更新する(複製が進んだ回だけ作り直す)
             // Belt item display updates after the train visuals in this same fixed order (rebuilt only when the replica advanced)
-            _beltItemObjectPresenter.UpdateAll();
+            using (TrainUnitClientSimulatorProfilerMarkers.BeltItems.Auto()) _beltItemObjectPresenter.UpdateAll();
 
             // 合流マスの覆いはアイテム表示の後に同じ順で更新する(複製が進んだ回に合流マスを取り直す)
             // Merge-cell covers update after the item display in this same fixed order (merge cells re-read when the replica advanced)
-            _beltMergeCellCoverPresenter.UpdateAll();
+            using (TrainUnitClientSimulatorProfilerMarkers.BeltMergeCellCovers.Auto()) _beltMergeCellCoverPresenter.UpdateAll();
 
             // パイプの水位は流体の複製が進んだ回だけ、同じ順で押し込む
             // Pipe water levels are pushed in this same fixed order, only when the fluid replica advanced
-            _fluidPipeWaterLevelPresenter.UpdateAll();
+            using (TrainUnitClientSimulatorProfilerMarkers.FluidPipeWaterLevels.Auto()) _fluidPipeWaterLevelPresenter.UpdateAll();
 
             #region Internal
 
