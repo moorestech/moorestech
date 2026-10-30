@@ -20,8 +20,24 @@ namespace Tests.CombinedTest.Core.Machine
         public static MachinePowerNoticeRecorder Subscribe(IBlockStateObservable observable)
         {
             var recorder = new MachinePowerNoticeRecorder();
-            observable.OnChangeBlockState.Subscribe(_ => recorder.Record(observable.GetBlockStateDetails()));
+            observable.OnChangeBlockState.Subscribe(_ => Record());
             return recorder;
+
+            #region Internal
+
+            void Record()
+            {
+                var details = observable.GetBlockStateDetails();
+                var common = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(details.First(d => d.Key == CommonMachineBlockStateDetail.BlockStateDetailKey).Value);
+                var machine = MessagePackSerializer.Deserialize<MachineBlockStateDetail>(details.First(d => d.Key == MachineBlockStateDetail.BlockStateDetailKey).Value);
+                recorder.Count++;
+                recorder.LastCurrentPower = common.CurrentPower;
+                recorder.LastRequestPower = common.RequestPower;
+                recorder.LastStateType = common.CurrentStateType;
+                recorder.LastOutputSpaceShort = machine.IsOutputSpaceShort;
+            }
+
+            #endregion
         }
 
         // 区間内に通知が出て、最後の通知が期待の分子分母・idle・理由ありを持つことを確かめる
@@ -35,15 +51,5 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.IsTrue(LastOutputSpaceShort, $"{span}: 出力空き不足の理由");
         }
 
-        private void Record(BlockStateDetail[] details)
-        {
-            var common = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(details.First(d => d.Key == CommonMachineBlockStateDetail.BlockStateDetailKey).Value);
-            var machine = MessagePackSerializer.Deserialize<MachineBlockStateDetail>(details.First(d => d.Key == MachineBlockStateDetail.BlockStateDetailKey).Value);
-            Count++;
-            LastCurrentPower = common.CurrentPower;
-            LastRequestPower = common.RequestPower;
-            LastStateType = common.CurrentStateType;
-            LastOutputSpaceShort = machine.IsOutputSpaceShort;
-        }
     }
 }

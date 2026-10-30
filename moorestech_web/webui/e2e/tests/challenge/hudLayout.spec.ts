@@ -23,6 +23,7 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
   // 左上固定の寸法と短い罫線が寸法トークンに従うことを検証する
   // Verify the top-left dimensions and the short rule follow the size tokens
   const tokens = await readChallengeHudTokens(page);
+  expect(tokens).toEqual({ width: 278, ruleWidth: 88, padding: 14 });
   await expect(hud).toHaveCSS("top", "24px");
   await expect(hud).toHaveCSS("left", "24px");
   await expect(hud).toHaveCSS("width", `${tokens.width}px`);

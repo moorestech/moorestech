@@ -65,7 +65,7 @@ export async function expectWrappedObjectives(objectives: Locator, expectedCount
   }
 }
 
-export type ChallengeHudTokens = { width: number; ruleWidth: number; padding: number };
+type ChallengeHudTokens = { width: number; ruleWidth: number; padding: number };
 
 // HUD寸法をtokens.cssの解決値から読む。面幅はcalcなので本文幅と安全帯から合成する
 // Read HUD dimensions from tokens.css; the face width is a calc, so compose it from content width and safe-area padding

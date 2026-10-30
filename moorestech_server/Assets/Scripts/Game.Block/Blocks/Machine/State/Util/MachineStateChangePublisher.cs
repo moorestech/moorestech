@@ -25,15 +25,19 @@ namespace Game.Block.Blocks.Machine.State.Util
         // After the tick's transition, notify on a state change or in a state whose detail moves every tick, then advance the record
         public void PublishIfStateChangedOrDetailVaries(ProcessState currentState)
         {
-            if (LastState == currentState && !IsDetailVaryingEveryTick(currentState)) return;
+            if (LastState == currentState && !IsDetailVaryingEveryTick()) return;
             PublishTickState(currentState);
-        }
 
-        // 加工中は進捗と電力、出力詰まり中は電力が毎tickラッチで動く。給電時の再通知はIdleだけなので、ここで運ばないと詰まり中の電力が固着する
-        // Processing moves progress and power, output blockage moves power with every tick's latch; supply re-notifies only while idle, so without this the blocked power freezes
-        private static bool IsDetailVaryingEveryTick(ProcessState state)
-        {
-            return state == ProcessState.Processing || state == ProcessState.OutputBlocked;
+            #region Internal
+
+            // 加工中は進捗と電力、出力詰まり中は電力が毎tickラッチで動く。給電時の再通知はIdleだけなので、ここで運ばないと詰まり中の電力が固着する
+            // Processing moves progress and power, output blockage moves power with every tick's latch; supply re-notifies only while idle, so without this the blocked power freezes
+            bool IsDetailVaryingEveryTick()
+            {
+                return currentState == ProcessState.Processing || currentState == ProcessState.OutputBlocked;
+            }
+
+            #endregion
         }
 
         // tick内で詳細が確定した時点の通知。記録も進めるので、同じtickの遷移判定が重ねて通知しない

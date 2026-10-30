@@ -94,15 +94,19 @@ namespace Game.Block.Blocks.Machine.State
             _processingState.SetProcessing(recipe, _pendingRealization.Outputs, inheritedLevel, _pendingRealization.TotalTicks, _pendingRealization.PowerMultiplier);
             _pendingRealization = null;
             return ProcessState.Processing;
-        }
 
-        // Idle維持が確定した分岐でだけ呼ぶ。状態詳細がこのtickで安定した時点の変化を通知する
-        // Call only on branches that stay Idle, so the change is notified once the detail is stable for this tick
-        private void StayIdleWithOutputSpaceWait(bool isWaiting)
-        {
-            if (IsWaitingForOutputSpace == isWaiting) return;
-            IsWaitingForOutputSpace = isWaiting;
-            _outputSpaceWaitChanged.OnNext(Unit.Default);
+            #region Internal
+
+            // Idle維持が確定した分岐でだけ呼ぶ。状態詳細がこのtickで安定した時点の変化を通知する
+            // Call only on branches that stay Idle, so the change is notified once the detail is stable for this tick
+            void StayIdleWithOutputSpaceWait(bool isWaiting)
+            {
+                if (IsWaitingForOutputSpace == isWaiting) return;
+                IsWaitingForOutputSpace = isWaiting;
+                _outputSpaceWaitChanged.OnNext(Unit.Default);
+            }
+
+            #endregion
         }
 
         // 出力空き待ちの判定の正本。保持中の結果が揃った入力の組のもので、かつ出力先に入りきらないか（tick内と tick外の両方がここを通る）

@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Core.Machine
         private static void VerifyOutputBlockedPowerNotices(MachineRecipeMasterElement recipe, float idlePowerRate)
         {
             var (_, inventory, processor) = PlaceSelected(recipe, Vector3Int.one);
-            DriveIntoOutputBlocked(recipe, inventory, processor);
+            DriveIntoOutputBlocked();
 
             // 詰まり中の電力網への要求は待機要求（マスタ値からの独立計算）
             // The grid request while blocked is the idle request, computed independently from master values
@@ -57,46 +57,50 @@ namespace Tests.CombinedTest.Core.Machine
             // In each span (idle request met, power cut, power back) the last notice carries that span's latched values
             var notices = MachinePowerNoticeRecorder.Subscribe(processor);
             var before = notices.Count;
-            TickWithSupply(processor, idleRequest);
+            TickWithSupply(idleRequest);
             notices.AssertLastNotice(before, idleRequest, idleRequest, "待機要求を満たした詰まり");
 
             before = notices.Count;
-            TickWithSupply(processor, 0f);
+            TickWithSupply(0f);
             notices.AssertLastNotice(before, 0f, idleRequest, "詰まり中の断電");
 
             before = notices.Count;
-            TickWithSupply(processor, idleRequest);
+            TickWithSupply(idleRequest);
             notices.AssertLastNotice(before, idleRequest, idleRequest, "詰まり中の復電");
             Assert.AreEqual(ProcessState.OutputBlocked, processor.CurrentState);
-        }
 
-        // 満電で加工へ入れてから出口を埋め、完了tickを跨いで出力詰まりへ入れる
-        // Start the job at full power, fill the outlet, then cross the completion tick into output blockage
-        private static void DriveIntoOutputBlocked(MachineRecipeMasterElement recipe, VanillaMachineBlockInventoryComponent inventory, VanillaMachineProcessorComponent processor)
-        {
-            InsertInputs(recipe, inventory);
-            InsertRecipeFluids(recipe, inventory);
-            processor.SupplyExternalPower(processor.EffectiveRequestPower);
-            GameUpdater.UpdateOneTick();
-            Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
+            #region Internal
 
-            FillOutputSlot(recipe, inventory);
-            var tickCap = GameUpdater.SecondsToTicks(recipe.Time) + 10;
-            for (var tick = 0; tick < tickCap && processor.CurrentState != ProcessState.OutputBlocked; tick++)
+            // 満電で加工へ入れてから出口を埋め、完了tickを跨いで出力詰まりへ入れる
+            // Start the job at full power, fill the outlet, then cross the completion tick into output blockage
+            void DriveIntoOutputBlocked()
             {
+                InsertInputs(recipe, inventory);
+                InsertRecipeFluids(recipe, inventory);
                 processor.SupplyExternalPower(processor.EffectiveRequestPower);
                 GameUpdater.UpdateOneTick();
-            }
-            Assert.AreEqual(ProcessState.OutputBlocked, processor.CurrentState);
-        }
+                Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
-        private static void TickWithSupply(VanillaMachineProcessorComponent processor, float power)
-        {
-            for (var tick = 0; tick < SpanTicks; tick++)
-            {
-                processor.SupplyExternalPower(power);
-                GameUpdater.UpdateOneTick();
+                FillOutputSlot(recipe, inventory);
+                var tickCap = GameUpdater.SecondsToTicks(recipe.Time) + 10;
+                for (var tick = 0; tick < tickCap && processor.CurrentState != ProcessState.OutputBlocked; tick++)
+                {
+                    processor.SupplyExternalPower(processor.EffectiveRequestPower);
+                    GameUpdater.UpdateOneTick();
+                }
+                Assert.AreEqual(ProcessState.OutputBlocked, processor.CurrentState);
             }
+
+            void TickWithSupply(float power)
+            {
+                for (var tick = 0; tick < SpanTicks; tick++)
+                {
+                    processor.SupplyExternalPower(power);
+                    GameUpdater.UpdateOneTick();
+                }
+            }
+
+            #endregion
         }
 
         private static MachineRecipeMasterElement RecipeOf(BlockId blockId)

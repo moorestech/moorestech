@@ -17,15 +17,20 @@ namespace Game.Block.Blocks.Machine.State.Util
             // Publish the latched effective request power (not the base) so the client rate reads as satisfaction (ADR 0010)
             var commonMachineBlock = CommonMachineBlockStateDetail.CreateState(context.CurrentPower, context.PublishedRequestPower, processingRate, currentState.ToStr(), lastState.ToStr());
             var selectedRecipeGuid = context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
-            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, processingState.RecipeGuid, selectedRecipeGuid, IsOutputSpaceShort(currentState, idleState));
+            var machineBlock = MachineBlockStateDetail.CreateState(processingRate, processingState.RecipeGuid, selectedRecipeGuid, IsOutputSpaceShort());
             return new[] { commonMachineBlock, machineBlock };
+
+            #region Internal
+
+            // 出力空き不足の公開理由。加工後の出力詰まりと、開始前に確定済み出力が入りきらない待機の両方を同じ理由にする
+            // The published output-space-short reason; both the post-job blockage and the pre-start wait on realized outputs share it
+            bool IsOutputSpaceShort()
+            {
+                return currentState == ProcessState.OutputBlocked || (currentState == ProcessState.Idle && idleState.IsWaitingForOutputSpace);
+            }
+
+            #endregion
         }
 
-        // 出力空き不足の公開理由。加工後の出力詰まりと、開始前に確定済み出力が入りきらない待機の両方を同じ理由にする
-        // The published output-space-short reason; both the post-job blockage and the pre-start wait on realized outputs share it
-        private static bool IsOutputSpaceShort(ProcessState currentState, IdleMachineProcessState idleState)
-        {
-            return currentState == ProcessState.OutputBlocked || (currentState == ProcessState.Idle && idleState.IsWaitingForOutputSpace);
-        }
     }
 }

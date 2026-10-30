@@ -98,3 +98,49 @@ test("ポーズ中は選択肢を実クリックしても選ばず、再開後�
   expect(await clickCenterDirectly(page, routeB)).toBe(true);
   await expect.poll(() => skitActionCount(page)).toBe(countBefore + 1);
 });
+
+for (const emptyIntents of [false, true]) {
+  test(`フォーカス後のポーズ中はEnterで全文表示しない（許可空=${emptyIntents}）`, async ({ page }) => {
+    // 空の許可集合でもローカル全文表示の入口を検査する
+    // Exercise the local reveal entry even with an empty allowed-intent set
+    await page.routeWebSocket("**/ws", (socket) => {
+      const server = socket.connectToServer();
+      server.onMessage((message) => {
+        const packet = JSON.parse(String(message));
+        if (emptyIntents && packet.topic === "skit.presentation" && packet.data) packet.data.allowedIntents = [];
+        socket.send(JSON.stringify(packet));
+      });
+    });
+    await page.goto("/");
+    await page.clock.install();
+    await page.clock.pauseAt(new Date(Date.now() + 1000));
+    await setSkitStage(page, "text");
+    const skit = page.getByTestId("blocking-skit");
+    await expect(skit).toBeVisible();
+    await page.clock.runFor(1000);
+    await expect(skit).toContainText("B");
+    await skit.focus();
+    await expect(skit).toBeFocused();
+
+    // 時計を止め、自然な文字送りとEnterの全文表示を区別する
+    // Freeze the clock to distinguish natural typing from Enter's immediate reveal
+    await setUiState(page, "Story", "PauseMenuScreen");
+    await expect(page.getByTestId("pause-menu")).toBeVisible();
+    await expect(skit).toBeFocused();
+    await expect(skit).toHaveAttribute("tabindex", "-1");
+    const textBefore = await skit.textContent();
+    const countBefore = await skitActionCount(page);
+    await page.keyboard.press("Enter");
+    await expect(skit).toHaveText(textBefore!);
+    await expect(skit).not.toContainText("Blocking message");
+    expect(await skitActionCount(page)).toBe(countBefore);
+
+    // 再開時は同じEnterで全文表示でき、操作送信は増えない
+    // On resume the same Enter reveals the body without sending an action
+    await setUiState(page, "Story", "GameScreen");
+    await expect(page.getByTestId("pause-menu")).toHaveCount(0);
+    await page.keyboard.press("Enter");
+    await expect(skit).toContainText("Blocking message");
+    expect(await skitActionCount(page)).toBe(countBefore);
+  });
+}
