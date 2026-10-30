@@ -11,8 +11,8 @@ using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
-    // 座標別の最新状態をtick末尾に束ねて送信
-    // Keeps the latest block state per position and broadcasts them as one bundled event at tick end (ADR 0091)
+    // tick内の状態変化を発生順に溜め、tick末尾に束ねて送信
+    // Queues block state changes in the order they happen and broadcasts them as one bundled event at tick end (ADR 0091)
     public class ChangeBlockStateEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:blockStatesTickBundle";
@@ -23,9 +23,9 @@ namespace Server.Event.EventReceive
         // Last queued payload per position, for diff detection
         private readonly Dictionary<Vector3Int, byte[]> _lastQueuedPayloads = new();
 
-        // tick末尾の送信まで溜める、座標ごとの最新状態のシリアライズ済みバイト列
-        // Serialized latest state per position, held until the tick-end broadcast
-        private readonly Dictionary<Vector3Int, byte[]> _pendingStates = new();
+        // tick末尾の送信まで溜める状態変化。同じ座標の途中の状態も発生順に残す
+        // State changes held until the tick-end broadcast; intermediate states of a position are kept in order
+        private readonly List<(Vector3Int pos, byte[] payload)> _pendingStates = new();
 
         public ChangeBlockStateEventPacket(EventProtocolProvider eventProtocolProvider)
         {
@@ -65,14 +65,14 @@ namespace Server.Event.EventReceive
         {
             if (_pendingStates.Count == 0) return;
 
-            var payload = BuildBundlePayload(_pendingStates.Values);
+            var payload = BuildBundlePayload(_pendingStates);
             _pendingStates.Clear();
             _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 
         // 溜めたバイト列を継ぎ、BlockStatesTickBundleMessagePackと同じバイト列を組む（1件1回のシリアライズで済ませるため）
         // Splices the queued bytes into the exact bytes of BlockStatesTickBundleMessagePack, so each state is serialized only once
-        private static byte[] BuildBundlePayload(IReadOnlyCollection<byte[]> statePayloads)
+        private static byte[] BuildBundlePayload(List<(Vector3Int pos, byte[] payload)> pendingStates)
         {
             var buffer = new ArrayBufferWriter<byte>();
             var writer = new MessagePackWriter(buffer);
@@ -80,8 +80,8 @@ namespace Server.Event.EventReceive
             // 外箱は[States]の1要素配列、Statesは各BlockStateMessagePackの配列
             // The outer object is the one-element array [States]; States is the array of BlockStateMessagePack
             writer.WriteArrayHeader(1);
-            writer.WriteArrayHeader(statePayloads.Count);
-            foreach (var statePayload in statePayloads) writer.WriteRaw(statePayload);
+            writer.WriteArrayHeader(pendingStates.Count);
+            foreach (var (_, statePayload) in pendingStates) writer.WriteRaw(statePayload);
             writer.Flush();
 
             return buffer.WrittenSpan.ToArray();
@@ -114,13 +114,13 @@ namespace Server.Event.EventReceive
         private void QueueState(Vector3Int pos, byte[] payload)
         {
             _lastQueuedPayloads[pos] = payload;
-            _pendingStates[pos] = payload;
+            _pendingStates.Add((pos, payload));
         }
 
         private void ForgetPosition(Vector3Int pos)
         {
             _lastQueuedPayloads.Remove(pos);
-            _pendingStates.Remove(pos);
+            _pendingStates.RemoveAll(pending => pending.pos == pos);
         }
     }
 
@@ -151,8 +151,8 @@ namespace Server.Event.EventReceive
         }
     }
 
-    // 1tick分の状態の束。座標ごとに最新1件のみ。送信側はBuildBundlePayloadで同じバイト列を手組みする
-    // One tick's bundle of block states, latest entry per position only; the sender hand-builds the same bytes in BuildBundlePayload
+    // 1tick分の状態の束。発生順に並び、同じ座標が複数回載りうる。送信側はBuildBundlePayloadで同じバイト列を手組みする
+    // One tick's bundle of block states in the order they happened, possibly several per position; the sender hand-builds the same bytes in BuildBundlePayload
     [MessagePackObject]
     public class BlockStatesTickBundleMessagePack
     {

@@ -33,6 +33,8 @@ namespace Client.Game.InGame.World
             BlockStatesTickBundleMessagePack bundle;
             using (BlockStateProfilerMarkers.DeserializeBlockState.Auto()) bundle = MessagePackSerializer.Deserialize<BlockStatesTickBundleMessagePack>(payload);
 
+            // 束は発生順。同じ座標の途中の状態も順に当てて、状態の遷移を処理側へ届ける
+            // The bundle is in occurrence order; applying intermediate states in turn lets processors see each transition
             foreach (var state in bundle.States)
             {
                 // 座標にブロックが無い件は読み飛ばす

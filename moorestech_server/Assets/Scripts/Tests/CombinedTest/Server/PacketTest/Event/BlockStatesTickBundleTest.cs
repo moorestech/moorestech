@@ -54,6 +54,33 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         [Test]
+        // 同じtick内の同じ座標の途中の状態も、発生順に束へ載る
+        // Intermediate states of one position within a tick are all bundled in the order they happened
+        public void IntermediateStatesOfSamePositionAreKeptInOrderTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
+
+            var pos = new Vector3Int(30, 0, 30);
+            world.TryAddBlock(ForUnitTestModBlockId.ChestId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, 1);
+            GameUpdater.UpdateOneTick();
+            sink.TakeAll();
+
+            // 1→2→1と変え、最後が最初と同じ中身でも途中の2を挟むので3件とも溜まる
+            // Change 1→2→1; the last equals the first, but the 2 in between makes all three queued
+            foreach (var dummy in new byte[] { 1, 2, 1 })
+            {
+                changeBlockStateEventPacket.QueueChangedState((new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new[] { dummy } }), world.GetOriginPosBlock(pos)));
+            }
+            GameUpdater.UpdateOneTick();
+
+            var dummies = EventTestUtil.ExtractBlockStates(sink.TakeAll()).Where(s => (Vector3Int)s.Position == pos).Select(s => s.CurrentStateDetail["dummy"][0]).ToList();
+            CollectionAssert.AreEqual(new byte[] { 1, 2, 1 }, dummies, "同じ座標の途中の状態も発生順に届くべき");
+        }
+
+        [Test]
         // 変化が無いときは束を送らない
         // No bundle is sent when nothing changed
         public void NothingPendingSendsNoEventTest()

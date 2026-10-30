@@ -50,39 +50,6 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
         }
 
         [Test]
-        // 同tick内で2回変化したら後の1件だけ載る
-        // When the payload changes twice within one tick, only the later state is bundled
-        public void ChangedPayloadWithinOneTickKeepsLatestTest()
-        {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var world = ServerContext.WorldBlockDatastore;
-            var changeBlockStateEventPacket = serviceProvider.GetService<ChangeBlockStateEventPacket>();
-
-            // tickで自ら状態を出さないチェストに置き、ダミー状態だけを見る
-            // Use a chest, which raises no state of its own during a tick, so only the dummy states are observed
-            var pos = new Vector3Int(6, 0, 6);
-            world.TryAddBlock(ForUnitTestModBlockId.ChestId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            var blockData = world.GetOriginPosBlock(pos);
-
-            var playerId = 1;
-            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, playerId);
-            // キューをクリア
-            // Clear the event queue
-            sink.TakeAll();
-
-            var firstState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 1 } });
-            var secondState = new BlockState(new Dictionary<string, byte[]> { ["dummy"] = new byte[] { 2 } });
-
-            changeBlockStateEventPacket.QueueChangedState((firstState, blockData));
-            changeBlockStateEventPacket.QueueChangedState((secondState, blockData));
-            GameUpdater.UpdateOneTick();
-
-            var states = EventTestUtil.ExtractBlockStates(sink.TakeAll());
-            Assert.AreEqual(1, states.Count, "同じtick内の2回の変化は1件に畳まれるべき");
-            Assert.AreEqual(2, states[0].CurrentStateDetail["dummy"][0], "後の状態が残るべき");
-        }
-
-        [Test]
         // 送信を挟んで変化したら各tickの束に載る
         // When the payload changes across a broadcast, each tick's bundle carries it
         public void ChangedPayloadAcrossTicksIsBroadcastEachTimeTest()
