@@ -53,7 +53,7 @@ Workflow の返り値を報告へ転記する前に、**`python3 .claude/skills/
 - ファイル名は固定: `patch.diff` / `context.md` / `checks.json` / `codex-audit.md` / `codex-bughunt.md` /
   `codex-design.md`（各Codexの**結論**は同名の `.final.md`＝`-o` の出力が正本、stdoutログは `.out.md`） / `chunks.tsv` / `agents/<名前>.md` / `integrated.md` /
   `final.diff` / `checks-final.json` / `refix/s<N>.sha`（snapshot commit）/ `refix/round<N>.diff`（反映 diff）/ `agents/refix-correctness-r<N>.md`
-- `$RUNDIR` 配下はStop/SessionEnd hook（`.dev-hooks/logs-sync.mjs`）でlogs repoへ自動commit・pushされる。
+- `$RUNDIR` 配下はStop/SessionEnd hook（logs-sync。`.dev-hooks/logs-hook.mjs` 経由）でlogs repoへ自動commit・pushされる。
   セッション側で `git commit` しない
 
 ## Step 1: レビュー対象と4カテゴリcontextを確定する
