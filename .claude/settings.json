@@ -58,7 +58,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/commit-map.mjs\" claude"
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/logs-hook.mjs\" commit-map claude"
           },
           {
             "type": "command",
@@ -90,7 +90,7 @@
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/logs-sync.mjs\"",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/logs-hook.mjs\" logs-sync",
             "timeout": 120
           }
         ]
@@ -101,7 +101,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/logs-sync.mjs\"",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.dev-hooks/logs-hook.mjs\" logs-sync",
             "timeout": 120
           }
         ]
