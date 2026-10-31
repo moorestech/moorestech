@@ -68,7 +68,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \".dev-hooks/commit-map.mjs\" codex",
+            "command": "node \".dev-hooks/logs-hook.mjs\" commit-map codex",
             "timeout": 15,
             "statusMessage": "Mapping commits to session"
           },
@@ -80,7 +80,7 @@
           },
           {
             "type": "command",
-            "command": "node \".dev-hooks/logs-sync.mjs\"",
+            "command": "node \".dev-hooks/logs-hook.mjs\" logs-sync",
             "timeout": 120,
             "statusMessage": "Archiving session logs"
           }
