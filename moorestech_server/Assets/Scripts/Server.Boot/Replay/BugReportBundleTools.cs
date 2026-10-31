@@ -96,8 +96,8 @@ namespace Server.Boot.Replay
             return $"replay-check.json written: allEqual={allEqual} pairs={pairs.Count} noPacketsInRange={noPacketsInRangePairs}";
         }
 
-        // 固定ワールド起動（自動修正ランの観察）の土台を world-materialized/ に作る。生成ワールドの箱は world.json だけなので、再生と同じ resolver で地形を引き当てて写す
-        // Builds the fixed-world boot base (the auto-fix observation) in world-materialized/; a generated-world box holds only world.json, so the terrain is located by the replay's resolver and copied
+        // 固定ワールド起動（報告の不具合を観察・再現する）の土台を world-materialized/ に作る。生成ワールドの箱は world.json だけなので、再生と同じ resolver で地形を引き当てて写す
+        // Builds the fixed-world boot base (observing and reproducing a reported bug) in world-materialized/; a generated-world box holds only world.json, so the terrain is located by the replay's resolver and copied
         public static string MaterializeWorld(string bundleDirectory, string serverDataDirectory)
         {
             if (!BugReportBundleWorldMaterializer.Materialize(bundleDirectory, serverDataDirectory).TryGetWorld(out var materialized, out var rejectedReason)) return Reject(rejectedReason);

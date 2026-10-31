@@ -4,8 +4,8 @@ using Game.Paths;
 
 namespace Server.Boot.Replay.World
 {
-    // 箱から地形付きのワールドを world-materialized/ に実体化する。固定ワールド起動（自動修正ランの観察）は world.json だけの箱では地形が無く落ちる（ADR 0064）
-    // Materializes a terrain-bearing world from the box into world-materialized/; a fixed-world boot (the auto-fix observation) dies without terrain on a world.json-only box (ADR 0064)
+    // 箱から地形付きのワールドを world-materialized/ に実体化する。固定ワールド起動（報告の不具合の観察）は world.json だけの箱では地形が無く落ちる（ADR 0064）
+    // Materializes a terrain-bearing world from the box into world-materialized/; a fixed-world boot (observing a reported bug) dies without terrain on a world.json-only box (ADR 0064)
     public static class BugReportBundleWorldMaterializer
     {
         public static BugReportBundleWorldResolution Materialize(string bundleDirectory, string serverDataDirectory)

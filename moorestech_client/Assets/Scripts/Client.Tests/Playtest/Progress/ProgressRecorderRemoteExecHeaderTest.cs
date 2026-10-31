@@ -19,7 +19,7 @@ namespace Client.Tests.Playtest
 
             Assert.That(createHeader, Is.Not.Null, "ProgressRecorderのヘッダ組み立てが見つからない（改名したらこのテストも追随させる）");
             Assert.That(MethodCallInspector.ContainsCall(createHeader, isEnabled), Is.True,
-                "ヘッダが遠隔実行の起動オプションを読まなくなった（遠隔実行ありの記録が集計と自動修正へ混ざる）");
+                "ヘッダが遠隔実行の起動オプションを読まなくなった（遠隔実行ありの記録が集計へ混ざる）");
         }
 
         // ローカル関数はコンパイラが生成した名前になる。名前の形に依存せず本体を探す
