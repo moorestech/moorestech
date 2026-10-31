@@ -63,9 +63,15 @@ describe("admin inbox purge", () => {
     const paths = Array.from({ length: 1001 }, (_, i) => `frames/${String(i).padStart(4, "0")}.jpg`);
     await Promise.all(paths.map((path) => putBoxObject(path, "y")));
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    // 手元のR2は1回のdeleteに上限が無いので、呼び出しごとのキー数をスパイで確かめる
+    // The local R2 has no per-call delete cap, so the key count of each call is checked with a spy
+    const deleteSpy = vi.spyOn(workerEnv.BUCKET, "delete");
     const response = await purge(null);
     expect(await response.json()).toEqual({ purged: true, deletedObjects: 1001, deletedBytes: 1001 });
     expect(await boxKeys()).toEqual(["ACKED", "PURGED"]);
+    const batchSizes = deleteSpy.mock.calls.map(([keys]) => (Array.isArray(keys) ? keys.length : 1));
+    expect(batchSizes).toEqual([1000, 1]);
+    deleteSpy.mockRestore();
     log.mockRestore();
   });
 
