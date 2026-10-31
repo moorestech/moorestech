@@ -19,8 +19,8 @@ using VContainer;
 
 namespace Client.Tests.EditModeInPlayingTest.BugReport
 {
-    // 確保→送信→outbox を通しで固定する。バンドルの形は plan C の prepare-run.sh が読む契約そのもの
-    // Pins capture to submit to outbox end to end; the bundle shape is the very contract plan C's prepare-run.sh reads
+    // 確保→送信→outbox を通しで固定する。バンドルの形は再現調査が読む契約そのもの
+    // Pins capture to submit to outbox end to end; the bundle shape is the very contract the reproduction tools read
     [Category("CiShardClientPlay3")]
     public class BugReportBundleWriteTest
     {
@@ -65,8 +65,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 Assert.GreaterOrEqual(((JArray)manifest["snapshotFiles"]).Count, 1, "スナップショットが同梱されていない");
                 Assert.GreaterOrEqual(((JArray)manifest["snapshotTicks"]).Count, 1, "スナップショットのtickが1つも載っていない");
 
-                // prepare-run.sh は最大tickのスナップショットを save.json に据える。実体が無いと固定ワールド起動ができない
-                // prepare-run.sh places the largest-tick snapshot as save.json; without the file a fixed-world boot is impossible
+                // 再現は最大tickのスナップショットを save.json に据える。実体が無いと固定ワールド起動ができない
+                // Reproduction places the largest-tick snapshot as save.json; without the file a fixed-world boot is impossible
                 var latestTick = ((JArray)manifest["snapshotTicks"]).Select(tick => (ulong)tick).Max();
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, "snapshots", WorldDataDirectory.SnapshotFileName(latestTick))), $"最大tickのスナップショット実体が無い tick:{latestTick}");
                 // manifestのサーバーデータは、この起動が実際にマスタを読んだ置き場でなければならない（違うと再現が解読不能な例外で落ちる）

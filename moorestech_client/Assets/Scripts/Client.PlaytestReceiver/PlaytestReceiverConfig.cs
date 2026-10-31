@@ -25,7 +25,7 @@ namespace Client.PlaytestReceiver
 
         // 受け口の予約先頭名一覧。送信前に除外
         // First segment names the receiver reserves; excluded before sending
-        internal static readonly string[] ReservedUploadSegments = { "READY", "ACKED", "DECLARED", "complete", "prepare" };
+        internal static readonly string[] ReservedUploadSegments = { "READY", "ACKED", "DECLARED", "PURGED", "complete", "prepare" };
 
         // 失敗分類と応答の判別を左右する受け口の語。contract.json との一致をテストで固定する
         // The receiver's words that steer failure sorting and response discrimination; pinned to contract.json by a test

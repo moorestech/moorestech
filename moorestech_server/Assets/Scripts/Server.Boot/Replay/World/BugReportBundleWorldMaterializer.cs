@@ -26,8 +26,8 @@ namespace Server.Boot.Replay.World
             if (Directory.Exists(temp.Root)) Directory.Delete(temp.Root, true);
             Directory.CreateDirectory(temp.Root);
 
-            // 置き場には prepare-run.sh が置いた save.json があるので、一時側へ引き継いでからワールド本体を写す
-            // The destination holds the save.json prepare-run.sh placed, so it is carried into the temp side before the world core is copied
+            // 置き場に先に置いた save.json があれば、一時側へ引き継いでからワールド本体を写す
+            // A save.json already placed at the destination is carried into the temp side before the world core is copied
             if (File.Exists(destination.SaveJsonFilePath)) File.Copy(destination.SaveJsonFilePath, temp.SaveJsonFilePath, true);
             WorldSnapshotStore.CopyWorldCore(source, temp);
 
