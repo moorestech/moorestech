@@ -118,7 +118,7 @@ def run(logs: Path, root: Path, dry_run: bool) -> int:
     for box in found:
         files = raw_files(box)
         if not files:
-            continue
+            continue  # silent-ok: 生データの無い箱・移行済みの箱は移す物が無い / 合計行の件数に出ないことで分かる
         size = sum(entry["bytes"] for entry in files)
         total += size
         print(f"- {'移す予定' if dry_run else '移す'}: {layout.box_relative(box)}（{len(files)}件・{size / 1e6:.1f}MB）")

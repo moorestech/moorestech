@@ -40,7 +40,7 @@ def judge(box: Path, now: datetime) -> tuple[str, str]:
     Returns (action, note); action is delete, keep or error"""
     if box.name.endswith(".partial"):
         if time.time() - box.stat().st_mtime < STALE_PARTIAL_SECONDS:
-            return "keep", ""
+            return "keep", ""  # silent-ok: 取り込み中の下書きかもしれない / 1日を過ぎれば残骸として消し stdout（Discord）へ出る
         return "delete", "取り込み途中で止まった下書きの残骸"
     ref, reason = layout.read_ref(box / layout.REF_NAME)
     if ref is None:
