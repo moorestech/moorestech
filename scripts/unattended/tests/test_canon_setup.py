@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 SCRIPT = Path(__file__).resolve().parent.parent / "canon_setup.py"
-SKILL_NAME = "bug-report-auto-fix"
+SKILL_NAME = "daily-build-repair"
 SKILL_MD = Path(f".agents/skills/{SKILL_NAME}/SKILL.md")
 
 
