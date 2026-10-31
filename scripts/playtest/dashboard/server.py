@@ -5,13 +5,14 @@
 Playtest dashboard HTTP server (stdlib only, binds 127.0.0.1; report data is read-only, only read marks and ticket links are written).
 Exposure is via the tunnel on review.moores.tech/playtest behind Cloudflare Access.
 
-Usage: python3 server.py [--port 8932] [--logs <moorestech_logs>] [--env <playtest env.sh>] [--master <master dir>]
+Usage: bin/run.sh [--port 8932] [--logs <moorestech_logs>] [--master <master dir>]（env.sh を source してから server.py を起動する）
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from datetime import datetime, timezone
@@ -43,7 +44,7 @@ PUBLIC_HOST = "review.moores.tech"
 
 class Config:
     logs = Path()
-    env_file = Path()
+    receiver = r2_relay.load_receiver_settings({})
     master = Path()
     allowed_hosts: frozenset = frozenset()
 
@@ -143,7 +144,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         where, path = target
         if where == "local":
             return media.send_file(self, path)
-        r2_relay.relay(self, Config.env_file, parts[0], parts[1], parts[2], media.content_type(parts[2]))
+        r2_relay.relay(self, Config.receiver, parts[0], parts[1], parts[2], media.content_type(parts[2]))
 
     def send_json(self, data: dict) -> None:
         self.send_bytes(json.dumps(data, ensure_ascii=False, allow_nan=False).encode("utf-8"), "application/json; charset=utf-8", "no-store", 200)
@@ -180,15 +181,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="プレイテストダッシュボード / playtest dashboard")
     parser.add_argument("--port", type=int, default=8932)
     parser.add_argument("--logs", default=str(repo.parent / "moorestech_logs"))
-    parser.add_argument("--env", default=str(repo.parent.parent / "services" / "playtest" / "env.sh"),
-                        help="受け口の管理キーを読む env.sh（PLAYTEST_ADMIN_KEY が環境変数に無いとき）")
     parser.add_argument("--master", default=str(
         repo.parent / "moorestech_master" / "server_v8" / "mods" / "moorestechAlphaMod_8" / "master"))
     args = parser.parse_args(argv)
-    Config.logs, Config.env_file, Config.master = Path(args.logs), Path(args.env), Path(args.master)
+    Config.logs, Config.master = Path(args.logs), Path(args.master)
+    Config.receiver = r2_relay.load_receiver_settings(os.environ)
+    if Config.receiver.missing:
+        print(f"[dashboard] {'・'.join(Config.receiver.missing)} が環境変数に無い。R2 中継は 503 を返す（bin/run.sh が env.sh を source して起動する）", file=sys.stderr)
     Config.allowed_hosts = frozenset({PUBLIC_HOST, f"127.0.0.1:{args.port}", f"localhost:{args.port}"})
     server = ThreadingHTTPServer(("127.0.0.1", args.port), DashboardHandler)
-    print(f"playtest dashboard: http://127.0.0.1:{args.port}{PREFIX}/ (logs={Config.logs} env={Config.env_file})")
+    print(f"playtest dashboard: http://127.0.0.1:{args.port}{PREFIX}/ (logs={Config.logs} receiver={Config.receiver.base or '未設定'})")
     server.serve_forever()
     return 0
 

@@ -128,7 +128,7 @@ class DashboardHttpTest(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
         build_fixture(root)
-        server.Config.logs, server.Config.env_file, server.Config.master = root, root / "no-env.sh", root / "no-master"
+        server.Config.logs, server.Config.master = root, root / "no-master"
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.DashboardHandler)
         port = self.httpd.server_address[1]
         server.Config.allowed_hosts = frozenset({f"127.0.0.1:{port}"})

@@ -106,21 +106,13 @@ class RelayHttpTest(unittest.TestCase):
         FakeReceiver.seen = []
         self.receiver = self.serve(FakeReceiver)
         receiver_port = self.receiver.server_address[1]
-        self.env_file = root / "env.sh"
-        self.env_file.write_text(f"export PLAYTEST_RECEIVER_BASE='http://127.0.0.1:{receiver_port}'\n"
-                                 f"export PLAYTEST_ADMIN_KEY={ADMIN_KEY}\n", encoding="utf-8")
-        server.Config.logs, server.Config.env_file, server.Config.master = root, self.env_file, root / "no-master"
+        server.Config.logs, server.Config.master = root, root / "no-master"
+        server.Config.receiver = server.r2_relay.load_receiver_settings(
+            {"PLAYTEST_RECEIVER_BASE": f"http://127.0.0.1:{receiver_port}/", "PLAYTEST_ADMIN_KEY": ADMIN_KEY})
         self.dashboard = self.serve(server.DashboardHandler)
         port = self.dashboard.server_address[1]
         server.Config.allowed_hosts = frozenset({f"127.0.0.1:{port}"})
         self.base = f"http://127.0.0.1:{port}/playtest/media/765"
-        # 実機の管理キーが環境変数にあっても使わず、env.sh だけを読ませる
-        # Ignore any real admin key in the environment so only env.sh is read
-        patcher = mock.patch.dict("os.environ", {}, clear=False)
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        for name in ("PLAYTEST_ADMIN_KEY", "PLAYTEST_RECEIVER_BASE"):
-            server.r2_relay.os.environ.pop(name, None)
 
     def serve(self, handler):
         httpd = ThreadingHTTPServer(("127.0.0.1", 0), handler)
@@ -157,12 +149,12 @@ class RelayHttpTest(unittest.TestCase):
         self.assertEqual(self.get("/broken/video.mp4")[0], 502)
 
     def test_missing_admin_key_is_503_without_calling_receiver(self):
-        self.env_file.write_text("export SOMETHING_ELSE=1\n", encoding="utf-8")
-        self.assertEqual(self.get("/r1/video.mp4")[0], 503)
-        server.Config.env_file = Path(self.temp.name) / "absent.sh"
-        self.assertEqual(self.get("/r1/video.mp4")[0], 503)
+        server.Config.receiver = server.r2_relay.load_receiver_settings({"PLAYTEST_RECEIVER_BASE": "http://127.0.0.1:1"})
+        self.assertEqual(server.Config.receiver.missing, ("PLAYTEST_ADMIN_KEY",))
+        with mock.patch("sys.stderr") as stderr:
+            self.assertEqual(self.get("/r1/video.mp4")[0], 503)
+        self.assertIn("PLAYTEST_ADMIN_KEY", "".join(call.args[0] for call in stderr.write.call_args_list))
         self.assertEqual(FakeReceiver.seen, [])
-
 
 if __name__ == "__main__":
     unittest.main()

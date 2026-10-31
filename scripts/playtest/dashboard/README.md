@@ -42,7 +42,7 @@ scripts/playtest/link-ticket.sh --remove <steamId> <reportId> <チケットURL> 
 - 判定は digest_schema の契約どおりに行い、表示だけに使う項目（tick・commit 等）は `display_fields.py` で1項目ずつ緩く読む（表示用の1項目の型違いで箱ごと落とさない）
 - 日別のプレイ時間はプレイした日（`sessionStart` の JST 日付）で切る。ダイジェストは受信日（`readyAt`）で切るので、日ごとの数字は一致しない
 - 公開ホスト名・`127.0.0.1:<port>`・`localhost:<port>` 以外の Host は 421 で拒否する（ローカルのブラウザ経由の DNS リバインディングで Access を迂回させない）
-- 動画は手元の箱にあればそれを、無ければ `remote.json`（無い旧い箱は `READY` の `files[]`）に載っている物だけを R2 から中継する。受け口が 410 を返したら片付けで消した箱。管理キーが無ければ 503 を返し、理由をログへ出す
+- 動画は手元の箱にあればそれを、無ければ `remote.json`（無い旧い箱は `READY` の `files[]`）に載っている物だけを R2 から中継する。受け口が 410 を返したら片付けで消した箱。管理キーが無ければ起動ログに出し、中継は 503 を返して理由をログへ出す
 
 ## 構成
 
@@ -52,7 +52,8 @@ collect_reports.py   プレイ報告の読み取り（digest_schema の型検証
 collect_progress.py  進行記録の読み取り
 master_names.py      チャレンジ・研究の GUID → 表示名（moorestech_master の v8 mod）
 media.py             スクショ・動画・ログの許可リスト配信（Range 対応・safe_segment で検証）
-r2_relay.py          R2 にだけある物を受け口の管理 API から中継（Range を渡す・リダイレクトを追わない）
+r2_relay.py          R2 にだけある物を受け口の管理 API から中継（Range を渡す・リダイレクトを追わない・設定は起動時の環境変数だけ）
+bin/run.sh           起動ラッパー（env.sh を source し、受け口 URL の既定は receiver-api.sh から渡す）
 display_fields.py    表示用項目の緩い読み取り（型違いはログを出して空表示）
 security_headers.py  全応答に付ける CSP・nosniff
 dashboard_state.py   既読・チケットリンクの保存（1ファイル・プロセス内ロック・一時ファイルから置き換え）
@@ -63,11 +64,12 @@ static/              index.html・CSS・ES modules（views/ が画面ごと）
 ## 起動
 
 ```bash
-python3 scripts/playtest/dashboard/server.py            # 既定: --port 8932、--logs・--env（管理キーを読む env.sh。PLAYTEST_ADMIN_KEY が優先）・--master は repo の位置から導出
+scripts/playtest/dashboard/bin/run.sh                  # env.sh を source してから server.py を起動。既定: --port 8932、--logs・--master は repo の位置から導出
 python3 scripts/playtest/tests/test_dashboard.py        # テスト（読み取り）
 python3 scripts/playtest/tests/test_dashboard_state.py  # テスト（既読・チケットリンクの書き込み）
 node --test scripts/playtest/tests/test_report_filter.mjs  # テスト（絞り込みの純粋ロジック）
 ```
 
 Mac mini では always-on supervisor の `playtest-dashboard`（longrun）がメインクローンから起動する。
+受け口の URL と管理キーは環境変数 `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` だけから起動時に1回読む（env.sh は `bin/run.sh` が source する。`server.py` を直接起動すると両方が無く、起動ログに出たうえで R2 中継が 503 になる）。env.sh を書き換えたらダッシュボードを再起動する。
 repo-auto-pull で master が進むと静的ファイルは即反映、Python 側はプロセス再起動で反映される。

@@ -25,9 +25,15 @@ supervisor.py の `run_once` はシェルを介さず `subprocess.run(cmd, cwd=c
 }
 ```
 
+ダッシュボード（`playtest-dashboard`、longrun）は `scripts/playtest/dashboard/bin/run.sh` 経由で起動する。登録済みの `command` が `server.py` を直接指している場合は次の形へ書き換え（`<本体 clone の絶対パス>` は上の `playtest-ingest` と同じ本体 clone）、ダッシュボードを再起動する（`server.py` は env.sh を読まなくなったので、直接起動だと R2 中継が 503 になる。`--env` 引数も廃止した）:
+
+```json
+"command": ["/bin/bash", "<本体 clone の絶対パス>/scripts/playtest/dashboard/bin/run.sh"]
+```
+
 **必ず本体 clone（`/Users/sakastudio/hermes-agent/data/repos/moorestech`）のスクリプトを指すこと。** `moores-wt` が切るタスク用worktree（`moorestech-worktrees/<name>`）は兄弟パス（`../moorestech_logs`・`../../services/...`）が本体と異なる位置にずれるため、そこを指すと壊れる。
 
-`ingest.sh`・`ingest-dispatch.sh`・`fetch-report.sh`・`digest.py` の既定パスはいずれも **`$HOME` を経由せずスクリプト自身の位置から導出**する（supervisor は HOME を封じ込め用ディレクトリへ差し替えるため）。既定を上書きしたい場合は `services.json` の `command` に環境変数を渡すか、`env.sh` で export すればよい（`MOORESTECH_REPO`・`MOORESTECH_LOGS`・`PLAYTEST_ENV_FILE`・`PLAYTEST_INGEST_LOG`）。
+`ingest.sh`・`ingest-dispatch.sh`・`fetch-report.sh`・`digest.py`・`dashboard/bin/run.sh` の既定パスはいずれも **`$HOME` を経由せずスクリプト自身の位置から導出**する（supervisor は HOME を封じ込め用ディレクトリへ差し替えるため）。既定を上書きしたい場合は `services.json` の `command` に環境変数を渡すか、`env.sh` で export すればよい（`MOORESTECH_REPO`・`MOORESTECH_LOGS`・`PLAYTEST_ENV_FILE`・`PLAYTEST_INGEST_LOG`）。
 
 確認（periodic の実行は `supervisor.log` には出ない。サービス個別のログを見る）:
 
