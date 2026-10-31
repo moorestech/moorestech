@@ -91,7 +91,9 @@ def migrate_box(logs: Path, box: Path, root: Path, days: int) -> list[str]:
 
 
 def git(logs: Path, *args: str, stdin: str | None = None) -> str:
-    done = subprocess.run(["git", "-C", str(logs), *args], input=stdin, capture_output=True, text=True)
+    # ファイル名の * や [ を glob として読ませない（別のファイルを git rm しない）
+    # Never let * or [ in file names act as globs (so git rm never hits another file)
+    done = subprocess.run(["git", "-C", str(logs), "--literal-pathspecs", *args], input=stdin, capture_output=True, text=True)
     if done.returncode != 0:
         raise RuntimeError(f"git {args[0]} が失敗: {done.stderr.strip()}")
     return done.stdout
