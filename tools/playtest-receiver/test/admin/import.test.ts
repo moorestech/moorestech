@@ -44,7 +44,7 @@ describe("admin inbox import", () => {
     warn.mockRestore();
   });
 
-  it.each(["ACKED", "DECLARED", "PURGED", "IMPORT_DECLARED"])("予約名 %s は400 reserved-name", async (name) => {
+  it.each(["ACKED", "DECLARED", "PURGED", "IMPORT_DECLARED", "ack", "import", "complete"])("予約名 %s は400 reserved-name", async (name) => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await importFiles({ [name]: 1 });
     expect(response.status).toBe(400);

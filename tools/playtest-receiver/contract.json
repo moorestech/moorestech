@@ -5,7 +5,7 @@
   "maxBundleBytes": 268435456,
   "uploadUrlTtlSeconds": 3600,
   "uploadIdleTimeoutSeconds": 60,
-  "reservedUploadSegments": ["READY", "ACKED", "DECLARED", "PURGED", "complete", "prepare"],
+  "reservedUploadSegments": ["READY", "ACKED", "DECLARED", "PURGED", "IMPORT_DECLARED", "complete", "prepare", "ack", "import"],
   "kinds": ["report", "progress"],
   "tokenTtlSeconds": 3600,
   "declarationConflictReason": "declaration-conflict",

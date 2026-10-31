@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import contract from "../contract.json";
-import { ACKED_MARKER, DECLARED_MARKER, PURGED_MARKER, READY_MARKER } from "../src/bundleMarkers";
+import { ACKED_MARKER, DECLARED_MARKER, IMPORT_DECLARED_MARKER, PURGED_MARKER, READY_MARKER } from "../src/bundleMarkers";
 import {
   CONTRACT_KINDS,
   DECLARATION_CONFLICT_REASON,
@@ -43,7 +43,12 @@ describe("contract.json", () => {
     expect(contract.reservedUploadSegments).toContain(DECLARED_MARKER);
     expect(contract.reservedUploadSegments).toContain(PURGED_MARKER);
     expect(contract.reservedUploadSegments).toContain("complete");
+    expect(contract.reservedUploadSegments).toContain(IMPORT_DECLARED_MARKER);
     expect(contract.reservedUploadSegments).toContain("prepare");
+    // 管理APIの箱直下サブ経路。予約しないと同名ファイルのGETが405になり取得できない
+    // Admin sub-routes under a box; unreserved, a file of the same name would GET as 405 and be unreachable
+    expect(contract.reservedUploadSegments).toContain("ack");
+    expect(contract.reservedUploadSegments).toContain("import");
   });
 
   it("契約値はこれまでの実効値を保つ", () => {
@@ -54,7 +59,7 @@ describe("contract.json", () => {
       maxBundleBytes: 256 * 1024 * 1024,
       uploadUrlTtlSeconds: 3600,
       uploadIdleTimeoutSeconds: 60,
-      reservedUploadSegments: ["READY", "ACKED", "DECLARED", "PURGED", "complete", "prepare"],
+      reservedUploadSegments: ["READY", "ACKED", "DECLARED", "PURGED", "IMPORT_DECLARED", "complete", "prepare", "ack", "import"],
       kinds: ["report", "progress"],
       tokenTtlSeconds: 3600,
       declarationConflictReason: "declaration-conflict",

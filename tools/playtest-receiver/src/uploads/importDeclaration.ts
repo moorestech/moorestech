@@ -1,10 +1,11 @@
-import { ACKED_MARKER, DECLARED_MARKER, IMPORT_DECLARED_MARKER, importDeclaredMarkerKey, PURGED_MARKER } from "../bundleMarkers";
+import { importDeclaredMarkerKey, READY_MARKER } from "../bundleMarkers";
+import { RESERVED_UPLOAD_SEGMENTS } from "../contract";
 import type { PlaytestKind } from "../keys";
 import { parseFileList, type DeclaredFile, type FileListCheck, type FileListLimits } from "./fileList";
 
-// zipの箱はREADYを持つので許し、取り込み・宣言・片付けの印だけを予約名にする
-// A zip's box carries READY, so it is allowed; only the ingest, declaration and purge markers are reserved
-const IMPORT_RESERVED_SEGMENTS: ReadonlySet<string> = new Set([ACKED_MARKER, DECLARED_MARKER, PURGED_MARKER, IMPORT_DECLARED_MARKER]);
+// 予約名の正本はcontract.json。zipの箱はREADYを持つのでそれだけを外し、印の追加は契約側の1か所で済ませる
+// contract.json owns the reserved names; only READY is lifted because a zip's box carries it, so a new marker is added in one place
+const IMPORT_RESERVED_SEGMENTS: ReadonlySet<string> = new Set([...RESERVED_UPLOAD_SEGMENTS].filter((segment) => segment !== READY_MARKER));
 // zipの全ファイルをR2へ残すため、上限はR2単一PUTの上限（約5GiB）を下回る5GBだけにし、件数と合計は縛らない
 // To keep every file of a zip in R2, only 5GB (under R2's ~5GiB single-PUT cap) limits a file; count and total are unbounded
 const R2_SINGLE_PUT_MAX_BYTES = 5 * 1000 * 1000 * 1000;
