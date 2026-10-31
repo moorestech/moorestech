@@ -29,7 +29,6 @@ class DashboardCollectTest(unittest.TestCase):
         self.root = Path(self.temp.name)
         build_fixture(self.root)
         self.reports_root = self.root / "harness/playtest/reports"
-        self.runs_root = self.root / "harness/bug-report/runs"
 
     def tearDown(self):
         self.temp.cleanup()
@@ -43,14 +42,13 @@ class DashboardCollectTest(unittest.TestCase):
         return box
 
     def reports_by_id(self):
-        runs = collect_reports.load_runs(self.runs_root)
-        return {r["id"]: r for r in collect_reports.load_reports(self.reports_root, self.root / "raw", runs)}
+        return {r["id"]: r for r in collect_reports.load_reports(self.reports_root)}
 
-    def test_triage_matches_digest_candidate_rules(self):
+    def test_triage_follows_kind_and_remote_exec(self):
         self.add_report("7656005", "20260913_unknown", {"kind": "bug", "description": "印なし"})
         rows = self.reports_by_id()
-        self.assertEqual(rows["20260912_100000_bug1"]["triage"], "candidate")
-        self.assertEqual(rows["20260912_101000_bug2"]["triage"], "queued")
+        self.assertEqual(rows["20260912_100000_bug1"]["triage"], "bug")
+        self.assertEqual(rows["20260912_101000_bug2"]["triage"], "bug")
         self.assertEqual(rows["20260912_110000_fb1"]["triage"], "notBug")
         self.assertEqual(rows["20260913_unknown"]["triage"], "excluded")
 
@@ -63,7 +61,7 @@ class DashboardCollectTest(unittest.TestCase):
         self.assertEqual(rows["20260913_badtype"]["triage"], "broken")
         self.assertIn("kind", rows["20260913_badtype"]["problem"])
 
-    def test_unreadable_ingest_is_broken_not_candidate(self):
+    def test_unreadable_ingest_is_broken_not_bug(self):
         box = self.add_report("7656005", "20260913_badingest", {"kind": "bug", "remoteExec": DISABLED_MARK})
         (box / "ingest.json").write_text("{broken", encoding="utf-8")
         row = next(r for r in self.reports_by_id().values() if r["boxId"] == "20260913_badingest")
@@ -74,7 +72,7 @@ class DashboardCollectTest(unittest.TestCase):
         self.add_report("7656005", "20260913_tick", {"kind": "bug", "remoteExec": DISABLED_MARK, "reportTick": "123",
                                                       "repository": {"commit": "../../x"}})
         row = self.reports_by_id()["20260913_tick"]
-        self.assertEqual(row["triage"], "candidate")
+        self.assertEqual(row["triage"], "bug")
         self.assertIsNone(row["reportTick"])
         self.assertEqual(row["commit"], "")
 
@@ -91,14 +89,6 @@ class DashboardCollectTest(unittest.TestCase):
         self.add_report("7656005", "20260913_repo", {"kind": "bug", "remoteExec": DISABLED_MARK,
                                                       "repository": {"commit": "24226d1ac30574f2c74e75cc179f6be4d6884d54"}})
         self.assertEqual(self.reports_by_id()["20260913_repo"]["commit"], "24226d1ac30574f2c74e75cc179f6be4d6884d54")
-
-    def test_queued_report_links_its_fix_run(self):
-        write_json(self.runs_root / "20260912_101000_bug2" / "fix-result.json",
-                   {"status": "fixed", "pr_number": 1500, "summary": "直した", "finishedAt": "2026-09-13T00:00:00Z"})
-        (self.runs_root / "20260912_100000_bug1").mkdir(parents=True)
-        rows = self.reports_by_id()
-        self.assertEqual(rows["20260912_101000_bug2"]["run"]["prNumber"], 1500)
-        self.assertEqual(rows["20260912_100000_bug1"]["run"]["status"], "noResult")
 
     def test_sessions_keep_remote_exec_flag_and_count_invalid(self):
         box = self.root / "harness/playtest/progress/7656009/20260913_bad"
@@ -118,10 +108,10 @@ class DashboardMediaTest(unittest.TestCase):
             (root / "765" / "r1").mkdir(parents=True)
             (root / "765" / "r1" / "screenshot.png").write_bytes(b"png")
             (root / "765" / "r1" / "READY").write_text("{}")
-            self.assertIsNotNone(media.resolve_media(root, root / "raw", "765", "r1", "screenshot.png"))
-            self.assertIsNone(media.resolve_media(root, root / "raw", "765", "r1", "READY"))
-            self.assertIsNone(media.resolve_media(root, root / "raw", "..", "r1", "screenshot.png"))
-            self.assertIsNone(media.resolve_media(root, root / "raw", "765", "r1", "video.mp4"))
+            self.assertIsNotNone(media.resolve_media(root, "765", "r1", "screenshot.png"))
+            self.assertIsNone(media.resolve_media(root, "765", "r1", "READY"))
+            self.assertIsNone(media.resolve_media(root, "..", "r1", "screenshot.png"))
+            self.assertIsNone(media.resolve_media(root, "765", "r1", "video.mp4"))
 
     def test_parse_range(self):
         self.assertEqual(media.parse_range(None, 100), (0, 99))
@@ -138,7 +128,7 @@ class DashboardHttpTest(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
         build_fixture(root)
-        server.Config.logs, server.Config.raw, server.Config.master = root, root / "raw", root / "no-master"
+        server.Config.logs, server.Config.env_file, server.Config.master = root, root / "no-env.sh", root / "no-master"
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.DashboardHandler)
         port = self.httpd.server_address[1]
         server.Config.allowed_hosts = frozenset({f"127.0.0.1:{port}"})

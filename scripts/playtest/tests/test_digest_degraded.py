@@ -3,12 +3,9 @@
 
 Verifies the digest never stops on broken or type-mismatched external JSON and reports what it excluded.
 """
-import os
 import sys
 import tempfile
-import time
 import unittest
-from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -68,14 +65,6 @@ class DigestDegradedTest(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn(f"⚠ {warning}", result.stdout)
                 self.assertIn("[digest] WARN", result.stderr)
-
-    def test_fix_result_type_mismatch_is_excluded_and_reported(self):
-        self.dated_run("20260912_082000_badpr", {"status": "fixed", "pr_number": "1403",
-                                                 "finishedAt": "2026-09-12T10:00:00Z"})
-        result = run_digest(self.root, self.date, "--max-chars", "0", "--no-archive")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(f"⚠ {INVALID_RESULT}", result.stdout)
-        self.assertIn("[digest] WARN runs.invalidResult=1", result.stderr)
 
     def _write_raw(self, path: Path, text: str) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)

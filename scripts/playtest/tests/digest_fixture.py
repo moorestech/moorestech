@@ -43,8 +43,7 @@ def build_fixture(root: Path) -> None:
     write_ingest(bug2 / "ingest.json", {"kind": "report", "steamId": "7656001",
                                       "id": "20260912_101000_bug2", "readyAt": "2026-09-12T05:10:00Z",
                                       "ingestedAt": "2026-09-12T05:11:00Z"})
-    write_json(bug2 / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "投入済みのバグ"})
-    (bug2 / "AUTOFIX_QUEUED").write_text("queued at 2026-09-12T06:00:00Z\n", encoding="utf-8")
+    write_json(bug2 / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "2件目のバグ"})
     fb = pt / "reports" / "7656002" / "20260912_110000_fb1"
     write_ingest(fb / "ingest.json", {"kind": "report", "steamId": "7656002",
                                     "id": "20260912_110000_fb1", "readyAt": "2026-09-12T06:00:00Z",

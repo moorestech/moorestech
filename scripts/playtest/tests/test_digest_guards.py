@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""日次ダイジェストの防御（Discord への無害化・record.json の値検証・投入候補の除外件数）を検証する。
+"""日次ダイジェストの防御（Discord への無害化・record.json の値検証）を検証する。
 
-Verifies the digest's guards: Discord neutralisation, record.json value checks and the candidate exclusion count.
+Verifies the digest's guards: Discord neutralisation and record.json value checks.
 """
-import io
 import sys
-from contextlib import redirect_stderr
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,7 +13,6 @@ from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, r
 
 sys.path.insert(0, str(SCRIPTS))
 import digest_collect as dc  # noqa: E402
-from digest_schema import neutralize_discord_markup as safe
 
 ZWSP = "​"
 READY_AT = "2026-09-12T09:50:00Z"

@@ -57,7 +57,7 @@ class PlayerStatsCliTest(unittest.TestCase):
                 self.assertIn(value, text)
         for value in ("あ" * 4000, "セッション 2 件", "平均研究完了数 0.5", "3-5 1件", "0 1件",
                       "buildModeCancelled 2件", "GameScreen 1件", "InventoryScreen 1件",
-                      "quit 1件", "crash-recovered 1件", "## 自動修正ラン", "#1400", "ベルト停止を修正"):
+                      "quit 1件", "crash-recovered 1件"):
             self.assertIn(value, full)
         self.assertLess(full.index("## 前日のプレイ状況"), full.index("## 進行記録"))
         self.assertLess(full.index("## 進行記録"), full.index("## 感想（全文）"))

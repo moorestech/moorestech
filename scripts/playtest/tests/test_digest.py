@@ -3,7 +3,6 @@
 
 Verifies the daily digest aggregation and output (happy path) against a fixture tree.
 """
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -14,7 +13,6 @@ from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, r
 
 sys.path.insert(0, str(SCRIPTS))
 import digest_collect as dc  # noqa: E402
-import digest_schema as dschema  # noqa: E402
 
 
 class DigestTest(unittest.TestCase):

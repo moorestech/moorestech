@@ -9,7 +9,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json
+from digest_fixture import SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json
 
 sys.path.insert(0, str(SCRIPTS))
 import digest
