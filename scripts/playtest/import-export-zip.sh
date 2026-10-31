@@ -51,7 +51,7 @@ upload_box() {
     [ -n "$path" ] || continue
     r2_put_presigned "$staged/$path" "$url" || { log "ERROR: R2 へ上げられない: $kind/$steam_id/$id/$path"; return 1; }
   done < "$WORK/uploads.txt"
-  log "R2 へ上げた: $kind/$steam_id/$id（$(wc -l < "$WORK/uploads.txt" | tr -d ' ') 件。残りは送信済み）"
+  log "R2 へ上げた: $kind/$steam_id/${id}（$(wc -l < "$WORK/uploads.txt" | tr -d ' ') 件。残りは送信済み）"
 }
 
 # 1箱を取り込む。失敗は理由を出して 1 を返す（partial は残さない）

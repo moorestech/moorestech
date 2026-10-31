@@ -71,8 +71,8 @@ ingest_one() {
   # 既に置かれている＝前回 ack だけ失敗した箱。落とし直さず ack だけやり直す
   # An existing dest means only the ack failed last time: never re-download, just re-ack
   if [ ! -d "$dest" ]; then
-    rm -rf "$partial" || { log "ERROR: 前回残骸の削除に失敗 $partial（ack しない）"; return 1; }
-    mkdir -p "$partial" || { log "ERROR: mkdir 失敗 $partial（ack しない）"; return 1; }
+    rm -rf "$partial" || { log "ERROR: 前回残骸の削除に失敗 ${partial}（ack しない）"; return 1; }
+    mkdir -p "$partial" || { log "ERROR: mkdir 失敗 ${partial}（ack しない）"; return 1; }
     receiver_get_object "$kind" "$steam_id" "$id" READY "$partial/READY" \
       || { log "ERROR: READY 取得失敗 $kind/$steam_id/$id"; rm -rf "$partial"; return 1; }
     local files py_rc=0
@@ -104,11 +104,11 @@ ingest_one() {
         || { log "ERROR: 取得失敗 $id/$rel"; rm -rf "$partial"; return 1; }
     done <<< "$files"
     steam_persona_resolve "$steam_id" "$persona_file" \
-      || { log "ERROR: 表示名の結果を書けない $kind/$steam_id/$id（ack しない）"; rm -rf "$partial"; return 1; }
+      || { log "ERROR: 表示名の結果を書けない $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }
     python3 "$HERE/lib/ingest_metadata.py" \
       "$kind" "$steam_id" "$id" "$ready_at" "$(now_utc)" "$persona_file" "$partial/ingest.json" \
-      || { log "ERROR: ingest.json 書き込み失敗 $kind/$steam_id/$id（ack しない）"; rm -rf "$partial"; return 1; }
-    mkdir -p "$(dirname "$dest")" || { log "ERROR: mkdir 失敗 $dest（ack しない）"; rm -rf "$partial"; return 1; }
+      || { log "ERROR: ingest.json 書き込み失敗 $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }
+    mkdir -p "$(dirname "$dest")" || { log "ERROR: mkdir 失敗 ${dest}（ack しない）"; rm -rf "$partial"; return 1; }
     printf '%s\n' "$files" > "$WORK/files.txt"
     local remote_count
     remote_count="$(python3 -I "$LAYOUT_PY" finalize "$partial" "$kind" "$steam_id" "$id" "$WORK/files.txt")" \

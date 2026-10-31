@@ -23,6 +23,7 @@ DEFAULT_BASE = "https://playtest.moores.tech"
 PASS_HEADERS = ("Content-Length", "Content-Range", "Accept-Ranges")
 CHUNK = 1 << 20
 TIMEOUT_SECONDS = 60
+USER_AGENT = "moorestech-playtest-dashboard/1"
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -63,7 +64,9 @@ def relay(handler: BaseHTTPRequestHandler, env_file: Path, steam_id: str, report
         handler.send_error(503)
         return
     path = "/".join(quote(segment, safe="") for segment in ("report", steam_id, report_id, *name.split("/")))
-    request = urllib.request.Request(f"{base}/v1/inbox/{path}", headers={"X-Admin-Key": key})
+    # Cloudflare は Python 標準の User-Agent を 403（error 1010）で弾くため、名乗りを付ける
+    # Cloudflare rejects Python's default User-Agent with 403 (error 1010), so identify explicitly
+    request = urllib.request.Request(f"{base}/v1/inbox/{path}", headers={"X-Admin-Key": key, "User-Agent": USER_AGENT})
     if handler.headers.get("Range"):
         request.add_header("Range", handler.headers["Range"])
     # 受け口への HTTP はネットワーク境界なので失敗を隔離し、ステータスと理由をログへ出してブラウザへ返す

@@ -69,5 +69,5 @@ python3 -I "$HERE/../bugreport/lib/restore-commit-transfer.py" "$partial" \
   || { log "ERROR: コミット資料（bundle）の復元に失敗"; exit 1; }
 mv "$partial" "$out" || { log "ERROR: mv 失敗 $partial -> $out"; exit 1; }
 trap - EXIT
-log "取得した: $kind/$steam_id/$id（${count} 件）"
+log "取得した: $kind/$steam_id/${id}（${count} 件）"
 echo "$out"

@@ -35,7 +35,7 @@ python3 -I "$HERE/settled.py" due "$LOGS" > "$WORK/due.txt" || plan_rc=$?
 failed=0
 while IFS=$'\x1f' read -r kind steam_id id outcome resolved_at; do
   if [ "$execute" -eq 0 ]; then
-    echo "削除対象: $kind/$steam_id/$id（$outcome・片付け $resolved_at）"
+    echo "削除対象: $kind/$steam_id/${id}（$outcome・片付け $resolved_at）"
     continue
   fi
   python3 -c 'import json,sys;print(json.dumps({"reason":"settled:"+sys.argv[1]+" at "+sys.argv[2]}))' "$outcome" "$resolved_at" \
@@ -44,7 +44,7 @@ while IFS=$'\x1f' read -r kind steam_id id outcome resolved_at; do
     && python3 -I "$HERE/settled.py" record "$LOGS" "$kind" "$steam_id" "$id" "$outcome"; then
     echo "R2 から消した: $kind/$steam_id/$id $(cat "$WORK/reply.json")"
   else
-    echo "消せなかった: $kind/$steam_id/$id（理由は stderr の [receiver] 行）"
+    echo "消せなかった: $kind/$steam_id/${id}（理由は stderr の [receiver] 行）"
     failed=$((failed + 1))
   fi
 done < "$WORK/due.txt"
