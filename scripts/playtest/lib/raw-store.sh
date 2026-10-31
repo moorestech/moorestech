@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 取り込んだ箱を生データ置き場と logs repo へ分けて公開する。呼び出し側が HERE・REPO・log を定義してから source する
 # Publishes an ingested box split between the raw store and the logs repo; the caller defines HERE, REPO and log before sourcing
-# 生データ（スナップショット・ワールド・動画等）は git の永久履歴へ入れず、期限つきで logs repo の外へ置く（raw_store/layout.py）
+# 生データ（スナップショット・ワールド・動画等）は git の永久履歴へ入れず、期限つきで logs repo の外へ置く（raw_store/raw_layout.py）
 # Raw data (snapshots, worlds, videos...) never enters permanent git history; it lives outside the logs repo with an expiry
 
 RAW="${MOORESTECH_PLAYTEST_RAW:-$REPO/../moorestech_playtest_raw}"

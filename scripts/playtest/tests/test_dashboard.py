@@ -44,7 +44,7 @@ class DashboardCollectTest(unittest.TestCase):
 
     def reports_by_id(self):
         runs = collect_reports.load_runs(self.runs_root)
-        return {r["id"]: r for r in collect_reports.load_reports(self.reports_root, runs)}
+        return {r["id"]: r for r in collect_reports.load_reports(self.reports_root, self.root / "raw", runs)}
 
     def test_triage_matches_digest_candidate_rules(self):
         self.add_report("7656005", "20260913_unknown", {"kind": "bug", "description": "印なし"})
@@ -118,10 +118,10 @@ class DashboardMediaTest(unittest.TestCase):
             (root / "765" / "r1").mkdir(parents=True)
             (root / "765" / "r1" / "screenshot.png").write_bytes(b"png")
             (root / "765" / "r1" / "READY").write_text("{}")
-            self.assertIsNotNone(media.resolve_media(root, "765", "r1", "screenshot.png"))
-            self.assertIsNone(media.resolve_media(root, "765", "r1", "READY"))
-            self.assertIsNone(media.resolve_media(root, "..", "r1", "screenshot.png"))
-            self.assertIsNone(media.resolve_media(root, "765", "r1", "video.mp4"))
+            self.assertIsNotNone(media.resolve_media(root, root / "raw", "765", "r1", "screenshot.png"))
+            self.assertIsNone(media.resolve_media(root, root / "raw", "765", "r1", "READY"))
+            self.assertIsNone(media.resolve_media(root, root / "raw", "..", "r1", "screenshot.png"))
+            self.assertIsNone(media.resolve_media(root, root / "raw", "765", "r1", "video.mp4"))
 
     def test_parse_range(self):
         self.assertEqual(media.parse_range(None, 100), (0, 99))
@@ -138,7 +138,7 @@ class DashboardHttpTest(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         root = Path(self.temp.name)
         build_fixture(root)
-        server.Config.logs, server.Config.master = root, root / "no-master"
+        server.Config.logs, server.Config.raw, server.Config.master = root, root / "raw", root / "no-master"
         self.httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.DashboardHandler)
         port = self.httpd.server_address[1]
         server.Config.allowed_hosts = frozenset({f"127.0.0.1:{port}"})

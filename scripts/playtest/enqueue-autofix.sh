@@ -20,6 +20,7 @@ fi
 # containment dir, so a $HOME-based default would resolve nowhere in production
 REPO="${MOORESTECH_REPO:-$(cd "$HERE/../.." && pwd)}"
 LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
+export MOORESTECH_PLAYTEST_RAW="${MOORESTECH_PLAYTEST_RAW:-$REPO/../moorestech_playtest_raw}"
 log() { echo "[enqueue] $*" >&2; }
 now_utc() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
@@ -91,6 +92,13 @@ if [ "$REMOTE_EXEC" = 1 ] && [ "$FORCE" != 1 ]; then
 fi
 if [ "$REMOTE_EXEC" = 1 ]; then log "--force で遠隔実行あり/不明の箱を投入する: ${ID}"; fi
 
+# 生データ（スナップショット・ワールド等）は logs repo の外にある。期限切れ・欠落なら再現材料が揃わないので投入しない
+# Raw data (snapshots, worlds...) lives outside the logs repo; when expired or missing the repro inputs are incomplete, so refuse
+if ! RAW_STATE="$(python3 "$HERE/raw_store/raw_reader.py" state "${BOX}")"; then
+  log "ERROR: 生データを揃えられないので投入しない（$(printf '%s' "$RAW_STATE" | cut -f1,3)）: ${ID}"
+  exit 7
+fi
+
 # .partial へ組んでから mv で公開し、poller が途中の箱を掴むのを防ぐ
 # Build in .partial and publish with mv so the poller never sees an incomplete box
 # 下の既存箱チェックで拒否し、並行実行や中断後の再実行で未回収の箱を壊さない
@@ -102,6 +110,8 @@ if [ -e "${PARTIAL}" ] || [ -e "${BUG_INBOX}/${ID}" ]; then
   exit 4
 fi
 cp -R "${BOX}" "${PARTIAL}"
+python3 "$HERE/raw_store/raw_reader.py" materialize "${BOX}" "${PARTIAL}" > /dev/null \
+  || { log "ERROR: 生データを inbox の箱へ複写できない（投入しない）: ${ID}"; rm -rf "${PARTIAL}"; exit 7; }
 rm -f "${PARTIAL}/AUTOFIX_QUEUED"
 # --force の印は inbox 側へ持たせる。poller の種別ガードはこの印がある箱だけ通す（plan C 改訂メモ2）
 # The --force marker travels with the inbox copy; the poller's kind guard lets only marked boxes through

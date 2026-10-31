@@ -16,13 +16,12 @@ prints 0 and creates neither the raw draft nor raw.json. Expiry is ingest.json's
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import layout  # noqa: E402
+import raw_layout as layout  # noqa: E402
 
 
 def split(box: Path, raw_draft: Path, box_rel: str, root: Path) -> int:
@@ -42,18 +41,12 @@ def split(box: Path, raw_draft: Path, box_rel: str, root: Path) -> int:
         target = raw_draft / entry["path"]
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(box / entry["path"]), str(target))
-    remove_empty_dirs(box)
+    layout.remove_empty_dirs(box)
     ref = layout.build_ref(box_rel, root, ingested_at, moving, days)
     layout.write_ref(raw_draft / layout.REF_NAME, ref)
     layout.write_ref(box / layout.REF_NAME, ref)
     print(len(moving))
     return 0
-
-
-def remove_empty_dirs(box: Path) -> None:
-    for directory, _dirs, _names in sorted(os.walk(box), key=lambda entry: -len(entry[0])):
-        if Path(directory) != box and not os.listdir(directory):
-            os.rmdir(directory)
 
 
 def main(argv: list[str]) -> int:

@@ -16,6 +16,7 @@ from security_headers import send_security_headers
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from safe_segment import is_safe_segment  # noqa: E402
+import raw_reader  # noqa: E402
 
 CONTENT_TYPES = {".png": "image/png", ".mp4": "video/mp4", ".log": "text/plain; charset=utf-8",
                  ".json": "application/json; charset=utf-8"}
@@ -23,13 +24,12 @@ RANGE_RE = re.compile(r"^bytes=(\d*)-(\d*)$")
 CHUNK = 1 << 20
 
 
-def resolve_media(reports_root: Path, steam_id: str, report_id: str, name: str) -> Path | None:
-    """許可リスト外・危険なセグメント・実在しないファイルは None（呼び出し側が 404 とログを出す）
-    Returns None for non-allowlisted names, unsafe segments or missing files (the caller logs and 404s)"""
+def resolve_media(reports_root: Path, raw_root: Path, steam_id: str, report_id: str, name: str) -> Path | None:
+    """許可リスト外・危険なセグメント・実在しないファイルは None（呼び出し側が 404 とログを出す）。logs 側→生データ側の順に探す
+    Returns None for non-allowlisted names, unsafe segments or missing files (the caller logs and 404s); logs side first, then raw"""
     if name not in MEDIA_FILES or not is_safe_segment(steam_id) or not is_safe_segment(report_id):
         return None
-    path = reports_root / steam_id / report_id / name
-    return path if path.is_file() else None
+    return raw_reader.resolve_file(reports_root / steam_id / report_id, name, raw_root)
 
 
 def send_file(handler: BaseHTTPRequestHandler, path: Path) -> None:

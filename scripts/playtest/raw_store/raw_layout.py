@@ -60,6 +60,20 @@ def default_root() -> Path:
     return repo.parent / "moorestech_playtest_raw"
 
 
+def default_logs() -> Path:
+    configured = os.environ.get("MOORESTECH_LOGS")
+    if configured:
+        return Path(configured)
+    repo = Path(os.environ.get("MOORESTECH_REPO") or Path(__file__).resolve().parents[3])
+    return repo.parent / "moorestech_logs"
+
+
+def remove_empty_dirs(box: Path) -> None:
+    for directory, _dirs, _names in sorted(os.walk(box), key=lambda entry: -len(entry[0])):
+        if Path(directory) != box and not os.listdir(directory):
+            os.rmdir(directory)
+
+
 def box_relative(box: Path) -> str:
     """logs 側・生データ側で共通の箱の相対パス（<kind>/<steamId>/<id>）
     The box path shared by both sides (<kind>/<steamId>/<id>)"""

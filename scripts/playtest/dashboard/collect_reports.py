@@ -10,11 +10,15 @@ Unreadable boxes stay listed as broken rows with a reason, never dropped silentl
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import digest_schema as schema
 from digest_collect import jst_date
 from display_fields import pick, warn
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "raw_store"))
+import raw_reader  # noqa: E402
 
 # 詳細画面から開けるファイル。media.py の配信許可と同じ一覧を使う
 # Files the detail view can open; media.py serves exactly this allowlist
@@ -47,17 +51,17 @@ def load_runs(runs_root: Path) -> dict[str, dict]:
     return runs
 
 
-def load_reports(reports_root: Path, runs: dict[str, dict]) -> list[dict]:
-    """全報告を新しい順で返す
-    Returns every report newest first"""
-    rows = [read_report_box(ingest_path.parent, runs) for ingest_path in sorted(reports_root.glob("*/*/ingest.json"))]
+def load_reports(reports_root: Path, raw_root: Path, runs: dict[str, dict]) -> list[dict]:
+    """全報告を新しい順で返す。動画等は logs repo の外の生データ置き場（raw_root）からも引く
+    Returns every report newest first; videos etc. are also looked up in the raw store (raw_root) outside the logs repo"""
+    rows = [read_report_box(ingest_path.parent, raw_root, runs) for ingest_path in sorted(reports_root.glob("*/*/ingest.json"))]
     rows.sort(key=lambda row: row["readyAt"], reverse=True)
     return rows
 
 
-def read_report_box(box: Path, runs: dict[str, dict]) -> dict:
+def read_report_box(box: Path, raw_root: Path, runs: dict[str, dict]) -> dict:
     meta, ingest_reason = schema.read_conformed(box / "ingest.json", schema.INGEST_SCHEMA)
-    row = base_row(box, meta, runs)
+    row = base_row(box, raw_root, meta, runs)
     # ingest.json が読めない箱はダイジェストも候補から外すので、ここでも投入対象にしない
     # The digest drops boxes with an unreadable ingest.json from candidates, so they are never enqueue targets here either
     if meta is None:
@@ -77,8 +81,13 @@ def read_report_box(box: Path, runs: dict[str, dict]) -> dict:
                 triage=classify(manifest["kind"], remote_state, row["queued"]), **display_manifest(raw, manifest_path))
 
 
-def base_row(box: Path, meta: dict | None, runs: dict[str, dict]) -> dict:
+def base_row(box: Path, raw_root: Path, meta: dict | None, runs: dict[str, dict]) -> dict:
     meta = meta or {}
+    raw = raw_reader.raw_state(box, raw_root)
+    # 生データの期限切れ・欠落は画面に理由を出す（動画が黙って消えたように見せない）
+    # Expired or missing raw data is shown with its reason, so a video never just silently vanishes
+    if raw["state"] not in raw_reader.READABLE_STATES:
+        warn(raw["reason"], box)
     report_id = meta.get("id") or box.name
     ready_at = meta.get("readyAt") or meta.get("ingestedAt") or ""
     return {
@@ -86,7 +95,8 @@ def base_row(box: Path, meta: dict | None, runs: dict[str, dict]) -> dict:
         "boxSteamId": box.parent.name, "boxId": box.name,
         "testerName": meta.get("steamPersonaName", "").strip(), "profileUrl": meta.get("steamProfileUrl", ""),
         "readyAt": ready_at, "date": jst_date(ready_at), "queued": (box / "AUTOFIX_QUEUED").is_file(),
-        "media": [name for name in MEDIA_FILES if (box / name).is_file()],
+        "media": [name for name in MEDIA_FILES if raw_reader.resolve_file(box, name, raw_root) is not None],
+        "raw": {"state": raw["state"], "expiresAt": raw["expiresAt"], "reason": raw["reason"]},
         "run": runs.get(report_id), "problem": None, "kind": "", "description": "", "buildLabel": "",
     }
 

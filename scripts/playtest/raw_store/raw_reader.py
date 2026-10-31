@@ -5,8 +5,8 @@
 expired（期限を過ぎて消えた）／missing（期限前なのに欠けている＝事故）／broken（raw.json を読めない）。
 none と ok 以外は、呼び出し側が止まるか利用者に見える形で欠落を示す。
 
-使い方: reader.py state <box> … 状態を1行（state<TAB>expiresAt<TAB>理由）で出す。ok/none で 0、それ以外 1
-        reader.py materialize <box> <dest> … 生データを <dest> の同じ相対パスへ複写する。ok/none 以外は理由を出して 1
+使い方: raw_reader.py state <box> … 状態を1行（state<TAB>expiresAt<TAB>理由）で出す。ok/none で 0、それ以外 1
+        raw_reader.py materialize <box> <dest> … 生データを <dest> の同じ相対パスへ複写する。ok/none 以外は理由を出して 1
 
 Resolves a logs-side box's raw-side location and state (stdlib only); shared by the dashboard, find-reports and enqueue.
 States: none (no raw.json: an older box holding everything, or one with no raw data), ok (every file present),
@@ -21,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import layout  # noqa: E402
+import raw_layout as layout  # noqa: E402
 
 READABLE_STATES = ("none", "ok")
 
@@ -84,7 +84,7 @@ def main(argv: list[str]) -> int:
         return 0 if state["state"] in READABLE_STATES else 1
     if len(argv) == 3 and argv[0] == "materialize":
         return materialize(Path(argv[1]), Path(argv[2]), root)
-    print("usage: reader.py state <box> | materialize <box> <dest>", file=sys.stderr)
+    print("usage: raw_reader.py state <box> | materialize <box> <dest>", file=sys.stderr)
     return 2
 
 

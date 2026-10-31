@@ -13,7 +13,7 @@ echo 'READY-summary' > "$BUG/READY"
 echo '{"kind":"feedback","remoteExec":{"state":"Disabled","ledgerFiles":[]},"description":"序盤が長い"}' > "$FB/manifest.json"
 echo 'READY-summary' > "$FB/READY"
 
-run() { MOORESTECH_LOGS="$LOGS" bash "$HERE/../enqueue-autofix.sh" "$@"; }
+run() { MOORESTECH_LOGS="$LOGS" MOORESTECH_PLAYTEST_RAW="$TMP/raw" bash "$HERE/../enqueue-autofix.sh" "$@"; }
 I="$LOGS/harness/bug-report/inbox"
 
 run 7656001 20260913_100000_bug1

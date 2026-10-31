@@ -72,6 +72,11 @@ function mediaBlock(report) {
     const url = mediaUrl(report, "screenshot.png");
     items.push(h("a", { href: url, target: "_blank", rel: "noopener" }, h("img", { src: url, alt: "報告時のスクリーンショット", loading: "lazy" })));
   }
+  // 生データ（動画・スナップショット等）が期限切れ・欠落なら理由を出す。黙って「無い」に見せない
+  // Show why when raw data (video, snapshots...) is expired or missing, instead of silently looking absent
+  if (report.raw && !["none", "ok"].includes(report.raw.state)) {
+    items.push(h("p", { class: "warn" }, `生データ（動画・スナップショット等）を読めません: ${report.raw.reason}`));
+  }
   if (items.length === 0) items.push(emptyNote("スクリーンショット・動画はありません（テスターが送信を見送った可能性）"));
   const links = ["logs/unity.log", "manifest.json"].filter((name) => report.media.includes(name))
     .map((name) => h("a", { href: mediaUrl(report, name), target: "_blank", rel: "noopener" }, name));

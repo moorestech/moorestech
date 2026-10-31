@@ -7,6 +7,7 @@ REPO="${MOORESTECH_REPO:-$(cd "$HERE/../.." && pwd)}"
 ENV_FILE="${PLAYTEST_ENV_FILE:-$REPO/../../services/playtest/env.sh}"
 if [ -f "$ENV_FILE" ]; then . "$ENV_FILE"; fi
 LOGS="${LOGS:-${MOORESTECH_LOGS:-$REPO/../moorestech_logs}}"
+export MOORESTECH_PLAYTEST_RAW="${MOORESTECH_PLAYTEST_RAW:-$REPO/../moorestech_playtest_raw}"
 limit=10
 if [ "$#" -gt 0 ]; then
   [ "$#" -eq 2 ] && [ "$1" = --limit ] && [[ "$2" =~ ^[1-9][0-9]*$ ]] \

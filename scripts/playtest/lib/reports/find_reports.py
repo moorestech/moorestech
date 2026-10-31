@@ -8,7 +8,10 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'raw_store'))
 from digest_reporter import tester_label
+import raw_layout
+import raw_reader
 
 
 def read(path):
@@ -59,6 +62,7 @@ def page(source, cursor_path):
 
 def local(logs, limit):
     reports = logs / 'harness/playtest/reports'
+    raw_root = raw_layout.default_root()
     print('## 取り込み済み')
     if not reports.is_dir():
         print(f'報告ディレクトリが無い: {reports}')
@@ -74,8 +78,13 @@ def local(logs, limit):
         else:
             reporter = tester_label(meta) if meta.get('steamPersonaName') else meta.get('steamId', box.parent.name)
         queued = (box / 'AUTOFIX_QUEUED').exists()
+        raw = raw_reader.raw_state(box, raw_root)
         print(f'{box.name}\t{text(reporter)}\t{text(manifest.get("kind", "missing"))}\t'
-              f'{text(manifest.get("description", ""))[:40]}\tAUTOFIX_QUEUED={queued}\t{box}')
+              f'{text(manifest.get("description", ""))[:40]}\tAUTOFIX_QUEUED={queued}\traw={raw["state"]}\t{box}')
+        # 生データの期限切れ・欠落は一覧の利用者へ理由ごと見せる（enqueue-autofix はこの箱を投入しない）
+        # Show expired or missing raw data with its reason (enqueue-autofix refuses such a box)
+        if raw['state'] not in raw_reader.READABLE_STATES:
+            print('生データ: ' + raw['reason'])
         for value in (meta, manifest):
             if 'readError' in value:
                 print('読取失敗: ' + value['readError'])

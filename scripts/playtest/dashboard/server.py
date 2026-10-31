@@ -5,7 +5,7 @@
 Playtest dashboard HTTP server (stdlib only, binds 127.0.0.1; report data is read-only, only read marks and ticket links are written).
 Exposure is via the tunnel on review.moores.tech/playtest behind Cloudflare Access.
 
-Usage: python3 server.py [--port 8932] [--logs <moorestech_logs>] [--master <master dir>]
+Usage: python3 server.py [--port 8932] [--logs <moorestech_logs>] [--raw <moorestech_playtest_raw>] [--master <master dir>]
 """
 from __future__ import annotations
 
@@ -22,11 +22,13 @@ from urllib.parse import unquote, urlsplit
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 sys.path.insert(0, str(HERE))
+sys.path.insert(0, str(HERE.parent / "raw_store"))
 import collect_progress  # noqa: E402
 import collect_reports  # noqa: E402
 import master_names  # noqa: E402
 import dashboard_state  # noqa: E402
 import media  # noqa: E402
+import raw_layout  # noqa: E402
 import write_api  # noqa: E402
 from security_headers import send_security_headers  # noqa: E402
 
@@ -42,6 +44,7 @@ PUBLIC_HOST = "review.moores.tech"
 
 class Config:
     logs = Path()
+    raw = Path()
     master = Path()
     allowed_hosts: frozenset = frozenset()
 
@@ -62,7 +65,7 @@ def build_payload() -> dict:
     return {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "appVersion": app_version(),
-        "reports": with_human_state(collect_reports.load_reports(playtest / "reports", runs), state_path()),
+        "reports": with_human_state(collect_reports.load_reports(playtest / "reports", Config.raw, runs), state_path()),
         "sessions": sessions, "invalidSessions": invalid_sessions,
         "runs": sorted(runs.values(), key=lambda run: run["id"], reverse=True),
         "digests": digests, "master": master_names.load_master_names(Config.master),
@@ -137,7 +140,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
 
     def send_media(self, rest: str) -> None:
         parts = rest.split("/", 2)
-        target = media.resolve_media(Config.logs / "harness" / "playtest" / "reports", *parts) if len(parts) == 3 else None
+        target = media.resolve_media(Config.logs / "harness" / "playtest" / "reports", Config.raw, *parts) if len(parts) == 3 else None
         if target is None:
             return self.not_found("配信許可外または実在しないメディア")
         media.send_file(self, target)
@@ -177,13 +180,14 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="プレイテストダッシュボード / playtest dashboard")
     parser.add_argument("--port", type=int, default=8932)
     parser.add_argument("--logs", default=str(repo.parent / "moorestech_logs"))
+    parser.add_argument("--raw", default=str(raw_layout.default_root()))
     parser.add_argument("--master", default=str(
         repo.parent / "moorestech_master" / "server_v8" / "mods" / "moorestechAlphaMod_8" / "master"))
     args = parser.parse_args(argv)
-    Config.logs, Config.master = Path(args.logs), Path(args.master)
+    Config.logs, Config.raw, Config.master = Path(args.logs), Path(args.raw), Path(args.master)
     Config.allowed_hosts = frozenset({PUBLIC_HOST, f"127.0.0.1:{args.port}", f"localhost:{args.port}"})
     server = ThreadingHTTPServer(("127.0.0.1", args.port), DashboardHandler)
-    print(f"playtest dashboard: http://127.0.0.1:{args.port}{PREFIX}/ (logs={Config.logs})")
+    print(f"playtest dashboard: http://127.0.0.1:{args.port}{PREFIX}/ (logs={Config.logs} raw={Config.raw})")
     server.serve_forever()
     return 0
 
