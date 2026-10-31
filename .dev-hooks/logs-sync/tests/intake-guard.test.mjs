@@ -21,7 +21,7 @@ function setup() {
   const sync = () => {
     sh(logs, "git", "add", "-A");
     unstageRejected(logs, state, (line) => reports.push(line));
-    const staged = sh(logs, "git", "diff", "--cached", "--name-only").split("\n").filter(Boolean).sort();
+    const staged = sh(logs, "git", "-c", "core.quotepath=false", "diff", "--cached", "--name-only").split("\n").filter(Boolean).sort();
     if (staged.length > 0) sh(logs, "git", "commit", "-q", "-m", "sync");
     return staged;
   };
@@ -54,9 +54,18 @@ test("copies, videos and large files are unstaged per file; neighbouring records
 
 test("frame sequences are caught even when written slowly across syncs", () => {
   const { write, sync, reports } = setup();
-  for (let i = 0; i < 15; i++) write(`harness/playtest/r1/frames/f${i}.png`);
+  for (let i = 0; i < 15; i++) write(`harness/playtest/録画/frames/f${i}.png`);
   assert.equal(sync().filter((p) => p.endsWith(".png")).length, 15);
-  for (let i = 15; i < 30; i++) write(`harness/playtest/r1/frames/f${i}.png`);
+  for (let i = 15; i < 30; i++) write(`harness/playtest/録画/frames/f${i}.png`);
   assert.deepEqual(sync(), []);
-  assert.ok(reports.some((l) => l.includes("image sequence") && l.includes("15 files under harness/playtest/r1/frames/")));
+  assert.ok(reports.some((l) => l.includes("image sequence") && l.includes("15 files under harness/playtest/録画/frames/")));
+});
+
+test("binary content is rejected even without an extension or under a record extension", () => {
+  const { write, sync, reports } = setup();
+  write("harness/x/raw", Buffer.from([0x50, 0x4b, 0x00, 0x01]));
+  write("harness/x/world.json", Buffer.from([0x7b, 0x00, 0x7d]));
+  write("harness/x/READY", "ok\n");
+  assert.deepEqual(sync(), [".gitignore", "harness/x/READY"]);
+  assert.equal(reports.filter((l) => l.includes("binary content")).length, 2);
 });

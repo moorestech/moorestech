@@ -7,7 +7,7 @@
 // Each file is judged against an allow-list, never by counts, so slow frame sequences and shallow copies cannot slip through
 // and neighbouring reports are never rejected along with them.
 
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, openSync, readFileSync, readSync, statSync, writeFileSync } from "node:fs";
 import { dirname, extname, join } from "node:path";
 import { git } from "./sync-io.mjs";
 
@@ -18,8 +18,12 @@ const CONVERSATION_PREFIXES = ["claude/", "codex/", "map/", "beads/", "blobs/"];
 // Record types allowed in: text, results, diffs and scripts written for experiments. Copies of code/assets, binaries and videos are absent.
 const RECORD_EXTENSIONS = new Set([
   "", ".md", ".txt", ".log", ".json", ".jsonl", ".tsv", ".csv", ".yaml", ".yml", ".toml", ".html", ".htm", ".xml", ".svg",
-  ".diff", ".patch", ".err", ".stderr", ".stdout", ".out", ".sha", ".marker", ".py", ".sh", ".js", ".mjs",
+  ".diff", ".patch", ".err", ".stderr", ".stdout", ".out", ".sha", ".sha256", ".marker", ".exit", ".session", ".ini", ".cfg",
+  ".py", ".sh", ".js", ".mjs", ".ts", ".ps1", ".cmd", ".bat",
 ]);
+// 記録の種類でも、中身が文字でない物（先頭にNULがある）はバイナリとして外す（拡張子の無いダンプや偽装を通さない）
+// Even with a record extension, content with a NUL byte near the start is a binary and is rejected.
+const TEXT_SNIFF_BYTES = 8192;
 const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
 // 報告に添える画像はディレクトリあたり数枚。これを超えるのは連番フレームの類（既にコミット済みの枚数も数える）
 // A report carries a few images per directory; more than this (committed ones included) is a frame sequence.
@@ -86,16 +90,34 @@ function classify(logsRepo, changes) {
     } else if (!RECORD_EXTENSIONS.has(ext)) {
       rejected.set(path, `not a record type: ${ext}`);
       continue;
+    } else if (isBinary(join(logsRepo, path))) {
+      rejected.set(path, `binary content: ${ext || "(no extension)"}`);
+      continue;
     }
     if (sizeOf(join(logsRepo, path)) > MAX_RECORD_FILE_BYTES) rejected.set(path, `over ${MAX_RECORD_FILE_BYTES} bytes`);
   }
   for (const [dir, added] of imagesPerDir) {
-    const committed = (git(logsRepo, ["ls-tree", "--name-only", "HEAD", `${dir}/`]) ?? "")
-      .split("\n").filter((p) => IMAGE_EXTENSIONS.has(extname(p).toLowerCase())).length;
+    // -z で読む（無いと日本語のパスが引用符つきで返り、拡張子を読み違える）
+    // Read with -z; otherwise non-ASCII paths come back quoted and their extensions are misread.
+    const committed = (git(logsRepo, ["ls-tree", "-z", "--name-only", "HEAD", `${dir}/`]) ?? "")
+      .split("\0").filter((p) => IMAGE_EXTENSIONS.has(extname(p).toLowerCase())).length;
     if (committed + added.length <= MAX_IMAGES_PER_DIR) continue;
     for (const path of added) rejected.set(path, `image sequence: over ${MAX_IMAGES_PER_DIR} images in one directory`);
   }
   return rejected;
+}
+
+function isBinary(path) {
+  // silent-ok: 読めないパスは文字扱いにして大きさの判定へ進み、実体が無いなら git add も載せない / 欠落は起きない
+  try {
+    const fd = openSync(path, "r");
+    const buf = Buffer.alloc(TEXT_SNIFF_BYTES);
+    const len = readSync(fd, buf, 0, TEXT_SNIFF_BYTES, 0);
+    closeSync(fd);
+    return buf.subarray(0, len).includes(0);
+  } catch {
+    return false;
+  }
 }
 
 function sizeOf(path) {
