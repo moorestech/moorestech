@@ -18,8 +18,9 @@ DSL の書き方・API 一覧・実行方法の正本は `.agents/skills/unity-p
 - `__BUNDLE__` プレースホルダを `sed "s|__BUNDLE__|$RUN|g"` で実値へ置換してから渡す（`run-scenario.sh` は置換しない）
 - シナリオは `$RUN/` 側へ書き出す（`$RUN/observe-2.cs` 等）。**`$WORKTREE` のコードrepoへコミットしない** —
   バンドル依存のシナリオは証拠であって、PR に載る再現テストではない
-- 結果ディレクトリは `$RUN/observe-2/` のように連番で残す。上書きすると「何を試したか」が消え、
-  `not_reproduced` の `summary` に書くべき材料が無くなる
+- 結果ディレクトリは `$WORKTREE/moorestech_client/PlaytestResults/` に置いたまま（`run-scenario.sh` が実行ごとに別ディレクトリを切るので上書きされない）。
+  狙い・判定・観測値は `$RUN/observe-2/observe.md` のように連番の md で残し、スクショは3枚程度まで。
+  何を試したかが消えると `not_reproduced` の `summary` に書く材料が無くなる
 
 ## 3本の使い分け（症状が出ないときの当て方）
 
@@ -30,8 +31,8 @@ DSL の書き方・API 一覧・実行方法の正本は `.agents/skills/unity-p
 3. **視点と場所を変える**: 報告者の位置から見えていないだけのことがある。`p.WarpPlayer(...)` で対象の
    ブロック・駅・機械の正面へ寄り、`p.Screenshot(...)` を細かく刻む
 
-各シナリオに `p.Note("狙い: ...")` を先頭へ置く。動画左上と `result.json` の `Timeline` に残り、
-`not_reproduced` で終えたときに「何を試したか」の証拠がそのまま残る。
+各シナリオに `p.Note("狙い: ...")` を先頭へ置く。動画左上と `result.json` の `Timeline` に出るが、
+どちらも worktree を畳むと消える。`not_reproduced` で終えるときは狙いを `$RUN/observe-N/observe.md` に転記して「何を試したか」を残す。
 
 ## 症状を機械的に判定する
 

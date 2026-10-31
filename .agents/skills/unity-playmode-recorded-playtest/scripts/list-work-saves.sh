@@ -21,8 +21,10 @@ esac
 
 worktree_root=$(git rev-parse --show-toplevel)
 reference_file="$worktree_root/.git"
-if [[ ! -e "$reference_file" ]]; then
-    echo "NG: 起点にする ${reference_file} がありません" >&2
+# メインcheckoutの.gitはディレクトリでgit操作のたびに時刻が進むので、起点にできない
+# The main checkout's .git is a directory whose mtime moves on every git command, so it cannot be the reference
+if [[ ! -f "$reference_file" ]]; then
+    echo "NG: ${reference_file} が worktree の .git ファイルではありません。moores-wt new で作った worktree で実行してください" >&2
     exit 1
 fi
 if [[ ! -d "$saves_dir" ]]; then
@@ -31,11 +33,22 @@ if [[ ! -d "$saves_dir" ]]; then
 fi
 
 echo "== ${saves_dir} のうち ${worktree_root} の作成後に作られた・書き換えられたもの =="
+echo "（新規 = worktree 作成後に作られた。更新のみ = 作業前からあり書き換えられただけで、消さない）"
+reference_epoch=$(stat -f %m "$reference_file" 2>/dev/null || stat -c %Y "$reference_file")
 # 上書き保存ではディレクトリ自体の時刻が変わらないので、中のファイルまで見て判定する
 # Overwriting files does not touch the directory mtime, so look inside each world
 for entry in "$saves_dir"/*; do
     [[ -e "$entry" ]] || continue
-    if [[ -n "$(find "$entry" -newer "$reference_file" -print -quit)" ]]; then
-        echo "$entry"
+    [[ -n "$(find "$entry" -newer "$reference_file" -print -quit)" ]] || continue
+    # 作成時刻が取れるのはmacOSだけ。取れない環境は判定不能と出す
+    # Birth time is available only on macOS; elsewhere print that it is undetermined
+    birth_epoch=$(stat -f %B "$entry" 2>/dev/null || echo "")
+    if [[ -z "$birth_epoch" || "$birth_epoch" == "0" ]]; then
+        label="新規か更新のみか判定不能"
+    elif (( birth_epoch >= reference_epoch )); then
+        label="新規"
+    else
+        label="更新のみ"
     fi
+    echo "[$label] $entry"
 done
