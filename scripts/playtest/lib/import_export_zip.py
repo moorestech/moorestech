@@ -5,7 +5,7 @@
   import_export_zip.py unpack <zip> <dir>
     … エントリ名を検証してから展開し、箱を1行1件（kind US id US exportedAt）で出す。kind は report|progress
   import_export_zip.py stage <unpacked-box> <kind> <partial>
-    … 印を除いて箱を <partial> へコピーし、印は <partial>/export-markers/ へ置き、受け口と同じ形の READY を書き、steamId を出す
+    … 印を除いて箱を <partial> へコピーし、印は <partial>/export-markers/ へ置き、受け口と同じ形の READY（files[] は退避した印も含む全ファイル）を書き、steamId を出す
 
 Unpacks the zip a tester exported and shapes each box (stdlib only).
 "unpack" validates entry names before extracting and prints one US-separated row per box;
@@ -86,7 +86,10 @@ def stage(box_dir: str, kind: str, partial: str) -> int:
         destination = os.path.join(base, relative)
         os.makedirs(os.path.dirname(destination), exist_ok=True)
         shutil.copyfile(os.path.join(box_dir, relative), destination)
-    ready = {"kind": kind, "id": os.path.basename(box_dir), "fileCount": len(files), "files": sorted(files),
+    # R2 へ上げる物は全部 READY の files[] に載せる（fetch-report.sh が READY から取るので、印の退避先も含める）
+    # Everything uploaded to R2 goes into READY's files[] (fetch-report.sh reads READY, so parked markers are included)
+    listed = sorted(files + [f"export-markers/{m}" for m in markers])
+    ready = {"kind": kind, "id": os.path.basename(box_dir), "fileCount": len(listed), "files": listed,
              "skipped": [], "manifest": manifest_text if kind == "report" else None, "importedFrom": "export-zip"}
     with open(os.path.join(partial, "READY"), "w", encoding="utf-8") as target:
         json.dump(ready, target, ensure_ascii=False)

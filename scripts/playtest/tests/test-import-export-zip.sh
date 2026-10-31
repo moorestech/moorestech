@@ -74,8 +74,8 @@ grep -q '20261019_170000_dev1' "$IMPORT_DIR/calls.log" && { echo "NG: steamId �
 python3 -I - "$BUG/READY" <<'PY' || { echo "NG: READY の形が違う"; exit 1; }
 import json, sys
 r = json.load(open(sys.argv[1]))
-assert sorted(r["files"]) == ["manifest.json", "video.mp4"], r
-assert r["fileCount"] == 2 and r["kind"] == "report" and r["importedFrom"] == "export-zip" and r["skipped"] == [], r
+assert sorted(r["files"]) == ["export-markers/READY", "export-markers/UPLOAD_FAILED", "manifest.json", "video.mp4"], r
+assert r["fileCount"] == 4 and r["kind"] == "report" and r["importedFrom"] == "export-zip" and r["skipped"] == [], r
 assert json.loads(r["manifest"])["steamId"] == "7656001"
 PY
 grep -q '"readyAt":"2026-10-19T17:00:00Z"' "$BUG/ingest.json" || { echo "NG: readyAt に exportedAt が入っていない"; exit 1; }
