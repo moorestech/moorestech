@@ -1,9 +1,9 @@
-// 概要: 左に「要対応（未投入のバグ）」、右に「直近の活動」と「最新の感想」を置く
-// Overview: "needs action" (un-enqueued bugs) on the left, recent activity and latest feedback on the right
+// 概要: 左に「要対応（未読のバグ）」、右に「直近の活動」と「最新の感想」を置く
+// Overview: "needs action" (unread bugs) on the left, recent activity and latest feedback on the right
 import { stackedDayChart } from "../charts.js";
 import { card, dayGroups, deltaText, moreLink, pageHead, reportRow, stat } from "../components.js";
 import { countableSessions, emptyNote, fmtDateTime, h, isKnownKind, jstToday, linkify, routeHref, testerName } from "../core.js";
-import { applyFilters, CANDIDATE_FILTER, FEEDBACK_FILTER } from "../report-filter.js";
+import { applyFilters, FEEDBACK_FILTER, UNREAD_BUG_FILTER } from "../report-filter.js";
 
 const CHART_DAYS = 14;
 const LIST_LIMIT = 12;
@@ -16,18 +16,18 @@ const KIND_SERIES = [
 
 export function renderOverview(data) {
   const sessions = countableSessions(data.sessions);
-  const candidates = applyFilters(data.reports, new URLSearchParams(CANDIDATE_FILTER));
+  const candidates = applyFilters(data.reports, new URLSearchParams(UNREAD_BUG_FILTER));
   const latest = [...data.reports, ...data.sessions].map((row) => row.readyAt).filter(Boolean).sort().pop();
   return h("div", { class: "view" },
     pageHead("概要", latest ? `最新の受信 ${fmtDateTime(latest)}` : "まだ受信がありません"),
     weekStats(data, sessions, candidates.length),
     h("div", { class: "layout-main-side" },
-      card("未投入のバグ報告", { count: candidates.length, action: candidates.length > LIST_LIMIT ? moreLink(routeHref("reports", [], CANDIDATE_FILTER), "すべて見る") : null },
+      card("未読のバグ報告", { count: candidates.length, action: candidates.length > LIST_LIMIT ? moreLink(routeHref("reports", [], UNREAD_BUG_FILTER), "すべて見る") : null },
         candidates.length
-          // 未投入欄の詳細は同じ分類の中を辿る
+          // 未読欄の詳細は同じ分類の中を辿る
           // Details from this backlog page within the same classification
-          ? dayGroups(candidates.slice(0, LIST_LIMIT), (r) => r.date, (r) => reportRow(r, { kind: false, status: false }, CANDIDATE_FILTER), dayTotals(candidates))
-          : emptyNote("未投入のバグ報告はありません")),
+          ? dayGroups(candidates.slice(0, LIST_LIMIT), (r) => r.date, (r) => reportRow(r, { kind: false, status: false }, UNREAD_BUG_FILTER), dayTotals(candidates))
+          : emptyNote("未読のバグ報告はありません")),
       h("div", { class: "side-stack" },
         card(`活動（直近${CHART_DAYS}日）`, null, activityCharts(data.reports, sessions)),
         card("最新の感想", { action: moreLink(routeHref("reports", [], FEEDBACK_FILTER), "一覧") }, feedbackQuotes(data.reports)))));
@@ -39,10 +39,10 @@ function dayTotals(rows) {
   return totals;
 }
 
-// 数字は「未投入（累計）」以外を直近7日に揃え、前の7日との差を添える
+// 数字は「未読のバグ（累計）」以外を直近7日に揃え、前の7日との差を添える
 // Every figure except the cumulative backlog uses the last 7 days, with the change versus the 7 days before
 function weekStats(data, sessions, candidateCount) {
-  const unreadCandidates = applyFilters(data.reports, new URLSearchParams({ ...CANDIDATE_FILTER, read: "unread" })).length;
+  const bugTotal = applyFilters(data.reports, new URLSearchParams({ triage: "bug" })).length;
   const since = jstToday(6);
   const before = jstToday(13);
   const inWeek = (d) => d >= since;
@@ -58,8 +58,8 @@ function weekStats(data, sessions, candidateCount) {
   const testers = (pick) => new Set([...counted.filter((r) => pick(r.date)), ...sessions.filter((s) => pick(s.date))]
     .map((row) => row.steamId)).size;
   return h("div", { class: "stats" },
-    stat("未投入のバグ", candidateCount, "件", `うち未読 ${unreadCandidates}件`,
-      { href: routeHref("reports", [], CANDIDATE_FILTER), tone: candidateCount > 0 ? "attention" : null }),
+    stat("未読のバグ", candidateCount, "件", `バグ報告 累計 ${bugTotal}件`,
+      { href: routeHref("reports", [], UNREAD_BUG_FILTER), tone: candidateCount > 0 ? "attention" : null }),
     stat("報告（7日）", reportsNow, "件", deltaText(reportsNow, reportsPrev, "件"), { href: routeHref("reports") }),
     stat("プレイ時間（7日）", playNow.toFixed(1), "時間", deltaText(Number(playNow.toFixed(1)), Number(playPrev.toFixed(1)), "時間"),
       { href: routeHref("sessions") }),

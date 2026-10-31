@@ -1,6 +1,6 @@
-// 報告詳細: 説明全文・スクショ・動画・ビルド情報・投入コマンド・既読と関連チケット
-// Report detail: full text, screenshot, video, build info, enqueue command, read mark and related tickets
-import { card, kindMark, runStatusLabel, statusText } from "../components.js";
+// 報告詳細: 説明全文・スクショ・動画・ビルド情報・生データの取得コマンド・既読と関連チケット
+// Report detail: full text, screenshot, video, build info, raw-data fetch command, read mark and related tickets
+import { card, kindMark, statusText } from "../components.js";
 import { emptyNote, findReport, fmtDateTime, h, linkify, mediaUrl, routeHref, testerName } from "../core.js";
 import { filterOf, loadFilter, neighbours } from "../report-filter.js";
 import { detailActions, ticketsCard } from "./report-actions.js";
@@ -18,7 +18,7 @@ export function renderReport(data, args, params) {
       h("p", { class: "detail-meta" }, `${testerName(report)}・${fmtDateTime(report.readyAt)}・${report.buildLabel || "ビルド不明"}`),
       report.problem ? h("p", { class: "warn" }, `⚠ ${report.problem}`) : null,
       detailActions(report)),
-    enqueueBlock(report),
+    fetchBlock(report),
     h("div", { class: "layout-main-side" }, mediaBlock(report),
       h("div", { class: "side-stack" }, ticketsCard(report), card("詳細", null, infoGroups(report)))));
 }
@@ -42,14 +42,14 @@ function neighbour(report, label, filter) {
   return report ? h("a", { href: routeHref("report", [report.boxSteamId, report.boxId], filter) }, label) : h("span", { class: "muted" }, label);
 }
 
-// 投入の判断は人が持つ（ADR 0061）。画面は実行せず、貼れるコマンドを出すだけにする
-// Enqueueing stays a human decision (ADR 0061); the page only offers a pasteable command
-function enqueueBlock(report) {
-  if (report.triage !== "candidate") return null;
-  const command = `scripts/playtest/enqueue-autofix.sh ${shellQuote(report.boxSteamId)} ${shellQuote(report.boxId)}`;
+// 生データの正本は R2 だけ（ADR 0061）。調査でワールド・スナップショットが要るときに貼れるコマンドを出す
+// R2 is the only home of raw data (ADR 0061); offer a pasteable command for when an investigation needs the world or snapshots
+function fetchBlock(report) {
+  if (report.triage !== "bug") return null;
+  const command = `scripts/playtest/fetch-report.sh ${shellQuote(report.boxSteamId)} ${shellQuote(report.boxId)}`;
   const button = h("button", { type: "button", class: "primary", onclick: () => copy(command, button) }, "コピー");
   return h("div", { class: "callout" },
-    h("p", null, h("b", null, "未投入"), "　自動修正ランへ回すなら、Mac mini の moorestech で次を実行"),
+    h("p", null, h("b", null, "生データ"), "　ワールド・スナップショットは R2 にだけある。調べるなら Mac mini の moorestech で次を実行"),
     h("div", { class: "command" }, h("code", null, command), button));
 }
 
@@ -72,10 +72,10 @@ function mediaBlock(report) {
     const url = mediaUrl(report, "screenshot.png");
     items.push(h("a", { href: url, target: "_blank", rel: "noopener" }, h("img", { src: url, alt: "報告時のスクリーンショット", loading: "lazy" })));
   }
-  // 生データ（動画・スナップショット等）が期限切れ・欠落なら理由を出す。黙って「無い」に見せない
-  // Show why when raw data (video, snapshots...) is expired or missing, instead of silently looking absent
-  if (report.raw && !["none", "ok"].includes(report.raw.state)) {
-    items.push(h("p", { class: "warn" }, `生データ（動画・スナップショット等）を読めません: ${report.raw.reason}`));
+  // 動画は R2 から中継する。片付けで消した箱は 410 になり再生できないので、そう読めるように添える
+  // Video is relayed from R2; a box purged after settling answers 410 and cannot play, so say so next to it
+  if (report.media.includes("video.mp4")) {
+    items.push(h("p", { class: "muted small" }, "動画は R2 から取得（再生できないときは片付け後の削除か受け口の障害。理由はダッシュボードのログ）"));
   }
   if (items.length === 0) items.push(emptyNote("スクリーンショット・動画はありません（テスターが送信を見送った可能性）"));
   const links = ["logs/unity.log", "manifest.json"].filter((name) => report.media.includes(name))
@@ -101,19 +101,11 @@ function infoGroups(report) {
       ["録画", report.videoSeconds ? `${report.videoSeconds.toFixed(0)}秒` : "なし"]]],
     ["取り扱い", [
       ["遠隔実行", report.remoteExecReason ? `${report.remoteExec}（${report.remoteExecReason}）` : (report.remoteExec || "不明")],
-      ["修正ラン", runCell(report)],
       ["報告ID", h("code", null, report.id)]]],
   ];
   return h("div", { class: "info-groups" }, groups.map(([title, rows]) => h("div", { class: "info-group" },
     h("h3", null, title),
     h("dl", { class: "info" }, rows.map(([label, value]) => [h("dt", null, label), h("dd", null, value)])))));
-}
-
-function runCell(report) {
-  if (!report.queued) return "未投入";
-  if (!report.run) return "投入済み（inbox で待機中）";
-  const pr = report.run.prNumber ? externalLink(`${REPO_URL}/pull/${report.run.prNumber}`, `#${report.run.prNumber}`) : "PRなし";
-  return h("span", null, `${runStatusLabel(report.run.status)}・`, pr, report.run.summary ? `・${report.run.summary}` : "");
 }
 
 // 取り込みが書いた URL でも https 以外はリンクにしない（javascript: 等を踏ませない）

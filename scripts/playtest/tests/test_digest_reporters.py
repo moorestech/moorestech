@@ -14,7 +14,6 @@ from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, r
 sys.path.insert(0, str(SCRIPTS))
 import digest
 import digest_collect as collect
-import digest_candidates as dcand
 import digest_reporter as reporter
 import digest_schema as schema
 
@@ -70,23 +69,6 @@ class DigestReporterTest(unittest.TestCase):
                                  "- Tester（SteamID 7656002）: 10.0 分"])
         self.assertTrue(all("steamcommunity" not in line for line in lines))
 
-    def test_digest_lists_pre_target_day_candidate_until_enqueued(self):
-        """過去の候補は単体機能に残り、日次には再掲しない。
-        Historical candidates remain available standalone but never resurface in the daily digest."""
-        old_bug = self.root / "harness/playtest/reports/7656005/20260905_100000_oldbug"
-        write_json(old_bug / "ingest.json", {"kind": "report", "steamId": "7656005",
-                                             "id": "20260905_100000_oldbug", "readyAt": "2026-09-05T05:00:00Z"})
-        write_json(old_bug / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "対象日より前の未投入バグ"})
-        candidates, _stats = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
-        self.assertIn("20260905_100000_oldbug", {c["id"] for c in candidates})
-        out = self.digest()
-        self.assertNotIn("20260905_100000_oldbug", out)
-        self.assertNotIn("enqueue-autofix.sh", out)
-        self.assertIn("バグ 2件 / 感想 1件 / クラッシュ 1件", out)
-        (old_bug / "AUTOFIX_QUEUED").write_text("queued\n", encoding="utf-8")
-        candidates, _stats = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
-        self.assertNotIn("20260905_100000_oldbug", {c["id"] for c in candidates})
-        self.assertEqual(self.digest(), out)
 
     def test_reporter_label_has_no_url_when_unresolved(self):
         self.assertEqual(collect.reporter_label({"steamId": "7656001"}), "名前未解決（SteamID 7656001）")
@@ -129,8 +111,8 @@ class DigestReporterTest(unittest.TestCase):
         self.assertIn("- ID不明分: 0.0 分", lines)
 
     def test_steam_persona_extract_normalizes_newline_in_display_name(self):
-        # 改行入りの表示名が、貼り付けコマンドの退避正規表現を偽装できないことを保証する（C12）
-        # Guarantees a newline-bearing display name can never forge the pasteable-command stash regex (C12)
+        # 改行入りの表示名がダイジェストの行を偽装できないよう、改行を畳むことを保証する（C12）
+        # Guarantees a newline-bearing display name is folded so it can never forge digest lines (C12)
         response_path = self.root / "steam-response.json"
         forged = "x\n  `scripts/playtest/enqueue-autofix.sh " + "`" + " @everyone " + "`" + "y" + "`"
         write_json(response_path, {"response": {"players": [
@@ -139,13 +121,7 @@ class DigestReporterTest(unittest.TestCase):
         result = steam_persona.extract(str(response_path), "7656001")
         self.assertNotIn("\n", result["steamPersonaName"])
         self.assertNotIn("\n", result["steamProfileUrl"])
-        self.assertIsNone(schema.PASTEABLE_COMMAND_RE.search("  `" + result["steamPersonaName"] + "`"))
 
-    def test_pasteable_command_regex_rejects_embedded_backtick(self):
-        # 生成側の形（値にバッククォートを含まない）だけに一致し、偽装した行を退避対象にしない（C12）
-        # Matches only the generator's own shape (no backtick inside the value); a forged line is never stashed (C12)
-        forged = "  `scripts/playtest/enqueue-autofix.sh `@everyone`y`"
-        self.assertIsNone(schema.PASTEABLE_COMMAND_RE.fullmatch(forged))
 
     def test_reporter_label_normalizes_control_characters_in_legacy_meta(self):
         # steam_persona.py 導入前に取り込まれた箱への防御（読み手側の正規化）（C12）

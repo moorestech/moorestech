@@ -85,8 +85,8 @@ export function kindMark(kind) {
   return h("span", { class: `kind kind-${isKnownKind(kind) ? kind : "unknown"}` }, kindLabel(kind));
 }
 
-// 状態は色付きの点＋文字。強い色は「未投入」と「読めない」だけに使う
-// Status is a dot plus text; strong color is reserved for "not enqueued" and "unreadable"
+// 状態は色付きの点＋文字。強い色は「バグ」と「読めない」だけに使う
+// Status is a dot plus text; strong color is reserved for "bug" and "unreadable"
 export function statusText(report) {
   const label = statusLabel(report);
   if (!label) return null;
@@ -94,17 +94,10 @@ export function statusText(report) {
 }
 
 function statusLabel(report) {
-  if (report.triage === "candidate") return "未投入";
+  if (report.triage === "bug") return "バグ";
   if (report.triage === "excluded") return "除外（遠隔実行）";
   if (report.triage === "broken") return "読めない箱";
-  if (report.triage === "queued") return report.run ? `修正ラン ${runStatusLabel(report.run.status)}` : "投入済み";
   return "";
-}
-
-// fix-result.json の無いランは実行中か異常終了か区別できないので、そう書く
-// A run without fix-result.json may be running or dead, and the label says so
-export function runStatusLabel(status) {
-  return status === "noResult" ? "結果なし（実行中か異常終了）" : status;
 }
 
 // 直近7日と前の7日を比べた差分の表示（前週比）

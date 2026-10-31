@@ -8,10 +8,9 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'raw_store'))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'r2_store'))
 from digest_reporter import tester_label
-import raw_layout
-import raw_reader
+import box_layout
 
 
 def read(path):
@@ -62,7 +61,6 @@ def page(source, cursor_path):
 
 def local(logs, limit):
     reports = logs / 'harness/playtest/reports'
-    raw_root = raw_layout.default_root()
     print('## 取り込み済み')
     if not reports.is_dir():
         print(f'報告ディレクトリが無い: {reports}')
@@ -77,42 +75,20 @@ def local(logs, limit):
             reporter = '表示名不正'
         else:
             reporter = tester_label(meta) if meta.get('steamPersonaName') else meta.get('steamId', box.parent.name)
-        queued = (box / 'AUTOFIX_QUEUED').exists()
-        raw = raw_reader.raw_state(box, raw_root)
+        ref, ref_reason = box_layout.read_ref(box)
+        remote = f'r2={len(ref["files"])}件' if ref is not None else 'r2=不明'
         print(f'{box.name}\t{text(reporter)}\t{text(manifest.get("kind", "missing"))}\t'
-              f'{text(manifest.get("description", ""))[:40]}\tAUTOFIX_QUEUED={queued}\traw={raw["state"]}\t{box}')
-        # 生データの期限切れ・欠落は一覧の利用者へ理由ごと見せる（enqueue-autofix はこの箱を投入しない）
-        # Show expired or missing raw data with its reason (enqueue-autofix refuses such a box)
-        if raw['state'] not in raw_reader.READABLE_STATES:
-            print('生データ: ' + raw['reason'])
+              f'{text(manifest.get("description", ""))[:40]}\t{remote}\t{box}')
+        # 生データは R2 にだけある。所在の記録が読めない箱は理由を見せる（fetch-report.sh は READY から辿るので取得はできる）
+        # Raw data lives only in R2; show why when the location record is unreadable (fetch-report.sh still works from READY)
+        if ref is None:
+            print('R2 の所在: ' + ref_reason)
         for value in (meta, manifest):
             if 'readError' in value:
                 print('読取失敗: ' + value['readError'])
     print('## 運搬中／未完了')
     for box in newest(reports.glob('*/*.partial'), sys.maxsize):
         print(f'{box.name}\t運搬中／未完了\t{box}')
-    root = logs / 'harness/bug-report'
-    print('## 自動修正')
-    for name in ('inbox', 'runs'):
-        directory = root / name
-        print(f'### {name}')
-        if not directory.is_dir():
-            print(f'ディレクトリが無い: {directory}')
-        held = {'.remote-exec-held': '保留', '.duplicate': '重複'}
-        paths = (path for path in directory.glob('*') if name != 'inbox' or path.name not in held)
-        # inboxは未処理を全件示し、runsだけ表示上限を適用する
-        # Show every pending inbox box and limit only completed or active runs
-        for box in newest(paths, limit if name == 'runs' else sys.maxsize):
-            if name == 'inbox' and box.name.endswith('.partial'):
-                print(f'{box.name}\t運搬中／未完了\t{box}')
-                continue
-            result = box / 'fix-result.json'
-            status = read(result) if result.is_file() else '結果ファイルなし'
-            print(f'{box.name}\t{text(status)}\t{box}')
-        if name == 'inbox':
-            for parent, state in held.items():
-                for box in newest((directory / parent).glob('*'), sys.maxsize):
-                    print(f'{box.name}\t{state}\t{box}')
 
 
 if __name__ == '__main__':

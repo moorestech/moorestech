@@ -79,10 +79,6 @@ def build_fixture(root: Path) -> None:
                                      "completedResearch": [], "lastUiState": "InventoryScreen",
                                      "events": [{"type": "buildModeCancelled"}]})
 
-    run = root / "harness" / "bug-report" / "runs" / "20260910_090000_bug0"
-    write_json(run / "fix-result.json", {"status": "fixed", "pr_number": 1400, "base": "master",
-                                         "determinism": "ok", "summary": "ベルト停止を修正",
-                                         "finishedAt": "2026-09-12T10:00:00Z"})
 
 
 def run_digest(root: Path, date: str, *extra: str) -> subprocess.CompletedProcess:

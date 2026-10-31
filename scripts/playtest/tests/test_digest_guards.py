@@ -15,7 +15,6 @@ from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, r
 
 sys.path.insert(0, str(SCRIPTS))
 import digest_collect as dc  # noqa: E402
-import digest_candidates as dcand  # noqa: E402
 from digest_schema import neutralize_discord_markup as safe
 
 ZWSP = "​"
@@ -58,31 +57,6 @@ class DigestGuardsTest(unittest.TestCase):
         self.assertIn(f"@{ZWSP}everyone", out)
         self.assertIn(f"`{ZWSP}`{ZWSP}`", out)
 
-    def test_backtick_id_gets_no_pasteable_command(self):
-        """バッククォート入りの id はコードスパンを閉じてしまうので貼り付けコマンドを出さない
-        An id with a backtick would close the code span, so no pasteable command is printed"""
-        self.add_report("7656022", "20260912_172000_tick", {"kind": "bug", "description": "x"},
-                        ingest_id="a`@everyone`b")
-        out = safe("\n".join(dcand.format_candidates(
-            *dcand.load_candidate_reports(self.root / "harness/playtest/reports"))))
-        self.assertIn("バッククォートを含むため貼り付けコマンドを出さない", out)
-        self.assertNotIn("enqueue-autofix.sh 7656022", out)
-        self.assertNotIn("@everyone", out)
-
-    def test_unreadable_candidate_box_is_logged_and_counted(self):
-        """全期間の候補走査で読めない ingest.json・型不一致 manifest を理由付きで数える
-        The all-time candidate scan logs and counts an unreadable ingest.json and a mismatched manifest"""
-        broken = self.root / "harness/playtest/reports/7656023/20260801_100000_broken"
-        broken.mkdir(parents=True)
-        (broken / "ingest.json").write_text("{", encoding="utf-8")
-        self.add_report("7656024", "20260801_110000_badmanifest", {"kind": ["bug"]})
-        errors = io.StringIO()
-        with redirect_stderr(errors):
-            out = "\n".join(dcand.format_candidates(
-                *dcand.load_candidate_reports(self.root / "harness/playtest/reports")))
-        self.assertIn("読めず投入候補の判定から除外した箱 2件", out)
-        self.assertIn("投入候補の判定から除外: JSON解析失敗", errors.getvalue())
-        self.assertIn("投入候補の判定から除外: 型不一致: kind", errors.getvalue())
 
     def test_nonempty_remote_exec_ledger_is_counted_without_invalid_manifest(self):
         box = self.add_report("7656030", "20260912_183000_rex",

@@ -20,10 +20,9 @@ import re
 import sys
 
 UNSAFE_CHARACTERS = re.compile(r"[/\\\x00-\x1f\x7f]")
-# 取り込み・投入・自動修正ランが箱直下へ書く名前。payload が同名だと上書き・マーカー偽装になる。APFS は大文字小文字を区別しないので casefold で比べる
-# Names ingest/enqueue/auto-fix runs write at the box root; a same-named payload would clobber or forge them. APFS is case-insensitive, so compare casefolded
-RESERVED_ROOT_NAMES = frozenset(n.casefold() for n in (
-    "ingest.json", "READY", "AUTOFIX_QUEUED", "AUTOFIX_FORCED", "fix-result.json", "run.env", "raw.json"))
+# 取り込みが箱直下へ書く名前。payload が同名だと上書き・所在の偽装になる。APFS は大文字小文字を区別しないので casefold で比べる
+# Names ingest writes at the box root; a same-named payload would clobber or forge them. APFS is case-insensitive, so compare casefolded
+RESERVED_ROOT_NAMES = frozenset(n.casefold() for n in ("ingest.json", "READY", "remote.json"))
 
 
 def is_safe_segment(value: object) -> bool:

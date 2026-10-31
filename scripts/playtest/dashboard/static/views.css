@@ -76,7 +76,7 @@
 .kind-crash::before { background: var(--series-3); }
 .status { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .row-meta .status, .detail-tags .status { margin-left: 0; }
-.status-candidate, .status-broken { color: var(--attention); font-weight: 600; }
+.status-bug, .status-broken { color: var(--attention); font-weight: 600; }
 
 /* 感想の引用 */
 /* Feedback quotes */

@@ -1,7 +1,8 @@
 # プレイテストダッシュボード
 
-`moorestech_logs/harness/playtest/`（プレイ報告・進行記録・日次ダイジェスト）と `harness/bug-report/runs/`（自動修正ラン）を読み、
+`moorestech_logs/harness/playtest/`（プレイ報告・進行記録・日次ダイジェスト）を読み、
 ブラウザで一覧・絞り込み・詳細確認できるようにする Web 画面。標準ライブラリのみ（venv 不要）。
+動画など R2 にだけある生データは、受け口の管理 API（`GET /v1/inbox/report/<steamId>/<id>/<path>`、Range をそのまま渡す）から中継する。
 報告データは読むだけで、書き込むのは人が付ける状態（報告の既読と関連チケットのリンク）だけ。
 
 公開先は `https://review.moores.tech/playtest/`。PR報告ページと同じ named tunnel（`~/hermes-agent/data/services/pr-review/cloudflared-config-moores.yml`）の ingress に `path: ^/playtest` の行を足して
@@ -12,9 +13,9 @@
 
 | 画面 | 内容 |
 |---|---|
-| 概要 | 未投入のバグ報告・報告数・テスター数・セッション数、日別の報告数（種別の積み上げ）とプレイ時間、最新の未投入バグと感想、離脱時のUI状態 |
-| 報告 | 全報告を新しい順に。種別・投入状態・テスター・ビルド・文字列で絞り込み（条件は URL に残り、最後の条件はブラウザに記憶して「報告」タブで戻る） |
-| 報告詳細 | 一覧の条件を引き継ぎ、前後・一覧へ戻るも同じ条件の中で辿る。説明全文・動画（シーク可）・スクショ・unity.log・manifest.json・ビルド/コミット・遠隔実行の状態・修正ランの結果。未投入なら `enqueue-autofix.sh` のコピー |
+| 概要 | 未読のバグ報告・報告数・テスター数・セッション数、日別の報告数（種別の積み上げ）とプレイ時間、最新の未読バグと感想、離脱時のUI状態 |
+| 報告 | 全報告を新しい順に。種別・分類（バグ・除外・読めない）・テスター・ビルド・文字列で絞り込み（条件は URL に残り、最後の条件はブラウザに記憶して「報告」タブで戻る） |
+| 報告詳細 | 一覧の条件を引き継ぎ、前後・一覧へ戻るも同じ条件の中で辿る。説明全文・動画（シーク可）・スクショ・unity.log・manifest.json・ビルド/コミット・遠隔実行の状態。バグなら生データを R2 から取る `fetch-report.sh` のコピー |
 | テスター | 1人1行で最終活動・セッション数・プレイ時間・到達チャレンジ（最奥の名前）・研究数・報告数 |
 | 進行 | チャレンジ到達ファネル（マスタの定義順・到達人数）とセッション一覧。テスターで絞り込み |
 | ダイジェスト | `digests/<日付>.md` を Discord の 1800 文字切り詰め無しで表示。感想全文が混ざるので Markdown として解釈せず素の文章で出し、コピー用ボタンも出さない（感想本文から本物そっくりのコマンドを偽装できるため） |
@@ -35,22 +36,23 @@ scripts/playtest/link-ticket.sh --remove <steamId> <reportId> <チケットURL> 
 
 ## 判定規則（ダイジェストと揃える）
 
-- 投入状態はダイジェストの投入候補と同じ順で決める: バグ以外 → 遠隔実行あり/不明（除外）→ `AUTOFIX_QUEUED` あり（投入済み）→ 未投入
+- 分類はバグ以外 → 遠隔実行あり/不明（除外）→ バグ の順で決める
 - 進行記録の集計は `remoteExec === false` のセッションだけ。キーの無い旧版の記録（不明）も有効と同じく外す
-- 読めない箱（ingest.json・manifest.json が壊れている・無い）は一覧から消さず「読めない箱」として理由付きで出し、投入対象にしない
+- 読めない箱（ingest.json・manifest.json が壊れている・無い）は一覧から消さず「読めない箱」として理由付きで出す
 - 判定は digest_schema の契約どおりに行い、表示だけに使う項目（tick・commit 等）は `display_fields.py` で1項目ずつ緩く読む（表示用の1項目の型違いで箱ごと落とさない）
 - 日別のプレイ時間はプレイした日（`sessionStart` の JST 日付）で切る。ダイジェストは受信日（`readyAt`）で切るので、日ごとの数字は一致しない
 - 公開ホスト名・`127.0.0.1:<port>`・`localhost:<port>` 以外の Host は 421 で拒否する（ローカルのブラウザ経由の DNS リバインディングで Access を迂回させない）
-- **投入はしない。** 投入の判断は人が持つ（ADR 0061）ので、画面は貼れるコマンドを出すだけ
+- 動画は手元の箱にあればそれを、無ければ `remote.json`（無い旧い箱は `READY` の `files[]`）に載っている物だけを R2 から中継する。受け口が 410 を返したら片付けで消した箱。管理キーが無ければ 503 を返し、理由をログへ出す
 
 ## 構成
 
 ```
 server.py            HTTP サーバー（127.0.0.1 待受・GET のみ・CSP で自オリジンのスクリプトに限定）
-collect_reports.py   プレイ報告と自動修正ランの読み取り（digest_schema の型検証を再利用）
+collect_reports.py   プレイ報告の読み取り（digest_schema の型検証を再利用）
 collect_progress.py  進行記録の読み取り
 master_names.py      チャレンジ・研究の GUID → 表示名（moorestech_master の v8 mod）
 media.py             スクショ・動画・ログの許可リスト配信（Range 対応・safe_segment で検証）
+r2_relay.py          R2 にだけある物を受け口の管理 API から中継（Range を渡す・リダイレクトを追わない）
 display_fields.py    表示用項目の緩い読み取り（型違いはログを出して空表示）
 security_headers.py  全応答に付ける CSP・nosniff
 dashboard_state.py   既読・チケットリンクの保存（1ファイル・プロセス内ロック・一時ファイルから置き換え）
@@ -61,7 +63,7 @@ static/              index.html・CSS・ES modules（views/ が画面ごと）
 ## 起動
 
 ```bash
-python3 scripts/playtest/dashboard/server.py            # 既定: --port 8932、--logs・--raw（生データ置き場。MOORESTECH_PLAYTEST_RAW が優先）・--master は repo の兄弟から導出
+python3 scripts/playtest/dashboard/server.py            # 既定: --port 8932、--logs・--env（管理キーを読む env.sh。PLAYTEST_ADMIN_KEY が優先）・--master は repo の位置から導出
 python3 scripts/playtest/tests/test_dashboard.py        # テスト（読み取り）
 python3 scripts/playtest/tests/test_dashboard_state.py  # テスト（既読・チケットリンクの書き込み）
 node --test scripts/playtest/tests/test_report_filter.mjs  # テスト（絞り込みの純粋ロジック）

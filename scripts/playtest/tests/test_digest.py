@@ -13,7 +13,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
 
 sys.path.insert(0, str(SCRIPTS))
-import digest_candidates as dcand  # noqa: E402
 import digest_collect as dc  # noqa: E402
 import digest_schema as dschema  # noqa: E402
 
@@ -40,8 +39,6 @@ class DigestTest(unittest.TestCase):
         reports, stats = dc.load_reports(root, self.date)
         self.assertEqual(sum(r["kind"] == "bug" for r in reports), 1)
         self.assertEqual(stats["remoteExec"], 1)
-        candidates, _ = dcand.load_candidate_reports(root)
-        self.assertEqual(candidates, [])
         self.assertIn("遠隔実行あり/不明の報告 1件（集計から除外）", self.run_ok())
         # 印が無い旧版の箱は無効と名乗らせない（不明として除外し続ける）
         # A legacy box without the mark never claims "disabled"; it stays excluded as unknown
@@ -119,11 +116,6 @@ class DigestTest(unittest.TestCase):
             self.assertIn("⚠ playSeconds が欠落したセッション 2件（欠損を含むため平均は不明）", result.stdout)
             self.assertIn("[digest] WARN progress.playSecondsMissing=2", result.stderr)
 
-    def test_load_fix_results_uses_finished_at(self):
-        runs, stats = dc.load_fix_results(self.root / "harness/bug-report/runs", self.date)
-        self.assertEqual(len(runs), 1)
-        self.assertEqual(runs[0]["prNumber"], 1400)
-        self.assertEqual(stats, {"finishedAtFallback": 0, "invalidResult": 0})
 
     def test_digest_sections(self):
         out = self.run_ok("--max-chars", "0")
@@ -134,45 +126,10 @@ class DigestTest(unittest.TestCase):
         self.assertIn("人数 2 人", out)
         self.assertIn("平均プレイ時間 15.0 分", out)
         self.assertIn("buildModeCancelled 2件", out)
-        self.assertIn("#1400", out)
+        self.assertNotIn("自動修正", out)
         self.assertNotIn("⚠", out)
         self.assertTrue((self.root / "harness/playtest/digests/2026-09-12.md").is_file())
 
-    def test_enqueue_command_id_is_shell_safe(self):
-        """id にシェルメタ文字が混じっても、貼り付けたコマンドは注入されず literal として渡る。
-        評価時はコマンド名を printf へ差し替え、実スクリプトを決して走らせない
-        A shell-meta-character id in the pasted command never injects and is passed literally; the command
-        name is swapped for printf when evaluated so the real script never runs"""
-        malicious = self.root / "harness/playtest/reports/7656006/20260912_160000_evil"
-        write_json(malicious / "ingest.json", {"kind": "report", "steamId": "7656006",
-                                                "id": "$(touch pwned)", "readyAt": "2026-09-12T09:40:00Z"})
-        write_json(malicious / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "injection test"})
-        lines = dcand.format_candidates(*dcand.load_candidate_reports(self.root / "harness/playtest/reports"))
-        cmd_line = next(line for line in lines if "enqueue-autofix.sh 7656006" in line).strip().strip("`")
-        harmless = cmd_line.replace("scripts/playtest/enqueue-autofix.sh", "printf '%s\\n'", 1)
-        self.assertNotEqual(harmless, cmd_line)
-        with tempfile.TemporaryDirectory() as tmp:
-            result = subprocess.run(["bash", "-c", harmless], cwd=tmp, capture_output=True, text=True)
-            self.assertFalse((Path(tmp) / "pwned").exists())
-            self.assertEqual(result.stdout, "7656006\n$(touch pwned)\n")
-
-    def test_enqueue_command_survives_at_sign_neutralization(self):
-        """候補単体のコマンド値と表示の無害化を検証する。
-        Checks command values and display neutralization in the standalone candidate path."""
-        box = self.root / "harness/playtest/reports/7656007/20260912_170000_atsign"
-        write_json(box / "ingest.json", {"kind": "report", "steamId": "7656007@evil",
-                                          "id": "20260912_170000_atsign@evil", "readyAt": "2026-09-12T09:45:00Z"})
-        write_json(box / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "@everyone check this"})
-        lines = dcand.format_candidates(*dcand.load_candidate_reports(self.root / "harness/playtest/reports"))
-        body, commands = dschema.protect_pasteable_commands("\n".join(lines))
-        out = dschema.restore_pasteable_commands(dschema.neutralize_discord_markup(body), commands)
-        self.assertIn(f"@{dschema.ZERO_WIDTH_SPACE}everyone", out)
-        cmd_line = next(line for line in out.splitlines()
-                        if "enqueue-autofix.sh 7656007" in line).strip().strip("`")
-        harmless = cmd_line.replace("scripts/playtest/enqueue-autofix.sh", "printf '%s\\n'", 1)
-        with tempfile.TemporaryDirectory() as tmp:
-            result = subprocess.run(["bash", "-c", harmless], cwd=tmp, capture_output=True, text=True)
-            self.assertEqual(result.stdout, "7656007@evil\n20260912_170000_atsign@evil\n")
 
     def test_digest_truncates_and_points_at_archive(self):
         long_box = self.root / "harness/playtest/reports/7656005/20260912_150000_fb2"

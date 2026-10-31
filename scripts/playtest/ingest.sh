@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# 受け口の inbox を moorestech_logs へ取り込み、成功したものだけ ack する（ADR 0061）
-# 自動修正ランへの投入はしない。人が日次ダイジェストを見て enqueue-autofix.sh で投入する（裁定 2026-09-13）
-# Ingests the receiver inbox into moorestech_logs and acks only what succeeded (ADR 0061)
-# It never enqueues auto-fix runs; a human picks them from the daily digest via enqueue-autofix.sh
+# 受け口の新着報告から、報告を読むための小物だけを moorestech_logs へ写し、成功したものだけ ack する（ADR 0061）
+# 生データ（スナップショット・ワールド・動画等）は取らない。正本は R2 だけで、見るときに fetch-report.sh で 1 件ずつ取る
+# Copies only the small files needed to read each new report into moorestech_logs and acks only what succeeded (ADR 0061)
+# Raw data (snapshots, worlds, videos...) is never downloaded; R2 is its only home and fetch-report.sh pulls one box on demand
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 log() { echo "[ingest] $*" >&2; }
@@ -33,8 +33,6 @@ fi
 . "$HERE/lib/steam-persona.sh"
 # shellcheck source=lib/logs-commit.sh
 . "$HERE/lib/logs-commit.sh"
-# shellcheck source=lib/raw-store.sh
-. "$HERE/lib/raw-store.sh"
 
 LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 PLAYTEST_DIR="$LOGS/harness/playtest"
@@ -47,6 +45,7 @@ MAX_PAGES="${PLAYTEST_INGEST_MAX_PAGES:-20}"
 # The lock lives at a fixed path inside the logs repo's .git: $TMPDIR differs between supervisor and manual runs,
 # so it would not exclude them; inside .git it is also never picked up by the harness/playtest git add
 LOCK="$LOGS/.git/moorestech-playtest-ingest.lock"
+LAYOUT_PY="$HERE/r2_store/box_layout.py"
 
 # R2 側の kind（report|progress）と logs 側のディレクトリ名を明示対応させる
 # Maps the receiver kind (report|progress) onto the logs directory name explicitly
@@ -82,7 +81,7 @@ ingest_one() {
       case "$py_rc" in
         3) log "ERROR: READY 本文に files[] が無い: $kind/$steam_id/${id}（files を書く前の古いクライアントの要約。ack しない）" ;;
         4) log "ERROR: READY 本文の files[] に不正なパスを含む: $kind/$steam_id/${id}（ack しない）" ;;
-        6) log "ERROR: READY 本文の files[] が取り込み側の予約名（ingest.json・READY・AUTOFIX_* 等）と衝突: $kind/$steam_id/${id}（ack しない）" ;;
+        6) log "ERROR: READY 本文の files[] が取り込み側の予約名（ingest.json・READY・remote.json 等）と衝突: $kind/$steam_id/${id}（ack しない）" ;;
         *) log "ERROR: READY 本文の解析に失敗（exit ${py_rc}）: $kind/$steam_id/${id}（ack しない）" ;;
       esac
       rm -rf "$partial"; return 1
@@ -93,25 +92,29 @@ ingest_one() {
       log "[WARN] files[] が空（全ファイル見送り・skipped ${files} 件）。READY と ingest.json だけで公開する: $kind/$steam_id/${id}"
       files=""
     fi
+    # 許可リストの小物だけを取る。それ以外は R2 に残し、finalize が remote.json へ所在を書く
+    # Download only allowlisted small files; the rest stays in R2 and finalize records it in remote.json
     local rel
     while IFS= read -r rel; do
       [ -n "$rel" ] || continue
+      python3 -I "$LAYOUT_PY" wants "$rel" || continue
       mkdir -p "$partial/$(dirname "$rel")" \
         || { log "ERROR: mkdir 失敗 $partial/$(dirname "$rel")（ack しない）"; rm -rf "$partial"; return 1; }
       receiver_get_object "$kind" "$steam_id" "$id" "$rel" "$partial/$rel" \
         || { log "ERROR: 取得失敗 $id/$rel"; rm -rf "$partial"; return 1; }
     done <<< "$files"
-    python3 "$HERE/../bugreport/lib/restore-commit-transfer.py" "$partial" \
-      || { log "ERROR: コミット資料の復元失敗（ack しない）: $kind/$steam_id/$id"; rm -rf "$partial"; return 1; }
     steam_persona_resolve "$steam_id" "$persona_file" \
       || { log "ERROR: 表示名の結果を書けない $kind/$steam_id/$id（ack しない）"; rm -rf "$partial"; return 1; }
     python3 "$HERE/lib/ingest_metadata.py" \
       "$kind" "$steam_id" "$id" "$ready_at" "$(now_utc)" "$persona_file" "$partial/ingest.json" \
       || { log "ERROR: ingest.json 書き込み失敗 $kind/$steam_id/$id（ack しない）"; rm -rf "$partial"; return 1; }
     mkdir -p "$(dirname "$dest")" || { log "ERROR: mkdir 失敗 $dest（ack しない）"; rm -rf "$partial"; return 1; }
-    raw_publish_box "$sub" "$steam_id" "$id" "$partial" "$dest" \
-      || { log "ERROR: 箱を公開できない $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }
-    log "ingested: $kind/$steam_id/$id"
+    printf '%s\n' "$files" > "$WORK/files.txt"
+    local remote_count
+    remote_count="$(python3 -I "$LAYOUT_PY" finalize "$partial" "$kind" "$steam_id" "$id" "$WORK/files.txt")" \
+      || { log "ERROR: remote.json を書けない $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }
+    mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> ${dest}（ack しない）"; rm -rf "$partial"; return 1; }
+    log "ingested: $kind/$steam_id/${id}（R2 にだけ置く物 ${remote_count} 件）"
   else
     log "取り込み済み。ack のみやり直す: $kind/$steam_id/$id"
   fi
@@ -124,7 +127,6 @@ ingest_one() {
 # Stop before touching the receiver if the logs repo is absent: a location-derived
 # default resolves to nothing outside the main clone (task worktrees etc.), so fail closed here
 [ -d "${LOGS}/.git" ] || { log "ERROR: logs repo が無い（${LOGS}）。取り込み・ack をしない"; exit 1; }
-require_raw_store || exit 1
 
 acquire_lock || exit 0
 WORK="$(mktemp -d)"

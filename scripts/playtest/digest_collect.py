@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""取り込み済みのプレイ報告・進行記録・自動修正ラン結果を日付で拾って集計する（標準ライブラリのみ）。
+"""取り込み済みのプレイ報告・進行記録を日付で拾って集計する（標準ライブラリのみ）。
 
-Collects ingested play reports, progress records and auto-fix run results for one day; stdlib only.
+Collects ingested play reports and progress records for one day; stdlib only.
 """
 from __future__ import annotations
 
@@ -144,37 +144,3 @@ def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
             continue
         records.append(flatten_progress_record(record, box))
     return records, stats
-
-
-def load_fix_results(runs_root: Path, date: str) -> tuple[list[dict], dict]:
-    """自動修正ランを finishedAt で拾う。欠けている・解釈できない分は mtime に落とし（対象日のランだけ数える）、
-    型が契約と食い違う fix-result.json は除外して、それぞれ件数を返して出力に出す
-    Picks runs by finishedAt; missing or unparsable stamps fall back to mtime (counted only for target-day runs)
-    and type-mismatched fix-result.json files are excluded, both reported as counts"""
-    runs: list[dict] = []
-    stats = {"finishedAtFallback": 0, "invalidResult": 0}
-    for result_path in sorted(runs_root.glob("*/fix-result.json")):
-        result, reason = schema.read_conformed(result_path, schema.FIX_RESULT_SCHEMA)
-        if result is None:
-            warn(reason or "fix-result.json の型が想定外", result_path)
-            stats["invalidResult"] += 1
-            continue
-        # 欠落と、7桁小数等で python3.9 の fromisoformat が拒否する解釈不能を同じフォールバックに束ねる
-        # Missing and unparsable (e.g. 7-digit fractions python3.9's fromisoformat rejects) share one fallback
-        day = jst_date(result["finishedAt"])
-        fell_back = not day
-        if fell_back:
-            day = datetime.fromtimestamp(result_path.stat().st_mtime, JST).strftime("%Y-%m-%d")
-        if day != date:
-            continue
-        if fell_back:
-            warn("finishedAt が無い/解釈できず mtime で日付判定", result_path)
-            stats["finishedAtFallback"] += 1
-        runs.append({
-            "id": result_path.parent.name,
-            "status": result["status"] or "missing",
-            "prNumber": result["pr_number"],
-            "base": result["base"],
-            "summary": result["summary"],
-        })
-    return runs, stats

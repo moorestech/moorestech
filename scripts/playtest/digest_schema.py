@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""外部 JSON（ingest.json / manifest.json / record.json / fix-result.json）の読み込み境界。
+"""外部 JSON（ingest.json / manifest.json / record.json）の読み込み境界。
 
 型の検証と既定値の補完をこの1箇所で行い、集計側は型が保証された dict だけを扱う。
 値が null・欠落なら既定値、型が契約と食い違えば箱/記録ごと None＋理由文字列（呼び出し側が理由をログし件数に数えて除外する）。
 テスター由来の文字列を Discord へ出す側の無害化（neutralize_discord_markup）も外部入力の境界としてここに置く。
 
-Read boundary for external JSON (ingest.json / manifest.json / record.json / fix-result.json).
+Read boundary for external JSON (ingest.json / manifest.json / record.json).
 Type validation and defaulting happen only here, so aggregation code handles type-guaranteed dicts.
 A null or missing value takes its default; a type mismatch yields (None, reason) for the whole file
 (callers log the reason and count/exclude it). Neutralising tester-supplied text for Discord output
@@ -16,7 +16,6 @@ from __future__ import annotations
 import json
 import math
 import re
-import uuid
 from pathlib import Path
 
 STR = (str,)
@@ -51,10 +50,6 @@ RECORD_SCHEMA = {
     # remoteExec keeps None: False would conflate "recorded as disabled" with "a legacy record lacking the key"
     "remoteExec": (BOOL, None),
 }
-FIX_RESULT_SCHEMA = {
-    "status": (STR, ""), "pr_number": (INT, None), "base": (STR, ""), "summary": (STR, ""),
-    "finishedAt": (STR, ""),
-}
 
 
 class Invalid:
@@ -68,7 +63,7 @@ class Invalid:
 def read_json(path: Path) -> tuple[dict | None, str | None]:
     """壊れている・読めない・dict でない JSON は (None, 理由) にする。理由は呼び出し側がログする
     Broken, unreadable or non-dict JSON becomes (None, reason); callers log the reason"""
-    # 外部（受け口・ゲーム本体・自動修正ラン）が書いたファイルの読み取りなので例外を隔離する
+    # 外部（受け口・ゲーム本体）が書いたファイルの読み取りなので例外を隔離する
     # This reads files written by external producers, so the exception is isolated here
     try:
         raw = path.read_text(encoding="utf-8")
@@ -182,38 +177,3 @@ def neutralize_discord_markup(text: str) -> str:
     Neutralises tester-supplied text before it reaches Discord: a zero-width space after every @ stops
     @everyone/@here/<@id> pings, and one between consecutive backticks stops code fences opening or closing"""
     return re.sub(r"`(?=`)", "`" + ZERO_WIDTH_SPACE, text.replace("@", "@" + ZERO_WIDTH_SPACE))
-
-
-# digest_candidates.format_candidates が出す貼り付け用コマンド行の形。バッククォート無しは
-# 生成側で既に保証されている（値にバッククォートがあればコマンド行自体を出さない）
-# Shape of the pasteable command line format_candidates emits; the absence of a backtick is
-# already guaranteed by the generator (it omits the command line entirely when a value has one)
-PASTEABLE_COMMAND_RE = re.compile(r"^  `scripts/playtest/enqueue-autofix\.sh [^`\n]*`$", re.MULTILINE)
-
-
-def protect_pasteable_commands(body: str) -> tuple[str, dict[str, str]]:
-    """貼り付け用の enqueue コマンド行を無害化の対象外にする。id/steamId に @ を含む箱では、本文全体への
-    無害化がコマンド中の @ にも ZWSP を挟み、貼り付けたコマンドが `[ -d ]` 判定で「箱が無い」失敗になる
-    回帰があった（実害2026-09-17）。コマンド行はコードスパン内で、値はすでに shlex.quote 済みのため
-    元の文字のまま復元してよい
-    Exempts pasteable enqueue command lines from neutralization. When id/steamId contains an @, whole-body
-    neutralization used to insert a ZWSP inside the command's @ too, making the pasted command fail the
-    `[ -d ]` box check with "box missing" (a real regression, 2026-09-17). The command line sits in a code
-    span and its values are already shlex.quote'd, so restoring the original characters verbatim is safe"""
-    token = uuid.uuid4().hex
-    mapping: dict[str, str] = {}
-
-    def stash(match: re.Match) -> str:
-        placeholder = f"\x00{token}{len(mapping)}\x00"
-        mapping[placeholder] = match.group(0)
-        return placeholder
-
-    return PASTEABLE_COMMAND_RE.sub(stash, body), mapping
-
-
-def restore_pasteable_commands(body: str, mapping: dict[str, str]) -> str:
-    """protect_pasteable_commands が退避したコマンド行を無害化後の本文へ書き戻す
-    Writes the command lines stashed by protect_pasteable_commands back into the neutralized body"""
-    for placeholder, original in mapping.items():
-        body = body.replace(placeholder, original)
-    return body

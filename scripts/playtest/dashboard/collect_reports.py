@@ -1,10 +1,10 @@
-"""プレイ報告と自動修正ランを全期間ぶん読み、ダッシュボード用の行へ畳む（標準ライブラリのみ）。
+"""プレイ報告を全期間ぶん読み、ダッシュボード用の行へ畳む（標準ライブラリのみ）。
 
-投入状態の判定は digest_schema の MANIFEST_SCHEMA と digest_candidates の順序をそのまま使い、表示用の項目は display_fields で別に読む。
+分類は digest_schema の MANIFEST_SCHEMA で読み、表示用の項目は display_fields で別に読む。
 読めない箱も一覧から消さず、理由付きの broken 行として返す（ダイジェストと同じく無音で落とさない）。
 
-Reads every play report and auto-fix run and flattens them into dashboard rows (stdlib only).
-Triage reuses digest_schema's MANIFEST_SCHEMA and digest_candidates' order; display fields are read separately via display_fields.
+Reads every play report and flattens it into dashboard rows (stdlib only).
+Classification reads via digest_schema's MANIFEST_SCHEMA; display fields are read separately via display_fields.
 Unreadable boxes stay listed as broken rows with a reason, never dropped silently (same contract as the digest).
 """
 from __future__ import annotations
@@ -17,53 +17,31 @@ import digest_schema as schema
 from digest_collect import jst_date
 from display_fields import pick, warn
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "raw_store"))
-import raw_reader  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
+from safe_segment import is_safe_segment  # noqa: E402
 
 # 詳細画面から開けるファイル。media.py の配信許可と同じ一覧を使う
 # Files the detail view can open; media.py serves exactly this allowlist
 MEDIA_FILES = ("screenshot.png", "video.mp4", "logs/unity.log", "manifest.json")
 COMMIT_RE = re.compile(r"^[0-9a-f]{7,40}$")
 
-TRIAGE_CANDIDATE = "candidate"
-TRIAGE_QUEUED = "queued"
+TRIAGE_BUG = "bug"
 TRIAGE_EXCLUDED = "excluded"
 TRIAGE_NOT_BUG = "notBug"
 TRIAGE_BROKEN = "broken"
 
 
-def load_runs(runs_root: Path) -> dict[str, dict]:
-    """自動修正ランを報告 id で引ける形にする。fix-result.json が無いランは noResult（実行中か異常終了か区別できない）
-    Indexes auto-fix runs by report id; a run without fix-result.json is noResult (running and crashed look the same)"""
-    runs: dict[str, dict] = {}
-    for run_dir in sorted(p for p in runs_root.glob("*") if p.is_dir()):
-        result_path = run_dir / "fix-result.json"
-        if not result_path.is_file():
-            runs[run_dir.name] = {"id": run_dir.name, "status": "noResult", "prNumber": None, "summary": "", "finishedAt": ""}
-            continue
-        result, reason = schema.read_conformed(result_path, schema.FIX_RESULT_SCHEMA)
-        if result is None:
-            warn(reason or "fix-result.json の型が想定外", result_path)
-            runs[run_dir.name] = {"id": run_dir.name, "status": "invalid", "prNumber": None, "summary": reason or "", "finishedAt": ""}
-            continue
-        runs[run_dir.name] = {"id": run_dir.name, "status": result["status"] or "missing", "prNumber": result["pr_number"],
-                              "summary": result["summary"], "finishedAt": result["finishedAt"]}
-    return runs
-
-
-def load_reports(reports_root: Path, raw_root: Path, runs: dict[str, dict]) -> list[dict]:
-    """全報告を新しい順で返す。動画等は logs repo の外の生データ置き場（raw_root）からも引く
-    Returns every report newest first; videos etc. are also looked up in the raw store (raw_root) outside the logs repo"""
-    rows = [read_report_box(ingest_path.parent, raw_root, runs) for ingest_path in sorted(reports_root.glob("*/*/ingest.json"))]
+def load_reports(reports_root: Path) -> list[dict]:
+    """全報告を新しい順で返す。動画等の生データは R2 にあり、media.py が受け口経由で中継する
+    Returns every report newest first; raw data such as videos lives in R2 and media.py relays it via the receiver"""
+    rows = [read_report_box(ingest_path.parent) for ingest_path in sorted(reports_root.glob("*/*/ingest.json"))]
     rows.sort(key=lambda row: row["readyAt"], reverse=True)
     return rows
 
 
-def read_report_box(box: Path, raw_root: Path, runs: dict[str, dict]) -> dict:
+def read_report_box(box: Path) -> dict:
     meta, ingest_reason = schema.read_conformed(box / "ingest.json", schema.INGEST_SCHEMA)
-    row = base_row(box, raw_root, meta, runs)
-    # ingest.json が読めない箱はダイジェストも候補から外すので、ここでも投入対象にしない
-    # The digest drops boxes with an unreadable ingest.json from candidates, so they are never enqueue targets here either
+    row = base_row(box, meta)
     if meta is None:
         return broken(row, ingest_reason or "ingest.json を読めない", box / "ingest.json")
     manifest_path = box / "manifest.json"
@@ -78,27 +56,34 @@ def read_report_box(box: Path, raw_root: Path, runs: dict[str, dict]) -> dict:
     remote_state, remote_reason = schema.remote_exec_state(manifest)
     return dict(row, kind=manifest["kind"], description=manifest["description"],
                 buildLabel=manifest["buildInfo"]["steamBuildLabel"], remoteExec=remote_state, remoteExecReason=remote_reason,
-                triage=classify(manifest["kind"], remote_state, row["queued"]), **display_manifest(raw, manifest_path))
+                triage=classify(manifest["kind"], remote_state), **display_manifest(raw, manifest_path))
 
 
-def base_row(box: Path, raw_root: Path, meta: dict | None, runs: dict[str, dict]) -> dict:
+def base_row(box: Path, meta: dict | None) -> dict:
     meta = meta or {}
-    raw = raw_reader.raw_state(box, raw_root)
-    # 期限切れ・欠落は行の raw で画面に理由を出す。期限切れは想定どおりなので、事故（欠落・破損）だけログにも出す
-    # The row's raw shows expiry or loss on screen; expiry is expected, so only incidents (missing/broken) also hit the log
-    if raw["state"] in ("missing", "broken"):
-        warn(raw["reason"], box)
     report_id = meta.get("id") or box.name
     ready_at = meta.get("readyAt") or meta.get("ingestedAt") or ""
+    remote = remote_files(box)
     return {
         "id": report_id, "steamId": meta.get("steamId") or box.parent.name,
         "boxSteamId": box.parent.name, "boxId": box.name,
         "testerName": meta.get("steamPersonaName", "").strip(), "profileUrl": meta.get("steamProfileUrl", ""),
-        "readyAt": ready_at, "date": jst_date(ready_at), "queued": (box / "AUTOFIX_QUEUED").is_file(),
-        "media": [name for name in MEDIA_FILES if raw_reader.resolve_file(box, name, raw_root) is not None],
-        "raw": {"state": raw["state"], "expiresAt": raw["expiresAt"], "reason": raw["reason"]},
-        "run": runs.get(report_id), "problem": None, "kind": "", "description": "", "buildLabel": "",
+        "readyAt": ready_at, "date": jst_date(ready_at),
+        "media": [name for name in MEDIA_FILES if (box / name).is_file() or name in remote],
+        "problem": None, "kind": "", "description": "", "buildLabel": "",
     }
+
+
+def remote_files(box: Path) -> frozenset:
+    """手元に無く R2 にだけある箱内パス。remote.json が無い旧い箱は READY の files[] から手元に無い物を引く
+    Box paths present only in R2; older boxes without remote.json fall back to READY's files[] minus what is local"""
+    for name in ("remote.json", "READY"):
+        data = schema.read_json(box / name)[0] if (box / name).is_file() else None
+        files = data.get("files") if isinstance(data, dict) else None
+        if isinstance(files, list):
+            listed = (f for f in files if isinstance(f, str) and all(is_safe_segment(p) for p in f.split("/")))
+            return frozenset(f for f in listed if not (box / f).is_file())
+    return frozenset()
 
 
 def broken(row: dict, reason: str, path: Path) -> dict:
@@ -123,11 +108,11 @@ def display_manifest(raw: dict, source: Path) -> dict:
     }
 
 
-def classify(kind: str, remote_state: str, queued: bool) -> str:
-    """digest_candidates と同じ順で判定する（バグ以外→遠隔実行あり/不明→投入済み→候補）
-    Mirrors digest_candidates' order: non-bug, then remote exec enabled/unknown, then queued, else candidate"""
+def classify(kind: str, remote_state: str) -> str:
+    """バグ以外→遠隔実行あり/不明→バグの順に判定する（遠隔実行のあった報告はダイジェストの集計からも外す）
+    Classifies non-bug first, then remote exec enabled/unknown, else bug (the digest also leaves remote-exec reports out)"""
     if kind != "bug":
         return TRIAGE_NOT_BUG
     if remote_state != schema.REMOTE_EXEC_DISABLED:
         return TRIAGE_EXCLUDED
-    return TRIAGE_QUEUED if queued else TRIAGE_CANDIDATE
+    return TRIAGE_BUG

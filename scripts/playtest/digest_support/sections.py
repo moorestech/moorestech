@@ -1,4 +1,4 @@
-"""進行と修正ランの表示。 / Progress and fix-run formatting."""
+"""進行の表示。 / Progress formatting."""
 from collections import Counter
 
 
@@ -69,21 +69,3 @@ def format_progress(agg: dict, stats: dict, records: list[dict]) -> list[str]:
     if stats.get("noPayload"):
         lines.append(f"- ⚠ record.json が無い箱（クライアントが全ファイルを見送った） {stats['noPayload']}件")
     return lines
-
-
-def format_runs(runs: list[dict], stats: dict) -> list[str]:
-    lines = ["", "## 自動修正ラン"]
-    if not runs:
-        lines.append("- なし")
-    else:
-        lines.append("- " + " / ".join(f"{k} {v}件" for k, v in sorted(Counter(
-            r["status"] for r in runs).items())))
-        for run in runs:
-            pr = f"#{run['prNumber']}" if run["prNumber"] else "PRなし"
-            lines.append(f"- {run['id']} … {run['status']} / {pr} / base {run['base'] or '不明'} / {run['summary']}")
-    if stats["finishedAtFallback"]:
-        lines.append(f"- ⚠ finishedAt が無い/解釈できず mtime で日付判定したラン {stats['finishedAtFallback']}件")
-    if stats["invalidResult"]:
-        lines.append(f"- ⚠ fix-result.json の型が想定外で除外したラン {stats['invalidResult']}件")
-    return lines
-

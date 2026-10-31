@@ -73,3 +73,31 @@ receiver_dev_token_revoke() {
   local machine="$1" out="$2"
   receiver_curl "$out" -X DELETE "$RECEIVER_BASE/v1/admin/dev-tokens/$(url_encode_path "$machine")"
 }
+
+# zip 取り込みの箱を R2 へ上げる署名付き URL をもらう。本文は r2_import.py declare の出力
+# Ask for presigned URLs to upload a zip-imported box to R2; the body is r2_import.py declare's output
+receiver_import_urls() {
+  local kind="$1" steam_id="$2" id="$3" body_file="$4" out="$5"
+  receiver_curl "$out" -X POST -H "content-type: application/json" --data-binary "@$body_file" \
+    "$RECEIVER_BASE/v1/inbox/$(url_encode "$kind")/$(url_encode "$steam_id")/$(url_encode "$id")/import"
+}
+
+# 片付いた箱の生データを R2 から消す（ACKED と PURGED の印だけ残る）。本文は {"reason": "..."}
+# Delete a settled box's raw data from R2 (only the ACKED and PURGED markers remain); the body is {"reason": "..."}
+receiver_purge() {
+  local kind="$1" steam_id="$2" id="$3" body_file="$4" out="$5"
+  receiver_curl "$out" -X DELETE -H "content-type: application/json" --data-binary "@$body_file" \
+    "$RECEIVER_BASE/v1/inbox/$(url_encode "$kind")/$(url_encode "$steam_id")/$(url_encode "$id")"
+}
+
+# 署名付き URL へ 1 ファイルを PUT する。署名が Content-Length と If-None-Match: * を含むので、412（既にある）は送信済みとして扱う
+# PUT one file to a presigned URL; the signature covers Content-Length and If-None-Match: *, so 412 (already there) counts as sent
+r2_put_presigned() {
+  local file="$1" url="$2" code
+  code="$("$CURL_CMD" --silent --show-error --max-time "$RECEIVER_MAX_TIME" -X PUT -H "If-None-Match: *" \
+    --upload-file "$file" -w '%{http_code}' -o /dev/null "$url")" || { echo "[receiver] PUT 自体が失敗: $file" >&2; return 1; }
+  case "$code" in
+    2??|412) return 0 ;;
+    *) echo "[receiver] PUT status=${code}: $file" >&2; return 1 ;;
+  esac
+}

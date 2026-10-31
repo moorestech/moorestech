@@ -1,11 +1,11 @@
-// 報告一覧: 主な絞り込み（投入状態・種別）はタブ型、従の絞り込み（テスター・ビルド・検索）は1行にまとめる
+// 報告一覧: 主な絞り込み（分類・種別）はタブ型、従の絞り込み（テスター・ビルド・検索）は1行にまとめる
 // Report list: primary filters (status, kind) as segmented tabs, secondary ones (tester, build, search) in one row
 import { card, dayGroups, pageHead, reportRow } from "../components.js";
 import { emptyNote, h, kindLabel, postState, reportKey, routeHref, testerName } from "../core.js";
 import { EMPTY_KIND, applyFilters, filterOf, readMatches, saveFilter } from "../report-filter.js";
 
 const READ_TABS = [["", "既読・未読"], ["unread", "未読"], ["read", "既読"]];
-const TRIAGE_TABS = [["", "すべて"], ["candidate", "未投入"], ["queued", "投入済み"], ["excluded", "除外"], ["broken", "読めない"]];
+const TRIAGE_TABS = [["", "すべて"], ["bug", "バグ"], ["excluded", "除外"], ["broken", "読めない"]];
 
 export function renderReports(data, params) {
   // 開いた一覧の条件を記憶し、条件なしなら記憶も空にする

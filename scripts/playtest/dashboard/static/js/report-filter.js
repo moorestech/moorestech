@@ -2,7 +2,7 @@
 // Report filtering: condition extraction, matching, neighbour lookup and remembering the last condition (no DOM)
 
 export const FILTER_KEYS = ["triage", "kind", "read", "tester", "build", "q"];
-export const CANDIDATE_FILTER = { triage: "candidate" };
+export const UNREAD_BUG_FILTER = { triage: "bug", read: "unread" };
 export const FEEDBACK_FILTER = { kind: "feedback" };
 // 種別が空（読めない箱）は value="" だと「すべて」と区別できないので専用の値で表す
 // An empty kind (unreadable box) gets its own value, since "" would mean "all"
