@@ -10,12 +10,12 @@ function importFiles(files: Record<string, number>): Promise<Response> {
   return adminRequest("POST", "/import", { "content-type": "application/json" }, JSON.stringify({ files: Object.entries(files).map(([path, bytes]) => ({ path, bytes })) }));
 }
 
-// zip取り込み用の署名付きPUT URL発行。READYは許し、在る分は除き、ACKEDを書いて取り込み一覧に出さない
-// Presigned PUT URLs for a zip import; READY is allowed, present files are skipped, and ACKED keeps the box out of the inbox
+// zip取り込み用の署名付きPUT URL発行。READYは許し、在る分は除き、宣言を箱に残すがACKEDは書かない（確定はimport/complete）
+// Presigned PUT URLs for a zip import; READY is allowed, present files are skipped, the declaration is stored but ACKED is not (import/complete settles)
 describe("admin inbox import", () => {
   beforeEach(clean);
 
-  it("未送信のファイルにURLを出し、READYも許し、ACKEDを書くがpending索引は書かない", async () => {
+  it("未送信のファイルにURLを出し、READYも許し、宣言だけを残してACKEDもpending索引も書かない", async () => {
     const response = await importFiles({ READY: 2, "manifest.json": 3, "__attachments/000000/chunk": 4 });
     expect(response.status).toBe(200);
     const body = (await response.json()) as ImportAnswer;
@@ -25,7 +25,9 @@ describe("admin inbox import", () => {
     const url = new URL(body.uploads.find((upload) => upload.path === "manifest.json")!.url);
     expect(decodeURIComponent(url.pathname)).toBe(`/${workerEnv.R2_BUCKET_NAME}/${BOX_PREFIX}/manifest.json`);
     expect(url.searchParams.get("X-Amz-SignedHeaders")).toBe("content-length;host;if-none-match");
-    expect(await boxKeys()).toEqual(["ACKED"]);
+    expect(await boxKeys()).toEqual(["IMPORT_DECLARED"]);
+    const stored = JSON.parse(await (await workerEnv.BUCKET.get(`${BOX_PREFIX}/IMPORT_DECLARED`))!.text());
+    expect(stored.files).toEqual([{ path: "READY", bytes: 2 }, { path: "manifest.json", bytes: 3 }, { path: "__attachments/000000/chunk", bytes: 4 }]);
     expect((await workerEnv.BUCKET.list({ prefix: "index/pending/" })).objects).toHaveLength(0);
   });
 
@@ -42,7 +44,7 @@ describe("admin inbox import", () => {
     warn.mockRestore();
   });
 
-  it.each(["ACKED", "DECLARED", "PURGED"])("予約名 %s は400 reserved-name", async (name) => {
+  it.each(["ACKED", "DECLARED", "PURGED", "IMPORT_DECLARED"])("予約名 %s は400 reserved-name", async (name) => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await importFiles({ [name]: 1 });
     expect(response.status).toBe(400);

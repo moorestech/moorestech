@@ -19,7 +19,8 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 | GET | `/v1/inbox/{kind}/{steamId}/{id}/{path...}` | `X-Admin-Key` | 個別ファイル取得（単一範囲の `Range` 対応。片付け済みの箱は410） |
 | POST | `/v1/inbox/{kind}/{steamId}/{id}/ack` | `X-Admin-Key` | `ACKED` を書き索引を消す |
 | DELETE | `/v1/inbox/{kind}/{steamId}/{id}` | `X-Admin-Key` | ACK済みの箱の生データを消し `PURGED` を残す |
-| POST | `/v1/inbox/{kind}/{steamId}/{id}/import` | `X-Admin-Key` | 受け口に届かなかった報告（zip）を上げ直す署名付き PUT URL を出す |
+| POST | `/v1/inbox/{kind}/{steamId}/{id}/import` | `X-Admin-Key` | 受け口に届かなかった報告（zip）を上げ直す署名付き PUT URL を出し、宣言を箱に残す |
+| POST | `/v1/inbox/{kind}/{steamId}/{id}/import/complete` | `X-Admin-Key` | import の宣言どおりに全ファイルが揃っていれば `ACKED` を書く |
 
 生データの正本は R2 だけ。Mac mini は報告を読むための小物だけを手元に取り、動画・ワールド等は必要なときに個別取得で取る。片付いた報告は DELETE で R2 から消す。
 
@@ -71,11 +72,19 @@ Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合
 
 ### `POST /v1/inbox/{kind}/{steamId}/{id}/import`
 
-本文 `{ "files": [{ "path", "bytes" }] }`。パスの検査と理由語は prepare と同じ。上限だけは zip の全ファイルを R2 に残すため R2 単一 PUT 上限を下回る 5GB/ファイル（413 `too-large`）で、件数・合計は縛らない。上限で拒否した応答は `{ "reason", "detail" }` で、`detail` にどのファイルがどの上限を超えたかが入る。ただし `READY` は許し（zip の箱は READY を持つ）、予約名は `ACKED` / `DECLARED` / `PURGED`（400 `reserved-name`）。`generation` は無い。
+本文 `{ "files": [{ "path", "bytes" }] }`。パスの検査と理由語は prepare と同じ。上限だけは zip の全ファイルを R2 に残すため R2 単一 PUT 上限を下回る 5GB/ファイル（413 `too-large`）で、件数・合計は縛らない。上限で拒否した応答は `{ "reason", "detail" }` で、`detail` にどのファイルがどの上限を超えたかが入る。ただし `READY` は許し（zip の箱は READY を持つ）、予約名は `ACKED` / `DECLARED` / `PURGED` / `IMPORT_DECLARED`（400 `reserved-name`）。`generation` は無い。
 - `PURGED` のある箱は409 `{ "reason": "purged" }`（受付時と応答直前の2回確かめる）。
 - 同じ長さで在るキーは `uploads` から外し、長さ違いは `conflicts: [{ "path", "expectedBytes", "actualBytes" }]`。URL は prepare と同じ署名（`Content-Length` と `If-None-Match: *`）。
-- 応答前に `ACKED` を無いときだけ書く（取り込み一覧に出さず、DELETE の対象にする）。pending 索引は書かない。
+- 検査を通った宣言を箱の `IMPORT_DECLARED`（`{ "files": [...] }`）へ置く（再 import は置き換え）。`ACKED` も pending 索引も書かない。
 - 200 `{ "uploads": [...], "conflicts": [...], "expiresInSeconds": <n> }`。R2 署名設定の漏れは500 `server-misconfigured`。
+
+### `POST /v1/inbox/{kind}/{steamId}/{id}/import/complete`
+
+本文なし。運用側が全 PUT を終えた後に呼ぶ。
+- `PURGED` のある箱は409 `{ "reason": "purged" }`（import との間に DELETE が走った場合も含む。照合の前後2回確かめる）。
+- `IMPORT_DECLARED` が無ければ409 `not-imported`、読めなければ409 `declaration-unreadable`。
+- 宣言の全ファイルを prefix の list で照合し、無い・長さが違う物があれば409 `{ "reason": "incomplete", "missing": [{ "path", "expectedBytes", "actualBytes" }] }`（`actualBytes` が null なら不足）。`ACKED` は書かない。
+- 揃っていれば `ACKED` を無いときだけ書き（最初の日時を保つ）、残っていた pending 索引を消して200 `{ "acked": true, "fileCount": <n> }`。
 
 ## 初回セットアップ
 

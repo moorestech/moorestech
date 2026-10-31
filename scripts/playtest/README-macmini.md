@@ -70,7 +70,7 @@ bash scripts/playtest/r2_store/fetch-report.sh --out <置き場> --kind progress
 
 ## zip で届いた報告の取り込み
 
-`bash scripts/playtest/import-export-zip.sh <zip>`。箱ごとに受け口の `import` で署名付き URL をもらい、全ファイルを R2 へ PUT してから、小物だけを logs へ置く。R2 に長さの違う同名ファイルがある・PUT に失敗した箱は取り込まない（理由を出して exit 1）。
+`bash scripts/playtest/import-export-zip.sh <zip>`。箱ごとに受け口の `import` で署名付き URL をもらい、全ファイルを R2 へ PUT してから、小物だけを logs へ置き、最後に受け口の `import/complete` で確定する（受け口が全ファイルの存在と長さを確かめてから `ACKED` を書く）。R2 に長さの違う同名ファイルがある・PUT に失敗した・確定できなかった箱は取り込まない（手元の箱も戻し、理由を出して exit 1。再実行でやり直せる）。PUT の制限時間は `RECEIVER_MAX_TIME`（既定120秒）に大きさ÷`R2_PUT_MIN_BYTES_PER_SEC`（既定 1000000）秒を足した値。
 
 ## 詰まったとき
 

@@ -4,6 +4,7 @@ export const READY_MARKER = "READY";
 export const ACKED_MARKER = "ACKED";
 export const DECLARED_MARKER = "DECLARED";
 export const PURGED_MARKER = "PURGED";
+export const IMPORT_DECLARED_MARKER = "IMPORT_DECLARED";
 
 export function ackedMarkerKey(kind: PlaytestKind, steamId: string, id: string): string {
   return `${bundlePrefix(kind, steamId, id)}/${ACKED_MARKER}`;
@@ -13,6 +14,12 @@ export function ackedMarkerKey(kind: PlaytestKind, steamId: string, id: string):
 // Where prepare stores its declaration; complete uses it for verification
 export function declaredMarkerKey(kind: PlaytestKind, steamId: string, id: string): string {
   return `${bundlePrefix(kind, steamId, id)}/${DECLARED_MARKER}`;
+}
+
+// zip取り込みの宣言置き場。import/completeが照合に使う（prepareのDECLAREDとは上限も世代も違うので分ける）
+// Where a zip import stores its declaration for import/complete; kept apart from prepare's DECLARED (different limits, no generation)
+export function importDeclaredMarkerKey(kind: PlaytestKind, steamId: string, id: string): string {
+  return `${bundlePrefix(kind, steamId, id)}/${IMPORT_DECLARED_MARKER}`;
 }
 
 // 取り込み済みかの正本はACKEDマーカーだけ。索引やREADYの有無からは推測しない

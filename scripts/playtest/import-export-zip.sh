@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # テスターが書き出した未送信報告の zip を、箱ごと R2 へ上げてから受け口経由と同じ形で moorestech_logs へ取り込む
-# 生データの正本は R2 だけなので、手元には報告を読むための小物しか残さない。上げられなかった箱は取り込まない
+# 生データの正本は R2 だけなので、手元には報告を読むための小物しか残さない。上げられなかった・受け口で確定できなかった箱は取り込まない
 # 使い方: import-export-zip.sh <zip>。全箱成功（取り込み済みの飛ばしを含む）で 0、1件でも失敗があれば 1
 # Uploads each box of a tester-exported unsent-report zip to R2, then imports it into moorestech_logs like the receiver path
-# R2 is the only home for raw data, so only small files stay local; a box that cannot be uploaded is not imported
+# R2 is the only home for raw data, so only small files stay local; a box that cannot be uploaded or settled on the receiver is not imported
 # Usage: import-export-zip.sh <zip>. Exits 0 when every box succeeded (skips of already-imported ones included), 1 on any failure
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -97,6 +97,12 @@ import_one() {
   python3 -I "$LAYOUT_PY" finalize "$partial" "$kind" "$steam_id" "$id" "$WORK/files.txt" > /dev/null \
     || { log "ERROR: remote.json を書けない $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
   mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> $dest"; rm -rf "$partial"; return 1; }
+  # 手元へ置いてから受け口で確定する。確定できなければ手元も戻し、次の実行でやり直せるようにする
+  # Settle on the receiver only after placing locally; on failure undo the local copy so the next run retries
+  receiver_import_complete "$kind" "$steam_id" "$id" "$WORK/complete-reply.json" || {
+    log "ERROR: 受け口が取り込みを確定しない（R2 に足りない・長さ違いのファイルがある等）: $kind/$steam_id/${id} $(head -c 2000 "$WORK/complete-reply.json" 2>/dev/null)"
+    rm -rf "$dest"; return 1
+  }
   log "imported: $sub/$steam_id/$id"
 }
 

@@ -3,6 +3,7 @@ import type { Env } from "../../env";
 import { fail, json, requireAdmin, requireMethod } from "../../http";
 import { getInboxObject } from "./adminObject";
 import { postImport } from "./adminImport";
+import { postImportComplete } from "./adminImportComplete";
 import { deleteBundle } from "./adminPurge";
 import {
   isKind,
@@ -69,6 +70,11 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
     const denied = requireMethod(request, ["POST"], "inbox import");
     if (denied !== null) return denied;
     return postImport(request, env, kind, steamId, id);
+  }
+  if (rest.length === 2 && rest[0] === "import" && rest[1] === "complete") {
+    const denied = requireMethod(request, ["POST"], "inbox import complete");
+    if (denied !== null) return denied;
+    return postImportComplete(env, kind, steamId, id);
   }
   const denied = requireMethod(request, ["GET"], "inbox object");
   if (denied !== null) return denied;

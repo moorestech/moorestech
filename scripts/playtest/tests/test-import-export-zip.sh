@@ -55,6 +55,11 @@ python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); assert r["files"] =
 # Every file of the box is PUT with If-None-Match: *, and the import is called with the admin key
 grep -qxF 'POST inbox/report/7656001/20261019_150326_bug1/import key=dummy' "$IMPORT_DIR/calls.log" || { echo "NG: import が呼ばれていない"; exit 1; }
 grep -qxF 'POST inbox/progress/7656001/20261019_160000_pg1/import key=dummy' "$IMPORT_DIR/calls.log" || { echo "NG: 進行記録の import が無い"; exit 1; }
+# 取り込みは PUT の後に import/complete で確定する（最後の PUT より後に呼ばれる）
+# The import is settled by import/complete after the PUTs (called after the box's last PUT)
+grep -qF 'inbox/report/7656001/20261019_150326_bug1/import/complete' "$IMPORT_DIR/calls.log" || { echo "NG: import/complete が呼ばれていない"; exit 1; }
+awk '/^PUT video.mp4 /{put=NR} /bug1\/import\/complete$/{done=NR} END{exit !(put && done && done > put)}' "$IMPORT_DIR/calls.log" \
+  || { echo "NG: import/complete が PUT より前に呼ばれた: $(cat "$IMPORT_DIR/calls.log")"; exit 1; }
 sed -n 's/^PUT \(.*\) inm=yes$/\1/p' "$IMPORT_DIR/calls.log" | LC_ALL=C sort | tr '\n' ' ' > "$TMP/puts.txt"
 [ "$(cat "$TMP/puts.txt")" = "READY READY export-markers/READY export-markers/READY export-markers/UPLOAD_FAILED manifest.json record.json video.mp4 " ] \
   || { echo "NG: PUT された物が箱の全ファイルと違う: $(cat "$TMP/puts.txt") / $(cat "$IMPORT_DIR/calls.log")"; exit 1; }
@@ -95,7 +100,7 @@ rc=0; run_import "$TMP/export.zip" > "$TMP/run2.log" 2>&1 || rc=$?
 
 # R2 に長さ違いの同名がある（conflicts）・PUT が失敗する箱は取り込まない。全部 412（送信済み）なら取り込む
 # Boxes with conflicts or a failing PUT are not imported; all-412 (already uploaded) still imports
-for mode in conflict putfail exists; do
+for mode in conflict putfail incomplete exists; do
   rm -rf "$P/reports" "$P/progress"
   rc=0; FAKE_IMPORT_MODE=$mode run_import "$TMP/export.zip" > "$TMP/$mode.log" 2>&1 || rc=$?
   [ "$rc" -eq 1 ] || { echo "NG: $mode の終了コードが $rc"; exit 1; }
@@ -105,10 +110,13 @@ for mode in conflict putfail exists; do
   fi
   [ -z "$(find "$P" -name '20261019_150326_bug1*')" ] || { echo "NG: $mode の箱が取り込まれた"; exit 1; }
   [ -z "$(find "$P" -name '*.partial')" ] || { echo "NG: $mode で partial が残った"; exit 1; }
-  grep -q 'ERROR: R2' "$TMP/$mode.log" || { echo "NG: $mode の理由がログに無い: $(cat "$TMP/$mode.log")"; exit 1; }
+  grep -qE 'ERROR: (R2|受け口が取り込みを確定しない)' "$TMP/$mode.log" || { echo "NG: $mode の理由がログに無い: $(cat "$TMP/$mode.log")"; exit 1; }
 done
 grep -q 'R2 に長さの違う同名ファイルがある' "$TMP/conflict.log" || { echo "NG: conflicts の中身がログに無い"; exit 1; }
 grep -q 'PUT status=500.*video.mp4' "$TMP/putfail.log" || { echo "NG: PUT 失敗のステータスがログに無い"; exit 1; }
+# 確定できなかった箱は手元からも消え、理由（不足の一覧）がログに出る
+# A box that could not be settled is removed locally too, and the reason (the missing list) is logged
+grep -q '受け口が取り込みを確定しない.*"path":"video.mp4"' "$TMP/incomplete.log" || { echo "NG: import/complete の失敗理由がログに無い: $(cat "$TMP/incomplete.log")"; exit 1; }
 
 # find-reports.sh の取り込み済み一覧に出る
 # The box shows in find-reports.sh's imported listing

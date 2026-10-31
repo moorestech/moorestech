@@ -85,6 +85,14 @@ receiver_import_urls() {
     "$RECEIVER_BASE/v1/inbox/$(url_encode "$kind")/$(url_encode "$steam_id")/$(url_encode "$id")/import"
 }
 
+# zip 取り込みを確定する。受け口が宣言の全ファイルの存在と長さを確かめてから ACKED を書く。409 の本文は不足・食い違いの一覧
+# Settle a zip import; the receiver checks every declared file's presence and length before writing ACKED. A 409 body lists what is missing or mismatched
+receiver_import_complete() {
+  local kind="$1" steam_id="$2" id="$3" out="$4"
+  receiver_curl "$out" -X POST \
+    "$RECEIVER_BASE/v1/inbox/$(url_encode "$kind")/$(url_encode "$steam_id")/$(url_encode "$id")/import/complete"
+}
+
 # 片付いた箱の生データを R2 から消す（ACKED と PURGED の印だけ残る）。本文は {"reason": "..."}
 # Delete a settled box's raw data from R2 (only the ACKED and PURGED markers remain); the body is {"reason": "..."}
 receiver_purge() {

@@ -2,9 +2,11 @@
 # zip 取り込みの偽 curl: 受け口の import POST に署名付き URL を返し、その URL への PUT を偽 R2 へ保存する
 # FAKE_IMPORT_DIR に calls.log（POST/PUT の記録）と r2/（PUT された実体）を書く。FAKE_IMPORT_MODE で応答を変える:
 #   ok … 全部成功 / conflict … import が conflicts を返す / putfail … video.mp4 の PUT が 500 / exists … PUT が全部 412（送信済み）
+#   incomplete … import/complete が 409 と不足一覧を返す
 # Fake curl for the zip import: answers the receiver's import POST with presigned URLs and stores PUTs into a fake R2
 # Writes calls.log (POST/PUT records) and r2/ (PUT bodies) under FAKE_IMPORT_DIR; FAKE_IMPORT_MODE switches the replies:
 #   ok = all succeed / conflict = import returns conflicts / putfail = PUT of video.mp4 answers 500 / exists = every PUT answers 412
+#   incomplete = import/complete answers 409 with the missing list
 set -euo pipefail
 out=/dev/null; url=""; method=GET; body=""; upload=""; headers=(); max_time=""
 while [ $# -gt 0 ]; do
@@ -37,6 +39,16 @@ else:
 print(json.dumps(dict(reply, expiresInSeconds=900)))
 PY
   echo 200; exit 0
+fi
+
+# import/complete: incomplete では 409 と不足一覧、それ以外は確定の 200
+# import/complete: incomplete mode answers 409 with the missing list, otherwise a settling 200
+if [ "$method" = POST ] && [ "${url%/import/complete}" != "$url" ]; then
+  printf 'POST %s\n' "${url#*://*/v1/}" >> "$log"
+  if [ "$mode" = incomplete ]; then
+    echo '{"reason":"incomplete","missing":[{"path":"video.mp4","expectedBytes":3,"actualBytes":null}]}' > "$out"; echo 409; exit 0
+  fi
+  echo '{"acked":true}' > "$out"; echo 200; exit 0
 fi
 
 # 署名付き URL への PUT: If-None-Match: * が付いていることを記録し、実体を偽 R2 へ置く
