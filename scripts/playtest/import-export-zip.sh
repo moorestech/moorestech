@@ -96,13 +96,13 @@ import_one() {
     || { log "ERROR: ingest.json 書き込み失敗 $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
   python3 -I "$LAYOUT_PY" finalize "$partial" "$kind" "$steam_id" "$id" "$WORK/files.txt" > /dev/null \
     || { log "ERROR: remote.json を書けない $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
-  mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> $dest"; rm -rf "$partial"; return 1; }
-  # 手元へ置いてから受け口で確定する。確定できなければ手元も戻し、次の実行でやり直せるようにする
-  # Settle on the receiver only after placing locally; on failure undo the local copy so the next run retries
+  # 受け口で確定してから手元へ公開する。間で止まっても dest が無いので次の実行が再 import・再確定する（確定は冪等）
+  # Settle on the receiver before publishing locally; a crash in between leaves no dest, so the next run re-imports and re-settles (idempotent)
   receiver_import_complete "$kind" "$steam_id" "$id" "$WORK/complete-reply.json" || {
     log "ERROR: 受け口が取り込みを確定しない（R2 に足りない・長さ違いのファイルがある等）: $kind/$steam_id/${id} $(head -c 2000 "$WORK/complete-reply.json" 2>/dev/null)"
-    rm -rf "$dest"; return 1
+    rm -rf "$partial"; return 1
   }
+  mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> $dest（受け口は確定済み。次の実行で再確定して置き直す）"; rm -rf "$partial"; return 1; }
   log "imported: $sub/$steam_id/$id"
 }
 
