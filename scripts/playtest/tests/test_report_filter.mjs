@@ -87,6 +87,22 @@ test("saveFilter/loadFilter round-trip and tolerate broken storage", (t) => {
   assert.equal(warnings.mock.callCount(), 5);
 });
 
+// 自動修正の撤去で消えた分類（candidate・queued）を記憶していても、一覧が0件にならないよう捨てる
+// A remembered triage removed with auto-fix (candidate, queued) is dropped so the list never shows zero rows
+test("loadFilter drops remembered triage values that no longer exist", (t) => {
+  const warnings = t.mock.method(console, "warn", () => {});
+  t.after(() => { delete globalThis.localStorage; });
+  const store = new Map();
+  globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
+  for (const stale of ["candidate", "queued"]) {
+    store.set(STORAGE_KEY, JSON.stringify({ triage: stale, kind: "bug" }));
+    assert.deepEqual(loadFilter(), { kind: "bug" });
+  }
+  store.set(STORAGE_KEY, JSON.stringify({ triage: "broken" }));
+  assert.deepEqual(loadFilter(), { triage: "broken" });
+  assert.equal(warnings.mock.callCount(), 2);
+});
+
 test("saveFilter dispatches after storing the filter", (t) => {
   const store = new Map();
   const events = [];

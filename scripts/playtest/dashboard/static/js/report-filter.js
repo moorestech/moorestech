@@ -8,6 +8,10 @@ export const FEEDBACK_FILTER = { kind: "feedback" };
 // An empty kind (unreadable box) gets its own value, since "" would mean "all"
 export const EMPTY_KIND = "(none)";
 export const STORAGE_KEY = "playtest-dashboard.report-filter";
+// 報告一覧の分類タブ。記憶に残ったタブに無い値（撤去した candidate・queued 等）は条件ごと捨てる
+// Triage tabs of the report list; a remembered value not among them (removed candidate, queued, ...) is dropped
+export const TRIAGE_TABS = [["", "すべて"], ["bug", "バグ"], ["excluded", "除外"], ["broken", "読めない"]];
+const TRIAGE_TAB_VALUES = TRIAGE_TABS.map(([value]) => value).filter(Boolean);
 
 export function filterOf(params) {
   return Object.fromEntries(FILTER_KEYS.filter((key) => params.get(key)).map((key) => [key, params.get(key)]));
@@ -60,7 +64,12 @@ export function saveFilter(filter) {
 export function loadFilter() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    return Object.fromEntries(FILTER_KEYS.filter((key) => typeof saved?.[key] === "string" && saved[key]).map((key) => [key, saved[key]]));
+    const filter = Object.fromEntries(FILTER_KEYS.filter((key) => typeof saved?.[key] === "string" && saved[key]).map((key) => [key, saved[key]]));
+    if (filter.triage && !TRIAGE_TAB_VALUES.includes(filter.triage)) {
+      console.warn(`[dashboard] dropped a remembered triage filter that no longer exists: ${filter.triage}`);
+      delete filter.triage;
+    }
+    return filter;
   } catch (error) {
     console.warn("[dashboard] filter memory unavailable", error);
     return {};
