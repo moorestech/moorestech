@@ -58,7 +58,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("テスト報告", (string)manifest["description"]);
-                BundleManifestContract.AssertPlanC(bundle, manifest);
+                BundleManifestContract.AssertReproductionKeys(bundle, manifest);
 
                 var missing = BundleManifestContract.MissingItemNames(manifest);
                 Assert.IsFalse(missing.Contains("serverSnapshot"), "サーバースナップショットが欠損扱いになっている");
@@ -122,7 +122,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
                 // 添付が欠けても残った資料で送る（.decisions 2026-09-11）。運搬対象の印と契約キーは欠損時も揃っている
                 // Ship whatever survived even when attachments are missing (.decisions 2026-09-11); the ship marker and contract keys stay
-                BundleManifestContract.AssertPlanC(bundle, manifest);
+                BundleManifestContract.AssertReproductionKeys(bundle, manifest);
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, "logs", "unity.log")), "確保に失敗した報告からUnityログまで落ちている");
 
                 var missing = BundleManifestContract.MissingItemNames(manifest);

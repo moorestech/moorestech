@@ -13,7 +13,7 @@ namespace Client.Tests
     // Checks the keys the reproduction tools (BugReportBundleTools, triage.py) read; written separately per box kind, a gap on one side goes unnoticed
     public static class BundleManifestContract
     {
-        public static void AssertPlanC(string bundle, JObject manifest)
+        public static void AssertReproductionKeys(string bundle, JObject manifest)
         {
             Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)), "READYが無い箱は運搬されない");
             Assert.IsNotNull(manifest["repository"], "再現調査が読む repository が無い");
