@@ -26,6 +26,7 @@ const logsRepo = findLogsRepo(resolve(file));
 const clones = [
   ...args.filter((_, i) => args[i - 1] === "--repo").map((p) => resolve(p)),
   join(dirname(logsRepo), "moorestech"),
+  logsRepo,
 ].filter((p) => existsSync(p));
 const gitSource = createGitSource();
 const ctx = {
