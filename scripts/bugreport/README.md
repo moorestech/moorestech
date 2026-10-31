@@ -3,15 +3,15 @@
 1. Mac mini で `bash scripts/playtest/dev-token.sh issue <機材名>` を実行する。
 2. 発行されたトークンを Editor の `moorestech/Playtest/Developer Token` に貼り付け、保存する。
 
-報告は受け口へ送られ、未送信の箱は MainGame 起動時と報告送信時に再送される。開発機から進行記録は送らない。開発者報告も自動修正へは自動投入せず、人が選んで投入する。
+報告は受け口へ送られ、未送信の箱は MainGame 起動時と報告送信時に再送される。開発機から進行記録は送らない。生データの正本は R2 だけで、Mac mini には報告を読むための小物しか写さない。
 
 ## 調査道具
 
 Task 9 で追加する道具は次のように使う。
 
-- `bash scripts/playtest/find-reports.sh`: 受け口の未取り込み・取り込み済み報告、自動修正 inbox とランをまとめて確認する。
+- `bash scripts/playtest/find-reports.sh`: 受け口の未取り込みと取り込み済みの報告をまとめて確認する。
 - `python3 scripts/bugreport/triage.py <箱> --out <箱の外の出力先>`: Unity を起動せず manifest、エラー・警告、列車同期診断、列車の tick 時系列、レールの有向辺、動画のコンタクトシートを確認する。
-- `bash scripts/playtest/enqueue-autofix.sh <steamId または dev-機材名> <報告ID>`: 選んだ取り込み済み報告を自動修正へ投入する。
+- `bash scripts/playtest/fetch-report.sh <steamId または dev-機材名> <報告ID>`: 報告 1 件の生データ（ワールド・スナップショット・動画・bundle）を R2 から取る。取った箱を `triage.py` に渡す。
 
 ## 隔離された報告の再送
 
@@ -28,7 +28,7 @@ Task 9 で追加する道具は次のように使う。
 
 画面の「送信できない報告」は `UPLOAD_FAILED` の箱の件数。通常の送信待ちと区別し、1件でも残っている間は「すべて送信済み」にしない。復旧は上記の隔離・試行印の手順で行う。
 
-コミットbundleを含む未宣言箱が `PlaytestReceiverConfig.MaxFileBytes`（100MiB）・`MaxBundleBytes`（256MiB）・`MaxBundleFiles`（128件）を超える場合、bundleを `__attachments/<番号>/chunk` へ分割して送る。`repo/commit-transfer.json` が本体/masterの元path・長さ・断片のSHA256を保持する。子転送が揃うまで親は取り込み一覧へ公開されない。ingestは全断片の長さ・SHA256を検証して `repo/commits.bundle` と `repo/master-commits.bundle` を復元し、成功後にACKする。prepare-run/prepare-masterも同じ復元処理を通る。
+コミットbundleを含む未宣言箱が `PlaytestReceiverConfig.MaxFileBytes`（100MiB）・`MaxBundleBytes`（256MiB）・`MaxBundleFiles`（128件）を超える場合、bundleを `__attachments/<番号>/chunk` へ分割して送る。`repo/commit-transfer.json` が本体/masterの元path・長さ・断片のSHA256を保持する。子転送が揃うまで親は取り込み一覧へ公開されない。`fetch-report.sh` は全断片の長さ・SHA256を検証して `repo/commits.bundle` と `repo/master-commits.bundle` を復元する（取り込みは bundle を取らない）。
 
 未宣言で容量だけを理由に保留された箱は、同じ分割計画を完成させて再試行する。既宣言本文は書き換えず、資格情報など別の恒久失敗は解除しない。分割対象はコミットbundleであり、他の必須資料の上限超過まで解消するものではない。本番大容量の送信から復元までの実測は単体検査と別に記録する。
 

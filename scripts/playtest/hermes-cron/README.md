@@ -2,7 +2,7 @@
 
 Hermes 内蔵 cron（launchd の cron ではない）に1件だけジョブを置く。実体は `~/.hermes/cron/jobs.json`。
 
-前日受信分（readyAt、欠落時のみingestedAtをJSTで判定）の人数・合計プレイ時間・1人あたり平均・プレイヤー別時間を先頭に表示する。実際に遊んだ日とは異なる場合がある。時間欠損やID不明は警告し、平均を不明とする。進行記録・報告件数・感想全文・自動修正ランも続けて表示し、日次では投入候補を収集・表示しない。
+前日受信分（readyAt、欠落時のみingestedAtをJSTで判定）の人数・合計プレイ時間・1人あたり平均・プレイヤー別時間を先頭に表示する。実際に遊んだ日とは異なる場合がある。時間欠損やID不明は警告し、平均を不明とする。進行記録・報告件数・感想全文も続けて表示する。
 
 ## 分かっていること（実測 2026-09-13）
 
@@ -54,21 +54,6 @@ install -m 755 ~/hermes-agent/data/repos/moorestech/scripts/playtest/hermes-cron
 「ポケモンカードPSA10最安値監視」ジョブと同じ形で、`--no-agent` を外して
 エージェントモードへ切り替えるときの本文として保存しておく）。
 
-## 生データ置き場の期限削除ジョブ
+## 片付いた報告の R2 削除ジョブ（未登録）
 
-同じ要領で、生データ置き場（`moorestech_playtest_raw`）の期限切れ（取り込みから既定 60 日）を毎日消すジョブを 1 件置く。
-stdout には消した物・消せなかった物だけが出て、何もしなかった回は空なので投稿されない（`--no-agent`）。
-消せなかった物（`raw.json` を読めない箱・権限エラー等）は毎回出続けるので、出たら手で確かめる。
-
-```bash
-install -m 755 ~/hermes-agent/data/repos/moorestech/scripts/playtest/hermes-cron/moorestech-playtest-raw-prune.sh \
-  ~/.hermes/scripts/moorestech-playtest-raw-prune.sh
-~/.hermes/scripts/moorestech-playtest-raw-prune.sh -n   # 判定だけ（消さない）
-. ~/hermes-agent/data/services/playtest/env.sh
-~/hermes-agent/venv/bin/hermes cron --accept-hooks create "30 9 * * *" \
-  --name "moorestech プレイテスト生データの期限削除" \
-  --script moorestech-playtest-raw-prune.sh \
-  --no-agent \
-  --deliver "discord:${PLAYTEST_DIGEST_DISCORD_CHANNEL_ID}" \
-  "毎朝9時半の定期実行タスクです。moorestech-playtest-raw-prune.sh を実行し、stdout をそのまま送信する。空なら何も送らない。"
-```
+`../r2_store/prune.sh --execute` を日次で回す想定だが、入力の片付け記録（`moorestech_logs/.state/report-resolutions.json`）の書き手が未決なので登録しない。書き手が決まったら、上と同じ要領で `HERMES_HOME/scripts/` に実ファイルの shim を置き、`--no-agent` で登録する（stdout は消した物・消せなかった物だけで、対象が無い回は空）。

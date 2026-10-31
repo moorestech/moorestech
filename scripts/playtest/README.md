@@ -199,7 +199,7 @@ python3 scripts/playtest/tests/raw_store/test_raw_prune.py          # 期限削�
 python3 scripts/playtest/tests/raw_store/test_raw_migrate.py        # 既存の生データの移行
 ```
 
-取り込んだ報告の生データ（スナップショット・ワールド・動画等）は logs repo に入れず、期限つきの生データ置き場へ置く。置き方・期限削除・移行は `README-macmini.md`「生データ置き場」節。
+報告の生データ（スナップショット・ワールド・動画等）の正本は受け口の R2 だけ。取り込みは小物だけを logs repo へ写し、調べるときは `fetch-report.sh` で 1 件ずつ取る。片付いた報告は片付けから 7 日で R2 から消す（`README-macmini.md`「1 件の生データを取る」「片付いた報告の R2 削除」節）。
 
 ## 遠隔実行（開発者向け）
 
@@ -222,5 +222,4 @@ scripts/playtest/remote-exec.sh --windows --target server snippet.cs
 タイトル画面では使えない。固まったらゲームを再起動する。
 `server` の同期部分だけがサーバースレッドで動く。`await` 以降の実行スレッドは待機先に依存する。
 補助処理は static ローカル関数で書き、トップレベルの型宣言は使わない。
-有効だったセッションの報告には印と台帳が付き、通常の自動修正投入・日次報告集計から除外される。
-明示的に投入する場合のみ `enqueue-autofix.sh --force` を使う。
+有効だったセッションの報告には印と台帳が付き、日次ダイジェストの集計とダッシュボードの「バグ」分類から除外される。
