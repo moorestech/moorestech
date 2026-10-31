@@ -135,7 +135,9 @@ function commitAndPush() {
   } catch {
     if (isNewerThan(lockDir, 600)) return;
   }
-  git(logsRepo, ["add", "-A"], 60000);
+  // logs repo は古いログを sparse-checkout で展開していない。--sparse が無いと、その範囲に書かれた新しいファイルが黙ってコミットから漏れる
+  // The logs repo leaves old logs unexpanded via sparse-checkout; without --sparse, new files under those paths silently miss the commit.
+  git(logsRepo, ["add", "-A", "--sparse"], 60000);
   unstageRejected(logsRepo, stateDir, report);
   if (git(logsRepo, ["diff", "--cached", "--name-only"]) !== "") {
     git(logsRepo, ["commit", "-q", "-m", "auto: logs-sync"]);
