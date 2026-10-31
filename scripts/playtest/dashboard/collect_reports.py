@@ -84,9 +84,9 @@ def read_report_box(box: Path, raw_root: Path, runs: dict[str, dict]) -> dict:
 def base_row(box: Path, raw_root: Path, meta: dict | None, runs: dict[str, dict]) -> dict:
     meta = meta or {}
     raw = raw_reader.raw_state(box, raw_root)
-    # 生データの期限切れ・欠落は画面に理由を出す（動画が黙って消えたように見せない）
-    # Expired or missing raw data is shown with its reason, so a video never just silently vanishes
-    if raw["state"] not in raw_reader.READABLE_STATES:
+    # 期限切れ・欠落は行の raw で画面に理由を出す。期限切れは想定どおりなので、事故（欠落・破損）だけログにも出す
+    # The row's raw shows expiry or loss on screen; expiry is expected, so only incidents (missing/broken) also hit the log
+    if raw["state"] in ("missing", "broken"):
         warn(raw["reason"], box)
     report_id = meta.get("id") or box.name
     ready_at = meta.get("readyAt") or meta.get("ingestedAt") or ""
