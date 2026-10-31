@@ -4,6 +4,9 @@
 RECEIVER_BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.moores.tech}"
 CURL_CMD="${CURL_CMD:-curl}"
 RECEIVER_MAX_TIME="${RECEIVER_MAX_TIME:-120}"
+# R2 への PUT は数GBになり得るので、制限時間は RECEIVER_MAX_TIME に「この速さで送れる秒数」を足して決める
+# A PUT to R2 can be gigabytes, so its time limit is RECEIVER_MAX_TIME plus the seconds needed at this rate
+R2_PUT_MIN_BYTES_PER_SEC="${R2_PUT_MIN_BYTES_PER_SEC:-1000000}"
 
 # パスセグメントを percent-encode する。keys.ts の許可セグメントは空白・#・?・% 等の
 # URL特殊文字を通すため、組み立て前に必ずエンコードしないと壊れたURLになる
@@ -93,11 +96,13 @@ receiver_purge() {
 # 署名付き URL へ 1 ファイルを PUT する。署名が Content-Length と If-None-Match: * を含むので、412（既にある）は送信済みとして扱う
 # PUT one file to a presigned URL; the signature covers Content-Length and If-None-Match: *, so 412 (already there) counts as sent
 r2_put_presigned() {
-  local file="$1" url="$2" code
-  code="$("$CURL_CMD" --silent --show-error --max-time "$RECEIVER_MAX_TIME" -X PUT -H "If-None-Match: *" \
+  local file="$1" url="$2" code bytes max_time
+  bytes="$(wc -c < "$file" | tr -d ' ')" || { echo "[receiver] PUT するファイルの大きさを読めない: $file" >&2; return 1; }
+  max_time=$((RECEIVER_MAX_TIME + bytes / R2_PUT_MIN_BYTES_PER_SEC))
+  code="$("$CURL_CMD" --silent --show-error --max-time "$max_time" -X PUT -H "If-None-Match: *" \
     --upload-file "$file" -w '%{http_code}' -o /dev/null "$url")" || { echo "[receiver] PUT 自体が失敗: $file" >&2; return 1; }
   case "$code" in
     2??|412) return 0 ;;
-    *) echo "[receiver] PUT status=${code}: $file" >&2; return 1 ;;
+    *) echo "[receiver] PUT status=${code}（${bytes} bytes・制限 ${max_time} 秒）: $file" >&2; return 1 ;;
   esac
 }

@@ -58,6 +58,9 @@ grep -qxF 'POST inbox/progress/7656001/20261019_160000_pg1/import key=dummy' "$I
 sed -n 's/^PUT \(.*\) inm=yes$/\1/p' "$IMPORT_DIR/calls.log" | LC_ALL=C sort | tr '\n' ' ' > "$TMP/puts.txt"
 [ "$(cat "$TMP/puts.txt")" = "READY READY export-markers/READY export-markers/READY export-markers/UPLOAD_FAILED manifest.json record.json video.mp4 " ] \
   || { echo "NG: PUT された物が箱の全ファイルと違う: $(cat "$TMP/puts.txt") / $(cat "$IMPORT_DIR/calls.log")"; exit 1; }
+# PUT の制限時間は大きさに比例して延びる（3バイトの動画は既定 120 秒のまま）
+# A PUT's time limit grows with its size (the 3-byte video keeps the default 120 seconds)
+grep -qxF 'video.mp4 120' "$IMPORT_DIR/put-times.log" || { echo "NG: PUT の制限時間が違う: $(cat "$IMPORT_DIR/put-times.log")"; exit 1; }
 grep -q 'inm=no' "$IMPORT_DIR/calls.log" && { echo "NG: If-None-Match の無い PUT がある"; exit 1; }
 grep -q 'UNEXPECTED' "$IMPORT_DIR/calls.log" && { echo "NG: 想定外の curl 呼び出し: $(cat "$IMPORT_DIR/calls.log")"; exit 1; }
 grep -q '20261019_170000_dev1' "$IMPORT_DIR/calls.log" && { echo "NG: steamId 無しの箱を R2 へ上げようとした"; exit 1; }
@@ -105,12 +108,19 @@ for mode in conflict putfail exists; do
   grep -q 'ERROR: R2' "$TMP/$mode.log" || { echo "NG: $mode の理由がログに無い: $(cat "$TMP/$mode.log")"; exit 1; }
 done
 grep -q 'R2 に長さの違う同名ファイルがある' "$TMP/conflict.log" || { echo "NG: conflicts の中身がログに無い"; exit 1; }
-grep -q 'PUT status=500: .*video.mp4' "$TMP/putfail.log" || { echo "NG: PUT 失敗のステータスがログに無い"; exit 1; }
+grep -q 'PUT status=500.*video.mp4' "$TMP/putfail.log" || { echo "NG: PUT 失敗のステータスがログに無い"; exit 1; }
 
 # find-reports.sh の取り込み済み一覧に出る
 # The box shows in find-reports.sh's imported listing
 MOORESTECH_LOGS="$LOGS" PLAYTEST_ENV_FILE=/dev/null bash "$HERE/../find-reports.sh" > "$TMP/find.log" 2>&1 || true
 grep -q '20261019_150326_bug1' "$TMP/find.log" || { echo "NG: find-reports.sh に出ない"; cat "$TMP/find.log"; exit 1; }
+
+# 2MB の PUT は既定の速さ（1MB/s）で 2 秒延びて 122 秒の制限になる
+# A 2MB PUT gets 2 extra seconds at the default rate (1MB/s), a 122-second limit
+head -c 2000000 /dev/zero > "$TMP/big.bin"
+( CURL_CMD="$HERE/lib/r2-import-curl-stub.sh" FAKE_IMPORT_DIR="$IMPORT_DIR"; export CURL_CMD FAKE_IMPORT_DIR
+  . "$HERE/../lib/receiver-api.sh"; r2_put_presigned "$TMP/big.bin" https://r2.invalid/put/big.bin ) || { echo "NG: 2MB の PUT が失敗"; exit 1; }
+grep -qxF 'big.bin 122' "$IMPORT_DIR/put-times.log" || { echo "NG: 大きい PUT の制限時間が延びない: $(cat "$IMPORT_DIR/put-times.log")"; exit 1; }
 
 # 不正なエントリ名の zip は何も展開せず失敗する
 # A zip with a traversal entry extracts nothing and fails

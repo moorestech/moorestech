@@ -71,7 +71,7 @@ Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合
 
 ### `POST /v1/inbox/{kind}/{steamId}/{id}/import`
 
-本文 `{ "files": [{ "path", "bytes" }] }`。パス・件数・サイズの検査と理由語・上限は prepare と同じ（`contract.json`）。ただし `READY` は許し（zip の箱は READY を持つ）、予約名は `ACKED` / `DECLARED` / `PURGED`（400 `reserved-name`）。`generation` は無い。
+本文 `{ "files": [{ "path", "bytes" }] }`。パスの検査と理由語は prepare と同じ。上限だけは zip の全ファイルを R2 に残すため R2 単一 PUT 上限を下回る 5GB/ファイル（413 `too-large`）で、件数・合計は縛らない。上限で拒否した応答は `{ "reason", "detail" }` で、`detail` にどのファイルがどの上限を超えたかが入る。ただし `READY` は許し（zip の箱は READY を持つ）、予約名は `ACKED` / `DECLARED` / `PURGED`（400 `reserved-name`）。`generation` は無い。
 - `PURGED` のある箱は409 `{ "reason": "purged" }`（受付時と応答直前の2回確かめる）。
 - 同じ長さで在るキーは `uploads` から外し、長さ違いは `conflicts: [{ "path", "expectedBytes", "actualBytes" }]`。URL は prepare と同じ署名（`Content-Length` と `If-None-Match: *`）。
 - 応答前に `ACKED` を無いときだけ書く（取り込み一覧に出さず、DELETE の対象にする）。pending 索引は書かない。

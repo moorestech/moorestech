@@ -6,7 +6,7 @@
 # Writes calls.log (POST/PUT records) and r2/ (PUT bodies) under FAKE_IMPORT_DIR; FAKE_IMPORT_MODE switches the replies:
 #   ok = all succeed / conflict = import returns conflicts / putfail = PUT of video.mp4 answers 500 / exists = every PUT answers 412
 set -euo pipefail
-out=/dev/null; url=""; method=GET; body=""; upload=""; headers=()
+out=/dev/null; url=""; method=GET; body=""; upload=""; headers=(); max_time=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -o) out="$2"; shift 2 ;;
@@ -14,7 +14,8 @@ while [ $# -gt 0 ]; do
     -H) headers+=("$2"); shift 2 ;;
     --data-binary) body="${2#@}"; shift 2 ;;
     --upload-file) upload="$2"; shift 2 ;;
-    -w|--max-time) shift 2 ;;
+    --max-time) max_time="$2"; shift 2 ;;
+    -w) shift 2 ;;
     --silent|--show-error) shift ;;
     *) url="$1"; shift ;;
   esac
@@ -44,6 +45,7 @@ if [ "$method" = PUT ]; then
   path="${url#https://r2.invalid/put/}"
   inm=no; for h in "${headers[@]}"; do [ "$h" = "If-None-Match: *" ] && inm=yes; done
   printf 'PUT %s inm=%s\n' "$path" "$inm" >> "$log"
+  printf '%s %s\n' "$path" "$max_time" >> "$FAKE_IMPORT_DIR/put-times.log"
   if [ "$mode" = putfail ] && [ "$path" = video.mp4 ]; then echo 500; exit 0; fi
   if [ "$mode" = exists ]; then echo 412; exit 0; fi
   mkdir -p "$(dirname "$FAKE_IMPORT_DIR/r2/$path")"; cp "$upload" "$FAKE_IMPORT_DIR/r2/$path"; echo 200; exit 0

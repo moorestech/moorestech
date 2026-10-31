@@ -1,7 +1,11 @@
 import { declaredMarkerKey } from "../bundleMarkers";
-import { RESERVED_UPLOAD_SEGMENTS } from "../contract";
+import { MAX_BUNDLE_BYTES, MAX_BUNDLE_FILES, MAX_FILE_BYTES, RESERVED_UPLOAD_SEGMENTS } from "../contract";
 import type { PlaytestKind } from "../keys";
-import { parseFileList, type DeclaredFile } from "./fileList";
+import { parseFileList, type DeclaredFile, type FileListLimits } from "./fileList";
+
+// クライアントの直接アップロードに当てる上限は契約値そのもの
+// Client direct uploads are bound by the contract values as-is
+const PREPARE_FILE_LIMITS: FileListLimits = { maxFileBytes: MAX_FILE_BYTES, maxBundleFiles: MAX_BUNDLE_FILES, maxBundleBytes: MAX_BUNDLE_BYTES };
 
 // 宣言は世代付き。同世代は同じ集合だけを表し、集合を縮めるときだけ世代を上げる
 // A declaration carries a generation; one generation means one exact set, and only a shrink moves to a higher generation
@@ -21,7 +25,7 @@ export function parseDeclaration(body: unknown): DeclarationCheck {
   if (typeof generation !== "number" || !Number.isInteger(generation) || generation < 1) {
     return { ok: false, status: 400, error: "bad-request", detail: `generation is not an integer >= 1: ${JSON.stringify(generation)}` };
   }
-  const files = parseFileList((body as { files?: unknown })?.files, RESERVED_UPLOAD_SEGMENTS);
+  const files = parseFileList((body as { files?: unknown })?.files, RESERVED_UPLOAD_SEGMENTS, PREPARE_FILE_LIMITS);
   if (!files.ok) return files;
   return { ok: true, generation, files: files.files };
 }

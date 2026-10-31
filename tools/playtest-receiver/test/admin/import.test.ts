@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handle } from "../../src/index";
-import { MAX_FILE_BYTES, UPLOAD_URL_TTL_SECONDS } from "../../src/contract";
+import { MAX_BUNDLE_BYTES, MAX_BUNDLE_FILES, MAX_FILE_BYTES, UPLOAD_URL_TTL_SECONDS } from "../../src/contract";
 import { clean, noNetwork, workerEnv } from "../support/uploadsFixture";
 import { BOX_PREFIX, BOX_URL, ADMIN_HEADERS, adminRequest, boxKeys, putBoxObject } from "../support/adminFixture";
 
@@ -46,7 +46,7 @@ describe("admin inbox import", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await importFiles({ [name]: 1 });
     expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ reason: "reserved-name" });
+    expect(await response.json()).toMatchObject({ reason: "reserved-name" });
     expect(await boxKeys()).toEqual([]);
     warn.mockRestore();
   });
@@ -54,12 +54,31 @@ describe("admin inbox import", () => {
   it.each([
     ["bad-path", { "../x": 1 }, 400],
     ["empty-declaration", {}, 400],
-    ["too-large", { "video.mp4": MAX_FILE_BYTES + 1 }, 413],
   ] as const)("prepareと同じ規則で %s を拒否する", async (reason, files, status) => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await importFiles(files);
     expect(response.status).toBe(status);
-    expect(await response.json()).toEqual({ reason });
+    expect(await response.json()).toMatchObject({ reason });
+    warn.mockRestore();
+  });
+
+  it("送信用の契約上限（1ファイル・件数・合計）を超える箱もzipの全ファイルにURLを出す", async () => {
+    const files: Record<string, number> = { "repo/commits.bundle": MAX_FILE_BYTES + 1, "video.mp4": MAX_BUNDLE_BYTES };
+    for (let index = 0; index <= MAX_BUNDLE_FILES; index++) files[`frames/${index}.jpg`] = 1;
+    const response = await importFiles(files);
+    expect(response.status).toBe(200);
+    expect(((await response.json()) as ImportAnswer).uploads).toHaveLength(Object.keys(files).length);
+  });
+
+  it("R2単一PUTの上限を超えるファイルは413で、どのファイルがどの上限かを応答とログに出す", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const response = await importFiles({ "a.txt": 1, "huge.mp4": 5 * 1000 * 1000 * 1000 + 1 });
+    expect(response.status).toBe(413);
+    const body = (await response.json()) as { reason: string; detail: string };
+    expect(body.reason).toBe("too-large");
+    expect(body.detail).toContain("huge.mp4");
+    expect(body.detail).toContain("maxFileBytes 5000000000");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("huge.mp4"));
     warn.mockRestore();
   });
 
