@@ -2,6 +2,7 @@ import { ackedMarkerKey, isAcked } from "../bundleMarkers";
 import type { Env } from "../env";
 import { fail, json, requireAdmin, requireMethod } from "../http";
 import { getInboxObject } from "./adminObject";
+import { deleteBundle } from "./adminPurge";
 import {
   isKind,
   isSafeSegment,
@@ -33,9 +34,9 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
     if (denied !== null) return denied;
     return getInbox(request, env);
   }
-  // 3セグメント後にackか個別パス要る
-  // Needs the {kind}/{steamId}/{id} trio plus either "ack" or at least one more path segment
-  if (segments.length < 6) {
+  // {kind}/{steamId}/{id}の3つが要る。箱そのもの（DELETE）か、ack・import・個別パスが続く
+  // Needs the {kind}/{steamId}/{id} trio, addressing the box itself (DELETE) or followed by ack, import or a file path
+  if (segments.length < 5) {
     console.warn(`[router] rejected a malformed inbox path: /${segments.join("/")}`);
     return fail("not-found", 404);
   }
@@ -53,6 +54,11 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
   }
 
   const rest = segments.slice(5);
+  if (rest.length === 0) {
+    const denied = requireMethod(request, ["DELETE"], "inbox bundle");
+    if (denied !== null) return denied;
+    return deleteBundle(request, env, kind, steamId, id);
+  }
   if (rest.length === 1 && rest[0] === "ack") {
     const denied = requireMethod(request, ["POST"], "inbox ack");
     if (denied !== null) return denied;
