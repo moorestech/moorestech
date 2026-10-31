@@ -73,7 +73,7 @@ describe("block inventory design whitelist", () => {
   });
 
   it("ブロックスロットの列数を1列から9列の範囲で内容に追従させる", () => {
-    expect(sources.blockItemGrid).toContain("cols={Math.min(9, Math.max(1, itemSlots.length))}");
+    expect(sources.blockItemGrid).toContain("cols={Math.min(MAX_BLOCK_INVENTORY_COLUMNS, Math.max(1, slotIndices.length))}");
   });
 
   it("フィルタ分岐器の方向を縦積みにする", () => {

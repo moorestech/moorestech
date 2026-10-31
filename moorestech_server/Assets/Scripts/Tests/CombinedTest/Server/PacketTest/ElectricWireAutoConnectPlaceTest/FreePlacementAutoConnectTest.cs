@@ -13,9 +13,12 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     public class FreePlacementAutoConnectTest : ElectricWireAutoConnectPlaceTestBase
     {
+        private string _priorDebugCacheOverride;
+
         [SetUp]
         public void EnableFreePlacement()
         {
+            _priorDebugCacheOverride = DebugParametersCacheDirectory.GetOverride();
             // 開発者の永続デバッグ設定から隔離した上で無料設置をONにする
             // Isolate from the developer's persistent debug settings, then turn free placement on
             DebugParametersCacheDirectory.SetOverride(Path.Combine(Path.GetTempPath(), $"moorestech-free-placement-{TestContext.CurrentContext.Test.ID}"));
@@ -26,7 +29,9 @@ namespace Tests.CombinedTest.Server.PacketTest
         public void DisableFreePlacement()
         {
             DebugParameters.RemoveBool(DebugParameterKeys.FreeBlockPlacement);
-            DebugParametersCacheDirectory.SetOverride(null);
+            // アセンブリ全体の隔離先へ戻す。nullで解除すると後続の試験が開発者の../cacheを読む
+            // Restore the assembly-wide isolation; clearing to null would make later tests read the developer's ../cache
+            DebugParametersCacheDirectory.SetOverride(_priorDebugCacheOverride);
         }
 
         [Test]

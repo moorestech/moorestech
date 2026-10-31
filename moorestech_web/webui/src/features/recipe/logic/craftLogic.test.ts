@@ -62,6 +62,7 @@ describe("buildRecipeEntries", () => {
     recipeGuid: guid, blockGuid: "00000000-0000-0000-0000-00000000000b", blockId, time: 4,
     inputItems: [{ itemId: 1, count: 1 }], outputItems: [{ itemId: outputItemId, count: 1 }],
     inputFluids: [], outputFluids: [],
+    levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
   });
 
   it("クラフトレシピを先頭に、機械レシピを後ろにデータ順で並べる", () => {
@@ -91,5 +92,22 @@ describe("buildRecipeEntries", () => {
 
   it("クラフトのresultItemIdが一致しなければ空配列", () => {
     expect(buildRecipeEntries(craftOnly, { recipes: [] }, 42)).toEqual([]);
+  });
+
+  it("継承レシピは上位レベルの製品からも引ける", () => {
+    const inherit: MachineRecipe = {
+      ...machine("m9", 9, 100),
+      levelInheritance: { kind: "inherit", sourceInputIndex: 0, sourceItemIds: [1, 2, 3], targetOutputIndex: 0, targetItemIds: [9, 19, 29], maxCraftableLevel: 3 },
+    };
+    const entries = buildRecipeEntries({ recipes: [] }, { recipes: [inherit] }, 19);
+    expect(entries.map((e) => e.recipe.recipeGuid)).toEqual(["m9"]);
+  });
+
+  it("継承しないレシピは継承先の並びを読まない", () => {
+    const none: MachineRecipe = {
+      ...machine("m8", 8, 100),
+      levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [19], maxCraftableLevel: 0 },
+    };
+    expect(buildRecipeEntries({ recipes: [] }, { recipes: [none] }, 19)).toEqual([]);
   });
 });

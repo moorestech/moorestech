@@ -283,7 +283,7 @@ namespace Tests.CombinedTest.Core.Machine.Recipe
             var input1MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(input1ItemId);
             overflow.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(input1ItemId, input1MaxStack - 1));
 
-            var refunds = MachineRecipeRefundUtil.CreateRefundStacks(recipe);
+            var refunds = MachineRecipeRefundUtil.CreateRefundStacks(recipe, null, null);
 
             // 素材0はスロット0が異物で塞がり、溢れ先も別種で埋まっているため全量収容できない
             // Input 0 cannot fit anywhere: its bound slot holds a foreign item and the overflow is full of yet another type

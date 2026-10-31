@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { setSkitStage, setTopicScenario, setUiState } from "../../support/mockControl";
 import { expectAbove, expectAtViewportTopCorner, expectNoHorizontalOverflow } from "../../support/layoutAssertions";
-import { expectChallengeHudPresentation, expectWrappedObjectives, readChallengeHudPresentation } from "../../support/challengeHudAssertions";
+import { expectChallengeHudPresentation, expectWrappedObjectives, readChallengeHudPresentation, readChallengeHudTokens } from "../../support/challengeHudAssertions";
 
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "challengeActive");
@@ -20,21 +20,23 @@ test("進行中チャレンジを内部キーを出さずインベントリ同�
   await expect(hud).not.toContainText("challenge.current");
   await expect(hud).toHaveCSS("pointer-events", "none");
 
-  // 左上固定の寸法と短い罫線を検証する
-  // Verify top-left fixed dimensions and the shortened rule
+  // 左上寸法と短い罫線のトークン準拠
+  // Top-left dimensions and the short rule follow the tokens
+  const tokens = await readChallengeHudTokens(page);
+  expect(tokens).toEqual({ width: 278, ruleWidth: 88, padding: 14 });
   await expect(hud).toHaveCSS("top", "24px");
   await expect(hud).toHaveCSS("left", "24px");
-  await expect(hud).toHaveCSS("width", "560px");
+  await expect(hud).toHaveCSS("width", `${tokens.width}px`);
   await expect(hud).toHaveCSS("text-shadow", "rgba(0, 0, 0, 0.8) 0.35px 0.35px 0px");
   const rule = hud.locator('[aria-hidden="true"]');
   await expect(rule).toHaveCount(1);
-  await expect(rule).toHaveCSS("width", "176px");
+  await expect(rule).toHaveCSS("width", `${tokens.ruleWidth}px`);
 
   // hud variantの面と安全帯pad
   // Face + safe-area padding, from hud variant
   const face = hud.locator('[data-variant="hud"]');
   await expect(face).toHaveCount(1);
-  await expect(face).toHaveCSS("padding", "20px");
+  await expect(face).toHaveCSS("padding", `${tokens.padding}px`);
   const faceLayer = await face.evaluate((element) => {
     const before = getComputedStyle(element, "::before");
     return { background: before.backgroundColor, maskImage: before.maskImage || before.webkitMaskImage };
@@ -107,13 +109,14 @@ test("横長画面で進行HUDを実画面左上へ置き罫線を約3分の1へ
   await page.goto("/");
 
   const hud = page.getByTestId("challenge-hud");
+  const tokens = await readChallengeHudTokens(page);
   await expectAtViewportTopCorner(hud, "left", 40);
   const hudBox = await hud.boundingBox();
   const ruleBox = await hud.locator('[aria-hidden="true"]').boundingBox();
   expect(hudBox).not.toBeNull();
   expect(ruleBox).not.toBeNull();
-  expect(hudBox!.width).toBeCloseTo(560 * 786 / 720, 1);
-  expect(ruleBox!.width).toBeCloseTo(176 * 786 / 720, 1);
+  expect(hudBox!.width).toBeCloseTo(tokens.width * 786 / 720, 1);
+  expect(ruleBox!.width).toBeCloseTo(tokens.ruleWidth * 786 / 720, 1);
 });
 
 test("複数目標を受信順で表示し長文をHUD幅内へ折り返す", async ({ page }) => {

@@ -81,6 +81,7 @@ namespace Tests.CombinedTest.Game
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("rocketHasLaunchedOnce");
             save.Remove("players");
             save.Remove("currentTick");
             save.Remove("randomState");

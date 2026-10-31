@@ -1,3 +1,4 @@
+using Game.Context;
 // V2スナップショットから最大持ち物の旧プレイヤーを引き継ぐことを調べる
 // Verify that the player with the most items is claimed from a V2 snapshot
 using System;
@@ -13,7 +14,8 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("player-identity-v2-claim", options, async p =>
 {
-    var worldDirectory = p.ServerService<WorldDataDirectory>();
+    WorldDataDirectory worldDirectory = null;
+    await p.RunOnServer("ワールドの保存先を読む", () => worldDirectory = ServerContext.GetService<WorldDataDirectory>());
     var backupPath = worldDirectory.BackupSaveJsonPath(2);
     var logItemGuid = new Guid("aafce615-6c30-48c4-a29e-3c5b3266748f");
     p.Note("V2セーブの退避と、旧プレイヤーの持ち物の引き継ぎを確認する");

@@ -24,6 +24,10 @@ namespace Game.SaveLoad.Pruning.Items
         // Connection cost materials (materials of ElectricWire/GearChainPole); stack-shaped but not inventory
         public const string ConnectionCostMaterialsPropertyName = "materials";
 
+        // 通常・歯車・清浄室で共通の加工開始時の実品参照
+        // Actual inputs consumed at job start, shared by normal, gear and clean-room machines
+        public const string ConsumedInputItemGuidsPropertyName = "consumedInputItemGuids";
+
         // 対象外: filterItemGuids（VanillaFilterSplitter）・miningItemGuids（VanillaMinerProcessor）
         // Out of scope: filterItemGuids (VanillaFilterSplitter) and miningItemGuids (VanillaMinerProcessor)
         // 前者はGetItemIdOrNull、後者は文字列比較だけで解決するためロードを止めず、除去は挙動を変えるだけになる

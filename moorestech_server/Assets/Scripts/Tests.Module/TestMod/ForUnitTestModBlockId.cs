@@ -92,6 +92,7 @@ namespace Tests.Module.TestMod
         public static BlockId CleanRoomPipeHatchId => GetBlock("8e425510-aa34-4a1b-9f40-5f8079183ab2");
         public static BlockId CleanRoomAirFilterId => GetBlock("21e760d0-54b2-41a5-8cef-d78e1efb8fb8");
         public static BlockId CleanRoomMachineId => GetBlock("e08acf92-9d43-4db0-b43a-bcec773f22dc");
+        public static BlockId CleanRoomProcessMachineId => GetBlock("2abd1843-a5cd-4394-8eb2-987dde59baac");
 
         // スループット回帰テスト用の本番速度ベルト族(木1.0 / 鉄2.222222 / 電気6.666667 / 高速10)
         // Production-speed belt families for the throughput regression suite (wood 1.0 / iron 2.222222 / electric 6.666667 / fast 10)
@@ -121,5 +122,11 @@ namespace Tests.Module.TestMod
         // スループット回帰テスト用の燃料式風車(10 RPM・トルク1.7・timeToMax 3秒・燃料は Test1 を3秒に1個)。木の歯車ベルト10マス(需要16.85)に対し1台で約101%
         // Fuel windmill for the throughput suite (10 RPM, torque 1.7, timeToMax 3 s, burns one Test1 per 3 s); one supplies about 101% of ten wood gear belts (demand 16.85)
         public static BlockId ThroughputFuelWindmill => GetBlock("7b3e1a10-0005-4000-8000-000000000001");
+
+        public static BlockId RocketLaunchPadId => GetBlock("5c8e0000-0000-4000-8000-000000000100");
+
+        // 宇宙エレベーター拠点のテスト用ブロック
+        // Test block for the space elevator base
+        public static BlockId TestSpaceElevatorBase => GetBlock("5e1ea7a0-0001-4000-8000-000000000001");
     }
 }

@@ -64,10 +64,17 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
                     // Preserve the original stack's acceptance conditions when splitting
                     var acceptedCount = Math.Min(room, remaining.Count);
                     var portion = acceptedCount == remaining.Count ? remaining : remaining.SubItem(remaining.Count - acceptedCount);
-                    var result = slots[slot].AddItem(portion);
+
+                    // 自動搬入だけ別レベルの代替品を低い方へ揃えてから積む。手動の挿入は揃えずに弾く
+                    // Only automated inflow aligns a different-level substitute to the lower level before stacking; manual inserts bounce instead
+                    var slotStack = slots[slot];
+                    if (capAtAutoInsertLimit) (slotStack, portion) = slotBinding.AlignSubstituteVariant(slot, slotStack, portion);
+                    var result = slotStack.AddItem(portion);
                     var added = portion.Count - result.RemainderItemStack.Count;
                     if (added == 0) continue; // silent-ok: 属性不一致や満杯は正常な拒否 / 呼び出し元が残余で検知する
 
+                    // 残りは元の品のまま返す（揃えたのは積んだ分だけ）
+                    // The remainder keeps its original item; only the stacked part was aligned
                     slots[slot] = result.ProcessResultItemStack;
                     remaining = remaining.SubItem(added);
                     if (!touchedSlots.Contains(slot)) touchedSlots.Add(slot);

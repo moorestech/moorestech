@@ -5,6 +5,7 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.Gear;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Component;
@@ -56,7 +57,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
             // Load the parameters or create new ones
             var processor = componentStates == null
                 ? new VanillaMachineProcessorComponent(input, output, requirePower, gearConsumption.IdlePowerRate, effectComponent)
-                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, gearConsumption.IdlePowerRate, blockMasterElement);
+                : MachineSaveRestorer.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, gearConsumption.IdlePowerRate, blockMasterElement);
             var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
@@ -77,6 +78,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
                 gearConnector,
                 gearEnergyTransformer,
                 new MachineRecipeBlueprintSettingsComponent(processor),
+                new MachineInputLevelStallComponent(input, processor),
             };
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);

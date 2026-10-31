@@ -12,6 +12,10 @@ namespace Game.Block.Interface.Component
     {
         Guid SelectedRecipeGuid { get; }
 
+        // 選択済みならそのレシピを返す。未選択は false（Guid.Empty との比較で未選択を表さない）
+        // Returns the selected recipe; false when unselected (do not encode "unselected" as a Guid.Empty comparison)
+        bool TryGetSelectedRecipe(out MachineRecipeMasterElement recipe);
+
         // 加工中の変更はジョブを中断し消費済み材料を返却する。入力に収まらない分はrefundOverflowInventoryへ
         // Changing mid-processing cancels the job and refunds consumed inputs; overflow goes to refundOverflowInventory
         MachineRecipeSelectionResult SetSelectedRecipe(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory);

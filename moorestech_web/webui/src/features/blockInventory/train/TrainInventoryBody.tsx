@@ -10,6 +10,7 @@ import { ModeSwitch, type ModeSwitchOption } from "@/shared/ui";
 import FluidInventoryContents from "../fluid/FluidInventoryContents";
 import BlockItemGrid from "../BlockItemGrid";
 import TrainTimetableSection from "./TrainTimetableSection";
+import { allSlotIndices } from "../details/detailLogic";
 
 type TrainData = Extract<BlockInventoryData, { source: "train" }>;
 type Tab = "inventory" | "timetable";
@@ -39,7 +40,7 @@ export default function TrainInventoryBody({ data }: { data: TrainData }) {
       <ScrollArea className={styles.scroll} type="auto">
         {tab === "inventory" && (data.fluidSlots.length > 0
           ? <FluidInventoryContents fluids={data.fluidSlots} testId="train-inventory-fluids" />
-          : <BlockItemGrid itemSlots={data.itemSlots} testId="train-inventory-slots" />)}
+          : <BlockItemGrid itemSlots={data.itemSlots} slotIndices={allSlotIndices(data.itemSlots.length)} testId="train-inventory-slots" />)}
         {tab === "timetable" && timetable.kind === "loading" && (
           <Text size="sm" data-testid="train-timetable-loading">{t(L.ui.blockInventory.timetableLoading)}</Text>
         )}

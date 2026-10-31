@@ -113,7 +113,8 @@
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": true
       },
       "blockGuid": "00000000-0000-0000-0000-000000000001",
       "category": "テスト",
@@ -1712,14 +1713,7 @@
         },
         "fluidContainerCount": 0,
         "fluidContainerCapacity": 0,
-        "fluidInventoryConnectors": {
-          "inflowConnects": [],
-          "outflowConnects": []
-        },
-        "innerTankCapacity": 0,
         "innerTankCount": 0,
-        "outputTankCount": 0,
-        "inputTankCount": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -1731,7 +1725,8 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        }
+        },
+        "allowQualityModule": false
       },
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
       "category": "テスト",
@@ -2587,7 +2582,8 @@
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockGuid": "00000000-0000-0000-0000-000000000019",
       "category": "テスト",
@@ -2707,7 +2703,8 @@
         "inputTankCount": 0,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
       "category": "テスト",
@@ -2827,7 +2824,8 @@
         "outputTankCount": 0,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
       "category": "テスト",
@@ -3594,7 +3592,8 @@
         "inputTankCount": 3,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
       "category": "テスト",
@@ -5009,7 +5008,8 @@
               "connectorGuid": "22c61d79-fe65-4481-b957-cf6181686291"
             }
           ]
-        }
+        },
+        "maxItemsPerSecond": 20
       },
       "blockSize": [
         1,
@@ -5092,7 +5092,42 @@
         "filterCapacity": 5000,
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "85067b3f-6985-4861-9cca-abca4c9d1dc0"
+            }
+          ],
+          "outputConnects": []
+        }
       },
       "blockSize": [
         1,
@@ -5189,7 +5224,8 @@
         },
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
       },
       "blockSize": [
         1,
@@ -7407,6 +7443,479 @@
       "subCategory": "FuelGearGenerator",
       "placementsPerCost": 1,
       "openable": false
+    },
+    {
+      "maxStack": 100,
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "TestLevelInheritMachine",
+      "openable": true,
+      "blockType": "ElectricMachine",
+      "blockParam": {
+        "moduleSlotCount": 4,
+        "requiredPower": 100,
+        "idlePowerRate": 0.25,
+        "outputSlotCount": 2,
+        "inputSlotCount": 2,
+        "inputFluidSlotCount": 0,
+        "outputFluidSlotCount": 0,
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "ffffffff-0000-4000-8000-00000000c0d1"
+            }
+          ],
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "ffffffff-0000-4000-8000-00000000c0d2"
+            }
+          ]
+        },
+        "fluidContainerCount": 0,
+        "fluidContainerCapacity": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "innerTankCount": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0,
+        "maxWireConnectionCount": 2,
+        "connectionRange": 9,
+        "connectionHeightRange": 9,
+        "allowQualityModule": false
+      },
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "category": "テスト",
+      "subCategory": "ElectricMachine",
+      "placementsPerCost": 1
+    },
+    {
+      "name": "TestCleanRoomProcessMachine",
+      "blockType": "CleanRoomMachine",
+      "blockParam": {
+        "requiredPower": 100,
+        "idlePowerRate": 0.2,
+        "inputSlotCount": 1,
+        "outputSlotCount": 4,
+        "moduleSlotCount": 3,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "4aff936f-ccaf-43a5-8ad7-44cb16b9ab56"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "a46afc6b-f56e-4899-8125-952b4e1abef6"
+            }
+          ]
+        },
+        "inputTankCount": 1,
+        "outputTankCount": 0,
+        "innerTankCapacity": 100,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "option": {
+                "flowCapacity": 10,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "f1011542-9282-4b10-b362-38f3eeb777b2"
+            }
+          ],
+          "outflowConnects": []
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 9,
+        "connectionHeightRange": 9,
+        "allowQualityModule": true
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "blockGuid": "2abd1843-a5cd-4394-8eb2-987dde59baac",
+      "category": "テスト",
+      "subCategory": "CleanRoomMachine",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockGuid": "5c8e0000-0000-4000-8000-000000000100",
+      "name": "TestRocketLaunchPad",
+      "blockType": "RocketLaunchPad",
+      "openable": true,
+      "maxStack": 100,
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "category": "テスト",
+      "subCategory": "RocketLaunchPad",
+      "placementsPerCost": 1,
+      "blockParam": {
+        "requiredPower": 100,
+        "buildSeconds": 1,
+        "launchSeconds": 1,
+        "launchMaterials": [
+          {
+            "itemGuid": "5c8e0000-0000-4000-8000-000000000001",
+            "count": 2
+          },
+          {
+            "itemGuid": "5c8e0000-0000-4000-8000-000000000002",
+            "count": 3
+          },
+          {
+            "itemGuid": "5c8e0000-0000-4000-8000-000000000003",
+            "count": 1
+          }
+        ],
+        "outputSlotCount": 2,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "607ee58d-6dc6-4647-a882-7213cdd1334a"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "6fa4b379-b0ea-4b4e-8484-2dabea65fe2d"
+            }
+          ]
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 30,
+        "connectionHeightRange": 20
+      }
+    },
+    {
+      "blockGuid": "5e1ea7a0-0001-4000-8000-000000000001",
+      "name": "TestSpaceElevatorBase",
+      "blockType": "SpaceElevatorBase",
+      "openable": true,
+      "maxStack": 100,
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "category": "テスト",
+      "subCategory": "SpaceElevatorBase",
+      "placementsPerCost": 1,
+      "blockParam": {
+        "carriedPayloadItemGuids": [
+          "5e1ea7a0-0002-4000-8000-000000000002",
+          "00000000-0000-0000-c0de-000000000061",
+          "00000000-0000-0000-c0de-000000000062"
+        ],
+        "cableItemGuid": "5e1ea7a0-0002-4000-8000-000000000001",
+        "cablesPerElevator": 100,
+        "climbSeconds": 2,
+        "requiredPower": 100,
+        "outputSlotCount": 1,
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "5e1ea7a0-0003-4000-8000-000000000001"
+            }
+          ],
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "5e1ea7a0-0003-4000-8000-000000000002"
+            }
+          ]
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 30,
+        "connectionHeightRange": 20
+      }
     }
   ],
   "connectorSettings": {

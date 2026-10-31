@@ -27,9 +27,9 @@ return PlaytestRunner.Run("research-node-state-label", options, async p =>
     // Build all three states at once: research1 completed, research2 researchable with items, research3 blocked by its prerequisite
     p.Note("研究1を完了させ、研究2の消費アイテムを付与して3状態を作る");
     api.CompleteResearch(research1);
-    p.GiveItemDirect("木の板", 2);
-    p.GiveItemDirect("木の棒", 2);
-    p.GiveItemDirect("砕いた石材", 2);
+    await p.GiveItemDirect("木の板", 2);
+    await p.GiveItemDirect("木の棒", 2);
+    await p.GiveItemDirect("砕いた石材", 2);
     await p.WaitSeconds(2f);
     p.Note("Rキーで研究ツリーを開く");
     await p.PressKey(Key.R);

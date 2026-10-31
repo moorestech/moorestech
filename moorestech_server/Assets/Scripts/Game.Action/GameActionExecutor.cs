@@ -1,55 +1,47 @@
-using System;
-using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Context;
+using Game.Block.Interface.MachineUpgrade;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
 using Mooresmaster.Model.GameActionModule;
-using UnityEngine;
 
 namespace Game.Action
 {
     public class GameActionExecutor : IGameActionExecutor
     {
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
-        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
+        private readonly GiveItemGameActionExecutor _giveItemGameActionExecutor;
         private readonly IItemStackLevelUnlocker _itemStackLevelUnlocker;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
+        private readonly IModuleSlotStackLimitUnlocker _moduleSlotStackLimitUnlocker;
+        private readonly ILevelInheritanceCraftCapUnlocker _levelInheritanceCraftCapUnlocker;
 
         public GameActionExecutor(
             IGameUnlockStateDataController gameUnlockStateDataController,
             IPlayerInventoryDataStore playerInventoryDataStore,
             IItemStackLevelUnlocker itemStackLevelUnlocker,
-            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore)
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
+            IModuleSlotStackLimitUnlocker moduleSlotStackLimitUnlocker,
+            ILevelInheritanceCraftCapUnlocker levelInheritanceCraftCapUnlocker)
         {
             _gameUnlockStateDataController = gameUnlockStateDataController;
-            _playerInventoryDataStore = playerInventoryDataStore;
+            _giveItemGameActionExecutor = new GiveItemGameActionExecutor(playerInventoryDataStore);
             _itemStackLevelUnlocker = itemStackLevelUnlocker;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
+            _moduleSlotStackLimitUnlocker = moduleSlotStackLimitUnlocker;
+            _levelInheritanceCraftCapUnlocker = levelInheritanceCraftCapUnlocker;
         }
 
         public void ExecuteUnlockActions(GameActionElement[] actions, ActionExecutionContext context = default)
         {
             if (actions == null || actions.Length == 0) return;
 
+            // 解放系だけを再実行する（付与・スキットは一度きり。集合は読み取り専用なので Enumerable.Contains で引く）
+            // Re-run unlock kinds only; grants and skits happen once (the set is read-only, so look it up with Enumerable.Contains)
             foreach (var action in actions)
             {
-                switch (action.GameActionType)
-                {
-                    case GameActionElement.GameActionTypeConst.unlockCraftRecipe:
-                    case GameActionElement.GameActionTypeConst.unlockItemRecipeView:
-                    case GameActionElement.GameActionTypeConst.unlockChallengeCategory:
-                    case GameActionElement.GameActionTypeConst.unlockMachineRecipe:
-                    case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
-                    case GameActionElement.GameActionTypeConst.unlockBlock:
-                    case GameActionElement.GameActionTypeConst.unlockTrainCar:
-                    case GameActionElement.GameActionTypeConst.unlockConnectTool:
-                    case GameActionElement.GameActionTypeConst.unlockPlayerInventorySlotLevel:
-                    case GameActionElement.GameActionTypeConst.unlockBlueprint:
-                        ExecuteAction(action, context);
-                        break;
-                }
+                if (UnlockReplayGameActionTypes.Types.Contains(action.GameActionType)) ExecuteAction(action, context);
             }
         }
 
@@ -97,7 +89,7 @@ namespace Game.Action
                     break;
 
                 case GameActionElement.GameActionTypeConst.giveItem:
-                    GiveItem();
+                    _giveItemGameActionExecutor.Execute(action, context);
                     break;
 
                 case GameActionElement.GameActionTypeConst.unlockItemStackLevel:
@@ -110,6 +102,14 @@ namespace Game.Action
 
                 case GameActionElement.GameActionTypeConst.unlockBlueprint:
                     _gameUnlockStateDataController.UnlockBlueprint();
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel:
+                    _moduleSlotStackLimitUnlocker.ApplyUnlockModuleSlotStackLevelAction(action);
+                    break;
+
+                case GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel:
+                    _levelInheritanceCraftCapUnlocker.ApplyUnlockLevelInheritanceCraftLevelAction(action);
                     break;
             }
             
@@ -183,47 +183,6 @@ namespace Game.Action
             {
                 var level = ((UnlockPlayerInventorySlotLevelGameActionParam)action.GameActionParam).Level;
                 _playerInventorySlotLevelDataStore.UnlockLevel(level);
-            }
-
-            void GiveItem()
-            {
-                // アイテムを付与するプレイヤーIDのリスト取得
-                // Get the list of player IDs to whom items will be granted
-                var param = (GiveItemGameActionParam)action.GameActionParam;
-                var targetPlayerIds = ResolveTargetPlayers(param.DeliveryTarget);
-                if (targetPlayerIds.Count == 0) return;
-
-                // アイテム付与処理
-                // Item granting process
-                foreach (var playerId in targetPlayerIds)
-                {
-                    var inventoryData = _playerInventoryDataStore.GetInventoryData(playerId);
-                    foreach (var reward in param.RewardItems)
-                    {
-                        var itemStack = ServerContext.ItemStackFactory.Create(reward.ItemGuid, reward.ItemCount);
-                        inventoryData.MainOpenableInventory.InsertItem(itemStack);
-                    }
-                }
-            }
-
-            List<int> ResolveTargetPlayers(string deliveryTarget)
-            {
-                switch (deliveryTarget)
-                {
-                    case GiveItemGameActionParam.DeliveryTargetConst.allPlayers:
-                        return _playerInventoryDataStore.GetAllPlayerId();
-                    case GiveItemGameActionParam.DeliveryTargetConst.actionInvoker:
-                        if (context.HasActionInvoker)
-                        {
-                            return new List<int> { context.ActionInvokerPlayerId!.Value };
-                        }
-
-                        Debug.LogError("[GameActionExecutor] giveItem actionInvoker deliveryTarget requires ActionInvokerPlayerId.");
-                        return new List<int>();
-                    default:
-                        Debug.LogError($"[GameActionExecutor] Unknown deliveryTarget: {deliveryTarget}");
-                        return new List<int>();
-                }
             }
             
             #endregion

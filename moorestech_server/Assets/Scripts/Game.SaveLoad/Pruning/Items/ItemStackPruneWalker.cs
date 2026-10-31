@@ -58,6 +58,12 @@ namespace Game.SaveLoad.Pruning.Items
 
             foreach (var property in json.Properties().ToList())
             {
+                if (property.Name == BlockStateItemReferenceFields.ConsumedInputItemGuidsPropertyName && property.Value is JArray consumedInputs)
+                {
+                    foreach (var item in consumedInputs.ToList()) _cleaner.ClearConsumedInputIfMissing(item, Locate(item, root, rootOrigin));
+                    continue;
+                }
+
                 if (property.Name == BlockStateItemReferenceFields.ConnectionCostMaterialsPropertyName && property.Value is JArray materials)
                 {
                     foreach (var material in materials.OfType<JObject>()) _cleaner.NeutralizeConnectionMaterialIfMissing(material, Locate(material, root, rootOrigin));

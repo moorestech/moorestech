@@ -26,6 +26,7 @@ const machineDetail = {
   currentState: "processing",
   currentPower: 10,
   requestPower: 20,
+  outputSpaceShort: false,
   slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
 };
 
@@ -71,6 +72,8 @@ const researchNode = {
   unlockMachineRecipes: [{ recipeGuid: guidA, outputItemIds: [], outputFluids: [{ fluidId: 1, amount: 1, fluidGuid: guidB }] }],
   unlockConnectToolGuids: [guidB],
   unlockTrainCarGuids: [guidC],
+  unlockModuleSlotStackLimits: [],
+  unlockLevelInheritanceCraftCaps: [],
 };
 
 const challengeNode = {

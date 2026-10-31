@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
+using Client.WebUiHost.Game.Topics.MachineUpgrade;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface.MachineUpgrade;
 using Game.UnlockState;
 using Mooresmaster.Model.MachineRecipesModule;
 using Server.Event.EventReceive;
+using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
 {
@@ -22,15 +25,22 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly IGameUnlockStateData _unlockStateData;
         private readonly IDisposable _subscription;
+        private readonly ILevelInheritanceCraftCapLookup _craftCapLookup;
+        private readonly IDisposable _craftCapSubscription;
 
-        public MachineRecipesTopic(WebSocketHub hub, IGameUnlockStateData unlockStateData)
+        public MachineRecipesTopic(WebSocketHub hub, IGameUnlockStateData unlockStateData, ILevelInheritanceCraftCapLookup craftCapLookup)
         {
             _hub = hub;
             _unlockStateData = unlockStateData;
+            _craftCapLookup = craftCapLookup;
 
             // ClientGameUnlockStateData より後に購読登録されるため、ここでは更新後の状態を読める
             // Subscribed after ClientGameUnlockStateData, so the updated unlock state is visible here
             _subscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(UnlockedEventPacket.EventTag, _ => _hub.Publish(TopicName, BuildJson()));
+
+            // 製作上限が上がると継承レシピの受け付け最高レベルが変わるため再配信する
+            // A raised craft cap changes an inheritance recipe's max accepted level, so republish
+            _craftCapSubscription = _craftCapLookup.OnCraftCapUnlocked.Subscribe(_ => _hub.Publish(TopicName, BuildJson()));
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -41,6 +51,7 @@ namespace Client.WebUiHost.Game.Topics
         public void Dispose()
         {
             _subscription.Dispose();
+            _craftCapSubscription.Dispose();
         }
 
         private string BuildJson()
@@ -64,6 +75,7 @@ namespace Client.WebUiHost.Game.Topics
                     OutputItems = BuildOutputItems(recipe),
                     InputFluids = BuildInputFluids(recipe),
                     OutputFluids = BuildOutputFluids(recipe),
+                    LevelInheritance = MachineRecipeLevelInheritanceDtoBuilder.Build(recipe, _craftCapLookup),
                 });
             }
             return WebUiJson.Serialize(dto);
@@ -149,6 +161,7 @@ namespace Client.WebUiHost.Game.Topics
         public List<RecipeItemDto> OutputItems;
         public List<RecipeFluidDto> InputFluids;
         public List<RecipeFluidDto> OutputFluids;
+        public MachineRecipeLevelInheritanceDto LevelInheritance;
     }
 
     public class RecipeItemDto

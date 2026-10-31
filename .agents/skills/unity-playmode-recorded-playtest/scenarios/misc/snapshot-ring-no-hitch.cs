@@ -19,12 +19,11 @@ var options = new PlaytestRunOptions { Record = false, ScenarioTimeoutSeconds = 
 return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
 {
     await p.WaitSeconds(3f);
-    var assembler = ServerContext.GetService<AssembleSaveJsonText>();
 
     // tickへ差し込む購読口・末尾リストは無いので、取り込み時間はシナリオ側からCapture()を直接呼んで測る
     // There is no tick hook or tick-end list to inject into, so capture time is measured by calling Capture() directly from the scenario
-    // Capture()はtickスレッド専用の契約だが、建設を終えた静止ワールドで読むだけなので計測用途に限り許す（tick進行と重なった回は値が膨らむ）
-    // Capture() is contracted to the tick thread, but reading a settled world is tolerated for measurement only (runs overlapping a tick read high)
+    // Capture()はtickスレッド専用の契約なので、tick末尾で呼んでその中で時間を測る
+    // Capture() is contracted to the tick thread, so call it at the tick end and time it there
 
     // 取り込み時間のブロック数依存を見るため、素のワールド→土台のみ→チェスト込みの3段で測る
     // Measure captures at three scales (bare world, foundations only, plus chests) to expose the per-block dependency
@@ -35,18 +34,18 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
     var placeWall = Stopwatch.StartNew();
     for (var i = 0; i < foundationCount; i++)
     {
-        p.PlaceBlockDirect("基本土台", new Vector3Int(200 + i % 85 * 5, 40, 200 + i / 85 * 5), BlockDirection.North);
+        await p.PlaceBlockDirect("基本土台", new Vector3Int(200 + i % 85 * 5, 40, 200 + i / 85 * 5), BlockDirection.North);
         if (i % 500 == 499) await UniTask.Yield();
     }
-    p.Note($"foundations placed blocks={ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count}");
+    p.Note($"foundations placed blocks={await BlockCount()}");
     await MeasureCaptures("foundations-only");
 
     for (var i = 0; i < chestCount; i++)
     {
-        p.PlaceBlockDirect("木のチェスト", new Vector3Int(900 + i % 40 * 2, 40, 900 + i / 40 * 2), BlockDirection.North);
+        await p.PlaceBlockDirect("木のチェスト", new Vector3Int(900 + i % 40 * 2, 40, 900 + i / 40 * 2), BlockDirection.North);
         if (i % 500 == 499) await UniTask.Yield();
     }
-    var blockCount = ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count;
+    var blockCount = await BlockCount();
     p.Note($"blocks={blockCount} placed in {placeWall.Elapsed.TotalSeconds:F1}s");
 
     // リングを止めたまま進行を測り、この環境そのものが持つtick遅れを基準値にする
@@ -61,13 +60,17 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
 
     // 書き出し完了はtickスレッドから通知されるので、開始時の基準取り込みを含む成功数を原子的に数える
     // Write completions arrive on the tick thread, so successes including the start baseline are counted atomically
-    var ring = ServerContext.GetService<WorldSnapshotRing>();
     var writtenSnapshotCount = 0;
-    var writtenSubscription = ring.OnSnapshotWritten.Subscribe(written =>
+    IDisposable writtenSubscription = null;
+    await p.RunOnServer("常時記録リングを購読して開始する", () =>
     {
-        if (written.Success) Interlocked.Increment(ref writtenSnapshotCount);
+        var ring = ServerContext.GetService<WorldSnapshotRing>();
+        writtenSubscription = ring.OnSnapshotWritten.Subscribe(written =>
+        {
+            if (written.Success) Interlocked.Increment(ref writtenSnapshotCount);
+        });
+        ring.Start(null, null, null);
     });
-    ring.Start(null, null, null);
     p.Note("ring started");
     var worst = await MeasureCaptures("ring-on");
     p.Assert(worst <= 20d, $"取り込みが20ms以内 (worst {worst:F1}ms)");
@@ -91,14 +94,25 @@ return PlaytestRunner.Run("snapshot-ring-no-hitch", options, async p =>
 
     #region Internal
 
+    async UniTask<int> BlockCount()
+    {
+        var count = 0;
+        await p.RunOnServer("ブロック数を読む", () => count = ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count);
+        return count;
+    }
+
     async UniTask<double> MeasureCaptures(string label)
     {
         var worstMilliseconds = 0d;
         for (var i = 0; i < 5; i++)
         {
-            var captureWatch = Stopwatch.StartNew();
-            assembler.Capture();
-            var milliseconds = captureWatch.Elapsed.TotalMilliseconds;
+            var milliseconds = 0d;
+            await p.RunOnServer($"取り込み時間を測る {label}#{i}", () =>
+            {
+                var captureWatch = Stopwatch.StartNew();
+                ServerContext.GetService<AssembleSaveJsonText>().Capture();
+                milliseconds = captureWatch.Elapsed.TotalMilliseconds;
+            });
             if (worstMilliseconds < milliseconds) worstMilliseconds = milliseconds;
             p.Note($"capture[{label}]#{i}: {milliseconds:F1}ms");
             await p.WaitSeconds(0.5f);

@@ -74,9 +74,9 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
             Assert.Less(room.ThresholdIndex, MasterHolder.CleanRoomMaster.OutThresholdIndex);
 
-            // クラスA室では4レベル一様抽選なので、具体レベルは固定しない
-            // Class-A rooms draw uniformly across four levels, so the exact level is intentionally not fixed
-            Assert.IsTrue(IsAnyChipLevel(inventory.GetItem(2).Id));
+            // このレシピは清浄室工程の役割表に無いので、出力はレシピどおりのLv1チップになる
+            // This recipe is in no clean-room role table, so the output is the recipe's own Lv1 chip
+            Assert.AreEqual(ForUnitTestItemId.TestSemiconductorChipLv1, inventory.GetItem(2).Id);
             Assert.GreaterOrEqual(inventory.GetItem(2).Count, 1);
             Assert.Less(inventory.GetItem(0).Count, 5);
         }

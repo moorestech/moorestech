@@ -1,7 +1,11 @@
+using System;
 using System.Collections.Generic;
+using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.RecipeSelection;
+using Game.Block.Interface.MachineUpgrade;
+using Game.Context;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.Inventory.Input
@@ -17,6 +21,12 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
     internal class MachineInputSlotBinding
     {
         private MachineRecipeMasterElement _recipe;
+        private readonly MachineInputCraftCapGate _craftCapGate;
+
+        public MachineInputSlotBinding(MachineInputCraftCapGate craftCapGate)
+        {
+            _craftCapGate = craftCapGate;
+        }
 
         public void SetRecipe(MachineRecipeMasterElement recipe)
         {
@@ -37,7 +47,7 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             if (_recipe == null) yield break;
             for (var i = 0; i < _recipe.InputItems.Length; i++)
             {
-                if (MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, i, itemId)) yield return i;
+                if (CheckItemPlacement(i, itemId) == MachineSlotPlacementCheck.Allowed) yield return i;
             }
         }
 
@@ -81,15 +91,53 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             }
         }
 
+        // 自動搬入で、スロットの品と入ってくる品が同じ要求に充てられる別レベルなら、両方を低い方のレベルへ揃える（1スロット1IDのまま混在ベルトで詰まらせない）
+        // For automated inflow, align the slot's stack and the incoming stack to the lower level when both serve the same requirement (one id per slot without jamming on mixed belts)
+        public (IItemStack slotStack, IItemStack incoming) AlignSubstituteVariant(int slotIndex, IItemStack slotStack, IItemStack incoming)
+        {
+            if (slotStack.Id == ItemMaster.EmptyItemId || slotStack.Id == incoming.Id) return (slotStack, incoming);
+
+            // 継承元スロットは入っていたレベルを継承するので揃えない
+            // The inheritance source slot inherits the level it holds, so it never aligns
+            if (MachineRecipeLevelInheritanceUtil.TryGetShape(_recipe, out var shape) && shape.SourceInputIndex == slotIndex) return (slotStack, incoming);
+
+            var slotLevel = MachineRecipeSlotBindingUtil.ResolveInputAcceptedLevel(_recipe, slotIndex, slotStack.Id);
+            var incomingLevel = MachineRecipeSlotBindingUtil.ResolveInputAcceptedLevel(_recipe, slotIndex, incoming.Id);
+            // silent-ok: 同じ要求に充てられない組は揃えずに返すだけ / 続く AddItem が積めず、呼び出し元が残余で検知する
+            if (!slotLevel.HasValue || !incomingLevel.HasValue) return (slotStack, incoming);
+
+            var lowerItemId = slotLevel.Value < incomingLevel.Value ? slotStack.Id : incoming.Id;
+            // 変換後の上限で既存在庫と搬入量を守る
+            // Protect existing stock and inflow with the destination capacity
+            var capacity = ItemStackLevelDataStore.Instance.GetMaxStack(lowerItemId);
+            // silent-ok: 変換で溢れる場合は元の在庫を保持 / 搬入元へ元IDの残余を返す
+            if (capacity <= slotStack.Count) return (slotStack, incoming);
+            incoming = incoming.SubItem(incoming.Count - Math.Min(incoming.Count, capacity - slotStack.Count));
+            var factory = ServerContext.ItemStackFactory;
+            return (factory.Create(lowerItemId, slotStack.Count), factory.Create(lowerItemId, incoming.Count));
+        }
+
+        // 選択済みならそのレシピを返す。未選択は false
+        // Returns the selected recipe; false when unselected
+        public bool TryGetRecipe(out MachineRecipeMasterElement recipe) => (recipe = _recipe) != null;
+
         // 空アイテムは取り出しなのでどのスロットでも許す
         // An empty stack means a take-out, so it is allowed on any slot
         public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)
         {
             if (itemStack.Id == ItemMaster.EmptyItemId) return MachineSlotPlacementCheck.Allowed;
             if (_recipe == null) return MachineSlotPlacementCheck.RecipeNotSelected;
-            return MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, localSlot, itemStack.Id)
+            return CheckItemPlacement(localSlot, itemStack.Id);
+        }
+
+        // レシピ選択済みのスロットへ素材を置けるか（束縛→製作上限の順）。挿入先の列挙と配置判定が共有する
+        // Whether the item may go into the slot of the selected recipe (binding, then craft cap); shared by slot enumeration and placement checks
+        private MachineSlotPlacementCheck CheckItemPlacement(int localSlot, ItemId itemId)
+        {
+            if (!MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, localSlot, itemId)) return MachineSlotPlacementCheck.ItemNotBoundToSlot;
+            return _craftCapGate.IsWithinCraftCap(_recipe, localSlot, itemId)
                 ? MachineSlotPlacementCheck.Allowed
-                : MachineSlotPlacementCheck.ItemNotBoundToSlot;
+                : MachineSlotPlacementCheck.LevelAboveCraftCap;
         }
 
         public bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)

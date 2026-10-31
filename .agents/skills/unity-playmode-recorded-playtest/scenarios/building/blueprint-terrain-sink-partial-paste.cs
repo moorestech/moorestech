@@ -1,3 +1,5 @@
+using Client.Playtest.Operations;
+using Game.Context;
 // 生成ワールドの斜面で、鉄の歯車ベルトコンベア・分岐機を含むBPの貼り付けを確かめる（ADR 0081 R6〜R8・#1499の元症状）
 // (a) 高さオフセット0で斜面の上をゆっくり動かしても、ゴーストが1フレームも欠けない（点滅しない）
 // (b) Qで1段以上下げて一部が丘に食い込む位置で貼ると、埋まるブロックだけ赤く「地形に埋まっています」が出て、貼付後は残りだけ置かれる
@@ -45,15 +47,15 @@ return PlaytestRunner.Run("blueprint-terrain-sink-partial-paste", options, async
     deck.layer = Client.Common.LayerConst.GroundLayer;
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { CreateFlatGround = false, SpawnPosition = new Vector3(5f, 161.5f, -4f) });
     await p.SkipOpeningSkitIfPlaying();
-    p.Hotbar.UnlockBlueprint();
+    await p.Hotbar.UnlockBlueprint();
     const string Belt = "鉄の歯車ベルトコンベア";
     const string Splitter = "鉄の歯車ベルトコンベア分岐機";
-    p.UnlockBlock(Belt);
-    p.UnlockBlock(Splitter);
+    await p.UnlockBlock(Belt);
+    await p.UnlockBlock(Splitter);
 
     // 台の上に、ベルト7個と分岐機1個の8個の列（x=2..9, z=2）を置く
     // On the deck, lay a row of 7 belts and 1 splitter (x=2..9, z=2)
-    for (var x = 2; x <= 9; x++) p.PlaceBlockDirect(x == 5 ? Splitter : Belt, new Vector3Int(x, 160, 2), BlockDirection.North);
+    for (var x = 2; x <= 9; x++) await p.PlaceBlockDirect(x == 5 ? Splitter : Belt, new Vector3Int(x, 160, 2), BlockDirection.North);
     await p.WaitBlockGameObject(new Vector3Int(9, 160, 2));
 
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
@@ -62,7 +64,6 @@ return PlaytestRunner.Run("blueprint-terrain-sink-partial-paste", options, async
     var tooltipState = resolver.Resolve<MouseCursorTooltipState>();
     var checks = new BlueprintCopyPasteScenarioChecks(p, tooltipState);
     var probe = new BlueprintPasteGhostProbe(tooltipState);
-    var datastore = p.ServerService<IBlueprintDatastore>();
     const string ToolCategory = "build-menu-category-d1000000-0000-4000-8000-000000000009";
     const string CopyToolEntry = "build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d";
     const string BlueprintCategory = "build-menu-category-d1000000-0000-4000-8000-000000000010";
@@ -77,8 +78,7 @@ return PlaytestRunner.Run("blueprint-terrain-sink-partial-paste", options, async
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     nameState.Confirm("terrain-sink-bp");
-    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "terrain-sink-bp"), 15f, "BP『terrain-sink-bp』が登録される");
-    var blueprint = datastore.Blueprints.First(b => b.Name == "terrain-sink-bp");
+    var blueprint = await p.WaitForBlueprint("terrain-sink-bp", true, 15f, "BP『terrain-sink-bp』が登録される");
     p.Assert(blueprint.Blocks.Count == 8, $"BPは8ブロック 実際:{blueprint.Blocks.Count}");
     await p.PressKey(Key.Escape);
 

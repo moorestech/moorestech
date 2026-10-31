@@ -4,6 +4,7 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.Inventory.Input;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Context;
 using Mooresmaster.Model.MachineRecipesModule;
 
@@ -17,15 +18,19 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
     /// </summary>
     public static class MachineRecipeRefundUtil
     {
-        // 返却対象のアイテム材料を生成する（isRemainは消費されていないため対象外）
-        // Build the item stacks to refund (isRemain inputs are not consumed, so excluded)
-        public static List<IItemStack> CreateRefundStacks(MachineRecipeMasterElement recipe)
+        // 返却対象のアイテム材料を生成する（isRemainは消費されていないため対象外）。継承元は投入時のレベルで返す
+        // Build the item stacks to refund (isRemain inputs are not consumed, so excluded); the source returns at its input level
+        // 消費した実品の控えがあればそのIDで返す。セーブから復元したジョブは控えが無く基準品で返すため警告する
+        // Refund with the recorded consumed item ids when present; a job restored from a save has none and refunds the base item, so warn
+        public static List<IItemStack> CreateRefundStacks(MachineRecipeMasterElement recipe, int? inheritedLevel, IReadOnlyList<ItemId> consumedInputItemIds)
         {
             var stacks = new List<IItemStack>();
-            foreach (var input in recipe.InputItems)
+            for (var i = 0; i < recipe.InputItems.Length; i++)
             {
+                var input = recipe.InputItems[i];
                 if (input.IsRemain.HasValue && input.IsRemain.Value) continue;
-                var itemId = MasterHolder.ItemMaster.GetItemId(input.ItemGuid);
+                var itemId = consumedInputItemIds != null ? consumedInputItemIds[i] : MachineRecipeLevelInheritanceUtil.ResolveInputItemId(recipe, i, inheritedLevel);
+                if (consumedInputItemIds == null) UnityEngine.Debug.LogWarning($"復元ジョブのため消費した変種が不明で基準品で返却した recipe={recipe.MachineRecipeGuid} slot={i}");
                 stacks.Add(ServerContext.ItemStackFactory.Create(itemId, input.Count));
             }
             return stacks;

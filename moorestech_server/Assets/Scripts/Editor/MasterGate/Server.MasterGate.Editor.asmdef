@@ -1,0 +1,29 @@
+{
+    "name": "Server.MasterGate.Editor",
+    "rootNamespace": "",
+    "references": [
+        "Core.Inventory",
+        "Core.Item.Interface",
+        "Core.Master",
+        "Game.Context",
+        "Game.PlayerIdentity",
+        "Game.PlayerInventory.Interface",
+        "Game.Research",
+        "Game.UnlockState",
+        "Mod.Config",
+        "Mod.Loader",
+        "Server.Boot",
+        "Server.Protocol"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

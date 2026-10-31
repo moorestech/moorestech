@@ -8,6 +8,9 @@ import { expectCraftFramedPlacementHud } from "../../support/operationHudAsserti
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "placementEmpty");
   await setUiState(page, "PlayerInventory");
+  // 英語を指定したテストの後も、mock既定の日本語へ戻して後続specへ漏らさない
+  // Restore the mock's default Japanese after tests that chose English so it never leaks into later specs
+  await setTopicScenario(page, "japanese");
 });
 
 test("配置モードHUDを右上のクラフト枠で表示する", async ({ page }) => {

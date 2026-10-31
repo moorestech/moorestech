@@ -32,7 +32,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             var runningRecipe = processingState.CurrentRecipe;
             if (runningRecipe == null) return true;
 
-            var refunds = MachineRecipeRefundUtil.CreateRefundStacks(runningRecipe);
+            var refunds = MachineRecipeRefundUtil.CreateRefundStacks(runningRecipe, processingState.InheritedLevel, processingState.ConsumedInputItemIds);
             if (!MachineRecipeRefundUtil.CanRefundAllItems(inputInventory, refundOverflowInventory, refunds)) return false;
 
             MachineRecipeRefundUtil.ExecuteRefund(inputInventory, refundOverflowInventory, refunds, runningRecipe);

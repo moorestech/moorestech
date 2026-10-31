@@ -38,7 +38,7 @@ return PlaytestRunner.Run("build-preview-radius", options, async p =>
     for (var x = -40; x < 40; x += 2)
     {
         for (var z = -40; z < 40; z += 2)
-            p.PlaceBlockDirect("木のチェスト", new Vector3Int(x, 32, z), BlockDirection.North);
+            await p.PlaceBlockDirect("木のチェスト", new Vector3Int(x, 32, z), BlockDirection.North);
         await UniTask.Yield();
     }
     await p.Until(() => ClientDIContext.BlockGameObjectDataStore.BlockGameObjectDictionary.Count >= 1600, 60f, "1600ブロックのクライアント反映");

@@ -2,8 +2,12 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.CleanRoom.Machine;
+using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Game.Block.Blocks.ElectricWire;
+using Game.Block.Blocks.Fluid;
+using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Component;
@@ -49,11 +53,18 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
             // CleanRoomMachineComponentは汚染判定と電力Consumerを兼ねる
             // CleanRoomMachineComponent serves both pollution reporting and the electric consumer role
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
-            var machineComponent = new CleanRoomMachineComponent(blockInstanceId, processor);
+            var operabilityState = new CleanRoomOperabilityStateComponent();
+            var machineComponent = new CleanRoomMachineComponent(blockInstanceId, processor, operabilityState);
+
+            // 抽選の中身の部品は、抽選と同じレシピ選択・モジュール集計と、部屋の効果の読み口を受け取る
+            // The draw-detail component receives the draw's own recipe selection and module aggregate, plus the room effect's read view
+            var yieldPreview = new CleanRoomYieldPreviewComponent(processor, effectComponent, processor.CleanRoomEffectLookup, processor.PendingRealizationReader);
             var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, blockInstanceId, machineComponent, componentStates);
 
             // 供給読み取り(machineComponent)を加工判定(processor)より先に更新させるため、この並び順を維持すること
             // Keep this order: the supply reader (machineComponent) must update before the processor
+            // 停止理由の状態は GetComponent<IBlockStateObservable>() の先頭一致を processor のままにするため末尾に置く
+            // The halt-reason state goes last so GetComponent<IBlockStateObservable>() still returns the processor first
             var components = new List<IBlockComponent>
             {
                 blockInventory,
@@ -63,7 +74,19 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
                 inputConnectorComponent,
                 wireConnector,
                 new MachineRecipeBlueprintSettingsComponent(processor),
+                yieldPreview,
+                new MachineInputLevelStallComponent(input, processor),
+                operabilityState,
             };
+
+            // タンクを持つ機械だけ配管コネクタと液体インベントリを組む（通常機械と同じ構成）
+            // Only machines with tanks get a pipe connector and fluid inventory (same layout as normal machines)
+            if (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount)
+            {
+                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
+                components.Add(fluidConnector);
+                components.Add(new VanillaMachineFluidInventoryComponent(input, output, fluidConnector));
+            }
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }

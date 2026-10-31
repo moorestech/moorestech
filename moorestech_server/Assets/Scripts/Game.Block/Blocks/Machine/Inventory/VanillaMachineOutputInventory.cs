@@ -30,6 +30,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
+        private readonly IReadOnlyList<int> _outputSlots;
         private readonly FluidContainer[] _fluidContainers;
 
         // 選択レシピへのスロット束縛判定。スロットjは生産物jのレベルファミリー枠（2026-08-30裁定）
@@ -42,6 +43,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;
             _inputSlotSize = inputSlotSize;
+            _outputSlots = Enumerable.Range(0, outputSlot).ToArray();
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, itemStackFactory, outputSlot);
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, blockConnectorComponent);
             
@@ -65,6 +67,10 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             return _slotBinding.CheckPlacement(localSlot, itemStack);
         }
+
+        // 入力・出力スロットはアイテムの最大スタックだけで決まる
+        // Input and output slots are bounded only by the item's max stack
+        public int GetSlotStackLimit() => int.MaxValue;
 
         /// <summary>
         ///     産出スタック列を格納できるか仮想挿入で判定する
@@ -157,8 +163,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         // Push output slots into connected inventories; driven by the processor component's Update (no self subscription)
         public void InsertConnectInventory()
         {
-            for (var i = 0; i < OutputSlot.Count; i++)
-                _itemDataStoreService.SetItem(i, _connectInventoryService.InsertItem(OutputSlot[i]));
+            BlockOutputTransfer.Transfer(_itemDataStoreService, _outputSlots, _connectInventoryService);
         }
         
         public void SetItem(int slot, IItemStack itemStack)

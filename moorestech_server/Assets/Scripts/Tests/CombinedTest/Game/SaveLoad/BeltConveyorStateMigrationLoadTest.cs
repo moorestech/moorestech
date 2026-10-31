@@ -96,6 +96,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
             Assert.IsTrue(state.Remove(NewBeltSaveKey), "現行セーブにベルコンの新キーがありません");
             state[OldBeltSaveKey] = JArray.Parse("[\"{\\\"x\\\":1}\",null,null,null]");
             save["worldVersion"] = 5;
+            save.Remove("rocketHasLaunchedOnce");
             return save;
         }
 

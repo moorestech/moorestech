@@ -8,6 +8,7 @@ using Client.Game.InGame.GraphicsQuality;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
+using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -49,7 +50,7 @@ return PlaytestRunner.Run("quality-fps-measure", new PlaytestRunOptions { Record
         await p.SkipOpeningSkitIfPlaying();
         GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Medium);
         var data = ClientDIContext.DIContainer.DIContainerResolver.Resolve<BlockGameObjectDataStore>();
-        var blockCount = ServerContext.WorldBlockDatastore.BlockMasterDictionary.Count;
+        var blockCount = await p.ReadWorldBlockCount();
         await p.Until(() => data.BlockGameObjectDictionary.Count >= blockCount, 90f, "実セーブ全ブロックのView受信");
         p.Assert(Camera.main.GetComponent<Cinemachine.CinemachineBrain>().enabled, "CinemachineBrainを止めず通常カメラ追従");
         p.Assert(blockCount == 13852, $"原本の13852ブロック: {blockCount}");

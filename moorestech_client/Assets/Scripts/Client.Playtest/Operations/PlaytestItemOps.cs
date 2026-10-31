@@ -1,7 +1,9 @@
 using System;
+using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Playtest.Core;
 using Core.Inventory;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -28,14 +30,13 @@ namespace Client.Playtest.Operations
             throw new ArgumentException($"Item not found: {itemName}");
         }
 
-        public static void GiveItemDirect(string itemName, int count)
+        public static async UniTask GiveItemDirect(CancellationToken cancellationToken, string itemName, int count)
         {
-            // サーバーのインベントリへ同期的に直接挿入する（待機不要・状態を素早く作る用）
-            // Insert synchronously into the server inventory (no wait; for fast state setup)
+            // サーバーのインベントリへtick末尾で直接挿入する（本番give経路を通さず状態を素早く作る用）
+            // Insert straight into the server inventory at the tick end (fast state setup without the production give path)
             var itemId = ResolveItemId(itemName);
             var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-            var itemStack = ServerContext.ItemStackFactory.Create(itemId, count);
-            GetMainInventory(playerId).InsertItem(itemStack);
+            await PlaytestServerThreadAction.RunAsync(cancellationToken, $"give(direct) {itemName} x{count}", () => GetMainInventory(playerId).InsertItem(ServerContext.ItemStackFactory.Create(itemId, count)));
         }
 
         public static async UniTask GiveItemViaCommand(string itemName, int count, float timeoutSeconds)

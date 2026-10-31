@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.Context;
+using Game.SpaceElevator;
 using Game.World.Interface.DataStore;
 
 namespace Game.World.DataStore
@@ -27,6 +28,10 @@ namespace Game.World.DataStore
             for (var i = 0; i < _reservedRemovals.Count; i++)
             {
                 var (blockInstanceId, reason) = _reservedRemovals[i];
+                // 予約経路も実撤去の直前に返却容量を検査する
+                // Check refund capacity immediately before applying a reserved removal too
+                var block = ServerContext.WorldBlockDatastore.GetBlock(blockInstanceId);
+                if (block != null && !ServerContext.GetService<SpaceElevatorConnectionService>().CanRemove(block)) continue;
                 ServerContext.WorldBlockDatastore.RemoveBlock(blockInstanceId, reason);
             }
             _reservedRemovals.Clear();

@@ -382,12 +382,11 @@ namespace Tests.CombinedTest.Core.Machine
         }
 
         [Test]
-        // プロセス中にモジュールを外すと、加工時間は開始時のまま・電力倍率は即時に中立へ戻ることを確認する
-        // Verify removing the module mid-process keeps the start-time ticks while the power multiplier reverts immediately
-        public void ModuleRemovalMidProcessAppliesImmediatelyTest()
+        // プロセス中にモジュールを外しても、加工時間と電力倍率は確定時のまま保つ
+        // Verify removing the module mid-process preserves both the fixed duration and its power multiplier
+        public void ModuleRemovalMidProcessPreservesFixedPowerTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
             var recipe = GetMachineRecipe();
             var baseTicks = GameUpdater.SecondsToTicks(recipe.Time);
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
@@ -409,9 +408,10 @@ namespace Tests.CombinedTest.Core.Machine
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
             Assert.AreEqual(ticksAtStart - 3, processor.GetRemainingTicks());
 
-            // 電力倍率は取り外しが即時反映され中立に戻る
-            // The power multiplier reverts to neutral immediately after removal
-            Assert.AreEqual(processor.RequestPower, processor.EffectiveRequestPower, 0.0001f);
+            // 時間短縮に対応する確定電力倍率を維持する
+            // Preserve the fixed power cost corresponding to the shortened duration
+            var speed = MasterHolder.ItemMaster.Items.Modules.First(module => module.EffectAxis == ModuleMasterElement.EffectAxisConst.Speed);
+            Assert.AreEqual(processor.RequestPower * (1f + speed.TradeoffValue), processor.EffectiveRequestPower, 0.0001f);
         }
 
         // テスト用電動機械（MachineId）を設置して主要コンポーネントを返す

@@ -61,6 +61,10 @@ export function SkitPresentation({ interactive }: { interactive: boolean }) {
   // Evaluate the click outcome once through the single evaluator and share it between behavior and the advance marker
   const clickIntent = clickOutcome(visibleCount, bodyCharacters.length, allowedIntents.has("advance"));
   const handleTextIntent = () => {
+    if (!interactive) {
+      console.warn("[skit.text] input rejected: presentation is not interactive");
+      return;
+    }
     if (clickIntent === "reveal") setVisibleCount(bodyCharacters.length);
     if (clickIntent === "advance") void dispatchAction("skit.advance", base);
   };

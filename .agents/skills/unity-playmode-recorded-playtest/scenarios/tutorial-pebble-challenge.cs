@@ -1,3 +1,5 @@
+using Client.Playtest.Operations;
+using Game.Context;
 // ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 待機するチャレンジ/チュートリアルのGUID（bd5262ed/7bafc2cf）がピン先マスタ c219a2f5 に存在せず、最初の待ちで必ずタイムアウトする（ADR 0038 の序盤圧縮でチェーンが再構成された）。雛形にしないこと
 // ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): the challenge/tutorial GUIDs it waits on (bd5262ed/7bafc2cf) do not exist in the pinned master c219a2f5, so the first wait always times out (the chain was rebuilt by the ADR 0038 early-game compression). Do not use this as a template
 // シナリオ: v8チュートリアル序盤。開始状態(チャレンジ#1/開幕スキット/小石ピン)を観測し、
@@ -26,13 +28,10 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
 {
     p.Note("v8チュートリアル序盤: 自然なゲーム開始状態を観測する");
-    var challengeStore = p.ServerService<Game.Challenge.ChallengeDatastore>();
 
     // 検証2a: チャレンジ#1「小石を3個拾う」がサーバーのカレントに存在する
     // Verify 2a: challenge #1 is the server's current challenge
-    var c1Current = await PollUntil(() => challengeStore.CurrentChallengeInfo.CurrentChallenges
-        .Any(c => c.ChallengeMasterElement.ChallengeGuid == challenge1), 30);
-    p.Assert(c1Current, "チャレンジ#1(小石を3個拾う)がカレントに存在する");
+    await p.WaitForChallenge(challenge1, false, 30, "チャレンジ#1(小石を3個拾う)がカレントに存在する");
 
     // 検証2b: 開幕スキット(100_start_game=blocking)がWeb HUDに表示される
     // Verify 2b: opening skit renders in the Web HUD
@@ -75,29 +74,21 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
     // 検証4: 小石3個入手 → チャレンジ#1完了 → #2「石器を作る」解放
     // Verify 4: acquire 3 pebbles -> complete challenge #1 -> unlock #2
     p.Note("小石を3個付与してチャレンジ#1(inInventoryItem)を完了させる");
-    p.GiveItemDirect("小石", 3);
+    await p.GiveItemDirect("小石", 3);
     await p.WaitSeconds(0.5f);
     p.Assert(3 <= p.CountItem("小石"), "小石が3個以上インベントリにある");
 
-    var c1Done = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges
-        .Any(c => c.ChallengeGuid == challenge1), 30);
-    p.Assert(c1Done, "チャレンジ#1(小石を3個拾う)が完了した");
+    await p.WaitForChallenge(challenge1, true, 30, "チャレンジ#1(小石を3個拾う)が完了した");
 
-    var c2Unlocked = await PollUntil(() => challengeStore.CurrentChallengeInfo.CurrentChallenges
-        .Any(c => c.ChallengeMasterElement.ChallengeGuid == challenge2), 30);
-    p.Assert(c2Unlocked, "チャレンジ#2(石器を作る)が解放された");
+    await p.WaitForChallenge(challenge2, false, 30, "チャレンジ#2(石器を作る)が解放された");
     await p.Screenshot("03-challenge2-unlocked");
 
     // 検証5: 石器クラフト→#2完了→#3(伐採)解放。木ピンでmapObject「木」の実行時解決を確認
     // Verify 5: craft stone tool -> #2 done -> #3 unlocked; tree pin proves mapObject 木 resolves at runtime
     p.Note("石器をクラフトしてチャレンジ#2(createItem)を完了させる");
     Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.Craft(stoneToolRecipe);
-    var c2Done = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges
-        .Any(c => c.ChallengeGuid == challenge2), 30);
-    p.Assert(c2Done, "チャレンジ#2(石器を作る)が完了した");
-    var c3Unlocked = await PollUntil(() => challengeStore.CurrentChallengeInfo.CurrentChallenges
-        .Any(c => c.ChallengeMasterElement.ChallengeGuid == challenge3), 30);
-    p.Assert(c3Unlocked, "チャレンジ#3(伐採)が解放された");
+    await p.WaitForChallenge(challenge2, true, 30, "チャレンジ#2(石器を作る)が完了した");
+    await p.WaitForChallenge(challenge3, false, 30, "チャレンジ#3(伐採)が解放された");
 
     p.Note("木ピンの表示を待つ(mapObject「木」の解決検証)");
     // ピンIDは全mapObjectPin共通の固定値のため、小石ピン残留と区別するtutorialGuidも照合する
@@ -127,10 +118,8 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
             await p.WaitSeconds(stoneToolAttackSpeedSeconds);
         }
 
-        var c3Done = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges
-            .Any(c => c.ChallengeGuid == challenge3), 30);
+        await p.WaitForChallenge(challenge3, true, 30, "チャレンジ#3(伐採)が完了した");
         p.Assert(3 <= p.CountItem("原木"), "原木が3個以上インベントリにある");
-        p.Assert(c3Done, "チャレンジ#3(伐採)が完了した");
         await p.Screenshot("05-tree-felled");
     }
 

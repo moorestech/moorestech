@@ -20,6 +20,9 @@ test("ホットバー9枠が常時表示され、fixtureのselectedSlotがハイ
 });
 
 test("空き枠のクリックはhotbar.select{index}を送る", async ({ page }) => {
+  // 選択を受理するのはGameScreenとPlaceBlockだけなので、ワールド操作中の画面で押す
+  // Only GameScreen and PlaceBlock accept a selection, so click on the in-world screen
+  await setUiState(page, "GameScreen");
   await page.goto("/");
   await page.getByTestId("hotbar-slot-3").click();
   await expect.poll(() => payloadsOf(page, "hotbar.select")).toContainEqual({ index: 3 });

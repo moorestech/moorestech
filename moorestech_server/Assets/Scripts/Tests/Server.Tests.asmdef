@@ -60,6 +60,8 @@
         "Game.PlayerConnection",
         "Game.PlayerIdentity",
         "Game.CleanRoom",
+        "Game.Orbit",
+        "Game.SpaceElevator",
         "Game.Blueprint",
         "Game.PlacementTarget",
         "Game.Hotbar",

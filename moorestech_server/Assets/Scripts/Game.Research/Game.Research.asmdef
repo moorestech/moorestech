@@ -3,6 +3,7 @@
   "rootNamespace": "",
   "references": [
     "Core.Master",
+    "Core.Item",
     "Game.Action",
     "Game.PlayerInventory.Interface",
     "UniRx",

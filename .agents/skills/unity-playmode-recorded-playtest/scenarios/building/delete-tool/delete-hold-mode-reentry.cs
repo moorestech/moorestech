@@ -25,7 +25,7 @@ return PlaytestRunner.Run("delete-hold-mode-reentry", new PlaytestRunOptions { R
     foreach (var cell in new[] { a, b })
     {
         p.Assert(p.GetBlock(cell) == null, $"fixture空き:{cell}");
-        p.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
+        await p.PlaceBlockDirect("木のチェスト", cell, BlockDirection.North);
         await p.WaitBlockGameObject(cell);
     }
     await p.WaitSeconds(3f);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Core.Master.Validator;
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Loader.ItemsModule;
 using Mooresmaster.Model.ItemsModule;
 using Newtonsoft.Json.Linq;
@@ -39,7 +40,9 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            return ItemMasterUtil.Validate(Items, out errorLogs);
+            ItemMasterUtil.Validate(Items, out var itemLogs);
+            errorLogs = itemLogs + ModuleSlotStackLimitLevelsValidator.Validate(Items);
+            return string.IsNullOrEmpty(errorLogs);
         }
 
         public void Initialize()
@@ -145,6 +148,22 @@ namespace Core.Master
             var variants = _levelVariantTable[baseItemId];
             var index = Math.Clamp(level - 1, 0, variants.Length - 1);
             return variants[index];
+        }
+
+        // 同一品目を先に合算し、レベル1の容量で必要枠数を数える
+        // Aggregate identical items before counting slots at level-one capacity
+        public long CountRequiredSlotsAtLevelOne(IEnumerable<(ItemId ItemId, int Count)> counts)
+        {
+            var totals = new Dictionary<ItemId, long>();
+            foreach (var (itemId, count) in counts) totals[itemId] = totals.GetValueOrDefault(itemId) + count;
+            long slots = 0;
+            foreach (var (itemId, count) in totals)
+            {
+                var element = GetItemMaster(itemId);
+                var capacity = GetStackLevelTable(element.StackLevelTableGuid).StackCounts[0];
+                slots += (count + capacity - 1) / capacity;
+            }
+            return slots;
         }
 
         public ItemStackLevelTableMasterElement GetStackLevelTable(Guid tableGuid)

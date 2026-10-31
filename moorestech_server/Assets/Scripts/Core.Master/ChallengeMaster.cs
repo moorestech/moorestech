@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master.Validator;
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Loader.ChallengesModule;
 using Mooresmaster.Model.ChallengesModule;
 using Newtonsoft.Json.Linq;
@@ -25,7 +26,19 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            return ChallengeMasterUtil.Validate(Challenges, out errorLogs);
+            ChallengeMasterUtil.Validate(Challenges, out errorLogs);
+
+            // 機械の強化系アクションは開始時・クリア時の両方を検証する
+            // Machine-upgrade actions are validated for both started and cleared actions
+            foreach (var category in Challenges.Data)
+            {
+                foreach (var challenge in category.Challenges)
+                {
+                    errorLogs += MachineUpgradeGameActionValidator.Validate(challenge.StartedActions.items, $"Challenge:{challenge.Title} StartedActions");
+                    errorLogs += MachineUpgradeGameActionValidator.Validate(challenge.ClearedActions.items, $"Challenge:{challenge.Title} ClearedActions");
+                }
+            }
+            return string.IsNullOrEmpty(errorLogs);
         }
 
         public void Initialize()

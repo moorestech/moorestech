@@ -1,3 +1,4 @@
+using Game.Context;
 // スポイト拡張E2E検証: ミドルクリックで電線と列車車両を設置ターゲットへピックする
 // 検証項目: GameScreen中の電線ピック→PlaceBlock遷移+電線接続ツール選択、PlaceBlock中の列車ピック→TrainCarPlacementTargetへの持ち替え
 // Placement-pick extension E2E: middle-click eyedrops an electric wire and a train car into placement targets.
@@ -58,8 +59,11 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     // Connect the nodes directly (same path as the PlaceTrainCarOnRailProtocolTest server test)
     var railA = p.GetBlock(pierAPos).GetComponent<RailComponent>();
     var railB = p.GetBlock(pierBPos).GetComponent<RailComponent>();
-    railA.FrontNode.ConnectNode(railB.FrontNode);
-    railB.BackNode.ConnectNode(railA.BackNode);
+    await p.RunOnServer("橋脚2本のレールを接続する", () =>
+    {
+        railA.FrontNode.ConnectNode(railB.FrontNode);
+        railB.BackNode.ConnectNode(railA.BackNode);
+    });
 
     p.Note("貨車をアンロックしレール上へ設置する");
 
@@ -67,14 +71,14 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
     // Unlock the cargo car (length 7, fits the 12-block span) server-side, then wait for the client mirror
     var carMaster = MasterHolder.TrainUnitMaster.Train.TrainCars.First(c => c.Length <= 7);
     var trainCarGuid = carMaster.TrainCarGuid;
-    p.ServerService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid);
+    await p.RunOnServer("貨車を解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockTrainCar(trainCarGuid));
     await p.Until(() => clientUnlockState.TrainCarUnlockStateInfos.TryGetValue(trainCarGuid, out var info) && info.IsUnlocked, 10f, "車両アンロックのクライアント同期");
 
     // 建設コスト（RequiredItems）をサーバー在庫へ付与する
     // Grant the car's construction cost (RequiredItems) into the server inventory
     foreach (var required in carMaster.RequiredItems)
     {
-        p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
+        await p.GiveItemDirect(MasterHolder.ItemMaster.GetItemMaster(required.ItemGuid).Name, required.Count);
     }
 
     // 本番プロトコルで車両を設置しentity生成を待つ
@@ -110,9 +114,9 @@ return PlaytestRunner.Run("placement-pick-wire-and-train-via-ui", options, async
 
     var poleAPos = GroundPoint(5f, -3f);
     var poleBPos = GroundPoint(5f, 3f);
-    p.GiveItemDirect("電線", 64);
-    p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
-    p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
+    await p.GiveItemDirect("電線", 64);
+    await p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
     await p.WaitBlockGameObject(poleAPos);
     await p.WaitBlockGameObject(poleBPos);
 

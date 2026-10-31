@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master.Validator;
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Loader.ResearchModule;
 using Mooresmaster.Model.ResearchModule;
 using Newtonsoft.Json.Linq;
@@ -20,7 +21,15 @@ namespace Core.Master
 
         public bool Validate(out string errorLogs)
         {
-            return ResearchMasterUtil.Validate(Research, out errorLogs);
+            ResearchMasterUtil.Validate(Research, out errorLogs);
+
+            // 機械の強化系アクションは別ファイルで検証する（ResearchMasterUtil は200行超のため触らない）
+            // Machine-upgrade actions are validated in a separate file (ResearchMasterUtil is over 200 lines, so it stays untouched)
+            foreach (var node in Research.Data)
+            {
+                errorLogs += MachineUpgradeGameActionValidator.Validate(node.ClearedActions.items, $"Research:{node.ResearchNodeName}");
+            }
+            return string.IsNullOrEmpty(errorLogs);
         }
 
         public void Initialize()

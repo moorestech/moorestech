@@ -1,3 +1,5 @@
+using Client.Playtest.Operations;
+using Game.Context;
 // ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みの研究ノードGUID（837e9697/424be8c1/07d6226c）をCompleteResearchへ送りサーバー側でnull参照になる。旧チャレンジ順・旧veinPinを前提としており現行チェーン（ADR 0038）と一致しない。雛形にしないこと
 // ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): sends removed research-node GUIDs (837e9697/424be8c1/07d6226c) to CompleteResearch, which null-references server-side. It also assumes the old challenge order and old veinPin, which no longer match the current chain (ADR 0038). Do not use this as a template
 // シナリオ: ADR 0033 のチェーン（研究3→風力掘削機設置(原木鉱脈ピン)→研究4→粘土入手(粘土鉱脈ピン)）を実走検証する
@@ -34,7 +36,6 @@ var clayVein = new Guid("18d2bd1f-737d-42d6-8c1e-27fa3a9ce1ca"); // 粘土鉱脈
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
 {
-    var challengeStore = p.ServerService<Game.Challenge.ChallengeDatastore>();
     var pinStore = Client.Game.InGame.Tutorial.WorldPinStateStore.Instance;
     var api = Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly;
 
@@ -48,35 +49,34 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
         return skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
     }, 10);
     p.Note(skipAccepted ? "開幕スキットをSkipした" : "開幕スキットは再生されていない（Skip不要）");
-    p.GiveItemDirect("小石", 3);
+    await p.GiveItemDirect("小石", 3);
     await p.WaitSeconds(1f);
     api.Craft(stoneToolRecipe);
     await p.WaitSeconds(1f);
     await p.EquipItem("石器", 0);
-    p.GiveItemDirect("原木", 3);
-    p.GiveItemDirect("木の板", 5);
-    p.GiveItemDirect("木の棒", 5);
+    await p.GiveItemDirect("原木", 3);
+    await p.GiveItemDirect("木の板", 5);
+    await p.GiveItemDirect("木の棒", 5);
     await p.WaitSeconds(1f);
-    p.GiveItemDirect("木の板", 5); p.GiveItemDirect("木の棒", 5);
+    await p.GiveItemDirect("木の板", 5); await p.GiveItemDirect("木の棒", 5);
     api.CompleteResearch(research1);
     await p.WaitSeconds(1f);
-    p.GiveItemDirect("石", 5);
-    p.GiveItemDirect("砕いた石材", 5);
+    await p.GiveItemDirect("石", 5);
+    await p.GiveItemDirect("砕いた石材", 5);
     await p.WaitSeconds(1f);
-    p.GiveItemDirect("木の板", 5); p.GiveItemDirect("木の棒", 5); p.GiveItemDirect("砕いた石材", 5);
+    await p.GiveItemDirect("木の板", 5); await p.GiveItemDirect("木の棒", 5); await p.GiveItemDirect("砕いた石材", 5);
     api.CompleteResearch(research2);
     await p.WaitSeconds(1f);
-    p.GiveItemDirect("木の棒", 2); p.GiveItemDirect("砕いた石材", 3);
+    await p.GiveItemDirect("木の棒", 2); await p.GiveItemDirect("砕いた石材", 3);
     api.Craft(stoneAxeRecipe);
     await p.WaitSeconds(1f);
     await p.EquipItem("石の斧", 0);
-    p.GiveItemDirect("木の板", 10); p.GiveItemDirect("木の棒", 5); p.GiveItemDirect("砕いた石材", 10);
+    await p.GiveItemDirect("木の板", 10); await p.GiveItemDirect("木の棒", 5); await p.GiveItemDirect("砕いた石材", 10);
     api.CompleteResearch(research3);
 
     // 検証1: 研究3の後は「風力掘削機を設置する」がカレントで、ピンは原木鉱脈の露頭を指す
     // Verify 1: after research 3 the wind-drill challenge is current and its pin sits on a log-vein outcrop
-    var windDrillCurrent = await PollUntil(() => IsCurrent(placeWindDrill), 30);
-    p.Assert(windDrillCurrent, "研究3の後に「風力掘削機を設置する」がカレントになった");
+    await p.WaitForChallenge(placeWindDrill, false, 30, "研究3の後に「風力掘削機を設置する」がカレントになった");
     var windDrillPinShown = await PollUntil(() => pinStore.GetCurrent().Pins
         .Any(x => x.PinId == "vein-pin" && x.TutorialGuid == windDrillPinTutorial), 30);
     p.Assert(windDrillPinShown, "風力掘削機設置のveinPinが表示された");
@@ -93,17 +93,15 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
     // 検証2: 風力掘削機設置の後は研究4がカレント（粘土入手ではない）
     // Verify 2: after placing the drill, research 4 is current (not clay)
     p.Note("風力掘削機を直設置して次の目標が研究4になることを確認する");
-    p.PlaceBlockDirect("風力掘削機", Vector3Int.RoundToInt(p.PlayerPosition) + new Vector3Int(3, 0, 3), Game.Block.Interface.BlockDirection.North);
-    var r4Current = await PollUntil(() => IsCurrent(completeResearch4), 30);
-    p.Assert(r4Current, "風力掘削機設置の後に「原始研究4を完了する」がカレントになった");
-    p.Assert(!IsCurrent(obtainClay), "粘土入手はまだカレントでない");
+    await p.PlaceBlockDirect("風力掘削機", Vector3Int.RoundToInt(p.PlayerPosition) + new Vector3Int(3, 0, 3), Game.Block.Interface.BlockDirection.North);
+    await p.WaitForChallenge(completeResearch4, false, 30, "風力掘削機設置の後に「原始研究4を完了する」がカレントになった");
+    p.Assert(!await p.ReadChallenge(obtainClay, false), "粘土入手はまだカレントでない");
 
     // 検証3: 研究4完了の後に粘土入手がカレントになり、粘土鉱脈ピンが出る
     // Verify 3: after research 4, clay becomes current with a clay-vein pin
-    p.GiveItemDirect("木の板", 20); p.GiveItemDirect("木の棒", 20); p.GiveItemDirect("砕いた石材", 10);
+    await p.GiveItemDirect("木の板", 20); await p.GiveItemDirect("木の棒", 20); await p.GiveItemDirect("砕いた石材", 10);
     api.CompleteResearch(research4);
-    var clayCurrent = await PollUntil(() => IsCurrent(obtainClay), 30);
-    p.Assert(clayCurrent, "研究4の後に「粘土を入手する」がカレントになった");
+    await p.WaitForChallenge(obtainClay, false, 30, "研究4の後に「粘土を入手する」がカレントになった");
     var clayPinShown = await PollUntil(() => pinStore.GetCurrent().Pins
         .Any(x => x.PinId == "vein-pin" && x.TutorialGuid == clayPinTutorial), 30);
     p.Assert(clayPinShown, "粘土入手のveinPinが表示された");
@@ -137,10 +135,6 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
 
     #region Internal
 
-    bool IsCurrent(Guid challengeGuid)
-    {
-        return challengeStore.CurrentChallengeInfo.CurrentChallenges.Any(c => c.ChallengeMasterElement.ChallengeGuid == challengeGuid);
-    }
 
     async UniTask<bool> PollUntil(Func<bool> condition, int seconds)
     {

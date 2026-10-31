@@ -2,7 +2,7 @@
 name: master-refine
 description: |
   moorestech mod のマスターデータを整える統合スキル。3つの操作を持つ。
-  (A) items.json/blocks.json の sortPriority を research.json の解放順序 + nodeGraph 配置から再計算し、配列も並べ替える。
+  (A) items.json/blocks.json の sortPriority を research.json の解放順序 + nodeGraph 配置からそれぞれ独立に再計算し、配列も並べ替える。
   (B) research.json の各ノードの UIPosition を依存関係と nodeGraph 配置から再計算して更新する。
   (C) moorestech_master 内の PNG アセット画像を長辺500pxの JPEG に変換しフォーマットを統一する。
   操作 A/B は nodeGraph.v1.json のビジュアル配置を基準に計算する。「マスターデータを整えて」のような包括的な指示では操作 A・B・C をすべて実行し (C の変換スクリプトは PNG が 1 件も無ければ何もしない冪等動作)、対象 mod は v8 (server_v8/moorestechAlphaMod_8) とする。ユーザーが特定操作・別バージョンを明示した場合のみそれに従う。
@@ -19,7 +19,7 @@ description: |
 
 moorestech mod のマスターデータを整える。独立した3操作を提供する:
 
-- **操作 A — sortPriority 再計算**: `items.json` / `blocks.json` の `sortPriority` を、`research.json` の解放チェーン (`prevResearchNodeGuids`) と `nodeGraph` 配置から再計算し、両ファイルの配列順も並べ替えて書き戻す。
+- **操作 A — sortPriority 再計算**: `items.json` / `blocks.json` の `sortPriority` を、`research.json` の解放チェーン (`prevResearchNodeGuids`) と `nodeGraph` 配置からそれぞれ独立に再計算し、両ファイルの配列順も並べ替えて書き戻す。
 - **操作 B — research ノード座標の再配置**: `research.json` の各ノードの `graphViewSettings.UIPosition` を、依存関係グラフと `nodeGraph` 配置から再計算して更新する。
 - **操作 C — アセット画像フォーマット統一**: `moorestech_master` 内の PNG 画像を長辺500pxの JPEG に変換し、元ファイルを削除してフォーマットを統一する。
 
@@ -34,7 +34,7 @@ moorestech mod のマスターデータを整える。独立した3操作を提�
 - 対象 mod に `master/research.json`, `master/items.json`, `master/blocks.json`, `.mooreseditor/nodeGraph.v1.json` がすべて揃っていること
 - mod ディレクトリのパスは原則 `../moorestech_master/server_vN/mods/moorestechAlphaMod_N` (`N` はバージョン)
 - 作業ディレクトリは `moorestech` リポジトリのルート (`pwd` で確認) を想定。本 SKILL のコマンド例はそこからの相対パス
-- **nodeGraph 照合キーは `nodes[].masterGuid`** (`id` や `guid` ではない)。research.json の `researchNodeGuid` / items.json の `itemGuid` と一致する。`type: "note"` 等 `masterGuid` を持たないノードはスキップする
+- **nodeGraph 照合キーは `nodes[].masterGuid`** (`id` や `guid` ではない)。research.json の `researchNodeGuid` / items.json の `itemGuid` / blocks.json の `blockGuid` と一致する。`type: "note"` 等 `masterGuid` を持たないノードはスキップする
 
 ### 状態確認 (両操作共通)
 
@@ -50,20 +50,23 @@ git -C ../moorestech_master status -s server_vN/mods/moorestechAlphaMod_N/
 
 ### 優先度ルール
 
-最終的な sortPriority は `100` から `10` 刻みで以下の順に割り当てる:
+items と blocks は同じ規則で、それぞれ自分の解放アクションの対象として独立に並ぶ（items は `unlockItemRecipeView`、blocks は `unlockBlock`）。sortPriority はファイルごとに `100` から `10` 刻みで以下の順に割り当てる:
 
-1. **initialUnlocked アイテム** を先頭固定 (現状の sortPriority 昇順を維持)
-2. **research 解放対象アイテム**
+1. **initialUnlocked** を先頭固定 (現状の sortPriority 昇順を維持)
+2. **research の解放対象**
    - research の解放 depth (`prevResearchNodeGuids` を辿った最長パス) が小さい順
    - 同 depth 内: nodeGraph の y で行クラスタリング → **上の行 (y 小) が先**、行内は **x 昇順**
-   - 各 research 内: nodeGraph の x で列クラスタリング → **左の列 (x 小) が先**、列内は **y 昇順 (上→下)**
-3. **孤立アイテム** (どの research でも解放されず、`initialUnlocked` でもないもの) を末尾に、現状 sortPriority の相対順序を維持して配置
+   - 各 research 内: nodeGraph の x で列クラスタリング → **左の列 (x 小) が先**、列内は **y 昇順 (上→下)**。nodeGraph に位置の無い対象はその research の末尾
+   - 複数の research が解放する対象は、この順で最初の research にだけ置く
+3. **孤立** (どの research でも解放されず、`initialUnlocked` でもないもの) を末尾に、現状 sortPriority の相対順序 (同値は配列順) を維持して配置
+
+規則の正本は `scripts/sort_order.py`、読み書きと書き戻し前の検証は `scripts/master_json_io.py`。
 
 クラスタリング閾値はどちらも `100` (nodeGraph 座標単位)。差が閾値以下なら同じ行 / 列とみなす。閾値はゲーム本体の歴代座標に合わせて 100 に決め打ちしてある。
 
 ### 手順
 
-1. 研究で解放されず `initialUnlocked` でも nodeGraph 登録も無い孤立アイテムは既定で末尾。別扱いが要るならスクリプト実行前にユーザーに確認する
+1. 研究で解放されず `initialUnlocked` でもない孤立は既定で末尾。別扱いが要るならスクリプト実行前にユーザーに確認する
 2. `moorestech` リポジトリのルートから実行する（`--quiet` で最終順序の一覧を省略）:
 
 ```bash
@@ -71,7 +74,8 @@ python3 .claude/skills/master-refine/scripts/recalc_sort_priority.py \
   --mod-dir "$(cd ../moorestech_master/server_vN/mods/moorestechAlphaMod_N && pwd)"
 ```
 
-3. `git -C ../moorestech_master diff --stat` で items/blocks だけが変わったことを確認する。同一 research 内の並びが崩れていたら、閾値ではなく nodeGraph 上の配置をまず疑う
+3. `git -C ../moorestech_master diff --stat` で items/blocks だけが変わったことを確認する。同一 research 内の並びが崩れていたら、閾値ではなく nodeGraph 上の配置をまず疑う。`WARN: ... is not in ...` は research が存在しない対象を解放している印なので、research.json を直す
+4. スクリプトを変えたら自己テストを回す: `python3 -B -m unittest discover -s .claude/skills/master-refine/scripts/tests`
 
 ---
 
@@ -144,17 +148,21 @@ sips -g pixelWidth -g pixelHeight "output.jpeg"
 
 ## 共通 Gotchas
 
-- **解放アクションは `unlockItemRecipeView` のみ** (操作 A): `giveItem` 等の他の `gameActionType` はアイテム解放扱いしない (実機でレシピ可視化と直結しないため)。
-- **`blocks.json` の sortPriority は item と連動** (操作 A): 各 block の sortPriority は紐づく item (`itemGuid`) の値を再代入する。block 側だけで独立した値を持たせない。
+- **解放アクションは items が `unlockItemRecipeView`、blocks が `unlockBlock` のみ** (操作 A): `giveItem` 等の他の `gameActionType` は解放扱いしない (実機でレシピ可視化・建築解放と直結しないため)。
+- **blocks は item と独立に並べる** (操作 A): block→item の参照や同名の推測で item の値を写さない (block は itemGuid を持たず、建築メニューの順は研究で解放される順に揃えるため)。
+- **電柱・レールは sortPriority 最小が自動設置に使われる** (操作 A): ElectricPole・TrainRail の相対順が変わると、コネクトツールが自動で置くブロックが変わる。再計算後に相対順を確かめ、変わったら研究・nodeGraph の配置を見直す。
 - **行判定の境界** (操作 A): 差がちょうど 100 は「同じ行」、100 を超えると行が分かれる。レイアウト変更で y が境界付近に来たら並びが跳ぶ。
 - **マスタファイル末尾の改行**: 既存マスタファイル群は `}` で終わっており改行なし。スクリプトで書き戻すときに `\n` を足さない。
-- **JSON書き戻し前に無変更往復**: 操作A/Bの原文を実際の設定で往復し、完全一致を確認。不一致ならindent・エスケープ・末尾改行を合わせる。
-- **変更対象外の保持を検証**: `object_pairs_hook` で重複キーを検出→書き戻し停止、キーとファイルを報告。前後を `parse_float=Decimal` で読み、対象プロパティ・配列順だけ除外して照合。
+- **JSON書き戻し前に無変更往復**: 操作A/Bの原文を実際の設定で往復し、完全一致を確認。不一致ならindent・エスケープ・末尾改行を合わせる。操作Aはスクリプトが確かめ、不一致なら何も書かずに止まる。
+- **変更対象外の保持を検証**: `object_pairs_hook` で重複キーを検出→書き戻し停止、キーとファイルを報告。前後を `parse_float=Decimal` で読み、対象プロパティ・配列順だけ除外して照合。操作Aはスクリプトが items・blocks の両方を検証し終えてから書く。操作Bは `git diff` で手で確かめる。
 - **再実行は冪等**: 入力 (research.json, nodeGraph.v1.json) が同じなら何度実行しても同じ結果。
 - **`--mod-dir` は絶対パス**: `..` を含む相対パスはシェルの `cd` 後に意味が変わる。
 
 ## Available scripts
 
-- `scripts/recalc_sort_priority.py` (操作 A) — sortPriority の再計算と items/blocks の並べ替え
+- `scripts/recalc_sort_priority.py` (操作 A) — sortPriority の再計算と items/blocks の並べ替え（CLI）
+- `scripts/sort_order.py` (操作 A) — items・blocks 共通の並び順の規則
+- `scripts/master_json_io.py` (操作 A) — 重複キー・無変更往復・対象外不変・末尾改行の検証と書き戻し
+- `scripts/tests/` (操作 A) — 最小 mod による自己テスト
 - `scripts/recalc_research_positions.py` (操作 B) — research.json の UIPosition 再計算と書き戻し
 - `scripts/convert_png_to_jpeg.sh` (操作 C) — PNG を長辺500pxの JPEG へ変換し元 PNG を削除（引数省略時 `../moorestech_master`）

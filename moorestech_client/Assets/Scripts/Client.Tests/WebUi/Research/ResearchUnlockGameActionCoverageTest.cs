@@ -12,8 +12,8 @@ namespace Client.Tests.WebUi.Research
     /// </summary>
     public class ResearchUnlockGameActionCoverageTest
     {
-        // ResearchNodeDtoFactory が case を持つ表示6種（ADR 0014 決定3）
-        // The 6 kinds ResearchNodeDtoFactory renders as cases (ADR 0014 decision 3)
+        // ResearchNodeDtoFactory が case を持つ表示8種（ADR 0014 決定3の6種＋機械強化の解放2種）
+        // The 8 kinds ResearchNodeDtoFactory renders as cases (ADR 0014 decision 3's six plus the two machine-upgrade unlocks)
         private static readonly string[] DisplayedGameActionTypes =
         {
             GameActionElement.GameActionTypeConst.giveItem,
@@ -22,6 +22,8 @@ namespace Client.Tests.WebUi.Research
             GameActionElement.GameActionTypeConst.unlockMachineRecipe,
             GameActionElement.GameActionTypeConst.unlockConnectTool,
             GameActionElement.GameActionTypeConst.unlockTrainCar,
+            GameActionElement.GameActionTypeConst.unlockModuleSlotStackLevel,
+            GameActionElement.GameActionTypeConst.unlockLevelInheritanceCraftLevel,
         };
 
         // 解放はされるが研究画面には出さないと決めた種別

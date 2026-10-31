@@ -1,0 +1,21 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "SpaceElevatorBase",
+  "identifier": "(20, 0, 4)",
+  "blockGuid": "99999999-9999-4999-8999-999999999999",
+  "itemSlots": [{ "itemId": 0, "count": 0 }, { "itemId": 0, "count": 0 }, { "itemId": 0, "count": 0 }],
+  "fluidSlots": [],
+  "spaceElevator": {
+    "satelliteInputSlots": [0],
+    "outputSlots": [1, 2],
+    "connected": true,
+    "cablePoolAmount": 250,
+    "cablesPerElevator": 1000,
+    "climbProgress": 0.5,
+    "status": "climbing",
+    "slotBindings": [
+      { "slot": 0, "acceptedItemIds": [5] }
+    ]
+  }
+}

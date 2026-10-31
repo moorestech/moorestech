@@ -78,7 +78,7 @@ return PlaytestRunner.Run("train-station-default-name", options, async p =>
 
     async UniTask PlaceAndShow(Vector3Int position, string expectedName, string screenshot)
     {
-        p.PlaceBlockDirect("蒸気機関車駅", position, BlockDirection.North);
+        await p.PlaceBlockDirect("蒸気機関車駅", position, BlockDirection.North);
         await p.WaitSeconds(0.5f);
         await p.WaitBlockGameObject(position);
         var station = p.GetBlock(position).GetComponent<TrainStationComponent>();

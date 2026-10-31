@@ -11,6 +11,7 @@ const machineRecipe = {
   outputItems: [{ itemId: 2, count: 1 }],
   inputFluids: [],
   outputFluids: [],
+  levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
 };
 
 describe("content Guid contracts", () => {

@@ -13,5 +13,9 @@ namespace Game.Block.Interface.Component
         // 今tickに除去した不純物量をフィルター摩耗として押し込む
         // Push the impurity removed this tick into the filter as wear
         void ApplyRemovedImpurity(double removed);
+
+        // UI表示用に電力割合・フィルター数・残り寿命を読む
+        // Read the power ratio, filter count and remaining life for UI display
+        CleanRoomAirFilterStatus GetStatus();
     }
 }

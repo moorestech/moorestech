@@ -22,6 +22,20 @@ namespace Game.CleanRoom.Util
             return Math.Max(0, impurityCount + (aTotalPerSecond - removedPerSecond) * deltaSeconds);
         }
 
+        // 濃度 N/V。体積0の部屋（内部が全部機械）は0とする。クラス判定と表示の両方がここを呼ぶ
+        // Concentration N/V; zero for a zero-volume room (fully filled by machines), shared by the class decision and the display
+        public static double Concentration(double impurityCount, int volume)
+        {
+            return volume <= 0 ? 0 : impurityCount / volume;
+        }
+
+        // 換気回数 nq/V。体積0の部屋は0とする。クラス判定と表示の両方がここを呼ぶ
+        // Air change rate nq/V; zero for a zero-volume room, shared by the class decision and the display
+        public static double AirChangeRate(double removalVolumePerSecond, int volume)
+        {
+            return volume <= 0 ? 0 : removalVolumePerSecond / volume;
+        }
+
         public static int DecideThresholdIndex(int currentIndex, double concentration, double airChangeRate, IReadOnlyList<CleanRoomThresholdRow> rows)
         {
             // 良い行から順に判定し、現在行より上を狙うときだけ昇格マージンを課す

@@ -195,6 +195,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 16879b41527d44ba8ab250e642821811
+    m_Address: Vanilla/Material/CleanRoomMachine/WaferSlicerAccent
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 16ede2bcfc8334b4db37c480b9b245cd
     m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_1
     m_ReadOnly: 0
@@ -357,6 +362,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 244f7a47d84684c078293da23c469b6f
     m_Address: Vanilla/Block/Asphalt_Foundation
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 253432448e14c4dea83632dea2747acd
+    m_Address: Vanilla/Material/CleanRoomMachine/EuvLithographyToolBody
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -545,6 +555,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3c49f052025fe4e58b0ff3ee9868f929
+    m_Address: Vanilla/Block/CleanRoomPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3d5b3331cf6f74449983c2fea4f59653
     m_Address: Vanilla/Environment/Rock/MesaDesert/Boulders_3
     m_ReadOnly: 0
@@ -595,6 +610,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4371bce4ddd5a48a8b81019f38070956
+    m_Address: Vanilla/Block/PackagingMachine
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 43d3f1da7f086486f934b4158dc4b468
     m_Address: Vanilla/Environment/Rock/Redwood/BigBoulders_3
     m_ReadOnly: 0
@@ -627,6 +647,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 477050cdd2bdd488ba16ce778f30a3d6
     m_Address: Vanilla/Skit/Animations/anim_surprise01_st_fbx
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 47da8094f4ba34a64b2b25b5e4b4c939
+    m_Address: Vanilla/Material/CleanRoomMachine/PackagingMachineBody
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -712,6 +737,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 509085a0c8b72442791d1a4ea662156d
     m_Address: Vanilla/Environment/Terrain/Layer/Savanna/RedDirt_gravel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 50d2534b6ae3f418db4f33dc3661d1ec
+    m_Address: Vanilla/Material/CleanRoomMachine/DicingSawAccent
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -802,6 +832,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5904601a1abde435e92d76aaa53a8307
     m_Address: Vanilla/Environment/Rock/Mountains/Stone3b
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5920dc929ee45437ea023e3c14ca52c8
+    m_Address: Vanilla/Material/CleanRoomMachine/DepositionToolAccent
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -935,6 +970,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 68f05911895f8453b873f0496ee29851
+    m_Address: Vanilla/Block/DepositionTool
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 69ab4ea6e4ac2471195dc1329cf399c5
     m_Address: Vanilla/Skit/Animations/anim_think01
     m_ReadOnly: 0
@@ -980,6 +1020,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6f6d8dcc6dd544ca9a0b7756a6179fc1
+    m_Address: Vanilla/Material/CleanRoomMachine/EuvLithographyToolAccent
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 70c49cd34505a4bc18005cb7c0f879cd
     m_Address: Vanilla/Block/Wood_Processing_Machine
     m_ReadOnly: 0
@@ -997,6 +1042,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 724734af464c74fd7b703cea3290da2a
     m_Address: Vanilla/Environment/Terrain/Detail/Mountains/Grass4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 740323bcfd07d434389cadbedcb9c3da
+    m_Address: Vanilla/Block/EuvLithographyTool
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1027,6 +1077,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 76f3779bb169447e8a276ada99e0a7bc
     m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_0
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 78b1adf32d534493f8cc4fe84fe231e8
+    m_Address: Vanilla/Material/CleanRoomMachine/DepositionToolBody
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1090,6 +1145,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ede0827486e84fa4b0d892f1de2671c
+    m_Address: Vanilla/Block/WaferSlicer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7f11cff8c8744412fabe737ce09dc92d
     m_Address: Vanilla/Skit/Animations/anim_wait01_lp
     m_ReadOnly: 0
@@ -1107,6 +1167,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7feb80a3971ba3c448413bf3080ecb47
     m_Address: Vanilla/Train/Locomotive_CombinedSkinnedMesh
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7ff93219d01b74c59b63d99eee5110bc
+    m_Address: Vanilla/Material/CleanRoomMachine/PackagingMachineAccent
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1415,6 +1480,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9c9401b0d7dea44f98ef759ef5209322
+    m_Address: Vanilla/Block/CleanRoomDoor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9cf5bcd57dce84555900af3794c1a851
     m_Address: Vanilla/Environment/Rock/Redwood/Boulder_4
     m_ReadOnly: 0
@@ -1477,6 +1547,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: a478b730dfa254b2aaf1d6e3ea644cf4
     m_Address: Vanilla/Environment/Rock/Mountains/Stone4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a4a6a661e4a364d36b9662568dba1e80
+    m_Address: Vanilla/Material/CleanRoomMachine/WaferSlicerBody
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1900,6 +1975,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: cb09ba0c53652457bb263bc5a6813923
+    m_Address: Vanilla/Material/CleanRoomMachine/DicingSawBody
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cd1c955822767a148878352e9611cbed
     m_Address: Vanilla/Block/HighPerformanceMetalPlatform
     m_ReadOnly: 0
@@ -1977,6 +2057,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: d53243d74377b724f9ad131c7510fa39
     m_Address: Vanilla/Block/gear belt conveyor up
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d5d931df902dd433297c3f889acbc99a
+    m_Address: Vanilla/Block/DicingSaw
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2092,6 +2177,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: e1d4383d08f6c4eaf95ed4d339081d3f
     m_Address: Vanilla/Block/metal_gear belt conveyor splitter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e23897601c06a4a228b0f32f08b36db5
+    m_Address: Vanilla/Block/SpaceElevatorBaseMaterial
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2267,6 +2357,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: f486c00f78cea854cbe8bdf0fde2c47a
     m_Address: Vanilla/Block/Sieve
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: f4f528f4e471f4cc88f2037cc186c9fd
+    m_Address: Vanilla/Block/SpaceElevatorBase
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

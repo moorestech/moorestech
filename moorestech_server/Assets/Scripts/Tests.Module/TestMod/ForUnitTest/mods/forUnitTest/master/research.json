@@ -258,6 +258,196 @@
       },
       "consumeItems": [],
       "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000002",
+      "researchNodeName": "Test Module Slot Stack Level 1",
+      "researchNodeDescription": "unlockModuleSlotStackLevel coverage (Part C)",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockModuleSlotStackLevel",
+          "gameActionParam": {
+            "level": 1
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [],
+      "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000001",
+      "researchNodeName": "Test Inheritance Craft Cap Lv2",
+      "researchNodeDescription": "unlockLevelInheritanceCraftLevel coverage (Part C)",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockLevelInheritanceCraftLevel",
+          "gameActionParam": {
+            "targetItemGuids": [
+              "00000000-0000-0000-c0de-000000000031"
+            ],
+            "level": 2
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [],
+      "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000003",
+      "researchNodeName": "Test Level Substitute Consume",
+      "researchNodeDescription": "consumeItems level substitute coverage (Part C)",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "00000000-0000-0000-c0de-000000000011",
+          "itemCount": 3
+        }
+      ],
+      "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000011",
+      "researchNodeName": "Test Tier9 Rocket Technology",
+      "researchNodeDescription": "G4: unlocks the test launch pad",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockBlock",
+          "gameActionParam": {
+            "unlockBlockGuids": [
+              "5c8e0000-0000-4000-8000-000000000100"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [],
+      "prevResearchNodeGuids": []
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000012",
+      "researchNodeName": "Test Tier9 Gpu Upgrade Lv2",
+      "researchNodeDescription": "G4: raises the test GPU craft cap with compute data",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockLevelInheritanceCraftLevel",
+          "gameActionParam": {
+            "targetItemGuids": [
+              "00000000-0000-0000-c0de-000000000051"
+            ],
+            "level": 2
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "5c8e0000-0000-4000-8000-000000000006",
+          "itemCount": 10
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "c0de0000-0000-4000-8000-000000000011"
+      ]
+    },
+    {
+      "researchNodeGuid": "c0de0000-0000-4000-8000-000000000013",
+      "researchNodeName": "Test Tier9 Orbital Elevator Construction",
+      "researchNodeDescription": "G4: unlocks the test space elevator base with compute data",
+      "prevResearchNodeGuid": "",
+      "clearedActions": [
+        {
+          "gameActionType": "unlockBlock",
+          "gameActionParam": {
+            "unlockBlockGuids": [
+              "5e1ea7a0-0001-4000-8000-000000000001"
+            ]
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      },
+      "consumeItems": [
+        {
+          "itemGuid": "5c8e0000-0000-4000-8000-000000000006",
+          "itemCount": 10
+        }
+      ],
+      "prevResearchNodeGuids": [
+        "c0de0000-0000-4000-8000-000000000011"
+      ]
     }
   ]
 }

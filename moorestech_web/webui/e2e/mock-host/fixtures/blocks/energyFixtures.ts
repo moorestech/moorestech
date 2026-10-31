@@ -62,3 +62,47 @@ export const blockElectricPole = {
   fluidSlots: [],
   electricNetwork: { totalGeneratePower: 240, totalRequiredPower: 180, consumerCount: 3, powerRate: 1 },
 } satisfies BlockInventoryWireData;
+
+// 宇宙エレベーター拠点（未接続・接続可能）
+// Space elevator base: unconnected and ready to connect
+export const blockSpaceElevator = {
+  open: true,
+  source: "block",
+  blockType: "SpaceElevatorBase",
+  identifier: "block:20",
+  blockGuid: BlockGuids.SPACE_ELEVATOR_BLOCK_GUID,
+  // 入口は空、成果出口は2枠。アイテムIDはmock共通の代用品
+  // Empty inlet and two result outlets; item IDs use the shared mock stand-ins
+  itemSlots: [{ itemId: 0, count: 0 }, { itemId: 2, count: 4 }, { itemId: 2, count: 7 }],
+  fluidSlots: [],
+  electricNetwork: { totalGeneratePower: 4000, totalRequiredPower: 2000, consumerCount: 1, powerRate: 1 },
+  spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: false, cablePoolAmount: 1000, cablesPerElevator: 1000, climbProgress: 0, status: "readyToConnect", slotBindings: [{ slot: 0, acceptedItemIds: [5] }] },
+} satisfies BlockInventoryWireData;
+
+// 不足・昇降・出口待ちの受入状態
+// Acceptance states for shortage, climbing, and blocked outlets
+export const blockSpaceElevatorInsufficient = {
+  ...blockSpaceElevator,
+  spaceElevator: { ...blockSpaceElevator.spaceElevator, cablePoolAmount: 250, status: "insufficientCable" },
+} satisfies BlockInventoryWireData;
+export const blockSpaceElevatorClimbing = {
+  ...blockSpaceElevator,
+  spaceElevator: { satelliteInputSlots: [0], outputSlots: [1, 2], connected: true, cablePoolAmount: 250, cablesPerElevator: 1000, climbProgress: 0.5, status: "climbing", slotBindings: [{ slot: 0, acceptedItemIds: [5] }] },
+} satisfies BlockInventoryWireData;
+export const blockSpaceElevatorOutputBlocked = {
+  ...blockSpaceElevatorClimbing,
+  itemSlots: [{ itemId: 0, count: 0 }, { itemId: 2, count: 100 }, { itemId: 2, count: 100 }],
+  spaceElevator: { ...blockSpaceElevatorClimbing.spaceElevator, climbProgress: 1, status: "outputBlocked" },
+} satisfies BlockInventoryWireData;
+
+// 詳細未着をwireで省略する過渡状態
+// Transient wire state that omits the pending detail
+export const blockSpaceElevatorLoading = { ...blockSpaceElevator, spaceElevator: undefined } satisfies BlockInventoryWireData;
+
+// 並び替えたホスト添字を使い、画面側の連続帯への依存を検出する
+// Reordered host indices detect views that infer contiguous slot groups
+export const blockSpaceElevatorReordered = {
+  ...blockSpaceElevator,
+  itemSlots: [{ itemId: 2, count: 4 }, { itemId: 2, count: 7 }, { itemId: 0, count: 0 }],
+  spaceElevator: { ...blockSpaceElevator.spaceElevator, satelliteInputSlots: [2], outputSlots: [1, 0], slotBindings: [{ slot: 2, acceptedItemIds: [5] }] },
+} satisfies BlockInventoryWireData;

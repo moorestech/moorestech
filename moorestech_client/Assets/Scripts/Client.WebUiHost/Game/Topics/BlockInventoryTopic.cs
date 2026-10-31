@@ -12,7 +12,6 @@ using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics.BlockDetail;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using UniRx;
@@ -30,11 +29,7 @@ namespace Client.WebUiHost.Game.Topics
         private readonly FluidNetworkClientCache _fluidCache;
         private readonly IDisposable _beltWindowSubscription;
         private bool _republishOnBeltWindow;
-        // パイプの中身はブロック状態イベントで届かずクライアント側のコピーが毎tick進めるので、連続値と同じ間隔で見て、量か流体の種類が前回の配信から変わった回だけ出し直す
-        // Pipe contents no longer arrive as block state events but advance in the client-side copy every tick, so they are sampled at the continuous-sample interval and republished only when the amount or fluid id changed since the last publish
-        private bool _republishOnFluidReplica;
-        private long _publishedPipeAmount;
-        private FluidId _publishedPipeFluidId;
+        private readonly OpenPipeContentsTracker _pipeContents;
         private readonly IClientTrainTimetableLookup _timetables;
         private readonly TrainTimetableFetcher _timetableFetcher;
         private readonly OpenTrainTimetableTracker _openTrainTimetableTracker;
@@ -45,6 +40,7 @@ namespace Client.WebUiHost.Game.Topics
         private readonly BlockNetworkInfoCache _networkCache = new();
         private readonly IDisposable _subInventorySubscription;
         private readonly IDisposable _continuousSampleSubscription;
+        private readonly IDisposable _networkCacheSubscription;
         private BlockGameObject _trackedBlock;
         private IDisposable _blockStateSubscription;
         private bool _publishScheduled;
@@ -59,6 +55,7 @@ namespace Client.WebUiHost.Game.Topics
             _trainUnitClientCache = trainUnitClientCache;
             _beltCache = beltCache;
             _fluidCache = fluidCache;
+            _pipeContents = new OpenPipeContentsTracker(fluidCache);
             // 搬出統計の5tickブロックが完成するたびに、開いているベルトの詳細を出し直す
             // Republish the open belt's detail each time a 5-tick block of the exit statistics completes
             _beltWindowSubscription = beltCache.ExitStatistics.OnWindowAdvanced.Subscribe(_ =>
@@ -80,11 +77,11 @@ namespace Client.WebUiHost.Game.Topics
             _subInventorySubscription = _subInventoryState.OnSubInventoryUpdated.Subscribe(_ => SchedulePublish());
             // ネットワーク取得完了でも再配信する
             // Republish when a network fetch completes
-            _networkCache.OnUpdated += SchedulePublish;
+            _networkCacheSubscription = _networkCache.OnUpdated.Subscribe(_ => SchedulePublish());
             // ギア連続値を4tick間隔で配信する
             // Sample RPM/torque and other continuous values every four ticks, publishing only the latest state
             _continuousSampleSubscription = Observable.IntervalFrame(4)
-                .Where(_ => _continuousSamplePending || HasPipeContentsChanged())
+                .Where(_ => _continuousSamplePending || _pipeContents.HasChangedSincePublish())
                 .Subscribe(_ => PublishContinuousSample());
         }
         public UniTask<string> GetSnapshotJsonAsync()
@@ -100,7 +97,7 @@ namespace Client.WebUiHost.Game.Topics
             _beltWindowSubscription.Dispose();
             _trainTimetableSubscription.Dispose();
             _openTrainTimetableTracker.Dispose();
-            _networkCache.OnUpdated -= SchedulePublish;
+            _networkCacheSubscription.Dispose();
             TrackBlock(null);
         }
         private void OnStateChanged(UIStateEnum state)
@@ -111,19 +108,6 @@ namespace Client.WebUiHost.Game.Topics
         {
             _continuousSamplePending = false;
             SchedulePublish();
-        }
-        // 開いているパイプの量・流体の種類をクライアント側のコピーから読み、前回の配信と違えば控えて true を返す(変わらない間は送らない)
-        // Read the open pipe's amount and fluid id from the client-side copy; when they differ from the last publish, remember them and return true (nothing is sent while unchanged)
-        private bool HasPipeContentsChanged()
-        {
-            if (!_republishOnFluidReplica || !_fluidCache.TryGetNodeIndex(_trackedBlock.BlockPosInfo.OriginalPos, out var pipeNode)) return false;
-            var network = _fluidCache.Replica.Network;
-            var amount = network.NodeAmounts[pipeNode];
-            var fluidId = network.NodeFluidIds[pipeNode];
-            if (amount == _publishedPipeAmount && fluidId == _publishedPipeFluidId) return false;
-            _publishedPipeAmount = amount;
-            _publishedPipeFluidId = fluidId;
-            return true;
         }
         private void OnTrackedBlockStateChanged()
         {
@@ -154,11 +138,7 @@ namespace Client.WebUiHost.Game.Topics
             var open = _uiStateControl.CurrentState == UIStateEnum.SubInventory;
             var sub = _subInventoryState.CurrentSubInventory;
             var blockSource = _subInventoryState.CurrentSubInventorySource as BlockSubInventorySource;
-            if (!open || sub == null)
-            {
-                TrackBlock(null);
-                return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
-            }
+            if (!open || sub == null) return Closed();
             // 列車も既存の統一SubInventoryを同じwireへ写し、並行インベントリ経路を作らない
             // Map trains from the unified SubInventory onto the same wire instead of creating a parallel inventory path.
             if (_subInventoryState.CurrentSubInventorySource is TrainSubInventorySource trainSource)
@@ -166,60 +146,45 @@ namespace Client.WebUiHost.Game.Topics
                 TrackBlock(null);
                 return WebUiJson.Serialize(TrainInventoryDtoFactory.Create(trainSource, sub, _trainUnitClientCache, _timetables, _timetableFetcher, ClientDIContext.BlockGameObjectDataStore));
             }
-            if (blockSource == null)
-            {
-                TrackBlock(null);
-                return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
-            }
+            if (blockSource == null) return Closed();
             // BlockGameObject は既存公開の datastore から座標で解決する（uGUI 編集なし）
             // Resolve the BlockGameObject by position via the existing public datastore (no uGUI edits)
-            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(blockSource.BlockPosition, out var block))
-            {
-                TrackBlock(null);
-                return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
-            }
+            if (!ClientDIContext.BlockGameObjectDataStore.TryGetBlockGameObject(blockSource.BlockPosition, out var block)) return Closed();
             TrackBlock(block);
             var dto = BlockInventoryDtoFactory.Create(blockSource, sub, block, _networkCache, _beltCache, _fluidCache);
             return WebUiJson.Serialize(dto);
+            #region Internal
+            string Closed()
+            {
+                TrackBlock(null);
+                return WebUiJson.Serialize(new BlockInventoryDto { Open = false });
+            }
+            #endregion
         }
         // 追跡ブロックを切り替え、state イベント購読とネットワーク取得を張り替える
         // Switch the tracked block, re-wiring the state-event subscription and network fetches
         private void TrackBlock(BlockGameObject block)
         {
             if (ReferenceEquals(_trackedBlock, block)) return;
-            // 前のブロックの state イベント購読を解除する
-            // Unsubscribe the previous block's state event
             _blockStateSubscription?.Dispose();
             _blockStateSubscription = null;
             _trackedBlock = block;
+            _pipeContents.Track(block);
             if (block == null)
             {
                 _sampleContinuously = false;
                 _republishOnBeltWindow = false;
-                _republishOnFluidReplica = false;
                 _networkCache.Clear();
                 return;
-            }
-            // 開いた時点でコピーに載っていないパイプは、載るまで中身を出さない(調べ直さない)。載っていれば今の中身を配信済みとして控え、最初の配信は通常の開く経路に任せる
-            // A pipe not yet in the copy when opened shows no contents until reopened (no re-check); when present, the current contents count as published and the first publish goes through the normal open path
-            _republishOnFluidReplica = _fluidCache.TryGetNodeIndex(block.BlockPosInfo.OriginalPos, out var pipeNode);
-            if (_republishOnFluidReplica)
-            {
-                _publishedPipeAmount = _fluidCache.Replica.Network.NodeAmounts[pipeNode];
-                _publishedPipeFluidId = _fluidCache.Replica.Network.NodeFluidIds[pipeNode];
             }
             // 束で追跡ブロックに届いたら再配信
             // Republish whenever bundle routing delivers a state to the tracked block
             _blockStateSubscription = block.OnBlockStateChanged.Subscribe(_ => OnTrackedBlockStateChanged());
-            // ネットワーク所属はマスタの接続paramが答える。blockTypeの列挙は新種別を取りこぼす
-            // The master's connection params answer which networks a block joins; enumerating blockTypes drops new kinds
-            var param = block.BlockMasterElement.BlockParam;
-            var electric = param is IElectricWireConnectParam;
-            var gear = param is IGearConnectors;
-            _sampleContinuously = gear;
-            _republishOnBeltWindow = param is IBeltSpeedParam;
-            var filterSplitter = block.BlockMasterElement.BlockType == "FilterSplitter";
-            _networkCache.Track(block, electric, gear, filterSplitter);
+            // どの集約情報を追うかはキャッシュが param から決め、歯車網の追跡有無もキャッシュから読む
+            // The cache decides from the param which aggregates to follow, and whether gear is tracked is read back from it
+            _networkCache.Track(block);
+            _sampleContinuously = _networkCache.IsTrackingGear;
+            _republishOnBeltWindow = block.BlockMasterElement.BlockParam is IBeltSpeedParam;
         }
     }
 }

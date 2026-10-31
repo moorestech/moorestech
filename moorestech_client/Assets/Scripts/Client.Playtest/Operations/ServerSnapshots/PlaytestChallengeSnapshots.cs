@@ -1,0 +1,38 @@
+using System;
+using System.Linq;
+using Client.Playtest.Core;
+using Cysharp.Threading.Tasks;
+using Game.Challenge;
+using Game.Context;
+using UnityEngine;
+
+namespace Client.Playtest.Operations
+{
+    // チャレンジの可変リストをサーバースレッド内で判定する
+    // Inspect mutable challenge lists only on the server thread
+    public static class PlaytestChallengeSnapshots
+    {
+        public static async UniTask<bool> ReadChallenge(this PlaytestDriver driver, Guid guid, bool completed)
+        {
+            var found = false;
+            await PlaytestServerThreadAction.RunAsync(driver.CancellationToken, "チャレンジ状態を読む", () =>
+            {
+                var info = ServerContext.GetService<ChallengeDatastore>().CurrentChallengeInfo;
+                found = completed ? info.CompletedChallenges.Any(item => item.ChallengeGuid == guid) :
+                    info.CurrentChallenges.Any(item => item.ChallengeMasterElement.ChallengeGuid == guid);
+            });
+            return found;
+        }
+
+        public static async UniTask WaitForChallenge(this PlaytestDriver driver, Guid guid, bool completed, float timeoutSeconds, string label)
+        {
+            var wait = driver.BeginWait(timeoutSeconds, label);
+            while (true)
+            {
+                if (await driver.ReadChallenge(guid, completed)) { wait.Complete(); return; }
+                wait.CheckTimeout($"challenge={guid}, expected completed={completed} membership=true, actual membership=false");
+                await UniTask.Yield();
+            }
+        }
+    }
+}

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Item;
 using Core.Update;
@@ -11,11 +10,13 @@ using Game.Entity.Interface;
 using Game.Hotbar;
 using Game.Map.Interface;
 using Game.Map.Interface.MapObject;
+using Game.Orbit;
 using Game.PlayerIdentity;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
 using Game.SaveLoad.Json.WorldVersions;
+using Game.SpaceElevator;
 using Game.Train.SaveLoad;
 using Game.Train.Unit;
 using Game.UnlockState;
@@ -47,10 +48,12 @@ namespace Game.SaveLoad.Json
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
+        private readonly RocketLaunchHistory _rocketLaunchHistory;
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
         private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
         private readonly PlayerIdentityRegistry _playerIdentityRegistry;
         private readonly IWorldTopologyRebuilder _worldTopologyRebuilder;
+        private readonly SpaceElevatorCablePool _spaceElevatorCablePool;
 
         public WorldSaveDataRestorer(
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
@@ -58,9 +61,11 @@ namespace Game.SaveLoad.Json
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
             IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ConstructionPayerDataStore constructionPayerDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore,
+            RocketLaunchHistory rocketLaunchHistory,
             SaveBackfilledFieldsRecord saveBackfilledFieldsRecord,
             PlayerIdentityRegistry playerIdentityRegistry,
-            IWorldTopologyRebuilder worldTopologyRebuilder)
+            IWorldTopologyRebuilder worldTopologyRebuilder,
+            SpaceElevatorCablePool spaceElevatorCablePool)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -82,17 +87,19 @@ namespace Game.SaveLoad.Json
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
+            _rocketLaunchHistory = rocketLaunchHistory;
             _miningCooldownDatastore = miningCooldownDatastore;
             _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
             _playerIdentityRegistry = playerIdentityRegistry;
             _worldTopologyRebuilder = worldTopologyRebuilder;
+            _spaceElevatorCablePool = spaceElevatorCablePool;
         }
 
         public void Restore(WorldSaveAllInfo load)
         {
-            // 版が古いセーブの欠損はV1→V2ステップが補うので、ここで補填はしない。欠けたまま進むと理由の無い素の例外になる
-            // An older save's gaps are backfilled by the V1-to-V2 step, not here; passing one through would fail with a reasonless bare exception
-            ThrowIfRequiredFieldMissing();
+            // 旧版の欠損は移行連鎖が補う。現在版の破損は復元前に止める
+            // The migration chain fills legacy gaps; stop current-version corruption before restoration
+            WorldSaveRequiredFieldGuard.ThrowIfMissing(load);
 
             // 時刻と乱数状態を最初に戻す。以降の復元（残りtick等）がこの時刻を基準にする
             // Restore the clock and random state first; later restorations reference this tick
@@ -101,12 +108,18 @@ namespace Game.SaveLoad.Json
             _saveBackfilledFieldsRecord.SetFields(load.BackfilledFields);
 
             _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
+            // 発射台がロード直後の初回Updateで参照するので、ブロックより先に戻す
+            // Launch pads read it on their first update after load, so restore it before blocks
+            _rocketLaunchHistory.LoadSaveData(load.RocketHasLaunchedOnce.Value);
             // ブロック・インベントリ復元前にスタックレベルを復元する（上限超過例外の防止）
             // Restore stack levels before blocks/inventories to avoid over-limit exceptions
             _itemStackLevelDataStore.LoadUnlockedLevels(load.ItemStackLevels);
             // スロットレベルはプレイヤーインベントリより先にロードする
             // Load the slot level before player inventories
             _playerInventorySlotLevelDataStore.LoadLevel(load.InventorySlotLevel);
+            // ケーブルプールはブロックより先に戻し、ロードで置かれる拠点が設置時に残量を受け取れるようにする
+            // Restore the cable pool before blocks so bases placed by the load receive the amount when placed
+            _spaceElevatorCablePool.Restore(load.SpaceElevatorCablePool);
             _worldBlockDatastore.LoadBlockDataList(load.World);
             // クリーンルームを再検出し、セーブされた純度と行を照合復元する
             // Re-detect clean rooms then restore saved purity and class rows by matching
@@ -158,21 +171,6 @@ namespace Game.SaveLoad.Json
             WarnIfRandomStreamAdvanced(load.RandomState);
 
             #region Internal
-
-            void ThrowIfRequiredFieldMissing()
-            {
-                var missing = new List<string>();
-                if (!load.CurrentTick.HasValue) missing.Add("currentTick");
-                if (load.RandomState == null) missing.Add("randomState");
-                if (load.MiningCooldowns == null) missing.Add("miningCooldowns");
-                if (load.BackfilledFields == null) missing.Add("backfilledFields");
-                if (load.Players == null) missing.Add("players");
-                if (missing.Count == 0) return;
-
-                var reason = $"セーブに {string.Join(" / ", missing)} がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
-            }
 
             void WarnIfRandomStreamAdvanced(ulong[] savedState)
             {

@@ -15,5 +15,9 @@ namespace Game.Block.Blocks.Machine.Inventory
         // プレイヤー操作でこのローカルスロットへ置けるか（レシピ束縛の判定）。拒否時は理由を返す
         // Whether a player may place the stack into this local slot (recipe-binding rule); a rejection returns its reason
         MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack);
+
+        // ローカルスロット1つに置ける最大数（アイテム自身の最大スタックとは別に効く）
+        // The most one local slot may hold (applies on top of the item's own max stack)
+        int GetSlotStackLimit();
     }
 }

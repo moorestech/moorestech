@@ -9,10 +9,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine
     public class CleanRoomMachineComponent : ICleanRoomMachine, IElectricConsumer, IElectricTickPostHandler
     {
         private readonly CleanRoomMachineProcessorComponent _processor;
+        private readonly CleanRoomOperabilityStateComponent _operabilityState;
 
-        public CleanRoomMachineComponent(BlockInstanceId blockInstanceId, CleanRoomMachineProcessorComponent processor)
+        public CleanRoomMachineComponent(BlockInstanceId blockInstanceId, CleanRoomMachineProcessorComponent processor, CleanRoomOperabilityStateComponent operabilityState)
         {
             _processor = processor;
+            _operabilityState = operabilityState;
             BlockInstanceId = blockInstanceId;
         }
 
@@ -23,6 +25,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public void SetCleanRoomEffect(CleanRoomEffect effect)
         {
             _processor.SetCleanRoomEffect(effect);
+
+            // 表示用の停止理由を別部品へ渡す
+            // Forward the display halt reason to its own component
+            _operabilityState.SetOperability(effect.Operability);
         }
 
         public void OnElectricTickPostProcess(ElectricNetworkStatistics statistics)

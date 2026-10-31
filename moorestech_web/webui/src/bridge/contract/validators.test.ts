@@ -79,9 +79,9 @@ describe("localization.current schema", () => {
 describe("validResearchTree", () => {
   const node = {
     guid: "60000000-0000-4000-8000-000000000001", state: "researchable", iconItemId: 1, position: { x: 100, y: -50 },
-    prevGuids: [], consumeItems: [{ itemId: 1, count: 3 }],
+    prevGuids: [], consumeItems: [{ itemId: 1, count: 3, acceptedItemIds: [1] }],
     rewardItems: [{ itemId: 2, count: 4 }], unlockItemRecipeViewItemIds: [],
-    unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
+    unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [], unlockModuleSlotStackLimits: [], unlockLevelInheritanceCraftCaps: [],
   };
   it("accepts nodes payload", () => {
     expect(parseTopicPayload(Topics.researchTree, { nodes: [node] }).valid).toBe(true);
@@ -98,6 +98,7 @@ describe("validMachineRecipes", () => {
     recipeGuid: "50000000-0000-4000-8000-000000000001", blockGuid: "40000000-0000-4000-8000-000000000001", blockId: 12, time: 1,
     inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
     inputFluids: [], outputFluids: [],
+    levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
   };
 
   it("accepts BlockId and rejects the removed blockItemId contract", () => {

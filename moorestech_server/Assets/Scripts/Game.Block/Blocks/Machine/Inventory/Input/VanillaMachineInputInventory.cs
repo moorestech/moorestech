@@ -7,6 +7,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Event;
 using Game.Block.Interface;
 using Game.Block.Interface.Event;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Context;
 using Game.Fluid;
 using Game.UnlockState;
@@ -34,7 +35,11 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
 
         // 選択レシピへのスロット束縛判定。未選択は何も受け入れない（ADR 0042）
         // Slot-binding decision against the selected recipe; unselected accepts nothing (ADR 0042)
-        private readonly MachineInputSlotBinding _slotBinding = new();
+        private readonly MachineInputSlotBinding _slotBinding;
+
+        // ブロック搬入の口。自動搬入上限と、継承元のレベルで断った記録を持つ
+        // The block-inflow inlet holding the auto-insert cap and the source-level refusal record
+        private readonly MachineInputBlockInflow _blockInflow;
 
         public VanillaMachineInputInventory(
             BlockId blockId,
@@ -43,12 +48,14 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             float innerTankCapacity,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate,
             BlockInstanceId blockInstanceId,
-            IGameUnlockStateData gameUnlockStateData)
+            IGameUnlockStateData gameUnlockStateData,
+            ILevelInheritanceCraftCapLookup craftCapLookup)
         {
             _blockId = blockId;
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;
             _gameUnlockStateData = gameUnlockStateData;
+            _slotBinding = new MachineInputSlotBinding(new MachineInputCraftCapGate(craftCapLookup));
 
             var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot, option);
@@ -58,13 +65,20 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             {
                 _fluidContainers[i] = new FluidContainer(innerTankCapacity);
             }
+            _blockInflow = new MachineInputBlockInflow(_itemDataStoreService, _slotBinding);
         }
 
         public BlockId BlockId => _blockId;
 
+        // 直前に警告した (レシピ, スロット, 理由)。同じ組の警告を毎tick出さないための記録
+        // The last warned (recipe, slot, reason); avoids repeating the same warning every tick
+        private (Guid recipe, int slot, MachineSlotPlacementCheck reason)? _lastNotReadyWarning;
+
         internal void SetBoundRecipe(MachineRecipeMasterElement recipe)
         {
+            _lastNotReadyWarning = null;
             _slotBinding.SetRecipe(recipe);
+            _blockInflow.ClearRefusal();
         }
 
         public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)
@@ -72,11 +86,30 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return _slotBinding.CheckPlacement(localSlot, itemStack);
         }
 
-        public bool IsAllowedToStartProcess(MachineRecipeMasterElement recipe)
+        // 入力・出力スロットはアイテムの最大スタックだけで決まる
+        // Input and output slots are bounded only by the item's max stack
+        public int GetSlotStackLimit() => int.MaxValue;
+
+        public bool TryGetReadyInput(MachineRecipeMasterElement recipe, out int? inheritedLevel)
         {
-            // 選択済みレシピの材料充足のみを確認する（レシピ探索は行わない）
-            // Only verify the selected recipe's inputs are satisfied (no recipe search)
-            return recipe.RecipeConfirmation(_blockId, InputSlot, FluidInputSlot);
+            inheritedLevel = null;
+            // silent-ok: 不足中は通常の待機 / 入力欄と機械状態に表示される
+            if (!recipe.RecipeConfirmation(_blockId, InputSlot, FluidInputSlot)) return false;
+            // 返却残余も現在の製作上限で判定する
+            // Check retained inputs against the current craft cap
+            for (var slot = 0; slot < recipe.InputItems.Length; slot++)
+            {
+                var placement = _slotBinding.CheckPlacement(slot, InputSlot[slot]);
+                if (placement == MachineSlotPlacementCheck.Allowed) continue;
+                var warning = (recipe.MachineRecipeGuid, slot, placement);
+                if (_lastNotReadyWarning != warning) UnityEngine.Debug.LogWarning($"Machine input is not ready: recipe={recipe.MachineRecipeGuid} slot={slot} reason={placement}");
+                _lastNotReadyWarning = warning;
+                return false;
+            }
+            _lastNotReadyWarning = null;
+            if (MachineRecipeLevelInheritanceUtil.TryGetShape(recipe, out var shape))
+                inheritedLevel = shape.ResolveSourceLevel(InputSlot[shape.SourceInputIndex].Id);
+            return true;
         }
 
         public bool IsRecipeUnlocked(Guid machineRecipeGuid)
@@ -112,23 +145,11 @@ namespace Game.Block.Blocks.Machine.Inventory.Input
             return true;
         }
 
-        // ブロック搬入だけ自動搬入上限を適用する
-        // Apply the automated cap only to inflow from blocks
-        internal IItemStack InsertItemFromBlock(IItemStack itemStack)
-        {
-            var (slots, touchedSlots, remainders) = VanillaMachineInputSimulationUtil.SimulateAutoInsert(InputSlot, new List<IItemStack> { itemStack }, _slotBinding);
-            foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
-            return remainders[0];
-        }
-
-        internal bool InsertionCheckFromBlock(List<IItemStack> itemStacks)
-        {
-            foreach (var remainder in VanillaMachineInputSimulationUtil.SimulateAutoInsert(InputSlot, itemStacks, _slotBinding).remainders)
-            {
-                if (remainder.Count != 0) return false;
-            }
-            return true;
-        }
+        // ブロック搬入は、自動搬入上限で積み継承元のレベルの拒否を覚える搬入口を通す
+        // Inflow from blocks goes through the inlet that stacks under the auto-insert cap and remembers source-level refusals
+        internal IItemStack InsertItemFromBlock(IItemStack itemStack) => _blockInflow.Insert(itemStack);
+        internal bool InsertionCheckFromBlock(List<IItemStack> itemStacks) => _blockInflow.CanInsertAll(itemStacks);
+        public bool TryGetLevelStall(out MachineInputLevelStall stall) => _blockInflow.TryGetStall(out stall);
 
         // 束縛タンクへ液体を挿入する。指定タンクは束縛時のみ受け、指定無しは必要量→余剰容量の2パスで束縛タンクを満たす（ADR 0042 R5）
         // Insert fluid into the bound tanks; a designated tank only when bound, undesignated inflow fills bound tanks in two passes: requirement first, spare capacity second (ADR 0042 R5)

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
@@ -38,20 +37,13 @@ namespace Game.Block.Blocks.Machine.State
         // Realized-output rewrite hook; only the clean room installs one and the normal machine leaves it null
         private IRealizedOutputDecorator _realizedOutputDecorator;
 
-        private float _processingPowerMultiplier;
-        private ulong _processingPowerMultiplierTick = ulong.MaxValue;
+        // 加工時間と同時に確定した電力倍率をジョブが設定する
+        // The job sets the power multiplier fixed together with its processing time
+        public float ProcessingPowerMultiplier { get; private set; }
 
-        // 加工中の効果倍率はtick単位のスナップショット。同一tickの全読み手が同じ分母基準を見る
-        // The processing multiplier is snapshotted per tick so every reader within a tick shares one basis
-        public float ProcessingPowerMultiplier
+        internal void SetProcessingPowerMultiplier(float powerMultiplier)
         {
-            get
-            {
-                if (_processingPowerMultiplierTick == GameUpdater.CurrentTick) return _processingPowerMultiplier;
-                _processingPowerMultiplierTick = GameUpdater.CurrentTick;
-                _processingPowerMultiplier = EffectComponent.AggregateCurrent().PowerMultiplier;
-                return _processingPowerMultiplier;
-            }
+            ProcessingPowerMultiplier = powerMultiplier;
         }
 
         public MachineProcessContext(
@@ -122,12 +114,17 @@ namespace Game.Block.Blocks.Machine.State
             OutputInventory.SetBoundOutputs(allowedOutputItemsPerSlot);
         }
 
-        // 実現出力を作る唯一の口。容量判定も実挿入も必ずこの戻り値を使うので、判定した物と挿入する物が食い違わない
-        // The only place realized outputs are built; both the capacity check and the real insert use this result, so they can never diverge
-        internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe)
+        // 実現出力と加工時間を確定する唯一の口。容量判定も実挿入も加工時間も必ずこの戻り値を使うので、判定した物と挿入する物・時間の前提が食い違わない
+        // The only place a job is realized; the capacity check, the real insert and the processing time all use this result, so none of them can diverge
+        internal MachineRealization CreateRealization(MachineRecipeMasterElement recipe, int? inheritedLevel)
         {
-            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, EffectComponent.AggregateCurrent());
-            return _realizedOutputDecorator == null ? outputs : _realizedOutputDecorator.Decorate(recipe, outputs);
+            // 工場・差し替え口・加工時間が同じ集計を見るよう、モジュール効果は1回だけ集計し、セット数は工場の値を渡す
+            // Aggregate the module effect once and pass the factory's set count so the factory, the rewrite hook and the time see the same values
+            var effect = EffectComponent.AggregateCurrent();
+            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel, out var setCount);
+            IRealizedOutputDrawRecord drawRecord = null;
+            if (_realizedOutputDecorator != null) outputs = _realizedOutputDecorator.Decorate(recipe, inheritedLevel, effect, setCount, outputs, out drawRecord);
+            return new MachineRealization(recipe, inheritedLevel, outputs, MachineRealization.ComputeTotalTicks(recipe, effect), effect.PowerMultiplier, drawRecord);
         }
 
         // 実現出力の差し替え口を差し込む（清浄室のチップ抽選）。未設定なら抽選結果をそのまま使う

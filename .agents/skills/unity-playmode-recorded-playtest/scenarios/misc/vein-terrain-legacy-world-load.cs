@@ -1,3 +1,4 @@
+using Game.Context;
 // 既存の生成版4.0.0 world(ユーザーセーブの複製)が本ブランチでもrevision4のまま無変更でロードされるかを確かめる
 // 原本は絶対に開かない。複製手順と起動コマンドは .superpowers/sdd/vtg-playtest-scenario-report.md(PLAYTEST_WORLD_DIRECTORY=複製先)
 // スクショは全てプレイヤー視点(Camera.main)。独自カメラは使わない
@@ -32,7 +33,8 @@ return PlaytestRunner.Run("vein-terrain-legacy-world-load", options, async p =>
     // 1: Generator version: both the delivered meta and world.json stay 4.0.0 (not replaced by the current 5.0.0)
     var mapData = await ClientContext.VanillaApi.Response.World.GetMapData(default);
     var meta = mapData.TerrainMeta;
-    var world = p.ServerService<WorldDataDirectory>();
+    WorldDataDirectory world = null;
+    await p.RunOnServer("ワールドの保存先を読む", () => world = ServerContext.GetService<WorldDataDirectory>());
     var worldJson = JObject.Parse(File.ReadAllText(world.WorldMetaFilePath));
     p.Note($"[legacy] root={world.Root} generator={meta.GeneratorVersion} seed={meta.WorldSeed} id={meta.WorldId} fingerprint={worldJson["generationMasterFingerprint"]} player={p.PlayerPosition}");
     p.Assert(!world.Root.Contains("/Library/Application Support/moorestech/Saves/"), "原本セーブではなく複製を開いている");
