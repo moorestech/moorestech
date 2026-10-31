@@ -42,7 +42,7 @@ trap 'rm -rf "$partial"' EXIT
 # Without READY there is nothing to list; a 410 means the box's raw data was purged after settling
 if ! receiver_get_object "$kind" "$steam_id" "$id" READY "$partial/READY" 2> "$partial.err"; then
   cat "$partial.err" >&2
-  if grep -q 'status=410' "$partial.err"; then
+  if [ "$RECEIVER_LAST_STATUS" = 410 ]; then
     rm -f "$partial.err"; log "R2 から片付けで削除済みの報告（上の purgedAt を参照）: $kind/$steam_id/$id"; exit 3
   fi
   rm -f "$partial.err"; log "ERROR: READY を取れない（未送信・ID 違い・受け口の障害）: $kind/$steam_id/$id"; exit 1

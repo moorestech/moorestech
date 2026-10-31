@@ -29,13 +29,17 @@ print("/".join(urllib.parse.quote(seg, safe="") for seg in sys.argv[1].split("/"
 # The single curl entry point for the receiver admin API: $1 is the output path, the rest are flags then the URL.
 # Non-2xx prints status and body head to stderr (never the admin key). Redirects are never followed, because
 # curl would forward X-Admin-Key to a different redirect host and leak the key
+# 直近の HTTP ステータスは RECEIVER_LAST_STATUS に残す（curl 自体の失敗は空）。呼び出し側はログ文言でなくこれで分岐する
+# The latest HTTP status is left in RECEIVER_LAST_STATUS (empty when curl itself failed); callers branch on it, not on log text
 receiver_curl() {
   local out="$1"; shift
   local code
+  RECEIVER_LAST_STATUS=""
   code="$("$CURL_CMD" --silent --show-error \
     --max-time "$RECEIVER_MAX_TIME" \
     -H "X-Admin-Key: ${PLAYTEST_ADMIN_KEY:?PLAYTEST_ADMIN_KEY が未設定}" \
     -w '%{http_code}' -o "$out" "$@")" || { echo "[receiver] curl 自体が失敗: $*" >&2; return 1; }
+  RECEIVER_LAST_STATUS="$code"
   case "$code" in
     2??) return 0 ;;
     *) echo "[receiver] status=${code} body=$(head -c 200 "$out" 2>/dev/null) $*" >&2; return 1 ;;
