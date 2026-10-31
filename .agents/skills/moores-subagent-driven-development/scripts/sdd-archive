@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
-# worktree内のSDDワークスペース（.superpowers/sdd）を記録repoへ退避し、
-# 退避先の絶対パスを標準出力へ表示する。PR作成後・moores-wt rm の前に実行する。
+# worktree内のSDDワークスペース（.superpowers/sdd）のうち、文章の結論（*.md）と
+# screenshots/ 直下のスクショ（png/jpg）3枚までを記録repoへ写し、退避先の絶対パスを標準出力へ表示する。
+# PR作成後・moores-wt rm の前に実行し、終了コードが0でなければworktreeを畳まない。
+#
+# 録画・連番フレーム・Unityのログ・テスト結果xml・PlaytestResults・review-packageのdiffは写さない。
+# 録画やログは事後に開かれず、logs-syncが永久履歴へ入れて記録repoを膨らませるため。diffはgitから作り直せる。
+# それらはworktree（gitignore下）に置いたままにし、worktreeを畳むと一緒に消える。
 #
 # ワークスペースを最初から記録repoに置かないのは、implementer（codexの
 # workspace-writeサンドボックス含む）がworktreeの外へ書けないため。
-# 一方worktreeを畳むと報告・台帳が消えるので、コードrepoへコミットせず
-# ここで記録repo `moorestech_logs/harness/sdd/<ブランチslug>/workspace/` へ写す
-# （裁定 .decisions/2026-09-28-SDDの作業記録はコードrepoに置かず記録repoへ退避する.md）。
+# 退避先: 記録repo `moorestech_logs/harness/sdd/<ブランチslug>/workspace/`
+#
+# Copies only the text conclusions (*.md) and up to 3 png/jpg screenshots directly under screenshots/
+# from the SDD workspace to the logs repo, and prints the destination. Run after the PR, before moores-wt rm;
+# do not remove the worktree on a non-zero exit. Recordings, Unity logs, test xml and diffs stay in the worktree.
 #
 # 使い方: sdd-archive（隔離worktree側をcwdにして実行する。何度実行してもよい）
 set -euo pipefail
+
+max_screenshots=3
 
 root=$(git rev-parse --show-toplevel)
 src="$root/.superpowers/sdd"
@@ -31,8 +40,38 @@ if [ ! -d "$logs/.git" ] && [ ! -f "$logs/.git" ]; then
   exit 1
 fi
 
-# 自己無視の.gitignoreは記録repo側で退避物を無視させてしまうので写さない
+# 文章の結論はスクショの枚数に関係なく先に写す
+# Copy the text conclusions first, regardless of the screenshot count
 dest="$logs/harness/sdd/$slug/workspace"
 mkdir -p "$dest"
-rsync -a --exclude '.gitignore' "$src/" "$dest/"
+rsync -a -m --include '*/' --include '*.md' --exclude '*' "$src/" "$dest/"
 printf '%s\n' "$dest"
+
+shots="$src/screenshots"
+[ -d "$shots" ] || exit 0
+
+# 数える対象と写す対象を同じ述語に揃える（.DS_Store や mp4 を混ぜない）
+# Count and copy with one predicate so .DS_Store or mp4 never slip in
+find_shots() { find "$shots" -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) ! -name '.*'; }
+
+# 写さないもの（直下の画像以外・サブディレクトリの中身）は名前を出す
+# Name everything that will not be copied instead of dropping it silently
+skipped=$(find "$shots" -mindepth 1 -maxdepth 1 \( -type f -o -type l \) ! -name '.DS_Store' ! -name '*.md' \
+  ! \( \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) ! -name '.*' \) -print)
+nested=$(find "$shots" -mindepth 2 -type f ! -name '.DS_Store' ! -name '*.md' -print)
+if [ -n "$skipped$nested" ]; then
+  echo "sdd-archive: screenshots/ 直下の png/jpg 以外は写しません。写さなかった:" >&2
+  printf '%s\n%s\n' "$skipped" "$nested" | sed '/^$/d' >&2
+fi
+
+shot_count=$(find_shots | wc -l | tr -d ' ')
+if [ "$shot_count" -gt "$max_screenshots" ]; then
+  echo "sdd-archive: ${shots} に ${shot_count} 枚あります。記録repoへ写すのは ${max_screenshots} 枚までです。md は写しました。結論に要るスクショだけ残して再実行してください（worktreeはまだ畳まない）" >&2
+  exit 1
+fi
+
+# 再実行で選び直した枚数がそのまま反映されるよう、写し先の直下の画像だけ入れ替える
+# Replace only the top-level images at the destination so a re-run reflects the new selection
+mkdir -p "$dest/screenshots"
+find "$dest/screenshots" -maxdepth 1 -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) -delete
+find_shots | while IFS= read -r shot; do cp "$shot" "$dest/screenshots/"; done

@@ -148,7 +148,7 @@ PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=$OBSERVE_MAP_MODE PLAYTEST
 `run-scenario.sh` は失敗しても終了コード 0 を返すので、**成否は `result.json` の有無と `Success` で判定する**（終了コードでは判定しない）。
 `NG: game not ready within 300s` が出たら Editor が PlayMode のまま残っているので、
 `uloop control-play-mode --project-path $WORKTREE/moorestech_client --action Stop` で必ず戻す。
-結果ディレクトリを `$RUN/observe/` へコピーする。説明文の症状が録画・スクショ・`ErrorLogs` に現れるかを判定する。現れなければ、説明文の操作を DSL で再現する追加シナリオを最大3本まで書いて試す（`references/write-scenario.md`）。
+結果ディレクトリは `$WORKTREE/moorestech_client/PlaytestResults/` に置いたままにし、`$RUN` へはコピーしない（録画・ログは記録repoへ入れない）。説明文の症状が録画・スクショ・`ErrorLogs` に現れるかを判定し、判定と観測した値を `$RUN/observe/observe.md` に、決め手のスクショを3枚程度まで `$RUN/observe/` に書く。現れなければ、説明文の操作を DSL で再現する追加シナリオを最大3本まで書いて試す（`references/write-scenario.md`）。
 
 3本試しても症状が出なければ Step 9 へ飛び、`not_reproduced` で終える（試したこと全部を `summary`、次に試す案を `remaining` に書く）。
 
@@ -168,7 +168,7 @@ PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=$OBSERVE_MAP_MODE PLAYTEST
 2. **合成NUnit が再現テストの正、バンドル依存のプレイテストは証拠扱い**。`creating-server-tests` に従い、
    バンドルのワールドファイル・スナップショットに一切依存しない最小の再現テストを書く。
    **修正前に落ち、修正後に通る**ことを `uloop run-tests --test-mode EditMode` で両方とも実測し、出力を報告に残す。
-   最小化できない場合はプレイテストシナリオと録画を `$RUN/observe/` に残し、PR 本文に「プレイテスト証拠のみ」と明記する
+   最小化できない場合はプレイテストシナリオと `observe.md` を `$RUN/observe/` に残し（録画は worktree と非公開の載せ先に置く）、PR 本文に「プレイテスト証拠のみ」と明記する
 3. `uloop compile` を通す
 
 **テストを緩めて緑にすることは禁止**。落ちる合成NUnit を通すのは修正であって、期待値の書き換え・Assert の削除・
@@ -200,12 +200,12 @@ git -C $WORKTREE cherry-pick <合成NUnitのコミット>
 
 ## Step 7: 修正後の証拠
 
-Step 3 のシナリオを修正後のバイナリで再実行し `$RUN/observe-after/` に残す。症状が消えたことを録画・スクショで確認する（レビュー後に修正が変わったら再実施）。
+Step 3 のシナリオを修正後のバイナリで再実行し、Step 3 と同じ形で判定を `$RUN/observe-after/observe.md` とスクショ3枚程度までに残す（録画は worktree に置く）。症状が消えたことを録画・スクショで確認する（レビュー後に修正が変わったら再実施）。
 
 ## Step 8: レビューと PR
 
 1. `moores-code-review` を実行し、機械的指摘を反映する。設計判断が要る指摘は PR 本文の「裁定事項」に列挙する（AskUserQuestion は使えない）
-2. `git push -u origin <ブランチ>` → `pr-create` スキルで PR を作る（本文: 説明文の引用・原因・修正・合成NUnit・`$RUN` のパス・欠損項目・決定性是正の有無・裁定事項）。修正前後の録画・スクショは環境ローカル規約が定める非公開の載せ先（pr-create 参照）にだけ載せ、**PR本文へは添付しない**（裁定: 公開PRにはパスと説明だけ）
+2. `git push -u origin <ブランチ>` → `pr-create` スキルで PR を作る（本文: 説明文の引用・原因・修正・合成NUnit・`$RUN` のパス・欠損項目・決定性是正の有無・裁定事項）。修正前後の録画・スクショは環境ローカル規約が定める非公開の載せ先（pr-create 参照）にだけ載せ、**PR本文へは添付しない**（裁定: 公開PRにはパスと説明だけ）。録画は worktree にしか無いので、「プレイテスト証拠のみ」の PR では載せ先への公開を省かず、公開に失敗したら worktree を畳まずに `summary` へ書く
 3. `gh pr ready --undo <番号>` で draft にする
 4. `bd note <id> "PR #<番号> ..."`
 

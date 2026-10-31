@@ -63,6 +63,8 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 7. **run-testsとプレイテストを並走させない**（run-testsはUnityMcpSettings.jsonを退避し、衝突すると全uloopコマンドが死ぬ）
 8. 調査用は`PlaytestRunOptions.Record=false`で実行し、`result.json`の`Success`と`Asserts`で判定する。提出用の最終実行は`Record=true`とし、動画生成（0 byte不可）/ Asserts全PASS / 期待UIのスクショ / **実プレイ視点**（アバター・地面・HUD）の目視を完了条件とする。調査用の成功を最終録画の代わりにしない
 9. 作業終了前に必ず全てコミットする
+10. **検証の副産物は worktree に置いたままにし、`../moorestech_logs` へ写さない。** 録画・連番フレーム・result.json・スクショ・Unity のログは `moorestech_client/PlaytestResults/`（gitignore 下）に残し、worktree を畳めば一緒に消える。記録へ残すのは結論の md と、要るならスクショ3枚程度まで（事後に録画やログが開かれることは無く、logs-sync が永久履歴へ入れて記録repoを膨らませるため）
+11. **テスト用ワールドは worktree 内に作り、作業の終わりに `Saves/` を片付ける。** ワールドは `PLAYTEST_WORLD_DIRECTORY` で `moorestech_client/PlaytestResults/` 配下を指す（run-scenario.md）。作業の終わりに `"$SKILL/scripts/list-work-saves.sh"` で worktree 作成後に `Saves/` で作られた・書き換えられたワールドを出し、`[新規]` のうち自分の作業が作った・複製したものを消す。`Saves/` は worktree の外にあり畳んでも残るため。`[更新のみ]`（作業前からあった `world_1` 等）と他セッションのものは消さない
 
 ## 動画の可読性ルール（オーバーレイ・ナレーション・0.5秒インターバル）
 
