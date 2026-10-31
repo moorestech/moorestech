@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# curl を偽の受け口に差し替えて、取り込み・ack・異常箱の据え置き・自動投入しないことを検証する
-# Verifies ingest, ack, the un-acked broken box and the absence of auto-enqueue, with curl stubbed
+# curl を偽の受け口に差し替えて、取り込み・ack・異常箱の据え置き・生データを手元へ取らず remote.json に並べることを検証する
+# Verifies ingest, ack, the un-acked broken box, and that raw data is never downloaded but listed in remote.json, with curl stubbed
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
@@ -12,18 +12,23 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 mk_object report/7656001/20260913_100000_bug1/manifest.json '{"kind":"bug","steamId":"7656001","description":"ベルトが止まる"}'
 mk_object report/7656001/20260913_100000_bug1/screenshot.png 'PNG'
 mk_object report/7656001/20260913_100000_bug1/.persona.json 'tester-file'
-mk_ready report/7656001/20260913_100000_bug1 '["manifest.json","screenshot.png",".persona.json"]'
+mk_object report/7656001/20260913_100000_bug1/video.mp4 'MP4'
+mk_object report/7656001/20260913_100000_bug1/world/save.json '{}'
+mk_object report/7656001/20260913_100000_bug1/repo/commit.bundle 'BUNDLE'
+mk_object report/7656001/20260913_100000_bug1/repo/changes.diff 'diff'
+mk_object report/7656001/20260913_100000_bug1/logs/unity.log 'log'
+mk_ready report/7656001/20260913_100000_bug1 '["manifest.json","screenshot.png",".persona.json","video.mp4","world/save.json","repo/commit.bundle","repo/changes.diff","logs/unity.log"]'
 mk_object report/7656002/20260913_110000_fb1/manifest.json '{"kind":"feedback","steamId":"7656002","description":"序盤が長い"}'
 mk_ready report/7656002/20260913_110000_fb1 '["manifest.json"]'
 mk_object progress/7656001/20260913_120000_pg1/record.json '{"schemaVersion":1,"steamId":"7656001","playSeconds":600}'
 mk_ready progress/7656001/20260913_120000_pg1 '["record.json"]'
 mk_object report/7656003/20260913_130000_bad1/manifest.json '{"kind":"bug"}'
 mk_ready report/7656003/20260913_130000_bad1 ''
-# files[] に空白・#・日本語を含む箱（percent-encode/decode の往復を検証する）
-# A box whose files[] entry has a space, a '#' and Japanese characters (round-trips through percent-encoding)
+# 取る物（logs/ 配下）の名前に空白・#・日本語を含む箱（percent-encode/decode の往復を検証する）
+# A box whose fetched file (under logs/) has a space, a '#' and Japanese characters (round-trips through percent-encoding)
 mk_object 'report/7656004/20260913_140000_bug2/manifest.json' '{"kind":"bug","steamId":"7656004","description":"特殊文字ファイル名"}'
-mk_object 'report/7656004/20260913_140000_bug2/note #1 メモ.txt' 'hello'
-mk_ready 'report/7656004/20260913_140000_bug2' '["manifest.json","note #1 メモ.txt"]'
+mk_object 'report/7656004/20260913_140000_bug2/logs/note #1 メモ.txt' 'hello'
+mk_ready 'report/7656004/20260913_140000_bug2' '["manifest.json","logs/note #1 メモ.txt"]'
 cat > "$R2/inbox.json" <<'JSON'
 {"items":[
  {"kind":"report","steamId":"7656001","id":"20260913_100000_bug1","readyAt":"2026-09-13T01:00:00Z"},
@@ -38,20 +43,36 @@ run_ingest
 P="$LOGS/harness/playtest"
 [ -f "$P/reports/7656001/20260913_100000_bug1/manifest.json" ] || { echo "NG: バグ報告が置かれていない"; exit 1; }
 [ -f "$P/reports/7656001/20260913_100000_bug1/ingest.json" ] || { echo "NG: ingest.json が無い"; exit 1; }
-[ "$(cat "$RAWSTORE/reports/7656001/20260913_100000_bug1/.persona.json")" = tester-file ] || { echo "NG: テスターの .persona.json が上書きされた"; exit 1; }
 grep -q '"readyAt":"2026-09-13T01:00:00Z"' "$P/reports/7656001/20260913_100000_bug1/ingest.json" || { echo "NG: readyAt が写っていない"; exit 1; }
 [ -f "$P/reports/7656002/20260913_110000_fb1/manifest.json" ] || { echo "NG: 感想が置かれていない"; exit 1; }
 [ -f "$P/progress/7656001/20260913_120000_pg1/record.json" ] || { echo "NG: 進行記録が置かれていない"; exit 1; }
 [ ! -e "$P/reports/7656003/20260913_130000_bad1" ] || { echo "NG: files[] 無しの箱が公開された"; exit 1; }
-[ -f "$RAWSTORE/reports/7656004/20260913_140000_bug2/note #1 メモ.txt" ] || { echo "NG: 空白/#/日本語を含むファイル名が取り込まれていない"; exit 1; }
+[ "$(cat "$P/reports/7656004/20260913_140000_bug2/logs/note #1 メモ.txt")" = hello ] || { echo "NG: 空白/#/日本語を含むファイル名が取り込まれていない"; exit 1; }
 grep -q 'report/7656004/20260913_140000_bug2/ack' "$R2/acked.txt" || { echo "NG: 特殊文字ファイル名の箱が ack されていない"; exit 1; }
-grep -qF 'report/7656004/20260913_140000_bug2/note%20%231%20%E3%83%A1%E3%83%A2.txt' "$R2/requested.txt" || { echo "NG: 特殊文字ファイル名がURLエンコード済みの形で届いていない"; exit 1; }
+grep -qF 'report/7656004/20260913_140000_bug2/logs/note%20%231%20%E3%83%A1%E3%83%A2.txt' "$R2/requested.txt" || { echo "NG: 特殊文字ファイル名がURLエンコード済みの形で届いていない"; exit 1; }
 
-# 自動投入しない（ADR 0061）。inbox は空のまま、マーカーも付かない
-# No auto-enqueue (ADR 0061): the auto-fix inbox stays empty and no marker is written
-I="$LOGS/harness/bug-report/inbox"
-[ -z "$(ls -A "$I")" ] || { echo "NG: 取り込みが自動修正ランへ自動投入した"; exit 1; }
-[ ! -e "$P/reports/7656001/20260913_100000_bug1/AUTOFIX_QUEUED" ] || { echo "NG: 取り込みが AUTOFIX_QUEUED を付けた"; exit 1; }
+# 許可リストの小物だけを取り、生データ（動画・ワールド・bundle・印の無いファイル）は取らずに remote.json へ並べる
+# Only allowlisted small files are fetched; raw data (video, world, bundle, unlisted files) is listed in remote.json instead
+B="$P/reports/7656001/20260913_100000_bug1"
+for f in screenshot.png repo/changes.diff logs/unity.log; do
+  [ -f "$B/$f" ] || { echo "NG: 小物 $f が取り込まれていない"; exit 1; }
+done
+# 下の「取っていない」検査が素通りしないよう、requested.txt の行の形を取った物で確かめておく
+# Pin the requested.txt row format with a fetched file so the "never fetched" check below cannot pass vacuously
+grep -qxF "inbox/report/7656001/20260913_100000_bug1/logs/unity.log" "$R2/requested.txt" || { echo "NG: requested.txt の行の形が想定と違う"; exit 1; }
+for f in .persona.json video.mp4 world/save.json repo/commit.bundle; do
+  [ ! -e "$B/$f" ] || { echo "NG: 生データ $f が手元へ来た"; exit 1; }
+  grep -qxF "inbox/report/7656001/20260913_100000_bug1/$f" "$R2/requested.txt" && { echo "NG: 生データ $f を受け口から取った"; exit 1; }
+done
+python3 - "$B/remote.json" <<'PY' || { echo "NG: remote.json の形が違う"; exit 1; }
+import json, sys
+ref = json.load(open(sys.argv[1], encoding="utf-8"))
+assert ref["files"] == [".persona.json", "repo/commit.bundle", "video.mp4", "world/save.json"], ref
+assert ref["store"] == "r2" and ref["prefix"] == "reports/7656001/20260913_100000_bug1/", ref
+assert ref["kind"] == "report" and ref["steamId"] == "7656001" and ref["id"] == "20260913_100000_bug1", ref
+PY
+python3 -c 'import json,sys; assert json.load(open(sys.argv[1]))["files"] == []' "$P/progress/7656001/20260913_120000_pg1/remote.json" \
+  || { echo "NG: 全部取った箱の remote.json が空でない"; exit 1; }
 
 grep -q 'report/7656001/20260913_100000_bug1/ack' "$R2/acked.txt" || { echo "NG: ack されていない"; exit 1; }
 grep -q '20260913_130000_bad1/ack' "$R2/acked.txt" && { echo "NG: 壊れた箱が ack された"; exit 1; }
