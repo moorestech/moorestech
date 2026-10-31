@@ -16,8 +16,12 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 | PUT | `/v1/uploads/{kind}/{id}/{path...}` | なし（410固定） | 廃止。旧クライアントの中継PUTは410 `direct-upload-required`（ADR 0064） |
 | POST | `/v1/uploads/{kind}/{id}/complete` | `Authorization: Bearer` | R2の実オブジェクトを宣言と照合し、揃っていれば `READY` と未ACK索引を書く |
 | GET | `/v1/inbox?cursor=` | `X-Admin-Key` | 未ACKの一覧 |
-| GET | `/v1/inbox/{kind}/{steamId}/{id}/{path...}` | `X-Admin-Key` | 個別ファイル取得 |
+| GET | `/v1/inbox/{kind}/{steamId}/{id}/{path...}` | `X-Admin-Key` | 個別ファイル取得（単一範囲の `Range` 対応。片付け済みの箱は410） |
 | POST | `/v1/inbox/{kind}/{steamId}/{id}/ack` | `X-Admin-Key` | `ACKED` を書き索引を消す |
+| DELETE | `/v1/inbox/{kind}/{steamId}/{id}` | `X-Admin-Key` | ACK済みの箱の生データを消し `PURGED` を残す |
+| POST | `/v1/inbox/{kind}/{steamId}/{id}/import` | `X-Admin-Key` | 受け口に届かなかった報告（zip）を上げ直す署名付き PUT URL を出す |
+
+生データの正本は R2 だけ。Mac mini は報告を読むための小物だけを手元に取り、動画・ワールド等は必要なときに個別取得で取る。片付いた報告は DELETE で R2 から消す。
 
 `kind` は `report` / `progress`。R2 のキーは `reports/{steamId}/{id}/...` と `progress/{steamId}/{id}/...`（`src/keys.ts` の `KIND_PREFIX` が正本）。
 
@@ -40,7 +44,7 @@ ACK済みの箱は書き込みをせず冪等に `{ "outcome": "acked" }`（200�
 - **送信済みは除外・長さ違いは conflicts**: 存在と長さの判定は complete と同じ照合（箱の prefix の list 1回）を使う。宣言どおりの長さで既にあるファイルは `uploads` に載せない。キーが無いファイルだけに URL を出す。宣言と長さの違うキーが既にあるファイルは `If-None-Match: *` で上書きできないため URL を出さず、`conflicts: [{ "path", "expectedBytes", "actualBytes" }]` で返して warn する（`conflicts` は空でも常に配列）。全部送信済みなら `uploads` は空配列で、クライアントは PUT せず complete の照合に任せる。
 - **設定漏れ**: `R2_ACCOUNT_ID` / `R2_BUCKET_NAME` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` のどれかが空なら URL を発行せず500 `{ "reason": "server-misconfigured" }`（`console.error` に空の設定名）。
 
-エラーは `{ "reason": <string> }` 形（本文が JSON でない/`files`が配列でない等は400 `bad-request`、宣言0件は400 `empty-declaration`、危険パス400 `bad-path`、予約名400 `reserved-name`、重複パス400 `duplicate-path`、ファイル数超過は413 `too-many-files`、1ファイル超過は413 `too-large`、合計超過は413 `bundle-too-large`）。発行URLは `Content-Length` と `If-None-Match: *` を含めて署名するため（`X-Amz-SignedHeaders=content-length;host;if-none-match`）、宣言と違う長さのPUTと、既にあるキーへの上書きをR2自身が拒否する。
+エラーは `{ "reason": <string> }` 形（本文が JSON でない/`files`が配列でない等は400 `bad-request`、宣言0件は400 `empty-declaration`、危険パス400 `bad-path`、予約名（`contract.json` の `reservedUploadSegments`。`PURGED` を含む）400 `reserved-name`、重複パス400 `duplicate-path`、ファイル数超過は413 `too-many-files`、1ファイル超過は413 `too-large`、合計超過は413 `bundle-too-large`）。発行URLは `Content-Length` と `If-None-Match: *` を含めて署名するため（`X-Amz-SignedHeaders=content-length;host;if-none-match`）、宣言と違う長さのPUTと、既にあるキーへの上書きをR2自身が拒否する。
 
 ### PUT（署名付きURLへ直接）
 
@@ -50,6 +54,28 @@ ACK済みの箱は書き込みをせず冪等に `{ "outcome": "acked" }`（200�
 
 本文は任意で `{ "manifest": "<原文>", "skipped": [...] }`（無くても・壊れていても READY は書かれる。`manifest`/`skipped` は取り込みの診断補助）。
 Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合してから `READY` を書く。揃っていれば200 `{ "ready": true, "fileCount": <n> }`（ACK済みは書かずに冪等の200 `{ "ready": true }`。ACK は受付時と `READY` を書く直前に確かめる）。1つでも欠けや長さ違いがあれば `READY` を書かず409 `{ "reason": "incomplete", "missing": [{ "path": ..., "expectedBytes": ..., "actualBytes": <実際の長さ or null> }] }`。宣言（`prepare`）が無い箱への complete は409 `{ "reason": "not-prepared" }`、`DECLARED` が読めない箱は409 `{ "reason": "declaration-unreadable" }`。`READY` の `files` はこの照合で確定した一覧で、クライアントの申告は使わない。
+
+### `GET /v1/inbox/{kind}/{steamId}/{id}/{path...}`
+
+- `Range` なし: 200、`Content-Length` と `Accept-Ranges: bytes` 付きで全体を返す。
+- 単一範囲 `bytes=a-b` / `bytes=a-` / `bytes=-n`: 206、`Content-Range: bytes a-b/<全長>` と `Content-Length`。終端が全長を超える指定は末尾までに丸め、`-n` が全長以上なら全体を返す。
+- 解釈できない・満たせない範囲（開始が全長以上・終端が開始より前・`bytes=-0`・複数範囲・`bytes` 以外の単位）: 416、`Content-Range: bytes */<全長>`（warn に理由）。
+- オブジェクトが無く、箱に `PURGED` があるとき: 410 `{ "reason": "purged", "purgedAt": "<ISO日時 or null>" }`（`PURGED` が読めなければ `purgedAt` は null で warn）。`PURGED` も無ければ従来どおり404 `not-found`。
+
+### `DELETE /v1/inbox/{kind}/{steamId}/{id}`
+
+本文は任意で `{ "reason": "<200字以内の文字列>" }`（空本文は理由なし。JSON でない・文字列でない・201字以上は400 `bad-request`）。
+- `ACKED` が無い箱は409 `{ "reason": "not-acked" }`（未取り込みの報告は消さない）。
+- 先に `PURGED`（`{ "purgedAt", "reason" }`）を無いときだけ書き、箱の prefix 配下（`__attachments/` 配下の子転送を含む）を list で読み切ってから `ACKED` と `PURGED` 以外を1000件ずつ一括 delete する。
+- 200 `{ "purged": true, "deletedObjects": <n>, "deletedBytes": <n> }`。再実行は冪等（消す物が無ければ0件で200、`purgedAt` は最初の値のまま）。
+
+### `POST /v1/inbox/{kind}/{steamId}/{id}/import`
+
+本文 `{ "files": [{ "path", "bytes" }] }`。パス・件数・サイズの検査と理由語・上限は prepare と同じ（`contract.json`）。ただし `READY` は許し（zip の箱は READY を持つ）、予約名は `ACKED` / `DECLARED` / `PURGED`（400 `reserved-name`）。`generation` は無い。
+- `PURGED` のある箱は409 `{ "reason": "purged" }`（受付時と応答直前の2回確かめる）。
+- 同じ長さで在るキーは `uploads` から外し、長さ違いは `conflicts: [{ "path", "expectedBytes", "actualBytes" }]`。URL は prepare と同じ署名（`Content-Length` と `If-None-Match: *`）。
+- 応答前に `ACKED` を無いときだけ書く（取り込み一覧に出さず、DELETE の対象にする）。pending 索引は書かない。
+- 200 `{ "uploads": [...], "conflicts": [...], "expiresInSeconds": <n> }`。R2 署名設定の漏れは500 `server-misconfigured`。
 
 ## 初回セットアップ
 
