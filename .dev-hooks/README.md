@@ -21,6 +21,7 @@
   beads-sync-watch.mjs           # Dolt同期障害の復旧誘導＋claim/createへのセッション出自刻印（PostToolUse）
   beads-learn-capture.mjs        # 応答末尾の「LEARN: 一行」をbd noteへ自動保存（Claude Stop）
   logs-sync.mjs                  # Claude/Codex生JSONLをprivateの../moorestech_logsへ退避（Stop/SessionEnd等）
+  logs-sync/                     # logs-sync の部品: 自動実行記録の削り込み(trim-*.mjs)・復元CLI(restore-transcript.mjs)・自動コミットの選別(intake-guard.mjs)
   commit-map.mjs                 # コミットsha↔セッションIDの対応表をmoorestech_logsへ追記（PostToolUse Bash）
   README.md
 .claude/settings.json  # 各フックの呼び出し登録（Claude Code 用）
@@ -31,6 +32,9 @@
 
 - `logs-sync.mjs` / `commit-map.mjs` / beads系は、兄弟ディレクトリに private repo `moorestech_logs` がある時だけ動く（無ければ全て沈黙）。
 - Beadsのデータ同期先も moorestech_logs（`refs/dolt/data`）。public本体repoへは同期しない（beads-guardが誤送信を物理拒否する）。
+- 自動実行の記録（Claude の subagent・codex exec）は、元に戻せる部分だけを目印 `{"$trim": ...}` に置き換えて入れる。対象は「消えないコミット（既定ブランチか push 済みの HEAD）に同じ内容があるファイルの読み取り」「logs repo に退避済みの tool-results の読み直し」「同じ行の二重記録」「画像・システムプロンプト等の定型文（`blobs/` に1回だけ置く）」。各行は削った直後に復元して元と一致した時だけ採用する。コマンド出力など作り直せない物は削らない。人とのセッションはそのまま入れる
+- 削った記録を読むときは `node .dev-hooks/logs-sync/restore-transcript.mjs <logs repo 内の .jsonl> [--repo <clone>] > 元.jsonl`。記録した worktree が消えていても同じ origin の clone から戻す。戻せない目印があれば行番号と理由を出して exit 1
+- 自動コミットは `harness/` も含めて続けるが、動画・2MB 超・1回で 200 件超の新規ファイル（連番やコピー）は外して作業ツリーに残し、`.state/logs-sync-skipped.log` に1回だけ書く（Hermes cron が Discord へ送る）
 - 新しいマシンでは `../moorestech_logs` を clone し、`bd bootstrap` でDoltデータを復元すれば全hookが有効になる。
 
 - 発火タイミング: ファイル編集ツール（Edit/Write/MultiEdit/NotebookEdit/apply_patch 等）の **実行後**（PostToolUse）。

@@ -4,18 +4,19 @@
 //
 // 登録: Claude Stop/SessionEnd、Codex PostToolUse。logs repo不在時は沈黙(fail-open)
 // Wired to Claude Stop/SessionEnd and Codex PostToolUse; silent when the logs repo is absent.
+//
+// 自動実行の記録（Claude の subagent・codex exec）は、元に戻せる部分だけ削って入れる（logs-sync/trim-*.mjs）。
+// 戻すときは logs-sync/restore-transcript.mjs。人とのセッションはそのまま入れる。
+// Automated-run transcripts (Claude subagents, codex exec) are stored with only restorable parts trimmed (logs-sync/trim-*.mjs);
+// restore them with logs-sync/restore-transcript.mjs. Human sessions are stored verbatim.
 
 import { execFileSync } from "node:child_process";
-import {
-  appendFileSync, copyFileSync, existsSync, mkdirSync, openSync, readSync, closeSync,
-  readdirSync, readFileSync, statSync, utimesSync, writeFileSync,
-} from "node:fs";
+import { closeSync, existsSync, mkdirSync, openSync, readFileSync, readSync, writeFileSync } from "node:fs";
 import { homedir, hostname } from "node:os";
-import { basename, dirname, join } from "node:path";
-
-// GitHubの100MB上限を超えるファイルはpushできないため、余裕を見てこの大きさを超えたら同期しない
-// Files over GitHub's 100MB limit can never be pushed, so anything above this margin is not synced
-const GITHUB_PUSHABLE_MAX_BYTES = 95 * 1024 * 1024;
+import { dirname, join, sep } from "node:path";
+import { unstageRejected } from "./logs-sync/intake-guard.mjs";
+import { copyIfUpdated, createReporter, git, isDirectory, isNewerThan, safeReaddir } from "./logs-sync/sync-io.mjs";
+import { createTrimContext, writeTrimmedTranscript } from "./logs-sync/trim-file.mjs";
 
 function bail() {
   process.exit(0);
@@ -39,6 +40,8 @@ const throttleMarker = join(stateDir, "logs-sync-last-run");
 if (isNewerThan(throttleMarker, 90)) bail();
 writeFileSync(throttleMarker, "");
 
+const report = createReporter(stateDir);
+const trimContext = createTrimContext(logsRepo);
 syncClaudeTranscripts();
 syncCodexRollouts();
 syncBeadsMirror();
@@ -56,28 +59,35 @@ function findLogsRepo() {
   return existsSync(join(candidate, ".git")) ? candidate : null;
 }
 
-// ~/.claude/projects のmoorestech系スラグ配下を丸ごと増分コピーする（subagents/・tool-results/含む）
+// ~/.claude/projects のmoorestech系スラグ配下を丸ごと増分コピーする（subagents/・tool-results/含む）。
+// subagent 記録は、参照先の tool-results が先に退避されているよう最後に削って書く
 // Incrementally mirror everything under moorestech-ish slugs in ~/.claude/projects (incl. subagents/ and tool-results/).
+// Subagent transcripts are trimmed last so the tool-results they point at are already mirrored.
 function syncClaudeTranscripts() {
   const projectsDir = join(homedir(), ".claude", "projects");
+  const subagentTranscripts = [];
   for (const slug of safeReaddir(projectsDir)) {
     if (!slug.includes("moorestech")) continue;
-    syncTree(join(projectsDir, slug), join(logsRepo, "claude", slug));
+    syncTree(join(projectsDir, slug), join(logsRepo, "claude", slug), subagentTranscripts);
+  }
+  for (const [src, dest] of subagentTranscripts) {
+    copyIfUpdated(src, dest, report, (s, d) => writeTrimmedTranscript(s, d, "claude", trimContext));
   }
 }
 
-// srcDir以下の全ファイルを再帰的に増分コピーする
-// Recursively copy every file under srcDir, incrementally.
-function syncTree(srcDir, destDir) {
+// srcDir以下の全ファイルを再帰的に増分コピーする（subagent 記録は deferred に回す）
+// Recursively copy every file under srcDir, incrementally (subagent transcripts go to deferred).
+function syncTree(srcDir, destDir, deferred) {
   for (const entry of safeReaddir(srcDir)) {
     const src = join(srcDir, entry);
-    if (isDirectory(src)) syncTree(src, join(destDir, entry));
-    else copyIfUpdated(src, join(destDir, entry));
+    if (isDirectory(src)) syncTree(src, join(destDir, entry), deferred);
+    else if (src.includes(`${sep}subagents${sep}`) && entry.endsWith(".jsonl")) deferred.push([src, join(destDir, entry)]);
+    else copyIfUpdated(src, join(destDir, entry), report);
   }
 }
 
-// ~/.codex/sessions の直近日付ディレクトリからcwdがmoorestech系のrolloutをコピーする
-// Copy rollouts whose session_meta.cwd is moorestech-ish, from recent date dirs of ~/.codex/sessions.
+// ~/.codex/sessions の直近日付ディレクトリからcwdがmoorestech系のrolloutをコピーする（codex exec は削って書く）
+// Copy rollouts whose session_meta.cwd is moorestech-ish from recent date dirs of ~/.codex/sessions (codex exec ones are trimmed).
 function syncCodexRollouts() {
   const sessionsDir = join(homedir(), ".codex", "sessions");
   for (const year of safeReaddir(sessionsDir)) {
@@ -90,9 +100,10 @@ function syncCodexRollouts() {
         for (const file of safeReaddir(dayDir)) {
           if (!file.startsWith("rollout-") || !file.endsWith(".jsonl")) continue;
           const src = join(dayDir, file);
-          if (readCwdOfRollout(src).includes("moorestech")) {
-            copyIfUpdated(src, join(logsRepo, "codex", file));
-          }
+          const meta = readSessionMeta(src);
+          if (!meta.cwd.includes("moorestech")) continue;
+          const write = meta.originator === "codex_exec" ? (s, d) => writeTrimmedTranscript(s, d, "codex", trimContext) : undefined;
+          copyIfUpdated(src, join(logsRepo, "codex", file), report, write);
         }
       }
     }
@@ -108,7 +119,7 @@ function syncBeadsMirror() {
   const common = git(cwd, ["rev-parse", "--git-common-dir"]);
   if (!common) return;
   const mainRoot = dirname(common === ".git" ? join(cwd, ".git") : common);
-  copyIfUpdated(join(mainRoot, ".beads", "issues.jsonl"), join(logsRepo, "beads", `issues.${hostname()}.jsonl`));
+  copyIfUpdated(join(mainRoot, ".beads", "issues.jsonl"), join(logsRepo, "beads", `issues.${hostname()}.jsonl`), report);
 }
 
 // 5分スロットルでcommitし、pushはbest-effort（並行セッションはロックで譲る）
@@ -124,7 +135,8 @@ function commitAndPush() {
   } catch {
     if (isNewerThan(lockDir, 600)) return;
   }
-  git(logsRepo, ["add", "-A"]);
+  git(logsRepo, ["add", "-A"], 60000);
+  unstageRejected(logsRepo, stateDir, report);
   if (git(logsRepo, ["diff", "--cached", "--name-only"]) !== "") {
     git(logsRepo, ["commit", "-q", "-m", "auto: logs-sync"]);
     writeFileSync(commitMarker, "");
@@ -149,58 +161,9 @@ function commitAndPush() {
   } catch {}
 }
 
-// 宛先が無い(かつ7日以内のファイル)か、宛先より新しい時だけコピーする冪等コピー
-// Idempotent copy: only when dest is missing (and src is <7 days old) or src is newer.
-function copyIfUpdated(src, dest) {
-  // 外部境界: 他プロセス管理下のファイル群のためstat/copy失敗はフックを止めず、理由を報告して次へ進む
-  // External boundary: stat/copy failures on files owned by other processes don't stop the hook; report the reason and move on.
-  let srcStat;
-  try {
-    srcStat = statSync(src);
-  } catch (error) {
-    // 元ファイルが無いのは退避すべきものが無いだけで欠落ではない（beadsミラー未生成のclone等）。それ以外のstat失敗は理由を出す
-    // A missing source only means there is nothing to archive, not a loss (e.g. a clone without the beads mirror); other stat failures are reported.
-    if (error.code !== "ENOENT") reportSyncLoss(`stat failed: ${src}: ${error.code} ${error.message}`);
-    return;
-  }
-  try {
-    if (existsSync(dest)) {
-      // utimesSyncはms精度でしか書けずAPFSのns精度mtimeに常に負けるため、ms切り捨てで比較する
-      // utimesSync writes ms precision and always loses to APFS ns mtimes, so compare at floored ms.
-      if (Math.floor(srcStat.mtimeMs) <= Math.floor(statSync(dest).mtimeMs)) return;
-    } else if (Date.now() - srcStat.mtimeMs > 7 * 24 * 3600 * 1000) {
-      return;
-    }
-    // 同期すべき更新があるのに上限超過で送れない時だけ報告し、考古学repoから黙って欠落させない
-    // Report only when a due update cannot be sent over the limit, so the archive never loses a session silently
-    if (srcStat.size > GITHUB_PUSHABLE_MAX_BYTES) {
-      reportSyncLoss(`skipped (over ${GITHUB_PUSHABLE_MAX_BYTES} bytes, GitHub push limit): ${src} size=${srcStat.size}`);
-      return;
-    }
-    mkdirSync(dirname(dest), { recursive: true });
-    copyFileSync(src, dest);
-    utimesSync(dest, srcStat.atime, srcStat.mtime);
-  } catch (error) {
-    reportSyncLoss(`copy failed: ${src} -> ${dest}: ${error.code ?? ""} ${error.message}`);
-  }
-}
-
-// exit 0のフックではstderrが画面に出ないため、同じ行を.state/logs-sync-skipped.logへも残し開発者が後から読めるようにする
-// A hook exiting 0 has its stderr hidden, so the same line also goes to .state/logs-sync-skipped.log for developers to read later
-function reportSyncLoss(line) {
-  console.error(`logs-sync: ${line}`);
-  // 外部境界: 記録ファイルへの追記失敗（容量不足等）はstderrへ出すだけにしてフックを止めない
-  // External boundary: a failed append (e.g. disk full) is reported to stderr only and does not stop the hook
-  try {
-    appendFileSync(join(stateDir, "logs-sync-skipped.log"), `${new Date().toISOString()} ${line}\n`);
-  } catch (error) {
-    console.error(`logs-sync: failed to record the loss above: ${error.code ?? ""} ${error.message}`);
-  }
-}
-
-// rollout先頭のsession_metaからcwdを読む（行が巨大なのでJSONパースせずに正規表現で抜く）
-// Read cwd from the rollout's session_meta; the line is huge, so regex instead of JSON parse.
-function readCwdOfRollout(path) {
+// rollout先頭のsession_metaからcwdとoriginatorを読む（行が巨大なのでJSONパースせずに正規表現で抜く）
+// Read cwd and originator from the rollout's session_meta; the line is huge, so regex instead of JSON parse.
+function readSessionMeta(path) {
   // 外部境界: 読み取り失敗は「対象外」として扱う
   // External boundary: treat read failures as "not a target".
   try {
@@ -209,60 +172,11 @@ function readCwdOfRollout(path) {
     const len = readSync(fd, buf, 0, 8192, 0);
     closeSync(fd);
     const firstLine = buf.toString("utf8", 0, len).split("\n")[0];
-    return firstLine.match(/"cwd":"([^"]+)"/)?.[1] ?? "";
+    return {
+      cwd: firstLine.match(/"cwd":"([^"]+)"/)?.[1] ?? "",
+      originator: firstLine.match(/"originator":"([^"]+)"/)?.[1] ?? "",
+    };
   } catch {
-    return "";
-  }
-}
-
-// ディレクトリならtrue（stat失敗はfalse）
-// True for directories; stat failures yield false.
-function isDirectory(path) {
-  // 外部境界: 他プロセス管理下のためstat失敗は握りつぶす
-  // External boundary: swallow stat failures on files owned by other processes.
-  try {
-    return statSync(path).isDirectory();
-  } catch {
-    return false;
-  }
-}
-
-// ファイル/ディレクトリのmtimeが今からsec秒以内ならtrue
-// True when the file/dir mtime is within sec seconds from now.
-function isNewerThan(path, sec) {
-  // 外部境界: stat失敗は「古い」扱い
-  // External boundary: treat stat failure as "old".
-  try {
-    return Date.now() - statSync(path).mtimeMs < sec * 1000;
-  } catch {
-    return false;
-  }
-}
-
-// 読めないディレクトリは空配列を返すreaddir
-// readdir that returns [] for unreadable directories.
-function safeReaddir(dir) {
-  // 外部境界: 存在しない/権限のないディレクトリはfail open
-  // External boundary: fail open on missing/unreadable directories.
-  try {
-    return readdirSync(dir);
-  } catch {
-    return [];
-  }
-}
-
-// gitコマンドの薄いラッパー。失敗はnull/空文字で返す
-// Thin git wrapper; failures come back as null/empty string.
-function git(dir, args, timeout) {
-  // 外部境界: 外部プロセス起動の失敗はfail open
-  // External boundary: fail open on external process failures.
-  try {
-    return execFileSync("git", ["-C", dir, ...args], {
-      encoding: "utf8",
-      timeout: timeout ?? 10000,
-      stdio: ["ignore", "pipe", "ignore"],
-    }).trim();
-  } catch {
-    return null;
+    return { cwd: "", originator: "" };
   }
 }
