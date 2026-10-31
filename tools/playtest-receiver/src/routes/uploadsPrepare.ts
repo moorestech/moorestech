@@ -2,13 +2,12 @@ import { isAcked } from "../bundleMarkers";
 import { DECLARATION_CONFLICT_REASON, DECLARATION_UNREADABLE_REASON, PREPARE_OUTCOME_ACKED, PREPARE_OUTCOME_PREPARED, UPLOAD_URL_TTL_SECONDS } from "../contract";
 import type { Env } from "../env";
 import { fail, json } from "../http";
-import { bundlePrefix, type PlaytestKind } from "../keys";
+import type { PlaytestKind } from "../keys";
 import { parseDeclaration } from "../uploads/bundleDeclaration";
-import type { DeclaredFile } from "../uploads/fileList";
 import { settleDeclaration } from "../uploads/declarationSettle";
-import { createR2Client, missingR2SigningSettings, presignPut } from "../uploads/presign";
+import { missingR2SigningSettings } from "../uploads/presign";
+import { presignUnsentFiles } from "../uploads/presignUnsent";
 import { authorizeUpload } from "./uploadsAuthorize";
-import { verifyDeclaredObjects, type MissingObject } from "./uploadsVerify";
 
 export async function prepareUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
   const steamId = await authorizeUpload(request, env, kind);
@@ -62,7 +61,7 @@ export async function prepareUpload(request: Request, env: Env, kind: PlaytestKi
     return fail(DECLARATION_UNREADABLE_REASON, 409);
   }
 
-  const { uploads, conflicts } = await presignUnsentFiles(env, kind, steamId, id, declaration.files);
+  const { uploads, conflicts } = await presignUnsentFiles(env, kind, steamId, id, declaration.files, "upload");
   // 署名中にACKされた箱へURLを返すと、取り込み後の原本へ送らせてしまう。返す直前に確かめ直す
   // Returning URLs for a box acked while signing would send into an ingested original; check again right before answering
   if (await isAcked(env.BUCKET, kind, steamId, id)) return ackedAnswer(label);
@@ -72,26 +71,4 @@ export async function prepareUpload(request: Request, env: Env, kind: PlaytestKi
 function ackedAnswer(label: string): Response {
   console.warn(`[upload] ignored prepare for an already acked bundle: ${label}`);
   return json({ outcome: PREPARE_OUTCOME_ACKED });
-}
-
-// 宣言どおりの長さで既にR2にあるかの判定はcompleteと同じverifyDeclaredObjectsに任せ、未送信（キー無し）にだけURLを出す
-// Whether a file already sits in R2 at its declared length is judged by the same verifyDeclaredObjects as complete; only unsent (absent) keys get a URL
-async function presignUnsentFiles(env: Env, kind: PlaytestKind, steamId: string, id: string, files: DeclaredFile[]): Promise<{ uploads: { path: string; bytes: number; url: string }[]; conflicts: MissingObject[] }> {
-  const { missing } = await verifyDeclaredObjects(env.BUCKET, kind, steamId, id, files);
-  const client = createR2Client(env);
-  const now = new Date();
-  const uploads: { path: string; bytes: number; url: string }[] = [];
-  const conflicts: MissingObject[] = [];
-  for (const object of missing) {
-    if (object.actualBytes !== null) {
-      // 長さ違いの既存キーはIf-None-Matchで上書きできずURLを出しても送れない。クライアントが見送れるよう応答で返す
-      // An existing key of the wrong length can't be overwritten under If-None-Match, so a URL is useless; report it so the client can give up on it
-      console.warn(`[upload] ${steamId}/${id}/${object.path} already exists with ${object.actualBytes} bytes instead of the declared ${object.expectedBytes}`);
-      conflicts.push(object);
-      continue;
-    }
-    const key = `${bundlePrefix(kind, steamId, id)}/${object.path}`;
-    uploads.push({ path: object.path, bytes: object.expectedBytes, url: await presignPut(client, env, key, object.expectedBytes, now) });
-  }
-  return { uploads, conflicts };
 }

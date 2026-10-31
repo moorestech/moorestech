@@ -2,6 +2,7 @@ import { ackedMarkerKey, isAcked } from "../bundleMarkers";
 import type { Env } from "../env";
 import { fail, json, requireAdmin, requireMethod } from "../http";
 import { getInboxObject } from "./adminObject";
+import { postImport } from "./adminImport";
 import { deleteBundle } from "./adminPurge";
 import {
   isKind,
@@ -63,6 +64,11 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
     const denied = requireMethod(request, ["POST"], "inbox ack");
     if (denied !== null) return denied;
     return postAck(env, kind, steamId, id);
+  }
+  if (rest.length === 1 && rest[0] === "import") {
+    const denied = requireMethod(request, ["POST"], "inbox import");
+    if (denied !== null) return denied;
+    return postImport(request, env, kind, steamId, id);
   }
   const denied = requireMethod(request, ["GET"], "inbox object");
   if (denied !== null) return denied;
