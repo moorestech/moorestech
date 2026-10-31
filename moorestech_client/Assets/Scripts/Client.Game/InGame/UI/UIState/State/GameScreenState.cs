@@ -4,7 +4,6 @@ using Mooresmaster.Localization.Generated;
 using System;
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.CleanRoom;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
@@ -22,22 +21,19 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly PlacementTargetPickService _placementTargetPickService;
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly HotbarTapInputService _hotbarInputService;
-        private readonly CleanRoomBoundaryHoverService _cleanRoomHoverService;
 
         public GameScreenState(
             SkitManager skitManager,
             InteractController interactController,
             PlacementTargetPickService placementTargetPickService,
             UiStateCameraPolicyService cameraPolicyService,
-            HotbarTapInputService hotbarInputService,
-            CleanRoomBoundaryHoverService cleanRoomHoverService)
+            HotbarTapInputService hotbarInputService)
         {
             _skitManager = skitManager;
             _interactController = interactController;
             _placementTargetPickService = placementTargetPickService;
             _cameraPolicyService = cameraPolicyService;
             _hotbarInputService = hotbarInputService;
-            _cleanRoomHoverService = cleanRoomHoverService;
         }
 
         public UITransitContext GetNextUpdate()
@@ -49,10 +45,6 @@ namespace Client.Game.InGame.UI.UIState.State
 
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
-
-            // 境界照準時に部屋要約と漏れを表示
-            // Show room summaries and leaks when aiming at a boundary
-            _cleanRoomHoverService.ManualUpdate();
 
             // 選定・ハイライト・F/E実行を駆動
             // Drive selection, highlight and F/E execution, returning any transition
@@ -111,7 +103,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // 他UI中はインタラクト操作を停止
             // No interact operation survives into another UI state
             _interactController.Disable();
-            _cleanRoomHoverService.Disable();
 
             // 次のUIが背後のカメラ回転を継承しないよう停止する
             // Stop look rotation so the next UI does not inherit background camera movement

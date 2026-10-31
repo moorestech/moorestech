@@ -134,7 +134,7 @@ namespace Client.Tests.UIState
         [Test]
         public void EachStateReturnsItsOwnHintTable()
         {
-            Assert.AreSame(GameScreenStateHints.Hints, new GameScreenState(null, null, null, null, null, null).GetKeyHints());
+            Assert.AreSame(GameScreenStateHints.Hints, new GameScreenState(null, null, null, null, null).GetKeyHints());
             Assert.AreSame(ResearchTreeStateHints.Hints, new ResearchTreeState(null).GetKeyHints());
             Assert.AreSame(BuildMenuStateHints.Hints, new BuildMenuState(null, null, null).GetKeyHints());
             Assert.AreSame(ChallengeListStateHints.Hints, new ChallengeListState(null).GetKeyHints());

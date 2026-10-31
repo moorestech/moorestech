@@ -450,14 +450,6 @@ ui.settings.graphicsUnsupportedValue,Unsupported value,Unsupported value,選択�
 ui.settings.graphicsRecovered,Graphics settings were repaired to Medium. Select a preset or item to confirm.,Graphics settings were repaired to Medium. Select a preset or item to confirm.,画質設定を中に復旧しました。プリセットか項目を選んで確認してください。,Grafikeinstellungen wurden auf Mittel zurückgesetzt. Wähle eine Voreinstellung oder Option zur Bestätigung.,그래픽 설정을 중간으로 복구했습니다. 프리셋 또는 항목을 선택하여 확인하세요.
 ui.blockInventory.beltThroughputWindow,Last {seconds}s: {count} / {max} items ({percent}%),Last {seconds}s: {count} / {max} items ({percent}%),直近{seconds}秒: {count} / {max}個 ({percent}%),Letzte {seconds}s: {count} / {max} Gegenstände ({percent}%),최근 {seconds}초: {count} / {max}개 ({percent}%)
 ui.blockInventory.beltThroughputMeasuring,Last {seconds}s: measuring,Last {seconds}s: measuring,直近{seconds}秒: 計測中,Letzte {seconds}s: wird gemessen,최근 {seconds}초: 측정 중
-ui.tooltip.cleanRoomClass,Clean room class {p0},Clean room class {p0},クリーンルーム クラス{p0},Reinraumklasse {p0},클린룸 등급 {p0}
-ui.tooltip.cleanRoomClassOut,Clean room: below class,Clean room: below class,クリーンルーム: クラス未達,Reinraum: unter Klasse,클린룸: 등급 미달
-ui.tooltip.cleanRoomAir,Concentration {p0} / Air changes {p1}/s,Concentration {p0} / Air changes {p1}/s,濃度 {p0} / 換気 {p1}回/秒,Konzentration {p0} / Luftwechsel {p1}/s,농도 {p0} / 환기 {p1}회/초
-ui.tooltip.cleanRoomFilters,Purifiers {p0},Purifiers {p0},清浄機 {p0}台,Luftreiniger {p0},공기청정기 {p0}대
-ui.tooltip.cleanRoomNotSealed,Not sealed: {p0} gaps (marked in red),Not sealed: {p0} gaps (marked in red),密閉されていません: 隙間 {p0} か所（赤で表示）,Nicht abgedichtet: {p0} Lücken (rot markiert),밀폐되지 않음: 틈 {p0}곳 (빨간색 표시)
-ui.tooltip.cleanRoomNoEnclosure,Not part of an enclosure,Not part of an enclosure,囲いになっていません,Kein geschlossener Raum,둘러싸인 공간이 아닙니다
-ui.tooltip.cleanRoomTooLarge,Room too large (max {p0} cells),Room too large (max {p0} cells),部屋が大きすぎます（最大 {p0} マス）,Raum zu groß (max. {p0} Zellen),방이 너무 큽니다 (최대 {p0}칸)
-ui.tooltip.cleanRoomDetecting,Detecting room...,Detecting room...,部屋を検出中…,Raum wird erkannt...,방 감지 중...
 ui.blockInventory.cleanRoomClass,Room class {className},Room class {className},部屋のクラス {className},Raumklasse {className},방 등급 {className}
 ui.blockInventory.cleanRoomClassOut,Room below class,Room below class,部屋はクラス未達,Raum unter Klasse,방 등급 미달
 ui.blockInventory.cleanRoomAir,Concentration {concentration} / Air changes {airChangeRate}/s,Concentration {concentration} / Air changes {airChangeRate}/s,濃度 {concentration} / 換気 {airChangeRate}回/秒,Konzentration {concentration} / Luftwechsel {airChangeRate}/s,농도 {concentration} / 환기 {airChangeRate}회/초

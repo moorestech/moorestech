@@ -1,11 +1,10 @@
-// シナリオ: パネルを床・壁・天井に使いドアで部屋を建て、ドアを歩いて通り、清浄機のUIでフィルターを入れ、部屋欄とツールチップと漏れ表示を確かめる
-// Scenario: build a room using panels as floor, walls and ceiling plus a door, walk through it, load filters via the purifier UI, then check the room section, tooltip and leak display
+// シナリオ: パネルを床・壁・天井に使いドアで部屋を建て、ドアを歩いて通り、清浄機のUIでフィルターを入れ、部屋欄を確かめる
+// Scenario: build a room using panels as floor, walls and ceiling plus a door, walk through it, load filters via the purifier UI, then check the room section
 using System;
 using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -19,17 +18,14 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.EnergySystem;
 using Game.Fluid;
-using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 const string PanelName = "クリーンルームパネル";
 var outsidePosition = new Vector3(3.5f, 33.5f, -3.5f); // ドア正面の室外（床の上）
-var doorAimPoint = new Vector3(3.5f, 34f, 0.5f); // 1×2×1 ドアの中心
-var breachCell = new Vector3Int(6, 33, 3); // 後で外す東の壁
 var uiPanelCell = new Vector3Int(6, 33, 4); // Shift+R で縦にして UI で置く東の壁
-var hatchCell = new Vector3Int(4, 34, 0); // 南の壁上段のアイテムハッチ（案内と要約の併記を見る）
+var hatchCell = new Vector3Int(4, 34, 0); // 南の壁上段のアイテムハッチ
 return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SkipOpeningSkitIfPlaying();
@@ -119,41 +115,6 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     await p.Screenshot("04-euv-room-section");
     await CloseBlockUi();
     #endregion
-    #region ハッチとドアのツールチップと漏れ表示 / Hatch and door tooltips and leak display
-    p.WarpPlayer(outsidePosition);
-    await p.WaitSeconds(1f);
-    SemanticInput.KeyDown(Key.LeftAlt);
-    await p.AimAt(hatchCell + Vector3.one * 0.5f);
-    // アイテムハッチはマスタで openable=false のため操作案内を持たず、部屋の要約(クラス・濃度・清浄機)が出る
-    // The item hatch is openable=false in the master, so it has no interact hint and shows the room summary (class, air, purifiers)
-    await p.Until(() => (TooltipKeys().Contains(LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key) || TooltipKeys().Contains(LocalizationKeys.Ui.Tooltip.CleanRoomClassOut.Key)) && TooltipKeys().Contains(LocalizationKeys.Ui.Tooltip.CleanRoomAir.Key) && TooltipKeys().Contains(LocalizationKeys.Ui.Tooltip.CleanRoomFilters.Key), 5f, "ハッチのツールチップに部屋の要約(クラス・濃度・清浄機)が出た");
-    p.Note($"ハッチのツールチップ行={string.Join(",", TooltipKeys())}");
-    await PlaytestWebUiOps.WaitWebUiTextContains("cursor-tooltip", Client.Localization.Localize.GetFormatted(LocalizationKeys.Ui.Tooltip.CleanRoomFilters, new[] { "1" }), 5f);
-    await p.Screenshot("05a-hatch-tooltip");
-    await p.AimAt(doorAimPoint);
-    await p.Until(() => FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomClass.Key || FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomClassOut.Key, 5f, "ドアのツールチップ先頭行が部屋クラス");
-    await p.Screenshot("05-door-tooltip-sealed");
-    // 直接撤去後に旧部屋が残った。tick競合は仮説。本番撤去と描画待機で安定を確認した
-    // The old room remained after direct removal; a tick race is a hypothesis. Production removal and render waiting were observed to be stable
-    var removeResponse = await ClientContext.VanillaApi.Response.Block.BlockRemove(breachCell, System.Threading.CancellationToken.None);
-    p.Assert(removeResponse.Success, $"撤去プロトコルで東の壁を外した(失敗理由={removeResponse.FailureReason})");
-    await p.Until(() => FirstTooltipKey() == LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed.Key, 10f, "壁を外すとドアのツールチップが未密閉になる");
-    await p.Until(() => ActiveMarkers().Any(marker => Vector3.Distance(marker.position, breachCell + Vector3.one * 0.5f) < 0.01f), 5f, "外した壁の位置に漏れマーカーが出た");
-    p.Assert(ActiveMarkers().Length == 1, "漏れマーカーは外した1セルだけ");
-    // 再照会(1秒毎)を2回以上またいでも未密閉から戻らないかを毎フレーム見て、Web UI の描画が追いついてから撮る
-    // Watch every frame across 2+ re-polls (1 s each) that it never flips back from not-sealed, then capture once the Web UI render catches up
-    var observedKeys = new System.Collections.Generic.HashSet<string>();
-    for (var watchEnd = Time.realtimeSinceStartup + 2.5f; Time.realtimeSinceStartup < watchEnd; await UniTask.Yield()) observedKeys.Add(FirstTooltipKey());
-    p.Assert(observedKeys.SetEquals(new[] { LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed.Key }) && ActiveMarkers().Length == 1, $"2.5秒間ツールチップ先頭行が未密閉のまま・漏れマーカー1個(観測キー={string.Join(",", observedKeys)})");
-    await PlaytestWebUiOps.WaitWebUiTextContains("cursor-tooltip", Client.Localization.Localize.GetFormatted(LocalizationKeys.Ui.Tooltip.CleanRoomNotSealed, new[] { "1" }), 5f);
-    await p.Screenshot("06-door-tooltip-leak");
-    // 外した東の壁はドアの正面からは見えないので、南東の室外から東の壁を狙い漏れマーカーを録画に残す（Altは最後に離す）
-    // The removed east wall is hidden from the door front, so aim at the east wall from the south-east and keep the marker on the recording (Alt is released last)
-    p.WarpPlayer(new Vector3(8f, 33.5f, -2f));
-    await p.AimAt(new Vector3(6.1f, 34.5f, 1.5f));
-    await p.WaitSeconds(2f);
-    SemanticInput.KeyUp(Key.LeftAlt);
-    #endregion
     async UniTask AssertPanelPlateInCell(Vector3Int cell, bool expectUpright)
     {
         // 板の描画範囲がセルの中に収まり、縦なら高さ1・厚さ0.1、横なら高さ0.1になる
@@ -177,9 +138,6 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     }
     async UniTask CloseBlockUi() { await p.PressKey(Key.Tab); await p.WaitUiState(UIStateEnum.GameScreen, 10f); }
     int FindMainSlot(ILocalPlayerInventory inventory, ItemId itemId) => Enumerable.Range(0, inventory.MainSlotCount).Where(i => inventory[i].Id == itemId && 0 < inventory[i].Count).DefaultIfEmpty(-1).First();
-    string[] TooltipKeys() => ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>().GetPresentation() is { Visible: true } shown ? shown.Lines.Select(line => line.Key.Key).ToArray() : Array.Empty<string>();
-    string FirstTooltipKey() => TooltipKeys().FirstOrDefault() ?? string.Empty;
-    Transform[] ActiveMarkers() => UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None).Where(renderer => renderer.gameObject.activeInHierarchy && renderer.gameObject.name == "CleanRoomLeakMarker").Select(renderer => renderer.transform).ToArray();
     async UniTask WirePower(IBlock filter, IBlock machine)
     {
         // 室外の発電機へ燃料を直接入れ、電線で清浄機と機械へ給電する（接続処理が電力網を dirty にする）

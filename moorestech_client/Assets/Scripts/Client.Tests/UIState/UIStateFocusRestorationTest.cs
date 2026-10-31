@@ -31,7 +31,7 @@ namespace Client.Tests.UIState
         {
             SetUpGameStateController();
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(applier), CreateHotbarTapInputService(null), CreateCleanRoomHoverService());
+            var state = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
 
             applier.Calls.Clear();

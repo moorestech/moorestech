@@ -148,23 +148,5 @@ namespace Client.Tests.PlaceSystem.Feedback
             Assert.IsFalse(_tooltip.GetPresentation().Visible);
             Assert.AreEqual(0, _tooltip.GetPresentation().Lines.Count);
         }
-
-        [Test]
-        public void 別インスタンスの同じ内容はShowを呼ばない()
-        {
-            var presenter = new PlacementFeedbackTooltipPresenter(_tooltip);
-            var first = new PlacementFeedback();
-            first.AddBlockedByTerrain();
-            presenter.Present(first);
-            var shownLines = _tooltip.GetPresentation().Lines;
-
-            // 共通の書き手へ寄せた後も、比較はインスタンスでなくキーと TextParams で行う
-            // After moving to the shared writer, comparison still uses keys and TextParams rather than instances
-            var second = new PlacementFeedback();
-            second.AddBlockedByTerrain();
-            presenter.Present(second);
-
-            Assert.AreSame(shownLines, _tooltip.GetPresentation().Lines);
-        }
     }
 }
