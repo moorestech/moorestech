@@ -10,12 +10,12 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 log() { echo "[fetch-report] $*" >&2; }
 usage() { log "使い方: fetch-report.sh [--kind report|progress] [--out <dir>] <steamId> <id>"; exit 1; }
 
-REPO="${MOORESTECH_REPO:-$(cd "$HERE/../.." && pwd)}"
+REPO="${MOORESTECH_REPO:-$(cd "$HERE/../../.." && pwd)}"
 ENV_FILE="${PLAYTEST_ENV_FILE:-$REPO/../../services/playtest/env.sh}"
 # shellcheck disable=SC1090
 if [ -f "$ENV_FILE" ]; then . "$ENV_FILE"; else log "env file が無い（${ENV_FILE}）。PLAYTEST_ADMIN_KEY は環境変数頼みになる"; fi
-# shellcheck source=lib/receiver-api.sh
-. "$HERE/lib/receiver-api.sh"
+# shellcheck source=../lib/receiver-api.sh
+. "$HERE/../lib/receiver-api.sh"
 
 kind=report; out=""
 while [ "$#" -gt 2 ]; do
@@ -30,7 +30,7 @@ steam_id="$1"; id="$2"
 case "$kind" in report|progress) ;; *) log "ERROR: --kind は report か progress: ${kind}"; exit 1 ;; esac
 # steamId/id は運用者入力。rm -rf・mv のパスへ連結する前に単一の安全セグメントか検証する
 # steamId/id are operator input; verify each is a single safe segment before joining it into rm -rf/mv paths
-python3 -I "$HERE/lib/safe_segment.py" segment "$steam_id" && python3 -I "$HERE/lib/safe_segment.py" segment "$id" \
+python3 -I "$HERE/../lib/safe_segment.py" segment "$steam_id" && python3 -I "$HERE/../lib/safe_segment.py" segment "$id" \
   || { log "ERROR: steamId/id が安全なパスセグメントでない"; exit 1; }
 out="${out:-${TMPDIR:-/tmp}/moorestech-playtest-fetch/$kind/$steam_id/$id}"
 partial="$out.partial"
@@ -50,7 +50,7 @@ fi
 rm -f "$partial.err"
 
 files_rc=0
-files="$(python3 -I "$HERE/lib/safe_segment.py" ready-files "$partial/READY")" || files_rc=$?
+files="$(python3 -I "$HERE/../lib/safe_segment.py" ready-files "$partial/READY")" || files_rc=$?
 case "$files_rc" in
   0) ;;
   5) log "[WARN] files[] が空（クライアントが全ファイルを見送った箱）。READY だけを置く"; files="" ;;
@@ -65,7 +65,7 @@ while IFS= read -r rel; do
 done <<< "$files"
 # 大きな bundle は __attachments/ の断片で届くので、長さ・SHA256 を照合して元へ戻す
 # Large bundles arrive as __attachments/ chunks, so verify their lengths and SHA256 and restore the originals
-python3 -I "$HERE/../bugreport/lib/restore-commit-transfer.py" "$partial" \
+python3 -I "$HERE/../../bugreport/lib/restore-commit-transfer.py" "$partial" \
   || { log "ERROR: コミット資料（bundle）の復元に失敗"; exit 1; }
 mv "$partial" "$out" || { log "ERROR: mv 失敗 $partial -> $out"; exit 1; }
 trap - EXIT

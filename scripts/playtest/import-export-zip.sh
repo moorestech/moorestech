@@ -35,7 +35,7 @@ GIT_CMD="${GIT_CMD:-git}"
 GIT_PUSH="${GIT_PUSH:-1}"
 LOCK="$LOGS/.git/moorestech-playtest-ingest.lock"
 IMPORT_PY="$HERE/lib/import_export_zip.py"
-R2_IMPORT_PY="$HERE/lib/r2_import.py"
+R2_IMPORT_PY="$HERE/r2_store/r2_import.py"
 LAYOUT_PY="$HERE/r2_store/box_layout.py"
 
 # 整形済みの箱を全ファイル R2 へ上げる。失敗は理由を出して 1（手元の取り込みへ進ませない）

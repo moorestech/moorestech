@@ -53,8 +53,8 @@ bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/inges
 ## 1 件の生データを取る（バグ調査）
 
 ```bash
-bash scripts/playtest/fetch-report.sh <steamId または dev-機材名> <報告ID>    # 本体 clone で実行する
-bash scripts/playtest/fetch-report.sh --out <置き場> --kind progress <steamId> <id>   # 置き場・種別を指定する
+bash scripts/playtest/r2_store/fetch-report.sh <steamId または dev-機材名> <報告ID>    # 本体 clone で実行する
+bash scripts/playtest/r2_store/fetch-report.sh --out <置き場> --kind progress <steamId> <id>   # 置き場・種別を指定する
 ```
 
 - READY の `files[]` を全部 R2 から取り、`__attachments/` の断片から bundle を復元して、取得先を stdout に 1 行出す（既定 `$TMPDIR/moorestech-playtest-fetch/<kind>/<steamId>/<id>`。logs repo には置かない）

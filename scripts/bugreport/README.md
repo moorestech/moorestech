@@ -11,7 +11,7 @@ Task 9 で追加する道具は次のように使う。
 
 - `bash scripts/playtest/find-reports.sh`: 受け口の未取り込みと取り込み済みの報告をまとめて確認する。
 - `python3 scripts/bugreport/triage.py <箱> --out <箱の外の出力先>`: Unity を起動せず manifest、エラー・警告、列車同期診断、列車の tick 時系列、レールの有向辺、動画のコンタクトシートを確認する。
-- `bash scripts/playtest/fetch-report.sh <steamId または dev-機材名> <報告ID>`: 報告 1 件の生データ（ワールド・スナップショット・動画・bundle）を R2 から取る。取った箱を `triage.py` に渡す。
+- `bash scripts/playtest/r2_store/fetch-report.sh <steamId または dev-機材名> <報告ID>`: 報告 1 件の生データ（ワールド・スナップショット・動画・bundle）を R2 から取る。取った箱を `triage.py` に渡す。
 
 ## 隔離された報告の再送
 

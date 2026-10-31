@@ -46,7 +46,7 @@ function neighbour(report, label, filter) {
 // R2 is the only home of raw data (ADR 0061); offer a pasteable command for when an investigation needs the world or snapshots
 function fetchBlock(report) {
   if (report.triage !== "bug") return null;
-  const command = `scripts/playtest/fetch-report.sh ${shellQuote(report.boxSteamId)} ${shellQuote(report.boxId)}`;
+  const command = `scripts/playtest/r2_store/fetch-report.sh ${shellQuote(report.boxSteamId)} ${shellQuote(report.boxId)}`;
   const button = h("button", { type: "button", class: "primary", onclick: () => copy(command, button) }, "コピー");
   return h("div", { class: "callout" },
     h("p", null, h("b", null, "生データ"), "　ワールド・スナップショットは R2 にだけある。調べるなら Mac mini の moorestech で次を実行"),

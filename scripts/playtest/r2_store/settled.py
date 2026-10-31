@@ -87,6 +87,8 @@ def due(logs: Path, now: datetime) -> int:
 def parse_utc(text: object) -> datetime | None:
     if not isinstance(text, str):
         return None
+    # 人手編集の report-resolutions.json 由来の日時文字列のパース境界。失敗は呼び出し側 due() が stderr へ理由を出す
+    # Parse boundary for hand-edited report-resolutions.json timestamps; failure is reported to stderr by the caller due()
     try:
         return datetime.strptime(text, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     except ValueError:

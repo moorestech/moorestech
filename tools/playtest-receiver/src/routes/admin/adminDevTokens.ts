@@ -1,7 +1,7 @@
-import type { Env } from "../env";
-import { fail, json, requireAdmin, requireMethod } from "../http";
-import { issueDevToken, listDevTokens, revokeDevToken } from "../devTokens/devTokenStore";
-import { MACHINE_PATTERN } from "../devTokens/developerSubject";
+import type { Env } from "../../env";
+import { fail, json, requireAdmin, requireMethod } from "../../http";
+import { issueDevToken, listDevTokens, revokeDevToken } from "../../devTokens/devTokenStore";
+import { MACHINE_PATTERN } from "../../devTokens/developerSubject";
 
 // 管理キーは経路の長さやメソッドの検査より先に検証する
 // Authenticate the admin key before validating path length or method

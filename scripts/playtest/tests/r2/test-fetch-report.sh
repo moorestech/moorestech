@@ -3,7 +3,7 @@
 # Verifies fetch-report.sh against a fake receiver: normal fetch, default destination, 410 -> exit 3, 404, rejected inputs, mid-fetch failure
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-FETCH="$HERE/../../fetch-report.sh"
+FETCH="$HERE/../../r2_store/fetch-report.sh"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 R2="$TMP/r2"; mkdir -p "$R2/objects" "$TMP/tmpdir"
 fail() { echo "NG: $*"; exit 1; }

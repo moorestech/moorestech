@@ -6,6 +6,7 @@
 写す物は許可リストで決める。リストに無い物と、リストにあっても大きすぎる物は R2 側にだけ置く。
 使い方:
   box_layout.py wants <箱内パス>                         … logs へ取るべきパス（許可リスト内）なら exit 0、そうでなければ 1
+  box_layout.py select <全パス一覧>                       … 一覧から許可リスト内のパスだけを1行1件で出す（ingest が1回だけ呼ぶ）
   box_layout.py finalize <箱> <kind> <steamId> <id> <全パス一覧> … 大きすぎる物を箱から外し、箱に無い物を remote.json に書く
 
 Rules splitting an ingested box between small files copied into the logs repo and raw data kept only in R2 (stdlib only).
@@ -97,11 +98,17 @@ def remove_empty_dirs(box: Path) -> None:
 def main(argv: list[str]) -> int:
     if len(argv) == 2 and argv[0] == "wants":
         return 0 if wants(argv[1]) else 1
+    if len(argv) == 2 and argv[0] == "select":
+        listed = [line for line in Path(argv[1]).read_text(encoding="utf-8").splitlines() if line]
+        for relative in listed:
+            if wants(relative):
+                print(relative)
+        return 0
     if len(argv) == 6 and argv[0] == "finalize" and argv[2] in KIND_DIRS:
         listed = [line for line in Path(argv[5]).read_text(encoding="utf-8").splitlines() if line]
         print(finalize(Path(argv[1]), argv[2], argv[3], argv[4], listed))
         return 0
-    print("usage: box_layout.py wants <path> | finalize <box> <report|progress> <steamId> <id> <list-file>", file=sys.stderr)
+    print("usage: box_layout.py wants <path> | select <list-file> | finalize <box> <report|progress> <steamId> <id> <list-file>", file=sys.stderr)
     return 2
 
 

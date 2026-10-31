@@ -7,7 +7,7 @@
 
 - **自動修正ランは無くなった。** テスター・開発者のバグ報告を自動修正ランへ投入する経路（自動・手動とも）は無い（ADR 0057 の撤回節）。下の Decision の「自動修正ランはバグ種別だけ起動する」「人が手動コマンドで plan C の inbox へ投入する」「ランは直列のまま」は撤回済み。バグ報告は人がダッシュボードと日次ダイジェストで読み、直すときは人が調べる。
   出所: ユーザー裁定 2026-10-31（[[2026-10-31-自動修正の基盤を消しプレイテスト生データの正本をR2だけにする]]）
-- **生データ（スナップショット・ワールド・動画・連番フレーム・録画・bundle 等）の正本は受け口の R2（moorestech-playtest）だけ。** 取り込みは Mac mini へ全件をコピーせず、moorestech_logs には報告を読むための小物（manifest.json・READY・ingest.json・screenshot.png・logs/・repo の小さな diff/txt/json 等。許可リストは `scripts/playtest/r2_store/box_layout.py`）と、R2 にだけ置いた物の一覧 `remote.json` だけを入れる。見るときは `scripts/playtest/fetch-report.sh` で 1 件ずつ取り、ダッシュボードの動画は受け口の管理 API から中継する。受け口に届かず zip で受け取った報告も、取り込み時に R2 へ上げてから小物だけを写す。
+- **生データ（スナップショット・ワールド・動画・連番フレーム・録画・bundle 等）の正本は受け口の R2（moorestech-playtest）だけ。** 取り込みは Mac mini へ全件をコピーせず、moorestech_logs には報告を読むための小物（manifest.json・READY・ingest.json・screenshot.png・logs/・repo の小さな diff/txt/json 等。許可リストは `scripts/playtest/r2_store/box_layout.py`）と、R2 にだけ置いた物の一覧 `remote.json` だけを入れる。見るときは `scripts/playtest/r2_store/fetch-report.sh` で 1 件ずつ取り、ダッシュボードの動画は受け口の管理 API から中継する。受け口に届かず zip で受け取った報告も、取り込み時に R2 へ上げてから小物だけを写す。
   出所: ユーザー裁定 2026-10-31
 - **R2 の生データは報告が片付いて（修正のマージか却下）から 7 日で消す。** R2 のライフサイクルは日数指定しかできないので、片付いた報告をこちらから受け口の管理 API（`DELETE /v1/inbox/<kind>/<steamId>/<id>`）で消す（`scripts/playtest/r2_store/prune.sh`）。「片付いた」の判定の仕組みは未決で、決まるまで削除は走らない。
   出所: ユーザー裁定 2026-10-31

@@ -94,22 +94,23 @@ ingest_one() {
     fi
     # 許可リストの小物だけを取る。それ以外は R2 に残し、finalize が remote.json へ所在を書く
     # Download only allowlisted small files; the rest stays in R2 and finalize records it in remote.json
-    local rel
+    local rel wanted
+    printf '%s\n' "$files" > "$WORK/files.txt"
+    wanted="$(python3 -I "$LAYOUT_PY" select "$WORK/files.txt")" \
+      || { log "ERROR: 許可リストの判定に失敗 $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }
     while IFS= read -r rel; do
       [ -n "$rel" ] || continue
-      python3 -I "$LAYOUT_PY" wants "$rel" || continue
       mkdir -p "$partial/$(dirname "$rel")" \
         || { log "ERROR: mkdir 失敗 $partial/$(dirname "$rel")（ack しない）"; rm -rf "$partial"; return 1; }
       receiver_get_object "$kind" "$steam_id" "$id" "$rel" "$partial/$rel" \
         || { log "ERROR: 取得失敗 $id/$rel"; rm -rf "$partial"; return 1; }
-    done <<< "$files"
+    done <<< "$wanted"
     steam_persona_resolve "$steam_id" "$persona_file" \
       || { log "ERROR: 表示名の結果を書けない $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }
     python3 "$HERE/lib/ingest_metadata.py" \
       "$kind" "$steam_id" "$id" "$ready_at" "$(now_utc)" "$persona_file" "$partial/ingest.json" \
       || { log "ERROR: ingest.json 書き込み失敗 $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }
     mkdir -p "$(dirname "$dest")" || { log "ERROR: mkdir 失敗 ${dest}（ack しない）"; rm -rf "$partial"; return 1; }
-    printf '%s\n' "$files" > "$WORK/files.txt"
     local remote_count
     remote_count="$(python3 -I "$LAYOUT_PY" finalize "$partial" "$kind" "$steam_id" "$id" "$WORK/files.txt")" \
       || { log "ERROR: remote.json を書けない $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }

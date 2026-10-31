@@ -1,7 +1,8 @@
-import { ACKED_MARKER, isAcked, PURGED_MARKER, purgedMarkerKey } from "../bundleMarkers";
-import type { Env } from "../env";
-import { fail, json } from "../http";
-import { bundlePrefix, type PlaytestKind } from "../keys";
+import { ACKED_MARKER, isAcked, PURGED_MARKER, purgedMarkerKey } from "../../bundleMarkers";
+import type { Env } from "../../env";
+import { fail, json } from "../../http";
+import { bundlePrefix, type PlaytestKind } from "../../keys";
+import { listBundleObjectSizes } from "../uploadsVerify";
 
 const MAX_PURGE_REASON_LENGTH = 200;
 // R2の一括deleteが1回に受けるキーの上限
@@ -28,7 +29,14 @@ export async function deleteBundle(request: Request, env: Env, kind: PlaytestKin
   // silent-ok: 既にあれば条件付きputが書かずにnullを返すのが冪等の意図 / 削除日時は410とGETの応答で読める
   await env.BUCKET.put(purgedMarkerKey(kind, steamId, id), marker, { onlyIf: { etagDoesNotMatch: "*" }, httpMetadata: { contentType: "application/json" } });
 
-  const { keys, bytes } = await listPurgeTargets(env.BUCKET, `${bundlePrefix(kind, steamId, id)}/`);
+  // ACKEDとPURGED以外の全キー（__attachments/配下も含む）。消す前に全ページを読み切る
+  // Every key except ACKED and PURGED (including __attachments/); all pages are read before deleting
+  const prefix = `${bundlePrefix(kind, steamId, id)}/`;
+  const sizes = await listBundleObjectSizes(env.BUCKET, kind, steamId, id);
+  sizes.delete(ACKED_MARKER);
+  sizes.delete(PURGED_MARKER);
+  const keys = [...sizes.keys()].map((path) => `${prefix}${path}`);
+  const bytes = [...sizes.values()].reduce((sum, size) => sum + size, 0);
   for (let start = 0; start < keys.length; start += R2_BULK_DELETE_LIMIT) {
     await env.BUCKET.delete(keys.slice(start, start + R2_BULK_DELETE_LIMIT));
   }
@@ -59,23 +67,4 @@ async function readPurgeReason(request: Request, label: string): Promise<PurgeRe
     return { ok: false };
   }
   return { ok: true, reason };
-}
-
-// 箱のprefix配下でACKEDとPURGED以外の全キー（__attachments/配下の子転送も含む）。消す前に全ページを読み切ってからまとめて消す
-// Every key under the box prefix except ACKED and PURGED (including __attachments/ child transfers); all pages are read before anything is deleted
-async function listPurgeTargets(bucket: R2Bucket, prefix: string): Promise<{ keys: string[]; bytes: number }> {
-  const kept = new Set([`${prefix}${ACKED_MARKER}`, `${prefix}${PURGED_MARKER}`]);
-  const keys: string[] = [];
-  let bytes = 0;
-  let cursor: string | undefined;
-  do {
-    const page = await bucket.list({ prefix, cursor, limit: 1000 });
-    for (const object of page.objects) {
-      if (kept.has(object.key)) continue;
-      keys.push(object.key);
-      bytes += object.size;
-    }
-    cursor = page.truncated ? page.cursor : undefined;
-  } while (cursor !== undefined);
-  return { keys, bytes };
 }

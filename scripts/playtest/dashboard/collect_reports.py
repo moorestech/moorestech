@@ -20,6 +20,9 @@ from display_fields import pick, warn
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "lib"))
 from safe_segment import is_safe_segment  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "r2_store"))
+import box_layout  # noqa: E402
+
 # 詳細画面から開けるファイル。media.py の配信許可と同じ一覧を使う
 # Files the detail view can open; media.py serves exactly this allowlist
 MEDIA_FILES = ("screenshot.png", "video.mp4", "logs/unity.log", "manifest.json")
@@ -75,15 +78,27 @@ def base_row(box: Path, meta: dict | None) -> dict:
 
 
 def remote_files(box: Path) -> frozenset:
-    """手元に無く R2 にだけある箱内パス。remote.json が無い旧い箱は READY の files[] から手元に無い物を引く
-    Box paths present only in R2; older boxes without remote.json fall back to READY's files[] minus what is local"""
-    for name in ("remote.json", "READY"):
-        data = schema.read_json(box / name)[0] if (box / name).is_file() else None
-        files = data.get("files") if isinstance(data, dict) else None
-        if isinstance(files, list):
-            listed = (f for f in files if isinstance(f, str) and all(is_safe_segment(p) for p in f.split("/")))
-            return frozenset(f for f in listed if not (box / f).is_file())
-    return frozenset()
+    """手元に無く R2 にだけある箱内パス。remote.json が無い旧い箱だけ READY の files[] から手元に無い物を引く。読めない理由は warn で出す
+    Box paths present only in R2; only boxes without remote.json fall back to READY's files[] minus what is local, and unreadable reasons are warned"""
+    ref, reason = box_layout.read_ref(box)
+    if ref is None and (box / box_layout.REF_NAME).is_file():
+        warn(reason, box / box_layout.REF_NAME)
+        return frozenset()
+    files = ref["files"] if ref is not None else ready_files(box)
+    listed = (f for f in files if isinstance(f, str) and all(is_safe_segment(p) for p in f.split("/")))
+    return frozenset(f for f in listed if not (box / f).is_file())
+
+
+def ready_files(box: Path) -> list:
+    if not (box / "READY").is_file():
+        warn("remote.json も READY も無く R2 の所在を引けない", box)
+        return []
+    data, reason = schema.read_json(box / "READY")
+    files = data.get("files") if isinstance(data, dict) else None
+    if not isinstance(files, list):
+        warn(f"READY の files[] を読めない: {reason or 'files が配列でない'}", box / "READY")
+        return []
+    return files
 
 
 def broken(row: dict, reason: str, path: Path) -> dict:
