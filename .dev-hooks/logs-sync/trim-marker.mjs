@@ -40,10 +40,10 @@ export function parseCatN(display) {
 
 // 行オブジェクト内の目印をすべて元に戻した新しいオブジェクトを返す。戻せない目印は理由つきで投げる
 // Return a copy of the line with every marker restored; throws with the reason for any unrestorable marker.
-export function restoreLine(line, { git, readBlob, readLogsFile, repoFor }) {
+export function restoreLine(line, { git, readBlob, readLogsFile }) {
   const restored = mapStrings(line, (marker) => {
     if (marker[MARKER_KEY] === "git") {
-      const text = git.resolve(marker, repoFor?.(marker));
+      const text = git.resolve(marker);
       return marker.catn === undefined ? text : renderCatN(text, marker.catn);
     }
     if (marker[MARKER_KEY] === "blob") return readBlob(marker.sha256);

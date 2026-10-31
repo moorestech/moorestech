@@ -1,44 +1,55 @@
-// 自動コミットに載せる前に、logs repo に置くべきでない物（動画・大きなファイル・一括コピー）を外して知らせる
-// Before the auto-commit, unstage what does not belong in the logs repo (videos, large files, bulk copies) and report it.
+// 自動コミットに載せる前に、logs repo に置くべきでない物（記録でない種類・大きなファイル・連番画像）を外して知らせる
+// Before the auto-commit, unstage what does not belong in the logs repo (non-record types, large files, image sequences) and report it.
 //
-// logs repo は判断を辿るための文章の置き場。生データは作業場所か MOORESTECH_PLAYTEST_RAW に置く（AGENTS.md）
+// logs repo は判断を辿るための文章の置き場。生データは作業場所か MOORESTECH_PLAYTEST_RAW に置く（AGENTS.md）。
+// 判定はファイル単位の許可リストで、件数では判定しない（ゆっくり書かれる連番や浅いコピーをすり抜けさせず、隣の報告書を巻き添えにしないため）
 // The logs repo holds text for tracing decisions; raw data lives in the work area or MOORESTECH_PLAYTEST_RAW (see AGENTS.md).
+// Each file is judged against an allow-list, never by counts, so slow frame sequences and shallow copies cannot slip through
+// and neighbouring reports are never rejected along with them.
 
 import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { extname, join } from "node:path";
+import { dirname, extname, join } from "node:path";
 import { git } from "./sync-io.mjs";
 
 // 会話ログ類は logs-sync 自身が書き、大きさは別途 GitHub 上限で見ている
 // Conversation logs are written by logs-sync itself; their size is checked against the GitHub limit elsewhere.
 const CONVERSATION_PREFIXES = ["claude/", "codex/", "map/", "beads/", "blobs/"];
-const VIDEO_EXTENSIONS = new Set([".mp4", ".webm", ".mov", ".mkv", ".avi", ".m4v"]);
+// 記録として置いてよい種類（文章・結果・差分・実験に書いたスクリプト）。コードやアセットのコピー・バイナリ・動画はここに無い
+// Record types allowed in: text, results, diffs and scripts written for experiments. Copies of code/assets, binaries and videos are absent.
+const RECORD_EXTENSIONS = new Set([
+  "", ".md", ".txt", ".log", ".json", ".jsonl", ".tsv", ".csv", ".yaml", ".yml", ".toml", ".html", ".htm", ".xml", ".svg",
+  ".diff", ".patch", ".err", ".stderr", ".stdout", ".out", ".sha", ".marker", ".py", ".sh", ".js", ".mjs",
+]);
+const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".webp", ".gif"]);
+// 報告に添える画像はディレクトリあたり数枚。これを超えるのは連番フレームの類（既にコミット済みの枚数も数える）
+// A report carries a few images per directory; more than this (committed ones included) is a frame sequence.
+const MAX_IMAGES_PER_DIR = 20;
 // 報告書・記録の文章はこれより十分小さい。これを超えるのはスナップショットやダンプの類
 // Reports and records are far below this; anything larger is a snapshot or a dump.
 const MAX_RECORD_FILE_BYTES = 2 * 1024 * 1024;
-// 1回の同期で同じディレクトリにこれ以上の新規ファイルが現れたら、連番フレームか worktree のコピーとみなす
-// More new files than this under one directory in a single sync means frame sequences or a worktree copy.
-const MAX_NEW_FILES_PER_DIR = 200;
-const BULK_DIR_DEPTH = 3;
 
-// git add -A の後に呼ぶ。外したパスは作業ツリーに残り、初めて外した時だけ report する
-// Call after `git add -A`. Unstaged paths stay in the work tree; each is reported only the first time.
+// git add の後に呼ぶ。外したパスは作業ツリーに残り、初めて外した時だけ report する
+// Call after `git add`. Unstaged paths stay in the work tree; each is reported only the first time.
 export function unstageRejected(logsRepo, stateDir, report) {
-  const staged = stagedChanges(logsRepo);
-  const rejected = classify(logsRepo, staged);
+  const rejected = classify(logsRepo, stagedChanges(logsRepo));
   if (rejected.size === 0) return;
   git(logsRepo, ["reset", "-q", "--pathspec-from-file=-", "--pathspec-file-nul"], 30000, [...rejected.keys()].join("\0"));
   const seenPath = join(stateDir, "intake-rejected.json");
   const seen = readSeen(seenPath, report);
-  // 一括コピーは1件ずつ出すと数百行になるので、理由（＝ディレクトリ）ごとに1行にまとめる
-  // Bulk copies would flood hundreds of lines, so they collapse into one line per reason (i.e. per directory).
-  const lines = new Map();
+  // 同じ理由・同じディレクトリの物は1行にまとめ、件数と例を出す（コピー数百件で通知が埋まらないように）
+  // Group by reason and directory into one line with a count and an example, so hundreds of copies do not flood the report.
+  const groups = new Map();
   for (const [path, reason] of rejected) {
     if (seen[path] === reason) continue;
     seen[path] = reason;
-    const key = reason.startsWith("bulk:") ? reason : `${reason}\0${path}`;
-    lines.set(key, reason.startsWith("bulk:") ? `rejected (${reason})` : `rejected (${reason}): ${path}`);
+    const key = `${reason}\0${dirname(path)}`;
+    groups.set(key, [...(groups.get(key) ?? []), path]);
   }
-  for (const line of lines.values()) report(`${line} — logs repo には文章の記録だけを置く。作業場所か MOORESTECH_PLAYTEST_RAW へ移すこと`);
+  for (const [key, paths] of groups) {
+    const [reason] = key.split("\0");
+    const what = paths.length === 1 ? paths[0] : `${paths.length} files under ${dirname(paths[0])}/ (e.g. ${paths[0]})`;
+    report(`rejected (${reason}): ${what} — logs repo には文章の記録だけを置く。作業場所か MOORESTECH_PLAYTEST_RAW へ移すこと`);
+  }
   writeFileSync(seenPath, JSON.stringify(seen));
 }
 
@@ -66,25 +77,29 @@ function stagedChanges(logsRepo) {
 
 function classify(logsRepo, changes) {
   const rejected = new Map();
-  const newPerDir = new Map();
+  const imagesPerDir = new Map();
   for (const { status, path } of changes) {
     if (CONVERSATION_PREFIXES.some((prefix) => path.startsWith(prefix))) continue;
-    if (VIDEO_EXTENSIONS.has(extname(path).toLowerCase())) rejected.set(path, "video");
-    else if (sizeOf(join(logsRepo, path)) > MAX_RECORD_FILE_BYTES) rejected.set(path, `over ${MAX_RECORD_FILE_BYTES} bytes`);
-    if (status === "A") {
-      const dir = path.split("/").slice(0, BULK_DIR_DEPTH).join("/");
-      newPerDir.set(dir, [...(newPerDir.get(dir) ?? []), path]);
+    const ext = extname(path).toLowerCase();
+    if (IMAGE_EXTENSIONS.has(ext)) {
+      if (status === "A") imagesPerDir.set(dirname(path), [...(imagesPerDir.get(dirname(path)) ?? []), path]);
+    } else if (!RECORD_EXTENSIONS.has(ext)) {
+      rejected.set(path, `not a record type: ${ext}`);
+      continue;
     }
+    if (sizeOf(join(logsRepo, path)) > MAX_RECORD_FILE_BYTES) rejected.set(path, `over ${MAX_RECORD_FILE_BYTES} bytes`);
   }
-  for (const [dir, paths] of newPerDir) {
-    if (paths.length <= MAX_NEW_FILES_PER_DIR) continue;
-    for (const path of paths) rejected.set(path, `bulk: ${paths.length} new files under ${dir}`);
+  for (const [dir, added] of imagesPerDir) {
+    const committed = (git(logsRepo, ["ls-tree", "--name-only", "HEAD", `${dir}/`]) ?? "")
+      .split("\n").filter((p) => IMAGE_EXTENSIONS.has(extname(p).toLowerCase())).length;
+    if (committed + added.length <= MAX_IMAGES_PER_DIR) continue;
+    for (const path of added) rejected.set(path, `image sequence: over ${MAX_IMAGES_PER_DIR} images in one directory`);
   }
   return rejected;
 }
 
 function sizeOf(path) {
-  // silent-ok: stat できないパスは大きさの判定から外れるだけで、動画と一括コピーの判定は続く / 実体が無いなら git add も載せない
+  // silent-ok: stat できないパスは大きさの判定から外れるだけで、種類と連番の判定は続く / 実体が無いなら git add も載せない
   try {
     return statSync(path).size;
   } catch {

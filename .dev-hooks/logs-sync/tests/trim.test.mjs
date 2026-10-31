@@ -43,6 +43,10 @@ test("committed reads and boilerplate are trimmed and restore exactly, even afte
   const moved = join(root, "elsewhere");
   execFileSync("mv", [clone, moved]);
   assert.equal(restore(dest, "--repo", moved), readFileSync(src, "utf8"));
+  // 記録した場所に git 管理外のディレクトリが置かれていても、clone へ切り替える
+  // A non-repo directory now sitting at the recorded path does not block falling back to the clone.
+  mkdirSync(clone);
+  assert.equal(restore(dest, "--repo", moved), readFileSync(src, "utf8"));
 });
 
 test("reads of uncommitted or unpushed content keep their numbered display and restore exactly", () => {
@@ -85,6 +89,39 @@ test("images read by several agents are stored once and restore exactly", () => 
     assert.equal(restore(dest), readFileSync(src, "utf8"));
   }
   assert.equal(execFileSync("find", [join(logs, "blobs"), "-type", "f"], { encoding: "utf8" }).trim().split("\n").length, 1);
+});
+
+test("a truncated blob is rewritten on the next trim and refused on restore", () => {
+  const { root, logs } = createRepos();
+  const system = longText("system", 300);
+  const src = join(root, "agent.jsonl");
+  const dest = join(logs, "claude", "slug", "s5", "subagents", "agent.jsonl");
+  writeJsonl(src, [{ type: "attachment", attachment: { type: "prompt_snapshot", systemPrompt: [system] } }]);
+  writeTrimmedTranscript(src, dest, "claude", createTrimContext(logs));
+  const blob = execFileSync("find", [join(logs, "blobs"), "-type", "f"], { encoding: "utf8" }).trim();
+
+  writeFileSync(blob, system.slice(0, 100));
+  assert.throws(() => restore(dest), /blob content does not match/);
+  writeTrimmedTranscript(src, dest, "claude", createTrimContext(logs));
+  assert.equal(readFileSync(blob, "utf8"), system);
+  assert.equal(restore(dest), readFileSync(src, "utf8"));
+});
+
+test("reads of another subagent transcript are not pointed at, since it gets rewritten", () => {
+  const { root, logs } = createRepos();
+  const home = join(root, "home");
+  process.env.HOME = home;
+  const rel = join("slug", "s6", "subagents", "agent-b.jsonl");
+  const body = longText("other agent");
+  for (const base of [join(home, ".claude", "projects"), join(logs, "claude")]) {
+    mkdirSync(join(base, "slug", "s6", "subagents"), { recursive: true });
+    writeFileSync(join(base, rel), body);
+  }
+  const src = join(root, "agent.jsonl");
+  const dest = join(logs, "claude", "slug", "s6", "subagents", "agent-z.jsonl");
+  writeJsonl(src, readRoundTrip("z", join(home, ".claude", "projects", rel), body));
+  writeTrimmedTranscript(src, dest, "claude", createTrimContext(logs));
+  assert.doesNotMatch(readFileSync(dest, "utf8"), /"\$trim":"logs"/);
 });
 
 test("re-reads of a mirrored tool-results file point into the logs repo", () => {

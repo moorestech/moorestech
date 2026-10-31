@@ -13,7 +13,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { createGitSource } from "./git-source.mjs";
-import { blobPath } from "./trim-file.mjs";
+import { readVerifiedBlob } from "./trim-file.mjs";
 import { restoreLine } from "./trim-marker.mjs";
 
 const args = process.argv.slice(2);
@@ -27,11 +27,11 @@ const clones = [
   ...args.filter((_, i) => args[i - 1] === "--repo").map((p) => resolve(p)),
   join(dirname(logsRepo), "moorestech"),
 ].filter((p) => existsSync(p));
+const gitSource = createGitSource();
 const ctx = {
-  git: createGitSource(),
-  readBlob: (hash) => readFileSync(blobPath(logsRepo, hash), "utf8"),
-  readLogsFile: (path) => readFileSync(join(logsRepo, path), "utf8"),
-  repoFor: (marker) => (existsSync(marker.repo) ? marker.repo : cloneWithUrl(marker.url)),
+  git: { resolve: resolveFromAnyClone },
+  readBlob: (hash) => readVerifiedBlob(logsRepo, hash),
+  readLogsFile,
 };
 
 const out = [];
@@ -60,14 +60,32 @@ function findLogsRepo(path) {
   process.exit(2);
 }
 
-function cloneWithUrl(url) {
-  const found = clones.find((clone) => normalizeUrl(originOf(clone)) === normalizeUrl(url));
-  if (!found) throw new Error(`no local clone with origin ${url} (pass --repo <clone>)`);
-  return found;
+// 記録した場所、同じ origin の clone の順に試す（記録した場所が別物に置き換わっていても戻せるように）
+// Try the recorded location, then every clone with the same origin, so a replaced recorded path does not block restoration.
+function resolveFromAnyClone(marker) {
+  const candidates = [marker.repo, ...clones.filter((c) => normalizeUrl(originOf(c)) === normalizeUrl(marker.url))];
+  const errors = [];
+  for (const repo of candidates.filter((c) => existsSync(c))) {
+    try {
+      return gitSource.resolve(marker, repo);
+    } catch (error) {
+      errors.push(error.message);
+    }
+  }
+  throw new Error(`${errors.join("; ") || "no candidate repo"} (clone を --repo で渡すか、git -C <clone> fetch origin する)`);
+}
+
+// sparse-checkout で展開していない参照先は、展開手順をつけて止める
+// A target left unexpanded by sparse-checkout stops with the command that expands it.
+function readLogsFile(path) {
+  if (!existsSync(join(logsRepo, path))) {
+    throw new Error(`${path} が手元に無い。git -C ${logsRepo} sparse-checkout add '/${path}' で展開してから再実行する`);
+  }
+  return readFileSync(join(logsRepo, path), "utf8");
 }
 
 function originOf(clone) {
-  // silent-ok: origin を読めない clone は候補から外れるだけで、候補が尽きれば cloneWithUrl が理由つきで止める / 実行者が端末で読む
+  // silent-ok: origin を読めない clone は候補から外れるだけで、候補が尽きれば resolveFromAnyClone が理由つきで止める / 実行者が端末で読む
   try {
     return execFileSync("git", ["-C", clone, "remote", "get-url", "origin"], { encoding: "utf8" }).trim();
   } catch {

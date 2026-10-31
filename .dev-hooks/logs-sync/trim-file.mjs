@@ -1,7 +1,7 @@
 // 自動実行の記録ファイルを、元に戻せる部分だけ削って書き出す。各行は削った後に復元して一致した時だけ採用する
 // Write an automated-run transcript with only its restorable parts trimmed; each line is adopted only if it restores exactly.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, sep } from "node:path";
 import { createGitSource, sha256 } from "./git-source.mjs";
@@ -34,17 +34,19 @@ export function createTrimContext(logsRepo) {
       return hash;
     },
     readBlob(hash) {
-      if (pending.has(hash)) return pending.get(hash);
-      return readFileSync(blobPath(logsRepo, hash), "utf8");
+      return pending.has(hash) ? pending.get(hash) : readVerifiedBlob(logsRepo, hash);
     },
     // 採用された行が参照する本文だけを書く（検証で落ちた行の本文は置かない）
     // Persist only bodies referenced by adopted lines (bodies from rejected lines are not written).
     flushBlobs(used) {
       for (const hash of used) {
         const path = blobPath(logsRepo, hash);
-        if (existsSync(path)) continue;
+        // 途中で切れた既存の本文（容量不足など）は名前が合っていても中身で見分けて書き直す
+        // A truncated existing body (e.g. disk full) is detected by content, not by name, and rewritten.
+        if (existsSync(path) && sha256(readFileSync(path, "utf8")) === hash) continue;
         mkdirSync(dirname(path), { recursive: true });
-        writeFileSync(path, pending.get(hash));
+        writeFileSync(`${path}.tmp`, pending.get(hash));
+        renameSync(`${path}.tmp`, path);
       }
     },
   };
@@ -73,11 +75,21 @@ export function writeTrimmedTranscript(src, dest, kind, ctx) {
   return trimmedLines;
 }
 
-// ~/.claude/projects/<slug>/... は logs repo の claude/<slug>/... に複製されている（退避済みの時だけ使う）
-// ~/.claude/projects/<slug>/... is mirrored at claude/<slug>/... in the logs repo; used only once the copy exists.
+// 本文を読み、名前のハッシュと中身が一致しなければ理由つきで投げる
+// Read a blob body and throw with the reason when its content does not match its name.
+export function readVerifiedBlob(logsRepo, hash) {
+  const text = readFileSync(blobPath(logsRepo, hash), "utf8");
+  if (sha256(text) !== hash) throw new Error(`blob content does not match its sha256: blobs/${hash.slice(0, 2)}/${hash}.txt`);
+  return text;
+}
+
+// ~/.claude/projects/<slug>/.../tool-results/ は logs repo の claude/<slug>/... に複製されている（退避済みの時だけ使う）。
+// tool-results は一度書かれたら変わらないので参照先にできる。削って書き直される subagent 記録などは参照先にしない
+// ~/.claude/projects/<slug>/.../tool-results/ is mirrored at claude/<slug>/... in the logs repo; used once the copy exists.
+// tool-results are write-once, so they are safe targets; files that get rewritten (e.g. trimmed subagent transcripts) are not.
 function locateInLogs(logsRepo, absPath, text) {
   const projects = join(homedir(), ".claude", "projects") + sep;
-  if (!absPath.startsWith(projects)) return null;
+  if (!absPath.startsWith(projects) || !absPath.includes(`${sep}tool-results${sep}`)) return null;
   const path = join("claude", absPath.slice(projects.length));
   if (!existsSync(join(logsRepo, path))) return null;
   const offset = readFileSync(join(logsRepo, path), "utf8").indexOf(text);
