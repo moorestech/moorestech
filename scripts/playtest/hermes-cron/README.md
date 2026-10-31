@@ -53,3 +53,22 @@ install -m 755 ~/hermes-agent/data/repos/moorestech/scripts/playtest/hermes-cron
 `--no-agent` が付いているので上のプロンプト本文は実行時には使われない（既存の
 「ポケモンカードPSA10最安値監視」ジョブと同じ形で、`--no-agent` を外して
 エージェントモードへ切り替えるときの本文として保存しておく）。
+
+## 生データ置き場の期限削除ジョブ
+
+同じ要領で、生データ置き場（`moorestech_playtest_raw`）の期限切れ（取り込みから既定 60 日）を毎日消すジョブを 1 件置く。
+stdout には消した物・消せなかった物だけが出て、何もしなかった回は空なので投稿されない（`--no-agent`）。
+消せなかった物（`raw.json` を読めない箱・権限エラー等）は毎回出続けるので、出たら手で確かめる。
+
+```bash
+install -m 755 ~/hermes-agent/data/repos/moorestech/scripts/playtest/hermes-cron/moorestech-playtest-raw-prune.sh \
+  ~/.hermes/scripts/moorestech-playtest-raw-prune.sh
+~/.hermes/scripts/moorestech-playtest-raw-prune.sh -n   # 判定だけ（消さない）
+. ~/hermes-agent/data/services/playtest/env.sh
+~/hermes-agent/venv/bin/hermes cron --accept-hooks create "30 9 * * *" \
+  --name "moorestech プレイテスト生データの期限削除" \
+  --script moorestech-playtest-raw-prune.sh \
+  --no-agent \
+  --deliver "discord:${PLAYTEST_DIGEST_DISCORD_CHANNEL_ID}" \
+  "毎朝9時半の定期実行タスクです。moorestech-playtest-raw-prune.sh を実行し、stdout をそのまま送信する。空なら何も送らない。"
+```

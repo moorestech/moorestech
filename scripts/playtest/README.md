@@ -194,7 +194,12 @@ bash scripts/playtest/tests/test-release-playtest.sh    # PASS: release-playtest
 bash scripts/playtest/tests/test-release-playtest-mac.sh   # PASS: release-playtest mac contract と出れば合格
 bash scripts/playtest/tests/test-release-playtest-origin.sh  # PASS: release-playtest origin contract と出れば合格
 bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-windows contract と出れば合格
+bash scripts/playtest/tests/raw_store/test-ingest-raw.sh            # OK と出れば合格（生データの分離・投入・一覧）
+python3 scripts/playtest/tests/raw_store/test_raw_prune.py          # 期限削除・ダッシュボードの生データ参照
+python3 scripts/playtest/tests/raw_store/test_raw_migrate.py        # 既存の生データの移行
 ```
+
+取り込んだ報告の生データ（スナップショット・ワールド・動画等）は logs repo に入れず、期限つきの生データ置き場へ置く。置き方・期限削除・移行は `README-macmini.md`「生データ置き場」節。
 
 ## 遠隔実行（開発者向け）
 
