@@ -194,9 +194,9 @@ bash scripts/playtest/tests/test-release-playtest.sh    # PASS: release-playtest
 bash scripts/playtest/tests/test-release-playtest-mac.sh   # PASS: release-playtest mac contract と出れば合格
 bash scripts/playtest/tests/test-release-playtest-origin.sh  # PASS: release-playtest origin contract と出れば合格
 bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-windows contract と出れば合格
-bash scripts/playtest/tests/raw_store/test-ingest-raw.sh            # OK と出れば合格（生データの分離・投入・一覧）
-python3 scripts/playtest/tests/raw_store/test_raw_prune.py          # 期限削除・ダッシュボードの生データ参照
-python3 scripts/playtest/tests/raw_store/test_raw_migrate.py        # 既存の生データの移行
+for t in scripts/playtest/tests/test-*.sh scripts/playtest/tests/r2/test-*.sh; do bash "$t"; done   # 取り込み・zip 取り込み・1 件取得・R2 削除の一覧
+(cd scripts/playtest/tests && python3 -m unittest discover -p 'test_*.py')                         # ダッシュボード・ダイジェスト・box_layout・R2 中継
+node --test scripts/playtest/tests/test_report_filter.mjs                                         # ダッシュボードの絞り込み
 ```
 
 報告の生データ（スナップショット・ワールド・動画等）の正本は受け口の R2 だけ。取り込みは小物だけを logs repo へ写し、調べるときは `fetch-report.sh` で 1 件ずつ取る。片付いた報告は片付けから 7 日で R2 から消す（`README-macmini.md`「1 件の生データを取る」「片付いた報告の R2 削除」節）。
