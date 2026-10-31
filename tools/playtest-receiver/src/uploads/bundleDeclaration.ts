@@ -1,11 +1,7 @@
 import { declaredMarkerKey } from "../bundleMarkers";
-import { MAX_BUNDLE_BYTES, MAX_BUNDLE_FILES, MAX_FILE_BYTES, RESERVED_UPLOAD_SEGMENTS } from "../contract";
-import { joinSafePath, type PlaytestKind } from "../keys";
-
-export interface DeclaredFile {
-  path: string;
-  bytes: number;
-}
+import { RESERVED_UPLOAD_SEGMENTS } from "../contract";
+import type { PlaytestKind } from "../keys";
+import { parseFileList, type DeclaredFile } from "./fileList";
 
 // 宣言は世代付き。同世代は同じ集合だけを表し、集合を縮めるときだけ世代を上げる
 // A declaration carries a generation; one generation means one exact set, and only a shrink moves to a higher generation
@@ -18,40 +14,16 @@ export type DeclarationCheck =
   | ({ ok: true } & Declaration)
   | { ok: false; status: 400 | 413; error: string; detail: string };
 
-// 宣言の検査はここ1箇所。パスの安全性はkeys.tsに委ね、上限は契約値だけを見る
-// The single declaration check; path safety is delegated to keys.ts and every limit comes from the contract
+// 宣言の検査。世代だけをここで見て、ファイル一覧はprepareの予約名でparseFileListに任せる
+// Checks a declaration; only the generation is judged here, and the file list goes to parseFileList with prepare's reserved names
 export function parseDeclaration(body: unknown): DeclarationCheck {
   const generation = (body as { generation?: unknown })?.generation;
-  if (typeof generation !== "number" || !Number.isInteger(generation) || generation < 1) return reject(400, "bad-request", `generation is not an integer >= 1: ${JSON.stringify(generation)}`);
-  const files = (body as { files?: unknown })?.files;
-  if (!Array.isArray(files)) return reject(400, "bad-request", "files is not an array");
-  if (files.length === 0) return reject(400, "empty-declaration", "no files declared");
-  if (files.length > MAX_BUNDLE_FILES) return reject(413, "too-many-files", `${files.length} files exceeds ${MAX_BUNDLE_FILES}`);
-
-  const seen = new Set<string>();
-  const accepted: DeclaredFile[] = [];
-  let total = 0;
-  for (const entry of files) {
-    const path = (entry as { path?: unknown })?.path;
-    const bytes = (entry as { bytes?: unknown })?.bytes;
-    if (typeof path !== "string" || typeof bytes !== "number" || !Number.isInteger(bytes) || bytes < 0) {
-      return reject(400, "bad-request", `malformed entry: ${JSON.stringify(entry)}`);
-    }
-    const segments = path.split("/");
-    if (joinSafePath(segments) === null) return reject(400, "bad-path", path);
-    if (RESERVED_UPLOAD_SEGMENTS.has(segments[0] as string)) return reject(400, "reserved-name", path);
-    if (seen.has(path)) return reject(400, "duplicate-path", path);
-    if (bytes > MAX_FILE_BYTES) return reject(413, "too-large", `${path}: ${bytes} bytes exceeds ${MAX_FILE_BYTES}`);
-    seen.add(path);
-    total += bytes;
-    if (total > MAX_BUNDLE_BYTES) return reject(413, "bundle-too-large", `${total} bytes exceeds ${MAX_BUNDLE_BYTES}`);
-    accepted.push({ path, bytes });
+  if (typeof generation !== "number" || !Number.isInteger(generation) || generation < 1) {
+    return { ok: false, status: 400, error: "bad-request", detail: `generation is not an integer >= 1: ${JSON.stringify(generation)}` };
   }
-  return { ok: true, generation, files: accepted };
-}
-
-function reject(status: 400 | 413, error: string, detail: string): DeclarationCheck {
-  return { ok: false, status, error, detail };
+  const files = parseFileList((body as { files?: unknown })?.files, RESERVED_UPLOAD_SEGMENTS);
+  if (!files.ok) return files;
+  return { ok: true, generation, files: files.files };
 }
 
 export type RedeclarationKind = "same" | "replace" | "conflict";

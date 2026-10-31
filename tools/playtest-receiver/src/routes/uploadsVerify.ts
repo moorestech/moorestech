@@ -1,4 +1,4 @@
-import type { DeclaredFile } from "../uploads/bundleDeclaration";
+import type { DeclaredFile } from "../uploads/fileList";
 import { bundlePrefix, type PlaytestKind } from "../keys";
 
 export interface MissingObject {

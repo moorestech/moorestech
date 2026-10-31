@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import contract from "../contract.json";
-import { ACKED_MARKER, DECLARED_MARKER, READY_MARKER } from "../src/bundleMarkers";
+import { ACKED_MARKER, DECLARED_MARKER, PURGED_MARKER, READY_MARKER } from "../src/bundleMarkers";
 import {
   CONTRACT_KINDS,
   DECLARATION_CONFLICT_REASON,
@@ -41,6 +41,7 @@ describe("contract.json", () => {
     expect(contract.reservedUploadSegments).toContain(READY_MARKER);
     expect(contract.reservedUploadSegments).toContain(ACKED_MARKER);
     expect(contract.reservedUploadSegments).toContain(DECLARED_MARKER);
+    expect(contract.reservedUploadSegments).toContain(PURGED_MARKER);
     expect(contract.reservedUploadSegments).toContain("complete");
     expect(contract.reservedUploadSegments).toContain("prepare");
   });
@@ -53,7 +54,7 @@ describe("contract.json", () => {
       maxBundleBytes: 256 * 1024 * 1024,
       uploadUrlTtlSeconds: 3600,
       uploadIdleTimeoutSeconds: 60,
-      reservedUploadSegments: ["READY", "ACKED", "DECLARED", "complete", "prepare"],
+      reservedUploadSegments: ["READY", "ACKED", "DECLARED", "PURGED", "complete", "prepare"],
       kinds: ["report", "progress"],
       tokenTtlSeconds: 3600,
       declarationConflictReason: "declaration-conflict",

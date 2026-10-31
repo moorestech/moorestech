@@ -3,7 +3,8 @@ import { DECLARATION_CONFLICT_REASON, DECLARATION_UNREADABLE_REASON, PREPARE_OUT
 import type { Env } from "../env";
 import { fail, json } from "../http";
 import { bundlePrefix, type PlaytestKind } from "../keys";
-import { parseDeclaration, type DeclaredFile } from "../uploads/bundleDeclaration";
+import { parseDeclaration } from "../uploads/bundleDeclaration";
+import type { DeclaredFile } from "../uploads/fileList";
 import { settleDeclaration } from "../uploads/declarationSettle";
 import { createR2Client, missingR2SigningSettings, presignPut } from "../uploads/presign";
 import { authorizeUpload } from "./uploadsAuthorize";
