@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
-# worktree内のSDDワークスペース（.superpowers/sdd）を記録repoへ退避し、
-# 退避先の絶対パスを標準出力へ表示する。PR作成後・moores-wt rm の前に実行する。
+# worktree内のSDDワークスペース（.superpowers/sdd）のうち、文章の結論（*.md）と
+# screenshots/ 直下のスクショ3枚までを記録repoへ写し、退避先の絶対パスを標準出力へ表示する。
+# PR作成後・moores-wt rm の前に実行する。
+#
+# 録画・連番フレーム・Unityのログ・テスト結果xml・PlaytestResultsは写さない。
+# 事後に開かれず、logs-syncが永久履歴へ入れて記録repoを膨らませるため。
+# それらはworktree（gitignore下）に置いたままにし、worktreeを畳むと一緒に消える。
 #
 # ワークスペースを最初から記録repoに置かないのは、implementer（codexの
 # workspace-writeサンドボックス含む）がworktreeの外へ書けないため。
-# 一方worktreeを畳むと報告・台帳が消えるので、コードrepoへコミットせず
-# ここで記録repo `moorestech_logs/harness/sdd/<ブランチslug>/workspace/` へ写す
-# （裁定 .decisions/2026-09-28-SDDの作業記録はコードrepoに置かず記録repoへ退避する.md）。
+# 退避先: 記録repo `moorestech_logs/harness/sdd/<ブランチslug>/workspace/`
 #
 # 使い方: sdd-archive（隔離worktree側をcwdにして実行する。何度実行してもよい）
 set -euo pipefail
+
+max_screenshots=3
 
 root=$(git rev-parse --show-toplevel)
 src="$root/.superpowers/sdd"
@@ -31,8 +36,23 @@ if [ ! -d "$logs/.git" ] && [ ! -f "$logs/.git" ]; then
   exit 1
 fi
 
-# 自己無視の.gitignoreは記録repo側で退避物を無視させてしまうので写さない
+# スクショが上限を超えたら何も写さずに止め、選び直しを求める
+shots="$src/screenshots"
+if [ -d "$shots" ]; then
+  shot_count=$(find "$shots" -maxdepth 1 -type f | wc -l | tr -d ' ')
+  if [ "$shot_count" -gt "$max_screenshots" ]; then
+    echo "sdd-archive: ${shots} に ${shot_count} 枚あります。記録repoへ写すのは ${max_screenshots} 枚までです。結論に要る分だけ残して再実行してください" >&2
+    exit 1
+  fi
+fi
+
 dest="$logs/harness/sdd/$slug/workspace"
 mkdir -p "$dest"
-rsync -a --exclude '.gitignore' "$src/" "$dest/"
+rsync -a -m --include '*/' --include '*.md' --exclude '*' "$src/" "$dest/"
+# 再実行で選び直した枚数がそのまま反映されるよう、写し先のスクショは作り直す
+rm -rf "$dest/screenshots"
+if [ -d "$shots" ]; then
+  mkdir -p "$dest/screenshots"
+  find "$shots" -maxdepth 1 -type f -exec cp {} "$dest/screenshots/" \;
+fi
 printf '%s\n' "$dest"

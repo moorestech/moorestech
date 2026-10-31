@@ -150,7 +150,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 # スキル配置と実行記録
 - スキルのgit正本は `.agents/skills/` のみ。`.claude/skills` と `.codex/skills` はそこへのsymlink（tracked）。ミラー実体の複製・CI同期は禁止（マージ衝突が増えるため）
 - レビュー実行記録（moores-code-reviewのrecords/eval-log）はコードrepoに置かず `../moorestech_logs/harness/` へ書く。featureブランチで記録ファイルをコミットしない
-- `../moorestech_logs` に置くのは判断を辿るための文章（結論・判定・小さなメタデータ・要るなら画像数枚）だけ。録画・スナップショット・ワールドやworktreeのコピー・ログの丸ごと退避は置かない（logs-sync が5分ごとに全部を永久履歴へ自動コミットするため）。それらは作業中の worktree か scratchpad で使い捨て、プレイテストの生データは `MOORESTECH_PLAYTEST_RAW` に置く。記録でない種類（コードのコピー・バイナリ・動画）・2MB超・連番画像は自動コミットから外され Discord に通知される
+- `../moorestech_logs` に置くのは会話記録（hook が入れる）・レビューの記録一式（moores-code-review の `$RUNDIR`）・作業の報告の md（SDD の台帳・報告等。作業の終わりに写す）と、要るならスクショ3枚程度までだけ。録画・連番フレーム・Unity のログ・テスト結果 xml・PlaytestResults・スナップショット・ワールドやworktreeのコピーは置かない（事後に開かれず、logs-sync が5分ごとに全部を永久履歴へ自動コミットするため）。それらは作業中の worktree の gitignore 下に置いて worktree ごと消し、プレイテストの生データは `MOORESTECH_PLAYTEST_RAW` に置く。テストで `Saves/` に作ったワールドは作業の終わりに消す（unity-playmode-recorded-playtest 絶対規則11）。記録でない種類（コードのコピー・バイナリ・動画）・2MB超・連番画像は自動コミットから外され Discord に通知される
 - `../moorestech_logs` 内で作業する前に同repoの `README.md` を読む（レイアウト・考古学手順・消失事故の落とし穴が書いてある）
 
 # コーディングにおける重要な原則
