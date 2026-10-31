@@ -16,17 +16,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
         private static readonly Guid PipeHatchGuid = Guid.Parse("8e425510-aa34-4a1b-9f40-5f8079183ab2");
 
         [Test]
-        public void 部屋要約の境界と汚染接続点はマスタの集合で別々に引けるTest()
+        public void 汚染接続点はマスタの集合で引けるTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var master = MasterHolder.CleanRoomMaster;
-
-            // 壁・ドア・ハッチ2種はどれも部屋要約を出す
-            // Walls, doors and both hatches all show the room summary
-            Assert.IsTrue(master.IsRoomSummaryBoundaryBlock(WallGuid));
-            Assert.IsTrue(master.IsRoomSummaryBoundaryBlock(DoorGuid));
-            Assert.IsTrue(master.IsRoomSummaryBoundaryBlock(ItemHatchGuid));
-            Assert.IsTrue(master.IsRoomSummaryBoundaryBlock(PipeHatchGuid));
 
             // 汚染接続点はハッチ2種だけで、壁とドアは数えない
             // Only the two hatches are pollution connectors; walls and doors are not counted
@@ -35,16 +28,15 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.IsFalse(master.IsPollutionConnectorBlock(WallGuid));
             Assert.IsFalse(master.IsPollutionConnectorBlock(DoorGuid));
 
-            // 集合に無いGUIDはどちらにも当たらない
-            // A GUID outside the sets matches neither
-            var unknown = Guid.NewGuid();
-            Assert.IsFalse(master.IsRoomSummaryBoundaryBlock(unknown));
-            Assert.IsFalse(master.IsPollutionConnectorBlock(unknown));
+            // 集合に無いGUIDは当たらない
+            // A GUID outside the set does not match
+            Assert.IsFalse(master.IsPollutionConnectorBlock(Guid.NewGuid()));
         }
 
         [Test]
-        public void 集合の実在しないGUIDと重複は起動時の検証で止まるTest([Values("roomSummaryBoundaryBlockGuids", "pollutionConnectorBlockGuids")] string setKey)
+        public void 集合の実在しないGUIDと重複は起動時の検証で止まるTest()
         {
+            const string setKey = "pollutionConnectorBlockGuids";
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var json = LoadTestCleanRoomJson();
             var missingGuid = Guid.Parse("00000000-0000-0000-0000-00000000dead");

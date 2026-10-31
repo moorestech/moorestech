@@ -23,7 +23,6 @@ namespace Core.Master
         private readonly CleanRoomMasterElement _element;
         private Dictionary<string, int> _thresholdIndexByClassName;
         private Dictionary<Guid, CleanRoomRecipeRole> _roleByRecipeGuid;
-        private HashSet<Guid> _roomSummaryBoundaryBlockGuids;
         private HashSet<Guid> _pollutionConnectorBlockGuids;
 
         public CleanRoomMaster(JToken jToken)
@@ -59,7 +58,6 @@ namespace Core.Master
         {
             _thresholdIndexByClassName = new Dictionary<string, int>();
             _roleByRecipeGuid = new Dictionary<Guid, CleanRoomRecipeRole>();
-            _roomSummaryBoundaryBlockGuids = new HashSet<Guid>();
             _pollutionConnectorBlockGuids = new HashSet<Guid>();
             if (_element == null) return;
 
@@ -70,9 +68,8 @@ namespace Core.Master
             foreach (var exposure in _element.LayerExposures) _roleByRecipeGuid.Add(exposure.MachineRecipeGuid, new LayerExposureRecipeRole(exposure));
             foreach (var dicing in _element.Dicings) _roleByRecipeGuid.Add(dicing.MachineRecipeGuid, new DicingRecipeRole(dicing));
 
-            // 境界ブロックの役割集合2本を引けるようにする
-            // Make the two boundary-block role sets queryable
-            _roomSummaryBoundaryBlockGuids.UnionWith(_element.RoomSummaryBoundaryBlockGuids);
+            // 汚染接続点の集合を引けるようにする
+            // Make the pollution connector set queryable
             _pollutionConnectorBlockGuids.UnionWith(_element.PollutionConnectorBlockGuids);
         }
 
@@ -88,13 +85,6 @@ namespace Core.Master
         public bool TryGetRecipeRole(Guid machineRecipeGuid, out CleanRoomRecipeRole role)
         {
             return _roleByRecipeGuid.TryGetValue(machineRecipeGuid, out role);
-        }
-
-        // 照準を合わせると部屋の要約を出す境界ブロックか
-        // Whether aiming at this block shows the room summary
-        public bool IsRoomSummaryBoundaryBlock(Guid blockGuid)
-        {
-            return _roomSummaryBoundaryBlockGuids.Contains(blockGuid);
         }
 
         // 部屋の境界にあるとき汚染接続点として数えるブロックか

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Server.Util.MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -18,14 +16,10 @@ namespace Server.Protocol.PacketResponse
 
     public sealed class CleanRoomOpeningsLeakView : CleanRoomLeakView
     {
-        // 表示上限まで。総数は TotalOpeningCount
-        // Capped for display; the full count is TotalOpeningCount
-        public IReadOnlyList<Vector3IntMessagePack> OpeningCells { get; }
         public int TotalOpeningCount { get; }
 
-        public CleanRoomOpeningsLeakView(IReadOnlyList<Vector3IntMessagePack> openingCells, int totalOpeningCount)
+        public CleanRoomOpeningsLeakView(int totalOpeningCount)
         {
-            OpeningCells = openingCells;
             TotalOpeningCount = totalOpeningCount;
         }
     }

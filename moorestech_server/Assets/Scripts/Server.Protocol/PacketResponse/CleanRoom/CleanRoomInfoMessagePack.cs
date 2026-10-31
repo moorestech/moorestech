@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using MessagePack;
-using Server.Util.MessagePack;
 using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
@@ -36,11 +34,10 @@ namespace Server.Protocol.PacketResponse
     {
         [Key(0)] public CleanRoomLeakResponseKind Kind { get; set; }
 
-        // OpeningCells（表示上限まで）と TotalOpeningCount は Openings、MaxRoomVolume は TooLarge のときだけ書かれる。読むのは TryGetView だけ
-        // OpeningCells (capped for display) and TotalOpeningCount are written only for Openings, MaxRoomVolume only for TooLarge; only TryGetView reads them
-        [Key(1)] public List<Vector3IntMessagePack> OpeningCells { get; set; }
-        [Key(2)] public int TotalOpeningCount { get; set; }
-        [Key(3)] public int MaxRoomVolume { get; set; }
+        // TotalOpeningCount は Openings、MaxRoomVolume は TooLarge のときだけ書かれる。読むのは TryGetView だけ
+        // TotalOpeningCount is written only for Openings, MaxRoomVolume only for TooLarge; only TryGetView reads them
+        [Key(1)] public int TotalOpeningCount { get; set; }
+        [Key(2)] public int MaxRoomVolume { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public CleanRoomLeakMessagePack() { }
@@ -50,9 +47,9 @@ namespace Server.Protocol.PacketResponse
             Kind = kind;
         }
 
-        public static CleanRoomLeakMessagePack CreateOpenings(List<Vector3IntMessagePack> openingCells, int totalOpeningCount)
+        public static CleanRoomLeakMessagePack CreateOpenings(int totalOpeningCount)
         {
-            return new CleanRoomLeakMessagePack(CleanRoomLeakResponseKind.Openings) { OpeningCells = openingCells, TotalOpeningCount = totalOpeningCount };
+            return new CleanRoomLeakMessagePack(CleanRoomLeakResponseKind.Openings) { TotalOpeningCount = totalOpeningCount };
         }
 
         public static CleanRoomLeakMessagePack CreateNoEnclosure()
@@ -70,21 +67,14 @@ namespace Server.Protocol.PacketResponse
             return new CleanRoomLeakMessagePack(CleanRoomLeakResponseKind.DetectionPending);
         }
 
-        // 判別子の読み分けはここだけ。wire から読んだ値なので、Openings のセル欠損は警告して false
-        // The only place that branches on the discriminator; values come from the wire, so missing Openings cells warn and return false
+        // 判別子の読み分けはここだけ。未知の種別は警告して false
+        // The only place that branches on the discriminator; unknown kinds warn and return false
         public bool TryGetView(out CleanRoomLeakView view)
         {
             switch (Kind)
             {
                 case CleanRoomLeakResponseKind.Openings:
-                    if (OpeningCells == null || OpeningCells.Exists(cell => cell == null))
-                    {
-                        Debug.LogWarning($"[GetCleanRoomInfo] Openings leak has no cells (total {TotalOpeningCount}); treating the response as unreadable");
-                        view = default;
-                        return false;
-                    }
-
-                    view = new CleanRoomOpeningsLeakView(OpeningCells, TotalOpeningCount);
+                    view = new CleanRoomOpeningsLeakView(TotalOpeningCount);
                     return true;
                 case CleanRoomLeakResponseKind.NoEnclosure:
                     view = CleanRoomNoEnclosureLeakView.Instance;

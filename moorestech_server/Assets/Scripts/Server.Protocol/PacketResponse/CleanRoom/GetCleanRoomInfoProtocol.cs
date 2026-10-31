@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Game.Block.Interface;
 using Game.CleanRoom;
 using Game.CleanRoom.Info;
@@ -58,7 +57,7 @@ namespace Server.Protocol.PacketResponse
             // wire は判別子と種別ごとのキーが並ぶ平らな形。組み立ては下の factory、読み出しは TryReadView だけ
             // The wire is flat with a discriminator and per-kind keys; build only via the factories below and read only via TryReadView
             [Key(2)] public CleanRoomInfoResponseKind Kind { get; set; }
-            [Key(3)] public List<CleanRoomSummaryMessagePack> Rooms { get; set; }
+            [Key(3)] public CleanRoomSummaryMessagePack Room { get; set; }
             [Key(4)] public CleanRoomLeakMessagePack Leak { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -68,12 +67,11 @@ namespace Server.Protocol.PacketResponse
             {
                 Tag = ProtocolTag;
                 Kind = kind;
-                Rooms = new List<CleanRoomSummaryMessagePack>();
             }
 
-            public static ResponseCleanRoomInfoMessagePack CreateEnclosed(List<CleanRoomSummaryMessagePack> rooms)
+            public static ResponseCleanRoomInfoMessagePack CreateEnclosed(CleanRoomSummaryMessagePack room)
             {
-                return new ResponseCleanRoomInfoMessagePack(CleanRoomInfoResponseKind.Enclosed) { Rooms = rooms };
+                return new ResponseCleanRoomInfoMessagePack(CleanRoomInfoResponseKind.Enclosed) { Room = room };
             }
 
             public static ResponseCleanRoomInfoMessagePack CreateNotEnclosed(CleanRoomLeakMessagePack leak)
@@ -94,15 +92,15 @@ namespace Server.Protocol.PacketResponse
                 switch (Kind)
                 {
                     case CleanRoomInfoResponseKind.Enclosed:
-                        // wire から読んだ部屋一覧が空・欠損なら、密閉済みの型を作らず警告して読めないことにする
-                        // If the room list read from the wire is empty or broken, build no enclosed view, warn and report it unreadable
-                        if (!AreReadableRooms())
+                        // wire から読んだ部屋が欠損なら、密閉済みの型を作らず警告して読めないことにする
+                        // If the room read from the wire is missing or broken, build no enclosed view, warn and report it unreadable
+                        if (!IsReadableRoom())
                         {
-                            Debug.LogWarning($"[GetCleanRoomInfo] Enclosed response has no or broken rooms (count {Rooms?.Count ?? 0}); treating it as unreadable");
+                            Debug.LogWarning("[GetCleanRoomInfo] Enclosed response has a missing or broken room; treating it as unreadable");
                             return BlockInfoReadResult.Unreadable;
                         }
 
-                        view = new CleanRoomEnclosedView(Rooms);
+                        view = new CleanRoomEnclosedView(Room);
                         return BlockInfoReadResult.Success;
                     case CleanRoomInfoResponseKind.NotEnclosed:
                         if (Leak == null)
@@ -125,22 +123,18 @@ namespace Server.Protocol.PacketResponse
 
                 #region Internal
 
-                bool AreReadableRooms()
+                bool IsReadableRoom()
                 {
-                    if (Rooms == null || Rooms.Count == 0) return false;
-                    foreach (var room in Rooms)
+                    if (Room == null || Room.AirFilters == null) return false;
+                    if (!Enum.IsDefined(typeof(CleanRoomClassResponseKind), Room.ClassKind))
                     {
-                        if (room == null || room.AirFilters == null) return false;
-                        if (!Enum.IsDefined(typeof(CleanRoomClassResponseKind), room.ClassKind))
-                        {
-                            Debug.LogWarning($"Unreadable room class: {room.ClassKind}");
-                            return false;
-                        }
-                        if (room.ClassKind == CleanRoomClassResponseKind.Classified && room.ClassName == null) return false;
-                        foreach (var filter in room.AirFilters)
-                        {
-                            if (filter == null || filter.Position == null) return false;
-                        }
+                        Debug.LogWarning($"Unreadable room class: {Room.ClassKind}");
+                        return false;
+                    }
+                    if (Room.ClassKind == CleanRoomClassResponseKind.Classified && Room.ClassName == null) return false;
+                    foreach (var filter in Room.AirFilters)
+                    {
+                        if (filter == null || filter.Position == null) return false;
                     }
 
                     return true;

@@ -88,7 +88,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
         {
             return view switch
             {
-                CleanRoomEnclosedView enclosed => CleanRoomDetailDto.CreateEnclosed(BuildRoom(enclosed.Rooms[0]), haltReason),
+                CleanRoomEnclosedView enclosed => CleanRoomDetailDto.CreateEnclosed(BuildRoom(enclosed.Room), haltReason),
                 CleanRoomNotEnclosedView notEnclosed => BuildLeak(notEnclosed.Leak),
                 _ => throw new ArgumentOutOfRangeException(nameof(view), view.GetType().Name, "未対応の部屋照会の型 / Unsupported room query view"),
             };

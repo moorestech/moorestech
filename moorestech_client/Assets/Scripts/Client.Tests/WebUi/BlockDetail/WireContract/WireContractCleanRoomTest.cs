@@ -38,7 +38,7 @@ namespace Client.Tests.WebUi.BlockDetail
             // A halted machine in a sealed but Out room passes its halt reason through the machine entry point
             var filter = new CleanRoomAirFilterMessagePack(new Vector3IntMessagePack(1, 33, 5), 1d, 10d, 5, 0.5d);
             var room = CleanRoomSummaryMessagePack.CreateOut(1.5d, 0.25d, 74, new List<CleanRoomAirFilterMessagePack> { filter });
-            var view = new CleanRoomEnclosedView(new List<CleanRoomSummaryMessagePack> { room });
+            var view = new CleanRoomEnclosedView(room);
 
             var dto = new BlockInventoryDto
             {
@@ -59,8 +59,7 @@ namespace Client.Tests.WebUi.BlockDetail
         {
             // 清浄機は停止理由の引数が無い口で組むので haltReason は出ない
             // A purifier goes through the entry point without a halt-reason argument, so haltReason never appears
-            var cells = new List<Vector3IntMessagePack> { new(0, 33, 0), new(1, 33, 0), new(2, 33, 0) };
-            var leak = new CleanRoomOpeningsLeakView(cells, 3);
+            var leak = new CleanRoomOpeningsLeakView(3);
 
             var dto = new BlockInventoryDto
             {
@@ -82,7 +81,7 @@ namespace Client.Tests.WebUi.BlockDetail
             // 分類済みの部屋は、見出しの種別 class とクラス名を持つ
             // A classified room carries the class headline kind and its class name
             var room = CleanRoomSummaryMessagePack.CreateClassified("A", 0, 0.1d, 2d, 26, new List<CleanRoomAirFilterMessagePack>());
-            var dto = CleanRoomDetailDtoBuilder.BuildForAirFilter(new CleanRoomEnclosedView(new List<CleanRoomSummaryMessagePack> { room }));
+            var dto = CleanRoomDetailDtoBuilder.BuildForAirFilter(new CleanRoomEnclosedView(room));
             Assert.AreEqual("enclosed", dto.Kind);
             Assert.AreEqual("class", dto.Room.Headline);
             Assert.AreEqual("A", dto.Room.ClassName);

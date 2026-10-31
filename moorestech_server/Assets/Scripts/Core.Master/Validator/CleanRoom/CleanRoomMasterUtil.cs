@@ -19,9 +19,8 @@ namespace Core.Master.Validator
             errorLogs += CleanRoomLayerExposureValidator.Validate(element.LayerExposures, roleRecipeGuids);
             errorLogs += CleanRoomDicingValidator.Validate(element.Dicings, roleRecipeGuids);
 
-            // 境界ブロックの役割集合2本は意味が別なので、集合ごとに参照と重複を見る
-            // The two boundary-block role sets mean different things, so references and duplicates are checked per set
-            errorLogs += CleanRoomBoundaryBlockSetValidator.Validate("RoomSummaryBoundaryBlockGuids", element.RoomSummaryBoundaryBlockGuids);
+            // 汚染接続点の集合の参照と重複を見る
+            // Check references and duplicates in the pollution connector set
             errorLogs += CleanRoomBoundaryBlockSetValidator.Validate("PollutionConnectorBlockGuids", element.PollutionConnectorBlockGuids);
             return string.IsNullOrEmpty(errorLogs);
 

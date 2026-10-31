@@ -6,13 +6,11 @@ using UnityEngine;
 namespace Game.CleanRoom.Info
 {
     /// <summary>
-    ///     密閉できていない理由。種別ごとの型のどれか1つだけになり、漏れセルは Openings の型だけが持つ
-    ///     Why the structure is not sealed; always exactly one per-kind type, and only the openings type carries leaking cells
+    ///     密閉できていない理由。種別ごとの型のどれか1つだけになり、漏れの件数は Openings の型だけが持つ
+    ///     Why the structure is not sealed; always exactly one per-kind type, and only the openings type carries the opening count
     /// </summary>
     public abstract class CleanRoomLeakReport
     {
-        private const int MaxReportedOpenings = 32;
-
         // 種別はこのファイルの4つの型に閉じる
         // The kinds are closed to the four types in this file
         private protected CleanRoomLeakReport()
@@ -21,11 +19,9 @@ namespace Game.CleanRoom.Info
 
         public static CleanRoomLeakReport Openings(IEnumerable<Vector3Int> cells)
         {
-            // 表示とテストが毎回同じになるよう並べてから上限で切る
-            // Sort before capping so display and tests see the same cells every time
-            var sorted = cells.Distinct().OrderBy(cell => cell.y).ThenBy(cell => cell.x).ThenBy(cell => cell.z).ToList();
-            if (sorted.Count == 0) throw new ArgumentException("漏れセルが無いなら Openings ではない / Openings needs at least one cell", nameof(cells));
-            return new CleanRoomOpeningsLeak(sorted.Take(MaxReportedOpenings).ToList(), sorted.Count);
+            var count = cells.Distinct().Count();
+            if (count == 0) throw new ArgumentException("漏れセルが無いなら Openings ではない / Openings needs at least one cell", nameof(cells));
+            return new CleanRoomOpeningsLeak(count);
         }
 
         public static CleanRoomLeakReport NoEnclosure()
@@ -46,14 +42,10 @@ namespace Game.CleanRoom.Info
 
     public sealed class CleanRoomOpeningsLeak : CleanRoomLeakReport
     {
-        // y→x→z の昇順、最大 MaxReportedOpenings 件
-        // Ascending by y, x then z, at most MaxReportedOpenings cells
-        public IReadOnlyList<Vector3Int> OpeningCells { get; }
         public int TotalOpeningCount { get; }
 
-        internal CleanRoomOpeningsLeak(IReadOnlyList<Vector3Int> openingCells, int totalOpeningCount)
+        internal CleanRoomOpeningsLeak(int totalOpeningCount)
         {
-            OpeningCells = openingCells;
             TotalOpeningCount = totalOpeningCount;
         }
     }

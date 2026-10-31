@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 
 namespace Game.CleanRoom.Info
 {
@@ -17,19 +15,16 @@ namespace Game.CleanRoom.Info
     }
 
     /// <summary>
-    ///     密閉済み。ブロックに接する部屋の要約（1件以上、共有壁なら複数）
-    ///     Enclosed: summaries of the rooms touching the block (one or more, several for a shared wall)
+    ///     密閉済み。ブロックが属する部屋の要約
+    ///     Enclosed: summary of the room the block belongs to
     /// </summary>
     public sealed class CleanRoomEnclosedInfo : CleanRoomInfo
     {
-        public IReadOnlyList<CleanRoomRoomSummary> Rooms { get; }
+        public CleanRoomRoomSummary Room { get; }
 
-        public CleanRoomEnclosedInfo(IReadOnlyList<CleanRoomRoomSummary> rooms)
+        public CleanRoomEnclosedInfo(CleanRoomRoomSummary room)
         {
-            // 「1件以上」は照会の分岐だけに任せず、型の側で閉じる
-            // Close "one or more" in the type itself instead of trusting only the query's branch
-            if (rooms.Count == 0) throw new ArgumentException("密閉済みの照会結果は部屋を1件以上持つ / An enclosed result holds at least one room", nameof(rooms));
-            Rooms = rooms;
+            Room = room;
         }
     }
 

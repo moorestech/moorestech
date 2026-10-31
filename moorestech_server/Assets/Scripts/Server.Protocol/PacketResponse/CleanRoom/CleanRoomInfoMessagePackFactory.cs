@@ -19,7 +19,7 @@ namespace Server.Protocol.PacketResponse
             // Map each per-kind type onto its per-kind factory
             return info switch
             {
-                CleanRoomEnclosedInfo enclosed => GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(enclosed.Rooms.Select(CreateSummary).ToList()),
+                CleanRoomEnclosedInfo enclosed => GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateEnclosed(CreateSummary(enclosed.Room)),
                 CleanRoomNotEnclosedInfo notEnclosed => GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack.CreateNotEnclosed(CreateLeak(notEnclosed.Leak)),
                 _ => throw new ArgumentOutOfRangeException(nameof(info), info.GetType().Name, "未対応の部屋照会結果 / Unsupported room query result"),
             };
@@ -48,7 +48,7 @@ namespace Server.Protocol.PacketResponse
                 // Map each per-kind type onto its per-kind factory; the volume cap goes only with TooLarge
                 return leak switch
                 {
-                    CleanRoomOpeningsLeak openings => CleanRoomLeakMessagePack.CreateOpenings(openings.OpeningCells.Select(cell => new Vector3IntMessagePack(cell)).ToList(), openings.TotalOpeningCount),
+                    CleanRoomOpeningsLeak openings => CleanRoomLeakMessagePack.CreateOpenings(openings.TotalOpeningCount),
                     CleanRoomNoEnclosureLeak _ => CleanRoomLeakMessagePack.CreateNoEnclosure(),
                     CleanRoomTooLargeLeak _ => CleanRoomLeakMessagePack.CreateTooLarge(CleanRoomCellSets.MaxRoomVolume),
                     CleanRoomDetectionPendingLeak _ => CleanRoomLeakMessagePack.CreateDetectionPending(),
