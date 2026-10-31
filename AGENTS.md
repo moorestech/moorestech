@@ -150,7 +150,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 # スキル配置と実行記録
 - スキルのgit正本は `.agents/skills/` のみ。`.claude/skills` と `.codex/skills` はそこへのsymlink（tracked）。ミラー実体の複製・CI同期は禁止（マージ衝突が増えるため）
 - レビュー実行記録（moores-code-reviewのrecords/eval-log）はコードrepoに置かず `../moorestech_logs/harness/` へ書く。featureブランチで記録ファイルをコミットしない
-- `../moorestech_logs` に置くのは会話記録（hook が入れる）・レビューの記録一式（moores-code-review の `$RUNDIR`）・作業の報告の md（作業の終わりに写す）・自動処理が読む小さなメタデータ（JSON 等）と、要るならスクショ3枚程度までだけ。録画・連番フレーム・Unity のログ・テスト結果 xml・ワールドやworktreeのコピーは worktree の gitignore 下に置いて worktree ごと消す（事後に開かれず、logs-sync が5分ごとに全部を永久履歴へ自動コミットするため）。テストで `Saves/` に作ったワールドは作業の終わりに消す。置き場の詳細は各スキル（sdd-archive・unity-playmode-recorded-playtest 絶対規則10/11）。記録でない種類（コードのコピー・バイナリ・動画）・2MB超・連番画像は自動コミットから外され Discord に通知される
+- `../moorestech_logs` に置くのは会話記録・レビュー記録（`$RUNDIR`）・作業報告（md・小さな JSON）と、スクショ3枚程度まで。録画・Unity のログ・テスト結果 xml・ワールドのコピーは worktree の gitignore 下に置き、worktree ごと消す（logs-sync が全部を永久履歴へ入れるため）。テストで `Saves/` に作ったワールドは作業の終わりに `list-work-saves.sh` で探して消す
 - `../moorestech_logs` 内で作業する前に同repoの `README.md` を読む（レイアウト・考古学手順・消失事故の落とし穴が書いてある）
 
 # コーディングにおける重要な原則
