@@ -1,11 +1,10 @@
 import { ackedMarkerKey, isAcked } from "../bundleMarkers";
 import type { Env } from "../env";
 import { fail, json, requireAdmin, requireMethod } from "../http";
+import { getInboxObject } from "./adminObject";
 import {
-  bundlePrefix,
   isKind,
   isSafeSegment,
-  joinSafePath,
   parsePendingIndexKey,
   PENDING_LIST_PREFIX,
   pendingIndexKey,
@@ -61,7 +60,7 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
   }
   const denied = requireMethod(request, ["GET"], "inbox object");
   if (denied !== null) return denied;
-  return getInboxObject(env, kind, steamId, id, rest);
+  return getInboxObject(request, env, kind, steamId, id, rest);
 }
 
 // 認証はrouteAdminが済ませている。ここでは呼び出さない（重複させない）
@@ -88,28 +87,6 @@ async function getInbox(request: Request, env: Env): Promise<Response> {
   }
 
   return json({ items, cursor: listed.truncated ? listed.cursor : null });
-}
-
-async function getInboxObject(
-  env: Env,
-  kind: PlaytestKind,
-  steamId: string,
-  id: string,
-  pathSegments: string[],
-): Promise<Response> {
-  const relativePath = joinSafePath(pathSegments);
-  if (relativePath === null) {
-    console.warn(`[inbox] rejected an unsafe object path: ${pathSegments.join("/")}`);
-    return fail("bad-path", 400);
-  }
-
-  const key = `${bundlePrefix(kind, steamId, id)}/${relativePath}`;
-  const object = await env.BUCKET.get(key);
-  if (object === null) {
-    console.warn(`[inbox] object not found: ${key}`);
-    return fail("not-found", 404);
-  }
-  return new Response(object.body, { headers: { "content-type": "application/octet-stream" } });
 }
 
 // ackは「ACKED済みなら冪等200→pendingの実在確認→ACKEDを書く→索引を消す」。ACKEDを先に書くので途中で落ちても取り込み済みは確定する
