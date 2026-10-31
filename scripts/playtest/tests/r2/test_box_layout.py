@@ -41,6 +41,15 @@ class WantsTest(unittest.TestCase):
         script = str(R2_STORE / "box_layout.py")
         self.assertEqual(subprocess.run([sys.executable, "-I", script, "wants", "logs/a.log"]).returncode, 0)
         self.assertEqual(subprocess.run([sys.executable, "-I", script, "wants", "video.mp4"]).returncode, 1)
+        # select は一覧から許可リストの物だけを順に出す（ingest が1箱1回だけ呼ぶ）
+        # select prints only the allowlisted entries in order (ingest calls it once per box)
+        with tempfile.TemporaryDirectory() as temp:
+            listing = Path(temp) / "files.txt"
+            listing.write_text("manifest.json\nvideo.mp4\n\nlogs/a.log\nrepo/commits.bundle\n", encoding="utf-8")
+            selected = subprocess.run([sys.executable, "-I", script, "select", str(listing)], capture_output=True, text=True)
+            self.assertEqual((selected.returncode, selected.stdout), (0, "manifest.json\nlogs/a.log\n"))
+            missing = subprocess.run([sys.executable, "-I", script, "select", str(Path(temp) / "absent.txt")], capture_output=True)
+            self.assertNotEqual(missing.returncode, 0)
         usage = subprocess.run([sys.executable, "-I", script, "finalize", "box", "bogus", "s", "i", "list"],
                                capture_output=True, text=True)
         self.assertEqual(usage.returncode, 2)

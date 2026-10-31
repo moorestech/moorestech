@@ -82,6 +82,25 @@ class RemoteMediaTest(unittest.TestCase):
         self.assertIn("video.mp4", rows["ready_only"]["media"])
         self.assertNotIn("video.mp4", rows["nothing_remote"]["media"])
 
+    def test_unreadable_remote_json_warns_without_ready_fallback(self):
+        box = add_box(self.reports, "765", "broken_remote")
+        (box / "remote.json").write_text("{broken", encoding="utf-8")
+        write_json(box / "READY", {"files": ["video.mp4"]})
+        with mock.patch.object(collect_reports, "warn") as warn:
+            self.assertEqual(collect_reports.remote_files(box), frozenset())
+        warn.assert_called_once()
+        self.assertEqual(warn.call_args.args[1], box / "remote.json")
+
+    def test_missing_remote_json_and_ready_warns(self):
+        box = add_box(self.reports, "765", "no_index")
+        with mock.patch.object(collect_reports, "warn") as warn:
+            self.assertEqual(collect_reports.remote_files(box), frozenset())
+        self.assertIn("READY も無く", warn.call_args.args[0])
+        write_json(box / "READY", {"files": "not-a-list"})
+        with mock.patch.object(collect_reports, "warn") as warn:
+            self.assertEqual(collect_reports.remote_files(box), frozenset())
+        self.assertIn("files[] を読めない", warn.call_args.args[0])
+
     def test_resolve_media_tells_local_from_remote(self):
         box = add_box(self.reports, "765", "r1")
         (box / "screenshot.png").write_bytes(b"png")
