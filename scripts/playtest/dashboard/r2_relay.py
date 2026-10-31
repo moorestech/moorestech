@@ -74,7 +74,8 @@ def relay(handler: BaseHTTPRequestHandler, env_file: Path, steam_id: str, report
     try:
         response = OPENER.open(request, timeout=TIMEOUT_SECONDS)
     except urllib.error.HTTPError as error:
-        body = error.read(200).decode("utf-8", "replace")
+        with error:
+            body = error.read(200).decode("utf-8", "replace")
         print(f"[dashboard] R2 中継 {error.code}: {steam_id}/{report_id}/{name} {body}", file=sys.stderr)
         handler.send_error(error.code if error.code in (404, 410, 416) else 502)
         return
