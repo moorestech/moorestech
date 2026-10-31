@@ -8,7 +8,7 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 . "$HERE/ingest-fixture.sh"
 
 run_import() {
-  MOORESTECH_LOGS="$LOGS" PLAYTEST_ENV_FILE=/dev/null STEAM_WEB_API_KEY=dummy STEAM_CURL_CMD=steam_stub_curl \
+  MOORESTECH_LOGS="$LOGS" MOORESTECH_PLAYTEST_RAW="$RAWSTORE" PLAYTEST_ENV_FILE=/dev/null STEAM_WEB_API_KEY=dummy STEAM_CURL_CMD=steam_stub_curl \
   GIT_PUSH=0 TMPDIR="$ISOLATED_TMPDIR" bash "$HERE/../import-export-zip.sh" "$1"
 }
 
@@ -41,9 +41,13 @@ BUG="$P/reports/7656001/20261019_150326_bug1"
 make_zip "$TMP/export.zip"
 rc=0; run_import "$TMP/export.zip" > "$TMP/run1.log" 2>&1 || rc=$?
 [ "$rc" -eq 1 ] || { echo "NG: steamId 無しの箱があるのに終了コードが $rc"; exit 1; }
-for f in manifest.json video.mp4 READY ingest.json export-markers/UPLOAD_FAILED; do
+for f in manifest.json READY ingest.json raw.json export-markers/UPLOAD_FAILED; do
   [ -f "$BUG/$f" ] || { echo "NG: $f が置かれていない"; exit 1; }
 done
+# 動画は logs repo へ入れず生データ置き場へ置く
+# The video goes to the raw store, never into the logs repo
+[ ! -e "$BUG/video.mp4" ] && [ "$(cat "$RAWSTORE/reports/7656001/20261019_150326_bug1/video.mp4")" = MP4 ] \
+  || { echo "NG: 動画が生データ置き場へ分かれていない"; exit 1; }
 [ ! -e "$BUG/UPLOAD_FAILED" ] || { echo "NG: 失敗印が箱直下に残った"; exit 1; }
 [ "$(cat "$BUG/export-markers/UPLOAD_FAILED")" = reason-x ] || { echo "NG: 失敗理由が読めない"; exit 1; }
 python3 -I - "$BUG/READY" <<'PY' || { echo "NG: READY の形が違う"; exit 1; }

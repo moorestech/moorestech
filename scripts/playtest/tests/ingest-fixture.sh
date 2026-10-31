@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # 取り込みテストの共通下ごしらえ（logs repo・偽 R2・curl スタブ・run_ingest）。呼び出し側が HERE と TMP を定義してから source する
 # Shared setup for the ingest tests (logs repo, fake R2, curl stub, run_ingest); the caller defines HERE and TMP before sourcing
-LOGS="$TMP/logs"; R2="$TMP/r2"
-mkdir -p "$LOGS/harness/playtest" "$LOGS/harness/bug-report/inbox" "$R2/objects"
+LOGS="$TMP/logs"; R2="$TMP/r2"; RAWSTORE="$TMP/raw"
+mkdir -p "$LOGS/harness/playtest" "$LOGS/harness/bug-report/inbox" "$R2/objects" "$RAWSTORE"
 ( cd "$LOGS" && git init -q && git config user.email t@t && git config user.name t \
   && echo x > .gitkeep && git add -A && git commit -qm init )
 
@@ -106,7 +106,7 @@ export TMP
 ISOLATED_TMPDIR="$TMP/tmpdir"; mkdir -p "$ISOLATED_TMPDIR"
 
 run_ingest() {
-  MOORESTECH_LOGS="$LOGS" PLAYTEST_ENV_FILE=/dev/null PLAYTEST_ADMIN_KEY=dummy \
+  MOORESTECH_LOGS="$LOGS" MOORESTECH_PLAYTEST_RAW="$RAWSTORE" PLAYTEST_ENV_FILE=/dev/null PLAYTEST_ADMIN_KEY=dummy \
   FAKE_R2="$R2" CURL_CMD="$TMP/curl" STEAM_CURL_CMD=steam_stub_curl \
   GIT_PUSH="${GIT_PUSH:-0}" TMPDIR="$ISOLATED_TMPDIR" bash "$HERE/../ingest.sh"
 }

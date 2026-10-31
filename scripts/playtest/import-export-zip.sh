@@ -24,6 +24,8 @@ fi
 . "$HERE/lib/steam-persona.sh"
 # shellcheck source=lib/logs-commit.sh
 . "$HERE/lib/logs-commit.sh"
+# shellcheck source=lib/raw-store.sh
+. "$HERE/lib/raw-store.sh"
 
 LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 PLAYTEST_DIR="$LOGS/harness/playtest"
@@ -71,7 +73,8 @@ import_one() {
     || { log "ERROR: 表示名の結果を書けない $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
   python3 -I "$HERE/lib/ingest_metadata.py" "$kind" "$steam_id" "$id" "$exported_at" "$(now_utc)" "$persona_file" "$partial/ingest.json" \
     || { log "ERROR: ingest.json 書き込み失敗 $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
-  mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> $dest"; rm -rf "$partial"; return 1; }
+  raw_publish_box "$sub" "$steam_id" "$id" "$partial" "$dest" \
+    || { log "ERROR: 箱を公開できない $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
   log "imported: $sub/$steam_id/$id"
 }
 
@@ -80,6 +83,7 @@ ZIP="$1"
 # logs repo が無ければ何も触らず止める（ingest.sh と同じ fail-closed）
 # Touch nothing when the logs repo is absent (fail closed, like ingest.sh)
 [ -d "${LOGS}/.git" ] || { log "ERROR: logs repo が無い（${LOGS}）。取り込まない"; exit 1; }
+require_raw_store || exit 1
 
 acquire_lock || { log "ERROR: 別の取り込みが進行中でロックを取れない。後でやり直す"; exit 1; }
 WORK="$(mktemp -d)"

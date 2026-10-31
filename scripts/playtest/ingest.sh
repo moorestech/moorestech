@@ -33,6 +33,8 @@ fi
 . "$HERE/lib/steam-persona.sh"
 # shellcheck source=lib/logs-commit.sh
 . "$HERE/lib/logs-commit.sh"
+# shellcheck source=lib/raw-store.sh
+. "$HERE/lib/raw-store.sh"
 
 LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 PLAYTEST_DIR="$LOGS/harness/playtest"
@@ -107,7 +109,8 @@ ingest_one() {
       "$kind" "$steam_id" "$id" "$ready_at" "$(now_utc)" "$persona_file" "$partial/ingest.json" \
       || { log "ERROR: ingest.json 書き込み失敗 $kind/$steam_id/$id（ack しない）"; rm -rf "$partial"; return 1; }
     mkdir -p "$(dirname "$dest")" || { log "ERROR: mkdir 失敗 $dest（ack しない）"; rm -rf "$partial"; return 1; }
-    mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> $dest（ack しない）"; rm -rf "$partial"; return 1; }
+    raw_publish_box "$sub" "$steam_id" "$id" "$partial" "$dest" \
+      || { log "ERROR: 箱を公開できない $kind/$steam_id/${id}（ack しない）"; rm -rf "$partial"; return 1; }
     log "ingested: $kind/$steam_id/$id"
   else
     log "取り込み済み。ack のみやり直す: $kind/$steam_id/$id"
@@ -121,6 +124,7 @@ ingest_one() {
 # Stop before touching the receiver if the logs repo is absent: a location-derived
 # default resolves to nothing outside the main clone (task worktrees etc.), so fail closed here
 [ -d "${LOGS}/.git" ] || { log "ERROR: logs repo が無い（${LOGS}）。取り込み・ack をしない"; exit 1; }
+require_raw_store || exit 1
 
 acquire_lock || exit 0
 WORK="$(mktemp -d)"

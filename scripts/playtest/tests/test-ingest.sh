@@ -38,12 +38,12 @@ run_ingest
 P="$LOGS/harness/playtest"
 [ -f "$P/reports/7656001/20260913_100000_bug1/manifest.json" ] || { echo "NG: バグ報告が置かれていない"; exit 1; }
 [ -f "$P/reports/7656001/20260913_100000_bug1/ingest.json" ] || { echo "NG: ingest.json が無い"; exit 1; }
-[ "$(cat "$P/reports/7656001/20260913_100000_bug1/.persona.json")" = tester-file ] || { echo "NG: テスターの .persona.json が上書きされた"; exit 1; }
+[ "$(cat "$RAWSTORE/reports/7656001/20260913_100000_bug1/.persona.json")" = tester-file ] || { echo "NG: テスターの .persona.json が上書きされた"; exit 1; }
 grep -q '"readyAt":"2026-09-13T01:00:00Z"' "$P/reports/7656001/20260913_100000_bug1/ingest.json" || { echo "NG: readyAt が写っていない"; exit 1; }
 [ -f "$P/reports/7656002/20260913_110000_fb1/manifest.json" ] || { echo "NG: 感想が置かれていない"; exit 1; }
 [ -f "$P/progress/7656001/20260913_120000_pg1/record.json" ] || { echo "NG: 進行記録が置かれていない"; exit 1; }
 [ ! -e "$P/reports/7656003/20260913_130000_bad1" ] || { echo "NG: files[] 無しの箱が公開された"; exit 1; }
-[ -f "$P/reports/7656004/20260913_140000_bug2/note #1 メモ.txt" ] || { echo "NG: 空白/#/日本語を含むファイル名が取り込まれていない"; exit 1; }
+[ -f "$RAWSTORE/reports/7656004/20260913_140000_bug2/note #1 メモ.txt" ] || { echo "NG: 空白/#/日本語を含むファイル名が取り込まれていない"; exit 1; }
 grep -q 'report/7656004/20260913_140000_bug2/ack' "$R2/acked.txt" || { echo "NG: 特殊文字ファイル名の箱が ack されていない"; exit 1; }
 grep -qF 'report/7656004/20260913_140000_bug2/note%20%231%20%E3%83%A1%E3%83%A2.txt' "$R2/requested.txt" || { echo "NG: 特殊文字ファイル名がURLエンコード済みの形で届いていない"; exit 1; }
 
