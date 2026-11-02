@@ -110,8 +110,11 @@ namespace Core.Master.Validator
 
                     logs += CheckCapacity("inputItems", recipe.InputItems.Length, machineParam.InputSlotCount);
                     logs += CheckCapacity("outputItems", recipe.OutputItems.Length, machineParam.OutputSlotCount);
-                    logs += CheckCapacity("inputFluids", recipe.InputFluids.Length, machineParam.InputTankCount);
-                    logs += CheckCapacity("outputFluids", recipe.OutputFluids.Length, machineParam.OutputTankCount);
+                    // タンクを持たない機械はタンク0として液体レシピを拒否する
+                    // Machines without tanks count as zero tanks and reject fluid recipes
+                    var tankParam = machineParam as IMachineFluidTankParam;
+                    logs += CheckCapacity("inputFluids", recipe.InputFluids.Length, tankParam != null ? tankParam.InputTankCount : 0);
+                    logs += CheckCapacity("outputFluids", recipe.OutputFluids.Length, tankParam != null ? tankParam.OutputTankCount : 0);
 
                     string CheckCapacity(string fieldName, int count, int slotCount)
                     {

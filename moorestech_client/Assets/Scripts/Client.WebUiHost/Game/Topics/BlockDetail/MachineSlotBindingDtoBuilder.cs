@@ -57,6 +57,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             var bindings = new List<MachineTankBindingDto>();
             if (recipe == null) return bindings;
 
+            // 出力タンクの番号は入力タンク数の後ろから振る。タンクを持たない機械は0
+            // Output tank indices follow the input tanks; tankless machines count as zero
+            var inputTankCount = machineParam is IMachineFluidTankParam tankParam ? tankParam.InputTankCount : 0;
+
             for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
                 bindings.Add(CreateBinding(i, recipe.InputFluids[i].FluidGuid, recipe.InputFluids[i].Amount));
@@ -64,7 +68,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             for (var j = 0; j < recipe.OutputFluids.Length; j++)
             {
-                bindings.Add(CreateBinding(machineParam.InputTankCount + j, recipe.OutputFluids[j].FluidGuid, recipe.OutputFluids[j].Amount));
+                bindings.Add(CreateBinding(inputTankCount + j, recipe.OutputFluids[j].FluidGuid, recipe.OutputFluids[j].Amount));
             }
 
             return bindings;
