@@ -82,19 +82,13 @@
   min-height: 0;
   padding: 10px;
 }
-/* 器いっぱいに伸ばす土台と違い、ペインは中身なりの高さを保ちたいので基準をautoにして縮むだけにする */
-/* Unlike the fill-the-container base, the pane keeps its content height, so use an auto basis and only shrink */
 .detailScroll {
   composes: scroll from "../../shared/ui/panelBodyScrollArea.module.css";
-  flex: 0 1 auto;
-}
-.detailScroll :global(.mantine-ScrollArea-viewport) {
-  flex: 0 1 auto;
 }
 /* 中身はflex列で並べ、従来の8px間隔を保つ */
 /* Lay the content out as a flex column keeping the former 8px gap */
 .detailScroll :global(.mantine-ScrollArea-content) {
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   gap: 8px;
 }
@@ -120,13 +114,13 @@
   font-size: 13px;
   color: var(--text-default);
 }
-/* 所持/必要ラベルとアイコン行の下はみ出し(最大6px)を行内に収め、スクロール域に偽の溢れを作らない */
-/* Absorb the up-to-6px overhang of count labels and icon line boxes so the scroller sees no phantom overflow */
+/* 下はみ出しをトークン分だけ行内に収め、スクロール域に偽の溢れを作らない */
+/* Absorb the bottom overhang via the token so the scroller sees no phantom overflow */
 .detailSlots {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
-  padding-bottom: 6px;
+  padding-bottom: var(--research-detail-slots-bleed);
 }
 /* 主要アクション: 青グラデはこのボタン限定 */
 /* Primary action: the blue gradient is exclusive to this button */

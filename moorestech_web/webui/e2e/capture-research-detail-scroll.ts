@@ -1,5 +1,5 @@
-// 研究詳細ペインのスクロール目視QA撮影（解放物が極端に多いノード）
-// Visual QA capture for the research detail pane scroll (a node with a huge number of unlocks)
+// 研究詳細ペインのスクロール目視QA撮影
+// Visual QA capture for research detail pane scrolling
 
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -40,8 +40,8 @@ async function shoot(page: Page, name: string) {
 }
 
 async function captureHugeAndSmallPanes(page: Page) {
-  // 巨大ノード: 開いた直後とホイール後を撮り、ペインと研究ボタンの矩形を記録する
-  // Huge node: shoot before and after wheeling, and log the pane and research-button boxes
+  // 巨大ノードの開直後とホイール後を撮影
+  // Huge node: shoot before and after wheeling
   await page.getByTestId(`research-node-${researchableNodeGuid}`).click();
   const pane = page.getByTestId("research-detail-pane");
   await pane.waitFor();
@@ -56,8 +56,8 @@ async function captureHugeAndSmallPanes(page: Page) {
   const button = page.getByTestId(`research-button-${researchableNodeGuid}`);
   console.log(JSON.stringify({ viewport: VIEWPORT, huge: { pane: await pane.boundingBox(), button: await button.boundingBox() } }));
 
-  // 小さいノード: 中身なりの高さに戻り、偽の溢れ(スクロールバー)が出ないことを数値でも確かめる
-  // Small node: the pane shrinks to its content and the viewport reports no phantom overflow
+  // 小ノードで偽の溢れが無いか数値確認
+  // Small node: verify no phantom overflow numerically
   await page.getByTestId(`research-node-${itemLackingNodeGuid}`).click();
   await page.mouse.move(2, 2);
   await shoot(page, "small.png");
