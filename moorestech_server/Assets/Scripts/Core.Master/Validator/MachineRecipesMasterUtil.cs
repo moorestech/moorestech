@@ -1,6 +1,7 @@
 using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
+using Core.Master.Machine;
 
 namespace Core.Master.Validator
 {
@@ -110,11 +111,9 @@ namespace Core.Master.Validator
 
                     logs += CheckCapacity("inputItems", recipe.InputItems.Length, machineParam.InputSlotCount);
                     logs += CheckCapacity("outputItems", recipe.OutputItems.Length, machineParam.OutputSlotCount);
-                    // タンクを持たない機械はタンク0として液体レシピを拒否する
-                    // Machines without tanks count as zero tanks and reject fluid recipes
-                    var tankParam = machineParam as IMachineFluidTankParam;
-                    logs += CheckCapacity("inputFluids", recipe.InputFluids.Length, tankParam != null ? tankParam.InputTankCount : 0);
-                    logs += CheckCapacity("outputFluids", recipe.OutputFluids.Length, tankParam != null ? tankParam.OutputTankCount : 0);
+                    var tanks = MachineFluidTankCounts.From(machineParam);
+                    logs += CheckCapacity("inputFluids", recipe.InputFluids.Length, tanks.InputTankCount);
+                    logs += CheckCapacity("outputFluids", recipe.OutputFluids.Length, tanks.OutputTankCount);
 
                     string CheckCapacity(string fieldName, int count, int slotCount)
                     {

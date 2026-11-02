@@ -4,6 +4,7 @@ using Core.Master;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
+using Core.Master.Machine;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
@@ -57,9 +58,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             var bindings = new List<MachineTankBindingDto>();
             if (recipe == null) return bindings;
 
-            // 出力タンクの番号は入力タンク数の後ろから振る。タンクを持たない機械は0
-            // Output tank indices follow the input tanks; tankless machines count as zero
-            var inputTankCount = machineParam is IMachineFluidTankParam tankParam ? tankParam.InputTankCount : 0;
+            // 出力タンクの番号は入力タンク数の後ろから振る
+            // Output tank indices follow the input tanks
+            var inputTankCount = MachineFluidTankCounts.From(machineParam).InputTankCount;
 
             for (var i = 0; i < recipe.InputFluids.Length; i++)
             {

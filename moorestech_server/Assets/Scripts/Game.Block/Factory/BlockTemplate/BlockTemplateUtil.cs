@@ -21,6 +21,7 @@ using Mooresmaster.Model.InventoryConnectsModule;
 using Mooresmaster.Model.MachineRecipesModule;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
+using Core.Master.Machine;
 
 namespace Game.Block.Factory.BlockTemplate
 {
@@ -41,18 +42,13 @@ namespace Game.Block.Factory.BlockTemplate
             var inputSlotCount = machineParam.InputSlotCount;
             var outputSlotCount = machineParam.OutputSlotCount;
             
-            // タンクは液体タンクを持つ機械だけが定義し、歯車機械等はタンク0で組む
-            // Only fluid-tank machines define tanks; gear machines and others are built with zero tanks
-            var tankParam = machineParam as IMachineFluidTankParam;
-            var inputTankCount = tankParam != null ? tankParam.InputTankCount : 0;
-            var outputTankCount = tankParam != null ? tankParam.OutputTankCount : 0;
-            var innerTankCapacity = tankParam != null ? tankParam.InnerTankCapacity : 0;
+            var tanks = MachineFluidTankCounts.From(machineParam);
             
             var input = new VanillaMachineInputInventory(
                 blockId,
                 inputSlotCount,
-                inputTankCount,
-                innerTankCapacity,
+                tanks.InputTankCount,
+                tanks.InnerTankCapacity,
                 blockInventoryUpdateEvent,
                 blockInstanceId,
                 ServerContext.GetService<IGameUnlockStateDataController>(),
@@ -60,7 +56,7 @@ namespace Game.Block.Factory.BlockTemplate
             );
             
             var output = new VanillaMachineOutputInventory(
-                outputSlotCount, outputTankCount, innerTankCapacity, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
+                outputSlotCount, tanks.OutputTankCount, tanks.InnerTankCapacity, ServerContext.ItemStackFactory, blockInventoryUpdateEvent, blockInstanceId,
                 inputSlotCount, blockConnectorComponent);
 
             // モジュールスロットは第3レンジとして生成
