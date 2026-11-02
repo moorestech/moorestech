@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             // G3ウェハ2枚は600個に切られ、Lv1〜Lv3と失敗ダイに分かれる（Lv3が0個の確率は約0.87^255）
             // Two G3 wafers become 600 dies split into Lv1-Lv3 and failed dies (no Lv3 has odds ~0.87^255)
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWaferG1, 2);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWafer, 2);
             var collected = RunAndCollect(filter, machine, DiesPerWafer * 2, TickCap);
 
             var levelOne = CountOf(collected, ForUnitTestItemId.TestDieLv1);
@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             // G1の表は[1]なので、良品は全部Lv1（品質ゲート）
             // G1's table is [1], so every good die is Lv1 (the quality gate)
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWaferG1, 2);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWafer, 2);
             var collected = RunAndCollect(filter, machine, DiesPerWafer * 2, TickCap);
 
             Assert.AreEqual(0, CountOf(collected, ForUnitTestItemId.TestDieLv2));
@@ -69,7 +69,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             // 失敗ダイのスロットを満杯にすると、抽選済みの失敗ダイ（損失0個の確率は0.9^300未満）が入らず加工が始まらない
             // With the failed-die slot full, the drawn failed dies (zero losses has odds below 0.9^300) cannot fit and the job never starts
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWaferG1, 1);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWafer, 1);
             inventory.SetItem(FailedDieSlot, ForUnitTestItemId.TestFailedDie, FailedDieMaxStack);
             for (var i = 0; i < 600; i++)
             {
@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             // 生産性効果1.0は追加1セットを必ず出す。G3ウェハ1枚から同じ抽選の2セット（計600個）が出て、各スロットに収まる
             // A productivity effect of 1.0 always adds one set: one G3 wafer yields two copies of one draw (600 dies) that fit their slots
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWaferG1, 1);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWafer, 1);
             var collected = RunAndCollect(filter, machine, DiesPerWafer * 2, TickCap);
 
             var counts = new[]

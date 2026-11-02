@@ -75,9 +75,9 @@ namespace Tests.CombinedTest.Core.Machine
         private static void LoadWithFullOutputsAfterSettledIdle(IBlock filter, IBlock machine)
         {
             var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
-            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestGradedWaferG1);
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestGradedWafer);
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 1);
-            for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWaferG1, maxStack);
+            for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWafer, maxStack);
             TickRoom(filter, machine);
             Assert.AreEqual(ProcessState.Idle, machine.GetComponent<CleanRoomMachineProcessorComponent>().CurrentState);
             Assert.IsFalse(ReadOutputSpaceShort(machine.GetComponent<CleanRoomMachineProcessorComponent>()), "IPA投入前は入力不足で理由を持たない");

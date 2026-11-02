@@ -102,12 +102,12 @@ properties:
           type: integer
         - key: maxLossReduction
           type: number
-        # レア枠へ移せる割合の上限
-        # Maximum share shifted into the rare slot
+        # 品質モジュール最高Tierでレア枠へ移せる割合の上限
+        # Cap on the share the quality sum can move into the rare slot
         - key: maxRareShift
           type: number
-        # 品質最高Tier順のダイ表
-        # Die tables ordered by highest quality tier
+        # 品質最高Tier 0〜最大レベルの順に並ぶダイ表。Tier t は Lv t が既定・Lv t+1 がレア・それ未満と失敗ダイが失敗枠
+        # Die tables ordered by highest quality tier 0..max level; tier t has Lv t default, Lv t+1 rare, lower levels and the failed die as the failure slot
         - key: qualityTierDieTables
           type: array
           items:

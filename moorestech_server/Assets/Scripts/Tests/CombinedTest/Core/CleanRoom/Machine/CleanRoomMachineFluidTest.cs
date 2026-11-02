@@ -58,7 +58,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             // Adding 30 consumes exactly one batch of 10 and yields G1
             TopUpIpa(machine, 30);
             for (var i = 0; i < 800 && inventory.GetItem(FirstOutputSlot).Count == 0; i++) TickRoom(filter, machine);
-            Assert.AreEqual(ForUnitTestItemId.TestGradedWaferG1, inventory.GetItem(FirstOutputSlot).Id);
+            Assert.AreEqual(ForUnitTestItemId.TestGradedWafer, inventory.GetItem(FirstOutputSlot).Id);
             Assert.AreEqual(20, ReadInputFluid(machine).Amount, 1e-9);
         }
 

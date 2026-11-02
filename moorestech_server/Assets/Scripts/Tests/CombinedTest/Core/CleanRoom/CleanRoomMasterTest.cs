@@ -72,6 +72,9 @@ namespace Tests.CombinedTest.Core.CleanRoom
         public void DepositionRecipeHasNoRoleTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 成膜はグレード抽選を失い、役割を持たない普通の工程になる
+            // Deposition lost its grade draw and is now a plain process with no role
             Assert.IsFalse(MasterHolder.CleanRoomMaster.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, out _));
         }
 
@@ -104,8 +107,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var (_, _) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // ダイシングの表はグレード順に並び、1枚あたりのダイ数とダイのレベル数が索引時に解決済み
-            // The dicing tables are ordered by grade, and the dies per wafer and die level count are resolved at indexing
+            // ダイシングの表は品質Tier 0〜最大レベルの順に並び、1枚あたりのダイ数とダイのレベル数が索引時に解決済み
+            // The dicing tables are ordered by quality tier 0..max level, and the dies per wafer and die level count are resolved at indexing
             var master = MasterHolder.CleanRoomMaster;
             Assert.IsTrue(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, out var role));
             Assert.IsInstanceOf<DicingRecipeRole>(role);
@@ -125,11 +128,15 @@ namespace Tests.CombinedTest.Core.CleanRoom
         public void DicingRoleRejectsInheritanceRecipeTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // ダイシングの役割表が継承レシピを指すと、起動時の検証が levelInheritance None を求めて止める
+            // When the dicing role table points at an inheritance recipe, boot validation stops it by requiring levelInheritance None
             var json = JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
             json["data"][0]["dicings"][0]["machineRecipeGuid"] = ForUnitTestLevelInheritanceIds.InheritRecipeGuid.ToString();
             Assert.IsFalse(new CleanRoomMaster(json).Validate(out var logs));
-            StringAssert.Contains("levelInheritance must be None", logs);
+            StringAssert.Contains($"Dicings MachineRecipeGuid:{ForUnitTestLevelInheritanceIds.InheritRecipeGuid} levelInheritance must be None", logs);
         }
+
         [Test]
         public void RoleChanceRequiresFiniteUnitIntervalTest(
             [Values("layerExposures", "dicings")] string role,

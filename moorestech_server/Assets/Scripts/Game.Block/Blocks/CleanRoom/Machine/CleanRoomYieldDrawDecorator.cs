@@ -53,7 +53,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // 抽選に使う率を表示と同じ式で記録し、出力待ちの間はこの値を確定済みの効果として見せる
             // Record the draw's rates through the display's own formula, shown as the fixed effect while the outputs wait
             var context = StartCycle();
-            drawRecord = CleanRoomYieldPreview.Evaluate(role, context.ClassYield, moduleEffect, context, inheritedLevel, out var outputs);
+            drawRecord = CleanRoomYieldPreview.Evaluate(role, context.ClassYield, moduleEffect, context, out var outputs);
             return outputs;
 
             #region Internal

@@ -18,10 +18,10 @@ namespace Tests.Module.TestMod
         public static ItemId TestCleanRoomFilter => MasterHolder.ItemMaster.GetItemId(Guid.Parse("6e355e23-8e9e-46d2-9405-b0e6bb612890"));
         public static ItemId TestChipRawWafer => MasterHolder.ItemMaster.GetItemId(Guid.Parse("78274378-9a98-4826-8dea-80f7eb52a5ed"));
 
-        // 清浄室工程テスト用のグレード付きウェハ（G1が基準のレベルファミリー）
-        // Graded wafers for clean-room process tests (a level family based on G1)
-        public static ItemId TestGradedWaferG1 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("75a25126-5568-40d8-8028-509f202c4207"));
-        public static ItemId TestLayeredWaferG1 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("1bbb9ba9-403f-47ab-a601-ae74fe444acd"));
+        // 清浄室工程テスト用のウェハ（グレード無し）
+        // Wafers for clean-room process tests (no grades)
+        public static ItemId TestGradedWafer => MasterHolder.ItemMaster.GetItemId(Guid.Parse("75a25126-5568-40d8-8028-509f202c4207"));
+        public static ItemId TestLayeredWafer => MasterHolder.ItemMaster.GetItemId(Guid.Parse("1bbb9ba9-403f-47ab-a601-ae74fe444acd"));
         public static ItemId TestFailedPatternWafer => MasterHolder.ItemMaster.GetItemId(Guid.Parse("4f0fa5e5-121e-4c92-a0cb-a9ef810921a8"));
         public static ItemId TestDieLv1 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("f03a661b-041b-4981-bb06-39b7d32ae0d5"));
         public static ItemId TestDieLv2 => MasterHolder.ItemMaster.GetItemId(Guid.Parse("975b4ab5-978c-44fb-9be1-2489ea707d41"));

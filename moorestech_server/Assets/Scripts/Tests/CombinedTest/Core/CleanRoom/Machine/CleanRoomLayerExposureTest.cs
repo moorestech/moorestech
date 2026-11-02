@@ -32,9 +32,9 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             MasterHolder.Load(container);
             var filter = BuildSmallCleanRoomWithFilter();
             var machine = PlaceProcessMachine();
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWaferG1, WaferCount);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWafer, WaferCount);
             var collected = RunAndCollect(filter, machine, WaferCount, TickCap);
-            Assert.AreEqual(WaferCount * (1 - failRate), CountOf(collected, ForUnitTestItemId.TestLayeredWaferG1));
+            Assert.AreEqual(WaferCount * (1 - failRate), CountOf(collected, ForUnitTestItemId.TestLayeredWafer));
             Assert.AreEqual(WaferCount * failRate, CountOf(collected, ForUnitTestItemId.TestFailedPatternWafer));
         }
 
@@ -47,13 +47,13 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             // G2のウェハは成功ならG2の次層ウェハ、失敗なら失敗パターンウェハになり、他のグレードには化けない
             // A G2 wafer becomes a G2 layered wafer on success or a failed pattern wafer, never another grade
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWaferG1, WaferCount);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWafer, WaferCount);
             var collected = RunAndCollect(filter, machine, WaferCount, TickCap);
 
-            var layeredGradeTwo = CountOf(collected, ForUnitTestItemId.TestLayeredWaferG1);
+            var layeredGradeTwo = CountOf(collected, ForUnitTestItemId.TestLayeredWafer);
             Assert.AreEqual(WaferCount, layeredGradeTwo + CountOf(collected, ForUnitTestItemId.TestFailedPatternWafer));
-            Assert.AreEqual(0, CountOf(collected, ForUnitTestItemId.TestLayeredWaferG1));
-            Assert.AreEqual(0, CountOf(collected, ForUnitTestItemId.TestLayeredWaferG1));
+            Assert.AreEqual(0, CountOf(collected, ForUnitTestItemId.TestLayeredWafer));
+            Assert.AreEqual(0, CountOf(collected, ForUnitTestItemId.TestLayeredWafer));
             Assert.Greater(layeredGradeTwo, 0);
         }
     }

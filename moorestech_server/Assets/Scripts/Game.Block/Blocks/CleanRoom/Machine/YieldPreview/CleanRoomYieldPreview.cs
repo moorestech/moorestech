@@ -28,13 +28,13 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
             // A halted room effect has no class values, so report it as halted instead of building numbers
             if (!cleanRoomEffect.TryGetClassYield(out var classYield)) return NotOperablePreview.Instance;
 
-            return Evaluate(role, classYield, moduleEffect, null, null, out _);
+            return Evaluate(role, classYield, moduleEffect, null, out _);
         }
 
         // Previewと実抽選を同じ役割分岐で選ぶ
         // Select preview and actual draw through one role dispatch
         internal static CleanRoomYieldPreviewResult Evaluate(CleanRoomRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect,
-            CleanRoomYieldRollContext? roll, int? inheritedLevel, out List<IItemStack> outputs)
+            CleanRoomYieldRollContext? roll, out List<IItemStack> outputs)
         {
             outputs = null;
             switch (role)
@@ -43,11 +43,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
                     if (roll.HasValue) outputs = LayerExposureOutputRewriter.Rewrite(layer, roll.Value);
                     return new LayerExposurePreview(CleanRoomRoleRates.LayerFailRate(layer, classYield, moduleEffect));
                 case DicingRecipeRole dicing:
-                    if (roll.HasValue)
-                    {
-                        if (!inheritedLevel.HasValue) throw new InvalidOperationException("ダイシングの抽選に継承グレードがありません");
-                        outputs = DicingOutputRewriter.Rewrite(dicing, inheritedLevel.Value, roll.Value);
-                    }
+                    if (roll.HasValue) outputs = DicingOutputRewriter.Rewrite(dicing, roll.Value);
                     return new DicingPreview(CleanRoomRoleRates.DieLossRate(dicing, classYield, moduleEffect));
                 default:
                     throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role");

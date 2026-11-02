@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -6,27 +7,30 @@ using Game.Block.Blocks.CleanRoom.Machine.Yield;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
-    // ダイシング: 1枚を diesPerWafer 個に切り、損失を失敗ダイへ、残りをグレードのダイ表でレベル別に振り分ける
-    // Dicing: cut one wafer into diesPerWafer dies, send losses to failed dies and split survivors by level with the grade's die table
+    // ダイシング: 1枚を diesPerWafer 個に切り、損失を失敗ダイへ、残りを品質Tierのダイ表でレベル別か失敗ダイへ振り分ける
+    // Dicing: cut one wafer into diesPerWafer dies, send losses to failed dies and split survivors by the quality tier's die table into levels or failed dies
     internal static class DicingOutputRewriter
     {
-        public static List<IItemStack> Rewrite(DicingRecipeRole role, int gradeLevel, CleanRoomYieldRollContext context)
+        public static List<IItemStack> Rewrite(DicingRecipeRole role, CleanRoomYieldRollContext context)
         {
-            // グレードは入力ウェハから受け継いだレベル。役割の検証が Inherit と「表の数＝グレード数」を保証するので丸めない
-            // The grade is the level inherited from the input wafer; validation guarantees Inherit and one table per grade, so no clamping
+            // 暫定: 最高品質Tierの表をそのまま使う（レア枠シフトは Task 2 で入れる）
+            // Interim: use the highest quality tier's table as-is (the rare-slot shift arrives in Task 2)
             var dicing = role.Dicing;
+            var tier = Math.Clamp(context.ModuleEffect.HighestQualityModuleTier, 0, dicing.QualityTierDieTables.Length - 1);
+            var table = dicing.QualityTierDieTables[tier];
+            var rates = new List<float>(table.LevelRates) { table.FailedRate };
             var lossRate = CleanRoomRoleRates.DieLossRate(role, context.ClassYield, context.ModuleEffect);
-            var result = ChipYieldDraw.DrawDicing(dicing.DiesPerWafer, lossRate, dicing.QualityTierDieTables[gradeLevel - 1].LevelRates, context.Random);
+            var result = ChipYieldDraw.DrawDicing(dicing.DiesPerWafer, lossRate, rates, context.Random);
 
-            // 出力は [ダイLv1..LvN, 失敗ダイ]。工場が継承先（Lv1 の枠）を投入グレードの変種にしているので、レベル列のIDは全部書き直す
-            // Outputs are [die Lv1..LvN, failed die]; the factory set the inheritance target (the Lv1 slot) to the input grade's variant, so rewrite every level id
+            // 出力は [ダイLv1..LvN, 失敗ダイ]。表の末尾（失敗枠）は損失と合わせて失敗ダイへ出す
+            // Outputs are [die Lv1..LvN, failed die]; the table's last slot (failure) joins the losses as failed dies
             var (itemIds, counts) = RecipeOutputSetBuilder.CopySet(context.FactorySet);
             for (var levelIndex = 0; levelIndex < role.DieLevelCount; levelIndex++)
             {
                 itemIds[levelIndex] = MasterHolder.ItemMaster.GetLevelVariantItemId(role.DieBaseItemId, levelIndex + 1);
-                counts[levelIndex] = levelIndex < result.GoodDieCountsByLevel.Count ? result.GoodDieCountsByLevel[levelIndex] : 0;
+                counts[levelIndex] = result.GoodDieCountsByLevel[levelIndex];
             }
-            counts[role.DieLevelCount] = result.FailedDieCount;
+            counts[role.DieLevelCount] = result.FailedDieCount + result.GoodDieCountsByLevel[role.DieLevelCount];
             return RecipeOutputSetBuilder.Repeat(itemIds, counts, context.SetCount);
         }
     }
