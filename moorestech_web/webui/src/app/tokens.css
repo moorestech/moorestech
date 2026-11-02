@@ -352,6 +352,14 @@
   /* Measured bleed of the item-list count badge (absolutely placed at bottom:-1px) below the last row's slots;
      unless the ScrollArea reserves it, even a single row yields a phantom overflow and a needless bar */
   --item-list-count-bleed: 5px;
+  /* 研究詳細の所持/必要ラベル（bottom: var(--shortage-count-bottom, -4px)）とアイコン行ボックスの下はみ出し量。
+     item-list-count-bleedより1px大きいのは行ボックス分。外すと1行ノードで偽の縦バーが出る */
+  /* Bottom overhang of research-detail owned/required labels plus the icon line box; 1px above item-list-count-bleed
+     for the line box. Without it a one-row node shows a phantom vertical bar */
+  --research-detail-slots-bleed: 6px;
+  /* 研究詳細スクロール域の左右の逃げ。スロット外周リング（最大約1.6px）をクリップ境界の内側へ収める */
+  /* Inline clearance of the research-detail scroller so slot outer rings (up to ~1.6px) stay inside the clip edge */
+  --research-detail-scroll-inline-bleed: 4px;
   /* 自然高のブロックパネル本文の器がクリップ境界を外へ広げる量。外周リング（左へ2px）と個数バッジ（bottom:-3px）を欠かさず、
      偽の溢れも立てない値。実測（Chest1段）で6px以下はscrollHeightが2px溢れ、7pxで一致したため1px余らせる */
   /* How far the natural-height block-panel body scroller widens its clip edge: enough to keep outer rings (2px left) and
