@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             Assert.IsTrue(WaitForClassA(datastore, filter, machine, 4000));
             var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
             inventory.SetItem(FirstModuleSlot, MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000005")), 1);
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWaferG2, 1);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWaferG1, 1);
             TopUpIpa(machine, 20);
             TickRoom(filter, machine);
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
@@ -79,7 +79,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, restoredProcessor.ClearSelectedRecipe(overflow));
             var returned = restored.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Concat(overflow.InventoryItems);
-            Assert.AreEqual(1, returned.Where(item => item.Id == ForUnitTestItemId.TestGradedWaferG2).Sum(item => item.Count));
+            Assert.AreEqual(1, returned.Where(item => item.Id == ForUnitTestItemId.TestGradedWaferG1).Sum(item => item.Count));
             Assert.AreEqual(0, returned.Where(item => item.Id == ForUnitTestItemId.TestGradedWaferG1).Sum(item => item.Count));
         }
         [TestCase("waferGrade")]

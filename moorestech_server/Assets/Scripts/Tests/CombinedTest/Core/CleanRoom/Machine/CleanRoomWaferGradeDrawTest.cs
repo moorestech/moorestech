@@ -54,9 +54,9 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, WaferCount);
             var collected = RunAndCollect(filter, machine, WaferCount, TickCap);
 
-            Assert.AreEqual(0, CountOf(collected, ForUnitTestItemId.TestGradedWaferG3));
-            Assert.AreEqual(WaferCount, CountOf(collected, ForUnitTestItemId.TestGradedWaferG1) + CountOf(collected, ForUnitTestItemId.TestGradedWaferG2));
-            Assert.Greater(CountOf(collected, ForUnitTestItemId.TestGradedWaferG2), 0);
+            Assert.AreEqual(0, CountOf(collected, ForUnitTestItemId.TestGradedWaferG1));
+            Assert.AreEqual(WaferCount, CountOf(collected, ForUnitTestItemId.TestGradedWaferG1) + CountOf(collected, ForUnitTestItemId.TestGradedWaferG1));
+            Assert.Greater(CountOf(collected, ForUnitTestItemId.TestGradedWaferG1), 0);
         }
 
         [Test]

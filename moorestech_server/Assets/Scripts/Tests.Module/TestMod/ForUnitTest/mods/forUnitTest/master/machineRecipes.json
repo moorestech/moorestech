@@ -524,7 +524,7 @@
       ],
       "outputFluids": [],
       "machineRecipeGuid": "06549afe-feb3-438e-b2fe-0e53bb16925a",
-      "levelInheritance": "Inherit"
+      "levelInheritance": "None"
     },
     {
       "time": 1,
@@ -566,7 +566,7 @@
       ],
       "outputFluids": [],
       "machineRecipeGuid": "aadd680b-334c-4294-a6d7-37ea2f8a7527",
-      "levelInheritance": "Inherit"
+      "levelInheritance": "None"
     },
     {
       "time": 1,

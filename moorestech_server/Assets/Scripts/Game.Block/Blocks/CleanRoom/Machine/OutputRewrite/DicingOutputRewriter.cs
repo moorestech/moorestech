@@ -16,7 +16,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
             // The grade is the level inherited from the input wafer; validation guarantees Inherit and one table per grade, so no clamping
             var dicing = role.Dicing;
             var lossRate = CleanRoomRoleRates.DieLossRate(role, context.ClassYield, context.ModuleEffect);
-            var result = ChipYieldDraw.DrawDicing(dicing.DiesPerWafer, lossRate, dicing.GradeDieTables[gradeLevel - 1].LevelRates, context.Random);
+            var result = ChipYieldDraw.DrawDicing(dicing.DiesPerWafer, lossRate, dicing.QualityTierDieTables[gradeLevel - 1].LevelRates, context.Random);
 
             // 出力は [ダイLv1..LvN, 失敗ダイ]。工場が継承先（Lv1 の枠）を投入グレードの変種にしているので、レベル列のIDは全部書き直す
             // Outputs are [die Lv1..LvN, failed die]; the factory set the inheritance target (the Lv1 slot) to the input grade's variant, so rewrite every level id

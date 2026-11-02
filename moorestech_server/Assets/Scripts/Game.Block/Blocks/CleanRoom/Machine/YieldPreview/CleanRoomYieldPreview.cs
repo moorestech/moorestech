@@ -39,9 +39,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
             outputs = null;
             switch (role)
             {
-                case WaferGradeRecipeRole wafer:
-                    if (roll.HasValue) outputs = WaferGradeOutputRewriter.Rewrite(wafer, roll.Value);
-                    return new WaferGradePreview(CleanRoomRoleRates.MaxWaferGrade(wafer, moduleEffect), CleanRoomRoleRates.PromotionChance(wafer, classYield, moduleEffect));
                 case LayerExposureRecipeRole layer:
                     if (roll.HasValue) outputs = LayerExposureOutputRewriter.Rewrite(layer, roll.Value);
                     return new LayerExposurePreview(CleanRoomRoleRates.LayerFailRate(layer, classYield, moduleEffect));

@@ -31,7 +31,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             // G3ウェハ2枚は600個に切られ、Lv1〜Lv3と失敗ダイに分かれる（Lv3が0個の確率は約0.87^255）
             // Two G3 wafers become 600 dies split into Lv1-Lv3 and failed dies (no Lv3 has odds ~0.87^255)
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWaferG3, 2);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWaferG1, 2);
             var collected = RunAndCollect(filter, machine, DiesPerWafer * 2, TickCap);
 
             var levelOne = CountOf(collected, ForUnitTestItemId.TestDieLv1);
@@ -98,7 +98,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             // 生産性効果1.0は追加1セットを必ず出す。G3ウェハ1枚から同じ抽選の2セット（計600個）が出て、各スロットに収まる
             // A productivity effect of 1.0 always adds one set: one G3 wafer yields two copies of one draw (600 dies) that fit their slots
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWaferG3, 1);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, ForUnitTestItemId.TestLayeredWaferG1, 1);
             var collected = RunAndCollect(filter, machine, DiesPerWafer * 2, TickCap);
 
             var counts = new[]

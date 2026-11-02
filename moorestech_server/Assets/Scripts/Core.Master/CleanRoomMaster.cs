@@ -64,7 +64,6 @@ namespace Core.Master
             // クラス名→行インデックスと、レシピGUID→役割レコードの索引を作る（重複は検証で止まっている）
             // Build className-to-row and recipeGuid-to-role lookups (duplicates were already rejected by validation)
             for (var i = 0; i < _element.Thresholds.Length; i++) _thresholdIndexByClassName.Add(_element.Thresholds[i].ClassName, i);
-            foreach (var draw in _element.WaferGradeDraws) _roleByRecipeGuid.Add(draw.MachineRecipeGuid, new WaferGradeRecipeRole(draw));
             foreach (var exposure in _element.LayerExposures) _roleByRecipeGuid.Add(exposure.MachineRecipeGuid, new LayerExposureRecipeRole(exposure));
             foreach (var dicing in _element.Dicings) _roleByRecipeGuid.Add(dicing.MachineRecipeGuid, new DicingRecipeRole(dicing));
 

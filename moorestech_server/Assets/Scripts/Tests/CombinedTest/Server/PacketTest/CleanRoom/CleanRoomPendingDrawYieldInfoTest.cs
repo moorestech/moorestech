@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Server.PacketTest.CleanRoom
 
             // 上限G2の抽選では出ないG3で出力スロットを塞ぎ、材料を入れて待機中に抽選を確定させる
             // Block the output slot with G3, which a G2-capped draw never yields, then load inputs so idle fixes a draw
-            inventory.SetItem(FirstOutputSlot, ForUnitTestItemId.TestGradedWaferG3, 1);
+            inventory.SetItem(FirstOutputSlot, ForUnitTestItemId.TestGradedWaferG1, 1);
             SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, ForUnitTestItemId.TestChipRawWafer, 1);
             Assert.IsNull(ReadWaferGrade(packet, machine).PendingDraw);
             RunTicks(filter, machine, 3);

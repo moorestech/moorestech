@@ -18,13 +18,9 @@ namespace Core.Master.Validator
                 logs += CleanRoomRoleRecipeChecks.Validate(RoleName, exposure.MachineRecipeGuid, roleRecipeGuids, out var recipe);
                 if (recipe == null) continue;
 
-                // 入力のグレードを受け継ぎ、次層ウェハは同じグレード数のファミリーで持つ（両方引けたときだけ比べる）
-                // Inherit the input grade and keep the layered wafer as a family with the same grade count (compared only when both resolve)
-                logs += CleanRoomRoleRecipeChecks.ValidateGradeInheritingRole(RoleName, recipe, exposure.LayeredWaferItemGuid, out var inputGradeCount, out var layeredGradeCount);
-                if (inputGradeCount is int inputCount && layeredGradeCount is int layeredCount && inputCount != layeredCount)
-                {
-                    logs += $"[CleanRoomMaster] {RoleName} MachineRecipeGuid:{exposure.MachineRecipeGuid} input grade count {inputCount} differs from layered wafer grade count {layeredCount}\n";
-                }
+                // ウェハはグレードを持たず継承しない
+                // Wafers have no grades and never inherit levels
+                logs += CleanRoomRoleRecipeChecks.RequireNoInheritance(RoleName, recipe);
 
                 // 出力はちょうど [次層ウェハ ×c, 失敗パターンウェハ ×c]
                 // Outputs are exactly [layered wafer xc, failed pattern wafer xc]

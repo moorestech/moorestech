@@ -50,25 +50,6 @@ properties:
           type: number
         - key: dieLossRate
           type: number
-    - key: waferGradeDraws
-      type: array
-      items:
-        type: object
-        properties:
-        - key: machineRecipeGuid
-          type: uuid
-          foreignKey:
-            schemaId: machineRecipes
-            foreignKeyIdPath: /data/[*]/machineRecipeGuid
-            displayElementPath: /data/[*]/machineRecipeGuid
-        - key: gradedWaferItemGuid
-          type: uuid
-          foreignKey:
-            schemaId: items
-            foreignKeyIdPath: /data/[*]/itemGuid
-            displayElementPath: /data/[*]/name
-        - key: maxPromotionChance
-          type: number
     - key: layerExposures
       type: array
       items:
@@ -121,7 +102,13 @@ properties:
           type: integer
         - key: maxLossReduction
           type: number
-        - key: gradeDieTables
+        # レア枠へ移せる割合の上限
+        # Maximum share shifted into the rare slot
+        - key: maxRareShift
+          type: number
+        # 品質最高Tier順のダイ表
+        # Die tables ordered by highest quality tier
+        - key: qualityTierDieTables
           type: array
           items:
             type: object
@@ -130,6 +117,8 @@ properties:
               type: array
               items:
                 type: number
+            - key: failedRate
+              type: number
     # 部屋の境界にあると1個ごとに汚染係数aConnectorを足すブロック（搬入出の口）
     # Blocks that add the aConnector pollution coefficient once each when on a room boundary (transfer openings)
     - key: pollutionConnectorBlockGuids

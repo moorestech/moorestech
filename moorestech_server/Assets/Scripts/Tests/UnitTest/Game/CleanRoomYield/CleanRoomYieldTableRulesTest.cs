@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Master.Validator;
 using NUnit.Framework;
 
@@ -53,62 +54,92 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         public void FiniteBoundaryValuesAreAcceptedTest([Values(0f, 1f)] float value)
         {
             Assert.AreEqual("", CleanRoomYieldTableRules.ValidateClassRows(new[] { ("A", value, value, value) }));
-            Assert.AreEqual("", CleanRoomYieldTableRules.ValidateDieTables("Dicings", new[] { new[] { 1f }, new[] { 1f - value, value } }, 2));
+
         }
 
         [Test]
         public void NonFiniteDieRateIsRejectedTest([Values(float.NaN, float.PositiveInfinity, float.NegativeInfinity)] float value)
         {
-            var tables = new[] { new[] { 1f }, new[] { value, 0f } };
-            var logs = CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 2);
-            StringAssert.Contains("GradeDieTables[1] LevelRates", logs);
-            StringAssert.Contains(value.ToString(), logs);
+            var tables = Tables();
+            tables[1] = (new[] { value, 0.1f, 0f }, 0.2f);
+            StringAssert.Contains("non-finite", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+            tables = Tables();
+            tables[1] = (tables[1].Item1, value);
+            StringAssert.Contains("FailedRate", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
         }
 
         [Test]
         public void ContractDieTablesAreValidTest()
         {
-            var tables = new[]
+            var tables = new (IReadOnlyList<float>, float)[]
             {
-                new[] { 1f },
-                new[] { 0.7f, 0.3f },
-                new[] { 0.55f, 0.3f, 0.15f },
-                new[] { 0.45f, 0.3f, 0.17f, 0.08f },
-                new[] { 0.4f, 0.28f, 0.18f, 0.09f, 0.05f },
+                (new[] { .20f, 0f, 0f, 0f, 0f }, .80f),
+                (new[] { .70f, .10f, 0f, 0f, 0f }, .20f),
+                (new[] { .10f, .70f, .10f, 0f, 0f }, .10f),
+                (new[] { .04f, .08f, .70f, .10f, 0f }, .08f),
+                (new[] { .02f, .04f, .06f, .70f, .10f }, .08f),
+                (new[] { .02f, .03f, .05f, .10f, .70f }, .10f),
             };
             Assert.AreEqual("", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 5));
         }
 
         [Test]
-        public void TableAboveItsGradeIsRejectedTest()
+        public void TierTableAboveQualityGateIsRejectedTest()
         {
-            // G1の表がLv2を持つと、品質モジュール無しでもLv2が出てしまう（品質ゲート破り）
-            // A G1 table holding Lv2 would leak Lv2 without any quality module (breaking the quality gate)
-            var tables = new[] { new[] { 0.5f, 0.5f } };
-            StringAssert.Contains("GradeDieTables[0]", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+            var tables = Tables();
+            tables[1] = (new[] { .7f, 0f, .1f }, .2f);
+            StringAssert.Contains("quality gate", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
         }
 
         [Test]
         public void TableNotSummingToOneIsRejectedTest()
         {
-            var tables = new[] { new[] { 1f }, new[] { 0.7f, 0.2f } };
+            var tables = Tables();
+            tables[1] = (tables[1].Item1, .3f);
             StringAssert.Contains("sum", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
         }
 
         [Test]
         public void NegativeRateIsRejectedTest()
         {
-            var tables = new[] { new[] { 1f }, new[] { 1.1f, -0.1f } };
+            var tables = Tables();
+            tables[1] = (new[] { .9f, -.1f, 0f }, .2f);
+            StringAssert.Contains("negative", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+            tables[1] = (new[] { .9f, .2f, 0f }, -.1f);
             StringAssert.Contains("negative", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
         }
 
         [Test]
-        public void ShrinkingUpperTailIsRejectedTest()
+        public void MissingDefaultLevelIsRejectedTest()
         {
-            // G3のLv2以上(0.2)がG2(0.3)を下回ると、グレードが上がってLv2以上が減りうる
-            // G3's Lv2+ share (0.2) below G2's (0.3) would let a higher grade lower the Lv2+ count
-            var tables = new[] { new[] { 1f }, new[] { 0.7f, 0.3f }, new[] { 0.8f, 0.1f, 0.1f } };
-            StringAssert.Contains("tail", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+            var tables = Tables();
+            tables[2] = (new[] { .8f, 0f, .1f }, .1f);
+            StringAssert.Contains("default Lv2", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+        }
+
+        [Test]
+        public void WrongTableCountIsRejectedTest()
+        {
+            StringAssert.Contains("requires 5 quality tier tables", CleanRoomYieldTableRules.ValidateDieTables("Dicings", Tables(), 4));
+        }
+
+        [Test]
+        public void WrongLevelCountIsRejectedTest()
+        {
+            var tables = Tables();
+            tables[0] = (new[] { .2f }, .8f);
+            StringAssert.Contains("requires 3 levels", CleanRoomYieldTableRules.ValidateDieTables("Dicings", tables, 3));
+        }
+
+        private static (IReadOnlyList<float>, float)[] Tables()
+        {
+            return new (IReadOnlyList<float>, float)[]
+            {
+                (new[] { .2f, 0f, 0f }, .8f),
+                (new[] { .7f, .1f, 0f }, .2f),
+                (new[] { .1f, .7f, .1f }, .1f),
+                (new[] { .05f, .1f, .75f }, .1f),
+            };
         }
     }
 }

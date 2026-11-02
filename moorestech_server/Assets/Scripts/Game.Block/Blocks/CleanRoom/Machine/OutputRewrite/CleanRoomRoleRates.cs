@@ -11,20 +11,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
     /// </summary>
     internal static class CleanRoomRoleRates
     {
-        // 成膜のグレード上限＝装着品質モジュールの最高tier+1（グレード数で頭打ち）
-        // Deposition grade cap = highest equipped quality tier + 1, capped by the grade count
-        public static int MaxWaferGrade(WaferGradeRecipeRole role, MachineModuleEffect moduleEffect)
-        {
-            return ChipYieldFormula.MaxWaferGrade(moduleEffect.HighestQualityModuleTier, role.GradeCount);
-        }
-
-        // 成膜の1段の昇格確率＝品質合計×クラス倍率（上限maxPromotionChance）
-        // Deposition per-step promotion chance = quality sum x class multiplier, capped by maxPromotionChance
-        public static double PromotionChance(WaferGradeRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
-        {
-            return ChipYieldFormula.PromotionChance(moduleEffect.QualityShift, classYield.QualityMultiplier, role.Draw.MaxPromotionChance);
-        }
-
         // EUVの層失敗率＝クラス別の層失敗率×(1−min(品質合計, maxFailReduction))
         // EUV layer fail rate = class layer fail rate x (1 - min(quality sum, maxFailReduction))
         public static double LayerFailRate(LayerExposureRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
