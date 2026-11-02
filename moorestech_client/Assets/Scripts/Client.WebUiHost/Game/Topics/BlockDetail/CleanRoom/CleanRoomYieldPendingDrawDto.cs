@@ -6,32 +6,29 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
     /// </summary>
     public class CleanRoomYieldPendingDrawDto
     {
-        public readonly int? MaxGrade;
-        public readonly double? PromotionChance;
         public readonly double? LayerFailRate;
         public readonly double? DieLossRate;
+        public readonly int? QualityTier;
+        public readonly double[] LevelRates;
+        public readonly double? FailedRate;
 
-        private CleanRoomYieldPendingDrawDto(int? maxGrade, double? promotionChance, double? layerFailRate, double? dieLossRate)
+        private CleanRoomYieldPendingDrawDto(double? layerFailRate, double? dieLossRate, int? qualityTier, double[] levelRates, double? failedRate)
         {
-            MaxGrade = maxGrade;
-            PromotionChance = promotionChance;
             LayerFailRate = layerFailRate;
             DieLossRate = dieLossRate;
-        }
-
-        public static CleanRoomYieldPendingDrawDto CreateWaferGrade(int maxGrade, double promotionChance)
-        {
-            return new CleanRoomYieldPendingDrawDto(maxGrade, promotionChance, null, null);
+            QualityTier = qualityTier;
+            LevelRates = levelRates;
+            FailedRate = failedRate;
         }
 
         public static CleanRoomYieldPendingDrawDto CreateLayerExposure(double layerFailRate)
         {
-            return new CleanRoomYieldPendingDrawDto(null, null, layerFailRate, null);
+            return new CleanRoomYieldPendingDrawDto(layerFailRate, null, null, null, null);
         }
 
-        public static CleanRoomYieldPendingDrawDto CreateDicing(double dieLossRate)
+        public static CleanRoomYieldPendingDrawDto CreateDicing(double dieLossRate, int qualityTier, double[] levelRates, double failedRate)
         {
-            return new CleanRoomYieldPendingDrawDto(null, null, null, dieLossRate);
+            return new CleanRoomYieldPendingDrawDto(null, dieLossRate, qualityTier, levelRates, failedRate);
         }
     }
 }

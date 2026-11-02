@@ -139,9 +139,8 @@ describe("block detail fixtures", () => {
     "block_inventory_gear_belt_conveyor.json",
     "block_inventory_clean_room_machine.json",
     "block_inventory_clean_room_air_filter_leak.json",
-    "block_inventory_clean_room_yield_deposition.json",
-    "block_inventory_clean_room_yield_deposition_pending.json",
     "block_inventory_clean_room_yield_dicing.json",
+    "block_inventory_clean_room_yield_dicing_pending.json",
     "block_inventory_machine_input_stall.json",
   ];
   for (const file of cases) {

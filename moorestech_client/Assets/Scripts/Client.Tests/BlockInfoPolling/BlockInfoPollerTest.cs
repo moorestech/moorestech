@@ -102,7 +102,7 @@ namespace Client.Tests.BlockInfoPolling
         [UnityTest]
         public IEnumerator InvalidYieldWireResponseDropsAndRecoversTest() => UniTask.ToCoroutine(async () =>
         {
-            var valid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(3, 0.5, null);
+            var valid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateDicing(new DicingYieldMessagePack(0.03, 1, new[] { 0.7, 0.1, 0d }, 0.2), null);
             var invalid = GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack.CreateNoRole();
             invalid.Kind = (CleanRoomYieldResponseKind)999;
             var source = new WireResponsePollSource<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack, CleanRoomYieldView>(new CleanRoomYieldInfoPollSource());

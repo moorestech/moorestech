@@ -34,13 +34,18 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
             {
                 return view switch
                 {
-                    CleanRoomYieldWaferGradeView waferGrade => CleanRoomYieldDetailDto.CreateWaferGrade(waferGrade.WaferGrade.MaxGrade, waferGrade.WaferGrade.PromotionChance, waferGrade.PendingDraw == null ? null : CleanRoomYieldPendingDrawDto.CreateWaferGrade(waferGrade.PendingDraw.MaxGrade, waferGrade.PendingDraw.PromotionChance)),
                     CleanRoomYieldLayerExposureView layerExposure => CleanRoomYieldDetailDto.CreateLayerExposure(layerExposure.LayerExposure.LayerFailRate, layerExposure.PendingDraw == null ? null : CleanRoomYieldPendingDrawDto.CreateLayerExposure(layerExposure.PendingDraw.LayerFailRate)),
-                    CleanRoomYieldDicingView dicing => CleanRoomYieldDetailDto.CreateDicing(dicing.Dicing.DieLossRate, dicing.PendingDraw == null ? null : CleanRoomYieldPendingDrawDto.CreateDicing(dicing.PendingDraw.DieLossRate)),
+                    CleanRoomYieldDicingView dicing => BuildDicing(dicing.Dicing, dicing.PendingDraw),
                     CleanRoomYieldNoRoleView _ => null,
                     CleanRoomYieldNotOperableView _ => null,
                     _ => throw new ArgumentOutOfRangeException(nameof(view), view.GetType().Name, "未対応の抽選の中身の種別 / Unsupported yield view"),
                 };
+            }
+
+            CleanRoomYieldDetailDto BuildDicing(DicingYieldMessagePack next, DicingYieldMessagePack pending)
+            {
+                var pendingDraw = pending == null ? null : CleanRoomYieldPendingDrawDto.CreateDicing(pending.DieLossRate, pending.QualityTier, pending.LevelRates, pending.FailedRate);
+                return CleanRoomYieldDetailDto.CreateDicing(next.DieLossRate, next.QualityTier, next.LevelRates, next.FailedRate, pendingDraw);
             }
 
             #endregion

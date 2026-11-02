@@ -31,21 +31,6 @@ namespace Server.Protocol.PacketResponse
         }
     }
 
-    public sealed class CleanRoomYieldWaferGradeView : CleanRoomYieldView
-    {
-        public WaferGradeYieldMessagePack WaferGrade { get; }
-
-        // 出力待ちの確定済み抽選に使った値。待っていなければ null
-        // Values of the fixed draw waiting for output; null when nothing waits
-        public WaferGradeYieldMessagePack PendingDraw { get; }
-
-        public CleanRoomYieldWaferGradeView(WaferGradeYieldMessagePack waferGrade, WaferGradeYieldMessagePack pendingDraw)
-        {
-            WaferGrade = waferGrade;
-            PendingDraw = pendingDraw;
-        }
-    }
-
     public sealed class CleanRoomYieldLayerExposureView : CleanRoomYieldView
     {
         public LayerExposureYieldMessagePack LayerExposure { get; }

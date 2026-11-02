@@ -81,28 +81,27 @@ describe("MachineInputStallDataSchema", () => {
 });
 
 describe("CleanRoomYieldDataSchema", () => {
-  // 役割ごとに自分の値だけを受け、割合は0〜1、グレードは1以上の整数
-  // Each role accepts only its own values; rates lie in 0..1 and the grade is an integer of at least 1
+  // 役割ごとに自分の値だけを受け、割合は0〜1、品質Tierは0以上の整数
+  // Each role accepts only its own values; rates lie in 0..1 and the quality tier is a non-negative integer
   it.each([
-    [{ fetchState: "fetched", role: "waferGrade", maxGrade: 2, promotionChance: 0.9 }, true],
     [{ fetchState: "fetched", role: "layerExposure", layerFailRate: 0.02 }, true],
-    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03 }, true],
-    [{ fetchState: "fetched", role: "waferGrade", maxGrade: 2 }, false],
-    [{ fetchState: "fetched", role: "waferGrade", maxGrade: 0, promotionChance: 0.9 }, false],
-    [{ fetchState: "fetched", role: "waferGrade", maxGrade: 1.5, promotionChance: 0.9 }, false],
-    [{ fetchState: "fetched", role: "dicing", dieLossRate: 1.5 }, false],
-    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, layerFailRate: 0.02 }, false],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2 }, true],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03 }, false],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: -1, levelRates: [0.7, 0.1, 0], failedRate: 0.2 }, false],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1.5, levelRates: [0.7, 0.1, 0], failedRate: 0.2 }, false],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [1.7, 0.1, 0], failedRate: 0.2 }, false],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 1.5, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2 }, false],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2, layerFailRate: 0.02 }, false],
     [{ fetchState: "fetched", role: "packaging" }, false],
     // 出力待ちの確定済み抽選は親と同じ役割の値だけを持つ
     // A fixed draw waiting for output carries only the parent role's values
-    [{ fetchState: "fetched", role: "waferGrade", maxGrade: 1, promotionChance: 0, pendingDraw: { maxGrade: 2, promotionChance: 0.9 } }, true],
-    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, pendingDraw: { dieLossRate: 0.15 } }, true],
-    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, pendingDraw: { layerFailRate: 0.02 } }, false],
-    [{ fetchState: "fetched", role: "waferGrade", maxGrade: 1, promotionChance: 0, pendingDraw: { maxGrade: 2 } }, false],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2, pendingDraw: { dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2 } }, true],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2, pendingDraw: { layerFailRate: 0.02 } }, false],
+    [{ fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2, pendingDraw: { dieLossRate: 0.15 } }, false],
     [{ fetchState: "fetched", role: "layerExposure", layerFailRate: 0.02, pendingDraw: { layerFailRate: 1.2 } }, false],
     [{ fetchState: "notFetched", pendingDraw: { dieLossRate: 0.15 } }, false],
     [{ fetchState: "unreadable" }, true],
-    [{ fetchState: "transportFailed", role: "dicing", dieLossRate: 0.03 }, false],
+    [{ fetchState: "transportFailed", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2 }, false],
   ])("%j の受理は %s", (value, expected) => {
     expect(CleanRoomYieldDataSchema.safeParse(value).success).toBe(expected);
   });

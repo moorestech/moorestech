@@ -12,58 +12,52 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail.CleanRoom
         // fetched / notFetched / transportFailed / unreadable / unsupportedTarget / vanished
         public readonly string FetchState;
 
-        // fetched のときだけ: waferGrade / layerExposure / dicing
-        // Only when fetched: waferGrade / layerExposure / dicing
+        // fetched のときだけ: layerExposure / dicing
+        // Only when fetched: layerExposure / dicing
         public readonly string Role;
-
-        // waferGrade のときだけ
-        // Only for waferGrade
-        public readonly int? MaxGrade;
-        public readonly double? PromotionChance;
 
         // layerExposure のときだけ
         // Only for layerExposure
         public readonly double? LayerFailRate;
 
-        // dicing のときだけ
-        // Only for dicing
+        // dicing のときだけ。レベル別割合と失敗ダイ割合は損失を除いた良品に対する割合
+        // Only for dicing; the per-level and failed-die rates are over survivors (losses excluded)
         public readonly double? DieLossRate;
+        public readonly int? QualityTier;
+        public readonly double[] LevelRates;
+        public readonly double? FailedRate;
 
         // 出力の空きを待っている確定済み抽選に使った値（同じ役割）。待っていなければ null でキーごと省く
         // Values a fixed draw waiting for output space used (same role); null and omitted with its key when nothing waits
         public readonly CleanRoomYieldPendingDrawDto PendingDraw;
 
-        private CleanRoomYieldDetailDto(string fetchState, string role, int? maxGrade, double? promotionChance, double? layerFailRate, double? dieLossRate, CleanRoomYieldPendingDrawDto pendingDraw)
+        private CleanRoomYieldDetailDto(string fetchState, string role, double? layerFailRate, double? dieLossRate, int? qualityTier, double[] levelRates, double? failedRate, CleanRoomYieldPendingDrawDto pendingDraw)
         {
             FetchState = fetchState;
             Role = role;
-            MaxGrade = maxGrade;
-            PromotionChance = promotionChance;
             LayerFailRate = layerFailRate;
             DieLossRate = dieLossRate;
+            QualityTier = qualityTier;
+            LevelRates = levelRates;
+            FailedRate = failedRate;
             PendingDraw = pendingDraw;
-        }
-
-        public static CleanRoomYieldDetailDto CreateWaferGrade(int maxGrade, double promotionChance, CleanRoomYieldPendingDrawDto pendingDraw)
-        {
-            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "waferGrade", maxGrade, promotionChance, null, null, pendingDraw);
         }
 
         public static CleanRoomYieldDetailDto CreateLayerExposure(double layerFailRate, CleanRoomYieldPendingDrawDto pendingDraw)
         {
-            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "layerExposure", null, null, layerFailRate, null, pendingDraw);
+            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "layerExposure", layerFailRate, null, null, null, null, pendingDraw);
         }
 
-        public static CleanRoomYieldDetailDto CreateDicing(double dieLossRate, CleanRoomYieldPendingDrawDto pendingDraw)
+        public static CleanRoomYieldDetailDto CreateDicing(double dieLossRate, int qualityTier, double[] levelRates, double failedRate, CleanRoomYieldPendingDrawDto pendingDraw)
         {
-            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "dicing", null, null, null, dieLossRate, pendingDraw);
+            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.Fetched, "dicing", null, dieLossRate, qualityTier, levelRates, failedRate, pendingDraw);
         }
 
         // 取得できていない間は取得状態だけを載せ、率を作らない
         // While not fetched, carry only the fetch state and make up no rates
         public static CleanRoomYieldDetailDto CreateUnavailable(BlockInfoFetchState fetchState)
         {
-            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.ToUnavailableWireName(fetchState), null, null, null, null, null, null);
+            return new CleanRoomYieldDetailDto(BlockInfoFetchStateWireName.ToUnavailableWireName(fetchState), null, null, null, null, null, null, null);
         }
     }
 }

@@ -3,9 +3,8 @@ import { L, type InterpolationValues, type TranslationKey } from "@/shared/i18n"
 
 type CleanRoomYieldLine = { testId: string; key: TranslationKey; params: InterpolationValues };
 type CleanRoomYieldRates =
-  | { role: "waferGrade"; maxGrade: number; promotionChance: number }
   | { role: "layerExposure"; layerFailRate: number }
-  | { role: "dicing"; dieLossRate: number };
+  | { role: "dicing"; dieLossRate: number; qualityTier: number; levelRates: number[]; failedRate: number };
 
 // 役割に関係する行だけを作る。割合は小数1桁の百分率で出す
 // Builds only the rows relevant to the role; rates are shown as percentages with one decimal
@@ -27,8 +26,6 @@ export function cleanRoomYieldLines(cleanRoomYield: CleanRoomYieldFetchedData): 
 // A fixed draw carries only the parent's role values, so tag it with the parent's role and reuse the same row builder
 function pendingRates(cleanRoomYield: CleanRoomYieldFetchedData): CleanRoomYieldRates | undefined {
   switch (cleanRoomYield.role) {
-    case "waferGrade":
-      return cleanRoomYield.pendingDraw && { role: "waferGrade", ...cleanRoomYield.pendingDraw };
     case "layerExposure":
       return cleanRoomYield.pendingDraw && { role: "layerExposure", ...cleanRoomYield.pendingDraw };
     case "dicing":
@@ -38,16 +35,25 @@ function pendingRates(cleanRoomYield: CleanRoomYieldFetchedData): CleanRoomYield
 
 function rateLines(rates: CleanRoomYieldRates, testIdPrefix: string): CleanRoomYieldLine[] {
   switch (rates.role) {
-    case "waferGrade":
-      return [
-        { testId: `${testIdPrefix}-max-grade`, key: L.ui.blockInventory.cleanRoomYieldMaxGrade, params: { grade: String(rates.maxGrade) } },
-        { testId: `${testIdPrefix}-promotion-chance`, key: L.ui.blockInventory.cleanRoomYieldPromotionChance, params: { percent: toPercent(rates.promotionChance) } },
-      ];
     case "layerExposure":
       return [{ testId: `${testIdPrefix}-layer-fail-rate`, key: L.ui.blockInventory.cleanRoomYieldLayerFailRate, params: { percent: toPercent(rates.layerFailRate) } }];
     case "dicing":
-      return [{ testId: `${testIdPrefix}-die-loss-rate`, key: L.ui.blockInventory.cleanRoomYieldDieLossRate, params: { percent: toPercent(rates.dieLossRate) } }];
+      return dicingLines(rates, testIdPrefix);
   }
+}
+
+// ダイシングは品質Tier・損失率・0でないレベル割合・失敗ダイ割合の順。0のレベルは出ないので行を作らない
+// Dicing lists quality tier, loss rate, non-zero level shares, then failed-die share; zero levels never appear, so they get no row
+function dicingLines(rates: Extract<CleanRoomYieldRates, { role: "dicing" }>, testIdPrefix: string): CleanRoomYieldLine[] {
+  const levelLines = rates.levelRates.flatMap((rate, index) =>
+    rate === 0 ? [] : [{ testId: `${testIdPrefix}-level-rate-${index + 1}`, key: L.ui.blockInventory.cleanRoomYieldLevelRate, params: { level: String(index + 1), percent: toPercent(rate) } }],
+  );
+  return [
+    { testId: `${testIdPrefix}-quality-tier`, key: L.ui.blockInventory.cleanRoomYieldQualityTier, params: { tier: String(rates.qualityTier) } },
+    { testId: `${testIdPrefix}-die-loss-rate`, key: L.ui.blockInventory.cleanRoomYieldDieLossRate, params: { percent: toPercent(rates.dieLossRate) } },
+    ...levelLines,
+    { testId: `${testIdPrefix}-failed-rate`, key: L.ui.blockInventory.cleanRoomYieldFailedRate, params: { percent: toPercent(rates.failedRate) } },
+  ];
 }
 
 function toPercent(rate: number): string {
