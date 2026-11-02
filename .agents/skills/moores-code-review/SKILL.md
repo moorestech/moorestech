@@ -45,6 +45,7 @@ Workflow の返り値を報告へ転記する前に、**`python3 .claude/skills/
 1回のレビューが作る生成物（patch・context・codex監査プロンプト3本・check_all出力・chunks・最終diff・最終checks）は
 **すべて** `$LOGS/harness/moores-code-review/runs/<ts>/` 配下に置く。以下これを `$RUNDIR` と呼ぶ
 （`$LOGS`＝`../moorestech_logs`。`<ts>`＝レビューごとに新規 `YYYY-MM-DD-HHMM-<ブランチslug>-<UUID>`。既存ディレクトリ再利用は同一レビューの中断復旧時のみ。）
+指摘の再現・反映の確認で出た録画・Unity のログ・テスト結果 xml・スクショは `$RUNDIR` へ置かず worktree の gitignore 下（`moorestech_client/PlaytestResults/` か `.superpowers/`）に置き、`$RUNDIR` には観測した値と結論を md で書く（スクショは3枚程度まで）。
 
     mkdir -p <$RUNDIRの実値>
 
