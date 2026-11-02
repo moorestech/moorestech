@@ -12,13 +12,19 @@ export function itemsPerMinute(outputCount: number, recipeTimeSeconds: number): 
   return recipeTimeSeconds <= 0 ? null : outputCount * 60 / recipeTimeSeconds;
 }
 
+// 0..total-1 の全スロット添字。全スロットを並べるビューはこの定義を使う
+// All slot indices 0..total-1; views that list every slot use this single definition
+export function allSlotIndices(total: number): number[] {
+  return Array.from({ length: total }, (_, i) => i);
+}
+
 // itemSlots の統合indexを 入力→出力→モジュール に分割（uGUIのスロット構成順）
 // Split combined itemSlots indices into input→output→module (uGUI slot ordering)
 export function splitSlotIndices(
   layout: { input: number; output: number; module: number },
   total: number,
 ): { input: number[]; output: number[]; module: number[] } {
-  const all = Array.from({ length: total }, (_, i) => i);
+  const all = allSlotIndices(total);
   const input = all.slice(0, layout.input);
   const output = all.slice(layout.input, layout.input + layout.output);
   const module = all.slice(layout.input + layout.output, layout.input + layout.output + layout.module);

@@ -45,10 +45,10 @@ var options = new PlaytestRunOptions { Record = true };   // Record=trueでmp4�
 return PlaytestRunner.Run("my-scenario", options, async p =>
 {
     await p.SetupFlatGround();                            // 足場(50x3x50 @ y30)生成+ワープ
-    p.PlaceBlockDirect("木のチェスト", new Vector3Int(3, 32, 3), BlockDirection.North);
+    await p.PlaceBlockDirect("木のチェスト", new Vector3Int(3, 32, 3), BlockDirection.North); // サーバーtick末尾で設置し完了を待つ
     await p.WaitBlockGameObject(new Vector3Int(3, 32, 3)); // クライアント側出現待ち
     await p.GiveItem("鉄インゴット", 16);                   // 本番giveコマンド経路+反映待ち
-    p.GiveItemDirect("鉄板", 8);                           // サーバー直挿入（即時）
+    await p.GiveItemDirect("鉄板", 8);                     // サーバー直挿入（tick末尾で実行し完了を待つ）
     await p.Until(() => p.CountItem("鉄インゴット") >= 16, 10f, "在庫反映");
     p.Assert(p.GetBlock(new Vector3Int(3, 32, 3)) != null, "チェスト存在");
     await p.Screenshot("final");                           // UI込みGameViewスクショ
@@ -59,7 +59,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 `GiveItem`(コマンド経路) / `GiveItemDirect` / `CountItem` /
 `PlaceBlockDirect` / `RemoveBlock` / `GetBlock` / `WaitBlockGameObject` /
 `Until(条件, timeout, ラベル)` / `WaitSeconds` / `Assert` / `Screenshot` /
-`SendCommand` / `ServerService<T>()`。
+`SendCommand` / `ServerService<T>()` / `RunOnServer(ラベル, 処理)`（シナリオ独自のサーバー書き込みを tick 末尾で実行）。
 
 - Direct系＝サーバーデータストア直叩き（状態を素早く作る用・インベントリ非消費）
 - 非Direct系＝本番プロトコル経路

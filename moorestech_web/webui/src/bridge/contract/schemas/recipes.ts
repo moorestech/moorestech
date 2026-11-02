@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { GuidSchema } from "./common";
+import { MachineRecipeLevelInheritanceSchema } from "./machineUpgrade";
 
 const ItemIdSchema = z.number().int().positive();
 const ItemCountSchema = z.number().int().positive();
@@ -30,6 +31,7 @@ export const MachineRecipeSchema = z.object({
   outputItems: z.array(MachineRecipeItemSchema),
   inputFluids: z.array(MachineRecipeFluidSchema),
   outputFluids: z.array(MachineRecipeFluidSchema),
+  levelInheritance: MachineRecipeLevelInheritanceSchema,
 }).strict();
 export const MachineRecipesDataSchema = z.object({ recipes: z.array(MachineRecipeSchema) });
 export const RecipeViewerItemListDataSchema = z.object({ itemIds: z.array(z.number()) });

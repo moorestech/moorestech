@@ -12,6 +12,7 @@ vi.mock("@/bridge", async (importOriginal) => ({
 vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
   useI18n: () => ({ t: (key: string) => key }),
+  useItemDisplayName: () => (itemId: number) => `item-${itemId}`,
 }));
 // MantineProvider依存（Tooltip等）を避けるためGamePanel/ItemSlot/BlockSlot/FluidSlotはスタブにする
 // (UnlockSectionsがBlockSlot/FluidSlotをimportするため、解放物入りfixtureを使うにはここも必須)
@@ -44,8 +45,8 @@ function safeStringify(value: unknown): string {
 const researchGuid = "86000000-0000-4000-8000-000000000001";
 const node: ResearchNodeData = {
   guid: researchGuid, state: "researchable", iconItemId: 1,
-  position: { x: 0, y: 0 }, prevGuids: [], consumeItems: [{ itemId: 1, count: 2 }], rewardItems: [], unlockItemRecipeViewItemIds: [],
-  unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
+  position: { x: 0, y: 0 }, prevGuids: [], consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1] }], rewardItems: [], unlockItemRecipeViewItemIds: [],
+  unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [], unlockModuleSlotStackLimits: [], unlockLevelInheritanceCraftCaps: [],
 };
 
 describe("ResearchDetailPane", () => {
@@ -155,5 +156,25 @@ describe("ResearchDetailPane", () => {
     }));
     expect(renderer.root.findAllByType("mock-block-slot" as never)).toHaveLength(1);
     expect(renderer.root.findByProps({ "data-testid": "research-unlock-blocks" })).toBeTruthy();
+  });
+
+  it("上位レベルの所持も消費アイテムの充足に数える", () => {
+    const substituteNode: ResearchNodeData = { ...node, consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1, 11] }] };
+    const renderer = create(createElement(ResearchDetailPane, {
+      node: substituteNode, owned: new Map([[1, 1], [11, 1]]), onClose: () => {},
+    }));
+    const slot = renderer.root.findByType("mock-item-slot" as never);
+    expect(slot.props.insufficient).toBe(false);
+    expect(slot.props.shortage).toEqual({ ownedCount: 2, requiredCount: 2, tooltipKey: "ui.research.consumeItemTooltip" });
+  });
+
+  it("スロット上限と製作上限の解放を「その他」の行に出す", () => {
+    const upgradeNode: ResearchNodeData = { ...node, unlockModuleSlotStackLimits: [6], unlockLevelInheritanceCraftCaps: [{ itemId: 21, level: 2 }] };
+    const renderer = create(createElement(ResearchDetailPane, {
+      node: upgradeNode, owned: new Map([[1, 2]]), onClose: () => {},
+    }));
+    const others = renderer.root.findByProps({ "data-testid": "research-unlock-others" });
+    expect(others.findByProps({ "data-testid": "research-unlock-module-slot-stack-limit" }).props.children).toBe("ui.research.unlockModuleSlotStackLimit");
+    expect(others.findByProps({ "data-testid": "research-unlock-craft-cap-21" }).props.children).toBe("ui.research.unlockLevelInheritanceCraftCap");
   });
 });

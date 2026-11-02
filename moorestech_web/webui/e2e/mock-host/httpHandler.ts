@@ -13,6 +13,7 @@ import { applyPresentationControl } from "./topics/presentationControls";
 import { contentType, injectDemoBackground } from "./assets/demoAssets";
 import { serveGameIcon } from "./assets/iconEndpoints";
 import { serveLanguageCatalog } from "./localization/transport";
+import { setPauseMenuPage } from "./pauseMenuActions";
 export { injectDemoBackground } from "./assets/demoAssets";
 
 // /__block?type=X で差し替える種別マップ。既定は chest（open な panel を確実に出す）
@@ -23,6 +24,7 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   closed: fx.blockClosed,
   machine: fx.blockMachine,
   gearMachine: fx.blockGearMachine,
+  ...fx.cleanRoomBlockFixtures,
   generator: fx.blockGenerator,
   miner: fx.blockMiner,
   filterSplitter: fx.blockFilterSplitter,
@@ -33,6 +35,12 @@ const BLOCK_FIXTURES: Record<string, BlockInventoryWireData> = {
   generic: fx.blockGeneric,
   gearGenerator: fx.blockGearGenerator,
   electricToGear: fx.blockElectricToGear,
+  spaceElevator: fx.blockSpaceElevator,
+  spaceElevatorReordered: fx.blockSpaceElevatorReordered,
+  spaceElevatorLoading: fx.blockSpaceElevatorLoading,
+  spaceElevatorInsufficient: fx.blockSpaceElevatorInsufficient,
+  spaceElevatorClimbing: fx.blockSpaceElevatorClimbing,
+  spaceElevatorOutputBlocked: fx.blockSpaceElevatorOutputBlocked,
   train: fx.trainCargo,
   trainTimetable: fx.trainWithTimetable,
   trainError: fx.trainContainerMissing,
@@ -132,7 +140,7 @@ export function createMockHttpServer(): Server {
       const params = new URL(url, "http://x").searchParams;
       const uiState = params.get("state") ?? "PlayerInventory";
       const subState = params.get("subState") ?? undefined;
-      if (uiState === "PauseMenu" || subState === "PauseMenuScreen") state.pauseMenuPage = "top";
+      if (uiState === "PauseMenu" || subState === "PauseMenuScreen") setPauseMenuPage("top");
       state.currentUiState = { state: uiState, subState: subState as UiStateData["subState"], keyHints: fx.uiStateKeyHints };
       for (const ws of subscribersOf(Topics.uiState)) send(ws, { op: "event", topic: Topics.uiState, data: state.currentUiState });
       res.setHeader("content-type", "application/json");

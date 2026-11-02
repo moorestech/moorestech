@@ -1,3 +1,4 @@
+using Game.Context;
 // BPを外接箱1個のブロックとして置く: 地面/側面の置き位置・E高さ・配線ゴースト・素材不足・電線復元・列の素材上限・ビルドメニュー素材・静止表示
 // Places a blueprint as one extent block: ground/side origins, E height, wire ghosts, shortage, wire restore, run material cap, menu cost, steady display
 // 環境変数なしの起動は OutcropSurfacePlacement の初期化失敗で ready に届かないため、PLAYTEST_WORLD_DIRECTORY/PLAYTEST_MAP_MODE=generated/PLAYTEST_SEED を付けて実行する
@@ -39,36 +40,38 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
 
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
     await p.SkipOpeningSkitIfPlaying();
-    p.Hotbar.UnlockBlueprint();
-    p.Hotbar.UnlockConnectTool("電線");
-    p.UnlockBlock("電柱");
-    p.UnlockBlock("石窯");
-
+    await p.Hotbar.UnlockBlueprint();
+    await p.Hotbar.UnlockConnectTool("電線");
+    await p.UnlockBlock("電柱");
+    await p.UnlockBlock("石窯");
     // 電柱2本と石窯を置き、電柱同士と電柱→石窯を電線でつなぐ（外接箱は x6・y5・z5）
     // Place two poles and an oven, wiring pole-pole and pole-oven (extent is x6, y5, z5)
     var poleA = new Vector3Int(2, 32, 2);
     var poleB = new Vector3Int(7, 32, 2);
     var oven = new Vector3Int(4, 32, 4);
     var sideChest = new Vector3Int(-12, 32, 22);
-    p.PlaceBlockDirect("電柱", poleA, BlockDirection.North);
-    p.PlaceBlockDirect("電柱", poleB, BlockDirection.North);
-    p.PlaceBlockDirect("石窯", oven, BlockDirection.North);
-    p.PlaceBlockDirect("木のチェスト", sideChest, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleA, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleB, BlockDirection.North);
+    await p.PlaceBlockDirect("石窯", oven, BlockDirection.North);
+    await p.PlaceBlockDirect("木のチェスト", sideChest, BlockDirection.North);
     await p.WaitBlockGameObject(oven);
     await p.WaitBlockGameObject(sideChest);
     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
     var wireTool = MasterHolder.ConnectToolMaster.All.First(tool => tool.Name == "電線").ConnectToolGuid;
-    p.Assert(ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, true, out var reasonAb), $"電柱同士を結線 理由:{reasonAb}");
-    p.Assert(ElectricWireSystemUtil.TryConnect(poleB, oven, playerId, wireTool, true, out var reasonBo), $"電柱→石窯を結線 理由:{reasonBo}");
+    var (wiredAb, reasonAb, wiredBo, reasonBo) = (false, default(Server.Protocol.PacketResponse.Util.ElectricWire.Placement.ElectricWirePlacementFailureReason), false, default(Server.Protocol.PacketResponse.Util.ElectricWire.Placement.ElectricWirePlacementFailureReason));
+    await p.RunOnServer("電柱同士と電柱→石窯を結線する", () =>
+    {
+        wiredAb = ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, true, out reasonAb);
+        wiredBo = ElectricWireSystemUtil.TryConnect(poleB, oven, playerId, wireTool, true, out reasonBo);
+    });
+    p.Assert(wiredAb, $"電柱同士を結線 理由:{reasonAb}");
+    p.Assert(wiredBo, $"電柱→石窯を結線 理由:{reasonBo}");
     p.WarpPlayer(new Vector3(5f, 33.5f, -6f));
-
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var nameState = resolver.Resolve<BlueprintNameInputState>();
     var tooltip = resolver.Resolve<MouseCursorTooltipState>();
     var checks = new BlueprintCopyPasteScenarioChecks(p, tooltip);
     var probe = new BlueprintPasteGhostProbe(tooltip);
-    var datastore = p.ServerService<IBlueprintDatastore>();
-    var worldBlocks = p.ServerService<Game.World.Interface.DataStore.IWorldBlockDatastore>();
     var size = new Vector3Int(6, 5, 5);
     const string ToolCategory = "build-menu-category-d1000000-0000-4000-8000-000000000009";
     const string CopyToolEntry = "build-menu-entry-blueprintCopy-88dd687d-aceb-4aeb-94e8-44be1e1f5a0d";
@@ -84,8 +87,7 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.ClickPlace();
     await p.UntilWebUiElement("modal-input", 10f);
     nameState.Confirm("wired-bp");
-    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "wired-bp"), 15f, "BP『wired-bp』が登録される");
-    var bp = datastore.Blueprints.First(b => b.Name == "wired-bp");
+    var bp = await p.WaitForBlueprint("wired-bp", true, 15f, "BP『wired-bp』が登録される");
     var minOffset = bp.Blocks.Aggregate(new Vector3Int(int.MaxValue, int.MaxValue, int.MaxValue), (m, b) => Vector3Int.Min(m, b.Offset));
     p.Assert(bp.Blocks.Count == 3 && minOffset == Vector3Int.zero, $"BPは3ブロック・オフセット最小(0,0,0) 実際:{bp.Blocks.Count}/{minOffset}");
     p.Assert(bp.Wires.Count == 2, $"BPに電線2本 実際:{bp.Wires.Count}");
@@ -101,7 +103,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     p.Note("5. 配線ゴースト（PreviewWireLine）が2本見える");
     p.Assert(probe.ActiveWireLineCount() == 2, $"配線ゴースト2本 実際:{probe.ActiveWireLineCount()}");
     await p.Screenshot("01-ground-ghost-with-wires");
-
     p.Note("3. 既存チェスト(-12,32,22)の+X面へ向ける: 最小x=面(-11)・最小y=カーソル段(32)・z中心");
     p.WarpPlayer(new Vector3(-4f, 33.5f, 12f));
     await AimAndSettle(new Vector3(-11.0f, 32.5f, 22.5f));
@@ -115,7 +116,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.Screenshot("03-side-face-height2");
     await p.PressKey(Key.Q);
     await p.PressKey(Key.Q);
-
     p.Note("6. 無料設置OFF・素材なし: ゴースト赤・tooltipに不足行・クリックしても置かれない");
     DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, false);
     p.WarpPlayer(new Vector3(-10f, 33.5f, -4f));
@@ -127,7 +127,6 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.ClickPlace();
     await p.WaitSeconds(1f);
     p.Assert(p.GetBlock(groundOrigin) == null, "素材不足ではクリックしても置かれない");
-
     p.Note("9. ビルドメニューのBPエントリにホバー: 詳細に必要素材（所持0/必要）が出る");
     var required = BlueprintPasteGhostProbe.RequiredItems(bp, 1);
     await p.PressKey(Key.Tab);
@@ -143,7 +142,7 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.ClickWebUi(bpEntry);
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     var heldBefore = required.ToDictionary(r => r.itemId, r => p.CountItem(ItemName(r.itemId)));
-    foreach (var (itemId, count) in required) p.GiveItemDirect(ItemName(itemId), count);
+    foreach (var (itemId, count) in required) await p.GiveItemDirect(ItemName(itemId), count);
     await AimAndSettle(new Vector3(-10f, 32f, 8.5f));
     await p.Until(() => probe.AreAllGhostsColored(3, true), 10f, "素材が揃うとゴーストが青");
     await p.ClickPlace();
@@ -158,7 +157,7 @@ return PlaytestRunner.Run("blueprint-place-like-block", options, async p =>
     await p.Screenshot("06-pasted-with-wires");
 
     p.Note("8. ドラッグで3個並べる・素材は2個分 → 始点側の2個だけ置かれる");
-    foreach (var (itemId, count) in BlueprintPasteGhostProbe.RequiredItems(bp, 2)) p.GiveItemDirect(ItemName(itemId), count);
+    foreach (var (itemId, count) in BlueprintPasteGhostProbe.RequiredItems(bp, 2)) await p.GiveItemDirect(ItemName(itemId), count);
     p.WarpPlayer(new Vector3(8f, 33.5f, 12f));
     await AimAndSettle(new Vector3(3f, 32f, 22.5f));
     await p.Until(() => probe.AreAllGhostsColored(3, true), 10f, "列の始点で2個分の素材が同期されゴーストが青");

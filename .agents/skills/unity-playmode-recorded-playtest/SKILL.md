@@ -71,7 +71,7 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 録画には操作オーバーレイが自動で焼き込まれる: 左上=スタック式アクションログ（Step/Note/待機/Assert成否）、右上=押下中キーと直近入力（ゲーム自身の操作ヒント一覧・ホットバーと衝突しない位置）、画面上=注入マウスカーソル（クリックでリップル）。実装は`Client.Playtest/Overlay/`。
 
 - **シナリオには`p.Note("...")`で「今から何をするか・何が起きたか」を書く**（AIナレーション）。動画左上とresult.jsonの`Timeline`に残る。フェーズの区切り（設置開始・検証開始等）ごとに1行が目安
-- **1アクションごとに0.5秒のインターバルを必ず置く**（人間が動画で操作を認知できるテンポにするため）。Driverの非同期アクションAPI（PressKey/ClickPlace/PlaceBlockViaUi等）は自動で0.5秒空く。`SemanticInput`直叩きや`PlaceBlockDirect`等の同期APIを連続させる場合は`await p.WaitSeconds(0.5f)`を自分で挟む
+- **1アクションごとに0.5秒のインターバルを必ず置く**（人間が動画で操作を認知できるテンポにするため）。Driverの非同期アクションAPI（PressKey/ClickPlace/PlaceBlockViaUi等）は自動で0.5秒空く。`SemanticInput`直叩きや`PlaceBlockDirect`等のインターバルを挟まないAPIを連続させる場合は`await p.WaitSeconds(0.5f)`を自分で挟む
 
 ## Step 0: 複雑シナリオはサブエージェント探索を先に（必須ゲート）
 
@@ -89,4 +89,4 @@ uloop control-play-mode --project-path ./moorestech_client --action stop   # 前
 
 - `scripts/run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]` — preflight→boot→シナリオ投入→result.json回収の一発実行
 - `scripts/preflight.sh <unity-project-path> [master-server-dir]` — 疎通/コンパイル/master実在/マスタロードドライラン/ポート空き（run-scenario.shが自動で呼ぶ。単体診断にも使える）
-- `scenarios/<カテゴリ>/*.cs` — 実証済みシナリオ集（カテゴリ別サブディレクトリ: `building/`=設置・BP・スポイト・アンドゥ / `connect/`=手持ち/ツール結線 / `train/`=レール・列車 / `misc/`=サンプル・CEF・視点・cleanroom）。`building/belt-segment-flow.cs`(direct構築・ベルト搬送) / `connect/gear-chain-pole-via-ui.cs`(ホットバー駆動) / `connect/gear-chain-connect-via-ui.cs`(クリック結線) / `train/train-rail-connect-via-ui.cs`(レール結線) / `misc/sample-chest.cs`(最小例)。新規シナリオも適切なカテゴリへ追加する。**冒頭に「⚠ 現行masterでは動かない」と書かれたシナリオ（削除済みuGUI型参照・ピン先マスタに無いGUID待ち。2026-09-19棚卸し）は雛形にしない**
+- `scenarios/<カテゴリ>/*.cs` — 実証済みシナリオ集（カテゴリ別サブディレクトリ: `building/`=設置・BP・スポイト・アンドゥ / `connect/`=手持ち/ツール結線 / `train/`=レール・列車 / `misc/`=サンプル・CEF・視点・cleanroom / `tier9/`=Tier9 段1a〜7 の通し（半導体・ロケット・計算研究・核融合・エレベーター・反物質・最終研究））。`building/belt-segment-flow.cs`(direct構築・ベルト搬送) / `connect/gear-chain-pole-via-ui.cs`(ホットバー駆動) / `connect/gear-chain-connect-via-ui.cs`(クリック結線) / `train/train-rail-connect-via-ui.cs`(レール結線) / `misc/sample-chest.cs`(最小例)。新規シナリオも適切なカテゴリへ追加する。**冒頭に「⚠ 現行masterでは動かない」と書かれたシナリオ（削除済みuGUI型参照・ピン先マスタに無いGUID待ち。2026-09-19棚卸し）は雛形にしない**

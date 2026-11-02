@@ -1,0 +1,22 @@
+{
+  "recipes": [
+    {
+      "recipeGuid": "84000000-0000-4000-8000-000000000003",
+      "blockGuid": "85000000-0000-4000-8000-000000000001",
+      "blockId": 10,
+      "time": 4.0,
+      "inputItems": [ { "itemId": 11, "count": 2 }, { "itemId": 5, "count": 1 } ],
+      "outputItems": [ { "itemId": 21, "count": 1 } ],
+      "inputFluids": [],
+      "outputFluids": [],
+      "levelInheritance": {
+        "kind": "inheritUpToUnlocked",
+        "sourceInputIndex": 0,
+        "sourceItemIds": [ 11, 12, 13 ],
+        "targetOutputIndex": 0,
+        "targetItemIds": [ 21, 22, 23 ],
+        "maxCraftableLevel": 2
+      }
+    }
+  ]
+}

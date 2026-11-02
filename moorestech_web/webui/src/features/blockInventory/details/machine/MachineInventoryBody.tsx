@@ -6,6 +6,7 @@ import { itemsPerMinute, splitSlotIndices } from "../detailLogic";
 import { buildMachineSlotView, type GhostItem } from "./machineSlotGhosts";
 import { L, useI18n } from "@/shared/i18n";
 import styles from "./machineInventoryBody.module.css";
+import ModuleSlotStackLimitText from "./ModuleSlotStackLimitText";
 
 // 機械インベントリ: 入力→出力→モジュールの分割グリッド + 進捗 + 分間生産数
 // Machine inventory: split input→output→module grids, progress, and items per minute
@@ -57,6 +58,7 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
           <Text size="sm" c="dimmed" data-testid="machine-module-label">
             {t(L.ui.blockInventory.upgradeSlots)}
           </Text>
+          <ModuleSlotStackLimitText />
           <SlotGrid cols={module.length} testId="machine-module-slots">{module.map((i) => slotAt({ index: i, ghost: undefined }))}</SlotGrid>
         </Stack>
       )}

@@ -6,8 +6,14 @@ export function scrollAreaRootOf(page: Page, contentTestId: string): Locator {
   return page.getByTestId(contentTestId).locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
 }
 
+const scrollAreaViewportClass = "mantine-ScrollArea-viewport";
+
 export function scrollAreaViewport(scrollRoot: Locator): Locator {
-  return scrollRoot.locator(".mantine-ScrollArea-viewport");
+  return scrollRoot.locator(`.${scrollAreaViewportClass}`);
+}
+
+export function scrollAreaAncestorViewportOf(locator: Locator): Locator {
+  return locator.locator(`xpath=ancestor::*[contains(@class, '${scrollAreaViewportClass}')][1]`);
 }
 
 export function scrollAreaVerticalBar(scrollRoot: Locator): Locator {
@@ -120,4 +126,16 @@ export async function expectAtViewportTopCorner(
   expect(layout.horizontalGap).toBeLessThan(maximumGap);
   expect(layout.topGap).toBeGreaterThanOrEqual(0);
   expect(layout.topGap).toBeLessThan(maximumGap);
+}
+
+// スクロール後に視口内でクリックできるか
+// Scrolls an element into its ancestor viewport and checks it lies inside and is hit at its center; mere DOM presence misses a 0px viewport
+export async function expectReachableInScrollViewport(locator: Locator) {
+  await locator.scrollIntoViewIfNeeded();
+  const [box, viewportBox] = await Promise.all([locator.boundingBox(), scrollAreaAncestorViewportOf(locator).boundingBox()]);
+  expect(box).not.toBeNull();
+  expect(viewportBox).not.toBeNull();
+  expect(box!.y).toBeGreaterThanOrEqual(viewportBox!.y - 0.5);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewportBox!.y + viewportBox!.height + 0.5);
+  await expectHitTestWithin(locator);
 }

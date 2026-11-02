@@ -1,0 +1,84 @@
+# PRごとに、ピン先の出荷マスタを本番と同じ経路で読めるか（G1）と、G2 の研究順で全研究を完了できるか（G3）を検査する。テストはピン先マスタを読めない（check-test-external-dependencies.py）ため専用ワークフローで読む
+# Per PR, check the pinned shipped master loads through the production path (G1) and every research completes in G2's order (G3); tests may not read it (check-test-external-dependencies.py), so a dedicated workflow does
+name: Shipped Master Gate
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  gate:
+    name: Shipped Master Gate (G1+G3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ピン先SHAの解決と非公開master repoのcheckoutは run_test.yml の unity_test_shard と同じ手順
+      # Pin resolution and the private master checkout follow unity_test_shard in run_test.yml
+      - name: Read pinned master repository revision.
+        id: master_revision
+        shell: bash
+        run: |
+          commit_hash=$(jq -er '.repositories[] | select(.key == "moorestech_master") | .commitHash' .moorestech-external-revisions.json)
+          echo "commit_hash=$commit_hash" >> "$GITHUB_OUTPUT"
+
+      - name: Generate github token
+        id: generate_token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.PRIVATE_KEY }}
+
+      - name: Check out pinned master repository.
+        uses: actions/checkout@v4
+        with:
+          repository: moorestech/moorestech_master
+          token: ${{ steps.generate_token.outputs.token }}
+          ref: ${{ steps.master_revision.outputs.commit_hash }}
+          path: moorestech_master
+
+      # 保存はmasterのcache-warm.ymlだけが行う。path・キーは platform-compile.yml の Windows 行と逐語一致させる
+      # Only master's cache-warm.yml saves; path and key match the Windows row of platform-compile.yml verbatim
+      - uses: actions/cache/restore@v4
+        with:
+          path: moorestech_server/Library
+          key: Library_compile_server_StandaloneWindows64-${{ github.sha }}
+          restore-keys: |
+            Library_compile_server_StandaloneWindows64-
+
+      # G3 の研究順はピン先マスタの G2 が書く。G2 の合否はマスタ repo の CI が持つので、ここでは研究順が書けたかだけで落とす
+      # The pinned master's G2 writes G3's research order; G2's verdict belongs to the master repo CI, so this step only fails when no order was written
+      - name: Emit research order from G2
+        shell: bash
+        run: |
+          python3 moorestech_master/tools/progression/check.py --emit-order "$GITHUB_WORKSPACE/research_order.json" > g2.txt || echo "::warning::G2 is red on the pinned master ($(tail -1 g2.txt)); the master repo CI owns that verdict"
+          test -f "$GITHUB_WORKSPACE/research_order.json"
+
+      # buildMethodはプレイヤービルドをせず EditorApplication.Exit の終了コードで合否を返す（platform-compile.yml と同じ使い方）。置き場は推測させず必ず渡す
+      # The buildMethod builds no player and reports via the EditorApplication.Exit code (same usage as platform-compile.yml); the master location is always passed
+      - name: Shipped master gate
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4.8.2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          buildMethod: Server.MasterGate.Editor.ShippedMasterGateEntry.RunFromCommandLine
+          targetPlatform: StandaloneWindows64
+          allowDirtyBuild: true
+          projectPath: moorestech_server/
+          versioning: None
+          customParameters: '-masterDataRoot /github/workspace/moorestech_master -researchOrder /github/workspace/research_order.json'

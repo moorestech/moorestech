@@ -1,3 +1,4 @@
+using Game.Context;
 // 削除ツールで橋脚を撤去するとレールも巻き込まれて素材が返り、Ctrl+Zで橋脚とレールが同じ種類・同じ往復2辺で戻ることの録画検証（電線・チェーンは connect/delete-tool-cut-and-undo-connection-lines.cs）
 // 記録フックは DeleteSelection.CommitDelete と BuildUndoService（Ctrl+Z）にあるため、操作は必ず削除ツールUIへの注入で行う
 // Recorded check: removing a pier with the delete tool drops its rail with a refund, and Ctrl+Z restores pier and rail with the same type and both directed edges (wires/chains: connect/delete-tool-cut-and-undo-connection-lines.cs)
@@ -10,6 +11,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Playtest;
+using Client.Playtest.Core;
 using Client.Playtest.Operations.Ui;
 using Client.Playtest.Input;
 using Cysharp.Threading.Tasks;
@@ -40,7 +42,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.WaitUiState(UIStateEnum.GameScreen, 15f);
 
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
-    p.Hotbar.UnlockConnectTool("レール");
+    await p.Hotbar.UnlockConnectTool("レール");
     await p.PrepareBlockForUiPlacement("レール橋脚", 5);
     foreach (var item in new[] { "補強棒材", "鉄板" }) await p.GiveItem(item, 64);
     var railTool = ToolGuid("レール");
@@ -54,7 +56,13 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.Hotbar.EnterBuildMode(1);
     await p.AimAt(RailAreaCenter(pierE, pierF)); await p.ClickPlace(); await p.WaitSeconds(0.3f);
     await p.AimAt(RailAreaCenter(pierF, pierE)); await p.ClickPlace();
-    await p.Until(() => RailSignature().Contains("->"), 15f, "準備: 橋脚E-Fがレールで繋がる");
+    var connectWait = p.BeginWait(15f, "準備: 橋脚E-Fがレールで繋がる");
+    while (!(await RailSignature()).Contains("->"))
+    {
+        connectWait.CheckTimeout("expected=true, actual=condition false");
+        await UniTask.Yield();
+    }
+    connectWait.Complete();
     await p.Hotbar.ExitBuildMode(1);
 
     // Step 1: 橋脚Eをホバーで赤表示し、撤去するとレールも消えて素材が返る
@@ -64,7 +72,7 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     await p.Screenshot("01-prepared");
     await p.PressKey(Key.G);
     await p.WaitUiState(UIStateEnum.DeleteBar, 10f);
-    var railBefore = RailSignature();
+    var railBefore = await RailSignature();
     p.Assert(railBefore.Contains(railTool.ToString()), $"Step1: 撤去前のレールはレールツールの種類 {railBefore}");
     await AimAtBlock(pierE);
     await p.WaitSeconds(0.5f);
@@ -80,9 +88,9 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
     // Step 2: Ctrl+Z restores the pier and the rail with the same type and both directed edges
     await PressCtrlZ();
     var deadline = Time.realtimeSinceStartup + 20f;
-    while (Time.realtimeSinceStartup < deadline && RailSignature() != railBefore) await UniTask.Yield();
+    while (Time.realtimeSinceStartup < deadline && (await RailSignature()) != railBefore) await UniTask.Yield();
     p.Assert(p.GetBlock(pierE) != null, "Step2: Ctrl+Zで橋脚Eが再設置される");
-    p.Assert(RailSignature() == railBefore, $"Step2: Ctrl+Zでレールが撤去前と同じ種類・往復2辺で戻る 前={railBefore} 後={RailSignature()}");
+    p.Assert((await RailSignature()) == railBefore, $"Step2: Ctrl+Zでレールが撤去前と同じ種類・往復2辺で戻る 前={railBefore} 後={await RailSignature()}");
     HideMapRocks();
     await p.WaitSeconds(0.5f);
     await p.Screenshot("03-pier-and-rail-restored");
@@ -122,12 +130,17 @@ return PlaytestRunner.Run("delete-tool-pier-removal-undo-rail", new PlaytestRunO
 
     // 橋脚E・Fのノード間の有向辺と区間種類を並べた署名（往復2辺と向きの比較用）
     // Signature of directed edges and segment types between pier E/F nodes (compares both directions and orientation)
-    string RailSignature()
+    async UniTask<string> RailSignature()
     {
-        var e = RailOf(pierE); var f = RailOf(pierF); var datastore = p.ServerService<Game.Train.RailGraph.RailGraphDatastore>();
-        if (e == null || f == null) return "missing";
-        var nodes = new[] { (e.FrontNode, "E.Front"), (e.BackNode, "E.Back"), (f.FrontNode, "F.Front"), (f.BackNode, "F.Back") };
-        return string.Join(",", from a in nodes from b in nodes where a.Item1.ConnectedNodes.Any(n => n.NodeGuid == b.Item1.Guid) select $"{a.Item2}->{b.Item2}:{(datastore.TryGetRailSegmentType(a.Item1.NodeId, b.Item1.NodeId, out var type) ? type : Guid.Empty)}");
+        var signature = "missing";
+        await PlaytestServerThreadAction.RunAsync(p.CancellationToken, "レール接続を複製する", () =>
+        {
+            var e = RailOf(pierE); var f = RailOf(pierF); var datastore = ServerContext.GetService<Game.Train.RailGraph.RailGraphDatastore>();
+            if (e == null || f == null) { signature = "missing"; return; }
+            var nodes = new[] { (e.FrontNode, "E.Front"), (e.BackNode, "E.Back"), (f.FrontNode, "F.Front"), (f.BackNode, "F.Back") };
+            signature = string.Join(",", from a in nodes from b in nodes where a.Item1.ConnectedNodes.Any(n => n.NodeGuid == b.Item1.Guid) select $"{a.Item2}->{b.Item2}:{(datastore.TryGetRailSegmentType(a.Item1.NodeId, b.Item1.NodeId, out var type) ? type : Guid.Empty)}");
+        });
+        return signature;
     }
 
     // 生成マップの岩（MapObject）が足場を突き抜けて照準と撮影を遮るため、作業範囲の岩を表示・当たりごと隠す

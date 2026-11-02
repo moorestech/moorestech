@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Client.Playtest.Core;
 using Client.Playtest.Overlay;
 using Client.Playtest.Recording;
@@ -39,7 +40,8 @@ namespace Client.Playtest
                 // ゲーム初期化を待ってから録画開始・シナリオ実行
                 // Wait for game initialization, then start recording and run the scenario
                 PlaytestRecorder recorder = null;
-                var driver = new PlaytestDriver(result, runDirectory);
+                using var lifetime = new CancellationTokenSource();
+                var driver = new PlaytestDriver(result, runDirectory, lifetime.Token);
                 try
                 {
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
@@ -63,6 +65,13 @@ namespace Client.Playtest
                     // Catch exceptions only here so scenario failures still land in result.json
                     result.Success = false;
                     result.Error = $"{exception.GetType().Name}: {exception.Message}\n{exception.StackTrace}";
+                }
+
+                finally
+                {
+                    // 結果保存前に未開始のサーバー操作を取り消す
+                    // Cancel queued server work before publishing the result
+                    lifetime.Cancel();
                 }
 
                 // 成否にかかわらず転送を止め、次回実行へDOM応答を持ち越さない

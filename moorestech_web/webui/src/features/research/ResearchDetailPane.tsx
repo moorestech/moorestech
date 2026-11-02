@@ -1,8 +1,7 @@
 import type { ResearchNodeData } from "@/bridge";
 import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
-import { ownedCountOf } from "@/shared/ownedCounts";
-import { deriveResearchButton, isConsumeItemLacking } from "./researchLogic";
+import { allocateResearchItems, deriveResearchButton, isConsumeItemLacking } from "./researchLogic";
 import UnlockSections from "./unlock/UnlockSections";
 import {
   L,
@@ -23,6 +22,7 @@ type Props = {
 export default function ResearchDetailPane({ node, owned, onClose }: Props) {
   const { t } = useI18n();
   const button = deriveResearchButton(node);
+  const allocated = allocateResearchItems(node, owned);
   return (
     <div className={styles.detailPane} data-testid="research-detail-pane">
       <GamePanel variant="craft">
@@ -39,15 +39,15 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
               <span className={styles.sectionLabel}>{t(L.ui.research.consumeItemsLabel)}</span>
               <div className={styles.detailSlots}>
                 {node.consumeItems.map((c, i) => {
-                  const lacking = isConsumeItemLacking(node, c.itemId, c.count, owned);
+                  const lacking = isConsumeItemLacking(node, c.count, allocated === null ? null : allocated[i]);
                   return (
                     // 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型)。所持数未受信中は数値自体を出さない
                     // Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView); the number is hidden while owned counts are unknown
                     <ItemSlot key={`consume-${c.itemId}-${i}`}
                       itemId={c.itemId}
                       insufficient={lacking}
-                      shortage={owned
-                        ? { ownedCount: ownedCountOf(owned, c.itemId), requiredCount: c.count, tooltipKey: L.ui.research.consumeItemTooltip }
+                      shortage={allocated
+                        ? { ownedCount: allocated[i], requiredCount: c.count, tooltipKey: L.ui.research.consumeItemTooltip }
                         : undefined}
                     />
                   );

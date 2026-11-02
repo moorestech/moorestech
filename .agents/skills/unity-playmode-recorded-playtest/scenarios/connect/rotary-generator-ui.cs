@@ -1,3 +1,4 @@
+using Game.Context;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -25,7 +26,6 @@ using MessagePack;
 using UniRx;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
 {
@@ -35,7 +35,6 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     var largeSecond = new Vector3Int(4, 32, 8);
     var generatorPos = new Vector3Int(2, 32, 11);
     var minerPos = new Vector3Int(8, 32, 11);
-
     // 平地と実プレイ視点を作り、開幕の入力遮断を解除する
     // Create flat ground and the gameplay view, then clear the opening input gate
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
@@ -46,9 +45,8 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     p.Note("専用仮想キーボードとマウスで実プレイ入力を送る");
     p.WarpPlayer(new Vector3(5.5f, 34f, 10.5f));
     await p.WaitSeconds(0.5f);
-
     p.Note("駆動源なしの回転発電機を F キーで開き、停止表示を確認する");
-    var generatorBlock = p.PlaceBlockDirect("回転発電機", generatorPos, BlockDirection.North);
+    var generatorBlock = await p.PlaceBlockDirect("回転発電機", generatorPos, BlockDirection.North);
     var generatorObject = await p.WaitBlockGameObject(generatorPos);
     p.Assert(generatorBlock != null && p.GetBlock(generatorPos) != null, "発電機がサーバーに設置された");
     await OpenGenerator();
@@ -59,49 +57,42 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     await p.Screenshot("rotary-generator-stopped");
     await p.ClickWebUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
-
     // 蒸気機関から二段の20対10歯噛合で40 RPMへ増速する
     // Increase steam-engine speed to 40 RPM through two 20-to-10 tooth meshes
     p.Note("蒸気機関と二段増速歯車を直設置し、歯車網の連結を確認する");
-    p.PlaceBlockDirect("蒸気機関", steamPos, BlockDirection.North);
+    await p.PlaceBlockDirect("蒸気機関", steamPos, BlockDirection.North);
     await p.WaitSeconds(0.5f);
-    p.PlaceBlockDirect("大きな鉄の歯車", largeFirst, BlockDirection.East);
+    await p.PlaceBlockDirect("大きな鉄の歯車", largeFirst, BlockDirection.East);
     await p.WaitSeconds(0.5f);
-    p.PlaceBlockDirect("鉄の歯車", small, BlockDirection.East);
+    await p.PlaceBlockDirect("鉄の歯車", small, BlockDirection.East);
     await p.WaitSeconds(0.5f);
-    p.PlaceBlockDirect("大きな鉄の歯車", largeSecond, BlockDirection.East);
+    await p.PlaceBlockDirect("大きな鉄の歯車", largeSecond, BlockDirection.East);
     await p.WaitSeconds(0.5f);
     foreach (var position in new[] { steamPos, largeFirst, small, largeSecond })
     {
         p.Assert(p.GetBlock(position) != null, $"駆動系ブロック設置 {position}");
         await p.WaitBlockGameObject(position);
     }
-
-    var gears = p.ServerService<GearNetworkDatastore>();
-    await p.Until(() => gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out _), 15f, "発電機の歯車網確定");
-    p.Assert(gears.TryGetGearNetwork(p.GetBlock(steamPos).BlockInstanceId, out var steamNetwork) &&
-             gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out var generatorNetwork) &&
-             steamNetwork.NetworkId.Equals(generatorNetwork.NetworkId), "蒸気機関から発電機まで同一歯車網");
-
-    // 蒸気はシナリオ側のフレームループで継続補給し、終了時に止める（GameUpdaterの購読口は廃止済み）
-    // Refill steam from a scenario-side frame loop and stop it at the end (GameUpdater subscription hooks were removed)
+    await p.WaitForConnectedGears(p.GetBlock(steamPos), generatorBlock, 15f, "発電機の歯車網確定");
+    // 蒸気はシナリオ側のループで継続補給する。途中で失敗して抜けても、スコープの破棄で補給を止める
+    // Keep refilling steam from a scenario-side loop; even when a failure exits early, disposing the scope stops it
     var fluid = p.GetBlock(steamPos).GetComponent<FuelGearGeneratorFluidComponent>();
     var steamId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("e2a5d2e5-3fa5-47e2-9fc0-68c8552523f8"));
     var steamSupplyActive = true;
-    RefillSteamEveryFrame().Forget();
+    using var stopSteamSupply = Disposable.Create(() => steamSupplyActive = false);
+    var steamSupply = RefillSteamEveryTick();
     await p.Until(() => Detail().CurrentRpm >= 40f && Detail().GenerationState == GearToElectricGenerationState.Idle, 90f, "40 RPM以上で需要なし待機");
     p.Assert(!fluid.IsPipeDisconnected, "蒸気補給が継続している");
-
     // 実際のホットバーと電線ツールのクリック操作で需要を接続する
     // Connect demand with the real hotbar and wire-tool click path
     p.Note("電気採掘機を設置し、電線ツールで発電機へ結線する");
-    var minerBlock = p.PlaceBlockDirect("電気採掘機", minerPos, BlockDirection.North);
+    var minerBlock = await p.PlaceBlockDirect("電気採掘機", minerPos, BlockDirection.North);
     var minerObject = await p.WaitBlockGameObject(minerPos);
     p.Assert(minerBlock != null, "電気採掘機がサーバーに設置された");
     var generatorWire = generatorBlock.GetComponent<IElectricWireConnector>();
     var minerWire = minerBlock.GetComponent<IElectricWireConnector>();
     p.Assert(!generatorWire.ContainsWireConnection(minerBlock.BlockInstanceId), "結線前は電線がない");
-    p.Hotbar.UnlockConnectTool("電線");
+    await p.Hotbar.UnlockConnectTool("電線");
     await p.GiveItem("銅のワイヤー", 64);
     await p.Hotbar.AssignHotbar(0, "電線");
     await p.ClickWebUi("hotbar-slot-0");
@@ -116,52 +107,50 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
                         minerWire.ContainsWireConnection(generatorBlock.BlockInstanceId), 15f, "実操作で双方向電線接続");
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Generating &&
                         Detail().GeneratedElectricPower > 0f, 30f, "実需要へ供給して発電中");
-    p.Assert(gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out var activeNetwork) &&
+    var activeRpmEnough = false;
+    await p.RunOnServer("発電機の実RPMを読む", () =>
+    {
+        var gears = ServerContext.GetService<GearNetworkDatastore>();
+        activeRpmEnough = gears.TryGetGearNetwork(generatorBlock.BlockInstanceId, out var activeNetwork) &&
              activeNetwork.TryResolveRotation(generatorBlock.BlockInstanceId, out var rpm, out _) &&
-             rpm.AsPrimitive() >= 40f, "発電中の実RPMは最低40以上");
+             rpm.AsPrimitive() >= 40f;
+    });
+    p.Assert(activeRpmEnough, "発電中の実RPMは最低40以上");
     await p.ExitToGameScreen();
     await OpenGenerator();
     await p.UntilWebUiElement("gear-to-electric-section", 15f);
     await VerifyPanel("発電中", true);
     await p.Screenshot("rotary-generator-generating");
-
     // 需要を除いた次の電力tickで供給量がゼロへ戻ることを確認する
     // Verify supply returns to zero on an electric tick after demand removal
     p.Note("採掘機を外し、開いたパネルが待機中と供給0へ同期することを確認する");
-    p.Assert(p.RemoveBlock(minerPos), "電力需要を撤去した");
+    p.Assert(await p.RemoveBlock(minerPos), "電力需要を撤去した");
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Idle &&
                         Mathf.Approximately(Detail().GeneratedElectricPower, 0f), 30f, "需要消失後のサーバー状態は待機中・供給0");
     await VerifyPanel("待機中（需要なし）", false);
     await p.Screenshot("rotary-generator-idle");
     steamSupplyActive = false;
-
+    await steamSupply;
     #region Internal
-
-    // 補給はtickより細かいフレーム単位で行い、UI操作中も5tick連続の未補給（切断判定）を作らない。失敗で抜けてもPlayMode終了か撤去で止まる
-    // Refill per frame (finer than a tick) so UI steps never leave 5 ticks unrefilled; on failure it still stops with PlayMode exit or block removal
-    async UniTaskVoid RefillSteamEveryFrame()
+    // 毎tick末尾に1回補給する。蒸気機関は5tick連続の未補給で切断扱いになり加速をやり直すので、間引くと負荷の高いEditorで40 RPMに届かない
+    // Refill once at every tick end: the engine treats 5 unrefilled ticks as a disconnect and restarts acceleration, so throttling misses 40 RPM on a loaded Editor
+    async UniTask RefillSteamEveryTick()
     {
         while (steamSupplyActive && Application.isPlaying && !fluid.IsDestroy)
         {
-            fluid.AddLiquid(new FluidStack(1d, steamId), default);
-            await UniTask.Yield();
+            await p.RunOnServer("蒸気を補給する", () => fluid.AddLiquid(new FluidStack(1d, steamId), default));
         }
     }
-
     GearToElectricGeneratorBlockStateDetail Detail()
     {
-        var component = generatorBlock.GetComponent<GearToElectricGeneratorComponent>();
-        var value = component.GetBlockStateDetails().First(d => d.Key == GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
-        return MessagePackSerializer.Deserialize<GearToElectricGeneratorBlockStateDetail>(value.Value);
+        return generatorObject.GetStateDetail<GearToElectricGeneratorBlockStateDetail>(GearToElectricGeneratorBlockStateDetail.GearGeneratorBlockStateDetailKey);
     }
-
     async UniTask AimAtClickCollider(BlockGameObject blockObject)
     {
         var collider = blockObject.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
         var aimPoint = new Vector3(collider.bounds.center.x, collider.bounds.min.y + 0.4f, collider.bounds.center.z);
         await p.AimAt(aimPoint);
     }
-
     async UniTask OpenGenerator()
     {
         // 通常画面ではAltでカーソル照準を解放し、Fの実操作を通す
@@ -181,7 +170,6 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         SemanticInput.KeyUp(Key.LeftAlt);
         await UniTask.DelayFrame(3);
     }
-
     async UniTask VerifyPanel(string expectedState, bool expectPositivePower)
     {
         var testIds = new[] { "gear-to-electric-state", "gear-to-electric-supplied-power", "gear-torque", "gear-rpm", "electric-network-section", "gear-network-section" };
@@ -207,6 +195,5 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         p.Assert(rows[0].Y < rows[1].Y && rows[1].Y < rows[2].Y && rows[2].Y < rows[3].Y &&
                  rows[3].Y < rows[4].Y && rows[4].Y < rows[5].Y, "状態→供給→歯車→電力網→歯車網の表示順");
     }
-
     #endregion
 });

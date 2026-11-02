@@ -1,3 +1,4 @@
+using Game.Context;
 // 無料設置デバッグ検証: FreeBlockPlacementをONにすると、未解放かつ建設コストを1つも持たないブロックでも
 // 本番の設置プロトコル(va:placeBlock)経由で設置できることをE2E録画で確認する。
 // web UI移行でuGUIビルドメニューのスロット自動選択は駆動できないため、UIが送るのと同一のPlaceBlockパケットを直接送出し、
@@ -34,7 +35,6 @@ return PlaytestRunner.Run("free-placement-locked-block", options, async p =>
 
     // 検証対象: いずれも未解放・建設コスト持ち。チェスト=非電気、石窯=電気(電線ゲート)、粉砕機=歯車機械
     // Targets: all locked with construction cost. Chest=non-electric, kiln=electric(wire gate), crusher=gear machine
-    var unlockController = p.ServerService<IGameUnlockStateDataController>();
     // ブロックは大きい(3x2x4等)ため、フットプリントが重ならないよう十分に離して配置する
     // Blocks are large (3x2x4 etc.), so space them far apart to avoid footprint overlap
     var targets = new (string name, Guid guid, Vector3Int pos)[]
@@ -48,7 +48,8 @@ return PlaytestRunner.Run("free-placement-locked-block", options, async p =>
     // Pin the premise: every target is locked
     foreach (var t in targets)
     {
-        var unlocked = unlockController.BlockUnlockStateInfos[t.guid].IsUnlocked;
+        var unlocked = false;
+        await p.RunOnServer("ブロックの解放状態を読む", () => unlocked = ServerContext.GetService<IGameUnlockStateDataController>().BlockUnlockStateInfos[t.guid].IsUnlocked);
         p.Assert(!unlocked, $"前提: {t.name} は未解放");
     }
 

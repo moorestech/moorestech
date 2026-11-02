@@ -1,5 +1,4 @@
 import type { ResearchNodeData, ResearchNodeState } from "@/bridge";
-import { hasEnoughItems } from "@/shared/ownedCounts";
 import { L, type TranslationKey } from "@/shared/i18n";
 
 // state 5値の意味を1表へ畳む。stateが増えた日はここが欠損してコンパイルエラーになる
@@ -13,11 +12,28 @@ const STATE_TRAITS: Record<ResearchNodeState, ResearchStateTraits> = {
   unresearchableAllReasons: { preNodeMet: false, itemsSufficient: false },
 };
 
-// 消費アイテム1件の不足強調。完了/未受信中は出さない（表示専用でボタン活性には効かない）
-// Per-item shortage highlight; hidden while completed or unreceived (display only, never gates the button)
-export function isConsumeItemLacking(node: ResearchNodeData, itemId: number, required: number, owned: Map<number, number> | null): boolean {
-  if (owned === null) return false;
-  return node.state !== "completed" && !hasEnoughItems([{ itemId, count: required }], owned);
+// サーバーと同じ2パスで単一受付→複数受付を各宣言順に割り当てる
+// Match the server's two passes: single acceptance, then multiple acceptance, both in declaration order
+export function allocateResearchItems(node: ResearchNodeData, owned: Map<number, number> | null): number[] | null {
+  if (owned === null) return null;
+  const remaining = new Map(owned);
+  const allocated = node.consumeItems.map(() => 0);
+  const order = node.consumeItems.map((item, index) => ({ item, index }))
+    .sort((a, b) => Number(a.item.acceptedItemIds.length !== 1) - Number(b.item.acceptedItemIds.length !== 1));
+  for (const { item, index } of order) {
+    for (const id of item.acceptedItemIds) {
+      const amount = Math.min(remaining.get(id) ?? 0, item.count - allocated[index]);
+      allocated[index] += amount;
+      remaining.set(id, (remaining.get(id) ?? 0) - amount);
+    }
+  }
+  return allocated;
+}
+
+// 1件ごとの不足強調は表示専用でボタン活性には使わず、完了と未受信では出さない
+// Per-item shortages are display-only, never enable buttons, and stay hidden when completed or pending
+export function isConsumeItemLacking(node: ResearchNodeData, required: number, allocated: number | null): boolean {
+  return allocated !== null && node.state !== "completed" && allocated < required;
 }
 
 export type ResearchButtonState = {

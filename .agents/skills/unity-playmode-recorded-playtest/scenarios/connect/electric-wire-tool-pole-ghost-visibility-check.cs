@@ -1,3 +1,4 @@
+using Game.Context;
 // 電線ツールの電柱ゴースト可視性の回帰チェック: 選択中の電柱種のゴーストが描画されることを通常設置と比較して確認する
 // 名前ラベルだけ出てプレビューGameObjectがSetActive(true)されない不具合の再発を防ぐ
 // Regression check that the wire tool draws the selected pole-type ghost, compared against normal placement.
@@ -39,7 +40,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-visibility-check", opti
 
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
     await p.PrepareBlockForUiPlacement("電柱", 3);
-    p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid);
+    await p.RunOnServer("電線ツールを解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
     await p.GiveItem("銅のワイヤー", 64);
 
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;

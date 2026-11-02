@@ -1,3 +1,5 @@
+using Client.Playtest.Operations;
+using Game.Context;
 // ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 待機するチャレンジ/チュートリアルのGUID（bd5262ed/7bafc2cf/24f72113 ほか）がピン先マスタ c219a2f5 に存在せず、最初の待ちで必ずタイムアウトする（ADR 0038 の序盤圧縮でチェーンが再構成された）。雛形にしないこと
 // ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): the challenge/tutorial GUIDs it waits on (bd5262ed/7bafc2cf/24f72113 ほか) do not exist in the pinned master c219a2f5, so the first wait always times out (the chain was rebuilt by the ADR 0038 early-game compression). Do not use this as a template
 // シナリオ: ADR 0029「装備チャレンジ新設・木ピンのearnItem指定・キーヒント/ドラッグ矢印」を実走検証する
@@ -35,7 +37,6 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
     };
     Application.logMessageReceived += onLog;
 
-    var challengeStore = p.ServerService<Game.Challenge.ChallengeDatastore>();
     var pinStore = Client.Game.InGame.Tutorial.WorldPinStateStore.Instance;
     var tutorialStore = Client.Game.InGame.Tutorial.TutorialPresentationStateStore.Instance;
 
@@ -50,14 +51,11 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
     // 検証2: 小石3個→石器クラフトで「石器を装備する」が現在目標になる（ADR 0029 の新チャレンジ）
     // Verify 2: 3 pebbles -> craft -> the new "equip the stone tool" challenge becomes current
     p.Note("小石3個付与→石器クラフトで装備チャレンジまで進める");
-    p.GiveItemDirect("小石", 3);
-    await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges.Any(c => c.ChallengeGuid == pebbleChallenge), 30);
+    await p.GiveItemDirect("小石", 3);
+    await p.WaitForChallenge(pebbleChallenge, true, 30, "チャレンジ「小石を3個拾う」が完了した");
     Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.Craft(stoneToolRecipe);
-    var craftDone = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges.Any(c => c.ChallengeGuid == craftStoneTool), 30);
-    p.Assert(craftDone, "チャレンジ「石器を作る」が完了した");
-    var equipCurrent = await PollUntil(() => challengeStore.CurrentChallengeInfo.CurrentChallenges
-        .Any(c => c.ChallengeMasterElement.ChallengeGuid == equipStoneTool), 30);
-    p.Assert(equipCurrent, "チャレンジ「石器を装備する」が現在目標になった");
+    await p.WaitForChallenge(craftStoneTool, true, 30, "チャレンジ「石器を作る」が完了した");
+    await p.WaitForChallenge(equipStoneTool, false, 30, "チャレンジ「石器を装備する」が現在目標になった");
 
     // 検証3: 装備誘導のkeyControlヒントとドラッグ矢印がサーバー指定どおり提示される
     // Verify 3: the equip guidance publishes the key hint and the drag guide exactly as the master specifies
@@ -89,11 +87,8 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
     // Verify 4: equipping the stone tool into the selected slot completes the challenge and advances to felling
     p.Note("石器を選択中装備枠へ装備する");
     await p.EquipItem("石器", 0);
-    var equipDone = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges.Any(c => c.ChallengeGuid == equipStoneTool), 30);
-    p.Assert(equipDone, "チャレンジ「石器を装備する」が装備で達成された");
-    var fellCurrent = await PollUntil(() => challengeStore.CurrentChallengeInfo.CurrentChallenges
-        .Any(c => c.ChallengeMasterElement.ChallengeGuid == fellTree), 30);
-    p.Assert(fellCurrent, "チャレンジ「木を伐採して原木を入手する」が現在目標になった");
+    await p.WaitForChallenge(equipStoneTool, true, 30, "チャレンジ「石器を装備する」が装備で達成された");
+    await p.WaitForChallenge(fellTree, false, 30, "チャレンジ「木を伐採して原木を入手する」が現在目標になった");
     await p.Screenshot("04-equip-done");
 
     // 検証5: 木ピンがearnItem指定で解決し、原木を落とす木に刺さる（旧mapObject直指定からの移行）
@@ -125,9 +120,8 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
             Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.AttackMapObject(nearestTree.InstanceId);
             await p.WaitSeconds(stoneToolAttackSpeedSeconds);
         }
-        var fellDone = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges.Any(c => c.ChallengeGuid == fellTree), 30);
+        await p.WaitForChallenge(fellTree, true, 30, "チャレンジ「木を伐採して原木を入手する」が完了した");
         p.Assert(3 <= p.CountItem("原木"), "原木が3個以上インベントリにある");
-        p.Assert(fellDone, "チャレンジ「木を伐採して原木を入手する」が完了した");
         await p.Screenshot("06-tree-felled");
     }
 

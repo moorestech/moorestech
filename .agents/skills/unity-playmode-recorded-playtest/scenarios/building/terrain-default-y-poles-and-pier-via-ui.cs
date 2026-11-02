@@ -37,15 +37,15 @@ return PlaytestRunner.Run("terrain-default-y-poles-and-pier-via-ui", options, as
 
     // 歯車ポールの延長設置と電線ツールは接続ツールの解放状態も見るため先に解放し、電線素材も持たせる
     // Gear pole extension and the wire tool consult connect-tool unlocks, so unlock them first and stock wire
-    p.Hotbar.UnlockConnectTool("歯車チェーン");
-    p.Hotbar.UnlockConnectTool("電線");
-    p.GiveItemDirect("銅のワイヤー", 64);
-    p.GiveItemDirect("鉄のワイヤー", 64);
+    await p.Hotbar.UnlockConnectTool("歯車チェーン");
+    await p.Hotbar.UnlockConnectTool("電線");
+    await p.GiveItemDirect("銅のワイヤー", 64);
+    await p.GiveItemDirect("鉄のワイヤー", 64);
     // 無料設置でも接続系の設置はコスト不足行を出し、サーバーは未解放を拒否する（[GearChainPoleExtend] denied: NotUnlocked）ため、解放と建設コストを実際に持たせる
     // Connect-style placement still reports shortages under free placement and the server denies locked poles, so unlock and stock the real cost
-    p.UnlockBlock("歯車チェーンポール");
-    p.UnlockBlock("電柱");
-    p.UnlockBlock("レール橋脚");
+    await p.UnlockBlock("歯車チェーンポール");
+    await p.UnlockBlock("電柱");
+    await p.UnlockBlock("レール橋脚");
     await p.GiveConstructionCost("歯車チェーンポール", 2);
     await p.GiveConstructionCost("電柱", 2);
     await p.GiveConstructionCost("レール橋脚", 2);

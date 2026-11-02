@@ -1,5 +1,5 @@
 import type {
-  PlayerInventoryData, CraftRecipesData, MachineRecipesData,
+  PlayerInventoryData, CraftRecipesData, MachineRecipesData, MachineUpgradeData,
   RecipeViewerItemListData,
   ModalData, ProgressData, BlockInventoryData,
   UiStateData, ResearchTreeData, BuildMenuData, HotbarData,
@@ -45,6 +45,7 @@ export const Topics = {
   inventory: "local_player.inventory",
   craftRecipes: "crafting.recipes",
   machineRecipes: "crafting.machine_recipes",
+  machineUpgrade: "machine_upgrade.current",
   itemList: "recipe_viewer.item_list",
   blockInventory: "block_inventory.current",
   modal: "ui.modal",
@@ -85,6 +86,7 @@ export type TopicPayloads = {
   [Topics.inventory]: PlayerInventoryData;
   [Topics.craftRecipes]: CraftRecipesData;
   [Topics.machineRecipes]: MachineRecipesData;
+  [Topics.machineUpgrade]: MachineUpgradeData;
   [Topics.itemList]: RecipeViewerItemListData;
   [Topics.blockInventory]: BlockInventoryData;
   [Topics.modal]: ModalData;

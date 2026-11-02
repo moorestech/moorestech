@@ -551,6 +551,54 @@
             "initialUnlocked": true,
             "recipeViewType": "IsUnlocked",
             "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"
+        },
+        {
+            "initialUnlocked": false,
+            "sortPriority": 260,
+            "name": "継承テスト素材Lv1",
+            "itemGuid": "00000000-0000-0000-e0de-000000000011",
+            "recipeViewType": "IsUnlocked",
+            "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"
+        },
+        {
+            "initialUnlocked": false,
+            "sortPriority": 260,
+            "name": "継承テスト素材Lv2",
+            "itemGuid": "00000000-0000-0000-e0de-000000000012",
+            "recipeViewType": "IsUnlocked",
+            "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"
+        },
+        {
+            "initialUnlocked": false,
+            "sortPriority": 260,
+            "name": "継承テスト素材Lv3",
+            "itemGuid": "00000000-0000-0000-e0de-000000000013",
+            "recipeViewType": "IsUnlocked",
+            "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"
+        },
+        {
+            "initialUnlocked": false,
+            "sortPriority": 260,
+            "name": "継承テスト製品Lv1",
+            "itemGuid": "00000000-0000-0000-e0de-000000000021",
+            "recipeViewType": "IsUnlocked",
+            "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"
+        },
+        {
+            "initialUnlocked": false,
+            "sortPriority": 260,
+            "name": "継承テスト製品Lv2",
+            "itemGuid": "00000000-0000-0000-e0de-000000000022",
+            "recipeViewType": "IsUnlocked",
+            "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"
+        },
+        {
+            "initialUnlocked": false,
+            "sortPriority": 260,
+            "name": "継承テスト製品Lv3",
+            "itemGuid": "00000000-0000-0000-e0de-000000000023",
+            "recipeViewType": "IsUnlocked",
+            "stackLevelTableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa"
         }
     ],
     "modules": [
@@ -582,6 +630,7 @@
             "tradeoffValue": 0.5
         }
     ],
+    "orbitalPayloads": [],
     "itemStackLevelTables": [
         {
             "tableGuid": "9c4f9d1e-3a77-4a2b-9b62-6d0f5c8e21aa",
@@ -592,5 +641,35 @@
         }
     ],
     "equipmentSlotCount": 3,
-    "initialEquipmentItems": []
+    "initialEquipmentItems": [],
+    "moduleSlotStackLimitLevels": [
+        {
+            "stackLimit": 3
+        },
+        {
+            "stackLimit": 6
+        }
+    ],
+    "levelFamilies": [
+        {
+            "familyGuid": "00000000-0000-0000-e0de-0000000000f1",
+            "name": "継承テスト素材Family",
+            "baseItemGuid": "00000000-0000-0000-e0de-000000000011",
+            "levelItemGuids": [
+                "00000000-0000-0000-e0de-000000000011",
+                "00000000-0000-0000-e0de-000000000012",
+                "00000000-0000-0000-e0de-000000000013"
+            ]
+        },
+        {
+            "familyGuid": "00000000-0000-0000-e0de-0000000000f2",
+            "name": "継承テスト製品Family",
+            "baseItemGuid": "00000000-0000-0000-e0de-000000000021",
+            "levelItemGuids": [
+                "00000000-0000-0000-e0de-000000000021",
+                "00000000-0000-0000-e0de-000000000022",
+                "00000000-0000-0000-e0de-000000000023"
+            ]
+        }
+    ]
 }

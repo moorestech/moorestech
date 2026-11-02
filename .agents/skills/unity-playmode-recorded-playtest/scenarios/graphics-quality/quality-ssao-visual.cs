@@ -39,7 +39,7 @@ return PlaytestRunner.Run("quality-ssao-visual", new PlaytestRunOptions { Record
         await p.SkipOpeningSkitIfPlaying();
         GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Medium);
         var origin = new Vector3Int(660, 96, 630);
-        p.PlaceBlockDirect("木のチェスト", origin, BlockDirection.North);
+        await p.PlaceBlockDirect("木のチェスト", origin, BlockDirection.North);
         var view = await p.WaitBlockGameObject(origin);
         await p.Until(() => !view.IsPlayingPlaceAnimation, 15f, "比較用チェスト設置完了");
         await p.WaitSeconds(2f);

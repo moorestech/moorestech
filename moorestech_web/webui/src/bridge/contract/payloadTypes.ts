@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type {
+  BlockInfoUnavailableSchema,
   BlockInventoryDataSchema,
   BlockInventoryOpenSchema,
   BlockSlotRefSchema,
@@ -23,9 +24,12 @@ import type {
   ItemMasterDataSchema,
   ItemMasterEntrySchema,
   MachineDetailDataSchema,
+  MachineInputStallDataSchema,
   MachineProcessStateSchema,
   MachineRecipeSchema,
   MachineRecipesDataSchema,
+  MachineRecipeLevelInheritanceSchema,
+  MachineUpgradeDataSchema,
   ModalDataSchema,
   ModalRequestSchema,
   PlayerInventoryDataSchema,
@@ -56,10 +60,15 @@ import type {
   WorldPinPresentationDataSchema,
   SkitPresentationDataSchema,
   TrainRidingDataSchema,
+  SpaceElevatorStatusSchema,
   TrainPlatformModeSchema,
+  RocketLaunchPadDataSchema,
   TrainTimetableDataSchema,
   TrainTimetableStationSchema,
   TrainTimetableStopSchema,
+  CleanRoomDetailDataSchema,
+  CleanRoomSummaryDataSchema,
+  CleanRoomYieldDataSchema,
   NotificationDataSchema,
 } from "./schemas";
 
@@ -111,7 +120,15 @@ export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
 export type BeltThroughputData = z.infer<typeof BeltThroughputDataSchema>;
 export type BeltThroughputWindowData = z.infer<typeof BeltThroughputWindowDataSchema>;
+export type BlockInfoUnavailableData = z.infer<typeof BlockInfoUnavailableSchema>;
+export type CleanRoomDetailData = z.infer<typeof CleanRoomDetailDataSchema>;
+export type CleanRoomFetchedDetailData = Extract<CleanRoomDetailData, { fetchState: "fetched" }>;
+export type CleanRoomSummaryData = z.infer<typeof CleanRoomSummaryDataSchema>;
+export type CleanRoomYieldData = z.infer<typeof CleanRoomYieldDataSchema>;
+export type CleanRoomYieldFetchedData = Extract<CleanRoomYieldData, { fetchState: "fetched" }>;
 export type GearToElectricGenerationState = z.infer<typeof GearToElectricGenerationStateSchema>;
+export type SpaceElevatorStatus = z.infer<typeof SpaceElevatorStatusSchema>;
+export type RocketLaunchPadData = z.infer<typeof RocketLaunchPadDataSchema>;
 export type TrainPlatformMode = z.infer<typeof TrainPlatformModeSchema>;
 export type TrainTimetableData = z.infer<typeof TrainTimetableDataSchema>;
 export type TrainTimetableStation = z.infer<typeof TrainTimetableStationSchema>;
@@ -119,11 +136,15 @@ export type TrainTimetableStop = z.infer<typeof TrainTimetableStopSchema>;
 export type GearNetworkStopReason = z.infer<typeof GearNetworkStopReasonSchema>;
 export type FilterSplitterMode = z.infer<typeof FilterSplitterModeSchema>;
 export type BlockInventoryOpen = z.infer<typeof BlockInventoryOpenSchema>;
+export type MachineInputStallData = z.infer<typeof MachineInputStallDataSchema>;
+export type MachineInputStallFetchedData = Extract<MachineInputStallData, { fetchState: "fetched" }>;
 export type BlockInventoryData = z.infer<typeof BlockInventoryDataSchema>;
 export type CraftRecipe = z.infer<typeof CraftRecipeSchema>;
 export type CraftRecipesData = z.infer<typeof CraftRecipesDataSchema>;
 export type MachineRecipe = z.infer<typeof MachineRecipeSchema>;
 export type MachineRecipesData = z.infer<typeof MachineRecipesDataSchema>;
+export type MachineRecipeLevelInheritance = z.infer<typeof MachineRecipeLevelInheritanceSchema>;
+export type MachineUpgradeData = z.infer<typeof MachineUpgradeDataSchema>;
 export type RecipeViewerItemListData = z.infer<typeof RecipeViewerItemListDataSchema>;
 export type ItemMasterEntry = z.infer<typeof ItemMasterEntrySchema>;
 export type ItemMasterData = z.infer<typeof ItemMasterDataSchema>;

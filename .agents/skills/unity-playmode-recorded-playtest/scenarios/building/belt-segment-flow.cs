@@ -32,34 +32,32 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     var sourcePosition = new Vector3Int(0, 32, 3);
     var sinkAPosition = new Vector3Int(0, 32, 12);
     var sinkBPosition = new Vector3Int(3, 32, 7);
-    p.PlaceBlockDirect("鉄のミニコンベアチェスト", sourcePosition, BlockDirection.North);
-    for (var z = 4; z <= 6; z++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
-    p.PlaceBlockDirect("ベルトコンベア分岐器", new Vector3Int(0, 32, 7), BlockDirection.North);
-    for (var z = 8; z <= 9; z++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
-    for (var z = 7; z <= 9; z++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-1, 32, z), BlockDirection.North);
-    p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-1, 32, 10), BlockDirection.East);
-    for (var z = 10; z <= 11; z++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
-    p.PlaceBlockDirect("鉄のミニコンベアチェスト", sinkAPosition, BlockDirection.North);
-    for (var x = 1; x <= 2; x++) p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(x, 32, 7), BlockDirection.East);
-    p.PlaceBlockDirect("鉄のミニコンベアチェスト", sinkBPosition, BlockDirection.East);
+    await p.PlaceBlockDirect("鉄のミニコンベアチェスト", sourcePosition, BlockDirection.North);
+    for (var z = 4; z <= 6; z++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア分岐器", new Vector3Int(0, 32, 7), BlockDirection.North);
+    for (var z = 8; z <= 9; z++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
+    for (var z = 7; z <= 9; z++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-1, 32, z), BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(-1, 32, 10), BlockDirection.East);
+    for (var z = 10; z <= 11; z++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(0, 32, z), BlockDirection.North);
+    await p.PlaceBlockDirect("鉄のミニコンベアチェスト", sinkAPosition, BlockDirection.North);
+    for (var x = 1; x <= 2; x++) await p.PlaceBlockDirect("ベルトコンベア", new Vector3Int(x, 32, 7), BlockDirection.East);
+    await p.PlaceBlockDirect("鉄のミニコンベアチェスト", sinkBPosition, BlockDirection.East);
     await p.WaitBlockGameObject(sinkAPosition);
     await p.WaitBlockGameObject(sinkBPosition);
 
     // サーバーの組とクライアントの複製が同じ本数になるまで待つ(再構築は設置したtickの末尾、途中参加の全量は接続時)
     // Wait until the server assembly and the client replica hold the same segment count (rebuild at the end of the placing tick)
-    var datastore = p.ServerService<BeltTransportDatastore>();
-    var trainUpdateService = p.ServerService<TrainUpdateService>();
     var resolver = ClientDIContext.DIContainer.DIContainerResolver;
     var cache = resolver.Resolve<BeltTransportClientCache>();
     var tickState = resolver.Resolve<TrainUnitTickState>();
-    await p.Until(() => 0 < datastore.Assembly.Segments.Length && cache.Replica != null && cache.Replica.Segments.Length == datastore.Assembly.Segments.Length, 30f, "複製のsegment本数がサーバーと一致");
-    p.Note($"segment本数 server={datastore.Assembly.Segments.Length} client={cache.Replica.Segments.Length}");
+    await WaitReplicaSegments(null, "複製のsegment本数がサーバーと一致");
+    p.Note($"segment本数 server={(await p.ReadBeltSegmentCount())} client={cache.Replica.Segments.Length}");
     await p.Screenshot("01-line-built");
 
     p.Note("供給チェストに鉄インゴットを入れて流し始める");
     var itemId = PlaytestItemOps.ResolveItemId("鉄インゴット");
     var source = p.GetBlock(sourcePosition).ComponentManager.GetComponent<IOpenableBlockInventoryComponent>();
-    source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 30));
+    await p.RunOnServer("供給チェストに鉄インゴット30個を入れる", () => source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 30)));
     var sinkA = p.GetBlock(sinkAPosition).ComponentManager.GetComponent<IOpenableBlockInventoryComponent>();
     var sinkB = p.GetBlock(sinkBPosition).ComponentManager.GetComponent<IOpenableBlockInventoryComponent>();
 
@@ -67,56 +65,61 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
     await p.Screenshot("02-items-on-belt");
 
     p.Note("分岐器が前・左・右へ配り、前と左は合流して受けAへ、右は受けBへ届く");
-    await p.Until(() => 6 <= CountOf(sinkA, itemId), 90f, "受けAに6個(前と左の合流)");
-    await p.Until(() => 3 <= CountOf(sinkB, itemId), 90f, "受けBに3個(右の分岐)");
+    await p.WaitForItemCount(sinkA, itemId, 6, null, 90f, "受けAに6個(前と左の合流)");
+    await p.WaitForItemCount(sinkB, itemId, 3, null, 90f, "受けBに3個(右の分岐)");
     await p.Screenshot("03-both-sinks-receiving");
 
     p.Note("クライアントの列車tickが進み続けている(ベルトのハッシュ照合で止まっていない)");
     var clientTickBefore = tickState.GetTick();
     await p.WaitSeconds(2f);
     p.Assert(clientTickBefore < tickState.GetTick(), "クライアントtickが進んでいる");
-    p.Assert(TickGap() < 40, $"クライアントtickがサーバーtickに追従している(差={TickGap()})");
+    p.Assert((await TickGap()) < 40, $"クライアントtickがサーバーtickに追従している(差={await TickGap()})");
 
     p.Note("流れている途中で直線の2本めを撤去する。供給側で詰まり、受けAへの到着が止まる");
     var removedPosition = new Vector3Int(0, 32, 5);
-    var segmentsBeforeRemoval = datastore.Assembly.Segments.Length;
-    p.Assert(p.RemoveBlock(removedPosition), "ベルトを撤去した");
-    await p.Until(() => cache.Replica.Segments.Length != segmentsBeforeRemoval && cache.Replica.Segments.Length == datastore.Assembly.Segments.Length, 30f, "撤去後に複製が組み直された");
+    var segmentsBeforeRemoval = (await p.ReadBeltSegmentCount());
+    p.Assert(await p.RemoveBlock(removedPosition), "ベルトを撤去した");
+    await WaitReplicaSegments(segmentsBeforeRemoval, "撤去後に複製が組み直された");
     // 撤去直後の1本(0,4)に1個入ったら供給は詰まる。以後は供給チェストが減らない
     // The single belt left at (0,4) takes one item and then the supply stalls; the source chest stops decreasing
     await p.WaitSeconds(2f);
-    var sourceAfterStall = CountOf(source, itemId);
+    var sourceAfterStall = (await p.ReadItemCount(source, itemId));
     await p.WaitSeconds(3f);
     await p.Screenshot("04-belt-removed");
-    p.Assert(CountOf(source, itemId) == sourceAfterStall, $"撤去後は供給が詰まって減らない(残={CountOf(source, itemId)})");
-    p.Assert(TickGap() < 40, $"撤去後もクライアントtickが追従している(差={TickGap()})");
+    p.Assert((await p.ReadItemCount(source, itemId)) == sourceAfterStall, $"撤去後は供給が詰まって減らない(残={(await p.ReadItemCount(source, itemId))})");
+    p.Assert((await TickGap()) < 40, $"撤去後もクライアントtickが追従している(差={await TickGap()})");
 
     p.Note("撤去した位置へ再設置し、供給を20個足す。流れが戻り、受けAが再び増える");
-    p.PlaceBlockDirect("ベルトコンベア", removedPosition, BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", removedPosition, BlockDirection.North);
     await p.WaitBlockGameObject(removedPosition);
-    source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, CountOf(source, itemId) + 20));
-    var countAAfterReplace = CountOf(sinkA, itemId);
-    await p.Until(() => countAAfterReplace + 3 <= CountOf(sinkA, itemId), 90f, "再設置後に受けAが3個増えた");
+    var sourceBeforeTopUp = await p.ReadItemCount(source, itemId);
+    await p.RunOnServer("供給チェストに鉄インゴットを20個足す", () => source.SetItem(0, ServerContext.ItemStackFactory.Create(itemId, sourceBeforeTopUp + 20)));
+    var countAAfterReplace = (await p.ReadItemCount(sinkA, itemId));
+    await p.WaitForItemCount(sinkA, itemId, countAAfterReplace + 3, null, 90f, "再設置後に受けAが3個増えた");
     await p.Screenshot("05-belt-replaced");
 
     p.Note("最後まで列車tickが追従し、供給が尽きたあとベルト上の表示物が消える");
-    p.Assert(TickGap() < 40, $"最後までクライアントtickが追従している(差={TickGap()})");
-    await p.Until(() => CountOf(source, itemId) == 0, 120f, "供給チェストが空になった");
+    p.Assert((await TickGap()) < 40, $"最後までクライアントtickが追従している(差={await TickGap()})");
+    await p.WaitForItemCount(source, itemId, 0, 0, 120f, "供給チェストが空になった");
     await p.Until(() => DisplayedItemCount() == 0, 60f, "ベルト上の表示物が全て消えた");
     // 供給は30+20個。撤去したマスに載っていたアイテムは消滅する仕様なので、合計はそこから撤去時の載り分(高々1個)を引いた数
     // 30+20 items were supplied; items on the removed cell vanish by design, so the total is that minus what sat on the cell at removal (at most one)
-    var delivered = CountOf(sinkA, itemId) + CountOf(sinkB, itemId);
-    p.Assert(49 <= delivered && delivered <= 50, $"受けAとBの合計が49〜50個(A={CountOf(sinkA, itemId)}, B={CountOf(sinkB, itemId)})");
+    var delivered = (await p.ReadItemCount(sinkA, itemId)) + (await p.ReadItemCount(sinkB, itemId));
+    p.Assert(49 <= delivered && delivered <= 50, $"受けAとBの合計が49〜50個(A={(await p.ReadItemCount(sinkA, itemId))}, B={(await p.ReadItemCount(sinkB, itemId))})");
     await p.Screenshot("06-all-delivered");
 
     #region Internal
 
-    int CountOf(IOpenableBlockInventoryComponent inventory, Core.Master.ItemId id)
+    async UniTask WaitReplicaSegments(int? previous, string label)
     {
-        var count = 0;
-        for (var i = 0; i < inventory.GetSlotSize(); i++)
-            if (inventory.GetItem(i).Id == id) count += inventory.GetItem(i).Count;
-        return count;
+        var wait = p.BeginWait(30f, label);
+        while (true)
+        {
+            var count = await p.ReadBeltSegmentCount();
+            if (count > 0 && cache.Replica != null && cache.Replica.Segments.Length == count && (!previous.HasValue || count != previous.Value)) { wait.Complete(); return; }
+            wait.CheckTimeout("expected=true, actual=condition false");
+            await UniTask.Yield();
+        }
     }
 
     int DisplayedItemCount()
@@ -125,9 +128,9 @@ return PlaytestRunner.Run("belt-segment-flow", options, async p =>
         return parent == null ? 0 : parent.transform.childCount;
     }
 
-    long TickGap()
+    async UniTask<long> TickGap()
     {
-        return (long)trainUpdateService.GetCurrentTick() - tickState.GetTick();
+        return (long)await p.ReadTrainTick() - tickState.GetTick();
     }
 
     #endregion

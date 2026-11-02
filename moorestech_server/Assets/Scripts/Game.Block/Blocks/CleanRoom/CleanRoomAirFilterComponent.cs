@@ -87,6 +87,17 @@ namespace Game.Block.Blocks.CleanRoom
             }
         }
 
+        public CleanRoomAirFilterStatus GetStatus()
+        {
+            CheckDestroy(this);
+
+            // 摩耗累計は装填中の1個に溜まる量なので、容量との比から残り寿命を出す
+            // Wear accumulates on the loaded filter, so its ratio to capacity gives the remaining life
+            var filterCount = HasFilterItem ? FilterSlot.GetItem(0).Count : 0;
+            var remainingRatio = filterCount == 0 || _filterCapacity <= 0 ? 0d : Math.Max(0d, 1d - _wearAccumulation / _filterCapacity);
+            return new CleanRoomAirFilterStatus(PowerRatio, RemovalVolumePerSecond, filterCount, remainingRatio);
+        }
+
         public string SaveKey { get; } = typeof(CleanRoomAirFilterComponent).FullName;
 
         public object GetSaveState()

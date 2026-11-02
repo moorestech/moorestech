@@ -11,8 +11,17 @@ namespace Core.Master.Validator
             errorLogs = "";
             if (element == null) return true;
 
+            // 閾値行と、チップ工程の役割表（1レシピ1役割）を検証する
+            // Validate the threshold rows and the chip-process role tables (one role per recipe)
             errorLogs += ThresholdsValidation();
-            errorLogs += ChipDrawsValidation();
+            var roleRecipeGuids = new HashSet<Guid>();
+            errorLogs += CleanRoomWaferGradeDrawValidator.Validate(element.WaferGradeDraws, roleRecipeGuids);
+            errorLogs += CleanRoomLayerExposureValidator.Validate(element.LayerExposures, roleRecipeGuids);
+            errorLogs += CleanRoomDicingValidator.Validate(element.Dicings, roleRecipeGuids);
+
+            // 汚染接続点の集合の参照と重複を見る
+            // Check references and duplicates in the pollution connector set
+            errorLogs += CleanRoomBoundaryBlockSetValidator.Validate("PollutionConnectorBlockGuids", element.PollutionConnectorBlockGuids);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -21,6 +30,7 @@ namespace Core.Master.Validator
             {
                 var logs = "";
                 var classNames = new HashSet<string>();
+                var yieldRows = new List<(string, float, float, float)>();
                 for (var i = 0; i < element.Thresholds.Length; i++)
                 {
                     var threshold = element.Thresholds[i];
@@ -32,69 +42,21 @@ namespace Core.Master.Validator
                         logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{threshold.ClassName} MaxConcentration:{threshold.MaxConcentration} is not ascending.\n";
                     }
 
-                    if (threshold.DownBinRate < 0f || 1f < threshold.DownBinRate)
-                    {
-                        logs += $"[CleanRoomMaster] Thresholds[{i}] ClassName:{threshold.ClassName} has out-of-range DownBinRate:{threshold.DownBinRate}\n";
-                    }
-
                     if (!classNames.Add(threshold.ClassName))
                     {
                         logs += $"[CleanRoomMaster] Thresholds[{i}] has duplicated ClassName:{threshold.ClassName}\n";
                     }
+
+                    yieldRows.Add((threshold.ClassName, threshold.QualityMultiplier, threshold.LayerFailRate, threshold.DieLossRate));
                 }
 
-                return logs;
-            }
-
-            string ChipDrawsValidation()
-            {
-                var logs = "";
-                var recipeGuids = new HashSet<Guid>();
-                foreach (var chipDraw in element.ChipDraws)
-                {
-                    if (MasterHolder.MachineRecipesMaster.GetRecipeElement(chipDraw.MachineRecipeGuid) == null)
-                    {
-                        logs += $"[CleanRoomMaster] ChipDraws has invalid MachineRecipeGuid:{chipDraw.MachineRecipeGuid}\n";
-                    }
-
-                    if (!recipeGuids.Add(chipDraw.MachineRecipeGuid))
-                    {
-                        logs += $"[CleanRoomMaster] ChipDraws has duplicated MachineRecipeGuid:{chipDraw.MachineRecipeGuid}\n";
-                    }
-
-                    foreach (var distribution in chipDraw.OutputDistributions)
-                    {
-                        if (MasterHolder.ItemMaster.GetItemIdOrNull(distribution.OutputItemGuid) == null)
-                        {
-                            logs += $"[CleanRoomMaster] ChipDraws MachineRecipeGuid:{chipDraw.MachineRecipeGuid} has invalid OutputItemGuid:{distribution.OutputItemGuid}\n";
-                        }
-
-                        foreach (var level in distribution.Levels)
-                        {
-                            if (MasterHolder.ItemMaster.GetItemIdOrNull(level.ChipItemGuid) == null)
-                            {
-                                logs += $"[CleanRoomMaster] ChipDraws MachineRecipeGuid:{chipDraw.MachineRecipeGuid} Level:{level.Level} has invalid ChipItemGuid:{level.ChipItemGuid}\n";
-                            }
-                        }
-                    }
-                }
-
+                // クラスを上げて歩留まりが下がらないよう、値の範囲と行間の単調性を見る
+                // Check value ranges and row-to-row monotonicity so a better class never yields less
+                logs += CleanRoomYieldTableRules.ValidateClassRows(yieldRows);
                 return logs;
             }
 
             #endregion
-        }
-
-        public static void Initialize(CleanRoomMasterElement element, out Dictionary<string, int> thresholdIndexByClassName, out Dictionary<Guid, ChipDrawsElement> chipDrawByMachineRecipeGuid)
-        {
-            thresholdIndexByClassName = new Dictionary<string, int>();
-            chipDrawByMachineRecipeGuid = new Dictionary<Guid, ChipDrawsElement>();
-            if (element == null) return;
-
-            // クラス名→行インデックスとレシピGUID→抽選テーブルの索引を構築
-            // Build className-to-row-index and recipeGuid-to-draw-table lookups
-            for (var i = 0; i < element.Thresholds.Length; i++) thresholdIndexByClassName.Add(element.Thresholds[i].ClassName, i);
-            foreach (var chipDraw in element.ChipDraws) chipDrawByMachineRecipeGuid.Add(chipDraw.MachineRecipeGuid, chipDraw);
         }
     }
 }

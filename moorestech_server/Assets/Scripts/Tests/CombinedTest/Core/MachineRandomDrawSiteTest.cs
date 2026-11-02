@@ -41,14 +41,14 @@ namespace Tests.CombinedTest.Core
 
             var expected = GameRandomDrawAssert.StateAfterDraws(1);
             GameRandomDrawAssert.BeginDrawCount();
-            MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, noModuleEffect);
+            MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, noModuleEffect, null, out _);
             GameRandomDrawAssert.AssertDrawn(expected, "追加産出の抽選が世界共有の乱数を引いていない");
         }
 
-        // 品質レベルは1サイクル1回だけ引く。追加産出の抽選と合わせて2回が仕様
-        // The quality level is rolled once per cycle; together with the extra-output roll the cycle draws exactly twice
+        // 品質モジュールは一般機械の出力を抽選しない。引くのは追加産出の1回だけ
+        // Quality modules never roll general machine output; the only draw is the extra-output roll
         [Test]
-        public void 品質レベルの抽選は追加産出とあわせてGameRandomを2回引く()
+        public void 品質モジュールを付けても抽選は追加産出の1回だけ()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => 0 < r.OutputItems.Length);
@@ -56,10 +56,10 @@ namespace Tests.CombinedTest.Core
             var qualityEffect = MachineModuleEffect.Aggregate(new List<MachineModuleEffect.EquippedModule> { new(qualityModule, 1) });
             Assert.Greater(qualityEffect.QualityShift, 0f, "品質モジュールが品質シフトを持っていない（前提が崩れている）");
 
-            var expected = GameRandomDrawAssert.StateAfterDraws(2);
+            var expected = GameRandomDrawAssert.StateAfterDraws(1);
             GameRandomDrawAssert.BeginDrawCount();
-            MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, qualityEffect);
-            GameRandomDrawAssert.AssertDrawn(expected, "品質レベルの抽選が世界共有の乱数を引いていない");
+            MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, qualityEffect, null, out _);
+            GameRandomDrawAssert.AssertDrawn(expected, "品質モジュールで追加の乱数を引いている");
         }
     }
 }

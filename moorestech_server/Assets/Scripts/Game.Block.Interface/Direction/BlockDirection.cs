@@ -1,0 +1,172 @@
+using System;
+using UnityEngine;
+
+namespace Game.Block.Interface
+{
+    /// <summary>
+    ///     3次元的な方向に配置するため、上、下、通常の設置×4方向の向きが必要になる
+    ///     UpNorthは、ブロックを上方向にした後、通常の設置をした時の下の面が北向きになることを意味する
+    ///     DownNorthは、ブロックを下方向にした後、通常の設置をした時の下の面が北向きになることを意味する
+    /// </summary>
+    public enum BlockDirection
+    {
+        UpNorth,
+        UpEast,
+        UpSouth,
+        UpWest,
+        
+        North,
+        East,
+        South,
+        West,
+        
+        DownNorth,
+        DownEast,
+        DownSouth,
+        DownWest,
+    }
+    
+    public delegate Vector3Int BlockPosConvertAction(Vector3Int pos);
+    
+    public static class BlockDirectionExtension
+    {
+        public static Quaternion GetRotation(this BlockDirection direction)
+        {
+            switch (direction)
+            {
+                case BlockDirection.UpNorth:
+                    return Quaternion.Euler(-90, 0, 0);
+                case BlockDirection.UpEast:
+                    return Quaternion.Euler(-90, 0, 90);
+                case BlockDirection.UpSouth:
+                    return Quaternion.Euler(-90, 0, 180);
+                case BlockDirection.UpWest:
+                    return Quaternion.Euler(-90, 0, 270);
+                
+                case BlockDirection.North:
+                    return Quaternion.Euler(0, 0, 0);
+                case BlockDirection.East:
+                    return Quaternion.Euler(0, 90, 0);
+                case BlockDirection.South:
+                    return Quaternion.Euler(0, 180, 0);
+                case BlockDirection.West:
+                    return Quaternion.Euler(0, 270, 0);
+                
+                case BlockDirection.DownNorth:
+                    return Quaternion.Euler(90, 0, 180);
+                case BlockDirection.DownEast:
+                    return Quaternion.Euler(90, 0, 90);
+                case BlockDirection.DownSouth:
+                    return Quaternion.Euler(90, 0, 0);
+                case BlockDirection.DownWest:
+                    return Quaternion.Euler(90, 0, 270);
+                
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
+            }
+        }
+        
+        /// <summary>
+        ///     ブロックローカルのセルを向きに応じて回転させる。原点の加算はしないので設置位置は呼び出し側で足す
+        ///     Rotates a block-local cell by the direction; the origin is not added, so callers add the placement position
+        /// </summary>
+        public static Vector3Int ConvertLocalCell(this BlockDirection blockDirection, Vector3Int localCell)
+        {
+            // 行列は float4 × float4 の形なので拡張して計算し、結果を Vector3Int に丸める
+            // The matrix works on float4 x float4, so transform then round the result back to Vector3Int
+            var rotationMatrix = Matrix4x4.Rotate(blockDirection.GetRotation());
+            return Vector3Int.RoundToInt(rotationMatrix.MultiplyPoint3x4(localCell));
+        }
+
+        public static BlockPosConvertAction GetCoordinateConvertAction(this BlockDirection blockDirection)
+        {
+            return pos => blockDirection.ConvertLocalCell(pos);
+        }
+        
+        /// <summary>
+        /// そのブロックが回転している時、そのブロック座標系の基準座標が、ワールドのどこにあるかを返す
+        /// When the block is rotating, return the world position of the reference coordinate in the block's local coordinate system.
+        /// </summary>
+        public static Vector3Int GetBlockBaseOriginPos(this BlockDirection blockDirection, BlockPositionInfo blockPositionInfo)
+        {
+            var pos = blockPositionInfo.OriginalPos;
+            var size = blockPositionInfo.BlockSize;
+            
+            var minus = blockDirection.GetBlockDirectionOffset() * Vector3Int.one;
+            var originPos = blockDirection.GetBlockModelOriginPos(pos, size);
+            
+            return originPos - minus;
+        }
+        
+        
+        public static Vector3Int GetBlockModelOriginPos(this BlockDirection blockDirection, Vector3Int pos, Vector3Int size)
+        {
+                var addPos = Vector3Int.zero;
+                switch (blockDirection)
+                {
+                    case BlockDirection.UpNorth:
+                        addPos = new Vector3Int(0, 0, size.y);
+                        break;
+                    case BlockDirection.UpEast:
+                        addPos = new Vector3Int(size.y, 0, size.x);
+                        break;
+                    // 回したモデルの最小隅が占有範囲の最小セルに来る原点にする
+                    // Place the origin so the rotated model's min corner lands on the occupied range's min cell
+                    case BlockDirection.UpSouth:
+                        addPos = new Vector3Int(size.x, 0, 0);
+                        break;
+                    case BlockDirection.UpWest:
+                        addPos = new Vector3Int(0, 0, 0);
+                        break;
+                    
+                    case BlockDirection.North:
+                        addPos = new Vector3Int(0, 0, 0);
+                        break;
+                    case BlockDirection.East:
+                        addPos = new Vector3Int(0, 0, size.x);
+                        break;
+                    case BlockDirection.South:
+                        addPos = new Vector3Int(size.x, 0, size.z);
+                        break;
+                    case BlockDirection.West:
+                        addPos = new Vector3Int(size.z, 0, 0);
+                        break;
+                    
+                    case BlockDirection.DownNorth:
+                        addPos = new Vector3Int(size.x, size.z, size.y);
+                        break;
+                    case BlockDirection.DownEast:
+                        addPos = new Vector3Int(size.y, size.z, 0);
+                        break;
+                    case BlockDirection.DownSouth:
+                        addPos = new Vector3Int(0, size.z, 0);
+                        break;
+                    case BlockDirection.DownWest:
+                        addPos = new Vector3Int(0, size.z, size.x);
+                        break;
+                }
+                
+                return pos + addPos;
+        }
+        
+        public static Vector3Int GetBlockDirectionOffset(this BlockDirection blockDirection)
+        {
+            return blockDirection switch
+            {
+                BlockDirection.UpNorth => new Vector3Int(0, 0, 1),
+                BlockDirection.UpEast => new Vector3Int(1, 0, 1),
+                BlockDirection.UpSouth => new Vector3Int(1, 0, 0),
+                BlockDirection.UpWest => new Vector3Int(0, 0, 0),
+                BlockDirection.North => new Vector3Int(0, 0, 0),
+                BlockDirection.East => new Vector3Int(0, 0, 1),
+                BlockDirection.South => new Vector3Int(1, 0, 1),
+                BlockDirection.West => new Vector3Int(1, 0, 0),
+                BlockDirection.DownNorth => new Vector3Int(1, 1, 1),
+                BlockDirection.DownEast => new Vector3Int(1, 1, 0),
+                BlockDirection.DownSouth => new Vector3Int(0, 1, 0),
+                BlockDirection.DownWest => new Vector3Int(0, 1, 1),
+                _ => Vector3Int.zero
+            };
+        }
+    }
+}

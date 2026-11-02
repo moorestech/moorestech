@@ -15,11 +15,13 @@ export const TRAIN_FLUID_PLATFORM_BLOCK_GUID = "00000000-0000-4000-8000-00000000
 export const ELECTRIC_POLE_BLOCK_GUID = "00000000-0000-4000-8000-000000000213";
 export const ELECTRIC_PUMP_BLOCK_GUID = "00000000-0000-4000-8000-000000000214";
 export const GEAR_PUMP_BLOCK_GUID = "00000000-0000-4000-8000-000000000215";
+export const SPACE_ELEVATOR_BLOCK_GUID = "00000000-0000-4000-8000-000000000220";
 export const GEAR_GENERATOR_BLOCK_GUID = "00000000-0000-4000-8000-000000000216";
 
 // 動的ブロック名はバニラCSV外なのでmockの合成辞書へ足す
 // Dynamic block names live outside the vanilla CSV, so add them to the mock composite dictionary
 const names = [
+  [SPACE_ELEVATOR_BLOCK_GUID, "Space Elevator Base", "宇宙エレベーター拠点"],
   [CHEST_BLOCK_GUID, "Chest", "Chest"],
   [TANK_BLOCK_GUID, "Fluid Tank", "Fluid Tank"],
   [ELECTRIC_MACHINE_BLOCK_GUID, "Electric Machine", "電気機械"],

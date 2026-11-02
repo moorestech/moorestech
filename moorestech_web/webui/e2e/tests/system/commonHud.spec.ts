@@ -19,7 +19,7 @@ test("設置情報と削除警告帯を操作モードへ反映する", async ({
 
   await setUiState(page, "DeleteBar");
   const deletion = page.getByTestId("delete-mode-warning");
-  await expect(deletion).toHaveAttribute("aria-label", "Delete Mode");
+  await expect(deletion).toHaveAttribute("aria-label", "削除モード");
   await expect(deletion.getByTestId("delete-mode-warning-band")).toHaveCount(2);
   await expect(page.locator('[data-tutorial-anchor~="delete.hud"]')).toHaveCSS("bottom", "0px");
 });

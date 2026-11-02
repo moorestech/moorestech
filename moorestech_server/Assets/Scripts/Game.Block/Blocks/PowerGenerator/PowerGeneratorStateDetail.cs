@@ -24,6 +24,15 @@ namespace Game.Block.Blocks.PowerGenerator
             CurrentFuelTime = GameUpdater.TicksToSeconds(fuelService.CurrentFuelTicks);
         }
 
+        // 秒値から作る（電気発電機用。燃料サービスの型に依存しない）
+        // Build from seconds (for electric generators; independent of the fuel service type)
+        public PowerGeneratorStateDetail(double remainingFuelSeconds, double currentFuelSeconds, float operatingRate)
+        {
+            RemainingFuelTime = remainingFuelSeconds;
+            CurrentFuelTime = currentFuelSeconds;
+            OperatingRate = operatingRate;
+        }
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public PowerGeneratorStateDetail() { }
     }

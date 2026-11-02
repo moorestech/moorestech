@@ -13,7 +13,7 @@ describe("validBlockInventory capability details", () => {
     const d = {
       ...openBase,
       progress: 0.5,
-      machine: { recipeGuid: "50000000-0000-4000-8000-000000000001", selectedRecipeGuid: "50000000-0000-4000-8000-000000000002", blockGuid: "40000000-0000-4000-8000-000000000001", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1, inputTank: 0 }, slotBindings: [{ slot: 0, itemId: 1, count: 2 }], tankBindings: [] },
+      machine: { recipeGuid: "50000000-0000-4000-8000-000000000001", selectedRecipeGuid: "50000000-0000-4000-8000-000000000002", blockGuid: "40000000-0000-4000-8000-000000000001", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, outputSpaceShort: false, slotLayout: { input: 2, output: 1, module: 1, inputTank: 0 }, slotBindings: [{ slot: 0, itemId: 1, count: 2, acceptedItemIds: [1] }], tankBindings: [] },
       electricNetwork: { totalGeneratePower: 100, totalRequiredPower: 50, consumerCount: 3, powerRate: 1 },
     };
     expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);
@@ -119,5 +119,30 @@ describe("converter detail ownership", () => {
   });
   it.each(["GearToElectricGenerator", "ElectricToGearGenerator"])("allows pending detail on %s", (blockType) => {
     expect(parseTopicPayload(Topics.blockInventory, { ...openBase, blockType }).valid).toBe(true);
+  });
+});
+
+describe("validBlockInventory detail section parents", () => {
+  const cleanRoom = { fetchState: "fetched", kind: "noEnclosure" };
+  const cleanRoomYield = { fetchState: "fetched", role: "dicing", dieLossRate: 0.03 };
+  const machineInputStall = { fetchState: "notFetched" };
+
+  // 3欄は欄ごとに許された親ブロックの種別にだけ載り、Chest 等への混入は境界で拒否する
+  // Each of the three sections rides only on its allowed parent block types; mixing into a Chest etc. is rejected at the boundary
+  it.each([
+    ["CleanRoomMachine", { cleanRoom, cleanRoomYield, machineInputStall }, true],
+    ["CleanRoomAirFilter", { cleanRoom }, true],
+    ["ElectricMachine", { machineInputStall }, true],
+    ["GearMachine", { machineInputStall }, true],
+    ["Chest", { cleanRoom }, false],
+    ["Chest", { cleanRoomYield }, false],
+    ["Chest", { machineInputStall }, false],
+    ["CleanRoomAirFilter", { cleanRoomYield }, false],
+    ["CleanRoomAirFilter", { machineInputStall }, false],
+    ["ElectricMachine", { cleanRoom }, false],
+    ["GearMachine", { cleanRoomYield }, false],
+    ["Chest", {}, true],
+  ])("%s with %j の受理は %s", (blockType, sections, expected) => {
+    expect(parseTopicPayload(Topics.blockInventory, { ...openBase, blockType, ...sections }).valid).toBe(expected);
   });
 });

@@ -20,7 +20,7 @@ test.afterEach(async ({ page }) => {
 
 test("スクロール領域はパネル本文いっぱいで、既定件数では溢れずバーも出ない", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
 
   // クリップ境界(viewport)がパネル本文いっぱいまで届いていること。内容1段ぶんで止まっていないこと
   // 下端は逃げ(--tutorial-anchor-clip-inset)ぶんだけ本文の外へ出る
@@ -45,7 +45,7 @@ test("スクロール領域はパネル本文いっぱいで、既定件数で�
 
 test("パネルを超える件数で初めて縦バーが出る。横は常に出ない", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await expect(verticalBar(page)).toBeHidden();
 
   await setTopicScenario(page, "itemListLarge");
@@ -57,7 +57,7 @@ test("パネルを超える件数で初めて縦バーが出る。横は常に�
 
 test("溢れていない一覧の最上段でもチュートリアルのラベルが出る", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await setTopicScenario(page, "tutorialRecipeItem");
 
   await expect(page.locator('[data-testid="tutorial-overlay"] [data-kind="outline"]')).toBeVisible();
@@ -66,7 +66,7 @@ test("溢れていない一覧の最上段でもチュートリアルのラベ�
 
 test("アンカーがスクロールで隠れ始めたらラベルを引っ込め、完全に隠れたら枠も消す", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await setTopicScenario(page, "tutorialRecipeItem");
   await setTopicScenario(page, "itemListLarge");
 
@@ -92,7 +92,7 @@ test("アンカーがスクロールで隠れ始めたらラベルを引っ込�
 
 test("クリップ境界はグリッドからハイライトの逃げぶん離れ、枠が削られない", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
 
   // 逃げはマスタのpaddingPx + グロー以上。下回るとセルがクリップ端に密着し枠が「コ」の字に欠ける
   // The clearance is at least the master's paddingPx + glow; below it the cell hugs the clip edge and the ring is notched
@@ -123,7 +123,7 @@ test("クリップ境界はグリッドからハイライトの逃げぶん離�
 
 test("7段は溢れず、最下段までスクロールしても最終段に逃げが残る", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
 
   // 溢れる直前の7段でもバーを出さない
   // Seven rows is the last non-overflowing count and must not raise a bar

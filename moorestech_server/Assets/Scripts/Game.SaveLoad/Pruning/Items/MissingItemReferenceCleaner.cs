@@ -48,8 +48,8 @@ namespace Game.SaveLoad.Pruning.Items
             EmptyItemStackInPlace(material);
         }
 
-        // 裸guidは空guidへ戻さずnullへ落とす。復元側がguidとして読めない値を「燃料なし」として扱う
-        // A bare guid is dropped to null rather than the empty guid; the restore treats an unreadable value as "no fuel"
+        // 裸guidはnullへ落とす。関連状態の整合は、除去記録を受け取った所有側で保つ
+        // Drop a bare guid to null; its owner uses the removal record to keep related state consistent
         public void ClearBareItemGuidIfMissing(JProperty property, PrunedItemOrigin origin)
         {
             if (property.Value is not JValue guidValue) return;
@@ -66,6 +66,20 @@ namespace Game.SaveLoad.Pruning.Items
                 [ItemStackJsonKeys.ItemGuid] = guidText,
             }, guidText);
             property.Value = JValue.CreateNull();
+        }
+
+        // 消費実品の欠損を退避し、復元入口がジョブ全体を破棄できる印を残す
+        // Archive missing consumed identities and mark them so restoration discards the entire job
+        public void ClearConsumedInputIfMissing(JToken item, PrunedItemOrigin origin)
+        {
+            if (!TryReadMissingItemGuid(item, out var guidText)) return;
+            Record(_result.EmptiedItemStacks, new JObject
+            {
+                ["origin"] = origin.ToJson(),
+                ["kind"] = BareGuidKind,
+                [ItemStackJsonKeys.ItemGuid] = guidText,
+            }, guidText);
+            item.Replace(JValue.CreateNull());
         }
 
         // modを外すと数千件になるのでguidごとに集約して1行にまとめる

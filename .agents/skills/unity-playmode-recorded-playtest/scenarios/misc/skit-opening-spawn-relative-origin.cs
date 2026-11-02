@@ -1,3 +1,4 @@
+using Game.Context;
 // 開幕スキット(100_start_game)の背景オブジェクト/カメラがスポーン地点基準の相対座標で
 // ワールドへ配置されること(ADR 0029)を、生成マップ上で実走検証する
 // Verify at runtime, on a generated map, that the opening skit's environment and camera
@@ -39,8 +40,8 @@ return PlaytestRunner.Run("skit-opening-spawn-relative-origin", options, async p
 
     // サーバーの生成マップが実際に採用したスポーン地点をground truthとして取得する
     // Fetch the spawn point the server's generated map actually adopted, as ground truth
-    var mapInfoJson = p.ServerService<MapInfoJson>();
-    var spawn = mapInfoJson.DefaultSpawnPointJson.Position;
+    var spawn = Vector3.zero;
+    await p.RunOnServer("採用されたスポーン地点を読む", () => spawn = ServerContext.GetService<MapInfoJson>().DefaultSpawnPointJson.Position);
     p.Note($"生成マップのスポーン地点: {spawn}");
 
     // 宇宙外観(100_start_1_SpaceShip)の生成をcontrolSkitBackground(Add)完了まで待つ。

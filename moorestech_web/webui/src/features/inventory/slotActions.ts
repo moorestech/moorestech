@@ -1,15 +1,14 @@
 import { dispatchAction, readItemMaster, readTopic, Topics } from "@/bridge";
-import type { BlockInventoryData, PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
+import type { PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import {
   dispatchPlanned,
   planPlayerDoubleClick,
   planPlayerLeftClick,
   planPlayerRightClick,
-  type BlockSlotRestriction,
   type PlayerSlotContext,
 } from "@/shared/itemMove";
-import { boundMachineInputSlotsForItem } from "@/features/blockInventory/details/machine/machineSlotGhosts";
-import { splitSlotIndices } from "@/features/blockInventory/details/detailLogic";
+import { useNotificationStore } from "@/features/notification";
+import { resolveBlockSlotRestriction } from "./blockSlotRestriction";
 import { SplitDragSession } from "./splitDrag";
 
 const splitDrag = new SplitDragSession((slots) => void dispatchAction("inventory.split_drag", { slots }));
@@ -44,6 +43,7 @@ export const slotActions: SlotActions = {
     };
     const plan = planPlayerLeftClick(ref, slot, shiftKey, ctx);
     if (plan.kind === "beginSplitDrag") { splitDrag.begin(ref); return; }
+    if (plan.kind === "noAcceptingBlockSlot" || plan.kind === "inventoryOpenFailed" || plan.kind === "detailLoading") { notifyBlockedShift(plan.kind, slot.itemId, block?.open ? block.identifier : null); return; }
     dispatchPlanned(plan.actions);
   },
 
@@ -78,24 +78,18 @@ export const slotActions: SlotActions = {
   },
 };
 
+// 送信しない理由を通知とログに揃える
+// Publish the same unsent reason to the notification and developer log
+function notifyBlockedShift(reason: "noAcceptingBlockSlot" | "inventoryOpenFailed" | "detailLoading", itemId: number, blockIdentifier: string | null) {
+  const messageIds = { noAcceptingBlockSlot: "denied.inventoryMoveSlotRejected", inventoryOpenFailed: "denied.inventoryOpenFailed", detailLoading: "denied.inventoryDetailLoading" };
+  console.warn(`[inventory.shift_move] not sent: ${reason} block=${blockIdentifier ?? "(closed)"} item=${itemId}`);
+  useNotificationStore.getState().addNotification({ category: "operationDenied", messageId: messageIds[reason], messageParams: [], itemId: null });
+}
+
 // 枠数が縮んだ直後の stale クリックは対象が存在しないため undefined を返し、呼び出し側が無操作で降りる
 // A stale click right after the slot count shrinks has no target, so return undefined and let callers bail out
 function resolveSlot(inventory: PlayerInventoryData, ref: SlotRef): SlotData | undefined {
   if (ref.area === "grab") return inventory.grab;
   if (ref.area === "equipment") return inventory.equipment[ref.slot];
   return inventory.mainSlots[ref.slot];
-}
-
-// 機械の入力帯だけを束縛で絞り、出力帯・モジュール帯は候補に残す（束縛はホスト配信のslotBindingsが正本）。
-// 機械以外（チェスト等）は無制限
-// Only the machine's input band is narrowed by the binding; the output and module bands stay candidates
-// (the host-published slotBindings are the source of truth). Non-machines (chests etc.) stay unrestricted
-function resolveBlockSlotRestriction(block: BlockInventoryData | null, itemId: number): BlockSlotRestriction {
-  if (!block?.open || block.source !== "block" || !block.machine) return { kind: "unrestricted" };
-  const machine = block.machine;
-  if (machine.slotBindings.length === 0) return { kind: "unrestricted" };
-
-  const { output, module } = splitSlotIndices(machine.slotLayout, block.itemSlots.length);
-  const boundInputs = boundMachineInputSlotsForItem(machine, block.itemSlots.length, itemId);
-  return { kind: "bound", candidateIndices: [...boundInputs, ...output, ...module] };
 }

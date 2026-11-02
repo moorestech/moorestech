@@ -65,6 +65,7 @@ namespace Tests.CombinedTest.Game.SaveLoad
             var saveJsonFilePath = Path.Combine(_archiveRoot, "save.json");
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("rocketHasLaunchedOnce");
             save.Remove("players");
             // 版1が欠く項目を落とし、補填後のデータがロードへ渡ることを確認する
             // Remove fields absent in version 1 so loading requires the preparer's backfilled output

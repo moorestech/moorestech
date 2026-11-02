@@ -7,6 +7,8 @@ const { colorPct, formatDuration, makeBar } = require('./format');
 const BAR_WIDTH = 20;
 const FIVE_HOUR_MS = 5 * 3600000;
 const DAY_MS = 86400000;
+// "Compact:" / "Session:" と ":" の位置を揃えるため、ラベルと ":" の間を空ける
+const LABEL_WEEKLY = 'Weekly : ';
 
 function buildRateLimitLine(now, rateLimits) {
     const five = rateLimits?.five_hour;
@@ -32,7 +34,7 @@ function formatFiveHour(now, w) {
 function formatSevenDay(now, w, withBar) {
     const util = Math.round(w.used_percentage ?? 0);
     const days = w.resets_at ? clamp(Math.ceil(7 - (w.resets_at * 1000 - now) / DAY_MS), 0, 7) : '?';
-    const bar = withBar ? `Weekly: ${makeBar(util / 100, BAR_WIDTH)} ` : '';
+    const bar = withBar ? `${LABEL_WEEKLY}${makeBar(util / 100, BAR_WIDTH)} ` : '';
     return `${bar}[${colorPct(util)}] ${days}/7d`;
 }
 

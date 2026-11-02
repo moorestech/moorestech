@@ -67,5 +67,21 @@ namespace Tests.UnitTest.Game
             // When no row is satisfied the result is Out (rows.Count)
             Assert.AreEqual(2, CleanRoomPurityLogic.DecideThresholdIndex(1, 100.0, 0.0, rows));
         }
+
+        [Test]
+        public void ZeroVolumeConcentrationAndAirChangeRateAreZeroTest()
+        {
+            // 体積0の部屋は濃度・換気回数とも0になり、NaN や無限大を判定へ渡さない
+            // A zero-volume room yields zero concentration and air change rate, never passing NaN or infinity to the decision
+            Assert.AreEqual(0d, CleanRoomPurityLogic.Concentration(5d, 0));
+            Assert.AreEqual(0d, CleanRoomPurityLogic.AirChangeRate(3d, 0));
+            Assert.AreEqual(3d, CleanRoomPurityLogic.Concentration(30d, 10), 1e-9);
+            Assert.AreEqual(0.5d, CleanRoomPurityLogic.AirChangeRate(5d, 10), 1e-9);
+
+            // 換気0はどの行の必要換気回数も満たさないので、体積0の部屋は Out のまま
+            // Zero air change satisfies no row's required rate, so a zero-volume room stays Out
+            var rows = new List<CleanRoomThresholdRow> { new(10, 0.017), new(50, 0.0083) };
+            Assert.AreEqual(rows.Count, CleanRoomPurityLogic.DecideThresholdIndex(rows.Count, 0d, 0d, rows));
+        }
     }
 }

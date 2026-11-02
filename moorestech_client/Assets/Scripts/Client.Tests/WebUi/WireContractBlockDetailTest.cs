@@ -50,6 +50,7 @@ namespace Client.Tests.WebUi
                     CurrentState = "idle",
                     CurrentPower = 0f,
                     RequestPower = 0f,
+                    OutputSpaceShort = true,
                     SlotLayout = new SlotLayoutDto { Input = 1, Output = 1, Module = 0, InputTank = 0 },
                     SlotBindings = new List<MachineSlotBindingDto>(),
                     TankBindings = new List<MachineTankBindingDto>(),
@@ -114,11 +115,12 @@ namespace Client.Tests.WebUi
                     CurrentState = "processing",
                     CurrentPower = 80f,
                     RequestPower = 100f,
+                    OutputSpaceShort = false,
                     SlotLayout = new SlotLayoutDto { Input = 2, Output = 1, Module = 1, InputTank = 1 },
                     SlotBindings = new List<MachineSlotBindingDto>
                     {
-                        new() { Slot = 0, ItemId = 3, Count = 2 },
-                        new() { Slot = 2, ItemId = 7, Count = 3 },
+                        new() { Slot = 0, ItemId = 3, Count = 2, AcceptedItemIds = new List<int> { 3 } },
+                        new() { Slot = 2, ItemId = 7, Count = 3, AcceptedItemIds = new List<int> { 7 } },
                     },
                     TankBindings = new List<MachineTankBindingDto>
                     {

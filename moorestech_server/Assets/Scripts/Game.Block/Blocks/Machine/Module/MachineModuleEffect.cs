@@ -19,12 +19,17 @@ namespace Game.Block.Blocks.Machine.Module
         public readonly float ExtraOutputChance;
         public readonly float QualityShift;
 
-        private MachineModuleEffect(float processingTimeMultiplier, float powerMultiplier, float extraOutputChance, float qualityShift)
+        // 効いている品質モジュールの最高tier。品質モジュールが無ければ0（クリーンルームの成膜がグレード上限に使う）
+        // Highest tier among effective quality modules; 0 without any (the clean-room deposition uses it as the grade cap)
+        public readonly int HighestQualityModuleTier;
+
+        private MachineModuleEffect(float processingTimeMultiplier, float powerMultiplier, float extraOutputChance, float qualityShift, int highestQualityModuleTier)
         {
             ProcessingTimeMultiplier = processingTimeMultiplier;
             PowerMultiplier = powerMultiplier;
             ExtraOutputChance = extraOutputChance;
             QualityShift = qualityShift;
+            HighestQualityModuleTier = highestQualityModuleTier;
         }
 
         public static MachineModuleEffect Aggregate(IReadOnlyList<EquippedModule> modules)
@@ -38,6 +43,7 @@ namespace Game.Block.Blocks.Machine.Module
             var efficiencySum = 0f;
             var qualitySum = 0f;
             var qualityTradeoff = 0f;
+            var highestQualityTier = 0;
             foreach (var equipped in modules)
             {
                 var module = equipped.Module;
@@ -58,6 +64,7 @@ namespace Game.Block.Blocks.Machine.Module
                     case ModuleMasterElement.EffectAxisConst.Quality:
                         qualitySum += module.EffectValue * count;
                         qualityTradeoff += module.TradeoffValue * count;
+                        if (0 < count) highestQualityTier = Math.Max(highestQualityTier, module.Tier);
                         break;
                     default:
                         break;
@@ -79,7 +86,7 @@ namespace Game.Block.Blocks.Machine.Module
             // Only floor here; the output side clamps the max
             var qualityShift = Math.Max(qualitySum, 0f);
 
-            return new MachineModuleEffect(processingTimeMultiplier, powerMultiplier, extraOutputChance, qualityShift);
+            return new MachineModuleEffect(processingTimeMultiplier, powerMultiplier, extraOutputChance, qualityShift, highestQualityTier);
         }
 
         /// <summary>

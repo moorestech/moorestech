@@ -81,8 +81,8 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
 
     // サーバー側アンロック後、クライアント側ミラーへ反映されるまで条件待機する
     // After server-side unlock, wait until the client-side mirror reflects it
-    p.UnlockBlock("木のチェスト");
-    p.UnlockBlock("ベルトコンベア");
+    await p.UnlockBlock("木のチェスト");
+    await p.UnlockBlock("ベルトコンベア");
     var chestGuid = MasterHolder.BlockMaster.GetBlockMaster(chestBlockId).BlockGuid;
     var beltGuid = MasterHolder.BlockMaster.GetBlockMaster(beltBlockId).BlockGuid;
     await p.Until(() => gameUnlockStateData.BlockUnlockStateInfos.TryGetValue(chestGuid, out var ci) && ci.IsUnlocked, 10f, "チェストのアンロック同期");
@@ -91,7 +91,7 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     // 確認項目1: GameScreen中にNorth向きチェストをピックし、PlaceBlock遷移とCurrentTarget反映を検証する
     // Check item 1: pick a North-facing chest during GameScreen, then verify PlaceBlock transition and CurrentTarget
     p.Assert(p.CurrentUiState == UIStateEnum.GameScreen, "初期状態はGameScreen");
-    p.PlaceBlockDirect("木のチェスト", posA, BlockDirection.North);
+    await p.PlaceBlockDirect("木のチェスト", posA, BlockDirection.North);
     var chestCenter = await ClickColliderCenterAsync(posA);
 
     // Alt無しでは中央外をスポイトできない
@@ -110,7 +110,7 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
 
     // 確認項目3: West向きチェストをピックし、選択直後の設置向きが元ブロックと一致することを検証する
     // Check item 3: pick a West-facing chest and verify the placement direction right after selection matches the source block
-    p.PlaceBlockDirect("木のチェスト", posC, BlockDirection.West);
+    await p.PlaceBlockDirect("木のチェスト", posC, BlockDirection.West);
     await PickBlockAtAsync(posC);
     p.Assert(CurrentBlockTarget()?.BlockId == chestBlockId, "項目3: 選択ブロックはチェストのまま");
     p.Assert(CurrentBlockTarget()?.ResolveDirectionOnSelection(BlockDirection.North, true) == BlockDirection.West, "項目3: 向きがWestで一致");
@@ -118,7 +118,7 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
 
     // 確認項目2: PlaceBlock中にベルトをピックし、画面遷移せずターゲットだけ持ち替わることを検証する
     // Check item 2: pick a belt while in PlaceBlock and verify only the target swaps without a state transition
-    p.PlaceBlockDirect("ベルトコンベア", posB, BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア", posB, BlockDirection.North);
     await PickBlockAtAsync(posB);
     p.Assert(p.CurrentUiState == UIStateEnum.PlaceBlock, "項目2: PlaceBlockのまま");
     p.Assert(CurrentBlockTarget()?.BlockId == beltBlockId, "項目2: ターゲットがベルトへ持ち替わる");
@@ -137,7 +137,7 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
 
     // 確認項目5: 3連ベルトの隠しバリアントをピックし、代表ベルトIDへ解決されることを検証する
     // Check item 5: pick the hidden length-3 belt variant and verify it resolves to the representative belt ID
-    p.PlaceBlockDirect("ベルトコンベア(3連)", posE, BlockDirection.North);
+    await p.PlaceBlockDirect("ベルトコンベア(3連)", posE, BlockDirection.North);
     await PickBlockAtAsync(posE);
     p.Assert(CurrentBlockTarget()?.BlockId == beltBlockId, "項目5: 隠しバリアントが代表ブロックへ解決される");
     await p.Screenshot("05-pick-hidden-belt-variant");

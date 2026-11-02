@@ -30,6 +30,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         public IEnumerator 出力モード選択がサーバーのSelectedIndexへ届く()
         {
             EnterPlayModeUtil();
+            BlockActionSceneIsolation.Prepare();
 
             // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
@@ -54,11 +55,15 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             async UniTask Body()
             {
                 await LoadMainGame();
+                BlockActionSceneIsolation.AssertIsolatedSceneIsReady();
+                // 起動後の例外をテスト失敗として扱う
+                // Fail the test on exceptions after startup
+                LogAssert.ignoreFailingMessages = false;
 
                 // テストブロックを配置し、サーバーコンポーネントの初期選択が0であることを確認
                 // Place the test block and confirm the server component's initial selection is 0.
                 var pos = new Vector3Int(0, 0, 0);
-                var serverBlock = PlaceBlock(BlockName, pos, BlockDirection.North);
+                var serverBlock = await ServerBlockPlacement.PlaceAsync(BlockName, pos, BlockDirection.North);
                 var component = serverBlock.GetComponent<ElectricToGearGeneratorComponent>();
                 Assert.AreEqual(0, component.SelectedIndex);
 
@@ -80,5 +85,8 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
             #endregion
         }
+
+        [TearDown]
+        public void ResetSceneIsolation() => BlockActionSceneIsolation.Reset();
     }
 }

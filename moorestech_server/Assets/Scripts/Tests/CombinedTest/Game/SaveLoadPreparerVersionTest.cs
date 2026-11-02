@@ -105,13 +105,14 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(1)), "現在版のセーブが版1として退避されています");
         }
 
-        // 版1と記された既存セーブ（players以外は現行版相当）が、3項目を上書きされずに現行版へ上がること
-        // An existing save labelled version 1 whose fields except players already match the current shape must reach the current version with the three fields untouched
+        // 版1と記された既存セーブ（身元・初打ち上げ履歴以外は現行版相当）が、3項目を上書きされずに現行版へ上がること
+        // A save labelled version 1 without identities or launch history must reach the current version with the three existing fields untouched
         [Test]
         public void 版1のセーブは3項目を保ったまま現行版へ上がり実ロードできるTest()
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("rocketHasLaunchedOnce");
             save.Remove("players");
             save["currentTick"] = 4321;
 
@@ -136,6 +137,7 @@ namespace Tests.CombinedTest.Game
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("rocketHasLaunchedOnce");
             save.Remove("players");
             var originalText = save.ToString();
 
@@ -161,6 +163,7 @@ namespace Tests.CombinedTest.Game
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
             save["worldVersion"] = 1;
+            save.Remove("rocketHasLaunchedOnce");
             save.Remove("players");
 
             var result = SaveLoadPreparerTestFixture.CreateContainer().GetService<SaveMigrationChain>().Migrate(save);

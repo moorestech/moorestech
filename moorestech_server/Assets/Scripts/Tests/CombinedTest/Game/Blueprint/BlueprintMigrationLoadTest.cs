@@ -51,6 +51,7 @@ namespace Tests.CombinedTest.Game.Blueprint
             legacy.Remove("chains");
             save["blueprints"] = new JArray(legacy);
             save["worldVersion"] = 4;
+            save.Remove("rocketHasLaunchedOnce");
             var original = save.ToString();
             Directory.CreateDirectory(_archiveRoot);
             var sourcePath = WorldDataDirectory.FromWorldRoot(_archiveRoot).SaveJsonFilePath;

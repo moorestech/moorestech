@@ -50,6 +50,50 @@
           }
         }
       }
+    },
+    "orbitalPayloads": {
+      "type": "array",
+      "overrideCodeGeneratePropertyName": "OrbitalPayloadMasterElement",
+      "items": {
+        "type": "object",
+        "properties": {
+          "payloadItemGuid": {
+            "type": "string",
+            "format": "uuid",
+            "foreignKey": {
+              "schemaId": "items",
+              "foreignKeyIdPath": "/data/[*]/itemGuid",
+              "displayElementPath": "/data/[*]/name"
+            }
+          },
+          "countPerLaunch": {
+            "type": "integer",
+            "default": 1
+          },
+          "arrivalOutputs": {
+            "type": "array",
+            "overrideCodeGeneratePropertyName": "OrbitalArrivalOutputElement",
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemGuid": {
+                  "type": "string",
+                  "format": "uuid",
+                  "foreignKey": {
+                    "schemaId": "items",
+                    "foreignKeyIdPath": "/data/[*]/itemGuid",
+                    "displayElementPath": "/data/[*]/name"
+                  }
+                },
+                "count": {
+                  "type": "integer",
+                  "default": 1
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
