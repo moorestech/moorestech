@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import digest_collect as dc  # noqa: E402
-from digest_support.sections import format_progress, format_runs  # noqa: E402
+from digest_support.sections import format_progress  # noqa: E402
 from digest_schema import neutralize_discord_markup as safe  # noqa: E402
 
 
@@ -75,7 +75,7 @@ def resolve_date(raw: str) -> str:
     return raw
 
 
-def emit_warnings(report_stats: dict, progress_stats: dict, run_stats: dict) -> None:
+def emit_warnings(report_stats: dict, progress_stats: dict) -> None:
     """除外・フォールバックが起きたら stderr にも出す（Discord に届く stdout とは別に運用者が拾えるように）
     Also prints to stderr when boxes were excluded or fell back, so operators see it beyond the Discord stdout"""
     counters = {
@@ -91,8 +91,6 @@ def emit_warnings(report_stats: dict, progress_stats: dict, run_stats: dict) -> 
         "progress.noPayload": progress_stats.get("noPayload", 0),
         "progress.playSecondsMissing": progress_stats.get("playSecondsMissing", 0),
         "progress.unknownIdSessions": progress_stats.get("unknownIdSessions", 0),
-        "runs.finishedAtFallback": run_stats["finishedAtFallback"],
-        "runs.invalidResult": run_stats["invalidResult"],
     }
     for name, count in counters.items():
         if count:
@@ -116,7 +114,6 @@ def main(argv: list[str] | None = None) -> int:
     playtest = logs / "harness" / "playtest"
     reports, report_stats = dc.load_reports(playtest / "reports", date)
     progress, progress_stats = dc.load_progress(playtest / "progress", date)
-    runs, run_stats = dc.load_fix_results(logs / "harness" / "bug-report" / "runs", date)
     progress_agg = dc.aggregate_progress(progress)
     # 時間欠損と帰属不明を運用ログにも渡す
     # Feed missing time and unknown IDs into operational warnings.
@@ -127,7 +124,6 @@ def main(argv: list[str] | None = None) -> int:
     lines += format_progress(progress_agg, progress_stats, progress)
     lines += format_counts(reports, report_stats)
     lines += format_feedback(reports)
-    lines += format_runs(runs, run_stats)
     # 外部由来の値が各節に散在するため、無害化漏れを防ぐ処理は結合後の全文にかける
     # External values occur across sections, so sanitize the joined body to prevent gaps.
     body = safe("\n".join(lines) + "\n")
@@ -136,7 +132,7 @@ def main(argv: list[str] | None = None) -> int:
         archive.parent.mkdir(parents=True, exist_ok=True)
         archive.write_text(body, encoding="utf-8")
 
-    emit_warnings(report_stats, progress_stats, run_stats)
+    emit_warnings(report_stats, progress_stats)
     sys.stdout.write(truncate(body, args.max_chars, archive))
     return 0
 

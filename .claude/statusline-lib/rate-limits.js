@@ -7,9 +7,8 @@ const { colorPct, formatDuration, makeBar } = require('./format');
 const BAR_WIDTH = 20;
 const FIVE_HOUR_MS = 5 * 3600000;
 const DAY_MS = 86400000;
-// "Compact:" / "Session:" と ":" の位置を揃えるため右詰め。
-// 行頭の空白は Claude Code が trim で削る（NBSP も）ので、先頭に色リセットを置いて守る
-const LABEL_WEEKLY = '\x1b[0m Weekly: ';
+// "Compact:" / "Session:" と ":" の位置を揃えるため、ラベルと ":" の間を空ける
+const LABEL_WEEKLY = 'Weekly : ';
 
 function buildRateLimitLine(now, rateLimits) {
     const five = rateLimits?.five_hour;

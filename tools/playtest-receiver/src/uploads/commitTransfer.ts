@@ -1,6 +1,6 @@
 import { MAX_FILE_BYTES } from "../contract";
 import { bundlePrefix, type PlaytestKind } from "../keys";
-import type { DeclaredFile } from "./bundleDeclaration";
+import type { DeclaredFile } from "./fileList";
 
 export const TRANSFER_INDEX = "repo/commit-transfer.json";
 export const PARTS_DIRECTORY = "__attachments";

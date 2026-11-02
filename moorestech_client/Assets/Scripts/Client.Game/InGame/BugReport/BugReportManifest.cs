@@ -35,8 +35,8 @@ namespace Client.Game.InGame.BugReport
         public string CreatedAt;
         public string Description;
 
-        // プレイ報告の種別の契約値（JSON化の時点で PlaytestReportKindText が綴る）。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0058）
-        // The report kind's contract value, spelled by PlaytestReportKindText at serialization; the ingest side starts an auto-fix run only for bug (ADR 0058)
+        // プレイ報告の種別の契約値（JSON化の時点で PlaytestReportKindText が綴る）。取り込み側（ダッシュボード・ダイジェスト）は bug だけをバグとして数える
+        // The report kind's contract value, spelled by PlaytestReportKindText at serialization; the ingest side (dashboard, digest) counts only bug as a bug
         public string Kind;
 
         // 送り手のSteamIDと配布ビルドの出所。取れなければ空文字でなくnullで、理由は missing 列に残す。Editorなら buildInfo は null
@@ -64,8 +64,8 @@ namespace Client.Game.InGame.BugReport
         public List<MissingItem> Missing = new();
         public double VideoSeconds;
 
-        // 常時非null。有効と不明の報告は取り込み側の自動修正と通常集計から除く
-        // Always present; ingestion excludes both enabled and unknown reports from automatic fixes and normal counts
+        // 常時非null。有効と不明の報告は取り込み側のバグ判定と通常集計から除く
+        // Always present; ingestion excludes both enabled and unknown reports from bug triage and normal counts
         public RemoteExecManifestMark RemoteExec = RemoteExecManifestMark.Disabled();
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
@@ -149,8 +149,8 @@ namespace Client.Game.InGame.BugReport
 
         public override Vector3 ReadJson(JsonReader reader, Type objectType, Vector3 existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            // マニフェストはクライアントから自動修正ランへの片方向出力のみで復元経路は無い
-            // The manifest is a one-way output from client to auto-fix run; there is no read-back path
+            // マニフェストはクライアントから取り込み側への片方向出力のみで復元経路は無い
+            // The manifest is a one-way output from client to the ingest side; there is no read-back path
             throw new NotSupportedException("BugReportManifestのVector3は書き込み専用");
         }
     }

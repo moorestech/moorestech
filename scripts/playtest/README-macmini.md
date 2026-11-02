@@ -2,7 +2,7 @@
 
 ## 前提
 
-- `/Users/sakastudio/hermes-agent/data/repos/{moorestech,moorestech_logs}` がある
+- 本体 clone と、その兄弟の `moorestech_logs` がある
 - `/Users/sakastudio/hermes-agent/data/services/playtest/env.sh` を `chmod 600` で作る（**値はこのREADMEにもrepoにも書かない**）:
   ```bash
   export PLAYTEST_ADMIN_KEY=...                    # 受け口 Worker の ADMIN_KEY
@@ -25,9 +25,15 @@ supervisor.py の `run_once` はシェルを介さず `subprocess.run(cmd, cwd=c
 }
 ```
 
+ダッシュボード（`playtest-dashboard`、longrun）は `scripts/playtest/dashboard/bin/run.sh` 経由で起動する。登録済みの `command` が `server.py` を直接指している場合は次の形へ書き換え（`<本体 clone の絶対パス>` は上の `playtest-ingest` と同じ本体 clone）、ダッシュボードを再起動する（`server.py` は env.sh を読まなくなったので、直接起動だと R2 中継が 503 になる。`--env` 引数も廃止した）:
+
+```json
+"command": ["/bin/bash", "<本体 clone の絶対パス>/scripts/playtest/dashboard/bin/run.sh"]
+```
+
 **必ず本体 clone（`/Users/sakastudio/hermes-agent/data/repos/moorestech`）のスクリプトを指すこと。** `moores-wt` が切るタスク用worktree（`moorestech-worktrees/<name>`）は兄弟パス（`../moorestech_logs`・`../../services/...`）が本体と異なる位置にずれるため、そこを指すと壊れる。
 
-`ingest.sh`・`ingest-dispatch.sh`・`enqueue-autofix.sh`・`digest.py` の既定パスはいずれも **`$HOME` を経由せずスクリプト自身の位置から導出**する（supervisor は HOME を封じ込め用ディレクトリへ差し替えるため）。既定を上書きしたい場合は `services.json` の `command` に環境変数を渡すか、`env.sh` で export すればよい（`MOORESTECH_REPO`・`MOORESTECH_LOGS`・`PLAYTEST_ENV_FILE`・`PLAYTEST_INGEST_LOG`）。
+`ingest.sh`・`ingest-dispatch.sh`・`fetch-report.sh`・`digest.py`・`dashboard/bin/run.sh` の既定パスはいずれも **`$HOME` を経由せずスクリプト自身の位置から導出**する（supervisor は HOME を封じ込め用ディレクトリへ差し替えるため）。既定を上書きしたい場合は `services.json` の `command` に環境変数を渡すか、`env.sh` で export すればよい（`MOORESTECH_REPO`・`MOORESTECH_LOGS`・`PLAYTEST_ENV_FILE`・`PLAYTEST_INGEST_LOG`）。
 
 確認（periodic の実行は `supervisor.log` には出ない。サービス個別のログを見る）:
 
@@ -47,29 +53,35 @@ bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/inges
 
 ## 成果物
 
-- `moorestech_logs/harness/playtest/{reports,progress}/<steamId>/<id>/`
-- **自動修正ランへの投入はここでは起きない**（ADR 0061）。投入は日次ダイジェストを見て人が `scripts/playtest/enqueue-autofix.sh <steamId> <id>` を叩く
+- 生データの正本は受け口の R2（バケット `moorestech-playtest`、`reports/<steamId>/<id>/...`・`progress/...`）だけ。取り込みは手元へ全件をコピーしない
+- `moorestech_logs/harness/playtest/{reports,progress}/<steamId>/<id>/` … 報告を読むのに要る小物だけ（`manifest.json`・`READY`・`ingest.json`・`frames.tsv`・`screenshot.png`・`logs/`・`repo/*.diff|*.txt|*.json`・`record.json`・`export-markers/`。10MB 超は除く）と、R2 にだけ置いた物の一覧 `remote.json`。どれを写すかは `r2_store/box_layout.py` の許可リストが正
 
-## 自動修正ランへ投入する（人の操作）
-
-テスターのバグ報告は**自動では走らない**（ADR 0061）。毎朝の日次ダイジェストの「投入候補のバグ報告」節に
-そのまま貼れるコマンドが並ぶので、直したいものだけ選んで叩く。
+## 1 件の生データを取る（バグ調査）
 
 ```bash
-bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/enqueue-autofix.sh <steamId> <id>
+bash scripts/playtest/r2_store/fetch-report.sh <steamId または dev-機材名> <報告ID>    # 本体 clone で実行する
+bash scripts/playtest/r2_store/fetch-report.sh --out <置き場> --kind progress <steamId> <id>   # 置き場・種別を指定する
 ```
 
-- 投入すると `moorestech_logs/harness/bug-report/inbox/<id>/` に置かれ、plan C の `inbox-poller.sh` が最大60秒で拾う
-- 二度目は `exit 2`（箱の `AUTOFIX_QUEUED` マーカーで判定）。やり直すならマーカーを消す
-- `harness/bug-report/runs/<id>` が既にあると `exit 5`（poller が `.duplicate` へ隔離してランを起こさないため）。やり直すなら旧ランを改名・退避してからマーカーを消す
-- 元箱に `READY` が無い（取り込みが完結していない）箱、steamId/id が安全な単一パスセグメントでない（空・`.`・`..`・`/`・`\`・制御文字）引数は `exit 1` で拒否する
-- 感想・クラッシュは `exit 3`、遠隔実行印のある箱は `exit 6` で拒否。どうしても走らせるなら `--force`（inbox 側に理由を含む `AUTOFIX_FORCED` が付き、poller の種別ガードを通る）
-- 結果は `moorestech_logs/harness/bug-report/runs/<id>/fix-result.json`、翌朝のダイジェストの「自動修正ラン」節にも出る
+- READY の `files[]` を全部 R2 から取り、`__attachments/` の断片から bundle を復元して、取得先を stdout に 1 行出す（既定 `$TMPDIR/moorestech-playtest-fetch/<kind>/<steamId>/<id>`。logs repo には置かない）
+- 取得先が既にあれば止まる。片付けで R2 から消した報告は理由（purgedAt）を出して `exit 3`
+- 取った箱は `python3 scripts/bugreport/triage.py <箱> --out <箱の外>` で Unity 無しに読める。サーバー状態の再生は Editor の `uloop execute-dynamic-code` から `Server.Boot.Replay.BugReportBundleTools`（`ReplayCheck`・`DumpPackets`・`MaterializeWorld`）を 1 行呼ぶ
+
+## 片付いた報告の R2 削除（片付けから 7 日）
+
+- `bash scripts/playtest/r2_store/prune.sh` で削除対象の一覧だけを出す。確かめてから `--execute` で消す（受け口の `DELETE /v1/inbox/<kind>/<steamId>/<id>`。`ACKED` と `PURGED` の印だけが残り、以後の取得は 410）
+- 対象は `moorestech_logs/.state/report-resolutions.json`（git 管理外）の `{"resolutions": {"<kind>/<steamId>/<id>": {"outcome": "merged"|"rejected", "resolvedAt": "YYYY-MM-DDTHH:MM:SSZ"}}}` で、`resolvedAt` から 7 日たった物。消した物は `.state/r2-purges.json` に残り、次回は選ばない
+- **この記録の書き手はまだ無い**（「片付いた」をどう判定するかは未決）。書き手が無い間は削除対象が出ない。定期実行（Hermes cron）も書き手が決まってから登録する
+- R2 のライフサイクル規則は途中のアップロードの中止（7 日）だけ。日数で一律に消す規則は足さない（未片付けの報告まで消えるため）
+
+## zip で届いた報告の取り込み
+
+`bash scripts/playtest/import-export-zip.sh <zip>`。箱ごとに受け口の `import` で署名付き URL をもらい、全ファイルを R2 へ PUT してから、小物だけを logs へ置き、最後に受け口の `import/complete` で確定する（受け口が全ファイルの存在と長さを確かめてから `ACKED` を書く）。R2 に長さの違う同名ファイルがある・PUT に失敗した・確定できなかった箱は取り込まない（手元の箱も戻し、理由を出して exit 1。再実行でやり直せる）。PUT の制限時間は `RECEIVER_MAX_TIME`（既定120秒）に大きさ÷`R2_PUT_MIN_BYTES_PER_SEC`（既定 1000000）秒を足した値。
 
 ## 詰まったとき
 
 - `[ingest] ERROR: READY 本文の files[] が…` → READY 要約（クライアントの `PlaytestUploader.ComposeSummary()` が書き、受け口は転写するだけ）に `files[]` が無い。`files` を書く前の古い配布ビルドからの箱。ack されずに残るので理由を確認して扱いを決める
-- `[ingest] ERROR: READY 本文の files[] が取り込み側の予約名…と衝突` → payload に `ingest.json`・`READY`・`AUTOFIX_QUEUED`・`AUTOFIX_FORCED`・`fix-result.json`・`run.env`（大文字小文字無視）や `*.partial` 始まりのパスがある。マーカー偽装・上書きになるので ack しない
+- `[ingest] ERROR: READY 本文の files[] が取り込み側の予約名…と衝突` → payload に `ingest.json`・`READY`・`remote.json`（大文字小文字無視）や `*.partial` 始まりのパスがある。上書き・所在の偽装になるので ack しない
 - `[ingest] [WARN] files[] が空（全ファイル見送り…）` → クライアントが全ファイルを見送った正規の箱。READY と ingest.json だけで公開して ack する。ダイジェストでは「manifest.json/record.json が無い箱」の件数に出る
 - `[ingest] ERROR: ack 失敗` → 箱は取り込み済みなので、次の周期で再配信されても再ダウンロードせず ack だけやり直す
 
@@ -92,4 +104,4 @@ bash scripts/playtest/dev-token.sh revoke macbook
 
 `issue` の標準出力はトークン1行だけ。Unity の `moorestech/Playtest/Developer Token` に貼り付けて保存する。生トークンをログ・repoへ残さない。`list` は `machine<TAB>createdAt`、`revoke` は該当機材の送信を即時失効する。すべて成功0・失敗1。
 
-開発機の報告は `reports/dev-<機材名>/<id>/` に取り込まれる。Steamには問い合わせず「開発機 <機材名>」を表示名にし、ダイジェストにも表示する。自動修正への投入はテスターと同じく人が選ぶ。
+開発機の報告は `reports/dev-<機材名>/<id>/` に取り込まれる。Steamには問い合わせず「開発機 <機材名>」を表示名にし、ダイジェストにも表示する。

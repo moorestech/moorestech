@@ -4,8 +4,8 @@ using Newtonsoft.Json.Converters;
 
 namespace Client.Game.InGame.BugReport
 {
-    // 有効/無効/不明の3状態。不明を無効へ落とすと、証跡を読めなかった箱が自動修正へ流れる
-    // Three states: enabled, disabled and unknown; folding unknown into disabled would feed unreadable evidence into auto-fix
+    // 有効/無効/不明の3状態。不明を無効へ落とすと、証跡を読めなかった箱がバグ集計へ混ざる
+    // Three states: enabled, disabled and unknown; folding unknown into disabled would mix unreadable evidence into bug counts
     [JsonConverter(typeof(StringEnumConverter))]
     public enum RemoteExecManifestMarkState
     {

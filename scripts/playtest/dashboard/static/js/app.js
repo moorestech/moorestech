@@ -1,7 +1,7 @@
 // 起動・ナビゲーション・定期更新
 // Bootstrap, navigation and periodic refresh
 import { findReport, fmtDateTime, h, parseRoute, routeHref } from "./core.js";
-import { applyFilters, CANDIDATE_FILTER, loadFilter, STORAGE_KEY } from "./report-filter.js";
+import { applyFilters, loadFilter, UNREAD_BUG_FILTER, STORAGE_KEY } from "./report-filter.js";
 import { renderDigests } from "./views/digests.js";
 import { renderOverview } from "./views/overview.js";
 import { detailNav, renderReport } from "./views/report.js";
@@ -39,7 +39,7 @@ async function load() {
   codeIsStale = codeIsStale || next.appVersion !== loadedVersion;
   // 生成時刻は毎回変わるので、中身が変わったときだけ描き直す（動画再生・入力中の画面を壊さない）
   // generatedAt always changes, so redraw only when content changes (keeps playing video and inputs intact)
-  const nextSignature = JSON.stringify([next.reports.map((r) => [r.id, r.triage, r.run?.status, r.readAt, r.links.length]), next.sessions.length, next.digests[0]]);
+  const nextSignature = JSON.stringify([next.reports.map((r) => [r.id, r.triage, r.readAt, r.links.length]), next.sessions.length, next.digests[0]]);
   const changed = nextSignature !== signature;
   data = next;
   signature = nextSignature;
@@ -60,16 +60,16 @@ function render() {
   const route = parseRoute();
   const active = route.view === "report" ? "reports" : route.view;
   const view = VIEWS[route.view] || VIEWS.overview;
-  // 報告タブにだけ未投入の件数を出す（要対応がどこにあるかをどの画面からも見えるように）
-  // Only the reports tab carries the un-enqueued count, so pending work is visible from every view
-  const pending = applyFilters(data.reports, new URLSearchParams(CANDIDATE_FILTER)).length;
+  // 報告タブにだけ未読のバグ報告の件数を出す（要対応がどこにあるかをどの画面からも見えるように）
+  // Only the reports tab carries the unread bug count, so pending work is visible from every view
+  const pending = applyFilters(data.reports, new URLSearchParams(UNREAD_BUG_FILTER)).length;
   document.getElementById("tabs").replaceChildren(...TABS.map(([tabView, label]) =>
     h("a", {
       href: routeHref(tabView),
       class: tabView === active ? "current" : null,
       "data-view": tabView,
     }, label,
-      tabView === "reports" && pending > 0 ? h("span", { class: "tab-count", title: "未投入のバグ報告" }, String(pending)) : null)));
+      tabView === "reports" && pending > 0 ? h("span", { class: "tab-count", title: "未読のバグ報告" }, String(pending)) : null)));
   syncReportsTab();
   document.getElementById("main").replaceChildren(view(data, route));
 }

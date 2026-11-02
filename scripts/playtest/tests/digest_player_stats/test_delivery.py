@@ -7,7 +7,6 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
-from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from digest_fixture import DISABLED_MARK, SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
@@ -27,14 +26,10 @@ class PlayerStatsCliTest(unittest.TestCase):
 
     def test_main_never_loads_candidates(self):
         output, errors = io.StringIO(), io.StringIO()
-        # 同一プロセスで呼び、候補loaderへのアクセスを検出する
-        # Invoke in-process so the patch observes candidate-loader access.
-        with patch("digest_candidates.load_candidate_reports") as candidates:
-            with redirect_stdout(output), redirect_stderr(errors):
-                result = digest.main(["--logs", str(self.root), "--date", TARGET_DATE,
-                                      "--max-chars", "0", "--no-archive"])
+        with redirect_stdout(output), redirect_stderr(errors):
+            result = digest.main(["--logs", str(self.root), "--date", TARGET_DATE,
+                                  "--max-chars", "0", "--no-archive"])
         self.assertEqual(result, 0)
-        candidates.assert_not_called()
         out = output.getvalue()
         self.assertNotIn("## 投入候補", out)
         self.assertNotIn("enqueue-autofix.sh", out)
@@ -62,7 +57,7 @@ class PlayerStatsCliTest(unittest.TestCase):
                 self.assertIn(value, text)
         for value in ("あ" * 4000, "セッション 2 件", "平均研究完了数 0.5", "3-5 1件", "0 1件",
                       "buildModeCancelled 2件", "GameScreen 1件", "InventoryScreen 1件",
-                      "quit 1件", "crash-recovered 1件", "## 自動修正ラン", "#1400", "ベルト停止を修正"):
+                      "quit 1件", "crash-recovered 1件"):
             self.assertIn(value, full)
         self.assertLess(full.index("## 前日のプレイ状況"), full.index("## 進行記録"))
         self.assertLess(full.index("## 進行記録"), full.index("## 感想（全文）"))

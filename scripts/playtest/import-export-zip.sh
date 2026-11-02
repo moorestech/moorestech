@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# テスターが書き出した未送信報告の zip を、受け口経由と同じ形で moorestech_logs へ取り込む
+# テスターが書き出した未送信報告の zip を、箱ごと R2 へ上げてから受け口経由と同じ形で moorestech_logs へ取り込む
+# 生データの正本は R2 だけなので、手元には報告を読むための小物しか残さない。上げられなかった・受け口で確定できなかった箱は取り込まない
 # 使い方: import-export-zip.sh <zip>。全箱成功（取り込み済みの飛ばしを含む）で 0、1件でも失敗があれば 1
-# Imports a tester-exported unsent-report zip into moorestech_logs in the same shape as the receiver path
+# Uploads each box of a tester-exported unsent-report zip to R2, then imports it into moorestech_logs like the receiver path
+# R2 is the only home for raw data, so only small files stay local; a box that cannot be uploaded or settled on the receiver is not imported
 # Usage: import-export-zip.sh <zip>. Exits 0 when every box succeeded (skips of already-imported ones included), 1 on any failure
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -16,8 +18,10 @@ ENV_FILE="${PLAYTEST_ENV_FILE:-$REPO/../../services/playtest/env.sh}"
 if [ -f "$ENV_FILE" ]; then
   . "$ENV_FILE"
 else
-  log "env file が無い（${ENV_FILE}）。STEAM_WEB_API_KEY 等は環境変数頼みになる"
+  log "env file が無い（${ENV_FILE}）。PLAYTEST_ADMIN_KEY・STEAM_WEB_API_KEY 等は環境変数頼みになる"
 fi
+# shellcheck source=lib/receiver-api.sh
+. "$HERE/lib/receiver-api.sh"
 # shellcheck source=lib/ingest-lock.sh
 . "$HERE/lib/ingest-lock.sh"
 # shellcheck source=lib/steam-persona.sh
@@ -31,6 +35,24 @@ GIT_CMD="${GIT_CMD:-git}"
 GIT_PUSH="${GIT_PUSH:-1}"
 LOCK="$LOGS/.git/moorestech-playtest-ingest.lock"
 IMPORT_PY="$HERE/lib/import_export_zip.py"
+R2_IMPORT_PY="$HERE/r2_store/r2_import.py"
+LAYOUT_PY="$HERE/r2_store/box_layout.py"
+
+# 整形済みの箱を全ファイル R2 へ上げる。失敗は理由を出して 1（手元の取り込みへ進ませない）
+# Uploads every file of a staged box to R2; a failure logs its reason and returns 1 so the local import never proceeds
+upload_box() {
+  local kind="$1" steam_id="$2" id="$3" staged="$4" path url
+  python3 -I "$R2_IMPORT_PY" declare "$staged" > "$WORK/declare.json" || { log "ERROR: 宣言を作れない: $id"; return 1; }
+  receiver_import_urls "$kind" "$steam_id" "$id" "$WORK/declare.json" "$WORK/import-reply.json" \
+    || { log "ERROR: 受け口が R2 への上げ直しを受け付けない: $kind/$steam_id/$id"; return 1; }
+  python3 -I "$R2_IMPORT_PY" uploads "$WORK/import-reply.json" > "$WORK/uploads.txt" \
+    || { log "ERROR: R2 の既存ファイルと食い違う、または応答が不正: $kind/$steam_id/$id"; return 1; }
+  while IFS=$'\x1f' read -r path url; do
+    [ -n "$path" ] || continue
+    r2_put_presigned "$staged/$path" "$url" || { log "ERROR: R2 へ上げられない: $kind/$steam_id/$id/$path"; return 1; }
+  done < "$WORK/uploads.txt"
+  log "R2 へ上げた: $kind/$steam_id/${id}（$(wc -l < "$WORK/uploads.txt" | tr -d ' ') 件。残りは送信済み）"
+}
 
 # 1箱を取り込む。失敗は理由を出して 1 を返す（partial は残さない）
 # Imports one box; a failure logs its reason and returns 1 (never leaves a partial)
@@ -54,24 +76,33 @@ import_one() {
     0|5) ;;
     3) log "ERROR: READY 本文に files[] が無い: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
     4) log "ERROR: READY 本文の files[] に不正なパスを含む: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
-    6) log "ERROR: READY 本文の files[] が取り込み側の予約名（ingest.json・READY・AUTOFIX_* 等）と衝突: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
+    6) log "ERROR: READY 本文の files[] が取り込み側の予約名（ingest.json・READY・remote.json 等）と衝突: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
     *) log "ERROR: READY 本文の解析に失敗（exit ${ready_rc}）: $sub/$steam_id/${id}（飛ばす）"; rm -rf "$staged"; return 1 ;;
   esac
   local dest="$PLAYTEST_DIR/$sub/$steam_id/$id" partial="$PLAYTEST_DIR/$sub/$steam_id/$id.partial"
   if [ -d "$dest" ]; then
     log "取り込み済み。飛ばす: $sub/$steam_id/$id"; rm -rf "$staged"; return 0
   fi
+  upload_box "$kind" "$steam_id" "$id" "$staged" || { rm -rf "$staged"; return 1; }
+  ( cd "$staged" && find . -type f ! -path ./READY | sed 's|^\./||' | LC_ALL=C sort ) > "$WORK/files.txt" \
+    || { log "ERROR: 箱のファイル一覧を作れない: $sub/$steam_id/$id"; rm -rf "$staged"; return 1; }
   rm -rf "$partial"
   mkdir -p "$(dirname "$partial")" && mv "$staged" "$partial" \
     || { log "ERROR: partial を置けない $partial"; rm -rf "$staged" "$partial"; return 1; }
   local persona_file="$STEAM_PERSONA_CACHE_DIR/$kind-$steam_id-$id.persona.json"
-  python3 -I "$HERE/../bugreport/lib/restore-commit-transfer.py" "$partial" \
-    || { log "ERROR: コミット資料の復元失敗: $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
   steam_persona_resolve "$steam_id" "$persona_file" \
     || { log "ERROR: 表示名の結果を書けない $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
   python3 -I "$HERE/lib/ingest_metadata.py" "$kind" "$steam_id" "$id" "$exported_at" "$(now_utc)" "$persona_file" "$partial/ingest.json" \
     || { log "ERROR: ingest.json 書き込み失敗 $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
-  mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> $dest"; rm -rf "$partial"; return 1; }
+  python3 -I "$LAYOUT_PY" finalize "$partial" "$kind" "$steam_id" "$id" "$WORK/files.txt" > /dev/null \
+    || { log "ERROR: remote.json を書けない $sub/$steam_id/$id"; rm -rf "$partial"; return 1; }
+  # 受け口で確定してから手元へ公開する。間で止まっても dest が無いので次の実行が再 import・再確定する（確定は冪等）
+  # Settle on the receiver before publishing locally; a crash in between leaves no dest, so the next run re-imports and re-settles (idempotent)
+  receiver_import_complete "$kind" "$steam_id" "$id" "$WORK/complete-reply.json" || {
+    log "ERROR: 受け口が取り込みを確定しない（R2 に足りない・長さ違いのファイルがある等）: $kind/$steam_id/${id} $(head -c 2000 "$WORK/complete-reply.json" 2>/dev/null)"
+    rm -rf "$partial"; return 1
+  }
+  mv "$partial" "$dest" || { log "ERROR: mv 失敗 $partial -> $dest（受け口は確定済み。次の実行で再確定して置き直す）"; rm -rf "$partial"; return 1; }
   log "imported: $sub/$steam_id/$id"
 }
 

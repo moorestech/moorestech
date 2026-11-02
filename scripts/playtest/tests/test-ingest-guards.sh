@@ -61,11 +61,11 @@ mk_object report/7656014/20260913_170000_empty/READY '{"kind":"report","id":"202
 mk_object report/7656015/20260913_170000_q/manifest.json '{"kind":"bug"}'
 # 予約名の実体も偽 R2 に置く（取得失敗ではなく予約名の検査で止まることを確かめるため）
 # The reserved-name objects exist in the fake R2, so the box is stopped by the reserved-name check rather than a failed download
-mk_object report/7656015/20260913_170000_q/AUTOFIX_QUEUED 'forged'
+mk_object report/7656015/20260913_170000_q/remote.json '{"files":[]}'
 mk_object report/7656016/20260913_170000_case/ready 'x'
 mk_object report/7656017/20260913_170000_partial/x.partial/y 'x'
 mk_object report/7656018/20260913_170000_ingest/Ingest.json '{}'
-mk_ready report/7656015/20260913_170000_q '["manifest.json","AUTOFIX_QUEUED"]'
+mk_ready report/7656015/20260913_170000_q '["manifest.json","remote.json"]'
 mk_ready report/7656016/20260913_170000_case '["ready"]'
 mk_ready report/7656017/20260913_170000_partial '["x.partial/y"]'
 mk_ready report/7656018/20260913_170000_ingest '["Ingest.json"]'
@@ -82,7 +82,7 @@ E="$P/reports/7656014/20260913_170000_empty"
 grep -q 'report/7656014/20260913_170000_empty/ack' "$R2/acked.txt" || { echo "NG: 空の files[] の箱が ack されない"; exit 1; }
 grep -q '\[WARN\] files\[\] が空（全ファイル見送り・skipped 2 件）' "$TMP/run4.log" || { echo "NG: skipped 件数の WARN が無い"; exit 1; }
 for box in 7656015/20260913_170000_q 7656016/20260913_170000_case 7656017/20260913_170000_partial 7656018/20260913_170000_ingest; do
-  grep -qF "予約名（ingest.json・READY・AUTOFIX_* 等）と衝突: report/${box}" "$TMP/run4.log" || { echo "NG: 予約名衝突が理由付きで拒否されていない: ${box}"; exit 1; }
+  grep -qF "予約名（ingest.json・READY・remote.json 等）と衝突: report/${box}" "$TMP/run4.log" || { echo "NG: 予約名衝突が理由付きで拒否されていない: ${box}"; exit 1; }
   grep -qF "report/${box}/ack" "$R2/acked.txt" && { echo "NG: 予約名衝突の箱が ack された: ${box}"; exit 1; }
   [ ! -e "$P/reports/${box}" ] || { echo "NG: 予約名衝突の箱が公開された: ${box}"; exit 1; }
 done

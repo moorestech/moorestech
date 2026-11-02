@@ -97,11 +97,12 @@ describe("prepare の宣言検査", () => {
     expect(warn).toHaveBeenCalled();
   });
 
-  it("予約名（READY・DECLARED）を宣言すると400 reserved-name", async () => {
+  it("予約名（READY・DECLARED・PURGED）を宣言すると400 reserved-name", async () => {
     const warn = spyWarn();
     await expectRejected(await prepare("report", ID, declaration({ READY: 1 })), 400, "reserved-name");
     await expectRejected(await prepare("report", ID, declaration({ DECLARED: 1 })), 400, "reserved-name");
-    expect(warn).toHaveBeenCalledTimes(2);
+    await expectRejected(await prepare("report", ID, declaration({ PURGED: 1 })), 400, "reserved-name");
+    expect(warn).toHaveBeenCalledTimes(3);
   });
 
   it("1ファイルが100MiBを超えると413 too-large", async () => {
