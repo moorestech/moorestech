@@ -1,8 +1,8 @@
 import type { Env } from "./env";
 import { fail, notFound } from "./http";
 import { routeDeveloperSession } from "./routes/developerSession";
-import { routeAdminDevTokens } from "./routes/adminDevTokens";
-import { routeAdmin } from "./routes/admin";
+import { routeAdminDevTokens } from "./routes/admin/adminDevTokens";
+import { routeAdmin } from "./routes/admin/admin";
 import { routeSession } from "./routes/session";
 import { routeUploads } from "./routes/uploads";
 

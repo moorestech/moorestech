@@ -150,7 +150,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 # スキル配置と実行記録
 - スキルのgit正本は `.agents/skills/` のみ。`.claude/skills` と `.codex/skills` はそこへのsymlink（tracked）。ミラー実体の複製・CI同期は禁止（マージ衝突が増えるため）
 - レビュー実行記録（moores-code-reviewのrecords/eval-log）はコードrepoに置かず `../moorestech_logs/harness/` へ書く。featureブランチで記録ファイルをコミットしない
-- `../moorestech_logs` に置くのは会話記録・レビュー記録（`$RUNDIR`）・作業報告（md・小さな JSON）と、スクショ3枚程度まで。録画・Unity のログ・テスト結果 xml・ワールドのコピーは worktree の gitignore 下に置き、worktree ごと消す（logs-sync が全部を永久履歴へ入れるため）。テストで `Saves/` に作ったワールドは作業の終わりに `list-work-saves.sh` で探して消す
+- `../moorestech_logs` に置くのは会話記録・レビュー記録（`$RUNDIR`）・作業報告（md・小さな JSON）と、スクショ3枚程度まで。録画・Unity のログ・テスト結果 xml・ワールドのコピーは worktree の gitignore 下に置き、worktree ごと消す（logs-sync が全部を永久履歴へ入れるため）。テストで `Saves/` に作ったワールドは作業の終わりに `list-work-saves.sh` で探して消す。プレイテストの生データは受け口の R2 にだけあり、要るときに `scripts/playtest/r2_store/fetch-report.sh` で手元へ取る
 - `../moorestech_logs` 内で作業する前に同repoの `README.md` を読む（レイアウト・考古学手順・消失事故の落とし穴が書いてある）
 
 # コーディングにおける重要な原則

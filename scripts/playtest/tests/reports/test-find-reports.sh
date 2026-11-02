@@ -6,12 +6,11 @@ trap 'rm -rf "$WORK"' EXIT
 export LOGS="$WORK/logs" PLAYTEST_ENV_FILE="$WORK/no-env" PLAYTEST_ADMIN_KEY=fake
 export CURL_CMD="$WORK/curl" FAKE_ROOT="$WORK"
 mkdir -p "$LOGS/harness/playtest/reports/123/older" "$LOGS/harness/playtest/reports/123/newer"
-mkdir -p "$LOGS/harness/bug-report/inbox/pending" "$LOGS/harness/bug-report/runs/run1"
 for name in older newer; do
   echo '{"steamId":"123","steamPersonaName":"tester"}' > "$LOGS/harness/playtest/reports/123/$name/ingest.json"
   echo '{"kind":"bug","description":"a report"}' > "$LOGS/harness/playtest/reports/123/$name/manifest.json"
 done
-echo '{"status":"fixed"}' > "$LOGS/harness/bug-report/runs/run1/fix-result.json"
+echo '{"files":["video.mp4","snapshots/a.json"]}' > "$LOGS/harness/playtest/reports/123/newer/remote.json"
 python3 - "$LOGS" <<'PY'
 import os,sys
 from pathlib import Path
@@ -39,8 +38,9 @@ bash "$HERE/find-reports.sh" > "$WORK/result"
 python3 - "$WORK/result" <<'PY'
 import sys
 s=open(sys.argv[1]).read()
-for value in ('## 受け口の未取り込み','## 取り込み済み','## 自動修正','remote1','remote2','pending','fixed','tester'):
+for value in ('## 受け口の未取り込み','## 取り込み済み','remote1','remote2','tester','r2=2件','r2=不明','remote.json が無い'):
     assert value in s, value
+assert '自動修正' not in s
 assert s.index('newer') < s.index('older')
 PY
 bash "$HERE/find-reports.sh" --limit 1 > "$WORK/limited"
@@ -49,18 +49,14 @@ touch "$WORK/fail"
 bash "$HERE/find-reports.sh" > "$WORK/failed"
 grep -q 'status=500' "$WORK/failed"
 grep -q '## 取り込み済み' "$WORK/failed"
-grep -q '## 自動修正' "$WORK/failed"
-# 隔離された実箱と壊れた表示名も、所在を残して残りの一覧を続ける
-# Retain quarantined box locations and malformed names while continuing the listing
-mkdir -p "$LOGS/harness/bug-report/inbox/.remote-exec-held/held-A" "$LOGS/harness/bug-report/inbox/.duplicate/dup-A"
+# 壊れた表示名も、所在を残して残りの一覧を続ける
+# Retain the location of a malformed name while continuing the listing
 echo '{"steamPersonaName":42}' > "$LOGS/harness/playtest/reports/123/newer/ingest.json"
 bash "$HERE/find-reports.sh" > "$WORK/invalid" 2> "$WORK/invalid-errors"
 python3 - "$WORK/invalid" "$WORK/invalid-errors" <<'CHECK'
 import sys
 s, errors = (open(path).read() for path in sys.argv[1:])
-assert 'held-A\t保留\t' in s and 'dup-A\t重複\t' in s
-assert '.remote-exec-held\t' not in s and '.duplicate\t' not in s
 assert 'steamPersonaName' in s and 'steamPersonaName' in errors
-assert 'newer' in s and '## 自動修正' in s and 'run1' in s
+assert 'newer' in s and 'older' in s
 CHECK
 echo 'PASS find-reports pagination, mtime ordering, limit and receiver failure'

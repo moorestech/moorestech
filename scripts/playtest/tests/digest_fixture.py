@@ -43,8 +43,7 @@ def build_fixture(root: Path) -> None:
     write_ingest(bug2 / "ingest.json", {"kind": "report", "steamId": "7656001",
                                       "id": "20260912_101000_bug2", "readyAt": "2026-09-12T05:10:00Z",
                                       "ingestedAt": "2026-09-12T05:11:00Z"})
-    write_json(bug2 / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "投入済みのバグ"})
-    (bug2 / "AUTOFIX_QUEUED").write_text("queued at 2026-09-12T06:00:00Z\n", encoding="utf-8")
+    write_json(bug2 / "manifest.json", {"kind": "bug", "remoteExec": DISABLED_MARK, "description": "2件目のバグ"})
     fb = pt / "reports" / "7656002" / "20260912_110000_fb1"
     write_ingest(fb / "ingest.json", {"kind": "report", "steamId": "7656002",
                                     "id": "20260912_110000_fb1", "readyAt": "2026-09-12T06:00:00Z",
@@ -79,10 +78,6 @@ def build_fixture(root: Path) -> None:
                                      "completedResearch": [], "lastUiState": "InventoryScreen",
                                      "events": [{"type": "buildModeCancelled"}]})
 
-    run = root / "harness" / "bug-report" / "runs" / "20260910_090000_bug0"
-    write_json(run / "fix-result.json", {"status": "fixed", "pr_number": 1400, "base": "master",
-                                         "determinism": "ok", "summary": "ベルト停止を修正",
-                                         "finishedAt": "2026-09-12T10:00:00Z"})
 
 
 def run_digest(root: Path, date: str, *extra: str) -> subprocess.CompletedProcess:

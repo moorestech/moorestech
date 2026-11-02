@@ -6,8 +6,8 @@ import json
 import re
 import sys
 
-# 制御文字・改行を空白1つへ畳む。表示名の改行は貼り付けコマンドの退避（PASTEABLE_COMMAND_RE）を偽装できる（C12）
-# Folds control characters and newlines to a single space; a newline in the display name can otherwise forge the pasteable-command stash (PASTEABLE_COMMAND_RE, C12)
+# 制御文字・改行を空白1つへ畳む。表示名の改行はダイジェストの行構造（見出し・箇条書き）を偽装できる
+# Folds control characters and newlines to a single space; a newline in the display name could otherwise forge digest lines (headings, bullets)
 _CONTROL_CHARS_RE = re.compile(r"[\x00-\x1f\x7f]+")
 
 

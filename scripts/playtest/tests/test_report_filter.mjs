@@ -2,7 +2,7 @@
 // Verifies report-filter.js pure logic under node
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { applyFilters, CANDIDATE_FILTER, FEEDBACK_FILTER, filterOf, loadFilter, neighbours, saveFilter, STORAGE_KEY } from "../dashboard/static/js/report-filter.js";
+import { applyFilters, FEEDBACK_FILTER, filterOf, loadFilter, neighbours, saveFilter, STORAGE_KEY, UNREAD_BUG_FILTER } from "../dashboard/static/js/report-filter.js";
 
 import { findReport, routeHref } from "../dashboard/static/js/core.js";
 
@@ -20,10 +20,12 @@ test("report lookup uses both box keys", () => {
 
 test("overview presets use the same matcher as report links", () => {
   const rows = [
-    R("candidate", "bug", { triage: "candidate" }),
+    R("unread-bug", "bug", { triage: "bug" }),
     R("feedback", "feedback"),
+    R("read-bug", "bug", { triage: "bug", readAt: "2026-09-13T00:00:00Z" }),
+    R("excluded-bug", "bug", { triage: "excluded" }),
   ];
-  assert.deepEqual(applyFilters(rows, new URLSearchParams(CANDIDATE_FILTER)), [rows[0]]);
+  assert.deepEqual(applyFilters(rows, new URLSearchParams(UNREAD_BUG_FILTER)), [rows[0]]);
   assert.deepEqual(applyFilters(rows, new URLSearchParams(FEEDBACK_FILTER)), [rows[1]]);
 });
 
@@ -85,6 +87,22 @@ test("saveFilter/loadFilter round-trip and tolerate broken storage", (t) => {
   assert.equal(warnings.mock.callCount(), 5);
 });
 
+// 自動修正の撤去で消えた分類（candidate・queued）を記憶していても、一覧が0件にならないよう捨てる
+// A remembered triage removed with auto-fix (candidate, queued) is dropped so the list never shows zero rows
+test("loadFilter drops remembered triage values that no longer exist", (t) => {
+  const warnings = t.mock.method(console, "warn", () => {});
+  t.after(() => { delete globalThis.localStorage; });
+  const store = new Map();
+  globalThis.localStorage = { getItem: (k) => store.get(k) ?? null, setItem: (k, v) => store.set(k, v) };
+  for (const stale of ["candidate", "queued"]) {
+    store.set(STORAGE_KEY, JSON.stringify({ triage: stale, kind: "bug" }));
+    assert.deepEqual(loadFilter(), { kind: "bug" });
+  }
+  store.set(STORAGE_KEY, JSON.stringify({ triage: "broken" }));
+  assert.deepEqual(loadFilter(), { triage: "broken" });
+  assert.equal(warnings.mock.callCount(), 2);
+});
+
 test("saveFilter dispatches after storing the filter", (t) => {
   const store = new Map();
   const events = [];
@@ -103,8 +121,8 @@ test("saveFilter dispatches after storing the filter", (t) => {
 // 全条件の交差と検索対象を確かめ、移動時の取りこぼしを防ぐ
 // Check every intersecting condition and searchable field to prevent losses during navigation
 test("all six filters intersect and query matches without case sensitivity", () => {
-  const row = R("target", "bug", { triage: "candidate", description: "Mixed CASE" });
-  const params = new URLSearchParams("kind=bug&triage=candidate&tester=s&build=b&read=unread&q=mixed");
+  const row = R("target", "bug", { triage: "bug", description: "Mixed CASE" });
+  const params = new URLSearchParams("kind=bug&triage=bug&tester=s&build=b&read=unread&q=mixed");
   assert.deepEqual(applyFilters([row], params), [row]);
   for (const key of ["kind", "triage", "tester", "build", "q"]) {
     const mismatch = new URLSearchParams(params);
@@ -134,7 +152,7 @@ test("neighbours recompute from latest state and handle both ends", () => {
 });
 
 test("detail and list routes preserve all filter values including URL punctuation", () => {
-  const filter = { triage: "candidate", kind: "bug", read: "unread", tester: "s", build: "b", q: "日本語 ? & #" };
+  const filter = { triage: "bug", kind: "bug", read: "unread", tester: "s", build: "b", q: "日本語 ? & #" };
   const params = new URLSearchParams(filter);
   for (const [view, args] of [["report", ["s", "id"]], ["reports", []]]) {
     const href = routeHref(view, args, filterOf(params));

@@ -52,7 +52,7 @@ namespace Client.Tests.BugReport
             try
             {
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
-                BundleManifestContract.AssertPlanC(bundle, manifest);
+                BundleManifestContract.AssertReproductionKeys(bundle, manifest);
                 Assert.AreEqual("crash", (string)manifest["kind"]);
                 Assert.AreEqual("落ちた", (string)manifest["description"]);
                 var steamIdMissing = manifest["missing"].Single(item => (string)item["item"] == "steamId");

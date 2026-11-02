@@ -64,8 +64,8 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
                 var firstManifest = JObject.Parse(File.ReadAllText(Path.Combine(first, "manifest.json")));
                 var secondManifest = JObject.Parse(File.ReadAllText(Path.Combine(second, "manifest.json")));
-                BundleManifestContract.AssertPlanC(first, firstManifest);
-                BundleManifestContract.AssertPlanC(second, secondManifest);
+                BundleManifestContract.AssertReproductionKeys(first, firstManifest);
+                BundleManifestContract.AssertReproductionKeys(second, secondManifest);
 
                 Assert.AreEqual("一件目", (string)firstManifest["description"]);
                 Assert.AreEqual("二件目", (string)secondManifest["description"]);

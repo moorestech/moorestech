@@ -2,7 +2,7 @@
 # 取り込みテストの共通下ごしらえ（logs repo・偽 R2・curl スタブ・run_ingest）。呼び出し側が HERE と TMP を定義してから source する
 # Shared setup for the ingest tests (logs repo, fake R2, curl stub, run_ingest); the caller defines HERE and TMP before sourcing
 LOGS="$TMP/logs"; R2="$TMP/r2"
-mkdir -p "$LOGS/harness/playtest" "$LOGS/harness/bug-report/inbox" "$R2/objects"
+mkdir -p "$LOGS/harness/playtest" "$R2/objects"
 ( cd "$LOGS" && git init -q && git config user.email t@t && git config user.name t \
   && echo x > .gitkeep && git add -A && git commit -qm init )
 
