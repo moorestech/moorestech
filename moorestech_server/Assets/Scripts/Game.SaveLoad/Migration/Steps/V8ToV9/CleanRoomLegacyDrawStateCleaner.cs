@@ -12,9 +12,6 @@ namespace Game.SaveLoad.Migration.Steps.V8ToV9
     /// </summary>
     public sealed class CleanRoomLegacyDrawStateCleaner : IV8ToV9MigrationPart
     {
-        // クリーンルーム機械ProcessorのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
-        // The clean-room processor's SaveKey (typeof FullName); the step never references live types, so it is kept as a string
-        private const string CleanRoomMachineSaveKey = "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent";
         private const string PendingRealizationKey = "pendingRealization";
         private const string DrawRecordKey = "drawRecord";
         private const string RecipeGuidKey = "recipeGuid";
@@ -33,13 +30,13 @@ namespace Game.SaveLoad.Migration.Steps.V8ToV9
             {
                 // クリーンルーム機械以外と、processor が null の機械は対象外
                 // Blocks other than clean-room machines and machines with a null processor are out of scope
-                var processorToken = state[CleanRoomMachineSaveKey];
+                var processorToken = state[V7ToV8SaveJson.CleanRoomMachineSaveKey];
                 if (V7ToV8SaveJson.IsAbsentOrNull(processorToken)) continue;
-                if (!(processorToken is JObject processor)) return V7ToV8SaveJson.Reject($"{CleanRoomMachineSaveKey} がオブジェクトではありません。 type={processorToken.Type}", out failureReason);
+                if (!(processorToken is JObject processor)) return V7ToV8SaveJson.Reject($"{V7ToV8SaveJson.CleanRoomMachineSaveKey} がオブジェクトではありません。 type={processorToken.Type}", out failureReason);
 
                 // 加工中ジョブの継承レベル
                 // The running job's inherited level
-                if (!TryCollectDroppedInheritance(processor, CleanRoomMachineSaveKey, out failureReason)) return false;
+                if (!TryCollectDroppedInheritance(processor, V7ToV8SaveJson.CleanRoomMachineSaveKey, out failureReason)) return false;
 
                 // 待機中の確定結果は無いのが正常形（待機していない機械）
                 // No waiting realization is the normal shape (a machine that is not waiting)
@@ -51,6 +48,28 @@ namespace Game.SaveLoad.Migration.Steps.V8ToV9
             }
 
             return true;
+
+            #region Internal
+
+            // 版9で読めない抽選記録（ウェハグレード・品質Tierの無いダイシング）を対象にする
+            // Target draw records version 9 cannot read (wafer grade, dicing without a quality tier)
+            bool TryCollectLegacyDrawRecord(JObject pending, out string failureReason)
+            {
+                failureReason = null;
+                var drawRecordToken = pending[DrawRecordKey];
+                if (V7ToV8SaveJson.IsAbsentOrNull(drawRecordToken)) return true;
+                if (!(drawRecordToken is JObject drawRecord)) return V7ToV8SaveJson.Reject($"{DrawRecordKey} がオブジェクトではありません。 type={drawRecordToken.Type}", out failureReason);
+                var kindToken = drawRecord["kind"];
+                if (kindToken == null || kindToken.Type != JTokenType.String) return V7ToV8SaveJson.Reject($"{DrawRecordKey}.kind が文字列ではありません。 type={kindToken?.Type}", out failureReason);
+
+                var kind = (string)kindToken;
+                var isWaferGrade = kind == "waferGrade";
+                var isDicingWithoutTier = kind == "dicing" && V7ToV8SaveJson.IsAbsentOrNull(drawRecord["qualityTier"]);
+                if (isWaferGrade || isDicingWithoutTier) _drawRecordOwners.Add(pending);
+                return true;
+            }
+
+            #endregion
         }
 
         public string ApplyAndSummarize()
@@ -71,24 +90,6 @@ namespace Game.SaveLoad.Migration.Steps.V8ToV9
             if (!Guid.TryParse((string)recipeToken, out var recipeGuid)) return V7ToV8SaveJson.Reject($"{ownerName}.{RecipeGuidKey} がGUIDではありません。 value={recipeToken}", out failureReason);
 
             if (WaferGradeRemovalTable.DroppedInheritanceRecipeGuids.Contains(recipeGuid)) _inheritedLevelOwners.Add(owner);
-            return true;
-        }
-
-        // 版9で読めない抽選記録（ウェハグレード・品質Tierの無いダイシング）を対象にする
-        // Target draw records version 9 cannot read (wafer grade, dicing without a quality tier)
-        private bool TryCollectLegacyDrawRecord(JObject pending, out string failureReason)
-        {
-            failureReason = null;
-            var drawRecordToken = pending[DrawRecordKey];
-            if (V7ToV8SaveJson.IsAbsentOrNull(drawRecordToken)) return true;
-            if (!(drawRecordToken is JObject drawRecord)) return V7ToV8SaveJson.Reject($"{DrawRecordKey} がオブジェクトではありません。 type={drawRecordToken.Type}", out failureReason);
-            var kindToken = drawRecord["kind"];
-            if (kindToken == null || kindToken.Type != JTokenType.String) return V7ToV8SaveJson.Reject($"{DrawRecordKey}.kind が文字列ではありません。 type={kindToken?.Type}", out failureReason);
-
-            var kind = (string)kindToken;
-            var isWaferGrade = kind == "waferGrade";
-            var isDicingWithoutTier = kind == "dicing" && V7ToV8SaveJson.IsAbsentOrNull(drawRecord["qualityTier"]);
-            if (isWaferGrade || isDicingWithoutTier) _drawRecordOwners.Add(pending);
             return true;
         }
     }

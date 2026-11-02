@@ -4,8 +4,8 @@ using Mooresmaster.Model.MachineRecipesModule;
 namespace Core.Master.CleanRoomRoles
 {
     /// <summary>
-    ///     清浄室工程（成膜・EUV・ダイシング）でレシピが担う役割。出力の添字やアイテムIDは索引のときに1回だけ解決して持つ
-    ///     The role a recipe plays in the clean-room chip process (deposition, EUV, dicing); output indices and item ids are resolved once at indexing
+    ///     清浄室工程（EUV・ダイシング）でレシピが担う役割。出力の添字やアイテムIDは索引のときに1回だけ解決して持つ
+    ///     The role a recipe plays in the clean-room chip process (EUV, dicing); output indices and item ids are resolved once at indexing
     /// </summary>
     public abstract class CleanRoomRecipeRole
     {

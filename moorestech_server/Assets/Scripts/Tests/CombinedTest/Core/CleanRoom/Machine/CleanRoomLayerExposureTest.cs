@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             MasterHolder.Load(container);
             var filter = BuildSmallCleanRoomWithFilter();
             var machine = PlaceProcessMachine();
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWafer, WaferCount);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestTransistorWafer, WaferCount);
             var collected = RunAndCollect(filter, machine, WaferCount, TickCap);
             Assert.AreEqual(WaferCount * (1 - failRate), CountOf(collected, ForUnitTestItemId.TestLayeredWafer));
             Assert.AreEqual(WaferCount * failRate, CountOf(collected, ForUnitTestItemId.TestFailedPatternWafer));
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             // ウェハは成功なら次層ウェハ、失敗なら失敗パターンウェハになり、ほかの品目には化けない
             // A wafer becomes the next-layer wafer on success or a failed pattern wafer, never anything else
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWafer, WaferCount);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestTransistorWafer, WaferCount);
             var collected = RunAndCollect(filter, machine, WaferCount, TickCap);
 
             var layered = CountOf(collected, ForUnitTestItemId.TestLayeredWafer);

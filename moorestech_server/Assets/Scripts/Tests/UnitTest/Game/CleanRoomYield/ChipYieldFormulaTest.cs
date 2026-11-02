@@ -90,7 +90,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             // A cap above the failure slot only drains it and never goes negative
             var drained = ChipYieldFormula.ShiftedDieRates(Tier2Levels, 0.1f, 2, 5.0, 1.0, 0.06, 1.0);
             Assert.AreEqual(0.3, drained[2], 1e-6);
-            Assert.IsTrue(drained.All(r => r >= -1e-12));
+            Assert.IsTrue(drained.All(r => -1e-12 <= r));
             Assert.AreEqual(1.0, drained.Sum(), 1e-6);
 
             // 負のシフトはレアを0までしか減らさない

@@ -54,10 +54,10 @@ namespace Core.Master.Validator
                     var rate = rates[index];
                     logs += ValidateRate(prefix, $"LevelRates[{index}]", rate);
                     sum += rate;
-                    if (index >= tier + 1 && rate != 0f) logs += $"{prefix} Lv{index + 1} violates the quality gate\n";
+                    if (tier + 1 <= index && rate != 0f) logs += $"{prefix} Lv{index + 1} violates the quality gate\n";
                 }
                 if (float.IsNaN(sum) || float.IsInfinity(sum) || RateTolerance < System.Math.Abs(sum - 1f)) logs += $"{prefix} rates sum to {sum}, not 1\n";
-                if (tier > 0 && tier <= dieLevelCount && tier <= rates.Count && !(rates[tier - 1] > 0f)) logs += $"{prefix} default Lv{tier} must be positive\n";
+                if (0 < tier && tier <= dieLevelCount && tier <= rates.Count && !(0f < rates[tier - 1])) logs += $"{prefix} default Lv{tier} must be positive\n";
             }
             return logs;
 
