@@ -11,7 +11,6 @@ using Game.Fluid;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.BlocksModule;
 using System;
-using Core.Master.Machine;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
@@ -68,7 +67,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                     CurrentPower = common.CurrentPower,
                     RequestPower = common.RequestPower,
                     OutputSpaceShort = machineState.IsOutputSpaceShort,
-                    SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount, InputTank = MachineFluidTankCounts.From(machineParam).InputTankCount },
+                    SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount, InputTank = machineParam.InputTankCount },
                     SlotBindings = MachineSlotBindingDtoBuilder.BuildSlotBindings(selectedRecipe, machineParam),
                     TankBindings = MachineSlotBindingDtoBuilder.BuildTankBindings(selectedRecipe, machineParam),
                 };

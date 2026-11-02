@@ -10,8 +10,6 @@ defineInterface:
       - key: outputSlotCount
         type: integer
         default: 0
-  - interfaceName: IMachineFluidTankParam
-    properties:
       - key: inputTankCount
         type: integer
         default: 0
@@ -125,7 +123,6 @@ properties:
               type: object
               implementationInterface:
                 - IMachineParam
-                - IMachineFluidTankParam
               properties:
                 - key: requiredPower
                   type: number
@@ -247,6 +244,17 @@ properties:
                   default: 5
                 - key: gear
                   ref: gear
+                - key: inputTankCount
+                  type: integer
+                  default: 0
+                - key: outputTankCount
+                  type: integer
+                  default: 0
+                - key: innerTankCapacity
+                  type: number
+                  default: 0
+                - key: fluidInventoryConnectors
+                  ref: fluidInventoryConnects
             - when: SimpleGearGenerator
               type: object
               properties:

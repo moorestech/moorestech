@@ -1,7 +1,6 @@
 using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
-using Core.Master.Machine;
 
 namespace Core.Master.Validator
 {
@@ -111,9 +110,8 @@ namespace Core.Master.Validator
 
                     logs += CheckCapacity("inputItems", recipe.InputItems.Length, machineParam.InputSlotCount);
                     logs += CheckCapacity("outputItems", recipe.OutputItems.Length, machineParam.OutputSlotCount);
-                    var tanks = MachineFluidTankCounts.From(machineParam);
-                    logs += CheckCapacity("inputFluids", recipe.InputFluids.Length, tanks.InputTankCount);
-                    logs += CheckCapacity("outputFluids", recipe.OutputFluids.Length, tanks.OutputTankCount);
+                    logs += CheckCapacity("inputFluids", recipe.InputFluids.Length, machineParam.InputTankCount);
+                    logs += CheckCapacity("outputFluids", recipe.OutputFluids.Length, machineParam.OutputTankCount);
 
                     string CheckCapacity(string fieldName, int count, int slotCount)
                     {

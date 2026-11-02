@@ -28,15 +28,6 @@ defineInterface:
   - key: outputSlotCount
     type: integer
     default: 0
-  - key: moduleSlotCount
-    type: integer
-    default: 0
-  - key: allowQualityModule
-    type: boolean
-# 液体タンクを持つ機械だけが実装する。歯車機械は実装せずタンク0として扱う
-# Implemented only by machines with fluid tanks; gear machines omit it and are treated as tankless
-- interfaceName: IMachineFluidTankParam
-  properties:
   - key: inputTankCount
     type: integer
     default: 0
@@ -46,6 +37,11 @@ defineInterface:
   - key: innerTankCapacity
     type: number
     default: 0
+  - key: moduleSlotCount
+    type: integer
+    default: 0
+  - key: allowQualityModule
+    type: boolean
   - key: fluidInventoryConnectors
     ref: fluidInventoryConnects
 - interfaceName: IChestParam
@@ -295,7 +291,6 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IMachineParam
-        - IMachineFluidTankParam
         - IElectricWireConnectParam
         properties:
         - key: requiredPower
@@ -543,11 +538,22 @@ properties:
           ref: gearConsumption
         - key: gear
           ref: gear
+        - key: inputTankCount
+          type: integer
+          default: 0
+        - key: outputTankCount
+          type: integer
+          default: 0
+        - key: innerTankCapacity
+          type: number
+          default: 0
         - key: moduleSlotCount
           type: integer
           default: 0
         - key: allowQualityModule
           type: boolean
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
       - when: SimpleGearGenerator
         type: object
         implementationInterface:
@@ -1070,7 +1076,6 @@ properties:
         implementationInterface:
         - IInventoryConnectors
         - IMachineParam
-        - IMachineFluidTankParam
         - IElectricWireConnectParam
         properties:
         - key: requiredPower
