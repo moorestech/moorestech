@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { Group, Stack } from "@mantine/core";
+import { useState, type ReactNode } from "react";
+import { Group, ScrollArea, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
 import MachineStateRow from "./rows/MachineStateRow";
+import LackHighlightText from "./LackHighlightText";
+import { L, useI18n } from "@/shared/i18n";
 import styles from "../style.module.css";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionList from "./machine/recipeSelection/MachineRecipeSelectionList";
@@ -11,8 +13,13 @@ import { buildMachineRecipeSelectionRows, hasSelectedRecipe } from "./machine/ma
 
 // 機械: 未選択→レシピ選択モード、選択済→インベントリモード。ヘッダで選択モードへ戻れる（ADR 0042）
 // Machine: unselected → recipe-selection mode, selected → inventory mode; the header returns to selection (ADR 0042)
-export default function MachineSection({ data, machine, fillsPanelHeight }: { data: BlockInventoryOpen; machine: MachineDetailData; fillsPanelHeight: boolean }) {
+// 本文の前に同じ器で並べる文脈欄
+// leadingContent is the context shown ahead of the body in the same scroller; machines without one pass null
+type Props = { data: BlockInventoryOpen; machine: MachineDetailData; fillsPanelHeight: boolean; leadingContent: ReactNode };
+
+export default function MachineSection({ data, machine, fillsPanelHeight, leadingContent }: Props) {
   const machineRecipes = useTopic(Topics.machineRecipes);
+  const { t } = useI18n();
   // 選択モードで最後に要求したレシピGUIDを覚える。サーバーの選択がこれと一致した時点で閉じるので、
   // 同一レシピを選び直しても閉じられ、拒否された間は選択モードに留まる（C14）
   // Remember the recipe GUID last requested in selection mode; the mode closes once the server's selection
@@ -28,11 +35,12 @@ export default function MachineSection({ data, machine, fillsPanelHeight }: { da
   // 歯車駆動の不足赤は網の停止理由行が担うため、充足率の赤は電力駆動だけに残す（ADR 0056）
   // Gear-driven shortage red belongs to the network stop-reason row, so only electric drive keeps the rate red (ADR 0056)
   const highlightPowerShortage = data.gear === undefined;
-  // 状態ラベル+充足率を共通フッタに表示
-  // The state label and satisfaction rate stay visible in both modes as the shared footer (ADR 0010)
+  // 状態ラベル+充足率を共通フッタに表示。出力空き不足のときだけ理由を隣に添え、入力切れの待機と見分ける
+  // The shared footer shows the state label and rate (ADR 0010); only an output-space shortage adds the reason, telling it apart from input starvation
   const footer = (
     <Group justify="center" gap="xs">
       <MachineStateRow currentState={machine.currentState} currentPower={machine.currentPower} requestPower={machine.requestPower} highlightPowerShortage={highlightPowerShortage} stateTestId="machine-state-label" powerRateTestId="machine-power-rate" />
+      {machine.outputSpaceShort ? <LackHighlightText insufficient size="sm" testId="machine-wait-reason">{t(L.ui.blockInventory.machineWaitOutputSpaceShort)}</LackHighlightText> : null}
     </Group>
   );
 
@@ -48,17 +56,23 @@ export default function MachineSection({ data, machine, fillsPanelHeight }: { da
   // 伸ばすのは高さ確定面だけ。高さ自動の面では親と同じく伸長を止める
   // Stretch only on the height-determining panel; on auto-height panels this stops stretching just as its parent does
   const stretchClassName = fillsPanelHeight ? styles.fillPanelHeight : undefined;
+  // 大型面の本文は器高でスクロール
+  // On the height-determining panel the body sits in a container-sized scroller and never overlaps the footer (same base as the train inventory)
+  const inventoryContent = (
+    <Stack gap="sm">
+      {leadingContent}
+      {selectedRow === undefined ? null : <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />}
+      <MachineInventoryBody data={data} />
+    </Stack>
+  );
   // 外殻がフッタと伸長を1箇所で持ち、モードで分かれるのは中身だけ。これで両モードのフッタ位置が揃う
   // One shell owns the footer and the stretch while only the body branches, keeping the footer at the same height in both modes
   return (
     <Stack className={stretchClassName} gap="sm" data-testid="machine-section">
       {showSelection ? (
-        <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
+        <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} leadingContent={leadingContent} />
       ) : (
-        <Stack className={stretchClassName} gap="sm">
-          {selectedRow === undefined ? null : <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />}
-          <MachineInventoryBody data={data} />
-        </Stack>
+        fillsPanelHeight ? <ScrollArea className={styles.machineInventoryScroll} type="auto">{inventoryContent}</ScrollArea> : inventoryContent
       )}
       {footer}
     </Stack>

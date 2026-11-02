@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { GuidSchema, SlotDataSchema } from "./common";
 import { ElectricToGearDataSchema, GearToElectricDataSchema } from "./energyConversion";
+import { TrainPlatformDataSchema, TrainStationDetailSchema, TrainTimetableStateSchema } from "./train";
+import { CleanRoomDetailDataSchema, CleanRoomYieldDataSchema } from "./cleanRoom";
+import { MachineInputStallDataSchema } from "./machineInputStall";
+import { refineDetailSectionParents } from "./detailSectionParents";
+import { BeltThroughputDataSchema } from "./beltThroughput";
+import { SpaceElevatorDataSchema } from "./spaceElevator";
+import { RocketLaunchPadDataSchema } from "./rocketLaunchPad";
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
@@ -50,10 +57,13 @@ export const MachineDetailDataSchema = z.object({
   currentState: MachineProcessStateSchema,
   currentPower: z.number(),
   requestPower: z.number(),
+  // 出力先の空き不足で待っているか（公開状態はidleのまま、理由だけを別に持つ）
+  // Whether the machine waits on output space (the published state stays idle; only the reason is carried)
+  outputSpaceShort: z.boolean(),
   slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number(), inputTank: z.number() }),
   // 選択レシピの束縛はホストが配信する正本。Web側で束縛規則を再導出しない
   // The selected recipe's binding is published by the host as the single source; the Web side never re-derives the rule
-  slotBindings: z.array(z.object({ slot: z.number(), itemId: z.number(), count: z.number() })),
+  slotBindings: z.array(z.object({ slot: z.number(), itemId: z.number(), count: z.number(), acceptedItemIds: z.array(z.number()) })),
   tankBindings: z.array(z.object({ tank: z.number(), fluidGuid: GuidSchema, amount: z.number() })),
 });
 
@@ -121,53 +131,6 @@ export const FilterSplitterDataSchema = z.object({
   directions: z.array(FilterSplitterDirectionDataSchema),
 });
 
-export const TrainPlatformModeSchema = z.enum(["loadToTrain", "unloadToPlatform"]);
-export const TrainPlatformDataSchema = z.object({
-  mode: TrainPlatformModeSchema,
-  itemSlotCount: z.number().int().nonnegative().optional(),
-});
-
-// 時刻表は駅ブロック座標で対象を固定し、表示名は独立して保持する
-// The timetable identifies station blocks by position and carries names only for display
-const TrainStationPositionSchema = z.object({ x: z.number().int(), y: z.number().int(), z: z.number().int() });
-export const TrainTimetableStationSchema = z.object({ position: TrainStationPositionSchema, name: z.string() });
-// 停車駅は駅一覧に入線方向（端）を足した形。端はホストの正本で、UIからの新規追加時だけ固定値を積む
-// A stop is a station plus the arrival side; the host owns the side and the UI only fixes it for new additions
-const TrainTimetableStopSideSchema = z.enum(["front", "back"]);
-export const TrainTimetableStopSchema = TrainTimetableStationSchema.extend({ side: TrainTimetableStopSideSchema });
-export const TrainTimetableDataSchema = z.object({
-  trainUnitId: z.string(),
-  isAutoRun: z.boolean(),
-  currentIndex: z.number().int(),
-  stops: z.array(TrainTimetableStopSchema),
-  stations: z.array(TrainTimetableStationSchema),
-});
-// 取得状態はC#が判定して kind で届く。読み込み中と取得不可を「値の有無」1ビットに畳まない
-// C# decides the fetch state and sends it as the kind; loading and unavailable are not folded into value presence
-const TrainTimetableStateSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("loading") }).strict(),
-  z.object({ kind: z.literal("unavailable") }).strict(),
-  z.object({ kind: z.literal("ready"), data: TrainTimetableDataSchema }).strict(),
-]);
-const TrainStationDetailSchema = z.object({ name: z.string() });
-
-// ベルトの搬出統計。ホストが全窓を送り、Web側はどの窓を見せるかだけを選ぶ。measuredがfalseの窓はまだ埋まっていない
-// Belt exit statistics: the host sends every window and the Web side only picks which to show; a window with measured=false is not filled yet
-export const BeltThroughputWindowDataSchema = z.object({
-  ticks: z.number().int().positive(),
-  measured: z.boolean(),
-  exitCount: z.number().int().nonnegative(),
-  maxCount: z.number().nonnegative(),
-});
-export const BeltThroughputDataSchema = z.object({
-  currentSpeed: z.number().int().nonnegative(),
-  windows: z.array(BeltThroughputWindowDataSchema).min(1),
-  // 古い順の直近1秒ごとの搬出数。埋まった秒だけなので9個未満もある
-  // Latest per-second exit counts, oldest first; only filled seconds, so fewer than nine can appear
-  recentSecondCounts: z.array(z.number().int().nonnegative()).max(9),
-  maxCountPerSecond: z.number().nonnegative(),
-});
-
 export const BlockInventoryOpenSchema = z.object({
   open: z.literal(true),
   source: z.literal("block"),
@@ -186,20 +149,38 @@ export const BlockInventoryOpenSchema = z.object({
   electricNetwork: ElectricNetworkDataSchema.optional(),
   gearNetwork: GearNetworkDataSchema.optional(),
   filterSplitter: FilterSplitterDataSchema.optional(),
+  spaceElevator: SpaceElevatorDataSchema.optional(),
   electricToGear: ElectricToGearDataSchema.optional(),
   gearToElectric: GearToElectricDataSchema.optional(),
   trainPlatform: TrainPlatformDataSchema.optional(),
   trainStation: TrainStationDetailSchema.optional(),
   beltThroughput: BeltThroughputDataSchema.optional(),
+  cleanRoom: CleanRoomDetailDataSchema.optional(),
+  cleanRoomYield: CleanRoomYieldDataSchema.optional(),
+  machineInputStall: MachineInputStallDataSchema.optional(),
+  rocketLaunchPad: RocketLaunchPadDataSchema.optional(),
 }).strict().superRefine((data, ctx) => {
-  // 変換機詳細の混入は受信境界で拒否する。未着は許容する
-  // Reject mismatched converter details at the receive boundary while allowing pending details
-  if (data.gearToElectric && data.blockType !== "GearToElectricGenerator")
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["gearToElectric"], message: "gearToElectric requires GearToElectricGenerator" });
-  if (data.electricToGear && data.blockType !== "ElectricToGearGenerator")
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["electricToGear"], message: "electricToGear requires ElectricToGearGenerator" });
+  // 絶対添字は受信した在庫の範囲内に限定する
+  // Require every absolute slot index to belong to the received inventory
+  if (data.rocketLaunchPad) {
+    for (const group of ["materialSlots", "payloadSlots", "outputSlots"] as const) {
+      data.rocketLaunchPad[group].forEach((index, entry) => {
+        if (data.itemSlots.length <= index)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rocketLaunchPad", group, entry], message: "Slot index exceeds itemSlots" });
+      });
+    }
+  }
+  if (data.spaceElevator) {
+    for (const group of ["satelliteInputSlots", "outputSlots"] as const) {
+      data.spaceElevator[group].forEach((index, entry) => {
+        if (data.itemSlots.length <= index)
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["spaceElevator", group, entry], message: "Slot index exceeds itemSlots" });
+      });
+    }
+  }
   if (data.gearToElectric && data.electricToGear)
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Converter details cannot coexist" });
+  refineDetailSectionParents(data, ctx);
 });
 const TrainInventoryOpenSchema = z.object({
   open: z.literal(true),

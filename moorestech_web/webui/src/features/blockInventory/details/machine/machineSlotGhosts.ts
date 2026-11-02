@@ -64,11 +64,15 @@ export function buildMachineSlotView(machine: MachineDetailData, itemSlots: Slot
 }
 
 // 入力帯で itemId に束縛されるスロットindexを返す。
+// 継承元スロットと基準を要求する入力は上位レベルの変種も受け付けるため、ホスト配信の acceptedItemIds で照合する
+// Source slots and base-requiring inputs also accept higher-level variants, so match against the host-published acceptedItemIds
+// 製作上限では宛先を絞らない。上限超えはサーバーの拒否と既存の拒否通知に任せる（計画の「やらないこと」と判断記録）
+// Destinations are not narrowed by the craft cap; the server refusal and its existing notice handle it (the plan's non-goals and decision log)
 // Shift移動（block_inventory.move_item）の宛先を束縛先だけへ絞るために使う
 // Slot indices bound to itemId within the input band.
 // Used to narrow Shift-move (block_inventory.move_item) destinations to bound slots only
 export function boundMachineInputSlotsForItem(machine: MachineDetailData, totalItemSlots: number, itemId: number): number[] {
   const { input } = splitSlotIndices(machine.slotLayout, totalItemSlots);
   const inputBand = new Set(input);
-  return machine.slotBindings.filter((binding) => inputBand.has(binding.slot) && binding.itemId === itemId).map((binding) => binding.slot);
+  return machine.slotBindings.filter((binding) => inputBand.has(binding.slot) && binding.acceptedItemIds.includes(itemId)).map((binding) => binding.slot);
 }

@@ -40,7 +40,8 @@ namespace Server.Boot.Loop
             EventProtocolProvider eventProtocolProvider,
             TickEndPacketQueue tickEndPacketQueue,
             ReceivedPacketLog receivedPacketLog,
-            CancellationToken token)
+            CancellationToken token,
+            CancellationToken shutdownNotice)
         {
             // 接続が来なくてもcancelを観測し、破棄側のJoinを完了させる
             // Observe cancellation without an incoming connection so disposal can join the thread
@@ -56,13 +57,13 @@ namespace Server.Boot.Loop
                 EnableKeepAlive(client);
 
                 // 送信・受信キュープロセッサを作成
-                var sendQueueProcessor = new SendQueueProcessor(client);
+                var sendQueueProcessor = new SendQueueProcessor(client, token, shutdownNotice);
                 var packetResponseContext = new PacketResponseContext(sendQueueProcessor);
                 var receiveQueueProcessor = new ReceiveQueueProcessor(
                     packetResponseCreator, sendQueueProcessor, packetResponseContext, tickEndPacketQueue, receivedPacketLog);
 
                 // 受信スレッドを起動
-                var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry, eventProtocolProvider, packetResponseContext, receivedPacketLog, tickEndPacketQueue).StartListen(token));
+                var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry, eventProtocolProvider, packetResponseContext, receivedPacketLog, tickEndPacketQueue).StartListen(token, shutdownNotice));
                 receiveThread.Name = "[moorestech] 受信スレッド";
                 receiveThread.Start();
             }

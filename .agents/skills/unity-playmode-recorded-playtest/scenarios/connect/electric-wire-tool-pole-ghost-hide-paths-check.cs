@@ -1,3 +1,4 @@
+using Game.Context;
 // 電線ツールの電柱ゴースト消灯経路チェック: ゴースト表示を修正した後、既存の消灯箇所が点きっぱなしにならないかを確認する
 // 検証項目: 空間照準でゴーストが点く→起点選択後に接続先候補へ照準するとConnectToTarget経路で消える→ツール解除で消える
 // Hide-path check for the wire tool's pole ghost after fixing its visibility, verifying existing hide sites still turn it off.
@@ -38,13 +39,13 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-hide-paths-check", opti
 
     var wireToolGuid = Guid.Parse("872372d5-2998-4fb7-826c-593ceeafcfb2");
     await p.PrepareBlockForUiPlacement("電柱", 3);
-    p.ServerService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid);
+    await p.RunOnServer("電線ツールを解放する", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(wireToolGuid));
     await p.GiveItem("銅のワイヤー", 64);
 
     // 接続先候補として既存電柱を1本、直設置しておく
     // Pre-place one pole directly to serve as a connectable hover target
     var targetPolePos = new Vector3Int(8, 32, 10);
-    p.PlaceBlockDirect("電柱", targetPolePos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", targetPolePos, BlockDirection.North);
     var targetPoleGo = await p.WaitBlockGameObject(targetPolePos);
     var targetCollider = targetPoleGo.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
 
@@ -83,7 +84,7 @@ return PlaytestRunner.Run("electric-wire-tool-pole-ghost-hide-paths-check", opti
     await p.WaitSeconds(0.3f);
 
     var secondPolePos = new Vector3Int(8, 32, 4);
-    p.PlaceBlockDirect("電柱", secondPolePos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", secondPolePos, BlockDirection.North);
     var secondPoleGo = await p.WaitBlockGameObject(secondPolePos);
     var secondCollider = secondPoleGo.GetComponentsInChildren<Collider>(true).First(c => c.name == "ClickCollider");
 

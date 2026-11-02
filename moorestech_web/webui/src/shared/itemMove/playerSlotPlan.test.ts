@@ -57,6 +57,24 @@ describe("planPlayerLeftClick", () => {
       ],
     });
   });
+  // 受入枠無しは拒否、空スロットは無操作
+  // No accepting slot comes back as a refusal, distinct from a reasonless no-op (an empty slot)
+  it("束縛で受け付ける枠が無いShiftは送らず拒否を返し、空スロットは無操作のまま", () => {
+    const noAccepting: PlayerSlotContext = { ...ctx(0, [slot(0, 0)]), blockSlotRestriction: { kind: "bound", candidateIndices: [] } };
+    expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, noAccepting)).toEqual({ kind: "noAcceptingBlockSlot" });
+    expect(planPlayerLeftClick({ area: "main", slot: 1 }, slot(0, 0), true, noAccepting)).toEqual({ kind: "actions", actions: [] });
+  });
+  it.each(["inventoryOpenFailed", "detailLoading"] as const)("%s は送信せず理由を返す", (kind) => {
+    const unavailable: PlayerSlotContext = { ...ctx(0, []), blockSlotRestriction: { kind } };
+    expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, unavailable)).toEqual({ kind });
+  });
+  it("束縛で受け付ける枠があればそこだけへ配分する", () => {
+    const bound: PlayerSlotContext = { ...ctx(0, [slot(0, 0), slot(0, 0)]), blockSlotRestriction: { kind: "bound", candidateIndices: [1] } };
+    expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, bound)).toEqual({
+      kind: "actions",
+      actions: [{ type: "block_inventory.move_item", payload: { from: { area: "main", slot: 0 }, to: { area: "block", slot: 1 }, count: 5 } }],
+    });
+  });
   it("Shift+クリックはブロック閉時、main からは配分先を持たず無操作になる（旧main⇔hotbar振り分けは廃止済み）", () => {
     expect(planPlayerLeftClick({ area: "main", slot: 0 }, slot(1, 5), true, ctx(0, null))).toEqual({ kind: "actions", actions: [] });
   });

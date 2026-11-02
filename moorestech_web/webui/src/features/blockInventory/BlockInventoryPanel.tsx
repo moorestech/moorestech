@@ -5,6 +5,7 @@ import {
   dispatchAction,
   type BlockInventoryData,
 } from "@/bridge";
+import { ScrollArea } from "@mantine/core";
 import { GamePanel, IconButton } from "@/shared/ui";
 import { resolveBlockComponent } from "./registry/blockComponentRegistry";
 import styles from "./style.module.css";
@@ -25,14 +26,15 @@ export default function BlockInventoryPanel() {
 
   // blockType に対応するコンポーネントを解決（未登録は GenericBlockInventory にフォールバック）
   // Resolve the component for blockType (unregistered falls back to GenericBlockInventory)
-  const Body = data.source === "block" ? resolveBlockComponent(data.blockType) : null;
+  const components = data.source === "block" ? resolveBlockComponent(data.blockType) : null;
+  const Body = components?.body;
+  const TitleAction = components?.titleAction;
   const inventoryError = data.error
     ? t(resolveTrainErrorKey(data.error))
     : null;
   const title = data.source === "train"
     ? t(L.ui.blockInventory.trainInventory)
     : t(blockNameKey(data.blockGuid));
-
   // レシピ選択を持つ機械だけ研究パネル同等のviewer〜items占有大型パネルへ広げる
   // Only recipe-capable machines expand to the research-sized panel spanning viewer..items
   const isLargeMachinePanel = data.source === "block" && data.machine !== undefined
@@ -48,21 +50,31 @@ export default function BlockInventoryPanel() {
     >
       <GamePanel
         variant="default"
-        title={title}
+        // タイトル操作の絶対配置と見出しの重なりを防ぐ
+        // Reserve space to keep the title clear of the positioned action
+        title={TitleAction ? <span style={{ paddingRight: "calc(var(--panel-action-button-width) + var(--mantine-spacing-sm))" }}>{title}</span> : title}
+        titleAction={data.source === "block" && TitleAction && !inventoryError
+          ? <TitleAction data={data} /> : undefined}
         style={{
           paddingBottom: "var(--block-panel-bottom-safe-area)",
           // 内容量幅の小型パネルは右余白が10pxしかなくフェード帯で途切れて見えるため、左と対称の右余白を足す
           // Content-sized small panels have only a 10px right padding that dies in the fade band, so mirror the left inset
           ...(isLargePanel
             ? { height: "100%", boxSizing: "border-box" }
-            : { paddingRight: "var(--block-panel-right-safe-area)" }),
+            // バンド高まで縮める
+            // Let the band height shrink it
+            : { paddingRight: "var(--block-panel-right-safe-area)", minHeight: 0 }),
         }}
       >
         {inventoryError && <div data-testid={data.source === "train" ? "train-inventory-error" : "block-inventory-error"}>{inventoryError}</div>}
         {data.source === "train" && !inventoryError && <TrainInventoryBody key={data.identifier} data={data} />}
         {/* identifierでkey付与。同一フレーム内でホストのpublishデバウンスにより閉/開が畳まれても、別ブロックの再マウントを保証する */}
         {/* Keyed by identifier so a different block always remounts even when the host's publish debounce collapses close/open into one frame */}
-        {data.source === "block" && !inventoryError && Body && <Body key={data.identifier} data={data} fillsPanelHeight={isLargeMachinePanel} />}
+        {/* 大型面は本文側が器を持つ。自然高の面はどの本文もここで1つの器に入れ、バンド高を越えたぶんをスクロールさせる */}
+        {/* Large panels own their scroller in the body; every natural-height body goes into one scroller here, scrolling past the band height */}
+        {data.source === "block" && !inventoryError && Body && (isLargePanel
+          ? <Body key={data.identifier} data={data} fillsPanelHeight={isLargeMachinePanel} />
+          : <ScrollArea key={data.identifier} className={styles.naturalBodyScroll} type="auto"><Body data={data} fillsPanelHeight={false} /></ScrollArea>)}
       </GamePanel>
       {/* uGUIのEsc/Tab相当のマウス閉じ操作。GameScreenへの遷移をhostへ要求する */}
       {/* Mouse-driven close, like uGUI Esc/Tab; asks the host to transit to GameScreen */}

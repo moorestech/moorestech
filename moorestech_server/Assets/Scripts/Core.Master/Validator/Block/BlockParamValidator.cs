@@ -18,6 +18,10 @@ namespace Core.Master.Validator.Block
                     {
                         foreach (var fuelItem in electricGenerator.FuelItems)
                         {
+                            // 無効な燃焼時間を点火前に拒否する
+                            // Reject invalid burn durations before ignition
+                            if (double.IsNaN(fuelItem.Time) || double.IsInfinity(fuelItem.Time) || fuelItem.Time <= 0)
+                                logs += $"[BlockMaster] Name:{block.Name} FuelItem.Time must be finite and > 0 (got {fuelItem.Time})\n";
                             var id = MasterHolder.ItemMaster.GetItemIdOrNull(fuelItem.ItemGuid);
                             if (id == null)
                             {
@@ -29,6 +33,10 @@ namespace Core.Master.Validator.Block
                     {
                         foreach (var fuelFluid in electricGenerator.FuelFluids)
                         {
+                            // 無効な燃焼時間を点火前に拒否する
+                            // Reject invalid burn durations before ignition
+                            if (double.IsNaN(fuelFluid.Time) || double.IsInfinity(fuelFluid.Time) || fuelFluid.Time <= 0)
+                                logs += $"[BlockMaster] Name:{block.Name} FuelFluid.Time must be finite and > 0 (got {fuelFluid.Time})\n";
                             var id = MasterHolder.FluidMaster.GetFluidIdOrNull(fuelFluid.FluidGuid);
                             if (id == null)
                             {

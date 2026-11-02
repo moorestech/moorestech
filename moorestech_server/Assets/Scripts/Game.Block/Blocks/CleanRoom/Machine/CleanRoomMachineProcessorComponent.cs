@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
-using Game.Block.Blocks.CleanRoom.Machine.RecipeSelection;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Inventory.Input;
@@ -18,7 +17,7 @@ using UniRx;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
-    public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IBlockSaveState, IMachineRecipeSelectorComponent
+    public class CleanRoomMachineProcessorComponent : IBlockStateObservable, IUpdatableBlockComponent, IBlockSaveState, IMachineRecipeSelectorComponent, IMachineProcessStateReader
     {
         public Guid RecipeGuid => _processingState.RecipeGuid;
         public float RequestPower => _context.RequestPower;
@@ -30,37 +29,47 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         // Halted requests no power and operating states share the normal machine multipliers; the context owns the derivation
         public float EffectiveRequestPower => _context.EffectiveRequestPower(CurrentState);
 
-        public IObservable<Unit> OnChangeBlockState => _changeState;
-        private readonly Subject<Unit> _changeState = new();
+        public IObservable<Unit> OnChangeBlockState => _statePublisher.OnChangeBlockState;
+        private readonly MachineStateChangePublisher _statePublisher = new();
 
         private readonly MachineProcessContext _context;
         private readonly Dictionary<ProcessState, IMachineProcessState> _stateHandlers;
         private readonly ProcessingMachineProcessState _processingState;
         private readonly VanillaMachineModuleInventory _moduleInventory;
 
-        // チップ抽選は実現出力の確定時に適用する。抽選カウンタもこのデコレータが持つ
-        // The chip draw is applied when outputs are realized; the decorator owns the draw counter as well
-        private readonly CleanRoomChipDrawDecorator _chipDrawDecorator;
+        // チップ工程の抽選と今の部屋の効果はこのデコレータが持つ。外へは効果の読み口だけを出す（B6 の表示が読む）
+        // This decorator owns the chip-process draws and the current room effect; only the effect read view leaves the processor (read by B6)
+        private readonly CleanRoomYieldDrawDecorator _yieldDrawDecorator;
+        public ICleanRoomEffectLookup CleanRoomEffectLookup => _yieldDrawDecorator;
+        // 出力待ちの確定結果は待機ステートが持ち、抽選の中身の表示（D02）が確定時の率を読む
+        // The idle state owns the realization waiting for output; the draw-detail display (D02) reads its fixed rates
+        private readonly IdleMachineProcessState _idleState;
+        internal IMachinePendingRealizationReader PendingRealizationReader => _idleState;
 
-        private CleanRoomEffect _cleanRoomEffect = new(false, 0, 0);
-        private ProcessState _lastState = ProcessState.Idle;
+        private readonly HaltedMachineProcessState _haltedState;
 
         public CleanRoomMachineProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
             _moduleInventory = module;
-            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out var cycleCount, out var selectedRecipe);
+            CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, effect, out var restoredState, out var processingJob, out var cycleCount, out var selectedRecipe, out var pendingRealization);
             _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
-            _chipDrawDecorator = new CleanRoomChipDrawDecorator(blockInstanceId, cycleCount);
-            _context.SetRealizedOutputDecorator(_chipDrawDecorator);
-            _context.BindSelectedRecipe(selectedRecipe, CleanRoomChipOutputBindingUtil.BuildOutputBinding(selectedRecipe));
+            _yieldDrawDecorator = new CleanRoomYieldDrawDecorator(blockInstanceId, cycleCount);
+            _context.SetRealizedOutputDecorator(_yieldDrawDecorator);
+            _context.BindSelectedRecipe(selectedRecipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(selectedRecipe));
             CurrentState = restoredState;
-            _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs);
+            _processingState = new ProcessingMachineProcessState(_context, processingJob);
+            _haltedState = new HaltedMachineProcessState(_processingState, _yieldDrawDecorator.CurrentEffect.CanOperate);
+            _idleState = new IdleMachineProcessState(_context, _processingState);
+            _idleState.RestorePending(pendingRealization);
+            // Idle維持中の空き不足変化を通知
+            // Notify an idle output-space change
+            _idleState.OnOutputSpaceWaitChanged.Subscribe(_ => _statePublisher.PublishTickState(CurrentState));
             _stateHandlers = new IMachineProcessState[]
                 {
-                    new IdleMachineProcessState(_context, _processingState),
+                    _idleState,
                     _processingState,
                     new OutputBlockedMachineProcessState(_processingState),
-                    new HaltedMachineProcessState(_processingState, () => _cleanRoomEffect.CanOperate),
+                    _haltedState,
                 }.ToDictionary(handler => handler.State);
             // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
             // Initialize so GetBlockStateDetails returns a sane value even if called before the first Update
@@ -70,10 +79,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);
-            return MachineStateDetailFactory.Create(_context, _processingState, CurrentState, _lastState);
+            return MachineStateDetailFactory.Create(_context, _processingState, _idleState, CurrentState, _statePublisher.LastState);
         }
 
         public Guid SelectedRecipeGuid => _context.SelectedRecipe?.MachineRecipeGuid ?? Guid.Empty;
+        public bool TryGetSelectedRecipe(out MachineRecipeMasterElement recipe) => (recipe = _context.SelectedRecipe) != null;
 
         public MachineRecipeSelectionResult SetSelectedRecipe(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
         {
@@ -99,8 +109,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public void SetCleanRoomEffect(CleanRoomEffect effect)
         {
             BlockException.CheckDestroy(this);
-            _cleanRoomEffect = effect;
-            _chipDrawDecorator.SetCleanRoomEffect(effect);
+            _yieldDrawDecorator.SetCleanRoomEffect(effect);
+            _haltedState.SetCanOperate(effect.CanOperate);
         }
 
         // tick内限定の内部経路。供給率から導出済みの実効電力を受け取る
@@ -109,7 +119,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         {
             BlockException.CheckDestroy(this);
             _context.SuppliedPower += power;
-            if (CurrentState == ProcessState.Idle) _changeState.OnNext(Unit.Default);
+            if (CurrentState == ProcessState.Idle) _statePublisher.Publish();
         }
 
         public string SaveKey { get; } = typeof(CleanRoomMachineProcessorComponent).FullName;
@@ -117,8 +127,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            var saveData = CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _chipDrawDecorator.CycleCount, _context.SelectedRecipe);
-            return saveData;
+            // 確定結果とカウンタを同じ時点で保存し、巻き戻さない
+            // Save the realization and its counter at the same point without rewinding
+            return CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _yieldDrawDecorator.CycleCount, _context.SelectedRecipe, _idleState);
         }
 
         public void Update()
@@ -130,21 +141,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // 直前tickの給電と同じ状態基準の要求電力を確定してから清浄室条件で状態遷移を判断する
             // Latch the previous tick's power and the matching request power before evaluating clean-room gated transitions
             _context.LatchTickPower(CurrentState);
-            if (!_cleanRoomEffect.CanOperate && CurrentState != ProcessState.Halted)
-            {
-                ForceHaltedWithoutCompletingJob();
-            }
-            else
-            {
-                UpdateCurrentState();
-            }
-            // ステート変化時か処理中はイベントを発火させる
-            // Fire the event on a state change or while processing
-            if (_lastState != CurrentState || CurrentState == ProcessState.Processing)
-            {
-                _changeState.OnNext(Unit.Default);
-                _lastState = CurrentState;
-            }
+            if (!_yieldDrawDecorator.CurrentEffect.CanOperate && CurrentState != ProcessState.Halted) ForceHaltedWithoutCompletingJob();
+            else UpdateCurrentState();
+            // 状態変化時と加工中・詰まり中に通知
+            // Notify on a change or while processing or blocked
+            _statePublisher.PublishIfStateChangedOrDetailVaries(CurrentState);
             #region Internal
             void ForceHaltedWithoutCompletingJob()
             {
@@ -173,26 +174,24 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         }
 
         public bool IsDestroy { get; private set; }
-        public void Destroy()
-        {
-            IsDestroy = true;
-        }
+        public void Destroy() => IsDestroy = true;
 
         private MachineRecipeSelectionResult ChangeSelection(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
         {
             // 共通フロー（ジョブ返却→束縛差し替え→非束縛スロット返却）はutilへ委譲する
             // Delegate the shared flow (job refund, rebind, unbound-slot refund) to the util
-            var result = MachineRecipeSelectionUtil.ApplyRecipeChange(_context, _processingState, recipe, CleanRoomChipOutputBindingUtil.BuildOutputBinding(recipe), refundOverflowInventory);
+            var result = MachineRecipeSelectionUtil.ApplyRecipeChange(_context, _processingState, recipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe), refundOverflowInventory);
             if (result != MachineRecipeSelectionResult.Success) return result;
 
             // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される
             // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions
             if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
 
-            // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
-            // The state was rewritten, so re-derive the published denominator on the new state before notifying
+            // 状態を書き換えたので、公開中の分母と出力空き不足を新しい選択で取り直してから通知する（旧レシピの理由を残さない）
+            // The state was rewritten, so re-derive the published denominator and output-space reason under the new selection before notifying
             _context.RelatchPublishedRequestPower(CurrentState);
-            _changeState.OnNext(Unit.Default);
+            _idleState.RefreshOutputSpaceWait();
+            _statePublisher.Publish();
             return MachineRecipeSelectionResult.Success;
         }
     }

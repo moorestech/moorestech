@@ -30,7 +30,7 @@ namespace Core.Update
         {
             var x = seed;
             var state = new ulong[StateLength];
-            for (var i = 0; i < StateLength; i++) state[i] = SplitMix64(ref x);
+            for (var i = 0; i < StateLength; i++) state[i] = NextSplitMix64(ref x);
             return state;
         }
 
@@ -98,13 +98,16 @@ namespace Core.Update
             return new Guid(bytes);
         }
 
-        private static ulong SplitMix64(ref ulong x)
+        public static ulong NextSplitMix64(ref ulong x)
         {
-            x += 0x9E3779B97F4A7C15UL;
-            var z = x;
-            z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9UL;
-            z = (z ^ (z >> 27)) * 0x94D049BB133111EBUL;
-            return z ^ (z >> 31);
+            unchecked
+            {
+                x += 0x9E3779B97F4A7C15UL;
+                var z = x;
+                z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9UL;
+                z = (z ^ (z >> 27)) * 0x94D049BB133111EBUL;
+                return z ^ (z >> 31);
+            }
         }
 
         private static ulong RotateLeft(ulong x, int k)

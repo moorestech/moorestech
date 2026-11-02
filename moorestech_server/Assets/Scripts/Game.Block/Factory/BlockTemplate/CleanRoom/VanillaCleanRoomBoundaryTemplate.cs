@@ -67,8 +67,8 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
                 var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
                 var inserter = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, connectorComponent);
                 var hatchComponent = componentStates == null
-                    ? new CleanRoomItemHatchComponent(inserter)
-                    : new CleanRoomItemHatchComponent(componentStates, inserter);
+                    ? new CleanRoomItemHatchComponent(param.MaxItemsPerSecond, inserter)
+                    : new CleanRoomItemHatchComponent(componentStates, param.MaxItemsPerSecond, inserter);
 
                 components.Add(hatchComponent);
                 components.Add(connectorComponent);

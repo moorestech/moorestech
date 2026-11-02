@@ -4,3 +4,4 @@ export * from "./fixtures/blocks/machineFixtures";
 export * from "./fixtures/blocks/extractionFixtures";
 export * from "./fixtures/blocks/energyFixtures";
 export * from "./fixtures/blocks/logisticsFixtures";
+export * from "./fixtures/blocks/cleanRoomFixtures";

@@ -24,6 +24,42 @@
         ],
         "IconItem": ""
       }
+    },
+    {
+      "researchNodeGuid": "e0de0000-0000-4000-8000-000000000001",
+      "researchNodeName": "テスト機械強化研究",
+      "researchNodeDescription": "スロット上限と製作上限の解放（Part C）",
+      "consumeItems": [],
+      "prevResearchNodeGuids": [],
+      "clearedActions": [
+        {
+          "gameActionType": "unlockModuleSlotStackLevel",
+          "gameActionParam": {
+            "level": 1
+          }
+        },
+        {
+          "gameActionType": "unlockLevelInheritanceCraftLevel",
+          "gameActionParam": {
+            "targetItemGuids": [
+              "00000000-0000-0000-e0de-000000000021"
+            ],
+            "level": 2
+          }
+        }
+      ],
+      "graphViewSettings": {
+        "UIPosition": [
+          400,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
     }
   ]
 }

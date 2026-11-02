@@ -64,3 +64,16 @@ export async function expectWrappedObjectives(objectives: Locator, expectedCount
     expect(layout.clientHeight / layout.lineHeight).toBeGreaterThan(1.5);
   }
 }
+
+type ChallengeHudTokens = { width: number; ruleWidth: number; padding: number };
+
+// HUD寸法をtokens.cssの解決値から読む。面幅はcalcなので本文幅と安全帯から合成する
+// Read HUD dimensions from tokens.css; the face width is a calc, so compose it from content width and safe-area padding
+export async function readChallengeHudTokens(page: Page): Promise<ChallengeHudTokens> {
+  return page.evaluate(() => {
+    const root = getComputedStyle(document.documentElement);
+    const px = (name: string) => Number.parseFloat(root.getPropertyValue(name));
+    const padding = px("--hud-panel-padding");
+    return { width: px("--challenge-hud-content-width") + padding * 2, ruleWidth: px("--challenge-hud-rule-width"), padding };
+  });
+}

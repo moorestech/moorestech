@@ -6,25 +6,25 @@ import { registeredBlockTypes } from "./registeredBlockTypes";
 
 describe("resolveBlockComponent", () => {
   it("標準ビューのblockTypeは単一のフォールバックへ統合する", () => {
-    const fallback = resolveBlockComponent("unknown");
-    expect(resolveBlockComponent("Chest")).toBe(fallback);
-    expect(resolveBlockComponent("ElectricMachine")).toBe(fallback);
-    expect(resolveBlockComponent("GearMiner")).toBe(fallback);
+    const fallback = resolveBlockComponent("unknown").body;
+    expect(resolveBlockComponent("Chest").body).toBe(fallback);
+    expect(resolveBlockComponent("ElectricMachine").body).toBe(fallback);
+    expect(resolveBlockComponent("GearMiner").body).toBe(fallback);
   });
   it("小文字 chest は実マスタ値でないため fallback になる", () => {
-    expect(resolveBlockComponent("chest")).toBe(SectionStackView);
+    expect(resolveBlockComponent("chest").body).toBe(SectionStackView);
   });
   it("tank は登録キー削除済みのためフォールバックを返す", () => {
-    expect(resolveBlockComponent("tank")).toBe(SectionStackView);
+    expect(resolveBlockComponent("tank").body).toBe(SectionStackView);
   });
   it("未登録 blockType はフォールバックを返す", () => {
-    expect(resolveBlockComponent("unknown")).toBe(SectionStackView);
+    expect(resolveBlockComponent("unknown").body).toBe(SectionStackView);
   });
 
   it.each(["Shaft", "Gear", "GearBeltConveyor"])(
     "GearEnergyTransformerUI対象の%sを既存ギアビューへ明示登録する",
     (blockType) => {
-      expect(blockComponents).toHaveProperty(blockType, SectionStackView);
+      expect(blockComponents).toHaveProperty(blockType, { body: SectionStackView });
     },
   );
 
@@ -34,14 +34,20 @@ describe("resolveBlockComponent", () => {
 
   it("ElectricToGearGeneratorは専用ビューへ登録する", () => {
     expect(blockComponents).toHaveProperty("ElectricToGearGenerator");
-    expect(blockComponents.ElectricToGearGenerator).not.toBe(SectionStackView);
+    expect(blockComponents.ElectricToGearGenerator.body).not.toBe(SectionStackView);
   });
+
+  it("SpaceElevatorBaseは接続ボタンを持つ専用ビューへ登録する", () => {
+    expect(blockComponents).toHaveProperty("SpaceElevatorBase");
+    expect(resolveBlockComponent("SpaceElevatorBase").body).not.toBe(SectionStackView);
+  });
+
 
   it.each(["TrainStation", "TrainItemPlatform", "TrainFluidPlatform", "ElectricPole"])(
     "%sはPhase B2専用ビューへ登録する",
     (blockType) => {
       expect(blockComponents).toHaveProperty(blockType);
-      expect(resolveBlockComponent(blockType)).not.toBe(SectionStackView);
+      expect(resolveBlockComponent(blockType).body).not.toBe(SectionStackView);
     },
   );
 

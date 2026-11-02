@@ -122,9 +122,8 @@ namespace Game.CleanRoom
                 // A_total算出 → 清浄機収集 → 積分 → 摩耗配分 → 閾値行更新の順に処理する
                 // Per room: compute A_total, collect filters, integrate, distribute wear, update row
                 var aTotal = CleanRoomPollution.ComputeATotal(room, _world);
-                var filters = CollectAirFilters(room);
-                var removalVolume = 0.0;
-                foreach (var filter in filters) removalVolume += filter.RemovalVolumePerSecond;
+                var filters = CleanRoomAirFilterCollector.Collect(room, _world);
+                var removalVolume = CleanRoomAirFilterCollector.SumRemovalVolume(filters);
 
                 IntegrateAndDistributeWear(room, aTotal, filters, removalVolume);
                 UpdateThresholdRow(room, removalVolume);
@@ -132,23 +131,7 @@ namespace Game.CleanRoom
 
             #region Internal
 
-            List<ICleanRoomAirFilter> CollectAirFilters(CleanRoom room)
-            {
-                // 部屋セルに重なるブロックの清浄機を BlockInstanceId で重複排除して集める
-                // Collect air filters on room cells, deduped by BlockInstanceId
-                var filters = new List<ICleanRoomAirFilter>();
-                var visited = new HashSet<BlockInstanceId>();
-                foreach (var cell in room.Cells)
-                {
-                    if (!_world.TryGetBlock(cell, out var block)) continue;
-                    if (!visited.Add(block.BlockInstanceId)) continue;
-                    if (block.TryGetComponent<ICleanRoomAirFilter>(out var filter)) filters.Add(filter);
-                }
-
-                return filters;
-            }
-
-            void IntegrateAndDistributeWear(CleanRoom room, double aTotal, List<ICleanRoomAirFilter> filters, double removalVolume)
+            void IntegrateAndDistributeWear(CleanRoom room, double aTotal, List<CleanRoomAirFilterEntry> filters, double removalVolume)
             {
                 var oldImpurity = room.ImpurityCount;
                 var deltaSeconds = GameUpdater.SecondsPerTick;
@@ -159,15 +142,15 @@ namespace Game.CleanRoom
                 if (removalVolume <= 0 || room.Volume <= 0) return;
                 var removed = Math.Min(oldImpurity, removalVolume * (oldImpurity / room.Volume) * deltaSeconds);
                 if (removed <= 0) return;
-                foreach (var filter in filters) filter.ApplyRemovedImpurity(removed * filter.RemovalVolumePerSecond / removalVolume);
+                foreach (var entry in filters) entry.Filter.ApplyRemovedImpurity(removed * entry.Filter.RemovalVolumePerSecond / removalVolume);
             }
 
             void UpdateThresholdRow(CleanRoom room, double removalVolume)
             {
                 // 濃度 N/V と換気率 nq/V から毎tick閾値行を更新する
                 // Update the threshold row each tick from concentration N/V and ACH nq/V
-                var concentration = room.ImpurityCount / room.Volume;
-                var airChangeRate = removalVolume / room.Volume;
+                var concentration = CleanRoomPurityLogic.Concentration(room.ImpurityCount, room.Volume);
+                var airChangeRate = CleanRoomPurityLogic.AirChangeRate(removalVolume, room.Volume);
                 room.SetThresholdIndex(CleanRoomPurityLogic.DecideThresholdIndex(room.ThresholdIndex, concentration, airChangeRate, _thresholdRows));
             }
 

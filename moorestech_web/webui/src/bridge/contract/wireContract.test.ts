@@ -131,10 +131,18 @@ describe("block detail fixtures", () => {
     "block_inventory_miner.json",
     "block_inventory_filter_splitter.json",
     "block_inventory_electric_to_gear.json",
+    "block_inventory_space_elevator.json",
     "block_inventory_train_platform.json",
+    "block_inventory_rocket_launch_pad.json",
     "block_inventory_train_fluid_platform.json",
     "block_inventory_electric_pole.json",
     "block_inventory_gear_belt_conveyor.json",
+    "block_inventory_clean_room_machine.json",
+    "block_inventory_clean_room_air_filter_leak.json",
+    "block_inventory_clean_room_yield_deposition.json",
+    "block_inventory_clean_room_yield_deposition_pending.json",
+    "block_inventory_clean_room_yield_dicing.json",
+    "block_inventory_machine_input_stall.json",
   ];
   for (const file of cases) {
     it(`accepts ${file} and types it as open`, () => {
@@ -158,7 +166,6 @@ describe("block detail fixtures", () => {
     expect(gear.gearNetwork.stopReason).toBe("none");
   });
 });
-
 describe("challenge fixtures", () => {
   it("accepts tree and current payloads", () => {
     const tree = loadFixture("challenge_tree.json");

@@ -47,11 +47,11 @@ namespace Game.CleanRoom.Util
                     if (room.Contains(neighbor)) continue;
                     if (!world.TryGetBlock(neighbor, out var block)) continue;
                     if (!visited.Add(block.BlockInstanceId)) continue;
-                    if (!block.TryGetComponent<ICleanRoomBoundaryComponent>(out var boundary)) continue;
+                    if (!block.TryGetComponent<ICleanRoomBoundaryComponent>(out _)) continue;
 
-                    // 壁以外の境界（ドア・ハッチ等）は接続点として計上する
-                    // Non-wall boundaries (doors, hatches, etc.) count as connectors
-                    if (boundary.BoundaryKind != CleanRoomBoundaryKind.Wall) connectors++;
+                    // マスタの接続点集合にある境界ブロックだけを数える。ドアは人の出入り口で汚染源にしない（裁定 2026-10-23）
+                    // Count only boundary blocks in the master's connector set; doors are for people and add no pollution (ruling 2026-10-23)
+                    if (MasterHolder.CleanRoomMaster.IsPollutionConnectorBlock(block.BlockGuid)) connectors++;
                     if (block.TryGetComponent<ICleanRoomItemHatch>(out var hatch)) hatchThroughput += hatch.RecentThroughputPerSecond;
                 }
             }

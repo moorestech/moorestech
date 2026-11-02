@@ -30,13 +30,15 @@ namespace Client.Tests.WebUi
                         IconItemId = 2,
                         Position = new ResearchPositionDto { X = 0, Y = 0 },
                         PrevGuids = new List<string>(),
-                        ConsumeItems = new List<ResearchConsumeItemDto> { new() { ItemId = 1, Count = 5 } },
+                        ConsumeItems = new List<ResearchConsumeItemDto> { new() { ItemId = 1, Count = 5, AcceptedItemIds = new List<int> { 1, 11 } } },
                         RewardItems = new List<ResearchRewardItemDto> { new() { ItemId = 2, Count = 4 } },
                         UnlockItemRecipeViewItemIds = new List<int>(),
                         UnlockBlocks = new List<ResearchUnlockBlockDto>(),
                         UnlockMachineRecipes = new List<ResearchUnlockMachineRecipeDto>(),
                         UnlockConnectToolGuids = new List<string>(),
                         UnlockTrainCarGuids = new List<string>(),
+                        UnlockModuleSlotStackLimits = new List<int>(),
+                        UnlockLevelInheritanceCraftCaps = new List<ResearchUnlockCraftCapDto>(),
                     },
                     new()
                     {
@@ -63,6 +65,8 @@ namespace Client.Tests.WebUi
                         },
                         UnlockConnectToolGuids = new List<string> { "55555555-5555-4555-8555-555555555555" },
                         UnlockTrainCarGuids = new List<string> { "66666666-6666-4666-8666-666666666666" },
+                        UnlockModuleSlotStackLimits = new List<int> { 6 },
+                        UnlockLevelInheritanceCraftCaps = new List<ResearchUnlockCraftCapDto> { new() { ItemId = 21, Level = 2 } },
                     },
                 },
             };

@@ -23,7 +23,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d"
+      "machineRecipeGuid": "bd3d4d7d-9c3b-4ae1-875b-950327eedd9d",
+      "levelInheritance": "None"
     },
     {
       "time": 1.5,
@@ -48,7 +49,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "7ba3de84-6823-4970-b84a-13e7d8b7bf1d"
+      "machineRecipeGuid": "7ba3de84-6823-4970-b84a-13e7d8b7bf1d",
+      "levelInheritance": "None"
     },
     {
       "time": 1.5,
@@ -77,7 +79,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "085c97d3-6343-4397-b2be-214a2282e5bb"
+      "machineRecipeGuid": "085c97d3-6343-4397-b2be-214a2282e5bb",
+      "levelInheritance": "None"
     },
     {
       "time": 1.5,
@@ -102,7 +105,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "f4bb3dec-ea05-47e5-8ca9-49f790cd4ece"
+      "machineRecipeGuid": "f4bb3dec-ea05-47e5-8ca9-49f790cd4ece",
+      "levelInheritance": "None"
     },
     {
       "time": 1.5,
@@ -127,7 +131,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "241ed9c7-6e9e-4e2d-a85a-a12517d22b1b"
+      "machineRecipeGuid": "241ed9c7-6e9e-4e2d-a85a-a12517d22b1b",
+      "levelInheritance": "None"
     },
     {
       "time": 1.5,
@@ -152,7 +157,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "d43fd942-2908-4a31-85d5-1bde82aa503e"
+      "machineRecipeGuid": "d43fd942-2908-4a31-85d5-1bde82aa503e",
+      "levelInheritance": "None"
     },
     {
       "time": 1.5,
@@ -186,7 +192,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "ad81ded0-8b7f-40ab-85e3-cff4108479da"
+      "machineRecipeGuid": "ad81ded0-8b7f-40ab-85e3-cff4108479da",
+      "levelInheritance": "None"
     },
     {
       "time": 1,
@@ -212,7 +219,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "f79c7ee0-1ebe-4fcc-b1ec-5bcb296d9c1a"
+      "machineRecipeGuid": "f79c7ee0-1ebe-4fcc-b1ec-5bcb296d9c1a",
+      "levelInheritance": "None"
     },
     {
       "machineRecipeGuid": "38dfacce-1234-4612-8c7c-29112c12409a",
@@ -247,7 +255,8 @@
           "fluidGuid": "00000000-0000-0000-1234-000000000003",
           "amount": 4
         }
-      ]
+      ],
+      "levelInheritance": "None"
     },
     {
       "machineRecipeGuid": "c8e4a1f0-2b7d-4c9e-a6f1-5d3e8b0a9142",
@@ -268,7 +277,8 @@
       ],
       "inputFluids": [],
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
-      "outputFluids": []
+      "outputFluids": [],
+      "levelInheritance": "None"
     },
     {
       "time": 1,
@@ -289,7 +299,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "19b0d248-0ce5-4e5f-b59c-5897177b6268"
+      "machineRecipeGuid": "19b0d248-0ce5-4e5f-b59c-5897177b6268",
+      "levelInheritance": "None"
     },
     {
       "time": 1.5,
@@ -314,7 +325,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "29442eba-9e8a-4eb6-8f2d-45718b153b94"
+      "machineRecipeGuid": "29442eba-9e8a-4eb6-8f2d-45718b153b94",
+      "levelInheritance": "None"
     },
     {
       "time": 1,
@@ -335,7 +347,8 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "fa4f801f-da93-448e-a75c-a066821ffd53"
+      "machineRecipeGuid": "fa4f801f-da93-448e-a75c-a066821ffd53",
+      "levelInheritance": "None"
     },
     {
       "time": 1,
@@ -355,7 +368,8 @@
           "amount": 50
         }
       ],
-      "machineRecipeGuid": "aa000000-0000-4000-8000-00000000fee1"
+      "machineRecipeGuid": "aa000000-0000-4000-8000-00000000fee1",
+      "levelInheritance": "None"
     },
     {
       "time": 0.05,
@@ -376,7 +390,257 @@
         }
       ],
       "outputFluids": [],
-      "machineRecipeGuid": "7b3e1a10-0006-4000-8000-000000000001"
+      "machineRecipeGuid": "7b3e1a10-0006-4000-8000-000000000001",
+      "levelInheritance": "None"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "00000000-0000-0000-c0de-000000000011"
+        },
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000021"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0001",
+      "levelInheritance": "Inherit"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "00000000-0000-0000-c0de-000000000011"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000031"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0002",
+      "levelInheritance": "InheritUpToUnlocked"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "00000000-0000-0000-c0de-000000000011"
+        },
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000002"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0003",
+      "levelInheritance": "None"
+    },
+    {
+      "time": 1,
+      "blockGuid": "2abd1843-a5cd-4394-8eb2-987dde59baac",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "78274378-9a98-4826-8dea-80f7eb52a5ed"
+        }
+      ],
+      "inputFluids": [
+        {
+          "amount": 10,
+          "fluidGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "75a25126-5568-40d8-8028-509f202c4207"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "ddcacf5c-a34d-4cc9-95e9-0d0e9a0f44ba",
+      "levelInheritance": "None"
+    },
+    {
+      "time": 1,
+      "blockGuid": "2abd1843-a5cd-4394-8eb2-987dde59baac",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "75a25126-5568-40d8-8028-509f202c4207"
+        }
+      ],
+      "inputFluids": [
+        {
+          "amount": 10,
+          "fluidGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "1bbb9ba9-403f-47ab-a601-ae74fe444acd"
+        },
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "4f0fa5e5-121e-4c92-a0cb-a9ef810921a8"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "06549afe-feb3-438e-b2fe-0e53bb16925a",
+      "levelInheritance": "Inherit"
+    },
+    {
+      "time": 1,
+      "blockGuid": "2abd1843-a5cd-4394-8eb2-987dde59baac",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "1bbb9ba9-403f-47ab-a601-ae74fe444acd"
+        }
+      ],
+      "inputFluids": [
+        {
+          "amount": 10,
+          "fluidGuid": "00000000-0000-0000-1234-000000000003"
+        }
+      ],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 300,
+          "itemGuid": "f03a661b-041b-4981-bb06-39b7d32ae0d5"
+        },
+        {
+          "percent": 1,
+          "count": 300,
+          "itemGuid": "975b4ab5-978c-44fb-9be1-2489ea707d41"
+        },
+        {
+          "percent": 1,
+          "count": 300,
+          "itemGuid": "20a93525-bb8d-4306-8804-347f390c3684"
+        },
+        {
+          "percent": 1,
+          "count": 300,
+          "itemGuid": "4bcfd0a6-c9ea-4286-b7f1-1fd38d93ad32"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "aadd680b-334c-4294-a6d7-37ea2f8a7527",
+      "levelInheritance": "Inherit"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 2,
+          "itemGuid": "00000000-0000-0000-c0de-000000000041"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000051"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0011",
+      "levelInheritance": "InheritUpToUnlocked"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000051"
+        },
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000061"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0012",
+      "levelInheritance": "None"
+    },
+    {
+      "time": 1,
+      "blockGuid": "ffffffff-0000-4000-8000-00000000c0de",
+      "initialUnlocked": true,
+      "inputItems": [
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000052"
+        },
+        {
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-1234-000000000001"
+        }
+      ],
+      "inputFluids": [],
+      "outputItems": [
+        {
+          "percent": 1,
+          "count": 1,
+          "itemGuid": "00000000-0000-0000-c0de-000000000062"
+        }
+      ],
+      "outputFluids": [],
+      "machineRecipeGuid": "00000000-0000-4000-8000-0000c0de0013",
+      "levelInheritance": "None"
     }
   ]
 }

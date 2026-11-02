@@ -14,6 +14,7 @@ using Server.Boot.Args;
 using Client.Starter.Initialization.Progress;
 using UnityEngine;
 using Mooresmaster.Localization.Generated;
+using UniRx;
 
 namespace Client.Starter.Initialization
 {
@@ -42,6 +43,7 @@ namespace Client.Starter.Initialization
         {
             //サーバーとの接続を確立
             var serverCommunicator = await ConnectionToServer();
+            RegisterConnectionShutdown(serverCommunicator, _exitToken);
 
             _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.ServerConnected);
 
@@ -130,6 +132,16 @@ namespace Client.Starter.Initialization
             }
 
             #endregion
+        }
+
+        // 全終了口の意思表明でEOFを許可する。保存参加者が送信する前に接続を閉じない
+        // Accept EOF on every shutdown intent without closing before save participants can send
+        internal static void RegisterConnectionShutdown(ServerCommunicator communicator, CancellationToken exitToken)
+        {
+            // Unityの停止tokenはMonoBehaviourの終了より先に届き、遅いquitting通知までの隙間を覆う
+            // Unity cancels this token before MonoBehaviour teardown, covering the gap before the late quitting notice
+            exitToken.Register(communicator.ExpectDisconnect);
+            GameShutdownEvent.OnGameShutdown.Take(1).Subscribe(_ => communicator.ExpectDisconnect());
         }
     }
 

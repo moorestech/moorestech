@@ -28,6 +28,7 @@ const recipe: MachineRecipe = {
   outputItems: [],
   inputFluids: [],
   outputFluids: [],
+  levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
 };
 
 // testIdはレシピtestId+"-duration"

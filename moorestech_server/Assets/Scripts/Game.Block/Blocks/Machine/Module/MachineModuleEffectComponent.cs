@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Blocks.Machine.Inventory;
@@ -34,7 +35,12 @@ namespace Game.Block.Blocks.Machine.Module
                 var module = MasterHolder.ItemMaster.GetModuleByItemIdOrNull(stack.Id);
                 if (module == null) continue;
 
-                modules.Add(new MachineModuleEffect.EquippedModule(module, stack.Count));
+                // silent-ok: 配置は CheckPlacement が拒否しログを出すので、ここへ来るのは制限導入前のセーブ由来だけ / プレイヤーは機械UIのモジュール欄でそのモジュールを見て取り出せる
+                if (!_moduleInventory.IsModuleEffective(module)) continue;
+
+                // silent-ok: 上限超えは移動・入れ替えで弾くので、ここへ来るのは判定を通さない書き込みだけ / 機械UIのモジュール欄に個数と「1スロット上限 N」が並ぶ（C9）のでプレイヤーが気づく
+                var effectiveCount = Math.Min(stack.Count, _moduleInventory.GetSlotStackLimit());
+                modules.Add(new MachineModuleEffect.EquippedModule(module, effectiveCount));
             }
 
             return MachineModuleEffect.Aggregate(modules);

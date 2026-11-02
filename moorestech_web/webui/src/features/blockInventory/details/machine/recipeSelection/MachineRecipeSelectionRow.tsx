@@ -4,6 +4,7 @@ import { Box, Text } from "@mantine/core";
 import { FluidAmountSlot, ItemSlot } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
 import RecipeRow from "@/features/recipe/views/RecipeRow";
+import LevelInheritanceBadge from "@/features/recipe/views/LevelInheritanceBadge";
 import { useRecipeRowName, type MachineRecipeSelectionRowData } from "../machineRecipeSelectionLogic";
 import styles from "./machineRecipeSelectionList.module.css";
 
@@ -25,6 +26,7 @@ export default function MachineRecipeSelectionRow({ row, onSelect }: Props) {
       onClick={() => onSelect(recipe.recipeGuid)}
     >
       <Text className={styles.name} data-testid={`machine-recipe-${recipe.recipeGuid}-name`}>{name}</Text>
+      <LevelInheritanceBadge inheritance={recipe.levelInheritance} testId={`machine-recipe-${recipe.recipeGuid}-level-inheritance`} />
       <RecipeRow
         testId={`machine-recipe-${recipe.recipeGuid}-row`}
         arrowValue={null}

@@ -1,3 +1,4 @@
+using Game.Context;
 // ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みのuGUI型（BuildMenuView/ItemSlotView/CommonSlotView/BlueprintNameInputView）を参照しておりexecute-dynamic-codeでコンパイルできない。画面UIはWeb UI一本（ADR 0052）。雛形にしないこと。書き直しはWebビルドメニューのbuild-menu-entry-blueprintCopy-{id}等をClickWebUi/UntilWebUiElementで操作し、名前入力はBlueprintNameInputWebBridge経由のWebモーダルで行う
 // ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): references removed uGUI types (BuildMenuView/ItemSlotView/CommonSlotView/BlueprintNameInputView) and does not compile under execute-dynamic-code. The screen UI is Web-only (ADR 0052); do not use this as a template. Rewrite it by operating the Web build-menu entry (build-menu-entry-blueprintCopy-{id} etc.) via ClickWebUi/UntilWebUiElement, with name input through the BlueprintNameInputWebBridge Web modal
 // BP右クリック削除E2E検証(UI経路): BPをコピー作成→ビルドメニューのBPスロットを右クリックで削除する
@@ -29,12 +30,12 @@ return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async 
     // コピー元ブロックを1つ直設置する
     // Place a single source block directly
     var chestPos = new Vector3Int(2, 32, 2);
-    p.PlaceBlockDirect("木のチェスト", chestPos, BlockDirection.North);
+    await p.PlaceBlockDirect("木のチェスト", chestPos, BlockDirection.North);
     await p.WaitBlockGameObject(chestPos);
 
     // BP機能を解放（未解放時メニュー非表示）
     // Unlock the blueprint feature (otherwise it never appears in the build menu)
-    p.Hotbar.UnlockBlueprint();
+    await p.Hotbar.UnlockBlueprint();
 
     // BPコピーツールを選択しドラッグでBP「delbp」を作成する
     // Select the copy tool and create blueprint "delbp" via drag
@@ -60,8 +61,7 @@ return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async 
 
     // サーバー登録を確認する
     // Confirm server-side registration
-    var datastore = p.ServerService<IBlueprintDatastore>();
-    await p.Until(() => datastore.Blueprints.Any(b => b.Name == "delbp"), 15f, "サーバーにBP『delbp』が登録される");
+    await p.WaitForBlueprint("delbp", true, 15f, "サーバーにBP『delbp』が登録される");
 
     // メニューを開きBPスロットの表示を確認する
     // Open the menu and confirm the blueprint slot is listed
@@ -75,7 +75,7 @@ return PlaytestRunner.Run("blueprint-right-click-delete-via-ui", options, async 
     // Right-click the blueprint slot, then verify server-side deletion and slot removal
     var slot = FindTextSlot("delbp");
     ClickUi(slot.GetComponentInChildren<CommonSlotView>(true).gameObject, PointerEventData.InputButton.Right, false);
-    await p.Until(() => !datastore.Blueprints.Any(b => b.Name == "delbp"), 15f, "右クリックでサーバーからBPが削除される");
+    await p.WaitForBlueprint("delbp", false, 15f, "右クリックでサーバーからBPが削除される");
     await p.Until(() => FindTextSlot("delbp") == null, 15f, "メニューからBPスロットが消滅する");
     await p.Screenshot("03-menu-after-delete");
     await p.ExitToGameScreen();

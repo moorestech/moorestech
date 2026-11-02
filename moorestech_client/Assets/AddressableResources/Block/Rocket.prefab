@@ -62,6 +62,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7218827422793146366}
+  - component: {fileID: 5120442751773821061}
   m_Layer: 0
   m_Name: Rocket
   m_TagString: Untagged
@@ -86,6 +87,20 @@ Transform:
   - {fileID: 4290720345090660915}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5120442751773821061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8293828431767880155}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7dbc11c75702c4d26a4fa80ae8f1a33f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.BlockSystem.StateProcessor.Rocket.RocketLaunchPadStateChangeProcessor
+  body: {fileID: 7036094810917758027}
+  riseHeight: 80
 --- !u!1001 &5696259250090033524
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -158,5 +173,10 @@ PrefabInstance:
 --- !u!4 &5226309611918403231 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: abe20645e0cd542698609f899ef1acf6, type: 3}
+  m_PrefabInstance: {fileID: 5696259250090033524}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7036094810917758027 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5861409178561632961, guid: abe20645e0cd542698609f899ef1acf6, type: 3}
   m_PrefabInstance: {fileID: 5696259250090033524}
   m_PrefabAsset: {fileID: 0}

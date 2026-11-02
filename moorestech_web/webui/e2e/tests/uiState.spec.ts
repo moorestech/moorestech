@@ -33,7 +33,7 @@ test("SubInventory でインベントリ+ブロックパネルが出てレシピ
   await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible();
   // RECIPE_LOCATOR: recipe.spec.ts と同一セレクタで RecipeViewer の非表示を検証する
   // RECIPE_LOCATOR: assert the RecipeViewer is hidden using the same selector as recipe.spec.ts
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeHidden();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeHidden();
 });
 
 test("ブロックパネルの✕で ui_state.request(GameScreen) を送り画面が閉じる", async ({ page }) => {

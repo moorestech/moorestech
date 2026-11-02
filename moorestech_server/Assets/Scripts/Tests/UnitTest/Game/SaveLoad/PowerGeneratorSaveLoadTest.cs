@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 {
     public class PowerGeneratorSaveLoadTest
     {
-        
+
         [Test]
         public void PowerGeneratorTest()
         {
@@ -44,12 +44,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             var secondaryItemId = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000002"));
             var fuelFluidId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("00000000-0000-0000-1234-000000000003"));
 
-            // テスト用の残り燃料tick数（567 tick）
-            // Test remaining fuel ticks (567 ticks)
-            const uint remainingFuelTicks = 567u;
+            // 実際の設定内に収まる燃焼途中の時間を保存する
+            // Save an in-progress duration within the actual configured fuel unit
+            var remainingFuelTicks = global::Core.Update.GameUpdater.SecondsToTicks(
+                ((ElectricGeneratorBlockParam)powerGeneratorBlock.BlockMasterElement.BlockParam).FuelItems[0].Time) / 2;
 
-            // プライベートフィールドを利用して燃料状態とインベントリを直接構築する
-            // Directly configure fuel state and inventory through private fields.
+            // 復元APIで燃焼状態を構築する
+            // Build combustion state through the restoration API.
             SetFuelState(powerGenerator, fuelItemId, remainingFuelTicks);
 
             // テスト用にアイテムを設定する際はイベントを発火させない（ブロックがまだWorldBlockDatastoreに登録されていないため）
@@ -65,14 +66,10 @@ namespace Tests.UnitTest.Game.SaveLoad
             var expectedFuelState = CaptureFuelState(powerGenerator);
             var expectedInventory = CaptureInventorySnapshot(powerGenerator);
 
-            
-            
             // セーブデータを生成してディクショナリに格納する
             // Generate the save data and wrap it in the dictionary expected by the loader.
             var states = SaveLoadJsonTestHelper.ThroughJson(powerGeneratorBlock.GetSaveState());
 
-            
-            
             // セーブデータを用いて発電機ブロックを復元する
             // Recreate the generator block from the produced save payload.
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GeneratorId).BlockGuid;
@@ -102,33 +99,13 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 // 燃料サービスのプライベートフィールドを書き換えて任意の燃焼状態を作る
                 // Modify the fuel service's private fields to emulate the desired combustion state.
-                var fuelService = GetFuelService(component);
-                var fuelServiceType = fuelService.GetType();
-                var fuelTypeEnum = fuelServiceType.GetNestedType("FuelType", BindingFlags.NonPublic);
-                var fuelTypeValue = Enum.Parse(fuelTypeEnum, "Item");
-
-                fuelServiceType
-                    .GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .SetValue(fuelService, itemId);
-                fuelServiceType
-                    .GetField("_currentFuelType", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .SetValue(fuelService, fuelTypeValue);
-                fuelServiceType
-                    .GetField("_remainingFuelTicks", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .SetValue(fuelService, fuelTicks);
-                fuelServiceType
-                    .GetField("_currentFuelFluidId", BindingFlags.NonPublic | BindingFlags.Instance)
-                    .SetValue(fuelService, FluidMaster.EmptyFluidId);
-
-                var fuelContainerField = fuelServiceType.GetField("_fuelFluidContainer", BindingFlags.NonPublic | BindingFlags.Instance);
-                var fuelContainer = (FluidContainer)fuelContainerField.GetValue(fuelService);
-                if (fuelContainer != null)
+                var service = (VanillaElectricGeneratorFuelService)GetFuelService(component);
+                service.Restore(new VanillaElectricGeneratorSaveJsonObject
                 {
-                    // 併設された液体タンクが存在する場合は流体情報も初期化しておく
-                    // Initialize the companion fluid tank when it is available.
-                    fuelContainer.FluidId = fuelFluidId;
-                    fuelContainer.Amount = 0;
-                }
+                    ActiveFuelType = "Item",
+                    CurrentFuelItemGuidStr = MasterHolder.ItemMaster.GetItemMaster(itemId).ItemGuid.ToString(),
+                    RemainingFuelSeconds = global::Core.Update.GameUpdater.TicksToSeconds(fuelTicks),
+                });
             }
 
             (ItemId CurrentFuelItemId, uint RemainingFuelTicks, string FuelType) CaptureFuelState(VanillaElectricGeneratorComponent component)
@@ -142,7 +119,7 @@ namespace Tests.UnitTest.Game.SaveLoad
                     .GetField("_currentFuelItemId", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(fuelService);
                 var remainingFuelTicks = (uint)fuelServiceType
-                    .GetField("_remainingFuelTicks", BindingFlags.NonPublic | BindingFlags.Instance)
+                    .GetProperty("RemainingFuelTicks", BindingFlags.NonPublic | BindingFlags.Instance)
                     .GetValue(fuelService);
                 var fuelType = fuelServiceType
                     .GetField("_currentFuelType", BindingFlags.NonPublic | BindingFlags.Instance)

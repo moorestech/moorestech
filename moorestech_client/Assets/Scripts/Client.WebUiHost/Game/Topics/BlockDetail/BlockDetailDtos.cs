@@ -20,6 +20,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public string CurrentState;
         public float CurrentPower;
         public float RequestPower;
+
+        // 出力先の空き不足で待っているか。公開状態ラベル（idle）とは別に理由だけを渡す
+        // Whether the machine waits on output space; carries only the reason, separate from the published state label (idle)
+        public bool OutputSpaceShort;
         public SlotLayoutDto SlotLayout;
 
         // 選択レシピが束縛するスロット・タンクの正本。Web側は束縛規則を再導出せずこれを読むだけにする
@@ -35,6 +39,17 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public int Slot;
         public int ItemId;
         public int Count;
+        // このスロットへ入れられるアイテムID（サーバーの束縛と同じ集合）。基準を要求する入力（継承元を含む）と出力はファミリーの全変種。製作上限では絞らない（上限超えはサーバーの拒否と既存の拒否通知に任せる。計画の「やらないこと」と判断記録）
+        // Item IDs this slot accepts (the same set as the server binding); base-requiring inputs (including the source) and outputs list every family variant; not narrowed by the craft cap (the server refusal and its existing notice handle that, per the plan's non-goals and decision log)
+        public List<int> AcceptedItemIds;
+    }
+
+    // 入れ口スロットと受け付けるアイテムID
+    // An inlet slot and the item IDs it accepts, built from the server's own placement definition; used by launch pads and space elevators
+    public class InputSlotBindingDto
+    {
+        public int Slot;
+        public List<int> AcceptedItemIds;
     }
 
     public class MachineTankBindingDto

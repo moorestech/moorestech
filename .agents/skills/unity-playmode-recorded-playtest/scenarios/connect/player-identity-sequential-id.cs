@@ -1,3 +1,4 @@
+using Game.Context;
 // 新規ワールドと同一ワールド再起動で、同じ身元にID 1が割り当てられることを調べる
 // Verify that a fresh world and a restart of that world assign ID 1 to the same identity
 using System.IO;
@@ -10,7 +11,8 @@ using VContainer;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("player-identity-sequential-id", options, async p =>
 {
-    var worldDirectory = p.ServerService<WorldDataDirectory>();
+    WorldDataDirectory worldDirectory = null;
+    await p.RunOnServer("ワールドの保存先を読む", () => worldDirectory = ServerContext.GetService<WorldDataDirectory>());
     var saveWasPresent = File.Exists(worldDirectory.SaveJsonFilePath);
     var phase = saveWasPresent ? "同一ワールド再開始" : "新規ワールド開始";
     p.Note($"{phase}: 接続由来のプレイヤーIDを確認する");

@@ -1,3 +1,4 @@
+using Game.Context;
 // ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みのuGUI型（BuildMenuView/ItemSlotView/CommonSlotView）を参照しておりexecute-dynamic-codeでコンパイルできない。画面UIはWeb UI一本（ADR 0052）。雛形にしないこと。書き直しはWeb経路（後継 connect/electric-wire-tool-extend-chain-via-ui.cs を参照）で行う
 // ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): references removed uGUI types (BuildMenuView/ItemSlotView/CommonSlotView) and does not compile under execute-dynamic-code. The screen UI is Web-only (ADR 0052); do not use this as a template. Rewrite it on the Web route (後継 connect/electric-wire-tool-extend-chain-via-ui.cs を参照)
 // 電線接続E2E検証(UI経路): ビルドメニューの接続ツール「電線接続」を選択し2本の電柱をクリック結線する
@@ -14,6 +15,7 @@ using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
+using Client.Playtest.Core;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Core.Master;
@@ -35,7 +37,7 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
 
     // 電線ツールはinitialUnlocked=falseのため、解放しないとビルドメニューに出ず選択できない
     // The wire tool is initialUnlocked=false, so without unlocking it never appears in the build menu
-    p.Hotbar.UnlockConnectTool("電線");
+    await p.Hotbar.UnlockConnectTool("電線");
 
     // 電線接続ツールの消費素材（銅のワイヤー）はインベントリ在庫から自動消費される（クライアント在庫を自動選択するため同期込みで付与）
     // The wire connect tool's material (copper wire) is auto-consumed from inventory stock (grant with sync so the client mirror reflects it)
@@ -45,18 +47,16 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
     // Place two poles directly (distance 6 <= maxWireLength 12)
     var poleAPos = new Vector3Int(2, 32, 2);
     var poleBPos = new Vector3Int(8, 32, 2);
-    p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
-    p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleAPos, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", poleBPos, BlockDirection.North);
     await p.WaitBlockGameObject(poleAPos);
     await p.WaitBlockGameObject(poleBPos);
 
     // 結線前: 2本は独立セグメント（直置きでは自動結線されない）
     // Before connecting: the two poles are isolated segments (direct placement never auto-connects)
-    var wireDatastore = p.ServerService<IElectricWireNetworkDatastore>();
-    BlockInstanceId InstanceId(Vector3Int pos) => p.GetBlock(pos).BlockInstanceId;
-    bool SameSegment() => wireDatastore.TryGetEnergySegment(InstanceId(poleAPos), out var segment) && segment.EnergyTransformers.ContainsKey(InstanceId(poleBPos));
-    p.Assert(wireDatastore.SegmentCount >= 2, $"結線前はセグメント2以上 実際:{wireDatastore.SegmentCount}");
-    p.Assert(!SameSegment(), "結線前は2本が別セグメント");
+    var initialWireState = await ReadWireState();
+    p.Assert(initialWireState.count >= 2, $"結線前はセグメント2以上 実際:{initialWireState.count}");
+    p.Assert(!initialWireState.same, "結線前は2本が別セグメント");
     await p.Screenshot("01-isolated-poles");
 
     // ビルドメニューから接続ツール「電線接続」をアイコン一致で選択する
@@ -75,13 +75,19 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
 
     // サーバー側でセグメントが統合されるまで待つ
     // Wait until the server merges the two segments into one
-    await p.Until(SameSegment, 15f, "クリック結線で2本が同一セグメントになる");
+    var wireWait = p.BeginWait(15f, "クリック結線で2本が同一セグメントになる");
+    while (!(await ReadWireState()).same)
+    {
+        wireWait.CheckTimeout("expected=true, actual=condition false");
+        await UniTask.Yield();
+    }
+    wireWait.Complete();
     await p.Screenshot("03-connected");
 
     // 電力範囲表示: 電柱ブロックをメニュー選択中のみEnergizedRangeObjectが既存電柱位置に出る
     // Energized range: EnergizedRangeObject boxes appear at existing poles only while a pole block is selected
     await p.ExitToGameScreen();
-    p.UnlockBlock("電柱");
+    await p.UnlockBlock("電柱");
     var unlockStateData = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
     var poleGuid = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId("電柱")).BlockGuid;
     await p.Until(() => unlockStateData.BlockUnlockStateInfos.TryGetValue(poleGuid, out var info) && info.IsUnlocked, 10f, "電柱アンロックのクライアント同期");
@@ -91,6 +97,17 @@ return PlaytestRunner.Run("electric-wire-connect-via-ui", options, async p =>
     await p.ExitToGameScreen();
 
     #region Internal
+    async UniTask<(int count, bool same)> ReadWireState()
+    {
+        var state = (count: 0, same: false);
+        await PlaytestServerThreadAction.RunAsync(p.CancellationToken, "電力網の所属を読む", () =>
+        {
+            var store = ServerContext.GetService<IElectricWireNetworkDatastore>();
+            state = (store.SegmentCount, store.TryGetEnergySegment(p.GetBlock(poleAPos).BlockInstanceId, out var segment) && segment.EnergyTransformers.ContainsKey(p.GetBlock(poleBPos).BlockInstanceId));
+        });
+        return state;
+    }
+
 
     // 指定座標のBlockGameObjectの"ClickCollider"中心へ照準する（装飾サブメッシュ回避）
     // Aim at the block's "ClickCollider" center (avoids decorative sub-meshes)

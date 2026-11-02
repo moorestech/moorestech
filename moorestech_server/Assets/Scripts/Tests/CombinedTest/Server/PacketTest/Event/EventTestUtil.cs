@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Game.Context;
+using Game.World;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event;
@@ -10,6 +12,13 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
     // Registers a capturing sink to observe pushed events
     public class EventTestUtil
     {
+        // tickを進めず配信を確定し通知元を検証
+        // Commit delivery without advancing simulation to isolate each notification source
+        public static void CommitBlockStates()
+        {
+            ((WorldBlockUpdateEvent)ServerContext.WorldBlockUpdateEvent).OnTickEndStatesCommittedInvoke();
+        }
+
         public static CapturedEventSink RegisterCaptureSink(ServiceProvider serviceProvider, int playerId)
         {
             var sink = new CapturedEventSink();

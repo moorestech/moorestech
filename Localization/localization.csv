@@ -42,9 +42,26 @@ ui.blockInventory.gearToElectricMeasurementTiming,Generation state and supplied 
 ui.blockInventory.gearToElectricSuppliedPower,Supplied power {current} / max {max},Supplied power {current} / max {max},供給電力 {current} / 最大 {max},Gelieferte Leistung {current} / max. {max},공급 전력 {current} / 최대 {max}
 ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrieb,가동 중
 ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt,정지됨
+ui.blockInventory.machineWaitOutputSpaceShort,Not enough output space,Not enough output space,出力先の空きが不足しています,Nicht genug Platz in der Ausgabe,출력 공간이 부족합니다
 ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen,적재
 ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し,Entladen,하역
+ui.blockInventory.rocketMaterials,Materials,Materials,資材,Materialien,자재
+ui.blockInventory.rocketPayloads,Payloads,Payloads,積荷,Nutzlasten,적재물
+ui.blockInventory.rocketOutputs,Output,Output,出力,Ausgabe,출력
+ui.blockInventory.rocketBuild,Build,Build,建造,Bauen,건조
+ui.blockInventory.rocketLaunch,Launch,Launch,発射,Starten,발사
+ui.blockInventory.rocketStatusIdle,Waiting for cargo,Waiting for cargo,積み込み待ち,Wartet auf Fracht,적재 대기
+ui.blockInventory.rocketStatusAwaitingBuild,Ready to build,Ready to build,建造できます,Bereit zum Bauen,건조 가능
+ui.blockInventory.rocketStatusBuilding,Building rocket,Building rocket,ロケットを建造中,Rakete wird gebaut,로켓 건조 중
+ui.blockInventory.rocketStatusAwaitingLaunch,Ready to launch,Ready to launch,発射できます,Startbereit,발사 가능
+ui.blockInventory.rocketStatusReadyToLaunch,Launching soon,Launching soon,まもなく打ち上げ,Start in Kürze,곧 발사
+ui.blockInventory.rocketStatusLaunching,Launching,Launching,打ち上げ中,Startet,발사 중
+ui.blockInventory.rocketWaitMissingMaterials,Not enough materials,Not enough materials,資材が足りません,Nicht genug Material,자재 부족
+ui.blockInventory.rocketWaitMissingPayload,No payload loaded,No payload loaded,積荷がありません,Keine Nutzlast,적재물 없음
+ui.blockInventory.rocketWaitOutputFull,Output is full,Output is full,出力がいっぱいです,Ausgabe ist voll,출력이 가득 참
+ui.blockInventory.rocketWaitNoPower,No power,No power,電力がありません,Kein Strom,전력 없음
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze,업그레이드 슬롯
+ui.blockInventory.moduleSlotStackLimit,Up to {limit} per slot,Up to {limit} per slot,1スロット上限 {limit},Max. {limit} pro Platz,슬롯당 최대 {limit}
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute,분당 생산량
 ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden,{seconds}초
 ui.blockInventory.recipeNameWithOthers,{name} and {count} more,{name} and {count} more,{name} 他{count}件,{name} und {count} weitere,{name} 외 {count}개
@@ -170,6 +187,8 @@ ui.recipe.duration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Se
 ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to craft (keep holding to craft continuously),長押しでクラフト（押し続けで連続クラフト）,Zum Herstellen gedrückt halten (weiter halten für fortlaufendes Herstellen),길게 눌러 제작 (계속 누르면 연속 제작)
 ui.recipe.craftButtonLabel,Craft,Craft,クラフト,Herstellen,제작
 ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません,Für diesen Gegenstand gibt es keine Rezepte,이 아이템의 레시피가 없습니다
+ui.recipe.levelInheritance,Keeps the material level (Lv N → Lv N),Keeps the material level (Lv N → Lv N),素材のレベルを引き継ぐ（LvN→LvN）,Behält die Materialstufe (Stufe N → Stufe N),재료 레벨 계승 (LvN→LvN)
+ui.recipe.levelInheritanceCapped,Keeps the material level up to Lv {level},Keeps the material level up to Lv {level},素材のレベルを引き継ぐ（〜Lv{level}）,Behält die Materialstufe bis Stufe {level},재료 레벨 계승 (최대 Lv{level})
 ui.research.closeSymbol,×,×,×,×,×
 ui.research.completed,Completed,Completed,完了済み,Abgeschlossen,완료
 ui.research.action,Research,Research,研究,Erforschen,연구
@@ -186,6 +205,8 @@ ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム,
 ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム,Belohnungsgegenstände,보상 아이템
 ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他,Schaltet frei: Sonstiges,해금: 기타
 ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
+ui.research.unlockModuleSlotStackLimit,Module slot limit: {limit} per slot,Module slot limit: {limit} per slot,モジュールスロット上限 {limit},Modulplatz-Limit: {limit} pro Platz,모듈 슬롯 상한 {limit}
+ui.research.unlockLevelInheritanceCraftCap,Can craft {itemName} up to Lv{level},Can craft {itemName} up to Lv{level},{itemName}をLv{level}まで製作可能,{itemName} bis Stufe {level} herstellbar,{itemName} Lv{level}까지 제작 가능
 ui.research.stateAvailable,Available,Available,研究可能,Verfügbar,연구 가능
 ui.research.stateUnavailable,Unavailable,Unavailable,研究不可,Nicht verfügbar,연구 불가
 ui.skit.auto,Auto,Auto,自動,Auto,자동
@@ -216,6 +237,7 @@ ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,�
 ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。,Der Block konnte nicht entfernt werden.,블록을 삭제하지 못했습니다.
 ui.delete.stationInternalRail,Rails inside a station cannot be deleted.,Rails inside a station cannot be deleted.,駅内部のレールは削除できません。,Gleise innerhalb eines Bahnhofs können nicht entfernt werden.,역 내부의 레일은 삭제할 수 없습니다.
 ui.delete.unknownError,Unknown error,Unknown error,不明なエラー,Unbekannter Fehler,알 수 없는 오류
+ui.delete.cablePoolFull,The cable pool is full. Connect another base to make room before removing.,The cable pool is full. Connect another base to make room before removing.,返却先のケーブルプールが満杯です。別の拠点を接続して空きを作ってから撤去してください。,Der Kabelvorrat ist voll. Verbinde vor dem Entfernen eine weitere Basis um Platz zu schaffen.,반환할 케이블 풀이 가득 찼습니다. 다른 기지를 연결해 공간을 확보한 뒤 철거하세요.
 ui.delete.inventoryFull,Inventory is full. Make room for the refunded items before removing.,Inventory is full. Make room for the refunded items before removing.,インベントリがいっぱいです。返却されるアイテムの空きを作ってから撤去してください。,Das Inventar ist voll. Schaffe Platz für die zurückerstatteten Gegenstände.,인벤토리가 가득 찼습니다. 반환될 아이템의 공간을 확보한 뒤 철거하세요.
 ui.keyHint.key.tab,Tab,Tab,Tab,Tab,Tab
 ui.keyHint.key.b,B,B,B,B,B
@@ -428,3 +450,42 @@ ui.settings.graphicsUnsupportedValue,Unsupported value,Unsupported value,選択�
 ui.settings.graphicsRecovered,Graphics settings were repaired to Medium. Select a preset or item to confirm.,Graphics settings were repaired to Medium. Select a preset or item to confirm.,画質設定を中に復旧しました。プリセットか項目を選んで確認してください。,Grafikeinstellungen wurden auf Mittel zurückgesetzt. Wähle eine Voreinstellung oder Option zur Bestätigung.,그래픽 설정을 중간으로 복구했습니다. 프리셋 또는 항목을 선택하여 확인하세요.
 ui.blockInventory.beltThroughputWindow,Last {seconds}s: {count} / {max} items ({percent}%),Last {seconds}s: {count} / {max} items ({percent}%),直近{seconds}秒: {count} / {max}個 ({percent}%),Letzte {seconds}s: {count} / {max} Gegenstände ({percent}%),최근 {seconds}초: {count} / {max}개 ({percent}%)
 ui.blockInventory.beltThroughputMeasuring,Last {seconds}s: measuring,Last {seconds}s: measuring,直近{seconds}秒: 計測中,Letzte {seconds}s: wird gemessen,최근 {seconds}초: 측정 중
+ui.blockInventory.cleanRoomClass,Room class {className},Room class {className},部屋のクラス {className},Raumklasse {className},방 등급 {className}
+ui.blockInventory.cleanRoomClassOut,Room below class,Room below class,部屋はクラス未達,Raum unter Klasse,방 등급 미달
+ui.blockInventory.cleanRoomAir,Concentration {concentration} / Air changes {airChangeRate}/s,Concentration {concentration} / Air changes {airChangeRate}/s,濃度 {concentration} / 換気 {airChangeRate}回/秒,Konzentration {concentration} / Luftwechsel {airChangeRate}/s,농도 {concentration} / 환기 {airChangeRate}회/초
+ui.blockInventory.cleanRoomFilter,Purifier {index}: power {power}% / filters {count} / life {remaining}%,Purifier {index}: power {power}% / filters {count} / life {remaining}%,清浄機{index}: 電力 {power}% / フィルター {count}個 / 残量 {remaining}%,Luftreiniger {index}: Strom {power} % / Filter {count} / Lebensdauer {remaining} %,공기청정기 {index}: 전력 {power}% / 필터 {count}개 / 잔량 {remaining}%
+ui.blockInventory.cleanRoomNoFilter,No purifier in this room,No purifier in this room,この部屋に清浄機がありません,Kein Luftreiniger in diesem Raum,이 방에 공기청정기가 없습니다
+ui.blockInventory.cleanRoomNotSealed,Not sealed: {count} gaps,Not sealed: {count} gaps,密閉されていません: 隙間 {count} か所,Nicht abgedichtet: {count} Lücken,밀폐되지 않음: 틈 {count}곳
+ui.blockInventory.cleanRoomNoEnclosure,Not inside a room,Not inside a room,部屋の中にありません,Nicht in einem Raum,방 안에 있지 않습니다
+ui.blockInventory.cleanRoomTooLarge,Room too large (max {max} cells),Room too large (max {max} cells),部屋が大きすぎます（最大 {max} マス）,Raum zu groß (max. {max} Zellen),방이 너무 큽니다 (최대 {max}칸)
+ui.blockInventory.cleanRoomDetecting,Detecting room...,Detecting room...,部屋を検出中…,Raum wird erkannt...,방 감지 중...
+ui.blockInventory.cleanRoomHaltNotEnclosed,Halted: not in a sealed room,Halted: not in a sealed room,停止中: 密閉された部屋の外です,Angehalten: nicht in einem abgedichteten Raum,정지: 밀폐된 방 밖입니다
+ui.blockInventory.cleanRoomHaltClassOut,Halted: room below class,Halted: room below class,停止中: 部屋がクラス未達です,Angehalten: Raum unter Klasse,정지: 방 등급 미달입니다
+ui.blockInventory.machineInputStallMixedLevel,Stopped: {itemName} of a different level arrived,Stopped: {itemName} of a different level arrived,レベルの違う品（{itemName}）が届いて止まっています,Angehalten: {itemName} mit anderer Stufe ist angekommen,정지됨: 레벨이 다른 {itemName}이(가) 도착했습니다
+ui.blockInventory.machineInputStallAboveCraftCap,Stopped: {itemName} above the craft cap arrived,Stopped: {itemName} above the craft cap arrived,製作上限を超えるレベルの品（{itemName}）が届いて止まっています,Angehalten: {itemName} über der Herstellungsgrenze ist angekommen,정지됨: 제작 상한을 넘는 {itemName}이(가) 도착했습니다
+ui.blockInventory.cleanRoomYieldMaxGrade,Max wafer grade G{grade},Max wafer grade G{grade},ウェハの上限グレード G{grade},Maximale Wafer-Stufe G{grade},웨이퍼 최대 등급 G{grade}
+ui.blockInventory.cleanRoomYieldPromotionChance,Grade-up chance {percent}%,Grade-up chance {percent}%,グレード昇格率 {percent}%,Aufstufungschance {percent} %,등급 상승 확률 {percent}%
+ui.blockInventory.cleanRoomYieldLayerFailRate,Layer failure rate {percent}%,Layer failure rate {percent}%,層の失敗率 {percent}%,Schicht-Ausfallrate {percent} %,층 실패율 {percent}%
+ui.blockInventory.cleanRoomYieldDieLossRate,Die loss rate {percent}%,Die loss rate {percent}%,ダイの損失率 {percent}%,Die-Verlustrate {percent} %,다이 손실률 {percent}%
+ui.blockInventory.blockInfoNotFetched,{target}: loading...,{target}: loading...,{target}: 取得中…,{target}: wird geladen...,{target}: 불러오는 중...
+ui.blockInventory.blockInfoTransportFailed,{target}: no reply from the server (retrying),{target}: no reply from the server (retrying),{target}: サーバーから応答がありません（再試行中）,{target}: keine Antwort vom Server (neuer Versuch läuft),{target}: 서버 응답이 없습니다 (재시도 중)
+ui.blockInventory.blockInfoUnreadable,{target}: received data could not be read (retrying),{target}: received data could not be read (retrying),{target}: 受け取った情報を読めません（再試行中）,{target}: empfangene Daten unlesbar (neuer Versuch läuft),{target}: 받은 정보를 읽을 수 없습니다 (재시도 중)
+ui.blockInventory.blockInfoUnsupportedTarget,{target}: not available for this block,{target}: not available for this block,{target}: このブロックでは表示できません,{target}: für diesen Block nicht verfügbar,{target}: 이 블록에서는 표시할 수 없습니다
+ui.blockInventory.blockInfoVanished,{target}: the block no longer exists,{target}: the block no longer exists,{target}: ブロックが見つかりません,{target}: Block existiert nicht mehr,{target}: 블록을 찾을 수 없습니다
+ui.blockInventory.cleanRoomInfoLabel,Room,Room,部屋の状態,Raum,방 상태
+ui.blockInventory.cleanRoomYieldInfoLabel,Draw details,Draw details,抽選の中身,Ziehungsdetails,추첨 내용
+ui.blockInventory.cleanRoomYieldPendingDrawLabel,Fixed draw waiting for output space,Fixed draw waiting for output space,確定済み・出力の空き待ちの抽選,Feststehende Ziehung wartet auf Ausgabeplatz,출력 공간을 기다리는 확정된 추첨
+ui.blockInventory.cleanRoomYieldNextDrawLabel,Next new draw (current conditions),Next new draw (current conditions),次の新規抽選（今の条件）,Nächste neue Ziehung (aktuelle Bedingungen),다음 새 추첨 (현재 조건)
+ui.blockInventory.machineInputStallInfoLabel,Inflow stall,Inflow stall,搬入停止の理由,Zufuhrstopp,반입 정지 이유
+ui.blockInventory.spaceElevatorConnect,Connect,Connect,接続する,Verbinden,연결
+ui.blockInventory.spaceElevatorPool,Cable pool: {pool} / {required},Cable pool: {pool} / {required},ケーブルのプール: {pool} / 必要 {required},Kabelvorrat: {pool} / {required},케이블 풀: {pool} / {required}
+ui.blockInventory.spaceElevatorStatusInsufficientCable,Not enough cable. Launch graphene cables to fill the pool,Not enough cable. Launch graphene cables to fill the pool,ケーブルが足りません。グラフェンケーブルを打ち上げてプールを満たしてください,Nicht genug Kabel. Starte Graphenkabel,케이블이 부족합니다. 그래핀 케이블을 발사하세요
+ui.blockInventory.spaceElevatorStatusReadyToConnect,Not connected; ready to connect,Not connected; ready to connect,未接続（接続できます）,Nicht verbunden; bereit,연결 안 됨 (연결 가능)
+ui.blockInventory.spaceElevatorStatusWaitingSatellite,Waiting for a GPU satellite,Waiting for a GPU satellite,GPU衛星を待っています,Warte auf GPU-Satelliten,GPU 위성 대기 중
+ui.blockInventory.spaceElevatorStatusClimbing,Climbing,Climbing,昇降中,Steigt auf,상승 중
+ui.blockInventory.spaceElevatorStatusLowPower,Climbing slowly (low power),Climbing slowly (low power),電力不足で遅くなっています,Langsam (zu wenig Strom),전력 부족으로 느려짐
+ui.blockInventory.spaceElevatorStatusOutputBlocked,Output full; waiting until the result fits,Output full; waiting until the result fits,出口が満杯のため、成果が入るまで待っています,Ausgang voll; wartet bis das Ergebnis passt,출구가 가득 차 결과가 들어갈 때까지 대기 중
+ui.blockInventory.spaceElevatorSatelliteInput,GPU satellite input,GPU satellite input,GPU衛星の入口,GPU-Satelliten-Eingang,GPU 위성 입구
+ui.blockInventory.spaceElevatorResultOutput,Result output,Result output,成果の出口,Ergebnisausgang,결과 출구
+ui.blockInventory.spaceElevatorStatusInletBlocked,Remove the unsupported item from the inlet,Remove the unsupported item from the inlet,入口の運べないアイテムを取り出してください,Entferne den nicht transportierbaren Gegenstand aus dem Eingang,입구에서 운반할 수 없는 아이템을 꺼내세요
+ui.blockInventory.detailLoading,Waiting for status,Waiting for status,状態の取得を待っています,Warte auf Status,상태를 기다리는 중입니다

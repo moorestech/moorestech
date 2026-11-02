@@ -43,12 +43,19 @@ test("inventory未受信中はconnecting placeholderを表示する", async ({ p
   await setSnapshotDelay(page, 1000, "local_player.inventory");
   await page.goto("/");
 
-  // inventoryとrecipeは同じ未受信状態をそれぞれplaceholderで表す
-  // Inventory and recipe each expose the same pending state through a placeholder
-  await expect(page.getByText("connecting...", { exact: true })).toHaveCount(2);
-  await expect(page.getByText("connecting...", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("connecting...", { exact: true }).last()).toBeVisible();
+  // 受信待ち3領域は各grid内に接続表示
+  // Show a connecting placeholder in each of the three pending grid areas
+  const placeholders = page.getByText("接続中...", { exact: true });
+  await expect(placeholders).toHaveCount(3);
+  for (const placeholder of await placeholders.all()) await expect(placeholder).toBeVisible();
+  const owners = await placeholders.evaluateAll((elements) => elements.map((element) => {
+    let node: HTMLElement | null = element as HTMLElement;
+    while (node && getComputedStyle(node).gridRowStart === "auto") node = node.parentElement;
+    return node ? getComputedStyle(node).gridRowStart : null;
+  }));
+  expect(owners.sort()).toEqual(["inv", "items", "viewer"]);
   await expect(page.getByRole("heading", { name: "持ち物" })).toBeVisible({ timeout: 3000 });
+  await expect(placeholders).toHaveCount(0);
 });
 
 test("WS切断時は再接続バナーをz-reconnect層に表示する", async ({ page }) => {
@@ -60,4 +67,8 @@ test("WS切断時は再接続バナーをz-reconnect層に表示する", async (
   await expect(overlay).toBeVisible();
   await expect(overlay).toContainText("再接続中...");
   await expect(overlay).toHaveCSS("z-index", "2000");
+
+  // 接続拒否の保持が明けて再接続し、バナーが消えるまで見届ける（保持を次のテストへ持ち越さない）
+  // Watch the hold expire, the client reconnect and the banner clear, so the hold never carries into the next test
+  await expect(overlay).toBeHidden({ timeout: 5000 });
 });

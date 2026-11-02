@@ -13,7 +13,7 @@ namespace Client.Tests.Localization.Display
 
             // 撤去後は識別子を返せないため、現在のTry取得契約を検査する
             // Check the current Try contract because a removed block has no identity to return
-            var identityMethod = sourceType.GetMethod(nameof(BlockSubInventorySource.TryGetBlockIdentity));
+            var identityMethod = sourceType.GetMethod(nameof(BlockSubInventorySource.TryGetBlockIdentity), new[] { typeof(Guid).MakeByRefType(), typeof(string).MakeByRefType() });
             Assert.IsNotNull(identityMethod);
             Assert.AreEqual(typeof(bool), identityMethod.ReturnType);
             var parameters = identityMethod.GetParameters();
