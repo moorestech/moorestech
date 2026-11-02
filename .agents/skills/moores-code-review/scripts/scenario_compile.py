@@ -26,6 +26,7 @@ import json
 import os
 import re
 import subprocess
+import tempfile
 import time
 from collections import Counter
 from pathlib import Path
@@ -106,21 +107,23 @@ def normalize(diag: dict, code_lines: list[str]) -> dict:
 def record(repo_root: Path, out_json: Path) -> dict:
     # 作業ツリーの現状で全シナリオをコンパイルし out_json に書く。最初の1本が無応答なら Editor 不在として打ち切る
     # Compile every scenario in the current worktree; if the very first call gets no response, treat the Editor as absent
-    snippet_dir = out_json.with_suffix("")
-    snippet_dir.mkdir(parents=True, exist_ok=True)
     project = repo_root / "moorestech_client"
     scenarios: dict[str, dict] = {}
     status, reason = "ok", ""
-    for path in list_scenarios(repo_root):
-        rel = str(path.relative_to(repo_root))
-        snippet = snippet_dir / (rel.split(f"{SCENARIO_MARK}/", 1)[-1].replace("/", "__") + ".compile.cs")
-        snippet.write_text(compile_snippet(path), encoding="utf-8")
-        result = run_edc(project, snippet)
-        if not scenarios and result.pop("no_response", False):
-            status, reason = "unavailable", result["reason"]
-            break
-        result.pop("no_response", None)
-        scenarios[rel] = result
+    # 検証コードは記録先から分離し、同期コンパイル後に例外時も破棄する
+    # Keep compile code out of the report store and clean it up even when compilation raises
+    with tempfile.TemporaryDirectory(prefix="moores-scenario-compile-") as scratch:
+        snippet_dir = Path(scratch)
+        for path in list_scenarios(repo_root):
+            rel = str(path.relative_to(repo_root))
+            snippet = snippet_dir / (rel.split(f"{SCENARIO_MARK}/", 1)[-1].replace("/", "__") + ".compile.cs")
+            snippet.write_text(compile_snippet(path), encoding="utf-8")
+            result = run_edc(project, snippet)
+            if not scenarios and result.pop("no_response", False):
+                status, reason = "unavailable", result["reason"]
+                break
+            result.pop("no_response", None)
+            scenarios[rel] = result
     if status == "ok" and any(s["status"] != "compiled" for s in scenarios.values()):
         status = "partial"
     data = {"status": status, "reason": reason, "scenarios": scenarios}
