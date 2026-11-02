@@ -4,7 +4,7 @@
 
 **Goal:** ウェハグレードを廃止してダイのレベル配分をダイシング装置の品質モジュールで決める方式へ移し、v8 の半導体以降の研究を「品質モジュールLv1〜5を幹に各モジュール・GPU・スタック拡張が開く」形に組み直す。
 
-**Architecture:** サーバーは成膜のグレード抽選（WaferGrade 役割）を削除し、ダイシングの抽選を「品質最高Tierで選ぶ6段のダイ表＋品質効果合計と部屋クラスによるレア枠シフト」へ置き換える。プレビュー・プロトコル・WebUI のダイシング表示はレベル別の割合を出す形に変え、成膜は役割なし（NoRole）になる。セーブは V8→V9 の移行でグレード付きウェハを G1 へ寄せ、旧抽選記録と旧継承レベルを捨てる。マスタ（moorestech_master の v8 mod）は品目・レシピ・クリーンルーム表・研究ツリー・nodeGraph を新方式に合わせ、本 repo のピンをそのコミットへ更新する。
+**Architecture:** サーバーは成膜のグレード抽選（WaferGrade 役割）を削除し、ダイシングの抽選を「品質最高Tierで選ぶ6段のダイ表＋品質効果合計と部屋クラスによるレア枠シフト」へ置き換える。プレビュー・プロトコル・WebUI のダイシング表示はレベル別の割合を出す形に変え、トランジスタ設置済みウェハを作るレシピは役割なし（NoRole）になる。v8 マスタからは成膜装置を削除し、そのレシピを EUV露光式半導体製造装置へ移す。セーブは V8→V9 の移行でグレード付きウェハを G1 へ寄せ、旧抽選記録と旧継承レベルを捨てる。マスタ（moorestech_master の v8 mod）は品目・レシピ・クリーンルーム表・研究ツリー・nodeGraph を新方式に合わせ、本 repo のピンをそのコミットへ更新する。
 
 **Tech Stack:** Unity C#（moorestech_server / moorestech_client）、Mooresmaster SourceGenerator（VanillaSchema/*.yml）、Newtonsoft.Json（セーブ移行）、MessagePack（プロトコル）、TypeScript/React + zod（moorestech_web/webui）、Python 3（moorestech_master/tools）。
 
@@ -17,7 +17,7 @@
 - R2: EUV露光とダイシングのレシピは `levelInheritance: None` を前提にし、バリデータは入力がレベルファミリーであることを要求しない。受け入れ: グレード無しの test mod と v8 マスタでサーバーが起動し、`CleanRoomMasterTest` が通る。
 - R3: ダイシングは、ダイシング装置に挿した品質モジュールの最高 Tier（0〜5）で `qualityTierDieTables[tier]` を選ぶ。表は「Lv1〜LvMax の割合＋失敗ダイの割合」で合計1。受け入れ: Tier t の表で Lv(t+2) 以上が出ない（品質ゲート）ことをユニットテストで固定。
 - R4: レア枠シフト s = clamp(品質効果合計 × 部屋クラス倍率 − 最高Tierモジュール1個の効果値, −レア基準値, min(maxRareShift, 失敗枠合計))。s>0 は失敗枠（Lv1〜Lv(t-1) と失敗ダイ）を比例縮小してレア（Lv t+1）へ移し、s<0 はレアから失敗ダイへ移す。Tier0 と Tier=最大レベル（レア無し）は s=0。受け入れ: 「1個・クラスA で表どおり」「3個で失敗枠→レアへ移る」「クラスD 1個でレアが減る」「上限で頭打ち」「合計1を保つ」をユニットテストで固定。
-- R5: 部屋クラスは露光失敗率・ダイ損失率（従来どおり）とレア枠シフト（R4 の倍率）に効く。成膜・露光の品質モジュールは失敗率の低減だけに効く。受け入れ: 既存の露光テストが通り、ダイシングのテストでクラス差が出る。
+- R5: 部屋クラスは露光失敗率・ダイ損失率（従来どおり）とレア枠シフト（R4 の倍率）に効く。露光の品質モジュールは失敗率の低減だけに効く。受け入れ: 既存の露光テストが通り、ダイシングのテストでクラス差が出る。
 - R6: 損失したダイと失敗枠で引かれたダイはどちらも失敗ダイとして出る。ダイの総数は `diesPerWafer` を保つ。受け入れ: 保存則テスト。
 
 ### 表示（プレビュー・プロトコル・WebUI）
@@ -32,7 +32,7 @@
 - R11: モジュールスタック上限 `moduleSlotStackLimitLevels` を [3,4,5,6,7,8] にし、スタック拡張 I〜V を level 1〜5 に対応させる。
 - R12: 研究ツリーを ADR 0094 の形にする（詳細は Task 5 の表）。本線: 半導体製造 →（GPU設計・金属超精密加工）→ ロケット技術 → 軌道エレベーターの建設 → 反物質爆弾 → 最終研究。核融合炉は金属超精密加工の下で反物質爆弾の前提。品質Lv1〜5 が幹、省エネ・速度・生産性・GPU・スタック拡張の LvN は「品質LvN＋同種Lv(N-1)」が前提。「半導体のアップグレード研究Lv2〜5」と「機械オーバークロック」は名前としては消える（GUID は品質Lv2〜5・速度モジュールLv1 に流用）。
 - R13: 品質Lv1 研究は ICチップLv1 200個。品質Lv2 は計算データを要求せず ICチップLv2 50・鋼鉄フレーム 200・コンピュータ 100、前提は品質Lv1 だけ（ロケット技術を前提にしない）。品質Lv3〜5 は計算データ 2,000/20,000/200,000 と ICチップLvN 少数（75/100/100）で、品質Lv3 はロケット技術も前提にする。本線の研究コストは ICチップLv1 までで Lv2 以上を要求しない。
-- R18: 成膜装置は品質モジュールを挿せない（v8 `blocks.json` の成膜装置 `allowQualityModule` を false）。EUV露光とダイシングは true のまま。
+- R18: v8 マスタから成膜装置（ブロック `01a17363-05b5-72d8-8a5d-a0c844ea6e14`）を削除する。そのレシピ「シリコンウェハ×1＋IPA 10 → トランジスタ設置済みウェハ×1（10秒）」（`01a17363-05b5-72d8-8a5d-a0c150aafaa1`）は GUID・中身を保ったまま `blockGuid` を EUV露光式半導体製造装置（`33cd6fe0-4fb2-4acc-a0a1-600c2201bfe0`）へ付け替える。成膜装置を参照する建設レシピ・研究解放・ビルドメニュー・チャレンジ・nodeGraph ノード・ローカライズ・tools の参照も消す。受け入れ: `grep -rn 01a17363-05b5-72d8-8a5d-a0c844ea6e14` が master の `server_v8`・`tools` で0件（`design/` の過去試算は除く）、EUV 装置でトランジスタ設置済みウェハが作れる。既存セーブに置かれた成膜装置は、ロード時の既存のマスタ欠落の刈り込み（`MissingMasterPruner`）で中身ごと消える（ユーザー裁定で許容）。
 - R14: ダイ・ICチップ LvN の表示は品質Lv(N-1) の研究で解放（Lv1 は半導体製造）。各研究はその品の LvN 製作上限と表示を解放する。GPU衛星 Lv1 はロケット技術、Lv2〜5 は GPU LvN の研究で解放する。
 - R15: nodeGraph（`.mooreseditor/nodeGraph.v1.json`）から削除品目のノードと線を消し、新しい研究ノードを前半と同じ配置文法（解放物は研究の右下・品質の幹は縦・同系統は縦積み）で置く。master-refine 操作A・B（sortPriority・研究 UIPosition の再計算）を回す。
 - R16: `tools/research_sync/sync_machine_recipe_unlocks.py --check`、`tools/progression/check.py`、`tools/tier9_balance/run.py` が通る（tier9_balance のグレード前提の検査は新方式へ書き換える）。
@@ -519,7 +519,8 @@ git commit -m "セーブV9: グレード付きウェハをG1へ寄せ、旧抽�
 作業場所: `/Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/chip-quality-research-redesign`、対象 `server_v8/mods/moorestechAlphaMod_8/`。
 
 **Files:**
-- Modify: `server_v8/mods/moorestechAlphaMod_8/master/items.json`、`machineRecipes.json`、`cleanRoom.json`、`research.json`、`blocks.json`（成膜装置 `01a17363-05b5-72d8-8a5d-a0c844ea6e14` の `allowQualityModule` を false・削除品目への参照があれば除去）、`challenges.json`（削除品目への参照があれば）
+- Modify: `server_v8/mods/moorestechAlphaMod_8/master/items.json`、`machineRecipes.json`、`cleanRoom.json`、`research.json`、`blocks.json`（成膜装置 `01a17363-05b5-72d8-8a5d-a0c844ea6e14` を削除・削除品目への参照があれば除去）、`craftRecipes.json`・`buildMenu.json`・`challenges.json`（成膜装置・削除品目への参照があれば除去）、`server_v8/mods/moorestechAlphaMod_8/localization/localization.csv`（成膜装置の行）
+- Modify: `tools/tier9_balance/sections/s1/item_checks.py`・`tools/tier9_balance/sections/s2/compute_timeline.py`・`tools/tier9_balance/tests/test_s1_hatch_capacity.py`（成膜装置を前提にした台数・ハッチ容量の検査を EUV に寄せる）
 - Modify: `server_v8/mods/moorestechAlphaMod_8/.mooreseditor/nodeGraph.v1.json`
 - Modify: `tools/tier9_balance/sections/s1/cleanroom_checks.py`、`tools/tier9_balance/tests/test_s1_tables.py`（グレード前提の検査を新方式へ）
 - Modify: `tools/progression/model/machine_sources.py`（L39 の `waferGradeDraws` 読み・L142/L144 の `gradeDieTables` 読み＝`_wafer_grades`・`_emit_dies`）、`tools/progression/tests/fixture_tier9.py`（L47/L50）、`tools/progression/tests/test_model_contracts.py`（L86）
@@ -535,7 +536,7 @@ git commit -m "セーブV9: グレード付きウェハをG1へ寄せ、旧抽�
 スクリプトを scratchpad に書いて一括で適用する（手編集しない）。
 - `items.json`: ウェハ4 family（`トランジスタ設置済みウェハ`・`1層パターンウェハ`・`2層パターンウェハ`・`完成パターンウェハ`）の `levelFamilies` 要素を削除し、その G2〜G5 の16品目を `data` から削除。G1 の4品目は名前の末尾「G1」を外す。`moduleSlotStackLimitLevels` を `[{"stackLimit":3},{"stackLimit":4},{"stackLimit":5},{"stackLimit":6},{"stackLimit":7},{"stackLimit":8}]` にする。
 - `machineRecipes.json`: 成膜・EUV3本・ダイシングを `"levelInheritance": "None"` にする（GUID は Task 4 の表と同じ）。
-- `blocks.json`: 成膜装置（`01a17363-05b5-72d8-8a5d-a0c844ea6e14`）の `blockParam.allowQualityModule` を `false` にする（R18）。
+- `blocks.json`・`machineRecipes.json` ほか: R18 のとおり成膜装置を削除し、トランジスタ設置済みウェハのレシピ（`01a17363-05b5-72d8-8a5d-a0c150aafaa1`）の `blockGuid` を EUV 装置（`33cd6fe0-4fb2-4acc-a0a1-600c2201bfe0`）へ付け替える。成膜装置のブロックGUIDとそのアイテムを参照する全 JSON の箇所（研究の `unlockItemRecipeView`・`unlockMachineRecipe` 等、建設レシピ、ビルドメニュー、チャレンジ）を消し、`grep` で0件を確かめる。nodeGraph の成膜装置ノードも Step 4 で消す。
 - `cleanRoom.json`: `waferGradeDraws` を削除し、ダイシングの `gradeDieTables` を R10 の6段（`levelRates` 5要素＋`failedRate`）に置き換え、`"maxRareShift": 0.2` を足す。
 - 全 JSON で削除した16 GUID を参照する箇所が残っていないことを `grep` で確かめる（研究の `unlockItemRecipeView` は Step 2 で消える）。
 
@@ -614,7 +615,8 @@ git commit -m "moorestech_master のピンをチップ品質・研究ツリー�
 - [ ] **Step 1: シナリオを書き換える**
 
 - `tier9-1a`: 出力の選択名を「トランジスタ設置済みウェハ」「1層パターンウェハ」（G1 無し）に。「完成パターンウェハG2」をダイシングして Lv2 を待つ部分は、ダイシング装置に品質モジュールLv1 を挿して完成パターンウェハをダイシングし、Lv1 ダイ ≥10 と Lv2 ダイ ≥1 を待つ形に変える（Lv2 は レア 10% のため待機上限を延ばす）。パッケージングで ICチップLv1 と Lv2 ができることは残す。
-- `tier9-3`: 成膜を選んだ機械の歩留まり欄が「役割なし」表示になること、ダイシング装置で `clean-room-yield-quality-tier`・`clean-room-yield-level-rate-1`・`clean-room-yield-failed-rate`・`clean-room-yield-die-loss-rate` が出ることを確かめる。`max-grade`・`promotion-chance` の検査を削除。
+- `tier9-1a`・`tier9-3` 共通: 成膜装置の設置を EUV装置の設置に置き換え、トランジスタ設置済みウェハは EUV装置で作る（EUV 装置はトランジスタ設置と露光3層の両方を選べる）。
+- `tier9-3`: EUV装置でトランジスタ設置済みウェハのレシピを選んだときの歩留まり欄が「役割なし」表示になること、ダイシング装置で `clean-room-yield-quality-tier`・`clean-room-yield-level-rate-1`・`clean-room-yield-failed-rate`・`clean-room-yield-die-loss-rate` が出ることを確かめる。`max-grade`・`promotion-chance` の検査を削除。
 - `tier9-5`: `Single(r => CraftLevel(r)?.Level == 2)` を「品質モジュールLv2（GUID は旧アップグレード研究Lv2 の流用値）を名指しし、その研究が品質モジュールの製作上限2を解放する」形に変える。GPULv1 を target とする検査は GPU Lv2 研究を名指しする形に移す。
 - `tier9-2`: 完了させる研究 GUID 一覧に品質モジュールLv1 などの名前変更があっても GUID は同じなので、一覧の差分だけ直す。
 
@@ -647,14 +649,14 @@ git commit -m "Tier9 録画シナリオをウェハグレード廃止と研究�
   - ダイ表はスキーマ上「Tier ごとの Lv1〜LvMax 割合＋失敗ダイ割合」の明示表にし、規則（既定・レア・失敗枠）は表の値とバリデータの品質ゲート検査で守る。式で表を生成する案より、マスタで数値を直接調整できる方を取った。
   - レア枠シフトの基準は「最高Tierモジュール1個の効果値」を引いた量にした。裁定「1個・クラスA で既定70・レア10・失敗20」を表の値そのものにするためで、クラスが下がると負のシフトでレアが減る（裁定「クラスはレアの割合も上げる」の向きと一致）。
   - 最高Tierモジュール1個の効果値を `MachineModuleEffect` に足す。同じ集計ループで求まる値で、クリーンルーム側でモジュール一覧を辿り直さないため。
-  - 成膜は役割なしになる（失敗判定が無く、裁定「成膜・露光の品質は失敗率低減だけ」のうち成膜には効く先が無い）。成膜装置の品質モジュールは効果が無くなる。
+  - トランジスタ設置済みウェハのレシピは役割なしになる（失敗判定が無く、効く先が無い）。テスト mod の成膜用ブロック・レシピ（`ForUnitTestMachineRecipeId` の成膜）は、役割なしレシピの検査用としてそのまま残す。
   - 既存研究の GUID を流用する（品質モジュール→品質Lv1、アップグレード研究Lv2〜5→品質Lv2〜5、機械オーバークロック→速度モジュールLv1）。研究ノードの GUID を新規採番しない分、マスタ差分が小さい。
   - 削除するウェハは移行で G1 へ寄せる（刈り込みで消すと工程途中の在庫を失うため）。EUV・ダイシングの旧継承レベルと旧抽選記録は移行で捨てる（無いと `RestoreDrawRecord` が例外で落ちる）。
   - プロトコルの MessagePack キーは WaferGrade 削除後に詰めて振り直す（後方互換は考慮不要。サーバーとクライアントは同じビルド）。
   - 品質Lv2〜5 研究の ICチップ数（50/75/100/100）、各モジュール Lv2〜5 研究の素材数、Tier5 と失敗枠の中の配分、`maxRareShift` 0.2 は試算による仮置き（裁定は「少数」「多め」「上限あり」まで）。
   - 品質Lv3〜5 の計算データ量は、既存裁定の 10 倍刻みの値（Lv3 2,000・Lv4 20,000・Lv5 200,000）をそのまま使う。品質Lv2 の素材（ICチップLv2 50・鋼鉄フレーム 200・コンピュータ 100）は試算による仮置き。
 - planning 中のユーザー裁定（2026-11-02）:
-  - 成膜装置には品質モジュールを挿せなくする（推奨案を提示、異議なし）。[[2026-11-02-成膜装置には品質モジュールを挿せなくする]]
+  - 成膜装置を削除し、トランジスタ設置済みウェハのレシピを EUV露光式半導体製造装置へ移す（「挿せなくする」裁定を置き換え）。原文「じゃあ成膜装置いらなくない？」→ 提示「成膜装置を削除し、レシピをEUVに移す」に「はい」。[[2026-11-02-成膜装置を削除しトランジスタ設置済みウェハはEUV装置で作る]]
   - 旧アップグレード研究を終えたワールド・スタック上限を超えて挿してあるワールドへの手当てはしない。原文「2 ←そのユーザーは存在しないので問題として上がらない。 3←これも同様に問題として上がらない」。[[2026-11-02-旧研究完了とスタック上限超過のワールドは手当てしない]]
   - 品質Lv2 は計算データを要求せずロケット技術も前提にしない。計算データは品質Lv3 から、品質Lv3 の前提にロケット技術を付ける。原文「4 ←つけない。計算データを要求するのはレベル3から。レベル3の前提にロケットはつける」。[[2026-11-02-計算データは品質Lv3からで品質Lv3の前提にロケット技術を付ける]]
 - unityプレイ録画テスト: ダイシングの歩留まり欄（UI）と抽選結果（ゲームプレイ）に触れるため Task 6 で実施する。
