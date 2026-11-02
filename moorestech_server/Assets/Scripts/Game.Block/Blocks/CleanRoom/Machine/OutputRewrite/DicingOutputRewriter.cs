@@ -3,6 +3,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.Yield;
+using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
@@ -10,13 +11,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
     // Dicing: cut one wafer into diesPerWafer dies, send losses to failed dies and split survivors by the quality tier's shifted table into levels or failed dies
     internal static class DicingOutputRewriter
     {
-        public static List<IItemStack> Rewrite(DicingRecipeRole role, CleanRoomYieldRollContext context)
+        public static List<IItemStack> Rewrite(DicingRecipeRole role, DicingPreview rates, CleanRoomYieldRollContext context)
         {
-            // 表示と同じ口で率を求めて引く
-            // Draw with the rates from the same entry point the display uses
-            var lossRate = CleanRoomRoleRates.DieLossRate(role, context.ClassYield, context.ModuleEffect);
-            var survivorRates = CleanRoomRoleRates.DicingRates(role, context.ClassYield, context.ModuleEffect, out _);
-            var result = ChipYieldDraw.DrawDicing(role.Dicing.DiesPerWafer, lossRate, survivorRates, context.Random);
+            // 表示と同じ1回計算の率で引く
+            // Draw with the once-computed rates the display records
+            var result = ChipYieldDraw.DrawDicing(role.Dicing.DiesPerWafer, rates.DieLossRate, rates.LevelRates, rates.FailedRate, context.Random);
 
             // 出力は [ダイLv1..LvN, 失敗ダイ]。損失と失敗枠の分は合算済みの失敗ダイへ出す
             // Outputs are [die Lv1..LvN, failed die]; losses and failure-slot picks are already summed into failed dies

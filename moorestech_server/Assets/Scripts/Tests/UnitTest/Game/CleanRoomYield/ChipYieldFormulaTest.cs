@@ -50,7 +50,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         {
             // 1個・クラスAではシフト0で表のまま
             // One module in class A means zero shift, so the table stays
-            var rates = ChipYieldFormula.ShiftedDieRates(Tier2Levels, 0.1f, 2, 0.06, 1.0, 0.06, MaxRareShift);
+            var rates = ShiftedRatesWithFailedLast(Tier2Levels, 0.1f, 2, 0.06, 1.0, 0.06, MaxRareShift);
             Assert.AreEqual(new[] { 0.1, 0.7, 0.1, 0.0, 0.0, 0.1 }, rates.Select(r => Math.Round(r, 6)).ToArray());
         }
 
@@ -59,7 +59,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         {
             // 3個でシフト0.12。失敗枠0.2が0.08へ比例縮小し、レアが0.22になる
             // Three modules shift 0.12: the 0.2 failure slot shrinks proportionally to 0.08 and the rare becomes 0.22
-            var rates = ChipYieldFormula.ShiftedDieRates(Tier2Levels, 0.1f, 2, 0.18, 1.0, 0.06, MaxRareShift);
+            var rates = ShiftedRatesWithFailedLast(Tier2Levels, 0.1f, 2, 0.18, 1.0, 0.06, MaxRareShift);
             Assert.AreEqual(0.04, rates[0], 1e-6);
             Assert.AreEqual(0.7, rates[1], 1e-6);
             Assert.AreEqual(0.22, rates[2], 1e-6);
@@ -71,7 +71,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         {
             // クラスD(0.25)1個はシフト−0.045。レアが減り失敗ダイが増える
             // One module in class D (0.25) shifts −0.045, lowering the rare and raising the failed die
-            var rates = ChipYieldFormula.ShiftedDieRates(Tier2Levels, 0.1f, 2, 0.06, 0.25, 0.06, MaxRareShift);
+            var rates = ShiftedRatesWithFailedLast(Tier2Levels, 0.1f, 2, 0.06, 0.25, 0.06, MaxRareShift);
             Assert.AreEqual(0.055, rates[2], 1e-6);
             Assert.AreEqual(0.145, rates[5], 1e-6);
             Assert.AreEqual(0.1, rates[0], 1e-6);
@@ -82,20 +82,20 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         {
             // 上限0.2で頭打ち、どの入力でも合計1
             // The shift saturates at 0.2 and every input keeps the sum at one
-            var rates = ChipYieldFormula.ShiftedDieRates(Tier2Levels, 0.1f, 2, 5.0, 1.0, 0.06, MaxRareShift);
+            var rates = ShiftedRatesWithFailedLast(Tier2Levels, 0.1f, 2, 5.0, 1.0, 0.06, MaxRareShift);
             Assert.AreEqual(0.2, rates[2] - 0.1, 1e-6);
             Assert.AreEqual(1.0, rates.Sum(), 1e-6);
 
             // 失敗枠より大きい上限でも失敗枠を使い切るだけで負にならない
             // A cap above the failure slot only drains it and never goes negative
-            var drained = ChipYieldFormula.ShiftedDieRates(Tier2Levels, 0.1f, 2, 5.0, 1.0, 0.06, 1.0);
+            var drained = ShiftedRatesWithFailedLast(Tier2Levels, 0.1f, 2, 5.0, 1.0, 0.06, 1.0);
             Assert.AreEqual(0.3, drained[2], 1e-6);
             Assert.IsTrue(drained.All(r => -1e-12 <= r));
             Assert.AreEqual(1.0, drained.Sum(), 1e-6);
 
             // 負のシフトはレアを0までしか減らさない
             // A negative shift drains the rare to zero at most
-            var floored = ChipYieldFormula.ShiftedDieRates(Tier2Levels, 0.1f, 2, 0.0, 1.0, 5.0, MaxRareShift);
+            var floored = ShiftedRatesWithFailedLast(Tier2Levels, 0.1f, 2, 0.0, 1.0, 5.0, MaxRareShift);
             Assert.AreEqual(0.0, floored[2], 1e-6);
             Assert.AreEqual(1.0, floored.Sum(), 1e-6);
         }
@@ -105,9 +105,9 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         {
             // Tier0（モジュール無し）と最大Tier（レア無し）は表のまま
             // Tier 0 (no module) and the top tier (no rare) keep the table
-            var none = ChipYieldFormula.ShiftedDieRates(new[] { 0.2f, 0f, 0f, 0f, 0f }, 0.8f, 0, 0, 1.0, 0, MaxRareShift);
+            var none = ShiftedRatesWithFailedLast(new[] { 0.2f, 0f, 0f, 0f, 0f }, 0.8f, 0, 0, 1.0, 0, MaxRareShift);
             Assert.AreEqual(0.2, none[0], 1e-6);
-            var top = ChipYieldFormula.ShiftedDieRates(new[] { 0.02f, 0.03f, 0.05f, 0.1f, 0.7f }, 0.1f, 5, 0.6, 1.0, 0.12, MaxRareShift);
+            var top = ShiftedRatesWithFailedLast(new[] { 0.02f, 0.03f, 0.05f, 0.1f, 0.7f }, 0.1f, 5, 0.6, 1.0, 0.12, MaxRareShift);
             Assert.AreEqual(0.7, top[4], 1e-6);
             Assert.AreEqual(0.1, top[5], 1e-6);
         }
@@ -121,7 +121,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             {
                 foreach (var qualitySum in new[] { 0.0, 0.1, 0.5, 5.0 })
                 {
-                    var rates = ChipYieldFormula.ShiftedDieRates(TierTables[tier].levels, TierTables[tier].failed, tier, qualitySum, 1.0, 0.1, MaxRareShift);
+                    var rates = ShiftedRatesWithFailedLast(TierTables[tier].levels, TierTables[tier].failed, tier, qualitySum, 1.0, 0.1, MaxRareShift);
                     for (var levelIndex = tier + 1; levelIndex < 5; levelIndex++) Assert.AreEqual(0.0, rates[levelIndex], 1e-12, $"tier {tier} Lv{levelIndex + 1}");
                     Assert.AreEqual(1.0, rates.Sum(), 1e-6, $"tier {tier} sum");
                 }
@@ -171,6 +171,14 @@ namespace Tests.UnitTest.Game.CleanRoomYield
 
         #region TestHelper
 
+        // 本番の戻り値（レベル別割合＋失敗率）を [Lv1..LvN, 失敗ダイ] に並べて検査しやすくする
+        // Lay the production result (level rates plus failed rate) out as [Lv1..LvN, failed die] for assertions
+        private static double[] ShiftedRatesWithFailedLast(IReadOnlyList<float> levelRates, float failedRate, int tier, double qualityEffectSum, double classQualityMultiplier, double referenceEffectValue, double maxRareShift)
+        {
+            var shifted = ChipYieldFormula.ShiftedDieRates(levelRates, failedRate, tier, qualityEffectSum, classQualityMultiplier, referenceEffectValue, maxRareShift, out var shiftedFailedRate);
+            return shifted.Append(shiftedFailedRate).ToArray();
+        }
+
         // 本番の式（割引率・シフト後の割合）を通し、投入1枚あたりのレベル別良品ダイ期待値を出す
         // Run the production formulas (reduced rates, shifted rates) and get the expected good dies per wafer by level
         private static double[] ExpectedDies((float qualityMultiplier, float layerFailRate, float dieLossRate) classRow, double qualitySum, int tier, double referenceEffectValue)
@@ -178,7 +186,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             var layerFail = ChipYieldFormula.ReducedRate(classRow.layerFailRate, qualitySum, MaxReduction);
             var dieLoss = ChipYieldFormula.ReducedRate(classRow.dieLossRate, qualitySum, MaxReduction);
             var (levels, failed) = TierTables[tier];
-            var rates = ChipYieldFormula.ShiftedDieRates(levels, failed, tier, qualitySum, classRow.qualityMultiplier, referenceEffectValue, MaxRareShift);
+            var rates = ShiftedRatesWithFailedLast(levels, failed, tier, qualitySum, classRow.qualityMultiplier, referenceEffectValue, MaxRareShift);
 
             // 全層成功×ダイ生存×シフト後の割合
             // All layers pass x die survival x shifted rates

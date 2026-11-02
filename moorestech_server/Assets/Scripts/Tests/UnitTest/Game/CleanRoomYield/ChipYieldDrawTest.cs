@@ -5,9 +5,10 @@ namespace Tests.UnitTest.Game.CleanRoomYield
 {
     public class ChipYieldDrawTest
     {
-        // Tier2相当の良品1個あたりの割合 [Lv1, Lv2, Lv3, 失敗ダイ]
-        // Tier-2-like per-survivor rates [Lv1, Lv2, Lv3, failed die]
-        private static readonly double[] TierTwoRates = { 0.1, 0.7, 0.1, 0.1 };
+        // Tier2相当の良品1個あたりのレベル別割合と失敗ダイ割合
+        // Tier-2-like per-survivor level rates and failed-die rate
+        private static readonly double[] TierTwoLevelRates = { 0.1, 0.7, 0.1 };
+        private const double TierTwoFailedRate = 0.1;
 
         [Test]
         public void SameSeedReproducesEveryDrawTest()
@@ -17,8 +18,8 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             var first = new CleanRoomDrawRandom(123456789L);
             var second = new CleanRoomDrawRandom(123456789L);
             Assert.AreEqual(ChipYieldDraw.DrawLayerFailure(0.3, first), ChipYieldDraw.DrawLayerFailure(0.3, second));
-            var firstDicing = ChipYieldDraw.DrawDicing(300, 0.2, TierTwoRates, first);
-            var secondDicing = ChipYieldDraw.DrawDicing(300, 0.2, TierTwoRates, second);
+            var firstDicing = ChipYieldDraw.DrawDicing(300, 0.2, TierTwoLevelRates, TierTwoFailedRate, first);
+            var secondDicing = ChipYieldDraw.DrawDicing(300, 0.2, TierTwoLevelRates, TierTwoFailedRate, second);
             CollectionAssert.AreEqual(firstDicing.GoodDieCountsByLevel, secondDicing.GoodDieCountsByLevel);
             Assert.AreEqual(firstDicing.FailedDieCount, secondDicing.FailedDieCount);
         }
@@ -44,7 +45,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             // Good dies across levels plus failed dies (losses + failure slot) always equal the dies per wafer
             for (var seed = 0L; seed < 100; seed++)
             {
-                var result = ChipYieldDraw.DrawDicing(300, 0.3, TierTwoRates, new CleanRoomDrawRandom(seed));
+                var result = ChipYieldDraw.DrawDicing(300, 0.3, TierTwoLevelRates, TierTwoFailedRate, new CleanRoomDrawRandom(seed));
                 Assert.AreEqual(3, result.GoodDieCountsByLevel.Count);
                 var total = result.FailedDieCount;
                 foreach (var count in result.GoodDieCountsByLevel) total += count;
@@ -64,7 +65,7 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             var random = new CleanRoomDrawRandom(2026L);
             for (var i = 0; i < waferCount; i++)
             {
-                var result = ChipYieldDraw.DrawDicing(300, 0.1, TierTwoRates, random);
+                var result = ChipYieldDraw.DrawDicing(300, 0.1, TierTwoLevelRates, TierTwoFailedRate, random);
                 levelTwoTotal += result.GoodDieCountsByLevel[1];
                 levelThreeTotal += result.GoodDieCountsByLevel[2];
                 failedTotal += result.FailedDieCount;
@@ -79,10 +80,10 @@ namespace Tests.UnitTest.Game.CleanRoomYield
         {
             // Tier1の割合（Lv1とレアLv2だけ）ではLv3以上が常に0
             // Tier 1 rates (only Lv1 and the rare Lv2) never draw Lv3 or above
-            var tierOneRates = new[] { 0.7, 0.1, 0.0, 0.0, 0.0, 0.2 };
+            var tierOneLevelRates = new[] { 0.7, 0.1, 0.0, 0.0, 0.0 };
             for (var seed = 0L; seed < 200; seed++)
             {
-                var result = ChipYieldDraw.DrawDicing(300, 0.15, tierOneRates, new CleanRoomDrawRandom(seed));
+                var result = ChipYieldDraw.DrawDicing(300, 0.15, tierOneLevelRates, 0.2, new CleanRoomDrawRandom(seed));
                 for (var levelIndex = 2; levelIndex < 5; levelIndex++) Assert.AreEqual(0, result.GoodDieCountsByLevel[levelIndex], $"seed {seed} Lv{levelIndex + 1}");
             }
         }

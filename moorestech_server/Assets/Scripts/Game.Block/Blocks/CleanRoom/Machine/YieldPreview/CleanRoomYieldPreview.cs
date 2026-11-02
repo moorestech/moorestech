@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Master.CleanRoomRoles;
@@ -44,25 +43,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
                     if (roll.HasValue) outputs = LayerExposureOutputRewriter.Rewrite(layer, roll.Value);
                     return new LayerExposurePreview(CleanRoomRoleRates.LayerFailRate(layer, classYield, moduleEffect));
                 case DicingRecipeRole dicing:
-                    if (roll.HasValue) outputs = DicingOutputRewriter.Rewrite(dicing, roll.Value);
-                    return CreateDicingPreview(dicing);
+                    var dicingPreview = CleanRoomRoleRates.Dicing(dicing, classYield, moduleEffect);
+                    if (roll.HasValue) outputs = DicingOutputRewriter.Rewrite(dicing, dicingPreview, roll.Value);
+                    return dicingPreview;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role");
             }
-
-            #region Internal
-
-            // シフト後の割合を [Lv1..LvMax] と失敗ダイに分けて記録する
-            // Record the shifted rates split into [Lv1..LvMax] and the failed die
-            DicingPreview CreateDicingPreview(DicingRecipeRole dicing)
-            {
-                var lossRate = CleanRoomRoleRates.DieLossRate(dicing, classYield, moduleEffect);
-                var rates = CleanRoomRoleRates.DicingRates(dicing, classYield, moduleEffect, out var tier);
-                var levelCount = dicing.DieLevelCount;
-                return new DicingPreview(lossRate, tier, rates.Take(levelCount).ToArray(), rates[levelCount]);
-            }
-
-            #endregion
         }
     }
 }

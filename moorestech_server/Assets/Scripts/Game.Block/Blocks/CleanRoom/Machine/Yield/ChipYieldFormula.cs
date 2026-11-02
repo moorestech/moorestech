@@ -9,9 +9,21 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
     /// </summary>
     public static class ChipYieldFormula
     {
-        // Tier tの表に品質シフトを掛けた、良品ダイ1個あたりの [Lv1..LvMax, 失敗ダイ] の割合
-        // Per-survivor rates [Lv1..LvMax, failed die] after applying the quality shift to tier t's table
-        public static double[] ShiftedDieRates(IReadOnlyList<float> levelRates, float failedRate, int tier, double qualityEffectSum, double classQualityMultiplier, double referenceEffectValue, double maxRareShift)
+        // Tier tの表に品質シフトを掛けた、良品ダイ1個あたりのレベル別割合 [Lv1..LvMax] と失敗ダイ割合
+        // Per-survivor level rates [Lv1..LvMax] and the failed-die rate after applying the quality shift to tier t's table
+        public static double[] ShiftedDieRates(IReadOnlyList<float> levelRates, float failedRate, int tier, double qualityEffectSum, double classQualityMultiplier, double referenceEffectValue, double maxRareShift, out double shiftedFailedRate)
+        {
+            var rates = ShiftedRatesWithFailedSlot(levelRates, failedRate, tier, qualityEffectSum, classQualityMultiplier, referenceEffectValue, maxRareShift);
+            var levelCount = levelRates.Count;
+            shiftedFailedRate = rates[levelCount];
+            var shiftedLevelRates = new double[levelCount];
+            Array.Copy(rates, shiftedLevelRates, levelCount);
+            return shiftedLevelRates;
+        }
+
+        // 失敗枠を末尾に置いた計算用の配列。シフトの式はこの並びで書く
+        // Working array with the failed slot at the end; the shift math is written over this layout
+        private static double[] ShiftedRatesWithFailedSlot(IReadOnlyList<float> levelRates, float failedRate, int tier, double qualityEffectSum, double classQualityMultiplier, double referenceEffectValue, double maxRareShift)
         {
             var levelCount = levelRates.Count;
             var rates = new double[levelCount + 1];

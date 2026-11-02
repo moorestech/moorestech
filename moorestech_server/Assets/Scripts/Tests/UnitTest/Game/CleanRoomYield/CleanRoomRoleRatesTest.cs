@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Core.Master;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.OutputRewrite;
@@ -42,7 +43,9 @@ namespace Tests.UnitTest.Game.CleanRoomYield
             Assert.IsTrue(MasterHolder.CleanRoomMaster.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, out var role));
             var module = MasterHolder.ItemMaster.GetModuleByItemIdOrNull(MasterHolder.ItemMaster.GetItemId(moduleItemGuid));
             var effect = MachineModuleEffect.Aggregate(new[] { new MachineModuleEffect.EquippedModule(module, moduleCount) });
-            return CleanRoomRoleRates.DicingRates((DicingRecipeRole)role, classYield, effect, out qualityTier);
+            var dicing = CleanRoomRoleRates.Dicing((DicingRecipeRole)role, classYield, effect);
+            qualityTier = dicing.QualityTier;
+            return dicing.LevelRates.Append(dicing.FailedRate).ToArray();
         }
 
         // 配列は [Lv1, Lv2, Lv3, 失敗ダイ]

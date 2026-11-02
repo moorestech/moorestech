@@ -13,11 +13,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
             return random.NextDouble() < layerFailRate;
         }
 
-        // ダイごとに損失を判定し、残りを [Lv1..LvMax, 失敗ダイ] の割合で振り分ける。損失と失敗枠はどちらも失敗ダイ
-        // Roll loss per die, then assign survivors by [Lv1..LvMax, failed die]; losses and failure-slot picks both become failed dies
-        public static DicingDrawResult DrawDicing(int diesPerWafer, double dieLossRate, IReadOnlyList<double> survivorRates, CleanRoomDrawRandom random)
+        // ダイごとに損失を判定し、残りをレベル別割合と失敗ダイ割合で振り分ける。損失と失敗枠はどちらも失敗ダイ
+        // Roll loss per die, then assign survivors by the level rates and the failed-die rate; losses and failure-slot picks both become failed dies
+        public static DicingDrawResult DrawDicing(int diesPerWafer, double dieLossRate, IReadOnlyList<double> levelRates, double failedRate, CleanRoomDrawRandom random)
         {
-            var levelCount = survivorRates.Count - 1;
+            var levelCount = levelRates.Count;
             var goodCounts = new int[levelCount];
             var failedCount = 0;
             for (var die = 0; die < diesPerWafer; die++)
@@ -36,12 +36,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
             int PickIndex(double roll)
             {
                 var cumulative = 0d;
-                for (var i = 0; i < survivorRates.Count - 1; i++)
+                for (var i = 0; i < levelCount; i++)
                 {
-                    cumulative += survivorRates[i];
+                    cumulative += levelRates[i];
                     if (roll < cumulative) return i;
                 }
-                return survivorRates.Count - 1;
+                return levelCount;
             }
 
             #endregion
