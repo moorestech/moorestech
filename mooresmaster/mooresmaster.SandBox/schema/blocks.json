@@ -13,7 +13,12 @@
         "outputSlotCount": {
           "type": "integer",
           "default": 0
-        },
+        }
+      }
+    },
+    {
+      "interfaceName": "IMachineFluidTankParam",
+      "properties": {
         "inputTankCount": {
           "type": "integer",
           "default": 0
@@ -25,6 +30,9 @@
         "innerTankCapacity": {
           "type": "number",
           "default": 0
+        },
+        "fluidInventoryConnectors": {
+          "$ref": "fluidInventoryConnects"
         }
       }
     },
@@ -198,7 +206,8 @@
                 },
                 "then": {
                   "implementationInterface": [
-                    "IMachineParam"
+                    "IMachineParam",
+                    "IMachineFluidTankParam"
                   ],
                   "type": "object",
                   "properties": {
@@ -423,11 +432,6 @@
                     "gear": {
                       "$ref": "gear"
                     }
-                  },
-                  "interfacePropertyConstants": {
-                    "inputTankCount": 0,
-                    "outputTankCount": 0,
-                    "innerTankCapacity": 0
                   }
                 }
               },
