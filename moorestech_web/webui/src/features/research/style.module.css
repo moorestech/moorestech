@@ -84,6 +84,12 @@
 }
 .detailScroll {
   composes: scroll from "../../shared/ui/panelBodyScrollArea.module.css";
+  margin-inline: calc(-1 * var(--research-detail-scroll-inline-bleed));
+}
+/* スロット外周リングがクリップ境界で欠けないよう、横の逃げをviewportのpaddingで作り負マージンで相殺する */
+/* Keep slot rings inside the clip edge via viewport inline padding cancelled by the negative margin */
+.detailScroll :global(.mantine-ScrollArea-viewport) {
+  padding-inline: var(--research-detail-scroll-inline-bleed);
 }
 /* 中身はflex列で並べ、従来の8px間隔を保つ */
 /* Lay the content out as a flex column keeping the former 8px gap */

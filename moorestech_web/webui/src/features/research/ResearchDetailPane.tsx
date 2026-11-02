@@ -38,7 +38,7 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
           </div>
           {/* 解放物が多いノードでも研究ボタンを常に見せるため、見出しとボタンの間だけスクロールさせる */}
           {/* Scroll only between the header and the button so the research button stays visible on huge nodes */}
-          <ScrollArea className={styles.detailScroll} type="auto" data-testid="research-detail-scroll">
+          <ScrollArea key={node.guid} className={styles.detailScroll} type="auto" data-testid="research-detail-scroll">
             <p className={styles.detailDescription}>{t(researchDescriptionKey(node.guid))}</p>
             {node.consumeItems.length > 0 && (
               <div data-testid="research-consume-items">
