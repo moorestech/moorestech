@@ -25,6 +25,12 @@ vi.mock("@/shared/ui", () => ({
   FluidSlot: (props: object) => createElement("mock-fluid-slot", props),
 }));
 
+// ScrollAreaもMantineProvider依存のため素通しの要素へ差し替える
+// ScrollArea also needs MantineProvider, so replace it with a pass-through element
+vi.mock("@mantine/core", () => ({
+  ScrollArea: ({ children }: { children: unknown }) => createElement("mock-scroll-area", null, children as never),
+}));
+
 import ResearchDetailPane from "./ResearchDetailPane";
 
 // tooltipプロップに渡すJSX要素はdev用_ownerでFiberを循環参照するため、標準のJSON.stringifyでは落ちる。
