@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using Game.SaveLoad.Migration.Steps.Shared;
 
 namespace Game.SaveLoad.Migration.Steps.V7ToV8
 {
@@ -6,7 +7,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
     /// 宇宙エレベーターのケーブルプールの節を0で足す（冪等）。版7までケーブルを軌道へ運ぶ積荷表の行は無く、0が実値である
     /// Add the space-elevator cable pool section at zero (idempotent); up to version 7 no payload row could carry cables to orbit, so zero is the real value
     /// </summary>
-    public sealed class SpaceElevatorCablePoolFiller : IV7ToV8MigrationPart
+    public sealed class SpaceElevatorCablePoolFiller : ISaveMigrationPart
     {
         private const string PoolKey = "spaceElevatorCablePool";
         private const string CountKey = "cableCount";
@@ -20,7 +21,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
 
             // 欠損と明示nullは0のプールで補う
             // Fill both absence and an explicit null with an empty pool
-            if (V7ToV8SaveJson.IsAbsentOrNull(existing))
+            if (MigrationSaveJson.IsAbsentOrNull(existing))
             {
                 _fillTarget = save;
                 return true;

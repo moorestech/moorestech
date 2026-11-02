@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using Game.SaveLoad.Migration.Steps.Shared;
 
 namespace Game.SaveLoad.Migration.Steps.V7ToV8
 {
@@ -7,9 +8,9 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
     /// 清浄室機械の state へ空の液体スロット配列を足す（冪等）。版7以前の清浄室機械はタンクを持たなかった
     /// Add empty fluid slot arrays to clean-room machine states (idempotent); machines up to version 7 had no tanks
     /// </summary>
-    public sealed class CleanRoomMachineFluidSlotFiller : IV7ToV8MigrationPart
+    public sealed class CleanRoomMachineFluidSlotFiller : ISaveMigrationPart
     {
-        private const string ProcessorSaveKey = V7ToV8SaveJson.CleanRoomMachineSaveKey;
+        private const string ProcessorSaveKey = MigrationSaveJson.CleanRoomMachineSaveKey;
         private const string InputFluidSlotKey = "inputFluidSlot";
         private const string OutputFluidSlotKey = "outputFluidSlot";
 
@@ -20,7 +21,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
         {
             // world→ブロック→state の走査と拒否文は全部品で共有する
             // The world->block->state walk and its refusal texts are shared by every part
-            if (!V7ToV8SaveJson.TryCollectBlockStates(save, out var states, out failureReason)) return false;
+            if (!MigrationSaveJson.TryCollectBlockStates(save, out var states, out failureReason)) return false;
 
             foreach (var state in states)
             {
@@ -31,21 +32,21 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
 
                 // 明示nullはロード側も警告して復元を見送る形なので、止めずに台数だけ残す
                 // An explicit null is also skipped with a warning by the loader, so count it instead of refusing
-                if (V7ToV8SaveJson.IsExplicitNull(processorToken))
+                if (MigrationSaveJson.IsExplicitNull(processorToken))
                 {
                     _nullProcessorCount++;
                     continue;
                 }
 
-                if (!(processorToken is JObject processorState)) return V7ToV8SaveJson.Reject($"{ProcessorSaveKey} がオブジェクトではありません。 type={processorToken.Type}", out failureReason);
+                if (!(processorToken is JObject processorState)) return MigrationSaveJson.Reject($"{ProcessorSaveKey} がオブジェクトではありません。 type={processorToken.Type}", out failureReason);
                 var inputToken = processorState[InputFluidSlotKey];
                 var outputToken = processorState[OutputFluidSlotKey];
                 // 液体キーの明示nullは欠損と同じく空配列で補う（判断記録 A3）
                 // An explicit null fluid key is filled like a missing one (decision A3)
-                var inputMissing = V7ToV8SaveJson.IsAbsentOrNull(inputToken);
-                var outputMissing = V7ToV8SaveJson.IsAbsentOrNull(outputToken);
-                if (!inputMissing && !(inputToken is JArray)) return V7ToV8SaveJson.Reject($"{InputFluidSlotKey} が配列ではありません。 type={inputToken.Type}", out failureReason);
-                if (!outputMissing && !(outputToken is JArray)) return V7ToV8SaveJson.Reject($"{OutputFluidSlotKey} が配列ではありません。 type={outputToken.Type}", out failureReason);
+                var inputMissing = MigrationSaveJson.IsAbsentOrNull(inputToken);
+                var outputMissing = MigrationSaveJson.IsAbsentOrNull(outputToken);
+                if (!inputMissing && !(inputToken is JArray)) return MigrationSaveJson.Reject($"{InputFluidSlotKey} が配列ではありません。 type={inputToken.Type}", out failureReason);
+                if (!outputMissing && !(outputToken is JArray)) return MigrationSaveJson.Reject($"{OutputFluidSlotKey} が配列ではありません。 type={outputToken.Type}", out failureReason);
                 if (inputMissing || outputMissing) _targets.Add(processorState);
             }
 
@@ -58,8 +59,8 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
             // Add empty arrays only where a fluid key is missing
             foreach (var processorState in _targets)
             {
-                if (V7ToV8SaveJson.IsAbsentOrNull(processorState[InputFluidSlotKey])) processorState[InputFluidSlotKey] = new JArray();
-                if (V7ToV8SaveJson.IsAbsentOrNull(processorState[OutputFluidSlotKey])) processorState[OutputFluidSlotKey] = new JArray();
+                if (MigrationSaveJson.IsAbsentOrNull(processorState[InputFluidSlotKey])) processorState[InputFluidSlotKey] = new JArray();
+                if (MigrationSaveJson.IsAbsentOrNull(processorState[OutputFluidSlotKey])) processorState[OutputFluidSlotKey] = new JArray();
             }
 
             return $"液体スロットを足した清浄室機械={_targets.Count}台 processorが null で飛ばした清浄室機械={_nullProcessorCount}台";

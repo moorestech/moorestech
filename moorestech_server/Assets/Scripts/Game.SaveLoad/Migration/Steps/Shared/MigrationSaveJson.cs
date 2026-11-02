@@ -1,14 +1,37 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
-namespace Game.SaveLoad.Migration.Steps.V7ToV8
+namespace Game.SaveLoad.Migration.Steps.Shared
 {
     /// <summary>
-    /// 版7→8の部品が共有するセーブ JSON の辿り方。欠損と null の判定・world→ブロック→state の走査・拒否理由の返し方を 1 か所に置く
-    /// Save-JSON walking shared by the version 7-to-8 parts; the absent/null tests, the world->block->state walk and refusal returns live in one place
+    /// 全移行部品が共有するセーブ JSON の辿り方と、部品の検査→適用ループ。欠損と null の判定・world→ブロック→state の走査・拒否理由の返し方を 1 か所に置く
+    /// Save-JSON walking and the inspect-then-apply loop shared by all migration parts; the absent/null tests, the world->block->state walk and refusal returns live in one place
     /// </summary>
-    public static class V7ToV8SaveJson
+    public static class MigrationSaveJson
     {
+        // 全部品を検査してから適用する。どれかが拒否したら原本を書き換えず、直接実行しても拒否理由をログに残す
+        // Inspect every part, then apply; a refusal leaves the original untouched and logs the reason even when a step is called directly
+        public static SaveMigrationStepResult RunParts(int fromVersion, IReadOnlyList<ISaveMigrationPart> parts, JObject save)
+        {
+            var toVersion = fromVersion + 1;
+            foreach (var part in parts)
+            {
+                if (part.TryPrepare(save, out var reason))
+                    continue;
+                Debug.LogWarning($"セーブを版{fromVersion}から版{toVersion}へ変換できません: {reason}");
+                return SaveMigrationStepResult.Failed(reason);
+            }
+
+            // 検査を通った対象だけを書き換える
+            // Rewrite only the targets that passed inspection
+            var summaries = new List<string>();
+            foreach (var part in parts) summaries.Add(part.ApplyAndSummarize());
+
+            Debug.Log($"セーブを版{fromVersion}から版{toVersion}へ変換しました。{string.Join(" / ", summaries)}");
+            return SaveMigrationStepResult.Converted(save);
+        }
+
         // 清浄室機械ProcessorのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
         // The clean-room processor's SaveKey (typeof FullName); the step never references live types, so it is kept as a string
         public const string CleanRoomMachineSaveKey = "Game.Block.Blocks.CleanRoom.Machine.CleanRoomMachineProcessorComponent";

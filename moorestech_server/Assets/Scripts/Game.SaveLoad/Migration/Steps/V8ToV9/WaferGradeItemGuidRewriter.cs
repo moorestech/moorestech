@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json.Linq;
+using Game.SaveLoad.Migration.Steps.Shared;
 
 namespace Game.SaveLoad.Migration.Steps.V8ToV9
 {
@@ -9,7 +10,7 @@ namespace Game.SaveLoad.Migration.Steps.V8ToV9
     /// セーブ中の G2〜G5 ウェハの GUID 文字列を同じ工程の G1 へ置き換える（冪等）。スタック・消費実品の配列・ベルト上の品など、置き場を問わず値で置き換える
     /// Replace G2-G5 wafer GUID strings in the save with their process's G1 (idempotent); replaced by value wherever they sit, stacks, consumed-input arrays, belt items alike
     /// </summary>
-    public sealed class WaferGradeItemGuidRewriter : IV8ToV9MigrationPart
+    public sealed class WaferGradeItemGuidRewriter : ISaveMigrationPart
     {
         // 解放状態は guid ごとに後勝ちで読まれる。G1 へ寄せると未解放の G5 が解放済みの G1 を上書きするので触らない（消えた品の行は後段の MissingMasterPruner が除く）
         // Unlock states are read last-wins per guid; folding into G1 would let a locked G5 overwrite an unlocked G1, so leave them (MissingMasterPruner drops the removed items' rows later)

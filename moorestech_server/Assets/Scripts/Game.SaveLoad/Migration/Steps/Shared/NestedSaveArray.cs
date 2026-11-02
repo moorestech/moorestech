@@ -1,6 +1,6 @@
 using Newtonsoft.Json.Linq;
 
-namespace Game.SaveLoad.Migration.Steps.V7ToV8
+namespace Game.SaveLoad.Migration.Steps.Shared
 {
     /// <summary>
     /// save[節][配列] を辿った結果。無い（キー欠損か JSON の null）・配列ありを派生型で分け、配列は配列ありの型だけが持つ

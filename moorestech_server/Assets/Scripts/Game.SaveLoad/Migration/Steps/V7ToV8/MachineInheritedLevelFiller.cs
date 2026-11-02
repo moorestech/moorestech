@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using Game.SaveLoad.Migration.Steps.Shared;
 
 namespace Game.SaveLoad.Migration.Steps.V7ToV8
 {
@@ -7,7 +8,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
     /// 通常機械とクリーンルーム機械の加工状態に継承レベル null を明示で足す（冪等）。版7に継承レシピは無いため「継承しない」が正しい
     /// Add an explicit null inherited level to normal and clean-room machine processing state (idempotent); version 7 had no inheritance recipes, so "no inheritance" is exact
     /// </summary>
-    public sealed class MachineInheritedLevelFiller : IV7ToV8MigrationPart
+    public sealed class MachineInheritedLevelFiller : ISaveMigrationPart
     {
         // コンポーネントのSaveKey(typeof FullName)。ステップは現行の型を参照しないので文字列で持つ
         // Component SaveKeys (typeof FullName); the step never references live types, so they are kept as strings
@@ -23,29 +24,29 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
         {
             // world→ブロック→state の走査と拒否文は全部品で共有する
             // The world->block->state walk and its refusal texts are shared by every part
-            if (!V7ToV8SaveJson.TryCollectBlockStates(save, out var states, out failureReason)) return false;
+            if (!MigrationSaveJson.TryCollectBlockStates(save, out var states, out failureReason)) return false;
 
             foreach (var state in states)
             {
                 // 通常機械はprocessorサブオブジェクトへ足す
                 // A normal machine gets the key inside its processor sub-object
                 var vanillaToken = state[VanillaMachineSaveKey];
-                if (!V7ToV8SaveJson.IsAbsentOrNull(vanillaToken))
+                if (!MigrationSaveJson.IsAbsentOrNull(vanillaToken))
                 {
-                    if (!(vanillaToken is JObject vanilla)) return V7ToV8SaveJson.Reject($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}", out failureReason);
+                    if (!(vanillaToken is JObject vanilla)) return MigrationSaveJson.Reject($"{VanillaMachineSaveKey} がオブジェクトではありません。 type={vanillaToken.Type}", out failureReason);
                     var processorToken = vanilla["processor"];
                     // processorのキー欠落と明示nullはロード側も許容（警告して復元を見送る）ので、止めずに台数だけ残す（清浄室機械の部品と同じ扱い）
                     // An absent or explicit-null processor is tolerated by the loader too (skipped with a warning), so count it instead of refusing
-                    if (V7ToV8SaveJson.IsAbsentOrNull(processorToken)) _nullVanillaProcessorCount++;
-                    else if (!(processorToken is JObject processor)) return V7ToV8SaveJson.Reject($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={processorToken?.Type}", out failureReason);
+                    if (MigrationSaveJson.IsAbsentOrNull(processorToken)) _nullVanillaProcessorCount++;
+                    else if (!(processorToken is JObject processor)) return MigrationSaveJson.Reject($"{VanillaMachineSaveKey} の processor がオブジェクトではありません。 type={processorToken?.Type}", out failureReason);
                     else if (!processor.ContainsKey(InheritedLevelKey) || !processor.ContainsKey(PowerMultiplierKey)) _vanillaProcessors.Add(processor);
                 }
 
                 // クリーンルーム機械は直下へ足す
                 // A clean-room machine gets the key at its top level
-                var cleanRoomToken = state[V7ToV8SaveJson.CleanRoomMachineSaveKey];
-                if (V7ToV8SaveJson.IsAbsentOrNull(cleanRoomToken)) continue;
-                if (!(cleanRoomToken is JObject cleanRoom)) return V7ToV8SaveJson.Reject($"{V7ToV8SaveJson.CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}", out failureReason);
+                var cleanRoomToken = state[MigrationSaveJson.CleanRoomMachineSaveKey];
+                if (MigrationSaveJson.IsAbsentOrNull(cleanRoomToken)) continue;
+                if (!(cleanRoomToken is JObject cleanRoom)) return MigrationSaveJson.Reject($"{MigrationSaveJson.CleanRoomMachineSaveKey} がオブジェクトではありません。 type={cleanRoomToken.Type}", out failureReason);
                 if (!cleanRoom.ContainsKey(InheritedLevelKey) || !cleanRoom.ContainsKey(PowerMultiplierKey)) _cleanRoomProcessors.Add(cleanRoom);
             }
 
