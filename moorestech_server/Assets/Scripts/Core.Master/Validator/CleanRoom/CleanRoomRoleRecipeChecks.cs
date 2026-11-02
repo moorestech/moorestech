@@ -31,20 +31,8 @@ namespace Core.Master.Validator
             return logs;
         }
 
-        // 出力に指定アイテムがちょうど1回あること（添字は役割レコードが索引のときに引く）
-        // The item must appear exactly once among the outputs (the role record looks up the index at indexing)
-        public static string RequireSingleOutput(string roleName, MachineRecipeMasterElement recipe, Guid itemGuid)
-        {
-            var hitCount = 0;
-            foreach (var output in recipe.OutputItems)
-            {
-                if (output.ItemGuid == itemGuid) hitCount++;
-            }
-            return hitCount == 1 ? "" : $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must list ItemGuid:{itemGuid} exactly once in outputItems (found {hitCount})\n";
-        }
-
-        // レベルファミリーの基準アイテムであること。変種数（グレード数・レベル数）を返し、満たさなければ null
-        // The item must be a level family's base; returns the variant count (grade or level count), or null when it is not
+        // レベルファミリーの基準アイテムであること。変種数（レベル数）を返し、満たさなければ null
+        // The item must be a level family's base; returns the variant count (level count), or null when it is not
         public static string RequireFamilyBase(string roleName, Guid machineRecipeGuid, Guid itemGuid, out int? variantCount)
         {
             variantCount = null;
@@ -57,8 +45,8 @@ namespace Core.Master.Validator
             return "";
         }
 
-        // 抽選工程はレベルを継承しない
-        // Draw processes never inherit item levels
+        // 清浄室の抽選工程はレベル継承を使わない（グレードを廃止したため）
+        // Clean-room draw processes never use level inheritance since wafer grades were removed
         internal static string RequireNoInheritance(string roleName, MachineRecipeMasterElement recipe)
         {
             if (recipe.LevelInheritance == MachineRecipeMasterElement.LevelInheritanceConst.None) return "";
