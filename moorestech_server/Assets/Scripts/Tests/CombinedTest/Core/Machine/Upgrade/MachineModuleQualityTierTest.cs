@@ -46,6 +46,23 @@ namespace Tests.CombinedTest.Core.Machine.Upgrade
         }
 
         [Test]
+        public void AggregateReportsHighestTierEffectValueTest()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var tier1 = QualityModuleOfTier(1);
+            var tier2 = QualityModuleOfTier(2);
+
+            // 基準は個数の多いtier1(1.0)ではなく最高tier2の1個分(0.4)
+            // The reference is one highest-tier-2 module (0.4), not the more numerous tier 1 (1.0)
+            var effect = MachineModuleEffect.Aggregate(new List<MachineModuleEffect.EquippedModule> { new(tier1, 3), new(tier2, 1) });
+            Assert.AreEqual(0.4f, effect.HighestQualityModuleEffectValue, 0.0001f);
+
+            // 品質モジュールが無ければ0
+            // Zero without any quality module
+            Assert.AreEqual(0f, MachineModuleEffect.Aggregate(new List<MachineModuleEffect.EquippedModule>()).HighestQualityModuleEffectValue);
+        }
+
+        [Test]
         public void MachineComponentExposesHighestQualityTierTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

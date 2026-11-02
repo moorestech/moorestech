@@ -19,17 +19,22 @@ namespace Game.Block.Blocks.Machine.Module
         public readonly float ExtraOutputChance;
         public readonly float QualityShift;
 
-        // 効いている品質モジュールの最高tier。品質モジュールが無ければ0（クリーンルームの成膜がグレード上限に使う）
-        // Highest tier among effective quality modules; 0 without any (the clean-room deposition uses it as the grade cap)
+        // 効いている品質モジュールの最高tier。品質モジュールが無ければ0（クリーンルームのダイシングがダイ表の選択に使う）
+        // Highest tier among effective quality modules; 0 without any (clean-room dicing uses it to pick the die table)
         public readonly int HighestQualityModuleTier;
 
-        private MachineModuleEffect(float processingTimeMultiplier, float powerMultiplier, float extraOutputChance, float qualityShift, int highestQualityModuleTier)
+        // 最高tierの品質モジュール1個の効果値。品質モジュールが無ければ0（ダイシングのレア枠シフトの基準）
+        // Effect value of one module at the highest quality tier; 0 without any (the reference for dicing's rare-slot shift)
+        public readonly float HighestQualityModuleEffectValue;
+
+        private MachineModuleEffect(float processingTimeMultiplier, float powerMultiplier, float extraOutputChance, float qualityShift, int highestQualityModuleTier, float highestQualityModuleEffectValue)
         {
             ProcessingTimeMultiplier = processingTimeMultiplier;
             PowerMultiplier = powerMultiplier;
             ExtraOutputChance = extraOutputChance;
             QualityShift = qualityShift;
             HighestQualityModuleTier = highestQualityModuleTier;
+            HighestQualityModuleEffectValue = highestQualityModuleEffectValue;
         }
 
         public static MachineModuleEffect Aggregate(IReadOnlyList<EquippedModule> modules)
@@ -44,6 +49,7 @@ namespace Game.Block.Blocks.Machine.Module
             var qualitySum = 0f;
             var qualityTradeoff = 0f;
             var highestQualityTier = 0;
+            var highestQualityEffectValue = 0f;
             foreach (var equipped in modules)
             {
                 var module = equipped.Module;
@@ -64,7 +70,7 @@ namespace Game.Block.Blocks.Machine.Module
                     case ModuleMasterElement.EffectAxisConst.Quality:
                         qualitySum += module.EffectValue * count;
                         qualityTradeoff += module.TradeoffValue * count;
-                        if (0 < count) highestQualityTier = Math.Max(highestQualityTier, module.Tier);
+                        if (0 < count) UpdateHighestQuality(module);
                         break;
                     default:
                         break;
@@ -86,7 +92,23 @@ namespace Game.Block.Blocks.Machine.Module
             // Only floor here; the output side clamps the max
             var qualityShift = Math.Max(qualitySum, 0f);
 
-            return new MachineModuleEffect(processingTimeMultiplier, powerMultiplier, extraOutputChance, qualityShift, highestQualityTier);
+            return new MachineModuleEffect(processingTimeMultiplier, powerMultiplier, extraOutputChance, qualityShift, highestQualityTier, highestQualityEffectValue);
+
+            #region Internal
+
+            // 最高tierを更新し、同じtierなら効果値の大きい方を基準に残す
+            // Raise the highest tier, keeping the larger effect value on a tie
+            void UpdateHighestQuality(ModuleMasterElement module)
+            {
+                if (highestQualityTier < module.Tier)
+                {
+                    highestQualityTier = module.Tier;
+                    highestQualityEffectValue = module.EffectValue;
+                }
+                else if (highestQualityTier == module.Tier) highestQualityEffectValue = Math.Max(highestQualityEffectValue, module.EffectValue);
+            }
+
+            #endregion
         }
 
         /// <summary>

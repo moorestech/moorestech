@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Master.CleanRoomRoles;
@@ -11,8 +12,8 @@ using Mooresmaster.Model.MachineRecipesModule;
 namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
 {
     /// <summary>
-    ///     選択工程の次の抽選に使う上限・確率を、抽選と同じ口（TryGetRecipeRole・CleanRoomRoleRates）から求める
-    ///     Computes the caps and chances the next draw of the selected process will use, through the draw's own entry points (TryGetRecipeRole, CleanRoomRoleRates)
+    ///     選択工程の次の抽選に使う率を、抽選と同じ口（TryGetRecipeRole・CleanRoomRoleRates）から求める
+    ///     Computes the rates the next draw of the selected process will use, through the draw's own entry points (TryGetRecipeRole, CleanRoomRoleRates)
     /// </summary>
     internal static class CleanRoomYieldPreview
     {
@@ -44,10 +45,24 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
                     return new LayerExposurePreview(CleanRoomRoleRates.LayerFailRate(layer, classYield, moduleEffect));
                 case DicingRecipeRole dicing:
                     if (roll.HasValue) outputs = DicingOutputRewriter.Rewrite(dicing, roll.Value);
-                    return new DicingPreview(CleanRoomRoleRates.DieLossRate(dicing, classYield, moduleEffect));
+                    return CreateDicingPreview(dicing);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(role), role.GetType().Name, "未対応の清浄室工程の役割 / Unsupported clean-room recipe role");
             }
+
+            #region Internal
+
+            // シフト後の割合を [Lv1..LvMax] と失敗ダイに分けて記録する
+            // Record the shifted rates split into [Lv1..LvMax] and the failed die
+            DicingPreview CreateDicingPreview(DicingRecipeRole dicing)
+            {
+                var lossRate = CleanRoomRoleRates.DieLossRate(dicing, classYield, moduleEffect);
+                var rates = CleanRoomRoleRates.DicingRates(dicing, classYield, moduleEffect, out var tier);
+                var levelCount = dicing.DieLevelCount;
+                return new DicingPreview(lossRate, tier, rates.Take(levelCount).ToArray(), rates[levelCount]);
+            }
+
+            #endregion
         }
     }
 }

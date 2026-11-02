@@ -50,7 +50,6 @@ namespace Server.Protocol.PacketResponse
                     // 稼働できない間は率の欄を出さない（停止理由は部屋欄が出す）ので、確定済みの率も載せない
                     // While the machine cannot operate no rate section is shown (the room section shows the halt reason), so fixed rates are not carried either
                     NotOperablePreview _ => ResponseCleanRoomYieldInfoMessagePack.CreateNotOperable(),
-                    WaferGradePreview waferGrade => ResponseCleanRoomYieldInfoMessagePack.CreateWaferGrade(waferGrade.MaxGrade, waferGrade.PromotionChance, pending == null ? null : ToWaferGrade(RequireSameRole<WaferGradePreview>(pending))),
                     LayerExposurePreview layerExposure => ResponseCleanRoomYieldInfoMessagePack.CreateLayerExposure(layerExposure.LayerFailRate, pending == null ? null : new LayerExposureYieldMessagePack(RequireSameRole<LayerExposurePreview>(pending).LayerFailRate)),
                     DicingPreview dicing => ResponseCleanRoomYieldInfoMessagePack.CreateDicing(dicing.DieLossRate, pending == null ? null : new DicingYieldMessagePack(RequireSameRole<DicingPreview>(pending).DieLossRate)),
                     _ => throw new ArgumentOutOfRangeException(nameof(report.Next), report.Next.GetType().Name, "未対応の抽選の中身 / Unsupported yield preview"),
@@ -61,11 +60,6 @@ namespace Server.Protocol.PacketResponse
                 T RequireSameRole<T>(CleanRoomYieldPreviewResult pendingDraw) where T : CleanRoomYieldPreviewResult
                 {
                     return pendingDraw as T ?? throw new InvalidOperationException($"確定済み抽選の役割が次の抽選と違います next={report.Next.GetType().Name} pending={pendingDraw.GetType().Name}");
-                }
-
-                static WaferGradeYieldMessagePack ToWaferGrade(WaferGradePreview preview)
-                {
-                    return new WaferGradeYieldMessagePack(preview.MaxGrade, preview.PromotionChance);
                 }
             }
 

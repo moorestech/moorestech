@@ -123,7 +123,7 @@ namespace Game.Block.Blocks.Machine.State
             var effect = EffectComponent.AggregateCurrent();
             var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect, inheritedLevel, out var setCount);
             IRealizedOutputDrawRecord drawRecord = null;
-            if (_realizedOutputDecorator != null) outputs = _realizedOutputDecorator.Decorate(recipe, inheritedLevel, effect, setCount, outputs, out drawRecord);
+            if (_realizedOutputDecorator != null) outputs = _realizedOutputDecorator.Decorate(recipe, effect, setCount, outputs, out drawRecord);
             return new MachineRealization(recipe, inheritedLevel, outputs, MachineRealization.ComputeTotalTicks(recipe, effect), effect.PowerMultiplier, drawRecord);
         }
 

@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             CurrentEffect = effect;
         }
 
-        public List<IItemStack> Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs, out IRealizedOutputDrawRecord drawRecord)
+        public List<IItemStack> Decorate(MachineRecipeMasterElement recipe, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs, out IRealizedOutputDrawRecord drawRecord)
         {
             // 役割の無いレシピは抽選せずカウンタも進めない
             // A recipe with no role draws nothing and leaves the counter alone

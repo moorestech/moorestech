@@ -17,8 +17,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
         public readonly CleanRoomClassYield ClassYield;
         public readonly MachineModuleEffect ModuleEffect;
 
-        // 工場が作った1セット目（継承レシピは継承先が継承レベルの変種）と、工場が決めたセット数
-        // The factory's first set (an inheritance recipe's target is already the inherited level's variant) and the set count the factory decided
+        // 工場が作った1セット目と、工場が決めたセット数
+        // The factory's first set and the set count the factory decided
         public readonly IReadOnlyList<IItemStack> FactorySet;
         public readonly int SetCount;
         public readonly CleanRoomDrawRandom Random;

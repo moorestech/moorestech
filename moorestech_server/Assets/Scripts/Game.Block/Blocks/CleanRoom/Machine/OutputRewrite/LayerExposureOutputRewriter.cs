@@ -5,8 +5,8 @@ using Game.Block.Blocks.CleanRoom.Machine.Yield;
 
 namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
 {
-    // EUV: 層の失敗を1回判定し、成功なら入力と同じグレードの次層ウェハ、失敗なら失敗パターンウェハだけを出す
-    // EUV: roll the layer once; success yields the next-layer wafer at the input's grade, failure yields only the failed pattern wafer
+    // EUV: 層の失敗を1回判定し、成功なら次層ウェハ、失敗なら失敗パターンウェハだけを出す
+    // EUV: roll the layer once; success yields the next-layer wafer, failure yields only the failed pattern wafer
     internal static class LayerExposureOutputRewriter
     {
         public static List<IItemStack> Rewrite(LayerExposureRecipeRole role, CleanRoomYieldRollContext context)
@@ -16,8 +16,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
             var failRate = CleanRoomRoleRates.LayerFailRate(role, context.ClassYield, context.ModuleEffect);
             var isFailed = ChipYieldDraw.DrawLayerFailure(failRate, context.Random);
 
-            // 次層ウェハは工場が継承レベルの変種を当て済みなので、写しの成否で片方の個数を0にするだけ
-            // The factory already set the layered wafer to the inherited level's variant, so just zero out one side of the copy by the outcome
+            // 写しの成否で片方の個数を0にするだけ
+            // Just zero out one side of the copy by the outcome
             var (itemIds, counts) = RecipeOutputSetBuilder.CopySet(context.FactorySet);
             if (isFailed) counts[role.LayeredOutputIndex] = 0;
             else counts[role.FailedOutputIndex] = 0;
