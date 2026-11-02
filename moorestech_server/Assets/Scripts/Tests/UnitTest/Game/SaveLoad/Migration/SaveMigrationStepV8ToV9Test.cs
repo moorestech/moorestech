@@ -80,6 +80,46 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
             Assert.AreEqual(2, result.Save["world"][2]["state"][CleanRoomKey]["pendingRealization"]["inheritedLevel"].Value<int>());
         }
 
+        // 旧マスタ(5c5ccfe)の items.json から書き起こした期待値。本番の表とは独立に持ち、表の誤記を検出する
+        // Expectations transcribed from the old master (5c5ccfe) items.json, held independently of the production table to catch typos in it
+        private static readonly string[][] OldGradedWaferGuidsToG1 =
+        {
+            new[] { "019e3c14-b270-716f-84e5-c0b06a97592b", "01a17356-2aff-701f-9a1c-173dd8d81157", "01a17356-2aff-701f-9a1c-173e586a97c8", "01a17356-2aff-701f-9a1c-173f4e56a08c", "01a17356-2aff-701f-9a1c-17400907fcdb" },
+            new[] { "019e3c25-78f1-70ec-be1b-2c2cdd9297bb", "01a17356-2aff-701f-9a1c-1741f04fc54a", "01a17356-2aff-701f-9a1c-1742daa8f03b", "01a17356-2aff-701f-9a1c-1743a3e0faa8", "01a17356-2aff-701f-9a1c-17440811ab88" },
+            new[] { "01a17356-2aff-701f-9a1c-1745ca409137", "01a17356-2aff-701f-9a1c-17463137c0e6", "01a17356-2aff-701f-9a1c-1747727e8dd7", "01a17356-2aff-701f-9a1c-17489944bcb8", "01a17356-2aff-701f-9a1c-1749778cc017" },
+            new[] { "019e3b02-b9fd-73c7-9538-ef13b0f755f1", "01a17356-2aff-701f-9a1c-174aa306c5ed", "01a17356-2aff-701f-9a1c-174b4e200c10", "01a17356-2aff-701f-9a1c-174cedcce469", "01a17356-2aff-701f-9a1c-174dce4a2f06" },
+        };
+
+        private static readonly string[] OldInheritanceRecipeGuids =
+        {
+            "01a17363-05b5-72d8-8a5d-a0c245c7ebb6", "01a17363-05b5-72d8-8a5d-a0c31f51aa60", "01a17363-05b5-72d8-8a5d-a0c41f603b85", "01a17363-05b5-72d8-8a5d-a0c5f18cd451",
+        };
+
+        [Test]
+        public void 凍結した移行表の全行が旧マスタと一致するTest()
+        {
+            // 旧G2〜G5の16個を出力スロットに置き、継承をやめた4レシピの機械に継承レベルを置いて移行する
+            // Put the 16 old G2-G5 wafers in output slots and a machine per dropped-inheritance recipe with an inherited level, then migrate
+            var slots = new JArray();
+            foreach (var family in OldGradedWaferGuidsToG1)
+                foreach (var oldGuid in family) slots.Add(new JObject { ["itemGuid"] = oldGuid, ["count"] = 1 });
+            var world = new JArray(new JObject { ["blockGuid"] = "a", ["state"] = new JObject { [VanillaKey] = new JObject { ["outputSlot"] = slots } } });
+            foreach (var recipeGuid in OldInheritanceRecipeGuids)
+                world.Add(new JObject { ["blockGuid"] = "r", ["state"] = new JObject { [CleanRoomKey] = new JObject { ["cycleCount"] = 1, ["state"] = 0, ["recipeGuid"] = recipeGuid, ["inheritedLevel"] = 2 } } });
+
+            var result = new SaveMigrationStepV8ToV9().Migrate(new JObject { ["worldVersion"] = 8, ["world"] = world });
+
+            // 全グレードが同じ工程の G1（各行の先頭）へ寄り、継承レベルは4レシピとも捨てられる
+            // Every grade folds into its process's G1 (the first of each row) and the inherited level is dropped for all four recipes
+            Assert.IsTrue(result.IsConverted, result.FailureReason);
+            var migratedSlots = (JArray)result.Save["world"][0]["state"][VanillaKey]["outputSlot"];
+            var slotIndex = 0;
+            foreach (var family in OldGradedWaferGuidsToG1)
+                foreach (var oldGuid in family) Assert.AreEqual(family[0], migratedSlots[slotIndex++]["itemGuid"].Value<string>(), $"移行元 {oldGuid}");
+            for (var i = 0; i < OldInheritanceRecipeGuids.Length; i++)
+                Assert.AreEqual(JTokenType.Null, result.Save["world"][i + 1]["state"][CleanRoomKey]["inheritedLevel"].Type, OldInheritanceRecipeGuids[i]);
+        }
+
         [Test]
         public void 再実行しても変化しないTest()
         {
