@@ -25,6 +25,9 @@
         "innerTankCapacity": {
           "type": "number",
           "default": 0
+        },
+        "fluidInventoryConnectors": {
+          "$ref": "fluidInventoryConnects"
         }
       }
     },
@@ -422,12 +425,22 @@
                     },
                     "gear": {
                       "$ref": "gear"
+                    },
+                    "inputTankCount": {
+                      "type": "integer",
+                      "default": 0
+                    },
+                    "outputTankCount": {
+                      "type": "integer",
+                      "default": 0
+                    },
+                    "innerTankCapacity": {
+                      "type": "number",
+                      "default": 0
+                    },
+                    "fluidInventoryConnectors": {
+                      "$ref": "fluidInventoryConnects"
                     }
-                  },
-                  "interfacePropertyConstants": {
-                    "inputTankCount": 0,
-                    "outputTankCount": 0,
-                    "innerTankCapacity": 0
                   }
                 }
               },

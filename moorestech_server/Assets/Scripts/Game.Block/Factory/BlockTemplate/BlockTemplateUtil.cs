@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine.State;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.BeltConveyor.Connection;
@@ -67,6 +68,18 @@ namespace Game.Block.Factory.BlockTemplate
                 blockInventoryUpdateEvent, blockInstanceId, inputSlotCount, outputSlotCount);
 
             return (input, output, module);
+        }
+        
+        // タンクを持つ機械に配管コネクタと液体インベントリを付ける。電気・歯車・清浄室機械で共通
+        // Attach a pipe connector and fluid inventory to machines with tanks; shared by electric, gear and clean-room machines
+        public static void AddMachineFluidComponents(List<IBlockComponent> components, IMachineParam machineParam,
+            VanillaMachineInputInventory input, VanillaMachineOutputInventory output, BlockPositionInfo blockPositionInfo)
+        {
+            if (machineParam.InputTankCount <= 0 && machineParam.OutputTankCount <= 0) return; // silent-ok: タンクの無い機械は配管に繋がらない仕様 / 液体レシピは MachineRecipesMasterUtil の容量検証が起動時に弾く
+            
+            var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
+            components.Add(fluidConnector);
+            components.Add(new VanillaMachineFluidInventoryComponent(input, output, fluidConnector));
         }
         
         // 必須キーの扱いだけを分け、両機械の超過ログと復元規則を揃える

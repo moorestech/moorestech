@@ -322,6 +322,13 @@
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
         "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "inputTankCount": 0,
+        "innerTankCapacity": 0,
+        "outputTankCount": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -463,6 +470,13 @@
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
         "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "outputTankCount": 0,
+        "inputTankCount": 0,
+        "innerTankCapacity": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -735,6 +749,13 @@
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
         "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "outputTankCount": 0,
+        "inputTankCount": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -878,6 +899,13 @@
         "fluidContainerCapacity": 0,
         "inputFluidSlotCount": 0,
         "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "outputTankCount": 0,
+        "inputTankCount": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -1583,6 +1611,13 @@
         "fluidContainerCapacity": 0,
         "inputFluidSlotCount": 0,
         "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "outputTankCount": 0,
+        "innerTankCapacity": 0,
+        "inputTankCount": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -1697,6 +1732,13 @@
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
         "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "outputTankCount": 0,
+        "inputTankCount": 0,
+        "innerTankCapacity": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,
@@ -1740,6 +1782,13 @@
         "fluidContainerCount": 0,
         "inputFluidSlotCount": 0,
         "outputFluidSlotCount": 0,
+        "fluidInventoryConnectors": {
+          "inflowConnects": [],
+          "outflowConnects": []
+        },
+        "innerTankCapacity": 0,
+        "inputTankCount": 0,
+        "outputTankCount": 0,
         "overloadMaxRpm": 0,
         "overloadMaxTorque": 0,
         "destructionCheckInterval": 1,

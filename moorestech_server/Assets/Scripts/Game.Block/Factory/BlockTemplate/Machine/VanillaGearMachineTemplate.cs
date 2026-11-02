@@ -80,6 +80,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
                 new MachineRecipeBlueprintSettingsComponent(processor),
                 new MachineInputLevelStallComponent(input, processor),
             };
+            BlockTemplateUtil.AddMachineFluidComponents(components, machineParam, input, output, blockPositionInfo);
             
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }

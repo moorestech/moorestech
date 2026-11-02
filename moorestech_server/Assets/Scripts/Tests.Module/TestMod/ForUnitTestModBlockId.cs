@@ -33,6 +33,7 @@ namespace Tests.Module.TestMod
         public static BlockId BigGear => GetBlock("00000000-0000-0000-0000-00000000000d");
         public static BlockId Shaft => GetBlock("00000000-0000-0000-0000-00000000000e");
         public static BlockId GearMachine => GetBlock("00000000-0000-0000-0000-00000000000f");
+        public static BlockId FluidGearMachine => GetBlock("00000000-0000-0000-0000-000000000105"); // 入出力タンク1本ずつの歯車機械 / Gear machine with one input and one output tank
         public static BlockId SimpleGearGenerator => GetBlock("00000000-0000-0000-0000-000000000010");
         public static BlockId SimpleFastGearGenerator => GetBlock("00000000-0000-0000-0000-000000000011");
         public static BlockId Teeth10RequireTorqueTestGear => GetBlock("00000000-0000-0000-0000-000000000012");

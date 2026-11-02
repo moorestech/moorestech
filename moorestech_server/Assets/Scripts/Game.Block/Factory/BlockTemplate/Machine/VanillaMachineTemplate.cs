@@ -61,20 +61,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
                 new MachineRecipeBlueprintSettingsComponent(processor),
                 new MachineInputLevelStallComponent(input, processor),
             };
-
-            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
-            if (machineParam.FluidInventoryConnectors != null && (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount))
-            {
-                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
-                var fluidInventory = new VanillaMachineFluidInventoryComponent(
-                    input,
-                    output,
-                    fluidConnector
-                );
-
-                components.Add(fluidConnector);
-                components.Add(fluidInventory);
-            }
+            BlockTemplateUtil.AddMachineFluidComponents(components, machineParam, input, output, blockPositionInfo);
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
@@ -111,20 +98,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
                 new MachineRecipeBlueprintSettingsComponent(processor),
                 new MachineInputLevelStallComponent(input, processor),
             };
-
-            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
-            if (machineParam.FluidInventoryConnectors != null && (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount))
-            {
-                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
-                var fluidInventory = new VanillaMachineFluidInventoryComponent(
-                    input,
-                    output,
-                    fluidConnector
-                );
-
-                components.Add(fluidConnector);
-                components.Add(fluidInventory);
-            }
+            BlockTemplateUtil.AddMachineFluidComponents(components, machineParam, input, output, blockPositionInfo);
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
