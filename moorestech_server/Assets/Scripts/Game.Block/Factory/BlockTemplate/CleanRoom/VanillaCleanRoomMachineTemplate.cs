@@ -79,14 +79,7 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
                 operabilityState,
             };
 
-            // タンクを持つ機械だけ配管コネクタと液体インベントリを組む（通常機械と同じ構成）
-            // Only machines with tanks get a pipe connector and fluid inventory (same layout as normal machines)
-            if (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount)
-            {
-                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
-                components.Add(fluidConnector);
-                components.Add(new VanillaMachineFluidInventoryComponent(input, output, fluidConnector));
-            }
+            BlockTemplateUtil.AddMachineFluidComponents(components, machineParam, input, output, blockPositionInfo);
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
