@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -72,8 +73,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // どちら向きに張っても接続上限で拒否される
             // Either direction is rejected by the connection limit
-            Assert.IsFalse(ElectricWireSystemUtil.TryConnect(PolePosition, MachinePosition, PlayerId, ElectricWireConnectToolGuid, false, out _));
-            Assert.IsFalse(ElectricWireSystemUtil.TryConnect(MachinePosition, PolePosition, PlayerId, ElectricWireConnectToolGuid, false, out _));
+            Assert.IsFalse(ElectricWireSystemUtil.TryConnect(PolePosition, MachinePosition, PlayerId, ElectricWireConnectToolGuid, false, out var reasonPoleToMachine));
+            Assert.IsFalse(ElectricWireSystemUtil.TryConnect(MachinePosition, PolePosition, PlayerId, ElectricWireConnectToolGuid, false, out var reasonMachineToPole));
+            Assert.AreEqual(ElectricWirePlacementFailureReason.ConnectionLimit, reasonPoleToMachine);
+            Assert.AreEqual(ElectricWirePlacementFailureReason.ConnectionLimit, reasonMachineToPole);
             Assert.AreEqual(0, pole.GetComponent<IElectricWireConnector>().WireConnections.Count);
             Assert.AreEqual(0, fuelMachine.GetComponent<IElectricWireConnector>().WireConnections.Count);
         }
