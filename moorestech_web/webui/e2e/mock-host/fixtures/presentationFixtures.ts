@@ -8,6 +8,15 @@ export const challengeTree = {
       { guid: "82000000-0000-4000-8000-000000000001", iconItemId: 1, state: "completed", position: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: [] },
       { guid: "82000000-0000-4000-8000-000000000002", iconItemId: 2, state: "current", position: { x: 220, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: ["82000000-0000-4000-8000-000000000001"] },
     ],
+  }, {
+    // 進行中を原点から遠くに置き、カテゴリ切替でも進行中へ寄せることを検証する
+    // The in-progress node sits far from the origin to verify a category switch still centers on it
+    guid: "81000000-0000-4000-8000-000000000002",
+    iconItemId: 3,
+    nodes: [
+      { guid: "82000000-0000-4000-8000-00000000000b", iconItemId: 3, state: "completed", position: { x: 0, y: 0 }, scale: { x: 1, y: 1 }, prevGuids: [] },
+      { guid: "82000000-0000-4000-8000-00000000000c", iconItemId: 4, state: "current", position: { x: 1400, y: 700 }, scale: { x: 1, y: 1 }, prevGuids: ["82000000-0000-4000-8000-00000000000b"] },
+    ],
   }],
 } satisfies ChallengeTreeData;
 export const challengeCurrent = { challenges: [{ guid: "82000000-0000-4000-8000-000000000002", categoryGuid: "81000000-0000-4000-8000-000000000001" }] } satisfies ChallengeCurrentData;

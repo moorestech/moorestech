@@ -1,6 +1,9 @@
-/* アイコンは枠内へ収め、比率を保つ */
-/* The icon fits inside the frame while keeping its aspect ratio */
+/* アイコンは枠内へ収め、比率を保つ。枠より小さいため枠(SlotFrame・position: relative)の中央へ置く */
+/* The icon fits inside the frame keeping its aspect ratio; being smaller than the frame, it is centered in it (SlotFrame is position: relative) */
 .icon {
+  position: absolute;
+  inset: 0;
+  margin: auto;
   width: calc(var(--slot-size) - 8px);
   height: calc(var(--slot-size) - 8px);
   object-fit: contain;
