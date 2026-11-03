@@ -26,7 +26,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
     {
         [TestCase(false)]
         [TestCase(true)]
-        public void SaveReloadPreservesJobTimeAndConsumedGradeOrWarnsForLegacy(bool legacy)
+        public void SaveReloadPreservesJobTimeAndConsumedInputOrWarnsForLegacy(bool legacy)
         {
             var datastore = CleanRoomHatchTest.CreateServer();
             var filter = BuildSmallCleanRoomWithFilter();
@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             Assert.IsTrue(WaitForClassA(datastore, filter, machine, 4000));
             var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
             inventory.SetItem(FirstModuleSlot, MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000005")), 1);
-            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestGradedWaferG2, 1);
+            SelectRecipeAndLoad(machine, ForUnitTestMachineRecipeId.CleanRoomLayerExposureRecipe, ForUnitTestItemId.TestTransistorWafer, 1);
             TopUpIpa(machine, 20);
             TickRoom(filter, machine);
             var processor = machine.GetComponent<CleanRoomMachineProcessorComponent>();
@@ -54,8 +54,12 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
                 LogAssert.Expect(LogType.Warning, new Regex("確定電力倍率が無い"));
             }
 
-            // JSON往復で加工残量・出力・消費したG2を復元する
-            // Restore remaining work, outputs and consumed G2 through a JSON round trip
+            // 露光は継承しないので、ジョブは継承レベルを持たない
+            // Exposure does not inherit, so the job carries no inherited level
+            Assert.IsNull(before.InheritedLevel);
+
+            // JSON往復で加工残量・出力・消費したウェハを復元する
+            // Restore remaining work, outputs and the consumed wafer through a JSON round trip
             var restored = ServerContext.BlockFactory.Load(machine.BlockGuid, machine.BlockInstanceId, states,
                 new BlockPositionInfo(new Vector3Int(30, 0, 30), BlockDirection.North, Vector3Int.one));
             var restoredProcessor = restored.GetComponent<CleanRoomMachineProcessorComponent>();
@@ -79,19 +83,17 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             var overflow = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, 10);
             Assert.AreEqual(MachineRecipeSelectionResult.Success, restoredProcessor.ClearSelectedRecipe(overflow));
             var returned = restored.GetComponent<IOpenableBlockInventoryComponent>().InventoryItems.Concat(overflow.InventoryItems);
-            Assert.AreEqual(1, returned.Where(item => item.Id == ForUnitTestItemId.TestGradedWaferG2).Sum(item => item.Count));
-            Assert.AreEqual(0, returned.Where(item => item.Id == ForUnitTestItemId.TestGradedWaferG1).Sum(item => item.Count));
+            Assert.AreEqual(1, returned.Where(item => item.Id == ForUnitTestItemId.TestTransistorWafer).Sum(item => item.Count));
+            Assert.IsNull(afterAgain.InheritedLevel);
         }
-        [TestCase("waferGrade")]
         [TestCase("layerExposure")]
         [TestCase("dicing")]
         public void DrawRecordPreservesWireShapeAndRatesThroughJson(string kind)
         {
             var wire = JObject.Parse(kind switch
             {
-                "waferGrade" => "{ 'kind': 'waferGrade', 'maxGrade': 3, 'promotionChance': 0.125 }",
                 "layerExposure" => "{ 'kind': 'layerExposure', 'layerFailRate': 0.25 }",
-                "dicing" => "{ 'kind': 'dicing', 'dieLossRate': 0.375 }",
+                "dicing" => "{ 'kind': 'dicing', 'dieLossRate': 0.375, 'qualityTier': 2, 'levelRates': [0.0625, 0.75, 0.125], 'failedRate': 0.0625 }",
                 _ => throw new ArgumentOutOfRangeException(nameof(kind)),
             });
 
@@ -100,7 +102,6 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             var restored = CleanRoomYieldPreviewResult.RestoreDrawRecord(wire);
             var expectedType = kind switch
             {
-                "waferGrade" => typeof(WaferGradePreview),
                 "layerExposure" => typeof(LayerExposurePreview),
                 "dicing" => typeof(DicingPreview),
                 _ => throw new ArgumentOutOfRangeException(nameof(kind)),
@@ -117,6 +118,12 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine.Save
             Assert.IsNull(CleanRoomYieldPreviewResult.RestoreDrawRecord(null));
             Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(new JObject { ["kind"] = "unknown" }));
             Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(new JObject { ["kind"] = "dicing" }));
+
+            // 廃止した成膜の記録と、品質Tierの無い旧ダイシング記録は拒否する
+            // Reject the retired deposition record and an old dicing record without a quality tier
+            Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(JObject.Parse("{ 'kind': 'waferGrade', 'maxGrade': 3, 'promotionChance': 0.125 }")));
+            Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(JObject.Parse("{ 'kind': 'dicing', 'dieLossRate': 0.375, 'levelRates': [1.0], 'failedRate': 0.0 }")));
+            Assert.Throws<InvalidOperationException>(() => CleanRoomYieldPreviewResult.RestoreDrawRecord(JObject.Parse("{ 'kind': 'dicing', 'dieLossRate': 0.375, 'qualityTier': 0, 'failedRate': 0.0 }")));
             Assert.Throws<InvalidOperationException>(() => NoRolePreview.Instance.CaptureDrawRecord());
             Assert.Throws<InvalidOperationException>(() => NotOperablePreview.Instance.CaptureDrawRecord());
         }

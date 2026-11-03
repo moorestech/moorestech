@@ -65,10 +65,9 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
         }
 
         [Test]
-        public void 変換元の版は7で現在版は8Test()
+        public void 変換元の版は7Test()
         {
             Assert.AreEqual(7, new SaveMigrationStepV7ToV8().FromVersion);
-            Assert.AreEqual(8, WorldSaveAllInfo.CurrentVersion);
         }
 
         [Test]
@@ -121,7 +120,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
         // The same array as production (SaveAndEventServiceRegistration)
         private static SaveMigrationChain CurrentVersionChain()
         {
-            return SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8() });
+            return SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9() });
         }
 
         #endregion

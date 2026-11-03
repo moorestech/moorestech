@@ -1,5 +1,7 @@
+using System;
 using Core.Master.CleanRoomRoles;
 using Game.Block.Blocks.CleanRoom.Machine.Yield;
+using Game.Block.Blocks.CleanRoom.Machine.YieldPreview;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Interface.Component;
 
@@ -11,20 +13,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
     /// </summary>
     internal static class CleanRoomRoleRates
     {
-        // 成膜のグレード上限＝装着品質モジュールの最高tier+1（グレード数で頭打ち）
-        // Deposition grade cap = highest equipped quality tier + 1, capped by the grade count
-        public static int MaxWaferGrade(WaferGradeRecipeRole role, MachineModuleEffect moduleEffect)
-        {
-            return ChipYieldFormula.MaxWaferGrade(moduleEffect.HighestQualityModuleTier, role.GradeCount);
-        }
-
-        // 成膜の1段の昇格確率＝品質合計×クラス倍率（上限maxPromotionChance）
-        // Deposition per-step promotion chance = quality sum x class multiplier, capped by maxPromotionChance
-        public static double PromotionChance(WaferGradeRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
-        {
-            return ChipYieldFormula.PromotionChance(moduleEffect.QualityShift, classYield.QualityMultiplier, role.Draw.MaxPromotionChance);
-        }
-
         // EUVの層失敗率＝クラス別の層失敗率×(1−min(品質合計, maxFailReduction))
         // EUV layer fail rate = class layer fail rate x (1 - min(quality sum, maxFailReduction))
         public static double LayerFailRate(LayerExposureRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
@@ -32,11 +20,15 @@ namespace Game.Block.Blocks.CleanRoom.Machine.OutputRewrite
             return ChipYieldFormula.ReducedRate(classYield.LayerFailRate, moduleEffect.QualityShift, role.Exposure.MaxFailReduction);
         }
 
-        // ダイシングのダイ損失率＝クラス別のダイ損失率×(1−min(品質合計, maxLossReduction))
-        // Dicing die loss rate = class die loss rate x (1 - min(quality sum, maxLossReduction))
-        public static double DieLossRate(DicingRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
+        // ダイシングの率を1回だけ計算する。損失率は品質合計で割り引き、Tierはダイシング装置の品質最高Tier（ダイの最大レベルで頭打ち）
+        // Compute dicing rates once; loss is discounted by the quality sum and the tier is the machine's highest quality tier capped at the die's top level
+        public static DicingPreview Dicing(DicingRecipeRole role, CleanRoomClassYield classYield, MachineModuleEffect moduleEffect)
         {
-            return ChipYieldFormula.ReducedRate(classYield.DieLossRate, moduleEffect.QualityShift, role.Dicing.MaxLossReduction);
+            var lossRate = ChipYieldFormula.ReducedRate(classYield.DieLossRate, moduleEffect.QualityShift, role.Dicing.MaxLossReduction);
+            var qualityTier = Math.Min(moduleEffect.HighestQualityModuleTier, role.DieLevelCount);
+            var table = role.Dicing.QualityTierDieTables[qualityTier];
+            var levelRates = ChipYieldFormula.ShiftedDieRates(table.LevelRates, table.FailedRate, qualityTier, moduleEffect.QualityShift, classYield.QualityMultiplier, moduleEffect.HighestQualityModuleEffectValue, role.Dicing.MaxRareShift, out var failedRate);
+            return new DicingPreview(lossRate, qualityTier, levelRates, failedRate);
         }
     }
 }

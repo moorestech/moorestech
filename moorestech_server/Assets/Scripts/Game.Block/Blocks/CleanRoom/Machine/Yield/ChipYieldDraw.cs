@@ -8,55 +8,43 @@ namespace Game.Block.Blocks.CleanRoom.Machine.Yield
     /// </summary>
     public static class ChipYieldDraw
     {
-        // G1から始め、同じ確率で1段ずつ上げ、外れか上限で止める
-        // Start at G1 and climb one step per success at the same chance, stopping on a miss or at the cap
-        public static int DrawWaferGrade(double promotionChance, int maxGrade, CleanRoomDrawRandom random)
-        {
-            var grade = 1;
-            while (grade < maxGrade && random.NextDouble() < promotionChance) grade++;
-            return grade;
-        }
-
         public static bool DrawLayerFailure(double layerFailRate, CleanRoomDrawRandom random)
         {
             return random.NextDouble() < layerFailRate;
         }
 
-        // ダイごとに損失を判定し（損失数は二項分布）、残りをダイ表でレベルへ振り分ける
-        // Roll loss per die (the loss count is binomial), then assign survivors a level from the die table
-        public static DicingDrawResult DrawDicing(int diesPerWafer, double dieLossRate, IReadOnlyList<float> levelRates, CleanRoomDrawRandom random)
+        // ダイごとに損失を判定し、残りをレベル別割合と失敗ダイ割合で振り分ける。損失と失敗枠はどちらも失敗ダイ
+        // Roll loss per die, then assign survivors by the level rates and the failed-die rate; losses and failure-slot picks both become failed dies
+        public static DicingDrawResult DrawDicing(int diesPerWafer, double dieLossRate, IReadOnlyList<double> levelRates, double failedRate, CleanRoomDrawRandom random)
         {
-            var goodCounts = new int[levelRates.Count];
+            var levelCount = levelRates.Count;
+            var goodCounts = new int[levelCount];
             var failedCount = 0;
             for (var die = 0; die < diesPerWafer; die++)
             {
-                if (random.NextDouble() < dieLossRate)
-                {
-                    failedCount++;
-                    continue;
-                }
-                goodCounts[PickLevelIndex(levelRates, random.NextDouble())]++;
+                if (random.NextDouble() < dieLossRate) { failedCount++; continue; }
+                var picked = PickIndex(random.NextDouble());
+                if (picked == levelCount) failedCount++;
+                else goodCounts[picked]++;
             }
             return new DicingDrawResult(goodCounts, failedCount);
 
             #region Internal
 
-            // 累積比率で添字を選ぶ。丸め誤差で外れた分は最後のレベルへ寄せる
-            // Pick an index by cumulative rate; rounding leftovers fall to the last level
-            static int PickLevelIndex(IReadOnlyList<float> levelRates, double roll)
+            // 累積比率で添字を選ぶ。丸め誤差で外れた分は末尾（失敗ダイ）へ寄せる
+            // Pick an index by cumulative rate; rounding leftovers fall to the last slot (failed die)
+            int PickIndex(double roll)
             {
                 var cumulative = 0d;
-                for (var i = 0; i < levelRates.Count - 1; i++)
+                for (var i = 0; i < levelCount; i++)
                 {
                     cumulative += levelRates[i];
                     if (roll < cumulative) return i;
                 }
-                return levelRates.Count - 1;
+                return levelCount;
             }
 
             #endregion
         }
-
-
     }
 }

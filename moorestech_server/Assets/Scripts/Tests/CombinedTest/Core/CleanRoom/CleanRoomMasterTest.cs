@@ -69,26 +69,13 @@ namespace Tests.CombinedTest.Core.CleanRoom
         }
 
         [Test]
-        public void TryGetRecipeRoleResolvesWaferGradeTest()
+        public void DepositionRecipeHasNoRoleTest()
         {
-            var (_, _) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 成膜レシピは成膜の役割として引け、出力の添字・基準アイテム・グレード数が索引時に解決済み
-            // The deposition recipe resolves as a deposition role with its output index, base item and grade count already resolved at indexing
-            var master = MasterHolder.CleanRoomMaster;
-            Assert.IsTrue(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, out var role));
-            Assert.IsInstanceOf<WaferGradeRecipeRole>(role);
-            var waferGrade = (WaferGradeRecipeRole)role;
-            Assert.AreEqual(Guid.Parse("75a25126-5568-40d8-8028-509f202c4207"), waferGrade.Draw.GradedWaferItemGuid);
-            Assert.AreEqual(0.9f, waferGrade.Draw.MaxPromotionChance, 1e-6f);
-            Assert.AreEqual(0, waferGrade.GradedOutputIndex);
-            Assert.AreEqual(ForUnitTestItemId.TestGradedWaferG1, waferGrade.GradedWaferBaseItemId);
-            Assert.AreEqual(3, waferGrade.GradeCount);
-
-            // 役割表に無いGUIDは引けない
-            // A GUID outside the role tables does not resolve
-            Assert.IsFalse(master.TryGetRecipeRole(Guid.NewGuid(), out _));
+            // 成膜はグレード抽選を失い、役割を持たない普通の工程になる
+            // Deposition lost its grade draw and is now a plain process with no role
+            Assert.IsFalse(MasterHolder.CleanRoomMaster.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, out _));
         }
 
         [Test]
@@ -110,7 +97,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
 
             // 成膜レシピはEUVの役割にならない（1レシピ1役割）
             // The deposition recipe does not resolve as an EUV role (one role per recipe)
-            Assert.IsTrue(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, out var depositionRole));
+            Assert.IsFalse(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDepositionRecipe, out var depositionRole));
             Assert.IsNotInstanceOf<LayerExposureRecipeRole>(depositionRole);
         }
 
@@ -120,15 +107,15 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var (_, _) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // ダイシングの表はグレード順に並び、1枚あたりのダイ数とダイのレベル数が索引時に解決済み
-            // The dicing tables are ordered by grade, and the dies per wafer and die level count are resolved at indexing
+            // ダイシングの表は品質Tier 0〜最大レベルの順に並び、1枚あたりのダイ数とダイのレベル数が索引時に解決済み
+            // The dicing tables are ordered by quality tier 0..max level, and the dies per wafer and die level count are resolved at indexing
             var master = MasterHolder.CleanRoomMaster;
             Assert.IsTrue(master.TryGetRecipeRole(ForUnitTestMachineRecipeId.CleanRoomDicingRecipe, out var role));
             Assert.IsInstanceOf<DicingRecipeRole>(role);
             var dicing = (DicingRecipeRole)role;
             Assert.AreEqual(300, dicing.Dicing.DiesPerWafer);
-            Assert.AreEqual(3, dicing.Dicing.GradeDieTables.Length);
-            Assert.AreEqual(3, dicing.Dicing.GradeDieTables[2].LevelRates.Length);
+            Assert.AreEqual(4, dicing.Dicing.QualityTierDieTables.Length);
+            Assert.AreEqual(3, dicing.Dicing.QualityTierDieTables[2].LevelRates.Length);
             Assert.AreEqual(3, dicing.DieLevelCount);
 
             // 層露光レシピはダイシングの役割にならない（1レシピ1役割）
@@ -138,29 +125,26 @@ namespace Tests.CombinedTest.Core.CleanRoom
         }
 
         [Test]
-        public void WaferGradeRoleRejectsInheritanceRecipeTest()
+        public void DicingRoleRejectsInheritanceRecipeTest()
         {
-            var (_, _) = new MoorestechServerDIContainerGenerator()
-                .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 成膜の役割表が継承レシピ（Part C のテスト用）を指すと、起動時の検証が levelInheritance None を求めて止める
-            // When the deposition role table points at an inheritance recipe (Part C's test recipe), boot validation stops it by requiring levelInheritance None
-            var cleanRoomJson = JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
-            var draw = (JObject)cleanRoomJson["data"][0]["waferGradeDraws"][0];
-            draw["machineRecipeGuid"] = ForUnitTestLevelInheritanceIds.InheritRecipeGuid.ToString();
-            draw["gradedWaferItemGuid"] = ForUnitTestLevelInheritanceIds.TargetBaseGuid.ToString();
-
-            Assert.IsFalse(new CleanRoomMaster(cleanRoomJson).Validate(out var errorLogs));
-            StringAssert.Contains($"WaferGradeDraws MachineRecipeGuid:{ForUnitTestLevelInheritanceIds.InheritRecipeGuid} must use levelInheritance None", errorLogs);
+            // ダイシングの役割表が継承レシピを指すと、起動時の検証が levelInheritance None を求めて止める
+            // When the dicing role table points at an inheritance recipe, boot validation stops it by requiring levelInheritance None
+            var json = JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
+            json["data"][0]["dicings"][0]["machineRecipeGuid"] = ForUnitTestLevelInheritanceIds.InheritRecipeGuid.ToString();
+            Assert.IsFalse(new CleanRoomMaster(json).Validate(out var logs));
+            StringAssert.Contains($"Dicings MachineRecipeGuid:{ForUnitTestLevelInheritanceIds.InheritRecipeGuid} levelInheritance must be None", logs);
         }
+
         [Test]
         public void RoleChanceRequiresFiniteUnitIntervalTest(
-            [Values("waferGradeDraws", "layerExposures", "dicings")] string role,
+            [Values("layerExposures", "dicings")] string role,
             [Values(float.NaN, float.PositiveInfinity, float.NegativeInfinity, 0f, 1f)] float value)
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var json = JObject.Parse(File.ReadAllText(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "cleanRoom.json")));
-            var key = role == "waferGradeDraws" ? "maxPromotionChance" : role == "layerExposures" ? "maxFailReduction" : "maxLossReduction";
+            var key = role == "layerExposures" ? "maxFailReduction" : "maxRareShift";
             // JSONモデル境界で非有限値と正常な両端を検証する
             // Validate non-finite values and both valid endpoints at the JSON model boundary
             json["data"][0][role][0][key] = value;

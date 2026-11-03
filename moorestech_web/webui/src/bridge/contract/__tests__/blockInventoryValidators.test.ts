@@ -124,7 +124,7 @@ describe("converter detail ownership", () => {
 
 describe("validBlockInventory detail section parents", () => {
   const cleanRoom = { fetchState: "fetched", kind: "noEnclosure" };
-  const cleanRoomYield = { fetchState: "fetched", role: "dicing", dieLossRate: 0.03 };
+  const cleanRoomYield = { fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2 };
   const machineInputStall = { fetchState: "notFetched" };
 
   // 3欄は欄ごとに許された親ブロックの種別にだけ載り、Chest 等への混入は境界で拒否する

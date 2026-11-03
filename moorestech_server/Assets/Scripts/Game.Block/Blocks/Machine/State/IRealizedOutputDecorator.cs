@@ -12,11 +12,11 @@ namespace Game.Block.Blocks.Machine.State
     /// </summary>
     internal interface IRealizedOutputDecorator
     {
-        // 継承レベル（継承しないレシピは null）・出力を作ったのと同じモジュール効果の集計・工場のセット数（実現出力は1セットをその回数並べたもの）を受け取る
-        // Receives the inherited level (null for non-inheritance recipes), the module-effect aggregate that built the outputs, and the factory's set count (the outputs are one set laid out that many times)
+        // 出力を作ったのと同じモジュール効果の集計・工場のセット数（実現出力は1セットをその回数並べたもの）を受け取る
+        // Receives the module-effect aggregate that built the outputs and the factory's set count (the outputs are one set laid out that many times)
         // 差し替えたときは確定に使った値を drawRecord に返し、素通しなら null を返す
         // When it rewrites, it returns the values used for fixing in drawRecord; a pass-through returns null
-        List<IItemStack> Decorate(MachineRecipeMasterElement recipe, int? inheritedLevel, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs, out IRealizedOutputDrawRecord drawRecord);
+        List<IItemStack> Decorate(MachineRecipeMasterElement recipe, MachineModuleEffect moduleEffect, int setCount, List<IItemStack> realizedOutputs, out IRealizedOutputDrawRecord drawRecord);
     }
 
     /// <summary>

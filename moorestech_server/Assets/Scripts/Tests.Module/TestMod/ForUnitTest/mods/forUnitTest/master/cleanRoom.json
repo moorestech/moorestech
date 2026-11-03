@@ -42,13 +42,6 @@
           "dieLossRate": 0.38
         }
       ],
-      "waferGradeDraws": [
-        {
-          "machineRecipeGuid": "ddcacf5c-a34d-4cc9-95e9-0d0e9a0f44ba",
-          "gradedWaferItemGuid": "75a25126-5568-40d8-8028-509f202c4207",
-          "maxPromotionChance": 0.9
-        }
-      ],
       "layerExposures": [
         {
           "machineRecipeGuid": "06549afe-feb3-438e-b2fe-0e53bb16925a",
@@ -64,24 +57,39 @@
           "failedDieItemGuid": "4bcfd0a6-c9ea-4286-b7f1-1fd38d93ad32",
           "diesPerWafer": 300,
           "maxLossReduction": 0.8,
-          "gradeDieTables": [
+          "maxRareShift": 0.2,
+          "qualityTierDieTables": [
             {
               "levelRates": [
-                1.0
-              ]
+                0.2,
+                0,
+                0
+              ],
+              "failedRate": 0.8
             },
             {
               "levelRates": [
                 0.7,
-                0.3
-              ]
+                0.1,
+                0
+              ],
+              "failedRate": 0.2
             },
             {
               "levelRates": [
-                0.55,
-                0.3,
-                0.15
-              ]
+                0.1,
+                0.7,
+                0.1
+              ],
+              "failedRate": 0.1
+            },
+            {
+              "levelRates": [
+                0.05,
+                0.1,
+                0.75
+              ],
+              "failedRate": 0.1
             }
           ]
         }

@@ -12,6 +12,7 @@ Ordering for operation A. Items and blocks share the rule and are ordered indepe
 initial unlocks first, then research targets by depth, nodeGraph rows (y) and in-research columns (x), then orphans.
 A target unlocked by several researches is placed only under the first research. Priorities start at 100 in steps of 10.
 """
+import sys
 X_COLUMN_THRESHOLD = 100
 Y_ROW_THRESHOLD = 100
 SORT_START = 100
@@ -77,9 +78,13 @@ def ordered_research(researches, positions):
             depth_memo[guid] = 0 if not prevs else max(depth(p) for p in prevs) + 1
         return depth_memo[guid]
 
+    unplaced = [r["researchNodeGuid"] for r in researches if r["researchNodeGuid"] not in positions]
+    if unplaced:
+        # nodeGraph に無い研究は (0,0) とみなして続け、実行者の端末へ件数と GUID を出す
+        # Research missing from nodeGraph is treated as (0,0); the count and GUIDs go to the runner's terminal
+        print(f"WARN nodeGraph に無い研究 {len(unplaced)} 件を (0,0) として並べた: {unplaced}", file=sys.stderr)
     by_depth = {}
     for r in researches:
-        # silent-ok: nodeGraph に無い研究は (0,0) とみなす / nodegraph_sync --check が未配置の研究を FAIL で出す
         by_depth.setdefault(depth(r["researchNodeGuid"]), []).append((positions.get(r["researchNodeGuid"], (0, 0)), r))
     result = []
     for d in sorted(by_depth):

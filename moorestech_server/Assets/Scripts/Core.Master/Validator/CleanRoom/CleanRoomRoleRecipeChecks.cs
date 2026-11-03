@@ -7,8 +7,8 @@ using Mooresmaster.Model.MachineRecipesModule;
 namespace Core.Master.Validator
 {
     /// <summary>
-    ///     チップ工程の役割表（成膜・EUV・ダイシング）に共通する検証。生のマスタだけを読む
-    ///     Validation shared by the chip-process role tables (deposition, EUV, dicing); reads the raw master only
+    ///     チップ工程の役割表（EUV・ダイシング）に共通する検証。生のマスタだけを読む
+    ///     Validation shared by the chip-process role tables (EUV, dicing); reads the raw master only
     /// </summary>
     internal static class CleanRoomRoleRecipeChecks
     {
@@ -31,20 +31,8 @@ namespace Core.Master.Validator
             return logs;
         }
 
-        // 出力に指定アイテムがちょうど1回あること（添字は役割レコードが索引のときに引く）
-        // The item must appear exactly once among the outputs (the role record looks up the index at indexing)
-        public static string RequireSingleOutput(string roleName, MachineRecipeMasterElement recipe, Guid itemGuid)
-        {
-            var hitCount = 0;
-            foreach (var output in recipe.OutputItems)
-            {
-                if (output.ItemGuid == itemGuid) hitCount++;
-            }
-            return hitCount == 1 ? "" : $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must list ItemGuid:{itemGuid} exactly once in outputItems (found {hitCount})\n";
-        }
-
-        // レベルファミリーの基準アイテムであること。変種数（グレード数・レベル数）を返し、満たさなければ null
-        // The item must be a level family's base; returns the variant count (grade or level count), or null when it is not
+        // レベルファミリーの基準アイテムであること。変種数（レベル数）を返し、満たさなければ null
+        // The item must be a level family's base; returns the variant count (level count), or null when it is not
         public static string RequireFamilyBase(string roleName, Guid machineRecipeGuid, Guid itemGuid, out int? variantCount)
         {
             variantCount = null;
@@ -57,37 +45,12 @@ namespace Core.Master.Validator
             return "";
         }
 
-        // グレードを入力から受け継ぐ役割（EUV・ダイシング）の共通検証。入力と出力のグレード数を返し、引けなければ null
-        // Shared validation for roles that inherit the grade from the input (EUV, dicing); returns the input and output grade counts, or null when unresolved
-        public static string ValidateGradeInheritingRole(string roleName, MachineRecipeMasterElement recipe, Guid outputBaseItemGuid, out int? sourceGradeCount, out int? outputVariantCount)
+        // 清浄室の抽選工程はレベル継承を使わない（グレードを廃止したため）
+        // Clean-room draw processes never use level inheritance since wafer grades were removed
+        internal static string RequireNoInheritance(string roleName, MachineRecipeMasterElement recipe)
         {
-            var logs = RequireInheritance(roleName, recipe);
-            logs += ResolveSourceGradeCount(roleName, recipe, out sourceGradeCount);
-            logs += RequireFamilyBase(roleName, recipe.MachineRecipeGuid, outputBaseItemGuid, out outputVariantCount);
-            return logs;
-
-            #region Internal
-
-            // レベル継承レシピでなければ、入力のグレードは常にG1として扱われてしまう
-            // Unless the recipe is a level-inheritance recipe, the input grade would always be treated as G1
-            static string RequireInheritance(string roleName, MachineRecipeMasterElement recipe)
-            {
-                if (recipe.LevelInheritance == MachineRecipeMasterElement.LevelInheritanceConst.Inherit) return "";
-                return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must use levelInheritance Inherit (found {recipe.LevelInheritance})\n";
-            }
-
-            // グレードの出どころ（継承元の入力）はちょうど1つ。機械レシピの検証の順序に頼らず、ここでも確かめる
-            // The grade source (the inheritance source input) must be exactly one; checked here too instead of relying on the machine-recipe validation order
-            static string ResolveSourceGradeCount(string roleName, MachineRecipeMasterElement recipe, out int? gradeCount)
-            {
-                gradeCount = null;
-                if (LevelInheritanceRecipeShape.FindSourceFamilyLength(recipe) is not int length) return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} must have exactly one level-family base input to take the grade from (found {LevelInheritanceRecipeShape.CountFamilyBaseInputs(recipe)})\n";
-                gradeCount = length;
-                return "";
-            }
-
-            #endregion
+            if (recipe.LevelInheritance == MachineRecipeMasterElement.LevelInheritanceConst.None) return "";
+            return $"[CleanRoomMaster] {roleName} MachineRecipeGuid:{recipe.MachineRecipeGuid} levelInheritance must be None\n";
         }
-
     }
 }

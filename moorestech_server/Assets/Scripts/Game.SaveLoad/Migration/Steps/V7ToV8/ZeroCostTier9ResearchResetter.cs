@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using Game.SaveLoad.Migration.Steps.Shared;
 
 namespace Game.SaveLoad.Migration.Steps.V7ToV8
 {
@@ -12,7 +13,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
     /// 解放記録はfalseにせず消す。記録が無ければロード時にマスタの初期値が使われ、残った研究とチャレンジの解放やり直しが必要な分を解放し直す。
     /// Unlock records are deleted rather than set to false: without a record the master's initial value applies on load, and the unlock replays of the remaining research and challenges re-grant whatever is still owed.
     /// </remarks>
-    public sealed class ZeroCostTier9ResearchResetter : IV7ToV8MigrationPart
+    public sealed class ZeroCostTier9ResearchResetter : ISaveMigrationPart
     {
         // ResearchSaveJsonObjectはJsonProperty無しなのでプロパティ名がそのままキーになる
         // ResearchSaveJsonObject carries no JsonProperty, so the property name itself is the key
@@ -31,7 +32,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
         {
             // 完了一覧から対象ノードを集める。研究節か完了一覧が無い・null のセーブは外すものが無い
             // Collect target nodes from the completed list; a save whose research section or list is absent or null has nothing to remove
-            if (!V7ToV8SaveJson.TryGetNestedArray(save, ResearchKey, CompletedResearchGuidsKey, out var completed, out failureReason)) return false;
+            if (!MigrationSaveJson.TryGetNestedArray(save, ResearchKey, CompletedResearchGuidsKey, out var completed, out failureReason)) return false;
             if (!(completed is PresentNestedSaveArray presentCompleted)) return true;
             foreach (var entry in presentCompleted.Array)
             {
@@ -69,11 +70,11 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
         // Collect records of target GUIDs from an unlock-state array; a save whose section or array is absent or null has nothing to delete
         private bool TryCollectRecords(JObject save, string infosKey, HashSet<Guid> targetGuids, out string failureReason)
         {
-            if (!V7ToV8SaveJson.TryGetNestedArray(save, GameUnlockStateKey, infosKey, out var infos, out failureReason)) return false;
+            if (!MigrationSaveJson.TryGetNestedArray(save, GameUnlockStateKey, infosKey, out var infos, out failureReason)) return false;
             if (!(infos is PresentNestedSaveArray presentInfos)) return true;
             foreach (var infoToken in presentInfos.Array)
             {
-                if (!(infoToken is JObject info)) return V7ToV8SaveJson.Reject($"{GameUnlockStateKey}.{infosKey} の要素がオブジェクトではありません。 type={infoToken.Type}", out failureReason);
+                if (!(infoToken is JObject info)) return MigrationSaveJson.Reject($"{GameUnlockStateKey}.{infosKey} の要素がオブジェクトではありません。 type={infoToken.Type}", out failureReason);
                 if (TryReadGuid(info[GuidKey], out var guid) && targetGuids.Contains(guid)) _unlockRecords.Add(info);
             }
 

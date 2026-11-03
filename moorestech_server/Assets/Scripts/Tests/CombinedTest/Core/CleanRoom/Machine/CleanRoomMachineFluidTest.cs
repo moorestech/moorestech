@@ -54,11 +54,11 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
             Assert.AreEqual(1, inventory.GetItem(InputSlot).Count);
             Assert.AreNotEqual(ProcessState.Processing, machine.GetComponent<CleanRoomMachineProcessorComponent>().CurrentState);
 
-            // 30入れると1回分の10だけ減り、G1が出る
-            // Adding 30 consumes exactly one batch of 10 and yields G1
+            // 30入れると1回分の10だけ減り、成膜済みウェハが出る
+            // Adding 30 consumes exactly one batch of 10 and yields the deposited wafer
             TopUpIpa(machine, 30);
             for (var i = 0; i < 800 && inventory.GetItem(FirstOutputSlot).Count == 0; i++) TickRoom(filter, machine);
-            Assert.AreEqual(ForUnitTestItemId.TestGradedWaferG1, inventory.GetItem(FirstOutputSlot).Id);
+            Assert.AreEqual(ForUnitTestItemId.TestTransistorWafer, inventory.GetItem(FirstOutputSlot).Id);
             Assert.AreEqual(20, ReadInputFluid(machine).Amount, 1e-9);
         }
 

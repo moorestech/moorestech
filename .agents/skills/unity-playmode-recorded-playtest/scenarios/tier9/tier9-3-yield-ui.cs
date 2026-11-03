@@ -1,5 +1,5 @@
-// 出荷マスタ全体で起動し、専用機5種の見た目が互いに違い、成膜・EUV・ダイシングの機械UIに抽選の中身が出ることを確かめる
-// Boot on the full shipped master and confirm the five machines look distinct and the deposition, EUV and dicing UIs show the draw values
+// 出荷マスタ全体で起動し、専用機4種の見た目が互いに違い、EUV のトランジスタ設置は抽選欄なし・露光は失敗率・ダイシングは品質Tierとレベル別割合を出すことを確かめる
+// Boot on the full shipped master and confirm the four machine kinds look distinct, EUV transistor placement has no draw section, exposure shows its fail rate and dicing shows quality tier and level shares
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +9,7 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Client.Playtest.WebUi;
 using Core.Inventory;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -25,7 +26,7 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-var machineNames = new[] { "ウェハ切断機", "成膜装置", "EUV露光式半導体製造装置", "ダイシング装置", "パッケージング装置" };
+var machineNames = new[] { "ウェハ切断機", "EUV露光式半導体製造装置", "EUV露光式半導体製造装置", "ダイシング装置", "パッケージング装置" };
 var semiconductorResearch = Guid.Parse("019e3ad9-46e2-73fd-9555-8c1d0245d26d");
 return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = true }, async p =>
 {
@@ -43,9 +44,9 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     await p.RunOnServer("半導体製造の研究を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(semiconductorResearch).Select(g => g.ToString()).ToList() }));
     p.Assert((await p.ReadCompletedResearch()).Contains(semiconductorResearch), "semiconductor research completed");
 
-    // 床のパネルを敷き、専用機5種を1列に置いて、壁を建てる前に設置演出の終わった見た目を撮る
-    // Lay the panel floor, line up the five machines and shoot their looks (after the placement effect) before the walls go up
-    p.Note("専用機5種を1列に置き、見た目の違いを撮る");
+    // 床のパネルを敷き、専用機4種（EUV はトランジスタ設置用と露光用の2台）を1列に置いて、壁を建てる前に設置演出の終わった見た目を撮る
+    // Lay the panel floor, line up the four machine kinds (two EUVs: transistor and exposure) and shoot their looks (after the placement effect) before the walls go up
+    p.Note("専用機4種（EUV は2台）を1列に置き、見た目の違いを撮る");
     for (var x = 0; x <= 22; x++)
     for (var z = 0; z <= 10; z++)
         await p.PlaceBlockDirect("クリーンルームパネル", new Vector3Int(x, 32, z), BlockDirection.North);
@@ -68,18 +69,20 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
     await PowerAll();
     await p.WaitForCleanRoom(machines[1], true, 30f, "clean room classified");
 
-    // 抽選欄は役割レシピを選んだ機械にだけ出るので、成膜・EUV1層・ダイシングを選ぶ
-    // The draw section only shows for a selected role recipe, so select deposition, EUV layer 1 and dicing
-    await SelectRecipeByFirstOutput(machines[1], "トランジスタ設置済みウェハG1");
-    await SelectRecipeByFirstOutput(machines[2], "1層パターンウェハG1");
+    // 抽選欄は役割レシピを選んだ機械にだけ出る。EUV はトランジスタ設置（役割なし）と1層露光、ダイシングは品質モジュールLv1 を挿して Tier1 にする
+    // The draw section shows only for a role recipe; EUVs take transistor placement (no role) and layer 1, and dicing gets a quality module Lv1 for tier 1
+    await SelectRecipeByFirstOutput(machines[1], "トランジスタ設置済みウェハ");
+    await SelectRecipeByFirstOutput(machines[2], "1層パターンウェハ");
     await SelectRecipeByFirstOutput(machines[3], "シリコンダイLv1");
+    var dicingModuleSlot = machines[3].GetComponent<IOpenableBlockInventoryComponent>().GetSlotSize() - ((Mooresmaster.Model.BlocksModule.CleanRoomMachineBlockParam)machines[3].BlockMasterElement.BlockParam).ModuleSlotCount;
+    await Give(machines[3], dicingModuleSlot, "品質モジュールLv1", 1);
 
     // 室内に入り、3台の機械UIで抽選欄の行を確かめて撮る
     // Step inside and check and shoot the draw rows in the three machine UIs
-    p.Note("成膜・EUV・ダイシングの機械UIを開き、抽選欄を確かめる");
-    await CheckYieldUi(machines[1], "02-deposition-yield", new[] { "clean-room-yield-max-grade", "clean-room-yield-promotion-chance" });
+    p.Note("EUV(トランジスタ設置)・EUV(露光)・ダイシングの機械UIを開き、抽選欄を確かめる");
+    await CheckNoYieldUi(machines[1], "02-euv-transistor-no-role");
     await CheckYieldUi(machines[2], "03-euv-yield", new[] { "clean-room-yield-layer-fail-rate" });
-    await CheckYieldUi(machines[3], "04-dicing-yield", new[] { "clean-room-yield-die-loss-rate" });
+    await CheckYieldUi(machines[3], "04-dicing-yield", new[] { "clean-room-yield-quality-tier", "clean-room-yield-die-loss-rate", "clean-room-yield-level-rate-1", "clean-room-yield-level-rate-2", "clean-room-yield-failed-rate" });
     p.Note("段3 完了");
 
     #region Internal
@@ -101,7 +104,6 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         consumers.Add(block);
         return block;
     }
-
     async UniTask Give(IBlock block, int slot, string item, int count) => await p.RunOnServer($"{item} x{count} を {block.BlockMasterElement.Name} へ入れる", () => block.GetComponent<IOpenableBlockInventoryComponent>().SetItem(slot, PlaytestItemOps.ResolveItemId(item), count));
 
     async UniTask BuildWallsAndCeiling()
@@ -134,8 +136,37 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
 
     async UniTask CheckYieldUi(IBlock machine, string screenshotName, string[] rowTestIds)
     {
-        // F は射程2mなので南面の1m手前に着地し、Alt のカーソル照準で南面を狙って開く。抽選欄と行を待って撮り、Tab で閉じる
-        // F reaches 2 m, so land 1 m south of the face and open it by aiming with the Alt cursor; wait for the section and rows, shoot, close with Tab
+        // 抽選欄と行を待ち、行の表示文字列を記録して撮り、Tab で閉じる
+        // Wait for the section and rows, log each row's text, shoot, close with Tab
+        await OpenMachineUi(machine);
+        await p.UntilWebUiElement("clean-room-yield-section", 10f);
+        foreach (var rowTestId in rowTestIds) { await p.UntilWebUiElement(rowTestId, 10f); p.Note($"{rowTestId}: {(await PlaytestDomQuery.Query(rowTestId, 2f)).Text}"); }
+        await p.Screenshot(screenshotName);
+        await p.PressKey(Key.Tab);
+        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    }
+    async UniTask CheckNoYieldUi(IBlock machine, string screenshotName)
+    {
+        // 部屋欄が出た状態で、抽選欄も取得中表示も3秒続けて無いことを見る（部屋欄が見つかることで問い合わせ自体の成立も確かめる）
+        // With the room section shown, see neither the draw section nor its fetch line for 3 straight seconds (finding the room section proves the query works)
+        await OpenMachineUi(machine);
+        await p.UntilWebUiElement("clean-room-section", 10f);
+        var (deadline, absentSince) = (Time.realtimeSinceStartup + 15f, -1f);
+        while (Time.realtimeSinceStartup < deadline && (absentSince < 0f || Time.realtimeSinceStartup - absentSince < 3f))
+        {
+            var roomFound = (await PlaytestDomQuery.Query("clean-room-section", 2f)).Found;
+            var yieldFound = (await PlaytestDomQuery.Query("clean-room-yield-section", 2f)).Found || (await PlaytestDomQuery.Query("clean-room-yield-fetch-state", 2f)).Found;
+            absentSince = roomFound && !yieldFound ? (absentSince < 0f ? Time.realtimeSinceStartup : absentSince) : -1f;
+        }
+        p.Assert(absentSince >= 0f && Time.realtimeSinceStartup - absentSince >= 3f, $"{machine.BlockMasterElement.Name}（トランジスタ設置）は役割なしで抽選欄が出ない");
+        await p.Screenshot(screenshotName);
+        await p.PressKey(Key.Tab);
+        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
+    }
+    async UniTask OpenMachineUi(IBlock machine)
+    {
+        // F は射程2mなので南面の1m手前に着地し、Alt のカーソル照準で南面を狙って開く
+        // F reaches 2 m, so land 1 m south of the face and open it by aiming with the Alt cursor
         var origin = machine.BlockPositionInfo.OriginalPos;
         p.WarpPlayer(new Vector3(origin.x + 1.3f, 33.5f, origin.z - 1f));
         await p.Until(() => Mathf.Abs(p.PlayerPosition.y - 33f) < 0.05f, 5f, "床パネルの上(y=33.0)に着地した");
@@ -144,11 +175,6 @@ return PlaytestRunner.Run("tier9-3-yield-ui", new PlaytestRunOptions { Record = 
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilWebUiElement("clean-room-yield-section", 10f);
-        foreach (var rowTestId in rowTestIds) await p.UntilWebUiElement(rowTestId, 10f);
-        await p.Screenshot(screenshotName);
-        await p.PressKey(Key.Tab);
-        await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 
     async UniTask PowerAll()

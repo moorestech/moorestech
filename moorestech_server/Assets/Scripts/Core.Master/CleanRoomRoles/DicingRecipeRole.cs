@@ -4,8 +4,8 @@ using Mooresmaster.Model.CleanRoomModule;
 namespace Core.Master.CleanRoomRoles
 {
     /// <summary>
-    ///     ダイシング: 1枚を diesPerWafer 個に切り、損失を失敗ダイへ、残りをグレードのダイ表でレベル別の出力へ振り分ける役割
-    ///     Dicing: the role that cuts one wafer into diesPerWafer dies, sends losses to failed dies and splits survivors by level with the grade's die table
+    ///     ダイシング: 1枚を diesPerWafer 個に切り、損失を失敗ダイへ、残りを品質Tierのダイ表でレベル別の出力へ振り分ける役割
+    ///     Dicing: the role that cuts one wafer into diesPerWafer dies, sends losses to failed dies and splits survivors by level with the quality tier's die table
     /// </summary>
     public sealed class DicingRecipeRole : CleanRoomRecipeRole
     {

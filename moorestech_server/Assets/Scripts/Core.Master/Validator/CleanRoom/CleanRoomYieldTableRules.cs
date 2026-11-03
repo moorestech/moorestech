@@ -33,54 +33,43 @@ namespace Core.Master.Validator
         // Tolerance for floating-point sums
         private const float RateTolerance = 1e-4f;
 
-        // 各表は長さ1〜min(グレード, ダイのレベル数)・非負・和1。上位の裾（Lvk以上の割合）はグレードとともに減らない
-        // Each table has length 1..min(grade, die level count), is non-negative and sums to 1; the upper tail (share at Lvk+) never shrinks as the grade rises
-        public static string ValidateDieTables(string roleLabel, IReadOnlyList<IReadOnlyList<float>> gradeDieTables, int dieLevelCount)
+        // 各Tierの表は失敗込みで和1、品質ゲートと既定レベルを満たす
+        // Each tier sums to one including failures and respects the quality gate and default level
+        public static string ValidateDieTables(string roleLabel, IReadOnlyList<(IReadOnlyList<float> levelRates, float failedRate)> tierTables, int dieLevelCount)
         {
             var logs = "";
-            for (var gradeIndex = 0; gradeIndex < gradeDieTables.Count; gradeIndex++)
+            if (tierTables.Count != dieLevelCount + 1) logs += $"[CleanRoomMaster] {roleLabel} requires {dieLevelCount + 1} quality tier tables (found {tierTables.Count})\n";
+            for (var tier = 0; tier < tierTables.Count; tier++)
             {
-                var rates = gradeDieTables[gradeIndex];
-                var maxLength = gradeIndex + 1 < dieLevelCount ? gradeIndex + 1 : dieLevelCount;
-                if (rates.Count < 1 || maxLength < rates.Count) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] has {rates.Count} levels; allowed 1..{maxLength}\n";
+                var (rates, failedRate) = tierTables[tier];
+                var prefix = $"[CleanRoomMaster] {roleLabel} QualityTierDieTables[{tier}]";
+                if (rates.Count != dieLevelCount) logs += $"{prefix} requires {dieLevelCount} levels (found {rates.Count})\n";
 
-                var sum = 0f;
-                foreach (var rate in rates)
+                // 非有限値も独立に記録し、合計の検査から漏らさない
+                // Report non-finite values independently so the sum check cannot hide them
+                var sum = failedRate;
+                logs += ValidateRate(prefix, "FailedRate", failedRate);
+                for (var index = 0; index < rates.Count; index++)
                 {
-                    if (float.IsNaN(rate) || float.IsInfinity(rate))
-                    {
-                        logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] LevelRates contains non-finite value {rate}\n";
-                        continue;
-                    }
-                    if (rate < 0f) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] has a negative rate {rate}\n";
+                    var rate = rates[index];
+                    logs += ValidateRate(prefix, $"LevelRates[{index}]", rate);
                     sum += rate;
+                    if (tier + 1 <= index && rate != 0f) logs += $"{prefix} Lv{index + 1} violates the quality gate\n";
                 }
-                if (RateTolerance < System.Math.Abs(sum - 1f)) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] rates sum to {sum}, not 1\n";
-                if (gradeIndex == 0) continue;
-
-                // Lvk以上の割合を1つ下のグレードと比べる
-                // Compare the share at Lvk and above with the grade just below
-                for (var level = 1; level < dieLevelCount; level++)
-                {
-                    var tail = TailFrom(rates, level);
-                    var lowerTail = TailFrom(gradeDieTables[gradeIndex - 1], level);
-                    if (tail + RateTolerance < lowerTail) logs += $"[CleanRoomMaster] {roleLabel} GradeDieTables[{gradeIndex}] tail from Lv{level + 1} ({tail}) is below the lower grade ({lowerTail})\n";
-                }
+                if (float.IsNaN(sum) || float.IsInfinity(sum) || RateTolerance < System.Math.Abs(sum - 1f)) logs += $"{prefix} rates sum to {sum}, not 1\n";
+                if (0 < tier && tier <= dieLevelCount && tier <= rates.Count && !(0f < rates[tier - 1])) logs += $"{prefix} default Lv{tier} must be positive\n";
             }
             return logs;
 
             #region Internal
 
-            static float TailFrom(IReadOnlyList<float> rates, int fromLevelIndex)
+            static string ValidateRate(string prefix, string name, float value)
             {
-                var tail = 0f;
-                for (var i = fromLevelIndex; i < rates.Count; i++) tail += rates[i];
-                return tail;
+                if (float.IsNaN(value) || float.IsInfinity(value)) return $"{prefix} {name} contains non-finite value {value}\n";
+                return value < 0f ? $"{prefix} {name} has a negative rate {value}\n" : "";
             }
 
             #endregion
         }
-
-
     }
 }

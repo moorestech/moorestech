@@ -66,8 +66,8 @@ namespace Tests.CombinedTest.Core.CleanRoom.Machine
 
             int DrainOutputs()
             {
-                // 別グレードで出力スロットが詰まらないよう、毎tick空にする
-                // Empty the output slots every tick so a different grade never blocks them
+                // 別の出力で出力スロットが詰まらないよう、毎tick空にする
+                // Empty the output slots every tick so a different output never blocks them
                 var drained = 0;
                 for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++)
                 {

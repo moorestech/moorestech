@@ -71,8 +71,8 @@ namespace Tests.CombinedTest.Core.Machine
                 Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
                 var inventory = machine.GetComponent<IOpenableBlockInventoryComponent>();
-                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestGradedWaferG1);
-                for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestGradedWaferG1, maxStack);
+                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.TestTransistorWafer);
+                for (var slot = FirstOutputSlot; slot < FirstOutputSlot + OutputSlotCount; slot++) inventory.SetItem(slot, ForUnitTestItemId.TestTransistorWafer, maxStack);
                 for (var tick = 0; tick < TickCap && processor.CurrentState != ProcessState.OutputBlocked; tick++) TickRoom(filter, machine);
                 Assert.AreEqual(ProcessState.OutputBlocked, processor.CurrentState);
             }

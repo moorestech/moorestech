@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using Game.SaveLoad.Migration.Steps.Shared;
 
 namespace Game.SaveLoad.Migration.Steps.V7ToV8
 {
@@ -6,7 +7,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
     /// ロケットの初回打ち上げ履歴を未打ち上げで足す（冪等）。版7まで発射台は存在しないので未打ち上げが唯一の正しい値
     /// Add the rocket first-launch history as not yet launched (idempotent); no launch pad existed up to version 7, so not-launched is the only correct value
     /// </summary>
-    public sealed class RocketLaunchHistoryFiller : IV7ToV8MigrationPart
+    public sealed class RocketLaunchHistoryFiller : ISaveMigrationPart
     {
         private const string HistoryKey = "rocketHasLaunchedOnce";
 
@@ -19,7 +20,7 @@ namespace Game.SaveLoad.Migration.Steps.V7ToV8
 
             // 欠損と明示nullは未打ち上げで補う
             // Fill both absence and an explicit null with not-launched
-            if (V7ToV8SaveJson.IsAbsentOrNull(history))
+            if (MigrationSaveJson.IsAbsentOrNull(history))
             {
                 _fillTarget = save;
                 return true;

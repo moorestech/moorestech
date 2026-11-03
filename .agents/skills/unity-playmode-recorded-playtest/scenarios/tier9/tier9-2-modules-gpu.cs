@@ -30,7 +30,7 @@ var research = new[]
 {
     "019e3ad9-46e2-73fd-9555-8c1d0245d26d", "01a167f3-bd6b-70c9-be6e-52e41907b21f", "019e3ae2-5005-7439-b242-9b7b3191a2c3",
     "01a167f3-bd6e-7745-84c0-0e1cf105c2cc", "01a167f3-bd74-73f8-8c43-1869db833299", "01a167f3-bd77-7013-b982-5f4cdf3c86a9",
-    "01a167f3-bd71-707c-b8e6-615063559cc1", "01a167f3-bd7a-75c4-a266-8b9a4d5d1900",
+    "01a167f3-bd71-707c-b8e6-615063559cc1",
 }.Select(Guid.Parse).ToArray();
 var productRecipes = new (string recipe, string product)[]
 {
@@ -84,8 +84,8 @@ return PlaytestRunner.Run("tier9-2-modules-gpu", new PlaytestRunOptions { Record
     }
     await ShootMachine(crafters[4], "02-modules-gpu");
 
-    // 製作上限 Lv1 のため ICチップLv2 は品質モジュールの工作装置へ入らない（S2 の研究まで）
-    // With the craft cap at Lv1, IC chip Lv2 does not enter the quality-module workshop (until S2 research)
+    // 製作上限 Lv1 のため ICチップLv2 は品質モジュールの工作装置へ入らない（品質モジュールLv2 の研究まで）
+    // With the craft cap at Lv1, IC chip Lv2 does not enter the quality-module workshop (until the quality module Lv2 research)
     p.Note("製作上限 Lv1 の工作装置へ ICチップLv2 を入れて拒まれることを見る");
     var lv2 = MasterHolder.ItemMaster.GetItemMaster(PlaytestItemOps.ResolveItemId("ICチップLv2")).ItemGuid;
     var rest = await Insert(crafters[0], lv2, 5);

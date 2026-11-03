@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Block.Blocks.Machine.State;
 using Newtonsoft.Json.Linq;
 
@@ -25,9 +26,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
             if (drawRecord == null) return null;
             return (string)drawRecord["kind"] switch
             {
-                "waferGrade" => new WaferGradePreview(Required<int>("maxGrade"), Required<double>("promotionChance")),
                 "layerExposure" => new LayerExposurePreview(Required<double>("layerFailRate")),
-                "dicing" => new DicingPreview(Required<double>("dieLossRate")),
+                "dicing" => new DicingPreview(Required<double>("dieLossRate"), Required<int>("qualityTier"), RequiredDoubles("levelRates"), Required<double>("failedRate")),
                 _ => throw new InvalidOperationException($"未対応の保存抽選記録です:{drawRecord["kind"]}"),
             };
 
@@ -36,6 +36,12 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
             {
                 if (drawRecord[key] == null || drawRecord[key].Type == JTokenType.Null) throw new InvalidOperationException($"保存抽選記録の必須キーがありません:{key}");
                 return drawRecord[key].Value<T>();
+            }
+
+            double[] RequiredDoubles(string key)
+            {
+                if (drawRecord[key] == null || drawRecord[key].Type == JTokenType.Null) throw new InvalidOperationException($"保存抽選記録の必須キーがありません:{key}");
+                return drawRecord[key].ToObject<double[]>();
             }
             #endregion
         }
@@ -67,20 +73,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         internal override JObject CaptureDrawRecord() => throw new InvalidOperationException("保存できない抽選記録です:NotOperablePreview");
     }
 
-    public sealed class WaferGradePreview : CleanRoomYieldPreviewResult
-    {
-        public int MaxGrade { get; }
-        public double PromotionChance { get; }
-
-        public WaferGradePreview(int maxGrade, double promotionChance)
-        {
-            MaxGrade = maxGrade;
-            PromotionChance = promotionChance;
-        }
-
-        internal override JObject CaptureDrawRecord() => new JObject { ["kind"] = "waferGrade", ["maxGrade"] = MaxGrade, ["promotionChance"] = PromotionChance };
-    }
-
     public sealed class LayerExposurePreview : CleanRoomYieldPreviewResult
     {
         public double LayerFailRate { get; }
@@ -93,15 +85,30 @@ namespace Game.Block.Blocks.CleanRoom.Machine.YieldPreview
         internal override JObject CaptureDrawRecord() => new JObject { ["kind"] = "layerExposure", ["layerFailRate"] = LayerFailRate };
     }
 
+    // ダイシング: ダイ損失率と、損失を除いた良品に対するシフト後のレベル別割合・失敗ダイ割合
+    // Dicing: die loss rate plus the shifted per-level and failed-die rates over survivors (losses excluded)
     public sealed class DicingPreview : CleanRoomYieldPreviewResult
     {
         public double DieLossRate { get; }
+        public int QualityTier { get; }
+        public IReadOnlyList<double> LevelRates { get; }
+        public double FailedRate { get; }
 
-        public DicingPreview(double dieLossRate)
+        public DicingPreview(double dieLossRate, int qualityTier, IReadOnlyList<double> levelRates, double failedRate)
         {
             DieLossRate = dieLossRate;
+            QualityTier = qualityTier;
+            LevelRates = levelRates;
+            FailedRate = failedRate;
         }
 
-        internal override JObject CaptureDrawRecord() => new JObject { ["kind"] = "dicing", ["dieLossRate"] = DieLossRate };
+        internal override JObject CaptureDrawRecord() => new JObject
+        {
+            ["kind"] = "dicing",
+            ["dieLossRate"] = DieLossRate,
+            ["qualityTier"] = QualityTier,
+            ["levelRates"] = new JArray(LevelRates),
+            ["failedRate"] = FailedRate,
+        };
     }
 }

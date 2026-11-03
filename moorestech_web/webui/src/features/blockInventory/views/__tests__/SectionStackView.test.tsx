@@ -133,10 +133,10 @@ describe("SectionStackView", () => {
   it("抽選の中身欄は部屋欄のすぐ下に描く", () => {
     const data = dataFor("CleanRoomMachine", []);
     data.cleanRoom = { fetchState: "fetched", kind: "enclosed", room: { headline: "class", className: "A", concentration: 0.1, airChangeRate: 2, volume: 26, airFilters: [{ x: 1, y: 1, z: 1, powerRatio: 1, filterItemCount: 5, filterRemainingRatio: 0.5 }] } };
-    data.cleanRoomYield = { fetchState: "fetched", role: "dicing", dieLossRate: 0.03 };
+    data.cleanRoomYield = { fetchState: "fetched", role: "dicing", dieLossRate: 0.03, qualityTier: 1, levelRates: [0.7, 0.1, 0], failedRate: 0.2 };
     const tree = render(data);
     const ids = tree.root.findAll((n) => typeof n.type === "string" && n.props["data-testid"] !== undefined).map((n) => n.props["data-testid"]);
-    expect(ids.filter((id: string) => id.startsWith("clean-room"))).toEqual(["clean-room-section", "clean-room-headline", "clean-room-air", "clean-room-air-filter-0", "clean-room-yield-section", "clean-room-yield-die-loss-rate"]);
+    expect(ids.filter((id: string) => id.startsWith("clean-room"))).toEqual(["clean-room-section", "clean-room-headline", "clean-room-air", "clean-room-air-filter-0", "clean-room-yield-section", "clean-room-yield-quality-tier", "clean-room-yield-die-loss-rate", "clean-room-yield-level-rate-1", "clean-room-yield-level-rate-2", "clean-room-yield-failed-rate"]);
     act(() => { tree.unmount(); });
   });
 

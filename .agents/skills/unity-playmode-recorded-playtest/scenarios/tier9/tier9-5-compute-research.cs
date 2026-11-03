@@ -1,5 +1,5 @@
-// 計算データを研究ツリーで消費して製作上限を Lv2 へ上げ、断られていた Lv2 の継承元から上位品が本当に作られることを確かめる
-// Spend compute data in the research tree to raise the craft cap to Lv2, then a refused Lv2 source really makes the higher product
+// 研究ツリーで品質モジュールLv2 を研究して品質モジュールの製作上限を Lv2 へ上げ、断られていた Lv2 の継承元から上位品が本当に作られることを確かめる
+// Research quality module Lv2 in the tree to raise the quality module's craft cap to Lv2, then a refused Lv2 source really makes the higher product
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,7 +29,9 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-var productBaseName = "GPULv1"; // 判断記録 A12 の名前（族の基底 = Lv1）。下で研究の対象に入っているかを assert して食い違いを捕まえる
+var productBaseName = "品質モジュールLv1"; // 族の基底 = Lv1。下で研究の対象に入っているかを assert して食い違いを捕まえる
+var qualityLv2Research = Guid.Parse("01a173a4-cfe2-769c-9b35-eabb655f9a8f"); // 品質モジュールLv2（旧アップグレード研究Lv2 の GUID を流用）
+var gpuLv2Research = Guid.Parse("01a19cf1-4847-7758-bb41-4282892021e6"); // GPULv2
 return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SetupFlatGround();
@@ -41,13 +43,15 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.WarpPlayer(new Vector3(1.5f, 32.5f, -8f));
 
-    // Lv2 へ上げるアップグレード研究を名前ではなく効果で引き、前提だけを完了扱いにする
-    // Find the Lv2 upgrade by its effect (not its name) and mark only its prerequisites done
-    var upgrade = MasterHolder.ResearchMaster.GetAllResearches().Single(r => CraftLevel(r)?.Level == 2);
+    // 品質モジュールLv2 を名指しし、製作上限2の解放対象を確かめ、前提だけを完了扱いにする。GPULv1 の上限2は GPULv2 研究が解放する
+    // Name quality module Lv2, check its cap-2 targets and mark only its prerequisites done; GPULv1's cap 2 is unlocked by the GPULv2 research
+    var upgrade = MasterHolder.ResearchMaster.GetResearch(qualityLv2Research);
     var productBaseGuid = MasterHolder.ItemMaster.GetItemMaster(PlaytestItemOps.ResolveItemId(productBaseName)).ItemGuid;
-    p.Assert(CraftLevel(upgrade).TargetItemGuids.Contains(productBaseGuid), $"{productBaseName} がアップグレード Lv2（{upgrade.ResearchNodeName}）の対象に入っている");
-    await p.RunOnServer("アップグレード Lv2 の前提を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(upgrade.PrevResearchNodeGuids).Select(g => g.ToString()).ToList() }));
-    await p.WaitForResearch(upgrade.PrevResearchNodeGuids, new[] { upgrade.ResearchNodeGuid }, 15f, "アップグレード Lv2 の前提だけが完了扱いになった");
+    p.Assert(CraftLevel(upgrade)?.Level == 2 && CraftLevel(upgrade).TargetItemGuids.Contains(productBaseGuid), $"{productBaseName} が {upgrade.ResearchNodeName} の製作上限2の対象に入っている");
+    var gpuUpgrade = MasterHolder.ResearchMaster.GetResearch(gpuLv2Research);
+    p.Assert(CraftLevel(gpuUpgrade)?.Level == 2 && CraftLevel(gpuUpgrade).TargetItemGuids.Contains(MasterHolder.ItemMaster.GetItemMaster(PlaytestItemOps.ResolveItemId("GPULv1")).ItemGuid), $"GPULv1 は {gpuUpgrade.ResearchNodeName} の製作上限2の対象に入っている");
+    await p.RunOnServer("品質モジュールLv2 の前提を完了扱いにする", () => ServerContext.GetService<IResearchDataStore>().LoadResearchData(new ResearchSaveJsonObject { CompletedResearchGuids = WithPrerequisites(upgrade.PrevResearchNodeGuids).Select(g => g.ToString()).ToList() }));
+    await p.WaitForResearch(upgrade.PrevResearchNodeGuids, new[] { upgrade.ResearchNodeGuid }, 15f, "品質モジュールLv2 の前提だけが完了扱いになった");
 
     // 製品の上限つき継承レシピの機械を置いて給電し、上限1では Lv2 の継承元が断られる
     // Place and power the machine of the product's capped recipe; at cap 1 the Lv2 source is refused
@@ -66,24 +70,26 @@ return PlaytestRunner.Run("tier9-5-compute-research", new PlaytestRunOptions { R
     await p.Until(() => !machineObject.IsPlayingPlaceAnimation, 15f, "工作装置の設置演出が終わった");
     await p.Screenshot("01-lv2-refused-before-research");
 
-    // 計算データを渡し、研究ツリー（R）から UI で研究する
-    // Hand over compute data and research through the tree UI (R)
-    var cost = upgrade.ConsumeItems.Single();
-    var computeDataName = MasterHolder.ItemMaster.GetItemMaster(cost.ItemGuid).Name;
-    p.Note($"{computeDataName} x{cost.ItemCount} を持ち、研究ツリーで {upgrade.ResearchNodeName} を研究する");
-    // give コマンドは1スタックの上限を超える個数を受け付けないので、上限ずつ分けて渡す
-    // The give command rejects counts above one stack's limit, so hand over one stack at a time
-    var maxStack = Core.Item.ItemStackLevelDataStore.Instance.GetMaxStack(MasterHolder.ItemMaster.GetItemId(cost.ItemGuid));
-    for (var given = 0; given < cost.ItemCount; given += maxStack) await p.GiveItem(computeDataName, Math.Min(maxStack, cost.ItemCount - given));
-    await p.Until(() => p.CountItem(computeDataName) == cost.ItemCount, 10f, $"{computeDataName} x{cost.ItemCount} を持った");
+    // 研究素材をすべて渡し、研究ツリー（R）から UI で研究する
+    // Hand over every research cost item and research through the tree UI (R)
+    var costs = upgrade.ConsumeItems.Select(c => (name: MasterHolder.ItemMaster.GetItemMaster(c.ItemGuid).Name, count: c.ItemCount)).ToArray();
+    p.Note($"{string.Join("・", costs.Select(c => $"{c.name} x{c.count}"))} を持ち、研究ツリーで {upgrade.ResearchNodeName} を研究する");
+    foreach (var (costName, costCount) in costs)
+    {
+        // give コマンドは1スタックの上限を超える個数を受け付けないので、上限ずつ分けて渡す
+        // The give command rejects counts above one stack's limit, so hand over one stack at a time
+        var maxStack = Core.Item.ItemStackLevelDataStore.Instance.GetMaxStack(PlaytestItemOps.ResolveItemId(costName));
+        for (var given = 0; given < costCount; given += maxStack) await p.GiveItem(costName, Math.Min(maxStack, costCount - given));
+        await p.Until(() => p.CountItem(costName) == costCount, 10f, $"{costName} x{costCount} を持った");
+    }
     await p.PressKey(Key.R);
     await p.WaitUiState(UIStateEnum.ResearchTree, 10f);
     await p.ClickWebUi($"research-node-{upgrade.ResearchNodeGuid}");
     await p.UntilWebUiElement($"research-button-{upgrade.ResearchNodeGuid}", 10f);
     await p.Screenshot("02-upgrade-node-detail");
     await p.ClickWebUi($"research-button-{upgrade.ResearchNodeGuid}");
-    await p.WaitForResearch(new[] { upgrade.ResearchNodeGuid }, Array.Empty<Guid>(), 10f, "UI からアップグレード Lv2 を研究した");
-    await p.Until(() => p.CountItem(computeDataName) == 0, 10f, "計算データが研究で消費された");
+    await p.WaitForResearch(new[] { upgrade.ResearchNodeGuid }, Array.Empty<Guid>(), 10f, "UI から品質モジュールLv2 を研究した");
+    await p.Until(() => costs.All(c => p.CountItem(c.name) == 0), 10f, "研究素材がすべて消費された");
     var capIsTwo = false;
     await p.RunOnServer("サーバーの判定結果を読む", () => capIsTwo = ServerContext.GetService<ILevelInheritanceCraftCapLookup>().GetCraftCap(productBaseGuid) == 2);
     p.Assert(capIsTwo, "製作上限が 2 になった");

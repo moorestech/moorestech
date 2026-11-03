@@ -23,19 +23,15 @@ namespace Server.Protocol.PacketResponse
                     if (HasPendingDraw()) return WarnMismatchedPending();
                     view = CleanRoomYieldNotOperableView.Instance;
                     return BlockInfoReadResult.Success;
-                case CleanRoomYieldResponseKind.WaferGrade:
-                    if (response.WaferGrade == null) return WarnMissingNested();
-                    if (response.PendingLayerExposure != null || response.PendingDicing != null) return WarnMismatchedPending();
-                    view = new CleanRoomYieldWaferGradeView(response.WaferGrade, response.PendingWaferGrade);
-                    return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.LayerExposure:
                     if (response.LayerExposure == null) return WarnMissingNested();
-                    if (response.PendingWaferGrade != null || response.PendingDicing != null) return WarnMismatchedPending();
+                    if (response.PendingDicing != null) return WarnMismatchedPending();
                     view = new CleanRoomYieldLayerExposureView(response.LayerExposure, response.PendingLayerExposure);
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.Dicing:
-                    if (response.Dicing == null) return WarnMissingNested();
-                    if (response.PendingWaferGrade != null || response.PendingLayerExposure != null) return WarnMismatchedPending();
+                    if (response.Dicing == null || response.Dicing.LevelRates == null) return WarnMissingNested();
+                    if (response.PendingDicing != null && response.PendingDicing.LevelRates == null) return WarnMissingNested();
+                    if (response.PendingLayerExposure != null) return WarnMismatchedPending();
                     view = new CleanRoomYieldDicingView(response.Dicing, response.PendingDicing);
                     return BlockInfoReadResult.Success;
                 case CleanRoomYieldResponseKind.BlockNotFound:
@@ -51,7 +47,7 @@ namespace Server.Protocol.PacketResponse
 
             bool HasPendingDraw()
             {
-                return response.PendingWaferGrade != null || response.PendingLayerExposure != null || response.PendingDicing != null;
+                return response.PendingLayerExposure != null || response.PendingDicing != null;
             }
 
             // 外部から届いた wire の食い違いなので例外にせず、警告を出して読めない応答として扱う（ポーラーは値を捨てて再試行する）

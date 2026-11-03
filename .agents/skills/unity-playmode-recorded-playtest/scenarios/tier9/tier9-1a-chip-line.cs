@@ -1,5 +1,5 @@
-// 出荷マスタ全体で起動し、半導体製造の研究から IPA と Lv1/Lv2 の ICチップが室内ラインで作れることを通しで確かめる
-// Boot on the full shipped master and confirm IPA and Lv1/Lv2 IC chips come out of the clean room line after the semiconductor research
+// 出荷マスタ全体で起動し、半導体製造の研究から IPA と、品質モジュールLv1 を挿したダイシングで Lv1/Lv2 の ICチップが室内ラインで作れることを通しで確かめる
+// Boot on the full shipped master and confirm IPA and Lv1/Lv2 IC chips (dicing with a quality module Lv1) come out of the clean room line after the semiconductor research
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +27,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 var research = new[] { "019e3ad9-46e2-73fd-9555-8c1d0245d26d", "01a167f3-bd6b-70c9-be6e-52e41907b21f", "019e3ae2-5005-7439-b242-9b7b3191a2c3", "01a167f3-bd6e-7745-84c0-0e1cf105c2cc",
-    "01a167f3-bd74-73f8-8c43-1869db833299", "01a167f3-bd77-7013-b982-5f4cdf3c86a9", "01a167f3-bd71-707c-b8e6-615063559cc1", "01a167f3-bd7a-75c4-a266-8b9a4d5d1900" }.Select(Guid.Parse).ToArray();
+    "01a167f3-bd74-73f8-8c43-1869db833299", "01a167f3-bd77-7013-b982-5f4cdf3c86a9", "01a167f3-bd71-707c-b8e6-615063559cc1" }.Select(Guid.Parse).ToArray();
 return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record = true }, async p =>
 {
     await p.SetupFlatGround();
@@ -38,8 +38,7 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>().SetActive(false);
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
     p.WarpPlayer(new Vector3(7.5f, 33.5f, -9f));
-    var ipaId = FluidIdOf("イソプロピルアルコール");
-    var (stages, consumers) = (new List<IBlock>(), new List<IBlock>());
+    var (ipaId, stages, consumers) = (FluidIdOf("イソプロピルアルコール"), new List<IBlock>(), new List<IBlock>());
 
     // 半導体製造と S1 の研究を前提ごと完了扱いにする（解放アクションも再実行される）
     // Mark the semiconductor and S1 research done with all prerequisites (unlock actions are replayed)
@@ -54,13 +53,13 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     var ipaOutPipe = await p.PlaceBlockDirect("鋼鉄のパイプ", new Vector3Int(2, 33, -15), BlockDirection.North);
     await SelectRecipe(chem, MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.OutputFluids.Any(f => MasterHolder.FluidMaster.GetFluidId(f.FluidGuid) == ipaId)));
 
-    // 部屋を建て、室内に専用機5種と清浄機2台を置いて工程レシピを選ぶ
-    // Build the room, place the five machines and two air filters inside, and select each stage recipe
-    p.Note("クリーンルームを建て、専用機5種と清浄機を置いて給電する");
+    // 部屋を建て、室内に専用機4種（トランジスタ設置用と露光用の EUV 2台）と清浄機2台を置いて工程レシピを選ぶ
+    // Build the room, place the four machine kinds (two EUVs: transistor and exposure) and two air filters inside, and select each stage recipe
+    p.Note("クリーンルームを建て、専用機4種（EUV は2台）と清浄機を置いて給電する");
     await BuildRoom();
     var cutter = await PlaceStage("ウェハ切断機", new Vector3Int(2, 33, 1), "シリコンウェハ");
-    var depo = await PlaceStage("成膜装置", new Vector3Int(6, 33, 1), "トランジスタ設置済みウェハG1");
-    var euv = await PlaceStage("EUV露光式半導体製造装置", new Vector3Int(10, 33, 1), "1層パターンウェハG1");
+    var transistorEuv = await PlaceStage("EUV露光式半導体製造装置", new Vector3Int(6, 33, 1), "トランジスタ設置済みウェハ");
+    var euv = await PlaceStage("EUV露光式半導体製造装置", new Vector3Int(10, 33, 1), "1層パターンウェハ");
     var dicing = await PlaceStage("ダイシング装置", new Vector3Int(2, 33, 5), "シリコンダイLv1");
     var packaging = await PlaceStage("パッケージング装置", new Vector3Int(6, 33, 5), "ICチップLv1");
     foreach (var x in new[] { 10, 12 }) await GiveWithFluids(await Place("クリーンルーム空気清浄機", new Vector3Int(x, 33, 5)), 0, "クリーンルームフィルター", 5);
@@ -69,23 +68,25 @@ return PlaytestRunner.Run("tier9-1a-chip-line", new PlaytestRunOptions { Record 
     foreach (var cell in new[] { new Vector3Int(14, 36, 10), new Vector3Int(7, 33, 0), new Vector3Int(0, 32, -26) }) await p.WaitBlockGameObject(cell);
     await p.Screenshot("01-room-and-line");
 
-    // IPA が化学プラントから出て、切断 → 成膜 → EUV の各工程が出力を出す
-    // IPA comes out of the chemical plant, then slicing, deposition and EUV each produce output
+    // IPA が化学プラントから出て、切断 → EUV（トランジスタ設置）→ EUV（露光）の各工程が出力を出す
+    // IPA comes out of the chemical plant, then slicing, EUV transistor placement and EUV exposure each produce output
     await p.RunOnServer("IPA・ナフサ・水をタンクいっぱいまで入れる", FillFluids);
     await p.Until(() => ipaOutPipe.GetComponent<Game.Block.Blocks.Fluid.IFluidInventory>().GetFluidInventory().Any(f => f.FluidId == ipaId && f.Amount > 0), 60f, "IPA produced");
-    p.Note("高純度シリコン→ウェハ→成膜→EUV の順に各工程へ素材を入れる");
+    p.Note("高純度シリコン→ウェハ→EUV(トランジスタ設置)→EUV(露光) の順に各工程へ素材を入れる");
     await GiveWithFluids(cutter, 0, "高純度シリコン", 20);
     await p.Until(() => Count(cutter, "シリコンウェハ") > 0, 60f, "wafer sliced");
-    await GiveWithFluids(depo, 0, "シリコンウェハ", 2);
-    await p.Until(() => Count(depo, "トランジスタ設置済みウェハ") > 0, 60f, "transistor wafer deposited");
-    await GiveWithFluids(euv, 0, "トランジスタ設置済みウェハG1", 4);
+    await GiveWithFluids(transistorEuv, 0, "シリコンウェハ", 2);
+    await p.Until(() => Count(transistorEuv, "トランジスタ設置済みウェハ") > 0, 60f, "transistor wafer made by EUV");
+    await GiveWithFluids(euv, 0, "トランジスタ設置済みウェハ", 4);
     await p.Until(() => Count(euv, "1層パターンウェハ") + Count(euv, "失敗したパターンウェハ") > 0, 60f, "EUV layer exposed");
 
-    // ダイシング（G2 完成ウェハ）で Lv1 と Lv2 のダイが出る
-    // Dicing a G2 finished wafer yields Lv1 and Lv2 dies
-    p.Note("G2 の完成ウェハをダイシングして Lv1/Lv2 ダイを取る");
-    await GiveWithFluids(dicing, 0, "完成パターンウェハG2", 1);
-    await p.Until(() => Count(dicing, "シリコンダイLv1") >= 10 && Count(dicing, "シリコンダイLv2") >= 10, 60f, "Lv1 and Lv2 dies diced");
+    // ダイシング装置に品質モジュールLv1 を挿す（品質Tier1 の表: Lv2 はレア枠 10%）と、完成ウェハ1枚から Lv1 と Lv2 のダイが出る
+    // With a quality module Lv1 in the dicing machine (tier-1 table: Lv2 is the 10% rare slot), one finished wafer yields Lv1 and Lv2 dies
+    p.Note("ダイシング装置に品質モジュールLv1 を挿し、完成ウェハをダイシングして Lv1/Lv2 ダイを取る");
+    await p.RunOnServer("品質モジュールLv1 をダイシング装置のモジュール欄(末尾)へ挿す", () => Slots(dicing).SetItem(Slots(dicing).GetSlotSize() - ((Mooresmaster.Model.BlocksModule.CleanRoomMachineBlockParam)dicing.BlockMasterElement.BlockParam).ModuleSlotCount, PlaytestItemOps.ResolveItemId("品質モジュールLv1"), 1));
+    await GiveWithFluids(dicing, 0, "完成パターンウェハ", 1);
+    await p.Until(() => Count(dicing, "シリコンダイLv1") >= 10 && Count(dicing, "シリコンダイLv2") >= 1, 120f, "Lv1 >= 10 and Lv2 >= 1 dies diced");
+    p.Assert(Count(dicing, "シリコンダイLv3") == 0, $"品質Tier1 の表では Lv3 ダイが出ない（Lv1 x{Count(dicing, "シリコンダイLv1")} / Lv2 x{Count(dicing, "シリコンダイLv2")} / Lv3 x{Count(dicing, "シリコンダイLv3")} / 失敗 x{Count(dicing, "失敗したシリコンダイ")}）");
     await ShootMachine(dicing, "02-dies");
 
     // パッケージングで Lv1 → ICチップLv1、Lv2 → ICチップLv2（継承レシピ）。出力スロットは1つなので Lv1 を取り出してから Lv2 を流す

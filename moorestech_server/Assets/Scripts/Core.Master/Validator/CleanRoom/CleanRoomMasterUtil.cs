@@ -15,7 +15,6 @@ namespace Core.Master.Validator
             // Validate the threshold rows and the chip-process role tables (one role per recipe)
             errorLogs += ThresholdsValidation();
             var roleRecipeGuids = new HashSet<Guid>();
-            errorLogs += CleanRoomWaferGradeDrawValidator.Validate(element.WaferGradeDraws, roleRecipeGuids);
             errorLogs += CleanRoomLayerExposureValidator.Validate(element.LayerExposures, roleRecipeGuids);
             errorLogs += CleanRoomDicingValidator.Validate(element.Dicings, roleRecipeGuids);
 

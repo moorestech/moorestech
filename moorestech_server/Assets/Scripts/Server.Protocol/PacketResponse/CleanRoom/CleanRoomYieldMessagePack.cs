@@ -3,24 +3,6 @@ using MessagePack;
 
 namespace Server.Protocol.PacketResponse
 {
-    // 成膜の抽選の中身（上限グレードと1段の昇格確率）
-    // Deposition draw details (grade cap and per-step promotion chance)
-    [MessagePackObject]
-    public class WaferGradeYieldMessagePack
-    {
-        [Key(0)] public int MaxGrade { get; set; }
-        [Key(1)] public double PromotionChance { get; set; }
-
-        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
-        public WaferGradeYieldMessagePack() { }
-
-        public WaferGradeYieldMessagePack(int maxGrade, double promotionChance)
-        {
-            MaxGrade = maxGrade;
-            PromotionChance = promotionChance;
-        }
-    }
-
     // EUVの抽選の中身（層の失敗率）
     // EUV draw details (layer fail rate)
     [MessagePackObject]
@@ -37,19 +19,25 @@ namespace Server.Protocol.PacketResponse
         }
     }
 
-    // ダイシングの抽選の中身（ダイの損失率）
-    // Dicing draw details (die loss rate)
+    // ダイシングの抽選の中身（ダイの損失率と、損失を除いた良品に対するレベル別割合・失敗ダイ割合）
+    // Dicing draw details (die loss rate plus per-level and failed-die rates over survivors)
     [MessagePackObject]
     public class DicingYieldMessagePack
     {
         [Key(0)] public double DieLossRate { get; set; }
+        [Key(1)] public int QualityTier { get; set; }
+        [Key(2)] public double[] LevelRates { get; set; }
+        [Key(3)] public double FailedRate { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public DicingYieldMessagePack() { }
 
-        public DicingYieldMessagePack(double dieLossRate)
+        public DicingYieldMessagePack(double dieLossRate, int qualityTier, double[] levelRates, double failedRate)
         {
             DieLossRate = dieLossRate;
+            QualityTier = qualityTier;
+            LevelRates = levelRates;
+            FailedRate = failedRate;
         }
     }
 
@@ -60,7 +48,6 @@ namespace Server.Protocol.PacketResponse
         BlockNotFound,
         NoRole,
         NotOperable,
-        WaferGrade,
         LayerExposure,
         Dicing,
         UnsupportedTarget,
