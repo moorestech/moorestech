@@ -78,8 +78,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
                 else CyclePrevious();
             }
 
-            // 通常設置と同じ回転キーで水平4方向だけを回す
-            // Apply the same rotate key as normal placement, horizontal directions only
+            // 通常設置と同じ水平4方向回転
+            // Same horizontal 4-way rotation as normal placement
             if (InputManager.Playable.BlockPlaceRotation.GetKeyDown) CurrentDirection = CurrentDirection.HorizonRotation();
 
             #region Internal

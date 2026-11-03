@@ -15,12 +15,12 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
 
         internal void Receive(DeleteCompletion result)
         {
-            var label = _results.TryGetValue(result.TargetKey, out var previous) ? previous.label : Describe(result.TargetKey);
             if (result.Kind == DeleteCompletionKind.Succeeded)
             {
                 _results.Remove(result.TargetKey);
                 return;
             }
+            var label = _results.TryGetValue(result.TargetKey, out var previous) ? previous.label : Describe(result.TargetKey);
             _results[result.TargetKey] = (label, result);
             // モード離脱後にも既存通知で失敗と未確認を届ける
             // Deliver failures and unconfirmed outcomes through notifications even after leaving the mode
@@ -31,8 +31,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
             }
         }
 
-        // 次の確定・モード離脱で拒否と未確認の行を消し、処理中の行だけ残す
-        // On the next commit or mode exit drop rejected/unconfirmed lines and keep only pending ones
+        // 次の確定・離脱で拒否と未確認の行を消し、処理中だけ残す
+        // On next commit or exit drop rejected/unconfirmed lines, keep pending
         internal void ClearSettled()
         {
             var settledKeys = new List<object>();
@@ -45,7 +45,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
 
         private static string Describe(object key)
         {
-            return key is Component view ? $"{view.name} ({view.transform.position})" : key.ToString();
+            if (key is not Component view) return key.ToString();
+            // 破棄済みの対象は型名だけで表す
+            // Describe destroyed targets by type name only
+            return view == null ? view.GetType().Name : $"{view.name} ({view.transform.position})";
         }
 
         internal void AppendTo(List<TooltipLine> lines)

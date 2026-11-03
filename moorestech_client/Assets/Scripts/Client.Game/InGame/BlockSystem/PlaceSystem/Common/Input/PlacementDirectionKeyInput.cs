@@ -11,8 +11,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.Input
     {
         internal static BlockDirection Apply(BlockDirection direction)
         {
-            // 回転入力があるフレームだけ水平回転する（Shift併用でも縦には倒さない）
-            // Rotate horizontally only on a rotation key press (Shift never tips the block over)
+            // 回転入力時のみ水平回転（縦倒し無し）
+            // Rotate horizontally only on key press (never tips over)
             if (InputManager.Playable.BlockPlaceRotation.GetKeyDown) direction = direction.HorizonRotation();
             return direction;
         }

@@ -11,8 +11,8 @@ using UnityEngine.InputSystem;
 
 namespace Client.Tests.UIState.DragDelete.Service
 {
-    // 撤去結果の行が次の確定とモード離脱で畳まれ、処理中だけ残ることを確かめる
-    // Verify result lines fold on the next commit and on mode exit, keeping only pending ones
+    // 確定とモード離脱で行が畳まれ処理中だけ残ることを確認
+    // Verify lines fold on commit and mode exit, keeping pending
     public class DeleteResultFeedbackClearTest : DeleteInputFixture
     {
         private ClientLocalNotificationSource _previousNotificationSource;
@@ -65,8 +65,8 @@ namespace Client.Tests.UIState.DragDelete.Service
             CollectionAssert.Contains(before, LocalizationKeys.Ui.Tooltip.DeleteResultRejected.Key);
             CollectionAssert.Contains(before, LocalizationKeys.Ui.Tooltip.DeleteResultUnconfirmed.Key);
 
-            // 破壊モードを抜けて戻ると処理中の1行だけになる
-            // After leaving and re-entering delete mode only the pending line remains
+            // 離脱後は処理中の1行だけ
+            // After re-entering only the pending line remains
             Service.ClearAll();
             Service.Update(0, false);
             CollectionAssert.AreEqual(new[] { LocalizationKeys.Ui.Tooltip.DeleteResultPending.Key }, TooltipKeys());
@@ -79,8 +79,8 @@ namespace Client.Tests.UIState.DragDelete.Service
             return target;
         }
 
-        // 選択してF長押しで確定し、Fを離して次の押下を受けられる状態へ戻す
-        // Select, confirm by holding F, then release F so the next press is accepted
+        // F長押しで確定し、離して次の押下に備える
+        // Confirm by holding F, then release to accept the next press
         private void CommitByHold(params HoverDenyReasonTarget[] targets)
         {
             Selection.ApplyBoxTargets(targets, DeleteSelectionIntent.Add);

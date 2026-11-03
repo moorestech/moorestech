@@ -117,8 +117,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             {
                 if (!_hold.Advance(InputManager.Playable.Interact.GetKey, deltaTime)) return;
 
-                // 新しい確定の前に前回の拒否・未確認の表示を畳む
-                // Fold the previous rejected/unconfirmed lines before the new commit
+                // 確定前に前回の拒否・未確認表示を畳む
+                // Fold previous rejected/unconfirmed lines before commit
                 _results.ClearSettled();
                 var confirmedSubject = _selection.HasSelection() ? SelectionHoldSubject() : subject;
                 _isStroking = false;
