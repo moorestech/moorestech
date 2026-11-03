@@ -31,6 +31,18 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Completion
             }
         }
 
+        // 次の確定・モード離脱で拒否と未確認の行を消し、処理中の行だけ残す
+        // On the next commit or mode exit drop rejected/unconfirmed lines and keep only pending ones
+        internal void ClearSettled()
+        {
+            var settledKeys = new List<object>();
+            foreach (var (key, item) in _results)
+            {
+                if (item.result.Kind != DeleteCompletionKind.Pending) settledKeys.Add(key);
+            }
+            foreach (var key in settledKeys) _results.Remove(key);
+        }
+
         private static string Describe(object key)
         {
             return key is Component view ? $"{view.name} ({view.transform.position})" : key.ToString();

@@ -116,6 +116,10 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             void UpdateHoldConfirm()
             {
                 if (!_hold.Advance(InputManager.Playable.Interact.GetKey, deltaTime)) return;
+
+                // 新しい確定の前に前回の拒否・未確認の表示を畳む
+                // Fold the previous rejected/unconfirmed lines before the new commit
+                _results.ClearSettled();
                 var confirmedSubject = _selection.HasSelection() ? SelectionHoldSubject() : subject;
                 _isStroking = false;
                 if (!_selection.TryCommit(confirmedSubject, out var reason)) AddDenyLine(reason);
@@ -151,6 +155,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             _hold.Reset();
             _tooltip.Hide(_tooltipOwner);
             _isStroking = false;
+            _results.ClearSettled();
             _selection.CancelSelection();
         }
     }
