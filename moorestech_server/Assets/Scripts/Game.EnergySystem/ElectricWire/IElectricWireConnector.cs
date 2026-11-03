@@ -13,8 +13,8 @@ namespace Game.EnergySystem
         BlockInstanceId BlockInstanceId { get; }
         bool IsWireConnectionFull { get; }
 
-        // マスタが決める接続数の上限。0 は電線口を持たないブロック（燃料式の機械など）
-        // Master-defined connection limit; 0 means the block has no wire ports (e.g. fuel-driven machines)
+        // 接続数の上限。0は電線口なし
+        // Connection limit; 0 means no wire ports
         int MaxWireConnectionCount { get; }
 
         // このブロックが持つ電力上の役割。必ず消費・発電・送電のいずれかに紐づく

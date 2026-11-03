@@ -21,8 +21,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
-    // 電線口を持たない燃料式機械（石窯・ボイラー相当）へは、自動・手動・ロードのどの経路でも電線がつながらない
-    // A fuel machine without wire ports (stone kiln / boiler equivalent) never gets wired, whether by auto-connect, manual connect or load
+    // 電線口なし燃料機械へは全経路で接続不可
+    // A wireless fuel machine is never wired by any path
     public class WirelessFuelMachineWireTest : ElectricWireAutoConnectPlaceTestBase
     {
         private static readonly Vector3Int PolePosition = new(0, 0, 0);
@@ -38,8 +38,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.ElectricPoleId);
             PlaceBlock(packet, ForUnitTestModBlockId.ElectricPoleId, PolePosition);
 
-            // 電柱は置けるが、燃料機械とは双方とも未接続で電線も減らない
-            // The pole is placed, but neither side is wired and no wire item is spent
+            // 双方未接続で電線も減らない
+            // Neither side is wired and no wire is spent
             var pole = ServerContext.WorldBlockDatastore.GetBlock(PolePosition);
             Assert.IsNotNull(pole);
             Assert.AreEqual(0, pole.GetComponent<IElectricWireConnector>().WireConnections.Count);
@@ -84,8 +84,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 配線済みの機械が燃料機械に変わったセーブをロードすると電柱側にも接続が残らない()
         {
-            // 電線口がある機械を電柱へつないでセーブする（旧マスタで石窯に配線したワールドの再現）
-            // Wire a machine with ports to a pole and save (reproduces a world wired to the kiln under the old master)
+            // 旧マスタの配線済みワールドを再現
+            // Reproduce a world wired under the old master
             var (_, saveServiceProvider) = CreateServer();
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, PolePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, MachinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
@@ -98,8 +98,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(ElectricWireSystemUtil.TryConnect(PolePosition, MachinePosition, playerId, ElectricWireConnectToolGuid, false, out var error), error.ToString());
             var saveJson = saveServiceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
-            // 機械のブロックだけを電線口なしの燃料機械へ差し替え、新マスタでのロードを再現する
-            // Swap only the machine block to the wireless fuel machine to reproduce loading under the new master
+            // ブロックのみ差し替え新マスタ再現
+            // Swap only the block to reproduce the new master
             var machineGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid.ToString();
             var fuelMachineGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.WirelessFuelMachineId).BlockGuid.ToString();
             var save = JObject.Parse(saveJson);
