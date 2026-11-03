@@ -39,7 +39,7 @@ export default function TreeView<T>(props: Props<T>) {
     setViewport((current) => ({ ...current, x: current.x + dx, y: current.y + dy }));
   }, []);
   const inertia = usePanInertia(panBy);
-  useKeepViewCenterOnResize(viewportElement, setViewport);
+  useKeepViewCenterOnResize(viewportElement, setViewport, storedAtMount === null);
   const bounds = useMemo(
     () => computeTreeCanvasBounds(nodes.map((node) => ({ id: getId(node), ...getPosition(node) })), 200),
     [nodes, getId, getPosition],

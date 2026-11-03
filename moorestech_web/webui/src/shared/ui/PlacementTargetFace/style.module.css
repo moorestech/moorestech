@@ -1,12 +1,7 @@
-/* アイコンは枠内へ収め、比率を保つ。枠より小さいため枠(SlotFrame・position: relative)の中央へ置く */
-/* The icon fits inside the frame keeping its aspect ratio; being smaller than the frame, it is centered in it (SlotFrame is position: relative) */
+/* 寸法・余白は共有の slotContent に乗る。余白は用途側が --icon-pad で注入する（ビルドメニュー4px・ホットバー5px） */
+/* Size and padding ride the shared slotContent rule; each usage injects --icon-pad (build menu 4px, hotbar 5px) */
 .icon {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: calc(var(--slot-size) - 8px);
-  height: calc(var(--slot-size) - 8px);
-  object-fit: contain;
+  composes: icon from "../slotContent.module.css";
 }
 
 /* アイコンを持たない対象(BP・BPコピー)は名前を面中央へ収める */

@@ -9,8 +9,12 @@ import { toContentBox } from "./viewportElement";
 export function useKeepViewCenterOnResize(
   viewportElement: RefObject<HTMLDivElement | null>,
   setViewport: Dispatch<SetStateAction<ViewportTransform>>,
+  enabled: boolean,
 ) {
   useEffect(() => {
+    // 保存済み視点の復元マウントは復元値が最終寸法の座標なので動かさない
+    // A mount restored from a stored view keeps it as is, since the stored value is already in final-size coordinates
+    if (!enabled) return;
     const element = viewportElement.current;
     // silent-ok: ResizeObserver が無いのは jsdom 等のテスト環境だけで、CEF・ブラウザには常にある / 寸法変化の追従は e2e（challenge.spec の中央寄せ）が検出する
     if (!element || typeof ResizeObserver === "undefined") return;
@@ -27,7 +31,7 @@ export function useKeepViewCenterOnResize(
     });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [viewportElement, setViewport]);
+  }, [viewportElement, setViewport, enabled]);
 }
 
 function sizeOf(element: HTMLDivElement): ViewportSize {

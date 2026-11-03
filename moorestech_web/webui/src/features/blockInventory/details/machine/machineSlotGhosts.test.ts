@@ -37,10 +37,10 @@ describe("buildMachineSlotView", () => {
     // 束縛は input 2件・output 1件なので、束縛外(input index2, output index4,5)は空なら描かない
     // The binding covers 2 inputs and 1 output, so the unbound slots (input index2, output index4,5) stay undrawn while empty
     expect(view.inputs).toEqual([
-      { index: 0, ghost: { itemId: 1, count: 2 } },
-      { index: 1, ghost: { itemId: 5, count: 1 } },
+      { index: 0, ghost: { itemId: 1, count: 2, acceptedItemIds: [1, 11, 12] } },
+      { index: 1, ghost: { itemId: 5, count: 1, acceptedItemIds: [5] } },
     ]);
-    expect(view.outputs).toEqual([{ index: 3, ghost: { itemId: 2, count: 1 } }]);
+    expect(view.outputs).toEqual([{ index: 3, ghost: { itemId: 2, count: 1, acceptedItemIds: [2] } }]);
   });
 
   it("束縛外スロットに実アイテムがある場合だけそのスロットも描く（ghost無し・戻しきれなかった残置分）", () => {
@@ -50,8 +50,8 @@ describe("buildMachineSlotView", () => {
     itemSlots[2] = { itemId: 9, count: 4 };
     const view = buildMachineSlotView(machine, itemSlots, emptyFluidSlots(3));
     expect(view.inputs).toEqual([
-      { index: 0, ghost: { itemId: 1, count: 2 } },
-      { index: 1, ghost: { itemId: 5, count: 1 } },
+      { index: 0, ghost: { itemId: 1, count: 2, acceptedItemIds: [1, 11, 12] } },
+      { index: 1, ghost: { itemId: 5, count: 1, acceptedItemIds: [5] } },
       { index: 2, ghost: undefined },
     ]);
   });
@@ -119,11 +119,18 @@ describe("boundMachineInputSlotsForItem", () => {
 });
 
 describe("machineInputRequirement", () => {
-  const ghost = { itemId: 2, count: 3 };
+  const ghost = { itemId: 2, count: 3, acceptedItemIds: [2, 12] };
 
   it("実物入りの束縛スロットは入っている数/必要数を返し、足りなければlacking", () => {
     expect(machineInputRequirement({ itemId: 2, count: 1 }, ghost)).toEqual({ ownedCount: 1, requiredCount: 3, lacking: true });
     expect(machineInputRequirement({ itemId: 2, count: 3 }, ghost)).toEqual({ ownedCount: 3, requiredCount: 3, lacking: false });
+  });
+
+  // 受け入れ外の残置品は必要数と比べず、通常の個数バッジに任せる
+  // A leftover outside acceptedItemIds is not compared and falls back to the ordinary count badge
+  it("受け入れ外のアイテムが残っているスロットには出さず、上位変種には出す", () => {
+    expect(machineInputRequirement({ itemId: 9, count: 5 }, ghost)).toBeUndefined();
+    expect(machineInputRequirement({ itemId: 12, count: 5 }, ghost)).toEqual({ ownedCount: 5, requiredCount: 3, lacking: false });
   });
 
   // 空はゴースト、束縛外は必要数なし

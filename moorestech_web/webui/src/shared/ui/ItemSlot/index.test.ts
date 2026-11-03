@@ -163,6 +163,16 @@ describe("ItemSlot", () => {
     expect(markup).not.toContain("data-lack");
   });
 
+  // 実物の出し入れでラッパーが切り替わるとツールチップが再マウントされて閉じるため、shortageなしでも同じ層を返す
+  // Without shortage the same wrapper layer is still returned so toggling it never remounts the tooltip
+  it("shortageの有無に関わらず同じラッパー層で包み、数字だけ出し分ける", () => {
+    const plain = renderItemSlot(undefined, 5);
+
+    expect(plain).toContain(`class="${styles.shortageSlot}"`);
+    expect(plain).not.toContain(styles.shortageCount);
+    expect(renderRealItemShortageSlot(1)).toContain(`class="${styles.shortageSlot}"`);
+  });
+
   it("tooltipKeyがnullなら素材の語彙でなくアイテム名のツールチップを保つ", () => {
     const markup = renderRealItemShortageSlot(1);
 

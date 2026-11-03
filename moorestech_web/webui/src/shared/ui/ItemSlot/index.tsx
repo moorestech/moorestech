@@ -76,8 +76,6 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
   const label = shortageTooltip ?? tooltip;
 
   const slot = (
-    // Tooltip は子要素をラップせず cloneElement するため DOM 構造（grid > div）は不変
-    // The tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
     <HoverTooltip label={label ?? resolvedName} disabled={!(hasItem || ghostShown) || (!label && !resolvedName)}>
       <SlotFrame
         {...divProps}
@@ -104,16 +102,16 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
     </HoverTooltip>
   );
 
-  if (shortage === undefined) return slot;
-
-  // 所持/必要の数値は枠外へはみ出し、不足減光(opacity)も受けないため枠の外側に置く
-  // The owned/required numbers overflow the frame and must escape its shortage dimming, so they sit outside it
+  // 要素型を固定し、実物の出し入れで shortage の有無が変わってもツールチップ等を再マウントさせない
+  // The wrapper is always present so toggling shortage never remounts the tooltip or frame
   return (
     <div className={styles.shortageSlot}>
       {slot}
-      <span className={`iconTextOutlineLight ${styles.shortageCount}`} data-lack={shortage.lacking || undefined}>
-        {t(L.ui.recipe.itemCountSummary, { ownedCount: formatSlotAmount(shortage.ownedCount), requiredCount: formatSlotAmount(shortage.requiredCount) })}
-      </span>
+      {shortage === undefined ? null : (
+        <span className={`iconTextOutlineLight ${styles.shortageCount}`} data-lack={shortage.lacking || undefined}>
+          {t(L.ui.recipe.itemCountSummary, { ownedCount: formatSlotAmount(shortage.ownedCount), requiredCount: formatSlotAmount(shortage.requiredCount) })}
+        </span>
+      )}
     </div>
   );
 }
