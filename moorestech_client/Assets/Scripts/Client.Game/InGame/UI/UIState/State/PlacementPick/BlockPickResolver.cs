@@ -28,9 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
             if (!_placementTargetResolver.IsBlockUnlocked(blockGuid)) return false;
 
-            // 縦置きは廃止したので、旧セーブの縦向きブロックを拾っても手持ちは水平向きにする
-            // Vertical placement is gone, so a picked vertical block from an old save is held horizontally
-            resolvedTarget = new BlockPlacementTarget(blockGuid, pickedDirection.ToHorizontalDirection());
+            resolvedTarget = new BlockPlacementTarget(blockGuid, pickedDirection);
             return true;
         }
     }

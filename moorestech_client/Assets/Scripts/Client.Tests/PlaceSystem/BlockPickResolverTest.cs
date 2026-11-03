@@ -27,10 +27,9 @@ namespace Client.Tests.PlaceSystem
             Assert.IsTrue(CreateResolver(unlockState).TryResolvePickTarget(ForUnitTestModBlockId.MachineId, BlockDirection.North, out _));
         }
 
-        [TestCase(BlockDirection.UpEast, BlockDirection.East)]
-        [TestCase(BlockDirection.DownWest, BlockDirection.West)]
+        [TestCase(BlockDirection.East, BlockDirection.East)]
         [TestCase(BlockDirection.South, BlockDirection.South)]
-        public void 縦向きで置かれたブロックを拾っても手持ちは水平向きになる(BlockDirection placedDirection, BlockDirection expectedDirection)
+        public void 置かれたブロックを拾うと手持ちも同じ向きになる(BlockDirection placedDirection, BlockDirection expectedDirection)
         {
             var serviceProvider = CreateServer();
             PlaceBlockProtocolTestSupport.UnlockBlock(serviceProvider, ForUnitTestModBlockId.MachineId);
