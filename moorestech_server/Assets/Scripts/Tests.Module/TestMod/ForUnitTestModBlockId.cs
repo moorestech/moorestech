@@ -18,6 +18,9 @@ namespace Tests.Module.TestMod
         public static BlockId ElectricPoleId => GetBlock("00000000-0000-0000-0000-000000000004");
         public static BlockId LockedElectricPoleId => GetBlock("00000000-0000-0000-0000-000000000101");
         public static BlockId GeneratorId => GetBlock("00000000-0000-0000-0000-000000000005");
+        // 電線口を持たない燃料式の機械（maxWireConnectionCount 0）。石窯・ボイラーの代役
+        // Fuel-driven machine without wire ports (maxWireConnectionCount 0), standing in for the stone kiln and boiler
+        public static BlockId WirelessFuelMachineId => GetBlock("00000000-0000-0000-0000-000000000120");
         public static BlockId ElectricMinerId => GetBlock("00000000-0000-0000-0000-000000000006");
 
         // 2x1x3・ドリル位置(1,0,2)。原点=ドリルの縮退でテストが素通りするのを防ぐ
