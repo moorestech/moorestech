@@ -64,8 +64,8 @@ namespace Server.Protocol.PacketResponse
             if (!playerMainInventory.InsertionCheck(refundItems))
             {
                 Debug.LogWarning($"Remove train car aborted. Player inventory is full. \ncarId: {trainCarInstanceId}");
-                // 通知は連打をクールダウンで間引くため、要求ごとの確定は応答で返す
-                // Notifications are throttled by cooldown, so each request is settled by its response
+                // 要求ごとの確定は応答で返し、トーストでも満杯を告げて撤去拒否を無言にしない
+                // Settle each request by response and also toast inventory-full so a refusal is never silent
                 _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.removeTrainCarInventoryFull", Array.Empty<string>()));
                 return new RemoveTrainCarResponseMessagePack(false, RemoveTrainCarFailureReason.PlayerInventoryFull);
             }

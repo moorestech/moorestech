@@ -54,7 +54,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Execute the removal protocol.
             var packet = MessagePackSerializer.Serialize(
                 new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCar.TrainCarInstanceId.AsPrimitive()));
-            environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+            var responses = environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+            var response = MessagePackSerializer.Deserialize<RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack>(responses[0]);
+            Assert.IsTrue(response.IsSuccess, "撤去成功は成功応答で返るべき / Successful removal should respond with success");
+            Assert.AreEqual(RemoveTrainCarProtocol.RemoveTrainCarFailureReason.None, response.FailureReason);
 
             // 列車が削除され、建設コスト全額(Test3x3 + Test4x2)がインベントリへ返却されている
             // The train is removed and the full construction cost (Test3x3 + Test4x2) is refunded.

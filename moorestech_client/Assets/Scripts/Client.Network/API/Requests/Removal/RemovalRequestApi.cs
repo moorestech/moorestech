@@ -32,10 +32,12 @@ namespace Client.Network.API.Requests.Removal
             return _exchange.GetFinalPacketResponse<GearChainConnectionEditProtocol.GearChainConnectionEditResponse>(request, ct);
         }
 
-        public UniTask<RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack> RemoveTrain(TrainCarInstanceId id, CancellationToken ct)
+        // 応答喪失で車両が永久に撤去待ちにならないよう、期限付きで待つ
+        // Wait with the shared deadline so a lost response never leaves a car pending forever
+        public UniTask<(RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack response, PacketWaitCompletionReason reason)> RemoveTrain(TrainCarInstanceId id, CancellationToken ct)
         {
             var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(id.AsPrimitive());
-            return _exchange.GetFinalPacketResponse<RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack>(request, ct);
+            return _exchange.GetPacketResponseWithReason<RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack>(request, ct);
         }
     }
 }
