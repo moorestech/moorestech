@@ -2,11 +2,9 @@ namespace Game.Block.Interface
 {
     /// <summary>
     ///     - 設置時の方向切替
-    ///     - 水平は90度ずつ
-    ///     - 垂直は上→下→通常
+    ///     - 水平に90度ずつ回し、上下成分は保つ
     ///     - Direction cycling during placement
-    ///     - Horizontal: 90-degree steps
-    ///     - Vertical: up, down, normal
+    ///     - Horizontal 90-degree steps that keep the up/down component
     /// </summary>
     public static class BlockDirectionStepRotationExtension
     {
@@ -28,29 +26,6 @@ namespace Game.Block.Interface
                 BlockDirection.DownEast => BlockDirection.DownSouth,
                 BlockDirection.DownSouth => BlockDirection.DownWest,
                 BlockDirection.DownWest => BlockDirection.DownNorth,
-                
-                _ => blockDirection
-            };
-        }
-        
-        public static BlockDirection VerticalRotation(this BlockDirection blockDirection)
-        {
-            return blockDirection switch
-            {
-                BlockDirection.UpNorth => BlockDirection.DownNorth,
-                BlockDirection.UpEast => BlockDirection.DownEast,
-                BlockDirection.UpSouth => BlockDirection.DownSouth,
-                BlockDirection.UpWest => BlockDirection.DownWest,
-                
-                BlockDirection.North => BlockDirection.UpNorth,
-                BlockDirection.East => BlockDirection.UpEast,
-                BlockDirection.South => BlockDirection.UpSouth,
-                BlockDirection.West => BlockDirection.UpWest,
-                
-                BlockDirection.DownNorth => BlockDirection.North,
-                BlockDirection.DownEast => BlockDirection.East,
-                BlockDirection.DownSouth => BlockDirection.South,
-                BlockDirection.DownWest => BlockDirection.West,
                 
                 _ => blockDirection
             };
