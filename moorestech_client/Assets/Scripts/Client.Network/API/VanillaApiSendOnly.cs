@@ -17,7 +17,7 @@ using static Server.Protocol.PacketResponse.TrainCarRidingInputProtocol;
 
 namespace Client.Network.API
 {
-    public class VanillaApiSendOnly : Requests.Removal.ITrainCarRemovalSender
+    public class VanillaApiSendOnly
     {
         private readonly PacketSender _packetSender;
         public HotbarCommandApi Hotbar { get; }
@@ -132,12 +132,6 @@ namespace Client.Network.API
         public void SendTrainCarRidingInput(bool moveForward, bool moveBackward, bool selectPreviousBranch, bool selectNextBranch)
         {
             var request = new TrainCarRidingInputMessagePack(moveForward, moveBackward, selectPreviousBranch, selectNextBranch);
-            _packetSender.Send(request);
-        }
-        
-        public void RemoveTrain(TrainCarInstanceId trainCarInstanceId)
-        {
-            var request = new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCarInstanceId.AsPrimitive());
             _packetSender.Send(request);
         }
         

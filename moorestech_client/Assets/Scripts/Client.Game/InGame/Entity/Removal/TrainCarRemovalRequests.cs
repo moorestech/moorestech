@@ -2,32 +2,27 @@ using Client.Network.API;
 using Client.Network.API.Requests.Removal;
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState.State.DragDelete.Completion;
+using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
-using MessagePack;
 using Mooresmaster.Localization.Generated;
-using Server.Event.Notification;
+using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Removal
 {
-    // IDを持たない拒否通知のため車両要求は一件ずつ確定する
-    // Serialize car requests because their denial notification has no target id
+    // 拒否は要求ごとの応答で、成功は構造同期で確定する。要求同士は互いを待たない
+    // Denials settle by each request's response and success by structure sync; requests never wait on each other
     public sealed class TrainCarRemovalRequests
     {
         private readonly TrainUnitClientCache _cache;
         private readonly ITrainCarRemovalSender _sender;
         private readonly TrainUnitTickState _ticks;
-        private readonly Queue<Request> _queue = new();
-        private Request _pending;
-        private bool _changed;
-        private bool _unconfirmed;
-        private uint _changedTick;
+        private readonly List<Request> _pending = new();
 
-        public TrainCarRemovalRequests(TrainUnitClientCache cache, TrainUnitTickState ticks, IVanillaApiEvent events, ITrainCarRemovalSender sender)
+        public TrainCarRemovalRequests(TrainUnitClientCache cache, TrainUnitTickState ticks, ITrainCarRemovalSender sender)
         {
             _cache = cache;
             _sender = sender;
@@ -35,68 +30,71 @@ namespace Client.Game.InGame.Entity.Removal
             cache.OnUnitApplied.Subscribe(_ => MarkChanged());
             cache.OnUnitRemoved.Subscribe(_ => MarkChanged());
             ticks.OnTickCompleted.Subscribe(CheckCompletedTick);
-            events.SubscribeEventResponse(NotificationService.EventTag, payload =>
-            {
-                var message = MessagePackSerializer.Deserialize<NotificationMessagePack>(payload);
-                if (message.MessageId == "denied.removeTrainCarInventoryFull" && _pending != null)
-                    Finish(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.InventoryFull);
-            });
         }
 
         public IObservable<DeleteCompletion> Remove(TrainCarInstanceId id, object key)
         {
             var request = new Request(id, key);
-            _queue.Enqueue(request);
-            if (_unconfirmed) request.Result.OnNext(new DeleteCompletion(key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld));
-            StartNext();
+            if (!Contains(id))
+            {
+                Debug.LogWarning($"[TrainDelete] target absent before send: {id}");
+                Complete(request, DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.UnknownError);
+                return request.Result;
+            }
+
+            // 送信して応答を待つ。期限を過ぎても応答か構造同期で後から確定させる
+            // Send and await the response; past the window it still settles later by response or sync
+            _pending.Add(request);
+            request.Result.OnNext(new DeleteCompletion(key, DeleteCompletionKind.Pending, null));
+            AwaitResponse(request).Forget();
+            Observable.Timer(PacketExchangeManager.ResponseTimeout).Take(1).Subscribe(_ => ReportUnconfirmed(request));
             return request.Result;
         }
 
-        private void StartNext()
+        private async UniTaskVoid AwaitResponse(Request request)
         {
-            if (_pending != null || _queue.Count == 0) return; // silent-ok: 処理中は直列キューで保持 / 結果待ち件数は削除UIに表示
-            _pending = _queue.Dequeue();
-            _changed = false;
-            _unconfirmed = false;
-            if (!Contains(_pending.Id))
+            var response = await _sender.RemoveTrain(request.Id, Application.exitCancellationToken);
+            if (!_pending.Contains(request)) return; // silent-ok: 構造同期で既に成功確定済み / 成功結果をUIへ通知済み
+
+            // 応答が無いまま待機が終わった要求は未確認で閉じる
+            // Close as unconfirmed when the wait ended without a response
+            if (response == null)
             {
-                Debug.LogWarning($"[TrainDelete] target absent before send: {_pending.Id}");
-                Finish(DeleteCompletionKind.Rejected, LocalizationKeys.Ui.Delete.UnknownError);
+                Debug.LogWarning($"[TrainDelete] no response; result unconfirmed: {request.Id}");
+                Finish(request, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Delete.UnknownError);
                 return;
             }
-            _pending.Result.OnNext(new DeleteCompletion(_pending.Key, DeleteCompletionKind.Pending, null));
-            _sender.RemoveTrain(_pending.Id);
-            // 既存応答待ちの期限を参照して未確認を通知。遅延通知との誤対応を防ぎキューは保持する
-            // Report unconfirmed after the shared response window, retaining the queue to avoid misattribution
-            var request = _pending;
-            Observable.Timer(PacketExchangeManager.ResponseTimeout).Take(1).Subscribe(_ =>
-            {
-                if (!ReferenceEquals(_pending, request)) return; // silent-ok: 既に完了した要求の期限 / 完了結果をUIへ通知済み
-                ReportUnconfirmed();
-            });
+            if (response.IsSuccess) return; // silent-ok: 受理済み。成否の確定は構造同期を待つ / 期限超過は未確認としてUIに表示
+
+            Debug.LogWarning($"[TrainDelete] denied: {request.Id} reason={response.FailureReason}");
+            Finish(request, DeleteCompletionKind.Rejected, ToDenyReason(response.FailureReason));
         }
 
-        private void ReportUnconfirmed()
+        private void ReportUnconfirmed(Request request)
         {
-            var request = _pending;
-            _unconfirmed = true;
-            Debug.LogWarning($"[TrainDelete] result unconfirmed; later car requests are held: {request.Id}");
-            request.Result.OnNext(new DeleteCompletion(request.Key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld));
-            foreach (var queued in _queue)
-                queued.Result.OnNext(new DeleteCompletion(queued.Key, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Tooltip.DeleteTrainQueueHeld));
+            if (!_pending.Contains(request)) return; // silent-ok: 既に完了した要求の期限 / 完了結果をUIへ通知済み
+            Debug.LogWarning($"[TrainDelete] result not confirmed within the response window: {request.Id}");
+            request.Result.OnNext(new DeleteCompletion(request.Key, DeleteCompletionKind.Unconfirmed, null));
         }
 
         private void MarkChanged()
         {
-            if (_pending == null) return; // silent-ok: 撤去要求以外の通常構造変更 / 同期画面が変更を表示
-            _changed = true;
-            _changedTick = _ticks.GetTick();
+            foreach (var request in _pending)
+            {
+                request.Changed = true;
+                request.ChangedTick = _ticks.GetTick();
+            }
         }
 
         private void CheckCompletedTick(uint completedTick)
         {
-            if (_pending == null || !_changed || completedTick < _changedTick) return; // silent-ok: 全構造イベント適用まで待つ / 未確認は期限通知で表示
-            if (!Contains(_pending.Id)) Finish(DeleteCompletionKind.Succeeded, null);
+            // 構造イベントを同tick分すべて適用し終えてから不在を成功とみなす
+            // Treat absence as success only after all structure events of that tick are applied
+            foreach (var request in _pending.ToArray())
+            {
+                if (!request.Changed || completedTick < request.ChangedTick) continue; // silent-ok: 全構造イベント適用まで待つ / 未確認は期限通知で表示
+                if (!Contains(request.Id)) Finish(request, DeleteCompletionKind.Succeeded, null);
+            }
         }
 
         private bool Contains(TrainCarInstanceId id)
@@ -107,13 +105,25 @@ namespace Client.Game.InGame.Entity.Removal
             return false;
         }
 
-        private void Finish(DeleteCompletionKind kind, LocalizationKey? reason)
+        private void Finish(Request request, DeleteCompletionKind kind, LocalizationKey? reason)
         {
-            var finished = _pending;
-            _pending = null;
-            finished.Result.OnNext(new DeleteCompletion(finished.Key, kind, reason));
-            finished.Result.OnCompleted();
-            StartNext();
+            _pending.Remove(request);
+            Complete(request, kind, reason);
+        }
+
+        private static void Complete(Request request, DeleteCompletionKind kind, LocalizationKey? reason)
+        {
+            request.Result.OnNext(new DeleteCompletion(request.Key, kind, reason));
+            request.Result.OnCompleted();
+        }
+
+        private static LocalizationKey ToDenyReason(RemoveTrainCarProtocol.RemoveTrainCarFailureReason reason)
+        {
+            return reason switch
+            {
+                RemoveTrainCarProtocol.RemoveTrainCarFailureReason.PlayerInventoryFull => LocalizationKeys.Ui.Delete.InventoryFull,
+                _ => LocalizationKeys.Ui.Delete.UnknownError,
+            };
         }
 
         private sealed class Request
@@ -121,6 +131,8 @@ namespace Client.Game.InGame.Entity.Removal
             internal readonly TrainCarInstanceId Id;
             internal readonly object Key;
             internal readonly ReplaySubject<DeleteCompletion> Result = new(1);
+            internal bool Changed;
+            internal uint ChangedTick;
             internal Request(TrainCarInstanceId id, object key) { Id = id; Key = key; }
         }
     }

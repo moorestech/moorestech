@@ -95,6 +95,31 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(1, environment.GetITrainLookupDatastore().GetRegisteredTrains().Count, "満杯時は削除が中止され列車が残るべき / Train should remain when inventory is full");
         }
 
+        [Test]
+        public void RemoveTrainCar_PlayerInventoryFull_EveryConsecutiveRequestGetsDeniedResponse()
+        {
+            // 満杯の通知はクールダウンで間引かれるため、拒否は要求ごとの応答で必ず返る
+            // Inventory-full notifications are throttled, so each request must still get its own denial response
+            var (environment, trainCar) = SetupAndPlaceTrain();
+            var mainInventory = environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
+            var fillItemMaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(ForUnitTestItemId.ItemId2);
+            for (var i = 0; i < mainInventory.GetSlotSize(); i++)
+                mainInventory.SetItem(i, ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, fillItemMaxStack));
+
+            // 同じtick内に2回続けて撤去を要求する
+            // Request removal twice within the same tick
+            var packet = MessagePackSerializer.Serialize(new RemoveTrainCarProtocol.RemoveTrainCarRequestMessagePack(trainCar.TrainCarInstanceId.AsPrimitive()));
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                var responses = environment.PacketResponseCreator.GetPacketResponse(packet, Tests.Util.PlayerIdentity.BoundPacketContext.Bind(PlayerId));
+                Assert.AreEqual(1, responses.Count, $"撤去要求には必ず応答が返るべき / Removal must always respond (attempt {attempt})");
+                var response = MessagePackSerializer.Deserialize<RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack>(responses[0]);
+                Assert.IsFalse(response.IsSuccess);
+                Assert.AreEqual(RemoveTrainCarProtocol.RemoveTrainCarFailureReason.PlayerInventoryFull, response.FailureReason);
+            }
+            Assert.AreEqual(1, environment.GetITrainLookupDatastore().GetRegisteredTrains().Count, "満杯時は列車が残るべき / Train should remain when inventory is full");
+        }
+
         private static int TotalCount(IOpenableInventory inventory, ItemId itemId)
         {
             var total = 0;

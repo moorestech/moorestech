@@ -1,11 +1,14 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
+using Server.Protocol.PacketResponse;
 
 namespace Client.Network.API.Requests.Removal
 {
-    // 車両キューの送信境界。完了は既存イベントが通知する
-    // Send boundary for the car queue; existing events report completion
+    // 車両撤去の送信境界。拒否は要求ごとの応答で確定する
+    // Send boundary for car removal; each request is settled by its own response
     public interface ITrainCarRemovalSender
     {
-        void RemoveTrain(TrainCarInstanceId id);
+        UniTask<RemoveTrainCarProtocol.RemoveTrainCarResponseMessagePack> RemoveTrain(TrainCarInstanceId id, CancellationToken ct);
     }
 }
