@@ -44,8 +44,8 @@ namespace Client.Game.InGame.Entity.Removal
             {
                 var (response, reason) = await _sender.RemoveTrain(id, Application.exitCancellationToken);
 
-                // 期限切れ・復号失敗は不明な拒否で閉じ、車両を再選択できる状態へ戻す
-                // Close timeouts and decode failures as unknown denials so the car can be selected again
+                // 未確認は削除UIが保留扱いで車両を再選択不能にするため、期限切れ・復号失敗は不明な拒否で閉じる
+                // Unconfirmed keeps the car unselectable in the delete UI, so close timeouts and decode failures as unknown denials
                 if (response == null)
                 {
                     Debug.LogWarning($"[TrainDelete] no usable response ({reason}); closing as rejected: {id}");
