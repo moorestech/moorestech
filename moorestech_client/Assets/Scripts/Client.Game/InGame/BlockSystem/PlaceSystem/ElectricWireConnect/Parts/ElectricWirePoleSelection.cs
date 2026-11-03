@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Input;
 using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
@@ -80,7 +81,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // 通常設置と同じ水平4方向回転
             // Same horizontal 4-way rotation as normal placement
-            if (InputManager.Playable.BlockPlaceRotation.GetKeyDown) CurrentDirection = CurrentDirection.HorizonRotation();
+            CurrentDirection = PlacementDirectionKeyInput.Apply(CurrentDirection);
 
             #region Internal
 
