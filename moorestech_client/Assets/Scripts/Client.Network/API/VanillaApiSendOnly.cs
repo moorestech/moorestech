@@ -6,7 +6,6 @@ using Core.Master;
 
 using Game.Train.RailPositions;
 using Game.Train.SaveLoad;
-using Game.Train.Unit;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;

@@ -46,35 +46,48 @@ namespace Client.Game.InGame.Entity.Removal
             // Send and await the response; past the window it still settles later by response or sync
             _pending.Add(request);
             request.Result.OnNext(new DeleteCompletion(key, DeleteCompletionKind.Pending, null));
-            AwaitResponse(request).Forget();
-            Observable.Timer(PacketExchangeManager.ResponseTimeout).Take(1).Subscribe(_ => ReportUnconfirmed(request));
+            AwaitResponse().Forget();
+            Observable.Timer(PacketExchangeManager.ResponseTimeout).Take(1).Subscribe(_ => ReportUnconfirmed());
             return request.Result;
-        }
 
-        private async UniTaskVoid AwaitResponse(Request request)
-        {
-            var response = await _sender.RemoveTrain(request.Id, Application.exitCancellationToken);
-            if (!_pending.Contains(request)) return; // silent-ok: 構造同期で既に成功確定済み / 成功結果をUIへ通知済み
+            #region Internal
 
-            // 応答が無いまま待機が終わった要求は未確認で閉じる
-            // Close as unconfirmed when the wait ended without a response
-            if (response == null)
+            async UniTaskVoid AwaitResponse()
             {
-                Debug.LogWarning($"[TrainDelete] no response; result unconfirmed: {request.Id}");
-                Finish(request, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Delete.UnknownError);
-                return;
+                var response = await _sender.RemoveTrain(request.Id, Application.exitCancellationToken);
+                if (!_pending.Contains(request)) return; // silent-ok: 構造同期で既に成功確定済み / 成功結果をUIへ通知済み
+
+                // 応答が無いまま待機が終わった要求は未確認で閉じる
+                // Close as unconfirmed when the wait ended without a response
+                if (response == null)
+                {
+                    Debug.LogWarning($"[TrainDelete] no response; result unconfirmed: {request.Id}");
+                    Finish(request, DeleteCompletionKind.Unconfirmed, LocalizationKeys.Ui.Delete.UnknownError);
+                    return;
+                }
+                if (response.IsSuccess) return; // silent-ok: 受理済み。成否の確定は構造同期を待つ / 期限超過は未確認としてUIに表示
+
+                Debug.LogWarning($"[TrainDelete] denied: {request.Id} reason={response.FailureReason}");
+                Finish(request, DeleteCompletionKind.Rejected, ToDenyReason(response.FailureReason));
             }
-            if (response.IsSuccess) return; // silent-ok: 受理済み。成否の確定は構造同期を待つ / 期限超過は未確認としてUIに表示
 
-            Debug.LogWarning($"[TrainDelete] denied: {request.Id} reason={response.FailureReason}");
-            Finish(request, DeleteCompletionKind.Rejected, ToDenyReason(response.FailureReason));
-        }
+            void ReportUnconfirmed()
+            {
+                if (!_pending.Contains(request)) return; // silent-ok: 既に完了した要求の期限 / 完了結果をUIへ通知済み
+                Debug.LogWarning($"[TrainDelete] result not confirmed within the response window: {request.Id}");
+                request.Result.OnNext(new DeleteCompletion(request.Key, DeleteCompletionKind.Unconfirmed, null));
+            }
 
-        private void ReportUnconfirmed(Request request)
-        {
-            if (!_pending.Contains(request)) return; // silent-ok: 既に完了した要求の期限 / 完了結果をUIへ通知済み
-            Debug.LogWarning($"[TrainDelete] result not confirmed within the response window: {request.Id}");
-            request.Result.OnNext(new DeleteCompletion(request.Key, DeleteCompletionKind.Unconfirmed, null));
+            LocalizationKey ToDenyReason(RemoveTrainCarProtocol.RemoveTrainCarFailureReason reason)
+            {
+                return reason switch
+                {
+                    RemoveTrainCarProtocol.RemoveTrainCarFailureReason.PlayerInventoryFull => LocalizationKeys.Ui.Delete.InventoryFull,
+                    _ => LocalizationKeys.Ui.Delete.UnknownError,
+                };
+            }
+
+            #endregion
         }
 
         private void MarkChanged()
@@ -115,15 +128,6 @@ namespace Client.Game.InGame.Entity.Removal
         {
             request.Result.OnNext(new DeleteCompletion(request.Key, kind, reason));
             request.Result.OnCompleted();
-        }
-
-        private static LocalizationKey ToDenyReason(RemoveTrainCarProtocol.RemoveTrainCarFailureReason reason)
-        {
-            return reason switch
-            {
-                RemoveTrainCarProtocol.RemoveTrainCarFailureReason.PlayerInventoryFull => LocalizationKeys.Ui.Delete.InventoryFull,
-                _ => LocalizationKeys.Ui.Delete.UnknownError,
-            };
         }
 
         private sealed class Request

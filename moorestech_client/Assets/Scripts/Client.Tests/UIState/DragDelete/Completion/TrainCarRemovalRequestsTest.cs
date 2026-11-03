@@ -67,8 +67,8 @@ namespace Client.Tests.UIState.DragDelete.Completion
             var secondResults = new List<DeleteCompletion>();
             var thirdResults = new List<DeleteCompletion>();
 
-            // 満杯で2台続けて撤去すると、どちらも自分の応答で拒否が確定する
-            // Removing two cars in a row on a full inventory settles each by its own denial response
+            // 満杯で連続撤去、各自の応答で拒否確定
+            // Two back-to-back removals on a full inventory; each denial settles by its own response
             service.Remove(first, first).Subscribe(firstResults.Add);
             service.Remove(second, second).Subscribe(secondResults.Add);
             Assert.AreEqual(2, sender.Sent.Count, "要求同士は互いを待たない / Requests must not wait on each other");
@@ -78,7 +78,7 @@ namespace Client.Tests.UIState.DragDelete.Completion
             Assert.AreEqual(DeleteCompletionKind.Rejected, secondResults[^1].Kind);
             Assert.AreEqual(LocalizationKeys.Ui.Delete.InventoryFull, secondResults[^1].DenyReason);
 
-            // 応答の届かない要求があっても後続の撤去は送られ成功する
+            // 未応答でも後続撤去は成功
             // A request still awaiting its response does not hold later removals
             var held = new TrainCarInstanceId(103);
             cache.Upsert(Snapshot(unit, first, second, third, held));
