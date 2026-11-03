@@ -49,7 +49,7 @@
 ## 設計検査記録
 
 - 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反2件・修正2件 / 仮プレハブを Block レイヤー＋外形 BoxCollider に、nodeGraph のノードを block 型に直した
-- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強0・弱1・第3バケツ0 / SelectRecipe の TryGetComponent の bool 捨て（tier9-5 の写し）が弱1件。別に「前例に倣った」の根拠誤記を直した
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強0・弱1・第3バケツ0 / SelectRecipe の TryGetComponent の bool 捨て（tier9-5 の写し）が弱1件。別に「前例に倣った」の根拠誤記を直した。検査後に裁定で R5b（品質Lv1 の前提を GPU設計だけに）を Task 1 へ足したが、マスタ値1件と nodeGraph の線の付け替えだけなので再検査はしていない
 
 ---
 
