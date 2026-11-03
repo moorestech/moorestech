@@ -14,8 +14,8 @@ export default function ChallengePanel() {
   const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
   const selected = categories.find((category) => category.guid === selectedGuid) ?? categories[0];
   const { t } = useI18n();
-  // 初回とカテゴリ切替で進行中へ寄せる
-  // Center on in-progress on first view and category switch
+  // 各カテゴリの初回訪問で進行中へ寄せ、再訪は保存視点を戻す
+  // Center on in-progress on a category's first visit; revisits restore the stored view
   const initialFocus = useMemo(() => findChallengeInitialFocusNode(selected?.nodes ?? [])?.position ?? null, [selected]);
 
   useEffect(() => {
