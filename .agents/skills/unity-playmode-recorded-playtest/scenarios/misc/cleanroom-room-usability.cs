@@ -50,6 +50,9 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     await p.OpenBuildMenuAndSelectBlock(WallPanelName);
     await p.PressKey(Key.R);
     await p.AimAt(new Vector3(6.5f, 33f, 4.5f));
+    // 照準直後はプレビューが追従していないので待ってから置く
+    // The preview lags the aim, so wait before placing
+    await p.WaitSeconds(0.5f);
     await p.ClickPlace();
     await p.Until(() => p.GetBlock(uiPanelCell) != null, 15f, "UIで置いた壁パネルがサーバーに載った");
     p.Assert(p.GetBlock(uiPanelCell).BlockPositionInfo.BlockDirection == BlockDirection.East, $"R1回で壁パネルが東向き(板が室内側の西の面)になった(向き={p.GetBlock(uiPanelCell).BlockPositionInfo.BlockDirection})");
