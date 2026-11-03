@@ -85,10 +85,13 @@ python3 .claude/skills/master-refine/scripts/recalc_sort_priority.py \
 
 ```bash
 python3 .claude/skills/master-refine/scripts/recalc_research_positions.py \
-  --mod-dir "$(cd ../moorestech_master/server_vN/mods/moorestechAlphaMod_N && pwd)"
+  --mod-dir "$(cd ../moorestech_master/server_vN/mods/moorestechAlphaMod_N && pwd)" \
+  --goal-research <本線の終点の研究 GUID>
 ```
 
-配置アルゴリズム（depth・グループ判定・next_x 方式・孤立ノードのオフセット・重複検証）はスクリプト冒頭の docstring が正本。実行後は `git diff -U0 .../research.json` で UIPosition の数値行以外が変化していないことを確認する。
+`--goal-research` は v8 なら `01a167e9-21f6-7d26-a990-e7d6d78750d0`（最終研究）。ここへ至らない研究（品質モジュール系など）は枝として本線の下にまとめ、nodeGraph の列・行の並びを写して置く。枝の形を変えたいときは nodeGraph 側で並べ直す。
+
+配置アルゴリズム（depth・グループ判定・next_x 方式・枝の配置・孤立ノードのオフセット・重複検証）はスクリプト冒頭の docstring が正本。実行後は `git diff -U0 .../research.json` で UIPosition の数値行以外が変化していないことを確認する。
 
 レイアウトの要点:
 - 依存元は左・依存先は右。ルートノードは x=0、メインチェーン（最長依存パス）は y=0
