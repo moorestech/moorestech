@@ -77,10 +77,10 @@ export function boundMachineInputSlotsForItem(machine: MachineDetailData, totalI
   return machine.slotBindings.filter((binding) => inputBand.has(binding.slot) && binding.acceptedItemIds.includes(itemId)).map((binding) => binding.slot);
 }
 
-export type MachineInputRequirement = { ownedCount: number; requiredCount: number; lacking: boolean };
+type MachineInputRequirement = { ownedCount: number; requiredCount: number; lacking: boolean };
 
-// 実物入りの束縛入力スロットに「入っている数/必要数」を出す（2026-11-03裁定）。空スロットはゴーストが必要数を語るので出さない
-// Real-item bound input slots show "held/required" (2026-11-03 ruling); an empty slot already states the requirement through its ghost
+// 実物入りの束縛入力に所持/必要を出す。空はゴーストが語る
+// Filled bound inputs show held/required; empty slots use the ghost
 export function machineInputRequirement(slot: SlotData, ghost: GhostItem | undefined): MachineInputRequirement | undefined {
   if (ghost === undefined || !hasRealItem(slot)) return undefined;
   return { ownedCount: slot.count, requiredCount: ghost.count, lacking: slot.count < ghost.count };

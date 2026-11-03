@@ -44,8 +44,8 @@ function renderShortageSlot(insufficient: boolean) {
   );
 }
 
-// 実物入りの機械素材スロット: 個数はshortageへ寄せ、減光せず数字だけ赤くする
-// A machine material slot holding a real item: the count moves into shortage and only the numbers turn red, no dimming
+// 実物入り素材スロットは数字だけ赤くする
+// A filled material slot reddens only the numbers
 function renderRealItemShortageSlot(ownedCount: number) {
   return renderToStaticMarkup(
     createElement(MantineProvider, null, createElement(ItemSlot, {

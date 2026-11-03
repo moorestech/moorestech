@@ -147,8 +147,8 @@ test("背景スキット中は進行中チャレンジの描画契約を維持�
   await expectChallengeHudPresentation(page, worldPresentation);
 });
 
-// ノード中心とビューポート中心の距離。カードはノード座標中心アンカー（研究ツリーと同じ）
-// Distance between the node center and the viewport center; cards anchor at their node point (as in the research tree)
+// ノード中心とビューポート中心の距離
+// Distance between node center and viewport center
 async function expectCenteredInChallengeViewport(page: Page, nodeTestId: string) {
   const viewportBox = await page.getByTestId("challenge-viewport").boundingBox();
   const nodeBox = await page.getByTestId(nodeTestId).boundingBox();

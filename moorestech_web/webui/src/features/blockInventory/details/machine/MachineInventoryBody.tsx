@@ -25,8 +25,8 @@ export default function MachineInventoryBody({ data }: { data: BlockInventoryOpe
   const outputSlots = view.outputs;
   const fluids = view.fluids.map((f) => ({ fluid: data.fluidSlots[f.index], ghost: f.ghost }));
 
-  // 素材スロットだけ実物入りでも必要数を出す。不足は数字だけ赤くし、入れた実物は減光しない（2026-11-03裁定）
-  // Only material slots keep the requirement visible with a real item; a shortage reddens just the numbers, never dimming the item (2026-11-03 ruling)
+  // 素材スロットは実物入りでも必要数を出す
+  // Material slots show the requirement even when filled
   const slotAt = ({ index, ghost }: { index: number; ghost: GhostItem | undefined }, showsRequirement: boolean) => {
     const slot = data.itemSlots[index];
     const requirement = showsRequirement ? machineInputRequirement(slot, ghost) : undefined;

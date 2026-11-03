@@ -6,8 +6,8 @@ import { useBlockSlotGestures } from "./useBlockSlotGestures";
 import { INVENTORY_GRID_COLUMNS } from "@/features/inventory/inventoryGridColumns";
 
 
-// itemSlots を持ち物と同じ列数を上限に描画し grab/move_item/collect と連動する共通部品
-// Grid for block itemSlots capped at the inventory's column count, wired to grab via move_item/collect
+// 持ち物と同列数で描く共通部品
+// Shared grid drawn with the inventory's column count
 export default function BlockItemGrid({ itemSlots, slotIndices, testId }: { itemSlots: SlotData[]; slotIndices: number[]; testId: string }) {
   // ジェスチャ配線は useBlockSlotGestures に共通化（MachineSection の分割グリッドと同一挙動）
   // Gesture wiring is shared via useBlockSlotGestures (identical to MachineSection's split grids)

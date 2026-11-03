@@ -34,8 +34,8 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
   // "catalog" is for the recipe list: unowned shows a gray face + icon, only owned (count>0) shows a white face + count
   catalog?: boolean;
   insufficient?: boolean;
-  // 所持/必要の数値。これがあるときは通常の個数バッジを出さない（数字を1か所にまとめる）
-  // Owned/required numbers; when present the ordinary count badge is hidden so the numbers live in one place
+  // 所持/必要の数値。あれば個数バッジは出さない
+  // Held/required numbers; hides the ordinary count badge
   shortage?: Shortage;
   // 空スロットに置く「入るべきアイテム」の半透明プレビュー。実物（itemId>0）があれば無視する
   // Translucent preview of the item that belongs in an empty slot; ignored when a real item (itemId>0) is present

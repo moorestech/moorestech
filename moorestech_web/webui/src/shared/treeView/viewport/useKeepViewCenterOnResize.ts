@@ -20,6 +20,9 @@ export function useKeepViewCenterOnResize(
       if (nextSize.width === lastSize.width && nextSize.height === lastSize.height) return;
       const previousSize = lastSize;
       lastSize = nextSize;
+      // 寸法0からの変化は初回レイアウトで、TreeView の中央寄せ見送りと対称に平行移動しない
+      // A change from a zero size is the first layout; skip the shift, symmetric with TreeView's deferred centering
+      if (previousSize.width === 0 || previousSize.height === 0) return;
       setViewport((current) => shiftViewportForResize(current, previousSize, nextSize));
     });
     observer.observe(element);

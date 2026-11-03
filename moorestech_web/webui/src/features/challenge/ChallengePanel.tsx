@@ -14,8 +14,8 @@ export default function ChallengePanel() {
   const [selectedGuid, setSelectedGuid] = useState<string | null>(null);
   const selected = categories.find((category) => category.guid === selectedGuid) ?? categories[0];
   const { t } = useI18n();
-  // 初回表示とカテゴリ切替時に進行中のチャレンジへ寄せる。視点はカテゴリごとに保存する（研究ツリーと同じ）
-  // Center on the in-progress challenge on first view and on category switch; the viewport is stored per category (as in the research tree)
+  // 初回とカテゴリ切替で進行中へ寄せる
+  // Center on in-progress on first view and category switch
   const initialFocus = useMemo(() => findChallengeInitialFocusNode(selected?.nodes ?? [])?.position ?? null, [selected]);
 
   useEffect(() => {

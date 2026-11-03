@@ -126,8 +126,8 @@ describe("machineInputRequirement", () => {
     expect(machineInputRequirement({ itemId: 2, count: 3 }, ghost)).toEqual({ ownedCount: 3, requiredCount: 3, lacking: false });
   });
 
-  // 空スロットはゴーストが必要数を語り、束縛外スロットには必要数が無い
-  // An empty slot already shows the requirement as a ghost, and an unbound slot has no requirement
+  // 空はゴースト、束縛外は必要数なし
+  // Empty uses a ghost; unbound has no requirement
   it("空スロットと束縛外スロットには出さない", () => {
     expect(machineInputRequirement({ itemId: 0, count: 0 }, ghost)).toBeUndefined();
     expect(machineInputRequirement({ itemId: 2, count: 5 }, undefined)).toBeUndefined();

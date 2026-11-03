@@ -196,8 +196,8 @@ test("クラフト可能数0のアイテムは個数バッジを出さない", a
 test("機械レシピの一覧に液体の入力を量付きで出す", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
-  // item7 は水を入力に持つ機械レシピ(bbbbbbbb)の出力
-  // Item 7 is an output of the machine recipe (bbbbbbbb) that takes water as an input
+  // item7は水入力レシピの出力
+  // item7 is the output of the water-input recipe
   await page.getByTestId("item-list-grid").locator('[data-item-id="7"]').click();
 
   const entry = page.getByTestId("machine-recipe-entry-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
