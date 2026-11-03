@@ -40,6 +40,13 @@ export const blockMachine = {
   electricNetwork: { totalGeneratePower: 500.0, totalRequiredPower: 300.0, consumerCount: 4, powerRate: 1.0 },
 } satisfies BlockInventoryWireData;
 
+// BLK-2b 素材が必要数(3)に届かない電気機械: 実物入りスロットの「入っている数/必要数」の赤字を検証する
+// BLK-2b electric machine short of its required material (3): exercises the red "held/required" on a filled slot
+export const blockMachineShortInput = {
+  ...blockMachine,
+  itemSlots: [{ itemId: 2, count: 1 }, empty(), empty(), empty()],
+} satisfies BlockInventoryWireData;
+
 // BLK-3 ギア機械: machine + gear/gearNetwork capability
 // BLK-3 gear machine: machine + gear/gearNetwork capabilities
 export const blockGearMachine = {

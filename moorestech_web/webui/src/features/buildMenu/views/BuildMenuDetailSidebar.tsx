@@ -41,7 +41,7 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
                     key={`${item.itemId}-${index}`}
                     itemId={item.itemId}
                     insufficient={isItemInsufficient(entry, item)}
-                    shortage={{ ownedCount: item.held, requiredCount: item.count, tooltipKey: L.ui.buildMenu.materialTooltip }}
+                    shortage={{ ownedCount: item.held, requiredCount: item.count, lacking: isItemInsufficient(entry, item), tooltipKey: L.ui.buildMenu.materialTooltip }}
                   />
                 ))}
               </SlotGrid>

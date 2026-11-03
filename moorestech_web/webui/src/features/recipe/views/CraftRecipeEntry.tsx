@@ -48,7 +48,7 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
             <ItemSlot
               itemId={r.itemId}
               insufficient={ownedCountOf(counts, r.itemId) < r.count}
-              shortage={{ ownedCount: ownedCountOf(counts, r.itemId), requiredCount: r.count, tooltipKey: L.ui.recipe.materialTooltip }}
+              shortage={{ ownedCount: ownedCountOf(counts, r.itemId), requiredCount: r.count, lacking: ownedCountOf(counts, r.itemId) < r.count, tooltipKey: L.ui.recipe.materialTooltip }}
               onLeftDown={() => onSelect(r.itemId)}
             />
           </Box>

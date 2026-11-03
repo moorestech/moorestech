@@ -39,7 +39,19 @@ function renderShortageSlot(insufficient: boolean) {
     createElement(MantineProvider, null, createElement(ItemSlot, {
       itemId: 1,
       insufficient,
-      shortage: { ownedCount: 2, requiredCount: 5, tooltipKey: L.ui.recipe.materialTooltip },
+      shortage: { ownedCount: 2, requiredCount: 5, lacking: insufficient, tooltipKey: L.ui.recipe.materialTooltip },
+    })),
+  );
+}
+
+// 実物入りの機械素材スロット: 個数はshortageへ寄せ、減光せず数字だけ赤くする
+// A machine material slot holding a real item: the count moves into shortage and only the numbers turn red, no dimming
+function renderRealItemShortageSlot(ownedCount: number) {
+  return renderToStaticMarkup(
+    createElement(MantineProvider, null, createElement(ItemSlot, {
+      itemId: 1,
+      count: ownedCount,
+      shortage: { ownedCount, requiredCount: 3, lacking: ownedCount < 3, tooltipKey: null },
     })),
   );
 }
@@ -131,5 +143,29 @@ describe("ItemSlot", () => {
 
     expect(markup).toContain("2/5");
     expect(markup).not.toContain("data-lack");
+  });
+
+  it("実物入りでshortageがあると個数バッジを出さず所持/必要の1か所にまとめる", () => {
+    const markup = renderRealItemShortageSlot(1);
+
+    expect(markup).toContain(`<span class="iconTextOutlineLight ${styles.shortageCount}" data-lack="true">1/3</span>`);
+    expect(markup).not.toMatch(new RegExp(`class="[^"]*\\b${styles.count}\\b`));
+    // 赤字でも枠は減光しない
+    // Red numbers never dim the frame
+    expect(markup).not.toContain("data-insufficient");
+    expect(markup).toContain('data-filled="true"');
+  });
+
+  it("必要数を満たした実物入りスロットは赤くしない", () => {
+    const markup = renderRealItemShortageSlot(5);
+
+    expect(markup).toContain("5/3");
+    expect(markup).not.toContain("data-lack");
+  });
+
+  it("tooltipKeyがnullなら素材の語彙でなくアイテム名のツールチップを保つ", () => {
+    const markup = renderRealItemShortageSlot(1);
+
+    expect(markup).not.toContain("所持数:");
   });
 });

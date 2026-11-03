@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FluidSlotData, MachineDetailData } from "@/bridge";
-import { boundMachineInputSlotsForItem, buildMachineSlotView } from "./machineSlotGhosts";
+import { boundMachineInputSlotsForItem, buildMachineSlotView, machineInputRequirement } from "./machineSlotGhosts";
 
 const layout = { input: 3, output: 3, module: 1, inputTank: 2 };
 
@@ -115,5 +115,21 @@ describe("boundMachineInputSlotsForItem", () => {
 
   it("継承元スロットは上位レベルの変種でも宛先になる", () => {
     expect(boundMachineInputSlotsForItem(machine, 7, 12)).toEqual([0]);
+  });
+});
+
+describe("machineInputRequirement", () => {
+  const ghost = { itemId: 2, count: 3 };
+
+  it("実物入りの束縛スロットは入っている数/必要数を返し、足りなければlacking", () => {
+    expect(machineInputRequirement({ itemId: 2, count: 1 }, ghost)).toEqual({ ownedCount: 1, requiredCount: 3, lacking: true });
+    expect(machineInputRequirement({ itemId: 2, count: 3 }, ghost)).toEqual({ ownedCount: 3, requiredCount: 3, lacking: false });
+  });
+
+  // 空スロットはゴーストが必要数を語り、束縛外スロットには必要数が無い
+  // An empty slot already shows the requirement as a ghost, and an unbound slot has no requirement
+  it("空スロットと束縛外スロットには出さない", () => {
+    expect(machineInputRequirement({ itemId: 0, count: 0 }, ghost)).toBeUndefined();
+    expect(machineInputRequirement({ itemId: 2, count: 5 }, undefined)).toBeUndefined();
   });
 });

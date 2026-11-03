@@ -22,7 +22,7 @@
   bottom: var(--shortage-count-bottom, -4px);
   z-index: 2;
   color: var(--count-text);
-  font-size: 11px;
+  font-size: var(--shortage-count-font-size, 11px);
   line-height: 1;
   white-space: nowrap;
 }
