@@ -30,5 +30,19 @@ namespace Game.Block.Interface
                 _ => blockDirection
             };
         }
+
+        // 上下成分を落として同じ水平方位へ寝かせる
+        // Drop the up/down component and lay the direction flat on the same heading
+        public static BlockDirection ToHorizontalDirection(this BlockDirection blockDirection)
+        {
+            return blockDirection switch
+            {
+                BlockDirection.UpNorth or BlockDirection.DownNorth => BlockDirection.North,
+                BlockDirection.UpEast or BlockDirection.DownEast => BlockDirection.East,
+                BlockDirection.UpSouth or BlockDirection.DownSouth => BlockDirection.South,
+                BlockDirection.UpWest or BlockDirection.DownWest => BlockDirection.West,
+                _ => blockDirection
+            };
+        }
     }
 }
