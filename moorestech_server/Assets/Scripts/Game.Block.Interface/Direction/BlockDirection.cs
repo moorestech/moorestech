@@ -7,6 +7,8 @@ namespace Game.Block.Interface
     ///     ブロックの水平4方向の向き。上下に回した設置は無い
     ///     The block's four horizontal headings; there is no up/down placement
     /// </summary>
+    // North=0..West=3 は時計回りで、セーブ形式の契約（整数で保存）
+    // North=0..West=3 run clockwise and are a save-format contract (stored as integers)
     public enum BlockDirection
     {
         North,
