@@ -103,7 +103,7 @@ test("ホストが並べ替えた入口と出口の添字を描画と操作に�
   await setBlock(page, "spaceElevatorReordered");
   await page.goto("/");
   await expect(page.getByTestId("space-elevator-input-grid-slot-2")).toBeVisible();
-  const outputs = page.getByTestId("space-elevator-output-grid").locator("> div");
+  const outputs = page.getByTestId("space-elevator-output-grid").locator("> div > div:first-child");
   await expect(outputs.nth(0)).toHaveAttribute("data-testid", "space-elevator-output-grid-slot-1");
   await expect(outputs.nth(1)).toHaveAttribute("data-testid", "space-elevator-output-grid-slot-0");
   await expect(outputs.nth(0)).toContainText("7");

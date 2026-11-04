@@ -72,8 +72,8 @@ describe("block inventory design whitelist", () => {
     expect(sources.electricToGear).toContain("<GaugeBar");
   });
 
-  it("ブロックスロットの列数を1列から9列の範囲で内容に追従させる", () => {
-    expect(sources.blockItemGrid).toContain("cols={Math.min(MAX_BLOCK_INVENTORY_COLUMNS, Math.max(1, slotIndices.length))}");
+  it("ブロックスロットの列数を1列から持ち物と同じ列数の範囲で内容に追従させる", () => {
+    expect(sources.blockItemGrid).toContain("cols={Math.min(INVENTORY_GRID_COLUMNS, Math.max(1, slotIndices.length))}");
   });
 
   it("フィルタ分岐器の方向を縦積みにする", () => {

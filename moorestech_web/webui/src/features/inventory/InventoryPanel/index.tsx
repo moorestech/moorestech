@@ -6,6 +6,7 @@ import { slotActions } from "../slotActions";
 import { L, useI18n } from "@/shared/i18n";
 import { inventoryItemAnchorId, tutorialAnchor } from "@/shared/tutorialAnchor";
 import { firstSlotIndexByItemId } from "@/shared/ownedCounts";
+import { INVENTORY_GRID_COLUMNS } from "../inventoryGridColumns";
 
 // 固定pxでピッチの端数ドリフトを防ぐ
 // Use fixed-pixel slots and gaps to prevent fractional drift from the 140px screenshot pitch
@@ -49,7 +50,7 @@ export default function InventoryPanel() {
 
   return (
     <GamePanel gridArea="inv" title={t(L.ui.inventory.title)} titleAction={sortAction} style={{ justifySelf: "start", alignSelf: "start", width: "var(--inventory-panel-width)", minHeight: 452.391, transform: "translate(0.783px, 0.783px)", "--panel-left": "-2.22px", "--panel-right": "-2.22px", "--title-shift-x": "-1.96px", "--title-scale-x": 0.919, "--title-scale-y": 0.924 } as CSSProperties}>
-      <SlotGrid testId="main-grid" cols={10} style={GRID_STYLE}>
+      <SlotGrid testId="main-grid" cols={INVENTORY_GRID_COLUMNS} style={GRID_STYLE}>
         {inventory.mainSlots.map((slot, i) => {
           const ref: SlotRef = { area: "main", slot: i };
           const itemGuid = firstSlots.get(slot.itemId) === i ? itemMaster?.get(slot.itemId)?.itemGuid : undefined;
