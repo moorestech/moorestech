@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Game.SaveLoad.Migration.Steps.V9ToV10
 {
     /// <summary>
-    /// world の各ブロックの向きを水平4方向の番号へ読み替え、縦置きを寝かせる。寝かせて重なるものは撤去し、その上のレール接続・列車も外す
-    /// Renumbers each world block's direction to the four horizontal headings and lays vertical blocks flat; those overlapping when laid flat are removed along with rail connections and trains on them
+    /// worldの向き読替・寝かせ・重なり撤去と巻き添え除去
+    /// Renumber world directions, lay flat, remove overlaps and collateral
     /// </summary>
     internal sealed class VerticalDirectionWorldRewriter : ISaveMigrationPart
     {
@@ -26,8 +26,8 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
         {
             if (!(save[WorldKey] is JArray world)) return MigrationSaveJson.Reject($"セーブのworldが配列ではありません。 type={save[WorldKey]?.Type}", out failureReason);
 
-            // 巻き添えを外す節は、無い／null なら飛ばし、配列以外は拒否する
-            // Collateral sections are skipped when absent/null and refused when not an array
+            // 節が無い/nullは飛ばし、配列以外は拒否
+            // Skip absent/null sections; refuse non-arrays
             if (!TryGetOptionalArray(save, RailSegmentsKey, out var railSegments, out failureReason)) return false;
             if (!TryGetOptionalArray(save, TrainUnitsKey, out var trainUnits, out failureReason)) return false;
 
@@ -47,6 +47,29 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
             _trainUnits = trainUnits;
             failureReason = null;
             return true;
+
+            #region Internal
+
+            // 無い/nullはnull、配列以外は拒否
+            // Null when absent/null; refuse non-arrays
+            bool TryGetOptionalArray(JObject save, string key, out JArray array, out string failureReason)
+            {
+                array = null;
+                failureReason = null;
+                var token = save[key];
+                if (MigrationSaveJson.IsAbsentOrNull(token)) return true;
+                if (!(token is JArray found)) return MigrationSaveJson.Reject($"セーブの{key}が配列ではありません。 type={token.Type}", out failureReason);
+                array = found;
+                return true;
+            }
+
+            long InstanceIdOrMax(JObject block)
+            {
+                var token = block["instanceId"];
+                return token != null && token.Type == JTokenType.Integer ? token.Value<long>() : long.MaxValue;
+            }
+
+            #endregion
         }
 
         public string ApplyAndSummarize()
@@ -59,8 +82,8 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
 
             #region Internal
 
-            // 撤去したブロックを world から外し、件数と位置をログに残す
-            // Take the removed blocks out of world and log their count and positions
+            // 撤去ブロックを外し件数と位置をログ
+            // Remove blocks and log count and positions
             JArray RemoveOverlappingBlocks()
             {
                 var removed = new JArray();
@@ -76,8 +99,8 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
                 return removed;
             }
 
-            // 撤去したブロックにつながるレール接続と、その上の列車を外す
-            // Remove rail connections touching the removed blocks and the trains on them
+            // 撤去ブロックのレール接続と列車を外す
+            // Remove rail connections and trains of removed blocks
             (int railSegmentCount, int trainUnitCount) RemoveCollateral()
             {
                 if (removedBlocks.Count == 0) return (0, 0);
@@ -88,25 +111,6 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
             }
 
             #endregion
-        }
-
-        // キーが無いか null なら null を返す。配列以外は拒否する
-        // Return null when the key is absent or null; refuse anything other than an array
-        private static bool TryGetOptionalArray(JObject save, string key, out JArray array, out string failureReason)
-        {
-            array = null;
-            failureReason = null;
-            var token = save[key];
-            if (MigrationSaveJson.IsAbsentOrNull(token)) return true;
-            if (!(token is JArray found)) return MigrationSaveJson.Reject($"セーブの{key}が配列ではありません。 type={token.Type}", out failureReason);
-            array = found;
-            return true;
-        }
-
-        private static long InstanceIdOrMax(JObject block)
-        {
-            var token = block["instanceId"];
-            return token != null && token.Type == JTokenType.Integer ? token.Value<long>() : long.MaxValue;
         }
     }
 }

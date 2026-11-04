@@ -80,8 +80,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
             z_XY_Edge.transform.localPosition = new Vector3(blockSize.x, blockSize.y, 0);
             
             
-            // 面の種類は、ローカルの外向き法線を向きで回したワールドの面で決める（水平4向き）
-            // Each face type comes from rotating its local outward normal by the direction (the four horizontal directions)
+            // 外向き法線を回してワールド面を決める
+            // Rotate the outward normal to get the world face
             xy_Origin_Surface.transform.localScale = new Vector3(blockSize.x, blockSize.y, 1);
             xy_Origin_Surface.transform.localPosition = new Vector3(0, 0, 0);
             xy_Origin_SurfaceScript.SetPreviewSurfaceType(PreviewSurfaceTypeResolver.Resolve(blockDirection, new Vector3Int(0, 0, -1)), blockGameObject);

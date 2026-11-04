@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Game.SaveLoad.Migration.Steps.V9ToV10
 {
@@ -15,8 +16,8 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
         {
             var outcome = new LayFlatOutcome();
 
-            // 全ブロックの向きを新しい番号へ読み替え、縦のパネルは壁パネルへ替える
-            // Renumber every block's direction and turn vertical panels into wall panels
+            // 向きを読替え、縦パネルは壁パネルへ
+            // Renumber directions; vertical panels become wall panels
             foreach (var entry in entries) entry.Rewrite();
 
             // 縦が無ければ重なりは起きないので、マスタのサイズを引かずに終える
@@ -25,15 +26,15 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
 
             // 水平だったブロックは位置も占有も変わらないので先に登録する
             // Blocks that were horizontal keep their place and footprint, so they claim cells first
-            var occupancy = new LaidFlatOccupancy();
+            var occupancy = new HashSet<Vector3Int>();
             foreach (var entry in entries.Where(entry => !entry.WasVertical))
             {
                 var size = entry.LookUpMasterBlockSize();
-                if (size != null) occupancy.Add(LegacyTwelveDirection.OccupiedCells(entry.MinCorner, entry.Horizontal, size.Value));
+                if (size != null) occupancy.UnionWith(LegacyTwelveDirection.OccupiedCells(entry.MinCorner, entry.Horizontal, size.Value));
             }
 
-            // 縦だったブロックを順に寝かせ、既存の占有と重なるものは撤去へ回す
-            // Lay vertical blocks flat in order; those overlapping existing occupancy go to removal
+            // 縦を順に寝かせ、重なりは撤去へ
+            // Lay vertical blocks flat in order; overlaps go to removal
             foreach (var entry in entries.Where(entry => entry.WasVertical))
             {
                 var size = entry.LookUpMasterBlockSize();
@@ -50,7 +51,7 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
                     continue;
                 }
 
-                occupancy.Add(cells);
+                occupancy.UnionWith(cells);
                 outcome.CountLaidFlat(entry);
             }
 
@@ -59,8 +60,8 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
     }
 
     /// <summary>
-    /// 寝かせた結果。撤去対象と、残ったものの件数（壁パネルへ替えたものを含む）
-    /// The result of laying flat: the removal targets and counts of what stayed (including those turned into wall panels)
+    /// 寝かせ結果（撤去対象・残件数）
+    /// Lay-flat result: removal targets and remaining counts
     /// </summary>
     internal sealed class LayFlatOutcome
     {

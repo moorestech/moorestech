@@ -9,8 +9,8 @@ using static Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10.V9SaveJsonFixture;
 
 namespace Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10
 {
-    // ブループリント内の向きが読み替わり、重なる縦置きは撤去されて電線・チェーンの添字が付け替わることを検証
-    // Verify blueprint directions are renumbered, overlapping vertical blocks are removed and wire/chain indices are remapped
+    // 向き読替・重なり撤去・添字付替えを検証
+    // Verify renumbering, overlap removal and index remapping
     public class SaveMigrationStepV9ToV10BlueprintTest
     {
         private string _cubeGuid;

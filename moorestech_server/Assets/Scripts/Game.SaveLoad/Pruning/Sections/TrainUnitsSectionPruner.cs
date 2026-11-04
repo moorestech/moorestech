@@ -39,8 +39,8 @@ namespace Game.SaveLoad.Pruning.Sections
 
             #region Internal
 
-            // 巻き添えの判定は原因に依らない処理へ任せ、外した列車を退避用の結果へ積む
-            // Delegate the cause-neutral collateral check and stack the removed trains onto the archive result
+            // 判定を委譲し外した列車を結果へ積む
+            // Delegate the check and stack removed trains onto the result
             void RemoveTrainsOnRemovedBlocks()
             {
                 var removedTrainUnits = RemovedBlockRailCollateral.RemoveTrainUnitsOnRemovedBlocks(trainUnits, removedWorldBlockPositions);

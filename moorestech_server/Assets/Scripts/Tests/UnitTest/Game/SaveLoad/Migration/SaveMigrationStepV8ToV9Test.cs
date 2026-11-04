@@ -187,8 +187,8 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
             };
         }
 
-        // 版9以降のステップが読む配置（水平の北・座標・guid）を持つブロック。guid はマスタを引かない架空の値
-        // A block with the placement later steps read (flat north, position, guid); the guid is fictional and never resolved against the master
+        // 水平北・座標・guidを持つ最小ブロック（guidは架空）
+        // Minimal block with flat north, position, guid (guid is fictional)
         private static JObject PlacedBlock(int x, JObject state)
         {
             return new JObject { ["blockGuid"] = $"00000000-0000-0000-0000-00000000000{x}", ["instanceId"] = x, ["X"] = x, ["Y"] = 0, ["Z"] = 0, ["direction"] = 4, ["state"] = state };

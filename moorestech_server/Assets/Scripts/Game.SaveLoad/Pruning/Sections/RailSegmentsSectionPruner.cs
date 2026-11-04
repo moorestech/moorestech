@@ -19,8 +19,8 @@ namespace Game.SaveLoad.Pruning.Sections
                 return result;
             }
 
-            // 巻き添えの判定は原因に依らない処理へ任せ、外した接続を退避用の結果へ積む
-            // Delegate the cause-neutral collateral check and stack the removed connections onto the archive result
+            // 判定を委譲し外した接続を結果へ積む
+            // Delegate the check and stack removed connections onto the result
             foreach (var removedSegment in RemovedBlockRailCollateral.RemoveRailSegmentsTouching(railSegments, removedWorldBlockPositions)) result.RemovedRailSegments.Add(removedSegment);
 
             if (0 < result.RemovedRailSegments.Count)

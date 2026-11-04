@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Game.SaveLoad.Pruning
 {
     /// <summary>
-    /// セーブから外したブロックの巻き添え（つながるレール接続・レールに載る列車）を外す。外した原因（マスタ欠損・移行での撤去）には依らない
-    /// Removes the collateral of blocks taken out of a save (rail connections touching them, trains on their rails), independent of why they were taken out (missing master, migration removal)
+    /// 外したブロックのレール接続・列車を、外した原因に依らず外す
+    /// Remove rail connections and trains of taken-out blocks regardless of cause
     /// 綴りはRailSegmentSaveData/TrainUnitSaveData/RailPositionSaveDataのフィールド名・プロパティ名（JsonProperty無し）に一致させる
     /// Spellings match the field and property names of RailSegmentSaveData/TrainUnitSaveData/RailPositionSaveData, which carry no JsonProperty
     /// </summary>
@@ -35,7 +35,6 @@ namespace Game.SaveLoad.Pruning
                 segment.Remove();
             }
 
-            if (0 < removedSegments.Count) Debug.LogWarning($"除去したブロックにつながるレール接続を外しました。 count={removedSegments.Count}");
             return removedSegments;
         }
 
@@ -65,7 +64,6 @@ namespace Game.SaveLoad.Pruning
                 trainUnit.Remove();
             }
 
-            if (0 < removedTrainUnits.Count) Debug.LogWarning($"除去したブロックのレールに載る列車を外しました。 count={removedTrainUnits.Count}");
             return removedTrainUnits;
         }
     }

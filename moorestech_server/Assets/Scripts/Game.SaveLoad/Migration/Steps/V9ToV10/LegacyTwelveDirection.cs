@@ -10,26 +10,23 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
     /// </summary>
     internal static class LegacyTwelveDirection
     {
-        public const string CleanRoomPanelGuid = "a069613c-bcb5-4b19-a956-1e264a23f81e";
-        public const string CleanRoomWallPanelGuid = "de157d57-7b41-49f5-9228-3762fb196e71";
-
         public static bool TryRead(JToken directionToken, out int horizontal, out bool wasVertical)
         {
             horizontal = 0;
             wasVertical = false;
             if (directionToken == null || directionToken.Type != JTokenType.Integer) return false;
             var legacy = directionToken.Value<long>();
-            if (legacy < 0 || legacy > 11) return false;
+            if (legacy < 0 || 11 < legacy) return false;
 
             // 縦は同じ方位の水平へ寝かせる
             // A vertical direction lies flat on the same heading
             horizontal = (int)(legacy % 4);
-            wasVertical = legacy < 4 || legacy >= 8;
+            wasVertical = legacy < 4 || 8 <= legacy;
             return true;
         }
 
-        // 最小の隅から、水平向きで占めるセルを列挙する（東西はxとzが入れ替わる）
-        // Enumerate the cells a horizontal block occupies from its min corner (east/west swap x and z)
+        // 占有セルを列挙（東西はxz入替）
+        // Enumerate occupied cells (east/west swap x and z)
         public static IEnumerable<Vector3Int> OccupiedCells(Vector3Int minCorner, int horizontal, Vector3Int blockSize)
         {
             var isEastOrWest = horizontal == 1 || horizontal == 3;

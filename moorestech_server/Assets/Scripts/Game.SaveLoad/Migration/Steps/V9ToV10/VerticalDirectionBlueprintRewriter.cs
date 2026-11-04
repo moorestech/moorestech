@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Game.SaveLoad.Migration.Steps.V9ToV10
 {
     /// <summary>
-    /// 各ブループリント内のブロックの向きを水平4方向の番号へ読み替え、縦置きを寝かせる。重なるものは撤去し、電線・チェーンの添字を付け替える
-    /// Renumbers each blueprint block's direction to the four horizontal headings and lays vertical blocks flat; overlapping ones are removed and wire/chain indices are remapped
+    /// ブループリント内の向き読替・縦置き寝かせ・添字付替え
+    /// Renumber blueprint directions, lay vertical blocks flat, remap indices
     /// </summary>
     internal sealed class VerticalDirectionBlueprintRewriter : ISaveMigrationPart
     {
@@ -34,6 +34,45 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
             }
 
             return true;
+
+            #region Internal
+
+            // 形と添字範囲を検証しブロックを添字順に読む
+            // Validate shapes and index ranges, read blocks in index order
+            bool TryReadBlueprint(JObject blueprint, out List<LegacyBlockEntry> entries, out string failureReason)
+            {
+                entries = new List<LegacyBlockEntry>();
+                var name = blueprint["name"];
+                if (!(blueprint["blocks"] is JArray blocks)) return MigrationSaveJson.Reject($"ブループリントのblocksが配列ではありません。 blueprint={name} type={blueprint["blocks"]?.Type}", out failureReason);
+
+                for (var i = 0; i < blocks.Count; i++)
+                {
+                    if (!LegacyBlockEntry.TryRead(blocks[i], "offsetX", "offsetY", "offsetZ", $"ブループリント内ブロック blueprint={name} index={i}", out var entry, out failureReason)) return false;
+                    entries.Add(entry);
+                }
+
+                foreach (var lineKey in LineKeys)
+                {
+                    if (!(blueprint[lineKey] is JArray lines)) return MigrationSaveJson.Reject($"ブループリントの{lineKey}が配列ではありません。 blueprint={name} type={blueprint[lineKey]?.Type}", out failureReason);
+                    foreach (var line in lines)
+                    {
+                        if (line is JObject lineObject && IsIndexInRange(lineObject[BlockIndexAKey], blocks.Count) && IsIndexInRange(lineObject[BlockIndexBKey], blocks.Count)) continue;
+                        return MigrationSaveJson.Reject($"ブループリントの{lineKey}の添字が読めないか範囲外です。 blueprint={name} line={line.ToString(Newtonsoft.Json.Formatting.None)} blocks={blocks.Count}", out failureReason);
+                    }
+                }
+
+                failureReason = null;
+                return true;
+            }
+
+            bool IsIndexInRange(JToken token, int count)
+            {
+                if (token == null || token.Type != JTokenType.Integer) return false;
+                var index = token.Value<long>();
+                return 0 <= index && index < count;
+            }
+
+            #endregion
         }
 
         public string ApplyAndSummarize()
@@ -58,73 +97,42 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
             }
 
             return $"ブループリントの縦向きを寝かせた={laidFlatCount}件 壁パネルへ置換={wallPanelCount}件 重なりで撤去={removedCount}件";
-        }
 
-        // blocks・wires・chains の形と添字の範囲を確かめ、ブロックを添字順に読む
-        // Check the shapes of blocks/wires/chains and the index ranges, then read blocks in index order
-        private static bool TryReadBlueprint(JObject blueprint, out List<LegacyBlockEntry> entries, out string failureReason)
-        {
-            entries = new List<LegacyBlockEntry>();
-            var name = blueprint["name"];
-            if (!(blueprint["blocks"] is JArray blocks)) return MigrationSaveJson.Reject($"ブループリントのblocksが配列ではありません。 blueprint={name} type={blueprint["blocks"]?.Type}", out failureReason);
+            #region Internal
 
-            for (var i = 0; i < blocks.Count; i++)
+            // 撤去ブロックを外し、端が消えた電線・チェーンも除いて添字を詰める
+            // Drop removed blocks and wires/chains with a removed end, compact indices
+            void RemoveBlocksAndRemapLines(JObject blueprint, List<LegacyBlockEntry> entries, List<LegacyBlockEntry> removed)
             {
-                if (!LegacyBlockEntry.TryRead(blocks[i], "offsetX", "offsetY", "offsetZ", $"ブループリント内ブロック blueprint={name} index={i}", out var entry, out failureReason)) return false;
-                entries.Add(entry);
-            }
-
-            foreach (var lineKey in LineKeys)
-            {
-                if (!(blueprint[lineKey] is JArray lines)) return MigrationSaveJson.Reject($"ブループリントの{lineKey}が配列ではありません。 blueprint={name} type={blueprint[lineKey]?.Type}", out failureReason);
-                foreach (var line in lines)
+                var removedSet = new HashSet<LegacyBlockEntry>(removed);
+                var newIndexByOldIndex = new Dictionary<int, int>();
+                for (var oldIndex = 0; oldIndex < entries.Count; oldIndex++)
                 {
-                    if (line is JObject lineObject && IsIndexInRange(lineObject[BlockIndexAKey], blocks.Count) && IsIndexInRange(lineObject[BlockIndexBKey], blocks.Count)) continue;
-                    return MigrationSaveJson.Reject($"ブループリントの{lineKey}の添字が読めないか範囲外です。 blueprint={name} line={line.ToString(Newtonsoft.Json.Formatting.None)} blocks={blocks.Count}", out failureReason);
+                    if (removedSet.Contains(entries[oldIndex])) continue;
+                    newIndexByOldIndex[oldIndex] = newIndexByOldIndex.Count;
                 }
-            }
 
-            failureReason = null;
-            return true;
-        }
+                foreach (var entry in removed) entry.Block.Remove();
 
-        // 撤去したブロックを blocks から外し、電線・チェーンは端が撤去されたものを消して残りの添字を詰める
-        // Drop removed blocks from blocks, delete wires/chains with a removed end, and compact the remaining indices
-        private static void RemoveBlocksAndRemapLines(JObject blueprint, List<LegacyBlockEntry> entries, List<LegacyBlockEntry> removed)
-        {
-            var removedSet = new HashSet<LegacyBlockEntry>(removed);
-            var newIndexByOldIndex = new Dictionary<int, int>();
-            for (var oldIndex = 0; oldIndex < entries.Count; oldIndex++)
-            {
-                if (removedSet.Contains(entries[oldIndex])) continue;
-                newIndexByOldIndex[oldIndex] = newIndexByOldIndex.Count;
-            }
-
-            foreach (var entry in removed) entry.Block.Remove();
-
-            foreach (var lineKey in LineKeys)
-            {
-                foreach (var line in ((JArray)blueprint[lineKey]).OfType<JObject>().ToList())
+                foreach (var lineKey in LineKeys)
                 {
-                    var hasA = newIndexByOldIndex.TryGetValue(line[BlockIndexAKey].Value<int>(), out var newA);
-                    var hasB = newIndexByOldIndex.TryGetValue(line[BlockIndexBKey].Value<int>(), out var newB);
-                    if (!hasA || !hasB)
+                    foreach (var line in ((JArray)blueprint[lineKey]).OfType<JObject>().ToList())
                     {
-                        line.Remove();
-                        continue;
-                    }
+                        var hasA = newIndexByOldIndex.TryGetValue(line[BlockIndexAKey].Value<int>(), out var newA);
+                        var hasB = newIndexByOldIndex.TryGetValue(line[BlockIndexBKey].Value<int>(), out var newB);
+                        if (!hasA || !hasB)
+                        {
+                            line.Remove();
+                            continue;
+                        }
 
-                    line[BlockIndexAKey] = newA;
-                    line[BlockIndexBKey] = newB;
+                        line[BlockIndexAKey] = newA;
+                        line[BlockIndexBKey] = newB;
+                    }
                 }
             }
-        }
 
-        private static bool IsIndexInRange(JToken token, int count)
-        {
-            if (token == null || token.Type != JTokenType.Integer) return false;
-            var index = token.Value<long>();
-            return 0 <= index && index < count;
+            #endregion
         }
     }
 }

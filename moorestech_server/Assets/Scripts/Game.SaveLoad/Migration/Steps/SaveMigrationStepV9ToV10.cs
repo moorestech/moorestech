@@ -4,8 +4,8 @@ using Newtonsoft.Json.Linq;
 
 namespace Game.SaveLoad.Migration.Steps
 {
-    // V9→V10移行: 縦向き(Up*/Down*)の廃止に合わせ、向きを水平4方向の番号へ読み替え、縦置きを寝かせる
-    // V9->V10 migration: with Up*/Down* removed, renumber directions to the four horizontal headings and lay vertical blocks flat
+    // V9→V10: 縦向き廃止に伴う向き読替と縦置きの寝かせ
+    // V9->V10: renumber directions and lay vertical blocks flat after vertical removal
     public sealed class SaveMigrationStepV9ToV10 : ISaveMigrationStep
     {
         public int FromVersion => 9;

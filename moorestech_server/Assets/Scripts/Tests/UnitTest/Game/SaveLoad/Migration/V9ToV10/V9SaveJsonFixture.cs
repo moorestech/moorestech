@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10
 {
     /// <summary>
-    /// 版9→版10の移行テストが手で組むセーブ JSON の部品。向きは版9の12向きの番号（Up 0..3・水平 4..7・Down 8..11）で書く
-    /// Pieces of the hand-built save JSON for the version 9->10 migration tests; directions use version-9 twelve-direction numbers (Up 0..3, flat 4..7, Down 8..11)
+    /// 移行テスト用の版9セーブJSON部品（向きは版9の12向き番号）
+    /// Version-9 save JSON pieces for migration tests (twelve-direction numbers)
     /// </summary>
     public static class V9SaveJsonFixture
     {
@@ -17,8 +17,8 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10
         public const string CleanRoomWallPanelGuid = "de157d57-7b41-49f5-9228-3762fb196e71";
         public const string MissingMasterGuid = "0fffffff-0000-0000-0000-00000000dead";
 
-        // テスト mod のマスタを読み、1×1×1 と 1×2×3 のブロックの guid を返す
-        // Load the test mod master and return the guids of the 1x1x1 and 1x2x3 blocks
+        // 1×1×1と1×2×3のguidを返す
+        // Return the guids of the 1x1x1 and 1x2x3 blocks
         public static (string cubeGuid, string tallGuid) LoadTestMasterGuids()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -40,8 +40,8 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10
             return new JObject { ["blockIndexA"] = blockIndexA, ["blockIndexB"] = blockIndexB, ["connectToolGuid"] = "00000000-0000-0000-0000-0000000000aa" };
         }
 
-        // RailSegmentSaveData の端（ConnectionDestination の blockPosition）
-        // A RailSegmentSaveData end (ConnectionDestination's blockPosition)
+        // レール端のblockPositionを組む
+        // Build the rail end blockPosition
         public static JObject Destination(int x, int y, int z)
         {
             return new JObject { ["blockPosition"] = new JObject { ["x"] = x, ["y"] = y, ["z"] = z } };

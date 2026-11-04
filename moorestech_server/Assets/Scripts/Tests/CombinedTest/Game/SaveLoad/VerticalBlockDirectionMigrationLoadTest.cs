@@ -17,8 +17,8 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Game.SaveLoad
 {
-    // 版9の縦置き（DownEast）が実ロードで同じ方位の水平（East）に寝かされ、水平のブロックは向きを保つことを検証
-    // Verify a version-9 vertical block (DownEast) is laid flat to the same heading (East) by a real load, while flat blocks keep their heading
+    // 版9の縦置きが実ロードで同方位の水平へ寝ることを検証
+    // Verify a version-9 vertical block lies flat to the same heading on real load
     public class VerticalBlockDirectionMigrationLoadTest
     {
         private static readonly Vector3Int TallPosition = new(3, 0, 5);
@@ -47,8 +47,8 @@ namespace Tests.CombinedTest.Game.SaveLoad
         {
             var original = BuildVersion9Save().ToString();
 
-            // 一時ファイルを実セーブパスに指定してロードする
-            // Point the DI save path at a temporary file and load it
+            // 一時ファイルをセーブパスにしてロード
+            // Load with a temporary file as the save path
             Directory.CreateDirectory(_archiveRoot);
             var sourcePath = WorldDataDirectory.FromWorldRoot(_archiveRoot).SaveJsonFilePath;
             File.WriteAllText(sourcePath, original);
@@ -61,8 +61,8 @@ namespace Tests.CombinedTest.Game.SaveLoad
             Assert.AreEqual(sourcePath, configuredDirectory.SaveJsonFilePath);
             loadProvider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
 
-            // 縦置きは原点を保ったまま East に寝て、占有の最大座標も East の計算と一致する
-            // The vertical block lies flat to East at the same origin, and its max cell matches the East computation
+            // 原点保持でEastに寝て最大座標が一致
+            // Lies flat to East at the same origin; max cell matches
             var tall = ServerContext.WorldBlockDatastore.GetBlock(TallPosition);
             Assert.IsNotNull(tall, "移行後に縦置きだったブロックが消えています");
             Assert.AreEqual(MultiSizeBlockTest.Block_1x2x3_Id, tall.BlockId);
@@ -79,8 +79,8 @@ namespace Tests.CombinedTest.Game.SaveLoad
             Assert.AreEqual(10, WorldSaveAllInfo.CurrentVersion);
         }
 
-        // 現行の本物のセーブの向きを版9の番号へ戻し、1×2×3 だけを DownEast にして版9と名乗らせる
-        // Turn a real current save's directions back into version-9 numbers, make only the 1x2x3 DownEast, and label it version 9
+        // 現行セーブを版9番号へ戻し1×2×3だけDownEastにする
+        // Revert a current save to version-9 numbers; only the 1x2x3 becomes DownEast
         private static JObject BuildVersion9Save()
         {
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

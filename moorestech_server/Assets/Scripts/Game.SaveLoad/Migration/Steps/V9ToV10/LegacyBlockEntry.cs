@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Game.SaveLoad.Migration.Steps.V9ToV10
 {
     /// <summary>
-    /// 版9のブロック1件（world要素かブループリント内ブロック）を寝かせるために読んだ値。書き換え先の JObject と、占有の計算に要る最小の隅・向き・サイズを持つ
-    /// One version-9 block (a world element or a blueprint block) read for laying flat; holds the JObject to rewrite plus the min corner, heading and size the occupancy needs
+    /// 版9ブロック1件の読取値（書換先JObject・隅・向き・サイズ）
+    /// One version-9 block read: target JObject, corner, heading, size
     /// </summary>
     internal sealed class LegacyBlockEntry
     {
@@ -22,7 +22,7 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
 
         // 縦のクリーンルームパネルは壁パネルへ替わるので、置き換え後のguid
         // Vertical clean-room panels become wall panels, so this is the guid after replacement
-        public readonly string TargetBlockGuid;
+        private readonly string _targetBlockGuid;
         public readonly bool ReplacesWithWallPanel;
 
         private LegacyBlockEntry(JObject block, Vector3Int minCorner, int horizontal, bool wasVertical, string targetBlockGuid, bool replacesWithWallPanel)
@@ -31,7 +31,7 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
             MinCorner = minCorner;
             Horizontal = horizontal;
             WasVertical = wasVertical;
-            TargetBlockGuid = targetBlockGuid;
+            _targetBlockGuid = targetBlockGuid;
             ReplacesWithWallPanel = replacesWithWallPanel;
         }
 
@@ -55,11 +55,25 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
 
             // サイズは置き換え後のブロックで引く
             // Look up the size of the block that will actually stand there
-            var replacesWithWallPanel = wasVertical && blockGuid == Guid.Parse(LegacyTwelveDirection.CleanRoomPanelGuid);
-            var targetBlockGuid = replacesWithWallPanel ? LegacyTwelveDirection.CleanRoomWallPanelGuid : guidText;
+            var replacesWithWallPanel = wasVertical && blockGuid == Guid.Parse(CleanRoomPanelReplacementTable.CleanRoomPanelGuid);
+            var targetBlockGuid = replacesWithWallPanel ? CleanRoomPanelReplacementTable.CleanRoomWallPanelGuid : guidText;
             entry = new LegacyBlockEntry(block, new Vector3Int(x, y, z), horizontal, wasVertical, targetBlockGuid, replacesWithWallPanel);
             failureReason = null;
             return true;
+
+            #region Internal
+
+            bool TryReadInt(JToken token, out int value)
+            {
+                value = 0;
+                if (token == null || token.Type != JTokenType.Integer) return false;
+                var raw = token.Value<long>();
+                if (raw < int.MinValue || int.MaxValue < raw) return false;
+                value = (int)raw;
+                return true;
+            }
+
+            #endregion
         }
 
         // 向きと guid を書き換える（占有の判定とは独立）
@@ -67,26 +81,16 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
         public void Rewrite()
         {
             Block[DirectionKey] = Horizontal;
-            Block[BlockGuidKey] = TargetBlockGuid;
+            Block[BlockGuidKey] = _targetBlockGuid;
         }
 
         // 置き換え後のブロックのサイズ。マスタに無い blockGuid は null を返し、占有に数えない（後段の MissingMasterPruner が除去する）
         // Size of the block after replacement; a blockGuid absent from the master yields null and is left out of occupancy (the later MissingMasterPruner removes it)
         public Vector3Int? LookUpMasterBlockSize()
         {
-            var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(Guid.Parse(TargetBlockGuid));
+            var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(Guid.Parse(_targetBlockGuid));
             if (blockId == null) return null;
             return MasterHolder.BlockMaster.GetBlockMaster(blockId.Value).BlockSize;
-        }
-
-        private static bool TryReadInt(JToken token, out int value)
-        {
-            value = 0;
-            if (token == null || token.Type != JTokenType.Integer) return false;
-            var raw = token.Value<long>();
-            if (raw < int.MinValue || raw > int.MaxValue) return false;
-            value = (int)raw;
-            return true;
         }
     }
 }

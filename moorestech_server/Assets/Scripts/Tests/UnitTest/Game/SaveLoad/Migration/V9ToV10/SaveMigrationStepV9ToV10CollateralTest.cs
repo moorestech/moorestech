@@ -9,8 +9,8 @@ using static Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10.V9SaveJsonFixture;
 
 namespace Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10
 {
-    // 寝かせて重なり撤去したブロックの巻き添え（つながるレール接続・載る列車）が外れることを検証
-    // Verify the collateral of a block removed for overlapping when laid flat (rail connections touching it, trains on it) is removed
+    // 重なり撤去ブロックの巻き添え除去を検証
+    // Verify collateral removal for blocks removed by overlap
     public class SaveMigrationStepV9ToV10CollateralTest
     {
         private string _cubeGuid;

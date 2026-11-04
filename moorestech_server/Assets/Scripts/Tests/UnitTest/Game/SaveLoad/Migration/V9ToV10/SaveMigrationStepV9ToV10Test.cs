@@ -10,8 +10,8 @@ using static Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10.V9SaveJsonFixture;
 
 namespace Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10
 {
-    // 版9の world の向き（12向き）が版10の水平4向きへ読み替わり、縦置きが寝かされることを検証
-    // Verify version-9 world directions (twelve) become version-10 horizontal ones and vertical blocks are laid flat
+    // 12向きの水平4向きへの読替と縦置きの寝かせを検証
+    // Verify twelve-direction to four-direction renumbering and lay-flat
     public class SaveMigrationStepV9ToV10Test
     {
         private const string MissingDirection = "<missing>";
@@ -86,12 +86,13 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10
             Assert.AreEqual(0, save["world"][0]["direction"].Value<int>());
         }
 
-        // 東西に寝かせると x と z が入れ替わり、1×2×3 DownEast は x0..2・y0..1・z0 を占める
-        // Laying flat east/west swaps x and z, so a 1x2x3 DownEast occupies x0..2, y0..1, z0
-        [Test]
-        public void 東西に寝かせた占有はxとzを入れ替えて判定するTest()
+        // 東西に寝かせると x と z が入れ替わり、1×2×3 の DownEast(9)・DownWest(11) は x0..2・y0..1・z0 を占める
+        // Laying flat east/west swaps x and z, so a 1x2x3 DownEast(9) or DownWest(11) occupies x0..2, y0..1, z0
+        [TestCase(9)]
+        [TestCase(11)]
+        public void 東西に寝かせた占有はxとzを入れ替えて判定するTest(int legacyDirection)
         {
-            var world = new JArray(WorldBlock(1, _tallGuid, 9, 0, 0, 0), WorldBlock(2, _cubeGuid, 4, 2, 1, 0));
+            var world = new JArray(WorldBlock(1, _tallGuid, legacyDirection, 0, 0, 0), WorldBlock(2, _cubeGuid, 4, 2, 1, 0));
             LogAssert.Expect(LogType.Warning, new Regex("重なるため撤去"));
 
             var save = Migrate(world);
