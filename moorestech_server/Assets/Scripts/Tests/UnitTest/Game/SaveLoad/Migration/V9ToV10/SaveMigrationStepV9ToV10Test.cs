@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text.RegularExpressions;
-using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration.Steps;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -152,7 +151,6 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V9ToV10
 
             Assert.AreEqual(9, save["worldVersion"].Value<int>());
             Assert.AreEqual(9, new SaveMigrationStepV9ToV10().FromVersion);
-            Assert.AreEqual(10, WorldSaveAllInfo.CurrentVersion);
         }
 
         #region TestHelper

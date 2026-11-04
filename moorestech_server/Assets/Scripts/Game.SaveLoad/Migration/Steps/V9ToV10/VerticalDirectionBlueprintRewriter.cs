@@ -13,9 +13,9 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
     internal sealed class VerticalDirectionBlueprintRewriter : ISaveMigrationPart
     {
         private const string BlueprintsKey = "blueprints";
-        private static readonly string[] LineKeys = { "wires", "chains" };
-        private const string BlockIndexAKey = "blockIndexA";
-        private const string BlockIndexBKey = "blockIndexB";
+        private static readonly string[] LineKeys = BlueprintBlockRemoval.LineKeys;
+        private const string BlockIndexAKey = BlueprintBlockRemoval.BlockIndexAKey;
+        private const string BlockIndexBKey = BlueprintBlockRemoval.BlockIndexBKey;
 
         private readonly List<(JObject blueprint, List<LegacyBlockEntry> entries)> _targets = new();
 
@@ -105,31 +105,8 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
             void RemoveBlocksAndRemapLines(JObject blueprint, List<LegacyBlockEntry> entries, List<LegacyBlockEntry> removed)
             {
                 var removedSet = new HashSet<LegacyBlockEntry>(removed);
-                var newIndexByOldIndex = new Dictionary<int, int>();
-                for (var oldIndex = 0; oldIndex < entries.Count; oldIndex++)
-                {
-                    if (removedSet.Contains(entries[oldIndex])) continue;
-                    newIndexByOldIndex[oldIndex] = newIndexByOldIndex.Count;
-                }
-
-                foreach (var entry in removed) entry.Block.Remove();
-
-                foreach (var lineKey in LineKeys)
-                {
-                    foreach (var line in ((JArray)blueprint[lineKey]).OfType<JObject>().ToList())
-                    {
-                        var hasA = newIndexByOldIndex.TryGetValue(line[BlockIndexAKey].Value<int>(), out var newA);
-                        var hasB = newIndexByOldIndex.TryGetValue(line[BlockIndexBKey].Value<int>(), out var newB);
-                        if (!hasA || !hasB)
-                        {
-                            line.Remove();
-                            continue;
-                        }
-
-                        line[BlockIndexAKey] = newA;
-                        line[BlockIndexBKey] = newB;
-                    }
-                }
+                var removedIndices = Enumerable.Range(0, entries.Count).Where(index => removedSet.Contains(entries[index])).ToList();
+                BlueprintBlockRemoval.RemoveAt(blueprint, removedIndices);
             }
 
             #endregion

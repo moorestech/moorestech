@@ -88,6 +88,10 @@ namespace Game.SaveLoad.Migration.Steps.V9ToV10
         // Size of the block after replacement; a blockGuid absent from the master yields null and is left out of occupancy (the later MissingMasterPruner removes it)
         public Vector3Int? LookUpMasterBlockSize()
         {
+            // 床・壁パネルは版10→11で撤去されるので、版9時点の1マスで占有を数える（今のマスタの5マス幅で数えると隣を巻き添えにする）
+            // Floor/wall panels are removed in V10->V11, so count them at their version-9 one-cell size (the current 5-wide master size would sweep up neighbors)
+            if (CleanRoomPanelReplacementTable.IsPanelGuid(_targetBlockGuid)) return CleanRoomPanelReplacementTable.Version9PanelSize;
+
             var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(Guid.Parse(_targetBlockGuid));
             if (blockId == null) return null;
             return MasterHolder.BlockMaster.GetBlockMaster(blockId.Value).BlockSize;
