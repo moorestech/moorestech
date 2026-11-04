@@ -101,5 +101,5 @@ test("GameScreenのホイールは最新equipment値から次スロットを選�
   // fixture の selectedEquipment:0 から1段進むと次のスロットが選ばれる
   // Stepping once from the fixture's selectedEquipment:0 selects the next slot
   await expect.poll(() => payloadsOf(page, "inventory.select_equipment")).toContainEqual({ index: 1 });
-  await expect(equipment.locator("> div").nth(1)).toHaveAttribute("data-selected", "true");
+  await expect(equipment.locator("> div > div:first-child").nth(1)).toHaveAttribute("data-selected", "true");
 });

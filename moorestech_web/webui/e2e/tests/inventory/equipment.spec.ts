@@ -3,7 +3,7 @@ import { payloadsOf } from "../../support/actions";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
 
 const equipmentSlots = (page: import("@playwright/test").Page) =>
-  page.getByTestId("equipment-slots").locator("> div");
+  page.getByTestId("equipment-slots").locator("> div > div:first-child");
 
 // 画面状態を変えるテストがあるため、既定状態へ戻して他 spec へ漏らさない
 // Some tests change the screen state; reset to defaults so it never leaks into other specs

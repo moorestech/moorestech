@@ -30,6 +30,7 @@ namespace Tests.UnitTest.Game
 
         public BlockInstanceId BlockInstanceId { get; }
         public bool IsWireConnectionFull => false;
+        public int MaxWireConnectionCount => int.MaxValue;
         public bool IsDestroy { get; private set; }
 
         public IElectricEnergyRole EnergyRole { get; private set; }
