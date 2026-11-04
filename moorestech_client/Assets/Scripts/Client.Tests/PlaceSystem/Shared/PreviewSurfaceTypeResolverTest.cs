@@ -30,19 +30,11 @@ namespace Client.Tests.PlaceSystem
         }
 
         [Test]
-        public void 全12向きで6面が6種類の面へ1対1に対応する([Values] BlockDirection direction)
+        public void 全4向きで6面が6種類の面へ1対1に対応する([Values] BlockDirection direction)
         {
             var resolved = new HashSet<PreviewSurfaceType>();
             foreach (var normal in LocalOutwardNormals) resolved.Add(PreviewSurfaceTypeResolver.Resolve(direction, normal));
             Assert.AreEqual(6, resolved.Count, $"two faces resolved to the same world face for {direction}");
-        }
-
-        [Test]
-        public void 上向き北に置いたブロックのローカル上面はワールドの南面になる()
-        {
-            // UpNorth は x 軸まわりに -90 度回すので、ローカルの上はワールドの -z を向く
-            // UpNorth rotates -90 degrees about x, so local up faces world -z
-            Assert.AreEqual(PreviewSurfaceType.YX_Origin, PreviewSurfaceTypeResolver.Resolve(BlockDirection.UpNorth, new Vector3Int(0, 1, 0)));
         }
     }
 }
