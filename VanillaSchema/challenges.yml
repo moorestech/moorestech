@@ -311,18 +311,10 @@ properties:
                   type: enum
                   default: North
                   options:
-                  - UpNorth
-                  - UpEast
-                  - UpSouth
-                  - UpWest
                   - North
                   - East
                   - South
                   - West
-                  - DownNorth
-                  - DownEast
-                  - DownSouth
-                  - DownWest
                 - key: message
                   type: string
                   default: Place the block at the highlighted position
@@ -372,18 +364,10 @@ properties:
                   type: enum
                   default: North
                   options:
-                  - UpNorth
-                  - UpEast
-                  - UpSouth
-                  - UpWest
                   - North
                   - East
                   - South
                   - West
-                  - DownNorth
-                  - DownEast
-                  - DownSouth
-                  - DownWest
                 - key: message
                   type: string
                   default: Place the block next to the highlighted one
@@ -418,18 +402,10 @@ properties:
                       type: enum
                       default: North
                       options:
-                      - UpNorth
-                      - UpEast
-                      - UpSouth
-                      - UpWest
                       - North
                       - East
                       - South
                       - West
-                      - DownNorth
-                      - DownEast
-                      - DownSouth
-                      - DownWest
                 # 連結ゴースト群の上に出すWebピンの文言
                 # Wording of the web pins shown over the chain ghosts
                 - key: message

@@ -73,7 +73,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
         [Test]
         public void 版6のセーブは流体変換を経て現在版まで変換されるTest()
         {
-            var save = JObject.Parse($"{{\"worldVersion\":6,\"world\":[{{\"state\":{{\"{PipeKey}\":{{\"amount\":1.5}}}}}}]}}");
+            var save = JObject.Parse($"{{\"worldVersion\":6,\"world\":[{{\"blockGuid\":\"00000000-0000-0000-0000-000000000001\",\"instanceId\":1,\"X\":0,\"Y\":0,\"Z\":0,\"direction\":4,\"state\":{{\"{PipeKey}\":{{\"amount\":1.5}}}}}}]}}");
 
             var result = CurrentVersionChain().Migrate(save);
 
@@ -120,7 +120,7 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration
         // The same array as production (SaveAndEventServiceRegistration)
         private static SaveMigrationChain CurrentVersionChain()
         {
-            return SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9() });
+            return SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3(), new SaveMigrationStepV3ToV4(), new SaveMigrationStepV4ToV5(), new SaveMigrationStepV5ToV6(), new SaveMigrationStepV6ToV7(), new SaveMigrationStepV7ToV8(), new SaveMigrationStepV8ToV9(), new SaveMigrationStepV9ToV10(), new SaveMigrationStepV10ToV11() });
         }
 
         #endregion
