@@ -76,7 +76,6 @@ namespace Tests.CombinedTest.Game.SaveLoad
             Assert.AreEqual(original, File.ReadAllText(configuredDirectory.BackupSaveJsonPath(9)));
             var resaved = JObject.Parse(loadProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson());
             Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, resaved["worldVersion"].Value<int>());
-            Assert.AreEqual(10, WorldSaveAllInfo.CurrentVersion);
         }
 
         // 現行セーブを版9番号へ戻し1×2×3だけDownEastにする

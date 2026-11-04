@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text.RegularExpressions;
-using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration.Steps;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -79,7 +78,6 @@ namespace Tests.UnitTest.Game.SaveLoad.Migration.V10ToV11
             Assert.IsTrue(result.IsConverted, result.FailureReason);
             Assert.AreEqual(10, result.Save["worldVersion"].Value<int>());
             Assert.AreEqual(10, new SaveMigrationStepV10ToV11().FromVersion);
-            Assert.AreEqual(11, WorldSaveAllInfo.CurrentVersion);
         }
 
         private static JObject WorldBlock(int instanceId, string guid, int x, int y, int z)
