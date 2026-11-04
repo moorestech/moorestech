@@ -995,6 +995,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69f258fd472914be1877d025aae3d569
+    m_Address: Vanilla/Block/ElectricPrecisionAssembler
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6b2fefbc9afd1439eadf9d47d250addb
     m_Address: Vanilla/Environment/Tree/MesaDesert/Senita8
     m_ReadOnly: 0
