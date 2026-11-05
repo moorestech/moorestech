@@ -9,6 +9,10 @@ namespace Client.Playtest.UiElements
     /// </summary>
     internal sealed class CompositeUiElementLocator : IUiElementLocator
     {
+        // GameUi で可視の要素が見つかった後の Web 照会は重複検出のためだけなので短く切る。JS が止まった Web で 1 操作ごとに満期まで待たない
+        // After a visible GameUi hit the Web query only checks for duplicates, so it is cut short; a stalled Web JS must not cost the full budget per operation
+        private const float DuplicateCheckWebBudgetSeconds = 0.5f;
+
         private readonly IUiElementLocator _gameUi;
         private readonly IUiElementLocator _web;
 
@@ -32,10 +36,11 @@ namespace Client.Playtest.UiElements
 
         public async UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
-            // 重複を見落とさないよう、GameUi で見つかっても Web まで照会する
-            // Query Web even after a GameUi hit so duplicates across renderers are not missed
+            // 重複を見落とさないよう、GameUi で見つかっても Web まで照会する（GameUi の Found は可視の要素だけ）
+            // Query Web even after a GameUi hit so duplicates across renderers are not missed (GameUi reports Found only for visible elements)
             var gameUi = await _gameUi.Find(testid, remainingSeconds);
-            var web = await _web.Find(testid, remainingSeconds);
+            var webBudget = gameUi.IsFound ? Mathf.Min(remainingSeconds, DuplicateCheckWebBudgetSeconds) : remainingSeconds;
+            var web = await _web.Find(testid, webBudget);
 
             if (gameUi.IsFound && web.IsFound)
             {

@@ -12,17 +12,13 @@ namespace Client.Playtest.UiElements.GameUi
     {
         public static UiElementSnapshot Find(VisualElement root, string testid, IGameUiScreenMapper mapper)
         {
-            // Q は先頭 1 件しか返さないので Query で全件を数える
-            // Q returns only the first match, so count every match with Query
-            var matches = root.Query<VisualElement>(name: testid).ToList();
+            var matches = VisibleMatches(root, testid);
             if (matches.Count == 0) return UiElementSnapshot.NotFound(testid);
             if (1 < matches.Count) return UiElementSnapshot.Ambiguous(testid);
 
             var element = matches[0];
-            var visible = IsVisible(element);
-            var clickable = visible && IsPickedAtCenter(element);
             var screenRect = mapper.PanelToScreen(element.worldBound);
-            return UiElementSnapshot.Found(testid, visible, clickable, screenRect, ReadText(element), ReadStateFlags(element));
+            return UiElementSnapshot.Found(testid, true, IsPickedAtCenter(element), screenRect, ReadText(element), ReadStateFlags(element));
 
             #region Internal
 
@@ -63,14 +59,14 @@ namespace Client.Playtest.UiElements.GameUi
 
         public static UiSetTextResult SetText(VisualElement root, string testid, string text)
         {
-            var matches = root.Query<VisualElement>(name: testid).ToList();
+            var matches = VisibleMatches(root, testid);
             if (matches.Count == 0) return new UiSetTextResult(UiSetTextStatus.NotFound, string.Empty);
             if (1 < matches.Count) return new UiSetTextResult(UiSetTextStatus.Ambiguous, string.Empty);
             if (matches[0] is not TextField field) return new UiSetTextResult(UiSetTextStatus.NotTextField, string.Empty);
 
-            // 読み取り専用・無効・非表示は人が打てない欄なので書き換えない
-            // Read-only, disabled or hidden fields cannot be typed into by a person, so leave them untouched
-            if (field.isReadOnly || !field.enabledInHierarchy || !IsVisible(field)) return new UiSetTextResult(UiSetTextStatus.NotInteractable, field.value);
+            // 読み取り専用・無効は人が打てない欄なので書き換えない
+            // Read-only or disabled fields cannot be typed into by a person, so leave them untouched
+            if (field.isReadOnly || !field.enabledInHierarchy) return new UiSetTextResult(UiSetTextStatus.NotInteractable, field.value);
 
             // value への代入は maxLength で切られないので、人が打った時と同じく上限で切ってから入れる
             // Assigning value skips maxLength, so cut at the limit first, as typing by a person would
@@ -81,6 +77,15 @@ namespace Client.Playtest.UiElements.GameUi
             field.value = typed;
             var status = field.value == text ? UiSetTextStatus.Applied : UiSetTextStatus.ValueMismatch;
             return new UiSetTextResult(status, field.value);
+        }
+
+        // 非表示の要素は無いものとして扱う。所有を Web へ戻した後に隠れた UITK 要素が Web の同名要素と重複扱いになるのを防ぐ（Q は先頭 1 件だけなので Query で全件を数える）
+        // Hidden elements count as absent, so a UITK element hidden after ownership returns to Web never duplicates the Web one (Query counts all; Q returns only the first)
+        private static List<VisualElement> VisibleMatches(VisualElement root, string testid)
+        {
+            var matches = root.Query<VisualElement>(name: testid).ToList();
+            matches.RemoveAll(element => !IsVisible(element));
+            return matches;
         }
 
         // 自身と祖先の resolvedStyle がすべて見える状態で、かつ面積がある

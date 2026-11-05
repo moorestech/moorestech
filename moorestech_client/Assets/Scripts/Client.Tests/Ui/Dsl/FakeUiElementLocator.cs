@@ -16,6 +16,7 @@ namespace Client.Tests.Ui.Dsl
         public int StopCount { get; private set; }
         public int SetTextCount { get; private set; }
         public UiElementSnapshot LastFound { get; private set; }
+        public float LastFindBudgetSeconds { get; private set; }
 
         public FakeUiElementLocator(UiElementLookupStatus findStatus, UiSetTextStatus setTextStatus)
         {
@@ -35,6 +36,7 @@ namespace Client.Tests.Ui.Dsl
 
         public UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
+            LastFindBudgetSeconds = remainingSeconds;
             LastFound = _findStatus switch
             {
                 UiElementLookupStatus.Found => UiElementSnapshot.Found(testid, true, true, default, "fake", new string[0]),

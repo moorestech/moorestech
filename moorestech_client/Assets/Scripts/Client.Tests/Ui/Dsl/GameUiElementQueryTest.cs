@@ -59,16 +59,29 @@ namespace Client.Tests.Ui.Dsl
         }
 
         [Test]
-        public void HiddenAncestorMakesElementInvisible()
+        public void HiddenElementIsNotFoundAndDoesNotCountAsDuplicate()
         {
+            // 所有を Web へ戻した後の隠れた UITK 要素は無いものとして扱い、Web の同名要素と重複させない
+            // A UITK element hidden after ownership returns to Web counts as absent and never duplicates the Web one
             var parent = Place(new VisualElement { name = "dsl-parent" });
             parent.Add(new Label("inside") { name = Testid });
             parent.style.display = DisplayStyle.None;
             simulate.FrameUpdate();
+            Assert.AreEqual(UiElementLookupStatus.NotFound, Find().Status);
 
-            var snapshot = Find();
-            Assert.IsFalse(snapshot.Visible);
-            Assert.IsFalse(snapshot.Clickable);
+            Place(new Label("shown") { name = Testid });
+            Assert.AreEqual(UiElementLookupStatus.Found, Find().Status, "隠れた同名要素が重複に数えられた");
+        }
+
+        [Test]
+        public void SetTextOnHiddenFieldIsNotFoundSoCompositeFallsBackToWeb()
+        {
+            var field = Place(new TextField { name = Testid });
+            field.style.display = DisplayStyle.None;
+            simulate.FrameUpdate();
+
+            Assert.AreEqual(UiSetTextStatus.NotFound, GameUiElementQuery.SetText(rootVisualElement, Testid, "x").Status);
+            Assert.AreEqual(string.Empty, field.value);
         }
 
         [Test]

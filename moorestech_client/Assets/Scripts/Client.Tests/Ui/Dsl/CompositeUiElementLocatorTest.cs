@@ -42,6 +42,21 @@ namespace Client.Tests.Ui.Dsl
         }
 
         [Test]
+        public void GameUiHitShortensWebDuplicateCheckBudget()
+        {
+            // JS が止まった Web で命綱の操作が毎回満期まで待たないよう、GameUi で見つかった後の Web 照会は短く切る
+            // So lifeline operations never wait the full budget on a stalled Web JS, the Web query after a GameUi hit is cut short
+            var web = Fake(UiElementLookupStatus.NotFound, UiSetTextStatus.NotFound);
+            var composite = new CompositeUiElementLocator(Fake(UiElementLookupStatus.Found, UiSetTextStatus.Applied), web);
+            composite.Find(Testid, 3f).GetAwaiter().GetResult();
+            Assert.AreEqual(0.5f, web.LastFindBudgetSeconds);
+
+            var webOnly = Fake(UiElementLookupStatus.Found, UiSetTextStatus.Applied);
+            new CompositeUiElementLocator(Fake(UiElementLookupStatus.NotFound, UiSetTextStatus.NotFound), webOnly).Find(Testid, 3f).GetAwaiter().GetResult();
+            Assert.AreEqual(3f, webOnly.LastFindBudgetSeconds, "GameUi に無いときは Web を満期まで待つ");
+        }
+
+        [Test]
         public void FoundInBothIsAmbiguousWithError()
         {
             var composite = new CompositeUiElementLocator(
