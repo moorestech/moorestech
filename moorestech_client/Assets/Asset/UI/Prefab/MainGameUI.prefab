@@ -144,6 +144,7 @@ RectTransform:
   - {fileID: 3328225007973826549}
   - {fileID: 5658375519239675464}
   - {fileID: 8488838676093063320}
+  - {fileID: 8964462472202871649}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -346,6 +347,80 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69fc92d2d835412b9df9dac1b589bf0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &3726360897586214546
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8964462472202871649}
+  - component: {fileID: 8053441505789674925}
+  - component: {fileID: 6266454449787234634}
+  m_Layer: 5
+  m_Name: GameUiRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8964462472202871649
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3726360897586214546}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1438684973846715379}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8053441505789674925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3726360897586214546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.UIElements.UIDocument
+  m_PanelSettings: {fileID: 11400000, guid: 5ddb0fe7b842246d987bb6c4ed9e8b4c, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 0}
+  m_SortingOrder: 0
+  m_Position: 0
+  m_WorldSpaceSizeMode: 1
+  m_WorldSpaceWidth: 1920
+  m_WorldSpaceHeight: 1080
+  m_PivotReferenceSize: 0
+  m_Pivot: 0
+  m_WorldSpaceCollider: {fileID: 0}
+--- !u!114 &6266454449787234634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3726360897586214546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac87437c48e374d2881d66b997940e83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Ui::Client.Ui.Foundation.Root.GameUiRoot
+  uiDocument: {fileID: 8053441505789674925}
+  tokenStyleSheets:
+  - {fileID: 7433441132597879392, guid: 71f84e81dbfbf45b2957aa3db3d85e36, type: 3}
+  - {fileID: 7433441132597879392, guid: f95e51b2b9e784c20a731ec28ef5e40e, type: 3}
+  - {fileID: 7433441132597879392, guid: 1e2678d30feab48969e733526d214365, type: 3}
+  cefRawImage: {fileID: 4882653979629314944}
 --- !u!1 &4525024820086105462
 GameObject:
   m_ObjectHideFlags: 0
