@@ -38,7 +38,7 @@
 - 部品の作り方（theme・input レーン）: `GamePanel`・`GameTextField`・`LocalizedLabel`・`UiNumberFormat`・`UiMotionPlayer`・`TutorialAnchor.Mark`・`FakeModel`/`CommandRecorder` を使う。ボタン等は `focusable=false`。色は部品 USS で `--部品-名前: var(--token)` と受け直す（`:root` は子へ継承されない）。UXML の `text=` にリテラルを書かない（文言は `LocalizedLabel` と `LocalizationKeys`）。数値は `UiNumberFormat`
 - フォント資産（`Assets/UI Toolkit/GameUi/Fonts/*.asset`）はテストや PlayMode で字形が足されて汚れる。コミット前に theme plan（`docs/superpowers/plans/2026-11-05-uitk-stage1-theme.md`）Task 3 Step 8 のコマンドで空に戻す
 - fail-closed で拒否・無視する経路は理由をログへ出す。黙って続行する行には `silent-ok: <理由> / <誰がどこで気づくか>` を書く
-- テストは `--filter-type regex` で絞る。`Client.Tests.Playtest` 系を選ぶ広い正規表現は禁止（本番送信テストを踏む）。録画シナリオでバグ報告を送るときは `MOORESTECH_PLAYTEST_RECEIVER_BASE` を到達しない URL（`http://127.0.0.1:9`）にしてから送る
+- テストは `--filter-type regex` で絞る。`Client.Tests.Playtest` 系を選ぶ広い正規表現は禁止（本番送信テストを踏む）。録画シナリオでバグ報告を送るときは、PlayMode を起動する前に Editor プロセスの `MOORESTECH_PLAYTEST_RECEIVER_BASE` を到達しない URL（`http://127.0.0.1:9`）にする（受け口 URL は DI 登録時に 1 回だけ読まれるので、シナリオの中で立てても効かない。2026-11-06 実測で本番へ 1 件届いた）。実 outbox へ書くテスト（`BugReportBundleWriteTest` 等）を流した後は、開発者トークン経路の PlayMode 起動前に outbox の未送信を確かめる
 - `.cs` を変えたら `uloop compile --project-path ./moorestech_client`
 - EditModeInPlayingTest には `[Category("CiShardClientPlay1")]` を付ける
 - バックグラウンドのポーリングで待たず、コマンドは前景で実行する。区切りごとにコミットし、`feature/uitk-s1-screens` を push する。統合ブランチへは push しない。PR は作らない
@@ -265,7 +265,7 @@
 - Modify: `docs/uitk/TODO.md`（`## 実測の結論`）、必要ならシナリオ実行の口（`run-scenario.sh` に Web ホストを起動しない指定が要れば足す）
 - 報告: `moorestech_logs/harness/sdd/feature-uitk-stage1/lane-screens-done.md`
 
-- [ ] **Step 1: ラダー `uitk-lifeline`** — PlayMode を止め、`uloop execute-dynamic-code` で `WebUiHostEditorSkip.Apply()` を立ててから run-scenario.sh（run-scenario.sh が停止の遷移で印を消すなら、Web ホストを起動しない指定を run-scenario.sh かシナリオの前処理へ足す）。シナリオ冒頭で `Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE", "http://127.0.0.1:9")`。手順は R-12。DSL の `ClickUi`/`SetText` が UITK ロケータで解決したことをログで確かめる。書かれた箱の `manifest.json` に `webUiHealth` が入り `hostStartup` が `skippedByEditorSwitch` であることを読む。`Record=true` で提出用を撮る
+- [ ] **Step 1: ラダー `uitk-lifeline`** — PlayMode を止め、`uloop execute-dynamic-code` で `WebUiHostEditorSkip.Apply()` を立ててから run-scenario.sh（run-scenario.sh が停止の遷移で印を消すなら、Web ホストを起動しない指定を run-scenario.sh かシナリオの前処理へ足す）。起動前に Editor プロセスへ `Environment.SetEnvironmentVariable("MOORESTECH_PLAYTEST_RECEIVER_BASE", "http://127.0.0.1:9")`（シナリオは未設定なら送らずに止める）。手順は R-12。DSL の `ClickUi`/`SetText` が UITK ロケータで解決したことをログで確かめる。書かれた箱の `manifest.json` に `webUiHealth` が入り `hostStartup` が `skippedByEditorSwitch` であることを読む。`Record=true` で提出用を撮る
 - [ ] **Step 2: 入れ子ポーズ 2 経路の録画** — 既存の `scenarios/misc/skit-pause-menu-esc.cs` と列車の乗車シナリオ（`scenarios/train/`）を土台に R-13
 - [ ] **Step 3: R1 の実測（R-14）** — webui の依存を入れて（`pnpm install --frozen-lockfile`。worktree の gitignore 下）CEF を起動した状態で、ポーズ（UITK）中に Web のポーズのボタン位置（Web 版の座標は参照キャプチャか、所有者を Editor 上書きで Web に戻して測る）へクリック・Esc・文字キーを注入し、`[WebSocketHub]` の action 受信を数える。結果で cef-unity の扱いを決める（R-14）
 - [ ] **Step 4: IME（R-15）** — Mac: この Mac mini の Editor でバグ報告の本文へ osascript の合成キー（入力ソースの切替は key code 104/102）。Windows: 検証機に配布ビルドを置く手順（`~/hermes-agent/data/HERMES-OPS.md`・`scripts/playtest/`・moores-playtest-release の Windows 検証の節）を読み、このブランチのビルドを Steam へ上げずに検証機で起動し、`SendInput` の合成キーで同じ確認＋CEF がある状態の Web の入力欄。1 日で打ち切り、できなかった段は理由と証拠付きで「不可」と書く
