@@ -56,7 +56,7 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
         internal void ReportUnresolved(int requesterPlayerId, InventoryIdentifierMessagePack fromIdentifier, bool fromResolved, int fromSlot, InventoryIdentifierMessagePack toIdentifier, bool toResolved, int toSlot, int requestedCount)
         {
             Debug.LogWarning($"[InventoryItemMoveProtocol] Move rejected: result=UnresolvedInventory player={requesterPlayerId} from={FormatIdentifier(fromIdentifier, requesterPlayerId)}[{fromSlot}] fromResolved={fromResolved} to={FormatIdentifier(toIdentifier, requesterPlayerId)}[{toSlot}] toResolved={toResolved} requestedCount={requestedCount}");
-            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveUnresolved", Array.Empty<string>()));
+            _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.inventoryMoveUnresolved", new Dictionary<string, string>()));
         }
 
         private static string FormatIdentifier(InventoryIdentifierMessagePack identifier, int requesterPlayerId)
