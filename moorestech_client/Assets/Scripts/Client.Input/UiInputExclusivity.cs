@@ -39,6 +39,7 @@ namespace Client.Input
         // 休止中のWebは描画も受け手も無く、無応答のWebは値を更新できないので、どちらもポインタ占有を主張させない
         // A suspended web has no renderer or receiver and a silent web cannot update its values, so neither claims the pointer
         public static bool IsPointerOverWebUi => !_webUiSuspended && !_webSilent && _pointerOverUi;
+        public static bool IsWebUiSuspended => _webUiSuspended;
         public static bool IsTextInputFocused => TextInputFocusedProperty.Value;
         public static bool IsEscapeConsumedThisFrame => _escapeConsumedFrame == Time.frameCount;
 

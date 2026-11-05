@@ -11,7 +11,8 @@ namespace Client.WebUiHost.Game.Actions
     /// </summary>
     public class RequestUiStateActionHandler : IActionHandler
     {
-        public string ActionType => "ui_state.request";
+        public const string Type = "ui_state.request";
+        public string ActionType => Type;
 
         private readonly UIStateControl _uiStateControl;
 
