@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Ui.Components;
 using Client.Ui.Foundation.Assets;
+using Client.Ui.Screens.Settings.GraphicsQualityRows;
 using Client.Ui.State.Settings;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -19,8 +20,7 @@ namespace Client.Ui.Screens.Settings
         private readonly VisualElement _recovered;
         private readonly ModeSwitch<GraphicsQualityPreset> _preset;
         private readonly VisualElement _custom;
-        private readonly Dictionary<GraphicsQualityItem, ModeSwitch<string>> _itemSwitches = new();
-        private GraphicsQualitySettings _current;
+        private readonly List<IGraphicsQualityRowSwitch> _itemSwitches = new();
 
         public GraphicsQualitySettingsView(SettingsViewModel initial, ISettingsCommands commands, UiAssetCatalog catalog)
         {
@@ -40,16 +40,12 @@ namespace Client.Ui.Screens.Settings
             _custom = SettingsSectionParts.Note("graphics-preset-custom", LocalizationKeys.Ui.Settings.GraphicsPresetCustom);
             Add(_custom);
 
-            // 項目の変更は今の設定値の 1 項目だけを差し替えて渡す
-            // An item change hands over the current settings with only that item replaced
             foreach (var row in GraphicsQualityItemRows.All)
             {
                 Add(SettingsSectionParts.Caption(row.Caption));
-                var itemSwitch = new ModeSwitch<string>(row.Testid, ModeSwitchOrientation.Horizontal, row.Options, catalog.ModeSwitch);
-                var item = row.Item;
-                itemSwitch.OnSelected.Subscribe(value => _commands.SetGraphicsQuality(GraphicsQualityItemRows.WithValue(item, _current, value)));
-                _itemSwitches.Add(item, itemSwitch);
-                Add(itemSwitch);
+                var itemSwitch = row.CreateSwitch(_commands, catalog.ModeSwitch);
+                _itemSwitches.Add(itemSwitch);
+                Add(itemSwitch.Element);
             }
 
             Apply(initial);
@@ -57,7 +53,6 @@ namespace Client.Ui.Screens.Settings
 
         public void Apply(SettingsViewModel model)
         {
-            _current = model.Graphics;
             SettingsSectionParts.ShowIf(_recovered, model.GraphicsRecovered);
             SettingsSectionParts.ShowIf(_custom, model.Preset == GraphicsQualityPresetChoice.Custom);
             switch (model.Preset)
@@ -68,7 +63,7 @@ namespace Client.Ui.Screens.Settings
                 case GraphicsQualityPresetChoice.Custom: _preset.SetSelectedNone(); break;
                 default: throw new System.ArgumentOutOfRangeException(nameof(model), model.Preset, null);
             }
-            foreach (var pair in _itemSwitches) pair.Value.SetSelected(GraphicsQualityItemRows.ValueOf(pair.Key, model.Graphics));
+            foreach (var itemSwitch in _itemSwitches) itemSwitch.Apply(model.Graphics);
         }
 
         private static IReadOnlyList<ModeSwitchOption<GraphicsQualityPreset>> PresetOptions()

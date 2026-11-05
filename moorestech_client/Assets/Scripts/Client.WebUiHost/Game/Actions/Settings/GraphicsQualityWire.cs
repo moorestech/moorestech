@@ -1,6 +1,5 @@
 using Client.Game.InGame.GraphicsQuality;
 using Newtonsoft.Json.Linq;
-using UnityEngine;
 using System.Numerics;
 
 namespace Client.WebUiHost.Game.Actions
@@ -55,7 +54,7 @@ namespace Client.WebUiHost.Game.Actions
             {
                 DrawDistanceMeters = (int)s.DrawDistance.ToMeters(),
                 Shadows = s.ShadowsEnabled,
-                RenderScalePercent = ToPercent(s.RenderScale),
+                RenderScalePercent = s.RenderScale.ToPercent(),
                 Ssao = s.SsaoEnabled,
                 PostProcessing = s.PostProcessingEnabled,
                 Effects = s.EffectsEnabled,
@@ -96,16 +95,19 @@ namespace Client.WebUiHost.Game.Actions
             var current = GraphicsQualityPreference.Current;
             TryDrawDistance(token, out var distance);
             TryRenderScale(token, out var scale);
-            settings = new GraphicsQualitySettings(
-                item == "drawDistanceMeters" ? distance : current.DrawDistance,
-                item == "shadows" ? token.Value<bool>() : current.ShadowsEnabled,
-                item == "renderScalePercent" ? scale : current.RenderScale,
-                item == "ssao" ? token.Value<bool>() : current.SsaoEnabled,
-                item == "postProcessing" ? token.Value<bool>() : current.PostProcessingEnabled,
-                item == "effects" ? token.Value<bool>() : current.EffectsEnabled,
-                item == "mapObjects" ? token.Value<bool>() : current.MapObjectsVisible,
-                item == "terrainDetail" ? (token.Value<string>() == "fine" ? GraphicsTerrainDetail.Fine : GraphicsTerrainDetail.Coarse) : current.TerrainDetail,
-                item == "ocean" ? token.Value<bool>() : current.OceanVisible);
+            settings = item switch
+            {
+                "drawDistanceMeters" => current.WithDrawDistance(distance),
+                "shadows" => current.WithShadowsEnabled(token.Value<bool>()),
+                "renderScalePercent" => current.WithRenderScale(scale),
+                "ssao" => current.WithSsaoEnabled(token.Value<bool>()),
+                "postProcessing" => current.WithPostProcessingEnabled(token.Value<bool>()),
+                "effects" => current.WithEffectsEnabled(token.Value<bool>()),
+                "mapObjects" => current.WithMapObjectsVisible(token.Value<bool>()),
+                "terrainDetail" => current.WithTerrainDetail(token.Value<string>() == "fine" ? GraphicsTerrainDetail.Fine : GraphicsTerrainDetail.Coarse),
+                "ocean" => current.WithOceanVisible(token.Value<bool>()),
+                _ => throw new System.ArgumentOutOfRangeException(nameof(payload), item, "item passed the expected-type table but has no setter"),
+            };
             invalidField = null;
             return GraphicsQualityParseStatus.Success;
 
@@ -132,7 +134,7 @@ namespace Client.WebUiHost.Game.Actions
                 if (!TryInteger(token, out var number)) return false;
                 foreach (GraphicsRenderScale candidate in System.Enum.GetValues(typeof(GraphicsRenderScale)))
                 {
-                    if (ToPercent(candidate) != number) continue;
+                    if (candidate.ToPercent() != number) continue;
                     value = candidate;
                     return true;
                 }
@@ -161,11 +163,6 @@ namespace Client.WebUiHost.Game.Actions
             }
 
             #endregion
-        }
-
-        private static int ToPercent(GraphicsRenderScale renderScale)
-        {
-            return Mathf.RoundToInt(renderScale.ToScale() * 100f);
         }
     }
 }

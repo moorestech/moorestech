@@ -155,7 +155,7 @@ namespace Client.Tests.Ui.Screens.Settings
 
         private static SettingsViewModel Settings(GraphicsQualityPresetChoice preset, bool graphicsRecovered, SprintInputMode sprintMode, bool sprintRecovered)
         {
-            var graphics = preset == GraphicsQualityPresetChoice.Custom ? GraphicsQualityItemRows.WithValue(GraphicsQualityItem.Ocean, GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium), "off") : GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium);
+            var graphics = preset == GraphicsQualityPresetChoice.Custom ? GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium).WithOceanVisible(false) : GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium);
             return new SettingsViewModel(graphics, preset, graphicsRecovered, sprintMode, sprintRecovered, "english");
         }
     }
