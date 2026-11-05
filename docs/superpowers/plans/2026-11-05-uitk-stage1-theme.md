@@ -30,14 +30,14 @@
 - AGENTS.md: 1 ファイル 200 行以下・1 ディレクトリ 10 コードファイルまで・partial 禁止・`Func<>` 禁止・try-catch 原則禁止・イベントは UniRx・日英 2 行コメント・`#region Internal` はメソッド内ローカル関数だけ・単純な getter/setter プロパティ禁止（`{ get; private set; }` は可）・デフォルト引数禁止・`[SerializeField]` は小文字キャメル・fail-closed の経路はログを出す
 - .cs を変えたら `uloop compile --project-path ./moorestech_client`（ErrorCount 0）。テストは `--filter-type regex` か `class` で絞る。`Client.Tests.Playtest` 系を選ぶ広い正規表現は禁止
 - Prefab・PanelSettings・TSS 以外の Unity YAML（.asset）は Write/Edit で触らない。PanelSettings の差し替えと FontAsset の作成は `uloop execute-dynamic-code`。`.meta` は手で作らない
-- USS・TSS・UXML はテキストで書いてよい（Unity がインポートする）。USS の色は `Tokens*.uss`・`ControlTokens.uss` の外では `var()` だけを使う
-- 共有ファイル（`UiLayer`・所有表・`MainGameUiRegistration`・`Tokens*.uss`・`AnchorIds`）は拡張点の範囲で足すだけ。`GameUiRoot` へはメソッド 1 つ（Task 3）だけ足す
+- USS・TSS・UXML はテキストで書いてよい（Unity がインポートする）。USS の色は `Tokens*.uss`・`ControlTokens.uss` の外では `var()` だけを使う（完全透明の `rgba(0, 0, 0, 0)` だけは例外。混ぜ方に依らないため）。Web に同値のトークンが無い部品の色は `ControlTokens.uss` に `--<部品>-<名前>` で足す
+- 共有ファイル（`UiLayer`・所有表・`MainGameUiRegistration`・`Tokens*.uss`・`AnchorIds`）は拡張点の範囲で足すだけ。`GameUiRoot` はトークンの当て込みを消す（Task 2）とメソッド 1 つを足す（Task 3）だけ
 - 各タスクの終わりにコミットし、`git push origin feature/uitk-s1-theme` する
 
 ## 設計検査記録
 
-- 配置検査（spec-architecture-review Phase 1〜2.5）: 未実施
-- Phase 2.6（型閉包・重複・ADR矛盾）: 未実施
+- 配置検査（spec-architecture-review Phase 1〜2.5）: 実施済み / 違反1件・修正1件（Motion のファイル数上限）＋注目点5件のうち2件を修正（トークン三重当て・static 登録簿） / 死ぬ操作なし
+- Phase 2.6（型閉包・重複・ADR矛盾）: 実施済み / 強4・弱6・第3バケツ0 / 強は D-11〜D-14 で既定裁定、弱は色の置き場・テストの戻り値・CJK 判定の網羅テストを修正、残りは据え置き（D-15）
 
 ---
 
@@ -61,7 +61,7 @@
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Theme/UssCustomStyleReaderTest.cs`・`UssTokenValueTest.cs`（新規）・`UssCustomStyleProbe.uss`（新規・テスト用） | L0・L1 | 4 |
 | `moorestech_client/Assets/Scripts/Client.Ui/Components/GamePanel/GamePanel.cs`・`GamePanelFace.cs`・`GamePanelBottomDeco.cs`・`GamePanel.uss`（新規） | GamePanel（default） | 5 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/GamePanelTest.cs`（新規） | L1 | 5 |
-| `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/{IUiMotionClock,IUiAnimation,UiEasing,UiMotionSpec,UiTweenAnimation,UiInertiaAnimation,UiMotionTimeline,UiMotionPlayer,UiMotionHandle,UiMotionSteps}.cs`（新規） | UiMotion | 6 |
+| `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/{Core,Tween,Inertia,Playback,Steps}/*.cs`（新規。Task 6 の Files 節に全列挙） | UiMotion | 6 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Motion/{UiMotionTimelineTest,UiMotionPlayerTest,UiInertiaAnimationTest}.cs`（新規） | L0・L1 | 6 |
 | `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Text/LocalizedLabel.cs`・`UiNumberFormat.cs`（新規） | ローカライズ | 7 |
 | `moorestech_client/Assets/Scripts/Client.Tests/Ui/Text/{LocalizedLabelTest,UiNumberFormatTest,UxmlLiteralTextTest}.cs`（新規） | L0・L1・L2 | 7 |
@@ -254,7 +254,8 @@ git push origin feature/uitk-s1-theme
 - Create: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`
 - Modify（uloop）: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiPanelSettings.asset`（themeStyleSheet）
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Theme/GameUiThemeTest.cs`
-- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/TestHost/UiTestHost.cs`（コメントの拡張点だけ。テーマは PanelSettings から読むので処理は変えない）
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/Ui/TestHost/UiTestHost.cs`（`SetUpTokenStyleSheets` と関連定数を消す。トークンはテーマ TSS から当たる）
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Root/GameUiRoot.cs`（`tokenStyleSheets` フィールドと Awake の当て込み・必須検査からの除外。トークンはテーマ TSS から当たる）
 
 **Interfaces:**
 - Consumes: Task 1 の `Tokens*.uss`
@@ -316,6 +317,10 @@ return UnityEditor.AssetDatabase.GetAssetPath(ps.themeStyleSheet);'
 
 Expected: `Assets/UI Toolkit/GameUi/GameUiTheme.tss`。`git diff` で `.asset` の差分が themeStyleSheet の参照 1 行だけであることを見る（他の差分が出たら `git checkout` で戻してやり直す）。
 
+- [ ] **Step 4b: トークンの当て込みをテーマ 1 か所に寄せる**
+
+`GameUiRoot` から `[SerializeField] private StyleSheet[] tokenStyleSheets;` と Awake の `foreach (var sheet in tokenStyleSheets) root.styleSheets.Add(sheet);`・必須検査の `tokenStyleSheets == null || tokenStyleSheets.Length == 0` と「UiAssetCatalog へ寄せる」のコメントを消す。`UiTestHost` の `[SetUp] SetUpTokenStyleSheets` と `TokenUssDirectory`・`TokenUssFileNames` を消し、`<remarks>` に「トークン・テーマ・フォントは本番 PanelSettings の themeStyleSheet（GameUiTheme.tss）から当たる」と書く。prefab に残る `tokenStyleSheets` の直列化データは Unity が無視するので触らない（次に prefab を保存したときに消える）。
+
 - [ ] **Step 5: L1 を書く**（`GameUiThemeTest.cs`）
 
 ```csharp
@@ -349,6 +354,21 @@ namespace Client.Tests.Ui.Theme
         }
 
         [Test]
+        public void TokensResolveFromThemeWithoutRootStyleSheets()
+        {
+            // ルートにトークン USS を当てなくても、テーマ TSS の :root から var() が解決される
+            // var() resolves from the theme TSS :root without token USS on the root
+            Assert.AreEqual(0, rootVisualElement.styleSheets.count);
+            var probe = new VisualElement();
+            probe.style.width = new StyleLength(StyleKeyword.Null);
+            rootVisualElement.Add(probe);
+            var label = new Label("x");
+            rootVisualElement.Add(label);
+            simulate.FrameUpdate();
+            Assert.IsTrue(rootVisualElement.customStyle.TryGetValue(new CustomStyleProperty<Color>("--surface-navy"), out _) || panel.visualTree.customStyle.TryGetValue(new CustomStyleProperty<Color>("--surface-navy"), out _));
+        }
+
+        [Test]
         public void SliderInputKeepsNonZeroHeight()
         {
             // 既定テーマの入力部の高さ 0 の癖を Theme.uss が直している
@@ -361,7 +381,7 @@ namespace Client.Tests.Ui.Theme
 
         private static void AssertColor(string expectedHex, Color actual)
         {
-            ColorUtility.TryParseHtmlString(expectedHex, out var expected);
+            Assert.IsTrue(ColorUtility.TryParseHtmlString(expectedHex, out var expected), expectedHex);
             Assert.AreEqual(expected.r, actual.r, 0.01f);
             Assert.AreEqual(expected.g, actual.g, 0.01f);
             Assert.AreEqual(expected.b, actual.b, 0.01f);
@@ -577,6 +597,15 @@ namespace Client.Tests.Ui.Text
             rootVisualElement.AddToClassList(GameUiLocaleClass.CjkClassName);
             simulate.FrameUpdate();
             Assert.AreEqual(Load("GameUiJapanese SDF"), label.resolvedStyle.unityFontDefinition.fontAsset);
+        }
+
+        [Test]
+        public void IsCjkMatchesWebLocaleRuleForEveryCatalogLanguage()
+        {
+            // 言語カタログの全言語で、Web の :root[data-locale] と同じ 4 言語だけが CJK
+            // Across the whole language catalog, only the Web's four :root[data-locale] languages are CJK
+            var cjk = new System.Collections.Generic.HashSet<string> { "japanese", "korean", "chinese-simplified", "chinese-traditional" };
+            foreach (var language in Client.Localization.LanguageCatalog.Languages) Assert.AreEqual(cjk.Contains(language.Code), GameUiLocaleClass.IsCjk(language.Code), language.Code);
         }
 
         [TestCase("電力・鉄鉱石の粉・歯車ベルトコンベア")]
@@ -807,8 +836,10 @@ git push origin feature/uitk-s1-theme
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Components/GamePanel/GamePanelBottomDeco.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui/Components/GamePanel/GamePanel.uss`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Components/GamePanelTest.cs`
+- Modify: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/ControlTokens.uss`（GamePanel の色を足す）
 
 **Interfaces:**
+- 名前空間は `Client.Ui.Components`（クラス名 `GamePanel` と名前空間の衝突を避ける。ディレクトリは `Components/GamePanel/`）
 - Consumes: Task 4 の `UssCustomStyleReader.ReadPixels/ReadColor`、Task 7 の `LocalizedLabel`（Task 7 が後なので、タイトルは `Label` を受け取る形にして依存を切る）
 - Produces:
   - `public class GamePanel : VisualElement`。ctor `GamePanel(StyleSheet panelStyleSheet)`（USS は呼び出し側が渡す。`UiAssetCatalog` ができたらそこから渡す）。`public override VisualElement contentContainer` は本文の要素。`public void SetTitle(Label titleLabel)`（タイトル行と上下の罫線を出す。呼ばなければタイトル行は無い）。`public void SetTitleAction(VisualElement action)`（タイトル行の右端）
@@ -817,7 +848,7 @@ git push origin feature/uitk-s1-theme
 
 - [ ] **Step 1: Web の default variant を読む**
 
-`moorestech_web/webui/src/shared/ui/GamePanel/style.module.css` の `.panel`・`.panel[data-variant="default"]::before`・`.header`・`.title`・`.titleAction`・`.decoLine*`・`.body`・`.bottomDeco`（と `span`）と `index.tsx` を読み、寸法・色・余白を写す。色は直書きせず `Tokens.uss` の同値のトークンを使う。同値のトークンが無い色（例 `#e8eaf0`）は `GamePanel.uss` の `.game-panel` ルールで `--game-panel-<名前>` として宣言し値を 1 か所に置く（Tokens.uss は生成物なので触らない）。`::before` は `GamePanelFace`（子要素・`position: absolute`・Web の `top/right/bottom/left` のオフセットどおり・`picking-mode` は Ignore）にする。CSS の `calc(var(--panel-top, -8px) - 3.913894px)` は -11.913894px のリテラルにして導出式をコメントに残す。`box-shadow` は USS に無いので描かない（判断記録 D-6）。
+`moorestech_web/webui/src/shared/ui/GamePanel/style.module.css` の `.panel`・`.panel[data-variant="default"]::before`・`.header`・`.title`・`.titleAction`・`.decoLine*`・`.body`・`.bottomDeco`（と `span`）と `index.tsx` を読み、寸法・色・余白を写す。色は直書きせず `Tokens.uss` の同値のトークンを使う。同値のトークンが無い色（例 `#e8eaf0`）は `ControlTokens.uss` に `--game-panel-<名前>` として足し（Tokens.uss は生成物なので触らない。半透明なら Task 1 の補正式の値を入れ、コメントに Web の値を残す）、`GamePanel.uss` は `var()` で使う。`::before` は `GamePanelFace`（子要素・`position: absolute`・Web の `top/right/bottom/left` のオフセットどおり・`picking-mode` は Ignore）にする。CSS の `calc(var(--panel-top, -8px) - 3.913894px)` は -11.913894px のリテラルにして導出式をコメントに残す。`box-shadow` は USS に無いので描かない（判断記録 D-6）。
 
 - [ ] **Step 2: 面を書く**（`GamePanelFace.cs`）
 
@@ -832,7 +863,7 @@ Web の `.bottomDeco span` 3 個の寸法・間隔・色を写し、`generateVis
 ```csharp
 using UnityEngine.UIElements;
 
-namespace Client.Ui.Components.GamePanel
+namespace Client.Ui.Components
 {
     /// <summary>
     /// ゲームの窓枠（default）。半透明ネイビーの面・タイトル行と罫線・本文・下部の三角を持つ（plan.md §3.4）
@@ -908,20 +939,17 @@ git push origin feature/uitk-s1-theme
 
 ### Task 6: UiMotion
 
-**Files:**
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/IUiMotionClock.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/IUiAnimation.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/UiEasing.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/UiMotionSpec.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/UiTweenAnimation.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/UiInertiaAnimation.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/UiMotionTimeline.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/UiMotionPlayer.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/UiMotionHandle.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/UiMotionSteps.cs`
+**Files:**（1 ディレクトリ 10 ファイルの上限のためサブディレクトリに割る。1 型 1 ファイル）
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/Core/IUiMotionClock.cs`・`IUiAnimation.cs`・`UiMotionTimeline.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/Tween/UiEasing.cs`（`UiEasing` と `UiEasingFunctions`）・`UiMotionLoop.cs`・`UiMotionSpec.cs`・`IUiTweenStep.cs`・`UiTweenAnimation.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/Inertia/IUiInertiaStep.cs`・`UiInertiaAnimation.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/Playback/UiMotionPlayer.cs`・`UiMotionHandle.cs`
+- Create: `moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/Steps/OpacityTweenStep.cs`・`TranslateYTweenStep.cs`・`ScrollOffsetTweenStep.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Motion/UiMotionTimelineTest.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Motion/UiInertiaAnimationTest.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Motion/UiMotionPlayerTest.cs`
+
+名前空間はディレクトリに合わせる（`Client.Ui.Foundation.Motion.Core` など）。
 
 **Interfaces:**
 - Produces:
@@ -936,7 +964,7 @@ git push origin feature/uitk-s1-theme
   - `public sealed class UiMotionTimeline`（L0 用の純粋な走行器。ctor `(IUiMotionClock clock, IUiAnimation animation)`、`void Start()`・`bool Tick()`（終わったら true）・`void Restart()`・`void Cancel()`・`bool IsRunning`（`{ get; private set; }`）・`IObservable<Unit> Completed`）
   - `public static class UiMotionPlayer { public static UiMotionHandle Play(VisualElement target, IUiAnimation animation); }`。パネルのスケジューラ（`target.schedule.Execute(...).Every(0)`、時刻は `TimerState.now`）を時計にして `UiMotionTimeline` を回す。`DetachFromPanelEvent` で取り消す
   - `public sealed class UiMotionHandle`（`void Restart()`・`void Cancel()`・`IObservable<Unit> Completed`）。取り消したら `Completed` は発火しない。終わったら 1 回だけ発火して `OnCompleted`
-  - `UiMotionSteps.cs`: `public sealed class OpacityTweenStep : IUiTweenStep`（ctor `(VisualElement target, float from, float to)`）、`TranslateYTweenStep`（ctor `(VisualElement target, float fromPixels, float toPixels)`）、`ScrollOffsetTweenStep`（ctor `(ScrollView scrollView, Vector2 from, Vector2 to)`。段階 3 の smooth scroll 用）
+  - `Steps/`: `public sealed class OpacityTweenStep : IUiTweenStep`（ctor `(VisualElement target, float from, float to)`）、`TranslateYTweenStep`（ctor `(VisualElement target, float fromPixels, float toPixels)`）、`ScrollOffsetTweenStep`（ctor `(ScrollView scrollView, Vector2 from, Vector2 to)`。段階 3 の smooth scroll 用）
 
 - [ ] **Step 1: L0 を書く**（`UiMotionTimelineTest.cs`）
 
@@ -946,7 +974,7 @@ git push origin feature/uitk-s1-theme
 
 v0=2px/ms・k=0.005/ms・stop=0.01px/ms で、位置が単調に増え `v0/k=400px` を超えないこと、`ln(v0/stop)/k ≈ 1059.7ms` で終わること（1059ms では false、1060ms では true）。
 
-- [ ] **Step 3: 実装を書く**（Interfaces の型をこの順で: `IUiMotionClock`・`IUiAnimation`・`UiEasing`・`UiMotionSpec`・`UiTweenAnimation`・`UiInertiaAnimation`・`UiMotionTimeline`）
+- [ ] **Step 3: 実装を書く**（`Core/`・`Tween/`・`Inertia/` の型）
 
 `UiTweenAnimation.Advance(elapsed)` の核:
 
@@ -977,7 +1005,7 @@ v0=2px/ms・k=0.005/ms・stop=0.01px/ms で、位置が単調に増え `v0/k=400
 
 `UiMotionTimeline` は `Start` で `_startMilliseconds = clock.GetNowMilliseconds()` と `animation.Begin()`、`Tick` で `animation.Advance(now - start)`、終わったら `IsRunning=false` にして `Subject<Unit>` に `OnNext`→`OnCompleted`。`Restart` は `Start` と同じ（走っていなくても走らせ直す）。`Cancel` は `IsRunning=false` にするだけで通知しない。`Tick` は `IsRunning` が false なら何もせず false。尺 0 の抜け道は作らない（plan.md §3.6。テストは時計を進める）。
 
-- [ ] **Step 4: パネルの走行器を書く**（`UiMotionPlayer.cs`・`UiMotionHandle.cs`・`UiMotionSteps.cs`）
+- [ ] **Step 4: パネルの走行器と Step を書く**（`Playback/`・`Steps/`）
 
 `UiMotionPlayer.Play` は、パネルのスケジューラの時刻を読む `IUiMotionClock`（`UiMotionPlayer` 内の private sealed class。直近の `TimerState.now` を持つ）で `UiMotionTimeline` を作り、`target.schedule.Execute(state => { clock.Set(state.now); if (timeline.Tick()) item.Pause(); }).Every(0)` で回す。`target.RegisterCallback<DetachFromPanelEvent>` で `Cancel` と `item.Pause()`。`UiMotionHandle.Restart` は item を `Resume` してから `timeline.Restart`。要素がパネルに無いときに `Play` されたら `Debug.LogError("[UiMotionPlayer] target is not attached to a panel")` を出して取り消し済みのハンドルを返す（スケジューラが無く動かないため。気づく経路はログ）。
 
@@ -1154,9 +1182,9 @@ git push origin feature/uitk-s1-theme
 **Interfaces:**
 - Produces:
   - `public static class AnchorIds`: 静的 ID 19 個を `public const string`（名前は Web のキーを PascalCase に。`PlacementHud = "placement.hud"` … `EquipmentSelectedSlot = "equipment.selected-slot"`）、`public static readonly IReadOnlyList<string> StaticIds`、prefix 6 個を `public const string ResearchNodePrefix = "research.node-"` などと `public static readonly IReadOnlyList<string> DynamicPrefixes`、生成関数 `ResearchNode(string guid)`・`RecipeItem(int itemId)`・`BuildMenuEntry(string kind, string id)`・`ChallengeNode(string guid)`・`InventoryItem(string itemGuid)`・`EquipmentSlot(int index)`（小文字化は Web の関数と同じ所だけ。空白を含んだら `Debug.LogError` を出してそのまま返す＝Web の実機の扱いと同じ）
-  - `public static class TutorialAnchor { public const string MarkerClassName = "tutorial-anchor"; public static void Mark(VisualElement element, params string[] ids); }`（ID を USS クラスとして付け、`AttachToPanelEvent` で登録簿へ入れ、`DetachFromPanelEvent` で同期に出す）
-  - `public static class TutorialAnchorRegistry { public static TutorialAnchorResolution Resolve(IPanel panel, string anchorId); }`（パネルごとの `Dictionary<string, List<VisualElement>>`。0 件 missing・1 件 unique・2 件以上 duplicate。missing と duplicate は `Debug.LogWarning("[TutorialAnchorRegistry] …")`）
-  - `public abstract class TutorialAnchorResolution`、派生 `public sealed class Missing`・`public sealed class Unique { public readonly VisualElement Element; }`・`public sealed class Duplicate { public readonly int Count; }`（入れ子の sealed class。判別 union の形は plan.md §3.2）
+  - `public static class TutorialAnchor { public const string MarkerClassName = "tutorial-anchor"; public static void Mark(VisualElement element, params string[] ids); }`（マーカーのクラスと各 ID をクラスとして付けるだけ。状態を持たない）
+  - `public static class TutorialAnchorRegistry { public static TutorialAnchorResolution Resolve(VisualElement searchRoot, string anchorId); }`（`searchRoot.Query(className: TutorialAnchor.MarkerClassName)` の結果から `ClassListContains(anchorId)` の要素を集める。static の可変状態は持たない。0 件 missing・1 件 unique・2 件以上 duplicate。missing と duplicate は `Debug.LogWarning("[TutorialAnchorRegistry] …")`）
+  - `public abstract class TutorialAnchorResolution`、入れ子の派生 `public sealed class Missing`・`public sealed class Unique { public readonly VisualElement Element; }`・`public sealed class Duplicate { public readonly int Count; }`（判別 union の形は plan.md §3.2）
 
 - [ ] **Step 1: Web と突き合わせる L0 を書く**（`AnchorIdsWebParityTest.cs`）
 
@@ -1168,11 +1196,11 @@ git push origin feature/uitk-s1-theme
 
 - [ ] **Step 3: 登録簿の L1 を書く**（`TutorialAnchorRegistryTest.cs`、`UiTestHost` 継承）
 
-(1) `Mark(e, AnchorIds.PauseMenu)` して `rootVisualElement.Add(e)` すると `Resolve(rootVisualElement.panel, "pause.menu")` が `Unique` で `Element == e`、`e.ClassListContains("pause.menu")` と `ClassListContains(TutorialAnchor.MarkerClassName)` が true、(2) 外すと `Missing`（`LogAssert.Expect(LogType.Warning, new Regex("TutorialAnchorRegistry"))`）、(3) 2 つに同じ ID を付けると `Duplicate` で `Count == 2` と警告、(4) 1 要素に 2 つの ID を付けるとどちらでも `Unique`、(5) 親ごと外すと子のアンカーも消える（Detach は子孫にも届く）。
+(1) `Mark(e, AnchorIds.PauseMenu)` して `rootVisualElement.Add(e)` すると `Resolve(rootVisualElement, "pause.menu")` が `Unique` で `Element == e`、`e.ClassListContains("pause.menu")` と `ClassListContains(TutorialAnchor.MarkerClassName)` が true、(2) 外すと `Missing`（`LogAssert.Expect(LogType.Warning, new Regex("TutorialAnchorRegistry"))`）、(3) 2 つに同じ ID を付けると `Duplicate` で `Count == 2` と警告、(4) 1 要素に 2 つの ID を付けるとどちらでも `Unique`、(5) 親ごと外すと子のアンカーも解決されない。
 
 - [ ] **Step 4: 実装を書く**（`TutorialAnchor.cs`・`TutorialAnchorRegistry.cs`・`TutorialAnchorResolution.cs`）
 
-登録簿はパネル（`IPanel`）をキーにした static の辞書にする（ゲームのパネルは 1 枚、テストはパネルごとに分かれる。Detach で同期に消すので古い要素が残らない）。`Mark` は要素ごとに `AttachToPanelEvent`（`evt.destinationPanel` に登録）・`DetachFromPanelEvent`（`evt.originPanel` から削除）を登録する。パネルの辞書が空になったらパネルのキーも消す。`Mark` を呼んだ時点で既にパネルにいる要素は、その場で登録する。
+Interfaces どおり。登録簿は照会で解決し、static の辞書を持たない（判断記録 D-8）。
 
 - [ ] **Step 5: コンパイルしテストを実行する**
 
@@ -1221,7 +1249,12 @@ Expected: 未記帳 0・違反なし。`docs/uitk/TODO.md` の「## 実測の結
 - D-4 フォントは Editor で作ってコミットする（S10 成立）。Dynamic にして `clearDynamicDataOnBuild` を立て、コミット前に動的データを空にする。フォールバックは Latin→JP→KR の非循環。CJK 4 言語は JP 先頭（Web の `:root[data-locale]` と同じ並び）。韓国語は Web では OS フォントへ落ちていたが UITK は明示する（§3.10）
 - D-5 トークンの C# 読み出しは「部品 USS で var() を受け直し、文字列で読んで解釈」。`:root` の customStyle が子へ継承されないため（実測。TODO.md の customStyle 行）。plan.md §3.5 の「C# は CustomStyleProperty で解決後の値を読む」はこの形で成り立つ
 - D-6 GamePanel の `box-shadow`（外周の影）は USS に無く、段階1ではメッシュでも描かない（plan.md §3.4 の GamePanel の描き方に影は無い）。見た目の差は Task 5 の撮影で見て、必要なら段階2の hud variant を作るときに足す
-- D-7 `GameUiTheme.tss` にトークン USS も束ねる（ドロップダウンのポップアップのように文書のルートの外へ出る要素もトークンを読めるようにするため）。`GameUiRoot.tokenStyleSheets` と `UiTestHost` のトークン USS の当て込みは同じ値の二重当てになるが、他レーンと衝突しないよう残す。統合後に integrator が片方へ寄せる（完了報告の要裁定に書く）
-- D-8 `AnchorIds` は Client.Game の `InGame/Tutorial/UIHighlight/` に置く（`ItemViewHighLightTutorialManager` が使い、Client.Game は Client.Ui.State を参照できないため）。`Client.Ui` は `Client.Game` を参照に足す（向きは plan.md §3.1 の `Client.Game` ← `Client.Ui.State` ← `Client.Ui` と矛盾しない）。登録簿はパネルをキーにした static の辞書（`Mark` が static で呼ばれる API のため。Detach で同期に消す）
+- D-7 `GameUiTheme.tss` にトークン USS も束ね、当て込みをテーマ 1 か所に寄せる。`GameUiRoot.tokenStyleSheets` と `UiTestHost` の当て込みは消す（設計検査で三重当ての並行複製と指摘。据え置くと負債が残るため）。理由: ドロップダウンのポップアップのように文書のルートの外へ出る要素もトークンを読めるようにする。ロケールのクラスは文書ルートに付くので、ポップアップには CJK の先頭切替が効かない（既知の制限。ポップアップを使う段で見る）
+- D-8 `AnchorIds` は Client.Game の `InGame/Tutorial/UIHighlight/` に置く（`ItemViewHighLightTutorialManager` が使い、Client.Game は Client.Ui.State を参照できないため）。`Client.Ui` は `Client.Game` を参照に足す（向きは plan.md §3.1 の `Client.Game` ← `Client.Ui.State` ← `Client.Ui` と矛盾しない）。登録簿は static の可変状態を持たず、`Resolve(VisualElement searchRoot, string anchorId)` が `searchRoot.Query(className: anchorId)` でマーカー付きの要素を照会する（Web の `anchorRegistry.ts`・`resolveAnchor.ts` が selector 照会で解決するのと同形。パネルから外れた要素は木に無いので、枠がアンカーより長生きしない＝§4.5 の Detach 同期の目的を構造で満たす）。設計検査で static 辞書が前例（`MapObjectRegistry` 等のインスタンス・DI 管理）に無いと指摘されたため
 - D-9 ランタイム挙動の確認は録画プレイテストではなく `GameUiSkeletonTest`（EditModeInPlayingTest）の再実行で行う。このレーンが本番のパネルに足すのはテーマとロケールのクラスだけで、層は空のまま（画面は screens レーン）
+- D-11 `AnchorIds.BuildMenuEntry(string kind, string id)` は文字列の kind のまま（Phase 2.6 強: 既存 enum `PlacementTargetKind` がある）。Web の `buildMenuEntryAnchorId(kind: string, id)` と同形にし、マスタが直書きする ID の書式を変えないため。kind を enum 化するのはビルドメニューを移す段階 3 で、呼び出し側（`BuildMenuEntryDtoFactory.ResolveKind`）の文字列化を共有する形にする
+- D-12 `LocalizedLabel` はキー欠損を自前で分岐しない（Phase 2.6 強）。`Localize` の解決順の最後が `[!key]` を返す（plan.md §3.9）ので、欠損は画面に `[!key]` として見え、既存の Localize のテストが守る
+- D-13 アンカーの検証とログは plan.md §4.5（missing・duplicate を開発者ログへ、共存中は `anchorIds.ts` と突き合わせるテスト）に従う（Phase 2.6 強: `.decisions/2026-08-19-チュートリアルUI指定はWebアンカーIDを直書きし変換も検証も持たない.md` は「ログ化しない・parity テスト不要」）。plan.md §7.3 がこの ADR を改訂対象に挙げており、語彙が C# と Web の 2 か所に分かれる共存期間は突き合わせが要るため。ID の直書きと無変換は保つ。ADR 本文の改訂は統合時に指揮へ上げる（要裁定）
+- D-14 `AnchorIds` の置き場は D-8 のとおり Client.Game（Phase 2.6 強: plan.md §3.2「Client.Game に手を入れない」と緊張）。§4.5 が Mapper の吸収を明記し、`ItemViewHighLightTutorialManager` が Client.Game から使うため。触るのはチュートリアルの ID 生成だけでゲームの状態には触れない
+- D-15 Phase 2.6 弱のうち据え置き: 単位の末尾一致（USS の値の書式そのもの）・`_hasKey` と引数の有無（`LocalizationKey` の型次第で実装者が判断）・`UiMotionPlayer` の停止の 3 口（停止を `UiMotionHandle` 内の 1 メソッドにまとめるよう実装時に寄せる）・`AnchorIds` の契約層（D-14）
 - D-10 ユーザーへの質問は行わない（依頼文）。人にしか決められないものは推奨案で進め、完了報告の「要裁定」に書く。user-simulator の review は質問を出せないため回さず、設計検査（Phase 1〜2.6）の fresh-context subagent の所見を本体が既定で裁く
