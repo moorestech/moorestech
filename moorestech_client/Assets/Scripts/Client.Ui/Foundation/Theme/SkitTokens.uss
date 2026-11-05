@@ -1,0 +1,39 @@
+/* Generated from moorestech_web/webui/src/app/skitTokens.css — do not edit by hand. */
+/* Regenerate: node tools/uitk/convert-web-tokens.mjs */
+:root {
+    --skit-window-face: rgba(11, 17, 28, 0.88);
+    --skit-window-top-fade: 37px;
+    --skit-window-height: 204px;
+    --skit-window-content-inset: 168px;
+    --skit-rule-inset: 111px;
+    --skit-window-edge-safe-area: 8px;
+    --skit-rule-margin-top: 2px;
+    --skit-rule-margin-bottom: 13.3px;
+    --skit-speaker-font-size: 28.7px;
+    --skit-body-font-size: 21.3px;
+    --skit-advance-marker-size: 40px;
+    --skit-advance-marker-right: 126px;
+    --skit-advance-marker-stroke-width: 2;
+    --skit-choice-width: 164px;
+    --skit-choice-height: 30.7px;
+    --skit-choice-gap: 14.7px;
+    --skit-choices-right-inset: 5.3px;
+    --skit-choice-font-size: 18.7px;
+    --skit-choice-active-mix: 35%;
+    --skit-choices-window-gap: 0.7px;
+    --skit-choice-edge-fade: 44.7px;
+    --skit-choice-rule-inset: 12.3px;
+    --skit-choice-rule-vertical-inset: 4.1px;
+    --skit-choice-rule-thickness: 1px;
+    --skit-choice-marker-size: 11.7px;
+    --skit-choice-marker-stroke-width: 1.2;
+    --skit-tool-button-size: 33.3px;
+    --skit-tool-gap: 5.3px;
+    --skit-toolbar-inset-right: 31.3px;
+    --skit-toolbar-inset-top: 8.7px;
+    --skit-tool-icon-opacity: 1;
+    --skit-tool-icon-stroke-width: 1.2;
+    --skit-background-font-size: 24px;
+    --skit-background-bottom: 93.3px;
+    --skit-transition-face: rgb(0, 0, 0);
+}

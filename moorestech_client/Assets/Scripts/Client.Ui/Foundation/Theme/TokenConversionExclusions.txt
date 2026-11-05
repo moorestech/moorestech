@@ -1,0 +1,33 @@
+--ui-stage-width	実行時の寸法。USS の配置か C# の幾何で置き換える
+--ui-stage-height	実行時の寸法。USS の配置か C# の幾何で置き換える
+--ui-viewport-width	実行時の寸法。USS の配置か C# の幾何で置き換える
+--ui-viewport-height	実行時の寸法。USS の配置か C# の幾何で置き換える
+--font-ui	文字列（フォント族）。USS は -unity-font-definition のアセット参照で指定する
+--key-hint-letter-spacing	em は親の文字サイズ依存。部品の段で px に決める
+--key-hint-text-shadow	複合値（影・境界線・余白の一括指定）。部品の段で個別プロパティへ分ける
+--z-viewport-backdrop	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-viewport-behind-stage	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-viewport-stage	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-viewport-grab	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-stage-screen	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-stage-overlay-panel	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-stage-overlay-panel-chrome	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-stage-pause-menu	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-stage-tooltip	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-portal-modal	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-portal-toast	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-portal-tutorial	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-portal-reconnect	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-portal-full-screen-gate	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--recipe-action-background	USS に無い関数 linear-gradient()
+--menu-content-height	実行時の寸法。USS の配置か C# の幾何で置き換える（--ui-stage-height に依存）
+--pause-menu-max-height	実行時の寸法。USS の配置か C# の幾何で置き換える（--ui-stage-height に依存）
+--challenge-hud-text-shadow	複合値（影・境界線・余白の一括指定）。部品の段で個別プロパティへ分ける
+--tooltip-border	複合値（影・境界線・余白の一括指定）。部品の段で個別プロパティへ分ける
+--z-portal-world-pin	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--label-face-padding	複合値（影・境界線・余白の一括指定）。部品の段で個別プロパティへ分ける
+--tutorial-pulse-strong	CSS 固有の識別子（@keyframes 名）。UiMotion で置き換える
+--tutorial-pulse-subtle	CSS 固有の識別子（@keyframes 名）。UiMotion で置き換える
+--z-stage-skit	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--z-portal-skit-transition	z-index は C# の層 enum へ写す（USS に z-index は無い）
+--skit-tool-icon-shadow	複合値（影・境界線・余白の一括指定）。部品の段で個別プロパティへ分ける
