@@ -1,6 +1,6 @@
 using Client.Game.InGame.BugReport.Playtest;
 
-namespace Client.Ui.Screens.BugReport
+namespace Client.Ui.State.PauseMenu
 {
     /// <summary>
     /// バグ報告の書きかけ（本文と種別）。ページを作り直しても残るよう View の外に置く（D-7）

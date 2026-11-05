@@ -6,6 +6,7 @@ using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
 using NUnit.Framework;
 using UnityEngine.UIElements;
+using Client.Ui.State.PauseMenu;
 
 namespace Client.Tests.Ui.Screens.PauseMenu
 {
