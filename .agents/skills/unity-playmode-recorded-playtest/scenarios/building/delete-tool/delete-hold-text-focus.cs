@@ -51,24 +51,24 @@ return PlaytestRunner.Run("delete-hold-text-focus", new PlaytestRunOptions { Rec
     await p.PressKey(Key.B);
     await p.WaitUiState(UIStateEnum.BuildMenu, 5f);
     await p.ClickUi("build-menu-search");
-    await p.Until(() => WebUiInputExclusivity.IsTextInputFocused && WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), 5f, "検索欄focusでKeyboard抑止が入る");
+    await p.Until(() => UiInputExclusivity.IsTextInputFocused && UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), 5f, "検索欄focusでKeyboard抑止が入る");
     await p.Screenshot("02-text-focused");
     // 抑止と実キー状態を別々に観測する
     // Observe suppression and physical key state separately
     p.Note("モード外でFを解放し再押下、保持したまま再入場する");
     SemanticInput.KeyUp(Key.F);
     await p.WaitSeconds(0.5f);
-    p.Note($"解放: rawF={Keyboard.current.fKey.isPressed} focus={WebUiInputExclusivity.IsTextInputFocused} suppressed={WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard)} state={p.CurrentUiState}");
+    p.Note($"解放: rawF={Keyboard.current.fKey.isPressed} focus={UiInputExclusivity.IsTextInputFocused} suppressed={UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard)} state={p.CurrentUiState}");
     p.Assert(!Keyboard.current.fKey.isPressed, "モード外で実F解放を観測");
-    p.Assert(WebUiInputExclusivity.IsTextInputFocused && WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "F解放/再押下の両端で検索欄抑止が続く");
+    p.Assert(UiInputExclusivity.IsTextInputFocused && UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "F解放/再押下の両端で検索欄抑止が続く");
     SemanticInput.KeyDown(Key.F);
     await p.WaitSeconds(0.5f);
-    p.Note($"再押下: rawF={Keyboard.current.fKey.isPressed} focus={WebUiInputExclusivity.IsTextInputFocused} suppressed={WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard)} state={p.CurrentUiState}");
+    p.Note($"再押下: rawF={Keyboard.current.fKey.isPressed} focus={UiInputExclusivity.IsTextInputFocused} suppressed={UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard)} state={p.CurrentUiState}");
     p.Assert(Keyboard.current.fKey.isPressed, "モード外で実F再押下を観測");
-    p.Assert(WebUiInputExclusivity.IsTextInputFocused && WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "F解放/再押下の両端で検索欄抑止が続く");
+    p.Assert(UiInputExclusivity.IsTextInputFocused && UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), "F解放/再押下の両端で検索欄抑止が続く");
     await p.CloseBuildMenuPanel();
     await p.WaitUiState(UIStateEnum.GameScreen, 5f);
-    await p.Until(() => !WebUiInputExclusivity.IsTextInputFocused && !WebUiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), 5f, "検索欄を閉じて抑止が外れる");
+    await p.Until(() => !UiInputExclusivity.IsTextInputFocused && !UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard), 5f, "検索欄を閉じて抑止が外れる");
     p.Assert(Keyboard.current.fKey.isPressed, "閉じる操作もF保持を維持");
     await p.PressKey(Key.G);
     await p.WaitUiState(UIStateEnum.DeleteBar, 5f);
@@ -76,7 +76,7 @@ return PlaytestRunner.Run("delete-hold-text-focus", new PlaytestRunOptions { Rec
     // 進捗描画とサーバー削除の両方を確認する
     // Verify both rendered progress and server removal
     await p.Until(() => progress.IsShown && progress.CurrentProgress > 0f && progress.CurrentProgress < 1f, 5f, "再入場後の新しい保持で進捗が開始");
-    p.Note($"再入場: rawF={Keyboard.current.fKey.isPressed} progress={progress.CurrentProgress:F3} focus={WebUiInputExclusivity.IsTextInputFocused}");
+    p.Note($"再入場: rawF={Keyboard.current.fKey.isPressed} progress={progress.CurrentProgress:F3} focus={UiInputExclusivity.IsTextInputFocused}");
     p.Assert(p.GetBlock(b) != null, "進捗途中ではBを残す");
     var dom = await PlaytestUiElementOps.FindUi("progress-bar");
     p.Note($"進捗DOM: found={dom.IsFound} visible={dom.Visible} hit={dom.Clickable}");

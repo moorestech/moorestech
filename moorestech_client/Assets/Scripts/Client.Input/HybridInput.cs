@@ -140,6 +140,7 @@ namespace Client.Input
                 KeyCode.W => Key.W,
                 KeyCode.S => Key.S,
                 KeyCode.Tab => Key.Tab,
+                KeyCode.Escape => Key.Escape,
                 KeyCode.F3 => Key.F3,
                 KeyCode.LeftShift => Key.LeftShift,
                 KeyCode.LeftControl => Key.LeftCtrl,

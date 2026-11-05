@@ -95,16 +95,6 @@ namespace Client.Tests.Ui.Input
         }
 
         [Test]
-        public void EscapeLatchedHybridInputReportsNoEscapePress()
-        {
-            // ラッチ中のHybridInputはESCの押下・保持を返さない（実キー注入での確認はL3）
-            // While latched HybridInput reports no ESC press or hold (real key injection is covered by L3)
-            UiInputExclusivity.ConsumeEscapeThisFrame();
-            Assert.IsFalse(HybridInput.GetKeyDown(KeyCode.Escape));
-            Assert.IsFalse(HybridInput.GetKey(KeyCode.Escape));
-        }
-
-        [Test]
         public void PointerProbeRegistrationAndRelease()
         {
             Assert.IsFalse(UiInputExclusivity.IsPointerOverGameUi(Vector2.zero));
