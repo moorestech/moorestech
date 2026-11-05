@@ -2,5 +2,6 @@
   "state": "PlayerInventory",
   "keyHints": [
     { "keyNameKey": "ui.keyHint.key.tab", "textKey": "ui.keyHint.text.closeInventory" }
-  ]
+  ],
+  "webUiSuspended": false
 }

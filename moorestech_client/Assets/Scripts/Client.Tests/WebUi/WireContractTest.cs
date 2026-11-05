@@ -125,6 +125,7 @@ namespace Client.Tests.WebUi
             {
                 State = "PlayerInventory",
                 KeyHints = new[] { new KeyHintDto { KeyNameKey = "ui.keyHint.key.tab", TextKey = "ui.keyHint.text.closeInventory" } },
+                WebUiSuspended = false,
             };
             AssertMatchesFixture(dto, "ui_state.json");
         }

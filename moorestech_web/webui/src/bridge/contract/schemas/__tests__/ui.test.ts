@@ -42,19 +42,27 @@ describe("UiStateDataSchema", () => {
     const parsed = UiStateDataSchema.safeParse({
       state: "GameScreen",
       keyHints: [{ keyNameKey: "ui.keyHint.key.tab", textKey: "ui.keyHint.text.inventory" }],
+      webUiSuspended: false,
     });
     expect(parsed.success).toBe(true);
   });
 
   it("入れ子stateは既知語彙も未知語彙も受理する（未知値の解釈はscreenForUiStateのfail-safe）", () => {
-    expect(UiStateDataSchema.safeParse({ state: "Story", subState: NestedPauseSubStateNames.gameScreen, keyHints: [] }).success).toBe(true);
-    expect(UiStateDataSchema.safeParse({ state: "Story", subState: NestedPauseSubStateNames.pauseMenuScreen, keyHints: [] }).success).toBe(true);
-    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "UnknownSubState", keyHints: [] }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: NestedPauseSubStateNames.gameScreen, keyHints: [], webUiSuspended: false }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: NestedPauseSubStateNames.pauseMenuScreen, keyHints: [], webUiSuspended: false }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "UnknownSubState", keyHints: [], webUiSuspended: false }).success).toBe(true);
   });
 
   it("keyHints未着のペイロードは契約破れとして弾く", () => {
-    const parsed = UiStateDataSchema.safeParse({ state: "GameScreen" });
+    const parsed = UiStateDataSchema.safeParse({ state: "GameScreen", webUiSuspended: false });
     expect(parsed.success).toBe(false);
+  });
+
+  // Web休止の可否はC#が常に載せる。欠損を既定値で埋めるとUITK表示中にWebが重なる無言故障になる（R1）
+  // C# always sends the suspension flag; defaulting a missing one would silently overlap the web on top of UITK (R1)
+  it("webUiSuspended未着のペイロードは契約破れとして弾く", () => {
+    expect(UiStateDataSchema.safeParse({ state: "GameScreen", keyHints: [] }).success).toBe(false);
+    expect(UiStateDataSchema.safeParse({ state: "GameScreen", keyHints: [], webUiSuspended: true }).success).toBe(true);
   });
 });
 

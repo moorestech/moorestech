@@ -27,6 +27,9 @@ export const UiStateDataSchema = z.object({
   // ホストは常に配列を載せるので欠損は契約破れ。既定値で吸収すると全画面のヒント消失が無言故障になる
   // The host always sends the array, so a missing field is a contract break; a default would turn a full HUD loss into a silent failure
   keyHints: z.array(KeyHintSchema),
+  // UITK が主パネルを出す間 Web は全部 unmount する（R1）。欠損は契約破れ
+  // While UITK shows a main panel the web unmounts everything (R1); a missing field is a contract break
+  webUiSuspended: z.boolean(),
 });
 export const TrainRidingDataSchema = z.object({
   riding: z.boolean(),

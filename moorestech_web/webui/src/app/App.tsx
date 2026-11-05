@@ -72,6 +72,7 @@ export default function App() {
   const uiState = useTopicSelector(Topics.uiState, (d) => d?.state ?? null);
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
   const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
+  const webUiSuspended = useTopicSelector(Topics.uiState, (d) => d?.webUiSuspended === true);
   const stageRef = useStageScaleSync(uiVisible);
   const researchScreen = screen === "researchTree";
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
@@ -81,9 +82,9 @@ export default function App() {
   // The start gate is event mode's language selection alone, so its wait is the visibility condition
   const eventLanguageGateWaiting = useTopicSelector(Topics.eventLanguageGate, (d) => d?.waiting === true);
 
-  // Ctrl+U中はPortalを含む全Web UIをunmountする
-  // Unmount the entire Web UI, including portals, while Ctrl+U is active
-  if (!uiVisible || cutScene) return <div className={styles.hidden} data-web-ui-transparent />;
+  // Ctrl+U中とUITK主パネル表示中（R1）はPortalを含む全Web UIをunmountする
+  // Unmount the entire Web UI, including portals, while Ctrl+U is active or UITK shows a main panel (R1)
+  if (!uiVisible || cutScene || webUiSuspended) return <div className={styles.hidden} data-web-ui-transparent />;
 
   return (
     <div className={styles.viewport} data-web-ui-transparent>
