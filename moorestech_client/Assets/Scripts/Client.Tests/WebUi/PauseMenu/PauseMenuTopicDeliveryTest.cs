@@ -1,8 +1,6 @@
-using Client.Game.InGame.BugReport.Capture;
+using Client.Tests.Ui.State;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Game.InGame.Presenter.PauseMenu;
 using Client.PlaytestReceiver.Delivery;
-using Client.Tests.BugReport;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
 using Newtonsoft.Json.Linq;
@@ -46,7 +44,7 @@ namespace Client.Tests.WebUi
             // 購読配信とスナップショットを検証
             // Verify status-change publication and the snapshot together
             var hub = new WebSocketHub();
-            using var topic = new PauseMenuTopic(hub, new NetworkDisconnectState(), new BugReportCaptureSession(new NullBugReportCaptureSources()), new PauseMenuStateService());
+            using var topic = new PauseMenuTopic(hub, PauseMenuModelTestFactory.Create(new PauseMenuStateService()));
             var before = hub.GetTopicRevision(PauseMenuTopic.TopicName);
             PlaytestDeliveryStatusBoard.Set(status);
             var snapshot = JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());

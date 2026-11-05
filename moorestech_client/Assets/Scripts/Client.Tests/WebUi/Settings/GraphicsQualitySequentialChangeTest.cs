@@ -1,3 +1,4 @@
+using Client.Ui.State.Settings;
 using System.Threading.Tasks;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Tests.GraphicsQuality;
@@ -18,7 +19,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task LatestHostValueSurvivesRapidChangesAndPresetThenItem(string item, object value)
         {
             var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
+            SettingsActions.Register(hub, new SettingsCommands());
             using var topic = new GraphicsQualityTopic(hub);
             var action = hub.ResolveAction("settings.setGraphicsQuality");
             var initial = JObject.Parse(await topic.GetSnapshotJsonAsync());

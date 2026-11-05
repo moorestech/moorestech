@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Client.PlaytestReceiver.Delivery;
-using Client.PlaytestReceiver.Recovery;
-using Client.Game.InGame.BugReport;
-using Client.Game.InGame.BugReport.Capture;
-using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
+using Client.Ui.State.PauseMenu;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
@@ -18,25 +14,17 @@ namespace Client.WebUiHost.Game.Topics
         public const string TopicName = "pause_menu.current";
 
         private readonly WebSocketHub _hub;
-        private readonly NetworkDisconnectState _state;
-        private readonly BugReportCaptureSession _bugReportCaptureSession;
-        private readonly PauseMenuStateService _pauseMenuStateService;
+        private readonly PauseMenuModel _model;
         private readonly CompositeDisposable _subscriptions = new();
 
-        public PauseMenuTopic(WebSocketHub hub, NetworkDisconnectState state, BugReportCaptureSession bugReportCaptureSession, PauseMenuStateService pauseMenuStateService)
+        public PauseMenuTopic(WebSocketHub hub, PauseMenuModel model)
         {
             _hub = hub;
-            _state = state;
-            _bugReportCaptureSession = bugReportCaptureSession;
-            _pauseMenuStateService = pauseMenuStateService;
+            _model = model;
 
-            // 変化のみ配信、snapshotで復元
-            // Publishes only changes; restores via snapshot
-            state.OnDisconnectedChanged.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
-            bugReportCaptureSession.Status.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
-            PlaytestDeliveryStatusBoard.Current.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
-            PlaytestExportStatusBoard.Current.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
-            pauseMenuStateService.CurrentPage.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
+            // 変化のみ配信、snapshotで復元。源の束ねはモデルが持つ
+            // Publishes only changes; restores via snapshot. The model owns combining the sources
+            model.Current.Skip(1).Subscribe(_ => Publish()).AddTo(_subscriptions);
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -56,17 +44,17 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            var status = _bugReportCaptureSession.Status.Value;
+            var current = _model.Current.Value;
             return WebUiJson.Serialize(new PauseMenuDto
             {
-                Delivery = PlaytestDeliveryDto.From(PlaytestDeliveryStatusBoard.Current.Value),
-                Export = PlaytestExportDto.From(PlaytestExportStatusBoard.Current.Value),
-                Disconnected = _state.IsDisconnected,
-                Page = PauseMenuPageContract.ToContractText(_pauseMenuStateService.CurrentPage.Value),
+                Delivery = PlaytestDeliveryDto.From(current.Delivery),
+                Export = PlaytestExportDto.From(current.Export),
+                Disconnected = current.Disconnected,
+                Page = PauseMenuPageContract.ToContractText(current.Page),
                 BugReport = new BugReportStatusDto
                 {
-                    Kind = status.Kind,
-                    Missing = new List<string>(status.Missing),
+                    Kind = current.Capture.Kind,
+                    Missing = new List<string>(current.Capture.Missing),
                 },
             });
         }

@@ -1,3 +1,6 @@
+using Client.PlaytestReceiver.Recovery;
+using Client.Game.InGame.Presenter.PauseMenu;
+using Client.Ui.State.PauseMenu;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -49,7 +52,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 resolver.Resolve<BugReportCaptureSession>(),
                 resolver.Resolve<IPlaytestProgressSink>(),
                 uploadRequester);
-            var handler = new BugReportSubmitActionHandler(submitter, resolver.Resolve<PauseMenuStateService>());
+            var handler = new BugReportSubmitActionHandler(new PauseMenuCommands(resolver.Resolve<GameSaveRequester>(), resolver.Resolve<SaveAndQuitPresenter>(), resolver.Resolve<PauseMenuStateService>(), submitter, resolver.Resolve<PlaytestOutboxRecovery>()));
             var kindText = PlaytestReportKindText.ToContractText(kind);
             var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = kindText });
             Assert.IsTrue(result.Ok, result.Error);

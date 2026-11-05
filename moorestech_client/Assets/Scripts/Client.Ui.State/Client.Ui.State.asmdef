@@ -3,6 +3,8 @@
     "rootNamespace": "",
     "references": [
         "Client.Game",
+        "Client.Input",
+        "Client.PlaytestReceiver",
         "Client.Localization",
         "Client.Network",
         "Core.Master",

@@ -1,0 +1,90 @@
+using System.Text.RegularExpressions;
+using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
+using Client.Ui.State.Commands;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Client.Tests.Ui.State
+{
+    public class PauseMenuCommandsTest
+    {
+        [Test]
+        public void 空白だけの本文はEmptyDescriptionで拒否しトップへ戻らない()
+        {
+            var service = new PauseMenuStateService();
+            service.ShowPage(PauseMenuPage.BugReport);
+            var commands = PauseMenuCommandsTestFactory.Create(service);
+
+            LogAssert.Expect(LogType.Warning, new Regex("バグ報告の説明文が空"));
+            var result = commands.SubmitBugReport("  \n\t ", PlaytestReportKind.Bug).GetAwaiter().GetResult();
+
+            var rejected = AssertRejected(result, UiCommandRejectReason.EmptyDescription);
+            Assert.AreEqual("empty_description", rejected.ToWireCode());
+            Assert.AreEqual(PauseMenuPage.BugReport, service.CurrentPage.Value);
+        }
+
+        [Test]
+        public void クラッシュ種別はUnsubmittableReportKindで拒否する()
+        {
+            var service = new PauseMenuStateService();
+            service.ShowPage(PauseMenuPage.BugReport);
+            var commands = PauseMenuCommandsTestFactory.Create(service);
+
+            LogAssert.Expect(LogType.Warning, new Regex("ポーズから送れない"));
+            var result = commands.SubmitBugReport("説明", PlaytestReportKind.Crash).GetAwaiter().GetResult();
+
+            var rejected = AssertRejected(result, UiCommandRejectReason.UnsubmittableReportKind);
+            Assert.AreEqual("invalid_kind", rejected.ToWireCode());
+            Assert.AreEqual(PauseMenuPage.BugReport, service.CurrentPage.Value);
+        }
+
+        [Test]
+        public void 確保が無い送信はCaptureRefusedで送信手続きの失敗コードを補足に持つ()
+        {
+            // 確保なしのセッションは送信手続きが拒否する。拒否の失敗コードがそのまま Web の契約値になる
+            // A session with no capture is refused by the submitter; its failure code becomes the Web contract value as is
+            var service = new PauseMenuStateService();
+            service.ShowPage(PauseMenuPage.BugReport);
+            var commands = PauseMenuCommandsTestFactory.Create(service);
+
+            LogAssert.Expect(LogType.Warning, new Regex("確保セッションに拒否"));
+            var result = commands.SubmitBugReport("説明", PlaytestReportKind.Feedback).GetAwaiter().GetResult();
+
+            var rejected = AssertRejected(result, UiCommandRejectReason.CaptureRefused);
+            Assert.IsNotEmpty(rejected.Detail);
+            Assert.AreEqual(rejected.Detail, rejected.ToWireCode());
+            Assert.AreEqual(PauseMenuPage.BugReport, service.CurrentPage.Value);
+        }
+
+        [TestCase(PauseMenuPage.Settings)]
+        [TestCase(PauseMenuPage.BugReport)]
+        public void ShowPageで現在の画面が変わる(PauseMenuPage page)
+        {
+            var service = new PauseMenuStateService();
+            var commands = PauseMenuCommandsTestFactory.Create(service);
+
+            commands.ShowPage(page);
+
+            Assert.AreEqual(page, service.CurrentPage.Value);
+        }
+
+        [Test]
+        public void 今の拒否理由はどれも良性でない()
+        {
+            foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
+            {
+                Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
+            }
+        }
+
+        private static UiCommandRejected AssertRejected(UiCommandResult result, UiCommandRejectReason expected)
+        {
+            Assert.IsInstanceOf<UiCommandRejected>(result);
+            var rejected = (UiCommandRejected)result;
+            Assert.AreEqual(expected, rejected.Reason);
+            return rejected;
+        }
+    }
+}

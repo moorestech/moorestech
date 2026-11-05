@@ -1,3 +1,4 @@
+using Client.Ui.State.Settings;
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
@@ -17,7 +18,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task RegisteredActionPublishesChangedValuesToSubscribedConnection()
         {
             var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
+            SettingsActions.Register(hub, new SettingsCommands());
             using var topic = new GraphicsQualityTopic(hub);
             hub.RegisterTopic(GraphicsQualityTopic.TopicName, topic);
             var connection = new WebSocketConnection(null, Guid.NewGuid());
@@ -60,7 +61,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task SameExplicitSelectionDeliversRecoveryAcknowledgment(bool preset)
         {
             var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
+            SettingsActions.Register(hub, new SettingsCommands());
             using var topic = new GraphicsQualityTopic(hub);
             hub.RegisterTopic(GraphicsQualityTopic.TopicName, topic);
             UnityEngine.PlayerPrefs.SetString(Client.Game.InGame.GraphicsQuality.GraphicsQualityPreference.PreferenceKey, "broken");

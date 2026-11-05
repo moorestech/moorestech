@@ -1,4 +1,4 @@
-using Client.PlaytestReceiver.Recovery;
+using Client.Ui.State.PauseMenu;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -8,13 +8,13 @@ namespace Client.WebUiHost.Game.Actions
     // Resend of undeliverable reports; the outcome arrives through the delivery topic
     public class BugReportResendFailedActionHandler : IActionHandler
     {
-        private readonly PlaytestOutboxRecovery _recovery;
+        private readonly IPauseMenuCommands _commands;
         public string ActionType => "bug_report.resend_failed";
-        public BugReportResendFailedActionHandler(PlaytestOutboxRecovery recovery) { _recovery = recovery; }
+        public BugReportResendFailedActionHandler(IPauseMenuCommands commands) { _commands = commands; }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            _recovery.RequestResendFailed();
+            _commands.ResendFailedReports();
             return UniTask.FromResult(ActionResult.Success());
         }
     }
@@ -23,13 +23,13 @@ namespace Client.WebUiHost.Game.Actions
     // Zip export of unsent reports; only acceptance returns, progress arrives on the topic
     public class BugReportExportUnsentActionHandler : IActionHandler
     {
-        private readonly PlaytestOutboxRecovery _recovery;
+        private readonly IPauseMenuCommands _commands;
         public string ActionType => "bug_report.export_unsent";
-        public BugReportExportUnsentActionHandler(PlaytestOutboxRecovery recovery) { _recovery = recovery; }
+        public BugReportExportUnsentActionHandler(IPauseMenuCommands commands) { _commands = commands; }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            _recovery.RequestExportUnsent();
+            _commands.ExportUnsentReports();
             return UniTask.FromResult(ActionResult.Success());
         }
     }
