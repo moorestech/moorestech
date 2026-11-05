@@ -41,5 +41,12 @@ namespace Client.Ui.Foundation.Root
         {
             cefRawImage.enabled = visible;
         }
+
+        // ロケールなど、パネル全体に効くクラスをルートへ付け外しする
+        // Toggles panel-wide classes such as the locale on the root
+        public void SetRootClassEnabled(string className, bool enabled)
+        {
+            uiDocument.rootVisualElement.EnableInClassList(className, enabled);
+        }
     }
 }

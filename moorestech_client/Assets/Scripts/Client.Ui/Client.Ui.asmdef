@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Client.Input",
+        "Client.Localization",
         "Client.Ui.State",
         "UniRx",
         "VContainer"

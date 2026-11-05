@@ -4,3 +4,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/SlotTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/ControlTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Theme.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Typography.uss");
