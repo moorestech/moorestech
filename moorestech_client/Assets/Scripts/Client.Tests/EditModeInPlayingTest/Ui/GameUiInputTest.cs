@@ -1,5 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
+using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Cysharp.Threading.Tasks;
@@ -11,6 +14,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
+using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
 namespace Client.Tests.EditModeInPlayingTest.Ui
@@ -65,6 +69,47 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 AssertBeforeSwap(before);
                 AssertAfterSwap(after);
+            }
+
+            #endregion
+        }
+
+        [UnityTest]
+        public IEnumerator 実ゲームでGameUiの入力欄がフォーカスとIMEとESCとポインタとDSLに結線されている()
+        {
+            EnterPlayModeUtil();
+
+            // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
+            // Always call yield return new EnterPlayMode directly under the [UnityTest] function
+            yield return new EnterPlayMode(expectDomainReload: true);
+            LogAssert.ignoreFailingMessages = true;
+
+            yield return TestBody().ToCoroutine();
+
+            yield return new ExitPlayMode();
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+
+            #region Internal
+
+            async UniTask TestBody()
+            {
+                await LoadMainGame();
+                await UniTask.DelayFrame(5);
+                var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
+                GameUiPointerWiringChecks.AssertGameUiPanelSettingsIsNotShared();
+
+                // 背面の Editor でも注入が届く設定にし、カーソルを解放してから Screen 層に入力欄を 2 つ置く
+                // Let injection reach a background Editor, release the cursor, then place two text fields on the Screen layer
+                using var backgroundInput = EditorBackgroundInputScope.Open();
+                InputManager.MouseCursorVisible(true);
+                var (box, fieldA, fieldB) = GameUiTextFieldWiringChecks.PlaceTwoTextFields(GameUiRoot.Instance);
+                await UniTask.DelayFrame(3);
+
+                var fieldCenter = await GameUiPointerWiringChecks.LocatorFindsFieldAndPointerIsOverIt(fieldA);
+                await GameUiTextFieldWiringChecks.FocusMovesBetweenFieldsAndBlurs(fieldA, fieldB, uiStateControl);
+                await GameUiTextFieldWiringChecks.WebTextInputTurnsImeOn();
+                await GameUiTextFieldWiringChecks.EscapeLatchHoldsOnlyItsOwnFrame();
+                await GameUiPointerWiringChecks.PointerIsNotOverAfterRemoval(box, fieldCenter);
             }
 
             #endregion

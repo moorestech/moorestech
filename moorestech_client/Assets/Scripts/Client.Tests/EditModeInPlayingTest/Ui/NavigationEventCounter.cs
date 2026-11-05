@@ -57,15 +57,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
         public async UniTask<Dictionary<Key, KeyNavigationCount>> MeasureEachKey(string label)
         {
-            // 背面の Editor はキーボードを無効化し入力を捨てるので、測る間だけ背景でも届く設定にする（InteractKeyBlockOpener と同じ）
-            // A background Editor disables the keyboard and drops input, so let it through only while measuring (same as InteractKeyBlockOpener)
-            var inputSettings = InputSystem.settings;
-            var (savedBackground, savedEditorInput) = (inputSettings.backgroundBehavior, inputSettings.editorInputBehaviorInPlayMode);
-            inputSettings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-            inputSettings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-            SemanticInput.EnsureDevices();
-            var keyboardWasEnabled = Keyboard.current.enabled;
-            InputSystem.EnableDevice(Keyboard.current);
+            // 背面の Editor は注入を捨てるので、測る間だけ背景でも届く設定にする
+            // A background Editor drops injected input, so let it through only while measuring
+            using var backgroundInput = EditorBackgroundInputScope.Open();
             await UniTask.DelayFrame(1);
 
             var results = new Dictionary<Key, KeyNavigationCount>();
@@ -86,9 +80,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             }
             Debug.Log($"[S4] phase={label} summary {summary}");
 
-            if (!keyboardWasEnabled) InputSystem.DisableDevice(Keyboard.current);
-            inputSettings.backgroundBehavior = savedBackground;
-            inputSettings.editorInputBehaviorInPlayMode = savedEditorInput;
             return results;
         }
 
