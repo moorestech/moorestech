@@ -68,6 +68,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             _session = null;
             _currentDirection = BlockDirection.North;
+            _branchSideIsRight = true;
             _priority = BeltRouteStepPriority.Default;
         }
 

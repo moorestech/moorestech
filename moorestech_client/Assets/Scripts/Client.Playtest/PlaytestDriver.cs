@@ -9,6 +9,7 @@ using Client.Playtest.Core;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
+using Client.Playtest.Overlay;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Context;
@@ -146,21 +147,37 @@ namespace Client.Playtest
             await ClickPlace();
             await Until(() => PlaytestBlockOps.GetBlock(origin) != null, 15f, $"UI設置反映: {blockName} at {origin}");
         }
-        public async UniTask DragPlaceViaUi(string blockName, Vector3Int fromOrigin, Vector3Int toOrigin)
+        public async UniTask RoutePlaceViaUi(string blockName, Vector3Int fromOrigin, BlockDirection startDirection, Vector3Int toOrigin, BlockDirection endDirection)
         {
-            // ドラッグ設置（ベルト等の経路設置）。方向はドラッグ経路から自動解決される
-            // Drag placement (belt runs, etc.); direction is auto-resolved from the drag path
+            // ベルトの2クリック設置。始点クリック→終点クリックで最短経路が置かれる。選択直後の向きは北
+            // Two-click belt placement: a start click then an end click places the shortest route; the facing right after selection is north
             await OpenBuildMenuAndSelectBlock(blockName);
-            var fromAim = PlaytestUiOps.PlaceAimPoint(blockName, fromOrigin, BlockDirection.North);
-            var toAim = PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North);
-            _reporter.Step($"ドラッグ設置: {blockName} {fromOrigin}->{toOrigin}");
-            // ドラッグ直後に0.5秒アイドルさせると、続く連続ドラッグの始点タイルが設置されない実バグがあるため、
-            // このアクションだけは通常のActではなくインターバル無しで実行する（既存ゲームロジックの制約）
-            // Idling 0.5s right after a drag corrupts the next consecutive drag's start-cell placement (a real
-            // in-game bug), so skip the usual Act interval for this action only (constraint of existing game logic)
-            await PlaytestUiOps.DragPlace(fromAim, toAim);
-            await Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UIドラッグ設置反映: {blockName} {fromOrigin}->{toOrigin}");
+            _reporter.Step($"経路設置: {blockName} {fromOrigin}:{startDirection} -> {toOrigin}:{endDirection}");
+            await AimAt(PlaytestUiOps.PlaceAimPoint(blockName, fromOrigin, BlockDirection.North));
+            await PlaytestBeltRouteOps.RotateTo(this, BlockDirection.North, startDirection);
+            await ClickPlace();
+            await AimAt(PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North));
+            await PlaytestBeltRouteOps.RotateTo(this, startDirection, endDirection);
+            await ClickPlace();
+            await Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UI経路設置反映: {blockName} {fromOrigin}->{toOrigin}");
         }
+
+        public async UniTask BranchPlaceViaUi(string blockName, Vector3Int beltCell, bool sideIsRight, Vector3Int toOrigin, BlockDirection endDirection)
+        {
+            // Ctrlを押したまま既存の直線ベルトをクリックして分岐器へ置き換え、横の出口から終点まで経路を置く
+            // Click an existing straight belt with Ctrl held to replace it with a splitter and route from the side exit to the end
+            await OpenBuildMenuAndSelectBlock(blockName);
+            _reporter.Step($"分岐設置: {blockName} {beltCell} {(sideIsRight ? "右" : "左")} -> {toOrigin}:{endDirection}");
+            var sideDirection = await PlaytestBeltRouteOps.BranchStart(this, beltCell, sideIsRight);
+            await AimAt(PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North));
+            await PlaytestBeltRouteOps.RotateTo(this, sideDirection, endDirection);
+            await ClickPlace();
+            await Until(() => PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UI分岐設置反映: {blockName} {beltCell}->{toOrigin}");
+        }
+
+        // 録画のログ欄と入力欄を隠す。機能紹介動画のように画面を広く見せたいときに使う
+        // Hides the recording's log and input panels, for footage that should show the screen unobstructed
+        public void SetOverlayPanels(bool showLogPanel, bool showInputPanel) => PlaytestOverlay.SetPanelsVisible(showLogPanel, showInputPanel);
         public void SendCommand(string command)
         {
             _reporter.Step($"コマンド送信: {command}");
