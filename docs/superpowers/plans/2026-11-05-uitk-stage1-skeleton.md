@@ -89,7 +89,7 @@
   - `static class UiScreenRouting { static UiScreen Resolve(UIStateEnum state, NestedPauseSubStateEnum? subState) }`
   - `enum UiSurface { MainPanel }`、`enum UiSurfaceOwner { Web, GameUi }`
   - `class UiOwnershipTable { UiOwnershipTable(); UiSurfaceOwner GetOwner(UiScreen screen, UiSurface surface); }`（ctor で全組の欠け・重複を検証し、欠ければ `InvalidOperationException`）。Editor 限定: `#if UNITY_EDITOR` 内の `static class UiOwnershipEditorOverride { static void Set(UiScreen, UiSurface, UiSurfaceOwner); static void Clear(); }`
-  - `class UiRoutingState : IInitializable, IDisposable { IReadOnlyReactiveProperty<UiRoutingSnapshot> Current; UiRoutingSnapshot Resolve(); }`、`sealed class UiRoutingSnapshot { UiScreen Screen; bool WebUiSuspended; }`
+  - `class UiRoutingState : IInitializable { IReadOnlyReactiveProperty<UiRoutingSnapshot> Current; UiRoutingSnapshot Resolve(); }`、`sealed class UiRoutingSnapshot { UiScreen Screen; bool WebUiSuspended; }`
 
 - [ ] **Step 1: enum と traits 表を書く**
 
