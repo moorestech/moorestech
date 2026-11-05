@@ -73,12 +73,12 @@ namespace Client.Ui.Components.TextField
         {
             _underline.Refresh(UnityEngine.Input.compositionString);
 
-            // キャレットは行の下端を指すので候補窓は行のすぐ下に出る。UITK 自身が書くパネル座標の値を、スクリーンのピクセルへ換算した値で上書きする（書く順序は実機で確認する）
-            // The caret points at the line bottom so the window sits just below the line; overwrite UITK's own panel-space value with the screen-pixel conversion (the write order is checked on hardware)
+            // キャレットは行の下端を指すので候補窓は行のすぐ下に出る。UITK 自身が書くパネル座標の値を、スクリーンのピクセルへ換算した値で上書きする
+            // The caret points at the line bottom so the window sits just below the line; overwrite UITK's own panel-space value with the screen-pixel conversion
             var caretPanelPoint = _textElement.LocalToWorld(Field.textSelection.cursorPosition);
             var panelSize = panel.visualTree.layout.size;
             var screenSize = new Vector2(Screen.width, Screen.height);
-            UnityEngine.Input.compositionCursorPos = ImeCaretScreenPosition.FromPanel(caretPanelPoint, panelSize, screenSize);
+            UnityEngine.Input.compositionCursorPos = ImeCaretScreenPosition.FromPanel(caretPanelPoint, panelSize, screenSize, ImeCaretScreenPosition.PlatformOrigin);
         }
 
         private void OnFocusLost()

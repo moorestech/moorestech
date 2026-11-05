@@ -101,15 +101,31 @@ namespace Client.Tests.Ui.Components
             Assert.Greater(underline.resolvedStyle.width, 0f);
             Assert.AreEqual(1f, underline.resolvedStyle.height, 0.01f);
             Assert.AreEqual(gameTextField.Field.Q<TextElement>().resolvedStyle.color, underline.resolvedStyle.backgroundColor);
-            var caret = gameTextField.Field.textSelection.cursorPosition;
-            Assert.AreEqual(caret.x, underline.resolvedStyle.left + underline.resolvedStyle.width, 0.5f);
-            Assert.AreEqual(caret.y, underline.resolvedStyle.top + underline.resolvedStyle.height, 0.5f);
+            var caretPanelPoint = gameTextField.Field.Q<TextElement>().LocalToWorld(gameTextField.Field.textSelection.cursorPosition);
+            // 位置と幅はそれぞれ画素へ丸められるので、端は 1px までずれうる
+            // Position and width are each snapped to pixels, so the edge may drift by up to 1px
+            Assert.AreEqual(caretPanelPoint.x, underline.worldBound.xMax, 1f);
+            Assert.AreEqual(caretPanelPoint.y, underline.worldBound.yMax, 1f);
 
             // 確定（未確定文字列が空）で消える
             // Committing (empty composition) hides it
             gameTextField.ApplyComposition(string.Empty);
             simulate.FrameUpdate();
             Assert.AreEqual(DisplayStyle.None, underline.resolvedStyle.display);
+        }
+
+        [Test]
+        public void SingleLineTextStaysMeasuredWithUnderlineAttached()
+        {
+            // 下線を TextElement の子にすると文字の計測が止まり、単行の文字の高さが 0 になって見えなくなる（段階 1 の実機で発見）
+            // Parenting the underline to the TextElement stops text measuring and collapses single-line text to zero height (found on hardware in stage 1)
+            var gameTextField = AddGameTextField(false);
+            gameTextField.SetValueWithoutNotify("abc");
+            simulate.FrameUpdate();
+
+            var textElement = gameTextField.Field.Q<TextElement>();
+            Assert.AreEqual(0, textElement.hierarchy.childCount, "TextElement に子がある（文字の計測が止まる）");
+            Assert.Greater(textElement.layout.height, 0f);
         }
 
         [Test]
@@ -124,7 +140,7 @@ namespace Client.Tests.Ui.Components
             // フォーカス中の見張りが、キャレットのパネル座標をスクリーンのピクセルへ換算して書く
             // The focused watcher writes the caret's panel point converted to screen pixels
             var caretPanelPoint = gameTextField.Field.Q<TextElement>().LocalToWorld(gameTextField.Field.textSelection.cursorPosition);
-            var expected = ImeCaretScreenPosition.FromPanel(caretPanelPoint, panel.visualTree.layout.size, new Vector2(Screen.width, Screen.height));
+            var expected = ImeCaretScreenPosition.FromPanel(caretPanelPoint, panel.visualTree.layout.size, new Vector2(Screen.width, Screen.height), ImeCaretScreenPosition.PlatformOrigin);
             Assert.AreNotEqual(Vector2.zero, expected);
             Assert.AreEqual(expected, UnityEngine.Input.compositionCursorPos);
 

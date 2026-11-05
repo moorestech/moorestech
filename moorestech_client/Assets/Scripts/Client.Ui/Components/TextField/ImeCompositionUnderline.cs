@@ -26,14 +26,14 @@ namespace Client.Ui.Components.TextField
             _field = field;
             _textElement = textElement;
 
-            // 単行の横スクロールで文字と一緒に動くよう、内側の TextElement の子に置く
-            // Parent the line to the inner TextElement so it scrolls with the text in single-line mode
+            // TextElement に子を足すと文字の計測が効かず単行の高さが 0 になり文字が消えるので、兄弟として置く
+            // Adding a child to the TextElement disables its text measuring (single-line height collapses to 0), so place the line as a sibling
             Line = new VisualElement { pickingMode = PickingMode.Ignore };
             Line.AddToClassList(UssClassName);
             Line.style.position = Position.Absolute;
             Line.style.height = Thickness;
             Line.style.display = DisplayStyle.None;
-            _textElement.Add(Line);
+            _textElement.hierarchy.parent.Add(Line);
         }
 
         // 前回見た未確定文字列から変わったときだけ引き直す（毎フレームの呼び出しを安くする）
@@ -67,9 +67,15 @@ namespace Client.Ui.Components.TextField
             var caret = _field.textSelection.cursorPosition;
             var left = UnityEngine.Mathf.Max(_textElement.contentRect.xMin, caret.x - width);
 
-            Line.style.left = left;
-            Line.style.top = caret.y - Thickness;
-            Line.style.width = caret.x - left;
+            // TextElement の座標を線の親の座標へ写す（単行の横スクロールもこの時点の位置で反映される）。absolute の left/top は親の枠線の内側から測るので枠線ぶん引く
+            // Map TextElement coordinates into the line's parent space (picks up the current single-line scroll offset); absolute left/top start inside the parent's border, so subtract it
+            var lineParent = Line.hierarchy.parent;
+            var start = _textElement.ChangeCoordinatesTo(lineParent, new UnityEngine.Vector2(left, caret.y - Thickness));
+            var end = _textElement.ChangeCoordinatesTo(lineParent, caret);
+            Line.style.left = start.x - lineParent.resolvedStyle.borderLeftWidth;
+            Line.style.top = start.y - lineParent.resolvedStyle.borderTopWidth;
+            Line.style.width = end.x - start.x;
+
             // 色はテーマや画面ごとに変わる文字色に合わせる（USS に currentColor が無いので解決済みの値を写す）
             // Match the text colour, which varies by theme and screen (USS has no currentColor, so copy the resolved value)
             Line.style.backgroundColor = _textElement.resolvedStyle.color;
