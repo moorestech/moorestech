@@ -19,7 +19,7 @@
 
 | 束 | 中身 | 状態 | 暗転の起点 | 物差し |
 |---|---|---|---|---|
-| 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 暗転 | 979725bcd1 | `uitk-lifeline` |
+| 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 切替済み | 979725bcd1 | `uitk-lifeline` |
 | 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | Web | — | `uitk-opening-hud` |
 | 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | Web | — | `uitk-build-bp` |
 | 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | Web | — | `uitk-production-loop`・`uitk-research-train` |
@@ -31,9 +31,9 @@
 
 | 行 | 種別 | 束 | 所有者 | Web パス | agent 既定 | 実測の結論 | 参照キャプチャ |
 |---|---|---|---|---|---|---|---|
-| pauseMenu（ポーズ・バグ報告・入れ子のポーズ） | 機能 | 1 | Web | `src/features/pauseMenu/` `e2e/tests/system/pauseMenu.spec.ts` `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` `e2e/tests/system/feedbackReportLabels.spec.ts` `e2e/mock-host/pauseMenuActions.ts` `e2e/mock-host/topics/pauseMenuControls.ts` | 裁定 2=A（第一弾は命綱） | — | 1-pause-top 1-pause-disconnected 1-pause-delivery-pending 1-pause-in-skit 1-pause-in-train 1-bug-report |
-| settings（画質・言語・ダッシュ方式） | 機能 | 1 | Web | `src/features/settings/` | 裁定 2=A | — | 1-settings 1-settings-graphics-recovered |
-| toast | 機能 | 1 | Web | `src/features/toast/` `e2e/tests/regression/actionErrors.spec.ts` | 裁定 2=A。様式化 (a) | — | 1-toast |
+| pauseMenu（ポーズ・バグ報告・入れ子のポーズ） | 機能 | 1 | UITK | `src/features/pauseMenu/` `e2e/tests/system/pauseMenu.spec.ts` `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` `e2e/tests/system/feedbackReportLabels.spec.ts` `e2e/mock-host/pauseMenuActions.ts` `e2e/mock-host/topics/pauseMenuControls.ts` | 裁定 2=A（第一弾は命綱） | UITK のポーズのトップ（PlayMode・ScreenCapture）: 1280×720 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-screens-pause-720p.png/uitk-screens-pause-720p.png 、2560×1080 https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-screens-pause-2560x1080.png/uitk-screens-pause-2560x1080.png 。面の決め方は `translucent-tokens.md` | 1-pause-top 1-pause-disconnected 1-pause-delivery-pending 1-pause-in-skit 1-pause-in-train 1-bug-report |
+| settings（画質・言語・ダッシュ方式） | 機能 | 1 | UITK | `src/features/settings/` | 裁定 2=A | — | 1-settings 1-settings-graphics-recovered |
+| toast | 機能 | 1 | UITK | `src/features/toast/` `e2e/tests/regression/actionErrors.spec.ts` | 裁定 2=A。様式化 (a)。通信失敗のトーストは Web に残る | — | 1-toast |
 | commonHud（クロスヘア） | 機能 | 2 | Web | `src/features/commonHud/` `e2e/tests/system/commonHud.spec.ts` | — | — | 2-game-hud |
 | keyHint | 機能 | 2 | Web | `src/features/keyHint/` | — | — | 未撮影 |
 | modeHud（配置 HUD・削除モードの帯） | 機能 | 2 | Web | `src/features/modeHud/` `e2e/tests/modeHud/` `e2e/support/operationHudAssertions.ts` | — | — | 2-placement 2-placement-unavailable 2-placement-connect-tool 2-delete-bar |
@@ -133,6 +133,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | 裁定 2 第一弾の画面 | A: 命綱（ポーズ・設定・バグ報告・トースト） | CEF が死んでも Esc でセーブと報告ができる |
 | 裁定 3 遠隔実行の待受 | (a) `HttpListener`。配布ビルドで動かなければ (b) 遠隔実行専用の最小 Kestrel | ADR 0072 の改訂が要る |
 | 確認 UI の演出の時間源 | 実時間（パネルのスケジューラ） | AGENTS.md の時間の規則はサーバーのゲームロジックの規則と読む |
+| 通信失敗のトースト | Web に残る（toast 行の所有者は UITK だが、Web の toast は撤去まで通信失敗だけを出す） | ポーズ中は Web が休止しているので通信失敗のトーストは出ない。UITK のコマンドは WS を通らないので通信失敗が起きない |
 | 様式化 Mantine の素の見た目の 4 画面 | 未裁定（計画の推奨は (a) 移すときに様式化） | 該当行に「様式化 (a)」と書いた |
 
 裁定 4（Web の扱い）は 2026-10-26 にユーザー裁定済み（PR #1555 の `.decisions/2026-10-26-UITKが安定するまでWeb-UIの変更を続け現行機能をすべてUITKへ移す.md`）。G1 はその帰結の追従ゲート。
