@@ -179,7 +179,7 @@
 **Interfaces:**
 - Consumes: Task 1 の ViewModel・コマンド・`GameUiToastFeed`、Task 2 の `BugReportFormText`、Task 3 の部品と `UiAssetCatalog`
 - Produces:
-  - `public sealed class PauseMenuView : VisualElement`（ctor `(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft, UiAssetCatalog catalog)`。`name="pause-menu"`、`TutorialAnchor.Mark(this, AnchorIds.PauseMenu)`（実際の定数名は `AnchorIds.cs` を見る）。購読はパネルに載っている間だけ張り（`AttachToPanelEvent`／`DetachFromPanelEvent`）、ページの変化でトップ／設定／バグ報告を作り直す）
+  - `public sealed class PauseMenuView : VisualElement`（ctor `(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft, UiAssetCatalog catalog)`。PauseMenuView 自身は層いっぱいの透明な置き場で、testid `name="pause-menu"` と `TutorialAnchor.Mark(…, AnchorIds.PauseMenu)` は中の見える枠（GamePanel）に付ける（Web も見える枠に testid。PauseMenuView 自身に同じ名前を付けない）（実際の定数名は `AnchorIds.cs` を見る）。購読はパネルに載っている間だけ張り（`AttachToPanelEvent`／`DetachFromPanelEvent`）、ページの変化でトップ／設定／バグ報告を作り直す）
   - `public sealed class BugReportDraft { string Description { get; private set; } PlaytestReportKind Kind { get; private set; } void SetDescription(string); void SetKind(PlaytestReportKind); void Reset(); }`（Reset は空・Bug）
   - `BugReportFormView` は送信時に `missing` と種別を押した時点で控え、`await commands.SubmitBugReport(...)` の結果が Accepted なら控えた欠損 0 で `SentToast(kind)` の info、あれば `Missing` の error を `toasts.Show`、`draft.Reset()`。Rejected なら `toasts.ShowRejected("bug_report.submit", outcome)` で下書きは残す。二度押しは送信中フラグで止める
 
