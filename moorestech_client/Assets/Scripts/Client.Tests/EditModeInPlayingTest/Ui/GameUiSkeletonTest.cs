@@ -75,6 +75,14 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                     Assert.IsFalse(cefRawImage.enabled, "休止中に CEF の RawImage が有効のまま");
                     Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "休止中に Web がポインタを主張している");
 
+                    // R4: 遷移を待たずに上書きだけで休止が解け、戻すと再び休止する
+                    // R4: an override alone lifts the suspension without a transition, and restoring it suspends again
+                    UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.Web);
+                    Assert.IsFalse(routingState.Current.Value.WebUiSuspended, $"上書きが次の遷移まで反映されない: {routingState.Current.Value}");
+                    Assert.IsTrue(cefRawImage.enabled, "上書きで Web へ戻しても CEF の RawImage が無効のまま");
+                    UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.GameUi);
+                    Assert.IsTrue(routingState.Current.Value.WebUiSuspended, $"上書きを戻しても休止に戻らない: {routingState.Current.Value}");
+
                     // 閉じると CEF が戻る
                     // Closing brings the CEF picture back
                     await TransitionTo(uiStateControl, UIStateEnum.GameScreen);

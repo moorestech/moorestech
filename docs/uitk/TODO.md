@@ -14,6 +14,7 @@
 - `moorestech_web/webui/src/` の下のファイルはどれかの行に入っていなければならない（G1 が落とす）。新しい Web 画面を足すときは、ここに行を足すか既存の行のパスに入れる
 - `e2e/` の下に新しい spec・fixture・撮影スクリプトを足すときは、その画面の行の `Web パス` に足す。足さないと受け皿の「Web の検証基盤」（束 5）の持ち物になり、その束の切替で記帳を求められない（G1 は `e2e/` の網羅を検査しない）
 - セルに `|` を書かない。空欄は `—`
+- Editor で所有表を一時的に書き換える（R4。例: ポーズの主パネルを Web へ戻して見比べる）ときは、PlayMode 中に `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Ui.State.Routing.UiOwnershipEditorOverride.Set(Client.Ui.State.Routing.UiScreen.PauseMenu, Client.Ui.State.Routing.UiSurface.MainPanel, Client.Ui.State.Routing.UiSurfaceOwner.Web);'` を実行する。ルータは上書きの変化を購読しているので、次の画面遷移を待たずに Web の休止・ポーズの表示・ui_state の配信が切り替わる。戻すときは `UiOwnershipEditorOverride.Clear()`。上書きは Editor 限定で、ドメインリロードで消える
 
 ## 束
 

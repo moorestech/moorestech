@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
@@ -10,7 +11,7 @@ namespace Client.Ui.State.Routing
     /// 現在の画面と Web 休止要否を購読で保つ
     /// Keeps the current screen and whether the web UI is suspended via subscriptions
     /// </summary>
-    public sealed class UiRoutingState : IInitializable
+    public sealed class UiRoutingState : IInitializable, IDisposable
     {
         public IReadOnlyReactiveProperty<UiRoutingSnapshot> Current => _current;
 
@@ -18,6 +19,7 @@ namespace Client.Ui.State.Routing
         private readonly UiOwnershipTable _ownershipTable;
         private readonly IReadOnlyList<INestedPauseScreenState> _nestedPauseScreens;
         private readonly ReactiveProperty<UiRoutingSnapshot> _current;
+        private IDisposable _editorOverrideSubscription;
 
         public UiRoutingState(UIStateControl uiStateControl, UiOwnershipTable ownershipTable, IReadOnlyList<INestedPauseScreenState> nestedPauseScreens)
         {
@@ -33,7 +35,17 @@ namespace Client.Ui.State.Routing
             // Re-resolve on state transitions and nested-screen presentation changes; ReactiveProperty drops equal values
             _uiStateControl.OnStateChanged.Subscribe(_ => Refresh());
             foreach (var nested in _nestedPauseScreens) nested.OnPresentationChanged.Subscribe(_ => Refresh());
+#if UNITY_EDITOR
+            // Editor の所有表上書き（R4）も即時に反映する。静的な流れなので、テストで作り直されたルータを残さないよう Dispose で外す
+            // Editor ownership overrides (R4) apply immediately too; the stream is static, so Dispose detaches routers rebuilt by tests
+            _editorOverrideSubscription = UiOwnershipEditorOverride.OnChanged.Subscribe(_ => Refresh());
+#endif
             Refresh();
+        }
+
+        public void Dispose()
+        {
+            _editorOverrideSubscription?.Dispose();
         }
 
         private void Refresh()
