@@ -15,26 +15,28 @@ namespace Client.Tests.Ui.Routing
         }
 
         [Test]
-        public void 段階1では全画面のMainPanelがWeb所有()
+        public void ポーズ系3画面のMainPanelだけがGameUi所有で残りはWeb所有()
         {
             var table = new UiOwnershipTable();
+            var gameUiScreens = new[] { UiScreen.PauseMenu, UiScreen.TrainPause, UiScreen.SkitPause };
             foreach (UiScreen screen in Enum.GetValues(typeof(UiScreen)))
             foreach (UiSurface surface in Enum.GetValues(typeof(UiSurface)))
             {
-                Assert.AreEqual(UiSurfaceOwner.Web, table.GetOwner(screen, surface), $"{screen}/{surface}");
+                var expected = surface == UiSurface.MainPanel && Array.IndexOf(gameUiScreens, screen) >= 0 ? UiSurfaceOwner.GameUi : UiSurfaceOwner.Web;
+                Assert.AreEqual(expected, table.GetOwner(screen, surface), $"{screen}/{surface}");
             }
         }
 
         [Test]
-        public void Editor上書きでPauseMenuのMainPanelがGameUiになりClearで戻る()
+        public void Editor上書きでPauseMenuのMainPanelがWebになりClearで戻る()
         {
             var table = new UiOwnershipTable();
-            UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.GameUi);
-            Assert.AreEqual(UiSurfaceOwner.GameUi, table.GetOwner(UiScreen.PauseMenu, UiSurface.MainPanel));
-            Assert.AreEqual(UiSurfaceOwner.Web, table.GetOwner(UiScreen.BuildMenu, UiSurface.MainPanel));
+            UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.Web);
+            Assert.AreEqual(UiSurfaceOwner.Web, table.GetOwner(UiScreen.PauseMenu, UiSurface.MainPanel));
+            Assert.AreEqual(UiSurfaceOwner.GameUi, table.GetOwner(UiScreen.TrainPause, UiSurface.MainPanel));
 
             UiOwnershipEditorOverride.Clear();
-            Assert.AreEqual(UiSurfaceOwner.Web, table.GetOwner(UiScreen.PauseMenu, UiSurface.MainPanel));
+            Assert.AreEqual(UiSurfaceOwner.GameUi, table.GetOwner(UiScreen.PauseMenu, UiSurface.MainPanel));
         }
     }
 }

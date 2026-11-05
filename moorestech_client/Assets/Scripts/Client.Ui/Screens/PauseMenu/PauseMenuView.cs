@@ -18,8 +18,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.PauseMenu
 {
     /// <summary>
-    /// ポーズ画面の GamePanel。ページは PauseMenuViewModel.Page だけで決め、変わるたびに中身を作り直す（Web の PauseMenuPanel）
-    /// The pause-menu GamePanel; the page is decided only by PauseMenuViewModel.Page and rebuilt whenever it changes (Web PauseMenuPanel)
+    /// ポーズ画面の GamePanel。ページは PauseMenuViewModel.Page だけで決め、表示のたびと変わるたびに中身を作り直す（Web の PauseMenuPanel）
+    /// The pause-menu GamePanel; the page is decided only by PauseMenuViewModel.Page and rebuilt on every show and change (Web PauseMenuPanel)
     /// </summary>
     public sealed class PauseMenuView : VisualElement
     {
@@ -62,6 +62,7 @@ namespace Client.Ui.Screens.PauseMenu
             // 題は枠のタイトル行に 1 つだけ置き、ページに合わせてキーを差し替える
             // A single title sits in the frame's title row and swaps its key per page
             _title = new LocalizedLabel();
+            _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
             panel.SetTitle(_title);
             Add(panel);
 
@@ -70,29 +71,33 @@ namespace Client.Ui.Screens.PauseMenu
             _pageHost = new VisualElement();
             _pageHost.AddToClassList("pause-menu__page");
             panel.Add(_pageHost);
-            UpdateLocaleMarker();
-            ShowPage(model.Value);
 
-            RegisterCallback<AttachToPanelEvent>(_ => OnAttached());
-            RegisterCallback<DetachFromPanelEvent>(_ => OnDetached());
+            // 生成直後は隠しておき、ルータの判断で SetShown が表示する
+            // Start hidden; SetShown reveals it on the router's decision
+            style.display = DisplayStyle.None;
         }
 
-        private void OnAttached()
+        public void SetShown(bool shown)
         {
-            // 購読はパネルに載っている間だけ張る。どれも購読時に現在値を流す
-            // Subscriptions live only while on a panel; each replays its current value on subscribe
-            _subscriptions?.Dispose();
+            if (shown == (_subscriptions != null)) return;
+            style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
+            if (!shown)
+            {
+                // 隠している間はモデルを購読しない
+                // Do not follow the models while hidden
+                _subscriptions.Dispose();
+                _subscriptions = null;
+                return;
+            }
+
+            // 最新値で 1 回描き直してから、変化だけを購読する
+            // Redraw once from the latest values, then subscribe to changes only
+            ShowPage(_model.Value);
+            UpdateLocaleMarker();
             _subscriptions = new CompositeDisposable();
-            _model.Subscribe(OnPauseMenuChanged).AddTo(_subscriptions);
-            _settings.Subscribe(OnSettingsChanged).AddTo(_subscriptions);
+            _model.Skip(1).Subscribe(OnPauseMenuChanged).AddTo(_subscriptions);
+            _settings.Skip(1).Subscribe(OnSettingsChanged).AddTo(_subscriptions);
             Localize.OnLanguageChanged.Subscribe(_ => UpdateLocaleMarker()).AddTo(_subscriptions);
-            UpdateLocaleMarker();
-        }
-
-        private void OnDetached()
-        {
-            _subscriptions?.Dispose();
-            _subscriptions = null;
         }
 
         private void OnPauseMenuChanged(PauseMenuViewModel model)

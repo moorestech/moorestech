@@ -59,13 +59,13 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 AssertAllLayersExist(gameUiRoot);
 
-                // 既定（全部 Web）では CEF が見え、Web は休止しない
-                // By default (all Web) the CEF picture is visible and the web is not suspended
+                // ゲーム画面（主パネルは Web 所有）では CEF が見え、Web は休止しない
+                // On the game screen (main panel owned by Web) the CEF picture is visible and the web is not suspended
                 Assert.IsTrue(cefRawImage.enabled, "既定で CEF の RawImage が無効になっている");
                 Assert.IsFalse(routingState.Current.Value.WebUiSuspended, $"既定で Web が休止している: {routingState.Current.Value}");
 
-                // ポーズ主パネルを GameUi へ上書きして遷移すると Web が休止する
-                // Overriding the pause main panel to GameUi and transitioning suspends the web
+                // ポーズ主パネルを GameUi として遷移すると Web が休止する（所有表は切替済みで、上書きは表の値と同じ）
+                // Transitioning with the pause main panel as GameUi suspends the web (the table is already flipped; the override matches it)
                 UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.GameUi);
                 try
                 {

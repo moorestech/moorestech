@@ -34,6 +34,24 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _draft = new BugReportDraft();
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
             _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, _draft, Catalog));
+            _view.SetShown(true);
+            simulate.FrameUpdate();
+        }
+
+        [Test]
+        public void 隠している間はモデルの変化を描かず表示すると最新値で描き直す()
+        {
+            _view.SetShown(false);
+            simulate.FrameUpdate();
+            Assert.AreEqual(DisplayStyle.None, _view.resolvedStyle.display);
+            _model.Set(FakePauseMenuModel.Page(PauseMenuPage.Settings));
+            Assert.IsNotNull(_view.Q("pause-menu-save"), "隠している間に設定のページへ描き直した");
+
+            _view.SetShown(true);
+            simulate.FrameUpdate();
+            Assert.AreEqual(DisplayStyle.Flex, _view.resolvedStyle.display);
+            Assert.IsNotNull(_view.Q("language-select"), "表示しても最新のページで描き直さない");
+            Assert.IsNull(_view.Q("pause-menu-save"));
         }
 
         [Test]
