@@ -50,7 +50,7 @@ namespace Client.Tests.BugReport.Bundle
         public async Task WriteAsync経由でprobeの値が箱のmanifestへ渡る()
         {
             var probe = new FixedWebUiHealthProbe(new WebUiHealthReading { HostStartup = WebUiHostStartupState.Failed, CefProcess = CefProcessState.RecoveryFailed, SecondsSinceLastWebMessage = 3.0 });
-            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), probe);
+            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), probe, new TestBugReportOutboxRoot());
             var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new() };
 
             var result = await writer.WriteAsync(data, "webUiHealth配線テスト", PlaytestReportKind.Bug);

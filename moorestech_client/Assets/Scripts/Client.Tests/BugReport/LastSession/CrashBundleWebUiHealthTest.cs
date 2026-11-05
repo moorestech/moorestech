@@ -4,6 +4,7 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.LastSession;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
+using Client.Tests.BugReport.Bundle;
 using NUnit.Framework;
 
 namespace Client.Tests.BugReport
@@ -35,7 +36,7 @@ namespace Client.Tests.BugReport
 
         private static string WriteBundle(PreviousSessionArtifacts artifacts, string description)
         {
-            return CrashBundleWriter.Write(artifacts, description, RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot);
+            return CrashBundleWriter.Write(artifacts, description, RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot, TestBugReportOutboxRoot.Directory);
         }
     }
 }

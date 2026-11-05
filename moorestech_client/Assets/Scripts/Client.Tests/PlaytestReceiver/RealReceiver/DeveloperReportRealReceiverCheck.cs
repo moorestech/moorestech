@@ -5,6 +5,7 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.PlaytestReceiver;
+using Client.PlaytestReceiver.BoxFilePolicies;
 using Client.PlaytestReceiver.Credentials;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Http;
@@ -32,9 +33,9 @@ namespace Client.Tests.PlaytestReceiver
             var route = PlaytestDeliveryRouteResolver.Resolve(false, credential);
             Assert.IsInstanceOf<PlaytestDeveloperTokenRoute>(route);
 
-            // 実outboxへ書き、証拠は取り込み照合用に残す
-            // Write the real outbox and retain evidence for ingestion checks
-            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), FixedWebUiHealthProbe.NotAttempted());
+            // 運搬役が常に読む実outboxではなくテスト用outboxへ書き、証拠は取り込み照合用に残す
+            // Write the test outbox instead of the real one the uploader always reads, and retain evidence for ingestion checks
+            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), FixedWebUiHealthProbe.NotAttempted(), new TestBugReportOutboxRoot());
             var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0 };
             var bundle = await writer.WriteAsync(data, "DeveloperReportRealReceiverCheck " + Application.platform, PlaytestReportKind.Bug);
             Assert.IsTrue(bundle.Ready);
@@ -45,7 +46,8 @@ namespace Client.Tests.PlaytestReceiver
             // Wait for the uploaded marker using real HTTP and the production runner
             PlaytestUploadRunner.ResetOnPlayMode();
             var runner = new PlaytestUploadRunner(new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl),
-                PlaytestOutboxDirectories.FromGameSystemPaths(), new PlaytestSteamTicketProvider());
+                new PlaytestOutboxDirectories(TestBugReportOutboxRoot.Directory, new BugReportBoxFilePolicy(), GameSystemPaths.ProgressRecordOutboxDirectory, new ProgressRecordBoxFilePolicy()),
+                new PlaytestSteamTicketProvider());
             runner.RequestUploadWith(route);
             var marker = Path.Combine(bundle.BundleDirectory, PlaytestOutboxScanner.UploadedMarker);
             var deadline = DateTime.UtcNow.AddMinutes(5);

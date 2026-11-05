@@ -23,7 +23,7 @@ namespace Client.Tests.Ui.State
         public static PauseMenuCommands Create(PauseMenuStateService pauseMenuStateService)
         {
             var session = new BugReportCaptureSession(new NullBugReportCaptureSources());
-            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), FixedWebUiHealthProbe.NotAttempted());
+            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), FixedWebUiHealthProbe.NotAttempted(), new TestBugReportOutboxRoot());
             var submitter = new BugReportSubmitter(writer, session, new RecordingProgressSink(), new RecordingUploadRequester());
             return new PauseMenuCommands(new GameSaveRequester(), null, pauseMenuStateService, submitter, null);
         }

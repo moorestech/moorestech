@@ -34,13 +34,13 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // 退避物は録画とパケットログで数十MBに達する。兄弟のBugReportBundleWriterと同じくスレッドプールへ載せ、action処理スレッドを塞がない
             // The salvage reaches tens of megabytes of footage and packet logs; like its sibling BugReportBundleWriter it runs on the thread pool, never blocking the action thread
-            await UniTask.RunOnThreadPool(() => { bundleDirectory = Write(artifacts, description, repositoryRoot, masterDataRoot); });
+            await UniTask.RunOnThreadPool(() => { bundleDirectory = Write(artifacts, description, repositoryRoot, masterDataRoot, BugReportOutbox.DefaultRootDirectory); });
             return bundleDirectory;
         }
 
         // 書き出しの本体。スレッドプールからの復帰はPlayerLoop頼みで、CIのバッチモードEditModeテストでは戻れないため、同期で呼べる形に切り出す
         // The write itself; returning from the thread pool relies on the PlayerLoop, which CI's batch-mode EditMode tests never pump, so it is callable synchronously
-        internal static string Write(PreviousSessionArtifacts artifacts, string description, string repositoryRoot, string masterDataRoot)
+        internal static string Write(PreviousSessionArtifacts artifacts, string description, string repositoryRoot, string masterDataRoot, string outboxRoot)
         {
             // 出所とSteamIDは落ちたセッション自身が開始時に書き残した値を載せる。今回起動したビルドを付けると別ビルドで再現される（F12）
             // The origin and SteamID come from what the crashed session wrote at its own start; attaching this boot's build would reproduce on a different build (F12)
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             // Creating the box's directory is disk IO; even if a full disk or missing permission fails it, detecting the earlier crash still proceeds
             try
             {
-                directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
+                directory = BugReportOutbox.CreateBundleDirectory(outboxRoot, DateTime.UtcNow, BugReportOutbox.CreateShortId());
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
             {

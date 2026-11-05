@@ -44,16 +44,18 @@ namespace Client.Game.InGame.BugReport
 
         private readonly IPlaytestSessionIdentity _identity;
         private readonly IWebUiHealthProbe _webUiHealth;
+        private readonly IBugReportOutboxRoot _outboxRoot;
 
-        public BugReportBundleWriter(IPlaytestSessionIdentity identity, IWebUiHealthProbe webUiHealth)
+        public BugReportBundleWriter(IPlaytestSessionIdentity identity, IWebUiHealthProbe webUiHealth, IBugReportOutboxRoot outboxRoot)
         {
             _identity = identity;
             _webUiHealth = webUiHealth;
+            _outboxRoot = outboxRoot;
         }
 
         public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description, PlaytestReportKind kind)
         {
-            var directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
+            var directory = BugReportOutbox.CreateBundleDirectory(_outboxRoot.RootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
 
             // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報とリポジトリの場所はここで先に読む
             // Application's path APIs are main-thread only, so the baked build info and repository roots are read here first

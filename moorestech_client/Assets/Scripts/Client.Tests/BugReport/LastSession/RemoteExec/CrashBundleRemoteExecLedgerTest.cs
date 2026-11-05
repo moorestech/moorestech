@@ -9,6 +9,7 @@ using Client.Game.InGame.BugReport.LastSession;
 using Client.RemoteExec.Access;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
+using Client.Tests.BugReport.Bundle;
 using NUnit.Framework;
 
 namespace Client.Tests.BugReport
@@ -106,7 +107,7 @@ namespace Client.Tests.BugReport
                     LastSessionDirectory = lastSession,
                 });
                 bundle = CrashBundleWriter.Write(carried, "複数の遠隔実行", RepositoryStateProbe.RepositoryRoot,
-                    RepositoryStateProbe.MasterDataRoot);
+                    RepositoryStateProbe.MasterDataRoot, TestBugReportOutboxRoot.Directory);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
                 Assert.AreEqual("Enabled", (string)manifest["remoteExec"]["state"]);
                 foreach (var name in names)
@@ -159,7 +160,7 @@ namespace Client.Tests.BugReport
                     null, null, null, new List<string>(), new List<int>(), new Dictionary<int, bool>(),
                     origin, new List<MissingItem>());
                 bundle = CrashBundleWriter.Write(artifacts, "遠隔実行あり", RepositoryStateProbe.RepositoryRoot,
-                    RepositoryStateProbe.MasterDataRoot);
+                    RepositoryStateProbe.MasterDataRoot, TestBugReportOutboxRoot.Directory);
 
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
                 Assert.AreEqual("Unknown", (string)manifest["remoteExec"]["state"]);
