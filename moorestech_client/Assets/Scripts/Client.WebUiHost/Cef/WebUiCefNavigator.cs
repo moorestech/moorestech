@@ -38,14 +38,14 @@ namespace Client.WebUiHost.Cef
                 // Delay one frame so CefUnityBrowserSample.Start (same frame) finishes creating the browser
                 await UniTask.Yield();
 
-                // ブラウザ生成の後でCEFプロセスの生存の記録を始める（D-11）
-                // Start recording the CEF process state once the browser exists (D-11)
-                WebUiHealthRecorder.ObserveCefRuntime();
-
                 // WebUiHost は MainGame シーンロード前（InitializeScenePipeline 序盤）に起動済み。null はホスト起動失敗
                 // WebUiHost boots before the MainGame scene loads (early InitializeScenePipeline); null means host startup failed
                 var url = Boot.WebUiHost.WebUiUrl;
                 if (string.IsNullOrEmpty(url)) return;
+
+                // ホストが起動しブラウザを生成した後でだけ CEF プロセスの観測を始める。起動失敗時は notObserved のまま残す
+                // Start observing the CEF process only after the host started and the browser exists; a failed startup stays notObserved
+                WebUiHealthRecorder.ObserveCefRuntime();
 
                 var browser = GetComponent<CefUnityBrowserSample>();
                 var hub = Boot.WebUiHost.Hub;

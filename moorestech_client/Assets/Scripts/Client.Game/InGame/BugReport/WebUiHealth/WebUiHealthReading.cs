@@ -13,10 +13,12 @@ namespace Client.Game.InGame.BugReport.WebUiHealth
         Unknown,
     }
 
+    // CEF の生死は判定しない。ObservedAfterBrowserStart は「ブラウザ生成後に観測を始め、喪失通知が来ていない」事実だけを表す。生死は secondsSinceLastWebMessage で読む
+    // CEF liveness is not judged; ObservedAfterBrowserStart only states observation began after browser creation with no loss notice since; read liveness from secondsSinceLastWebMessage
     public enum CefProcessState
     {
         NotObserved,
-        Running,
+        ObservedAfterBrowserStart,
         LostRestarting,
         RecoveryFailed,
         Unknown,

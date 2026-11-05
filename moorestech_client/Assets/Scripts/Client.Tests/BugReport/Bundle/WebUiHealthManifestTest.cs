@@ -32,6 +32,18 @@ namespace Client.Tests.BugReport.Bundle
             Assert.AreEqual(16.5, (double)json["webUiHealth"]["secondsSinceLastWebMessage"]);
         }
 
+        // 観測開始は生死を名乗らない綴りで出る（初期化失敗の報告で running と誤報しない）
+        // The observation start uses a spelling that claims no liveness (a failed-init report never reads running)
+        [Test]
+        public void 観測開始はobservedAfterBrowserStartの綴りで出る()
+        {
+            var manifest = new BugReportManifest();
+            manifest.WebUiHealth = new WebUiHealthReading { HostStartup = WebUiHostStartupState.Started, CefProcess = CefProcessState.ObservedAfterBrowserStart };
+
+            var json = JObject.Parse(manifest.ToJson());
+            Assert.AreEqual("observedAfterBrowserStart", (string)json["webUiHealth"]["cefProcess"]);
+        }
+
         // 取れない値は欠損列でなく notAttempted/notObserved/null を名乗る
         // Unavailable values read notAttempted/notObserved/null rather than going to the missing list
         [Test]
