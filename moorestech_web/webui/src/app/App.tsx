@@ -73,7 +73,9 @@ export default function App() {
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
   const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
   const webUiSuspended = useTopicSelector(Topics.uiState, (d) => d?.webUiSuspended === true);
-  const stageRef = useStageScaleSync(uiVisible);
+  // stage が描かれない間の resize を取りこぼさないよう、描画再開で倍率を測り直す
+  // Re-measure the scale when rendering resumes so a resize while the stage was unmounted is not lost
+  const stageRef = useStageScaleSync(uiVisible && !cutScene && !webUiSuspended);
   const researchScreen = screen === "researchTree";
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
