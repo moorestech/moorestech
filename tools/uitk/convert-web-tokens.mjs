@@ -66,12 +66,12 @@ for (const { source, output, tokens } of tokensBySource) {
 const handWrittenControlRows = [
   `| \`--control-scroller-track\` | \`rgba(255, 255, 255, 0.04)\` | \`rgba(255, 255, 255, 0.0008)\` | ${translucencyMethod} |`,
   `| \`--game-panel-title-shadow\` | \`rgba(0, 0, 0, 0.35)\` | \`rgba(0, 0, 0, 0.3735)\` | 面色を背景にした厳密式（S7） |`,
-  `| \`--game-panel-rule-top-start\` | \`rgba(146, 148, 167, 0.42)\` | \`rgba(146, 148, 167, 0.1483)\` | ${translucencyMethod} |`,
-  `| \`--game-panel-rule-top-peak\` | \`rgba(146, 148, 167, 0.59)\` | \`rgba(146, 148, 167, 0.3132)\` | ${translucencyMethod} |`,
-  `| \`--game-panel-rule-top-end\` | \`rgba(146, 148, 167, 0.38)\` | \`rgba(146, 148, 167, 0.119)\` | ${translucencyMethod} |`,
-  `| \`--game-panel-rule-bottom-start\` | \`rgba(128, 132, 159, 0.3)\` | \`rgba(128, 132, 159, 0.0707)\` | ${translucencyMethod} |`,
-  `| \`--game-panel-rule-bottom-peak\` | \`rgba(128, 132, 159, 0.42)\` | \`rgba(128, 132, 159, 0.1483)\` | ${translucencyMethod} |`,
-  `| \`--game-panel-rule-bottom-end\` | \`rgba(128, 132, 159, 0.26)\` | \`rgba(128, 132, 159, 0.0516)\` | ${translucencyMethod} |`,
+  `| \`--game-panel-rule-top-start\` | \`rgba(146, 148, 167, 0.42)\` | \`rgba(146, 148, 167, 0.1961)\` | 面色を背景にした厳密式（S7） |`,
+  `| \`--game-panel-rule-top-peak\` | \`rgba(146, 148, 167, 0.59)\` | \`rgba(146, 148, 167, 0.3602)\` | 面色を背景にした厳密式（S7） |`,
+  `| \`--game-panel-rule-top-end\` | \`rgba(146, 148, 167, 0.38)\` | \`rgba(146, 148, 167, 0.1653)\` | 面色を背景にした厳密式（S7） |`,
+  `| \`--game-panel-rule-bottom-start\` | \`rgba(128, 132, 159, 0.3)\` | \`rgba(128, 132, 159, 0.1178)\` | 面色を背景にした厳密式（S7） |`,
+  `| \`--game-panel-rule-bottom-peak\` | \`rgba(128, 132, 159, 0.42)\` | \`rgba(128, 132, 159, 0.2034)\` | 面色を背景にした厳密式（S7） |`,
+  `| \`--game-panel-rule-bottom-end\` | \`rgba(128, 132, 159, 0.26)\` | \`rgba(128, 132, 159, 0.0946)\` | 面色を背景にした厳密式（S7） |`,
   `| \`--game-panel-triangle-face\` | \`rgba(94, 100, 128, 0.2)\` | \`rgba(94, 100, 128, 0.0764)\` | 面色を背景にした厳密式（S7） |`,
 ];
 

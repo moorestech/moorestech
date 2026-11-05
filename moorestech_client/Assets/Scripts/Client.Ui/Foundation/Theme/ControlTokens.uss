@@ -18,11 +18,11 @@
     /* GamePanel（default）の文字・罫線・下部の三角。Web の GamePanel/style.module.css が直書きする色 */
     --game-panel-text: #e8eaf0;
     --game-panel-title-shadow: rgba(0, 0, 0, 0.3735); /* web: rgba(0, 0, 0, 0.35) 面色(10,14,27)を背景にした厳密式 */
-    --game-panel-rule-top-start: rgba(146, 148, 167, 0.1483); /* web: rgba(146, 148, 167, 0.42) α補正 */
-    --game-panel-rule-top-peak: rgba(146, 148, 167, 0.3132); /* web: rgba(146, 148, 167, 0.59) α補正 */
-    --game-panel-rule-top-end: rgba(146, 148, 167, 0.119); /* web: rgba(146, 148, 167, 0.38) α補正 */
-    --game-panel-rule-bottom-start: rgba(128, 132, 159, 0.0707); /* web: rgba(128, 132, 159, 0.3) α補正 */
-    --game-panel-rule-bottom-peak: rgba(128, 132, 159, 0.1483); /* web: rgba(128, 132, 159, 0.42) α補正 */
-    --game-panel-rule-bottom-end: rgba(128, 132, 159, 0.0516); /* web: rgba(128, 132, 159, 0.26) α補正 */
+    --game-panel-rule-top-start: rgba(146, 148, 167, 0.1961); /* web: rgba(146, 148, 167, 0.42) 面色を背景にした厳密式（S7） */
+    --game-panel-rule-top-peak: rgba(146, 148, 167, 0.3602); /* web: rgba(146, 148, 167, 0.59) 面色を背景にした厳密式（S7） */
+    --game-panel-rule-top-end: rgba(146, 148, 167, 0.1653); /* web: rgba(146, 148, 167, 0.38) 面色を背景にした厳密式（S7） */
+    --game-panel-rule-bottom-start: rgba(128, 132, 159, 0.1178); /* web: rgba(128, 132, 159, 0.3) 面色を背景にした厳密式（S7） */
+    --game-panel-rule-bottom-peak: rgba(128, 132, 159, 0.2034); /* web: rgba(128, 132, 159, 0.42) 面色を背景にした厳密式（S7） */
+    --game-panel-rule-bottom-end: rgba(128, 132, 159, 0.0946); /* web: rgba(128, 132, 159, 0.26) 面色を背景にした厳密式（S7） */
     --game-panel-triangle-face: rgba(94, 100, 128, 0.0764); /* web: rgba(94, 100, 128, 0.2) 面色(10,14,27)を背景にした厳密式 */
 }
