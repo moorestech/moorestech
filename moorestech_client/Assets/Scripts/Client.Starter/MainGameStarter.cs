@@ -28,6 +28,7 @@ using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Starter.Registration;
+using Client.Ui.Foundation.Root;
 using CommandForgeGenerator.Command;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -62,6 +63,7 @@ namespace Client.Starter
         
         [SerializeField] private UIStateControl uIStateControl;
         [SerializeField] private UIRoot uiRoot;
+        [SerializeField] private GameUiRoot gameUiRoot;
 
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private VeinPin veinPin;
@@ -106,6 +108,7 @@ namespace Client.Starter
             MainGameModelRegistration.Register(builder, initialHandshakeResponse, saveGenerationWaiter, collectsPlaytestRecords);
             MainGameInteractionRegistration.Register(builder, initialHandshakeResponse);
             MainGameUiStateRegistration.Register(builder);
+            MainGameUiRegistration.Register(builder, gameUiRoot);
 
             
             //Hierarchy上にあるcomponent

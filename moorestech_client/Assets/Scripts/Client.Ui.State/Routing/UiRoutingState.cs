@@ -36,9 +36,7 @@ namespace Client.Ui.State.Routing
             Refresh();
         }
 
-        // Editor 上書きを変えたあとにも即時反映できるよう公開する
-        // Public so an Editor override change can be applied immediately
-        public void Refresh()
+        private void Refresh()
         {
             _current.Value = Resolve();
         }

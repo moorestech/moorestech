@@ -42,7 +42,8 @@
         "Game.PlayerIdentity",
         "Client.RemoteExec",
         "Client.Input",
-        "Client.Ui.State"
+        "Client.Ui.State",
+        "Client.Ui"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

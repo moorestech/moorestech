@@ -1,0 +1,19 @@
+{
+    "name": "Client.Ui",
+    "rootNamespace": "",
+    "references": [
+        "Client.Input",
+        "Client.Ui.State",
+        "UniRx",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -79,6 +79,7 @@
         "Client.PlaytestReceiver",
         "Client.RemoteExec",
         "Client.Ui.State",
+        "Client.Ui",
         "Game.Orbit",
         "Game.SpaceElevator"
     ],
