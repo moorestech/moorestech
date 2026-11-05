@@ -115,11 +115,14 @@ namespace Client.Playtest
             await GiveConstructionCost(blockName, blockCount);
         }
         public async UniTask PressKey(Key key) => await _reporter.Act($"キー入力: {key}", () => SemanticInput.TapKey(key));
-        public async UniTask ClickWebUi(string testid) => await _reporter.Act($"Web UIクリック: {testid}", () => PlaytestWebUiOps.ClickWebUi(testid));
-        public async UniTask HoverWebUi(string testid) => await _reporter.Act($"Web UIホバー: {testid}", () => PlaytestWebUiOps.HoverWebUi(testid));
-        public async UniTask UntilWebUiElement(string testid, float timeoutSeconds) => await PlaytestRecordedWaits.UntilWebUiElement(_reporter, testid, timeoutSeconds);
-        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickWebUi(PlaytestWebUiOps.BuildMenuBlockTestId(blockName));
-        public async UniTask CloseWebUiPanel() => await ClickWebUi("build-menu-close");
+        public async UniTask ClickUi(string testid) => await _reporter.Act($"UIクリック: {testid}", () => PlaytestUiElementOps.ClickUi(testid));
+        public async UniTask HoverUi(string testid) => await _reporter.Act($"UIホバー: {testid}", () => PlaytestUiElementOps.HoverUi(testid));
+        public async UniTask UntilUiElement(string testid, float timeoutSeconds) => await PlaytestRecordedWaits.UntilUiElement(_reporter, testid, timeoutSeconds);
+        // テキスト欄の値を置き換える（IMEは通さない）
+        // Replace a text field's value (bypassing IME)
+        public async UniTask SetText(string testid, string text) => await _reporter.Act($"UI文字入力: {testid}", () => PlaytestUiElementOps.SetText(testid, text));
+        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(PlaytestBuildMenuOps.BuildMenuBlockTestId(blockName));
+        public async UniTask CloseBuildMenuPanel() => await ClickUi("build-menu-close");
         public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await PlaytestRecordedWaits.WaitUiState(_reporter, state, timeoutSeconds);
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestBuildMenuOps.OpenBuildMenuAndSelectBlock(blockName));
         // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提

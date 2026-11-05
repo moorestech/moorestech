@@ -102,19 +102,19 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     var localInventory = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
     await p.Until(() => FindMainSlot(localInventory, filterItemId) >= 0, 10f, "フィルターがクライアントのインベントリに届いた");
     await OpenBlockUi(new Vector3(1.5f, 33.5f, 3.5f), new Vector3(1.5f, 34f, 5.5f));
-    await p.UntilWebUiElement("clean-room-filter-grid-slot-0", 10f);
-    await p.ClickWebUi($"main-slot-{FindMainSlot(localInventory, filterItemId)}");
-    await p.ClickWebUi("clean-room-filter-grid-slot-0");
+    await p.UntilUiElement("clean-room-filter-grid-slot-0", 10f);
+    await p.ClickUi($"main-slot-{FindMainSlot(localInventory, filterItemId)}");
+    await p.ClickUi("clean-room-filter-grid-slot-0");
     Core.Inventory.IOpenableInventory filterInventory = filterBlock.GetComponent<IOpenableBlockInventoryComponent>();
     await p.Until(() => filterInventory.GetItem(0).Id == filterItemId && filterInventory.GetItem(0).Count == 5, 10f, "フィルター5個がスロットに入った");
-    await p.UntilWebUiElement("clean-room-section", 10f);
+    await p.UntilUiElement("clean-room-section", 10f);
     await p.Screenshot("03-filter-loaded");
     await CloseBlockUi();
     #endregion
     #region EUV の部屋欄 / Room section of the EUV
     await OpenBlockUi(new Vector3(4.5f, 33.5f, 2f), new Vector3(4.5f, 34f, 4.5f));
-    await p.UntilWebUiElement("clean-room-section", 10f);
-    await p.UntilWebUiElement("clean-room-headline", 10f);
+    await p.UntilUiElement("clean-room-section", 10f);
+    await p.UntilUiElement("clean-room-headline", 10f);
     await p.Screenshot("04-euv-room-section");
     await CloseBlockUi();
     #endregion

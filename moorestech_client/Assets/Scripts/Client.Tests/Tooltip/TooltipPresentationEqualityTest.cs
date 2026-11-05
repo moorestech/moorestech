@@ -1,4 +1,5 @@
 using Client.Game.InGame.UI.Tooltip;
+using Client.Localization;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UniRx;
@@ -9,7 +10,7 @@ namespace Client.Tests.Tooltip
     {
         private static TooltipPresentation RequiredItems(string itemName)
         {
-            return new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { itemName }) });
+            return new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { new LocalizationTextParam("items", itemName) }) });
         }
 
         [Test]
@@ -27,10 +28,24 @@ namespace Client.Tests.Tooltip
         {
             var baseline = RequiredItems("Iron Pickaxe");
 
-            Assert.AreNotEqual(baseline, new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet, new[] { "Iron Pickaxe" }) }));
+            Assert.AreNotEqual(baseline, new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet, new[] { new LocalizationTextParam("items", "Iron Pickaxe") }) }));
             Assert.AreNotEqual(baseline, RequiredItems("Stone Pickaxe"));
             Assert.AreNotEqual(baseline, TooltipPresentation.Hidden);
             Assert.AreNotEqual(baseline, new TooltipPresentation(new[] { baseline.Lines[0], new TooltipLine(LocalizationKeys.Ui.Tooltip.HoldToGet) }));
+        }
+
+        [Test]
+        public void DifferentParamNamePublishesAgain()
+        {
+            var first = RequiredItems("Iron Pickaxe");
+            var renamed = new TooltipPresentation(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.RequiredItems,
+                new[] { new LocalizationTextParam("wrongName", "Iron Pickaxe") }) });
+            Assert.AreNotEqual(first, renamed);
+            using var presentation = new ReactiveProperty<TooltipPresentation>(first);
+            var publishCount = 0;
+            using var subscription = presentation.Subscribe(_ => publishCount++);
+            presentation.Value = renamed;
+            Assert.AreEqual(2, publishCount);
         }
 
         // 表示状態は独立したフラグではなく行から導出されるため、行が無い＝非表示になる

@@ -115,7 +115,7 @@ describe("RocketLaunchPadInventory through the real panel", () => {
     }
     vi.stubGlobal("WebSocket", SocketStub);
     vi.stubGlobal("window", globalThis);
-    vi.stubGlobal("location", { protocol: "http:", host: "example.test" });
+    vi.stubGlobal("location", { protocol: "http:", host: "example.test", hash: "" });
     actual.setToastSink(notify);
     actual.initBridge();
     mock.dispatch.mockImplementation(actual.dispatchAction);

@@ -1,0 +1,35 @@
+name: UITK Web Follow Gate
+on:
+  # 台帳（.md）だけの PR でも走らせるため paths-ignore を付けない
+  # No paths-ignore, so PRs touching only the ledger (.md) still run the gate
+  pull_request: {}
+
+# PR更新時に同一PRの古い実行をキャンセルする
+# Cancel outdated runs of the same PR on update
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # UITK 移行の追従ゲート G1。暗転中の束に入った Web 変更の記帳と、切替済みの束の Web 変更を検査する
+  # UITK migration follow gate G1: checks records for Web changes in dark bundles and rejects changes to switched bundles
+  uitk-web-follow-gate:
+    name: UITK Web follow gate (G1)
+    runs-on: ubuntu-latest
+    steps:
+      # 既定の PR マージ参照を全履歴で取る。台帳より前に分岐した PR でも base 側の台帳で検査できる
+      # Check out the default PR merge ref with full history, so PRs branched before the ledger still read it from base
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Test the gate itself
+        run: python3 -m unittest discover -s .github/scripts/tests -p 'test_uitk_web_follow_*.py' -v
+
+      - name: Run G1 against this pull request
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 .github/scripts/check-uitk-web-follow.py --base "$BASE_SHA" --head HEAD

@@ -20,9 +20,9 @@ namespace Client.Tests.WebUi.Settings
             SettingsActions.Register(hub);
             using var topic = new GraphicsQualityTopic(hub);
             hub.RegisterTopic(GraphicsQualityTopic.TopicName, topic);
-            var connection = new WebSocketConnection(null);
+            var connection = new WebSocketConnection(null, Guid.NewGuid());
             connection.Topics.TryAdd(GraphicsQualityTopic.TopicName, 0);
-            ((ConcurrentDictionary<Guid, WebSocketConnection>)GetField(hub, "_connections")).TryAdd(Guid.NewGuid(), connection);
+            ((ConcurrentDictionary<Guid, WebSocketConnection>)GetField(hub, "_connections")).TryAdd(connection.Id, connection);
             var channel = GetField(connection, "_sendChannel");
             var reader = channel.GetType().GetProperty("Reader").GetValue(channel);
             var tryRead = reader.GetType().GetMethod("TryRead", BindingFlags.Instance | BindingFlags.Public);
@@ -70,11 +70,11 @@ namespace Client.Tests.WebUi.Settings
             snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
             Assert.IsTrue(snapshot["recoveredInvalidPreference"].Value<bool>());
             Assert.AreEqual("medium", snapshot["preset"].Value<string>());
-            var connection = new WebSocketConnection(null);
+            var connection = new WebSocketConnection(null, Guid.NewGuid());
             try
             {
                 connection.Topics.TryAdd(GraphicsQualityTopic.TopicName, 0);
-                ((ConcurrentDictionary<Guid, WebSocketConnection>)GetField(hub, "_connections")).TryAdd(Guid.NewGuid(), connection);
+                ((ConcurrentDictionary<Guid, WebSocketConnection>)GetField(hub, "_connections")).TryAdd(connection.Id, connection);
                 var channel = GetField(connection, "_sendChannel");
                 var reader = channel.GetType().GetProperty("Reader").GetValue(channel);
                 var tryRead = reader.GetType().GetMethod("TryRead", BindingFlags.Instance | BindingFlags.Public);

@@ -93,10 +93,10 @@ return PlaytestRunner.Run("tier9-7-antimatter-final-research", new PlaytestRunOp
     await p.Until(() => p.CountItem(bombName) == bombCost, 10f, $"{bombName} x{bombCost} を持った");
     await p.PressKey(Key.R);
     await p.WaitUiState(UIStateEnum.ResearchTree, 10f);
-    await p.ClickWebUi($"research-node-{finalResearchGuid}");
-    await p.UntilWebUiElement($"research-button-{finalResearchGuid}", 10f);
+    await p.ClickUi($"research-node-{finalResearchGuid}");
+    await p.UntilUiElement($"research-button-{finalResearchGuid}", 10f);
     await p.Screenshot("03-final-research-detail");
-    await p.ClickWebUi($"research-button-{finalResearchGuid}");
+    await p.ClickUi($"research-button-{finalResearchGuid}");
     await p.WaitForResearch(new[] { finalResearchGuid }, Array.Empty<Guid>(), 10f, "UI から最終研究を完了した");
     await p.Until(() => p.CountItem(bombName) == 0, 10f, $"{bombName} {bombCost} 個が消費された");
     await p.Screenshot("04-final-research-complete");
@@ -179,9 +179,9 @@ return PlaytestRunner.Run("tier9-7-antimatter-final-research", new PlaytestRunOp
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilWebUiElement("block-inventory-close", 10f);
+        await p.UntilUiElement("block-inventory-close", 10f);
         await p.Screenshot(screenshotName);
-        await p.ClickWebUi("block-inventory-close");
+        await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 

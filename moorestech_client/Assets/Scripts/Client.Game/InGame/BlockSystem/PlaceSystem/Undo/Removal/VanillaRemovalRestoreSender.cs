@@ -41,7 +41,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo.Removal
         // Push the client-side skipped count onto the same display surface as server notifications
         public void NotifyRestoreSkipped(int skippedCount)
         {
-            ClientDIContext.ClientLocalNotificationSource.Notify(NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new[] { skippedCount.ToString() }));
+            ClientDIContext.ClientLocalNotificationSource.Notify(NotificationMessagePack.CreateOperationDenied("denied.undoRestoreSkipped", new Dictionary<string, string> { ["count"] = skippedCount.ToString() }));
         }
     }
 }

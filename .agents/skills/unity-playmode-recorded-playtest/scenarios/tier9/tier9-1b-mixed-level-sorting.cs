@@ -9,7 +9,7 @@ using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Playtest.Operations.Ui;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Core.Inventory;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -71,11 +71,11 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     await p.WaitSeconds(0.5f);
     await InsertIntoSplitter("シリコンダイLv2");
     await OpenMachine(packagingA);
-    await PlaytestWebUiOps.WaitWebUiTextContains("machine-input-stall", "シリコンダイLv2", 10f);
-    var stall = await PlaytestDomQuery.Query("machine-input-stall", 3f);
-    p.Assert(stall.Found && stall.Text.Contains("レベルの違う品") && stall.Text.Contains("シリコンダイLv2"), $"A に混在レベルで止まった理由が出た: {stall.Text}");
+    await PlaytestUiElementOps.WaitUiTextContains("machine-input-stall", "シリコンダイLv2", 10f);
+    var stall = await PlaytestUiElementOps.FindUi("machine-input-stall");
+    p.Assert(stall.IsFound && stall.Text.Contains("レベルの違う品") && stall.Text.Contains("シリコンダイLv2"), $"A に混在レベルで止まった理由が出た: {stall.Text}");
     await p.Screenshot("04-mixed-level-stall");
-    await p.ClickWebUi("block-inventory-close");
+    await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     // 止まっていた Lv2 はベルトごと撤去し、B への搬入路を足して、分岐器の -x 側（A）は Lv1 だけ、+x 側（B）は Lv2 だけを通す
     // Remove the stuck Lv2 with its belt, add the path to B, and let the splitter's -x (A) pass only Lv1 and +x (B) only Lv2
@@ -96,7 +96,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
     await OpenMachine(packagingA);
     p.Assert(await StallCleared(), "仕分けた後は A の止まった理由が消えた");
     await p.Screenshot("05-sorted-both-flowing");
-    await p.ClickWebUi("block-inventory-close");
+    await p.ClickUi("block-inventory-close");
     p.Note("段1b 完了");
     #region Internal
     IEnumerable<Guid> WithPrerequisites(IEnumerable<Guid> targets)
@@ -154,7 +154,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilWebUiElement("block-inventory-close", 10f);
+        await p.UntilUiElement("block-inventory-close", 10f);
     }
     async UniTask<bool> StallCleared()
     {
@@ -162,7 +162,7 @@ return PlaytestRunner.Run("tier9-1b-mixed-level-sorting", new PlaytestRunOptions
         // The display refreshes within a second, so wait up to 3 seconds for the row to go away
         var deadline = Time.realtimeSinceStartup + 3f;
         while (Time.realtimeSinceStartup < deadline)
-            if (!(await PlaytestDomQuery.Query("machine-input-stall", 1f)).Found) return true; else await UniTask.Delay(200);
+            if (!(await PlaytestUiElementOps.FindUi("machine-input-stall")).IsFound) return true; else await UniTask.Delay(200);
         return false;
     }
     async UniTask BuildRoom()

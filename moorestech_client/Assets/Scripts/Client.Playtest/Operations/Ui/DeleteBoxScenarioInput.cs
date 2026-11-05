@@ -1,3 +1,4 @@
+using Client.Localization;
 using System.Linq;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
@@ -80,7 +81,7 @@ namespace Client.Playtest.Operations.Ui
 
         public static string TooltipText()
         {
-            return string.Join("|", Tooltip().GetPresentation().Lines.Select(line => line.Key.Key + ":" + string.Join(",", line.TextParams ?? System.Array.Empty<string>())));
+            return string.Join("|", Tooltip().GetPresentation().Lines.Select(line => line.Key.Key + ":" + string.Join(",", (line.TextParams ?? System.Array.Empty<LocalizationTextParam>()).Select(param => $"{param.Name}={param.Value}"))));
         }
 
         // 必須件数の欠落や破損は録画失敗として表面化させる
@@ -88,8 +89,14 @@ namespace Client.Playtest.Operations.Ui
         public static int ReadRequiredTooltipCount(LocalizationKey key)
         {
             var line = Tooltip().GetPresentation().Lines.FirstOrDefault(item => item.Key.Key == key.Key);
-            if (line.TextParams != null && 0 < line.TextParams.Count && int.TryParse(line.TextParams[0], out var count)) return count;
-            var actual = line.TextParams == null ? "<missing>" : string.Join(",", line.TextParams);
+            if (line.TextParams != null)
+            {
+                foreach (var param in line.TextParams)
+                {
+                    if (param.Name == "count" && int.TryParse(param.Value, out var count)) return count;
+                }
+            }
+            var actual = line.TextParams == null ? "<missing>" : string.Join(",", line.TextParams.Select(param => $"{param.Name}={param.Value}"));
             throw new System.InvalidOperationException($"Required tooltip count {key.Key} is invalid: {actual}");
         }
 

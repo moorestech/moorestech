@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
@@ -80,7 +81,7 @@ namespace Server.Protocol.PacketResponse.Rail
             void NotifyDenied(RailConnectionEditFailureReason reason)
             {
                 Debug.LogWarning($"[RailConnectByDestination] connection denied: {reason}");
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.railEdit.{reason}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.railEdit.{reason}", new Dictionary<string, string>()));
             }
 
             #endregion

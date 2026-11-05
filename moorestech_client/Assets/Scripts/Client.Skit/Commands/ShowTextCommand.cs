@@ -8,11 +8,7 @@ namespace CommandForgeGenerator.Command
     {
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
-            var mode = storyContext.GetService<SkitPresentationMode>();
-            if (mode.WebUiEnabled)
-                SkitPresentationStateStore.Instance.SetTextAreaVisible(Enable);
-            else
-                storyContext.GetSkitUI().ShowTextArea(Enable);
+            SkitPresentationStateStore.Instance.SetTextAreaVisible(Enable);
             return null;
         }
     }

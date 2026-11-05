@@ -78,6 +78,7 @@ namespace Client.Tests.Player
         private PlayerObjectController CreateStartedPlayerObjectController(out ThirdPersonController thirdPersonController)
         {
             var playerRoot = new GameObject("PlayerRideFollowTestPlayer");
+            playerRoot.SetActive(false);
             _createdObjects.Add(playerRoot);
             playerRoot.AddComponent<CharacterController>();
             _createdInputs.Add(StarterAssetsInputTestLifecycle.AddInitializedInputs(playerRoot));
@@ -85,6 +86,8 @@ namespace Client.Tests.Player
 
             var playerObjectController = playerRoot.AddComponent<PlayerObjectController>();
             SetField(playerObjectController, "controller", thirdPersonController);
+            playerRoot.SetActive(true);
+            TestReflection.InvokePrivate(playerObjectController, "Awake");
 
             // 乗車追従はStartPlayerRuntime後のLateUpdateで動くため、実行開始まで進めておく
             // Riding follow runs in LateUpdate after StartPlayerRuntime, so advance the player to the started state
