@@ -25,7 +25,7 @@
   失敗時に留まって入力を残す扱いは agent前提（現状の `BugReportForm` が失敗時に入力を消さない挙動を引き継ぐ）。
   棄却案: バグ報告画面に留まる／ポーズごと閉じてゲームへ戻る
 
-- **送信成功後にトップへ戻すのは C# の `BugReportSubmitActionHandler` が行う。** 今ポーズを閉じている箇所を、`PauseMenuStateService` へのトップ遷移要求に置き換える。
+- **送信成功後にトップへ戻すのは C# の型付きコマンド `PauseMenuCommands.SubmitBugReport` が行う（Web の `BugReportSubmitActionHandler` は JSON を解いてこれを呼ぶだけ）。** 今ポーズを閉じている箇所を、`PauseMenuStateService` へのトップ遷移要求に置き換える。
   出所: agent前提（今どの画面にいるかの持ち主が C# なので、遷移も C# 側の同じ箇所で起こす）
 
 - **設定画面の中身は、今回は言語選択の移設だけにする。** 新しい設定項目は別タスクで足す。

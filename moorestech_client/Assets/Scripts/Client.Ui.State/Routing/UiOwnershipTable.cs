@@ -19,10 +19,10 @@ namespace Client.Ui.State.Routing
             (UiScreen.ResearchTree, UiSurface.MainPanel, UiSurfaceOwner.Web),
             (UiScreen.BuildMenu, UiSurface.MainPanel, UiSurfaceOwner.Web),
             (UiScreen.ChallengeList, UiSurface.MainPanel, UiSurfaceOwner.Web),
-            (UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.Web),
+            (UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.GameUi),
             (UiScreen.TrainHud, UiSurface.MainPanel, UiSurfaceOwner.Web),
-            (UiScreen.TrainPause, UiSurface.MainPanel, UiSurfaceOwner.Web),
-            (UiScreen.SkitPause, UiSurface.MainPanel, UiSurfaceOwner.Web),
+            (UiScreen.TrainPause, UiSurface.MainPanel, UiSurfaceOwner.GameUi),
+            (UiScreen.SkitPause, UiSurface.MainPanel, UiSurfaceOwner.GameUi),
         };
 
         private readonly Dictionary<(UiScreen, UiSurface), UiSurfaceOwner> _owners = new();

@@ -1,6 +1,5 @@
-using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.WebUiHost.Game.Topics;
+using Client.Ui.State.PauseMenu;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -9,48 +8,48 @@ namespace Client.WebUiHost.Game.Actions
 {
     public class PauseMenuSaveActionHandler : IActionHandler
     {
-        private readonly GameSaveRequester _saveRequester;
+        private readonly IPauseMenuCommands _commands;
         public string ActionType => "pause_menu.save";
 
-        public PauseMenuSaveActionHandler(GameSaveRequester saveRequester)
+        public PauseMenuSaveActionHandler(IPauseMenuCommands commands)
         {
-            _saveRequester = saveRequester;
+            _commands = commands;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            _saveRequester.Save();
+            _commands.Save();
             return UniTask.FromResult(ActionResult.Success());
         }
     }
 
     public class PauseMenuSaveAndQuitActionHandler : IActionHandler
     {
-        private readonly SaveAndQuitPresenter _saveAndQuitPresenter;
+        private readonly IPauseMenuCommands _commands;
         public string ActionType => "pause_menu.save_and_quit";
 
-        public PauseMenuSaveAndQuitActionHandler(SaveAndQuitPresenter saveAndQuitPresenter)
+        public PauseMenuSaveAndQuitActionHandler(IPauseMenuCommands commands)
         {
-            _saveAndQuitPresenter = saveAndQuitPresenter;
+            _commands = commands;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            _saveAndQuitPresenter.SaveAndQuit();
+            _commands.SaveAndQuit();
             return UniTask.FromResult(ActionResult.Success());
         }
     }
 
-    // Web発の画面遷移要求。持ち主はStateService
-    // Page-move requests from Web; owned by StateService
+    // Web発の画面遷移要求。画面名を解いて型付きコマンドへ渡す
+    // Page-move requests from Web; parses the page name and hands it to the typed command
     public class PauseMenuShowPageActionHandler : IActionHandler
     {
-        private readonly PauseMenuStateService _pauseMenuStateService;
+        private readonly IPauseMenuCommands _commands;
         public string ActionType => "pause_menu.show_page";
 
-        public PauseMenuShowPageActionHandler(PauseMenuStateService pauseMenuStateService)
+        public PauseMenuShowPageActionHandler(IPauseMenuCommands commands)
         {
-            _pauseMenuStateService = pauseMenuStateService;
+            _commands = commands;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -64,7 +63,7 @@ namespace Client.WebUiHost.Game.Actions
                 return UniTask.FromResult(ActionResult.Fail("invalid_page"));
             }
 
-            _pauseMenuStateService.ShowPage(page);
+            _commands.ShowPage(page);
             return UniTask.FromResult(ActionResult.Success());
         }
     }

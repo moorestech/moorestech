@@ -8,7 +8,7 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | トークン | Web の値 | UITK の値 | 決め方 |
 | --- | --- | --- | --- |
 | `--screen-vignette-edge` | `rgba(4, 5, 8, 0.16)` | `rgba(4, 5, 8, 0.3186)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--surface-navy` | `rgba(10, 14, 27, 0.8)` | `rgba(10, 14, 27, 0.971)` | α 近似補正（S7）。部品の段で実機で決める |
+| `--surface-navy` | `rgba(10, 14, 27, 0.8)` | `rgba(10, 14, 27, 0.971)` | 実機で据え置き（ポーズの GamePanel を PlayMode で撮影）。暗い背景で背景の透けは実効 α 0.95〜0.99 と Web の 0.8 より濃いが、題・ボタンの文字は読める。明るい地表で Web に合うのは約 0.944 だが、ゲージ・通知・ワールドピンと共有の面なので変えない |
 | `--craft-grip-face` | `rgba(134, 136, 152, 0.98)` | `rgba(134, 136, 152, 0.9565)` | α 近似補正（S7）。部品の段で実機で決める |
 | `--tooltip-face` | `rgba(16, 20, 28, 0.94)` | `rgba(16, 20, 28, 0.9979)` | α 近似補正（S7）。部品の段で実機で決める |
 | `--tooltip-border-color` | `rgba(255, 255, 255, 0.22)` | `rgba(255, 255, 255, 0.0358)` | α 近似補正（S7）。部品の段で実機で決める |
@@ -26,3 +26,7 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--game-panel-rule-bottom-peak` | `rgba(128, 132, 159, 0.42)` | `rgba(128, 132, 159, 0.2034)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-rule-bottom-end` | `rgba(128, 132, 159, 0.26)` | `rgba(128, 132, 159, 0.0946)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-triangle-face` | `rgba(94, 100, 128, 0.2)` | `rgba(94, 100, 128, 0.0764)` | 面色を背景にした厳密式（S7） |
+| `--panel-action-hover-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 22%)` = `rgba(35, 38, 51, 0.844)` | `rgba(35, 38, 51, 0.9832)` | 実機で据え置き（ポーズの撮影でホバー中のボタンの面が地の面と見分けられる） |
+| `--mode-switch-selected-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 30%)` = `rgba(43, 46, 59, 0.86)` | `rgba(43, 46, 59, 0.9868)` | α 近似補正（S7）。部品の段で実機で決める |
+| `--panel-action-text-outline` | `rgb(0 0 0 / 70%)` | `rgba(0, 0, 0, 0.9293)` | α 近似補正（S7）。部品の段で実機で決める |
+| `--pause-menu-face` | `rgb(16 20 28 / 92%)` | `rgba(16, 20, 28, 0.9961)` | α 近似補正（S7）。ポーズの撮影（https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png ）で枠の面 (16,20,28) とボタンの面（`--gauge-track`）(10,15,27) が見分けられることを確かめた |

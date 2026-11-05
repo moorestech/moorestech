@@ -416,11 +416,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Ui::Client.Ui.Foundation.Root.GameUiRoot
   uiDocument: {fileID: 8053441505789674925}
-  tokenStyleSheets:
-  - {fileID: 7433441132597879392, guid: 71f84e81dbfbf45b2957aa3db3d85e36, type: 3}
-  - {fileID: 7433441132597879392, guid: f95e51b2b9e784c20a731ec28ef5e40e, type: 3}
-  - {fileID: 7433441132597879392, guid: 1e2678d30feab48969e733526d214365, type: 3}
   cefRawImage: {fileID: 4882653979629314944}
+  assetCatalog: {fileID: 11400000, guid: 7d8a585d341944a99aae81372e337fe8, type: 2}
 --- !u!1 &4525024820086105462
 GameObject:
   m_ObjectHideFlags: 0

@@ -25,4 +25,16 @@
     --game-panel-rule-bottom-peak: rgba(128, 132, 159, 0.2034); /* web: rgba(128, 132, 159, 0.42) 面色を背景にした厳密式（S7） */
     --game-panel-rule-bottom-end: rgba(128, 132, 159, 0.0946); /* web: rgba(128, 132, 159, 0.26) 面色を背景にした厳密式（S7） */
     --game-panel-triangle-face: rgba(94, 100, 128, 0.0764); /* web: rgba(94, 100, 128, 0.2) 面色(10,14,27)を背景にした厳密式 */
+
+    /* PanelActionButton・ModeSwitch の Web の color-mix(in srgb, var(--gauge-track), var(--bevel-c2) N%) を前計算した面と、PanelActionButton の文字の縁 */
+    --panel-action-hover-face: rgba(35, 38, 51, 0.9832); /* web: color-mix 22% = rgba(35, 38, 51, 0.844) α補正 */
+    --mode-switch-selected-face: rgba(43, 46, 59, 0.9868); /* web: color-mix 30% = rgba(43, 46, 59, 0.86) α補正 */
+    --panel-action-text-outline: rgba(0, 0, 0, 0.9293); /* web: rgb(0 0 0 / 70%) α補正 */
+
+    /* ポーズの枠の面。Web の pauseMenu/style.module.css の .panel が直書きする色（ボタンの面 --gauge-track より明るい灰紺） */
+    --pause-menu-face: rgba(16, 20, 28, 0.9961); /* web: rgb(16 20 28 / 92%) α補正 */
+
+    /* トーストの左帯。Web は Mantine Notification の color="blue" / "red"（filled = blue-6 / red-6） */
+    --color-accent: #228be6;
+    --color-danger: #fa5252;
 }

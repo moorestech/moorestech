@@ -61,8 +61,8 @@ for (const { source, output, tokens } of tokensBySource) {
   lines.push("}");
   writeOutput(output, lines);
 }
-// ControlTokens.uss は手書きで変換器を通らないため、半透明の行をここで足す（Web の値は PoC と GamePanel/style.module.css のもの）
-// ControlTokens.uss is hand-written and bypasses the converter, so its translucent rows are added here (Web values from the PoC and GamePanel/style.module.css)
+// ControlTokens.uss は手書きで変換器を通らないため、半透明の行をここで足す（Web の値は PoC・GamePanel/style.module.css・pauseMenu/style.module.css のもの）
+// ControlTokens.uss is hand-written and bypasses the converter, so its translucent rows are added here (Web values from the PoC, GamePanel/style.module.css and pauseMenu/style.module.css)
 const handWrittenControlRows = [
   `| \`--control-scroller-track\` | \`rgba(255, 255, 255, 0.04)\` | \`rgba(255, 255, 255, 0.0008)\` | ${translucencyMethod} |`,
   `| \`--game-panel-title-shadow\` | \`rgba(0, 0, 0, 0.35)\` | \`rgba(0, 0, 0, 0.3735)\` | 面色を背景にした厳密式（S7） |`,
@@ -73,7 +73,17 @@ const handWrittenControlRows = [
   `| \`--game-panel-rule-bottom-peak\` | \`rgba(128, 132, 159, 0.42)\` | \`rgba(128, 132, 159, 0.2034)\` | 面色を背景にした厳密式（S7） |`,
   `| \`--game-panel-rule-bottom-end\` | \`rgba(128, 132, 159, 0.26)\` | \`rgba(128, 132, 159, 0.0946)\` | 面色を背景にした厳密式（S7） |`,
   `| \`--game-panel-triangle-face\` | \`rgba(94, 100, 128, 0.2)\` | \`rgba(94, 100, 128, 0.0764)\` | 面色を背景にした厳密式（S7） |`,
+  `| \`--panel-action-hover-face\` | \`color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 22%)\` = \`rgba(35, 38, 51, 0.844)\` | \`rgba(35, 38, 51, 0.9832)\` | 実機で据え置き（ポーズの撮影でホバー中のボタンの面が地の面と見分けられる） |`,
+  `| \`--mode-switch-selected-face\` | \`color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 30%)\` = \`rgba(43, 46, 59, 0.86)\` | \`rgba(43, 46, 59, 0.9868)\` | ${translucencyMethod} |`,
+  `| \`--panel-action-text-outline\` | \`rgb(0 0 0 / 70%)\` | \`rgba(0, 0, 0, 0.9293)\` | ${translucencyMethod} |`,
+  `| \`--pause-menu-face\` | \`rgb(16 20 28 / 92%)\` | \`rgba(16, 20, 28, 0.9961)\` | α 近似補正（S7）。ポーズの撮影（https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png ）で枠の面 (16,20,28) とボタンの面（\`--gauge-track\`）(10,15,27) が見分けられることを確かめた |`,
 ];
+
+// 実機の撮影で決めたトークンの決め方。値を変えずに据え置いたものも理由を書く
+// How tokens were settled on device; rows kept unchanged also state why
+const measuredMethods = {
+  "--surface-navy": "実機で据え置き（ポーズの GamePanel を PlayMode で撮影）。暗い背景で背景の透けは実効 α 0.95〜0.99 と Web の 0.8 より濃いが、題・ボタンの文字は読める。明るい地表で Web に合うのは約 0.944 だが、ゲージ・通知・ワールドピンと共有の面なので変えない",
+};
 
 writeOutput(exclusionFileName, exclusionLines);
 writeTranslucentTable(converter.translucentRows);
@@ -94,7 +104,7 @@ function writeTranslucentTable(rows) {
     "",
     "| トークン | Web の値 | UITK の値 | 決め方 |",
     "| --- | --- | --- | --- |",
-    ...rows.map((row) => `| \`${row.name}\` | \`${row.webValue}\` | \`${row.ussValue}\` | ${translucencyMethod} |`),
+    ...rows.map((row) => `| \`${row.name}\` | \`${row.webValue}\` | \`${row.ussValue}\` | ${measuredMethods[row.name] ?? translucencyMethod} |`),
     ...handWrittenControlRows,
   ];
   writeFileSync(join(repositoryRoot, translucentTablePath), `${lines.join("\n")}\n`);

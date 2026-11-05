@@ -9,6 +9,7 @@ using Client.Game.InGame.BugReport.Diagnostics;
 using Client.Game.InGame.Train.Network.Diagnostics;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
@@ -42,10 +43,12 @@ namespace Client.Game.InGame.BugReport
         public const int StillFrameIntervalSeconds = 3;
 
         private readonly IPlaytestSessionIdentity _identity;
+        private readonly IWebUiHealthProbe _webUiHealth;
 
-        public BugReportBundleWriter(IPlaytestSessionIdentity identity)
+        public BugReportBundleWriter(IPlaytestSessionIdentity identity, IWebUiHealthProbe webUiHealth)
         {
             _identity = identity;
+            _webUiHealth = webUiHealth;
         }
 
         public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description, PlaytestReportKind kind)
@@ -63,6 +66,7 @@ namespace Client.Game.InGame.BugReport
             // 見出しが積んだ欠損（steamId等）を消さないよう、確保時の欠損は上書きせず後ろへ足す
             // The capture's gaps are appended rather than assigned, so the header's own gaps (steamId and friends) survive
             var manifest = BugReportManifest.CreateHeader(description, kind, _identity.SteamId, _identity.SteamIdAbsenceReason, buildOrigin);
+            manifest.WebUiHealth = _webUiHealth.Read();
             manifest.ReportTick = data.ReportTick;
             manifest.ClientState = data.ClientState;
             manifest.Missing.AddRange(data.Missing);

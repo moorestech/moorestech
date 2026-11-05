@@ -1,3 +1,4 @@
+using Client.Ui.State.Settings;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -85,7 +86,7 @@ namespace Client.Tests.WebUi.Localization
         public async Task RegisteredSetLocaleActionPersistsAndPublishesOneChange()
         {
             var hub = new WebSocketHub();
-            LocalizationActions.Register(hub);
+            LocalizationActions.Register(hub, new SettingsCommands());
             var handler = GetRegisteredSetLocaleHandler(hub);
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
@@ -109,7 +110,7 @@ namespace Client.Tests.WebUi.Localization
         public async Task SetLocaleActionRejectsInvalidLocaleWithoutSideEffects(
             string locale)
         {
-            var handler = new SetLocaleActionHandler();
+            var handler = new SetLocaleActionHandler(new SettingsCommands());
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
             var payload = locale == null
@@ -135,7 +136,7 @@ namespace Client.Tests.WebUi.Localization
             var eventCount = 0;
             using var subscription = Localize.OnLanguageChanged.Subscribe(_ => eventCount++);
 
-            var result = await new SetLocaleActionHandler().ExecuteAsync(null);
+            var result = await new SetLocaleActionHandler(new SettingsCommands()).ExecuteAsync(null);
 
             Assert.IsFalse(result.Ok);
             Assert.AreEqual("unknown_locale", result.Error);

@@ -1,7 +1,5 @@
-using Client.Game.InGame.BugReport.Capture;
-using Client.Game.InGame.Presenter.PauseMenu;
+using Client.Tests.Ui.State;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Tests.BugReport;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
 using Newtonsoft.Json.Linq;
@@ -20,7 +18,7 @@ namespace Client.Tests.WebUi
         {
             var hub = new WebSocketHub();
             var pauseMenu = new PauseMenuStateService();
-            var topic = new PauseMenuTopic(hub, new NetworkDisconnectState(), new BugReportCaptureSession(new NullBugReportCaptureSources()), pauseMenu);
+            var topic = new PauseMenuTopic(hub, PauseMenuModelTestFactory.Create(pauseMenu));
             try
             {
                 var before = JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());

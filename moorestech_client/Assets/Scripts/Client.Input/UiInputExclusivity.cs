@@ -1,5 +1,8 @@
+using System.Diagnostics;
+using System.Threading;
 using UniRx;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Client.Input
 {
@@ -15,21 +18,27 @@ namespace Client.Input
     /// </summary>
     public static class UiInputExclusivity
     {
+        // Webはpongが15秒途絶えるとWSを閉じる（moorestech_web/webui/src/bridge/transport/webSocketClient.ts の 15000ms）。同じ値で無応答とみなす
+        // The web closes the WS after 15s without a pong (15000ms in webSocketClient.ts); the same value marks the web as silent
+        public const double WebSilenceThresholdSeconds = 15.0;
+
         // 現在値と変化通知を1本に畳む。購読が現在値を必ず連れてくるので取得と購読の間に落ちる窓が無い
         // Current value and change notification live in one stream, so nothing can slip between reading and subscribing
         private static readonly ReactiveProperty<bool> TextInputFocusedProperty = new(false);
         private static readonly object UiStateLock = new();
         private static volatile bool _pointerOverUi;
         private static volatile bool _webUiSuspended;
+        private static volatile bool _webSilent;
+        private static long _lastWebMessageTimestamp;
         private static bool _webTextInputFocused;
         private static volatile bool _gameUiTextInputFocused;
         private static IGameUiPointerProbe _gameUiPointerProbe;
         private static int _escapeConsumedFrame = -1;
         private static int _lastKeyboardProbeFrame = -1;
 
-        // 休止中のWebは描画も受け手も無いので、ポインタ占有を主張させない
-        // A suspended web UI has no renderer or receiver, so it never claims the pointer
-        public static bool IsPointerOverWebUi => !_webUiSuspended && _pointerOverUi;
+        // 休止中のWebは描画も受け手も無く、無応答のWebは値を更新できないので、どちらもポインタ占有を主張させない
+        // A suspended web has no renderer or receiver and a silent web cannot update its values, so neither claims the pointer
+        public static bool IsPointerOverWebUi => !_webUiSuspended && !_webSilent && _pointerOverUi;
         public static bool IsTextInputFocused => TextInputFocusedProperty.Value;
         public static bool IsEscapeConsumedThisFrame => _escapeConsumedFrame == Time.frameCount;
 
@@ -102,6 +111,39 @@ namespace Client.Input
             Debug.Log($"[UiInput] web UI suspended={suspended}");
         }
 
+        // WSスレッドから受信ごとに呼ぶ。時刻だけ書き、無応答の印は EvaluateWebSilence だけが書く（D-22）
+        // Called on the WS thread per message; it writes only the time and only EvaluateWebSilence writes the silent mark (D-22)
+        public static void RecordWebMessageReceived(long stopwatchTimestamp)
+        {
+            Interlocked.Exchange(ref _lastWebMessageTimestamp, stopwatchTimestamp);
+        }
+
+        // 一度も受信していなければ null
+        // Null when nothing has ever been received
+        public static double? SecondsSinceLastWebMessage(long nowStopwatchTimestamp)
+        {
+            var last = Interlocked.Read(ref _lastWebMessageTimestamp);
+            if (last == 0) return null;
+            return (nowStopwatchTimestamp - last) / (double)Stopwatch.Frequency;
+        }
+
+        // JSが止まりWSだけ残るとWebの値が古いまま残り、切断時リセットも通らない（§3.11）。閾値を超えたらWeb側の値を読まない
+        // A stopped JS with a live WS leaves stale web values and skips the disconnect reset (§3.11); past the threshold the web side is not read
+        public static void EvaluateWebSilence(long nowStopwatchTimestamp)
+        {
+            var seconds = SecondsSinceLastWebMessage(nowStopwatchTimestamp);
+            var silent = seconds.HasValue && WebSilenceThresholdSeconds < seconds.Value;
+            lock (UiStateLock)
+            {
+                if (_webSilent == silent) return;
+                _webSilent = silent;
+                RecomputeTextInputFocused();
+            }
+
+            if (silent) Debug.LogWarning($"[UiInput] web UI silent for {seconds.Value:F1}s; ignoring web input values until it answers again");
+            else Debug.Log("[UiInput] web UI answered again; web input values are read again");
+        }
+
         public static bool IsSuppressed(InputSuppressionScope scope)
         {
             return (scope & InputSuppressionScope.Keyboard) != 0 && TextInputFocusedProperty.Value;
@@ -123,7 +165,7 @@ namespace Client.Input
         // Callers must hold UiStateLock
         private static void RecomputeTextInputFocused()
         {
-            TextInputFocusedProperty.Value = _gameUiTextInputFocused || (!_webUiSuspended && _webTextInputFocused);
+            TextInputFocusedProperty.Value = _gameUiTextInputFocused || (!_webUiSuspended && !_webSilent && _webTextInputFocused);
         }
 
 #if UNITY_EDITOR
@@ -132,6 +174,18 @@ namespace Client.Input
         internal static void ClearEscapeLatchForTest()
         {
             _escapeConsumedFrame = -1;
+        }
+
+        // 受信時刻と無応答の印は静的に残るため、テスト間で「一度も受信していない」状態へ戻す
+        // The receive time and silent mark are static, so tests return to the never-received state between cases
+        internal static void ResetWebSilenceForTest()
+        {
+            Interlocked.Exchange(ref _lastWebMessageTimestamp, 0);
+            lock (UiStateLock)
+            {
+                _webSilent = false;
+                RecomputeTextInputFocused();
+            }
         }
 #endif
     }

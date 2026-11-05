@@ -5,8 +5,10 @@
         "Client.Input",
         "Client.Game",
         "Client.Localization",
+        "Client.PlaytestReceiver",
         "Client.Ui.State",
         "UniRx",
+        "UniTask",
         "VContainer"
     ],
     "includePlatforms": [],

@@ -1,5 +1,4 @@
-using Client.Game.InGame.GraphicsQuality;
-using Client.WebUiHost.Boot;
+using Client.Ui.State.Settings;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -12,7 +11,13 @@ namespace Client.WebUiHost.Game.Actions
     /// </summary>
     public class ApplyGraphicsQualityPresetActionHandler : IActionHandler
     {
+        private readonly ISettingsCommands _commands;
         public string ActionType => "settings.applyGraphicsQualityPreset";
+
+        public ApplyGraphicsQualityPresetActionHandler(ISettingsCommands commands)
+        {
+            _commands = commands;
+        }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
@@ -25,7 +30,7 @@ namespace Client.WebUiHost.Game.Actions
                 Debug.LogWarning($"[GraphicsQualityActions] Rejected unknown graphics quality preset: {wire}");
                 return UniTask.FromResult(ActionResult.Fail("unknown_graphics_quality_preset"));
             }
-            GraphicsQualityPreference.ApplyPreset(preset);
+            _commands.ApplyGraphicsPreset(preset);
             return UniTask.FromResult(ActionResult.Success());
         }
     }
@@ -36,7 +41,13 @@ namespace Client.WebUiHost.Game.Actions
     /// </summary>
     public class SetGraphicsQualityActionHandler : IActionHandler
     {
+        private readonly ISettingsCommands _commands;
         public string ActionType => "settings.setGraphicsQuality";
+
+        public SetGraphicsQualityActionHandler(ISettingsCommands commands)
+        {
+            _commands = commands;
+        }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
@@ -56,7 +67,7 @@ namespace Client.WebUiHost.Game.Actions
                 Debug.LogWarning($"[GraphicsQualityActions] Rejected invalid graphics quality: {error}");
                 return UniTask.FromResult(ActionResult.Fail(error));
             }
-            GraphicsQualityPreference.SetSettings(settings);
+            _commands.SetGraphicsQuality(settings);
             return UniTask.FromResult(ActionResult.Success());
         }
     }

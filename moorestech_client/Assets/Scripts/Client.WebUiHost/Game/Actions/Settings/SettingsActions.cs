@@ -1,4 +1,5 @@
 using Client.Input;
+using Client.Ui.State.Settings;
 using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -8,11 +9,11 @@ namespace Client.WebUiHost.Game.Actions
 {
     public static class SettingsActions
     {
-        public static void Register(WebSocketHub hub)
+        public static void Register(WebSocketHub hub, ISettingsCommands commands)
         {
-            hub.RegisterAction(new SetSprintInputModeActionHandler());
-            hub.RegisterAction(new ApplyGraphicsQualityPresetActionHandler());
-            hub.RegisterAction(new SetGraphicsQualityActionHandler());
+            hub.RegisterAction(new SetSprintInputModeActionHandler(commands));
+            hub.RegisterAction(new ApplyGraphicsQualityPresetActionHandler(commands));
+            hub.RegisterAction(new SetGraphicsQualityActionHandler(commands));
         }
     }
 
@@ -22,7 +23,13 @@ namespace Client.WebUiHost.Game.Actions
     /// </summary>
     public class SetSprintInputModeActionHandler : IActionHandler
     {
+        private readonly ISettingsCommands _commands;
         public string ActionType => "settings.setSprintInputMode";
+
+        public SetSprintInputModeActionHandler(ISettingsCommands commands)
+        {
+            _commands = commands;
+        }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
@@ -35,7 +42,7 @@ namespace Client.WebUiHost.Game.Actions
                 Debug.LogWarning($"[SettingsActions] Rejected unknown sprint mode: {wire}");
                 return UniTask.FromResult(ActionResult.Fail("unknown_sprint_mode"));
             }
-            SprintInputModePreference.SetMode(mode);
+            _commands.SetSprintInputMode(mode);
             return UniTask.FromResult(ActionResult.Success());
         }
     }

@@ -1,3 +1,4 @@
+using Client.Tests.Ui.State;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
@@ -16,7 +17,7 @@ namespace Client.Tests.UIState.PauseMenu
         public void 契約文字列の画面へ移る(string page, PauseMenuPage expected)
         {
             var service = new PauseMenuStateService();
-            var handler = new PauseMenuShowPageActionHandler(service);
+            var handler = new PauseMenuShowPageActionHandler(PauseMenuCommandsTestFactory.Create(service));
 
             var result = handler.ExecuteAsync(new JObject { ["page"] = page }).GetAwaiter().GetResult();
 
@@ -29,7 +30,7 @@ namespace Client.Tests.UIState.PauseMenu
         {
             var service = new PauseMenuStateService();
             service.ShowPage(PauseMenuPage.Settings);
-            var handler = new PauseMenuShowPageActionHandler(service);
+            var handler = new PauseMenuShowPageActionHandler(PauseMenuCommandsTestFactory.Create(service));
 
             LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("ポーズメニューの画面名が不正"));
             var result = handler.ExecuteAsync(new JObject { ["page"] = "Settings" }).GetAwaiter().GetResult();

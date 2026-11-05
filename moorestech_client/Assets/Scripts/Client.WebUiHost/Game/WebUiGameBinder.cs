@@ -8,8 +8,8 @@ using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.BeltTransport;
 using Client.Game.InGame.FluidNetwork;
 using System.Collections.Generic;
-using Client.Game.InGame.BugReport.Capture;
-using Client.Game.InGame.BugReport.Submit;
+using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Settings;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint.Thumbnail;
@@ -24,9 +24,7 @@ using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
-using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
-using Client.PlaytestReceiver.Recovery;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
@@ -34,7 +32,6 @@ using Client.WebUiHost.Game.Topics.MachineUpgrade;
 using Game.Block.Interface.MachineUpgrade;
 using Game.Construction;
 using Game.UnlockState;
-using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -107,8 +104,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(GraphicsQualityTopic.TopicName, new GraphicsQualityTopic(hub));
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
-            var networkDisconnectState = resolver.Resolve<NetworkDisconnectState>();
-            var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectState, resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<PauseMenuStateService>());
+            var pauseMenuTopic = new PauseMenuTopic(hub, resolver.Resolve<PauseMenuModel>());
             hub.RegisterTopic(PauseMenuTopic.TopicName, pauseMenuTopic);
             // 設置モードHUDを既存の設置状態へ接続する
             // Connect the placement HUD to the existing placement state
@@ -173,8 +169,8 @@ namespace Client.WebUiHost.Game
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             hub.RegisterAction(new EchoActionHandler());
 #endif
-            LocalizationActions.Register(hub);
-            SettingsActions.Register(hub);
+            LocalizationActions.Register(hub, resolver.Resolve<ISettingsCommands>());
+            SettingsActions.Register(hub, resolver.Resolve<ISettingsCommands>());
             InventoryWebUiActionRegistration.Register(hub, controller, subInventoryState);
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
@@ -190,12 +186,13 @@ namespace Client.WebUiHost.Game
             TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher);
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuSelection));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
-            hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
-            hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
-            hub.RegisterAction(new PauseMenuShowPageActionHandler(resolver.Resolve<PauseMenuStateService>()));
-            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportSubmitter>(), resolver.Resolve<PauseMenuStateService>()));
-            hub.RegisterAction(new BugReportResendFailedActionHandler(resolver.Resolve<PlaytestOutboxRecovery>()));
-            hub.RegisterAction(new BugReportExportUnsentActionHandler(resolver.Resolve<PlaytestOutboxRecovery>()));
+            var pauseMenuCommands = resolver.Resolve<IPauseMenuCommands>();
+            hub.RegisterAction(new PauseMenuSaveActionHandler(pauseMenuCommands));
+            hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(pauseMenuCommands));
+            hub.RegisterAction(new PauseMenuShowPageActionHandler(pauseMenuCommands));
+            hub.RegisterAction(new BugReportSubmitActionHandler(pauseMenuCommands));
+            hub.RegisterAction(new BugReportResendFailedActionHandler(pauseMenuCommands));
+            hub.RegisterAction(new BugReportExportUnsentActionHandler(pauseMenuCommands));
         }
     }
 }

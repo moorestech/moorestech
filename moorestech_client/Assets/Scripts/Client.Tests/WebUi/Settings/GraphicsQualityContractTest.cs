@@ -1,3 +1,4 @@
+using Client.Ui.State.Settings;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Client.Game.InGame.GraphicsQuality;
@@ -17,7 +18,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task PresetActionPersistsAndTopicReportsPresetName()
         {
             var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
+            SettingsActions.Register(hub, new SettingsCommands());
             using var topic = new GraphicsQualityTopic(hub);
             var result = await hub.ResolveAction("settings.applyGraphicsQualityPreset").ExecuteAsync(new JObject { ["preset"] = "low" });
             var snapshot = JObject.Parse(await topic.GetSnapshotJsonAsync());
@@ -49,7 +50,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task ChangingOneItemAfterPresetReportsCustom(string key, object value)
         {
             var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
+            SettingsActions.Register(hub, new SettingsCommands());
             using var topic = new GraphicsQualityTopic(hub);
             var settings = MediumSettingsJson();
             settings[key] = JToken.FromObject(value);
@@ -66,7 +67,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task UnknownPresetIsRejectedWithoutSaving(string wire)
         {
             LogAssert.Expect(LogType.Warning, new Regex("Rejected unknown graphics quality preset"));
-            var result = await new ApplyGraphicsQualityPresetActionHandler().ExecuteAsync(new JObject { ["preset"] = wire });
+            var result = await new ApplyGraphicsQualityPresetActionHandler(new SettingsCommands()).ExecuteAsync(new JObject { ["preset"] = wire });
             Assert.IsFalse(result.Ok);
             Assert.AreEqual("unknown_graphics_quality_preset", result.Error);
             Assert.IsFalse(PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey));
@@ -90,7 +91,7 @@ namespace Client.Tests.WebUi.Settings
         {
             LogAssert.Expect(LogType.Warning, new Regex("Rejected invalid graphics quality"));
 
-            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(new JObject { ["item"] = key, ["value"] = value == null ? null : JToken.FromObject(value) });
+            var result = await new SetGraphicsQualityActionHandler(new SettingsCommands()).ExecuteAsync(new JObject { ["item"] = key, ["value"] = value == null ? null : JToken.FromObject(value) });
             Assert.IsFalse(result.Ok);
             Assert.AreEqual($"invalid_graphics_quality:{reason}:{(key is "unknown" or "" ? "item" : key)}", result.Error);
             Assert.IsFalse(PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey));
@@ -101,7 +102,7 @@ namespace Client.Tests.WebUi.Settings
         {
             LogAssert.Expect(LogType.Warning, new Regex("Rejected invalid graphics quality"));
             var json = "{\"item\":\"drawDistanceMeters\",\"value\":99999999999999999999999}";
-            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(JObject.Parse(json));
+            var result = await new SetGraphicsQualityActionHandler(new SettingsCommands()).ExecuteAsync(JObject.Parse(json));
             Assert.IsFalse(result.Ok);
             Assert.AreEqual("invalid_graphics_quality:unsupported_value:drawDistanceMeters", result.Error);
             Assert.IsFalse(PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey));
@@ -112,7 +113,7 @@ namespace Client.Tests.WebUi.Settings
         {
             var payload = new JObject { ["item"] = "drawDistanceMeters", ["value"] = 300 };
             if (parseJson) payload = JObject.Parse(payload.ToString());
-            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(payload);
+            var result = await new SetGraphicsQualityActionHandler(new SettingsCommands()).ExecuteAsync(payload);
             Assert.IsTrue(result.Ok, result.Error);
             var topic = new GraphicsQualityTopic(new WebSocketHub());
             using (topic)
@@ -130,7 +131,7 @@ namespace Client.Tests.WebUi.Settings
             GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Low);
             var saved = PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey);
             LogAssert.Expect(LogType.Warning, new Regex("Rejected invalid graphics quality"));
-            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(new JObject { ["item"] = key });
+            var result = await new SetGraphicsQualityActionHandler(new SettingsCommands()).ExecuteAsync(new JObject { ["item"] = key });
             Assert.AreEqual($"invalid_graphics_quality:missing_field:{key}", result.Error);
             Assert.AreEqual(saved, PlayerPrefs.GetString(GraphicsQualityPreference.PreferenceKey));
         }
@@ -140,7 +141,7 @@ namespace Client.Tests.WebUi.Settings
         {
             LogAssert.Expect(LogType.Warning, new Regex("Rejected invalid graphics quality"));
             var payload = wrongType ? new JObject { ["item"] = false, ["value"] = true } : new JObject();
-            var result = await new SetGraphicsQualityActionHandler().ExecuteAsync(payload);
+            var result = await new SetGraphicsQualityActionHandler(new SettingsCommands()).ExecuteAsync(payload);
             Assert.AreEqual(wrongType ? "invalid_graphics_quality:invalid_type:item" : "invalid_graphics_quality:missing_field:item", result.Error);
             Assert.IsFalse(PlayerPrefs.HasKey(GraphicsQualityPreference.PreferenceKey));
         }

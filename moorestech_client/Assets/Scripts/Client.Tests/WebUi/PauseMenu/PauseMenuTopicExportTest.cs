@@ -1,8 +1,6 @@
-using Client.Game.InGame.BugReport.Capture;
-using Client.Game.InGame.Presenter.PauseMenu;
+using Client.Tests.Ui.State;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.PlaytestReceiver.Recovery;
-using Client.Tests.BugReport;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
 using Newtonsoft.Json.Linq;
@@ -53,7 +51,7 @@ namespace Client.Tests.WebUi
             // 状態変化が購読経由で配信されることを検証
             // Verify a board change is published through the subscription
             var hub = new WebSocketHub();
-            using var topic = new PauseMenuTopic(hub, new NetworkDisconnectState(), new BugReportCaptureSession(new NullBugReportCaptureSources()), new PauseMenuStateService());
+            using var topic = new PauseMenuTopic(hub, PauseMenuModelTestFactory.Create(new PauseMenuStateService()));
             var before = hub.GetTopicRevision(PauseMenuTopic.TopicName);
             PlaytestExportStatusBoard.Set(PlaytestExportRunning.Instance);
             Assert.Greater(hub.GetTopicRevision(PauseMenuTopic.TopicName), before);
@@ -62,7 +60,7 @@ namespace Client.Tests.WebUi
         private static string SnapshotJson()
         {
             var hub = new WebSocketHub();
-            using var topic = new PauseMenuTopic(hub, new NetworkDisconnectState(), new BugReportCaptureSession(new NullBugReportCaptureSources()), new PauseMenuStateService());
+            using var topic = new PauseMenuTopic(hub, PauseMenuModelTestFactory.Create(new PauseMenuStateService()));
             return topic.GetSnapshotJsonAsync().GetAwaiter().GetResult();
         }
     }

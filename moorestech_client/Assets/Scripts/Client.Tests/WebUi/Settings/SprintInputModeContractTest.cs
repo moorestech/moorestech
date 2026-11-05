@@ -1,3 +1,4 @@
+using Client.Ui.State.Settings;
 using System.Threading.Tasks;
 using Client.Input;
 using Client.WebUiHost.Boot;
@@ -42,7 +43,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task RegisteredActionPersistsModeAndTopicReturnsCurrentValue(string wire, SprintInputMode mode)
         {
             var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
+            SettingsActions.Register(hub, new SettingsCommands());
             using var topic = new SprintInputModeTopic(hub);
             SprintInputModePreference.SetMode(mode == SprintInputMode.Toggle ? SprintInputMode.Hold : SprintInputMode.Toggle);
             var revisionBefore = hub.GetTopicRevision(SprintInputModeTopic.TopicName);
@@ -70,7 +71,7 @@ namespace Client.Tests.WebUi.Settings
         {
             var changes = 0;
             using var subscription = SprintInputModePreference.OnSprintInputModeChanged.Subscribe(_ => changes++);
-            var result = await new SetSprintInputModeActionHandler().ExecuteAsync(new JObject { ["mode"] = wire });
+            var result = await new SetSprintInputModeActionHandler(new SettingsCommands()).ExecuteAsync(new JObject { ["mode"] = wire });
             Assert.IsFalse(result.Ok);
             Assert.AreEqual("unknown_sprint_mode", result.Error);
             Assert.AreEqual(SprintInputMode.Toggle, SprintInputModePreference.Current);
@@ -82,7 +83,7 @@ namespace Client.Tests.WebUi.Settings
         public async Task InvalidPersistenceIsRepairedAndAcknowledgedThroughRegisteredAction()
         {
             var hub = new WebSocketHub();
-            SettingsActions.Register(hub);
+            SettingsActions.Register(hub, new SettingsCommands());
             using var topic = new SprintInputModeTopic(hub);
             PlayerPrefs.SetString(SprintInputModePreference.PreferenceKey, "2");
             UnityEngine.TestTools.LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Unknown saved sprint mode"));
@@ -100,7 +101,7 @@ namespace Client.Tests.WebUi.Settings
         [Test]
         public async Task NullPayloadReturnsFailure()
         {
-            var result = await new SetSprintInputModeActionHandler().ExecuteAsync(null);
+            var result = await new SetSprintInputModeActionHandler(new SettingsCommands()).ExecuteAsync(null);
             Assert.IsFalse(result.Ok);
             Assert.AreEqual("unknown_sprint_mode", result.Error);
         }

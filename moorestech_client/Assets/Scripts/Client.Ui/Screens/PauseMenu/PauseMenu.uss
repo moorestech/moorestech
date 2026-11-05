@@ -1,0 +1,85 @@
+/* ポーズ画面の枠と並び。寸法は moorestech_web/webui/src/features/pauseMenu/style.module.css の .panel / .page を写す */
+/* 最大高（--pause-menu-max-height = ステージ高 − 80px）は、層いっぱいの置き場の上下 40px の余白と枠の max-height 100% で作る */
+/* Pause-menu frame and layout; sizes copy .panel / .page in moorestech_web/webui/src/features/pauseMenu/style.module.css */
+/* The max height (--pause-menu-max-height = stage height - 80px) comes from the full-layer host's 40px top and bottom padding plus the frame's max-height 100% */
+
+/* 置き場は層いっぱいに広げ、枠を上下左右の中央へ置く */
+/* The host fills the layer and centers the frame both ways */
+.pause-menu {
+    --pause-menu-disconnected-text: var(--color-danger);
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding: 40px 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.pause-menu__panel {
+    width: 420px;
+    max-height: 100%;
+}
+
+/* 枠の面は Web の .panel の色。GamePanel の面の要素が自前で --game-panel-face を宣言するので、面の要素に当てて上書きする */
+/* The frame face uses the Web .panel color; the GamePanel face element declares --game-panel-face itself, so override it on that element */
+.pause-menu__panel .game-panel__face {
+    --game-panel-face: var(--pause-menu-face);
+}
+
+/* Web の .panel の padding 32px。GamePanel の padding（8 10 10 28）に足して左右下を 32px にそろえる */
+/* The Web .panel padding is 32px; added to the GamePanel padding (8 10 10 28) this makes left, right and bottom 32px */
+.pause-menu__page {
+    padding: 8px 22px 22px 4px;
+}
+
+/* 枠が最大高で止まったとき、本文だけがスクロールできるよう flex の高さ連鎖を子画面まで通す */
+/* Pass the flex height chain down to the sub-page so only the body scrolls when the frame stops at its max height */
+.pause-menu__panel,
+.pause-menu__page,
+.pause-menu__sub-page,
+.pause-menu__body {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.pause-menu__page,
+.pause-menu__sub-page {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.pause-menu__body {
+    flex-grow: 1;
+}
+
+/* Web の Stack gap=md（16px）。USS に gap が無いので 2 つ目以降の子に上の余白を付ける */
+/* Web Stack gap=md (16px); USS has no gap, so children after the first get a top margin */
+.pause-menu__stack-item--following {
+    margin-top: 16px;
+}
+
+/* PanelActionButton の margin: 0（2 クラス）に負けないよう、ボタンの間隔は部品のクラスを重ねて当てる */
+/* Button gaps stack the component classes so they beat PanelActionButton's two-class margin: 0 */
+.pause-menu .panel-action-button.unity-button.pause-menu__stack-item--following,
+.pause-menu .panel-action-button.unity-button.pause-menu__back {
+    margin-top: 16px;
+}
+
+.pause-menu__disconnected {
+    margin: 0 0 16px 0;
+    padding: 0;
+    color: var(--pause-menu-disconnected-text);
+    white-space: normal;
+}
+
+/* 横幅は本文の並びが決める。整理ボタン用の既定幅では長いメニュー名が折り返す */
+/* The body column owns the width; the sort button's default width wraps long menu labels */
+.pause-menu .panel-action-button.unity-button {
+    width: auto;
+}
+
+.pause-menu__back {
+    flex-shrink: 0;
+}
