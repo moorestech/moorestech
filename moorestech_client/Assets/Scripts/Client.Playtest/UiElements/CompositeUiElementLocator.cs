@@ -54,9 +54,10 @@ namespace Client.Playtest.UiElements
             if (gameUi.IsFound) return gameUi;
             if (web.IsFound) return web;
 
-            // どちらにも無ければ、GameUi が応答できる限りその NotFound を返す
-            // When neither has it, return GameUi's NotFound as long as GameUi can answer
-            return gameUi.Status == UiElementLookupStatus.RendererUnavailable ? web : gameUi;
+            // どちらにも無ければ NotFound。ただし Web が未準備なら「Web にあるかもしれない」ので RendererUnavailable を返して診断に残す
+            // Neither has it: NotFound, but if Web is not ready it may still exist there, so return RendererUnavailable to keep the diagnosis
+            if (gameUi.Status == UiElementLookupStatus.RendererUnavailable) return web;
+            return web.Status == UiElementLookupStatus.RendererUnavailable ? web : gameUi;
         }
 
         public async UniTask<UiSetTextResult> SetText(string testid, string text, float remainingSeconds)
@@ -65,6 +66,9 @@ namespace Client.Playtest.UiElements
             // Use GameUi's result when it has the element (applied or refused), otherwise set it on Web
             var gameUi = await _gameUi.SetText(testid, text, remainingSeconds);
             if (gameUi.Status != UiSetTextStatus.NotFound && gameUi.Status != UiSetTextStatus.RendererUnavailable) return gameUi;
+
+            // Web の結果をそのまま返す。Web 未準備なら RendererUnavailable が残り、Find と同じ規則になる
+            // Return Web's result as is; an unready Web keeps RendererUnavailable, matching Find
             return await _web.SetText(testid, text, remainingSeconds);
         }
     }

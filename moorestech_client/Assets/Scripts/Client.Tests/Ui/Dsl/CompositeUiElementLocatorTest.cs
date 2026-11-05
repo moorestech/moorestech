@@ -71,13 +71,27 @@ namespace Client.Tests.Ui.Dsl
         }
 
         [Test]
-        public void NeitherFoundReturnsGameUiNotFoundWhenGameUiAnswers()
+        public void NeitherFoundReturnsNotFoundWhenBothCanAnswer()
         {
+            var composite = new CompositeUiElementLocator(
+                Fake(true, UiElementLookupStatus.NotFound, UiSetTextStatus.NotFound),
+                Fake(true, UiElementLookupStatus.NotFound, UiSetTextStatus.NotFound));
+
+            Assert.AreEqual(UiElementLookupStatus.NotFound, Find(composite).Status);
+            Assert.AreEqual(UiSetTextStatus.NotFound, SetText(composite).Status);
+        }
+
+        [Test]
+        public void GameUiNotFoundWithWebUnavailableReturnsRendererUnavailable()
+        {
+            // Web が未準備なら NotFound に化けさせず、期限切れ例外の last: に未準備が出るようにする
+            // Do not disguise an unready Web as NotFound, so the deadline exception's last: shows it
             var composite = new CompositeUiElementLocator(
                 Fake(true, UiElementLookupStatus.NotFound, UiSetTextStatus.NotFound),
                 Fake(false, UiElementLookupStatus.RendererUnavailable, UiSetTextStatus.RendererUnavailable));
 
-            Assert.AreEqual(UiElementLookupStatus.NotFound, Find(composite).Status);
+            Assert.AreEqual(UiElementLookupStatus.RendererUnavailable, Find(composite).Status);
+            Assert.AreEqual(UiSetTextStatus.RendererUnavailable, SetText(composite).Status);
         }
 
         [Test]
