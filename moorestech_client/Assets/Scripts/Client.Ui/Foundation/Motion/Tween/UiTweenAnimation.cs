@@ -37,7 +37,7 @@ namespace Client.Ui.Foundation.Motion.Tween
             if (_spec.Loop == UiMotionLoop.Once)
             {
                 _step.Apply(UiEasingFunctions.Evaluate(_spec.Easing, Mathf.Min(cycles, 1f)));
-                return cycles >= 1f;
+                return 1f <= cycles;
             }
 
             // Repeat は周の端数、PingPong は偶数周で往路・奇数周で復路

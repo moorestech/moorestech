@@ -78,23 +78,14 @@ namespace Client.Tests.Ui.Motion
             Assert.AreEqual(0, _completedCount);
         }
 
-        [Test]
-        public void RestartRewindsFromTheNextFrameTime()
+        [TestCase(float.NaN, 0f)]
+        [TestCase(float.PositiveInfinity, 0f)]
+        [TestCase(200f, float.NaN)]
+        public void NonFiniteDurationOrDelayIsRefused(float duration, float delay)
         {
-            var handle = PlayFadeIn();
-            simulate.FrameUpdateMs(0);
-            simulate.FrameUpdateMs(150);
-
-            // 再生し直しは次のフレームの時刻を頭にして 0 から進む
-            // Restart takes the next frame's time as the head and runs from 0
-            handle.Restart();
-            simulate.FrameUpdateMs(0);
-            Assert.AreEqual(0f, _target.resolvedStyle.opacity, 0.0001f);
-            simulate.FrameUpdateMs(100);
-            Assert.AreEqual(0.5f, _target.resolvedStyle.opacity, 0.05f);
-            Assert.AreEqual(0, _completedCount);
-            simulate.FrameUpdateMs(150);
-            Assert.AreEqual(1, _completedCount);
+            // 非有限の尺・遅延は Once でも終わらない tween になるので作れない
+            // A non-finite duration or delay would never end even for Once, so the spec cannot be built
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new UiMotionSpec(duration, delay, UiEasing.Linear, UiMotionLoop.Once));
         }
 
         private UiMotionHandle PlayFadeIn()

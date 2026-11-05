@@ -19,7 +19,6 @@ namespace Client.Ui.Screens.PauseMenu
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly UiRoutingState _routingState;
-        private readonly UiOwnershipTable _ownershipTable;
         private readonly PauseMenuModel _pauseMenuModel;
         private readonly SettingsModel _settingsModel;
         private readonly IPauseMenuCommands _commands;
@@ -29,11 +28,10 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly CompositeDisposable _subscriptions = new();
         private PauseMenuView _view;
 
-        public PauseMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, UiOwnershipTable ownershipTable, PauseMenuModel pauseMenuModel, SettingsModel settingsModel, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft)
+        public PauseMenuScreenPresenter(GameUiRoot gameUiRoot, UiRoutingState routingState, PauseMenuModel pauseMenuModel, SettingsModel settingsModel, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft)
         {
             _gameUiRoot = gameUiRoot;
             _routingState = routingState;
-            _ownershipTable = ownershipTable;
             _pauseMenuModel = pauseMenuModel;
             _settingsModel = settingsModel;
             _commands = commands;
@@ -66,7 +64,7 @@ namespace Client.Ui.Screens.PauseMenu
         // The traits table enumerates pause screens; show only when GameUi owns the main panel (D-20)
         private bool IsShownOn(UiRoutingSnapshot snapshot)
         {
-            return UiScreenTraitsTable.Get(snapshot.Screen).PauseMenu && _ownershipTable.GetOwner(snapshot.Screen, UiSurface.MainPanel) == UiSurfaceOwner.GameUi;
+            return UiScreenTraitsTable.Get(snapshot.Screen).PauseMenu && snapshot.MainPanelOwner == UiSurfaceOwner.GameUi;
         }
     }
 }

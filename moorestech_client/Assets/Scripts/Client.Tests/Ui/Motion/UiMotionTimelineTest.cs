@@ -50,7 +50,7 @@ namespace Client.Tests.Ui.Motion
         }
 
         [Test]
-        public void RestartRewindsAndReschedulesTheEnd()
+        public void StartAgainRewindsAndReschedulesTheEnd()
         {
             var (clock, step, timeline) = Build(new UiMotionSpec(200f, 0f, UiEasing.Linear, UiMotionLoop.Once));
             timeline.Start();
@@ -59,7 +59,7 @@ namespace Client.Tests.Ui.Motion
 
             // 寿命の張り直し: 再生し直した時刻から 200ms で終わる
             // Lifetime renewal: ends 200ms after the restart
-            timeline.Restart();
+            timeline.Start();
             Assert.IsFalse(timeline.Tick());
             Assert.AreEqual(0f, step.Applied[step.Applied.Count - 1], Tolerance);
             clock.Advance(150);

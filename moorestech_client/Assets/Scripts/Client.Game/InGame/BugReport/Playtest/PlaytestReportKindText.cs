@@ -40,11 +40,11 @@ namespace Client.Game.InGame.BugReport.Playtest
             }
         }
 
-        // ポーズメニューの payload から読む口。クラッシュは前回異常終了ゲートだけが作るため、ここでは契約値でも拒否する
-        // The reader for the pause menu payload; crash is created only by the previous-crash gate, so it is refused here even though it is a contract value
-        public static bool TryParseSubmittableFromPauseMenu(string text, out PlaytestReportKind kind)
+        // ポーズメニューから送れる種別の正本。クラッシュは前回異常終了ゲートだけが作る
+        // The source of truth for kinds sendable from the pause menu; crash is created only by the previous-crash gate
+        public static bool IsSubmittableFromPauseMenu(PlaytestReportKind kind)
         {
-            return TryParse(text, out kind) && kind != PlaytestReportKind.Crash;
+            return kind == PlaytestReportKind.Bug || kind == PlaytestReportKind.Feedback;
         }
     }
 }

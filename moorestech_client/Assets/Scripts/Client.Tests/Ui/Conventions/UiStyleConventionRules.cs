@@ -56,7 +56,7 @@ namespace Client.Tests.Ui.Conventions
             // An empty text="" carries no wording, so it is allowed
             foreach (Match match in UxmlText.Matches(text))
             {
-                if (match.Groups[1].Value.Length > 0) violations.Add(Violation(text, match.Index, UiStyleRule.UxmlTextLiteral, match.Value));
+                if (0 < match.Groups[1].Value.Length) violations.Add(Violation(text, match.Index, UiStyleRule.UxmlTextLiteral, match.Value));
             }
 
             // 2 回目以降の出現を違反にする

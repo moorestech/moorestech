@@ -99,6 +99,32 @@ namespace Client.Ui.Screens.Settings
                 GraphicsQualityItem.Ocean => new GraphicsQualitySettings(s.DrawDistance, s.ShadowsEnabled, s.RenderScale, s.SsaoEnabled, s.PostProcessingEnabled, s.EffectsEnabled, s.MapObjectsVisible, s.TerrainDetail, value == On),
                 _ => throw new ArgumentOutOfRangeException(nameof(item), item, null),
             };
+
+            #region Internal
+
+            GraphicsDrawDistance ParseDrawDistance(string value)
+            {
+                return value switch
+                {
+                    "300" => GraphicsDrawDistance.Meters300,
+                    "1000" => GraphicsDrawDistance.Meters1000,
+                    "5000" => GraphicsDrawDistance.Meters5000,
+                    _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+                };
+            }
+
+            GraphicsRenderScale ParseRenderScale(string value)
+            {
+                return value switch
+                {
+                    "100" => GraphicsRenderScale.Percent100,
+                    "75" => GraphicsRenderScale.Percent75,
+                    "50" => GraphicsRenderScale.Percent50,
+                    _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
+                };
+            }
+
+            #endregion
         }
 
         private static GraphicsQualityItemRow BoolRow(GraphicsQualityItem item, LocalizationKey caption, string key)
@@ -122,28 +148,6 @@ namespace Client.Ui.Screens.Settings
         private static string OnOff(bool enabled)
         {
             return enabled ? On : Off;
-        }
-
-        private static GraphicsDrawDistance ParseDrawDistance(string value)
-        {
-            return value switch
-            {
-                "300" => GraphicsDrawDistance.Meters300,
-                "1000" => GraphicsDrawDistance.Meters1000,
-                "5000" => GraphicsDrawDistance.Meters5000,
-                _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
-            };
-        }
-
-        private static GraphicsRenderScale ParseRenderScale(string value)
-        {
-            return value switch
-            {
-                "100" => GraphicsRenderScale.Percent100,
-                "75" => GraphicsRenderScale.Percent75,
-                "50" => GraphicsRenderScale.Percent50,
-                _ => throw new ArgumentOutOfRangeException(nameof(value), value, null),
-            };
         }
     }
 }

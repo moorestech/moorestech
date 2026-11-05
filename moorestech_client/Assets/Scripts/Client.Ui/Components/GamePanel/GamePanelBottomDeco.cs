@@ -30,8 +30,7 @@ namespace Client.Ui.Components
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
-            _triangleColor = UssCustomStyleReader.ReadColor(customStyle, "--game-panel-deco");
-            _hasColor = true;
+            _hasColor = UssCustomStyleReader.TryReadColor(customStyle, "--game-panel-deco", out _triangleColor);
             MarkDirtyRepaint();
         }
 
@@ -49,28 +48,32 @@ namespace Client.Ui.Components
             painter.fillColor = Color.white;
             painter.fillGradient = MakeBottomFadeGradient(size.y);
             for (var i = 0; i < TriangleCount; i++) FillTriangle(painter, i * (triangleWidth + gap), triangleWidth, size.y);
-        }
 
-        private FillGradient MakeBottomFadeGradient(float height)
-        {
-            // 縦の mask: 下端 12px 手前までは不透明、下端で透明
-            // Vertical mask: opaque until 12px above the bottom, clear at the bottom
-            var opaqueUntil = height > BottomFadeLength ? (height - BottomFadeLength) / height : 0f;
-            var opaqueColor = new Color(_triangleColor.r, _triangleColor.g, _triangleColor.b, 1f);
-            _gradient.SetKeys(
-                new[] { new GradientColorKey(opaqueColor, 0f), new GradientColorKey(opaqueColor, 1f) },
-                new[] { new GradientAlphaKey(_triangleColor.a, 0f), new GradientAlphaKey(_triangleColor.a, opaqueUntil), new GradientAlphaKey(0f, 1f) });
-            return FillGradient.MakeLinearGradient(_gradient, Vector2.zero, new Vector2(0f, height), AddressMode.Clamp);
-        }
+            #region Internal
 
-        private static void FillTriangle(Painter2D painter, float left, float width, float height)
-        {
-            painter.BeginPath();
-            painter.MoveTo(new Vector2(left, 0f));
-            painter.LineTo(new Vector2(left + width, 0f));
-            painter.LineTo(new Vector2(left + width / 2f, height));
-            painter.ClosePath();
-            painter.Fill();
+            FillGradient MakeBottomFadeGradient(float height)
+            {
+                // 縦の mask: 下端 12px 手前までは不透明、下端で透明
+                // Vertical mask: opaque until 12px above the bottom, clear at the bottom
+                var opaqueUntil = BottomFadeLength < height ? (height - BottomFadeLength) / height : 0f;
+                var opaqueColor = new Color(_triangleColor.r, _triangleColor.g, _triangleColor.b, 1f);
+                _gradient.SetKeys(
+                    new[] { new GradientColorKey(opaqueColor, 0f), new GradientColorKey(opaqueColor, 1f) },
+                    new[] { new GradientAlphaKey(_triangleColor.a, 0f), new GradientAlphaKey(_triangleColor.a, opaqueUntil), new GradientAlphaKey(0f, 1f) });
+                return FillGradient.MakeLinearGradient(_gradient, Vector2.zero, new Vector2(0f, height), AddressMode.Clamp);
+            }
+
+            void FillTriangle(Painter2D painter, float left, float width, float height)
+            {
+                painter.BeginPath();
+                painter.MoveTo(new Vector2(left, 0f));
+                painter.LineTo(new Vector2(left + width, 0f));
+                painter.LineTo(new Vector2(left + width / 2f, height));
+                painter.ClosePath();
+                painter.Fill();
+            }
+
+            #endregion
         }
     }
 }

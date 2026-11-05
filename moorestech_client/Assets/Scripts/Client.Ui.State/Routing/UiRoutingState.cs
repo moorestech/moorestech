@@ -48,8 +48,9 @@ namespace Client.Ui.State.Routing
 
             // 段階3の拡張点: GameUi がモーダルを出している間もこの論理和に足して Web を休止させる
             // Stage 3 extension point: OR in "a GameUi modal is showing" here to suspend the web UI as well
-            var webUiSuspended = _ownershipTable.GetOwner(screen, UiSurface.MainPanel) == UiSurfaceOwner.GameUi;
-            return new UiRoutingSnapshot(screen, webUiSuspended);
+            var mainPanelOwner = _ownershipTable.GetOwner(screen, UiSurface.MainPanel);
+            var webUiSuspended = mainPanelOwner == UiSurfaceOwner.GameUi;
+            return new UiRoutingSnapshot(screen, webUiSuspended, mainPanelOwner);
         }
     }
 
@@ -61,21 +62,23 @@ namespace Client.Ui.State.Routing
     {
         public UiScreen Screen { get; }
         public bool WebUiSuspended { get; }
+        public UiSurfaceOwner MainPanelOwner { get; }
 
-        public UiRoutingSnapshot(UiScreen screen, bool webUiSuspended)
+        public UiRoutingSnapshot(UiScreen screen, bool webUiSuspended, UiSurfaceOwner mainPanelOwner)
         {
             Screen = screen;
             WebUiSuspended = webUiSuspended;
+            MainPanelOwner = mainPanelOwner;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is UiRoutingSnapshot other && Screen == other.Screen && WebUiSuspended == other.WebUiSuspended;
+            return obj is UiRoutingSnapshot other && Screen == other.Screen && WebUiSuspended == other.WebUiSuspended && MainPanelOwner == other.MainPanelOwner;
         }
 
         public override int GetHashCode()
         {
-            return ((int)Screen * 2) + (WebUiSuspended ? 1 : 0);
+            return (((int)Screen * 2) + (WebUiSuspended ? 1 : 0)) * 31 + (int)MainPanelOwner;
         }
 
         public override string ToString()

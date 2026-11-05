@@ -1,4 +1,4 @@
-import { isPointerOverWebUi } from "./activeLayer";
+import { isPointerOverWebUi } from "../activeLayer";
 
 // 静止したポインタの下でDOMが変わるたび、その位置の当たり判定をフレーム単位で通知する
 // Re-hit-test a stationary pointer position whenever the DOM changes, at most once per frame

@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Motion.Playback
 {
     /// <summary>
-    /// パネルで回っている 1 つの動きの再生し直し・取り消し・完了の通知
-    /// Restart, cancel and completion notification of one animation running on a panel
+    /// パネルで回っている 1 つの動きの取り消し・完了の通知
+    /// Cancel and completion notification of one animation running on a panel
     /// </summary>
     /// <remarks>
     /// 開始と再生し直しは次のスケジューラ呼び出しで行い、その時刻を頭にする（パネルの時刻は呼び出しの中でしか読めないため）。停止は Stop 1 か所に集め、取り消し・完了・パネルから外れたの 3 経路がそれを呼ぶ
@@ -34,15 +34,6 @@ namespace Client.Ui.Foundation.Motion.Playback
             _target = target;
             _scheduledItem = scheduledItem;
             _target.RegisterCallback(_onDetach);
-        }
-
-        public void Restart()
-        {
-            // 停止で外した購読を開始のたびに付け直す（溜めない）
-            // Re-subscribe on every start since Stop removes it (no accumulation)
-            _target.RegisterCallback(_onDetach);
-            _isStartPending = true;
-            _scheduledItem.Resume();
         }
 
         public void Cancel()

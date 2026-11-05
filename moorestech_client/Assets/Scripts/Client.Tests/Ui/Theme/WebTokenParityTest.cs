@@ -81,7 +81,7 @@ namespace Client.Tests.Ui.Theme
         {
             var lines = File.ReadAllLines(Path.Combine(RepositoryRoot(), UssTokenDirectory, ExclusionFile));
             var names = new HashSet<string>();
-            foreach (var line in lines.Where(line => line.Length > 0))
+            foreach (var line in lines.Where(line => 0 < line.Length))
             {
                 // 1 行は「--name<TAB>理由」。理由の無い行は表の破損
                 // Each line is "--name<TAB>reason"; a line without a reason means the table is broken
@@ -100,7 +100,7 @@ namespace Client.Tests.Ui.Theme
             const string splitPrefix = "分割: ";
             var lines = File.ReadAllLines(Path.Combine(RepositoryRoot(), UssTokenDirectory, ExclusionFile));
             var names = new HashSet<string>();
-            foreach (var line in lines.Where(line => line.Length > 0))
+            foreach (var line in lines.Where(line => 0 < line.Length))
             {
                 var reason = line.Split('\t')[1];
                 if (!reason.StartsWith(splitPrefix)) continue;

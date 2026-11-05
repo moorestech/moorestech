@@ -8,7 +8,7 @@ namespace Client.Ui.Screens.PauseMenu
     {
         public static void Add(VisualElement stack, VisualElement child)
         {
-            if (stack.childCount > 0) child.AddToClassList("pause-menu__stack-item--following");
+            if (0 < stack.childCount) child.AddToClassList("pause-menu__stack-item--following");
             stack.Add(child);
         }
     }

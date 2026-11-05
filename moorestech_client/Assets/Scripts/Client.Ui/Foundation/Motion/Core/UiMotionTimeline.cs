@@ -36,11 +36,6 @@ namespace Client.Ui.Foundation.Motion.Core
             IsRunning = true;
         }
 
-        public void Restart()
-        {
-            Start();
-        }
-
         public void Cancel()
         {
             IsRunning = false;

@@ -48,13 +48,6 @@
     -unity-text-align: middle-left;
 }
 
-.game-panel__title-action {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    translate: 0 -50%;
-}
-
 .game-panel__deco-line {
     height: 2px;
     margin: 4px 0;

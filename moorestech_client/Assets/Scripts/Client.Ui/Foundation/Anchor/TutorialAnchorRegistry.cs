@@ -27,7 +27,7 @@ namespace Client.Ui.Foundation.Anchor
                 Debug.LogWarning($"[TutorialAnchorRegistry] anchor is missing: {anchorId}");
                 return new TutorialAnchorResolution.Missing();
             }
-            if (count > 1)
+            if (1 < count)
             {
                 Debug.LogWarning($"[TutorialAnchorRegistry] anchor is duplicated ({count}): {anchorId}");
                 return new TutorialAnchorResolution.Duplicate(count);

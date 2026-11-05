@@ -37,14 +37,16 @@ namespace Client.Tests.Ui.Theme
         public void ReadsPixelsFromRedeclaredToken()
         {
             var expected = float.Parse(ReadTokenBody("--panel-edge-fade").Replace("px", ""), CultureInfo.InvariantCulture);
-            Assert.AreEqual(expected, UssCustomStyleReader.ReadPixels(_probe.customStyle, "--probe-edge-fade"), 0.0001f);
+            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(_probe.customStyle, "--probe-edge-fade", out var pixels));
+            Assert.AreEqual(expected, pixels, 0.0001f);
         }
 
         [Test]
         public void ReadsMillisecondsFromRedeclaredToken()
         {
             UssTokenValue.TryParseMilliseconds(ReadTokenBody("--notification-enter-duration"), out var expected);
-            Assert.AreEqual(expected, UssCustomStyleReader.ReadMilliseconds(_probe.customStyle, "--probe-enter"), 0.0001f);
+            Assert.IsTrue(UssCustomStyleReader.TryReadMilliseconds(_probe.customStyle, "--probe-enter", out var milliseconds));
+            Assert.AreEqual(expected, milliseconds, 0.0001f);
         }
 
         [Test]
@@ -52,7 +54,7 @@ namespace Client.Tests.Ui.Theme
         {
             var match = Regex.Match(ReadTokenBody("--surface-navy"), @"rgba\(\s*(\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\s*\)");
             Assert.IsTrue(match.Success);
-            var color = UssCustomStyleReader.ReadColor(_probe.customStyle, "--probe-face");
+            Assert.IsTrue(UssCustomStyleReader.TryReadColor(_probe.customStyle, "--probe-face", out var color));
             Assert.AreEqual(float.Parse(match.Groups[1].Value) / 255f, color.r, 0.002f);
             Assert.AreEqual(float.Parse(match.Groups[2].Value) / 255f, color.g, 0.002f);
             Assert.AreEqual(float.Parse(match.Groups[3].Value) / 255f, color.b, 0.002f);

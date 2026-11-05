@@ -17,7 +17,7 @@ vi.mock("@/bridge", async (importOriginal) => {
     useTopicSelector: (topic: string, selector: (value: unknown) => unknown) => selector(host.topics[topic] ?? null),
   };
 });
-vi.mock("@/shared/uiState/useWebInputExclusivity", () => ({ useWebInputExclusivity: () => {} }));
+vi.mock("@/shared/uiState/inputExclusivity/useWebInputExclusivity", () => ({ useWebInputExclusivity: () => {} }));
 vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
   useI18n: () => ({ status: "ready", t: (key: string) => key }),

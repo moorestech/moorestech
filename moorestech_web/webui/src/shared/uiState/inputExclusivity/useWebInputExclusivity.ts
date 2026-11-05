@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { sendInputState } from "@/bridge";
-import { browserDefaultSuppressionFor, isPointerOverWebUi, isTextInputElement, reduceWebInputState, type WebInputState } from "./activeLayer";
+import { browserDefaultSuppressionFor, isPointerOverWebUi, isTextInputElement, reduceWebInputState, type WebInputState } from "../activeLayer";
 import { watchPointerHitOnDomChange } from "./watchPointerHitOnDomChange";
 
 type SentStateRef = { current: WebInputState };

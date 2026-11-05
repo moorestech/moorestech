@@ -36,26 +36,30 @@ namespace Client.Ui.Foundation.Layers
             }
 
             return new UiLayerStack(layers);
+
+            #region Internal
+
+            VisualElement CreateLayerContainer(UiLayer layer)
+            {
+                var container = new VisualElement { name = $"layer-{layer}", pickingMode = PickingMode.Ignore };
+                container.AddToClassList(LayerUssClassName);
+
+                // 全面に広げて層同士を重ねる
+                // Stretch to the full root so the layers overlap
+                container.style.position = Position.Absolute;
+                container.style.left = 0;
+                container.style.top = 0;
+                container.style.right = 0;
+                container.style.bottom = 0;
+                return container;
+            }
+
+            #endregion
         }
 
         public VisualElement GetLayer(UiLayer layer)
         {
             return _layers[layer];
-        }
-
-        private static VisualElement CreateLayerContainer(UiLayer layer)
-        {
-            var container = new VisualElement { name = $"layer-{layer}", pickingMode = PickingMode.Ignore };
-            container.AddToClassList(LayerUssClassName);
-
-            // 全面に広げて層同士を重ねる
-            // Stretch to the full root so the layers overlap
-            container.style.position = Position.Absolute;
-            container.style.left = 0;
-            container.style.top = 0;
-            container.style.right = 0;
-            container.style.bottom = 0;
-            return container;
         }
     }
 }

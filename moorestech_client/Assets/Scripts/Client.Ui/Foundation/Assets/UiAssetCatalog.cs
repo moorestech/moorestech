@@ -45,7 +45,7 @@ namespace Client.Ui.Foundation.Assets
             AddIfMissing(pauseMenu, nameof(pauseMenu));
             AddIfMissing(settings, nameof(settings));
             AddIfMissing(bugReport, nameof(bugReport));
-            if (missing.Count > 0) throw new InvalidOperationException($"[UiAssetCatalog] unassigned style sheets on {name}: {string.Join(", ", missing)}");
+            if (0 < missing.Count) throw new InvalidOperationException($"[UiAssetCatalog] unassigned style sheets on {name}: {string.Join(", ", missing)}");
 
             #region Internal
 

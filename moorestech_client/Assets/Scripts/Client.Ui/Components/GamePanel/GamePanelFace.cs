@@ -19,7 +19,8 @@ namespace Client.Ui.Components
         private readonly float[] _gridXs = new float[GridLineCount];
         private readonly float[] _gridYs = new float[GridLineCount];
         private Color _faceColor;
-        private float _edgeFade = float.NaN;
+        private float _edgeFade;
+        private bool _hasTokens;
 
         public GamePanelFace()
         {
@@ -31,15 +32,16 @@ namespace Client.Ui.Components
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
-            _faceColor = UssCustomStyleReader.ReadColor(customStyle, "--game-panel-face");
-            _edgeFade = UssCustomStyleReader.ReadPixels(customStyle, "--game-panel-edge-fade");
+            var hasColor = UssCustomStyleReader.TryReadColor(customStyle, "--game-panel-face", out _faceColor);
+            var hasEdgeFade = UssCustomStyleReader.TryReadPixels(customStyle, "--game-panel-edge-fade", out _edgeFade);
+            _hasTokens = hasColor && hasEdgeFade;
             MarkDirtyRepaint();
         }
 
         private void DrawFace(MeshGenerationContext context)
         {
-            // silent-ok: 寸法が読めない間は描かない / UssCustomStyleReader が読めなかったトークン名を LogError で出す
-            if (float.IsNaN(_edgeFade)) return;
+            // silent-ok: トークンが読めない間は描かない / UssCustomStyleReader が読めなかったトークン名を LogError で出す
+            if (!_hasTokens) return;
 
             // 格子の線を置き、16 頂点に色、3×3 セルに三角 2 枚ずつを張る
             // Place the grid lines, color 16 vertices and span two triangles per 3x3 cell

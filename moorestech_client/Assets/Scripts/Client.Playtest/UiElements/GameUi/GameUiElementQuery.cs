@@ -23,6 +23,42 @@ namespace Client.Playtest.UiElements.GameUi
             var clickable = visible && IsPickedAtCenter(element);
             var screenRect = mapper.PanelToScreen(element.worldBound);
             return UiElementSnapshot.Found(testid, visible, clickable, screenRect, ReadText(element), ReadStateFlags(element));
+
+            #region Internal
+
+            // 中心で Pick した要素が自身か子孫なら覆われていない
+            // Not covered when the element picked at the center is itself or a descendant
+            bool IsPickedAtCenter(VisualElement element)
+            {
+                var picked = element.panel.Pick(element.worldBound.center);
+                return picked != null && (picked == element || element.Contains(picked));
+            }
+
+            string ReadText(VisualElement element)
+            {
+                if (element is TextField field) return field.value;
+                if (element is TextElement textElement) return textElement.text;
+
+                // 箱は子孫の文字を順に連結する（Web の textContent と同じ扱い）
+                // A container concatenates descendant texts in order, like the Web textContent
+                var builder = new StringBuilder();
+                foreach (var descendant in element.Query<TextElement>().ToList()) builder.Append(descendant.text);
+                return builder.ToString();
+            }
+
+            // `--selected` のような修飾子クラスだけを状態名として返す
+            // Only modifier classes such as `--selected` are returned as state names
+            IReadOnlyCollection<string> ReadStateFlags(VisualElement element)
+            {
+                var flags = new List<string>();
+                foreach (var className in element.GetClasses())
+                {
+                    if (className.Contains("--")) flags.Add(className);
+                }
+                return flags;
+            }
+
+            #endregion
         }
 
         public static UiSetTextResult SetText(VisualElement root, string testid, string text)
@@ -61,38 +97,6 @@ namespace Client.Playtest.UiElements.GameUi
                 if (!(0f < style.opacity)) return false;
             }
             return true;
-        }
-
-        // 中心で Pick した要素が自身か子孫なら覆われていない
-        // Not covered when the element picked at the center is itself or a descendant
-        private static bool IsPickedAtCenter(VisualElement element)
-        {
-            var picked = element.panel.Pick(element.worldBound.center);
-            return picked != null && (picked == element || element.Contains(picked));
-        }
-
-        private static string ReadText(VisualElement element)
-        {
-            if (element is TextField field) return field.value;
-            if (element is TextElement textElement) return textElement.text;
-
-            // 箱は子孫の文字を順に連結する（Web の textContent と同じ扱い）
-            // A container concatenates descendant texts in order, like the Web textContent
-            var builder = new StringBuilder();
-            foreach (var descendant in element.Query<TextElement>().ToList()) builder.Append(descendant.text);
-            return builder.ToString();
-        }
-
-        // `--selected` のような修飾子クラスだけを状態名として返す
-        // Only modifier classes such as `--selected` are returned as state names
-        private static IReadOnlyCollection<string> ReadStateFlags(VisualElement element)
-        {
-            var flags = new List<string>();
-            foreach (var className in element.GetClasses())
-            {
-                if (className.Contains("--")) flags.Add(className);
-            }
-            return flags;
         }
     }
 }

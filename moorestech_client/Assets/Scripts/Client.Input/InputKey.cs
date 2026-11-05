@@ -22,16 +22,16 @@ namespace Client.Input
         {
             _inputAction = key;
             _suppressionScope = suppressionScope;
-            key.started += _ => { if (!IsSuppressed() && !IsEscapeLatched()) OnGetKeyDown?.Invoke(); };
-            key.performed += _ => { if (!IsSuppressed() && !IsEscapeLatched()) OnGetKey?.Invoke(); };
+            key.started += _ => { if (FilterPress(true)) OnGetKeyDown?.Invoke(); };
+            key.performed += _ => { if (FilterPress(true)) OnGetKey?.Invoke(); };
             // 解放待ちラッチへ、入力抑止中も実解放を届ける
             // Deliver releases during suppression so release-wait latches can reset
             key.canceled += _ => OnGetKeyUp?.Invoke();
         }
         
-        public bool GetKeyDown => ReadButton(_inputAction.WasPressedThisFrame() || TestKeyDown);
-        public bool GetKey => ReadButton(_inputAction.IsPressed());
-        public bool GetKeyUp => ReadReleaseButton(_inputAction.WasReleasedThisFrame());
+        public bool GetKeyDown => FilterPress(_inputAction.WasPressedThisFrame() || TestKeyDown);
+        public bool GetKey => FilterPress(_inputAction.IsPressed());
+        public bool GetKeyUp => InputSuppressionFilter.FilterKeyRelease(_inputAction.WasReleasedThisFrame(), _suppressionScope);
         
         // このキーに割り当てた実コントロールか（修飾キー判定で自分自身を除くため）
         // Whether the control is bound to this key (to exclude itself when detecting modifier use)
@@ -47,43 +47,18 @@ namespace Client.Input
         public TValue ReadValue<TValue>() where TValue : struct
         {
             var value = _inputAction.ReadValue<TValue>();
-            if (IsSuppressed())
-            {
-                if (!EqualityComparer<TValue>.Default.Equals(value, default)) UiInputExclusivity.ProbeSuppressed(_suppressionScope.Value);
-                return default;
-            }
-            return value;
-        }
-
-        private bool ReadButton(bool value)
-        {
-            // 押下系だけESCラッチを通す（GetKeyUpは今までどおり届ける）
-            // Only press-type reads honor the ESC latch (GetKeyUp is still delivered)
-            if (value && IsEscapeLatched()) return false;
-            if (!value || !IsSuppressed()) return value;
-            UiInputExclusivity.ProbeSuppressed(_suppressionScope.Value);
-            return false;
-        }
-
-        private bool ReadReleaseButton(bool value)
-        {
-            if (!value || !IsSuppressed()) return value;
-            UiInputExclusivity.ProbeSuppressed(_suppressionScope.Value);
-            return false;
+            var hasNonDefaultValue = !EqualityComparer<TValue>.Default.Equals(value, default);
+            return InputSuppressionFilter.FilterValueInput(hasNonDefaultValue, _suppressionScope) ? value : default;
         }
 
         // 再バインドに追従するため判定のたびに自分のコントロールにESCが含まれるかを見る
         // Checked on every read so rebinding is followed: does this action's control set contain ESC
-        private bool IsEscapeLatched()
+        private bool FilterPress(bool pressed)
         {
-            if (!UiInputExclusivity.IsEscapeConsumedThisFrame) return false;
+            if (!pressed) return false;
             var keyboard = Keyboard.current;
-            return keyboard != null && IsBoundControl(keyboard.escapeKey);
-        }
-
-        private bool IsSuppressed()
-        {
-            return _suppressionScope.HasValue && UiInputExclusivity.IsSuppressed(_suppressionScope.Value);
+            var isEscapeKey = keyboard != null && IsBoundControl(keyboard.escapeKey);
+            return InputSuppressionFilter.FilterKeyPress(pressed, _suppressionScope, isEscapeKey);
         }
 
 #if UNITY_EDITOR

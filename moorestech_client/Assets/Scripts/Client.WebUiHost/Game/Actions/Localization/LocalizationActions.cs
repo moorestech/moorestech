@@ -38,12 +38,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 選択可否の判定は型付きコマンドに集約し、結果を失敗契約へ写す
             // Delegate the selectability judgement to the typed command and map the result to the failure contract
-            return UniTask.FromResult(_commands.SetLanguage(locale) switch
-            {
-                UiCommandAccepted => ActionResult.Success(),
-                UiCommandRejected rejected => ActionResult.Fail(rejected.ToWireCode()),
-                _ => throw new System.ArgumentOutOfRangeException(),
-            });
+            return UniTask.FromResult(ActionResult.FromCommandResult(_commands.SetLanguage(locale)));
         }
     }
 }

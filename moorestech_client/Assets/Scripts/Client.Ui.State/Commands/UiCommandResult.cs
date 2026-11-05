@@ -35,7 +35,7 @@ namespace Client.Ui.State.Commands
         // Failure code returned to the Web: the detail (submitter failure code) when present, else the reason's code
         public string ToWireCode()
         {
-            return Detail.Length > 0 ? Detail : UiCommandRejectReasonTraits.ToWireCode(Reason);
+            return 0 < Detail.Length ? Detail : UiCommandRejectReasonTraits.ToWireCode(Reason);
         }
     }
 }

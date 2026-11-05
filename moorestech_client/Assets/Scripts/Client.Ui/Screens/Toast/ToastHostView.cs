@@ -20,8 +20,9 @@ namespace Client.Ui.Screens.Toast
 
         private readonly StyleSheet _toastSheet;
         private readonly List<GameUiToast> _toastsWaitingForStyle = new();
-        private float _enterMilliseconds = float.NaN;
-        private float _exitMilliseconds = float.NaN;
+        private float _enterMilliseconds;
+        private float _exitMilliseconds;
+        private bool _hasDurations;
 
         public ToastHostView(StyleSheet toastSheet)
         {
@@ -37,7 +38,7 @@ namespace Client.Ui.Screens.Toast
         {
             // 出入り時間は USS の通知トークンから読むため、解決前の Push は解決後まで預かる
             // Fade durations come from the USS notification tokens, so a Push before resolution is held until it resolves
-            if (float.IsNaN(_enterMilliseconds) || float.IsNaN(_exitMilliseconds))
+            if (!_hasDurations)
             {
                 _toastsWaitingForStyle.Add(toast);
                 return;
@@ -66,9 +67,10 @@ namespace Client.Ui.Screens.Toast
         {
             // 読めなければ Reader が LogError を出し、預かったトーストは出せないまま残る
             // If unreadable the reader logs an error and the held toasts stay unshown
-            _enterMilliseconds = UssCustomStyleReader.ReadMilliseconds(customStyle, "--toast-host-enter-duration");
-            _exitMilliseconds = UssCustomStyleReader.ReadMilliseconds(customStyle, "--toast-host-exit-duration");
-            if (float.IsNaN(_enterMilliseconds) || float.IsNaN(_exitMilliseconds)) return;
+            var hasEnter = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--toast-host-enter-duration", out _enterMilliseconds);
+            var hasExit = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--toast-host-exit-duration", out _exitMilliseconds);
+            _hasDurations = hasEnter && hasExit;
+            if (!_hasDurations) return;
 
             var waiting = _toastsWaitingForStyle.ToArray();
             _toastsWaitingForStyle.Clear();

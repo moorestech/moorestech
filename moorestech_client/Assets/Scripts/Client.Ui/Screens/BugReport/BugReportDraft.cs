@@ -11,6 +11,10 @@ namespace Client.Ui.Screens.BugReport
         public string Description { get; private set; } = "";
         public PlaytestReportKind Kind { get; private set; } = PlaytestReportKind.Bug;
 
+        // Reset のたびに進む世代。送信の完了が、その後に書かれた別の書きかけを消さないための照合に使う
+        // Advances on every Reset; lets a send completion avoid wiping a different draft written after the send began
+        public int Generation { get; private set; }
+
         public void SetDescription(string description)
         {
             Description = description;
@@ -27,6 +31,7 @@ namespace Client.Ui.Screens.BugReport
         {
             Description = "";
             Kind = PlaytestReportKind.Bug;
+            Generation++;
         }
     }
 }

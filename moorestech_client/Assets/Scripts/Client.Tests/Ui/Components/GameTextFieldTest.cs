@@ -70,13 +70,13 @@ namespace Client.Tests.Ui.Components
             simulate.TypingText("ab");
 
             Assert.AreEqual(new[] { "a", "ab" }, received);
-            Assert.AreEqual("ab", gameTextField.Value);
+            Assert.AreEqual("ab", gameTextField.Field.value);
 
             // 通知無しの設定は流れない
             // Setting without notify does not stream
             gameTextField.SetValueWithoutNotify("zz");
             Assert.AreEqual(2, received.Count);
-            Assert.AreEqual("zz", gameTextField.Value);
+            Assert.AreEqual("zz", gameTextField.Field.value);
         }
 
         [TestCase(false)]

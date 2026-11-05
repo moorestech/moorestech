@@ -24,7 +24,7 @@ import { EventLanguageGate } from "@/features/eventLanguageGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { isWebUiSuspended, screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
 import { useUiScaleStore } from "@/shared/uiScale";
-import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
+import { useWebInputExclusivity } from "@/shared/uiState/inputExclusivity/useWebInputExclusivity";
 import styles from "./App.module.css";
 
 // 基準stageをviewportへ収める一様拡縮を同期する
@@ -77,7 +77,8 @@ export default function App() {
   useWebInputExclusivity(webUiSuspended);
   // stage が描かれない間の resize を取りこぼさないよう、描画再開で倍率を測り直す
   // Re-measure the scale when rendering resumes so a resize while the stage was unmounted is not lost
-  const stageRef = useStageScaleSync(uiVisible && !cutScene && !webUiSuspended);
+  const webUiHidden = !uiVisible || cutScene || webUiSuspended;
+  const stageRef = useStageScaleSync(!webUiHidden);
   const researchScreen = screen === "researchTree";
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
@@ -88,7 +89,7 @@ export default function App() {
 
   // Ctrl+U中とUITK主パネル表示中（R1）はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active or UITK shows a main panel (R1)
-  if (!uiVisible || cutScene || webUiSuspended) return <div className={styles.hidden} data-web-ui-transparent />;
+  if (webUiHidden) return <div className={styles.hidden} data-web-ui-transparent />;
 
   return (
     <div className={styles.viewport} data-web-ui-transparent>

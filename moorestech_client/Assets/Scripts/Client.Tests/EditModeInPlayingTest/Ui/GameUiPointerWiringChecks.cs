@@ -58,9 +58,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             // SetText で値が入る
             // SetText puts the value in
             var setText = await locator.SetText(field.Field.name, "wiring-check", 1f);
-            Debug.Log($"[GameUiInputWiring] setText status={setText.Status} actual='{setText.ActualValue}' field='{field.Value}'");
+            Debug.Log($"[GameUiInputWiring] setText status={setText.Status} actual='{setText.ActualValue}' field='{field.Field.value}'");
             Assert.AreEqual(UiSetTextStatus.Applied, setText.Status, "SetText が Applied を返さない");
-            Assert.AreEqual("wiring-check", field.Value, "SetText の値が入力欄に入っていない");
+            Assert.AreEqual("wiring-check", field.Field.value, "SetText の値が入力欄に入っていない");
             return center;
         }
 

@@ -22,7 +22,7 @@ namespace Client.Tests.Ui.Routing
             foreach (UiScreen screen in Enum.GetValues(typeof(UiScreen)))
             foreach (UiSurface surface in Enum.GetValues(typeof(UiSurface)))
             {
-                var expected = surface == UiSurface.MainPanel && Array.IndexOf(gameUiScreens, screen) >= 0 ? UiSurfaceOwner.GameUi : UiSurfaceOwner.Web;
+                var expected = surface == UiSurface.MainPanel && 0 <= Array.IndexOf(gameUiScreens, screen) ? UiSurfaceOwner.GameUi : UiSurfaceOwner.Web;
                 Assert.AreEqual(expected, table.GetOwner(screen, surface), $"{screen}/{surface}");
             }
         }

@@ -104,7 +104,7 @@ namespace Client.Tests.Ui.Dsl
             Place(gameTextField);
 
             Assert.AreEqual(UiSetTextStatus.Applied, GameUiElementQuery.SetText(rootVisualElement, Testid, "abc").Status);
-            Assert.AreEqual("abc", gameTextField.Value);
+            Assert.AreEqual("abc", gameTextField.Field.value);
         }
 
         [Test]

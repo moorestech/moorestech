@@ -68,7 +68,8 @@ namespace Client.Tests.Ui.Components
             simulate.FrameUpdate();
             var expected = float.Parse(ReadTokenBody("--panel-edge-fade").Replace("px", ""), CultureInfo.InvariantCulture);
             var face = _panel.Q(className: "game-panel__face");
-            Assert.AreEqual(expected, UssCustomStyleReader.ReadPixels(face.customStyle, "--game-panel-edge-fade"), 0.0001f);
+            Assert.IsTrue(UssCustomStyleReader.TryReadPixels(face.customStyle, "--game-panel-edge-fade", out var pixels));
+            Assert.AreEqual(expected, pixels, 0.0001f);
         }
 
         [Test]

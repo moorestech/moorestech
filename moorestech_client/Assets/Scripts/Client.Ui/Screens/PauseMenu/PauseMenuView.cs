@@ -7,7 +7,6 @@ using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BugReport;
-using Client.Ui.Screens.Settings;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Toast;
@@ -34,11 +33,7 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly VisualElement _pageHost;
         private CompositeDisposable _subscriptions;
         private PauseMenuPage _shownPage;
-        private PauseMenuTopPageView _top;
-        private LanguageSelectView _language;
-        private SprintModeSelectView _sprint;
-        private GraphicsQualitySettingsView _graphics;
-        private BugReportFormView _bugReport;
+        private IPauseMenuPage _currentPage;
 
         public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft, UiAssetCatalog catalog)
         {
@@ -80,6 +75,7 @@ namespace Client.Ui.Screens.PauseMenu
         public void SetShown(bool shown)
         {
             if (shown == (_subscriptions != null)) return;
+            if (!shown) BlurFocusedDescendant();
             style.display = shown ? DisplayStyle.Flex : DisplayStyle.None;
             if (!shown)
             {
@@ -103,15 +99,12 @@ namespace Client.Ui.Screens.PauseMenu
         private void OnPauseMenuChanged(PauseMenuViewModel model)
         {
             if (_shownPage != model.Page) ShowPage(model);
-            _top?.SetDisconnected(model.Disconnected);
-            _bugReport?.Apply(model);
+            _currentPage.ApplyPauseMenu(model);
         }
 
         private void OnSettingsChanged(SettingsViewModel model)
         {
-            _language?.Apply(model);
-            _sprint?.Apply(model);
-            _graphics?.Apply(model);
+            _currentPage.ApplySettings(model);
         }
 
         private void ShowPage(PauseMenuViewModel model)
@@ -119,11 +112,6 @@ namespace Client.Ui.Screens.PauseMenu
             // 前のページの View を捨てて作り直す。書きかけは BugReportDraft が持つので消えない
             // Drop the previous page's views and rebuild; the draft survives in BugReportDraft
             _pageHost.Clear();
-            _top = null;
-            _language = null;
-            _sprint = null;
-            _graphics = null;
-            _bugReport = null;
             _shownPage = model.Page;
             switch (model.Page)
             {
@@ -138,32 +126,26 @@ namespace Client.Ui.Screens.PauseMenu
             void BuildTop()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
-                _top = new PauseMenuTopPageView(_commands, _catalog);
-                _top.SetDisconnected(model.Disconnected);
-                _pageHost.Add(_top);
+                Show(new PauseMenuTopPageView(_commands, _catalog));
             }
 
             void BuildSettings()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
-                var subPage = new PauseMenuSubPageView(_commands, _catalog);
-                var settings = _settings.Value;
-                _language = new LanguageSelectView(settings, _settingsCommands, _toasts, _catalog);
-                _sprint = new SprintModeSelectView(settings, _settingsCommands, _catalog);
-                _graphics = new GraphicsQualitySettingsView(settings, _settingsCommands, _catalog);
-                subPage.AddSection(_language);
-                subPage.AddSection(_sprint);
-                subPage.AddSection(_graphics);
-                _pageHost.Add(subPage);
+                Show(new PauseMenuSettingsPage(_settings.Value, _commands, _settingsCommands, _toasts, _catalog));
             }
 
             void BuildBugReport()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.BugReport);
-                var subPage = new PauseMenuSubPageView(_commands, _catalog);
-                _bugReport = new BugReportFormView(model, _commands, _toasts, _draft, _catalog);
-                subPage.AddSection(_bugReport);
-                _pageHost.Add(subPage);
+                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _draft, _catalog));
+            }
+
+            void Show(IPauseMenuPage page)
+            {
+                page.ApplyPauseMenu(model);
+                _currentPage = page;
+                _pageHost.Add(page.Root);
             }
 
             #endregion
@@ -172,6 +154,13 @@ namespace Client.Ui.Screens.PauseMenu
         private void UpdateLocaleMarker()
         {
             _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
+        }
+
+        // 入力欄にフォーカスがあるまま隠すと、非表示のまま入力中の扱いが残りキーが効かなくなる
+        // Hiding with a text field still focused would leave it counted as typing and keep world keys suppressed
+        private void BlurFocusedDescendant()
+        {
+            if (focusController?.focusedElement is VisualElement focused && Contains(focused)) focused.Blur();
         }
     }
 }

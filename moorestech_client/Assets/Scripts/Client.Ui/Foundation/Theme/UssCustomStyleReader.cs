@@ -13,25 +13,28 @@ namespace Client.Ui.Foundation.Theme
     /// </remarks>
     public static class UssCustomStyleReader
     {
-        public static float ReadPixels(ICustomStyle style, string propertyName)
+        public static bool TryReadPixels(ICustomStyle style, string propertyName, out float pixels)
         {
-            if (style.TryGetValue(new CustomStyleProperty<string>(propertyName), out var text) && UssTokenValue.TryParsePixels(text, out var pixels)) return pixels;
+            if (style.TryGetValue(new CustomStyleProperty<string>(propertyName), out var text) && UssTokenValue.TryParsePixels(text, out pixels)) return true;
             Debug.LogError($"[UssCustomStyleReader] {propertyName} is not a resolved length (got '{text}')");
-            return float.NaN;
+            pixels = 0f;
+            return false;
         }
 
-        public static float ReadMilliseconds(ICustomStyle style, string propertyName)
+        public static bool TryReadMilliseconds(ICustomStyle style, string propertyName, out float milliseconds)
         {
-            if (style.TryGetValue(new CustomStyleProperty<string>(propertyName), out var text) && UssTokenValue.TryParseMilliseconds(text, out var milliseconds)) return milliseconds;
+            if (style.TryGetValue(new CustomStyleProperty<string>(propertyName), out var text) && UssTokenValue.TryParseMilliseconds(text, out milliseconds)) return true;
             Debug.LogError($"[UssCustomStyleReader] {propertyName} is not a resolved duration (got '{text}')");
-            return float.NaN;
+            milliseconds = 0f;
+            return false;
         }
 
-        public static Color ReadColor(ICustomStyle style, string propertyName)
+        public static bool TryReadColor(ICustomStyle style, string propertyName, out Color color)
         {
-            if (style.TryGetValue(new CustomStyleProperty<Color>(propertyName), out var color)) return color;
+            if (style.TryGetValue(new CustomStyleProperty<Color>(propertyName), out color)) return true;
             Debug.LogError($"[UssCustomStyleReader] {propertyName} is not a resolved color");
-            return Color.magenta;
+            color = Color.clear;
+            return false;
         }
     }
 }

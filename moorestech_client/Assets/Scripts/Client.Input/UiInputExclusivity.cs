@@ -20,7 +20,7 @@ namespace Client.Input
     {
         // Webはpongが15秒途絶えるとWSを閉じる（moorestech_web/webui/src/bridge/transport/webSocketClient.ts の 15000ms）。同じ値で無応答とみなす
         // The web closes the WS after 15s without a pong (15000ms in webSocketClient.ts); the same value marks the web as silent
-        public const double WebSilenceThresholdSeconds = 15.0;
+        private const double WebSilenceThresholdSeconds = 15.0;
 
         // 現在値と変化通知を1本に畳む。購読が現在値を必ず連れてくるので取得と購読の間に落ちる窓が無い
         // Current value and change notification live in one stream, so nothing can slip between reading and subscribing

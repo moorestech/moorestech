@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Client.Localization;
 using Mooresmaster.Localization.Generated;
 
-namespace Client.Ui.State.PauseMenu
+namespace Client.Ui.State.Text
 {
     /// <summary>
     /// 辞書キーと名前付き引数だけを運ぶ文。表示の直前に Resolve で現在の言語へ解く

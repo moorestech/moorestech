@@ -1,6 +1,8 @@
 using System.Collections;
+using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Input;
 using Client.Playtest.Input;
@@ -9,6 +11,8 @@ using Client.Playtest.UiElements.GameUi;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.State.Routing;
+using Client.WebUiHost.Boot;
+using Client.WebUiHost.Game.Topics;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -55,6 +59,12 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var pauseMenuState = resolver.Resolve<PauseMenuStateService>();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
 
+                // 実ルーティングで作った ui_state の配信 JSON が、ポーズで休止 true・戻って false になり、変化のたびに再配信される（R1）
+                // The ui_state JSON built from the real routing reads suspended=true in pause and false after, and republishes on each change (R1)
+                var hub = new WebSocketHub();
+                using var uiStateTopic = new UiStateTopic(hub, uiStateControl, resolver.Resolve<UIStateDictionary>(), resolver.Resolve<IReadOnlyList<INestedPauseScreenState>>(), routingState);
+                StringAssert.Contains("\"webUiSuspended\":false", await uiStateTopic.GetSnapshotJsonAsync(), "ゲーム画面で休止が false でない");
+
                 // ゲーム画面で Esc を押すと UITK のポーズが出て Web が休止する
                 // Pressing Esc on the game screen shows the UITK pause and suspends the web
                 await PressEscape();
@@ -62,6 +72,9 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.PauseMenu).Q("pause-menu"), "UiLayer.PauseMenu に pause-menu が無い");
                 Assert.IsTrue(Find("pause-menu").Visible, "UITK のポーズが見えない");
                 Assert.IsTrue(routingState.Current.Value.WebUiSuspended, $"ポーズで Web が休止していない: {routingState.Current.Value}");
+                StringAssert.Contains("\"webUiSuspended\":true", await uiStateTopic.GetSnapshotJsonAsync(), "ポーズの ui_state に休止 true が載らない");
+                var revisionInPause = hub.GetTopicRevision(UiStateTopic.TopicName);
+                Assert.Greater(revisionInPause, 0, "ポーズへの遷移で ui_state が再配信されない");
                 Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "休止中に Web がポインタを主張している");
 
                 // 休止中に Web 側の値が届いても入力欄フォーカスにならない
@@ -85,6 +98,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.AreEqual(UIStateEnum.GameScreen, uiStateControl.CurrentState, "トップの Esc でゲーム画面へ戻らない");
                 Assert.IsFalse(Find("pause-menu").Visible, "閉じた後も UITK のポーズが見えている");
                 Assert.IsFalse(routingState.Current.Value.WebUiSuspended, $"閉じても Web が休止したまま: {routingState.Current.Value}");
+                StringAssert.Contains("\"webUiSuspended\":false", await uiStateTopic.GetSnapshotJsonAsync(), "閉じた後の ui_state に休止 false が載らない");
+                Assert.Greater(hub.GetTopicRevision(UiStateTopic.TopicName), revisionInPause, "ポーズを閉じても ui_state が再配信されない");
 
                 // 休止前に入れた true は閉じた直後に残っていない
                 // The true written before closing does not survive right after closing

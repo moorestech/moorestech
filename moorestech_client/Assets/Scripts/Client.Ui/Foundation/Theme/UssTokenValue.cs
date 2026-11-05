@@ -29,7 +29,9 @@ namespace Client.Ui.Foundation.Theme
 
         private static bool TryParseNumber(string text, out float value)
         {
-            return float.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+            // NaN・Infinity は尺や長さとして使えないので数として読まない
+            // NaN and Infinity are unusable as lengths or durations, so they are not read as numbers
+            return float.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value) && !float.IsNaN(value) && !float.IsInfinity(value);
         }
     }
 }

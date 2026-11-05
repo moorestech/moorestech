@@ -8,9 +8,12 @@ using Client.Tests.Ui.Screens.PauseMenu;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Text;
 using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BugReport
@@ -102,6 +105,22 @@ namespace Client.Tests.Ui.Screens.BugReport
 
             _commands.CompleteSubmit(UiCommandAccepted.Instance);
             Assert.IsTrue(Description().enabledSelf);
+        }
+
+        [Test]
+        public void 送信中に下書きが作り直されたら古い送信の完了は新しい下書きを消さない()
+        {
+            Type("report A");
+            simulate.Click(SendButton());
+
+            // 送信中にポーズを開き直して別の本文を書き始めた状態
+            // The pause was reopened during the send and a different description was started
+            _draft.Reset();
+            _draft.SetDescription("report B");
+
+            LogAssert.Expect(LogType.Warning, "[BugReportFormView] draft was reset during the send; keeping the newer draft");
+            _commands.CompleteSubmit(UiCommandAccepted.Instance);
+            Assert.AreEqual("report B", _draft.Description);
         }
 
         [Test]

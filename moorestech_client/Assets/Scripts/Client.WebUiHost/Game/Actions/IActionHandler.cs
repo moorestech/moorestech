@@ -1,3 +1,4 @@
+using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -36,6 +37,18 @@ namespace Client.WebUiHost.Game.Actions
         public static ActionResult Success()
         {
             return new ActionResult(true, null);
+        }
+
+        // 型付きコマンドの結果を失敗契約へ写す正本
+        // The single mapping from a typed command result to the failure contract
+        public static ActionResult FromCommandResult(UiCommandResult result)
+        {
+            return result switch
+            {
+                UiCommandAccepted => Success(),
+                UiCommandRejected rejected => Fail(rejected.ToWireCode()),
+                _ => throw new System.ArgumentOutOfRangeException(nameof(result), result, null),
+            };
         }
 
         public static ActionResult Fail(string error)

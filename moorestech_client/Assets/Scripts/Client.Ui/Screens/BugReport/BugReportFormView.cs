@@ -8,6 +8,7 @@ using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Text;
 using Client.Ui.State.Toast;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
@@ -119,6 +120,7 @@ namespace Client.Ui.Screens.BugReport
             // Report with the capture state and kind at click time; gaps during writing remain only in the manifest
             var captureAtClick = _capture;
             var kind = _draft.Kind;
+            var draftGeneration = _draft.Generation;
             _sending = true;
             Refresh();
             var outcome = await _commands.SubmitBugReport(_draft.Description.Trim(), kind);
@@ -136,6 +138,15 @@ namespace Client.Ui.Screens.BugReport
             var missing = BugReportFormText.DescribeMissing(captureAtClick);
             if (missing == null) _toasts.Show(Localize.Get(BugReportFormText.SentToast(kind)), GameUiToastVariant.Info);
             else _toasts.Show(missing.Resolve(), GameUiToastVariant.Error);
+
+            // 送信中にポーズを開き直して別の書きかけが始まっていたら、それを消さない
+            // If the pause was reopened during the send and a different draft began, do not wipe it
+            if (draftGeneration != _draft.Generation)
+            {
+                Debug.LogWarning("[BugReportFormView] draft was reset during the send; keeping the newer draft");
+                Refresh();
+                return;
+            }
 
             _draft.Reset();
             _description.SetValueWithoutNotify(_draft.Description);

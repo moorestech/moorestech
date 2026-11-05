@@ -23,7 +23,6 @@ namespace Client.Ui.Components.TextField
         private readonly IVisualElementScheduledItem _focusedTick;
 
         public UnityEngine.UIElements.TextField Field { get; }
-        public string Value => Field.value;
 
         /// <summary>
         /// 値の変化。IME の変換中の未確定文字列も値として流れる。購読側（文字数の検証・即時の絞り込み）は未確定の文字列でも壊れないこと（§4.9）

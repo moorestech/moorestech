@@ -13,6 +13,10 @@ namespace Client.Ui.Foundation.Motion.Tween
 
         public UiMotionSpec(float durationMilliseconds, float delayMilliseconds, UiEasing easing, UiMotionLoop loop)
         {
+            // 非有限の尺・遅延は Once でも終わらない tween になるので作らせない
+            // A non-finite duration or delay would make a Once tween that never ends, so refuse to build it
+            if (!float.IsFinite(durationMilliseconds)) throw new System.ArgumentOutOfRangeException(nameof(durationMilliseconds), durationMilliseconds, "UiMotionSpec duration must be finite");
+            if (!float.IsFinite(delayMilliseconds)) throw new System.ArgumentOutOfRangeException(nameof(delayMilliseconds), delayMilliseconds, "UiMotionSpec delay must be finite");
             DurationMilliseconds = durationMilliseconds;
             DelayMilliseconds = delayMilliseconds;
             Easing = easing;

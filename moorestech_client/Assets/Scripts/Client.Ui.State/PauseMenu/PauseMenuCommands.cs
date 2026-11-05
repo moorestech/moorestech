@@ -58,7 +58,7 @@ namespace Client.Ui.State.PauseMenu
 
             // クラッシュは前回異常終了の箱だけが作る。ポーズからは送らせない
             // Only the previous-crash box creates the crash kind; the pause menu must not send it
-            if (!IsSubmittableFromPauseMenu(kind))
+            if (!PlaytestReportKindText.IsSubmittableFromPauseMenu(kind))
             {
                 Debug.LogWarning($"プレイ報告の種別がポーズから送れないため送信しません kind:{kind}");
                 return new UiCommandRejected(UiCommandRejectReason.UnsubmittableReportKind, "");
@@ -77,21 +77,6 @@ namespace Client.Ui.State.PauseMenu
             // After a send the pause stays open and returns to the top; on failure the page stays so the draft survives
             _pauseMenuStateService.ShowPage(PauseMenuPage.Top);
             return UiCommandAccepted.Instance;
-
-            #region Internal
-
-            bool IsSubmittableFromPauseMenu(PlaytestReportKind reportKind)
-            {
-                return reportKind switch
-                {
-                    PlaytestReportKind.Bug => true,
-                    PlaytestReportKind.Feedback => true,
-                    PlaytestReportKind.Crash => false,
-                    _ => false,
-                };
-            }
-
-            #endregion
         }
 
         // 送信できない報告の再送。結果は配送状況の板で届く

@@ -11,7 +11,6 @@ namespace Client.Ui.Components
         private readonly VisualElement _topDecoLine;
         private readonly VisualElement _header;
         private readonly VisualElement _bottomDecoLine;
-        private readonly VisualElement _titleAction;
         private readonly VisualElement _body;
 
         public override VisualElement contentContainer => _body;
@@ -34,9 +33,6 @@ namespace Client.Ui.Components
             _header = new VisualElement();
             _header.AddToClassList("game-panel__header");
             _header.style.display = DisplayStyle.None;
-            _titleAction = new VisualElement();
-            _titleAction.AddToClassList("game-panel__title-action");
-            _header.Add(_titleAction);
             hierarchy.Add(_header);
             _bottomDecoLine = new GamePanelDecoLine("game-panel__deco-line--bottom");
             _bottomDecoLine.style.display = DisplayStyle.None;
@@ -54,11 +50,6 @@ namespace Client.Ui.Components
             _topDecoLine.style.display = DisplayStyle.Flex;
             _header.style.display = DisplayStyle.Flex;
             _bottomDecoLine.style.display = DisplayStyle.Flex;
-        }
-
-        public void SetTitleAction(VisualElement action)
-        {
-            _titleAction.Add(action);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Client.Ui.Components
 
             for (var i = 0; i < options.Count; i++)
             {
-                var button = CreateOptionButton(options[i], i > 0);
+                var button = CreateOptionButton(options[i], 0 < i);
                 _buttons.Add(button);
                 Add(button);
             }

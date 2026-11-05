@@ -5,6 +5,7 @@ using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Settings;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -14,7 +15,7 @@ namespace Client.Ui.Screens.PauseMenu
     /// ポーズのトップ。切断時の 1 行とセーブ 2・子画面の入口 2 のボタン（Web の PauseMenuTopPage・ADR 0069）
     /// Pause-menu top: the disconnected line plus two save actions and two sub-page entries (Web PauseMenuTopPage, ADR 0069)
     /// </summary>
-    public sealed class PauseMenuTopPageView : VisualElement
+    public sealed class PauseMenuTopPageView : VisualElement, IPauseMenuPage
     {
         private readonly LocalizedLabel _disconnected;
 
@@ -52,9 +53,15 @@ namespace Client.Ui.Screens.PauseMenu
             #endregion
         }
 
-        public void SetDisconnected(bool disconnected)
+        public VisualElement Root => this;
+
+        public void ApplyPauseMenu(PauseMenuViewModel model)
         {
-            _disconnected.style.display = disconnected ? DisplayStyle.Flex : DisplayStyle.None;
+            _disconnected.style.display = model.Disconnected ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        public void ApplySettings(SettingsViewModel model)
+        {
         }
     }
 }
