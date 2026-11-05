@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
+using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using NUnit.Framework;
 using UniRx;
@@ -25,6 +26,15 @@ namespace Client.Tests.WebUi
         {
             Assert.AreEqual("GameScreen", UiStateTopic.ResolveSubState(new NestedPauseScreenStub(NestedPauseSubStateEnum.GameScreen)));
             Assert.AreEqual("PauseMenuScreen", UiStateTopic.ResolveSubState(new NestedPauseScreenStub(NestedPauseSubStateEnum.PauseMenuScreen)));
+        }
+
+        // Web休止（R1）の可否は常に載る。false でも省かれるとWeb側のschemaが契約破れで弾く
+        // Web suspension (R1) always travels; omitting it even when false would make the web schema reject the payload
+        [Test]
+        public void WebUiSuspendedIsAlwaysSerialized()
+        {
+            var json = WebUiJson.Serialize(new UiStateDto { State = "GameScreen", KeyHints = new KeyHintDto[0], WebUiSuspended = false });
+            StringAssert.Contains("\"webUiSuspended\":false", json);
         }
 
         private class NestedPauseScreenStub : INestedPauseScreenState

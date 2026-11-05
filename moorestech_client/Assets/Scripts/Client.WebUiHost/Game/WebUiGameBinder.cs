@@ -96,7 +96,7 @@ namespace Client.WebUiHost.Game
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
             var nestedPauseScreens = resolver.Resolve<IReadOnlyList<INestedPauseScreenState>>();
-            var uiStateTopic = new UiStateTopic(hub, uiStateControl, uiStateDictionary, nestedPauseScreens);
+            var uiStateTopic = new UiStateTopic(hub, uiStateControl, uiStateDictionary, nestedPauseScreens, resolver.Resolve<Client.Ui.State.Routing.UiRoutingState>());
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));

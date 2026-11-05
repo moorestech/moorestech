@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
+using Client.Ui.State.Routing;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
@@ -23,12 +24,15 @@ namespace Client.WebUiHost.Game.Topics
         private readonly UIStateControl _uiStateControl;
         private readonly UIStateDictionary _uiStateDictionary;
         private readonly IReadOnlyList<IDisposable> _nestedStateSubscriptions;
+        private readonly UiRoutingState _routingState;
+        private readonly IDisposable _routingSubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, IReadOnlyList<INestedPauseScreenState> nestedPauseScreens)
+        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, IReadOnlyList<INestedPauseScreenState> nestedPauseScreens, UiRoutingState routingState)
         {
             _hub = hub;
+            _routingState = routingState;
             _uiStateControl = uiStateControl;
             _uiStateDictionary = uiStateDictionary;
 
@@ -38,6 +42,10 @@ namespace Client.WebUiHost.Game.Topics
             _nestedStateSubscriptions = nestedPauseScreens
                 .Select(nested => nested.OnPresentationChanged.Subscribe(_ => SchedulePublish()))
                 .ToArray();
+
+            // Web休止の変化（Editor上書きを含む）も配る（R1）
+            // Also publish web-suspension changes, including Editor overrides (R1)
+            _routingSubscription = _routingState.Current.Subscribe(_ => SchedulePublish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -50,6 +58,7 @@ namespace Client.WebUiHost.Game.Topics
             _disposed = true;
             _uiStateSubscription.Dispose();
             foreach (var subscription in _nestedStateSubscriptions) subscription.Dispose();
+            _routingSubscription.Dispose();
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -93,6 +102,7 @@ namespace Client.WebUiHost.Game.Topics
                 State = currentState.ToString(),
                 SubState = ResolveSubState(_uiStateControl.GetCurrentNestedPauseScreen()),
                 KeyHints = keyHints,
+                WebUiSuspended = _routingState.Resolve().WebUiSuspended,
             });
         }
 
@@ -113,6 +123,9 @@ namespace Client.WebUiHost.Game.Topics
         public string State;
         public string SubState;
         public KeyHintDto[] KeyHints;
+        // UITKが主パネルを出す間はWebを全部unmountさせる（R1）
+        // While UITK shows a main panel the web unmounts everything (R1)
+        public bool WebUiSuspended;
     }
 
     /// <summary>
