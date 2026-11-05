@@ -3,28 +3,49 @@
 import { evaluateCalc, numberWithUnit } from "./evaluateCalc.mjs";
 import { formatColor, parseColor } from "./cssColors.mjs";
 import { formatNumber } from "./parseCssTokens.mjs";
+import { convertCompound } from "./compoundTokens.mjs";
+import { postProcessToken } from "./postProcessToken.mjs";
 
-const viewportReason = "実行時の寸法。USS の配置か C# の幾何で置き換える";
+const viewportReason = "実行時の寸法: USS の配置か C# の幾何";
 const viewportNamePattern = /^--ui-(stage|viewport)-/;
 
 export function createTokenConverter(rawByName) {
-  const results = new Map();
-  return { convert };
+  const baseResults = new Map();
+  const finalResults = new Map();
+  const translucentRows = [];
+  return { convert, translucentRows };
 
+  // 出力用。参照解決は補正前の base を使い、補正を二重に掛けない
+  // For output; reference resolution uses the uncorrected base so corrections never apply twice
   function convert(name) {
-    if (!results.has(name)) {
+    if (!finalResults.has(name)) finalResults.set(name, finalize(name, convertBase(name)));
+    return finalResults.get(name);
+  }
+
+  function finalize(name, base) {
+    if (base.excluded) return { ...base, reason: rewriteExclusionReason(name, base.reason) };
+    if (base.derived !== undefined) {
+      return { ...base, derived: base.derived.map((token) => ({ ...token, ...postProcessToken(token.name, token, translucentRows) })) };
+    }
+    return postProcessToken(name, base, translucentRows);
+  }
+
+  function convertBase(name) {
+    if (!baseResults.has(name)) {
       // 循環参照は計算中の印で検出して除外する
       // Cycles are detected by the in-progress marker and excluded
-      results.set(name, excluded("循環参照"));
-      results.set(name, convertUncached(name));
+      baseResults.set(name, excluded("循環参照"));
+      baseResults.set(name, convertUncached(name));
     }
-    return results.get(name);
+    return baseResults.get(name);
   }
 
   function convertUncached(name) {
     if (!rawByName.has(name)) return excluded(`未定義のトークン ${name} を参照`);
     const raw = rawByName.get(name);
     if (viewportNamePattern.test(name)) return { excluded: true, viewport: true, reason: viewportReason };
+    const compound = convertCompound(name, raw, resolveNumber);
+    if (compound !== null) return compound;
     const referenceFailure = findExcludedReference(raw);
     if (referenceFailure !== null) return referenceFailure;
     if (/^var\(--[\w-]+\)$/.test(raw)) return { value: raw };
@@ -40,7 +61,7 @@ export function createTokenConverter(rawByName) {
   // A token referencing an excluded token is excluded too; viewport dependence carries its reason
   function findExcludedReference(raw) {
     for (const match of raw.matchAll(/var\((--[\w-]+)\)/g)) {
-      const referenced = convert(match[1]);
+      const referenced = convertBase(match[1]);
       if (!referenced.excluded) continue;
       if (referenced.viewport) return { excluded: true, viewport: true, reason: `${viewportReason}（${match[1]} に依存）` };
       return excluded(`参照先 ${match[1]} が除外`);
@@ -78,8 +99,8 @@ export function createTokenConverter(rawByName) {
   // 解決後の値を数値へ。var だけの値は参照先をたどる
   // Resolves a token to a number, following var-only values
   function resolveNumber(name) {
-    const result = convert(name);
-    if (result.excluded) return null;
+    const result = convertBase(name);
+    if (result.excluded || result.value === undefined) return null;
     const varMatch = result.value.match(/^var\((--[\w-]+)\)$/);
     if (varMatch) return resolveNumber(varMatch[1]);
     const numberMatch = result.value.match(/^(-?\d*\.?\d+)([a-z%]*)$/);
@@ -87,13 +108,22 @@ export function createTokenConverter(rawByName) {
   }
 
   function resolveColor(name) {
-    const result = convert(name);
-    return result.excluded ? null : parseColor(result.value, resolveColor);
+    const result = convertBase(name);
+    return result.excluded || result.value === undefined ? null : parseColor(result.value, resolveColor);
   }
 }
 
 function excluded(reason) {
   return { excluded: true, viewport: false, reason };
+}
+
+// 除外理由を行き先の分類語（層 enum・実行時の寸法・UiMotion・フォントアセット）で始まる形へ揃える
+// Rewrites exclusion reasons to start with their destination category (layer enum, runtime size, UiMotion, font asset)
+function rewriteExclusionReason(name, reason) {
+  if (name === "--font-ui") return "フォントアセット: Typography.uss の -unity-font-definition（GameUi{Latin,Japanese,Korean} SDF）";
+  if (name.startsWith("--tutorial-pulse-")) return "UiMotion: @keyframes 名は UiMotion の尺トークンで置き換える";
+  if (name.startsWith("--z-")) return "層 enum: UiLayer";
+  return reason;
 }
 
 function classifyNonScalar(raw) {

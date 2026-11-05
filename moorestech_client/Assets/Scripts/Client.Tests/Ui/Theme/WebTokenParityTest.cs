@@ -28,6 +28,13 @@ namespace Client.Tests.Ui.Theme
             var cssNames = ReadDeclaredNames(WebTokenDirectory, WebTokenFiles);
             var ussNames = ReadDeclaredNames(UssTokenDirectory, UssTokenFiles);
             var excludedNames = ReadExcludedNames();
+            var derivedNames = ReadDerivedNames();
+
+            // 分割で生まれた派生名は CSS に無いので比べる前に除き、すべて USS にあることを確かめる
+            // Derived names from splits are absent from CSS, so remove them before comparing and check they all exist in USS
+            var missingDerived = derivedNames.Except(ussNames).ToList();
+            Assert.IsEmpty(missingDerived, $"Derived names missing from USS: {string.Join(", ", missingDerived)}");
+            ussNames.ExceptWith(derivedNames);
 
             // USS と除外表は交わらず、合わせると CSS と同じ集合になる
             // USS and the exclusion table are disjoint and together equal the CSS set
@@ -46,7 +53,7 @@ namespace Client.Tests.Ui.Theme
         {
             // USS が解釈しない CSS 構文が変換後に残っていない
             // No CSS syntax that USS cannot parse remains after conversion
-            var forbidden = new[] { "calc(", "rem", "color-mix", "rgb(from" };
+            var forbidden = new[] { "calc(", "rem", "color-mix", "rgb(from", "em;", "linear-gradient", "solid" };
             foreach (var fileName in UssTokenFiles)
             {
                 var text = File.ReadAllText(Path.Combine(RepositoryRoot(), UssTokenDirectory, fileName));
@@ -82,6 +89,22 @@ namespace Client.Tests.Ui.Theme
                 Assert.AreEqual(2, columns.Length, $"Malformed exclusion line: {line}");
                 Assert.IsNotEmpty(columns[1].Trim(), $"Exclusion without a reason: {line}");
                 Assert.IsTrue(names.Add(columns[0]), $"Duplicate exclusion: {columns[0]}");
+            }
+            return names;
+        }
+
+        private static HashSet<string> ReadDerivedNames()
+        {
+            // 除外表の理由が「分割: --a, --b」の行の右辺が派生名
+            // The right side of exclusion rows whose reason is "分割: --a, --b" lists the derived names
+            const string splitPrefix = "分割: ";
+            var lines = File.ReadAllLines(Path.Combine(RepositoryRoot(), UssTokenDirectory, ExclusionFile));
+            var names = new HashSet<string>();
+            foreach (var line in lines.Where(line => line.Length > 0))
+            {
+                var reason = line.Split('\t')[1];
+                if (!reason.StartsWith(splitPrefix)) continue;
+                foreach (var name in reason.Substring(splitPrefix.Length).Split(new[] { ", " }, System.StringSplitOptions.RemoveEmptyEntries)) names.Add(name);
             }
             return names;
         }
