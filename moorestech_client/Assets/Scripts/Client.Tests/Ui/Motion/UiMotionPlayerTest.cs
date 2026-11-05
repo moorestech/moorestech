@@ -49,11 +49,32 @@ namespace Client.Tests.Ui.Motion
             simulate.FrameUpdateMs(100);
             var opacityAtDetach = _target.style.opacity.value;
 
+            // 外した後に付け直してもフレームを進めて再開・完了しない
+            // Re-attaching and advancing frames must not resume or complete
             _target.RemoveFromHierarchy();
             simulate.FrameUpdateMs(100);
+            rootVisualElement.Add(_target);
+            simulate.FrameUpdateMs(100);
+            simulate.FrameUpdateMs(250);
             simulate.FrameUpdateMs(250);
 
             Assert.AreEqual(opacityAtDetach, _target.style.opacity.value);
+            Assert.AreEqual(0, _completedCount);
+        }
+
+        [Test]
+        public void RepeatedPlayAndCancelOnSameElementLeavesNothingToFireOnDetach()
+        {
+            // 同じ要素で再生と取り消しを繰り返した後に外しても通知も例外も出ない
+            // Detaching after repeated play and cancel on one element raises no notification or exception
+            for (var i = 0; i < 20; i++) PlayFadeIn().Cancel();
+            simulate.FrameUpdateMs(0);
+
+            Assert.DoesNotThrow(() =>
+            {
+                _target.RemoveFromHierarchy();
+                simulate.FrameUpdateMs(100);
+            });
             Assert.AreEqual(0, _completedCount);
         }
 

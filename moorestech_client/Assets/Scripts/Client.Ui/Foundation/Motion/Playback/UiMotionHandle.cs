@@ -19,21 +19,28 @@ namespace Client.Ui.Foundation.Motion.Playback
 
         private readonly UiMotionTimeline _timeline;
         private IVisualElementScheduledItem _scheduledItem;
+        private readonly EventCallback<DetachFromPanelEvent> _onDetach;
+        private VisualElement _target;
         private bool _isStartPending = true;
 
         public UiMotionHandle(UiMotionTimeline timeline)
         {
             _timeline = timeline;
+            _onDetach = _ => Stop();
         }
 
         internal void Initialize(VisualElement target, IVisualElementScheduledItem scheduledItem)
         {
+            _target = target;
             _scheduledItem = scheduledItem;
-            target.RegisterCallback<DetachFromPanelEvent>(_ => Stop());
+            _target.RegisterCallback(_onDetach);
         }
 
         public void Restart()
         {
+            // 停止で外した購読を開始のたびに付け直す（溜めない）
+            // Re-subscribe on every start since Stop removes it (no accumulation)
+            _target.RegisterCallback(_onDetach);
             _isStartPending = true;
             _scheduledItem.Resume();
         }
@@ -60,6 +67,7 @@ namespace Client.Ui.Foundation.Motion.Playback
 
         private void Stop()
         {
+            _target.UnregisterCallback(_onDetach);
             _timeline.Cancel();
             _isStartPending = false;
             _scheduledItem.Pause();
