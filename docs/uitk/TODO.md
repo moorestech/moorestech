@@ -19,7 +19,7 @@
 
 | 束 | 中身 | 状態 | 暗転の起点 | 物差し |
 |---|---|---|---|---|
-| 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | Web | — | `uitk-lifeline` |
+| 1 | 基盤と命綱（ポーズ・設定・バグ報告・トースト） | 暗転 | 979725bcd1 | `uitk-lifeline` |
 | 2 | 常駐表示（入力の無い HUD・通知・ツールチップ・ワールドピン・チュートリアル枠・スキット） | Web | — | `uitk-opening-hud` |
 | 3 | 建築の束（ビルドメニュー・ホットバー・BP 名入力） | Web | — | `uitk-build-bp` |
 | 4 | 持ち物の束（インベントリ・装備・掴み・レシピ・ブロック UI 全族・研究） | Web | — | `uitk-production-loop`・`uitk-research-train` |
@@ -139,8 +139,8 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 
 | 実測 | 中身 | 担当 | 結論 |
 |---|---|---|---|
-| S1 | CEF と UITK の前後 | bd `moorestech-albof.1` | 未着手 |
-| S2 | 録画とバグ報告動画への写り込み | bd `moorestech-albof.1` | 未着手 |
-| S3 | 入力注入 | bd `moorestech-albof.1` | 未着手 |
-| S15 | 委譲中の Web の入力停止 | bd `moorestech-albof.1` | 未着手 |
-| S9 | 日本語 IME（人手） | bd `moorestech-albof.8` | 未着手 |
+| S1 | CEF と UITK の前後 | bd `moorestech-albof.1` | 合格。PanelSettings.sortingOrder で前後を決められ、背面パネルも置ける（-1 で背面、1 以上で前面、同値 0 は UITK が前）。PR #1558・`docs/uitk-migration/poc/stage0-measurements/` |
+| S2 | 録画とバグ報告動画への写り込み | bd `moorestech-albof.1` | 合格。Recorder・ScreenCapture・ScreenFrameReader のいずれにも UITK と CEF が写る。同上 |
+| S3 | 入力注入 | bd `moorestech-albof.1` | 合格。注入クリックが InputSystemUIInputModule→PanelEventHandler で UITK に届き座標往復が一致、IsPointerOverGameObject も UITK を拾う。同上 |
+| S15 | 委譲中の Web の入力停止 | bd `moorestech-albof.1` | 不可。action は止まるが Web の pointerOverUi が true のまま固着する。UITK が主パネルかモーダルを出すあいだ Web を全面オフにする（R1） |
+| S9 | 日本語 IME（OS 段の合成キー） | bd `moorestech-albof.8` | 成立（CEF あり／なし・単行／複数行）。確定後の ESC・IME モードの取り合い・候補窓の位置は段階 1 の要件（bd `moorestech-albof.12`）。https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-10-28-uitk-s9-ime-result/ |
