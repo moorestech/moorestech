@@ -10,6 +10,7 @@ namespace Client.Game.InGame.BugReport.WebUiHealth
         Started,
         Failed,
         SkippedByEditorSwitch,
+        Unknown,
     }
 
     public enum CefProcessState
@@ -18,6 +19,7 @@ namespace Client.Game.InGame.BugReport.WebUiHealth
         Running,
         LostRestarting,
         RecoveryFailed,
+        Unknown,
     }
 
     // manifest.webUiHealth の契約。UIの停止をCEFと決めつけないよう、判定でなく生の値だけを運ぶ（§3.11・D-11）
@@ -33,5 +35,12 @@ namespace Client.Game.InGame.BugReport.WebUiHealth
         // 一度もWSを受信していなければ null。0 は「今受信した」という実値なので代わりに使わない
         // Null when no WS message was ever received; 0 would claim "just received", so it is never used instead
         public double? SecondsSinceLastWebMessage;
+
+        // 前回セッションの値は記録が残っていない。未試行・未観測と書くと事実を偽るので「不明」で返す
+        // The previous session's values were never recorded; notAttempted/notObserved would assert a fact, so this reads unknown
+        public static WebUiHealthReading UnknownForPreviousSession()
+        {
+            return new WebUiHealthReading { HostStartup = WebUiHostStartupState.Unknown, CefProcess = CefProcessState.Unknown, SecondsSinceLastWebMessage = null };
+        }
     }
 }

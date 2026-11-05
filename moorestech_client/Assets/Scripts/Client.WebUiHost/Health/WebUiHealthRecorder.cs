@@ -43,10 +43,12 @@ namespace Client.WebUiHost.Health
                 _observingCefRuntime = true;
             }
 
+            // 先にRunningを書く。購読後に書くと、その間に届いたServerLostを上書きして古い値で固まる
+            // Running is written first; writing it after subscribing could overwrite a ServerLost that arrived in between and freeze a stale value
+            RecordCefProcess(CefProcessState.Running);
             CefRuntime.ServerLost += _ => RecordCefProcess(CefProcessState.LostRestarting);
             CefRuntime.ServerRecovered += _ => RecordCefProcess(CefProcessState.Running);
             CefRuntime.ServerRecoveryFailed += _ => RecordCefProcess(CefProcessState.RecoveryFailed);
-            RecordCefProcess(CefProcessState.Running);
         }
 
         private static void RecordCefProcess(CefProcessState state)
