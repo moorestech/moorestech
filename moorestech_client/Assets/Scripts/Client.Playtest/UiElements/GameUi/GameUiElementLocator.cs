@@ -23,7 +23,7 @@ namespace Client.Playtest.UiElements.GameUi
         {
         }
 
-        public bool IsAvailable()
+        private static bool IsAvailable()
         {
             return GameUiRoot.Instance != null;
         }

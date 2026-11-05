@@ -30,11 +30,6 @@ namespace Client.Playtest.UiElements
             _web.StopSession();
         }
 
-        public bool IsAvailable()
-        {
-            return _gameUi.IsAvailable() || _web.IsAvailable();
-        }
-
         public async UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
             // 重複を見落とさないよう、GameUi で見つかっても Web まで照会する

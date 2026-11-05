@@ -22,10 +22,6 @@ namespace Client.Playtest.UiElements
         // Stop forwarding and keep pending lookups out of the next run
         void StopSession();
 
-        // 照会先の描画系がいま応答できるか
-        // Whether the backing renderer can answer right now
-        bool IsAvailable();
-
         // 1回だけ照会する。待ち・再試行は呼び出し側が持つ
         // Look up once; waiting and retries belong to the caller
         UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds);

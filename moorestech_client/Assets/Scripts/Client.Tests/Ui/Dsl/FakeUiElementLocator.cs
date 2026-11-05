@@ -9,7 +9,6 @@ namespace Client.Tests.Ui.Dsl
     /// </summary>
     internal sealed class FakeUiElementLocator : IUiElementLocator
     {
-        private readonly bool _available;
         private readonly UiElementLookupStatus _findStatus;
         private readonly UiSetTextStatus _setTextStatus;
 
@@ -18,9 +17,8 @@ namespace Client.Tests.Ui.Dsl
         public int SetTextCount { get; private set; }
         public UiElementSnapshot LastFound { get; private set; }
 
-        public FakeUiElementLocator(bool available, UiElementLookupStatus findStatus, UiSetTextStatus setTextStatus)
+        public FakeUiElementLocator(UiElementLookupStatus findStatus, UiSetTextStatus setTextStatus)
         {
-            _available = available;
             _findStatus = findStatus;
             _setTextStatus = setTextStatus;
         }
@@ -33,11 +31,6 @@ namespace Client.Tests.Ui.Dsl
         public void StopSession()
         {
             StopCount++;
-        }
-
-        public bool IsAvailable()
-        {
-            return _available;
         }
 
         public UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)

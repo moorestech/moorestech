@@ -100,7 +100,6 @@ return PlaytestRunner.Run("electric-wire-tool-extend-chain-via-ui", options, asy
     // 電線ツールをビルドメニュー(ツール>接続)から選択する
     // Select the wire tool from the build menu (ツール > 接続)
     p.Note("ビルドメニューのツールカテゴリから電線接続ツールを選ぶ");
-    p.Assert(PlaytestUiLocatorSession.Locator.IsAvailable(), "UIの描画系が利用可能");
     for (var attempt = 0; attempt < 3 && p.CurrentUiState != UIStateEnum.BuildMenu; attempt++)
     {
         await p.PressKey(p.CurrentUiState == UIStateEnum.PlaceBlock ? Key.Tab : Key.B);
