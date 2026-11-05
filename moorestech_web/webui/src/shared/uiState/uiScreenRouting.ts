@@ -101,3 +101,9 @@ export function screenShowsAlwaysOnHud(screen: UiScreen): boolean {
 export function screenShowsTrainHud(screen: UiScreen): boolean {
   return SCREEN_TRAITS[screen].trainHud;
 }
+
+// ui_state 未着の間は休止していない扱い（R1）。App の早期 return 条件の正
+// Treat a not-yet-received ui_state as not suspended (R1); the single source for App's early-return condition
+export function isWebUiSuspended(uiState: { webUiSuspended: boolean } | null): boolean {
+  return uiState?.webUiSuspended === true;
+}

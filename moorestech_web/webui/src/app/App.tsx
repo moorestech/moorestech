@@ -22,7 +22,7 @@ import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { EventLanguageGate } from "@/features/eventLanguageGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
+import { isWebUiSuspended, screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
 import { useUiScaleStore } from "@/shared/uiScale";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
@@ -71,7 +71,7 @@ export default function App() {
   const uiState = useTopicSelector(Topics.uiState, (d) => d?.state ?? null);
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
   const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
-  const webUiSuspended = useTopicSelector(Topics.uiState, (d) => d?.webUiSuspended === true);
+  const webUiSuspended = useTopicSelector(Topics.uiState, isWebUiSuspended);
   // 休止中もunmountされないよう早期returnより前で呼び、解除時の送り直しを任せる
   // Called before the early return so it survives suspension and resends the real state on resume
   useWebInputExclusivity(webUiSuspended);

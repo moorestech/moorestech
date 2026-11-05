@@ -76,4 +76,63 @@ describe("useWebInputExclusivity の休止解除（R1）", () => {
     expect(bridge.sendInputState).toHaveBeenLastCalledWith(false, true);
     input.remove();
   });
+  // topic待ちのHUDは解除の後に描かれる。解除時点では透過stageしか無い
+  // Topic-gated HUDs render after resume; at resume time only the transparent stage is under the pointer
+  const resumeOverTransparentStage = () => {
+    hud.dispatchEvent(new MouseEvent("pointermove", { bubbles: true, clientX: 10, clientY: 20 }));
+    setSuspended(true);
+    const stage = document.createElement("div");
+    stage.setAttribute("data-web-ui-transparent", "");
+    document.body.appendChild(stage);
+    let underPointer: Element = stage;
+    Object.defineProperty(document, "elementFromPoint", { configurable: true, value: vi.fn(() => underPointer) });
+    bridge.sendInputState.mockClear();
+    setSuspended(false);
+    expect(bridge.sendInputState).toHaveBeenLastCalledWith(false, false);
+    bridge.sendInputState.mockClear();
+    return {
+      renderHud: () => {
+        const hotbar = document.createElement("div");
+        stage.appendChild(hotbar);
+        underPointer = hotbar;
+      },
+      stage,
+      cleanup: () => stage.remove(),
+    };
+  };
+  const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+  it("解除後に HUD を DOM へ足すと pointermove 無しで (true,false) が送られる", async () => {
+    const scene = resumeOverTransparentStage();
+    scene.renderHud();
+    await nextFrame();
+    await nextFrame();
+
+    expect(bridge.sendInputState).toHaveBeenCalledTimes(1);
+    expect(bridge.sendInputState).toHaveBeenLastCalledWith(true, false);
+    scene.cleanup();
+  });
+
+  it("解除後に実 pointermove が来たら DOM 変化で当たり判定し直さない", async () => {
+    const scene = resumeOverTransparentStage();
+    scene.stage.dispatchEvent(new MouseEvent("pointermove", { bubbles: true, clientX: 300, clientY: 300 }));
+    expect(bridge.sendInputState).not.toHaveBeenCalled();
+    scene.renderHud();
+    await nextFrame();
+    await nextFrame();
+
+    expect(bridge.sendInputState).not.toHaveBeenCalled();
+    scene.cleanup();
+  });
+
+  it("再休止したら DOM 変化で当たり判定し直さない", async () => {
+    const scene = resumeOverTransparentStage();
+    setSuspended(true);
+    scene.renderHud();
+    await nextFrame();
+    await nextFrame();
+
+    expect(bridge.sendInputState).not.toHaveBeenCalled();
+    scene.cleanup();
+  });
 });
