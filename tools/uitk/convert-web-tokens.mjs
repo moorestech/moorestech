@@ -61,10 +61,17 @@ for (const { source, output, tokens } of tokensBySource) {
   lines.push("}");
   writeOutput(output, lines);
 }
-// ControlTokens.uss は手書きで変換器を通らないため、半透明の行をここで足す（Web の値は PoC のもの）
-// ControlTokens.uss is hand-written and bypasses the converter, so its translucent row is added here (Web value from the PoC)
+// ControlTokens.uss は手書きで変換器を通らないため、半透明の行をここで足す（Web の値は PoC と GamePanel/style.module.css のもの）
+// ControlTokens.uss is hand-written and bypasses the converter, so its translucent rows are added here (Web values from the PoC and GamePanel/style.module.css)
 const handWrittenControlRows = [
-  `| \`--control-scroller-track\` | \`rgba(255, 255, 255, 0.04)\` | \`rgba(255, 255, 255, 0.0008)\` | ${translucencyMethod} |`,
+  `| \`--control-scroller-track\` | \`rgba(255, 255, 255, 0.04)\` | \`rgba(255, 255, 255, 0.0008)\` | ${translucencyMethod} |`,  `| \`--game-panel-title-shadow\` | \`rgba(0, 0, 0, 0.35)\` | \`rgba(0, 0, 0, 0.6124)\` | ${translucencyMethod} |`,
+  `| \`--game-panel-rule-top-start\` | \`rgba(146, 148, 167, 0.42)\` | \`rgba(146, 148, 167, 0.1483)\` | ${translucencyMethod} |`,
+  `| \`--game-panel-rule-top-peak\` | \`rgba(146, 148, 167, 0.59)\` | \`rgba(146, 148, 167, 0.3132)\` | ${translucencyMethod} |`,
+  `| \`--game-panel-rule-top-end\` | \`rgba(146, 148, 167, 0.38)\` | \`rgba(146, 148, 167, 0.119)\` | ${translucencyMethod} |`,
+  `| \`--game-panel-rule-bottom-start\` | \`rgba(128, 132, 159, 0.3)\` | \`rgba(128, 132, 159, 0.0707)\` | ${translucencyMethod} |`,
+  `| \`--game-panel-rule-bottom-peak\` | \`rgba(128, 132, 159, 0.42)\` | \`rgba(128, 132, 159, 0.1483)\` | ${translucencyMethod} |`,
+  `| \`--game-panel-rule-bottom-end\` | \`rgba(128, 132, 159, 0.26)\` | \`rgba(128, 132, 159, 0.0516)\` | ${translucencyMethod} |`,
+  `| \`--game-panel-triangle-face\` | \`rgba(94, 100, 128, 0.2)\` | \`rgba(94, 100, 128, 0.3879)\` | ${translucencyMethod} |`,
 ];
 
 writeOutput(exclusionFileName, exclusionLines);
