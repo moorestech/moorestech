@@ -1,16 +1,25 @@
 /* ポーズ画面の枠と並び。寸法は moorestech_web/webui/src/features/pauseMenu/style.module.css の .panel / .page を写す */
-/* 最大高（--pause-menu-max-height = ステージ高 − 80px）はステージ高に依存するので PauseMenuView が C# で入れる */
+/* 最大高（--pause-menu-max-height = ステージ高 − 80px）は、層いっぱいの置き場の上下 40px の余白と枠の max-height 100% で作る */
 /* Pause-menu frame and layout; sizes copy .panel / .page in moorestech_web/webui/src/features/pauseMenu/style.module.css */
-/* The max height (--pause-menu-max-height = stage height - 80px) depends on the stage height, so PauseMenuView sets it in C# */
+/* The max height (--pause-menu-max-height = stage height - 80px) comes from the full-layer host's 40px top and bottom padding plus the frame's max-height 100% */
 
+/* 置き場は層いっぱいに広げ、枠を上下左右の中央へ置く */
+/* The host fills the layer and centers the frame both ways */
 .pause-menu {
     --pause-menu-disconnected-text: var(--color-danger);
     position: absolute;
-    left: 50%;
-    top: 50%;
-    translate: -50% -50%;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    padding: 40px 0;
+    justify-content: center;
+    align-items: center;
+}
+
+.pause-menu__panel {
     width: 420px;
-    flex-direction: column;
+    max-height: 100%;
 }
 
 /* 枠が最大高で止まったとき、本文だけがスクロールできるよう flex の高さ連鎖を子画面まで通す */

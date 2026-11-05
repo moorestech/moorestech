@@ -13,7 +13,6 @@ using Client.Ui.State.Settings;
 using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using UniRx;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.PauseMenu
@@ -24,10 +23,6 @@ namespace Client.Ui.Screens.PauseMenu
     /// </summary>
     public sealed class PauseMenuView : VisualElement
     {
-        // Web の --pause-menu-max-height（ステージ高 − 80px）。上下 40px を空けて本文だけスクロールさせる
-        // Web --pause-menu-max-height (stage height - 80px): leave 40px above and below and scroll only the body
-        private const float StageVerticalMargin = 80f;
-
         private readonly IReadOnlyReactiveProperty<PauseMenuViewModel> _model;
         private readonly IReadOnlyReactiveProperty<SettingsViewModel> _settings;
         private readonly IPauseMenuCommands _commands;
@@ -38,8 +33,7 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly LocalizedLabel _title;
         private readonly VisualElement _pageHost;
         private CompositeDisposable _subscriptions;
-        private VisualElement _parentWatched;
-        private PauseMenuPage? _shownPage;
+        private PauseMenuPage _shownPage;
         private PauseMenuTopPageView _top;
         private LanguageSelectView _language;
         private SprintModeSelectView _sprint;
@@ -55,15 +49,18 @@ namespace Client.Ui.Screens.PauseMenu
             _toasts = toasts;
             _draft = draft;
             _catalog = catalog;
-            name = "pause-menu";
             styleSheets.Add(catalog.PauseMenu);
             AddToClassList("pause-menu");
-            TutorialAnchor.Mark(this, AnchorIds.PauseMenu);
+
+            // 自身は層いっぱいの透明な置き場で、testid とアンカーは Web と同じく見える枠に付ける
+            // This element is a transparent full-layer host; the testid and anchor go on the visible frame as on the Web
+            pickingMode = PickingMode.Ignore;
+            var panel = new GamePanel(catalog.GamePanel) { name = "pause-menu" };
+            panel.AddToClassList("pause-menu__panel");
+            TutorialAnchor.Mark(panel, AnchorIds.PauseMenu);
 
             // 題は枠のタイトル行に 1 つだけ置き、ページに合わせてキーを差し替える
             // A single title sits in the frame's title row and swaps its key per page
-            var panel = new GamePanel(catalog.GamePanel);
-            panel.AddToClassList("pause-menu__panel");
             _title = new LocalizedLabel();
             panel.SetTitle(_title);
             Add(panel);
@@ -90,18 +87,12 @@ namespace Client.Ui.Screens.PauseMenu
             _settings.Subscribe(OnSettingsChanged).AddTo(_subscriptions);
             Localize.OnLanguageChanged.Subscribe(_ => UpdateLocaleMarker()).AddTo(_subscriptions);
             UpdateLocaleMarker();
-
-            _parentWatched = parent;
-            _parentWatched.RegisterCallback<GeometryChangedEvent>(OnParentGeometryChanged);
-            ApplyMaxHeight();
         }
 
         private void OnDetached()
         {
             _subscriptions?.Dispose();
             _subscriptions = null;
-            _parentWatched?.UnregisterCallback<GeometryChangedEvent>(OnParentGeometryChanged);
-            _parentWatched = null;
         }
 
         private void OnPauseMenuChanged(PauseMenuViewModel model)
@@ -176,21 +167,6 @@ namespace Client.Ui.Screens.PauseMenu
         private void UpdateLocaleMarker()
         {
             _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
-        }
-
-        private void OnParentGeometryChanged(GeometryChangedEvent evt)
-        {
-            ApplyMaxHeight();
-        }
-
-        // ステージ高に依存する最大高は USS で書けないので、載っている層の高さから決める
-        // The stage-dependent max height cannot be written in USS, so derive it from the hosting layer's height
-        private void ApplyMaxHeight()
-        {
-            var parentHeight = _parentWatched.layout.height;
-            // silent-ok: 初回レイアウト前は高さが無く、直後の GeometryChangedEvent で決まる / 枠が伸び切るので L1 の高さ検査が気づく
-            if (float.IsNaN(parentHeight)) return;
-            style.maxHeight = Mathf.Max(0f, parentHeight - StageVerticalMargin);
         }
     }
 }
