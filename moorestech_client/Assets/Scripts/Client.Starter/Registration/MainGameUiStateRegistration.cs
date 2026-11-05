@@ -5,6 +5,7 @@ using Client.Ui.State.Challenge;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Notification;
 using Client.Ui.State.Research;
+using Client.Ui.State.Routing;
 using VContainer;
 using VContainer.Unity;
 
@@ -44,6 +45,11 @@ namespace Client.Starter.Registration
             // Block network info and monitoring re-wire
             builder.Register<BlockNetworkInfoCache>(Lifetime.Singleton);
             builder.RegisterEntryPoint<OpenBlockDetailTracker>().AsSelf();
+
+            // 画面ルータと所有表。Web ホストと描画側の両方が読む
+            // Screen router and ownership table, read by both the web host and the renderer
+            builder.Register<UiOwnershipTable>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<UiRoutingState>().AsSelf();
         }
     }
 }
