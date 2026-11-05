@@ -158,7 +158,7 @@ public UiSurfaceOwner GetOwner(UiScreen screen, UiSurface surface)
 
 - [ ] **Step 4: `UiRoutingState` を書く**
 
-ctor で `UIStateControl`・`UiOwnershipTable`・`IReadOnlyList<INestedPauseScreenState>` を受け取り、`Initialize()` で `UIStateControl.OnStateChanged` と各入れ子画面の `OnPresentationChanged` を購読して `Current` を更新する（同値は ReactiveProperty が落とす。`UiRoutingSnapshot` は値の等価を `Equals` で実装）。`Resolve()` は現在の `UIStateControl.CurrentState` と `GetCurrentNestedPauseScreen()?.SubState` から `UiScreenRouting.Resolve` し、`WebUiSuspended = table.GetOwner(screen, UiSurface.MainPanel) == UiSurfaceOwner.GameUi`。Editor 上書きを変えたあと即時に反映できるよう `public void Refresh()` も持つ（`Current.Value = Resolve()`）。モーダル（段階 3）は「モーダルを GameUi が出している」を `WebUiSuspended` の論理和に足す拡張点としてコメントで書く。
+ctor で `UIStateControl`・`UiOwnershipTable`・`IReadOnlyList<INestedPauseScreenState>` を受け取り、`Initialize()` で `UIStateControl.OnStateChanged` と各入れ子画面の `OnPresentationChanged` を購読して `Current` を更新する（同値は ReactiveProperty が落とす。`UiRoutingSnapshot` は値の等価を `Equals` で実装）。`Resolve()` は現在の `UIStateControl.CurrentState` と `GetCurrentNestedPauseScreen()?.SubState` から `UiScreenRouting.Resolve` し、`WebUiSuspended = table.GetOwner(screen, UiSurface.MainPanel) == UiSurfaceOwner.GameUi`。再計算は `private void Refresh()`（`Current.Value = Resolve()`）。テスト専用の public は置かない（AGENTS.md）。モーダル（段階 3）は「モーダルを GameUi が出している」を `WebUiSuspended` の論理和に足す拡張点としてコメントで書く。
 
 - [ ] **Step 5: DI 登録**
 
@@ -290,6 +290,8 @@ public class GameUiRoot : MonoBehaviour
         if (uiDocument == null || cefRawImage == null || tokenStyleSheets == null || tokenStyleSheets.Length == 0) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
         var root = uiDocument.rootVisualElement;
         foreach (var sheet in tokenStyleSheets) root.styleSheets.Add(sheet);
+        // 後続で UiAssetCatalog ができたらトークンの当て方もそこへ寄せる
+        // Once UiAssetCatalog lands, route the token sheets through it as well
         _layers = UiLayerStack.Build(root);
     }
 
@@ -388,7 +390,7 @@ UI Test Framework の `UITestFixture`（`Unity.UI.TestFramework.Runtime`）の A
 - [ ] **Step 4: 実行**
 
 Run: `uloop compile …` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Client\.Tests\.Ui\."`
-Expected: 全 PASS。CI の EditMode client shard に `Client.Tests.Ui` が含まれることを `.github/workflows` で確かめ、含まれなければ完了報告に書く（S13 はテスト土台レーンの持ち物）。
+Expected: 全 PASS。`Client.Tests.Ui` は CI の client-remainder（`unity-test-shard-filter.sh` の `-assemblyNames Client.Tests`・editmode）に自動で載る。
 
 - [ ] **Step 5: コミット**
 
@@ -401,7 +403,7 @@ push。
 
 - [ ] **Step 1: テスト**
 
-editmode-in-playing-test スキルの雛形で PlayMode に入り、(1) `GameUiRoot.Instance` が全 `UiLayer` のコンテナを持つ、(2) 既定（全部 Web）で CEF の RawImage が有効、`UiRoutingState.Current.Value.WebUiSuspended == false`、(3) `UiOwnershipEditorOverride.Set(PauseMenu, MainPanel, GameUi)` → `UiRoutingState.Refresh()` → ポーズへ遷移（`UIStateControl.RequestTransition(UIStateEnum.PauseMenu)`）で RawImage が無効・`WebUiInputExclusivity.IsPointerOverWebUi == false`、閉じると RawImage が戻る。終わりに `Clear()`。
+editmode-in-playing-test スキルの雛形で PlayMode に入り、(1) `GameUiRoot.Instance` が全 `UiLayer` のコンテナを持つ、(2) 既定（全部 Web）で CEF の RawImage が有効、`UiRoutingState.Current.Value.WebUiSuspended == false`、(3) `UiOwnershipEditorOverride.Set(PauseMenu, MainPanel, GameUi)` → ポーズへ遷移（`OnStateChanged` で再計算される）（`UIStateControl.RequestTransition(UIStateEnum.PauseMenu)`）で RawImage が無効・`WebUiInputExclusivity.IsPointerOverWebUi == false`、閉じると RawImage が戻る。終わりに `Clear()`。
 
 - [ ] **Step 2: 実行**
 
@@ -427,11 +429,12 @@ push。
 - D-2 所有表・ルータ・`UiRoutingState` は `Client.Ui.State` に置く。`UiStateTopic`（WebUiHost）が `webUiSuspended` を読むため、`Client.Ui` に置くと WebUiHost→Client.Ui の参照が要り、R1 で Client.Ui が WebUiHost 側を触る向きと循環する（plan §3.1 の理由と同じ）
 - D-3 所有者の値は `Web`/`GameUi`。技術名を名前に入れない裁定（10-29）に合わせる
 - D-4 面 enum は初版 `MainPanel` だけ。Web を止めるかの判断に要るのは主パネルだけで、トースト等の面は移す段で足す（YAGNI）。拡張点はコメントで明記
-- D-5 Web の全面オフは、`ui_state.current` に `webUiSuspended` を足して App 全体を unmount する形にした（plan R2 の「`screenForUiState` が委譲画面で主パネルを描かない」より強い）。cef-unity に入力転送を止める公開 API が無く（`OnEarlyUpdateLast` は RawImage の有効を見ない）、RawImage を隠しても Web の HUD・document のキー処理へ入力が届くため、受け手ごと消す。新規パターンとして完了報告の要裁定に載せる
+- D-5 Web の全面オフは、`ui_state.current` に `webUiSuspended` を足して App 全体を unmount する形にした（plan R2 の「`screenForUiState` が委譲画面で主パネルを描かない」より強い）。cef-unity に入力転送を止める公開 API が無く（`OnEarlyUpdateLast` は RawImage の有効を見ない）、RawImage を隠しても Web の HUD・document のキー処理へ入力が届くため、受け手ごと消す。全面オフ自体は 10-26 の裁定どおりで、手段は App.tsx の Ctrl+U 全 unmount の前例に倣う（agent 既定）。cef-unity 側に入力転送の停止 API を足すか（外部 repo）だけを完了報告の要裁定に載せる
 - D-6 層の順は plan §3.3 の大筋を tokens.css の `--z-*` の入れ子（viewport・stage・portal）で具体化した（Screen < Hud < PauseMenu < Tooltip < Grab < WorldPin < Modal …）。L0 テストで tokens.css と照合する
 - D-7 `Tokens.uss` は 3 ファイルに分けた（各 200 行以下の規約。plan §3.5 の 1 ファイルとの差）。除外表は別ファイル
 - D-8 PanelSettings の sortingOrder は 1（S1 の実測: 1 以上で CEF より前）
 - D-9 配置検査（inline）: 新規型はすべて新設ディレクトリ内。前例: DI 登録は `MainGameUiStateRegistration`、シングルトンは AGENTS.md の Object シングルトン、topic の DTO 拡張は `UiStateTopic.SubState`、zod の必須化は `keyHints` の前例。違反なし
 - D-10 Phase 2.6 弱: 除外表の理由は自由文（機械判定に使わないため可）
 - D-11 ランタイム挙動に触れる（prefab に UIDocument、R1 の切替）ので EditModeInPlayingTest（Task 6）を入れる。録画プレイテストは見た目が不変（層は空）なので省く
-- D-12 user-simulator と AskUserQuestion は行わない（依頼文「ユーザーへ質問しない。推奨案で進め、要裁定に書く」）
+- D-12 AskUserQuestion は行わない（依頼文「ユーザーへ質問しない。推奨案で進め、要裁定に書く」）。user-simulator review（Fable）は実施し、Warning 4 件を適用（D-5 の書き直し・Refresh の private 化・CI 確認の確定・GameUiRoot のトークン当てを将来 UiAssetCatalog へ寄せる拡張点コメント）。要裁定 1 件（cef-unity に入力停止 API を足すか。予測 (b) 寄り・中）は完了報告へ回す。出所: シミュレーター予測（ユーザー未承認）
+- D-13 Web は suspended 中も `useWebInputExclusivity` が走るが値は Unity 側で捨てる。解除直後は次の pointermove まで pointerOverUi が false（1 フレーム級。許容）
