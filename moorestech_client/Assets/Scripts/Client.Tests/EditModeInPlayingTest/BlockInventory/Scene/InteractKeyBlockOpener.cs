@@ -54,11 +54,11 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             // ゲーム画面のインタラクトと同じ入力経路でFを押し、SubInventoryへの遷移を待つ
             // Press F through the same input path as the game screen's interact and wait for the SubInventory transition
             SemanticInput.EnsureDevices();
-            var keyboardWasEnabled = Keyboard.current.enabled;
             InputSystem.EnableDevice(Keyboard.current);
             await SemanticInput.TapKey(Key.F);
             for (var i = 0; i < 300 && uiStateControl.CurrentState != UIStateEnum.SubInventory; i++) await UniTask.Yield();
-            if (!keyboardWasEnabled) InputSystem.DisableDevice(Keyboard.current);
+            // silent-ok: DisableDevice は背面の一時無効を恒久無効に変えるため戻さない（設定は下で復元）/ 注入が届かなければ後続テストが失敗で気づく
+            // silent-ok: DisableDevice would make the temporary background-disable permanent, so skip it (settings restored below) / a later test fails if injection stops arriving
             inputSettings.backgroundBehavior = savedBackground;
             inputSettings.editorInputBehaviorInPlayMode = savedEditorInput;
             await WaitUiState(uiStateControl, UIStateEnum.SubInventory);

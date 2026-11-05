@@ -16,8 +16,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
     {
         private readonly InputSettings.BackgroundBehavior _savedBackground;
         private readonly InputSettings.EditorInputBehaviorInPlayMode _savedEditorInput;
-        private readonly bool _keyboardWasEnabled;
-        private readonly bool _mouseWasEnabled;
 
         private EditorBackgroundInputScope()
         {
@@ -28,8 +26,6 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
 
             SemanticInput.EnsureDevices();
-            _keyboardWasEnabled = Keyboard.current.enabled;
-            _mouseWasEnabled = Mouse.current.enabled;
             InputSystem.EnableDevice(Keyboard.current);
             InputSystem.EnableDevice(Mouse.current);
         }
@@ -41,8 +37,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
         public void Dispose()
         {
-            if (!_keyboardWasEnabled) InputSystem.DisableDevice(Keyboard.current);
-            if (!_mouseWasEnabled) InputSystem.DisableDevice(Mouse.current);
+            // silent-ok: DisableDevice を呼ぶと背面の一時無効が恒久無効に変わるため戻さない（次のフォーカス喪失で InputSystem が一時無効へ付け直す）/ 設定値は下で復元し、注入が届かなければ後続テストが失敗で気づく
+            // silent-ok: DisableDevice would turn the temporary background-disable into a permanent one, so skip it (InputSystem re-applies the temporary disable on the next focus loss) / settings are restored below and a later test fails if injection stops arriving
             InputSystem.settings.backgroundBehavior = _savedBackground;
             InputSystem.settings.editorInputBehaviorInPlayMode = _savedEditorInput;
         }
