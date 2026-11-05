@@ -21,14 +21,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
     {
         public const int PermutationCount = 6;
 
+        // 隣り合う並びは必ずXとZの前後が入れ替わる順にする。坂の無い平地では水平の順だけが形を決めるので、C一回で必ず形が変わる
+        // Adjacent entries always swap the X/Z order: on flat ground only the horizontal order shapes the route, so one C press always changes it
         private static readonly BeltRouteStepAxis[][] Permutations =
         {
             new[] { BeltRouteStepAxis.X, BeltRouteStepAxis.Y, BeltRouteStepAxis.Z },
+            new[] { BeltRouteStepAxis.Z, BeltRouteStepAxis.X, BeltRouteStepAxis.Y },
             new[] { BeltRouteStepAxis.X, BeltRouteStepAxis.Z, BeltRouteStepAxis.Y },
+            new[] { BeltRouteStepAxis.Z, BeltRouteStepAxis.Y, BeltRouteStepAxis.X },
             new[] { BeltRouteStepAxis.Y, BeltRouteStepAxis.X, BeltRouteStepAxis.Z },
             new[] { BeltRouteStepAxis.Y, BeltRouteStepAxis.Z, BeltRouteStepAxis.X },
-            new[] { BeltRouteStepAxis.Z, BeltRouteStepAxis.X, BeltRouteStepAxis.Y },
-            new[] { BeltRouteStepAxis.Z, BeltRouteStepAxis.Y, BeltRouteStepAxis.X },
         };
 
         public readonly int Index;

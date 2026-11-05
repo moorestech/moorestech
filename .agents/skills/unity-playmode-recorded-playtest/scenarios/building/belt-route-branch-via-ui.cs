@@ -17,12 +17,17 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("belt-route-branch-via-ui", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { SpawnPosition = new Vector3(6f, 33.5f, -3f) });
     await p.SkipOpeningSkit();
+    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    // 足場は地形の山の中にあり、そのままでは設置物が録画に写らない
+    // The scaffold sits inside a terrain mound, so placed blocks would not show on the recording
+    p.HideMapObjects();
     p.SetOverlayPanels(false, false);
 
     // ---------------------------------------------------------------- 1. 本線
@@ -35,6 +40,9 @@ return PlaytestRunner.Run("belt-route-branch-via-ui", options, async p =>
     await p.BranchPlaceViaUi("ベルトコンベア", new Vector3Int(6, 32, 4), true, new Vector3Int(6, 32, 1), BlockDirection.South);
     await p.Until(() => NameAt(new Vector3Int(6, 32, 4)) == "ベルトコンベア分岐器", 15f, "(6,4)が分岐器へ置き換わる");
     p.Assert(Enumerable.Range(1, 3).All(z => p.GetBlock(new Vector3Int(6, 32, z)) != null && ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(6, 32, z)) == BlockDirection.South), "分岐の3セルが南向きに置かれる");
+    // ベルトの見た目は非同期に読み込まれるので、録画に写るまで終点の実体を待つ
+    // Belt visuals load asynchronously, so wait for the end cell's object before it is filmed
+    await p.WaitBlockGameObject(new Vector3Int(6, 32, 1));
     await p.ExitToGameScreen();
     await p.Screenshot("01-branch");
 

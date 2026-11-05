@@ -75,5 +75,7 @@
 ## Consequences
 
 - 経路の正しさは、種を固定した3000回のランダム試験（重複なし・自分の坂の真上なし・終点の前なし・山谷なし・隣接接続）と、テスト用サーバーに経路を置いて流れを確かめる試験（障害越え・分岐）で守る。
-- 速さ: EditMode で X64×Z64×Y12・障害2割の箱を端から端へ探索して最悪 12.5 ms（`BeltRouteSearchPerformanceTest`）。実機の最悪フレーム時間は録画シナリオ `belt-route-two-click-via-ui.cs` が経路中に計測してナレーションへ出す。
+- 速さ: EditMode で X64×Z64×Y12・障害2割の箱を端から端へ探索して最悪 12.5 ms（`BeltRouteSearchPerformanceTest`）。録画シナリオ `belt-route-two-click-via-ui.cs` が終点を4か所振って測った Editor 実機のフレーム時間は最悪 19.3〜23.0 ms（3回の実行、描画込みの1フレーム全体）。
+- プレイテストDSLへの波及: 録画で設置物を写すため `HideMapObjects()`（スキットと同じ `MapObjectGameObjectDatastore.SetActive(false)` 経路）を足した。足場 y=32 は地形の山の中にあり、隠さないとベルトが写らない。
+- `HybridInput` のキー対応表に C を足した。対応表に無いキーは legacy Input へ落ちるため、プレイテストの注入では C が押されたことにならず、実機でだけ動く状態だった。
 - 坂なしのファミリー（分岐器）は水平経路のみ。上り・下りが片方しか無いファミリーも坂を使わない。

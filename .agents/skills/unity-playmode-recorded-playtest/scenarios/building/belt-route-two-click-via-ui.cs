@@ -23,6 +23,10 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
 {
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig { SpawnPosition = new Vector3(5f, 33.5f, -3f) });
     await p.SkipOpeningSkit();
+    await PlaytestUiOps.FocusGameViewAndEnableInput(p);
+    // 足場は地形の山の中にあり、そのままでは設置物が録画に写らない
+    // The scaffold sits inside a terrain mound, so placed blocks would not show on the recording
+    p.HideMapObjects();
     // 機能紹介の録画なのでログ欄と入力欄は隠し、カーソルだけ残す
     // Hide the log and input panels for feature footage, keeping only the cursor
     p.SetOverlayPanels(false, false);
@@ -32,17 +36,23 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
     await p.RoutePlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), BlockDirection.North, new Vector3Int(8, 32, 8), BlockDirection.East);
     p.Assert(ServerContext.WorldBlockDatastore.GetBlockDirection(new Vector3Int(8, 32, 8)) == BlockDirection.East, "終点は東向き");
     p.Assert(CountBelts() == 13, $"始点から終点までの最短は13セル（実際 {CountBelts()}）");
+    // ベルトの見た目は非同期に読み込まれるので、録画に写るまで終点の実体を待つ
+    // Belt visuals load asynchronously, so wait for the end cell's object before it is filmed
+    await p.WaitBlockGameObject(new Vector3Int(8, 32, 8));
     await p.ExitToGameScreen();
     await p.Screenshot("01-l-route");
 
     // ---------------------------------------------------------------- 2. 壁を越える
     p.Note("フェーズ2: チェスト3個の壁を越えて東へ。上り→水平→下りを探索が選ぶ");
-    p.WarpPlayer(new Vector3(5f, 33.5f, 6f));
+    // フェーズ1のベルト（z=8）越しに狙うと光線が先に当たるため、壁のすぐ手前に立つ
+    // Aiming across the phase-1 belts at z=8 makes the ray hit them first, so stand just short of the wall
+    p.WarpPlayer(new Vector3(5f, 33.5f, 10f));
     await p.WaitSeconds(0.5f);
     for (var x = 4; x <= 6; x++) await p.PlaceBlockDirect("木のチェスト", new Vector3Int(x, 32, 12), BlockDirection.North);
     await p.RoutePlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 12), BlockDirection.East, new Vector3Int(9, 32, 12), BlockDirection.East);
     p.Assert(Enumerable.Range(4, 3).All(x => p.GetBlock(new Vector3Int(x, 33, 12)) != null), "壁の上 y=33 にベルトが載る");
     p.Assert(HasBlockNamed("上りベルトコンベア") && HasBlockNamed("下りベルトコンベア"), "上りと下りの坂が使われる");
+    await p.WaitBlockGameObject(new Vector3Int(9, 32, 12));
     await p.ExitToGameScreen();
     await p.Screenshot("02-over-wall");
 
@@ -78,6 +88,7 @@ return PlaytestRunner.Run("belt-route-two-click-via-ui", options, async p =>
     await p.Screenshot("04-route-b");
     await p.ClickPlace();
     await p.Until(() => p.GetBlock(new Vector3Int(17, 32, 7)) != null, 15f, "Cで切り替えた経路が置かれる");
+    await p.WaitBlockGameObject(new Vector3Int(17, 32, 7));
     await p.ExitToGameScreen();
 
     // ---------------------------------------------------------------- 4. 流れる

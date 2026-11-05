@@ -147,34 +147,17 @@ namespace Client.Playtest
             await ClickPlace();
             await Until(() => PlaytestBlockOps.GetBlock(origin) != null, 15f, $"UI設置反映: {blockName} at {origin}");
         }
-        public async UniTask RoutePlaceViaUi(string blockName, Vector3Int fromOrigin, BlockDirection startDirection, Vector3Int toOrigin, BlockDirection endDirection)
+        // ベルトの2クリック設置と、Ctrl+クリックの分岐設置。手順はPlaytestBeltRouteOps
+        // Two-click belt placement and Ctrl+click branch placement; the steps live in PlaytestBeltRouteOps
+        public async UniTask RoutePlaceViaUi(string blockName, Vector3Int fromOrigin, BlockDirection startDirection, Vector3Int toOrigin, BlockDirection endDirection) => await PlaytestBeltRouteOps.RoutePlaceViaUi(this, blockName, fromOrigin, startDirection, toOrigin, endDirection);
+        public async UniTask BranchPlaceViaUi(string blockName, Vector3Int beltCell, bool sideIsRight, Vector3Int toOrigin, BlockDirection endDirection) => await PlaytestBeltRouteOps.BranchPlaceViaUi(this, blockName, beltCell, sideIsRight, toOrigin, endDirection);
+        // 地形オブジェクトを隠す。足場(y=32)は地形の山の中にあり、そのままでは設置物が録画に写らない
+        // Hides terrain objects; the scaffold (y=32) sits inside a terrain mound, so placed blocks would not show on recordings
+        public void HideMapObjects()
         {
-            // ベルトの2クリック設置。始点クリック→終点クリックで最短経路が置かれる。選択直後の向きは北
-            // Two-click belt placement: a start click then an end click places the shortest route; the facing right after selection is north
-            await OpenBuildMenuAndSelectBlock(blockName);
-            _reporter.Step($"経路設置: {blockName} {fromOrigin}:{startDirection} -> {toOrigin}:{endDirection}");
-            await AimAt(PlaytestUiOps.PlaceAimPoint(blockName, fromOrigin, BlockDirection.North));
-            await PlaytestBeltRouteOps.RotateTo(this, BlockDirection.North, startDirection);
-            await ClickPlace();
-            await AimAt(PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North));
-            await PlaytestBeltRouteOps.RotateTo(this, startDirection, endDirection);
-            await ClickPlace();
-            await Until(() => PlaytestBlockOps.GetBlock(fromOrigin) != null && PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UI経路設置反映: {blockName} {fromOrigin}->{toOrigin}");
+            _reporter.Step("地形オブジェクトを隠す");
+            PlaytestSetup.SetMapObjectsVisible(false);
         }
-
-        public async UniTask BranchPlaceViaUi(string blockName, Vector3Int beltCell, bool sideIsRight, Vector3Int toOrigin, BlockDirection endDirection)
-        {
-            // Ctrlを押したまま既存の直線ベルトをクリックして分岐器へ置き換え、横の出口から終点まで経路を置く
-            // Click an existing straight belt with Ctrl held to replace it with a splitter and route from the side exit to the end
-            await OpenBuildMenuAndSelectBlock(blockName);
-            _reporter.Step($"分岐設置: {blockName} {beltCell} {(sideIsRight ? "右" : "左")} -> {toOrigin}:{endDirection}");
-            var sideDirection = await PlaytestBeltRouteOps.BranchStart(this, beltCell, sideIsRight);
-            await AimAt(PlaytestUiOps.PlaceAimPoint(blockName, toOrigin, BlockDirection.North));
-            await PlaytestBeltRouteOps.RotateTo(this, sideDirection, endDirection);
-            await ClickPlace();
-            await Until(() => PlaytestBlockOps.GetBlock(toOrigin) != null, 15f, $"UI分岐設置反映: {blockName} {beltCell}->{toOrigin}");
-        }
-
         // 録画のログ欄と入力欄を隠す。機能紹介動画のように画面を広く見せたいときに使う
         // Hides the recording's log and input panels, for footage that should show the screen unobstructed
         public void SetOverlayPanels(bool showLogPanel, bool showInputPanel) => PlaytestOverlay.SetPanelsVisible(showLogPanel, showInputPanel);

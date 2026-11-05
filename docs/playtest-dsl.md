@@ -79,6 +79,8 @@ SemanticInput via QueueStateEvent (no InputSystem.Update() calls; focus not requ
 await p.PrepareBlockForUiPlacement("ベルトコンベア", 15);
 // 2クリック設置: 始点クリック→終点クリックで最短経路が置かれる（始点・終点の向きはRの回転回数で合わせる）
 await p.RoutePlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 2), BlockDirection.North, new Vector3Int(2, 32, 6), BlockDirection.North);
+// 録画に設置物を写す: 足場(y=32)を覆う地形オブジェクトを隠す
+p.HideMapObjects();
 // 分岐: Ctrl+クリックで既存の直線ベルトを分岐器に置き換え、横の出口から終点まで経路を置く
 await p.BranchPlaceViaUi("ベルトコンベア", new Vector3Int(2, 32, 4), true, new Vector3Int(6, 32, 4), BlockDirection.East);
 // 単クリック設置: 向きはデフォルトNorth（回転キー注入は未実装）
