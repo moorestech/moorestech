@@ -169,6 +169,18 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         }
 
         [Test]
+        public void EndAboveStartRejectsTheRouteThroughOwnSlopeHead()
+        {
+            // 最短は始点を上りにして真上の終点へ曲がる形だが、終点が自分の坂の真上になるので組めない
+            // The shortest shape rises at the start and turns into the end directly above, but the end would sit on the own slope head
+            var grid = FlatGrid();
+            var query = Query(new Vector3Int(4, 0, 4), BlockDirection.North, new Vector3Int(4, 1, 4), BlockDirection.South);
+            var result = new BeltRoutePlanner(grid).Plan(query);
+
+            Assert.IsFalse(result.HasPlan);
+        }
+
+        [Test]
         public void ReplacedGridWithSameBoxIsAccepted()
         {
             var planner = new BeltRoutePlanner(FlatGrid());

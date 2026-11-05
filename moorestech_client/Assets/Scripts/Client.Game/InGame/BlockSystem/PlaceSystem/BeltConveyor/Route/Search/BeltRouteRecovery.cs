@@ -20,7 +20,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         private readonly HashSet<Vector3Int> _usedCells = new();
         private readonly HashSet<Vector3Int> _ownSlopeHeads = new();
         private readonly List<BeltRouteState> _reversedStates = new();
-        private readonly (int rank, BeltRouteState state)[] _candidates = new (int, BeltRouteState)[9];
         private IReadOnlyList<(BeltRouteState state, int cost)> _startStates;
         private BeltRouteTransitionRule _rule;
         private int _steps;
@@ -57,10 +56,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             if (IsStartState(state, cost)) return true;
 
             var previousCost = cost - state.Kind.Cost();
-            var count = CollectCandidates(state, cost);
-            for (var i = 0; i < count; i++)
+            // 候補列は再帰の深い側に上書きされないよう呼び出しごとに持つ
+            // Each call keeps its own candidate list so deeper recursion cannot overwrite it
+            var candidates = CollectCandidates(state, cost);
+            foreach (var previous in candidates)
             {
-                var previous = _candidates[i].state;
 
                 // 分岐の始点は既存ベルトなので作業地図には置かない
                 // A branch start is an existing belt, so it never enters the working map
@@ -77,9 +77,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 
         // 手前候補を列挙し、優先順でランク付けして並べる。候補は入る向き3通り×種別3通り
         // Enumerates predecessor candidates ranked by the step priority; up to three incomings times three kinds
-        private int CollectCandidates(BeltRouteState state, int cost)
+        private List<BeltRouteState> CollectCandidates(BeltRouteState state, int cost)
         {
-            var count = 0;
+            var ranked = new List<(int rank, BeltRouteState state)>(9);
             var entryHeight = state.EntryHeight;
             var previousCost = cost - state.Kind.Cost();
             foreach (var incoming in IncomingOptions(state))
@@ -92,24 +92,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                     if (!_rule.Query.AllowSlopes && kind.IsSlope()) continue;
                     if (!_rule.IsInsideBox(previous.Cell) || _search.BestCost(previous) != previousCost) continue;
                     if (!IsReachableTransition(previous, state)) continue;
-                    Insert(count++, (Rank(previous), previous));
+                    Insert((Rank(previous), previous));
                 }
             }
-            return count;
+            var ordered = new List<BeltRouteState>(ranked.Count);
+            foreach (var candidate in ranked) ordered.Add(candidate.state);
+            return ordered;
 
             #region Internal
 
-            void Insert(int index, (int rank, BeltRouteState state) candidate)
+            void Insert((int rank, BeltRouteState state) candidate)
             {
-                // 安定な挿入ソート。同ランクは列挙順を保つ
-                // Stable insertion sort; equal ranks keep enumeration order
-                var i = index;
-                while (0 < i && candidate.rank < _candidates[i - 1].rank)
-                {
-                    _candidates[i] = _candidates[i - 1];
-                    i--;
-                }
-                _candidates[i] = candidate;
+                // 安定な挿入。同ランクは列挙順を保つ
+                // Stable insertion; equal ranks keep enumeration order
+                var index = ranked.Count;
+                while (0 < index && candidate.rank < ranked[index - 1].rank) index--;
+                ranked.Insert(index, candidate);
             }
 
             #endregion

@@ -69,20 +69,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             var next = state.Cell + BeltRouteDirection.Forward(state.Outgoing);
             var exitHeight = state.ExitHeight;
 
-            // 終点の列へ入るときは終点状態だけを生成する
-            // Entering the end column generates only the goal state
-            if (next.x == query.EndCell.x && next.z == query.EndCell.z)
-            {
-                if (rule.CanEnterGoal(state)) Relax(new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight), g + BeltRouteCellKindExtension.StraightCost, query.EndCell);
-                return;
-            }
-
             for (var k = 0; k < BeltRouteCellKindExtension.KindCount; k++)
             {
                 var kind = (BeltRouteCellKind)k;
                 if (kind.IsSlope() && !query.AllowSlopes) continue;
                 if (!kind.CanFollow(state.Kind)) continue;
                 var cell = new Vector3Int(next.x, exitHeight - kind.EntryHeightOffset(), next.z);
+
+                // 終点セルそのものへ入るときは終点状態（直線・固定向き）だけを生成する。終点の列の他の高さは普通のセル
+                // Entering the end cell itself generates only the goal state (straight, fixed facing); other heights of that column are ordinary cells
+                if (cell == query.EndCell)
+                {
+                    if (kind == BeltRouteCellKind.Straight && rule.CanEnterGoal(state)) Relax(new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight), g + BeltRouteCellKindExtension.StraightCost, query.EndCell);
+                    continue;
+                }
                 if (kind.IsSlope())
                 {
                     TryRelax(rule, cell, kind, state.Outgoing, state.Outgoing, g);
