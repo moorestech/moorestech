@@ -1,5 +1,7 @@
 using System;
 using System.Threading;
+using Client.Game.InGame.BugReport.WebUiHealth;
+using Client.WebUiHost.Health;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -15,22 +17,25 @@ namespace Client.Starter.Initialization.Boot
             if (WebUiHostEditorSkip.ConsumeSkipMark())
             {
                 Debug.LogWarning("[WebUiHost] Editor限定スイッチによりWebホストを起動しません（Hub=nullで続行）");
+                WebUiHealthRecorder.RecordHostStartup(WebUiHostStartupState.SkippedByEditorSwitch);
                 return false;
             }
 #endif
-            // 終了時の購読はWebUiHostが一度だけ張る。UIはWeb一本なので起動失敗時は非表示で続ける
-            // WebUiHost owns its single shutdown subscription; the web-only UI stays hidden if startup fails
+            // 終了時の購読はWebUiHostが一度だけ張る。命綱はUITKにあるので続行し、失敗はLogErrorで開発者へ届ける
+            // WebUiHost owns its single shutdown subscription; the lifeline lives in UITK so boot continues, and failures reach developers as LogError
             // 外部プロセスの起動境界を隔離し、ゲームの初期化を続ける
             // Isolate external process startup failures and continue game initialization
             try
             {
                 var started = await Client.WebUiHost.Boot.WebUiHost.StartAsync(exitToken);
-                if (!started) Debug.LogWarning("[WebUiHost] 起動が完了しなかったため、Web UIなしで続行します");
+                if (!started) Debug.LogError("[WebUiHost] 起動が完了しなかったため、Web UIなしで続行します");
+                WebUiHealthRecorder.RecordHostStartup(started ? WebUiHostStartupState.Started : WebUiHostStartupState.Failed);
                 return started;
             }
             catch (Exception e) when (e is not OperationCanceledException)
             {
-                Debug.LogWarning($"[WebUiHost] 外部プロセスまたはHTTP待受の起動に失敗したため、Web UIなしで続行します: {e}");
+                Debug.LogError($"[WebUiHost] 外部プロセスまたはHTTP待受の起動に失敗したため、Web UIなしで続行します: {e}");
+                WebUiHealthRecorder.RecordHostStartup(WebUiHostStartupState.Failed);
                 return false;
             }
         }

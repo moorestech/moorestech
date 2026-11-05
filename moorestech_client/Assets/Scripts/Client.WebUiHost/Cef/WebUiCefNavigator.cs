@@ -1,4 +1,5 @@
 using CefUnity.Runtime;
+using Client.WebUiHost.Health;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -36,6 +37,10 @@ namespace Client.WebUiHost.Cef
                 // 同フレームの CefUnityBrowserSample.Start でのブラウザ生成完了を待つため 1 フレーム遅らせる
                 // Delay one frame so CefUnityBrowserSample.Start (same frame) finishes creating the browser
                 await UniTask.Yield();
+
+                // ブラウザ生成の後でCEFプロセスの生存の記録を始める（D-11）
+                // Start recording the CEF process state once the browser exists (D-11)
+                WebUiHealthRecorder.ObserveCefRuntime();
 
                 // WebUiHost は MainGame シーンロード前（InitializeScenePipeline 序盤）に起動済み。null はホスト起動失敗
                 // WebUiHost boots before the MainGame scene loads (early InitializeScenePipeline); null means host startup failed

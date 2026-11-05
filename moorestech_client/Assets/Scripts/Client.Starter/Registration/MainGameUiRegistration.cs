@@ -8,6 +8,7 @@ using Client.Ui.Screens.Toast;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Toast;
+using Client.WebUiHost.Boot;
 using VContainer;
 using VContainer.Unity;
 
@@ -21,6 +22,7 @@ namespace Client.Starter.Registration
         {
             builder.RegisterComponent(gameUiRoot);
             builder.RegisterEntryPoint<WebUiSuspension>();
+            builder.RegisterEntryPoint<WebUiSilenceWatcher>();
             builder.RegisterEntryPoint<GameUiLocaleClassBinder>();
             builder.RegisterEntryPoint<GameUiInputInstaller>();
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();

@@ -8,6 +8,7 @@ using Client.Tests.BugReport;
 using Client.Tests.Playtest;
 using Client.Tests.PlaytestReceiver;
 using Client.Ui.State.PauseMenu;
+using Client.Tests.BugReport.Bundle;
 
 namespace Client.Tests.Ui.State
 {
@@ -22,7 +23,7 @@ namespace Client.Tests.Ui.State
         public static PauseMenuCommands Create(PauseMenuStateService pauseMenuStateService)
         {
             var session = new BugReportCaptureSession(new NullBugReportCaptureSources());
-            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
+            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), FixedWebUiHealthProbe.NotAttempted());
             var submitter = new BugReportSubmitter(writer, session, new RecordingProgressSink(), new RecordingUploadRequester());
             return new PauseMenuCommands(new GameSaveRequester(), null, pauseMenuStateService, submitter, null);
         }
