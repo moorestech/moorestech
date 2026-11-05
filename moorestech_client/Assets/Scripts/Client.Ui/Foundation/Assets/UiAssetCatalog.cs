@@ -19,6 +19,9 @@ namespace Client.Ui.Foundation.Assets
         [SerializeField] private StyleSheet panelActionButton;
         [SerializeField] private StyleSheet modeSwitch;
         [SerializeField] private StyleSheet toast;
+        [SerializeField] private StyleSheet pauseMenu;
+        [SerializeField] private StyleSheet settings;
+        [SerializeField] private StyleSheet bugReport;
 
         // シリアライズ値の公開に限った素通しの読み出し（D-24）
         // Pass-through accessors limited to exposing serialized values (D-24)
@@ -26,6 +29,9 @@ namespace Client.Ui.Foundation.Assets
         public StyleSheet PanelActionButton => panelActionButton;
         public StyleSheet ModeSwitch => modeSwitch;
         public StyleSheet Toast => toast;
+        public StyleSheet PauseMenu => pauseMenu;
+        public StyleSheet Settings => settings;
+        public StyleSheet BugReport => bugReport;
 
         public void ValidateAllAssigned()
         {
@@ -36,6 +42,9 @@ namespace Client.Ui.Foundation.Assets
             AddIfMissing(panelActionButton, nameof(panelActionButton));
             AddIfMissing(modeSwitch, nameof(modeSwitch));
             AddIfMissing(toast, nameof(toast));
+            AddIfMissing(pauseMenu, nameof(pauseMenu));
+            AddIfMissing(settings, nameof(settings));
+            AddIfMissing(bugReport, nameof(bugReport));
             if (missing.Count > 0) throw new InvalidOperationException($"[UiAssetCatalog] unassigned style sheets on {name}: {string.Join(", ", missing)}");
 
             #region Internal

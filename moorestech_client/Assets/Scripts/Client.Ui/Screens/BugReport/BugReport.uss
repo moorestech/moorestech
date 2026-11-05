@@ -1,0 +1,44 @@
+/* バグ報告の欄。寸法は moorestech_web/webui/src/features/pauseMenu/style.module.css の .description / .status / .fieldLabel を写す */
+/* Bug-report form; sizes copy .description / .status / .fieldLabel in moorestech_web/webui/src/features/pauseMenu/style.module.css */
+
+.bug-report {
+    --bug-report-muted-text: var(--text-muted);
+    flex-direction: column;
+}
+
+/* 入力欄の見出しと状態行は従属の文字色。状態行は長い理由を折り返す */
+/* The field caption and status lines use secondary text; status lines wrap long reasons */
+.bug-report__field-label,
+.bug-report__status {
+    margin: 0;
+    padding: 0;
+    color: var(--bug-report-muted-text);
+    white-space: normal;
+}
+
+.bug-report__field-label {
+    margin-bottom: 4px;
+}
+
+.bug-report__status {
+    margin-top: 8px;
+}
+
+.bug-report__description {
+    width: var(--bug-report-textarea-width);
+    height: var(--bug-report-textarea-height);
+    margin-top: 8px;
+}
+
+.bug-report__description .unity-text-field {
+    flex-grow: 1;
+    margin: 0;
+}
+
+.bug-report__recovery {
+    flex-direction: column;
+}
+
+.bug-report__button {
+    margin: 8px 0 0 0;
+}

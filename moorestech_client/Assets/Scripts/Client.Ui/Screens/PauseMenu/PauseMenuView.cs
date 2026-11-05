@@ -1,0 +1,196 @@
+using System;
+using Client.Game.InGame.Tutorial.UIHighlight;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
+using Client.Localization;
+using Client.Ui.Components;
+using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Assets;
+using Client.Ui.Foundation.Text;
+using Client.Ui.Screens.BugReport;
+using Client.Ui.Screens.Settings;
+using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Settings;
+using Client.Ui.State.Toast;
+using Mooresmaster.Localization.Generated;
+using UniRx;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Ui.Screens.PauseMenu
+{
+    /// <summary>
+    /// ポーズ画面の GamePanel。ページは PauseMenuViewModel.Page だけで決め、変わるたびに中身を作り直す（Web の PauseMenuPanel）
+    /// The pause-menu GamePanel; the page is decided only by PauseMenuViewModel.Page and rebuilt whenever it changes (Web PauseMenuPanel)
+    /// </summary>
+    public sealed class PauseMenuView : VisualElement
+    {
+        // Web の --pause-menu-max-height（ステージ高 − 80px）。上下 40px を空けて本文だけスクロールさせる
+        // Web --pause-menu-max-height (stage height - 80px): leave 40px above and below and scroll only the body
+        private const float StageVerticalMargin = 80f;
+
+        private readonly IReadOnlyReactiveProperty<PauseMenuViewModel> _model;
+        private readonly IReadOnlyReactiveProperty<SettingsViewModel> _settings;
+        private readonly IPauseMenuCommands _commands;
+        private readonly ISettingsCommands _settingsCommands;
+        private readonly GameUiToastFeed _toasts;
+        private readonly BugReportDraft _draft;
+        private readonly UiAssetCatalog _catalog;
+        private readonly LocalizedLabel _title;
+        private readonly VisualElement _pageHost;
+        private CompositeDisposable _subscriptions;
+        private VisualElement _parentWatched;
+        private PauseMenuPage? _shownPage;
+        private PauseMenuTopPageView _top;
+        private LanguageSelectView _language;
+        private SprintModeSelectView _sprint;
+        private GraphicsQualitySettingsView _graphics;
+        private BugReportFormView _bugReport;
+
+        public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft, UiAssetCatalog catalog)
+        {
+            _model = model;
+            _settings = settings;
+            _commands = commands;
+            _settingsCommands = settingsCommands;
+            _toasts = toasts;
+            _draft = draft;
+            _catalog = catalog;
+            name = "pause-menu";
+            styleSheets.Add(catalog.PauseMenu);
+            AddToClassList("pause-menu");
+            TutorialAnchor.Mark(this, AnchorIds.PauseMenu);
+
+            // 題は枠のタイトル行に 1 つだけ置き、ページに合わせてキーを差し替える
+            // A single title sits in the frame's title row and swaps its key per page
+            var panel = new GamePanel(catalog.GamePanel);
+            panel.AddToClassList("pause-menu__panel");
+            _title = new LocalizedLabel();
+            panel.SetTitle(_title);
+            Add(panel);
+
+            // ロケール印は DSL が言語の切り替わりを待つための名前
+            // The locale marker is a name the DSL waits on to see the language switch
+            _pageHost = new VisualElement();
+            _pageHost.AddToClassList("pause-menu__page");
+            panel.Add(_pageHost);
+            UpdateLocaleMarker();
+            ShowPage(model.Value);
+
+            RegisterCallback<AttachToPanelEvent>(_ => OnAttached());
+            RegisterCallback<DetachFromPanelEvent>(_ => OnDetached());
+        }
+
+        private void OnAttached()
+        {
+            // 購読はパネルに載っている間だけ張る。どれも購読時に現在値を流す
+            // Subscriptions live only while on a panel; each replays its current value on subscribe
+            _subscriptions?.Dispose();
+            _subscriptions = new CompositeDisposable();
+            _model.Subscribe(OnPauseMenuChanged).AddTo(_subscriptions);
+            _settings.Subscribe(OnSettingsChanged).AddTo(_subscriptions);
+            Localize.OnLanguageChanged.Subscribe(_ => UpdateLocaleMarker()).AddTo(_subscriptions);
+            UpdateLocaleMarker();
+
+            _parentWatched = parent;
+            _parentWatched.RegisterCallback<GeometryChangedEvent>(OnParentGeometryChanged);
+            ApplyMaxHeight();
+        }
+
+        private void OnDetached()
+        {
+            _subscriptions?.Dispose();
+            _subscriptions = null;
+            _parentWatched?.UnregisterCallback<GeometryChangedEvent>(OnParentGeometryChanged);
+            _parentWatched = null;
+        }
+
+        private void OnPauseMenuChanged(PauseMenuViewModel model)
+        {
+            if (_shownPage != model.Page) ShowPage(model);
+            _top?.SetDisconnected(model.Disconnected);
+            _bugReport?.Apply(model);
+        }
+
+        private void OnSettingsChanged(SettingsViewModel model)
+        {
+            _language?.Apply(model);
+            _sprint?.Apply(model);
+            _graphics?.Apply(model);
+        }
+
+        private void ShowPage(PauseMenuViewModel model)
+        {
+            // 前のページの View を捨てて作り直す。書きかけは BugReportDraft が持つので消えない
+            // Drop the previous page's views and rebuild; the draft survives in BugReportDraft
+            _pageHost.Clear();
+            _top = null;
+            _language = null;
+            _sprint = null;
+            _graphics = null;
+            _bugReport = null;
+            _shownPage = model.Page;
+            switch (model.Page)
+            {
+                case PauseMenuPage.Top: BuildTop(); break;
+                case PauseMenuPage.Settings: BuildSettings(); break;
+                case PauseMenuPage.BugReport: BuildBugReport(); break;
+                default: throw new ArgumentOutOfRangeException(nameof(model), model.Page, null);
+            }
+
+            #region Internal
+
+            void BuildTop()
+            {
+                _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
+                _top = new PauseMenuTopPageView(_commands, _catalog);
+                _top.SetDisconnected(model.Disconnected);
+                _pageHost.Add(_top);
+            }
+
+            void BuildSettings()
+            {
+                _title.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
+                var subPage = new PauseMenuSubPageView(_commands, _catalog);
+                var settings = _settings.Value;
+                _language = new LanguageSelectView(settings, _settingsCommands, _toasts, _catalog);
+                _sprint = new SprintModeSelectView(settings, _settingsCommands, _catalog);
+                _graphics = new GraphicsQualitySettingsView(settings, _settingsCommands, _catalog);
+                subPage.AddSection(_language);
+                subPage.AddSection(_sprint);
+                subPage.AddSection(_graphics);
+                _pageHost.Add(subPage);
+            }
+
+            void BuildBugReport()
+            {
+                _title.SetKey(LocalizationKeys.Ui.PauseMenu.BugReport);
+                var subPage = new PauseMenuSubPageView(_commands, _catalog);
+                _bugReport = new BugReportFormView(model, _commands, _toasts, _draft, _catalog);
+                subPage.AddSection(_bugReport);
+                _pageHost.Add(subPage);
+            }
+
+            #endregion
+        }
+
+        private void UpdateLocaleMarker()
+        {
+            _pageHost.name = $"pause-menu-locale-{Localize.GetCurrentLanguageCode()}";
+        }
+
+        private void OnParentGeometryChanged(GeometryChangedEvent evt)
+        {
+            ApplyMaxHeight();
+        }
+
+        // ステージ高に依存する最大高は USS で書けないので、載っている層の高さから決める
+        // The stage-dependent max height cannot be written in USS, so derive it from the hosting layer's height
+        private void ApplyMaxHeight()
+        {
+            var parentHeight = _parentWatched.layout.height;
+            // silent-ok: 初回レイアウト前は高さが無く、直後の GeometryChangedEvent で決まる / 枠が伸び切るので L1 の高さ検査が気づく
+            if (float.IsNaN(parentHeight)) return;
+            style.maxHeight = Mathf.Max(0f, parentHeight - StageVerticalMargin);
+        }
+    }
+}

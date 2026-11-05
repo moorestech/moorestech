@@ -43,7 +43,7 @@ namespace Client.Tests.Ui.Assets
         {
             var catalog = ScriptableObject.CreateInstance<UiAssetCatalog>();
             var exception = Assert.Throws<InvalidOperationException>(catalog.ValidateAllAssigned);
-            StringAssert.Contains("gamePanel, panelActionButton, modeSwitch, toast", exception.Message);
+            StringAssert.Contains("gamePanel, panelActionButton, modeSwitch, toast, pauseMenu, settings, bugReport", exception.Message);
             UnityEngine.Object.DestroyImmediate(catalog);
         }
     }

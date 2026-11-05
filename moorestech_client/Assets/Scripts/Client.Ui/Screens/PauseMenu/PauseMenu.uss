@@ -1,0 +1,58 @@
+/* ポーズ画面の枠と並び。寸法は moorestech_web/webui/src/features/pauseMenu/style.module.css の .panel / .page を写す */
+/* 最大高（--pause-menu-max-height = ステージ高 − 80px）はステージ高に依存するので PauseMenuView が C# で入れる */
+/* Pause-menu frame and layout; sizes copy .panel / .page in moorestech_web/webui/src/features/pauseMenu/style.module.css */
+/* The max height (--pause-menu-max-height = stage height - 80px) depends on the stage height, so PauseMenuView sets it in C# */
+
+.pause-menu {
+    --pause-menu-disconnected-text: var(--color-danger);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    translate: -50% -50%;
+    width: 420px;
+    flex-direction: column;
+}
+
+/* 枠が最大高で止まったとき、本文だけがスクロールできるよう flex の高さ連鎖を子画面まで通す */
+/* Pass the flex height chain down to the sub-page so only the body scrolls when the frame stops at its max height */
+.pause-menu__panel,
+.pause-menu__page,
+.pause-menu__sub-page,
+.pause-menu__body {
+    flex-shrink: 1;
+    min-height: 0;
+}
+
+.pause-menu__page,
+.pause-menu__sub-page {
+    flex-grow: 1;
+    flex-direction: column;
+}
+
+.pause-menu__body {
+    flex-grow: 1;
+}
+
+/* Web の Stack gap=md（16px）。USS に gap が無いので 2 つ目以降の子に上の余白を付ける */
+/* Web Stack gap=md (16px); USS has no gap, so children after the first get a top margin */
+.pause-menu__stack-item--following {
+    margin-top: 16px;
+}
+
+.pause-menu__disconnected {
+    margin: 0 0 16px 0;
+    padding: 0;
+    color: var(--pause-menu-disconnected-text);
+    white-space: normal;
+}
+
+/* 横幅は本文の並びが決める。整理ボタン用の既定幅では長いメニュー名が折り返す */
+/* The body column owns the width; the sort button's default width wraps long menu labels */
+.pause-menu .panel-action-button.unity-button {
+    width: auto;
+}
+
+.pause-menu__back {
+    flex-shrink: 0;
+    margin-top: 16px;
+}

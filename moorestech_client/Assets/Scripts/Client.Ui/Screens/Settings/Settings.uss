@@ -1,0 +1,27 @@
+/* 設定の各節（言語・走り・画質）。並びは moorestech_web/webui/src/features/settings/*.tsx の Title order=2・Text・role=status を写す */
+/* Settings sections (language, sprint, graphics); the layout copies Title order=2, Text and role=status in moorestech_web/webui/src/features/settings/*.tsx */
+
+.settings-section {
+    --settings-section-title-text: var(--color-content-primary);
+    --settings-section-note-text: var(--text-muted);
+    flex-direction: column;
+}
+
+.settings-section__title {
+    margin: 0 0 8px 0;
+    padding: 0;
+    font-size: 17px;
+    color: var(--settings-section-title-text);
+}
+
+.settings-section__caption {
+    margin: 8px 0 4px 0;
+    padding: 0;
+}
+
+.settings-section__note {
+    margin: 0 0 4px 0;
+    padding: 0;
+    color: var(--settings-section-note-text);
+    white-space: normal;
+}
