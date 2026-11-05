@@ -159,7 +159,7 @@
   - `public sealed class UiAssetCatalog : ScriptableObject`（`[CreateAssetMenu]` は付けない）。`[SerializeField] private StyleSheet gamePanel, panelActionButton, modeSwitch, toast;`（画面の `pauseMenu`・`settings`・`bugReport` は Task 4 が USS と一緒に足す） と同名の読み出し（`public StyleSheet GamePanel => gamePanel;` 等。素通しの読み出しは「単純 getter 禁止」の例外としてシリアライズ値の公開に限る＝前例は D-24）。`public void ValidateAllAssigned()` が欠けた名前を全部並べて `InvalidOperationException`
   - `public sealed class PanelActionButton : Button`（ctor `(string testid, LocalizationKey label, StyleSheet sheet)`、`focusable=false`、ラベルは `LocalizedLabel`、`clicked` に購読）
   - `public sealed class ModeSwitch<TValue> : VisualElement`（ctor `(string testid, ModeSwitchOrientation orientation, IReadOnlyList<ModeSwitchOption<TValue>> options, StyleSheet sheet)`。`IObservable<TValue> OnSelected`、`void SetSelected(TValue value)`（一致しなければ無選択）、`void SetSelectedNone()`、`void SetEnabledAll(bool enabled)`。選択は `--selected` クラス。各選択肢は `focusable=false` の Button で `name=option.Testid`）
-  - `public sealed class ModeSwitchOption<TValue> { string Testid; TValue Value; LocalizationKey LabelKey; string LiteralLabel; }`（ラベルはキーか、言語名・`300m` のような翻訳しない値の文字列のどちらか 1 つ。両方・どちらも無しは ctor で例外）
+  - `public sealed class ModeSwitchOption<TValue> { string Testid; TValue Value; LocalizationKey? LabelKey; string LiteralLabel; }`（ラベルはキーか、言語名・`300m` のような翻訳しない値の文字列のどちらか 1 つ。両方・どちらも無しは ctor で例外）
   - `public enum ModeSwitchOrientation { Horizontal, Vertical }`
   - `public sealed class ToastItem : VisualElement`（ctor `(GameUiToast toast, StyleSheet sheet)`。クラス `toast-item--info`／`toast-item--error`）
 
