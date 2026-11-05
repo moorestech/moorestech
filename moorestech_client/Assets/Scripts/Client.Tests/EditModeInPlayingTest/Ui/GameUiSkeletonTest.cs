@@ -115,6 +115,10 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
         private static async UniTask AssertEmptyPanelDoesNotTakePointer(GameUiRoot gameUiRoot)
         {
+            // 背面の Editor・CI の batchmode でも注入マウスが届く設定にする
+            // Let injected mouse input reach a background Editor or CI batchmode
+            using var backgroundInput = EditorBackgroundInputScope.Open();
+
             // カーソルを解放して画面中央（Web・uGUI の要素が無い位置）へ置く
             // Release the cursor and place it at the screen center where no Web or uGUI element sits
             InputManager.MouseCursorVisible(true);
