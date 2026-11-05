@@ -403,7 +403,7 @@ push。
 
 - [ ] **Step 1: テスト**
 
-editmode-in-playing-test スキルの雛形で PlayMode に入り、(1) `GameUiRoot.Instance` が全 `UiLayer` のコンテナを持つ、(2) 既定（全部 Web）で CEF の RawImage が有効、`UiRoutingState.Current.Value.WebUiSuspended == false`、(3) `UiOwnershipEditorOverride.Set(PauseMenu, MainPanel, GameUi)` → ポーズへ遷移（`OnStateChanged` で再計算される）（`UIStateControl.RequestTransition(UIStateEnum.PauseMenu)`）で RawImage が無効・`WebUiInputExclusivity.IsPointerOverWebUi == false`、閉じると RawImage が戻る。終わりに `Clear()`。
+editmode-in-playing-test スキルの雛形で PlayMode に入り、(1) `GameUiRoot.Instance` が全 `UiLayer` のコンテナを持つ、(2) 既定（全部 Web）で CEF の RawImage が有効、`UiRoutingState.Current.Value.WebUiSuspended == false`、(3) `UiOwnershipEditorOverride.Set(PauseMenu, MainPanel, GameUi)` → ポーズへ遷移（`OnStateChanged` で再計算される）（`UIStateControl.RequestTransition(UIStateEnum.PauseMenu)`）で RawImage が無効・`WebUiInputExclusivity.IsPointerOverWebUi == false`、閉じると RawImage が戻る。終わりに `Clear()`。(4) 空の UITK パネルが入力を奪わない: カーソルを画面中央（Web・uGUI の要素が無い位置）に置いた状態で `EventSystem.current.IsPointerOverGameObject()` と `UiPointerHitTest.IsPointerOverAnyUi()` が false（S3 で IsPointerOverGameObject が UITK を拾うと分かっているため。root・層が Ignore なら false のはず）。カーソル位置は InputSystem の Mouse へ状態注入する（既存の EditModeInPlayingTest の前例に倣う）。
 
 - [ ] **Step 2: 実行**
 
