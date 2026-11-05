@@ -58,7 +58,6 @@ function useStageScaleSync(enabled: boolean) {
 // uGUI のインベントリ画面準拠の3カラム+下段ホットバーレイアウト
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
-  useWebInputExclusivity();
   const { status, t } = useI18n();
 
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
@@ -73,6 +72,9 @@ export default function App() {
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
   const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
   const webUiSuspended = useTopicSelector(Topics.uiState, (d) => d?.webUiSuspended === true);
+  // 休止中もunmountされないよう早期returnより前で呼び、解除時の送り直しを任せる
+  // Called before the early return so it survives suspension and resends the real state on resume
+  useWebInputExclusivity(webUiSuspended);
   // stage が描かれない間の resize を取りこぼさないよう、描画再開で倍率を測り直す
   // Re-measure the scale when rendering resumes so a resize while the stage was unmounted is not lost
   const stageRef = useStageScaleSync(uiVisible && !cutScene && !webUiSuspended);
