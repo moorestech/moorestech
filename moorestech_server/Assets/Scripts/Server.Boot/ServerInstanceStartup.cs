@@ -102,6 +102,9 @@ namespace Server.Boot
 
             var cancellationToken = new CancellationTokenSource();
             var token = cancellationToken.Token;
+            // Unity停止の意思だけを渡す。ゲーム更新のcancel時点や保存の進行は変えない
+            // Pass only Unity's exit intent without changing game-loop cancellation or save progress
+            var shutdownNotice = Application.isPlaying ? Application.exitCancellationToken : CancellationToken.None;
             var connectionRegistry = serviceProvider.GetRequiredService<PlayerConnectionRegistry>();
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
@@ -111,7 +114,7 @@ namespace Server.Boot
             Debug.Log($"moorestechサーバー 起動完了 port:{((System.Net.IPEndPoint)listener.LocalEndPoint).Port}");
 
             var connectionUpdateThread = new Thread(() =>
-                ServerListenAcceptor.StartServer(listener, packet, connectionRegistry, eventProtocolProvider, tickEndPacketQueue, receivedPacketLog, token));
+                ServerListenAcceptor.StartServer(listener, packet, connectionRegistry, eventProtocolProvider, tickEndPacketQueue, receivedPacketLog, token, shutdownNotice));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
 

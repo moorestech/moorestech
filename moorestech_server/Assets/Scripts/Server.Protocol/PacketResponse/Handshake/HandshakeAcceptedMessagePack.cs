@@ -2,6 +2,7 @@ using System;
 using Game.PlayerRiding.Interface;
 using MessagePack;
 using Server.Event.EventReceive;
+using Server.Event.EventReceive.MachineUpgrade;
 using Server.Util.MessagePack;
 using static Server.Event.EventReceive.ItemStackLevelUnlockEventPacket;
 
@@ -17,13 +18,16 @@ namespace Server.Protocol.PacketResponse.Handshake
         [Key(4)] public ItemStackLevelMessagePack[] ItemStackLevels { get; set; }
         [Key(5)] public Guid[] HotbarAssignments { get; set; }
         [Key(6)] public RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] RemainingPlacementCounts { get; set; }
+        [Key(7)] public int ModuleSlotStackLevel { get; set; }
+        [Key(8)] public LevelInheritanceCraftCapUnlockEventPacket.LevelInheritanceCraftCapMessagePack[] LevelInheritanceCraftCaps { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public HandshakeAcceptedMessagePack() { }
 
         public HandshakeAcceptedMessagePack(Vector3MessagePack playerPos, RidableIdentifierMessagePack ridingTarget,
             int ridingSeatIndex, ItemStackLevelMessagePack[] itemStackLevels, Guid[] hotbarAssignments,
-            RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] remainingPlacementCounts, int playerId)
+            RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack[] remainingPlacementCounts,
+            int moduleSlotStackLevel, LevelInheritanceCraftCapUnlockEventPacket.LevelInheritanceCraftCapMessagePack[] levelInheritanceCraftCaps, int playerId)
         {
             PlayerId = playerId;
             PlayerPos = playerPos;
@@ -32,6 +36,8 @@ namespace Server.Protocol.PacketResponse.Handshake
             ItemStackLevels = itemStackLevels;
             HotbarAssignments = hotbarAssignments;
             RemainingPlacementCounts = remainingPlacementCounts;
+            ModuleSlotStackLevel = moduleSlotStackLevel;
+            LevelInheritanceCraftCaps = levelInheritanceCraftCaps;
         }
     }
 }

@@ -4,6 +4,7 @@ import { ItemSlot, BlockSlot } from "@/shared/ui";
 import { L, useI18n, type TranslationKey } from "@/shared/i18n";
 import { localizeSelectableTargetName } from "@/shared/placementTarget";
 import { toUnlockEntries, type UnlockEntry } from "./unlockEntries";
+import UnlockCraftCapLabel from "./UnlockCraftCapLabel";
 import UnlockFluidLabel from "./UnlockFluidLabel";
 import styles from "../style.module.css";
 
@@ -29,11 +30,13 @@ const SECTIONS: Record<UnlockEntry["kind"], SectionConfig> = {
   rewardItem: { sectionId: "rewardItems", labelKey: L.ui.research.rewardItemsLabel, testId: "research-reward-items", wrapInSlotsRow: true },
   connectTool: { sectionId: "others", labelKey: L.ui.research.unlockOthersLabel, testId: "research-unlock-others", wrapInSlotsRow: false },
   trainCar: { sectionId: "others", labelKey: L.ui.research.unlockOthersLabel, testId: "research-unlock-others", wrapInSlotsRow: false },
+  moduleSlotStackLimit: { sectionId: "others", labelKey: L.ui.research.unlockOthersLabel, testId: "research-unlock-others", wrapInSlotsRow: false },
+  levelInheritanceCraftCap: { sectionId: "others", labelKey: L.ui.research.unlockOthersLabel, testId: "research-unlock-others", wrapInSlotsRow: false },
 };
 
 // 解放物1件の描画。種類を足すとdefaultのnever代入がコンパイルエラーになる
 // Draws one unlock entry; adding a kind breaks the never assignment in default at compile time
-function renderUnlockEntry(entry: UnlockEntry, t: (key: TranslationKey) => string): ReactNode {
+function renderUnlockEntry(entry: UnlockEntry, t: ReturnType<typeof useI18n>["t"]): ReactNode {
   switch (entry.kind) {
     case "block":
       return (
@@ -61,6 +64,10 @@ function renderUnlockEntry(entry: UnlockEntry, t: (key: TranslationKey) => strin
       return <p key={`ot-ct-${entry.index}-${entry.guid}`} className={styles.unlockOtherName}>{localizeSelectableTargetName({ type: "connectTool", guid: entry.guid }, t)}</p>;
     case "trainCar":
       return <p key={`ot-tc-${entry.index}-${entry.guid}`} className={styles.unlockOtherName}>{localizeSelectableTargetName({ type: "trainCar", guid: entry.guid }, t)}</p>;
+    case "moduleSlotStackLimit":
+      return <p key={`ot-ms-${entry.index}-${entry.limit}`} className={styles.unlockOtherName} data-testid="research-unlock-module-slot-stack-limit">{t(L.ui.research.unlockModuleSlotStackLimit, { limit: entry.limit })}</p>;
+    case "levelInheritanceCraftCap":
+      return <UnlockCraftCapLabel key={`ot-cc-${entry.index}-${entry.itemId}`} itemId={entry.itemId} level={entry.level} />;
     default: {
       const exhaustive: never = entry;
       return exhaustive;

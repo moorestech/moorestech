@@ -1,5 +1,6 @@
 using System.Linq;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -45,15 +46,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsNotNull(response);
             Assert.AreEqual(0, response.Count);
             
+            GameUpdater.UpdateOneTick();
+
             // イベントが発行されたことを確認
-            var events = sink.TakeAll();
+            // Ensure the bundle event was published
+            var events = sink.TakeAll().Where(e => e.Tag == ChangeBlockStateEventPacket.EventTag).ToList();
             Assert.AreEqual(1, events.Count);
-            var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPositionInfo);
-            Assert.AreEqual(eventTag, events[0].Tag);
-            
-            // イベントペイロードの確認
-            var blockStateMessage = MessagePackSerializer.Deserialize<BlockStateMessagePack>(events[0].Payload);
-            Assert.AreEqual(blockPosition, (Vector3Int)blockStateMessage.Position);
+            Assert.AreEqual(ChangeBlockStateEventPacket.EventTag, events[0].Tag);
+
+            // 束の中身の確認
+            // Check the bundle content
+            var states = EventTestUtil.ExtractBlockStates(events);
+            Assert.AreEqual(1, states.Count);
+            Assert.AreEqual(blockPosition, (Vector3Int)states[0].Position);
         }
         
         [Test]
@@ -77,8 +82,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsNotNull(response);
             Assert.AreEqual(0, response.Count);
             
+            GameUpdater.UpdateOneTick();
+
             // イベントが発行されていないことを確認
-            var events = sink.TakeAll();
+            var events = sink.TakeAll().Where(e => e.Tag == ChangeBlockStateEventPacket.EventTag).ToList();
             Assert.AreEqual(0, events.Count);
         }
     }

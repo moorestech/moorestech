@@ -1,16 +1,18 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Game.Block.Event;
 using Game.Block.Blocks.TrainRail.Naming;
 using Game.Map.Interface.Vein;
 using Game.Map.Interface.MapObject;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Factory.BlockTemplate.CleanRoom;
+using Game.Block.Factory.BlockTemplate.SpaceElevator;
 using Game.Block.Factory.BlockTemplate.Electric;
 using Game.Block.Factory.BlockTemplate.Fluid;
 using Game.Block.Factory.BlockTemplate.Gear;
 using Game.Block.Factory.BlockTemplate.Machine;
 using Game.Block.Factory.BlockTemplate.Miner;
 using Game.Block.Factory.BlockTemplate.Train;
+using Game.Block.Factory.BlockTemplate.Rocket;
 using Game.Block.Factory.BlockTemplate.Transport;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
@@ -73,6 +75,8 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomPipeHatch, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.PipeHatch));
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomAirFilter, new VanillaCleanRoomAirFilterTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomMachine, new VanillaCleanRoomMachineTemplate(blockInventoryEvent));
+            BlockTypesDictionary.Add(BlockTypeConst.SpaceElevatorBase, new VanillaSpaceElevatorBaseTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.RocketLaunchPad, new VanillaRocketLaunchPadTemplate(blockInventoryEvent));
         }
     }
 }

@@ -6,18 +6,18 @@
 
 commit_logs() {
   local message="$1"
-  # 記録の commit と push は別々に判定する（scripts/bugreport/inbox-poller.sh 前例）。
+  # 記録の commit と push は別々に判定する。
   # push だけ失敗を潰すと「届いていない」が誰にも見えなくなる
-  # Judge commit and push separately (precedent: inbox-poller.sh); swallowing a failed
+  # Judge commit and push separately; swallowing a failed
   # push alone would hide that nothing reached the remote
   [ -d "$LOGS/.git" ] || { log "ERROR: logs repo が無い: ${LOGS}（commit しない）"; return 0; }
   (
     cd "$LOGS"
     $GIT_CMD add -A harness/playtest || exit 1
     $GIT_CMD diff --cached --quiet -- harness/playtest && exit 0
-    # 同じ index を触る他ジョブ（bug-report poller 等）が commit を挟んでも、この commit は
+    # 同じ index を触る他ジョブが commit を挟んでも、この commit は
     # harness/playtest だけを含める（pathspec 限定。取り込み記録が他ジョブへ混入しない）
-    # Even if another job (e.g. the bug-report poller) shares this index and commits in between,
+    # Even if another job shares this index and commits in between,
     # this commit stays scoped to harness/playtest via pathspec so it never mixes into their record
     $GIT_CMD commit -qm "$message" -- harness/playtest || exit 1
   ) || log "ERROR: logs repo の commit に失敗（次回に持ち越し）"

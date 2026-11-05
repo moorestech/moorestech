@@ -1,3 +1,4 @@
+using Core.Master.Validator.MachineUpgrade;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
@@ -10,6 +11,7 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += RecipeValidation();
             errorLogs += SlotCapacityValidation();
+            errorLogs += MachineRecipeLevelInheritanceValidator.Validate(machineRecipes);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal

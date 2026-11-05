@@ -66,7 +66,7 @@ async function main() {
   async function captureCraft() {
     const page = await context.newPage();
     await page.goto(`http://127.0.0.1:${PORT}/`);
-    await page.getByRole("heading", { name: "CRAFT RECIPE" }).waitFor();
+    await page.getByRole("heading", { name: "クラフトレシピ" }).waitFor();
     await page.getByTestId("item-list-grid").locator("> div").first().click();
     await page.locator('[class*="_recipeBox_"]').first().waitFor();
     await page.evaluate("document.fonts.ready.then(() => undefined)");

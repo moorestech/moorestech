@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using Game.SaveLoad.Snapshot;
 using Server.Boot.Loop.PacketProcessing;
 using Server.Protocol;
@@ -24,7 +25,7 @@ namespace Tests.CombinedTest.Server.Replay.SnapshotReplayDeterminismTest
             _client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _client.Connect(_listener.LocalEndPoint);
             _accepted = _listener.Accept();
-            _sender = new SendQueueProcessor(_accepted);
+            _sender = new SendQueueProcessor(_accepted, CancellationToken.None, CancellationToken.None);
         }
 
         internal ReceiveQueueProcessor CreateReceiver(PacketResponseCreator creator, PacketResponseContext context,

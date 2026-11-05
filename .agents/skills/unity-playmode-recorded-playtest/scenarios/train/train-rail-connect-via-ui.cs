@@ -32,8 +32,8 @@ return PlaytestRunner.Run("train-rail-connect-via-ui", options, async p =>
 
     // 橋脚の建設コストとレール接続ツールの消費素材（補強棒材・鉄板）を用意し、ホットバー0/1へ割当てる
     // Stock the pier's construction cost and the rail connect tool's materials (reinforced rod, iron plate), then assign to hotbar 0/1
-    p.UnlockBlock("レール橋脚");
-    p.Hotbar.UnlockConnectTool("レール");
+    await p.UnlockBlock("レール橋脚");
+    await p.Hotbar.UnlockConnectTool("レール");
     await p.GiveConstructionCost("レール橋脚", 5);
     await p.GiveItem("補強棒材", 64);
     await p.GiveItem("鉄板", 32);

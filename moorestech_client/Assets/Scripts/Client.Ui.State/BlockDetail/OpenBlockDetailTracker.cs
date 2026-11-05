@@ -3,9 +3,6 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
-using Client.Network.API;
-using Mooresmaster.Model.BlocksModule;
-using Server.Event.EventReceive;
 using UniRx;
 using VContainer.Unity;
 
@@ -21,7 +18,6 @@ namespace Client.Ui.State.BlockDetail
         private readonly SubInventoryState _subInventoryState;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private readonly BlockNetworkInfoCache _networkCache;
-        private readonly IVanillaApiEvent _vanillaApiEvent;
         private readonly Subject<BlockGameObject> _onTrackedBlockChanged = new();
         private readonly Subject<Unit> _onTrackedBlockStateChanged = new();
         private IDisposable _blockStateSubscription;
@@ -33,13 +29,12 @@ namespace Client.Ui.State.BlockDetail
         public IObservable<BlockGameObject> OnTrackedBlockChanged => _onTrackedBlockChanged;
         public IObservable<Unit> OnTrackedBlockStateChanged => _onTrackedBlockStateChanged;
 
-        public OpenBlockDetailTracker(UIStateControl uiStateControl, SubInventoryState subInventoryState, BlockGameObjectDataStore blockGameObjectDataStore, BlockNetworkInfoCache networkCache, IVanillaApiEvent vanillaApiEvent)
+        public OpenBlockDetailTracker(UIStateControl uiStateControl, SubInventoryState subInventoryState, BlockGameObjectDataStore blockGameObjectDataStore, BlockNetworkInfoCache networkCache)
         {
             _uiStateControl = uiStateControl;
             _subInventoryState = subInventoryState;
             _blockGameObjectDataStore = blockGameObjectDataStore;
             _networkCache = networkCache;
-            _vanillaApiEvent = vanillaApiEvent;
         }
 
         public void Initialize()
@@ -86,17 +81,12 @@ namespace Client.Ui.State.BlockDetail
                     return;
                 }
 
-                // uGUIと同じタグを購読し再配信契機に
-                // Subscribe the uGUI event tag as republish trigger
-                var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(block.BlockPosInfo);
-                _blockStateSubscription = _vanillaApiEvent.SubscribeEventResponse(eventTag, _ => _onTrackedBlockStateChanged.OnNext(Unit.Default));
-                // ネットワーク所属はマスタの接続paramが答える。blockTypeの列挙は新種別を取りこぼす
-                // The master's connection params answer which networks a block joins; enumerating blockTypes drops new kinds
-                var param = block.BlockMasterElement.BlockParam;
-                var electric = param is IElectricWireConnectParam;
-                var gear = param is IGearConnectors;
-                var filterSplitter = block.BlockMasterElement.BlockType == "FilterSplitter";
-                _networkCache.Track(block, electric, gear, filterSplitter);
+                // 束で追跡ブロックに届いたら再配信契機に
+                // Republish trigger whenever bundle routing delivers a state to the tracked block
+                _blockStateSubscription = block.OnBlockStateChanged.Subscribe(_ => _onTrackedBlockStateChanged.OnNext(Unit.Default));
+                // どの集約情報を追うかはキャッシュが param から決める
+                // The cache decides from the param which aggregates to follow
+                _networkCache.Track(block);
                 _onTrackedBlockChanged.OnNext(block);
             }
 

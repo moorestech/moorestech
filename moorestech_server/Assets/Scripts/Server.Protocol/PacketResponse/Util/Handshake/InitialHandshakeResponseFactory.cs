@@ -1,5 +1,6 @@
 using System.Linq;
 using Core.Item.Interface;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Construction;
 using Game.Entity.Interface;
 using Game.Hotbar;
@@ -7,6 +8,7 @@ using Game.PlayerRiding.Interface;
 using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Event.EventReceive;
+using Server.Event.EventReceive.MachineUpgrade;
 using Server.Protocol.PacketResponse.Handshake;
 using Server.Util.MessagePack;
 using static Server.Event.EventReceive.ItemStackLevelUnlockEventPacket;
@@ -23,6 +25,8 @@ namespace Server.Protocol.PacketResponse.Util.Handshake
         private readonly IItemStackLevelLookup _itemStackLevelLookup;
         private readonly IHotbarAssignmentLookup _hotbarAssignmentLookup;
         private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;
+        private readonly IModuleSlotStackLimitLookup _moduleSlotStackLimitLookup;
+        private readonly ILevelInheritanceCraftCapLookup _levelInheritanceCraftCapLookup;
 
         internal InitialHandshakeResponseFactory(ServiceProvider serviceProvider)
         {
@@ -33,6 +37,8 @@ namespace Server.Protocol.PacketResponse.Util.Handshake
             _playerRidingDatastore = serviceProvider.GetService<IPlayerRidingDatastore>();
             _hotbarAssignmentLookup = serviceProvider.GetService<IHotbarAssignmentLookup>();
             _remainingPlacementCountLookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
+            _moduleSlotStackLimitLookup = serviceProvider.GetService<IModuleSlotStackLimitLookup>();
+            _levelInheritanceCraftCapLookup = serviceProvider.GetService<ILevelInheritanceCraftCapLookup>();
         }
 
         internal InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack CreateResponse(int playerId)
@@ -66,7 +72,14 @@ namespace Server.Protocol.PacketResponse.Util.Handshake
                 .Select(pair => new RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack(pair.walletBlockId.AsPrimitive(), pair.remainingCount))
                 .ToArray();
 
-            var accepted = new HandshakeAcceptedMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments, remainingPlacementCounts, playerId);
+            // 機械の強化系（スロット上限・製作上限）も初期データとして同梱する
+            // Bundle the machine-upgrade state (slot limit, craft cap) as initial data too
+            var levelInheritanceCraftCaps = _levelInheritanceCraftCapLookup.UnlockedCaps
+                .Select(cap => new LevelInheritanceCraftCapUnlockEventPacket.LevelInheritanceCraftCapMessagePack(cap.Key, cap.Value))
+                .ToArray();
+
+            var accepted = new HandshakeAcceptedMessagePack(playerPos, ridingTarget, ridingSeatIndex, itemStackLevels, hotbarAssignments, remainingPlacementCounts,
+                _moduleSlotStackLimitLookup.CurrentLevel, levelInheritanceCraftCaps, playerId);
             return new InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack(accepted);
 
             #region Internal

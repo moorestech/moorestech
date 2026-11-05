@@ -1,6 +1,6 @@
-﻿using System;
+using System;
+using System.Buffers;
 using System.Collections.Generic;
-using Game.Block.Interface;
 using Game.Block.Interface.State;
 using Game.Context;
 using Game.World.Interface.DataStore;
@@ -11,15 +11,21 @@ using UnityEngine;
 
 namespace Server.Event.EventReceive
 {
+    // tick内の状態変化を発生順に溜め、tick末尾に束ねて送信
+    // Queues block state changes in the order they happen and broadcasts them as one bundled event at tick end (ADR 0091)
     public class ChangeBlockStateEventPacket : IBootInitializable
     {
-        public const string EventTag = "va:event:changeBlockState";
+        public const string EventTag = "va:event:blockStatesTickBundle";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
 
-        // 位置ごとの最終送信ペイロード（差分検知用）
-        // Last sent payload per position, for diff detection
-        private readonly Dictionary<Vector3Int, byte[]> _lastBroadcastPayloads = new();
+        // 位置ごとの最後に積んだペイロード（差分検知用）
+        // Last queued payload per position, for diff detection
+        private readonly Dictionary<Vector3Int, byte[]> _lastQueuedPayloads = new();
+
+        // tick末尾の送信まで溜める状態変化。同じ座標の途中の状態も発生順に残す
+        // State changes held until the tick-end broadcast; intermediate states of a position are kept in order
+        private readonly List<(Vector3Int pos, byte[] payload)> _pendingStates = new();
 
         public ChangeBlockStateEventPacket(EventProtocolProvider eventProtocolProvider)
         {
@@ -28,67 +34,96 @@ namespace Server.Event.EventReceive
 
         public void Load()
         {
-            ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(ChangeState);
+            ServerContext.WorldBlockDatastore.OnBlockStateChange.Subscribe(QueueChangedState);
             ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
             ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
+            ServerContext.WorldBlockUpdateEvent.OnTickEndStatesCommitted.Subscribe(_ => BroadcastPendingStates());
         }
 
-        // 購読経路用。前回と同一ペイロードなら送信スキップ
-        // Subscription path: skip when the payload matches the last sent
-        public void ChangeState((BlockState state, WorldBlockData blockData) state)
+        // 購読経路用。前回と同一ペイロードなら溜めない
+        // Subscription path: skip when the payload matches the last queued
+        public void QueueChangedState((BlockState state, WorldBlockData blockData) state)
         {
-            var pos = state.blockData.BlockPositionInfo.OriginalPos;
-            var payload = SerializePayload(state.state, pos);
+            var (pos, payload) = SerializeState(state);
 
-            if (_lastBroadcastPayloads.TryGetValue(pos, out var lastPayload) && payload.AsSpan().SequenceEqual(lastPayload)) return;
+            if (_lastQueuedPayloads.TryGetValue(pos, out var lastPayload) && payload.AsSpan().SequenceEqual(lastPayload)) return;
 
-            _lastBroadcastPayloads[pos] = payload;
-            Broadcast(state.blockData.BlockPositionInfo, payload);
+            QueueState(pos, payload);
         }
 
         // 初期pull経路専用。差分スキップ禁止
         // Initial-pull path only: diff-skip is forbidden
-        public void ForceChangeState((BlockState state, WorldBlockData blockData) state)
+        public void QueueStateForInitialPull((BlockState state, WorldBlockData blockData) state)
         {
-            var pos = state.blockData.BlockPositionInfo.OriginalPos;
-            var payload = SerializePayload(state.state, pos);
-
-            _lastBroadcastPayloads[pos] = payload;
-            Broadcast(state.blockData.BlockPositionInfo, payload);
+            var (pos, payload) = SerializeState(state);
+            QueueState(pos, payload);
         }
 
-        public static string CreateSpecifiedBlockEventTag(BlockPositionInfo posInfo)
+        // tick末尾の通知で1回送る。変化0件なら送らない
+        // Sent once on the tick-end signal; nothing is sent for a tick without changes
+        private void BroadcastPendingStates()
         {
-            return $"{EventTag}:{posInfo.OriginalPos}";
+            if (_pendingStates.Count == 0) return;
+
+            var payload = BuildBundlePayload(_pendingStates);
+            _pendingStates.Clear();
+            _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
         }
 
-        // ブロック削除時に差分記録を掃除する。放置すると同座標に再設置された別ブロックが旧ペイロードと誤って比較されうる
-        // Clean up the diff record on removal; otherwise a block re-placed at the same position could be wrongly diffed against stale state
+        // 溜めたバイト列を継ぎ、BlockStatesTickBundleMessagePackと同じバイト列を組む（1件1回のシリアライズで済ませるため）
+        // Splices the queued bytes into the exact bytes of BlockStatesTickBundleMessagePack, so each state is serialized only once
+        private static byte[] BuildBundlePayload(List<(Vector3Int pos, byte[] payload)> pendingStates)
+        {
+            var buffer = new ArrayBufferWriter<byte>();
+            var writer = new MessagePackWriter(buffer);
+
+            // 外箱は[States]の1要素配列、Statesは各BlockStateMessagePackの配列
+            // The outer object is the one-element array [States]; States is the array of BlockStateMessagePack
+            writer.WriteArrayHeader(1);
+            writer.WriteArrayHeader(pendingStates.Count);
+            foreach (var (_, statePayload) in pendingStates) writer.WriteRaw(statePayload);
+            writer.Flush();
+
+            return buffer.WrittenSpan.ToArray();
+        }
+
+        // ブロック削除時に差分記録と溜めた状態を掃除する。放置すると同座標に再設置された別ブロックへ旧状態が届きうる
+        // Clean up the diff record and the pending state on removal; otherwise a block re-placed at the same position could receive stale state
         private void OnBlockRemove(BlockRemoveProperties properties)
         {
-            _lastBroadcastPayloads.Remove(properties.BlockData.BlockPositionInfo.OriginalPos);
+            ForgetPosition(properties.BlockData.BlockPositionInfo.OriginalPos);
         }
 
         // Destroy中発火でstale再登録された場合に備え、設置時にも同座標の記録を掃除する
         // Also clear on placement in case Destroy() re-registers a stale entry at this position
         private void OnBlockPlace(BlockPlaceProperties properties)
         {
-            _lastBroadcastPayloads.Remove(properties.BlockData.BlockPositionInfo.OriginalPos);
+            ForgetPosition(properties.BlockData.BlockPositionInfo.OriginalPos);
         }
 
-        private static byte[] SerializePayload(BlockState blockState, Vector3Int pos)
+        // 座標と、差分判定と送信で共用するバイト列を作る
+        // Builds the position and the bytes shared by diff detection and sending
+        private static (Vector3Int pos, byte[] payload) SerializeState((BlockState state, WorldBlockData blockData) state)
         {
-            var messagePack = new BlockStateMessagePack(blockState, pos);
-            return MessagePackSerializer.Serialize(messagePack);
+            var pos = state.blockData.BlockPositionInfo.OriginalPos;
+            return (pos, MessagePackSerializer.Serialize(new BlockStateMessagePack(state.state, pos)));
         }
 
-        private void Broadcast(BlockPositionInfo posInfo, byte[] payload)
+        // 差分記録と溜めた状態は必ず一緒に更新する
+        // The diff record and the pending state are always updated together
+        private void QueueState(Vector3Int pos, byte[] payload)
         {
-            var eventTag = CreateSpecifiedBlockEventTag(posInfo);
-            _eventProtocolProvider.AddBroadcastEvent(eventTag, payload);
+            _lastQueuedPayloads[pos] = payload;
+            _pendingStates.Add((pos, payload));
+        }
+
+        private void ForgetPosition(Vector3Int pos)
+        {
+            _lastQueuedPayloads.Remove(pos);
+            _pendingStates.RemoveAll(pending => pending.pos == pos);
         }
     }
-    
+
     [MessagePackObject]
     public class BlockStateMessagePack
     {
@@ -96,24 +131,41 @@ namespace Server.Event.EventReceive
         /// key Component key, value Component state
         /// </summary>
         [Key(0)] public Dictionary<string,byte[]> CurrentStateDetail { get; set; }
-        
+
         [Key(1)] public Vector3IntMessagePack Position { get; set; } // TODO ここをinstanceIdに変更する？
-        
+
         public TBlockState GetStateDetail<TBlockState>(string stateKey)
         {
             return CurrentStateDetail.GetStateDetail<TBlockState>(stateKey);
         }
-        
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public BlockStateMessagePack()
         {
         }
-        
+
         public BlockStateMessagePack(BlockState state, Vector3Int pos)
         {
             CurrentStateDetail = state.CurrentStateDetails;
             Position = new Vector3IntMessagePack(pos);
         }
+    }
 
+    // 1tick分の状態の束。発生順に並び、同じ座標が複数回載りうる。送信側はBuildBundlePayloadで同じバイト列を手組みする
+    // One tick's bundle of block states in the order they happened, possibly several per position; the sender hand-builds the same bytes in BuildBundlePayload
+    [MessagePackObject]
+    public class BlockStatesTickBundleMessagePack
+    {
+        [Key(0)] public BlockStateMessagePack[] States { get; set; }
+
+        [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+        public BlockStatesTickBundleMessagePack()
+        {
+        }
+
+        public BlockStatesTickBundleMessagePack(BlockStateMessagePack[] states)
+        {
+            States = states;
+        }
     }
 }

@@ -1,0 +1,114 @@
+# Tier9 統合 オーケストレーション計画
+
+実装 plan `docs/superpowers/plans/2026-10-25-tier9-integration.md` を、どのセッションが・どの順で・どの合流点を越えて実行するかを決める文書。タスクの中身は plan が正で、ここには書かない。
+
+## 1. 全体像
+
+```
+            W1（並行）                     W2（並行）                       W3（直列）       W4（直列）
+ code  ── A: P1 コード統合 ─ G1/G3 batch ─┬─ A: P2 マスタ投入 S1→S2→S3 ─ ピン更新 ─┬─ G3 ─ P5 録画7段 ─┬─ T30 セーブ・チェックリスト
+ master ─ B: G2 チェッカー・G6 の枠 ──────┤                                        │                    │  → T31 評価役2体
+ tests                                    └─ B: P4 G4 結合・G5 ゴールデンセーブ ──┘                    │  → T32 全ブランチレビュー
+                                                                                                        │  → T33 PR×2
+                                                                                                        └─ → ユーザー通しプレイ
+              合流点 J1                                                       合流点 J2           合流点 J3
+```
+
+- クリティカルパス: P1 → G1 → P2(S1→S2→S3) → ピン更新 → P5 → T30 セーブ・チェックリスト → T31 評価役 → T32 レビュー → T33 PR → ユーザー通しプレイ（評価役は PR を出す前に判定する。T32 の反映が判定経路に触れたら T31 をやり直す）
+- Tier8 終盤セーブの用意（T30 Step 1）は MacBook Pro の蓋が開いているときしかできないので、A が W1 の最初に先に済ませる（§5）
+- 目安: W1 2日 / W2 3日 / W3 2日 / W4 1日（エージェント作業で 7〜10 日）
+
+## 2. セッション
+
+| セッション | ホスト | 作業場所 | 担当 | 寿命 |
+|---|---|---|---|---|
+| A（主） | pi agent（`openai/gpt-6.1-sol`・`--thinking high`）、moores-subagent-driven-development の SDD 本体（per-task） | `~/hermes-agent/data/worktrees/moorestech/tier9-integrated`（branch `feat/tier9-integrated`）。J1 以降はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（moorestech_master の branch `feat/tier9-integrated`）も使う | W1: Task 4〜11 / W2: Task 12〜24 / W3: Task 27〜29 / W4: Task 30〜33 | 全期間 |
+| B（副） | pi agent（同じモデル・同じ thinking）、同 SDD | 起動場所（SDD の台帳を置く所）は本体 worktree `~/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests`（branch `feat/tier9-integrated-tests`。起動前に `moores-wt new feat/tier9-integrated-tests --dir tier9-integrated-tests --from origin/feat/tier9-integrated --no-editor` で作る）。W1 の編集先はマスタ統合 worktree `~/hermes-agent/data/worktrees/moorestech_master/tier9-integrated`（Task 1 で作る。moorestech_master の branch `feat/tier9-integrated`）。W2 は J1 を確かめてから、本体 worktree に `origin/feat/tier9-integrated` を通常マージして Task 25〜26 を行う | W1: Task 1〜3 / W2: Task 25〜26 | J2 で終了 |
+
+実装はすべて Mac mini 上で動かす。MacBook Pro は、事前確認用のセーブのコピー元（Task 30 Step 1。済み）と、完成後にユーザーが Unity Editor で遊ぶ機械として使うだけ。配布ビルドは焼かず、セーブも書き戻さない。
+
+起動（pi は `cmux-agent-pane` の `-a` に無い）: 依頼文（§6）を各 worktree の `.superpowers/sdd/start-prompt.md` に置き、`cmux new-workspace` で worktree 名のワークスペースを作ってから、そのペインへ `cmux send` で `cd <worktree> && pi --approve --model openai/gpt-6.1-sol --thinking high "$(< .superpowers/sdd/start-prompt.md)"` を送る。新しい worktree で「Trust project folder?」が出たら既定の Trust を選ぶ。受理は `cmux read-screen` で確かめる。
+
+pi ホストでの差分（§6 の依頼文に入れてある）:
+- pi には Agent・Workflow ツールが無い。SDD の subagent は前景の `codex exec -m gpt-6.1-sol -o <file>.final.md` か `claude -p --model <ティア> --session-id <uuid>` で派遣し、結論は `.final.md` から読む。moores-code-review は `references/codex-host.md` の runner で回す
+- `~/bin/dev-server-reaper-unity.py` は pi を Unity Editor の所有者と認識しない。Editor を起動するときは owner receipt を登録する（`docs/development/macmini/unity-editor.md` の手動登録手順）
+
+**Codex 枠の確認（起動前と各合流点）:** pi の A・B、その子の `codex exec`、moores-code-review の Codex runner は、すべて同じ ChatGPT 週次枠を使う。起動前と J1〜J3 で、`~/.codex/sessions` の最新 rollout の `rate_limits.primary.used_percent` と、リセットまでの時間を見る。次のどちらかなら、以後のセッションは Claude Code（`~/bin/cmux-agent-pane -C <worktree> -a ccd -m opus --permission-mode full --prompt-file <依頼文>`）で起動する: 起動前に 50% 以上、または合流点で残りの wave を賄えない見込み（W2 は 1 wave で 30〜40% を目安にする）。切り替えるときは、動いているセッションに区切りで push させてから止める。Task 32 の全ブランチレビューは、残量が 40% 未満なら Codex runner でなく Claude Code ホストの moores-code-review で回す。
+
+**SDD は 1 セッション内で実装 subagent を並列に出さない**（スキルの規則）。並列化はセッションを分けることで得る。同じブランチを 2 セッションで同時に書かない。マスタ統合ブランチは W1 の間は B だけ、J1 以降は A だけが書く（B は J1 で push して手を離す）。W2 の B の成果は本体の `feat/tier9-integrated-tests` に積み、J2 で A がマージする。
+
+## 3. 合流点（越える条件は証拠で判定する）
+
+| 合流点 | 越える条件（全部） | 確かめ方 |
+|---|---|---|
+| J1（W1→W2） | A: Tasks4〜11とG1/G3 batchが `feat/tier9-integrated` にpush済み、compileエラー0、P1の最終テスト正規表現が全PASS。Task9の自動回帰は既存CIと同じIgnoreCI除外範囲（W1は3298/3298）で、原実行21FAILと手動検査未達を保存しTier9起因の除外を足さない。Task10はpush済みBマスタ `1cf0df8` を明示したG1正例・破損負例・復旧・batch0/1/1が成立し、Task9/10の独立再レビューが承認済み。B: Tasks1〜3がpush済み、G2の既知欠落が赤、破損fixtureでexit1 | `Task N:` コミット・remote SHA、両台帳のcomplete行、G1/G3の入力SHAと実ログ・batch終了コード、CI範囲の多重集合一致、独立再レビュー、G2の原結果とmutation実ログ（moorestech_logs）。ユーザー裁定2026-10-25、plan A33・A34 |
+| J2（W2→W3） | A: Task 12〜24 が完了し、マスタ統合ブランチで G1 緑・G2 緑（許可リスト外の詰み0）・G6 緑、マスタ統合 PR 作成済み。B: Task 25・26 が `feat/tier9-integrated-tests` で pass し push 済み。origin/master のセーブ版が 7 のまま | A が本体へ `feat/tier9-integrated-tests` を通常マージし、compile と G4・G5 を自分の Editor で再実行して pass。版は下の「版の確認」 |
+| J3（W3→W4） | ピンがマスタ統合 PR の push 済みコミットを指す。G3 全ノード true。P5 の 7 段の result.json が全 pass、Error ログ0、動画を確認済み。A11 撮り直し済み。origin/master のセーブ版が 7 のまま。Tier8 終盤セーブが手元にある | result.json と動画のパス、G3 のログ、版の確認、`handoff/save-origin.md` |
+
+**W1の入力と最終受入れ（ユーザー裁定2026-10-25）:** 現ピン630fdceのG1は `orbitalPayloads` 欠損でFAILしており、W1成功に置き換えて記録しない。Task24で最終統合マスタPRのpush済みコミットへピンを向けた後、最終ピンでG1/G3・正負例・batchを再検証し、統合PRのCI合格も必須条件として維持する。J1通過後だけ、Aは `cmux send --surface surface:1026` でBへ証拠と再開を伝え、BのTasks25〜26を解放する。
+
+**版の確認（J2・J3）:** `git fetch origin && git show origin/master:moorestech_server/Assets/Scripts/Game.SaveLoad/Json/WorldVersions/WorldSaveAllInfo.cs | grep CurrentVersion`。7 なら越える。8 以上なら、A が origin/master をマージし、V7→V8 の部品を新しい版の後ろ（例: V8→V9）へ繰り下げ、G5 の入力に master の新しい版のセーブを足してから越える（AGENTS.md のセーブ形式の規則）。繰り下げは P1 のセーブ移行の担当範囲として、同じ wave の中で直す。
+
+越えられないときは、原因が plan の欠陥なら SDD の「質問の振り分け」に回し、そうでなければ同じ wave の中で直す。合流点を飛ばして先へ進まない。
+
+## 4. 共有資源の取り扱い
+
+- **マスタの共有クローン `~/hermes-agent/data/repos/moorestech_master` を checkout し直さない。** 全 moorestech worktree は `../moorestech_master` の symlink 経由でこのクローンを見ている。統合マスタは専用 worktree で編集し、読ませるときは次のどちらかで向ける:
+  - 録画: `run-scenario.sh <project> <scenario> <MASTER_DIR>` の第 3 引数にマスタ統合 worktree の `server_v8` を渡す
+  - Editor 内のロード・G1・G3: batch メソッドの引数（plan の G1 タスクで定義）にマスタ統合 worktree のパスを渡す
+- Unity Editor は A と B が各自の worktree で 1 本ずつ（計 2 本）。他人の Editor を落とさない。起動・停止の前に `moores-wt status`
+- セーブ移行の版（CurrentVersion=8）は A だけが触る。B は G5 で読むだけ
+- `.decisions/` には明示されたユーザー裁定だけを書く。仮定・未決事項は bd `moorestech-xyuaf.2` へ note
+
+## 5. ユーザーが関わる点
+
+| 時点 | 内容 | 既定 |
+|---|---|---|
+| W1 開始時 | A が plan Task 30 Step 1（MacBook Pro の `world_1` のコピーに旧コスト0研究の完了を立てる）を先に済ませる。`ssh devmac` が届くよう MacBook Pro の蓋を開けておいてもらう | 届かなければ W1 の他のタスクを進め、J1 までに再試行する。J3 までに用意できなければ J3 で止めてユーザーに聞く |
+| 随時 | plan の欠陥・仕様の選択（SDD の deferred-questions に溜まったもの） | 推奨案で進め、まとめて 1 回提示 |
+| W4 末（PR と CI の後） | 通しプレイ（手元の `world_1` から最終研究まで、裏口なし）。MacBook Pro の Unity Editor で PR のブランチを開いて遊ぶ。セーブは置き換えず、ロード時の移行に任せる | ユーザー本人（裁定済み）。plan の Task 30 がチェックリストを用意し、Task 33 Step 3 が URL を渡す |
+
+## 6. 開始依頼文
+
+### セッション A
+```
+Tier9 統合（コード統合・マスタ投入・録画）
+moores-subagent-driven-development スキルを使って、以下の実装planを実行してください。
+
+- plan: docs/superpowers/plans/2026-10-25-tier9-integration.md
+- オーケストレーション: docs/superpowers/plans/2026-10-25-tier9-integration-orchestration.md（あなたはセッション A。担当タスクと合流点 J1〜J3 はこの文書の §2〜§3 に従う）
+- 作業場所: feat/tier9-integrated（worktree /Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated）
+- まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
+- 進捗管理はmoores-subagent-driven-developmentスキルの規定に従ってください（SDD本体はplanのチェックボックス＋進捗台帳が正）
+- 合流点では越える条件を証拠で確かめ、満たさなければ先へ進まないでください。セッション B の成果は B のブランチからマージで取り込みます
+- このセッションは pi ホストです。Agent・Workflow ツールが無いので、SDD の subagent は前景の `codex exec -m gpt-6.1-sol -o <file>.final.md`（結論は .final.md から読む）か `claude -p --model <ティア> --session-id <uuid>` で派遣し、moores-code-review は references/codex-host.md の runner で回してください。バックグラウンドのポーリングで待たず、全部前景で実行してください
+- dev-server-reaper は pi を Unity Editor の所有者と認識しません。Editor を起動したら docs/development/macmini/unity-editor.md の手順で owner receipt を登録してください
+- 区切り（タスク完了ごと）でコミットして push してください
+- 起動直後と各合流点で、オーケストレーション §2 の「Codex 枠の確認」を行ってください。W1 の最初に plan Task 30 Step 1（Tier8 終盤セーブの用意）だけを先に済ませてください（オーケストレーション §5）
+- planの最終タスク群（moores-code-reviewによる全ブランチレビュー→pr-createでPR作成・コンフリクト解消まで）は省略不可です。PRが作成されセッションを閉じられる状態になるまで完了扱いにしないでください。moores-code-review は references/codex-host.md の runner で実行してください
+- 私は寝ているので、確認を待たず進められるだけ進めてください。止まるのは解決不能な障害か取り返し不能な破壊的操作だけです
+```
+
+### セッション B
+```
+Tier9 統合（判定ゲートと結合テスト）
+moores-subagent-driven-development スキルを使って、以下の実装planのうちセッション B の担当タスクを実行してください。
+
+- plan: docs/superpowers/plans/2026-10-25-tier9-integration.md（origin/feat/tier9-integrated から読む）
+- オーケストレーション: docs/superpowers/plans/2026-10-25-tier9-integration-orchestration.md（あなたはセッション B。担当タスク・作業場所・合流点はこの文書の §2〜§3 に従う）
+- W1 は Task 1〜3。Task 1 がマスタ統合 worktree /Users/sakastudio/hermes-agent/data/worktrees/moorestech_master/tier9-integrated（moorestech_master の branch feat/tier9-integrated）を作る。Task 3 を push したらマスタ統合ブランチから手を離す（以後はセッション A が書く）
+- 作業場所: 本体 worktree /Users/sakastudio/hermes-agent/data/worktrees/moorestech/tier9-integrated-tests（branch feat/tier9-integrated-tests。SDD の台帳はここに置く）
+- W2 は Task 25〜26。J1（本体 feat/tier9-integrated に Task 4〜11 が push 済み）を確かめてから、この worktree に origin/feat/tier9-integrated を通常マージして行う
+- W2 の成果は feat/tier9-integrated-tests へ push したら終わりで、本体統合ブランチへのマージはセッション A が行います。閉じタスク（全ブランチレビュー・PR 作成）は担当しません
+- まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
+- このセッションは pi ホストです。Agent・Workflow ツールが無いので、SDD の subagent は前景の `codex exec -m gpt-6.1-sol -o <file>.final.md`（結論は .final.md から読む）か `claude -p --model <ティア> --session-id <uuid>` で派遣し、moores-code-review は references/codex-host.md の runner で回してください。バックグラウンドのポーリングで待たず、全部前景で実行してください
+- dev-server-reaper は pi を Unity Editor の所有者と認識しません。Editor を起動したら docs/development/macmini/unity-editor.md の手順で owner receipt を登録してください
+- 区切り（タスク完了ごと）でコミットして push してください
+- 私は寝ているので、確認を待たず進められるだけ進めてください。止まるのは解決不能な障害か取り返し不能な破壊的操作だけです
+```
+
+## 7. 監視と報告
+
+- 各セッションは区切り（タスク完了・合流点）ごとに bd `moorestech-xyuaf.2` へ 1 行 note を残す
+- 完了通知は信じず、`git log` と進捗台帳・ログファイルの実在で確かめる
+- W4 末にユーザーへ渡すもの: 統合 PR とマスタ PR の URL、G1〜G6 の出力、録画 7 本、評価役 2 体の判定、通しプレイのチェックリストの URL、MacBook Pro に置いたセーブ（退避した元のワールドの名前）

@@ -42,15 +42,13 @@ PRのタイトルと概要を作成する。
 - タイトルは70文字以内
 - 詳細は本文（body）に記述
 
-### 2.5 報告ページの素材を集める
-
-すべてのPRで報告ページ（`https://review.moores.tech/pr/<PR番号>/report/`）を公開し、PR本文の先頭行にそのURLを1本だけh1見出し（`# https://review.moores.tech/pr/<PR番号>/report/`）で大きく張る。リンク文字列で包まずURLそのものを見出しにする。書式・manifest・公開手順は [references/pr-report.md](references/pr-report.md) が正本。
+### 2.5 成果物の素材を集める
 
 1. 受入条件を現行headで示す最終成功素材（スクリーンショット、unityプレイ録画テストの `recording.mp4`、Playwright の撮影など）と、説明に必要な診断素材を選ぶ。古い素材や失敗素材を成功の証拠に使わず、原本は既存の記録先へ保全する。
-2. 見た目が変わる変更（Web UI・ゲーム内UI・演出など）で選んだ素材が無い・古い・主要状態が欠ける場合は、必要な状態だけ既存のcaptureスクリプト・Playwright・unityプレイ録画テストで撮る。
-3. PR作業のscratch（コミットしない場所）に `manifest.json` を書く。非visual変更では素材生成を目的としたUI録画を行わず、`no_media_reason`に理由を書く。
+2. 見た目が変わる変更（Web UI・ゲーム内UI・演出など）で選んだ素材が無い・古い・主要状態が欠ける場合は、必要な状態だけ既存のcaptureスクリプト・Playwright・unityプレイ録画テストで撮る。非visual変更では素材生成を目的としたUI録画を行わない。
+3. 素材の載せ先と書式は環境ローカル規約（`CLAUDE.local.md` から辿れる規約）が定める。定めが無い環境では画像・動画は載せず、検証結果をPR本文の Test plan にテキストで書く。
 
-禁止: PR本文に画像・動画のURLを個別に並べる、`docs/pr-assets/` へ素材をコミットする、ローカルパス・`file://`・tailnet（share）のURLを書く。
+禁止: `docs/pr-assets/` など repo へ素材をコミットする、PR本文にローカルパス・`file://` を書く。
 
 ### 3. Prepare Branch and Commit
 ステップ1の結果を元に、必要なコミットを自動で作成する。ユーザーに確認せず実行すること。
@@ -74,7 +72,7 @@ PRのタイトルと概要を作成する。
   ```bash
   git branch <新ブランチ名> HEAD
   ```
-  - `git checkout -b` と `git branch -f <BASE> origin/<BASE>` は使わない。メインworktreeでは main-worktree-guard hook が `git checkout -b` を拒否し、`branch -f` はローカル参照の巻き戻しで破壊的なため
+  - `git checkout -b` と `git branch -f <BASE> origin/<BASE>` は使わない。作業ツリーのブランチを動かさないため、また `branch -f` はローカル参照の巻き戻しで破壊的なため
   - ベースブランチのローカル参照は巻き戻さない（次回の pull が ff できなければ利用者の判断）
   - 以降 **PR_BRANCH = 新ブランチ名**。ステップ4のpush・`gh pr create` は `--head` でこのブランチを明示する
 
@@ -94,8 +92,6 @@ git push -u origin <PR_BRANCH>
 
 # Create PR using gh CLI（--base でマージ先、--head でPR元ブランチを明示）
 gh pr create --base <BASE> --head <PR_BRANCH> --title "the pr title" --body "$(cat <<'EOF'
-# （報告URLは公開後に差し替え）
-
 ## Summary
 <1-3 bullet points>
 
@@ -107,16 +103,10 @@ EOF
 )"
 ```
 
-### 4.5 報告ページを公開する（必須）
+### 4.5 成果物を公開する（環境ローカル規約に手順がある場合）
 
-PR番号が決まったら、mac-mini で報告ページを公開し、PR本文の先頭行を `# <公開URL>` に差し替える。既存PRへのpushで成果物が変わった場合も再公開する。
-
-```bash
-python3 scripts/pr-report/publish_pr_report.py <PR番号> <manifest.json>   # 標準出力が公開URL
-gh pr edit <PR番号> --body-file <URLを入れた本文>
-```
-
-公開スクリプトが失敗した場合は、報告URL無しのまま完了報告をしてはいけない。失敗した操作と必要な復旧操作を明記して呼び出し元へ返す。
+環境ローカル規約に成果物の公開手順があれば、PR番号が決まった後にそれを実行し、規約どおりPR本文へ反映する。既存PRへのpushで成果物が変わった場合も再公開する。
+公開に失敗した場合は、公開済みのように完了報告をしてはいけない。失敗した操作と必要な復旧操作を明記して呼び出し元へ返す。
 
 ### 5. コンフリクト確認と解消（必須）
 PR作成（または既存PRへのpush）後、マージ可能状態を確認する。
@@ -147,7 +137,7 @@ gh pr view <PR番号またはPR_BRANCH> --json mergeable,mergeStateStatus
 ## Important Notes
 
 - 完了したらPRのURLとマージ可能状態（MERGEABLE / コンフリクト解消済み / 要裁定で未解消）を返す（呼び出し元がユーザーに提示できるように）。worktree用ブランチ（`treeN`）から切り出した場合は、作成したPR用ブランチ名も併せて報告する
-- `gh pr view --json body` で本文の先頭行が `# https://review.moores.tech/pr/<PR番号>/report/` であり、他に報告URLが無いことを確認し、公開スクリプトが出した「画像 N 枚 / 動画 M 本」を報告する
+- 成果物を公開した場合は、公開先URLと載せた画像・動画の数を報告する
 - `treeN` のようなworktree運用ブランチをそのままPRのheadにしない。必ず内容を表す別ブランチを切ってからPRを作る
 - `treeN`・ベースブランチ以外では、現在のブランチ名を別のprefixへ付け替えない（`chore/xxx` を `feature/xxx` にし直す等は禁止）
 - 明示的な許可なく破壊的なgitコマンドを使わない

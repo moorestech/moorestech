@@ -1,3 +1,4 @@
+using Game.Context;
 // seed196新規world(生成revision5)の地表保証ツアー。旧最悪点・海plane低地点・fluid鉱脈・海岸・tile継目でプレイヤー位置の地表高>=海面包絡を実測する
 // 固定world入口(PLAYTEST_WORLD_DIRECTORY=未作成パス / PLAYTEST_MAP_MODE=generated / PLAYTEST_SEED=196)で起動する。手順は .superpowers/sdd/vtg-playtest-scenario-report.md
 // スクショ pv-* はプレイヤー視点(Camera.main)、diag-* だけが独自診断カメラ。録画中もNoteの[pv]/[diag]で区別する
@@ -24,7 +25,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.UI;
-
 var runName = "vein-terrain-seed196-tour";
 var options = new PlaytestRunOptions { Record = true, ScenarioTimeoutSeconds = 380f };
 return PlaytestRunner.Run(runName, options, async p =>
@@ -33,18 +33,17 @@ return PlaytestRunner.Run(runName, options, async p =>
     await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 20f, "GameScreenに到達");
     await HideDeadCefOverlay();
-
     // 本番生成入口で作られた新規worldか(revision5・seed196・未セーブ)をメタとworld.jsonで確かめる
     // Confirm via meta and world.json that this is a fresh production-generated world (revision 5, seed 196, never saved)
     var mapData = await ClientContext.VanillaApi.Response.World.GetMapData(default);
     var meta = mapData.TerrainMeta;
-    var world = p.ServerService<WorldDataDirectory>();
+    WorldDataDirectory world = null;
+    await p.RunOnServer("ワールドの保存先を読む", () => world = ServerContext.GetService<WorldDataDirectory>());
     var worldJson = JObject.Parse(File.ReadAllText(world.WorldMetaFilePath));
     p.Note($"[world] root={world.Root} generator={meta.GeneratorVersion} seed={meta.WorldSeed} tiles={meta.TerrainTileCount} id={meta.WorldId} createdAt={worldJson["createdAt"]} saveExists={File.Exists(world.SaveJsonFilePath)}");
     p.Assert(meta.MapMode == "generated" && meta.WorldSeed == 196, "generatedモード・seed196で起動した");
     p.Assert(meta.GeneratorVersion == WorldGeneratorVersion.Current && WorldGeneratorVersion.Current == "5.0.0", $"新規worldの生成版が5.0.0 (meta={meta.GeneratorVersion})");
     p.Assert((string)worldJson["generatorVersion"] == "5.0.0", "world.jsonのgeneratorVersionが5.0.0");
-
     // 判定閾値はSurfaceEnvelope.GeneratedV5から組む(SeaY+波+余裕=4.9m)。float補間誤差だけ許す
     // The threshold comes from SurfaceEnvelope.GeneratedV5 (SeaY + wave + clearance = 4.9 m), allowing only float interpolation noise
     var envelope = SurfaceEnvelope.GeneratedV5;
@@ -58,12 +57,10 @@ return PlaytestRunner.Run(runName, options, async p =>
     var forward = Vector3.ProjectOnPlane(Camera.main.transform.forward, Vector3.up).normalized is var f && f.sqrMagnitude > 0.1f ? f : Vector3.forward;
     var probes = new List<object>();
     await p.Screenshot("pv-00-spawn");
-
     // 1-2: 調査記録の固定2点(旧露頭最悪点・海plane低地点)。座標は docs/research/2026-10-06-vein-terrain-evidence
     // 1-2: The two fixed points from the evidence notes (old worst outcrop, sea-plane low point)
     await Visit("old-worst-438.5,-401.5", new Vector3(438.5f, 0f, -401.5f));
     await Visit("sea-plane-low--336.43,405.76", new Vector3(-336.43f, 0f, 405.76f));
-
     // 3: スポーン最寄りのfluid鉱脈。露頭を画面正面に置くため手前4mに立ち、露頭の接地も測る
     // 3: The fluid vein nearest to spawn; stand 4 m short so it is in view, and measure its grounding too
     var fluid = mapData.MapVeins.Where(v => MasterHolder.MapVeinMaster.GetElementOrNull(new Guid(v.VeinGuid))?.VeinParam is FluidVeinParam)
@@ -74,13 +71,11 @@ return PlaytestRunner.Run(runName, options, async p =>
     var fluidGap = fluidOutcrop == null ? float.NaN : (float)fluidOutcrop["bottomGap"];
     p.Note($"[pv] fluid露頭 center={fluidCenter} outcrop={JsonConvert.SerializeObject(fluidOutcrop)}");
     p.Assert(fluidGap >= -0.001f && fluidGap <= 0.03f, $"fluid露頭のmesh底面が地表に接地 gap={fluidGap:F4}");
-
     // 4: 海岸。陸(>=4.9m)に立ち、カメラ正面12m先が海面(SeaY)未満になる点をスポーン最寄りで探す
     // 4: Coastline: the land point (>= 4.9 m) nearest to spawn whose ground 12 m ahead of the camera is below SeaY
     var coast = FindCoast();
     p.Assert(coast.HasValue, "海岸(陸→カメラ正面が海)の点が見つかった");
     if (coast.HasValue) await Visit("coastline", coast.Value);
-
     // 5: tile継目。スポーンに最も近い内部継目x線上で、両側タイルとも陸の点に立ち、両Terrainの高さ差も測る
     // 5: Tile seam: on the internal seam x-line nearest to spawn, stand where both tiles are land and compare both terrains
     var seamX = Enumerable.Range(1, side - 1).Select(k => meta.SceneOrigin.X + k * tileSize).OrderBy(x => Mathf.Abs(x - spawn.x)).First();
@@ -94,7 +89,6 @@ return PlaytestRunner.Run(runName, options, async p =>
     p.Note($"[seam] x={seamX} z={seamZ:F1} {west.name}={westHeight:F5} {east.name}={eastHeight:F5} delta={Mathf.Abs(westHeight - eastHeight):F6}");
     p.Assert(Mathf.Abs(westHeight - eastHeight) <= 0.01f, $"tile継目の両側Terrain高さが一致 delta={Mathf.Abs(westHeight - eastHeight):F6}");
     await Visit($"tile-seam-x{seamX}", seamPoint);
-
     // 継目は真上からでないと段差/テクスチャ境界が見えないため、ここだけ独自診断カメラで撮って即破棄する
     // Seams only show from straight above, so a custom diagnostic camera takes this one shot and is destroyed at once
     p.Note("[diag] 独自診断カメラ(プレイヤー視点ではない)で継目を真上60mから撮る");
@@ -107,9 +101,7 @@ return PlaytestRunner.Run(runName, options, async p =>
     await p.WaitSeconds(0.5f);
     p.Note("[pv] 診断カメラを破棄しプレイヤー視点へ戻した");
     await p.Screenshot("pv-99-back-to-player-view");
-
     #region Internal
-
     async UniTask<Dictionary<string, object>> Visit(string label, Vector3 target)
     {
         // 地表+2mへワープして着地を待ち、プレイヤーのXZ直下を本番Terrainから採取する
@@ -194,6 +186,5 @@ return PlaytestRunner.Run(runName, options, async p =>
         dockArea.GetType().GetProperty("selected", flags).SetValue(dockArea, panes.IndexOf(gameView));
         await p.Until(() => 0f < Time.timeScale, 10f, "Recorderの初回フレーム取得でtimeScaleが戻る");
     }
-
     #endregion
 });

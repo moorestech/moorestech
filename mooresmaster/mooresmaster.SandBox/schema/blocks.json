@@ -25,6 +25,9 @@
         "innerTankCapacity": {
           "type": "number",
           "default": 0
+        },
+        "fluidInventoryConnectors": {
+          "$ref": "fluidInventoryConnects"
         }
       }
     },

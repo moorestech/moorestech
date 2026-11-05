@@ -23,6 +23,8 @@ items:
     - playBackgroundSkit
     - unlockItemStackLevel
     - unlockPlayerInventorySlotLevel
+    - unlockModuleSlotStackLevel
+    - unlockLevelInheritanceCraftLevel
   - key: gameActionParam
     switch: ./gameActionType
     cases:
@@ -178,5 +180,25 @@ items:
       type: object
       isDefaultOpen: true
       properties:
+      - key: level
+        type: integer
+    - when: unlockModuleSlotStackLevel
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: level
+        type: integer
+    - when: unlockLevelInheritanceCraftLevel
+      type: object
+      isDefaultOpen: true
+      properties:
+      - key: targetItemGuids
+        type: array
+        items:
+          type: uuid
+          foreignKey:
+            schemaId: items
+            foreignKeyIdPath: /data/[*]/itemGuid
+            displayElementPath: /data/[*]/name
       - key: level
         type: integer

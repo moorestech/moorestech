@@ -104,6 +104,7 @@ describe("サーバー通知idの表網羅", () => {
     // 走査が壊れて0件になると網羅検査が空振りで緑になるため、各形の既知idで走査自体を確かめる
     // A broken scan would yield no ids and pass vacuously, so known ids of each form prove the scan works
     expect(ids).toContain("denied.miningInventoryFull");
+    expect(ids).toContain("denied.inventoryMoveUnresolved");
     expect(ids).toContain("achievement.unlockedItem");
     expect(ids).toContain("saveMigration.missingMasterPruned");
     expect(ids).toContain("denied.blueprint.NotUnlocked");

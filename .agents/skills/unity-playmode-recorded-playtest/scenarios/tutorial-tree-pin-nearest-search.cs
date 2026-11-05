@@ -1,3 +1,5 @@
+using Client.Playtest.Operations;
+using Game.Context;
 // ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 待機するチャレンジ/チュートリアルのGUID（bd5262ed/7bafc2cf）がピン先マスタ c219a2f5 に存在せず、最初の待ちで必ずタイムアウトする（ADR 0038 の序盤圧縮でチェーンが再構成された）。雛形にしないこと
 // ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): the challenge/tutorial GUIDs it waits on (bd5262ed/7bafc2cf) do not exist in the pinned master c219a2f5, so the first wait always times out (the chain was rebuilt by the ADR 0038 early-game compression). Do not use this as a template
 // シナリオ: 木チュートリアル(チャレンジ#3)まで進め、k-d tree索引の最寄り探索が
@@ -25,12 +27,9 @@ var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =>
 {
     p.Note("チュートリアル序盤を進めて木ピン(チャレンジ#3)まで到達する");
-    var challengeStore = p.ServerService<Game.Challenge.ChallengeDatastore>();
     var pinStore = Client.Game.InGame.Tutorial.WorldPinStateStore.Instance;
 
-    var c1Current = await PollUntil(() => challengeStore.CurrentChallengeInfo.CurrentChallenges
-        .Any(c => c.ChallengeMasterElement.ChallengeGuid == challenge1), 30);
-    p.Assert(c1Current, "チャレンジ#1(小石を3個拾う)がカレントに存在する");
+    await p.WaitForChallenge(challenge1, false, 30, "チャレンジ#1(小石を3個拾う)がカレントに存在する");
 
     // スキット表示中はピンが仕様上非表示のため、Web UIと同じSkipインテントで飛ばす
     // Pins are hidden while a skit is playing by design, so skip it via the same intent path as the web UI
@@ -44,15 +43,11 @@ return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =
     p.Assert(skipAccepted, "Skipインテントが受理された");
 
     p.Note("小石3個と石器クラフトでチャレンジ#1・#2を消化する");
-    p.GiveItemDirect("小石", 3);
-    var c1Done = await PollUntil(() => challengeStore.CurrentChallengeInfo.CompletedChallenges
-        .Any(c => c.ChallengeGuid == challenge1), 30);
-    p.Assert(c1Done, "チャレンジ#1(小石を3個拾う)が完了した");
+    await p.GiveItemDirect("小石", 3);
+    await p.WaitForChallenge(challenge1, true, 30, "チャレンジ#1(小石を3個拾う)が完了した");
 
     Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly.Craft(stoneToolRecipe);
-    var c3Unlocked = await PollUntil(() => challengeStore.CurrentChallengeInfo.CurrentChallenges
-        .Any(c => c.ChallengeMasterElement.ChallengeGuid == challenge3), 60);
-    p.Assert(c3Unlocked, "チャレンジ#3(伐採)が解放された");
+    await p.WaitForChallenge(challenge3, false, 60, "チャレンジ#3(伐採)が解放された");
 
     // 検証1: 木ピンが伐採のtutorialGuidで表示される
     // Verify 1: the tree pin appears with the felling tutorialGuid

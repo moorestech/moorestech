@@ -64,17 +64,39 @@
 
 /* 詳細ペイン: グラフパネル内の右上固定フロート。パン・ズーム非追従 */
 /* Detail pane: fixed float at the graph panel's top-right, unaffected by pan/zoom */
+/* 高さは研究エリアの上下12pxまでに抑え、溢れた分は本文のスクロールへ回す */
+/* Cap the height at the research area minus 12px top/bottom; overflow goes to the body scroller */
 .detailPane {
   position: absolute;
   top: 12px;
   right: 12px;
   width: 300px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - 24px);
 }
 .detailBody {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 0;
   padding: 10px;
+}
+.detailScroll {
+  composes: scroll from "../../shared/ui/panelBodyScrollArea.module.css";
+  margin-inline: calc(-1 * var(--research-detail-scroll-inline-bleed));
+}
+/* スロット外周リングがクリップ境界で欠けないよう、横の逃げをviewportのpaddingで作り負マージンで相殺する */
+/* Keep slot rings inside the clip edge via viewport inline padding cancelled by the negative margin */
+.detailScroll :global(.mantine-ScrollArea-viewport) {
+  padding-inline: var(--research-detail-scroll-inline-bleed);
+}
+/* 中身はflex列で並べ、従来の8px間隔を保つ */
+/* Lay the content out as a flex column keeping the former 8px gap */
+.detailScroll :global(.mantine-ScrollArea-content) {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .detailHeader {
   display: flex;
@@ -98,10 +120,13 @@
   font-size: 13px;
   color: var(--text-default);
 }
+/* 下はみ出しをトークン分だけ行内に収め、スクロール域に偽の溢れを作らない */
+/* Absorb the bottom overhang via the token so the scroller sees no phantom overflow */
 .detailSlots {
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
+  padding-bottom: var(--research-detail-slots-bleed);
 }
 /* 主要アクション: 青グラデはこのボタン限定 */
 /* Primary action: the blue gradient is exclusive to this button */

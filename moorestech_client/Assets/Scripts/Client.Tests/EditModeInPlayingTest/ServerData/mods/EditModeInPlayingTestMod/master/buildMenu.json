@@ -63,6 +63,11 @@
           "name": "ElectricToGearGenerator",
           "entrySource": "blocks",
           "subCategoryGuid": "b2000000-0000-4000-8000-000100000012"
+        },
+        {
+          "name": "FluidPipe",
+          "entrySource": "blocks",
+          "subCategoryGuid": "b2000000-0000-4000-8000-000100000013"
         }
       ],
       "categoryGuid": "b1000000-0000-4000-8000-000000000001"

@@ -26,7 +26,7 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
 
     // 電線の自動接続は接続ツールの解放状態を見るため、電柱プレビューより前に解放しておく
     // Auto-wiring consults the connect tool's unlock state, so unlock it before any pole preview
-    p.Hotbar.UnlockConnectTool("電線");
+    await p.Hotbar.UnlockConnectTool("電線");
 
     // 地形と遠方照準を原本と同じ位置に作る
     // Create the terrain and distant aim point at the original positions
@@ -35,7 +35,7 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
 
     // ---------------------------------------------------------------- 1. 素材不足（複数セルドラッグ中）
     p.Note("フェーズ1: 素材1セル分だけ持って3セルドラッグ → 「素材名 所持/必要」行を確認");
-    p.UnlockBlock("鉄のパイプ");
+    await p.UnlockBlock("鉄のパイプ");
     await p.GiveItem("鉄板", 1);
     await p.OpenBuildMenuAndSelectBlock("鉄のパイプ");
 
@@ -69,7 +69,7 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     p.Note("フェーズ2: 地形に埋まる位置 → 「地形に埋まっています」");
     // 直前のドラッグ設置がインベントリを非同期に減らすため、give経路の反映待ちではなく直挿入で足す
     // The preceding drag placement decrements the inventory asynchronously, so top up by direct insert instead of the give route
-    p.GiveItemDirect("鉄板", 20);
+    await p.GiveItemDirect("鉄板", 20);
     await p.WaitSeconds(1f);
     var bumpSnapshot = await probe.AimAndSnapshot(new Vector3(9.5f, 32.9f, 9.5f), "地形干渉");
     // ADR 0047で通常設置から地形ゲートを外したため、この経路には地形干渉行が出ないのが正
@@ -83,9 +83,9 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     // Aiming straight at a block hits its bounding-box face and stacks on top, so instead let a 3x3 footprint
     // cover the occupied cell at its corner while the ray itself lands on the free center cell's ground
     var occupiedCell = new Vector3Int(-6, 32, 4);
-    p.PlaceBlockDirect("鉄のパイプ", occupiedCell, BlockDirection.North);
+    await p.PlaceBlockDirect("鉄のパイプ", occupiedCell, BlockDirection.North);
     await p.WaitBlockGameObject(occupiedCell);
-    p.UnlockBlock("石窯");
+    await p.UnlockBlock("石窯");
     await p.GiveConstructionCost("石窯", 2);
     await p.OpenBuildMenuAndSelectBlock("石窯");
     await UniTask.DelayFrame(10);
@@ -95,9 +95,9 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
 
     // ---------------------------------------------------------------- 3. 電線不足 / 電線コスト
     p.Note("フェーズ3: 電柱プレビューの電線行を確認（銅のワイヤー0 → 建設素材と電線素材の不足行が並ぶ）");
-    p.UnlockBlock("電柱");
+    await p.UnlockBlock("電柱");
     var existingPole = new Vector3Int(-10, 32, 10);
-    p.PlaceBlockDirect("電柱", existingPole, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", existingPole, BlockDirection.North);
     await p.WaitBlockGameObject(existingPole);
     await p.GiveItem("鉄のロッド", 20);
     await p.GiveItem("電子回路", 10);
@@ -161,7 +161,7 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     await p.Hotbar.EnterBuildMode(0);
     await UniTask.DelayFrame(15);
     var secondPole = new Vector3Int(-4, 32, 10);
-    p.PlaceBlockDirect("電柱", secondPole, BlockDirection.North);
+    await p.PlaceBlockDirect("電柱", secondPole, BlockDirection.North);
     await p.WaitBlockGameObject(secondPole);
     var poleAimPoint = PlaytestUiOps.PlaceAimPoint("電柱", existingPole, BlockDirection.North);
     var secondPoleAimPoint = PlaytestUiOps.PlaceAimPoint("電柱", secondPole, BlockDirection.North);

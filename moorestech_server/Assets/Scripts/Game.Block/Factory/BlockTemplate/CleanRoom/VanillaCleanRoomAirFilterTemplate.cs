@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.Block.Blocks;
 using Game.Block.Blocks.CleanRoom;
 using Game.Block.Blocks.ElectricWire;
@@ -36,10 +37,16 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
             // The purifier passes the consumer role to the wire endpoint
             var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, filterComponent, componentStates);
 
+            // ベルトはアイテムハッチと同じインベントリコネクタ経由でフィルタースロットへ渡す
+            // Belts feed the filter slot through the same inventory connector as the item hatch
+            var filterItemId = MasterHolder.ItemMaster.GetItemId(param.FilterItemGuid);
+            var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(param.InventoryConnectors, blockPositionInfo);
+
             var components = new List<IBlockComponent>
             {
                 filterComponent,
-                new CleanRoomAirFilterInventoryComponent(filterComponent.FilterSlot),
+                new CleanRoomAirFilterInventoryComponent(filterComponent.FilterSlot, filterItemId),
+                inventoryConnector,
                 wireConnector,
             };
 

@@ -146,7 +146,6 @@ namespace Client.Game.InGame.Context
             bool IsCommonMachine(string type)
             {
                 return type is
-                    BlockTypeConst.ElectricGenerator or
                     BlockTypeConst.ElectricMiner or
                     BlockTypeConst.ElectricMachine or
                     BlockTypeConst.GearMachine or

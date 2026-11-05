@@ -28,7 +28,7 @@ export function buildRecipeEntries(
   const craftEntries: RecipeEntry[] = selectCraftRecipes(recipes, itemId)
     .map((recipe) => ({ kind: "craft", recipe }));
   const machineEntries: RecipeEntry[] = machineRecipes.recipes
-    .filter((r) => r.outputItems.some((o) => o.itemId === itemId))
+    .filter((r) => producesItem(r, itemId))
     .map((recipe) => ({ kind: "machine", recipe }));
   return [...craftEntries, ...machineEntries];
 }
@@ -52,4 +52,18 @@ export function craftableResultCounts(recipes: CraftRecipe[], counts: Map<number
     if (outputCount > (result.get(recipe.resultItemId) ?? 0)) result.set(recipe.resultItemId, outputCount);
   }
   return result;
+}
+
+// 継承レシピは基準の生産物に加え、継承先の全レベルを生産物として扱う。継承先の並びは継承する種類のときだけ読む
+// An inheritance recipe produces every level of its target in addition to the base output; the target list is read only for inheriting kinds
+function producesItem(recipe: MachineRecipe, itemId: number): boolean {
+  if (recipe.outputItems.some((o) => o.itemId === itemId)) return true;
+  const inheritance = recipe.levelInheritance;
+  switch (inheritance.kind) {
+    case "none":
+      return false;
+    case "inherit":
+    case "inheritUpToUnlocked":
+      return inheritance.targetItemIds.includes(itemId);
+  }
 }

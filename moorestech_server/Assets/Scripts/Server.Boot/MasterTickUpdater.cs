@@ -9,6 +9,7 @@ using Game.CleanRoom;
 using Game.SaveLoad;
 using Game.SaveLoad.Snapshot;
 using Game.Train.Unit;
+using Game.World;
 using Game.World.Interface.DataStore;
 using Server.Boot.Loop;
 using Server.Boot.Loop.PacketProcessing;
@@ -16,10 +17,10 @@ using UniRx;
 
 namespace Server.Boot
 {
-    // 1tickの全順序を1箇所で明示する。本体(仕様2.1①〜④＋拡張: 電力→歯車→流体→鉄道tick→ブロック更新→ベルト搬送)→チャレンジ・クリーンルーム→末尾(操作の一括適用→別スレッド処理→派生網の再構築)→境界(ハッシュ・tick++)→セーブ→スナップショット
-    // Declares the whole tick order in one place: the body (spec 2.1 ①-④ plus extensions: settle electric, gear, fluid, train, update blocks, belt transport), then challenge and clean room, the tick end (apply input, drain other-thread work, rebuild derived networks), the boundary (hash, tick++), save, snapshot
-    // 処理順を購読や登録順に頼る箇所はここには無い(設置・撤去の購読は正準順の作り直し予約だけ)。GameUpdaterにはこのUpdateを1本だけ登録する
-    // Nothing here derives its order from subscriptions or registration order (the place/remove subscription only schedules the canonical-order rebuild); GameUpdater registers only this Update
+    // 1tickの全順序を1箇所で明示する。本体(仕様2.1①〜④＋拡張: 電力→歯車→流体→鉄道tick→ブロック更新→ベルト搬送)→チャレンジ・クリーンルーム→末尾(操作の一括適用→別スレッド処理→派生網の再構築→ブロック状態の出揃いの通知)→境界(ハッシュ・tick++)→セーブ→スナップショット
+    // Declares the whole tick order in one place: the body (spec 2.1 ①-④ plus extensions: settle electric, gear, fluid, train, update blocks, belt transport), then challenge and clean room, the tick end (apply input, drain other-thread work, rebuild derived networks, signal that block states are committed), the boundary (hash, tick++), save, snapshot
+    // 処理順を購読や登録順に頼る箇所はここには無い(設置・撤去の購読は正準順の作り直し予約だけ。tick末尾の通知は発火位置で順序が決まる)。GameUpdaterにはこのUpdateを1本だけ登録する
+    // Nothing here derives its order from subscriptions or registration order (the place/remove subscription only schedules the canonical-order rebuild; the tick-end signal is ordered by where it fires); GameUpdater registers only this Update
     public class MasterTickUpdater : IMasterTick
     {
         private readonly IWorldTopologyRebuilder _worldTopologyRebuilder;
@@ -34,6 +35,7 @@ namespace Server.Boot
         private readonly CleanRoomDatastore _cleanRoomDatastore;
         private readonly WorldMutationTickEndUpdater _worldMutationTickEndUpdater;
         private readonly ServerThreadActionQueue _serverThreadActionQueue;
+        private readonly WorldBlockUpdateEvent _worldBlockUpdateEvent;
         private readonly WorldSaveCoordinator _worldSaveCoordinator;
         private readonly WorldSnapshotRing _worldSnapshotRing;
 
@@ -71,6 +73,7 @@ namespace Server.Boot
             _cleanRoomDatastore = cleanRoomDatastore;
             _worldMutationTickEndUpdater = worldMutationTickEndUpdater;
             _serverThreadActionQueue = serverThreadActionQueue;
+            _worldBlockUpdateEvent = (WorldBlockUpdateEvent)worldBlockUpdateEvent;
             _worldSaveCoordinator = worldSaveCoordinator;
             _worldSnapshotRing = worldSnapshotRing;
 
@@ -128,6 +131,10 @@ namespace Server.Boot
             _worldMutationTickEndUpdater.Update();
             _serverThreadActionQueue.Drain();
             _worldTopologyRebuilder.RebuildTopologiesIfDirty();
+
+            // 操作の適用と再構築で出た分まで含めて状態が出揃った合図。購読側が束にして送る（ADR 0091）
+            // Signal that this tick's block states, including those from input and rebuilds, are in; the subscriber sends them as one bundle (ADR 0091)
+            _worldBlockUpdateEvent.OnTickEndStatesCommittedInvoke();
 
             // 境界: 操作の適用と再構築まで終えた状態で列車・レール・ベルト・流体のハッシュを出し、tick番号を進める。再構築したベルト・流体の全量はハッシュより前に送られている
             // Boundary: emit the train, rail, belt and fluid hashes from the state after input and rebuilds, and advance the tick; rebuilt belt and fluid full states were already sent before the hash

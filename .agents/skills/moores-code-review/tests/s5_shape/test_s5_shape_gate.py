@@ -84,13 +84,12 @@ class S5ShapeGateTest(unittest.TestCase):
         self.assertEqual(len(result["report_violations"]), 1)
 
     def test_gate_is_wired_into_every_consumer(self):
-        # 配線なき検出器は未実装と同じ（2026-08-03裁定）。reviewer・統合・本体・独立レビューの4か所
+        # 配線なき検出器は未実装と同じ（2026-08-03裁定）。reviewer・統合・本体・手順書の4か所
         # A detector without wiring is unimplemented; it must be named in all four consumers
         for doc in ("moores-code-review/reviewers/core-any-user-intent-fulfillment.md",
                     "moores-code-review/integrators/finding-integrator.md",
                     "moores-code-review/SKILL.md",
-                    "moores-code-review/references/orchestrator-steps.md",
-                    "pr-independent-review/SKILL.md"):
+                    "moores-code-review/references/orchestrator-steps.md"):
             text = (REPO_ROOT / ".agents/skills" / doc).read_text(encoding="utf-8")
             self.assertIn("s5_shape_gate.py", text, f"{doc} に s5_shape_gate.py の配線が無い")
 

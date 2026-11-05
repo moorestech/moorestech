@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  allocateResearchItems,
   deriveNodeCardState,
   deriveNodeStateLabelKey,
   deriveResearchButton,
@@ -13,7 +14,7 @@ import { L } from "@/shared/i18n";
 const node = (guid: string, x: number, y: number, extra?: Partial<ResearchNodeData>): ResearchNodeData => ({
   guid, state: "researchable", iconItemId: 1,
   position: { x, y }, prevGuids: [], consumeItems: [], rewardItems: [], unlockItemRecipeViewItemIds: [],
-  unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
+  unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [], unlockModuleSlotStackLimits: [], unlockLevelInheritanceCraftCaps: [],
   ...extra,
 });
 
@@ -42,7 +43,7 @@ describe("findInitialFocusNode", () => {
 
 describe("hasEnoughItems", () => {
   it("checks owned counts against consume items", () => {
-    const n = node("a", 0, 0, { consumeItems: [{ itemId: 1, count: 3 }] });
+    const n = node("a", 0, 0, { consumeItems: [{ itemId: 1, count: 3, acceptedItemIds: [1] }] });
     expect(hasEnoughItems(n.consumeItems, new Map([[1, 3]]))).toBe(true);
     expect(hasEnoughItems(n.consumeItems, new Map([[1, 2]]))).toBe(false);
   });
@@ -50,16 +51,16 @@ describe("hasEnoughItems", () => {
 
 describe("deriveResearchButton", () => {
   it("disables completed nodes and never highlights completed consume items", () => {
-    const n = node("done", 0, 0, { state: "completed", consumeItems: [{ itemId: 1, count: 1 }] });
+    const n = node("done", 0, 0, { state: "completed", consumeItems: [{ itemId: 1, count: 1, acceptedItemIds: [1] }] });
     expect(deriveResearchButton(n)).toEqual({
       completed: true,
       interactable: false,
       tooltipKey: L.ui.research.completed,
     });
-    expect(isConsumeItemLacking(n, 1, 1, new Map<number, number>())).toBe(false);
+    expect(isConsumeItemLacking(n, 1, 0)).toBe(false);
   });
   it("researchableは所持数を問わず活性（充足の正本はサーバーstate）", () => {
-    const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 999 }] });
+    const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 999, acceptedItemIds: [1] }] });
     expect(deriveResearchButton(n)).toEqual({
       completed: false,
       interactable: true,
@@ -67,7 +68,7 @@ describe("deriveResearchButton", () => {
     });
   });
   it("reports missing items when prerequisites are met but consume items are short", () => {
-    const n = node("short", 0, 0, { state: "unresearchableNotEnoughItem", consumeItems: [{ itemId: 1, count: 2 }] });
+    const n = node("short", 0, 0, { state: "unresearchableNotEnoughItem", consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1] }] });
     expect(deriveResearchButton(n)).toEqual({
       completed: false,
       interactable: false,
@@ -77,7 +78,7 @@ describe("deriveResearchButton", () => {
   it("reports missing prerequisites when items are sufficient", () => {
     const n = node("locked", 0, 0, {
       state: "unresearchableNotEnoughPreNode",
-      consumeItems: [{ itemId: 1, count: 1 }],
+      consumeItems: [{ itemId: 1, count: 1, acceptedItemIds: [1] }],
     });
     expect(deriveResearchButton(n)).toEqual({
       completed: false,
@@ -88,7 +89,7 @@ describe("deriveResearchButton", () => {
   it("reports both missing items and prerequisites", () => {
     const n = node("blocked", 0, 0, {
       state: "unresearchableAllReasons",
-      consumeItems: [{ itemId: 1, count: 2 }],
+      consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1] }],
     });
     expect(deriveResearchButton(n)).toEqual({
       completed: false,
@@ -98,17 +99,33 @@ describe("deriveResearchButton", () => {
   });
 });
 
+describe("allocateResearchItems", () => {
+  it("複数受付同士は受付数で並べ替えず宣言順で配分する", () => {
+    const n = node("overlap", 0, 0, { consumeItems: [
+      { itemId: 1, count: 1, acceptedItemIds: [1, 2, 3] },
+      { itemId: 1, count: 1, acceptedItemIds: [1, 2] },
+      { itemId: 3, count: 1, acceptedItemIds: [3] },
+    ] });
+    expect(allocateResearchItems(n, new Map([[1, 1], [3, 1]]))).toEqual([1, 0, 1]);
+  });
+});
+
 describe("isConsumeItemLacking", () => {
   it("所持数が判明していれば不足を検出する", () => {
-    const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 2 }] });
-    expect(isConsumeItemLacking(n, 1, 2, new Map([[1, 1]]))).toBe(true);
-    expect(isConsumeItemLacking(n, 1, 2, new Map([[1, 2]]))).toBe(false);
+    const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1] }] });
+    expect(isConsumeItemLacking(n, 2, 1)).toBe(true);
+    expect(isConsumeItemLacking(n, 2, 2)).toBe(false);
   });
   it("所持数未受信(null)の間は不足を出さない(D4)", () => {
     // 空Mapを所持0と読み違えない
     // An empty map is never misread as "owns zero"
-    const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 1 }] });
-    expect(isConsumeItemLacking(n, 1, 1, null)).toBe(false);
+    const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 1, acceptedItemIds: [1] }] });
+    expect(isConsumeItemLacking(n, 1, null)).toBe(false);
+  });
+  it("上位レベルを含む受け付けIDの所持を合計して判定する", () => {
+    const n = node("ready", 0, 0, { consumeItems: [{ itemId: 1, count: 2, acceptedItemIds: [1, 11] }] });
+    expect(isConsumeItemLacking(n, 2, allocateResearchItems(n, new Map([[1, 1], [11, 1]]))![0])).toBe(false);
+    expect(isConsumeItemLacking(n, 2, allocateResearchItems(n, new Map([[11, 1]]))![0])).toBe(true);
   });
 });
 
@@ -122,7 +139,7 @@ describe("deriveNodeCardState", () => {
       .toEqual({ completed: false, ready: false, locked: true });
   });
   it("アイテム不足はready無しの通常表示", () => {
-    const n = node("a", 0, 0, { state: "unresearchableNotEnoughItem", consumeItems: [{ itemId: 1, count: 6 }] });
+    const n = node("a", 0, 0, { state: "unresearchableNotEnoughItem", consumeItems: [{ itemId: 1, count: 6, acceptedItemIds: [1] }] });
     expect(deriveNodeCardState(n)).toEqual({ completed: false, ready: false, locked: false });
   });
   it("全条件未達はlocked", () => {

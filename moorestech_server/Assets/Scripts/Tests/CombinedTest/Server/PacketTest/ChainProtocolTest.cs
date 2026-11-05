@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
@@ -59,10 +60,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // ブロック状態変更イベントが登録されていることを確認する
             // Ensure block state change event is enqueued
+            GameUpdater.UpdateOneTick();
             var events = sink.TakeAll();
-            var blockAEventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(blockA.BlockPositionInfo);
-            var blockBEventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(blockB.BlockPositionInfo);
-            Assert.IsTrue(events.Any(e => e.Tag == blockAEventTag || e.Tag == blockBEventTag), "Block state change event should be published");
+            var positions = EventTestUtil.ExtractBlockStates(events).Select(s => (Vector3Int)s.Position).ToList();
+            Assert.IsTrue(positions.Contains(posA) || positions.Contains(posB), "Block state change event should be published");
         }
 
         private byte[] Connect(Vector3Int posA, Vector3Int posB, int playerId)

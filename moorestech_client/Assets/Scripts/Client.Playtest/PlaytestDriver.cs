@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using ClassLibrary;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
@@ -32,20 +33,20 @@ namespace Client.Playtest
         // Upper bound for the optional skip so worlds without a skit do not stall
         private const float OptionalSkitSkipTimeoutSeconds = 10f;
 
+        public readonly CancellationToken CancellationToken;
         private readonly PlaytestResult _result;
         private readonly string _runDirectory;
         private readonly PlaytestReporter _reporter;
-        private readonly PlaytestWaitActions _waits;
         // ホットバー操作のサブファサード
         // Sub-facade for hotbar operations (EnterBuildMode/ExitBuildMode/AssignHotbar/UnlockConnectTool)
         public PlaytestHotbarDriver Hotbar { get; }
-        public PlaytestDriver(PlaytestResult result, string runDirectory)
+        public PlaytestDriver(PlaytestResult result, string runDirectory, CancellationToken cancellationToken)
         {
+            CancellationToken = cancellationToken;
             _result = result;
             _runDirectory = runDirectory;
             _reporter = new PlaytestReporter(result);
-            Hotbar = new PlaytestHotbarDriver(_reporter);
-            _waits = new PlaytestWaitActions(_reporter);
+            Hotbar = new PlaytestHotbarDriver(_reporter, cancellationToken);
         }
         // AIナレーション用。今から何をするか・何が起きたかを動画とTimelineに残す
         // For AI narration: records what's about to happen / what happened, into the video and Timeline
@@ -68,10 +69,10 @@ namespace Client.Playtest
         }
         public Vector3 PlayerPosition => PlayerSystemContainer.Instance.PlayerObjectController.Position;
         // ---- アイテム / Items ----
-        public void GiveItemDirect(string itemName, int count)
+        public async UniTask GiveItemDirect(string itemName, int count)
         {
             _reporter.Step($"give(direct): {itemName} x{count}");
-            PlaytestItemOps.GiveItemDirect(itemName, count);
+            await PlaytestItemOps.GiveItemDirect(CancellationToken, itemName, count);
         }
         public async UniTask GiveItem(string itemName, int count) => await _reporter.Act($"give: {itemName} x{count}", () => PlaytestItemOps.GiveItemViaCommand(itemName, count, 10f));
         public int CountItem(string itemName) => PlaytestItemOps.CountItem(ClientContext.PlayerConnectionSetting.PlayerId, PlaytestItemOps.ResolveItemId(itemName));
@@ -79,43 +80,50 @@ namespace Client.Playtest
         // slot is the zero-based equipment slot; equipping also selects it (server-authoritative mining reads the selected equipment)
         public async UniTask EquipItem(string itemName, int equipmentSlot) => await _reporter.Act($"装備{equipmentSlot + 1}へ装着: {itemName}", () => PlaytestItemOps.EquipItem(itemName, equipmentSlot, 15f));
         // ---- ブロック / Blocks ----
-        public IBlock PlaceBlockDirect(string blockName, Vector3Int position, BlockDirection direction)
+        public async UniTask<IBlock> PlaceBlockDirect(string blockName, Vector3Int position, BlockDirection direction)
         {
             _reporter.Step($"設置(direct): {blockName} at {position}");
-            return PlaytestBlockOps.PlaceBlockDirect(blockName, position, direction);
+            return await PlaytestBlockOps.PlaceBlockDirect(CancellationToken, blockName, position, direction);
         }
-        public bool RemoveBlock(Vector3Int position)
+        public async UniTask<bool> RemoveBlock(Vector3Int position)
         {
             _reporter.Step($"撤去: {position}");
-            return PlaytestBlockOps.RemoveBlock(position);
+            return await PlaytestBlockOps.RemoveBlock(CancellationToken, position);
+        }
+        // シナリオ独自のサーバー書き込みをtick末尾で実行し完了を待つ。シナリオスクリプトから任意の処理を受けるDSLなので、処理を引数で受ける形を規約の例外として採る
+        // Run a scenario's own server write at the tick end and await it; this DSL accepts arbitrary work from scenario scripts, so taking the work as an argument is a deliberate exception to the callback rule
+        public async UniTask RunOnServer(string label, Action serverAction)
+        {
+            _reporter.Step($"サーバー操作: {label}");
+            await PlaytestServerThreadAction.RunAsync(CancellationToken, label, serverAction);
         }
         public IBlock GetBlock(Vector3Int position) => PlaytestBlockOps.GetBlock(position);
-        public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position) => await _waits.WaitBlockGameObject(position);
+        public async UniTask<BlockGameObject> WaitBlockGameObject(Vector3Int position) => await PlaytestRecordedWaits.WaitBlockGameObject(_reporter, position);
         // ---- UI経路操作 / UI-route operations ----
         public UIStateEnum CurrentUiState => PlaytestUiOps.CurrentUiState();
-        public void UnlockBlock(string blockName)
+        public async UniTask UnlockBlock(string blockName)
         {
             _reporter.Step($"アンロック: {blockName}");
-            PlaytestBlockOps.UnlockBlockServerSide(blockName);
+            await PlaytestBlockOps.UnlockBlockServerSide(CancellationToken, blockName);
         }
         public async UniTask GiveConstructionCost(string blockName, int blockCount) => await _reporter.Act($"建設コスト付与: {blockName} x{blockCount}", () => PlaytestItemOps.GiveConstructionCost(blockName, blockCount, 15f));
         public async UniTask PrepareBlockForUiPlacement(string blockName, int blockCount)
         {
             // UI設置の前提を1行で整える: アンロック＋建設コスト付与（クライアント在庫反映待ち込み）
             // One-liner setup for UI placement: unlock plus construction-cost grant (waits for client inventory sync)
-            UnlockBlock(blockName);
+            await UnlockBlock(blockName);
             await GiveConstructionCost(blockName, blockCount);
         }
         public async UniTask PressKey(Key key) => await _reporter.Act($"キー入力: {key}", () => SemanticInput.TapKey(key));
         public async UniTask ClickUi(string testid) => await _reporter.Act($"UIクリック: {testid}", () => PlaytestUiElementOps.ClickUi(testid));
         public async UniTask HoverUi(string testid) => await _reporter.Act($"UIホバー: {testid}", () => PlaytestUiElementOps.HoverUi(testid));
-        public async UniTask UntilUiElement(string testid, float timeoutSeconds) => await _waits.UntilUiElement(testid, timeoutSeconds);
+        public async UniTask UntilUiElement(string testid, float timeoutSeconds) => await PlaytestRecordedWaits.UntilUiElement(_reporter, testid, timeoutSeconds);
         // テキスト欄の値を置き換える（IMEは通さない）
         // Replace a text field's value (bypassing IME)
         public async UniTask SetText(string testid, string text) => await _reporter.Act($"UI文字入力: {testid}", () => PlaytestUiElementOps.SetText(testid, text));
-        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(Client.Playtest.Operations.Ui.PlaytestBuildMenuOps.BuildMenuBlockTestId(blockName));
+        public async UniTask ClickBuildMenuBlock(string blockName) => await ClickUi(PlaytestBuildMenuOps.BuildMenuBlockTestId(blockName));
         public async UniTask CloseBuildMenuPanel() => await ClickUi("build-menu-close");
-        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await _waits.WaitUiState(state, timeoutSeconds);
+        public async UniTask WaitUiState(UIStateEnum state, float timeoutSeconds) => await PlaytestRecordedWaits.WaitUiState(_reporter, state, timeoutSeconds);
         public async UniTask OpenBuildMenuAndSelectBlock(string blockName) => await _reporter.Act($"ビルドメニューで選択: {blockName}", () => PlaytestBuildMenuOps.OpenBuildMenuAndSelectBlock(blockName));
         // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提
         // Skips the opening skit and lands on the game screen; the precondition for every hotbar and build-menu operation
@@ -158,7 +166,6 @@ namespace Client.Playtest
             _reporter.Step($"コマンド送信: {command}");
             ClientContext.VanillaApi.SendOnly.SendCommand(command);
         }
-        public TService ServerService<TService>() => ServerContext.GetService<TService>();
         // ---- 検証 / Verification ----
         public void Assert(bool condition, string label)
         {
@@ -171,21 +178,16 @@ namespace Client.Playtest
         {
             // 固定sleepの代替。条件成立をフレームポーリングで待ち、結果も記録する
             // Replacement for fixed sleeps: poll per frame until the condition holds, recording the outcome
-            var waitEntry = _reporter.BeginWait(label);
-            var startTime = Time.realtimeSinceStartup;
+            var wait = BeginWait(timeoutSeconds, label);
             while (!condition())
             {
-                if (timeoutSeconds < Time.realtimeSinceStartup - startTime)
-                {
-                    _reporter.RecordUntilResult(false, label, $"Until timeout after {timeoutSeconds}s");
-                    throw new TimeoutException($"Until '{label}' timed out after {timeoutSeconds}s");
-                }
+                wait.CheckTimeout("expected=true, actual=condition false");
                 await UniTask.Yield();
             }
-            _reporter.EndWait(waitEntry);
-            _reporter.RecordUntilResult(true, label, "condition met");
+            wait.Complete();
         }
-        public async UniTask WaitSeconds(float seconds) => await _waits.WaitSeconds(seconds);
+        public PlaytestRecordedWaits BeginWait(float timeoutSeconds, string label) => PlaytestRecordedWaits.Begin(_reporter, label, timeoutSeconds, CancellationToken);
+        public async UniTask WaitSeconds(float seconds) => await PlaytestRecordedWaits.WaitSeconds(_reporter, seconds);
         public async UniTask<string> Screenshot(string name)
         {
             _reporter.Step($"スクリーンショット: {name}");

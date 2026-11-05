@@ -24,6 +24,7 @@ namespace Client.Network
         
         private readonly Socket _socket;
         private int _closeRequested;
+        private int _disconnectExpected;
         
         private ServerCommunicator(Socket connectedSocket)
         {
@@ -67,7 +68,9 @@ namespace Client.Network
                     var length = _socket.Receive(buffer);
                     if (length == 0)
                     {
-                        Debug.LogError("ストリームがゼロによる切断");
+                        // silent-ok: 終了予定のEOFだけを受理する / 通信ループ終了のfinallyログで開発者が確認できる
+                        // Accept only an expected EOF; the finally log records receive-loop completion
+                        if (Volatile.Read(ref _disconnectExpected) == 0) Debug.LogError("ストリームがゼロによる切断");
                         break;
                     }
                     
@@ -137,8 +140,16 @@ namespace Client.Network
         {
             // 受信スレッドへ終了意図を先に公開し、CloseによるReceive中断だけを正常終了と判定させる
             // Publish shutdown intent before Close so only the resulting Receive interruption is treated as normal
+            ExpectDisconnect();
             if (Interlocked.Exchange(ref _closeRequested, 1) != 0) return;
             _socket.Close();
+        }
+
+        // 相手の終了を先に許可し、最終要求の送受信はCloseまで保つ
+        // Allow the peer to finish first while preserving final request traffic until Close
+        public void ExpectDisconnect()
+        {
+            Volatile.Write(ref _disconnectExpected, 1);
         }
     }
 }

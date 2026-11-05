@@ -8,9 +8,14 @@
   width: 100%;
 }
 
+/* 素材スロットの「入っている数/必要数」は個数バッジと同じ右下の位置に、2つの数が収まる大きさで描く */
+/* The material slots' "held/required" sits where the count badge does, at a size that fits both numbers */
 .inputSide {
   display: flex;
   justify-content: flex-end;
+  --shortage-count-right: 2px;
+  --shortage-count-bottom: -3px;
+  --shortage-count-font-size: 15px;
 }
 
 .outputSide {

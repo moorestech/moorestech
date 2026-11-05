@@ -1,4 +1,5 @@
 using System;
+using Game.Block.Interface;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.Inventory;
@@ -42,13 +43,20 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         // Hands over identity instead of a source name, and reports through the return value that a removed block has none
         public bool TryGetBlockIdentity(out Guid blockGuid, out string blockTypeName)
         {
+            return TryGetBlockIdentity(out blockGuid, out blockTypeName, out _);
+        }
+
+        public bool TryGetBlockIdentity(out Guid blockGuid, out string blockTypeName, out BlockInstanceId instanceId)
+        {
             if (!TryResolveBlockGameObject(out var blockGameObject))
             {
+                instanceId = default;
                 blockGuid = Guid.Empty;
                 blockTypeName = null;
                 return false;
             }
 
+            instanceId = blockGameObject.BlockInstanceId;
             var masterElement = blockGameObject.BlockMasterElement;
             blockGuid = masterElement.BlockGuid;
             blockTypeName = masterElement.BlockType;

@@ -9,7 +9,7 @@ const craftEntry = (page: Page) => page.locator('[data-testid^="craft-recipe-ent
 
 test("秒数は矢印の上に出し、クラフトボタンは秒数を持たない", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
   // 秒数は矢印上、ボタンは操作名のみ
@@ -20,7 +20,7 @@ test("秒数は矢印の上に出し、クラフトボタンは秒数を持た�
 
 test("正本のヘッダ装飾、1段時の無スクロールバー、主要構造を保つ", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
   // 品名直後の装飾線をヘッダ末尾に固定する
@@ -55,7 +55,7 @@ test("正本のヘッダ装飾、1段時の無スクロールバー、主要構�
 
 test("アイテム選択でレシピ表示、長押しで素材が尽きるまで連続クラフトする", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   // 右リストの先頭 Plank(100) を選択
   // Select the first item Plank(100) in the right list
   await page.getByTestId("item-list-grid").locator("> div").first().click();
@@ -86,7 +86,7 @@ test("アイテム選択でレシピ表示、長押しで素材が尽きるま�
 
 test("リスト上をドラッグしてもアイテム選択は変わらない（スクロール操作扱い）", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
 
   // 中央は未選択のまま。ドラッグは選択ではなくスクロール操作として扱われるべき
   // Center starts unselected; a drag must count as scrolling, not selection
@@ -115,7 +115,7 @@ test("リスト上をドラッグしてもアイテム選択は変わらない�
 
 test("押下後にボタンから外れるとクラフトが止まり経過時間がリセットされる", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await page.getByTestId("item-list-grid").locator("> div").first().click();
 
   const craftButton = craftEntry(page).getByRole("button");
@@ -144,7 +144,7 @@ test("押下後にボタンから外れるとクラフトが止まり経過時�
 
 test("複数レシピはクラフト優先の単一リストで同時に表示される", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   // Plank100はクラフト/機械両方
   // Plank(100) has both craft and machine recipes
   await page.getByTestId("item-list-grid").locator("> div").first().click();
@@ -166,7 +166,7 @@ test("複数レシピはクラフト優先の単一リストで同時に表示�
 
 test("クラフトエントリが複数でもチュートリアルアンカーは1件だけ付く", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   // Plank102はクラフト2件持つ
   // Plank(102) has two craft recipes
   await page.getByTestId("item-list-grid").locator('[data-item-id="102"]').click();
@@ -191,4 +191,22 @@ test("クラフト可能数0のアイテムは個数バッジを出さない", a
   // 101 always yields 0; 100 shows the count badge
   await expect(grid.locator('[data-item-id="101"]').locator('[class*="_count_"]')).toHaveCount(0);
   await expect(grid.locator('[data-item-id="100"]').locator('[class*="_count_"]')).toHaveCount(1);
+});
+
+test("機械レシピの一覧に液体の入力を量付きで出す", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
+  // item7は水入力レシピの出力
+  // item7 is the output of the water-input recipe
+  await page.getByTestId("item-list-grid").locator('[data-item-id="7"]').click();
+
+  const entry = page.getByTestId("machine-recipe-entry-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
+  const fluid = entry.getByTestId("machine-recipe-entry-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb-input-fluid-0");
+  await expect(fluid).toBeVisible();
+  await expect(fluid).toContainText("10");
+  // 液体は結果ではなく素材側（矢印の左）に並ぶ
+  // The fluid sits on the material side (left of the arrow), not the result side
+  const arrowBox = await entry.locator('[data-testid^="machine-progress-arrow-"]').boundingBox();
+  const fluidBox = await fluid.boundingBox();
+  expect(fluidBox!.x + fluidBox!.width).toBeLessThanOrEqual(arrowBox!.x);
 });

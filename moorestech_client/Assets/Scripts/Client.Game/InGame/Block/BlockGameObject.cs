@@ -11,7 +11,6 @@ using Client.Game.InGame.Map.NearestSearch;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
-using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using Server.Event.EventReceive;
 using UniRx;
@@ -26,7 +25,7 @@ namespace Client.Game.InGame.Block
         public BlockInstanceId BlockInstanceId { get; private set; }
         public BlockMasterElement BlockMasterElement { get; private set; }
         public BlockPositionInfo BlockPosInfo { get; private set; }
-        public List<IBlockStateChangeProcessor> BlockStateChangeProcessors { get; private set; }
+        public List<IBlockStateChangeProcessor> BlockStateChangeProcessors { get; private set; } = new();
         // 最近傍索引の墓標。撤去済みのブロックを木の組み直し無しに候補から外す
         // Tombstone for the nearest index; a removed block leaves the candidates without rebuilding the tree
         public bool IsSearchable { get; private set; } = true;
@@ -35,6 +34,10 @@ namespace Client.Game.InGame.Block
         public BlockInteractable Interactable { get; private set; }
         public IObservable<BlockGameObject> OnFinishedPlaceAnimation => _onFinishedPlaceAnimation;
         private readonly Subject<BlockGameObject> _onFinishedPlaceAnimation = new();
+        // 状態受信直後に発火（WebUIが購読）
+        // Fires right after a state arrives from the server; WebUI republishing subscribes to it
+        public IObservable<BlockStateMessagePack> OnBlockStateChanged => _onBlockStateChanged;
+        private readonly Subject<BlockStateMessagePack> _onBlockStateChanged = new();
         private RendererShaderAnimation _rendererShaderAnimation;
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private List<VisualEffect> _visualEffects = new();
@@ -85,38 +88,16 @@ namespace Client.Game.InGame.Block
             // Turn off preview-only object
             _previewOnlyObjectsView = new BlockPreviewOnlyObjectsView(BlockPreviewOnlyObjects.Initialize(gameObject, BlockId, false));
             
-            // ブロックのステート変化を購読
-            // Subscribe to block state changes
-            SubscribeBlockState();
+            // 初期状態を要求。返答はtick末尾の束で届く
+            // Ask the server for the initial block state; the reply arrives via BlockStateEventHandler in the tick-end bundle
+            RequestInitialBlockState();
             // バウンディングボックス用オブジェクトを作成
             // Create a bounding box object
             AddBoundingBox().Forget();
             #region Internal
             
-            void SubscribeBlockState()
+            void RequestInitialBlockState()
             {
-                var eventTag = ChangeBlockStateEventPacket.CreateSpecifiedBlockEventTag(posInfo);
-                ClientContext.VanillaApi.Event.SubscribeEventResponse(eventTag,
-                    payload =>
-                    {
-                        BlockStateMessagePack data;
-                        using (BlockStateProfilerMarkers.DeserializeBlockState.Auto()) data = MessagePackSerializer.Deserialize<BlockStateMessagePack>(payload);
-                        if (data.Position != BlockPosInfo.OriginalPos) return;
-                        foreach (var processor in BlockStateChangeProcessors)
-                        {
-                            try
-                            {
-                                using (BlockStateProfilerMarkers.ForProcessor(processor).Auto()) processor.OnChangeState(data);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.LogError($"Name:{BlockMasterElement.Name} Pos: {BlockPosInfo.OriginalPos} BlockStateChangeProcessorの{processor.GetType().Name}で例外が発生しました。\n{e.Message}\n{e.StackTrace}");
-                            }
-                        }
-                        _blockStateMessagePack = data;
-                    }).AddTo(this.GetCancellationTokenOnDestroy());
-                // ブロックの初期状態を取得するためにサーバーに問い合わせる
-                // Request the server for the initial block state
                 ClientContext.VanillaApi.SendOnly.RequestBlockState(BlockPosInfo.OriginalPos);
             }
             async UniTask AddBoundingBox()
@@ -162,6 +143,17 @@ namespace Client.Game.InGame.Block
             SetVfxActive(false);
             await _rendererShaderAnimation.RemoveAnimation();
             Destroy(gameObject);
+        }
+        // 届いた状態を全プロセッサへ渡す。例外は隔離しない（ADR 0091）
+        // Passes an arrived state to every processor; exceptions are not isolated here (ADR 0091)
+        internal void ApplyBlockState(BlockStateMessagePack state)
+        {
+            foreach (var processor in BlockStateChangeProcessors)
+            {
+                using (BlockStateProfilerMarkers.ForProcessor(processor).Auto()) processor.OnChangeState(state);
+            }
+            _blockStateMessagePack = state;
+            _onBlockStateChanged.OnNext(state);
         }
         public TBlockState GetStateDetail<TBlockState>(string stateKey)
         {

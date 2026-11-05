@@ -1,9 +1,9 @@
-// ---- Apply: 確定修正の自動適用＋compile＋最終diff＋機械的動作確認＋post-check選択（report-only では省略）----
+// ---- Apply: 確定修正の自動適用＋compile＋最終diff＋機械的動作確認＋post-check選択 ----
 // ---- Apply: auto-apply confirmed fixes, compile, final diff, mechanical checks, post-check selection ----
 let apply = null
-let postChecks = A.postChecks || []
-let postCheckSelection = A.reportOnly ? { source: 'build_workflow_args(report-only)', note: 'patch＋detchecks.json で選択' } : null
-if (!A.reportOnly) {
+let postChecks = []
+let postCheckSelection = null
+{
   const finalDiffRule = `git diff <Base ref> -- <patch.diff が触ったファイル ∪ 自分が編集・新規作成したファイル> ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'`
   const snapshotS1 = `\`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s1\` に続けて \`python3 ${A.refixSnapshotScript} diff --repo-root ${A.repoRoot} --run-dir ${A.runDir} --from s0 --to s1 --out ${A.runDir}/refix/round1.diff\``
   // bug-pass の post-check（コメント保全）は回さない。コメント規約は本レビューで確認済みで、最終バグ確認の対象外

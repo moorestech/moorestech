@@ -4,8 +4,8 @@ using Game.Paths;
 
 namespace Server.Boot.Replay.World
 {
-    // 箱から地形付きのワールドを world-materialized/ に実体化する。固定ワールド起動（自動修正ランの観察）は world.json だけの箱では地形が無く落ちる（ADR 0064）
-    // Materializes a terrain-bearing world from the box into world-materialized/; a fixed-world boot (the auto-fix observation) dies without terrain on a world.json-only box (ADR 0064)
+    // 箱から地形付きのワールドを world-materialized/ に実体化する。固定ワールド起動（報告の不具合の観察）は world.json だけの箱では地形が無く落ちる（ADR 0064）
+    // Materializes a terrain-bearing world from the box into world-materialized/; a fixed-world boot (observing a reported bug) dies without terrain on a world.json-only box (ADR 0064)
     public static class BugReportBundleWorldMaterializer
     {
         public static BugReportBundleWorldResolution Materialize(string bundleDirectory, string serverDataDirectory)
@@ -26,8 +26,8 @@ namespace Server.Boot.Replay.World
             if (Directory.Exists(temp.Root)) Directory.Delete(temp.Root, true);
             Directory.CreateDirectory(temp.Root);
 
-            // 置き場には prepare-run.sh が置いた save.json があるので、一時側へ引き継いでからワールド本体を写す
-            // The destination holds the save.json prepare-run.sh placed, so it is carried into the temp side before the world core is copied
+            // 置き場に先に置いた save.json があれば、一時側へ引き継いでからワールド本体を写す
+            // A save.json already placed at the destination is carried into the temp side before the world core is copied
             if (File.Exists(destination.SaveJsonFilePath)) File.Copy(destination.SaveJsonFilePath, temp.SaveJsonFilePath, true);
             WorldSnapshotStore.CopyWorldCore(source, temp);
 

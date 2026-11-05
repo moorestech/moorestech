@@ -4,10 +4,10 @@ let postResults = []
 let postfix = null
 let postMissing = []
 if (postChecks.length) {
-  // post-check は「最終diff＋最終checks」を見る（report-only では patch と Step 2 の決定論JSON）
-  // Post-checks read the final diff and final checks (patch + Step 2 deterministic JSON in report-only)
-  const diffPath = A.reportOnly ? A.patchPath : `${A.runDir}/final.diff`
-  const candidatesPath = A.reportOnly ? A.detchecksPath : `${A.runDir}/checks-final.json`
+  // post-check は「最終diff＋最終checks」を見る
+  // Post-checks read the final diff and final checks
+  const diffPath = `${A.runDir}/final.diff`
+  const candidatesPath = `${A.runDir}/checks-final.json`
   postResults = accountFor(postChecks, await parallel(postChecks.map((p) => () => runSystem(
     { ...p, kind: 'postcheck', patchOverride: diffPath, candidatesPath }, 'PostCheck',
   ))))
@@ -16,7 +16,7 @@ if (postChecks.length) {
     throw new Error(`post-check が応答しなかった: ${postMissing.join(', ')}。final.diff と checks は残っているので親が Step 6.5 の該当ガードだけ再派遣する`)
   }
   const anyCritical = postResults.some((r) => r.result && r.result.critical_count > 0)
-  if (!A.reportOnly && anyCritical) {
+  if (anyCritical) {
     const postfixPrompt = [
       `Read this : ${A.orchestratorStepsPath} — Step 6.5 の 4〜6 だけを実行する。`,
       `Run dir : ${A.runDir}`,
@@ -29,7 +29,7 @@ if (postChecks.length) {
     ].join('\n')
     postfix = await agent(postfixPrompt, { label: 'postfix', phase: 'PostCheck', model: 'sonnet', schema: POSTFIX_SCHEMA })
     if (!postfix) throw new Error('postfix agent が応答しなかった。final.diff と post-check レポートは残っているので親が Step 6.5 の 4〜6 だけ再派遣する')
-  } else if (!A.reportOnly) {
+  } else {
     log('PostCheck: 全ガード Critical なし → postfix 省略（手順書 Step 6.5-6）')
   }
 } else {
@@ -57,5 +57,5 @@ return {
   postCheckSelection,
   postChecks: postResults.map((r) => ({ name: r.name, ok: r.ok, critical: r.result ? r.result.critical_count : null, report: `${A.runDir}/agents/${r.name}.md` })),
   postfix,
-  paths: { integrated: `${A.runDir}/integrated.md`, design: `${A.runDir}/design.md`, finalDiff: A.reportOnly ? A.patchPath : `${A.runDir}/final.diff` },
+  paths: { integrated: `${A.runDir}/integrated.md`, design: `${A.runDir}/design.md`, finalDiff: `${A.runDir}/final.diff` },
 }

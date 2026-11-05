@@ -79,7 +79,7 @@ return PlaytestRunner.Run("interact-key-unification", options, async p =>
     // 石窯の原点は正面やや左に置く。原点は3x3の南西角で、選定距離もモデルも原点基準でずれるため実測して寄る
     // The oven origin goes slightly left of center: it is the 3x3 south-west corner that both the model and the selection distance hang off
     var ovenOrigin = new Vector3Int(-1, Mathf.RoundToInt(testFieldTopY), 1);
-    p.PlaceBlockDirect(ovenBlockName, ovenOrigin, BlockDirection.North);
+    await p.PlaceBlockDirect(ovenBlockName, ovenOrigin, BlockDirection.North);
     var ovenGameObject = await p.WaitBlockGameObject(ovenOrigin);
     var ovenPosition = ovenGameObject.transform.position;
     p.Note($"石窯の原点={ovenPosition} プレイヤー={p.PlayerPosition} カメラ前方={Camera.main.transform.forward}");

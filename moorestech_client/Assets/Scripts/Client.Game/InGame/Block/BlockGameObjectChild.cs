@@ -127,6 +127,7 @@ namespace Client.Game.InGame.Block
             {
                 RemoveBlockProtocol.RemoveBlockFailureReason.NodeInUseByTrain => LocalizationKeys.Ui.Delete.RailHasVehicle,
                 RemoveBlockProtocol.RemoveBlockFailureReason.InventoryFull => LocalizationKeys.Ui.Delete.InventoryFull,
+                RemoveBlockProtocol.RemoveBlockFailureReason.CablePoolFull => LocalizationKeys.Ui.Delete.CablePoolFull,
                 _ => LocalizationKeys.Ui.Delete.BlockDeleteFailed,
             };
         }

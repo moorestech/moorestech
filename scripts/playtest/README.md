@@ -194,7 +194,12 @@ bash scripts/playtest/tests/test-release-playtest.sh    # PASS: release-playtest
 bash scripts/playtest/tests/test-release-playtest-mac.sh   # PASS: release-playtest mac contract と出れば合格
 bash scripts/playtest/tests/test-release-playtest-origin.sh  # PASS: release-playtest origin contract と出れば合格
 bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-windows contract と出れば合格
+for t in scripts/playtest/tests/test-*.sh scripts/playtest/tests/r2/test-*.sh; do bash "$t"; done   # 取り込み・zip 取り込み・1 件取得・R2 削除の一覧
+(cd scripts/playtest/tests && python3 -m unittest discover -p 'test_*.py')                         # ダッシュボード・ダイジェスト・box_layout・R2 中継
+node --test scripts/playtest/tests/test_report_filter.mjs                                         # ダッシュボードの絞り込み
 ```
+
+報告の生データ（スナップショット・ワールド・動画等）の正本は受け口の R2 だけ。取り込みは小物だけを logs repo へ写し、調べるときは `fetch-report.sh` で 1 件ずつ取る。片付いた報告は片付けから 7 日で R2 から消す（`README-macmini.md`「1 件の生データを取る」「片付いた報告の R2 削除」節）。
 
 ## 遠隔実行（開発者向け）
 
@@ -218,5 +223,4 @@ scripts/playtest/remote-exec.sh --windows --target server snippet.cs
 タイトル画面では使えない。固まったらゲームを再起動する。
 `server` の同期部分だけがサーバースレッドで動く。`await` 以降の実行スレッドは待機先に依存する。
 補助処理は static ローカル関数で書き、トップレベルの型宣言は使わない。
-有効だったセッションの報告には印と台帳が付き、通常の自動修正投入・日次報告集計から除外される。
-明示的に投入する場合のみ `enqueue-autofix.sh --force` を使う。
+有効だったセッションの報告には印と台帳が付き、日次ダイジェストの集計とダッシュボードの「バグ」分類から除外される。

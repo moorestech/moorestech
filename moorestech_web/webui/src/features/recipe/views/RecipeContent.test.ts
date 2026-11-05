@@ -36,6 +36,7 @@ const machineRecipes: MachineRecipesData = {
     outputItems: [{ itemId: RESULT_ITEM_ID, count: 1 }],
     inputFluids: [],
     outputFluids: [],
+    levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
   }],
 };
 const inventory = { mainSlots: [] } as unknown as PlayerInventoryData;

@@ -20,8 +20,7 @@
   poll-guard.mjs                 # 同一ツール呼び出しの反復＝ポーリングを拒否し正しい待ち方を再注入（PreToolUse 全ツール。Claudeのみ登録 — リセット判定に全ツールイベントが要るため）
   beads-sync-watch.mjs           # Dolt同期障害の復旧誘導＋claim/createへのセッション出自刻印（PostToolUse）
   beads-learn-capture.mjs        # 応答末尾の「LEARN: 一行」をbd noteへ自動保存（Claude Stop）
-  logs-sync.mjs                  # Claude/Codex生JSONLをprivateの../moorestech_logsへ退避（Stop/SessionEnd等）
-  commit-map.mjs                 # コミットsha↔セッションIDの対応表をmoorestech_logsへ追記（PostToolUse Bash）
+  logs-hook.mjs                  # private の ../moorestech_logs/scripts/hooks/<name>.mjs を呼ぶだけの入口（logs-sync・commit-map）。logs repo が無ければ何もしない
   README.md
 .claude/settings.json  # 各フックの呼び出し登録（Claude Code 用）
 .codex/hooks.json      # 同上（Codex 用。SessionStart/PostCompact/PostToolUseに対応分を登録）
@@ -29,7 +28,8 @@
 
 ## 考古学基盤（moorestech_logs 連携）
 
-- `logs-sync.mjs` / `commit-map.mjs` / beads系は、兄弟ディレクトリに private repo `moorestech_logs` がある時だけ動く（無ければ全て沈黙）。
+- セッションログの退避（logs-sync）とコミット↔セッション対応表（commit-map）の本体は logs repo の `scripts/hooks/` にあり、ここからは `logs-hook.mjs` で呼ぶだけ。logs repo が無い環境では何もしない。仕組み・削り込み・復元・自動コミットの選別は logs repo の README を見る
+- beads系は、兄弟ディレクトリに private repo `moorestech_logs` がある時だけ動く（無ければ沈黙）。
 - Beadsのデータ同期先も moorestech_logs（`refs/dolt/data`）。public本体repoへは同期しない（beads-guardが誤送信を物理拒否する）。
 - 新しいマシンでは `../moorestech_logs` を clone し、`bd bootstrap` でDoltデータを復元すれば全hookが有効になる。
 

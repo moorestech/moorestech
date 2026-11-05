@@ -229,7 +229,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **分割深掘り調査は閾値未満なら起動しない** — split_chunksが `below-threshold` を返したら第5系統は丸ごと不発火（0トークン）。閾値を無視してinvestigatorを手動起動しない（小PRでは既存系統と重複するだけ）。
 - **investigatorにテストを絶対に見せない** — テストファイルはチャンクに含めず、investigator は Read 自体も禁止（完全隔離）。テスト不足の検知はtest系reviewerの担当のまま。
 - **文字数はスクリプトの値が正** — LLMに日本語の文字数を数え直させない。convention-guardは `count` を信頼し例外判定と短縮案だけ行う。
-- **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。applied-diff-correctness はセレクタで選ばれず、Step 6.5-2.5 の Refix・Step 7 の設計判断反映・pr-adjudicated-apply が反映 diff（`refix_snapshot.py` の snapshot 間 diff）に対して直接起動する（手順は各 SKILL.md）。
+- **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。applied-diff-correctness はセレクタで選ばれず、Step 6.5-2.5 の Refix・Step 7 の設計判断反映が反映 diff（`refix_snapshot.py` の snapshot 間 diff）に対して直接起動する（手順は各 SKILL.md）。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。委譲時のあなたはsonnetなので、model未指定のサブエージェントが誤ってsonnetで起動しうる（opus/fable指定系統の無言降格）。セレクタはTSV2列目に**常に具体値**を出す（`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `moores-any-precedent-alignment`（`model_map.json` の `fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
 - **系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
 - **Codexの `.out.md` が途中で切れていても失敗ではない** — 判定材料は `.final.md`（`-o` の出力）と `codex_recover.py` の終了コードだけ。`.out.md` を `grep` して「結論が無い＝失敗」と断じない（stdoutにはツール実行ログしか残っていないことがある）。真の失敗は「rollout にセッションが無い（exit 4）」「task_complete が無い（exit 3）」「認証失効（exit 5。rollout に結論が無いときだけ `.out.md` 両端の codex ERROR 行で判定）」の3つだけ。

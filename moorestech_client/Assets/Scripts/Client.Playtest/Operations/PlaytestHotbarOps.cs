@@ -1,8 +1,10 @@
 using System;
+using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.UI.UIState;
+using Client.Playtest.Core;
 using Client.Playtest.Input;
 using Client.Playtest.Operations.Ui;
 using Core.Master;
@@ -67,12 +69,23 @@ namespace Client.Playtest.Operations
             #endregion
         }
 
-        public static void UnlockConnectToolServerSide(string toolName)
+        public static async UniTask UnlockConnectToolServerSide(CancellationToken cancellationToken, string toolName)
         {
             // 接続ツールはBlockUnlockStateInfosと別枠(ConnectToolUnlockStateInfos)のため、ブロックのアンロックとは独立に必要
             // Connect tools live in a separate unlock bucket (ConnectToolUnlockStateInfos), so this is required independently of block unlocks
             var connectToolGuid = ResolveConnectToolGuid();
-            ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(connectToolGuid);
+            await PlaytestServerThreadAction.RunAsync(cancellationToken, $"unlock connect tool {toolName}", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockConnectTool(connectToolGuid));
+            // 解放通知がクライアントへ届くまで後続の割当を待たせる
+            // Wait for the client unlock event before allowing the next assignment
+            var clientState = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
+            var deadline = Time.realtimeSinceStartup + 15f;
+            while (!clientState.ConnectToolUnlockStateInfos.TryGetValue(connectToolGuid, out var info) || !info.IsUnlocked)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (deadline < Time.realtimeSinceStartup)
+                    throw new TimeoutException($"Client unlock not reflected within 15s: {toolName}");
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            }
 
             #region Internal
 
@@ -88,11 +101,22 @@ namespace Client.Playtest.Operations
             #endregion
         }
 
-        public static void UnlockBlueprintServerSide()
+        public static async UniTask UnlockBlueprintServerSide(CancellationToken cancellationToken)
         {
             // ブループリントはBlockUnlockStateInfosと別枠(単一bool)のため、接続ツール同様に独立して解放が必要
             // Blueprint lives in a separate unlock bucket (a single bool), so this is required independently, like connect tools
-            ServerContext.GetService<IGameUnlockStateDataController>().UnlockBlueprint();
+            await PlaytestServerThreadAction.RunAsync(cancellationToken, "unlock blueprint", () => ServerContext.GetService<IGameUnlockStateDataController>().UnlockBlueprint());
+            // BP解放もクライアント反映を完了条件にする
+            // Blueprint unlock also completes only after client reflection
+            var clientState = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
+            var deadline = Time.realtimeSinceStartup + 15f;
+            while (!clientState.IsBlueprintUnlocked)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (deadline < Time.realtimeSinceStartup)
+                    throw new TimeoutException("Client unlock not reflected within 15s: blueprint");
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            }
         }
     }
 }

@@ -43,8 +43,10 @@
         "Game.PlayerInventory.Interface",
         "CommandForgeGeneratorUtil.Editor",
         "Client.WebUiHost",
+        "CefUnity.Runtime",
         "Client.Build.Policy",
         "Client.Playtest",
+        "Client.Playtest.Overlay",
         "Core.BeltTransport",
         "Client.Skit",
         "Unity.Addressables.Editor",
@@ -76,7 +78,9 @@
         "Game.Map.Interface",
         "Client.PlaytestReceiver",
         "Client.RemoteExec",
-        "Client.Ui.State"
+        "Client.Ui.State",
+        "Game.Orbit",
+        "Game.SpaceElevator"
     ],
     "includePlatforms": [
         "Editor"

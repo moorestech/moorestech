@@ -35,12 +35,12 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.AreEqual(74, room.Volume);
             Assert.AreEqual(109, room.SurfaceArea);
 
-            // A_total = 0.1×74 + 0.05×109 + 0.5×2（ハッチ+ドア）= 13.85/秒、C_eq = 13.85/5 = 2.77
-            // A_total = 0.1x74 + 0.05x109 + 0.5x2 (hatch + door) = 13.85/sec; C_eq = 13.85/5 = 2.77
+            // A_total = 0.1×74 + 0.05×109 + 0.5×1（ハッチ）= 13.35/秒、C_eq = 13.35/5 = 2.67
+            // A_total = 0.1x74 + 0.05x109 + 0.5x1 (hatch) = 13.35/sec; C_eq = 13.35/5 = 2.67
             // 時定数 τ=V/q≈296tick なので2000tickで十分に収束する
             // With time constant V/q ~= 296 ticks, 2000 ticks converge well enough
             TickWithPower(block, 100f, 2000);
-            Assert.AreEqual(2.77, room.ImpurityCount / room.Volume, 2.77 * 0.02);
+            Assert.AreEqual(2.67, room.ImpurityCount / room.Volume, 2.67 * 0.02);
             Assert.AreEqual(0, room.ThresholdIndex);
         }
 
@@ -54,11 +54,11 @@ namespace Tests.CombinedTest.Core.CleanRoom
             GameUpdater.UpdateOneTick();
             Assert.IsTrue(datastore.TryGetCleanRoomAt(new Vector3Int(1, 1, 1), out var room));
 
-            // 供給50/要求100で実効q=5×0.5=2.5になり、C_eq = 13.85/2.5 = 5.54 に収束する
-            // Supplying 50 of 100 yields q=5x0.5=2.5, converging to C_eq = 13.85/2.5 = 5.54
+            // 供給50/要求100で実効q=5×0.5=2.5になり、C_eq = 13.35/2.5 = 5.34 に収束する
+            // Supplying 50 of 100 yields q=5x0.5=2.5, converging to C_eq = 13.35/2.5 = 5.34
             TickWithPower(block, 50f, 3500);
             Assert.AreEqual(2.5, block.GetComponent<ICleanRoomAirFilter>().RemovalVolumePerSecond, 0.001);
-            Assert.AreEqual(5.54, room.ImpurityCount / room.Volume, 5.54 * 0.02);
+            Assert.AreEqual(5.34, room.ImpurityCount / room.Volume, 5.34 * 0.02);
         }
 
         [Test]

@@ -15,6 +15,7 @@ using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.MachineUpgrade;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.Presenter.Player;
@@ -28,6 +29,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.World;
 using Client.Game.InGame.UnlockState;
 using Client.Network.API;
+using Game.Block.Interface.MachineUpgrade;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Recovery;
@@ -89,6 +91,12 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<RemainingPlacementCountEventHandler>();
             builder.Register<ConstructionWalletQuery>(Lifetime.Singleton);
 
+            // 機械強化のミラーと購読を登録
+            // Register machine-upgrade mirrors and subscriptions
+            builder.Register<ClientModuleSlotStackLimitDatastore>(Lifetime.Singleton).As<IClientModuleSlotStackLimitMutation>().As<IModuleSlotStackLimitLookup>();
+            builder.Register<ClientLevelInheritanceCraftCapDatastore>(Lifetime.Singleton).As<IClientLevelInheritanceCraftCapMutation>().As<ILevelInheritanceCraftCapLookup>();
+            builder.RegisterEntryPoint<MachineUpgradeEventHandler>();
+
             // 装備とスタック解放を登録
             // Register equipment and stack unlocking in the same model layer
             builder.Register<LocalPlayerEquipment>(Lifetime.Singleton);
@@ -102,6 +110,7 @@ namespace Client.Starter.Registration
             // 周期取得は持たず、生成時にハンドシェイクの全量を適用して設置・撤去イベントを購読するだけなので、起動時に1度解決する
             // Holds no polling; it applies the handshake full state and subscribes to place/remove events on construction, so it is resolved once at startup
             builder.Register<WorldDataHandler>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<BlockStateEventHandler>();
             builder.Register<ColliderDistanceCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();
             builder.RegisterEntryPoint<BlockColliderCullingRegisterService>();
             builder.Register<BlockPreviewRadiusCullingManager>(Lifetime.Singleton).AsSelf().As<ITickable>();

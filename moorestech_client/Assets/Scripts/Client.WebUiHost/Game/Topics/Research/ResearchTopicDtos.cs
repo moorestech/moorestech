@@ -25,6 +25,8 @@ namespace Client.WebUiHost.Game.Topics
         public List<ResearchUnlockMachineRecipeDto> UnlockMachineRecipes;
         public List<string> UnlockConnectToolGuids;
         public List<string> UnlockTrainCarGuids;
+        public List<int> UnlockModuleSlotStackLimits;
+        public List<ResearchUnlockCraftCapDto> UnlockLevelInheritanceCraftCaps;
     }
 
     /// <summary>
@@ -77,5 +79,22 @@ namespace Client.WebUiHost.Game.Topics
     {
         public int ItemId;
         public int Count;
+        // この要求に充てられるアイテムID（基準なら上位の変種も下位から）。Web の不足表示がサーバーの充足と同じ規則で数えるため
+        // Item IDs that can serve this requirement (higher variants too when it is a base, lowest first), so the Web shortage display counts by the server's rule
+        public List<int> AcceptedItemIds;
+    }
+
+    /// <summary>
+    /// 製作上限の解放表示
+    /// - ItemId: 継承先ファミリーの基準アイテム
+    /// - Level: 解放後の製作上限
+    /// Craft-cap unlock display
+    /// - ItemId: the target family's base item
+    /// - Level: the craft cap after the unlock
+    /// </summary>
+    public class ResearchUnlockCraftCapDto
+    {
+        public int ItemId;
+        public int Level;
     }
 }

@@ -1,6 +1,5 @@
 using System.Collections;
 using Client.Tests.EditModeInPlayingTest.Util;
-using Client.Tests.EditModeInPlayingTest.Util.World;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Interface;
@@ -31,6 +30,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
         public IEnumerator 出力モード選択がサーバーのSelectedIndexへ届く()
         {
             EnterPlayModeUtil();
+            BlockActionSceneIsolation.Prepare();
 
             // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
             // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
@@ -55,18 +55,16 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             async UniTask Body()
             {
                 await LoadMainGame();
-                var ground = TestPlayerGround.Create();
-                // 足場・検出境界を保存終了まで保つ
-                // Keep ground and error detection until shutdown saves
-                await UniTask.Yield();
+                BlockActionSceneIsolation.AssertIsolatedSceneIsReady();
+                // 検出境界を保存終了まで保つ
+                // Keep error detection until shutdown saves
                 LogAssert.ignoreFailingMessages = false;
                 try
                 {
-                    await TestPlayerGround.AssertGroundedAsync();
                     // ブロック配置し初期選択0を確認
                     // Place the block and confirm initial selection 0
                     var pos = new Vector3Int(0, 0, 0);
-                    var serverBlock = PlaceBlock(BlockName, pos, BlockDirection.North);
+                    var serverBlock = await ServerBlockPlacement.PlaceAsync(BlockName, pos, BlockDirection.North);
                     var component = serverBlock.GetComponent<ElectricToGearGeneratorComponent>();
                     Assert.AreEqual(0, component.SelectedIndex);
 
@@ -91,12 +89,14 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 }
                 finally
                 {
-                    Object.DestroyImmediate(ground);
                     LogAssert.ignoreFailingMessages = true;
                 }
             }
 
             #endregion
         }
+
+        [TearDown]
+        public void ResetSceneIsolation() => BlockActionSceneIsolation.Reset();
     }
 }

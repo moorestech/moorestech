@@ -1,0 +1,67 @@
+transforms=982757 activeInHierarchy=308134
+ALL BLOCKS blocks=15082 gameObjects=901139 renderers=410870 colliders=163158
+-- top groups (gameObjects / renderers / colliders)
+ 267264  115200   55296  Block:鉄の歯車ベルトコンベア
+ 148896   85728   15792  Block:基本土台
+ 147573   64725   28479  Block:直線歯車ベルトコンベア
+  70272   21960   10248  Block:木のシャフト
+  51254   21966    8368  Block:鋼鉄のパイプ
+  37522   24312    8598  Root:BlockIconImagePhotographer/BlueprintThumbnailSubject:工場
+  35366   14817    8898  Root:Environment/OtherEnvironment
+  28368   12411    4137  Block:鉄のパイプ
+  18383   11119    2314  Block:電気汎用工作装置
+  16928    5888    3680  Block:木のシャフトボックス
+  14388    6976    3924  Block:鉄の歯車ベルトコンベア分岐機
+  13467    5025    2412  Block:木の歯車
+  12182    3840    5006  Block:電柱
+  10036    4439    1930  Block:鉄の上り歯車ベルトコンベア
+   9834    4768    2682  Block:歯車コンベア分岐機
+   7956    5304     832  Block:蒸気機関
+   6806    2905    1577  Block:石窯
+   6240    2760    1200  Block:下り歯車ベルトコンベア
+   5929    2541    1210  Block:ベルトコンベア
+   5766    2914    1209  Block:原始的な粉砕機
+   5408    2392    1040  Block:鉄の下り歯車ベルトコンベア
+   4368    3120       0  Root:BeltMergeCellCovers/metal
+   4218    2413     836  Block:ふいご付き精錬炉
+   4130    3040     540  Block:化学プラント
+   3900    1725     750  Block:上り歯車ベルトコンベア
+   3698    1204     860  Block:レール橋脚
+   3600    1650    1050  Block:鉄のコンベアチェスト
+   3280    1680    1040  Block:原始的な加工機
+   2990    2273     211  Block:ガソリンエンジン発電機
+   2531     915     784  Block:電気炉
+-- components
+  444286  MeshRenderer
+    6055  SkinnedMeshRenderer
+  181690  Collider
+   13895  MeshCollider
+      13  Rigidbody
+     257  Animator
+     278  VisualEffect
+       0  ParticleSystem
+       4  Light
+    1269  Canvas
+  359277  MonoBehaviour(all)
+-- MonoBehaviour types top 20
+   90492  BlockPreviewBoundingBoxSurface
+   67077  BlockGameObjectChild
+   32509  PreviewOnlyObject
+   15654  IgnoreRendererMaterialReplacer
+   15221  RendererShaderAnimation
+   15099  ObservableDestroyTrigger
+   15094  EffectsQualitySwitch
+   15082  BlockGameObject
+   15082  BlockPreviewBoundingBox
+   12561  BlockInteractable
+   12337  GearStateChangeProcessorSimulator
+   12103  GearStateChangeProcessor
+    9560  GearBeltConveyorStateChangeProcessor
+    5051  InventoryConnectorLineView
+    3900  Image
+    1921  GearConnectorView
+    1820  FluidPipeStateChangeProcessor
+    1772  TextMeshPro
+    1389  ItemMapVeinGameObject
+    1272  TextMeshProUGUI
+renderers(active)=209358 enabled=207058 isVisible=7401

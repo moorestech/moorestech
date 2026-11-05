@@ -89,8 +89,8 @@ return PlaytestRunner.Run("sprint-toggle-mode", options, async p =>
         SemanticInput.KeyUp(Key.LeftShift);
         await p.WaitSeconds(0.5f);
         var after = (BlockDirection)ReadField(belt, "_currentBlockDirection");
-        p.Note($"Shift+R direction: {before} -> {after}; expected={before.VerticalRotation()}, sprint={inputs.sprint}");
-        p.Assert(after == before.VerticalRotation(), "Shift+Rで鉛直回転");
+        p.Note($"Shift+R direction: {before} -> {after}; expected={before.HorizonRotation()}, sprint={inputs.sprint}");
+        p.Assert(after == before.HorizonRotation(), "Shift+Rでも水平回転");
         p.Assert(!inputs.sprint, "複合Shiftでトグル状態を維持");
         await p.Screenshot("02-shift-r-rotation");
         await p.ExitToGameScreen();

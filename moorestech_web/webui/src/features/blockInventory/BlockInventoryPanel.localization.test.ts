@@ -33,10 +33,13 @@ vi.mock("@/shared/ui", () => ({
   IconButton: (props: object) => createElement("mock-icon-button", props),
 }));
 vi.mock("./registry/blockComponentRegistry", () => ({
-  resolveBlockComponent: () => () => createElement("mock-block-body"),
+  resolveBlockComponent: () => ({ body: () => createElement("mock-block-body") }),
 }));
 vi.mock("./details/machine/machineRecipeSelectionLogic", () => ({
   buildMachineRecipeSelectionRows: () => [],
+}));
+vi.mock("@mantine/core", () => ({
+  ScrollArea: ({ children, ...props }: { children: unknown }) => createElement("mock-scroll-area", props, children as never),
 }));
 vi.mock("@/shared/tutorialAnchor", () => ({
   tutorialAnchor: () => ({}),

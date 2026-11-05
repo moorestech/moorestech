@@ -12,12 +12,18 @@ type BlockUiEntry = {
 // Existing UIs intentionally handled by the common SectionStackView; remove when their unique controls are ported.
 const intentionalGeneric = new Set([
   "Chest",
+  "CleanRoomAirFilter",
   "CleanRoomMachine",
+  "ElectricGenerator",
   "ElectricMachine",
   "ElectricMiner",
+  "ElectricPump",
+  "FluidPipe",
   "FuelGearGenerator",
   "GearMachine",
   "GearMiner",
+  "GearPump",
+  "GearToElectricGenerator",
 ]);
 
 test("v8マスタで専用UIを持つ全blockTypeがレジストリまたは意図的Genericに分類される", () => {

@@ -26,4 +26,16 @@ describe("research_tree fixture", () => {
     ]);
     expect(node.unlockConnectToolGuids.length + node.unlockTrainCarGuids.length).toBe(2);
   });
+
+  it("代替の受け付けIDと機械強化の解放2種を受理し、0以下の上限は拒否する", () => {
+    const data = loadFixture("research_tree.json") as ResearchTreeData;
+    expect(parseTopicPayload(Topics.researchTree, data).valid).toBe(true);
+    expect(data.nodes[0].consumeItems[0].acceptedItemIds).toEqual([1, 11]);
+    expect(data.nodes[1].unlockModuleSlotStackLimits).toEqual([6]);
+    expect(data.nodes[1].unlockLevelInheritanceCraftCaps).toEqual([{ itemId: 21, level: 2 }]);
+
+    const invalid = structuredClone(data);
+    invalid.nodes[1].unlockLevelInheritanceCraftCaps[0].level = 0;
+    expect(parseTopicPayload(Topics.researchTree, invalid).valid).toBe(false);
+  });
 });

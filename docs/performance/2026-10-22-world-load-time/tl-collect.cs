@@ -1,0 +1,11 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+var dom = AppDomain.CurrentDomain;
+Application.logMessageReceivedThreaded -= (Application.LogCallback)dom.GetData("tl_cb");
+UnityEditor.EditorApplication.update -= (UnityEditor.EditorApplication.CallbackFunction)dom.GetData("tl_upd");
+var logs = (List<string>)dom.GetData("tl_logs"); var samples = (List<string>)dom.GetData("tl_samples");
+string text;
+lock (logs) text = "== LOGS\n" + string.Join("\n", logs) + "\n== SAMPLES\n" + string.Join("\n", samples);
+System.IO.File.WriteAllText(@"C:\moorestech-perf\timeline.txt", text);
+return "logs=" + logs.Count + " samples=" + samples.Count;

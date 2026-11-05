@@ -7,6 +7,7 @@ using Game.Block.Blocks.ElectricWire;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Inventory.Input;
 using Game.Block.Blocks.Machine.Module;
 using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Component;
@@ -58,21 +59,9 @@ namespace Game.Block.Factory.BlockTemplate.Machine
                 inputConnectorComponent,
                 wireConnector,
                 new MachineRecipeBlueprintSettingsComponent(processor),
+                new MachineInputLevelStallComponent(input, processor),
             };
-
-            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
-            if (machineParam.FluidInventoryConnectors != null && (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount))
-            {
-                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
-                var fluidInventory = new VanillaMachineFluidInventoryComponent(
-                    input,
-                    output,
-                    fluidConnector
-                );
-
-                components.Add(fluidConnector);
-                components.Add(fluidInventory);
-            }
+            BlockTemplateUtil.AddMachineFluidComponents(components, machineParam, input, output, blockPositionInfo);
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
@@ -86,7 +75,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
             var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inputConnectorComponent, _blockInventoryUpdateEvent);
 
             var effectComponent = new MachineModuleEffectComponent(module);
-            var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, machineParam.IdlePowerRate, blockMasterElement);
+            var processor = MachineSaveRestorer.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, machineParam.IdlePowerRate, blockMasterElement);
 
             var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
@@ -107,21 +96,9 @@ namespace Game.Block.Factory.BlockTemplate.Machine
                 inputConnectorComponent,
                 wireConnector,
                 new MachineRecipeBlueprintSettingsComponent(processor),
+                new MachineInputLevelStallComponent(input, processor),
             };
-
-            // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
-            if (machineParam.FluidInventoryConnectors != null && (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount))
-            {
-                var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
-                var fluidInventory = new VanillaMachineFluidInventoryComponent(
-                    input,
-                    output,
-                    fluidConnector
-                );
-
-                components.Add(fluidConnector);
-                components.Add(fluidInventory);
-            }
+            BlockTemplateUtil.AddMachineFluidComponents(components, machineParam, input, output, blockPositionInfo);
 
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }

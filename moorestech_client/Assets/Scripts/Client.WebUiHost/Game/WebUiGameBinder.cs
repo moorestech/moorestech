@@ -30,6 +30,8 @@ using Client.PlaytestReceiver.Recovery;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
+using Client.WebUiHost.Game.Topics.MachineUpgrade;
+using Game.Block.Interface.MachineUpgrade;
 using Game.Construction;
 using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
@@ -130,10 +132,11 @@ namespace Client.WebUiHost.Game
                 .Resolve<IGameUnlockStateData>();
             var craftingRecipesTopic = new CraftingRecipesTopic(hub, unlockStateData);
             hub.RegisterTopic(CraftingRecipesTopic.TopicName, craftingRecipesTopic);
-            // 機械レシピトピックを登録
-            // Register the machine-recipes topic
-            var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData);
+            // 機械レシピとスロット上限の配信登録
+            // Register machine-recipe and slot-limit topics
+            var machineRecipesTopic = new MachineRecipesTopic(hub, unlockStateData, resolver.Resolve<ILevelInheritanceCraftCapLookup>());
             hub.RegisterTopic(MachineRecipesTopic.TopicName, machineRecipesTopic);
+            hub.RegisterTopic(MachineUpgradeTopic.TopicName, new MachineUpgradeTopic(hub, resolver.Resolve<IModuleSlotStackLimitLookup>()));
             // アイテムリストトピックを登録
             // Register the item-list topic
             var recipeContainer = ClientDIContext.DIContainer
@@ -172,23 +175,18 @@ namespace Client.WebUiHost.Game
 #endif
             LocalizationActions.Register(hub);
             SettingsActions.Register(hub);
-            hub.RegisterAction(new MoveItemActionHandler(controller));
-            hub.RegisterAction(new SplitGrabActionHandler(controller));
-            hub.RegisterAction(new SplitDragActionHandler(controller));
-            hub.RegisterAction(new CollectActionHandler(controller));
-            hub.RegisterAction(new SortInventoryActionHandler(controller));
+            InventoryWebUiActionRegistration.Register(hub, controller, subInventoryState);
             hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
-            hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
-            hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
-            hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
             hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchNodeStateStore));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockNetworkInfoCache));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockNetworkInfoCache));
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
+            hub.RegisterAction(new SpaceElevatorConnectActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
+            hub.RegisterAction(new RocketLaunchPadCommandActionHandler(subInventoryState));
             TrainWebUiActionRegistration.Register(hub, subInventoryState, trainUnitClientCache, timetableFetcher);
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuSelection));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));

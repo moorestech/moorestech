@@ -33,7 +33,7 @@ return PlaytestRunner.Run("quality-reviewed-lifecycle", new PlaytestRunOptions {
         GraphicsQualityPreference.ApplyPreset(GraphicsQualityPreset.Medium);
         var origin = new Vector3Int(658, 96, 610);
         p.Assert(p.GetBlock(origin) == null, "蒸気機関の設置先は空");
-        p.PlaceBlockDirect("蒸気機関", origin, BlockDirection.North);
+        await p.PlaceBlockDirect("蒸気機関", origin, BlockDirection.North);
         var view = await p.WaitBlockGameObject(origin);
         await p.Until(() => !view.IsPlayingPlaceAnimation, 15f, "実蒸気機関の設置完了");
         var processor = view.GetComponentsInChildren<GearStateChangeProcessor>(true).Single(v => v.RotationInfos.OfType<AnimatorRotationInfo>().Any());
@@ -75,7 +75,7 @@ return PlaytestRunner.Run("quality-reviewed-lifecycle", new PlaytestRunOptions {
         var effects = view.GetComponent<EffectsQualitySwitch>();
         p.Assert(switches.Contains(effects), "実生成個体はEffects保持集合へ登録済み");
         var before = switches.Count;
-        p.RemoveBlock(origin);
+        await p.RemoveBlock(origin);
         await p.Until(() => view == null && !switches.Contains(effects), 15f, "実ブロック破棄だけでEffects保持を解除");
         p.Assert(GraphicsQualityPreference.Current.Equals(GraphicsQualityPresets.Get(GraphicsQualityPreset.Medium)), "破棄の間も中を維持");
         p.Note($"[LIFETIME] before={before}, after={switches.Count}, removed={!switches.Contains(effects)}");

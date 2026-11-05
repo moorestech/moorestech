@@ -41,7 +41,7 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     await p.WaitUiState(UIStateEnum.GameScreen, 15f);
 
     await PlaytestUiOps.FocusGameViewAndEnableInput(p);
-    foreach (var tool in new[] { "電線", "歯車チェーン" }) p.Hotbar.UnlockConnectTool(tool);
+    foreach (var tool in new[] { "電線", "歯車チェーン" }) await p.Hotbar.UnlockConnectTool(tool);
     foreach (var block in new[] { "電柱", "歯車チェーンポール" }) await p.PrepareBlockForUiPlacement(block, 5);
     foreach (var item in new[] { "銅のワイヤー", "鉄のワイヤー" }) await p.GiveItem(item, 64);
     var wireTool = ToolGuid("電線"); var chainTool = ToolGuid("歯車チェーン");
@@ -54,12 +54,18 @@ return PlaytestRunner.Run("delete-tool-cut-and-undo-connection-lines", new Playt
     // Start with fresh fixtures instead of reusing saved connections in the fixed world
     foreach (var pos in new[] { poleA, poleB, poleNear, chainC, chainD })
         p.Assert(p.GetBlock(pos) == null, $"準備: 接続fixture位置{pos}は空いている");
-    foreach (var pos in new[] { poleA, poleB, poleNear }) p.PlaceBlockDirect("電柱", pos, BlockDirection.North);
-    foreach (var pos in new[] { chainC, chainD }) p.PlaceBlockDirect("歯車チェーンポール", pos, BlockDirection.North);
+    foreach (var pos in new[] { poleA, poleB, poleNear }) await p.PlaceBlockDirect("電柱", pos, BlockDirection.North);
+    foreach (var pos in new[] { chainC, chainD }) await p.PlaceBlockDirect("歯車チェーンポール", pos, BlockDirection.North);
     foreach (var pos in new[] { poleA, poleB, poleNear, chainC, chainD }) await p.WaitBlockGameObject(pos);
     var playerId = ClientContext.PlayerConnectionSetting.PlayerId;
-    p.Assert(Server.Protocol.PacketResponse.Util.ElectricWire.Connection.ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, false, out var wireFail), $"準備: A-B を電線で接続 {wireFail}");
-    p.Assert(Server.Protocol.PacketResponse.Util.GearChain.GearChainSystemUtil.TryConnect(chainC, chainD, playerId, chainTool, out var chainFail), $"準備: C-D をチェーンで接続 {chainFail}");
+    var (wired, wireFail, chained, chainFail) = (false, default(Server.Protocol.PacketResponse.Util.ElectricWire.Placement.ElectricWirePlacementFailureReason), false, default(Server.Protocol.PacketResponse.Util.GearChain.GearChainPlacementFailureReason));
+    await p.RunOnServer("準備: A-B を電線、C-D をチェーンで接続する", () =>
+    {
+        wired = Server.Protocol.PacketResponse.Util.ElectricWire.Connection.ElectricWireSystemUtil.TryConnect(poleA, poleB, playerId, wireTool, false, out wireFail);
+        chained = Server.Protocol.PacketResponse.Util.GearChain.GearChainSystemUtil.TryConnect(chainC, chainD, playerId, chainTool, out chainFail);
+    });
+    p.Assert(wired, $"準備: A-B を電線で接続 {wireFail}");
+    p.Assert(chained, $"準備: C-D をチェーンで接続 {chainFail}");
 
     await p.Until(() => LinesOf(poleA).Count == 1 && LinesOf(chainC).Count == 1, 15f, "準備: クライアントに電線・チェーンが出る");
     HideMapRocks();

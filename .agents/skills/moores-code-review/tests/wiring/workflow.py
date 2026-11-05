@@ -86,7 +86,6 @@ class WorkflowWiringTest(unittest.TestCase):
             self.assertTrue(all(s["model"] for s in args["systems"]), "model 空欄の系統がある")
             self.assertTrue((run_dir / "contract.md").is_file())
             self.assertEqual(args["baseRef"], "HEAD")
-            self.assertFalse(args["reportOnly"])
             self.assertEqual(args["expectedSystems"]["verifiers"], 1)
             self.assertEqual(args["codexJobs"], [])
 

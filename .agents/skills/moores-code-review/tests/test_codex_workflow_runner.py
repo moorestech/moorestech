@@ -39,7 +39,6 @@ class CodexWorkflowRunnerTest(unittest.TestCase):
         run_dir.mkdir()
         (run_dir / "patch.diff").write_text(PATCH, encoding="utf-8")
         (run_dir / "context.md").write_text(CONTEXT, encoding="utf-8")
-        (run_dir / "detchecks.json").write_text("{}", encoding="utf-8")
         for kind in ("audit", "bughunt", "design"):
             (run_dir / f"codex-{kind}.md").write_text("p", encoding="utf-8")
         (run_dir / "checks.json").write_text(json.dumps({
@@ -60,9 +59,9 @@ class CodexWorkflowRunnerTest(unittest.TestCase):
         return run, json.loads((script.parent / "codex-runner/fires.json").read_text(encoding="utf-8"))
 
     def test_fires_match_workflow_simulation(self):
-        for extra, overrides in (((), REFIX_PATH), (("--report-only",), {})):
-            with self.subTest(extra=extra), tempfile.TemporaryDirectory() as td:
-                script = self._built(Path(td), *extra)
+        for overrides in (REFIX_PATH, {}):
+            with self.subTest(overrides=overrides), tempfile.TemporaryDirectory() as td:
+                script = self._built(Path(td))
                 expected = workflow_sim.simulate(script, overrides)["calls"]
                 run, fires = self._run(script, overrides)
                 self.assertEqual(run.returncode, 0, run.stderr[-1500:])
@@ -79,7 +78,7 @@ class CodexWorkflowRunnerTest(unittest.TestCase):
 
     def test_codex_audit_jobs_are_launched_once(self):
         with tempfile.TemporaryDirectory() as td:
-            script = self._built(Path(td), "--report-only")
+            script = self._built(Path(td))
             run, _ = self._run(script, {})
             self.assertEqual(run.returncode, 0, run.stderr[-1500:])
             # 本体が未起動の監査3本を runner が起動し、起動済み（.out.md あり）は再起動しない
@@ -92,7 +91,7 @@ class CodexWorkflowRunnerTest(unittest.TestCase):
 
     def test_unknown_model_stops_before_launch(self):
         with tempfile.TemporaryDirectory() as td:
-            script = self._built(Path(td), "--report-only")
+            script = self._built(Path(td))
             text = script.read_text(encoding="utf-8").replace("model: 'opus', schema: INTEGRATOR_SCHEMA", "model: 'gpt-x', schema: INTEGRATOR_SCHEMA")
             script.write_text(text, encoding="utf-8")
             run, fires = self._run(script, {})

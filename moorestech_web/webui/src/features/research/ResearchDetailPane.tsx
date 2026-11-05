@@ -1,8 +1,8 @@
+import { ScrollArea } from "@mantine/core";
 import type { ResearchNodeData } from "@/bridge";
 import { dispatchAction } from "@/bridge";
 import { GamePanel, ItemSlot } from "@/shared/ui";
-import { ownedCountOf } from "@/shared/ownedCounts";
-import { deriveResearchButton, isConsumeItemLacking } from "./researchLogic";
+import { allocateResearchItems, deriveResearchButton, isConsumeItemLacking } from "./researchLogic";
 import UnlockSections from "./unlock/UnlockSections";
 import {
   L,
@@ -23,9 +23,12 @@ type Props = {
 export default function ResearchDetailPane({ node, owned, onClose }: Props) {
   const { t } = useI18n();
   const button = deriveResearchButton(node);
+  const allocated = allocateResearchItems(node, owned);
   return (
     <div className={styles.detailPane} data-testid="research-detail-pane">
-      <GamePanel variant="craft">
+      {/* 高さ上限をペインから本文へ伝えるためflex連鎖のmin-heightを外す */}
+      {/* Drop the flex-chain min-height so the pane's height cap reaches the body */}
+      <GamePanel variant="craft" style={{ minHeight: 0 }}>
         <div className={styles.detailBody}>
           <div className={styles.detailHeader}>
             <span className={styles.detailName}>{t(researchNameKey(node.guid))}</span>
@@ -33,29 +36,33 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
               {t(L.ui.research.closeSymbol)}
             </button>
           </div>
-          <p className={styles.detailDescription}>{t(researchDescriptionKey(node.guid))}</p>
-          {node.consumeItems.length > 0 && (
-            <div data-testid="research-consume-items">
-              <span className={styles.sectionLabel}>{t(L.ui.research.consumeItemsLabel)}</span>
-              <div className={styles.detailSlots}>
-                {node.consumeItems.map((c, i) => {
-                  const lacking = isConsumeItemLacking(node, c.itemId, c.count, owned);
-                  return (
-                    // 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型)。所持数未受信中は数値自体を出さない
-                    // Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView); the number is hidden while owned counts are unknown
-                    <ItemSlot key={`consume-${c.itemId}-${i}`}
-                      itemId={c.itemId}
-                      insufficient={lacking}
-                      shortage={owned
-                        ? { ownedCount: ownedCountOf(owned, c.itemId), requiredCount: c.count, tooltipKey: L.ui.research.consumeItemTooltip }
-                        : undefined}
-                    />
-                  );
-                })}
+          {/* 解放物が多いノードでも研究ボタンを常に見せるため、見出しとボタンの間だけスクロールさせる */}
+          {/* Scroll only between the header and the button so the research button stays visible on huge nodes */}
+          <ScrollArea key={node.guid} className={styles.detailScroll} type="auto" data-testid="research-detail-scroll">
+            <p className={styles.detailDescription}>{t(researchDescriptionKey(node.guid))}</p>
+            {node.consumeItems.length > 0 && (
+              <div data-testid="research-consume-items">
+                <span className={styles.sectionLabel}>{t(L.ui.research.consumeItemsLabel)}</span>
+                <div className={styles.detailSlots}>
+                  {node.consumeItems.map((c, i) => {
+                    const lacking = isConsumeItemLacking(node, c.count, allocated === null ? null : allocated[i]);
+                    return (
+                      // 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型)。所持数未受信中は数値自体を出さない
+                      // Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView); the number is hidden while owned counts are unknown
+                      <ItemSlot key={`consume-${c.itemId}-${i}`}
+                        itemId={c.itemId}
+                        insufficient={lacking}
+                        shortage={allocated
+                          ? { ownedCount: allocated[i], requiredCount: c.count, lacking, tooltipKey: L.ui.research.consumeItemTooltip }
+                          : undefined}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
-          <UnlockSections node={node} />
+            )}
+            <UnlockSections node={node} />
+          </ScrollArea>
           <button
             type="button"
             className={styles.researchButton}

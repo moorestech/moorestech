@@ -19,7 +19,7 @@ const guid = "86000000-0000-4000-8000-000000000002";
 const node = (state: ResearchNodeData["state"]): ResearchNodeData => ({
   guid, state, iconItemId: 1,
   position: { x: 0, y: 0 }, prevGuids: [], consumeItems: [], rewardItems: [], unlockItemRecipeViewItemIds: [],
-  unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
+  unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [], unlockModuleSlotStackLimits: [], unlockLevelInheritanceCraftCaps: [],
 });
 
 function renderCard(state: ResearchNodeData["state"]) {

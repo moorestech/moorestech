@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master.Validator.Item;
+using Core.Master.Validator.OrbitalPayload;
 using Mooresmaster.Model.ItemsModule;
 
 namespace Core.Master.Validator
@@ -16,8 +18,9 @@ namespace Core.Master.Validator
             errorLogs = "";
             errorLogs += ModulesValidation();
             errorLogs += LevelFamiliesValidation();
-            errorLogs += StackLevelTableValidation();
-            errorLogs += InitialEquipmentValidation();
+            errorLogs += ItemStackLevelTableValidator.Validate(items);
+            errorLogs += ItemInitialEquipmentValidator.Validate(items, allItemGuids);
+            errorLogs += OrbitalPayloadMasterValidator.Validate(items);
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -107,78 +110,6 @@ namespace Core.Master.Validator
                 }
 
                 return logs;
-            }
-
-            string StackLevelTableValidation()
-            {
-                // 空配列・1未満のスタック数・アイテムからの参照先テーブル実在を検証
-                // Validate empty arrays, sub-1 counts, and that each item references an existing table
-                var logs = "";
-                if (items.ItemStackLevelTables == null) return logs;
-
-                var tableGuids = new HashSet<Guid>();
-                foreach (var table in items.ItemStackLevelTables)
-                {
-                    // TableGuid重複はInitializeのDictionary.Addが生の例外で落ちるため検証で弾く
-                    // Duplicate TableGuid would throw raw in Initialize's Dictionary.Add, so reject it here
-                    if (!tableGuids.Add(table.TableGuid))
-                        logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has duplicate TableGuid:{table.TableGuid}\n";
-                    if (table.StackCounts.Length == 0)
-                        logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has empty StackCounts\n";
-                    foreach (var count in table.StackCounts)
-                        if (count < 1)
-                            logs += $"[ItemMaster.itemStackLevelTables] Name:{table.Name} has invalid StackCount:{count} (must be >= 1)\n";
-                }
-                foreach (var item in items.Data)
-                    if (!tableGuids.Contains(item.StackLevelTableGuid))
-                        logs += $"[ItemMaster.data] Name:{item.Name} references missing StackLevelTableGuid:{item.StackLevelTableGuid}\n";
-
-                return logs;
-            }
-
-            // 初期装備は未定義アイテムを指せない。装備スロットを超える分は投入時に捨てられるためここで弾く
-            // Initial equipment must reference defined items; entries beyond the equipment slot count would be dropped on grant, so reject them here
-            string InitialEquipmentValidation()
-            {
-                var logs = "";
-
-                // 初期レベルの最大スタック数はItemStack生成が生の例外で落ちるため、ここで先に弾く
-                // ItemStack creation throws raw past the level-1 max stack, so it is rejected here first
-                var stackLevelTableByGuid = items.ItemStackLevelTables.ToDictionary(table => table.TableGuid);
-                var itemByGuid = items.Data.ToDictionary(item => item.ItemGuid);
-
-                foreach (var initial in items.InitialEquipmentItems)
-                {
-                    if (!allItemGuids.Contains(initial.ItemGuid))
-                    {
-                        logs += $"[ItemMaster.initialEquipmentItems] has invalid ItemGuid:{initial.ItemGuid}\n";
-                        continue;
-                    }
-                    if (initial.ItemCount <= 0)
-                        logs += $"[ItemMaster.initialEquipmentItems] ItemGuid:{initial.ItemGuid} has non-positive ItemCount:{initial.ItemCount}\n";
-                    logs += InitialLevelMaxStackValidation(initial.ItemGuid, initial.ItemCount);
-                }
-                if (items.EquipmentSlotCount < items.InitialEquipmentItems.Length)
-                    logs += $"[ItemMaster.initialEquipmentItems] count:{items.InitialEquipmentItems.Length} exceeds EquipmentSlotCount:{items.EquipmentSlotCount}\n";
-                // 装備選択は「未装備なし」で常に1枠を指すため、枠0は選択インデックスのクランプが成立せず起動不能になる
-                // Equipment selection always points at a slot (no unequipped state), so zero slots breaks the index clamp and the boot
-                if (items.EquipmentSlotCount < 1)
-                    logs += $"[ItemMaster.equipmentSlotCount] must be at least 1 but was {items.EquipmentSlotCount}\n";
-
-                return logs;
-
-                // 参照先テーブルが壊れている件は StackLevelTableValidation の担当なので、ここでは黙って見送る
-                // A broken table reference is StackLevelTableValidation's job, so it is skipped silently here
-                string InitialLevelMaxStackValidation(Guid itemGuid, int itemCount)
-                {
-                    if (!itemByGuid.TryGetValue(itemGuid, out var item)) return "";
-                    if (!stackLevelTableByGuid.TryGetValue(item.StackLevelTableGuid, out var table)) return "";
-                    if (table.StackCounts.Length == 0) return "";
-
-                    var initialLevelMaxStack = table.StackCounts[0];
-                    if (itemCount <= initialLevelMaxStack) return "";
-                    return $"[ItemMaster.initialEquipmentItems] ItemGuid:{itemGuid} has ItemCount:{itemCount} exceeding initial level MaxStack:{initialLevelMaxStack}\n";
-                }
             }
 
             #endregion

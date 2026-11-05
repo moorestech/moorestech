@@ -19,7 +19,7 @@ test.afterEach(async ({ page }) => {
 
 test("ツールチップはMantine既定の白い角丸ではなくCursorTooltipと同じ面を使う", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await hoverCenter(page, 100);
   await expect(tooltip(page)).toBeVisible();
 
@@ -37,7 +37,7 @@ test("ツールチップはMantine既定の白い角丸ではなくCursorTooltip
 
 test("祖先のスクロールでツールチップを引っ込め、ポインタを動かせば開き直す", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "CRAFT RECIPE" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "クラフトレシピ" })).toBeVisible();
   await setTopicScenario(page, "itemListLarge");
 
   await hoverCenter(page, 1);

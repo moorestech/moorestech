@@ -107,12 +107,36 @@ namespace Client.Network.API.Requests
             return await _packetExchangeManager.GetPacketResponse<GetGearNetworkInfoProtocol.ResponseGetGearNetworkInfoMessagePack>(request, ct);
         }
 
+        // 機械の搬入が継承元のレベルで止まっているかを取得する
+        // Fetch whether a machine's inflow is stalled on the inheritance source level
+        public async UniTask<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack> GetMachineInputStall(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetMachineInputStallProtocol.RequestMachineInputStallMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetMachineInputStallProtocol.ResponseMachineInputStallMessagePack>(request, ct);
+        }
+
         // 指定ブロックが属する電力ネットワークの現時点の集約値を取得する
         // Fetch current aggregate info of the electric network that the given block belongs to
         public async UniTask<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack> GetElectricNetworkInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
         {
             var request = new GetElectricNetworkInfoProtocol.RequestGetElectricNetworkInfoMessagePack(blockInstanceId);
             return await _packetExchangeManager.GetPacketResponse<GetElectricNetworkInfoProtocol.ResponseGetElectricNetworkInfoMessagePack>(request, ct);
+        }
+
+        // 指定ブロックの部屋要約または漏れ箇所を返す
+        // Returns room summaries or leak cells for the given block
+        public async UniTask<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack> GetCleanRoomInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetCleanRoomInfoProtocol.RequestCleanRoomInfoMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetCleanRoomInfoProtocol.ResponseCleanRoomInfoMessagePack>(request, ct);
+        }
+
+        // 選択工程の次回抽選の上限・確率を返す
+        // Returns caps and chances for the selected process's next draw
+        public async UniTask<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack> GetCleanRoomYieldInfo(BlockInstanceId blockInstanceId, CancellationToken ct)
+        {
+            var request = new GetCleanRoomYieldInfoProtocol.RequestCleanRoomYieldInfoMessagePack(blockInstanceId);
+            return await _packetExchangeManager.GetPacketResponse<GetCleanRoomYieldInfoProtocol.ResponseCleanRoomYieldInfoMessagePack>(request, ct);
         }
 
         // 進行記録がセッション開始時に1回だけ読む。可変状態の同期ではないので初期データ取得のみ

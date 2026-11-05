@@ -26,6 +26,7 @@ const recipe: MachineRecipe = {
   blockId: 10, time: 7,
   inputItems: [], outputItems: [],
   inputFluids: [], outputFluids: [{ fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 }],
+  levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
 };
 
 describe("SelectedRecipeHeader", () => {

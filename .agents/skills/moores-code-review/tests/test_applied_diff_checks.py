@@ -144,7 +144,7 @@ class AppliedDiffChecksTest(unittest.TestCase):
     def test_record_if_missing_reuses_and_snippet_never_runs_body(self):
         self.record_before({"FooService.DoThing": ["int"]})
         self.assertTrue(self.run_cli("record", "--name", "s0", "--if-missing")["reused"])
-        snippet = (self.root / "run/refix/s0-scenarios/scenarios__misc__foo.cs.compile.cs").read_text(encoding="utf-8")
+        snippet = scenario_compile.compile_snippet(self.root / SCENARIO_DIR / "foo.cs")
         # using 指令は先頭に残り、本体は呼ばれないローカル関数の中に入る（シナリオを実行しない）
         # Using directives stay on top and the body sits in a never-called local function (nothing runs)
         self.assertLess(snippet.index("using UnityEngine;"), snippet.index("object ScenarioCompileOnly()"))

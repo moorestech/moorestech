@@ -79,8 +79,10 @@ The skill's whitelist principle covers this document too: read the relevant sect
   - インベントリモード上部の**選択中レシピ表示**（代表出力がアイテムなら `ItemSlot`、液体なら `FluidAmountSlot`。どちらもバッジ無し。＋レシピ名（代表出力名）＋秒数、testId `machine-selected-recipe`）を左クリックするとレシピ選択モードへ戻る。ホバーツールチップは `ui.blockInventory.changeRecipe`。
   - レシピ解除の導線（右クリック解除・解除ボタン）は設けない。0件ならどちらの画面も出さず従来表示のまま。
 - **機械UIの中身は基本的に中央揃え。** 稼働状態ラベル（待機中/稼働中/停止中。Halted のみ `--text-insufficient`、他は`--text-high-contrast`）は両モード共通フッタとして常時表示する。電力率テキストは稼働状態ラベルの隣に、**稼働状態が停止中(halted)でない場合だけ**併記する（ADR 0010、要求電力0で稼働する機械を停止中に潰さないため状態で決める）。
+  出力先の空きが足りず待っている（サーバー `outputSpaceShort`）間だけ、稼働状態ラベルの隣に待機理由 `ui.blockInventory.machineWaitOutputSpaceShort` を `--text-insufficient`（`LackHighlightText`、testId `machine-wait-reason`）で併記する。稼働状態ラベル自体は待機中のまま変えない（入力切れの待機と見分けるための理由で、容量・必要数の数値は出さない）。
 - **インベントリモードはレシピ分のスロットだけ描く。** 入力＝素材数、出力＝生産物数、液体＝レシピ液体数（入力タンク→出力タンクの順）。機械固有の余剰スロットは描かない（サーバーもスロット固定で余剰へ入れない）。
   - **ゴーストスロット**: 空の入力スロットに素材、空の出力スロットに生産物、空の液体スロットにレシピ液体を `data-ghost="true"` で描く。不透明度は `--slot-ghost-opacity` のみで表現し、新しい色相・光彩・枠線を足さない。個数バッジはレシピ必要数。実物があるスロットはゴーストを出さない。
+  - **実物入りの入力スロットの必要数**: 実物があっても、束縛された入力スロットは右下の個数を `ItemSlot` の `shortage` で「入っている数/必要数」にする。不足は数字だけ `--text-insufficient` の赤字にし、スロットは減光しない（入れた実物の手応えを消さないため）。出力スロット・液体タンクには出さない。
   - **加工行は進捗矢印をパネル中央に固定**し、左右を等幅（1fr auto 1fr）にして入力は矢印へ右寄せ、出力は矢印から左寄せで対称に置く。
   - **モジュールスロットは加工行から1段下げ、`--text-muted` の「アップグレードスロット」ラベルを直上に付けて**用途を明示する。
 - **レシピ選択モードは行リスト。** 各行は §8.17 の共有 `RecipeRow` を流用し、中央列は所要秒数＋静止矢印（`arrowValue={null}`）のみ、操作欄は空。ブロックアイコン/名は開いている機械自身なので出さない。レシピ名（出力アイテム名）は行の上辺に `--text-muted` のテキストで置く。行全体（`data-testid="machine-recipe-<guid>"`）が左クリック対象で、行内の `ItemSlot` / `FluidAmountSlot` は操作を持たない。液体は `FluidAmountSlot` でアイテムと同寸の枠に量バッジつきで描く（testId `machine-recipe-<guid>-input-fluid-<i>` / `-output-fluid-<i>`、ADR 0054）。選択中行は `data-selected="true"` で示し、新しい色相・光彩は足さない。ホバー詳細プレビュー領域・9列アイコングリッドは廃止済みで復活させない。

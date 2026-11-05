@@ -10,8 +10,8 @@ using static Tests.CombinedTest.Server.Replay.World.BugReportBundleWorldFixture;
 
 namespace Tests.CombinedTest.Server.Replay.World
 {
-    // 自動修正ランの固定ワールド起動が地形付きの土台を得られることを固定する。箱の world/ は宣言どおりのまま残す（D10）
-    // Pins that the auto-fix run's fixed-world boot gets a terrain-bearing base while the box's world/ stays as declared (D10)
+    // 報告を観察する固定ワールド起動が地形付きの土台を得られることを固定する。箱の world/ は宣言どおりのまま残す（D10）
+    // Pins that the fixed-world boot for observing a report gets a terrain-bearing base while the box's world/ stays as declared (D10)
     public class BugReportBundleWorldMaterializerTest
     {
         private BugReportBundleWorldFixture _fixture;

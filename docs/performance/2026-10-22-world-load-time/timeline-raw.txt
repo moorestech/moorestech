@@ -1,0 +1,509 @@
+== LOGS
+0.5s [Log] [AlwaysOnCaptureSetting] 常時記録 enabled:True
+1.0s [Log] Editor実行のため build-info.json は読まず buildInfo は null になります（作業ツリーの状態はgit probeが名乗る）
+1.1s [Log] [WebUiHost] Kestrel started at http://127.0.0.1:25050
+1.1s [Log] [WebUiHost] spawned Vite (pid=24020)
+1.9s [Log] [WebUiHost] ready. Open http://127.0.0.1:25173/
+1.9s [Log] [RemoteExec] 起動オプションが無いため遠隔実行は無効です
+1.9s [Log] [AlwaysOnCaptureSetting] 常時記録 enabled:True
+1.9s [Log] Editor実行のため build-info.json は読まず buildInfo は null になります（作業ツリーの状態はgit probeが名乗る）
+2.6s [Log] [InitializeScenePipeline] train car preload completed 00:00:00.7173413
+3.2s [Log] データをロードします　パス:G:\GitHub\moorestech_master\server_v8\
+4.0s [Log] ロード前のセーブを退避しました。 path=C:\moorestech-perf\work\current\backup\6\save.json
+7.7s [Log] JSONとして読めない文字列はアイテム除去の対象外として素通ししました。 section=world nonJson=16068 unparsable=0
+7.7s [Log] JSONとして読めない文字列はアイテム除去の対象外として素通ししました。 section=trainUnits nonJson=205 unparsable=0
+13.5s [Log] セーブデータのロードが完了しました。
+13.5s [Log] 前セッションの常時記録を削除しました path:C:\moorestech-perf\work\current\snapshots\packets_1091921.bin 理由:再生は現セッション区間のみを対象とする
+13.7s [Log] 常時記録を開始しました period:600tick 保持:2400tick 即時確保の上限:16件 dir:C:\moorestech-perf\work\current\snapshots
+13.7s [Log] moorestechサーバー 起動完了 port:27269
+13.8s [Log] [InitializeScenePipeline] parallel mod asset load completed
+13.8s [Log] [BlockIconCapture] start count:74
+13.8s [Log] [BlockIconCapture] 1/74 コンパクト歯車チェーンポール stage:setup
+13.9s [Log] [BlockIconCapture] 1/74 コンパクト歯車チェーンポール stage:render
+13.9s [Log] サーバーに接続しました
+13.9s [Log] [BlockIconCapture] 1/74 コンパクト歯車チェーンポール stage:readback
+13.9s [Log] [BlockIconCapture] 1/74 コンパクト歯車チェーンポール stage:captured
+13.9s [Log] [BlockIconCapture] 1/74 コンパクト歯車チェーンポール stage:done elapsed:84ms
+13.9s [Log] [BlockIconCapture] 2/74 酸素発生装置 stage:setup
+14.0s [Log] [BlockIconCapture] 2/74 酸素発生装置 stage:render
+14.0s [Log] [BlockIconCapture] 2/74 酸素発生装置 stage:readback
+14.0s [Log] [BlockIconCapture] 2/74 酸素発生装置 stage:captured
+14.0s [Log] [BlockIconCapture] 2/74 酸素発生装置 stage:done elapsed:105ms
+14.1s [Log] [BlockIconCapture] 3/74 電気炉 stage:setup
+14.1s [Log] [BlockIconCapture] 3/74 電気炉 stage:render
+14.1s [Log] [BlockIconCapture] 3/74 電気炉 stage:readback
+14.1s [Log] [BlockIconCapture] 3/74 電気炉 stage:captured
+14.1s [Log] [BlockIconCapture] 3/74 電気炉 stage:done elapsed:27ms
+14.1s [Log] [BlockIconCapture] 4/74 ベルトコンベア stage:setup
+14.2s [Log] [BlockIconCapture] 4/74 ベルトコンベア stage:render
+14.2s [Log] [BlockIconCapture] 4/74 ベルトコンベア stage:readback
+14.2s [Log] [BlockIconCapture] 4/74 ベルトコンベア stage:captured
+14.2s [Log] [BlockIconCapture] 4/74 ベルトコンベア stage:done elapsed:123ms
+14.2s [Log] [BlockIconCapture] 5/74 上りベルトコンベア stage:setup
+14.3s [Log] [BlockIconCapture] 5/74 上りベルトコンベア stage:render
+14.3s [Log] [BlockIconCapture] 5/74 上りベルトコンベア stage:readback
+14.3s [Log] [BlockIconCapture] 5/74 上りベルトコンベア stage:captured
+14.3s [Log] [BlockIconCapture] 5/74 上りベルトコンベア stage:done elapsed:17ms
+14.3s [Log] [BlockIconCapture] 6/74 下りベルトコンベア stage:setup
+14.3s [Log] [BlockIconCapture] 6/74 下りベルトコンベア stage:render
+14.3s [Log] [BlockIconCapture] 6/74 下りベルトコンベア stage:readback
+14.3s [Log] [BlockIconCapture] 6/74 下りベルトコンベア stage:captured
+14.3s [Log] [BlockIconCapture] 6/74 下りベルトコンベア stage:done elapsed:42ms
+14.3s [Log] [BlockIconCapture] 7/74 電気採掘機 stage:setup
+14.3s [Warning] Couldn't create a Convex Mesh from source mesh, within the maximum polygons limit (256). The partial hull will be used. Consider simplifying your mesh. Source m
+14.4s [Log] [BlockIconCapture] 7/74 電気採掘機 stage:render
+14.4s [Log] [BlockIconCapture] 7/74 電気採掘機 stage:readback
+14.4s [Log] [BlockIconCapture] 7/74 電気採掘機 stage:captured
+14.4s [Log] [BlockIconCapture] 7/74 電気採掘機 stage:done elapsed:82ms
+14.4s [Log] [BlockIconCapture] 8/74 電気汎用工作装置 stage:setup
+14.4s [Log] [BlockIconCapture] 8/74 電気汎用工作装置 stage:render
+14.4s [Log] [BlockIconCapture] 8/74 電気汎用工作装置 stage:readback
+14.4s [Log] [BlockIconCapture] 8/74 電気汎用工作装置 stage:captured
+14.4s [Log] [BlockIconCapture] 8/74 電気汎用工作装置 stage:done elapsed:39ms
+14.5s [Log] [BlockIconCapture] 9/74 電気粉砕機 stage:setup
+14.5s [Log] [BlockIconCapture] 9/74 電気粉砕機 stage:render
+14.5s [Log] [BlockIconCapture] 9/74 電気粉砕機 stage:readback
+14.5s [Log] [BlockIconCapture] 9/74 電気粉砕機 stage:captured
+14.5s [Log] [BlockIconCapture] 9/74 電気粉砕機 stage:done elapsed:18ms
+14.5s [Log] [BlockIconCapture] 10/74 電柱 stage:setup
+14.5s [Log] [BlockIconCapture] 10/74 電柱 stage:render
+14.5s [Log] [BlockIconCapture] 10/74 電柱 stage:readback
+14.5s [Log] [BlockIconCapture] 10/74 電柱 stage:captured
+14.5s [Log] [BlockIconCapture] 10/74 電柱 stage:done elapsed:40ms
+14.5s [Log] [BlockIconCapture] 11/74 回転発電機 stage:setup
+14.6s [Log] [BlockIconCapture] 11/74 回転発電機 stage:render
+14.6s [Log] [BlockIconCapture] 11/74 回転発電機 stage:readback
+14.6s [Log] [BlockIconCapture] 11/74 回転発電機 stage:captured
+14.6s [Log] [BlockIconCapture] 11/74 回転発電機 stage:done elapsed:34ms
+14.6s [Log] [BlockIconCapture] 12/74 フィルター分岐器 stage:setup
+14.6s [Log] [BlockIconCapture] 12/74 フィルター分岐器 stage:render
+14.6s [Log] [BlockIconCapture] 12/74 フィルター分岐器 stage:readback
+14.6s [Log] [BlockIconCapture] 12/74 フィルター分岐器 stage:captured
+14.6s [Log] [BlockIconCapture] 12/74 フィルター分岐器 stage:done elapsed:44ms
+14.6s [Log] [BlockIconCapture] 13/74 ベルトコンベア分岐器 stage:setup
+14.7s [Log] [BlockIconCapture] 13/74 ベルトコンベア分岐器 stage:render
+14.7s [Log] [BlockIconCapture] 13/74 ベルトコンベア分岐器 stage:readback
+14.7s [Log] [BlockIconCapture] 13/74 ベルトコンベア分岐器 stage:captured
+14.7s [Log] [BlockIconCapture] 13/74 ベルトコンベア分岐器 stage:done elapsed:36ms
+14.7s [Log] [BlockIconCapture] 14/74 鉄のミニコンベアチェスト stage:setup
+14.7s [Log] [BlockIconCapture] 14/74 鉄のミニコンベアチェスト stage:render
+14.8s [Log] [BlockIconCapture] 14/74 鉄のミニコンベアチェスト stage:readback
+14.8s [Log] [BlockIconCapture] 14/74 鉄のミニコンベアチェスト stage:captured
+14.8s [Log] [BlockIconCapture] 14/74 鉄のミニコンベアチェスト stage:done elapsed:65ms
+14.8s [Log] [BlockIconCapture] 15/74 回転生成機 stage:setup
+14.8s [Log] [BlockIconCapture] 15/74 回転生成機 stage:render
+14.8s [Log] [BlockIconCapture] 15/74 回転生成機 stage:readback
+14.8s [Log] [BlockIconCapture] 15/74 回転生成機 stage:captured
+14.8s [Log] [BlockIconCapture] 15/74 回転生成機 stage:done elapsed:32ms
+14.8s [Log] [BlockIconCapture] 16/74 アスファルト土台 stage:setup
+14.8s [Log] [BlockIconCapture] 16/74 アスファルト土台 stage:render
+14.8s [Log] [BlockIconCapture] 16/74 アスファルト土台 stage:readback
+14.8s [Log] [BlockIconCapture] 16/74 アスファルト土台 stage:captured
+14.8s [Log] [BlockIconCapture] 16/74 アスファルト土台 stage:done elapsed:24ms
+14.9s [Log] [BlockIconCapture] 17/74 油井 stage:setup
+14.9s [Log] [BlockIconCapture] 17/74 油井 stage:render
+14.9s [Log] [BlockIconCapture] 17/74 油井 stage:readback
+14.9s [Log] [BlockIconCapture] 17/74 油井 stage:captured
+14.9s [Log] [BlockIconCapture] 17/74 油井 stage:done elapsed:72ms
+14.9s [Log] [BlockIconCapture] 18/74 石油蒸留機 stage:setup
+15.0s [Log] [BlockIconCapture] 18/74 石油蒸留機 stage:render
+15.0s [Log] [BlockIconCapture] 18/74 石油蒸留機 stage:readback
+15.0s [Log] [BlockIconCapture] 18/74 石油蒸留機 stage:captured
+15.0s [Log] [BlockIconCapture] 18/74 石油蒸留機 stage:done elapsed:87ms
+15.0s [Log] [BlockIconCapture] 19/74 化学プラント stage:setup
+15.1s [Log] [BlockIconCapture] 19/74 化学プラント stage:render
+15.1s [Log] [BlockIconCapture] 19/74 化学プラント stage:readback
+15.1s [Log] [BlockIconCapture] 19/74 化学プラント stage:captured
+15.1s [Log] [BlockIconCapture] 19/74 化学プラント stage:done elapsed:60ms
+15.1s [Log] [BlockIconCapture] 20/74 液体タンク stage:setup
+15.2s [Log] [BlockIconCapture] 20/74 液体タンク stage:render
+15.2s [Log] [BlockIconCapture] 20/74 液体タンク stage:readback
+15.2s [Log] [BlockIconCapture] 20/74 液体タンク stage:captured
+15.2s [Log] [BlockIconCapture] 20/74 液体タンク stage:done elapsed:33ms
+15.2s [Log] [BlockIconCapture] 21/74 高圧電柱 stage:setup
+15.2s [Log] [BlockIconCapture] 21/74 高圧電柱 stage:render
+15.2s [Log] [BlockIconCapture] 21/74 高圧電柱 stage:readback
+15.2s [Log] [BlockIconCapture] 21/74 高圧電柱 stage:captured
+15.2s [Log] [BlockIconCapture] 21/74 高圧電柱 stage:done elapsed:27ms
+15.2s [Log] [BlockIconCapture] 22/74 広範囲電柱 stage:setup
+15.2s [Log] [BlockIconCapture] 22/74 広範囲電柱 stage:render
+15.2s [Log] [BlockIconCapture] 22/74 広範囲電柱 stage:readback
+15.2s [Log] [BlockIconCapture] 22/74 広範囲電柱 stage:captured
+15.2s [Log] [BlockIconCapture] 22/74 広範囲電柱 stage:done elapsed:22ms
+15.3s [Log] [BlockIconCapture] 23/74 高速ベルトコンベア stage:setup
+15.3s [Log] [BlockIconCapture] 23/74 高速ベルトコンベア stage:render
+15.3s [Log] [BlockIconCapture] 23/74 高速ベルトコンベア stage:readback
+15.3s [Log] [BlockIconCapture] 23/74 高速ベルトコンベア stage:captured
+15.3s [Log] [BlockIconCapture] 23/74 高速ベルトコンベア stage:done elapsed:59ms
+15.3s [Log] [BlockIconCapture] 24/74 上り高速ベルトコンベア stage:setup
+15.3s [Log] [BlockIconCapture] 24/74 上り高速ベルトコンベア stage:render
+15.4s [Log] [BlockIconCapture] 24/74 上り高速ベルトコンベア stage:readback
+15.4s [Log] [BlockIconCapture] 24/74 上り高速ベルトコンベア stage:captured
+15.4s [Log] [BlockIconCapture] 24/74 上り高速ベルトコンベア stage:done elapsed:23ms
+15.4s [Log] [BlockIconCapture] 25/74 下り高速ベルトコンベア stage:setup
+15.4s [Log] [BlockIconCapture] 25/74 下り高速ベルトコンベア stage:render
+15.4s [Log] [BlockIconCapture] 25/74 下り高速ベルトコンベア stage:readback
+15.4s [Log] [BlockIconCapture] 25/74 下り高速ベルトコンベア stage:captured
+15.4s [Log] [BlockIconCapture] 25/74 下り高速ベルトコンベア stage:done elapsed:30ms
+15.4s [Log] [BlockIconCapture] 26/74 高速ベルトコンベア分岐器 stage:setup
+15.4s [Log] [BlockIconCapture] 26/74 高速ベルトコンベア分岐器 stage:render
+15.4s [Log] [BlockIconCapture] 26/74 高速ベルトコンベア分岐器 stage:readback
+15.4s [Log] [BlockIconCapture] 26/74 高速ベルトコンベア分岐器 stage:captured
+15.4s [Log] [BlockIconCapture] 26/74 高速ベルトコンベア分岐器 stage:done elapsed:41ms
+15.5s [Log] [BlockIconCapture] 27/74 ガソリンエンジン発電機 stage:setup
+15.5s [Log] [BlockIconCapture] 27/74 ガソリンエンジン発電機 stage:render
+15.5s [Log] [BlockIconCapture] 27/74 ガソリンエンジン発電機 stage:readback
+15.5s [Log] [BlockIconCapture] 27/74 ガソリンエンジン発電機 stage:captured
+15.5s [Log] [BlockIconCapture] 27/74 ガソリンエンジン発電機 stage:done elapsed:52ms
+15.5s [Log] [BlockIconCapture] 28/74 液体プラットフォーム stage:setup
+15.5s [Log] [BlockIconCapture] 28/74 液体プラットフォーム stage:render
+15.5s [Log] [BlockIconCapture] 28/74 液体プラットフォーム stage:readback
+15.5s [Log] [BlockIconCapture] 28/74 液体プラットフォーム stage:captured
+15.5s [Log] [BlockIconCapture] 28/74 液体プラットフォーム stage:done elapsed:22ms
+15.6s [Log] [BlockIconCapture] 29/74 鋼鉄のパイプ stage:setup
+15.6s [Log] [BlockIconCapture] 29/74 鋼鉄のパイプ stage:render
+15.6s [Log] [BlockIconCapture] 29/74 鋼鉄のパイプ stage:readback
+15.6s [Log] [BlockIconCapture] 29/74 鋼鉄のパイプ stage:captured
+15.6s [Log] [BlockIconCapture] 29/74 鋼鉄のパイプ stage:done elapsed:44ms
+15.6s [Log] [BlockIconCapture] 30/74 ボイドパイプ stage:setup
+15.7s [Log] [BlockIconCapture] 30/74 ボイドパイプ stage:render
+15.7s [Log] [BlockIconCapture] 30/74 ボイドパイプ stage:readback
+15.7s [Log] [BlockIconCapture] 30/74 ボイドパイプ stage:captured
+15.7s [Log] [BlockIconCapture] 30/74 ボイドパイプ stage:done elapsed:43ms
+15.7s [Log] [BlockIconCapture] 31/74 木の縦シャフト stage:setup
+15.7s [Log] [BlockIconCapture] 31/74 木の縦シャフト stage:render
+15.7s [Log] [BlockIconCapture] 31/74 木の縦シャフト stage:readback
+15.7s [Log] [BlockIconCapture] 31/74 木の縦シャフト stage:captured
+15.7s [Log] [BlockIconCapture] 31/74 木の縦シャフト stage:done elapsed:34ms
+15.7s [Log] [BlockIconCapture] 32/74 クリーンルームブロック stage:setup
+15.7s [Log] [BlockIconCapture] 32/74 クリーンルームブロック stage:render
+15.7s [Log] [BlockIconCapture] 32/74 クリーンルームブロック stage:readback
+15.8s [Log] [BlockIconCapture] 32/74 クリーンルームブロック stage:captured
+15.8s [Log] [BlockIconCapture] 32/74 クリーンルームブロック stage:done elapsed:45ms
+15.8s [Log] [BlockIconCapture] 33/74 クリーンルーム空気清浄機 stage:setup
+15.8s [Log] [BlockIconCapture] 33/74 クリーンルーム空気清浄機 stage:render
+15.8s [Log] [BlockIconCapture] 33/74 クリーンルーム空気清浄機 stage:readback
+15.8s [Log] [BlockIconCapture] 33/74 クリーンルーム空気清浄機 stage:captured
+15.8s [Log] [BlockIconCapture] 33/74 クリーンルーム空気清浄機 stage:done elapsed:23ms
+15.8s [Log] [BlockIconCapture] 34/74 上り歯車ベルトコンベア stage:setup
+15.8s [Log] [BlockIconCapture] 34/74 上り歯車ベルトコンベア stage:render
+15.9s [Log] [BlockIconCapture] 34/74 上り歯車ベルトコンベア stage:readback
+15.9s [Log] [BlockIconCapture] 34/74 上り歯車ベルトコンベア stage:captured
+15.9s [Log] [BlockIconCapture] 34/74 上り歯車ベルトコンベア stage:done elapsed:41ms
+15.9s [Log] [BlockIconCapture] 35/74 石窯 stage:setup
+15.9s [Log] [BlockIconCapture] 35/74 石窯 stage:render
+15.9s [Log] [BlockIconCapture] 35/74 石窯 stage:readback
+15.9s [Log] [BlockIconCapture] 35/74 石窯 stage:captured
+15.9s [Log] [BlockIconCapture] 35/74 石窯 stage:done elapsed:46ms
+15.9s [Log] [BlockIconCapture] 36/74 原始的な採掘機 stage:setup
+15.9s [Log] [BlockIconCapture] 36/74 原始的な採掘機 stage:render
+16.0s [Log] [BlockIconCapture] 36/74 原始的な採掘機 stage:readback
+16.0s [Log] [BlockIconCapture] 36/74 原始的な採掘機 stage:captured
+16.0s [Log] [BlockIconCapture] 36/74 原始的な採掘機 stage:done elapsed:31ms
+16.0s [Log] [BlockIconCapture] 37/74 EUV露光式半導体製造装置 stage:setup
+16.0s [Log] [BlockIconCapture] 37/74 EUV露光式半導体製造装置 stage:render
+16.1s [Log] [BlockIconCapture] 37/74 EUV露光式半導体製造装置 stage:readback
+16.1s [Log] [BlockIconCapture] 37/74 EUV露光式半導体製造装置 stage:captured
+16.1s [Log] [BlockIconCapture] 37/74 EUV露光式半導体製造装置 stage:done elapsed:106ms
+16.3s [Log] [BlockIconCapture] 38/74 鉄の歯車 stage:setup
+16.3s [Log] [BlockIconCapture] 38/74 鉄の歯車 stage:render
+16.3s [Log] [BlockIconCapture] 38/74 鉄の歯車 stage:readback
+16.3s [Log] [BlockIconCapture] 38/74 鉄の歯車 stage:captured
+16.3s [Log] [BlockIconCapture] 38/74 鉄の歯車 stage:done elapsed:36ms
+16.3s [Log] [BlockIconCapture] 39/74 歯車コンベア分岐機 stage:setup
+16.3s [Log] [BlockIconCapture] 39/74 歯車コンベア分岐機 stage:render
+16.3s [Log] [BlockIconCapture] 39/74 歯車コンベア分岐機 stage:readback
+16.3s [Log] [BlockIconCapture] 39/74 歯車コンベア分岐機 stage:captured
+16.3s [Log] [BlockIconCapture] 39/74 歯車コンベア分岐機 stage:done elapsed:22ms
+16.3s [Log] [BlockIconCapture] 40/74 木のシャフト stage:setup
+16.3s [Log] [BlockIconCapture] 40/74 木のシャフト stage:render
+16.4s [Log] [BlockIconCapture] 40/74 木のシャフト stage:readback
+16.4s [Log] [BlockIconCapture] 40/74 木のシャフト stage:captured
+16.4s [Log] [BlockIconCapture] 40/74 木のシャフト stage:done elapsed:43ms
+16.4s [Log] [BlockIconCapture] 41/74 歯車ポンプ stage:setup
+16.4s [Log] [BlockIconCapture] 41/74 歯車ポンプ stage:render
+16.4s [Log] [BlockIconCapture] 41/74 歯車ポンプ stage:readback
+16.4s [Log] [BlockIconCapture] 41/74 歯車ポンプ stage:captured
+16.4s [Log] [BlockIconCapture] 41/74 歯車ポンプ stage:done elapsed:45ms
+16.4s [Log] [BlockIconCapture] 42/74 鉄のシャフト stage:setup
+16.5s [Log] [BlockIconCapture] 42/74 鉄のシャフト stage:render
+16.5s [Log] [BlockIconCapture] 42/74 鉄のシャフト stage:readback
+16.5s [Log] [BlockIconCapture] 42/74 鉄のシャフト stage:captured
+16.5s [Log] [BlockIconCapture] 42/74 鉄のシャフト stage:done elapsed:35ms
+16.5s [Log] [BlockIconCapture] 43/74 ふいご付き精錬炉 stage:setup
+16.5s [Log] [BlockIconCapture] 43/74 ふいご付き精錬炉 stage:render
+16.5s [Log] [BlockIconCapture] 43/74 ふいご付き精錬炉 stage:readback
+16.5s [Log] [BlockIconCapture] 43/74 ふいご付き精錬炉 stage:captured
+16.5s [Log] [BlockIconCapture] 43/74 ふいご付き精錬炉 stage:done elapsed:46ms
+16.5s [Log] [BlockIconCapture] 44/74 蒸気機関 stage:setup
+16.5s [Warning] Couldn't create a Convex Mesh from source mesh, within the maximum polygons limit (256). The partial hull will be used. Consider simplifying your mesh. Source m
+16.6s [Log] [BlockIconCapture] 44/74 蒸気機関 stage:render
+16.6s [Log] [BlockIconCapture] 44/74 蒸気機関 stage:readback
+16.6s [Log] [BlockIconCapture] 44/74 蒸気機関 stage:captured
+16.6s [Log] [BlockIconCapture] 44/74 蒸気機関 stage:done elapsed:38ms
+16.6s [Log] [BlockIconCapture] 45/74 木のコンベアチェスト stage:setup
+16.6s [Log] [BlockIconCapture] 45/74 木のコンベアチェスト stage:render
+16.6s [Log] [BlockIconCapture] 45/74 木のコンベアチェスト stage:readback
+16.6s [Log] [BlockIconCapture] 45/74 木のコンベアチェスト stage:captured
+16.6s [Log] [BlockIconCapture] 45/74 木のコンベアチェスト stage:done elapsed:41ms
+16.6s [Log] [BlockIconCapture] 46/74 鉄の上り歯車ベルトコンベア stage:setup
+16.6s [Log] [BlockIconCapture] 46/74 鉄の上り歯車ベルトコンベア stage:render
+16.7s [Log] [BlockIconCapture] 46/74 鉄の上り歯車ベルトコンベア stage:readback
+16.7s [Log] [BlockIconCapture] 46/74 鉄の上り歯車ベルトコンベア stage:captured
+16.7s [Log] [BlockIconCapture] 46/74 鉄の上り歯車ベルトコンベア stage:done elapsed:42ms
+16.7s [Log] [BlockIconCapture] 47/74 鉄の縦シャフト stage:setup
+16.7s [Log] [BlockIconCapture] 47/74 鉄の縦シャフト stage:render
+16.7s [Log] [BlockIconCapture] 47/74 鉄の縦シャフト stage:readback
+16.7s [Log] [BlockIconCapture] 47/74 鉄の縦シャフト stage:captured
+16.7s [Log] [BlockIconCapture] 47/74 鉄の縦シャフト stage:done elapsed:27ms
+16.7s [Log] [BlockIconCapture] 48/74 クリーンルームアイテムハッチ stage:setup
+16.7s [Log] [BlockIconCapture] 48/74 クリーンルームアイテムハッチ stage:render
+16.8s [Log] [BlockIconCapture] 48/74 クリーンルームアイテムハッチ stage:readback
+16.8s [Log] [BlockIconCapture] 48/74 クリーンルームアイテムハッチ stage:captured
+16.8s [Log] [BlockIconCapture] 48/74 クリーンルームアイテムハッチ stage:done elapsed:48ms
+16.8s [Log] [BlockIconCapture] 49/74 直線歯車ベルトコンベア stage:setup
+16.8s [Log] [BlockIconCapture] 49/74 直線歯車ベルトコンベア stage:render
+16.8s [Log] [BlockIconCapture] 49/74 直線歯車ベルトコンベア stage:readback
+16.8s [Log] [BlockIconCapture] 49/74 直線歯車ベルトコンベア stage:captured
+16.8s [Log] [BlockIconCapture] 49/74 直線歯車ベルトコンベア stage:done elapsed:40ms
+16.8s [Log] [BlockIconCapture] 50/74 鉄のパイプ stage:setup
+16.9s [Log] [BlockIconCapture] 50/74 鉄のパイプ stage:render
+16.9s [Log] [BlockIconCapture] 50/74 鉄のパイプ stage:readback
+16.9s [Log] [BlockIconCapture] 50/74 鉄のパイプ stage:captured
+16.9s [Log] [BlockIconCapture] 50/74 鉄のパイプ stage:done elapsed:35ms
+16.9s [Log] [BlockIconCapture] 51/74 鉄の歯車ベルトコンベア stage:setup
+16.9s [Log] [BlockIconCapture] 51/74 鉄の歯車ベルトコンベア stage:render
+16.9s [Log] [BlockIconCapture] 51/74 鉄の歯車ベルトコンベア stage:readback
+16.9s [Log] [BlockIconCapture] 51/74 鉄の歯車ベルトコンベア stage:captured
+16.9s [Log] [BlockIconCapture] 51/74 鉄の歯車ベルトコンベア stage:done elapsed:46ms
+16.9s [Log] [BlockIconCapture] 52/74 原始的な加工機 stage:setup
+17.0s [Log] [BlockIconCapture] 52/74 原始的な加工機 stage:render
+17.0s [Log] [BlockIconCapture] 52/74 原始的な加工機 stage:readback
+17.0s [Log] [BlockIconCapture] 52/74 原始的な加工機 stage:captured
+17.0s [Log] [BlockIconCapture] 52/74 原始的な加工機 stage:done elapsed:32ms
+17.0s [Log] [BlockIconCapture] 53/74 クリーンルームパイプコネクタ stage:setup
+17.0s [Log] [BlockIconCapture] 53/74 クリーンルームパイプコネクタ stage:render
+17.0s [Log] [BlockIconCapture] 53/74 クリーンルームパイプコネクタ stage:readback
+17.0s [Log] [BlockIconCapture] 53/74 クリーンルームパイプコネクタ stage:captured
+17.0s [Log] [BlockIconCapture] 53/74 クリーンルームパイプコネクタ stage:done elapsed:43ms
+17.0s [Log] [BlockIconCapture] 54/74 基本土台 stage:setup
+17.0s [Log] [BlockIconCapture] 54/74 基本土台 stage:render
+17.1s [Log] [BlockIconCapture] 54/74 基本土台 stage:readback
+17.1s [Log] [BlockIconCapture] 54/74 基本土台 stage:captured
+17.1s [Log] [BlockIconCapture] 54/74 基本土台 stage:done elapsed:44ms
+17.1s [Log] [BlockIconCapture] 55/74 鉄の歯車ベルトコンベア分岐機 stage:setup
+17.1s [Log] [BlockIconCapture] 55/74 鉄の歯車ベルトコンベア分岐機 stage:render
+17.1s [Log] [BlockIconCapture] 55/74 鉄の歯車ベルトコンベア分岐機 stage:readback
+17.1s [Log] [BlockIconCapture] 55/74 鉄の歯車ベルトコンベア分岐機 stage:captured
+17.1s [Log] [BlockIconCapture] 55/74 鉄の歯車ベルトコンベア分岐機 stage:done elapsed:32ms
+17.1s [Log] [BlockIconCapture] 56/74 風力掘削機 stage:setup
+17.2s [Log] [BlockIconCapture] 56/74 風力掘削機 stage:render
+17.2s [Log] [BlockIconCapture] 56/74 風力掘削機 stage:readback
+17.2s [Log] [BlockIconCapture] 56/74 風力掘削機 stage:captured
+17.2s [Log] [BlockIconCapture] 56/74 風力掘削機 stage:done elapsed:64ms
+17.2s [Log] [BlockIconCapture] 57/74 原始的な組立機 stage:setup
+17.2s [Log] [BlockIconCapture] 57/74 原始的な組立機 stage:render
+17.2s [Log] [BlockIconCapture] 57/74 原始的な組立機 stage:readback
+17.2s [Log] [BlockIconCapture] 57/74 原始的な組立機 stage:captured
+17.2s [Log] [BlockIconCapture] 57/74 原始的な組立機 stage:done elapsed:26ms
+17.2s [Log] [BlockIconCapture] 58/74 蒸気機関車駅 stage:setup
+17.3s [Log] [BlockIconCapture] 58/74 蒸気機関車駅 stage:render
+17.3s [Log] [BlockIconCapture] 58/74 蒸気機関車駅 stage:readback
+17.3s [Log] [BlockIconCapture] 58/74 蒸気機関車駅 stage:captured
+17.3s [Log] [BlockIconCapture] 58/74 蒸気機関車駅 stage:done elapsed:38ms
+17.3s [Log] [BlockIconCapture] 59/74 歯車チェーンポール stage:setup
+17.3s [Log] [BlockIconCapture] 59/74 歯車チェーンポール stage:render
+17.3s [Log] [BlockIconCapture] 59/74 歯車チェーンポール stage:readback
+17.3s [Log] [BlockIconCapture] 59/74 歯車チェーンポール stage:captured
+17.3s [Log] [BlockIconCapture] 59/74 歯車チェーンポール stage:done elapsed:41ms
+17.3s [Log] [BlockIconCapture] 60/74 鉄のコンベアチェスト stage:setup
+17.4s [Log] [BlockIconCapture] 60/74 鉄のコンベアチェスト stage:render
+17.4s [Log] [BlockIconCapture] 60/74 鉄のコンベアチェスト stage:readback
+17.4s [Log] [BlockIconCapture] 60/74 鉄のコンベアチェスト stage:captured
+17.4s [Log] [BlockIconCapture] 60/74 鉄のコンベアチェスト stage:done elapsed:35ms
+17.4s [Log] [BlockIconCapture] 61/74 木のシャフトボックス stage:setup
+17.4s [Log] [BlockIconCapture] 61/74 木のシャフトボックス stage:render
+17.4s [Log] [BlockIconCapture] 61/74 木のシャフトボックス stage:readback
+17.4s [Log] [BlockIconCapture] 61/74 木のシャフトボックス stage:captured
+17.4s [Log] [BlockIconCapture] 61/74 木のシャフトボックス stage:done elapsed:44ms
+17.4s [Log] [BlockIconCapture] 62/74 下り歯車ベルトコンベア stage:setup
+17.4s [Log] [BlockIconCapture] 62/74 下り歯車ベルトコンベア stage:render
+17.5s [Log] [BlockIconCapture] 62/74 下り歯車ベルトコンベア stage:readback
+17.5s [Log] [BlockIconCapture] 62/74 下り歯車ベルトコンベア stage:captured
+17.5s [Log] [BlockIconCapture] 62/74 下り歯車ベルトコンベア stage:done elapsed:43ms
+17.5s [Log] [BlockIconCapture] 63/74 クリーンルームドア stage:setup
+17.5s [Log] [BlockIconCapture] 63/74 クリーンルームドア stage:render
+17.5s [Log] [BlockIconCapture] 63/74 クリーンルームドア stage:readback
+17.5s [Log] [BlockIconCapture] 63/74 クリーンルームドア stage:captured
+17.5s [Log] [BlockIconCapture] 63/74 クリーンルームドア stage:done elapsed:35ms
+17.5s [Log] [BlockIconCapture] 64/74 鉄の下り歯車ベルトコンベア stage:setup
+17.5s [Log] [BlockIconCapture] 64/74 鉄の下り歯車ベルトコンベア stage:render
+17.6s [Log] [BlockIconCapture] 64/74 鉄の下り歯車ベルトコンベア stage:readback
+17.6s [Log] [BlockIconCapture] 64/74 鉄の下り歯車ベルトコンベア stage:captured
+17.6s [Log] [BlockIconCapture] 64/74 鉄の下り歯車ベルトコンベア stage:done elapsed:45ms
+17.6s [Log] [BlockIconCapture] 65/74 木の歯車 stage:setup
+17.6s [Log] [BlockIconCapture] 65/74 木の歯車 stage:render
+17.6s [Log] [BlockIconCapture] 65/74 木の歯車 stage:readback
+17.6s [Log] [BlockIconCapture] 65/74 木の歯車 stage:captured
+17.6s [Log] [BlockIconCapture] 65/74 木の歯車 stage:done elapsed:36ms
+17.6s [Log] [BlockIconCapture] 66/74 鉄のシャフトボックス stage:setup
+17.7s [Log] [BlockIconCapture] 66/74 鉄のシャフトボックス stage:render
+17.7s [Log] [BlockIconCapture] 66/74 鉄のシャフトボックス stage:readback
+17.7s [Log] [BlockIconCapture] 66/74 鉄のシャフトボックス stage:captured
+17.7s [Log] [BlockIconCapture] 66/74 鉄のシャフトボックス stage:done elapsed:41ms
+17.7s [Log] [BlockIconCapture] 67/74 貨物プラットフォーム stage:setup
+17.7s [Log] [BlockIconCapture] 67/74 貨物プラットフォーム stage:render
+17.7s [Log] [BlockIconCapture] 67/74 貨物プラットフォーム stage:readback
+17.7s [Log] [BlockIconCapture] 67/74 貨物プラットフォーム stage:captured
+17.7s [Log] [BlockIconCapture] 67/74 貨物プラットフォーム stage:done elapsed:45ms
+17.7s [Log] [BlockIconCapture] 68/74 大きな鉄の歯車 stage:setup
+17.8s [Log] [BlockIconCapture] 68/74 大きな鉄の歯車 stage:render
+17.8s [Log] [BlockIconCapture] 68/74 大きな鉄の歯車 stage:readback
+17.8s [Log] [BlockIconCapture] 68/74 大きな鉄の歯車 stage:captured
+17.8s [Log] [BlockIconCapture] 68/74 大きな鉄の歯車 stage:done elapsed:34ms
+17.8s [Log] [BlockIconCapture] 69/74 木のチェスト stage:setup
+17.8s [Log] [BlockIconCapture] 69/74 木のチェスト stage:render
+17.8s [Log] [BlockIconCapture] 69/74 木のチェスト stage:readback
+17.8s [Log] [BlockIconCapture] 69/74 木のチェスト stage:captured
+17.8s [Log] [BlockIconCapture] 69/74 木のチェスト stage:done elapsed:45ms
+17.8s [Log] [BlockIconCapture] 70/74 原始的な粉砕機 stage:setup
+17.9s [Log] [BlockIconCapture] 70/74 原始的な粉砕機 stage:render
+17.9s [Log] [BlockIconCapture] 70/74 原始的な粉砕機 stage:readback
+17.9s [Log] [BlockIconCapture] 70/74 原始的な粉砕機 stage:captured
+17.9s [Log] [BlockIconCapture] 70/74 原始的な粉砕機 stage:done elapsed:36ms
+17.9s [Log] [BlockIconCapture] 71/74 燃料式風車 stage:setup
+17.9s [Log] [BlockIconCapture] 71/74 燃料式風車 stage:render
+17.9s [Log] [BlockIconCapture] 71/74 燃料式風車 stage:readback
+17.9s [Log] [BlockIconCapture] 71/74 燃料式風車 stage:captured
+17.9s [Log] [BlockIconCapture] 71/74 燃料式風車 stage:done elapsed:33ms
+17.9s [Log] [BlockIconCapture] 72/74 鉄の採掘機 stage:setup
+17.9s [Log] [BlockIconCapture] 72/74 鉄の採掘機 stage:render
+18.0s [Log] [BlockIconCapture] 72/74 鉄の採掘機 stage:readback
+18.0s [Log] [BlockIconCapture] 72/74 鉄の採掘機 stage:captured
+18.0s [Log] [BlockIconCapture] 72/74 鉄の採掘機 stage:done elapsed:43ms
+18.0s [Log] [BlockIconCapture] 73/74 ボイラー stage:setup
+18.0s [Log] [BlockIconCapture] 73/74 ボイラー stage:render
+18.0s [Log] [BlockIconCapture] 73/74 ボイラー stage:readback
+18.0s [Log] [BlockIconCapture] 73/74 ボイラー stage:captured
+18.0s [Log] [BlockIconCapture] 73/74 ボイラー stage:done elapsed:35ms
+18.0s [Log] [BlockIconCapture] 74/74 レール橋脚 stage:setup
+18.1s [Log] [BlockIconCapture] 74/74 レール橋脚 stage:render
+18.1s [Log] [BlockIconCapture] 74/74 レール橋脚 stage:readback
+18.1s [Log] [BlockIconCapture] 74/74 レール橋脚 stage:captured
+18.1s [Log] [BlockIconCapture] 74/74 レール橋脚 stage:done elapsed:44ms
+18.1s [Log] [BlockIconCapture] completed count:74 elapsed:4.3s
+18.3s [Log] [BlockIconCapture] start count:3
+18.3s [Log] [BlockIconCapture] 1/3 Locomotive stage:setup
+18.4s [Log] [BlockIconCapture] 1/3 Locomotive stage:render
+18.4s [Log] [BlockIconCapture] 1/3 Locomotive stage:readback
+18.4s [Log] [BlockIconCapture] 1/3 Locomotive stage:captured
+18.4s [Log] [BlockIconCapture] 1/3 Locomotive stage:done elapsed:160ms
+18.5s [Log] [BlockIconCapture] 2/3 CargoCar stage:setup
+18.5s [Log] [BlockIconCapture] 2/3 CargoCar stage:render
+18.5s [Log] [BlockIconCapture] 2/3 CargoCar stage:readback
+18.5s [Log] [BlockIconCapture] 2/3 CargoCar stage:captured
+18.5s [Log] [BlockIconCapture] 2/3 CargoCar stage:done elapsed:20ms
+18.5s [Log] [BlockIconCapture] 3/3 Locomotive stage:setup
+18.5s [Log] [BlockIconCapture] 3/3 Locomotive stage:render
+18.5s [Log] [BlockIconCapture] 3/3 Locomotive stage:readback
+18.5s [Log] [BlockIconCapture] 3/3 Locomotive stage:captured
+18.5s [Log] [BlockIconCapture] 3/3 Locomotive stage:done elapsed:39ms
+18.5s [Log] [BlockIconCapture] completed count:3 elapsed:0.3s
+18.5s [Log] [InitializeScenePipeline] mod icon capture completed
+27.9s [Warning] Couldn't create a Convex Mesh from source mesh, within the maximum polygons limit (256). The partial hull will be used. Consider simplifying your mesh. Source m
+38.1s [Log] Editor実行のため build-info.json は読まず buildInfo は null になります（作業ツリーの状態はgit probeが名乗る）
+38.1s [Warning] 進行記録の欠損 steamId: テスター識別（SteamID）が無い（開発者モード。build-info.json 無し、または Steam 未起動）
+43.8s [Log] [BlockIconCapture] 1/1 工場 stage:setup
+44.4s [Warning] [BezierRailChain] rebuild skipped: curve too short
+45.1s [Warning] [BezierRailChain] rebuild skipped: curve too short
+45.1s [Warning] [BezierRailChain] rebuild skipped: curve too short
+45.2s [Warning] [BezierRailChain] rebuild skipped: curve too short
+45.2s [Warning] [BezierRailChain] rebuild skipped: curve too short
+46.8s [Warning] [BezierRailChain] rebuild skipped: curve too short
+46.8s [Warning] [BezierRailChain] rebuild skipped: curve too short
+47.1s [Warning] [BezierRailChain] rebuild skipped: curve too short
+47.4s [Warning] [BezierRailChain] rebuild skipped: curve too short
+47.4s [Warning] [BezierRailChain] rebuild skipped: curve too short
+48.0s [Warning] [BezierRailChain] rebuild skipped: curve too short
+48.0s [Warning] [BezierRailChain] rebuild skipped: curve too short
+48.1s [Warning] <color=#0099bc><b>DOTWEEN ► </b></color>Max Tweens reached: capacity has automatically been increased from 200/50 to 500/50. Use DOTween.SetTweensCapacity to se
+48.1s [Warning] [BezierRailChain] rebuild skipped: curve too short
+48.1s [Warning] [BezierRailChain] rebuild skipped: curve too short
+48.4s [Warning] [BezierRailChain] rebuild skipped: curve too short
+48.5s [Warning] [BezierRailChain] rebuild skipped: curve too short
+49.7s [Log] ApplySnapshotTrainUnit: 1_548
+49.8s [Log] 1stHash: serverTick=1, tickSequenceId=549, 
+55.0s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (434, 96, 494)
+55.1s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (434, 96, 501)
+55.4s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (434, 96, 522)
+55.6s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (434, 96, 515)
+55.6s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (784, 70, 2413)
+56.1s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (781, 70, 2427)
+56.2s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (784, 70, 2420)
+56.6s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (434, 96, 487)
+56.7s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (784, 70, 2406)
+57.0s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (434, 96, 508)
+57.1s [Error] [CommonMachineBlockStateChangeProcessor] State is null Name:ガソリンエンジン発電機 Pos: (784, 70, 2399)
+74.3s [Log] [WebUiHost] CEF LoadUrl attempt 1: http://127.0.0.1:25173/
+76.1s [Log] [BlockIconCapture] 1/1 工場 stage:render
+78.1s [Log] [PlaytestReceiver] boxes stay local: developer token is absent
+89.9s [Log] [BlockIconCapture] 1/1 工場 stage:readback
+89.9s [Log] [BlockIconCapture] 1/1 工場 stage:captured
+89.9s [Log] [BlockIconCapture] 1/1 工場 stage:done elapsed:46075ms
+89.9s [Log] [BlockIconCapture] 1/1 土台 stage:setup
+101.9s [Log] [BlockIconCapture] 1/1 土台 stage:render
+102.7s [Log] [BlockIconCapture] 1/1 土台 stage:readback
+102.7s [Log] [BlockIconCapture] 1/1 土台 stage:captured
+102.7s [Log] [BlockIconCapture] 1/1 土台 stage:done elapsed:12799ms
+102.7s [Log] [BlockIconCapture] 1/1 steam stage:setup
+102.9s [Log] [BlockIconCapture] 1/1 steam stage:render
+103.0s [Log] [BlockIconCapture] 1/1 steam stage:readback
+103.0s [Log] [BlockIconCapture] 1/1 steam stage:captured
+103.0s [Log] [BlockIconCapture] 1/1 steam stage:done elapsed:327ms
+103.1s [Log] [BlockIconCapture] 1/1 copper stage:setup
+103.2s [Log] [BlockIconCapture] 1/1 copper stage:render
+103.3s [Log] [BlockIconCapture] 1/1 copper stage:readback
+103.3s [Log] [BlockIconCapture] 1/1 copper stage:captured
+103.3s [Log] [BlockIconCapture] 1/1 copper stage:done elapsed:281ms
+103.3s [Log] [BlockIconCapture] 1/1 steam2 stage:setup
+103.6s [Log] [BlockIconCapture] 1/1 steam2 stage:render
+103.7s [Log] [BlockIconCapture] 1/1 steam2 stage:readback
+103.7s [Log] [BlockIconCapture] 1/1 steam2 stage:captured
+103.7s [Log] [BlockIconCapture] 1/1 steam2 stage:done elapsed:379ms
+106.8s [Warning] [InitialEventApplyWaiter] 初期イベント適用が未完了のまま待機中: OutcropGameObjectDatastore
+== SAMPLES
+0.0s fps=0.0 renderers=0 scene=MainMenu
+2.5s fps=30.1 renderers=0 scene=GameInitialaizer
+13.7s fps=0.5 renderers=0 scene=GameInitialaizer
+15.7s fps=45.2 renderers=1 scene=GameInitialaizer
+17.7s fps=54.3 renderers=64 scene=GameInitialaizer
+22.5s fps=6.7 renderers=0 scene=GameInitialaizer
+24.5s fps=37.7 renderers=0 scene=GameInitialaizer
+26.5s fps=43.0 renderers=0 scene=GameInitialaizer
+75.2s fps=0.8 renderers=206828 scene=MainGame
+89.8s fps=0.1 renderers=209358 scene=MainGame
+101.8s fps=0.1 renderers=199795 scene=MainGame
+103.9s fps=3.8 renderers=199881 scene=MainGame
+105.9s fps=5.4 renderers=204831 scene=MainGame
+108.0s fps=8.1 renderers=209289 scene=MainGame
+110.1s fps=7.8 renderers=215249 scene=MainGame
+112.1s fps=3.9 renderers=217194 scene=MainGame
+114.1s fps=7.4 renderers=217195 scene=MainGame
+116.2s fps=10.7 renderers=217200 scene=MainGame
+118.2s fps=8.8 renderers=217201 scene=MainGame
+120.2s fps=11.5 renderers=217196 scene=MainGame
+122.3s fps=8.5 renderers=217199 scene=MainGame
+124.3s fps=9.9 renderers=217196 scene=MainGame
+126.4s fps=11.9 renderers=217198 scene=MainGame
+128.4s fps=8.9 renderers=217195 scene=MainGame
+130.4s fps=11.2 renderers=217197 scene=MainGame
+132.5s fps=7.9 renderers=217201 scene=MainGame
+134.5s fps=9.9 renderers=217198 scene=MainGame
+136.6s fps=9.7 renderers=217195 scene=MainGame
+138.6s fps=9.9 renderers=217199 scene=MainGame
+140.6s fps=11.7 renderers=217197 scene=MainGame
+142.7s fps=6.7 renderers=217198 scene=MainGame
+144.8s fps=7.8 renderers=217196 scene=MainGame
+146.8s fps=10.0 renderers=217196 scene=MainGame
+148.8s fps=8.8 renderers=217195 scene=MainGame
+150.9s fps=11.5 renderers=217198 scene=MainGame

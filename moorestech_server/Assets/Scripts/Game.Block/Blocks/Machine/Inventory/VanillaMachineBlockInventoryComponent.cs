@@ -151,7 +151,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         }
 
         /// <summary>
-        ///     アイテムの置き換えを実行しますが、同じアイテムIDの場合はそのまま現在のアイテムにスタックされ、スタックしきらなかったらその分を返します。
+        ///     アイテムの置き換え。同じアイテムIDか空きならスロット上限まで足して余りを返し、違うIDなら入れ替える
         /// </summary>
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
@@ -168,19 +168,7 @@ namespace Game.Block.Blocks.Machine.Inventory
                 return itemStack;
             }
 
-            var current = subInventory.Items[localSlot];
-
-            // アイテムIDが同じ時はスタックして余りを返し、違う場合はそのまま入れ替える
-            // Stack and return the remainder when IDs match; otherwise swap the items as-is
-            if (current.Id == itemStack.Id)
-            {
-                var result = current.AddItem(itemStack);
-                subInventory.SetItem(localSlot, result.ProcessResultItemStack);
-                return result.RemainderItemStack;
-            }
-
-            subInventory.SetItem(localSlot, itemStack);
-            return current;
+            return MachineSubInventoryReplaceUtil.Replace(subInventory, localSlot, itemStack);
         }
 
         // スロット番号をサブインベントリとローカル番号へ解決（実装はVanillaMachineSlotResolutionUtilへ委譲）

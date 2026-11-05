@@ -10,5 +10,8 @@ namespace Game.Block.Blocks.Machine.Inventory
         RecipeNotSelected,
         ItemNotBoundToSlot,
         SlotBeyondRecipeOutputs,
+        ModuleNotAllowedOnMachine,
+        ExceedsModuleSlotStackLimit,
+        LevelAboveCraftCap,
     }
 }

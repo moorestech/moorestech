@@ -6,13 +6,15 @@
       "iconItemId": 2,
       "position": { "x": 0.0, "y": 0.0 },
       "prevGuids": [],
-      "consumeItems": [ { "itemId": 1, "count": 5 } ],
+      "consumeItems": [ { "itemId": 1, "count": 5, "acceptedItemIds": [ 1, 11 ] } ],
       "rewardItems": [ { "itemId": 2, "count": 4 } ],
       "unlockItemRecipeViewItemIds": [],
       "unlockBlocks": [],
       "unlockMachineRecipes": [],
       "unlockConnectToolGuids": [],
-      "unlockTrainCarGuids": []
+      "unlockTrainCarGuids": [],
+      "unlockModuleSlotStackLimits": [],
+      "unlockLevelInheritanceCraftCaps": []
     },
     {
       "guid": "22222222-2222-4222-8222-222222222222",
@@ -34,7 +36,9 @@
         }
       ],
       "unlockConnectToolGuids": [ "55555555-5555-4555-8555-555555555555" ],
-      "unlockTrainCarGuids": [ "66666666-6666-4666-8666-666666666666" ]
+      "unlockTrainCarGuids": [ "66666666-6666-4666-8666-666666666666" ],
+      "unlockModuleSlotStackLimits": [ 6 ],
+      "unlockLevelInheritanceCraftCaps": [ { "itemId": 21, "level": 2 } ]
     }
   ]
 }

@@ -26,6 +26,7 @@ const recipe: MachineRecipe = {
   blockId: 10, time: 7,
   inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 9, count: 1 }],
   inputFluids: [], outputFluids: [],
+  levelInheritance: { kind: "none", sourceInputIndex: -1, sourceItemIds: [], targetOutputIndex: -1, targetItemIds: [], maxCraftableLevel: 0 },
 };
 
 describe("MachineRecipeSelectionRow", () => {
@@ -68,5 +69,21 @@ describe("MachineRecipeSelectionRow", () => {
       ["87000000-0000-4000-8000-000000000001", { kind: "show", amount: 10 }, `machine-recipe-${recipe.recipeGuid}-input-fluid-0`],
       ["87000000-0000-4000-8000-000000000002", { kind: "show", amount: 1000 }, `machine-recipe-${recipe.recipeGuid}-output-fluid-0`],
     ]);
+  });
+
+  it("上限つき継承レシピにはバッジを出す", () => {
+    const capped: MachineRecipe = {
+      ...recipe,
+      levelInheritance: { kind: "inheritUpToUnlocked", sourceInputIndex: 0, sourceItemIds: [1, 11, 12], targetOutputIndex: 0, targetItemIds: [9, 19, 29], maxCraftableLevel: 2 },
+    };
+    const row = { recipe: capped, subject: { kind: "item" as const, itemId: 9, count: 1 }, selected: false };
+    const tree = create(createElement(MachineRecipeSelectionRow, { row, onSelect: vi.fn() }));
+    expect(tree.root.findByProps({ "data-testid": `machine-recipe-${recipe.recipeGuid}-level-inheritance` }).props.children).toBe("ui.recipe.levelInheritanceCapped");
+  });
+
+  it("継承しないレシピにはバッジを出さない", () => {
+    const row = { recipe, subject: { kind: "item" as const, itemId: 9, count: 1 }, selected: false };
+    const tree = create(createElement(MachineRecipeSelectionRow, { row, onSelect: vi.fn() }));
+    expect(tree.root.findAllByProps({ "data-testid": `machine-recipe-${recipe.recipeGuid}-level-inheritance` })).toHaveLength(0);
   });
 });
