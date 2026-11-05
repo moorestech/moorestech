@@ -22,6 +22,18 @@
     max-height: 100%;
 }
 
+/* 枠の面は Web の .panel の色。GamePanel の面の要素が自前で --game-panel-face を宣言するので、面の要素に当てて上書きする */
+/* The frame face uses the Web .panel color; the GamePanel face element declares --game-panel-face itself, so override it on that element */
+.pause-menu__panel .game-panel__face {
+    --game-panel-face: var(--pause-menu-face);
+}
+
+/* Web の .panel の padding 32px。GamePanel の padding（8 10 10 28）に足して左右下を 32px にそろえる */
+/* The Web .panel padding is 32px; added to the GamePanel padding (8 10 10 28) this makes left, right and bottom 32px */
+.pause-menu__page {
+    padding: 8px 22px 22px 4px;
+}
+
 /* 枠が最大高で止まったとき、本文だけがスクロールできるよう flex の高さ連鎖を子画面まで通す */
 /* Pass the flex height chain down to the sub-page so only the body scrolls when the frame stops at its max height */
 .pause-menu__panel,
@@ -48,6 +60,13 @@
     margin-top: 16px;
 }
 
+/* PanelActionButton の margin: 0（2 クラス）に負けないよう、ボタンの間隔は部品のクラスを重ねて当てる */
+/* Button gaps stack the component classes so they beat PanelActionButton's two-class margin: 0 */
+.pause-menu .panel-action-button.unity-button.pause-menu__stack-item--following,
+.pause-menu .panel-action-button.unity-button.pause-menu__back {
+    margin-top: 16px;
+}
+
 .pause-menu__disconnected {
     margin: 0 0 16px 0;
     padding: 0;
@@ -63,5 +82,4 @@
 
 .pause-menu__back {
     flex-shrink: 0;
-    margin-top: 16px;
 }

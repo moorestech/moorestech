@@ -74,6 +74,14 @@ namespace Client.Tests.Ui.Screens.PauseMenu
         }
 
         [Test]
+        public void ボタンの間隔はWebのStack_gap_mdの16pxで部品のmargin0に負けない()
+        {
+            var buttons = _view.Query<Button>().ToList();
+            Assert.AreEqual(0f, buttons[0].resolvedStyle.marginTop);
+            for (var i = 1; i < buttons.Count; i++) Assert.AreEqual(16f, buttons[i].resolvedStyle.marginTop, buttons[i].name);
+        }
+
+        [Test]
         public void トップの題とアンカーはWebと同じ綴り()
         {
             Assert.AreEqual("Pause Menu", _view.Q<Label>(className: "game-panel__title").text);

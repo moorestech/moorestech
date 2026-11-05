@@ -31,6 +31,9 @@
     --mode-switch-selected-face: rgba(43, 46, 59, 0.9868); /* web: color-mix 30% = rgba(43, 46, 59, 0.86) α補正 */
     --panel-action-text-outline: rgba(0, 0, 0, 0.9293); /* web: rgb(0 0 0 / 70%) α補正 */
 
+    /* ポーズの枠の面。Web の pauseMenu/style.module.css の .panel が直書きする色（ボタンの面 --gauge-track より明るい灰紺） */
+    --pause-menu-face: rgba(16, 20, 28, 0.9961); /* web: rgb(16 20 28 / 92%) α補正 */
+
     /* トーストの左帯。Web は Mantine Notification の color="blue" / "red"（filled = blue-6 / red-6） */
     --color-accent: #228be6;
     --color-danger: #fa5252;

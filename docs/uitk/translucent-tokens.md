@@ -29,3 +29,4 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--panel-action-hover-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 22%)` = `rgba(35, 38, 51, 0.844)` | `rgba(35, 38, 51, 0.9832)` | 実機で据え置き（ポーズの撮影でホバー中のボタンの面が地の面と見分けられる） |
 | `--mode-switch-selected-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 30%)` = `rgba(43, 46, 59, 0.86)` | `rgba(43, 46, 59, 0.9868)` | α 近似補正（S7）。部品の段で実機で決める |
 | `--panel-action-text-outline` | `rgb(0 0 0 / 70%)` | `rgba(0, 0, 0, 0.9293)` | α 近似補正（S7）。部品の段で実機で決める |
+| `--pause-menu-face` | `rgb(16 20 28 / 92%)` | `rgba(16, 20, 28, 0.9961)` | α 近似補正（S7）。ポーズの撮影（https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png ）で枠の面 (16,20,28) とボタンの面（`--gauge-track`）(10,15,27) が見分けられることを確かめた |
