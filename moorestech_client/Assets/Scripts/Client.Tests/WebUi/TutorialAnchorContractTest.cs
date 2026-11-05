@@ -18,8 +18,8 @@ namespace Client.Tests.WebUi
             var fixture = LoadFixture();
             var expectedPrefix = fixture["dynamicPrefixes"]["recipeItem"].Value<string>();
 
-            Assert.AreEqual(expectedPrefix, TutorialAnchorIdMapper.ItemAnchorPrefix);
-            Assert.IsTrue(TutorialAnchorIdMapper.FromItemId(42).StartsWith(expectedPrefix));
+            Assert.AreEqual(expectedPrefix, AnchorIds.RecipeItemPrefix);
+            Assert.IsTrue(AnchorIds.RecipeItem(42).StartsWith(expectedPrefix));
         }
 
         private static JObject LoadFixture()

@@ -1,0 +1,35 @@
+using System.Globalization;
+
+namespace Client.Ui.Foundation.Theme
+{
+    /// <summary>
+    /// customStyle から文字列で読んだ USS の長さと時間を数に直す
+    /// Converts USS lengths and durations read as strings from customStyle into numbers
+    /// </summary>
+    public static class UssTokenValue
+    {
+        public static bool TryParsePixels(string text, out float pixels)
+        {
+            var body = text.EndsWith("px") ? text.Substring(0, text.Length - 2) : text;
+            return TryParseNumber(body, out pixels);
+        }
+
+        public static bool TryParseMilliseconds(string text, out float milliseconds)
+        {
+            // ms を先に見ないと "160ms" を秒として読んでしまう
+            // Check ms first or "160ms" would be read as seconds
+            if (text.EndsWith("ms")) return TryParseNumber(text.Substring(0, text.Length - 2), out milliseconds);
+            if (text.EndsWith("s") && TryParseNumber(text.Substring(0, text.Length - 1), out var seconds))
+            {
+                milliseconds = seconds * 1000f;
+                return true;
+            }
+            return TryParseNumber(text, out milliseconds);
+        }
+
+        private static bool TryParseNumber(string text, out float value)
+        {
+            return float.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
+        }
+    }
+}

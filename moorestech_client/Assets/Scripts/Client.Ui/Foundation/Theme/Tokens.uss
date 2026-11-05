@@ -7,7 +7,7 @@
     --screen-vignette-center-y: 46%;
     --screen-vignette-clear-stop: 66%;
     --screen-vignette-clear: rgba(4, 5, 8, 0);
-    --screen-vignette-edge: rgba(4, 5, 8, 0.16);
+    --screen-vignette-edge: rgba(4, 5, 8, 0.3186); /* web: rgba(4, 5, 8, 0.16) α補正 */
     --slot-size: 48px;
     --hotbar-slot-size: 51.68px;
     --hotbar-slot-gap: 5px;
@@ -21,21 +21,26 @@
     --equipment-slot-gap: var(--hotbar-slot-gap);
     --equipment-right: 24px;
     --equipment-bottom: var(--hotbar-bottom);
-    --surface-navy: rgba(10, 14, 27, 0.8);
+    --surface-navy: rgba(10, 14, 27, 0.971); /* web: rgba(10, 14, 27, 0.8) α補正 */
     --panel-edge-fade: 12px;
     --craft-grip-size: 8.74px;
     --craft-grip-inset: 6.98px;
     --craft-grip-offset: 0.4px;
-    --craft-grip-face: rgba(134, 136, 152, 0.98);
+    --craft-grip-face: rgba(134, 136, 152, 0.9565); /* web: rgba(134, 136, 152, 0.98) α補正 */
     --key-hint-font-size: 25px;
     --key-hint-line-height: 1.2;
+    --key-hint-letter-spacing: 1.375px; /* em: 0.055em × var(--key-hint-font-size) */
     --key-hint-font-weight: 500;
+    --key-hint-text-shadow: 0.35px 0.35px 0 rgba(0, 0, 0, 0.8); /* web: 0.35px 0.35px 0 rgb(0 0 0 / 80%) */
     --full-screen-gate-face: rgb(0, 0, 0);
     --text-default: #eee;
     --text-high-contrast: #fff;
     --text-muted: #a6a7ab;
     --text-insufficient: #ff7878;
     --color-content-primary: #f2f3f7;
+    --recipe-action-background-start: #0072d8;
+    --recipe-action-background-middle: #008fed;
+    --recipe-action-background-end: #04d8ec;
     --menu-upper-safe-area: 168px;
     --menu-lower-safe-area: 70px;
     --inventory-slot-base-size: 30.123px;
@@ -61,17 +66,18 @@
     --challenge-hud-content-width: 250px;
     --challenge-hud-width: 278px; /* calc: var(--challenge-hud-content-width) + var(--hud-panel-padding) * 2 */
     --challenge-hud-rule-width: 88px;
-    --challenge-hud-label-font-size: 12px;
+    --challenge-hud-label-font-size: 13px; /* web: 12px 下限13px */
     --challenge-hud-objective-font-size: 14px;
     --challenge-hud-label-rule-gap: 5px;
     --challenge-hud-rule-list-gap: 8px;
     --challenge-hud-objective-gap: 2px;
     --challenge-hud-letter-spacing: 1px;
     --challenge-hud-objective-line-height: 20px;
+    --challenge-hud-text-shadow: 0.35px 0.35px 0 rgba(0, 0, 0, 0.8); /* web: 0.35px 0.35px 0 rgb(0 0 0 / 80%) */
     --operation-hud-right: 24px;
     --operation-hud-top: 24px;
     --operation-hud-width: 288px;
-    --operation-hud-label-font-size: 12px;
+    --operation-hud-label-font-size: 13px; /* web: 12px 下限13px */
     --operation-hud-detail-font-size: 17px;
     --operation-hud-label-rule-gap: 5px;
     --operation-hud-rule-list-gap: 8px;
@@ -82,7 +88,9 @@
     --tooltip-padding-block: 6px;
     --tooltip-padding-inline: 10px;
     --tooltip-max-width: 320px;
-    --tooltip-face: rgba(16, 20, 28, 0.94);
+    --tooltip-face: rgba(16, 20, 28, 0.9979); /* web: rgba(16, 20, 28, 0.94) α補正 */
+    --tooltip-border-width: 1px;
+    --tooltip-border-color: rgba(255, 255, 255, 0.0358); /* web: rgba(255, 255, 255, 0.22) α補正 */
     --delete-mode-warning-band-height: 20px;
     --delete-mode-warning-stripe-size: 32px;
     --delete-mode-warning-stripe-angle: 117deg;
@@ -106,20 +114,21 @@
     --build-menu-detail-top-safe-area: 33.565749px; /* calc: var(--bevel-3) + var(--icon-button-size) + 8px */
     --world-pin-face: var(--surface-navy);
     --world-pin-arrow-size: 56px;
-    --world-pin-arrow-shadow: rgba(0, 0, 0, 0.65);
+    --world-pin-arrow-shadow: rgba(0, 0, 0, 0.9007); /* web: rgba(0, 0, 0, 0.65) α補正 */
     --world-pin-edge-margin: 40px;
     --tutorial-drag-guide-size: 56px;
     --tutorial-drag-guide-duration: 3200ms;
     --tutorial-highlight-label-gap: 4px;
+    --label-face-padding: 4px 10px;
     --label-face-font-size: 14px;
     --tutorial-key-hint-hotbar-gap: 72px;
     --tutorial-key-hint-gap: 6px;
     --tutorial-key-hint-kbd-gap: 10px;
     --tutorial-key-hint-color: var(--tutorial-attention-red);
-    --tutorial-drag-guide-shadow: rgba(0, 0, 0, 0.65);
+    --tutorial-drag-guide-shadow: rgba(0, 0, 0, 0.9007); /* web: rgba(0, 0, 0, 0.65) α補正 */
     --tutorial-highlight-glow: 4px;
     --tutorial-attention-red: #ff0000;
-    --tutorial-attention-glow: rgba(255, 0, 0, 0.24);
+    --tutorial-attention-glow: rgba(255, 0, 0, 0.4532); /* web: rgba(255, 0, 0, 0.24) α補正 */
     --tutorial-pulse-duration: 1200ms;
     --mode-switch-gap: 4px;
     --mode-switch-padding-block: 5px;
@@ -127,7 +136,7 @@
     --mode-switch-selected-mix: 30%;
     --progress-arrow-width: 64px;
     --progress-arrow-height: 12px;
-    --craft-arrow-outline: rgba(79, 224, 244, 0.7);
+    --craft-arrow-outline: rgba(79, 224, 244, 0.4563); /* web: rgba(79, 224, 244, 0.7) α補正 */
     --craft-arrow-width: 53.622px;
     --craft-arrow-height: 30.53px;
     --research-node-face: var(--surface-navy);
@@ -154,7 +163,7 @@
     --recipe-duration-text-size: 13px;
     --recipe-list-scrollbar-reserve: 4px;
     --recipe-entry-bleed: 5px;
-    --recipe-info-text-size: 12px;
+    --recipe-info-text-size: 13px; /* web: 12px 下限13px */
     --recipe-info-icon-size: 36.8px;
     --recipe-slot-gap: 10px;
     --recipe-slot-size-max: 36.8px;

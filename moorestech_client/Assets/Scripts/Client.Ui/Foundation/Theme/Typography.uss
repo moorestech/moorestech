@@ -1,0 +1,11 @@
+/* 文字の既定。フォントは Latin→JP→KR のフォールバック、CJK のロケールは JP を先頭にする（plan.md §3.10）。合成の太字は使わない */
+/* Text defaults; fonts fall back Latin→JP→KR and CJK locales lead with JP (plan.md §3.10); no synthetic bold */
+:root {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatin%20SDF.asset");
+    font-size: 14px;
+    color: var(--control-text);
+}
+
+.game-ui-locale--cjk {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
+}
