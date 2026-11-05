@@ -47,5 +47,20 @@ namespace Client.Tests.BugReport
             var missing = handler.ExecuteAsync(new JObject { ["description"] = "説明" }).GetAwaiter().GetResult();
             Assert.AreEqual("invalid_kind", missing.Error);
         }
+
+        [Test]
+        public void 空白本文でも種別を先に解く()
+        {
+            // 種別が不正なら本文が空でも invalid_kind、種別が正しければコマンドが empty_description で拒否する
+            // An invalid kind yields invalid_kind even with a blank description; a valid kind lets the command refuse as empty_description
+            var handler = new BugReportSubmitActionHandler(PauseMenuCommandsTestFactory.Create(new PauseMenuStateService()));
+
+            var invalidKind = handler.ExecuteAsync(new JObject { ["description"] = "  ", ["kind"] = "crash" }).GetAwaiter().GetResult();
+            Assert.AreEqual("invalid_kind", invalidKind.Error);
+
+            var blank = handler.ExecuteAsync(new JObject { ["description"] = "  ", ["kind"] = "bug" }).GetAwaiter().GetResult();
+            Assert.IsFalse(blank.Ok);
+            Assert.AreEqual("empty_description", blank.Error);
+        }
     }
 }

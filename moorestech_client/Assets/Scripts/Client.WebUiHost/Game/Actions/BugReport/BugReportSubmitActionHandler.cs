@@ -23,10 +23,6 @@ namespace Client.WebUiHost.Game.Actions
         {
             var description = payload?["description"]?.ToString() ?? "";
 
-            // 本文が空なら種別より先に empty_description で拒否する（今の失敗コードの順を保つ）
-            // An empty description is refused as empty_description before the kind check, keeping the existing code order
-            if (description.Trim().Length == 0) return ToActionResult(await _commands.SubmitBugReport(description, PlaytestReportKind.Bug));
-
             // 種別は webui のトグルが必ず載せる。文字列からの変換はこの payload パースだけで行う
             // The webui toggle always sends a kind; the string is converted only at this payload parse
             var kindText = payload?["kind"]?.ToString() ?? "";
