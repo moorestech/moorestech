@@ -2,6 +2,7 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Routing;
 using Client.Ui.Foundation.Text;
+using Client.Ui.Screens.Toast;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Toast;
@@ -29,6 +30,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<PauseMenuModel>().AsSelf();
             builder.RegisterEntryPoint<SettingsModel>().AsSelf();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<ToastLayerPresenter>();
         }
     }
 }
