@@ -43,4 +43,6 @@
     bottom: 16px;
     flex-direction: column;
     align-items: flex-end;
+    --toast-host-enter-duration: var(--notification-enter-duration);
+    --toast-host-exit-duration: var(--notification-exit-duration);
 }

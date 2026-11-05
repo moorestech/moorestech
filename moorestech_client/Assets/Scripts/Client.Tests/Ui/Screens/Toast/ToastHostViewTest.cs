@@ -1,6 +1,7 @@
 using Client.Ui.Screens.Toast;
 using Client.Ui.State.Toast;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.Toast
@@ -73,6 +74,31 @@ namespace Client.Tests.Ui.Screens.Toast
             simulate.FrameUpdateMs(0);
             Assert.AreEqual(PickingMode.Ignore, _host.pickingMode);
             Assert.AreEqual(PickingMode.Ignore, _host[0].pickingMode);
+        }
+
+        [Test]
+        public void スタイル解決前のPushは解決後に出る()
+        {
+            var early = new ToastHostView(Catalog.Toast);
+            early.Push(new GameUiToast("early", GameUiToastVariant.Info));
+            Assert.AreEqual(0, early.childCount);
+            rootVisualElement.Add(early);
+            simulate.FrameUpdateMs(0);
+            Assert.AreEqual(1, early.childCount);
+        }
+
+        [Test]
+        public void Feedへ出たトーストを購読したホストが積む()
+        {
+            var layer = new VisualElement();
+            rootVisualElement.Add(layer);
+            var host = new ToastHostView(Catalog.Toast);
+            layer.Add(host);
+            using var subscription = Toasts.OnToast.Subscribe(host.Push);
+            simulate.FrameUpdateMs(0);
+            Toasts.Show("fed", GameUiToastVariant.Info);
+            simulate.FrameUpdateMs(0);
+            Assert.AreEqual(1, host.childCount);
         }
 
         [Test]
