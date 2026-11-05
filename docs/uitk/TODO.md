@@ -85,6 +85,7 @@
 
 | 束 | コミット | 判定 | 写し先・理由 |
 |---|---|---|---|
+| 1 | a97575e5b5 | 写した | R1 の全面オフ（C# UiRoutingState.WebUiSuspended を Web が受けて unmount） |
 
 ## 参照キャプチャ
 
