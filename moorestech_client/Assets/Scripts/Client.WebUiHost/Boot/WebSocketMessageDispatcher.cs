@@ -49,7 +49,7 @@ namespace Client.WebUiHost.Boot
                     if (!conn.EnqueueAction(msg)) UnityEngine.Debug.LogWarning($"[WebSocketHub] action '{msg.Type}' dropped: connection stopping");
                     break;
                 case "input_state":
-                    WebUiInputExclusivity.SetState(msg.PointerOverUi, msg.TextInputFocused);
+                    UiInputExclusivity.SetState(msg.PointerOverUi, msg.TextInputFocused);
                     break;
                 case "ping":
                     conn.EnqueueSend(WebSocketEnvelope.BuildControl("pong"));

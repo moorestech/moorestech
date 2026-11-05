@@ -171,7 +171,7 @@ namespace Client.WebUiHost.Boot
             // Once either loop ends, stop the other and unregister the connection
             conn.RequestStop();
             _connections.TryRemove(id, out _);
-            if (_connections.IsEmpty) WebUiInputExclusivity.SetState(false, false);
+            if (_connections.IsEmpty) UiInputExclusivity.SetState(false, false);
         }
 
         public async Task<WebSocketCloseResult> CloseAllAsync()

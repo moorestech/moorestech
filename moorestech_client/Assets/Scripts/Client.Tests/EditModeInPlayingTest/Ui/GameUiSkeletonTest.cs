@@ -73,7 +73,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                     Assert.AreEqual(UiScreen.PauseMenu, routingState.Current.Value.Screen);
                     Assert.IsTrue(routingState.Current.Value.WebUiSuspended, $"ポーズで Web が休止していない: {routingState.Current.Value}");
                     Assert.IsFalse(cefRawImage.enabled, "休止中に CEF の RawImage が有効のまま");
-                    Assert.IsFalse(WebUiInputExclusivity.IsPointerOverWebUi, "休止中に Web がポインタを主張している");
+                    Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "休止中に Web がポインタを主張している");
 
                     // 閉じると CEF が戻る
                     // Closing brings the CEF picture back
@@ -157,7 +157,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             var picked = panel.Pick(panelPosition);
             var isOverGameObject = EventSystem.current.IsPointerOverGameObject();
             var isOverAnyUi = UiPointerHitTest.IsPointerOverAnyUi();
-            Debug.Log($"[GameUiSkeletonTest] {label} center={center} panelPos={panelPosition} picked={(picked == null ? "null" : picked.name + "/" + picked.GetType().Name)} overGameObject={isOverGameObject} overAnyUi={isOverAnyUi} lock={UnityEngine.Cursor.lockState} webPointer={WebUiInputExclusivity.IsPointerOverWebUi}");
+            Debug.Log($"[GameUiSkeletonTest] {label} center={center} panelPos={panelPosition} picked={(picked == null ? "null" : picked.name + "/" + picked.GetType().Name)} overGameObject={isOverGameObject} overAnyUi={isOverAnyUi} lock={UnityEngine.Cursor.lockState} webPointer={UiInputExclusivity.IsPointerOverWebUi}");
             return (picked, isOverGameObject, isOverAnyUi);
         }
     }

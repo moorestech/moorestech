@@ -34,7 +34,7 @@ namespace Client.Game.InGame.Player
 
             // 文字入力中の停止は自機の初期化後に張る。フォーカスは受信スレッド発なのでメインスレッドへ移す
             // Hook the text-input stop after the player is initialized; focus comes from the socket thread, so hop to the main thread
-            new TextInputMovementLockApplier(playerObjectController).Initialize(WebUiInputExclusivity.TextInputFocused.ObserveOnMainThread());
+            new TextInputMovementLockApplier(playerObjectController).Initialize(UiInputExclusivity.TextInputFocused.ObserveOnMainThread());
         }
 
         // 地形構築の完了をFinalizerから受けて、自機の実行を開始する
