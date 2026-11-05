@@ -103,7 +103,7 @@
 .unity-scroller--vertical {
     width: 8px;
     border-width: 0;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: transparent;
 }
 
 .unity-scroller__low-button,
