@@ -156,7 +156,7 @@
 
 **Interfaces:**
 - Produces:
-  - `public sealed class UiAssetCatalog : ScriptableObject`（`[CreateAssetMenu]` は付けない）。`[SerializeField] private StyleSheet gamePanel, panelActionButton, modeSwitch, toast, pauseMenu, settings, bugReport;` と同名の読み出し（`public StyleSheet GamePanel => gamePanel;` 等。素通しの読み出しは「単純 getter 禁止」の例外としてシリアライズ値の公開に限る＝前例は D-24）。`public void ValidateAllAssigned()` が欠けた名前を全部並べて `InvalidOperationException`
+  - `public sealed class UiAssetCatalog : ScriptableObject`（`[CreateAssetMenu]` は付けない）。`[SerializeField] private StyleSheet gamePanel, panelActionButton, modeSwitch, toast;`（画面の `pauseMenu`・`settings`・`bugReport` は Task 4 が USS と一緒に足す） と同名の読み出し（`public StyleSheet GamePanel => gamePanel;` 等。素通しの読み出しは「単純 getter 禁止」の例外としてシリアライズ値の公開に限る＝前例は D-24）。`public void ValidateAllAssigned()` が欠けた名前を全部並べて `InvalidOperationException`
   - `public sealed class PanelActionButton : Button`（ctor `(string testid, LocalizationKey label, StyleSheet sheet)`、`focusable=false`、ラベルは `LocalizedLabel`、`clicked` に購読）
   - `public sealed class ModeSwitch<TValue> : VisualElement`（ctor `(string testid, ModeSwitchOrientation orientation, IReadOnlyList<ModeSwitchOption<TValue>> options, StyleSheet sheet)`。`IObservable<TValue> OnSelected`、`void SetSelected(TValue value)`（一致しなければ無選択）、`void SetSelectedNone()`、`void SetEnabledAll(bool enabled)`。選択は `--selected` クラス。各選択肢は `focusable=false` の Button で `name=option.Testid`）
   - `public sealed class ModeSwitchOption<TValue> { string Testid; TValue Value; LocalizationKey LabelKey; string LiteralLabel; }`（ラベルはキーか、言語名・`300m` のような翻訳しない値の文字列のどちらか 1 つ。両方・どちらも無しは ctor で例外）
@@ -173,7 +173,7 @@
 
 **Files:**
 - Create: `Client.Ui/Screens/PauseMenu/{PauseMenuView.cs,PauseMenuTopPageView.cs,PauseMenuSubPageView.cs,PauseMenu.uss}`、`Client.Ui/Screens/Settings/{LanguageSelectView.cs,SprintModeSelectView.cs,GraphicsQualitySettingsView.cs,GraphicsQualityItemRows.cs,Settings.uss}`、`Client.Ui/Screens/BugReport/{BugReportFormView.cs,BugReportDraft.cs,BugReportRecoveryControlsView.cs,BugReport.uss}`
-- Modify: `GameUiAssetCatalog.asset`（uloop で 3 つの USS を入れる）
+- Modify: `Client.Ui/Foundation/Assets/UiAssetCatalog.cs`（`pauseMenu`・`settings`・`bugReport` のフィールドと読み出し・`ValidateAllAssigned` への追加）、`GameUiAssetCatalog.asset`（uloop で 3 つの USS を入れる）
 - Test: `Client.Tests/Ui/Screens/PauseMenu/{PauseMenuViewTest.cs,FakePauseMenuModel.cs,RecordingPauseMenuCommands.cs}`、`Client.Tests/Ui/Screens/Settings/{SettingsViewTest.cs,FakeSettingsModel.cs,RecordingSettingsCommands.cs}`、`Client.Tests/Ui/Screens/BugReport/BugReportFormViewTest.cs`
 
 **Interfaces:**
