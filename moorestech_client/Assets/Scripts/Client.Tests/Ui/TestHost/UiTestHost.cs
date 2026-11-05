@@ -13,12 +13,12 @@ namespace Client.Tests.Ui.TestHost
     /// <remarks>
     /// 拡張点: 継承し、[SetUp] か各テストで rootVisualElement（または UiLayerStack.Build(rootVisualElement) の層）へ View を Add し、simulate.FrameUpdate() でレイアウトしてから検証する
     /// Extension: inherit, Add the view to rootVisualElement (or a layer from UiLayerStack.Build(rootVisualElement)) in [SetUp] or a test, then call simulate.FrameUpdate() to lay out before asserting
+    /// トークン・テーマ・フォントは本番 PanelSettings の themeStyleSheet（GameUiTheme.tss）から当たる
+    /// Tokens, theme and fonts come from the production PanelSettings themeStyleSheet (GameUiTheme.tss)
     /// </remarks>
     public abstract class UiTestHost : UITestFixture
     {
         private const string GameUiPanelSettingsPath = "Assets/UI Toolkit/GameUi/GameUiPanelSettings.asset";
-        private const string TokenUssDirectory = "Assets/Scripts/Client.Ui/Foundation/Theme";
-        private static readonly string[] TokenUssFileNames = { "Tokens.uss", "SkitTokens.uss", "SlotTokens.uss" };
         private static readonly Vector2 GameUiPanelSize = new(1280, 720);
 
         [OneTimeSetUp]
@@ -32,20 +32,6 @@ namespace Client.Tests.Ui.TestHost
 
             themeStyleSheet = panelSettings.themeStyleSheet;
             panelSize = GameUiPanelSize;
-        }
-
-        [SetUp]
-        public void SetUpTokenStyleSheets()
-        {
-            // 基底の TearDown がルートのスタイルシートを消すので、トークン USS はテストごとに当て直す
-            // The base TearDown clears the root style sheets, so reapply the token USS for every test
-            foreach (var fileName in TokenUssFileNames)
-            {
-                var path = $"{TokenUssDirectory}/{fileName}";
-                var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(path);
-                if (styleSheet == null) Assert.Fail($"Token USS not found: {path}");
-                rootVisualElement.styleSheets.Add(styleSheet);
-            }
         }
     }
 }

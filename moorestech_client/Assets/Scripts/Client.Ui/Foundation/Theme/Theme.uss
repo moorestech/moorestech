@@ -1,0 +1,146 @@
+/* 既定ランタイムテーマの部品を暗色へ塗り替える。スライダーの入力部の高さが 0 になる癖もここで直す（plan.md §3.5） */
+/* Repaints default runtime theme controls dark; also fixes the slider input's zero-height quirk here (plan.md §3.5) */
+
+.unity-button {
+    margin: 0;
+    padding: 4px 12px;
+    border-width: 1px;
+    border-radius: 6px;
+    border-color: var(--control-border);
+    background-color: var(--control-face);
+    color: var(--control-text);
+    transition-property: background-color, border-color, scale;
+    transition-duration: 0.12s;
+}
+
+.unity-button:hover {
+    background-color: var(--control-face-hover);
+    border-color: var(--control-accent);
+}
+
+.unity-button:active {
+    scale: 0.96 0.96;
+    background-color: var(--control-face-active);
+}
+
+.unity-base-field {
+    margin: 0;
+    color: var(--control-text);
+    align-items: center;
+}
+
+.unity-base-field__label {
+    color: var(--control-label);
+    min-width: 0;
+    padding: 0 6px 0 0;
+    -unity-text-align: middle-left;
+}
+
+/* 既定テーマでは入力部の高さが0になり、トラックがラベルの上へずれるため明示する */
+/* The default theme leaves the slider input at zero height, shifting the track above the label */
+.unity-base-slider--horizontal .unity-base-slider__input {
+    height: 20px;
+}
+
+.unity-base-slider--horizontal .unity-base-slider__drag-container {
+    flex-grow: 1;
+    height: 20px;
+}
+
+.unity-base-popup-field__input,
+.unity-base-text-field__input {
+    border-width: 1px;
+    border-radius: 6px;
+    border-color: var(--control-border);
+    background-color: var(--control-input-face);
+    color: var(--control-text);
+    padding: 4px 8px;
+}
+
+.unity-base-popup-field__input:hover,
+.unity-base-text-field__input:hover {
+    border-color: var(--control-border-hover);
+}
+
+.unity-base-text-field:focus .unity-base-text-field__input {
+    border-color: var(--control-accent);
+}
+
+.unity-base-popup-field__arrow {
+    -unity-background-image-tint-color: var(--control-label);
+}
+
+.unity-base-slider__tracker {
+    top: 50%;
+    height: 4px;
+    margin-top: -2px;
+    border-width: 0;
+    border-radius: 2px;
+    background-color: var(--control-border);
+}
+
+.unity-base-slider__dragger {
+    top: 50%;
+    width: 14px;
+    height: 14px;
+    margin-top: -7px;
+    border-width: 2px;
+    border-radius: 7px;
+    border-color: var(--control-dragger-rim);
+    background-color: var(--control-accent);
+}
+
+.unity-toggle__checkmark {
+    width: 18px;
+    height: 18px;
+    border-width: 1px;
+    border-radius: 4px;
+    border-color: var(--control-border);
+    background-color: var(--control-input-face);
+    -unity-background-image-tint-color: var(--control-accent);
+}
+
+.unity-scroller--vertical {
+    width: 8px;
+    border-width: 0;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.unity-scroller__low-button,
+.unity-scroller__high-button {
+    display: none;
+}
+
+.unity-scroller .unity-base-slider__tracker {
+    top: 0;
+    bottom: 0;
+    width: 8px;
+    height: auto;
+    margin: 0;
+    background-color: var(--control-scroller-track);
+}
+
+.unity-scroller .unity-base-slider__dragger {
+    width: 8px;
+    height: auto;
+    margin: 0;
+    left: 0;
+    border-width: 0;
+    border-radius: 4px;
+    background-color: var(--control-border);
+}
+
+/* ドロップダウンのポップアップ（パネル直下へ出る） / dropdown popup (spawned at panel root) */
+.unity-base-dropdown__container-outer {
+    background-color: var(--control-popup-face);
+    border-color: var(--control-border);
+    border-radius: 6px;
+}
+
+.unity-base-dropdown__item {
+    color: var(--control-text);
+}
+
+.unity-base-dropdown__item:hover {
+    background-color: var(--control-popup-item-hover);
+}

@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Root
 {
     /// <summary>
-    /// UITK の UIDocument 1 枚を持ち、トークン USS を当てて層スタックを組む
-    /// Owns the single UITK UIDocument, applies the token style sheets and builds the layer stack
+    /// UITK の UIDocument 1 枚を持ち、層スタックを組む（トークンはテーマ TSS から当たる）
+    /// Owns the single UITK UIDocument, builds the layer stack (tokens come from the theme TSS)
     /// </summary>
     public class GameUiRoot : MonoBehaviour
     {
@@ -16,7 +16,6 @@ namespace Client.Ui.Foundation.Root
         public static GameUiRoot Instance => _instance;
 
         [SerializeField] private UIDocument uiDocument;
-        [SerializeField] private StyleSheet[] tokenStyleSheets;
         [SerializeField] private RawImage cefRawImage;
 
         private UiLayerStack _layers;
@@ -26,11 +25,8 @@ namespace Client.Ui.Foundation.Root
             _instance = this;
             // 必須参照が欠けたら起動の段階で止める
             // Stop at startup when a required reference is missing
-            if (uiDocument == null || cefRawImage == null || tokenStyleSheets == null || tokenStyleSheets.Length == 0) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
+            if (uiDocument == null || cefRawImage == null) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
             var root = uiDocument.rootVisualElement;
-            foreach (var sheet in tokenStyleSheets) root.styleSheets.Add(sheet);
-            // 後続で UiAssetCatalog ができたらトークンの当て方もそこへ寄せる
-            // Once UiAssetCatalog lands, route the token sheets through it as well
             _layers = UiLayerStack.Build(root);
         }
 

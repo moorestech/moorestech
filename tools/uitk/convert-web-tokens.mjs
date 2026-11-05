@@ -61,6 +61,12 @@ for (const { source, output, tokens } of tokensBySource) {
   lines.push("}");
   writeOutput(output, lines);
 }
+// ControlTokens.uss は手書きで変換器を通らないため、半透明の行をここで足す（Web の値は PoC のもの）
+// ControlTokens.uss is hand-written and bypasses the converter, so its translucent row is added here (Web value from the PoC)
+const handWrittenControlRows = [
+  `| \`--control-scroller-track\` | \`rgba(255, 255, 255, 0.04)\` | \`rgba(255, 255, 255, 0.0008)\` | ${translucencyMethod} |`,
+];
+
 writeOutput(exclusionFileName, exclusionLines);
 writeTranslucentTable(converter.translucentRows);
 
@@ -81,6 +87,7 @@ function writeTranslucentTable(rows) {
     "| トークン | Web の値 | UITK の値 | 決め方 |",
     "| --- | --- | --- | --- |",
     ...rows.map((row) => `| \`${row.name}\` | \`${row.webValue}\` | \`${row.ussValue}\` | ${translucencyMethod} |`),
+    ...handWrittenControlRows,
   ];
   writeFileSync(join(repositoryRoot, translucentTablePath), `${lines.join("\n")}\n`);
   console.log(`wrote ${translucentTablePath} (${rows.length} rows)`);
