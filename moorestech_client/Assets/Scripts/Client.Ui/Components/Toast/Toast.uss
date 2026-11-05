@@ -1,0 +1,35 @@
+/* トースト 1 件。Web は Mantine Notification（右下・withBorder・info=blue / error=red）。GameUi では GamePanel の面に種別の左帯を付ける（D-17） */
+/* One toast; the Web uses Mantine Notification (bottom-right, withBorder, info=blue / error=red); GameUi puts a variant-colored left strip on the GamePanel face (D-17) */
+
+.toast-item {
+    --toast-item-face: var(--surface-navy);
+    --toast-item-border: var(--notification-border);
+    --toast-item-text: var(--game-panel-text);
+    --toast-item-strip-info: var(--color-accent);
+    --toast-item-strip-error: var(--color-danger);
+    flex-direction: row;
+    align-items: center;
+    min-width: var(--notification-width);
+    max-width: 400px;
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-width: 1px 1px 1px 4px;
+    border-color: var(--toast-item-border);
+    background-color: var(--toast-item-face);
+}
+
+.toast-item--info {
+    border-left-color: var(--toast-item-strip-info);
+}
+
+.toast-item--error {
+    border-left-color: var(--toast-item-strip-error);
+}
+
+.toast-item__text {
+    flex-shrink: 1;
+    margin: 0;
+    padding: 0;
+    color: var(--toast-item-text);
+    white-space: normal;
+}

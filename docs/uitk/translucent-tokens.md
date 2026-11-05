@@ -26,3 +26,6 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--game-panel-rule-bottom-peak` | `rgba(128, 132, 159, 0.42)` | `rgba(128, 132, 159, 0.2034)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-rule-bottom-end` | `rgba(128, 132, 159, 0.26)` | `rgba(128, 132, 159, 0.0946)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-triangle-face` | `rgba(94, 100, 128, 0.2)` | `rgba(94, 100, 128, 0.0764)` | 面色を背景にした厳密式（S7） |
+| `--panel-action-hover-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 22%)` = `rgba(35, 38, 51, 0.844)` | `rgba(35, 38, 51, 0.9832)` | α 近似補正（S7）。部品の段で実機で決める |
+| `--mode-switch-selected-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 30%)` = `rgba(43, 46, 59, 0.86)` | `rgba(43, 46, 59, 0.9868)` | α 近似補正（S7）。部品の段で実機で決める |
+| `--panel-action-text-outline` | `rgb(0 0 0 / 70%)` | `rgba(0, 0, 0, 0.9293)` | α 近似補正（S7）。部品の段で実機で決める |
