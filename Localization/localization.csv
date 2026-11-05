@@ -490,3 +490,8 @@ ui.blockInventory.spaceElevatorSatelliteInput,GPU satellite input,GPU satellite 
 ui.blockInventory.spaceElevatorResultOutput,Result output,Result output,成果の出口,Ergebnisausgang,결과 출구
 ui.blockInventory.spaceElevatorStatusInletBlocked,Remove the unsupported item from the inlet,Remove the unsupported item from the inlet,入口の運べないアイテムを取り出してください,Entferne den nicht transportierbaren Gegenstand aus dem Eingang,입구에서 운반할 수 없는 아이템을 꺼내세요
 ui.blockInventory.detailLoading,Waiting for status,Waiting for status,状態の取得を待っています,Warte auf Status,상태를 기다리는 중입니다
+ui.commandRejected.emptyDescription,Write what happened before sending,Write what happened before sending,送信する前に何が起きたかを書いてください,Beschreibe vor dem Senden was passiert ist,보내기 전에 무슨 일이 있었는지 적어 주세요
+ui.commandRejected.unsubmittableReportKind,This report type cannot be sent from the pause menu,This report type cannot be sent from the pause menu,この種類の報告はポーズメニューから送れません,Diese Berichtsart kann nicht aus dem Pausenmenü gesendet werden,이 종류의 보고는 일시정지 메뉴에서 보낼 수 없습니다
+ui.commandRejected.captureRefused,Cannot send right now: the records are not ready or another report is being sent,Cannot send right now: the records are not ready or another report is being sent,今は送れません。記録の準備中か、別の報告を送信中です,Senden gerade nicht möglich: Die Aufzeichnung ist nicht bereit oder ein anderer Bericht wird gesendet,지금은 보낼 수 없습니다. 기록을 준비 중이거나 다른 보고를 보내는 중입니다
+ui.commandRejected.bundleWriteFailed,Could not write the bug report,Could not write the bug report,バグ報告を書き出せませんでした,Fehlerbericht konnte nicht geschrieben werden,버그 신고를 작성하지 못했습니다
+ui.commandRejected.unknownLanguage,This language cannot be selected,This language cannot be selected,この言語は選べません,Diese Sprache kann nicht ausgewählt werden,이 언어는 선택할 수 없습니다

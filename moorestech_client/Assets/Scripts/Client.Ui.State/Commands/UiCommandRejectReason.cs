@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.BugReport.Submit;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.State.Commands
 {
@@ -13,8 +14,8 @@ namespace Client.Ui.State.Commands
     }
 
     /// <summary>
-    /// 拒否理由の性質（良性か）と Web の失敗コードへの写し
-    /// Nature of each reject reason (benign or not) and its mapping to the Web failure code
+    /// 拒否理由の性質（良性か）と、Web の失敗コード・GameUi の表示文言への写し
+    /// Nature of each reject reason (benign or not) and its mappings to the Web failure code and the GameUi message
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
@@ -29,6 +30,28 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.CaptureRefused => false,
                 UiCommandRejectReason.BundleWriteFailed => false,
                 UiCommandRejectReason.UnknownLanguage => false,
+                _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
+            };
+        }
+
+        // 送信手続きの失敗コードを拒否理由へ写す。書き出し失敗以外の拒否はどれも確保セッションの拒否
+        // Maps the submitter's failure code to a reject reason; every refusal other than a write failure comes from the capture session
+        public static UiCommandRejectReason FromSubmitFailureCode(string failureCode)
+        {
+            return failureCode == BugReportSubmitResult.BundleWriteFailed ? UiCommandRejectReason.BundleWriteFailed : UiCommandRejectReason.CaptureRefused;
+        }
+
+        // GameUi のトーストに出す文言。Web の失敗コードは利用者に意味が通じないので表示には使わない
+        // Message shown in the GameUi toast; the Web failure code means nothing to players, so it is never displayed
+        public static LocalizationKey ToLocalizationKey(UiCommandRejectReason reason)
+        {
+            return reason switch
+            {
+                UiCommandRejectReason.EmptyDescription => LocalizationKeys.Ui.CommandRejected.EmptyDescription,
+                UiCommandRejectReason.UnsubmittableReportKind => LocalizationKeys.Ui.CommandRejected.UnsubmittableReportKind,
+                UiCommandRejectReason.CaptureRefused => LocalizationKeys.Ui.CommandRejected.CaptureRefused,
+                UiCommandRejectReason.BundleWriteFailed => LocalizationKeys.Ui.CommandRejected.BundleWriteFailed,
+                UiCommandRejectReason.UnknownLanguage => LocalizationKeys.Ui.CommandRejected.UnknownLanguage,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

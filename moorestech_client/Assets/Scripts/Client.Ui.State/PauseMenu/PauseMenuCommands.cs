@@ -69,8 +69,7 @@ namespace Client.Ui.State.PauseMenu
             var submitted = await _submitter.SubmitAsync(trimmed, kind);
             if (!submitted.Submitted)
             {
-                var reason = submitted.FailureCode == BugReportSubmitResult.BundleWriteFailed ? UiCommandRejectReason.BundleWriteFailed : UiCommandRejectReason.CaptureRefused;
-                return new UiCommandRejected(reason, submitted.FailureCode);
+                return new UiCommandRejected(UiCommandRejectReasonTraits.FromSubmitFailureCode(submitted.FailureCode), submitted.FailureCode);
             }
 
             // 送れたらポーズは開いたままトップへ戻す。失敗時は画面を動かさず書きかけを残す

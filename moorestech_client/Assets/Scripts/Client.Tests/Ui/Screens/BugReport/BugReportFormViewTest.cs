@@ -2,6 +2,7 @@ using System.Linq;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
+using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Tests.Ui.Screens.PauseMenu;
@@ -164,7 +165,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             simulate.Click(SendButton());
             _commands.CompleteSubmit(new UiCommandRejected(UiCommandRejectReason.CaptureRefused, ""));
 
-            Assert.AreEqual("bug_report.submit failed: capture_refused", ShownToasts.Single().Text);
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.CommandRejected.CaptureRefused), ShownToasts.Single().Text, "トーストに未翻訳の失敗コードが出た");
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
             Assert.AreEqual("nice", _draft.Description);
             Assert.AreEqual(PlaytestReportKind.Feedback, _draft.Kind);

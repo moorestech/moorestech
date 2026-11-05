@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.Submit;
+using Client.Localization;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Ui.State.Commands;
 using NUnit.Framework;
@@ -76,6 +78,28 @@ namespace Client.Tests.Ui.State
             foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
             {
                 Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
+            }
+        }
+
+        // 書き出し失敗だけを BundleWriteFailed に写し、確保セッションの拒否コードは CaptureRefused に畳む
+        // Only a write failure maps to BundleWriteFailed; the capture session's refusal codes fold into CaptureRefused
+        [TestCase(BugReportSubmitResult.BundleWriteFailed, UiCommandRejectReason.BundleWriteFailed)]
+        [TestCase("no_capture_session", UiCommandRejectReason.CaptureRefused)]
+        [TestCase("capture_pending", UiCommandRejectReason.CaptureRefused)]
+        [TestCase("submit_in_flight", UiCommandRejectReason.CaptureRefused)]
+        public void 送信手続きの失敗コードを拒否理由へ写す(string failureCode, UiCommandRejectReason expected)
+        {
+            Assert.AreEqual(expected, UiCommandRejectReasonTraits.FromSubmitFailureCode(failureCode));
+        }
+
+        [Test]
+        public void どの拒否理由もトースト用の翻訳文を持つ()
+        {
+            foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
+            {
+                var text = Localize.Get(UiCommandRejectReasonTraits.ToLocalizationKey(reason));
+                Assert.IsNotEmpty(text, reason.ToString());
+                StringAssert.DoesNotContain("_", text, $"{reason} の文言が失敗コードのまま");
             }
         }
 

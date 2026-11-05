@@ -1,6 +1,7 @@
 using System.Linq;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Input;
+using Client.Localization;
 using Client.Ui.Screens.Settings;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
@@ -46,7 +47,7 @@ namespace Client.Tests.Ui.Screens.Settings
 
             _commands.SetLanguageResult(new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, ""));
             simulate.Click(Find<Button>(view, "language-select-option-japanese"));
-            Assert.AreEqual("localization.setLocale failed: unknown_locale", ShownToasts.Single().Text);
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.CommandRejected.UnknownLanguage), ShownToasts.Single().Text, "トーストに未翻訳の失敗コードが出た");
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
         }
 
