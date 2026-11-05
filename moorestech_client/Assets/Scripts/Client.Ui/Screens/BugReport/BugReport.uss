@@ -30,9 +30,20 @@
     margin-top: 8px;
 }
 
+/* 外側の高さをトークンで決め、中の TextField と入力要素を欄いっぱいに伸ばす。伸ばさないと入力要素が 1 行分の高さで止まる */
+/* The outer height comes from the token; stretch the inner TextField and its input to fill it, or the input stops at one line */
+.bug-report__description {
+    flex-shrink: 0;
+}
+
 .bug-report__description .unity-text-field {
     flex-grow: 1;
     margin: 0;
+}
+
+.bug-report__description .unity-base-text-field__input {
+    flex-grow: 1;
+    height: 100%;
 }
 
 .bug-report__recovery {
