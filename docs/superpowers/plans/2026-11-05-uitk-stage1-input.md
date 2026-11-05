@@ -178,7 +178,7 @@
 - Produces:
   - `internal static class GameUiElementQuery { UiElementSnapshot Find(VisualElement root, string testid, IGameUiScreenMapper mapper); UiSetTextResult SetText(VisualElement root, string testid, string text); }`（`IGameUiScreenMapper { Rect PanelToScreen(Rect panelRect); }`。本番は `GameUiScreenMapper`〈`Screen` と root の `worldBound` から倍率を出し、y を反転して左下原点へ〉、テストは恒等＋反転の偽）
   - `GameUiElementLocator : IUiElementLocator`（`IsAvailable` は `GameUiRoot.Instance != null`。`StartSession`・`StopSession` は何もしない〈UITK はプロセス内なので受け口が要らない〉。`Find`・`SetText` は同期結果を `UniTask.FromResult` で返す）
-  - `CompositeUiElementLocator : IUiElementLocator`（ctor で `IUiElementLocator gameUi, IUiElementLocator web`。Find: 両方を照会し、両方 Found なら `Ambiguous` を返して `Debug.LogError($"[PlaytestUi] testid '{testid}' resolved in both game UI and web UI")`、片方 Found ならそれ、どちらも無ければ GameUi が使えるなら GameUi の NotFound、使えなければ Web の結果。SetText: GameUi で Found なら GameUi に入れる、そうでなければ Web。`IsAvailable` は論理和。Start/Stop は両方へ）
+  - `CompositeUiElementLocator : IUiElementLocator`（ctor で `IUiElementLocator gameUi, IUiElementLocator web`。Find: 両方を照会し、両方 Found なら `Ambiguous` を返して `Debug.LogError($"[PlaytestUi] testid '{testid}' resolved in both game UI and web UI")`、片方 Found ならそれ、どちらにも無ければ、Web が RendererUnavailable ならそれ（CEF 未準備を期限切れの理由に残す。D-16）、そうでなければ NotFound。SetText: GameUi で Found なら GameUi に入れる、そうでなければ Web の結果。`IsAvailable` は利用者が 0 になったので interface から外した（D-16）。Start/Stop は両方へ）
 
 - [ ] **Step 1: 照会を書く** — §4.4 の 1〜4 と R-11。可視は「自身と祖先の `resolvedStyle.display != None`・`visibility == Visible`・`opacity > 0`、かつ `worldBound` の面積 > 0」。Clickable は「可視、かつ `panel.Pick(worldBound.center)` が自身か子孫」。テキストは TextField なら `value`、`TextElement` なら `text`、それ以外は子孫の `TextElement` の text を連結。状態フラグは `GetClasses()` のうち `--` を含むもの
 - [ ] **Step 2: 合成と差し替え** — 差し替え後も Web だけの既存シナリオが同じ結果になること（GameUi は層が空で常に NotFound、Web が Found を返す）を合成の L0 で固定
@@ -232,3 +232,4 @@
 - D-13 `GameTextField` の外側の箱は `focusable=false`・`pickingMode=Ignore`、testid（`name`）は内側の `TextField` に付ける（DSL の `SetText` が TextField を `name` で引くため。§3.12「testid は name に同じ綴りで」）
 - D-14 録画プレイテストは行わない（UITK の層は空で見た目は不変。入力の結線は L3 で確かめる）
 - D-15 S4 の差し替えは配布画面の挙動を変えうる唯一の変更（uGUI の Selectable のキーボード移動が止まる）。Task 3 Step 5 で依存の有無を列挙し、依存があれば要裁定へ
+- D-16 合成ロケータは「描画系が使えるか」を答えない（GameUiRoot は常にあるため論理和は CEF の準備を表せず、待ちが即座に抜ける）。待ちは probe する testid の要素待ちに寄せ、`IsAvailable` を interface から外した。どちらにも無いときは Web の RendererUnavailable を優先して返し、期限切れの例外に CEF 未準備が出るようにした（Task 5 のレビュー所見）
