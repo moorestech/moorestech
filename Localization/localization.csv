@@ -299,9 +299,15 @@ ui.tooltip.placePumpOutsideVein,Place the pump over a fluid vein it can draw fro
 ui.tooltip.placeChainBlocked,Space for the connected layout is blocked,Space for the connected layout is blocked,接続先のスペースが埋まっています,Der Platz für die verbundene Anordnung ist blockiert,연결된 배치를 위한 공간이 막혀 있습니다
 ui.tooltip.placeChainGroundNotFound,No ground under the connected layout,No ground under the connected layout,接続先に地面がありません,Kein Boden unter der verbundenen Anordnung,연결된 배치 아래에 지면이 없습니다
 ui.tooltip.placeChainGroundHeightMismatch,The connected layout does not sit level with the ground,The connected layout does not sit level with the ground,接続先の地面の高さが合っていません,Die verbundene Anordnung liegt nicht eben auf dem Boden,연결된 배치가 지면과 수평이 아닙니다
-ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden,여기서는 장애물을 넘을 수 없습니다
-ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband,이 계열에는 경사 컨베이어가 없습니다
-ui.tooltip.placeBeltTerrainClimbAbandoned,Unable to cross the terrain; the belt will be placed buried,Unable to cross the terrain; the belt will be placed buried,地形を乗り越えられないため、地形に埋めて設置します,Das Gelände kann nicht überquert werden; das Band wird eingegraben platziert,지형을 넘을 수 없어 묻힌 채로 설치됩니다
+ui.tooltip.placeBeltRouteBlockedByTerrain,Terrain blocks the route,Terrain blocks the route,地形が障害で経路を引けません,Das Gelände blockiert die Strecke,지형이 경로를 막고 있습니다
+ui.tooltip.placeBeltRouteBlockedByExistingBlock,Existing blocks block the route,Existing blocks block the route,既存ブロックが障害で経路を引けません,Vorhandene Blöcke blockieren die Strecke,기존 블록이 경로를 막고 있습니다
+ui.tooltip.placeBeltRouteBlockedByBoth,Terrain and existing blocks block the route,Terrain and existing blocks block the route,地形と既存ブロックが障害で経路を引けません,Gelände und vorhandene Blöcke blockieren die Strecke,지형과 기존 블록이 경로를 막고 있습니다
+ui.tooltip.placeBeltRouteOutOfRange,Out of routing range,Out of routing range,経路の範囲外です,Außerhalb der Streckenreichweite,경로 범위 밖입니다
+ui.tooltip.placeBeltRouteSlopeHead,Cannot place directly above a slope,Cannot place directly above a slope,坂の真上には置けません,Direkt über einem Schrägband nicht möglich,경사 바로 위에는 설치할 수 없습니다
+ui.tooltip.placeBeltBranchNotStraightBelt,Branch only from a straight belt of the same family,Branch only from a straight belt of the same family,分岐は同じ種類の直線ベルトからだけ作れます,Abzweig nur von einem geraden Band derselben Baureihe,같은 계열의 직선 벨트에서만 분기할 수 있습니다
+ui.tooltip.placeBeltBranchNoSplitter,No splitter for this belt family,No splitter for this belt family,このベルトには分岐器がありません,Für diese Baureihe gibt es keinen Verteiler,이 벨트 계열에는 분배기가 없습니다
+ui.tooltip.placeBeltBranchSideInputOccupied,This belt receives items from the side,This belt receives items from the side,このベルトは横から荷物を受けています,Dieses Band erhält Gegenstände von der Seite,이 벨트는 옆에서 아이템을 받고 있습니다
+ui.tooltip.placeBeltBranchOtherSideHasReceiver,A receiver sits beside the unused exit,A receiver sits beside the unused exit,使わない側の出口の隣に受け手があります,Neben dem ungenutzten Ausgang steht ein Empfänger,사용하지 않는 출구 옆에 받는 블록이 있습니다
 ui.tooltip.placeMaterialShortage,Missing item: {itemName} {ownedCount}/{requiredCount},Missing item: {itemName} {ownedCount}/{requiredCount},アイテム不足： {itemName} {ownedCount}/{requiredCount},Fehlender Gegenstand: {itemName} {ownedCount}/{requiredCount},부족한 아이템: {itemName} {ownedCount}/{requiredCount}
 ui.tooltip.placeWireCost,Wire x{count},Wire x{count},電線 x{count},Kabel x{count},전선 x{count}
 ui.tooltip.placeWireOutOfRangeNotice,Out of connection range: no wire will be placed,Out of connection range: no wire will be placed,接続範囲外のため配線されません,Außerhalb der Verbindungsreichweite: es wird kein Kabel verlegt,연결 범위를 벗어남: 전선이 설치되지 않습니다
