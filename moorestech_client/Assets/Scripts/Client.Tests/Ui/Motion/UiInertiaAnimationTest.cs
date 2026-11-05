@@ -42,6 +42,15 @@ namespace Client.Tests.Ui.Motion
             Assert.IsTrue(animation.Advance(1060f));
         }
 
+        [TestCase(0f)]
+        [TestCase(-0.005f)]
+        [TestCase(float.NaN)]
+        [TestCase(float.PositiveInfinity)]
+        public void RejectsNonPositiveOrNonFiniteDecay(float decay)
+        {
+            Assert.Throws<System.ArgumentOutOfRangeException>(() => new UiInertiaAnimation(InitialVelocity, decay, StopVelocity, new RecordingInertiaStep()));
+        }
+
         private sealed class RecordingInertiaStep : IUiInertiaStep
         {
             public readonly List<float> Applied = new();

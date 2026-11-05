@@ -20,6 +20,9 @@ namespace Client.Ui.Foundation.Motion.Inertia
 
         public UiInertiaAnimation(float initialVelocityPerMillisecond, float decayPerMillisecond, float stopVelocityPerMillisecond, IUiInertiaStep step)
         {
+            // 減衰率 0 以下は変位の式が 0 除算・発散になり、速度も落ちず永久に終わらないので作らせない
+            // A decay at or below zero divides by zero or diverges and never slows down, so refuse to build it
+            if (!(0f < decayPerMillisecond) || !float.IsFinite(decayPerMillisecond)) throw new System.ArgumentOutOfRangeException(nameof(decayPerMillisecond), decayPerMillisecond, "UiInertiaAnimation decay must be positive and finite");
             _initialVelocityPerMillisecond = initialVelocityPerMillisecond;
             _decayPerMillisecond = decayPerMillisecond;
             _stopVelocityPerMillisecond = stopVelocityPerMillisecond;
