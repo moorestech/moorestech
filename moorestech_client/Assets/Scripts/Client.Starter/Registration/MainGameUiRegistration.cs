@@ -1,3 +1,4 @@
+using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Routing;
 using Client.Ui.Foundation.Text;
@@ -15,6 +16,8 @@ namespace Client.Starter.Registration
             builder.RegisterComponent(gameUiRoot);
             builder.RegisterEntryPoint<WebUiSuspension>();
             builder.RegisterEntryPoint<GameUiLocaleClassBinder>();
+            builder.RegisterEntryPoint<GameUiInputInstaller>();
+            builder.RegisterEntryPoint<ImeCompositionModeApplier>();
         }
     }
 }

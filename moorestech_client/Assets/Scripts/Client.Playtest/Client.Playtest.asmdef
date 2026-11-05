@@ -9,6 +9,7 @@
         "Client.Network",
         "Client.Mod",
         "Client.Input",
+        "Client.Ui",
         "Client.WebUiHost",
         "CefUnity.Runtime",
         "CefUnity.Interop",

@@ -46,11 +46,6 @@ namespace Client.Playtest.WebUi
             _domSetText.Reset();
         }
 
-        public bool IsAvailable()
-        {
-            return CefScreenMapper.IsWebUiAvailable() && TryGetRegisteredHub(out var hub) && WebUiCefConnection.TryGetConnection(hub, out _);
-        }
-
         public async UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
             if (!TryGetRegisteredHub(out var hub)) return UiElementSnapshot.Unavailable(testid);

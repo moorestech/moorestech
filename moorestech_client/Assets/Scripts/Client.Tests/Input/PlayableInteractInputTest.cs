@@ -20,7 +20,7 @@ namespace Client.Tests.Input
 
         public override void TearDown()
         {
-            WebUiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetState(false, false);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
@@ -61,7 +61,7 @@ namespace Client.Tests.Input
             hold.Reset();
             hold.SetSubject(DeleteHoldSubject.Selection(2, 1));
             Assert.IsFalse(hold.Advance(true, 3f));
-            WebUiInputExclusivity.SetState(false, true);
+            UiInputExclusivity.SetState(false, true);
             Release(keyboard.fKey);
             InputSystem.Update();
             var suppressedPresses = 0;
@@ -73,7 +73,7 @@ namespace Client.Tests.Input
 
             // 検索欄から戻ったときは、保持中のキーで次の長押しを開始できる
             // After leaving text input, the held key can start the next confirmation
-            WebUiInputExclusivity.SetState(false, false);
+            UiInputExclusivity.SetState(false, false);
             Assert.IsTrue(interact.GetKey);
             hold.SetSubject(DeleteHoldSubject.Selection(2, 1));
             Assert.IsTrue(hold.Advance(interact.GetKey, 2f));

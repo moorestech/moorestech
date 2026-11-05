@@ -16,7 +16,11 @@ namespace Client.Game.InGame.Control
             // The over-UI check is asked for even on frames with no EventSystem; treat the uGUI side as not hovered
             var isOverUguiPanel = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 
-            return isOverUguiPanel || WebUiInputExclusivity.IsPointerOverWebUi;
+            // GameUi(UITK)のPickはprobe未登録ならfalse、WebUiは休止中ならfalse
+            // GameUi (UITK) pick is false without a probe, and the Web UI is false while suspended
+            var isOverGameUi = UiInputExclusivity.IsPointerOverGameUi(HybridInput.GetMousePosition());
+
+            return isOverGameUi || UiInputExclusivity.IsPointerOverWebUi || isOverUguiPanel;
         }
     }
 }

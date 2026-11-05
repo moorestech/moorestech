@@ -30,6 +30,13 @@ namespace Client.Ui.Foundation.Root
             _layers = UiLayerStack.Build(root);
         }
 
+        // ルート共通の入力規則とポインタ判定を付ける先
+        // Where the root-wide input rules and the pointer probe attach
+        public VisualElement GetRootElement()
+        {
+            return uiDocument.rootVisualElement;
+        }
+
         public VisualElement GetLayer(UiLayer layer)
         {
             return _layers.GetLayer(layer);

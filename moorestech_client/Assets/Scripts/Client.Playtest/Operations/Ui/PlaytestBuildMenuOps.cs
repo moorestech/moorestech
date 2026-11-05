@@ -24,15 +24,6 @@ namespace Client.Playtest.Operations.Ui
 
         public static async UniTask OpenBuildMenuAndSelectBlock(string blockName)
         {
-            // 画面UIの描画系が使えるようになるまで期限付きで待つ（CEFのブラウザ生成は非同期）
-            // Wait with a deadline for the screen-UI renderer to become available (CEF browser creation is async)
-            var rendererDeadline = Time.realtimeSinceStartup + 15f;
-            while (!PlaytestUiLocatorSession.Locator.IsAvailable())
-            {
-                if (rendererDeadline <= Time.realtimeSinceStartup) throw new InvalidOperationException("Build menu operations require an available UI renderer");
-                await UniTask.DelayFrame(5);
-            }
-
             // PlaceBlock中はBだとGameScreenへ抜けてしまうためTabで開き直す（実プレイと同じキー割当）
             // While in PlaceBlock, B exits to GameScreen, so reopen with Tab (same binding as real play)
             // キー1回のタップ取りこぼしに備え、開くまでタップを繰り返す
@@ -45,11 +36,11 @@ namespace Client.Playtest.Operations.Ui
             }
             if (PlaytestUiOps.CurrentUiState() != UIStateEnum.BuildMenu) throw new TimeoutException($"Build menu did not open (current: {PlaytestUiOps.CurrentUiState()})");
 
-            // パネル表示を待ち、BlockGuid由来の安定testidで対象エントリを選択する
-            // Wait for the panel and select the entry by its stable BlockGuid-derived testid
+            // 描画系(CEF)の準備もここで待つため30秒。BlockGuid由来の安定testidで対象エントリを選択する
+            // 30s since this also covers renderer (CEF) readiness; select the entry by its stable BlockGuid-derived testid
             var blockId = PlaytestBlockOps.ResolveBlockId(blockName);
             var entryTestid = BuildMenuBlockTestId(blockName);
-            await PlaytestUiElementOps.WaitUiElement("build-menu-panel", 15f);
+            await PlaytestUiElementOps.WaitUiElement("build-menu-panel", 30f);
 
             // 全カテゴリが1本のスクロールに並ぶため、対象ブロックのカテゴリ見出しへ送って視界に入れる
             // Every category shares one scroll list, so click the target block's category to bring its section into view

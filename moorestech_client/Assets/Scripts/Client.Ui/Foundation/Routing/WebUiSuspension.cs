@@ -43,7 +43,7 @@ namespace Client.Ui.Foundation.Routing
             // cef-unity は RawImage の有効を見ずに入力を CEF へ転送し、止める API も無い。受け手は Web 側の全 unmount で消す（既知の穴）
             // cef-unity forwards input to CEF regardless of RawImage.enabled and offers no stop API; the web's full unmount removes the receiver instead (known gap)
             _gameUiRoot.SetCefVisible(!suspended);
-            WebUiInputExclusivity.SetWebUiSuspended(suspended);
+            UiInputExclusivity.SetWebUiSuspended(suspended);
         }
     }
 }

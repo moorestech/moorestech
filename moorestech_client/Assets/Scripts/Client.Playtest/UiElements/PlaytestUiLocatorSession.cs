@@ -1,4 +1,5 @@
 using System;
+using Client.Playtest.UiElements.GameUi;
 using Client.Playtest.WebUi;
 
 namespace Client.Playtest.UiElements
@@ -11,9 +12,9 @@ namespace Client.Playtest.UiElements
     /// </summary>
     public static class PlaytestUiLocatorSession
     {
-        // 段階1はUITK版と両系合成に交換
-        // Replace with UITK and the both-renderer composite in stage 1
-        public static readonly IUiElementLocator Locator = new WebUiElementLocator();
+        // GameUiを先に探し、両系で見つかれば失敗させる
+        // Prefer GameUi and fail when both renderers resolve the testid
+        public static readonly IUiElementLocator Locator = new CompositeUiElementLocator(new GameUiElementLocator(), new WebUiElementLocator());
         private static int _generation;
         private static bool _active;
 

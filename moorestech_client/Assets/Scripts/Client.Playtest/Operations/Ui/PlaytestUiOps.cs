@@ -135,7 +135,7 @@ namespace Client.Playtest.Operations.Ui
             // The Web UI pointer-over state updates asynchronously via WS notifications from the page, so wait for the
             // previous UI click's over-UI state to clear before place clicks (otherwise IsPointerOverAnyUi eats the press)
             var deadline = Time.realtimeSinceStartup + 2f;
-            while (Client.Input.WebUiInputExclusivity.IsPointerOverWebUi)
+            while (Client.Input.UiInputExclusivity.IsPointerOverWebUi)
             {
                 if (deadline < Time.realtimeSinceStartup)
                 {

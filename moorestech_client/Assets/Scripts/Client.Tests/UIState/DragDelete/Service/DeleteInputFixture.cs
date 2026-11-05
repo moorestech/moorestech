@@ -41,7 +41,7 @@ namespace Client.Tests.UIState.DragDelete.Service
         {
             base.Setup();
             TestReflection.ResetInputManagerCache();
-            Client.Input.WebUiInputExclusivity.SetState(false, false);
+            Client.Input.UiInputExclusivity.SetState(false, false);
             foreach (var previous in GameObject.FindGameObjectsWithTag("MainCamera"))
             {
                 _previousCameras.Add(previous);
