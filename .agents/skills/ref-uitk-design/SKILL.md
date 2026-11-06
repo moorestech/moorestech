@@ -1,11 +1,13 @@
 ---
 name: ref-uitk-design
-description: moorestech のゲーム内 UI を UI Toolkit で作る規則と見た目の正本の引き方。Web 版と同じ見た目にするための層・部品カタログ・USS とトークン・画面の型・比べ方・例外の記帳を持つ。Use When — Client.Ui・Client.Ui.State・USS・tss のコードを読む・書く・レビューする時、部品・画面・HUD を足す時、色・寸法・配置・装飾・動き・入力を変える時、Web 版との見た目の差を直す・記帳する時。
+description: moorestech のゲーム内 UI を UI Toolkit（USS・tss・Client.Ui）で作る規則と、見た目の正本（Web 版）の引き方。層・部品カタログ・USS とトークン・画面の型・比べ方・例外の記帳を持つ。Use When — Client.Ui・Client.Ui.State・USS・tss のコードを読む・書く・レビューする時、UITK の部品・画面・HUD を足す時、UITK 側の色・寸法・配置・装飾・動き・入力を変える時、Web 版との見た目の差を直す・記帳する時（Web 版の CSS そのものを直す作業は ref-webui-design）。
 ---
 
 # moorestech UITK の作り方と見た目
 
 対象は `moorestech_client/Assets/Scripts/Client.Ui`（描画）と `Client.Ui.State`（画面状態）。略記: `S/` = `moorestech_client/Assets/Scripts/`、`W/` = `moorestech_web/webui/src/`。
+
+規則は逐語で守る。表に無い CSS の写し方だけはレーンが決めて `references/css-to-uss.md` に 1 行足す。
 
 **印の読み方**: 〔レーンID〕の付いた名前・仕組みは、そのレーン（`docs/uitk-migration/execution/execution-plan.md` のレーン表）が `feature/uitk` に入るまで存在しない。無い間は自分で作らず（そのレーンの持ち物）、括弧の中の今の形に従う。そのレーンは自分を取り込む PR でこの文書と references の自分の印を外す。
 
@@ -22,7 +24,7 @@ description: moorestech のゲーム内 UI を UI Toolkit で作る規則と見�
 | 層 | 置き場 | 参照してよい | 参照しない |
 |---|---|---|---|
 | Foundation | `S/Client.Ui/Foundation/<領域>/` | Client.Input・Client.Localization・UniRx・UniTask・Client.Game の入力・UIState・アンカー ID | Components・Content・Screens・Client.Ui.State の機能別の型 |
-| Components | `S/Client.Ui/Components/<族>/<部品>/` | Foundation・`Client.Ui.State` の `Text`（`UiText`）・`LocalizationKey` | Content・Screens・Client.Game・`MasterHolder`・Client.Ui.State の機能別の型 |
+| Components | `S/Client.Ui/Components/<族>/<部品>/`〔F1〕（今は平置き `Components/<部品>/`。既存の部品は F1 が namespace とともに族へそろえる。設計書 [A-7]） | Foundation・`Client.Ui.State` の `Text`（`UiText`）・`LocalizationKey` | Content・Screens・Client.Game・`MasterHolder`・Client.Ui.State の機能別の型 |
 | Content〔C3-a〕 | `S/Client.Ui/Content/` | Foundation・Components の値型・Client.Game（`ClientContext`）・Core.Master | Screens |
 | Screens | `S/Client.Ui/Screens/<機能>/` | 上のすべて・Client.Ui.State | 他の `Screens/<機能>` |
 | State | `S/Client.Ui.State/<機能>/`（別 asmdef） | Client.Game・Client.Network・Core.Master | Client.Ui・UnityEngine.UIElements |
@@ -40,28 +42,32 @@ description: moorestech のゲーム内 UI を UI Toolkit で作る規則と見�
 ## 4. 部品の書き方
 
 ```csharp
-// web: W/shared/ui/IconButton（components.md §8.6）。形の例で、IconButton と IconButtonGlyph（例 enum IconButtonGlyph { Close, … }）は〔C2-b〕が作るまで実在しない
-// web: W/shared/ui/IconButton (components.md §8.6). Shape example only; IconButton and IconButtonGlyph do not exist until C2-b
+// web: W/shared/ui/IconButton（components.md §8.6・設計書 [A-27]）。形の例で、IconButton は〔C2-b〕が作るまで実在しない
+// web: W/shared/ui/IconButton (components.md §8.6, design [A-27]). Shape example only; IconButton does not exist until C2-b
 public sealed class IconButton : VisualElement
 {
     private readonly Subject<Unit> _onClicked = new();
     public IObservable<Unit> OnClicked => _onClicked;
 
-    public IconButton(string testid, LocalizationKey accessibleLabel, IconButtonGlyph glyph)
+    public IconButton(string testid, VisualElement glyph)
     {
         // testid は name へ、ボタンでもフォーカスは持たない
         // testid goes to name; buttons never take focus
         name = testid;
         focusable = false;
         AddToClassList("icon-button");
-        // 押下は Subject で外へ出す（ラベルと × の描画は省略）
-        // Presses leave through the Subject (label and the x glyph omitted here)
+        // 図形は画面が作って渡す。描くだけの子なので Pick しない
+        // The screen builds the glyph; it only draws, so it ignores picking
+        glyph.pickingMode = PickingMode.Ignore;
+        Add(glyph);
+        // 押下は Subject で外へ出す
+        // Presses leave through the Subject
         RegisterCallback<ClickEvent>(_ => _onClicked.OnNext(Unit.Default));
     }
 }
 ```
 
-- ctor は `(string testid, …)` で `name = testid`（Web の `data-testid` と同じ綴り。DSL のシナリオがそのまま動く）。装飾だけの部品は testid を取らない。デフォルト引数を使わない
+- ctor は `(string testid, …)` で `name = testid`（Web の `data-testid` と同じ綴り。DSL のシナリオがそのまま動く）。装飾だけの部品と、他の部品の中身として置かれ Web も `data-testid` を付けない部品（`SlotContent`・`KeyCap` 等。ctor はカタログどおり）は testid を取らない。デフォルト引数を使わない
 - 表示する値は `SetXxx(値)` で受ける。値を返す素通しのプロパティを作らない（`{ get; private set; }` は可）
 - 操作は `IObservable<T> On<変化対象><過去分詞>`（中は UniRx の `Subject`）で出す。`Button.clicked`・`Action`・`event`・コールバック引数で外へ出さない。素の `Button` を中で使うなら `clicked` は部品の中で `Subject` へ流すだけにする
 - `focusable = false`。フォーカスを持つのは入力欄だけ
@@ -73,7 +79,7 @@ public sealed class IconButton : VisualElement
 
 ## 5. USS の書き方
 
-1. 1 部品 1 USS を `.cs` の横に置く（`Components/<族>/<部品>/<部品>.uss`）。画面の USS（`Screens/<機能>/<機能>.uss`）は配置とつまみの上書きだけを持つ
+1. 1 部品 1 USS を `.cs` の横に置く（`Components/<族>/<部品>/<部品>.uss`〔F1〕。今は `Components/<部品>/<部品>.uss`）。画面の USS（`Screens/<機能>/<機能>.uss`）は配置とつまみの上書きだけを持つ
 2. 新しい USS は `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` の自分の族の区画に `@import url("project://database/Assets/Scripts/Client.Ui/<…>.uss");` を 1 行足す〔F1〕（今の形: ctor が `StyleSheet` を受け、`UiAssetCatalog` に登録する）。束ね漏れと余りは `UiThemeImportBundleTest`〔F1〕が落とす
 3. 規則はルートのクラスで始める（`.item-slot …`）。クラスは BEM（ルートは部品名のケバブ、子は `__`、状態は `--`）。ルートのクラス名は全 USS で一意
 4. 他の部品のクラスを書かない。画面が部品の見た目を変えてよいのは、つまみ（Web の局所上書き変数と同じ名前のカスタムプロパティ）を画面のルートで上書きするときだけ。例 `.hotbar-hud { --slot-size: var(--hotbar-slot-size); }`
@@ -161,7 +167,7 @@ public sealed class IconButton : VisualElement
 | L1 画面 | View＋Model＋Commands の結線 | `ScreenTestHost`・`FakeModel<T>`・`CommandRecorder<T>` | `S/Client.Tests/Ui/Screens/<機能>/` | Web のコンポーネントテストと e2e のうちブラウザ固有でない全件 |
 | L2 | 規約 | `UiStyleConventionTest` ほか | `S/Client.Tests/Ui/Conventions/` | 規約を足したら違反の文字列のケースを 1 つ |
 | L3 | 実ゲームの結線 | EditModeInPlayingTest | `S/Client.Tests/EditModeInPlayingTest/Ui/` | 段ごとに 1 本（スイッチ UITK で開く・閉じる） |
-| L4 | 録画のプレイテスト | `unity-playmode-recorded-playtest` | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/` | plan §4.4 のラダー |
+| L4 | 録画のプレイテスト | `unity-playmode-recorded-playtest` | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/` | `origin/master:docs/uitk-migration/plan.md` §4.4 のラダー |
 
 - 回し方: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\."`
 - 写したテストと Web の元テストの対応は `docs/uitk/disposition.md` に書く

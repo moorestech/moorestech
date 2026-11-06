@@ -42,7 +42,7 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 
 ## 4. 並べ比べの載せ方
 
-- 並べ比べは PR の成果物の載せ先（環境ローカル規約が決める。Mac mini では PR 報告ページ `https://review.moores.tech/pr/<番号>/report/`）に載せる。ページの書式は載せ先の生成器が決めるので、独自の HTML を書かない
+- 並べ比べは PR の成果物の載せ先（環境ローカル規約が決める。例: PR 報告ページ `https://review.moores.tech/pr/<番号>/report/`）に載せる。ページの書式は載せ先の生成器が決めるので、独自の HTML を書かない
 - 1 状態につき Web と UITK の画像を同じ `group`（状態名）に入れ、Web を先に置く。caption は `Web <撮影 id>` と `UITK <状態名> 1280×720`（画面は `2560×1080` の組も足す）
 - 差の表は作業報告 `moorestech_logs/harness/uitk/<レーンID>/done.md` に状態ごとに書く:
 

@@ -6,6 +6,7 @@
 
 - **出所**: `docs/uitk-migration/execution/component-architecture.md`（設計書）§2 の写し。設計書の §2.n がこの文書の §n にあたる。本文の `§n.n`・`[A-n]`・`[Q-n]` は設計書の節と判断 ID、`S/` は `moorestech_client/Assets/Scripts/`、`W/` は `moorestech_web/webui/src/`、「段階・レーン」列は設計書の提案。持ち主は `docs/uitk-migration/execution/execution-plan.md` のレーン表が正本で、食い違うときはそちらに従う（`KeyCap`・`ShortcutHintLabel`・`GameScrollView`・Typography・Layout は C2-c）
 - **直し方**: 部品を作ったレーンは、その行の「段階 1」列を `済み（<レーンID>）` に、公開 API の列を実装の公開 API どおりに直す。設計書の案から API を変えたときは、そのレーンの計画の判断記録に理由を書く。作られた部品は実コードが正本で、この表は引くための索引
+- **今の実ファイル名との違い**: 表は設計書の名前で書いてあり、次の名前は今のファイルと違う。`game-panel.uss` → 今は `Components/GamePanel/GamePanel.uss`、`PauseMenuFrame` → 今は `Screens/PauseMenu/PauseMenu.uss` の `.pause-menu__panel` 系（その名前の型は無い）、`ToastItem.uss` → 今は `Components/Toast/Toast.uss`、`Screens/Toast/ToastHost.uss` → 今は `Screens/Toast/ToastHostView.cs`（USS は無い）。表の `Components/<族>/` は F1 が族のディレクトリへそろえるまで平置きの `Components/<部品>/`（設計書 [A-7]）
 - **列**: 部品（UITK）／責務／公開 API 案（C#）／USS・状態クラス／使う画面（Web の feature）／作る段階・レーン／Web の見た目の正本／段階 1 との関係（再利用・改修・新規）
 
 ## 1 読み方と共通の約束

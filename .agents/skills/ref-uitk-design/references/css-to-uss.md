@@ -22,7 +22,7 @@
 |---|---|
 | `[data-selected]` などの data 属性 | `.<部品>--selected` のクラス。付け外しは部品の Set メソッドの `EnableInClassList` だけ |
 | `:hover`・`:active`・`:focus` | そのまま USS の擬似クラス |
-| `:first-child`・`:last-child`・`:nth-child` | 使えない（`UiStyleConventionTest` が落とす）。C# で `Add` するときにクラスを付ける（例 Layout の `UiStack`〔C2-c〕が先頭以外へ gap のクラスを付ける） |
+| `:first-child`・`:last-child`・`:nth-child` | 使えない（`UiStyleConventionTest` が落とす）。C# で `Add` するときにクラスを付ける。gap は例外で、`UiStack`〔C2-c〕が `--ui-gap` を読み、表示中の先頭以外の子へインラインの margin で当てる（クラスでは部品の `margin: 0` に詳細度で負ける。設計書 [A-32]） |
 | `::before`・`::after` | 子要素にし、`pickingMode = PickingMode.Ignore` を付ける。例 Web の GamePanel の `::before` → `GamePanelFace` |
 | `:where(.keyHintText)` のような共有クラス | 共有部品（`KeyCap`〔C2-c〕）にする。同じ宣言を部品ごとに複製しない |
 | feature の CSS が部品の変数を上書き | 同じ名前のカスタムプロパティを画面のルートで上書きする（USS のカスタムプロパティは子孫へ継承される） |
@@ -59,7 +59,7 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 | `linear-gradient`（面の縦フェード）と `mask`（4 辺のフェード） | 頂点カラーの格子（4×4 頂点・3×3 セル）。端の頂点の α を 0 にする | `GamePanelFace` |
 | 横の `linear-gradient`（罫線） | Painter2D の線に `Gradient`（停止位置は Web の % を逐語で） | `GamePanelDecoLine` |
 | 三角・矢印・SVG の `path` | Painter2D の `MoveTo`/`LineTo`/`Fill` | `GamePanelBottomDeco`・`ProgressArrowGlyph`〔C4-b〕 |
-| `box-shadow`（外側のにじみ） | 面の外周に、内側の α から外側の 0 へ落ちる頂点カラーの帯を張る | `GamePanelShadow`〔C2-a〕 |
+| `box-shadow`（外側のにじみ） | 面の外周に、内側の α から外側の 0 へ落ちる頂点カラーの帯を張る | —（GamePanel の外周の影は Web でも出ないので描かない。設計書 [A-22]） |
 | `box-shadow: inset` 2 層（ベベル） | border の入れ子（子要素 2 つに border を 1 本ずつ） | `SlotFrame`〔C3-a〕 |
 | `outline`・ring | border の入れ子で近似し、差があれば記帳する | `ModeSwitch`（段階 1 の差として F1 が `LX-n` に記帳する） |
 | `filter: drop-shadow` | 図形の輪郭を少し太らせた α の帯を先に描く | `ProgressArrowGlyph`〔C4-b〕 |
