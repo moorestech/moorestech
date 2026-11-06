@@ -135,7 +135,13 @@ namespace Client.Tests.Ui.State.ItemMove
             var context = OpenBlock(0, new[] { Slot(0, 0) }, BlockSlotRestriction.Bound(new[] { 0, 3 }));
             var plan = PlayerSlotPlanner.PlanLeftClick(SlotRef.Main(0), Slot(1, 5), true, context);
             Assert.IsInstanceOf<StaleSlotIgnoredPlan>(plan);
-            Assert.AreEqual(SlotRef.Main(0), ((StaleSlotIgnoredPlan)plan).Target);
+            Assert.AreEqual(SlotRef.Block(3), ((StaleSlotIgnoredPlan)plan).Target);
+        }
+
+        [Test]
+        public void アイテム枠0のブロックへの無制約Shiftは満杯でなく受け付ける枠なしを返す()
+        {
+            AssertRefused(BlockSlotRestriction.Unrestricted, ShiftMoveRefusalReason.NoAcceptingBlockSlot);
         }
 
         private static void AssertRefused(BlockSlotRestriction restriction, ShiftMoveRefusalReason expected)

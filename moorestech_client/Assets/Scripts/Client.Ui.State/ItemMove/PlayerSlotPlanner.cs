@@ -51,13 +51,16 @@ namespace Client.Ui.State.ItemMove
                 switch (openContext.Restriction)
                 {
                     case UnrestrictedBlockSlots _:
+                        // 枠 0 のブロックは宛先が無いのであって満杯ではない
+                        // A block with 0 slots has no destination rather than being full
+                        if (openContext.BlockItemSlots.Count == 0) return new ShiftMoveRefusedPlan(ShiftMoveRefusalReason.NoAcceptingBlockSlot);
                         candidateIndices = DirectMovePlanner.AllIndicesOf(openContext.BlockItemSlots);
                         break;
                     case BoundBlockSlots boundSlots:
                         // 束縛があれば候補だけを宛先にする。move_item は枠固定の入れ替えで、束縛外はサーバーが無言で拒否するため
                         // A bound restriction narrows destinations: move_item swaps a fixed slot and the server silently rejects unbound ones
                         if (boundSlots.CandidateIndices.Count == 0) return new ShiftMoveRefusedPlan(ShiftMoveRefusalReason.NoAcceptingBlockSlot);
-                        if (HasOutOfRangeCandidate(boundSlots.CandidateIndices, openContext.BlockItemSlots.Count)) return new StaleSlotIgnoredPlan(from);
+                        if (TryFindOutOfRangeCandidate(boundSlots.CandidateIndices, openContext.BlockItemSlots.Count, out var staleCandidate)) return new StaleSlotIgnoredPlan(ItemMoveSlotRef.Block(staleCandidate));
                         candidateIndices = boundSlots.CandidateIndices;
                         break;
                     case BlockInventoryOpenFailed _:
@@ -72,12 +75,17 @@ namespace Client.Ui.State.ItemMove
 
             // 枠数が縮んだ直後の古い制約は、範囲外の候補番号を持つ
             // A stale restriction right after the slot count shrank carries out-of-range candidates
-            bool HasOutOfRangeCandidate(IReadOnlyList<int> candidates, int slotCount)
+            bool TryFindOutOfRangeCandidate(IReadOnlyList<int> candidates, int slotCount, out int staleCandidate)
             {
                 foreach (var candidate in candidates)
                 {
-                    if (candidate < 0 || slotCount <= candidate) return true;
+                    if (candidate < 0 || slotCount <= candidate)
+                    {
+                        staleCandidate = candidate;
+                        return true;
+                    }
                 }
+                staleCandidate = 0;
                 return false;
             }
 
