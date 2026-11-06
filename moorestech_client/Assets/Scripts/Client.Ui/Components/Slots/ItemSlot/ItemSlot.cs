@@ -1,5 +1,4 @@
 using System;
-using Client.Ui.Foundation.Text;
 using Client.Ui.Foundation.Tooltip;
 using Client.Ui.State.Text;
 using UnityEngine.UIElements;
@@ -13,12 +12,11 @@ namespace Client.Ui.Components.Slots
     public sealed class ItemSlot : VisualElement
     {
         private const string ShortageStateClass = "item-slot--shortage";
-        private const string LackStateClass = "item-slot__shortage--lack";
+        private const string LackStateClass = "item-slot--lack";
 
         private readonly SlotFrame _frame;
         private readonly SlotContent _content;
-        private LocalizedLabel _shortageStroke;
-        private LocalizedLabel _shortageLabel;
+        private readonly OutlinedCountLabel _shortage;
 
         public IObservable<SlotGesture> OnSlotGestured => _frame.OnSlotGestured;
 
@@ -32,6 +30,7 @@ namespace Client.Ui.Components.Slots
             _content = new SlotContent();
             _frame.Add(_content);
             Add(_frame);
+            _shortage = new OutlinedCountLabel(this, "item-slot__shortage");
         }
 
         public void SetContent(ItemSlotContent content)
@@ -70,27 +69,8 @@ namespace Client.Ui.Components.Slots
                 // The wrapper never changes; owned/required toggles only the label (the Web remount guard)
                 EnableInClassList(ShortageStateClass, shortage != null);
                 if (shortage == null) return;
-
-                // キーの無い LocalizedLabel をパネルに載せないよう初回に作る。白い縁の層を先に足し、字を上に描く
-                // Create on first use so a key-less LocalizedLabel never sits on the panel; the white stroke layer goes first so the glyph draws on top
-                if (_shortageLabel == null)
-                {
-                    _shortageStroke = CreateShortageLayer("item-slot__shortage-stroke");
-                    _shortageLabel = CreateShortageLayer("item-slot__shortage");
-                }
-                var summary = SlotTexts.ItemCountSummary(shortage.OwnedCount, shortage.RequiredCount);
-                _shortageStroke.SetText(summary);
-                _shortageLabel.SetText(summary);
-                _shortageLabel.EnableInClassList(LackStateClass, shortage.Lacking);
-            }
-
-            LocalizedLabel CreateShortageLayer(string layerClass)
-            {
-                var layer = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-                layer.AddToClassList("item-slot__shortage-layer");
-                layer.AddToClassList(layerClass);
-                Add(layer);
-                return layer;
+                _shortage.SetText(SlotTexts.ItemCountSummary(shortage.OwnedCount, shortage.RequiredCount));
+                EnableInClassList(LackStateClass, shortage.Lacking);
             }
 
             #endregion

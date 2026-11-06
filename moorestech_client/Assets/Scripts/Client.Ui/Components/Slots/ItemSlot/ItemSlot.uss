@@ -1,37 +1,24 @@
 /* web: moorestech_web/webui/src/shared/ui/ItemSlot/style.module.css の .shortageSlot・.shortageCount・[data-lack] を写す。z-index: 2 は後に足した子が上に描かれる順で写す */
 /* web: copies .shortageSlot, .shortageCount and [data-lack] in moorestech_web/webui/src/shared/ui/ItemSlot/style.module.css; z-index: 2 maps to the later child drawing on top */
-/* 白い縁は SlotContent の個数と同じく縁だけの層を後ろに敷く（UITK の縁は字の内側も塗る） */
-/* As with the SlotContent count, the white stroke is a stroke-only layer behind the glyph (a UITK outline also floods the glyph) */
-.item-slot__shortage-layer {
-    /* Web の line-height: 1 は基線を箱の下から (1 - 上昇 + 下降) / 2 = 0.112em に置く（NotoSans の hhea 2189・600 / 2048）。UITK の下揃えは下降 0.293em に置くので差の 0.181em（箱の高さ＝字の大きさの 18.1%）だけ下げる */
-    /* The Web line-height: 1 puts the baseline (1 - ascent + descent) / 2 = 0.112em above the box bottom (NotoSans hhea 2189/600 of 2048); UITK lower alignment puts it at the 0.293em descent, so shift down the 0.181em gap (18.1% of the font-size-tall box) */
-    translate: 0 18.1%;
+/* 白い縁の 2 層と基線の補正は OutlinedCountLabel が持ち、ここは置き場・大きさ・字の色だけを当てる */
+/* OutlinedCountLabel owns the two outline layers and the baseline shift; this only places and sizes both layers and sets the glyph color */
+.item-slot {
+    --outlined-count-label-color: var(--count-text);
+}
+
+.item-slot__shortage {
     display: none;
     position: absolute;
     right: var(--shortage-count-right);
     bottom: var(--shortage-count-bottom);
     height: var(--shortage-count-font-size);
-    margin: 0;
-    padding: 0;
     font-size: var(--shortage-count-font-size);
-    -unity-text-align: lower-right;
-    white-space: nowrap;
 }
 
-.item-slot__shortage-stroke {
-    color: var(--icon-text-stroke-light);
-    -unity-text-outline-width: var(--icon-text-stroke-width);
-    -unity-text-outline-color: var(--icon-text-stroke-light);
-}
-
-.item-slot__shortage {
-    color: var(--count-text);
-}
-
-.item-slot--shortage > .item-slot__shortage-layer {
+.item-slot--shortage > .item-slot__shortage {
     display: flex;
 }
 
-.item-slot__shortage--lack {
-    color: var(--text-insufficient);
+.item-slot--lack {
+    --outlined-count-label-color: var(--text-insufficient);
 }

@@ -53,7 +53,7 @@ namespace Client.Tests.Ui.Components.Slots
             content.SetCount(1500);
             simulate.FrameUpdate();
 
-            var count = content.Q<Label>(className: "slot-content__count");
+            var count = content.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph");
             Assert.AreEqual("1,500", count.text);
             Assert.IsTrue(count.ClassListContains(UiTypographyClass.TextMedium));
             Assert.AreEqual(ThemeTokenFile.ResolvePixels("--count-font-size"), count.resolvedStyle.fontSize, 0.01f);
@@ -72,10 +72,10 @@ namespace Client.Tests.Ui.Components.Slots
 
             // translate はレイアウトを動かさず描く位置だけを下げるので worldBound で見る
             // translate only moves the drawn position, not the layout, so check worldBound
-            var count = content.Q<Label>(className: "slot-content__count");
+            var count = content.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph");
             var fontSize = ThemeTokenFile.ResolvePixels("--count-font-size");
             Assert.AreEqual(frame.worldBound.yMax - ThemeTokenFile.ResolvePixels("--count-bottom") + fontSize * 0.181f, count.worldBound.yMax, 0.5f);
-            Assert.AreEqual(count.worldBound, content.Q<Label>(className: "slot-content__count-stroke").worldBound);
+            Assert.AreEqual(count.worldBound, content.Q<Label>(null, "slot-content__count", "outlined-count-label--stroke").worldBound);
         }
 
         [Test]
@@ -87,8 +87,8 @@ namespace Client.Tests.Ui.Components.Slots
 
             // 縁の層は字より前の子（先に描かれる）で、字と同じ文字・位置・大きさを持つ
             // The stroke layer is an earlier child (drawn first) with the same text, place and size as the glyph
-            var stroke = content.Q<Label>(className: "slot-content__count-stroke");
-            var count = content.Q<Label>(className: "slot-content__count");
+            var stroke = content.Q<Label>(null, "slot-content__count", "outlined-count-label--stroke");
+            var count = content.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph");
             Assert.Less(content.IndexOf(stroke), content.IndexOf(count));
             Assert.AreEqual("1,500", stroke.text);
             Assert.AreEqual(count.layout, stroke.layout);
@@ -104,7 +104,7 @@ namespace Client.Tests.Ui.Components.Slots
             content.SetCount(12);
             simulate.FrameUpdate();
 
-            var count = content.Q<Label>(className: "slot-content__count");
+            var count = content.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph");
             Assert.AreEqual(46.144f, frame.layout.width, 0.5f);
             Assert.AreEqual(16f, count.resolvedStyle.fontSize, 0.01f);
             Assert.AreEqual(frame.layout.height + 1f, count.layout.yMax, 0.5f);
@@ -119,8 +119,8 @@ namespace Client.Tests.Ui.Components.Slots
             content.ClearCount();
             simulate.FrameUpdate();
 
-            Assert.AreEqual(DisplayStyle.None, content.Q(className: "slot-content__count").resolvedStyle.display);
-            Assert.AreEqual(DisplayStyle.None, content.Q(className: "slot-content__count-stroke").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.None, content.Q(null, "slot-content__count", "outlined-count-label--glyph").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.None, content.Q(null, "slot-content__count", "outlined-count-label--stroke").resolvedStyle.display);
         }
 
         private (SlotFrame frame, SlotContent content) Mount(string knobClass)

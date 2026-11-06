@@ -94,7 +94,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
             _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1500, new ItemSlotMarks(false, false, false), null, null, null));
             simulate.FrameUpdate();
 
-            var count = _slot.Q<Label>(className: "slot-content__count");
+            var count = _slot.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph");
             Assert.AreEqual("1,500", count.text);
             Assert.AreEqual(DisplayStyle.Flex, count.resolvedStyle.display);
         }
@@ -130,7 +130,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
             simulate.FrameUpdate();
 
             Assert.IsTrue(_frame.ClassListContains("slot-frame--ghost"));
-            Assert.AreEqual("3", _slot.Q<Label>(className: "slot-content__count").text);
+            Assert.AreEqual("3", _slot.Q<Label>(null, "slot-content__count", "outlined-count-label--glyph").text);
         }
 
         [Test]

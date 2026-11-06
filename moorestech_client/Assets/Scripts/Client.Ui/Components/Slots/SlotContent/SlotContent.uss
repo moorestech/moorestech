@@ -1,5 +1,5 @@
-/* web: moorestech_web/webui/src/shared/ui/slotContent.module.css の .icon・.count と app/tokens.css の .iconTextOutlineLight を写す。line-height: 1 は Label の高さを字の大きさにそろえて写す */
-/* web: copies .icon and .count in moorestech_web/webui/src/shared/ui/slotContent.module.css and .iconTextOutlineLight in app/tokens.css; line-height: 1 maps to a Label as tall as the font size */
+/* web: moorestech_web/webui/src/shared/ui/slotContent.module.css の .icon・.count を写す。.iconTextOutlineLight は OutlinedCountLabel が写す */
+/* web: copies .icon and .count in moorestech_web/webui/src/shared/ui/slotContent.module.css; OutlinedCountLabel copies .iconTextOutlineLight */
 .slot-content {
     flex-grow: 1;
 }
@@ -15,36 +15,23 @@
     padding-bottom: var(--icon-pad);
 }
 
-/* Web の -webkit-text-stroke は paint-order: stroke fill で縁を字の外側だけに見せる。UITK の縁は字の内外へ半分ずつ掛かり細い字を塗りつぶすので、縁だけの層を後ろに敷き、縁の無い字を上に重ねる */
-/* The Web -webkit-text-stroke with paint-order: stroke fill shows the stroke only outside the glyph; a UITK outline straddles the edge and floods thin glyphs, so a stroke-only layer sits behind an unoutlined glyph */
-.slot-content__count-layer {
-    /* Web の line-height: 1 は基線を箱の下から (1 - 上昇 + 下降) / 2 = 0.112em に置く（NotoSans の hhea 2189・600 / 2048）。UITK の下揃えは下降 0.293em に置くので差の 0.181em（箱の高さ＝字の大きさの 18.1%）だけ下げる */
-    /* The Web line-height: 1 puts the baseline (1 - ascent + descent) / 2 = 0.112em above the box bottom (NotoSans hhea 2189/600 of 2048); UITK lower alignment puts it at the 0.293em descent, so shift down the 0.181em gap (18.1% of the font-size-tall box) */
-    translate: 0 18.1%;
+/* 白い縁の 2 層と基線の補正は OutlinedCountLabel が持ち、ここは 2 枚の置き場・大きさ・字形と字の色だけを当てる */
+/* OutlinedCountLabel owns the two outline layers and the baseline shift; this only places, sizes and faces both layers and sets the glyph color */
+.slot-content {
+    --outlined-count-label-color: var(--count-text);
+}
+
+.slot-content__count {
     display: none;
     position: absolute;
     left: 0;
     right: 2px;
     bottom: var(--count-bottom);
     height: var(--count-font-size);
-    margin: 0;
-    padding: 0;
     font-size: var(--count-font-size);
     letter-spacing: var(--count-letter-spacing);
-    -unity-text-align: lower-right;
-    white-space: nowrap;
 }
 
-.slot-content__count-stroke {
-    color: var(--icon-text-stroke-light);
-    -unity-text-outline-width: var(--icon-text-stroke-width);
-    -unity-text-outline-color: var(--icon-text-stroke-light);
-}
-
-.slot-content__count {
-    color: var(--count-text);
-}
-
-.slot-content--counted > .slot-content__count-layer {
+.slot-content--counted > .slot-content__count {
     display: flex;
 }

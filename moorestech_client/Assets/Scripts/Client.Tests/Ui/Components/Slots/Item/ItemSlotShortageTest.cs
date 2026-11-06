@@ -56,7 +56,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
             slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, Plain, new ItemSlotShortage(3, 5, true, materialText), null, null));
             simulate.FrameUpdate();
 
-            Assert.AreEqual("3/5", slot.Q<Label>(className: "item-slot__shortage").text);
+            Assert.AreEqual("3/5", slot.Q<Label>(null, "item-slot__shortage", "outlined-count-label--glyph").text);
             Assert.IsTrue(HoverTooltipMark.TryFindMarked(slot.Q<SlotFrame>().contentContainer, out _, out var text));
             Assert.AreSame(materialText, text);
         }
@@ -72,8 +72,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
             lacking.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, Plain, new ItemSlotShortage(1, 5, true, null), null, null));
             simulate.FrameUpdate();
 
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--count-text"), enough.Q(className: "item-slot__shortage").resolvedStyle.color, "enough");
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--text-insufficient"), lacking.Q(className: "item-slot__shortage").resolvedStyle.color, "lacking");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--count-text"), enough.Q(null, "item-slot__shortage", "outlined-count-label--glyph").resolvedStyle.color, "enough");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--text-insufficient"), lacking.Q(null, "item-slot__shortage", "outlined-count-label--glyph").resolvedStyle.color, "lacking");
         }
 
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">実物入りでshortageがあると個数バッジを出さず所持/必要の1か所にまとめる</web-test>
@@ -84,8 +84,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
             slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, Plain, new ItemSlotShortage(3, 5, true, null), null, null));
             simulate.FrameUpdate();
 
-            Assert.AreEqual(DisplayStyle.None, slot.Q(className: "slot-content__count").resolvedStyle.display);
-            Assert.AreEqual(DisplayStyle.Flex, slot.Q(className: "item-slot__shortage").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.None, slot.Q(null, "slot-content__count", "outlined-count-label--glyph").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.Flex, slot.Q(null, "item-slot__shortage", "outlined-count-label--glyph").resolvedStyle.display);
         }
 
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">shortageの有無に関わらず同じラッパー層で包み、数字だけ出し分ける</web-test>
@@ -99,8 +99,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
             simulate.FrameUpdate();
 
             Assert.AreSame(frameBefore, slot.Q<SlotFrame>());
-            Assert.AreEqual(DisplayStyle.None, slot.Q(className: "item-slot__shortage").resolvedStyle.display);
-            Assert.AreEqual(DisplayStyle.Flex, slot.Q(className: "slot-content__count").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.None, slot.Q(null, "item-slot__shortage", "outlined-count-label--glyph").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.Flex, slot.Q(null, "slot-content__count", "outlined-count-label--glyph").resolvedStyle.display);
         }
 
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">tooltipKeyがnullなら素材の語彙でなくアイテム名のツールチップを保つ</web-test>
@@ -124,7 +124,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
 
             // 画素丸めのため 0.5px まで許す
             // Allow 0.5px because sizes snap to pixels
-            var label = slot.Q<Label>(className: "item-slot__shortage");
+            var label = slot.Q<Label>(null, "item-slot__shortage", "outlined-count-label--glyph");
             var frame = slot.Q<SlotFrame>();
             Assert.AreEqual(13f, label.resolvedStyle.fontSize, 0.01f);
             Assert.AreEqual(frame.layout.width - 3f, label.layout.xMax, 0.5f);
@@ -141,8 +141,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
 
             // 縁の層は字より前の子で、字と同じ文字・位置を持ち、赤字の状態は字の層だけに付く
             // The stroke layer is an earlier child with the same text and place; the lacking red applies only to the glyph layer
-            var stroke = slot.Q<Label>(className: "item-slot__shortage-stroke");
-            var label = slot.Q<Label>(className: "item-slot__shortage");
+            var stroke = slot.Q<Label>(null, "item-slot__shortage", "outlined-count-label--stroke");
+            var label = slot.Q<Label>(null, "item-slot__shortage", "outlined-count-label--glyph");
             Assert.Less(slot.IndexOf(stroke), slot.IndexOf(label));
             Assert.AreEqual("1/5", stroke.text);
             Assert.AreEqual(label.layout, stroke.layout);

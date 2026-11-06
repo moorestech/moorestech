@@ -14,8 +14,7 @@ namespace Client.Ui.Components.Slots
         private const string CountedStateClass = "slot-content--counted";
 
         private readonly GameIcon _icon;
-        private readonly Label _countStroke;
-        private readonly Label _count;
+        private readonly OutlinedCountLabel _count;
 
         public SlotContent()
         {
@@ -25,24 +24,10 @@ namespace Client.Ui.Components.Slots
             _icon.AddToClassList("slot-content__icon");
             Add(_icon);
 
-            // 個数は数字だけで訳さないので素の Label にする。白い縁の層を先に足し、字を上に描く
-            // The count is digits only and never translated, so plain Labels; the white stroke layer goes first so the glyph draws on top
-            _countStroke = CreateCountLayer("slot-content__count-stroke");
-            _count = CreateCountLayer("slot-content__count");
-
-            #region Internal
-
-            Label CreateCountLayer(string layerClass)
-            {
-                var layer = new Label { pickingMode = PickingMode.Ignore };
-                layer.AddToClassList("slot-content__count-layer");
-                layer.AddToClassList(layerClass);
-                layer.AddToClassList(UiTypographyClass.TextMedium);
-                Add(layer);
-                return layer;
-            }
-
-            #endregion
+            // 個数は数字だけで訳さない。白い縁の作りは OutlinedCountLabel が持つ
+            // The count is digits only and never translated; OutlinedCountLabel owns the white outline
+            _count = new OutlinedCountLabel(this, "slot-content__count");
+            _count.AddLayerClass(UiTypographyClass.TextMedium);
         }
 
         public void SetIcon(UiIcon icon, GameIconFallback fallback)
@@ -57,15 +42,12 @@ namespace Client.Ui.Components.Slots
 
         public void SetCount(int count)
         {
-            _count.text = SlotAmountFormat.Format(count);
-            _countStroke.text = _count.text;
+            _count.SetText(UiText.FromVerbatim(SlotAmountFormat.Format(count)));
             EnableInClassList(CountedStateClass, true);
         }
 
         public void ClearCount()
         {
-            _count.text = string.Empty;
-            _countStroke.text = string.Empty;
             EnableInClassList(CountedStateClass, false);
         }
     }
