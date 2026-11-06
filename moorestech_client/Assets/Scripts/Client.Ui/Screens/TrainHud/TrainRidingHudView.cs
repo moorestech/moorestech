@@ -57,14 +57,19 @@ namespace Client.Ui.Screens.TrainHud
             var count = new LocalizationTextParam("count", model.BranchCandidateCount.ToString());
             _branch.SetText(new UiText(LocalizationKeys.Ui.TrainHud.BranchSelection, new[] { current, count }));
             _stack.SetItemShown(_branch, model.BranchShown);
-            IgnorePicking();
-        }
 
-        // 常駐 HUD はどの要素も入力を奪わない（Web の pointer-events: none）。SetItemShown が作り直す包みも含める
-        // No element of a resident HUD takes input (Web pointer-events: none), including wrappers SetItemShown rebuilds
-        private void IgnorePicking()
-        {
-            this.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
+            // 常駐 HUD はどの要素も入力を奪わない（Web の pointer-events: none）。SetItemShown が作り直す包みも含める
+            // No element of a resident HUD takes input (Web pointer-events: none), including wrappers SetItemShown rebuilds
+            IgnorePicking();
+
+            #region Internal
+
+            void IgnorePicking()
+            {
+                this.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
+            }
+
+            #endregion
         }
     }
 }

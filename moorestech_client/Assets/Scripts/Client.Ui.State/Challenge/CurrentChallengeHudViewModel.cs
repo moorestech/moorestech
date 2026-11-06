@@ -22,7 +22,7 @@ namespace Client.Ui.State.Challenge
         // Hidden during a blocking skit or when there are no objectives
         public static CurrentChallengeHudViewModel Create(IReadOnlyList<UiText> objectives, bool blockingSkitActive)
         {
-            return new CurrentChallengeHudViewModel(objectives, !blockingSkitActive && objectives.Count > 0);
+            return new CurrentChallengeHudViewModel(objectives, !blockingSkitActive && 0 < objectives.Count);
         }
     }
 }

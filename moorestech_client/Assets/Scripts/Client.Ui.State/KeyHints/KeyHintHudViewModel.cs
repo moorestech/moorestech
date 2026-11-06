@@ -24,7 +24,7 @@ namespace Client.Ui.State.KeyHints
         // Hidden during a blocking skit or when there are no hints
         public static KeyHintHudViewModel Create(IReadOnlyList<KeyHint> hints, bool deleteMode, bool blockingSkitActive)
         {
-            return new KeyHintHudViewModel(hints, deleteMode, !blockingSkitActive && hints.Count > 0);
+            return new KeyHintHudViewModel(hints, deleteMode, !blockingSkitActive && 0 < hints.Count);
         }
     }
 }

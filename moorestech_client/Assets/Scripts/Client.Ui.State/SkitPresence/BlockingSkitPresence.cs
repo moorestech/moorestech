@@ -23,13 +23,18 @@ namespace Client.Ui.State.SkitPresence
             // Start from the current value and follow store changes; it lives for the whole game, so the subscription is never released
             _isBlocking = new ReactiveProperty<bool>(IsBlockingMode(store.GetCurrent()));
             store.ObserveChanged().Subscribe(data => _isBlocking.Value = IsBlockingMode(data));
+
+            #region Internal
+
+            bool IsBlockingMode(SkitPresentationData data)
+            {
+                // モード名は持ち主の定数を読む（生成と同じ値）
+                // Read the owner's constant for the mode name (the same value the producer writes)
+                return data.PresentationState.Mode == SkitPresentationData.BlockingMode;
+            }
+
+            #endregion
         }
 
-        private static bool IsBlockingMode(SkitPresentationData data)
-        {
-            // モード名は持ち主の定数を読む（生成と同じ値）
-            // Read the owner's constant for the mode name (the same value the producer writes)
-            return data.PresentationState.Mode == SkitPresentationData.BlockingMode;
-        }
     }
 }

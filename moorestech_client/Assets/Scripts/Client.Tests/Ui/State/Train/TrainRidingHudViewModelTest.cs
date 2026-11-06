@@ -36,6 +36,13 @@ namespace Client.Tests.Ui.State.Train
             Assert.IsTrue(branched.BranchShown);
             Assert.AreEqual(2, branched.SelectedBranchNumber);
             Assert.AreEqual(3, branched.BranchCandidateCount);
+
+            // しきい値ちょうどの候補 2 でも出す
+            // Shows at exactly two candidates, the threshold
+            var twoWay = TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.TrainHUDScreen, true, 2, 0);
+            Assert.IsTrue(twoWay.BranchShown);
+            Assert.AreEqual(1, twoWay.SelectedBranchNumber);
+            Assert.AreEqual(2, twoWay.BranchCandidateCount);
         }
     }
 }

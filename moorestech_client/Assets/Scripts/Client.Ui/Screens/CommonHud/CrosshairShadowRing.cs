@@ -40,7 +40,7 @@ namespace Client.Ui.Screens.CommonHud
             var d = distance / sigma;
             for (var i = 1; i < DistancesInSigma.Length; i++)
             {
-                if (d > DistancesInSigma[i]) continue;
+                if (DistancesInSigma[i] < d) continue;
                 var t = (d - DistancesInSigma[i - 1]) / (DistancesInSigma[i] - DistancesInSigma[i - 1]);
                 return Mathf.Lerp(Coverages[i - 1], Coverages[i], t);
             }
@@ -52,7 +52,7 @@ namespace Client.Ui.Screens.CommonHud
             var hasBlur = UssCustomStyleReader.TryReadPixels(customStyle, "--crosshair-hud-shadow-blur", out _blurRadius);
             var hasColor = UssCustomStyleReader.TryReadColor(customStyle, "--crosshair-hud-shadow-color", out _shadowColor);
             // silent-ok: blur 0px は Web でも影なし / トークンを変えた人が並べ比べで気づく
-            _hasTokens = hasBlur && hasColor && _blurRadius > 0f;
+            _hasTokens = hasBlur && hasColor && 0f < _blurRadius;
             MarkDirtyRepaint();
         }
 

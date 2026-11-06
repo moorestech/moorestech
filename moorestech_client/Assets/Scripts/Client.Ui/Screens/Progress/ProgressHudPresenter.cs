@@ -33,6 +33,16 @@ namespace Client.Ui.Screens.Progress
             _gameUiRoot.GetLayer(UiLayer.Chrome, UiFamily.Viewport).Add(_view);
             Apply();
             _subscription = _progressBarState.OnProgressChanged.Subscribe(_ => Apply());
+
+            #region Internal
+
+            void Apply()
+            {
+                _view.SetShown(_progressBarState.IsShown);
+                _view.SetProgress(_progressBarState.CurrentProgress);
+            }
+
+            #endregion
         }
 
         public void Dispose()
@@ -41,10 +51,5 @@ namespace Client.Ui.Screens.Progress
             _view?.RemoveFromHierarchy();
         }
 
-        private void Apply()
-        {
-            _view.SetShown(_progressBarState.IsShown);
-            _view.SetProgress(_progressBarState.CurrentProgress);
-        }
     }
 }

@@ -38,11 +38,15 @@ namespace Client.Ui.State.KeyHints
             foreach (var nested in _nestedPauseScreens) nested.OnPresentationChanged.Subscribe(_ => Rebuild());
             _blockingSkitPresence.IsBlocking.Skip(1).Subscribe(_ => Rebuild());
             Rebuild();
-        }
 
-        private void Rebuild()
-        {
-            _current.SetValueAndForceNotify(Build());
+            #region Internal
+
+            void Rebuild()
+            {
+                _current.SetValueAndForceNotify(Build());
+            }
+
+            #endregion
         }
 
         private KeyHintHudViewModel Build()

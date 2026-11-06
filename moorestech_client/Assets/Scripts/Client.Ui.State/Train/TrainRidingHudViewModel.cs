@@ -28,7 +28,7 @@ namespace Client.Ui.State.Train
         {
             var riding = state == UIStateEnum.TrainHUDScreen && isRiding;
             var shown = UiScreenTraitsTable.Get(screen).TrainHud && riding;
-            return new TrainRidingHudViewModel(shown, shown && branchCandidateCount > 1, selectedBranchIndex + 1, branchCandidateCount);
+            return new TrainRidingHudViewModel(shown, shown && 1 < branchCandidateCount, selectedBranchIndex + 1, branchCandidateCount);
         }
     }
 }

@@ -35,11 +35,15 @@ namespace Client.Ui.State.Train
             _uiStateControl.OnStateChanged.Subscribe(_ => Rebuild());
             _trainHudState.OnPresentationChanged.Subscribe(_ => Rebuild());
             Rebuild();
-        }
 
-        private void Rebuild()
-        {
-            _current.SetValueAndForceNotify(Build());
+            #region Internal
+
+            void Rebuild()
+            {
+                _current.SetValueAndForceNotify(Build());
+            }
+
+            #endregion
         }
 
         private TrainRidingHudViewModel Build()
