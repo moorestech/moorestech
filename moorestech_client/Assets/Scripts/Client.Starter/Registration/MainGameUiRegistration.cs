@@ -25,6 +25,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
             builder.Register<UiCommandResultToaster>(Lifetime.Singleton);
+            FoundationGameUiRegistration.Register(builder);
 
             // 画面登録区画: 1行ずつ呼び出しを足す
             // Screen registration section: add one call per line
