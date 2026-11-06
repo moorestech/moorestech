@@ -33,3 +33,4 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--game-panel-craft-face` | `rgb(7 9 18 / 80%)` | `rgba(7, 9, 18, 0.9491)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（GamePanel craft の面。C2-a・I-fix1 のランタイム実測） |
 | `--game-panel-craft-rim` | `rgb(146 148 167 / 55%)` | `rgba(146, 148, 167, 0.2684)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（GamePanel craft の内周。C2-a） |
 | `--mantine-color-blue-light-hover` | `rgba(34, 139, 230, 0.2)` | `rgba(34, 139, 230, 0.029)` | 明るい色の式 α^2.2 で手計算（Mantine Button Subtle のホバー。C2-b）。輝度 0.48 で生成器の判定では暗い色にあたり、式の行にすると値が変わるので据え置き |
+| `--modal-backdrop-face` | `Mantine Modal.Overlay backgroundOpacity={0.6} の #000 = rgba(0, 0, 0, 0.6)` | `rgba(0, 0, 0, 0.8164)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine Modal の幕。C3-b） |

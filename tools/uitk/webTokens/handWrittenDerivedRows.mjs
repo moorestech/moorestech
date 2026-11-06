@@ -24,6 +24,7 @@ const rowSources = [
   { name: "--game-panel-craft-face", web: "rgb(7 9 18 / 80%)", formula: [7, 9, 18, 0.8], method: `${translucencyMethod}（GamePanel craft の面。C2-a・I-fix1 のランタイム実測）` },
   { name: "--game-panel-craft-rim", web: "rgb(146 148 167 / 55%)", formula: [146, 148, 167, 0.55], method: `${translucencyMethod}（GamePanel craft の内周。C2-a）` },
   { name: "--mantine-color-blue-light-hover", web: "rgba(34, 139, 230, 0.2)", uss: "rgba(34, 139, 230, 0.029)", method: "明るい色の式 α^2.2 で手計算（Mantine Button Subtle のホバー。C2-b）。輝度 0.48 で生成器の判定では暗い色にあたり、式の行にすると値が変わるので据え置き" },
+  { name: "--modal-backdrop-face", web: "Mantine Modal.Overlay backgroundOpacity={0.6} の #000 = rgba(0, 0, 0, 0.6)", formula: [0, 0, 0, 0.6], method: `${translucencyMethod}（Mantine Modal の幕。C3-b）` },
 ];
 
 export const handWrittenDerivedRows = rowSources.map((row) => ({ name: row.name, web: row.web, uss: row.uss ?? formulaValue(row.formula), method: row.method }));

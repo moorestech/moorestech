@@ -125,7 +125,7 @@ namespace Client.Tests.Ui.Screens.Settings
         public void 数値項目と地形は対応する値で送る()
         {
             var view = Mount(new GraphicsQualitySettingsView(FakeSettingsModel.Default(), _commands));
-            Assert.AreEqual("5000m", Find<Button>(view, "graphics-draw-distance-5000").text);
+            Assert.AreEqual("5000m", Find<Button>(view, "graphics-draw-distance-5000").Q<Label>().text);
             simulate.Click(Find<Button>(view, "graphics-draw-distance-5000"));
             simulate.Click(Find<Button>(view, "graphics-render-scale-50"));
             simulate.Click(Find<Button>(view, "graphics-terrain-coarse"));

@@ -1,5 +1,4 @@
-using System;
-using Mooresmaster.Localization.Generated;
+using Client.Ui.State.Text;
 
 namespace Client.Ui.Components.Controls
 {
@@ -9,28 +8,29 @@ namespace Client.Ui.Components.Controls
         Vertical,
     }
 
+    // Web の role。パネル内のビュー切替（§8.22）はタブ、既定は択一の組
+    // The Web role: in-panel view switching (§8.22) is a tablist, the default is an exclusive group
+    public enum ModeSwitchRole
+    {
+        Group,
+        Tablist,
+    }
+
     /// <summary>
-    /// 選択肢1つ（キーか生文字列）
-    /// One option (key or raw string)
+    /// 選択肢 1 つ。文は UiText（辞書のキー・コンテンツのキー・翻訳しない生の文）
+    /// One option; its label is a UiText (dictionary key, content key, or verbatim untranslated text)
     /// </summary>
     public sealed class ModeSwitchOption<TValue>
     {
         public string Testid { get; }
         public TValue Value { get; }
-        public LocalizationKey? LabelKey { get; }
-        public string LiteralLabel { get; }
+        public UiText Label { get; }
 
-        public ModeSwitchOption(string testid, TValue value, LocalizationKey? labelKey, string literalLabel)
+        public ModeSwitchOption(string testid, TValue value, UiText label)
         {
-            // 出どころ不定は即停止
-            // Stop when the source is not exactly one
-            var hasLiteral = literalLabel != null;
-            if (labelKey.HasValue == hasLiteral) throw new ArgumentException($"[ModeSwitchOption] {testid} needs exactly one of labelKey or literalLabel");
-
             Testid = testid;
             Value = value;
-            LabelKey = labelKey;
-            LiteralLabel = literalLabel;
+            Label = label;
         }
     }
 }

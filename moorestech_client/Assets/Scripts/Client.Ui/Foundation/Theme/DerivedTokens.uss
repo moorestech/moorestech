@@ -53,4 +53,15 @@
     --scrollarea-scrollbar-size: 12px; /* web: Mantine ScrollArea の scrollbarSize の既定。画面は祖先で上書きする */
     --game-scroll-view-thumb-hover: rgb(133, 135, 141); /* web: rgba(255, 255, 255, 0.5) を溝（--gauge-track）とポーズの面へ重ねて前計算 */
     --shortcut-hint-label-gap: 0px; /* web: 置く側の flex の gap。既定 0（KeyControlHint が --tutorial-key-hint-kbd-gap に上書き） */
+
+    /* C3-b: 相互作用（ModeSwitch の選択肢の高さ・DialogFrame・モーダルの幕）。つまみの既定は Web の var() のフォールバックか Mantine Modal の既定（設計書 A-52） */
+    /* C3-b: interaction (ModeSwitch option height, DialogFrame, modal backdrop); knob defaults are the Web var() fallbacks or Mantine Modal defaults (design A-52) */
+    --mode-switch-option-height: 34.8px; /* web: ModeSwitch .option の var(--mode-switch-option-height, auto)。auto の実寸＝padding-block 5px×2＋本文の行 16px×1.55（C2-c の実測）。ビルドメニューは --build-menu-category-height へ上書き */
+    --modal-size: 440px; /* web: Mantine Modal の --modal-size（size 既定 md = 27.5rem）。ModalHost の w={320} は Mantine の content の flex: 0 0 var(--modal-size) に負け、参照 3-modal の実寸は 440px */
+    --modal-radius: var(--mantine-radius-default); /* web: Mantine Modal の --modal-radius の既定 */
+    --mb-padding: var(--mantine-spacing-md); /* web: Mantine ModalBase の --mb-padding（padding 既定 md）。題の行の余白 */
+    --dialog-frame-header-min-height: 60px; /* web: Mantine ModalBase の header の min-height: 60px（直書き） */
+    --dialog-frame-body-padding: var(--mantine-spacing-lg); /* web: ModalHost の Modal.Body p="lg" */
+    --dialog-frame-face: var(--mantine-color-body); /* web: Mantine ModalBase の content の背景（参照 3-modal の面 rgb(36,36,36)） */
+    --modal-backdrop-face: rgba(0, 0, 0, 0.8164); /* web: Modal.Overlay backgroundOpacity={0.6} の #000 を暗い色の式 1-(1-α)^1.85 で α 補正（A-72・A-73。handWrittenDerivedRows.mjs の formula 行が値を照合する。手で選び直さない） */
 }
