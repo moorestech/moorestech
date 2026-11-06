@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -42,7 +43,7 @@ namespace Client.Tests.Ui.Components.Controls
 
             _button = new PanelActionButton(TestId, LocalizationKeys.Ui.PauseMenu.Settings);
             _clickCount = 0;
-            _button.clicked += () => _clickCount++;
+            _button.OnClicked.Subscribe(_ => _clickCount++);
             rulesRoot.Add(_button);
             simulate.FrameUpdate();
         }

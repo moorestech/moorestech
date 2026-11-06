@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
 using Mooresmaster.Localization.Generated;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.PauseMenu
@@ -31,13 +32,13 @@ namespace Client.Ui.Screens.PauseMenu
             Add(buttons);
 
             var save = AddButton("pause-menu-save", LocalizationKeys.Ui.Game.SaveGame, AnchorIds.PauseSave);
-            save.clicked += commands.Save;
+            save.OnClicked.Subscribe(_ => commands.Save());
             var saveAndQuit = AddButton("pause-menu-save-and-quit", LocalizationKeys.Ui.Game.SaveAndQuit, AnchorIds.PauseBack);
-            saveAndQuit.clicked += commands.SaveAndQuit;
+            saveAndQuit.OnClicked.Subscribe(_ => commands.SaveAndQuit());
             var settings = AddButton("pause-menu-open-settings", LocalizationKeys.Ui.PauseMenu.Settings, AnchorIds.PauseSettings);
-            settings.clicked += () => commands.ShowPage(PauseMenuPage.Settings);
+            settings.OnClicked.Subscribe(_ => commands.ShowPage(PauseMenuPage.Settings));
             var bugReport = AddButton("pause-menu-open-bug-report", LocalizationKeys.Ui.PauseMenu.BugReport, AnchorIds.PauseBugReport);
-            bugReport.clicked += () => commands.ShowPage(PauseMenuPage.BugReport);
+            bugReport.OnClicked.Subscribe(_ => commands.ShowPage(PauseMenuPage.BugReport));
 
             #region Internal
 
