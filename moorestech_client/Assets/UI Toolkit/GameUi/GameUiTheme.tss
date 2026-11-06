@@ -12,6 +12,7 @@
 /* == section: Components/Panels == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/GamePanel/GamePanel.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/GamePanelSurface/GamePanelSurface.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/PaperSurface/PaperSurface.uss");
 /* == section: Components/Slots == */
 /* == section: Components/Controls == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.uss");
