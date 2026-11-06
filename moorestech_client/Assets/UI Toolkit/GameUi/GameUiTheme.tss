@@ -22,6 +22,7 @@
 /* == section: Components/Text == */
 /* == section: Components/Decor == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Decor/FadeRule/FadeRule.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Decor/HudSectionHeading/HudSectionHeading.uss");
 /* == section: Components/Recipe == */
 /* == section: Components/NodeGraph == */
 /* == section: Screens == */
