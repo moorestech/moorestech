@@ -24,7 +24,6 @@ namespace Client.Tests.Ui.Components.Slots.Item
             Assert.IsFalse(presentation.ShowsBadge);
         }
 
-        /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">countが0の時はバッジを表示しない</web-test>
         [Test]
         public void 個数が0なら空きマスでバッジもツールチップも出さない()
         {
@@ -46,6 +45,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
             Assert.AreEqual(7, presentation.BadgeCount);
         }
 
+        /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">countが0の時はバッジを表示しない</web-test>
         [Test]
         public void カタログは未所持なら灰面で絵を出し所持なら白面で個数を出す()
         {

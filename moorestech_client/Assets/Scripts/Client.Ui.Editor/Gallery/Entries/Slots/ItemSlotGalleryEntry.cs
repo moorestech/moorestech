@@ -29,9 +29,10 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
             Add(inventory, new ItemSlotContent(null, null, plain, null, null, null));
             Add(inventory, new ItemSlotContent(icon, 3, new ItemSlotMarks(true, false, false), null, null, null));
 
-            // 機械の素材（4-block-machine）: 足りない・足りる・不足の減光・ゴースト
-            // Machine materials (4-block-machine): lacking, enough, insufficient dimming and ghost
+            // 機械の素材（4-block-machine）: 参照の要求無しの 5 個・足りない・足りる・不足の減光・ゴースト
+            // Machine materials (4-block-machine): the reference's five with no requirement, lacking, enough, insufficient dimming and ghost
             var machine = SlotGallerySampleSheet.AddRow(root, "slot-gallery__machine-input");
+            Add(machine, new ItemSlotContent(icon, 5, plain, null, null, null));
             Add(machine, new ItemSlotContent(icon, 1, plain, new ItemSlotShortage(1, 5, true, UiText.FromVerbatim("Iron Plate 1/5")), null, null));
             Add(machine, new ItemSlotContent(icon, 5, plain, new ItemSlotShortage(5, 5, false, null), null, null));
             Add(machine, new ItemSlotContent(icon, 5, new ItemSlotMarks(false, false, true), null, null, null));

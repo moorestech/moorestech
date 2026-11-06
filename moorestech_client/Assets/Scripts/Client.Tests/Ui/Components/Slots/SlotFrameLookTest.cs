@@ -38,6 +38,11 @@ namespace Client.Tests.Ui.Components.Slots
             Assert.AreEqual(-ThemeTokenFile.ResolvePixels("--bevel-1"), band1.style.left.value.value, 0.001f);
             Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-1"), band1.style.borderTopWidth.value, 0.001f);
             Assert.AreEqual(-ThemeTokenFile.ResolvePixels("--bevel-2"), band2.style.bottom.value.value, 0.001f);
+
+            // 後の層は前の層に隠れない輪だけを描く（c3 は c2 と同じ幅なので見える輪が無い）
+            // Later layers draw only the ring earlier layers leave visible (c3 matches c2's width, so it has none)
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-2") - ThemeTokenFile.ResolvePixels("--bevel-1"), band2.style.borderTopWidth.value, 0.001f);
+            Assert.AreEqual(0f, band3.style.borderTopWidth.value, 0.001f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--bevel-c1"), band1.resolvedStyle.borderTopColor, "c1");
             Assert.AreEqual(PickingMode.Ignore, ring.pickingMode);
         }
@@ -52,9 +57,11 @@ namespace Client.Tests.Ui.Components.Slots
             // レイアウトは倍率 1 で画素へ丸まる（51.68 が 52）ので 0.5px まで許す
             // Layout rounds to pixels at scale 1 (51.68 becomes 52), so allow 0.5px
             Assert.AreEqual(ThemeTokenFile.ResolvePixels("--hotbar-slot-size"), frame.layout.width, 0.5f);
+            var band1 = frame.Q(className: "slot-frame__band--1");
             var band2 = frame.Q(className: "slot-frame__band--2");
-            Assert.AreEqual(0f, band2.style.left.value.value, 0.001f);
-            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-2"), band2.style.borderLeftWidth.value, 0.001f);
+            Assert.AreEqual(0f, band1.style.left.value.value, 0.001f);
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-1"), band2.style.left.value.value, 0.001f);
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-2") - ThemeTokenFile.ResolvePixels("--bevel-1"), band2.style.borderLeftWidth.value, 0.001f);
         }
 
         [Test]
@@ -96,14 +103,16 @@ namespace Client.Tests.Ui.Components.Slots
         }
 
         [Test]
-        public void 不足は枠ごと40パーセントでゴーストは中身だけ透かす()
+        public void 不足は枠ごと減光しゴーストは中身だけ透かす()
         {
             var insufficient = Mount(null, new SlotFrameState(false, false, false, true, false));
             var ghost = Mount(null, new SlotFrameState(false, false, false, false, true));
 
-            Assert.AreEqual(0.4f, insufficient.resolvedStyle.opacity, 0.001f);
+            // 値は Web の 0.4・0.35 を Linear 合成で同じ見え方に寄せたトークン
+            // The values are tokens that make the Web 0.4 and 0.35 look the same under Linear blending
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), insufficient.resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(1f, ghost.resolvedStyle.opacity, 0.001f);
-            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-ghost-opacity")), ghost.Q(className: "slot-frame__content").resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-ghost-opacity")), ghost.Q(className: "slot-frame__content").resolvedStyle.opacity, 0.001f);
         }
 
         [Test]

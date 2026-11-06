@@ -60,7 +60,26 @@ namespace Client.Tests.Ui.Components.Slots
             Assert.AreEqual(frame.layout.height - ThemeTokenFile.ResolvePixels("--count-bottom"), count.layout.yMax, 0.5f);
             Assert.AreEqual(frame.layout.width - 2f, count.layout.xMax, 0.5f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--count-text"), count.resolvedStyle.color, "count");
-            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--icon-text-stroke-width"), count.resolvedStyle.unityTextOutlineWidth, 0.01f);
+            Assert.AreEqual(0f, count.resolvedStyle.unityTextOutlineWidth, 0.01f);
+        }
+
+        [Test]
+        public void 個数の白い縁は字の後ろの縁だけの層が同じ位置で描く()
+        {
+            var (_, content) = Mount(null);
+            content.SetCount(1500);
+            simulate.FrameUpdate();
+
+            // 縁の層は字より前の子（先に描かれる）で、字と同じ文字・位置・大きさを持つ
+            // The stroke layer is an earlier child (drawn first) with the same text, place and size as the glyph
+            var stroke = content.Q<Label>(className: "slot-content__count-stroke");
+            var count = content.Q<Label>(className: "slot-content__count");
+            Assert.Less(content.IndexOf(stroke), content.IndexOf(count));
+            Assert.AreEqual("1,500", stroke.text);
+            Assert.AreEqual(count.layout, stroke.layout);
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--icon-text-stroke-width"), stroke.resolvedStyle.unityTextOutlineWidth, 0.01f);
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-light"), stroke.resolvedStyle.unityTextOutlineColor, "stroke outline");
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-light"), stroke.resolvedStyle.color, "stroke fill");
         }
 
         [Test]
@@ -86,6 +105,7 @@ namespace Client.Tests.Ui.Components.Slots
             simulate.FrameUpdate();
 
             Assert.AreEqual(DisplayStyle.None, content.Q(className: "slot-content__count").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.None, content.Q(className: "slot-content__count-stroke").resolvedStyle.display);
         }
 
         private (SlotFrame frame, SlotContent content) Mount(string knobClass)

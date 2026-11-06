@@ -42,22 +42,25 @@ namespace Client.Ui.Components.Slots
             // 読めないときは前の形のまま（LogError で開発者が気づく）
             // When unreadable keep the previous shape (the LogError tells the developer)
             if (!TryReadGrowsInward(out var growsInward)) return;
+            var coveredWidth = 0f;
             for (var i = 0; i < _bands.Length; i++)
             {
                 if (!UssCustomStyleReader.TryReadPixels(customStyle, BevelWidthProperties[i], out var width)) return;
 
-                // outset は幅ぶん箱の外へ、inset は箱の内側に帯を置く（Web の spread と同じ形）
-                // outset puts the band one width outside the box, inset keeps it inside (the same shape as the Web spread)
-                var offset = growsInward ? 0f : -width;
+                // Web は先の層が上に描かれ後の層は見える輪だけが残る。UITK の opacity は要素ごとに掛かり重なりが濃く残るので、各帯は前の層の外（inset は内）の見える輪だけを描く
+                // On the Web earlier layers paint on top, leaving only each later layer's visible ring; UITK opacity applies per element and stacks, so each band draws only the ring beyond earlier layers
+                var visibleWidth = Mathf.Max(0f, width - coveredWidth);
+                var offset = growsInward ? coveredWidth : -Mathf.Max(width, coveredWidth);
                 var band = _bands[i];
                 band.style.left = offset;
                 band.style.top = offset;
                 band.style.right = offset;
                 band.style.bottom = offset;
-                band.style.borderLeftWidth = width;
-                band.style.borderTopWidth = width;
-                band.style.borderRightWidth = width;
-                band.style.borderBottomWidth = width;
+                band.style.borderLeftWidth = visibleWidth;
+                band.style.borderTopWidth = visibleWidth;
+                band.style.borderRightWidth = visibleWidth;
+                band.style.borderBottomWidth = visibleWidth;
+                coveredWidth = Mathf.Max(coveredWidth, width);
             }
         }
 

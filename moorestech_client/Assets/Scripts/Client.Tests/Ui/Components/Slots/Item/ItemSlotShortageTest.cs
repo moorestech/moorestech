@@ -132,6 +132,26 @@ namespace Client.Tests.Ui.Components.Slots.Item
             Assert.AreEqual(PickingMode.Ignore, label.pickingMode);
         }
 
+        [Test]
+        public void 所持と必要の白い縁は字の後ろの縁だけの層が同じ位置で描く()
+        {
+            var slot = Mount(null);
+            slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, Plain, new ItemSlotShortage(1, 5, true, null), null, null));
+            simulate.FrameUpdate();
+
+            // 縁の層は字より前の子で、字と同じ文字・位置を持ち、赤字の状態は字の層だけに付く
+            // The stroke layer is an earlier child with the same text and place; the lacking red applies only to the glyph layer
+            var stroke = slot.Q<Label>(className: "item-slot__shortage-stroke");
+            var label = slot.Q<Label>(className: "item-slot__shortage");
+            Assert.Less(slot.IndexOf(stroke), slot.IndexOf(label));
+            Assert.AreEqual("1/5", stroke.text);
+            Assert.AreEqual(label.layout, stroke.layout);
+            Assert.AreEqual(0f, label.resolvedStyle.unityTextOutlineWidth, 0.01f);
+            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--icon-text-stroke-width"), stroke.resolvedStyle.unityTextOutlineWidth, 0.01f);
+            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--icon-text-stroke-light"), stroke.resolvedStyle.color, "stroke fill");
+            Assert.AreEqual(PickingMode.Ignore, stroke.pickingMode);
+        }
+
         private ItemSlot Mount(string knobClass)
         {
             var screen = new VisualElement();

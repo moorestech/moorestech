@@ -66,13 +66,15 @@ namespace Client.Tests.Ui.Components.Slots.Item
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">不足属性へ従来と同じ40%減光を設定する</web-test>
         /// <web-test file="e2e/tests/regression/itemSlot.spec.ts">素材不足スロットはdata-insufficientと40% opacityを持つ</web-test>
         [Test]
-        public void 不足は枠に状態のクラスを付け枠ごと40パーセントに減光する()
+        public void 不足は枠に状態のクラスを付け枠ごと減光する()
         {
             _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 1, new ItemSlotMarks(false, false, true), null, null, null));
             simulate.FrameUpdate();
 
+            // Web の 40% を Linear 合成で同じ見え方に寄せたトークンの値になる
+            // Resolves to the token that makes the Web 40% look the same under Linear blending
             Assert.IsTrue(_frame.ClassListContains("slot-frame--insufficient"));
-            Assert.AreEqual(0.4f, _frame.resolvedStyle.opacity, 0.001f);
+            Assert.AreEqual(float.Parse(ThemeTokenFile.Resolve("--slot-frame-insufficient-opacity")), _frame.resolvedStyle.opacity, 0.001f);
         }
 
         /// <web-test file="src/shared/ui/ItemSlot/index.test.ts">不足状態の省略時はdata属性を付けない</web-test>

@@ -21,7 +21,7 @@
 }
 
 .slot-frame--insufficient {
-    opacity: 0.4;
+    opacity: var(--slot-frame-insufficient-opacity);
 }
 
 .slot-frame--selected {
@@ -93,5 +93,5 @@
 /* ゴーストは面とリングをそのままに中身だけを透かす */
 /* A ghost keeps face and ring and fades only the content */
 .slot-frame--ghost > .slot-frame__content {
-    opacity: var(--slot-ghost-opacity);
+    opacity: var(--slot-frame-ghost-opacity);
 }

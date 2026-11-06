@@ -15,7 +15,9 @@
     padding-bottom: var(--icon-pad);
 }
 
-.slot-content__count {
+/* Web の -webkit-text-stroke は paint-order: stroke fill で縁を字の外側だけに見せる。UITK の縁は字の内外へ半分ずつ掛かり細い字を塗りつぶすので、縁だけの層を後ろに敷き、縁の無い字を上に重ねる */
+/* The Web -webkit-text-stroke with paint-order: stroke fill shows the stroke only outside the glyph; a UITK outline straddles the edge and floods thin glyphs, so a stroke-only layer sits behind an unoutlined glyph */
+.slot-content__count-layer {
     display: none;
     position: absolute;
     left: 0;
@@ -26,13 +28,20 @@
     padding: 0;
     font-size: var(--count-font-size);
     letter-spacing: var(--count-letter-spacing);
-    color: var(--count-text);
     -unity-text-align: lower-right;
     white-space: nowrap;
+}
+
+.slot-content__count-stroke {
+    color: var(--icon-text-stroke-light);
     -unity-text-outline-width: var(--icon-text-stroke-width);
     -unity-text-outline-color: var(--icon-text-stroke-light);
 }
 
-.slot-content--counted > .slot-content__count {
+.slot-content__count {
+    color: var(--count-text);
+}
+
+.slot-content--counted > .slot-content__count-layer {
     display: flex;
 }

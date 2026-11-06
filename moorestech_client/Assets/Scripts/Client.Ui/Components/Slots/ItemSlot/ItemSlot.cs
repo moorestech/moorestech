@@ -17,6 +17,7 @@ namespace Client.Ui.Components.Slots
 
         private readonly SlotFrame _frame;
         private readonly SlotContent _content;
+        private LocalizedLabel _shortageStroke;
         private LocalizedLabel _shortageLabel;
 
         public IObservable<SlotGesture> OnSlotGestured => _frame.OnSlotGestured;
@@ -65,16 +66,26 @@ namespace Client.Ui.Components.Slots
             EnableInClassList(ShortageStateClass, shortage != null);
             if (shortage == null) return;
 
-            // キーの無い LocalizedLabel をパネルに載せないよう初回に作る
-            // Create on first use so a key-less LocalizedLabel never sits on the panel
+            // キーの無い LocalizedLabel をパネルに載せないよう初回に作る。白い縁の層を先に足し、字を上に描く
+            // Create on first use so a key-less LocalizedLabel never sits on the panel; the white stroke layer goes first so the glyph draws on top
             if (_shortageLabel == null)
             {
-                _shortageLabel = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-                _shortageLabel.AddToClassList("item-slot__shortage");
-                Add(_shortageLabel);
+                _shortageStroke = CreateShortageLayer("item-slot__shortage-stroke");
+                _shortageLabel = CreateShortageLayer("item-slot__shortage");
             }
-            _shortageLabel.SetText(SlotTexts.ItemCountSummary(shortage.OwnedCount, shortage.RequiredCount));
+            var summary = SlotTexts.ItemCountSummary(shortage.OwnedCount, shortage.RequiredCount);
+            _shortageStroke.SetText(summary);
+            _shortageLabel.SetText(summary);
             _shortageLabel.EnableInClassList(LackStateClass, shortage.Lacking);
+        }
+
+        private LocalizedLabel CreateShortageLayer(string layerClass)
+        {
+            var layer = new LocalizedLabel { pickingMode = PickingMode.Ignore };
+            layer.AddToClassList("item-slot__shortage-layer");
+            layer.AddToClassList(layerClass);
+            Add(layer);
+            return layer;
         }
     }
 }
