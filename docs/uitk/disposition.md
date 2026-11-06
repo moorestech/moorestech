@@ -24,6 +24,7 @@
 |---|---|---|---|---|---|---|---|
 | 2026-11-06 | 1 | ef796d7551 | 66 | 40 | 8 | 18 | 0 |
 | 2026-11-06 | 3 | ca052a7c04 | 99 | 55 | 0 | 0 | 44 |
+| 2026-11-06 | 4 | e23c6fd597 | 457 | 87 | 5 | 0 | 365 |
 
 ## 処遇
 
@@ -54,6 +55,11 @@
 | 1 | `src/features/settings/LanguageSelect.test.ts` | 一覧が届くまでは辞書非依存リテラルの読み込み中を出しModeSwitchを描かない | 捨てる | UITK の言語一覧は LanguageCatalog の静的な表で、配信待ちの状態が無い | #1596 |
 | 1 | `src/features/settings/SprintModeSelect.test.ts` | holdの初期表示からtoggleを選択できる | 写す予定 | moorestech-albof.21（hold で開いた画面から toggle を押して SetSprintInputMode(Toggle) が出ることを見るテストが無い） | #1596 |
 | 1 | `src/features/settings/SprintModeSelect.test.ts` | topic未着では選択を描かない | 捨てる | UITK の SettingsModel は生成時に設定値を同期で持ち、topic 未着の状態が無い | #1596 |
+| 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | blockInventoryレイヤーのEscapeでGameScreen遷移を要求する | 捨てる | UITK では UIState（`SubInventoryState` の `CloseUI`）が ESC で閉じる。Web は CEF がキーを取るために持つ判断（L0-s4b D-7） | #1599 |
+| 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | modalレイヤーではEscapeでも遷移を要求しない | 捨てる | 同上。モーダル上の ESC は UIState の遷移規則が持つ（L0-s4b D-7） | #1599 |
+| 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | gameレイヤーではEscapeでも遷移を要求しない | 捨てる | 同上（L0-s4b D-7） | #1599 |
+| 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | blockInventoryレイヤーでもEscape以外では遷移を要求しない | 捨てる | 同上。テキスト欄フォーカス中の ESC は albof.12（L0-s4b D-7） | #1599 |
+| 4 | `src/shared/itemMove/planDirectMoves.test.ts` | maxStack 不明時（マスタ未ロード）は同種探索をスキップし空スロットのみ使う | 捨てる | UITK はマスタを同期で持ち、スタック上限は `IItemStackLevelLookup.GetMaxStack` で常に引ける。Web の「マスタ未ロード（HTTP 取得前）」の状態が UITK に無い（設計書 [A-13] の ConnectingPlaceholder と同じ理由）。L0-s4a 判断記録 D-5 | #1598 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | 辞書解決kindはidをguidとして写す | 捨てる | 配信の kind 文字列を表示種別へ写す処理は Web の配信契約だけのもの。C# は `IPlacementTarget` の型そのものが種別で、Kind→型の対応は既存 `Client.Tests/PlaceSystem/PlacementTargetFactoryTest` の「TryCreateはKindごとに対応する型とIdを持つターゲットを生成する」が持つ | #1595 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | blueprintCopyはidを持たない共通種別になる | 捨てる | 同上。C# の `BlueprintCopyPlacementTarget` は表示名を辞書キー 1 つで解き（`PlacementTargetDisplayNameTest`）、id の有無は表示名に効かない | #1595 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | 保存BPだけが原文labelのrawになる | 捨てる | 同上。原文の名前を返すのは `BlueprintPlacementTarget.DisplayName` だけで、`PlacementTargetDisplayNameTest`「保存したブループリントは利用者が付けた名前をそのまま返す」が固定する | #1595 |
