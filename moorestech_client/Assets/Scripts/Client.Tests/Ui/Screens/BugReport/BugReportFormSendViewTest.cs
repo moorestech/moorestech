@@ -20,8 +20,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BugReport
 {
     /// <summary>
-    /// バグ報告の送信の流れ・結果のトースト・下書き・種別の文言を確かめる（L1。Web の BugReportFormTests/submissionResults.test.ts・reportKindLabels.test.ts）
-    /// Verifies the send flow, result toasts, draft and kind labels (L1; Web BugReportFormTests/submissionResults.test.ts and reportKindLabels.test.ts)
+    /// 送信の流れ・トースト・下書き・種別文言（L1）
+    /// Send flow, toasts, draft, kind labels (L1)
     /// </summary>
     public class BugReportFormSendViewTest : ScreenTestHost
     {

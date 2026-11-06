@@ -32,6 +32,11 @@ test("only・skip・each 付きも拾い、describe・step・beforeEach と識�
   assert.deepEqual(extractWebTestTitles(text).map((found) => found.title), ["飛ばしたテスト", "表 %s", "だけ"]);
 });
 
+test("型引数付きの it.each<…>(…) も拾う", () => {
+  const text = 'it.each<[A["b"], C, string]>([[1, 2, "x"]])("名前%s", () => {});';
+  assert.deepEqual(extractWebTestTitles(text).map((found) => found.title), ["名前%s"]);
+});
+
 test("複数行のテンプレート文字列の名前は空白を 1 つに畳む", () => {
   const text = "test(`長い\n    名前`, async () => {});";
   assert.deepEqual(extractWebTestTitles(text), [{ title: "長い 名前", line: 1 }]);

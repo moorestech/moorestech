@@ -94,3 +94,13 @@ test("束が 1〜5・all 以外なら exit 2", () => {
   rmSync(root, { recursive: true, force: true });
   assert.equal(result.status, 2, result.output);
 });
+
+test("処遇が写す予定の行が残っていれば exit 1 で件数を出す", () => {
+  const root = createRepository();
+  const pendingText = dispositionText.replace("| 捨てる | 通信の契約は UITK に無い | — |", "| 写す予定 | moorestech-abcd | — |");
+  writeFileSync(join(root, "docs/uitk/disposition.md"), pendingText);
+  const result = runCli(root, ["--bundle", "1"]);
+  rmSync(root, { recursive: true, force: true });
+  assert.equal(result.status, 1, result.output);
+  assert.match(result.output, /写す予定 1/);
+});

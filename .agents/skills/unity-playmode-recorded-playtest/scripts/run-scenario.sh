@@ -86,7 +86,16 @@ else
     MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
     BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode($MASTER_LITERAL, true);"
 fi
-SESSION_DIR=$(edc_call 8 0 "$BOOT_CODE" | json_get Result)
+BOOT_RESPONSE=$(edc_call 8 0 "$BOOT_CODE")
+BOOT_STATUS=$?
+# 起動コード片がコンパイルできないときは理由を出して止める（PlayMode に入っていないので停止は不要）
+# When the boot snippet does not compile, print the reason and stop (not in PlayMode yet, so no stop needed)
+if [[ "$BOOT_STATUS" -eq 2 ]]; then
+    echo "NG: boot snippet compile failed — PlaytestBoot の API が変わった可能性"
+    printf '%s' "$BOOT_RESPONSE" | print_compile_errors
+    exit 2
+fi
+SESSION_DIR=$(echo "$BOOT_RESPONSE" | json_get Result)
 # Windows(git bash)ではUnityが "C:\..." 形式の絶対パスを返すので、ドライブ文字始まりも絶対パスとして扱う
 # On Windows (git bash) Unity returns "C:\..."-style absolute paths, so a drive-letter prefix also counts as absolute
 is_absolute_path() { case "$1" in /*|[A-Za-z]:*) return 0;; *) return 1;; esac; }
@@ -117,7 +126,7 @@ SCENARIO_STATUS=$?
 if [[ "$SCENARIO_STATUS" -eq 2 ]]; then
     echo "NG: scenario compile failed — シナリオは1行も実行されていません: $SCENARIO_FILE"
     printf '%s' "$SCENARIO_RESPONSE" | print_compile_errors
-    uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1 && echo "play mode stopped"
+    uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1 && echo "play mode stopped" || echo "WARN: play mode stop failed（手動停止: uloop control-play-mode --project-path $PROJECT_PATH --action stop）"
     exit 2
 fi
 RUN_DIR=$(echo "$SCENARIO_RESPONSE" | json_get Result)

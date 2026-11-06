@@ -1,27 +1,22 @@
 using System.Linq;
 using Client.Game.InGame.BugReport.Capture;
-using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Tests.Ui.Screens.PauseMenu;
 using Client.Ui.Screens.BugReport;
-using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Text;
-using Client.Ui.State.Toast;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.BugReport
 {
     /// <summary>
-    /// バグ報告の記述欄・送信可否・状態行・ホスト送信中のロックを確かめる（L1。Web の BugReportFormTests/inputAndAvailability.test.ts）
-    /// Verifies description field, send availability, status line and host-submitting lock (L1; Web BugReportFormTests/inputAndAvailability.test.ts)
+    /// 記述欄・送信可否・状態行・送信中ロック（L1）
+    /// Description, send availability, status line, submit lock (L1)
     /// </summary>
     public class BugReportFormViewTest : ScreenTestHost
     {

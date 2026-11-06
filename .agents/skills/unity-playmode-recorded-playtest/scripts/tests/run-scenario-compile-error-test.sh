@@ -37,6 +37,15 @@ if [[ "$RUNNER_STATUS" -ne 2 || "$SCENARIO_CALLS" -ne 1 || "$RUNNER_OUTPUT" != *
     FAILURES=$((FAILURES + 1))
 fi
 
+# 停止失敗: PlayMode を止められなかったことを WARN で必ず表示し、exit 2 は保つ
+# Stop failure: a failed PlayMode stop is always surfaced as WARN while exit 2 is kept
+FAKE_ULOOP_STOP_FAIL=1 run_runner "$SCRIPT_DIR/fixtures/edc-compile-error-response.json"
+if [[ "$RUNNER_STATUS" -ne 2 || "$RUNNER_OUTPUT" != *"WARN: play mode stop failed"* ]]; then
+    echo "FAIL: stop failure status=$RUNNER_STATUS"
+    echo "$RUNNER_OUTPUT"
+    FAILURES=$((FAILURES + 1))
+fi
+
 # 対照: 通るシナリオは result.json を読んで exit 0（偽 uloop の配線が投入まで届いている証拠）
 # Control: a passing scenario reads result.json and exits 0 (proof the fake wiring reaches injection)
 printf '{"Success": true, "Result": "%s"}\n' "$WORK_DIR/run" > "$WORK_DIR/success.json"

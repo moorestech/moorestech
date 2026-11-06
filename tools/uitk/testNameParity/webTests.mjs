@@ -8,7 +8,7 @@ const WEB_TEST_FILE = /^(src|e2e)\/.*\.(test|spec)\.tsx?$/;
 // it/test（only・skip などの修飾と .each(...) を許す）の第 1 引数の文字列。describe・step・beforeEach は拾わない
 // The first string argument of it/test (modifiers and .each(...) allowed); describe, step and beforeEach are not matched
 const TEST_CALL =
-  /(?<![\w$.])(?:it|test)(?:\.(?:only|skip|concurrent|fails|sequential))*(?:\.each\s*(?:`[^`]*`|\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)))?\s*\(\s*(?:(['"])((?:\\.|(?!\1)[^\\\n])*)\1|`((?:\\[\s\S]|[^\\`])*)`)\s*,/g;
+  /(?<![\w$.])(?:it|test)(?:\.(?:only|skip|concurrent|fails|sequential))*(?:\.each\s*(?:<[^()]*?>\s*)?(?:`[^`]*`|\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)))?\s*\(\s*(?:(['"])((?:\\.|(?!\1)[^\\\n])*)\1|`((?:\\[\s\S]|[^\\`])*)`)\s*,/g;
 
 export function isWebTestFile(webPath) {
   return WEB_TEST_FILE.test(webPath);

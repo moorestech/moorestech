@@ -14,7 +14,9 @@ printf '%s :: %s\n' "$COMMAND" "$(printf '%s' "$CODE" | tr '\n' ' ' | cut -c1-80
 # Scenario injection returns a swappable response file; everything else returns a fixed success
 case "$COMMAND" in
     compile) echo '{"Success": true, "ErrorCount": 0}' ;;
-    control-play-mode) echo '{"Success": true}' ;;
+    control-play-mode)
+        if [[ -n "${FAKE_ULOOP_STOP_FAIL:-}" ]]; then echo '{"Success": false}'; exit 1; fi
+        echo '{"Success": true}' ;;
     execute-dynamic-code)
         if [[ "$CODE" == *"PlaytestRunner.Run"* ]]; then cat "$FAKE_ULOOP_SCENARIO_RESPONSE"
         elif [[ "$CODE" == *"pong:"* ]]; then echo '{"Success": true, "Result": "pong:False"}'
