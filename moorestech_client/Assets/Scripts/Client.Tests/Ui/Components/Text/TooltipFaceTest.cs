@@ -86,6 +86,35 @@ namespace Client.Tests.Ui.Components.Text
         }
 
         [Test]
+        public void 日本語の長文でも最大幅320pxに広がる()
+        {
+            Localize.TrySetChosenLanguage("japanese");
+            var face = Mount(TooltipFaceLook.Hover);
+            face.SetText(new UiText(LocalizationKeys.Ui.Settings.GraphicsRecovered));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+
+            Assert.IsTrue(face.ClassListContains("tooltip-face--wrapped"));
+            Assert.AreEqual(320f, face.worldBound.width, 0.5f);
+        }
+
+        [Test]
+        public void 短い文は広がらず長文から短文へ戻すと固定が外れる()
+        {
+            var face = Mount(TooltipFaceLook.Hover);
+            face.SetText(new UiText(LocalizationKeys.Ui.Settings.GraphicsRecovered));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.IsTrue(face.ClassListContains("tooltip-face--wrapped"));
+
+            face.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.Back));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+            Assert.IsFalse(face.ClassListContains("tooltip-face--wrapped"));
+            Assert.Less(face.worldBound.width, 200f);
+        }
+
+        [Test]
         public void 言語を変えると行を解き直す()
         {
             var face = Mount(TooltipFaceLook.Hover);
