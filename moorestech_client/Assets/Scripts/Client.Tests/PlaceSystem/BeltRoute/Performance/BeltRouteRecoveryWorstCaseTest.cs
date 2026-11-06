@@ -57,6 +57,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             var worst = 0.0;
             var found = 0;
             var compared = 0;
+            var worstLabel = "";
             for (var i = 0; i < 200; i++)
             {
                 var grid = BeltRouteRandomizedSearchTest.BuildRandomGrid(random, new Vector3Int(BeltRouteGrid.HorizontalSize, 12, BeltRouteGrid.HorizontalSize));
@@ -67,9 +68,10 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 var result = planner.Plan(query);
                 stopwatch.Stop();
                 if (result.HasPlan) found++;
+                if (worst < stopwatch.Elapsed.TotalMilliseconds) worstLabel = $"iteration {i} {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt} {(result.HasPlan ? $"found {result.Plan.TotalCost}" : $"no route {result.NoPathReason}")}";
                 worst = System.Math.Max(worst, stopwatch.Elapsed.TotalMilliseconds);
             }
-            Debug.Log($"[BeltRouteRecoveryWorstCase] random large boxes slack {recoverySlack}: worst {worst:F1} ms over {compared} queries, found {found}");
+            Debug.Log($"[BeltRouteRecoveryWorstCase] random large boxes slack {recoverySlack}: worst {worst:F1} ms over {compared} queries, found {found}, worst query {worstLabel}");
         }
 
         private static (BeltRoutePlanResult result, int searchCost) Measure(BeltRouteGrid grid, int recoverySlack, string label)
