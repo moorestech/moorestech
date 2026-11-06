@@ -19,21 +19,20 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         public readonly List<float> SmoothScrollRequests = new();
         private readonly Dictionary<Guid, float> _headingTops = new();
         private readonly Dictionary<Guid, float> _groupHeights = new();
-        private readonly float _fixedScrollHeight;
 
-        // 設定されていれば scrollHeight を「内容高＋反映済みスペーサ」で返す
-        // When set, scrollHeight is the content height plus the applied spacer
-        private BuildMenuCategoryScrollTracker _spacerSource;
+        // View が反映済みのスペーサ高さ。追跡器の SpacerHeight とは別に、テストが ApplySpacer で明示的に反映する
+        // The spacer height the view has applied; separate from the tracker's SpacerHeight, tests apply it explicitly via ApplySpacer
         private float _contentHeight;
+        private float _appliedSpacerHeight;
 
         public float ScrollTop { get; private set; }
         public float ClientHeight { get; private set; }
-        public float ScrollHeight => _spacerSource == null ? _fixedScrollHeight : _contentHeight + _spacerSource.SpacerHeight.Value;
+        public float ScrollHeight => _contentHeight + _appliedSpacerHeight;
 
         public FakeBuildMenuScrollViewport(float clientHeight, float scrollHeight, float scrollTop)
         {
             ClientHeight = clientHeight;
-            _fixedScrollHeight = scrollHeight;
+            _contentHeight = scrollHeight;
             ScrollTop = scrollTop;
         }
 
@@ -42,15 +41,12 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         public void SetHeadingTop(Guid categoryGuid, float top) => _headingTops[categoryGuid] = top;
         public void SetGroupHeight(Guid categoryGuid, float height) => _groupHeights[categoryGuid] = height;
 
-        public void UseContentPlusSpacer(float contentHeight, BuildMenuCategoryScrollTracker tracker)
-        {
-            _contentHeight = contentHeight;
-            _spacerSource = tracker;
-        }
+        public void SetContentHeight(float contentHeight) => _contentHeight = contentHeight;
+        public void ApplySpacer(float spacerHeight) => _appliedSpacerHeight = spacerHeight;
 
         public bool TryGetHeadingTop(Guid categoryGuid, out float top) => _headingTops.TryGetValue(categoryGuid, out top);
         public bool TryGetGroupHeight(Guid categoryGuid, out float height) => _groupHeights.TryGetValue(categoryGuid, out height);
-        public void SetScrollTopImmediately(float scrollTop) => ScrollTop = scrollTop;
+        public void SetScrollTopImmediately(float scrollTop) => ScrollTop = Math.Max(0f, Math.Min(scrollTop, ScrollHeight - ClientHeight));
         public void ScrollSmoothlyTo(float scrollTop) => SmoothScrollRequests.Add(scrollTop);
     }
 }

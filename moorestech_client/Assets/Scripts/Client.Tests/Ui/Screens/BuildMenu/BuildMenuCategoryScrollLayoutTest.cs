@@ -21,7 +21,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         [Test]
         public void スペーサは視口高から末尾群の高さを引いた値で0未満にならない()
         {
-            var viewport = new FakeBuildMenuScrollViewport(600f, 1200f, 0f);
+            var viewport = new FakeBuildMenuScrollViewport(600f, 700f, 0f);
             _tracker.SetVisibleCategories(new[] { Z, A });
             _tracker.AttachViewport(viewport);
             viewport.SetGroupHeight(A, 200f);
@@ -67,10 +67,12 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             Assert.AreEqual(400f, _tracker.SpacerHeight.Value);
 
             viewport.SetClientHeight(900f);
+            viewport.ApplySpacer(_tracker.SpacerHeight.Value);
             _tracker.OnLayoutChanged();
             Assert.AreEqual(700f, _tracker.SpacerHeight.Value);
 
             viewport.SetGroupHeight(A, 800f);
+            viewport.ApplySpacer(_tracker.SpacerHeight.Value);
             _tracker.OnLayoutChanged();
             Assert.AreEqual(100f, _tracker.SpacerHeight.Value);
         }
@@ -93,7 +95,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         public void 末尾群が未配置の間は復元も保存位置の上書きもしない()
         {
             _session.SetScrollTop(250f);
-            var viewport = new FakeBuildMenuScrollViewport(600f, 1200f, 0f);
+            var viewport = new FakeBuildMenuScrollViewport(600f, 700f, 0f);
             _tracker.SetVisibleCategories(new[] { Z, A });
             _tracker.AttachViewport(viewport);
             Assert.AreEqual(0f, _tracker.SpacerHeight.Value);
@@ -104,8 +106,11 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             // Once the last group lands and the view reports the applied spacer, restore the saved position
             viewport.SetGroupHeight(A, 200f);
             _tracker.SetVisibleCategories(new[] { Y, A });
-            _tracker.OnLayoutChanged();
             Assert.AreEqual(400f, _tracker.SpacerHeight.Value);
+            Assert.AreEqual(0f, viewport.ScrollTop);
+            Assert.AreEqual(250f, _session.Current.ScrollTop);
+            viewport.ApplySpacer(_tracker.SpacerHeight.Value);
+            _tracker.OnLayoutChanged();
             Assert.AreEqual(250f, viewport.ScrollTop);
             Assert.AreEqual(250f, _session.Current.ScrollTop);
         }
@@ -114,8 +119,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         [Test]
         public void 末尾へのジャンプ中にスペーサが伸びたら反映後の高さで目標を引き直す()
         {
-            var viewport = new FakeBuildMenuScrollViewport(600f, 0f, 0f);
-            viewport.UseContentPlusSpacer(700f, _tracker);
+            var viewport = new FakeBuildMenuScrollViewport(600f, 700f, 0f);
             viewport.SetHeadingTop(A, 0f);
             viewport.SetHeadingTop(B, 300f);
             _tracker.SetVisibleCategories(new[] { A, B });
@@ -126,12 +130,19 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             _tracker.JumpTo(B);
             Assert.AreEqual(100f, viewport.SmoothScrollRequests[viewport.SmoothScrollRequests.Count - 1]);
 
-            // 1 回目の通知でスペーサが決まり、反映後の 2 回目で目標を引き直す
-            // The first notification settles the spacer; the second, after it is applied, re-targets
+            // 内容高とスペーサが同時に伸びる。反映前の通知では反映前の高さ(800)で目標を引き直さない
+            // Content and spacer grow together; the pre-apply notification must not re-target on the pre-apply height (800)
+            var requestsBefore = viewport.SmoothScrollRequests.Count;
+            viewport.SetContentHeight(800f);
             viewport.SetGroupHeight(B, 100f);
             _tracker.OnLayoutChanged();
-            _tracker.OnLayoutChanged();
             Assert.AreEqual(500f, _tracker.SpacerHeight.Value);
+            Assert.AreEqual(requestsBefore, viewport.SmoothScrollRequests.Count);
+
+            // View が反映して通知すると、反映後の高さ(1300)で目標を引き直す
+            // After the view applies the spacer and notifies, re-target on the applied height (1300)
+            viewport.ApplySpacer(_tracker.SpacerHeight.Value);
+            _tracker.OnLayoutChanged();
             Assert.AreEqual(300f, viewport.SmoothScrollRequests[viewport.SmoothScrollRequests.Count - 1]);
         }
 
