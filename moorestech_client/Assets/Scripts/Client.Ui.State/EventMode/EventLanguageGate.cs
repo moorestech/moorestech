@@ -1,5 +1,6 @@
 using System;
 using Client.Localization;
+using Client.Ui.State.Commands;
 using Cysharp.Threading.Tasks;
 using UniRx;
 
@@ -32,25 +33,18 @@ namespace Client.Ui.State.EventMode
             return _selectionSource.Task;
         }
 
-        // 選択を1回だけ効かせる。二重クリックと再送は「既に選択済み」として区別し、成功と一律に丸めない
-        // Only the first selection takes effect; double clicks and resends are distinguished as "already selected" instead of a uniform success
-        public EventLanguageSelectionResult TrySelectLanguage(string languageCode)
+        // 選択を1回だけ効かせる。二重クリックと再送は良性の拒否（選択済み）として返し、成功と一律に丸めない
+        // Only the first selection takes effect; double clicks and resends return a benign "already selected" rejection instead of a uniform success
+        public UiCommandResult SelectLanguage(string languageCode)
         {
-            // silent-ok: 拒否結果を呼び出し元へ返す / Web actionがalready_selected・unknown_localeとして応答する
-            if (!IsWaitingSelection) return EventLanguageSelectionResult.AlreadySelected;
-            if (!Localize.TrySetChosenLanguage(languageCode)) return EventLanguageSelectionResult.UnknownLanguage;
+            // silent-ok: 拒否は結果で返す / Web action が already_selected・unknown_locale を応答し、UITK は UiCommandResultToaster がログと良性以外のトーストを出す
+            if (!IsWaitingSelection) return new UiCommandRejected(UiCommandRejectReason.LanguageAlreadySelected, "");
+            if (!Localize.TrySetChosenLanguage(languageCode)) return new UiCommandRejected(UiCommandRejectReason.UnknownLanguage, "");
 
             IsWaitingSelection = false;
             _onWaitingChanged.OnNext(Unit.Default);
             _selectionSource.TrySetResult();
-            return EventLanguageSelectionResult.Applied;
+            return UiCommandAccepted.Instance;
         }
-    }
-
-    public enum EventLanguageSelectionResult
-    {
-        Applied,
-        AlreadySelected,
-        UnknownLanguage
     }
 }

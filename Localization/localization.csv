@@ -495,3 +495,4 @@ ui.commandRejected.unsubmittableReportKind,This report type cannot be sent from 
 ui.commandRejected.captureRefused,Cannot send right now: the records are not ready or another report is being sent,Cannot send right now: the records are not ready or another report is being sent,今は送れません。記録の準備中か、別の報告を送信中です,Senden gerade nicht möglich: Die Aufzeichnung ist nicht bereit oder ein anderer Bericht wird gesendet,지금은 보낼 수 없습니다. 기록을 준비 중이거나 다른 보고를 보내는 중입니다
 ui.commandRejected.bundleWriteFailed,Could not write the bug report,Could not write the bug report,バグ報告を書き出せませんでした,Fehlerbericht konnte nicht geschrieben werden,버그 신고를 작성하지 못했습니다
 ui.commandRejected.unknownLanguage,This language cannot be selected,This language cannot be selected,この言語は選べません,Diese Sprache kann nicht ausgewählt werden,이 언어는 선택할 수 없습니다
+ui.commandRejected.languageAlreadySelected,The language is already selected,The language is already selected,言語はすでに選ばれています,Die Sprache ist bereits ausgewählt,언어가 이미 선택되어 있습니다

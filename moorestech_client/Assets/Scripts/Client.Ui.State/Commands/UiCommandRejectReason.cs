@@ -11,6 +11,7 @@ namespace Client.Ui.State.Commands
         CaptureRefused,
         BundleWriteFailed,
         UnknownLanguage,
+        LanguageAlreadySelected,
     }
 
     /// <summary>
@@ -19,8 +20,8 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
-        // 良性の拒否は人に知らせない。今の拒否はどれも利用者に見せるべき失敗
-        // Benign rejections are not surfaced; every current rejection is a failure the player should see
+        // 良性の拒否は人に知らせない。選択済みの言語の再選択（二重クリック・再送）だけが良性
+        // Benign rejections are not surfaced; only re-selecting an already chosen language (double click, resend) is benign
         public static bool IsBenign(UiCommandRejectReason reason)
         {
             return reason switch
@@ -30,6 +31,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.CaptureRefused => false,
                 UiCommandRejectReason.BundleWriteFailed => false,
                 UiCommandRejectReason.UnknownLanguage => false,
+                UiCommandRejectReason.LanguageAlreadySelected => true,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -52,6 +54,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.CaptureRefused => LocalizationKeys.Ui.CommandRejected.CaptureRefused,
                 UiCommandRejectReason.BundleWriteFailed => LocalizationKeys.Ui.CommandRejected.BundleWriteFailed,
                 UiCommandRejectReason.UnknownLanguage => LocalizationKeys.Ui.CommandRejected.UnknownLanguage,
+                UiCommandRejectReason.LanguageAlreadySelected => LocalizationKeys.Ui.CommandRejected.LanguageAlreadySelected,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }
@@ -65,6 +68,7 @@ namespace Client.Ui.State.Commands
                 UiCommandRejectReason.EmptyDescription => "empty_description",
                 UiCommandRejectReason.UnsubmittableReportKind => "invalid_kind",
                 UiCommandRejectReason.UnknownLanguage => "unknown_locale",
+                UiCommandRejectReason.LanguageAlreadySelected => "already_selected",
                 UiCommandRejectReason.CaptureRefused => "capture_refused",
                 UiCommandRejectReason.BundleWriteFailed => BugReportSubmitResult.BundleWriteFailed,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),

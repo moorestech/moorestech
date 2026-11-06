@@ -29,7 +29,7 @@ namespace Client.Tests.EventMode
             Assert.IsTrue(waitingJson["waiting"].Value<bool>());
             Assert.IsNull(waitingJson["precedence"]);
 
-            gate.TrySelectLanguage("english");
+            gate.SelectLanguage("english");
             var selectedJson = JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
             Assert.IsFalse(selectedJson["waiting"].Value<bool>());
         }
@@ -60,7 +60,7 @@ namespace Client.Tests.EventMode
             EventLanguageGateTopic.Register(hub, gate);
 
             var revisionBefore = hub.GetTopicRevision(EventLanguageGateTopic.TopicName);
-            gate.TrySelectLanguage("english");
+            gate.SelectLanguage("english");
             var revisionAfter = hub.GetTopicRevision(EventLanguageGateTopic.TopicName);
 
             Assert.Greater(revisionAfter, revisionBefore);

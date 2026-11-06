@@ -1,4 +1,5 @@
 using Client.Game.InGame.GraphicsQuality;
+using Client.Ui.State.Settings;
 using Newtonsoft.Json.Linq;
 using System.Numerics;
 
@@ -32,8 +33,16 @@ namespace Client.WebUiHost.Game.Actions
     {
         public static string PresetToWire(GraphicsQualitySettings settings)
         {
-            if (!GraphicsQualityPresets.TryMatch(settings, out var preset)) return "custom";
-            return preset switch { GraphicsQualityPreset.High => "high", GraphicsQualityPreset.Medium => "medium", _ => "low" };
+            // 導出は Ui.State の 1 か所に任せ、ここは wire の綴りへの写しだけを持つ
+            // Derivation lives in one place in Ui.State; this only maps the choice to its wire spelling
+            return GraphicsQualityPresetChoices.From(settings) switch
+            {
+                GraphicsQualityPresetChoice.High => "high",
+                GraphicsQualityPresetChoice.Medium => "medium",
+                GraphicsQualityPresetChoice.Low => "low",
+                GraphicsQualityPresetChoice.Custom => "custom",
+                _ => throw new System.ArgumentOutOfRangeException(nameof(settings), settings, null),
+            };
         }
 
         public static bool TryPresetFromWire(string wire, out GraphicsQualityPreset preset)

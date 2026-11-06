@@ -42,27 +42,11 @@ namespace Client.Ui.State.Settings
             var sprintMode = SprintInputModePreference.Current;
             return new SettingsViewModel(
                 graphics,
-                ToPresetChoice(graphics),
+                GraphicsQualityPresetChoices.From(graphics),
                 GraphicsQualityPreference.RecoveredInvalidPreference,
                 sprintMode,
                 SprintInputModePreference.RecoveredInvalidPreference,
                 Localize.GetCurrentLanguageCode());
-
-            #region Internal
-
-            GraphicsQualityPresetChoice ToPresetChoice(GraphicsQualitySettings settings)
-            {
-                if (!GraphicsQualityPresets.TryMatch(settings, out var preset)) return GraphicsQualityPresetChoice.Custom;
-                return preset switch
-                {
-                    GraphicsQualityPreset.High => GraphicsQualityPresetChoice.High,
-                    GraphicsQualityPreset.Medium => GraphicsQualityPresetChoice.Medium,
-                    GraphicsQualityPreset.Low => GraphicsQualityPresetChoice.Low,
-                    _ => throw new System.ArgumentOutOfRangeException(nameof(preset), preset, null),
-                };
-            }
-
-            #endregion
         }
     }
 }
