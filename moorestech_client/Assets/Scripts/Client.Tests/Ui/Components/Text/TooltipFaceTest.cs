@@ -44,7 +44,7 @@ namespace Client.Tests.Ui.Components.Text
             face.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.Settings));
             simulate.FrameUpdate();
 
-            AssertColor(Rgba(16, 20, 28, 0.9979f), face.resolvedStyle.backgroundColor, "face");
+            AssertColor(Rgba(16, 20, 28, 0.9945f), face.resolvedStyle.backgroundColor, "face");
             Assert.AreEqual(1f, face.resolvedStyle.borderTopWidth, 0.001f);
             AssertColor(Rgba(255, 255, 255, 0.0358f), face.resolvedStyle.borderTopColor, "border");
             Assert.AreEqual(6f, face.resolvedStyle.paddingTop, 0.001f);

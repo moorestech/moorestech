@@ -147,15 +147,15 @@ namespace Client.Playtest.Input
             return Mouse.current.position.ReadValue();
         }
 
-        // ホイール量を実マウス状態として注入し、CEF側へ通常フレームで転送する
-        // Inject wheel movement as mouse state so CEF forwards it on a regular frame
-        public static void MouseWheel(float deltaY)
+        // ホイールをノッチ数（正で上・負で下）で注入する。実マウスと同じ正規化済みの値（1 ノッチ＝1）なので UITK も CEF 転送も実機と同じ量で動く
+        // Inject wheel notches (positive up, negative down) as the normalized value a real mouse gives (1 per notch), so UITK and the CEF forward move as on hardware
+        public static void MouseWheel(float notchesY)
         {
             EnsureDevices();
             InputSystem.QueueStateEvent(Mouse.current, new MouseState
             {
                 position = Mouse.current.position.ReadValue(),
-                scroll = new Vector2(0f, deltaY),
+                scroll = new Vector2(0f, notchesY),
                 buttons = CurrentButtons(),
             });
         }

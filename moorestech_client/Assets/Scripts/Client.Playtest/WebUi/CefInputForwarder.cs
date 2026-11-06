@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using CefUnity.Interop;
+using CefUnity.Runtime;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -78,9 +79,11 @@ namespace Client.Playtest.WebUi
             ForwardButton(mouse.rightButton, MouseButton.Right);
             ForwardButton(mouse.middleButton, MouseButton.Middle);
 
-            // 小数ホイール量を蓄積し、CEFへ送った整数部だけを差し引く
-            // Accumulate fractional wheel input and subtract only the integer part sent to CEF
-            var scroll = mouse.scroll.ReadValue();
+            // InputSystem のノッチ数を CefUnity 本体と同じ 1 ノッチ＝WheelPixelsPerStep px へ直して蓄積し、CEFへ送った整数部だけを差し引く
+            // Convert InputSystem notches to px like CefUnity itself (WheelPixelsPerStep per notch), accumulate, and subtract only the integer part sent to CEF
+            // CefUnity 本体は resolutionScale も掛けるが、MainGame の prefab は 1 なので掛けない（1 以外にしたらここも掛ける）
+            // CefUnity also multiplies resolutionScale, but the MainGame prefab uses 1, so it is omitted here (multiply it too if that changes)
+            var scroll = mouse.scroll.ReadValue() * ScrollInputPipeline.WheelPixelsPerStep;
             _wheelAccumX += scroll.x;
             _wheelAccumY += scroll.y;
             var wheelDeltaX = (int)_wheelAccumX;
