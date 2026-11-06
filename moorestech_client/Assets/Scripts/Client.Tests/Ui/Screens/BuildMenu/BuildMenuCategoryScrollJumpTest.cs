@@ -109,6 +109,21 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             Assert.AreEqual(B, _tracker.ActiveCategory.Value);
         }
 
+        [Test]
+        public void ジャンプ固定中に別の視口へ張り替えると固定が解けてスクロール追従になる()
+        {
+            AttachTwoHeadings(new FakeBuildMenuScrollViewport(600f, 1200f, 0f));
+            _tracker.JumpTo(B);
+            Assert.AreEqual(B, _tracker.ActiveCategory.Value);
+
+            var next = new FakeBuildMenuScrollViewport(600f, 1200f, 0f);
+            next.SetHeadingTop(A, 0f);
+            next.SetHeadingTop(B, 400f);
+            _tracker.AttachViewport(next);
+            Assert.AreEqual(0, next.SmoothScrollRequests.Count);
+            Assert.AreEqual(A, _tracker.ActiveCategory.Value);
+        }
+
         private FakeBuildMenuScrollViewport AttachTwoHeadings(FakeBuildMenuScrollViewport viewport)
         {
             viewport.SetHeadingTop(A, 0f);
