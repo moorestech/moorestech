@@ -76,21 +76,21 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     // Open the pad and press build; the build is awaited in real time (the DSL cannot advance time)
     p.Note($"建造ボタンを押し、建造 {param.BuildSeconds} 秒を早送りせずに待つ");
     await OpenPad();
-    await p.UntilWebUiElement("rocket-launch-pad-build", 10f);
+    await p.UntilUiElement("rocket-launch-pad-build", 10f);
     await p.Screenshot("02-panel-build-button");
-    await p.ClickWebUi("rocket-launch-pad-build");
+    await p.ClickUi("rocket-launch-pad-build");
     await p.Until(() => Phase() == RocketLaunchPadPhase.Building, 5f, "建造が始まった");
     await p.Screenshot("03-building");
     await WaitPhaseRefueling(RocketLaunchPadPhase.AwaitingLaunchCommand, param.BuildSeconds + 60f, "建造が実時間で終わり発射の合図待ちになった");
-    await p.UntilWebUiElement("rocket-launch-pad-launch", 10f);
+    await p.UntilUiElement("rocket-launch-pad-launch", 10f);
     await p.Screenshot("04-awaiting-launch");
 
     // 発射の合図は打ち上げ待ちへ移すだけで、次の tick の進行が打ち上げる
     // The launch command only moves to ready-to-launch; the next tick's advance performs the launch
-    await p.ClickWebUi("rocket-launch-pad-launch");
+    await p.ClickUi("rocket-launch-pad-launch");
     await p.Until(() => Phase() is RocketLaunchPadPhase.ReadyToLaunch or RocketLaunchPadPhase.Launching, 5f, "打ち上げ待ちへ移った");
     await p.Until(() => Phase() == RocketLaunchPadPhase.Launching, 5f, "上昇が始まった");
-    await p.ClickWebUi("block-inventory-close");
+    await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     // 足場の南端から台を見上げる（GameScreen の視点はポインタの移動量で上へ振る）
     // Look up at the pad from the scaffold's south edge (GameScreen look pitches up with pointer delta)
@@ -110,9 +110,9 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
     p.Assert(hasLaunched, "first launch recorded");
     await p.Until(() => Phase() == RocketLaunchPadPhase.Idle, 20f, "打ち上げが終わり待機に戻った");
     await OpenPad();
-    await p.UntilWebUiElement("rocket-launch-pad-output-slots", 10f);
+    await p.UntilUiElement("rocket-launch-pad-output-slots", 10f);
     await p.Screenshot("06-output");
-    await p.ClickWebUi("block-inventory-close");
+    await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
 
     // 2便目は合図なしで建造が始まる
@@ -181,7 +181,7 @@ return PlaytestRunner.Run("tier9-4-rocket-launch", new PlaytestRunOptions { Reco
         await p.PressInteract();
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
         SemanticInput.KeyUp(Key.LeftAlt);
-        await p.UntilWebUiElement("block-inventory-close", 10f);
+        await p.UntilUiElement("block-inventory-close", 10f);
     }
 
     #endregion

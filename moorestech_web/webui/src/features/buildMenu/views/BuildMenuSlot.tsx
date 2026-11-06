@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { HoverTooltip, PlacementTargetFace, SlotFrame } from "@/shared/ui";
 import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor";
 import { useHotbarDragSource } from "@/features/hotbar";
@@ -5,6 +6,10 @@ import { L, useI18n } from "@/shared/i18n";
 import { useMaterialTooltipText } from "@/shared/materialTooltipText";
 import type { BuildMenuDisplayEntry } from "../logic/buildMenuGrouping";
 import { insufficientItems } from "../logic/buildMenuShortage";
+
+// 共有アイコン規則の余白。従来の私有寸法（枠 - 8px）と同じ見た目になる値
+// Padding for the shared icon rule, matching the former private size (frame minus 8px)
+const ICON_PAD_STYLE = { "--icon-pad": "4px" } as CSSProperties;
 
 type Props = {
   entry: BuildMenuDisplayEntry;
@@ -39,6 +44,7 @@ export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange 
     <HoverTooltip label={shortageTooltip} disabled={shortages.length === 0}>
       <SlotFrame
         filled
+        style={ICON_PAD_STYLE}
         testId={`build-menu-entry-${entry.kind}-${entry.id}`}
         onRightDown={onRightClick}
         onHoverChange={onHoverChange}

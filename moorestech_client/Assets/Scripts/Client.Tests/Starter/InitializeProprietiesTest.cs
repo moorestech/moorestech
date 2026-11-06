@@ -88,8 +88,8 @@ namespace Client.Tests.Starter
                 Assert.That(proprieties, Is.Null);
                 Assert.That(denyReason.Key.Key, Is.EqualTo(expectedKey.Key));
 
-                // 境界値は{p0}として実文言まで届く
-                // The boundary value reaches the resolved wording through {p0}
+                // 境界値は名前付きの値として実文言まで届く
+                // The boundary value reaches the resolved wording through its named placeholder
                 StringAssert.Contains(expectedBoundary, Localize.GetFormatted(denyReason.Key, denyReason.TextParams));
             }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.Player.FlyMode;
@@ -7,18 +7,6 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Player
 {
-    public interface IPlayerObjectController
-    {
-        public Vector3 Position { get; }
-        public void SetPlayerPosition(Vector3 playerPos);
-        public void SetActive(bool active);
-        
-        public void SetAnimationState(string state);
-        public void SetMovementLock(PlayerMovementLockReason reason, bool isLocked);
-        public void SetModelVisible(bool visible);
-        public void SetSprintToggleAllowed(bool allowed);
-    }
-    
     public class PlayerObjectController : MonoBehaviour, IPlayerObjectController
     {
         public Vector3 Position => transform.position;
@@ -35,6 +23,13 @@ namespace Client.Game.InGame.Player
         private Vector3 worldSpawnPosition;
         private Vector3 initialPlayerPosition;
         private bool isRuntimeStarted;
+
+        // DIより前の言語待機中も、未初期化の移動処理を実行させない
+        // Keep uninitialized movement stopped even while language selection waits before DI
+        private void Awake()
+        {
+            controller.enabled = false;
+        }
 
         // 参照解決と復帰先の確定まで。地形コライダーがまだ無いのでWarpも重力も始めない
         // Resolve references and settle the recovery target only; terrain colliders do not exist yet, so no warp and no gravity
@@ -54,9 +49,6 @@ namespace Client.Game.InGame.Player
             this.worldSpawnPosition = worldSpawnPosition;
             this.initialPlayerPosition = initialPlayerPosition;
 
-            // 地形の無い空間で落下させない。重力はStartPlayerRuntimeで解禁する
-            // Never let the player fall through a terrain-less space; gravity is released in StartPlayerRuntime
-            controller.enabled = false;
         }
 
         // 地形構築の完了後にFinalizerが呼ぶ。保存座標へ置いてから重力と落下復帰を解禁する

@@ -23,8 +23,9 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using VContainer;
 const string PanelName = "クリーンルームパネル";
+const string WallPanelName = "クリーンルーム壁パネル";
 var outsidePosition = new Vector3(3.5f, 33.5f, -3.5f); // ドア正面の室外（床の上）
-var uiPanelCell = new Vector3Int(6, 33, 4); // Shift+R で縦にして UI で置く東の壁
+var uiPanelCell = new Vector3Int(6, 33, 4); // 壁パネルを R で東向きに回して UI で置く東の壁
 var hatchCell = new Vector3Int(4, 34, 0); // 南の壁上段のアイテムハッチ
 return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { Record = true }, async p =>
 {
@@ -41,21 +42,23 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     for (var x = -2; x <= 8; x++) for (var z = -6; z <= 8; z++) await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 32, z), BlockDirection.North);
     await p.WaitBlockGameObject(new Vector3Int(6, 32, 4));
     await p.WaitSeconds(1f);
-    #region パネルを Shift+R で縦にして UI で置く / Stand a panel upright with Shift+R and place it via the UI
+    #region 壁パネルを R で回して UI で置く / Rotate a wall panel with R and place it via the UI
+    // 縦回転は廃止したので、壁は縦の板を持つ壁パネルを水平に回して立てる
+    // Vertical rotation is gone, so walls use the wall panel (an upright plate) turned horizontally
     p.WarpPlayer(new Vector3(4.5f, 33.5f, 1.5f));
-    await p.PrepareBlockForUiPlacement(PanelName, 1);
-    await p.OpenBuildMenuAndSelectBlock(PanelName);
-    SemanticInput.KeyDown(Key.LeftShift);
-    await p.WaitSeconds(0.5f);
+    await p.PrepareBlockForUiPlacement(WallPanelName, 1);
+    await p.OpenBuildMenuAndSelectBlock(WallPanelName);
     await p.PressKey(Key.R);
-    SemanticInput.KeyUp(Key.LeftShift);
     await p.AimAt(new Vector3(6.5f, 33f, 4.5f));
+    // 照準直後はプレビューが追従していないので待ってから置く
+    // The preview lags the aim, so wait before placing
+    await p.WaitSeconds(0.5f);
     await p.ClickPlace();
-    await p.Until(() => p.GetBlock(uiPanelCell) != null, 15f, "UIで置いたパネルがサーバーに載った");
-    p.Assert(Mathf.Abs((p.GetBlock(uiPanelCell).BlockPositionInfo.BlockDirection.GetRotation() * Vector3.up).y) < 0.5f, $"Shift+Rでパネルが縦向き(Up*/Down*)になった(向き={p.GetBlock(uiPanelCell).BlockPositionInfo.BlockDirection})");
+    await p.Until(() => p.GetBlock(uiPanelCell) != null, 15f, "UIで置いた壁パネルがサーバーに載った");
+    p.Assert(p.GetBlock(uiPanelCell).BlockPositionInfo.BlockDirection == BlockDirection.East, $"R1回で壁パネルが東向き(板が室内側の西の面)になった(向き={p.GetBlock(uiPanelCell).BlockPositionInfo.BlockDirection})");
     await p.ExitToGameScreen();
     #endregion
-    // 東西南の壁は板が室内側に来る縦向きのパネル、北の壁は壁ブロック、天井は北向きのパネルにする
+    // 東西南の壁は板が室内側に来る向きの壁パネル、北の壁は壁ブロック、天井は北向きのパネルにする
     // East/west/south walls are upright panels with the plate facing inside, the north wall is wall blocks, the ceiling is north-facing panels
     p.WarpPlayer(outsidePosition);
     for (var x = 0; x <= 6; x++)
@@ -64,9 +67,9 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
         await p.PlaceBlockDirect(PanelName, new Vector3Int(x, 35, z), BlockDirection.North);
         if (x != 0 && x != 6 && z != 0 && z != 6) continue;
         foreach (var cell in new[] { new Vector3Int(x, 33, z), new Vector3Int(x, 34, z) }.Where(cell => !(x == 3 && z == 0) && cell != uiPanelCell && cell != hatchCell))
-            if (x == 0) await p.PlaceBlockDirect(PanelName, cell, BlockDirection.UpWest);
-            else if (x == 6) await p.PlaceBlockDirect(PanelName, cell, BlockDirection.DownEast);
-            else if (z == 0) await p.PlaceBlockDirect(PanelName, cell, BlockDirection.UpSouth);
+            if (x == 0) await p.PlaceBlockDirect(WallPanelName, cell, BlockDirection.West);
+            else if (x == 6) await p.PlaceBlockDirect(WallPanelName, cell, BlockDirection.East);
+            else if (z == 0) await p.PlaceBlockDirect(WallPanelName, cell, BlockDirection.South);
             else await p.PlaceBlockDirect("クリーンルームブロック", cell, BlockDirection.North);
     }
     await p.PlaceBlockDirect("クリーンルームドア", new Vector3Int(3, 33, 0), BlockDirection.North);
@@ -75,8 +78,8 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     var machineBlock = await p.PlaceBlockDirect("EUV露光式半導体製造装置", new Vector3Int(3, 33, 3), BlockDirection.North);
     await WirePower(filterBlock, machineBlock);
     await p.WaitBlockGameObject(new Vector3Int(3, 33, 0));
-    // 床(水平)・西(UpWest)・南(UpSouth)・UIで置いた東(縦)の板が、それぞれ自分のセルの中に描かれる
-    // The floor (flat), west (UpWest), south (UpSouth) and UI-placed east (upright) plates each render inside their own cell
+    // 床(水平)・西・南・UIで置いた東の壁パネルの板が、それぞれ自分のセルの中に描かれる
+    // The floor (flat), west, south and UI-placed east wall-panel plates each render inside their own cell
     foreach (var (plateCell, upright) in new[] { (new Vector3Int(2, 32, 2), false), (new Vector3Int(0, 33, 2), true), (new Vector3Int(1, 33, 0), true), (uiPanelCell, true) })
         await AssertPanelPlateInCell(plateCell, upright);
     // 密閉された部屋が検出されるのを待つ（クラスは問わない）
@@ -99,19 +102,19 @@ return PlaytestRunner.Run("cleanroom-room-usability", new PlaytestRunOptions { R
     var localInventory = ClientDIContext.DIContainer.DIContainerResolver.Resolve<ILocalPlayerInventory>();
     await p.Until(() => FindMainSlot(localInventory, filterItemId) >= 0, 10f, "フィルターがクライアントのインベントリに届いた");
     await OpenBlockUi(new Vector3(1.5f, 33.5f, 3.5f), new Vector3(1.5f, 34f, 5.5f));
-    await p.UntilWebUiElement("clean-room-filter-grid-slot-0", 10f);
-    await p.ClickWebUi($"main-slot-{FindMainSlot(localInventory, filterItemId)}");
-    await p.ClickWebUi("clean-room-filter-grid-slot-0");
+    await p.UntilUiElement("clean-room-filter-grid-slot-0", 10f);
+    await p.ClickUi($"main-slot-{FindMainSlot(localInventory, filterItemId)}");
+    await p.ClickUi("clean-room-filter-grid-slot-0");
     Core.Inventory.IOpenableInventory filterInventory = filterBlock.GetComponent<IOpenableBlockInventoryComponent>();
     await p.Until(() => filterInventory.GetItem(0).Id == filterItemId && filterInventory.GetItem(0).Count == 5, 10f, "フィルター5個がスロットに入った");
-    await p.UntilWebUiElement("clean-room-section", 10f);
+    await p.UntilUiElement("clean-room-section", 10f);
     await p.Screenshot("03-filter-loaded");
     await CloseBlockUi();
     #endregion
     #region EUV の部屋欄 / Room section of the EUV
     await OpenBlockUi(new Vector3(4.5f, 33.5f, 2f), new Vector3(4.5f, 34f, 4.5f));
-    await p.UntilWebUiElement("clean-room-section", 10f);
-    await p.UntilWebUiElement("clean-room-headline", 10f);
+    await p.UntilUiElement("clean-room-section", 10f);
+    await p.UntilUiElement("clean-room-headline", 10f);
     await p.Screenshot("04-euv-room-section");
     await CloseBlockUi();
     #endregion

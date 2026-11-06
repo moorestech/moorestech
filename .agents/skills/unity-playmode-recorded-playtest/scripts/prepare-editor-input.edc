@@ -1,0 +1,22 @@
+using System.Linq;
+using Client.Playtest.Input;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+// GameViewを選択して、入力の送信先を確定する。
+// Select GameView so injected input has a defined target.
+var gameView = Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
+var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
+var dock = typeof(UnityEditor.EditorWindow).GetField("m_Parent", flags).GetValue(gameView);
+var tabs = (System.Collections.IList)dock.GetType().GetField("m_Panes", flags).GetValue(dock);
+dock.GetType().GetProperty("selected", flags).SetValue(dock, tabs.IndexOf(gameView));
+gameView.Focus();
+
+// 背景中もInputSystemの注入をGameViewへ届ける。
+// Route InputSystem injection to GameView even while unfocused.
+InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+SemanticInput.EnsureDevices();
+InputSystem.EnableDevice(Keyboard.current);
+InputSystem.EnableDevice(Mouse.current);
+return $"pid={System.Diagnostics.Process.GetCurrentProcess().Id};dataPath={Application.dataPath};focus={Application.isFocused};keyboard={Keyboard.current.enabled};mouse={Mouse.current.enabled};background={InputSystem.settings.backgroundBehavior};editorInput={InputSystem.settings.editorInputBehaviorInPlayMode}";

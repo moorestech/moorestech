@@ -6,7 +6,7 @@ namespace Client.WebUiHost.Game.Topics
 {
     public static class ChallengeDtoBuilder
     {
-        public static ChallengeTreeDto BuildTree(List<ChallengeCategoryResponse> responses)
+        public static ChallengeTreeDto BuildTree(IReadOnlyList<ChallengeCategoryResponse> responses)
         {
             var result = new ChallengeTreeDto { Categories = new List<ChallengeCategoryDto>() };
             foreach (var response in responses)
@@ -48,7 +48,7 @@ namespace Client.WebUiHost.Game.Topics
             return result;
         }
 
-        public static ChallengeCurrentDto BuildCurrent(List<ChallengeCategoryResponse> responses, string completedGuid)
+        public static ChallengeCurrentDto BuildCurrent(IReadOnlyList<ChallengeCategoryResponse> responses, string completedGuid)
         {
             var result = new ChallengeCurrentDto
             {

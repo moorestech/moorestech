@@ -21,14 +21,19 @@ namespace Client.Starter.Initialization.Progress
 
         public void AppendElapsed(LocalizationKey key)
         {
-            Append(Localize.GetFormatted(key, new[] { _loadingStopwatch.Elapsed.ToString() }));
+            Append(Localize.GetFormatted(key, new[] { ElapsedParam() }));
         }
 
         // 先頭に値を1つ足す行の経路
         // Path for lines with one leading value
-        public void AppendElapsed(LocalizationKey key, string leadingParam)
+        public void AppendElapsed(LocalizationKey key, LocalizationTextParam leadingParam)
         {
-            Append(Localize.GetFormatted(key, new[] { leadingParam, _loadingStopwatch.Elapsed.ToString() }));
+            Append(Localize.GetFormatted(key, new[] { leadingParam, ElapsedParam() }));
+        }
+
+        private LocalizationTextParam ElapsedParam()
+        {
+            return new LocalizationTextParam("elapsed", _loadingStopwatch.Elapsed.ToString());
         }
 
         public void Append(LocalizationKey key)

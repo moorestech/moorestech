@@ -1,3 +1,4 @@
+using Client.Localization;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Height;
@@ -111,7 +112,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete.Box
                 var intent = _selection.Intent;
                 var view = ViewFor(intent);
                 var targets = _resolver.Resolve(min, max, deleteSelection, intent);
-                tooltipLines.Add(new TooltipLine(view.CountKey, new[] { targets.Count.ToString() }));
+                tooltipLines.Add(new TooltipLine(view.CountKey, new[] { new LocalizationTextParam("count", targets.Count.ToString()) }));
                 if (targets.Count == 0) tooltipLines.Add(new TooltipLine(view.EmptyRangeKey));
                 HideViewsExcept(view);
                 view.GetVisualizer().ShowSelectingEnd(_selection.StartCell, _selection.EndCell, min, max);

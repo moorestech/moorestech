@@ -10,7 +10,7 @@ using Client.Localization;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
-using Client.Playtest.WebUi;
+using Client.Playtest.UiElements;
 using Client.Common;
 using Core.Master;
 using Core.Update;
@@ -50,12 +50,12 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     var generatorObject = await p.WaitBlockGameObject(generatorPos);
     p.Assert(generatorBlock != null && p.GetBlock(generatorPos) != null, "発電機がサーバーに設置された");
     await OpenGenerator();
-    await p.UntilWebUiElement("gear-to-electric-section", 15f);
+    await p.UntilUiElement("gear-to-electric-section", 15f);
     p.Assert(Localize.TrySetChosenLanguage("japanese"), "録画の表示言語を日本語に設定");
     await p.Until(() => Detail().GenerationState == GearToElectricGenerationState.Stopped, 15f, "RPM不足で停止中");
     await VerifyPanel("停止中（RPM不足）", false);
     await p.Screenshot("rotary-generator-stopped");
-    await p.ClickWebUi("block-inventory-close");
+    await p.ClickUi("block-inventory-close");
     await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     // 蒸気機関から二段の20対10歯噛合で40 RPMへ増速する
     // Increase steam-engine speed to 40 RPM through two 20-to-10 tooth meshes
@@ -95,7 +95,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     await p.Hotbar.UnlockConnectTool("電線");
     await p.GiveItem("銅のワイヤー", 64);
     await p.Hotbar.AssignHotbar(0, "電線");
-    await p.ClickWebUi("hotbar-slot-0");
+    await p.ClickUi("hotbar-slot-0");
     await p.WaitUiState(UIStateEnum.PlaceBlock, 10f);
     await AimAtClickCollider(generatorObject);
     p.Assert(BlockClickDetectUtil.TryGetCursorOnBlock(out var sourceTarget) && sourceTarget == generatorObject, "電線起点クリック前の実ヒットが発電機");
@@ -118,7 +118,7 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     p.Assert(activeRpmEnough, "発電中の実RPMは最低40以上");
     await p.ExitToGameScreen();
     await OpenGenerator();
-    await p.UntilWebUiElement("gear-to-electric-section", 15f);
+    await p.UntilUiElement("gear-to-electric-section", 15f);
     await VerifyPanel("発電中", true);
     await p.Screenshot("rotary-generator-generating");
     // 需要を除いた次の電力tickで供給量がゼロへ戻ることを確認する
@@ -173,11 +173,11 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
     async UniTask VerifyPanel(string expectedState, bool expectPositivePower)
     {
         var testIds = new[] { "gear-to-electric-state", "gear-to-electric-supplied-power", "gear-torque", "gear-rpm", "electric-network-section", "gear-network-section" };
-        var rows = new Client.Playtest.WebUi.DomQueryResult[testIds.Length];
+        var rows = new UiElementSnapshot[testIds.Length];
         for (var attempt = 0; attempt < 30; attempt++)
         {
-            for (var index = 0; index < testIds.Length; index++) rows[index] = await PlaytestDomQuery.Query(testIds[index], 1f);
-            if (rows.All(row => row.Found) && rows[0].Text == expectedState &&
+            for (var index = 0; index < testIds.Length; index++) rows[index] = await PlaytestUiElementOps.FindUi(testIds[index]);
+            if (rows.All(row => row.IsFound) && rows[0].Text == expectedState &&
                 rows[1].Text.Contains("最大 100") &&
                 (expectedState != "待機中（需要なし）" || rows[4].Text.Contains("需要なし")) &&
                 (!expectPositivePower || !rows[1].Text.Contains("供給電力 0 "))) break;
@@ -186,14 +186,14 @@ return PlaytestRunner.Run("rotary-generator-ui", options, async p =>
         var detail = Detail();
         var current = detail.GeneratedElectricPower.ToString("F0", CultureInfo.InvariantCulture);
         p.Note($"server={detail.GenerationState}, RPM={detail.CurrentRpm:F1}, supplied={detail.GeneratedElectricPower:F1}; DOM={rows[0].Text} / {rows[1].Text}");
-        p.Assert(rows.All(row => row.Found), "状態・供給電力・歯車・両ネットワークのDOM行がある");
+        p.Assert(rows.All(row => row.IsFound), "状態・供給電力・歯車・両ネットワークのDOM行がある");
         p.Assert(rows[0].Text == expectedState, $"DOM状態文字列: {expectedState}");
         p.Assert(detail.GenerationState.ToString() == (expectedState == "発電中" ? "Generating" : expectedState == "待機中（需要なし）" ? "Idle" : "Stopped"), "DOM状態がサーバーenumと一致");
         p.Assert(rows[1].Text == $"供給電力 {current} / 最大 100", "DOM供給量がサーバー値と一致");
         p.Assert(expectPositivePower ? detail.GeneratedElectricPower > 0f : Mathf.Approximately(detail.GeneratedElectricPower, 0f), "サーバー供給量");
         p.Assert(expectedState != "待機中（需要なし）" || rows[4].Text.Contains("需要なし"), $"待機電力網は需要なし: {rows[4].Text}");
-        p.Assert(rows[0].Y < rows[1].Y && rows[1].Y < rows[2].Y && rows[2].Y < rows[3].Y &&
-                 rows[3].Y < rows[4].Y && rows[4].Y < rows[5].Y, "状態→供給→歯車→電力網→歯車網の表示順");
+        p.Assert(rows[0].ScreenRect.yMax > rows[1].ScreenRect.yMax && rows[1].ScreenRect.yMax > rows[2].ScreenRect.yMax && rows[2].ScreenRect.yMax > rows[3].ScreenRect.yMax &&
+                 rows[3].ScreenRect.yMax > rows[4].ScreenRect.yMax && rows[4].ScreenRect.yMax > rows[5].ScreenRect.yMax, "状態→供給→歯車→電力網→歯車網の表示順");
     }
     #endregion
 });

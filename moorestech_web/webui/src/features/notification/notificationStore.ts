@@ -9,8 +9,8 @@ type MessageCategory = Exclude<DeliveredNotificationData["category"], "itemEarne
 // 必要な項目はカテゴリで決まる
 // The category decides which fields exist
 export type NewGameNotification =
-  | { category: "itemEarned"; messageId: string; messageParams: string[]; itemId: number; count: number }
-  | { category: MessageCategory; messageId: string; messageParams: string[]; itemId: number | null };
+  | { category: "itemEarned"; messageId: string; messageParams: Record<string, string>; itemId: number; count: number }
+  | { category: MessageCategory; messageId: string; messageParams: Record<string, string>; itemId: number | null };
 
 export type GameNotification = NewGameNotification & { id: number; lifetimeEpoch: number };
 

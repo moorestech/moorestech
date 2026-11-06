@@ -475,6 +475,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 332b25efdfde947839fdc0559fefd073
+    m_Address: Vanilla/Block/DataCenter
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 34085e491884c46d3b0c5effc9b179e4
     m_Address: Vanilla/Environment/Rock/MesaDesert/ThinMesa_2
     m_ReadOnly: 0
@@ -880,6 +885,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5e90edc6c8ff54e34899786fdef56a63
+    m_Address: Vanilla/Material/DataCenter/DataCenter_Body
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5f6c0d705933140bdb8d4f3388a6bd82
     m_Address: Vanilla/Block/Rotary_generator
     m_ReadOnly: 0
@@ -982,6 +992,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 69bff051f43e249698dd333128d43e16
     m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia4
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 69f258fd472914be1877d025aae3d569
+    m_Address: Vanilla/Block/ElectricPrecisionAssembler
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1482,6 +1497,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9c9401b0d7dea44f98ef759ef5209322
     m_Address: Vanilla/Block/CleanRoomDoor
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9ce68bdecdc874370a5d42a9949d5a19
+    m_Address: Vanilla/Block/CleanRoomWallPanel
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2267,6 +2287,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: eb13dc58daae64bf78b6824a6f7d9634
     m_Address: Vanilla/Environment/Rock/Oasis/RubbleSparse_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ebbe55ab1f7084d66998beb3f39414b3
+    m_Address: Vanilla/Material/DataCenter/DataCenter_Lamp
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Master;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,7 +50,7 @@ namespace Server.Protocol.PacketResponse
             if (!result.IsSuccess)
             {
                 Debug.LogWarning($"[ElectricWireExtend] denied: {result.FailureReason} op={request.Operation} from={request.FromPosVector} to={request.ToPosVector} player={requesterPlayerId}");
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireExtend.{result.FailureReason}", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied($"denied.electricWireExtend.{result.FailureReason}", new Dictionary<string, string>()));
             }
 
             return result.IsSuccess

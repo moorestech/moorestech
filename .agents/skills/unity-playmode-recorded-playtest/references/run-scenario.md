@@ -29,6 +29,19 @@ cp "$SKILL/scenarios/<カテゴリ>/<シナリオ名>.cs" "$SCRATCH/<シナリ�
 - 第3引数でmasterデータを差し替え可能。省略時は作業中プロジェクトの`.moorestech-external-revisions.json`の互換コミットにHEADが一致するmoorestech_master worktreeを自動解決する（スキル固定パスは無い）。該当worktree未作成なら自動解決が失敗しエラーになるので、`git -C ../moorestech_master worktree add <path> <互換コミット>`で作るか第3引数で明示する
 - 所要: preflight ~30秒 + ready ~15〜30秒 + シナリオ本体。**バックグラウンド実行してresult.json出現を待つ**（固定sleepの多段待ちをしない）
 
+## 手動EDC投入時のGameView入力準備
+
+`ready.marker` を確認してからシナリオを手動投入する場合、入力がGameViewへ届くか先に確認する。次の既存スクリプトはタブ選択、背景入力設定、デバイス有効化を行い、PID・`dataPath`・入力状態を返す。返値が今回のEditorとprojectを指すことを確かめてから投入する。
+
+```bash
+uloop execute-dynamic-code --project-path ./moorestech_client \
+  --code-file "$SKILL/scripts/prepare-editor-input.edc"
+uloop execute-dynamic-code --project-path ./moorestech_client \
+  --code-file "$SCRATCH/<シナリオ名>.cs"
+```
+
+`run-scenario.sh` は独立したbootから投入までを一度に行う。上の準備はready後にEDCで手動投入する経路で使う。
+
 ## 固定world・map mode・seedで起動する
 
 generated mapや同一worldの再起動を検証するときは、次の3環境変数を全て指定する。
@@ -52,7 +65,7 @@ PLAYTEST_SEED=12345 \
 1. **preflight** (スキル同梱 `scripts/preflight.sh`): CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試しスキーマ不整合をPlayMode前に検出）
 2. **boot**: 通常は `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)`、固定worldの3変数指定時は `PrepareWorldAndEnterPlayMode(masterDir, worldDir, mapMode, seed)` をEDC 1回で実行してPlayMode突入
 3. **ready待ち**: ゲーム初期化完了イベントで書かれる `ready.marker` をファイルポーリング（EDCを連打しない）
-4. **シナリオ投入**: キー/マウスを使う場合は先に[input-injection.md](input-injection.md)のde-risk probeを読み、ready後かつ`PlaytestRunner.Run`呼び出し前のスニペットトップレベルで完了する。Web UIをprobeする場合はreadyとCEF利用可能状態を確認し、`PlaytestDomQuery.RegisterHandler()` → `CefInputForwarder.StartForwarding()` → probeの順に実行する。probe失敗でRunへ進まない場合は`CefInputForwarder.StopForwarding()`と`PlaytestDomQuery.ResetPending()`で片付け、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認をこの段階で行い、録画開始後のコールバック内には置かない。シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済み）
+4. **シナリオ投入**: キー/マウスを使う場合は先に[input-injection.md](input-injection.md)のde-risk probeを読み、ready後かつ`PlaytestRunner.Run`呼び出し前のスニペットトップレベルで完了する。UIをprobeする場合はreadyを確認して`PlaytestUiLocatorSession.Start()`を呼び、期限付きで`PlaytestUiLocatorSession.Locator.IsAvailable()`を待ってからprobeする。成功・失敗を問わずfinallyで`PlaytestUiLocatorSession.Stop()`を呼び、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認をこの段階で行い、録画開始後のコールバック内には置かない。シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済み）
 5. **回収**: `result.json` の出現を待って表示。`Success` で exit 0/1
 
 ## 結果の読み方

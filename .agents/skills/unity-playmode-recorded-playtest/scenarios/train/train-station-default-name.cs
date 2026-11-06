@@ -121,10 +121,10 @@ return PlaytestRunner.Run("train-station-default-name", options, async p =>
         await p.PressInteract();
         SemanticInput.KeyUp(Key.LeftAlt);
         await p.WaitUiState(UIStateEnum.SubInventory, 10f);
-        await p.UntilWebUiElement("train-station-name-input", 10f);
+        await p.UntilUiElement("train-station-name-input", 10f);
         await p.Screenshot(screenshot);
         p.Note($"Fで駅名欄を開いた: {expectedName}");
-        await p.ClickWebUi("block-inventory-close");
+        await p.ClickUi("block-inventory-close");
         await p.WaitUiState(UIStateEnum.GameScreen, 10f);
     }
 

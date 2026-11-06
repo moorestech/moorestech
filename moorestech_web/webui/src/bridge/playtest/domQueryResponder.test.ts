@@ -121,3 +121,26 @@ describe("DOMの可視性とクリック可否", () => {
     expect(query()).toMatchObject({ found: true, visible: true });
   });
 });
+
+describe("一致件数と状態フラグ", () => {
+  it("値が空かtrueのdata属性だけを状態フラグとして返す", () => {
+    element.setAttribute("data-selected", "true");
+    element.setAttribute("data-ghost", "");
+    element.setAttribute("data-kind", "bug");
+    element.setAttribute("data-locked", "false");
+    expect(query()).toMatchObject({ found: true, matchCount: 1, stateFlags: ["ghost", "selected"] });
+  });
+
+  it("同じtestidが複数あれば件数を返し、先頭要素を読む", () => {
+    const duplicate = document.createElement("div");
+    duplicate.dataset.testid = "hud";
+    duplicate.innerText = "second";
+    document.body.append(duplicate);
+    expect(query()).toMatchObject({ found: true, matchCount: 2, text: "Height: 1" });
+  });
+
+  it("見つからなければ件数0で状態フラグは空", () => {
+    element.remove();
+    expect(query()).toMatchObject({ found: false, matchCount: 0, stateFlags: [] });
+  });
+});

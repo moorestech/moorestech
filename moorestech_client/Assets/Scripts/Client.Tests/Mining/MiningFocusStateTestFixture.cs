@@ -93,7 +93,7 @@ namespace Client.Tests.Mining
             return _tooltip.GetPresentation().Lines[0].Key.Key;
         }
 
-        protected IReadOnlyList<string> ShownTooltipParams()
+        protected IReadOnlyList<LocalizationTextParam> ShownTooltipParams()
         {
             return _tooltip.GetPresentation().Lines[0].TextParams;
         }

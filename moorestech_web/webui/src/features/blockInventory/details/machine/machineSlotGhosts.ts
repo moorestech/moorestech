@@ -3,7 +3,9 @@
 import type { FluidSlotData, MachineDetailData, SlotData } from "@/bridge";
 import { splitSlotIndices } from "../detailLogic";
 
-export type GhostItem = { itemId: number; count: number };
+// acceptedItemIds は束縛が受け入れるアイテム（上位変種を含む）。実物がこれに無ければ必要数と比べない
+// acceptedItemIds are the items the binding accepts (variants included); a real item outside them is not compared with the requirement
+export type GhostItem = { itemId: number; count: number; acceptedItemIds: number[] };
 type GhostFluid = { fluidGuid: string; amount: number };
 type BoundItemSlot = { index: number; ghost: GhostItem | undefined };
 type BoundFluidSlot = { index: number; ghost: GhostFluid | undefined };
@@ -53,7 +55,7 @@ export function buildMachineSlotView(machine: MachineDetailData, itemSlots: Slot
     };
   }
 
-  const itemGhosts = new Map(machine.slotBindings.map((binding) => [binding.slot, { itemId: binding.itemId, count: binding.count }]));
+  const itemGhosts = new Map(machine.slotBindings.map((binding) => [binding.slot, { itemId: binding.itemId, count: binding.count, acceptedItemIds: binding.acceptedItemIds }]));
   const fluidGhosts = new Map(machine.tankBindings.map((binding) => [binding.tank, { fluidGuid: binding.fluidGuid, amount: binding.amount }]));
 
   return {
@@ -75,4 +77,15 @@ export function boundMachineInputSlotsForItem(machine: MachineDetailData, totalI
   const { input } = splitSlotIndices(machine.slotLayout, totalItemSlots);
   const inputBand = new Set(input);
   return machine.slotBindings.filter((binding) => inputBand.has(binding.slot) && binding.acceptedItemIds.includes(itemId)).map((binding) => binding.slot);
+}
+
+type MachineInputRequirement = { ownedCount: number; requiredCount: number; lacking: boolean };
+
+// 実物入りの束縛入力に所持/必要を出す。空はゴーストが語る
+// Filled bound inputs show held/required; empty slots use the ghost
+// 受け入れ外の残置品は必要数と比べず、通常の個数バッジに任せる
+// A leftover the binding does not accept is not compared and keeps the ordinary count badge
+export function machineInputRequirement(slot: SlotData, ghost: GhostItem | undefined): MachineInputRequirement | undefined {
+  if (ghost === undefined || !hasRealItem(slot) || !ghost.acceptedItemIds.includes(slot.itemId)) return undefined;
+  return { ownedCount: slot.count, requiredCount: ghost.count, lacking: slot.count < ghost.count };
 }

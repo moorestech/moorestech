@@ -81,7 +81,7 @@ namespace Client.Tests.Localization.Skit
                 new[] { option1, option2, option3 });
         }
 
-        [TestCase("TextCommand.cs", 2)]
+        [TestCase("TextCommand.cs", 1)]
         [TestCase("BackgroundSkitTextCommand.cs", 1)]
         public void VoiceLookupUsesOnlyPreservedSourceBody(string fileName, int expectedCount)
         {
@@ -96,15 +96,15 @@ namespace Client.Tests.Localization.Skit
         }
 
         [Test]
-        public void TextCommandSharesOneResolvedLineAcrossWebAndUgui()
+        public void TextCommandUsesResolvedLineForWebPresentation()
         {
             var commandSource = ReadCommand("TextCommand.cs");
 
             StringAssert.Contains("SkitCommandLocalization.ResolveLine(", commandSource);
             StringAssert.Contains(
-                "ExecuteWebPresentationAsync(\n                    line.SpeakerName,\n                    line.DisplayBody,",
+                "ExecuteWebPresentationAsync(\n                line.SpeakerName,\n                line.DisplayBody,",
                 commandSource);
-            StringAssert.Contains("skitUi.SetText(line.SpeakerName, line.DisplayBody)", commandSource);
+            StringAssert.DoesNotContain("GetSkitUI", commandSource);
         }
 
         [Test]
@@ -129,7 +129,7 @@ namespace Client.Tests.Localization.Skit
             StringAssert.DoesNotContain("\"Option1Tag\"", commandSource);
             StringAssert.DoesNotContain("\"Option2Tag\"", commandSource);
             StringAssert.DoesNotContain("\"Option3Tag\"", commandSource);
-            Assert.AreEqual(3, CountOccurrences(commandSource, "labels.Add(label);"));
+            StringAssert.DoesNotContain("WaitSelectText", commandSource);
             Assert.AreEqual(3, CountOccurrences(commandSource, "choices.Add(CreateChoice(label));"));
         }
 

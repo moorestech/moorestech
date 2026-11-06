@@ -10,8 +10,8 @@ moores-grill-with-docs（spec）/ moores-writing-plans（plan）の完了後・�
 
 1. 4カテゴリ文脈（ゴール/非目標/許容トレードオフ/制約。ユーザー発言由来と自分の判断を区別）を
    scratchpadに書く。対象docにADRがあれば「裁定済み事項・蒸し返し禁止」として含める。
-   auto-memory（自セッションのシステムプロンプト記載のmemoryディレクトリ）に対象と関連しそうな
-   メモリがあれば、その抜粋またはフルパスをcontextへ含める（スキルファイルには環境依存パスを書かない）。
+   環境ローカルの知識源（ユーザー規約が指す wiki 等）に対象と関連しそうな過去の判断があれば、
+   その抜粋をcontextへ含める（スキルファイルには環境依存パスを書かない）。
 2. Fable判事を1体起動する（Agent tool, model: **fable**。subagentのFable指定はこのスキルだけの例外・decisions.md #2）:
    ```
    Read this : <skills>/user-simulator/agents/judge.md

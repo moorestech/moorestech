@@ -94,7 +94,7 @@ namespace Server.Protocol.PacketResponse
             void NotifyLostEarnedItems(int lostCount)
             {
                 if (lostCount <= 0) return;
-                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", Array.Empty<string>()));
+                _notificationService.Notify(requesterPlayerId, NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", new Dictionary<string, string>()));
             }
 
             List<IItemStack> MineMapObject()

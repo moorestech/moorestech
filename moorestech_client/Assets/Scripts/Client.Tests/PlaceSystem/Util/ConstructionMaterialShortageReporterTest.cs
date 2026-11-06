@@ -44,8 +44,8 @@ namespace Client.Tests.PlaceSystem.Util
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
-            Assert.AreEqual("3", feedback.Lines[0].TextParams[1]);
-            Assert.AreEqual("6", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual("3", feedback.Lines[0].TextParams[1].Value);
+            Assert.AreEqual("6", feedback.Lines[0].TextParams[2].Value);
         }
 
         [Test]

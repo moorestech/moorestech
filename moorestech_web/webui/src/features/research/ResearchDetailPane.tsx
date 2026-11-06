@@ -53,7 +53,7 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
                         itemId={c.itemId}
                         insufficient={lacking}
                         shortage={allocated
-                          ? { ownedCount: allocated[i], requiredCount: c.count, tooltipKey: L.ui.research.consumeItemTooltip }
+                          ? { ownedCount: allocated[i], requiredCount: c.count, lacking, tooltipKey: L.ui.research.consumeItemTooltip }
                           : undefined}
                       />
                     );

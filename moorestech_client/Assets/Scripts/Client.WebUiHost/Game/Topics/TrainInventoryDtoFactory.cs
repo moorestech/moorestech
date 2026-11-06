@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Train.Timetable;
+using Client.Ui.State.Train;
 using Client.Game.InGame.Train.Unit;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Client.Game.InGame.UI.Inventory;
