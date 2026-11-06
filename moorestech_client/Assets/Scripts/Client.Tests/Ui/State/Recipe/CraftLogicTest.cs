@@ -36,6 +36,14 @@ namespace Client.Tests.Ui.State.Recipe
             Assert.AreEqual(5, result[new ItemId(9)]);
         }
 
+        [Test]
+        public void 必要数0の素材はゼロ除算せず所持があれば読み飛ばし所持0なら作れない()
+        {
+            var recipes = new[] { Craft(RecipeGuid(1), 9, 1, 1, Amount(1, 0), Amount(2, 2)) };
+            Assert.AreEqual(5, CraftLogic.CraftableResultCounts(recipes, Counts((1, 1), (2, 10)))[new ItemId(9)]);
+            Assert.AreEqual(0, CraftLogic.CraftableResultCounts(recipes, Counts((2, 10))).Count);
+        }
+
         /// <web-test file="src/features/recipe/logic/craftLogic.test.ts">全素材を満たせば true</web-test>
         [Test]
         public void 全素材を満たせば作れる()

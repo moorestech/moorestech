@@ -39,13 +39,17 @@ namespace Client.Ui.State.ItemMove
                     slot = default;
                     return false;
             }
-        }
 
-        private static bool TryGetAt(IReadOnlyList<SlotItem> slots, int index, out SlotItem slot)
-        {
-            var inRange = 0 <= index && index < slots.Count;
-            slot = inRange ? slots[index] : default;
-            return inRange;
+            #region Internal
+
+            bool TryGetAt(IReadOnlyList<SlotItem> candidates, int index, out SlotItem found)
+            {
+                var inRange = 0 <= index && index < candidates.Count;
+                found = inRange ? candidates[index] : default;
+                return inRange;
+            }
+
+            #endregion
         }
     }
 }

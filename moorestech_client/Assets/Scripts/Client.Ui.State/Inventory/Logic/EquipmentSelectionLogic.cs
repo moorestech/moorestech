@@ -58,19 +58,23 @@ namespace Client.Ui.State.Inventory.Logic
             if (1 <= total) return new WheelStepResult(0, 1);
             if (total <= -1) return new WheelStepResult(0, -1);
             return new WheelStepResult(total, 0);
-        }
 
-        // 単位ごとの 1 ノッチの量。OS・デバイスで桁が変わるので単位側で正規化する
-        // One notch per unit; magnitudes vary by OS and device, so normalize per unit
-        private static double NotchSizeOf(WheelDeltaUnit unit)
-        {
-            switch (unit)
+            #region Internal
+
+            // 単位ごとの 1 ノッチの量。OS・デバイスで桁が変わるので単位側で正規化する
+            // One notch per unit; magnitudes vary by OS and device, so normalize per unit
+            double NotchSizeOf(WheelDeltaUnit unit)
             {
-                case WheelDeltaUnit.Pixel: return 100;
-                case WheelDeltaUnit.Line: return 3;
-                case WheelDeltaUnit.Page: return 1;
-                default: throw new ArgumentOutOfRangeException(nameof(unit), unit, "未知のホイール単位");
+                switch (unit)
+                {
+                    case WheelDeltaUnit.Pixel: return 100;
+                    case WheelDeltaUnit.Line: return 3;
+                    case WheelDeltaUnit.Page: return 1;
+                    default: throw new ArgumentOutOfRangeException(nameof(unit), unit, "未知のホイール単位");
+                }
             }
+
+            #endregion
         }
     }
 }

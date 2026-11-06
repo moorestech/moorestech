@@ -50,7 +50,7 @@ namespace Client.Ui.State.ItemMove
 
         // 片側がブロックなら block_inventory.move_item、両側プレイヤーなら inventory.move_item（Web の action の選び分け）
         // block_inventory.move_item when either side is the block, inventory.move_item otherwise (the Web's action choice)
-        public static PlannedItemAction MoveItem(ItemMoveSlotRef from, ItemMoveSlotRef to, int count)
+        internal static PlannedItemAction MoveItem(ItemMoveSlotRef from, ItemMoveSlotRef to, int count)
         {
             var viaBlock = from.Area == ItemMoveArea.Block || to.Area == ItemMoveArea.Block;
             return viaBlock ? BlockInventoryMoveItem(from, to, count) : InventoryMoveItem(from, to, count);

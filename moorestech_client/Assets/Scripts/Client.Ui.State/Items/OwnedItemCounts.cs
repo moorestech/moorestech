@@ -57,7 +57,7 @@ namespace Client.Ui.State.Items
 
         // 未登録は持っていない＝0 個。呼び出し側に同じ分岐を散らさない
         // Missing means not owned, i.e. zero; keeps the same branch out of callers
-        public static int OwnedCountOf(IReadOnlyDictionary<ItemId, int> owned, ItemId itemId)
+        internal static int OwnedCountOf(IReadOnlyDictionary<ItemId, int> owned, ItemId itemId)
         {
             return owned.TryGetValue(itemId, out var count) ? count : 0;
         }

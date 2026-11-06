@@ -54,11 +54,25 @@ namespace Client.Ui.State.ItemMove
             // silent-ok: 入り切らない分は計画しないだけで元スロットに残る / プレイヤーは元スロットの残数で画面上すぐ気づく（uGUI と同じ）
             if (TryFindFirstEmpty(targetSlots, out var empty)) moves.Add(new PlannedMove(empty, remaining));
             return moves;
+
+            #region Internal
+
+            bool TryFindFirstEmpty(IReadOnlyList<SlotItem> slots, out int index)
+            {
+                for (index = 0; index < slots.Count; index++)
+                {
+                    if (slots[index].IsEmpty) return true;
+                }
+                index = 0;
+                return false;
+            }
+
+            #endregion
         }
 
         // 配分→操作列の唯一の変換。候補の番号の順に宛先を並べて配分し、配分の番号を候補の番号へ戻す
         // The single allocation-to-actions conversion: allocate over candidates in order, then map back to their indices
-        public static IReadOnlyList<PlannedItemAction> PlanMoveActions(ItemMoveSlotRef from, SlotItem source, ItemMoveArea targetArea, IReadOnlyList<SlotItem> targetSlots, IReadOnlyList<int> candidateIndices, IItemStackLevelLookup stackLevels)
+        internal static IReadOnlyList<PlannedItemAction> PlanMoveActions(ItemMoveSlotRef from, SlotItem source, ItemMoveArea targetArea, IReadOnlyList<SlotItem> targetSlots, IReadOnlyList<int> candidateIndices, IItemStackLevelLookup stackLevels)
         {
             var candidateSlots = new List<SlotItem>(candidateIndices.Count);
             foreach (var index in candidateIndices) candidateSlots.Add(targetSlots[index]);
@@ -71,21 +85,11 @@ namespace Client.Ui.State.ItemMove
 
         // 制約なしの宛先候補（全スロットの番号）
         // Candidates without a restriction: every slot index
-        public static IReadOnlyList<int> AllIndicesOf(IReadOnlyList<SlotItem> slots)
+        internal static IReadOnlyList<int> AllIndicesOf(IReadOnlyList<SlotItem> slots)
         {
             var all = new int[slots.Count];
             for (var i = 0; i < all.Length; i++) all[i] = i;
             return all;
-        }
-
-        private static bool TryFindFirstEmpty(IReadOnlyList<SlotItem> slots, out int index)
-        {
-            for (index = 0; index < slots.Count; index++)
-            {
-                if (slots[index].IsEmpty) return true;
-            }
-            index = 0;
-            return false;
         }
     }
 }
