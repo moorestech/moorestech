@@ -17,7 +17,7 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
         {
             var lines = CleanRoomYieldLogic.Lines(CleanRoomYieldFetched.WithoutPendingDraw(CleanRoomYieldRates.LayerExposure(0.02)));
             Assert.AreEqual(1, lines.Count);
-            Assert.AreEqual("clean-room-yield-layer-fail-rate", lines[0].TestId);
+            Assert.AreEqual("clean-room-yield-layer-fail-rate", lines[0].RowId);
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLayerFailRate, new[] { "percent", "2.0" }, lines[0].Text);
         }
 
@@ -58,7 +58,7 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
             Assert.AreEqual(expected.Length, lines.Count);
             for (var i = 0; i < expected.Length; i++)
             {
-                Assert.AreEqual(expected[i].Item1, lines[i].TestId);
+                Assert.AreEqual(expected[i].Item1, lines[i].RowId);
                 UiTextAssert.AreEqual(lines[i].Text.Key.Key, expected[i].Item2, lines[i].Text);
             }
         }
@@ -71,9 +71,9 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLayerFailRate, new[] { "percent", "12.3" }, lines[0].Text);
         }
 
-        private static void AssertLine(CleanRoomYieldLine line, string testId, LocalizationKey key, string[] textParams)
+        private static void AssertLine(CleanRoomYieldLine line, string rowId, LocalizationKey key, string[] textParams)
         {
-            Assert.AreEqual(testId, line.TestId);
+            Assert.AreEqual(rowId, line.RowId);
             UiTextAssert.AreEqual(key, textParams, line.Text);
         }
     }

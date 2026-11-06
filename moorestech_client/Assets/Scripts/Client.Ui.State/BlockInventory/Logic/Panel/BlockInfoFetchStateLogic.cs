@@ -1,36 +1,30 @@
 using System;
+using Client.Game.InGame.BlockInfoPolling;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.State.BlockInventory.Logic.Panel
 {
-    // 詳細を取得できていない状態（Web の BlockInfoUnavailableData.fetchState）
-    // States where the detail could not be fetched (Web BlockInfoUnavailableData.fetchState)
-    public enum BlockInfoUnavailableState
-    {
-        NotFetched,
-        TransportFailed,
-        Unreadable,
-        UnsupportedTarget,
-        Vanished,
-    }
-
     /// <summary>
     /// 取得できていない状態ごとの文言キー。欄の名前は {target} へ差し込む（Web blockInfoFetchStateLogic.ts の写し）
     /// The message key per unavailable state; the section name goes into {target} (port of Web blockInfoFetchStateLogic.ts)
     /// </summary>
     public static class BlockInfoFetchStateLogic
     {
-        public static LocalizationKey UnavailableKey(BlockInfoUnavailableState state)
+        // Fetched は取得できているので false を返す。未知の値は throw で止める
+        // Fetched means the detail is available, so return false; unknown values throw
+        public static bool TryGetUnavailableKey(BlockInfoFetchState state, out LocalizationKey key)
         {
-            return state switch
+            key = state switch
             {
-                BlockInfoUnavailableState.NotFetched => LocalizationKeys.Ui.BlockInventory.BlockInfoNotFetched,
-                BlockInfoUnavailableState.TransportFailed => LocalizationKeys.Ui.BlockInventory.BlockInfoTransportFailed,
-                BlockInfoUnavailableState.Unreadable => LocalizationKeys.Ui.BlockInventory.BlockInfoUnreadable,
-                BlockInfoUnavailableState.UnsupportedTarget => LocalizationKeys.Ui.BlockInventory.BlockInfoUnsupportedTarget,
-                BlockInfoUnavailableState.Vanished => LocalizationKeys.Ui.BlockInventory.BlockInfoVanished,
+                BlockInfoFetchState.Fetched => default,
+                BlockInfoFetchState.NotFetched => LocalizationKeys.Ui.BlockInventory.BlockInfoNotFetched,
+                BlockInfoFetchState.TransportFailed => LocalizationKeys.Ui.BlockInventory.BlockInfoTransportFailed,
+                BlockInfoFetchState.Unreadable => LocalizationKeys.Ui.BlockInventory.BlockInfoUnreadable,
+                BlockInfoFetchState.UnsupportedTarget => LocalizationKeys.Ui.BlockInventory.BlockInfoUnsupportedTarget,
+                BlockInfoFetchState.Vanished => LocalizationKeys.Ui.BlockInventory.BlockInfoVanished,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
+            return state != BlockInfoFetchState.Fetched;
         }
     }
 }

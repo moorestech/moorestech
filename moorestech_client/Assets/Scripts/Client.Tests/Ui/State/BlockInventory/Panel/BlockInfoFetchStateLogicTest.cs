@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockInfoPolling;
 using Client.Ui.State.BlockInventory.Logic.Panel;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
@@ -14,11 +15,25 @@ namespace Client.Tests.Ui.State.BlockInventory.Panel
         [Test]
         public void 取得できていない状態ごとに別の文言を選ぶ()
         {
-            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoNotFetched.Key, BlockInfoFetchStateLogic.UnavailableKey(BlockInfoUnavailableState.NotFetched).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoTransportFailed.Key, BlockInfoFetchStateLogic.UnavailableKey(BlockInfoUnavailableState.TransportFailed).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoUnreadable.Key, BlockInfoFetchStateLogic.UnavailableKey(BlockInfoUnavailableState.Unreadable).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoUnsupportedTarget.Key, BlockInfoFetchStateLogic.UnavailableKey(BlockInfoUnavailableState.UnsupportedTarget).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoVanished.Key, BlockInfoFetchStateLogic.UnavailableKey(BlockInfoUnavailableState.Vanished).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoNotFetched.Key, KeyOf(BlockInfoFetchState.NotFetched));
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoTransportFailed.Key, KeyOf(BlockInfoFetchState.TransportFailed));
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoUnreadable.Key, KeyOf(BlockInfoFetchState.Unreadable));
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoUnsupportedTarget.Key, KeyOf(BlockInfoFetchState.UnsupportedTarget));
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.BlockInfoVanished.Key, KeyOf(BlockInfoFetchState.Vanished));
+        }
+
+        // 取得済みは文言を持たない
+        // Fetched has no message
+        [Test]
+        public void 取得済みは文言を返さない()
+        {
+            Assert.IsFalse(BlockInfoFetchStateLogic.TryGetUnavailableKey(BlockInfoFetchState.Fetched, out _));
+        }
+
+        private static string KeyOf(BlockInfoFetchState state)
+        {
+            Assert.IsTrue(BlockInfoFetchStateLogic.TryGetUnavailableKey(state, out var key));
+            return key.Key;
         }
     }
 }
