@@ -9,12 +9,17 @@ namespace Client.Ui.Components.Panels
     /// Translucent panel face; draws the fades of all four edges into clear as a vertex-colored grid (the Web ::before and its mask)
     /// </summary>
     /// <remarks>
-    /// 色とフェード幅は持ち主の USS が --game-panel-face・--game-panel-edge-fade（左右）・--game-panel-top-fade・--game-panel-bottom-fade で渡す。0px の辺はフェードしない
-    /// The owner USS passes color and spans as --game-panel-face, --game-panel-edge-fade (sides), --game-panel-top-fade and --game-panel-bottom-fade; a 0px side does not fade
+    /// 色とフェード幅は持ち主の USS が --game-panel-face・--game-panel-edge-fade（左右）・--game-panel-top-fade・--game-panel-bottom-fade で渡す。0px の辺はフェードしない。
+    /// フェードの帯は細かく刻み、各頂点の α を GamePanelFaceOpacityRamp で Linear 合成用に補正する（頂点間の線形補間で Web と同じ濃さの並びにするため）。
+    /// The owner USS passes color and spans as --game-panel-face, --game-panel-edge-fade (sides), --game-panel-top-fade and --game-panel-bottom-fade; a 0px side does not fade.
+    /// Fade bands are finely subdivided and each vertex alpha is corrected for Linear blending by GamePanelFaceOpacityRamp, so linear interpolation between vertices keeps the Web run of shades.
     /// </remarks>
     public sealed class GamePanelFace : VisualElement
     {
-        private const int GridLineCount = 4;
+        // フェード 1 本を刻む数。8 で補正後の曲線と折れ線の差が 1 段未満になる
+        // Segments per fade span; 8 keeps the polyline within one shade of the corrected curve
+        private const int SegmentsPerFade = 8;
+        private const int GridLineCount = (SegmentsPerFade + 1) * 2;
 
         private readonly float[] _gridXs = new float[GridLineCount];
         private readonly float[] _gridYs = new float[GridLineCount];
@@ -48,8 +53,8 @@ namespace Client.Ui.Components.Panels
             // silent-ok: トークンが読めない間は描かない / UssCustomStyleReader が読めなかったトークン名を LogError で出す
             if (!_hasTokens) return;
 
-            // 格子の線を置き、16 頂点に色、3×3 セルに三角 2 枚ずつを張る
-            // Place the grid lines, color 16 vertices and span two triangles per 3x3 cell
+            // 格子の線を置き、各頂点に色、各セルに三角 2 枚ずつを張る
+            // Place the grid lines, color every vertex and span two triangles per cell
             var width = contentRect.width;
             var height = contentRect.height;
             SetGridLines();
@@ -59,21 +64,25 @@ namespace Client.Ui.Components.Panels
 
             #region Internal
 
+            // 前半はフェードの始まり側の帯、後半は終わり側の帯を等分する。幅 0 の帯は同じ位置に重なり面積 0 のセルになる
+            // The first half splits the leading band and the second half the trailing band; a zero-span band collapses into zero-area cells
             void SetGridLines()
             {
                 var side = Mathf.Min(_sideFade, width / 2f);
-                _gridXs[0] = 0f;
-                _gridXs[1] = side;
-                _gridXs[2] = width - side;
-                _gridXs[3] = width;
-                _gridYs[0] = 0f;
-                _gridYs[1] = Mathf.Min(_topFade, height);
-                _gridYs[2] = Mathf.Max(height - _bottomFade, _gridYs[1]);
-                _gridYs[3] = height;
+                var top = Mathf.Min(_topFade, height);
+                var bottomStart = Mathf.Max(height - _bottomFade, top);
+                for (var i = 0; i <= SegmentsPerFade; i++)
+                {
+                    var step = (float)i / SegmentsPerFade;
+                    _gridXs[i] = side * step;
+                    _gridXs[SegmentsPerFade + 1 + i] = Mathf.Lerp(width - side, width, step);
+                    _gridYs[i] = top * step;
+                    _gridYs[SegmentsPerFade + 1 + i] = Mathf.Lerp(bottomStart, height, step);
+                }
             }
 
-            // 4 辺の重みの積を α に掛ける（Web の mask-composite: intersect と同じく積を取る）
-            // Multiply alpha by the product of the four edge weights (the same product as the Web mask-composite: intersect)
+            // 4 辺の重みの積を mask とし、Linear 合成用に補正した α を置く（Web の mask-composite: intersect と同じく積を取る）
+            // Take the product of the four edge weights as the mask and set the Linear-corrected alpha (the same product as the Web mask-composite: intersect)
             void WriteVertices()
             {
                 for (var row = 0; row < GridLineCount; row++)
@@ -82,7 +91,8 @@ namespace Client.Ui.Components.Panels
                     var x = _gridXs[column];
                     var y = _gridYs[row];
                     var tint = _faceColor;
-                    tint.a *= Ramp(y, _topFade) * Ramp(height - y, _bottomFade) * Ramp(x, _sideFade) * Ramp(width - x, _sideFade);
+                    var maskWeight = Ramp(y, _topFade) * Ramp(height - y, _bottomFade) * Ramp(x, _sideFade) * Ramp(width - x, _sideFade);
+                    tint.a = GamePanelFaceOpacityRamp.OpacityAt(_faceColor.a, maskWeight);
                     mesh.SetNextVertex(new Vertex { position = new Vector3(x, y, Vertex.nearZ), tint = tint });
                 }
             }
