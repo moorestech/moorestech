@@ -88,6 +88,16 @@ namespace Client.Tests.Ui.Theme
             Assert.IsFalse(plain.customStyle.TryGetValue(new CustomStyleProperty<string>("--panel-edge-fade"), out _));
         }
 
+        [Test]
+        public void ReadsPercentFromRedeclaredToken()
+        {
+            // customStyle は % を文字列でしか返さないので、受け直したトークンを比で読む
+            // customStyle returns percentages only as strings, so the re-declared token is read as a ratio
+            Assert.IsTrue(UssTokenValue.TryParsePercent(ReadTokenBody("--screen-vignette-width"), out var expected));
+            Assert.IsTrue(UssCustomStyleReader.TryReadPercent(_probe.customStyle, "--probe-vignette-width", out var ratio));
+            Assert.AreEqual(expected, ratio, 0.0001f);
+        }
+
         private static string ReadTokenBody(string tokenName)
         {
             var text = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Application.dataPath), TokensPath));

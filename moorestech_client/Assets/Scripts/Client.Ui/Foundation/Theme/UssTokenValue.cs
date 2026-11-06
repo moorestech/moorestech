@@ -33,5 +33,15 @@ namespace Client.Ui.Foundation.Theme
             // NaN and Infinity are unusable as lengths or durations, so they are not read as numbers
             return float.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out value) && !float.IsNaN(value) && !float.IsInfinity(value);
         }
+
+        // "82%" を 0.82 へ。customStyle は % の値を文字列でしか返さない
+        // Turns "82%" into 0.82; customStyle returns percentages only as strings
+        public static bool TryParsePercent(string text, out float ratio)
+        {
+            ratio = 0f;
+            if (!text.EndsWith("%") || !TryParseNumber(text.Substring(0, text.Length - 1), out var percent)) return false;
+            ratio = percent / 100f;
+            return true;
+        }
     }
 }

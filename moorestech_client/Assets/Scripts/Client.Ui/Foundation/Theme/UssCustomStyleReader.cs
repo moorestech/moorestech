@@ -46,5 +46,15 @@ namespace Client.Ui.Foundation.Theme
             number = 0f;
             return false;
         }
+
+        // % は文字列で読み、比（0.82 等）に直す
+        // Percentages read as strings and become ratios such as 0.82
+        public static bool TryReadPercent(ICustomStyle style, string propertyName, out float ratio)
+        {
+            if (style.TryGetValue(new CustomStyleProperty<string>(propertyName), out var text) && UssTokenValue.TryParsePercent(text, out ratio)) return true;
+            Debug.LogError($"[UssCustomStyleReader] {propertyName} is not a resolved percentage (got '{text}')");
+            ratio = 0f;
+            return false;
+        }
     }
 }
