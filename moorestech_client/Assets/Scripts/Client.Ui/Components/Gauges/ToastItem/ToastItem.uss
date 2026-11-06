@@ -51,16 +51,3 @@
     white-space: normal;
     -unity-text-align: middle-left;
 }
-
-/* トースト層の入れ物。右下へ寄せて縦に積む。入力は取らない（ホストは C# で pickingMode=Ignore） */
-/* Container of the toast layer; pinned bottom-right and stacked vertically; takes no input (host sets pickingMode=Ignore in C#) */
-
-.toast-host {
-    position: absolute;
-    right: 16px;
-    bottom: 16px;
-    flex-direction: column;
-    align-items: flex-end;
-    --toast-host-enter-duration: var(--notification-enter-duration);
-    --toast-host-exit-duration: var(--notification-exit-duration);
-}
