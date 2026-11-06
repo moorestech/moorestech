@@ -1,10 +1,8 @@
 using Client.Input;
+using Client.Starter.Registration.GameUi;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
-using Client.Ui.Screens.PauseMenu;
-using Client.Ui.Screens.Toast;
-using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Toast;
 using VContainer;
 using VContainer.Unity;
@@ -13,8 +11,6 @@ namespace Client.Starter.Registration
 {
     // Client.Ui の登録口。全体スイッチの分岐はここ 1 か所で、Presenter・View・部品はスイッチを読まない（plan §3.3 R1、設計書 §4.4・[A-16]）
     // Registration entry for Client.Ui; the global switch branches only here, and presenters, views and parts never read it (plan §3.3 R1, design §4.4, [A-16])
-    // Presenter は GameUi 分岐の下に足す
-    // Add presenters below, inside the GameUi branch
     internal static class MainGameUiRegistration
     {
         public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot, UiSystem uiSystem)
@@ -29,12 +25,11 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
             builder.Register<UiCommandResultToaster>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<ToastLayerPresenter>();
 
-            // ポーズ画面。書きかけはページの作り直しを越えて残すので Presenter の外に置く
-            // The pause screen; the draft lives outside the presenter so it survives page rebuilds
-            builder.Register<BugReportDraft>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<PauseMenuScreenPresenter>();
+            // == 画面登録区画 == 画面レーンは Registration/GameUi/<機能>GameUiRegistration.cs を足し、ここへ 1 行ずつ呼び出しを足す（実行計画 E-1）
+            // == Screen registration section == screen lanes add Registration/GameUi/<Feature>GameUiRegistration.cs and append one call here each (execution plan E-1)
+            PauseMenuGameUiRegistration.Register(builder);
+            ToastGameUiRegistration.Register(builder);
         }
     }
 }
