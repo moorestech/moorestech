@@ -91,7 +91,7 @@ namespace Client.Playtest.Operations
                 if (UiElementScreenPointResolver.IsClickable(target)) return;
                 lastStatus = target.Status;
                 UiElementScreenPointResolver.RemainingSeconds(deadline, testid);
-                SemanticInput.MouseWheel(-120f);
+                SemanticInput.MouseWheel(-1f);
                 await UniTask.DelayFrame(5);
             }
             throw new TimeoutException($"UI element stayed outside the scroll area (last: {lastStatus}): {testid}");

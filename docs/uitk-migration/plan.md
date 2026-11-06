@@ -402,7 +402,7 @@
 - **asmdef**: 描画の `Client.Ui` と画面状態の `Client.Ui.State`（段階 0 で新設済み）の 2 つにする。名前に技術名（Uitk）を入れない（Web という名前の改名を繰り返さないため）。参照の向きは `Client.Game` ← `Client.Ui.State` ← {`Client.Ui`・`Client.WebUiHost`}。`Client.Ui` は描画と操作だけを持ち、画面状態・ViewModel・UI コマンドは `Client.Ui.State` に置く。`Client.Ui.State` を `Client.Ui` に含めないのは、長命ブランチの中で `Client.Ui` が全体スイッチを通じて WebUiHost を触るため（WebUiHost も状態を読むので、同じアセンブリだと循環する）。`Client.Game` はどちらも参照せず、ゲーム側から UI へ頼む要求（モーダル等）はインターフェース越しにする。DI は既存の VContainer、イベントは UniRx
 - **ディレクトリ**: 基盤 `Client.Ui/Foundation/{Root,Layers,Routing,Input,Motion,Tooltip,DragDrop,Modal,Anchor,Text,Theme}`、部品 `Client.Ui/Components/<部品>`、画面 `Client.Ui/Screens/<機能>/`。AGENTS.md の上限（1 ディレクトリ 10 ファイル、1 ファイル 200 行）に合わせる
 - **3 層**: View は VisualElement を組むだけで、MonoBehaviour に依存しない。Presenter はモデルを購読して View へ push し、操作を型付きコマンドへ渡す。Mount は `GameUiRoot` に載せる薄い層。テストでは `UITestFixture` の `rootVisualElement` に同じ View を組める（tests §5.3）
-- **アセットのロード**: UXML と USS は機能の横に置き、1 か所の `UiAssetCatalog` を通してロードする。起動時に全部ロードし、欠けていたら起動の段階で止める（AGENTS.md「必須の値は最も早い段階で止める」）。L2 で参照パスの実在を検査する
+- **アセットのロード**: USS は機能の横に置き、`GameUiTheme.tss` に `@import` で束ねる。部品の ctor は `StyleSheet` を受けない（F1 で段階 1 の `UiAssetCatalog` を撤去。設計書 [A-2]）。束ね漏れは L2（`UiThemeImportBundleTest`）で止める
 - **実行時の形**: `GameUiRoot` は MainGameUI.prefab に事前配置し、シングルトンの規約どおり Awake で `_instance` を設定する。パネルは 1 枚で、Pick とフォーカスが 1 枚の中で閉じる
 
 ### 3.2 データ購読層
