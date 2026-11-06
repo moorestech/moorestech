@@ -1,0 +1,7 @@
+/* L1 の部品テストだけが当てる祖先のつまみの上書き。画面が自分のルートでつまみを上書きする形を写す（設計書 §3.2-3） */
+/* Ancestor knob overrides applied only by component L1 tests; mirrors a screen overriding knobs at its root (design §3.2-3) */
+.component-knob-probe {
+    --slot-size: 96px;
+    --gauge-fill: var(--color-content-primary);
+    --scrollarea-scrollbar-size: 4px;
+}

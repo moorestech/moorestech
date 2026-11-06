@@ -18,6 +18,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/PanelActionButton/PanelActionButton.uss");
 /* == section: Components/Gauges == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/ToastItem/ToastItem.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/GaugeBar/GaugeBar.uss");
 /* == section: Components/Text == */
 /* == section: Components/Decor == */
 /* == section: Components/Recipe == */
