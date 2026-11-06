@@ -183,6 +183,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | SlotFrame のキーワードのつまみ | `--bevel-inset: inset` を `CustomStyleProperty<string>` で読めるか | C3-a | 読める（`UssCustomStyleReaderTest.キーワードを文字列で読める` で `--probe-keyword: inset` を `TryReadKeyword` が 'inset' として返し、`SlotFrameLookTest.祖先でbevel_insetをinsetにすると帯は箱の内側に収まる` で祖先 `.slot-knob-hotbar` の `inset` を `SlotFrameRing` が CustomStyleResolvedEvent で読んで帯の left=0・幅 1.565749px にした。どちらも Passed）。`--bevel-inset` は Web と同じキーワードで書く |
 | PanelSimulator の押したままの移動 | MouseDown の後の MouseMove で PointerEnterEvent.pressedButtons が立つか | C3-a | 立たない（右を押して外から枠へ動かしたとき、同じ移動の PointerMoveEvent は `pressedButtons=2 button=-1` なのに PointerEnterEvent は `pressedButtons=0 button=-1`。Console の一時計測ログ）。押したままの進入は L0 の SlotGestureRules で固定し、実画面ではホットバー・持ち物の録画（S2-hud・S3）で確かめる。SlotFrame は enter が 0 でも最初の移動の押下ビットで進入を判定する形にしたので、本番の値によらず動く（録画では念のため見る） |
 | PanelSimulator の追加押下 | 左を押したまま右を押すと PointerMoveEvent が来るか | C3-a | 来る（`SlotFrameGestureTest.左を押したまま右を押すと右の押下を出す` が Passed。右の押下が RightDown 1 件で届いた）。L1 で固定する |
+| :root の var() の解き場所 | :root で --a: var(--b) と宣言し、祖先で --b だけ上書きしたとき、使う側で --a が --b の上書きを追うか | C3-a | 追う（観測した行の間隔 10.0px。祖先は --slot-grid-gap: 10px だけ上書き）。:root の既定は使う側で解けるので、Web の入れ子の var() の既定をそのまま写せる。証拠は SlotGridTest の「祖先で列の間隔だけ上書きすると行の間隔も追う」 |
 - 2 行の行送り（設計書 A-48）: リッチテキストの <line-height> が改行と折り返しの両方に効く（14px で既定 19.00px・19.00px → 指定 20.00px・20.00px）。S2-hud は行高トークンの値をタグで前置する
 
 ## 壊れた録画の割り振り（bd moorestech-wwxy）

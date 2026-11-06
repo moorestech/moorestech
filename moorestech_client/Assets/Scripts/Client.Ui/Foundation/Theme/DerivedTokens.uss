@@ -76,5 +76,5 @@
     --shortage-count-bottom: -4px; /* web: var(--shortage-count-bottom, -4px) */
     --shortage-count-font-size: 11px; /* web: var(--shortage-count-font-size, 11px) */
     --slot-grid-gap: 6.8px; /* web: SlotGrid .grid の var(--slot-grid-gap, 0.425rem) */
-    --slot-grid-row-gap: var(--slot-grid-gap); /* web: var(--slot-grid-row-gap, var(--slot-grid-gap, 0.425rem))。祖先で gap だけ上書きしたときの追従は Task 5 Step 3 で実測 */
+    --slot-grid-row-gap: var(--slot-grid-gap); /* web: var(--slot-grid-row-gap, var(--slot-grid-gap, 0.425rem))。祖先で gap だけ上書きしても行が追う（台帳「実測の結論」） */
 }
