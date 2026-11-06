@@ -93,5 +93,54 @@ namespace Client.Tests.Ui.Components.Slots
 
             CollectionAssert.AreEqual(new[] { SlotGestureKind.RightDown }, _gestures.Select(g => g.Kind));
         }
+
+        [Test]
+        public void 右ボタンを押したまま進入すると右の進入を出す()
+        {
+            var outside = new Vector2(20, 20);
+            var inside = _frame.worldBound.center;
+            simulate.MouseDown(outside, MouseButton.RightMouse);
+            simulate.MouseMove(outside, inside);
+
+            Assert.AreEqual(1, _gestures.Count(g => g.Kind == SlotGestureKind.RightEnter));
+            Assert.AreEqual(0, _gestures.Count(g => g.Kind == SlotGestureKind.LeftEnter));
+        }
+
+        [Test]
+        public void 左ボタンを押したまま進入すると左の進入を出す()
+        {
+            var outside = new Vector2(20, 20);
+            var inside = _frame.worldBound.center;
+            simulate.MouseDown(outside, MouseButton.LeftMouse);
+            simulate.MouseMove(outside, inside);
+
+            Assert.AreEqual(1, _gestures.Count(g => g.Kind == SlotGestureKind.LeftEnter));
+            Assert.AreEqual(0, _gestures.Count(g => g.Kind == SlotGestureKind.RightEnter));
+        }
+
+        [Test]
+        public void 一回の進入で進入の身振りを二回出さない()
+        {
+            var outside = new Vector2(20, 20);
+            var inside = _frame.worldBound.center;
+            var inside2 = inside + new Vector2(2, 2);
+            simulate.MouseDown(outside, MouseButton.RightMouse);
+            simulate.MouseMove(outside, inside);
+            simulate.MouseMove(inside, inside2);
+            simulate.MouseMove(inside2, inside);
+
+            Assert.AreEqual(1, _gestures.Count(g => g.Kind == SlotGestureKind.RightEnter));
+        }
+
+        [Test]
+        public void ボタンを押さずに入っただけでは進入の身振りを出さない()
+        {
+            var outside = new Vector2(20, 20);
+            var inside = _frame.worldBound.center;
+            simulate.MouseMove(outside, inside);
+            simulate.MouseMove(inside, inside + new Vector2(2, 2));
+
+            Assert.AreEqual(0, _gestures.Count(g => g.Kind is SlotGestureKind.LeftEnter or SlotGestureKind.RightEnter));
+        }
     }
 }
