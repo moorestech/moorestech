@@ -45,27 +45,33 @@
 .title--order-1 {
     --title-order-1-row-height: 44.2px;
     font-size: 34px;
-    letter-spacing: -3.6px;
     min-height: var(--title-order-1-row-height);
 }
 
 .title--order-2 {
     --title-order-2-row-height: 35.1px;
     font-size: 26px;
-    letter-spacing: -3.6px;
     min-height: var(--title-order-2-row-height);
 }
 
 .title--order-3 {
     font-size: 22px;
-    letter-spacing: -3.6px;
     min-height: 30.8px;
 }
 
 .title--order-4 {
     font-size: 18px;
-    letter-spacing: -3.6px;
     min-height: 26.1px;
+}
+
+/* 4 段の字間は 1 つの名前で持つ。祖先から上書きするつまみではないので、題のクラス自身で宣言する */
+/* The four steps share one named spacing; it is not an ancestor-overridable knob, so the title classes declare it themselves */
+.title--order-1,
+.title--order-2,
+.title--order-3,
+.title--order-4 {
+    --title-letter-spacing: -3.6px;
+    letter-spacing: var(--title-letter-spacing);
 }
 
 .text--dimmed {

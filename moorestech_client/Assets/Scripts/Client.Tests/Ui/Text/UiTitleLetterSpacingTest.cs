@@ -35,6 +35,19 @@ namespace Client.Tests.Ui.Text
             Assert.AreEqual(1f, title.layout.width / webWidthTitle.layout.width, 0.03f, $"{className}: {title.layout.width} vs {webWidthTitle.layout.width}");
         }
 
+        // 4 段の字間は --title-letter-spacing の 1 つの値を var() で引く
+        // All four steps read the single --title-letter-spacing value through var()
+        [TestCase(UiTypographyClass.TitleOrder1)]
+        [TestCase(UiTypographyClass.TitleOrder2)]
+        [TestCase(UiTypographyClass.TitleOrder3)]
+        [TestCase(UiTypographyClass.TitleOrder4)]
+        public void 欧文の題の字間は共有の値を引く(string className)
+        {
+            var title = Mount(rootVisualElement, className, LatinTitleText);
+
+            Assert.AreEqual(-3.6f, title.resolvedStyle.letterSpacing, 0.001f);
+        }
+
         // 和文は全角 1 字の字送りで太さによらず幅が同じなので、CJK のロケールでは詰めない
         // CJK glyphs advance one full em regardless of weight, so CJK locales do not tighten titles
         [TestCase(UiTypographyClass.TitleOrder1)]
