@@ -3,7 +3,6 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.State.PauseMenu;
@@ -27,14 +26,13 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly ISettingsCommands _settingsCommands;
         private readonly GameUiToastFeed _toasts;
         private readonly BugReportDraft _draft;
-        private readonly UiAssetCatalog _catalog;
         private readonly LocalizedLabel _title;
         private readonly VisualElement _pageHost;
         private CompositeDisposable _subscriptions;
         private PauseMenuPage _shownPage;
         private IPauseMenuPage _currentPage;
 
-        public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft, UiAssetCatalog catalog)
+        public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft)
         {
             _model = model;
             _settings = settings;
@@ -42,8 +40,6 @@ namespace Client.Ui.Screens.PauseMenu
             _settingsCommands = settingsCommands;
             _toasts = toasts;
             _draft = draft;
-            _catalog = catalog;
-            styleSheets.Add(catalog.PauseMenu);
             AddToClassList("pause-menu");
 
             // 自身は層いっぱいの透明な置き場で、testid とアンカーは Web と同じく見える枠に付ける
@@ -126,19 +122,19 @@ namespace Client.Ui.Screens.PauseMenu
             void BuildTop()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
-                Show(new PauseMenuTopPageView(_commands, _catalog));
+                Show(new PauseMenuTopPageView(_commands));
             }
 
             void BuildSettings()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
-                Show(new PauseMenuSettingsPage(_settings.Value, _commands, _settingsCommands, _toasts, _catalog));
+                Show(new PauseMenuSettingsPage(_settings.Value, _commands, _settingsCommands, _toasts));
             }
 
             void BuildBugReport()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.BugReport);
-                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _draft, _catalog));
+                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _draft));
             }
 
             void Show(IPauseMenuPage page)

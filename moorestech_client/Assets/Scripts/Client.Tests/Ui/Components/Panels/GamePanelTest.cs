@@ -6,7 +6,6 @@ using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Theme;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -19,7 +18,6 @@ namespace Client.Tests.Ui.Components.Panels
     /// </summary>
     public class GamePanelTest : UiTestHost
     {
-        private const string PanelStyleSheetPath = "Assets/Scripts/Client.Ui/Components/Panels/GamePanel/GamePanel.uss";
         private const string TokensPath = "Assets/Scripts/Client.Ui/Foundation/Theme/Tokens.uss";
 
         // Web の .panel の padding: 8px 10px 10px 28px の左右
@@ -31,9 +29,7 @@ namespace Client.Tests.Ui.Components.Panels
         [SetUp]
         public void AddPanel()
         {
-            var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(PanelStyleSheetPath);
-            Assert.IsNotNull(sheet, PanelStyleSheetPath);
-            _panel = new GamePanel(sheet);
+            _panel = new GamePanel();
             _panel.style.width = 400;
             _panel.style.height = 300;
             rootVisualElement.Add(_panel);

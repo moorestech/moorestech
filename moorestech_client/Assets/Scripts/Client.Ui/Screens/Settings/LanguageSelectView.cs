@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Client.Ui.Components.Controls;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Toast;
@@ -23,15 +22,14 @@ namespace Client.Ui.Screens.Settings
         private readonly GameUiToastFeed _toasts;
         private readonly ModeSwitch<string> _languages;
 
-        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, GameUiToastFeed toasts, UiAssetCatalog catalog)
+        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, GameUiToastFeed toasts)
         {
             _commands = commands;
             _toasts = toasts;
-            styleSheets.Add(catalog.Settings);
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.Language));
 
-            _languages = new ModeSwitch<string>("language-select", ModeSwitchOrientation.Vertical, LanguageOptions(), catalog.ModeSwitch);
+            _languages = new ModeSwitch<string>("language-select", ModeSwitchOrientation.Vertical, LanguageOptions());
             _languages.OnSelected.Subscribe(OnLanguageSelected);
             Add(_languages);
             Apply(initial);

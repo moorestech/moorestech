@@ -20,11 +20,10 @@ namespace Client.Ui.Components.Controls
 
         public IObservable<TValue> OnSelected => _onSelected;
 
-        public ModeSwitch(string testid, ModeSwitchOrientation orientation, IReadOnlyList<ModeSwitchOption<TValue>> options, StyleSheet sheet)
+        public ModeSwitch(string testid, ModeSwitchOrientation orientation, IReadOnlyList<ModeSwitchOption<TValue>> options)
         {
             name = testid;
             _options = options;
-            styleSheets.Add(sheet);
             AddToClassList("mode-switch");
             AddToClassList(orientation == ModeSwitchOrientation.Vertical ? "mode-switch--vertical" : "mode-switch--horizontal");
 

@@ -3,7 +3,6 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Client.Ui.Components.Controls;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
@@ -38,12 +37,11 @@ namespace Client.Ui.Screens.BugReport
         private BugReportCaptureStatus _capture;
         private bool _sending;
 
-        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, BugReportDraft draft, UiAssetCatalog catalog)
+        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, BugReportDraft draft)
         {
             _commands = commands;
             _toasts = toasts;
             _draft = draft;
-            styleSheets.Add(catalog.BugReport);
             AddToClassList("bug-report");
 
             // 種別の見出しと択一。押下は書きかけへ入れる
@@ -52,7 +50,7 @@ namespace Client.Ui.Screens.BugReport
             kindCaption.AddToClassList("bug-report__field-label");
             kindCaption.SetKey(LocalizationKeys.Ui.Playtest.ReportKind.Label);
             Add(kindCaption);
-            _kindSwitch = new ModeSwitch<PlaytestReportKind>("bug-report-kind", ModeSwitchOrientation.Horizontal, KindOptions(), catalog.ModeSwitch);
+            _kindSwitch = new ModeSwitch<PlaytestReportKind>("bug-report-kind", ModeSwitchOrientation.Horizontal, KindOptions());
             _kindSwitch.OnSelected.Subscribe(OnKindSelected);
             Add(_kindSwitch);
 

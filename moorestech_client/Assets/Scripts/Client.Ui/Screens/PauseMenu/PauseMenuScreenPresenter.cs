@@ -44,7 +44,7 @@ namespace Client.Ui.Screens.PauseMenu
         {
             // 載せるのはここで 1 回だけ。View は隠れた状態で生まれる
             // Mount exactly once here; the view is born hidden
-            _view = new PauseMenuView(_pauseMenuModel.Current, _settingsModel.Current, _commands, _settingsCommands, _toasts, _draft, _gameUiRoot.AssetCatalog);
+            _view = new PauseMenuView(_pauseMenuModel.Current, _settingsModel.Current, _commands, _settingsCommands, _toasts, _draft);
             _gameUiRoot.GetLayer(UiLayer.PauseMenu).Add(_view);
 
             // 開くたびに書きかけを空へ戻す（D-7）

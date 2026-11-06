@@ -26,7 +26,7 @@ namespace Client.Ui.Screens.Toast
 
         public void Initialize()
         {
-            _host = new ToastHostView(_gameUiRoot.AssetCatalog.Toast);
+            _host = new ToastHostView();
             _gameUiRoot.GetLayer(UiLayer.Toast).Add(_host);
             _subscription = _toastFeed.OnToast.Subscribe(_host.Push);
         }

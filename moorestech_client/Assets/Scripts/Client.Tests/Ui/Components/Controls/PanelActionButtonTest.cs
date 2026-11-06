@@ -6,7 +6,6 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -18,7 +17,6 @@ namespace Client.Tests.Ui.Components.Controls
     /// </summary>
     public class PanelActionButtonTest : UiTestHost
     {
-        private const string StyleSheetPath = "Assets/Scripts/Client.Ui/Components/Controls/PanelActionButton/PanelActionButton.uss";
         private const string TestId = "panel-action-button-test";
 
         private PanelActionButton _button;
@@ -42,9 +40,7 @@ namespace Client.Tests.Ui.Components.Controls
             // LocalizedLabel looks up the dictionary on attach, so load it first
             Localize.Initialize();
 
-            var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(StyleSheetPath);
-            Assert.IsNotNull(sheet, StyleSheetPath);
-            _button = new PanelActionButton(TestId, LocalizationKeys.Ui.PauseMenu.Settings, sheet);
+            _button = new PanelActionButton(TestId, LocalizationKeys.Ui.PauseMenu.Settings);
             _clickCount = 0;
             _button.clicked += () => _clickCount++;
             rulesRoot.Add(_button);

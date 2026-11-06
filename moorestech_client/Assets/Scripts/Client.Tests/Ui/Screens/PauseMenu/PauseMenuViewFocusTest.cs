@@ -33,7 +33,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             GameUiInputRules.Attach(container);
             var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.BugReport));
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            var view = new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, new BugReportDraft(), Catalog);
+            var view = new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, new BugReportDraft());
             container.Add(view);
             view.SetShown(true);
             simulate.FrameUpdate();

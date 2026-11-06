@@ -1,5 +1,4 @@
 using System;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Layers;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,11 +15,6 @@ namespace Client.Ui.Foundation.Root
         public static GameUiRoot Instance => _instance;
 
         [SerializeField] private UIDocument uiDocument;
-        [SerializeField] private UiAssetCatalog assetCatalog;
-
-        // シリアライズ値の公開に限った素通しの読み出し（D-24）
-        // Pass-through accessor limited to exposing a serialized value (D-24)
-        public UiAssetCatalog AssetCatalog => assetCatalog;
 
         private UiLayerStack _layers;
 
@@ -29,8 +23,7 @@ namespace Client.Ui.Foundation.Root
             _instance = this;
             // 必須参照が欠けたら起動の段階で止める
             // Stop at startup when a required reference is missing
-            if (uiDocument == null || assetCatalog == null) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
-            assetCatalog.ValidateAllAssigned();
+            if (uiDocument == null) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
             var root = uiDocument.rootVisualElement;
             _layers = UiLayerStack.Build(root);
         }

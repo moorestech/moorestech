@@ -27,4 +27,4 @@
 20. **イベントの出し方** — 部品・View が `Button.clicked`・`Action`・`event`・コールバック引数で操作を外へ出していないか。`IObservable<T> On<変化対象><過去分詞>`（UniRx の `Subject`）へ。`clicked` は部品の内側で `Subject` へ流すときだけ使う。
 21. **部品の中身を外から塗る** — 画面の USS や別の部品の USS が他部品の子クラス（`__`）・状態クラス（`--`）を書いていないか、C# から他部品の子へ `style.*`・`AddToClassList` していないか。外から変えてよいのはつまみ（Web の局所上書き変数と同じ名前のカスタムプロパティ）だけ。
 22. **層の依存方向** — `Components/` が `Client.Game`・`MasterHolder`・`Client.Ui.State` の機能別の型・`Client.Ui.Content`〔C3-a〕・`Client.Ui.Screens` を参照していないか。`Content/` が `Screens` を、`Screens/<機能>` が別の `Screens/<機能>` を、`Client.Ui.State` が `UnityEngine.UIElements` を参照していないか。部品が ItemId などの ID を受けていたら、解決を Content へ移す。
-23. **tss の束ね漏れ** — 新しい USS が `GameUiTheme.tss` の自分の族の区画に `@import` されているか、消した USS の `@import` が残っていないか（tss 束ねの導入前は `UiAssetCatalog` への登録と ctor の `StyleSheet`）。漏れると見た目が無言で崩れる。
+23. **tss の束ね漏れ** — 新しい USS が `GameUiTheme.tss` の自分の族の区画に `@import` されているか、消した USS の `@import` が残っていないか。漏れると見た目が無言で崩れる。

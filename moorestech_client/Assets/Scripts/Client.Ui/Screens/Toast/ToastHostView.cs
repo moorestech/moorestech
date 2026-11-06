@@ -19,18 +19,15 @@ namespace Client.Ui.Screens.Toast
     {
         private const int VisibleMilliseconds = 3000;
 
-        private readonly StyleSheet _toastSheet;
         private readonly List<GameUiToast> _toastsWaitingForStyle = new();
         private float _enterMilliseconds;
         private float _exitMilliseconds;
         private bool _styleResolved;
         private bool _durationsUnreadable;
 
-        public ToastHostView(StyleSheet toastSheet)
+        public ToastHostView()
         {
-            _toastSheet = toastSheet;
             name = "toast-host";
-            styleSheets.Add(toastSheet);
             AddToClassList("toast-host");
             pickingMode = PickingMode.Ignore;
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
@@ -52,7 +49,7 @@ namespace Client.Ui.Screens.Toast
 
             // 透明で足してから濃くし、表示時間のあとに薄れて外す
             // Add it transparent and fade it in, then fade it out and remove it after the display time
-            var item = new ToastItem(toast, _toastSheet);
+            var item = new ToastItem(toast.Text, toast.Variant == GameUiToastVariant.Error ? ToastItemTone.Error : ToastItemTone.Info);
             item.style.opacity = 0f;
             Add(item);
             Fade(item, 0f, 1f, _enterMilliseconds);

@@ -10,10 +10,9 @@ namespace Client.Ui.Components.Controls
     /// </summary>
     public sealed class PanelActionButton : Button
     {
-        public PanelActionButton(string testid, LocalizationKey label, StyleSheet sheet)
+        public PanelActionButton(string testid, LocalizationKey label)
         {
             name = testid;
-            styleSheets.Add(sheet);
             AddToClassList("panel-action-button");
 
             // GameUi は入力欄以外にフォーカスを持たせない

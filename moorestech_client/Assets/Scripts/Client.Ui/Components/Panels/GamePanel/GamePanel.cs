@@ -15,9 +15,8 @@ namespace Client.Ui.Components.Panels
 
         public override VisualElement contentContainer => _body;
 
-        public GamePanel(StyleSheet panelStyleSheet)
+        public GamePanel()
         {
-            styleSheets.Add(panelStyleSheet);
             AddToClassList("game-panel");
 
             // 面と三角は Web の z-index 0 なので本文より先（背後）に置く

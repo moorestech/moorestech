@@ -416,8 +416,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Client.Ui::Client.Ui.Foundation.Root.GameUiRoot
   uiDocument: {fileID: 8053441505789674925}
-  cefRawImage: {fileID: 4882653979629314944}
-  assetCatalog: {fileID: 11400000, guid: 7d8a585d341944a99aae81372e337fe8, type: 2}
 --- !u!1 &4525024820086105462
 GameObject:
   m_ObjectHideFlags: 0

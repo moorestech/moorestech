@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
 using Client.Ui.Components.Controls;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.Screens.Settings.GraphicsQualityRows;
 using Client.Ui.State.Settings;
 using Mooresmaster.Localization.Generated;
@@ -22,10 +21,9 @@ namespace Client.Ui.Screens.Settings
         private readonly VisualElement _custom;
         private readonly List<IGraphicsQualityRowSwitch> _itemSwitches = new();
 
-        public GraphicsQualitySettingsView(SettingsViewModel initial, ISettingsCommands commands, UiAssetCatalog catalog)
+        public GraphicsQualitySettingsView(SettingsViewModel initial, ISettingsCommands commands)
         {
             _commands = commands;
-            styleSheets.Add(catalog.Settings);
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.Graphics));
             _recovered = SettingsSectionParts.Note("graphics-recovered", LocalizationKeys.Ui.Settings.GraphicsRecovered);
@@ -34,7 +32,7 @@ namespace Client.Ui.Screens.Settings
             // カスタムはどの選択肢にも一致しないので無選択にし、1 行で知らせる
             // Custom matches no option, so it shows no selection plus a one-line notice
             Add(SettingsSectionParts.Caption(LocalizationKeys.Ui.Settings.GraphicsPreset));
-            _preset = new ModeSwitch<GraphicsQualityPreset>("graphics-preset", ModeSwitchOrientation.Horizontal, PresetOptions(), catalog.ModeSwitch);
+            _preset = new ModeSwitch<GraphicsQualityPreset>("graphics-preset", ModeSwitchOrientation.Horizontal, PresetOptions());
             _preset.OnSelected.Subscribe(_commands.ApplyGraphicsPreset);
             Add(_preset);
             _custom = SettingsSectionParts.Note("graphics-preset-custom", LocalizationKeys.Ui.Settings.GraphicsPresetCustom);
@@ -43,7 +41,7 @@ namespace Client.Ui.Screens.Settings
             foreach (var row in GraphicsQualityItemRows.All)
             {
                 Add(SettingsSectionParts.Caption(row.Caption));
-                var itemSwitch = row.CreateSwitch(_commands, catalog.ModeSwitch);
+                var itemSwitch = row.CreateSwitch(_commands);
                 _itemSwitches.Add(itemSwitch);
                 Add(itemSwitch.Element);
             }

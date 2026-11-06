@@ -2,7 +2,6 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
@@ -19,7 +18,7 @@ namespace Client.Ui.Screens.PauseMenu
     {
         private readonly LocalizedLabel _disconnected;
 
-        public PauseMenuTopPageView(IPauseMenuCommands commands, UiAssetCatalog catalog)
+        public PauseMenuTopPageView(IPauseMenuCommands commands)
         {
             // 切断の行は出ないときに間隔を残さないよう、ボタン列の外に置く
             // The disconnected line sits outside the button column so it leaves no gap when hidden
@@ -44,7 +43,7 @@ namespace Client.Ui.Screens.PauseMenu
 
             PanelActionButton AddButton(string testid, LocalizationKey label, string anchorId)
             {
-                var button = new PanelActionButton(testid, label, catalog.PanelActionButton);
+                var button = new PanelActionButton(testid, label);
                 TutorialAnchor.Mark(button, anchorId);
                 PauseMenuStack.Add(buttons, button);
                 return button;

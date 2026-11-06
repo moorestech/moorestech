@@ -2,30 +2,26 @@ using System;
 using System.Collections.Generic;
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.State.Toast;
 using NUnit.Framework;
 using UniRx;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens
 {
     /// <summary>
-    /// 画面の L1 の土台。本番のカタログを読み、言語を英語に固定して TearDown で保存値ごと戻し、出たトーストを集める
-    /// Base for screen L1 tests: loads the production catalog, pins the language to English and restores it with the saved value in TearDown, and collects toasts
+    /// 画面の L1 の土台。言語を英語に固定して TearDown で保存値ごと戻し、出たトーストを集める
+    /// Base for screen L1 tests: pins the language to English and restores it with the saved value in TearDown, and collects toasts
     /// </summary>
     public abstract class ScreenTestHost : UiTestHost
     {
-        private const string CatalogPath = "Assets/UI Toolkit/GameUi/GameUiAssetCatalog.asset";
         private const string SelectedClass = "mode-switch__option--selected";
 
         private bool _hadSavedLanguageCode;
         private string _savedLanguageCode;
         private IDisposable _toastSubscription;
 
-        protected UiAssetCatalog Catalog { get; private set; }
         protected GameUiToastFeed Toasts { get; private set; }
         protected List<GameUiToast> ShownToasts { get; } = new();
 
@@ -37,8 +33,6 @@ namespace Client.Tests.Ui.Screens
             Localize.Initialize();
             Localize.TrySetChosenLanguage("english");
 
-            Catalog = AssetDatabase.LoadAssetAtPath<UiAssetCatalog>(CatalogPath);
-            Assert.IsNotNull(Catalog, CatalogPath);
             Toasts = new GameUiToastFeed();
             ShownToasts.Clear();
             _toastSubscription = Toasts.OnToast.Subscribe(ShownToasts.Add);

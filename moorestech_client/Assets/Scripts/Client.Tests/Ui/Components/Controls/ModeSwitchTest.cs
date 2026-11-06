@@ -7,7 +7,6 @@ using Client.Ui.Components.Controls;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UniRx;
-using UnityEditor;
 using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Components.Controls
@@ -18,22 +17,17 @@ namespace Client.Tests.Ui.Components.Controls
     /// </summary>
     public class ModeSwitchTest : UiTestHost
     {
-        private const string StyleSheetPath = "Assets/Scripts/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.uss";
         private const string SelectedClass = "mode-switch__option--selected";
 
-        private StyleSheet _sheet;
         private readonly List<int> _selected = new();
         private IDisposable _subscription;
 
         [SetUp]
-        public void LoadSheet()
+        public void LoadDictionaryAndClearSelected()
         {
             // LocalizedLabel が載った時点で辞書を引くので先に読み込む
             // LocalizedLabel looks up the dictionary on attach, so load it first
             Localize.Initialize();
-
-            _sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(StyleSheetPath);
-            Assert.IsNotNull(_sheet, StyleSheetPath);
             _selected.Clear();
         }
 
@@ -131,7 +125,7 @@ namespace Client.Tests.Ui.Components.Controls
                 new("option-b", 2, LocalizationKeys.Ui.PauseMenu.Back, null),
                 new("option-c", 3, null, "300m"),
             };
-            var modeSwitch = new ModeSwitch<int>("mode-switch-test", orientation, options, _sheet);
+            var modeSwitch = new ModeSwitch<int>("mode-switch-test", orientation, options);
             _subscription = modeSwitch.OnSelected.Subscribe(value => _selected.Add(value));
             rootVisualElement.Add(modeSwitch);
             simulate.FrameUpdate();

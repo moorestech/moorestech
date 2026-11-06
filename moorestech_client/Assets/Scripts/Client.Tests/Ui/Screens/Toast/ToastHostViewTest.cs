@@ -17,7 +17,7 @@ namespace Client.Tests.Ui.Screens.Toast
         [SetUp]
         public void MountHost()
         {
-            _host = Mount(new ToastHostView(Catalog.Toast));
+            _host = Mount(new ToastHostView());
         }
 
         /// <web-test file="src/features/toast/toastStore.test.ts">emitToast で追加され 3秒後に消える</web-test>
@@ -81,7 +81,7 @@ namespace Client.Tests.Ui.Screens.Toast
         [Test]
         public void スタイル解決前のPushは解決後に出る()
         {
-            var early = new ToastHostView(Catalog.Toast);
+            var early = new ToastHostView();
             early.Push(new GameUiToast("early", GameUiToastVariant.Info));
             Assert.AreEqual(0, early.childCount);
             rootVisualElement.Add(early);
@@ -94,7 +94,7 @@ namespace Client.Tests.Ui.Screens.Toast
         {
             var layer = new VisualElement();
             rootVisualElement.Add(layer);
-            var host = new ToastHostView(Catalog.Toast);
+            var host = new ToastHostView();
             layer.Add(host);
             using var subscription = Toasts.OnToast.Subscribe(host.Push);
             simulate.FrameUpdateMs(0);

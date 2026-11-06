@@ -80,7 +80,7 @@ public sealed class IconButton : VisualElement
 ## 5. USS の書き方
 
 1. 1 部品 1 USS を `.cs` の横に置く（`Components/<族>/<部品>/<部品>.uss`〔F1〕。今は `Components/<部品>/<部品>.uss`）。画面の USS（`Screens/<機能>/<機能>.uss`）は配置とつまみの上書きだけを持つ
-2. 新しい USS は `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` の自分の族の区画に `@import url("project://database/Assets/Scripts/Client.Ui/<…>.uss");` を 1 行足す〔F1〕（今の形: ctor が `StyleSheet` を受け、`UiAssetCatalog` に登録する）。束ね漏れと余りは `UiThemeImportBundleTest`〔F1〕が落とす
+2. 新しい USS は `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` の自分の族の区画に `@import url("project://database/Assets/Scripts/Client.Ui/<…>.uss");` を 1 行足す〔F1〕。ctor で `StyleSheet` を受けて `styleSheets.Add` しない。束ね漏れと余りは `UiThemeImportBundleTest`〔F1〕が落とす
 3. 規則はルートのクラスで始める（`.item-slot …`）。クラスは BEM（ルートは部品名のケバブ、子は `__`、状態は `--`）。ルートのクラス名は全 USS で一意
 4. 他の部品のクラスを書かない。画面が部品の見た目を変えてよいのは、つまみ（Web の局所上書き変数と同じ名前のカスタムプロパティ）を画面のルートで上書きするときだけ。例 `.hotbar-hud { --slot-size: var(--hotbar-slot-size); }`
 5. 状態はクラス `--<状態>` にし、付け外しは部品の Set メソッドの `EnableInClassList` だけが行う。`:hover`・`:active`・`:focus` は使ってよい。構造擬似クラス（`:first-child` 等）と z-index は使わず、C# でクラスを付ける・層で決める

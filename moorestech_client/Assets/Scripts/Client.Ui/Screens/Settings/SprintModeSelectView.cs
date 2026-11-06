@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Client.Input;
 using Client.Ui.Components.Controls;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.State.Settings;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -18,9 +17,8 @@ namespace Client.Ui.Screens.Settings
         private readonly VisualElement _recovered;
         private readonly ModeSwitch<SprintInputMode> _modes;
 
-        public SprintModeSelectView(SettingsViewModel initial, ISettingsCommands commands, UiAssetCatalog catalog)
+        public SprintModeSelectView(SettingsViewModel initial, ISettingsCommands commands)
         {
-            styleSheets.Add(catalog.Settings);
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.SprintMode));
             _recovered = SettingsSectionParts.Note("sprint-mode-recovered", LocalizationKeys.Ui.Settings.SprintModeRecovered);
@@ -31,7 +29,7 @@ namespace Client.Ui.Screens.Settings
                 new("sprint-mode-option-toggle", SprintInputMode.Toggle, LocalizationKeys.Ui.Settings.SprintModeToggle, null),
                 new("sprint-mode-option-hold", SprintInputMode.Hold, LocalizationKeys.Ui.Settings.SprintModeHold, null),
             };
-            _modes = new ModeSwitch<SprintInputMode>("sprint-mode-select", ModeSwitchOrientation.Horizontal, options, catalog.ModeSwitch);
+            _modes = new ModeSwitch<SprintInputMode>("sprint-mode-select", ModeSwitchOrientation.Horizontal, options);
             _modes.OnSelected.Subscribe(commands.SetSprintInputMode);
             Add(_modes);
             Apply(initial);
