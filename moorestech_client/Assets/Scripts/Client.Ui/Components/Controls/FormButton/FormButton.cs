@@ -42,9 +42,9 @@ namespace Client.Ui.Components.Controls
             // The label re-resolves on language change and never steals the press
             _label = new LocalizedLabel { pickingMode = PickingMode.Ignore };
             _label.AddToClassList(LabelUssClassName);
-            // Web は 600。600 の字形は無いので 700 の字形を当てる
-            // The Web uses 600; no 600 face exists so the 700 face is used
-            _label.AddToClassList(UiTypographyClass.TextBold); // look-exception: LX-10
+            // Web は 600。600 の字形は無く、実測で 600 に近い 500 の字形を当てる
+            // The Web uses 600; no 600 face exists, so the 500 face, measured closer to 600, is used
+            _label.AddToClassList(UiTypographyClass.TextMedium); // look-exception: LX-10
             Add(_label);
             SetLabel(label);
             SetVariant(variant);

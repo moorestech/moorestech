@@ -41,6 +41,16 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(5f, input.resolvedStyle.paddingTop, 0.01f);
             Assert.AreEqual(9.6f, input.resolvedStyle.paddingLeft, 0.5f);
             Assert.AreEqual(WhiteSpace.Normal, input.resolvedStyle.whiteSpace);
+
+            // 字は Mantine の body の 16px を継ぐ（Web の記述欄と検索欄は font-size を書かない）
+            // Text inherits the Mantine body 16px (the Web textarea and search input set no font-size)
+            Assert.AreEqual(16f, input.resolvedStyle.fontSize, 0.01f);
+
+            // 字は余白の内側からすぐ始まる（既定テーマの文字要素の左右 2px を消している）
+            // Text starts right inside the padding (the default theme's 2px around the text element is removed)
+            var text = input.Q(className: "unity-text-element--inner-input-field-component");
+            Assert.AreEqual(0f, text.resolvedStyle.paddingLeft, 0.01f);
+            Assert.AreEqual(0f, text.resolvedStyle.paddingRight, 0.01f);
         }
 
         [Test]

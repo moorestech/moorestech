@@ -12,11 +12,18 @@
     margin: 0;
 }
 
+/* Web の input・textarea は字を余白の内側からすぐ描くので、既定テーマが文字要素に足す左右 2px を消す */
+/* The Web input and textarea draw text right inside their padding, so drop the 2px the default theme adds around the text element */
+.game-text-field .unity-text-element--inner-input-field-component {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 /* 複数行は入力要素を箱の高さまで伸ばし、折り返して上から詰める（既定の BaseField は縦中央揃えで伸びない） */
 /* Multiline stretches the input to the box height, wraps and starts at the top (the default BaseField centres vertically and does not stretch) */
 .game-text-field--multiline .unity-base-text-field__input {
     height: 100%;
-    white-space: normal;
+    white-space: normal; /* look-exception: LX-11 */
     -unity-text-align: upper-left;
 }
 
@@ -30,6 +37,7 @@
     border-color: var(--bevel-c1);
     background-color: var(--gauge-track);
     color: var(--text-default);
+    font-size: var(--mantine-font-size-md); /* web: font-size 指定なしで Mantine の body（--mantine-font-size-md）を継ぐ（参照キャプチャ実測 16px） */
 }
 
 /* Web は枠も面も変えないので、既定テーマのホバーとフォーカスの変化を打ち消す */
