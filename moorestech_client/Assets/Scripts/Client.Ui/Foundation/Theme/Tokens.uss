@@ -66,7 +66,7 @@
     --challenge-hud-content-width: 250px;
     --challenge-hud-width: 278px; /* calc: var(--challenge-hud-content-width) + var(--hud-panel-padding) * 2 */
     --challenge-hud-rule-width: 88px;
-    --challenge-hud-label-font-size: 13px; /* web: 12px 下限13px */
+    --challenge-hud-label-font-size: 12px;
     --challenge-hud-objective-font-size: 14px;
     --challenge-hud-label-rule-gap: 5px;
     --challenge-hud-rule-list-gap: 8px;
@@ -77,7 +77,7 @@
     --operation-hud-right: 24px;
     --operation-hud-top: 24px;
     --operation-hud-width: 288px;
-    --operation-hud-label-font-size: 13px; /* web: 12px 下限13px */
+    --operation-hud-label-font-size: 12px;
     --operation-hud-detail-font-size: 17px;
     --operation-hud-label-rule-gap: 5px;
     --operation-hud-rule-list-gap: 8px;
@@ -163,7 +163,7 @@
     --recipe-duration-text-size: 13px;
     --recipe-list-scrollbar-reserve: 4px;
     --recipe-entry-bleed: 5px;
-    --recipe-info-text-size: 13px; /* web: 12px 下限13px */
+    --recipe-info-text-size: 12px;
     --recipe-info-icon-size: 36.8px;
     --recipe-slot-gap: 10px;
     --recipe-slot-size-max: 36.8px;
