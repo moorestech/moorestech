@@ -1,4 +1,3 @@
-// tools/uitk/webTokens/mantineTokens.mjs
 // Mantine の styles.css から基底（:root,:host）と暗色の上書きブロックを読み、Web が使う --mantine-* の名前と生の値を返す
 // Reads the base (:root,:host) and dark-override blocks from Mantine's styles.css and returns the --mantine-* names the Web uses with their raw values
 import { stripComments } from "./parseCssTokens.mjs";

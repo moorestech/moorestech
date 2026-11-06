@@ -86,7 +86,7 @@
     background-color: var(--mantine-primary-color-filled);
 }
 
-/* web: Mantine Checkbox の暗色（bg dark-6・border dark-4・印は primary filled） */
+/* web: Mantine Checkbox の暗色（未チェックは bg dark-6・border dark-4、チェック済みは箱が primary filled で印は white） */
 .unity-toggle__checkmark {
     width: 18px;
     height: 18px;
@@ -94,7 +94,12 @@
     border-radius: var(--mantine-radius-default);
     border-color: var(--mantine-color-default-border);
     background-color: var(--mantine-color-default);
-    -unity-background-image-tint-color: var(--mantine-primary-color-filled);
+    -unity-background-image-tint-color: var(--mantine-color-white);
+}
+
+.unity-toggle:checked .unity-toggle__checkmark {
+    border-color: var(--mantine-primary-color-filled);
+    background-color: var(--mantine-primary-color-filled);
 }
 
 /* web: Mantine ScrollArea（トラックは透明・つまみは白の 40%） */

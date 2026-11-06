@@ -1,4 +1,3 @@
-// tools/uitk/convert-mantine-tokens.mjs
 // Mantine の暗色テーマが解決する --mantine-* の実値を MantineTokens.uss へ書き出す（設計書 §3.1・C4）
 // Writes the values Mantine's dark theme resolves for --mantine-* into MantineTokens.uss (design §3.1, C4)
 // 使い方: リポジトリ直下で `pnpm --dir moorestech_web/webui install --frozen-lockfile && node tools/uitk/convert-mantine-tokens.mjs`
