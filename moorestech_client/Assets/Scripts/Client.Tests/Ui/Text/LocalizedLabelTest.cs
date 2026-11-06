@@ -3,8 +3,10 @@ using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.Ui.Text
 {
@@ -96,6 +98,29 @@ namespace Client.Tests.Ui.Text
             label.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.BugReport));
             rootVisualElement.Add(label);
             Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.PauseMenu.BugReport), label.text);
+        }
+
+        [Test]
+        public void パネルに載せてからSetKeyしてもLogErrorを出さない()
+        {
+            // 親へ載せた後に文を入れる組み方でも偽の LogError を出さない
+            // Mounting first and setting the text afterwards must not log a false error
+            var label = new LocalizedLabel { name = "late" };
+            rootVisualElement.Add(label);
+            label.SetKey(LocalizationKeys.Ui.MainMenu.PlayLocally);
+            simulate.FrameUpdate();
+
+            LogAssert.NoUnexpectedReceived();
+            Assert.AreEqual("Play locally", label.text);
+        }
+
+        [Test]
+        public void 文無しのまま載り続けるとLogErrorを出す()
+        {
+            var label = new LocalizedLabel { name = "missing" };
+            LogAssert.Expect(LogType.Error, new Regex(@"\[LocalizedTextBinding\] attached without a text: missing"));
+            rootVisualElement.Add(label);
+            simulate.FrameUpdate();
         }
     }
 }

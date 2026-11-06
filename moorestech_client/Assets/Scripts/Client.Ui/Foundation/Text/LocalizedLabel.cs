@@ -1,9 +1,6 @@
-using System;
-using Client.Localization;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UniRx;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Text
@@ -12,15 +9,18 @@ namespace Client.Ui.Foundation.Text
     /// UiTextを持つ言語追従ラベル
     /// Label holding UiText that follows language
     /// </summary>
+    /// <remarks>
+    /// 言語購読と文が無いときの報告は LocalizedTextBinding に任せる
+    /// Language subscription and missing-text reporting are delegated to LocalizedTextBinding
+    /// </remarks>
     public class LocalizedLabel : Label
     {
-        private UiText _text;
-        private IDisposable _languageSubscription;
+        private readonly LocalizedTextBinding _binding;
 
         public LocalizedLabel()
         {
-            RegisterCallback<AttachToPanelEvent>(_ => OnAttached());
-            RegisterCallback<DetachFromPanelEvent>(_ => OnDetached());
+            _binding = new LocalizedTextBinding(this);
+            _binding.OnResolved.Subscribe(resolved => text = resolved);
         }
 
         public void SetKey(LocalizationKey key)
@@ -30,31 +30,7 @@ namespace Client.Ui.Foundation.Text
 
         public void SetText(UiText text)
         {
-            _text = text;
-            if (panel != null) Resolve();
-        }
-
-        private void OnAttached()
-        {
-            // 文が無ければ警告
-            // Warn when no text
-            if (_text == null) Debug.LogError($"[LocalizedLabel] attached without a text: {name}");
-            _languageSubscription?.Dispose();
-            _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => Resolve());
-            Resolve();
-        }
-
-        private void OnDetached()
-        {
-            _languageSubscription?.Dispose();
-            _languageSubscription = null;
-        }
-
-        private void Resolve()
-        {
-            // silent-ok: 文が無いときは OnAttached が LogError 済み / 開発者が Console で気づく
-            if (_text == null) return;
-            text = _text.Resolve();
+            _binding.SetText(text);
         }
     }
 }
