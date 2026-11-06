@@ -1,6 +1,7 @@
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Text;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
@@ -77,12 +78,24 @@ namespace Client.Tests.Ui.Text
         public void InterpolatesParams()
         {
             var label = new LocalizedLabel();
-            label.SetKey(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount, new[] { new LocalizationTextParam("count", "3") });
+            label.SetText(new UiText(LocalizationKeys.Ui.Tooltip.DeleteSelectedCount, new[] { new LocalizationTextParam("count", "3") }));
             rootVisualElement.Add(label);
             Assert.AreEqual("Selected: 3", label.text);
 
             Localize.TrySetChosenLanguage("japanese");
             Assert.AreEqual("選択中: 3件", label.text);
+        }
+
+        [Test]
+        public void SetTextReplacesThePreviousKeyAndParams()
+        {
+            // 後から入れた文が前のキーと引数を置き換え、言語変更でも後の文で解き直す
+            // A later text replaces the earlier key and params, and re-resolves to the later one on language change
+            var label = new LocalizedLabel();
+            label.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
+            label.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.BugReport));
+            rootVisualElement.Add(label);
+            Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.PauseMenu.BugReport), label.text);
         }
     }
 }

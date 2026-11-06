@@ -171,7 +171,7 @@ namespace Client.Ui.Screens.BugReport
 
         private void ShowStatus(UiText statusLine)
         {
-            _status.SetKey(statusLine.Key, statusLine.Params);
+            _status.SetText(statusLine);
             if (_status.parent == this) return;
             Insert(IndexOf(_description) + 1, _status);
         }
