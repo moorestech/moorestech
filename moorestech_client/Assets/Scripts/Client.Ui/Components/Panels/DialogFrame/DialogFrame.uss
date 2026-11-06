@@ -1,3 +1,5 @@
+/* web: features/modal/ModalHost.tsx の Modal.Content w=320・Modal.Header・Modal.Title fz=h4 fw=700・Modal.Body p=lg（Mantine Modal の枠） */
+/* web: features/modal/ModalHost.tsx Modal.Content w=320, Modal.Header, Modal.Title fz=h4 fw=700, Modal.Body p=lg (the Mantine Modal frame) */
 /* Mantine Modal の content の外枠。幅だけを持ち切らない（影を枠の外へ出すため）。外側の margin は書かない（置き場所は宿主が中央に決める。設計書 A-30） */
 /* Outer box of the Mantine Modal content; width only and no clipping (so a shadow can extend outside); no outer margin (the host centres it; design A-30) */
 .dialog-frame {

@@ -17,7 +17,6 @@ namespace Client.Ui.Components.Panels
     {
         private readonly string _testid;
         private readonly VisualElement _surface;
-        private readonly VisualElement _body;
         private readonly VisualElement _content;
         private readonly VisualElement _actions;
         private LocalizedLabel _title;
@@ -38,15 +37,15 @@ namespace Client.Ui.Components.Panels
 
             // 本文の中に中身と操作の列を縦に積む（Web は Stack の中に TextInput と Button）
             // Stack the contents and the action column inside the body (the Web stacks TextInput and Button)
-            _body = new VisualElement();
-            _body.AddToClassList("dialog-frame__body");
+            var body = new VisualElement();
+            body.AddToClassList("dialog-frame__body");
             _content = new VisualElement();
             _content.AddToClassList("dialog-frame__content");
             _actions = new VisualElement();
             _actions.AddToClassList("dialog-frame__actions");
-            _body.hierarchy.Add(_content);
-            _body.hierarchy.Add(_actions);
-            _surface.Add(_body);
+            body.hierarchy.Add(_content);
+            body.hierarchy.Add(_actions);
+            _surface.Add(body);
         }
 
         // 題の行は最初の題で作る（題の無い枠は Mantine と同じく題の行を出さない）

@@ -1,3 +1,5 @@
+/* web: features/modal/ModalHost.tsx（Mantine Modal.Root centered の Overlay backgroundOpacity 0.6 と inner の中央寄せ。transition は duration 0） */
+/* web: features/modal/ModalHost.tsx (Mantine Modal.Root centered: Overlay backgroundOpacity 0.6 and the centred inner; transition duration 0) */
 /* モーダルの宿主。隠れている間は木から外さず表示だけ止める（層の中の位置を保つ） */
 /* Modal host; while hidden it stays in the tree with display off (keeps its place in the layer) */
 .ui-modal-host {
