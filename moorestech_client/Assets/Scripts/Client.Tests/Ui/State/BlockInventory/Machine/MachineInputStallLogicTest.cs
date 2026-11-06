@@ -1,5 +1,6 @@
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Mooresmaster.Localization.Generated;
+using Server.Protocol.PacketResponse;
 using NUnit.Framework;
 
 namespace Client.Tests.Ui.State.BlockInventory.Machine
@@ -14,14 +15,14 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         [Test]
         public void レベル違いはレベル違いの文言にする()
         {
-            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.MachineInputStallMixedLevel.Key, MachineInputStallLogic.MessageKey(MachineInputStallReason.MixedLevel).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.MachineInputStallMixedLevel.Key, MachineInputStallLogic.MessageKey(MachineInputStallReasonKind.MixedLevel).Key);
         }
 
         /// <web-test file="src/features/blockInventory/details/machineInputStall/__tests__/machineInputStallLogic.test.ts">上限超えは製作上限の文言にする</web-test>
         [Test]
         public void 上限超えは製作上限の文言にする()
         {
-            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.MachineInputStallAboveCraftCap.Key, MachineInputStallLogic.MessageKey(MachineInputStallReason.AboveCraftCap).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.BlockInventory.MachineInputStallAboveCraftCap.Key, MachineInputStallLogic.MessageKey(MachineInputStallReasonKind.AboveCraftCap).Key);
         }
     }
 }

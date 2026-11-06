@@ -10,7 +10,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Common
     {
         public double Capacity { get; }
 
-        protected BlockFluidSlotState(double capacity)
+        private protected BlockFluidSlotState(double capacity)
         {
             Capacity = capacity;
         }
@@ -32,7 +32,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Common
 
     public sealed class EmptyBlockFluidSlotState : BlockFluidSlotState
     {
-        public EmptyBlockFluidSlotState(double capacity) : base(capacity)
+        internal EmptyBlockFluidSlotState(double capacity) : base(capacity)
         {
         }
 
@@ -44,12 +44,12 @@ namespace Client.Ui.State.BlockInventory.Logic.Common
         public FluidId FluidId { get; }
         public double Amount { get; }
 
-        public FilledBlockFluidSlotState(FluidId fluidId, double amount, double capacity) : base(capacity)
+        internal FilledBlockFluidSlotState(FluidId fluidId, double amount, double capacity) : base(capacity)
         {
             FluidId = fluidId;
             Amount = amount;
         }
 
-        public override bool HasRealFluid => Amount > 0;
+        public override bool HasRealFluid => 0 < Amount;
     }
 }

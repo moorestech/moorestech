@@ -11,7 +11,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Detail
         public double CurrentRpm { get; }
         public double CurrentTorque { get; }
 
-        protected GearDetail(double currentRpm, double currentTorque)
+        private protected GearDetail(double currentRpm, double currentTorque)
         {
             CurrentRpm = currentRpm;
             CurrentTorque = currentTorque;
@@ -32,7 +32,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Detail
     {
         public double BaseRpm { get; }
 
-        public ConsumerGearDetail(double currentRpm, double currentTorque, double baseRpm) : base(currentRpm, currentTorque)
+        internal ConsumerGearDetail(double currentRpm, double currentTorque, double baseRpm) : base(currentRpm, currentTorque)
         {
             BaseRpm = baseRpm;
         }
@@ -40,7 +40,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Detail
 
     public sealed class GeneratorGearDetail : GearDetail
     {
-        public GeneratorGearDetail(double currentRpm, double currentTorque) : base(currentRpm, currentTorque)
+        internal GeneratorGearDetail(double currentRpm, double currentTorque) : base(currentRpm, currentTorque)
         {
         }
     }

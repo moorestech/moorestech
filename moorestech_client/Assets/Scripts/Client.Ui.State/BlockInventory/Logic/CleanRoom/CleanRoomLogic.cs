@@ -32,43 +32,47 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
                 default:
                     throw new ArgumentOutOfRangeException(nameof(cleanRoom), cleanRoom.GetType().Name, null);
             }
-        }
 
-        private static CleanRoomDisplay EnclosedRows(CleanRoomSummary room, CleanRoomHaltReason haltReason)
-        {
-            // 清浄機ごとの行。番号は 1 始まり、割合は四捨五入した百分率
-            // One row per purifier, numbered from 1, ratios as rounded percentages
-            var filters = new List<UiText>();
-            for (var i = 0; i < room.AirFilters.Count; i++)
+            #region Internal
+
+            CleanRoomDisplay EnclosedRows(CleanRoomSummary room, CleanRoomHaltReason haltReason)
             {
-                var filter = room.AirFilters[i];
-                filters.Add(new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomFilter, new[]
+                // 清浄機ごとの行。番号は 1 始まり、割合は四捨五入した百分率
+                // One row per purifier, numbered from 1, ratios as rounded percentages
+                var filters = new List<UiText>();
+                for (var i = 0; i < room.AirFilters.Count; i++)
                 {
-                    new LocalizationTextParam("index", UiNumberFormat.Integer(i + 1)),
-                    new LocalizationTextParam("power", RoundedPercent(filter.PowerRatio)),
-                    new LocalizationTextParam("count", UiNumberFormat.Integer(filter.FilterItemCount)),
-                    new LocalizationTextParam("remaining", RoundedPercent(filter.FilterRemainingRatio)),
-                }));
+                    var filter = room.AirFilters[i];
+                    filters.Add(new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomFilter, new[]
+                    {
+                        new LocalizationTextParam("index", UiNumberFormat.Integer(i + 1)),
+                        new LocalizationTextParam("power", RoundedPercent(filter.PowerRatio)),
+                        new LocalizationTextParam("count", UiNumberFormat.Integer(filter.FilterItemCount)),
+                        new LocalizationTextParam("remaining", RoundedPercent(filter.FilterRemainingRatio)),
+                    }));
+                }
+
+                // 見出しはサーバーが決めた種別から選ぶ（Out の判定をここで持たない）
+                // Pick the headline from the server-decided kind; no Out decision is made here
+                var headline = room.Headline is ClassCleanRoomHeadline classHeadline
+                    ? Line(LocalizationKeys.Ui.BlockInventory.CleanRoomClass, "className", classHeadline.ClassName)
+                    : new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomClassOut);
+                var air = new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomAir, new[]
+                {
+                    new LocalizationTextParam("concentration", UiNumberFormat.Fixed(room.Concentration, 3)),
+                    new LocalizationTextParam("airChangeRate", UiNumberFormat.Fixed(room.AirChangeRate, 3)),
+                });
+                return new EnclosedCleanRoomDisplay(headline, room.Headline is ClassOutCleanRoomHeadline, air, filters, haltReason);
             }
 
-            // 見出しはサーバーが決めた種別から選ぶ（Out の判定をここで持たない）
-            // Pick the headline from the server-decided kind; no Out decision is made here
-            var headline = room.Headline is ClassCleanRoomHeadline classHeadline
-                ? Line(LocalizationKeys.Ui.BlockInventory.CleanRoomClass, "className", classHeadline.ClassName)
-                : new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomClassOut);
-            var air = new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomAir, new[]
+            // 0..1 の割合を四捨五入した整数の百分率にする（Web の Math.round(x * 100)）
+            // A 0..1 ratio as a rounded whole percentage (Web Math.round(x * 100))
+            string RoundedPercent(double ratio)
             {
-                new LocalizationTextParam("concentration", UiNumberFormat.Fixed(room.Concentration, 3)),
-                new LocalizationTextParam("airChangeRate", UiNumberFormat.Fixed(room.AirChangeRate, 3)),
-            });
-            return new EnclosedCleanRoomDisplay(headline, room.Headline is ClassOutCleanRoomHeadline, air, filters, haltReason);
-        }
+                return UiNumberFormat.Integer(UiNumberFormat.RoundHalfUp(ratio * 100));
+            }
 
-        // 0..1 の割合を四捨五入した整数の百分率にする（Web の Math.round(x * 100)）
-        // A 0..1 ratio as a rounded whole percentage (Web Math.round(x * 100))
-        private static string RoundedPercent(double ratio)
-        {
-            return UiNumberFormat.Integer(UiNumberFormat.RoundHalfUp(ratio * 100));
+            #endregion
         }
 
         private static UiText Line(LocalizationKey key, string paramName, string paramValue)

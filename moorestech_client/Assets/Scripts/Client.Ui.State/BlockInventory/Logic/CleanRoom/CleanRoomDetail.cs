@@ -8,6 +8,10 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public static readonly CleanRoomHeadline ClassOut = new ClassOutCleanRoomHeadline();
 
+        private protected CleanRoomHeadline()
+        {
+        }
+
         public static CleanRoomHeadline Class(string className)
         {
             return new ClassCleanRoomHeadline(className);
@@ -18,7 +22,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public string ClassName { get; }
 
-        public ClassCleanRoomHeadline(string className)
+        internal ClassCleanRoomHeadline(string className)
         {
             ClassName = className;
         }
@@ -26,6 +30,9 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 
     public sealed class ClassOutCleanRoomHeadline : CleanRoomHeadline
     {
+        internal ClassOutCleanRoomHeadline()
+        {
+        }
     }
 
     public enum CleanRoomHaltReason
@@ -75,9 +82,34 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public CleanRoomHaltReason HaltReason { get; }
 
-        protected CleanRoomFetchedDetail(CleanRoomHaltReason haltReason)
+        private protected CleanRoomFetchedDetail(CleanRoomHaltReason haltReason)
         {
             HaltReason = haltReason;
+        }
+
+        public static CleanRoomFetchedDetail Enclosed(CleanRoomSummary room, CleanRoomHaltReason haltReason)
+        {
+            return new EnclosedCleanRoomDetail(room, haltReason);
+        }
+
+        public static CleanRoomFetchedDetail Openings(int openingCount, CleanRoomHaltReason haltReason)
+        {
+            return new OpeningsCleanRoomDetail(openingCount, haltReason);
+        }
+
+        public static CleanRoomFetchedDetail NoEnclosure(CleanRoomHaltReason haltReason)
+        {
+            return new NoEnclosureCleanRoomDetail(haltReason);
+        }
+
+        public static CleanRoomFetchedDetail TooLarge(int maxRoomVolume, CleanRoomHaltReason haltReason)
+        {
+            return new TooLargeCleanRoomDetail(maxRoomVolume, haltReason);
+        }
+
+        public static CleanRoomFetchedDetail Detecting(CleanRoomHaltReason haltReason)
+        {
+            return new DetectingCleanRoomDetail(haltReason);
         }
     }
 
@@ -85,7 +117,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public CleanRoomSummary Room { get; }
 
-        public EnclosedCleanRoomDetail(CleanRoomSummary room, CleanRoomHaltReason haltReason) : base(haltReason)
+        internal EnclosedCleanRoomDetail(CleanRoomSummary room, CleanRoomHaltReason haltReason) : base(haltReason)
         {
             Room = room;
         }
@@ -95,7 +127,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public int OpeningCount { get; }
 
-        public OpeningsCleanRoomDetail(int openingCount, CleanRoomHaltReason haltReason) : base(haltReason)
+        internal OpeningsCleanRoomDetail(int openingCount, CleanRoomHaltReason haltReason) : base(haltReason)
         {
             OpeningCount = openingCount;
         }
@@ -103,7 +135,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 
     public sealed class NoEnclosureCleanRoomDetail : CleanRoomFetchedDetail
     {
-        public NoEnclosureCleanRoomDetail(CleanRoomHaltReason haltReason) : base(haltReason)
+        internal NoEnclosureCleanRoomDetail(CleanRoomHaltReason haltReason) : base(haltReason)
         {
         }
     }
@@ -112,7 +144,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public int MaxRoomVolume { get; }
 
-        public TooLargeCleanRoomDetail(int maxRoomVolume, CleanRoomHaltReason haltReason) : base(haltReason)
+        internal TooLargeCleanRoomDetail(int maxRoomVolume, CleanRoomHaltReason haltReason) : base(haltReason)
         {
             MaxRoomVolume = maxRoomVolume;
         }
@@ -120,7 +152,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 
     public sealed class DetectingCleanRoomDetail : CleanRoomFetchedDetail
     {
-        public DetectingCleanRoomDetail(CleanRoomHaltReason haltReason) : base(haltReason)
+        internal DetectingCleanRoomDetail(CleanRoomHaltReason haltReason) : base(haltReason)
         {
         }
     }

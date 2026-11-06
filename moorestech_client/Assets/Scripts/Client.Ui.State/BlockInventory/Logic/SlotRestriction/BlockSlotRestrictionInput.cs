@@ -26,6 +26,10 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
     {
         public static readonly BlockSlotRestrictionInput NotOpenBlock = new NotOpenBlockSlotInput();
 
+        private protected BlockSlotRestrictionInput()
+        {
+        }
+
         // 開いたブロック在庫。詳細（入れ口の束縛か機械の束縛）は届いた時点で With* で足す
         // An open block inventory; the detail (inlet or machine bindings) is added with With* once it arrives
         public static OpenBlockSlotInput OpenBlock(string blockType, bool openFailed, int itemSlotCount)
@@ -36,6 +40,9 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
 
     public sealed class NotOpenBlockSlotInput : BlockSlotRestrictionInput
     {
+        internal NotOpenBlockSlotInput()
+        {
+        }
     }
 
     public sealed class OpenBlockSlotInput : BlockSlotRestrictionInput
@@ -45,7 +52,7 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
         public int ItemSlotCount { get; }
         public BlockSlotDetail Detail { get; }
 
-        public OpenBlockSlotInput(string blockType, bool openFailed, int itemSlotCount, BlockSlotDetail detail)
+        internal OpenBlockSlotInput(string blockType, bool openFailed, int itemSlotCount, BlockSlotDetail detail)
         {
             BlockType = blockType;
             OpenFailed = openFailed;
@@ -69,17 +76,24 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
     public abstract class BlockSlotDetail
     {
         public static readonly BlockSlotDetail Pending = new PendingBlockSlotDetail();
+
+        private protected BlockSlotDetail()
+        {
+        }
     }
 
     public sealed class PendingBlockSlotDetail : BlockSlotDetail
     {
+        internal PendingBlockSlotDetail()
+        {
+        }
     }
 
     public sealed class InletBlockSlotDetail : BlockSlotDetail
     {
         public IReadOnlyList<InletSlotBinding> InletBindings { get; }
 
-        public InletBlockSlotDetail(IReadOnlyList<InletSlotBinding> inletBindings)
+        internal InletBlockSlotDetail(IReadOnlyList<InletSlotBinding> inletBindings)
         {
             InletBindings = inletBindings;
         }
@@ -89,7 +103,7 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
     {
         public MachineBindingDetail Machine { get; }
 
-        public MachineBlockSlotDetail(MachineBindingDetail machine)
+        internal MachineBlockSlotDetail(MachineBindingDetail machine)
         {
             Machine = machine;
         }

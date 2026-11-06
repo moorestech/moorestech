@@ -43,6 +43,24 @@ namespace Client.Ui.State.BlockInventory.Logic.Special
                 RocketLaunchPadWaitReason.NoPower => LocalizationKeys.Ui.BlockInventory.RocketWaitNoPower,
                 _ => throw new ArgumentOutOfRangeException(nameof(waitReason), waitReason, null),
             };
+
+            #region Internal
+
+            LocalizationKey PhaseStatusKey(RocketLaunchPadPhase phase)
+            {
+                return phase switch
+                {
+                    RocketLaunchPadPhase.Idle => LocalizationKeys.Ui.BlockInventory.RocketStatusIdle,
+                    RocketLaunchPadPhase.AwaitingBuildCommand => LocalizationKeys.Ui.BlockInventory.RocketStatusAwaitingBuild,
+                    RocketLaunchPadPhase.Building => LocalizationKeys.Ui.BlockInventory.RocketStatusBuilding,
+                    RocketLaunchPadPhase.AwaitingLaunchCommand => LocalizationKeys.Ui.BlockInventory.RocketStatusAwaitingLaunch,
+                    RocketLaunchPadPhase.ReadyToLaunch => LocalizationKeys.Ui.BlockInventory.RocketStatusReadyToLaunch,
+                    RocketLaunchPadPhase.Launching => LocalizationKeys.Ui.BlockInventory.RocketStatusLaunching,
+                    _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, null),
+                };
+            }
+
+            #endregion
         }
 
         // 合図のボタンは初打ち上げ前の合図待ちだけに出る
@@ -61,20 +79,6 @@ namespace Client.Ui.State.BlockInventory.Logic.Special
                     button = default;
                     return false;
             }
-        }
-
-        private static LocalizationKey PhaseStatusKey(RocketLaunchPadPhase phase)
-        {
-            return phase switch
-            {
-                RocketLaunchPadPhase.Idle => LocalizationKeys.Ui.BlockInventory.RocketStatusIdle,
-                RocketLaunchPadPhase.AwaitingBuildCommand => LocalizationKeys.Ui.BlockInventory.RocketStatusAwaitingBuild,
-                RocketLaunchPadPhase.Building => LocalizationKeys.Ui.BlockInventory.RocketStatusBuilding,
-                RocketLaunchPadPhase.AwaitingLaunchCommand => LocalizationKeys.Ui.BlockInventory.RocketStatusAwaitingLaunch,
-                RocketLaunchPadPhase.ReadyToLaunch => LocalizationKeys.Ui.BlockInventory.RocketStatusReadyToLaunch,
-                RocketLaunchPadPhase.Launching => LocalizationKeys.Ui.BlockInventory.RocketStatusLaunching,
-                _ => throw new ArgumentOutOfRangeException(nameof(phase), phase, null),
-            };
         }
     }
 }

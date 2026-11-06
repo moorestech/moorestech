@@ -26,7 +26,10 @@ namespace Client.Ui.State.Text
         // Like the Web's Math.round, .5 rounds toward positive infinity (unlike C#'s default banker's rounding)
         public static long RoundHalfUp(double value)
         {
-            return (long)Math.Floor(value + 0.5);
+            // value + 0.5 は 0.49999999999999994 で 1.0 に丸まるため、小数部で判定する
+            // value + 0.5 rounds 0.49999999999999994 up to 1.0, so decide by the fractional part
+            var floor = Math.Floor(value);
+            return (long)(0.5 <= value - floor ? floor + 1 : floor);
         }
     }
 }

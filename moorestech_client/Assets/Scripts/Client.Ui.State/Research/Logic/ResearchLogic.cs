@@ -84,18 +84,22 @@ namespace Client.Ui.State.Research.Logic
         {
             if (TryFindFirst(nodes, ResearchNodeState.Researchable, out node)) return true;
             return TryFindFirst(nodes, ResearchNodeState.UnresearchableNotEnoughItem, out node);
-        }
 
-        private static bool TryFindFirst(IReadOnlyList<ResearchNodeSummary> nodes, ResearchNodeState state, out ResearchNodeSummary found)
-        {
-            foreach (var candidate in nodes)
+            #region Internal
+
+            bool TryFindFirst(IReadOnlyList<ResearchNodeSummary> nodes, ResearchNodeState state, out ResearchNodeSummary found)
             {
-                if (candidate.State != state) continue;
-                found = candidate;
-                return true;
+                foreach (var candidate in nodes)
+                {
+                    if (candidate.State != state) continue;
+                    found = candidate;
+                    return true;
+                }
+                found = default;
+                return false;
             }
-            found = default;
-            return false;
+
+            #endregion
         }
 
         // state 5 値の意味の表。state が増えたらここで例外になる

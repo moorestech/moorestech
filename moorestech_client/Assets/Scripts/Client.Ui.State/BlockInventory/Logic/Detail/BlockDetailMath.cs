@@ -20,7 +20,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Detail
         public static bool TryGetItemsPerMinute(int outputCount, double recipeTimeSeconds, out double itemsPerMinute)
         {
             itemsPerMinute = recipeTimeSeconds <= 0 ? 0 : outputCount * 60 / recipeTimeSeconds;
-            return recipeTimeSeconds > 0;
+            return 0 < recipeTimeSeconds;
         }
 
         // 0..total-1 の全スロット添字。全スロットを並べるビューはこの定義を使う

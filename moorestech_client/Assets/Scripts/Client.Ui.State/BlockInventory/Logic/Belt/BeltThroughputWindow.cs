@@ -12,7 +12,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Belt
         // Speed × window ÷ 360; fractional at some speeds
         public double MaxCount { get; }
 
-        protected BeltThroughputWindow(int ticks, double maxCount)
+        private protected BeltThroughputWindow(int ticks, double maxCount)
         {
             Ticks = ticks;
             MaxCount = maxCount;
@@ -33,7 +33,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Belt
     {
         public int ExitCount { get; }
 
-        public MeasuredBeltWindow(int ticks, int exitCount, double maxCount) : base(ticks, maxCount)
+        internal MeasuredBeltWindow(int ticks, int exitCount, double maxCount) : base(ticks, maxCount)
         {
             ExitCount = exitCount;
         }
@@ -41,7 +41,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Belt
 
     public sealed class MeasuringBeltWindow : BeltThroughputWindow
     {
-        public MeasuringBeltWindow(int ticks, double maxCount) : base(ticks, maxCount)
+        internal MeasuringBeltWindow(int ticks, double maxCount) : base(ticks, maxCount)
         {
         }
     }

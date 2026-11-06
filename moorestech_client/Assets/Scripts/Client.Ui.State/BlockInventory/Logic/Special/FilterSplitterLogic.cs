@@ -30,7 +30,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Special
         public static FilterSlotClickAction ClickAction(int grabCount, bool clear)
         {
             if (clear) return FilterSlotClickAction.Clear;
-            return grabCount > 0 ? FilterSlotClickAction.Set : FilterSlotClickAction.Noop;
+            return 0 < grabCount ? FilterSlotClickAction.Set : FilterSlotClickAction.Noop;
         }
 
         public static LocalizationKey ModeKey(FilterSplitterMode mode)

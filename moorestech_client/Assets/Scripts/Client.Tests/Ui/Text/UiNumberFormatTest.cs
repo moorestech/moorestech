@@ -51,6 +51,9 @@ namespace Client.Tests.Ui.Text
             Assert.AreEqual(89, UiNumberFormat.RoundHalfUp(88.888));
             Assert.AreEqual(3, UiNumberFormat.RoundHalfUp(2.5));
             Assert.AreEqual(-2, UiNumberFormat.RoundHalfUp(-2.5));
+            Assert.AreEqual(0, UiNumberFormat.RoundHalfUp(0.49999999999999994));
+            Assert.AreEqual(1, UiNumberFormat.RoundHalfUp(0.5));
+            Assert.AreEqual(0, UiNumberFormat.RoundHalfUp(-0.5));
         }
     }
 }

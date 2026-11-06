@@ -69,6 +69,17 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
             CollectionAssert.IsEmpty(MachineRecipeSelectionLogic.BuildRows(new[] { b }, BlockA, Guid.Empty));
         }
 
+        // Web に対応する it が無い新設の検査（行名の「他 N 件」の N）
+        // New check with no Web counterpart (the N in the row name's "and N others")
+        [Test]
+        public void 行名の他N件は生産物の総数から代表の1件を引く()
+        {
+            var two = Recipe(Recipe1, BlockA, new[] { new RecipeOutputItem(new ItemId(2), 1), new RecipeOutputItem(new ItemId(3), 1) }, new[] { new RecipeOutputFluid(new FluidId(7), 100) });
+            var one = Recipe(Recipe2, BlockA, new[] { new RecipeOutputItem(new ItemId(2), 1) }, new RecipeOutputFluid[0]);
+            Assert.AreEqual(2, MachineRecipeSelectionLogic.OtherOutputCount(two));
+            Assert.AreEqual(0, MachineRecipeSelectionLogic.OtherOutputCount(one));
+        }
+
         private static MachineRecipeSummary Recipe(Guid recipeGuid, Guid blockGuid, RecipeOutputItem[] outputItems, RecipeOutputFluid[] outputFluids)
         {
             return new MachineRecipeSummary(recipeGuid, blockGuid, outputItems, outputFluids);

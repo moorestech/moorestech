@@ -98,6 +98,23 @@ namespace Client.Tests.Ui.State.BlockInventory.Detail
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.GearRpmCurrent, new[] { "current", "20.0" }, generator.Rpm);
         }
 
+        // Web に対応する it が無い新設の検査（発電状態の文言と不足トーン）
+        // New check with no Web counterpart (generation label and insufficient tone)
+        [Test]
+        public void 発電状態ごとに文言と不足トーンを決める()
+        {
+            AssertGearToElectric(GearToElectricDisplayState.Generating, LocalizationKeys.Ui.BlockInventory.GearToElectricStateGenerating, false);
+            AssertGearToElectric(GearToElectricDisplayState.Idle, LocalizationKeys.Ui.BlockInventory.GearToElectricStateIdle, false);
+            AssertGearToElectric(GearToElectricDisplayState.Stopped, LocalizationKeys.Ui.BlockInventory.GearToElectricStateStopped, true);
+        }
+
+        private static void AssertGearToElectric(GearToElectricDisplayState state, LocalizationKey expected, bool insufficient)
+        {
+            var display = BlockDetailStateDisplay.GearToElectric(state);
+            Assert.AreEqual(expected.Key, display.LabelKey.Key);
+            Assert.AreEqual(insufficient, display.Insufficient);
+        }
+
         private static void AssertStopReason(GearNetworkStopReasonKind reason, LocalizationKey expected)
         {
             Assert.IsTrue(BlockDetailStateDisplay.TryGetStopReasonKey(reason, out var key), reason.ToString());

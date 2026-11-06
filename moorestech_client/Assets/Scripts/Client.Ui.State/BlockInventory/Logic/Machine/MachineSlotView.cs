@@ -43,7 +43,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
     {
         public int Index { get; }
 
-        protected BoundItemSlot(int index)
+        private protected BoundItemSlot(int index)
         {
             Index = index;
         }
@@ -56,7 +56,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
     {
         public MachineItemGhost Ghost { get; }
 
-        public GhostedItemSlot(int index, MachineItemGhost ghost) : base(index)
+        internal GhostedItemSlot(int index, MachineItemGhost ghost) : base(index)
         {
             Ghost = ghost;
         }
@@ -64,7 +64,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
 
     public sealed class PlainItemSlot : BoundItemSlot
     {
-        public PlainItemSlot(int index) : base(index)
+        internal PlainItemSlot(int index) : base(index)
         {
         }
     }
@@ -73,7 +73,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
     {
         public int Index { get; }
 
-        protected BoundFluidSlot(int index)
+        private protected BoundFluidSlot(int index)
         {
             Index = index;
         }
@@ -86,7 +86,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
     {
         public MachineFluidGhost Ghost { get; }
 
-        public GhostedFluidSlot(int index, MachineFluidGhost ghost) : base(index)
+        internal GhostedFluidSlot(int index, MachineFluidGhost ghost) : base(index)
         {
             Ghost = ghost;
         }
@@ -94,7 +94,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
 
     public sealed class PlainFluidSlot : BoundFluidSlot
     {
-        public PlainFluidSlot(int index) : base(index)
+        internal PlainFluidSlot(int index) : base(index)
         {
         }
     }

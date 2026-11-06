@@ -1,19 +1,9 @@
 using System;
+using Game.Block.Interface.State;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Ui.State.BlockInventory.Logic.Special
 {
-    public enum SpaceElevatorStatus
-    {
-        ReadyToConnect,
-        InsufficientCable,
-        WaitingSatellite,
-        Climbing,
-        LowPower,
-        InletBlocked,
-        OutputBlocked,
-    }
-
     public readonly struct SpaceElevatorStatusDisplay
     {
         public LocalizationKey LabelKey { get; }
@@ -32,17 +22,17 @@ namespace Client.Ui.State.BlockInventory.Logic.Special
     /// </summary>
     public static class SpaceElevatorLogic
     {
-        public static SpaceElevatorStatusDisplay StatusDisplay(SpaceElevatorStatus status)
+        public static SpaceElevatorStatusDisplay StatusDisplay(SpaceElevatorBaseStatus status)
         {
             return status switch
             {
-                SpaceElevatorStatus.ReadyToConnect => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusReadyToConnect, false),
-                SpaceElevatorStatus.InsufficientCable => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusInsufficientCable, true),
-                SpaceElevatorStatus.WaitingSatellite => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusWaitingSatellite, false),
-                SpaceElevatorStatus.Climbing => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusClimbing, false),
-                SpaceElevatorStatus.LowPower => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusLowPower, true),
-                SpaceElevatorStatus.InletBlocked => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusInletBlocked, true),
-                SpaceElevatorStatus.OutputBlocked => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusOutputBlocked, true),
+                SpaceElevatorBaseStatus.ReadyToConnect => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusReadyToConnect, false),
+                SpaceElevatorBaseStatus.InsufficientCable => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusInsufficientCable, true),
+                SpaceElevatorBaseStatus.WaitingSatellite => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusWaitingSatellite, false),
+                SpaceElevatorBaseStatus.Climbing => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusClimbing, false),
+                SpaceElevatorBaseStatus.LowPower => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusLowPower, true),
+                SpaceElevatorBaseStatus.InletBlocked => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusInletBlocked, true),
+                SpaceElevatorBaseStatus.OutputBlocked => new SpaceElevatorStatusDisplay(LocalizationKeys.Ui.BlockInventory.SpaceElevatorStatusOutputBlocked, true),
                 _ => throw new ArgumentOutOfRangeException(nameof(status), status, null),
             };
         }

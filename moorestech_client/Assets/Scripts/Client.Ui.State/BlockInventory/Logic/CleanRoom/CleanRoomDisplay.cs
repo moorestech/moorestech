@@ -15,7 +15,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
         public bool HeadlineInsufficient { get; }
         private readonly CleanRoomHaltReason _haltReason;
 
-        protected CleanRoomDisplay(UiText headline, bool headlineInsufficient, CleanRoomHaltReason haltReason)
+        private protected CleanRoomDisplay(UiText headline, bool headlineInsufficient, CleanRoomHaltReason haltReason)
         {
             Headline = headline;
             HeadlineInsufficient = headlineInsufficient;
@@ -46,7 +46,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
         public UiText NoFilter { get; }
         public bool ShowsNoFilter => Filters.Count == 0;
 
-        public EnclosedCleanRoomDisplay(UiText headline, bool headlineInsufficient, UiText air, IReadOnlyList<UiText> filters, CleanRoomHaltReason haltReason) : base(headline, headlineInsufficient, haltReason)
+        internal EnclosedCleanRoomDisplay(UiText headline, bool headlineInsufficient, UiText air, IReadOnlyList<UiText> filters, CleanRoomHaltReason haltReason) : base(headline, headlineInsufficient, haltReason)
         {
             Air = air;
             Filters = filters;
@@ -58,7 +58,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     // Unsealed or detecting rooms show the headline only
     public sealed class HeadlineOnlyCleanRoomDisplay : CleanRoomDisplay
     {
-        public HeadlineOnlyCleanRoomDisplay(UiText headline, bool headlineInsufficient, CleanRoomHaltReason haltReason) : base(headline, headlineInsufficient, haltReason)
+        internal HeadlineOnlyCleanRoomDisplay(UiText headline, bool headlineInsufficient, CleanRoomHaltReason haltReason) : base(headline, headlineInsufficient, haltReason)
         {
         }
     }

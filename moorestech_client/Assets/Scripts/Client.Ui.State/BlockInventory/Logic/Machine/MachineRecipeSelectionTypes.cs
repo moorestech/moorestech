@@ -50,6 +50,19 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
     // The recipe's representative display (row name / header icon source): item first, else fluid (2026-08-30 ruling D2, ADR 0042 R2/R3)
     public abstract class RecipeDisplaySubject
     {
+        private protected RecipeDisplaySubject()
+        {
+        }
+
+        public static RecipeDisplaySubject Item(ItemId itemId, int count)
+        {
+            return new ItemRecipeDisplaySubject(itemId, count);
+        }
+
+        public static RecipeDisplaySubject Fluid(FluidId fluidId, double amount)
+        {
+            return new FluidRecipeDisplaySubject(fluidId, amount);
+        }
     }
 
     public sealed class ItemRecipeDisplaySubject : RecipeDisplaySubject
@@ -57,7 +70,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
         public ItemId ItemId { get; }
         public int Count { get; }
 
-        public ItemRecipeDisplaySubject(ItemId itemId, int count)
+        internal ItemRecipeDisplaySubject(ItemId itemId, int count)
         {
             ItemId = itemId;
             Count = count;
@@ -69,7 +82,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
         public FluidId FluidId { get; }
         public double Amount { get; }
 
-        public FluidRecipeDisplaySubject(FluidId fluidId, double amount)
+        internal FluidRecipeDisplaySubject(FluidId fluidId, double amount)
         {
             FluidId = fluidId;
             Amount = amount;

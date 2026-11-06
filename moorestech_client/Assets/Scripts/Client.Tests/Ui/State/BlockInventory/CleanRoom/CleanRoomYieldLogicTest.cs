@@ -15,7 +15,7 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
         [Test]
         public void 露光は層の失敗率だけを出す()
         {
-            var lines = CleanRoomYieldLogic.Lines(CleanRoomYieldFetched.WithoutPendingDraw(new LayerExposureYieldRates(0.02)));
+            var lines = CleanRoomYieldLogic.Lines(CleanRoomYieldFetched.WithoutPendingDraw(CleanRoomYieldRates.LayerExposure(0.02)));
             Assert.AreEqual(1, lines.Count);
             Assert.AreEqual("clean-room-yield-layer-fail-rate", lines[0].TestId);
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLayerFailRate, new[] { "percent", "2.0" }, lines[0].Text);
@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
         [Test]
         public void ダイシングは品質Tierと損失率と0でないレベル割合と失敗割合を出す()
         {
-            var lines = CleanRoomYieldLogic.Lines(CleanRoomYieldFetched.WithoutPendingDraw(new DicingYieldRates(0.03, 1, new[] { 0.7, 0.1, 0 }, 0.2)));
+            var lines = CleanRoomYieldLogic.Lines(CleanRoomYieldFetched.WithoutPendingDraw(CleanRoomYieldRates.Dicing(0.03, 1, new[] { 0.7, 0.1, 0 }, 0.2)));
             Assert.AreEqual(5, lines.Count);
             AssertLine(lines[0], "clean-room-yield-quality-tier", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldQualityTier, new[] { "tier", "1" });
             AssertLine(lines[1], "clean-room-yield-die-loss-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldDieLossRate, new[] { "percent", "3.0" });
@@ -38,8 +38,8 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
         [Test]
         public void 出力待ちの確定済み抽選があれば確定時の値と次の抽選の値を見出し付きで分けて出す()
         {
-            var next = new DicingYieldRates(0.15, 0, new[] { 0.2, 0, 0 }, 0.8);
-            var pending = new DicingYieldRates(0.03, 1, new[] { 0.7, 0.1, 0 }, 0.2);
+            var next = CleanRoomYieldRates.Dicing(0.15, 0, new[] { 0.2, 0, 0 }, 0.8);
+            var pending = CleanRoomYieldRates.Dicing(0.03, 1, new[] { 0.7, 0.1, 0 }, 0.2);
             var lines = CleanRoomYieldLogic.Lines(CleanRoomYieldFetched.WithPendingDraw(next, pending));
             var expected = new[]
             {
@@ -67,7 +67,7 @@ namespace Client.Tests.Ui.State.BlockInventory.CleanRoom
         [Test]
         public void 割合は小数1桁の百分率に丸める()
         {
-            var lines = CleanRoomYieldLogic.Lines(CleanRoomYieldFetched.WithoutPendingDraw(new LayerExposureYieldRates(0.12345)));
+            var lines = CleanRoomYieldLogic.Lines(CleanRoomYieldFetched.WithoutPendingDraw(CleanRoomYieldRates.LayerExposure(0.12345)));
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLayerFailRate, new[] { "percent", "12.3" }, lines[0].Text);
         }
 

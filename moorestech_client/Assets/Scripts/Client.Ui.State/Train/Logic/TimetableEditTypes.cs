@@ -18,15 +18,15 @@ namespace Client.Ui.State.Train.Logic
         }
     }
 
-    // 時刻表の停車駅 1 件。Side は入線する端（Web の TrainTimetableStop）
+    // 時刻表の停車駅 1 件。Side は入線する端（Web の TimetableEditStop）
     // One timetable stop; Side is the arrival end (Web TrainTimetableStop)
-    public readonly struct TrainTimetableStop
+    public readonly struct TimetableEditStop
     {
         public Vector3Int Position { get; }
         public string Name { get; }
         public StationNodeSide Side { get; }
 
-        public TrainTimetableStop(Vector3Int position, string name, StationNodeSide side)
+        public TimetableEditStop(Vector3Int position, string name, StationNodeSide side)
         {
             Position = position;
             Name = name;

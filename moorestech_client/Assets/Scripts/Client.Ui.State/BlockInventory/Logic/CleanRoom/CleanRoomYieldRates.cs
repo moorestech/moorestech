@@ -9,6 +9,19 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     /// </summary>
     public abstract class CleanRoomYieldRates
     {
+        private protected CleanRoomYieldRates()
+        {
+        }
+
+        public static CleanRoomYieldRates LayerExposure(double layerFailRate)
+        {
+            return new LayerExposureYieldRates(layerFailRate);
+        }
+
+        public static CleanRoomYieldRates Dicing(double dieLossRate, int qualityTier, IReadOnlyList<double> levelRates, double failedRate)
+        {
+            return new DicingYieldRates(dieLossRate, qualityTier, levelRates, failedRate);
+        }
     }
 
     // 露光（EUV）は層の失敗率だけ
@@ -17,7 +30,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public double LayerFailRate { get; }
 
-        public LayerExposureYieldRates(double layerFailRate)
+        internal LayerExposureYieldRates(double layerFailRate)
         {
             LayerFailRate = layerFailRate;
         }
@@ -30,7 +43,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
         public IReadOnlyList<double> LevelRates { get; }
         public double FailedRate { get; }
 
-        public DicingYieldRates(double dieLossRate, int qualityTier, IReadOnlyList<double> levelRates, double failedRate)
+        internal DicingYieldRates(double dieLossRate, int qualityTier, IReadOnlyList<double> levelRates, double failedRate)
         {
             DieLossRate = dieLossRate;
             QualityTier = qualityTier;
@@ -45,7 +58,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public CleanRoomYieldRates Current { get; }
 
-        protected CleanRoomYieldFetched(CleanRoomYieldRates current)
+        private protected CleanRoomYieldFetched(CleanRoomYieldRates current)
         {
             Current = current;
         }
@@ -66,7 +79,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
 
     public sealed class SettledCleanRoomYield : CleanRoomYieldFetched
     {
-        public SettledCleanRoomYield(CleanRoomYieldRates current) : base(current)
+        internal SettledCleanRoomYield(CleanRoomYieldRates current) : base(current)
         {
         }
     }
@@ -75,7 +88,7 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
     {
         public CleanRoomYieldRates PendingDraw { get; }
 
-        public PendingDrawCleanRoomYield(CleanRoomYieldRates current, CleanRoomYieldRates pendingDraw) : base(current)
+        internal PendingDrawCleanRoomYield(CleanRoomYieldRates current, CleanRoomYieldRates pendingDraw) : base(current)
         {
             PendingDraw = pendingDraw;
         }

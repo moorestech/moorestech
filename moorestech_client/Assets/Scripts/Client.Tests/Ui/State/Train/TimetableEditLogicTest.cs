@@ -17,14 +17,14 @@ namespace Client.Tests.Ui.State.Train
     {
         private static readonly TrainTimetableStation A = new(new Vector3Int(1, 0, 1), "A");
         private static readonly TrainTimetableStation B = new(new Vector3Int(2, 0, 2), "");
-        private static readonly TrainTimetableStop AStop = new(A.Position, A.Name, StationNodeSide.Back);
-        private static readonly TrainTimetableStop BStop = new(B.Position, B.Name, StationNodeSide.Back);
+        private static readonly TimetableEditStop AStop = new(A.Position, A.Name, StationNodeSide.Back);
+        private static readonly TimetableEditStop BStop = new(B.Position, B.Name, StationNodeSide.Back);
 
         /// <web-test file="src/features/blockInventory/train/timetableEditLogic.test.ts">追加・削除・上下移動は新しいdraftを返し元を変えない</web-test>
         [Test]
         public void 追加削除上下移動は新しい一覧を返し元を変えない()
         {
-            var d0 = TimetableEditLogic.AddStop(new List<TrainTimetableStop>(), A);
+            var d0 = TimetableEditLogic.AddStop(new List<TimetableEditStop>(), A);
             var d1 = TimetableEditLogic.AddStop(d0, B);
             Assert.AreEqual(1, d0.Count);
             Assert.AreEqual("1,0,1", TimetableEditLogic.StationKey(d1[0].Position));
@@ -47,7 +47,7 @@ namespace Client.Tests.Ui.State.Train
         [Test]
         public void 同じ駅を2回入れられる()
         {
-            var draft = TimetableEditLogic.AddStop(TimetableEditLogic.AddStop(new List<TrainTimetableStop>(), A), A);
+            var draft = TimetableEditLogic.AddStop(TimetableEditLogic.AddStop(new List<TimetableEditStop>(), A), A);
             Assert.AreEqual(2, draft.Count);
         }
 
@@ -55,7 +55,7 @@ namespace Client.Tests.Ui.State.Train
         [Test]
         public void 停車駅が無いと自動運転をONにできない()
         {
-            Assert.IsFalse(TimetableEditLogic.CanEnableAutoRun(new List<TrainTimetableStop>()));
+            Assert.IsFalse(TimetableEditLogic.CanEnableAutoRun(new List<TimetableEditStop>()));
             Assert.IsTrue(TimetableEditLogic.CanEnableAutoRun(new[] { AStop }));
         }
 
@@ -72,7 +72,7 @@ namespace Client.Tests.Ui.State.Train
         [Test]
         public void 新しい停車駅はUI固定の後端で足し既存の端は保つ()
         {
-            var existing = new TrainTimetableStop(new Vector3Int(1, 0, 2), "A", StationNodeSide.Front);
+            var existing = new TimetableEditStop(new Vector3Int(1, 0, 2), "A", StationNodeSide.Front);
             var draft = TimetableEditLogic.AddStop(new[] { existing }, new TrainTimetableStation(new Vector3Int(5, 0, 6), "B"));
             CollectionAssert.AreEqual(
                 new[] { new TimetableReplaceStop(new Vector3Int(1, 0, 2), StationNodeSide.Front), new TimetableReplaceStop(new Vector3Int(5, 0, 6), StationNodeSide.Back) },
@@ -86,11 +86,11 @@ namespace Client.Tests.Ui.State.Train
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.TimetableStationLabel, new[] { "name", "A", "x", "1", "y", "0", "z", "1" }, TimetableEditLogic.StationLabel(A, "駅"));
             UiTextAssert.AreEqual(LocalizationKeys.Ui.BlockInventory.TimetableStationLabel, new[] { "name", "駅", "x", "2", "y", "0", "z", "2" }, TimetableEditLogic.StationLabel(B, "駅"));
             Assert.IsFalse(TimetableEditLogic.SameStopOrder(new[] { AStop, BStop }, new[] { BStop, AStop }));
-            Assert.IsTrue(TimetableEditLogic.SameStopOrder(new[] { AStop }, new[] { new TrainTimetableStop(AStop.Position, "renamed", AStop.Side) }));
-            Assert.IsFalse(TimetableEditLogic.SameStopOrder(new[] { AStop }, new[] { new TrainTimetableStop(AStop.Position, AStop.Name, StationNodeSide.Front) }));
+            Assert.IsTrue(TimetableEditLogic.SameStopOrder(new[] { AStop }, new[] { new TimetableEditStop(AStop.Position, "renamed", AStop.Side) }));
+            Assert.IsFalse(TimetableEditLogic.SameStopOrder(new[] { AStop }, new[] { new TimetableEditStop(AStop.Position, AStop.Name, StationNodeSide.Front) }));
         }
 
-        private static void AssertStop(TrainTimetableStop expected, TrainTimetableStop actual)
+        private static void AssertStop(TimetableEditStop expected, TimetableEditStop actual)
         {
             Assert.AreEqual(expected.Position, actual.Position, "position");
             Assert.AreEqual(expected.Name, actual.Name, "name");

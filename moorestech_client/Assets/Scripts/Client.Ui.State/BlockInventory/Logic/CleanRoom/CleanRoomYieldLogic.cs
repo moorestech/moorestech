@@ -36,48 +36,52 @@ namespace Client.Ui.State.BlockInventory.Logic.CleanRoom
             lines.Add(new CleanRoomYieldLine("clean-room-yield-next-label", new UiText(LocalizationKeys.Ui.BlockInventory.CleanRoomYieldNextDrawLabel)));
             lines.AddRange(next);
             return lines;
-        }
 
-        private static List<CleanRoomYieldLine> RateLines(CleanRoomYieldRates rates, string testIdPrefix)
-        {
-            switch (rates)
+            #region Internal
+
+            List<CleanRoomYieldLine> RateLines(CleanRoomYieldRates rates, string testIdPrefix)
             {
-                case LayerExposureYieldRates layer:
-                    return new List<CleanRoomYieldLine> { Row($"{testIdPrefix}-layer-fail-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLayerFailRate, new[] { Percent(layer.LayerFailRate) }) };
-                case DicingYieldRates dicing:
-                    return DicingLines(dicing, testIdPrefix);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(rates), rates.GetType().Name, null);
+                switch (rates)
+                {
+                    case LayerExposureYieldRates layer:
+                        return new List<CleanRoomYieldLine> { Row($"{testIdPrefix}-layer-fail-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLayerFailRate, new[] { Percent(layer.LayerFailRate) }) };
+                    case DicingYieldRates dicing:
+                        return DicingLines(dicing, testIdPrefix);
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(rates), rates.GetType().Name, null);
+                }
             }
-        }
 
-        // ダイシングは品質 Tier・損失率・0 でないレベル割合・失敗ダイ割合の順。0 のレベルは出ないので行を作らない
-        // Dicing lists tier, loss rate, non-zero level shares, then failed dies; zero levels never appear, so they get no row
-        private static List<CleanRoomYieldLine> DicingLines(DicingYieldRates rates, string testIdPrefix)
-        {
-            var lines = new List<CleanRoomYieldLine>
+            // ダイシングは品質 Tier・損失率・0 でないレベル割合・失敗ダイ割合の順。0 のレベルは出ないので行を作らない
+            // Dicing lists tier, loss rate, non-zero level shares, then failed dies; zero levels never appear, so they get no row
+            List<CleanRoomYieldLine> DicingLines(DicingYieldRates rates, string testIdPrefix)
             {
-                Row($"{testIdPrefix}-quality-tier", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldQualityTier, new[] { new LocalizationTextParam("tier", UiNumberFormat.Integer(rates.QualityTier)) }),
-                Row($"{testIdPrefix}-die-loss-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldDieLossRate, new[] { Percent(rates.DieLossRate) }),
-            };
-            for (var i = 0; i < rates.LevelRates.Count; i++)
-            {
-                if (rates.LevelRates[i] == 0) continue;
-                var level = UiNumberFormat.Integer(i + 1);
-                lines.Add(Row($"{testIdPrefix}-level-rate-{level}", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelRate, new[] { new LocalizationTextParam("level", level), Percent(rates.LevelRates[i]) }));
+                var lines = new List<CleanRoomYieldLine>
+                {
+                    Row($"{testIdPrefix}-quality-tier", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldQualityTier, new[] { new LocalizationTextParam("tier", UiNumberFormat.Integer(rates.QualityTier)) }),
+                    Row($"{testIdPrefix}-die-loss-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldDieLossRate, new[] { Percent(rates.DieLossRate) }),
+                };
+                for (var i = 0; i < rates.LevelRates.Count; i++)
+                {
+                    if (rates.LevelRates[i] == 0) continue;
+                    var level = UiNumberFormat.Integer(i + 1);
+                    lines.Add(Row($"{testIdPrefix}-level-rate-{level}", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldLevelRate, new[] { new LocalizationTextParam("level", level), Percent(rates.LevelRates[i]) }));
+                }
+                lines.Add(Row($"{testIdPrefix}-failed-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldFailedRate, new[] { Percent(rates.FailedRate) }));
+                return lines;
             }
-            lines.Add(Row($"{testIdPrefix}-failed-rate", LocalizationKeys.Ui.BlockInventory.CleanRoomYieldFailedRate, new[] { Percent(rates.FailedRate) }));
-            return lines;
-        }
 
-        private static CleanRoomYieldLine Row(string testId, LocalizationKey key, LocalizationTextParam[] textParams)
-        {
-            return new CleanRoomYieldLine(testId, new UiText(key, textParams));
-        }
+            CleanRoomYieldLine Row(string testId, LocalizationKey key, LocalizationTextParam[] textParams)
+            {
+                return new CleanRoomYieldLine(testId, new UiText(key, textParams));
+            }
 
-        private static LocalizationTextParam Percent(double rate)
-        {
-            return new LocalizationTextParam("percent", UiNumberFormat.Fixed(rate * 100, 1));
+            LocalizationTextParam Percent(double rate)
+            {
+                return new LocalizationTextParam("percent", UiNumberFormat.Fixed(rate * 100, 1));
+            }
+
+            #endregion
         }
     }
 }

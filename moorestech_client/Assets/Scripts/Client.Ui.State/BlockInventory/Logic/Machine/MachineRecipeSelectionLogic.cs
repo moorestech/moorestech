@@ -22,6 +22,28 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
                 rows.Add(new MachineRecipeSelectionRow(recipe, subject, hasSelection && recipe.RecipeGuid == selectedRecipeGuid));
             }
             return rows;
+
+            #region Internal
+
+            // 代表出力を決める唯一の場所。出力アイテムの先頭を優先し、無ければ出力液体の先頭。両方無ければ行にできない
+            // The single place resolving the representative output: first item, else first fluid; neither means no row
+            bool TryResolveDisplaySubject(MachineRecipeSummary recipe, out RecipeDisplaySubject subject)
+            {
+                if (0 < recipe.OutputItems.Count)
+                {
+                    subject = new ItemRecipeDisplaySubject(recipe.OutputItems[0].ItemId, recipe.OutputItems[0].Count);
+                    return true;
+                }
+                if (0 < recipe.OutputFluids.Count)
+                {
+                    subject = new FluidRecipeDisplaySubject(recipe.OutputFluids[0].FluidId, recipe.OutputFluids[0].Amount);
+                    return true;
+                }
+                subject = null;
+                return false;
+            }
+
+            #endregion
         }
 
         public static bool HasSelectedRecipe(Guid selectedRecipeGuid)
@@ -34,24 +56,6 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
         public static int OtherOutputCount(MachineRecipeSummary recipe)
         {
             return recipe.OutputItems.Count + recipe.OutputFluids.Count - 1;
-        }
-
-        // 代表出力を決める唯一の場所。出力アイテムの先頭を優先し、無ければ出力液体の先頭。両方無ければ行にできない
-        // The single place resolving the representative output: first item, else first fluid; neither means no row
-        private static bool TryResolveDisplaySubject(MachineRecipeSummary recipe, out RecipeDisplaySubject subject)
-        {
-            if (recipe.OutputItems.Count > 0)
-            {
-                subject = new ItemRecipeDisplaySubject(recipe.OutputItems[0].ItemId, recipe.OutputItems[0].Count);
-                return true;
-            }
-            if (recipe.OutputFluids.Count > 0)
-            {
-                subject = new FluidRecipeDisplaySubject(recipe.OutputFluids[0].FluidId, recipe.OutputFluids[0].Amount);
-                return true;
-            }
-            subject = null;
-            return false;
         }
     }
 }
