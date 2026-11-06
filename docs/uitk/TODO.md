@@ -99,6 +99,7 @@
 | 1 | f044f5f5c4 | 捨てた | W0-switch（albof.17）の撤去コミット。旧 R1 の Web 側変更（a97575e5b5・05b9bdefa8・1095cab8bf・ccb3d512f7・5421c7f9f0）を外し、取り込み済み master と同じ Web に戻した（生成物 localizationKeys.ts は 3e946e4bd3 のまま）。UITK 側に写すものが無い |
 | 1 | 42279a73e4 | 写した | 同じコミットの localization.csv と C#（albof.16.2 の拒否理由の文言） |
 | 1 | 22ad101f8e | 写した | 車両撤去の永久保留の修正（#1582）。Web 側は Localization/localization.csv から ui.tooltip.deleteTrainQueueHeld を消したことに連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C#（TrainCarRemovalRequests・RemoveTrainCarProtocol）と CSV。I-weekly-1 の取り込みでそのまま入り、UITK 側に残る作業は無い（I-follow 不要） |
+| 1 | ad2ff7d2ae | 写した | バグ報告の記述欄の幅 356→354px（窓の内幅 420−1×2−32×2。Web・UITK とも右枠が窓に 2px 切られていた。C2-b の観測）。Web 側は tokens.css の値と pauseMenu/style.module.css のコメントで、写し先は同じコミットの生成物 Tokens.uss（convert-web-tokens.mjs）。I-fix2 |
 
 ## 参照キャプチャ
 
