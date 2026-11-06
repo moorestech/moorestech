@@ -25,6 +25,9 @@ namespace Client.Ui.Foundation.Input.Gesture
             element.RegisterCallback<PointerUpEvent>(OnPointerUp);
             element.RegisterCallback<PointerCancelEvent>(evt => Abort(evt.pointerId));
             element.RegisterCallback<PointerCaptureOutEvent>(evt => Abort(evt.pointerId));
+            // 捕捉中に要素が外れると PointerCaptureOutEvent が届かないので、外れも中断として扱う
+            // Detaching while captured raises no PointerCaptureOutEvent, so treat the detach as an abort too
+            element.RegisterCallback<DetachFromPanelEvent>(_ => AbortLivePress());
         }
 
         // Web の clientX は実画面 px なので、パネル px の移動量に倍率を掛けて同じ 5px で比べる
@@ -100,6 +103,11 @@ namespace Client.Ui.Foundation.Input.Gesture
             // Cancel or lost capture aborts; it becomes neither a tap nor a drop
             var live = EndPress(pointerId);
             if (live != null) _handler.OnAborted(live.Dragged);
+        }
+
+        private void AbortLivePress()
+        {
+            if (_press != null) Abort(_press.PointerId);
         }
 
         private LivePress EndPress(int pointerId)
