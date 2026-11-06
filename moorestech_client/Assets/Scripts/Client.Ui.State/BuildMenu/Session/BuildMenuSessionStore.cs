@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.State.BuildMenu.Session
 {
     /// <summary>
-    /// 閉じて開き直しても検索・位置・ホバーを戻すためのストア（Web buildMenuSessionState.ts の写し。寿命はゲーム）
-    /// Store that brings back search, position and hover on reopen (port of the Web buildMenuSessionState.ts; game lifetime)
+    /// 検索・位置・ホバーの再現（Web 写し・寿命はゲーム）
+    /// Restores search, position and hover (Web port; game lifetime)
     /// </summary>
     public sealed class BuildMenuSessionStore
     {

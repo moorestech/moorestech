@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.State.BuildMenu.Session
 {
     /// <summary>
-    /// ビルドメニューのセッション内状態。現在地は位置から再現できるのでカテゴリは持たない
-    /// In-session build-menu state; the current category is derivable from the position, so it is not stored
+    /// セッション内状態（現在地は位置から再現）
+    /// In-session state; the current category derives from position
     /// </summary>
     public sealed class BuildMenuSessionSnapshot
     {

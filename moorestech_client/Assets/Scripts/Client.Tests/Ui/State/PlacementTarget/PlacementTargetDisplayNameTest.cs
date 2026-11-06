@@ -15,8 +15,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.PlacementTarget
 {
     /// <summary>
-    /// Web の localizeSelectableTargetName を、C# の唯一の解決点 IPlacementTarget.DisplayName で固定する
-    /// Pins the Web localizeSelectableTargetName onto C#'s single resolution point, IPlacementTarget.DisplayName
+    /// 表示名の解決点を DisplayName で固定
+    /// Pins the resolution point to DisplayName
     /// </summary>
     public class PlacementTargetDisplayNameTest
     {
@@ -103,8 +103,8 @@ namespace Client.Tests.Ui.State.PlacementTarget
             Localize.Initialize();
         }
 
-        // 一時 mod の辞書へ 3 種の GUID 導出キーを入れて合成する（前例 LocalizeContentTest）
-        // Compose a temporary mod dictionary carrying the three GUID-derived keys (precedent: LocalizeContentTest)
+        // 一時 mod の辞書へ導出キーを合成
+        // Compose derived keys into a temporary mod dictionary
         private void MergeContentNames()
         {
             var modDirectory = Path.Combine(_temporaryDirectory, "placement-names-mod");

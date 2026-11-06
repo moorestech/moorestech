@@ -12,8 +12,8 @@ namespace Client.Ui.State.Hotbar.Logic
         {
             switch (source)
             {
-                // メニューのエントリは枠へ落としたときだけ割当になる
-                // A menu entry only assigns when it lands on a slot
+                // 枠へ落とすと割当
+                // Assigns only when dropped on a slot
                 case BuildMenuEntryDragSource entry:
                     return target is HotbarSlotDropTarget slot
                         ? new HotbarAssignAction(slot.SlotIndex, entry.TargetId)

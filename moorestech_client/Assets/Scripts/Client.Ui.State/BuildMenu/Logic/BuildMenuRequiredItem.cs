@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.State.BuildMenu.Logic
 {
     /// <summary>
-    /// エントリの必要素材 1 行。所持数と不足は作る側が決め切り、ロジックは再計算しない
-    /// One required-material row; the producer settles held and shortage, and the logic never recomputes them
+    /// 必要素材 1 行（不足は作る側が確定）
+    /// One required-material row; shortage is settled by the producer
     /// </summary>
     public sealed class BuildMenuRequiredItem
     {

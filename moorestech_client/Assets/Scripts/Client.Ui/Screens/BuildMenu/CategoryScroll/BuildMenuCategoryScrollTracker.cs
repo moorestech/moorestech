@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Ui.Screens.BuildMenu.CategoryScroll
 {
     /// <summary>
-    /// 1 本スクロールの現在地・ジャンプ固定・末尾スペーサ・位置復元を決める（Web useBuildMenuCategoryScroll の計算部分の写し）
-    /// Decides the current category, jump pin, trailing spacer and restore of the single scroll (port of the math in the Web useBuildMenuCategoryScroll)
+    /// 現在地・ジャンプ固定・位置復元（Web の写し）
+    /// Current category, jump pin and restore (Web port)
     /// </summary>
     public sealed class BuildMenuCategoryScrollTracker
     {
@@ -23,8 +23,8 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         private IReadOnlyList<Guid> _visibleCategories = Array.Empty<Guid>();
         private IBuildMenuScrollViewport _viewport;
 
-        // ジャンプ中はハイライトを目標に固定し、到達か操作でスクロール追従へ戻す
-        // While jumping the highlight is pinned to the target; arrival or user input releases it
+        // ジャンプ中は目標に固定
+        // Pinned to the target while jumping
         private BuildMenuJumpPin? _jumpPin;
 
         // 保存位置を代入済みか。視口を張り替えたら偽へ戻す
@@ -38,8 +38,8 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             // silent-ok: 同じ視口の渡し直しは冪等 / 状態は何も変わらない
             // silent-ok: re-attaching the same viewport is idempotent / no state changes
             if (ReferenceEquals(viewport, _viewport)) return;
-            // 張り替え前の実効位置を保存し、新しい視口で復元をやり直す（ジャンプ目標は引き継がない）
-            // Persist the outgoing viewport's position and redo the restore on the new one (the jump target is not carried over)
+            // 位置を保存し新視口で復元
+            // Save the position and restore on the new viewport
             if (_viewport != null) _session.SetScrollTop(_viewport.ScrollTop);
             _viewport = viewport;
             _jumpPin = null;
@@ -76,8 +76,8 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
             _session.SetScrollTop(scrollTop);
             if (_jumpPin is { } pin)
             {
-                // 未到達の間は固定を保ち、到達したら追従ではなく目標自身を確定させる
-                // Keep the pin until arrival, then settle on the target itself rather than on scroll-spy
+                // 到達まで固定、到達で目標を確定
+                // Pin until arrival, then settle on the target
                 if (BuildMenuScrollSpy.IsJumpSettled(scrollTop, pin.Top)) SettleOnJumpTarget(pin.CategoryGuid);
                 return;
             }

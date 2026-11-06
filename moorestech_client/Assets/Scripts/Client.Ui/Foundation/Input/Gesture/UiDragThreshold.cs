@@ -8,8 +8,8 @@ namespace Client.Ui.Foundation.Input.Gesture
     /// </summary>
     public static class UiDragThreshold
     {
-        // タップとドラッグを分ける閾値。5px 未満はタップ・選択のまま
-        // Movement threshold separating tap from drag; under 5px stays a tap or selection
+        // タップ/ドラッグの境（5px）
+        // Tap/drag boundary (5px)
         public const float ThresholdPx = 5f;
 
         // 押下点からの移動が閾値以上になったらドラッグ確定

@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace Client.Ui.State.BuildMenu.Logic
 {
     /// <summary>
-    /// 群分け・検索・不足判定が扱うエントリ。表示名は作る側が IPlacementTarget.DisplayName から入れる
-    /// The entry that grouping, search and shortage work on; the producer fills the label from IPlacementTarget.DisplayName
+    /// 群分け・検索・不足判定のエントリ
+    /// The entry for grouping, search and shortage
     /// </summary>
     public sealed class BuildMenuCatalogEntry
     {
@@ -14,6 +14,8 @@ namespace Client.Ui.State.BuildMenu.Logic
         public Guid TargetId { get; }
         public Guid CategoryGuid { get; }
         public Guid SubCategoryGuid { get; }
+        // 表示名は作る側が DisplayName から入れる
+        // The producer fills this from IPlacementTarget.DisplayName
         public string DisplayLabel { get; }
         public IReadOnlyList<BuildMenuRequiredItem> RequiredItems { get; }
 

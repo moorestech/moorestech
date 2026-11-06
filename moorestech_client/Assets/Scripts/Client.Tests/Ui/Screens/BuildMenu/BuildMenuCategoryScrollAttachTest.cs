@@ -50,8 +50,8 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             _tracker.AttachViewport(viewport);
             Assert.AreEqual(250f, _session.Current.ScrollTop);
 
-            // 末尾群が載って View が反映を通知すると保存位置へ戻る
-            // Once the last group lands and the view reports the spacer, the saved position is restored
+            // 反映通知で保存位置へ戻る
+            // The saved position is restored on the spacer report
             viewport.SetGroupHeight(A, 200f);
             _tracker.SetVisibleCategories(new[] { Y, A });
             viewport.ApplySpacer(_tracker.SpacerHeight.Value);
