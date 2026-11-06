@@ -6,10 +6,11 @@ using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
+using Client.WebUiHost.Health;
 using Game.Paths;
 // 本番Writerで停止対象の報告を実outboxに作る
 // Create an actual interruption target using the production writer
-var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
+var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), new WebUiHealthProbe());
 var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0UL };
 var box = await writer.WriteAsync(data, "task10 stop during production upload", PlaytestReportKind.Bug);
 if (!box.Ready) throw new System.Exception("READY failed");
