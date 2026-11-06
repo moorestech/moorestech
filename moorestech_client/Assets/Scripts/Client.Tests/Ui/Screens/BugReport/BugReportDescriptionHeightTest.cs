@@ -44,15 +44,18 @@ namespace Client.Tests.Ui.Screens.BugReport
         [Test]
         public void 枠が最大高で止まっても本文欄は縮まず本文がスクロールする()
         {
-            // ステージ高を 240px に縮めると枠の最大高は 160px になり、本文の中身より低くなる
-            // Shrinking the stage to 240px makes the frame max height 160px, lower than the body content
+            // ステージ高を 320px に縮めると枠は 240px で止まり、題・余白・戻るを除いた本文の窓は中身より低くなる
+            // Shrinking the stage to 320px stops the frame at 240px; the body window left after title, padding and back is lower than its content
             _view.style.bottom = StyleKeyword.Auto;
-            _view.style.height = 240f;
+            _view.style.height = 320f;
             simulate.FrameUpdate();
             simulate.FrameUpdate();
 
+            // 窓が 0 に潰れると中身も 0 で並ぶので、窓が開いたうえで中身がはみ出すことを見る
+            // A window collapsed to 0 lays out its content at 0 too, so check the window is open and the content overflows it
             var body = Find<ScrollView>(_view, "pause-menu-body");
             var field = Find<TextField>(_view, "bug-report-description");
+            Assert.Greater(body.contentViewport.layout.height, 0f);
             Assert.Greater(body.contentContainer.layout.height, body.contentViewport.layout.height);
             Assert.AreEqual(WebTextareaHeight, field.parent.layout.height, 0.5f);
             Assert.AreEqual(WebTextareaHeight, field.Q(className: "unity-base-text-field__input").layout.height, 0.5f);
