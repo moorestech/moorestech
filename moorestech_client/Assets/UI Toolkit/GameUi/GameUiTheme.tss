@@ -21,6 +21,8 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/GaugeBar/GaugeBar.uss");
 /* == section: Components/Text == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Text/TooltipFace/TooltipFace.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Text/KeyCap/KeyCap.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Text/ShortcutHintLabel/ShortcutHintLabel.uss");
 /* == section: Components/Decor == */
 /* == section: Components/Recipe == */
 /* == section: Components/NodeGraph == */
