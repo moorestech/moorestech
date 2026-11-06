@@ -73,7 +73,7 @@ namespace Client.Tests.Ui.State.Recipe
 
         /// <web-test file="src/features/recipe/logic/holdCraftLogic.test.ts">正の上限値である</web-test>
         [Test]
-        public void 1フレームの上限秒は正の値()
+        public void フレーム1回の上限秒は正の値()
         {
             Assert.Greater(HoldCraftLogic.MaxFrameDeltaSeconds, 0);
         }
