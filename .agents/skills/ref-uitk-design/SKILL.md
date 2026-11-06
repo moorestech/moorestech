@@ -15,7 +15,7 @@ description: moorestech のゲーム内 UI を UI Toolkit（USS・tss・Client.U
 
 - 全画面を Web 版と同じ見た目にする（ユーザーの裁定。移行で見た目を変えない）。例外はユーザー原文「無理に同じにする必要はない、影響が小さく非本質的な対応が入るのであれば、推奨でも良い」だけ（§11）
 - 見る順: ① その画面・部品の Web の CSS module（`W/shared/ui/<部品>/`・`W/features/<機能>/`）② `moorestech_web/webui/docs/design/components.md` の該当節 ③ 参照キャプチャ `moorestech_logs/uitk/reference-captures/web-<sha>/`（撮影元は台帳 `docs/uitk/TODO.md` の「## 参照キャプチャ」。画面と状態の一覧は `index.md`）
-- 数値は Web の CSS から逐語で写す（rem・em は ×16 の px）。目で合わせた値を足さない
+- 数値は Web の CSS から逐語で写す（rem は ×16 の px、em はその要素の文字サイズ（px）× 値）。目で合わせた値を足さない
 - 面は Web 版のその画面と同じ枠にする。Web が GamePanel で描く画面は `GamePanel`、Mantine の枠で描く画面（ポーズ・設定・バグ報告・トースト・モーダル・チャレンジ）はその枠を写す。面を GamePanel に統一しない
 - `ref-webui-design` のホワイトリスト（装飾 6 語彙・スロットは共有部品だけ・全画面の不透明面の禁止・stage 族と viewport 族）は、Web 版に無い新しい面を作るときにだけ効く。Web 版にある見た目はそのまま写す
 
@@ -108,7 +108,7 @@ public sealed class IconButton : VisualElement
 - 層は `UiLayer`（`S/Client.Ui/Foundation/Layers/UiLayer.cs`）の固定順の兄弟コンテナ。順の正本は `W/app/tokens.css` の `--z-*`。層を足すのは integrator で、enum と `UiLayerOrderTest` を同時に直す。画面・部品のレーンは足さない
 - 載せ方は `root.GetLayer(UiLayer.Screen, UiFamily.Stage)`〔F1〕（今は `GetLayer(UiLayer)`）。stage 族（1280×720 の舞台で一様に拡縮。パネル・グリッド）か viewport 族（実画面の辺に付く。常時 HUD）かは Web の所属（`ref-webui-design` §1.5）と同じにする
 - 層コンテナ・ルート・幕・描くだけの子は `PickingMode.Ignore`。忘れるとワールドのクリックとパネル外の右短押しが効かなくなる
-- 全体スイッチ（Web／UITK）を Presenter・View・部品が読まない。UITK のときだけ composition root（`S/Client.Starter/Registration/MainGameUiRegistration.cs`）が Presenter を登録する。入力の裁き（`UiPointerHitTest`・`UiInputExclusivity`）・DSL のロケータ・アンカーの解決はスイッチの系の値だけを読み、Web と UITK の値を論理和にしない
+- 全体スイッチ〔W0-switch〕（Web／UITK。今は画面ごとの所有表 `UiOwnershipTable`／`UiRoutingState` の `MainPanelOwner`、入力の裁きは Web と UITK の論理和）を Presenter・View・部品が読まない。UITK のときだけ composition root（`S/Client.Starter/Registration/MainGameUiRegistration.cs`）が Presenter を登録する。入力の裁き（`UiPointerHitTest`・`UiInputExclusivity`）・DSL のロケータ・アンカーの解決はスイッチの系の値だけを読み、Web と UITK の値を論理和にしない
 
 ## 8. 画面の型
 
@@ -121,7 +121,7 @@ public sealed class IconButton : VisualElement
 | `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。結果は `UiCommandResultToaster.Report`〔F1〕（今は `GameUiToastFeed.ShowRejected`） |
 | `S/Client.Ui/Screens/<機能>/<機能>.uss` | 配置とつまみの上書きだけ |
 
-- 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）
+- 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）。今の PauseMenu は `Screens/BugReport`・`Screens/Settings` を別ディレクトリから参照している（Web では pauseMenu 配下）。写すのは View→コマンドの責務配置だけで、別 Screens の参照は写さない
 - View は C# で組む。UXML と UI Builder は使わない
 - 出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める
 - 毎フレームの値（採掘の進捗など）は Model がフレーム末に畳んで流す。View は `Update()` を持たない
@@ -143,7 +143,7 @@ public sealed class IconButton : VisualElement
 
 ## 11. 比べ方と例外の記帳
 
-- 部品は部品ギャラリー〔F1〕で全状態を並べて撮り、画面は PlayMode・全体スイッチ UITK で 720p と 2560×1080 を撮る。Web の参照と状態ごとに並べて PR の成果物の載せ先に載せ、差を作業報告に表で書く。手順・置き場・合否の目安は `references/compare-procedure.md`
+- 部品は部品ギャラリー〔F1〕で全状態を並べて撮り、画面は PlayMode・全体スイッチ〔W0-switch〕UITK（今は所有表で UITK 所有にした画面）で 720p と 2560×1080 を撮る。Web の参照と状態ごとに並べて PR の成果物の載せ先に載せ、差を作業報告に表で書く。手順・置き場・合否の目安は `references/compare-procedure.md`
 - `uloop screenshot` は `--capture-mode window` で撮る。`rendering` には UITK が写らない
 - 例外にしてよい条件は `references/compare-procedure.md` §6 だけが決める（ここに書き写さない）
 - 例外は台帳 `docs/uitk/TODO.md` の「## 見た目の例外」〔F1〕に `LX-n` で書き、その USS・C# の行に `/* look-exception: LX-n */` を付ける

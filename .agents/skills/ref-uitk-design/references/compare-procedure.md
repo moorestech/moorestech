@@ -36,7 +36,7 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 ## 3. UITK を撮る
 
 - **部品**: 部品ギャラリー〔F1〕（`Client.Ui.Editor` の EditorWindow。本番の tss を当て、部品ごとに全状態を並べる。部品レーンが `IUiGalleryEntry`〔F1〕を 1 つ足す）を開き、`uloop screenshot --project-path ./moorestech_client --capture-mode window --window-name <ギャラリーの題> --output-directory <worktree の絶対パス>/moorestech_client/.uloop/outputs/compare/<レーンID>` で撮る
-- **画面**: PlayMode・全体スイッチ UITK で、参照キャプチャと同じ状態を DSL のシナリオで作り、ScreenCapture で 1280×720 と 2560×1080 の 2 種を撮る。フレーム番号の透かしを入れて古いフレームを見ないようにする
+- **画面**: PlayMode・全体スイッチ〔W0-switch〕UITK（今は所有表で UITK 所有にした画面）で、参照キャプチャと同じ状態を DSL のシナリオで作り、ScreenCapture で 1280×720 と 2560×1080 の 2 種を撮る。フレーム番号の透かしを入れて古いフレームを見ないようにする
 - `--capture-mode rendering`（PlayMode の既定）には UITK が写らない。撮れた画像は結果の `ImagePath` を開く（ディレクトリの新しい順で拾わない）
 - 画面の ScreenCapture も同じ `moorestech_client/.uloop/outputs/compare/<レーンID>/` に置く
 
@@ -70,6 +70,6 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 ## 6. 差の直し方と例外の記帳
 
 1. 差はまず Web へ寄せて直す（USS の値を Web の CSS と突き合わせる。つまみの上書き漏れ・トークンの取り違え・半透明の補正漏れが多い）
-2. 例外にしてよいのは、同じにするための対応が大きい（部品の作り直し・数百行の描画・性能の劣化）か、ブラウザの癖の再現で、かつ差が一目で分からないときだけ。配置・色の系統・装飾の有無・文字の大きさの差は例外にしない。直せないときは報告に「要裁定」と書いて止める
-3. 例外は台帳 `docs/uitk/TODO.md` の「## 見た目の例外」〔F1〕に 1 行足す。列: ID（`LX-n`）／画面・部品／差／同じにしない理由／推奨案／撮影（報告ページの URL）／出所（agent 既定・裁定）
+2. 例外にしてよいのは、同じにするための対応が大きい（部品の作り直し・数百行の描画・性能の劣化）か、ブラウザの癖の再現で、かつ差が一目で分からないときだけ。配置・色の系統・装飾の有無・文字の大きさの差は例外にしない（ただし Web と同じ px で実機の比較で読めない文字は、撮影を添えて例外に記帳する。設計書 [A-39]）。直せないときは報告に「要裁定」と書いて止める
+3. 例外は台帳 `docs/uitk/TODO.md` の「## 見た目の例外」〔F1〕に 1 行足す。ID は実行計画 §6.1 の自レーンの範囲から取る。列: ID（`LX-n`）／画面・部品／差／同じにしない理由／推奨案／撮影（報告ページの URL）／出所（agent 既定・裁定）
 4. 例外にした USS・C# の行に `/* look-exception: LX-n */` を付ける。印と台帳の照合は `LookExceptionLedgerTest`〔F1〕が行う

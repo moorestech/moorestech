@@ -10,7 +10,8 @@
 
 | CSS | USS での扱い |
 |---|---|
-| `rem`・`em` | px にする（1rem = 16px）。元の値をコメントに残す |
+| `rem` | px にする（1rem = 16px）。元の値をコメントに残す |
+| `em` | 対象要素の font-size（px）を掛けて px にする（例 `GamePanel.uss` の 19px × 0.02em = 0.38px）。元の値をコメントに残す |
 | 定数だけの `calc()` | 計算済みの px にし、導出式をコメントに残す（`CalcConstantRecheckTest`〔F1〕が検算する）。例 `GamePanel.uss` の `top: -11.913894px;`（`calc(var(--panel-top, -8px) - 3.913894px)`） |
 | 要素・画面の寸法に依存する `calc()`・`%`・`vw`/`vh` | USS の `%`・中央寄せか、C# の幾何計算（`GeometryChangedEvent`）に置き換える。舞台の倍率は `UiStageFrame`〔F1〕が持つ |
 | `color-mix`・`rgb(from …)` | 事前に計算した色を `DerivedTokens.uss`〔F1〕（今は `ControlTokens.uss`）の 1 行にし、`/* web: 元の式 */` を付ける |
@@ -44,7 +45,7 @@
 | CSS | USS での扱い |
 |---|---|
 | `-webkit-text-stroke`（アイコン上の数の縁、ADR 0033） | `-unity-text-outline-width`・`-unity-text-outline-color`。値は `--icon-text-stroke-*` |
-| `text-shadow` | USS に無い。`-unity-text-outline` で近似し、見た目の例外に記帳する（前例 `PanelActionButton`。段階 1 の差として F1 が `LX-n` に記帳する） |
+| `text-shadow` | 単一の影は `text-shadow` でそのまま写す（前例 `GamePanel.uss` の題）。USS の text-shadow は 1 本だけなので、複数方向の影は `-unity-text-outline` で近似し例外に記帳する（前例 `PanelActionButton`。F1 が `LX-n` に記帳する） |
 | `font-weight: bold`・`font-synthesis` | 合成の太字は使わない。Web が単一ウェイトなので同じ |
 | `font-size`（Mantine の `size`） | Web と同じ px。13px 下限は外す（設計書 [A-39]。F1 が下限テストを外す〔F1〕） |
 | `text-overflow: ellipsis` | `overflow: hidden`・`white-space: nowrap`・`text-overflow: ellipsis` |
