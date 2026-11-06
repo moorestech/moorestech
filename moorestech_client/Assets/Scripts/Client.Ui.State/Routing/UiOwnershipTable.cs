@@ -60,24 +60,24 @@ namespace Client.Ui.State.Routing
     public static class UiOwnershipEditorOverride
     {
         private static readonly Dictionary<(UiScreen, UiSurface), UiSurfaceOwner> Overrides = new();
-        private static readonly UniRx.Subject<UniRx.Unit> OnChangedSubject = new();
+        private static readonly UniRx.Subject<UniRx.Unit> OnOverridesChangedSubject = new();
 
         // 上書きの変化。ルータが購読して次の state 遷移を待たずに解決し直す
         // Override changes; the router subscribes and re-resolves without waiting for the next state transition
-        public static IObservable<UniRx.Unit> OnChanged => OnChangedSubject;
+        public static IObservable<UniRx.Unit> OnOverridesChanged => OnOverridesChangedSubject;
 
         public static void Set(UiScreen screen, UiSurface surface, UiSurfaceOwner owner)
         {
             Overrides[(screen, surface)] = owner;
             UnityEngine.Debug.Log($"[UiOwnershipEditorOverride] set {screen}/{surface} -> {owner}");
-            OnChangedSubject.OnNext(UniRx.Unit.Default);
+            OnOverridesChangedSubject.OnNext(UniRx.Unit.Default);
         }
 
         public static void Clear()
         {
             Overrides.Clear();
             UnityEngine.Debug.Log("[UiOwnershipEditorOverride] cleared all overrides");
-            OnChangedSubject.OnNext(UniRx.Unit.Default);
+            OnOverridesChangedSubject.OnNext(UniRx.Unit.Default);
         }
 
         internal static bool TryGet(UiScreen screen, UiSurface surface, out UiSurfaceOwner owner)

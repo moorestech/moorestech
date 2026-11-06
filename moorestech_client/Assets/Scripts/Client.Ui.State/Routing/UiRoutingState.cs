@@ -38,7 +38,7 @@ namespace Client.Ui.State.Routing
 #if UNITY_EDITOR
             // Editor の所有表上書き（R4）も即時に反映する。静的な流れなので、テストで作り直されたルータを残さないよう Dispose で外す
             // Editor ownership overrides (R4) apply immediately too; the stream is static, so Dispose detaches routers rebuilt by tests
-            _editorOverrideSubscription = UiOwnershipEditorOverride.OnChanged.Subscribe(_ => Refresh());
+            _editorOverrideSubscription = UiOwnershipEditorOverride.OnOverridesChanged.Subscribe(_ => Refresh());
 #endif
             Refresh();
         }

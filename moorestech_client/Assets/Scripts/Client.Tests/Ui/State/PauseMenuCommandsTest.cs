@@ -95,11 +95,15 @@ namespace Client.Tests.Ui.State
         [Test]
         public void どの拒否理由もトースト用の翻訳文を持つ()
         {
+            // 単独実行でも辞書が引けるように初期化する
+            // Initialize the dictionary so the test also passes when run alone
+            Localize.Initialize();
             foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
             {
                 var text = Localize.Get(UiCommandRejectReasonTraits.ToLocalizationKey(reason));
                 Assert.IsNotEmpty(text, reason.ToString());
                 StringAssert.DoesNotContain("_", text, $"{reason} の文言が失敗コードのまま");
+                StringAssert.DoesNotStartWith("[!", text, $"{reason} の翻訳キーが辞書に無い");
             }
         }
 
