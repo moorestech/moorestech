@@ -16,6 +16,7 @@ using Client.Playtest.Input;
 using Client.Playtest.Operations;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Client.WebUiHost.Boot;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -101,7 +102,7 @@ return PlaytestRunner.Run("uitk-lifeline", options, async p =>
 
     int ToastCount()
     {
-        return GameUiRoot.Instance.GetLayer(UiLayer.Toast).Query<VisualElement>(className: "toast-item").ToList().Count;
+        return GameUiRoot.Instance.GetLayer(UiLayer.Toast, UiFamily.Viewport).Query<VisualElement>(className: "toast-item").ToList().Count;
     }
 
     #endregion

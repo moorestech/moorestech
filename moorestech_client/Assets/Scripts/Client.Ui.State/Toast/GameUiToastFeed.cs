@@ -1,8 +1,5 @@
 using System;
-using Client.Localization;
-using Client.Ui.State.Commands;
 using UniRx;
-using UnityEngine;
 
 namespace Client.Ui.State.Toast
 {
@@ -19,16 +16,6 @@ namespace Client.Ui.State.Toast
         public void Show(string text, GameUiToastVariant variant)
         {
             _onToast.OnNext(new GameUiToast(text, variant));
-        }
-
-        // 開発者向けにはコマンド名と失敗コードをログへ残し、利用者には理由ごとの翻訳文を error で出す。良性の拒否はログだけ
-        // The command name and failure code go to the log for developers; players get the translated per-reason message as an error. Benign rejections are only logged
-        public void ShowRejected(string commandName, UiCommandRejected rejected)
-        {
-            Debug.LogWarning($"[GameUiToastFeed] {commandName} failed: {rejected.ToWireCode()}");
-            if (UiCommandRejectReasonTraits.IsBenign(rejected.Reason)) return;
-
-            Show(Localize.Get(UiCommandRejectReasonTraits.ToLocalizationKey(rejected.Reason)), GameUiToastVariant.Error);
         }
     }
 }

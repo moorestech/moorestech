@@ -9,23 +9,25 @@ using UnityEngine;
 namespace Client.Tests.Ui.Layers
 {
     /// <summary>
-    /// UiLayer の並びが Web の tokens.css の --z-* が作る重なり順と一致することを確かめる（L0）
-    /// Verifies the UiLayer order matches the stacking order built from --z-* in the Web tokens.css (L0)
+    /// 層順とWebの--z-*の一致（L0）
+    /// UiLayer order matches Web --z-* (L0)
     /// </summary>
     public class UiLayerOrderTest
     {
-        private const string WebTokenCssPath = "moorestech_web/webui/src/app/tokens.css";
+        private static readonly string[] WebTokenCssPaths = { "moorestech_web/webui/src/app/tokens.css", "moorestech_web/webui/src/app/skitTokens.css" };
         private const string ViewportStageToken = "--z-viewport-stage";
+        private const string ChromeToken = "--z-stage-overlay-panel-chrome";
 
         private static readonly Regex CommentPattern = new(@"/\*[\s\S]*?\*/");
         private static readonly Regex ZTokenPattern = new(@"(--z-[\w-]+)\s*:\s*(-?\d+)\s*;");
 
-        // Web の重なり文脈。viewport 直下・viewport の stage 枠内・viewport 全体より前の portal
-        // Web stacking contexts: directly in viewport, inside viewport's stage slot, and portal above the whole viewport
+        // Webの重なり文脈
+        // Web stacking contexts
         private enum StackingGroup
         {
             Viewport,
             Stage,
+            ChromeNested,
             Portal,
         }
 
@@ -35,13 +37,17 @@ namespace Client.Tests.Ui.Layers
         {
             { UiLayer.Backdrop, (StackingGroup.Viewport, "--z-viewport-backdrop") },
             { UiLayer.BehindStage, (StackingGroup.Viewport, "--z-viewport-behind-stage") },
+            { UiLayer.ViewportStage, (StackingGroup.Viewport, "--z-viewport-stage") },
             { UiLayer.Screen, (StackingGroup.Stage, "--z-stage-screen") },
-            { UiLayer.Hud, (StackingGroup.Stage, "--z-stage-overlay-panel") },
+            { UiLayer.OverlayPanel, (StackingGroup.Stage, "--z-stage-overlay-panel") },
+            { UiLayer.Chrome, (StackingGroup.Stage, ChromeToken) },
+            { UiLayer.SkitStage, (StackingGroup.ChromeNested, "--z-stage-skit") },
             { UiLayer.PauseMenu, (StackingGroup.Stage, "--z-stage-pause-menu") },
             { UiLayer.Tooltip, (StackingGroup.Stage, "--z-stage-tooltip") },
             { UiLayer.Grab, (StackingGroup.Viewport, "--z-viewport-grab") },
             { UiLayer.WorldPin, (StackingGroup.Portal, "--z-portal-world-pin") },
             { UiLayer.Modal, (StackingGroup.Portal, "--z-portal-modal") },
+            { UiLayer.SkitTransition, (StackingGroup.Portal, "--z-portal-skit-transition") },
             { UiLayer.Toast, (StackingGroup.Portal, "--z-portal-toast") },
             { UiLayer.Tutorial, (StackingGroup.Portal, "--z-portal-tutorial") },
             { UiLayer.Reconnect, (StackingGroup.Portal, "--z-portal-reconnect") },
@@ -71,47 +77,54 @@ namespace Client.Tests.Ui.Layers
                 var current = CompositeKey(layers[i], zValues);
                 Assert.Less(previous.CompareTo(current), 0, $"{layers[i - 1]} {previous} is not below {layers[i]} {current}");
             }
+
+            #region Internal
+
+            Dictionary<string, int> ReadZTokens()
+            {
+                // --z宣言を2ファイルから拾う
+                // Pick --z declarations from both files
+                var values = new Dictionary<string, int>();
+                foreach (var relativePath in WebTokenCssPaths)
+                {
+                    var text = CommentPattern.Replace(File.ReadAllText(Path.Combine(RepositoryRoot(), relativePath)), "");
+                    foreach (Match match in ZTokenPattern.Matches(text))
+                    {
+                        Assert.IsTrue(values.TryAdd(match.Groups[1].Value, int.Parse(match.Groups[2].Value)), $"Duplicate {match.Groups[1].Value}");
+                    }
+                }
+                return values;
+            }
+
+            string RepositoryRoot()
+            {
+                return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
+            }
+
+            #endregion
         }
 
-        private static (int portalRank, int viewportZ, int innerZ) CompositeKey(UiLayer layer, Dictionary<string, int> zValues)
+        private static (int portalRank, int viewportZ, int stageZ, int chromeZ) CompositeKey(UiLayer layer, Dictionary<string, int> zValues)
         {
             var (group, token) = LayerTokens[layer];
             var z = ZValue(token, zValues);
 
-            // stage 群は viewport の stage 枠の位置に入れ子、portal 群は viewport 全体より前
-            // The stage group nests at the viewport's stage slot; the portal group sits above the whole viewport
+            // stage群・skit・portalの入れ子
+            // Nesting of stage, skit and portal groups
             return group switch
             {
-                StackingGroup.Viewport => (0, z, 0),
-                StackingGroup.Stage => (0, ZValue(ViewportStageToken, zValues), z),
-                StackingGroup.Portal => (1, z, 0),
+                StackingGroup.Viewport => (0, z, 0, 0),
+                StackingGroup.Stage => (0, ZValue(ViewportStageToken, zValues), z, 0),
+                StackingGroup.ChromeNested => (0, ZValue(ViewportStageToken, zValues), ZValue(ChromeToken, zValues), z),
+                StackingGroup.Portal => (1, z, 0, 0),
                 _ => throw new ArgumentOutOfRangeException(nameof(layer), group, null),
             };
         }
 
         private static int ZValue(string token, Dictionary<string, int> zValues)
         {
-            Assert.IsTrue(zValues.ContainsKey(token), $"{token} is not declared in {WebTokenCssPath}");
+            Assert.IsTrue(zValues.ContainsKey(token), $"{token} is not declared in {string.Join(", ", WebTokenCssPaths)}");
             return zValues[token];
-        }
-
-        private static Dictionary<string, int> ReadZTokens()
-        {
-            // コメントを除いてから「--z-name: 整数;」の宣言だけを拾う
-            // Strip comments, then pick only "--z-name: integer;" declarations
-            var path = Path.Combine(RepositoryRoot(), WebTokenCssPath);
-            var text = CommentPattern.Replace(File.ReadAllText(path), "");
-            var values = new Dictionary<string, int>();
-            foreach (Match match in ZTokenPattern.Matches(text))
-            {
-                Assert.IsTrue(values.TryAdd(match.Groups[1].Value, int.Parse(match.Groups[2].Value)), $"Duplicate {match.Groups[1].Value}");
-            }
-            return values;
-        }
-
-        private static string RepositoryRoot()
-        {
-            return Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
         }
     }
 }

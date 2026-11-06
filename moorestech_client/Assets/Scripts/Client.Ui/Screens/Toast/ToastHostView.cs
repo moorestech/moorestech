@@ -1,4 +1,5 @@
-using Client.Ui.Components;
+using System;
+using Client.Ui.Components.Gauges;
 using Client.Ui.Foundation.Motion.Playback;
 using Client.Ui.Foundation.Motion.Steps;
 using Client.Ui.Foundation.Motion.Tween;
@@ -19,18 +20,15 @@ namespace Client.Ui.Screens.Toast
     {
         private const int VisibleMilliseconds = 3000;
 
-        private readonly StyleSheet _toastSheet;
         private readonly List<GameUiToast> _toastsWaitingForStyle = new();
         private float _enterMilliseconds;
         private float _exitMilliseconds;
         private bool _styleResolved;
         private bool _durationsUnreadable;
 
-        public ToastHostView(StyleSheet toastSheet)
+        public ToastHostView()
         {
-            _toastSheet = toastSheet;
             name = "toast-host";
-            styleSheets.Add(toastSheet);
             AddToClassList("toast-host");
             pickingMode = PickingMode.Ignore;
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
@@ -52,7 +50,7 @@ namespace Client.Ui.Screens.Toast
 
             // 透明で足してから濃くし、表示時間のあとに薄れて外す
             // Add it transparent and fade it in, then fade it out and remove it after the display time
-            var item = new ToastItem(toast, _toastSheet);
+            var item = new ToastItem(toast.Text, ToneOf(toast.Variant));
             item.style.opacity = 0f;
             Add(item);
             Fade(item, 0f, 1f, _enterMilliseconds);
@@ -86,6 +84,18 @@ namespace Client.Ui.Screens.Toast
             var waiting = _toastsWaitingForStyle.ToArray();
             _toastsWaitingForStyle.Clear();
             foreach (var toast in waiting) Push(toast);
+        }
+
+        private static ToastItemTone ToneOf(GameUiToastVariant variant)
+        {
+            // 全値を列挙・未知は停止
+            // List every value; fail on unknown
+            return variant switch
+            {
+                GameUiToastVariant.Info => ToastItemTone.Info,
+                GameUiToastVariant.Error => ToastItemTone.Error,
+                _ => throw new ArgumentOutOfRangeException(nameof(variant), variant, null),
+            };
         }
 
         private static UiMotionHandle Fade(VisualElement target, float from, float to, float milliseconds)

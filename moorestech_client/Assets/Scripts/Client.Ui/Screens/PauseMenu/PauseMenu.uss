@@ -6,7 +6,7 @@
 /* 置き場は層いっぱいに広げ、枠を上下左右の中央へ置く */
 /* The host fills the layer and centers the frame both ways */
 .pause-menu {
-    --pause-menu-disconnected-text: var(--color-danger-text);
+    --pause-menu-disconnected-text: var(--mantine-color-red-text);
     position: absolute;
     left: 0;
     top: 0;
@@ -43,7 +43,7 @@
     height: 44px;
     margin: 0 0 16px 0;
     padding: 0;
-    font-size: 32px;
+    font-size: 32px; /* look-exception: LX-1 */
     -unity-text-align: middle-left;
 }
 

@@ -141,7 +141,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | 裁定 2 第一弾の画面 | A: 命綱（ポーズ・設定・バグ報告・トースト） | CEF が死んでも Esc でセーブと報告ができる |
 | 裁定 3 遠隔実行の待受 | (a) `HttpListener`。配布ビルドで動かなければ (b) 遠隔実行専用の最小 Kestrel | ADR 0072 の改訂が要る |
 | 確認 UI の演出の時間源 | 実時間（パネルのスケジューラ） | AGENTS.md の時間の規則はサーバーのゲームロジックの規則と読む |
-| 通信失敗のトースト | 全体スイッチの UITK 側では Web ホストも WS も起動しないので、Web の通信失敗のトーストは出ない。UITK のコマンドは C# を直接呼び、拒否は GameUiToastFeed.ShowRejected が拒否理由ごとのローカライズ文言で出す。Web 側は master と同じ Web の toast がそのまま出す | W0-switch で確かめた: Client.Ui と Client.Ui.State の asmdef が Client.WebUiHost を参照しない（grep 0 件）、L3 PauseMenuGameUiTest と GameUiSkeletonTest で UITK 側の WebUiHost.Hub が null |
+| 通信失敗のトースト | 全体スイッチの UITK 側では Web ホストも WS も起動しないので、Web の通信失敗のトーストは出ない。UITK のコマンドは C# を直接呼び、拒否は UiCommandResultToaster.Report が唯一の口として拒否理由ごとのローカライズ文言で出す。Web 側は master と同じ Web の toast がそのまま出す | W0-switch で確かめた: Client.Ui と Client.Ui.State の asmdef が Client.WebUiHost を参照しない（grep 0 件）、L3 PauseMenuGameUiTest と GameUiSkeletonTest で UITK 側の WebUiHost.Hub が null |
 | 様式化 Mantine の素の見た目の 4 画面 | 2026-11-06 ユーザー裁定: Web 版と同じ見た目（様式化しない） | 該当行に「見た目は Web 版と同じ」と書いた |
 
 裁定 4（Web の扱い）は 2026-10-26 にユーザー裁定済み（PR #1555 の `.decisions/2026-10-26-UITKが安定するまでWeb-UIの変更を続け現行機能をすべてUITKへ移す.md`）。G1 はその帰結の追従ゲート。
@@ -188,3 +188,13 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | `misc/fps-tps-view-toggle-via-ui.cs` | 削除済みの uGUI 型（CrosshairView）を参照 | 3 | S3-ladder | `CrosshairVisibility` の照会へ移植 |
 | `tutorial-research-renumber.cs` | 削除済みの研究 GUID と旧チェーン前提 | — | X-prerun | 削除（ADR 0038 で研究 1〜3 が消え、役目が終わった） |
 | `misc/research-node-state-label.cs` | 削除済みの研究 GUID を送る | 4 | X-prerun | 現行の研究 GUID へ書き直す（研究ツリーの UITK 化の後に流す） |
+
+## 見た目の例外
+
+Web と同じにしない見た目の差（設計書 `docs/uitk-migration/execution/component-architecture.md` §3.4）。入れてよいのは「同じにするための対応が大きいか、ブラウザの癖の再現が要り、かつ差が一目で分からない」ものだけ。配置・色の系統・装飾の有無・文字の大きさの差は入れない。例外の USS・C# の行には `/* look-exception: LX-n */`（C# は `// look-exception: LX-n`）を付け、`LookExceptionLedgerTest` が台帳と印を照合する。
+
+| ID | 画面・部品 | 差 | 同じにしない理由 | 推奨案 | 撮影 | 出所 |
+|---|---|---|---|---|---|---|
+| LX-1 | ポーズの題（`PauseMenu.uss` の `.pause-menu__title`） | Web は Mantine Title order=1 の 34px、UITK は 32px（行の高さ 44px は同じ） | GameUi のフォントは同じ px で字幅が約 7% 広く、34px では題の幅が Web より広がる。字の大きさの差は 2px で、行と幅は Web に合う | 32px のまま。フォントを替える段で 34px に戻せるか測る | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 screens の実測） |
+| LX-2 | `PanelActionButton` の文字 | Web は `text-shadow`、UITK は `-unity-text-outline-width: 0.3px` の縁取りで近似 | USS に text-shadow の任意のにじみが無く、同じにするには文字の描画を自作する必要がある。差は縁の柔らかさだけ | 縁取りの近似のまま | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 theme） |
+| LX-3 | `ModeSwitch` の選択肢の輪 | Web は `box-shadow` の ring、UITK は `--bevel-1` 幅の `border` で近似 | USS に box-shadow が無い。枠線は内側に入るが幅と色は同じで、並べて差が見えない | 枠線の近似のまま | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 theme） |

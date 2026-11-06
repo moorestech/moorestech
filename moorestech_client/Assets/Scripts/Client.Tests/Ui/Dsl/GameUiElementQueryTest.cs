@@ -2,7 +2,7 @@ using System.Linq;
 using Client.Playtest.UiElements;
 using Client.Playtest.UiElements.GameUi;
 using Client.Tests.Ui.TestHost;
-using Client.Ui.Components.TextField;
+using Client.Ui.Components.Controls;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;

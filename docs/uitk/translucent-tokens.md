@@ -17,7 +17,6 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--tutorial-attention-glow` | `rgba(255, 0, 0, 0.24)` | `rgba(255, 0, 0, 0.4532)` | α 近似補正（S7）。部品の段で実機で決める |
 | `--craft-arrow-outline` | `rgba(79, 224, 244, 0.7)` | `rgba(79, 224, 244, 0.4563)` | α 近似補正（S7）。部品の段で実機で決める |
 | `--skit-window-face` | `rgba(11, 17, 28, 0.88)` | `rgba(11, 17, 28, 0.9906)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--control-scroller-track` | `rgba(255, 255, 255, 0.04)` | `rgba(255, 255, 255, 0.0008)` | α 近似補正（S7）。部品の段で実機で決める |
 | `--game-panel-title-shadow` | `rgba(0, 0, 0, 0.35)` | `rgba(0, 0, 0, 0.3735)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-rule-top-start` | `rgba(146, 148, 167, 0.42)` | `rgba(146, 148, 167, 0.1961)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-rule-top-peak` | `rgba(146, 148, 167, 0.59)` | `rgba(146, 148, 167, 0.3602)` | 面色を背景にした厳密式（S7） |
@@ -30,3 +29,7 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--mode-switch-selected-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 30%)` = `rgba(43, 46, 59, 0.86)` | `rgba(43, 46, 59, 0.9868)` | α 近似補正（S7）。部品の段で実機で決める |
 | `--panel-action-text-outline` | `rgb(0 0 0 / 70%)` | `rgba(0, 0, 0, 0.9293)` | α 近似補正（S7）。部品の段で実機で決める |
 | `--pause-menu-face` | `rgb(16 20 28 / 92%)` | `rgba(16, 20, 28, 0.9961)` | α 近似補正（S7）。ポーズの撮影（https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png ）で枠の面 (16,20,28) とボタンの面（`--gauge-track`）(10,15,27) が見分けられることを確かめた |
+| `--theme-scroller-thumb-face` | `rgba(255, 255, 255, 0.4)` | `rgba(255, 255, 255, 0.1332)` | α 近似補正（S7）。部品の段で実機で決める（Mantine ScrollArea の暗色のつまみ） |
+| `--game-panel-craft-face` | `rgb(7 9 18 / 80%)` | `rgba(7, 9, 18, 0.971)` | α 近似補正（S7）。部品の段で実機で決める（GamePanel craft の面。C2-a） |
+| `--game-panel-craft-rim` | `rgb(146 148 167 / 55%)` | `rgba(146, 148, 167, 0.2684)` | α 近似補正（S7）。部品の段で実機で決める（GamePanel craft の内周。C2-a） |
+| `--mantine-color-blue-light-hover` | `rgba(34, 139, 230, 0.2)` | `rgba(34, 139, 230, 0.029)` | α 近似補正（S7）。部品の段で実機で決める（Mantine Button Subtle のホバー。C2-b） |

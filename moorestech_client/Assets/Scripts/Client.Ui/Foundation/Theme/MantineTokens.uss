@@ -1,0 +1,103 @@
+/* Generated from moorestech_web/webui/node_modules/@mantine/core/styles.css (@mantine/core 8.3.18, defaultColorScheme dark) — do not edit by hand. */
+/* Regenerate: pnpm --dir moorestech_web/webui install --frozen-lockfile && node tools/uitk/convert-mantine-tokens.mjs */
+:root {
+    --mantine-color-white: #fff; /* web: #fff */
+    --mantine-color-black: #000; /* web: #000 */
+    --mantine-color-dark-0: #c9c9c9; /* web: #c9c9c9 */
+    --mantine-color-dark-1: #b8b8b8; /* web: #b8b8b8 */
+    --mantine-color-dark-2: #828282; /* web: #828282 */
+    --mantine-color-dark-3: #696969; /* web: #696969 */
+    --mantine-color-dark-4: #424242; /* web: #424242 */
+    --mantine-color-dark-5: #3b3b3b; /* web: #3b3b3b */
+    --mantine-color-dark-6: #2e2e2e; /* web: #2e2e2e */
+    --mantine-color-dark-7: #242424; /* web: #242424 */
+    --mantine-color-dark-8: #1f1f1f; /* web: #1f1f1f */
+    --mantine-color-dark-9: #141414; /* web: #141414 */
+    --mantine-color-gray-0: #f8f9fa; /* web: #f8f9fa */
+    --mantine-color-gray-1: #f1f3f5; /* web: #f1f3f5 */
+    --mantine-color-gray-2: #e9ecef; /* web: #e9ecef */
+    --mantine-color-gray-3: #dee2e6; /* web: #dee2e6 */
+    --mantine-color-gray-4: #ced4da; /* web: #ced4da */
+    --mantine-color-gray-5: #adb5bd; /* web: #adb5bd */
+    --mantine-color-gray-6: #868e96; /* web: #868e96 */
+    --mantine-color-gray-7: #495057; /* web: #495057 */
+    --mantine-color-gray-8: #343a40; /* web: #343a40 */
+    --mantine-color-gray-9: #212529; /* web: #212529 */
+    --mantine-color-blue-0: #e7f5ff; /* web: #e7f5ff */
+    --mantine-color-blue-1: #d0ebff; /* web: #d0ebff */
+    --mantine-color-blue-2: #a5d8ff; /* web: #a5d8ff */
+    --mantine-color-blue-3: #74c0fc; /* web: #74c0fc */
+    --mantine-color-blue-4: #4dabf7; /* web: #4dabf7 */
+    --mantine-color-blue-5: #339af0; /* web: #339af0 */
+    --mantine-color-blue-6: #228be6; /* web: #228be6 */
+    --mantine-color-blue-7: #1c7ed6; /* web: #1c7ed6 */
+    --mantine-color-blue-8: #1971c2; /* web: #1971c2 */
+    --mantine-color-blue-9: #1864ab; /* web: #1864ab */
+    --mantine-color-red-0: #fff5f5; /* web: #fff5f5 */
+    --mantine-color-red-1: #ffe3e3; /* web: #ffe3e3 */
+    --mantine-color-red-2: #ffc9c9; /* web: #ffc9c9 */
+    --mantine-color-red-3: #ffa8a8; /* web: #ffa8a8 */
+    --mantine-color-red-4: #ff8787; /* web: #ff8787 */
+    --mantine-color-red-5: #ff6b6b; /* web: #ff6b6b */
+    --mantine-color-red-6: #fa5252; /* web: #fa5252 */
+    --mantine-color-red-7: #f03e3e; /* web: #f03e3e */
+    --mantine-color-red-8: #e03131; /* web: #e03131 */
+    --mantine-color-red-9: #c92a2a; /* web: #c92a2a */
+    --mantine-color-green-0: #ebfbee; /* web: #ebfbee */
+    --mantine-color-green-1: #d3f9d8; /* web: #d3f9d8 */
+    --mantine-color-green-2: #b2f2bb; /* web: #b2f2bb */
+    --mantine-color-green-3: #8ce99a; /* web: #8ce99a */
+    --mantine-color-green-4: #69db7c; /* web: #69db7c */
+    --mantine-color-green-5: #51cf66; /* web: #51cf66 */
+    --mantine-color-green-6: #40c057; /* web: #40c057 */
+    --mantine-color-green-7: #37b24d; /* web: #37b24d */
+    --mantine-color-green-8: #2f9e44; /* web: #2f9e44 */
+    --mantine-color-green-9: #2b8a3e; /* web: #2b8a3e */
+    --mantine-color-text: #c9c9c9; /* web: var(--mantine-color-dark-0) */
+    --mantine-color-body: #242424; /* web: var(--mantine-color-dark-7) */
+    --mantine-color-dimmed: #828282; /* web: var(--mantine-color-dark-2) */
+    --mantine-color-placeholder: #696969; /* web: var(--mantine-color-dark-3) */
+    --mantine-color-error: #e03131; /* web: var(--mantine-color-red-8) */
+    --mantine-color-default: #2e2e2e; /* web: var(--mantine-color-dark-6) */
+    --mantine-color-default-hover: #3b3b3b; /* web: var(--mantine-color-dark-5) */
+    --mantine-color-default-color: #fff; /* web: var(--mantine-color-white) */
+    --mantine-color-default-border: #424242; /* web: var(--mantine-color-dark-4) */
+    --mantine-color-disabled: #2e2e2e; /* web: var(--mantine-color-dark-6) */
+    --mantine-color-disabled-color: #696969; /* web: var(--mantine-color-dark-3) */
+    --mantine-primary-color-filled: #1971c2; /* web: var(--mantine-color-blue-filled) */
+    --mantine-primary-color-filled-hover: #1864ab; /* web: var(--mantine-color-blue-filled-hover) */
+    --mantine-color-blue-filled: #1971c2; /* web: var(--mantine-color-blue-8) */
+    --mantine-color-blue-filled-hover: #1864ab; /* web: var(--mantine-color-blue-9) */
+    --mantine-color-blue-text: #4dabf7; /* web: var(--mantine-color-blue-4) */
+    --mantine-color-blue-light-color: #74c0fc; /* web: var(--mantine-color-blue-3) */
+    --mantine-color-red-filled: #e03131; /* web: var(--mantine-color-red-8) */
+    --mantine-color-red-filled-hover: #c92a2a; /* web: var(--mantine-color-red-9) */
+    --mantine-color-red-text: #ff8787; /* web: var(--mantine-color-red-4) */
+    --mantine-color-red-light-color: #ffa8a8; /* web: var(--mantine-color-red-3) */
+    --mantine-color-green-filled: #2f9e44; /* web: var(--mantine-color-green-8) */
+    --mantine-color-green-filled-hover: #2b8a3e; /* web: var(--mantine-color-green-9) */
+    --mantine-color-green-text: #69db7c; /* web: var(--mantine-color-green-4) */
+    --mantine-color-green-light-color: #8ce99a; /* web: var(--mantine-color-green-3) */
+    --mantine-spacing-xs: 10px; /* web: calc(0.625rem * var(--mantine-scale)) */
+    --mantine-spacing-sm: 12px; /* web: calc(0.75rem * var(--mantine-scale)) */
+    --mantine-spacing-md: 16px; /* web: calc(1rem * var(--mantine-scale)) */
+    --mantine-spacing-lg: 20px; /* web: calc(1.25rem * var(--mantine-scale)) */
+    --mantine-spacing-xl: 32px; /* web: calc(2rem * var(--mantine-scale)) */
+    --mantine-radius-xs: 2px; /* web: calc(0.125rem * var(--mantine-scale)) */
+    --mantine-radius-sm: 4px; /* web: calc(0.25rem * var(--mantine-scale)) */
+    --mantine-radius-md: 8px; /* web: calc(0.5rem * var(--mantine-scale)) */
+    --mantine-radius-lg: 16px; /* web: calc(1rem * var(--mantine-scale)) */
+    --mantine-radius-xl: 32px; /* web: calc(2rem * var(--mantine-scale)) */
+    --mantine-font-size-xs: 12px; /* web: calc(0.75rem * var(--mantine-scale)) */
+    --mantine-font-size-sm: 14px; /* web: calc(0.875rem * var(--mantine-scale)) */
+    --mantine-font-size-md: 16px; /* web: calc(1rem * var(--mantine-scale)) */
+    --mantine-font-size-lg: 18px; /* web: calc(1.125rem * var(--mantine-scale)) */
+    --mantine-font-size-xl: 20px; /* web: calc(1.25rem * var(--mantine-scale)) */
+    --mantine-line-height-xs: 1.4; /* web: 1.4 */
+    --mantine-line-height-sm: 1.45; /* web: 1.45 */
+    --mantine-line-height-md: 1.55; /* web: 1.55 */
+    --mantine-line-height-lg: 1.6; /* web: 1.6 */
+    --mantine-line-height-xl: 1.65; /* web: 1.65 */
+    --mantine-radius-default: 4px; /* web: calc(0.25rem * var(--mantine-scale)) */
+    --mantine-line-height: 1.55; /* web: 1.55 */
+}

@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -138,7 +139,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             // 規則は入力欄以外のフォーカスを外すので、フォーカスを保てる入力欄を置く
             // The rules blur any non text-field focus, so place a text field that can keep it
             var field = new TextField { name = "game-ui-input-test-probe", focusable = true, tabIndex = 0 };
-            gameUiRoot.GetLayer(UiLayer.Screen).Add(field);
+            gameUiRoot.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(field);
             await UniTask.DelayFrame(2);
             field.Focus();
             await UniTask.DelayFrame(3);

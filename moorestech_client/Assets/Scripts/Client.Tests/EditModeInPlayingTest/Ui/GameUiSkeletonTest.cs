@@ -7,6 +7,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Client.Ui.State.Routing;
 using Client.WebUiHost.Cef;
 using Client.WebUiHost.Health;
@@ -88,9 +89,12 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             // Every layer has its container built
             foreach (UiLayer layer in Enum.GetValues(typeof(UiLayer)))
             {
-                var container = gameUiRoot.GetLayer(layer);
-                Assert.IsNotNull(container, $"層 {layer} のコンテナが無い");
-                Assert.IsNotNull(container.panel, $"層 {layer} のコンテナがパネルに載っていない");
+                foreach (UiFamily family in Enum.GetValues(typeof(UiFamily)))
+                {
+                    var container = gameUiRoot.GetLayer(layer, family);
+                    Assert.IsNotNull(container, $"層 {layer} の {family} のコンテナが無い");
+                    Assert.IsNotNull(container.panel, $"層 {layer} の {family} のコンテナがパネルに載っていない");
+                }
             }
         }
 
@@ -134,7 +138,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             blocker.style.top = 0;
             blocker.style.right = 0;
             blocker.style.bottom = 0;
-            gameUiRoot.GetLayer(UiLayer.Hud).Add(blocker);
+            gameUiRoot.GetLayer(UiLayer.OverlayPanel, UiFamily.Stage).Add(blocker);
             var covered = await MeasurePointerAtCenter(gameUiRoot, center, "covered");
             blocker.RemoveFromHierarchy();
             Assert.AreSame(blocker, covered.picked, "対照の要素が Pick されない");
@@ -147,7 +151,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             // EventSystem が新しい木で当たり直すまで数フレーム待つ
             // Wait a few frames so the EventSystem re-raycasts against the current tree
             await UniTask.DelayFrame(3);
-            var panel = gameUiRoot.GetLayer(UiLayer.Backdrop).panel;
+            var panel = gameUiRoot.GetLayer(UiLayer.Backdrop, UiFamily.Viewport).panel;
             var panelPosition = RuntimePanelUtils.ScreenToPanel(panel, new Vector2(center.x, Screen.height - center.y));
             var picked = panel.Pick(panelPosition);
             var isOverGameObject = EventSystem.current.IsPointerOverGameObject();

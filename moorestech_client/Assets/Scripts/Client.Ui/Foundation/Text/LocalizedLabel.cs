@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using Client.Localization;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
@@ -9,15 +9,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Text
 {
     /// <summary>
-    /// ローカライズキーと引数を持ち、パネルにいる間は言語変更で解決し直すラベル（plan.md §3.9）
-    /// Label holding a localization key and params that re-resolves on language change while on a panel (plan.md §3.9)
+    /// UiTextを持つ言語追従ラベル
+    /// Label holding UiText that follows language
     /// </summary>
     public class LocalizedLabel : Label
     {
-        private static readonly IReadOnlyList<LocalizationTextParam> NoParams = Array.Empty<LocalizationTextParam>();
-        private LocalizationKey _key;
-        private IReadOnlyList<LocalizationTextParam> _textParams = NoParams;
-        private bool _hasKey;
+        private UiText _text;
         private IDisposable _languageSubscription;
 
         public LocalizedLabel()
@@ -28,22 +25,20 @@ namespace Client.Ui.Foundation.Text
 
         public void SetKey(LocalizationKey key)
         {
-            SetKey(key, NoParams);
+            SetText(new UiText(key));
         }
 
-        public void SetKey(LocalizationKey key, IReadOnlyList<LocalizationTextParam> textParams)
+        public void SetText(UiText text)
         {
-            _key = key;
-            _textParams = textParams;
-            _hasKey = true;
+            _text = text;
             if (panel != null) Resolve();
         }
 
         private void OnAttached()
         {
-            // キー無しで載ったら生の文言を出さず、開発者に知らせる
-            // Report a label attached without a key instead of showing raw text
-            if (!_hasKey) Debug.LogError($"[LocalizedLabel] attached without a key: {name}");
+            // 文が無ければ警告
+            // Warn when no text
+            if (_text == null) Debug.LogError($"[LocalizedLabel] attached without a text: {name}");
             _languageSubscription?.Dispose();
             _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => Resolve());
             Resolve();
@@ -57,8 +52,9 @@ namespace Client.Ui.Foundation.Text
 
         private void Resolve()
         {
-            if (!_hasKey) return;
-            text = _textParams.Count == 0 ? Localize.Get(_key) : Localize.GetFormatted(_key, _textParams);
+            // silent-ok: 文が無いときは OnAttached が LogError 済み / 開発者が Console で気づく
+            if (_text == null) return;
+            text = _text.Resolve();
         }
     }
 }

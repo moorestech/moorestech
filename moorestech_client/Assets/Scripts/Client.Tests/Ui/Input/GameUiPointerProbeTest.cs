@@ -2,6 +2,7 @@ using Client.Input;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Stage;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -39,7 +40,7 @@ namespace Client.Tests.Ui.Input
         public void PositionPickedBoxIsOverGameUi()
         {
             var stack = UiLayerStack.Build(rootVisualElement);
-            stack.GetLayer(UiLayer.Screen).Add(CreateCenteredBox(PickingMode.Position));
+            stack.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(CreateCenteredBox(PickingMode.Position));
             simulate.FrameUpdate();
 
             // 箱の上は true、箱の外は層だけなので false
@@ -53,7 +54,7 @@ namespace Client.Tests.Ui.Input
         public void IgnorePickedBoxIsNotOverGameUi()
         {
             var stack = UiLayerStack.Build(rootVisualElement);
-            stack.GetLayer(UiLayer.Modal).Add(CreateCenteredBox(PickingMode.Ignore));
+            stack.GetLayer(UiLayer.Modal, UiFamily.Viewport).Add(CreateCenteredBox(PickingMode.Ignore));
             simulate.FrameUpdate();
 
             Assert.IsFalse(new GameUiPointerProbe(panel).IsPickableAt(PanelCenter));

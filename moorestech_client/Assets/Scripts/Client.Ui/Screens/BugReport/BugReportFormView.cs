@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
-using Client.Ui.Components;
-using Client.Ui.Components.TextField;
-using Client.Ui.Foundation.Assets;
+using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
@@ -28,6 +26,7 @@ namespace Client.Ui.Screens.BugReport
 
         private readonly IPauseMenuCommands _commands;
         private readonly GameUiToastFeed _toasts;
+        private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
         private readonly ModeSwitch<PlaytestReportKind> _kindSwitch;
         private readonly GameTextField _description;
@@ -39,12 +38,12 @@ namespace Client.Ui.Screens.BugReport
         private BugReportCaptureStatus _capture;
         private bool _sending;
 
-        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, BugReportDraft draft, UiAssetCatalog catalog)
+        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft)
         {
             _commands = commands;
             _toasts = toasts;
+            _toaster = toaster;
             _draft = draft;
-            styleSheets.Add(catalog.BugReport);
             AddToClassList("bug-report");
 
             // 種別の見出しと択一。押下は書きかけへ入れる
@@ -53,7 +52,7 @@ namespace Client.Ui.Screens.BugReport
             kindCaption.AddToClassList("bug-report__field-label");
             kindCaption.SetKey(LocalizationKeys.Ui.Playtest.ReportKind.Label);
             Add(kindCaption);
-            _kindSwitch = new ModeSwitch<PlaytestReportKind>("bug-report-kind", ModeSwitchOrientation.Horizontal, KindOptions(), catalog.ModeSwitch);
+            _kindSwitch = new ModeSwitch<PlaytestReportKind>("bug-report-kind", ModeSwitchOrientation.Horizontal, KindOptions());
             _kindSwitch.OnSelected.Subscribe(OnKindSelected);
             Add(_kindSwitch);
 
@@ -126,11 +125,11 @@ namespace Client.Ui.Screens.BugReport
             var outcome = await _commands.SubmitBugReport(_draft.Description.Trim(), kind);
             _sending = false;
 
-            // 拒否は書きかけを残す。トーストを出すのは結果を受けた View（D-8）
-            // A rejection keeps the draft; the view that received the result shows the toast (D-8)
-            if (outcome is UiCommandRejected rejected)
+            // トーストはToasterが決める
+            // The toaster decides the toast
+            _toaster.Report(SubmitCommandName, outcome);
+            if (outcome is UiCommandRejected)
             {
-                _toasts.ShowRejected(SubmitCommandName, rejected);
                 Refresh();
                 return;
             }
@@ -174,7 +173,7 @@ namespace Client.Ui.Screens.BugReport
 
         private void ShowStatus(UiText statusLine)
         {
-            _status.SetKey(statusLine.Key, statusLine.Params);
+            _status.SetText(statusLine);
             if (_status.parent == this) return;
             Insert(IndexOf(_description) + 1, _status);
         }

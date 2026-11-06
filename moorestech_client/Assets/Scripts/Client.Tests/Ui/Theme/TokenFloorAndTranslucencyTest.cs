@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -9,35 +8,21 @@ using UnityEngine;
 namespace Client.Tests.Ui.Theme
 {
     /// <summary>
-    /// 文字寸法の下限（13px）と半透明トークンの表が USS と食い違わないことを確かめる（L2・S7）
-    /// Verifies the 13px text-size floor and that the translucent-token table matches the USS (L2, S7)
+    /// 半透明表がUSSと一致（L2）
+    /// Translucent table matches USS (L2)
     /// </summary>
     public class TokenFloorAndTranslucencyTest
     {
         private const string UiScriptDirectory = "moorestech_client/Assets/Scripts/Client.Ui";
         private const string TranslucentTablePath = "docs/uitk/translucent-tokens.md";
-        private const float MinimumFontSizePx = 13f;
-        private static readonly HashSet<string> ExemptTokenNames = new() { "--fluid-amount-font-size", "--inventory-count-base-font-size" };
-        private static readonly Regex FontSizeTokenPattern = new(@"(--[\w-]+-(?:font|text)-size)\s*:\s*([\d.]+)px");
-        private static readonly Regex FontSizePropertyPattern = new(@"(?<![\w-])font-size\s*:\s*([\d.]+)px");
         private static readonly Regex TranslucentRgbaPattern = new(@"(--[\w-]+)\s*:\s*rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(0?\.\d+)\s*\)");
 
         [Test]
-        public void NoUssTextSizeBelowThirteenPixels()
+        public void GeneratedTokensCarryNoFontFloor()
         {
-            foreach (var path in UssFiles())
-            {
-                var text = File.ReadAllText(path);
-                foreach (Match match in FontSizeTokenPattern.Matches(text))
-                {
-                    if (ExemptTokenNames.Contains(match.Groups[1].Value)) continue;
-                    Assert.GreaterOrEqual(ParsePx(match.Groups[2].Value), MinimumFontSizePx, $"{Path.GetFileName(path)}: {match.Value}");
-                }
-                foreach (Match match in FontSizePropertyPattern.Matches(text))
-                {
-                    Assert.GreaterOrEqual(ParsePx(match.Groups[1].Value), MinimumFontSizePx, $"{Path.GetFileName(path)}: {match.Value}");
-                }
-            }
+            // 文字寸法はWebと同じpx
+            // Text sizes match the Web px
+            foreach (var path in UssFiles()) StringAssert.DoesNotContain("下限", File.ReadAllText(path), Path.GetFileName(path));
         }
 
         [Test]
@@ -54,11 +39,6 @@ namespace Client.Tests.Ui.Theme
         private static IEnumerable<string> UssFiles()
         {
             return Directory.GetFiles(Path.Combine(RepositoryRoot(), UiScriptDirectory), "*.uss", SearchOption.AllDirectories);
-        }
-
-        private static float ParsePx(string value)
-        {
-            return float.Parse(value, CultureInfo.InvariantCulture);
         }
 
         private static string RepositoryRoot()

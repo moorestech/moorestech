@@ -1,6 +1,6 @@
 using System;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Stage;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,11 +16,6 @@ namespace Client.Ui.Foundation.Root
         public static GameUiRoot Instance => _instance;
 
         [SerializeField] private UIDocument uiDocument;
-        [SerializeField] private UiAssetCatalog assetCatalog;
-
-        // シリアライズ値の公開に限った素通しの読み出し（D-24）
-        // Pass-through accessor limited to exposing a serialized value (D-24)
-        public UiAssetCatalog AssetCatalog => assetCatalog;
 
         private UiLayerStack _layers;
 
@@ -29,8 +24,7 @@ namespace Client.Ui.Foundation.Root
             _instance = this;
             // 必須参照が欠けたら起動の段階で止める
             // Stop at startup when a required reference is missing
-            if (uiDocument == null || assetCatalog == null) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
-            assetCatalog.ValidateAllAssigned();
+            if (uiDocument == null) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
             var root = uiDocument.rootVisualElement;
             _layers = UiLayerStack.Build(root);
         }
@@ -42,9 +36,11 @@ namespace Client.Ui.Foundation.Root
             return uiDocument.rootVisualElement;
         }
 
-        public VisualElement GetLayer(UiLayer layer)
+        // 画面は層と族（舞台か実画面）を選んで載る（設計書 C6）
+        // Screens mount by choosing a layer and a family, stage or viewport (design C6)
+        public VisualElement GetLayer(UiLayer layer, UiFamily family)
         {
-            return _layers.GetLayer(layer);
+            return _layers.GetLayer(layer, family);
         }
 
         // ロケールなど、パネル全体に効くクラスをルートへ付け外しする

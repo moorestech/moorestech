@@ -1,0 +1,21 @@
+{
+    "name": "Client.Ui.Editor",
+    "rootNamespace": "Client.Ui.Editor",
+    "references": [
+        "Client.Ui",
+        "Client.Ui.State",
+        "Client.Localization",
+        "UniRx"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

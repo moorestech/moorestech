@@ -1,10 +1,10 @@
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
-using Client.Ui.Components;
+using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
-using Client.Ui.Foundation.Assets;
 using Client.Ui.State.PauseMenu;
 using Mooresmaster.Localization.Generated;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.PauseMenu
@@ -17,17 +17,17 @@ namespace Client.Ui.Screens.PauseMenu
     {
         private readonly ScrollView _body;
 
-        public PauseMenuSubPageView(IPauseMenuCommands commands, UiAssetCatalog catalog)
+        public PauseMenuSubPageView(IPauseMenuCommands commands)
         {
             AddToClassList("pause-menu__sub-page");
             _body = new ScrollView(ScrollViewMode.Vertical) { name = "pause-menu-body", horizontalScrollerVisibility = ScrollerVisibility.Hidden };
             _body.AddToClassList("pause-menu__body");
             Add(_body);
 
-            var back = new PanelActionButton("pause-menu-back", LocalizationKeys.Ui.PauseMenu.Back, catalog.PanelActionButton);
+            var back = new PanelActionButton("pause-menu-back", LocalizationKeys.Ui.PauseMenu.Back);
             back.AddToClassList("pause-menu__back");
             TutorialAnchor.Mark(back, AnchorIds.PauseBackToTop);
-            back.clicked += () => commands.ShowPage(PauseMenuPage.Top);
+            back.OnClicked.Subscribe(_ => commands.ShowPage(PauseMenuPage.Top));
             Add(back);
         }
 

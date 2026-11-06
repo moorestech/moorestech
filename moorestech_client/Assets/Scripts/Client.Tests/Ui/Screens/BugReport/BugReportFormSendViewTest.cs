@@ -34,7 +34,7 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
-            _view = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), _commands, Toasts, _draft, Catalog));
+            _view = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), _commands, Toasts, Toaster, _draft));
         }
 
         /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">入力後の送信で bug_report.submit を説明文付きで送りトーストを出す</web-test>

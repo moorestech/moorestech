@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             var model = new FakePauseMenuModel(FakePauseMenuModel.Page(PauseMenuPage.BugReport));
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, new BugReportDraft(), Catalog));
+            _view = Mount(new PauseMenuView(model.Current, settings.Current, new RecordingPauseMenuCommands(), new RecordingSettingsCommands(), Toasts, Toaster, new BugReportDraft()));
             _view.SetShown(true);
             simulate.FrameUpdate();
             simulate.FrameUpdate();

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using Client.Ui.Components;
-using Client.Ui.Foundation.Assets;
+using Client.Ui.Components.Controls;
 using Client.Ui.State.Commands;
 using Client.Ui.State.Settings;
 using Client.Ui.State.Toast;
@@ -20,18 +19,17 @@ namespace Client.Ui.Screens.Settings
         private const string SetLocaleCommandName = "localization.setLocale";
 
         private readonly ISettingsCommands _commands;
-        private readonly GameUiToastFeed _toasts;
+        private readonly UiCommandResultToaster _toaster;
         private readonly ModeSwitch<string> _languages;
 
-        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, GameUiToastFeed toasts, UiAssetCatalog catalog)
+        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, UiCommandResultToaster toaster)
         {
             _commands = commands;
-            _toasts = toasts;
-            styleSheets.Add(catalog.Settings);
+            _toaster = toaster;
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.Language));
 
-            _languages = new ModeSwitch<string>("language-select", ModeSwitchOrientation.Vertical, LanguageOptions(), catalog.ModeSwitch);
+            _languages = new ModeSwitch<string>("language-select", ModeSwitchOrientation.Vertical, LanguageOptions());
             _languages.OnSelected.Subscribe(OnLanguageSelected);
             Add(_languages);
             Apply(initial);
@@ -42,11 +40,11 @@ namespace Client.Ui.Screens.Settings
             _languages.SetSelected(model.LanguageCode);
         }
 
-        // 拒否はトーストで知らせる。トーストを出すのは結果を受けた View（D-8）
-        // A rejection is surfaced as a toast; the view that received the result shows it (D-8)
+        // トーストはToasterが決める
+        // The toaster decides the toast
         private void OnLanguageSelected(string languageCode)
         {
-            if (_commands.SetLanguage(languageCode) is UiCommandRejected rejected) _toasts.ShowRejected(SetLocaleCommandName, rejected);
+            _toaster.Report(SetLocaleCommandName, _commands.SetLanguage(languageCode));
         }
 
         private static IReadOnlyList<ModeSwitchOption<string>> LanguageOptions()

@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -70,8 +71,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             // Client.Ui is not registered, so layers are empty
             foreach (UiLayer layer in Enum.GetValues(typeof(UiLayer)))
             {
-                var count = gameUiRoot.GetLayer(layer).childCount;
-                Assert.AreEqual(0, count, $"{phase}: Web 側で層 {layer} に {count} 個の要素が載っている");
+                foreach (UiFamily family in Enum.GetValues(typeof(UiFamily)))
+                {
+                    var count = gameUiRoot.GetLayer(layer, family).childCount;
+                    Assert.AreEqual(0, count, $"{phase}: Web 側で層 {layer} の {family} に {count} 個の要素が載っている");
+                }
             }
         }
     }

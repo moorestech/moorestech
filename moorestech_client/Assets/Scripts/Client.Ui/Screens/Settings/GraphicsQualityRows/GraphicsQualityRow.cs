@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.GraphicsQuality;
-using Client.Ui.Components;
+using Client.Ui.Components.Controls;
 using Client.Ui.State.Settings;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -15,7 +15,7 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
     public interface IGraphicsQualityRow
     {
         LocalizationKey Caption { get; }
-        IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands, StyleSheet modeSwitchSheet);
+        IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands);
     }
 
     public interface IGraphicsQualityRowSwitch
@@ -44,9 +44,9 @@ namespace Client.Ui.Screens.Settings.GraphicsQualityRows
         public abstract TValue Read(GraphicsQualitySettings settings);
         public abstract GraphicsQualitySettings With(GraphicsQualitySettings settings, TValue value);
 
-        public IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands, StyleSheet modeSwitchSheet)
+        public IGraphicsQualityRowSwitch CreateSwitch(ISettingsCommands commands)
         {
-            return new GraphicsQualityRowSwitch<TValue>(this, new ModeSwitch<TValue>(Testid, ModeSwitchOrientation.Horizontal, Options, modeSwitchSheet), commands);
+            return new GraphicsQualityRowSwitch<TValue>(this, new ModeSwitch<TValue>(Testid, ModeSwitchOrientation.Horizontal, Options), commands);
         }
     }
 

@@ -24,7 +24,7 @@ description: moorestech のゲーム内 UI を UI Toolkit（USS・tss・Client.U
 | 層 | 置き場 | 参照してよい | 参照しない |
 |---|---|---|---|
 | Foundation | `S/Client.Ui/Foundation/<領域>/` | Client.Input・Client.Localization・UniRx・UniTask・Client.Game の入力・UIState・アンカー ID | Components・Content・Screens・Client.Ui.State の機能別の型 |
-| Components | `S/Client.Ui/Components/<族>/<部品>/`〔F1〕（今は平置き `Components/<部品>/`。既存の部品は F1 が namespace とともに族へそろえる。設計書 [A-7]） | Foundation・`Client.Ui.State` の `Text`（`UiText`）・`LocalizationKey` | Content・Screens・Client.Game・`MasterHolder`・Client.Ui.State の機能別の型 |
+| Components | `S/Client.Ui/Components/<族>/<部品>/`〔F1〕（既存の部品は F1 が namespace とともに族へそろえる。設計書 [A-7]） | Foundation・`Client.Ui.State` の `Text`（`UiText`）・`LocalizationKey` | Content・Screens・Client.Game・`MasterHolder`・Client.Ui.State の機能別の型 |
 | Content〔C3-a〕 | `S/Client.Ui/Content/` | Foundation・Components の値型・Client.Game（`ClientContext`）・Core.Master | Screens |
 | Screens | `S/Client.Ui/Screens/<機能>/` | 上のすべて・Client.Ui.State | 他の `Screens/<機能>` |
 | State | `S/Client.Ui.State/<機能>/`（別 asmdef） | Client.Game・Client.Network・Core.Master | Client.Ui・UnityEngine.UIElements |
@@ -73,14 +73,14 @@ public sealed class IconButton : VisualElement
 - `focusable = false`。フォーカスを持つのは入力欄だけ
 - 描くだけの子（Painter2D・頂点カラー・装飾）と文字だけの子は `pickingMode = PickingMode.Ignore`。押せる要素だけが Pick を受ける
 - 子を受ける部品（枠・スクロール）は `contentContainer` を返し、外は `Add` で入れる
-- 色・寸法を C# に書かない。描画で値が要るときは部品の USS で `--<部品>-<名>: var(--トークン);` と受け直し、`CustomStyleResolvedEvent` の中で `UssCustomStyleReader.TryReadColor`・`TryReadPixels` で読む（前例 `S/Client.Ui/Components/GamePanel/GamePanelFace.cs`）
+- 色・寸法を C# に書かない。描画で値が要るときは部品の USS で `--<部品>-<名>: var(--トークン);` と受け直し、`CustomStyleResolvedEvent` の中で `UssCustomStyleReader.TryReadColor`・`TryReadPixels` で読む（前例 `S/Client.Ui/Components/Panels/GamePanel/GamePanelFace.cs`）
 - `Update()` を使わない。変化は Set の呼び出しか Model の購読で受ける
 - AGENTS.md のとおり 1 ファイル 200 行・1 ディレクトリ 10 ファイル・`partial` と `Func<>` の禁止・日英 2 行のコメント
 
 ## 5. USS の書き方
 
-1. 1 部品 1 USS を `.cs` の横に置く（`Components/<族>/<部品>/<部品>.uss`〔F1〕。今は `Components/<部品>/<部品>.uss`）。画面の USS（`Screens/<機能>/<機能>.uss`）は配置とつまみの上書きだけを持つ
-2. 新しい USS は `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` の自分の族の区画に `@import url("project://database/Assets/Scripts/Client.Ui/<…>.uss");` を 1 行足す〔F1〕（今の形: ctor が `StyleSheet` を受け、`UiAssetCatalog` に登録する）。束ね漏れと余りは `UiThemeImportBundleTest`〔F1〕が落とす
+1. 1 部品 1 USS を `.cs` の横に置く（`Components/<族>/<部品>/<部品>.uss`〔F1〕）。画面の USS（`Screens/<機能>/<機能>.uss`）は配置とつまみの上書きだけを持つ
+2. 新しい USS は `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` の自分の族の区画に `@import url("project://database/Assets/Scripts/Client.Ui/<…>.uss");` を 1 行足す〔F1〕。ctor で `StyleSheet` を受けて `styleSheets.Add` しない。束ね漏れと余りは `UiThemeImportBundleTest`〔F1〕が落とす
 3. 規則はルートのクラスで始める（`.item-slot …`）。クラスは BEM（ルートは部品名のケバブ、子は `__`、状態は `--`）。ルートのクラス名は全 USS で一意
 4. 他の部品のクラスを書かない。画面が部品の見た目を変えてよいのは、つまみ（Web の局所上書き変数と同じ名前のカスタムプロパティ）を画面のルートで上書きするときだけ。例 `.hotbar-hud { --slot-size: var(--hotbar-slot-size); }`
 5. 状態はクラス `--<状態>` にし、付け外しは部品の Set メソッドの `EnableInClassList` だけが行う。`:hover`・`:active`・`:focus` は使ってよい。構造擬似クラス（`:first-child` 等）と z-index は使わず、C# でクラスを付ける・層で決める
@@ -93,8 +93,8 @@ public sealed class IconButton : VisualElement
 |---|---|---|
 | `Tokens.uss`・`SlotTokens.uss`・`SkitTokens.uss` | `W/app/tokens.css`・`slotTokens.css`・`skitTokens.css` | 生成物。手で直さず、リポジトリ直下で `node tools/uitk/convert-web-tokens.mjs`。名前の一致は `WebTokenParityTest` |
 | `MantineTokens.uss`〔F1〕 | Mantine の暗色テーマの `--mantine-*` | 生成物。手で直さない |
-| `DerivedTokens.uss`〔F1〕（今は `ControlTokens.uss`） | Web の `color-mix`・`rgb(from …)`・半透明・直書きの色 | 手で書く。各行に `/* web: 元の式 決め方 */` |
-| `Theme.uss` | Mantine の既定コントロール | 既定コントロールを `--mantine-*` で塗る〔F1〕（今は `--control-*`） |
+| `DerivedTokens.uss`〔F1〕 | Web の `color-mix`・`rgb(from …)`・半透明・直書きの色 | 手で書く。各行に `/* web: 元の式 決め方 */` |
+| `Theme.uss` | Mantine の既定コントロール | 既定コントロールを `--mantine-*` で塗る〔F1〕 |
 | `Typography.uss`（クラスの拡充は〔C2-c〕）・`Layout.uss`〔C2-c〕 | Mantine の Text/Title・Stack/Group | カタログの「文字・装飾族」 |
 
 - 部品・画面の USS の色は `var(--…)` だけ。`#hex`・`rgb()` は `UiStyleConventionTest` が落とす。新しい色が要るときは `DerivedTokens.uss`〔F1〕に元の式と決め方を付けて足す
@@ -106,7 +106,7 @@ public sealed class IconButton : VisualElement
 ## 7. 層と族
 
 - 層は `UiLayer`（`S/Client.Ui/Foundation/Layers/UiLayer.cs`）の固定順の兄弟コンテナ。順の正本は `W/app/tokens.css` の `--z-*`。層を足すのは integrator で、enum と `UiLayerOrderTest` を同時に直す。画面・部品のレーンは足さない
-- 載せ方は `root.GetLayer(UiLayer.Screen, UiFamily.Stage)`〔F1〕（今は `GetLayer(UiLayer)`）。stage 族（1280×720 の舞台で一様に拡縮。パネル・グリッド）か viewport 族（実画面の辺に付く。常時 HUD）かは Web の所属（`ref-webui-design` §1.5）と同じにする
+- 載せ方は `root.GetLayer(UiLayer.Screen, UiFamily.Stage)`〔F1〕。stage 族（1280×720 の舞台で一様に拡縮。パネル・グリッド）か viewport 族（実画面の辺に付く。常時 HUD）かは Web の所属（`ref-webui-design` §1.5）と同じにする
 - 層コンテナ・ルート・幕・描くだけの子は `PickingMode.Ignore`。忘れるとワールドのクリックとパネル外の右短押しが効かなくなる
 - 全体スイッチ〔W0-switch〕（`Client.Input.UiSystem` の Web／GameUi。Editor 限定・既定 Web の 1 つで、起動で 1 回決まる）を Presenter・View・部品が読まない。UITK のときだけ composition root（`S/Client.Starter/Registration/MainGameUiRegistration.cs`）が Presenter を登録する。入力の裁き（`UiPointerHitTest`・`UiInputExclusivity`）・DSL のロケータ・アンカーの解決はスイッチの系の値だけを読み、Web と UITK の値を論理和にしない
 
@@ -118,7 +118,7 @@ public sealed class IconButton : VisualElement
 | `S/Client.Ui.State/<機能>/<機能>Model.cs` | `IReadOnlyReactiveProperty<<機能>ViewModel> Current`（源を購読して作る） |
 | `S/Client.Ui.State/<機能>/I<機能>Commands.cs`・`<機能>Commands.cs` | 型付きコマンド。`UiCommandResult` を返し、拒否は理由 enum とログ |
 | `S/Client.Ui/Screens/<機能>/<機能>ScreenPresenter.cs`（HUD は `<名>HudPresenter`） | 起動時に 1 回マウント・ルータで表示を切替・表示中だけ Model を購読。判断を持たない |
-| `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。結果は `UiCommandResultToaster.Report`〔F1〕（今は `GameUiToastFeed.ShowRejected`） |
+| `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。結果は `UiCommandResultToaster.Report` |
 | `S/Client.Ui/Screens/<機能>/<機能>.uss` | 配置とつまみの上書きだけ |
 
 - 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）。今の PauseMenu は `Screens/BugReport`・`Screens/Settings` を別ディレクトリから参照している（Web では pauseMenu 配下）。写すのは View→コマンドの責務配置だけで、別 Screens の参照は写さない

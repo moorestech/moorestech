@@ -80,6 +80,7 @@
         "Client.RemoteExec",
         "Client.Ui.State",
         "Client.Ui",
+        "Client.Ui.Editor",
         "Game.Orbit",
         "Game.SpaceElevator"
     ],

@@ -36,5 +36,15 @@ namespace Client.Ui.Foundation.Theme
             color = Color.clear;
             return false;
         }
+
+        // 単位なしはfloatで読める
+        // Unitless numbers read as float
+        public static bool TryReadNumber(ICustomStyle style, string propertyName, out float number)
+        {
+            if (style.TryGetValue(new CustomStyleProperty<float>(propertyName), out number)) return true;
+            Debug.LogError($"[UssCustomStyleReader] {propertyName} is not a resolved number");
+            number = 0f;
+            return false;
+        }
     }
 }
