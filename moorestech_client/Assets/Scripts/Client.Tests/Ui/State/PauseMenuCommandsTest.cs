@@ -73,11 +73,13 @@ namespace Client.Tests.Ui.State
         }
 
         [Test]
-        public void 今の拒否理由はどれも良性でない()
+        public void 良性の拒否理由は言語の選択済みだけ()
         {
+            // 二重クリック・再送の選択済みは言語を変えないので利用者に知らせない
+            // An already-selected double click or resend changes no language, so players are not told
             foreach (UiCommandRejectReason reason in System.Enum.GetValues(typeof(UiCommandRejectReason)))
             {
-                Assert.IsFalse(UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
+                Assert.AreEqual(reason == UiCommandRejectReason.LanguageAlreadySelected, UiCommandRejectReasonTraits.IsBenign(reason), reason.ToString());
             }
         }
 

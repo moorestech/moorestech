@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Settings;
@@ -28,7 +29,7 @@ namespace Client.Ui.Screens.PauseMenu
             _disconnected.AddToClassList("pause-menu__disconnected");
             _disconnected.SetKey(LocalizationKeys.Ui.PauseMenu.Disconnected);
             Add(_disconnected);
-            var buttons = new VisualElement();
+            var buttons = new UiStack(UiGap.Md);
             Add(buttons);
 
             var save = AddButton("pause-menu-save", LocalizationKeys.Ui.Game.SaveGame, AnchorIds.PauseSave);
@@ -46,7 +47,7 @@ namespace Client.Ui.Screens.PauseMenu
             {
                 var button = new PanelActionButton(testid, label);
                 TutorialAnchor.Mark(button, anchorId);
-                PauseMenuStack.Add(buttons, button);
+                buttons.AddItem(button);
                 return button;
             }
 

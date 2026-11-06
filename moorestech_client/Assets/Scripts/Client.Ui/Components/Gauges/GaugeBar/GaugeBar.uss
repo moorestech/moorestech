@@ -1,0 +1,30 @@
+/* 読み取り専用ゲージ。moorestech_web/webui/src/shared/ui/GaugeBar/style.module.css の .track / .fill を写す */
+/* 高さは --slot-size / 6 を GaugeBar.cs が計算する。内側の box-shadow は線の子で描き、充填が上に重なる */
+/* Read-only gauge copying .track / .fill in moorestech_web/webui/src/shared/ui/GaugeBar/style.module.css */
+/* GaugeBar.cs computes the height as --slot-size / 6; the inset box-shadow is an outline child and the fill draws over it */
+.gauge-bar {
+    --gauge-bar-slot-size: var(--slot-size);
+    width: 100%;
+    overflow: hidden;
+    border-radius: var(--bevel-1);
+    background-color: var(--gauge-track);
+}
+
+.gauge-bar__outline {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: var(--gauge-outline-width);
+    border-color: var(--bevel-c1);
+    border-radius: var(--bevel-1);
+}
+
+.gauge-bar__fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background-color: var(--gauge-fill);
+}

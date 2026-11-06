@@ -1,0 +1,9 @@
+/* moorestech_client/Assets/Scripts/Client.Ui/Components/Text/KeyCap/KeyCap.uss */
+/* kbd。Web は font: inherit で枠を持たず、色だけ --text-high-contrast（置く側が文の色を変えても kbd は白） */
+/* kbd; the Web uses font: inherit with no box and only sets --text-high-contrast (the kbd stays white even when the host recolors the sentence) */
+.key-cap {
+    margin: 0;
+    padding: 0;
+    color: var(--text-high-contrast);
+    -unity-text-align: middle-left;
+}

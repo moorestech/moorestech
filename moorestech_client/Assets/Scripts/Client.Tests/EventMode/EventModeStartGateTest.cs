@@ -1,3 +1,4 @@
+using Client.Ui.State.Commands;
 using Client.Ui.State.EventMode;
 using System;
 using System.Collections;
@@ -103,7 +104,7 @@ namespace Client.Tests.EventMode
             var armer = new RecordingIdleWatchArmer(gate);
 
             var order = EventModeStartGate.AwaitSelectionThenArmAsync(gate, IdleTimeoutSeconds, armer, CancellationToken.None);
-            Assert.AreEqual(EventLanguageSelectionResult.Applied, gate.TrySelectLanguage("english"));
+            Assert.IsInstanceOf<UiCommandAccepted>(gate.SelectLanguage("english"));
 
             yield return order.ToCoroutine();
 

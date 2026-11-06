@@ -25,3 +25,9 @@
     width: 200px;
     color: var(--mantine-color-dimmed);
 }
+
+/* ShortcutHintLabel の見本は Web の KeyControlHint と同じく kbd との間を --tutorial-key-hint-kbd-gap にする（つまみは祖先で上書きする） */
+/* The ShortcutHintLabel sample uses --tutorial-key-hint-kbd-gap between kbd and text as Web KeyControlHint does (the knob is overridden on an ancestor) */
+.ui-gallery__key-hint-sample {
+    --shortcut-hint-label-gap: var(--tutorial-key-hint-kbd-gap);
+}

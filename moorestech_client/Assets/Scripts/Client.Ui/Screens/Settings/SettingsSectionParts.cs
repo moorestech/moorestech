@@ -12,17 +12,17 @@ namespace Client.Ui.Screens.Settings
     {
         public static LocalizedLabel Title(LocalizationKey key)
         {
-            return Create("settings-section__title", key);
+            return Create(key, "settings-section__title", UiTypographyClass.TitleOrder2);
         }
 
         public static LocalizedLabel Caption(LocalizationKey key)
         {
-            return Create("settings-section__caption", key);
+            return Create(key, "settings-section__caption", UiTypographyClass.TextMd);
         }
 
         public static LocalizedLabel Note(string testid, LocalizationKey key)
         {
-            var note = Create("settings-section__note", key);
+            var note = Create(key, "settings-section__note", UiTypographyClass.TextMd);
             note.name = testid;
             return note;
         }
@@ -32,10 +32,13 @@ namespace Client.Ui.Screens.Settings
             element.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
-        private static LocalizedLabel Create(string className, LocalizationKey key)
+        private static LocalizedLabel Create(LocalizationKey key, string className, string typographyClass)
         {
+            // 画面のクラスは検索とテスト用、見た目は Typography のクラスが持つ
+            // The screen class is for lookup and tests; the look comes from the Typography class
             var label = new LocalizedLabel();
             label.AddToClassList(className);
+            label.AddToClassList(typographyClass);
             label.SetKey(key);
             return label;
         }

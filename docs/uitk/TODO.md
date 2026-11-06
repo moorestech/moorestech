@@ -97,6 +97,7 @@
 | 1 | 3e946e4bd3 | 写した | D-8 の拒否理由ごとのトースト文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits.ToLocalizationKey と localization.csv の文言 |
 | 1 | 5421c7f9f0 | 捨てた | 旧 R1（画面別の Web 休止）の入力排他フックを src/shared/uiState/inputExclusivity/ へ移した自動修正。全体スイッチの作り直し（W0-switch・albof.17）で旧 R1 の Web 側変更ごと外して master と同じ Web に戻すので、UITK 側に写すものが無い |
 | 1 | f044f5f5c4 | 捨てた | W0-switch（albof.17）の撤去コミット。旧 R1 の Web 側変更（a97575e5b5・05b9bdefa8・1095cab8bf・ccb3d512f7・5421c7f9f0）を外し、取り込み済み master と同じ Web に戻した（生成物 localizationKeys.ts は 3e946e4bd3 のまま）。UITK 側に写すものが無い |
+| 1 | 42279a73e4 | 写した | 同じコミットの localization.csv と C#（albof.16.2 の拒否理由の文言） |
 | 1 | 22ad101f8e | 写した | 車両撤去の永久保留の修正（#1582）。Web 側は Localization/localization.csv から ui.tooltip.deleteTrainQueueHeld を消したことに連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C#（TrainCarRemovalRequests・RemoveTrainCarProtocol）と CSV。I-weekly-1 の取り込みでそのまま入り、UITK 側に残る作業は無い（I-follow 不要） |
 
 ## 参照キャプチャ
@@ -176,6 +177,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | GamePanel の影 | Web の default の `::before` の `box-shadow: 0 0 12px 7px rgb(9 11 20 / 45%)` が画面に出るか | C2-a | 出ない。同じ `::before` の `mask-image`（既定の `mask-clip: border-box`）が箱の外を切るので、外側の影は描かれない。参照 `web-a9d5123537/4-player-inventory.png` の持ち物パネルの左端（y=300）で x=14〜36 は世界の色 (139,100,57) のまま一定で、x=38 から面のフェードに入る（影なら外側 19px が暗くなる）。上端（x=250）も y=130〜154 は世界の縦グラデのまま。craft（`2-placement.png` の x=955〜967 は (245,200,153) のまま）と hud も外側は暗くならない。UITK でも影は描かない（`GamePanelShadow` は作らない）。描かないので負荷の実測は無い |
 | C2-a ギャラリーの半透明 | 部品ギャラリー（EditorWindow）の撮影で α 補正トークンの色を Web と比べられるか | C2-a | 比べられない。EditorWindow は sRGB のまま合成し、Linear 用に α を下げたトークン（S7）が Web より淡く出る。FadeRule の頂点（`--game-panel-rule-bottom-peak` α0.2034）を hud の面 (10,15,27) に載せると、ギャラリーは (35,38,54)（面との差 25〜27）、ランタイムの PanelSettings（`targetTexture` に描く Linear 合成）は面 (46,40,40) に (72,71,83)（差 26〜43）で、Web の (87,85,98) on (57,52,54)（差 30〜44）と同じ。色はランタイムのパネルで撮って比べる（ギャラリーは配置・寸法・装飾の有無だけ）。撮り方は C2-a の作業報告 |
 | C2-a 面の α と縁フェード | 暗い半透明の面（`--surface-navy`・`--game-panel-craft-face`・`--skit-window-face`）の α と、GamePanelFace の縁フェードの曲線がランタイム（Linear 合成）で Web に合うか | C2-a | α: S7 の式 1-(1-a)^2.2 の値は全体の面には不透明すぎ、面が Web より 10〜12 段暗い。ランタイムのパネルに単色を α を変えて描き Web の面と比べると、navy・craft（Web α0.8）は暗い世界 (140,109,77) で 0.944、明るい世界 (240,203,166) で 0.956、skit（Web α0.88）は (228,143,69) で 0.98 が最も近い（指数にすると約 1.85）。推奨は navy・craft 0.95、skit 0.98（トークンは integrator が決める）。G・B は Linear 合成の色相のずれで、明るい世界ほど B が 5〜8 段低いまま残る。縁フェード: 頂点の α を線形に補間すると暗い面が明るい世界の上で縁から遅れて濃くなり、50% 点がスキット上端で +8.9px（Web y=29.9、UITK 38.8）ずれた。フェードの帯を 8 等分し、各頂点の α をトークンの α から S7 の式を逆に解いた Web の α に mask を掛けて同じ式で補正し直すと（`GamePanelFaceOpacityRamp`）、スキット +0.6px・hud +0.2〜1.2px・持ち物 -0.8px になった（ランタイムのパネルで描いて実測。α トークンを替えても曲線の位置は変わらない、計算） |
+- 2 行の行送り（設計書 A-48）: リッチテキストの <line-height> が改行と折り返しの両方に効く（14px で既定 19.00px・19.00px → 指定 20.00px・20.00px）。S2-hud は行高トークンの値をタグで前置する
 
 ## 壊れた録画の割り振り（bd moorestech-wwxy）
 
@@ -200,7 +202,6 @@ Web と同じにしない見た目の差（設計書 `docs/uitk-migration/execut
 
 | ID | 画面・部品 | 差 | 同じにしない理由 | 推奨案 | 撮影 | 出所 |
 |---|---|---|---|---|---|---|
-| LX-1 | ポーズの題（`PauseMenu.uss` の `.pause-menu__title`） | Web は Mantine Title order=1 の 34px、UITK は 32px（行の高さ 44px は同じ） | GameUi のフォントは同じ px で字幅が約 7% 広く、34px では題の幅が Web より広がる。字の大きさの差は 2px で、行と幅は Web に合う | 32px のまま。フォントを替える段で 34px に戻せるか測る | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 screens の実測） |
 | LX-2 | `PanelActionButton` の文字 | Web は `text-shadow`、UITK は `-unity-text-outline-width: 0.3px` の縁取りで近似 | USS に text-shadow の任意のにじみが無く、同じにするには文字の描画を自作する必要がある。差は縁の柔らかさだけ | 縁取りの近似のまま | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 theme） |
 | LX-3 | `ModeSwitch` の選択肢の輪 | Web は `box-shadow` の ring、UITK は `--bevel-1` 幅の `border` で近似 | USS に box-shadow が無い。枠線は内側に入るが幅と色は同じで、並べて差が見えない | 枠線の近似のまま | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 theme） |
 | LX-4 | `GamePanel` craft の明るい輪（`GamePanel.uss` の `.game-panel__craft-rim`） | Web は 0.392px、UITK は最低 1 物理画素 | UITK の枠幅は物理画素へ丸まり、0 より大きい枠は 1 物理画素が下限（本ファイル「実測の結論」の C2-a craft の枠） | 1 物理画素の近似のまま | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-c2-a-compare/ | agent 既定（C2-a 実測） |

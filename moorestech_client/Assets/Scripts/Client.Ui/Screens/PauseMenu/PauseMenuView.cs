@@ -56,6 +56,7 @@ namespace Client.Ui.Screens.PauseMenu
             // A single title leads the frame and swaps its key per page (Web Title order=1)
             _title = new LocalizedLabel();
             _title.AddToClassList("pause-menu__title");
+            _title.AddToClassList(UiTypographyClass.TitleOrder1);
             _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
             panel.Add(_title);
 

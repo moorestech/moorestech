@@ -45,5 +45,32 @@ namespace Client.Tests.Ui.State
         {
             Assert.Throws<ArgumentNullException>(() => UiText.FromVerbatim(null));
         }
+
+        [Test]
+        public void 先頭に引数を足した写しを返す()
+        {
+            var original = new UiText(LocalizationKeys.Ui.Common.ItemFallback);
+            var added = original.WithLeadingParam("itemId", "X");
+
+            var expected = new UiText(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", "X") });
+            Assert.AreEqual(expected.Resolve(), added.Resolve());
+            Assert.AreNotEqual(original.Resolve(), added.Resolve());
+        }
+
+        [Test]
+        public void 同名の引数は置き換えて重複させない()
+        {
+            var original = new UiText(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", "A") });
+            var added = original.WithLeadingParam("itemId", "X");
+
+            Assert.AreEqual(1, added.Params.Count);
+            Assert.AreEqual(new LocalizationTextParam("itemId", "X"), added.Params[0]);
+        }
+
+        [Test]
+        public void 辞書キー以外に引数を足すと止める()
+        {
+            Assert.Throws<InvalidOperationException>(() => UiText.FromVerbatim("a").WithLeadingParam("itemId", "X"));
+        }
     }
 }

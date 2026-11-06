@@ -1,0 +1,21 @@
+/* moorestech_client/Assets/Scripts/Client.Ui/Components/Text/ShortcutHintLabel/ShortcutHintLabel.uss */
+/* 文中の kbd。字の大きさ・色は置く側（UiTypographyClass.KeyHintText 等）から継ぐ。間はつまみ --shortcut-hint-label-gap（既定 0） */
+/* An in-sentence kbd; size and color are inherited from the host (UiTypographyClass.KeyHintText etc.); the gap is the --shortcut-hint-label-gap knob (default 0) */
+.shortcut-hint-label {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.shortcut-hint-label__text {
+    margin: 0;
+    padding: 0;
+    white-space: normal;
+    -unity-text-align: middle-left;
+}
+
+/* 自分のクラス 2 つで詳細度を上げ、tss の並び順によらず .key-cap の margin: 0 に勝つ */
+/* Two own classes raise specificity so this beats .key-cap margin: 0 regardless of tss import order */
+.shortcut-hint-label .shortcut-hint-label__item--following {
+    margin-left: var(--shortcut-hint-label-gap);
+}
