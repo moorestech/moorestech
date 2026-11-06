@@ -81,7 +81,9 @@ namespace Client.Ui.State.Text
             switch (Source)
             {
                 case UiTextSource.Dictionary:
-                    return Params.Count == 0 ? Localize.Get(Key) : Localize.GetFormatted(Key, Params);
+                    // 引数が 0 件でも補間を通す。残った {name} は補間器がエラーログで知らせる（無言で枠を出さない）
+                    // Interpolate even with zero params; a leftover {name} is reported by the interpolator's error log (never shown silently)
+                    return Localize.GetFormatted(Key, Params);
                 case UiTextSource.Content:
                     return Localize.GetContent(ContentKey);
                 case UiTextSource.Verbatim:
