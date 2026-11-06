@@ -4,7 +4,7 @@
 
 **L0 タスク（Task 1〜4）は Editor 無しで先行可（Task 5 で Editor 枠を 1 回だけ借りて compile と L0 テストを回す＝L0 の末）、Task 6 以降は Editor 要（C3-a の `feature/uitk` への取り込み後。C3-a は実行計画のレーン行の依存）。**
 
-**Goal:** Web 版の通知（`W/features/notification/`）を UITK へ写す。ストアの規則（獲得の合流・生存尺 `NOTIFICATION_DISPLAY_MS`・除去告知の 1 回出し）と文言の解決（messageId→キー・Guid の内容名・獲得のアイテム名と数）を `Client.Ui.State/Notification/` の C# モデルへ、行の見た目と出入り（入場 160ms・退場 200ms・12px のずれ）を `Client.Ui/Screens/Notification/` の View へ置き、背面の層 `UiLayer.BehindStage` に常駐させる。出入りの曲線（CSS の ease-in・ease-out）と横移動の Step は実行計画 E-19 の割り当てで `Foundation/Motion` に足す。Web のテスト 47 件（台帳の数え方。`it.each` を含む実数 48。うち 1 件は保険タイマーの廃止で `捨てる`）を NUnit へ写し、録画 `server-notification-smoke`（bd moorestech-wwxy）を現行マスタで動く形へ直して UITK と Web の両方で通す。
+**Goal:** Web 版の通知（`W/features/notification/`）を UITK へ写す。ストアの規則（獲得の合流・生存尺 `NOTIFICATION_DISPLAY_MS`・除去告知の 1 回出し）と文言の解決（messageId→キー・Guid の内容名・獲得のアイテム名と数）を `Client.Ui.State/Notification/` の C# モデルへ、行の見た目と出入り（入場 160ms・退場 200ms・12px のずれ）を `Client.Ui/Screens/Notification/` の View へ置き、背面の層 `UiLayer.BehindStage` に常駐させる。出入りの曲線（CSS の ease-in・ease-out）と横移動の Step は実行計画 E-19 の割り当てで `Foundation/Motion` に足す。Web のテスト 47 件（台帳の数え方。`it` の行で 48、`it.each` を展開して 50。うち 1 件は保険タイマーの廃止で `捨てる`。件数の正本は「## 写すテストの対応と件数」）を NUnit へ写し、録画 `server-notification-smoke`（bd moorestech-wwxy）を現行マスタで動く形へ直して UITK と Web の両方で通す。
 
 **Architecture:** Model（`NotificationModel`）は読み口 `INotificationListSource`（`IReadOnlyReactiveProperty<NotificationListViewModel>`）と書き口 `INotificationListWriter`（`AddNotification`・`RemoveNotification`）の 2 つの interface を実装し、時間を持たない（保険タイマーも無い。D-2）。行の生存（入場→保持→退場）は View が `UiTweenAnimation` 2 本（入場・生存尺の終端から逆算した遅延つきの退場）をパネルの時計で回し、退場が終わったら書き口の `RemoveNotification(id)` を呼ぶ。出入りの尺とずれはトークンを画面 USS が受け直して C# が読み、生存尺は Model の定数 `DisplayMilliseconds` だけが持つ。中継（`NotificationFeedRelay`）が既存の `NotificationFeed` を購読し、通知パケットを種別ごとの中身の型（獲得・実績・拒否・除去告知）と型付きの引数（文字の引数・内容名の引数）へ変換して書き口へ積む。アイコンは中身の型 `NotificationIcon`（アイテム／無し）で表し、C3-a の Content 層 `GameContentPresentation.Item(ItemId)` を Screens の薄い口（`INotificationRowIcons`）越しに引く。文言は `UiText`（辞書キー＋解決済みの引数）で `LocalizedLabel` に渡す。
 
@@ -16,14 +16,14 @@
 
 - R1. Web の `notificationStore.ts` の規則を `S/Client.Ui.State/Notification/NotificationModel.cs` へ写す: 獲得（`EarnedNotificationContent`）だけが「同じアイテム・同じ messageId の表示中の行」へ合流し、id を据え置いて数を足し `LifetimeEpoch` を 1 進める。合流しても並びは変わらない。ほかの種別は同じ内容でも別行。生存尺 `DisplayMilliseconds = 7000`（Web `NOTIFICATION_DISPLAY_MS`）。保険タイマーは持たない（D-2）。同時表示数の上限を持たない。Model は読み口と書き口の 2 つの interface を実装し、View には書き口だけを渡す。受け入れ: `NotificationModelTest` 10 件が緑
 - R2. 既存の `NotificationFeed`（`SaveMigrationNotice` の初期データ＋`OnNotified`）を購読して Model へ積む中継 `NotificationFeedRelay` を作る。除去告知は購読前に来ていれば初期データから 1 回だけ、購読後の新しい告知は再び出る。パケットは種別ごとの中身の型と型付きの引数へ変換する（獲得以外の型に獲得を渡して例外になる口を作らない）。受け入れ: `NotificationFeedRelayTest` 4 件が緑
-- R3. Web の `notificationMessages.ts` を `S/Client.Ui.State/Notification/Text/` と `Params/` へ写す: messageId→キーの表 72 件（未知は `ui.notification.unknownMessage`）、Guid を運ぶ 2 種の引数を内容名の引数の型へ変換（欠けたら・読めなければ警告して文字の引数のまま）、補間値（params→messageId、獲得は itemName と count を足す）。文言は `UiText`（辞書キー＋解決済みの引数）で表す（D-4）。内容名・アイテム名が辞書やマスタに無いときは理由つきの LogError を出し、Web と同じ見え方（アイテムは `ui.common.itemFallback`「Item {itemId}」、内容名は辞書の欠けの印）で出す。受け入れ: `NotificationMessageKeysTest` 5 件・`NotificationTextTest` 11 件（UITK だけ 1）・`NotificationTextLocalizeTest` 3 件（TestCase 3 行）・`LocalizeNotificationTextLookupTest` 2 件（UITK だけ）が緑
+- R3. Web の `notificationMessages.ts` を `S/Client.Ui.State/Notification/Text/` と `Params/` へ写す: messageId→キーの表 70 件（「## 写すテストの対応と件数」）（未知は `ui.notification.unknownMessage`）、Guid を運ぶ 2 種の引数を内容名の引数の型へ変換（欠けたら・読めなければ警告して文字の引数のまま）、補間値（params→messageId、獲得は itemName と count を足す）。文言は `UiText`（辞書キー＋解決済みの引数）で表す（D-4）。内容名・アイテム名が辞書やマスタに無いときは理由つきの LogError を出し、Web と同じ見え方（アイテムは `ui.common.itemFallback`「Item {itemId}」、内容名は辞書の欠けの印）で出す。受け入れ: `NotificationMessageKeysTest` 5 件・`NotificationTextTest` 11 件（UITK だけ 1）・`NotificationTextLocalizeTest` 4 件（TestCase 3 行＋獲得の引数の重複の UITK だけ 1）・`LocalizeNotificationTextLookupTest` 2 件（UITK だけ）が緑
 - R4. Web の S 種別 `notificationServerIdCoverage.test.ts` を C# へ写す: サーバーとクライアントの送信元 `.cs` を走査して通知 id を集め、C# の表 `NotificationMessageKeys` が全部を未知以外へ解決することを確かめる。受け入れ: `NotificationServerIdCoverageTest` 5 件が緑
 - R5. 行の見た目を Web と同じにする: 幅 `--notification-width`（256px）・padding 5px 12px・1px 枠（`--notification-border`）・面 `--notification-face`・文字 15px／Medium／行送り 18px／字間 0.055em／`--text-high-contrast`（拒否は `--text-insufficient`）・文字影 0.35px・アイコン 22px と 8px の間・行間 10px・新着が最上段。ホストは実画面の左 16px（実画素）・縦の中央線から下へ積み、舞台と同率で拡縮する（`UiFamily.Viewport`。Web の `scale(var(--ui-scale))`）。受け入れ: L1 の `NotificationHostViewTest`・`NotificationRowViewTest` が緑、Task 10 の並べ比べで 720p の差が 2px 以内か `LX-39`〜`LX-41` に記帳
 - R6. 行の出入り: 入場は `--notification-enter-duration`（160ms）の CSS ease-out で透明・左 12px から、退場は生存尺の終端に `--notification-exit-duration`（200ms）の CSS ease-in で戻り、終わった時点で行を除く。合流で生存尺が回り直したら動きを頭から再生する。曲線は `UiEasing.CssEaseOut`・`CssEaseIn`、横移動は `TranslateXTweenStep`（Foundation/Motion。E-19）。尺とずれはトークン、生存尺は Model の定数だけ（USS に 7000ms を書かない）。受け入れ: `UiEasingCssCurveTest`・`UiTweenStepTest` の TranslateX・`NotificationRowLifetimeTest`・`NotificationHostViewTest` の該当が緑
 - R7. ホストを背面の層 `UiLayer.BehindStage` の `UiFamily.Viewport` に常駐させ（`NotificationLayerPresenter`）、入力を奪わない（ホストも行も `PickingMode.Ignore`）。`MainGameUiRegistration` の画面登録区画に `NotificationGameUiRegistration.Register(builder);` の 1 行、`GameUiTheme.tss` の Screens 区画に `@import` 1 行。受け入れ: `NotificationLayeringTest` 5 件（全部隠しが背面の層を隠す実物なら 6 件。Task 6 Step 2）が緑、GameUi で起動すると通知が背面に出る（Task 11 の録画）
 - R8. 言語を切り替えたら表示中の行の文言を解き直す（内容名・アイテム名も新しい言語で）。受け入れ: `NotificationHostViewTest` の言語の 1 件が緑
-- R9. 写した NUnit に `/// <web-test file="…">…</web-test>` を付け、写さない 2 件（`e2e/tests/system/portalLayerScaling.spec.ts` の通知の幅＝`目視`、`notificationStore.test.ts` の「退場アニメが発火しなくても保険タイマーで消える」＝`捨てる`）を `docs/uitk/disposition.md` に書く。受け入れ: `node tools/uitk/test-name-parity.mjs --bundle 2`（portalLayerScaling は台帳の行が束 2 5 なので `--bundle 5` も）の出力で通知の 4 ファイル＋e2e 4 ファイル＋portalLayerScaling の通知の 1 件の未対応が 0（ほかのレーンの分は数えない）
-- R10. 並べ比べ: Web の参照 `2-notifications`（1280×720）と、このレーンで撮る 2560×1080 の Web と、UITK のランタイム PanelSettings の撮影（720p・2560×1080）を並べ、差を done.md の表に書く。撮影は PanelSettings 資産の値を撮影の後に必ず元へ戻し、資産の変更を残さない。受け入れ: done.md に 2 解像度の組と差の表、`git status` に `GameUiPanelSettings.asset` の変更が無い
+- R9. 写した NUnit に `/// <web-test file="…">…</web-test>` を付け、写さない 2 件（`e2e/tests/system/portalLayerScaling.spec.ts` の通知の幅＝`目視`、`notificationStore.test.ts` の「退場アニメが発火しなくても保険タイマーで消える」＝`捨てる`）を `docs/uitk/disposition.md` に書く。受け入れ: `node tools/uitk/test-name-parity.mjs --bundle 2`（portalLayerScaling は台帳の行が束 2 5 なので `--bundle 5` も）の出力で通知の単体 5 ファイル＋e2e 4 ファイル＋portalLayerScaling の通知の 1 件の未対応が 0（ほかのレーンの分は数えない）
+- R10. 並べ比べ: Web の参照 `2-notifications`（1280×720）と、このレーンで撮る 2560×1080 の Web と、UITK の撮影（実画面の 720p と、PanelSettings を `Object.Instantiate` した複製に描いた 720p・2560×1080）を並べ、差を done.md の表に書く。本番の PanelSettings 資産は書き換えない（S1-theme の撮影の前例）。受け入れ: done.md に 2 解像度の組と差の表、`git status` に `GameUiPanelSettings.asset` の変更が無い
 - R11. 録画 `server-notification-smoke` を現行マスタで動く形に直し（研究をマスタから選ぶ・⚠ 見出しを外す・UITK では背面の層に出たことと文言を確かめる）、GameUi（UITK）と Web の両方で通す。受け入れ: 2 回分の `result.json` が成功、UITK 回の録画を報告ページに載せる、台帳「## 壊れた録画の割り振り」の該当行の扱いを done.md に書く
 - R12. 完了: `uloop compile` が ErrorCount 0、本計画の全テストが緑、moores-code-review を通し、`base=feature/uitk` の PR をマージコミットで取り込む
 - やらないこと: トースト（`ToastHostView`。済み）。全部隠し（`UiHideAll` 相当）の仕組みそのもの（S2-skit の持ち物。このレーンは「## 死活表」の Ctrl+U・カットシーンの行だけを確かめ、必要なら隠しの対象へ通知の層を 1 行足す）。`GameContentPresentation`・`UiIcon`・`GameIcon` の実装（C3-a）。`Tokens.uss` 等の共有トークンの追加（integrator への依頼にする）。Web 側の変更。master への PR
@@ -35,11 +35,11 @@
 - 層の向き（設計書 §1.1）: `Client.Ui.State` は `Client.Ui`・`UnityEngine.UIElements` を参照しない。Screens は State・Content・Components・Foundation を参照してよい。Components は Content（`GameContentPresentation`）と `Client.Game` を参照しない
 - 所有: `S/Client.Ui/Screens/Notification/**`・`S/Client.Ui.State/Notification/**`（既存の `NotificationFeed.cs`・`SequencedNotification.cs` を含む）・`S/Client.Tests/Ui/Screens/Notification/**`・`S/Client.Tests/Ui/State/Notification/**`・`S/Client.Starter/Registration/GameUi/NotificationGameUiRegistration.cs`・`SC/server-notification-smoke.cs`・新規 `SC/uitk/uitk-notification-compare.cs`
 - **E-19 による Foundation/Motion の例外**（指揮の割り当て。実行計画 E-19・設計書 A-69）: このレーンは `S/Client.Ui/Foundation/Motion/Tween/UiEasing.cs`（enum に `CssEaseOut`・`CssEaseIn` を足し `UiEasingFunctions.Evaluate` に分岐を足す）と新規 `S/Client.Ui/Foundation/Motion/Steps/TranslateXTweenStep.cs`、そのテスト（新規 `S/Client.Tests/Ui/Motion/UiEasingCssCurveTest.cs`・既存 `S/Client.Tests/Ui/Motion/UiTweenStepTest.cs` への 1 メソッド）を書いてよい。W2 で `UiEasing` を書き換えるのはこのレーンだけ。Foundation/Motion のほかのファイル（`UiTweenAnimation`・`UiMotionPlayer`・既存の Step）は変えない
-- 共有ファイルに書いてよいのは: `GameUiTheme.tss` の Screens 区画の `@import` 1 行、`MainGameUiRegistration` の画面登録区画の 1 行、`Localization/localization.csv`（このレーンは足す予定なし）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-39`〜`LX-41`）「## 追従記録」の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾、全部隠しの対象の並び 1 行（Task 6 Step 2 で S2-skit の実物が通知の層を隠していないときだけ）。`Tokens.uss`・`DerivedTokens.uss`・`MantineTokens.uss`・`UiLayer`・`UiScreenTraits`・`AnchorIds`・`Components/**`・`Foundation/**`（上の E-19 の例外を除く）は書かない。要るものは done.md の「integrator への依頼」に書いて、このレーンでは Screens の中で済ませる（設計書 §5.1-2）
+- 共有ファイルに書いてよいのは: `GameUiTheme.tss` の Screens 区画の `@import` 1 行、`MainGameUiRegistration` の画面登録区画の 1 行、`Localization/localization.csv`（このレーンは足す予定なし）、`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」（`LX-39`〜`LX-41`）「## 追従記録」の末尾、`docs/uitk/disposition.md` の「## 処遇」の末尾、全部隠しの対象の並び 1 行（実行計画 E-19。Task 6 Step 2 で S2-skit の実物が通知の層を隠していないときだけ）。`Tokens.uss`・`DerivedTokens.uss`・`MantineTokens.uss`・`UiLayer`・`UiScreenTraits`・`AnchorIds`・`Components/**`・`Foundation/**`（上の E-19 の例外を除く）は書かない。要るものは done.md の「integrator への依頼」に書いて、このレーンでは Screens の中で済ませる（設計書 §5.1-2）
 - AGENTS.md: 1 ファイル 200 行未満、1 ディレクトリ 10 ファイルまで、`partial` 禁止、`Func<>` 禁止、デフォルト引数禁止、イベントは UniRx、try-catch 禁止（ファイル読みの境界も使わない。`File.Exists` で分岐）、主要処理に日本語→英語の 2 行コメント（各 1 行）、fail-closed の早期 return はログか `silent-ok: <理由> / <誰がどこで気づくか>`、単純な get/set プロパティ禁止（`{ get; }`・`{ get; private set; }` は可）、`.meta` は手で作らない、`Update()` を使わない
 - テスト名は日本語の挙動文。写したテストには直前に `/// <web-test file="<moorestech_web/webui/ からの相対>"><it の第 1 引数></web-test>` を 1 行以上。Web に元が無い UITK だけのテストにはタグを付けない
 - 数値の書式は `CultureInfo.InvariantCulture`
-- 比較の撮影はランタイム PanelSettings（PlayMode・GameUi）で撮る。ギャラリーの撮影で色を比べない。暗い半透明面（`--surface-navy` 由来の `--notification-face`）の α の差は I-fix1 が選び直し中なので「I-fix1 待ち」と書いて例外にしない
+- 比較の撮影はランタイム PanelSettings（PlayMode・GameUi）で撮る。ギャラリーの撮影で色を比べない。暗い半透明面（`--surface-navy` 由来の `--notification-face`）の α の差は、Task 6 Step 1 で I-fix1（`e43b96d96b`・`cd76c158cc`）が `origin/feature/uitk` に無いと確かめたときだけ「I-fix1 待ち」と書いて例外にしない。入っていれば記帳せず直す対象にする
 - UITK の `letter-spacing` の px は「文字の大きさ/100 × 値」として効く（台帳「## 実測の結論」）。生成トークンの字間が Web と一致するとは書かない
 - 録画と L3 の前に全体スイッチが UITK（`UiSystem.GameUi`）であることを確かめる（UI のテストの TearDown が既定の Web へ戻す。`run-scenario.sh` は 1 回目に "already playing" で落ちることがあり、そのときは 1 回だけ再実行する）
 - `.cs` を変えたタスクの最後に `uloop compile --project-path ./moorestech_client`（Task 1〜4 は Editor 無しなので Task 5 でまとめて回す）
@@ -106,7 +106,18 @@ NotificationLayerPresenter ──▶ NotificationHostView.Render（Id で差分�
 | 入力を奪わない・画面の裏に沈む | 生きる | ホストは `PickingMode.Ignore` で `UiLayer.BehindStage` に置く（Task 8・9。`NotificationLayeringTest`） |
 ---
 
-## 写すテストの対応（47 件＝台帳の数え方。実数 48）
+## 写すテストの対応と件数（件数の正本。ほかの節はここを引く）
+
+数え方: 「`it` の行」は `it(`・`test(` の行と `it.each` を 1 件と数える。「展開」は `it.each` の行を表の行数（3）で数える。台帳（`docs/uitk/TODO.md`）と実行計画の数は台帳の数え方のまま写す。
+
+| 範囲 | `it` の行 | 展開 | 台帳・実行計画 |
+|---|---|---|---|
+| 単体の 5 ファイル（`src/features/notification/*.test.ts`。`notificationLayering.test.ts` を含む） | 42（L 27・S 15） | 44（L 29・S 15） | L 26・S 15 |
+| e2e の 4 ファイル（`e2e/tests/notification/*.spec.ts`） | 6 | 6 | P 6 |
+| 計 | 48 | 50 | 47（実行計画の「実数 48」は `it` の行の数で、展開すると 50。指揮へ返した） |
+| 別枠: `portalLayerScaling.spec.ts` の通知の 1 件（台帳は uiScale の行） | 1 | 1 | 処遇（`目視`） |
+
+写さないのは 2 件: `notificationStore.test.ts` の 1 件（`捨てる`。D-2）と portalLayerScaling の 1 件（`目視`）。messageId→キーの表は Web の `notificationKeys` の実物 70 行。
 
 | Web のファイル | 種別 | 件数 | 写し先（NUnit） | タスク |
 |---|---|---|---|---|
@@ -121,7 +132,7 @@ NotificationLayerPresenter ──▶ NotificationHostView.Render（Id で差分�
 | `e2e/tests/notification/layering.spec.ts` | P | 3 | `NotificationHostViewLayoutTest` 1・`NotificationLayeringTest` 2 | 8・9 |
 | `e2e/tests/system/portalLayerScaling.spec.ts`（通知の 1 件のみ） | P | 1 | 写さない（`目視`。disposition） | 10 |
 
-内訳: L 27（台帳 26。差は `it.each` を 1 件と数えるか。うち 1 件は `捨てる`）・S 15・P 6（＋処遇 1）。UITK だけのテストは別に 20 メソッド（タグ無し。各タスクに明記）。NUnit の件数（TestCase を 1 行 1 件）は L0 40・Motion 11・Screens 20・Layering 5 の計 76（全部隠しの L1 を足すなら Layering 6・計 77）。
+UITK だけのテストは別に 22 メソッド（タグ無し。各タスクに明記）。NUnit の件数（TestCase を 1 行 1 件）は L0 41（Model 10・Relay 4・Keys 5・Text 11・Localize 4・Lookup 2・Coverage 5）・Motion 11・Screens 21（Lifetime 3・Row 3・Host 7・Layout 8）・Layering 5 の計 78（全部隠しの L1 を足すなら Layering 6・計 79）。以下、件数はこの表を正とする。
 
 ---
 
@@ -175,7 +186,7 @@ NotificationLayerPresenter ──▶ NotificationHostView.Render（Id で差分�
 | `S/Client.Tests/Ui/State/Notification/NotificationFeedRelayTest.cs` | R2 | 2 |
 | `S/Client.Tests/Ui/State/Notification/NotificationMessageKeysTest.cs` | R3 | 3 |
 | `S/Client.Tests/Ui/State/Notification/NotificationTextTest.cs` | R3 | 3 |
-| `S/Client.Tests/Ui/State/Notification/NotificationTextLocalizeTest.cs` | R3（Localize で解く 3 件） | 3 |
+| `S/Client.Tests/Ui/State/Notification/NotificationTextLocalizeTest.cs` | R3（Localize で解く 4 件） | 3 |
 | `S/Client.Tests/Ui/State/Notification/LocalizeNotificationTextLookupTest.cs` | R3（欠けの LogError と見え方） | 3 |
 | `S/Client.Tests/Ui/State/Notification/FakeNotificationTextLookup.cs` | テストの口 | 3 |
 | `S/Client.Tests/Ui/State/Notification/Coverage/NotificationServerIdCoverageTest.cs` | R4 | 4 |
@@ -195,7 +206,7 @@ NotificationLayerPresenter ──▶ NotificationHostView.Render（Id で差分�
 | `docs/uitk/disposition.md` | 処遇の 2 行 | 10 |
 | `docs/uitk/TODO.md` | 実測の結論・見た目の例外（必要時）・追従記録（必要時） | 10・12 |
 
-`Client.Ui.State/Notification/` は直下 9 ファイル（既存 2＋新規 7）＋`Content/` 8＋`Params/` 4＋`Text/` 4、`Screens/Notification/` は直下 7 ファイル＋`Parts/` 4、`Foundation/Motion/Steps/` は 4 ファイル、`Client.Tests/Ui/State/Notification/` は直下 8 ファイル＋`Coverage/`、`Client.Tests/Ui/Screens/Notification/` は 7 ファイル、`Client.Tests/Ui/Motion/` は 6 ファイル。
+`Client.Ui.State/Notification/` は直下 9 ファイル（既存 2＋新規 7）＋`Content/` 8＋`Params/` 4＋`Text/` 4、`Screens/Notification/` は直下 7 ファイル＋`Parts/` 4、`Foundation/Motion/Steps/` は 4 ファイル（S2-tutorial の `ScaleTweenStep.cs` も入ると 5）、`Client.Tests/Ui/State/Notification/` は直下 8 ファイル＋`Coverage/`、`Client.Tests/Ui/Screens/Notification/` は 7 ファイル、`Client.Tests/Ui/Motion/` は 6 ファイル（S2-tutorial の `ScaleTweenStepTest.cs` も入ると 7）。両方入っても 10 以下。
 
 ---
 
@@ -1426,6 +1437,7 @@ using System.Collections.Generic;
 using Client.Tests.Ui.Screens;
 using Client.Ui.State.Notification.Content;
 using Client.Ui.State.Notification.Text;
+using Core.Master;
 using NUnit.Framework;
 using Server.Event.Notification;
 using UnityEngine;
@@ -1459,11 +1471,29 @@ namespace Client.Tests.Ui.State.Notification
             var text = NotificationText.Resolve(content, new FakeNotificationTextLookup()).Resolve();
             StringAssert.Contains($"{{{name}}}", text);
         }
+
+        [Test]
+        public void 獲得の引数に同名のitemNameとcountが来ても実値で出てエラーにならない()
+        {
+            // C# の補間は同名の先勝ちで重複を LogError にする。Web は実値が後勝ち（notificationMessages.ts の { ...values, itemName, count }）
+            // C# interpolation keeps the first of a duplicate and logs it; Web lets the real values win
+            const string id = "itemEarned.mined";
+            var lookup = new FakeNotificationTextLookup();
+            lookup.SetItemName(new ItemId(2), "Stone");
+            var content = new EarnedNotificationContent(id, Wire(id, new Dictionary<string, string> { ["itemName"] = "wrong", ["count"] = "999" }), new ItemId(2), 5);
+
+            var text = NotificationText.Resolve(content, lookup).Resolve();
+            StringAssert.Contains("Stone", text);
+            StringAssert.Contains("5", text);
+            StringAssert.DoesNotContain("wrong", text);
+            StringAssert.DoesNotContain("999", text);
+            LogAssert.NoUnexpectedReceived();
+        }
     }
 }
 ```
 
-- [ ] **Step 5: キーの表を書く**（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Text/NotificationMessageKeys.cs`。Web `W/features/notification/notificationMessages.ts` の `notificationKeys` 72 行を同じ順で写す）
+- [ ] **Step 5: キーの表を書く**（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Text/NotificationMessageKeys.cs`。Web `W/features/notification/notificationMessages.ts` の `notificationKeys` 70 行を同じ順で写す）
 
 ```csharp
 using System.Collections.Generic;
@@ -1710,6 +1740,10 @@ namespace Client.Ui.State.Notification.Text
             // 獲得は種別でキーを決め、messageId のずれで生のトークンが出るのを防ぐ。ほかは表で引く
             // An earn fixes its key by kind so a drifting messageId cannot leak raw tokens; others use the table
             if (content is not EarnedNotificationContent earned) return new UiText(NotificationMessageKeys.Resolve(content.MessageId), values);
+
+            // Web は { ...values, itemName, count } で実値が後勝ち、C# の補間は先勝ちで重複を LogError にするので、同名の引数を除いてから実値を足す
+            // Web lets the real values win via { ...values, itemName, count }; C# interpolation keeps the first and logs duplicates, so drop same-named params before adding the real values
+            values.RemoveAll(param => param.Name == "itemName" || param.Name == "count");
             values.Add(new LocalizationTextParam("itemName", lookup.ItemDisplayName(earned.ItemId)));
             values.Add(new LocalizationTextParam("count", earned.Count.ToString(CultureInfo.InvariantCulture)));
             return new UiText(LocalizationKeys.Ui.Notification.ItemEarned, values);
@@ -2062,7 +2096,7 @@ Expected: ErrorCount 0。`LocalizationKeys.Ui.Notification.*` の生成名が表
 - [ ] **Step 3: L0 テストを回す**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.State\.Notification\."`
-Expected: 40 件 PASS（Model 10・Relay 4・Keys 5・Text 11・Localize 3・Lookup 2・Coverage 5）。Lookup の 2 件目が `MasterHolder.ItemMaster` 未読込で落ちたら Task 3 Step 6 の注に従う
+Expected: 41 件 PASS（Model 10・Relay 4・Keys 5・Text 11・Localize 4・Lookup 2・Coverage 5）。Lookup の 2 件目が `MasterHolder.ItemMaster` 未読込で落ちたら Task 3 Step 6 の注に従う
 
 - [ ] **Step 4: 既存の通知の回帰を回す**
 
@@ -2105,7 +2139,8 @@ git ls-tree -r --name-only HEAD moorestech_client/Assets/Scripts/Client.Ui | gre
 grep -n "Core.Master" moorestech_client/Assets/Scripts/Client.Ui/Client.Ui.asmdef
 grep -rn "GameContentPresentation" moorestech_client/Assets/Scripts/Client.Starter/Registration --include='*.cs'
 ```
-Expected: 4 ファイルがあり、`Client.Ui.asmdef` に `Core.Master`、`GameContentPresentation` が GameUi の系で DI 登録されている。どれかが無ければ止めて done.md に「C3-a 待ち」と書き指揮へ返す。あれば `UiIcon`・`GameIcon`・`GameIconFallback`・`GameContentPresentation.Item(ItemId)` の実物の名前空間・ctor・メソッド名を読み、Task 7・9 のコード片（下では設計書 §2.1・§2.3 の形で書いた）と違うところを done.md の「実物との差」に書いてから実物に合わせて書く
+Expected: 4 ファイルがあり、`Client.Ui.asmdef` に `Core.Master`、`GameContentPresentation` が GameUi の系で DI 登録されている。どれかが無ければ止めて done.md に「C3-a 待ち」と書き指揮へ返す。あれば `UiIcon`・`GameIcon`・`GameIconFallback`・`GameContentPresentation.Item(ItemId)` の実物の名前空間・ctor・メソッド名を読み、Task 7・9 のコード片（下では設計書 §2.1・§2.3 の形で書いた）と違うところを done.md の「実物との差」に書いてから実物に合わせて書く。`GameIcon` の大きさの決め方も読む: 大きさのつまみ（USS のカスタムプロパティ）があれば `Notification.uss` の `.notification-host` でそのつまみに 22px を入れて受け、無ければ `.notification-row__icon > .<GameIcon の実物のクラス>` の規則（Task 8 Step 1 の `game-icon` の行）のクラス名を実物に直す。本体に大きさが当たっていることは Task 7 の L1「アイコンの無い行は…」に `Assert.AreEqual(22f, icon.resolvedStyle.width, 0.5f)` を 1 行足して確かめる
+- I-fix1（α の指数 2.2→1.85 `e43b96d96b`・字間の換算 `cd76c158cc`）が入っているかを `git merge-base --is-ancestor e43b96d96b origin/feature/uitk && git merge-base --is-ancestor cd76c158cc origin/feature/uitk && echo in` で確かめ、done.md に書く。入っていれば Task 10 の比べで「I-fix1 待ち」の記帳はせず、暗い半透明面の α の差も直す対象にする
 
 - [ ] **Step 2: 全部隠し（Ctrl+U・カットシーン）が背面の層をどう扱うかを確かめる**（「## 死活表」の最後の行。レーンの開始時に 1 回）
 
@@ -2116,7 +2151,7 @@ rg -n "HideAll|hide-all|全部隠し" moorestech_client/Assets/Scripts/Client.Ui
 ```
 Expected と分岐（どれか 1 つ。結果を done.md の「死活表の実測」に 1 行で書く）:
 - S2-skit がマージ済みで、全部隠しが `UiLayer.BehindStage`（または層の根ごと）を隠す実物 → Task 9 の `NotificationLayeringTest` に L1 を 1 件足す（S2-skit の実物の隠しの口を呼び、`notification-host` が見えない〈`resolvedStyle.display == None` か `visibility == Hidden`、実物の隠し方に合わせる〉ことと、隠しを解くと行が残っていれば見えることを確かめる。テスト名「全部隠しの間は通知のホストが見えない」、UITK だけ）。隠し方が要素を外す（`RemoveFromHierarchy`）実物なら、行の動きが止まり除去が来ないので止めて指揮へ返す（D-2 案 a の前提が崩れるため）
-- S2-skit がマージ済みで、全部隠しの対象に背面の層が入っていない → 隠しの対象の並び（S2-skit の実物のファイル）に通知の層を 1 行足し、上と同じ L1 を 1 件足す（共有ファイルへの書き込みはこの 1 行だけ）
+- S2-skit がマージ済みで、全部隠しの対象に背面の層が入っていない → 実行計画 E-19（「S2-skit のマージ後、その全部隠しが `UiLayer.BehindStage` を隠さなければ、S2-notification が全部隠しの対象へ通知の層を足す 1 行を入れてよい」）に従い、上の `rg` で見つかった全部隠しの対象の層を並べている S2-skit のファイル（1 つ。パスは S2-skit のマージで決まるので、見つけたパスを done.md と PR 本文に書く）の並びへ `UiLayer.BehindStage` を足す 1 行だけを入れ、上と同じ L1 を 1 件足す。並びが層でなく要素名なら `notification-host` を足す 1 行にする。その 1 行のほかは S2-skit のファイルを変えない
 - S2-skit が未マージ → 何も足さず、done.md の「S2-ladder の確認事項」に「全部隠しが `UiLayer.BehindStage` の `notification-host` を隠すこと（Ctrl+U・カットシーン）を S2-skit 取り込み後に確かめる」と 1 行書く（裁定事項ではない）
 
 - [ ] **Step 3: CSS の曲線のテストを書く**（`moorestech_client/Assets/Scripts/Client.Tests/Ui/Motion/UiEasingCssCurveTest.cs`）
@@ -2838,6 +2873,13 @@ git commit -m "feat(uitk): 通知の 1 行（アイコンの枠と文・拒否�
     margin-right: 8px;
 }
 
+/* 枠の中の GameIcon 本体も 22px に揃える。クラス名（ここでは game-icon）とつまみの有無は Task 6 Step 1 で照合した C3-a の実物に合わせる */
+/* Size the GameIcon body inside the slot to 22px too; the class name (game-icon here) and any knob follow the C3-a code checked in Task 6 Step 1 */
+.notification-row__icon > .game-icon {
+    width: 100%;
+    height: 100%;
+}
+
 /* 固定幅に収まらない文は折り返す（省略記号だとアイテム名が読めない）。文字影は世界が透ける面の上の読みやすさの補助 */
 /* Text that overflows the fixed width wraps (an ellipsis would hide item names); the text shadow aids legibility over the see-through face */
 .notification-row__text {
@@ -2852,10 +2894,13 @@ git commit -m "feat(uitk): 通知の 1 行（アイコンの枠と文・拒否�
     /* 0.055em×15px=0.825px。UITK の letter-spacing の px は「文字の大きさ/100×値」で効くので 0.825÷0.15 */
     /* 0.055em x 15px = 0.825px; a UITK letter-spacing px acts as font-size/100 x value, so 0.825 / 0.15 */
     letter-spacing: 5.5px;
+    /* 行の高さは Web の 15px×1.2＝18px。1 行目は min-height、2 行目以降の行送りは LocalizedLabel のつまみ（TooltipFace.uss の前例） */
+    /* Line height is the Web 15px x 1.2 = 18px: min-height for the first line, LocalizedLabel's knob for the pitch after it (TooltipFace.uss precedent) */
+    min-height: 18px;
     --localized-label-line-height: 18px;
     color: var(--text-high-contrast);
-    /* Web の通知の text-shadow と同値の既存トークン。通知専用のトークンは integrator に依頼する（done.md） */
-    /* An existing token equal to the Web notification text-shadow; a notification-specific token is requested from the integrator (done.md) */
+    /* Web style.module.css:38 の直書きと同値の借用。key-hint 側が変わると通知も変わる。--notification-text-shadow を integrator に依頼済み（D-9） */
+    /* Borrowed because it equals the Web style.module.css:38 literal; a key-hint change also changes notifications; --notification-text-shadow is requested from the integrator (D-9) */
     text-shadow: var(--key-hint-text-shadow);
 }
 
@@ -2941,7 +2986,7 @@ namespace Client.Ui.Screens.Notification
             AddToClassList("notification-host");
             pickingMode = PickingMode.Ignore;
             RegisterCallback<CustomStyleResolvedEvent>(OnCustomStyleResolved);
-            RegisterCallback<GeometryChangedEvent>(_ => ApplyScreenLeft());
+            RegisterCallback<GeometryChangedEvent>(_ => OnGeometryChanged());
             RegisterCallback<AttachToPanelEvent>(attachEvent => _languageSubscription = Localize.OnLanguageChanged.Subscribe(_ => ReapplyTexts()));
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
         }
@@ -2950,6 +2995,7 @@ namespace Client.Ui.Screens.Notification
         {
             // 尺はトークンから読むので、スタイル解決前の描画は解決後まで最新の 1 つを預かる
             // Durations come from tokens, so a render before style resolution keeps the latest one until it resolves
+            // silent-ok: パネルに付いてスタイルが解決するまでの一時的な預かり / 解決が来ないまま配置まで進んだら（tss の @import 漏れ等）OnGeometryChanged の ReportUnresolvedStyle が LogError を出す
             if (_timing == null)
             {
                 _waitingForStyle = viewModel;
@@ -3045,6 +3091,19 @@ namespace Client.Ui.Screens.Notification
             if (waiting != null) Render(waiting);
         }
 
+        private void OnGeometryChanged()
+        {
+            ReportUnresolvedStyle();
+            ApplyScreenLeft();
+        }
+
+        private void ReportUnresolvedStyle()
+        {
+            // 配置まで進んでも画面 USS の受け直しが来ていなければ、預かった通知は出ない。無音にしないため開発者に知らせる
+            // If layout ran but the screen USS custom properties never resolved, held notifications never show; tell developers instead of staying silent
+            if (_timing == null && _waitingForStyle != null) Debug.LogError("[NotificationHostView] custom style not resolved after layout; is Notification.uss imported by GameUiTheme.tss and the notification-host class present?");
+        }
+
         private void ApplyScreenLeft()
         {
             // silent-ok: トークンが読めない間は USS の left のまま / 読めない理由は Reader の LogError が出す
@@ -3075,7 +3134,7 @@ namespace Client.Ui.Screens.Notification
 }
 ```
 
-注 1: `waiting != null` は「預かった描画が無い」という正常な状態の分岐。注 2: 取り消した動き（`Cancel()`）は `Completed` を出さない前提（`UiMotionPlayerTest.DetachStopsWithoutCompletion` 等で実物を確かめる。出す実物なら、合流と除去の取り消しで古い退場の終わりが新しい生存の行を消すので、`ShownRow` に epoch を持たせて `ExitCompleted` の購読で照合する形にする）。注 3: 保険タイマーは無い（D-2 案 a）。ホストは常駐で、外れるのは Presenter の Dispose だけなので、退場の終わりは必ず来る。外れたまま行が残る経路は `OnDetachFromPanel` の LogWarning が開発者に知らせる（全部隠しが要素を外す実物でないことは Task 6 Step 2 で確かめる）。ファイルは 200 行未満に収まる見込み（超えたら `ShownRow` を `Parts/NotificationShownRow.cs` へ出す）。
+注 1: `waiting != null` は「預かった描画が無い」という正常な状態の分岐。`ReportUnresolvedStyle` の前提（クラスの USS 規則が当たらないとき `CustomStyleResolvedEvent` が来ず配置だけが進む）は推測で、Step 6 の UITK だけの 1 件で実測する。実物で `CustomStyleResolvedEvent` が来るなら `UssCustomStyleReader` の LogError が先に出るので、そのテストの期待をその行に替える（どちらでも無音にはならないことを確かめる）。注 2: 取り消した動き（`Cancel()`）は `Completed` を出さない前提（`UiMotionPlayerTest.DetachStopsWithoutCompletion` 等で実物を確かめる。出す実物なら、合流と除去の取り消しで古い退場の終わりが新しい生存の行を消すので、`ShownRow` に epoch を持たせて `ExitCompleted` の購読で照合する形にする）。注 3: 保険タイマーは無い（D-2 案 a）。ホストは常駐で、外れるのは Presenter の Dispose だけなので、退場の終わりは必ず来る。外れたまま行が残る経路は `OnDetachFromPanel` の LogWarning が開発者に知らせる（全部隠しが要素を外す実物でないことは Task 6 Step 2 で確かめる）。ファイルは 200 行未満に収まる見込み（超えたら `ShownRow` を `Parts/NotificationShownRow.cs` へ出す）。
 
 - [ ] **Step 5: テストの土台を書く**（`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Notification/NotificationHostViewTestFixture.cs`）
 
@@ -3248,6 +3307,20 @@ namespace Client.Tests.Ui.Screens.Notification
         }
 
         [Test]
+        public void 画面USSが当たらないまま描かれると開発者にエラーを出す()
+        {
+            // 規則の当たらないホスト（tss の @import 漏れと同じ状態）を載せ、預かった描画が無音で消えないことを確かめる
+            // Mount a host no rule matches (same as a missing tss @import) and make sure the held render never vanishes silently
+            var bare = new NotificationHostView(new NotificationModel(), new FakeNotificationTextLookup(), new FakeNotificationRowIcons());
+            bare.RemoveFromClassList("notification-host");
+            bare.Render(NotificationListViewModel.Empty);
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Error, new System.Text.RegularExpressions.Regex(@"^\[NotificationHostView\] custom style not resolved"));
+            Mount(bare);
+            AdvancePanel(0);
+            AdvancePanel(0);
+        }
+
+        [Test]
         public void 合流で生存尺が回り直し動きを頭から再生する()
         {
             Model.AddNotification(Earned(7, 5, "itemEarned.mined"));
@@ -3282,6 +3355,7 @@ using Client.Tests.Ui.Components;
 using Client.Tests.Ui.State.Notification;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification;
+using Client.Ui.State.Notification.Content;
 using Core.Master;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -3405,7 +3479,7 @@ namespace Client.Tests.Ui.Screens.Notification
 - [ ] **Step 8: コンパイルと Screens のテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Screens\.Notification\."`
-Expected: ErrorCount 0 / 20 件 PASS（Lifetime 3・Row 3・Host 6・Layout 8。Task 7 で落ちていた 2 件も緑）。`get-logs --log-type Error` に `[UssCustomStyleReader]` が無い
+Expected: ErrorCount 0 / 21 件 PASS（Lifetime 3・Row 3・Host 7・Layout 8。Task 7 で落ちていた 2 件も緑）。`get-logs --log-type Error` に `[UssCustomStyleReader]` が無い
 
 - [ ] **Step 9: コミット**
 
@@ -3635,7 +3709,7 @@ namespace Client.Starter.Registration.GameUi
 - [ ] **Step 5: コンパイルと UI 全体の回帰**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\." --timeout-seconds 1500`
-Expected: ErrorCount 0 / 全件 PASS（通知の 76 件〈L0 40・Motion 11・Screens 20・Layering 5〉を含む。全部隠しの L1 を足したら 77）
+Expected: ErrorCount 0 / 全件 PASS（通知の 78 件〈L0 41・Motion 11・Screens 21・Layering 5〉を含む。全部隠しの L1 を足したら 79）
 
 - [ ] **Step 6: コミット**
 
@@ -3665,8 +3739,8 @@ Expected: 戻り値 `GameUi`
 - [ ] **Step 2: 並べ比べの撮影シナリオを書く**（`.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-notification-compare.cs`）
 
 ```csharp
-// 通知の並べ比べ撮影: GameUi（UITK）で参照 2-notifications と同じ 4 行（獲得・研究完了・アイテム解放・拒否）を日本語で出し、1280×720 の画面と 2560×1080 の UITK パネルを撮る
-// Notification comparison shots: in GameUi (UITK) show the same four rows as reference 2-notifications (earned, research completed, item unlocked, denied) in Japanese and shoot the 1280x720 screen and the 2560x1080 UITK panel
+// 通知の並べ比べ撮影: GameUi（UITK）で参照 2-notifications と同じ 4 行（獲得・研究完了・アイテム解放・拒否）を日本語で出して 1280×720 の画面を撮り、PanelSettings の複製に描いた通知の層を 1280×720 と 2560×1080 で撮る
+// Notification comparison shots: in GameUi (UITK) show the same four rows as reference 2-notifications in Japanese, shoot the 1280x720 screen, then shoot the notification layer drawn on a PanelSettings copy at 1280x720 and 2560x1080
 // 実行前に PlayMode を止め、execute-dynamic-code で UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ
 // Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh
 using System.Collections.Generic;
@@ -3675,7 +3749,14 @@ using System.Linq;
 using Client.Game.InGame.Context;
 using Client.Localization;
 using Client.Playtest;
+using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
+using Client.Ui.Screens.Notification;
+using Client.Ui.State.Notification;
+using Client.Ui.State.Notification.Content;
+using Client.Ui.State.Notification.Params;
+using Client.Ui.State.Notification.Text;
 using Client.WebUiHost.Boot;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -3691,42 +3772,50 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
     await p.ExitToGameScreen();
     p.Assert(WebUiHost.Hub == null, "Webホストは起動していない（GameUi）");
 
-    // 前回の撮影が途中で止まり資産の描き先が戻っていなければ、ここで戻して開発者に知らせる（資産を書き換えたまま残さない）
-    // If an interrupted capture left the asset's target set, restore it here and tell developers (never leave the asset rewritten)
-    var gameUiPanelSettings = GameUiRoot.Instance.GetComponent<UIDocument>().panelSettings;
-    if (gameUiPanelSettings.targetTexture != null)
-    {
-        Debug.LogError("[uitk-notification-compare] GameUi PanelSettings.targetTexture was left set by an interrupted capture; restoring null");
-        gameUiPanelSettings.targetTexture = null;
-    }
-
-    // 参照と同じ日本語・同じ順（獲得→研究完了→アイテム解放→拒否）で積む
-    // Push in Japanese and in the reference order (earned, research completed, item unlocked, denied)
+    // 参照の元データ（W/e2e/mock-host/topics/topicControls.ts の notificationItemEarned・notificationAchievement・notificationItemUnlocked・notificationDenied）と同じ順・同じ中身。研究完了はアイテム 1 のアイコン付き
+    // Same order and contents as the reference source data (topicControls.ts notification controls); research completed carries the item 1 icon
     Localize.TrySetChosenLanguage("japanese");
     var research = MasterHolder.ResearchMaster.GetAllResearches().First();
-    var source = ClientDIContext.ClientLocalNotificationSource;
-    source.Notify(NotificationMessagePack.CreateItemEarned(new ItemId(2), 5));
-    source.Notify(NotificationMessagePack.CreateAchievement("achievement.researchCompleted", new Dictionary<string, string> { ["research"] = research.ResearchNodeGuid.ToString() }));
-    source.Notify(NotificationMessagePack.CreateAchievementWithItem("achievement.unlockedItem", new Dictionary<string, string>(), new ItemId(2)));
-    source.Notify(NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", new Dictionary<string, string>()));
+    var earned = NotificationMessagePack.CreateItemEarned(new ItemId(2), 5);
+    var researchCompleted = NotificationMessagePack.CreateAchievementWithItem("achievement.researchCompleted", new Dictionary<string, string> { ["research"] = research.ResearchNodeGuid.ToString() }, new ItemId(1));
+    var unlocked = NotificationMessagePack.CreateAchievementWithItem("achievement.unlockedItem", new Dictionary<string, string>(), new ItemId(2));
+    var denied = NotificationMessagePack.CreateOperationDenied("denied.researchNotCompletable", new Dictionary<string, string>());
 
-    // 入場（160ms）が終わってから撮る
-    // Shoot after the enter (160ms) has finished
+    // 実画面（世界ごと）の 720p。色はこの撮影で比べる（研究名は実マスタの最初の研究なので、文の長さだけ参照と違い得る）
+    // The real 720p screen including the world; colors are compared here (the research name is the real master's first research, so only the text length may differ)
+    foreach (var message in new[] { earned, researchCompleted, unlocked, denied }) ClientDIContext.ClientLocalNotificationSource.Notify(message);
     await p.WaitSeconds(0.6f);
     await p.Screenshot("uitk-2-notifications-1280x720");
-    var widePath = await CaptureUitkPanel(2560, 1080, "uitk-2-notifications-2560x1080.png");
-    p.Note($"2560x1080 の UITK パネル: {widePath}");
+
+    // 位置と寸法は PanelSettings の複製に通知の層だけを描いて 2 解像度で撮る（本番の資産は書き換えない。S1-theme の撮影の前例）
+    // Positions and sizes come from the notification layer alone drawn on a PanelSettings copy at two resolutions (the production asset is never rewritten; S1-theme capture precedent)
+    p.Note($"1280x720 の複製パネル: {await CaptureOnPanelCopy(1280, 720, "uitk-2-notifications-panel-1280x720.png")}");
+    p.Note($"2560x1080 の複製パネル: {await CaptureOnPanelCopy(2560, 1080, "uitk-2-notifications-panel-2560x1080.png")}");
     Localize.TrySetChosenLanguage("english");
 
-    // GameUi のパネルを指定の解像度の RenderTexture へ 1 回描かせて PNG にし、読み取った直後に資産の描き先を元へ戻す（戻しは await より前）
-    // Render the GameUi panel once into a RenderTexture of the given size, save a PNG and restore the asset's target right after reading (before any await)
-    async UniTask<string> CaptureUitkPanel(int width, int height, string fileName)
+    // 複製の PanelSettings に RenderTexture を付けた UIDocument を作り、層の並びの背面の層へ通知のホストを載せて 4 件を積み、入場の後に ReadPixels する
+    // Make a UIDocument on a PanelSettings copy with a RenderTexture, mount the notification host in the behind-stage layer, push the four rows and ReadPixels after the enter
+    async UniTask<string> CaptureOnPanelCopy(int width, int height, string fileName)
     {
-        var panelSettings = GameUiRoot.Instance.GetComponent<UIDocument>().panelSettings;
-        var originalTarget = panelSettings.targetTexture;
+        var panelCopy = Object.Instantiate(GameUiRoot.Instance.GetComponent<UIDocument>().panelSettings);
         var target = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB);
-        panelSettings.targetTexture = target;
-        await UniTask.DelayFrame(3);
+        panelCopy.targetTexture = target;
+        var documentObject = new GameObject($"notification-compare-{width}x{height}");
+        var document = documentObject.AddComponent<UIDocument>();
+        document.panelSettings = panelCopy;
+        await UniTask.DelayFrame(1);
+
+        var model = new NotificationModel();
+        var host = new NotificationHostView(model, new LocalizeNotificationTextLookup(), CompareRowIcons());
+        UiLayerStack.Build(document.rootVisualElement).GetLayer(NotificationLayerPresenter.HostLayer, NotificationLayerPresenter.HostFamily).Add(host);
+        model.Current.Subscribe(host.Render);
+        // 研究完了の行は参照のモックの研究名（W/e2e/mock-host/fixtures/contentLocalizationFixtures.ts の「最初の研究」）を文字の引数で渡し、参照と同じ文にする
+        // The research row passes the reference mock's research name ("最初の研究" in contentLocalizationFixtures.ts) as a text argument so the text matches the reference
+        model.AddNotification(NotificationContentFactory.FromMessage(earned));
+        model.AddNotification(new AchievementNotificationContent("achievement.researchCompleted", new NotificationParam[] { new TextNotificationParam("research", "最初の研究") }, new ItemNotificationIcon(new ItemId(1))));
+        model.AddNotification(NotificationContentFactory.FromMessage(unlocked));
+        model.AddNotification(NotificationContentFactory.FromMessage(denied));
+        await UniTask.Delay(600);
 
         var previousActive = RenderTexture.active;
         RenderTexture.active = target;
@@ -3734,7 +3823,8 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
         texture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
         texture.Apply();
         RenderTexture.active = previousActive;
-        panelSettings.targetTexture = originalTarget;
+        Object.Destroy(documentObject);
+        Object.Destroy(panelCopy);
         target.Release();
 
         var outputDirectory = Path.Combine(Application.dataPath, "..", "..", ".superpowers", "uitk-notification-compare");
@@ -3743,15 +3833,22 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
         File.WriteAllBytes(path, texture.EncodeToPNG());
         return path;
     }
+
+    // 本番と同じアイコンの口（C3-a の GameContentPresentation）。引き方は Task 6 Step 1 で読んだ C3-a の実物に合わせる
+    // The production icon lookup (C3-a GameContentPresentation); obtain it the way the C3-a code read in Task 6 Step 1 does
+    INotificationRowIcons CompareRowIcons()
+    {
+        return new GameContentNotificationRowIcons(/* C3-a の実物の GameContentPresentation の引き方 */);
+    }
 });
 ```
 
-（`.superpowers/` は gitignore 下。`panelSettings` は資産なので、戻しを 2 か所に置く: 読み取りの直後（`targetTexture = originalTarget`）と、次の実行のシナリオの頭（途中で止まって残った描き先を LogError つきで `null` へ戻す）。try-catch は使わない。`Object.Instantiate` の写しは差すとパネルが作り直されて GameUi の木が乗らないので使わない〈推測。D-8〉。撮影の後に `targetTexture` が `null` に戻ったことを `uloop execute-dynamic-code` で読み、`git status` に `GameUiPanelSettings.asset` の変更が無いことを見る。変更が出ていたら `git checkout -- <資産のパス>` で戻し、done.md に書く。RenderTexture への描画はパネルだけで世界は写らないので、2560×1080 は位置と寸法〈左端・幅・縦の中央線〉を比べ、色は 720p の画面の撮影で比べる。D-8）
+（`.superpowers/` は gitignore 下。本番の `GameUiPanelSettings.asset` には触らず、`Object.Instantiate` した複製に `targetTexture` を付けて描く。S1-theme の撮影〈`../moorestech_logs/harness/sdd/feature-uitk-s1-theme/workspace/task-5-brief.md` の Step 7・`task-5-report.md` の「撮影」〉が同じ方式で 720p と 2560×1080 を実際に撮っている。複製のパネルは GameUi の木を持たないので、通知のホストをその場で層の並びの背面の層に載せる〈本番の Presenter と同じ層・族〉。`CompareRowIcons` の中身は C3-a の取り込み後に実物で埋める〈`GameContentPresentation` を DI から引けなければ done.md に書き、アイコンの枠だけ代わりの文字で撮る〉。複製の撮影は世界が写らないので位置と寸法〈左端・幅・縦の中央線〉を比べ、色は実画面の 720p で比べる。撮影の後に `git status` で `GameUiPanelSettings.asset` に変更が無いことを見る。D-8）
 
 - [ ] **Step 3: UITK を撮る**
 
 Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh ./moorestech_client .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-notification-compare.cs`
-Expected: `result.json` が成功、1280×720 のスクショと `.superpowers/uitk-notification-compare/uitk-2-notifications-2560x1080.png`。1 回目に "already playing" で落ちたら 1 回だけ再実行する
+Expected: `result.json` が成功、1280×720 の実画面のスクショと `.superpowers/uitk-notification-compare/uitk-2-notifications-panel-1280x720.png`・`uitk-2-notifications-panel-2560x1080.png`。`git status` に `GameUiPanelSettings.asset` の変更が無い。1 回目に "already playing" で落ちたら 1 回だけ再実行する
 
 - [ ] **Step 4: Web の 2560×1080 を撮る**（参照は 1280×720 しか無い）
 
@@ -3777,12 +3874,12 @@ Expected: `$OUT/2-notifications.png`（2560×1080）。`git status` に `shotRun
 | 文字だけの行の高さ | 30 | 45 |
 | 行間 | 10 | 15 |
 | アイコン | 22×22、文の左 8px | 33×33 |
-| 面の色 | `--notification-face`（I-fix1 待ちの α） | — |
+| 面の色 | `--notification-face`（I-fix1 が未取り込みのときだけ「待ち」の α） | — |
 | 枠 | 1px `rgb(104,106,120)` | 1.5px 相当 |
 | 文字の色 | 白・拒否は `#ff7878` | — |
 | 字間 | 0.825px | — |
 
-色・配置・装飾・文字の大きさの差は例外にせず直す（設計書 §3.4）。直したら Task 8 Step 8 のテストを流し直し、撮り直す。暗い半透明面の α の差だけは「I-fix1 待ち」と書いて直さない。例外にしてよい差（同じにする対応が大きく、差が一目で分からないもの。候補: 文字影の 0.35px のにじみ、`overflow-wrap: anywhere` の語の途中の折り返し〈UITK は語の境で折る〉）は台帳「## 見た目の例外」の末尾に `LX-39`〜`LX-41` で書き、USS の該当行に `/* look-exception: LX-n */` を付ける
+色・配置・装飾・文字の大きさの差は例外にせず直す（設計書 §3.4）。直したら Task 8 Step 8 のテストを流し直し、撮り直す。暗い半透明面の α の差は、Task 6 Step 1 で I-fix1 が未取り込みと確かめたときだけ「I-fix1 待ち」と書いて直さない（取り込み済みなら直す）。例外にしてよい差（同じにする対応が大きく、差が一目で分からないもの。候補: 文字影の 0.35px のにじみ、`overflow-wrap: anywhere` の語の途中の折り返し〈UITK は語の境で折る〉）は台帳「## 見た目の例外」の末尾に `LX-39`〜`LX-41` で書き、USS の該当行に `/* look-exception: LX-n */` を付ける
 
 - [ ] **Step 6: 動画と見比べる**（出入りの目視）
 
@@ -3904,12 +4001,12 @@ git commit -m "fix(playtest): server-notification-smoke の研究をマスタか
 - [ ] **Step 1: テスト名を突き合わせる**
 
 Run: `node tools/uitk/test-name-parity.mjs --bundle 2 --emit-missing | grep -E "notification|portalLayerScaling"` と `node tools/uitk/test-name-parity.mjs --bundle 5 --emit-missing | grep -E "portalLayerScaling.*通知"`
-Expected: 通知の 4 ファイル（`src/features/notification/*.test.ts`）・e2e 4 ファイル・`portalLayerScaling.spec.ts` の通知の 1 件が 1 行も出ない（ほかのレーンの持ち分の未対応は数えない）。出たらタグの綴り（`file=` のパス・テスト名の全角半角）を直す
+Expected: 通知の単体 5 ファイル（`src/features/notification/*.test.ts`。`notificationLayering.test.ts` を含む）・e2e 4 ファイル・`portalLayerScaling.spec.ts` の通知の 1 件が 1 行も出ない（ほかのレーンの持ち分の未対応は数えない）。出たらタグの綴り（`file=` のパス・テスト名の全角半角）を直す
 
 - [ ] **Step 2: 全 UI テストと既存の通知の回帰**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\." --timeout-seconds 1500` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "(WireContractNotification|NotificationStateProbe|LookExceptionLedger)"`
-Expected: ErrorCount 0 / 全件 PASS。本計画のテストは 76 件（L0 40・Motion 11・Screens 20・Layering 5。全部隠しの L1 を足したら 77）
+Expected: ErrorCount 0 / 全件 PASS。本計画のテストは 78 件（L0 41・Motion 11・Screens 21・Layering 5。全部隠しの L1 を足したら 79）
 
 - [ ] **Step 3: G1 の未記帳を見る**
 
@@ -3918,7 +4015,7 @@ Expected: 束 2 の未記帳 0。束 2 が暗転中で通知の Web パスを触
 
 - [ ] **Step 4: done.md を書く**（`../moorestech_logs/harness/uitk/S2-notification/done.md`。1 行目は `状態: 完了`）
 
-中身: 完了条件（逐語「通知のストアを C# のモデルへ（`NOTIFICATION_DISPLAY_MS` 参照、入場 160ms・退場 200ms）、背面の層。写す: notification 47（P6・L26・S15）。録画 `server-notification-smoke`（wwxy を直して）」）ごとの証拠（テストの件数と緑のログの行・並べ比べの表と URL・録画の URL・`result.json` のパス）、写したテストの内訳（本計画「写すテストの対応」の表。台帳 47・実数 48・うち捨てる 1・UITK だけ 20）、C3-a の実物との差（Task 6 Step 1）、死活表の実測（Task 6 Step 2。S2-skit 未マージなら「S2-ladder の確認事項」）、未完了・要裁定、**integrator への依頼**:
+中身: 完了条件（逐語「通知のストアを C# のモデルへ（`NOTIFICATION_DISPLAY_MS` 参照、入場 160ms・退場 200ms）、背面の層。写す: notification 47（P6・L26・S15）。録画 `server-notification-smoke`（wwxy を直して）」）ごとの証拠（テストの件数と緑のログの行・並べ比べの表と URL・録画の URL・`result.json` のパス）、写したテストの内訳（本計画「写すテストの対応」の表。台帳 47・`it` の行 48・展開 50・うち捨てる 1・UITK だけ 22。実行計画の「実数 48」との差も書く）、C3-a の実物との差（Task 6 Step 1）、死活表の実測（Task 6 Step 2。S2-skit 未マージなら「S2-ladder の確認事項」）、未完了・要裁定、**integrator への依頼**:
 - ref-uitk-design SKILL.md §9 の「通知の生存 7000ms をトークンに」を直す（生存尺は Model の定数 `NotificationModel.DisplayMilliseconds` が唯一の正で、USS・トークンに書かない。実行計画の完了条件「`NOTIFICATION_DISPLAY_MS` 参照」と Web の `notificationAnimationDesign.test.ts` に合わせる。D-14）
 - E-19 で足した `UiEasing.CssEaseOut`・`CssEaseIn` と `TranslateXTweenStep` を設計書 §7.1 A-69 と部品カタログ（ref-uitk-design）に載せる
 - 通知の文字影のトークン `--notification-text-shadow: 0.35px 0.35px 0 rgba(0, 0, 0, 0.8)`（今は同値の `--key-hint-text-shadow` を借りている）
@@ -3942,7 +4039,7 @@ git commit -m "docs(uitk): 束 2 の通知の追従を記帳する（S2-notifica
 - [ ] **Step 2: 自動適用の後、compile と本計画のテストを流し直す**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(State\.Notification|Screens\.Notification|Motion)\." --timeout-seconds 1500`
-Expected: ErrorCount 0 / 全件 PASS（本計画の 76 件〈全部隠しの L1 を足したら 77〉と Motion の既存テスト）。見た目に効く修正が入ったら Task 10 Step 3〜5 を撮り直し、done.md の表を更新する
+Expected: ErrorCount 0 / 全件 PASS（本計画の 78 件〈全部隠しの L1 を足したら 79〉と Motion の既存テスト）。見た目に効く修正が入ったら Task 10 Step 3〜5 を撮り直し、done.md の表を更新する
 
 - [ ] **Step 3: 反映をコミットする**（レビュー記録は `../moorestech_logs/harness/` へ。feature ブランチに記録ファイルをコミットしない）
 
@@ -3965,7 +4062,7 @@ Expected: ErrorCount 0 / 全件 PASS（本計画の 76 件〈全部隠しの L1 
 1. **Requirements coverage**: R1→Task 1、R2→Task 2、R3→Task 1（引数の型）・3、R4→Task 4、R5→Task 7・8・10、R6→Task 6・8、R7→Task 6 Step 2・9・11、R8→Task 8（言語の L1）、R9→各タスクのタグ・Task 10 Step 7・Task 12 Step 1、R10→Task 10、R11→Task 11、R12→Task 5・13・14。漏れなし
 2. **Placeholder scan**: 「TBD」「後で」は無い。`<PR番号>`・`<Step 8 で置いた…URL>` は実行時に決まる値。C3-a の API（`UiIcon`・`GameIcon`・`GameIconFallback`・`GameContentPresentation`）の名前空間は設計書からの推定で書き、Task 6 Step 1 で実物と照合してから書く手順にした（C3-a が未マージで実物が無いため）。全部隠しの L1 は S2-skit の実物の口に合わせて Task 6 Step 2 で書く（未マージなら書かない）
 3. **Type consistency**: `NotificationModel()`・`DisplayMilliseconds`・`INotificationListSource.Current`・`INotificationListWriter.AddNotification`・`RemoveNotification(long)`、`NotificationRow(long, int, NotificationContent)`、`EarnedNotificationContent(string, IReadOnlyList<NotificationParam>, ItemId, int)`・`AchievementNotificationContent`・`OperationDeniedNotificationContent(string, IReadOnlyList<NotificationParam>, NotificationIcon)`・`SaveMigrationNotificationContent(string, IReadOnlyList<NotificationParam>)`、`NotificationParams.FromWire(string, IReadOnlyDictionary<string,string>)`、`NotificationText.Resolve(NotificationContent, INotificationTextLookup)`・`ResolveParams(IReadOnlyList<NotificationParam>, INotificationTextLookup)`・`BuildInterpolationValues(string, IReadOnlyList<LocalizationTextParam>)`、`NotificationFeedRelay(NotificationFeed, INotificationListWriter)`、`NotificationHostView(INotificationListWriter, INotificationTextLookup, INotificationRowIcons)`・`Render(NotificationListViewModel)`、`NotificationLayerPresenter(GameUiRoot, INotificationListSource, INotificationListWriter, INotificationTextLookup, INotificationRowIcons)`、`NotificationRowView.Show(NotificationRow, UiText, INotificationRowIcons)`、`NotificationRowTiming(float, float, float, float)`、`NotificationRowLifetime.CreateEnter/CreateExit/Play`、`UiEasing.CssEaseOut/CssEaseIn`、`TranslateXTweenStep(VisualElement, float, float)` を全タスクで同じ綴りで使っている。USS の受け直し名 4 つは USS・C#・テストで一致
-4. **保留・縮退経路**: スタイル解決前の描画は最新の 1 つを預かり解決後に描く（一時的）。トークンが読めないときは `UssCustomStyleReader` が LogError を出し、出入り無しで通知を出す（届けるのを優先。トーストの前例と同じ）。ホストが外れて行の動きが止まると除去が来ない → `NotificationHostView` が行数つきの LogWarning を出す（常駐なので Dispose 以外では起きない。全部隠しの実物は Task 6 Step 2 で確かめる）。未知の messageId は「不明な通知」として画面に出て、網羅テストが落ちる。Guid の欠け・読めない値は `NotificationParams` が LogWarning を出して文字の引数のまま通し、Localize が `{name}` を残して LogError を出す。内容名が全言語に無ければ `LocalizeNotificationTextLookup` が LogError を出して欠けの印のまま、アイテムがマスタに無いか名前が無ければ LogError を出して「Item {itemId}」で出す（Web と同じ見え方）。中継の初期データ無しは正常（告知がまだ来ていない）。`RemoveNotification` の空振り・同じ epoch の再描画・左端の同値は `silent-ok` を書いた。撮影の途中で止まり PanelSettings 資産の描き先が戻らなかった場合は、シナリオの頭の検査が LogError を出して戻す（Task 10）
+4. **保留・縮退経路**: スタイル解決前の描画は最新の 1 つを預かり解決後に描く（一時的）。トークンが読めないときは `UssCustomStyleReader` が LogError を出し、出入り無しで通知を出す（届けるのを優先。トーストの前例と同じ）。ホストが外れて行の動きが止まると除去が来ない → `NotificationHostView` が行数つきの LogWarning を出す（常駐なので Dispose 以外では起きない。全部隠しの実物は Task 6 Step 2 で確かめる）。未知の messageId は「不明な通知」として画面に出て、網羅テストが落ちる。Guid の欠け・読めない値は `NotificationParams` が LogWarning を出して文字の引数のまま通し、Localize が `{name}` を残して LogError を出す。内容名が全言語に無ければ `LocalizeNotificationTextLookup` が LogError を出して欠けの印のまま、アイテムがマスタに無いか名前が無ければ LogError を出して「Item {itemId}」で出す（Web と同じ見え方）。中継の初期データ無しは正常（告知がまだ来ていない）。`RemoveNotification` の空振り・同じ epoch の再描画・左端の同値は `silent-ok` を書いた。撮影は PanelSettings の複製に描くので本番の資産は変わらない（Task 10）
 5. **「決定的にする」選択規則**: 合流先は「同じアイテム・同じ messageId の表示中の行」の最初の 1 つ（Web の `find` と同じ。同じ条件の行は合流で 1 つに保たれるので 2 つ並ばない）。並べ比べの研究は `GetAllResearches().First()`、録画の研究は「前提無し・消費あり」の最初のノード（マスタの並び順で決まる）
 6. **呼び出し側への責務漏出**: 文言の解決（キー・補間値・内容名）は `NotificationText` の 1 か所（View からは `TextOf` の 1 か所で呼ぶ）、Guid の引数の型付けは `NotificationParams.FromWire` の 1 か所、アイコンの解決は Content（`GameContentPresentation`）の 1 か所、生存尺は Model の定数 1 か所、出入りの尺とずれはトークン 1 か所、曲線は `UiEasing` の 1 か所。View は判定を持たず、中身の型（`OperationDeniedNotificationContent`）とアイコンの型（`ItemNotificationIcon`・`NoNotificationIcon`）を型パターンで読むだけ。書き口の利用者は中継と View の 2 つだけ
 
@@ -3981,19 +4078,22 @@ Expected: ErrorCount 0 / 全件 PASS（本計画の 76 件〈全部隠しの L1 
 | D-4 | 文言（設計書 A-68）は `UiText` の辞書キー（`new UiText(LocalizationKey, params)`）で表し、研究名・チャレンジ題・アイテム名は解決済みの文字列として引数に入れる。言語が変わったら View が行ごとに解き直す（`TextOf` の 1 か所）。内容名とアイテム名は State の口 `INotificationTextLookup`（本番 `LocalizeNotificationTextLookup`）で引き、辞書・マスタの欠けは理由つきの LogError を出して Web と同じ見え方（内容名は欠けの印 `[!<key>]`、アイテムは `ui.common.itemFallback`「Item {itemId}」）で出す。出所: agent 既定（欠けの扱いは 設計検査（fresh-context）→ agent 既定。Phase 2.6 の強 3） | 通知の文は「辞書の型＋内容名の補間」で、`UiText` の `FromContent`・`FromVerbatim` では表せない。アイテム名を `GameContentPresentation.ItemName`（`UiText`）から取る案: `UiText` を引数の文字列へ入れる口が無く、State から呼べない。欠けを黙って既定値で埋める案: 気づく経路が無い。欠けで例外にする案: 通知 1 件の欠けで画面が止まる（Web も表示を続ける） |
 | D-5 | アイコン（設計書 A-68）は中身の `NotificationIcon` の型で表し、C3-a の Content 層 `GameContentPresentation.Item(ItemId)` を Screens の口 `INotificationRowIcons`（本番 `GameContentNotificationRowIcons`）越しに使い、行は `GameIcon(GameIconFallback.IdText)` で描く。このため Task 6 以降は C3-a の取り込み後に始める（Task 1〜5 は依存しない）。出所: agent 既定（C3-a の依存は指揮が実行計画のレーン行へ足した） | C3-a 待ちの間に Screens で `ClientContext.ItemImageContainer` を直に引く仮の口を作る案: 置き換える負債が残り、設計書 A-4「ID からの解決は Content に 1 か所」に反する。アイコン無しで先に出す案: Web と見た目が違う |
 | D-6 | CSS の `ease-out`・`ease-in`（cubic-bezier）は Foundation の `UiEasing` に `CssEaseOut`・`CssEaseIn` として足し（`UiEasingFunctions.Evaluate` に二分法の分岐）、横移動は新規 `Foundation/Motion/Steps/TranslateXTweenStep.cs` に置く（設計書 A-69）。行の出入りはトーストの前例どおり `UiTweenAnimation`＋Step で書き、Screens は Foundation の Step を束ねる `NotificationRowFadeSlideStep` と 2 本を組む `NotificationRowLifetime` だけを持つ。出所: 指揮の割り当て（実行計画 E-19） | `UiEasing` の既存 3 値は Web の CSS 既定曲線と値が違う（ease-out の x=0.5 で 0.6846 に対し EaseOutCubic は 0.875）。前版の `Screens/Notification/Parts/CssTimingCurve.cs`＋スタイルを書く独自の `IUiAnimation`: Web の CSS アニメを写す次の画面で同じ曲線が二重に生まれ、Foundation の tween の前例から外れる |
-| D-7 | ホストは `UiLayer.BehindStage` の `UiFamily.Viewport` に置き、`top: 50%`・左は実画面の 16px（USS の `--notification-host-screen-left` を `panel.scaledPixelsPerPoint` で割る）。行の幅・文字は PanelSettings の倍率で舞台と同率に拡縮する。行間は行の `margin-bottom: 10px`、新着は `Insert(0)` で最上段。出所: agent 既定 | Web は `position: fixed; left: 1rem; transform: scale(var(--ui-scale)); transform-origin: left top`。USS に `gap` が無く、`column-reverse` の代わりが要る。左を 16 パネル px のままにする案: 2560×1080（倍率 1.5）で 24 実画素になり 2px の合格目安を外す。`panel.scaledPixelsPerPoint` がランタイムの倍率と一致することは Task 10 の 2560×1080 の撮影で確かめる（推測。未実測） |
-| D-8 | 並べ比べの UITK の撮影は、720p は PlayMode の画面（世界ごと）、2560×1080 は GameUi の PanelSettings の描き先を一時的にその大きさの RenderTexture へ替えて撮り、**撮影の直後と次のシナリオの頭の 2 か所で資産の描き先を元へ戻す明示の手順**を置く（try-catch は使わない）。撮影の後に `git status` で資産の変更が無いことを確かめる。Web の 2560×1080 はこのレーンの worktree で `shotRunner.ts` の `referenceViewport` を一時的に書き換えて撮り、書き換えはコミットしない。出所: 設計検査（fresh-context）→ agent 既定（配置検査の違反 4） | `Object.Instantiate` で資産の写しを作る案: 写しを差すには `UIDocument.panelSettings` を替える必要があり、パネルが作り直されて GameUi の木（通知のホストを含む）が写しのパネルに乗らないので、撮りたいものが写らない（推測。未実測）。戻しを撮影の直後だけに置く案: 途中で止まると資産が書き換わったまま残り、Editor の保存で資産に入る。参照は 1280×720 しか無く、GameView の解像度を変える既存の口も無い |
-| D-9 | 文字影は同値の既存トークン `--key-hint-text-shadow` を借り、通知専用のトークンは integrator に依頼する。字間は `letter-spacing: 5.5px`（0.825px÷0.15）、行送りは `--localized-label-line-height: 18px`。出所: agent 既定 | Tokens はこのレーンの所有外（E-19 の例外は Foundation/Motion だけ）。値を USS に直書きする案: 色を直書きしない規則（設計書 §3.2）に反する |
+| D-7 | ホストは `UiLayer.BehindStage` の `UiFamily.Viewport` に置き、`top: 50%`・左は実画面の 16px（USS の `--notification-host-screen-left` を `panel.scaledPixelsPerPoint` で割る）。行の幅・文字は PanelSettings の倍率で舞台と同率に拡縮する。行間は行の `margin-bottom: 10px`、新着は `Insert(0)` で最上段。出所: agent 既定 | Web は `position: fixed; left: 1rem; transform: scale(var(--ui-scale)); transform-origin: left top`。USS に `gap` が無く、`column-reverse` の代わりが要る。左を 16 パネル px のままにする案: 2560×1080（倍率 1.5）で 24 実画素になり 2px の合格目安を外す。`panel.scaledPixelsPerPoint` がランタイムの倍率と一致することは Task 10 の 2560×1080 の撮影で確かめる（推測。未実測）。但し書き（S2-mode-tooltip と同じ）: C3-b の先頭実測で `scaledPixelsPerPoint` と PanelSettings の倍率が一致しないと分かったら、`NotificationHostPlacement` の換算は C3-b の式に従う。出所の追記: 但し書きは 設計検査（fresh-context）→ agent 既定（Phase 2.6 強） |
+| D-8 | 並べ比べの UITK の撮影は、色を実画面の 720p（PlayMode の画面・世界ごと）で、位置と寸法を本番の `GameUiPanelSettings.asset` を `Object.Instantiate` した複製に `targetTexture`（1280×720・2560×1080 の RenderTexture）を付けた UIDocument で撮る。複製のパネルには背面の層へ通知のホストをその場で載せ、参照の元データ（`topicControls.ts` の通知の 4 件）と同じ中身を積んで ReadPixels する。本番の資産は書き換えない。Web の 2560×1080 はこのレーンの worktree で `shotRunner.ts` の `referenceViewport` を一時的に書き換えて撮り、書き換えはコミットしない。3 計画（S2-mode-tooltip・S2-tutorial・S2-notification）で同じ方式。出所: 設計検査（fresh-context）→ agent 既定（配置検査の違反 4。第 2 回で user-simulator の指摘を受けて方式を替えた） | S1-theme の撮影（`../moorestech_logs/harness/sdd/feature-uitk-s1-theme/workspace/task-5-brief.md` の Step 7・`task-5-report.md` の「撮影」）が同じ複製の方式で 720p と 2560×1080 を実際に撮っており、前版の「複製は GameUi の木が乗らず写らない」は木をその場で載せれば足りるので理由にならない。本番の資産の描き先を替えて戻す案（前版）: 途中で止まると資産が書き換わったまま残り得て、戻しの手順を 2 か所に要する。参照は 1280×720 しか無く、GameView の解像度を変える既存の口も無い |
+| D-9 | 文字影は Web `style.module.css:38` の直書きと同値の既存トークン `--key-hint-text-shadow` を借り、通知専用のトークン `--notification-text-shadow` は integrator に依頼する。帰結: 負債が残る（integrator のトークンが入るまで、key-hint 側の値が変わると通知の文字影も変わる。USS のコメントにも書く）。字間は `letter-spacing: 5.5px`（0.825px÷0.15）、行送りは `min-height: 18px`＋`--localized-label-line-height: 18px`（TooltipFace.uss の前例）。出所: agent 既定（帰結の明記は設計検査 第 2 回） | Tokens はこのレーンの所有外（E-19 の例外は Foundation/Motion だけ）。値を USS に直書きする案: 色を直書きしない規則（設計書 §3.2）に反する |
 | D-10 | View は書き口 `INotificationListWriter.RemoveNotification` を直に呼び、コマンド（`IXxxCommands`・`UiCommandResult`）を通さない。出所: agent 既定（書き口の分割は D-1） | 除去は UI の内側の出来事で、サーバーへ送らず拒否の経路も無い（Web の `onRemove` も store を直に呼ぶ）。コマンド層を挟む案: 結果が常に成功の口が増えるだけ |
 | D-11 | `server-notification-smoke` はこのレーンで直し、GameUi と Web の両方で通す。研究と素材はマスタから選ぶ。台帳「## 壊れた録画の割り振り」の行の書き換えは S2-ladder か integrator に任せ、done.md に「直した」と書く。出所: agent 既定 | 実行計画のレーン行が「wwxy を直して」を完了条件に持ち、台帳が「S2-notification が先に直す」と割り振っている。固定 GUID を新しい値へ差し替える案: 次のマスタ改訂で同じ壊れ方をする |
 | D-12 | `e2e/tests/system/portalLayerScaling.spec.ts` の通知の 1 件（台帳の行は uiScale・束 2 5）はこのレーンが処遇（目視）を書く。同じファイルのほかの 3 件は S2-tutorial の持ち分。出所: agent 既定 | 中身が通知の幅（stage 比・画面幅の 2 割以内）で、2560×1080 の撮影を持つのがこのレーン。L1 のテストパネルは PanelSettings の倍率を掛けないので L1 では主張できない |
 | D-13 | 全部隠し（Ctrl+U・カットシーン）の仕組みは S2-skit の持ち物で、このレーンは「## 死活表」の行として確かめるだけにする: レーンの開始時（Task 6 Step 2）に S2-skit の実物が背面の層を隠すなら L1 を 1 件、隠さないなら隠しの対象へ通知の層を 1 行、未マージなら done.md に S2-ladder の確認事項として書く（裁定事項にしない）。ホストの名前は `notification-host` に固定する。出所: 設計検査（fresh-context）→ agent 既定（配置検査の違反 2） | 保険タイマーを持たない（D-2）ので、隠しが要素を外す実物だと行が残り続ける。前版の「配線しない・保険タイマーが消す」: 保険を外したので成り立たない。このレーンで隠しの仕組みを作る案: S2-skit と二重になる |
-| D-14 | 通知の生存尺 7000ms は Model の定数のまま置き、トークンにしない。ref-uitk-design SKILL.md §9 の「通知の生存 7000ms をトークンに」は誤りとして integrator に直しを依頼する。出所: 設計検査（fresh-context）→ agent 既定（配置検査の違反 3） | 実行計画のレーン行の完了条件が「`NOTIFICATION_DISPLAY_MS` 参照」で、Web の `notificationAnimationDesign.test.ts` も「生存尺は store が唯一の正で、CSS へ尺を直書きしない」と戒める。トークンにする案: USS と Model の 2 か所が生存尺を持ち、Web のテストの写しが落ちる |
+| D-14 | 通知の生存尺 7000ms は Model の定数のまま置き、トークンにしない。ref-uitk-design SKILL.md §9 の「通知の生存 7000ms をトークンに」は誤りとして integrator に直しを依頼する。帰結: 負債が残る（integrator の訂正まで SKILL の行とこの計画が食い違い、SKILL を読んだ別のレーンが生存尺をトークンにし得る）。出所: 設計検査（fresh-context）→ agent 既定（配置検査の違反 3） | 実行計画のレーン行の完了条件が「`NOTIFICATION_DISPLAY_MS` 参照」で、Web の `notificationAnimationDesign.test.ts` も「生存尺は store が唯一の正で、CSS へ尺を直書きしない」と戒める。トークンにする案: USS と Model の 2 か所が生存尺を持ち、Web のテストの写しが落ちる |
+| D-15 | 獲得の文の引数は、受信の params に同名の `itemName`・`count` があっても除いてから実値（アイテム名・数）を足す。L0 を 1 件（`NotificationTextLocalizeTest`）。出所: 設計検査（独立評価・再現済み）→ agent 既定 | Web は `{ ...values, itemName, count }` で実値が後勝ち（`notificationMessages.ts:131`）、C# の `LocalizationTextInterpolator` は先勝ちで重複を LogError にする（`LocalizationTextInterpolator.cs:30-53`）。末尾に足すだけの案（前版）: サーバーが同名の引数を送ると誤った名前と数が出てエラーも出る |
+| D-16 | 画面 USS が当たらず（tss の `@import` 漏れ等）スタイルの受け直しが来ないまま配置まで進んだら、ホストが LogError を出す（預かった通知が無音で出ない経路を作らない）。出所: 設計検査（独立評価）→ agent 既定 | `silent-ok` だけにする案: `CustomStyleResolvedEvent` は当たるカスタムプロパティが無いと来ない（推測。L1 で実測）ので、`@import` 漏れで全通知が出ないまま誰も気づかない |
 
 ## 本PR外のリファクタ提案
 
 - WebUiHost の `NotificationTopic.ToDto` と新しい `NotificationContentFactory.FromMessage` が、同じ `NotificationMessagePack` の種別分けと空アイテム ID の扱いを二重に持つ。Web UI を畳む時点で `ToDto` を消すか、両方が同じ種別分けを使う形に寄せる
 - アイテム名の解決が、既存の手書きの 2 か所（Guid からキーを組んで `Localize.GetContent` する箇所）と、このレーンの `LocalizeNotificationTextLookup.ItemDisplayName`、C3-a の `GameContentPresentation.ItemName` に散らばる。欠けの扱い（LogError と「Item {itemId}」）ごと Content 層の 1 か所へ寄せる
 - 通知専用の文字影トークン `--notification-text-shadow` の追加（D-9）
+- `NotificationHostPlacement` の「実画面 px ÷ `scaledPixelsPerPoint`」を C3-b の `UiScreenPixelScope`（A-41）へ委譲する（D-7）
 
 レーンの起動は指揮が行う（実行計画 §4.1）
