@@ -24,7 +24,7 @@
     flex-shrink: 1;
     margin: 0;
     padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
-    border-width: var(--bevel-1);
+    border-width: var(--bevel-1); /* look-exception: LX-3 */
     border-radius: var(--bevel-1);
     border-color: var(--mode-switch-option-ring);
     background-color: var(--mode-switch-option-face);

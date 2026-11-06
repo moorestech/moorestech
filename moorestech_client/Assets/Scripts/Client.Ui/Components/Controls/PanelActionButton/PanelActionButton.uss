@@ -40,7 +40,7 @@
     padding: 0;
     color: var(--panel-action-button-text);
     -unity-text-align: middle-center;
-    -unity-text-outline-width: 0.3px;
+    -unity-text-outline-width: 0.3px; /* look-exception: LX-2 */
     -unity-text-outline-color: var(--panel-action-button-outline);
     flex-grow: 1;
 }
