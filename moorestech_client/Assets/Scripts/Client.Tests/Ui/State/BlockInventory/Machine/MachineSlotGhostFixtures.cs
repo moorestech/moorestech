@@ -16,7 +16,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
 
         // input(0,1) へ素材 2 件、output(3) へ生産物 1 件、tank(0) へ入力液体 1 件
         // Two inputs on slots 0 and 1, one output on slot 3, one input fluid on tank 0
-        public static MachineBindingDetail Machine()
+        public static MachineBindingDetail BoundMachine()
         {
             return WithTanks(new[] { new MachineTankBinding(0, InputFluid, 10) });
         }

@@ -18,29 +18,29 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         [Test]
         public void 素材のアイテムが束縛される入力スロットを返す()
         {
-            CollectionAssert.AreEqual(new[] { 0 }, MachineSlotGhosts.BoundMachineInputSlotsForItem(Machine(), 7, new ItemId(1)));
-            CollectionAssert.AreEqual(new[] { 1 }, MachineSlotGhosts.BoundMachineInputSlotsForItem(Machine(), 7, new ItemId(5)));
+            CollectionAssert.AreEqual(new[] { 0 }, MachineSlotGhosts.BoundMachineInputSlotsForItem(BoundMachine(), 7, new ItemId(1)));
+            CollectionAssert.AreEqual(new[] { 1 }, MachineSlotGhosts.BoundMachineInputSlotsForItem(BoundMachine(), 7, new ItemId(5)));
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/machineSlotGhosts.test.ts">出力帯の束縛は入力帯の候補に混ざらない</web-test>
         [Test]
         public void 出力帯の束縛は入力帯の候補に混ざらない()
         {
-            CollectionAssert.IsEmpty(MachineSlotGhosts.BoundMachineInputSlotsForItem(Machine(), 7, new ItemId(2)));
+            CollectionAssert.IsEmpty(MachineSlotGhosts.BoundMachineInputSlotsForItem(BoundMachine(), 7, new ItemId(2)));
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/machineSlotGhosts.test.ts">束縛されないitemIdは空配列を返す</web-test>
         [Test]
         public void 束縛されないアイテムは空を返す()
         {
-            CollectionAssert.IsEmpty(MachineSlotGhosts.BoundMachineInputSlotsForItem(Machine(), 7, new ItemId(999)));
+            CollectionAssert.IsEmpty(MachineSlotGhosts.BoundMachineInputSlotsForItem(BoundMachine(), 7, new ItemId(999)));
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/machineSlotGhosts.test.ts">継承元スロットは上位レベルの変種でも宛先になる</web-test>
         [Test]
         public void 継承元スロットは上位レベルの変種でも宛先になる()
         {
-            CollectionAssert.AreEqual(new[] { 0 }, MachineSlotGhosts.BoundMachineInputSlotsForItem(Machine(), 7, new ItemId(12)));
+            CollectionAssert.AreEqual(new[] { 0 }, MachineSlotGhosts.BoundMachineInputSlotsForItem(BoundMachine(), 7, new ItemId(12)));
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/machineSlotGhosts.test.ts">実物入りの束縛スロットは入っている数/必要数を返し、足りなければlacking</web-test>

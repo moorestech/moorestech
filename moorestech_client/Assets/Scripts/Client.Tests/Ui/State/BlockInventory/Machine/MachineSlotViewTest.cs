@@ -18,7 +18,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         {
             // 束縛外（input index2・output index4,5）は空なら描かない
             // Unbound slots (input index2, output index4,5) stay undrawn while empty
-            var view = MachineSlotGhosts.BuildMachineSlotView(Machine(), EmptyItemSlots(), EmptyFluidSlots(3));
+            var view = MachineSlotGhosts.BuildMachineSlotView(BoundMachine(), EmptyItemSlots(), EmptyFluidSlots(3));
             Assert.AreEqual(2, view.Inputs.Count);
             AssertGhostSlot(view.Inputs[0], 0, 1, 2, new[] { 1, 11, 12 });
             AssertGhostSlot(view.Inputs[1], 1, 5, 1, new[] { 5 });
@@ -34,7 +34,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
             // input index2 (unbound) holds a leftover material the refund could not return
             var itemSlots = EmptyItemSlots();
             itemSlots[2] = new BlockItemSlotState(new ItemId(9), 4);
-            var view = MachineSlotGhosts.BuildMachineSlotView(Machine(), itemSlots, EmptyFluidSlots(3));
+            var view = MachineSlotGhosts.BuildMachineSlotView(BoundMachine(), itemSlots, EmptyFluidSlots(3));
             Assert.AreEqual(3, view.Inputs.Count);
             AssertGhostSlot(view.Inputs[0], 0, 1, 2, new[] { 1, 11, 12 });
             AssertGhostSlot(view.Inputs[1], 1, 5, 1, new[] { 5 });
@@ -45,7 +45,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         [Test]
         public void 液体は束縛されたタンクだけを返す()
         {
-            var view = MachineSlotGhosts.BuildMachineSlotView(Machine(), EmptyItemSlots(), EmptyFluidSlots(3));
+            var view = MachineSlotGhosts.BuildMachineSlotView(BoundMachine(), EmptyItemSlots(), EmptyFluidSlots(3));
             Assert.AreEqual(1, view.Fluids.Count);
             Assert.AreEqual(0, view.Fluids[0].Index);
             Assert.IsInstanceOf<GhostedFluidSlot>(view.Fluids[0]);
@@ -70,7 +70,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         {
             var fluidSlots = EmptyFluidSlots(3);
             fluidSlots[1] = BlockFluidSlotState.Filled(new FluidId(3), 20, 100);
-            var view = MachineSlotGhosts.BuildMachineSlotView(Machine(), EmptyItemSlots(), fluidSlots);
+            var view = MachineSlotGhosts.BuildMachineSlotView(BoundMachine(), EmptyItemSlots(), fluidSlots);
             Assert.AreEqual(2, view.Fluids.Count);
             Assert.AreEqual(0, view.Fluids[0].Index);
             Assert.IsInstanceOf<GhostedFluidSlot>(view.Fluids[0]);
