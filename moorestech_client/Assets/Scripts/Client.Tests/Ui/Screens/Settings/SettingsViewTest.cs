@@ -121,7 +121,6 @@ namespace Client.Tests.Ui.Screens.Settings
         }
 
         /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">数値項目は数値で送る</web-test>
-        /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">%sの操作値を送る</web-test>
         [Test]
         public void 数値項目と地形は対応する値で送る()
         {

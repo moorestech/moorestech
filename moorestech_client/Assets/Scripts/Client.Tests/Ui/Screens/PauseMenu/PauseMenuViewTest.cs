@@ -124,7 +124,6 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.IsTrue(Find<Button>(_view, "pause-menu-back").ClassListContains(AnchorIds.PauseBackToTop));
         }
 
-        /// <web-test file="e2e/tests/system/pauseMenuSettingsLayout.spec.ts">設定画面は${viewport.width}x${viewport.height}で枠内に収まり本文だけスクロールする</web-test>
         [Test]
         public void 設定画面は1280x720で枠内に収まり本文だけスクロールする()
         {

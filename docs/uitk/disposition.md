@@ -22,7 +22,7 @@
 
 | 日付 | 束 | コミット | Web | 写した | 処遇 | 写す予定 | 未対応 |
 |---|---|---|---|---|---|---|---|
-| 2026-11-06 | 1 | d14b2186d4 | 66 | 44 | 9 | 13 | 0 |
+| 2026-11-06 | 1 | 1670aca187 | 66 | 41 | 9 | 16 | 0 |
 
 ## 処遇
 
@@ -34,9 +34,11 @@
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | トップから設定画面へ進み言語を選べ、戻るでトップへ戻る | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs（設定へ進み日本語を選んでロケール印を待ち、戻るでトップへ戻る） | — |
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | トップからバグ報告画面へ進み送信すると成功を表示する | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs（バグ報告へ進み本文を入れて送り、トーストと outbox の新しい箱を確かめ、トップのセーブを待つ） | — |
 | 1 | `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` | 復旧表示は${viewport.width}x${viewport.height}で収まり同値操作と解除通知を受ける | 写す予定 | moorestech-albof.21（同値操作と解除は SettingsViewTest にあるが、ポーズの枠内に復旧表示が収まることを L1 で見るテストが無い） | — |
+| 1 | `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` | 設定画面は${viewport.width}x${viewport.height}で枠内に収まり本文だけスクロールする | 写す予定 | moorestech-albof.21（PauseMenuViewTest は 1280x720 だけを見る。Web が見る 2432x786 で枠内に収まり本文だけスクロールすることを見るテストが無い） | — |
 | 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | 送信状況 %j と送信可否を同時に表示する | 写す予定 | moorestech-albof.21（文言は BugReportFormTextTest にあるが、配送の行と状態の行を同じ画面に同時に出す View のテストが無い） | — |
 | 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | %s辞書で配送不能件数と復旧案内を出す | 写す予定 | moorestech-albof.21（4 言語の本番辞書。UITK は日本語だけ） | — |
 | 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | %s辞書で件数不明を完了や0件にしない | 写す予定 | moorestech-albof.21（4 言語の本番辞書。UITK は日本語だけ） | — |
+| 1 | `src/features/pauseMenu/BugReportFormTests/hostSubmissionLock.test.ts` | 応答待ちが終了してもホスト送信中は感想の種別と本文を保護する | 写す予定 | moorestech-albof.21（BugReportFormViewTest はホスト Submitting を Apply するだけ。送信→ホスト submitting→ローカル応答の終了後もロックが残り成功トーストを出さず、ready で解けることを見るテストが無い） | — |
 | 1 | `src/features/pauseMenu/BugReportFormTests/productionSendingLabels.test.ts` | ${locale}: ${kind}のホスト送信表示は本番CSVを使う | 写す予定 | moorestech-albof.21（4 言語の本番辞書の文言。UITK はキーの選び分けだけを見る） | — |
 | 1 | `src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts` | %s辞書でボタン2つと書き出し中の文言が未翻訳キーにならない | 写す予定 | moorestech-albof.21（4 言語。汎用の LocalizationDictionaryCoverageTest は空訳だけを見る） | — |
 | 1 | `src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts` | %s辞書で完了・欠落・開けなかった案内・失敗の文言が未翻訳キーにならない | 写す予定 | moorestech-albof.21（4 言語で差し込み値が残ること。UITK は日本語だけ） | — |
@@ -45,6 +47,7 @@
 | 1 | `src/features/pauseMenu/PauseMenuPanel.test.ts` | パネルを外して付け直すと書きかけは空になる | 写す予定 | moorestech-albof.21（ポーズを開くたびに PauseMenuScreenPresenter が書きかけを Reset するが、それを見るテストが無い） | — |
 | 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | 拒否理由と対象項目を表示文言へ解決する | 捨てる | WS の失敗コード（invalid_graphics_quality:invalid_type:…）を文言へ解く契約。UITK の SetGraphicsQuality は型付きの値を受け結果を返さず、拒否の経路が無い | — |
 | 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | topicを固定したまま連続操作とpreset直後に%sを送る | 写す予定 | moorestech-albof.21（モデルが更新されない間の連続操作とプリセット直後の操作で、前の操作を巻き戻さず今の項目を送ることを見るテストが無い） | — |
+| 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | %sの操作値を送る | 写す予定 | moorestech-albof.21（オンオフ 5 項目〈ssao・postProcessing・effects・mapObjects・ocean〉の testid と送る項目の対応〈GraphicsQualityItemRows の表〉を View で押して見るテストが無い。GraphicsQualityRowsTest は行を自作し表を通らず、SettingsViewTest は描画倍率と地形だけ） | — |
 | 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | topic未着では項目を描かない | 捨てる | UITK の SettingsModel は生成時に設定値を同期で持ち、topic 未着の状態が無い | — |
 | 1 | `src/features/settings/LanguageSelect.test.ts` | 一覧が届くまでは辞書非依存リテラルの読み込み中を出しModeSwitchを描かない | 捨てる | UITK の言語一覧は LanguageCatalog の静的な表で、配信待ちの状態が無い | — |
 | 1 | `src/features/settings/SprintModeSelect.test.ts` | holdの初期表示からtoggleを選択できる | 写す予定 | moorestech-albof.21（hold で開いた画面から toggle を押して SetSprintInputMode(Toggle) が出ることを見るテストが無い） | — |
