@@ -9,3 +9,98 @@
 .game-ui-locale--cjk {
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
 }
+
+/* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0 で、行の高さは USS に無いので min-height = 字 × line-height */
+/* Title は Web と同じ px。GameUi のフォントは字幅が約 7% 広いので letter-spacing で詰めて題の幅を Web に寄せる（設計書 A-37。値は Task 11 の並べ比べで決める） */
+/* Copies of Mantine Text/Title (UiTypographyClass); the Text root has margin 0 and padding 0, and USS has no line-height so min-height = size x line-height */
+/* Titles use the Web px; the GameUi font sets about 7% wider, so letter-spacing tightens the title width to the Web's (design A-37; values settled by the Task 11 comparison) */
+.text--xs,
+.text--sm,
+.text--md,
+.title--order-1,
+.title--order-2,
+.title--order-3,
+.title--order-4 {
+    margin: 0;
+    padding: 0;
+    white-space: normal;
+    -unity-text-align: middle-left;
+}
+
+.text--xs {
+    font-size: var(--mantine-font-size-xs);
+    min-height: 16.8px;
+}
+
+.text--sm {
+    font-size: var(--mantine-font-size-sm);
+    min-height: 20.3px;
+}
+
+.text--md {
+    font-size: var(--mantine-font-size-md);
+    min-height: 24.8px;
+}
+
+.title--order-1 {
+    font-size: 34px;
+    letter-spacing: -1.3px;
+    min-height: 44.2px;
+}
+
+.title--order-2 {
+    font-size: 26px;
+    letter-spacing: -1px;
+    min-height: 35.1px;
+}
+
+.title--order-3 {
+    font-size: 22px;
+    letter-spacing: -0.8px;
+    min-height: 30.8px;
+}
+
+.title--order-4 {
+    font-size: 18px;
+    letter-spacing: -0.6px;
+    min-height: 26.1px;
+}
+
+.text--dimmed {
+    color: var(--mantine-color-dimmed);
+}
+
+.text--white {
+    color: var(--mantine-color-white);
+}
+
+.text--default {
+    color: var(--text-default);
+}
+
+.text--muted {
+    color: var(--text-muted);
+}
+
+.text--insufficient {
+    color: var(--text-insufficient);
+}
+
+.text--high-contrast {
+    color: var(--text-high-contrast);
+}
+
+/* 大きさのクラスより後に置き、揃えを上書きする */
+/* Placed after the size classes so it overrides their alignment */
+.text--center {
+    -unity-text-align: middle-center;
+}
+
+/* app/tokens.css の :where(.keyHintText)。並びの箱に付け、中の文字と KeyCap が継ぐ（line-height 1.2 は置く側の行で持つ） */
+/* app/tokens.css :where(.keyHintText); attach it to the row so its text and KeyCap inherit (the row owns line-height 1.2) */
+.key-hint-text {
+    font-size: var(--key-hint-font-size);
+    letter-spacing: var(--key-hint-letter-spacing);
+    color: var(--text-high-contrast);
+    text-shadow: var(--key-hint-text-shadow);
+}
