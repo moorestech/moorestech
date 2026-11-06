@@ -55,3 +55,6 @@ jobs:
             [ "$name" = "test_uitk_web_follow_real_ledger.py" ] && continue
             python3 -m unittest discover -s .github/scripts/tests -p "$name" -v
           done
+
+      - name: Test the test-name parity tool
+        run: node --test tools/uitk/testNameParity/tests/*.test.mjs
