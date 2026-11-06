@@ -83,5 +83,16 @@ namespace Client.Tests.Ui.Components.Slots.Item
             Assert.AreSame(icon.Label, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, Plain, null, null, null)).Tooltip);
             Assert.AreSame(custom, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, Plain, null, null, custom)).Tooltip);
         }
+
+        [Test]
+        public void ツールチップは不足の文と上書きの両方があれば不足の文を使う()
+        {
+            var icon = SlotTestIcons.WithTexture("1", "Iron");
+            var custom = UiText.FromVerbatim("custom");
+            var shortageText = UiText.FromVerbatim("shortage");
+            var shortage = new ItemSlotShortage(1, 3, true, shortageText);
+
+            Assert.AreSame(shortageText, ItemSlotPresentation.From(new ItemSlotContent(icon, 1, Plain, shortage, null, custom)).Tooltip);
+        }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Slots;
+using Client.Ui.Foundation.Icons;
 using Client.Ui.Foundation.Tooltip;
 using NUnit.Framework;
 using UniRx;
@@ -108,6 +109,17 @@ namespace Client.Tests.Ui.Components.Slots.Item
             Assert.IsFalse(HoverTooltipMark.TryFindMarked(_frame.contentContainer, out _, out _));
             Assert.IsFalse(_frame.ClassListContains("slot-frame--filled"));
             Assert.AreEqual(DisplayStyle.None, _slot.Q(className: "game-icon__image").resolvedStyle.display);
+        }
+
+        [Test]
+        public void 名前の無い絵に替えたら文の無い印を残さずツールチップを外す()
+        {
+            _slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 2, new ItemSlotMarks(false, false, false), null, null, null));
+            _slot.SetContent(new ItemSlotContent(new UiIcon(SlotTestIcons.SharedTexture, "1", null), 2, new ItemSlotMarks(false, false, false), null, null, null));
+            simulate.FrameUpdate();
+
+            Assert.IsFalse(HoverTooltipMark.TryFindMarked(_frame.contentContainer, out _, out _));
+            Assert.IsTrue(_frame.ClassListContains("slot-frame--filled"));
         }
 
         [Test]

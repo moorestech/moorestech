@@ -57,7 +57,11 @@ namespace Client.Ui.Components.Slots
                 _content.SetIcon(presentation.ShownIcon, GameIconFallback.IdText);
                 if (presentation.ShowsBadge) _content.SetCount(presentation.BadgeCount);
                 else _content.ClearCount();
-                HoverTooltipMark.Mark(_frame, presentation.Tooltip);
+                // 文の無い印を残さない。前に付けた印も外す
+                // Never leave a mark without text; clear any earlier mark too
+                // silent-ok: 名前を持たない表示素材は出す文が無い / 本番の UiIcon は GameContentPresentation が必ず名前を付け、名前なしの扱いは ItemSlotTest が固定する
+                if (presentation.Tooltip == null) HoverTooltipMark.Unmark(_frame);
+                else HoverTooltipMark.Mark(_frame, presentation.Tooltip);
             }
 
             void ApplyShortage(ItemSlotShortage shortage)

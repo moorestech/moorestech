@@ -45,12 +45,15 @@ namespace Client.Ui.Components.Slots
                 // 読めないときは前の形のまま（LogError は Reader が出す）
                 // Keep the previous shape when unreadable (the Reader logs the error)
                 if (!TryReadGrowsInward(out var growsInward)) return;
+                // 全層を読み切ってから書く。途中で読めない層があっても帯が新旧混在で残らない
+                // Read every layer before writing so an unreadable layer never leaves bands half old, half new
+                if (!TryReadBevelWidths(out var widths)) return;
                 var pixelsPerPoint = scaledPixelsPerPoint;
                 var rawCovered = 0f;
                 var snappedCovered = 0f;
                 for (var i = 0; i < _bands.Length; i++)
                 {
-                    if (!UssCustomStyleReader.TryReadPixels(customStyle, BevelWidthProperties[i], out var width)) return;
+                    var width = widths[i];
 
                     // Web は先の層が上に描かれ後の層は見える輪だけが残る。UITK の opacity は要素ごとに掛かり重なりが濃く残るので、各帯は前の層の外（inset は内）の見える輪だけを描く
                     // On the Web earlier layers paint on top, leaving only each later layer's visible ring; UITK opacity applies per element and stacks, so each band draws only the ring beyond earlier layers
@@ -69,6 +72,16 @@ namespace Client.Ui.Components.Slots
                     rawCovered = Mathf.Max(rawCovered, width);
                     snappedCovered = snappedOuter;
                 }
+            }
+
+            bool TryReadBevelWidths(out float[] widths)
+            {
+                widths = new float[BevelWidthProperties.Length];
+                for (var i = 0; i < widths.Length; i++)
+                {
+                    if (!UssCustomStyleReader.TryReadPixels(customStyle, BevelWidthProperties[i], out widths[i])) return false;
+                }
+                return true;
             }
 
             float SnapToPhysicalPixels(float width, float pixelsPerPoint)

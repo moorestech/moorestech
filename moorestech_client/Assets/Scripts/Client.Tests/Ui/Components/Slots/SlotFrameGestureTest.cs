@@ -142,5 +142,34 @@ namespace Client.Tests.Ui.Components.Slots
 
             Assert.AreEqual(0, _gestures.Count(g => g.Kind is SlotGestureKind.LeftEnter or SlotGestureKind.RightEnter));
         }
+
+        [Test]
+        public void ホバーで入ってから枠内で押して動かしても進入の身振りを出さない()
+        {
+            // 押下ビット 0 の進入は判定を保留する。枠の中での押下はその保留を解く
+            // A zero-bit enter defers the judgement; a press inside the frame clears it
+            var outside = new Vector2(20, 20);
+            var inside = _frame.worldBound.center;
+            simulate.MouseMove(outside, inside);
+            simulate.MouseDown(inside, MouseButton.LeftMouse);
+            simulate.MouseMove(inside, inside + new Vector2(2, 2));
+
+            Assert.AreEqual(1, _gestures.Count(g => g.Kind == SlotGestureKind.LeftDown));
+            Assert.AreEqual(0, _gestures.Count(g => g.Kind is SlotGestureKind.LeftEnter or SlotGestureKind.RightEnter));
+        }
+
+        [Test]
+        public void ホバーで入ってから枠内で左右を押して動かしても進入の身振りを出さない()
+        {
+            var outside = new Vector2(20, 20);
+            var inside = _frame.worldBound.center;
+            simulate.MouseMove(outside, inside);
+            simulate.MouseDown(inside, MouseButton.LeftMouse);
+            simulate.MouseDown(inside, MouseButton.RightMouse);
+            simulate.MouseMove(inside, inside + new Vector2(2, 2));
+
+            Assert.AreEqual(1, _gestures.Count(g => g.Kind == SlotGestureKind.RightDown));
+            Assert.AreEqual(0, _gestures.Count(g => g.Kind is SlotGestureKind.LeftEnter or SlotGestureKind.RightEnter));
+        }
     }
 }

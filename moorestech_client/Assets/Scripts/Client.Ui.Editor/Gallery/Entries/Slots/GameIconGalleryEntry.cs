@@ -15,7 +15,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
         public VisualElement CreateSample()
         {
             var root = SlotGallerySampleSheet.CreateSampleRoot();
-            var row = SlotGallerySampleSheet.AddRow(root, "slot-gallery__plain");
+            var row = SlotGallerySampleSheet.AddPlainRow(root);
             AddIcon(row).SetIcon(SlotGallerySampleSheet.Icon("12", "Iron Plate"), GameIconFallback.IdText);
             AddIcon(row).SetIcon(SlotGallerySampleSheet.MissingIcon("123456789", "Iron Plate"), GameIconFallback.IdText);
             AddIcon(row).SetIcon(SlotGallerySampleSheet.MissingIcon("7", "Water"), GameIconFallback.Label);

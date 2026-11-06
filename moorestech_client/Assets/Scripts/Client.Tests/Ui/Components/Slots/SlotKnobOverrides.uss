@@ -47,3 +47,10 @@
 .slot-knob-gap-only {
     --slot-grid-gap: 10px;
 }
+
+/* 1 層目は読めて 3 層目が読めない上書き。帯を新旧混在で書かないことを確かめる */
+/* Layer 1 reads but layer 3 does not; checks that bands are never written half old, half new */
+.slot-knob-broken-bevel {
+    --bevel-1: 5px;
+    --bevel-3: wide;
+}

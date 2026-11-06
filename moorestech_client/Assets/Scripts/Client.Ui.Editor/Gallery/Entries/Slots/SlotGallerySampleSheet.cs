@@ -35,9 +35,17 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
         {
             // 行に画面のつまみの上書きを当て、画面の中に置いたのと同じ形にする
             // Apply the screen's knob overrides on the row so samples sit as they would inside that screen
+            var row = AddPlainRow(parent);
+            row.AddToClassList(knobClass);
+            return row;
+        }
+
+        // つまみを上書きしない既定の行
+        // A default row with no knob overrides
+        public static VisualElement AddPlainRow(VisualElement parent)
+        {
             var row = new VisualElement();
             row.AddToClassList("slot-gallery__row");
-            row.AddToClassList(knobClass);
             parent.Add(row);
             return row;
         }

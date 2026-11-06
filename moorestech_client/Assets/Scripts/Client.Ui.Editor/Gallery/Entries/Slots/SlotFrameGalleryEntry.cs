@@ -15,10 +15,13 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
         public VisualElement CreateSample()
         {
             var root = SlotGallerySampleSheet.CreateSampleRoot();
+            // testid は行をまたいで一意にするため見本全体の通し番号で付ける
+            // testids use a running number across the whole sample so they stay unique across rows
+            var sampleIndex = 0;
 
             // 既定（持ち物・レシピ）
             // Default (inventory, recipe)
-            var plain = SlotGallerySampleSheet.AddRow(root, "slot-gallery__plain");
+            var plain = SlotGallerySampleSheet.AddPlainRow(root);
             AddFrame(plain, new SlotFrameState(false, false, false, false, false), false);
             AddFrame(plain, new SlotFrameState(false, true, false, false, false), true);
             AddFrame(plain, new SlotFrameState(false, false, true, false, false), true);
@@ -39,7 +42,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
 
             void AddFrame(VisualElement row, SlotFrameState state, bool withIcon)
             {
-                var frame = new SlotFrame($"gallery-slot-frame-{row.childCount}");
+                var frame = new SlotFrame($"gallery-slot-frame-{sampleIndex++}");
                 frame.AddToClassList("slot-gallery__cell");
                 frame.SetState(state);
                 if (withIcon)

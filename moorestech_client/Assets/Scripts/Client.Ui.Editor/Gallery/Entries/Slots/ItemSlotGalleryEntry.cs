@@ -18,6 +18,9 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
             var root = SlotGallerySampleSheet.CreateSampleRoot();
             var plain = new ItemSlotMarks(false, false, false);
             var icon = SlotGallerySampleSheet.Icon("1", "Iron Plate");
+            // testid は行をまたいで一意にするため見本全体の通し番号で付ける
+            // testids use a running number across the whole sample so they stay unique across rows
+            var sampleIndex = 0;
 
             // 持ち物（4-player-inventory）
             // Inventory (4-player-inventory)
@@ -49,7 +52,7 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
 
             void Add(VisualElement row, ItemSlotContent content)
             {
-                var slot = new ItemSlot($"gallery-item-slot-{row.childCount}");
+                var slot = new ItemSlot($"gallery-item-slot-{sampleIndex++}");
                 slot.AddToClassList("slot-gallery__cell");
                 slot.SetContent(content);
                 row.Add(slot);

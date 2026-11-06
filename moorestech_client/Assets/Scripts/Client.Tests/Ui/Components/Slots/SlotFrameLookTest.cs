@@ -127,6 +127,25 @@ namespace Client.Tests.Ui.Components.Slots
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--select-cyan"), faceInset.resolvedStyle.borderTopColor, "face inset");
         }
 
+        [Test]
+        public void ベベルの層が1つでも読めなければ帯は前の形のまま残る()
+        {
+            var frame = Mount(null, new SlotFrameState(false, false, false, false, false));
+            var band1 = frame.Q(className: "slot-frame__band--1");
+            var leftBefore = band1.style.left.value.value;
+            var widthBefore = band1.style.borderTopWidth.value;
+
+            // 1 層目だけ読める値に変わり 3 層目が読めない。読み切る前に書くと 1 層目だけ新しくなる
+            // Only layer 1 changes to a readable value while layer 3 is unreadable; writing before reading all would update layer 1 alone
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex(@"--slot-frame-bevel-3 is not a resolved length"));
+            frame.parent.styleSheets.Add(AssetDatabase.LoadAssetAtPath<StyleSheet>(KnobPath));
+            frame.parent.AddToClassList("slot-knob-broken-bevel");
+            simulate.FrameUpdate();
+
+            Assert.AreEqual(leftBefore, band1.style.left.value.value, 0.001f);
+            Assert.AreEqual(widthBefore, band1.style.borderTopWidth.value, 0.001f);
+        }
+
         private SlotFrame Mount(string knobClass, SlotFrameState state)
         {
             var screen = new VisualElement();
