@@ -30,7 +30,7 @@
 
 ## Global Constraints
 
-- 作業ブランチ: `uitk-lane/s2-notification`（`moores-wt new uitk-lane/s2-notification --from origin/feature/uitk --no-editor` で指揮が作る。Task 5 と Task 6 以降で Editor を `uloop launch` する）。Task 1〜4 は C3-a に依存しない。Task 6 以降は C3-a（`GameContentPresentation`・`UiIcon`・`GameIcon` と `Client.Ui.asmdef` の `Core.Master` 参照）と C3-b（`UiScreenPixelScope`。設計書 [A-41]）が `origin/feature/uitk` に入ってから始める（実行計画のレーン行の依存。W2 の枠 2 で C3-b はこのレーンより先に流れる。Task 6 Step 1 で確かめ、無ければ止めて指揮へ返す）
+- 作業ブランチ: `uitk-lane/s2-notification`（`moores-wt new uitk-lane/s2-notification --from origin/feature/uitk --no-editor` で指揮が作る。Task 5 と Task 6 以降で Editor を `uloop launch` する）。Task 1〜4 は C3-a に依存しない。Task 6 以降は C3-a（`GameContentPresentation`・`UiIcon`・`GameIcon` と `Client.Ui.asmdef` の `Core.Master` 参照）と C3-b（倍率の読み口 `StageScaleSource`。設計書 [A-41]）が `origin/feature/uitk` に入ってから始める（実行計画のレーン行の依存。W2 の枠 2 で C3-b はこのレーンより先に流れる。Task 6 Step 1 で確かめ、無ければ止めて指揮へ返す）
 - 正本の優先: 裁定（`.decisions/2026-11-06-UITK*`）→ 統合計画（`origin/master:docs/uitk-migration/plan.md`）→ 設計書 `docs/uitk-migration/execution/component-architecture.md`（このレーンの割り当ては §7.1 の A-67〜A-69）→ 実行計画 `docs/uitk-migration/execution/execution-plan.md`（E-19）→ この計画
 - 層の向き（設計書 §1.1）: `Client.Ui.State` は `Client.Ui`・`UnityEngine.UIElements` を参照しない。Screens は State・Content・Components・Foundation を参照してよい。Components は Content（`GameContentPresentation`）と `Client.Game` を参照しない
 - 所有: `S/Client.Ui/Screens/Notification/**`・`S/Client.Ui.State/Notification/**`（既存の `NotificationFeed.cs`・`SequencedNotification.cs` を含む）・`S/Client.Tests/Ui/Screens/Notification/**`・`S/Client.Tests/Ui/State/Notification/**`・`S/Client.Starter/Registration/GameUi/NotificationGameUiRegistration.cs`・`SC/server-notification-smoke.cs`・新規 `SC/uitk/uitk-notification-compare.cs`
@@ -2135,12 +2135,12 @@ git commit -m "fix(uitk): 通知の L0 を Editor の compile とテストに合
 Run:
 ```bash
 git fetch origin && git merge --no-edit origin/feature/uitk
-git ls-tree -r --name-only HEAD moorestech_client/Assets/Scripts/Client.Ui | grep -E "GameContentPresentation\.cs|/UiIcon\.cs|/GameIcon\.cs|GameIconFallback\.cs|UiScreenPixelScope\.cs"
+git ls-tree -r --name-only HEAD moorestech_client/Assets/Scripts/Client.Ui | grep -E "GameContentPresentation\.cs|/UiIcon\.cs|/GameIcon\.cs|GameIconFallback\.cs|StageScaleSource\.cs"
 grep -n "Core.Master" moorestech_client/Assets/Scripts/Client.Ui/Client.Ui.asmdef
 grep -rn "GameContentPresentation" moorestech_client/Assets/Scripts/Client.Starter/Registration --include='*.cs'
 ```
-Expected: C3-a の 4 ファイルと C3-b の `UiScreenPixelScope.cs` があり、`Client.Ui.asmdef` に `Core.Master`、`GameContentPresentation` が GameUi の系で DI 登録されている。どれかが無ければ止めて done.md に「C3-a 待ち」「C3-b 待ち」と書き指揮へ返す。あれば `UiIcon`・`GameIcon`・`GameIconFallback`・`GameContentPresentation.Item(ItemId)` の実物の名前空間・ctor・メソッド名を読み、Task 7・9 のコード片（下では設計書 §2.1・§2.3 の形で書いた）と違うところを done.md の「実物との差」に書いてから実物に合わせて書く。`GameIcon` の大きさの決め方も読む: 大きさのつまみ（USS のカスタムプロパティ）があれば `Notification.uss` の `.notification-host` でそのつまみに 22px を入れて受け、無ければ `.notification-row__icon > .<GameIcon の実物のクラス>` の規則（Task 8 Step 1 の `game-icon` の行）のクラス名を実物に直す。本体に大きさが当たっていることは Task 7 の L1「アイコンの無い行は…」に `Assert.AreEqual(22f, icon.resolvedStyle.width, 0.5f)` を 1 行足して確かめる
-- `UiScreenPixelScope` を C3-b の実物と照合する。この計画は C3-b の詳細計画（並走 W2a の `../uitk-plan-w2a/docs/superpowers/plans/2026-11-07-uitk-c3-b.md`）が起草時点でまだ無かったので、設計書 [A-41]・§6 の形で書いた: `sealed class UiScreenPixelScope : VisualElement`（Foundation/Stage。実画面いっぱいの寸法で、舞台の倍率の逆数で縮める。倍率は `panel.scaledPixelsPerPoint`、PanelSettings の倍率と違えば `panel.visualTree.layout` と `Screen.width/height` の比から出す）、打ち消した倍率の読み口（下では仮に `IReadOnlyReactiveProperty<float> StageScale`）。C3-b マージ後に実物の名前・ctor・読み口に合わせて Task 8・9 と L1 を書き、差を done.md の「実物との差」に書く。**次のどれかなら止めて指揮へ報告する**: (a) 倍率の変化に追従しない（`GeometryChangedEvent` だけで計り直す作りで、16:9 どうしの解像度変更〈パネルの寸法が変わらない〉で古い倍率のまま残る）、(b) 打ち消した倍率を外へ出す口が無い（中身を舞台と同率に掛け直せない）、(c) C3-b の L1 に倍率を変える手が無い（`SetStageScaleLikeC3bTest` を書けない）
+Expected: C3-a の 4 ファイルと C3-b の `StageScaleSource.cs` があり、`Client.Ui.asmdef` に `Core.Master`、`GameContentPresentation` が GameUi の系で DI 登録されている。どれかが無ければ止めて done.md に「C3-a 待ち」「C3-b 待ち」と書き指揮へ返す。あれば `UiIcon`・`GameIcon`・`GameIconFallback`・`GameContentPresentation.Item(ItemId)` の実物の名前空間・ctor・メソッド名を読み、Task 7・9 のコード片（下では設計書 §2.1・§2.3 の形で書いた）と違うところを done.md の「実物との差」に書いてから実物に合わせて書く。`GameIcon` の大きさの決め方も読む: 大きさのつまみ（USS のカスタムプロパティ）があれば `Notification.uss` の `.notification-host` でそのつまみに 22px を入れて受け、無ければ `.notification-row__icon > .<GameIcon の実物のクラス>` の規則（Task 8 Step 1 の `game-icon` の行）のクラス名を実物に直す。本体に大きさが当たっていることは Task 7 の L1「アイコンの無い行は…」に `Assert.AreEqual(22f, icon.resolvedStyle.width, 0.5f)` を 1 行足して確かめる
+- `StageScaleSource` を C3-b の実物と照合する（C3-b マージ後に実物と照合）。設計書 [A-41] の形で書いた: Foundation/Stage の `StageScaleSource`（`IReadOnlyReactiveProperty<float> Scale`。`panel.scaledPixelsPerPoint` から読み、解像度の変更で値が変わる。C3-b が DI 登録する）。L1 の土台は `new StageScaleSource(IReadOnlyReactiveProperty<float>)` で外から倍率を与える形を仮定した。実物の名前・ctor・登録に合わせて Task 8 の土台・Task 9 の Presenter と撮影シナリオを書き、差を done.md の「実物との差」に書く。**次のどれかなら止めて指揮へ報告する**: (a) `StageScaleSource` が無い、(b) `Scale` が 16:9 どうしの解像度変更〈パネルの寸法が変わらない〉で変わらない（`GeometryChangedEvent` だけで計り直す作り）、(c) テストから倍率を与える口が無い（具象クラスで ctor に倍率の元を渡せず、interface でもない）
 - I-fix1 は `feature/uitk` に取り込み済み（`e26010aa0c`＝PR #1606 のマージ）。`git merge-base --is-ancestor e26010aa0c HEAD && echo in` で入っていることだけ確かめ、done.md に書く
 
 - [ ] **Step 2: 全部隠し（Ctrl+U・カットシーン）が背面の層をどう扱うかを確かめる**（「## 死活表」の最後の行。レーンの開始時に 1 回）
@@ -2833,8 +2833,8 @@ git commit -m "feat(uitk): 通知の 1 行（アイコンの枠と文・拒否�
 
 **Interfaces:**
 - Consumes: Task 6 の `NotificationRowLifetime.Play(VisualElement, NotificationRowTiming) → NotificationRowLifetimeHandle`（`ExitCompleted`・`Cancel()`。パネルのスケジューラで進み、外れると止まる）、`UssCustomStyleReader.TryReadMilliseconds/TryReadPixels(ICustomStyle, string, out float)`（読めなければ自分で LogError）、`Localize.OnLanguageChanged`（`IObservable<Unit>`）・`Localize.TrySetChosenLanguage(string)`、Task 1 の書き口 `INotificationListWriter`、Task 3 の `NotificationText`・`INotificationTextLookup`、Task 7 の行
-- つまみの上書き: Web の局所上書き変数は行ごとの inline style `--notification-lifetime`（`NotificationHost.tsx` の `lifetimeStyle`）だけ。UITK では C# の `NotificationRowTiming` の生存尺が受け、USS のつまみの上書きは無い（ホストの受け直し 3 つは画面 USS の中で閉じる）
-- Produces（Task 9 が使う）: `sealed class NotificationHostView : VisualElement { NotificationHostView(INotificationListWriter writer, INotificationTextLookup textLookup, INotificationRowIcons icons); void Render(NotificationListViewModel viewModel); }`（name `notification-host`。DSL のロケータと S2-skit の全部隠しが引く名前）、USS の受け直し名 `--notification-host-enter-duration`・`--notification-host-exit-duration`・`--notification-host-shift`、`void SetContentScale(float stageScale)`
+- つまみの上書き: Web の局所上書き変数は行ごとの inline style `--notification-lifetime`（`NotificationHost.tsx` の `lifetimeStyle`）だけ。UITK では C# の `NotificationRowTiming` の生存尺が受け、USS のつまみの上書きは無い（ホストの受け直し 4 つは画面 USS の中で閉じる）
+- Produces（Task 9 が使う）: `sealed class NotificationHostView : VisualElement { NotificationHostView(INotificationListWriter writer, INotificationTextLookup textLookup, INotificationRowIcons icons); void Render(NotificationListViewModel viewModel); }`（name `notification-host`。DSL のロケータと S2-skit の全部隠しが引く名前）、USS の受け直し名 `--notification-host-enter-duration`・`--notification-host-exit-duration`・`--notification-host-shift`・`--notification-host-screen-left`、`void SetStageScale(float stageScale)`（C3-b の `StageScaleSource.Scale` の値を受けて `style.left = screenLeft ÷ stageScale`）
 
 - [ ] **Step 1: USS を書く**（`moorestech_client/Assets/Scripts/Client.Ui/Screens/Notification/Notification.uss`）
 
@@ -2845,10 +2845,9 @@ git commit -m "feat(uitk): 通知の 1 行（アイコンの枠と文・拒否�
 .notification-host {
     position: absolute;
     top: 50%;
-    /* 実画面の 16px（Web left: 1rem は倍率を掛けない）。ホストは UiScreenPixelScope の中に置かれるのでこの px は実画面 px。中身の倍率は C# が scale で掛け直す（原点は左上） */
-    /* 16 real-screen px (Web left: 1rem is unscaled); the host sits in UiScreenPixelScope so this px is real-screen px; C# reapplies the stage scale via scale (origin top-left) */
-    left: 16px;
-    transform-origin: left top;
+    /* 左端は実画面の 16px（Web .host の left: 1rem は --ui-scale の外）。C# が StageScaleSource の倍率で割って style.left に当てる */
+    /* The left edge is 16 real-screen px (Web .host left: 1rem is outside --ui-scale); C# divides it by the StageScaleSource scale into style.left */
+    --notification-host-screen-left: 16px;
     flex-direction: column;
     --notification-host-enter-duration: var(--notification-enter-duration);
     --notification-host-exit-duration: var(--notification-exit-duration);
@@ -2924,7 +2923,7 @@ git commit -m "feat(uitk): 通知の 1 行（アイコンの枠と文・拒否�
 
 - [ ] **Step 3: 左端の置き方を確かめる**（ファイルは足さない）
 
-ホストの位置（左 16px・縦の中央線）は Task 9 の Presenter が C3-b の `UiScreenPixelScope`（舞台の倍率を打ち消す箱。設計書 [A-41]）の中に置くことで実画面 px になる。ホストの中身（行の幅・文字）は Web の `transform: scale(var(--ui-scale))` と同じく舞台と同率にするので、ホストは箱が打ち消した倍率を `SetContentScale(float stageScale)` で受けて自分の `style.scale` に掛け直す（`transform-origin: left top`。位置は自分の scale では動かない）。自前の換算（実画面 px ÷ `scaledPixelsPerPoint` を left に書く）は作らない: PanelSettings は Expand（1280×720 基準）で、16:9 どうしの解像度変更ではパネルの寸法が変わらず `GeometryChangedEvent` が来ないので、起動時の倍率で割った値のまま残る（1080p→720p で約 10.7 実画素。指揮の確認）。
+ホストは Viewport 族の背面の層に置いたままにし、中身（行の幅・文字）は PanelSettings の倍率で舞台と同率に拡縮させる（Web の中身の `scale(var(--ui-scale))`）。倍率の外にある左端だけ（Web `.host` の `left: 1rem`）を、C3-b の `StageScaleSource.Scale`（設計書 [A-41]。解像度の変更で値が変わる）を Task 9 の Presenter が購読して `SetStageScale(float)` へ流し、ホストが `style.left = 16 ÷ 倍率` を当てて実画面 16px に保つ。16 は画面 USS の `--notification-host-screen-left` を他の受け直しと同じ `CustomStyleResolvedEvent` で読む。ホストを `UiScreenPixelScope` に入れて中身に倍率を掛け直す形と、`GeometryChangedEvent` で `panel.scaledPixelsPerPoint` を読み直す形は取らない（D-7）
 
 - [ ] **Step 4: ホストを書く**（`moorestech_client/Assets/Scripts/Client.Ui/Screens/Notification/NotificationHostView.cs`）
 
@@ -2957,6 +2956,8 @@ namespace Client.Ui.Screens.Notification
         private NotificationListViewModel _waitingForStyle;
         private NotificationRowTiming _timing;
         private IDisposable _languageSubscription;
+        private float _stageScale = 1f;
+        private float? _screenLeftPixels;
 
         public NotificationHostView(INotificationListWriter writer, INotificationTextLookup textLookup, INotificationRowIcons icons)
         {
@@ -3061,6 +3062,8 @@ namespace Client.Ui.Screens.Notification
             var hasEnter = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-enter-duration", out var enter);
             var hasExit = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--notification-host-exit-duration", out var exit);
             var hasShift = UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-shift", out var shift);
+            if (UssCustomStyleReader.TryReadPixels(customStyle, "--notification-host-screen-left", out var screenLeft)) _screenLeftPixels = screenLeft;
+            ApplyScreenLeft();
             _timing = hasEnter && hasExit && hasShift
                 ? new NotificationRowTiming(enter, exit, NotificationModel.DisplayMilliseconds, shift)
                 : new NotificationRowTiming(0f, 0f, NotificationModel.DisplayMilliseconds, 0f);
@@ -3082,11 +3085,19 @@ namespace Client.Ui.Screens.Notification
             if (_timing == null && _waitingForStyle != null) Debug.LogError("[NotificationHostView] custom style not resolved after layout; is Notification.uss imported by GameUiTheme.tss and the notification-host class present?");
         }
 
-        // UiScreenPixelScope が打ち消した舞台の倍率を中身へ掛け直す（Web の scale(var(--ui-scale))。原点は USS の transform-origin: left top）
-        // Reapply the stage scale that UiScreenPixelScope cancelled to the contents (Web scale(var(--ui-scale)); origin is the USS transform-origin: left top)
-        public void SetContentScale(float stageScale)
+        // 舞台の倍率を受け、左端を実画面の px に保つ（Web .host の left: 1rem は --ui-scale の外。中身は PanelSettings の倍率で舞台と同率）
+        // Take the stage scale and keep the left edge in real-screen px (Web .host left: 1rem is outside --ui-scale; contents scale with the stage via PanelSettings)
+        public void SetStageScale(float stageScale)
         {
-            style.scale = new Scale(new Vector3(stageScale, stageScale, 1f));
+            _stageScale = stageScale;
+            ApplyScreenLeft();
+        }
+
+        private void ApplyScreenLeft()
+        {
+            // silent-ok: 画面 USS の解決前は 16px が未知なので置かない / 読めなければ UssCustomStyleReader が LogError、解決しないまま行が来れば ReportUnresolvedStyle が LogError
+            if (_screenLeftPixels == null) return;
+            style.left = _screenLeftPixels.Value / _stageScale;
         }
 
         private sealed class ShownRow
@@ -3139,7 +3150,7 @@ namespace Client.Tests.Ui.Screens.Notification
         protected NotificationModel Model { get; private set; }
         protected FakeNotificationTextLookup TextLookup { get; private set; }
         protected NotificationHostView Host { get; private set; }
-        protected UiScreenPixelScope Scope { get; private set; }
+        protected ReactiveProperty<float> StageScaleForTest { get; private set; }
         private IDisposable _scaleSubscription;
 
         [SetUp]
@@ -3147,12 +3158,12 @@ namespace Client.Tests.Ui.Screens.Notification
         {
             Model = new NotificationModel();
             TextLookup = new FakeNotificationTextLookup();
-            // 本番の Presenter と同じく UiScreenPixelScope の中へ載せ、打ち消した倍率を中身へ渡す（C3-b の実物の名前に合わせる）
-            // Mount inside UiScreenPixelScope like the production presenter and hand the cancelled scale to the contents (match the C3-b names)
-            Scope = Mount(new UiScreenPixelScope());
-            Host = new NotificationHostView(Model, TextLookup, new FakeNotificationRowIcons());
-            Scope.Add(Host);
-            _scaleSubscription = Scope.StageScale.Subscribe(Host.SetContentScale);
+            // 本番の Presenter と同じく StageScaleSource の倍率をホストへ流す。倍率はテストが外から与える（C3-b マージ後に実物の ctor と照合）
+            // Feed the StageScaleSource scale into the host like the production presenter; the test supplies the scale (check the real ctor after C3-b merges)
+            StageScaleForTest = new ReactiveProperty<float>(1f);
+            var stageScaleSource = new StageScaleSource(StageScaleForTest);
+            Host = Mount(new NotificationHostView(Model, TextLookup, new FakeNotificationRowIcons()));
+            _scaleSubscription = stageScaleSource.Scale.Subscribe(Host.SetStageScale);
             _subscription = Model.Current.Subscribe(Host.Render);
         }
 
@@ -3161,13 +3172,6 @@ namespace Client.Tests.Ui.Screens.Notification
         {
             _subscription.Dispose();
             _scaleSubscription.Dispose();
-        }
-
-        // 舞台の倍率を変える。手は C3-b の UiScreenPixelScope の L1 の実物と同じにする（Task 6 Step 1 で読む。無ければ止めて指揮へ返す）
-        // Change the stage scale the same way the C3-b UiScreenPixelScope L1 does (read in Task 6 Step 1; stop and report if absent)
-        protected void SetStageScaleLikeC3bTest(float stageScale)
-        {
-            // C3-b の実物の手をここに写す / copy the C3-b test's way here
         }
 
         // パネルの時計を進める（UiMotion はパネルのスケジューラで進む。1 回が 1 フレーム）
@@ -3421,20 +3425,18 @@ namespace Client.Tests.Ui.Screens.Notification
         }
 
         [Test]
-        public void 倍率を変えても左端は実画面の16pxのままで縦の中央線から下へ積み行は舞台と同率になる()
+        public void 倍率が変わると左端は実画面の16pxに当たる値へ置き直され縦の中央線から下へ積む()
         {
             Model.AddNotification(Earned(7, 1, "itemEarned.mined"));
+            AdvancePanel(0);
             foreach (var stageScale in new[] { 1f, 1.5f, 1f })
             {
-                // 倍率の変え方は C3-b の UiScreenPixelScope の L1 の実物の手に合わせる（16:9 どうしの変更でパネルの寸法が変わらない場合も含む）
-                // Change the scale the same way the C3-b UiScreenPixelScope L1 does (including 16:9 changes that keep the panel size)
-                SetStageScaleLikeC3bTest(stageScale);
+                // 16:9 どうしの解像度変更（パネルの寸法は変わらず倍率だけ変わる）を StageScaleSource の値の変化で起こす
+                // Drive a 16:9-to-16:9 resolution change (panel size unchanged, only the scale changes) through the StageScaleSource value
+                StageScaleForTest.Value = stageScale;
                 AdvancePanel(0);
-                AdvancePanel(0);
-                var scaledPixelsPerPoint = Host.panel.scaledPixelsPerPoint;
-                Assert.AreEqual(16f, Host.worldBound.x * scaledPixelsPerPoint, 0.5f, $"left at scale {stageScale}");
-                Assert.AreEqual(Scope.worldBound.height * 0.5f, Host.worldBound.y - Scope.worldBound.y, 0.5f, $"center line at scale {stageScale}");
-                Assert.AreEqual(ThemeTokenFile.ResolvePixels("--notification-width") * stageScale, RowAt(0).worldBound.width * scaledPixelsPerPoint, 1f, $"row width at scale {stageScale}");
+                Assert.AreEqual(16f / stageScale, Host.resolvedStyle.left, 0.01f, $"left at scale {stageScale}");
+                Assert.AreEqual(Host.parent.worldBound.height * 0.5f, Host.worldBound.y - Host.parent.worldBound.y, 0.5f, $"center line at scale {stageScale}");
             }
         }
 
@@ -3547,7 +3549,7 @@ namespace Client.Tests.Ui.Screens.Notification
 }
 ```
 
-（`Earned` は `NotificationTestContents`、`RowAt` は土台 `NotificationHostViewTestFixture` の口。`ThemeTokenFile` の名前空間は Task 7 Step 3 と同じく実物に合わせる。L1 のパネルは PanelSettings の倍率を掛けないので `UiScreenPixelScope` の倍率は 1 で、実画面 px と舞台 px の差は Step 7 の「倍率を変えても左端は…」が持つ）
+（`Earned` は `NotificationTestContents`、`RowAt` は土台 `NotificationHostViewTestFixture` の口。`ThemeTokenFile` の名前空間は Task 7 Step 3 と同じく実物に合わせる。L1 のパネルは PanelSettings の倍率を掛けないので、倍率で左端を置き直す側は Step 7 の「倍率が変わると左端は…」が持つ）
 
 - [ ] **Step 8: コンパイルと Screens のテスト**
 
@@ -3572,7 +3574,7 @@ git commit -m "feat(uitk): 通知のホスト（行の差分描画・入場と�
 - Create: `moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Notification/NotificationLayeringTest.cs`
 
 **Interfaces:**
-- Consumes: `GameUiRoot.GetLayer(UiLayer, UiFamily)`、C3-b の `UiScreenPixelScope`（Task 6 Step 1 の照合どおり）、`UiLayer.BehindStage`（`--z-viewport-behind-stage`）・`UiFamily.Viewport`、`UiLayerStack.Build(VisualElement) → UiLayerStack`・`.GetLayer(UiLayer, UiFamily)`（層の入れ物の名前は `layer-{layer}`、子は `{入れ物}-viewport`・`-stage`）、VContainer の `RegisterEntryPoint<T>()`・`Register<T>(Lifetime).As<I>()`、Task 1 の読み口・書き口、Task 2 の中継、Task 3 の本番の口、Task 7 の本番の口、Task 8 のホスト、C3-a が登録する `GameContentPresentation`
+- Consumes: `GameUiRoot.GetLayer(UiLayer, UiFamily)`、C3-b の `StageScaleSource.Scale`（`IReadOnlyReactiveProperty<float>`。C3-b が DI 登録する。Task 6 Step 1 の照合どおり）、`UiLayer.BehindStage`（`--z-viewport-behind-stage`）・`UiFamily.Viewport`、`UiLayerStack.Build(VisualElement) → UiLayerStack`・`.GetLayer(UiLayer, UiFamily)`（層の入れ物の名前は `layer-{layer}`、子は `{入れ物}-viewport`・`-stage`）、VContainer の `RegisterEntryPoint<T>()`・`Register<T>(Lifetime).As<I>()`、Task 1 の読み口・書き口、Task 2 の中継、Task 3 の本番の口、Task 7 の本番の口、Task 8 のホスト、C3-a が登録する `GameContentPresentation`
 - Produces: `sealed class NotificationLayerPresenter : IInitializable, IDisposable { internal const UiLayer HostLayer = UiLayer.BehindStage; internal const UiFamily HostFamily = UiFamily.Viewport; }`、`internal static class NotificationGameUiRegistration { static void Register(ContainerBuilder builder); }`
 
 - [ ] **Step 1: 層のテストを書く**（`moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Notification/NotificationLayeringTest.cs`）
@@ -3582,7 +3584,6 @@ using Client.Localization;
 using Client.Tests.Ui.State.Notification;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Layers;
-using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification;
 using NUnit.Framework;
@@ -3671,9 +3672,7 @@ namespace Client.Tests.Ui.Screens.Notification
         {
             var model = new NotificationModel();
             var host = new NotificationHostView(model, new FakeNotificationTextLookup(), new FakeNotificationRowIcons());
-            var scope = new UiScreenPixelScope();
-            _layers.GetLayer(NotificationLayerPresenter.HostLayer, NotificationLayerPresenter.HostFamily).Add(scope);
-            scope.Add(host);
+            _layers.GetLayer(NotificationLayerPresenter.HostLayer, NotificationLayerPresenter.HostFamily).Add(host);
             simulate.FrameUpdate();
             model.AddNotification(Earned(7, 1, "itemEarned.mined"));
             host.Render(model.Current.Value);
@@ -3720,29 +3719,28 @@ namespace Client.Ui.Screens.Notification
         private readonly INotificationListWriter _writer;
         private readonly INotificationTextLookup _textLookup;
         private readonly INotificationRowIcons _icons;
-        private UiScreenPixelScope _scope;
+        private readonly StageScaleSource _stageScaleSource;
         private NotificationHostView _host;
         private IDisposable _subscription;
         private IDisposable _scaleSubscription;
 
-        public NotificationLayerPresenter(GameUiRoot gameUiRoot, INotificationListSource source, INotificationListWriter writer, INotificationTextLookup textLookup, INotificationRowIcons icons)
+        public NotificationLayerPresenter(GameUiRoot gameUiRoot, INotificationListSource source, INotificationListWriter writer, INotificationTextLookup textLookup, INotificationRowIcons icons, StageScaleSource stageScaleSource)
         {
             _gameUiRoot = gameUiRoot;
             _source = source;
             _writer = writer;
             _textLookup = textLookup;
             _icons = icons;
+            _stageScaleSource = stageScaleSource;
         }
 
         public void Initialize()
         {
-            // 位置（左 16px・縦の中央線）は実画面 px の箱の中で決め、中身は箱が打ち消した舞台の倍率を掛け直す（Web の position: fixed＋scale(var(--ui-scale))）
-            // Position (left 16px, vertical center) inside the real-pixel box; the contents reapply the stage scale the box cancelled (Web position: fixed + scale(var(--ui-scale)))
-            _scope = new UiScreenPixelScope();
-            _gameUiRoot.GetLayer(HostLayer, HostFamily).Add(_scope);
+            // 中身は PanelSettings の倍率で舞台と同率、倍率の外の左端だけ StageScaleSource を購読して実画面 16px に保つ（Web の left: 1rem＋中身の scale(var(--ui-scale))）
+            // Contents scale with the stage via PanelSettings; only the unscaled left edge follows StageScaleSource to stay 16 real px (Web left: 1rem + contents scale(var(--ui-scale)))
             _host = new NotificationHostView(_writer, _textLookup, _icons);
-            _scope.Add(_host);
-            _scaleSubscription = _scope.StageScale.Subscribe(_host.SetContentScale);
+            _gameUiRoot.GetLayer(HostLayer, HostFamily).Add(_host);
+            _scaleSubscription = _stageScaleSource.Scale.Subscribe(_host.SetStageScale);
             _subscription = _source.Current.Subscribe(_host.Render);
         }
 
@@ -3750,7 +3748,7 @@ namespace Client.Ui.Screens.Notification
         {
             _subscription?.Dispose();
             _scaleSubscription?.Dispose();
-            _scope?.RemoveFromHierarchy();
+            _host?.RemoveFromHierarchy();
         }
     }
 }
@@ -3838,7 +3836,6 @@ using Client.Localization;
 using Client.Playtest;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
-using Client.Ui.Foundation.Stage;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification;
@@ -3900,10 +3897,10 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
 
         var model = new NotificationModel();
         var host = new NotificationHostView(model, new LocalizeNotificationTextLookup(), CompareRowIcons());
-        var scope = new UiScreenPixelScope();
-        UiLayerStack.Build(document.rootVisualElement).GetLayer(NotificationLayerPresenter.HostLayer, NotificationLayerPresenter.HostFamily).Add(scope);
-        scope.Add(host);
-        scope.StageScale.Subscribe(host.SetContentScale);
+        UiLayerStack.Build(document.rootVisualElement).GetLayer(NotificationLayerPresenter.HostLayer, NotificationLayerPresenter.HostFamily).Add(host);
+        // 複製のパネルは解像度が固定なので、その倍率を 1 回だけ渡して左端を実画面 16px に置く
+        // The copy panel has a fixed resolution, so pass its scale once to put the left edge at 16 real px
+        host.SetStageScale(document.rootVisualElement.panel.scaledPixelsPerPoint);
         model.Current.Subscribe(host.Render);
         // 研究完了の行は参照のモックの研究名（W/e2e/mock-host/fixtures/contentLocalizationFixtures.ts の「最初の研究」）を文字の引数で渡し、参照と同じ文にする
         // The research row passes the reference mock's research name ("最初の研究" in contentLocalizationFixtures.ts) as a text argument so the text matches the reference
@@ -3939,7 +3936,7 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
 });
 ```
 
-（`.superpowers/` は gitignore 下。本番の `GameUiPanelSettings.asset` には触らず、`Object.Instantiate` した複製に `targetTexture` を付けて描く。S1-theme の撮影〈`../moorestech_logs/harness/sdd/feature-uitk-s1-theme/workspace/task-5-brief.md` の Step 7・`task-5-report.md` の「撮影」〉が同じ方式で 720p と 2560×1080 を実際に撮っている。複製のパネルは GameUi の木を持たないので、通知のホストをその場で層の並びの背面の層の `UiScreenPixelScope` に載せ〈本番の Presenter と同じ層・族・箱〉、ルートに本番と同じロケールのクラス〈`GameUiLocaleClass.CjkClassName`。`S/Client.Ui/Foundation/Text/GameUiLocaleClassBinder.cs`・`Typography.uss` の CJK の規則〉を当てる。3 計画で同じ形。`CompareRowIcons` の中身は C3-a の取り込み後に実物で埋める〈`GameContentPresentation` を DI から引けなければ done.md に書き、アイコンの枠だけ代わりの文字で撮る〉。複製の撮影は世界が写らないので位置と寸法〈左端・幅・縦の中央線〉を比べ、色は実画面の 720p で比べる。撮影の後に `git status` で `GameUiPanelSettings.asset` に変更が無いことを見る。D-8）
+（`.superpowers/` は gitignore 下。本番の `GameUiPanelSettings.asset` には触らず、`Object.Instantiate` した複製に `targetTexture` を付けて描く。S1-theme の撮影〈`../moorestech_logs/harness/sdd/feature-uitk-s1-theme/workspace/task-5-brief.md` の Step 7・`task-5-report.md` の「撮影」〉が同じ方式で 720p と 2560×1080 を実際に撮っている。複製のパネルは GameUi の木を持たないので、通知のホストをその場で層の並びの背面の層に載せて複製のパネルの倍率を `SetStageScale` へ 1 回渡し〈本番の Presenter と同じ層・族。本番は `StageScaleSource` を購読〉、ルートに本番と同じロケールのクラス〈`GameUiLocaleClass.CjkClassName`。`S/Client.Ui/Foundation/Text/GameUiLocaleClassBinder.cs`・`Typography.uss` の CJK の規則〉を当てる。3 計画で同じ形。`CompareRowIcons` の中身は C3-a の取り込み後に実物で埋める〈`GameContentPresentation` を DI から引けなければ done.md に書き、アイコンの枠だけ代わりの文字で撮る〉。複製の撮影は世界が写らないので位置と寸法〈左端・幅・縦の中央線〉を比べ、色は実画面の 720p で比べる。撮影の後に `git status` で `GameUiPanelSettings.asset` に変更が無いことを見る。D-8）
 
 - [ ] **Step 3: UITK を撮る**
 
@@ -4155,7 +4152,7 @@ Expected: ErrorCount 0 / 全件 PASS（本計画の 81 件〈全部隠しの L1 
 
 1. **Requirements coverage**: R1→Task 1、R2→Task 2、R3→Task 1（引数の型）・3、R4→Task 4、R5→Task 7・8・10、R6→Task 6・8、R7→Task 6 Step 2・9・11、R8→Task 8（言語の L1）、R9→各タスクのタグ・Task 8 Step 7b・Task 10 Step 7・Task 12 Step 1、R10→Task 10、R11→Task 11、R12→Task 5・13・14。漏れなし
 2. **Placeholder scan**: 「TBD」「後で」は無い。`<PR番号>`・`<Step 8 で置いた…URL>` は実行時に決まる値。C3-a の API（`UiIcon`・`GameIcon`・`GameIconFallback`・`GameContentPresentation`）の名前空間は設計書からの推定で書き、Task 6 Step 1 で実物と照合してから書く手順にした（C3-a が未マージで実物が無いため）。全部隠しの L1 は S2-skit の実物の口に合わせて Task 6 Step 2 で書く（未マージなら書かない）
-3. **Type consistency**: `NotificationModel()`・`DisplayMilliseconds`・`INotificationListSource.Current`・`INotificationListWriter.AddNotification`・`RemoveNotification(long)`、`NotificationRow(long, int, NotificationContent)`、`EarnedNotificationContent(string, IReadOnlyList<NotificationParam>, ItemId, int)`・`AchievementNotificationContent`・`OperationDeniedNotificationContent(string, IReadOnlyList<NotificationParam>, NotificationIcon)`・`SaveMigrationNotificationContent(string, IReadOnlyList<NotificationParam>)`、`NotificationParams.FromWire(string, IReadOnlyDictionary<string,string>)`、`NotificationText.Resolve(NotificationContent, INotificationTextLookup)`・`ResolveParams(IReadOnlyList<NotificationParam>, INotificationTextLookup)`・`BuildInterpolationValues(string, IReadOnlyList<LocalizationTextParam>)`、`NotificationFeedRelay(NotificationFeed, INotificationListWriter)`、`NotificationHostView(INotificationListWriter, INotificationTextLookup, INotificationRowIcons)`・`Render(NotificationListViewModel)`、`NotificationLayerPresenter(GameUiRoot, INotificationListSource, INotificationListWriter, INotificationTextLookup, INotificationRowIcons)`、`NotificationRowView.Show(NotificationRow, UiText, INotificationRowIcons)`、`NotificationRowTiming(float, float, float, float)`、`NotificationRowLifetime.CreateEnter/CreateExit/Play`、`UiEasing.CssEaseOut/CssEaseIn`、`TranslateXTweenStep(VisualElement, float, float)` を全タスクで同じ綴りで使っている。USS の受け直し名 3 つは USS・C#・テストで一致。C3-b の `UiScreenPixelScope`（打ち消した倍率の読み口は仮に `StageScale`）と `NotificationHostView.SetContentScale(float)` は Task 6 Step 1 で実物の名前に合わせる
+3. **Type consistency**: `NotificationModel()`・`DisplayMilliseconds`・`INotificationListSource.Current`・`INotificationListWriter.AddNotification`・`RemoveNotification(long)`、`NotificationRow(long, int, NotificationContent)`、`EarnedNotificationContent(string, IReadOnlyList<NotificationParam>, ItemId, int)`・`AchievementNotificationContent`・`OperationDeniedNotificationContent(string, IReadOnlyList<NotificationParam>, NotificationIcon)`・`SaveMigrationNotificationContent(string, IReadOnlyList<NotificationParam>)`、`NotificationParams.FromWire(string, IReadOnlyDictionary<string,string>)`、`NotificationText.Resolve(NotificationContent, INotificationTextLookup)`・`ResolveParams(IReadOnlyList<NotificationParam>, INotificationTextLookup)`・`BuildInterpolationValues(string, IReadOnlyList<LocalizationTextParam>)`、`NotificationFeedRelay(NotificationFeed, INotificationListWriter)`、`NotificationHostView(INotificationListWriter, INotificationTextLookup, INotificationRowIcons)`・`Render(NotificationListViewModel)`、`NotificationLayerPresenter(GameUiRoot, INotificationListSource, INotificationListWriter, INotificationTextLookup, INotificationRowIcons)`、`NotificationRowView.Show(NotificationRow, UiText, INotificationRowIcons)`、`NotificationRowTiming(float, float, float, float)`、`NotificationRowLifetime.CreateEnter/CreateExit/Play`、`UiEasing.CssEaseOut/CssEaseIn`、`TranslateXTweenStep(VisualElement, float, float)` を全タスクで同じ綴りで使っている。USS の受け直し名 4 つは USS・C#・テストで一致。C3-b の `StageScaleSource.Scale` と、L1 で倍率を外から与える ctor の形は Task 6 Step 1 で実物の名前に合わせる。ホスト側は `NotificationHostView.SetStageScale(float)`
 4. **保留・縮退経路**: スタイル解決前の描画は最新の 1 つを預かり解決後に描く（一時的）。トークンが読めないときは `UssCustomStyleReader` が LogError を出し、出入り無しで通知を出す（届けるのを優先。トーストの前例と同じ）。ホストが外れて行の動きが止まると除去が来ない → `NotificationHostView` が行数つきの LogWarning を出す（常駐なので Dispose 以外では起きない。全部隠しの実物は Task 6 Step 2 で確かめる）。未知の messageId は「不明な通知」として画面に出て、網羅テストが落ちる。Guid の欠け・読めない値は `NotificationParams` が LogWarning を出して文字の引数のまま通し、Localize が `{name}` を残して LogError を出す。内容名が全言語に無ければ `LocalizeNotificationTextLookup` が LogError を出して欠けの印のまま、アイテムがマスタに無いか名前が無ければ LogError を出して「Item {itemId}」で出す（Web と同じ見え方）。中継の初期データ無しは正常（告知がまだ来ていない）。`RemoveNotification` の空振り・同じ epoch の再描画・左端の同値は `silent-ok` を書いた。撮影は PanelSettings の複製に描くので本番の資産は変わらない（Task 10）
 5. **「決定的にする」選択規則**: 合流先は「同じアイテム・同じ messageId の表示中の行」の最初の 1 つ（Web の `find` と同じ。同じ条件の行は合流で 1 つに保たれるので 2 つ並ばない）。並べ比べの研究は `GetAllResearches().First()`、録画の研究は「前提無し・消費あり」の最初のノード（マスタの並び順で決まる）
 6. **呼び出し側への責務漏出**: 文言の解決（キー・補間値・内容名）は `NotificationText` の 1 か所（View からは `TextOf` の 1 か所で呼ぶ）、Guid の引数の型付けは `NotificationParams.FromWire` の 1 か所、アイコンの解決は Content（`GameContentPresentation`）の 1 か所、生存尺は Model の定数 1 か所、出入りの尺とずれはトークン 1 か所、曲線は `UiEasing` の 1 か所。View は判定を持たず、中身の型（`OperationDeniedNotificationContent`）とアイコンの型（`ItemNotificationIcon`・`NoNotificationIcon`）を型パターンで読むだけ。書き口の利用者は中継と View の 2 つだけ
@@ -4172,7 +4169,7 @@ Expected: ErrorCount 0 / 全件 PASS（本計画の 81 件〈全部隠しの L1 
 | D-4 | 文言（設計書 A-68）は `UiText` の辞書キー（`new UiText(LocalizationKey, params)`）で表し、研究名・チャレンジ題・アイテム名は解決済みの文字列として引数に入れる。言語が変わったら View が行ごとに解き直す（`TextOf` の 1 か所）。内容名とアイテム名は State の口 `INotificationTextLookup`（本番 `LocalizeNotificationTextLookup`）で引き、辞書・マスタの欠けは理由つきの LogError を出して Web と同じ見え方（内容名は欠けの印 `[!<key>]`、アイテムは `ui.common.itemFallback`「Item {itemId}」）で出す。出所: agent 既定（欠けの扱いは 設計検査（fresh-context）→ agent 既定。Phase 2.6 の強 3） | 通知の文は「辞書の型＋内容名の補間」で、`UiText` の `FromContent`・`FromVerbatim` では表せない。アイテム名を `GameContentPresentation.ItemName`（`UiText`）から取る案: `UiText` を引数の文字列へ入れる口が無く、State から呼べない。欠けを黙って既定値で埋める案: 気づく経路が無い。欠けで例外にする案: 通知 1 件の欠けで画面が止まる（Web も表示を続ける） |
 | D-5 | アイコン（設計書 A-68）は中身の `NotificationIcon` の型で表し、C3-a の Content 層 `GameContentPresentation.Item(ItemId)` を Screens の口 `INotificationRowIcons`（本番 `GameContentNotificationRowIcons`）越しに使い、行は `GameIcon(GameIconFallback.IdText)` で描く。このため Task 6 以降は C3-a の取り込み後に始める（Task 1〜5 は依存しない）。出所: agent 既定（C3-a の依存は指揮が実行計画のレーン行へ足した） | C3-a 待ちの間に Screens で `ClientContext.ItemImageContainer` を直に引く仮の口を作る案: 置き換える負債が残り、設計書 A-4「ID からの解決は Content に 1 か所」に反する。アイコン無しで先に出す案: Web と見た目が違う |
 | D-6 | CSS の `ease-out`・`ease-in`（cubic-bezier）は Foundation の `UiEasing` に `CssEaseOut`・`CssEaseIn` として足し（`UiEasingFunctions.Evaluate` に二分法の分岐）、横移動は新規 `Foundation/Motion/Steps/TranslateXTweenStep.cs` に置く（設計書 A-69）。行の出入りはトーストの前例どおり `UiTweenAnimation`＋Step で書き、Screens は Foundation の Step を束ねる `NotificationRowFadeSlideStep` と 2 本を組む `NotificationRowLifetime` だけを持つ。出所: 指揮の割り当て（実行計画 E-19） | `UiEasing` の既存 3 値は Web の CSS 既定曲線と値が違う（ease-out の x=0.5 で 0.6846 に対し EaseOutCubic は 0.875）。前版の `Screens/Notification/Parts/CssTimingCurve.cs`＋スタイルを書く独自の `IUiAnimation`: Web の CSS アニメを写す次の画面で同じ曲線が二重に生まれ、Foundation の tween の前例から外れる |
-| D-7 | ホストは `UiLayer.BehindStage` の `UiFamily.Viewport` に置いた C3-b の `UiScreenPixelScope`（設計書 A-41。舞台の倍率の逆数で縮めた実画面いっぱいの箱）の中に置き、`top: 50%`・`left: 16px`（箱の中なので実画面 px）。中身は箱が打ち消した倍率を `SetContentScale` で `style.scale` に掛け直し（`transform-origin: left top`）、行の幅・文字は舞台と同率に拡縮する。行間は行の `margin-bottom: 10px`、新着は `Insert(0)` で最上段。倍率を変えても左端が実画面の 16px のままであることを L1 で確かめる。出所: 指揮の決定（設計検査 第 5 回・評価役の指摘） | Web は `position: fixed; left: 1rem; transform: scale(var(--ui-scale)); transform-origin: left top`。USS に `gap` が無く、`column-reverse` の代わりが要る。前版の自前の換算（`NotificationHostPlacement`。USS の 16px を `panel.scaledPixelsPerPoint` で割って `GeometryChangedEvent` で計り直す）: Expand で 16:9 どうしの解像度変更ではパネルの論理寸法が変わらず `GeometryChangedEvent` が来ないので、倍率が変わっても古い換算のまま残る（1280×720→1920×1080 で左端が約 10.7 実 px）。同じ「倍率を掛けない実画面 px」を 3 計画が別々に持つことにもなる。左を 16 パネル px のままにする案: 2560×1080（倍率 1.5）で 24 実画素になり 2px の合格目安を外す。C3-b の箱が倍率の変化に追従しない・倍率を外へ出さないと分かったら Task 6 Step 1 で止めて指揮へ返す |
+| D-7 | ホストは `UiLayer.BehindStage` の `UiFamily.Viewport` に置き、`top: 50%`。中身（行の幅・文字）は PanelSettings の倍率で舞台と同率に拡縮する（Web の中身の `scale(var(--ui-scale))`）。倍率の外にある左端（Web `.host` の `left: 1rem`）だけは、Presenter が C3-b の `StageScaleSource.Scale`（設計書 A-41。解像度の変更で値が変わる）を購読してホストの `SetStageScale` へ流し、`style.left = 16 ÷ 倍率`（16 は画面 USS の `--notification-host-screen-left`）で実画面 16px に保つ。倍率 1→1.5 で `left` が 16/1.5 になることを L1 で確かめる。行間は行の `margin-bottom: 10px`、新着は `Insert(0)` で最上段。出所: 指揮の決定（設計書 A-41 の改訂 690f6a5215） | Web は `position: fixed; left: 1rem; transform: scale(var(--ui-scale)); transform-origin: left top`。USS に `gap` が無く、`column-reverse` の代わりが要る。ホストを `UiScreenPixelScope` に入れて中身に倍率を掛け直す案: 打ち消して掛け直す二重の変換になり、A-41 の「通知は打ち消さない側」に反する。`GeometryChangedEvent` で `panel.scaledPixelsPerPoint` を読み直して再計算する案: Expand で 16:9 どうしの解像度変更ではパネルの論理寸法が変わらず事象が来ないので、古い倍率のまま残る（1280×720→1920×1080 で左端が約 10.7 実 px）。左を 16 パネル px のままにする案: 2560×1080（倍率 1.5）で 24 実画素になり 2px の合格目安を外す。C3-b に `StageScaleSource` が無い・解像度の変更で値が変わらないと分かったら Task 6 Step 1 で止めて指揮へ返す |
 | D-8 | 並べ比べの UITK の撮影は、色を実画面の 720p（PlayMode の画面・世界ごと）で、位置と寸法を本番の `GameUiPanelSettings.asset` を `Object.Instantiate` した複製に `targetTexture`（1280×720・2560×1080 の RenderTexture）を付けた UIDocument で撮る。複製のパネルには背面の層へ通知のホストをその場で載せ、参照の元データ（`topicControls.ts` の通知の 4 件）と同じ中身を積んで ReadPixels する。本番の資産は書き換えない。Web の 2560×1080 はこのレーンの worktree で `shotRunner.ts` の `referenceViewport` を一時的に書き換えて撮り、書き換えはコミットしない。3 計画（S2-mode-tooltip・S2-tutorial・S2-notification）で同じ方式。出所: 設計検査（fresh-context）→ agent 既定（配置検査の違反 4。第 2 回で user-simulator の指摘を受けて方式を替えた） | S1-theme の撮影（`../moorestech_logs/harness/sdd/feature-uitk-s1-theme/workspace/task-5-brief.md` の Step 7・`task-5-report.md` の「撮影」）が同じ複製の方式で 720p と 2560×1080 を実際に撮っており、前版の「複製は GameUi の木が乗らず写らない」は木をその場で載せれば足りるので理由にならない。本番の資産の描き先を替えて戻す案（前版）: 途中で止まると資産が書き換わったまま残り得て、戻しの手順を 2 か所に要する。参照は 1280×720 しか無く、GameView の解像度を変える既存の口も無い |
 | D-9 | 文字影は Web `style.module.css:38` の直書きと同値の既存トークン `--key-hint-text-shadow` を借り、通知専用のトークン `--notification-text-shadow` は integrator に依頼する。帰結: 負債が残る（integrator のトークンが入るまで、key-hint 側の値が変わると通知の文字影も変わる。USS のコメントにも書く）。字間は `letter-spacing: 5.5px`（0.825px÷0.15）、行送りは `min-height: 18px`＋`--localized-label-line-height: 18px`（TooltipFace.uss の前例）。出所: agent 既定（帰結の明記は設計検査 第 2 回） | Tokens はこのレーンの所有外（E-19 の例外は Foundation/Motion だけ）。値を USS に直書きする案: 色を直書きしない規則（設計書 §3.2）に反する |
 | D-10 | View は書き口 `INotificationListWriter.RemoveNotification` を直に呼び、コマンド（`IXxxCommands`・`UiCommandResult`）を通さない。出所: agent 既定（書き口の分割は D-1） | 除去は UI の内側の出来事で、サーバーへ送らず拒否の経路も無い（Web の `onRemove` も store を直に呼ぶ）。コマンド層を挟む案: 結果が常に成功の口が増えるだけ |
@@ -4188,6 +4185,6 @@ Expected: ErrorCount 0 / 全件 PASS（本計画の 81 件〈全部隠しの L1 
 - WebUiHost の `NotificationTopic.ToDto` と新しい `NotificationContentFactory.FromMessage` が、同じ `NotificationMessagePack` の種別分けと空アイテム ID の扱いを二重に持つ。Web UI を畳む時点で `ToDto` を消すか、両方が同じ種別分けを使う形に寄せる
 - アイテム名の解決が、既存の手書きの 2 か所（Guid からキーを組んで `Localize.GetContent` する箇所）と、このレーンの `LocalizeNotificationTextLookup.ItemDisplayName`、C3-a の `GameContentPresentation.ItemName` に散らばる。欠けの扱い（LogError と「Item {itemId}」）ごと Content 層の 1 か所へ寄せる
 - 通知専用の文字影トークン `--notification-text-shadow` の追加（D-9）
-- `UiScreenPixelScope` の中身へ舞台の倍率を掛け直す `SetContentScale` の購読は、通知・ツールチップ・チュートリアルで同じ形になる。3 つ揃った時点で C3-b の箱の側に「中身を舞台と同率に保つ」口として寄せる（D-7）
+- 倍率の外にある端の余白（通知の `left: 1rem`）を `StageScaleSource` の購読で実画面 px に保つ形が他の画面にも出たら、「実画面 px の余白」を Foundation/Stage の部品に寄せる（D-7）
 
 レーンの起動は指揮が行う（実行計画 §4.1）
