@@ -87,7 +87,19 @@ namespace Client.Tests.Ui.Text
             var resolved = Observe(host, out _);
             LogAssert.Expect(LogType.Error, new Regex(@"\[LocalizedTextBinding\] attached without a text: host"));
             rootVisualElement.Add(host);
+            simulate.FrameUpdate();
             Assert.IsEmpty(resolved);
+        }
+
+        [Test]
+        public void 載せた直後にSetTextすればLogErrorを出さない()
+        {
+            var host = new VisualElement { name = "host" };
+            var resolved = Observe(host, out var binding);
+            rootVisualElement.Add(host);
+            binding.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.Back));
+            simulate.FrameUpdate();
+            CollectionAssert.AreEqual(new[] { "Back" }, resolved);
         }
 
         private static List<string> Observe(VisualElement host, out LocalizedTextBinding binding)

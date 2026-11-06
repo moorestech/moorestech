@@ -85,6 +85,39 @@ namespace Client.Tests.Ui.Components.Text
         }
 
         [Test]
+        public void 載せた後にSetHintすればLogErrorを出さない()
+        {
+            var hint = Mount(ShortcutHintLayout.Prefix);
+            hint.SetHint(new UiText(LocalizationKeys.Ui.PauseMenu.Back), "Esc");
+            simulate.FrameUpdate();
+
+            Assert.AreEqual("Back", ((Label)Shown(hint)[1]).text);
+        }
+
+        [Test]
+        public void SetHintを呼ばずに載せるとLogErrorを出す()
+        {
+            LogAssert.Expect(LogType.Error, new Regex(@"\[LocalizedTextBinding\] attached without a text: hint"));
+            Mount(ShortcutHintLayout.Prefix);
+            simulate.FrameUpdate();
+        }
+
+        [Test]
+        public void SetHintを2回呼ぶと2回目の内容だけが残る()
+        {
+            var hint = Mount(ShortcutHintLayout.Prefix);
+            hint.SetHint(new UiText(LocalizationKeys.Ui.PauseMenu.Back), "Esc");
+            simulate.FrameUpdate();
+            hint.SetHint(new UiText(LocalizationKeys.Ui.PauseMenu.Settings), "F1");
+            simulate.FrameUpdate();
+
+            var shown = Shown(hint);
+            Assert.AreEqual(2, shown.Length);
+            Assert.AreEqual("F1", ((Label)shown[0]).text);
+            Assert.AreEqual("Settings", ((Label)shown[1]).text);
+        }
+
+        [Test]
         public void 言語を変えると文を解き直す()
         {
             var hint = Mount(ShortcutHintLayout.Prefix);

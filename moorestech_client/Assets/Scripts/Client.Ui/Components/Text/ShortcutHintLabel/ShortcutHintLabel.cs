@@ -22,7 +22,7 @@ namespace Client.Ui.Components.Text
         private readonly Label _before;
         private readonly KeyCap _keyCap;
         private readonly Label _after;
-        private LocalizedTextBinding _sentence;
+        private readonly LocalizedTextBinding _sentence;
 
         public ShortcutHintLabel(string testid, ShortcutHintLayout layout)
         {
@@ -36,6 +36,10 @@ namespace Client.Ui.Components.Text
             Add(_before);
             Add(_keyCap);
             Add(_after);
+            // 束縛は構築時に作る。SetHint が載せた後でも、載って 1 フレーム後も文が無ければ束縛が LogError を出す
+            // Create the binding at construction; SetHint may follow mounting, and the binding reports a still-missing sentence one frame after mounting
+            _sentence = new LocalizedTextBinding(this);
+            _sentence.OnResolved.Subscribe(ShowResolved);
         }
 
         public void SetHint(UiText sentence, string shortcutText)
@@ -43,17 +47,7 @@ namespace Client.Ui.Components.Text
             // {shortcut} に印を入れた文を渡す。印を先頭に置くので、呼び出し側が shortcut を渡しても印が勝つ
             // Hand over the sentence with the marker in {shortcut}; the marker goes first, so it wins over a caller-supplied shortcut
             _keyCap.SetKeyText(shortcutText);
-            EnsureSentenceBinding();
             _sentence.SetText(sentence.WithLeadingParam(ShortcutHintSegments.ParamName, ShortcutHintSegments.Marker));
-        }
-
-        private void EnsureSentenceBinding()
-        {
-            // 文が来る SetHint で束縛を作る。載せた後に SetHint する使い方でも、文無しの載りを誤って LogError にしない
-            // Create the binding at SetHint, when the sentence arrives, so mounting before SetHint is not reported as a missing sentence
-            if (_sentence != null) return;
-            _sentence = new LocalizedTextBinding(this);
-            _sentence.OnResolved.Subscribe(ShowResolved);
         }
 
         private void ShowResolved(string resolved)

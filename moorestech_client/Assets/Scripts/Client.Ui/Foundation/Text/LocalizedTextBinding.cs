@@ -44,11 +44,18 @@ namespace Client.Ui.Foundation.Text
 
         private void OnAttached()
         {
-            // 文無しで載ったら空のまま出さず、開発者に知らせる
-            // Report a host attached without a text instead of leaving it empty
-            if (_text == null) Debug.LogError($"[LocalizedTextBinding] attached without a text: {_host.name}");
+            // 載った後に SetText する使い方を許すため、1 フレーム待っても文が無ければ開発者に知らせる（空のまま黙って出さない）
+            // Allow SetText right after mounting: if there is still no text one frame later, report it instead of staying silently empty
+            _host.schedule.Execute(ReportMissingText);
             EnsureSubscribed();
             Resolve();
+        }
+
+        private void ReportMissingText()
+        {
+            // silent-ok: 文が届いた / 既に外れた宿主は報告不要
+            if (_text != null || _host.panel == null) return;
+            Debug.LogError($"[LocalizedTextBinding] attached without a text: {_host.name}");
         }
 
         private void EnsureSubscribed()
@@ -65,7 +72,7 @@ namespace Client.Ui.Foundation.Text
 
         private void Resolve()
         {
-            // silent-ok: 文が来るまで流さない / 載った時点で無ければ OnAttached が LogError を出す
+            // silent-ok: 文が来るまで流さない / 載って 1 フレーム後も無ければ ReportMissingText が LogError を出す
             if (_text == null) return;
             _onResolved.OnNext(_text.Resolve());
         }
