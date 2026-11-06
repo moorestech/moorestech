@@ -18,7 +18,7 @@ namespace Client.Ui.State.Train.Logic
         }
     }
 
-    // 時刻表の停車駅 1 件。Side は入線する端（Web の TimetableEditStop）
+    // 時刻表の停車駅 1 件。Side は入線する端（Web の TrainTimetableStop）
     // One timetable stop; Side is the arrival end (Web TrainTimetableStop)
     public readonly struct TimetableEditStop
     {
