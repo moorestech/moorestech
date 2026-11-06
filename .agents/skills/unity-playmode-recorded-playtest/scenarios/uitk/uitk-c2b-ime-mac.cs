@@ -114,15 +114,9 @@ return PlaytestRunner.Run("uitk-c2b-ime-mac", options, async p =>
 
     #region Internal
 
-    TextField Field()
-    {
-        return GameUiRoot.Instance.GetRootElement().Q<TextField>("bug-report-description");
-    }
+    TextField Field() => GameUiRoot.Instance.GetRootElement().Q<TextField>("bug-report-description");
 
-    VisualElement Underline()
-    {
-        return GameUiRoot.Instance.GetRootElement().Q<GameTextField>().Q(className: "game-text-field__composition-underline");
-    }
+    VisualElement Underline() => GameUiRoot.Instance.GetRootElement().Q<GameTextField>().Q(className: "game-text-field__composition-underline");
 
     bool IsFieldFocused(TextField target)
     {
@@ -159,9 +153,10 @@ return PlaytestRunner.Run("uitk-c2b-ime-mac", options, async p =>
 
     (Rect mainWindow, float zoom) ShowGameViewAtActualSize()
     {
-        // 主窓を画面いっぱいにして Game ビューを最大化し、1280x720 が等倍で収まる広さにする（終わりに戻す）
-        // Fill the screen with the main window and maximize the Game view so 1280x720 fits at 1x (restored at the end)
+        // 主窓を画面いっぱいにして Game ビューを最大化し、1280x720 が等倍で収まる広さにする（終わりに戻す）。途中で落ちても運転役が戻せるよう、拡大の前に戻す値を layout-before.txt へ書く
+        // Fill the screen with the main window and maximize the Game view so 1280x720 fits at 1x (restored at the end); write the values to restore to layout-before.txt before enlarging so the driver can restore after a mid-run failure
         var before = (UnityEditor.EditorGUIUtility.GetMainWindowPosition(), GameViewZoom());
+        File.WriteAllText(Path.Combine(markers, "layout-before.txt"), FormattableString.Invariant($"{before.Item1.x} {before.Item1.y} {before.Item1.width} {before.Item1.height} {before.Item2}"));
         UnityEditor.EditorGUIUtility.SetMainWindowPosition(new Rect(0, 0, Screen.currentResolution.width, Screen.currentResolution.height));
         GameView().maximized = true;
         return before;
@@ -172,6 +167,7 @@ return PlaytestRunner.Run("uitk-c2b-ime-mac", options, async p =>
         GameView().maximized = false;
         UnityEditor.EditorGUIUtility.SetMainWindowPosition(before.mainWindow);
         SnapGameViewZoom(before.zoom);
+        File.Delete(Path.Combine(markers, "layout-before.txt"));
     }
 
     float GameViewZoom() => ((Vector2)GameView().GetType().GetProperty("zoomAreaScale", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(GameView())).x;

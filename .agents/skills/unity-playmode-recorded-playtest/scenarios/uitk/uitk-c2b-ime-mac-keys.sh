@@ -17,7 +17,23 @@ mkdir -p "$MARKERS"
 # 終わり方によらず入力ソースを英数へ戻す
 # Always return the input source to eisu (ABC), however this ends
 restore_input_source() { osascript -e 'tell application "System Events" to key code 102' >/dev/null 2>&1; }
-trap restore_input_source EXIT
+# シナリオが途中で落ちて Editor が拡大のまま残ったら、layout-before.txt の値で主窓・Game ビュー・倍率を戻す（正常終了ではシナリオが消すので何もしない）
+# If the scenario died and left the Editor enlarged, restore the main window, Game view and zoom from layout-before.txt (the scenario deletes it on a normal finish, so nothing happens then)
+restore_layout() {
+  [ -f "$MARKERS/layout-before.txt" ] || return 0
+  echo "WARN: scenario left the Editor enlarged; restoring layout"
+  uloop execute-dynamic-code --project-path "$PROJECT" --code 'using System.Linq;
+var v = System.IO.File.ReadAllText(System.IO.Path.Combine(UnityEngine.Application.dataPath, "..", "PlaytestResults", "scratch", "ime-mac", "layout-before.txt")).Trim().Split(" ");
+var n = System.Array.ConvertAll(v, s => float.Parse(s, System.Globalization.CultureInfo.InvariantCulture));
+var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+var gv = UnityEngine.Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
+gv.maximized = false;
+UnityEditor.EditorGUIUtility.SetMainWindowPosition(new UnityEngine.Rect(n[0], n[1], n[2], n[3]));
+gv.GetType().GetMethod("SnapZoom", flags).Invoke(gv, new object[] { n[4] });
+return "restored";' && rm -f "$MARKERS/layout-before.txt" || echo "ERROR: layout restore failed; layout-before.txt kept ($MARKERS)"
+}
+on_exit() { restore_layout; restore_input_source; }
+trap on_exit EXIT
 
 # シナリオは子プロセスで走らせ、このスクリプトが前景で鍵を送る（wait で終わりを待つ）
 # Run the scenario as a child while this script sends keys in the foreground (wait collects it)
@@ -48,6 +64,9 @@ while [ $SECONDS -lt $deadline ]; do
   fi
   sleep 0.2
 done
+# 締め切りを超えてもランナーが残っていたら止めてから回収する
+# If the runner is still alive past the deadline, stop it before collecting
+kill -0 "$RUNNER" 2>/dev/null && [ ! -f "$MARKERS/finish" ] && kill "$RUNNER" 2>/dev/null
 wait "$RUNNER"
 status=$?
 tail -40 "$LOG"
