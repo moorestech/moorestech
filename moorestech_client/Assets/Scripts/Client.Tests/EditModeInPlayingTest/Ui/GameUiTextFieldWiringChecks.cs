@@ -4,6 +4,7 @@ using Client.Playtest.Input;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using StarterAssets;
@@ -36,7 +37,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             var fieldB = new GameTextField("game-ui-input-wiring-field-b", false);
             box.Add(fieldA);
             box.Add(fieldB);
-            gameUiRoot.GetLayer(UiLayer.Screen).Add(box);
+            gameUiRoot.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(box);
             return (box, fieldA, fieldB);
         }
 

@@ -1,5 +1,6 @@
 using System;
 using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Stage;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -35,9 +36,11 @@ namespace Client.Ui.Foundation.Root
             return uiDocument.rootVisualElement;
         }
 
-        public VisualElement GetLayer(UiLayer layer)
+        // 画面は層と族（舞台か実画面）を選んで載る（設計書 C6）
+        // Screens mount by choosing a layer and a family, stage or viewport (design C6)
+        public VisualElement GetLayer(UiLayer layer, UiFamily family)
         {
-            return _layers.GetLayer(layer);
+            return _layers.GetLayer(layer, family);
         }
 
         // ロケールなど、パネル全体に効くクラスをルートへ付け外しする

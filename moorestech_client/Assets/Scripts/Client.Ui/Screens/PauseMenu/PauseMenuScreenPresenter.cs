@@ -1,6 +1,7 @@
 using System;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Routing;
@@ -47,7 +48,7 @@ namespace Client.Ui.Screens.PauseMenu
             // 載せるのはここで 1 回だけ。View は隠れた状態で生まれる
             // Mount exactly once here; the view is born hidden
             _view = new PauseMenuView(_pauseMenuModel.Current, _settingsModel.Current, _commands, _settingsCommands, _toasts, _toaster, _draft);
-            _gameUiRoot.GetLayer(UiLayer.PauseMenu).Add(_view);
+            _gameUiRoot.GetLayer(UiLayer.PauseMenu, UiFamily.Stage).Add(_view);
 
             // 開くたびに書きかけを空へ戻す（D-7）
             // Clear the draft on every open (D-7)

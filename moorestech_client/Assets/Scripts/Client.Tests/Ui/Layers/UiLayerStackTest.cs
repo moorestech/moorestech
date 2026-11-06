@@ -1,6 +1,7 @@
 using System;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Foundation.Layers;
+using Client.Ui.Foundation.Stage;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,19 +17,25 @@ namespace Client.Tests.Ui.Layers
         private static readonly Vector2 PanelCenter = new(640, 360);
 
         [Test]
-        public void LayersAreRootChildrenInEnumOrderAndIgnorePicking()
+        public void LayersAreRootChildrenInEnumOrderWithBothFamiliesIgnoringPicks()
         {
             var stack = UiLayerStack.Build(rootVisualElement);
             var layers = (UiLayer[])Enum.GetValues(typeof(UiLayer));
 
-            // ルート直下の子が enum と同じ順・同じ数で並ぶ
-            // The root's children line up in the same order and count as the enum
+            // ルート直下の子が enum と同じ順・同じ数で並び、各層は 2 つの族の子を持つ
+            // The root's children line up in enum order and count, and each layer holds the two family children
             Assert.AreEqual(layers.Length, rootVisualElement.childCount);
             for (var i = 0; i < layers.Length; i++)
             {
-                var container = stack.GetLayer(layers[i]);
-                Assert.AreSame(container, rootVisualElement[i], $"{layers[i]} is not at index {i}");
+                var container = rootVisualElement[i];
+                Assert.AreEqual($"layer-{layers[i]}", container.name, $"{layers[i]} is not at index {i}");
                 Assert.AreEqual(PickingMode.Ignore, container.pickingMode, $"{layers[i]} takes picks");
+                foreach (UiFamily family in Enum.GetValues(typeof(UiFamily)))
+                {
+                    var child = stack.GetLayer(layers[i], family);
+                    Assert.AreSame(container, child.parent, $"{layers[i]} {family} is not inside its layer");
+                    Assert.AreEqual(PickingMode.Ignore, child.pickingMode, $"{layers[i]} {family} takes picks");
+                }
             }
             Assert.AreEqual(PickingMode.Ignore, rootVisualElement.pickingMode);
         }
@@ -51,8 +58,8 @@ namespace Client.Tests.Ui.Layers
             var stack = UiLayerStack.Build(rootVisualElement);
             var screenElement = CreatePickableBox("screen-box");
             var modalElement = CreatePickableBox("modal-box");
-            stack.GetLayer(UiLayer.Screen).Add(screenElement);
-            stack.GetLayer(UiLayer.Modal).Add(modalElement);
+            stack.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(screenElement);
+            stack.GetLayer(UiLayer.Modal, UiFamily.Viewport).Add(modalElement);
             simulate.FrameUpdate();
 
             // 同じ位置で重なると前面の Modal 層の要素が拾われる

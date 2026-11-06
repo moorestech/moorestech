@@ -8,6 +8,7 @@ using Client.Playtest.UiElements;
 using Client.Playtest.UiElements.GameUi;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Client.Ui.State.Routing;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -66,7 +67,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 await PressEscape();
                 Assert.AreEqual(UIStateEnum.PauseMenu, uiStateControl.CurrentState, "Esc でポーズへ遷移しない");
                 Assert.AreEqual(UiScreen.PauseMenu, routingState.Current.Value.Screen, "ルータの画面がポーズでない");
-                Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.PauseMenu).Q("pause-menu"), "UiLayer.PauseMenu に pause-menu が無い");
+                Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.PauseMenu, UiFamily.Stage).Q("pause-menu"), "UiLayer.PauseMenu に pause-menu が無い");
                 Assert.IsTrue(Find("pause-menu").Visible, "UITK のポーズが見えない");
 
                 // Web の値は占有にならない（R2）

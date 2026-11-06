@@ -8,6 +8,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Theme.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Typography.uss");
 /* == section: Foundation/Stage == */
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Stage/UiStageFrame.uss");
 /* == section: Components/Panels == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/GamePanel/GamePanel.uss");
 /* == section: Components/Slots == */

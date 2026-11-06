@@ -1,6 +1,7 @@
 using System;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
+using Client.Ui.Foundation.Stage;
 using Client.Ui.State.Toast;
 using UniRx;
 using VContainer.Unity;
@@ -27,7 +28,7 @@ namespace Client.Ui.Screens.Toast
         public void Initialize()
         {
             _host = new ToastHostView();
-            _gameUiRoot.GetLayer(UiLayer.Toast).Add(_host);
+            _gameUiRoot.GetLayer(UiLayer.Toast, UiFamily.Viewport).Add(_host);
             _subscription = _toastFeed.OnToast.Subscribe(_host.Push);
         }
 
