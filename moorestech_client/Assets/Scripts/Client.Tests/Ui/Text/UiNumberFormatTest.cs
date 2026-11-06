@@ -1,5 +1,5 @@
 using System.Globalization;
-using Client.Ui.Foundation.Text;
+using Client.Ui.State.Text;
 using NUnit.Framework;
 
 namespace Client.Tests.Ui.Text
@@ -41,6 +41,16 @@ namespace Client.Tests.Ui.Text
         public void IntegerHasNoGrouping()
         {
             Assert.AreEqual("1234567", UiNumberFormat.Integer(1234567));
+        }
+
+        [Test]
+        public void RoundHalfUpMatchesWebMathRound()
+        {
+            // Web の Math.round(88.888)=89・Math.round(2.5)=3・Math.round(-2.5)=-2 と同じ
+            // Same as Web Math.round(88.888)=89, Math.round(2.5)=3, Math.round(-2.5)=-2
+            Assert.AreEqual(89, UiNumberFormat.RoundHalfUp(88.888));
+            Assert.AreEqual(3, UiNumberFormat.RoundHalfUp(2.5));
+            Assert.AreEqual(-2, UiNumberFormat.RoundHalfUp(-2.5));
         }
     }
 }
