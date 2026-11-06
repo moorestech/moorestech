@@ -371,7 +371,7 @@ public sealed class UiCommandResultToaster
 
 - 全体スイッチ（albof.17。plan §3.3 R1〜R4）は Editor 限定の 1 つの enum。**UITK のときだけ** composition root（`MainGameUiRegistration`）が Presenter 群を登録し、Web のときは Client.Ui の Presenter を 1 つも登録しない `[A-16]`。Presenter・View・部品はスイッチを読まない（分岐は composition root の 1 か所）
 - 画面の出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める（段階 1 の `MainPanelOwner` は消える。C10）
-- HUD（常駐表示）はルータの主パネル画面ではなく、`UiScreenTraits` の `AlwaysOnHud`/`TrainHud` 等の列を Presenter が読んで出す。`Backdrop` 列は `Screens/Shell/` の `ScreenBackdropPresenter` だけが読む `[A-44]`
+- HUD（常駐表示）はルータの主パネル画面ではなく、Web `App.tsx` の条件を Presenter が読んで出す。`UiScreenTraits` の `AlwaysOnHud` が絞るのはホットバーと装備だけで、他の常駐 HUD はそれぞれの条件（`CrosshairVisibility`・`TrainHud` ∧ 乗車中・¬blocking スキット等）に従う `[A-57]`。`Backdrop` 列は `Screens/Shell/` の `ScreenBackdropPresenter` だけが読む `[A-44]`
 - 舞台の上段 3 列に並ぶ画面（持ち物＝`Inv`、ブロックインベントリとレシピビューア＝`Viewer`、アイテム一覧＝`Items`）の Presenter は、`StageColumnsLayout.Get(StageColumn)` の枠へ View を載せる。研究画面の左余白 0 は `StageColumnsLayout` が `UiRoutingState` の画面で切り替える（Web `App.module.css:26-54`・`App.tsx:100-103`）`[A-45]`
 - L1 と L0 はスイッチと無関係（View を `UiTestHost` に直接組む）。L3・L4 はスイッチを UITK にして始める（plan §3.3 R4）
 - UITK の間、未実装の画面は使えない（裁定）。Presenter の未登録の画面は何も出ないだけで、ログは不要（裁定どおりの既知の状態）
@@ -503,6 +503,11 @@ SKILL.md の目次:
 | A-52 | 部品レーンは自分のつまみの既定と前計算色を `DerivedTokens.uss` の末尾に名札付きのブロックで足してよい（実行計画 E-1 の共有区画と同じ扱いで、衝突時は両方採る）。暗い半透明色の α は `1-(1-α)^1.85` で補正する（C3-a 計画 D-4・D-5） | integrator の前提パッチを待つ: 持ち主の無い工程になりクリティカルパスが止まる。部品のルートで宣言する: 画面のつまみの上書きに勝つ |
 | A-53 | Content 層（`Client.Ui/Content/`）は `GameContentPresentation` が ID→`UiIcon`・`UiText` を解き、テクスチャの出所は `IGameContentTextureSource`（本番 `ClientContextContentTextureSource`）で受ける。`Client.Ui.asmdef` に `Core.Master`・`Client.Mod` を足し、登録は `ContentGameUiRegistration` を `MainGameUiRegistration` の画面登録区画に 1 行。空の ItemId は例外で止める。`FluidFace` は C4-a（C3-a 計画 D-6・D-7） | `ClientContext` を直に読む: テストでテクスチャの有無を作れない。Content を別 asmdef: 層は `Client.Ui` の中のディレクトリで分け `UiLayerDependencyRules` が向きを止めている。空の ID に `#0` を返す: Web の itemId 0 は中身なし |
 | A-54 | C3-a の Web テストの処遇: `useSlotMouse` は L0（`SlotGestureRulesTest`）へ、`BlockSlot`「nameが無ければ…」と `iconEndpointArchitecture.test.ts` は捨てる、`app/iconTextOutlineDesign.test.ts` は C3-a で記帳せず integrator が C4-a・S2-hud・S3 へ配る（C3-a 計画 D-9） | 名前の無い BlockSlot・HTTP のアイコン配信は UITK に無い。縁取りのテストは複数レーンの部品にまたがる |
+| A-55 | 幕 `--screen-backdrop-face`（Web `.backdrop` の 42% を補正した α 0.6983）と列車乗車 HUD の面 `--train-riding-hud-face`（Web `color-mix(dark-8 82%)` を補正）は S2-hud が `DerivedTokens.uss` の末尾に足し、`convert-web-tokens.mjs` の前計算の表と `docs/uitk/translucent-tokens.md` も同じレーンで直す（S2-hud 計画 D-4） | 段階 2 の頭に integrator が入れる（旧 §1.4）: feature/uitk に行が無く、持ち主の無い工程になっていた |
+| A-56 | blocking スキットの有無は `Client.Ui.State.SkitPresence.BlockingSkitPresence`（`IReadOnlyReactiveProperty<bool> IsBlocking`）で配り、S2-hud が作り `HudGameUiRegistration` で登録する。`Client.Ui.State.asmdef` に `Client.Skit` を足す。使い手は S2-hud・S2-tutorial・S3-hotbar-modal（S2-hud 計画 D-5） | 画面ごとにスキットのストアを読む: Web の `useBlockingSkitActive` 1 本の規則が 3 か所に割れる |
+| A-57 | 常駐 HUD の出し分けと層は Web `App.tsx` の写し。`AlwaysOnHud` が絞るのはホットバーと装備だけで、クロスヘア（`CrosshairVisibility`）・列車乗車 HUD（`TrainHud` ∧ 乗車中）・進行中チャレンジとキーヒント（¬blocking スキット ∧ 非空）・採掘進捗（`ProgressBarState.IsShown`）はそれぞれの条件で出す（S2-hud 計画 D-2・D-3） | 全 HUD を `AlwaysOnHud` で絞る（旧 §4.4）: Web でチャレンジ HUD はインベントリ・ポーズでも出ており、見た目が変わる |
+| A-58 | 常駐 HUD まわりの e2e の割り当て: commonHud.spec は S2-hud 2・S2-mode-tooltip 3（＋tooltip の半分）・S2-skit 1、challenge.spec は S2-hud 4・S5-challenge 3、progress.spec「ラベル付き汎用進捗を維持する」は捨てる、alwaysOnHudWheel.test.ts は S3-hotbar-modal・S4-inventory が 1 件ずつ（S2-hud 計画 D-12・D-13） | S2-hud が全部写す: 比べる相手の画面（モードの帯・スキット・チャレンジ画面）が UITK にまだ無い |
+| A-59 | キーヒントの kbd は `KeyCap`＋`LocalizedTextBinding` で組み `ShortcutHintLabel` は使わない。ヴィネットとクロスヘアの影は頂点カラーのメッシュで描き、α の段は `GamePanelFaceOpacityRamp.OpacityAt` を使う（S2-hud 計画 D-7・D-9〜D-11） | `ShortcutHintLabel`: キー名と文言が別の鍵で来る。USS の背景: radial-gradient・box-shadow が無い |
 
 ### 7.2 ユーザーに上げるもの
 
