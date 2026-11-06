@@ -20,9 +20,9 @@ namespace Client.Playtest.UiElements
         private static int _generation;
         private static bool _active;
 
-        // 全体スイッチの系のロケータ。起動で決まった系を Start のたびに読み直す（plan §3.3 R2）
-        // The locator for the global switch's system; Start re-reads the system decided at boot (plan §3.3 R2)
-        public static IUiElementLocator Locator { get; private set; } = new SwitchedUiElementLocator(UiSystem.Web, GameUiLocator, WebLocator);
+        // 系を選ぶとログが出るので選ぶのは Start だけにし、Start 前は配布と同じ既定の Web 系を無ログで置く
+        // Choosing a system logs, so only Start chooses; before Start hold the default Web locator without logging
+        public static IUiElementLocator Locator { get; private set; } = WebLocator;
 
         // 冪等。PlaytestRunnerとRun前のprobeの両方から呼ばれる
         // Idempotent; called from both PlaytestRunner and pre-Run probes
