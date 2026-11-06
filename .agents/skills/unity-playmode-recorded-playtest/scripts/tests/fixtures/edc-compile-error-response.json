@@ -1,0 +1,42 @@
+{
+  "Result": "",
+  "Logs": [
+    "Errors: 1 unique (1 total). First at L1: CS0246 CS0246: The type or namespace name 'Dww3MissingType' could not be found (are you missing a using directive or an assembly reference?)"
+  ],
+  "CompilationErrors": [
+    {
+      "Message": "CS0246: The type or namespace name 'Dww3MissingType' could not be found (are you missing a using directive or an assembly reference?)",
+      "Line": 1,
+      "Column": 19,
+      "ErrorCode": "CS0246",
+      "Hint": "Auto-using resolution was attempted but could not resolve this identifier. Use a fully-qualified name (e.g., UnityEngine.Mathf) or add the correct using directive.",
+      "Suggestions": [
+        "Use fully-qualified name (e.g., UnityEngine.Mathf, System.Linq.Enumerable)",
+        "Add the appropriate using directive at the top of the snippet"
+      ],
+      "Context": "L1:var missing = new Dww3MissingType(); return 1;\n                     ^\n",
+      "PointerColumn": 19
+    }
+  ],
+  "ErrorMessage": "Compilation error occurred",
+  "Error": "Compilation error occurred",
+  "UpdatedCode": "#pragma warning disable CS0162\n#pragma warning disable CS1998\nusing System;\nusing System.Linq;\nusing System.Collections.Generic;\nusing System.Threading;\nusing System.Threading.Tasks;\nusing UnityEngine;\nusing UnityEditor;\nusing Object = UnityEngine.Object;\nusing Random = UnityEngine.Random;\n\nnamespace UnityCliLoop.Dynamic\n{\n    public class DynamicCommand\n    {\n        public async System.Threading.Tasks.Task<object> ExecuteAsync(\n            System.Collections.Generic.Dictionary<string, object> parameters = null,\n            System.Threading.CancellationToken ct = default)\n        {\n            int __uloop_literal_0 = (int)parameters[\"__uloop_literal_0\"];\n#line 1 \"user-snippet.cs\"\n            var missing = new Dww3MissingType();\n            return __uloop_literal_0;\n#line default\n#line hidden\n        }\n    }\n}\n",
+  "DiagnosticsSummary": "Errors: 1 unique (1 total). First at L1: CS0246 CS0246: The type or namespace name 'Dww3MissingType' could not be found (are you missing a using directive or an assembly reference?)",
+  "Diagnostics": [
+    {
+      "Message": "CS0246: The type or namespace name 'Dww3MissingType' could not be found (are you missing a using directive or an assembly reference?)",
+      "Line": 1,
+      "Column": 19,
+      "ErrorCode": "CS0246",
+      "Hint": "Auto-using resolution was attempted but could not resolve this identifier. Use a fully-qualified name (e.g., UnityEngine.Mathf) or add the correct using directive.",
+      "Suggestions": [
+        "Use fully-qualified name (e.g., UnityEngine.Mathf, System.Linq.Enumerable)",
+        "Add the appropriate using directive at the top of the snippet"
+      ],
+      "Context": "L1:var missing = new Dww3MissingType(); return 1;\n                     ^\n",
+      "PointerColumn": 19
+    }
+  ],
+  "EditorPlaying": false,
+  "Success": false
+}
