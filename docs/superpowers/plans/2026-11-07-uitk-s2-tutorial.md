@@ -4,7 +4,7 @@
 
 **Goal:** Web 版のチュートリアルの見せ方（`TutorialOverlay` の枠線・枠線ラベル・`DragGuide`、`KeyControlHintHud`、`WorldPinOverlay`）を、Web と同じ見た目・同じ振る舞いの UITK 画面として `Client.Ui/Screens/Tutorial/` に作り、アンカーの追跡（祖先クリップ ADR 0024・脈動 1200ms・ラベル反転・重複解決の LogError）とアンカーのカバレッジ L1（plan §4.5）まで済ませて `feature/uitk` へ取り込む。
 
-**Architecture:** 状態の源は C# にすでにある 2 つの store（`TutorialPresentationStateStore`・`WorldPinStateStore`）と `UIStateControl`（blocking のスキットは `UIStateEnum.Story`）で、Web の topic（`tutorial.presentation`・`tutorial.world_pins`・`uiState`）はこれらを中継しているだけ。UITK 側は `Client.Ui.State/Tutorial/` の Model がこれらを購読して不変の ViewModel にし、`Screens/Tutorial/` の Presenter が層（`UiLayer.Tutorial`・`UiLayer.WorldPin`・`UiLayer.OverlayPanel`）へ View を常駐させ、Model を購読して `View.Render(ViewModel)` を呼ぶ（View は購読しない。設計書 §4.2・[A-8]、前例 `ToastLayerPresenter`）。アンカーは Foundation の `TutorialAnchorRegistry.Resolve` で引き、画面側の `TutorialAnchorTracker` が購読中のアンカーだけを毎フレーム測って、値が変わったときだけ枠を描き直す。Web の計算（clip-path の inset・ラベルの反転と押し戻し・画面端矢印のクランプ）は純ロジックとして `Client.Ui.State/Tutorial/Logic/` に逐語で写し、L0 で確かめる。脈動は UiMotion（`UiTweenAnimation`＋`UiMotionLoop.PingPong`）に、このレーンが Foundation へ足す `ScaleTweenStep` を当てたもので、周期はトークン `--tutorial-pulse-duration` を画面ルートで受け直して読む。
+**Architecture:** 状態の源は C# にすでにある 2 つの store（`TutorialPresentationStateStore`・`WorldPinStateStore`）と `UIStateControl`、blocking のスキットは `SkitPresentationStateStore`（mode が blocking か。Web と同じ源。D-20）で、Web の topic（`tutorial.presentation`・`tutorial.world_pins`・`uiState`）はこれらを中継しているだけ。UITK 側は `Client.Ui.State/Tutorial/` の Model がこれらを購読して不変の ViewModel にし、`Screens/Tutorial/` の Presenter が層（`UiLayer.Tutorial`・`UiLayer.WorldPin`・`UiLayer.OverlayPanel`）へ View を常駐させ、Model を購読して `View.Render(ViewModel)` を呼ぶ（View は購読しない。設計書 §4.2・[A-8]、前例 `ToastLayerPresenter`）。アンカーは Foundation の `TutorialAnchorRegistry.Resolve` で引き、画面側の `TutorialAnchorTracker` が購読中のアンカーだけを毎フレーム測って、値が変わったときだけ枠を描き直す。Web の計算（clip-path の inset・ラベルの反転と押し戻し・画面端矢印のクランプ）は純ロジックとして `Client.Ui.State/Tutorial/Logic/` に逐語で写し、L0 で確かめる。脈動は UiMotion（`UiTweenAnimation`＋`UiMotionLoop.PingPong`）に、このレーンが Foundation へ足す `ScaleTweenStep` を当てたもので、周期はトークン `--tutorial-pulse-duration` を画面ルートで受け直して読む。
 
 **Tech Stack:** Unity 6000.3.8f1 UI Toolkit（ランタイムパネル・USS・`generateVisualContent`/Painter2D・`CustomStyleResolvedEvent`）、UniRx、VContainer、NUnit＋`com.unity.ui.test-framework`（`UiTestHost`・`ScreenTestHost`・`simulate.FrameUpdateMs`）、uloop CLI、プレイテスト DSL（`run-scenario.sh`）、gh CLI、bd（Beads）
 
@@ -21,8 +21,8 @@
 | R-2 | 祖先クリップ（ADR 0024）: アンカーの祖先のうち切る要素（`ScrollView` の viewport・`TutorialAnchor.ClipContainerClassName` の印・インラインの `overflow: hidden`）の矩形を交差させ、Web の `clipPathInset` と同じ式で枠を切る。素の矩形が交わらない・切った後に幅か高さが 0 以下なら要素ごと描かない | L0 `TutorialHighlightClipTest`、L1 `TutorialOverlayClipTest`（3 件）・`TutorialHighlightAncestorClipTest`（1 件）が緑 |
 | R-3 | 脈動: 枠は 1.03（subtle）、KeyControlHint の行とワールドピンの画面端矢印の矢印本体は 1.08（strong）。周期は `--tutorial-pulse-duration`（1200ms）、ease-in-out 相当（`UiEasing.EaseInOutSine`）で往復。ラベル面・ピン本体は脈動しない | L1 `TutorialStageCueTest` の脈動 2 件と、`TutorialAttentionDesign*Test` が緑 |
 | R-4 | 枠線ラベル: `LabelTutorialGuid` がある枠だけ、`challengeTutorial.<guid>.text` の文を面 `--world-pin-face`・padding `--label-face-padding`・字 `--label-face-font-size` で出す。既定は枠の下（隙間 `--tutorial-highlight-label-gap`）、下に収まらず上に収まるときだけ上へ反転、横は clip の右端で押し戻し、clip より広ければ clip 幅で折り返す。アンカー自身がクリップで欠けているときと文が空のときは出さない | L1 `TutorialOverlayLabelTest`（4 件）と tutorial.spec のラベル 1 件・portalLayerScaling のラベル 1 件が緑 |
-| R-5 | アンカー解決: 購読中のアンカーだけを毎フレーム測り、状態（ready・not-found・hidden と理由）か矩形か clip が変わったときだけ描き直す。重複は `Debug.LogError`、未発見は `Debug.LogWarning` を状態が変わった時に 1 回だけ出す（毎フレーム出さない）。購読から外れたアンカーの状態は捨てる。アンカーが消えたら同じフレームで枠も消す | L0 `TutorialAnchorStateBookTest`、L1 `TutorialAnchorTrackerTest`・`TutorialOverlayAnchorTest`（2 件）・tutorial.spec の「枠はアンカーより長生きしない」が緑 |
-| R-6 | ack: アンカーの状態が変わるたび、同じアンカーを指す全 outline へ `tutorial.anchor_ack` と同じ内容（session・element・anchor・revision・status・reason）を `ITutorialAnchorAckCommands` へ渡す。`session:element` ごとに `status:reason` が前回と同じなら送らない。古い session・revision は C# 側（`TutorialAnchorAckCommands`）が理由付きの Warning で捨てる | L1 `TutorialOverlayAnchorTest` の ack 1 件と L0 `TutorialAnchorAckFanoutTest` が緑 |
+| R-5 | アンカー解決: 購読中のアンカーだけを毎フレーム測り、状態（ready・not-found・hidden と理由）か矩形か clip が変わったときだけ描き直す。重複は `Debug.LogError`、未発見は `Debug.LogWarning` を状態が変わった時に 1 回だけ出す（毎フレーム出さない）。購読から外れたアンカーの状態は捨てる。アンカーが消えたら同じフレームで枠も消す | L0 `TutorialAnchorStateBookTest`、L1 `TutorialAnchorTrackerTest`・`TutorialOverlayAnchorTest`（1 件）・tutorial.spec の「枠はアンカーより長生きしない」が緑 |
+| R-6 | ack は写さない（D-10）: Web の `tutorial.anchor_ack` の C# の受け手 `TutorialAnchorAckAction` は検証して返すだけで、store・サーバー・ログのどこにも効果が無い。UITK では解決する側が C# 自身なので、未発見・重複は `TutorialAnchorTracker` の遷移ログ（R-5）で開発者へ届く。Web の ack の 2 件は disposition で「捨てる」 | `docs/uitk/disposition.md` の 2 行と test-name-parity の未対応 0 |
 | R-7 | DragGuide: `kind: dragGuide` の要素について、両端が ready で、起点の中心が起点の clip の内側にあるときだけ、56px（`--tutorial-drag-guide-size`）のカーソル矢印を起点の中心に置き、3200ms（`--tutorial-drag-guide-duration`）で終点の中心まで動かすループ（0% 透明 → 15% 不透明 → 75% 終点 → 100% 終点で透明）を流す | L1 `TutorialOverlayDragGuideTest`（3 件）が緑 |
 | R-8 | KeyControlHint: `kind: keyControl` のうち `UiState` が現在の `UIStateEnum` の名と一致するものだけを、ホットバーの上（`--hotbar-floor-offset` + `--tutorial-key-hint-hotbar-gap`）に中央揃えの列（間 `--tutorial-key-hint-gap`）で出す。各行は C2-c の `ShortcutHintLabel`（`ShortcutHintLayout.Prefix`。kbd は `KeyCap`）で、文字色は `--tutorial-key-hint-color`（kbd は R-19 の `--key-cap-color` の上書き）、kbd と文の間は `--tutorial-key-hint-kbd-gap`、字形は `UiTypographyClass.KeyHintText`。語彙外の `UiState` は 1 回だけ Warning を出して出さない。blocking のスキット中は出さない | L1 `KeyControlHintTest`（4 件）・tutorial.spec の keyControl 2 件が緑 |
 | R-9 | ワールドピン: blocking のスキット中かピンが 0 件なら出さない。画面内のピンは `(ScreenX, ScreenY)` に先端（下端中央）を合わせ、ラベル（ラベル面と同じ見た目・折り返さない）と 20×20 のマーカーを縦に積む。画面外は `--world-pin-edge-margin`（40px）だけ内側へクランプした位置に、方向の角度で回した 56px（`--world-pin-arrow-size`）の矢印（塗り原色赤・縁 `--world-pin-face` 1.5・影 `--world-pin-arrow-shadow`）を出し、矢印本体（子）だけを 1.08 で脈動させる | L1 `WorldPinOverlayTest`（6 件）・`TutorialViewportScalingTest`（ピン・矢印 2 件 × 2 解像度）が緑 |
@@ -30,9 +30,9 @@
 | R-11 | 見た目の規則（Web `tutorialAttentionDesign.test.ts` 21 件の意図）: 原色赤・周期・グローはトークンだけが持ち、画面 USS と C# に色・秒の直書きが無い。脈動の振幅（1.08・1.03）は `TutorialAttentionPulse` の 1 か所。`.key-hint-text` の色は白のまま（KeyControlHint の赤は画面ルートの変数の受け直しで、共有の様式を巻き込まない） | L1 `TutorialAttentionTokenTest`(6)・`KeyControlHintDesignTest`(4)・`TutorialRingDesignTest`(5)・`WorldPinArrowDesignTest`(6) が緑 |
 | R-12 | アンカーのカバレッジ L1（plan §4.5）: `AnchorIds` の全 id（固定 19・接頭辞 6）が「UITK のどこかで `TutorialAnchor.Mark` に渡っている」か「未移植の表（id → 持ち主レーン）に載っている」のどちらか一方だけ。ポーズの 6 id は実際にポーズを載せて `Unique` に解ける | L1 `TutorialAnchorCoverageTest` が緑 |
 | R-13 | 登録: `Client.Starter/Registration/GameUi/TutorialGameUiRegistration.cs` を作り、`MainGameUiRegistration` の画面登録区画に 1 行。USS は `GameUiTheme.tss` の `Screens` 区画へ `@import` 4 行 | `UiThemeImportBundleTest` と既存 `Client.Tests.Ui` が緑。PlayMode（全体スイッチ UITK）で枠・ピン・ヒントが出る |
-| R-14 | 並べ比べ: 参照キャプチャ（1280×720）の `2-world-pin-onscreen`・`2-world-pin-offscreen`・`2-key-control-hint`・`5-tutorial-outline-label`・`5-tutorial-recipe-item`・`5-tutorial-research-node` と動画 `2-key-control-hint-pulse`・`2-world-pin-pulse`・`4-drag-guide`・`5-tutorial-pulse` のコマ、2560×1080 の撮影（master の worktree で撮る）と UITK の撮影を並べ、差の表を `done.md` に書き、報告ページに載せる | `done.md` の差の表。合否は ref-uitk-design の目安（720p で 2px 以内・トークン同値・装飾の有無・段組） |
+| R-14 | 並べ比べ: 参照キャプチャ（1280×720）の `2-world-pin-onscreen`・`2-world-pin-offscreen`・`2-key-control-hint`・`5-tutorial-outline-label`・`5-tutorial-recipe-item`・`5-tutorial-research-node` と動画 `2-key-control-hint-pulse`・`2-world-pin-pulse`・`4-drag-guide`・`5-tutorial-pulse` のコマ、2560×1080 の撮影（master の worktree で撮る）と、Web と同じ撮影状態を fixture で作った UITK の撮影（Task 14 の対の表。DragGuide とポーズ後は UITK のみの自己確認）を並べ、差の表を `done.md` に書き、報告ページに載せる | `done.md` の差の表。合否は ref-uitk-design の目安（720p で 2px 以内・トークン同値・装飾の有無・段組） |
 | R-15 | Web と同じにできない差は `LX-35`〜`LX-38` で台帳「## 見た目の例外」の末尾へ行を足し、該当行に `/* look-exception: LX-n */` を付ける | `LookExceptionLedgerTest` が緑 |
-| R-16 | 写さない Web テスト 1 件（item master 未ロード中の ack）は `docs/uitk/disposition.md` に「捨てる」と理由を書く。`node tools/uitk/test-name-parity.mjs --bundle 2`・`--bundle 4`・`--bundle 5` でこのレーンの Web テスト名が未対応 0 | parity の出力 |
+| R-16 | 写さない Web テスト 2 件（item master 未ロード中の ack・同一 anchor を共有する全 highlight への ack）は `docs/uitk/disposition.md` に「捨てる」と理由を書く。`node tools/uitk/test-name-parity.mjs --bundle 2`・`--bundle 4`・`--bundle 5` でこのレーンの Web テスト名が未対応 0 | parity の出力 |
 | R-17 | unityプレイ録画テスト `uitk/uitk-tutorial-cues` を全体スイッチ UITK で回す | result.json が PASS、recording.mp4 |
 | R-19 | 部品の直し（指揮の割り当て A。最初の使い手がこのレーン）: `ShortcutHintLabel.SetHint` は Prefix のとき印の引数を足さず、content・verbatim の文をそのまま受ける。`KeyCap` は色のつまみ `--key-cap-color`（未指定なら `var(--text-high-contrast)`）を持つ。S2-hud の KeyHintHud（Inline）の振る舞いは変えない | L1 `ShortcutHintLabelPrefixTextTest` に Prefix の content/verbatim 1 件、`KeyCapTest` につまみの上書き 1 件。既存の `Client.Tests.Ui.Components.Text.` の L1 と KeyHintHud の L1 が全件緑 |
 | R-18 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ付き）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑・未記帳 0 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット |
@@ -44,7 +44,7 @@
 - チャレンジ HUD（`challenge.current-hud`）のハイライトの録画と、master の壊れた録画 `scenarios/tutorial-*`（bd moorestech-wwxy）の修理は S2-ladder の持ち物
 - Web 側（`moorestech_web/`）は一切変えない。サーバー・`Client.Game` の store・射影（`WorldPinScreenProjection`）は変えない
 - `Tokens.uss`・`DerivedTokens.uss`・`MantineTokens.uss`・`UiLayer`・`UiScreenTraits`・`AnchorIds` は書かない。`Components/**` は指揮が割り当てた `ShortcutHintLabel.cs`・`KeyCap.uss` の 2 か所だけ、`Foundation/**` は `Anchor/` の 2 本と新規 `Motion/Steps/ScaleTweenStep.cs` だけを書く（それ以外に要るものは「integrator への依頼」）
-- `Client.Ui.State.asmdef` に `Client.Skit` を足さない（blocking のスキットは `UIStateEnum.Story` で見る。D-20）
+- `S/Client.Ui.State/Client.Ui.State.asmdef` の references に `Client.Skit` を 1 行足す（指揮の割り当て E-19。循環なし: Client.Skit は Client.Common・Game.Context 等だけを参照。S2-skit も同じ行を足しうるので、取り込みの衝突は 1 行に畳む。.meta は既存なので触らない）。blocking のスキットは `SkitPresentationStateStore` の mode で見る（UI 状態の `Story` でも `SkitManager` でもない。D-20）
 - L3（EditModeInPlayingTest）は段の締め S2-ladder が持つので、このレーンでは作らない（D-17）
 
 ## Global Constraints
@@ -59,16 +59,16 @@
   - `Client.Ui.Foundation.Text`: `LocalizedLabel.SetText(UiText)`、`UiTypographyClass.KeyHintText = "key-hint-text"`
   - `Client.Ui.Components.Text`: `KeyCap(string keyText)`・`SetKeyText(string)`（`.key-cap { color: var(--text-high-contrast) }`）、`ShortcutHintLabel(string testid, ShortcutHintLayout layout)`・`SetHint(UiText sentence, string shortcutText)`・`ShortcutHintLayout.Prefix`（間はつまみ `--shortcut-hint-label-gap`。DerivedTokens 55 行目のコメントが KeyControlHint の上書きを想定）。**このレーンが直す**: `SetHint` が Prefix でも `WithLeadingParam` を呼び content の文で例外になる点と、`KeyCap` に色のつまみが無い点（Task 8。指揮の割り当て A）
   - `Client.Ui.State.Text.UiText`: `FromContent(ContentLocalizationKey)`・`FromVerbatim(string)`・`Resolve()`。`ContentLocalizationKeys.ChallengeTutorialText(Guid)`（`Mooresmaster.Localization.Generated`。キー `challengeTutorial.<guid>.text`）
-  - 状態の源（`Client.Game.InGame.Tutorial`）: `TutorialPresentationStateStore.Instance.ObserveChanged() : IObservable<TutorialPresentationData>`・`GetCurrent()`・`HasSessionId(string)`、`TutorialPresentationData { int Revision; TutorialSessionData[] Sessions }`・`TutorialSessionData { string TutorialSessionId; string ChallengeId; TutorialOverlayElementData[] Elements }`・`TutorialOverlayElementData { string Kind; string ElementId }`・`TutorialOutlineElementData { KindName="outline"; string AnchorId; int PaddingPx; bool BlocksPointerInput; string LabelTutorialGuid }`・`TutorialDragGuideElementData { KindName="dragGuide"; string FromAnchorId; string ToAnchorId }`・`TutorialKeyControlElementData { KindName="keyControl"; string TutorialGuid; string KeyName; string UiState }`。`WorldPinStateStore.Instance.ObserveChanged() : IObservable<WorldPinPresentationData>`・`GetCurrent()`・`WorldPinPresentationData { int Revision; WorldPinData[] Pins }`・`WorldPinData { string PinId; string TutorialGuid; float ScreenX; float ScreenY; bool OnScreen; float DirectionX; float DirectionY }`（0..1・左上原点・方向は CSS 軸。射影は `MapObjectPin`/`VeinPin` の `Update` で C# が済ませている）。blocking のスキットは `UIStateEnum.Story`（`GameScreenState`・`PlaceBlockState` が `SkitManager.IsPlayingSkit` のとき遷移する）。`SkitManager.IsPlayingSkit` は変化の通知を持たないので直接は読まない（D-20）。`Client.Game.InGame.UI.UIState.UIStateControl`（DI）: `CurrentState`・`IObservable<UIStateEnum> OnStateChanged`
+  - 状態の源（`Client.Game.InGame.Tutorial`）: `TutorialPresentationStateStore.Instance.ObserveChanged() : IObservable<TutorialPresentationData>`・`GetCurrent()`・`HasSessionId(string)`、`TutorialPresentationData { int Revision; TutorialSessionData[] Sessions }`・`TutorialSessionData { string TutorialSessionId; string ChallengeId; TutorialOverlayElementData[] Elements }`・`TutorialOverlayElementData { string Kind; string ElementId }`・`TutorialOutlineElementData { KindName="outline"; string AnchorId; int PaddingPx; bool BlocksPointerInput; string LabelTutorialGuid }`・`TutorialDragGuideElementData { KindName="dragGuide"; string FromAnchorId; string ToAnchorId }`・`TutorialKeyControlElementData { KindName="keyControl"; string TutorialGuid; string KeyName; string UiState }`。`WorldPinStateStore.Instance.ObserveChanged() : IObservable<WorldPinPresentationData>`・`GetCurrent()`・`WorldPinPresentationData { int Revision; WorldPinData[] Pins }`・`WorldPinData { string PinId; string TutorialGuid; float ScreenX; float ScreenY; bool OnScreen; float DirectionX; float DirectionY }`（0..1・左上原点・方向は CSS 軸。射影は `MapObjectPin`/`VeinPin` の `Update` で C# が済ませている）。blocking のスキットは `Client.Skit.UI.SkitPresentationStateStore.Instance.ObserveChanged() : IObservable<SkitPresentationData>`・`GetCurrent()` の `PresentationState.Mode`（`"blocking"`・`"background"`・`"none"`。Web の skit topic と同じ源。D-20）。`Client.Game.InGame.UI.UIState.UIStateControl`（DI）: `CurrentState`・`IObservable<UIStateEnum> OnStateChanged`
   - テストの土台: `UiTestHost`（1280×720・本番 tss・SetUp で GameUi・TearDown で Web へ戻す）、`ScreenTestHost.Mount<T>(T)`・`Find<T>(VisualElement, string)`・`IsShown(VisualElement)`、`FakeModel<T>(T initial)`・`Current : IReadOnlyReactiveProperty<T>`・`Set(T)`、`CommandRecorder<T>.Record/Issued/Clear`、`ThemeTokenFile`（`Client.Tests/Ui/Components`）、前例 `PauseMenuSettingsLayoutTest` の `[TestFixture(w, h)]`＋`panelSize` の上書き
 - **AGENTS.md の規約**: 1 ファイル 200 行未満・1 ディレクトリ 10 ファイルまで（.meta は数えない）・`partial`/`Func<>` 禁止・イベントは UniRx・try-catch 禁止・デフォルト引数禁止・単純な getter/setter プロパティ禁止（`{ get; private set; }` は可）・主要処理に「// 日本語 → // English」の 2 行コメント（各 1 行）・メソッド内のローカル関数は `#region Internal`・`.meta` は手で作らない・Prefab/シーンを手で書き換えない・初期化は `Initialize`・fail-closed の縮退は理由をログへ
 - **USS の規約**（ref-uitk-design・設計書 §3.2）: 1 画面 1〜数 USS（.cs の横）、画面ルートのクラスで始める、部品のクラス（`.key-cap`・`.shortcut-hint-label*`・`.key-hint-text`）を書かない、色は `var()` だけ、`z-index`・構造擬似クラスを使わない、状態は `--<状態>` のクラス、先頭に `/* web: <Web の CSS> */` の出所を日英で書く。C# が値を要るときは画面ルートで `--<画面>-<名>: var(--token)` と受け直して `UssCustomStyleReader` で読む（`:root` の変数は子の customStyle へ来ない）
 - **letter-spacing**: このレーンの文字は Web で字間を持たない（`--label-face-*`・`keyHintText` の字間は Typography.uss の持ち物）ので、字間を新たに当てない。生成トークンの字間は I-fix1 が直し中で、二重補正を避けるためこのレーンでは触らない
-- **暗い半透明トークン**（`--surface-navy`＝`--world-pin-face` の元）は I-fix1 が α を選び直し中。比べて暗さが違えば差の表に「I-fix1 待ち」と書き、トークンを直さない
+- **暗い半透明トークン**（`--surface-navy`＝`--world-pin-face` の元）は I-fix1 が α を選び直し中。Task 1 Step 1 で I-fix1 が `origin/feature/uitk` に入っていなければ、比べて暗さが違うとき差の表に「I-fix1 待ち」と書き、トークンを直さない。入っていれば「I-fix1 待ち」とは書かず、差は差として扱う
 - **色の比較はランタイムの PanelSettings（PlayMode の実画面）で撮る**（ギャラリーの EditorWindow は sRGB 合成で半透明が淡く出る）
 - **テストの置き場と名前**: L0 は `S/Client.Tests/Ui/State/Tutorial/`（namespace `Client.Tests.Ui.State.Tutorial`）、L1 は `S/Client.Tests/Ui/Screens/Tutorial/<束>/`（namespace `Client.Tests.Ui.Screens.Tutorial.<束>`）、カバレッジとアンカーは `S/Client.Tests/Ui/Anchor/`。テスト名は日本語の挙動文。Web から写したものは `/// <web-test file="src/…">it の第 1 引数</web-test>` か `file="e2e/…"`（describe は含めない。E-13）
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。ドメインリロード中のエラーは 45 秒待って再試行。このレーンのテストの総フィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(State\.Tutorial|Screens\.Tutorial|Anchor)\.`
-- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有区画は `GameUiTheme.tss` の `Screens` 区画の `@import` 4 行、`MainGameUiRegistration` の画面登録区画の 1 行、台帳 `docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾、`docs/uitk/disposition.md` の行。宣言した Foundation の変更は `S/Client.Ui/Foundation/Anchor/{TutorialAnchor.cs,TutorialAnchorRegistry.cs}` と `S/Client.Tests/Ui/Anchor/TutorialAnchorRegistryTest.cs` だけ。指揮の割り当て（実行計画 E-19）で `S/Client.Ui/Components/Text/ShortcutHintLabel/ShortcutHintLabel.cs`・`S/Client.Ui/Components/Text/KeyCap/KeyCap.uss`・新規 `S/Client.Ui/Foundation/Motion/Steps/ScaleTweenStep.cs` と、それぞれの L1（`S/Client.Tests/Ui/Components/Text/`・`S/Client.Tests/Ui/Motion/`）も書く。`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` は後続のレーンが行を消す共有の表（規則は実行計画 E-1 に指揮が書く）
+- **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有区画は `GameUiTheme.tss` の `Screens` 区画の `@import` 4 行、`MainGameUiRegistration` の画面登録区画の 1 行、台帳 `docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾、`docs/uitk/disposition.md` の行。宣言した Foundation の変更は `S/Client.Ui/Foundation/Anchor/{TutorialAnchor.cs,TutorialAnchorRegistry.cs}` と `S/Client.Tests/Ui/Anchor/TutorialAnchorRegistryTest.cs` だけ。指揮の割り当て（実行計画 E-19）で `S/Client.Ui/Components/Text/ShortcutHintLabel/ShortcutHintLabel.cs`・`S/Client.Ui/Components/Text/KeyCap/KeyCap.uss`・新規 `S/Client.Ui/Foundation/Motion/Steps/ScaleTweenStep.cs` と、それぞれの L1（`S/Client.Tests/Ui/Components/Text/`・`S/Client.Tests/Ui/Motion/`）も書く。同じく E-19 で `S/Client.Ui.State/Client.Ui.State.asmdef` の references に `Client.Skit` を 1 行足す（D-20）。`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` は後続のレーンが行を消す共有の表（規則は実行計画 E-1 に指揮が書く）
 - **新しい共有を見つけたら**（設計書 §5.1-2）: 1 機能目なのでこの画面の中（`Screens/Tutorial/<束>/`）に置き、`done.md` の「昇格候補」に名前と理由を書く。2 機能目（ほかのレーンがすでに同じものを持っている）なら自分で作らず、`done.md` の「integrator への依頼」に書いて指揮へ報告し、入るまでそのタスクだけ止める
 - **参照キャプチャ**: `../moorestech_logs/uitk/reference-captures/web-a9d5123537/`（repo 相対）（1280×720 のみ）。並べ比べの原本は worktree の gitignore 下 `moorestech_client/PlaytestResults/s2-tutorial-compare/` に置き、`moorestech_logs` へは done.md と 3 枚程度まで。`moorestech_logs` へ書く前に `../moorestech_logs/README.md` を読む
 - **既知の失敗**: CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` は既存失敗（albof.22）。マージ条件は G1 緑
@@ -89,12 +89,13 @@
 | `S/Client.Ui/Foundation/Anchor/{TutorialAnchor.cs,TutorialAnchorRegistry.cs}` | Modify（指揮の割り当て B） | クリップ容器の印を足す・`Resolve` のログを外す |
 | `S/Client.Ui/Foundation/Motion/Steps/ScaleTweenStep.cs` | Create（指揮の割り当て C） | 要素の拡縮を補間する step（脈動が最初の使い手） |
 | `S/Client.Ui/Components/Text/ShortcutHintLabel/ShortcutHintLabel.cs`・`S/Client.Ui/Components/Text/KeyCap/KeyCap.uss` | Modify（指揮の割り当て A） | Prefix で印の引数を足さない・色のつまみ `--key-cap-color` |
-| `S/Client.Ui.State/Tutorial/{BlockingSkitState.cs,TutorialElementKey.cs,TutorialTextFactory.cs}` | Create | blocking スキット中（`UIStateEnum.Story`）・`session:element` の鍵・GUID→文（失敗は LogError）の各 1 か所 |
-| `S/Client.Ui.State/Tutorial/Logic/{TutorialClipRect.cs,TutorialAnchorReason.cs,TutorialAnchorWire.cs,TutorialAnchorState.cs,ITutorialAnchorStateLookup.cs,TutorialAnchorStateBook.cs,TutorialHighlightClip.cs,TutorialHighlightLabelPlacement.cs,TutorialDragGuideGate.cs,WorldPinEdgePlacement.cs}` | Create | アンカーの状態（判別 union）・帳簿（読みと変えの口）・Web の計算の逐語の写し（10 本） |
-| `S/Client.Ui.State/Tutorial/Overlay/{TutorialOutlineCue.cs,TutorialDragGuideCue.cs,TutorialOverlayViewModel.cs,TutorialOverlayProjection.cs,TutorialOverlayModel.cs,TutorialAnchorAck.cs,TutorialAnchorAckFanout.cs,ITutorialAnchorAckCommands.cs,TutorialAnchorAckCommands.cs}` | Create | 枠と DragGuide の ViewModel・ack（9 本） |
+| `S/Client.Ui.State/Client.Ui.State.asmdef` | Modify（指揮の割り当て E-19） | references に `Client.Skit` を 1 行 |
+| `S/Client.Ui.State/Tutorial/{BlockingSkitState.cs,TutorialElementKey.cs,TutorialTextFactory.cs}` | Create | blocking スキット中（`SkitPresentationStateStore` の mode）・`session:element` の鍵・GUID→文（失敗は LogError）の各 1 か所 |
+| `S/Client.Ui.State/Tutorial/Logic/{TutorialClipRect.cs,TutorialAnchorReason.cs,TutorialAnchorState.cs,ITutorialAnchorStateLookup.cs,TutorialAnchorStateBook.cs,TutorialHighlightClip.cs,TutorialHighlightLabelPlacement.cs,TutorialDragGuideGate.cs,WorldPinEdgePlacement.cs}` | Create | アンカーの状態（判別 union）・帳簿（読みと変えの口）・Web の計算の逐語の写し（9 本） |
+| `S/Client.Ui.State/Tutorial/Overlay/{TutorialOutlineCue.cs,TutorialDragGuideCue.cs,TutorialOverlayViewModel.cs,TutorialOverlayProjection.cs,TutorialOverlayModel.cs}` | Create | 枠と DragGuide の ViewModel（5 本。ack は写さない・D-10） |
 | `S/Client.Ui.State/Tutorial/KeyControlHint/{KeyControlHintCue.cs,KeyControlHintViewModel.cs,KeyControlHintProjection.cs,KeyControlHintModel.cs}` | Create | ヒントの ViewModel |
 | `S/Client.Ui.State/Tutorial/WorldPin/{WorldPinCue.cs,WorldPinViewModel.cs,WorldPinModel.cs}` | Create | ピンの ViewModel |
-| `S/Client.Ui/Screens/Tutorial/Anchor/{ITutorialAnchorLookup.cs,ITutorialAnchorSubscriptions.cs,TutorialAnchorChange.cs,TutorialAnchorTracker.cs,TutorialAnchorMeasure.cs,TutorialAncestorClipWalker.cs}` | Create | アンカーの追跡と測定（読みの口と購読の口） |
+| `S/Client.Ui/Screens/Tutorial/Anchor/{ITutorialAnchorSubscriptions.cs,TutorialAnchorChange.cs,TutorialAnchorTracker.cs,TutorialAnchorMeasure.cs,TutorialAncestorClipWalker.cs}` | Create | アンカーの追跡と測定（購読の口。読みの口は Logic の `ITutorialAnchorStateLookup` を実装する） |
 | `S/Client.Ui/Screens/Tutorial/Pulse/{TutorialAttentionPulse.cs,TutorialPulseBinding.cs}` | Create | 注意の脈動（振幅の唯一の持ち主と、周期の読み・開始・停止） |
 | `S/Client.Ui/Screens/Tutorial/Overlay/{TutorialOverlayPresenter.cs,TutorialOverlayView.cs,TutorialOutlineView.cs,TutorialHighlightLabelView.cs,TutorialOverlay.uss}` | Create | 枠・ラベル |
 | `S/Client.Ui/Screens/Tutorial/DragGuide/{TutorialDragGuideView.cs,TutorialDragGuideGlyph.cs,TutorialDragGuideStep.cs,TutorialDragGuide.uss}` | Create | DragGuide（E-16） |
@@ -103,9 +104,9 @@
 | `S/Client.Starter/Registration/GameUi/TutorialGameUiRegistration.cs`・`S/Client.Starter/Registration/MainGameUiRegistration.cs` | Create・Modify | 登録（画面登録区画に 1 行） |
 | `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss` | Modify | `Screens` 区画へ `@import` 4 行 |
 | `S/Client.Tests/Ui/Anchor/{TutorialAnchorRegistryTest.cs,TutorialAnchorCoverageTest.cs,TutorialAnchorCoveragePending.cs}` | Modify・Create | ログの期待を外す・カバレッジ L1 と未移植の表 |
-| `S/Client.Tests/Ui/Components/Text/{ShortcutHintLabelPrefixTextTest.cs,KeyCapTest.cs}`・`S/Client.Tests/Ui/Components/ComponentTokenProbe.uss`・`S/Client.Tests/Ui/Motion/ScaleTweenStepTest.cs` | Create・Modify | 部品の直しと ScaleTweenStep の L1（probe に `--key-cap-color` を 1 行） |
-| `S/Client.Tests/Ui/State/Tutorial/{TutorialAnchorStateBookTest.cs,TutorialHighlightClipTest.cs,TutorialHighlightLabelPlacementTest.cs,TutorialDragGuideGateTest.cs,WorldPinEdgePlacementTest.cs,TutorialOverlayProjectionTest.cs,TutorialAnchorAckFanoutTest.cs,KeyControlHintProjectionTest.cs,TutorialAnchorAckCommandsTest.cs}` | Create | L0（9 本） |
-| `S/Client.Tests/Ui/Screens/Tutorial/Overlay/{TutorialOverlayTestHost.cs,TutorialAnchorTrackerTest.cs,TutorialOverlayAnchorTest.cs,TutorialOverlayLabelTest.cs,TutorialOverlayClipTest.cs,TutorialHighlightAncestorClipTest.cs,TutorialOverlayDragGuideTest.cs}` | Create | L1（枠・DragGuide） |
+| `S/Client.Tests/Ui/Components/Text/{ShortcutHintLabelPrefixTextTest.cs,KeyCapTest.cs,KeyCapColorProbe.uss}`・`S/Client.Tests/Ui/Motion/ScaleTweenStepTest.cs` | Create | 部品の直しと ScaleTweenStep の L1（probe はこのレーン専用。共有の `ComponentTokenProbe.uss` は触らない） |
+| `S/Client.Tests/Ui/State/Tutorial/{TutorialAnchorStateBookTest.cs,TutorialHighlightClipTest.cs,TutorialHighlightLabelPlacementTest.cs,TutorialDragGuideGateTest.cs,WorldPinEdgePlacementTest.cs,TutorialOverlayProjectionTest.cs,KeyControlHintProjectionTest.cs,BlockingSkitStateTest.cs}` | Create | L0（8 本） |
+| `S/Client.Tests/Ui/Screens/Tutorial/Overlay/{TutorialOverlayTestHost.cs,TutorialAnchorTrackerTest.cs,TutorialOverlayAnchorTest.cs,TutorialOverlayLabelTest.cs,TutorialOverlayClipTest.cs,TutorialHighlightAncestorClipTest.cs,TutorialOverlayDragGuideTest.cs,TutorialPulseBindingTest.cs}` | Create | L1（枠・DragGuide・脈動の付け方） |
 | `S/Client.Tests/Ui/Screens/Tutorial/Cues/{FakeTutorialCueModels.cs,KeyControlHintTest.cs,WorldPinOverlayTest.cs,TutorialStageCueTest.cs,TutorialViewportScalingTest.cs}` | Create | L1（ヒント・ピン・e2e の写し） |
 | `S/Client.Tests/Ui/Screens/Tutorial/Design/{TutorialDesignSource.cs,TutorialAttentionTokenTest.cs,KeyControlHintDesignTest.cs,TutorialRingDesignTest.cs,WorldPinArrowDesignTest.cs}` | Create | 見た目の規則（21 件） |
 | `docs/uitk/TODO.md`・`docs/uitk/disposition.md` | Modify | 実測の結論・見た目の例外 LX-35〜38・追従記録・処遇 |
@@ -117,10 +118,10 @@
 
 | 経路 | この計画の後 | 確かめ方 |
 |---|---|---|
-| 全体スイッチ Web のときのチュートリアル枠・ack（`Client.WebUiHost/Game/Actions/TutorialAnchorAckAction.cs`・`Topics/Tutorial/*.cs`） | 変わらない。Web 側は `Client.Ui` を登録しない（`MainGameUiRegistration` が `UiSystem.GameUi` 以外で return）ので、`TutorialGameUiRegistration` も Model も Presenter も作られず、store の購読者は WebUiHost の topic だけのまま。`TutorialAnchorAckAction` は変えない | Task 12 Step 3 の `Client.Tests.Ui.(Anchor|Theme|Conventions)` と既存 `Client.Tests.WebUi` の Tutorial のテスト（`grep -rln "TutorialAnchorAck\|tutorial.presentation" S/Client.Tests` で拾ったもの）を回す |
+| 全体スイッチ Web のときのチュートリアル枠・ack（`Client.WebUiHost/Game/Actions/TutorialAnchorAckAction.cs`・`Topics/Tutorial/*.cs`）と `SkitPresentationStateStore` の既存の購読者（WebUiHost の skit topic） | 変わらない。Web 側は `Client.Ui` を登録しない（`MainGameUiRegistration` が `UiSystem.GameUi` 以外で return）ので、`TutorialGameUiRegistration` も Model も Presenter も作られず、store の購読者は WebUiHost の topic だけのまま。`TutorialAnchorAckAction` は変えない。`SkitPresentationStateStore` は読むだけで書かない | Task 12 Step 3 の `Client.Tests.Ui.(Anchor|Theme|Conventions)` と既存 `Client.Tests.WebUi` の Tutorial のテスト（`grep -rln "TutorialAnchorAck\|tutorial.presentation" S/Client.Tests` で拾ったもの）を回す |
 | `TutorialAnchorRegistry.Resolve` の Warning を外す影響 | 本番の呼び手は無い（`grep -rn "TutorialAnchorRegistry.Resolve" S --include='*.cs'` で `Client.Tests` だけ）。外した Warning は、このレーンの `TutorialAnchorTracker` が遷移時に出す | Task 2 Step 1 の grep を done.md に写し、`TutorialAnchorRegistryTest` 7 件 |
 | ポーズの 6 アンカー（`PauseMenuView`・`PauseMenuTopPageView`・`PauseMenuSubPageView` の `TutorialAnchor.Mark`） | 変わらない（印の付け方に触れない） | カバレッジ L1 の「ポーズの6つのアンカーは…一意に解ける」と既存 `Client.Tests.Ui.Screens.PauseMenu.` |
-| `UIStateControl.OnStateChanged` と `TutorialPresentationStateStore`・`WorldPinStateStore` の既存の購読者（WebUiHost の topic・UI 状態の遷移） | 購読者が 1〜3 増えるだけで、発行の順・値は変えない。新しい購読者は値を読むだけで store へ書かない（ack の検証も読むだけ） | 録画 `uitk-tutorial-cues`（Task 15）で、チャレンジのピンと UI 状態の遷移が今までどおり動く |
+| `UIStateControl.OnStateChanged` と `TutorialPresentationStateStore`・`WorldPinStateStore` の既存の購読者（WebUiHost の topic・UI 状態の遷移） | 購読者が 1〜3 増えるだけで、発行の順・値は変えない。新しい購読者は値を読むだけで store へ書かない | 録画 `uitk-tutorial-cues`（Task 15）で、チャレンジのピンと UI 状態の遷移が今までどおり動く |
 | S2-hud の KeyHintHud（`ShortcutHintLabel` の Inline）と既存の `KeyCap` の色 | 変わらない。Inline は今までどおり印の引数を足し、`KeyCap` は `--key-cap-color` が無ければ `--text-high-contrast` を使う | Task 8 Step 2 の `^Client\.Tests\.Ui\.Components\.Text\.` 全件（既存の `ShortcutHintLabelTest`・`ShortcutHintSegmentsTest`・`TooltipFace*` を含む） |
 
 ### 写すテストの件数（Web の実物を grep して数え直した。tests-ladder と一致）
@@ -129,14 +130,14 @@
 |---|---|---|
 | `src/features/tutorial/KeyControlHintHud.test.ts` | 4 | L1 `KeyControlHintTest` 4 |
 | `e2e/tests/system/worldPin.spec.ts` | 6 | L1 `WorldPinOverlayTest` 6 |
-| `src/features/tutorial/overlay/TutorialOverlay.test.ts` | 17 | L0 4（StateBook 3・Projection 1）＋ L1 12（Anchor 2・Label 4・Clip 3・DragGuide 3）＋ disposition 1（捨てる） |
+| `src/features/tutorial/overlay/TutorialOverlay.test.ts` | 17 | L0 4（StateBook 3・Projection 1）＋ L1 11（Anchor 1・Label 4・Clip 3・DragGuide 3）＋ disposition 2（捨てる。ack の 2 件・D-10） |
 | `src/features/tutorial/tutorialAttentionDesign.test.ts` | 21 | L1 静的検査 21（Token 6・KeyControl 4・Ring 5・WorldPin 6） |
 | `e2e/tests/system/tutorial.spec.ts` | 6 | L1 `TutorialStageCueTest` 6 |
 | `e2e/tests/system/tutorialHighlightClip.spec.ts` | 1 | L1 `TutorialHighlightAncestorClipTest` 1 |
 | `e2e/tests/system/portalLayerScaling.spec.ts` | 3（4 件中。通知の 1 件は S2-notification） | L1 `TutorialViewportScalingTest` 3（2 fixture で各 3 件走る） |
-| 計 | 58 | 写す 57・捨てる 1 |
+| 計 | 58 | 写す 56・捨てる 2 |
 
-自前の L0/L1（Web に無い。`web-test` タグなし）: `TutorialHighlightClipTest`・`TutorialHighlightLabelPlacementTest`・`TutorialDragGuideGateTest`・`WorldPinEdgePlacementTest`・`TutorialAnchorAckFanoutTest`・`KeyControlHintProjectionTest`・`TutorialAnchorAckCommandsTest`・`TutorialAnchorTrackerTest`・`TutorialAnchorCoverageTest` と StateBook の自前の数件。
+自前の L0/L1（Web に無い。`web-test` タグなし）: `TutorialHighlightClipTest`・`TutorialHighlightLabelPlacementTest`・`TutorialDragGuideGateTest`・`WorldPinEdgePlacementTest`・`KeyControlHintProjectionTest`・`BlockingSkitStateTest`・`TutorialAnchorTrackerTest`・`TutorialPulseBindingTest`・`ScaleTweenStepTest`・DragGuide の置き直し 1 件・`TutorialAnchorCoverageTest` と StateBook の自前の数件。
 
 ---
 
@@ -173,8 +174,12 @@ grep -rn "UIStateEnum.Story" $S/Client.Game/InGame/UI/UIState/State/*.cs
 grep -rn "TutorialAnchorRegistry.Resolve" $S --include='*.cs'
 ls $S/Client.Ui/Foundation/Motion/Steps
 grep -rn "TutorialAnchor.Mark(" $S/Client.Ui
+git merge-base --is-ancestor cd76c158cc origin/feature/uitk && echo IFIX1-IN || echo IFIX1-NOT-YET
+grep -n "public IObservable<SkitPresentationData> ObserveChanged()\|public SkitPresentationData GetCurrent()" $S/Client.Skit/UI/SkitPresentationStateStore.cs
+grep -n "\"blocking\"\|\"background\"\|\"none\"" $S/Client.Skit/UI/SkitPresentationData.cs
+grep -n "\"references\"" -A3 $S/Client.Skit/Client.Skit.asmdef
 ```
-Expected: ブランチ `uitk-lane/s2-tutorial`、`BASE-OK`、各シグネチャが 1 行ずつ、`MISSING-TOKEN` 0 行、`--shortcut-hint-label-gap` が 1 行、`Screens` 区画に BugReport・PauseMenu・Settings・ToastHost の 4 行（ほかのレーンが先にマージしていれば増えている）、`PauseMenuGameUiRegistration.Register(builder);`・`ToastGameUiRegistration.Register(builder);`、`Story,` が 1 行と `UIStateEnum.Story` への遷移が `GameScreenState`・`PlaceBlockState` に 1 行ずつ（blocking のスキット中の判定。D-20）、`Resolve` の呼び手が `Client.Tests` だけ（死活表。done.md に写す）、`Steps/` に `ScaleTweenStep.cs` が無い、`Mark(` が PauseMenuView・PauseMenuTopPageView・PauseMenuSubPageView の 3 行（ほかのレーンの印が増えていれば Task 12 の未移植の表から外す）。
+Expected: ブランチ `uitk-lane/s2-tutorial`、`BASE-OK`、各シグネチャが 1 行ずつ、`MISSING-TOKEN` 0 行、`--shortcut-hint-label-gap` が 1 行、`Screens` 区画に BugReport・PauseMenu・Settings・ToastHost の 4 行（ほかのレーンが先にマージしていれば増えている）、`PauseMenuGameUiRegistration.Register(builder);`・`ToastGameUiRegistration.Register(builder);`、`Story,` が 1 行と `UIStateEnum.Story` への遷移が `GameScreenState`・`PlaceBlockState` に 1 行ずつ（参考。blocking の判定には使わない。D-20）、`IFIX1-IN` か `IFIX1-NOT-YET`（I-fix1＝字間換算と暗い半透明トークンの α の直し。`IN` なら Task 14 で「I-fix1 待ち」と記帳しない）、`SkitPresentationStateStore` の 2 つのシグネチャと、mode の綴り `"blocking"`・`"background"`・`"none"`、`Client.Skit.asmdef` の references に `Client.Ui*` が無い（循環しない）、`Resolve` の呼び手が `Client.Tests` だけ（死活表。done.md に写す）、`Steps/` に `ScaleTweenStep.cs` が無い、`Mark(` が PauseMenuView・PauseMenuTopPageView・PauseMenuSubPageView の 3 行（ほかのレーンの印が増えていれば Task 12 の未移植の表から外す）。
 分岐: シグネチャや区画が違えば、違う名前を `done.md` の「前提の読み替え」に写し、この計画のコードの該当名だけを読み替える。トークンが欠けていれば自分で足さず「integrator への依頼」に書いて止める
 
 - [ ] **Step 2: このレーンが直す部品の現状を写す（指揮の割り当て A）**
@@ -186,7 +191,7 @@ cat moorestech_client/Assets/Scripts/Client.Ui/Components/Text/KeyCap/KeyCap.uss
 grep -rn "new ShortcutHintLabel(\|new KeyCap(" moorestech_client/Assets/Scripts --include='*.cs' | grep -v "Client.Tests"
 grep -rn -- "--shortcut-hint-label-gap:" moorestech_client/Assets --include='*.uss' --include='*.tss'
 ```
-（最後の grep は部品つまみの既定の置き場。Task 8 Step 2 の `var()` の fallback が効かないときに `--key-cap-color` の既定をそこへ置く）
+（最後の grep は部品つまみの既定の置き場の参考。`--key-cap-color` の既定はそこではなく、このレーンが持つ `KeyCap.uss` の `:root` に置く。D-31）
 Expected: `SetHint` が Prefix でも `sentence.WithLeadingParam(...)` を呼ぶ（`UiText.WithLeadingParam` は `UiTextSource.Content`・`Verbatim` に `InvalidOperationException`。チュートリアルの文は content なので KeyControlHint が作れない）、`.key-cap { color: var(--text-high-contrast) }`。使い手の一覧（S2-hud の KeyHintHud 等）を done.md の「証拠」に写す。直しは Task 8 で入れる（W2 で同じファイルを書き換えるレーンは他に無い）。すでに誰かが直していれば Task 8 Step 1〜2 の該当部分を飛ばす
 
 - [ ] **Step 3: bd と報告を用意する**
@@ -294,18 +299,17 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 3: Web の計算の写し（L0。`Client.Ui.State/Tutorial/Logic/`）
 
 **Files:**
-- Create: `S/Client.Ui.State/Tutorial/Logic/{TutorialClipRect.cs,TutorialAnchorReason.cs,TutorialAnchorWire.cs,TutorialAnchorState.cs,ITutorialAnchorStateLookup.cs,TutorialAnchorStateBook.cs,TutorialHighlightClip.cs,TutorialHighlightLabelPlacement.cs,TutorialDragGuideGate.cs,WorldPinEdgePlacement.cs}`
+- Create: `S/Client.Ui.State/Tutorial/Logic/{TutorialClipRect.cs,TutorialAnchorReason.cs,TutorialAnchorState.cs,ITutorialAnchorStateLookup.cs,TutorialAnchorStateBook.cs,TutorialHighlightClip.cs,TutorialHighlightLabelPlacement.cs,TutorialDragGuideGate.cs,WorldPinEdgePlacement.cs}`
 - Test: `S/Client.Tests/Ui/State/Tutorial/{TutorialAnchorStateBookTest.cs,TutorialHighlightClipTest.cs,TutorialHighlightLabelPlacementTest.cs,TutorialDragGuideGateTest.cs,WorldPinEdgePlacementTest.cs}`
 
 **Interfaces:**
 - Consumes: Web の式（逐語で写す）: `W/shared/tutorialAnchor/ancestorClip.ts` の `clipPathInset`・`isDisjoint`、`W/features/tutorial/overlay/HighlightLabel.tsx` の配置、`W/features/tutorial/overlay/DragGuide.tsx` の門、`W/features/tutorial/WorldPinOverlay.tsx` の `EdgeArrow`、`W/shared/tutorialAnchor/resolveAnchor.ts` の理由
 - Produces（namespace `Client.Ui.State.Tutorial.Logic`）:
   - `readonly struct TutorialClipRect(float left, float top, float right, float bottom)`: `Left`・`Top`・`Right`・`Bottom`・`Width`・`Height`・`CenterX`・`CenterY`・`Intersect(TutorialClipRect)`・`Expand(float)`・`IsDisjoint(TutorialClipRect)`・`Contains(float x, float y)`・`ContainsRect(TutorialClipRect)`・`Equals`
-  - `enum TutorialAnchorReason { Mounted, Missing, DuplicateAnchor, DisplayNone, VisibilityHidden, ZeroArea, OutsideViewport }`（状態・ack の理由の唯一の enum）
-  - `static class TutorialAnchorWire.ToWire(TutorialAnchorReason reason) : (string Status, string Reason)`（Web の `status`・`reason` の綴り。`mounted`→`ready`/`mounted`、`missing`・`duplicate-anchor`→`not-found`、ほかの 4 値→`hidden`。送る直前・ログに出す直前だけで呼ぶ唯一の 1 関数）
+  - `enum TutorialAnchorReason { Mounted, Missing, DuplicateAnchor, DisplayNone, VisibilityHidden, ZeroArea, OutsideViewport }`（状態の理由の唯一の enum）
   - `abstract class TutorialAnchorState`（判別 union。前例 `TutorialAnchorResolution`）: `readonly TutorialAnchorReason Reason`・`abstract bool SameAs(TutorialAnchorState other)`、`sealed class TutorialAnchorState.Ready(TutorialClipRect rect, TutorialClipRect clip)`（`Rect`・`Clip`）・`sealed class TutorialAnchorState.NotFound(TutorialAnchorReason reason)`・`sealed class TutorialAnchorState.Hidden(TutorialAnchorReason reason)`
-  - `interface ITutorialAnchorStateLookup { bool TryGet(string anchorId, out TutorialAnchorState state); }`（読みの口）
-  - `sealed class TutorialAnchorStateBook : ITutorialAnchorStateLookup`: 変えの口 `bool TryApply(string anchorId, TutorialAnchorState state)`（同値なら false）・`void KeepOnly(IReadOnlyCollection<string> anchorIds)`、読みの口 `TryGet`
+  - `interface ITutorialAnchorStateLookup { bool TryGet(string anchorId, out TutorialAnchorState state); }`（読みの口。帳簿と Task 5 の追跡器の両方が実装し、View もこれを持つ。D-23）
+  - `sealed class TutorialAnchorStateBook : ITutorialAnchorStateLookup`: 変えの口 `bool ApplyIfChanged(string anchorId, TutorialAnchorState state)`（変わった時だけ書いて true）・`void KeepOnly(IReadOnlyCollection<string> anchorIds)`、読みの口 `TryGet`
   - `static class TutorialHighlightClip.TryComputeInset(TutorialClipRect box, TutorialClipRect clip, float outset, out TutorialClipInset inset) : bool`・`readonly struct TutorialClipInset(float top, float right, float bottom, float left)`
   - `static class TutorialHighlightLabelPlacement.Place(TutorialClipRect box, TutorialClipRect clip, float gap, float faceWidth, float faceHeight) : TutorialLabelPosition`（`Left`・`Top`・`FlippedAbove`）・`ShowsLabel(TutorialClipRect anchorRect, TutorialClipRect clip) : bool`
   - `static class TutorialDragGuideGate.TryPlace(TutorialAnchorState from, TutorialAnchorState to, out TutorialDragGuidePlacement placement) : bool`（`OriginX`・`OriginY`・`TravelX`・`TravelY`）
@@ -333,8 +337,8 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 同じ矩形とclipの再解決は変化として扱わない()
         {
             var book = new TutorialAnchorStateBook();
-            Assert.IsTrue(book.TryApply("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(10, 20, 110, 60), Viewport)));
-            Assert.IsFalse(book.TryApply("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(10, 20, 110, 60), Viewport)));
+            Assert.IsTrue(book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(10, 20, 110, 60), Viewport)));
+            Assert.IsFalse(book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(10, 20, 110, 60), Viewport)));
         }
 
         /// <web-test file="src/features/tutorial/overlay/TutorialOverlay.test.ts">rectが同値でもclipが変われば再描画する</web-test>
@@ -343,8 +347,8 @@ namespace Client.Tests.Ui.State.Tutorial
         {
             var book = new TutorialAnchorStateBook();
             var rect = new TutorialClipRect(10, 20, 110, 60);
-            book.TryApply("research.node-a", new TutorialAnchorState.Ready(rect, Viewport));
-            Assert.IsTrue(book.TryApply("research.node-a", new TutorialAnchorState.Ready(rect, new TutorialClipRect(0, 30, 1280, 720))));
+            book.ApplyIfChanged("research.node-a", new TutorialAnchorState.Ready(rect, Viewport));
+            Assert.IsTrue(book.ApplyIfChanged("research.node-a", new TutorialAnchorState.Ready(rect, new TutorialClipRect(0, 30, 1280, 720))));
         }
 
         /// <web-test file="src/features/tutorial/overlay/TutorialOverlay.test.ts">購読対象外になったanchorの解決状態は落とす</web-test>
@@ -352,8 +356,8 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 購読から外れたアンカーの状態は捨てる()
         {
             var book = new TutorialAnchorStateBook();
-            book.TryApply("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(0, 0, 10, 10), Viewport));
-            book.TryApply("pause.back", new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing));
+            book.ApplyIfChanged("pause.save", new TutorialAnchorState.Ready(new TutorialClipRect(0, 0, 10, 10), Viewport));
+            book.ApplyIfChanged("pause.back", new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing));
             book.KeepOnly(new[] { "pause.back" });
 
             Assert.IsFalse(book.TryGet("pause.save", out _));
@@ -365,9 +369,8 @@ namespace Client.Tests.Ui.State.Tutorial
         public void 理由だけが変わった未解決も変化として扱う()
         {
             var book = new TutorialAnchorStateBook();
-            book.TryApply("pause.save", new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing));
-            Assert.IsTrue(book.TryApply("pause.save", new TutorialAnchorState.NotFound(TutorialAnchorReason.DuplicateAnchor)));
-            Assert.AreEqual(("not-found", "duplicate-anchor"), TutorialAnchorWire.ToWire(TutorialAnchorReason.DuplicateAnchor));
+            book.ApplyIfChanged("pause.save", new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing));
+            Assert.IsTrue(book.ApplyIfChanged("pause.save", new TutorialAnchorState.NotFound(TutorialAnchorReason.DuplicateAnchor)));
         }
     }
 }
@@ -570,7 +573,7 @@ namespace Client.Ui.State.Tutorial.Logic
     }
 }
 ```
-`TutorialAnchorReason.cs`（enum だけ）・`TutorialAnchorWire.cs`（`ToWire` の switch。範囲外は `ArgumentOutOfRangeException`）・`ITutorialAnchorStateLookup.cs`。`TutorialAnchorState.cs`（判別 union。前例 `TutorialAnchorResolution` と同じ入れ子の sealed 派生）:
+`TutorialAnchorReason.cs`（enum だけ）・`ITutorialAnchorStateLookup.cs`。`TutorialAnchorState.cs`（判別 union。前例 `TutorialAnchorResolution` と同じ入れ子の sealed 派生）:
 ```csharp
 namespace Client.Ui.State.Tutorial.Logic
 {
@@ -644,7 +647,7 @@ namespace Client.Ui.State.Tutorial.Logic
     {
         private readonly Dictionary<string, TutorialAnchorState> _states = new();
 
-        public bool TryApply(string anchorId, TutorialAnchorState state)
+        public bool ApplyIfChanged(string anchorId, TutorialAnchorState state)
         {
             // 同値なら描き直さない（Web の「同値rectの再解決では再描画しない」）
             // Equal values skip redraws (Web: equal rect re-resolution does not redraw)
@@ -766,26 +769,25 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ---
 
-### Task 4: 状態（ViewModel・Projection・Model・ack）
+### Task 4: 状態（ViewModel・Projection・Model）
 
 **Files:**
 - Create: `S/Client.Ui.State/Tutorial/{BlockingSkitState.cs,TutorialElementKey.cs,TutorialTextFactory.cs}`
-- Create: `S/Client.Ui.State/Tutorial/Overlay/{TutorialOutlineCue.cs,TutorialDragGuideCue.cs,TutorialOverlayViewModel.cs,TutorialOverlayProjection.cs,TutorialOverlayModel.cs,TutorialAnchorAck.cs,TutorialAnchorAckFanout.cs,ITutorialAnchorAckCommands.cs,TutorialAnchorAckCommands.cs}`
+- Create: `S/Client.Ui.State/Tutorial/Overlay/{TutorialOutlineCue.cs,TutorialDragGuideCue.cs,TutorialOverlayViewModel.cs,TutorialOverlayProjection.cs,TutorialOverlayModel.cs}`
 - Create: `S/Client.Ui.State/Tutorial/KeyControlHint/{KeyControlHintCue.cs,KeyControlHintViewModel.cs,KeyControlHintProjection.cs,KeyControlHintModel.cs}`
 - Create: `S/Client.Ui.State/Tutorial/WorldPin/{WorldPinCue.cs,WorldPinViewModel.cs,WorldPinModel.cs}`
-- Test: `S/Client.Tests/Ui/State/Tutorial/{TutorialOverlayProjectionTest.cs,TutorialAnchorAckFanoutTest.cs,KeyControlHintProjectionTest.cs,TutorialAnchorAckCommandsTest.cs}`
+- Modify: `S/Client.Ui.State/Client.Ui.State.asmdef`（references に `"Client.Skit"` を 1 行。指揮の割り当て E-19。.meta は触らない）
+- Test: `S/Client.Tests/Ui/State/Tutorial/{TutorialOverlayProjectionTest.cs,KeyControlHintProjectionTest.cs,BlockingSkitStateTest.cs}`
 
 **Interfaces:**
-- Consumes: Global Constraints の「状態の源」（2 store・`UIStateControl`・`UIStateEnum.Story`）、`ContentLocalizationKeys.ChallengeTutorialText(Guid)`、`UiText.FromContent`、Task 3 の `TutorialAnchorState`
+- Consumes: Global Constraints の「状態の源」（2 store・`UIStateControl`・`SkitPresentationStateStore`）、`ContentLocalizationKeys.ChallengeTutorialText(Guid)`、`UiText.FromContent`、Task 3 の `TutorialAnchorState`
 - Produces（namespace `Client.Ui.State.Tutorial`・`.Overlay`・`.KeyControlHint`・`.WorldPin`）:
-  - `BlockingSkitState(UIStateControl) : IInitializable`: `IReadOnlyReactiveProperty<bool> Current`（`CurrentState == UIStateEnum.Story`。D-20）
+  - `BlockingSkitState(SkitPresentationStateStore store) : IInitializable`: `IReadOnlyReactiveProperty<bool> Current`（`store.GetCurrent()`・`ObserveChanged()` の `PresentationState.Mode == "blocking"`。Web の `mode === "blocking"` と同じ源・同じ判定。mode の綴りの比較はこのクラスの `IsBlocking` 1 関数だけ。本番は `SkitPresentationStateStore.Instance` を `WithParameter` で渡す。D-20）
   - `static class TutorialElementKey.Of(string sessionId, string elementId) : string`（Web `tutorialElement.ts` の `session:element`。鍵の組み立ての唯一の 1 関数）
   - `static class TutorialTextFactory.TryCreate(string tutorialGuid, string context, out UiText text) : bool`（GUID を読み `UiText.FromContent(ContentLocalizationKeys.ChallengeTutorialText(guid))` を返す。読めなければ `context` 付きの `Debug.LogError` を出して false。3 つの Projection が使う唯一の 1 関数）
   - `abstract class TutorialOutlineCue`（判別 union）: `Key`・`SessionId`・`ElementId`・`AnchorId`・`PaddingPx`、`sealed class TutorialOutlineCue.Plain(string sessionId, string elementId, string anchorId, int paddingPx)`・`sealed class TutorialOutlineCue.Labeled(string sessionId, string elementId, string anchorId, int paddingPx, UiText label)`（`Label`）。`Key` は ctor で `TutorialElementKey.Of` から作る。`TutorialDragGuideCue`: `Key`・`FromAnchorId`・`ToAnchorId`。`TutorialOverlayViewModel`: `Revision`・`IReadOnlyList<TutorialOutlineCue> Outlines`・`IReadOnlyList<TutorialDragGuideCue> DragGuides`・`static Empty`
   - `TutorialOverlayProjection.Project(TutorialPresentationData data) : TutorialOverlayViewModel`（keyControl を含めない）
   - `TutorialOverlayModel : IInitializable`: `IReadOnlyReactiveProperty<TutorialOverlayViewModel> Current`
-  - `TutorialAnchorAck(string sessionId, string elementId, string anchorId, int revision, TutorialAnchorReason reason)`（status は理由から決まるので持たない。wire の綴りは `TutorialAnchorWire.ToWire` だけが作る）。`TutorialAnchorAckFanout`: `void Rebase(TutorialOverlayViewModel model)`（購読の顔ぶれ＝枠の鍵とアンカーの組が変わったら送った記録を捨てる。Web は購読の張り直しで `lastAck` を空にする）・`IReadOnlyList<TutorialAnchorAck> Collect(TutorialOverlayViewModel model, string anchorId, TutorialAnchorState state)`（同じ `session:element` で理由が前回と同じなら返さない）
-  - `ITutorialAnchorAckCommands.Acknowledge(TutorialAnchorAck ack)`、`TutorialAnchorAckCommands`（`TutorialAnchorAckAction` と同じ検証: `HasSessionId`・`Revision`。古ければ理由付き `Debug.LogWarning`）
   - `KeyControlHintCue`: `Key`・`KeyName`・`Text`（`UiText`）。`KeyControlHintViewModel`: `IReadOnlyList<KeyControlHintCue> Hints`・`static Empty`
   - `KeyControlHintProjection`（インスタンス。語彙外の警告済みの名を持つ）: `Project(TutorialPresentationData data, UIStateEnum current, bool blockingSkit) : KeyControlHintViewModel`
   - `KeyControlHintModel(UIStateControl, BlockingSkitState) : IInitializable`: `Current`
@@ -890,44 +892,6 @@ namespace Client.Tests.Ui.State.Tutorial
 ```
 （`UiText` の `ContentKey` は private なので、種（`Source`）と解いた文で比べる。using に `Client.Ui.State.Text`・`Mooresmaster.Localization.Generated` を足す）
 
-`TutorialAnchorAckFanoutTest.cs`:
-```csharp
-        [Test]
-        public void 同じアンカーを指す全ての枠へackを作り同じ状態は二度作らない()
-        {
-            var model = TutorialOverlayProjection.Project(TutorialOverlayProjectionTest.Data(5,
-                TutorialOverlayProjectionTest.Outline("o1", "pause.save", null), TutorialOverlayProjectionTest.Outline("o2", "pause.save", null), TutorialOverlayProjectionTest.Outline("o3", "pause.back", null)));
-            var fanout = new TutorialAnchorAckFanout();
-            var ready = new TutorialAnchorState.Ready(new TutorialClipRect(0, 0, 10, 10), new TutorialClipRect(0, 0, 1280, 720));
-
-            var first = fanout.Collect(model, "pause.save", ready);
-            CollectionAssert.AreEquivalent(new[] { "o1", "o2" }, first.Select(ack => ack.ElementId).ToArray());
-            Assert.AreEqual(("s1", 5, TutorialAnchorReason.Mounted), (first[0].SessionId, first[0].Revision, first[0].Reason));
-            Assert.AreEqual(0, fanout.Collect(model, "pause.save", ready).Count);
-            Assert.AreEqual(2, fanout.Collect(model, "pause.save", new TutorialAnchorState.NotFound(TutorialAnchorReason.Missing)).Count);
-        }
-
-        [Test]
-        public void 追っているアンカーへ枠が後から足されると顔ぶれが変わり全ての枠へ送り直す()
-        {
-            // Web は購読の顔ぶれが変わると lastAck を空にして張り直すので、新しい枠にも既存の枠にも送る
-            // Web clears lastAck and re-subscribes when the subscription set changes, so both new and existing outlines get an ack
-            var ready = new TutorialAnchorState.Ready(new TutorialClipRect(0, 0, 10, 10), new TutorialClipRect(0, 0, 1280, 720));
-            var one = TutorialOverlayProjection.Project(TutorialOverlayProjectionTest.Data(1, TutorialOverlayProjectionTest.Outline("o1", "pause.save", null)));
-            var two = TutorialOverlayProjection.Project(TutorialOverlayProjectionTest.Data(2, TutorialOverlayProjectionTest.Outline("o1", "pause.save", null), TutorialOverlayProjectionTest.Outline("o2", "pause.save", null)));
-            var fanout = new TutorialAnchorAckFanout();
-            fanout.Rebase(one);
-            fanout.Collect(one, "pause.save", ready);
-
-            fanout.Rebase(two);
-            CollectionAssert.AreEquivalent(new[] { "o1", "o2" }, fanout.Collect(two, "pause.save", ready).Select(ack => ack.ElementId).ToArray());
-            // revision だけが変わっても顔ぶれは同じなので送り直さない
-            // A revision-only change keeps the same set, so nothing is resent
-            var twoNextRevision = TutorialOverlayProjection.Project(TutorialOverlayProjectionTest.Data(3, TutorialOverlayProjectionTest.Outline("o1", "pause.save", null), TutorialOverlayProjectionTest.Outline("o2", "pause.save", null)));
-            fanout.Rebase(twoNextRevision);
-            Assert.AreEqual(0, fanout.Collect(twoNextRevision, "pause.save", ready).Count);
-        }
-```
 `KeyControlHintProjectionTest.cs`:
 ```csharp
         [Test]
@@ -942,21 +906,24 @@ namespace Client.Tests.Ui.State.Tutorial
             LogAssert.NoUnexpectedReceived();
         }
 ```
-`TutorialAnchorAckCommandsTest.cs`（`TutorialPresentationStateStore.Instance` を使う。SetUp で `BeginSession(Guid)`、TearDown で `EndSession(Guid)`）:
+`BlockingSkitStateTest.cs`（シングルトンではなく `new SkitPresentationStateStore()` を渡し、Store の公開操作で偽の発火をする。`ISkitActionController` の stub は前例 `Client.Tests/WebUi/SkitPresentationStateStoreTest.cs` の `StubSkitActionController` と同じ形でこのファイルに置く。UI の状態は一度も変えない）:
 ```csharp
         [Test]
-        public void 古いsessionと古いrevisionのackは理由付きの警告で捨てる()
+        public void UIの状態に関係なくblockingのスキットの出入りだけを追う()
         {
-            var revision = TutorialPresentationStateStore.Instance.GetCurrent().Revision;
-            var sessionId = TutorialPresentationStateStore.Instance.GetCurrent().Sessions[0].TutorialSessionId;
-            var commands = new TutorialAnchorAckCommands();
+            var store = new SkitPresentationStateStore();
+            var state = new BlockingSkitState(store);
+            state.Initialize();
+            var seen = new List<bool>();
+            state.Current.Subscribe(seen.Add);
 
-            LogAssert.Expect(LogType.Warning, new Regex("stale_session"));
-            commands.Acknowledge(new TutorialAnchorAck("gone", "o1", "pause.save", revision, TutorialAnchorReason.Mounted));
-            LogAssert.Expect(LogType.Warning, new Regex("stale_revision"));
-            commands.Acknowledge(new TutorialAnchorAck(sessionId, "o1", "pause.save", revision - 1, TutorialAnchorReason.Mounted));
-            commands.Acknowledge(new TutorialAnchorAck(sessionId, "o1", "pause.save", revision, TutorialAnchorReason.Mounted));
-            LogAssert.NoUnexpectedReceived();
+            // 背景スキットは blocking ではない。blocking は UI 状態の遷移なしに始まり終わる（インベントリを開いたまま課題を完了した時）
+            // Background skits are not blocking; a blocking one starts and ends without any UI state transition (challenge done with the inventory open)
+            store.BeginBackground();
+            store.BeginBlocking(new StubSkitActionController());
+            store.End();
+
+            CollectionAssert.AreEqual(new[] { false, true, false }, seen);
         }
 ```
 
@@ -1080,31 +1047,40 @@ namespace Client.Ui.State.Tutorial.Overlay
         }
 ```
 
-- [ ] **Step 4: Model・ack を書く**
+- [ ] **Step 4: Model を書く**
 
 `BlockingSkitState.cs`:
 ```csharp
     public sealed class BlockingSkitState : IInitializable
     {
-        private readonly UIStateControl _uiStateControl;
+        private const string BlockingMode = "blocking";
+        private readonly SkitPresentationStateStore _store;
         private readonly ReactiveProperty<bool> _current;
 
         public IReadOnlyReactiveProperty<bool> Current => _current;
 
-        public BlockingSkitState(UIStateControl uiStateControl)
+        public BlockingSkitState(SkitPresentationStateStore store)
         {
-            _uiStateControl = uiStateControl;
-            _current = new ReactiveProperty<bool>(uiStateControl.CurrentState == UIStateEnum.Story);
+            _store = store;
+            _current = new ReactiveProperty<bool>(IsBlocking(store.GetCurrent()));
         }
 
         public void Initialize()
         {
-            // blocking のスキット中は UI 状態が Story になる（GameScreenState・PlaceBlockState が SkitManager.IsPlayingSkit で遷移させる）
-            // A blocking skit puts the UI state into Story (GameScreenState and PlaceBlockState transit on SkitManager.IsPlayingSkit)
-            _uiStateControl.OnStateChanged.Subscribe(state => _current.Value = state == UIStateEnum.Story);
+            // Web と同じ源（skit の presentation の mode）を読む。スキットは UI 状態と無関係に始まるので Story では見ない
+            // Read the same source as Web (the skit presentation mode); skits start regardless of UI state, so not Story
+            _store.ObserveChanged().Subscribe(data => _current.Value = IsBlocking(data));
+        }
+
+        private static bool IsBlocking(SkitPresentationData data)
+        {
+            // mode の綴り（Client.Skit の SkitPresentationData が作る）と比べるのはここだけ
+            // The only place that compares the mode spelling produced by Client.Skit's SkitPresentationData
+            return data.PresentationState.Mode == BlockingMode;
         }
     }
 ```
+`Client.Ui.State.asmdef` の `"references"` に `"Client.Skit",` を 1 行足す（並びは既存の `Client.Game` の次。.meta は既存なので触らない）。
 
 `TutorialOverlayModel.cs`・`WorldPinModel.cs`・`KeyControlHintModel.cs` は `PauseMenuModel` の形（ctor で `ReactiveProperty<VM>` を現在値で作り、`Initialize` で源を購読して作り直す）:
 ```csharp
@@ -1138,70 +1114,14 @@ namespace Client.Ui.State.Tutorial.Overlay
         }
     }
 ```
-`TutorialAnchorAckFanout.cs`:
-```csharp
-    public sealed class TutorialAnchorAckFanout
-    {
-        private readonly Dictionary<string, TutorialAnchorReason> _lastSent = new();
-        private string _subscriptionSignature = "";
-
-        public void Rebase(TutorialOverlayViewModel model)
-        {
-            // 顔ぶれ（枠の鍵とアンカーの組）が変わった時だけ送った記録を捨てる。revision だけの変化では捨てない（Web の購読の張り直し）
-            // Clear the sent record only when the set of outline keys and anchors changes, not on a revision-only change (Web re-subscription)
-            var signature = string.Join("|", model.Outlines.Select(outline => $"{outline.Key}>{outline.AnchorId}"));
-            if (signature == _subscriptionSignature) return;
-            _subscriptionSignature = signature;
-            _lastSent.Clear();
-        }
-
-        public IReadOnlyList<TutorialAnchorAck> Collect(TutorialOverlayViewModel model, string anchorId, TutorialAnchorState state)
-        {
-            // 同じアンカーを共有する全ての枠へ配り、session:element ごとに同じ理由の重複を落とす（Web TutorialOverlay）
-            // Fan out to every outline sharing the anchor and dedupe the same reason per session:element (Web TutorialOverlay)
-            var acks = new List<TutorialAnchorAck>();
-            foreach (var outline in model.Outlines)
-            {
-                if (outline.AnchorId != anchorId) continue;
-                if (_lastSent.TryGetValue(outline.Key, out var sent) && sent == state.Reason) continue;
-                _lastSent[outline.Key] = state.Reason;
-                acks.Add(new TutorialAnchorAck(outline.SessionId, outline.ElementId, anchorId, model.Revision, state.Reason));
-            }
-            return acks;
-        }
-    }
-```
-`TutorialAnchorAckCommands.cs`:
-```csharp
-    public sealed class TutorialAnchorAckCommands : ITutorialAnchorAckCommands
-    {
-        public void Acknowledge(TutorialAnchorAck ack)
-        {
-            // Web の tutorial.anchor_ack（TutorialAnchorAckAction）と同じ検証。古い ack は理由を出して捨てる
-            // Same checks as Web tutorial.anchor_ack (TutorialAnchorAckAction); stale acks are dropped with a reason
-            var store = TutorialPresentationStateStore.Instance;
-            if (!store.HasSessionId(ack.SessionId))
-            {
-                Debug.LogWarning($"[TutorialAnchorAck] stale_session: {ack.SessionId}:{ack.ElementId} {ack.AnchorId} {TutorialAnchorWire.ToWire(ack.Reason)}");
-                return;
-            }
-            if (ack.Revision != store.GetCurrent().Revision)
-            {
-                Debug.LogWarning($"[TutorialAnchorAck] stale_revision: {ack.SessionId}:{ack.ElementId} {ack.AnchorId} revision {ack.Revision}");
-                return;
-            }
-            // silent-ok: 受理後の処理は Web と同じく無い（TutorialAnchorAckAction も検証だけ）/ 解決できない理由は TutorialAnchorTracker が遷移時に Warning/LogError で出す
-        }
-    }
-```
 
 - [ ] **Step 5: 確かめてコミットする**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.State\.Tutorial\."`
-Expected: `ErrorCount: 0`、Task 3 の 18 件＋Projection 3・Fanout 2・KeyControlProjection 1・AckCommands 1 の 25 件 PASS
+Expected: `ErrorCount: 0`、Task 3 の 18 件＋Projection 3・KeyControlProjection 1・BlockingSkitState 1 の 23 件 PASS。asmdef の参照が循環すればコンパイルが `Cyclic` で止まるので、そのときは足した行を戻して指揮へ報告する
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui.State moorestech_client/Assets/Scripts/Client.Tests/Ui/State/Tutorial
-git commit -m "feat(uitk): チュートリアル・キー操作ヒント・ワールドピンの状態モデルと ack を作る（S2-tutorial）
+git commit -m "feat(uitk): チュートリアル・キー操作ヒント・ワールドピンの状態モデルを作る（blocking スキットは Web と同じ skit の presentation から読む。S2-tutorial）
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```
@@ -1211,22 +1131,22 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 5: アンカーの追跡と脈動（`Screens/Tutorial/Anchor/`・`Pulse/`）
 
 **Files:**
-- Create: `S/Client.Ui/Screens/Tutorial/Anchor/{ITutorialAnchorLookup.cs,ITutorialAnchorSubscriptions.cs,TutorialAnchorChange.cs,TutorialAnchorTracker.cs,TutorialAnchorMeasure.cs,TutorialAncestorClipWalker.cs}`
+- Create: `S/Client.Ui/Screens/Tutorial/Anchor/{ITutorialAnchorSubscriptions.cs,TutorialAnchorChange.cs,TutorialAnchorTracker.cs,TutorialAnchorMeasure.cs,TutorialAncestorClipWalker.cs}`
 - Create: `S/Client.Ui/Foundation/Motion/Steps/ScaleTweenStep.cs`（指揮の割り当て C。既存の Steps は触らない・A-63）
 - Create: `S/Client.Ui/Screens/Tutorial/Pulse/{TutorialAttentionPulse.cs,TutorialPulseBinding.cs}`
-- Test: `S/Client.Tests/Ui/Screens/Tutorial/Overlay/{TutorialOverlayTestHost.cs,TutorialAnchorTrackerTest.cs}`・`S/Client.Tests/Ui/Motion/ScaleTweenStepTest.cs`
+- Test: `S/Client.Tests/Ui/Screens/Tutorial/Overlay/{TutorialOverlayTestHost.cs,TutorialAnchorTrackerTest.cs,TutorialPulseBindingTest.cs}`・`S/Client.Tests/Ui/Motion/ScaleTweenStepTest.cs`
 
 **Interfaces:**
 - Consumes: Task 2 の `TutorialAnchorRegistry.Resolve`・`TutorialAnchor.ClipContainerClassName`、Task 3 の `TutorialAnchorState`・`TutorialAnchorStateBook`・`TutorialClipRect`、`UiMotionPlayer.Play`・`UiTweenAnimation`・`UiMotionSpec`・`UiMotionLoop.PingPong`・`UiEasing.EaseInOutSine`・`UssCustomStyleReader.TryReadMilliseconds`
 - Produces（namespace `Client.Ui.Screens.Tutorial.Anchor`・`.Pulse`・`Client.Ui.Foundation.Motion.Steps`）:
-  - 読みの口 `interface ITutorialAnchorLookup { bool TryGetState(string anchorId, out TutorialAnchorState state); }`（View が持つ。D-23）
+  - 読みの口は Task 3 の `ITutorialAnchorStateLookup.TryGet` を追跡器も実装する（読みの口は 1 本。View が持つ。D-23）
   - 変えの口 `interface ITutorialAnchorSubscriptions { IObservable<TutorialAnchorChange> OnAnchorChanged { get; } void SetSubscribedAnchors(IReadOnlyCollection<string> anchorIds); }`（Presenter だけが持つ）、`TutorialAnchorChange(string anchorId, TutorialAnchorState state)`
-  - `TutorialAnchorTracker(VisualElement searchRoot, VisualElement coordinateSpace) : ITutorialAnchorLookup, ITutorialAnchorSubscriptions`（購読が 1 件以上の間だけ `coordinateSpace.schedule.Execute(...).Every(0)` で毎フレーム測る。遷移時だけ: 重複 `Debug.LogError`・未発見 `Debug.LogWarning`）
+  - `TutorialAnchorTracker(VisualElement searchRoot, VisualElement coordinateSpace) : ITutorialAnchorStateLookup, ITutorialAnchorSubscriptions`（購読が 1 件以上の間だけ `coordinateSpace.schedule.Execute(...).Every(0)` で毎フレーム測る。遷移時だけ: 重複 `Debug.LogError`・未発見 `Debug.LogWarning`）
   - `TutorialAnchorMeasure.Measure(VisualElement searchRoot, VisualElement coordinateSpace, string anchorId) : TutorialAnchorState`（理由の順は Web `resolveAnchor.ts`: display-none → visibility-hidden → zero-area → outside-viewport。aria-hidden は UITK に無いので持たない）
   - `TutorialAncestorClipWalker.ClipOf(VisualElement anchor, VisualElement coordinateSpace) : TutorialClipRect`（祖先のうち `ScrollView.viewportUssClassName`・`TutorialAnchor.ClipContainerClassName`・インライン `style.overflow == Overflow.Hidden` を持つものの padding box を交差。UITK の overflow は absolute の子も切るので Web の脱出則は要らない。D-14）
   - `TutorialAttentionPulse`: `const float StrongScale = 1.08f`・`const float SubtleScale = 1.03f`・`const string PeriodPropertyName = "--tutorial-attention-pulse-period"`・`static UiMotionHandle Start(VisualElement target, float peakScale, float periodMilliseconds)`
   - `ScaleTweenStep(VisualElement target, float from, float to) : IUiTweenStep`（前例 `OpacityTweenStep(target, from, to)` と同形の汎用ステップ。脈動の語彙は持たない）
-  - `TutorialPulseBinding(VisualElement periodHost, VisualElement target, float peakScale)`（`periodHost` の `CustomStyleResolvedEvent` で周期を読んで始め、`DetachFromPanelEvent` で止める）
+  - `TutorialPulseBinding(VisualElement periodHost)`・`void Attach(VisualElement target, float peakScale)`（画面ルートに 1 つ。前例 `ToastHostView`: ルートの `CustomStyleResolvedEvent` で読んだ周期を持っておき、後から `Attach` した子にも当てる。周期の解決前の子は待たせる。子はパネルに載っている間だけ脈動し（`AttachToPanelEvent` で始め `DetachFromPanelEvent` で止める）、周期が変わったら載っている子だけ流し直す。外した子へ `Play` しない）
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -1250,16 +1170,6 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
         protected sealed class FakeTutorialOverlayModel : FakeModel<TutorialOverlayViewModel>
         {
             public FakeTutorialOverlayModel() : base(TutorialOverlayViewModel.Empty) { }
-        }
-
-        protected sealed class RecordingAckCommands : ITutorialAnchorAckCommands
-        {
-            public readonly CommandRecorder<TutorialAnchorAck> Recorder = new();
-
-            public void Acknowledge(TutorialAnchorAck ack)
-            {
-                Recorder.Record(ack);
-            }
         }
 
         protected VisualElement MountAnchor(VisualElement parent, string anchorId, float left, float top, float width, float height)
@@ -1292,7 +1202,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             tracker.SetSubscribedAnchors(Ids("pause.save"));
             simulate.FrameUpdate();
 
-            Assert.IsTrue(tracker.TryGetState("pause.save", out var state));
+            Assert.IsTrue(tracker.TryGet("pause.save", out var state));
             Assert.IsInstanceOf<TutorialAnchorState.Ready>(state);
             var ready = (TutorialAnchorState.Ready)state;
             Assert.AreEqual(new TutorialClipRect(100, 50, 300, 90), ready.Rect);
@@ -1334,9 +1244,9 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             tracker.SetSubscribedAnchors(Ids("pause.save", "pause.back", "pause.settings"));
             simulate.FrameUpdate();
 
-            tracker.TryGetState("pause.save", out var a);
-            tracker.TryGetState("pause.back", out var b);
-            tracker.TryGetState("pause.settings", out var c);
+            tracker.TryGet("pause.save", out var a);
+            tracker.TryGet("pause.back", out var b);
+            tracker.TryGet("pause.settings", out var c);
             Assert.AreEqual((TutorialAnchorReason.DisplayNone, TutorialAnchorReason.ZeroArea, TutorialAnchorReason.OutsideViewport), (a.Reason, b.Reason, c.Reason));
         }
 
@@ -1352,7 +1262,7 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             tracker.SetSubscribedAnchors(Ids("research.node-a"));
             simulate.FrameUpdate();
 
-            tracker.TryGetState("research.node-a", out var state);
+            tracker.TryGet("research.node-a", out var state);
             Assert.AreEqual(100f, state.Clip.Top);
             Assert.AreEqual(300f, state.Clip.Bottom);
         }
@@ -1363,6 +1273,9 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             var target = new VisualElement();
             rootVisualElement.Add(target);
             var handle = TutorialAttentionPulse.Start(target, TutorialAttentionPulse.StrongScale, 1200f);
+            // UiMotionHandle は Play の次のスケジューラ呼び出しを開始時刻にする（前例 UiMotionPlayerTest）
+            // UiMotionHandle starts at the next scheduler call after Play (precedent UiMotionPlayerTest)
+            simulate.FrameUpdateMs(0);
             simulate.FrameUpdateMs(600);
             Assert.AreEqual(1.08f, target.resolvedStyle.scale.value.x, 0.005f);
             simulate.FrameUpdateMs(600);
@@ -1370,7 +1283,56 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             handle.Cancel();
         }
 ```
-（`ScrollView` のテストで子の幅が 0 になるなら `anchor.style.width = 100` を足す。`simulate.FrameUpdateMs` の名は C2-c/F1 の Motion テストの実物に合わせる）
+`TutorialPulseBindingTest.cs`（`TutorialOverlayTestHost` を継ぐ。周期は本番の `TutorialOverlay.uss` のルート `.tutorial-overlay` の受け直しから読む）:
+```csharp
+        private VisualElement MountPeriodHost()
+        {
+            var host = new VisualElement();
+            host.AddToClassList("tutorial-overlay");
+            rootVisualElement.Add(host);
+            simulate.FrameUpdate();
+            return host;
+        }
+
+        [Test]
+        public void 周期の解決より後に足した子も脈動する()
+        {
+            // 画面は空で常駐し、チュートリアルは後から来る（ルートの解決はもう終わっている）
+            // The screen is resident and empty; the tutorial arrives later, after the root has resolved
+            var host = MountPeriodHost();
+            var binding = new TutorialPulseBinding(host);
+            var late = new VisualElement();
+            binding.Attach(late, TutorialAttentionPulse.StrongScale);
+            host.Add(late);
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs(Ms("--tutorial-pulse-duration") / 2f);
+            Assert.AreEqual(1.08f, late.resolvedStyle.scale.value.x, 0.005f);
+        }
+
+        [Test]
+        public void 外した子へは周期が変わっても流さず載せ直すと再び流す()
+        {
+            var host = MountPeriodHost();
+            var binding = new TutorialPulseBinding(host);
+            var child = new VisualElement();
+            binding.Attach(child, TutorialAttentionPulse.SubtleScale);
+            host.Add(child);
+            simulate.FrameUpdate();
+            child.RemoveFromHierarchy();
+
+            // ルートの再解決（クラスの付け外し）で、外した子へ Play して UiMotionPlayer の LogError を出さない
+            // A root re-resolution must not Play on the removed child (no UiMotionPlayer LogError)
+            host.AddToClassList("tutorial-pulse-binding-test--restyle");
+            simulate.FrameUpdate();
+            LogAssert.NoUnexpectedReceived();
+
+            host.Add(child);
+            simulate.FrameUpdateMs(0);
+            simulate.FrameUpdateMs(Ms("--tutorial-pulse-duration") / 2f);
+            Assert.AreEqual(1.03f, child.resolvedStyle.scale.value.x, 0.005f);
+        }
+```
+（`Ms(name)` は `TutorialStageCueTest` と同じ、テーマのトークンを読む helper を `TutorialOverlayTestHost` へ移して共有する。`ScrollView` のテストで子の幅が 0 になるなら `anchor.style.width = 100` を足す。`simulate.FrameUpdateMs` の名は C2-c/F1 の Motion テストの実物に合わせる）
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `Client.Ui.Screens.Tutorial` が無いのでコンパイルエラー
@@ -1457,7 +1419,7 @@ Expected: `Client.Ui.Screens.Tutorial` が無いのでコンパイルエラー
 
 `TutorialAnchorTracker.cs`:
 ```csharp
-    public sealed class TutorialAnchorTracker : ITutorialAnchorLookup, ITutorialAnchorSubscriptions
+    public sealed class TutorialAnchorTracker : ITutorialAnchorStateLookup, ITutorialAnchorSubscriptions
     {
         private readonly VisualElement _searchRoot;
         private readonly VisualElement _coordinateSpace;
@@ -1489,7 +1451,7 @@ Expected: `Client.Ui.Screens.Tutorial` が無いのでコンパイルエラー
             else _poll.Resume();
         }
 
-        public bool TryGetState(string anchorId, out TutorialAnchorState state)
+        public bool TryGet(string anchorId, out TutorialAnchorState state)
         {
             return _book.TryGet(anchorId, out state);
         }
@@ -1499,7 +1461,7 @@ Expected: `Client.Ui.Screens.Tutorial` が無いのでコンパイルエラー
             foreach (var anchorId in _subscribed)
             {
                 var state = TutorialAnchorMeasure.Measure(_searchRoot, _coordinateSpace, anchorId);
-                if (!_book.TryApply(anchorId, state)) continue;
+                if (!_book.ApplyIfChanged(anchorId, state)) continue;
                 ReportTransition(anchorId, state);
                 _onAnchorChanged.OnNext(new TutorialAnchorChange(anchorId, state));
             }
@@ -1580,47 +1542,67 @@ Expected: `Client.Ui.Screens.Tutorial` が無いのでコンパイルエラー
         }
     }
 ```
-`TutorialPulseBinding.cs`:
+`TutorialPulseBinding.cs`（前例 `ToastHostView`: ルートで読んだ値を持ち、後から来た子へ当てる）:
 ```csharp
     public sealed class TutorialPulseBinding
     {
-        private readonly VisualElement _target;
-        private readonly float _peakScale;
-        private UiMotionHandle _handle;
+        private readonly Dictionary<VisualElement, float> _peakScales = new();
+        private readonly Dictionary<VisualElement, UiMotionHandle> _handles = new();
         private float _periodMilliseconds;
+        private bool _periodResolved;
 
-        public TutorialPulseBinding(VisualElement periodHost, VisualElement target, float peakScale)
+        public TutorialPulseBinding(VisualElement periodHost)
         {
-            _target = target;
-            _peakScale = peakScale;
-            // 周期はトークンを画面ルートで受け直した変数から読み、変われば流し直す
-            // Read the period from the screen root's re-declared token and restart when it changes
-            periodHost.RegisterCallback<CustomStyleResolvedEvent>(evt => Restart(evt.customStyle));
-            target.RegisterCallback<DetachFromPanelEvent>(_ => Stop());
+            periodHost.RegisterCallback<CustomStyleResolvedEvent>(evt => OnPeriodResolved(evt.customStyle));
         }
 
-        private void Restart(ICustomStyle customStyle)
+        public void Attach(VisualElement target, float peakScale)
+        {
+            // 載っている間だけ流す。載る前・外した後には Play しない（UiMotionPlayer はパネル外で LogError）
+            // Pulse only while attached; never Play before attach or after removal (UiMotionPlayer logs off-panel)
+            _peakScales[target] = peakScale;
+            target.RegisterCallback<AttachToPanelEvent>(_ => Start(target));
+            target.RegisterCallback<DetachFromPanelEvent>(_ => Stop(target));
+            if (target.panel != null) Start(target);
+        }
+
+        private void OnPeriodResolved(ICustomStyle customStyle)
         {
             if (!UssCustomStyleReader.TryReadMilliseconds(customStyle, TutorialAttentionPulse.PeriodPropertyName, out var period)) return;
-            if (_handle != null && period == _periodMilliseconds) return;
-            Stop();
+            if (_periodResolved && period == _periodMilliseconds) return;
             _periodMilliseconds = period;
-            _handle = TutorialAttentionPulse.Start(_target, _peakScale, period);
+            _periodResolved = true;
+            // 周期が変わったら、いま載っている子だけを流し直す
+            // When the period changes, restart only the children currently attached
+            foreach (var target in _peakScales.Keys)
+            {
+                if (target.panel == null) continue;
+                Stop(target);
+                Start(target);
+            }
         }
 
-        private void Stop()
+        private void Start(VisualElement target)
         {
-            _handle?.Cancel();
-            _handle = null;
+            // silent-ok: 周期の解決前は待ち、解決時に OnPeriodResolved が載っている子を流す / L1 TutorialPulseBindingTest が見る
+            if (!_periodResolved || _handles.ContainsKey(target)) return;
+            _handles[target] = TutorialAttentionPulse.Start(target, _peakScales[target], _periodMilliseconds);
+        }
+
+        private void Stop(VisualElement target)
+        {
+            if (!_handles.TryGetValue(target, out var handle)) return;
+            handle.Cancel();
+            _handles.Remove(target);
         }
     }
 ```
-（`TryReadMilliseconds` が false のときは Reader 自身が LogError を出すので、ここは脈動なしで続ける。`// silent-ok:` は Reader の LogError が経路なので付けない。周期の受け直しは各画面 USS のルートで `--tutorial-attention-pulse-period: var(--tutorial-pulse-duration);`）
+（`TryReadMilliseconds` が false のときは Reader 自身が LogError を出すので、ここは脈動なしで続ける。`// silent-ok:` は Reader の LogError が経路なので付けない。周期の受け直しは各画面 USS のルートで `--tutorial-attention-pulse-period: var(--tutorial-pulse-duration);`。外した子は辞書に残るが、ゲーム寿命の画面の中で照合が作り直す数に限られる（AGENTS.md の既知の制約））
 
 - [ ] **Step 5: 確かめてコミットする**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.Tutorial\.Overlay\.TutorialAnchorTrackerTest|Motion\.ScaleTweenStepTest)"`
-Expected: `ErrorCount: 0`、TrackerTest 6 件・ScaleTweenStepTest 3 件 PASS。`ScrollView` の clip で viewport のクラス名が違って落ちたら、`ScrollView.viewportUssClassName` の実値を `done.md` の「証拠」に書いて判定を合わせる
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.Tutorial\.Overlay\.(TutorialAnchorTrackerTest|TutorialPulseBindingTest)|Motion\.ScaleTweenStepTest)"`
+Expected: `ErrorCount: 0`、TrackerTest 6 件・PulseBindingTest 2 件・ScaleTweenStepTest 3 件 PASS。`ScrollView` の clip で viewport のクラス名が違って落ちたら、`ScrollView.viewportUssClassName` の実値を `done.md` の「証拠」に書いて判定を合わせる
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Tutorial moorestech_client/Assets/Scripts/Client.Ui/Foundation/Motion/Steps/ScaleTweenStep.cs moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Tutorial moorestech_client/Assets/Scripts/Client.Tests/Ui/Motion/ScaleTweenStepTest.cs
 git commit -m "feat(uitk): アンカーの追跡（祖先クリップ・遷移時だけの報告）と注意の脈動（Foundation の ScaleTweenStep）を作る（S2-tutorial）
@@ -1639,9 +1621,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: Task 3〜5 の全部、`LocalizedLabel()`・`SetText(UiText)`、`UssCustomStyleReader.TryReadPixels`
 - Produces（namespace `Client.Ui.Screens.Tutorial.Overlay`）:
-  - `TutorialOverlayPresenter(GameUiRoot gameUiRoot, TutorialOverlayModel model, ITutorialAnchorAckCommands acks) : IInitializable` と `static TutorialOverlayView Mount(VisualElement layer, VisualElement searchRoot, IReadOnlyReactiveProperty<TutorialOverlayViewModel> model, ITutorialAnchorAckCommands acks)`（購読は全部ここ: model → `fanout.Rebase`・`tracker.SetSubscribedAnchors`・`view.Render`・状態の分かっている全枠の `Collect`、アンカーの変化 → `view.RedrawAnchor`・`Collect`。`Initialize` と L1 が同じ `Mount` を通る。D-22）
-  - `TutorialOverlayView(ITutorialAnchorLookup anchors) : VisualElement`（`name = "tutorial-overlay"`。全面・拾わない。Model を購読しない。`void Render(TutorialOverlayViewModel model)`（照合して全部描き直す）・`void RedrawAnchor(string anchorId)`（そのアンカーを指す枠だけ描き直す）。Task 7 が DragGuide を同じ View に足す）
-  - `TutorialOutlineView : VisualElement`（`name = "tutorial-outline"`・クラス `tutorial-outline`。子 `tutorial-outline__clip`（`overflow: hidden`・脈動の対象）＞ `tutorial-outline__glow`・`tutorial-outline__ring`、兄弟に `TutorialHighlightLabelView`）: `TutorialOutlineView(VisualElement pulsePeriodHost)`・`void ShowRing(TutorialClipRect box, TutorialClipInset inset, float glowWidth, float ringRadius)`・`void HideRing()`・`TutorialHighlightLabelView Label`（readonly フィールド）
+  - `TutorialOverlayPresenter(GameUiRoot gameUiRoot, TutorialOverlayModel model) : IInitializable` と `static TutorialOverlayView Mount(VisualElement layer, VisualElement searchRoot, IReadOnlyReactiveProperty<TutorialOverlayViewModel> model)`（購読は全部ここ: model → `tracker.SetSubscribedAnchors`・`view.Render`、アンカーの変化 → `view.RedrawAnchor`。`Initialize` と L1 が同じ `Mount` を通る。ack は送らない（D-10）。D-22）
+  - `TutorialOverlayView(ITutorialAnchorStateLookup anchors) : VisualElement`（`name = "tutorial-overlay"`。全面・拾わない。Model を購読しない。`void Render(TutorialOverlayViewModel model)`（照合して全部描き直す）・`void RedrawAnchor(string anchorId)`（そのアンカーを指す枠だけ描き直す）。Task 7 が DragGuide を同じ View に足す）
+  - `TutorialOutlineView : VisualElement`（`name = "tutorial-outline"`・クラス `tutorial-outline`。子 `tutorial-outline__clip`（`overflow: hidden`・脈動の対象）＞ `tutorial-outline__glow`・`tutorial-outline__ring`、兄弟に `TutorialHighlightLabelView`）: `TutorialOutlineView(TutorialPulseBinding pulse)`・`void ShowRing(TutorialClipRect box, TutorialClipInset inset, float glowWidth, float ringRadius)`・`void HideRing()`・`TutorialHighlightLabelView Label`（readonly フィールド）
   - `TutorialHighlightLabelView : LocalizedLabel`（`name = "tutorial-highlight-label"`）: `void Place(UiText text, TutorialClipRect box, TutorialClipRect clip, float gap)`（`maxWidth` = clip 幅を当て、`GeometryChangedEvent` で測った面の寸法で `TutorialHighlightLabelPlacement.Place` を当てる。測るまで `visibility: hidden`）・`void HideLabel()`
   - 画面ルートの受け直し（`TutorialOverlay.uss` の `.tutorial-overlay`）: `--tutorial-overlay-glow-width: var(--tutorial-highlight-glow)`・`--tutorial-overlay-label-gap: var(--tutorial-highlight-label-gap)`・`--tutorial-attention-pulse-period: var(--tutorial-pulse-duration)`・`--tutorial-overlay-ring-radius: 8px`
 
@@ -1658,34 +1640,19 @@ using static Client.Tests.Ui.State.Tutorial.TutorialOverlayProjectionTest;
 namespace Client.Tests.Ui.Screens.Tutorial.Overlay
 {
     /// <summary>
-    /// 枠のアンカー解決と ack の配り方を確かめる（L1。Web TutorialOverlay.test.ts の anchor resolution）
-    /// Verifies anchor resolution and ack fan-out of the overlay (L1; Web TutorialOverlay.test.ts anchor resolution)
+    /// 枠のアンカー解決を確かめる（L1。Web TutorialOverlay.test.ts の anchor resolution。ack の 2 件は捨てる・D-10）
+    /// Verifies anchor resolution of the overlay (L1; Web TutorialOverlay.test.ts anchor resolution; the two ack tests are dropped, D-10)
     /// </summary>
     public class TutorialOverlayAnchorTest : TutorialOverlayTestHost
     {
         private FakeTutorialOverlayModel _model;
-        private RecordingAckCommands _acks;
         private TutorialOverlayView _view;
 
         [SetUp]
         public void MountOverlay()
         {
             _model = new FakeTutorialOverlayModel();
-            _acks = new RecordingAckCommands();
-            _view = TutorialOverlayPresenter.Mount(rootVisualElement, rootVisualElement, _model.Current, _acks);
-        }
-
-        /// <web-test file="src/features/tutorial/overlay/TutorialOverlay.test.ts">同一anchorを共有する全highlightへackを配る</web-test>
-        [Test]
-        public void 同じアンカーを共有する全ての枠へackを配る()
-        {
-            MountAnchor(rootVisualElement, "pause.save", 100, 100, 200, 40);
-            _model.Set(TutorialOverlayProjection.Project(Data(4, Outline("o1", "pause.save", null), Outline("o2", "pause.save", null))));
-            simulate.FrameUpdate();
-
-            var acks = _acks.Recorder.Issued;
-            CollectionAssert.AreEquivalent(new[] { "o1", "o2" }, acks.Select(ack => ack.ElementId).ToArray());
-            Assert.IsTrue(acks.All(ack => ack.Reason == TutorialAnchorReason.Mounted && ack.Revision == 4));
+            _view = TutorialOverlayPresenter.Mount(rootVisualElement, rootVisualElement, _model.Current);
         }
 
         /// <web-test file="src/features/tutorial/overlay/TutorialOverlay.test.ts">revision更新でも購読が続くanchorの解決状態を保つ</web-test>
@@ -1695,14 +1662,12 @@ namespace Client.Tests.Ui.Screens.Tutorial.Overlay
             MountAnchor(rootVisualElement, "pause.save", 100, 100, 200, 40);
             _model.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", null))));
             simulate.FrameUpdate();
-            _acks.Recorder.Clear();
 
             // フレームを回さずに revision だけを進めても、枠は前の解決結果で出たまま
             // Advancing only the revision without a frame keeps the outline drawn from the previous resolution
             _model.Set(TutorialOverlayProjection.Project(Data(2, Outline("o1", "pause.save", null))));
             var outline = _view.Query<TutorialOutlineView>().First();
             Assert.IsTrue(IsShown(outline.Q("tutorial-outline__clip")));
-            Assert.AreEqual(0, _acks.Recorder.Issued.Count);
         }
     }
 }
@@ -1917,7 +1882,7 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
         private readonly VisualElement _glow = new();
         private readonly VisualElement _ring = new();
 
-        public TutorialOutlineView(VisualElement pulsePeriodHost)
+        public TutorialOutlineView(TutorialPulseBinding pulse)
         {
             name = "tutorial-outline";
             AddToClassList("tutorial-outline");
@@ -1932,7 +1897,7 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
             Add(Label);
             // 枠は 1.03 で脈動し、ラベルは脈動しない（Web tutorialAttentionDesign）
             // The ring pulses at 1.03 and the label does not (Web tutorialAttentionDesign)
-            new TutorialPulseBinding(pulsePeriodHost, _clip, TutorialAttentionPulse.SubtleScale);
+            pulse.Attach(_clip, TutorialAttentionPulse.SubtleScale);
             HideRing();
         }
 
@@ -2032,19 +1997,17 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
     }
 ```
 
-`TutorialOverlayPresenter.cs`（購読と ack はここだけ。View は Render と RedrawAnchor を受けるだけ）:
+`TutorialOverlayPresenter.cs`（購読はここだけ。View は Render と RedrawAnchor を受けるだけ）:
 ```csharp
     public sealed class TutorialOverlayPresenter : IInitializable
     {
         private readonly GameUiRoot _gameUiRoot;
         private readonly TutorialOverlayModel _model;
-        private readonly ITutorialAnchorAckCommands _acks;
 
-        public TutorialOverlayPresenter(GameUiRoot gameUiRoot, TutorialOverlayModel model, ITutorialAnchorAckCommands acks)
+        public TutorialOverlayPresenter(GameUiRoot gameUiRoot, TutorialOverlayModel model)
         {
             _gameUiRoot = gameUiRoot;
             _model = model;
-            _acks = acks;
         }
 
         public void Initialize()
@@ -2052,16 +2015,15 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
             // 枠は Portal の最前面（--z-portal-tutorial）。アンカーは stage・viewport の両族から探し、座標はこの層で測る
             // Outlines live in the portal's front layer (--z-portal-tutorial); search anchors across both families and measure in this layer
             var layer = _gameUiRoot.GetLayer(UiLayer.Tutorial, UiFamily.Viewport);
-            Mount(layer, _gameUiRoot.GetRootElement(), _model.Current, _acks);
+            Mount(layer, _gameUiRoot.GetRootElement(), _model.Current);
         }
 
-        public static TutorialOverlayView Mount(VisualElement layer, VisualElement searchRoot, IReadOnlyReactiveProperty<TutorialOverlayViewModel> model, ITutorialAnchorAckCommands acks)
+        public static TutorialOverlayView Mount(VisualElement layer, VisualElement searchRoot, IReadOnlyReactiveProperty<TutorialOverlayViewModel> model)
         {
             var tracker = new TutorialAnchorTracker(searchRoot, layer);
             var view = new TutorialOverlayView(tracker);
-            var fanout = new TutorialAnchorAckFanout();
             layer.Add(view);
-            tracker.OnAnchorChanged.Subscribe(OnAnchorChanged);
+            tracker.OnAnchorChanged.Subscribe(change => view.RedrawAnchor(change.AnchorId));
             model.Subscribe(OnModelChanged);
             return view;
 
@@ -2069,28 +2031,10 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
 
             void OnModelChanged(TutorialOverlayViewModel current)
             {
-                // 顔ぶれが変われば送った記録を捨て（Web の lastAck の空け直し）、購読を差し替えてから描く
-                // Drop sent records when the line-up changes (Web clears lastAck), swap subscriptions, then draw
-                fanout.Rebase(current);
+                // 購読を差し替えてから描く（差し替えの同期の測定で出た変化は直後の Render が描き直す）
+                // Swap subscriptions, then draw (the following Render redraws changes from the synchronous measurement)
                 tracker.SetSubscribedAnchors(AnchorIdsOf(current));
                 view.Render(current);
-                // 状態が続いているアンカーへ後から足された枠にも ack を送る（同じ理由の再送は Fanout が止める）
-                // Ack outlines newly added to an anchor whose state persists (Fanout suppresses repeats)
-                foreach (var outline in current.Outlines)
-                {
-                    if (tracker.TryGetState(outline.AnchorId, out var state)) Acknowledge(current, outline.AnchorId, state);
-                }
-            }
-
-            void OnAnchorChanged(TutorialAnchorChange change)
-            {
-                view.RedrawAnchor(change.AnchorId);
-                Acknowledge(model.Value, change.AnchorId, change.State);
-            }
-
-            void Acknowledge(TutorialOverlayViewModel current, string anchorId, TutorialAnchorState state)
-            {
-                foreach (var ack in fanout.Collect(current, anchorId, state)) acks.Acknowledge(ack);
             }
 
             IReadOnlyCollection<string> AnchorIdsOf(TutorialOverlayViewModel current)
@@ -2115,19 +2059,21 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
 ```csharp
     public sealed class TutorialOverlayView : VisualElement
     {
-        private readonly ITutorialAnchorLookup _anchors;
+        private readonly ITutorialAnchorStateLookup _anchors;
         private readonly Dictionary<string, TutorialOutlineView> _outlines = new();
+        private readonly TutorialPulseBinding _pulse;
         private TutorialOverlayViewModel _current = TutorialOverlayViewModel.Empty;
         private float _glowWidth;
         private float _labelGap;
         private float _ringRadius;
 
-        public TutorialOverlayView(ITutorialAnchorLookup anchors)
+        public TutorialOverlayView(ITutorialAnchorStateLookup anchors)
         {
             name = "tutorial-overlay";
             AddToClassList("tutorial-overlay");
             pickingMode = PickingMode.Ignore;
             _anchors = anchors;
+            _pulse = new TutorialPulseBinding(this);
             RegisterCallback<CustomStyleResolvedEvent>(evt => ReadKnobs(evt.customStyle));
         }
 
@@ -2151,14 +2097,16 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
             var view = _outlines[cue.Key];
             // ready で、箱がクリップの内に残るときだけ枠を出す（ready 以外は仕様どおりの非表示で、理由は追跡器が遷移時に出す）
             // Show the ring only when ready and the box survives the clip (non-ready is a spec'd hide; the tracker reports reasons)
-            if (!_anchors.TryGetState(cue.AnchorId, out var state) || state is not TutorialAnchorState.Ready ready)
+            if (!_anchors.TryGet(cue.AnchorId, out var state) || state is not TutorialAnchorState.Ready ready)
             {
+                // silent-ok: 未解決・非表示のアンカーの枠は Web と同じく出さない仕様 / 理由は TutorialAnchorTracker が遷移時に Warning・LogError で出し、L1 TutorialOverlayAnchorTest が見る
                 view.HideRing();
                 return;
             }
             var box = ready.Rect.Expand(cue.PaddingPx);
             if (!TutorialHighlightClip.TryComputeInset(box, ready.Clip, _glowWidth, out var inset))
             {
+                // silent-ok: 祖先クリップで完全に切れた枠は Web と同じく要素ごと出さない仕様 / L1 TutorialOverlayClipTest の「完全にクリップされた枠」が見る
                 view.HideRing();
                 return;
             }
@@ -2178,7 +2126,7 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
             foreach (var outline in model.Outlines)
             {
                 if (_outlines.ContainsKey(outline.Key)) continue;
-                var view = new TutorialOutlineView(this);
+                var view = new TutorialOutlineView(_pulse);
                 _outlines.Add(outline.Key, view);
                 Add(view);
             }
@@ -2211,7 +2159,7 @@ Expected: `TutorialOverlayView` 等が無いのでコンパイルエラー
         }
 ```
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Screens\.Tutorial\.Overlay\."`
-Expected: `ErrorCount: 0`。padding の 1 件が落ちたら（複数値の `var()` が 1 つの padding に展開されない）、`TutorialOverlay.uss` と Task 9 の `WorldPin.uss` の `padding: var(--label-face-padding);` を `padding-top: 4px; padding-bottom: 4px; padding-left: 10px; padding-right: 10px; /* web: var(--label-face-padding) = 4px 10px。UITK は複数値の var を padding へ展開しない（台帳 実測の結論） */` に替え、台帳「## 実測の結論」の末尾へ「`padding: var(<複数値>)` が展開されるか | S2-tutorial | 展開されない（L1 `ラベルの面はlabel_face_paddingの4px_10pxを受ける` で paddingTop=<実測>）。4 辺へ分けて書く」を 1 行足す（通れば「展開される」と書く）。全件 PASS（Tracker 6・Anchor 2・Label 5・Clip 3・AncestorClip 1）
+Expected: `ErrorCount: 0`。padding の 1 件が落ちたら（複数値の `var()` が 1 つの padding に展開されない）、`TutorialOverlay.uss` と Task 9 の `WorldPin.uss` の `padding: var(--label-face-padding);` を `padding-top: 4px; padding-bottom: 4px; padding-left: 10px; padding-right: 10px; /* web: var(--label-face-padding) = 4px 10px。UITK は複数値の var を padding へ展開しない（台帳 実測の結論） */` に替え、台帳「## 実測の結論」の末尾へ「`padding: var(<複数値>)` が展開されるか | S2-tutorial | 展開されない（L1 `ラベルの面はlabel_face_paddingの4px_10pxを受ける` で paddingTop=<実測>）。4 辺へ分けて書く」を 1 行足す（通れば「展開される」と書く）。全件 PASS（Tracker 6・Anchor 1・Label 5・Clip 3・AncestorClip 1。Anchor は ack の 1 件を捨てて 1 件）
 
 - [ ] **Step 5: コミットする**
 
@@ -2267,6 +2215,22 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
             Assert.AreEqual(1, ShownGuides());
             var guide = _view.Q<TutorialDragGuideView>();
             Assert.AreEqual(120f, guide.worldBound.center.x - guide.resolvedStyle.translate.x, 0.5f);
+        }
+
+        [Test]
+        public void 両端が最初から揃っていても寸法の解決後に中心へ置く()
+        {
+            // 寸法の解決より先に Show が来ても、解決後に置き直して起点の中心に合わせる
+            // Even if Show arrives before the size resolves, re-place after resolution to center on the origin
+            MountAnchor(rootVisualElement, "pause.save", 100, 100, 40, 40);
+            MountAnchor(rootVisualElement, "pause.settings", 500, 300, 40, 40);
+            _model.Set(Guide(1));
+            simulate.FrameUpdate();
+            simulate.FrameUpdate();
+
+            var guide = _view.Q<TutorialDragGuideView>();
+            Assert.AreEqual(120f, guide.worldBound.center.x - guide.resolvedStyle.translate.x, 0.5f);
+            Assert.AreEqual(120f, guide.worldBound.center.y - guide.resolvedStyle.translate.y, 0.5f);
         }
 
         /// <web-test file="src/features/tutorial/overlay/TutorialOverlay.test.ts">起点が祖先クリップの外へスクロールしたら矢印を描かない</web-test>
@@ -2377,7 +2341,7 @@ Expected: `TutorialDragGuideView` が無いのでコンパイルエラー
             painter.Fill();
         }
 ```
-`TutorialDragGuideView.cs`: ctor で `name = "tutorial-drag-guide"`・クラス・拾わない・子に `TutorialDragGuideGlyph`、`CustomStyleResolvedEvent` で寸法（`style.width/height`）と周期を読み、`UiMotionPlayer.Play(this, new UiTweenAnimation(new UiMotionSpec(duration, 0f, UiEasing.Linear, UiMotionLoop.Repeat), _step))` を 1 回だけ始める（`DetachFromPanelEvent` で `Cancel`）。`Show(placement)` は `style.left = placement.OriginX - size / 2f`・`style.top = placement.OriginY - size / 2f`（Web の負の margin）・`_step.SetTravel(placement.TravelX, placement.TravelY)`・`display: flex`。`HideGuide()` は `display: none`。
+`TutorialDragGuideView.cs`: ctor で `name = "tutorial-drag-guide"`・クラス・拾わない・子に `TutorialDragGuideGlyph`、`CustomStyleResolvedEvent` で寸法（`style.width/height`）と周期を読み、`UiMotionPlayer.Play(this, new UiTweenAnimation(new UiMotionSpec(duration, 0f, UiEasing.Linear, UiMotionLoop.Repeat), _step))` を 1 回だけ始める（`DetachFromPanelEvent` で `Cancel`）。`Show(placement)` は置き場所を `_placement` に持ち、`display: flex` にして `ApplyPlacement()` を呼ぶ。`ApplyPlacement()` は寸法が未解決（`_size <= 0`）なら何もせず（`// silent-ok: 寸法の解決前は CustomStyleResolvedEvent が置き直す / L1 両端が最初から揃っていても中心に置く が見る`）、解決後は `style.left = _placement.OriginX - _size / 2f`・`style.top = _placement.OriginY - _size / 2f`（Web の負の margin）・`_step.SetTravel(_placement.TravelX, _placement.TravelY)`。`CustomStyleResolvedEvent` で寸法を読んだ直後にも `ApplyPlacement()` を呼ぶ（寸法 0 のまま置いて 28px ずれたまま残るのを防ぐ）。`HideGuide()` は `display: none`。
 
 `TutorialOverlayView.cs` に足す: `Dictionary<string, TutorialDragGuideView> _dragGuides` の照合（`ReconcileOutlines` と同じ形の `ReconcileDragGuides`。`Render` で `ReconcileOutlines` の直後に呼ぶ）、`Render` の最後で全ガイド、`RedrawAnchor(anchorId)` で `FromAnchorId` か `ToAnchorId` が一致するガイドの `RedrawGuide(cue)`。購読は足さない（Presenter の `Mount` が既にガイドの両端も購読している）:
 ```csharp
@@ -2386,7 +2350,8 @@ Expected: `TutorialDragGuideView` が無いのでコンパイルエラー
             var view = _dragGuides[cue.Key];
             // 両端の状態がそろい起点が見えている時だけ出す（Web DragGuide。隠すのは仕様どおりで、理由は追跡器が遷移時に出す）
             // Show only when both ends are known and the origin is visible (Web DragGuide; reasons are reported by the tracker)
-            if (_anchors.TryGetState(cue.FromAnchorId, out var from) && _anchors.TryGetState(cue.ToAnchorId, out var to) && TutorialDragGuideGate.TryPlace(from, to, out var placement)) view.Show(placement);
+            if (_anchors.TryGet(cue.FromAnchorId, out var from) && _anchors.TryGet(cue.ToAnchorId, out var to) && TutorialDragGuideGate.TryPlace(from, to, out var placement)) view.Show(placement);
+            // silent-ok: 端が未解決・起点が見えない間は Web と同じく出さない仕様 / 未解決の理由は TutorialAnchorTracker が遷移時に出し、L1 TutorialOverlayDragGuideTest が見る
             else view.HideGuide();
         }
 ```
@@ -2395,7 +2360,7 @@ Expected: `TutorialDragGuideView` が無いのでコンパイルエラー
 - [ ] **Step 3: 確かめてコミットする**
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Screens\.Tutorial\.Overlay\."`
-Expected: `ErrorCount: 0`、Task 6 の 17 件＋DragGuide 3 件が PASS
+Expected: `ErrorCount: 0`、Task 6 の 16 件＋DragGuide 4 件（Web 3・置き直し 1）が PASS
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui/Screens/Tutorial moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/Tutorial
 git commit -m "feat(uitk): 2 つのアンカーを結ぶ DragGuide を Web から写す（S2-tutorial・E-16）
@@ -2410,14 +2375,14 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Modify: `S/Client.Ui/Components/Text/ShortcutHintLabel/ShortcutHintLabel.cs`（Prefix では印の引数を足さない。指揮の割り当て A）
 - Modify: `S/Client.Ui/Components/Text/KeyCap/KeyCap.uss`（色のつまみ `--key-cap-color`。既定は `var(--text-high-contrast)`。指揮の割り当て A）
-- Modify: `S/Client.Tests/Ui/Components/ComponentTokenProbe.uss`（`--key-cap-color` の上書きを 1 行）
+- Create: `S/Client.Tests/Ui/Components/Text/KeyCapColorProbe.uss`（このレーンのテスト専用の probe。共有の `ComponentTokenProbe.uss` は書き換えない）
 - Create: `S/Client.Ui/Screens/Tutorial/KeyControlHint/{KeyControlHintPresenter.cs,KeyControlHintView.cs,KeyControlHint.uss}`
 - Test: `S/Client.Tests/Ui/Components/Text/{ShortcutHintLabelPrefixTextTest.cs,KeyCapTest.cs}`（既存の `ShortcutHintLabelTest.cs` は 195 行なので足さず別ファイル）・`S/Client.Tests/Ui/Screens/Tutorial/Cues/{FakeTutorialCueModels.cs,KeyControlHintTest.cs}`
 
 **Interfaces:**
 - Consumes: このタスクの Step 1〜2 で直す `ShortcutHintLabel(string testid, ShortcutHintLayout layout)`・`SetHint(UiText sentence, string shortcutText)`、`KeyCap`（`ShortcutHintLabel` の中）、`UiTypographyClass.KeyHintText`、Task 4 の `KeyControlHintViewModel`・`KeyControlHintProjection`・`KeyControlHintModel`、Task 5 の `TutorialPulseBinding`、`GameUiRoot.GetLayer(UiLayer.OverlayPanel, UiFamily.Viewport)`
 - Produces（namespace `Client.Ui.Screens.Tutorial.KeyControlHint`）:
-  - 部品の直し: `ShortcutHintLabel.SetHint` は Prefix なら文をそのまま渡す（content・verbatim の文でも例外を出さない）、`KeyCap.uss` は `color: var(--key-cap-color, var(--text-high-contrast));`
+  - 部品の直し: `ShortcutHintLabel.SetHint` は Prefix なら文をそのまま渡す（content・verbatim の文でも例外を出さない）、`KeyCap.uss` は `:root { --key-cap-color: var(--text-high-contrast); }` と `.key-cap { color: var(--key-cap-color); }`
   - `KeyControlHintView() : VisualElement`（`name = "key-control-hint-hud"`。Model を購読しない。`void Render(KeyControlHintViewModel model)`。ヒント 0 件で `display: none`。行は `ShortcutHintLabel("key-control-hint", ShortcutHintLayout.Prefix)`＋クラス `key-control-hint__item`・`UiTypographyClass.KeyHintText`）
   - `KeyControlHintPresenter(GameUiRoot gameUiRoot, KeyControlHintModel model) : IInitializable` と `static KeyControlHintView Mount(VisualElement layer, IReadOnlyReactiveProperty<KeyControlHintViewModel> model)`（`model.Subscribe(view.Render)` はここ。D-22）
   - 画面ルート `.key-control-hint` の受け直し: `--key-cap-color: var(--tutorial-key-hint-color)`（kbd の色。D-8）・`.key-control-hint .key-control-hint__item { color: var(--tutorial-key-hint-color); }`（文の色。`--text-high-contrast` は受け直さない）・`--shortcut-hint-label-gap: var(--tutorial-key-hint-kbd-gap)`・`--key-control-hint-floor-offset: var(--hotbar-floor-offset)`・`--key-control-hint-hotbar-gap: var(--tutorial-key-hint-hotbar-gap)`・`--key-control-hint-row-gap: var(--tutorial-key-hint-gap)`・`--tutorial-attention-pulse-period: var(--tutorial-pulse-duration)`
@@ -2444,16 +2409,17 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
             Assert.IsInstanceOf<KeyCap>(verbatim.Children().First(child => child.resolvedStyle.display == DisplayStyle.Flex));
         }
 ```
-`S/Client.Tests/Ui/Components/Text/KeyCapTest.cs`（`ComponentTokenProbe.uss` に `--key-cap-color: rgb(255, 0, 0);` を 1 行足し、`ShortcutHintLabelTest` の gap のテストと同じく祖先の `.component-knob-probe` で当てる）:
+`S/Client.Tests/Ui/Components/Text/KeyCapColorProbe.uss`（`.key-cap-color-probe { --key-cap-color: rgb(255, 0, 0); }` と 2 行セットのコメント）を作り、`S/Client.Tests/Ui/Components/Text/KeyCapTest.cs`（`ShortcutHintLabelTest` の gap のテストと同じ形で、祖先の `.key-cap-color-probe` で当てる）:
 ```csharp
         [Test]
         public void 祖先でkey_cap_colorを上書きするとKeyCapの色だけが変わる()
         {
-            var probe = AssetDatabase.LoadAssetAtPath<StyleSheet>(ProbePath);
-            Assert.IsNotNull(probe, ProbePath);
+            const string probePath = "Assets/Scripts/Client.Tests/Ui/Components/Text/KeyCapColorProbe.uss";
+            var probe = AssetDatabase.LoadAssetAtPath<StyleSheet>(probePath);
+            Assert.IsNotNull(probe, probePath);
             rootVisualElement.styleSheets.Add(probe);
             var screen = new VisualElement();
-            screen.AddToClassList("component-knob-probe");
+            screen.AddToClassList("key-cap-color-probe");
             rootVisualElement.Add(screen);
             var plain = new KeyCap("Esc");
             rootVisualElement.Add(plain);
@@ -2480,11 +2446,18 @@ Expected: 2 件とも FAIL（Prefix は `InvalidOperationException`、KeyCap は
             _sentence.SetText(_layout == ShortcutHintLayout.Inline ? sentence.WithLeadingParam(ShortcutHintSegments.ParamName, ShortcutHintSegments.Marker) : sentence);
         }
 ```
-`KeyCap.uss` の `.key-cap` の `color: var(--text-high-contrast);` を `color: var(--key-cap-color, var(--text-high-contrast));` に替え、上のコメントを「色は置く側が `--key-cap-color` で上書きできる。既定は --text-high-contrast（置く側が文の色を変えても kbd は白）」へ直す（2 行セット）。
+`KeyCap.uss` の `.key-cap` の `color: var(--text-high-contrast);` を `color: var(--key-cap-color);` に替え、同じファイルの先頭に既定を置く（上のコメントも「色は置く側が `--key-cap-color` で上書きできる。既定は --text-high-contrast（置く側が文の色を変えても kbd は白）」へ直す。2 行セット）:
+```css
+/* 色のつまみの既定。画面ルートでの上書きは継承で勝つ（D-31） */
+/* Default of the color knob; an override at a screen root wins through inheritance (D-31) */
+:root {
+    --key-cap-color: var(--text-high-contrast);
+}
+```
 
 Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.Components\.Text\."`
 Expected: `ErrorCount: 0`、新しい 2 件と既存の `ShortcutHintLabelTest`・`ShortcutHintSegmentsTest`・`TooltipFace*` が全件 PASS。続けて S2-hud の `KeyHintHud` が壊れていないことを、その L1 を名前で回して確かめる: `grep -rln "ShortcutHintLabel\|KeyCap" moorestech_client/Assets/Scripts/Client.Tests` で出たテストクラスを `--filter-type regex` の `(A|B|…)` にまとめて回し、全件 PASS（件数を `done.md` の「証拠」へ）。
-`var()` の入れ子の fallback が効かず既定の KeyCap が白でなくなったら（`KeyCapは枠なしで…色は高コントラスト` が落ちる）、`KeyCap.uss` は `color: var(--key-cap-color);` にし、既定 `--key-cap-color: var(--text-high-contrast);` をテーマのトークン（`GameUiTheme.tss` が読む部品つまみの既定の置き場。Task 1 Step 2 で写した場所）へ置く。どちらにしたかと実測を台帳「## 実測の結論」へ 1 行書く
+既定の KeyCap が白でなくなったら（`KeyCapは枠なしで…色は高コントラスト` が落ちる＝部品 USS の `:root` がパネルのルートに効いていない）、`KeyCap.uss` が `GameUiTheme.tss` から読まれているか（テストの UiTestHost が同じ tss を当てているか）を確かめ、実測を台帳「## 実測の結論」へ 1 行書く
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Ui/Components/Text moorestech_client/Assets/Scripts/Client.Tests/Ui/Components
 git commit -m "fix(uitk): ShortcutHintLabel の Prefix で印の引数を足さず、KeyCap に色のつまみ --key-cap-color を足す（S2-tutorial）
@@ -2608,13 +2581,14 @@ Expected: `KeyControlHintView` が無いのでコンパイルエラー
     --tutorial-attention-pulse-period: var(--tutorial-pulse-duration);
 }
 
-/* 文の色。Web の .hint { color: var(--tutorial-key-hint-color) } */
-/* Sentence color; Web .hint { color: var(--tutorial-key-hint-color) } */
+/* 文の色と行の高さ。Web の .hint { color } と、key-hint-text の 25px × line-height 1.2 の行箱（2 件積んだときの行間を Web に合わせる） */
+/* Sentence color and row height; Web .hint { color } and the 25px x line-height 1.2 line box (matches Web spacing when two rows stack) */
 .key-control-hint .key-control-hint__item {
     color: var(--tutorial-key-hint-color);
+    min-height: 30px;
 }
 ```
-`KeyControlHintView.cs`: ctor で `name`・クラス・拾わない・`CustomStyleResolvedEvent` で `--key-control-hint-floor-offset`＋`--key-control-hint-hotbar-gap` を `style.bottom` に、`--key-control-hint-row-gap` を 2 行目以降の `style.marginTop` に当てる。Model は購読しない（Presenter の `Mount` が `Render` を呼ぶ）。`Render` は行の数を ViewModel に合わせ（足りなければ `ShortcutHintLabel("key-control-hint", ShortcutHintLayout.Prefix)` を作って `AddToClassList(UiTypographyClass.KeyHintText)`・`AddToClassList("key-control-hint__item")`・`new TutorialPulseBinding(this, row, TutorialAttentionPulse.StrongScale)`、余れば消す）、各行に `SetHint(cue.Text, cue.KeyName)`、0 件なら `display: none`。
+`KeyControlHintView.cs`: ctor で `name`・クラス・拾わない・`CustomStyleResolvedEvent` で `--key-control-hint-floor-offset`＋`--key-control-hint-hotbar-gap` を `style.bottom` に、`--key-control-hint-row-gap` を 2 行目以降の `style.marginTop` に当てる。Model は購読しない（Presenter の `Mount` が `Render` を呼ぶ）。`Render` は行の数を ViewModel に合わせ（足りなければ `ShortcutHintLabel("key-control-hint", ShortcutHintLayout.Prefix)` を作って `AddToClassList(UiTypographyClass.KeyHintText)`・`AddToClassList("key-control-hint__item")`・ctor で作った `_pulse = new TutorialPulseBinding(this)` に `_pulse.Attach(row, TutorialAttentionPulse.StrongScale)`、余れば消す）、各行に `SetHint(cue.Text, cue.KeyName)`、0 件なら `display: none`。
 `KeyControlHintPresenter.cs`（前例 `ToastLayerPresenter`）:
 ```csharp
     public sealed class KeyControlHintPresenter : IInitializable
@@ -2669,7 +2643,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Produces（namespace `Client.Ui.Screens.Tutorial.WorldPin`）:
   - `WorldPinOverlayView() : VisualElement`（`name = "world-pin-overlay"`。Model を購読しない。`void Render(WorldPinViewModel model)`。ピン 0 件で `display: none`。層の寸法は `GeometryChangedEvent` で取り、端クランプを置き直す）
   - `WorldPinMarkerView : VisualElement`（`name = "world-pin-<pinId>"`。`left/top` を `Length.Percent(ScreenX*100)`・`Percent(ScreenY*100)`、`translate(-50%, -100%)`、子にラベル（`LocalizedLabel`・クラス `world-pin__label`）とマーカー（20×20 の Painter2D）を縦に積む）: `void Show(WorldPinCue cue)`・`void SetColors(Color face, Color stroke)`
-  - `WorldPinEdgeArrowView(VisualElement pulsePeriodHost) : VisualElement`（`name = "world-pin-arrow-<pinId>"`。56×56、`translate(-50%, -50%)`＋`rotate(angle)` をインラインで持ち、子の矢印本体 `world-pin__arrow-glyph` だけが 1.08 で脈動）: `void Show(string pinId, WorldPinEdgeSpot spot, float size)`・`void SetColors(Color fill, Color stroke, Color shadow)`
+  - `WorldPinEdgeArrowView(TutorialPulseBinding pulse) : VisualElement`（`name = "world-pin-arrow-<pinId>"`。56×56、`translate(-50%, -50%)`＋`rotate(angle)` をインラインで持ち、子の矢印本体 `world-pin__arrow-glyph` だけが 1.08 で脈動）: `void Show(string pinId, WorldPinEdgeSpot spot, float size)`・`void SetColors(Color fill, Color stroke, Color shadow)`
   - `WorldPinGlyphs`: `static void DrawMarker(Painter2D, float size, Color face, Color stroke)`（`M12 22 L5 10 A8 8 0 1 1 19 10 Z`・縁 1.5）・`static void DrawArrow(Painter2D, float size, Color fill, Color stroke, Color shadow)`（`M2 8 H13 V3 L22 12 L13 21 V16 H2 Z`・縁 1.5 を塗りの下・影は 2px 下の写し。LX-36）
   - `WorldPinPresenter(GameUiRoot gameUiRoot, WorldPinModel model) : IInitializable` と `static WorldPinOverlayView Mount(VisualElement layer, IReadOnlyReactiveProperty<WorldPinViewModel> model)`（`model.Subscribe(view.Render)` はここ。D-22）
   - 画面ルート `.world-pin-overlay` の受け直し: `--world-pin-view-edge-margin: var(--world-pin-edge-margin)`・`--world-pin-view-arrow-size: var(--world-pin-arrow-size)`・`--world-pin-view-face: var(--world-pin-face)`・`--world-pin-view-stroke: var(--text-high-contrast)`・`--world-pin-view-arrow-fill: var(--tutorial-attention-red)`・`--world-pin-view-arrow-shadow: var(--world-pin-arrow-shadow)`・`--tutorial-attention-pulse-period: var(--tutorial-pulse-duration)`
@@ -2879,7 +2853,7 @@ Expected: `WorldPinOverlayView` が無いのでコンパイルエラー
 （Web の `stroke-width: 1.5` は viewBox 単位なので、56px の矢印では 3.5px、20px のマーカーでは 1.25px になる。SVG と同じく `unit` を掛ける）
 
 `WorldPinMarkerView.cs`: ctor で クラス `world-pin`・拾わない・子 `LocalizedLabel`（`world-pin__label`）と `_marker`（`world-pin__marker`。`generateVisualContent` で `DrawMarker`、色はオーバーレイの `CustomStyleResolvedEvent` で受けた `--world-pin-view-face`・`--world-pin-view-stroke` を `SetColors(face, stroke)` で渡す）。`Show(cue)` は `name = $"world-pin-{cue.PinId}"`・`style.left = Length.Percent(cue.ScreenX * 100f)`・`style.top = Length.Percent(cue.ScreenY * 100f)`・ラベルの `SetText(cue.Label)`。
-`WorldPinEdgeArrowView.cs`: ctor で クラス `world-pin__arrow`・子 `_glyph`（`world-pin__arrow-glyph`。`generateVisualContent` で `DrawArrow`）・`new TutorialPulseBinding(overlay, _glyph, TutorialAttentionPulse.StrongScale)`（位置と回転は親のインライン、脈動は子。ADR 0039）。`Show(string pinId, WorldPinEdgeSpot spot, float size)` は `name`・`style.width/height = size`・`style.left = spot.Left`・`style.top = spot.Top`・`style.translate = new Translate(Length.Percent(-50), Length.Percent(-50))`・`style.rotate = new Rotate(Angle.Degrees(spot.AngleDegrees))`。
+`WorldPinEdgeArrowView.cs`: ctor で クラス `world-pin__arrow`・子 `_glyph`（`world-pin__arrow-glyph`。`generateVisualContent` で `DrawArrow`）・`pulse.Attach(_glyph, TutorialAttentionPulse.StrongScale)`（`pulse` はオーバーレイが ctor で作った 1 つ。位置と回転は親のインライン、脈動は子。ADR 0039）。`Show(string pinId, WorldPinEdgeSpot spot, float size)` は `name`・`style.width/height = size`・`style.left = spot.Left`・`style.top = spot.Top`・`style.translate = new Translate(Length.Percent(-50), Length.Percent(-50))`・`style.rotate = new Rotate(Angle.Degrees(spot.AngleDegrees))`。
 `WorldPinOverlayView.cs`: Model は購読しない。`Render(model)` は受けた ViewModel を `_current` に持ち、`GeometryChangedEvent` と `CustomStyleResolvedEvent` で `Render(_current)` をやり直す。`Render` はピンの照合（`PinId` ごとに画面内なら `WorldPinMarkerView`、画面外なら `WorldPinEdgeArrowView`。`OnScreen` が切り替わったら作り直す）、画面外は `WorldPinEdgePlacement.TryPlace(layout.width, layout.height, _edgeMargin, cue.DirectionX, cue.DirectionY, out var spot)` が false なら隠す、0 件なら `display: none`。
 `WorldPinPresenter.cs`: `Initialize` は `Mount(GetLayer(UiLayer.WorldPin, UiFamily.Viewport), _model.Current)`（Web は Portal の `--z-portal-world-pin`）。`Mount` は `var view = new WorldPinOverlayView(); layer.Add(view); model.Subscribe(view.Render); return view;`（KeyControlHint と同じ形）。
 
@@ -2907,7 +2881,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 - [ ] **Step 1: tutorial.spec を写す**
 
-`TutorialStageCueTest.cs`（`TutorialOverlayTestHost` を継承。SetUp で `TutorialOverlayPresenter.Mount(rootVisualElement, rootVisualElement, _overlay.Current, _acks)` と `KeyControlHintPresenter.Mount(rootVisualElement, _keyHint.Current)` の両方を通す）:
+`TutorialStageCueTest.cs`（`TutorialOverlayTestHost` を継承。SetUp で `TutorialOverlayPresenter.Mount(rootVisualElement, rootVisualElement, _overlay.Current)` と `KeyControlHintPresenter.Mount(rootVisualElement, _keyHint.Current)` の両方を通す）:
 ```csharp
         /// <web-test file="e2e/tests/system/tutorial.spec.ts">tutorial outline highlights the target without dimming the rest of the screen</web-test>
         [Test]
@@ -2960,6 +2934,9 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
         {
             _keyControl.Set(new KeyControlHintProjection().Project(Data(1, KeyHint("k1", "Tab", "GameScreen")), UIStateEnum.GameScreen, false));
             simulate.FrameUpdate();
+            // 最初の呼び出しを経過 0 として開始する（UiMotionHandle）
+            // The first scheduler call starts the motion at elapsed 0 (UiMotionHandle)
+            simulate.FrameUpdateMs(0);
             simulate.FrameUpdateMs(Ms("--tutorial-pulse-duration") / 2f);
             Assert.AreEqual(1.08f, _keyControlView.Q<ShortcutHintLabel>("key-control-hint").resolvedStyle.scale.value.x, 0.005f);
         }
@@ -2971,6 +2948,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
             MountAnchor(rootVisualElement, "pause.save", 400, 300, 200, 40);
             _overlay.Set(TutorialOverlayProjection.Project(Data(1, Outline("o1", "pause.save", LabelGuid.ToString()))));
             simulate.FrameUpdate();
+            simulate.FrameUpdateMs(0);
             simulate.FrameUpdateMs(Ms("--tutorial-pulse-duration") / 2f);
 
             Assert.AreEqual(1.03f, _overlayView.Q(className: "tutorial-outline__clip").resolvedStyle.scale.value.x, 0.005f);
@@ -3132,7 +3110,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - Test: `S/Client.Tests/Ui/Anchor/{TutorialAnchorCoverageTest.cs,TutorialAnchorCoveragePending.cs}`
 
 **Interfaces:**
-- Consumes: Task 4 の Model 4 つ・`BlockingSkitState`・`TutorialAnchorAckCommands`/`ITutorialAnchorAckCommands`、Task 6・8・9 の Presenter、`AnchorIds.StaticIds`・`AnchorIds.*Prefix`、前例 `ToastGameUiRegistration`（`builder.RegisterEntryPoint<…>()`）・`MainGameUiStateRegistration`（`builder.RegisterEntryPoint<PauseMenuModel>().AsSelf()`・`builder.Register<PauseMenuCommands>(Lifetime.Singleton).As<IPauseMenuCommands>()`）、`PauseMenuView` の ctor（`PauseMenuViewTest` の SetUp と同じ引数）
+- Consumes: Task 4 の Model 3 つ・`BlockingSkitState`、Task 6・8・9 の Presenter、`AnchorIds.StaticIds`・`AnchorIds.*Prefix`、前例 `ToastGameUiRegistration`（`builder.RegisterEntryPoint<…>()`）・`MainGameUiStateRegistration`（`builder.RegisterEntryPoint<PauseMenuModel>().AsSelf()`）、`PauseMenuView` の ctor（`PauseMenuViewTest` の SetUp と同じ引数）
 - Produces:
   - `TutorialGameUiRegistration.Register(ContainerBuilder builder)`
   - `TutorialAnchorCoveragePending.Owners : IReadOnlyDictionary<string, string>`（未移植のアンカー id → 持ち主レーン。行の消し方の規則はファイル冒頭のコメントに書く: 印を付けたレーンが同じ PR で自分の行を消す・S5-ladder で空になる。指揮が execution-plan E-1 にも書く。指揮の割り当て E）
@@ -3159,11 +3137,10 @@ namespace Client.Starter.Registration.GameUi
     {
         public static void Register(ContainerBuilder builder)
         {
-            builder.RegisterEntryPoint<BlockingSkitState>().AsSelf();
+            builder.RegisterEntryPoint<BlockingSkitState>().WithParameter(SkitPresentationStateStore.Instance).AsSelf();
             builder.RegisterEntryPoint<TutorialOverlayModel>().AsSelf();
             builder.RegisterEntryPoint<KeyControlHintModel>().AsSelf();
             builder.RegisterEntryPoint<WorldPinModel>().AsSelf();
-            builder.Register<TutorialAnchorAckCommands>(Lifetime.Singleton).As<ITutorialAnchorAckCommands>();
             builder.RegisterEntryPoint<TutorialOverlayPresenter>();
             builder.RegisterEntryPoint<KeyControlHintPresenter>();
             builder.RegisterEntryPoint<WorldPinPresenter>();
@@ -3305,19 +3282,20 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 13: 処遇・台帳の記帳と test-name-parity
 
 **Files:**
-- Modify: `docs/uitk/disposition.md`（「## 処遇」の表に 1 行）
+- Modify: `docs/uitk/disposition.md`（「## 処遇」の表に 2 行）
 - Modify: `docs/uitk/TODO.md`（「## 見た目の例外」末尾に LX-35〜LX-37、「## 実測の結論」末尾に 2 行）
 - Modify: LX の印（`TutorialDragGuideGlyph.cs`・`WorldPinGlyphs.cs`・`TutorialAttentionPulse.cs`）
 
 **Interfaces:**
 - Consumes: Task 6〜12 の実物、`node tools/uitk/test-name-parity.mjs`
-- Produces: 処遇 1 行・LX 3 行・実測 2 行
+- Produces: 処遇 2 行・LX 3 行・実測 2 行
 
 - [ ] **Step 1: 処遇を書く**
 
 `docs/uitk/disposition.md` の「## 処遇」の表の末尾に:
 ```markdown
-| 5 | `src/features/tutorial/overlay/TutorialOverlay.test.ts` | item master未ロード中は所持アンカーのackを送らず、到着後に送り直す | 捨てる | Web はマスタを WS で後から受けるので、所持アイテムのアンカー（`inventory.item-*`）が解決できない間の ack を止める。UITK は `MasterHolder` がゲーム開始前に読み終わっており、UI の層が作られる時点でマスタ未ロードの状態が存在しない | #<PR番号> |
+| 5 | `src/features/tutorial/overlay/TutorialOverlay.test.ts` | item master未ロード中は所持アンカーのackを送らず、到着後に送り直す | 捨てる | ack は越境の通知で、C# の受け手 `TutorialAnchorAckAction` は検証して返すだけ（store・サーバー・ログに効果が無い）。UITK は解決する側が C# 自身なので ack を作らない。加えて UITK は `MasterHolder` がゲーム開始前に読み終わっており、マスタ未ロードの状態が無い | #<PR番号> |
+| 5 | `src/features/tutorial/overlay/TutorialOverlay.test.ts` | 同一anchorを共有する全highlightへackを配る | 捨てる | ack は越境の通知で、C# の受け手 `TutorialAnchorAckAction` は検証して返すだけ（store・サーバー・ログに効果が無い）。UITK は解決する側が C# 自身なので ack を作らない。同じアンカーを共有する全ての枠を描くことは L1 `TutorialOverlayAnchorTest` と `TutorialStageCueTest` が見る | #<PR番号> |
 ```
 
 - [ ] **Step 2: 見た目の例外を書く**
@@ -3326,7 +3304,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ```markdown
 | LX-35 | DragGuide のカーソル矢印の影 | Web は `filter: drop-shadow(0 1px 2px var(--tutorial-drag-guide-shadow))`、UITK は 1px 下へずらしたにじまない写し | Painter2D にぼかしが無く、同じにするには影のテクスチャを自作する必要がある。差は影の縁の柔らかさだけで、動いている矢印では見分けにくい | ずらした写しのまま | <Task 14 の URL> | agent 既定（S2-tutorial D-15） |
 | LX-36 | ワールドピンの画面端矢印の影 | Web は `filter: drop-shadow(0 2px 3px var(--world-pin-arrow-shadow))`、UITK は 2px 下へずらしたにじまない写し | LX-35 と同じ | ずらした写しのまま | <Task 14 の URL> | agent 既定（S2-tutorial D-15） |
-| LX-37 | 注意の脈動・DragGuide の動きの曲線 | Web は CSS の `ease-in-out`（cubic-bezier(0.42, 0, 0.58, 1)）、UITK は `UiEasing.EaseInOutSine` | UiMotion に cubic-bezier の曲線が無い。2 つの曲線の差は進みの 2% 未満で、1200ms・3200ms の往復では見分けられない | EaseInOutSine のまま（UiMotion に cubic-bezier が入れば寄せる） | <Task 14 の動画の URL> | agent 既定（S2-tutorial D-16） |
+| LX-37 | 注意の脈動・DragGuide の動きの曲線 | Web は CSS の `ease-in-out`（cubic-bezier(0.42, 0, 0.58, 1)）、UITK は `UiEasing.EaseInOutSine` | 2 つの曲線の進みの差は最大 0.019（進み 0.70 付近。始点・頂点・終点は一致）。脈動の拡縮では 1.08 で 0.0015・1.03 で 0.0006 で、幅 100px の要素の縁で 0.08px 未満。DragGuide の移動では途中だけ travel の 1.9% の位置差。§3.4 の例外の条件（影響が小さく非本質的）に当たり、`UiEasing` を書き換えるのは E-19 で S2-notification だけ | EaseInOutSine のまま。S2-notification のマージ後に integrator が CssEaseInOut を足してこの行を消す | <Task 14 の動画の URL> | agent 既定（S2-tutorial D-16） |
 ```
 対応する行に印を付ける: `TutorialDragGuideGlyph.cs` の影を描く行に `// look-exception: LX-35`、`WorldPinGlyphs.DrawArrow` の影の行に `// look-exception: LX-36`、`TutorialAttentionPulse.Start` の `UiEasing.EaseInOutSine` の行と `TutorialDragGuideStep.Ease` の行に `// look-exception: LX-37`。LX-38 は Task 14 の並べ比べで、一目で分からず直すのが大きい差が見つかったときに使う（使わなければ欠番として done.md に書く）。一目で分かる差は例外にせず直すか、done.md の「要裁定」に書いて止める。
 
@@ -3363,8 +3341,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 - なし（撮影・比較・done.md）
 
 **Interfaces:**
-- Consumes: Task 15 の録画のスクショ（UITK・1280×720）、参照キャプチャ、master の worktree の `moorestech_web/webui/e2e/uitk-reference/capture.ts`
-- Produces: `moorestech_client/PlaytestResults/s2-tutorial-compare/` の組（gitignore 下）、share の URL、done.md の「差の表」
+- Consumes: 参照キャプチャ、master の worktree の `moorestech_web/webui/e2e/uitk-reference/capture.ts`、Web の撮影状態の定義（`moorestech_web/webui/e2e/uitk-reference/referenceShots.ts` の 85〜118 行・`moorestech_web/webui/e2e/mock-host/topics/tutorialControls.ts` の 29〜61 行）、Task 6・8・9 の Presenter の `Mount`、前例 theme レーンの撮り方（`../moorestech_logs/harness/sdd/feature-uitk-s1-theme/workspace/task-5-brief.md` の Step 7・`task-5-report.md`）、Task 15 の録画のスクショ（UITK のみの自己確認）
+- Produces: `moorestech_client/PlaytestResults/s2-tutorial-compare/` の組と fixture の EDC コード（gitignore 下）、share の URL、done.md の「並べる対」「fixture の矩形」「差の表」
 
 - [ ] **Step 1: 1280×720 の参照を引く**
 
@@ -3395,9 +3373,30 @@ moores-wt rm uitk-ref-s2-tutorial --force
 ```
 Expected: 6 枚の 2560×1080 の PNG。`moores-wt status --json` の鍵の名が違えば `moores-wt status` の表から worktree のパスを読む。`capture.ts` が撮影名の引数を取らない実物なら全撮影を回して 6 枚だけ使う。`--force` は書き換えを捨てるため（このための worktree なので失うものは無い）
 
-- [ ] **Step 3: UITK を 2 解像度で撮り、並べる**
+- [ ] **Step 3: Web と同じ撮影状態を UITK の fixture で作る（D-29）**
 
-Task 15 のシナリオを 1280×720 と 2560×1080（Game ビューの解像度を `uloop execute-dynamic-code` で切り替える。シナリオの冒頭コメントに手順）で回したスクショを `PlaytestResults/s2-tutorial-compare/uitk-1280/`・`uitk-2560/` に写し、Web と UITK を同じ撮影名で横に並べた比較 HTML を 1 枚作って `share-put moorestech_client/PlaytestResults/s2-tutorial-compare -n s2-tutorial-compare` で置く。done.md の「差の表」に撮影名ごとに 1 行: 枠の外形（±2px）・線幅 3px・角丸・グローの幅と色・ラベルの位置（下／反転）と面の色・ピンの先端位置・マーカーの形・矢印の大きさと余白・ヒントの位置（ホットバーの上 72px）と赤・脈動の周期（動画のコマで頂点の時刻）。暗さの差（`--world-pin-face`＝`--surface-navy` の α）は「I-fix1 待ち」と書いて直さない。差が LX-35〜37 以外で一目で分かれば直してから撮り直す。直せず大きければ LX-38 で記帳する（Task 13 Step 2）
+Web の 6 枚は mock-host の状態で撮られている。UITK でその画面がまだ無い（クロスヘアは S2-hud、レシピ一覧・研究は段階 4）ので、同じ状態を fixture で作る。並べる対:
+
+| Web 撮影名 | Web の状態（referenceShots.ts・tutorialControls.ts） | UITK 撮影名 | UITK の状態の作り方 |
+|---|---|---|---|
+| `5-tutorial-outline-label` | ゲーム画面。`game.crosshair` に枠（padding 8）＋ラベル「照準に合わせる」 | `fx-outline-label` | S2-hud がマージ済みならクロスヘアの実物の View を同じパネルに載せてその印を使う。未マージなら Web のクロスヘアと同じ矩形の要素を置き `TutorialAnchor.Mark(e, "game.crosshair")` |
+| `5-tutorial-recipe-item` | 持ち物画面。レシピ一覧 1 段目のセル `recipe.item-100` に枠（padding 8）＋同じラベル（ScrollArea のクリップの中） | `fx-recipe-item` | Web のレシピ一覧と同じ矩形の `ScrollView`（viewport が祖先クリップ）の中に、1 段目のセルと同じ矩形の要素を置き `Mark(e, "recipe.item-100")` |
+| `5-tutorial-research-node` | 研究画面。パンでクリップ境界を跨ぐノード `research.node-<guid>` に枠（padding 8・ラベル無し） | `fx-research-node` | Web のパン領域と同じ矩形の容器に `TutorialAnchor.MarkClipContainer`、その中の Web と同じ位置（境界を跨ぐ）にノードの矩形の要素を置き `Mark` |
+| `2-world-pin-onscreen` | `/__worldpin?x=0.6&y=0.4` | `fx-world-pin-onscreen` | `WorldPinPresenter.Mount` に画面内 (0.6, 0.4) のピン 1 件の ViewModel |
+| `2-world-pin-offscreen` | `/__worldpin?on=0&dx=1&dy=0.3` | `fx-world-pin-offscreen` | 画面外・方向 (1, 0.3) のピン 1 件 |
+| `2-key-control-hint` | ゲーム画面。Tab＋「インベントリを開く」（uiState GameScreen） | `fx-key-control-hint` | `KeyControlHintPresenter.Mount` に同じ 1 行の ViewModel |
+| なし | — | Task 15 の `05-drag-guide-mid`・`06-after-pause` | UITK のみ（自己確認）。Web に同じ状態の参照が無いので差の表に載せない。Task 15 の `01`〜`04` も実プレイの自己確認で、対には使わない |
+
+矩形は Web の参照 PNG から測る: 枠の外形からリング 3px と padding 8px を引いた矩形がアンカー、レシピ一覧・パン領域はクリップの切り口の矩形。1280×720 と 2560×1080（Step 2 の撮影）のそれぞれで測り、2560×1080 はパネルの倍率 1.5（1080/720）で割って論理座標にする。測った値を done.md の「fixture の矩形」に書く。ラベル文は Web の mock と同じ文を `UiText.FromVerbatim` で渡す（字形の比較が目的で、辞書は L1 が見る）。
+
+- [ ] **Step 4: UITK を 2 解像度で撮り、並べる（前例 theme レーンの撮り方）**
+
+Game ビューの解像度は切り替えない。前例（theme レーン task-5 の Step 7）と同じく、空のシーンで PlayMode に入り（`uloop control-play-mode --action Play`。シーンが MainGame なら先に `EditorSceneManager.NewScene(NewSceneSetup.EmptyScene)`）、`uloop execute-dynamic-code` で:
+1. `GameUiPanelSettings.asset` を `Object.Instantiate` した複製に `targetTexture`（`new RenderTexture(1280, 720, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.sRGB)`、2 回目は 2560×1080）を付け、`UIDocument` を 1 つ作る
+2. ルートに Step 3 の fixture の要素を置き、`TutorialOverlayPresenter.Mount(root, root, overlay)`・`KeyControlHintPresenter.Mount(root, keyHint)`・`WorldPinPresenter.Mount(root, pins)` を `ReactiveProperty` の ViewModel で呼ぶ（撮影名ごとに ViewModel を差し替える）
+3. `uloop focus-window` の後、2 回目の execute-dynamic-code で RT を `ReadPixels` して `moorestech_client/PlaytestResults/s2-tutorial-compare/uitk-1280/<UITK 撮影名>.png`・`uitk-2560/` に保存する（脈動があるので、Mount 後に脈動が始まる前の経過 0 の絵を撮る。同じ撮影を 2 回撮って同じ絵になることを確かめる）
+
+fixture の EDC のコードは `moorestech_client/PlaytestResults/s2-tutorial-compare/fixture.cs.txt`（gitignore 下）に残し、done.md に要点を書く。終わったら PlayMode を止める。Web と UITK を Step 3 の対の表の順で横に並べた比較 HTML を 1 枚作って `share-put moorestech_client/PlaytestResults/s2-tutorial-compare -n s2-tutorial-compare` で置く。done.md の「差の表」に対ごとに 1 行: 枠の外形（±2px）・線幅 3px・角丸・グローの幅と色・ラベルの位置（下／反転）と面の色・祖先クリップの切り口・ピンの先端位置・マーカーの形・矢印の大きさと余白・ヒントの位置（ホットバーの上 72px）と赤と 2 行の行間・脈動の周期（Web の動画のコマで頂点の時刻）。暗さの差（`--world-pin-face`＝`--surface-navy` の α）は Task 1 で I-fix1 が未マージのときだけ「I-fix1 待ち」と書いて直さない。差が LX-35〜37 以外で一目で分かれば直してから撮り直す。直せず大きければ LX-38 で記帳する（Task 13 Step 2）
 
 ---
 
@@ -3408,11 +3407,11 @@ Task 15 のシナリオを 1280×720 と 2560×1080（Game ビューの解像度
 
 **Interfaces:**
 - Consumes: 前例 `scenarios/uitk/uitk-lifeline.cs`（`PlaytestRunner.Run`・`SetupDebugEnvironment`・`SkipOpeningSkitIfPlaying`・`ExitToGameScreen`・`PressKey`・`WaitUiState`・`UntilUiElement`・`Screenshot`・`Note`・`Assert`）、`TutorialPresentationStateStore.Instance`（`BeginSession(Guid)`・`AddOutlineHighlight(string anchorId, Guid tutorialGuid)`・`AddDragGuide(string from, string to)`・`AddKeyControlHint(string tutorialGuid, string keyName, string uiState)`・`EndSession(Guid)`）、`WorldPinStateStore.Instance`、マスタのチャレンジ 1（`mapObjectPin` を持つ）
-- Produces: result.json・recording.mp4・スクショ 6 枚（Task 14 が使う）
+- Produces: result.json・recording.mp4・スクショ 6 枚（実プレイの自己確認。`05`・`06` は Task 14 の表に「UITK のみ（自己確認）」で載る）
 
 - [ ] **Step 1: シナリオを書く**
 
-`uitk-tutorial-cues.cs`（冒頭コメントに起動前の手順: PlayMode を止め、`uloop execute-dynamic-code` で `UiSystemEditorSwitch.Set(UiSystem.GameUi)`、受け口 `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9`、2560×1080 の撮り直しは Game ビューの解像度を切り替えてから再実行）:
+`uitk-tutorial-cues.cs`（冒頭コメントに起動前の手順: PlayMode を止め、`uloop execute-dynamic-code` で `UiSystemEditorSwitch.Set(UiSystem.GameUi)`、受け口 `MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9`。撮影は 1280×720 の 1 回だけ。Web との並べ比べは Task 14 の fixture が持ち、このスクショは実プレイの自己確認）:
 ```csharp
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("uitk-tutorial-cues", options, async p =>
@@ -3569,7 +3568,7 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
     "Unityコンパイル: エラー0",
     "L0: Tutorial ロジック・状態 24 件 PASS",
     "L1: 追跡 6・枠 11・DragGuide 3・キー操作ヒント 4・ワールドピン 6・e2e 写し 6+3×2・見た目の規則 21・カバレッジ 2・アンカー 7 件 PASS",
-    "test-name-parity 束 2・4・5: このレーンの未対応 0（捨てる 1）",
+    "test-name-parity 束 2・4・5: このレーンの未対応 0（捨てる 2）",
     "unityプレイ録画テスト: uitk-tutorial-cues PASS"
   ],
   "notes": ["並べ比べの差の表は moorestech_logs/harness/uitk/S2-tutorial/done.md"]
@@ -3609,12 +3608,12 @@ Expected: closed、`git status --short` と `git log` が空。done.md の 1 行
 
 ## Self-Review
 
-1. Requirements coverage: R-1 → Task 6・10、R-2 → Task 3・5・6、R-3 → Task 5・6・8・9・10・11、R-4 → Task 3・6・10、R-5 → Task 2・3・5・6・10、R-6 → Task 4・6、R-7 → Task 3・7、R-8 → Task 4・8・10、R-9 → Task 3・4・9、R-10 → Task 10、R-11 → Task 11、R-12 → Task 12、R-13 → Task 12、R-14 → Task 14、R-15 → Task 13、R-16 → Task 13、R-17 → Task 15、R-18 → Task 16・17。漏れなし。完了条件の逐語の各項（祖先クリップ・脈動 1200ms・ラベル反転・二重解決の LogError・カバレッジ L1・KeyControlHint/WorldPin・6+17+21+6+1+3 件・DragGuide）はすべて R に写した。件数 58 は Web の実物を grep して数え直し tests-ladder と一致（写す 57・捨てる 1）
+1. Requirements coverage: R-1 → Task 6・10、R-2 → Task 3・5・6、R-3 → Task 5・6・8・9・10・11、R-4 → Task 3・6・10、R-5 → Task 2・3・5・6・10、R-6 → Task 13、R-7 → Task 3・7、R-8 → Task 4・8・10、R-9 → Task 3・4・9、R-10 → Task 10、R-11 → Task 11、R-12 → Task 12、R-13 → Task 12、R-14 → Task 14、R-15 → Task 13、R-16 → Task 13、R-17 → Task 15、R-18 → Task 16・17。漏れなし。完了条件の逐語の各項（祖先クリップ・脈動 1200ms・ラベル反転・二重解決の LogError・カバレッジ L1・KeyControlHint/WorldPin・6+17+21+6+1+3 件・DragGuide）はすべて R に写した。件数 58 は Web の実物を grep して数え直し tests-ladder と一致（写す 56・捨てる 2。ack の 2 件は D-10）
 2. Placeholder scan: `<PR番号>`・`<番号>`・`<HEAD 10 桁>`・`<S2-tutorial の bd ID>`・manifest のパス・`<Task 14 の URL>`・`<Task 15 の … fps>` は実行時にしか決まらない値で、取り方（Task 1 Step 3・`git rev-parse`・share-put の出力・録画）を同じタスクに書いた。DSL の操作名（`RotateCameraYaw` 等）と全体スイッチの API 名は実物に合わせる手順を書いた。「TBD」「適切に」は無い
-3. Type consistency: `TutorialClipRect`・`TutorialAnchorReason`（唯一の enum）/`TutorialAnchorWire.ToWire(reason) : (Status, Reason)`・判別 union `TutorialAnchorState`（`Ready(rect, clip)`・`NotFound(reason)`・`Hidden(reason)`・`SameAs`）・`ITutorialAnchorStateLookup.TryGet`/`TutorialAnchorStateBook.TryApply/KeepOnly`・`TutorialHighlightClip.TryComputeInset`/`TutorialClipInset`・`TutorialHighlightLabelPlacement.Place/ShowsLabel`/`TutorialLabelPosition`・`TutorialDragGuideGate.TryPlace`/`TutorialDragGuidePlacement`・`WorldPinEdgePlacement.TryPlace`/`WorldPinEdgeSpot`・判別 union `TutorialOutlineCue`（`Plain`・`Labeled(…, UiText label)`）・`TutorialElementKey.Of`・`TutorialTextFactory.TryCreate`・`TutorialOverlayViewModel(int, IReadOnlyList<TutorialOutlineCue>, IReadOnlyList<TutorialDragGuideCue>)`・`TutorialAnchorAck(string, string, string, int, TutorialAnchorReason)`・`TutorialAnchorAckFanout.Rebase/Collect`・`ITutorialAnchorAckCommands.Acknowledge`・`BlockingSkitState(UIStateControl)`・`KeyControlHintProjection.Project(data, UIStateEnum, bool)`・`WorldPinViewModel.From(data, bool)`・`ITutorialAnchorLookup.TryGetState`/`ITutorialAnchorSubscriptions.OnAnchorChanged/SetSubscribedAnchors`・`TutorialAnchorTracker(VisualElement, VisualElement)`・`ScaleTweenStep(VisualElement, float, float)`・`TutorialAttentionPulse.Start/StrongScale/SubtleScale/PeriodPropertyName`・`TutorialPulseBinding(VisualElement, VisualElement, float)`・`TutorialOverlayView(ITutorialAnchorLookup).Render/RedrawAnchor`・`TutorialOverlayPresenter.Mount(layer, searchRoot, model, acks)`・`KeyControlHintPresenter.Mount(layer, model)`・`WorldPinPresenter.Mount(layer, model)`・`TutorialOutlineView(VisualElement).ShowRing(box, inset, glow, radius)/HideRing/Label`・`TutorialHighlightLabelView.Place(UiText, box, clip, gap)/HideLabel`・`WorldPinEdgeArrowView(VisualElement).Show(string, WorldPinEdgeSpot, float)`。Task 間で名前と引数を照合し、Produces とコードの食い違い（ShowRing の角丸・Place の文・矢印の Show）は Produces を直した。キャストは switch のパターン・`is not … x` に替えた
-4. 保留・縮退経路: (a) `TutorialAnchorRegistry.Resolve` は黙り、未発見・重複は `TutorialAnchorTracker.ReportTransition` が遷移時に Warning/LogError（L1 で確かめる）。(b) 枠を出さない経路（未解決・完全にクリップ）は Web と同じ仕様の非表示で、理由は (a) のログと ack の status/reason で開発者に届く。(c) ラベルの GUID・ヒントの GUID・ピンの GUID が読めないときは LogError を出して、その 1 件だけを出さない（Projection の 3 か所）。(d) 語彙外の `UiState` は 1 回だけ Warning（Web と同じ）。(e) `WorldPinEdgePlacement` の寸法 0 と `TutorialHighlightLabelView.ApplyPlacement` の未計測は `// silent-ok:` 付きで次の `GeometryChangedEvent` で置き直す。(f) つまみが読めないときは `UssCustomStyleReader` が LogError を出し、脈動・寸法は前の値か無しで続ける。(g) 古い ack は `TutorialAnchorAckCommands` が `stale_session`/`stale_revision` の Warning で捨てる。(h) bool を返す Try 関数（`TryComputeInset`・`TryPlace`・`TryGetState`）が false で枠・矢印を隠すのは仕様どおりの非表示で、各所に `// silent-ok: <理由> / <気づく経路>` を書く（経路はアンカーの理由のログ・ack・L1）。GUID の読み違いは `TutorialTextFactory.TryCreate` の 1 関数が LogError を出す（D-24・D-25）
+3. Type consistency: `TutorialClipRect`・`TutorialAnchorReason`（唯一の enum）・判別 union `TutorialAnchorState`（`Ready(rect, clip)`・`NotFound(reason)`・`Hidden(reason)`・`SameAs`）・`ITutorialAnchorStateLookup.TryGet`（帳簿と追跡器が実装する唯一の読みの口）/`TutorialAnchorStateBook.ApplyIfChanged/KeepOnly`・`TutorialHighlightClip.TryComputeInset`/`TutorialClipInset`・`TutorialHighlightLabelPlacement.Place/ShowsLabel`/`TutorialLabelPosition`・`TutorialDragGuideGate.TryPlace`/`TutorialDragGuidePlacement`・`WorldPinEdgePlacement.TryPlace`/`WorldPinEdgeSpot`・判別 union `TutorialOutlineCue`（`Plain`・`Labeled(…, UiText label)`）・`TutorialElementKey.Of`・`TutorialTextFactory.TryCreate`・`TutorialOverlayViewModel(int, IReadOnlyList<TutorialOutlineCue>, IReadOnlyList<TutorialDragGuideCue>)`・`BlockingSkitState(SkitPresentationStateStore)`・`KeyControlHintProjection.Project(data, UIStateEnum, bool)`・`WorldPinViewModel.From(data, bool)`・`ITutorialAnchorSubscriptions.OnAnchorChanged/SetSubscribedAnchors`・`TutorialAnchorTracker(VisualElement, VisualElement)`・`ScaleTweenStep(VisualElement, float, float)`・`TutorialAttentionPulse.Start/StrongScale/SubtleScale/PeriodPropertyName`・`TutorialPulseBinding(VisualElement).Attach(VisualElement, float)`・`TutorialOverlayView(ITutorialAnchorStateLookup).Render/RedrawAnchor`・`TutorialOverlayPresenter.Mount(layer, searchRoot, model)`・`KeyControlHintPresenter.Mount(layer, model)`・`WorldPinPresenter.Mount(layer, model)`・`TutorialOutlineView(TutorialPulseBinding).ShowRing(box, inset, glow, radius)/HideRing/Label`・`TutorialHighlightLabelView.Place(UiText, box, clip, gap)/HideLabel`・`WorldPinEdgeArrowView(TutorialPulseBinding).Show(string, WorldPinEdgeSpot, float)`。Task 間で名前と引数を照合し、Produces とコードの食い違い（ShowRing の角丸・Place の文・矢印の Show）は Produces を直した。キャストは switch のパターン・`is not … x` に替えた
+4. 保留・縮退経路: (a) `TutorialAnchorRegistry.Resolve` は黙り、未発見・重複は `TutorialAnchorTracker.ReportTransition` が遷移時に Warning/LogError（L1 で確かめる）。(b) 枠を出さない経路（未解決・完全にクリップ）は Web と同じ仕様の非表示で、理由は (a) のログで開発者に届く（ack は写さない。D-10）。(c) ラベルの GUID・ヒントの GUID・ピンの GUID が読めないときは LogError を出して、その 1 件だけを出さない（Projection の 3 か所）。(d) 語彙外の `UiState` は 1 回だけ Warning（Web と同じ）。(e) `WorldPinEdgePlacement` の寸法 0 と `TutorialHighlightLabelView.ApplyPlacement` の未計測は `// silent-ok:` 付きで次の `GeometryChangedEvent` で置き直す。(f) つまみが読めないときは `UssCustomStyleReader` が LogError を出し、脈動・寸法は前の値か無しで続ける。(g) bool を返す Try 関数（`TryComputeInset`・`TryPlace`・`TryGetState`）が false で枠・矢印を隠すのは仕様どおりの非表示で、各所に `// silent-ok: <理由> / <気づく経路>` を書く（経路はアンカーの理由のログ・L1）。GUID の読み違いは `TutorialTextFactory.TryCreate` の 1 関数が LogError を出す（D-24・D-25）。(h) 脈動の周期の解決前に `Attach` された子は待ち、解決時に流す。外した子には流さない（`TutorialPulseBinding`・L1 `TutorialPulseBindingTest`）
 5. 「決定的にする」を根拠にした選択: なし（追跡は購読中のアンカーを毎フレーム測り直すだけで、順序に意味を持たせない）
-6. 呼び出し側への責務漏出: アンカーの測定・祖先クリップ・遷移時の報告は `TutorialAnchorTracker` が持ち、各画面はアンカーに印を付けるだけ。USS で子を切る容器だけ `MarkClipContainer` を付ける義務が新しく生まれるので、設計書 A-65（指揮が書く）と ref-uitk-design への記載を integrator へ依頼する（L2 は新設しない。D-27）。購読は Presenter の `Mount` だけが持ち、View は `Render`/`RedrawAnchor` を受けるだけ（D-22）。脈動は `TutorialPulseBinding` が周期の読み・開始・停止を持ち、View は対象と振幅を渡すだけ。KeyControlHint の赤は部品のつまみ `--key-cap-color` の上書きと文の `color` で、共有の `--text-high-contrast` も `.key-hint-text` も書き換えない
+6. 呼び出し側への責務漏出: アンカーの測定・祖先クリップ・遷移時の報告は `TutorialAnchorTracker` が持ち、各画面はアンカーに印を付けるだけ。USS で子を切る容器だけ `MarkClipContainer` を付ける義務が新しく生まれるので、設計書 A-65（指揮が書く）と ref-uitk-design への記載を integrator へ依頼する（L2 は新設しない。D-27）。購読は Presenter の `Mount` だけが持ち、View は `Render`/`RedrawAnchor` を受けるだけ（D-22）。脈動は画面ルートの `TutorialPulseBinding` が周期の読み・待たせ・開始・停止を持ち、View は子を `Attach` して振幅を渡すだけ（後から足した子も脈動する）。KeyControlHint の赤は部品のつまみ `--key-cap-color` の上書きと文の `color` で、共有の `--text-high-contrast` も `.key-hint-text` も書き換えない
 
 ---
 
@@ -3625,47 +3624,50 @@ Expected: closed、`git status --short` と `git log` が空。done.md の 1 行
 | ID | 判断 | 棄却した案と理由 | 出所 |
 |---|---|---|---|
 | D-1 | ワールドピンは `Screens/Tutorial/WorldPin/`、状態は `Client.Ui.State/Tutorial/WorldPin/` に置き、登録も `TutorialGameUiRegistration` の 1 本にする。所有表の `Screens/WorldPin/**`・`Client.Ui.State/WorldPin/**`・`WorldPinGameUiRegistration.cs` は使わない | `Screens/WorldPin/` に分ける: 脈動の helper（`Screens/Tutorial/Pulse/`）を 2 画面で使い Screens 間の参照が生まれる。Web も `features/tutorial/` に置いている | agent 既定（Web の配置） |
-| D-2 | 状態の源は C# の 2 store（`TutorialPresentationStateStore`・`WorldPinStateStore`）と `UIStateControl` を直接購読する。blocking のスキットは `UIStateEnum.Story` で読む（D-20）。新しいイベントパケットは作らない | 「イベントパケット＋初期データ＋購読」の 3 点セット: どれもクライアント内の状態（サーバーの可変状態ではない）で、Web の topic もこれらの中継だけ。ワールドピンの射影は `MapObjectPin`/`VeinPin` の `Update` が C# で済ませており、UITK は 0..1 の座標を % で置くだけ（Web と同じ） | agent 既定（実物の `Client.WebUiHost/Game/Topics/Tutorial/*.cs`） |
+| D-2 | 状態の源は C# の 2 store（`TutorialPresentationStateStore`・`WorldPinStateStore`）と `UIStateControl` を直接購読する。blocking のスキットは Web と同じ `SkitPresentationStateStore` の mode で読む（D-20）。新しいイベントパケットは作らない | 「イベントパケット＋初期データ＋購読」の 3 点セット: どれもクライアント内の状態（サーバーの可変状態ではない）で、Web の topic もこれらの中継だけ。ワールドピンの射影は `MapObjectPin`/`VeinPin` の `Update` が C# で済ませており、UITK は 0..1 の座標を % で置くだけ（Web と同じ） | agent 既定（実物の `Client.WebUiHost/Game/Topics/Tutorial/*.cs`） |
 | D-3 | `TutorialAnchorRegistry.Resolve` のログを外し、遷移時の報告を `TutorialAnchorTracker` に移す。クリップ容器の印 `TutorialAnchor.MarkClipContainer` を足す。Foundation/Anchor の変更はこのレーンが行い、設計書には指揮が A-65 として書く | Resolve を呼ぶ側でログを抑える: Foundation の静的メソッドが毎回 Warning を出すので、毎フレームの追跡ではログが溢れる。Tracker が Registry を使わず自前で Query する: 解決の規則が 2 か所に分かれる | 指揮の割り当て B |
 | D-4 | Web の計算（clip-path の inset・ラベル配置・DragGuide の門・画面端のクランプ）は `Client.Ui.State/Tutorial/Logic/` に純ロジックとして逐語で写し L0 で確かめる | View に書く: 座標の式を L1 の寸法でしか確かめられず、Web の式との突き合わせが難しい | agent 既定 |
-| D-5 | アンカーの状態は判別 union `TutorialAnchorState`（`Ready(rect, clip)`・`NotFound(reason)`・`Hidden(reason)`）、枠の合図も判別 union `TutorialOutlineCue`（`Plain`・`Labeled`）で持つ。status と reason は唯一の enum `TutorialAnchorReason` にまとめ（status は理由から決まる）、wire の綴りは送る直前の `TutorialAnchorWire.ToWire` 1 関数だけが作る。キャストは switch のパターンにする | Kind の enum＋null 許容のフィールド: Ready 以外で `Rect` を読む誤りがコンパイルで捕まらない。Web と同じく文字列で持つ: 綴りの誤りがコンパイルで捕まらない。status と reason を別の enum にする: 組の矛盾（ready・missing）が作れてしまう | 出所: 設計検査（fresh-context）→ agent 既定 |
+| D-5 | アンカーの状態は判別 union `TutorialAnchorState`（`Ready(rect, clip)`・`NotFound(reason)`・`Hidden(reason)`）、枠の合図も判別 union `TutorialOutlineCue`（`Plain`・`Labeled`）で持つ。理由は唯一の enum `TutorialAnchorReason`（status は理由から決まる）。キャストは switch のパターンにする。ack を写さないので wire の綴りは作らない（D-10） | Kind の enum＋null 許容のフィールド: Ready 以外で `Rect` を読む誤りがコンパイルで捕まらない。Web と同じく文字列で持つ: 綴りの誤りがコンパイルで捕まらない。status と reason を別の enum にする: 組の矛盾（ready・missing）が作れてしまう | 出所: 設計検査（fresh-context）→ agent 既定 |
 | D-6 | KeyControlHint は C2-c の `ShortcutHintLabel`（Prefix）で作り、Prefix で印の引数を足さない直しをこのレーンが `Components/Text/` で行う（L1: content・verbatim の文で例外が出ない 1 件）。既存の `ShortcutHintLabel`/`KeyCap` の L1 と S2-hud の `KeyHintHud` の L1 を全部回して壊していないことを確かめる | `KeyCap`＋`LocalizedLabel` を画面で並べる: kbd と文の間隔のつまみ（`--shortcut-hint-label-gap`）を使えない。文を verbatim に解いてから渡す: 言語の切り替えで解き直されない。integrator へ頼んで待つ: Task 8 が止まる | 指揮の割り当て A |
 | D-7 | 脈動の拡縮は新しいファイル `Foundation/Motion/Steps/ScaleTweenStep.cs`（`ScaleTweenStep(target, from, to)`。前例 `OpacityTweenStep`）として、このレーンが作る。既存の Steps のファイルは触らない（A-63） | `Screens/Tutorial/Pulse/` に置いて後で昇格: 同じ step を後で移す手間と、S2-hud 等が使えない期間が生まれる | 指揮の割り当て C |
 | D-8 | KeyControlHint の赤は、`KeyCap` に足した色のつまみ `--key-cap-color`（既定 `var(--text-high-contrast)`）を画面ルートで `var(--tutorial-key-hint-color)` に上書きし、文は `.key-control-hint__item` の `color` で赤くする。`--text-high-contrast` は受け直さない（L1: つまみの上書きで色が変わる 1 件） | `--text-high-contrast` を画面で受け直す: 共有の色の意味を画面の中で書き換え、子に別の部品が来たとき巻き込む。画面 USS で `.key-cap { color }` を書く: 部品のクラスを画面に書く規約違反 | 指揮の割り当て A |
 | D-9 | 未移植の画面のアンカーは、カバレッジの未移植の表（id → 持ち主レーン）に載せて L1 を緑にし、印を付けるのはその画面を作るレーンの仕事にする。S5-ladder の完了条件に「表が空」を足す（実行計画への依頼） | このレーンで全画面に印を付ける: 画面がまだ無い。L1 を写す予定（赤のまま）にする: 段階 2 の締めで G1 と既存テストが赤になる。表を作らず Web のカバレッジ（`AnchorIdsWebParityTest`）だけに頼る: UITK で印が付いたかを見ない | agent 既定（plan §4.5） |
-| D-10 | ack は Web の `tutorial.anchor_ack` と同じ内容・同じ配り方（同じアンカーの全 outline・`session:element` ごとの `status:reason` の重複除去）で `ITutorialAnchorAckCommands` へ渡し、C# 側は `TutorialAnchorAckAction` と同じ検証だけをする | ack を写さない（受け手が検証しかしないので）: Web の 2 件の振る舞い（配り方・重複除去）の写し先が無くなり、将来 C# 側に受け手（解決失敗の集計等）を作るときに口が無い。検証を `TutorialAnchorAckAction` と共有する: Web 側は X-5c で消えるので寄せる先が残らない | agent 既定 |
+| D-10 | ack（Web の `tutorial.anchor_ack`）は写さない。`TutorialAnchorAck`・Fanout・`ITutorialAnchorAckCommands`・`TutorialAnchorAckCommands`・そのテスト・DI 登録を作らず、Web の ack の 2 件（item master 未ロード中・同一 anchor の全 highlight）は disposition で「捨てる」。完了条件の「二重解決の LogError」は `TutorialAnchorTracker` の遷移ログで満たす | 写す: C# の唯一の受け手 `Client.WebUiHost/Game/Actions/TutorialAnchorAckAction.cs`（13〜20 行）は検証して返すだけで、store への書き込み・送信・ログが無く、サーバーに読み手も無く、Web も戻り値を捨てる。UITK では解決する側が C# 自身なので観測できる効果が無い。将来の受け手のための口は AGENTS.md「将来の拡張性は考慮不要」により持たない | 出所: user-simulator 予測 → 再現役が確認 → agent 既定 |
 | D-11 | `UiState` の照合は `Enum.TryParse<UIStateEnum>` で行い、Web の語彙表（`isKnownUiStateName`）を写さない | 語彙表を写す: `UIStateEnum` そのものが語彙で、Web の表はその写し。2 つ持つと enum を足したときにずれる | agent 既定（Web の uiState 名は enum 名と同じ） |
 | D-12 | KeyControlHint は Web の「文が空なら出さない」を写さない | 写す: UITK の辞書は常に読み込み済みで、訳の欠けは `Localize` が `[!key]` の可視文字列で返すので空にならない（C2-c D-20 と同じ扱い）。欠けは画面の `[!key]` で開発者が気づく | agent 既定 |
 | D-13 | ラベル面の padding は `padding: var(--label-face-padding)`（複数値）を L1 で実測し、効かなければ 4 辺へ分けて書き、台帳「## 実測の結論」に記帳する | 最初から 4 辺に分ける: トークンの値を画面に写すことになり、トークンが変わったときに追従しない | agent 既定 |
 | D-14 | 祖先クリップは UITK の overflow の規則（absolute の子も切る）に従い、Web の position の脱出則（fixed・absolute の包含ブロック）を写さない | 写す: UITK に包含ブロックの概念が無く、`overflow: hidden` は位置指定に関わらず全子孫を切るので、脱出則は常に「切る」になる | agent 既定（ADR 0024 の Consequences） |
 | D-15 | DragGuide とワールドピンの矢印の影は、Painter2D で影の色の写しをずらして描く近似にし、LX-35・LX-36 で記帳する | 影のテクスチャを作る: 影の縁の柔らかさだけの差に対して、ぼかしのテクスチャの生成と更新を持つことになる | agent 既定 |
-| D-16 | 脈動と DragGuide の曲線は CSS の `ease-in-out` を `UiEasing.EaseInOutSine` で近似し、LX-37 で記帳する | UiMotion に cubic-bezier を足す: Foundation を書かない。差は進みの 2% 未満 | agent 既定 |
+| D-16 | 脈動と DragGuide の曲線は CSS の `ease-in-out` を `UiEasing.EaseInOutSine` で近似し、LX-37 で記帳する。差は進みで最大 0.019（拡縮では 1.08 で 0.0015・1.03 で 0.0006。幅 100px の要素の縁で 0.08px 未満。DragGuide の移動では途中だけ travel の 1.9%） | このレーンで cubic-bezier を足す: §3.4 の例外の条件（影響が小さく非本質的）に当たり、`UiEasing` を書き換えるのは E-19 で S2-notification だけ（同じ曲線を 2 レーンで足すと衝突する）。S2-notification のマージ後に integrator が CssEaseInOut を足して LX-37 を消す。S2-notification が先に入っていても、このレーンは足さず取り込み時に integrator へ依頼する | 指揮の割り当て（第 2 回 4・第 3 回 8）。差の値は agent が計算 |
 | D-17 | L3（EditModeInPlayingTest）はこのレーンでは作らず、録画 `uitk-tutorial-cues` を 1 本持つ | L3 を足す: 段の締め S2-ladder が L3 を持つ（共通の依頼）。録画: ランタイム（store の購読・層への常駐・脈動）に触れるので必須 | 共通の依頼・moores-writing-plans の規定 |
 | D-18 | KeyControlHint は `UiLayer.OverlayPanel` の `UiFamily.Viewport`、枠は `UiLayer.Tutorial`、ピンは `UiLayer.WorldPin`（どちらも Viewport 族）に置く | 枠を stage 族に置く: アンカーは viewport 族（通知・ピン等）にもあり、Portal の最前面（`--z-portal-tutorial`）でないと枠が他の層の下に隠れる | agent 既定（Web の z トークン） |
-| D-19 | アンカーの追跡は購読が 1 件以上の間だけ毎フレーム測る（`schedule.Execute(...).Every(0)`）。枠が無い間は止める | `GeometryChangedEvent` や木の変化イベントで測る: スクロール（`scrollOffset`）や祖先の transform ではアンカー自身の geometry イベントが来ず、枠がずれる。設計原則「状態変化は購読で」の例外になるが、測る対象（他画面のレイアウト）に購読口が無い | agent 既定（plan §4.5。設計原則からの逸脱の理由） |
-| D-20 | blocking のスキットは `BlockingSkitState(UIStateControl)` が `UIStateEnum.Story` への出入りで読む。`Client.Ui.State.asmdef` に Client.Skit を足さない | `SkitPresentationStateStore` を購読する: `Client.Ui.State` に Client.Skit の参照が要る。`SkitManager.IsPlayingSkit` を読む: 変化通知の無い素の bool で購読できない。Story は `GameScreenState`・`PlaceBlockState` が `IsPlayingSkit` で入る状態で、Web の mode=blocking より入りがわずかに早いだけ（ヒントが隠れる側へずれるので害が無い）。足りない場面が出たら理由を notes に書く | 指揮の割り当て D |
-| D-21 | `TutorialAnchorAckCommands` は `builder.Register<TutorialAnchorAckCommands>(Lifetime.Singleton).As<ITutorialAnchorAckCommands>()` で登録し、Presenter は interface を受ける | 具象を受ける: L1 の記録用の偽物に差し替えられず、前例 `PauseMenuCommands`（`MainGameUiStateRegistration`）とずれる | 出所: 設計検査（fresh-context）→ agent 既定 |
+| D-19 | アンカーの追跡は購読が 1 件以上の間だけ毎フレーム測る（`schedule.Execute(...).Every(0)`）。枠が無い間は止める | Web と同じくイベント駆動にする: Web も毎フレームではなく MutationObserver・ResizeObserver・IntersectionObserver を rAF で束ねるイベント駆動（`W/shared/tutorialAnchor/anchorRegistry.ts` の 11〜20 行）だが、UITK には `worldBound` の変化イベントが無く、スクロール（`scrollOffset`）や祖先の transform ではアンカー自身の geometry イベントが来ない。購読中だけ毎フレーム測る（前例 `UiMotionPlayer.cs` 23 行の `Every(0)`）。設計原則「状態変化は購読で」の例外で、測る対象（他画面のレイアウト）に購読口が無いことが理由 | agent 既定（plan §4.5）。棄却理由は指揮の指摘で直した |
+| D-20 | blocking のスキットは `BlockingSkitState(SkitPresentationStateStore)` が、Web と同じ源 `SkitPresentationStateStore.ObserveChanged()`/`GetCurrent()` の `PresentationState.Mode == "blocking"` で読む（綴りの比較は `IsBlocking` 1 関数だけ。背景スキット・none は false）。そのために `Client.Ui.State.asmdef` の references に `Client.Skit` を 1 行足す（循環なし。S2-skit も足しうるので取り込みの衝突は 1 行に畳む）。L0 `BlockingSkitStateTest` は `new SkitPresentationStateStore()` の公開操作で偽の発火をし、UI 状態を変えずに出入りを追う | `UIStateEnum.Story` で読む: スキットは UI の状態に関係なく始まる（`SkitFireManager` 44〜55 行 → `SkitManager` 99 行）ので、インベントリを開いたまま課題を完了すると会話の上にヒントが出る。`SkitManager` に変化通知を足す: 所有外で、S2-skit が同じ機構を触る見込みで衝突する。`IsPlayingSkit` を `Update` でポーリングする: 設計原則で禁止。mode を enum にする: 綴りの持ち主は Client.Skit（S2-skit の領分）なので、ここでは比較を 1 関数に閉じる | 指揮の割り当て E-19 |
+| D-21 | ack の経路を作らないので（D-10）、DI へ interface で登録するコマンドはこのレーンに無い。Presenter は `GameUiRoot` と Model だけを受ける | `TutorialAnchorAckCommands` を `.As<ITutorialAnchorAckCommands>()` で登録する: 経路ごと落としたので対象が無い | 出所: 設計検査（fresh-context）→ D-10 で対象が消えた |
 | D-22 | View は Model を購読せず `Render(VM)`（枠は `RedrawAnchor` も）を公開し、購読は Presenter が持つ。L1 が本番と同じ配線を通るよう、Presenter に static `Mount(layer, …, model, …)` を置き `Initialize` とテストの両方がそれを呼ぶ | View の ctor で `model.Subscribe(Render)`: 設計書 §4.2 の Presenter/View の分担に反する。テストで購読を手書きする: 本番の配線（購読の順・ack）を L1 が通らない | 出所: 設計検査（fresh-context）→ agent 既定 |
-| D-23 | 状態の帳簿と追跡器は読みの口と変えの口に分ける（`ITutorialAnchorStateLookup` と StateBook の `TryApply/KeepOnly`、`ITutorialAnchorLookup` と `ITutorialAnchorSubscriptions`）。View は読みの口だけを持つ | 1 つの interface: View が購読の差し替えを呼べてしまい、購読の持ち主が 2 か所になる | 出所: 設計検査（fresh-context）→ agent 既定 |
-| D-24 | Try 関数は bool を返してよいが、false で隠す各所に `// silent-ok:` で理由と気づく経路を書く。false は失敗ではなく仕様どおりの非表示（未解決・クリップの外・寸法 0） | 例外か LogError: 毎フレームの正常な非表示でログが溢れる。理由は追跡器の遷移ログと ack の reason で届く | 出所: 設計検査（fresh-context）→ agent 既定 |
+| D-23 | 読みの口は `ITutorialAnchorStateLookup.TryGet` の 1 本にし、帳簿と追跡器の両方が実装する（View はこれだけを持つ）。変えの口は帳簿の `ApplyIfChanged`（変わった時だけ書いて true。名前を実処理に合わせた）・`KeepOnly` と、追跡器の `ITutorialAnchorSubscriptions` | 読みの口を帳簿と追跡器で別にする: 同じ働きの口が 2 本になる。1 つの interface に読みと変えをまとめる: View が購読の差し替えを呼べてしまう。`TryApply`: 何を試すのか名前から読めない | 出所: 設計検査（fresh-context）→ agent 既定 |
+| D-24 | Try 関数は bool を返してよいが、false で隠す各所（`Redraw` の 2 か所・`RedrawGuide`・`TutorialPulseBinding.Start`・`TutorialDragGuideView.ApplyPlacement`）に `// silent-ok: <理由> / <誰がどこで気づくか>` を書く。false は失敗ではなく仕様どおりの非表示か、解決待ち | 例外か LogError: 毎フレームの正常な非表示でログが溢れる。理由は追跡器の遷移ログと L1 で届く | 出所: 設計検査（fresh-context）→ agent 既定 |
 | D-25 | `session:element` の鍵は `TutorialElementKey.Of`、GUID→`UiText`→LogError は `TutorialTextFactory.TryCreate` の各 1 関数にまとめ、3 つの Projection と Fanout が使う | 各 Projection に書く: 鍵の綴りとログの文言が 3 か所でずれる | 出所: 設計検査（fresh-context）→ agent 既定 |
-| D-26 | ack の送った記録は購読の顔ぶれ（枠の鍵とアンカーの組）が変わったとき `TutorialAnchorAckFanout.Rebase` で捨て、Presenter はモデルの更新ごとに状態の分かっている全枠へ `Collect` する。追っているアンカーへ後から枠が足されると全ての枠へ送り直し、revision だけの変化では送らない。Web `TutorialOverlay.tsx`（43〜112 行）が購読の署名の変化で `lastAck` を空にするのと同じで、L0 `追っているアンカーへ枠が後から足されると顔ぶれが変わり全ての枠へ送り直す` で確かめる | 変化イベントでだけ送る: 状態が続くアンカーへ足された枠に ack が届かない（Web と食い違う） | 出所: 設計検査（fresh-context）→ agent 既定（Web の実物を読んで一致を確認） |
+| D-26 | 枠の描き直しは、モデルの更新（購読の差し替え → `Render`）とアンカーの変化（`RedrawAnchor`）の 2 経路だけ。追っているアンカーへ後から枠が足されても、`Render` が全部描き直すので枠は出る（L1 `revisionが変わっても続くアンカーの状態を保ち枠を出したままにする`） | ack の送り直し（Web の `lastAck` の空け直し）を写す: ack を写さないので不要（D-10） | 出所: 設計検査（fresh-context）→ D-10 で書き直し |
 | D-27 | `MarkClipContainer` を付ける義務は、ref-uitk-design への記載依頼として integrator へ出す。義務を見る L2 は新設しない | L2 で全画面の overflow 容器を検査する: 段階 2 では未移植の画面が多く、誤検知の表を持つことになる | 出所: 設計検査（fresh-context）→ agent 既定 |
 | D-28 | `TutorialAnchorCoveragePending` の行の消し方（印を付けたレーンが同じ PR で自分の行を消す・S5-ladder で空になる）はファイル冒頭のコメントに書く。execution-plan E-1 等へは指揮が書く | 計画にだけ書く: 後続のレーンが表のファイルを開いたときに規則が見えない | 指揮の割り当て E |
+| D-29 | 並べ比べの UITK 側は、Web の撮影状態（`referenceShots.ts` 85〜118 行・`tutorialControls.ts` 29〜61 行）と同じ状態を fixture で作って撮る。クロスヘアは S2-hud がマージ済みなら実物、レシピ一覧・研究ノードは Web と同じ矩形・祖先クリップ・ラベル文の要素に `TutorialAnchor.Mark`。撮り方は theme レーンの前例（`GameUiPanelSettings` の `Object.Instantiate` の複製に `targetTexture` を付けて `ReadPixels`）。DragGuide とポーズ後は Web の参照が無いので UITK のみ（自己確認） | 実プレイ（ポーズの設定ボタン等）で撮って並べる: Web と状態が違い、差が画面の違いか実装の違いか分からない。Game ビューの解像度を切り替える: 3 計画で撮り方が揃わず、Editor の表示倍率が混ざる | 指揮の指摘（第 2 回 1・8。再現済み）→ fixture の作り方は agent 既定 |
+| D-30 | 脈動は画面ルートに 1 つの `TutorialPulseBinding` が、ルートで読んだ周期を持ち、後から `Attach` した子にも当てる（前例 `ToastHostView` 37〜87 行）。子はパネルに載っている間だけ流し、周期が変わったら載っている子だけ流し直す。DragGuide は寸法の解決後に置き直す | 子ごとにルートの `CustomStyleResolvedEvent` で始める: Presenter が空で常駐し、後から作った枠・ヒント・矢印はルートが再解決するまで脈動せず、外した子へ `Play` して `UiMotionPlayer` が LogError を出す。寸法 0 のまま置く: 両端が揃った状態で始まると 28px ずれたまま残る | 指揮の指摘（第 3 回 1・2）→ 形は agent 既定 |
+| D-31 | `--key-cap-color` の既定は、E-19 でこのレーンが持つ `KeyCap.uss` の中に `:root { --key-cap-color: var(--text-high-contrast); }` として置き、`.key-cap { color: var(--key-cap-color); }` で読む。画面ルートの上書き（KeyControlHint）は継承で勝つ。既存の部品 USS（`Client.Ui/Components/**/*.uss`）に `:root` 宣言の前例は無い（`:root` を持つのは `Foundation/Theme/` のトークンの USS だけ）が、つまみの既定を部品自身が持てば所有外のトークン USS を触らずに済み、部品を読み込んだパネルでだけ効く | 入れ子の `var()` の fallback（`var(--key-cap-color, var(--text-high-contrast))`）: UITK で効くかの実測が要り、効かなければ integrator 待ちになる。`DerivedTokens.uss` に既定を置く: 所有外 | 指揮の割り当て（第 4 回の追加） |
 
 ### 未確認
 
 - `padding: var(--label-face-padding)`（複数値の var）が展開されるか（Task 6 Step 4 で実測）
 - `ScrollView.viewportUssClassName` の要素の `worldBound` が、スクロール中の viewport の矩形を返すか（Task 5 の L1 で確かめる）
 - `UiMotionPlayer` が対象の Detach で自動で止まるか（`TutorialPulseBinding` は自分で `Cancel` する）
+- `CustomStyleResolvedEvent` がクラスの付け外しだけで画面ルートに再び来るか（`TutorialPulseBindingTest` の 2 件目の前提。来なければ `--tutorial-attention-pulse-period` を変える probe のクラスで確かめる）
 - DSL にカメラを回す操作があるか（Task 15 Step 1 の分岐）
 - `capture.ts` が撮影名を引数で絞れるか（Task 14 Step 2 の分岐）
-- `color: var(--key-cap-color, var(--text-high-contrast))` の入れ子の fallback が UITK で効くか（Task 8 Step 2 で実測。効かなければトークン側に既定を置く）
+- 部品 USS（`KeyCap.uss`）の `:root` 宣言が、テストパネルと本番パネルの両方で既定として効くか（Task 8 Step 2 の既存 `KeyCap…色は高コントラスト` と新しい `KeyCapTest` で確かめる）
 
 ## 本PR外のリファクタ提案
 
-- WebUiHost の `TutorialAnchorAckAction` と新しい `TutorialAnchorAckCommands` で ack の検証（古い session・revision）が重複している。Web 側は X-5c で消えるので、そのとき 1 か所になる
-- UiMotion に cubic-bezier の曲線を足し、LX-37 を消す
+- S2-notification のマージ後に CssEaseInOut を足して LX-37 を消す（integrator）
 
 ---
 
