@@ -19,6 +19,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/SlotFrame/SlotFrame.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/SlotContent/SlotContent.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/PlacementTargetFace/PlacementTargetFace.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Slots/ItemSlot/ItemSlot.uss");
 /* == section: Components/Controls == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/PanelActionButton/PanelActionButton.uss");

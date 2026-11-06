@@ -1,0 +1,25 @@
+/* web: moorestech_web/webui/src/shared/ui/ItemSlot/style.module.css の .shortageSlot・.shortageCount・[data-lack] を写す。z-index: 2 は後に足した子が上に描かれる順で写す */
+/* web: copies .shortageSlot, .shortageCount and [data-lack] in moorestech_web/webui/src/shared/ui/ItemSlot/style.module.css; z-index: 2 maps to the later child drawing on top */
+.item-slot__shortage {
+    display: none;
+    position: absolute;
+    right: var(--shortage-count-right);
+    bottom: var(--shortage-count-bottom);
+    height: var(--shortage-count-font-size);
+    margin: 0;
+    padding: 0;
+    font-size: var(--shortage-count-font-size);
+    color: var(--count-text);
+    -unity-text-align: lower-right;
+    white-space: nowrap;
+    -unity-text-outline-width: var(--icon-text-stroke-width);
+    -unity-text-outline-color: var(--icon-text-stroke-light);
+}
+
+.item-slot--shortage > .item-slot__shortage {
+    display: flex;
+}
+
+.item-slot__shortage--lack {
+    color: var(--text-insufficient);
+}
