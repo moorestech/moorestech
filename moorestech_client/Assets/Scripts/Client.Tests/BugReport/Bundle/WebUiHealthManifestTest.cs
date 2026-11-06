@@ -18,7 +18,7 @@ namespace Client.Tests.BugReport.Bundle
     public class WebUiHealthManifestTest
     {
         [Test]
-        public void 偽のprobeの値がcamelCaseの綴りでmanifestへ出る()
+        public void WebUiHealthの生の値がcamelCaseの綴りでmanifestへ出る()
         {
             var manifest = new BugReportManifest();
             manifest.WebUiHealth = new WebUiHealthReading
