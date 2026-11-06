@@ -1,0 +1,44 @@
+/* Mantine Modal の content の外枠。幅だけを持ち切らない（影を枠の外へ出すため）。外側の margin は書かない（置き場所は宿主が中央に決める。設計書 A-30） */
+/* Outer box of the Mantine Modal content; width only and no clipping (so a shadow can extend outside); no outer margin (the host centres it; design A-30) */
+.dialog-frame {
+    width: var(--modal-size);
+}
+
+/* 面: 色と角丸で、中身を角丸で切る */
+/* Surface: face color and radius, clipping the contents to the rounded corners */
+.dialog-frame__surface {
+    background-color: var(--dialog-frame-face);
+    border-radius: var(--modal-radius);
+    overflow: hidden;
+}
+
+/* Mantine ModalBase の header: 横並び・縦中央・min-height 60・余白 --mb-padding */
+/* Mantine ModalBase header: row, vertically centred, min-height 60, padding --mb-padding */
+.dialog-frame__header {
+    flex-direction: row;
+    align-items: center;
+    min-height: var(--dialog-frame-header-min-height);
+    padding: var(--mb-padding);
+}
+
+.dialog-frame__title {
+    flex-grow: 1;
+    margin: 0;
+}
+
+/* ModalHost の Modal.Body p="lg"。題があっても本文の上は詰めない（Mantine は header の下に body の padding が付く） */
+/* ModalHost Modal.Body p="lg"; the top is not tightened under a title (Mantine keeps the body padding below the header) */
+.dialog-frame__body {
+    padding: var(--dialog-frame-body-padding);
+}
+
+/* 操作は幅いっぱい（Web は Stack の中の fullWidth の Button） */
+/* Actions span the full width (the Web uses fullWidth Buttons in a Stack) */
+.dialog-frame__actions {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.dialog-frame__actions .dialog-frame__action {
+    align-self: stretch;
+}
