@@ -4,8 +4,10 @@ using Client.Ui.State.Blueprint;
 using Client.Ui.State.Challenge;
 using Client.Ui.State.Modal;
 using Client.Ui.State.Notification;
+using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Research;
 using Client.Ui.State.Routing;
+using Client.Ui.State.Settings;
 using VContainer;
 using VContainer.Unity;
 
@@ -46,10 +48,16 @@ namespace Client.Starter.Registration
             builder.Register<BlockNetworkInfoCache>(Lifetime.Singleton);
             builder.RegisterEntryPoint<OpenBlockDetailTracker>().AsSelf();
 
-            // 画面ルータと所有表。Web ホストと描画側の両方が読む
-            // Screen router and ownership table, read by both the web host and the renderer
-            builder.Register<UiOwnershipTable>(Lifetime.Singleton);
+            // 画面ルータ。どちらの系でも同じ画面を引く（描く系の分岐は MainGameUiRegistration だけ）
+            // Screen router; both systems resolve the same screen (the drawing-system branch lives only in MainGameUiRegistration)
             builder.RegisterEntryPoint<UiRoutingState>().AsSelf();
+
+            // ポーズと設定の状態と型付きコマンド。Web のアダプタと GameUi の View が同じものを使うので両方の系で登録する
+            // Pause and settings state and typed commands; Web adapters and GameUi views share them, so both systems register them
+            builder.Register<PauseMenuCommands>(Lifetime.Singleton).As<IPauseMenuCommands>();
+            builder.Register<SettingsCommands>(Lifetime.Singleton).As<ISettingsCommands>();
+            builder.RegisterEntryPoint<PauseMenuModel>().AsSelf();
+            builder.RegisterEntryPoint<SettingsModel>().AsSelf();
         }
     }
 }

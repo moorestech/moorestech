@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
@@ -8,23 +7,20 @@ using VContainer.Unity;
 namespace Client.Ui.State.Routing
 {
     /// <summary>
-    /// 現在の画面と Web 休止要否を購読で保つ
-    /// Keeps the current screen and whether the web UI is suspended via subscriptions
+    /// 現在の画面を購読で保つ。どちらの系で描くかは持たない（全体スイッチは composition root だけが読む。設計書 §4.4）
+    /// Keeps the current screen via subscriptions; it does not know which system draws (only the composition root reads the global switch; design §4.4)
     /// </summary>
-    public sealed class UiRoutingState : IInitializable, IDisposable
+    public sealed class UiRoutingState : IInitializable
     {
         public IReadOnlyReactiveProperty<UiRoutingSnapshot> Current => _current;
 
         private readonly UIStateControl _uiStateControl;
-        private readonly UiOwnershipTable _ownershipTable;
         private readonly IReadOnlyList<INestedPauseScreenState> _nestedPauseScreens;
         private readonly ReactiveProperty<UiRoutingSnapshot> _current;
-        private IDisposable _editorOverrideSubscription;
 
-        public UiRoutingState(UIStateControl uiStateControl, UiOwnershipTable ownershipTable, IReadOnlyList<INestedPauseScreenState> nestedPauseScreens)
+        public UiRoutingState(UIStateControl uiStateControl, IReadOnlyList<INestedPauseScreenState> nestedPauseScreens)
         {
             _uiStateControl = uiStateControl;
-            _ownershipTable = ownershipTable;
             _nestedPauseScreens = nestedPauseScreens;
             _current = new ReactiveProperty<UiRoutingSnapshot>(Resolve());
         }
@@ -35,17 +31,7 @@ namespace Client.Ui.State.Routing
             // Re-resolve on state transitions and nested-screen presentation changes; ReactiveProperty drops equal values
             _uiStateControl.OnStateChanged.Subscribe(_ => Refresh());
             foreach (var nested in _nestedPauseScreens) nested.OnPresentationChanged.Subscribe(_ => Refresh());
-#if UNITY_EDITOR
-            // Editor の所有表上書き（R4）も即時に反映する。静的な流れなので、テストで作り直されたルータを残さないよう Dispose で外す
-            // Editor ownership overrides (R4) apply immediately too; the stream is static, so Dispose detaches routers rebuilt by tests
-            _editorOverrideSubscription = UiOwnershipEditorOverride.OnOverridesChanged.Subscribe(_ => Refresh());
-#endif
             Refresh();
-        }
-
-        public void Dispose()
-        {
-            _editorOverrideSubscription?.Dispose();
         }
 
         private void Refresh()
@@ -53,16 +39,10 @@ namespace Client.Ui.State.Routing
             _current.Value = Resolve();
         }
 
-        public UiRoutingSnapshot Resolve()
+        private UiRoutingSnapshot Resolve()
         {
             var subState = _uiStateControl.GetCurrentNestedPauseScreen()?.SubState;
-            var screen = UiScreenRouting.Resolve(_uiStateControl.CurrentState, subState);
-
-            // 段階3の拡張点: GameUi がモーダルを出している間もこの論理和に足して Web を休止させる
-            // Stage 3 extension point: OR in "a GameUi modal is showing" here to suspend the web UI as well
-            var mainPanelOwner = _ownershipTable.GetOwner(screen, UiSurface.MainPanel);
-            var webUiSuspended = mainPanelOwner == UiSurfaceOwner.GameUi;
-            return new UiRoutingSnapshot(screen, webUiSuspended, mainPanelOwner);
+            return new UiRoutingSnapshot(UiScreenRouting.Resolve(_uiStateControl.CurrentState, subState));
         }
     }
 
@@ -73,29 +53,25 @@ namespace Client.Ui.State.Routing
     public sealed class UiRoutingSnapshot
     {
         public UiScreen Screen { get; }
-        public bool WebUiSuspended { get; }
-        public UiSurfaceOwner MainPanelOwner { get; }
 
-        public UiRoutingSnapshot(UiScreen screen, bool webUiSuspended, UiSurfaceOwner mainPanelOwner)
+        public UiRoutingSnapshot(UiScreen screen)
         {
             Screen = screen;
-            WebUiSuspended = webUiSuspended;
-            MainPanelOwner = mainPanelOwner;
         }
 
         public override bool Equals(object obj)
         {
-            return obj is UiRoutingSnapshot other && Screen == other.Screen && WebUiSuspended == other.WebUiSuspended && MainPanelOwner == other.MainPanelOwner;
+            return obj is UiRoutingSnapshot other && Screen == other.Screen;
         }
 
         public override int GetHashCode()
         {
-            return (((int)Screen * 2) + (WebUiSuspended ? 1 : 0)) * 31 + (int)MainPanelOwner;
+            return (int)Screen;
         }
 
         public override string ToString()
         {
-            return $"{Screen}(webUiSuspended={WebUiSuspended})";
+            return Screen.ToString();
         }
     }
 }

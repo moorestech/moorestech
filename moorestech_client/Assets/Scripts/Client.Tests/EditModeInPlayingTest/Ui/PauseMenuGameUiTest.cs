@@ -1,8 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Input;
 using Client.Playtest.Input;
@@ -11,8 +9,6 @@ using Client.Playtest.UiElements.GameUi;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.State.Routing;
-using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.Topics;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -26,15 +22,16 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
     /// <summary>
-    /// 実ゲームで Esc から UITK のポーズが載り、Web が休止し、閉じると戻るかを確かめる（R-7 の L3）
-    /// Verifies in the real game that Esc brings up the UITK pause, suspends the web, and closing restores it (L3 of R-7)
+    /// 全体スイッチの UITK 側の実ゲームで、Esc から UITK のポーズが載り、設定へ行き来して閉じられ、Web の値と Web のロケータを読まないかを確かめる（R-7 の L3）
+    /// Verifies on the UITK side that Esc mounts the UITK pause, settings round-trips and closes, and neither web values nor the web locator are read (L3 of R-7)
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class PauseMenuGameUiTest
+    public class PauseMenuGameUiTest : UiSystemPlayModeTestBase
     {
         [UnityTest]
-        public IEnumerator EscでUITKのポーズが出てWebが休止し設定へ行き来して閉じるとWebが戻る()
+        public IEnumerator UITK側でEscからポーズが出て設定へ行き来して閉じられWebの値を読まない()
         {
+            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -59,67 +56,32 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var pauseMenuState = resolver.Resolve<PauseMenuStateService>();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
 
-                // 実ルーティングで作った ui_state の配信 JSON が、ポーズで休止 true・戻って false になり、変化のたびに再配信される（R1）
-                // The ui_state JSON built from the real routing reads suspended=true in pause and false after, and republishes on each change (R1)
-                // 入れ子ポーズの表示変化（列車 HUD の入れ子ポーズ切替と同じ経路）は代役の画面で起こす。実乗車の経路は uitk-nested-pause-train の録画が見る
-                // A nested-pause presentation change (the same path as the train HUD's nested pause toggle) is raised by a stand-in screen; the real ride is covered by the uitk-nested-pause-train recording
-                var hub = new WebSocketHub();
-                var trainHudStandIn = new PresentationChangingNestedScreen();
-                var nestedScreens = new List<INestedPauseScreenState>(resolver.Resolve<IReadOnlyList<INestedPauseScreenState>>()) { trainHudStandIn };
-                using var uiStateTopic = new UiStateTopic(hub, uiStateControl, resolver.Resolve<UIStateDictionary>(), nestedScreens, routingState);
-                StringAssert.Contains("\"webUiSuspended\":false", await uiStateTopic.GetSnapshotJsonAsync(), "ゲーム画面で休止が false でない");
+                // UITK 側では Web ホストが無く、入力の裁きは GameUi だけを読む
+                // The UITK side has no web host, and input arbitration reads GameUi only
+                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
+                Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
 
-                // ctor の購読が現在値で予約する初回配信を除くため、フレームを回してから基準を取る
-                // Let frames pass before taking the baseline so the first publish scheduled by the ctor subscription is excluded
-                await UniTask.DelayFrame(2);
-                var revisionBeforePause = Revision();
-
-                // ゲーム画面で Esc を押すと UITK のポーズが出て Web が休止する
-                // Pressing Esc on the game screen shows the UITK pause and suspends the web
+                // ゲーム画面で Esc を押すと UITK のポーズが出る
+                // Pressing Esc on the game screen shows the UITK pause
                 await PressEscape();
                 Assert.AreEqual(UIStateEnum.PauseMenu, uiStateControl.CurrentState, "Esc でポーズへ遷移しない");
+                Assert.AreEqual(UiScreen.PauseMenu, routingState.Current.Value.Screen, "ルータの画面がポーズでない");
                 Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.PauseMenu).Q("pause-menu"), "UiLayer.PauseMenu に pause-menu が無い");
                 Assert.IsTrue(Find("pause-menu").Visible, "UITK のポーズが見えない");
-                Assert.IsTrue(routingState.Current.Value.WebUiSuspended, $"ポーズで Web が休止していない: {routingState.Current.Value}");
-                StringAssert.Contains("\"webUiSuspended\":true", await uiStateTopic.GetSnapshotJsonAsync(), "ポーズの ui_state に休止 true が載らない");
-                Assert.Greater(Revision(), revisionBeforePause, "ポーズへの遷移で ui_state が再配信されない");
 
-                // UIState を変えずにルーティングだけを変えても（R4 の上書き）休止値が往復して再配信される
-                // Changing only the routing without a UIState change (R4 override) still round-trips the suspension and republishes
-                var revisionBeforeOverride = Revision();
-                UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.Web);
-                try
-                {
-                    await UniTask.DelayFrame(2);
-                    Assert.Greater(Revision(), revisionBeforeOverride, "ルーティングだけの変化で ui_state が再配信されない");
-                    StringAssert.Contains("\"webUiSuspended\":false", await uiStateTopic.GetSnapshotJsonAsync(), "上書きで Web へ戻しても休止 true のまま");
-                }
-                finally
-                {
-                    UiOwnershipEditorOverride.Clear();
-                }
-                var revisionAfterOverride = Revision();
-                await UniTask.DelayFrame(2);
-                Assert.Greater(Revision(), revisionAfterOverride, "上書きの解除で ui_state が再配信されない");
-                StringAssert.Contains("\"webUiSuspended\":true", await uiStateTopic.GetSnapshotJsonAsync(), "上書きを解除しても休止 true に戻らない");
-
-                // 入れ子ポーズの表示変化でも再配信される
-                // A nested-pause presentation change republishes as well
-                var revisionBeforeNested = Revision();
-                trainHudStandIn.RaisePresentationChanged();
-                await UniTask.DelayFrame(2);
-                Assert.Greater(Revision(), revisionBeforeNested, "入れ子ポーズの表示変化で ui_state が再配信されない");
-                var revisionInPause = Revision();
-                Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "休止中に Web がポインタを主張している");
-
-                // 休止中に Web 側の値が届いても入力欄フォーカスにならない
-                // Web values arriving during suspension never become text-input focus
+                // Web 側の値が届いても文字入力にもポインタ占有にもならない（R2）
+                // Web values never become text-input focus or pointer occupancy (R2)
                 UiInputExclusivity.SetState(true, true);
-                Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "休止中の Web の入力欄フォーカスが通った");
-                Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "休止中の Web のポインタ占有が通った");
+                Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "UITK 側で Web の入力欄フォーカスが通った");
+                Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "UITK 側で Web のポインタ占有が通った");
+                UiInputExclusivity.SetState(false, false);
 
-                // DSL の UITK ロケータで設定ボタンを引いてクリックすると設定のページになる
-                // Locating the settings button with the DSL UITK locator and clicking it opens the settings page
+                // DSL のロケータは GameUi だけで探す（R2・plan §4.4）
+                // The DSL locator looks up with GameUi only (R2, plan §4.4)
+                await AssertDslLocatorReadsOnlyGameUi();
+
+                // 設定ボタンをクリックすると設定のページになる
+                // Clicking the settings button opens the settings page
                 await ClickByTestid("pause-menu-open-settings");
                 Assert.AreEqual(PauseMenuPage.Settings, pauseMenuState.CurrentPage.Value, "設定ボタンのクリックで設定のページへ行かない");
                 Assert.IsTrue(Find("language-select").Visible, "設定のページに言語選択が見えない");
@@ -133,22 +95,30 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.AreEqual(UIStateEnum.GameScreen, uiStateControl.CurrentState, "トップの Esc でゲーム画面へ戻らない");
                 var closedRoot = GameUiRoot.Instance.GetRootElement();
                 Assert.AreEqual(UiElementLookupStatus.NotFound, GameUiElementQuery.Find(closedRoot, "pause-menu", new GameUiScreenMapper(closedRoot)).Status, "閉じた後も UITK のポーズが見えている");
-                Assert.IsFalse(routingState.Current.Value.WebUiSuspended, $"閉じても Web が休止したまま: {routingState.Current.Value}");
-                StringAssert.Contains("\"webUiSuspended\":false", await uiStateTopic.GetSnapshotJsonAsync(), "閉じた後の ui_state に休止 false が載らない");
-                Assert.Greater(hub.GetTopicRevision(UiStateTopic.TopicName), revisionInPause, "ポーズを閉じても ui_state が再配信されない");
-
-                // 休止前に入れた true は閉じた直後に残っていない
-                // The true written before closing does not survive right after closing
-                Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "閉じた直後に Web のポインタ占有が残っている");
-                Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "閉じた直後に Web の入力欄フォーカスが残っている");
-
-                long Revision()
-                {
-                    return hub.GetTopicRevision(UiStateTopic.TopicName);
-                }
+                Assert.AreEqual(UiScreen.None, routingState.Current.Value.Screen, "閉じた後もルータの画面がポーズのまま");
             }
 
             #endregion
+        }
+
+        private static async UniTask AssertDslLocatorReadsOnlyGameUi()
+        {
+            // try/finally はセッションを必ず閉じるためで、例外は握らない
+            // try/finally only guarantees the session closes; no exception is swallowed
+            // 選んだ系は ctor のログで確かめる（ロケータの具象型へキャストしない）
+            // The chosen system is confirmed by the ctor log (no cast to the concrete locator type)
+            LogAssert.Expect(LogType.Log, "[PlaytestUi] locator reads only the GameUi UI");
+            PlaytestUiLocatorSession.Start();
+            try
+            {
+                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
+                var snapshot = await PlaytestUiLocatorSession.Locator.Find("pause-menu-open-settings", 5f);
+                Assert.AreEqual(UiElementLookupStatus.Found, snapshot.Status, "DSL のロケータで設定ボタンが見つからない");
+            }
+            finally
+            {
+                PlaytestUiLocatorSession.Stop();
+            }
         }
 
         private static async UniTask PressEscape()

@@ -7,8 +7,8 @@ using VContainer.Unity;
 namespace Client.Ui.Foundation.Input
 {
     /// <summary>
-    /// IME モードを「どこかの入力欄にフォーカスがあれば On、無ければ Off」に 1 か所で決める
-    /// Decides the IME mode in one place: On while any text field (GameUi or Web) has focus, Off otherwise
+    /// IME モードを「GameUi の入力欄にフォーカスがあれば On、無ければ Off」に 1 か所で決める。全体スイッチの GameUi の起動でだけ登録される
+    /// Decides the IME mode in one place: On while a GameUi text field has focus, Off otherwise; registered only on a GameUi boot of the global switch
     /// </summary>
     public class ImeCompositionModeApplier : IInitializable, IDisposable
     {
@@ -20,8 +20,8 @@ namespace Client.Ui.Foundation.Input
             // Immediately override CEF's startup On with the current value
             Apply(UiInputExclusivity.IsTextInputFocused);
 
-            // Web の値は WS スレッドから来るのでメインスレッドで適用する。TextField のフォーカスアウトで Auto に戻る処理より後に効く
-            // Web values arrive on the WS thread, so apply on the main thread; this also lands after TextField's focus-out reset to Auto
+            // メインスレッドで適用し、TextField のフォーカスアウトで Auto に戻る処理より後に効かせる
+            // Apply on the main thread so it lands after TextField's focus-out reset to Auto
             _subscription = UiInputExclusivity.TextInputFocused
                 .ObserveOnMainThread()
                 .Subscribe(Apply);

@@ -25,6 +25,7 @@ using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.Skit;
+using Client.Input;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Starter.Registration;
@@ -108,7 +109,7 @@ namespace Client.Starter
             MainGameModelRegistration.Register(builder, initialHandshakeResponse, saveGenerationWaiter, collectsPlaytestRecords);
             MainGameInteractionRegistration.Register(builder, initialHandshakeResponse);
             MainGameUiStateRegistration.Register(builder);
-            MainGameUiRegistration.Register(builder, gameUiRoot);
+            MainGameUiRegistration.Register(builder, gameUiRoot, UiInputExclusivity.ActiveUiSystem);
 
             
             //Hierarchy上にあるcomponent

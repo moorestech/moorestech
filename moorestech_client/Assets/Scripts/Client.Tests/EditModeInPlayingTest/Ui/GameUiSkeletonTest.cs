@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.UIState;
@@ -7,6 +8,8 @@ using Client.Input;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.State.Routing;
+using Client.WebUiHost.Cef;
+using Client.WebUiHost.Health;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEditor;
@@ -15,7 +18,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
-using UnityEngine.UI;
 using UnityEngine.UIElements;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
@@ -23,15 +25,16 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
     /// <summary>
-    /// 実ゲームで UITK の骨組み（層・Web 休止・空パネルの入力素通し）が結線されているか確かめる
-    /// Verifies in the real game that the UITK skeleton (layers, web suspension, empty-panel input pass-through) is wired
+    /// 全体スイッチの UITK 側で、骨組み（層・Web ホスト無し・空パネルの入力素通し）が実ゲームで結線されているか確かめる
+    /// Verifies on the UITK side of the global switch that the skeleton (layers, no web host, empty-panel input pass-through) is wired in the real game
     /// </summary>
     [Category("CiShardClientPlay1")]
-    public class GameUiSkeletonTest
+    public class GameUiSkeletonTest : UiSystemPlayModeTestBase
     {
         [UnityTest]
-        public IEnumerator 骨組みが層を持ちWeb休止と入力素通しが実ゲームで効く()
+        public IEnumerator UITK側の骨組みが層を持ちWebホスト無しで入力素通しが実ゲームで効く()
         {
+            SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
             // yield return new EnterPlayMode は必ず[UnityTest]関数の直下で呼び出すこと
@@ -55,44 +58,23 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var routingState = resolver.Resolve<UiRoutingState>();
                 var uiStateControl = resolver.Resolve<UIStateControl>();
                 var gameUiRoot = GameUiRoot.Instance;
-                var cefRawImage = (RawImage)new SerializedObject(gameUiRoot).FindProperty("cefRawImage").objectReferenceValue;
 
                 AssertAllLayersExist(gameUiRoot);
 
-                // ゲーム画面（主パネルは Web 所有）では CEF が見え、Web は休止しない
-                // On the game screen (main panel owned by Web) the CEF picture is visible and the web is not suspended
-                Assert.IsTrue(cefRawImage.enabled, "既定で CEF の RawImage が無効になっている");
-                Assert.IsFalse(routingState.Current.Value.WebUiSuspended, $"既定で Web が休止している: {routingState.Current.Value}");
+                // UITK 側の起動では Web ホストも CEF も無い（WS の接続 0・CEF の RawImage 無し。plan §2.2 完了条件）
+                // A UITK-side boot has neither a web host nor CEF (zero WS connections, no CEF RawImage; plan §2.2)
+                Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
+                Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホスト（WS の受け口）が起動している");
+                Assert.IsTrue(Client.WebUiHost.Boot.WebUiHost.HostSkippedThisBoot, "Web ホストを飛ばした起動の状態が立っていない");
+                Assert.AreEqual(WebUiHostStartupState.SkippedByEditorSwitch, WebUiHealthRecorder.HostStartup, "診断記録にスイッチで飛ばしたことが残っていない");
+                Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<WebUiCefNavigator>(FindObjectsSortMode.None).Length, "CEF のブラウザ（RawImage と同じ GameObject）が有効のまま");
 
-                // ポーズ主パネルを GameUi として遷移すると Web が休止する（所有表は切替済みで、上書きは表の値と同じ）
-                // Transitioning with the pause main panel as GameUi suspends the web (the table is already flipped; the override matches it)
-                UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.GameUi);
-                try
-                {
-                    await TransitionTo(uiStateControl, UIStateEnum.PauseMenu);
-                    Assert.AreEqual(UiScreen.PauseMenu, routingState.Current.Value.Screen);
-                    Assert.IsTrue(routingState.Current.Value.WebUiSuspended, $"ポーズで Web が休止していない: {routingState.Current.Value}");
-                    Assert.IsFalse(cefRawImage.enabled, "休止中に CEF の RawImage が有効のまま");
-                    Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "休止中に Web がポインタを主張している");
-
-                    // R4: 遷移を待たずに上書きだけで休止が解け、戻すと再び休止する
-                    // R4: an override alone lifts the suspension without a transition, and restoring it suspends again
-                    UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.Web);
-                    Assert.IsFalse(routingState.Current.Value.WebUiSuspended, $"上書きが次の遷移まで反映されない: {routingState.Current.Value}");
-                    Assert.IsTrue(cefRawImage.enabled, "上書きで Web へ戻しても CEF の RawImage が無効のまま");
-                    UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.GameUi);
-                    Assert.IsTrue(routingState.Current.Value.WebUiSuspended, $"上書きを戻しても休止に戻らない: {routingState.Current.Value}");
-
-                    // 閉じると CEF が戻る
-                    // Closing brings the CEF picture back
-                    await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
-                    Assert.IsFalse(routingState.Current.Value.WebUiSuspended, $"ポーズを閉じても Web が休止したまま: {routingState.Current.Value}");
-                    Assert.IsTrue(cefRawImage.enabled, "ポーズを閉じても CEF の RawImage が戻らない");
-                }
-                finally
-                {
-                    UiOwnershipEditorOverride.Clear();
-                }
+                // ポーズへ行き来しても、ルータは UIState だけで画面を決める
+                // Going to the pause and back, the router decides the screen from UIState alone
+                await TransitionTo(uiStateControl, UIStateEnum.PauseMenu);
+                Assert.AreEqual(UiScreen.PauseMenu, routingState.Current.Value.Screen);
+                await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
+                Assert.AreEqual(UiScreen.None, routingState.Current.Value.Screen);
 
                 await AssertEmptyPanelDoesNotTakePointer(gameUiRoot);
             }
@@ -127,8 +109,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             // Let injected mouse input reach a background Editor or CI batchmode
             using var backgroundInput = EditorBackgroundInputScope.Open();
 
-            // カーソルを解放して画面中央（Web・uGUI の要素が無い位置）へ置く
-            // Release the cursor and place it at the screen center where no Web or uGUI element sits
+            // カーソルを解放して画面中央（uGUI の要素が無い位置）へ置く
+            // Release the cursor and place it at the screen center where no uGUI element sits
             InputManager.MouseCursorVisible(true);
             var center = new Vector2(Screen.width / 2f, Screen.height / 2f);
             var mouse = Mouse.current ?? InputSystem.AddDevice<Mouse>();
@@ -144,8 +126,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             Assert.IsFalse(empty.isOverGameObject, "空の UITK パネル越しに IsPointerOverGameObject が true");
             Assert.IsFalse(empty.isOverAnyUi, "空の UITK パネル越しに IsPointerOverAnyUi が true");
 
-            // 対照: 拾える要素を置けば同じ判定が true になる（上の false が測定の空振りでない証拠）
-            // Control: a pickable element flips the same checks to true, proving the false above is not a dead measurement
+            // 対照: 拾える要素を置けば同じ判定が true になる（上の false が測定の空振りでない証拠。片側読みの GameUi 側の実配線）
+            // Control: a pickable element flips the same checks to true (proof the false above is real, and the live wiring of the one-sided GameUi read)
             var blocker = new VisualElement { name = "skeleton-test-blocker", pickingMode = PickingMode.Position };
             blocker.style.position = Position.Absolute;
             blocker.style.left = 0;
@@ -157,6 +139,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             blocker.RemoveFromHierarchy();
             Assert.AreSame(blocker, covered.picked, "対照の要素が Pick されない");
             Assert.IsTrue(covered.isOverGameObject, "対照の要素の上で IsPointerOverGameObject が false（測定が効いていない）");
+            Assert.IsTrue(covered.isOverAnyUi, "対照の要素の上で IsPointerOverAnyUi が false（GameUi の系の Pick が読まれていない）");
         }
 
         private static async UniTask<(VisualElement picked, bool isOverGameObject, bool isOverAnyUi)> MeasurePointerAtCenter(GameUiRoot gameUiRoot, Vector2 center, string label)
@@ -169,7 +152,7 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             var picked = panel.Pick(panelPosition);
             var isOverGameObject = EventSystem.current.IsPointerOverGameObject();
             var isOverAnyUi = UiPointerHitTest.IsPointerOverAnyUi();
-            Debug.Log($"[GameUiSkeletonTest] {label} center={center} panelPos={panelPosition} picked={(picked == null ? "null" : picked.name + "/" + picked.GetType().Name)} overGameObject={isOverGameObject} overAnyUi={isOverAnyUi} lock={UnityEngine.Cursor.lockState} webPointer={UiInputExclusivity.IsPointerOverWebUi}");
+            Debug.Log($"[GameUiSkeletonTest] {label} center={center} panelPos={panelPosition} picked={(picked == null ? "null" : picked.name + "/" + picked.GetType().Name)} overGameObject={isOverGameObject} overAnyUi={isOverAnyUi} lock={UnityEngine.Cursor.lockState} system={UiInputExclusivity.ActiveUiSystem}");
             return (picked, isOverGameObject, isOverAnyUi);
         }
     }
