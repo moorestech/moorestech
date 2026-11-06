@@ -271,6 +271,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | W0-merge・W0-cef・W0-switch・W0-skill・W0-tools・F1 | `P/2026-11-06-uitk-w0-merge.md`・`-w0-cef.md`・`-w0-switch.md`・`-w0-skill.md`・`-w0-tools.md`・`-f1.md` |
 | C2-a・C2-b・C2-c | `P/2026-11-06-uitk-c2-a.md`・`-c2-b.md`・`-c2-c.md` |
 | L0-s3・L0-s4a・L0-s4b | `P/2026-11-06-uitk-l0-s3.md`・`-l0-s4a.md`・`-l0-s4b.md` |
+| C3-a・S2-hud（W2 の PLAN-W2a） | `P/2026-11-07-uitk-c3-a.md`・`-s2-hud.md` |
 
 - 1 レーン＝1 worktree＝ファイル所有が重ならない単位。C2 の 3 本は設計書 §5.2 の C2-a/b/c から組み直した（E-7）
 - **設計書の改訂と ID の割り当て**（E-12）: 12 本が設計書に求めた改訂は、全体レビューの回に設計書へ反映済み（§7.1 の A-18〜A-39）。レーンは設計書を書かず、該当行があることを確かめるだけ。次の割り当ては A-50 から、指揮が §6.2 で詳細計画を切るときにこの表へ足す
@@ -285,6 +286,8 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | C2-c | A-31〜A-37 | LX-16〜21（LX-1 は C2-c が消す） |
 | S5-crosscut | A-38 | — |
 | 評価役 2 体の指摘の反映（`research/design-eval-2026-11-06.md`） | A-40〜A-48（持ち主: F1・C2-b が A-40、C3-b が A-41・A-43、C3-a が A-42、S2-hud が A-44、C4-e が A-45、C4-c が A-46、各部品レーンが A-47、C2-c と S2-hud が A-48） | — |
+| C3-a | A-50〜A-54 | LX-22〜26 |
+| S2-hud | A-55〜A-59 | LX-27〜31 |
 
 - **`/// <web-test>` の書式**（E-13）: W0-tools 計画 R1・R3 の `/// <web-test file="<webui からの相対パス。src/… か e2e/…>"><it/test の第 1 引数></web-test>` が正本。describe は含めない（W0-tools D-2）。L0・C2 の計画はこの書式で書く
 - **FormButton の API**: 設計書 §2.4 の FormButton 行は C2-b の形（[A-28]）。L0-s3 の `ModalButtonTone` は S3-hotbar-modal の View が `Blue→Filled`・`Red→Danger` で写す
