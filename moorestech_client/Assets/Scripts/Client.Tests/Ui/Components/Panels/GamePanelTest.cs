@@ -61,18 +61,18 @@ namespace Client.Tests.Ui.Components.Panels
         public void 題は渡したUiTextの文を出し2回目は差し替える()
         {
             _panel.SetTitle(new UiText(LocalizationKeys.Ui.PauseMenu.Title));
-            _panel.SetTitle(new UiText(LocalizationKeys.Ui.BlockInventory.TrainInventory));
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
             simulate.FrameUpdate();
             var titles = _panel.Query<Label>(className: "game-panel__title").ToList();
             Assert.AreEqual(1, titles.Count);
-            Assert.AreEqual(new UiText(LocalizationKeys.Ui.BlockInventory.TrainInventory).Resolve(), titles[0].text);
+            Assert.AreEqual(new UiText(LocalizationKeys.Ui.Inventory.Title).Resolve(), titles[0].text);
         }
 
         [Test]
         public void 副次アクションは題の行の右端で上下中央に寄る()
         {
             var action = SizedAction("test-title-action");
-            _panel.SetTitle(new UiText(LocalizationKeys.Ui.BlockInventory.TrainInventory));
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
             _panel.SetTitleAction(action);
             simulate.FrameUpdate();
             var header = _panel.Q(className: "game-panel__header");

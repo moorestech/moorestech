@@ -47,18 +47,8 @@
     background-color: var(--game-panel-craft-face);
 }
 
-/* inset 0 0 0 3.524px の明るい輪。上に重なる 3.132px の暗い線から 0.392px だけ見える */
-/* The light inset 0 0 0 3.524px ring; only 0.392px shows past the 3.132px dark line on top */
-.game-panel__craft-rim {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    border-width: 3.524px;
-    border-color: var(--game-panel-craft-rim);
-}
-
+/* Web の inset 0 0 0 3.132px の暗い線（不透明）。UITK は枠幅を物理画素へ丸める（倍率 1 で 3px・1.5 で 3.333px） */
+/* The Web inset 0 0 0 3.132px dark line (opaque); UITK rounds border widths to device pixels (3px at scale 1, 3.333px at 1.5) */
 .game-panel__craft-line {
     position: absolute;
     top: 0;
@@ -67,6 +57,20 @@
     left: 0;
     border-width: 3.132px;
     border-color: var(--game-panel-craft-line);
+}
+
+/* Web の inset 0 0 0 3.524px の明るい輪は不透明の線の外へ 0.392px（Web の倍率で 1 物理画素）だけ見える。見える帯だけを線の内側に置く */
+/* 3.524px の枠のまま重ねると倍率 1.5 で線と同じ 3.333px に丸まり輪が消えるので、見える帯を別の枠にして常に 1 物理画素以上を残す */
+/* The Web inset 0 0 0 3.524px light ring shows only 0.392px (one device pixel at the Web scale) past the opaque line; only that visible band sits inside the line */
+/* Stacking a 3.524px border rounds to the line's 3.333px at scale 1.5 and the ring vanishes, so the visible band is its own border that keeps at least one device pixel */
+.game-panel__craft-rim {
+    position: absolute;
+    top: 3.132px;
+    right: 3.132px;
+    bottom: 3.132px;
+    left: 3.132px;
+    border-width: 0.392px;
+    border-color: var(--game-panel-craft-rim);
 }
 
 /* 右下グリップ。位置と寸法はトークン、ずらし（Web の translate）と色は C# が受け直したつまみで塗る */
