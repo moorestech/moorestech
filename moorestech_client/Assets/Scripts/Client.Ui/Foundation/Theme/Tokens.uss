@@ -26,7 +26,7 @@
     --craft-grip-size: 8.74px;
     --craft-grip-inset: 6.98px;
     --craft-grip-offset: 0.4px;
-    --craft-grip-face: rgba(134, 136, 152, 0.9565); /* web: rgba(134, 136, 152, 0.98) α補正 */
+    --craft-grip-face: rgba(134, 136, 152, 0.9633); /* web: rgba(134, 136, 152, 0.98) α補正 */
     --key-hint-font-size: 25px;
     --key-hint-line-height: 1.2;
     --key-hint-letter-spacing: 5.5px; /* web: 0.055em。UITK の字間は字の大きさの 1/100 単位 */
@@ -90,7 +90,7 @@
     --tooltip-max-width: 320px;
     --tooltip-face: rgba(16, 20, 28, 0.9945); /* web: rgba(16, 20, 28, 0.94) α補正 */
     --tooltip-border-width: 1px;
-    --tooltip-border-color: rgba(255, 255, 255, 0.0358); /* web: rgba(255, 255, 255, 0.22) α補正 */
+    --tooltip-border-color: rgba(255, 255, 255, 0.0607); /* look-exception: LX-81 */ /* web: rgba(255, 255, 255, 0.22) α補正 */
     --delete-mode-warning-band-height: 20px;
     --delete-mode-warning-stripe-size: 32px;
     --delete-mode-warning-stripe-angle: 117deg;
@@ -128,7 +128,7 @@
     --tutorial-drag-guide-shadow: rgba(0, 0, 0, 0.8566); /* web: rgba(0, 0, 0, 0.65) α補正 */
     --tutorial-highlight-glow: 4px;
     --tutorial-attention-red: #ff0000;
-    --tutorial-attention-glow: rgba(255, 0, 0, 0.3981); /* web: rgba(255, 0, 0, 0.24) α補正 */
+    --tutorial-attention-glow: rgba(255, 0, 0, 0.0713); /* look-exception: LX-81 */ /* web: rgba(255, 0, 0, 0.24) α補正 */
     --tutorial-pulse-duration: 1200ms;
     --mode-switch-gap: 4px;
     --mode-switch-padding-block: 5px;
@@ -136,7 +136,7 @@
     --mode-switch-selected-mix: 30%;
     --progress-arrow-width: 64px;
     --progress-arrow-height: 12px;
-    --craft-arrow-outline: rgba(79, 224, 244, 0.4563); /* web: rgba(79, 224, 244, 0.7) α補正 */
+    --craft-arrow-outline: rgba(79, 224, 244, 0.5169); /* look-exception: LX-81 */ /* web: rgba(79, 224, 244, 0.7) α補正 */
     --craft-arrow-width: 53.622px;
     --craft-arrow-height: 30.53px;
     --research-node-face: var(--surface-navy);

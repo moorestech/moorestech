@@ -24,6 +24,14 @@ const exclusionFileName = "TokenConversionExclusions.txt";
 const maxLinesPerFile = 200;
 const translucentTablePath = "docs/uitk/translucent-tokens.md";
 
+// 見た目の例外（台帳 LX）に当たるトークン。生成する行に印を付け、LookExceptionLedgerTest が台帳と照合する
+// Tokens that are look exceptions (ledger LX); the generated line carries the marker, which LookExceptionLedgerTest matches against the ledger
+const lookExceptionMarkers = {
+  "--tooltip-border-color": "LX-81",
+  "--craft-arrow-outline": "LX-81",
+  "--tutorial-attention-glow": "LX-81",
+};
+
 // 全ファイルのトークンを先に集め、ファイルを跨ぐ参照も解決できるようにする
 // Collect every file's tokens first so references across files resolve
 const tokensBySource = conversions.map((conversion) => {
@@ -68,14 +76,18 @@ for (const { source, output, tokens } of tokensBySource) {
 // How tokens were settled on device; rows kept unchanged also state why
 const measuredMethods = {
   "--surface-navy": `${translucencyMethod}。ランタイムの PanelSettings で地 30〜180 に載せて Web との差が最大 8（指数 2.2 では 16。I-fix1）。C2-a の持ち物・チャレンジ HUD の撮影で合う α は 0.944〜0.956`,
+  "--tooltip-border-color": `${translucencyMethod}。ランタイムの PanelSettings で TooltipFace を地 (30,30,30) に描き、縁は UITK (71,72,75)・Web の式 (69,72,78)（α^2.2 の 0.0358 では暗い面の地で 17〜20 段暗かった。I-fix2）`,
+  "--tutorial-attention-glow": `${translucencyMethod}。純色の赤は輝度では暗い色に入り 0.3981 で暗い地の上 87 段濃かった。最大成分で明るい色に分け、暗い地 16〜35 で差 5〜6・明るい地 120〜180 で 25〜37（LX-81。I-fix2）`,
 };
+
 
 writeOutput(exclusionFileName, exclusionLines);
 writeTranslucentTable(converter.translucentRows);
 
 function formatDeclaration(name, result) {
+  const marker = lookExceptionMarkers[name] === undefined ? "" : ` /* look-exception: ${lookExceptionMarkers[name]} */`;
   const comment = result.comment === undefined ? "" : ` /* ${result.comment} */`;
-  return `    ${name}: ${result.value};${comment}`;
+  return `    ${name}: ${result.value};${marker}${comment}`;
 }
 
 function verifyHandWrittenRowsMatchDerivedTokens() {
