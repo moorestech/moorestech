@@ -45,7 +45,7 @@ namespace Client.Ui.Screens.KeyHints
             foreach (var hint in model.Hints)
             {
                 var row = new KeyHintRow(hint);
-                row.SetRowHeight(_rowHeight);
+                if (_hasTokens) row.SetRowHeight(_rowHeight);
                 _rows.AddItem(row);
             }
             this.Query<VisualElement>().ForEach(element => element.pickingMode = PickingMode.Ignore);
