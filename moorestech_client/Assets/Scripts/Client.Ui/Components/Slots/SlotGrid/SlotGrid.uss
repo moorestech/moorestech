@@ -1,0 +1,40 @@
+/* web: moorestech_web/webui/src/shared/ui/SlotGrid/style.module.css の .grid（repeat(cols, var(--slot-size))・column-gap・row-gap・width: fit-content）を写す。マスの幅は中身（SlotFrame の --slot-size）が決める */
+/* web: copies .grid in moorestech_web/webui/src/shared/ui/SlotGrid/style.module.css (repeat(cols, var(--slot-size)), column-gap, row-gap, width: fit-content); the cell content (SlotFrame --slot-size) sets each cell width */
+.slot-grid {
+    flex-direction: column;
+    align-self: flex-start;
+}
+
+.slot-grid__row {
+    flex-direction: row;
+    margin-top: var(--slot-grid-row-gap);
+}
+
+.slot-grid__row--first {
+    margin-top: 0;
+}
+
+.slot-grid__row > .slot-grid__cell {
+    margin-left: var(--slot-grid-gap);
+}
+
+.slot-grid__row > .slot-grid__cell--row-start {
+    margin-left: 0;
+}
+
+/* 列数ぶんの幅を保つ高さ 0 の行（Web の grid の列の幅） */
+/* Zero-height row that keeps the width of all columns (the Web grid tracks) */
+.slot-grid__tracks {
+    flex-direction: row;
+    height: 0;
+}
+
+.slot-grid__track {
+    width: var(--slot-size);
+    height: 0;
+    margin-left: var(--slot-grid-gap);
+}
+
+.slot-grid__track--row-start {
+    margin-left: 0;
+}

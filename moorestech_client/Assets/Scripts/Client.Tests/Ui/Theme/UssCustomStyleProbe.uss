@@ -3,4 +3,5 @@
     --probe-enter: var(--notification-enter-duration);
     --probe-face: var(--surface-navy);
     --probe-title-scale: var(--title-scale-x);
+    --probe-keyword: inset;
 }

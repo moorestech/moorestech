@@ -4,6 +4,8 @@
     "references": [
         "Client.Input",
         "Client.Game",
+        "Core.Master",
+        "Client.Mod",
         "Client.Localization",
         "Client.PlaytestReceiver",
         "Client.Ui.State",
