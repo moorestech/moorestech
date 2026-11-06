@@ -6,7 +6,7 @@
 /* 置き場は層いっぱいに広げ、枠を上下左右の中央へ置く */
 /* The host fills the layer and centers the frame both ways */
 .pause-menu {
-    --pause-menu-disconnected-text: var(--color-danger);
+    --pause-menu-disconnected-text: var(--color-danger-text);
     position: absolute;
     left: 0;
     top: 0;
@@ -17,21 +17,34 @@
     align-items: center;
 }
 
+/* 枠は Web の .panel そのまま: 面・1px の線・角丸 12px・padding 32px・幅 420px。文字の既定は Mantine の本文（白・16px） */
+/* The frame is the Web .panel as is: face, 1px rule, 12px radius, 32px padding and 420px width; text defaults to the Mantine body (white, 16px) */
 .pause-menu__panel {
+    --pause-menu-panel-face: var(--pause-menu-face);
+    --pause-menu-panel-border: var(--pause-menu-border);
+    --pause-menu-panel-text: var(--text-high-contrast);
     width: 420px;
     max-height: 100%;
+    padding: 32px;
+    border-width: 1px;
+    border-radius: 12px;
+    border-color: var(--pause-menu-panel-border);
+    background-color: var(--pause-menu-panel-face);
+    color: var(--pause-menu-panel-text);
+    font-size: 16px;
 }
 
-/* 枠の面は Web の .panel の色。GamePanel の面の要素が自前で --game-panel-face を宣言するので、面の要素に当てて上書きする */
-/* The frame face uses the Web .panel color; the GamePanel face element declares --game-panel-face itself, so override it on that element */
-.pause-menu__panel .game-panel__face {
-    --game-panel-face: var(--pause-menu-face);
-}
-
-/* Web の .panel の padding 32px。GamePanel の padding（8 10 10 28）に足して左右下を 32px にそろえる */
-/* The Web .panel padding is 32px; added to the GamePanel padding (8 10 10 28) this makes left, right and bottom 32px */
-.pause-menu__page {
-    padding: 8px 22px 22px 4px;
+/* 題は Mantine の Title order=1（34px・行高 1.3 = 44px の行）。下に Stack gap=md の 16px を空ける */
+/* GameUi のフォントは同じ px で Web より字幅が約 7% 広いので字は 32px にする（行の高さは Web のまま）。太さ寄せの縁は 2560×1080 で隣の字形がにじむので付けない */
+/* The title is Mantine Title order=1 (34px, line height 1.3 = a 44px line), followed by the Stack gap=md 16px */
+/* The GameUi font sets about 7% wider than the Web at the same px, so glyphs use 32px (the line height stays the Web's); no weight-matching outline, since it bleeds neighboring atlas glyphs at 2560x1080 */
+.pause-menu__title {
+    flex-shrink: 0;
+    height: 44px;
+    margin: 0 0 16px 0;
+    padding: 0;
+    font-size: 32px;
+    -unity-text-align: middle-left;
 }
 
 /* 枠が最大高で止まったとき、本文だけがスクロールできるよう flex の高さ連鎖を子画面まで通す */
@@ -82,4 +95,25 @@
 
 .pause-menu__back {
     flex-shrink: 0;
+}
+
+/* 本文のスクロールバーは Web の panelBodyScrollArea（§8.10 のネイビーの溝・角の無い --bevel-c2 のつまみ・幅 12px で左右 2px 内側） */
+/* The body scrollbar follows the Web panelBodyScrollArea (§8.10 navy track, square --bevel-c2 thumb, 12px wide with a 2px inset) */
+.pause-menu__body .unity-scroller--vertical {
+    --pause-menu-scroller-track: var(--gauge-track);
+    --pause-menu-scroller-thumb: var(--bevel-c2);
+    width: 12px;
+    background-color: var(--pause-menu-scroller-track);
+}
+
+.pause-menu__body .unity-scroller .unity-base-slider__tracker {
+    width: 12px;
+    background-color: var(--pause-menu-scroller-track);
+}
+
+.pause-menu__body .unity-scroller .unity-base-slider__dragger {
+    left: 2px;
+    width: 8px;
+    border-radius: 0;
+    background-color: var(--pause-menu-scroller-thumb);
 }

@@ -1,27 +1,33 @@
 /* 設定の各節（言語・走り・画質）。並びは moorestech_web/webui/src/features/settings/*.tsx の Title order=2・Text・role=status を写す */
+/* 節の中は Web で間隔の無い素の並び。文字は Mantine の本文 16px（ポーズの枠から継ぐ） */
 /* Settings sections (language, sprint, graphics); the layout copies Title order=2, Text and role=status in moorestech_web/webui/src/features/settings/*.tsx */
+/* Inside a section the Web stacks rows with no gap; text is the Mantine body 16px inherited from the pause frame */
 
 .settings-section {
-    --settings-section-title-text: var(--color-content-primary);
-    --settings-section-note-text: var(--text-muted);
+    --settings-section-title-text: var(--text-high-contrast);
+    --settings-section-note-text: var(--text-high-contrast);
     flex-direction: column;
 }
 
+/* 節の見出しは Mantine の Title order=2（26px・行高 1.35 = 35px の行）。字幅は題と同じ理由で 24px に寄せる */
+/* Section headings are Mantine Title order=2 (26px, line height 1.35 = a 35px line); glyph width uses 24px for the same reason as the title */
 .settings-section__title {
-    margin: 0 0 8px 0;
+    height: 35px;
+    margin: 0;
     padding: 0;
-    font-size: 17px;
+    font-size: 24px;
     color: var(--settings-section-title-text);
+    -unity-text-align: middle-left;
 }
 
-.settings-section__caption {
-    margin: 8px 0 4px 0;
-    padding: 0;
-}
-
+/* 項目名と注記は Mantine の Text（16px・行高 1.55）。注記も Web は色を変えない */
+/* Item captions and notices are Mantine Text (16px, line height 1.55); the Web keeps notices in the same color */
+.settings-section__caption,
 .settings-section__note {
-    margin: 0 0 4px 0;
+    min-height: 25px;
+    margin: 0;
     padding: 0;
     color: var(--settings-section-note-text);
     white-space: normal;
+    -unity-text-align: middle-left;
 }

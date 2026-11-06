@@ -1,39 +1,40 @@
 /* バグ報告の欄。寸法は moorestech_web/webui/src/features/pauseMenu/style.module.css の .description / .status / .fieldLabel を写す */
+/* Web は欄の各行を子画面の Stack gap=md に直に並べるので、行の間はどれも 16px */
 /* Bug-report form; sizes copy .description / .status / .fieldLabel in moorestech_web/webui/src/features/pauseMenu/style.module.css */
+/* The Web lays every row straight into the sub-page Stack gap=md, so each row is 16px apart */
 
 .bug-report {
     --bug-report-muted-text: var(--text-muted);
     flex-direction: column;
 }
 
-/* 入力欄の見出しと状態行は従属の文字色。状態行は長い理由を折り返す */
-/* The field caption and status lines use secondary text; status lines wrap long reasons */
+/* 入力欄の見出しと状態行は従属の文字色（Mantine の本文 16px・行高 1.55）。状態行は長い理由を折り返す */
+/* The field caption and status lines use secondary text (Mantine body 16px, line height 1.55); status lines wrap long reasons */
 .bug-report__field-label,
 .bug-report__status {
+    min-height: 25px;
     margin: 0;
     padding: 0;
     color: var(--bug-report-muted-text);
     white-space: normal;
+    -unity-text-align: middle-left;
 }
 
 .bug-report__field-label {
-    margin-bottom: 4px;
+    margin-bottom: 16px;
 }
 
 .bug-report__status {
-    margin-top: 8px;
-}
-
-.bug-report__description {
-    width: var(--bug-report-textarea-width);
-    height: var(--bug-report-textarea-height);
-    margin-top: 8px;
+    margin-top: 16px;
 }
 
 /* 外側の高さをトークンで決め、中の TextField と入力要素を欄いっぱいに伸ばす。伸ばさないと入力要素が 1 行分の高さで止まる */
 /* The outer height comes from the token; stretch the inner TextField and its input to fill it, or the input stops at one line */
 .bug-report__description {
     flex-shrink: 0;
+    width: var(--bug-report-textarea-width);
+    height: var(--bug-report-textarea-height);
+    margin-top: 16px;
 }
 
 .bug-report__description .unity-text-field {
@@ -41,15 +42,82 @@
     margin: 0;
 }
 
+/* 記述欄は Web の textAreaField（--gauge-track の面・--bevel-c1 の角の無い線・ModeSwitch と同じ内側の余白） */
+/* The textarea follows the Web textAreaField (--gauge-track face, square --bevel-c1 rule, ModeSwitch's inner padding) */
 .bug-report__description .unity-base-text-field__input {
+    --bug-report-field-face: var(--gauge-track);
+    --bug-report-field-border: var(--bevel-c1);
+    --bug-report-field-border-focus: var(--text-high-contrast);
+    --bug-report-field-text: var(--text-default);
     flex-grow: 1;
     height: 100%;
+    padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
+    border-width: var(--bevel-1);
+    border-radius: 0;
+    border-color: var(--bug-report-field-border);
+    background-color: var(--bug-report-field-face);
+    color: var(--bug-report-field-text);
+    -unity-text-align: upper-left;
+    white-space: normal;
+}
+
+.bug-report__description .unity-base-text-field__input:hover {
+    border-color: var(--bug-report-field-border);
+}
+
+.bug-report__description .unity-base-text-field:focus .unity-base-text-field__input {
+    border-color: var(--bug-report-field-border-focus);
+}
+
+.bug-report__description .unity-base-text-field__input--placeholder {
+    color: var(--bug-report-muted-text);
 }
 
 .bug-report__recovery {
     flex-direction: column;
 }
 
-.bug-report__button {
-    margin: 8px 0 0 0;
+/* 送信・再送・書き出しは Mantine の Button（filled・高さ 36px・角丸 4px・14px）。無効は dark-6 の面に dark-3 の文字 */
+/* Send, resend and export are Mantine Button (filled, 36px tall, 4px radius, 14px); disabled is a dark-6 face with dark-3 text */
+.bug-report .bug-report__button.unity-button {
+    --bug-report-button-face: var(--color-accent);
+    --bug-report-button-face-hover: var(--color-accent-hover);
+    --bug-report-button-text: var(--text-high-contrast);
+    --bug-report-button-face-disabled: var(--mantine-dark-6);
+    --bug-report-button-text-disabled: var(--mantine-dark-3);
+    height: 36px;
+    margin: 16px 0 0 0;
+    padding: 0 18px;
+    border-width: 0;
+    border-radius: 4px;
+    background-color: var(--bug-report-button-face);
+    color: var(--bug-report-button-text);
+    font-size: 14px;
+    transition-duration: 0s;
+}
+
+.bug-report .bug-report__button.unity-button:hover {
+    background-color: var(--bug-report-button-face-hover);
+}
+
+.bug-report .bug-report__button.unity-button:active {
+    scale: 1 1;
+}
+
+.bug-report .bug-report__button.unity-button:disabled {
+    background-color: var(--bug-report-button-face-disabled);
+    color: var(--bug-report-button-text-disabled);
+    opacity: 1;
+}
+
+.bug-report__button .unity-label {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    color: var(--bug-report-button-text);
+    -unity-text-align: middle-center;
+}
+
+.bug-report__button:disabled .unity-label {
+    color: var(--bug-report-button-text-disabled);
 }
