@@ -1,0 +1,62 @@
+/* web: moorestech_web/webui/src/shared/ui/GamePanel/hudVariant.module.css（hud）と style.module.css の .skit（components.md §8.12） */
+/* 面だけのパネル。罫線・三角・グリップ・影を持たない。hud は文字色を継承し、skit は .panel の文字色を持つ */
+/* web: moorestech_web/webui/src/shared/ui/GamePanel/hudVariant.module.css (hud) and the .skit rule in style.module.css (components.md §8.12) */
+/* Face-only panel without rules, triangles, grip or shadow; hud inherits its text color, skit keeps the .panel text color */
+
+.game-panel-surface {
+    display: flex;
+    flex-direction: column;
+}
+
+.game-panel-surface__face {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+/* basis 0% で本文の高さを子孫の内容寸法へ依存させない（Web の .body と同じ） */
+/* Basis 0% keeps the body height independent of descendant content size (same as the Web .body) */
+.game-panel-surface__body {
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0%;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* hud: 4 辺を同じ幅でフェードさせ世界へ溶かす。面色とフェード幅は基底トークンを直に引く */
+/* hud: fade all four edges by the same span into the world; face color and span read the base tokens directly */
+.game-panel-surface--hud {
+    padding-top: var(--hud-panel-padding);
+    padding-right: var(--hud-panel-padding);
+    padding-bottom: var(--hud-panel-padding);
+    padding-left: var(--hud-panel-padding);
+}
+
+.game-panel-surface--hud > .game-panel-surface__face {
+    --game-panel-face: var(--surface-navy);
+    --game-panel-edge-fade: var(--panel-edge-fade);
+    --game-panel-top-fade: var(--panel-edge-fade);
+    --game-panel-bottom-fade: var(--panel-edge-fade);
+}
+
+/* skit: 画面下部の全幅の帯。上端だけを縦フェードさせ、左右と下端は画面外へ抜けるのでフェードしない */
+/* skit: full-width band at the screen bottom; only the top fades, the sides and bottom run off-screen and stay hard */
+.game-panel-surface--skit {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: var(--skit-window-height);
+    padding: 0;
+    color: var(--game-panel-text);
+}
+
+.game-panel-surface--skit > .game-panel-surface__face {
+    --game-panel-face: var(--skit-window-face);
+    --game-panel-edge-fade: 0px;
+    --game-panel-top-fade: var(--skit-window-top-fade);
+    --game-panel-bottom-fade: 0px;
+}

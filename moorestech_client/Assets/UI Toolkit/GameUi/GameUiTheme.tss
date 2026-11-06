@@ -11,6 +11,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Stage/UiStageFrame.uss");
 /* == section: Components/Panels == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/GamePanel/GamePanel.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Panels/GamePanelSurface/GamePanelSurface.uss");
 /* == section: Components/Slots == */
 /* == section: Components/Controls == */
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Controls/ModeSwitch/ModeSwitch.uss");
