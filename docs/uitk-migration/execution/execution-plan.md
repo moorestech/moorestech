@@ -56,10 +56,10 @@
 | ID | 題 | 段階・波 | 依存 | Ed | 担当 | 完了条件（使う部品・移すテスト） |
 |---|---|---|---|---|---|---|
 | S2-hud | 常駐 HUD（Crosshair・KeyHintHud・ProgressBar・TrainRidingHud・CurrentChallengeHud）と画面の幕・ヴィネット | 2・W2 | C2-a・C2-c | 要 | 単位 | 部品: `GamePanelSurface`(hud)・`HudSectionHeading`・`FadeRule`・`GaugeBar`（`--gauge-fill` 上書き）・`KeyCap`/`ShortcutHintLabel`・`PaperSurface`。HUD は `UiScreenTraits` の `AlwaysOnHud`/`TrainHud` で出す。`Screens/Shell/`: `ScreenBackdropPresenter`（`Backdrop` 列で幕 `screen-backdrop` を `UiLayer.Backdrop` の Viewport 族へ。色は段階 2 の頭に integrator が `DerivedTokens.uss` へ α 補正した 1 行を入れる）と常時のヴィネット（`--screen-vignette-*` を頂点カラーで）。L1 で traits の全画面の行ごとに幕の有無、並べ比べにポーズ・インベントリ相当の幕を含める [A-44]。目標・詳細の 2 行以上の文は C2-c の実測で決めた行送りの方法で行高トークン（20px・25px・1.2）と 1px 以内（L1）[A-48]。写す: commonHud・keyHint・progress（P9・C4・S3）、`challenge/hudLayout.spec.ts`(5)、`challenge.spec.ts` の HUD 3 件、`train.spec.ts` の HUD 1 件、`alwaysOnHudWheel.test.ts`(3)。アンカー `challenge.current-hud` |
-| S2-mode-tooltip | 操作モード HUD と CursorTooltip | 2・W2 | C2-a・C2-c | 要 | 単位 | 部品: `GamePanel`(craft)・`HudSectionHeading`・`TooltipFace`。斜線帯は画面内（Painter2D）。CursorTooltip は `OFFSET`（現在 12）参照・端で反転・ロック中は画面中央。写す: modeHud 17（P6・I6・S5）、`shared/tooltip/*`(8)。録画 `misc/cursor-tooltip-follows-crosshair` |
+| S2-mode-tooltip | 操作モード HUD と CursorTooltip | 2・W2 | C2-a・C2-c | 要 | 単位 | 部品: `GamePanel`(craft)・`HudSectionHeading`・`TooltipFace`。斜線帯は画面内（Painter2D）。CursorTooltip は `OFFSET`（現在 12）参照・端で押し戻す（Web `W/shared/tooltip/tooltipPosition.ts` の clamp。旧記述「端で反転」は Web の実物と違った）・ロック中は画面中央。写す: modeHud 17（P6・I6・S5）、`shared/tooltip/*`(8)。録画 `misc/cursor-tooltip-follows-crosshair` |
 | S2-tutorial | チュートリアル枠・KeyControlHint・ワールドピン | 2・W2 | C2-a・C2-c | 要 | 単位 | アンカーの枠（祖先クリップ ADR 0024・脈動 1200ms・ラベル反転・二重解決の LogError）、アンカーのカバレッジ L1（plan §4.5）。写す: KeyControlHint・WorldPin（P6・C4）、`system/worldPin.spec.ts`(6)、`TutorialOverlay.test.ts`(17)・`tutorialAttentionDesign.test.ts`(21)・`system/tutorial.spec.ts`(6)・`tutorialHighlightClip.spec.ts`(1)（E-8 で段階 5 から前倒し）、`portalLayerScaling.spec.ts` のピン・枠 3 件。DragGuide（`W/features/tutorial/overlay/DragGuide.tsx`。2 つのアンカーを結ぶ `kind: dragGuide` の要素）を `Screens/Tutorial/` に作り、`TutorialOverlay.test.ts` の drag guides を写す（E-16） |
 | S2-skit | スキット一式と全体非表示 | 2・W2 | C2-a・C2-b・C2-c | 要 | 単位 | 部品: `GamePanelSurface`(skit)・`IconButton`×4（`--icon-button-size` 上書き）・`FadeRule`。`SkitTransition` 層（F1 で追加済み）、タイプライタ（残り文字を透明にして配置固定）、背景スキット、Ctrl+U とカットシーンの全体非表示。写す: `skit.spec.ts`(4)・`skitPauseInput.spec.ts`(3)・`phaseC4.spec.ts`(2)・`skit/interaction.test.ts`(5)。録画 `misc/skit-opening-spawn-relative-origin`・`uitk-nested-pause-skit` |
-| S2-notification | 通知 | 2・W2 | C2-a・C2-c | 要 | 単位 | 通知のストアを C# のモデルへ（`NOTIFICATION_DISPLAY_MS` 参照、入場 160ms・退場 200ms）、背面の層。写す: notification 47（P6・L26・S15）。録画 `server-notification-smoke`（wwxy を直して） |
+| S2-notification | 通知 | 2・W2 | C2-a・C2-c・C3-a（アイテム獲得のアイコンに `GameContentPresentation`。L0 の Task 1〜4 は依存なしで先行可。E-19） | 要 | 単位 | 通知のストアを C# のモデルへ（`NOTIFICATION_DISPLAY_MS` 参照、入場 160ms・退場 200ms）、背面の層。写す: notification 47（P6・L26・S15。`it.each` を展開すると実数 48）、`portalLayerScaling.spec.ts` の通知 1 件の処遇。録画 `server-notification-smoke`（wwxy を直して） |
 | S2-ladder | 段階 2 の締め | 2・W2 末 | S2-* 全部 | 要 | int | ラダー `uitk-opening-hud` を作り、ラダー 1〜2 が UITK 側で緑。wwxy の `tutorial-*` 3 本と `server-notification-smoke` を直す。`challenge.current-hud` のハイライトの録画。L3 1 本（段階 2 の HUD が UITK スイッチで出る・消える）。束 2 の突き合わせ差分 0、G1 束 2 で 0。codex-audit（画像付き）で波の並べ比べ |
 | C3-a | スロット族 1 | 3・W2 | C2-a・C2-c・F1（`HoverTooltipMark`） | 要 | 単位 | 設計書 §2.3: `UiIcon`・Content（`GameContentPresentation`。名前は `UiText.FromContent` [A-40]）・`GameIcon`・`SlotFrame`（リングは装飾子・`--bevel-inset` の outset/inset で外側成長と内側食い込みを切り替え、L1 で持ち物とホットバーの両方の面寸法・外周寸法を確かめる。先頭でキーワードのつまみを `CustomStyleProperty<string>` で読めるか確かめる [A-42]。選択面のグラデの位置は C# で計算 [A-47]）・`SlotContent`・`ItemSlot`・`BlockSlot`・`PlacementTargetFace`・`SlotGrid`（`SlotAmountFormat` は L0-s3 が `Client.Ui.State/Text/` に作り済みで使うだけ [A-19]）。写す: `shared/ui` の C12・L34 のうちスロット分、`regression/itemSlot.spec.ts`(2)。L1・ギャラリー・比較 |
 | C3-b | 相互作用 | 3・W2 | C2-b・C2-c | 要 | 単位 | `UiPressGesture`（`usePressGesture` の 5px を参照）・`UiDragDrop`・`HoverTooltipHost`（印の付いた要素を含む `ScrollView` のスクロールで引っ込め、無関係なパネルのスクロールでは引っ込めない、ポインタ座標の実変化でだけ開き直す、捕捉中は出さない。Web `HoverTooltip/index.tsx` の意図を L1 3 件で写す [A-43]）・`UiScreenPixelScope`（Foundation/Stage。先頭で `panel.scaledPixelsPerPoint` が PanelSettings の倍率と一致するかを 720p・1080p・2560×1080 で実測して台帳へ。L1 で中身の幅 320 が倍率 1.5 でも実画面 320px [A-41]）・`ModeSwitch` の縦・タブ・個別無効（`OnSelected`→`OnOptionSelected`）・`GameScrollView` のスクロールスパイの口・`UiModalHost`（中身を `UiScreenPixelScope` に置く）・`DialogFrame`。L1 で `MouseMove` の PointerEnter の罠と ScrollView の `GeometryChangedEvent` を先に確かめて台帳へ |
@@ -82,7 +82,7 @@
 | S5-challenge | チャレンジ一覧 | 5・W5 | C4-d・C2-a・C2-b | 要 | 単位 | `NodeGraphView` の再利用・カテゴリのボタン列（`FormButton` の文言は `UiText.FromContent` [A-40]）・`PaperSurface` のノードカード・`FormButton`。写す: `challenge.spec.ts` の画面 4 件・`challengeLogic.test.ts`(2) |
 | S5-gate | 出展モードの言語ゲート | 5・W5 | C2-b・C3-b | 要 | 単位 | Web は `--ui-scale` を掛けないので中身を `UiScreenPixelScope` に置く [A-41]。DI より前に出す全画面ゲート（`GameUiRoot` を起動の早い段で使うか、ゲート用パネルを分けるかを詳細計画の頭で決める＝agent 既定）。辞書を通さない文言を C# 定数へ。写す: eventLanguageGate(9) |
 | S5-crosscut | 横断層の残り | 5・W5 | S4-gamma | 要 | 単位 | UI の例外を LogError と manifest へ（`AppErrorBoundary` の代わり）、再接続オーバーレイ・辞書エラー・`ConnectingPlaceholder` は作らず disposition に理由（[A-13]・[A-38]。統合計画 §2.6 との差は E-17）。写す: `system/i18n.spec`(2)・`allScreensI18n`(6)・`uiState.spec`(5)・`regression/inputLayer.spec`(5)・`textSelection`(2) の意図 |
-| S5-ladder | 段階 5 の締め | 5・W5 末 | S5-* | 要 | int | ラダー `uitk-challenge-gate` を作り 6 本緑。UITK 側で DSL の Web ロケータが一度も要素を返さない（ログ）。台帳の全行が UITK で作られ、G1 全束 0。全束の突き合わせ差分 0 |
+| S5-ladder | 段階 5 の締め | 5・W5 末 | S5-* | 要 | int | ラダー `uitk-challenge-gate` を作り 6 本緑。UITK 側で DSL の Web ロケータが一度も要素を返さない（ログ）。`Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs`（未移植のアンカーの表。S2-tutorial が作る）が空。台帳の全行が UITK で作られ、G1 全束 0。全束の突き合わせ差分 0 |
 
 ### 1.5 W6 撤去と切替 PR・W7 切替後
 
@@ -137,6 +137,7 @@ flowchart LR
     C2a & C2c --> S2s
     S2h & S2m & S2t & S2s & S2n --> S2L[S2-ladder]
     C2a & C2c --> C3a[C3-a]
+    C3a -->|アイコン E-19| S2n
     C2b & C2c --> C3b[C3-b]
   end
   subgraph W3[W3 段階3画面・段階4部品]
@@ -284,6 +285,9 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | C2-b | A-27〜A-30（A-31 は C2-c と共有） | LX-10〜15 |
 | C2-c | A-31〜A-37 | LX-16〜21（LX-1 は C2-c が消す） |
 | S5-crosscut | A-38 | — |
+| S2-mode-tooltip（`P/2026-11-07-uitk-s2-mode-tooltip.md`） | A-60〜A-62 | LX-32〜34 |
+| S2-tutorial（`P/2026-11-07-uitk-s2-tutorial.md`） | A-63〜A-66 | LX-35〜38 |
+| S2-notification（`P/2026-11-07-uitk-s2-notification.md`） | A-67〜A-69 | LX-39〜41 |
 | 評価役 2 体の指摘の反映（`research/design-eval-2026-11-06.md`） | A-40〜A-48（持ち主: F1・C2-b が A-40、C3-b が A-41・A-43、C3-a が A-42、S2-hud が A-44、C4-e が A-45、C4-c が A-46、各部品レーンが A-47、C2-c と S2-hud が A-48） | — |
 
 - **`/// <web-test>` の書式**（E-13）: W0-tools 計画 R1・R3 の `/// <web-test file="<webui からの相対パス。src/… か e2e/…>"><it/test の第 1 引数></web-test>` が正本。describe は含めない（W0-tools D-2）。L0・C2 の計画はこの書式で書く
@@ -318,7 +322,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 
 | ID | 判断 | 棄却した案と理由 |
 |---|---|---|
-| E-1 | `GameUiTheme.tss` を F1 で族別の区画（見出しコメント）に分け、部品・画面レーンは自分の区画に `@import` を 1 行足してよい。`MainGameUiRegistration` も画面登録区画を作り、画面は `Client.Starter/Registration/GameUi/<機能>GameUiRegistration.cs`（レーンの新規ファイル）を 1 行で呼ぶ。`localization.csv` はレーンが追記し、衝突は両方採る。`localization.csv` を足して Web の生成物 `W/shared/i18n/generated/localizationKeys.ts` を再生成したレーンは、その再生成コミットを台帳「## 追従記録」へ `写した`（写し先＝同じコミットの C# と CSV）で 1 行記帳する（W0-merge の `3e946e4bd3` と同じ書き方）。台帳の「## 実測の結論」「## 見た目の例外」（番号は §6.1 の範囲）「## 追従記録」の末尾もレーンが追記してよい。設計書と実行計画はレーンが書かず、integrator が §5 のレビューフローに通して入れる | integrator がレーンの取り込みで全部書く（plan §3.13）: 並列のレーンが毎回 integrator 待ちになり、Editor 2 本の律速が悪化する。共有区画の追記は行の衝突しか起きない |
+| E-1 | `GameUiTheme.tss` を F1 で族別の区画（見出しコメント）に分け、部品・画面レーンは自分の区画に `@import` を 1 行足してよい。`MainGameUiRegistration` も画面登録区画を作り、画面は `Client.Starter/Registration/GameUi/<機能>GameUiRegistration.cs`（レーンの新規ファイル）を 1 行で呼ぶ。`localization.csv` はレーンが追記し、衝突は両方採る。`localization.csv` を足して Web の生成物 `W/shared/i18n/generated/localizationKeys.ts` を再生成したレーンは、その再生成コミットを台帳「## 追従記録」へ `写した`（写し先＝同じコミットの C# と CSV）で 1 行記帳する（W0-merge の `3e946e4bd3` と同じ書き方）。台帳の「## 実測の結論」「## 見た目の例外」（番号は §6.1 の範囲）「## 追従記録」の末尾もレーンが追記してよい。`docs/uitk/disposition.md`（設計書 §4.3）もレーンが写したテストの行を足す。`TutorialAnchor.Mark` を足したレーンは同じ PR で `Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` から自分のアンカーの行を消し、USS の `overflow: hidden` で子を切る容器には `TutorialAnchor.MarkClipContainer` を付ける（S2-tutorial 以降の画面レーン全部。S2-tutorial 計画 D-9・設計書 [A-65]）。設計書と実行計画はレーンが書かず、integrator が §5 のレビューフローに通して入れる | integrator がレーンの取り込みで全部書く（plan §3.13）: 並列のレーンが毎回 integrator 待ちになり、Editor 2 本の律速が悪化する。共有区画の追記は行の衝突しか起きない |
 | E-2 | レーンは pr-create で `base=feature/uitk` の PR を開き、報告ページに比較 HTML と録画を載せ、レーン自身がマージコミットで取り込む | ローカルマージで push: G1 が切替 PR まで走らない（plan §4.7）。integrator がまとめてマージ: 待ちが増える |
 | E-3 | integrator レーンも Codex セッションで回し、波の境の小作業は指揮が行う | integrator を Claude Code に固定: 2026-10-16 の Codex 固定の裁定と食い違う |
 | E-4 | Editor 枠の優先は I-follow → クリティカルパスの頭 → 段階 2・3 の画面 | 段階順: 段階 4 の部品が遅れ、全体が延びる |
@@ -336,6 +340,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | E-16 | DragGuide は S2-tutorial が作り（`TutorialOverlay` の `kind: dragGuide`）、S4-inventory はスロットへのアンカーの印付けだけを持つ | S4-inventory に置く: Web の実装はチュートリアルの overlay にあり、テストも `TutorialOverlay.test.ts`。2 レーンが同じ部品を別々に作る |
 | E-17 | 再接続オーバーレイと辞書エラーは作らない（設計書 [A-38]）。統合計画 §2.6 は最後の束の対象に挙げるが、UITK には Web↔C# の WS も辞書の HTTP 取得も無く、その状態が起きない。S5-crosscut は disposition に理由を書く | 写す: 出る場面の無い画面を作ることになる |
 | E-18 | 評価役 2 体の指摘の担当: 舞台の上段 3 列は C4-e、青グラデのボタンは C4-c、幕とヴィネットは S2-hud、モーダルの倍率の打ち消しとツールチップの退避は C3-b（設計書 A-41〜A-46）。DAG に C4-e → S4-recipe・S4-research、C4-c → S4-research の辺を足す | 新しいレーンを足す: 中身が 1 部品ずつで、既存の部品レーンの所有（Foundation/Stage・Components/Controls・Screens）に収まる。F1 に集める: クリティカルパスの頭が延びる。S4-alpha に 3 列を持たせる: S4-recipe・S4-research が S4-alpha を待ち、W4 の枠 2 が空く |
+| E-19 | 段階 2 の画面レーンが最初の使い手になる小さな基盤の変更は、そのレーンが持つ（W2 で同じファイルを書き換える他レーンが無いことを確かめた）: S2-tutorial が `Components/Text/ShortcutHintLabel`（Prefix の文に印の引数を足さない）・`Components/Text/KeyCap`（色のつまみ `--key-cap-color`）・`Foundation/Anchor`（`Resolve` の Warning を外し `MarkClipContainer` を足す [A-65]）・`Foundation/Motion/Steps/ScaleTweenStep.cs`（新規 [A-63]）を、S2-notification が `Foundation/Motion/Tween/UiEasing` への CSS の ease-in/ease-out の追加と `Foundation/Motion/Steps/TranslateXTweenStep.cs`（新規）を入れる [A-69]（`UiEasing` を書き換えるのは W2 で S2-notification だけ。S2-tutorial は新規ファイルの `ScaleTweenStep` だけ）。S2-notification は C3-a の `GameContentPresentation` を使うので C3-a に依存する（L0 の Task 1〜4 は先行可） | integrator に依頼して待つ: 画面レーンが W2 の途中で止まり、Editor 2 本の律速が悪化する。画面の中に置いて後で昇格: 設計書 §1.2 が置き場（Foundation/Motion・Anchor）を決めており、移動の手戻りが出るだけ。通知のアイコンを画面の中で `ItemImageContainer` から直接引く: Content 層 [A-4] を迂回し、C3-a の取り込み後に書き直しになる |
 
 ---
 
