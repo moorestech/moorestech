@@ -25,6 +25,7 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly IPauseMenuCommands _commands;
         private readonly ISettingsCommands _settingsCommands;
         private readonly GameUiToastFeed _toasts;
+        private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
         private readonly LocalizedLabel _title;
         private readonly VisualElement _pageHost;
@@ -32,13 +33,14 @@ namespace Client.Ui.Screens.PauseMenu
         private PauseMenuPage _shownPage;
         private IPauseMenuPage _currentPage;
 
-        public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, BugReportDraft draft)
+        public PauseMenuView(IReadOnlyReactiveProperty<PauseMenuViewModel> model, IReadOnlyReactiveProperty<SettingsViewModel> settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft)
         {
             _model = model;
             _settings = settings;
             _commands = commands;
             _settingsCommands = settingsCommands;
             _toasts = toasts;
+            _toaster = toaster;
             _draft = draft;
             AddToClassList("pause-menu");
 
@@ -128,13 +130,13 @@ namespace Client.Ui.Screens.PauseMenu
             void BuildSettings()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.Settings);
-                Show(new PauseMenuSettingsPage(_settings.Value, _commands, _settingsCommands, _toasts));
+                Show(new PauseMenuSettingsPage(_settings.Value, _commands, _settingsCommands, _toaster));
             }
 
             void BuildBugReport()
             {
                 _title.SetKey(LocalizationKeys.Ui.PauseMenu.BugReport);
-                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _draft));
+                Show(new PauseMenuBugReportPage(model, _commands, _toasts, _toaster, _draft));
             }
 
             void Show(IPauseMenuPage page)

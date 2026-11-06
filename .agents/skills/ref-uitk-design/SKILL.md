@@ -118,7 +118,7 @@ public sealed class IconButton : VisualElement
 | `S/Client.Ui.State/<機能>/<機能>Model.cs` | `IReadOnlyReactiveProperty<<機能>ViewModel> Current`（源を購読して作る） |
 | `S/Client.Ui.State/<機能>/I<機能>Commands.cs`・`<機能>Commands.cs` | 型付きコマンド。`UiCommandResult` を返し、拒否は理由 enum とログ |
 | `S/Client.Ui/Screens/<機能>/<機能>ScreenPresenter.cs`（HUD は `<名>HudPresenter`） | 起動時に 1 回マウント・ルータで表示を切替・表示中だけ Model を購読。判断を持たない |
-| `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。結果は `UiCommandResultToaster.Report`〔F1〕（今は `GameUiToastFeed.ShowRejected`） |
+| `S/Client.Ui/Screens/<機能>/<機能>View.cs`（HUD は `<名>HudView`） | 部品を組む。`Render(viewModel)` で値を受け、操作は Commands を直接呼ぶ。結果は `UiCommandResultToaster.Report` |
 | `S/Client.Ui/Screens/<機能>/<機能>.uss` | 配置とつまみの上書きだけ |
 
 - 前例は `S/Client.Ui/Screens/PauseMenu/`（`PauseMenuScreenPresenter`・`PauseMenuView`）。今の PauseMenu は `Screens/BugReport`・`Screens/Settings` を別ディレクトリから参照している（Web では pauseMenu 配下）。写すのは View→コマンドの責務配置だけで、別 Screens の参照は写さない

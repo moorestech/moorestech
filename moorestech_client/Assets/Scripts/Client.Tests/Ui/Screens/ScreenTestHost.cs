@@ -23,6 +23,7 @@ namespace Client.Tests.Ui.Screens
         private IDisposable _toastSubscription;
 
         protected GameUiToastFeed Toasts { get; private set; }
+        protected UiCommandResultToaster Toaster { get; private set; }
         protected List<GameUiToast> ShownToasts { get; } = new();
 
         [SetUp]
@@ -34,6 +35,7 @@ namespace Client.Tests.Ui.Screens
             Localize.TrySetChosenLanguage("english");
 
             Toasts = new GameUiToastFeed();
+            Toaster = new UiCommandResultToaster(Toasts);
             ShownToasts.Clear();
             _toastSubscription = Toasts.OnToast.Subscribe(ShownToasts.Add);
         }

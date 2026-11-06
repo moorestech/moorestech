@@ -33,7 +33,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
             var settings = new FakeSettingsModel(FakeSettingsModel.Default());
-            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, _draft));
+            _view = Mount(new PauseMenuView(_model.Current, settings.Current, _commands, new RecordingSettingsCommands(), Toasts, Toaster, _draft));
             _view.SetShown(true);
             simulate.FrameUpdate();
         }

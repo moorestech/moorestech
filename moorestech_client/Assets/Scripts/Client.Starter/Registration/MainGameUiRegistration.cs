@@ -28,6 +28,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<GameUiInputInstaller>();
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
+            builder.Register<UiCommandResultToaster>(Lifetime.Singleton);
             builder.RegisterEntryPoint<ToastLayerPresenter>();
 
             // ポーズ画面。書きかけはページの作り直しを越えて残すので Presenter の外に置く

@@ -25,7 +25,7 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             _commands = new RecordingPauseMenuCommands();
             var initial = new PauseMenuViewModel(PauseMenuPage.BugReport, false, FakePauseMenuModel.Capture(BugReportCaptureStatus.Ready), PlaytestDeliveryAllSent.Instance, PlaytestExportIdle.Instance);
-            _view = Mount(new BugReportFormView(initial, _commands, Toasts, new BugReportDraft()));
+            _view = Mount(new BugReportFormView(initial, _commands, Toasts, Toaster, new BugReportDraft()));
         }
 
         /// <web-test file="src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts">送信できない報告があるときだけ再送ボタンを出し、押すと action を出す</web-test>

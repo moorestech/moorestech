@@ -19,13 +19,13 @@ namespace Client.Ui.Screens.Settings
         private const string SetLocaleCommandName = "localization.setLocale";
 
         private readonly ISettingsCommands _commands;
-        private readonly GameUiToastFeed _toasts;
+        private readonly UiCommandResultToaster _toaster;
         private readonly ModeSwitch<string> _languages;
 
-        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, GameUiToastFeed toasts)
+        public LanguageSelectView(SettingsViewModel initial, ISettingsCommands commands, UiCommandResultToaster toaster)
         {
             _commands = commands;
-            _toasts = toasts;
+            _toaster = toaster;
             AddToClassList("settings-section");
             Add(SettingsSectionParts.Title(LocalizationKeys.Ui.Settings.Language));
 
@@ -40,11 +40,11 @@ namespace Client.Ui.Screens.Settings
             _languages.SetSelected(model.LanguageCode);
         }
 
-        // 拒否はトーストで知らせる。トーストを出すのは結果を受けた View（D-8）
-        // A rejection is surfaced as a toast; the view that received the result shows it (D-8)
+        // 結果のトーストは Toaster が決める（D-8・設計書 A-15）
+        // The toaster decides the result toast (D-8, design A-15)
         private void OnLanguageSelected(string languageCode)
         {
-            if (_commands.SetLanguage(languageCode) is UiCommandRejected rejected) _toasts.ShowRejected(SetLocaleCommandName, rejected);
+            _toaster.Report(SetLocaleCommandName, _commands.SetLanguage(languageCode));
         }
 
         private static IReadOnlyList<ModeSwitchOption<string>> LanguageOptions()

@@ -30,7 +30,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 言語は配信順のoptionsを縦に並べ現在値を選択する()
         {
-            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toasts));
+            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toaster));
             var expected = LanguageCatalog.Languages.Select(language => $"language-select-option-{language.Code}").ToArray();
             CollectionAssert.AreEqual(expected, Find<VisualElement>(view, "language-select").Query<Button>().ToList().Select(button => button.name));
             Assert.IsTrue(Find<VisualElement>(view, "language-select").ClassListContains("mode-switch--vertical"));
@@ -41,7 +41,7 @@ namespace Client.Tests.Ui.Screens.Settings
         [Test]
         public void 言語を選ぶとSetLanguageを出し拒否ならエラーのトーストを出す()
         {
-            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toasts));
+            var view = Mount(new LanguageSelectView(FakeSettingsModel.Default(), _commands, Toaster));
             simulate.Click(Find<Button>(view, "language-select-option-japanese"));
             Assert.AreEqual("japanese", _commands.Issued.Single().LanguageCode);
             Assert.IsEmpty(ShownToasts);

@@ -29,7 +29,7 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             _commands = new RecordingPauseMenuCommands();
             _draft = new BugReportDraft();
-            _view = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), _commands, Toasts, _draft));
+            _view = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), _commands, Toasts, Toaster, _draft));
         }
 
         /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">記述欄と送信ボタンを描く</web-test>

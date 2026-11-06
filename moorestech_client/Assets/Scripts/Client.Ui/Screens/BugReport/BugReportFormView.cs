@@ -26,6 +26,7 @@ namespace Client.Ui.Screens.BugReport
 
         private readonly IPauseMenuCommands _commands;
         private readonly GameUiToastFeed _toasts;
+        private readonly UiCommandResultToaster _toaster;
         private readonly BugReportDraft _draft;
         private readonly ModeSwitch<PlaytestReportKind> _kindSwitch;
         private readonly GameTextField _description;
@@ -37,10 +38,11 @@ namespace Client.Ui.Screens.BugReport
         private BugReportCaptureStatus _capture;
         private bool _sending;
 
-        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, BugReportDraft draft)
+        public BugReportFormView(PauseMenuViewModel initial, IPauseMenuCommands commands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft)
         {
             _commands = commands;
             _toasts = toasts;
+            _toaster = toaster;
             _draft = draft;
             AddToClassList("bug-report");
 
@@ -123,11 +125,11 @@ namespace Client.Ui.Screens.BugReport
             var outcome = await _commands.SubmitBugReport(_draft.Description.Trim(), kind);
             _sending = false;
 
-            // 拒否は書きかけを残す。トーストを出すのは結果を受けた View（D-8）
-            // A rejection keeps the draft; the view that received the result shows the toast (D-8)
-            if (outcome is UiCommandRejected rejected)
+            // 拒否は書きかけを残す。拒否のトーストは Toaster が決める（D-8・設計書 A-15）
+            // A rejection keeps the draft; the toaster decides the rejection toast (D-8, design A-15)
+            _toaster.Report(SubmitCommandName, outcome);
+            if (outcome is UiCommandRejected)
             {
-                _toasts.ShowRejected(SubmitCommandName, rejected);
                 Refresh();
                 return;
             }

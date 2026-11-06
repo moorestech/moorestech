@@ -15,10 +15,10 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly PauseMenuSubPageView _subPage;
         private readonly BugReportFormView _form;
 
-        public PauseMenuBugReportPage(PauseMenuViewModel model, IPauseMenuCommands commands, GameUiToastFeed toasts, BugReportDraft draft)
+        public PauseMenuBugReportPage(PauseMenuViewModel model, IPauseMenuCommands commands, GameUiToastFeed toasts, UiCommandResultToaster toaster, BugReportDraft draft)
         {
             _subPage = new PauseMenuSubPageView(commands);
-            _form = new BugReportFormView(model, commands, toasts, draft);
+            _form = new BugReportFormView(model, commands, toasts, toaster, draft);
             _subPage.AddSection(_form);
         }
 

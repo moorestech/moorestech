@@ -17,10 +17,10 @@ namespace Client.Ui.Screens.PauseMenu
         private readonly SprintModeSelectView _sprint;
         private readonly GraphicsQualitySettingsView _graphics;
 
-        public PauseMenuSettingsPage(SettingsViewModel settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, GameUiToastFeed toasts)
+        public PauseMenuSettingsPage(SettingsViewModel settings, IPauseMenuCommands commands, ISettingsCommands settingsCommands, UiCommandResultToaster toaster)
         {
             _subPage = new PauseMenuSubPageView(commands);
-            _language = new LanguageSelectView(settings, settingsCommands, toasts);
+            _language = new LanguageSelectView(settings, settingsCommands, toaster);
             _sprint = new SprintModeSelectView(settings, settingsCommands);
             _graphics = new GraphicsQualitySettingsView(settings, settingsCommands);
             _subPage.AddSection(_language);
