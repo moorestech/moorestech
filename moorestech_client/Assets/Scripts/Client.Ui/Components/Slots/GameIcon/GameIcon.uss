@@ -1,0 +1,32 @@
+/* web: moorestech_web/webui/src/shared/ui/GameIcon/style.module.css の .fallback・.fallbackText と <img> の object-fit: contain を写す。大きさと余白は置く側（SlotContent 等）が決める */
+/* web: copies .fallback and .fallbackText in moorestech_web/webui/src/shared/ui/GameIcon/style.module.css and the <img> object-fit: contain; the owner (SlotContent etc.) sets size and padding */
+.game-icon {
+    flex-direction: column;
+}
+
+.game-icon__image {
+    display: none;
+    flex-grow: 1;
+    -unity-background-scale-mode: scale-to-fit; /* Task 1 Step 7 で USS の import 警告が出たら Unity 6 の後継 background-size: contain に替える */
+}
+
+.game-icon--image > .game-icon__image {
+    display: flex;
+}
+
+.game-icon__fallback {
+    display: none;
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    color: var(--mantine-color-dark-2);
+    -unity-text-align: middle-center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.game-icon--fallback > .game-icon__fallback {
+    display: flex;
+}

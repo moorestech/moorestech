@@ -53,4 +53,28 @@
     --scrollarea-scrollbar-size: 12px; /* web: Mantine ScrollArea の scrollbarSize の既定。画面は祖先で上書きする */
     --game-scroll-view-thumb-hover: rgb(133, 135, 141); /* web: rgba(255, 255, 255, 0.5) を溝（--gauge-track）とポーズの面へ重ねて前計算 */
     --shortcut-hint-label-gap: 0px; /* web: 置く側の flex の gap。既定 0（KeyControlHint が --tutorial-key-hint-kbd-gap に上書き） */
+
+    /* C3-a: スロット族（Slots）。つまみの既定は Web の var() のフォールバック、色は Web の CSS module の直書きを前計算した値（設計書 A-52） */
+    /* C3-a: slot family (Slots); knob defaults are the Web var() fallbacks, colors precompute literals in the Web CSS modules (design A-52) */
+    --slot-frame-face: rgba(50, 52, 67, 0.7226); /* web: SlotFrame .slot の background rgb(50 52 67 / 50%) α補正（暗い色の式 1-(1-α)^1.85。I-fix1 R-3） */
+    --slot-frame-catalog-face: rgb(124, 126, 136); /* web: .slot[data-catalog="true"] の background-color */
+    --slot-frame-filled-face: rgb(254, 254, 254); /* web: .slot[data-filled="true"] の background-color */
+    --slot-frame-selected-trim-face: rgb(50, 52, 67); /* web: .slot[data-selected][data-filled] の linear-gradient の帯の色 */
+    --face-inset-color: rgb(20, 22, 29); /* web: var(--face-inset-color, rgb(20 22 29)) */
+    --filled-face-inset: 0px; /* web: var(--filled-face-inset, 0px) */
+    --bevel-inset: outset; /* web: var(--bevel-inset, )。Web の空文字（外側へ成長）を UITK はキーワード outset で表す。ホットバーは inset（設計書 A-42） */
+    --sel-c1: rgb(5, 197, 245); /* web: var(--sel-c1, rgb(5 197 245)) */
+    --sel-c2: var(--select-cyan); /* web: var(--sel-c2, var(--select-cyan)) */
+    --sel-c3: rgb(28, 219, 255); /* web: var(--sel-c3, rgb(28 219 255)) */
+    --selected-face-ring-inset: 0px; /* web: var(--selected-face-ring-inset, 0px) */
+    --selected-face-bottom-trim: 0px; /* web: var(--selected-face-bottom-trim, 0px) */
+    --icon-pad: 5px; /* web: slotContent.module.css .icon の var(--icon-pad, 5px) */
+    --count-bottom: -3px; /* web: .count の var(--count-bottom, -3px) */
+    --count-font-size: 19px; /* web: .count の var(--count-font-size, 19px) */
+    --count-letter-spacing: 0px; /* web: .count の var(--count-letter-spacing, normal)。UITK の字間は字の大きさ/100 × 値なので em は ×100 の px で上書きする */
+    --shortage-count-right: -2px; /* web: ItemSlot .shortageCount の var(--shortage-count-right, -2px) */
+    --shortage-count-bottom: -4px; /* web: var(--shortage-count-bottom, -4px) */
+    --shortage-count-font-size: 11px; /* web: var(--shortage-count-font-size, 11px) */
+    --slot-grid-gap: 6.8px; /* web: SlotGrid .grid の var(--slot-grid-gap, 0.425rem) */
+    --slot-grid-row-gap: var(--slot-grid-gap); /* web: var(--slot-grid-row-gap, var(--slot-grid-gap, 0.425rem))。祖先で gap だけ上書きしたときの追従は Task 5 Step 3 で実測 */
 }
