@@ -19,14 +19,14 @@
 |---|---|---|
 | R-1 | 操作モード HUD の Model: `UIStateControl` の状態・`PlaceSystemStateController` の対象・`PlacementHeightOffset` の高さ・言語の変化から `ModeHudViewModel`（判別 union: `ModeHudHidden`・`ModeHudPlacement`（対象の表示名・高さ。未選択の名前は `ModeHudText.None`）・`ModeHudDelete`（高さ））を組む。表示名は `IPlacementTarget.DisplayName` | `ModeHudViewModelFactoryTest`・`ModeHudPlacementNameTest` が緑（Web `PlacementModeHud.localization.test.ts` 6 件） |
 | R-2 | 配置モード HUD: 実画面の右上（`--operation-hud-top` 24・`--operation-hud-right` 24）に幅 `--operation-hud-width` 288 の `GamePanel(craft)`、中に `HudSectionHeading`（題「Placement Mode」・FadeRule）と詳細 2 行（`Selected: {name}`・`Height: {height}`）。置けない理由の警告の行は持たない（D-7）。チュートリアルの錨 `placement.hud` | `ModeHudViewTest`・`ModeHudWideViewportTest` が緑（Web `operation-mode-hud.spec.ts` 1・4 件目、commonHud 1 件目） |
-| R-3 | HUD の文字: 題 12px・`--text-muted`・字間は Web の 1px を換算した 8.333px・下の罫線まで 5px・罫線から一覧まで 8px。詳細は 17px・行の高さ 25px・`--text-high-contrast`・項目間 5px | `ModeHudViewTest` の寸法・色の主張が緑。字間の換算値は `ModeHud.uss` の画面ルートの 1 か所だけ（I-fix1 の後は var() に戻す） |
+| R-3 | HUD の文字: 題 12px・`--text-muted`・字間は `var(--operation-hud-letter-spacing)`（I-fix1 で UITK の単位へ換算済みの 8.3333px）・下の罫線まで 5px・罫線から一覧まで 8px。詳細は 17px・行の高さ 25px・`--text-high-contrast`・項目間 5px | `ModeHudViewTest` の寸法・色の主張が緑。字間はトークンをそのまま使い、換算値を直書きしない（D-9） |
 | R-4 | 削除モード: 実画面の上端と下端に高さ `--delete-mode-warning-band-height` 20 の帯 2 本。黄 `--delete-mode-warning-yellow`・黒 `--delete-mode-warning-black` の 117deg・32px 刻みの斜線を Painter2D で描く。下の帯に錨 `delete.hud`。右上に削除箱の高さ（`Height: {height}`）だけを出す | `DeleteModeWarningBandsTest`・`DeleteModeWarningStripeGeometryTest`・`ModeHudWideViewportTest` が緑（Web `operation-mode-hud.spec.ts` 5・6 件目） |
 | R-5 | 操作モード HUD と CursorTooltip は入力を奪わない（Web の `pointer-events: none`）。HUD の下の要素は全部 `PickingMode.Ignore` | `ModeHudViewTest` の「どの要素も拾わない」・`CursorTooltipViewTest` の同主張が緑 |
 | R-6 | CursorTooltip の Model: `MouseCursorTooltipState.OnPresentationChanged` を `CursorTooltipViewModel`（`UiText` の行の列。空で非表示）にする | `CursorTooltipModelTest` が緑 |
 | R-7 | CursorTooltip の見た目: `TooltipFace(cursor-tooltip, Cursor)`、行の testid `cursor-tooltip-line`、文字 18px・余白 6/10・最大幅 320・`--tooltip-face`・角丸 4px。`UiLayer.Tooltip`・`UiFamily.Viewport` に置き、舞台の倍率で拡大する | `CursorTooltipViewTest` が緑（Web `CursorTooltip.test.ts` 1・2・4 件目、commonHud 3・4 件目） |
 | R-8 | CursorTooltip の位置: Web `tooltipPosition.ts` と同じく、実画面 px で `x = max(12, min(px+12, vw-w-12))`（y も同じ）。12 は `CursorTooltipPlacement.Offset` の 1 か所で持ち、Web の `OFFSET` と同値であることを L1 が Web のファイルから確かめる。カーソルロック中は画面中央を指したものとして置く。非表示中のポインタ移動も覚え、表示した最初のフレームからその位置に出る。言語が変わって幅が変われば置き直す | `CursorTooltipPlacementTest`・`CursorTooltipOffsetWebParityTest`・`CursorTooltipPositionViewTest` が緑（Web `tooltipPosition.test.ts`・`CursorTooltip.test.ts` 6・7 件目、commonHud 5 件目） |
-| R-9 | 写さない Web テスト（`CursorTooltip.test.ts` 3 件目・`modeHudDesign.test.ts` 5 件目）は `docs/uitk/disposition.md` に `捨てる` で理由を書く | `node tools/uitk/test-name-parity.mjs --bundle 2` の出力で、このレーンの 6 ファイルの未対応が 0 |
-| R-10 | 並べ比べ: 参照キャプチャ `2-placement`・`2-placement-connect-tool`・`2-delete-bar`・`2-tooltip`・`2-tooltip-multiline` と UITK を 1280×720 と 2560×1080 で撮って並べ、差の表を `done.md` に書く | 5 状態 × 2 解像度の組が報告ページにあり（`2-placement-unavailable` は差の表に `捨てる`。D-7）、差の表に「同じ／直した／LX-n／I-fix1 待ち」のどれかが全行にある |
+| R-9 | 写さない Web テスト（`CursorTooltip.test.ts` 3 件目・`modeHudDesign.test.ts` 5 件目）は `docs/uitk/disposition.md` に `捨てる` で理由を書く | `node tools/uitk/test-name-parity.mjs --bundle 2` の出力で、このレーンの 7 ファイル（`alwaysOnHudWheel.test.ts` の持ち分 3 行を含む）の未対応が 0 |
+| R-10 | 並べ比べ: 参照キャプチャ `2-placement`・`2-placement-connect-tool`・`2-delete-bar`・`2-tooltip`・`2-tooltip-multiline` と UITK を 1280×720 と 2560×1080 で撮って並べ、差の表を `done.md` に書く | 5 状態 × 2 解像度の組が報告ページにあり（`2-placement-unavailable` は差の表に `捨てる`。D-7）、差の表に「同じ／直した／LX-n／捨てる」のどれかが全行にある |
 | R-11 | 登録: `MainGameUiRegistration` の画面登録区画に 2 行（`ModeHudGameUiRegistration.Register(builder);`・`CursorTooltipGameUiRegistration.Register(builder);`）、`GameUiTheme.tss` の `Screens` 区画に `@import` 2 行。Model は自分の GameUi 登録ファイルで登録する | 全体スイッチ UITK で起動して `uloop get-logs --log-type Error` が 0 件。L2（`UiThemeImportBundleTest`・`UiStyleConventionTest`・`UiLayerDependencyDirectionTest`・`LookExceptionLedgerTest`）が緑 |
 | R-12 | 録画 `misc/cursor-tooltip-follows-crosshair` を全体スイッチ UITK で通す（GameUi の系ではロック中に隅へ注入しても中央近くに居続けることを主張する分岐を足す）。録画前に全体スイッチが GameUi であることを確かめる | `result.json` が `Success: true`、録画 mp4 があり、`done.md` に UITK で回した証拠（`UiInputExclusivity.ActiveUiSystem` の値）がある |
 | R-13 | 終わりは moores-code-review の全ブランチレビュー → pr-create（base `feature/uitk`・報告ページ）→ `origin/feature/uitk` の取り込み・compile・テスト → G1 緑・未記帳 0 → `gh pr merge --merge` → bd を閉じる | `git log origin/feature/uitk` にこのレーンのマージコミット。`done.md` の 1 行目が「状態: 完了」 |
@@ -37,7 +37,6 @@
 - 常駐 HUD（`Screens/Shell/` の幕・ヴィネット、Crosshair・KeyHintHud・ProgressBar・TrainRidingHud・CurrentChallengeHud）は作らない（S2-hud）。KeyHintHud が使う `WheelOwnedByTool` はこの Model に入れない
 - `HoverTooltip`（`HoverTooltipHost`）は作らない（C3-b）。チュートリアルの錨の描画（`Screens/Tutorial/**`）は作らない（S2-tutorial。このレーンは `TutorialAnchor.Mark` で錨の名前を付けるだけ）
 - Web 側（`moorestech_web/`）と Web の橋（`Client.WebUiHost/**`）は一切変えない。置けない理由（`unavailableReason`）は写さない（C# に書き手が無く、Web の橋も常に空文字。D-7）
-- 暗い半透明トークンの α（`--tooltip-face`・`--game-panel-craft-face`）は直さない（I-fix1）。差が出たら差の表に「I-fix1 待ち」と書く
 - L3（EditModeInPlayingTest）は持たない（段の締め S2-ladder。D-16）
 
 ## Global Constraints
@@ -136,7 +135,7 @@ public sealed class TooltipOwner { }
 - **層の向き**（設計書 §1.1）: `Client.Ui.State/**` は Client.Game・Client.Input・Client.Localization を参照してよい（asmdef 既存）。`Client.Ui/Screens/**` は `Client.Ui.State.<機能>`・Components・Foundation・Client.Input を参照してよい。Screens から `Client.Game` の型は ViewModel 越しにだけ受ける（例外: `AnchorIds`。前例 HudSectionHeadingGalleryEntry と同じく文字列定数だけを使う）
 - **AGENTS.md の規約**: 1 ファイル 200 行未満・1 ディレクトリ 10 ファイルまで（.meta は数えない）・`partial`/`Func<>` 禁止・イベントは UniRx・try-catch 禁止・デフォルト引数禁止・単純な getter/setter プロパティ禁止（`{ get; private set; }` と式本体の読み取り専用は可）・主要処理に「// 日本語 → // English」の 2 行コメント（各 1 行）・メソッド内のローカル関数は `#region Internal`・初期化は `Initialize`・fail-closed の経路はログ・`.meta` は手で作らない・Prefab/シーンを手で書き換えない・`Update()` で毎フレームの同値判定をしない（変化は購読で受ける）
 - **USS の規約**（ref-uitk-design・設計書 §3.2）: 画面 USS はルートのクラス（`.mode-hud`・`.cursor-tooltip`）で始まり、画面のクラスは `mode-hud__*`・`cursor-tooltip__*`。部品のクラスを書かない（部品の見た目はつまみで変える）。色は `var()` だけ、`z-index`・構造擬似クラス・合成の太字を使わない。USS の先頭に `/* web: <Web の CSS> */` を日英で書く。C# が値を要るときは画面のクラスで `--<名>: var(--token)` と受け直して `UssCustomStyleReader` で読む（`:root` の変数は customStyle へ継承されない。台帳「## 実測の結論」customStyle）
-- **字間の換算**: UITK の `letter-spacing` は px 表記でも「字の大きさ/100 × 値」で効く。Web の字間は換算値（12px で 1px → 8.333px、17px で 0.055em＝0.935px → 5.5px）を画面ルートの 1 か所に書き、根拠を USS のコメントに書く。生成トークン（`--operation-hud-letter-spacing: 1px`・`--key-hint-letter-spacing`）は換算漏れ（I-fix1 が直し中）なので、そのまま当てて Web と合うとは書かない。I-fix1 の後は換算値の行を `var(--operation-hud-letter-spacing)` に戻す（二重補正を避けるため上書きはこの 1 か所に限る）
+- **字間**: 字間トークンは I-fix1（PR #1606・設計書 A-70〜A-74）で UITK の単位（字の大きさの 1/100）へ生成器が換算済み（`--operation-hud-letter-spacing: 8.3333px`・`--key-hint-letter-spacing: 5.5px`）。画面は `var(--operation-hud-letter-spacing)` と `.key-hint-text` をそのまま使い、換算値を直書きしない（二重補正になる）
 - **テストの置き場と名前**: `S/Client.Tests/Ui/Screens/{ModeHud,CursorTooltip}/`・`S/Client.Tests/Ui/State/{ModeHud,CursorTooltip}/`、namespace はディレクトリに合わせる。テスト名は日本語の挙動文。Web から写したものは `[Test]` の直前に `/// <web-test file="<W/ からの相対パス>">it/test の第 1 引数</web-test>`（describe は含めない。テンプレート文字列も展開しない。実行計画 E-13）。同じ Web テストを複数の NUnit が写すときは各 NUnit に同じ行を付けてよい
 - **コマンド**: コンパイル `uloop compile --project-path ./moorestech_client`（期待: ErrorCount 0）。テスト `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "<正規表現>"`。このレーンのテストフィルタ（以下 `$FILTER`）は `^Client\.Tests\.Ui\.(Screens\.(ModeHud|CursorTooltip)|State\.(ModeHud|CursorTooltip)|Conventions|Theme|Layers|Anchor|State\.PlacementTarget)\.`。ドメインリロード中のエラーは 45 秒待って再試行
 - **共有ファイルの所有**（実行計画 E-1）: このレーンが書く共有ファイルは `GameUiTheme.tss` の `Screens` 区画の `@import` 2 行・`MainGameUiRegistration.cs` の画面登録区画の 2 行・`docs/uitk/TODO.md` の「## 実測の結論」「## 見た目の例外」「## 追従記録」の末尾・`docs/uitk/disposition.md` の「## 処遇」の末尾・`S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` の `AnchorIds.PlacementHud`・`DeleteHud` の 2 行の削除（在るときだけ）だけ（disposition.md への追記は設計書 §4.3「テスト名と由来の対応は docs/uitk/disposition.md に、レーンが写したときに書く」による）。`localization.csv` は足さない（使う文言は全部既存。Task 1 Step 2 で確かめる）。シナリオ `SKILL/scenarios/misc/cursor-tooltip-follows-crosshair.cs` はこのレーンが持つ（完了条件の録画）
@@ -215,6 +214,7 @@ public sealed class TooltipOwner { }
 | `S/Client.Tests/Ui/Screens/ModeHud/DeleteModeWarningStripeGeometryTest.cs` | 斜線の幾何 | 新規 |
 | `S/Client.Tests/Ui/Screens/ModeHud/ModeHudDesignTest.cs` | 構成・トークンの主張（S5） | 新規 |
 | `S/Client.Tests/Ui/Screens/ModeHud/ContrastRatio.cs` | WCAG のコントラスト比（テスト補助） | 新規 |
+| `S/Client.Tests/Ui/Screens/ModeHud/ModeHudPickingTest.cs` | 配置モード・削除モード警告・カーソルツールチップが入力を奪わない（Web `alwaysOnHudWheel.test.ts` の 3 行） | 新規 |
 | `S/Client.Tests/Ui/Screens/CursorTooltip/CursorTooltipViewModelSamples.cs`・`FakeCursorTooltipScreen.cs` | 行の ViewModel と偽の実画面 | 新規 |
 | `S/Client.Tests/Ui/Screens/CursorTooltip/CursorTooltipViewTest.cs` | 文言・行・面・未知のキーの印（C7 1・2・4・5、commonHud 3・4） | 新規 |
 | `S/Client.Tests/Ui/Screens/CursorTooltip/CursorTooltipPositionViewTest.cs` | 位置・ロック・言語変更（C7 6・7、commonHud 5） | 新規 |
@@ -224,7 +224,7 @@ public sealed class TooltipOwner { }
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.PlacementHud`・`DeleteHud` の 2 行を消す（S2-tutorial が先にマージされた場合） | 変更（共有区画・在れば） |
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（ポインタの届き方・角度の読み方）、要れば「## 見た目の例外」末尾（LX-32〜34） | 変更（共有区画） |
 
-ディレクトリのファイル数（.cs と .uss）: `Screens/ModeHud/` 3・`Parts/` 8・`Screens/CursorTooltip/` 6・`State/ModeHud/` 7・`State/CursorTooltip/` 3・`Tests/.../Screens/ModeHud/` 7・`Screens/CursorTooltip/` 4・`State/ModeHud/` 3・`State/CursorTooltip/` 3。`Registration/GameUi/` は 2→4。すべて 10 以下。
+ディレクトリのファイル数（.cs と .uss）: `Screens/ModeHud/` 3・`Parts/` 8・`Screens/CursorTooltip/` 6・`State/ModeHud/` 7・`State/CursorTooltip/` 3・`Tests/.../Screens/ModeHud/` 8・`Screens/CursorTooltip/` 4・`State/ModeHud/` 3・`State/CursorTooltip/` 3。`Registration/GameUi/` は 2→4。すべて 10 以下。
 
 **写すテストの件数（Web の実物を grep して数え直した。tests-ladder と同じ）**
 
@@ -235,9 +235,10 @@ public sealed class TooltipOwner { }
 | `src/features/modeHud/modeHudDesign.test.ts`（S） | 5 | 4 | 1（`捨てる`。5 件目〈警告色の共有〉。D-7・D-12） | `ModeHudDesignTest` |
 | `src/shared/tooltip/tooltipPosition.test.ts`（L） | 1 | 1 | 0 | `CursorTooltipPlacementTest` |
 | `src/shared/tooltip/CursorTooltip.test.ts`（C） | 7 | 6 | 1（`捨てる`。3 件目〈content key〉） | `CursorTooltipViewTest`・`CursorTooltipPositionViewTest` |
+| `src/features/commonHud/alwaysOnHudWheel.test.ts` | 1（`it.each` 9 行） | 3 行（配置モード・削除モード警告・カーソルツールチップ） | 0（他の 6 行は S2-hud の `AlwaysOnHudPickingTest`） | `ModeHudPickingTest` |
 | `e2e/tests/system/commonHud.spec.ts` | 6 | 4（1・3・4・5 件目。3 件目は tooltip の部分だけで S2-hud と分担） | 0（2・6 件目と 3 件目の採掘・クロスヘアは S2-hud） | `ModeHudViewTest`・`CursorTooltipViewTest`・`CursorTooltipPositionViewTest` |
 
-合計: modeHud 17 件（P6・I6・S5）のうち 16 件を写し 1 件は `捨てる`（S 5 件目。P6 1 件目は警告の行の主張だけを写さない。D-7）。`shared/tooltip/*` 8 件のうち 7 件を写し 1 件は `捨てる`。commonHud は 4 件に `<web-test>` を付ける。
+合計: modeHud 17 件（P6・I6・S5）のうち 16 件を写し 1 件は `捨てる`（S 5 件目。P6 1 件目は警告の行の主張だけを写さない。D-7）。`shared/tooltip/*` 8 件のうち 7 件を写し 1 件は `捨てる`。commonHud は 4 件に `<web-test>` を付ける。`alwaysOnHudWheel.test.ts` の「%s は入力を奪わない」は 3 行分（S2-hud 計画 52 行目・W2a 設計書 A-58 の割り当て）に同名の `<web-test>` を付ける。一部だけ写すテストの捨てた部分は D-32。
 
 ---
 ## Tasks
@@ -262,10 +263,9 @@ grep -n "public HudSectionHeading(" moorestech_client/Assets/Scripts/Client.Ui/C
 grep -rn "public TooltipFace(\|public void SetLines\|enum TooltipFaceLook" moorestech_client/Assets/Scripts/Client.Ui/Components/Text/TooltipFace/
 grep -n "PlacementHud\|DeleteHud" moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial/UIHighlight/AnchorIds.cs
 grep -n "section: Screens" "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
-git log origin/feature/uitk --oneline --grep "字間トークンを UITK の単位" | head -3
-grep -n "^ *--operation-hud-letter-spacing:\|^ *--key-hint-letter-spacing:" moorestech_client/Assets/Scripts/Client.Ui/Foundation/Theme/Tokens.uss
+git merge-base --is-ancestor e26010aa0c origin/feature/uitk && echo i-fix1-in
 ```
-Expected: worktree の絶対パス、`GamePanel(string testid, GamePanelFrame frame)`・`HudSectionHeading(string labelTestid, LocalizationKey label)`・`TooltipFace(string testid, TooltipFaceLook look)`・`SetLines(IReadOnlyList<UiText> lines)`・`PlacementHud = "placement.hud"`・`DeleteHud = "delete.hud"`・`/* == section: Screens == */` が出る。I-fix1 の確かめ（最後の 2 行）: コミットが出て `Tokens.uss` が `--operation-hud-letter-spacing: 8.3333px`・`--key-hint-letter-spacing: 5.5px` なら「I-fix1 入り」、コミットが無く `1px`・`1.375px` なら「I-fix1 未」。どちらかを `done.md` の「## 証拠」に書き、Task 6 の字間の分岐で使う。名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。ファイルが無ければ「C2-a/C2-c 未取り込み」として止め、指揮へ報告する
+Expected: worktree の絶対パス、`GamePanel(string testid, GamePanelFrame frame)`・`HudSectionHeading(string labelTestid, LocalizationKey label)`・`TooltipFace(string testid, TooltipFaceLook look)`・`SetLines(IReadOnlyList<UiText> lines)`・`PlacementHud = "placement.hud"`・`DeleteHud = "delete.hud"`・`/* == section: Screens == */` が出る。最後の行は `i-fix1-in`（I-fix1 のマージコミット e26010aa0c が土台にある。字間トークンはこれを前提に `var()` で使う）。出なければ土台が古いので止めて指揮へ報告する。名前が違えば以後の計画を実物の名前で読み替え、`done.md` の「未確認」に「API 名の読み替え: <旧> → <実物>」と書く。ファイルが無ければ「C2-a/C2-c 未取り込み」として止め、指揮へ報告する
 
 - [ ] **Step 2: 使う文言が辞書と生成キーにあることを確かめる**
 
@@ -1995,7 +1995,6 @@ namespace Client.Ui.Screens.ModeHud.Parts
             _height = new LocalizedLabel();
             _height.AddToClassList(UiTypographyClass.KeyHintText);
             _height.AddToClassList("mode-hud__detail");
-            _height.AddToClassList("mode-hud__delete-height");
             Add(_height);
         }
 
@@ -2144,9 +2143,9 @@ namespace Client.Ui.Screens.ModeHud
     --hud-label-font-size: var(--operation-hud-label-font-size);
     --hud-label-rule-gap: var(--operation-hud-label-rule-gap);
     --hud-rule-list-gap: var(--operation-hud-rule-list-gap);
-    /* 字間: Web の --operation-hud-letter-spacing 1px（12px の字）を UITK の「字の大きさ/100 × 値」へ換算した値。I-fix1 の後は var(--operation-hud-letter-spacing) に戻す */
-    /* Letter spacing: Web --operation-hud-letter-spacing 1px at 12px converted to UITK's "font size/100 x value"; return to var(--operation-hud-letter-spacing) after I-fix1 */
-    --hud-label-letter-spacing: 8.333px;
+    /* 字間: I-fix1 で UITK の単位へ換算済みのトークンをそのまま受ける */
+    /* Letter spacing: take the token already converted to UITK units by I-fix1 */
+    --hud-label-letter-spacing: var(--operation-hud-letter-spacing);
 }
 
 .mode-hud__corner {
@@ -2169,12 +2168,6 @@ namespace Client.Ui.Screens.ModeHud
 
 .mode-hud__detail--following {
     margin-top: var(--operation-hud-detail-gap);
-}
-
-/* 削除箱の高さ: keyHintText の字間 0.055em を 17px の字で換算（0.935px → 5.5）。I-fix1 の後は keyHintText のトークンに任せて消す */
-/* Delete-box height: keyHintText 0.055em at 17px converted (0.935px -> 5.5); drop after I-fix1 and let the keyHintText token apply */
-.mode-hud__delete-height {
-    letter-spacing: 5.5px;
 }
 
 .mode-hud__warning {
@@ -2206,8 +2199,6 @@ namespace Client.Ui.Screens.ModeHud
     bottom: 0;
 }
 ```
-**字間の分岐（Task 1 Step 1 の I-fix1 の確かめ）**: 「I-fix1 入り」なら、`.mode-hud` の字間の 2 行（コメント）と `--hud-label-letter-spacing: 8.333px;` を `--hud-label-letter-spacing: var(--operation-hud-letter-spacing);` の 1 行（根拠のコメントは「I-fix1 で UITK の単位に換算済みのトークン」）にし、`.mode-hud__delete-height` の規則を丸ごと消す（`.key-hint-text` が `--key-hint-letter-spacing` 5.5px を当てる）。L1 の `8.333` の期待はどちらの形でも同じ値なので変えない。「I-fix1 未」なら上の直書きのまま進め、帰結を `done.md` の「integrator への依頼」に書く: 「直書きの字間（`ModeHud.uss` の 8.333px・5.5px）は I-fix1 のマージ後に二重補正になる。I-fix1 がこのレーンより先に入ればこのレーンが Task 13 Step 2 で var() に戻す。後に入るなら I-fix1 側で戻してほしい」（D-9）
-
 （`.mode-hud__detail` の font-size・行の高さは `.key-hint-text`〈Foundation/Theme の区画〉と同じ詳細度 1 クラスで、`Screens` 区画が後に読まれるので画面が勝つ〈Web の `:where()` の詳細度 0 と同じ結果〉。`overflow-wrap: anywhere` は UITK に無く `white-space: normal` の語折りになる。288px に収まらない長い 1 語〈ブループリント名〉だけ差が出うるので、Task 10 の比較で見て差があれば `LX-32` を記帳する）
 
 `ModeHudPresenter.cs`:
@@ -2285,7 +2276,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 **Files:**
 - Create: `S/Client.Ui/Screens/CursorTooltip/CursorTooltipView.cs`・`CursorTooltip.uss`・`CursorPointerTracker.cs`・`ICursorTooltipScreen.cs`・`UnityCursorTooltipScreen.cs`・`CursorTooltipPresenter.cs`
 - Modify: `moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss`（`Screens` 区画に 1 行）
-- Test: `S/Client.Tests/Ui/Screens/CursorTooltip/CursorTooltipViewModelSamples.cs`・`FakeCursorTooltipScreen.cs`・`CursorTooltipViewTest.cs`・`CursorTooltipPositionViewTest.cs`
+- Test: `S/Client.Tests/Ui/Screens/CursorTooltip/CursorTooltipViewModelSamples.cs`・`FakeCursorTooltipScreen.cs`・`CursorTooltipViewTest.cs`・`CursorTooltipPositionViewTest.cs`、`S/Client.Tests/Ui/Screens/ModeHud/ModeHudPickingTest.cs`
 
 **Interfaces:**
 - Consumes: Task 2 の `CursorTooltipPlacement.PlaceInPanel`、Task 4 の `CursorTooltipViewModel`、`TooltipFace(string, TooltipFaceLook)`・`SetLines`、`GameUiRoot.GetLayer(UiLayer.Tooltip, UiFamily.Viewport)`、`Client.Input.HybridInput.GetMousePosition()`・`Client.Input.ScreenCenter.GetPosition()`（画面中央の唯一の定義）、`RuntimePanelUtils.ScreenToPanel`、`IPanel.scaledPixelsPerPoint`（設計書 [A-41] の倍率の読み口）
@@ -2416,6 +2407,7 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         public void 引数を辞書の文へ差し込む()
         {
             _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { new LocalizationTextParam("count", "3") })));
+            simulate.FrameUpdate();
             Assert.AreEqual(TooltipFaceTest.LineHeightTag + "Wire x3", Find<Label>(_view, "cursor-tooltip-line").text);
         }
 
@@ -2425,9 +2417,18 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         {
             // UITK の補間は解くたびに出す（Web は 1 回だけ）。差は判断記録 D-13
             // UITK interpolation logs on every resolve (Web logs once); the difference is decision D-13
+            // 引数 0 件の UiText は Localize.Get だけを通り補間に入らない（UiText.cs:84）。別名の引数を 1 つ持たせて補間に入れ、count の欠けを出す
+            // A UiText with zero params skips interpolation (UiText.cs:84); carry one unrelated param so interpolation runs and reports the missing count
             LogAssert.Expect(LogType.Error, new Regex(@"no value for placeholder \{count\}"));
-            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost)));
+            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { new LocalizationTextParam("unrelated", "1") })));
+            simulate.FrameUpdate();
             Assert.AreEqual(TooltipFaceTest.LineHeightTag + "Wire x{count}", Find<Label>(_view, "cursor-tooltip-line").text);
+
+            // count=0 は欠けではなく 0 として差し込む（Web の後半）
+            // count=0 is not missing and is interpolated as 0 (second half of the Web test)
+            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { new LocalizationTextParam("count", "0") })));
+            simulate.FrameUpdate();
+            Assert.AreEqual(TooltipFaceTest.LineHeightTag + "Wire x0", Find<Label>(_view, "cursor-tooltip-line").text);
         }
 
         /// <web-test file="src/shared/tooltip/CursorTooltip.test.ts">shows a loud marker for an unknown localized key</web-test>
@@ -2438,9 +2439,11 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
             // LocalizationKey has a public ctor and GameObjectTooltipTarget builds one from an Inspector string; a misspelt key shows as [!key] (Web's single warn is not ported; the marker itself is the notice, D-27)
             var unknown = new LocalizationKey("ui.tooltip.unknown");
             _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(unknown)));
+            simulate.FrameUpdate();
             Assert.AreEqual(TooltipFaceTest.LineHeightTag + "[!ui.tooltip.unknown]", Find<Label>(_view, "cursor-tooltip-line").text);
             _view.Render(CursorTooltipViewModel.Hidden);
             _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(unknown)));
+            simulate.FrameUpdate();
             Assert.AreEqual(TooltipFaceTest.LineHeightTag + "[!ui.tooltip.unknown]", Find<Label>(_view, "cursor-tooltip-line").text);
         }
 
@@ -2450,10 +2453,13 @@ namespace Client.Tests.Ui.Screens.CursorTooltip
         public void 複数行を順に縦へ積む()
         {
             Localize.TrySetChosenLanguage("japanese");
-            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain), new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceTooFar)));
+            // 2 行目は名前付きの引数 3 つの差し込み（Web と同じ placeMaterialShortage）
+            // The second line interpolates three named params (placeMaterialShortage, as on Web)
+            var shortage = new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage, new[] { new LocalizationTextParam("itemName", "Iron Plate"), new LocalizationTextParam("ownedCount", "3"), new LocalizationTextParam("requiredCount", "10") });
+            _view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain), shortage));
             simulate.FrameUpdate();
             var lines = _view.Query<Label>("cursor-tooltip-line").ToList();
-            Assert.AreEqual(new[] { TooltipFaceTest.LineHeightTag + "地形に埋まっています", TooltipFaceTest.LineHeightTag + "遠すぎます" }, new[] { lines[0].text, lines[1].text });
+            Assert.AreEqual(new[] { TooltipFaceTest.LineHeightTag + "地形に埋まっています", TooltipFaceTest.LineHeightTag + "アイテム不足： Iron Plate 3/10" }, new[] { lines[0].text, lines[1].text });
             Assert.Greater(lines[1].worldBound.yMin, lines[0].worldBound.yMax - 0.5f);
         }
 
@@ -2797,15 +2803,79 @@ namespace Client.Ui.Screens.CursorTooltip
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/CursorTooltip/CursorTooltip.uss");
 ```
 
-- [ ] **Step 4: 通ることを確かめる**
+- [ ] **Step 4: 入力を奪わない Web の 3 行を写す**
 
-Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.CursorTooltip|State\.CursorTooltip|Conventions|Theme)\."`
-Expected: `ErrorCount: 0`。CursorTooltip の View 9 件と State 6 件と L2 が PASS。行の文の完全一致は `TooltipFaceTest.LineHeightTag`〈`<line-height=27.9px>`〉込みで書く（`TooltipFace` のつまみを外してテストを通すのは禁止）。`言語で幅が変わると…` が置き直しの遅れで落ちたら、`TooltipFace` の行の `GeometryChangedEvent` が面まで届いていない〈行だけが変わり面の寸法が変わらない〉ので、`_face` の子の `GeometryChangedEvent` も `TrickleDown` で受けて `Reposition` する
+Web `alwaysOnHudWheel.test.ts` の `it.each` 「%s は入力を奪わない」の 9 行のうち、配置モード・削除モード警告・カーソルツールチップの 3 行はこのレーンの持ち分（S2-hud 計画の 52 行目と W2a 設計書 A-58 の割り当て）。S2-hud の `AlwaysOnHudPickingTest` には書かず、自分のテストクラスに同じ `<web-test>` で写す。
 
-- [ ] **Step 5: コミット**
+`S/Client.Tests/Ui/Screens/ModeHud/ModeHudPickingTest.cs`:
+```csharp
+using Client.Game.InGame.UI.Tooltip;
+using Client.Tests.Ui.Screens.CursorTooltip;
+using Client.Ui.Screens.CursorTooltip;
+using Client.Ui.Screens.ModeHud;
+using Mooresmaster.Localization.Generated;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Client.Tests.Ui.Screens.ModeHud
+{
+    /// <summary>
+    /// 配置モード・削除モード警告・カーソルツールチップは、出ている真ん中でも下の入力を奪わない（L1。Web alwaysOnHudWheel.test.ts の 9 行のうちこのレーンの 3 行。残りは S2-hud の AlwaysOnHudPickingTest）
+    /// The placement HUD, delete-mode warning and cursor tooltip never take input even at their centre (L1; this lane's 3 of the 9 rows in Web alwaysOnHudWheel.test.ts; the rest are S2-hud's AlwaysOnHudPickingTest)
+    /// </summary>
+    public class ModeHudPickingTest : ScreenTestHost
+    {
+        /// <web-test file="src/features/commonHud/alwaysOnHudWheel.test.ts">%s は入力を奪わない</web-test>
+        [Test]
+        public void 配置モードHUDは入力を奪わない()
+        {
+            var view = Mount(new ModeHudView());
+            view.Render(ModeHudViewModelSamples.Placement());
+            simulate.FrameUpdate();
+            AssertPassesThrough(view, Find<VisualElement>(view, "placement-mode-hud").worldBound.center);
+        }
+
+        /// <web-test file="src/features/commonHud/alwaysOnHudWheel.test.ts">%s は入力を奪わない</web-test>
+        [Test]
+        public void 削除モード警告は入力を奪わない()
+        {
+            var view = Mount(new ModeHudView());
+            view.Render(ModeHudViewModelSamples.Delete(3));
+            simulate.FrameUpdate();
+            AssertPassesThrough(view, Find<VisualElement>(view, "delete-mode-warning-band").worldBound.center);
+        }
+
+        /// <web-test file="src/features/commonHud/alwaysOnHudWheel.test.ts">%s は入力を奪わない</web-test>
+        [Test]
+        public void カーソルツールチップは入力を奪わない()
+        {
+            var view = Mount(new CursorTooltipView(new FakeCursorTooltipScreen()));
+            view.Render(CursorTooltipViewModelSamples.Lines(new TooltipLine(LocalizationKeys.Ui.Tooltip.WorldTarget)));
+            simulate.FrameUpdate();
+            AssertPassesThrough(view, Find<VisualElement>(view, "cursor-tooltip").worldBound.center);
+        }
+
+        private static void AssertPassesThrough(VisualElement view, Vector2 point)
+        {
+            // 拾われるのは画面の外（下の層・ルート）だけで、画面の要素は拾われない
+            // Only things outside the screen (lower layers, the root) are picked, never the screen's own elements
+            var picked = view.panel.Pick(point);
+            Assert.IsFalse(picked == view || (picked != null && view.Contains(picked)), picked == null ? "null" : picked.name);
+        }
+    }
+}
+```
+
+- [ ] **Step 5: 通ることを確かめる**
+
+Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\.(Screens\.CursorTooltip|Screens\.ModeHud\.ModeHudPickingTest|State\.CursorTooltip|Conventions|Theme)\."`
+Expected: `ErrorCount: 0`。CursorTooltip の View 9 件と State 6 件と `ModeHudPickingTest` 3 件と L2 が PASS。`done.md` の「integrator への依頼」に D-13 の 1 行（引数 0 件の UiText が補間を通らない）を書く。行の文の完全一致は `TooltipFaceTest.LineHeightTag`〈`<line-height=27.9px>`〉込みで書く（`TooltipFace` のつまみを外してテストを通すのは禁止）。`言語で幅が変わると…` が置き直しの遅れで落ちたら、`TooltipFace` の行の `GeometryChangedEvent` が面まで届いていない〈行だけが変わり面の寸法が変わらない〉ので、`_face` の子の `GeometryChangedEvent` も `TrickleDown` で受けて `Reposition` する
+
+- [ ] **Step 6: コミット**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Ui/Screens/CursorTooltip moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/CursorTooltip "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
+git add moorestech_client/Assets/Scripts/Client.Ui/Screens/CursorTooltip moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/CursorTooltip moorestech_client/Assets/Scripts/Client.Tests/Ui/Screens/ModeHud/ModeHudPickingTest.cs "moorestech_client/Assets/UI Toolkit/GameUi/GameUiTheme.tss"
 git commit -m "feat(uitk): CursorTooltip を UITK で描き Web と同じ位置へ置く（S2-mode-tooltip）
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
@@ -2934,7 +3004,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: Task 2〜7 の `<web-test>`、`tools/uitk/test-name-parity.mjs`
-- Produces: 束 2 のこのレーンの 6 ファイルの未対応 0
+- Produces: 束 2 のこのレーンの 7 ファイル（`alwaysOnHudWheel.test.ts` の持ち分 3 行を含む）の未対応 0
 
 - [ ] **Step 1: 処遇の行を足す**
 
@@ -2952,7 +3022,7 @@ Run:
 node tools/uitk/test-name-parity.mjs --bundle 2 --emit-missing | grep -E "modeHud|operation-mode-hud|shared/tooltip|commonHud" || true
 node tools/uitk/test-name-parity.mjs --bundle 2; echo "exit=$?"
 ```
-Expected: 1 行目はこのレーンの 6 ファイル（`operation-mode-hud.spec.ts`・`PlacementModeHud.localization.test.ts`・`modeHudDesign.test.ts`・`tooltipPosition.test.ts`・`CursorTooltip.test.ts`・`commonHud.spec.ts` の 1・3・4・5 件目）の行が出ない。commonHud の 2・6 件目は S2-hud の持ち物なので出てよい。2 行目の終了コードは 1 でよい（束 2 の他レーンの未対応が残るため。束の差分 0 は S2-ladder が締める）。終了コード 2（書式の誤り）なら `<web-test>` の綴りを直す
+Expected: 1 行目はこのレーンの 7 ファイル（`alwaysOnHudWheel.test.ts` の「%s は入力を奪わない」〈S2-hud と同名で分担〉・`operation-mode-hud.spec.ts`・`PlacementModeHud.localization.test.ts`・`modeHudDesign.test.ts`・`tooltipPosition.test.ts`・`CursorTooltip.test.ts`・`commonHud.spec.ts` の 1・3・4・5 件目）の行が出ない。commonHud の 2・6 件目は S2-hud の持ち物なので出てよい。2 行目の終了コードは 1 でよい（束 2 の他レーンの未対応が残るため。束の差分 0 は S2-ladder が締める）。終了コード 2（書式の誤り）なら `<web-test>` の綴りを直す
 
 - [ ] **Step 3: コミット**
 
@@ -3051,10 +3121,9 @@ return "ok";'
 - [ ] **Step 5: 差の表を書き、口を片付ける**
 
 参照と UITK を `Read` で並べて見て、`done.md` の「## 差の表」に状態ごとに compare-procedure §4 の表（位置・寸法／色／装飾の有無／文字の段組）を書く。見る点:
-- 配置 HUD: 右上 24px・幅 288（2560×1080 は 1.5 倍で 36px・432px）、題の字間（8.333px の換算が Web の 1px と同じ詰まりに見えるか）、罫線、詳細の行間 25px、クラフトの面と右下のグリップ
+- 配置 HUD: 右上 24px・幅 288（2560×1080 は 1.5 倍で 36px・432px）、題の字間（I-fix1 の換算トークンで Web の 1px と同じ詰まりに見えるか）、罫線、詳細の行間 25px、クラフトの面と右下のグリップ
 - 削除: 帯の高さ 20（1.5 倍で 30）、斜線の角度と 32px の刻み、黄 rgb(255,187,36)、帯の端の切れ方
 - ツールチップ: 角丸 4px、行の間、最大幅 320 での折り返し、2560×1080 で面が 1.5 倍になること（ポインタからの 12 実画面 px は L1 と録画で見る）
-- 暗い半透明の面（`--tooltip-face`・`--game-panel-craft-face`）の暗さの差は直さず「I-fix1 待ち」と書く
 一目で分かる差は USS で直して撮り直す。同じにするのが大きくて差が一目で分からないものだけ、台帳「## 見た目の例外」の末尾へ `LX-32`〜`LX-34` で記帳し、該当行に `/* look-exception: LX-n */` を付ける（`LookExceptionLedgerTest` が照合する）。範囲を超えるなら止めて指揮へ番号を求める。撮り終えたら `s2mt-compare-*` の GameObject を `Object.Destroy` し、RT を `Release` して、言語を元へ戻す
 
 - [ ] **Step 6: 直しがあればコミット**
@@ -3198,8 +3267,8 @@ push して PR を作る（`gh pr create --base feature/uitk`）。PR 本文の�
   ],
   "verification": [
     "Unityコンパイル: エラー0",
-    "L1: State.ModeHud 12・State.CursorTooltip 6・Screens.ModeHud 16・Screens.CursorTooltip 9 件 PASS、L2（Conventions・Theme・Anchor）PASS",
-    "test-name-parity 束 2: このレーンの 6 ファイルの未対応 0（処遇 捨てる 2）",
+    "L1: State.ModeHud 12・State.CursorTooltip 6・Screens.ModeHud 19（`ModeHudPickingTest` 3 を含む）・Screens.CursorTooltip 9 件 PASS、L2（Conventions・Theme・Anchor）PASS",
+    "test-name-parity 束 2: このレーンの 7 ファイル（`alwaysOnHudWheel.test.ts` の持ち分 3 行を含む）の未対応 0（処遇 捨てる 2）",
     "unityプレイ録画テスト: cursor-tooltip-follows-crosshair PASS・uitk-mode-hud-and-tooltip PASS（全体スイッチ GameUi）"
   ],
   "notes": ["並べ比べの差の表は moorestech_logs/harness/uitk/S2-mode-tooltip/done.md"]
@@ -3220,9 +3289,8 @@ gh pr checks <PR番号>
 ```
 Expected: 進んでいなければ `Already up to date.`。共有区画（`GameUiTheme.tss` の `Screens` 区画・`MainGameUiRegistration.cs` の画面登録区画・`docs/uitk/TODO.md` の 3 節の末尾・`docs/uitk/disposition.md` の処遇の末尾）の衝突は両方の行を採る（並走の S2-hud・S2-tutorial・S2-notification も同じ区画に行を足す）。採ったら compile とテストを回し、衝突が `UiLayer`・`GameUiRoot`・Tooltip/Chrome 層の載せ方・入力の裁き（判定経路）に触れていれば Task 11 の 2 本を再走する。`ErrorCount: 0`・PASS。`gh pr checks` で `UITK Web follow gate (G1)` と `UITK Web follow gate self-test` が `pass`（終わっていなければ前景で `gh pr checks <PR番号> --watch`）、G1 の出力で未記帳 0。CI の `BugReportSubmitKindTest.空白本文でも種別を先に解く` の失敗は既存（moorestech-albof.22）で、マージの条件は G1 緑
 
-取り込みの後、2 つを見る（どちらも当たれば同じ PR へコミットして push し、`$FILTER` を回し直す）:
+取り込みの後、1 つを見る（当たれば同じ PR へコミットして push し、`$FILTER` を回し直す）:
 - 錨の未移植の表: Task 6 Step 6 の `test -f … && grep …` を流し直し、`AnchorIds.PlacementHud`・`DeleteHud` の行があれば消して `TutorialAnchorCoverageTest` を回す（S2-tutorial がこのレーンより後に入った場合）
-- I-fix1: Task 1 Step 1 の I-fix1 の確かめを流し直す。直書きの字間（`8.333px`・`5.5px`）で進めていて I-fix1 が入っていたら、Task 6 の「I-fix1 が入っていれば」の形（`var()`）へ戻す（二重補正になるため。D-9）
 
 - [ ] **Step 3: マージコミットで取り込む**
 
@@ -3245,7 +3313,7 @@ Expected: closed、`git status --short` と `git log` が空。`done.md` の 1 �
 
 1. **Requirements coverage**: R-1 → Task 3、R-2 → Task 6（`ModeHudViewTest`・`ModeHudWideViewportTest`）、R-3 → Task 6（USS とテストの寸法）、R-4 → Task 5・6、R-5 → Task 6・7（拾わないテスト）と Task 8 Step 4（`Pick`）、R-6 → Task 4、R-7 → Task 7、R-8 → Task 2・7、R-9 → Task 9、R-10 → Task 10、R-11 → Task 6 Step 4・Task 7 Step 3・Task 8、R-12 → Task 11、R-13 → Task 12・13。完了条件の各句: 部品 3 つ（Global Constraints の Consumes・Task 6・7）、斜線帯は画面内 Painter2D（Task 5）、`OFFSET` 参照（Task 2 の定数と Web 照合テスト）、端で押し戻す（Task 2 の clamp。D-3）、ロック中は画面中央（Task 7・11）、modeHud 17（P6・I6・S5 全件）、`shared/tooltip/*`(8)（6 写す・2 捨てる）、録画（Task 11）。漏れなし
 2. **Placeholder scan**: `<bd>`・`<番号>`・`<HEAD 10 桁>`・`<sha>`・`<空きポート>`・`<参照の x>`・manifest の `<… のパス>`・台帳の実測の値は実行時にしか決まらず、取り方（`bd create` の出力・`gh pr create`・`git rev-parse`・`Read` で参照を見る・Task 8/11 の実測）を同じタスクに書いた。「TBD」「適切に」は無い。`DegreeCustomStyle` の読み方だけ実測で決まる分岐で、Task 5 Step 5 に両方の手順と止める条件を書いた
-3. **Type consistency**: `ModeHudViewModel`（抽象）・`ModeHudHidden`・`ModeHudPlacement(ModeHudText target, int height)`・`ModeHudDelete(int height)`・`ModeHudText.None`・`.Of`・`.HasValue`・`.Value`・`ModeHudViewModel.Hidden`・`ModeHudViewModelFactory.Create(UIStateEnum, IPlacementTarget, int)`・`ModeHudModel.Current`、`CursorTooltipViewModel(IReadOnlyList<TooltipLine>)`・`.Lines`・`.Visible`・`.Hidden`・`CursorTooltipModel.Current`、`CursorTooltipPlacement.Offset`・`Clamp`・`PlaceInPanel`、`ICursorTooltipScreen.ResolveAnchorInPanel(IPanel, Vector2)`・`CurrentPointerInPanel(IPanel)`・`ScreenPixelsPerPanelPixel(IPanel)`、`ModeHudView()`・`.Render(ModeHudViewModel)`、`CursorTooltipView(ICursorTooltipScreen)`・`.Render(CursorTooltipViewModel)`・`.SetPointer(Vector2)`、`PlacementHeightText.Create(int)`、`DeleteModeWarningStripeGeometry.FirstColorPolygons(Vector2, float, float)`、`DegreeCustomStyle.TryReadDegrees`、`DeleteModeWarningBand(string, string)`、`PlacementModeHudPanel.Show(ModeHudPlacement)`・`DeleteBoxHeightHud.SetHeight(int)` は定義と使用（テスト・View・Presenter・登録・録画・EDC）で同じ綴り。USSのクラス `mode-hud`・`mode-hud__corner`・`__detail`・`__detail--following`・`__detail--warning`・`__delete-height`・`__warning`・`__warning-band`・`__warning-band--top/--bottom`・`cursor-tooltip`・`cursor-tooltip__face`、つまみ `--mode-hud-band-yellow`・`--mode-hud-band-stripe-size`・`--mode-hud-band-stripe-angle` は C#・USS・テストで一致。testid は Web の `data-testid` と同名
+3. **Type consistency**: `ModeHudViewModel`（抽象）・`ModeHudHidden`・`ModeHudPlacement(ModeHudText target, int height)`・`ModeHudDelete(int height)`・`ModeHudText.None`・`.Of`・`.HasValue`・`.Value`・`ModeHudViewModel.Hidden`・`ModeHudViewModelFactory.Create(UIStateEnum, IPlacementTarget, int)`・`ModeHudModel.Current`、`CursorTooltipViewModel(IReadOnlyList<TooltipLine>)`・`.Lines`・`.Visible`・`.Hidden`・`CursorTooltipModel.Current`、`CursorTooltipPlacement.Offset`・`Clamp`・`PlaceInPanel`、`ICursorTooltipScreen.ResolveAnchorInPanel(IPanel, Vector2)`・`CurrentPointerInPanel(IPanel)`・`ScreenPixelsPerPanelPixel(IPanel)`、`ModeHudView()`・`.Render(ModeHudViewModel)`、`CursorTooltipView(ICursorTooltipScreen)`・`.Render(CursorTooltipViewModel)`・`.SetPointer(Vector2)`、`PlacementHeightText.Create(int)`、`DeleteModeWarningStripeGeometry.FirstColorPolygons(Vector2, float, float)`、`DegreeCustomStyle.TryReadDegrees`、`DeleteModeWarningBand(string, string)`、`PlacementModeHudPanel.Show(ModeHudPlacement)`・`DeleteBoxHeightHud.SetHeight(int)` は定義と使用（テスト・View・Presenter・登録・録画・EDC）で同じ綴り。USSのクラス `mode-hud`・`mode-hud__corner`・`__detail`・`__detail--following`・`__detail--warning`・`__warning`・`__warning-band`・`__warning-band--top/--bottom`・`cursor-tooltip`・`cursor-tooltip__face`、つまみ `--mode-hud-band-yellow`・`--mode-hud-band-stripe-size`・`--mode-hud-band-stripe-angle` は C#・USS・テストで一致。testid は Web の `data-testid` と同名
 4. **保留・縮退経路**: (a) `ModeHudViewModelFactory` の対象 null → `ModeHudText.None`（型で無いことを表す。`PlacementModeHudPanel.Show` が `silent-ok` 付きで空の名前を出す＝Web と同じ表示、次の `OnTargetChanged` で解消）、`DisplayName` が空 → `Debug.LogError("[ModeHud] empty DisplayName …")` を出してそのまま出す（D-25）。(a2) `DeleteModeWarningBand` の刻み ≤0 → 理由付きの LogError（D-25）。(b) `DeleteModeWarningBand.DrawStripes` の解決前・寸法 0 → 描かない（読めないつまみは `UssCustomStyleReader`・`DegreeCustomStyle` が LogError）。(c) `CursorTooltipView.Reposition` の非表示・寸法未定 → 置かない（`silent-ok` 付き。次の `GeometryChangedEvent` で置き直し、L1 の位置の主張が外れを見る）。(d) 置けない理由の行は写さない（C# に書き手が無い。D-7）。(d2) `ModeHudView` は出さない組を木から外し、文の無い `LocalizedLabel` を載せない（LogError の経路を作らない。D-28）。(e) Task 1・5・8・10・11 の「止める」経路は、解消の主体（指揮・integrator）と記録先（`done.md` の「integrator への依頼」「要裁定」）を書いた
 5. **「決定的にする」を根拠にした選択**: D-4（ロック中は画面中央）は「Web ではワープの副作用で起きる中央寄せを、UITK では状態を読んで明示する」選択で、根拠は決定性ではなく「完了条件の明記」と「UITK のパネルにワープの移動が届く保証が無い」こと。ほかに無し
 6. **呼び出し側への責務漏出**: 表示名の解決は `IPlacementTarget.DisplayName`（C# の正）が持ち、画面と Model は種別で分けない（D-8）。位置の計算と実画面 px の換算は `CursorTooltipPlacement.PlaceInPanel` の 1 か所、ロック中の画面中央・倍率・ポインタの実画面への問い合わせは `ICursorTooltipScreen` の 1 か所で、View は中央を計算しない（D-2・D-4）。部品の見た目はつまみで変え、画面 USS は部品のクラスを書かない。拾わない掃き出しは `ModeHudPickingIgnore` の 1 か所（D-11）。判定を返す新設 API は無い
@@ -3266,11 +3334,11 @@ Expected: closed、`git status --short` と `git log` が空。`done.md` の 1 �
 | D-6 | Model は `UIStateControl` の状態を直に読む | `UiRoutingState` を購読: `PlaceBlock`・`DeleteBar` は `UiScreen.None` に写るので、操作モードを区別できない | agent 既定（`Client.Ui.State/Routing/UiRoutingState.cs`） |
 | D-7 | 置けない理由（`unavailableReason`）は写さない。ViewModel の欄・警告の行・`.mode-hud__detail--warning` を持たず、Web の P6 1 件目の警告色の主張の部分と S 5 件目は写さない（S 5 件目は disposition に `捨てる`）。参照 `2-placement-unavailable` は並べ比べの差の表に `捨てる`（disposition の表は Web のテスト名の行なので、撮影 id は差の表で持つ） | 欄を持ち Model が常に None を流す: C# に書き手が無く Web の橋も常に ""（`PlacementModeTopic.cs:42-46`）で、実ゲームで警告の行は出ない。Web の mock だけが流す値のために型と行を持つのは「将来の拡張性は考慮不要」（AGENTS.md）に反する | 出所: user-simulator 予測→再現役が確認→agent 既定 |
 | D-8 | 対象の表示名は `IPlacementTarget.DisplayName` を使い、Web の Guid 辞書の再導出（種別ごとの分岐）を C# に作らない。Web I6・P6 の表示名のテストは DisplayName の解決で写す | Web と同じく種別で辞書キーを引く: `IPlacementTarget` のコメントが「C# の消費側は種別で再導出しない」と定めている | agent 既定（`IPlacementTarget.cs`） |
-| D-9 | 字間は Task 1 Step 1 で I-fix1（字間トークンを UITK の単位へ生成器で換算）が `origin/feature/uitk` に入っているかを見て決める。入っていれば `var(--operation-hud-letter-spacing)` と `.key-hint-text` の `--key-hint-letter-spacing` をそのまま使う。未マージのときだけ画面ルートに換算値（8.333px・5.5px）を直書きする | 常に直書き: I-fix1 のマージ後に二重補正になる（帰結: 取り込み時に var() へ戻す。戻すのは、I-fix1 が先に入ればこのレーンの Task 13 Step 2、後に入るなら I-fix1 側〈`done.md` の「integrator への依頼」に書く〉）。生成トークンを I-fix1 前に当てる: 12px の字で 0.12px 相当になり詰まる | 出所: 第 2 回修正（独立評価〈Codex〉・user-simulator・fresh-context 再検査・再現役で実物確認）→ agent 既定（I-fix1 は `origin/uitk-lane/i-fix1` の cd76c158cc で作業中・未マージを確認） |
+| D-9 | 字間は I-fix1（PR #1606・e26010aa0c。設計書 A-70〜A-74）で換算済みのトークンをそのまま使う。HUD の題は画面ルートで `--hud-label-letter-spacing: var(--operation-hud-letter-spacing)`、削除箱の高さは `.key-hint-text`（`--key-hint-letter-spacing`）に任せ、換算値を直書きしない | 画面ルートに換算値（8.333px・5.5px）を直書きする: I-fix1 がマージ済みなので二重補正になる | 出所: 第 5 回修正（評価役 2 体の 2 巡目・実物確認）→ agent 既定 |
 | D-10 | 斜線帯は `Screens/ModeHud/Parts/` に置き、Painter2D で黄の帯を矩形で切った凸多角形として塗る（黒は背景）。角度は画面内の `DegreeCustomStyle` で読む | 部品にする: 設計書 §2.7 が「画面内」と定め、使う画面は 1 つ。頂点カラーの格子: 斜めの境目が格子で段になる。角度をトークンの数値で別に持つ: トークンを足すのは画面レーンの持ち物でない | agent 既定（設計書 §2.7） |
 | D-11 | Web の `pointer-events: none` は、組み終えた部分木を全部 `PickingMode.Ignore` にする画面内の `ModeHudPickingIgnore` で写す | 部品の pickingMode を変える: 部品（`GamePanel`）の既定は他画面で拾う前提。USS で切る: UITK に picking の USS プロパティが無い | agent 既定（2 機能目で Foundation 昇格を依頼。設計書 §5.1-2） |
 | D-12 | Web `modeHudDesign.test.ts` の 5 件のうち 4 件を写す。構成（部品の型・帯の数）を L1 で、色と寸法のトークン経由を画面 USS とトークン USS の本文で主張する。5 件目（警告色を他 consumer と共有）は `捨てる` | 5 件目を写す: この画面は警告の行を持たず（D-7）、他 consumer（通知・列車の網・不足の強調）は別画面のレーンが写す | agent 既定（D-7 に従って改訂） |
-| D-13 | 引数の欠けは `LocalizationTextInterpolator` が解くたびに LogError を出す（Web は 1 回だけ warn）。テストは 1 回の Error と枠のまま残る文を主張し、回数の差は直さない | 1 回だけにする: Foundation の補間の挙動を変えることになり、このレーンの持ち物でない。開発者に届く経路（LogError）は保たれている | agent 既定 |
+| D-13 | 引数の欠けは補間（`LocalizationTextInterpolator`）が解くたびに LogError を出す（Web は 1 回だけ warn）。引数 0 件の `UiText` は `Localize.Get` だけを通り補間に入らない（`UiText.cs:84`）ので、テストは別名の引数を 1 つ持つ行で補間に入れて Error と枠のまま残る文を主張し、続けて count=0 の「Wire x0」を主張する。本番で引数 0 件の行が `{count}` を残したまま無言で出る経路は Foundation の挙動なので、`done.md` の「integrator への依頼」に「引数 0 件の UiText も補間に通し、欠けた枠を LogError にしてほしい（UiText.cs:84）」と書く | 引数 0 件のまま LogError を期待する: 実物は補間に入らず落ちる。disposition で捨てる: 別名の引数で補間に入れれば Web の主張を写せる。回数を 1 回にする・UiText を直す: Foundation の持ち物 | 出所: 第 5 回修正（評価役 2 体の 2 巡目・実物確認）→ agent 既定 |
 | D-14 | 並べ比べは theme レーンの前例どおり、`GameUiPanelSettings.asset` を `Object.Instantiate` した複製に `targetTexture`（1280×720・2560×1080）を付けた UIDocument へ載せて RT を `ReadPixels` で撮る。操作モード HUD は Web と同じ固定値の ViewModel を `Render` し、ツールチップは `TooltipFace` を参照の面の位置へ置いて面の見た目だけを比べる。言語は Web の参照に揃える | `PlayModeWindow.SetCustomRenderingResolution` で Game ビューを変える: 3 計画で撮り方が割れ、theme レーンの実撮影の前例から外れる。実ゲームで同じ状態を作る: 参照は mock-host の固定値で、実ゲームに同じ対象名が無い。ツールチップの位置も撮る: 位置は L1 と録画が持ち、RT のパネルでは実画面のポインタと座標が合わない | 出所: 第 2 回修正（独立評価〈Codex〉・user-simulator・fresh-context 再検査・再現役で実物確認）→ agent 既定（前例 `../moorestech_logs/harness/sdd/feature-uitk-s1-theme/workspace/task-5-brief.md` Step 7）。言語は 出所: 第 3 回修正（opus の独立評価・評価役が実物確認）→ agent 既定 |
 | D-15 | 完了条件の録画 `misc/cursor-tooltip-follows-crosshair` に GameUi の分岐（ロック中は隅へ注入しても中央に居続ける）を足し、このレーンが持つ。操作モード HUD とポインタ追従は新しい録画 `uitk/uitk-mode-hud-and-tooltip` で通す | 既存の録画をそのまま回す: Web 専用の前提（隅への追従を DOM で確かめる）が GameUi では D-4 により成り立たず落ちる。操作モード HUD の録画を作らない: Model の配線（源 4 本の購読）は L1 で見ていない（D-19） | agent 既定（moores-writing-plans の規定） |
 | D-16 | L3（EditModeInPlayingTest）は持たない | 持つ: 段の締め S2-ladder が束 2 の L3 を持つ（実行計画）。このレーンのランタイムの確認は録画 2 本で行う | 実行計画 §6.2 |
@@ -3290,11 +3358,12 @@ Expected: closed、`git status --short` と `git log` が空。`done.md` の 1 �
 | D-30 | `TutorialAnchorCoveragePending.cs` に `placement.hud`・`delete.hud` の行があれば、`Mark` を付ける Task 6 と最終の取り込み（Task 13 Step 2）の両方で同じ PR で消し、`TutorialAnchorCoverageTest` を回す。テストのフィルタに `Client.Tests.Ui.Anchor` を足す | 消さない: S2-tutorial が先に入っていると、印済みなのに未移植の表に残り `TutorialAnchorCoverageTest` が赤になる | 出所: 第 2 回修正（独立評価〈Codex〉・user-simulator・fresh-context 再検査・再現役で実物確認）→ agent 既定（実行計画 E-1 が書き込みを許す）。フィルタは 出所: 第 3 回修正（opus の独立評価・評価役が実物確認）→ agent 既定 |
 | D-31 | 倍率の読み口 `ICursorTooltipScreen.ScreenPixelsPerPanelPixel` は S2-notification と同じ但し書き（C3-b の実測で `scaledPixelsPerPoint` と PanelSettings の倍率が食い違えば C3-b の式に従う）で残し、1 本化は本PR外へ出す | このレーンで C3-b の `UiScreenPixelScope` へ寄せる: C3-b が未マージで、読み口の正は C3-b の持ち物 | 出所: Phase 2.6（強）→ agent 既定 |
 
+| D-32 | 一部だけ写す Web テストの捨てた部分: P5（`削除モードをuGUI準拠の上下警告帯で表示する`）の `role="status"`・`aria-label="Delete Mode"` と S2（`削除表示を説明パネルではなく上下の警告帯で構成する`）の `role="status"` は写さない。P6 1 件目の警告色の主張は D-7。C2 後半の count=0「Wire x0」と C4 の名前付き差し込み（`placeMaterialShortage`）は写す | ARIA を写す: UITK のランタイムパネルに role・aria-label の仕組みが無く、読み上げの経路も無い（DOM 固有）。C2・C4 の残りを捨てる: 同じ `TooltipLine` の引数で L1 に写せる | 出所: 第 5 回修正（評価役 2 体の 2 巡目・実物確認）→ agent 既定 |
 ### 未確認
 
 - `CustomStyleProperty<string>` が `117deg` を文字列で返すか（Task 5 Step 5・Task 8 Step 4 で実測し台帳へ）
 - 何も拾わない所の `PointerMoveEvent` が GameUi のパネルの最上位で受けられるか（Task 7 Step 0 で先に実測し、届かなければ止める。台帳へ）
-- `HudSectionHeading` の字間のつまみを画面ルートで上書きしたとき、題が 8.333px の字間になるか（Task 6 Step 5 の L1 と Task 10 の比較）
+- `HudSectionHeading` の字間のつまみを画面ルートで `var(--operation-hud-letter-spacing)` に上書きしたとき、題が 8.3333px の字間になるか（Task 6 Step 5 の L1 と Task 10 の比較）
 - `.mode-hud__detail` の `--localized-label-line-height` で 1 行の高さが 25px になるか（Task 6 の L1）
 - 複製した PanelSettings の RenderTexture へ `ModeHudView`・`TooltipFace` を載せた撮影が theme レーンと同じく写るか（Task 10 Step 2。写らなければ指揮へ）
 - `overflow-wrap: anywhere` の差（長い 1 語の名前）が並べ比べで見えるか（Task 10。見えれば `LX-32`）
