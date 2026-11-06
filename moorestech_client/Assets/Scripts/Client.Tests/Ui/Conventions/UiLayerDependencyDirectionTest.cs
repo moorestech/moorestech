@@ -46,6 +46,13 @@ namespace Client.Tests.Ui.Conventions
             var foundationViolations = UiLayerDependencyRules.FindViolations("Foundation/Root/B.cs", foundation);
             Assert.AreEqual(1, foundationViolations.Count, string.Join("\n", foundationViolations));
 
+            // マスタとModはFoundation・Componentsから読めない（Contentだけが読む）
+            // Masters and mods are off limits to Foundation and Components (only Content reads them)
+            const string masterAndMod = "using Core.Master;\nclass E { Client.Mod.Texture.ItemImageContainer i; }";
+            Assert.AreEqual(2, UiLayerDependencyRules.FindViolations("Foundation/Icons/E.cs", masterAndMod).Count);
+            Assert.AreEqual(2, UiLayerDependencyRules.FindViolations("Components/Slots/E.cs", masterAndMod).Count);
+            Assert.IsEmpty(UiLayerDependencyRules.FindViolations("Content/E.cs", masterAndMod));
+
             Assert.IsEmpty(UiLayerDependencyRules.FindViolations("Screens/PauseMenu/C.cs", component));
             Assert.AreEqual(1, UiLayerDependencyRules.FindViolations("Content/D.cs", "using Client.Ui.Screens.Toast;").Count);
         }

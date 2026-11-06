@@ -44,7 +44,7 @@
 
 | CSS | USS での扱い |
 |---|---|
-| `-webkit-text-stroke`（アイコン上の数の縁、ADR 0033） | `-unity-text-outline-width`・`-unity-text-outline-color`。値は `--icon-text-stroke-*` |
+| `-webkit-text-stroke`（アイコン上の数の縁、ADR 0033） | `Components/Slots/OutlinedCountLabel` を使う（縁だけの Label を後ろに敷き、縁の無い字の Label を上に重ねる 2 層）。`-unity-text-outline` は字の内外に半分ずつ掛かり 12〜19px の細い字を塗りつぶすので、字の上に直に掛けない。縁の値は `--icon-text-stroke-*`（設計書 [A-110]） |
 | `text-shadow` | 単一の影は `text-shadow` でそのまま写す（前例 `GamePanel.uss` の題）。USS の text-shadow は 1 本だけなので、複数方向の影は `-unity-text-outline` で近似し例外に記帳する（前例 `PanelActionButton`。F1 が `LX-n` に記帳する） |
 | `font-weight: bold`・`font-synthesis` | 合成の太字は使わない。Web が単一ウェイトなので同じ |
 | `font-size`（Mantine の `size`） | Web と同じ px。13px 下限は外す（設計書 [A-39]。F1 が下限テストを外す〔F1〕） |
