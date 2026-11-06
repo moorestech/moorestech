@@ -108,7 +108,6 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.AreEqual(new Color(0xff / 255f, 0x87 / 255f, 0x87 / 255f), line.resolvedStyle.color);
         }
 
-        /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">設定画面は言語選択と戻るボタンを出し、戻るはtopへのshow_pageを送る</web-test>
         [Test]
         public void 設定画面は言語選択と戻るボタンを出し戻るはtopへのshow_pageを送る()
         {

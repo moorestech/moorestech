@@ -22,7 +22,7 @@
 
 | 日付 | 束 | コミット | Web | 写した | 処遇 | 写す予定 | 未対応 |
 |---|---|---|---|---|---|---|---|
-| 2026-11-06 | 1 | 1670aca187 | 66 | 41 | 9 | 16 | 0 |
+| 2026-11-06 | 1 | ef796d7551 | 66 | 40 | 8 | 18 | 0 |
 
 ## 処遇
 
@@ -30,7 +30,7 @@
 |---|---|---|---|---|---|
 | 1 | `e2e/tests/regression/actionErrors.spec.ts` | * | 捨てる | WS の action（block_inventory.split）の失敗コードに対するトーストの契約。UITK のコマンドは WS を通らず、通信失敗のトーストは撤去まで Web 側に残る（台帳「agent 既定」の通信失敗のトースト） | — |
 | 1 | `e2e/tests/system/feedbackReportLabels.spec.ts` | 感想送信のボタンと完了通知: ${label.locale} | 写す予定 | moorestech-albof.21（4 言語の本番辞書で感想の送信ボタンと完了トーストの文言を見る。録画 `scenarios/misc/feedback-report-labels.cs` は日本語のボタンだけで完了通知と他言語を見ない） | — |
-| 1 | `e2e/tests/system/pauseMenu.spec.ts` | PauseMenu遷移で表示しセーブとセーブして終了actionを送る | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs（Esc で PauseMenu へ遷移して pause-menu を待ち、セーブ・セーブして終了を押す。終了の結果は呼び出し側で save.json を見る） | — |
+| 1 | `e2e/tests/system/pauseMenu.spec.ts` | PauseMenu遷移で表示しセーブとセーブして終了actionを送る | 写す予定 | moorestech-albof.21（PauseMenu の UI 状態へ遷移して画面が出て、セーブとセーブして終了のコマンドが出ることを一続きで見るテストが無い。PauseMenuViewTest は表示済みの View でコマンドの種類だけを見て遷移を通らず、録画 `scenarios/uitk/uitk-lifeline.cs` は 2 つを押すだけで結果を assert しない） | — |
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | トップから設定画面へ進み言語を選べ、戻るでトップへ戻る | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs（設定へ進み日本語を選んでロケール印を待ち、戻るでトップへ戻る） | — |
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | トップからバグ報告画面へ進み送信すると成功を表示する | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs（バグ報告へ進み本文を入れて送り、トーストと outbox の新しい箱を確かめ、トップのセーブを待つ） | — |
 | 1 | `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` | 復旧表示は${viewport.width}x${viewport.height}で収まり同値操作と解除通知を受ける | 写す予定 | moorestech-albof.21（同値操作と解除は SettingsViewTest にあるが、ポーズの枠内に復旧表示が収まることを L1 で見るテストが無い） | — |
@@ -45,6 +45,7 @@
 | 1 | `src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts` | 感想でも欠損時は従来の通知を出す | 写す予定 | moorestech-albof.21（欠損のエラーのトーストは種別バグでしか見ていない） | — |
 | 1 | `src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts` | 感想送信中の表示とロックを保ち、送信開始時の種別で完了を伝える | 写す予定 | moorestech-albof.21（送信中に下書きの種別が変わっても完了は送信開始時の種別で伝えることを見るテストが無い） | — |
 | 1 | `src/features/pauseMenu/PauseMenuPanel.test.ts` | パネルを外して付け直すと書きかけは空になる | 写す予定 | moorestech-albof.21（ポーズを開くたびに PauseMenuScreenPresenter が書きかけを Reset するが、それを見るテストが無い） | — |
+| 1 | `src/features/pauseMenu/PauseMenuPanel.test.ts` | 設定画面は言語選択と戻るボタンを出し、戻るはtopへのshow_pageを送る | 写す予定 | moorestech-albof.21（PauseMenuViewTest は言語選択と戻るだけを見る。Web が見る sprint-mode-select と graphics-quality-settings が設定画面に出ることを見るテストが無い） | — |
 | 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | 拒否理由と対象項目を表示文言へ解決する | 捨てる | WS の失敗コード（invalid_graphics_quality:invalid_type:…）を文言へ解く契約。UITK の SetGraphicsQuality は型付きの値を受け結果を返さず、拒否の経路が無い | — |
 | 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | topicを固定したまま連続操作とpreset直後に%sを送る | 写す予定 | moorestech-albof.21（モデルが更新されない間の連続操作とプリセット直後の操作で、前の操作を巻き戻さず今の項目を送ることを見るテストが無い） | — |
 | 1 | `src/features/settings/GraphicsQualitySettings.test.ts` | %sの操作値を送る | 写す予定 | moorestech-albof.21（オンオフ 5 項目〈ssao・postProcessing・effects・mapObjects・ocean〉の testid と送る項目の対応〈GraphicsQualityItemRows の表〉を View で押して見るテストが無い。GraphicsQualityRowsTest は行を自作し表を通らず、SettingsViewTest は描画倍率と地形だけ） | — |
