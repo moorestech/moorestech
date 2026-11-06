@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Common;
+using Client.Ui.State.Items;
 using Core.Master;
 
 namespace Client.Ui.State.BlockInventory.Logic.Machine
@@ -12,7 +13,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
     {
         // 束縛が無い機械は全実スロットを描く（R11）。束縛があれば束縛スロット＋中身の残る束縛外スロットだけ（R7）
         // An unbound machine draws every real slot (R11); with a binding, only bound slots plus occupied unbound ones (R7)
-        public static MachineSlotView BuildMachineSlotView(MachineBindingDetail machine, IReadOnlyList<BlockItemSlotState> itemSlots, IReadOnlyList<BlockFluidSlotState> fluidSlots)
+        public static MachineSlotView BuildMachineSlotView(MachineBindingDetail machine, IReadOnlyList<SlotItem> itemSlots, IReadOnlyList<BlockFluidSlotState> fluidSlots)
         {
             var bands = machine.Layout.Split(itemSlots.Count);
             if (machine.SlotBindings.Count == 0 && machine.TankBindings.Count == 0)
@@ -56,7 +57,7 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
                 }
                 foreach (var index in band)
                 {
-                    if (!itemGhosts.ContainsKey(index) && itemSlots[index].HasRealItem) slots.Add(BoundItemSlot.WithoutGhost(index));
+                    if (!itemGhosts.ContainsKey(index) && OwnedItemCounts.IsOwnedSlot(itemSlots[index])) slots.Add(BoundItemSlot.WithoutGhost(index));
                 }
                 return slots;
             }
@@ -98,9 +99,9 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
         // Only filled bound inputs show held/required; empties use the ghost and unaccepted leftovers keep the ordinary badge
         // 出さない理由（ゴースト無し・空・受け入れ外）は 3 つあるが、どれも呼び手は「バッジを足さない」だけなので理由を返さない（判断記録 D-15）
         // Three reasons not to show (no ghost, empty, unaccepted) all mean "add no badge" to the caller, so no reason is returned (D-15)
-        public static bool TryGetInputRequirement(BlockItemSlotState slot, BoundItemSlot boundSlot, out MachineInputRequirement requirement)
+        public static bool TryGetInputRequirement(SlotItem slot, BoundItemSlot boundSlot, out MachineInputRequirement requirement)
         {
-            if (!(boundSlot is GhostedItemSlot ghosted) || !slot.HasRealItem || !ghosted.Ghost.Accepts(slot.ItemId))
+            if (!(boundSlot is GhostedItemSlot ghosted) || !OwnedItemCounts.IsOwnedSlot(slot) || !ghosted.Ghost.Accepts(slot.ItemId))
             {
                 requirement = default;
                 return false;

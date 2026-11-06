@@ -1,5 +1,6 @@
 using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.BlockInventory.Logic.Machine;
+using Client.Ui.State.Items;
 using Core.Master;
 using NUnit.Framework;
 using static Client.Tests.Ui.State.BlockInventory.Machine.MachineSlotGhostFixtures;
@@ -33,7 +34,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
             // input index2（束縛外）に返却しきれなかった旧素材が残っている
             // input index2 (unbound) holds a leftover material the refund could not return
             var itemSlots = EmptyItemSlots();
-            itemSlots[2] = new BlockItemSlotState(new ItemId(9), 4);
+            itemSlots[2] = new SlotItem(new ItemId(9), 4);
             var view = MachineSlotGhosts.BuildMachineSlotView(BoundMachine(), itemSlots, EmptyFluidSlots(3));
             Assert.AreEqual(3, view.Inputs.Count);
             AssertGhostSlot(view.Inputs[0], 0, 1, 2, new[] { 1, 11, 12 });

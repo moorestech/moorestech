@@ -1,6 +1,7 @@
 using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.BlockInventory.Logic.Detail;
 using Client.Ui.State.BlockInventory.Logic.Machine;
+using Client.Ui.State.Items;
 using Core.Master;
 using NUnit.Framework;
 
@@ -37,10 +38,10 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
             return new MachineBindingDetail(new MachineSlotLayout(3, 3, 1), new MachineItemSlotBinding[0], new MachineTankBinding[0]);
         }
 
-        public static BlockItemSlotState[] EmptyItemSlots()
+        public static SlotItem[] EmptyItemSlots()
         {
-            var slots = new BlockItemSlotState[7];
-            for (var i = 0; i < slots.Length; i++) slots[i] = new BlockItemSlotState(new ItemId(0), 0);
+            var slots = new SlotItem[7];
+            for (var i = 0; i < slots.Length; i++) slots[i] = new SlotItem(new ItemId(0), 0);
             return slots;
         }
 

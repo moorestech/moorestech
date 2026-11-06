@@ -1,5 +1,5 @@
-using Client.Ui.State.BlockInventory.Logic.Common;
 using Client.Ui.State.BlockInventory.Logic.Machine;
+using Client.Ui.State.Items;
 using Core.Master;
 using NUnit.Framework;
 using static Client.Tests.Ui.State.BlockInventory.Machine.MachineSlotGhostFixtures;
@@ -47,27 +47,27 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         [Test]
         public void 実物入りの束縛スロットは所持と必要を返し足りなければ不足()
         {
-            AssertRequirement(new BlockItemSlotState(new ItemId(2), 1), 1, 3, true);
-            AssertRequirement(new BlockItemSlotState(new ItemId(2), 3), 3, 3, false);
+            AssertRequirement(new SlotItem(new ItemId(2), 1), 1, 3, true);
+            AssertRequirement(new SlotItem(new ItemId(2), 3), 3, 3, false);
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/machineSlotGhosts.test.ts">受け入れ外のアイテムが残っているスロットには出さず、上位変種には出す</web-test>
         [Test]
         public void 受け入れ外の残置品には出さず上位変種には出す()
         {
-            Assert.IsFalse(MachineSlotGhosts.TryGetInputRequirement(new BlockItemSlotState(new ItemId(9), 5), BoundItemSlot.WithGhost(0, Ghost), out _));
-            AssertRequirement(new BlockItemSlotState(new ItemId(12), 5), 5, 3, false);
+            Assert.IsFalse(MachineSlotGhosts.TryGetInputRequirement(new SlotItem(new ItemId(9), 5), BoundItemSlot.WithGhost(0, Ghost), out _));
+            AssertRequirement(new SlotItem(new ItemId(12), 5), 5, 3, false);
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/machineSlotGhosts.test.ts">空スロットと束縛外スロットには出さない</web-test>
         [Test]
         public void 空スロットと束縛外スロットには出さない()
         {
-            Assert.IsFalse(MachineSlotGhosts.TryGetInputRequirement(new BlockItemSlotState(new ItemId(0), 0), BoundItemSlot.WithGhost(0, Ghost), out _));
-            Assert.IsFalse(MachineSlotGhosts.TryGetInputRequirement(new BlockItemSlotState(new ItemId(2), 5), BoundItemSlot.WithoutGhost(0), out _));
+            Assert.IsFalse(MachineSlotGhosts.TryGetInputRequirement(new SlotItem(new ItemId(0), 0), BoundItemSlot.WithGhost(0, Ghost), out _));
+            Assert.IsFalse(MachineSlotGhosts.TryGetInputRequirement(new SlotItem(new ItemId(2), 5), BoundItemSlot.WithoutGhost(0), out _));
         }
 
-        private static void AssertRequirement(BlockItemSlotState slot, int owned, int required, bool lacking)
+        private static void AssertRequirement(SlotItem slot, int owned, int required, bool lacking)
         {
             Assert.IsTrue(MachineSlotGhosts.TryGetInputRequirement(slot, BoundItemSlot.WithGhost(0, Ghost), out var requirement));
             Assert.AreEqual(owned, requirement.OwnedCount);
