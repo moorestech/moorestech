@@ -19,6 +19,10 @@ namespace Client.Ui.Components.Controls
         // Mantine ScrollArea pads the bar by size / 5, so the thumb is size - 2 x padding
         private const float ScrollbarPaddingRatio = 0.2f;
 
+        // Web（CEF）はホイール 1 ノッチで本文を 60px 動かす（CefUnity の ScrollInputPipeline.WheelPixelsPerStep）。UITK は 1 ノッチを WheelEvent の scrollDeltaPerTick 行で届ける
+        // The Web (CEF) scrolls 60px per wheel notch (CefUnity ScrollInputPipeline.WheelPixelsPerStep); UITK delivers one notch as scrollDeltaPerTick lines of WheelEvent
+        private const float WebWheelPixelsPerNotch = 60f;
+
         private readonly Subject<float> _onScrollOffsetChanged = new();
 
         public IObservable<float> OnScrollOffsetChanged => _onScrollOffsetChanged;
@@ -29,6 +33,7 @@ namespace Client.Ui.Components.Controls
             AddToClassList("game-scroll-view");
             horizontalScrollerVisibility = ScrollerVisibility.Hidden;
             verticalScrollerVisibility = ScrollerVisibility.Auto;
+            mouseWheelScrollSize = WebWheelPixelsPerNotch / WheelEvent.scrollDeltaPerTick;
 
             // スクロール量の変化はバーの値の変化で拾う（ホイール・ドラッグ・ScrollTo・SetScrollOffset のどれでも来る）
             // Offset changes come from the bar value (wheel, drag, ScrollTo and SetScrollOffset all move it)
@@ -46,6 +51,8 @@ namespace Client.Ui.Components.Controls
             // 読めないときは UssCustomStyleReader が LogError を出し、バーは Theme.uss の既定の幅のまま
             // When unreadable, UssCustomStyleReader logs an error and the bar keeps the Theme.uss default width
             if (!UssCustomStyleReader.TryReadPixels(customStyle, ScrollbarSizeProperty, out var size)) return;
+            // 内側の余白はレイアウトで整数 px に丸まる（look-exception: LX-42）
+            // The padding snaps to whole px in layout (look-exception: LX-42)
             var padding = size * ScrollbarPaddingRatio;
             verticalScroller.style.width = size;
             verticalScroller.style.paddingLeft = padding;
