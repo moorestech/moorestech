@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Text
@@ -13,6 +14,7 @@ namespace Client.Ui.Components.Text
     public sealed class TooltipFace : VisualElement
     {
         private readonly string _lineName;
+        private bool _unresolvedMaxWidthReported;
 
         public TooltipFace(string testid, TooltipFaceLook look)
         {
@@ -68,7 +70,19 @@ namespace Client.Ui.Components.Text
         {
             // Unity は折り返した面を最長行の幅に縮めるが、Web は最大幅まで広がる。1 行の自然幅が最大幅の内側を超える行があれば最大幅に固定する
             // Unity shrinks a wrapped face to its longest line while Web fills the max width, so pin the max width when any line's one-line width exceeds the inner max width
-            var maxWidth = resolvedStyle.maxWidth.value;
+            // 最大幅が長さで解けていなければ折り返しを判定できないので、理由を出して判定しない
+            // Without a resolved max width wrapping cannot be judged, so report why and skip
+            var maxWidthStyle = resolvedStyle.maxWidth;
+            // 面と全行の GeometryChanged で何度も来るので、解けるまでは 1 回だけ出す
+            // Face and line GeometryChanged repeat, so report once until it resolves
+            if (maxWidthStyle.keyword != StyleKeyword.Undefined || float.IsNaN(maxWidthStyle.value))
+            {
+                if (!_unresolvedMaxWidthReported) Debug.LogError($"[TooltipFace] max-width is not a resolved length (keyword {maxWidthStyle.keyword}, value {maxWidthStyle.value}); check --tooltip-max-width: {name}");
+                _unresolvedMaxWidthReported = true;
+                return;
+            }
+            _unresolvedMaxWidthReported = false;
+            var maxWidth = maxWidthStyle.value;
             var innerMaxWidth = maxWidth - resolvedStyle.paddingLeft - resolvedStyle.paddingRight - resolvedStyle.borderLeftWidth - resolvedStyle.borderRightWidth;
             var wrapped = false;
             foreach (var child in Children())

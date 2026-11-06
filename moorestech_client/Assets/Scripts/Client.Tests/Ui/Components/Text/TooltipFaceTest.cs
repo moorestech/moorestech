@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Text.RegularExpressions;
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Text;
@@ -6,6 +7,7 @@ using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Components.ComponentStyleAssert;
 
@@ -130,6 +132,16 @@ namespace Client.Tests.Ui.Components.Text
             face.SetLines(new UiText[0]);
             simulate.FrameUpdate();
             Assert.IsFalse(face.ClassListContains("tooltip-face--wrapped"));
+        }
+
+        [Test]
+        public void 最大幅が長さで解けないとLogErrorを出す()
+        {
+            var face = Mount(TooltipFaceLook.Hover);
+            LogAssert.Expect(LogType.Error, new Regex(@"\[TooltipFace\] max-width is not a resolved length.*: tooltip"));
+            face.style.maxWidth = StyleKeyword.None;
+            face.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.Back));
+            simulate.FrameUpdate();
         }
 
         [Test]
