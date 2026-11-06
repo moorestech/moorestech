@@ -1,54 +1,116 @@
+using System;
+using Client.Ui.Components.Decor;
+using Client.Ui.State.Text;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Panels
 {
     /// <summary>
-    /// ゲームの窓枠（default）
-    /// Game window frame (default)
+    /// 枠付きのゲームパネル（default・craft）。題・題の右端の副次アクション・本文を持つ（Web の shared/ui/GamePanel の額縁つき variant）
+    /// Framed game panel (default, craft) with a title, a trailing title action and a body (the framed variants of Web shared/ui/GamePanel)
     /// </summary>
+    /// <remarks>
+    /// 面だけの hud・skit は GamePanelSurface に分け、題の API を型で到達不能にする（Web の FramedProps と FaceOnlyProps）。外周の影は描かない（C2-a 判断記録 D-1）
+    /// Face-only hud and skit live in GamePanelSurface so title APIs are unreachable by type (Web FramedProps and FaceOnlyProps); the outer shadow is not drawn (C2-a decision D-1)
+    /// </remarks>
     public class GamePanel : VisualElement
     {
-        private readonly VisualElement _topDecoLine;
         private readonly VisualElement _header;
-        private readonly VisualElement _bottomDecoLine;
+        private readonly VisualElement _titleAction;
         private readonly VisualElement _body;
+        private GamePanelTitle _title;
 
         public override VisualElement contentContainer => _body;
 
-        public GamePanel()
+        public GamePanel(string testid, GamePanelFrame frame)
         {
+            name = testid;
             AddToClassList("game-panel");
-
-            // 面と三角は本文の背後
-            // Face and triangles sit behind content
-            hierarchy.Add(new GamePanelFace());
-            hierarchy.Add(new GamePanelBottomDeco());
-
-            // タイトル行はSetTitleまで隠す
-            // Title row hidden until SetTitle
-            _topDecoLine = new GamePanelDecoLine("game-panel__deco-line--top");
-            _topDecoLine.style.display = DisplayStyle.None;
-            hierarchy.Add(_topDecoLine);
             _header = new VisualElement();
             _header.AddToClassList("game-panel__header");
-            _header.style.display = DisplayStyle.None;
-            hierarchy.Add(_header);
-            _bottomDecoLine = new GamePanelDecoLine("game-panel__deco-line--bottom");
-            _bottomDecoLine.style.display = DisplayStyle.None;
-            hierarchy.Add(_bottomDecoLine);
-
+            _titleAction = new VisualElement { pickingMode = PickingMode.Ignore };
+            _titleAction.AddToClassList("game-panel__title-action");
+            _header.Add(_titleAction);
             _body = new VisualElement();
             _body.AddToClassList("game-panel__body");
-            hierarchy.Add(_body);
+
+            // 額縁ごとの子の並びを 1 か所で決める。背後の面と装飾（Web の z-index 0）を先に、craft のグリップ（z-index 2）を最後に置く
+            // Decide each frame's child order in one place: backdrop (Web z-index 0) first, the craft grip (z-index 2) last
+            switch (frame)
+            {
+                case GamePanelFrame.Default:
+                    AddToClassList("game-panel--default");
+                    hierarchy.Add(new GamePanelFace("game-panel__face"));
+                    hierarchy.Add(new GamePanelBottomDeco());
+                    AddTitleRowsAndBody();
+                    break;
+                case GamePanelFrame.Craft:
+                    AddToClassList("game-panel--craft");
+                    hierarchy.Add(Decoration("game-panel__craft-face"));
+                    hierarchy.Add(Decoration("game-panel__craft-rim"));
+                    hierarchy.Add(Decoration("game-panel__craft-line"));
+                    AddTitleRowsAndBody();
+                    hierarchy.Add(new GamePanelCraftGrip());
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(frame), frame, null);
+            }
+
+            #region Internal
+
+            // 題の行と上下の罫線は SetTitle で --titled が付くまで USS が隠す
+            // USS hides the title row and its rules until SetTitle adds --titled
+            void AddTitleRowsAndBody()
+            {
+                hierarchy.Add(DecoLine("game-panel__deco-line--top"));
+                hierarchy.Add(_header);
+                hierarchy.Add(DecoLine("game-panel__deco-line--bottom"));
+                hierarchy.Add(_body);
+            }
+
+            // 題の罫線は FadeRule と同じ要素で、色は位置のクラスが --game-panel-rule-* で渡す（Web の .decoLine）
+            // Title rules reuse the FadeRule element; the position class passes colors via --game-panel-rule-* (the Web .decoLine)
+            VisualElement DecoLine(string positionClassName)
+            {
+                var line = new FadeGradientRule("--game-panel-rule-start", "--game-panel-rule-peak", "--game-panel-rule-end");
+                line.AddToClassList("game-panel__deco-line");
+                line.AddToClassList(positionClassName);
+                return line;
+            }
+
+            VisualElement Decoration(string className)
+            {
+                var decoration = new VisualElement { pickingMode = PickingMode.Ignore };
+                decoration.AddToClassList(className);
+                return decoration;
+            }
+
+            #endregion
         }
 
-        public void SetTitle(Label titleLabel)
+        public void SetTitle(UiText title)
         {
-            titleLabel.AddToClassList("game-panel__title");
-            _header.Insert(0, titleLabel);
-            _topDecoLine.style.display = DisplayStyle.Flex;
-            _header.style.display = DisplayStyle.Flex;
-            _bottomDecoLine.style.display = DisplayStyle.Flex;
+            // 題は初回にだけ作る。キー無しの LocalizedLabel をパネルに載せない（載せると LogError になる）
+            // Create the title only once; never attach a keyless LocalizedLabel (that logs an error)
+            if (_title == null)
+            {
+                _title = new GamePanelTitle();
+                _title.SetText(title);
+                _header.Insert(0, _title);
+            }
+            else
+            {
+                _title.SetText(title);
+            }
+            AddToClassList("game-panel--titled");
+        }
+
+        public void SetTitleAction(VisualElement action)
+        {
+            // 副次アクションは 1 つだけ。差し替えは前の要素を外してから足す
+            // Only one title action; replacing removes the previous element first
+            _titleAction.Clear();
+            _titleAction.Add(action);
         }
     }
 }
