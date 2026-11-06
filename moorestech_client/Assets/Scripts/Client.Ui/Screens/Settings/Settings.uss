@@ -5,3 +5,9 @@
 .settings-section {
     flex-direction: column;
 }
+
+/* 節の見出しは全言語で 1 行に収まるので、行を Web の Title order=2（26px×1.35）に固定する。UITK の字の自然な高さ（Latin 36・JP 38px）は Web の行より高い */
+/* Section headings fit on one line in every locale, so the row is fixed at the Web Title order=2 (26px x 1.35); UITK's natural glyph height (Latin 36, JP 38px) exceeds it */
+.settings-section__title {
+    height: 35.1px;
+}

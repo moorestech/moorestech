@@ -22,6 +22,9 @@
     --mode-switch-option-text-selected: var(--text-high-contrast);
     flex-grow: 1;
     flex-shrink: 1;
+    /* Web の選択肢の高さ＝padding-block 5px×2＋本文の行 16px×1.55（輪は box-shadow で場所を取らない）。UITK は枠線と字の自然な高さで 34〜36px になるので固定する */
+    /* Web option height = padding-block 5px x 2 + the 16px x 1.55 body line (the ring is a box-shadow and takes no space); UITK's border and natural glyph height give 34-36px, so fix it */
+    height: 34.8px;
     margin: 0;
     padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
     border-width: var(--bevel-1); /* look-exception: LX-3 */
