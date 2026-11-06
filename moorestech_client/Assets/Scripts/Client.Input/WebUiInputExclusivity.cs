@@ -65,20 +65,27 @@ namespace Client.Input
         // Null when nothing has ever been received
         public static double? SecondsSinceLastWebMessage(long nowStopwatchTimestamp)
         {
-            long? last;
-            lock (WebUiStateLock) last = _lastWebMessageTimestamp;
-            if (!last.HasValue) return null;
-            return (nowStopwatchTimestamp - last.Value) / (double)Stopwatch.Frequency;
+            lock (WebUiStateLock) return SecondsSinceLastWebMessageLocked(nowStopwatchTimestamp);
+        }
+
+        private static double? SecondsSinceLastWebMessageLocked(long nowStopwatchTimestamp)
+        {
+            if (!_lastWebMessageTimestamp.HasValue) return null;
+            return (nowStopwatchTimestamp - _lastWebMessageTimestamp.Value) / (double)Stopwatch.Frequency;
         }
 
         // JSが止まりWSだけ残るとWebの値が古いまま残り、切断時リセットも通らない（plan §3.11）。閾値を超えたらWeb側の値を読まない
         // A stopped JS with a live WS leaves stale web values and skips the disconnect reset (plan §3.11); past the threshold the web side is not read
         public static void EvaluateWebSilence(long nowStopwatchTimestamp)
         {
-            var seconds = SecondsSinceLastWebMessage(nowStopwatchTimestamp);
-            var silent = seconds.HasValue && WebSilenceThresholdSeconds < seconds.Value;
+            // 秒数の算出と印の書き込みを同じlockで行う。分けると間に入った受信を見落とし偽のsilentが立つ
+            // Compute the seconds and write the mark under one lock; splitting them misses a receipt in between and raises a false silent
+            double? seconds;
+            bool silent;
             lock (WebUiStateLock)
             {
+                seconds = SecondsSinceLastWebMessageLocked(nowStopwatchTimestamp);
+                silent = seconds.HasValue && WebSilenceThresholdSeconds < seconds.Value;
                 // silent-ok: 印が変わらない評価は毎秒来るので何もしない / 印の出入りは下のログで開発者が読める
                 if (_webSilent == silent) return;
                 _webSilent = silent;

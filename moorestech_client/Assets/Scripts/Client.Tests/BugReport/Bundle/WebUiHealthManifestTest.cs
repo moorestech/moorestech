@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.BugReport.WebUiHealth;
+using Client.Tests.BugReport.Capture;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -18,12 +21,12 @@ namespace Client.Tests.BugReport.Bundle
         public void 偽のprobeの値がcamelCaseの綴りでmanifestへ出る()
         {
             var manifest = new BugReportManifest();
-            manifest.WebUiHealth = new FixedWebUiHealthProbe(new WebUiHealthReading
+            manifest.WebUiHealth = new WebUiHealthReading
             {
                 HostStartup = WebUiHostStartupState.SkippedByEditorSwitch,
                 CefProcess = CefProcessState.LostRestarting,
                 SecondsSinceLastWebMessage = 16.5,
-            }).Read();
+            };
 
             var json = JObject.Parse(manifest.ToJson());
             Assert.AreEqual(6, (int)json["schemaVersion"]);
@@ -56,27 +59,37 @@ namespace Client.Tests.BugReport.Bundle
             Assert.AreEqual(JTokenType.Null, json["webUiHealth"]["secondsSinceLastWebMessage"].Type);
         }
 
-        // probe→manifestの配線を確認
-        // Verifies probe-to-manifest wiring
+        // 送信前にWebが復旧しても、箱にはポーズを開いた瞬間（確保時）の値が残る
+        // Even if the web recovers before sending, the box keeps the values as of pause-open (capture time)
         [Test]
-        public async Task WriteAsync経由でprobeの値が箱のmanifestへ渡る()
+        public async Task 確保時の値が送信時の値でなく箱のmanifestへ写る()
         {
-            var probe = new FixedWebUiHealthProbe(new WebUiHealthReading { HostStartup = WebUiHostStartupState.Failed, CefProcess = CefProcessState.RecoveryFailed, SecondsSinceLastWebMessage = 3.0 });
-            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), probe);
-            var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, Missing = new() };
+            var sources = new FakeBugReportCaptureSources { ScreenshotPath = null, Recording = CapturedRecording.Unavailable("テストなので録画しない") };
+            sources.WebUiHealthReading = new WebUiHealthReading { HostStartup = WebUiHostStartupState.Failed, CefProcess = CefProcessState.LostRestarting, SecondsSinceLastWebMessage = 40.0 };
+            var session = new BugReportCaptureSession(sources);
+            session.BeginOnPauseMenu();
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", null, new List<string>(), new List<string>(), null, 0));
 
-            var result = await writer.WriteAsync(data, "webUiHealth配線テスト", PlaytestReportKind.Bug);
+            // 確保の後に復旧した値へ変える（送信actionの受信で無応答秒数が0へ戻る状況）
+            // Switch to recovered values after the capture, as the send action's receipt resets the silence to zero
+            sources.WebUiHealthReading = new WebUiHealthReading { HostStartup = WebUiHostStartupState.Failed, CefProcess = CefProcessState.ObservedAfterBrowserStart, SecondsSinceLastWebMessage = 0.01 };
+            var ticket = session.TryBeginSubmit();
+            Assert.IsTrue(ticket.Allowed, ticket.RefusedCode);
+
+            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
+            var result = await writer.WriteAsync(ticket.Data, "webUiHealth確保時テスト", PlaytestReportKind.Bug);
             try
             {
                 Assert.IsTrue(result.Ready, "manifestの書き出しに失敗した");
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(result.BundleDirectory, BugReportBundleLayout.ManifestFileName)));
                 Assert.AreEqual("failed", (string)manifest["webUiHealth"]["hostStartup"]);
-                Assert.AreEqual("recoveryFailed", (string)manifest["webUiHealth"]["cefProcess"]);
-                Assert.AreEqual(3.0, (double)manifest["webUiHealth"]["secondsSinceLastWebMessage"]);
+                Assert.AreEqual("lostRestarting", (string)manifest["webUiHealth"]["cefProcess"]);
+                Assert.AreEqual(40.0, (double)manifest["webUiHealth"]["secondsSinceLastWebMessage"]);
             }
             finally
             {
                 Directory.Delete(result.BundleDirectory, true);
+                BugReportCaptureWorkspace.Delete(ticket.Data.CaptureWorkDirectory);
             }
         }
     }

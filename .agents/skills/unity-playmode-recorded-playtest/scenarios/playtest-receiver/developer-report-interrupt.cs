@@ -15,8 +15,10 @@ using Newtonsoft.Json.Linq;
 for (var i = 0; i < 60 && WebUiInputExclusivity.SecondsSinceLastWebMessage(System.Diagnostics.Stopwatch.GetTimestamp()) == null; i++) await Cysharp.Threading.Tasks.UniTask.Delay(500);
 // 本番Writerで停止対象の報告を実outboxに作る
 // Create an actual interruption target using the production writer
-var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), new WebUiHealthProbe());
-var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0UL };
+// webUiHealth は確保時の値を写すので、確保の代わりにここで本物の probe から読む
+// webUiHealth is copied from the capture, so the real probe is read here in place of a capture
+var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason));
+var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0UL, WebUiHealth = new WebUiHealthProbe().Read() };
 var box = await writer.WriteAsync(data, "task10 stop during production upload", PlaytestReportKind.Bug);
 if (!box.Ready) throw new System.Exception("READY failed");
 // 箱の manifest に CEF 停止の記録の生の値 3 つが入っていること（manifest v6）

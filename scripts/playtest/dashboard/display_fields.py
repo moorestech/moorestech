@@ -63,9 +63,14 @@ CEF_PROCESS_VALUES = ("notObserved", "observedAfterBrowserStart", "lostRestartin
 def web_ui_health(raw: dict, source: Path) -> dict:
     """manifest v6 の webUiHealth を表示用に読む。status 1 項目で欄なし・前回分の不明・読めない・記録ありを決め、表示はそれだけで分岐する
     Reads manifest v6 webUiHealth for display; one status decides absent/unknown/unreadable/recorded and the view branches on it alone"""
-    health = raw.get("webUiHealth")
-    if health is None:
+    # キーの無い旧箱だけが欄なし。v6 の箱に null や dict 以外が入っていたら契約の破れなので読めない扱いにする
+    # Only an old box without the key is absent; a null or non-dict in a v6 box breaks the contract and reads as unreadable
+    if "webUiHealth" not in raw:
         return {"status": "absent"}
+    health = raw["webUiHealth"]
+    if not isinstance(health, dict):
+        warn(f"webUiHealth が dict でない（{health!r}）ため読めないと表示する", source)
+        return {"status": "unreadable"}
     host = pick(raw, "webUiHealth.hostStartup", (str,), source)
     cef = pick(raw, "webUiHealth.cefProcess", (str,), source)
     if host not in HOST_STARTUP_VALUES or cef not in CEF_PROCESS_VALUES:
