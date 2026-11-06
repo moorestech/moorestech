@@ -18,6 +18,9 @@
 /* Web の -webkit-text-stroke は paint-order: stroke fill で縁を字の外側だけに見せる。UITK の縁は字の内外へ半分ずつ掛かり細い字を塗りつぶすので、縁だけの層を後ろに敷き、縁の無い字を上に重ねる */
 /* The Web -webkit-text-stroke with paint-order: stroke fill shows the stroke only outside the glyph; a UITK outline straddles the edge and floods thin glyphs, so a stroke-only layer sits behind an unoutlined glyph */
 .slot-content__count-layer {
+    /* Web の line-height: 1 は基線を箱の下から (1 - 上昇 + 下降) / 2 = 0.112em に置く（NotoSans の hhea 2189・600 / 2048）。UITK の下揃えは下降 0.293em に置くので差の 0.181em（箱の高さ＝字の大きさの 18.1%）だけ下げる */
+    /* The Web line-height: 1 puts the baseline (1 - ascent + descent) / 2 = 0.112em above the box bottom (NotoSans hhea 2189/600 of 2048); UITK lower alignment puts it at the 0.293em descent, so shift down the 0.181em gap (18.1% of the font-size-tall box) */
+    translate: 0 18.1%;
     display: none;
     position: absolute;
     left: 0;

@@ -64,6 +64,21 @@ namespace Client.Tests.Ui.Components.Slots
         }
 
         [Test]
+        public void 個数はWebのline_height_1と同じ基線になるよう字の大きさの18_1パーセント下げて描く()
+        {
+            var (frame, content) = Mount(null);
+            content.SetCount(7);
+            simulate.FrameUpdate();
+
+            // translate はレイアウトを動かさず描く位置だけを下げるので worldBound で見る
+            // translate only moves the drawn position, not the layout, so check worldBound
+            var count = content.Q<Label>(className: "slot-content__count");
+            var fontSize = ThemeTokenFile.ResolvePixels("--count-font-size");
+            Assert.AreEqual(frame.worldBound.yMax - ThemeTokenFile.ResolvePixels("--count-bottom") + fontSize * 0.181f, count.worldBound.yMax, 0.5f);
+            Assert.AreEqual(count.worldBound, content.Q<Label>(className: "slot-content__count-stroke").worldBound);
+        }
+
+        [Test]
         public void 個数の白い縁は字の後ろの縁だけの層が同じ位置で描く()
         {
             var (_, content) = Mount(null);

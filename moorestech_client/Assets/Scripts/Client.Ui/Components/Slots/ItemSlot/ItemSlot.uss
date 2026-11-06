@@ -3,6 +3,9 @@
 /* 白い縁は SlotContent の個数と同じく縁だけの層を後ろに敷く（UITK の縁は字の内側も塗る） */
 /* As with the SlotContent count, the white stroke is a stroke-only layer behind the glyph (a UITK outline also floods the glyph) */
 .item-slot__shortage-layer {
+    /* Web の line-height: 1 は基線を箱の下から (1 - 上昇 + 下降) / 2 = 0.112em に置く（NotoSans の hhea 2189・600 / 2048）。UITK の下揃えは下降 0.293em に置くので差の 0.181em（箱の高さ＝字の大きさの 18.1%）だけ下げる */
+    /* The Web line-height: 1 puts the baseline (1 - ascent + descent) / 2 = 0.112em above the box bottom (NotoSans hhea 2189/600 of 2048); UITK lower alignment puts it at the 0.293em descent, so shift down the 0.181em gap (18.1% of the font-size-tall box) */
+    translate: 0 18.1%;
     display: none;
     position: absolute;
     right: var(--shortage-count-right);
