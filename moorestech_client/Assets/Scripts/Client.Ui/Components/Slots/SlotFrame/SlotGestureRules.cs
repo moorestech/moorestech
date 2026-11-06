@@ -7,7 +7,7 @@ namespace Client.Ui.Components.Slots
     /// ボタンの番号と押下中のビットから身振りを決める（Web の useSlotMouse）
     /// Decides gestures from the button index and held-button bits (the Web useSlotMouse)
     /// </summary>
-    public static class SlotGestureRules
+    internal static class SlotGestureRules
     {
         // UITK の button は 0 左・1 右、pressedButtons は bit0 左・bit1 右（Web の button 0/2・buttons 1/2 と同じ意味）
         // UITK button is 0 left / 1 right and pressedButtons is bit0 left / bit1 right (same meaning as Web button 0/2 and buttons 1/2)
@@ -49,6 +49,13 @@ namespace Client.Ui.Components.Slots
             if (left) return LeftEnterOnly;
             if (right) return RightEnterOnly;
             return Array.Empty<SlotGesture>();
+        }
+
+        // 追加押下は PointerMove で届き、button の押下ビットが立っているときだけ押下になる
+        // An extra press arrives as a PointerMove and counts only when the button's pressed bit is set
+        public static bool IsPressTransition(int button, int pressedButtons)
+        {
+            return (pressedButtons & (1 << button)) != 0;
         }
 
         // Web の dblclick は左ボタンの 2 回目のクリックで 1 回出る

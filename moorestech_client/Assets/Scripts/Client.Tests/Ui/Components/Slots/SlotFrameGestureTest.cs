@@ -84,8 +84,8 @@ namespace Client.Tests.Ui.Components.Slots
         [Test]
         public void 左を押したまま右を押すと右の押下を出す()
         {
-            // PanelSimulator が追加押下を PointerMoveEvent で運ぶかは実測（Step 7 の分岐 3）
-            // Whether PanelSimulator carries an extra press as a PointerMoveEvent is measured (Step 7 branch 3)
+            // PanelSimulator が追加押下を PointerMoveEvent で運ぶかは実測
+            // Whether PanelSimulator carries an extra press as a PointerMoveEvent is measured
             var inside = _frame.worldBound.center;
             simulate.MouseDown(inside, MouseButton.LeftMouse);
             _gestures.Clear();

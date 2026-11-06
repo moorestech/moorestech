@@ -7,7 +7,7 @@
 .game-icon__image {
     display: none;
     flex-grow: 1;
-    -unity-background-scale-mode: scale-to-fit; /* Task 1 Step 7 で USS の import 警告が出たら Unity 6 の後継 background-size: contain に替える */
+    -unity-background-scale-mode: scale-to-fit;
 }
 
 .game-icon--image > .game-icon__image {

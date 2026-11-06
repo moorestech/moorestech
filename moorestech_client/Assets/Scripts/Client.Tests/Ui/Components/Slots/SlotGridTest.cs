@@ -71,8 +71,8 @@ namespace Client.Tests.Ui.Components.Slots
         [Test]
         public void 祖先で列の間隔だけ上書きすると行の間隔も追う()
         {
-            // Web の var(--slot-grid-row-gap, var(--slot-grid-gap)) と同じく、:root の既定が使う側で解けるかの実測（Step 3 の分岐）
-            // Measures whether the :root default resolves at the use site like the Web var(--slot-grid-row-gap, var(--slot-grid-gap)) (Step 3 branch)
+            // Web の var(--slot-grid-row-gap, var(--slot-grid-gap)) と同じく、:root の既定が使う側で解けるかの実測
+            // Measures whether the :root default resolves at the use site like the Web var(--slot-grid-row-gap, var(--slot-grid-gap))
             var (_, cells) = Mount("slot-knob-gap-only", 5, 10);
 
             Assert.AreEqual(10f, cells[1].worldBound.xMin - cells[0].worldBound.xMax, Tolerance);

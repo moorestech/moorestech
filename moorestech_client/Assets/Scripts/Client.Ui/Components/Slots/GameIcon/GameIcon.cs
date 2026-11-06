@@ -54,6 +54,24 @@ namespace Client.Ui.Components.Slots
                     EnableInClassList(FallbackStateClass, false);
                     break;
             }
+
+            #region Internal
+
+            void ShowFallback(UiText text)
+            {
+                // キーの無い LocalizedLabel をパネルに載せない（LogError になる）ので初回に作る
+                // Create on first use so a key-less LocalizedLabel never sits on the panel (it logs an error)
+                if (_fallbackLabel == null)
+                {
+                    _fallbackLabel = new LocalizedLabel { pickingMode = PickingMode.Ignore };
+                    _fallbackLabel.AddToClassList("game-icon__fallback");
+                    Add(_fallbackLabel);
+                }
+                _fallbackLabel.SetText(text);
+                EnableInClassList(FallbackStateClass, true);
+            }
+
+            #endregion
         }
 
         public void ClearIcon()
@@ -61,20 +79,6 @@ namespace Client.Ui.Components.Slots
             _image.style.backgroundImage = StyleKeyword.Null;
             EnableInClassList(ImageStateClass, false);
             EnableInClassList(FallbackStateClass, false);
-        }
-
-        private void ShowFallback(UiText text)
-        {
-            // キーの無い LocalizedLabel をパネルに載せない（LogError になる）ので初回に作る
-            // Create on first use so a key-less LocalizedLabel never sits on the panel (it logs an error)
-            if (_fallbackLabel == null)
-            {
-                _fallbackLabel = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-                _fallbackLabel.AddToClassList("game-icon__fallback");
-                Add(_fallbackLabel);
-            }
-            _fallbackLabel.SetText(text);
-            EnableInClassList(FallbackStateClass, true);
         }
     }
 }

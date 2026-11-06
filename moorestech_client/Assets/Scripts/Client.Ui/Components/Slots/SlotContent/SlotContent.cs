@@ -29,6 +29,20 @@ namespace Client.Ui.Components.Slots
             // The count is digits only and never translated, so plain Labels; the white stroke layer goes first so the glyph draws on top
             _countStroke = CreateCountLayer("slot-content__count-stroke");
             _count = CreateCountLayer("slot-content__count");
+
+            #region Internal
+
+            Label CreateCountLayer(string layerClass)
+            {
+                var layer = new Label { pickingMode = PickingMode.Ignore };
+                layer.AddToClassList("slot-content__count-layer");
+                layer.AddToClassList(layerClass);
+                layer.AddToClassList(UiTypographyClass.TextMedium);
+                Add(layer);
+                return layer;
+            }
+
+            #endregion
         }
 
         public void SetIcon(UiIcon icon, GameIconFallback fallback)
@@ -53,16 +67,6 @@ namespace Client.Ui.Components.Slots
             _count.text = string.Empty;
             _countStroke.text = string.Empty;
             EnableInClassList(CountedStateClass, false);
-        }
-
-        private Label CreateCountLayer(string layerClass)
-        {
-            var layer = new Label { pickingMode = PickingMode.Ignore };
-            layer.AddToClassList("slot-content__count-layer");
-            layer.AddToClassList(layerClass);
-            layer.AddToClassList(UiTypographyClass.TextMedium);
-            Add(layer);
-            return layer;
         }
     }
 }

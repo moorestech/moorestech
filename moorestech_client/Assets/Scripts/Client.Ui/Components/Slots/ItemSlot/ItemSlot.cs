@@ -38,54 +38,58 @@ namespace Client.Ui.Components.Slots
         {
             var presentation = ItemSlotPresentation.From(content);
             _frame.SetState(new SlotFrameState(content.Marks.Selected, presentation.Filled, content.Marks.Catalog, content.Marks.Insufficient, presentation.GhostShown));
-            ApplyShownContent(presentation);
+            ApplyShownContent();
             ApplyShortage(content.Shortage);
-        }
 
-        private void ApplyShownContent(ItemSlotPresentation presentation)
-        {
-            // 中身の無いマスは絵も個数もツールチップも出さない（Web の disabled）
-            // An empty cell shows no icon, count or tooltip (the Web disabled)
-            if (presentation.ShownIcon == null)
+            #region Internal
+
+            void ApplyShownContent()
             {
-                _content.ClearIcon();
-                _content.ClearCount();
-                HoverTooltipMark.Unmark(_frame);
-                return;
+                // 中身の無いマスは絵も個数もツールチップも出さない（Web の disabled）
+                // An empty cell shows no icon, count or tooltip (the Web disabled)
+                if (presentation.ShownIcon == null)
+                {
+                    _content.ClearIcon();
+                    _content.ClearCount();
+                    HoverTooltipMark.Unmark(_frame);
+                    return;
+                }
+                _content.SetIcon(presentation.ShownIcon, GameIconFallback.IdText);
+                if (presentation.ShowsBadge) _content.SetCount(presentation.BadgeCount);
+                else _content.ClearCount();
+                HoverTooltipMark.Mark(_frame, presentation.Tooltip);
             }
-            _content.SetIcon(presentation.ShownIcon, GameIconFallback.IdText);
-            if (presentation.ShowsBadge) _content.SetCount(presentation.BadgeCount);
-            else _content.ClearCount();
-            HoverTooltipMark.Mark(_frame, presentation.Tooltip);
-        }
 
-        private void ApplyShortage(ItemSlotShortage shortage)
-        {
-            // 包みは常に同じで、所持/必要の有無はラベルの出し入れだけで切り替える（Web の再マウント防止）
-            // The wrapper never changes; owned/required toggles only the label (the Web remount guard)
-            EnableInClassList(ShortageStateClass, shortage != null);
-            if (shortage == null) return;
-
-            // キーの無い LocalizedLabel をパネルに載せないよう初回に作る。白い縁の層を先に足し、字を上に描く
-            // Create on first use so a key-less LocalizedLabel never sits on the panel; the white stroke layer goes first so the glyph draws on top
-            if (_shortageLabel == null)
+            void ApplyShortage(ItemSlotShortage shortage)
             {
-                _shortageStroke = CreateShortageLayer("item-slot__shortage-stroke");
-                _shortageLabel = CreateShortageLayer("item-slot__shortage");
-            }
-            var summary = SlotTexts.ItemCountSummary(shortage.OwnedCount, shortage.RequiredCount);
-            _shortageStroke.SetText(summary);
-            _shortageLabel.SetText(summary);
-            _shortageLabel.EnableInClassList(LackStateClass, shortage.Lacking);
-        }
+                // 包みは常に同じで、所持/必要の有無はラベルの出し入れだけで切り替える（Web の再マウント防止）
+                // The wrapper never changes; owned/required toggles only the label (the Web remount guard)
+                EnableInClassList(ShortageStateClass, shortage != null);
+                if (shortage == null) return;
 
-        private LocalizedLabel CreateShortageLayer(string layerClass)
-        {
-            var layer = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-            layer.AddToClassList("item-slot__shortage-layer");
-            layer.AddToClassList(layerClass);
-            Add(layer);
-            return layer;
+                // キーの無い LocalizedLabel をパネルに載せないよう初回に作る。白い縁の層を先に足し、字を上に描く
+                // Create on first use so a key-less LocalizedLabel never sits on the panel; the white stroke layer goes first so the glyph draws on top
+                if (_shortageLabel == null)
+                {
+                    _shortageStroke = CreateShortageLayer("item-slot__shortage-stroke");
+                    _shortageLabel = CreateShortageLayer("item-slot__shortage");
+                }
+                var summary = SlotTexts.ItemCountSummary(shortage.OwnedCount, shortage.RequiredCount);
+                _shortageStroke.SetText(summary);
+                _shortageLabel.SetText(summary);
+                _shortageLabel.EnableInClassList(LackStateClass, shortage.Lacking);
+            }
+
+            LocalizedLabel CreateShortageLayer(string layerClass)
+            {
+                var layer = new LocalizedLabel { pickingMode = PickingMode.Ignore };
+                layer.AddToClassList("item-slot__shortage-layer");
+                layer.AddToClassList(layerClass);
+                Add(layer);
+                return layer;
+            }
+
+            #endregion
         }
     }
 }

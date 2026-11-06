@@ -42,7 +42,6 @@
 .slot-gallery__hotbar {
     --slot-size: var(--hotbar-slot-size);
     --icon-pad: 5px;
-    /* Task 2 Step 7 の変種 B を採ったときは -1 */
     --bevel-inset: inset;
     --face-inset: 0px;
     --bevel-1: 0.782875px;

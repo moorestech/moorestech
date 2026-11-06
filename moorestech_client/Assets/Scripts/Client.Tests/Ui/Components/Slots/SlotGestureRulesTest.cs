@@ -41,6 +41,15 @@ namespace Client.Tests.Ui.Components.Slots
         }
 
         [Test]
+        public void 押下ビットが立っているボタンだけを追加押下にする()
+        {
+            Assert.IsTrue(SlotGestureRules.IsPressTransition(0, 1));
+            Assert.IsFalse(SlotGestureRules.IsPressTransition(0, 2));
+            Assert.IsTrue(SlotGestureRules.IsPressTransition(1, 3));
+            Assert.IsFalse(SlotGestureRules.IsPressTransition(1, 1));
+        }
+
+        [Test]
         public void 左の2回目のクリックだけをダブルクリックにする()
         {
             Assert.IsTrue(SlotGestureRules.IsDoubleClick(0, 2));

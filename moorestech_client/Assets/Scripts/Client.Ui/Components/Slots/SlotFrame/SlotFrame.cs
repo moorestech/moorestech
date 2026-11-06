@@ -70,11 +70,11 @@ namespace Client.Ui.Components.Slots
                 foreach (var enter in SlotGestureRules.FromPointerEnter(evt.pressedButtons)) _slotGestured.OnNext(enter);
                 return;
             }
-            if (evt.button >= 0) _enterJudgementPending = false;
+            if (0 <= evt.button) _enterJudgementPending = false;
 
             // 別ボタンを押したまま追加で押すと UITK は PointerDownEvent でなく PointerMoveEvent で届ける（Web の onMouseDown は毎回出る）
             // While another button is held, an extra press arrives as a PointerMoveEvent, not a PointerDownEvent (Web onMouseDown fires every time)
-            if (evt.button < 0 || (evt.pressedButtons & (1 << evt.button)) == 0) return;
+            if (evt.button < 0 || !SlotGestureRules.IsPressTransition(evt.button, evt.pressedButtons)) return;
             if (SlotGestureRules.TryFromPointerDown(evt.button, evt.shiftKey, out var gesture)) _slotGestured.OnNext(gesture);
         }
 
