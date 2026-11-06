@@ -37,6 +37,7 @@ using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
 using Client.Starter.PlaytestSmoke;
 using Client.Starter.Playtest;
+using Client.WebUiHost.Boot;
 using Core.Item.Interface;
 using Game.Construction;
 using Game.Context;
@@ -132,6 +133,10 @@ namespace Client.Starter.Registration
             // Keep timetables for the UI outside the tick-synchronized path
             builder.Register<ClientTrainTimetableDatastore>(Lifetime.Singleton).As<IClientTrainTimetableLookup>().As<IClientTrainTimetableMutator>().AsSelf();
             builder.RegisterEntryPoint<TrainTimetableEventHandler>();
+
+            // Web の無応答の評価。W0-cef が master に置く場所と同じにし、取り込みで二重登録を作らない（cef-record §6）
+            // Web silence evaluation; kept where W0-cef places it on master so a later merge does not register it twice (cef-record §6)
+            builder.RegisterEntryPoint<WebUiSilenceWatcher>();
 
             // 通し検証はsmoke起動時だけ登録する（前例: PlaytestRecordRegistration のフラグ分岐）
             // The smoke runner is registered only on a smoke launch (precedent: PlaytestRecordRegistration's flag branch)

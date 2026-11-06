@@ -1,38 +1,32 @@
+using Client.Input;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
-using Client.Ui.Foundation.Routing;
 using Client.Ui.Foundation.Text;
-using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.Screens.Toast;
 using Client.Ui.State.PauseMenu;
-using Client.Ui.State.Settings;
 using Client.Ui.State.Toast;
-using Client.WebUiHost.Boot;
 using VContainer;
 using VContainer.Unity;
 
 namespace Client.Starter.Registration
 {
-    // Client.Ui の登録口。後続レーンは画面の Presenter・Mount をこの下に 1 行ずつ足す
-    // Registration entry for Client.Ui; later lanes append their screen presenters and mounts below
+    // Client.Ui の登録口。全体スイッチの分岐はここ 1 か所で、Presenter・View・部品はスイッチを読まない（plan §3.3 R1、設計書 §4.4・[A-16]）
+    // Registration entry for Client.Ui; the global switch branches only here, and presenters, views and parts never read it (plan §3.3 R1, design §4.4, [A-16])
+    // Presenter は GameUi 分岐の下に足す
+    // Add presenters below, inside the GameUi branch
     internal static class MainGameUiRegistration
     {
-        public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot)
+        public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot, UiSystem uiSystem)
         {
+            // Web の系では Client.Ui を 1 つも登録せず、GameUiRoot の層は空のまま残る。起動の系は UiSystemBootSelection がログに出している
+            // In the Web system nothing from Client.Ui is registered and the GameUiRoot layers stay empty; UiSystemBootSelection has logged the boot's system
+            if (uiSystem != UiSystem.GameUi) return;
+
             builder.RegisterComponent(gameUiRoot);
-            builder.RegisterEntryPoint<WebUiSuspension>();
-            builder.RegisterEntryPoint<WebUiSilenceWatcher>();
             builder.RegisterEntryPoint<GameUiLocaleClassBinder>();
             builder.RegisterEntryPoint<GameUiInputInstaller>();
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
-
-            // 画面の状態と型付きコマンド。Web のアダプタと GameUi の View が同じものを使う
-            // Screen state and typed commands, shared by the Web adapters and the GameUi views
-            builder.Register<PauseMenuCommands>(Lifetime.Singleton).As<IPauseMenuCommands>();
-            builder.Register<SettingsCommands>(Lifetime.Singleton).As<ISettingsCommands>();
-            builder.RegisterEntryPoint<PauseMenuModel>().AsSelf();
-            builder.RegisterEntryPoint<SettingsModel>().AsSelf();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
             builder.RegisterEntryPoint<ToastLayerPresenter>();
 

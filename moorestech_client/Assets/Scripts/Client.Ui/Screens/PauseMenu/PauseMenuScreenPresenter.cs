@@ -51,6 +51,17 @@ namespace Client.Ui.Screens.PauseMenu
             // Clear the draft on every open (D-7)
             _pauseMenuModel.OnPauseMenuOpened.Subscribe(_ => _draft.Reset()).AddTo(_subscriptions);
             _routingState.Current.Subscribe(snapshot => _view.SetShown(IsShownOn(snapshot))).AddTo(_subscriptions);
+
+            #region Internal
+
+            // ポーズを持つ画面の列挙は traits 表に任せる。どちらの系で描くかは composition root が登録の有無で決める（設計書 C10・[A-16]）
+            // The traits table enumerates pause screens; which system draws is decided by the composition root through registration (design C10, [A-16])
+            bool IsShownOn(UiRoutingSnapshot snapshot)
+            {
+                return UiScreenTraitsTable.Get(snapshot.Screen).PauseMenu;
+            }
+
+            #endregion
         }
 
         public void Dispose()
@@ -58,13 +69,6 @@ namespace Client.Ui.Screens.PauseMenu
             _subscriptions.Dispose();
             _view?.SetShown(false);
             _view?.RemoveFromHierarchy();
-        }
-
-        // ポーズを持つ画面の列挙は traits 表に任せ、主パネルが GameUi の持ち物のときだけ出す（D-20）
-        // The traits table enumerates pause screens; show only when GameUi owns the main panel (D-20)
-        private bool IsShownOn(UiRoutingSnapshot snapshot)
-        {
-            return UiScreenTraitsTable.Get(snapshot.Screen).PauseMenu && snapshot.MainPanelOwner == UiSurfaceOwner.GameUi;
         }
     }
 }

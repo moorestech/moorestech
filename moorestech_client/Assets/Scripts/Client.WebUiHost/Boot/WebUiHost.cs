@@ -25,6 +25,14 @@ namespace Client.WebUiHost.Boot
         private static Task<WebUiStopResult> _stopTask;
         public static WebSocketHub Hub => _hub;
 
+        // 今回の起動で Web ホストを飛ばしたか。書くのは WebUiStartup だけで、CEF の生成可否が読む（診断記録 WebUiHealthRecorder とは別の起動の状態）
+        // Whether this boot skipped the web host; only WebUiStartup writes it and CEF creation reads it (boot state, separate from the WebUiHealthRecorder diagnostics)
+        public static bool HostSkippedThisBoot { get; private set; }
+
+        internal static void SetHostSkippedThisBoot(bool skipped)
+        {
+            HostSkippedThisBoot = skipped;
+        }
 
         public static string WebUiUrl => _webUiUrl;
         private static string _webUiUrl;

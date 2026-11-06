@@ -1,7 +1,7 @@
 // ラダー1 uitk-lifeline: Webホストを起動しない状態で、Esc→設定→バグ報告→セーブ→セーブして終了をUITKだけで通す
 // Ladder 1 uitk-lifeline: with no web host, go Esc -> settings -> bug report -> save -> save and quit using UITK alone
-// 実行前にPlayModeを止め、execute-dynamic-codeで WebUiHostEditorSkip.Apply() を立ててから run-scenario.sh を呼ぶ
-// Stop PlayMode and set WebUiHostEditorSkip.Apply() via execute-dynamic-code before calling run-scenario.sh
+// 実行前にPlayModeを止め、execute-dynamic-codeで UiSystemEditorSwitch.Set(UiSystem.GameUi) を立ててから run-scenario.sh を呼ぶ（全体スイッチの UITK 側。Web ホストを起動しない）
+// Stop PlayMode and call UiSystemEditorSwitch.Set(UiSystem.GameUi) via execute-dynamic-code before run-scenario.sh (UITK side of the global switch; no web host)
 // 受け口URLはDI登録時に1回だけ読まれるので、MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9 もPlayMode起動前にEditorプロセスへ立てる
 // The receiver URL is read once at DI registration, so also set MOORESTECH_PLAYTEST_RECEIVER_BASE=http://127.0.0.1:9 in the Editor process before PlayMode starts
 // 最後の「セーブして終了」でPlayModeが止まるため、セーブして終了の結果（save.jsonの更新）は呼び出し側のシェルで確かめる

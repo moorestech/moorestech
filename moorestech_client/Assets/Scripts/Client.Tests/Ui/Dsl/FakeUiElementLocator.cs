@@ -15,6 +15,7 @@ namespace Client.Tests.Ui.Dsl
         public int StartCount { get; private set; }
         public int StopCount { get; private set; }
         public int SetTextCount { get; private set; }
+        public int FindCount { get; private set; }
         public UiElementSnapshot LastFound { get; private set; }
         public float LastFindBudgetSeconds { get; private set; }
 
@@ -36,6 +37,7 @@ namespace Client.Tests.Ui.Dsl
 
         public UniTask<UiElementSnapshot> Find(string testid, float remainingSeconds)
         {
+            FindCount++;
             LastFindBudgetSeconds = remainingSeconds;
             LastFound = _findStatus switch
             {
