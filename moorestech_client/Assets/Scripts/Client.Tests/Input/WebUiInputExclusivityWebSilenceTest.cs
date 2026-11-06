@@ -34,8 +34,8 @@ namespace Client.Tests.Input
             WebUiInputExclusivity.EvaluateWebSilence(At(14));
             AssertWebValuesCount(true);
 
-            // 16秒で無応答とみなし、ポインタも文字入力もWeb側を読まない
-            // At 16s the web counts as silent; neither pointer nor text input reads the web side
+            // 16秒で無応答、Web側を読まない
+            // At 16s web is silent; web side is not read
             WebUiInputExclusivity.EvaluateWebSilence(At(16));
             AssertWebValuesCount(false);
 

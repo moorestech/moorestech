@@ -56,8 +56,8 @@ namespace Client.Tests.BugReport.Bundle
             Assert.AreEqual(JTokenType.Null, json["webUiHealth"]["secondsSinceLastWebMessage"].Type);
         }
 
-        // 書き出し口が probe を読んで箱の manifest へ渡す配線を守る
-        // Pins the writer's wiring that reads the probe into the box's manifest
+        // probe→manifestの配線を確認
+        // Verifies probe-to-manifest wiring
         [Test]
         public async Task WriteAsync経由でprobeの値が箱のmanifestへ渡る()
         {

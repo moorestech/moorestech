@@ -7,8 +7,8 @@ using VContainer.Unity;
 namespace Client.WebUiHost.Boot
 {
     /// <summary>
-    /// 1秒ごとにWSの無応答を評価し、入力排他のWeb側の値を読むかを決め直させる（plan §3.11）
-    /// Evaluates WS silence every second so input exclusivity re-decides whether to read the web side (plan §3.11)
+    /// 1秒ごとにWS無応答を評価
+    /// Evaluates WS silence every second
     /// </summary>
     public sealed class WebUiSilenceWatcher : IInitializable
     {
@@ -16,7 +16,7 @@ namespace Client.WebUiHost.Boot
         // Silence means nothing arrives, so there is no change to subscribe to and a clock watches instead
         public void Initialize()
         {
-            Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ => WebUiInputExclusivity.EvaluateWebSilence(Stopwatch.GetTimestamp()));
+            Observable.Interval(TimeSpan.FromSeconds(1), Scheduler.MainThreadIgnoreTimeScale).Subscribe(_ => WebUiInputExclusivity.EvaluateWebSilence(Stopwatch.GetTimestamp()));
         }
     }
 }
