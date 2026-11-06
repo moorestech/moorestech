@@ -62,3 +62,5 @@
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | blueprintCopyはidを持たない共通種別になる | 捨てる | 同上。C# の `BlueprintCopyPlacementTarget` は表示名を辞書キー 1 つで解き（`PlacementTargetDisplayNameTest`）、id の有無は表示名に効かない | #1595 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | 保存BPだけが原文labelのrawになる | 捨てる | 同上。原文の名前を返すのは `BlueprintPlacementTarget.DisplayName` だけで、`PlacementTargetDisplayNameTest`「保存したブループリントは利用者が付けた名前をそのまま返す」が固定する | #1595 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | ホットバー枠のDTO形状もそのまま受け付ける | 捨てる | UITK のホットバーは配信 DTO を経ず `IPlacementTarget` を直接持つので、DTO の形の互換が無い | #1595 |
+| 2 | `src/shared/tooltip/CursorTooltip.test.ts` | resolves a content key from the dictionary without a raw-text fallback | 捨てる | UITK の CursorTooltip は `MouseCursorTooltipState` の `TooltipLine`（型付きの `LocalizationKey` だけ）を受け、Web の topic の contentKey（文字列のキー）の経路が無い。内容辞書の解決は `UiText.FromContent` と `LocalizationTextResolver` の既存 L1 が持つ | — |
+| 2 | `src/features/modeHud/modeHudDesign.test.ts` | 警告色のコントラスト改善を既存consumerへ共有する | 捨てる | UITK の操作モード HUD は置けない理由の警告の行を持たない（C# に書き手が無く、Web の橋も常に空文字。Web の mock だけが流す。D-7）。他の consumer（通知・列車の網・不足の強調）はそれぞれの画面レーンが写す | — |
