@@ -45,10 +45,12 @@ namespace Client.Ui.Components.Panels
                     AddTitleRowsAndBody();
                     break;
                 case GamePanelFrame.Craft:
+                    // 面はパネル自身の背景（USS）。輪は線の内縁を基準にするため線の子にする
+                    // The face is the panel's own background (USS); the ring is the line's child so it measures from the line's inner edge
                     AddToClassList("game-panel--craft");
-                    hierarchy.Add(Decoration("game-panel__craft-face"));
-                    hierarchy.Add(Decoration("game-panel__craft-rim"));
-                    hierarchy.Add(Decoration("game-panel__craft-line"));
+                    var craftLine = Decoration("game-panel__craft-line");
+                    craftLine.Add(Decoration("game-panel__craft-rim"));
+                    hierarchy.Add(craftLine);
                     AddTitleRowsAndBody();
                     hierarchy.Add(new GamePanelCraftGrip());
                     break;
