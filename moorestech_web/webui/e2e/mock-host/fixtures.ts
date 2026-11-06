@@ -121,7 +121,7 @@ export const uiStateKeyHints = [
   { keyNameKey: "ui.keyHint.key.tab", textKey: "ui.keyHint.text.inventory" },
   { keyNameKey: "ui.keyHint.key.r", textKey: "ui.keyHint.text.researchTree" },
 ];
-export const uiState = { state: "PlayerInventory", keyHints: uiStateKeyHints, webUiSuspended: false } satisfies UiStateData;
+export const uiState = { state: "PlayerInventory", keyHints: uiStateKeyHints } satisfies UiStateData;
 
 // DEMO(採点用): 60件=10段分。可視7段+スクロール余剰でノブ比が正本(≈70%)と揃う
 // DEMO (scoring): 60 items = 10 rows; 7 visible + overflow puts the thumb ratio at the reference's ~70%

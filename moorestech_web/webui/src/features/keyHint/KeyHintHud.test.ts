@@ -43,7 +43,7 @@ describe("KeyHintHud", () => {
 
   it("ヒントをkbd+文言の順で描く", () => {
     setDictionaries("english", { [tabKeyNameKey]: "Tab", [inventoryTextKey]: "Inventory" }, {}, {});
-    host.uiState = { state: "GameScreen", keyHints: [{ keyNameKey: tabKeyNameKey, textKey: inventoryTextKey }], webUiSuspended: false };
+    host.uiState = { state: "GameScreen", keyHints: [{ keyNameKey: tabKeyNameKey, textKey: inventoryTextKey }] };
 
     const renderer = render();
 
@@ -56,7 +56,7 @@ describe("KeyHintHud", () => {
   });
 
   it("ヒントが空ならHUD自体を描かない", () => {
-    host.uiState = { state: "GameScreen", keyHints: [], webUiSuspended: false };
+    host.uiState = { state: "GameScreen", keyHints: [] };
 
     const renderer = render();
 
@@ -66,7 +66,7 @@ describe("KeyHintHud", () => {
 
   it("blockingスキット中は描かない", () => {
     setDictionaries("english", { [tabKeyNameKey]: "Tab", [inventoryTextKey]: "Inventory" }, {}, {});
-    host.uiState = { state: "GameScreen", keyHints: [{ keyNameKey: tabKeyNameKey, textKey: inventoryTextKey }], webUiSuspended: false };
+    host.uiState = { state: "GameScreen", keyHints: [{ keyNameKey: tabKeyNameKey, textKey: inventoryTextKey }] };
     host.blockingSkit = true;
 
     const renderer = render();
@@ -76,7 +76,7 @@ describe("KeyHintHud", () => {
   });
 
   it("辞書に無いキーは声高なplaceholderへ落とす", () => {
-    host.uiState = { state: "GameScreen", keyHints: [{ keyNameKey: tabKeyNameKey, textKey: inventoryTextKey }], webUiSuspended: false };
+    host.uiState = { state: "GameScreen", keyHints: [{ keyNameKey: tabKeyNameKey, textKey: inventoryTextKey }] };
 
     const renderer = render();
 
