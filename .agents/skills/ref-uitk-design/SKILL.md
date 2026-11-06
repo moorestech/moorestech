@@ -108,7 +108,7 @@ public sealed class IconButton : VisualElement
 - 層は `UiLayer`（`S/Client.Ui/Foundation/Layers/UiLayer.cs`）の固定順の兄弟コンテナ。順の正本は `W/app/tokens.css` の `--z-*`。層を足すのは integrator で、enum と `UiLayerOrderTest` を同時に直す。画面・部品のレーンは足さない
 - 載せ方は `root.GetLayer(UiLayer.Screen, UiFamily.Stage)`〔F1〕（今は `GetLayer(UiLayer)`）。stage 族（1280×720 の舞台で一様に拡縮。パネル・グリッド）か viewport 族（実画面の辺に付く。常時 HUD）かは Web の所属（`ref-webui-design` §1.5）と同じにする
 - 層コンテナ・ルート・幕・描くだけの子は `PickingMode.Ignore`。忘れるとワールドのクリックとパネル外の右短押しが効かなくなる
-- 全体スイッチ〔W0-switch〕（Web／UITK。今は画面ごとの所有表 `UiOwnershipTable`／`UiRoutingState` の `MainPanelOwner`、入力の裁きは Web と UITK の論理和）を Presenter・View・部品が読まない。UITK のときだけ composition root（`S/Client.Starter/Registration/MainGameUiRegistration.cs`）が Presenter を登録する。入力の裁き（`UiPointerHitTest`・`UiInputExclusivity`）・DSL のロケータ・アンカーの解決はスイッチの系の値だけを読み、Web と UITK の値を論理和にしない
+- 全体スイッチ〔W0-switch〕（`Client.Input.UiSystem` の Web／GameUi。Editor 限定・既定 Web の 1 つで、起動で 1 回決まる）を Presenter・View・部品が読まない。UITK のときだけ composition root（`S/Client.Starter/Registration/MainGameUiRegistration.cs`）が Presenter を登録する。入力の裁き（`UiPointerHitTest`・`UiInputExclusivity`）・DSL のロケータ・アンカーの解決はスイッチの系の値だけを読み、Web と UITK の値を論理和にしない
 
 ## 8. 画面の型
 

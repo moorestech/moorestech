@@ -17,7 +17,7 @@
 - `moorestech_web/webui/src/` の下のファイルはどれかの行に入っていなければならない（G1 が落とす）。master の取り込みで新しい Web のファイルが入ったら、その取り込みの PR でここに行を足すか既存の行のパスに入れる
 - 取り込みで `e2e/` の下に新しい spec・fixture・撮影スクリプトが入ったら、その画面の行の `Web パス` に足す。足さないと受け皿の「Web の検証基盤」（束 5）の持ち物になり、その束の切替で記帳を求められない（G1 は `e2e/` の網羅を検査しない）
 - セルに `|` を書かない。空欄は `—`
-- Editor で所有表を一時的に書き換える（R4。例: ポーズの主パネルを Web へ戻して見比べる）ときは、PlayMode 中に `uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Ui.State.Routing.UiOwnershipEditorOverride.Set(Client.Ui.State.Routing.UiScreen.PauseMenu, Client.Ui.State.Routing.UiSurface.MainPanel, Client.Ui.State.Routing.UiSurfaceOwner.Web);'` を実行する。ルータは上書きの変化を購読しているので、次の画面遷移を待たずに Web の休止・ポーズの表示・ui_state の配信が切り替わる。戻すときは `UiOwnershipEditorOverride.Clear()`。上書きは Editor 限定で、ドメインリロードで消える
+- 全体スイッチ（計画 §3.3 R1〜R4）で描く系を選ぶ: PlayMode を止めた状態で Unity のメニュー `moorestech/UI System/GameUi (UITK)`（戻すときは `moorestech/UI System/Web`）を選ぶか、`uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'` を実行してから PlayMode に入る。値は起動ごとに 1 回だけ読まれ、Editor を閉じると既定の Web に戻る。GameUi の起動では Web ホストと CEF を起動せず、UITK にまだ無い画面は使えない（裁定）
 - 束を切り替える前（その段の ladder）に `node tools/uitk/test-name-parity.mjs --bundle <束>` で Web テスト名の差分 0 を見る。書式と処遇の表は `docs/uitk/disposition.md`
 
 ## 束
@@ -90,12 +90,13 @@
 
 | 束 | コミット | 判定 | 写し先・理由 |
 |---|---|---|---|
-| 1 | a97575e5b5 | 写した | R1 の全面オフ（C# UiRoutingState.WebUiSuspended を Web が受けて unmount） |
+| 1 | a97575e5b5 | 捨てた | 旧 R1 の Web 全面 unmount（UITK が主パネルを出す間 webUiSuspended で App を外す）。全体スイッチ（albof.17）で UITK 側は Web ホストを起動しなくなり休止の仕組みごと要らないので、W0-switch で外して master と同じ Web に戻した |
 | 1 | 05b9bdefa8 | 捨てた | Web が休止・カットシーンから描画を再開するときの stage 倍率の測り直しで、Web 自身の描画再開にだけ要る。UITK 側に写すものが無い |
-| 1 | 1095cab8bf | 写した | R1 の休止解除時の入力状態の送り直し（Web が送信済みキャッシュを捨て、最後のポインタ位置の当たり判定とフォーカス中の入力欄を即時送信。C# 側は解除時に両値を false へ捨てたまま Web の送り直しを待つ） |
-| 1 | ccb3d512f7 | 写した | R1 の休止解除後、次の実ポインタ移動まで DOM 変化ごとに最後のポインタ位置を当たり判定し直す（topic 到着後に描かれる HUD の上に静止したポインタの占有を Unity へ届ける）。UITK 側でも解除後に遅れて描かれる要素の上の占有を同様に扱う |
+| 1 | 1095cab8bf | 捨てた | 旧 R1 の休止解除時の入力状態の送り直し。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
+| 1 | ccb3d512f7 | 捨てた | 旧 R1 の休止解除後に DOM 変化ごとにポインタを当たり判定し直す処理。全体スイッチで休止が無くなり要らないので、W0-switch で外した |
 | 1 | 3e946e4bd3 | 写した | D-8 の拒否理由ごとのトースト文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits.ToLocalizationKey と localization.csv の文言 |
 | 1 | 5421c7f9f0 | 捨てた | 旧 R1（画面別の Web 休止）の入力排他フックを src/shared/uiState/inputExclusivity/ へ移した自動修正。全体スイッチの作り直し（W0-switch・albof.17）で旧 R1 の Web 側変更ごと外して master と同じ Web に戻すので、UITK 側に写すものが無い |
+| 1 | f044f5f5c4 | 捨てた | W0-switch（albof.17）の撤去コミット。旧 R1 の Web 側変更（a97575e5b5・05b9bdefa8・1095cab8bf・ccb3d512f7・5421c7f9f0）を外し、取り込み済み master と同じ Web に戻した（生成物 localizationKeys.ts は 3e946e4bd3 のまま）。UITK 側に写すものが無い |
 
 ## 参照キャプチャ
 
@@ -140,7 +141,7 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | 裁定 2 第一弾の画面 | A: 命綱（ポーズ・設定・バグ報告・トースト） | CEF が死んでも Esc でセーブと報告ができる |
 | 裁定 3 遠隔実行の待受 | (a) `HttpListener`。配布ビルドで動かなければ (b) 遠隔実行専用の最小 Kestrel | ADR 0072 の改訂が要る |
 | 確認 UI の演出の時間源 | 実時間（パネルのスケジューラ） | AGENTS.md の時間の規則はサーバーのゲームロジックの規則と読む |
-| 通信失敗のトースト | 全体スイッチの作り直し（W0-switch・albof.17）で決める。スイッチの UITK 側では Web ホストを起動しないので Web の toast は出ない | UITK のコマンドは WS を通らないので通信失敗は起きない見込み（推測・コード未確認）。W0-switch が UITK 側に通信失敗の経路が無いことを確かめ、この行を結論で書き換える |
+| 通信失敗のトースト | 全体スイッチの UITK 側では Web ホストも WS も起動しないので、Web の通信失敗のトーストは出ない。UITK のコマンドは C# を直接呼び、拒否は GameUiToastFeed.ShowRejected が拒否理由ごとのローカライズ文言で出す。Web 側は master と同じ Web の toast がそのまま出す | W0-switch で確かめた: Client.Ui と Client.Ui.State の asmdef が Client.WebUiHost を参照しない（grep 0 件）、L3 PauseMenuGameUiTest と GameUiSkeletonTest で UITK 側の WebUiHost.Hub が null |
 | 様式化 Mantine の素の見た目の 4 画面 | 2026-11-06 ユーザー裁定: Web 版と同じ見た目（様式化しない） | 該当行に「見た目は Web 版と同じ」と書いた |
 
 裁定 4（Web の扱い）は 2026-10-26 にユーザー裁定済み（PR #1555 の `.decisions/2026-10-26-UITKが安定するまでWeb-UIの変更を続け現行機能をすべてUITKへ移す.md`）。G1 はその帰結の追従ゲート。

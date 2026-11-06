@@ -121,14 +121,6 @@ namespace Client.WebUiHost.Boot
                 return;
             }
 
-            // 休止中（UITK が主パネルを出す間）の画面遷移要求は休止前に送られた残りなので、命綱のポーズを閉じさせない（R1）
-            // A screen-transition request during suspension was sent before it, so it must not close the lifeline pause (R1)
-            if (msg.Type == RequestUiStateActionHandler.Type && UiInputExclusivity.IsWebUiSuspended)
-            {
-                await RejectAsync("web_ui_suspended", "the web UI is suspended while the game UI owns the main panel");
-                return;
-            }
-
             // 待つ間に登録が外れた action は停止と名乗らず、未知の action として理由付きで返す
             // An action whose registration was cleared meanwhile is not reported as stopping but as unknown, with the reason logged
             if (_hub.ResolveAction(msg.Type) == null && _hub.ConnectionActions.Resolve(msg.Type) == null)

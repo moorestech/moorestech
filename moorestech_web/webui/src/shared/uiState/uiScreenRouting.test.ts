@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 
 import { NestedPauseSubStateNames } from "@/bridge";
 
-import { isWebUiSuspended, screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud, type UiScreen } from "./uiScreenRouting";
+import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud, type UiScreen } from "./uiScreenRouting";
 
 describe("screenForUiState", () => {
   it("PlayerInventory はインベントリ画面", () => {
@@ -162,17 +162,5 @@ describe("screenShowsTrainHud", () => {
 
   it.each(Object.entries(expectations))("%s の乗車HUD表示可否は %s", (screen, shown) => {
     expect(screenShowsTrainHud(screen as UiScreen)).toBe(shown);
-  });
-});
-
-describe("isWebUiSuspended（R1）", () => {
-  it("webUiSuspended=true だけが休止", () => {
-    expect(isWebUiSuspended({ webUiSuspended: true })).toBe(true);
-  });
-  it("webUiSuspended=false は休止しない", () => {
-    expect(isWebUiSuspended({ webUiSuspended: false })).toBe(false);
-  });
-  it("ui_state 未着（null）は休止しない", () => {
-    expect(isWebUiSuspended(null)).toBe(false);
   });
 });

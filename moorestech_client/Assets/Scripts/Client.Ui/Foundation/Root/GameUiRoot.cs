@@ -2,7 +2,6 @@ using System;
 using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Layers;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Foundation.Root
@@ -17,7 +16,6 @@ namespace Client.Ui.Foundation.Root
         public static GameUiRoot Instance => _instance;
 
         [SerializeField] private UIDocument uiDocument;
-        [SerializeField] private RawImage cefRawImage;
         [SerializeField] private UiAssetCatalog assetCatalog;
 
         // シリアライズ値の公開に限った素通しの読み出し（D-24）
@@ -31,7 +29,7 @@ namespace Client.Ui.Foundation.Root
             _instance = this;
             // 必須参照が欠けたら起動の段階で止める
             // Stop at startup when a required reference is missing
-            if (uiDocument == null || cefRawImage == null || assetCatalog == null) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
+            if (uiDocument == null || assetCatalog == null) throw new InvalidOperationException("[GameUiRoot] required references are not assigned on MainGameUI.prefab");
             assetCatalog.ValidateAllAssigned();
             var root = uiDocument.rootVisualElement;
             _layers = UiLayerStack.Build(root);
@@ -47,13 +45,6 @@ namespace Client.Ui.Foundation.Root
         public VisualElement GetLayer(UiLayer layer)
         {
             return _layers.GetLayer(layer);
-        }
-
-        // R1 の全面オフで CEF の絵を隠す
-        // Hide the CEF picture during the R1 full-off
-        public void SetCefVisible(bool visible)
-        {
-            cefRawImage.enabled = visible;
         }
 
         // ロケールなど、パネル全体に効くクラスをルートへ付け外しする

@@ -8,6 +8,7 @@
         "Client.Localization",
         "Client.Network",
         "Core.Master",
+        "Core.Item.Interface",
         "Game.Block.Interface",
         "Game.Research",
         "Game.Train",
