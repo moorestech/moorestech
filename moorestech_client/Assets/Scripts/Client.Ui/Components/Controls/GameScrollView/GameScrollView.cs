@@ -32,13 +32,28 @@ namespace Client.Ui.Components.Controls
             name = testid;
             AddToClassList("game-scroll-view");
             horizontalScrollerVisibility = ScrollerVisibility.Hidden;
-            verticalScrollerVisibility = ScrollerVisibility.Auto;
             mouseWheelScrollSize = WebWheelPixelsPerNotch / WheelEvent.scrollDeltaPerTick;
+
+            // バーの有無は流れの高さで決める。Auto は子の変形（押下の 1px 沈み）まで数えて押す間だけバーを出す
+            // Bar presence follows the flow heights; Auto counts child transforms (the 1px press sink) and flashes the bar while pressed
+            verticalScrollerVisibility = ScrollerVisibility.Hidden;
+            contentContainer.RegisterCallback<GeometryChangedEvent>(_ => UpdateVerticalScrollerVisibility());
+            contentViewport.RegisterCallback<GeometryChangedEvent>(_ => UpdateVerticalScrollerVisibility());
 
             // スクロール量の変化はバーの値の変化で拾う（ホイール・ドラッグ・ScrollTo・SetScrollOffset のどれでも来る）
             // Offset changes come from the bar value (wheel, drag, ScrollTo and SetScrollOffset all move it)
             verticalScroller.valueChanged += offset => _onScrollOffsetChanged.OnNext(offset);
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
+
+            #region Internal
+
+            void UpdateVerticalScrollerVisibility()
+            {
+                var overflows = contentViewport.layout.height < contentContainer.layout.height;
+                verticalScrollerVisibility = overflows ? ScrollerVisibility.AlwaysVisible : ScrollerVisibility.Hidden;
+            }
+
+            #endregion
         }
 
         public void SetScrollOffset(float y)
