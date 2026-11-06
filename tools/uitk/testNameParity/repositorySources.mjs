@@ -16,8 +16,8 @@ function git(repositoryRoot, args) {
 function listWorkingTree(repositoryRoot, roots) {
   // 未コミットの新規ファイルも含め、作業ツリーに実在するものだけを返す
   // Include uncommitted new files and return only files that exist in the working tree
-  const listing = git(repositoryRoot, ["ls-files", "--cached", "--others", "--exclude-standard", "--", ...roots]);
-  return listing.split("\n").filter((path) => path !== "" && existsSync(join(repositoryRoot, path)));
+  const listing = git(repositoryRoot, ["ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", ...roots]);
+  return listing.split("\0").filter((path) => path !== "" && existsSync(join(repositoryRoot, path)));
 }
 
 export function readWebTests(repositoryRoot, webRev) {
@@ -25,7 +25,7 @@ export function readWebTests(repositoryRoot, webRev) {
   // A null webRev reads the working tree; otherwise read Web at that commit (to match against pre-removal names)
   const paths = webRev === null
     ? listWorkingTree(repositoryRoot, [WEB_UI_ROOT])
-    : git(repositoryRoot, ["ls-tree", "-r", "--name-only", webRev, "--", WEB_UI_ROOT]).split("\n").filter((path) => path !== "");
+    : git(repositoryRoot, ["ls-tree", "-r", "-z", "--name-only", webRev, "--", WEB_UI_ROOT]).split("\0").filter((path) => path !== "");
   const tests = [];
   for (const path of paths) {
     const webPath = path.slice(WEB_UI_ROOT.length);
