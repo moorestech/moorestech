@@ -40,7 +40,7 @@
 /* Every locale's title fits on one line, so the row is fixed at the Web 34px x 1.3; UITK's natural glyph height (Latin 47, JP 50px) exceeds it and the glyphs overflow from the center (as CSS negative half-leading does) */
 .pause-menu__title {
     flex-shrink: 0;
-    height: 44.2px;
+    height: var(--title-order-1-row-height);
     margin-bottom: 16px;
 }
 

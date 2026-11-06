@@ -43,15 +43,17 @@
 }
 
 .title--order-1 {
+    --title-order-1-row-height: 44.2px;
     font-size: 34px;
     letter-spacing: -3.6px;
-    min-height: 44.2px;
+    min-height: var(--title-order-1-row-height);
 }
 
 .title--order-2 {
+    --title-order-2-row-height: 35.1px;
     font-size: 26px;
     letter-spacing: -3.6px;
-    min-height: 35.1px;
+    min-height: var(--title-order-2-row-height);
 }
 
 .title--order-3 {
