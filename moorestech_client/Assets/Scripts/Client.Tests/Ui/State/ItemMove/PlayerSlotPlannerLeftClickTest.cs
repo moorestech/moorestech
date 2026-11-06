@@ -69,14 +69,14 @@ namespace Client.Tests.Ui.State.ItemMove
             ItemMoveAssert.PlanActions(PlayerSlotPlanner.PlanLeftClick(SlotRef.Main(1), Slot(0, 0), true, context));
         }
 
-        /// <web-test file="src/shared/itemMove/playerSlotPlan.test.ts">inventoryOpenFailed は送信せず理由を返す</web-test>
+        /// <web-test file="src/shared/itemMove/playerSlotPlan.test.ts">%s は送信せず理由を返す</web-test>
         [Test]
         public void インベントリを開けなかったときは送らず理由を返す()
         {
             AssertRefused(BlockSlotRestriction.InventoryOpenFailed, ShiftMoveRefusalReason.InventoryOpenFailed);
         }
 
-        /// <web-test file="src/shared/itemMove/playerSlotPlan.test.ts">detailLoading は送信せず理由を返す</web-test>
+        /// <web-test file="src/shared/itemMove/playerSlotPlan.test.ts">%s は送信せず理由を返す</web-test>
         [Test]
         public void 詳細の取得中は送らず理由を返す()
         {

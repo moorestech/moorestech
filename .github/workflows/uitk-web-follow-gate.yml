@@ -55,3 +55,14 @@ jobs:
             [ "$name" = "test_uitk_web_follow_real_ledger.py" ] && continue
             python3 -m unittest discover -s .github/scripts/tests -p "$name" -v
           done
+
+      - name: Test the test-name parity tool
+        run: node --test tools/uitk/testNameParity/tests/*.test.mjs
+
+      # 録画ランナー（EDC の分類・終了コード 2）の自己テスト。master の PR でも走らせて破損を止める
+      # Self-tests of the recorded-playtest runner (EDC classification and exit code 2); run on master PRs too so breakage is caught
+      - name: Test the playtest EDC client and runner exit codes
+        run: |
+          set -e
+          bash .agents/skills/unity-playmode-recorded-playtest/scripts/tests/edc-client-test.sh
+          bash .agents/skills/unity-playmode-recorded-playtest/scripts/tests/run-scenario-compile-error-test.sh

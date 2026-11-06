@@ -26,6 +26,7 @@ namespace Client.Tests.Ui.Screens.Settings
             _commands = new RecordingSettingsCommands();
         }
 
+        /// <web-test file="src/features/settings/LanguageSelect.test.ts">一覧が届いたら配信順のoptionsを並べる</web-test>
         [Test]
         public void 言語は配信順のoptionsを縦に並べ現在値を選択する()
         {
@@ -51,6 +52,9 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
         }
 
+        /// <web-test file="src/features/settings/SprintModeSelect.test.ts">topicの現在値を選択する</web-test>
+        /// <web-test file="src/features/settings/SprintModeSelect.test.ts">ホールド選択を設定actionへ送る</web-test>
+        /// <web-test file="src/features/settings/SprintModeSelect.test.ts">topicのtoggleからholdへの更新を表示する</web-test>
         [Test]
         public void 走りはtopicの現在値を選択しホールド選択を設定actionへ送る()
         {
@@ -66,6 +70,7 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.IsFalse(IsSelected(view, "sprint-mode-option-toggle"));
         }
 
+        /// <web-test file="src/features/settings/SprintModeSelect.test.ts">復旧記録を表示し選択後のtopicで解除する</web-test>
         [Test]
         public void 走りの復旧記録を表示し解除のtopicで消す()
         {
@@ -75,6 +80,7 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.IsFalse(IsShown(Find<Label>(view, "sprint-mode-recovered")));
         }
 
+        /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">プリセットと一致するときはその値を選択しカスタム表示を出さない</web-test>
         [Test]
         public void プリセットと一致するときはその値を選択しカスタム表示を出さない()
         {
@@ -85,6 +91,7 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.IsFalse(IsShown(Find<Label>(view, "graphics-recovered")));
         }
 
+        /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">カスタムのときは無選択にしてカスタム表示を1件出す</web-test>
         [Test]
         public void カスタムのときは無選択にしてカスタム表示を1件出す()
         {
@@ -94,6 +101,7 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.AreEqual(1, view.Query<Label>("graphics-preset-custom").ToList().Count);
         }
 
+        /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">項目変更は対象と値を、プリセット選択はプリセット名を送る</web-test>
         [Test]
         public void 項目変更は今の設定値の1項目だけを差し替えプリセット選択はプリセット名を送る()
         {
@@ -112,6 +120,7 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.AreEqual(GraphicsQualityPreset.High, _commands.Issued.Last().Preset);
         }
 
+        /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">数値項目は数値で送る</web-test>
         [Test]
         public void 数値項目と地形は対応する値で送る()
         {
@@ -125,6 +134,7 @@ namespace Client.Tests.Ui.Screens.Settings
             Assert.AreEqual(GraphicsTerrainDetail.Coarse, _commands.Issued[2].Graphics.TerrainDetail);
         }
 
+        /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">復旧表示をtopicの解除通知まで保持し同値選択も送る</web-test>
         [Test]
         public void 画質の復旧表示を解除通知まで保持し同値選択も送る()
         {

@@ -54,6 +54,8 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.IsNull(_view.Q("pause-menu-save"));
         }
 
+        /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">トップは4ボタンだけを出し、言語選択と報告欄を出さない</web-test>
+        /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">設定ボタンはsettingsへのshow_pageを送る</web-test>
         [Test]
         public void トップは4ボタンだけを出し言語選択と報告欄を出さず各ボタンがコマンドを1回出す()
         {
@@ -92,6 +94,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.IsTrue(Find<Button>(_view, "pause-menu-open-bug-report").ClassListContains(AnchorIds.PauseBugReport));
         }
 
+        /// <web-test file="e2e/tests/system/pauseMenu.spec.ts">pause_menu.currentの切断状態を表示する</web-test>
         [Test]
         public void 切断状態を赤字の1行で表示する()
         {
@@ -142,6 +145,7 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.Greater(body.contentContainer.layout.height, body.contentViewport.layout.height);
         }
 
+        /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">バグ報告の書きかけはトップへ戻って再び開いても残る</web-test>
         [Test]
         public void バグ報告の書きかけはトップへ戻って再び開いても残る()
         {

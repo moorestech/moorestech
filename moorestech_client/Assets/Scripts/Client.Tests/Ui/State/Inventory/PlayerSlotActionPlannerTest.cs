@@ -77,14 +77,14 @@ namespace Client.Tests.Ui.State.Inventory
             Assert.IsInstanceOf<BeginSplitDragPlan>(plan);
         }
 
-        /// <web-test file="src/features/inventory/slotActions.test.ts">equipment の範囲外 ref は例外を投げず何も送らない</web-test>
+        /// <web-test file="src/features/inventory/slotActions.test.ts">%s の範囲外 ref は例外を投げず何も送らない</web-test>
         [Test]
         public void 範囲外の装備番地は例外を投げず何も送らない()
         {
             AssertEveryGestureSendsNothing(Default(), SlotRef.Equipment(0));
         }
 
-        /// <web-test file="src/features/inventory/slotActions.test.ts">main の範囲外 ref は例外を投げず何も送らない</web-test>
+        /// <web-test file="src/features/inventory/slotActions.test.ts">%s の範囲外 ref は例外を投げず何も送らない</web-test>
         [Test]
         public void 範囲外のメイン番地は例外を投げず何も送らない()
         {
