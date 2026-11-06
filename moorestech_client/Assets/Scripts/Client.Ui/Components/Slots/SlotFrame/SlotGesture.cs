@@ -1,8 +1,8 @@
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// スロットの身振り 1 つ。Shift は左押下でだけ意味を持つ（Web の onLeftDown(shiftKey)）
-    /// One slot gesture; Shift matters only for a left press (the Web onLeftDown(shiftKey))
+    /// 身振り 1 つ。Shift は左押下のみ有効
+    /// One gesture; Shift matters only for a left press
     /// </summary>
     public readonly struct SlotGesture
     {

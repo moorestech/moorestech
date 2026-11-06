@@ -1,8 +1,8 @@
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// スロットの身振りの種類（Web の onLeftDown・onRightDown・onLeftEnter・onRightEnter・onDoubleClick・onHoverChange）
-    /// Slot gesture kinds (the Web onLeftDown, onRightDown, onLeftEnter, onRightEnter, onDoubleClick and onHoverChange)
+    /// 身振りの種類（Web の useSlotMouse の各 on*）
+    /// Gesture kinds (each on* of the Web useSlotMouse)
     /// </summary>
     public enum SlotGestureKind
     {

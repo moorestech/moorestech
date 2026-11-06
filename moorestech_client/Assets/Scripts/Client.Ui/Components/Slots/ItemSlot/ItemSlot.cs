@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// アイテム 1 マス（個数・所持/必要・ゴースト・ツールチップ）。Web の ItemSlot
-    /// One item cell (count, owned/required, ghost and tooltip); the Web ItemSlot
+    /// アイテム 1 マス（Web の ItemSlot）
+    /// One item cell (the Web ItemSlot)
     /// </summary>
     public sealed class ItemSlot : VisualElement
     {
@@ -45,8 +45,8 @@ namespace Client.Ui.Components.Slots
 
             void ApplyShownContent()
             {
-                // 中身の無いマスは絵も個数もツールチップも出さない（Web の disabled）
-                // An empty cell shows no icon, count or tooltip (the Web disabled)
+                // 空きマスは何も出さない（Web の disabled）
+                // An empty cell shows nothing (the Web disabled)
                 if (presentation.ShownIcon == null)
                 {
                     _content.ClearIcon();

@@ -11,8 +11,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots
 {
     /// <summary>
-    /// BlockSlot の暗い面・絵・名前のツールチップを確かめる（L1）
-    /// Verifies BlockSlot's dark face, picture and name tooltip (L1)
+    /// BlockSlot の面・絵・ツールチップを確かめる（L1）
+    /// Verifies BlockSlot's face, picture and tooltip (L1)
     /// </summary>
     public class BlockSlotTest : UiTestHost
     {
@@ -23,8 +23,8 @@ namespace Client.Tests.Ui.Components.Slots
         [SetUp]
         public void AddSlot()
         {
-            // 言語の保存値を退避して英語に固定する（GameIconTest と同じ手順）
-            // Save the stored language and pin English (same steps as GameIconTest)
+            // 言語の保存値を退避し英語に固定
+            // Save the stored language and pin English
             _hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
             _savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
             Localize.Initialize();

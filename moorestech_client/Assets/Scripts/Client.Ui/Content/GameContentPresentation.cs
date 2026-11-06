@@ -7,8 +7,8 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Ui.Content
 {
     /// <summary>
-    /// ID → 表示素材（UiIcon・名前）を 1 か所で解く Content 層（設計書 A-4）
-    /// The Content layer resolving IDs into display material (UiIcon and names) in one place (design A-4)
+    /// ID → 表示素材を 1 か所で解く Content 層（A-4）
+    /// Content layer resolving IDs into display material in one place (A-4)
     /// </summary>
     public sealed class GameContentPresentation
     {
@@ -44,8 +44,8 @@ namespace Client.Ui.Content
 
         public UiText ItemName(ItemId id)
         {
-            // 空きは表示素材にしない。画面が ItemSlotContent の Icon を null にして表す
-            // An empty ID is never display material; the screen expresses it with a null ItemSlotContent icon
+            // 空きは表示素材にしない（画面側が Icon を null にする）
+            // An empty ID is not display material (the screen nulls the icon)
             if (id == ItemMaster.EmptyItemId) throw new ArgumentException("The empty item has no display material; pass a null icon to ItemSlotContent instead", nameof(id));
             return UiText.FromContent(ContentLocalizationKeys.ItemName(MasterHolder.ItemMaster.GetItemGuid(id)));
         }

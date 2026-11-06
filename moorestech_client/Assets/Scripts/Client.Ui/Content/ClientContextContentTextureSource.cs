@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Ui.Content
 {
     /// <summary>
-    /// 本番のテクスチャの出所。ClientContext の画像コンテナを読む（作る側は全部 Texture2D）
-    /// The production texture source, reading ClientContext's image containers (all built from Texture2D)
+    /// 本番のテクスチャの出所
+    /// The production texture source
     /// </summary>
     public sealed class ClientContextContentTextureSource : IGameContentTextureSource
     {

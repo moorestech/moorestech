@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// 列数固定のスロットの格子。USS に grid が無いので列数ごとの行に並べ、間隔は USS のつまみで付ける（Web の SlotGrid）
-    /// Fixed-column slot grid; USS has no grid, so items go into rows of the column count and the gaps come from USS knobs (the Web SlotGrid)
+    /// 列数固定の格子。行に並べ間隔は USS（Web の SlotGrid）。USS に grid が無いため
+    /// Fixed-column grid in rows, gaps from USS (the Web SlotGrid); USS has no grid
     /// </summary>
     public sealed class SlotGrid : VisualElement
     {
@@ -84,8 +84,8 @@ namespace Client.Ui.Components.Slots
 
         private void PlaceAt(int index)
         {
-            // 行の頭のマスで新しい行を作る。最初の行だけ上の間隔を持たない
-            // A row-start cell opens a new row; only the first row has no top gap
+            // 行頭のマスで新しい行を作る。最初の行は上の間隔なし
+            // A row-start cell opens a new row; the first row has no top gap
             var column = index % _columns;
             if (column == 0)
             {

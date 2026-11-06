@@ -4,8 +4,8 @@ using Client.Ui.State.Text;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// ItemSlot に入れる値の束（Web の ItemSlot の props）
-    /// The bundle of values for an ItemSlot (the Web ItemSlot props)
+    /// ItemSlot の入力値（Web の props）
+    /// Input values of an ItemSlot (the Web props)
     /// </summary>
     public sealed class ItemSlotContent
     {
@@ -21,8 +21,8 @@ namespace Client.Ui.Components.Slots
         public ItemSlotShortage Shortage { get; }
         public ItemSlotGhost Ghost { get; }
 
-        // null は表示中のアイコンの名前を使う（Web の tooltip 未指定）
-        // null uses the shown icon's name (the Web tooltip left unset)
+        // null は表示中の名前を使う（Web の tooltip 未指定）
+        // null uses the shown name (the Web tooltip unset)
         public UiText TooltipOverride { get; }
 
         public ItemSlotContent(UiIcon icon, int? count, ItemSlotMarks marks, ItemSlotShortage shortage, ItemSlotGhost ghost, UiText tooltipOverride)

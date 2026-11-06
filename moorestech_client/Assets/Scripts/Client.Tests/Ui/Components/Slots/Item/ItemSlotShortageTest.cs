@@ -12,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots.Item
 {
     /// <summary>
-    /// ItemSlot の所持/必要の文字・色・位置・ツールチップと包みの使い回しを確かめる（L1）
-    /// Verifies ItemSlot owned/required text, color, position, tooltip and wrapper reuse (L1)
+    /// ItemSlot の所持/必要の表示を確かめる（L1）
+    /// Verifies ItemSlot owned/required display (L1)
     /// </summary>
     public class ItemSlotShortageTest : UiTestHost
     {
@@ -26,8 +26,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
         [SetUp]
         public void PinEnglish()
         {
-            // 言語の保存値を退避して英語に固定する（GameIconTest と同じ手順）
-            // Save the stored language and pin English (same steps as GameIconTest)
+            // 言語の保存値を退避し英語に固定
+            // Save the stored language and pin English
             _hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
             _savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
             Localize.Initialize();
@@ -122,8 +122,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
             slot.SetContent(new ItemSlotContent(SlotTestIcons.WithTexture("1", "Iron"), 3, Plain, new ItemSlotShortage(3, 5, true, null), null, null));
             simulate.FrameUpdate();
 
-            // テストパネルは寸法を画素へ丸めるので位置の比較は 0.5px まで許す
-            // The test panel rounds dimensions to pixels, so position comparisons allow 0.5px
+            // 画素丸めのため 0.5px まで許す
+            // Allow 0.5px because sizes snap to pixels
             var label = slot.Q<Label>(className: "item-slot__shortage");
             var frame = slot.Q<SlotFrame>();
             Assert.AreEqual(13f, label.resolvedStyle.fontSize, 0.01f);

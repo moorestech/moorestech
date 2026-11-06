@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// ボタンの番号と押下中のビットから身振りを決める（Web の useSlotMouse）
-    /// Decides gestures from the button index and held-button bits (the Web useSlotMouse)
+    /// ボタンと押下ビットから身振りを決める（Web の useSlotMouse）
+    /// Decides gestures from button and held bits (the Web useSlotMouse)
     /// </summary>
     internal static class SlotGestureRules
     {
@@ -41,8 +41,8 @@ namespace Client.Ui.Components.Slots
 
         public static IReadOnlyList<SlotGesture> FromPointerEnter(int pressedButtons)
         {
-            // 左の進入を先に、右を後に出す（Web の onMouseEnter の判定順）
-            // Emit the left enter first and the right second (the Web onMouseEnter order)
+            // 左の進入を先、右を後に出す（Web の順）
+            // Emit left enter first, right second (the Web order)
             var left = (pressedButtons & LeftHeldBit) != 0;
             var right = (pressedButtons & RightHeldBit) != 0;
             if (left && right) return BothEnters;

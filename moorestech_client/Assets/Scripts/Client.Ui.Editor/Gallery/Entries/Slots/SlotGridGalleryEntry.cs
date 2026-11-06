@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots
 {
     /// <summary>
-    /// SlotGrid の見本。持ち物の 10 列 45 マス（参照と同じ個数の並び。5 行目は 5 マス）と、レシピ一覧の 6 列のカタログ
-    /// SlotGrid samples: the inventory 10 columns, 45 cells (same count layout as the reference; row 5 has 5 cells) and the 6-column recipe catalog
+    /// SlotGrid の見本。持ち物とレシピ一覧の行を並べる
+    /// SlotGrid samples: inventory and recipe catalog rows
     /// </summary>
     public sealed class SlotGridGalleryEntry : IUiGalleryEntry
     {
@@ -40,8 +40,8 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
             }
             inventoryRow.Add(inventory);
 
-            // クラフトレシピの一覧（4-player-inventory の右）: 未所持のカタログ 6 列 3 行
-            // Craft recipe list (right of 4-player-inventory): unowned catalog, 6 columns by 3 rows
+            // クラフトレシピの一覧（4-player-inventory の右）
+            // Craft recipe list (right of 4-player-inventory)
             var catalogRow = SlotGallerySampleSheet.AddRow(root, "slot-gallery__item-list");
             var catalog = new SlotGrid("gallery-slot-grid-catalog", 6);
             for (var i = 0; i < 18; i++)

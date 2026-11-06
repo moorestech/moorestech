@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots
 {
     /// <summary>
-    /// PlacementTargetFace が絵か名前のどちらか一方を出すことを確かめる（L1）
-    /// Verifies PlacementTargetFace shows exactly one of the picture or the name (L1)
+    /// PlacementTargetFace の絵か名前の一方を確かめる（L1）
+    /// Verifies PlacementTargetFace shows the picture or the name (L1)
     /// </summary>
     public class PlacementTargetFaceTest : UiTestHost
     {
@@ -22,8 +22,8 @@ namespace Client.Tests.Ui.Components.Slots
         [SetUp]
         public void AddFace()
         {
-            // 言語の保存値を退避して英語に固定する（GameIconTest と同じ手順）
-            // Save the stored language and pin English (same steps as GameIconTest)
+            // 言語の保存値を退避し英語に固定
+            // Save the stored language and pin English
             _hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
             _savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
             Localize.Initialize();

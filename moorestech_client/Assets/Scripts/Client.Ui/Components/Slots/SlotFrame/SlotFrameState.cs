@@ -1,8 +1,8 @@
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// SlotFrame の 5 状態（Web の data-selected・filled・catalog・insufficient・ghost）
-    /// The five SlotFrame states (the Web data-selected, filled, catalog, insufficient and ghost)
+    /// SlotFrame の 5 状態（Web の data 属性）
+    /// The five SlotFrame states (the Web data attributes)
     /// </summary>
     public readonly struct SlotFrameState
     {

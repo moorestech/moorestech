@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots
 {
     /// <summary>
-    /// スロット族の見本の入れ物と見本の絵。見本の寸法と画面のつまみの上書きの USS を当てる
-    /// Containers and pictures for the slot-family samples, applying the sample-size and screen-knob-override USS
+    /// スロット族の見本の入れ物と絵（見本寸法と上書き USS を当てる）
+    /// Containers and pictures for slot-family samples (sample-size and override USS)
     /// </summary>
     public static class SlotGallerySampleSheet
     {

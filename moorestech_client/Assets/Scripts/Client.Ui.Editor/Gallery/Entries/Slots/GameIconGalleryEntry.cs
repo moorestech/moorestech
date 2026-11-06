@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots
 {
     /// <summary>
-    /// GameIcon の見本。絵・#id・名前・何も出さない、の 4 つを 48px の箱に並べる
-    /// GameIcon samples: picture, #id, name and nothing, in 48px boxes
+    /// GameIcon の見本。絵・#id・名前・無表示を並べる
+    /// GameIcon samples: picture, #id, name and nothing
     /// </summary>
     public sealed class GameIconGalleryEntry : IUiGalleryEntry
     {

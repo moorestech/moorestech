@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// 1 マスの中身（アイコンと右下の個数）。Web の slotContent.module.css の .icon・.count
-    /// One cell's content (icon and bottom-right count); the Web slotContent.module.css .icon and .count
+    /// 1 マスの中身（アイコンと個数）（Web の slotContent）
+    /// One cell content: icon and count (the Web slotContent)
     /// </summary>
     public sealed class SlotContent : VisualElement
     {

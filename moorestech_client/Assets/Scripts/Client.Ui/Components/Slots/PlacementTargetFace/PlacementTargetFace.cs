@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// 配置対象の顔。絵があれば絵、無ければ名前（Web の PlacementTargetFace）
-    /// A placement target's face: the picture when present, otherwise the name (the Web PlacementTargetFace)
+    /// 絵があれば絵、無ければ名前（Web の同名部品）
+    /// The picture when present, otherwise the name (the Web counterpart)
     /// </summary>
     public sealed class PlacementTargetFace : VisualElement
     {
@@ -27,8 +27,8 @@ namespace Client.Ui.Components.Slots
 
         public void SetIconTarget(UiIcon icon, UiText displayName)
         {
-            // テクスチャが欠けた対象も名前で描く（Web は !iconUrl で名前に倒す）
-            // A target whose texture is missing also draws its name (the Web falls back on !iconUrl)
+            // 欠けた対象も名前で描く（Web の !iconUrl）
+            // A missing texture also draws the name (the Web !iconUrl)
             if (icon.Texture == null)
             {
                 SetNameTarget(displayName);

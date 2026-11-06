@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots
 {
     /// <summary>
-    /// BlockSlot の見本。絵のあるブロックと、絵が欠けて #id になるブロック
-    /// BlockSlot samples: a block with a picture and one whose missing picture falls back to #id
+    /// BlockSlot の見本。絵ありと絵欠けを並べる
+    /// BlockSlot samples: with and without a picture
     /// </summary>
     public sealed class BlockSlotGalleryEntry : IUiGalleryEntry
     {

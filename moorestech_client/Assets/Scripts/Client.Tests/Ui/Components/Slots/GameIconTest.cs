@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots
 {
     /// <summary>
-    /// GameIcon の絵と 3 種の代わりを本番テーマのパネルで確かめる（L1）
-    /// Verifies the GameIcon picture and its three fallbacks on a production-theme panel (L1)
+    /// GameIcon の絵と代わりを確かめる（L1）
+    /// Verifies the GameIcon picture and fallbacks (L1)
     /// </summary>
     public class GameIconTest : UiTestHost
     {
@@ -21,8 +21,8 @@ namespace Client.Tests.Ui.Components.Slots
         [SetUp]
         public void AddIcon()
         {
-            // 言語の保存値を退避して英語に固定する（TooltipFaceTest と同じ手順）
-            // Save the stored language and pin English (same steps as TooltipFaceTest)
+            // 言語の保存値を退避し英語に固定
+            // Save the stored language and pin English
             _hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
             _savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
             Localize.Initialize();

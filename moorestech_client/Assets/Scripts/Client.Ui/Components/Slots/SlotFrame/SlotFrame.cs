@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// 1 マスの枠・ベベル・面と 5 状態、マウスの身振り（Web の SlotFrame と useSlotMouse）
-    /// One cell's frame, bevel, face, five states and mouse gestures (the Web SlotFrame and useSlotMouse)
+    /// 1 マスの枠・状態・身振り（Web の SlotFrame）
+    /// One cell frame, states and gestures (the Web SlotFrame)
     /// </summary>
     public sealed class SlotFrame : VisualElement
     {
@@ -24,8 +24,8 @@ namespace Client.Ui.Components.Slots
             name = testid;
             AddToClassList("slot-frame");
 
-            // 下端の帯 → リング → 中身の順に重ね、Web の背景・box-shadow・子の重なりにそろえる
-            // Stack the bottom trim, ring and content in this order to match the Web background, box-shadow and child layering
+            // 帯 → リング → 中身の順に重ねる（Web の重なり）
+            // Stack trim, ring, content in order (the Web layering)
             var selectedTrim = new VisualElement { pickingMode = PickingMode.Ignore };
             selectedTrim.AddToClassList("slot-frame__selected-trim");
             hierarchy.Add(selectedTrim);
@@ -80,8 +80,8 @@ namespace Client.Ui.Components.Slots
 
         private void OnPointerEnter(PointerEnterEvent evt)
         {
-            // 押したままの進入を先に、ホバーの開始を後に出す（Web の onMouseEnter の順）
-            // Emit held-button enters first and the hover start after (the Web onMouseEnter order)
+            // 進入を先に、ホバー開始を後に出す（Web の順）
+            // Emit enters first, hover start after (the Web order)
             // 押下ビットが 0 なら判定を最初の移動へ回す（PanelSimulator では進入時 0 だった）
             // With no held bits, defer the judgement to the first move (it was 0 on enter in PanelSimulator)
             _enterJudgementPending = evt.pressedButtons == 0;
@@ -97,8 +97,8 @@ namespace Client.Ui.Components.Slots
 
         private void OnClick(ClickEvent evt)
         {
-            // ボタンの番号の意味は SlotGestureRules だけが持つ
-            // Only SlotGestureRules knows what the button numbers mean
+            // 番号の意味は SlotGestureRules に集約
+            // Button meanings live only in SlotGestureRules
             if (SlotGestureRules.IsDoubleClick(evt.button, evt.clickCount)) _slotGestured.OnNext(new SlotGesture(SlotGestureKind.DoubleClick, false));
         }
     }

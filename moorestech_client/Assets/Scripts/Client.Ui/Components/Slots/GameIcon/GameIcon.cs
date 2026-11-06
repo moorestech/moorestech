@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// テクスチャ 1 枚の表示と、欠けたときの代わりの文字（Web の GameIcon）
-    /// Shows one texture, or fallback text when it is missing (the Web GameIcon)
+    /// テクスチャ表示と欠け時の代わりの文字（Web の GameIcon）
+    /// Shows a texture, or fallback text when missing (the Web GameIcon)
     /// </summary>
     public sealed class GameIcon : VisualElement
     {

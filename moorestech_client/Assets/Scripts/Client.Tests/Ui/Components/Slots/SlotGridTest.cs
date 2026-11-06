@@ -15,8 +15,8 @@ namespace Client.Tests.Ui.Components.Slots
     public class SlotGridTest : UiTestHost
     {
         private const string KnobPath = "Assets/Scripts/Client.Tests/Ui/Components/Slots/SlotKnobOverrides.uss";
-        // テストパネルは倍率 1 で寸法が画素へ丸まるため 0.5px まで許す
-        // The test panel is scale 1 and snaps sizes to pixels, so allow 0.5px
+        // 画素丸めのため 0.5px まで許す
+        // Allow 0.5px because sizes snap to pixels
         private const float Tolerance = 0.5f;
         // 列の幅と間隔が 1 つずつ画素へ丸まって足されるので、幅の合計は 1px まで許す
         // Each track and gap snaps to a pixel before summing, so the total width allows 1px

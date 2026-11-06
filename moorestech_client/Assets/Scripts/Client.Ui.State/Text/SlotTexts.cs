@@ -4,8 +4,8 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Ui.State.Text
 {
     /// <summary>
-    /// スロット族の引数付きの文。Components が Client.Localization を参照せずに済むようここで組む
-    /// Parameterised sentences for the slot family, built here so Components never reference Client.Localization
+    /// 引数付きの文を組む（Components が Localization を参照しない為）
+    /// Builds parameterised sentences so Components skip Localization
     /// </summary>
     public static class SlotTexts
     {
@@ -14,8 +14,8 @@ namespace Client.Ui.State.Text
             return new UiText(LocalizationKeys.Ui.Common.IconIdFallback, new[] { new LocalizationTextParam("id", idText) });
         }
 
-        // 所持/必要の数は量バッジと同じ書式を通す（Web の formatSlotAmount）
-        // Owned/required go through the same formatting as the amount badge (Web formatSlotAmount)
+        // 量バッジと同じ書式を通す（Web の formatSlotAmount）
+        // Use the amount badge formatting (Web formatSlotAmount)
         public static UiText ItemCountSummary(double ownedCount, double requiredCount)
         {
             return new UiText(LocalizationKeys.Ui.Recipe.ItemCountSummary, new[]

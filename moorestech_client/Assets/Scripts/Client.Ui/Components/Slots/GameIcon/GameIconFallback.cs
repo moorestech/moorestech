@@ -1,8 +1,8 @@
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// テクスチャが欠けたときの代わり（Web の IconFallback の 3 種）
-    /// What to show for a missing texture (the three Web IconFallback kinds)
+    /// 欠け時の代わりの 3 種（Web の IconFallback）
+    /// The three fallbacks for a missing texture (the Web IconFallback)
     /// </summary>
     public enum GameIconFallback
     {

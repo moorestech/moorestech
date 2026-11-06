@@ -4,8 +4,8 @@ using Client.Ui.State.Text;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// ItemSlotContent から面・中身・バッジ・ツールチップを決める（Web の ItemSlot 本体の式）
-    /// Derives face, content, badge and tooltip from ItemSlotContent (the Web ItemSlot body formulas)
+    /// 入力値から面・バッジ・ツールチップを決める（Web の式）
+    /// Derives face, badge and tooltip from the input (the Web formulas)
     /// </summary>
     internal sealed class ItemSlotPresentation
     {
@@ -28,8 +28,8 @@ namespace Client.Ui.Components.Slots
 
         public static ItemSlotPresentation From(ItemSlotContent content)
         {
-            // カタログは常に絵を出し、白面は所持数がある時だけ（Web の owned・hasItem・filled）
-            // A catalog cell always shows the icon and turns white only when owned (the Web owned, hasItem and filled)
+            // 白面は所持数がある時だけ（Web の owned）
+            // White face only when owned (the Web owned)
             var count = content.Count;
             var owned = count.HasValue && 0 < count.Value;
             var hasItem = content.Icon != null && (content.Marks.Catalog || !count.HasValue || 0 < count.Value);
@@ -41,8 +41,8 @@ namespace Client.Ui.Components.Slots
             var shownIcon = ghostShown ? content.Ghost.Icon : hasItem ? content.Icon : null;
             var shownCount = ghostShown ? content.Ghost.Count : count;
 
-            // 所持/必要がある間は個数を出さず、ツールチップは不足の文 → 上書き → 表示中の名前の順
-            // While owned/required shows the count stays hidden; the tooltip prefers the shortage text, then the override, then the shown name
+            // 個数は出さず、ツールチップは不足文 → 上書き → 名前の順
+            // Hide the count; tooltip order is shortage text, override, then name
             var showsBadge = content.Shortage == null && (owned || ghostShown) && shownCount.HasValue && 0 < shownCount.Value;
             var tooltip = shownIcon == null ? null : content.Shortage?.Tooltip ?? content.TooltipOverride ?? shownIcon.Label;
             return new ItemSlotPresentation(filled, ghostShown, shownIcon, showsBadge, showsBadge ? shownCount.Value : 0, tooltip);

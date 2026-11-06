@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Ui.Foundation.Icons
 {
     /// <summary>
-    /// アイコン 1 つ分の表示素材。テクスチャが欠けたときの代わりの文字も持つ
-    /// Display material for one icon, with fallback text for a missing texture
+    /// アイコン 1 つ分の表示素材
+    /// Display material for one icon
     /// </summary>
     public sealed class UiIcon
     {

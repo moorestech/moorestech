@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots
 {
     /// <summary>
-    /// PlacementTargetFace の見本。ビルドメニューの白面（--icon-pad 4px）とホットバーに、絵・名前・長い名前を置く
-    /// PlacementTargetFace samples: picture, name and a long name on the build-menu white face (--icon-pad 4px) and the hotbar
+    /// PlacementTargetFace の見本。ビルドメニューとホットバーの行を並べる
+    /// PlacementTargetFace samples: build-menu and hotbar rows
     /// </summary>
     public sealed class PlacementTargetFaceGalleryEntry : IUiGalleryEntry
     {

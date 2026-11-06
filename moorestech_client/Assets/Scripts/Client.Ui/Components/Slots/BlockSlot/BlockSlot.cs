@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// ブロック 1 マス。暗い面の枠にブロックの絵と名前のツールチップ（Web の BlockSlot）
-    /// One block cell: the block picture on a dark frame with a name tooltip (the Web BlockSlot)
+    /// ブロック 1 マス。絵と名前のツールチップ（Web の BlockSlot）
+    /// One block cell: picture and name tooltip (the Web BlockSlot)
     /// </summary>
     public sealed class BlockSlot : VisualElement
     {
@@ -16,8 +16,8 @@ namespace Client.Ui.Components.Slots
 
         public BlockSlot(string frameTestid)
         {
-            // 枠の testid は Web と同じく枠に付ける（DSL・e2e の照準は枠）
-            // The testid goes on the frame as on the Web (DSL and e2e aim at the frame)
+            // testid は枠に付ける（照準は枠）
+            // The testid goes on the frame (the aim target)
             pickingMode = PickingMode.Ignore;
             _frame = new SlotFrame(frameTestid);
             _content = new SlotContent();

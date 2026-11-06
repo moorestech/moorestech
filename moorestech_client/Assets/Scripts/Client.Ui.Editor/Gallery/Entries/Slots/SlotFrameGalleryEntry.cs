@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Slots
 {
     /// <summary>
-    /// SlotFrame の見本。既定の行に状態と組み合わせ、ホットバーの行に inset のリングと選択の白面
-    /// SlotFrame samples: states and combinations on the default row, inset rings and the selected white face on the hotbar row
+    /// SlotFrame の見本。既定とホットバーの行を並べる
+    /// SlotFrame samples: default and hotbar rows
     /// </summary>
     public sealed class SlotFrameGalleryEntry : IUiGalleryEntry
     {
@@ -16,8 +16,8 @@ namespace Client.Ui.Editor.Gallery.Entries.Slots
         {
             var root = SlotGallerySampleSheet.CreateSampleRoot();
 
-            // 既定（持ち物・レシピ）: 空・白面・灰面・選択・選択の白面・不足・ゴースト
-            // Default (inventory, recipe): empty, white, gray, selected, selected white, insufficient and ghost
+            // 既定（持ち物・レシピ）
+            // Default (inventory, recipe)
             var plain = SlotGallerySampleSheet.AddRow(root, "slot-gallery__plain");
             AddFrame(plain, new SlotFrameState(false, false, false, false, false), false);
             AddFrame(plain, new SlotFrameState(false, true, false, false, false), true);

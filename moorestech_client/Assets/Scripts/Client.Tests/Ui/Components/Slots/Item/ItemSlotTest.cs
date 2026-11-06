@@ -12,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Slots.Item
 {
     /// <summary>
-    /// ItemSlot の不足の減光・個数・ツールチップ・身振りを本番テーマのパネルで確かめる（L1）
-    /// Verifies ItemSlot dimming, count, tooltip and gestures on a production-theme panel (L1)
+    /// ItemSlot の減光・個数・身振りを確かめる（L1）
+    /// Verifies ItemSlot dimming, count and gestures (L1)
     /// </summary>
     public class ItemSlotTest : UiTestHost
     {
@@ -25,8 +25,8 @@ namespace Client.Tests.Ui.Components.Slots.Item
         [SetUp]
         public void AddSlot()
         {
-            // 言語の保存値を退避して英語に固定する（GameIconTest と同じ手順）
-            // Save the stored language and pin English (same steps as GameIconTest)
+            // 言語の保存値を退避し英語に固定
+            // Save the stored language and pin English
             _hadSavedLanguageCode = PlayerPrefs.HasKey(Localize.LanguagePreferenceKey);
             _savedLanguageCode = PlayerPrefs.GetString(Localize.LanguagePreferenceKey);
             Localize.Initialize();

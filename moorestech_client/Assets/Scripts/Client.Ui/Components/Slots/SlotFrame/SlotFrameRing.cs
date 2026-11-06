@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Slots
 {
     /// <summary>
-    /// SlotFrame の box-shadow 4 層（面際 1・ベベル 3）を border の帯で描く装飾子。寸法に効かない
-    /// Decorator drawing the SlotFrame four box-shadow layers (face inset and three bevels) as border bands; it never affects layout
+    /// box-shadow 4 層を border の帯で描く装飾子（寸法に効かない）
+    /// Draws the four box-shadow layers as border bands (no layout effect)
     /// </summary>
     internal sealed class SlotFrameRing : VisualElement
     {
@@ -42,8 +42,8 @@ namespace Client.Ui.Components.Slots
 
             void ApplyBevelGeometry()
             {
-                // 読めないときは前の形のまま（LogError で開発者が気づく）
-                // When unreadable keep the previous shape (the LogError tells the developer)
+                // 読めないときは前の形のまま（LogError は Reader が出す）
+                // Keep the previous shape when unreadable (the Reader logs the error)
                 if (!TryReadGrowsInward(out var growsInward)) return;
                 var pixelsPerPoint = scaledPixelsPerPoint;
                 var rawCovered = 0f;
@@ -82,8 +82,6 @@ namespace Client.Ui.Components.Slots
 
             bool TryReadGrowsInward(out bool growsInward)
             {
-                // 読めないときの LogError は UssCustomStyleReader が出す
-                // UssCustomStyleReader logs the error when it cannot read the value
                 growsInward = false;
                 if (!UssCustomStyleReader.TryReadKeyword(customStyle, BevelInsetProperty, out var keyword)) return false;
                 switch (keyword)
