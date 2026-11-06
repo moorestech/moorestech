@@ -40,12 +40,23 @@ namespace Client.Ui.Components.Text
             // Create the binding at construction; SetHint may follow mounting, and the binding reports a still-missing sentence one frame after mounting
             _sentence = new LocalizedTextBinding(this);
             _sentence.OnResolved.Subscribe(ShowResolved);
+
+            #region Internal
+
+            Label CreateText()
+            {
+                var label = new Label { pickingMode = PickingMode.Ignore };
+                label.AddToClassList("shortcut-hint-label__text");
+                return label;
+            }
+
+            #endregion
         }
 
         public void SetHint(UiText sentence, string shortcutText)
         {
-            // {shortcut} に印を入れた文を渡す。印を先頭に置くので、呼び出し側が shortcut を渡しても印が勝つ
-            // Hand over the sentence with the marker in {shortcut}; the marker goes first, so it wins over a caller-supplied shortcut
+            // {shortcut} に印を入れた文を渡す。呼び出し側が shortcut を渡しても印に置き換わる
+            // Hand over the sentence with the marker in {shortcut}; a caller-supplied shortcut is replaced by the marker
             _keyCap.SetKeyText(shortcutText);
             _sentence.SetText(sentence.WithLeadingParam(ShortcutHintSegments.ParamName, ShortcutHintSegments.Marker));
         }
@@ -82,13 +93,6 @@ namespace Client.Ui.Components.Text
             }
 
             #endregion
-        }
-
-        private static Label CreateText()
-        {
-            var label = new Label { pickingMode = PickingMode.Ignore };
-            label.AddToClassList("shortcut-hint-label__text");
-            return label;
         }
     }
 }

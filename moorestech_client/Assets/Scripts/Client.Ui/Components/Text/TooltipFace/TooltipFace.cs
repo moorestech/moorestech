@@ -22,6 +22,20 @@ namespace Client.Ui.Components.Text
             AddToClassList("tooltip-face");
             AddToClassList(LookClass(look));
             RegisterCallback<GeometryChangedEvent>(_ => FillMaxWidthWhenWrapped());
+
+            #region Internal
+
+            string LookClass(TooltipFaceLook lookKind)
+            {
+                return lookKind switch
+                {
+                    TooltipFaceLook.Cursor => "tooltip-face--cursor",
+                    TooltipFaceLook.Hover => "tooltip-face--hover",
+                    _ => throw new ArgumentOutOfRangeException(nameof(lookKind), lookKind, null),
+                };
+            }
+
+            #endregion
         }
 
         public void SetText(UiText text)
@@ -57,19 +71,9 @@ namespace Client.Ui.Components.Text
             {
                 var label = (LocalizedLabel)child;
                 var naturalWidth = label.MeasureTextSize(label.text, 0, MeasureMode.Undefined, 0, MeasureMode.Undefined).x;
-                if (naturalWidth > innerMaxWidth) wrapped = true;
+                if (innerMaxWidth < naturalWidth) wrapped = true;
             }
             EnableInClassList("tooltip-face--wrapped", wrapped);
-        }
-
-        private static string LookClass(TooltipFaceLook look)
-        {
-            return look switch
-            {
-                TooltipFaceLook.Cursor => "tooltip-face--cursor",
-                TooltipFaceLook.Hover => "tooltip-face--hover",
-                _ => throw new ArgumentOutOfRangeException(nameof(look), look, null),
-            };
         }
     }
 }

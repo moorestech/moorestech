@@ -58,6 +58,16 @@ namespace Client.Tests.Ui.State
         }
 
         [Test]
+        public void 同名の引数は置き換えて重複させない()
+        {
+            var original = new UiText(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", "A") });
+            var added = original.WithLeadingParam("itemId", "X");
+
+            Assert.AreEqual(1, added.Params.Count);
+            Assert.AreEqual(new LocalizationTextParam("itemId", "X"), added.Params[0]);
+        }
+
+        [Test]
         public void 辞書キー以外に引数を足すと止める()
         {
             Assert.Throws<InvalidOperationException>(() => UiText.FromVerbatim("a").WithLeadingParam("itemId", "X"));

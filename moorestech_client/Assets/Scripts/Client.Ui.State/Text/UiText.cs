@@ -59,15 +59,18 @@ namespace Client.Ui.State.Text
             return new UiText(UiTextSource.Verbatim, default, Array.Empty<LocalizationTextParam>(), default, text);
         }
 
-        // 引数を先頭に 1 つ足した写しを返す。同名の引数が後ろにあれば補間器が重複を LogError で出し、先頭が勝つ
-        // Returns a copy with one param prepended; a later same-named param is logged as a duplicate by the interpolator and the first wins
+        // 引数を先頭に 1 つ足した写しを返す。同名の引数は置き換える
+        // Returns a copy with one param prepended; a same-named param is replaced
         public UiText WithLeadingParam(string name, string value)
         {
             // 引数は辞書キーの文にだけ効く。ほかの種で呼ぶのは呼び出し側の誤りなので作る時点で止める（設計書 A-40）
             // Params apply only to dictionary-key text; any other source is a caller bug, so stop here (design A-40)
             if (Source != UiTextSource.Dictionary) throw new InvalidOperationException($"[UiText] WithLeadingParam needs a dictionary key, got {Source}");
             var textParams = new List<LocalizationTextParam>(Params.Count + 1) { new(name, value) };
-            textParams.AddRange(Params);
+            foreach (var param in Params)
+            {
+                if (param.Name != name) textParams.Add(param);
+            }
             return new UiText(Key, textParams);
         }
 
