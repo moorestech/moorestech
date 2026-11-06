@@ -24,6 +24,7 @@ namespace Client.Tests.Ui.Screens.Settings
             foreach (var option in renderScale.Options) Assert.AreEqual(option.Value, renderScale.Read(renderScale.With(Medium, option.Value)));
         }
 
+        /// <web-test file="src/features/settings/GraphicsQualitySettings.test.ts">%sの操作値を送る</web-test>
         [Test]
         public void オンオフ行は自分の項目だけを書き換える()
         {

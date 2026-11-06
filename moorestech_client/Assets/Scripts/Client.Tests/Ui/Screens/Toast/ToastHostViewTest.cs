@@ -20,6 +20,7 @@ namespace Client.Tests.Ui.Screens.Toast
             _host = Mount(new ToastHostView(Catalog.Toast));
         }
 
+        /// <web-test file="src/features/toast/toastStore.test.ts">emitToast で追加され 3秒後に消える</web-test>
         [Test]
         public void トーストは積まれ3秒後に消える()
         {
@@ -55,6 +56,7 @@ namespace Client.Tests.Ui.Screens.Toast
             Assert.That(item.resolvedStyle.opacity, Is.GreaterThan(0f).And.LessThan(1f));
         }
 
+        /// <web-test file="src/features/toast/toastStore.test.ts">variant を保持する</web-test>
         [Test]
         public void variantを保持し複数は縦に積まれる()
         {

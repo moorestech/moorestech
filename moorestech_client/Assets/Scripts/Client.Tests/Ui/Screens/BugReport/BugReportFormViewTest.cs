@@ -37,6 +37,9 @@ namespace Client.Tests.Ui.Screens.BugReport
             _view = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), _commands, Toasts, _draft, Catalog));
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">記述欄と送信ボタンを描く</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">空文字では送信ボタンを無効にして送らない</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">空白だけの記述も無効として扱う</web-test>
         [Test]
         public void 記述欄と送信ボタンを描き空文字と空白だけでは送れない()
         {
@@ -49,6 +52,8 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.IsTrue(SendButton().enabledSelf);
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">確保中は送信ボタンを押せない</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">状態行は1本だけ描き、確保中は確保中の文言を出す</web-test>
         [Test]
         public void 確保中は送信ボタンを押せず状態行は確保中の1本だけ()
         {
@@ -59,6 +64,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.AreEqual(new UiText(LocalizationKeys.Ui.BugReport.CapturePending).Resolve(), Status().text);
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">確保セッションが無いときは押せず理由を出す</web-test>
         [Test]
         public void 確保セッションが無いときは押せず理由を出す()
         {
@@ -68,6 +74,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.IsNotNull(Status());
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">送れる状態なら欠損の一覧を同じ1本の行で出す</web-test>
         [Test]
         public void 送れる状態なら欠損の一覧を同じ1本の行で出す()
         {
@@ -76,6 +83,8 @@ namespace Client.Tests.Ui.Screens.BugReport
             StringAssert.Contains("video, logs", Status().text);
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">入力後の送信で bug_report.submit を説明文付きで送りトーストを出す</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">送信後に画面遷移のactionは出さない</web-test>
         [Test]
         public void 入力後の送信で説明文付きで送り成功のトーストを出し画面遷移は出さない()
         {
@@ -93,6 +102,8 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.AreEqual("", Description().value);
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/inputAndAvailability.test.ts">送信中は種別切替と記述欄を操作できなくする</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">書き出し中は二度目の送信を受け付けない</web-test>
         [Test]
         public void 送信中は二度目の送信を受け付けず種別と記述欄を操作できない()
         {
@@ -124,6 +135,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.AreEqual("report B", _draft.Description);
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">確保済みの欠損を成功トーストに出す</web-test>
         [Test]
         public void 確保済みの欠損は送信成功時にエラーのトーストで出す()
         {
@@ -140,6 +152,9 @@ namespace Client.Tests.Ui.Screens.BugReport
             StringAssert.Contains("video", ShownToasts.Single().Text);
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">送信成功後は種別が既定のバグへ戻る</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">感想へ切り替えるとkindがfeedbackになる</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts">感想のボタンと成功通知を選び、バグのボタンへ戻せる</web-test>
         [Test]
         public void 感想へ切り替えると種別と文言が感想になり送信成功後はバグへ戻る()
         {
@@ -157,6 +172,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.AreEqual("Send bug report", SendButton().Q<Label>().text);
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts">感想送信が失敗すると成功通知を出さずdraftを残す</web-test>
         [Test]
         public void 送信が拒否されると成功通知を出さず下書きを残す()
         {
@@ -172,6 +188,7 @@ namespace Client.Tests.Ui.Screens.BugReport
             Assert.IsTrue(SendButton().enabledSelf);
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/hostSubmissionLock.test.ts">応答待ちが終了してもホスト送信中は感想の種別と本文を保護する</web-test>
         [Test]
         public void 応答待ちが終わってもホスト送信中は種別と本文を保護する()
         {
