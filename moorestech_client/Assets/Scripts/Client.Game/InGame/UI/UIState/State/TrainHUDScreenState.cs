@@ -36,8 +36,8 @@ namespace Client.Game.InGame.UI.UIState.State
         private bool _isCurrentUiState;
 
         public bool IsRiding => _rideSession.IsRiding;
-        // 今の UIState がこの画面で、かつ乗車中（乗車 HUD の出し分けの唯一の読み口）
-        // True while this is the current UIState and the player is riding (single read point for the riding HUD)
+        // 今の UIState がこの画面で、かつ乗車中。UITK 側の読み口で、Web の TrainRidingTopic は旧式の式を退役まで持つ
+        // True while this is the current UIState and riding; UITK read point, Web TrainRidingTopic keeps the old expression until retirement
         public bool IsRidingOnScreen => _isCurrentUiState && _rideSession.IsRiding;
         public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public int BranchCandidateCount => _branchRoutePreviewController.BranchCandidateCount;
