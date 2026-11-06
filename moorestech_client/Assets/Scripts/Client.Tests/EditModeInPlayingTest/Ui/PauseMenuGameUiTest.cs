@@ -61,9 +61,18 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 // 実ルーティングで作った ui_state の配信 JSON が、ポーズで休止 true・戻って false になり、変化のたびに再配信される（R1）
                 // The ui_state JSON built from the real routing reads suspended=true in pause and false after, and republishes on each change (R1)
+                // 入れ子ポーズの表示変化（列車 HUD の入れ子ポーズ切替と同じ経路）は代役の画面で起こす。実乗車の経路は uitk-nested-pause-train の録画が見る
+                // A nested-pause presentation change (the same path as the train HUD's nested pause toggle) is raised by a stand-in screen; the real ride is covered by the uitk-nested-pause-train recording
                 var hub = new WebSocketHub();
-                using var uiStateTopic = new UiStateTopic(hub, uiStateControl, resolver.Resolve<UIStateDictionary>(), resolver.Resolve<IReadOnlyList<INestedPauseScreenState>>(), routingState);
+                var trainHudStandIn = new PresentationChangingNestedScreen();
+                var nestedScreens = new List<INestedPauseScreenState>(resolver.Resolve<IReadOnlyList<INestedPauseScreenState>>()) { trainHudStandIn };
+                using var uiStateTopic = new UiStateTopic(hub, uiStateControl, resolver.Resolve<UIStateDictionary>(), nestedScreens, routingState);
                 StringAssert.Contains("\"webUiSuspended\":false", await uiStateTopic.GetSnapshotJsonAsync(), "ゲーム画面で休止が false でない");
+
+                // ctor の購読が現在値で予約する初回配信を除くため、フレームを回してから基準を取る
+                // Let frames pass before taking the baseline so the first publish scheduled by the ctor subscription is excluded
+                await UniTask.DelayFrame(2);
+                var revisionBeforePause = Revision();
 
                 // ゲーム画面で Esc を押すと UITK のポーズが出て Web が休止する
                 // Pressing Esc on the game screen shows the UITK pause and suspends the web
@@ -73,8 +82,34 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.IsTrue(Find("pause-menu").Visible, "UITK のポーズが見えない");
                 Assert.IsTrue(routingState.Current.Value.WebUiSuspended, $"ポーズで Web が休止していない: {routingState.Current.Value}");
                 StringAssert.Contains("\"webUiSuspended\":true", await uiStateTopic.GetSnapshotJsonAsync(), "ポーズの ui_state に休止 true が載らない");
-                var revisionInPause = hub.GetTopicRevision(UiStateTopic.TopicName);
-                Assert.Greater(revisionInPause, 0, "ポーズへの遷移で ui_state が再配信されない");
+                Assert.Greater(Revision(), revisionBeforePause, "ポーズへの遷移で ui_state が再配信されない");
+
+                // UIState を変えずにルーティングだけを変えても（R4 の上書き）休止値が往復して再配信される
+                // Changing only the routing without a UIState change (R4 override) still round-trips the suspension and republishes
+                var revisionBeforeOverride = Revision();
+                UiOwnershipEditorOverride.Set(UiScreen.PauseMenu, UiSurface.MainPanel, UiSurfaceOwner.Web);
+                try
+                {
+                    await UniTask.DelayFrame(2);
+                    Assert.Greater(Revision(), revisionBeforeOverride, "ルーティングだけの変化で ui_state が再配信されない");
+                    StringAssert.Contains("\"webUiSuspended\":false", await uiStateTopic.GetSnapshotJsonAsync(), "上書きで Web へ戻しても休止 true のまま");
+                }
+                finally
+                {
+                    UiOwnershipEditorOverride.Clear();
+                }
+                var revisionAfterOverride = Revision();
+                await UniTask.DelayFrame(2);
+                Assert.Greater(Revision(), revisionAfterOverride, "上書きの解除で ui_state が再配信されない");
+                StringAssert.Contains("\"webUiSuspended\":true", await uiStateTopic.GetSnapshotJsonAsync(), "上書きを解除しても休止 true に戻らない");
+
+                // 入れ子ポーズの表示変化でも再配信される
+                // A nested-pause presentation change republishes as well
+                var revisionBeforeNested = Revision();
+                trainHudStandIn.RaisePresentationChanged();
+                await UniTask.DelayFrame(2);
+                Assert.Greater(Revision(), revisionBeforeNested, "入れ子ポーズの表示変化で ui_state が再配信されない");
+                var revisionInPause = Revision();
                 Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "休止中に Web がポインタを主張している");
 
                 // 休止中に Web 側の値が届いても入力欄フォーカスにならない
@@ -96,7 +131,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 Assert.AreEqual(PauseMenuPage.Top, pauseMenuState.CurrentPage.Value, "設定のページの Esc でトップへ戻らない");
                 await PressEscape();
                 Assert.AreEqual(UIStateEnum.GameScreen, uiStateControl.CurrentState, "トップの Esc でゲーム画面へ戻らない");
-                Assert.IsFalse(Find("pause-menu").Visible, "閉じた後も UITK のポーズが見えている");
+                var closedRoot = GameUiRoot.Instance.GetRootElement();
+                Assert.AreEqual(UiElementLookupStatus.NotFound, GameUiElementQuery.Find(closedRoot, "pause-menu", new GameUiScreenMapper(closedRoot)).Status, "閉じた後も UITK のポーズが見えている");
                 Assert.IsFalse(routingState.Current.Value.WebUiSuspended, $"閉じても Web が休止したまま: {routingState.Current.Value}");
                 StringAssert.Contains("\"webUiSuspended\":false", await uiStateTopic.GetSnapshotJsonAsync(), "閉じた後の ui_state に休止 false が載らない");
                 Assert.Greater(hub.GetTopicRevision(UiStateTopic.TopicName), revisionInPause, "ポーズを閉じても ui_state が再配信されない");
@@ -105,6 +141,11 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 // The true written before closing does not survive right after closing
                 Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "閉じた直後に Web のポインタ占有が残っている");
                 Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "閉じた直後に Web の入力欄フォーカスが残っている");
+
+                long Revision()
+                {
+                    return hub.GetTopicRevision(UiStateTopic.TopicName);
+                }
             }
 
             #endregion
