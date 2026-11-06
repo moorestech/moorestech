@@ -9,7 +9,7 @@
     --form-button-text: var(--mantine-color-white);
     height: 36px; /* web: --button-height-sm */
     padding: 0 18px; /* web: --button-padding-x-sm */
-    border-width: 1px; /* web: calc(0.0625rem * var(--mantine-scale)) solid transparent */
+    border-width: 1px; /* web: calc(0.0625rem * mantine-scale) solid transparent */
     border-color: transparent;
     border-radius: var(--mantine-radius-default);
     background-color: var(--form-button-face);
