@@ -1,0 +1,6 @@
+/* 操作部品のつまみを画面の側で上書きしたときの効き方を L1 で確かめる（Web の skit/controls/SkitToolbar.module.css:6-7 と同じ上書き） */
+/* Lets L1 check how control knobs behave when a screen overrides them (same override as Web skit/controls/SkitToolbar.module.css:6-7) */
+.control-knob-override {
+    --icon-button-size: var(--skit-tool-button-size);
+    --icon-button-icon-size: var(--skit-tool-button-size);
+}

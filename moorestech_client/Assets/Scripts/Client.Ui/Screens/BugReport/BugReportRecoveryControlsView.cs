@@ -1,8 +1,10 @@
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
-using Client.Ui.Foundation.Text;
+using Client.Ui.Components.Controls;
 using Client.Ui.State.PauseMenu;
+using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
+using UniRx;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.BugReport
@@ -13,17 +15,20 @@ namespace Client.Ui.Screens.BugReport
     /// </summary>
     public sealed class BugReportRecoveryControlsView : VisualElement
     {
-        private readonly Button _resendButton;
-        private readonly Button _exportButton;
+        private readonly FormButton _resendButton;
+        private readonly FormButton _exportButton;
         private readonly Label _exportStatus;
 
         public BugReportRecoveryControlsView(IPauseMenuCommands commands)
         {
             AddToClassList("bug-report__recovery");
+
+            // 再送・書き出しは filled ボタン
+            // Resend and export are filled buttons
             _resendButton = CreateButton("bug-report-resend-failed", LocalizationKeys.Ui.BugReport.ResendFailed);
-            _resendButton.clicked += commands.ResendFailedReports;
+            _resendButton.OnClicked.Subscribe(_ => commands.ResendFailedReports());
             _exportButton = CreateButton("bug-report-export-unsent", LocalizationKeys.Ui.BugReport.ExportUnsent);
-            _exportButton.clicked += commands.ExportUnsentReports;
+            _exportButton.OnClicked.Subscribe(_ => commands.ExportUnsentReports());
             _exportStatus = new Label { name = "bug-report-export-status" };
             _exportStatus.AddToClassList("bug-report__status");
             Add(_resendButton);
@@ -46,13 +51,10 @@ namespace Client.Ui.Screens.BugReport
             _exportStatus.text = statusLine ?? "";
         }
 
-        private static Button CreateButton(string testid, LocalizationKey label)
+        private static FormButton CreateButton(string testid, LocalizationKey label)
         {
-            var button = new Button { name = testid, focusable = false };
+            var button = new FormButton(testid, new UiText(label), FormButtonVariant.Filled);
             button.AddToClassList("bug-report__button");
-            var localizedLabel = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-            localizedLabel.SetKey(label);
-            button.Add(localizedLabel);
             return button;
         }
 

@@ -165,7 +165,7 @@ namespace Client.Tests.Ui.Components.Controls
 
         private GameTextField AddGameTextField(bool multiline)
         {
-            var gameTextField = new GameTextField(TestId, multiline);
+            var gameTextField = new GameTextField(TestId, multiline, GameTextFieldLook.GaugeInset);
             gameTextField.style.width = 300;
             _rulesRoot.Add(gameTextField);
             simulate.FrameUpdate();
