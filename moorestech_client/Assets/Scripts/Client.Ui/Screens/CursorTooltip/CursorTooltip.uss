@@ -1,0 +1,15 @@
+/* web: moorestech_web/webui/src/shared/tooltip/style.module.css（.tooltip: position fixed・pointer-events none・transform-origin top left）と CursorTooltip.tsx */
+/* 面の見た目は TooltipFace（Cursor）が持つ。ここは実画面いっぱいの入れ物と面の絶対配置だけ */
+/* web: moorestech_web/webui/src/shared/tooltip/style.module.css (.tooltip: position fixed, pointer-events none, transform-origin top left) and CursorTooltip.tsx */
+/* The face look belongs to TooltipFace (Cursor); this file only holds the full-viewport container and the face's absolute placement */
+.cursor-tooltip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.cursor-tooltip__face {
+    position: absolute;
+}
