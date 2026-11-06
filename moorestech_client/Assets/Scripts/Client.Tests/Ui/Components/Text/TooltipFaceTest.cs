@@ -17,6 +17,10 @@ namespace Client.Tests.Ui.Components.Text
     /// </summary>
     public class TooltipFaceTest : UiTestHost
     {
+        // 行は行送りの <line-height> を前に付けて出す（TooltipFaceLineHeightTest）
+        // Lines are shown with the pitch <line-height> tag prefixed (TooltipFaceLineHeightTest)
+        public const string LineHeightTag = "<line-height=27.9px>";
+
         private bool _hadSavedLanguageCode;
         private string _savedLanguageCode;
 
@@ -47,7 +51,7 @@ namespace Client.Tests.Ui.Components.Text
             Assert.AreEqual(18f, line.resolvedStyle.fontSize, 0.01f);
             AssertColor(Color.white, line.resolvedStyle.color, "text");
             Assert.GreaterOrEqual(line.worldBound.height, 27.9f - 0.01f);
-            Assert.AreEqual("Settings", line.text);
+            Assert.AreEqual(LineHeightTag + "Settings", line.text);
         }
 
         [Test]
@@ -63,7 +67,7 @@ namespace Client.Tests.Ui.Components.Text
             var face = Mount(TooltipFaceLook.Cursor);
             face.SetLines(new[] { new UiText(LocalizationKeys.Ui.PauseMenu.Settings), new UiText(LocalizationKeys.Ui.PauseMenu.Back) });
             simulate.FrameUpdate();
-            CollectionAssert.AreEqual(new[] { "Settings", "Back" }, face.Query<Label>("tooltip-line").ToList().Select(label => label.text));
+            CollectionAssert.AreEqual(new[] { LineHeightTag + "Settings", LineHeightTag + "Back" }, face.Query<Label>("tooltip-line").ToList().Select(label => label.text));
 
             face.SetText(new UiText(LocalizationKeys.Ui.PauseMenu.Back));
             simulate.FrameUpdate();
@@ -123,7 +127,7 @@ namespace Client.Tests.Ui.Components.Text
 
             Localize.TrySetChosenLanguage("japanese");
             simulate.FrameUpdate();
-            Assert.AreEqual("戻る", face.Q<Label>("tooltip-line").text);
+            Assert.AreEqual(LineHeightTag + "戻る", face.Q<Label>("tooltip-line").text);
         }
 
         [TearDown]

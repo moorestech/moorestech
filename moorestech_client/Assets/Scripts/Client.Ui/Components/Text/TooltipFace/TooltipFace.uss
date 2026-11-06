@@ -1,7 +1,7 @@
 /* ツールチップの面。Web の HoverTooltip・CursorTooltip の --tooltip-* を写す（文字 18px・余白 6/10・最大幅 320・白・pre-line） */
-/* 行の高さは Web の継承値 1.55（27.9px）を行ごとの min-height で持つ */
+/* 行の高さは Web の継承値 1.55（18px×1.55＝27.9px）。1 行目は min-height、2 行目以降の行送りは LocalizedLabel の --localized-label-line-height で写す */
 /* Tooltip face copying --tooltip-* of Web HoverTooltip and CursorTooltip (18px text, 6/10 padding, 320 max width, white, pre-line) */
-/* Each line keeps the Web's inherited line-height 1.55 (27.9px) as min-height */
+/* Lines use the Web's inherited line-height 1.55 (18px x 1.55 = 27.9px): min-height for the first line, LocalizedLabel's --localized-label-line-height for the pitch after it */
 .tooltip-face {
     max-width: var(--tooltip-max-width);
     padding-top: var(--tooltip-padding-block);
@@ -31,8 +31,12 @@
     width: var(--tooltip-max-width);
 }
 
+/* 行の高さは祖先から上書きするつまみではないので、行のクラス自身で名前を付けて宣言する */
+/* The line height is not an ancestor-overridable knob, so the line class names and declares it itself */
 .tooltip-face__line {
-    min-height: 27.9px;
+    --tooltip-line-height: 27.9px;
+    --localized-label-line-height: var(--tooltip-line-height);
+    min-height: var(--tooltip-line-height);
     margin: 0;
     padding: 0;
     white-space: normal;
