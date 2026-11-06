@@ -9,9 +9,9 @@ namespace Client.Tests.Ui.Components.Panels
     /// </summary>
     public class GamePanelFaceOpacityRampTest
     {
-        // --surface-navy の α（Web の α0.8 を 1-(1-a)^2.2 で補正した値）
-        // The --surface-navy alpha (Web alpha 0.8 corrected by 1-(1-a)^2.2)
-        private const float NavyFaceAlpha = 0.971f;
+        // --surface-navy の α（Web の α0.8 を 1-(1-a)^1.85 で補正した値）
+        // The --surface-navy alpha (Web alpha 0.8 corrected by 1-(1-a)^1.85)
+        private const float NavyFaceAlpha = 0.9491f;
 
         // skit の形（左右と下端はフェードせず上端だけ 12px）と hud の形（4 辺 10px）
         // The skit shape (no side or bottom fade, top only 12px) and the hud shape (10px on all four sides)
@@ -20,8 +20,8 @@ namespace Client.Tests.Ui.Components.Panels
         private const float SkitTopFade = 12f;
         private const float HudFade = 10f;
 
-        [TestCase(0.971f)]
-        [TestCase(0.9906f)]
+        [TestCase(0.9491f)]
+        [TestCase(0.9802f)]
         [TestCase(0.95f)]
         public void 重み1ではトークンのαそのものになる(float faceAlpha)
         {
@@ -37,9 +37,9 @@ namespace Client.Tests.Ui.Components.Panels
         [Test]
         public void 重み0点5ではWebのα0点4をS7の式で補正した値になる()
         {
-            // Web は α0.8 の面を mask 0.5 で α0.4 にする。Linear 合成用には 1-(1-0.4)^2.2 = 0.6750
-            // The Web turns the alpha-0.8 face into alpha 0.4 at mask 0.5; for Linear blending that is 1-(1-0.4)^2.2 = 0.6750
-            Assert.AreEqual(0.6750f, GamePanelFaceOpacityRamp.OpacityAt(NavyFaceAlpha, 0.5f), 0.002f);
+            // Web は α0.8 の面を mask 0.5 で α0.4 にする。Linear 合成用には 1-(1-0.4)^1.85 = 0.6113
+            // The Web turns the alpha-0.8 face into alpha 0.4 at mask 0.5; for Linear blending that is 1-(1-0.4)^1.85 = 0.6113
+            Assert.AreEqual(0.6113f, GamePanelFaceOpacityRamp.OpacityAt(NavyFaceAlpha, 0.5f), 0.002f);
         }
 
         [Test]
@@ -79,10 +79,10 @@ namespace Client.Tests.Ui.Components.Panels
         [Test]
         public void 頂点のαは縁の重みを線形に掛けずS7の式で補正した値になる()
         {
-            // skit 上端の 50% 点。重み 0.5 を線形に掛けた 0.4855 ではなく OpacityAt(a, 0.5) = 0.6750 になる
-            // The skit top 50% point: not the linear 0.4855 but OpacityAt(a, 0.5) = 0.6750
+            // skit 上端の 50% 点。重み 0.5 を線形に掛けた 0.4746 ではなく OpacityAt(a, 0.5) = 0.6113 になる
+            // The skit top 50% point: not the linear 0.4746 but OpacityAt(a, 0.5) = 0.6113
             var alpha = GamePanelFaceOpacityRamp.VertexAlpha(NavyFaceAlpha, Width / 2f, SkitTopFade / 2f, Width, Height, 0f, SkitTopFade, 0f);
-            Assert.AreEqual(0.6750f, alpha, 0.002f);
+            Assert.AreEqual(0.6113f, alpha, 0.002f);
             Assert.AreEqual(NavyFaceAlpha, GamePanelFaceOpacityRamp.VertexAlpha(NavyFaceAlpha, Width / 2f, Height, Width, Height, 0f, SkitTopFade, 0f), 0.0001f);
         }
 

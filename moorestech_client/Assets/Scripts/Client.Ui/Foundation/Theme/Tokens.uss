@@ -7,7 +7,7 @@
     --screen-vignette-center-y: 46%;
     --screen-vignette-clear-stop: 66%;
     --screen-vignette-clear: rgba(4, 5, 8, 0);
-    --screen-vignette-edge: rgba(4, 5, 8, 0.3186); /* web: rgba(4, 5, 8, 0.16) α補正 */
+    --screen-vignette-edge: rgba(4, 5, 8, 0.2757); /* web: rgba(4, 5, 8, 0.16) α補正 */
     --slot-size: 48px;
     --hotbar-slot-size: 51.68px;
     --hotbar-slot-gap: 5px;
@@ -21,7 +21,7 @@
     --equipment-slot-gap: var(--hotbar-slot-gap);
     --equipment-right: 24px;
     --equipment-bottom: var(--hotbar-bottom);
-    --surface-navy: rgba(10, 14, 27, 0.971); /* web: rgba(10, 14, 27, 0.8) α補正 */
+    --surface-navy: rgba(10, 14, 27, 0.9491); /* web: rgba(10, 14, 27, 0.8) α補正 */
     --panel-edge-fade: 12px;
     --craft-grip-size: 8.74px;
     --craft-grip-inset: 6.98px;
@@ -88,7 +88,7 @@
     --tooltip-padding-block: 6px;
     --tooltip-padding-inline: 10px;
     --tooltip-max-width: 320px;
-    --tooltip-face: rgba(16, 20, 28, 0.9979); /* web: rgba(16, 20, 28, 0.94) α補正 */
+    --tooltip-face: rgba(16, 20, 28, 0.9945); /* web: rgba(16, 20, 28, 0.94) α補正 */
     --tooltip-border-width: 1px;
     --tooltip-border-color: rgba(255, 255, 255, 0.0358); /* web: rgba(255, 255, 255, 0.22) α補正 */
     --delete-mode-warning-band-height: 20px;
@@ -114,7 +114,7 @@
     --build-menu-detail-top-safe-area: 33.565749px; /* calc: var(--bevel-3) + var(--icon-button-size) + 8px */
     --world-pin-face: var(--surface-navy);
     --world-pin-arrow-size: 56px;
-    --world-pin-arrow-shadow: rgba(0, 0, 0, 0.9007); /* web: rgba(0, 0, 0, 0.65) α補正 */
+    --world-pin-arrow-shadow: rgba(0, 0, 0, 0.8566); /* web: rgba(0, 0, 0, 0.65) α補正 */
     --world-pin-edge-margin: 40px;
     --tutorial-drag-guide-size: 56px;
     --tutorial-drag-guide-duration: 3200ms;
@@ -125,10 +125,10 @@
     --tutorial-key-hint-gap: 6px;
     --tutorial-key-hint-kbd-gap: 10px;
     --tutorial-key-hint-color: var(--tutorial-attention-red);
-    --tutorial-drag-guide-shadow: rgba(0, 0, 0, 0.9007); /* web: rgba(0, 0, 0, 0.65) α補正 */
+    --tutorial-drag-guide-shadow: rgba(0, 0, 0, 0.8566); /* web: rgba(0, 0, 0, 0.65) α補正 */
     --tutorial-highlight-glow: 4px;
     --tutorial-attention-red: #ff0000;
-    --tutorial-attention-glow: rgba(255, 0, 0, 0.4532); /* web: rgba(255, 0, 0, 0.24) α補正 */
+    --tutorial-attention-glow: rgba(255, 0, 0, 0.3981); /* web: rgba(255, 0, 0, 0.24) α補正 */
     --tutorial-pulse-duration: 1200ms;
     --mode-switch-gap: 4px;
     --mode-switch-padding-block: 5px;
