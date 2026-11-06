@@ -169,5 +169,5 @@ public sealed class IconButton : VisualElement
 | L3 | 実ゲームの結線 | EditModeInPlayingTest | `S/Client.Tests/EditModeInPlayingTest/Ui/` | 段ごとに 1 本（スイッチ UITK で開く・閉じる） |
 | L4 | 録画のプレイテスト | `unity-playmode-recorded-playtest` | `.agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/` | `origin/master:docs/uitk-migration/plan.md` §4.4 のラダー |
 
-- 回し方: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\."`
+- 回し方: `uloop compile --project-path ./moorestech_client` → L0〜L2 は `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "^Client\.Tests\.Ui\."`。L3 は別に `--filter-value "^Client\.Tests\.EditModeInPlayingTest\.Ui\."` で回す（PlayMode 遷移でドメインリロードが入る）
 - 写したテストと Web の元テストの対応は `docs/uitk/disposition.md` に書く
