@@ -1,0 +1,71 @@
+/* web: moorestech_web/webui/src/features/modeHud/style.module.css（.placementHud・.label・.details・.detail・.deleteModeWarning・.band。.warning は写さない D-7）と app/tokens.css の keyHintText */
+/* 部品（GamePanel・HudSectionHeading）の見た目はつまみで変え、部品のクラスは書かない */
+/* web: moorestech_web/webui/src/features/modeHud/style.module.css (.placementHud, .label, .details, .detail, .deleteModeWarning, .band; .warning is not ported, D-7) and keyHintText in app/tokens.css */
+/* Component looks (GamePanel, HudSectionHeading) change only through knobs; component classes are not written here */
+
+/* 画面ルート: 実画面いっぱい（Viewport 族）・HudSectionHeading のつまみを --operation-hud-* で受ける */
+/* Screen root: full viewport (Viewport family); HudSectionHeading knobs take --operation-hud-* */
+.mode-hud {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --hud-label-font-size: var(--operation-hud-label-font-size);
+    --hud-label-rule-gap: var(--operation-hud-label-rule-gap);
+    --hud-rule-list-gap: var(--operation-hud-rule-list-gap);
+    /* 字間: I-fix1 で UITK の単位へ換算済みのトークンをそのまま受ける */
+    /* Letter spacing: take the token already converted to UITK units by I-fix1 */
+    --hud-label-letter-spacing: var(--operation-hud-letter-spacing);
+}
+
+.mode-hud__corner {
+    position: absolute;
+    top: var(--operation-hud-top);
+    right: var(--operation-hud-right);
+    width: var(--operation-hud-width);
+}
+
+.mode-hud__detail {
+    margin: 0;
+    padding: 0;
+    color: var(--text-high-contrast);
+    font-size: var(--operation-hud-detail-font-size);
+    --localized-label-line-height: var(--operation-hud-detail-line-height);
+    min-height: var(--operation-hud-detail-line-height);
+    white-space: normal;
+    -unity-text-align: upper-left;
+}
+
+.mode-hud__detail--following {
+    margin-top: var(--operation-hud-detail-gap);
+}
+
+.mode-hud__warning {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* 帯: 黒は背景。黄・刻み・角度は C# が customStyle で読むので帯のクラスで受け直す */
+/* Band: black is the background; yellow, stripe size and angle are re-declared on the band class for C# customStyle reads */
+.mode-hud__warning-band {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: var(--delete-mode-warning-band-height);
+    background-color: var(--delete-mode-warning-black);
+    --mode-hud-band-yellow: var(--delete-mode-warning-yellow);
+    --mode-hud-band-stripe-size: var(--delete-mode-warning-stripe-size);
+    --mode-hud-band-stripe-angle: var(--delete-mode-warning-stripe-angle);
+}
+
+.mode-hud__warning-band--top {
+    top: 0;
+}
+
+.mode-hud__warning-band--bottom {
+    bottom: 0;
+}

@@ -39,3 +39,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/PauseMenu/PauseMenu.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Settings/Settings.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Toast/ToastHost.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/ModeHud/ModeHud.uss");
