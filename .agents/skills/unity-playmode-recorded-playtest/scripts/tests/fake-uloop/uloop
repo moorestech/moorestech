@@ -1,0 +1,31 @@
+#!/bin/bash
+# 自己テスト用の偽 uloop。コード片の中身で応答を切り替え、呼ばれた順に 1 行ずつ記録する
+# Fake uloop for self-tests; picks a response by the code snippet and logs one line per call
+set -u
+COMMAND="$1"; shift
+CODE=""
+while [[ $# -gt 0 ]]; do
+    if [[ "$1" == "--code" ]]; then CODE="$2"; shift; fi
+    shift
+done
+printf '%s :: %s\n' "$COMMAND" "$(printf '%s' "$CODE" | tr '\n' ' ' | cut -c1-80)" >> "$FAKE_ULOOP_CALL_LOG"
+
+# シナリオ投入・ドライラン・boot は応答ファイルで差し替え可能、それ以外は固定の成功応答を返す
+# Scenario injection, the dry run and boot can be swapped via response files; everything else returns a fixed success
+case "$COMMAND" in
+    compile) echo '{"Success": true, "ErrorCount": 0}' ;;
+    control-play-mode)
+        if [[ -n "${FAKE_ULOOP_STOP_FAIL:-}" ]]; then echo '{"Success": false}'; exit 1; fi
+        echo '{"Success": true}' ;;
+    execute-dynamic-code)
+        if [[ "$CODE" == *"PlaytestRunner.Run"* ]]; then cat "$FAKE_ULOOP_SCENARIO_RESPONSE"
+        elif [[ "$CODE" == *"pong:"* ]]; then echo '{"Success": true, "Result": "pong:False"}'
+        elif [[ "$CODE" == *"master-load-ok"* && -n "${FAKE_ULOOP_DRYRUN_RESPONSE:-}" ]]; then cat "$FAKE_ULOOP_DRYRUN_RESPONSE"
+        elif [[ "$CODE" == *"PrepareAndEnterPlayMode"* && -n "${FAKE_ULOOP_BOOT_RESPONSE:-}" ]]; then cat "$FAKE_ULOOP_BOOT_RESPONSE"
+        elif [[ "$CODE" == *"master-load-ok"* ]]; then echo '{"Success": true, "Result": "master-load-ok"}'
+        elif [[ "$CODE" == *"PrepareAndEnterPlayMode"* ]]; then printf '{"Success": true, "Result": "%s"}\n' "$FAKE_SESSION_DIR"
+        elif [[ "$CODE" == *"isPlaying"* ]]; then echo '{"Success": true, "Result": "False"}'
+        else echo '{"Success": false, "ErrorMessage": "fake uloop: unexpected code"}'
+        fi ;;
+    *) echo '{"Success": false, "ErrorMessage": "fake uloop: unexpected command"}' ;;
+esac

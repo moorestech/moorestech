@@ -56,6 +56,7 @@ namespace Client.Tests.Ui.State
             AssertText(LocalizationKeys.Ui.BugReport.CapturePending, new string[0], BugReportFormText.DescribeStatus(Capture(BugReportCaptureStatus.Capturing), false, PlaytestReportKind.Bug));
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/reportKindLabels.test.ts">ローカル送信前でもホスト送信中は感想の表示を使う</web-test>
         [Test]
         public void ホスト送信中は種別の書き出し中の文を出す()
         {
@@ -111,6 +112,7 @@ namespace Client.Tests.Ui.State
             Assert.AreEqual("送信待ち 0件 / 送信できない報告 2件", BugReportFormText.DescribeDelivery(new PlaytestDeliveryPending(Counts(0, 2))));
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts">件数不明でも配送理由 %j を保持する</web-test>
         [Test]
         public void 件数不明でも配送理由を保ち完了や0件にしない()
         {

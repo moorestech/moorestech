@@ -18,6 +18,7 @@
 - 取り込みで `e2e/` の下に新しい spec・fixture・撮影スクリプトが入ったら、その画面の行の `Web パス` に足す。足さないと受け皿の「Web の検証基盤」（束 5）の持ち物になり、その束の切替で記帳を求められない（G1 は `e2e/` の網羅を検査しない）
 - セルに `|` を書かない。空欄は `—`
 - 全体スイッチ（計画 §3.3 R1〜R4）で描く系を選ぶ: PlayMode を止めた状態で Unity のメニュー `moorestech/UI System/GameUi (UITK)`（戻すときは `moorestech/UI System/Web`）を選ぶか、`uloop execute-dynamic-code --project-path ./moorestech_client --code 'Client.Starter.Initialization.Boot.UiSystemEditorSwitch.Set(Client.Input.UiSystem.GameUi);'` を実行してから PlayMode に入る。値は起動ごとに 1 回だけ読まれ、Editor を閉じると既定の Web に戻る。GameUi の起動では Web ホストと CEF を起動せず、UITK にまだ無い画面は使えない（裁定）
+- 束を切り替える前（その段の ladder）に `node tools/uitk/test-name-parity.mjs --bundle <束>` で Web テスト名の差分 0 を見る。書式と処遇の表は `docs/uitk/disposition.md`
 
 ## 束
 
@@ -168,3 +169,21 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 | R-14 | R1（Web 全面オフ）中に Web が action を出さないか | 段階1 screens レーン | 合格。CEF ありで UITK のポーズを開き、Web のポーズのボタン位置 5 か所のクリック・文字キー 6 打・設定ページの Esc を注入して、Web から届いた action を数えた（一時計測の `[R14-MEASURE]` 行。計測後に外した）。ポーズ中の利用者由来の action は 0 件（DSL の位置問い合わせ応答 `playtest.*` は除外）。閉じた 2 秒後も pointerOverWeb=False・textFocused=False。`uitk-pause-web-action-count.cs`。cef-unity の改修は不要 |
 | R-16 | 段階1 screens の L1 が CI で通るか | 段階1 screens レーン | 合格。CI run https://github.com/moorestech/moorestech/actions/runs/42109885552（workflow_dispatch・ref feature/uitk-s1-screens・head 3d7dd7b5c6・全 shard success）。client-remainder で `Client.Tests.Ui.Screens.PauseMenu.PauseMenuViewTest` 10・`Settings.SettingsViewTest` 10・`BugReport.BugReportFormViewTest` 10・`Toast.ToastHostViewTest` 7・`Ui.Input.UiInputExclusivityWebSilenceTest` 4 が Passed。client-play-1 で L3 `PauseMenuGameUiTest` が Passed |
 | R-15 | バグ報告の本文欄（GameTextField 複数行）の日本語 IME（Windows の配布ビルド・Mac の Editor）と CEF ありの Web の欄 | 段階1 screens レーン | 一部合格・一部測れず。Windows 検証機（CI の開発ビルド 3d7dd7b5c6・SendInput の VK+スキャンコード・Microsoft IME）: ウィンドウ 1280×720 と全画面 1920×1080（パネル 1280×720 の 1.5 倍）の両方で、変換中の下線・予測窓と候補一覧が変換中の文字の直下・Enter 1 回で確定・確定後の Enter で改行・変換中の ESC は変換だけ取消・確定後の ESC は値を残してフォーカスだけ外れ（IME は Auto→次フレーム Off）、ポーズは開いたまま。Mac の Editor（osascript・CEF あり）: 同じ挙動。候補一覧からの 1 回目の Return が確定にならず 2 回目で確定するのは Web の欄・input レーンの記録でも同じで、Mac の Editor 側の挙動（推測）。Game ビューを 0.46 倍に縮めると UITK の候補窓だけ約 200px ずれる（Web の欄は正しい。Editor だけの換算の差と推測。Windows の 1.5 倍では正しい）。Web の欄: Mac の Editor でビルドメニュー検索欄にフォーカスすると IME On になり日本語が入る（S9 の Auto 固着は解消）。測れなかったもの: Windows の Web の欄（このビルドでは CEF のサーバーが LoadUrl 直後に 4 回落ちて RecoveryFailed。同日の master の CI ビルド fbd9804 でも同じなので本ブランチの退行ではない）、Mac の配布ビルドの全画面（CI ビルドに非公開アセットが無くワールド初期化に失敗）、Retina（この Mac mini は 1920×1080 の非 Retina）。https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-screens-ime/ |
+| S12 | Unity の外での `dotnet test`（L0 の純ロジック） | L0-s3 | 成立（部分）。UnityEngine・UniRx・Localize に触れない L0 を `~/.dotnet/dotnet test`（net8.0・NUnit 3.14.0）で回せる。エンジン非依存の 54 件（Editor の L0 79 件のうち）が緑。UniRx・Localize に触れる L0（スクロール追従・素材ツールチップ・表示名）は Editor でだけ回す。csproj は `docs/superpowers/plans/2026-11-06-uitk-l0-s3.md` Task 1 Step 2（個別の `Compile Include` に `Condition="Exists(...)"` を足して使った。無いと未作成ファイルで CS2001）。CI には載せていない |
+
+## 壊れた録画の割り振り（bd moorestech-wwxy）
+
+`moorestech-dww3`（EDC のコンパイル失敗の無言素通し）は W0-tools で閉じ、コンパイルできないシナリオはランナーが exit 2 で止まる。壊れている 10 本は、その UI を移すレーンの締めで直すか削除し、全体スイッチの UITK 側と Web 側の両方で流す（計画 §2.0-2）。X-prerun で全部が片付いたら wwxy を閉じる。
+
+| シナリオ（`scenarios/` から） | 壊れ方 | 束 | 直すレーン | 方針 |
+|---|---|---|---|---|
+| `tutorial-pebble-challenge.cs` | 待つチャレンジ・チュートリアルの GUID がピン先マスタに無い | 2 | S2-ladder | ピン先マスタの GUID を引く形へ書き直す（`uitk-opening-hud` の下敷き） |
+| `tutorial-equip-challenge.cs` | 同上 | 2 | S2-ladder | 同上 |
+| `tutorial-tree-pin-nearest-search.cs` | 同上 | 2 | S2-ladder | 同上 |
+| `server-notification-smoke.cs` | 削除済みの研究 GUID を送る | 2 | S2-ladder（S2-notification が先に直す） | 現行の研究 GUID へ直し、`notification-host` を UITK のロケータで解決する |
+| `building/blueprint-copy-paste-via-ui.cs` | 削除済みの uGUI 型を参照してコンパイルできない | 3 | S3-ladder | `PlaytestBuildMenuOps`・`BlueprintNameInputState` へ移植（`uitk-build-bp` の下敷き） |
+| `building/blueprint-right-click-delete-via-ui.cs` | 同上 | 3 | S3-ladder | 同上 |
+| `connect/electric-wire-connect-via-ui.cs` | 同上 | 3 | S3-ladder | 削除（後継 `connect/electric-wire-tool-extend-chain-via-ui.cs` がある） |
+| `misc/fps-tps-view-toggle-via-ui.cs` | 削除済みの uGUI 型（CrosshairView）を参照 | 3 | S3-ladder | `CrosshairVisibility` の照会へ移植 |
+| `tutorial-research-renumber.cs` | 削除済みの研究 GUID と旧チェーン前提 | — | X-prerun | 削除（ADR 0038 で研究 1〜3 が消え、役目が終わった） |
+| `misc/research-node-state-label.cs` | 削除済みの研究 GUID を送る | 4 | X-prerun | 現行の研究 GUID へ書き直す（研究ツリーの UITK 化の後に流す） |
