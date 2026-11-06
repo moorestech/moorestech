@@ -34,10 +34,9 @@ namespace Client.Ui.Components.Slots
             faceInset.AddToClassList("slot-frame__face-inset");
             Add(faceInset);
 
-            // 帯の幅は物理画素へ揃えるので、パネルの倍率が変わり得る配置の変化でも組み直す
-            // Band widths snap to physical pixels, so rebuild on layout changes too, where the panel scale may have changed
+            // 帯の幅は物理画素へ揃える。パネルの倍率だけが変わってもスタイルが解決し直され、この経路で組み直る（SlotFrameRingScaleTest で確認）
+            // Band widths snap to physical pixels; a scale-only panel change re-resolves styles and rebuilds through this path (verified by SlotFrameRingScaleTest)
             RegisterCallback<CustomStyleResolvedEvent>(_ => ApplyBevelGeometry());
-            RegisterCallback<GeometryChangedEvent>(_ => ApplyBevelGeometry());
         }
 
         private void ApplyBevelGeometry()
@@ -54,8 +53,8 @@ namespace Client.Ui.Components.Slots
 
                 // Web は先の層が上に描かれ後の層は見える輪だけが残る。UITK の opacity は要素ごとに掛かり重なりが濃く残るので、各帯は前の層の外（inset は内）の見える輪だけを描く
                 // On the Web earlier layers paint on top, leaving only each later layer's visible ring; UITK opacity applies per element and stacks, so each band draws only the ring beyond earlier layers
-                var snappedOuter = width > rawCovered ? Mathf.Max(SnapToPhysicalPixels(width, pixelsPerPoint), snappedCovered + 1f / pixelsPerPoint) : snappedCovered;
-                var visibleWidth = snappedOuter - snappedCovered;
+                var visibleWidth = width > rawCovered ? SnapToPhysicalPixels(width - rawCovered, pixelsPerPoint) : 0f;
+                var snappedOuter = snappedCovered + visibleWidth;
                 var offset = growsInward ? snappedCovered : -snappedOuter;
                 var band = _bands[i];
                 band.style.left = offset;
@@ -73,8 +72,10 @@ namespace Client.Ui.Components.Slots
 
         private static float SnapToPhysicalPixels(float width, float pixelsPerPoint)
         {
-            // 端数の帯は辺ごとに別々に丸まり、面への食い込み・帯の消失・隙間が混ざる。物理画素の整数倍（最低 1）に揃え、どの辺も同じ太さにする
-            // Fractional bands round per edge and mix face intrusions, vanished bands and gaps; snap to whole physical pixels (at least 1) so every side matches
+            // 端数の帯は辺ごとに別々に丸まり、面への食い込み・帯の消失・隙間が混ざる。見える幅を物理画素の整数倍（最低 1）に揃え、どの辺も同じ太さにする
+            // Fractional bands round per edge and mix face intrusions, vanished bands and gaps; snap each visible width to whole physical pixels (at least 1) so every side matches
+            // 外縁でなく見える幅を丸めるので、同じ幅の帯は倍率 2 でも同じ物理画素数になる（外縁を丸めると 2+1 に崩れる）
+            // Rounding visible widths rather than outer edges keeps equal bands equal at scale 2 (outer-edge rounding gives 2+1)
             return Mathf.Max(1f, Mathf.Round(width * pixelsPerPoint)) / pixelsPerPoint; // look-exception: LX-22
         }
 

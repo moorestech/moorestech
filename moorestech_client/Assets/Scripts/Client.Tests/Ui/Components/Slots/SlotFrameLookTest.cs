@@ -38,12 +38,12 @@ namespace Client.Tests.Ui.Components.Slots
             Assert.Less(ring.IndexOf(band1), ring.IndexOf(ring.Q(className: "slot-frame__face-inset")));
             // 帯は物理画素の整数倍に丸めて外へ積む。後の層は前の層に隠れない輪だけを描く（c3 は c2 と同じ幅なので見える輪が無い）
             // Bands snap to whole physical pixels and stack outward; later layers draw only the ring earlier ones leave visible (c3 matches c2, so none)
-            var bevel1 = Snapped(frame, "--bevel-1");
-            var bevel2 = Snapped(frame, "--bevel-2");
-            Assert.AreEqual(-bevel1, band1.style.left.value.value, 0.001f);
-            Assert.AreEqual(bevel1, band1.style.borderTopWidth.value, 0.001f);
-            Assert.AreEqual(-bevel2, band2.style.bottom.value.value, 0.001f);
-            Assert.AreEqual(bevel2 - bevel1, band2.style.borderTopWidth.value, 0.001f);
+            var visible1 = SnappedVisible(frame, "--bevel-1", null);
+            var visible2 = SnappedVisible(frame, "--bevel-2", "--bevel-1");
+            Assert.AreEqual(-visible1, band1.style.left.value.value, 0.001f);
+            Assert.AreEqual(visible1, band1.style.borderTopWidth.value, 0.001f);
+            Assert.AreEqual(-(visible1 + visible2), band2.style.bottom.value.value, 0.001f);
+            Assert.AreEqual(visible2, band2.style.borderTopWidth.value, 0.001f);
             Assert.AreEqual(0f, band3.style.borderTopWidth.value, 0.001f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--bevel-c1"), band1.resolvedStyle.borderTopColor, "c1");
             Assert.AreEqual(PickingMode.Ignore, ring.pickingMode);
@@ -62,8 +62,8 @@ namespace Client.Tests.Ui.Components.Slots
             var band1 = frame.Q(className: "slot-frame__band--1");
             var band2 = frame.Q(className: "slot-frame__band--2");
             Assert.AreEqual(0f, band1.style.left.value.value, 0.001f);
-            Assert.AreEqual(Snapped(frame, "--bevel-1"), band2.style.left.value.value, 0.001f);
-            Assert.AreEqual(Snapped(frame, "--bevel-2") - Snapped(frame, "--bevel-1"), band2.style.borderLeftWidth.value, 0.001f);
+            Assert.AreEqual(SnappedVisible(frame, "--bevel-1", null), band2.style.left.value.value, 0.001f);
+            Assert.AreEqual(SnappedVisible(frame, "--bevel-2", "--bevel-1"), band2.style.borderLeftWidth.value, 0.001f);
         }
 
         [Test]
@@ -145,10 +145,13 @@ namespace Client.Tests.Ui.Components.Slots
             return frame;
         }
 
-        private static float Snapped(VisualElement frame, string bevelToken)
+        private static float SnappedVisible(VisualElement frame, string bevelToken, string coveredToken)
         {
+            // 前の層に隠れない見える幅を物理画素の整数倍（最低 1）に丸めた値
+            // The visible width beyond the earlier layer, snapped to whole physical pixels (at least 1)
             var pixelsPerPoint = frame.scaledPixelsPerPoint;
-            return Mathf.Max(1f, Mathf.Round(ThemeTokenFile.ResolvePixels(bevelToken) * pixelsPerPoint)) / pixelsPerPoint;
+            var covered = coveredToken == null ? 0f : ThemeTokenFile.ResolvePixels(coveredToken);
+            return Mathf.Max(1f, Mathf.Round((ThemeTokenFile.ResolvePixels(bevelToken) - covered) * pixelsPerPoint)) / pixelsPerPoint;
         }
     }
 }

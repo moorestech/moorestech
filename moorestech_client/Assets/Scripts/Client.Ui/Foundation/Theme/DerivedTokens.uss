@@ -56,6 +56,8 @@
 
     /* C3-a: スロット族（Slots）。つまみの既定は Web の var() のフォールバック、色は Web の CSS module の直書きを前計算した値（設計書 A-52） */
     /* C3-a: slot family (Slots); knob defaults are the Web var() fallbacks, colors precompute literals in the Web CSS modules (design A-52) */
+    /* --slot-frame-face はパネルの地に合わせた値。世界の上に直に置く画面（ホットバー）では明るい地で約 45 段淡くなるので、その画面の USS が祖先で上書きする（目安 α 0.7226） */
+    /* --slot-frame-face is tuned for the panel ground; screens placed directly over the world (hotbar) come out about 45 steps paler on bright ground, so their USS overrides it on an ancestor (about α 0.7226) */
     --slot-frame-face: rgba(50, 52, 67, 0.42); /* look-exception: LX-23 */ /* web: SlotFrame .slot の background rgb(50 52 67 / 50%)。面は地（パネルの面）より明るいので暗い色の式は逆に効く。ランタイムの Linear 合成で持ち物の空きマスを Web と比べて選んだ（C3-a Task 8: 地 (36,31,34) で Web (43,41,50)・0.7226 は (46,47,59)・0.42 は差 1 以内） */
     --slot-frame-insufficient-opacity: 0.2; /* look-exception: LX-23 */ /* web: .slot[data-insufficient] の opacity: 0.4。Linear 合成では淡く残るので、パネルの地 (35,29,30) の上の白面・灰面・輪・絵が sRGB 合成の 0.4 と RGB 7 段以内になる値（C3-a Task 8。白面は 0.4 のままだと 170、Web 123） */
     --slot-frame-ghost-opacity: 0.18; /* look-exception: LX-23 */ /* web: .slot[data-ghost] > * の opacity: var(--slot-ghost-opacity) 0.35。空きマスの面 (43,41,50) の上の白・絵・黒字が sRGB 合成の 0.35 と RGB 7 段以内になる値（C3-a Task 8） */
