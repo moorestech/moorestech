@@ -18,6 +18,9 @@
     transition-duration: 0s;
 }
 
+/* filled（青）は既定値なので規則を持たない */
+/* Filled (blue) is the default, so it has no rule */
+
 /* color="red" の filled */
 /* Filled with color="red" */
 .form-button--danger.unity-button {

@@ -81,6 +81,10 @@ namespace Client.Tests.Ui.Components.Controls
             ControlStyleAssert.AssertColor("#1971C2", button.resolvedStyle.backgroundColor);
             ControlStyleAssert.AssertColor("#FFFFFF", Label(button).resolvedStyle.color);
 
+            // 文言は 700 の字形（Web の 600 に近い方）
+            // The label uses the 700 face (nearest to the Web's 600)
+            Assert.AreEqual("GameUiLatinBold SDF", Label(button).resolvedStyle.unityFontDefinition.fontAsset.name);
+
             // ホバーは blue-9（--mantine-color-blue-filled-hover）
             // Hover is blue-9 (--mantine-color-blue-filled-hover)
             simulate.MouseMove(button.worldBound.center);
@@ -101,6 +105,18 @@ namespace Client.Tests.Ui.Components.Controls
             ControlStyleAssert.AssertColor("#696969", Label(button).resolvedStyle.color);
             Assert.AreEqual(1f, button.resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(1f, Label(button).resolvedStyle.opacity, 0.001f);
+        }
+
+        [Test]
+        public void 無効のままホバーしても無効の面が勝つ()
+        {
+            // :disabled を :hover より後に置く順序の退行を捕まえる
+            // Catches a regression of the rule order that keeps :disabled after :hover
+            var button = AddButton(FormButtonVariant.Filled);
+            button.SetEnabled(false);
+            simulate.MouseMove(button.worldBound.center);
+            simulate.FrameUpdate();
+            ControlStyleAssert.AssertColor("#2E2E2E", button.resolvedStyle.backgroundColor);
         }
 
         [Test]
