@@ -9,13 +9,13 @@
     flex-direction: column;
 }
 
-/* 節の見出しは Mantine の Title order=2（26px・行高 1.35） */
-/* Section headings are Mantine Title order=2 (26px, line height 1.35) */
+/* 節の見出しは Mantine の Title order=2（26px・行高 1.35 = 35px の行）。字幅は題と同じ理由で 24px に寄せる */
+/* Section headings are Mantine Title order=2 (26px, line height 1.35 = a 35px line); glyph width uses 24px for the same reason as the title */
 .settings-section__title {
     height: 35px;
     margin: 0;
     padding: 0;
-    font-size: 26px;
+    font-size: 24px;
     color: var(--settings-section-title-text);
     -unity-text-align: middle-left;
 }

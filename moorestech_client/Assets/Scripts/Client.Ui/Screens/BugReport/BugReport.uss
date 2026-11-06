@@ -58,6 +58,7 @@
     background-color: var(--bug-report-field-face);
     color: var(--bug-report-field-text);
     -unity-text-align: upper-left;
+    white-space: normal;
 }
 
 .bug-report__description .unity-base-text-field__input:hover {
@@ -110,6 +111,7 @@
 }
 
 .bug-report__button .unity-label {
+    flex-grow: 1;
     margin: 0;
     padding: 0;
     color: var(--bug-report-button-text);
