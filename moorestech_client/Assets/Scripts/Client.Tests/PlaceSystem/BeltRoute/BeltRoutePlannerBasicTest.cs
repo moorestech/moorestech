@@ -168,16 +168,19 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             Assert.IsTrue(result.Plan.Cells.All(cell => cell.Kind == BeltRouteCellKind.Straight && cell.Cell.y == 0));
         }
 
-        [Test]
-        public void EndAboveStartRejectsTheRouteThroughOwnSlopeHead()
+        // 終点が始点の真上（と真上の1つ前）で逆向き。終点の真下を上りにする形が一番短いが、終点が自分の坂の真上に乗るので外へ回る
+        // A reversed end directly above the start (and one ahead of it); rising right under the end is shortest, but the end would sit on the own slope head, so the route detours
+        [TestCase(4, 1, 4, 37)]
+        [TestCase(4, 1, 5, 42)]
+        public void EndAboveStartDetoursInsteadOfRisingUnderTheEnd(int endX, int endY, int endZ, int expectedCost)
         {
-            // 最短は始点を上りにして真上の終点へ曲がる形だが、終点が自分の坂の真上になるので組めない
-            // The shortest shape rises at the start and turns into the end directly above, but the end would sit on the own slope head
             var grid = FlatGrid();
-            var query = Query(new Vector3Int(4, 0, 4), BlockDirection.North, new Vector3Int(4, 1, 4), BlockDirection.South);
+            var query = Query(new Vector3Int(4, 0, 4), BlockDirection.North, new Vector3Int(endX, endY, endZ), BlockDirection.South);
             var result = new BeltRoutePlanner(grid).Plan(query);
-
-            Assert.IsFalse(result.HasPlan);
+            Assert.IsTrue(result.HasPlan, $"end {query.EndCell}: {result.NoPathReason}");
+            BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, "end above start");
+            Assert.IsFalse(result.Plan.Cells.Any(cell => cell.Kind.IsSlope() && cell.Cell + Vector3Int.up == query.EndCell), "a slope sits right under the end");
+            Assert.AreEqual(expectedCost, result.Plan.TotalCost);
         }
 
         [Test]

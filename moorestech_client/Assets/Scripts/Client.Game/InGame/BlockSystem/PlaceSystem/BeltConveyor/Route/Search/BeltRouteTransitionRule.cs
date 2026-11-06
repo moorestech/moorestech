@@ -139,8 +139,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return IsTurnAllowed(previous.Outgoing, next.Outgoing);
         }
 
+        // 始点・終点は必ず置くので、その真下の坂は既存ブロックが乗るのと同じ。探索で弾かないと組み立てだけが弾いて最短コストの経路が組めず経路なしになる
+        // The start and end are always placed, so a slope right below them is as cut as one under an existing block; unless the search rejects it, only recovery does and the shortest cost has no assemblable route
         private bool IsSlopeHeadFreeAt(int headIndex)
         {
+            if (headIndex == _startIndex || headIndex == _endIndex) return false;
             return _ignoreBlocks || !_grid.IsBlockedByBlockAt(headIndex);
         }
 
