@@ -1,0 +1,14 @@
+{
+  "Success": false,
+  "Result": "",
+  "Logs": ["1 unique error(s), 1 total. First: CS0246"],
+  "CompilationErrors": [
+    {"Message": "The type or namespace name 'Dww3MissingType' could not be found (are you missing a using directive or an assembly reference?)", "Line": 6, "Column": 23, "ErrorCode": "CS0246", "Hint": "", "Suggestions": []}
+  ],
+  "ErrorMessage": "Compilation failed",
+  "DiagnosticsSummary": "1 unique error(s), 1 total. First: CS0246",
+  "Diagnostics": [
+    {"Message": "The type or namespace name 'Dww3MissingType' could not be found (are you missing a using directive or an assembly reference?)", "Line": 6, "Column": 23, "ErrorCode": "CS0246", "Hint": "", "Suggestions": []}
+  ],
+  "EditorPlaying": true
+}

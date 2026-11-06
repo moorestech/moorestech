@@ -6,12 +6,15 @@
 # The scenario file is a C# snippet for execute-dynamic-code (must call PlaytestRunner.Run and return the run dir)
 #
 # usage: run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]
+# 終了コード: 0 = シナリオ成功、1 = 失敗（preflight・boot・ready・結果）、2 = シナリオがコンパイルできず1行も実行されなかった
+# Exit codes: 0 = scenario passed, 1 = failure (preflight, boot, ready, result), 2 = the scenario did not compile and ran zero lines
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_PATH="${1:?usage: run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]}"
 SCENARIO_FILE="${2:?scenario .cs file required}"
 source "$SCRIPT_DIR/fixed-world-environment.sh"
+source "$SCRIPT_DIR/edc-client.sh"
 
 # 固定worldの入力契約をmaster解決やpreflightより前に確定する
 # Resolve the fixed-world input contract before master resolution or preflight
@@ -55,41 +58,13 @@ fi
 READY_TIMEOUT="${PLAYTEST_READY_TIMEOUT:-300}"
 RESULT_TIMEOUT=420
 
-extract_json() { sed -n '/^{/,$p'; }
-json_get() { python3 -c "import sys,json; print(json.load(sys.stdin).get('$1',''))" 2>/dev/null; }
 csharp_quote() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
-
-# domain reloadが残したCLI Loop設定の退避を、boot後を含む全EDC試行前に復元する
-# Restore CLI Loop settings left backed up by domain reload before every EDC attempt, including post-boot calls
-restore_cli_loop_settings() {
-    local settings="$PROJECT_PATH/UserSettings/UnityMcpSettings.json"
-    local backup="${settings}.bak"
-    [[ -f "$settings" || ! -f "$backup" ]] || mv "$backup" "$settings"
-}
-
-edc() {
-    # ドメインリロード直後はEDCが失敗するため、成功するまで最大8回リトライする
-    # EDC fails right after a domain reload, so retry up to 8 times until it succeeds
-    local attempt response success
-    for attempt in $(seq 1 8); do
-        restore_cli_loop_settings
-        response=$(uloop execute-dynamic-code --project-path "$PROJECT_PATH" --code "$1" 2>/dev/null | extract_json)
-        success=$(echo "$response" | json_get Success)
-        if [[ "$success" == "True" ]]; then
-            echo "$response"
-            return 0
-        fi
-        sleep 5
-    done
-    echo "$response"
-    return 1
-}
 
 echo "== preflight =="
 "$SCRIPT_DIR/preflight.sh" "$PROJECT_PATH" "$MASTER_DIR" || exit 1
 
 echo "== boot play mode =="
-IS_PLAYING=$(edc 'return UnityEditor.EditorApplication.isPlaying;' | json_get Result)
+IS_PLAYING=$(edc_call 8 0 'return UnityEditor.EditorApplication.isPlaying;' | json_get Result)
 if [[ "$IS_PLAYING" == "True" ]]; then
     # PlayMode中は必ず停止してから正規bootする。汚染セッション（前回クラッシュのNREスパム等）に
     # シナリオを注入するとresult.json未生成の沈黙タイムアウトになる（2026-07-18実測: 420秒沈黙）。
@@ -111,7 +86,7 @@ else
     MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
     BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode($MASTER_LITERAL, true);"
 fi
-SESSION_DIR=$(edc "$BOOT_CODE" | json_get Result)
+SESSION_DIR=$(edc_call 8 0 "$BOOT_CODE" | json_get Result)
 # Windows(git bash)ではUnityが "C:\..." 形式の絶対パスを返すので、ドライブ文字始まりも絶対パスとして扱う
 # On Windows (git bash) Unity returns "C:\..."-style absolute paths, so a drive-letter prefix also counts as absolute
 is_absolute_path() { case "$1" in /*|[A-Za-z]:*) return 0;; *) return 1;; esac; }
@@ -135,7 +110,16 @@ done
 echo "ready after ~${WAITED}s"
 
 echo "== inject scenario: $SCENARIO_FILE =="
-SCENARIO_RESPONSE=$(edc "$(cat "$SCENARIO_FILE")")
+SCENARIO_RESPONSE=$(edc_call 8 0 "$(cat "$SCENARIO_FILE")")
+SCENARIO_STATUS=$?
+# コンパイルできないシナリオは1行も実行されていない。検証0件を緑に見せないよう専用の終了コードで止める
+# A scenario that does not compile ran zero lines; stop with a dedicated exit code so zero checks never look green
+if [[ "$SCENARIO_STATUS" -eq 2 ]]; then
+    echo "NG: scenario compile failed — シナリオは1行も実行されていません: $SCENARIO_FILE"
+    printf '%s' "$SCENARIO_RESPONSE" | print_compile_errors
+    uloop control-play-mode --project-path "$PROJECT_PATH" --action stop >/dev/null 2>&1 && echo "play mode stopped"
+    exit 2
+fi
 RUN_DIR=$(echo "$SCENARIO_RESPONSE" | json_get Result)
 if ! is_absolute_path "$RUN_DIR"; then
     echo "NG: scenario injection failed:"
