@@ -21,7 +21,7 @@ namespace Client.Ui.Components.Controls
 
         // Web（CEF）はホイール 1 ノッチで本文を 60px 動かす（CefUnity の ScrollInputPipeline.WheelPixelsPerStep）。UITK は 1 ノッチを WheelEvent の scrollDeltaPerTick 行で届ける
         // The Web (CEF) scrolls 60px per wheel notch (CefUnity ScrollInputPipeline.WheelPixelsPerStep); UITK delivers one notch as scrollDeltaPerTick lines of WheelEvent
-        public const float WebWheelPixelsPerNotch = 60f;
+        private const float WebWheelPixelsPerNotch = 60f;
 
         private readonly Subject<float> _onScrollOffsetChanged = new();
 

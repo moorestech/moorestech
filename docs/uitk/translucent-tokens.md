@@ -25,10 +25,10 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--game-panel-rule-bottom-peak` | `rgba(128, 132, 159, 0.42)` | `rgba(128, 132, 159, 0.2034)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-rule-bottom-end` | `rgba(128, 132, 159, 0.26)` | `rgba(128, 132, 159, 0.0946)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-triangle-face` | `rgba(94, 100, 128, 0.2)` | `rgba(94, 100, 128, 0.0764)` | 面色を背景にした厳密式（S7） |
-| `--panel-action-hover-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 22%)` = `rgba(35, 38, 51, 0.844)` | `rgba(35, 38, 51, 0.9832)` | 実機で据え置き（ポーズの撮影でホバー中のボタンの面が地の面と見分けられる） |
+| `--panel-action-hover-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 22%)` = `rgba(35, 38, 51, 0.844)` | `rgba(35, 38, 51, 0.9678)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
 | `--mode-switch-selected-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 30%)` = `rgba(43, 46, 59, 0.86)` | `rgba(43, 46, 59, 0.9737)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
 | `--panel-action-text-outline` | `rgb(0 0 0 / 70%)` | `rgba(0, 0, 0, 0.8922)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
-| `--pause-menu-face` | `rgb(16 20 28 / 92%)` | `rgba(16, 20, 28, 0.9907)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）。ポーズの撮影（https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png ）で枠の面とボタンの面（`--gauge-track`）が見分けられることを確かめた |
+| `--pause-menu-face` | `rgb(16 20 28 / 92%)` | `rgba(16, 20, 28, 0.9907)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）。枠の面とボタンの面（`--gauge-track`）の見分けの撮影（https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png ）は旧値 0.9961・地 0.971 のもの |
 | `--theme-scroller-thumb-face` | `rgba(255, 255, 255, 0.4)` | `rgba(255, 255, 255, 0.1332)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine ScrollArea の暗色のつまみ） |
 | `--game-panel-craft-face` | `rgb(7 9 18 / 80%)` | `rgba(7, 9, 18, 0.9491)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（GamePanel craft の面。C2-a・I-fix1 のランタイム実測） |
 | `--game-panel-craft-rim` | `rgb(146 148 167 / 55%)` | `rgba(146, 148, 167, 0.2684)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（GamePanel craft の内周。C2-a） |

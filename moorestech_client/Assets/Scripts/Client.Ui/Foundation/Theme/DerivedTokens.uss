@@ -13,7 +13,7 @@
     --game-panel-triangle-face: rgba(94, 100, 128, 0.0764); /* web: rgba(94, 100, 128, 0.2) 面色(10,14,27)を背景にした厳密式 */
 
     /* PanelActionButton・ModeSwitch の Web の color-mix(in srgb, var(--gauge-track), var(--bevel-c2) N%) を前計算した面と、PanelActionButton の文字の縁 */
-    --panel-action-hover-face: rgba(35, 38, 51, 0.9832); /* web: color-mix 22% = rgba(35, 38, 51, 0.844) α補正 */
+    --panel-action-hover-face: rgba(35, 38, 51, 0.9678); /* web: color-mix 22% = rgba(35, 38, 51, 0.844) α補正 */
     --mode-switch-selected-face: rgba(43, 46, 59, 0.9737); /* web: color-mix 30% = rgba(43, 46, 59, 0.86) α補正 */
     --panel-action-text-outline: rgba(0, 0, 0, 0.8922); /* web: rgb(0 0 0 / 70%) α補正 */
 
@@ -39,7 +39,7 @@
     --paper-face: var(--mantine-color-body); /* web: Mantine Paper の background-color。Web に局所変数は無く、画面は background を直に上書きする（設計書 A-23） */
     --paper-radius: var(--mantine-radius-sm); /* web: Mantine Paper の --paper-radius: var(--mantine-radius-default)。8.3.18 の既定 theme では sm と同じ 0.25rem */
     --hud-label-font-size: var(--challenge-hud-label-font-size); /* web: CurrentChallengeHud.module.css .label。PlacementModeHud の --operation-hud-* は同値 */
-    --hud-label-letter-spacing: var(--challenge-hud-letter-spacing); /* web: 同上 */
+    --hud-label-letter-spacing: var(--challenge-hud-letter-spacing); /* web: 同上。値は字の大きさの 1/100 単位（12px で 1px）なので、--hud-label-font-size だけを上書きするときは字間も上書きする */
     --hud-label-rule-gap: var(--challenge-hud-label-rule-gap); /* web: 同上 */
     --hud-rule-list-gap: var(--challenge-hud-rule-list-gap); /* web: .objectives の margin-top */
     --hud-rule-width: 100%; /* web: modeHud は FadeRule を幅いっぱい、challenge は .rule の --challenge-hud-rule-width（画面 USS が上書き） */

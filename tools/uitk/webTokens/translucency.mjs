@@ -15,4 +15,4 @@ export function correctAlphaForLinearBlend(red, green, blue, alpha) {
   return Math.round(corrected * 10000) / 10000;
 }
 
-export const translucencyMethod = "α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）";
+export const translucencyMethod = `α 近似補正（S7。暗い色 1-(1-α)^${darkExponent}・明るい色 α^${lightExponent}）`;
