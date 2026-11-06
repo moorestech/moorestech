@@ -80,5 +80,22 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             _tracker.OnLayoutChanged();
             Assert.AreEqual(250f, viewport.ScrollTop);
         }
+
+        [Test]
+        public void スペーサの実寸が許容誤差内なら反映済みとして保存位置を復元する()
+        {
+            _session.SetScrollTop(250f);
+            var viewport = new FakeBuildMenuScrollViewport(600f, 700f, 0f);
+            _tracker.SetVisibleCategories(new[] { Z, A });
+            _tracker.AttachViewport(viewport);
+            viewport.SetGroupHeight(A, 200f);
+            _tracker.SetVisibleCategories(new[] { Y, A });
+
+            // 要求 400 に対し実寸 399.6（丸め誤差）でも Settled になる
+            // A measured 399.6 against a requested 400 (rounding) still settles
+            viewport.ApplySpacer(_tracker.SpacerHeight.Value - 0.4f);
+            _tracker.OnLayoutChanged();
+            Assert.AreEqual(250f, viewport.ScrollTop);
+        }
     }
 }

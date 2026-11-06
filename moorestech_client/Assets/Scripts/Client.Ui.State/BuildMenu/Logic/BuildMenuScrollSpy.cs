@@ -9,8 +9,8 @@ namespace Client.Ui.State.BuildMenu.Logic
     /// </summary>
     public static class BuildMenuScrollSpy
     {
-        // スムーズスクロールの停止位置は小数で揺れるので ±1px を同値とみなす（ジャンプ到達専用）
-        // Smooth scrolling settles on fractional positions, so ±1px counts as equal (jump arrival only)
+        // スムーズスクロールの停止位置は小数で揺れるので ±1px を同値とみなす（ジャンプ到達とスペーサ反映の判定）
+        // Smooth scrolling settles on fractional positions, so ±1px counts as equal (jump arrival and spacer applied)
         private const float JumpSettleTolerancePx = 1f;
 
         // scroll-spy が見出しを活性にするしきい値。到達判定とは別に調整できるよう分ける
@@ -31,6 +31,11 @@ namespace Client.Ui.State.BuildMenu.Logic
                 if (offset.Top < topmost.Top) topmost = offset;
             }
             return (reached ?? topmost).CategoryGuid;
+        }
+
+        public static bool IsSpacerApplied(float appliedHeight, float desiredHeight)
+        {
+            return Math.Abs(appliedHeight - desiredHeight) <= JumpSettleTolerancePx;
         }
 
         public static bool IsJumpSettled(float scrollTop, float targetTop)

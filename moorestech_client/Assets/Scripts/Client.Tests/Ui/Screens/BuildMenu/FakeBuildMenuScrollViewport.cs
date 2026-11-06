@@ -23,12 +23,11 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         // View が反映済みのスペーサ高さ。追跡器の SpacerHeight とは別に、テストが ApplySpacer で明示的に反映する
         // The spacer height the view has applied; separate from the tracker's SpacerHeight, tests apply it explicitly via ApplySpacer
         private float _contentHeight;
-        private float _appliedSpacerHeight;
 
         public float ScrollTop { get; private set; }
         public float ClientHeight { get; private set; }
-        public float AppliedSpacerHeight => _appliedSpacerHeight;
-        public float ScrollHeight => _contentHeight + _appliedSpacerHeight;
+        public float AppliedSpacerHeight { get; private set; }
+        public float ScrollHeight => _contentHeight + AppliedSpacerHeight;
 
         public FakeBuildMenuScrollViewport(float clientHeight, float scrollHeight, float scrollTop)
         {
@@ -43,7 +42,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         public void SetGroupHeight(Guid categoryGuid, float height) => _groupHeights[categoryGuid] = height;
 
         public void SetContentHeight(float contentHeight) => _contentHeight = contentHeight;
-        public void ApplySpacer(float spacerHeight) => _appliedSpacerHeight = spacerHeight;
+        public void ApplySpacer(float spacerHeight) => AppliedSpacerHeight = spacerHeight;
 
         public bool TryGetHeadingTop(Guid categoryGuid, out float top) => _headingTops.TryGetValue(categoryGuid, out top);
         public bool TryGetGroupHeight(Guid categoryGuid, out float height) => _groupHeights.TryGetValue(categoryGuid, out height);
