@@ -62,6 +62,14 @@ return PlaytestRunner.Run("uitk-c2b-ime-mac", options, async p =>
     p.Assert(UiInputExclusivity.IsTextInputFocused, "2 欄のフォーカスで入力排他が立つ");
     p.Assert(UnityEngine.Input.imeCompositionMode == IMECompositionMode.On, "2 欄のフォーカスで IME が On");
 
+    // Mac の Editor は compositionCursorPos を Game ビューの表示倍率を掛けずに読むので、等倍で映してから候補窓を開く（縮小表示だと窓が右上へずれる）
+    // The Mac Editor reads compositionCursorPos without the Game view zoom, so show it at 1x before opening the candidate window (a shrunk view shifts the window up-right)
+    var layoutBefore = ShowGameViewAtActualSize();
+    await p.WaitSeconds(0.5f);
+    SnapGameViewZoom(1f);
+    await p.WaitSeconds(0.5f);
+    p.Assert(Mathf.Approximately(GameViewZoom(), 1f), $"5 Game ビューを等倍で映した（今 {GameViewZoom()} 倍）");
+
     // ③ 6・5: かなへ切り替えて nihongo と Space（候補窓を開く）。運転役が送った直後の画面全体を step-1.png に撮る
     // (3) items 6 and 5: switch to kana, type nihongo and Space (opens the candidate window); the driver captures the whole screen as step-1.png
     await SendKeys(104, 45, 34, 4, 31, 45, 5, 31, 49);
@@ -101,6 +109,7 @@ return PlaytestRunner.Run("uitk-c2b-ime-mac", options, async p =>
     p.Assert(UnityEngine.Input.imeCompositionMode == IMECompositionMode.Off, "2・4 フォーカスが外れたら IME は Off");
     await p.WaitUiState(UIStateEnum.PauseMenu, 2f);
     await p.Screenshot("04-after-escape");
+    RestoreLayout(layoutBefore);
     File.WriteAllText(Path.Combine(markers, "finish"), "ok");
 
     #region Internal
@@ -136,13 +145,38 @@ return PlaytestRunner.Run("uitk-c2b-ime-mac", options, async p =>
     {
         // OS のキーは前面の窓のキーボードの焦点へ届くので、Game ビューを選んで焦点を置く（prepare-editor-input.edc と同じ）
         // OS keys reach the key window's keyboard focus, so select the Game view and focus it (same as prepare-editor-input.edc)
-        var gameView = Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
+        var gameView = GameView();
         var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public;
         var dock = typeof(UnityEditor.EditorWindow).GetField("m_Parent", flags).GetValue(gameView);
-        var tabs = (System.Collections.IList)dock.GetType().GetField("m_Panes", flags).GetValue(dock);
-        dock.GetType().GetProperty("selected", flags).SetValue(dock, tabs.IndexOf(gameView));
+        // 最大化中の Game ビューはタブの無い窓に載るので、タブを選ぶのはドックにいるときだけ
+        // A maximized Game view sits in a tabless host, so pick the tab only while docked
+        var panesField = dock.GetType().GetField("m_Panes", flags);
+        if (panesField != null) dock.GetType().GetProperty("selected", flags).SetValue(dock, ((System.Collections.IList)panesField.GetValue(dock)).IndexOf(gameView));
         gameView.Focus();
     }
+
+    UnityEditor.EditorWindow GameView() => Resources.FindObjectsOfTypeAll<UnityEditor.EditorWindow>().First(w => w.GetType().Name == "GameView");
+
+    (Rect mainWindow, float zoom) ShowGameViewAtActualSize()
+    {
+        // 主窓を画面いっぱいにして Game ビューを最大化し、1280x720 が等倍で収まる広さにする（終わりに戻す）
+        // Fill the screen with the main window and maximize the Game view so 1280x720 fits at 1x (restored at the end)
+        var before = (UnityEditor.EditorGUIUtility.GetMainWindowPosition(), GameViewZoom());
+        UnityEditor.EditorGUIUtility.SetMainWindowPosition(new Rect(0, 0, Screen.currentResolution.width, Screen.currentResolution.height));
+        GameView().maximized = true;
+        return before;
+    }
+
+    void RestoreLayout((Rect mainWindow, float zoom) before)
+    {
+        GameView().maximized = false;
+        UnityEditor.EditorGUIUtility.SetMainWindowPosition(before.mainWindow);
+        SnapGameViewZoom(before.zoom);
+    }
+
+    float GameViewZoom() => ((Vector2)GameView().GetType().GetProperty("zoomAreaScale", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(GameView())).x;
+
+    void SnapGameViewZoom(float zoom) => GameView().GetType().GetMethod("SnapZoom", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(GameView(), new object[] { zoom });
 
     async UniTask SendKeys(params int[] keyCodes)
     {
