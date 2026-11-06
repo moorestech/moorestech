@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Ui.State.Items;
 using Client.Ui.State.Research.Logic;
 using Core.Master;
 using Game.Research;
@@ -7,8 +8,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.Research
 {
     /// <summary>
-    /// Web の researchLogic.test.ts のうち allocateResearchItems・isConsumeItemLacking・deriveNodeCardState の写し（L0）。hasEnoughItems は L0-s4a の ownedCounts 側
-    /// Port of the allocateResearchItems, isConsumeItemLacking and deriveNodeCardState parts of Web researchLogic.test.ts (L0); hasEnoughItems lives with L0-s4a's ownedCounts
+    /// Web の researchLogic.test.ts のうち allocateResearchItems・isConsumeItemLacking・deriveNodeCardState・hasEnoughItems の写し（L0）
+    /// Port of the allocateResearchItems, isConsumeItemLacking, deriveNodeCardState and hasEnoughItems parts of Web researchLogic.test.ts (L0)
     /// </summary>
     public class ResearchAllocationAndCardTest
     {
@@ -82,6 +83,17 @@ namespace Client.Tests.Ui.State.Research
         public void 研究可能は研究可能の印()
         {
             AssertCard(ResearchNodeState.Researchable, false, true, false);
+        }
+
+        /// <web-test file="src/features/research/researchLogic.test.ts">checks owned counts against consume items</web-test>
+        [Test]
+        public void 所持数を消費アイテムの必要数と照らし合わせる()
+        {
+            // 必要 1x3 に対し所持 3 なら足り、2 なら足りない
+            // Owning 3 covers a need of 1x3, owning 2 does not
+            var requirements = new[] { new ItemAmount(new ItemId(1), 3) };
+            Assert.IsTrue(OwnedItemCounts.HasEnoughItems(requirements, new Dictionary<ItemId, int> { [new ItemId(1)] = 3 }));
+            Assert.IsFalse(OwnedItemCounts.HasEnoughItems(requirements, new Dictionary<ItemId, int> { [new ItemId(1)] = 2 }));
         }
 
         private static ResearchConsumeItem Consume(int itemId, int count, int[] accepted)
