@@ -14,7 +14,7 @@ namespace Client.Ui.Components.Panels
     /// The owner USS passes color and spans as --game-panel-face, --game-panel-edge-fade (sides), --game-panel-top-fade and --game-panel-bottom-fade; a 0px side does not fade.
     /// Fade bands are finely subdivided and each vertex alpha is corrected for Linear blending by GamePanelFaceOpacityRamp, so linear interpolation between vertices keeps the Web run of shades.
     /// </remarks>
-    public sealed class GamePanelFace : VisualElement
+    internal sealed class GamePanelFace : VisualElement
     {
         // フェード 1 本を刻む数。8 で補正後の曲線と折れ線の差が 1 段未満になる
         // Segments per fade span; 8 keeps the polyline within one shade of the corrected curve
@@ -53,8 +53,8 @@ namespace Client.Ui.Components.Panels
             // silent-ok: トークンが読めない間は描かない / UssCustomStyleReader が読めなかったトークン名を LogError で出す
             if (!_hasTokens) return;
 
-            // 格子の線を置き、各頂点に色、各セルに三角 2 枚ずつを張る
-            // Place the grid lines, color every vertex and span two triangles per cell
+            // 格子線・頂点色・セル三角を張る
+            // Place grid lines, vertex colors and cell triangles
             var width = contentRect.width;
             var height = contentRect.height;
             SetGridLines();

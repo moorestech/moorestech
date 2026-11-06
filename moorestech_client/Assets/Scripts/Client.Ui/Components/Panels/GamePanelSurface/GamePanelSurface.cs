@@ -25,16 +25,20 @@ namespace Client.Ui.Components.Panels
             _body = new VisualElement();
             _body.AddToClassList("game-panel-surface__body");
             hierarchy.Add(_body);
-        }
 
-        private static string KindClassName(GamePanelSurfaceKind kind)
-        {
-            return kind switch
+            #region Internal
+
+            static string KindClassName(GamePanelSurfaceKind kind)
             {
-                GamePanelSurfaceKind.Hud => "game-panel-surface--hud",
-                GamePanelSurfaceKind.Skit => "game-panel-surface--skit",
-                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
-            };
+                return kind switch
+                {
+                    GamePanelSurfaceKind.Hud => "game-panel-surface--hud",
+                    GamePanelSurfaceKind.Skit => "game-panel-surface--skit",
+                    _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
+                };
+            }
+
+            #endregion
         }
     }
 }

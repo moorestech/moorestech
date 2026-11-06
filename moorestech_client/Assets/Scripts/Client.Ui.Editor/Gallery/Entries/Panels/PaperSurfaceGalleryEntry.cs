@@ -21,8 +21,8 @@ namespace Client.Ui.Editor.Gallery.Entries.Panels
             paper.Add(new Label("In Progress"));
             paper.AddToClassList("gallery-samples__paper");
 
-            // Paper の面はギャラリーの地と同じ色で見えないので、チャレンジ画面の地に載せる
-            // The Paper face matches the gallery backdrop and vanishes, so lay it on the challenge screen backdrop
+            // 面が地と同色のため画面の地に載せる
+            // The face matches the gallery backdrop, so lay it on the screen backdrop
             var backdrop = new VisualElement();
             backdrop.Add(paper);
             row.Add(PanelsAndDecorSampleSheet.Cell(backdrop, "gallery-samples__paper-backdrop"));

@@ -60,8 +60,8 @@ namespace Client.Ui.Components.Panels
 
             #region Internal
 
-            // 題の行と上下の罫線は SetTitle で --titled が付くまで USS が隠す
-            // USS hides the title row and its rules until SetTitle adds --titled
+            // --titled が付くまで題と罫線を隠す
+            // Hide title and rules until --titled is added
             void AddTitleRowsAndBody()
             {
                 hierarchy.Add(DecoLine("game-panel__deco-line--top"));

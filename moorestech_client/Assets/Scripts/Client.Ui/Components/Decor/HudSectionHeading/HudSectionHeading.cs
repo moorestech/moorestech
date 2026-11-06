@@ -1,5 +1,4 @@
 using Client.Ui.Foundation.Text;
-using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
@@ -27,7 +26,7 @@ namespace Client.Ui.Components.Decor
             // The testid goes on the label as on the Web (challenge-hud-label, operation-mode-label)
             var labelElement = new LocalizedLabel { name = labelTestid };
             labelElement.AddToClassList("hud-section-heading__label");
-            labelElement.SetText(new UiText(label));
+            labelElement.SetKey(label);
             hierarchy.Add(labelElement);
 
             // 罫線は包みの幅（つまみ --hud-rule-width）まで伸びる

@@ -8,7 +8,7 @@ namespace Client.Ui.Components.Panels
     /// craft の右下グリップ。右下の直角三角を単色で塗り、つまみの分だけ右下へずらす（Web の .craft::after）
     /// Craft bottom-right grip; fills one right-angle triangle in a single color, shifted down-right by the knob (the Web .craft::after)
     /// </summary>
-    public sealed class GamePanelCraftGrip : VisualElement
+    internal sealed class GamePanelCraftGrip : VisualElement
     {
         private Color _gripColor;
         private float _offset;

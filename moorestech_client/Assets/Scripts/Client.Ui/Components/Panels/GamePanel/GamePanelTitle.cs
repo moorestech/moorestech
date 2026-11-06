@@ -9,7 +9,7 @@ namespace Client.Ui.Components.Panels
     /// GamePanel の題。Web の transform: translateX(--title-shift-x) scale(--title-scale-x, --title-scale-y) をつまみから当てる
     /// GamePanel title; applies the Web transform translateX(--title-shift-x) scale(--title-scale-x, --title-scale-y) from the knobs
     /// </summary>
-    public sealed class GamePanelTitle : LocalizedLabel
+    internal sealed class GamePanelTitle : LocalizedLabel
     {
         public GamePanelTitle()
         {

@@ -17,8 +17,8 @@ namespace Client.Ui.Editor.Gallery.Entries.Panels
         {
             var row = PanelsAndDecorSampleSheet.CreateSampleRow();
 
-            // hud は幅だけを決め、高さは内容で決まる
-            // The hud fixes only its width; content decides the height
+            // hud は幅だけ決め高さは内容次第
+            // The hud fixes only width; content decides height
             var hud = new GamePanelSurface("gallery-surface-hud", GamePanelSurfaceKind.Hud);
             var objective = new Label("Second Step");
             objective.AddToClassList("gallery-samples__objective");

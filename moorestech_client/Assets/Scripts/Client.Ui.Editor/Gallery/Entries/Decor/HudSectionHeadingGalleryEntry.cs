@@ -19,16 +19,16 @@ namespace Client.Ui.Editor.Gallery.Entries.Decor
         {
             var row = PanelsAndDecorSampleSheet.CreateSampleRow();
 
-            // チャレンジ HUD: hud の面に見出しと目標 1 行
-            // Challenge HUD: a heading and one objective on a hud face
+            // チャレンジ HUD（hud の面）
+            // Challenge HUD (hud face)
             var challenge = new GamePanelSurface("gallery-challenge-hud", GamePanelSurfaceKind.Hud);
             var challengeHeading = new HudSectionHeading("challenge-hud-label", LocalizationKeys.Ui.Challenge.CurrentTitle);
             challengeHeading.Add(Line("Second Step", "gallery-samples__objective"));
             challenge.Add(challengeHeading);
             row.Add(PanelsAndDecorSampleSheet.Cell(challenge, "gallery-samples__challenge-hud"));
 
-            // 設置モード HUD: craft の枠に見出しと詳細 2 行
-            // Placement-mode HUD: a heading and two detail lines in a craft frame
+            // 設置モード HUD（craft の枠）
+            // Placement-mode HUD (craft frame)
             var placement = new GamePanel("gallery-placement-hud", GamePanelFrame.Craft);
             var placementHeading = new HudSectionHeading("operation-mode-label", LocalizationKeys.Ui.ModeHud.PlacementModeTitle);
             placementHeading.Add(Line("Selected: Assembler", "gallery-samples__mode-detail"));

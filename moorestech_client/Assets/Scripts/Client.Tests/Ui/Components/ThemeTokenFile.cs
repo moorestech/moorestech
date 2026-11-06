@@ -21,11 +21,30 @@ namespace Client.Tests.Ui.Components
 
         public static string Resolve(string tokenName)
         {
-            // var(--x) だけの値は参照先をたどる
-            // A value that is just var(--x) is followed to its target
+            // var(--x) だけなら参照先をたどる
+            // A bare var(--x) value is followed to its target
             var value = ReadDeclaredValue(tokenName);
             var reference = VarReference.Match(value);
             return reference.Success ? Resolve(reference.Groups[1].Value) : value;
+
+            #region Internal
+
+            string ReadDeclaredValue(string tokenName)
+            {
+                // 宣言はテーマの USS のどれか 1 枚にある。名前の前に英数とハイフンが続かない所だけを拾う
+                // The declaration lives in one of the theme USS files; only matches not preceded by a word char or hyphen count
+                var pattern = new Regex(@"(?<![\w-])" + Regex.Escape(tokenName) + @"\s*:\s*([^;]+);");
+                var directory = Path.Combine(Path.GetDirectoryName(Application.dataPath), ThemeDirectory);
+                foreach (var path in Directory.GetFiles(directory, "*.uss").OrderBy(path => path))
+                {
+                    var match = pattern.Match(File.ReadAllText(path));
+                    if (match.Success) return Regex.Replace(match.Groups[1].Value, @"/\*.*?\*/", "").Trim();
+                }
+                Assert.Fail($"{tokenName} is not declared in {ThemeDirectory}");
+                return null;
+            }
+
+            #endregion
         }
 
         public static float ResolvePixels(string tokenName)
@@ -62,21 +81,6 @@ namespace Client.Tests.Ui.Components
             Assert.AreEqual(expected.g, actual.g, ColorTolerance, $"{what}.g");
             Assert.AreEqual(expected.b, actual.b, ColorTolerance, $"{what}.b");
             Assert.AreEqual(expected.a, actual.a, ColorTolerance, $"{what}.a");
-        }
-
-        private static string ReadDeclaredValue(string tokenName)
-        {
-            // 宣言はテーマの USS のどれか 1 枚にある。名前の前に英数とハイフンが続かない所だけを拾う
-            // The declaration lives in one of the theme USS files; only matches not preceded by a word char or hyphen count
-            var pattern = new Regex(@"(?<![\w-])" + Regex.Escape(tokenName) + @"\s*:\s*([^;]+);");
-            var directory = Path.Combine(Path.GetDirectoryName(Application.dataPath), ThemeDirectory);
-            foreach (var path in Directory.GetFiles(directory, "*.uss").OrderBy(path => path))
-            {
-                var match = pattern.Match(File.ReadAllText(path));
-                if (match.Success) return Regex.Replace(match.Groups[1].Value, @"/\*.*?\*/", "").Trim();
-            }
-            Assert.Fail($"{tokenName} is not declared in {ThemeDirectory}");
-            return null;
         }
     }
 }

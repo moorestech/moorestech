@@ -19,20 +19,20 @@ namespace Client.Ui.Editor.Gallery.Entries.Panels
         {
             var row = PanelsAndDecorSampleSheet.CreateSampleRow();
 
-            // 参照 4-player-inventory の持ち物パネル
-            // The inventory panel in reference 4-player-inventory
+            // 持ち物パネル（4-player-inventory）
+            // Inventory panel (4-player-inventory)
             var inventory = new GamePanel("gallery-game-panel-inventory", GamePanelFrame.Default);
             inventory.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
             inventory.SetTitleAction(new PanelActionButton("gallery-game-panel-sort", LocalizationKeys.Ui.Inventory.Sort));
             row.Add(PanelsAndDecorSampleSheet.Cell(inventory, "gallery-samples__inventory"));
 
-            // 題なしの default（題の行と罫線が出ないこと）
-            // An untitled default (no title row or rules)
+            // 題なしの default
+            // An untitled default
             var untitled = new GamePanel("gallery-game-panel-untitled", GamePanelFrame.Default);
             row.Add(PanelsAndDecorSampleSheet.Cell(untitled, "gallery-samples__craft-detail"));
 
-            // 参照 4-player-inventory の中央詳細と、題付きの craft
-            // The center detail in reference 4-player-inventory, and a titled craft
+            // 中央詳細と題付き craft
+            // Center detail and titled craft
             var craft = new GamePanel("gallery-game-panel-craft", GamePanelFrame.Craft);
             row.Add(PanelsAndDecorSampleSheet.Cell(craft, "gallery-samples__craft-detail"));
             var titledCraft = new GamePanel("gallery-game-panel-craft-titled", GamePanelFrame.Craft);
