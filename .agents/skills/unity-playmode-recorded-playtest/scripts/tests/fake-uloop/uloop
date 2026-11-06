@@ -10,8 +10,8 @@ while [[ $# -gt 0 ]]; do
 done
 printf '%s :: %s\n' "$COMMAND" "$(printf '%s' "$CODE" | tr '\n' ' ' | cut -c1-80)" >> "$FAKE_ULOOP_CALL_LOG"
 
-# シナリオ投入は差し替え可能な応答ファイル、それ以外は固定の成功応答を返す
-# Scenario injection returns a swappable response file; everything else returns a fixed success
+# シナリオ投入・ドライラン・boot は応答ファイルで差し替え可能、それ以外は固定の成功応答を返す
+# Scenario injection, the dry run and boot can be swapped via response files; everything else returns a fixed success
 case "$COMMAND" in
     compile) echo '{"Success": true, "ErrorCount": 0}' ;;
     control-play-mode)
@@ -20,6 +20,8 @@ case "$COMMAND" in
     execute-dynamic-code)
         if [[ "$CODE" == *"PlaytestRunner.Run"* ]]; then cat "$FAKE_ULOOP_SCENARIO_RESPONSE"
         elif [[ "$CODE" == *"pong:"* ]]; then echo '{"Success": true, "Result": "pong:False"}'
+        elif [[ "$CODE" == *"master-load-ok"* && -n "${FAKE_ULOOP_DRYRUN_RESPONSE:-}" ]]; then cat "$FAKE_ULOOP_DRYRUN_RESPONSE"
+        elif [[ "$CODE" == *"PrepareAndEnterPlayMode"* && -n "${FAKE_ULOOP_BOOT_RESPONSE:-}" ]]; then cat "$FAKE_ULOOP_BOOT_RESPONSE"
         elif [[ "$CODE" == *"master-load-ok"* ]]; then echo '{"Success": true, "Result": "master-load-ok"}'
         elif [[ "$CODE" == *"PrepareAndEnterPlayMode"* ]]; then printf '{"Success": true, "Result": "%s"}\n' "$FAKE_SESSION_DIR"
         elif [[ "$CODE" == *"isPlaying"* ]]; then echo '{"Success": true, "Result": "False"}'

@@ -6,8 +6,8 @@
 # The scenario file is a C# snippet for execute-dynamic-code (must call PlaytestRunner.Run and return the run dir)
 #
 # usage: run-scenario.sh <unity-project-path> <scenario.cs> [master-server-dir]
-# 終了コード: 0 = シナリオ成功、1 = 失敗（preflight・boot・ready・結果）、2 = シナリオがコンパイルできず1行も実行されなかった
-# Exit codes: 0 = scenario passed, 1 = failure (preflight, boot, ready, result), 2 = the scenario did not compile and ran zero lines
+# 終了コード: 0 = シナリオ成功、1 = 失敗（preflight・boot・ready・結果）、2 = コード片がコンパイルできず1行も実行されなかった（シナリオ・boot のコード片・preflight のドライランのどれでも）
+# Exit codes: 0 = scenario passed, 1 = failure (preflight, boot, ready, result), 2 = a code snippet did not compile and ran zero lines (the scenario, the boot snippet, or the preflight dry run)
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -57,14 +57,22 @@ if [[ -z "$MASTER_DIR" ]]; then
 fi
 READY_TIMEOUT="${PLAYTEST_READY_TIMEOUT:-300}"
 RESULT_TIMEOUT=420
+# boot とシナリオ投入の再試行回数（秒数は EDC_NO_TIMEOUT_SECONDS で外から切らない）
+# Retry count for boot and scenario injection (no outside time limit, see EDC_NO_TIMEOUT_SECONDS)
+EDC_LONG_CALL_ATTEMPTS=8
 
 csharp_quote() { python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$1"; }
 
 echo "== preflight =="
-"$SCRIPT_DIR/preflight.sh" "$PROJECT_PATH" "$MASTER_DIR" || exit 1
+"$SCRIPT_DIR/preflight.sh" "$PROJECT_PATH" "$MASTER_DIR"
+PREFLIGHT_STATUS=$?
+# preflight のコンパイル失敗（2）は区別したまま返し、他の失敗は 1 にする
+# Pass preflight's compile failure (2) through unchanged; any other failure becomes 1
+if [[ "$PREFLIGHT_STATUS" -eq 2 ]]; then exit 2; fi
+if [[ "$PREFLIGHT_STATUS" -ne 0 ]]; then exit 1; fi
 
 echo "== boot play mode =="
-IS_PLAYING=$(edc_call 8 0 'return UnityEditor.EditorApplication.isPlaying;' | json_get Result)
+IS_PLAYING=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" 'return UnityEditor.EditorApplication.isPlaying;' | json_get Result)
 if [[ "$IS_PLAYING" == "True" ]]; then
     # PlayMode中は必ず停止してから正規bootする。汚染セッション（前回クラッシュのNREスパム等）に
     # シナリオを注入するとresult.json未生成の沈黙タイムアウトになる（2026-07-18実測: 420秒沈黙）。
@@ -86,7 +94,7 @@ else
     MASTER_LITERAL=$(csharp_quote "$MASTER_DIR")
     BOOT_CODE="using Client.Playtest; return PlaytestBoot.PrepareAndEnterPlayMode($MASTER_LITERAL, true);"
 fi
-BOOT_RESPONSE=$(edc_call 8 0 "$BOOT_CODE")
+BOOT_RESPONSE=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" "$BOOT_CODE")
 BOOT_STATUS=$?
 # 起動コード片がコンパイルできないときは理由を出して止める（PlayMode に入っていないので停止は不要）
 # When the boot snippet does not compile, print the reason and stop (not in PlayMode yet, so no stop needed)
@@ -119,7 +127,7 @@ done
 echo "ready after ~${WAITED}s"
 
 echo "== inject scenario: $SCENARIO_FILE =="
-SCENARIO_RESPONSE=$(edc_call 8 0 "$(cat "$SCENARIO_FILE")")
+SCENARIO_RESPONSE=$(edc_call "$EDC_LONG_CALL_ATTEMPTS" "$EDC_NO_TIMEOUT_SECONDS" "$(cat "$SCENARIO_FILE")")
 SCENARIO_STATUS=$?
 # コンパイルできないシナリオは1行も実行されていない。検証0件を緑に見せないよう専用の終了コードで止める
 # A scenario that does not compile ran zero lines; stop with a dedicated exit code so zero checks never look green

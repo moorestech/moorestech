@@ -8,6 +8,9 @@
 # so it is reported with return code 2 without retrying (so a zero-check run never looks green; bd moorestech-dww3).
 
 EDC_RETRY_INTERVAL_SECONDS=5
+# edc_call の第 2 引数（秒）。0 は「タイムアウト無し」で、uloop 内蔵のタイムアウトに任せる（boot とシナリオ投入は長く、外から切らない）
+# Second edc_call argument (seconds). 0 means no timeout: uloop's own internal timeouts apply (boot and scenario injection run long and must not be cut from outside)
+EDC_NO_TIMEOUT_SECONDS=0
 
 # uloop出力から先頭の警告行を除いてJSON部分だけを取り出す
 # Strip leading warning lines from uloop output and keep only the JSON part

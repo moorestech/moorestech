@@ -66,7 +66,7 @@ PLAYTEST_SEED=12345 \
 2. **boot**: 通常は `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)`、固定worldの3変数指定時は `PrepareWorldAndEnterPlayMode(masterDir, worldDir, mapMode, seed)` をEDC 1回で実行してPlayMode突入
 3. **ready待ち**: ゲーム初期化完了イベントで書かれる `ready.marker` をファイルポーリング（EDCを連打しない）
 4. **シナリオ投入**: キー/マウスを使う場合は先に[input-injection.md](input-injection.md)のde-risk probeを読み、ready後かつ`PlaytestRunner.Run`呼び出し前のスニペットトップレベルで完了する。UIをprobeする場合はreadyを確認して`PlaytestUiLocatorSession.Start()`を呼び、probeするtestidを期限付きで待つ（`PlaytestUiElementOps.WaitUiElement(testid, 30f)`等。描画系の準備待ちも兼ねる）。成功・失敗を問わずfinallyで`PlaytestUiLocatorSession.Stop()`を呼び、失敗理由を記録する。必要なEditor／GameViewフォーカス回復、有効状態の再確認、単体入力成立確認をこの段階で行い、録画開始後のコールバック内には置かない。シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済み）
-5. **回収**: `result.json` の出現を待って表示。`Success` で exit 0/1。シナリオがコンパイルできなければ投入 1 回で `NG: scenario compile failed` と CS コードの一覧を出し、PlayMode を止めて exit 2（起動コード片 `PlaytestBoot` がコンパイルできないときも exit 2。再試行しない。コンパイルできないシナリオは 1 行も実行されていないため）。preflight のドライランも同じ判定（`scripts/edc-client.sh`）。自己テスト: `bash scripts/tests/edc-client-test.sh`・`bash scripts/tests/run-scenario-compile-error-test.sh`
+5. **回収**: `result.json` の出現を待って表示。`Success` で exit 0/1。シナリオがコンパイルできなければ投入 1 回で `NG: scenario compile failed` と CS コードの一覧を出し、PlayMode を止めて exit 2（起動コード片 `PlaytestBoot` がコンパイルできないときも exit 2。再試行しない。コンパイルできないシナリオは 1 行も実行されていないため）。preflight のドライランも同じ判定（`scripts/edc-client.sh`）で、ドライランのコード片がコンパイルできなければ preflight 単体も run-scenario.sh も exit 2（`NG: master load dry-run did not compile`）。自己テスト: `bash scripts/tests/edc-client-test.sh`・`bash scripts/tests/run-scenario-compile-error-test.sh`
 
 ## 結果の読み方
 
@@ -93,4 +93,5 @@ Success=false のときは Error の先頭行と「最後にPASSしたAssert」�
 | `Unity is reloading (Domain Reload...)` | コンパイル/リロード直後 | 45秒待って再実行 |
 | `Unity CLI Loop is not installed` | run-testsの退避 or **bootのPlayMode突入ドメインリロード**（run-tests非並走でも発生する） | `cp .../UserSettings/UnityMcpSettings.json.bak .../UnityMcpSettings.json` → PlayMode停止→フレッシュ再実行 |
 | `NG: scenario compile failed`（exit 2） | シナリオのコンパイルエラー（1 行も実行されていない） | 一覧の CS コードと行を見て、型名/usingを実ファイルで確認して修正 |
+| `NG: boot snippet compile failed` / `NG: master load dry-run did not compile`（exit 2） | `PlaytestBoot`・`ModsResource`・`MasterHolder` の API が変わった | シナリオではなく scripts の起動・ドライランのコード片を実ファイルの API に合わせる |
 | Untilタイムアウト | 期待した状態変化が起きていない | troubleshooting.md のライブ診断へ |

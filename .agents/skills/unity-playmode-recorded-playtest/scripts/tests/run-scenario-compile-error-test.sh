@@ -46,6 +46,34 @@ if [[ "$RUNNER_STATUS" -ne 2 || "$RUNNER_OUTPUT" != *"WARN: play mode stop faile
     FAILURES=$((FAILURES + 1))
 fi
 
+# boot のコード片がコンパイル失敗: exit 2、シナリオ投入 0 回、boot の呼び出しは再試行なしの 1 回、NG の行を出す
+# Boot snippet compile error: exit 2, zero scenario injections, a single boot call (no retry) and an NG line
+FAKE_ULOOP_BOOT_RESPONSE="$SCRIPT_DIR/fixtures/edc-compile-error-response.json" run_runner "$SCRIPT_DIR/fixtures/edc-compile-error-response.json"
+BOOT_CALLS=$(grep -c 'PrepareAndEnterPlayMode' "$FAKE_ULOOP_CALL_LOG")
+if [[ "$RUNNER_STATUS" -ne 2 || "$SCENARIO_CALLS" -ne 0 || "$BOOT_CALLS" -ne 1 || "$RUNNER_OUTPUT" != *"NG: boot snippet compile failed"* ]]; then
+    echo "FAIL: boot compile error status=$RUNNER_STATUS scenario_calls=$SCENARIO_CALLS boot_calls=$BOOT_CALLS"
+    echo "$RUNNER_OUTPUT"
+    FAILURES=$((FAILURES + 1))
+fi
+
+# preflight のドライランがコンパイル失敗: run-scenario は 2 を通し、boot にもシナリオにも進まない
+# Preflight dry-run compile error: run-scenario passes 2 through and reaches neither boot nor the scenario
+FAKE_ULOOP_DRYRUN_RESPONSE="$SCRIPT_DIR/fixtures/edc-compile-error-response.json" run_runner "$SCRIPT_DIR/fixtures/edc-compile-error-response.json"
+BOOT_CALLS=$(grep -c 'PrepareAndEnterPlayMode' "$FAKE_ULOOP_CALL_LOG")
+if [[ "$RUNNER_STATUS" -ne 2 || "$SCENARIO_CALLS" -ne 0 || "$BOOT_CALLS" -ne 0 || "$RUNNER_OUTPUT" != *"master load dry-run did not compile"* ]]; then
+    echo "FAIL: dry-run compile error via runner status=$RUNNER_STATUS boot_calls=$BOOT_CALLS"
+    echo "$RUNNER_OUTPUT"
+    FAILURES=$((FAILURES + 1))
+fi
+
+# preflight 単体でも同じドライランの失敗が exit 2 になる
+# Preflight alone also exits 2 on the same dry-run failure
+FAKE_ULOOP_DRYRUN_RESPONSE="$SCRIPT_DIR/fixtures/edc-compile-error-response.json" bash "$SCRIPT_DIR/../preflight.sh" "$WORK_DIR/project" "$WORK_DIR/master" >/dev/null 2>&1
+if [[ "$?" -ne 2 ]]; then
+    echo "FAIL: preflight alone did not exit 2 on a dry-run compile error"
+    FAILURES=$((FAILURES + 1))
+fi
+
 # 対照: 通るシナリオは result.json を読んで exit 0（偽 uloop の配線が投入まで届いている証拠）
 # Control: a passing scenario reads result.json and exits 0 (proof the fake wiring reaches injection)
 printf '{"Success": true, "Result": "%s"}\n' "$WORK_DIR/run" > "$WORK_DIR/success.json"
