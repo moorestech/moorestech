@@ -63,7 +63,7 @@
 | S2-ladder | 段階 2 の締め | 2・W2 末 | S2-* 全部 | 要 | int | ラダー `uitk-opening-hud` を作り、ラダー 1〜2 が UITK 側で緑。wwxy の `tutorial-*` 3 本と `server-notification-smoke` を直す。`challenge.current-hud` のハイライトの録画。L3 1 本（段階 2 の HUD が UITK スイッチで出る・消える）。束 2 の突き合わせ差分 0、G1 束 2 で 0。codex-audit（画像付き）で波の並べ比べ |
 | C3-a | スロット族 1 | 3・W2 | C2-a・C2-c・F1（`HoverTooltipMark`） | 要 | 単位 | 設計書 §2.3: `UiIcon`・Content（`GameContentPresentation`。名前は `UiText.FromContent` [A-40]）・`GameIcon`・`SlotFrame`（リングは装飾子・`--bevel-inset` の outset/inset で外側成長と内側食い込みを切り替え、L1 で持ち物とホットバーの両方の面寸法・外周寸法を確かめる。先頭でキーワードのつまみを `CustomStyleProperty<string>` で読めるか確かめる [A-42]。選択面のグラデの位置は C# で計算 [A-47]）・`SlotContent`・`ItemSlot`・`BlockSlot`・`PlacementTargetFace`・`SlotGrid`（`SlotAmountFormat` は L0-s3 が `Client.Ui.State/Text/` に作り済みで使うだけ [A-19]）。写す: `shared/ui` の C12・L34 のうちスロット分、`regression/itemSlot.spec.ts`(2)。L1・ギャラリー・比較 |
 | C3-b | 相互作用 | 3・W2 | C2-b・C2-c | 要 | 単位 | `UiPressGesture`（`usePressGesture` の 5px を参照）・`UiDragDrop`・`HoverTooltipHost`（印の付いた要素を含む `ScrollView` のスクロールで引っ込め、無関係なパネルのスクロールでは引っ込めない、ポインタ座標の実変化でだけ開き直す、捕捉中は出さない。Web `HoverTooltip/index.tsx` の意図を L1 3 件で写す [A-43]）・`UiScreenPixelScope`（Foundation/Stage。先頭で `panel.scaledPixelsPerPoint` が PanelSettings の倍率と一致するかを 720p・1080p・2560×1080 で実測して台帳へ。L1 で中身の幅 320 が倍率 1.5 でも実画面 320px [A-41]）・`ModeSwitch` の縦・タブ・個別無効（`OnSelected`→`OnOptionSelected`）・`GameScrollView` のスクロールスパイの口・`UiModalHost`（中身を `UiScreenPixelScope` に置く）・`DialogFrame`。L1 で `MouseMove` の PointerEnter の罠と ScrollView の `GeometryChangedEvent` を先に確かめて台帳へ |
-| S3-buildmenu | ビルドメニュー | 3・W3 | C3-a・C3-b・L0-s3 | 要 | 単位 | 面の寸法 `calc(var(--slot-size) - 8px)` は View の C# が導出 [A-47]。3 カラム・縦 `ModeSwitch`・`GameTextField`(SearchInput)・1 本のスクロールにスクロールスパイと smooth scroll（UiMotion）・詳細の sticky・BP 右クリック削除・不足ツールチップ・セッション復元・ドラッグ源。アンカー `build-menu.entry-*`。写す: P21・C22（L30 は L0-s3 済み）。録画 `misc/webui-buildmenu-click`・`connect/electric-wire-tool-*` 5 本・`building/blueprint-place-like-block` |
+| S3-buildmenu | ビルドメニュー | 3・W3 | C3-a・C3-b・L0-s3 | 要 | 単位 | 面の寸法 `calc(var(--slot-size) - 8px)` は View の C# が導出 [A-47]。3 カラム・縦 `ModeSwitch`・`GameTextField`(SearchInput)・1 本のスクロールにスクロールスパイと smooth scroll（UiMotion）・詳細の sticky・BP 右クリック削除・不足ツールチップ・セッション復元・ドラッグ源。アンカー `build-menu.entry-*`。写す: P21・C22（L30 は L0-s3 済み）。録画 `misc/webui-buildmenu-click`・`connect/electric-wire-tool-*` 5 本・`building/blueprint-place-like-block`。視口 `IBuildMenuScrollViewport` は `AppliedSpacerHeight`（レイアウト確定後のスペーサ実寸）も返す [A-49]。完了条件に「L0-s3 計画『後段レーンへ渡すもの』の 5 点を満たす」: (1) スペーサ反映後の `GeometryChangedEvent` で `OnLayoutChanged()` を呼び、末尾ジャンプが末尾群の見出しへ届くことを L1 か録画 `misc/webui-buildmenu-click`（末尾カテゴリへのジャンプ）で確かめる (2) `AppliedSpacerHeight` は実寸を返し、反映後の高さで保存位置を復元することを L1 で確かめる (3) 復元前に ScrollView が `OnScrolled(0)` を流すと保存位置が 0 に潰れる（Web と同挙動）かを実機で確かめる (4) 張り替え時に新しい視口へ `SpacerHeight.Value` を当て直す (5) 検索語・入力文は非 null で渡す。(3)〜(5) は L0-s3 done.md「integrator への依頼」由来 |
 | S3-hotbar-modal | ホットバーとモーダル | 3・W3 | C3-a・C3-b・L0-s3 | 要 | 単位 | ホットバー 9 枠（`SlotFrame` のベベル上書き・`--bevel-inset: inset` [A-42]・`PlacementTargetFace`・割当/入替/解除の落とし先・`wheel-passthrough`・床トークン）、モーダル層と BP 名（`DialogFrame`・`FormButton`・`GameTextField`、描画者を UITK に一本化。題・本文・ボタン文言は `UiText.FromVerbatim` [A-40]。モーダルは実画面 px で 720p・1080p の並べ比べ [A-41]）。写す: hotbar（P6・C7）、modal（P4、L8 は L0-s3 済み）、`placementIconCentering.spec.ts`(2) |
 | S3-ladder | 段階 3 の締め | 3・W3 末 | S3-* | 要 | int | ラダー `uitk-build-bp` を作り 1〜3 が緑。ビルドメニュー → ホットバーの D&D（L1。`AssignHotbar(1,id)` が 1 回だけ、`SelectBuildMenu` は 0 回）。wwxy の BP 2 本・電線 1 本・視点切替 1 本を直す。検索欄の入力中にゲームのキーが動かない・ESC はフォーカスを外すだけ（L1）。束 3 の突き合わせ差分 0・G1 0・codex-audit |
 | C4-a | スロット族 2（液体） | 4・W3 | C3-a | 要 | 単位 | `FluidSlot`・`FluidAmountSlot`・`FluidSlotRow`。写す: `FluidSlot` 186 行のテスト・`FluidAmountSlot`(79 行) の C/L |
@@ -273,12 +273,12 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 | L0-s3・L0-s4a・L0-s4b | `P/2026-11-06-uitk-l0-s3.md`・`-l0-s4a.md`・`-l0-s4b.md` |
 
 - 1 レーン＝1 worktree＝ファイル所有が重ならない単位。C2 の 3 本は設計書 §5.2 の C2-a/b/c から組み直した（E-7）
-- **設計書の改訂と ID の割り当て**（E-12）: 12 本が設計書に求めた改訂は、全体レビューの回に設計書へ反映済み（§7.1 の A-18〜A-39）。レーンは設計書を書かず、該当行があることを確かめるだけ。次の割り当ては A-49 から、指揮が §6.2 で詳細計画を切るときにこの表へ足す
+- **設計書の改訂と ID の割り当て**（E-12）: 12 本が設計書に求めた改訂は、全体レビューの回に設計書へ反映済み（§7.1 の A-18〜A-39）。レーンは設計書を書かず、該当行があることを確かめるだけ。次の割り当ては A-50 から、指揮が §6.2 で詳細計画を切るときにこの表へ足す
 
 | レーン | 設計書 §7.1 | 台帳 `LX-n` |
 |---|---|---|
 | F1 | A-18・A-39 | LX-1〜3（段階 1 の既存差） |
-| L0-s3 | A-19・A-20 | — |
+| L0-s3 | A-19・A-20・A-49（L0-s3 判断 D-17。持ち主 S3-buildmenu） | — |
 | L0-s4b | A-21 | — |
 | C2-a | A-22〜A-26 | LX-4〜9 |
 | C2-b | A-27〜A-30（A-31 は C2-c と共有） | LX-10〜15 |
@@ -363,7 +363,7 @@ W0-cef と X-switch-pr は master への PR で、pr-create まで（マージ�
 反映の要約（論点ごと）:
 
 - **前提パッチの持ち主**: C2-a の P-3・P-4、C2-b の 4 トークン、C2-c の P-c2c-1 を F1 の Produces（F1 計画 R-8b・Task 8・Step 8b）へ移し、F1 行の完了条件に足した。文書の前提（C2-a の P-1・P-2、C2-b の §1.4・§2.4・§7.1、C2-c の P-c2c-2、F1 の T0 Step 4、L0-s3・L0-s4b の §7.1）は今回のレビューの回に設計書とこの文書へ直接入れ（E-12）、各計画は確かめるだけにした
-- **§7.1 の ID と `LX-n`**: §6.1 にレーン別の範囲（A-18〜A-39、LX-1〜21）を先に割り当て、設計書へ記入済み。次の空きは A-40
+- **§7.1 の ID と `LX-n`**: §6.1 にレーン別の範囲（A-18〜A-39、LX-1〜21）を先に割り当て、設計書へ記入済み。以後の割り当ては §6.1 の表に足す（次の空きは §6.1 に書く）
 - **タグの書式**: W0-tools の `file=` 形式を正本にし（E-13）、L0-s3・L0-s4a・L0-s4b のタグ 258 行と処遇の行を機械的に置き換え、「違えば置換」の逃げ道を消した。L0-s4a は describe を落としたことで同名の it が 2 組同じタグになり、突き合わせの期待値を `dup=2` に直した
 - **ユーザー判断**: Q-1（13px 下限）・C2-c D-1（太さ）・W0-cef D-13（誤検知）を、上位の裁定から答えが決まる agent 既定へ下げた（E-11・E-14・E-15、設計書 A-36・A-39）。ユーザー判断は 0 件、U-1 は取り下げ
 - **見た目の例外**: Title の 34→32px（LX-1）を Title 全般へ広げる案をやめ、Web と同じ px に letter-spacing で寄せ、C2-c が LX-1 を台帳と印ごと消す（設計書 A-37）

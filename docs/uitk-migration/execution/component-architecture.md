@@ -351,6 +351,7 @@ public sealed class UiCommandResultToaster
 - **Model の購読は Presenter**。View は `Render` で値を受けるだけ（購読の寿命を Presenter の表示・非表示に揃えるため）
 - **`Update()` を使わない**。変化は Model の `ReactiveProperty`、毎フレームの物理（採掘進捗）は Model 側がフレーム末に畳んで流す（plan §3.2）
 - `UiCommandResultToaster` は段階 1 の `GameUiToastFeed.ShowRejected` の呼び方を 1 つにまとめる F1 の追加 `[A-15]`。`commandName` はログ用のコマンド名（Web の失敗コードの綴り）で、利用者へ出す文は拒否理由ごとの翻訳文 `[A-18]`
+- **ビルドメニューの視口 `IBuildMenuScrollViewport`**（`Screens/BuildMenu/CategoryScroll/`。[A-20]）は `ScrollTop`・`ClientHeight`・`ScrollHeight` に加えて `AppliedSpacerHeight`（レイアウト確定後のスペーサの実寸。style に書いた値ではない）を返す。追跡器はこの実寸と要求値を 1px 許容で比べて反映済みを判定するので、View は実寸を返し、スペーサを当てた後の `GeometryChangedEvent` で `OnLayoutChanged()` を呼ぶ（style 値を返すと反映前に確定し、保存位置が潰れる）`[A-49]`
 
 ### 4.3 テストの型
 
@@ -467,7 +468,7 @@ SKILL.md の目次:
 | A-17 | `ref-uitk-design` を新設する（albof.19 は「合わせる」ではなく「作る」）。担当は W0-skill（実行計画 §1.1） | 作らない: plan §3.12 が段階 1 の初版を前提にしている |
 | A-18 | F1 の詳細計画で次の 3 点を改める（F1 計画 F-1・F-2・F-14）: `UiCommandResultToaster.Report(string commandName, UiCommandResult result)`（コマンド名はログ用で、翻訳キーにしない）／`ToastItem(string text, ToastItemTone tone)`（Components が `Client.Ui.State.Toast` を参照しない。§1.1）／`Layout.uss` は F1 で作らず C2-c の `UiStack`/`UiGroup` と一緒に作る | 設計書どおり: `LocalizationKey` はログ用に辞書の行を足すだけで利用者に出ない。`GameUiToast` を受けると層の L2 に例外が要る。空の `Layout.uss` は使い手が無い |
 | A-19 | `SlotAmountFormat` は `Client.Ui.State/Text/` に `Format(double)` で置き、L0-s3 が作る。C3-a は使うだけ（L0-s3 計画 D-3） | C3-a が Components/Slots に `Format(long)`: State の `MaterialTooltipText`（素材ツールチップの数）が Components を参照できず、液体の小数も表せない |
-| A-20 | ビルドメニューの 1 本スクロールの追跡器と `IBuildMenuScrollViewport` は `Screens/BuildMenu/CategoryScroll/` に置く。純ロジック（`BuildMenuScrollSpy`）とセッションのストアは State（L0-s3 計画 D-8） | State に置く: 視口を逆向きに動かし px のレイアウト値を持つ表示の制御器で、§4.1・§4.2 の State→View 一方向に反する |
+| A-20 | ビルドメニューの 1 本スクロールの追跡器と `IBuildMenuScrollViewport` は `Screens/BuildMenu/CategoryScroll/` に置く。純ロジック（`BuildMenuScrollSpy`）とセッションのストアは State（L0-s3 計画 D-8）。視口の口は [A-49] | State に置く: 視口を逆向きに動かし px のレイアウト値を持つ表示の制御器で、§4.1・§4.2 の State→View 一方向に反する |
 | A-21 | `UiNumberFormat` を `Client.Ui.State/Text` に置く（L0-s4b 計画 D-2） | Foundation/Text に置く: State の純ロジックが Web と同じ文字列を返せない（`Client.Ui.State` は `Client.Ui` を参照できない）。State に別の書式関数を作る: 同じ規則が 2 か所になる |
 | A-22 | `GamePanel` の外周の影を描かない（A-10 と §1.4 C7 を改める。C2-a 計画 D-1） | 描く: Web の影は同じ `::before` の mask に切られて画面に出ず、描くと Web と違う（参照の画素で実測。C2-a が台帳「## 実測の結論」に記す） |
 | A-23 | `PaperSurface` は枠を持たず、面と角丸はつまみ `--paper-face`・`--paper-radius`（既定 `--mantine-color-body`・`--mantine-radius-sm`）で受ける（C2-a 計画 D-6） | withBorder の写し: Web の 3 か所（ChallengeNodeCard・TrainRidingHud・CursorTooltip）は withBorder を使わない。画面ごとに背景を直書き: 部品の中身を外から塗ることになる |
@@ -496,6 +497,7 @@ SKILL.md の目次:
 | A-46 | 主要アクションの青グラデのボタンを `RecipeActionButton`（Components/Controls）にし、クラフトと「研究する」が使う。C4-c が作る（C2-b 計画 D-4 のクラフトの行き先を改める） | `FormButton(Filled)` に画面 USS で重ねる（C2-b 旧 D-4）: USS の背景にグラデは書けず（§3.2-5）、部品の中身を外から塗ることになる。Web と同じく研究は画面だけで書く: 同じグラデの描画コードが 2 画面に重複する |
 | A-47 | Web で calc() を通るつまみは部品の C# が導出してインラインで当てる（§3.2-7） | 画面 USS に計算済みの値を直書きする: つまみの上書きが導出値に追従せず、ホットバー（`--slot-size` 51.68px）などで 2px の目安を外す |
 | A-48 | 2 行以上の文の行送りは C2-c が実測して方法を決め（リッチテキストの `<line-height>` を先に試し、効かなければ行ごとの Label を行高で固定）、最初の使い手 S2-hud が写す。合否は「2 行の行の間隔が行高トークンと 1px 以内」 | フォントの既定の行送りのまま: チャレンジ HUD の目標（20px）・操作 HUD の詳細（25px）などで行が積むほどずれ、HUD の高さが Web と変わる。`-unity-paragraph-spacing` で補正する: 段落の間にしか効かず、折り返しの行には効かない（推測。採る方法の根拠にはしない） |
+| A-49 | `IBuildMenuScrollViewport` は `ScrollTop`・`ClientHeight`・`ScrollHeight` に加えて `AppliedSpacerHeight`（レイアウト確定後のスペーサの実寸）を返し、追跡器はスペーサの反映済みをこの実寸と要求値の 1px 許容の一致で判定する。View（S3-buildmenu）は実寸を返し、反映後の `GeometryChangedEvent` で `OnLayoutChanged()` を呼ぶ（L0-s3 判断 D-17） | 反映済みを追跡器の要求値との一致で判定する: 反映前の再通知で保存位置が潰れる（L0-s3 レビュー C6。Codex が偽の視口で 250→100 を再現）。View が style に書いた値を返す: レイアウト確定前に Settled になり、古い scrollHeight で保存位置の復元が確定する |
 
 ### 7.2 ユーザーに上げるもの
 
