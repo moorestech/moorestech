@@ -14,6 +14,8 @@
     -unity-text-align: middle-left;
 }
 
-.shortcut-hint-label__item--following {
+/* 自分のクラス 2 つで詳細度を上げ、tss の並び順によらず .key-cap の margin: 0 に勝つ */
+/* Two own classes raise specificity so this beats .key-cap margin: 0 regardless of tss import order */
+.shortcut-hint-label .shortcut-hint-label__item--following {
     margin-left: var(--shortcut-hint-label-gap);
 }

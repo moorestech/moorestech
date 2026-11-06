@@ -8,6 +8,7 @@ using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -20,6 +21,7 @@ namespace Client.Tests.Ui.Components.Text
     /// </summary>
     public class ShortcutHintLabelTest : UiTestHost
     {
+        private const string ProbePath = "Assets/Scripts/Client.Tests/Ui/Components/ComponentTokenProbe.uss";
         private bool _hadSavedLanguageCode;
         private string _savedLanguageCode;
 
@@ -158,6 +160,24 @@ namespace Client.Tests.Ui.Components.Text
 
             var shown = Shown(hint);
             Assert.AreEqual(0f, shown[1].worldBound.x - shown[0].worldBound.xMax, 0.01f);
+        }
+
+        [Test]
+        public void 祖先でgapを上書きするとinlineのkbd直前がその幅になる()
+        {
+            var probe = AssetDatabase.LoadAssetAtPath<StyleSheet>(ProbePath);
+            Assert.IsNotNull(probe, ProbePath);
+            rootVisualElement.styleSheets.Add(probe);
+            var screen = new VisualElement();
+            screen.AddToClassList("component-knob-probe");
+            rootVisualElement.Add(screen);
+            var hint = new ShortcutHintLabel("hint", ShortcutHintLayout.Inline);
+            screen.Add(hint);
+            hint.SetHint(new UiText(LocalizationKeys.Ui.Common.ItemFallback, new[] { new LocalizationTextParam("itemId", ShortcutHintSegments.Marker) }), "E");
+            simulate.FrameUpdate();
+
+            var shown = Shown(hint);
+            Assert.AreEqual(10f, shown[1].worldBound.x - shown[0].worldBound.xMax, 0.01f);
         }
 
         private ShortcutHintLabel Mount(ShortcutHintLayout layout)

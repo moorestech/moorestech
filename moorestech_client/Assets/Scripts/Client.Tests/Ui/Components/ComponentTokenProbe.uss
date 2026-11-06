@@ -4,4 +4,5 @@
     --slot-size: 96px;
     --gauge-fill: var(--color-content-primary);
     --scrollarea-scrollbar-size: 4px;
+    --shortcut-hint-label-gap: 10px;
 }
