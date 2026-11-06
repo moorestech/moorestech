@@ -34,6 +34,10 @@ namespace Client.Ui.Components
             var hasPeak = UssCustomStyleReader.TryReadColor(customStyle, "--game-panel-rule-peak", out var peak);
             var hasEnd = UssCustomStyleReader.TryReadColor(customStyle, "--game-panel-rule-end", out var end);
             _hasColors = hasStart && hasPeak && hasEnd;
+
+            // 読めなくなったときも描き直し、前回のグラデーションを残さない（BottomDeco・Face と同じ扱い）
+            // Repaint even when unreadable so the previous gradient never lingers (same as BottomDeco and Face)
+            MarkDirtyRepaint();
             if (!_hasColors) return;
 
             var opaquePeak = new Color(peak.r, peak.g, peak.b, 1f);
@@ -44,7 +48,6 @@ namespace Client.Ui.Components
                     new GradientAlphaKey(0f, 0f), new GradientAlphaKey(start.a, 0.05f), new GradientAlphaKey(peak.a, 0.11f),
                     new GradientAlphaKey(peak.a, 0.89f), new GradientAlphaKey(end.a, 0.95f), new GradientAlphaKey(0f, 1f),
                 });
-            MarkDirtyRepaint();
         }
 
         private void DrawLine(MeshGenerationContext context)

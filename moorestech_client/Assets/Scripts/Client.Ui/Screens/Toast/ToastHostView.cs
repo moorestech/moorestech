@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Theme;
 using Client.Ui.State.Toast;
 using System.Collections.Generic;
 using UniRx;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.Toast
@@ -22,7 +23,8 @@ namespace Client.Ui.Screens.Toast
         private readonly List<GameUiToast> _toastsWaitingForStyle = new();
         private float _enterMilliseconds;
         private float _exitMilliseconds;
-        private bool _hasDurations;
+        private bool _styleResolved;
+        private bool _durationsUnreadable;
 
         public ToastHostView(StyleSheet toastSheet)
         {
@@ -38,11 +40,15 @@ namespace Client.Ui.Screens.Toast
         {
             // 出入り時間は USS の通知トークンから読むため、解決前の Push は解決後まで預かる
             // Fade durations come from the USS notification tokens, so a Push before resolution is held until it resolves
-            if (!_hasDurations)
+            if (!_styleResolved)
             {
                 _toastsWaitingForStyle.Add(toast);
                 return;
             }
+
+            // トークンが読めなかったら黙って溜めず、薄れ無しで出して毎回 LogError で知らせる（送信結果などを利用者へ届けるのを優先）
+            // With unreadable tokens never hoard silently: show without fades and LogError each time (delivering e.g. send results to the player comes first)
+            if (_durationsUnreadable) Debug.LogError($"[ToastHostView] toast fade tokens are unreadable; showing without fades: {toast.Text}");
 
             // 透明で足してから濃くし、表示時間のあとに薄れて外す
             // Add it transparent and fade it in, then fade it out and remove it after the display time
@@ -65,12 +71,17 @@ namespace Client.Ui.Screens.Toast
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
-            // 読めなければ Reader が LogError を出し、預かったトーストは出せないまま残る
-            // If unreadable the reader logs an error and the held toasts stay unshown
+            // 「未解決」と「解決したが読めなかった」を分けて持つ。読めなければ Reader が LogError を出し、尺は 0（薄れ無し）にする
+            // Keep "unresolved" apart from "resolved but unreadable"; when unreadable the reader logs an error and the durations become 0 (no fades)
             var hasEnter = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--toast-host-enter-duration", out _enterMilliseconds);
             var hasExit = UssCustomStyleReader.TryReadMilliseconds(customStyle, "--toast-host-exit-duration", out _exitMilliseconds);
-            _hasDurations = hasEnter && hasExit;
-            if (!_hasDurations) return;
+            _styleResolved = true;
+            _durationsUnreadable = !(hasEnter && hasExit);
+            if (_durationsUnreadable)
+            {
+                _enterMilliseconds = 0f;
+                _exitMilliseconds = 0f;
+            }
 
             var waiting = _toastsWaitingForStyle.ToArray();
             _toastsWaitingForStyle.Clear();
