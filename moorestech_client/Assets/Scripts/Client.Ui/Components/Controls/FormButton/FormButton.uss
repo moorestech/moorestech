@@ -1,0 +1,79 @@
+/* web: Mantine Button（@mantine/core 8.3.18 の styles/Button.css .m_77c9d27d・dark の変数・default-variant-colors-resolver の filled/subtle）。Web の使用は BugReportForm・ModalHost・ChallengePanel・EventLanguageGateBody */
+/* web: Mantine Button (@mantine/core 8.3.18 styles/Button.css .m_77c9d27d, dark variables, filled/subtle in default-variant-colors-resolver); used by the Web BugReportForm, ModalHost, ChallengePanel and EventLanguageGateBody */
+
+/* 既定テーマの .unity-button に勝つため 2 クラスで当てる。外側の余白と幅は置く側が決めるので書かない */
+/* Two classes so these beat the default theme's .unity-button; outer margin and width belong to the caller, so they are not set here */
+.form-button.unity-button {
+    --form-button-face: var(--mantine-color-blue-filled);
+    --form-button-face-hover: var(--mantine-color-blue-filled-hover);
+    --form-button-text: var(--mantine-color-white);
+    height: 36px; /* web: --button-height-sm */
+    padding: 0 18px; /* web: --button-padding-x-sm */
+    border-width: 1px; /* web: calc(0.0625rem * mantine-scale) solid transparent */
+    border-color: transparent;
+    border-radius: var(--mantine-radius-default);
+    background-color: var(--form-button-face);
+    font-size: var(--mantine-font-size-sm);
+    -unity-font-style: normal;
+    transition-duration: 0s;
+}
+
+/* filled（青）は既定値なので規則を持たない */
+/* Filled (blue) is the default, so it has no rule */
+
+/* color="red" の filled */
+/* Filled with color="red" */
+.form-button--danger.unity-button {
+    --form-button-face: var(--mantine-color-red-filled);
+    --form-button-face-hover: var(--mantine-color-red-filled-hover);
+}
+
+/* subtle: 面は透明、文字は light-color、ホバーで light-hover の面 */
+/* Subtle: clear face, light-color text, light-hover face on hover */
+.form-button--subtle.unity-button {
+    --form-button-face: transparent;
+    --form-button-face-hover: var(--mantine-color-blue-light-hover);
+    --form-button-text: var(--mantine-color-blue-light-color);
+}
+
+/* size="xl" */
+.form-button--xl.unity-button {
+    height: 60px; /* web: --button-height-xl */
+    padding: 0 32px; /* web: --button-padding-x-xl */
+    font-size: var(--mantine-font-size-xl);
+}
+
+.form-button.unity-button:hover {
+    background-color: var(--form-button-face-hover);
+}
+
+/* 押下は Mantine の .mantine-active:active（translateY 1px）。既定テーマの縮みは打ち消す */
+/* Press is Mantine .mantine-active:active (translateY 1px); cancel the default theme's shrink */
+.form-button.unity-button:active {
+    scale: 1 1;
+    translate: 0 1px;
+    background-color: var(--form-button-face-hover);
+}
+
+/* 無効は variant によらず disabled の面と文字。既定テーマの半透明と押下の動きは付けない */
+/* Disabled uses the disabled face and text whatever the variant, without the default theme's translucency or press motion */
+.form-button.unity-button:disabled {
+    background-color: var(--mantine-color-disabled);
+    opacity: 1;
+    translate: 0 0;
+}
+
+.form-button .form-button__label {
+    flex-grow: 1;
+    margin: 0;
+    padding: 0;
+    color: var(--form-button-text);
+    opacity: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    -unity-text-align: middle-center;
+}
+
+.form-button:disabled .form-button__label {
+    color: var(--mantine-color-disabled-color);
+}

@@ -31,6 +31,8 @@ namespace Client.Starter.Registration
             PauseMenuGameUiRegistration.Register(builder);
             ToastGameUiRegistration.Register(builder);
             ContentGameUiRegistration.Register(builder);
+            ModeHudGameUiRegistration.Register(builder);
+            CursorTooltipGameUiRegistration.Register(builder);
         }
     }
 }

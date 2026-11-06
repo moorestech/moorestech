@@ -33,8 +33,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             box.style.left = Length.Percent(35);
             box.style.top = Length.Percent(40);
             box.style.width = Length.Percent(30);
-            var fieldA = new GameTextField("game-ui-input-wiring-field-a", false);
-            var fieldB = new GameTextField("game-ui-input-wiring-field-b", false);
+            var fieldA = new GameTextField("game-ui-input-wiring-field-a", false, GameTextFieldLook.GaugeInset);
+            var fieldB = new GameTextField("game-ui-input-wiring-field-b", false, GameTextFieldLook.GaugeInset);
             box.Add(fieldA);
             box.Add(fieldB);
             gameUiRoot.GetLayer(UiLayer.Screen, UiFamily.Stage).Add(box);
