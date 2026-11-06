@@ -3359,6 +3359,12 @@ Expected: closed、`git status --short` と `git log` が空。`done.md` の 1 �
 | D-31 | 倍率の読み口 `ICursorTooltipScreen.ScreenPixelsPerPanelPixel` は S2-notification と同じ但し書き（C3-b の実測で `scaledPixelsPerPoint` と PanelSettings の倍率が食い違えば C3-b の式に従う）で残し、1 本化は本PR外へ出す | このレーンで C3-b の `UiScreenPixelScope` へ寄せる: C3-b が未マージで、読み口の正は C3-b の持ち物 | 出所: Phase 2.6（強）→ agent 既定 |
 
 | D-32 | 一部だけ写す Web テストの捨てた部分: P5（`削除モードをuGUI準拠の上下警告帯で表示する`）の `role="status"`・`aria-label="Delete Mode"` と S2（`削除表示を説明パネルではなく上下の警告帯で構成する`）の `role="status"` は写さない。P6 1 件目の警告色の主張は D-7。C2 後半の count=0「Wire x0」と C4 の名前付き差し込み（`placeMaterialShortage`）は写す | ARIA を写す: UITK のランタイムパネルに role・aria-label の仕組みが無く、読み上げの経路も無い（DOM 固有）。C2・C4 の残りを捨てる: 同じ `TooltipLine` の引数で L1 に写せる | 出所: 第 5 回修正（評価役 2 体の 2 巡目・実物確認）→ agent 既定 |
+| D-33 | D-5 を差し替え: 何も拾わない所では `PointerMoveEvent` が `panel.visualTree` に届かない（Task 7 Step 0 実測 received=none、拾う要素上なら届く）ので、Client.Input に InputSystem.onEvent 駆動のポインタ位置の購読口（`InputSystemPointerPositionStream`。位置が変わったときだけ流す）を足し、`ICursorTooltipScreen` 経由で View が購読する。計画の「止めて指揮へ」は採らない | 止めて integrator へ依頼: 指揮方針「止まるのは解決不能な障害だけ」に反する。毎フレーム `HybridInput` を読む: Update の同値判定禁止に反する | agent 既定（実測＋指揮方針） |
+| D-34 | `InputSystemPointerPositionStream` の DI 登録は `CursorTooltipGameUiRegistration` に置く（Client.Input の既存サービスは static で DI 前例が無く、利用者は今 CursorTooltip だけ）。2 機能目（C3-b HoverTooltip）で共有の登録へ移す | 共有サービス並びへ今移す: 共有区画外 | agent 既定 |
+| D-35 | 最終レビュー D1 案A: 保存ポインタを実画面 px にして倍率変化後も換算し直し、カーソルロックの変化は `InputManager.OnCursorLockChanged`（唯一の書き手 `MouseCursorVisible` が変化時だけ流す）で受けて置き直す。ロック分岐と上下反転は純関数 `CursorTooltipScreenAnchor` で L0 | 案B（ロックは warp 任せ）: warp が onEvent を通らず消える保証が無い。案C（アンカー列へ集約）: interface 再設計が大きい | agent 既定（moores-code-review の推奨） |
+| D-36 | 録画 `uitk-mode-hud-and-tooltip` は `SetupDebugEnvironment`→`SkipOpeningSkitIfPlaying`→`ExitToGameScreen` で始める（`SkipOpeningSkit` だけでは木のチェストが研究ロックで `AssignHotbar` が失敗。前例 right-short-press-cancel と同じ） | 研究を解く手順を足す: 前例と違う | agent 既定（実測） |
+| D-37 | 並べ比べの `2-delete-bar` は参照に合わせ `ModeHudDelete(0)`、ツールチップの面は両解像度とも実画面 (14,14)（Web の 2560 参照も実画面 14px）で撮る | 計画どおり高さ 3・倍率を掛けた座標: 参照と文字・位置が揃わない | agent 既定（参照の実物） |
+| D-38 | `Client.Ui.State.asmdef` に `Game.PlacementTarget` 参照を足す（Factory のログが `target.Kind` を出すため CS0012） | ログから種別を外す: 診断情報が減る | agent 既定 |
 ### 未確認
 
 - `CustomStyleProperty<string>` が `117deg` を文字列で返すか（Task 5 Step 5・Task 8 Step 4 で実測し台帳へ）
