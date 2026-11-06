@@ -62,3 +62,6 @@
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | blueprintCopyはidを持たない共通種別になる | 捨てる | 同上。C# の `BlueprintCopyPlacementTarget` は表示名を辞書キー 1 つで解き（`PlacementTargetDisplayNameTest`）、id の有無は表示名に効かない | #1595 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | 保存BPだけが原文labelのrawになる | 捨てる | 同上。原文の名前を返すのは `BlueprintPlacementTarget.DisplayName` だけで、`PlacementTargetDisplayNameTest`「保存したブループリントは利用者が付けた名前をそのまま返す」が固定する | #1595 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | ホットバー枠のDTO形状もそのまま受け付ける | 捨てる | UITK のホットバーは配信 DTO を経ず `IPlacementTarget` を直接持つので、DTO の形の互換が無い | #1595 |
+| 2 | `e2e/tests/progress.spec.ts` | ラベル付き汎用進捗を維持する | 捨てる | C# の `ProgressTopic` は Label を常に null で送り、ラベルの源が無い（`moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/ProgressTopic.cs:66`。D-12） | — |
+| 2 | `src/features/commonHud/alwaysOnHudWheel.test.ts` | クリックを持つスロット列だけが入力を取り戻し、ホイールは素通しの印を持つ | 写す予定 | moorestech-albof.30（ホットバーのスロット列が UITK に入る S3-hotbar-modal で、クリックを持つスロット列だけが入力を取りホイールを素通すことを NUnit で見る） | — |
+| 2 | `src/features/commonHud/alwaysOnHudWheel.test.ts` | 装備HUDは実UIのままホイールだけ素通す | 写す予定 | moorestech-albof.31（装備 HUD が UITK に入る S4-inventory で、装備 HUD が実 UI のままホイールだけ素通すことを NUnit で見る） | — |
