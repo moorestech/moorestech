@@ -3882,7 +3882,7 @@ return PlaytestRunner.Run("uitk-notification-compare", options, async p =>
 
         var model = new NotificationModel();
         var host = new NotificationHostView(model, new LocalizeNotificationTextLookup(), CompareRowIcons());
-        UiLayerStack.Build(document.rootVisualElement).GetLayer(NotificationLayerPresenter.HostLayer, NotificationLayerPresenter.HostFamily).Add(host);
+        UiLayerStack.Build(document.rootVisualElement).GetLayer(UiLayer.BehindStage, UiFamily.Viewport).Add(host);
         // 複製のパネルは解像度が固定なので、その倍率を 1 回だけ渡して左端を実画面 16px に置く
         // The copy panel has a fixed resolution, so pass its scale once to put the left edge at 16 real px
         host.SetStageScale(document.rootVisualElement.panel.scaledPixelsPerPoint);
