@@ -22,6 +22,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         private readonly int _recoverySlack;
         public const int NoRecoverySlack = 0;
 
+        // 本番の余裕。直線4セル分。最短が自分の坂の真上を通る形しか無い配置は2セル分の遠回りで組めるのが実測で、その倍を見ている
+        // The production slack: four straight cells; layouts whose shortest exists only through an own slope head assemble with a two-cell detour by measurement, so twice that is allowed
+        public const int DefaultRecoverySlack = 20;
+
         public BeltRoutePlanner(BeltRouteGrid grid, int recoverySlack)
         {
             _grid = grid;

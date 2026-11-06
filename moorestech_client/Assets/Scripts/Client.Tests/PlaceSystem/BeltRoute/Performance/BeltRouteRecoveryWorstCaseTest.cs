@@ -17,7 +17,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
     public class BeltRouteRecoveryWorstCaseTest
     {
         private const int Runs = 3;
-        private const int RecoverySlackUnderTest = 20;
         private static readonly Vector3Int BoxSize = new(BeltRouteGrid.HorizontalSize, 6, BeltRouteGrid.HorizontalSize);
         private static readonly Vector3Int Start = new(20, 0, 28);
         private static readonly Vector3Int End = new(40, 1, 10);
@@ -28,7 +27,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         // 廊下の先が開けた広場: 2セル余計に使えば組める（坂を戻り道から外す）。余裕ありなら予算内で見つかる
         // An open plaza beyond the corridor: assemblable with two extra cells (the slope moves off the return path); with slack it is found within the budget
         [TestCase(BeltRoutePlanner.NoRecoverySlack, false)]
-        [TestCase(RecoverySlackUnderTest, true)]
+        [TestCase(BeltRoutePlanner.DefaultRecoverySlack, true)]
         public void OpenPlazaBeyondCorridor(int recoverySlack, bool expectFound)
         {
             var (result, searchCost) = Measure(BuildCompound(true), recoverySlack, "open plaza");
@@ -39,7 +38,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         // 廊下の先が2×2の袋小路と幅1の筋の先の3×3: 組めるのは遥か先で向きを変える経路だけで、余裕20には収まらない
         // A 2x2 pocket beyond the corridor plus a one-wide lane to a 3x3 patch: the only assemblable route turns around far away, beyond a slack of 20
         [TestCase(BeltRoutePlanner.NoRecoverySlack)]
-        [TestCase(RecoverySlackUnderTest)]
+        [TestCase(BeltRoutePlanner.DefaultRecoverySlack)]
         public void PocketBeyondCorridor(int recoverySlack)
         {
             var (result, _) = Measure(BuildCompound(false), recoverySlack, "pocket");
@@ -49,7 +48,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         // 本番の大きさの箱でランダムな障害と近接した終点を振り、余裕なし・ありの最悪時間を比べる
         // Random obstacles and near ends in a production-sized box, comparing the worst time with and without slack
         [TestCase(BeltRoutePlanner.NoRecoverySlack)]
-        [TestCase(RecoverySlackUnderTest)]
+        [TestCase(BeltRoutePlanner.DefaultRecoverySlack)]
         public void RandomLargeBoxesWithNearEnds(int recoverySlack)
         {
             var random = new System.Random(20261107);

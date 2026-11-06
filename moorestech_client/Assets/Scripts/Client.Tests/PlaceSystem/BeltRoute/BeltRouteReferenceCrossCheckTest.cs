@@ -18,7 +18,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         private const int Iterations = 1500;
         private const int Seed = 20261107;
         private const int ReportedDisagreements = 12;
-        private const int RecoverySlackUnderTest = 20;
 
         // 余裕なしの既知の穴の上限。1461問で5件が実測（2026-11-06）。増えたら探索か組み立ての退行を疑う
         // Cap on the known gap without slack: 5 of 1461 queries measured on 2026-11-06; growth points at a search or recovery regression
@@ -34,7 +33,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         private const int NearRange = 2;
 
         [TestCase(BeltRoutePlanner.NoRecoverySlack, false)]
-        [TestCase(RecoverySlackUnderTest, true)]
+        [TestCase(BeltRoutePlanner.DefaultRecoverySlack, true)]
         public void RandomSmallBoxesAgreeWithTheExhaustiveReference(int recoverySlack, bool expectNoKnownGap)
         {
             var random = new System.Random(Seed);
@@ -119,9 +118,6 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             var startDirection = (BlockDirection)random.Next(4);
             var endDirection = (BlockDirection)random.Next(4);
             var priority = new BeltRouteStepPriority(random.Next(BeltRouteStepPriority.PermutationCount));
-            // 終点の前が始点になる配置は終点が始点へ流し込む輪になる。セッションも弾いていないので別裁定待ちとして試験から外す
-            // An end whose front is the start would feed the start and form a ring; the session does not reject it either, so it is left out pending a separate decision
-            if (end + BeltRouteDirection.Forward(endDirection) == start) return false;
             if (startIsExistingBelt) grid.MarkBlockCell(start);
             query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, endDirection, allowSlopes, turnByOutput, priority);
             return true;

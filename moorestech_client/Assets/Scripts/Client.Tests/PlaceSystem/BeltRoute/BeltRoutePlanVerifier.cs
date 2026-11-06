@@ -37,7 +37,10 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             }
             Assert.AreEqual(plan.TotalCost, totalCost, $"{label}: total cost");
             foreach (var cell in cells) Assert.IsFalse(slopeHeads.Contains(cell.Cell), $"{label}: cell above own slope {cell.Cell}");
-            Assert.IsFalse(used.Contains(query.EndCell + BeltRouteDirection.Forward(query.EndDirection)), $"{label}: cell in front of the end is used");
+            // 終点の前のセルが始点なら、終点が始点へ流し込む輪になるだけで許す（ユーザー裁定 2026-11-07）
+            // The cell in front of the end may be the start; the end then feeds the start and the route forms a ring, which is allowed (user decision 2026-11-07)
+            var endFront = query.EndCell + BeltRouteDirection.Forward(query.EndDirection);
+            Assert.IsTrue(!used.Contains(endFront) || endFront == query.StartCell, $"{label}: cell in front of the end is used");
 
             // 状態列へ戻して隣接の接続規則を確かめる
             // Rebuild the state sequence and check the adjacency connection rules

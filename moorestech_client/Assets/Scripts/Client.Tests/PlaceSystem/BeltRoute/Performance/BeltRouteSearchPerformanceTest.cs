@@ -20,7 +20,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         private const double WorstAllowedMilliseconds = 250;
 
         [TestCase(BeltRoutePlanner.NoRecoverySlack)]
-        [TestCase(20)]
+        [TestCase(BeltRoutePlanner.DefaultRecoverySlack)]
         public void CornerToCornerThroughRandomObstaclesStaysFast(int recoverySlack)
         {
             var random = new System.Random(7);
