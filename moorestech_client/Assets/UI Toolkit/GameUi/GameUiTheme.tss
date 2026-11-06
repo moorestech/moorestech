@@ -39,3 +39,4 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/Shell/Shell.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/CommonHud/CommonHud.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Screens/KeyHints/KeyHintHud.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Screens/Progress/ProgressHud.uss");
