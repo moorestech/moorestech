@@ -1,0 +1,97 @@
+/* web: moorestech_web/webui/src/shared/ui/SlotFrame/style.module.css の .slot と data-* 状態。box-shadow の 4 層は __ring の border の帯で描き、帯が外へ育つか内へ食い込むかは --bevel-inset を SlotFrameRing.cs が読んで決める */
+/* 選択白面の下端のグラデ（calc の位置）は、位置と高さがつまみそのものなので帯の要素の bottom・height に var() で写す（設計書 A-51） */
+/* web: .slot and the data-* states in moorestech_web/webui/src/shared/ui/SlotFrame/style.module.css; the four box-shadow layers are border bands in __ring, and SlotFrameRing.cs reads --bevel-inset to grow them outward or inward */
+/* The selected white face's bottom gradient (calc positions) maps straight onto the trim element's bottom and height via var(), since both are the knobs themselves (design A-51) */
+.slot-frame {
+    width: var(--slot-size);
+    height: var(--slot-size);
+    background-color: var(--slot-frame-face);
+}
+
+/* catalog は灰面で面際を 0 に戻す。filled の規則を後に書き、catalog と filled が重なれば白面が勝つ（Web と同じ順） */
+/* Catalog uses the gray face and resets the face inset; filled comes later so a catalog cell that is also filled shows white (same order as the Web) */
+.slot-frame--catalog {
+    --face-inset: 0px;
+    background-color: var(--slot-frame-catalog-face);
+}
+
+.slot-frame--filled {
+    --face-inset: var(--filled-face-inset);
+    background-color: var(--slot-frame-filled-face);
+}
+
+.slot-frame--insufficient {
+    opacity: 0.4;
+}
+
+.slot-frame--selected {
+    --bevel-c1: var(--sel-c1);
+    --bevel-c2: var(--sel-c2);
+    --bevel-c3: var(--sel-c3);
+}
+
+.slot-frame__selected-trim {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--selected-face-ring-inset);
+    height: var(--selected-face-bottom-trim);
+    background-color: var(--slot-frame-selected-trim-face);
+}
+
+.slot-frame--selected.slot-frame--filled > .slot-frame__selected-trim {
+    display: flex;
+}
+
+.slot-frame__ring {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    --slot-frame-bevel-1: var(--bevel-1);
+    --slot-frame-bevel-2: var(--bevel-2);
+    --slot-frame-bevel-3: var(--bevel-3);
+    --slot-frame-bevel-inset: var(--bevel-inset);
+}
+
+.slot-frame__band {
+    position: absolute;
+}
+
+.slot-frame__band--1 {
+    border-color: var(--bevel-c1);
+}
+
+.slot-frame__band--2 {
+    border-color: var(--bevel-c2);
+}
+
+.slot-frame__band--3 {
+    border-color: var(--bevel-c3);
+}
+
+.slot-frame__face-inset {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-width: var(--face-inset);
+    border-color: var(--face-inset-color);
+}
+
+.slot-frame__content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* ゴーストは面とリングをそのままに中身だけを透かす */
+/* A ghost keeps face and ring and fades only the content */
+.slot-frame--ghost > .slot-frame__content {
+    opacity: var(--slot-ghost-opacity);
+}

@@ -88,6 +88,15 @@ namespace Client.Tests.Ui.Theme
             Assert.IsFalse(plain.customStyle.TryGetValue(new CustomStyleProperty<string>("--panel-edge-fade"), out _));
         }
 
+        [Test]
+        public void キーワードを文字列で読める()
+        {
+            // 変種 A の前提。読めなければ Step 7 の分岐 1 で変種 B へ替える
+            // The premise of variant A; if unreadable, Step 7 branch 1 switches to variant B
+            Assert.IsTrue(UssCustomStyleReader.TryReadKeyword(_probe.customStyle, "--probe-keyword", out var keyword));
+            Assert.AreEqual("inset", keyword);
+        }
+
         private static string ReadTokenBody(string tokenName)
         {
             var text = File.ReadAllText(Path.Combine(Path.GetDirectoryName(Application.dataPath), TokensPath));
