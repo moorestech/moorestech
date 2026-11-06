@@ -16,14 +16,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
     {
         public const int Unreached = int.MaxValue;
 
-        // f値の上限＝探索できる経路コストの上限。超える経路は無しとみなす
-        // The f cap is the cap on route cost; routes beyond it are treated as absent
-        private const int BucketCount = 8192;
-
         private readonly BeltRouteStateCodec _codec;
         private readonly int[] _bestCost;
         private readonly List<int> _touchedStates = new();
-        private readonly List<(int g, int state)>[] _buckets = new List<(int, int)>[BucketCount];
+        private readonly BeltRouteCostBuckets _buckets = new();
         private readonly int _sizeX;
         private readonly int _sizeY;
         private readonly int _sizeZ;
@@ -38,6 +34,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         private int _endY;
         private int _endZ;
 
+        // 確定済みの最大f値。-1は未着手
+        // The largest settled f; -1 before any pass
+        private int _settledF = -1;
+
         public BeltRouteSearch(BeltRouteStateCodec codec)
         {
             _codec = codec;
@@ -47,7 +47,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _layer = _sizeX * _sizeZ;
             _bestCost = new int[codec.StateCount];
             for (var i = 0; i < _bestCost.Length; i++) _bestCost[i] = Unreached;
-            for (var i = 0; i < BucketCount; i++) _buckets[i] = new List<(int, int)>();
         }
 
         public int BestCost(BeltRouteState state) => _bestCost[_codec.Encode(state)];
@@ -57,6 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         public bool Run(BeltRouteTransitionRule rule, IReadOnlyList<(BeltRouteState state, int cost)> startStates)
         {
             ResetTouched();
+            _buckets.Clear();
             _rule = rule;
             var query = rule.Query;
             var endLocal = query.EndCell - _codec.Min;
@@ -70,12 +70,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                 var local = state.Cell - _codec.Min;
                 Relax(_codec.Encode(state), cost, local.x, local.y + state.Kind.ExitHeightOffset(), local.z);
             }
+            _settledF = -1;
+            return Settle(BeltRouteCostBuckets.Count, true);
+        }
 
+        // 終点のf値を超えてmaxFまで確定を進める（最短で組めないとき、余裕ぶんの状態も正確なコストにする）
+        // Settles beyond the goal's f up to maxF so states within the slack carry exact costs when the shortest cannot be assembled
+        public void SettleUpTo(int maxF)
+        {
+            Settle(Mathf.Min(maxF, BeltRouteCostBuckets.Count - 1), false);
+        }
+
+        // f値のバケットを順に確定させる。stopAtGoal なら終点を確定させた回で止まり、以降は SettleUpTo で続きから進める
+        // Settles buckets in f order; with stopAtGoal it stops after the pass that settles the goal, and SettleUpTo resumes from there
+        private bool Settle(int maxF, bool stopAtGoal)
+        {
             var goalFound = false;
-            for (var f = FirstActiveBucket(0); f < BucketCount; f = FirstActiveBucket(f + 1))
+            for (var f = _buckets.FirstActive(_settledF + 1); f <= maxF && f < BeltRouteCostBuckets.Count; f = _buckets.FirstActive(f + 1))
             {
-                if (goalFound) break;
-                var bucket = _buckets[f];
+                var bucket = _buckets.At(f);
                 // 展開中に同じf値へ積まれた分も同じ回で処理する
                 // Entries pushed into the same f during expansion are handled in this same pass
                 for (var i = 0; i < bucket.Count; i++)
@@ -86,8 +99,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                     Expand(stateIndex, g);
                 }
                 bucket.Clear();
+                _settledF = f;
+                if (stopAtGoal && goalFound) break;
             }
-            ClearBuckets();
             return goalFound;
         }
 
@@ -158,8 +172,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _bestCost[stateIndex] = g;
             var f = g + Heuristic(x, exitHeight, z);
             // silent-ok: 上限超えは「経路なし」として組み立て側が扱う / ツールチップの理由行で気づける
-            if (BucketCount <= f) return;
-            _buckets[f].Add((g, stateIndex));
+            _buckets.TryAdd(f, g, stateIndex);
         }
 
         // 残り水平距離と残り高低差から下回らないコストを見積もる（一歩は直線5・坂7）
@@ -171,26 +184,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return BeltRouteCellKindExtension.StraightCost * Mathf.Max(horizontal, vertical) + (BeltRouteCellKindExtension.SlopeCost - BeltRouteCellKindExtension.StraightCost) * vertical;
         }
 
-        private int FirstActiveBucket(int from)
-        {
-            for (var f = from; f < BucketCount; f++)
-            {
-                if (0 < _buckets[f].Count) return f;
-            }
-            return BucketCount;
-        }
-
         // 前回触った状態だけ戻す。全配列の初期化より桁違いに軽い
         // Reset only the states touched last time; far cheaper than clearing the whole array
         private void ResetTouched()
         {
             foreach (var index in _touchedStates) _bestCost[index] = Unreached;
             _touchedStates.Clear();
-        }
-
-        private void ClearBuckets()
-        {
-            foreach (var bucket in _buckets) bucket.Clear();
         }
     }
 }

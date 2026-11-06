@@ -11,16 +11,17 @@ namespace Client.Tests.PlaceSystem.BeltRoute
     // Cross-checks the production search against the exhaustive reference solver, catching missed routes, non-shortest routes and routes that should not exist
     // 見つけた経路の形だけを検査するランダム試験では「経路なし」が常に通ってしまうので、存在と最短性はここで守る
     // The randomized test only inspects found routes, so "no route" always passes there; existence and optimality are guarded here
-    // 既知の穴（最短コストが自分の坂の真上を通る形しか無く組めない。ParamegaFactory と同じく経路なしのまま）だけは数えて許し、それ以外の食い違いで落とす
-    // Only the known gap (the shortest cost exists solely through an own slope head and cannot be assembled; left as no route like ParamegaFactory) is counted and tolerated; any other disagreement fails
+    // 余裕なし（ParamegaFactory と同じ）では既知の穴（最短が自分の坂の真上を通る形しか無く組めない）だけを数えて許し、余裕ありでは穴ゼロを要求する
+    // Without slack (as ParamegaFactory) only the known gap (the shortest exists solely through an own slope head) is counted and tolerated; with slack zero gaps are required
     public class BeltRouteReferenceCrossCheckTest
     {
         private const int Iterations = 1500;
         private const int Seed = 20261107;
         private const int ReportedDisagreements = 12;
+        private const int RecoverySlackUnderTest = 20;
 
-        // 既知の穴の上限。1461問で5件が実測（2026-11-06）。増えたら探索か組み立ての退行を疑う
-        // Cap on the known gap: 5 of 1461 queries measured on 2026-11-06; growth points at a search or recovery regression
+        // 余裕なしの既知の穴の上限。1461問で5件が実測（2026-11-06）。増えたら探索か組み立ての退行を疑う
+        // Cap on the known gap without slack: 5 of 1461 queries measured on 2026-11-06; growth points at a search or recovery regression
         private const int KnownGapAllowed = 10;
 
         // 参照ソルバは総当たりなので箱とコスト上限を小さく保つ（上限50＝10セル）
@@ -32,13 +33,15 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         // Ends right above or beside the start are where search and recovery disagree most, so half the ends land within ±2 of the start
         private const int NearRange = 2;
 
-        [Test]
-        public void RandomSmallBoxesAgreeWithTheExhaustiveReference()
+        [TestCase(BeltRoutePlanner.NoRecoverySlack, false)]
+        [TestCase(RecoverySlackUnderTest, true)]
+        public void RandomSmallBoxesAgreeWithTheExhaustiveReference(int recoverySlack, bool expectNoKnownGap)
         {
             var random = new System.Random(Seed);
             var compared = 0;
             var referenceFound = 0;
             var knownGaps = new List<string>();
+            var longerThanReference = new List<string>();
             var disagreements = new List<string>();
             for (var i = 0; i < Iterations; i++)
             {
@@ -47,19 +50,22 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 compared++;
                 var label = $"iteration {i} query {query.StartCell}:{query.StartDirection} -> {query.EndCell}:{query.EndDirection} slopes:{query.AllowSlopes} splitter:{query.TurnByOutput} branch:{query.StartIsExistingBelt}";
 
-                var result = new BeltRoutePlanner(grid).Plan(query);
+                var result = new BeltRoutePlanner(grid, recoverySlack).Plan(query);
                 var rule = new BeltRouteTransitionRule(grid, query, BeltRouteObstacleMask.None);
                 var referenceCost = new BeltRouteReferenceSolver(rule, CostCap, true).Solve();
                 if (referenceCost != BeltRouteReferenceSolver.NotFound) referenceFound++;
+                if (result.HasPlan) BeltRoutePlanVerifier.AssertValid(grid, query, result.Plan, label);
                 var disagreement = Disagreement(result, referenceCost);
                 if (disagreement == null) continue;
-                if (IsKnownGap(grid, rule, result, referenceCost)) knownGaps.Add($"{label}: {disagreement}");
+                if (IsLongerWithinSlack(result, referenceCost, recoverySlack)) longerThanReference.Add($"{label}: {disagreement}");
+                else if (IsKnownGap(grid, rule, result, referenceCost)) knownGaps.Add($"{label}: {disagreement}");
                 else disagreements.Add($"{label}: {disagreement}");
             }
-            Debug.Log($"[BeltRouteReferenceCrossCheck] compared {compared} queries, reference found {referenceFound} routes within cost {CostCap}, known gaps {knownGaps.Count}, disagreements {disagreements.Count}\n{string.Join("\n", knownGaps)}");
+            Debug.Log($"[BeltRouteReferenceCrossCheck] slack {recoverySlack}: compared {compared} queries, reference found {referenceFound} routes within cost {CostCap}, known gaps {knownGaps.Count}, longer than reference within slack {longerThanReference.Count}, disagreements {disagreements.Count}\n{string.Join("\n", knownGaps)}\n{string.Join("\n", longerThanReference)}");
             Assert.Greater(referenceFound, Iterations / 10, "too few routes within the cap; the cross-check is not exercising the search");
             Assert.AreEqual(0, disagreements.Count, $"{disagreements.Count} disagreements, first {ReportedDisagreements}:\n{string.Join("\n", disagreements.GetRange(0, Mathf.Min(ReportedDisagreements, disagreements.Count)))}");
-            Assert.LessOrEqual(knownGaps.Count, KnownGapAllowed, $"known gaps grew:\n{string.Join("\n", knownGaps)}");
+            if (expectNoKnownGap) Assert.AreEqual(0, knownGaps.Count, $"known gaps must vanish with slack:\n{string.Join("\n", knownGaps)}");
+            else Assert.That(knownGaps.Count, Is.GreaterThan(0).And.LessThanOrEqualTo(KnownGapAllowed), $"known gaps without slack must stay visible and bounded:\n{string.Join("\n", knownGaps)}");
         }
 
         // 参照が見つけたら本番も同じコストで見つける。参照が上限内に見つけないなら本番も上限内の経路を出さない。一致ならnull
@@ -76,6 +82,14 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return null;
         }
 
+        // 余裕ありは最短で組めないとき予算内の経路を返すので、参照より長くても予算内なら食い違いではない
+        // With slack, production returns a route within the budget when the shortest cannot be assembled, so longer than the reference but within the slack is not a disagreement
+        private static bool IsLongerWithinSlack(BeltRoutePlanResult result, int referenceCost, int recoverySlack)
+        {
+            if (!result.HasPlan || referenceCost == BeltRouteReferenceSolver.NotFound) return false;
+            return referenceCost < result.Plan.TotalCost && result.Plan.TotalCost <= referenceCost + recoverySlack;
+        }
+
         // 既知の穴＝本番は経路なしで、A* の終点コストが「規則だけの最短」と一致し、それが組める最短より小さい（組み立てだけが弾いた）
         // The known gap: production found no route, the A* goal cost equals the rule-only shortest, and that is below the assemblable shortest (only recovery rejected it)
         private static bool IsKnownGap(BeltRouteGrid grid, BeltRouteTransitionRule rule, BeltRoutePlanResult result, int referenceCost)
@@ -88,7 +102,9 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             return searchCost == ruleOnlyCost && ruleOnlyCost < referenceCost;
         }
 
-        private static bool TryPickQuery(System.Random random, BeltRouteGrid grid, out BeltRouteQuery query)
+        // 終点の半分を始点の±NearRange以内に置く問い合わせ。性能試験からも使う
+        // A query whose end lands within ±NearRange of the start half of the time; the performance tests use it too
+        internal static bool TryPickQuery(System.Random random, BeltRouteGrid grid, out BeltRouteQuery query)
         {
             query = null;
             if (!TryPickFreeCell(random, grid, Vector3Int.zero, grid.Size, out var start)) return false;
@@ -100,8 +116,14 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             var startIsExistingBelt = random.Next(10) == 0;
             var turnByOutput = !startIsExistingBelt && random.Next(5) == 0;
             var allowSlopes = !turnByOutput && random.Next(5) != 0;
+            var startDirection = (BlockDirection)random.Next(4);
+            var endDirection = (BlockDirection)random.Next(4);
+            var priority = new BeltRouteStepPriority(random.Next(BeltRouteStepPriority.PermutationCount));
+            // 終点の前が始点になる配置は終点が始点へ流し込む輪になる。セッションも弾いていないので別裁定待ちとして試験から外す
+            // An end whose front is the start would feed the start and form a ring; the session does not reject it either, so it is left out pending a separate decision
+            if (end + BeltRouteDirection.Forward(endDirection) == start) return false;
             if (startIsExistingBelt) grid.MarkBlockCell(start);
-            query = new BeltRouteQuery(start, (BlockDirection)random.Next(4), startIsExistingBelt, end, (BlockDirection)random.Next(4), allowSlopes, turnByOutput, new BeltRouteStepPriority(random.Next(BeltRouteStepPriority.PermutationCount)));
+            query = new BeltRouteQuery(start, startDirection, startIsExistingBelt, end, endDirection, allowSlopes, turnByOutput, priority);
             return true;
         }
 

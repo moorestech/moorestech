@@ -5,8 +5,10 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 {
     /// <summary>
-    ///     終点から始点へ、コストが1セルぶんずつ減る状態を深さ優先でたどって経路を組み立てる
-    ///     Assembles the route by walking depth-first from the end toward the start through states whose cost drops by one cell each time
+    ///     終点から始点へ、総コストが予算に収まる状態を深さ優先でたどって経路を組み立てる
+    ///     Assembles the route by walking depth-first from the end toward the start through states whose total cost fits the budget
+    ///     各状態の最短コスト（A*の表）＋ここまで置いた分を下限にして枝を切る。予算が最短コストちょうどなら同コストの辺だけをたどる
+    ///     Each state's shortest cost (the A* table) plus the cells placed so far bounds the total; with the budget at the shortest cost only equal-cost edges are walked
     ///     使ったセルを作業用の地図に書き、同じセルの再使用と自分の坂の真上の通過は一歩戻って別候補を試す
     ///     Used cells go into a working map; reusing a cell or crossing above one's own slope backs up one step to try another candidate
     /// </summary>
@@ -22,6 +24,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         private readonly List<BeltRouteState> _reversedStates = new();
         private IReadOnlyList<(BeltRouteState state, int cost)> _startStates;
         private BeltRouteTransitionRule _rule;
+        private int _budget;
         private int _steps;
 
         public BeltRouteRecovery(BeltRouteSearch search)
@@ -29,12 +32,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _search = search;
         }
 
-        // 探索が終点へ届いた後に呼ぶ。組めなければnull（最短長で組める経路が無い）
-        // Called after the search reached the goal; null when no route of the shortest length can be assembled
-        public BeltRoutePlan Recover(BeltRouteTransitionRule rule, IReadOnlyList<(BeltRouteState state, int cost)> startStates)
+        // 探索が終点へ届いた後に呼ぶ。budgetは経路の総コストの上限。組めなければnull
+        // Called after the search reached the goal; budget caps the route's total cost; null when nothing assembles within it
+        public BeltRoutePlan Recover(BeltRouteTransitionRule rule, IReadOnlyList<(BeltRouteState state, int cost)> startStates, int budget)
         {
             _rule = rule;
             _startStates = startStates;
+            _budget = budget;
             _usedCells.Clear();
             _ownSlopeHeads.Clear();
             _reversedStates.Clear();
@@ -42,46 +46,44 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 
             var query = rule.Query;
             var goal = new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight);
-            var goalCost = _search.BestCost(goal);
-            if (goalCost == BeltRouteSearch.Unreached) return null;
+            if (_search.BestCost(goal) == BeltRouteSearch.Unreached) return null;
 
             Place(goal);
-            if (!WalkBack(goal, goalCost)) return null;
-            return BuildPlan(goalCost);
+            if (!WalkBack(goal, goal.Kind.Cost())) return null;
+            return BuildPlan();
         }
 
-        private bool WalkBack(BeltRouteState state, int cost)
+        // placedCostは終点からこの状態までに置いたセルのコストの和（この状態を含む）
+        // placedCost is the cost of the cells placed from the end through this state, inclusive
+        private bool WalkBack(BeltRouteState state, int placedCost)
         {
             if (StepLimit < ++_steps) return false;
-            if (IsStartState(state, cost)) return true;
+            if (IsStartState(state)) return true;
 
-            var previousCost = cost - state.Kind.Cost();
             // 候補列は再帰の深い側に上書きされないよう呼び出しごとに持つ
             // Each call keeps its own candidate list so deeper recursion cannot overwrite it
-            var candidates = CollectCandidates(state, cost);
+            var candidates = CollectCandidates(state, placedCost);
             foreach (var previous in candidates)
             {
-
                 // 分岐の始点は既存ベルトなので作業地図には置かない
                 // A branch start is an existing belt, so it never enters the working map
-                var isExistingStart = _rule.Query.StartIsExistingBelt && IsStartState(previous, previousCost);
+                var isExistingStart = _rule.Query.StartIsExistingBelt && IsStartState(previous);
                 if (!isExistingStart && !CanPlace(previous)) continue;
 
                 if (!isExistingStart) Place(previous);
-                if (WalkBack(previous, previousCost)) return true;
+                if (WalkBack(previous, placedCost + previous.Kind.Cost())) return true;
                 if (!isExistingStart) Unplace(previous);
                 if (StepLimit < _steps) return false;
             }
             return false;
         }
 
-        // 手前候補を列挙し、優先順でランク付けして並べる。候補は入る向き3通り×種別3通り
-        // Enumerates predecessor candidates ranked by the step priority; up to three incomings times three kinds
-        private List<BeltRouteState> CollectCandidates(BeltRouteState state, int cost)
+        // 手前候補を列挙し、総コストの下限が小さい順、同じなら優先順で並べる。候補は入る向き3通り×種別3通り
+        // Enumerates predecessor candidates ordered by the lower bound of the total cost, then by the step priority; up to three incomings times three kinds
+        private List<BeltRouteState> CollectCandidates(BeltRouteState state, int placedCost)
         {
-            var ranked = new List<(int rank, BeltRouteState state)>(9);
+            var ranked = new List<(int bound, int rank, BeltRouteState state)>(9);
             var entryHeight = state.EntryHeight;
-            var previousCost = cost - state.Kind.Cost();
             foreach (var incoming in IncomingOptions(state))
             {
                 var column = state.Cell - BeltRouteDirection.Forward(incoming);
@@ -90,9 +92,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
                     var kind = (BeltRouteCellKind)k;
                     var previous = new BeltRouteState(new Vector3Int(column.x, entryHeight - kind.ExitHeightOffset(), column.z), incoming, kind);
                     if (!_rule.Query.AllowSlopes && kind.IsSlope()) continue;
-                    if (!_rule.IsInsideBox(previous.Cell) || _search.BestCost(previous) != previousCost) continue;
+                    if (!_rule.IsInsideBox(previous.Cell)) continue;
+                    // 最短コスト＋置いた分が予算を超える候補は、どう繋いでも予算に収まらない
+                    // A candidate whose shortest cost plus the placed cells exceeds the budget cannot fit however it connects
+                    var best = _search.BestCost(previous);
+                    if (best == BeltRouteSearch.Unreached || _budget < best + placedCost) continue;
                     if (!IsReachableTransition(previous, state)) continue;
-                    Insert((Rank(previous), previous));
+                    Insert((best + placedCost, Rank(previous), previous));
                 }
             }
             var ordered = new List<BeltRouteState>(ranked.Count);
@@ -101,13 +107,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 
             #region Internal
 
-            void Insert((int rank, BeltRouteState state) candidate)
+            void Insert((int bound, int rank, BeltRouteState state) candidate)
             {
-                // 安定な挿入。同ランクは列挙順を保つ
-                // Stable insertion; equal ranks keep enumeration order
+                // 安定な挿入。同じ下限・同ランクは列挙順を保つ
+                // Stable insertion; equal bound and rank keep enumeration order
                 var index = ranked.Count;
-                while (0 < index && candidate.rank < ranked[index - 1].rank) index--;
+                while (0 < index && IsBefore(candidate, ranked[index - 1])) index--;
                 ranked.Insert(index, candidate);
+            }
+
+            bool IsBefore((int bound, int rank, BeltRouteState state) a, (int bound, int rank, BeltRouteState state) b)
+            {
+                return a.bound < b.bound || (a.bound == b.bound && a.rank < b.rank);
             }
 
             #endregion
@@ -137,11 +148,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             return _rule.Query.Priority.Rank(axis);
         }
 
-        private bool IsStartState(BeltRouteState state, int cost)
+        private bool IsStartState(BeltRouteState state)
         {
-            foreach (var (start, startCost) in _startStates)
+            foreach (var (start, _) in _startStates)
             {
-                if (start.Equals(state) && startCost == cost) return true;
+                if (start.Equals(state)) return true;
             }
             return false;
         }
@@ -168,18 +179,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _reversedStates.RemoveAt(_reversedStates.Count - 1);
         }
 
-        // 分岐器は入る向きが正面。通常ベルトは出る向きが正面
-        // A splitter faces its entry heading; a normal belt faces its exit heading
-        private BeltRoutePlan BuildPlan(int totalCost)
+        // 分岐器は入る向きが正面。通常ベルトは出る向きが正面。総コストは置いたセルの和（分岐の始点は置かないので0）
+        // A splitter faces its entry heading; a normal belt faces its exit heading; the total is the sum of placed cells (a branch start is not placed, so 0)
+        private BeltRoutePlan BuildPlan()
         {
             var cells = new List<BeltRouteCell>(_reversedStates.Count);
             var incoming = _rule.Query.StartDirection;
+            var totalCost = 0;
             for (var i = _reversedStates.Count - 1; 0 <= i; i--)
             {
                 var state = _reversedStates[i];
                 var facing = _rule.Query.TurnByOutput ? incoming : state.Outgoing;
                 cells.Add(new BeltRouteCell(state.Cell, facing, state.Kind));
                 incoming = state.Outgoing;
+                totalCost += state.Kind.Cost();
             }
             return new BeltRoutePlan(cells, totalCost);
         }

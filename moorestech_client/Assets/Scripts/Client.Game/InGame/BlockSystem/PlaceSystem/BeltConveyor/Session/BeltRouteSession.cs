@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Session
             Branch = branch;
             _terrain = terrain;
             _scanner = scanner;
-            _planner = new BeltRoutePlanner(scanner.Build(terrain));
+            _planner = new BeltRoutePlanner(scanner.Build(terrain), BeltRoutePlanner.NoRecoverySlack);
         }
 
         public bool IsBranch => Branch != null;

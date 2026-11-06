@@ -19,8 +19,9 @@ namespace Client.Tests.PlaceSystem.BeltRoute
         // Cap for one search plus recovery; beyond it per-frame searching stutters
         private const double WorstAllowedMilliseconds = 250;
 
-        [Test]
-        public void CornerToCornerThroughRandomObstaclesStaysFast()
+        [TestCase(BeltRoutePlanner.NoRecoverySlack)]
+        [TestCase(20)]
+        public void CornerToCornerThroughRandomObstaclesStaysFast(int recoverySlack)
         {
             var random = new System.Random(7);
             var grid = new BeltRouteGrid(Vector3Int.zero, new Vector3Int(BeltRouteGrid.HorizontalSize, HeightCells, BeltRouteGrid.HorizontalSize));
@@ -31,7 +32,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             for (var i = 0; i < cellCount; i++)
                 grid.MarkBlockCell(new Vector3Int(random.Next(grid.Size.x), random.Next(grid.Size.y), random.Next(grid.Size.z)));
 
-            var planner = new BeltRoutePlanner(grid);
+            var planner = new BeltRoutePlanner(grid, recoverySlack);
             var stopwatch = new Stopwatch();
             var worst = 0.0;
             var found = 0;
@@ -47,7 +48,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
                 worst = System.Math.Max(worst, stopwatch.Elapsed.TotalMilliseconds);
             }
 
-            Debug.Log($"[BeltRoutePerformance] worst {worst:F1} ms over {Runs} runs, found {found}");
+            Debug.Log($"[BeltRoutePerformance] slack {recoverySlack}: worst {worst:F1} ms over {Runs} runs, found {found}");
             Assert.Greater(found, 0, "no route found; the scenario is not measuring a real search");
             Assert.Less(worst, WorstAllowedMilliseconds);
         }

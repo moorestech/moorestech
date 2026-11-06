@@ -17,9 +17,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         private readonly BeltRouteReachability _reachability;
         private BeltRouteGrid _grid;
 
-        public BeltRoutePlanner(BeltRouteGrid grid)
+        // 最短コストで組めないとき、総コストをここまで余分に許して組み直す。0なら最短ちょうどだけ（ParamegaFactory と同じ）
+        // Extra total cost allowed when the shortest cannot be assembled; 0 walks the shortest cost only (as ParamegaFactory does)
+        private readonly int _recoverySlack;
+        public const int NoRecoverySlack = 0;
+
+        public BeltRoutePlanner(BeltRouteGrid grid, int recoverySlack)
         {
             _grid = grid;
+            _recoverySlack = recoverySlack;
             _codec = new BeltRouteStateCodec(grid);
             _search = new BeltRouteSearch(_codec);
             _recovery = new BeltRouteRecovery(_search);
@@ -69,8 +75,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             if (startStates.Count == 0) return null;
             if (!_search.Run(rule, startStates)) return null;
 
-            var plan = _recovery.Recover(rule, startStates);
-            // silent-ok: 最短長で組める経路が無いのは仕様上の「経路なし」 / 赤いゴーストと理由行で分かる
+            // まず最短コストちょうどで組む。組めなければ予算を余裕ぶん広げ、その範囲の状態を正確なコストにしてから組み直す
+            // Assemble at exactly the shortest cost first; if that fails, widen the budget by the slack, settle states up to it and assemble again
+            var shortest = _search.BestCost(new BeltRouteState(query.EndCell, query.EndDirection, BeltRouteCellKind.Straight));
+            var plan = _recovery.Recover(rule, startStates, shortest);
+            if (plan != null || _recoverySlack == NoRecoverySlack) return plan;
+            _search.SettleUpTo(shortest + _recoverySlack);
+            plan = _recovery.Recover(rule, startStates, shortest + _recoverySlack);
+            // silent-ok: 予算内で組める経路が無いのは仕様上の「経路なし」 / 赤いゴーストと理由行で分かる
             return plan;
         }
 

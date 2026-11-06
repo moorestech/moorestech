@@ -23,7 +23,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
             for (var i = 0; i < Iterations; i++)
             {
                 var grid = BuildRandomGrid(random, new Vector3Int(20, 8, 20));
-                var planner = new BeltRoutePlanner(grid);
+                var planner = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack);
                 if (!TryPickQuery(random, grid, out var query)) continue;
 
                 var result = planner.Plan(query);

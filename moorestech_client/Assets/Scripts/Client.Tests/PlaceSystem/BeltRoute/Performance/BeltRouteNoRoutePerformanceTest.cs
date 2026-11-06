@@ -99,7 +99,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
         private static double Measure(BeltRouteGrid grid, Vector3Int end, string label, BeltRouteNoPathReason expectedReason)
         {
-            var planner = new BeltRoutePlanner(grid);
+            var planner = new BeltRoutePlanner(grid, BeltRoutePlanner.NoRecoverySlack);
             var query = new BeltRouteQuery(new Vector3Int(20, 2, 20), BlockDirection.East, false, end, BlockDirection.North, true, false, BeltRouteStepPriority.Default);
             var stopwatch = new Stopwatch();
             var worst = 0.0;
