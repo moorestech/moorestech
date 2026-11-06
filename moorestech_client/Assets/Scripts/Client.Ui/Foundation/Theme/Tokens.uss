@@ -29,7 +29,7 @@
     --craft-grip-face: rgba(134, 136, 152, 0.9565); /* web: rgba(134, 136, 152, 0.98) α補正 */
     --key-hint-font-size: 25px;
     --key-hint-line-height: 1.2;
-    --key-hint-letter-spacing: 1.375px; /* em: 0.055em × var(--key-hint-font-size) */
+    --key-hint-letter-spacing: 5.5px; /* web: 0.055em。UITK の字間は字の大きさの 1/100 単位 */
     --key-hint-font-weight: 500;
     --key-hint-text-shadow: 0.35px 0.35px 0 rgba(0, 0, 0, 0.8); /* web: 0.35px 0.35px 0 rgb(0 0 0 / 80%) */
     --full-screen-gate-face: rgb(0, 0, 0);
@@ -71,7 +71,7 @@
     --challenge-hud-label-rule-gap: 5px;
     --challenge-hud-rule-list-gap: 8px;
     --challenge-hud-objective-gap: 2px;
-    --challenge-hud-letter-spacing: 1px;
+    --challenge-hud-letter-spacing: 8.3333px; /* web: 1px ÷ var(--challenge-hud-label-font-size) × 100。UITK の字間は字の大きさの 1/100 単位 */
     --challenge-hud-objective-line-height: 20px;
     --challenge-hud-text-shadow: 0.35px 0.35px 0 rgba(0, 0, 0, 0.8); /* web: 0.35px 0.35px 0 rgb(0 0 0 / 80%) */
     --operation-hud-right: 24px;
@@ -82,7 +82,7 @@
     --operation-hud-label-rule-gap: 5px;
     --operation-hud-rule-list-gap: 8px;
     --operation-hud-detail-gap: 5px;
-    --operation-hud-letter-spacing: 1px;
+    --operation-hud-letter-spacing: 8.3333px; /* web: 1px ÷ var(--operation-hud-label-font-size) × 100。UITK の字間は字の大きさの 1/100 単位 */
     --operation-hud-detail-line-height: 25px;
     --tooltip-font-size: 18px;
     --tooltip-padding-block: 6px;
