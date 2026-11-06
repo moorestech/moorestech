@@ -49,19 +49,19 @@ namespace Client.Ui.State.PauseMenu
         // Writes records and the description to the outbox and returns to the top on success (ADR 0069)
         public async UniTask<UiCommandResult> SubmitBugReport(string description, PlaytestReportKind kind)
         {
+            // 種別を本文より先に見る。クラッシュは前回異常終了の箱だけが作り、ポーズからは送らせない
+            // Check the kind before the body; only the previous-crash box creates crash, so the pause menu must not send it
+            if (!PlaytestReportKindText.IsSubmittableFromPauseMenu(kind))
+            {
+                Debug.LogWarning($"プレイ報告の種別がポーズから送れないため送信しません kind:{kind}");
+                return new UiCommandRejected(UiCommandRejectReason.UnsubmittableReportKind, "");
+            }
+
             var trimmed = description.Trim();
             if (trimmed.Length == 0)
             {
                 Debug.LogWarning("バグ報告の説明文が空のため送信しません");
                 return new UiCommandRejected(UiCommandRejectReason.EmptyDescription, "");
-            }
-
-            // クラッシュは前回異常終了の箱だけが作る。ポーズからは送らせない
-            // Only the previous-crash box creates the crash kind; the pause menu must not send it
-            if (!PlaytestReportKindText.IsSubmittableFromPauseMenu(kind))
-            {
-                Debug.LogWarning($"プレイ報告の種別がポーズから送れないため送信しません kind:{kind}");
-                return new UiCommandRejected(UiCommandRejectReason.UnsubmittableReportKind, "");
             }
 
             // 書き出し・送信記録・送信要求の手続きは通し検証と共有する1本に寄せる

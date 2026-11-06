@@ -56,5 +56,19 @@ namespace Client.Ui.Foundation.Theme
             ratio = 0f;
             return false;
         }
+
+        // inset・outset などのキーワードは文字列で読む。空も読めない扱い
+        // Keywords such as inset and outset read as strings; empty counts as unreadable
+        public static bool TryReadKeyword(ICustomStyle style, string propertyName, out string keyword)
+        {
+            if (style.TryGetValue(new CustomStyleProperty<string>(propertyName), out keyword) && !string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+                return true;
+            }
+            Debug.LogError($"[UssCustomStyleReader] {propertyName} is not a resolved keyword (got '{keyword}')");
+            keyword = string.Empty;
+            return false;
+        }
     }
 }

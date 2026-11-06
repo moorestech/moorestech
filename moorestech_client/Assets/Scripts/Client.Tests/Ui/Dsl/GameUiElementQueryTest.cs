@@ -113,7 +113,7 @@ namespace Client.Tests.Ui.Dsl
         {
             // GameTextField は testid を内側の TextField に付ける
             // GameTextField puts the testid on its inner TextField
-            var gameTextField = new GameTextField(Testid, false);
+            var gameTextField = new GameTextField(Testid, false, GameTextFieldLook.GaugeInset);
             Place(gameTextField);
 
             Assert.AreEqual(UiSetTextStatus.Applied, GameUiElementQuery.SetText(rootVisualElement, Testid, "abc").Status);

@@ -1,12 +1,8 @@
 using System.Linq;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
-using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
-using Client.PlaytestReceiver.Delivery;
-using Client.PlaytestReceiver.Recovery;
 using Client.Tests.Ui.Screens.PauseMenu;
-using Client.Ui.Screens.BugReport;
 using Client.Ui.State.Commands;
 using Client.Ui.State.PauseMenu;
 using Client.Ui.State.Text;
@@ -23,19 +19,8 @@ namespace Client.Tests.Ui.Screens.BugReport
     /// 送信の流れ・トースト・下書き・種別文言（L1）
     /// Send flow, toasts, draft, kind labels (L1)
     /// </summary>
-    public class BugReportFormSendViewTest : ScreenTestHost
+    public class BugReportFormSendViewTest : BugReportFormScreenTestHost
     {
-        private RecordingPauseMenuCommands _commands;
-        private BugReportDraft _draft;
-        private BugReportFormView _view;
-
-        [SetUp]
-        public void MountForm()
-        {
-            _commands = new RecordingPauseMenuCommands();
-            _draft = new BugReportDraft();
-            _view = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), _commands, Toasts, Toaster, _draft));
-        }
 
         /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">入力後の送信で bug_report.submit を説明文付きで送りトーストを出す</web-test>
         /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">送信後に画面遷移のactionは出さない</web-test>
@@ -44,15 +29,15 @@ namespace Client.Tests.Ui.Screens.BugReport
         {
             Type("  broken belt  ");
             simulate.Click(SendButton());
-            _commands.CompleteSubmit(UiCommandAccepted.Instance);
+            Commands.CompleteSubmit(UiCommandAccepted.Instance);
 
-            var submit = _commands.Issued.Single();
+            var submit = Commands.Issued.Single();
             Assert.AreEqual(PauseMenuCommandKind.SubmitBugReport, submit.Kind);
             Assert.AreEqual("broken belt", submit.Description);
             Assert.AreEqual(PlaytestReportKind.Bug, submit.ReportKind);
             Assert.AreEqual(GameUiToastVariant.Info, ShownToasts.Single().Variant);
             Assert.AreEqual(new UiText(BugReportFormText.SentToast(PlaytestReportKind.Bug)).Resolve(), ShownToasts.Single().Text);
-            Assert.AreEqual("", _draft.Description);
+            Assert.AreEqual("", Draft.Description);
             Assert.AreEqual("", Description().value);
         }
 
@@ -65,11 +50,11 @@ namespace Client.Tests.Ui.Screens.BugReport
             simulate.Click(SendButton());
             Assert.IsFalse(SendButton().enabledSelf);
             Assert.IsFalse(Description().enabledSelf);
-            Assert.IsFalse(Find<Button>(_view, "bug-report-kind-feedback").enabledSelf);
+            Assert.IsFalse(Find<Button>(View, "bug-report-kind-feedback").enabledSelf);
             simulate.Click(SendButton());
-            Assert.AreEqual(1, _commands.Issued.Count);
+            Assert.AreEqual(1, Commands.Issued.Count);
 
-            _commands.CompleteSubmit(UiCommandAccepted.Instance);
+            Commands.CompleteSubmit(UiCommandAccepted.Instance);
             Assert.IsTrue(Description().enabledSelf);
         }
 
@@ -81,27 +66,27 @@ namespace Client.Tests.Ui.Screens.BugReport
 
             // 送信中にポーズを開き直して別の本文を書き始めた状態
             // The pause was reopened during the send and a different description was started
-            _draft.Reset();
-            _draft.SetDescription("report B");
+            Draft.Reset();
+            Draft.SetDescription("report B");
 
             LogAssert.Expect(LogType.Warning, "[BugReportFormView] draft was reset during the send; keeping the newer draft");
-            _commands.CompleteSubmit(UiCommandAccepted.Instance);
-            Assert.AreEqual("report B", _draft.Description);
+            Commands.CompleteSubmit(UiCommandAccepted.Instance);
+            Assert.AreEqual("report B", Draft.Description);
         }
 
         /// <web-test file="src/features/pauseMenu/BugReportFormTests/submissionResults.test.ts">確保済みの欠損を成功トーストに出す</web-test>
         [Test]
         public void 確保済みの欠損は送信成功時にエラーのトーストで出す()
         {
-            _view.Apply(Model(BugReportCaptureStatus.Ready, "video"));
+            View.Apply(Model(BugReportCaptureStatus.Ready, "video"));
             Type("broken belt");
             simulate.FrameUpdate();
             simulate.Click(SendButton());
 
             // 送信中に欠損が消えても押した時点の欠損で伝える
             // Even if the gap clears during the send, report the gap seen at click time
-            _view.Apply(Model(BugReportCaptureStatus.Ready));
-            _commands.CompleteSubmit(UiCommandAccepted.Instance);
+            View.Apply(Model(BugReportCaptureStatus.Ready));
+            Commands.CompleteSubmit(UiCommandAccepted.Instance);
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
             StringAssert.Contains("video", ShownToasts.Single().Text);
         }
@@ -112,17 +97,17 @@ namespace Client.Tests.Ui.Screens.BugReport
         [Test]
         public void 感想へ切り替えると種別と文言が感想になり送信成功後はバグへ戻る()
         {
-            simulate.Click(Find<Button>(_view, "bug-report-kind-feedback"));
-            Assert.AreEqual(PlaytestReportKind.Feedback, _draft.Kind);
+            simulate.Click(Find<Button>(View, "bug-report-kind-feedback"));
+            Assert.AreEqual(PlaytestReportKind.Feedback, Draft.Kind);
             Assert.AreEqual("Send impressions", SendButton().Q<Label>().text);
             Type("nice");
             simulate.Click(SendButton());
-            Assert.AreEqual(PlaytestReportKind.Feedback, _commands.Issued.Single().ReportKind);
+            Assert.AreEqual(PlaytestReportKind.Feedback, Commands.Issued.Single().ReportKind);
             StringAssert.Contains("impressions", Status().text);
 
-            _commands.CompleteSubmit(UiCommandAccepted.Instance);
+            Commands.CompleteSubmit(UiCommandAccepted.Instance);
             Assert.AreEqual(new UiText(BugReportFormText.SentToast(PlaytestReportKind.Feedback)).Resolve(), ShownToasts.Single().Text);
-            Assert.AreEqual(PlaytestReportKind.Bug, _draft.Kind);
+            Assert.AreEqual(PlaytestReportKind.Bug, Draft.Kind);
             Assert.AreEqual("Send bug report", SendButton().Q<Label>().text);
         }
 
@@ -130,30 +115,16 @@ namespace Client.Tests.Ui.Screens.BugReport
         [Test]
         public void 送信が拒否されると成功通知を出さず下書きを残す()
         {
-            simulate.Click(Find<Button>(_view, "bug-report-kind-feedback"));
+            simulate.Click(Find<Button>(View, "bug-report-kind-feedback"));
             Type("nice");
             simulate.Click(SendButton());
-            _commands.CompleteSubmit(new UiCommandRejected(UiCommandRejectReason.CaptureRefused, ""));
+            Commands.CompleteSubmit(new UiCommandRejected(UiCommandRejectReason.CaptureRefused, ""));
 
             Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.CommandRejected.CaptureRefused), ShownToasts.Single().Text, "トーストに未翻訳の失敗コードが出た");
             Assert.AreEqual(GameUiToastVariant.Error, ShownToasts.Single().Variant);
-            Assert.AreEqual("nice", _draft.Description);
-            Assert.AreEqual(PlaytestReportKind.Feedback, _draft.Kind);
+            Assert.AreEqual("nice", Draft.Description);
+            Assert.AreEqual(PlaytestReportKind.Feedback, Draft.Kind);
             Assert.IsTrue(SendButton().enabledSelf);
         }
-
-        private static PauseMenuViewModel Model(string captureKind, params string[] missing)
-        {
-            return new PauseMenuViewModel(PauseMenuPage.BugReport, false, FakePauseMenuModel.Capture(captureKind, missing), PlaytestDeliveryAllSent.Instance, PlaytestExportIdle.Instance);
-        }
-
-        private void Type(string text)
-        {
-            Description().value = text;
-        }
-
-        private TextField Description() => Find<TextField>(_view, "bug-report-description");
-        private Button SendButton() => Find<Button>(_view, "bug-report-send");
-        private Label Status() => _view.Q<Label>("bug-report-status");
     }
 }

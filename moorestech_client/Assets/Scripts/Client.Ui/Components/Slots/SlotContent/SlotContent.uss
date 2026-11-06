@@ -1,0 +1,32 @@
+/* web: moorestech_web/webui/src/shared/ui/slotContent.module.css の .icon・.count を写す。.iconTextOutlineLight は OutlinedCountLabel が写す */
+/* web: copies .icon and .count in moorestech_web/webui/src/shared/ui/slotContent.module.css; OutlinedCountLabel copies .iconTextOutlineLight */
+.slot-content {
+    flex-grow: 1;
+}
+
+/* 絵は GameIcon の子が描くので、余白はこの包みに付けて絵を内側へ縮める */
+/* The picture is GameIcon's child, so the padding sits on this wrapper and shrinks the picture inward */
+.slot-content__icon {
+    width: 100%;
+    height: 100%;
+    padding-left: var(--icon-pad);
+    padding-top: var(--icon-pad);
+    padding-right: var(--icon-pad);
+    padding-bottom: var(--icon-pad);
+}
+
+/* 白い縁の 2 層と基線の補正は OutlinedCountLabel が持ち、ここは 2 枚の置き場・字間と大きさのつまみだけを当てる */
+/* OutlinedCountLabel owns the two outline layers and the baseline shift; this only places both layers, sets letter spacing and passes the size knob */
+.slot-content__count {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 2px;
+    bottom: var(--count-bottom);
+    --outlined-count-label-size: var(--count-font-size);
+    letter-spacing: var(--count-letter-spacing);
+}
+
+.slot-content--counted > .slot-content__count {
+    display: flex;
+}

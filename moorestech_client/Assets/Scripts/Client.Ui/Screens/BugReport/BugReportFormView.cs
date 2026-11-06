@@ -33,8 +33,7 @@ namespace Client.Ui.Screens.BugReport
         private readonly LocalizedLabel _status;
         private readonly Label _delivery;
         private readonly BugReportRecoveryControlsView _recovery;
-        private readonly Button _sendButton;
-        private readonly LocalizedLabel _sendLabel;
+        private readonly FormButton _sendButton;
         private BugReportCaptureStatus _capture;
         private bool _sending;
 
@@ -58,9 +57,9 @@ namespace Client.Ui.Screens.BugReport
 
             // 本文は書きかけから復元し、打鍵ごとに書きかけへ戻す
             // The description is restored from the draft and written back on every keystroke
-            _description = new GameTextField("bug-report-description", true);
+            _description = new GameTextField("bug-report-description", true, GameTextFieldLook.GaugeInset);
             _description.AddToClassList("bug-report__description");
-            _description.Field.textEdition.placeholder = Localize.Get(LocalizationKeys.Ui.BugReport.Placeholder);
+            _description.SetPlaceholder(new UiText(LocalizationKeys.Ui.BugReport.Placeholder));
             _description.SetValueWithoutNotify(draft.Description);
             _description.OnValueChanged.Subscribe(OnDescriptionChanged);
             Add(_description);
@@ -75,11 +74,11 @@ namespace Client.Ui.Screens.BugReport
             _recovery = new BugReportRecoveryControlsView(commands);
             Add(_recovery);
 
-            _sendButton = new Button { name = "bug-report-send", focusable = false };
+            // 送信は filled ボタン。文言は Refresh が入れる
+            // Send is a filled button; Refresh sets the label
+            _sendButton = new FormButton("bug-report-send", new UiText(BugReportFormText.SendLabel(draft.Kind)), FormButtonVariant.Filled);
             _sendButton.AddToClassList("bug-report__button");
-            _sendLabel = new LocalizedLabel { pickingMode = PickingMode.Ignore };
-            _sendButton.Add(_sendLabel);
-            _sendButton.clicked += () => SendAsync().Forget();
+            _sendButton.OnClicked.Subscribe(_ => SendAsync().Forget());
             Add(_sendButton);
 
             Apply(initial);
@@ -167,7 +166,7 @@ namespace Client.Ui.Screens.BugReport
             if (statusLine == null) _status.RemoveFromHierarchy();
             else ShowStatus(statusLine);
 
-            _sendLabel.SetKey(BugReportFormText.SendLabel(_draft.Kind));
+            _sendButton.SetLabel(new UiText(BugReportFormText.SendLabel(_draft.Kind)));
             _sendButton.SetEnabled(!IsBlocked());
         }
 

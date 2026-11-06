@@ -4,4 +4,5 @@
     --probe-face: var(--surface-navy);
     --probe-title-scale: var(--title-scale-x);
     --probe-vignette-width: var(--screen-vignette-width);
+    --probe-keyword: inset;
 }
