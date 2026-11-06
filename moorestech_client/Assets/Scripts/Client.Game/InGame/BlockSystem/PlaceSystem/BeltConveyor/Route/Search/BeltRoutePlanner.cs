@@ -4,14 +4,17 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
 {
     /// <summary>
-    ///     1つの探索箱に対する経路計画の入口。探索→組み立て、経路なし時は地形・既存ブロックを片方ずつ無視して理由を分ける
-    ///     The entry for planning routes within one search box: search then recovery, and on failure attribute the cause by ignoring terrain or blocks one at a time
+    ///     1つの探索箱に対する経路計画の入口。塗りつぶしで届かなければ即経路なし、届けば探索→組み立て
+    ///     The entry for planning routes within one search box: an unreachable flood means no route at once, otherwise search then recovery
+    ///     経路なしの理由は地形・既存ブロックを片方ずつ無視した塗りつぶしで分ける（本探索を繰り返すと経路なしのたびに引っかかる）
+    ///     The no-route reason comes from floods that ignore terrain or blocks one at a time; repeating the real search would hitch on every miss
     /// </summary>
     public sealed class BeltRoutePlanner
     {
         private readonly BeltRouteStateCodec _codec;
         private readonly BeltRouteSearch _search;
         private readonly BeltRouteRecovery _recovery;
+        private readonly BeltRouteReachability _reachability;
         private BeltRouteGrid _grid;
 
         public BeltRoutePlanner(BeltRouteGrid grid)
@@ -20,6 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
             _codec = new BeltRouteStateCodec(grid);
             _search = new BeltRouteSearch(_codec);
             _recovery = new BeltRouteRecovery(_search);
+            _reachability = new BeltRouteReachability(grid.CellCount);
         }
 
         public BeltRouteGrid Grid => _grid;
@@ -38,21 +42,29 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route.Search
         {
             if (!_grid.Contains(query.EndCell)) return BeltRoutePlanResult.NotFound(BeltRouteNoPathReason.OutOfRange);
 
-            var plan = TryPlan(query, BeltRouteObstacleMask.None);
-            if (plan != null) return BeltRoutePlanResult.Found(plan);
+            // セル単位で届かない終点は本探索を回さない（囲われた終点で箱全体を舐めるのを避ける）
+            // An end the flood cannot touch skips the real search, so an enclosed end never sweeps the whole box
+            var rule = new BeltRouteTransitionRule(_grid, query, BeltRouteObstacleMask.None);
+            if (!_reachability.CanReach(rule, _grid)) return BeltRoutePlanResult.NotFound(JudgeNoPathReason(query));
 
-            // 到達可否は経路なしになったときだけ求める（始点確定時にまとめて求めると引っかかる）
-            // Reachability is probed only once a route is missing; probing at start selection would cause a hitch
-            var reachableWithoutTerrain = TryPlan(query, BeltRouteObstacleMask.IgnoreTerrain) != null;
-            var reachableWithoutBlocks = TryPlan(query, BeltRouteObstacleMask.IgnoreBlocks) != null;
-            if (reachableWithoutTerrain && !reachableWithoutBlocks) return BeltRoutePlanResult.NotFound(BeltRouteNoPathReason.Terrain);
-            if (reachableWithoutBlocks && !reachableWithoutTerrain) return BeltRoutePlanResult.NotFound(BeltRouteNoPathReason.ExistingBlock);
-            return BeltRoutePlanResult.NotFound(BeltRouteNoPathReason.Both);
+            var plan = TryPlan(query, rule);
+            if (plan != null) return BeltRoutePlanResult.Found(plan);
+            return BeltRoutePlanResult.NotFound(JudgeNoPathReason(query));
         }
 
-        private BeltRoutePlan TryPlan(BeltRouteQuery query, BeltRouteObstacleMask mask)
+        // 片方だけ無視して届けばそれが障害。両方届く（坂の規則だけで届かない）・両方届かないは「両方」
+        // Reaching with one kind ignored names that kind; reaching both ways (only slope rules block) or neither is "both"
+        private BeltRouteNoPathReason JudgeNoPathReason(BeltRouteQuery query)
         {
-            var rule = new BeltRouteTransitionRule(_grid, query, mask);
+            var reachableWithoutTerrain = _reachability.CanReach(new BeltRouteTransitionRule(_grid, query, BeltRouteObstacleMask.IgnoreTerrain), _grid);
+            var reachableWithoutBlocks = _reachability.CanReach(new BeltRouteTransitionRule(_grid, query, BeltRouteObstacleMask.IgnoreBlocks), _grid);
+            if (reachableWithoutTerrain && !reachableWithoutBlocks) return BeltRouteNoPathReason.Terrain;
+            if (reachableWithoutBlocks && !reachableWithoutTerrain) return BeltRouteNoPathReason.ExistingBlock;
+            return BeltRouteNoPathReason.Both;
+        }
+
+        private BeltRoutePlan TryPlan(BeltRouteQuery query, BeltRouteTransitionRule rule)
+        {
             var startStates = BuildStartStates(query, rule);
             if (startStates.Count == 0) return null;
             if (!_search.Run(rule, startStates)) return null;

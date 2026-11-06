@@ -59,11 +59,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Route
 
         public bool IsSameBox(BeltRouteGrid grid) => grid.Min == Min && grid.Size == Size;
 
+        // BeltRouteGrid.CellIndex と同じ並び
+        // The same layout as BeltRouteGrid.CellIndex
+        public int CellIndex(Vector3Int cell)
+        {
+            var local = cell - Min;
+            return (local.y * Size.z + local.z) * Size.x + local.x;
+        }
+
         public int Encode(BeltRouteState state)
         {
-            var local = state.Cell - Min;
-            var cellIndex = (local.y * Size.z + local.z) * Size.x + local.x;
-            return (cellIndex * BeltRouteDirection.DirectionCount + (int)state.Outgoing) * BeltRouteCellKindExtension.KindCount + (int)state.Kind;
+            return Encode(CellIndex(state.Cell), state.Outgoing, state.Kind);
+        }
+
+        public static int Encode(int cellIndex, BlockDirection outgoing, BeltRouteCellKind kind)
+        {
+            return (cellIndex * BeltRouteDirection.DirectionCount + (int)outgoing) * BeltRouteCellKindExtension.KindCount + (int)kind;
         }
 
         public BeltRouteState Decode(int index)
