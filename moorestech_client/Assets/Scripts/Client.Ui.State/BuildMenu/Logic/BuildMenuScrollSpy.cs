@@ -27,7 +27,7 @@ namespace Client.Ui.State.BuildMenu.Logic
             foreach (var offset in offsets)
             {
                 var isReached = offset.Top - ScrollSpyActivationTolerancePx <= scrollTop;
-                if (isReached && (reached == null || offset.Top > reached.Value.Top)) reached = offset;
+                if (isReached && (reached == null || reached.Value.Top < offset.Top)) reached = offset;
                 if (offset.Top < topmost.Top) topmost = offset;
             }
             return (reached ?? topmost).CategoryGuid;

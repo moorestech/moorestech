@@ -23,23 +23,27 @@ namespace Client.Ui.State.Hotbar.Logic
                 default:
                     throw new ArgumentOutOfRangeException(nameof(source), source, "未知のホットバーのドラッグ元");
             }
-        }
 
-        private static HotbarDropAction ResolveFromSlot(int sourceSlotIndex, HotbarDropTarget target)
-        {
-            switch (target)
+            #region Internal
+
+            HotbarDropAction ResolveFromSlot(int sourceSlotIndex, HotbarDropTarget dropTarget)
             {
-                // 自分自身への落としは何も変えない
-                // A drop onto itself changes nothing
-                case HotbarSlotDropTarget slot:
-                    return slot.SlotIndex == sourceSlotIndex
-                        ? HotbarNoDropAction.Instance
-                        : new HotbarSwapAction(sourceSlotIndex, slot.SlotIndex);
-                case OutsideHotbarDropTarget:
-                    return new HotbarClearAction(sourceSlotIndex);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(target), target, "未知のホットバーの落とし先");
+                switch (dropTarget)
+                {
+                    // 自分自身への落としは何も変えない
+                    // A drop onto itself changes nothing
+                    case HotbarSlotDropTarget slot:
+                        return slot.SlotIndex == sourceSlotIndex
+                            ? HotbarNoDropAction.Instance
+                            : new HotbarSwapAction(sourceSlotIndex, slot.SlotIndex);
+                    case OutsideHotbarDropTarget:
+                        return new HotbarClearAction(sourceSlotIndex);
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(dropTarget), dropTarget, "未知のホットバーの落とし先");
+                }
             }
+
+            #endregion
         }
     }
 }

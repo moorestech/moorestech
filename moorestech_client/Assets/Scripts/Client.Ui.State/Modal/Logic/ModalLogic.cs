@@ -11,7 +11,7 @@ namespace Client.Ui.State.Modal.Logic
         public static bool CanConfirm(ModalRequest request, string enteredText)
         {
             if (!request.RequiresInput) return true;
-            return enteredText.Trim().Length > 0;
+            return 0 < enteredText.Trim().Length;
         }
 
         // エラーは赤、確認は青（uGUI の色分けと同じ）

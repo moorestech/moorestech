@@ -16,7 +16,7 @@ namespace Client.Ui.Foundation.Input.Gesture
         // A move of at least the threshold from the press point commits to a drag
         public static bool Exceeded(float dx, float dy)
         {
-            return Math.Sqrt((double)dx * dx + (double)dy * dy) >= ThresholdPx;
+            return ThresholdPx <= Math.Sqrt((double)dx * dx + (double)dy * dy);
         }
 
         // 掴んだ点を基準に、ポインタを下へ動かすと内容も下へ流れるパン量

@@ -33,18 +33,22 @@ namespace Client.Ui.State.MaterialTooltip
                 new LocalizationTextParam("ownedCount", SlotAmountFormat.Format(ownedCount)),
                 new LocalizationTextParam("requiredCount", SlotAmountFormat.Format(requiredCount)),
             });
-        }
 
-        private static LocalizationKey KeyOf(MaterialTooltipKind kind)
-        {
-            return kind switch
+            #region Internal
+
+            LocalizationKey KeyOf(MaterialTooltipKind materialKind)
             {
-                MaterialTooltipKind.RecipeMaterial => LocalizationKeys.Ui.Recipe.MaterialTooltip,
-                MaterialTooltipKind.ResearchConsumeItem => LocalizationKeys.Ui.Research.ConsumeItemTooltip,
-                MaterialTooltipKind.BuildMenuMaterial => LocalizationKeys.Ui.BuildMenu.MaterialTooltip,
-                MaterialTooltipKind.BuildMenuShortageLine => LocalizationKeys.Ui.BuildMenu.MaterialShortageLine,
-                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "未知の素材ツールチップの種類"),
-            };
+                return materialKind switch
+                {
+                    MaterialTooltipKind.RecipeMaterial => LocalizationKeys.Ui.Recipe.MaterialTooltip,
+                    MaterialTooltipKind.ResearchConsumeItem => LocalizationKeys.Ui.Research.ConsumeItemTooltip,
+                    MaterialTooltipKind.BuildMenuMaterial => LocalizationKeys.Ui.BuildMenu.MaterialTooltip,
+                    MaterialTooltipKind.BuildMenuShortageLine => LocalizationKeys.Ui.BuildMenu.MaterialShortageLine,
+                    _ => throw new ArgumentOutOfRangeException(nameof(materialKind), materialKind, "未知の素材ツールチップの種類"),
+                };
+            }
+
+            #endregion
         }
     }
 }
