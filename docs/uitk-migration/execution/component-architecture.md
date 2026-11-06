@@ -525,5 +525,5 @@ SKILL.md の目次:
 - `Client.Ui.Editor` の EditorWindow に本番のランタイムテーマ（tss）を当てて、PlayMode と同じ見た目で撮れるか（F1 で確かめる。撮れなければ PlayMode の見本シーンへ切り替える）
 - `UiFamily` の舞台の倍率が Web の `--ui-scale`（`W/app/App.tsx:39-47`）と同じ式になるか（F1 で 720p・2560×1080 の 2 解像度で比べる）
 - `panel.scaledPixelsPerPoint` が PanelSettings（ScaleWithScreenSize・Expand・1280×720）の倍率と同じ値か（C3-b の先頭で 720p・1080p・2560×1080 の 3 つで実測し、違えば `UiScreenPixelScope` は `panel.visualTree.layout` と `Screen.width/height` の比で倍率を出す。[A-41]）
-- `--bevel-inset` のキーワード（`inset`/`outset`）を `CustomStyleProperty<string>` で読めるか（C3-a の先頭で確かめる。読めなければ数値のつまみ `--bevel-inset-sign`〈1／-1〉に替えて設計書 §2.3 を直す。[A-42]）
+- `--bevel-inset` のキーワード（`inset`/`outset`）を `CustomStyleProperty<string>` で読めるか（C3-a の先頭で確かめる。読めなければ同じ名前 `--bevel-inset` のまま数 1／-1〈1＝外側・-1＝内側〉で受け、§2.3 を直す。画面の上書きの名前を Web と揃えるため。C3-a 計画 D-3・[A-42]）
 - UITK の `Label` のリッチテキスト `<line-height=Npx>` が折り返しを含む 2 行の行送りに効くか（C2-c 計画 Task 3 Step 6 で実測。[A-48]）
