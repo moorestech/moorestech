@@ -2135,8 +2135,8 @@ git log --oneline origin/feature/uitk | grep -i "s2-skit" | head -3
 rg -n "HideAll|hide-all|全部隠し|SetWholeUiVisible|SetAllLayersVisible|WholeUi" moorestech_client/Assets/Scripts/Client.Ui moorestech_client/Assets/Scripts/Client.Ui.State moorestech_client/Assets/Scripts/Client.Starter --glob '*.cs'
 ```
 Expected と分岐（どれか 1 つ。結果を done.md の「死活表の実測」に 1 行で書く）:
-- S2-skit がマージ済みで、全部隠しが層の根ごと隠す実物（S2-skit 計画の形: `GameUiRoot.SetWholeUiVisible(bool)` の中身 `UiLayerStack.SetAllLayersVisible(bool)` が、全層の親であるルート 1 つの `style.display` を None にする。Ctrl+U・カットシーンの 2 源を合わせて呼ぶのは `Screens/WholeUiVisibility/WholeUiVisibilityPresenter`）→ 通知のホストは `UiLayer.BehindStage` の層の下にあり、その層はルートの子なので、ルートが隠れれば通知も隠れる。何も足さずに Task 9 の `NotificationLayeringTest` に L1 を 1 件足す（テスト名「全部隠しの間は通知のホストが見えない」、UITK だけ）。判定は通知のホストの `display` ではなく、ルート（全層の親）の `display` で見る: `UiLayerStack.Build(rootVisualElement)` で層を組んでホストを `BehindStage` に載せ、`SetAllLayersVisible(false)` の後に `rootVisualElement.resolvedStyle.display == DisplayStyle.None` かつ `rootVisualElement.Contains(notification-host)`、`SetAllLayersVisible(true)` の後にルートの `display` が Flex で行が残っていることを確かめる（`GameUiRoot` は UIDocument を持つ MonoBehaviour で L1 では組めないので中身を呼ぶ。S2-skit の `WholeUiRootHidingTest` と同じ）。`notification-host` 自身の `resolvedStyle.display` は親が隠れても Flex のままなので、それで判定しない（必ず赤になる）。Task 9 の括弧書き〈`resolvedStyle` が隠れの状態〉より、この判定を優先する。この形では「全部隠しの対象へ通知の層を 1 行足す」分岐は要らない（ルートごと隠すので、後から足される層も漏れない）。隠し方が要素を外す（`RemoveFromHierarchy`）実物なら、行の動きが止まり除去が来ないので止めて指揮へ返す（D-2 案 a の前提が崩れるため）
-- S2-skit がマージ済みで、隠しがルートでなく層の一覧を持つ実物（S2-skit 計画と違う形でマージされた場合だけ）→ 実行計画 E-19（「S2-skit のマージ後、その全部隠しが `UiLayer.BehindStage` を隠さなければ、S2-notification が全部隠しの対象へ通知の層を足す 1 行を入れてよい」）に従い、上の `rg` で見つかった全部隠しの対象の層を並べている S2-skit のファイル（1 つ。見つけたパスを done.md と PR 本文に書く）の並びへ `UiLayer.BehindStage` を足す 1 行だけを入れ、上と同じ L1 を 1 件足す（判定は並びの実物に合わせ、隠れる要素の `display` を見る）。並びが層でなく要素名なら `notification-host` を足す 1 行にする。その 1 行のほかは S2-skit のファイルを変えない
+- S2-skit がマージ済みで、全部隠しが層の根ごと隠す実物（S2-skit 計画の形: `GameUiRoot.SetWholeUiVisible(bool)` の中身 `UiLayerStack.SetAllLayersVisible(bool)` が、全層の親であるルート 1 つの `style.display` を None にする。Ctrl+U・カットシーンの 2 源を合わせて呼ぶのは `Screens/WholeUiVisibility/WholeUiVisibilityPresenter`）→ 通知のホストは `UiLayer.BehindStage` の層の下にあり、その層はルートの子なので、ルートが隠れれば通知も隠れる。何も足さずに Task 9 の `NotificationLayeringTest` に L1 を 1 件足す（テスト名「全部隠しの間は通知のホストが見えない」、UITK だけ）。判定は通知のホストの `display` ではなく、ルート（全層の親）の `display` で見る: `UiLayerStack.Build(rootVisualElement)` で層を組んでホストを `BehindStage` に載せ、`SetAllLayersVisible(false)` の後に `rootVisualElement.resolvedStyle.display == DisplayStyle.None` かつ `rootVisualElement.Contains(notification-host)`、`SetAllLayersVisible(true)` の後にルートの `display` が Flex で行が残っていることを確かめる（`GameUiRoot` は UIDocument を持つ MonoBehaviour で L1 では組めないので中身を呼ぶ。S2-skit の `WholeUiRootHidingTest` と同じ）。`[TearDown]` で `SetAllLayersVisible(true)` を呼んで共有ルートを戻す（途中の Assert が落ちても後続を巻き込まない。S2-skit の `WholeUiRootHidingTest` と同じ）。`notification-host` 自身の `resolvedStyle.display` は親が隠れても Flex のままなので、それで判定しない（必ず赤になる）。Task 9 の括弧書き〈`resolvedStyle` が隠れの状態〉より、この判定を優先する。この形では「全部隠しの対象へ通知の層を 1 行足す」分岐は要らない（ルートごと隠すので、後から足される層も漏れない）。隠し方が要素を外す（`RemoveFromHierarchy`）実物なら、行の動きが止まり除去が来ないので止めて指揮へ返す（D-2 案 a の前提が崩れるため）
+- S2-skit がマージ済みで、隠しがルートでなく層の一覧を持つ実物（S2-skit 計画と違う形でマージされた場合だけ）→ S2-skit のファイルは書かずに止め、done.md の「S2-ladder の確認事項」と指揮（integrator）へ「全部隠しが `UiLayer.BehindStage` を隠さない」を返す（実行計画 E-19: 通知の層を全部隠しの対象へ足す行は S2-notification の仕事ではない）
 - S2-skit が未マージ → 何も足さず、done.md の「S2-ladder の確認事項」に「全部隠しが `UiLayer.BehindStage` の `notification-host` を隠すこと（Ctrl+U・カットシーン）を S2-skit 取り込み後に確かめる」と 1 行書く（裁定事項ではない）
 
 - [ ] **Step 3: CSS の曲線のテストを書く**（`moorestech_client/Assets/Scripts/Client.Tests/Ui/Motion/UiEasingCssCurveTest.cs`）
@@ -3116,6 +3116,7 @@ namespace Client.Ui.Screens.Notification
 using System;
 using Client.Tests.Ui.State.Notification;
 using Client.Ui.Foundation.Stage;
+using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.Screens.Notification;
 using Client.Ui.State.Notification;
 using NUnit.Framework;
@@ -3683,6 +3684,7 @@ using System;
 using Client.Ui.Foundation.Layers;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Stage;
+using Client.Ui.Foundation.Stage.ScaleReading;
 using Client.Ui.State.Notification;
 using Client.Ui.State.Notification.Text;
 using UniRx;
