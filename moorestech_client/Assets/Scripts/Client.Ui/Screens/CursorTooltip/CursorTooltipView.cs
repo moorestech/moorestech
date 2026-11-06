@@ -1,4 +1,3 @@
-using System;
 using Client.Ui.Components.Text;
 using Client.Ui.State.CursorTooltip;
 using UniRx;
@@ -15,9 +14,9 @@ namespace Client.Ui.Screens.CursorTooltip
     {
         private readonly ICursorTooltipScreen _screen;
         private readonly TooltipFace _face;
-        private Vector2 _pointer;
+        private Vector2 _pointerOnScreen;
         private bool _visible;
-        private IDisposable _pointerSubscription;
+        private CompositeDisposable _screenSubscriptions;
 
         public CursorTooltipView(ICursorTooltipScreen screen)
         {
@@ -29,12 +28,12 @@ namespace Client.Ui.Screens.CursorTooltip
             _face.style.display = DisplayStyle.None;
             Add(_face);
 
-            // 寸法が変わったら置き直す
-            // Re-place when the size changes
+            // 寸法・倍率が変わったら置き直す。保存ポインタは実画面 px なので、いまの倍率で換算し直される
+            // Re-place when size or scale changes; the stored pointer is in screen px, so it is re-converted with the current scale
             _face.RegisterCallback<GeometryChangedEvent>(_ => Reposition());
             RegisterCallback<GeometryChangedEvent>(_ => Reposition());
             RegisterCallback<AttachToPanelEvent>(OnAttached);
-            RegisterCallback<DetachFromPanelEvent>(_ => _pointerSubscription?.Dispose());
+            RegisterCallback<DetachFromPanelEvent>(_ => _screenSubscriptions?.Dispose());
         }
 
         public void Render(CursorTooltipViewModel viewModel)
@@ -46,9 +45,9 @@ namespace Client.Ui.Screens.CursorTooltip
             Reposition();
         }
 
-        private void SetPointer(Vector2 panelPosition)
+        private void SetPointer(Vector2 screenPosition)
         {
-            _pointer = panelPosition;
+            _pointerOnScreen = screenPosition;
             Reposition();
         }
 
@@ -56,10 +55,14 @@ namespace Client.Ui.Screens.CursorTooltip
         {
             // 載る前のポインタを初期値にし、以後の移動は隠れている間も追う（Web の 7179.3 の (12,12) 固定を避ける）
             // Start from the pointer before attaching, then follow moves even while hidden (avoids Web 7179.3's stuck (12,12))
-            _pointer = _screen.CurrentPointerInPanel(panel);
+            _pointerOnScreen = _screen.CurrentPointerOnScreen();
             // パネルの PointerMoveEvent は何も拾わない所では届かない（実測 received=none）ので、Client.Input の購読口から受ける
             // Panel PointerMoveEvent does not arrive where nothing is pickable (measured received=none), so receive from the Client.Input stream
-            _pointerSubscription = _screen.OnPointerMovedInPanel(panel).Subscribe(SetPointer);
+            var pointerSubscription = _screen.OnPointerMovedOnScreen.Subscribe(SetPointer);
+            // ロック↔解除はポインタが動かなくても指す点を変えるので、通知で置き直す
+            // Lock toggles change the anchor even without pointer motion, so re-place on notification
+            var anchorModeSubscription = _screen.OnAnchorModeChanged.Subscribe(_ => Reposition());
+            _screenSubscriptions = new CompositeDisposable(pointerSubscription, anchorModeSubscription);
         }
 
         private void Reposition()
@@ -78,7 +81,7 @@ namespace Client.Ui.Screens.CursorTooltip
 
             // 指す点と倍率は実画面が決める
             // The point and scale come from the screen query
-            var anchor = _screen.ResolveAnchorInPanel(panel, _pointer);
+            var anchor = _screen.ResolveAnchorInPanel(panel, _pointerOnScreen);
             var placed = CursorTooltipPlacement.PlaceInPanel(anchor, _face.layout.size, layout.size, scale);
             _face.style.left = placed.x;
             _face.style.top = placed.y;
