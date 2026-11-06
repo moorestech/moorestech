@@ -7,6 +7,7 @@
 - **上位の正本**: `origin/master:docs/uitk-migration/plan.md`（§3 共通基盤・§3.13 並列実行・§4 検証）と 2026-11-06 の裁定 6 本。とくに「全段階の画面を Web 版と同じ見た目にする（例外はユーザー原文『無理に同じにする必要はない、影響が小さく非本質的な対応が入るのであれば、推奨でも良い』）」と「全部 Web／全部 UITK の全体スイッチ 1 つ」
 - **この文書の判断の出所**: 裁定に書かれていない判断はすべて「agent 既定」で、§7 に ID 付きで並べた。本文中は `[A-n]` で引く。ユーザーに上げる判断は `[Q-n]`（2026-11-06 の全体レビュー時点で 0 件。Q-1 は裁定から導いた agent 既定 [A-39] へ下げた）
 - **パスの略記**: `S/` = `moorestech_client/Assets/Scripts/`、`W/` = `moorestech_web/webui/src/`
+- **評価役 2 体の指摘の反映**（2026-11-06）: 判定と根拠は `research/design-eval-2026-11-06.md`。再現したものだけを A-40〜A-48 として入れた
 
 ---
 
@@ -61,13 +62,13 @@
 | 領域 | 段階 1 にあるもの | 足すもの（段階） |
 |---|---|---|
 | Root | `GameUiRoot`（`GetLayer`・`SetCefVisible`・`SetRootClassEnabled`） | `GetLayer(UiLayer, UiFamily)`（段階 2 前の基盤整えレーン F1）。`SetCefVisible` は全体スイッチの作り直し（albof.17）で消す |
-| Stage（新設） | なし | `UiFamily { Stage, Viewport }` と、各層の中に「1280×720 の舞台」と「実画面いっぱい」の 2 つの子を置く `UiStageFrame`（Web `--ui-stage-*`／`--ui-viewport-*`・ADR 0013/0017 の stage 族と viewport 族）。PanelSettings の Expand（1280×720 基準）でルートは実画面になるので、舞台は中央寄せの固定寸法にする `[A-6]`（F1） |
+| Stage（新設） | なし | `UiFamily { Stage, Viewport }` と、各層の中に「1280×720 の舞台」と「実画面いっぱい」の 2 つの子を置く `UiStageFrame`（Web `--ui-stage-*`／`--ui-viewport-*`・ADR 0013/0017 の stage 族と viewport 族）。PanelSettings の Expand（1280×720 基準）でルートは実画面になるので、舞台は中央寄せの固定寸法にする `[A-6]`（F1）。舞台の上段 3 列（Web `.stage` の grid `inv viewer items`・列間 `--stage-column-gap`・上 `--menu-upper-safe-area`・左 `--stage-padding-left`・研究画面だけ左 0）は `StageColumnsLayout` が持ち、画面は層ではなくその枠へ載せる `[A-45]`（C4-e）。Web が `--ui-scale` を掛けない Portal（Mantine `Modal`・eventLanguageGate の `Overlay`）の中身は、`UiScreenPixelScope` が舞台の倍率を打ち消して実画面 px で置く `[A-41]`（C3-b） |
 | Layers | `UiLayer` 13 層・`UiLayerStack` | `Hud` を `OverlayPanel`（`--z-stage-overlay-panel` 30）と `Chrome`（31）に割る。`SkitStage`（`--z-stage-skit`）・`SkitTransition`（`--z-portal-skit-transition` 210）・`ViewportStage` を足す。`UiLayerOrderTest` の対応表を同時に直す（F1。integrator 所有） |
 | Theme | Tokens/SkitTokens/SlotTokens/ControlTokens/Theme/Typography の 6 USS・`UssCustomStyleReader` | §3 のトークン体系（`MantineTokens.uss`・`DerivedTokens.uss`）。`ControlTokens.uss` は消す（F1） |
 | Motion | `UiMotionPlayer`・tween・慣性・Step 3 種 | Step を使い手の段で足す（TranslateX・Scale〈脈動〉は段階 2） |
 | Text | `LocalizedLabel`・ロケールクラス | `LocalizedLabel.SetText(UiText)` を足し、`SetKey(key, params)` との二重を畳む（F1）。`LocalizedTextBinding`（宿主がパネルにいる間 `UiText` を解いて `IObservable<string>` で流し、言語変更で解き直す。Label 1 つに入れない部品〈`ShortcutHintLabel`・`GameTextField` の置き文字〉が使う。C2-c が作り C2-b が使う `[A-31]`）。`ShortcutHintLabel`（kbd の差し込み）は Components へ（§2.6）。`UiNumberFormat` は `Client.Ui.State/Text` へ移動（L0-s4b。State の純ロジックも使うため `[A-21]`） |
 | Input | 入力規則・Pick probe・IME | `Gesture/UiPressGesture`（tap・drag・abort の状態機械。Web `W/shared/pointerGesture`）（段階 3 部品レーン） |
-| Tooltip（新設） | なし | `HoverTooltipHost`（Tooltip 層に 1 つ。ルートの TrickleDown で印の付いた要素の PointerEnter/Leave を受ける）（段階 3）。CursorTooltip は画面（段階 2） |
+| Tooltip（新設） | なし | `HoverTooltipHost`（Tooltip 層に 1 つ。ルートの TrickleDown で印の付いた要素の PointerEnter/Leave を受ける）（段階 3）。印の付いた要素を含む `ScrollView` のスクロールで引っ込め、無関係なパネルのスクロールでは引っ込めない。引っ込めた後はポインタの座標が実際に変わった `PointerMoveEvent` でだけ開き直す（Web `W/shared/ui/HoverTooltip/index.tsx:24-72`・`components.md` §8）`[A-43]`。CursorTooltip は画面（段階 2） |
 | DragDrop（新設） | なし | `UiDragDrop`（源の印・落とし先のクラス・ゴーストを Grab 層へ。Web `useHotbarDragSource` の一般化）（段階 3） |
 | Modal（新設） | なし | `UiModalHost`（同時 1 件・幕・フォーカスの閉じ込め）（段階 3） |
 | Anchor | `TutorialAnchor.Mark`・`Resolve` | 変えない。消費者（チュートリアルの枠）は段階 2 の画面 |
@@ -99,7 +100,7 @@
 | C6 | 舞台（1280×720）と実画面の 2 族の区別が無い（全面の層だけ） | `UiFamily` と `UiStageFrame` | 21:9 で HUD を実画面の端へ、パネルを中央の舞台へ置く Web の配置（ADR 0013/0017）を写すため `[A-6]` | F1 |
 | C7 | `GamePanel` が default だけ。題は `SetTitle(Label)`。box-shadow を描かない（theme D-6）。本番から未使用 | 枠付き（default・craft）の `GamePanel` と、面だけ（hud・skit）の `GamePanelSurface` に型で分ける（Web の union 型と同じ守り）。`SetTitle(UiText)`・`SetTitleAction(VisualElement)` を足す。外周の影（`0 0 12px 7px rgb(9 11 20 / 45%)`）は描かない（Web でも同じ `::before` の mask に切られて画面に出ない）`[A-22]` | Web 版と同じ見た目（2026-11-06 裁定）。影は参照の画素で出ていないことを実測した（C2-a 計画 D-1） | C2-a |
 | C8 | `PanelActionButton` が `Button` を継承し、押下は `Button.clicked`（`Action`）で受ける | `IObservable<Unit> OnClicked` を足し、外では `clicked` を使わない（レビューの観点に足す） | AGENTS.md「イベント発火に Action を使わない。UniRx を使う」 | F1 |
-| C9 | `UiText`（Key＋Params）と `LocalizedLabel.SetKey(key, params)` が同じ組を別々に持つ | `LocalizedLabel.SetText(UiText)` に一本化し、部品の API は `UiText` か `LocalizationKey` を受ける | stage1-asbuilt §6.4 の重複 | F1 |
+| C9 | `UiText`（Key＋Params）と `LocalizedLabel.SetKey(key, params)` が同じ組を別々に持つ。`UiText` は辞書キーしか運べない | `LocalizedLabel.SetText(UiText)` に一本化する。`UiText` は辞書キー（`LocalizationKey`＋引数）・コンテンツ辞書キー（`ContentLocalizationKey`。アイテム名・研究名・チャレンジのカテゴリ名）・解決済みの文（サーバーのモーダル要求の題・本文・ボタン文言）の 3 種を運ぶ。文言を出す部品の API は `UiText` を受ける（`LocalizationKey` だけを受ける API は、辞書キー以外を出さないと Web で確かめた部品に限る）`[A-40]` | stage1-asbuilt §6.4 の重複。`Localize.GetContent` は通常キーと別の口で、`GameContentPresentation.ItemName` と `FormButton` のモーダル文言が `UiText` で表せない | F1 |
 | C10 | `PauseMenuScreenPresenter.IsShownOn` が `MainPanelOwner == GameUi` を見る | 全体スイッチの作り直し（albof.17）で、Presenter はスイッチを見ない。UITK モードのときだけ composition root が Presenter を登録する（§4.4） | 分岐を 1 か所に集める（AGENTS.md「同種の条件分岐は一箇所へ」） | albof.17 |
 
 段階 1 の「本番未使用の基盤」（`TutorialAnchorRegistry`・`UiInertiaAnimation`・`TranslateYTweenStep`・`ScrollOffsetTweenStep`・`UiNumberFormat`・`GamePanel`）は、§2 の表の使い手の段で本番から使われる。
@@ -140,9 +141,11 @@ public sealed class GameContentPresentation
     public UiIcon Block(BlockId id);
     public UiIcon Fluid(FluidId id);
     public Color FluidFace(FluidId id);        // FluidSlot の背面フィル色（液体マスタ色）
-    public UiText ItemName(ItemId id);
+    public UiText ItemName(ItemId id);        // UiText.FromContent(ContentLocalizationKeys.ItemName(guid))
 }
 ```
+
+- **`UiText` の 3 種** `[A-40]`: `new UiText(LocalizationKey key[, params])`（辞書キー）・`UiText.FromContent(ContentLocalizationKey key)`（コンテンツ辞書キー。`Localize.GetContent` で解く）・`UiText.FromVerbatim(string text)`（解決済みの文。訳さない）。`Resolve()` が種ごとに解き、`LocalizedLabel`・`LocalizedTextBinding` は言語変更で同じく解き直す（解決済みの文は変わらない）。`WithLeadingParam` は辞書キーにだけ効き、ほかの種で呼ぶと例外で止める（F1 計画 Task 5 Step 3b）
 
 ### 2.2 枠・面族（`Components/Panels/`）
 
@@ -151,7 +154,7 @@ public sealed class GameContentPresentation
 | `GamePanel` | 枠付きパネル（default・craft）。題・題の右端の副次アクション・本文 | `GamePanel(string testid, GamePanelFrame frame)`／`SetTitle(UiText title)`／`SetTitleAction(VisualElement action)`／`contentContainer` | `game-panel.uss`。`.game-panel--default`・`--craft`・`--titled`。面は `GamePanelFace`（頂点カラー）、罫線は `FadeGradientRule`（FadeRule の基底。C2-a 計画 D-14）、三角 `GamePanelBottomDeco`、craft の右下グリップは `GamePanelCraftGrip`（頂点カラー）、内周線は USS の border の入れ子 `[A-26]`。外周の影は描かない `[A-22]`。つまみ `--panel-top/right/bottom/left`・`--title-shift-x`・`--title-scale-x/y` `[A-25]` | blockInventory・research・recipe・inventory・buildMenu（default）、modeHud（craft） | default は段階 1 済み → C2-a で改修（C7）。craft は C2-a（modeHud が段階 2 で使う。plan §3.4 の段階 4 から前倒し `[A-12]`） | `W/shared/ui/GamePanel/style.module.css`・ref-webui-design §2 | 改修 |
 | `GamePanelSurface` | 枠なしの面（hud・skit） | `GamePanelSurface(string testid, GamePanelSurfaceKind kind)`／`contentContainer` | `.game-panel-surface--hud`（`--hud-panel-padding`・4 辺 `--panel-edge-fade`）・`--skit`（`--skit-window-*`） | challenge HUD（hud）、skit（skit） | C2-a | `GamePanel/hudVariant.module.css`・components.md §8.12 | 新規（`GamePanelFace` を流用） |
 | `PaperSurface` | Mantine `Paper` の写し（枠なし・影なし） | `PaperSurface(string testid)`／`contentContainer` | `.paper-surface`。面と角丸はつまみ `--paper-face`・`--paper-radius`（既定 `--mantine-color-body`・`--mantine-radius-sm`）`[A-23]` | challenge のノードカード・trainHud | C2-a | Mantine Paper（`W/features/challenge/ChallengeNodeCard`・`trainHud`） | 新規 |
-| `DialogFrame` | Mantine `Modal` の枠（題・本文・操作列）。幕とフォーカスは Foundation の `UiModalHost` | `DialogFrame(string testid)`／`SetTitle(UiText)`／`contentContainer`／`AddAction(FormButton button)` | `.dialog-frame` | modal（BP 名）、eventLanguageGate | C3-b | Mantine Modal（`W/features/modal/ModalHost`） | 新規 |
+| `DialogFrame` | Mantine `Modal` の枠（題・本文・操作列）。幕とフォーカスは Foundation の `UiModalHost` | `DialogFrame(string testid)`／`SetTitle(UiText)`／`contentContainer`／`AddAction(FormButton button)` | `.dialog-frame`。幅 320px・余白・文字は Web と同じく実画面 px（`UiModalHost` が `UiScreenPixelScope` の中に置く。舞台の倍率を掛けない）`[A-41]` | modal（BP 名）、eventLanguageGate | C3-b | Mantine Modal（`W/features/modal/ModalHost`） | 新規 |
 | `PauseMenuFrame`（画面内に留める） | Web `.panel`（420px・角丸 12px・padding 32px）の写し | 段階 1 のまま | `PauseMenu.uss` | pauseMenu（設定・バグ報告も） | 済み | `W/features/pauseMenu/style.module.css` | 再利用 |
 
 ### 2.3 スロット族（`Components/Slots/`）
@@ -160,7 +163,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 
 | 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
 |---|---|---|---|---|---|---|---|
-| `SlotFrame` | 1 マスの枠・ベベル・面と 5 状態、マウスの身振り | `SlotFrame(string testid)`／`SetState(SlotFrameState state)`／`IObservable<SlotGesture> OnSlotGestured`／`contentContainer` | `.slot-frame--selected`・`--filled`・`--catalog`・`--insufficient`・`--ghost`。ベベルは 3 重の border の入れ子（plan §3.4 の inset 2 層の方式）。つまみ `--slot-size`・`--bevel-1..3`・`--bevel-c1..3`・`--sel-c1..3`・`--face-inset`・`--selected-face-*` | hotbar・buildMenu（直接）、ItemSlot・BlockSlot・FluidAmountSlot の中 | C3-a | `W/shared/ui/SlotFrame/style.module.css`・ref-webui-design §4 | 新規 |
+| `SlotFrame` | 1 マスの枠・ベベル・面と 5 状態、マウスの身振り | `SlotFrame(string testid)`／`SetState(SlotFrameState state)`／`IObservable<SlotGesture> OnSlotGestured`／`contentContainer` | `.slot-frame--selected`・`--filled`・`--catalog`・`--insufficient`・`--ghost`。リングは寸法に効かない装飾子 `.slot-frame__ring`（`PickingMode.Ignore`・絶対配置）の 3 重の border の入れ子で描く（plan §3.4 の inset 2 層の方式）。つまみ `--bevel-inset` で装飾子の外周を切り替える: 既定 `outset`＝面の外側へ成長（持ち物・レシピ。白面の寸法を削らない）、`inset`＝箱の内側へ食い込む（ホットバー。固定ピッチの外へ出ない）。Web の既定は空文字（`W/shared/ui/SlotFrame/style.module.css:3-9,27-31`・`W/features/hotbar/HotbarPanel/style.module.css:48`）`[A-42]`。つまみ `--slot-size`・`--bevel-inset`・`--bevel-1..3`・`--bevel-c1..3`・`--sel-c1..3`・`--face-inset`・`--selected-face-*` | hotbar・buildMenu（直接）、ItemSlot・BlockSlot・FluidAmountSlot の中 | C3-a | `W/shared/ui/SlotFrame/style.module.css`・ref-webui-design §4 | 新規 |
 | `SlotGesture`（値型）／`SlotFrameState`（値型） | 左押下（Shift 付き）・右押下・左/右の進入・ダブルクリック・ホバーの変化 ／ 5 状態の組 | `readonly struct SlotGesture { SlotGestureKind Kind; bool Shift; }`、`readonly struct SlotFrameState { bool Selected, Filled, Catalog, Insufficient, Ghost; }`（ctor で全部受ける） | — | — | C3-a | `W/shared/ui/useSlotMouse.ts` | 新規 |
 | `SlotContent` | マス内の中身（アイコン 100%・padding・右下の個数・縁取り） | `SlotContent()`／`SetIcon(UiIcon icon, GameIconFallback fallback)`／`SetCount(int count)`／`ClearCount()` | `.slot-content__icon`・`__count`。つまみ `--icon-pad`・`--count-bottom`・`--count-font-size`・`--count-letter-spacing`。個数の縁は `-unity-text-outline`（`--icon-text-stroke-*`） | ItemSlot・BlockSlot・FluidAmountSlot・PlacementTargetFace の中 | C3-a | `W/shared/ui/slotContent.module.css`・ADR 0033 | 新規 |
 | `GameIcon` | テクスチャ 1 枚の表示と、欠けたときの代わり（idText・label・none） | `GameIcon(GameIconFallback fallback)`／`SetIcon(UiIcon icon)` | `.game-icon__fallback`（10px・`--mantine-color-dark-2`） | SlotContent の中 | C3-a | `W/shared/ui/GameIcon` | 新規 |
@@ -181,16 +184,17 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | `PanelActionButton` | パネル付随の副次アクション | `PanelActionButton(string testid, LocalizationKey label)`／`IObservable<Unit> OnClicked` | つまみ `--panel-action-button-width/height/font-size`。hover は `DerivedTokens` の前計算色 | pauseMenu・blockInventory・inventory | 済み → F1 で `StyleSheet` 引数を消し `OnClicked` を足す（C1・C8） | `W/shared/ui/PanelActionButton`・components.md §8.6 | 改修 |
 | `ModeSwitch<TValue>` | 択一のボタン列（横・縦・タブ） | `ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options)`／`SetSelected(TValue)`／`SetSelectedNone()`／`SetEnabledAll(bool)`／`SetOptionEnabled(TValue value, bool enabled)`／`IObservable<TValue> OnOptionSelected` | `--vertical`・`--tablist`・`__option--selected`・`--option-disabled`。つまみ `--mode-switch-option-height` | settings・pauseMenu（横）、buildMenu（縦）、blockInventory（タブ） | 横は済み。縦・タブ・個別無効は C3-b | `W/shared/ui/ModeSwitch`・§8.6・§8.22 | 改修（`OnSelected` → `OnOptionSelected` に改名、`role` を足す） |
 | `IconButton` | 面なしの小さいアイコンボタン（既定は ×。× は Painter2D の `IconButtonCloseGlyph`。ほかの図形は画面が `VisualElement` で作って渡す） | `IconButton(string testid, VisualElement glyph)`／`IObservable<Unit> OnClicked`（図形は `IconButton.GlyphColorProperty`・`GlyphStrokeProperty` を `CustomStyleResolvedEvent` で読んで描く）`[A-27]` | つまみ `--icon-button-size`・`--icon-button-icon-size`。有効時の hover で `--text-high-contrast` | skit（ツールバー 4）・blockInventory・buildMenu | C2-b（plan §3.4 は段階 1 だが未作成。skit が段階 2 で使う） | `W/shared/ui/IconButton` | 新規 |
-| `FormButton` | Mantine `Button` の写し（送信・OK・キャンセル・クラフト） | `FormButton(string testid, LocalizationKey label, FormButtonVariant variant)`／`SetLabel(LocalizationKey label)`／`SetVariant(FormButtonVariant variant)`／`SetSize(FormButtonSize size)`／`IObservable<Unit> OnClicked`（busy 表示の Set は持たない）`[A-28]` | `FormButtonVariant { Filled, Danger, Subtle }`・`FormButtonSize { Small, ExtraLarge }`（Web で実際に使う組だけ）。`.form-button--filled`・`--danger`・`--subtle`・`--xl`。色は `MantineTokens`（Subtle のホバーは `DerivedTokens`）。モーダルの確定色は State の `ModalButtonTone` を View が 1 か所で写す（`Blue→Filled`・`Red→Danger`） | pauseMenu（バグ報告）・modal・challenge・eventLanguageGate・recipe（クラフト。長押しは Foundation の `UiPressGesture` を重ねる） | C2-b | Mantine Button（`W/features/pauseMenu/BugReportForm`・`modal/ModalHost`・`challenge/ChallengePanel`・`eventLanguageGate`・`recipe/views/CraftRecipeEntry`） | 新規（`BugReport.uss` から移す。C2） |
+| `FormButton` | Mantine `Button` の写し（送信・OK・キャンセル） | `FormButton(string testid, UiText label, FormButtonVariant variant)`／`SetLabel(UiText label)`（モーダルのボタン文言は解決済みの文、チャレンジのカテゴリ名はコンテンツ辞書キー `[A-40]`）／`SetVariant(FormButtonVariant variant)`／`SetSize(FormButtonSize size)`／`IObservable<Unit> OnClicked`（busy 表示の Set は持たない）`[A-28]` | `FormButtonVariant { Filled, Danger, Subtle }`・`FormButtonSize { Small, ExtraLarge }`（Web で実際に使う組だけ）。`.form-button--filled`・`--danger`・`--subtle`・`--xl`。色は `MantineTokens`（Subtle のホバーは `DerivedTokens`）。モーダルの確定色は State の `ModalButtonTone` を View が 1 か所で写す（`Blue→Filled`・`Red→Danger`） | pauseMenu（バグ報告）・modal・challenge・eventLanguageGate（recipe のクラフトは `RecipeActionButton` `[A-46]`） | C2-b | Mantine Button（`W/features/pauseMenu/BugReportForm`・`modal/ModalHost`・`challenge/ChallengePanel`・`eventLanguageGate`） | 新規（`BugReport.uss` から移す。C2） |
+| `RecipeActionButton` | 主要アクションの青グラデのボタン（クラフト・研究する）。角丸 0・横 3 色グラデの面・文字 `--text-high-contrast` | `RecipeActionButton(string testid, UiText label)`／`SetLabel(UiText label)`／`SetEnabled(bool)`（`VisualElement` の既定）／`IObservable<Unit> OnClicked`。長押しは置く側が Foundation の `UiPressGesture` を重ねる | 面は頂点カラーの横 3 色グラデ（`generateVisualContent`）。色はつまみ `--recipe-action-face-start/middle/end`（既定 `--recipe-action-background-*`）・`--recipe-action-hover-start/middle/end`（クラフトの hover `#2680dd`→`#45bcf5`→`#6cebfa`）・`--recipe-action-disabled-start/middle/end`（既定は通常と同じ＝無効でもグラデを保つ）・`--recipe-action-disabled-text`（既定 `rgb(255 255 255 / 80%)`）。研究は無効の面 3 つを `rgb(50 52 67)`・文字を `--text-default` へ上書きする。寸法・字の大きさ・字間・文字の縁はつまみ（クラフト: 幅 `--recipe-craft-button-width`・高 `--recipe-action-button-height`・12px・0.12em・4 方向の影は `-unity-text-outline` 近似。研究: 14px・padding 8px 0） | recipe（クラフト）・research（研究する） | C4-c | `W/features/recipe/views/RecipeActionButton.module.css`・`RecipeBox.module.css:186-212`・`W/features/research/style.module.css:131-148`・`W/app/tokens.css:104`・components.md「主要アクションの青グラデ」 | 新規 |
 | `GameTextField` | 入力欄（単行・複数行・IME） | 段階 1 の API ＋ `GameTextField(string testid, bool multiline, GameTextFieldLook look)`／`SetPlaceholder(UiText)`（言語追従は Foundation の `LocalizedTextBinding`。置き文字を持つ欄だけが束縛を作る）`[A-29]`・`[A-31]` | `GameTextField.uss`（`--gauge-inset`・`--mantine-input`）。GaugeInset は面 `--gauge-track`＋`--bevel-c1` 枠・placeholder `--text-muted`・フォーカスで外側に `--bevel-1` の輪、MantineInput は Mantine TextInput の dark・sm | pauseMenu（バグ報告）・blockInventory（駅名）・buildMenu（検索）・modal（BP 名） | C2-b（C2） | `W/shared/ui/textAreaField.module.css`・buildMenu `.searchInput`・§8.9・Mantine TextInput | 改修 |
 | `GameScrollView` | 本文いっぱいに伸びるスクロール領域とカスタムバー（`ScrollView` 派生。バーは本文に重ね、本文の幅を削らない）。スクロール量の通知 | `GameScrollView(string testid)`／`contentContainer`／`ScrollTo(VisualElement target)`／`SetScrollOffset(float y)`／`IObservable<float> OnScrollOffsetChanged` | トラック `--gauge-track`・ノブ `--bevel-c2`・ホバー `--game-scroll-view-thumb-hover`。つまみ `--scrollarea-scrollbar-size`（Mantine ScrollArea の `scrollbarSize`。`--recipe-list-scrollbar-reserve` は `RecipeListScrollView` のもの）`[A-35]` | research・blockInventory・train・pauseMenu・buildMenu・recipe | C2-c（plan §3.4 の段階 1 の「スクロール領域」。C3。実行計画 E-7） | `W/shared/ui/panelBodyScrollArea.module.css`・§8.10 | 新規（PauseMenuSubPageView から移す） |
-| `RecipeListScrollView` | 先頭の固定内容＋レシピ列のスクロール（bleed とバーの逃げ） | `RecipeListScrollView(string testid, float listGap)`／`SetLeadingContent(VisualElement)`／`listContainer` | `--recipe-entry-bleed`・`--recipe-list-scrollbar-reserve` | blockInventory・recipe | C4-c | `W/shared/ui/RecipeListScrollArea` | 新規（`GameScrollView` を内包） |
+| `RecipeListScrollView` | 先頭の固定内容＋レシピ列のスクロール（bleed とバーの逃げ） | `RecipeListScrollView(string testid, float listGap)`／`SetLeadingContent(VisualElement)`／`listContainer` | `--recipe-entry-bleed`・`--recipe-list-scrollbar-reserve`。右の余白（Web `calc(bleed + reserve)`）は C# が 2 つのつまみを読んで足しインラインで当てる `[A-47]` | blockInventory・recipe | C4-c | `W/shared/ui/RecipeListScrollArea` | 新規（`GameScrollView` を内包） |
 
 ### 2.5 表示・ゲージ族（`Components/Gauges/`）
 
 | 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
 |---|---|---|---|---|---|---|---|
-| `GaugeBar` | 0..1 の横ゲージ | `GaugeBar(string testid)`／`SetValue(float ratio01)` | 高 `--slot-size/6`。つまみ `--gauge-fill`（progress が白へ上書き。§8.18） | blockInventory・progress | C2-c | `W/shared/ui/GaugeBar`・§8.6 | 新規 |
+| `GaugeBar` | 0..1 の横ゲージ | `GaugeBar(string testid)`／`SetValue(float ratio01)` | 高 `--slot-size/6`（C# が祖先のつまみから割る `[A-47]`。C2-c 計画 Task 5）。つまみ `--gauge-fill`（progress が白へ上書き。§8.18） | blockInventory・progress | C2-c | `W/shared/ui/GaugeBar`・§8.6 | 新規 |
 | `BarSeries` | 棒の並び（null は溝だけ） | `BarSeries(string testid, int barCount)`／`SetValues(IReadOnlyList<float?> ratios01)` | `--empty`。`--bar-series-*` | blockInventory（ベルト搬出量） | C4-b | `W/shared/ui/BarSeries`・§8.23 | 新規 |
 | `ProgressArrowGlyph` | 矢印そのものがゲージ（null で静止） | `ProgressArrowGlyph(string testid)`／`SetProgress(float ratio01)`／`SetIdle()` | Painter2D で SVG path を写す。輪郭 `--craft-arrow-outline` 2px。drop-shadow は頂点カラーのにじみで描く | blockInventory・recipe | C4-b | `W/shared/ui/ProgressArrowGlyph`・§8.13 | 新規 |
 | `ProgressArrowBar` | 細い矢印形のゲージ | `ProgressArrowBar(string testid)`／`SetValue(float ratio01)` | `--progress-arrow-*` | blockInventory・FluidSlotRow | C4-b | `W/shared/ui/ProgressArrowBar` | 新規 |
@@ -206,7 +210,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | `KeyCap` | kbd 1 個 | `KeyCap(string keyText)`／`SetKeyText(string keyText)` | `.key-cap` は枠なし・色 `--text-high-contrast` だけで字形は継ぐ。keyHintText の大きさ・字間・影は置く側の `UiTypographyClass.KeyHintText` `[A-34]` | keyHint・tutorial（KeyControlHint）・buildMenu | C2-c（実行計画 E-7。plan §3.4 は段階 1 だが未作成） | `W/app/tokens.css` の `:where(.keyHintText)` | 新規 |
 | `ShortcutHintLabel` | 文中に KeyCap を差し込む文 | `ShortcutHintLabel(string testid, ShortcutHintLayout layout)`／`SetHint(UiText sentence, string shortcutText)`（Web と同じく kbd は 1 つ。layout は prefix/inline）`[A-34]` | つまみ `--shortcut-hint-label-gap`（既定 0） | keyHint・tutorial | C2-c（実行計画 E-7） | `W/shared/i18n` の `LocalizedShortcutHint` | 新規 |
 | `TooltipFace` | ツールチップの面（`--tooltip-face`・`--tooltip-border`・`pre-line`） | `TooltipFace(string testid, TooltipFaceLook look)`／`SetText(UiText text)`／`SetLines(IReadOnlyList<UiText> lines)`（行の testid は `<testid>-line`。Cursor は角丸 `--mantine-radius-default`、Hover は 0）`[A-33]` | `--tooltip-max-width/padding/font-size` | CursorTooltip（画面）・HoverTooltip（Foundation の宿主） | C2-c | `W/shared/ui/HoverTooltip`・`W/shared/tooltip`・ADR 0019 | 新規 |
-| Typography のクラス | Mantine `Text`/`Title` の size・c・fw の写し | 部品は作らず、`UiTypographyClass` の定数（`TextSm`・`TextXs`・`TextDimmed`・`TitleOrder3`・`TextBold` 等）を `LocalizedLabel` に付ける | `Typography.uss`。値は Mantine の既定（xs 12・sm 14・md 16・xl 20。Title は 34/26/22/18。行の高さも）`[A-39]`。Title は Web と同じ px で、フォントの字幅の差は letter-spacing で寄せる `[A-37]`。太さは Bold/Medium の字形 `[A-36]` | Text 42・Title 9 か所 | C2-c（実行計画 E-7） | Mantine Text/Title | 改修（今は `font-size: 14px` の 1 規則） |
+| Typography のクラス | Mantine `Text`/`Title` の size・c・fw の写し | 部品は作らず、`UiTypographyClass` の定数（`TextSm`・`TextXs`・`TextDimmed`・`TitleOrder3`・`TextBold` 等）を `LocalizedLabel` に付ける | `Typography.uss`。値は Mantine の既定（xs 12・sm 14・md 16・xl 20。Title は 34/26/22/18。行の高さも）`[A-39]`。Title は Web と同じ px で、フォントの字幅の差は letter-spacing で寄せる `[A-37]`。太さは Bold/Medium の字形 `[A-36]`。USS に line-height は無いので、1 行の文は min-height＝字×行高で写し（C2-c R2）、2 行以上の文の行送りは C2-c 計画 Task 3 Step 6 の実測で決めた方法（リッチテキストの `<line-height>` か、行ごとの Label を行高で固定）で行高トークン（`--challenge-hud-objective-line-height` 等）と 1px 以内にする。方法を使う最初の画面は S2-hud `[A-48]` | Text 42・Title 9 か所 | C2-c（実行計画 E-7） | Mantine Text/Title | 改修（今は `font-size: 14px` の 1 規則） |
 | Layout のクラス | Mantine `Stack`/`Group` の写し | `UiStack(UiGap)`・`UiGroup(UiGap)`（`AddItem`・`SetItemShown`・`ClearItems`・`SetGap`）・`UiLayoutClass`（揃え） | `Foundation/Theme/Layout.uss`（新設）。gap は USS に無いので子の margin で表す。`UiStack`/`UiGroup` が `--ui-gap` を読み、表示中の先頭以外の子へインラインの margin で当てる（構造擬似クラスは禁止、クラス方式は部品の `margin: 0` と詳細度で負ける）`[A-32]` | Stack 33・Group 10 か所 | C2-c（実行計画 E-7。F1 から移す `[A-18]`） | Mantine Stack/Group | 新規 |
 
 ### 2.7 事実上の共有部品と、画面に留めるもの
@@ -221,7 +225,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | ドラッグ源 | Foundation `UiDragDrop` | `UiDragDrop.MarkSource(VisualElement source, IUiDragPayload payload)`／`MarkTarget(VisualElement target, IUiDropTarget handler)` | hotbar・buildMenu | C3-b | `W/features/hotbar/useHotbarDragSource.ts` |
 | ノードグラフ | `Components/NodeGraph/` | `NodeGraphView(string testid)`／`SetGraph(NodeGraphContent)`／`CenterOn(string nodeKey)`／`IObservable<string> OnNodeTapped`（パン・ズーム・慣性は中で `UiPressGesture` と `UiInertiaAnimation`） | research（段階 4）・challenge（段階 5） | C4-d | `W/shared/treeView`・§8.5 |
 
-**1 feature だけが使うもの（`Screens/<機能>/` に置く）**: 通知の行（notification）、チュートリアルの枠とラベル・ドラッグガイド（tutorial）、ワールドピン、スキットの選択肢の板・ツールバーのアイコン群、削除モードの斜線帯（modeHud。plan §3.4 は段階 2 の部品に挙げるが使い手は 1 つ）、クロスヘア、`LackHighlightText`・`BlockItemGrid`・`details/rows/*`（blockInventory 内で共有）、`GrabOverlay`（inventory。描く層は Foundation の Grab）、全画面ゲートの外殻（eventLanguageGate）、研究ノードカード、チャレンジノードカード。2 機能目が現れたら §5.1 で昇格する。
+**1 feature だけが使うもの（`Screens/<機能>/` に置く）**: 通知の行（notification）、チュートリアルの枠とラベル・ドラッグガイド（tutorial）、ワールドピン、スキットの選択肢の板・ツールバーのアイコン群、削除モードの斜線帯（modeHud。plan §3.4 は段階 2 の部品に挙げるが使い手は 1 つ）、クロスヘア、`LackHighlightText`・`BlockItemGrid`・`details/rows/*`（blockInventory 内で共有）、`GrabOverlay`（inventory。描く層は Foundation の Grab）、全画面ゲートの外殻（eventLanguageGate）、研究ノードカード、チャレンジノードカード、画面の幕とヴィネット（`Screens/Shell/`。`ScreenBackdropPresenter` が `UiRoutingState` を購読し `UiScreenTraitsTable.Get(..).Backdrop` で幕 `name="screen-backdrop"`〈Web `rgb(0 0 0 / 42%)`。α は §3.1 の半透明の規則で補正〉を `UiLayer.Backdrop` の Viewport 族へ出し入れする。四辺の放射状のヴィネット〈`--screen-vignette-*`〉は同じ族の最背面に常時置き、頂点カラーで描く。Web `W/app/App.tsx:95-96`・`App.module.css:3-18,72-78`。S2-hud `[A-44]`）。2 機能目が現れたら §5.1 で昇格する。
 
 **作らないもの**: `ConnectingPlaceholder`（WS の未受信を表す。UITK は DI から同期で状態を取れる〈`WebUiHostlessStateAvailabilityTest`〉ので、その状態が無い）`[A-13]`、再接続オーバーレイ（Web↔C# の WS 切断）と辞書エラー（Web の辞書 HTTP 取得の失敗）（UITK に同じ状態が無い。disposition に理由を書く）`[A-38]`、`ItemIcon`/`BlockIcon`/`FluidIcon`（Web では `GameIcon` の薄い包み。UITK では Content の `UiIcon` 生成に吸収）、`useSlotMouse`（`SlotFrame` の中に吸収）。
 
@@ -234,7 +238,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 | `shared/tooltip`（CursorTooltip） | `Screens/CursorTooltip/`＋`TooltipFace` | 2 |
 | `shared/treeView` | `Components/NodeGraph/` | 4 |
 | `shared/tutorialAnchor` | Foundation `Anchor/`（既存） | 済み |
-| `shared/uiScale` | Foundation `Stage/`（PanelSettings の倍率で置き換え、`--ui-scale` 相当は不要） | F1 |
+| `shared/uiScale` | Foundation `Stage/`（PanelSettings の倍率で置き換え、`--ui-scale` 相当は不要。Web で倍率を掛けない Portal〈Mantine Modal・eventLanguageGate〉だけは `UiScreenPixelScope` で倍率を打ち消す `[A-41]`） | F1（打ち消しは C3-b） |
 | `shared/uiState` | `Client.Ui.State/Routing/`（既存） | 済み |
 | `shared/placementTarget` | `Client.Ui.State/PlacementTarget/` | 3 |
 | `shared/i18n` | `Localize`＋Foundation `Text/` | 済み |
@@ -266,6 +270,7 @@ Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）�
 4. **状態はクラス**。data 属性・`:hover` 以外の状態（selected・disabled・lack 等）は `--<状態>` のクラスにし、付け外しは部品の Set メソッドだけが行う。`:hover`・`:active`・`:focus` は USS の擬似クラスを使ってよい（構造擬似クラスは禁止のまま）
 5. **CSS からの写し方**は plan §3.5 の変換表に従う（`::before` → 子要素、grid → flex-wrap＋固定幅、z-index → 層 enum、コンテナクエリ → `GeometryChangedEvent`）。box-shadow・drop-shadow・グラデ・マスクは `generateVisualContent`（頂点カラー）か Painter2D で描き、描く子要素は `PickingMode.Ignore` にする
 6. **USS の先頭に出所を書く**: `/* web: W/shared/ui/SlotFrame/style.module.css（components.md §8.6） */` と日英の 1 行ずつ。Web 側の変更を追従するとき、どの USS を見ればよいかを引けるようにする
+7. **Web で calc() を通るつまみは部品の C# が導出する** `[A-47]`: USS には calc が無い（段階 1 の `Tokens.uss` は全部前計算・`GamePanel.uss:15-19`）。部品の CSS 規則の中で `calc(var(--つまみ) …)` を使う値は、部品 USS で `--<部品>-<名>: var(--つまみ)` と受け直し、部品の C# が `CustomStyleResolvedEvent` で `UssCustomStyleReader` から読んで計算し、インラインの style に当てる。対象と持ち主: `GaugeBar` の高さ（C2-c 計画 Task 5）・`GamePanel` の面の上端（C2-a 計画 Task 2。top と margin-top に分けて足す）・`RecipeListScrollView` の右の余白（C4-c）・ビルドメニューの面 `calc(var(--slot-size) - 8px)`（`W/features/buildMenu/style.module.css:141-142`。S3-buildmenu）・`SlotFrame` の選択面のグラデの位置（C3-a。Painter2D で描くので C# で計算）。`:root` で宣言したトークンの calc（`--icon-button-size: calc(var(--slot-size) / 2)` 等）は Web でも `:root` で解決済みの値が継がれるので、変換スクリプトの前計算で同じになる（対象外）
 
 ### 3.3 比べ方（誰が・いつ・何を）
 
@@ -321,7 +326,7 @@ S/Client.Tests/Ui/State/BuildMenu/
 public sealed class BuildMenuScreenPresenter : IInitializable, IDisposable
 {
     public BuildMenuScreenPresenter(GameUiRoot root, UiRoutingState routing, BuildMenuModel model, IBuildMenuCommands commands, GameContentPresentation content, UiCommandResultToaster toaster) { … }
-    public void Initialize();   // View を作り root.GetLayer(UiLayer.Screen, UiFamily.Stage) へ 1 回 Add。routing.Current を購読して SetShown
+    public void Initialize();   // View を作り root.GetLayer(UiLayer.Screen, UiFamily.Stage) へ 1 回 Add（舞台の上段 3 列に並ぶ画面は StageColumnsLayout の枠へ。A-45）。routing.Current を購読して SetShown
     public void Dispose();
 }
 
@@ -365,7 +370,8 @@ public sealed class UiCommandResultToaster
 
 - 全体スイッチ（albof.17。plan §3.3 R1〜R4）は Editor 限定の 1 つの enum。**UITK のときだけ** composition root（`MainGameUiRegistration`）が Presenter 群を登録し、Web のときは Client.Ui の Presenter を 1 つも登録しない `[A-16]`。Presenter・View・部品はスイッチを読まない（分岐は composition root の 1 か所）
 - 画面の出し分けは `UiRoutingState.Current.Screen` と `UiScreenTraitsTable` だけで決める（段階 1 の `MainPanelOwner` は消える。C10）
-- HUD（常駐表示）はルータの主パネル画面ではなく、`UiScreenTraits` の `AlwaysOnHud`/`TrainHud` 等の列を Presenter が読んで出す
+- HUD（常駐表示）はルータの主パネル画面ではなく、`UiScreenTraits` の `AlwaysOnHud`/`TrainHud` 等の列を Presenter が読んで出す。`Backdrop` 列は `Screens/Shell/` の `ScreenBackdropPresenter` だけが読む `[A-44]`
+- 舞台の上段 3 列に並ぶ画面（持ち物＝`Inv`、ブロックインベントリとレシピビューア＝`Viewer`、アイテム一覧＝`Items`）の Presenter は、`StageColumnsLayout.Get(StageColumn)` の枠へ View を載せる。研究画面の左余白 0 は `StageColumnsLayout` が `UiRoutingState` の画面で切り替える（Web `App.module.css:26-54`・`App.tsx:100-103`）`[A-45]`
 - L1 と L0 はスイッチと無関係（View を `UiTestHost` に直接組む）。L3・L4 はスイッチを UITK にして始める（plan §3.3 R4）
 - UITK の間、未実装の画面は使えない（裁定）。Presenter の未登録の画面は何も出ないだけで、ログは不要（裁定どおりの既知の状態）
 
@@ -393,11 +399,11 @@ public sealed class UiCommandResultToaster
 | 段階 2 | C2-a | 面・装飾 | `GamePanel`（改修・craft。影は描かない `[A-22]`）・`GamePanelSurface`・`PaperSurface`・`FadeRule`・`HudSectionHeading` | F1 | C2-c と並列 |
 | 段階 2 | C2-b | 操作・入力 | `IconButton`・`FormButton`・`GameTextField`（USS）・段階 1 の BugReport をこれらへ置き換え（C2）・albof.12 | F1・C2-c（`LocalizedTextBinding`） | C2-a の後 |
 | 段階 2 | C2-c | 文字・表示・スクロール | `GaugeBar`・`TooltipFace`・`GameScrollView`・`KeyCap`・`ShortcutHintLabel`・Typography・`UiStack`/`UiGroup`（`Layout.uss`）・`LocalizedTextBinding`・段階 1 の設定のスクロールをこれらへ置き換え（C3）・albof.16.2 の (1)(2) | F1 | C2-a と並列 |
-| 段階 2 | S2-* | 画面 | notification・modeHud・skit・commonHud/keyHint/progress・challenge HUD・tutorial（KeyControlHint・WorldPin）・CursorTooltip・trainHud | C2-a〜c の取り込み | 画面ごとに並列（Editor の予算まで） |
+| 段階 2 | S2-* | 画面 | notification・modeHud・skit・commonHud/keyHint/progress・challenge HUD・tutorial（KeyControlHint・WorldPin）・CursorTooltip・trainHud・画面の幕とヴィネット（S2-hud `[A-44]`） | C2-a〜c の取り込み | 画面ごとに並列（Editor の予算まで） |
 | 段階 3 | C3-a | スロット族 1 | `UiIcon`・Content（`GameContentPresentation`）・`GameIcon`・`SlotFrame`・`SlotContent`・`ItemSlot`・`BlockSlot`・`PlacementTargetFace`・`SlotGrid`（`SlotAmountFormat` は L0-s3 が作り済み `[A-19]`） | 段階 2 の部品の波（段階 2 の画面とは並走可） | C3-b と並列 |
-| 段階 3 | C3-b | 相互作用 | `UiPressGesture`・`UiDragDrop`・`HoverTooltipHost`・`ModeSwitch`（縦・タブ・個別無効）・`GameScrollView` のスクロールスパイの口・`UiModalHost`・`DialogFrame` | 同上 | 同上 |
+| 段階 3 | C3-b | 相互作用 | `UiPressGesture`・`UiDragDrop`・`HoverTooltipHost`（スクロールの退避と再表示 `[A-43]`）・`ModeSwitch`（縦・タブ・個別無効）・`GameScrollView` のスクロールスパイの口・`UiModalHost`・`UiScreenPixelScope` `[A-41]`・`DialogFrame` | 同上 | 同上 |
 | 段階 3 | S3-* | 画面 | buildMenu・hotbar・modal | C3-a・C3-b | 並列 |
-| 段階 4 | C4-a〜e | スロット族 2（液体）／進捗（矢印・棒）／レシピ（`RecipeRow`・`LevelInheritanceBadge`・`RecipeListScrollView`）／`NodeGraphView`／掴み層と分割ドラッグ | 族ごと | 段階 3 の部品の波 | 5 本並列（Editor の予算で 2〜3 本ずつ） |
+| 段階 4 | C4-a〜e | スロット族 2（液体）／進捗（矢印・棒）／レシピ（`RecipeRow`・`LevelInheritanceBadge`・`RecipeListScrollView`・`RecipeActionButton` `[A-46]`）／`NodeGraphView`／掴み層と分割ドラッグ・舞台の上段 3 列 `StageColumnsLayout` `[A-45]` | 族ごと | 段階 3 の部品の波 | 5 本並列（Editor の予算で 2〜3 本ずつ） |
 | 段階 4 | S4-* | 画面 | inventory・blockInventory（族ごとに分ける）・recipe・research・train | C4-* | 並列 |
 | 段階 5 | S5-* | 画面 | challengePanel（`NodeGraphView` を再利用）・eventLanguageGate（全画面ゲートの外殻は画面内）・tutorial overlay | 段階 4 | 並列 |
 
@@ -481,6 +487,15 @@ SKILL.md の目次:
 | A-37 | 文字の大きさは Web と同じ px。GameUi のフォントの字幅の差は letter-spacing で寄せる（Title 34/26/22/18px。段階 1 の 34→32px の補正 `LX-1` は C2-c が台帳と印ごと消す） | 字幅に合わせて px を下げる（段階 1 の LX-1 を Title 全般へ広げる）: §3.4 の「文字の大きさの差は例外にしない」に反し、段階 2 以降の全画面の題が Web より小さくなる。例外の条件に「字幅の補正」を足す: 裁定の例外の条件を広げることになる |
 | A-38 | 再接続オーバーレイ（Web↔C# の WS 切断）と辞書エラー（Web の辞書 HTTP 取得の失敗）は UITK に作らない。S5-crosscut が disposition に理由を書く。統合計画 §2.6 の対象一覧との差は実行計画 §8 E-17 に残す | 写す: UITK には WS も辞書の HTTP 取得も無く、その状態が起きない。出す場面の無い画面を作ることになる |
 | A-39 | 文字の 13px 下限（plan §3.10 の agent 既定）を外し、Web と同じ px にする（Mantine `size="xs"` の 12px、スロット内の 10〜11px を含む）。実機の比較で読めないものだけを見た目の例外に記帳する（旧 Q-1。実行計画 E-11） | 13px へ上げる: 裁定「全段階で Web 版と同じ見た目」に反し、行・マスの中の段組が Web とずれる。ユーザーに上げる: 上位の裁定から答えが決まり、クリティカルパスの頭（F1）に待ちが入るだけ |
+| A-40 | `UiText` を辞書キー・コンテンツ辞書キー・解決済みの文の 3 種にし、文言を出す部品の API は `UiText` を受ける（`FormButton` も）。F1 計画 Task 5 Step 3b が作り、C2-b が `FormButton(string, UiText, FormButtonVariant)` で使う | `UiText` を辞書キーのままにし、画面が `Localize.GetContent` やサーバーの文を自分で Label に入れる: 共通部品（`FormButton`・`TooltipFace`・`HoverTooltipMark`）を画面が迂回し、言語変更の解き直しが画面ごとに散る。部品ごとに `string` の口を足す: 同じ「文言の種」を部品の数だけ持つ |
+| A-41 | Web で `--ui-scale` を掛けない Portal（Mantine `Modal`〈`W/features/modal/ModalHost.tsx:35-37` の `w={320}`〉・eventLanguageGate の `Overlay`）の中身は、Foundation/Stage の `UiScreenPixelScope`（舞台の倍率の逆数で縮め、実画面いっぱいの寸法を持つ箱）に置き、実画面 px で Web と同じにする。C3-b が作り、`UiModalHost` と S5-gate が使う。倍率は `panel.scaledPixelsPerPoint` から読む（PanelSettings の倍率と一致するかは C3-b の先頭で実測する。§8） | 全部を舞台の倍率で拡げる: 2560×1080 と 1080p（倍率 1.5）でモーダルが Web の 1.5 倍（幅 480px）になる。トースト・通知・ツールチップ・チュートリアル・ワールドピン・掴み絵は Web でも `scale(var(--ui-scale))` を掛けているので打ち消さない |
+| A-42 | `SlotFrame` のリングは寸法に効かない装飾子に描き、つまみ `--bevel-inset`（`outset` 既定／`inset`）で外側成長と内側食い込みを切り替える（C3-a） | 3 重の border を `SlotFrame` 自身に付ける: border は箱の内側に入り、持ち物とレシピの白面が Web より狭まる。外側へ統一する: ホットバーのリングが固定ピッチの外へ出る |
+| A-43 | `HoverTooltipHost` は印の付いた要素を含む `ScrollView` のスクロールで引っ込め、ポインタの座標が実際に変わった `PointerMoveEvent` でだけ開き直す。無関係なパネルのスクロールでは引っ込めない（C3-b） | PointerEnter/Leave だけで出し入れする: ホバーしたままスクロールすると、クリップの外へ動いたセルの説明がパネルの外に残る（Web がユーザー指摘 2026-08-22 で直した不具合の再発） |
+| A-44 | 画面の幕（`UiScreenTraits.Backdrop`）とヴィネットは `Screens/Shell/` が持ち、S2-hud が作る | F1 に入れる: F1 はクリティカルパスの頭で、`UiRoutingState` の購読と描画を足すと延びる。幕は段階 1 のポーズメニューから要るが、配らない裁定の下では S2-hud までに入れば切替の検証に間に合う |
+| A-45 | 舞台の上段 3 列（Web `.stage` の grid）は Foundation/Stage の `StageColumnsLayout`（名前付きの枠 `Inv`・`Viewer`・`Items`、`flex-direction: row`・`align-items: flex-start`、余白と列間はトークン、研究画面だけ左余白 0）が持ち、C4-e が作る。S4-recipe・S4-research も C4-e に依存する | S4 の各レーンが絶対位置を決める: 持ち物の幅（`--inventory-panel-width`）に viewer 列が追従せず、研究画面で持ち物が左端へ寄らない。F1 に入れる: 使い手は段階 4 だけで、クリティカルパスの頭が延びる |
+| A-46 | 主要アクションの青グラデのボタンを `RecipeActionButton`（Components/Controls）にし、クラフトと「研究する」が使う。C4-c が作る（C2-b 計画 D-4 のクラフトの行き先を改める） | `FormButton(Filled)` に画面 USS で重ねる（C2-b 旧 D-4）: USS の背景にグラデは書けず（§3.2-5）、部品の中身を外から塗ることになる。Web と同じく研究は画面だけで書く: 同じグラデの描画コードが 2 画面に重複する |
+| A-47 | Web で calc() を通るつまみは部品の C# が導出してインラインで当てる（§3.2-7） | 画面 USS に計算済みの値を直書きする: つまみの上書きが導出値に追従せず、ホットバー（`--slot-size` 51.68px）などで 2px の目安を外す |
+| A-48 | 2 行以上の文の行送りは C2-c が実測して方法を決め（リッチテキストの `<line-height>` を先に試し、効かなければ行ごとの Label を行高で固定）、最初の使い手 S2-hud が写す。合否は「2 行の行の間隔が行高トークンと 1px 以内」 | フォントの既定の行送りのまま: チャレンジ HUD の目標（20px）・操作 HUD の詳細（25px）などで行が積むほどずれ、HUD の高さが Web と変わる。`-unity-paragraph-spacing` で補正する: 段落の間にしか効かず、折り返しの行には効かない（推測。採る方法の根拠にはしない） |
 
 ### 7.2 ユーザーに上げるもの
 
@@ -497,3 +512,6 @@ SKILL.md の目次:
 - USS のカスタムプロパティの継承で、つまみの局所上書きが Web と同じ範囲に効くか（F1 で `--slot-size` 1 本の L1 を先に書いて確かめる）
 - `Client.Ui.Editor` の EditorWindow に本番のランタイムテーマ（tss）を当てて、PlayMode と同じ見た目で撮れるか（F1 で確かめる。撮れなければ PlayMode の見本シーンへ切り替える）
 - `UiFamily` の舞台の倍率が Web の `--ui-scale`（`W/app/App.tsx:39-47`）と同じ式になるか（F1 で 720p・2560×1080 の 2 解像度で比べる）
+- `panel.scaledPixelsPerPoint` が PanelSettings（ScaleWithScreenSize・Expand・1280×720）の倍率と同じ値か（C3-b の先頭で 720p・1080p・2560×1080 の 3 つで実測し、違えば `UiScreenPixelScope` は `panel.visualTree.layout` と `Screen.width/height` の比で倍率を出す。[A-41]）
+- `--bevel-inset` のキーワード（`inset`/`outset`）を `CustomStyleProperty<string>` で読めるか（C3-a の先頭で確かめる。読めなければ数値のつまみ `--bevel-inset-sign`〈1／-1〉に替えて設計書 §2.3 を直す。[A-42]）
+- UITK の `Label` のリッチテキスト `<line-height=Npx>` が折り返しを含む 2 行の行送りに効くか（C2-c 計画 Task 3 Step 6 で実測。[A-48]）
