@@ -68,7 +68,7 @@ namespace Client.Ui.State.ItemMove
                     return new ShiftMoveRefusedPlan(ShiftMoveRefusalReason.InventoryOpenFailed);
                 case BlockDetailLoading _:
                     return new ShiftMoveRefusedPlan(ShiftMoveRefusalReason.DetailLoading);
-                case BoundBlockSlots bound when bound.CandidateIndices.Count == 0:
+                case BoundBlockSlots boundSlots when boundSlots.CandidateIndices.Count == 0:
                     return new ShiftMoveRefusedPlan(ShiftMoveRefusalReason.NoAcceptingBlockSlot);
             }
 
