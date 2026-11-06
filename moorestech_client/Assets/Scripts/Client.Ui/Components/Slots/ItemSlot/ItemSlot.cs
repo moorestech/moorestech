@@ -68,9 +68,9 @@ namespace Client.Ui.Components.Slots
                 // 包みは常に同じで、所持/必要の有無はラベルの出し入れだけで切り替える（Web の再マウント防止）
                 // The wrapper never changes; owned/required toggles only the label (the Web remount guard)
                 EnableInClassList(ShortageStateClass, shortage != null);
+                EnableInClassList(LackStateClass, shortage != null && shortage.Lacking);
                 if (shortage == null) return;
                 _shortage.SetText(SlotTexts.ItemCountSummary(shortage.OwnedCount, shortage.RequiredCount));
-                EnableInClassList(LackStateClass, shortage.Lacking);
             }
 
             #endregion

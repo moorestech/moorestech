@@ -79,6 +79,7 @@
     --shortage-count-right: -2px; /* web: ItemSlot .shortageCount の var(--shortage-count-right, -2px) */
     --shortage-count-bottom: -4px; /* web: var(--shortage-count-bottom, -4px) */
     --shortage-count-font-size: 11px; /* web: var(--shortage-count-font-size, 11px) */
+    --outlined-count-label-color: var(--count-text); /* web: .iconTextOutlineLight の字の色。slotContent.module.css の量バッジの黒は --count-text で一元管理 */
     --slot-grid-gap: 6.8px; /* web: SlotGrid .grid の var(--slot-grid-gap, 0.425rem) */
     --slot-grid-row-gap: var(--slot-grid-gap); /* web: var(--slot-grid-row-gap, var(--slot-grid-gap, 0.425rem))。祖先で gap だけ上書きしても行が追う（台帳「実測の結論」） */
 }

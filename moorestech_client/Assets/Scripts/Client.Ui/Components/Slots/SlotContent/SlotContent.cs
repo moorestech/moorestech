@@ -26,8 +26,7 @@ namespace Client.Ui.Components.Slots
 
             // 個数は数字だけで訳さない。白い縁の作りは OutlinedCountLabel が持つ
             // The count is digits only and never translated; OutlinedCountLabel owns the white outline
-            _count = new OutlinedCountLabel(this, "slot-content__count");
-            _count.AddLayerClass(UiTypographyClass.TextMedium);
+            _count = new OutlinedCountLabel(this, "slot-content__count", UiTypographyClass.TextMedium);
         }
 
         public void SetIcon(UiIcon icon, GameIconFallback fallback)

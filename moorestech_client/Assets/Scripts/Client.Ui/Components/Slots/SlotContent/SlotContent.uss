@@ -15,20 +15,15 @@
     padding-bottom: var(--icon-pad);
 }
 
-/* 白い縁の 2 層と基線の補正は OutlinedCountLabel が持ち、ここは 2 枚の置き場・大きさ・字形と字の色だけを当てる */
-/* OutlinedCountLabel owns the two outline layers and the baseline shift; this only places, sizes and faces both layers and sets the glyph color */
-.slot-content {
-    --outlined-count-label-color: var(--count-text);
-}
-
+/* 白い縁の 2 層と基線の補正は OutlinedCountLabel が持ち、ここは 2 枚の置き場・字間と大きさのつまみだけを当てる */
+/* OutlinedCountLabel owns the two outline layers and the baseline shift; this only places both layers, sets letter spacing and passes the size knob */
 .slot-content__count {
     display: none;
     position: absolute;
     left: 0;
     right: 2px;
     bottom: var(--count-bottom);
-    height: var(--count-font-size);
-    font-size: var(--count-font-size);
+    --outlined-count-label-size: var(--count-font-size);
     letter-spacing: var(--count-letter-spacing);
 }
 
