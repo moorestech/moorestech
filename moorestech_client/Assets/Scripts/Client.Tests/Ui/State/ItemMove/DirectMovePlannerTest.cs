@@ -54,8 +54,8 @@ namespace Client.Tests.Ui.State.ItemMove
         public void 移動先が無ければ空で空スロットが無ければ部分配分だけ返す()
         {
             CollectionAssert.IsEmpty(DirectMovePlanner.Plan(7, Item1, 100, new[] { Slot(2, 5) }));
-            var partial = DirectMovePlanner.Plan(7, Item1, 100, new[] { Slot(1, 98), Slot(2, 5) });
-            CollectionAssert.AreEqual(new[] { new PlannedMove(0, 2) }, partial);
+            var partialMoves = DirectMovePlanner.Plan(7, Item1, 100, new[] { Slot(1, 98), Slot(2, 5) });
+            CollectionAssert.AreEqual(new[] { new PlannedMove(0, 2) }, partialMoves);
         }
     }
 }
