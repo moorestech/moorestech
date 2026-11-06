@@ -1,0 +1,13 @@
+/* web: moorestech_web/webui/src/shared/ui/FadeRule/style.module.css（ref-webui-design §6 装飾語彙 1） */
+/* 色は Web で GamePanel の下の罫線と同値（rgb(128 132 159) 30→42→26%）なので、その前計算トークンを受け直す */
+/* web: moorestech_web/webui/src/shared/ui/FadeRule/style.module.css (ref-webui-design §6, decoration vocabulary 1) */
+/* The Web colors equal the GamePanel bottom rule (rgb(128 132 159) 30→42→26%), so this re-declares its precomputed tokens */
+
+.fade-rule {
+    width: 100%;
+    height: 2px;
+    flex-shrink: 0;
+    --fade-rule-start: var(--game-panel-rule-bottom-start);
+    --fade-rule-peak: var(--game-panel-rule-bottom-peak);
+    --fade-rule-end: var(--game-panel-rule-bottom-end);
+}

@@ -1,0 +1,17 @@
+/* L1 のつまみ上書き検査用。画面 USS が祖先でつまみを変える形を写す（値は Web の InventoryPanel・ItemListPanel の inline style） */
+/* For the L1 knob-override checks; mirrors a screen USS changing knobs on an ancestor (values from the Web InventoryPanel and ItemListPanel inline styles) */
+
+.test-knob-panel-left {
+    --panel-left: -2.22px;
+}
+
+.test-knob-title {
+    --title-shift-x: -1.96px;
+    --title-scale-x: 0.919;
+    --title-scale-y: 0.924;
+}
+
+.test-knob-paper {
+    --paper-face: var(--mantine-color-dark-8);
+    --paper-radius: 10px;
+}
