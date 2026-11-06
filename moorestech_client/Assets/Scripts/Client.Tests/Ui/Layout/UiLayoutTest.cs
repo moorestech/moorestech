@@ -144,6 +144,46 @@ namespace Client.Tests.Ui.Layout
             Assert.AreEqual(0f, second.resolvedStyle.marginTop, 0.01f);
         }
 
+        [Test]
+        public void 外した子を再びAddItemすると実際の先頭に余白が付かない()
+        {
+            var stack = new UiStack(UiGap.Md);
+            var a = Box();
+            var b = Box();
+            var c = Box();
+            stack.AddItem(a);
+            stack.AddItem(b);
+            stack.AddItem(c);
+            rootVisualElement.Add(stack);
+            simulate.FrameUpdate();
+
+            // 実階層は B・C・A になる。先頭の B は余白なし、A は C の下に gap
+            // The hierarchy becomes B, C, A; B has no space and A sits a gap below C
+            a.RemoveFromHierarchy();
+            stack.AddItem(a);
+            simulate.FrameUpdate();
+            Assert.AreEqual(0f, b.resolvedStyle.marginTop, 0.01f);
+            Assert.AreEqual(16f, c.resolvedStyle.marginTop, 0.01f);
+            Assert.AreEqual(16f, a.resolvedStyle.marginTop, 0.01f);
+        }
+
+        [Test]
+        public void 外さずに再びAddItemしても二重に数えない()
+        {
+            var stack = new UiStack(UiGap.Md);
+            var a = Box();
+            var b = Box();
+            stack.AddItem(a);
+            stack.AddItem(b);
+            rootVisualElement.Add(stack);
+            simulate.FrameUpdate();
+
+            stack.AddItem(a);
+            simulate.FrameUpdate();
+            Assert.AreEqual(0f, b.resolvedStyle.marginTop, 0.01f);
+            Assert.AreEqual(16f, a.resolvedStyle.marginTop, 0.01f);
+        }
+
         private static VisualElement Box()
         {
             var box = new VisualElement();

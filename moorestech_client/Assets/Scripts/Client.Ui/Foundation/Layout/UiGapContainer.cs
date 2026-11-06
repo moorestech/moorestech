@@ -13,6 +13,8 @@ namespace Client.Ui.Foundation.Layout
     /// The space is applied inline so it beats the two-class margin: 0 of components such as PanelActionButton
     /// 表示切替は SetItemShown
     /// Toggle children with SetItemShown
+    /// 継承の Add/Insert で入れた子と、style.display を直書きした表示切替は間隔の対象外
+    /// Children added via the inherited Add/Insert and display written directly to style are outside the spacing
     /// </remarks>
     public abstract class UiGapContainer : VisualElement
     {
@@ -40,6 +42,9 @@ namespace Client.Ui.Foundation.Layout
 
         public void AddItem(VisualElement item)
         {
+            // 再追加は末尾へ移すので、登録も末尾へ移して実際の並びと揃える
+            // Re-adding moves the child to the end, so move its entry too to match the real order
+            _items.Remove(item);
             _items.Add(item);
             ItemParent.Add(item);
             ApplyLeadingSpaces();
