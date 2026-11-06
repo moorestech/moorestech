@@ -1,6 +1,5 @@
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
-using Client.Ui.Foundation.Routing;
 using Client.Ui.Foundation.Text;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
@@ -21,7 +20,6 @@ namespace Client.Starter.Registration
         public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot)
         {
             builder.RegisterComponent(gameUiRoot);
-            builder.RegisterEntryPoint<WebUiSuspension>();
             builder.RegisterEntryPoint<WebUiSilenceWatcher>();
             builder.RegisterEntryPoint<GameUiLocaleClassBinder>();
             builder.RegisterEntryPoint<GameUiInputInstaller>();

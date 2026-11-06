@@ -77,7 +77,10 @@ namespace Client.Starter
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;
-            await Initialization.Boot.WebUiStartup.StartAsync(exitToken);
+            // 描く系を起動で1回だけ決める。GameUi の起動では Web ホストを起動しない（plan §3.3 R1・R4）
+            // Decide the drawing system once per boot; a GameUi boot does not start the web host (plan §3.3 R1, R4)
+            var uiSystem = Initialization.Boot.UiSystemBootSelection.ResolveAndApply();
+            await Initialization.Boot.WebUiStartup.StartAsync(exitToken, uiSystem);
 
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);

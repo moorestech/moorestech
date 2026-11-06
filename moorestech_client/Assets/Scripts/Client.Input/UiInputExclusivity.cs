@@ -12,10 +12,16 @@ namespace Client.Input
         Keyboard = 1,
     }
 
-    /// <summary>
-    /// Web UIとGameUi(UITK)の入力占有状態を論理和で保持し、テキスト入力時のキー抑止とESCラッチを担う。
-    /// Holds input-occupancy state of Web UI and GameUi (UITK) as a logical OR, suppresses keyboard input during text entry and latches ESC.
-    /// </summary>
+    // 全体スイッチで選ばれた描く系。長命ブランチの中だけの区別で、切替 PR で消す（plan §3.3 R1）
+    // The drawing system chosen by the global switch; it exists only on the long-lived branch and goes away in the cutover PR (plan §3.3 R1)
+    public enum UiSystem
+    {
+        Web,
+        GameUi,
+    }
+
+    // 全体スイッチで選ばれた系の入力占有だけを読み、テキスト入力時のキー抑止とESCラッチを担う（plan §3.3 R2）
+    // Reads input occupancy only from the system chosen by the global switch, suppresses keyboard input during text entry and latches ESC (plan §3.3 R2)
     public static class UiInputExclusivity
     {
         // Webはpongが15秒途絶えるとWSを閉じる（moorestech_web/webui/src/bridge/transport/webSocketClient.ts の 15000ms）。同じ値で無応答とみなす
@@ -26,8 +32,8 @@ namespace Client.Input
         // Current value and change notification live in one stream, so nothing can slip between reading and subscribing
         private static readonly ReactiveProperty<bool> TextInputFocusedProperty = new(false);
         private static readonly object UiStateLock = new();
+        private static volatile UiSystem _activeUiSystem = UiSystem.Web;
         private static volatile bool _pointerOverUi;
-        private static volatile bool _webUiSuspended;
         private static volatile bool _webSilent;
         private static long _lastWebMessageTimestamp;
         private static bool _webTextInputFocused;
@@ -36,27 +42,37 @@ namespace Client.Input
         private static int _escapeConsumedFrame = -1;
         private static int _lastKeyboardProbeFrame = -1;
 
-        // 休止中のWebは描画も受け手も無く、無応答のWebは値を更新できないので、どちらもポインタ占有を主張させない
-        // A suspended web has no renderer or receiver and a silent web cannot update its values, so neither claims the pointer
-        public static bool IsPointerOverWebUi => !_webUiSuspended && !_webSilent && _pointerOverUi;
-        public static bool IsWebUiSuspended => _webUiSuspended;
+        // 選ばれていない系の値は読まない。無応答のWebは値を更新できないのでポインタ占有を主張させない
+        // The unselected system is never read, and a silent web cannot update its values so it never claims the pointer
+        public static bool IsPointerOverWebUi => _activeUiSystem == UiSystem.Web && !_webSilent && _pointerOverUi;
+        public static UiSystem ActiveUiSystem => _activeUiSystem;
         public static bool IsTextInputFocused => TextInputFocusedProperty.Value;
         public static bool IsEscapeConsumedThisFrame => _escapeConsumedFrame == Time.frameCount;
-
         // 呼び出し元はWebSocketの受信スレッドなので購読側でメインスレッドへ移すこと
         // Callers run on the WebSocket thread, so subscribers must hop to the main thread
         public static IReadOnlyReactiveProperty<bool> TextInputFocused => TextInputFocusedProperty;
 
-        public static void SetState(bool pointerOverUi, bool textInputFocused)
+        // 起動で1回だけ composition root（Client.Starter）が押し込む。internal で他の層から書かせない
+        // Pushed once per boot by the composition root (Client.Starter); internal so no other layer can write it
+        internal static void SetActiveUiSystem(UiSystem system)
         {
-            // 同値落ちはReactivePropertyが担保し、受信ループと切断時リセット・休止切替の並走はlockが直列化する
-            // ReactiveProperty drops same-value writes while the lock serializes the receive loop against the disconnect reset and suspension
             lock (UiStateLock)
             {
-                // 休止中に届いた値はunmount前の残りなので捨てる
-                // Values arriving while suspended are leftovers from before the unmount, so drop them
-                _pointerOverUi = !_webUiSuspended && pointerOverUi;
-                _webTextInputFocused = !_webUiSuspended && textInputFocused;
+                if (_activeUiSystem == system) return;
+                _activeUiSystem = system;
+                RecomputeTextInputFocused();
+            }
+            Debug.Log($"[UiInput] active UI system={system}");
+        }
+
+        public static void SetState(bool pointerOverUi, bool textInputFocused)
+        {
+            // 同値落ちはReactivePropertyが担保し、受信ループと切断時リセットの並走はlockが直列化する
+            // ReactiveProperty drops same-value writes while the lock serializes the receive loop against the disconnect reset
+            lock (UiStateLock)
+            {
+                _pointerOverUi = pointerOverUi;
+                _webTextInputFocused = textInputFocused;
                 RecomputeTextInputFocused();
             }
         }
@@ -72,17 +88,26 @@ namespace Client.Input
             }
         }
 
-        // null で解除。未登録（GameUi無し）はポインタ占有なし
-        // Pass null to unregister; with no probe (no GameUi) the pointer is never occupied
+        // null で解除。系の区別は _activeUiSystem が持ち、null は GameUi の系で DI が登録する前だけを表す
+        // Pass null to unregister; the system lives in _activeUiSystem and null only means GameUi before DI registers the probe
         public static void SetGameUiPointerProbe(IGameUiPointerProbe probe)
         {
             _gameUiPointerProbe = probe;
         }
 
+        // GameUi の系のときだけ Pick を見る（R2）
+        // Look at the pick only in the GameUi system (R2)
         public static bool IsPointerOverGameUi(Vector2 screenPosition)
         {
             var probe = _gameUiPointerProbe;
-            return probe != null && probe.IsPointerOverGameUi(screenPosition);
+            return _activeUiSystem == UiSystem.GameUi && probe != null && probe.IsPointerOverGameUi(screenPosition);
+        }
+
+        // 選ばれた系のポインタ占有。両系の論理和にしない（R2）
+        // Pointer occupancy of the chosen system; never the OR of both systems (R2)
+        public static bool IsPointerOverActiveUi(Vector2 screenPosition)
+        {
+            return _activeUiSystem == UiSystem.GameUi ? IsPointerOverGameUi(screenPosition) : IsPointerOverWebUi;
         }
 
         // このフレームのESCはUIが使った。InputKey/HybridInputは同フレームの押下を返さない
@@ -94,24 +119,6 @@ namespace Client.Input
             Debug.Log($"[UiInput] escape consumed by game UI at frame {_escapeConsumedFrame}");
         }
 
-        // UITKが主パネルを出す間Webを全面休止する（R1）。切替の前後とも古い値を捨て、Webの次の送信を待つ
-        // Suspend the whole web UI while UITK shows a main panel (R1); drop stale values both ways and wait for the web's next send
-        public static void SetWebUiSuspended(bool suspended)
-        {
-            lock (UiStateLock)
-            {
-                if (_webUiSuspended == suspended) return;
-                _webUiSuspended = suspended;
-
-                // 購読者にも false を届けるためReactiveProperty経由で落とす。GameUi側の値は休止に影響されない
-                // Clear through the ReactiveProperty so subscribers also receive false; the GameUi value is unaffected by suspension
-                _pointerOverUi = false;
-                _webTextInputFocused = false;
-                RecomputeTextInputFocused();
-            }
-            Debug.Log($"[UiInput] web UI suspended={suspended}");
-        }
-
         // WSスレッドから受信ごとに呼ぶ。時刻だけ書き、無応答の印は EvaluateWebSilence だけが書く（D-22）
         // Called on the WS thread per message; it writes only the time and only EvaluateWebSilence writes the silent mark (D-22)
         public static void RecordWebMessageReceived(long stopwatchTimestamp)
@@ -119,8 +126,8 @@ namespace Client.Input
             Interlocked.Exchange(ref _lastWebMessageTimestamp, stopwatchTimestamp);
         }
 
-        // 一度も受信していなければ null
-        // Null when nothing has ever been received
+        // 一度も受信していなければ null（Web の系の起動直後。バグ報告の診断も読む）
+        // Null when nothing has ever been received (right after a Web boot; the bug-report diagnostics read it too)
         public static double? SecondsSinceLastWebMessage(long nowStopwatchTimestamp)
         {
             var last = Interlocked.Read(ref _lastWebMessageTimestamp);
@@ -128,12 +135,12 @@ namespace Client.Input
             return (nowStopwatchTimestamp - last) / (double)Stopwatch.Frequency;
         }
 
-        // JSが止まりWSだけ残るとWebの値が古いまま残り、切断時リセットも通らない（§3.11）。閾値を超えたらWeb側の値を読まない
-        // A stopped JS with a live WS leaves stale web values and skips the disconnect reset (§3.11); past the threshold the web side is not read
+        // JSが止まりWSだけ残るとWebの値が古いまま残る（§3.11）。閾値超えでWeb側を読まない。GameUiの系では系の印で判定しない
+        // A stopped JS with a live WS leaves stale web values (§3.11); past the threshold the web side is not read, and the GameUi system never judges silence
         public static void EvaluateWebSilence(long nowStopwatchTimestamp)
         {
             var seconds = SecondsSinceLastWebMessage(nowStopwatchTimestamp);
-            var silent = seconds.HasValue && WebSilenceThresholdSeconds < seconds.Value;
+            var silent = _activeUiSystem == UiSystem.Web && seconds.HasValue && WebSilenceThresholdSeconds < seconds.Value;
             lock (UiStateLock)
             {
                 if (_webSilent == silent) return;
@@ -157,16 +164,15 @@ namespace Client.Input
             if ((scope & InputSuppressionScope.Keyboard) != 0 && TextInputFocusedProperty.Value && _lastKeyboardProbeFrame != Time.frameCount)
             {
                 _lastKeyboardProbeFrame = Time.frameCount;
-                var owner = _gameUiTextInputFocused ? "GameUi" : "Web";
-                Debug.Log($"[UiInputProbe] Suppressed keyboard input because a {owner} text field owns focus");
+                Debug.Log($"[UiInputProbe] Suppressed keyboard input because a {_activeUiSystem} text field owns focus");
             }
         }
 
-        // 呼び出し側はUiStateLockを保持していること
-        // Callers must hold UiStateLock
+        // 呼び出し側はUiStateLockを保持していること。選ばれた系の値だけを読む（R2）
+        // Callers must hold UiStateLock; only the chosen system's value is read (R2)
         private static void RecomputeTextInputFocused()
         {
-            TextInputFocusedProperty.Value = _gameUiTextInputFocused || (!_webUiSuspended && !_webSilent && _webTextInputFocused);
+            TextInputFocusedProperty.Value = _activeUiSystem == UiSystem.GameUi ? _gameUiTextInputFocused : !_webSilent && _webTextInputFocused;
         }
 
 #if UNITY_EDITOR

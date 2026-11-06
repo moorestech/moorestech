@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Client.Game.InGame.BugReport.WebUiHealth;
+using Client.Input;
 using Client.WebUiHost.Health;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -9,14 +10,19 @@ namespace Client.Starter.Initialization.Boot
 {
     internal static class WebUiStartup
     {
-        internal static async UniTask<bool> StartAsync(CancellationToken exitToken)
+        internal static async UniTask<bool> StartAsync(CancellationToken exitToken, UiSystem uiSystem)
         {
 #if UNITY_EDITOR
-            // 印があれば起動失敗と同経路
-            // With the mark, follow the startup-failure path
-            if (WebUiHostEditorSkip.ConsumeSkipMark())
+            // 全体スイッチが GameUi の起動と印のある起動は、起動失敗と同経路で Web ホストを起動しない（plan §2.1 0-10・§3.3 R1）。印は毎回消費して次の起動へ漏らさない
+            // A GameUi boot and a marked boot skip the web host along the startup-failure path (plan §2.1 0-10, §3.3 R1); the mark is always consumed so it never leaks into the next boot
+            var skipMarked = WebUiHostEditorSkip.ConsumeSkipMark();
+            var skipHost = uiSystem == UiSystem.GameUi || skipMarked;
+            // 飛ばしたかは WebUiHost の起動の状態へ押し込む（CEF の生成可否が読む）。診断記録は別に残す
+            // Push whether the host was skipped into WebUiHost's boot state (CEF creation reads it); the diagnostic record is kept separately
+            Client.WebUiHost.Boot.WebUiHost.SetHostSkippedThisBoot(skipHost);
+            if (skipHost)
             {
-                Debug.LogWarning("[WebUiHost] Editor限定スイッチによりWebホストを起動しません（Hub=nullで続行）");
+                Debug.LogWarning($"[WebUiHost] Editor限定スイッチによりWebホストを起動しません（uiSystem={uiSystem} skipMark={skipMarked}、Hub=nullで続行）");
                 WebUiHealthRecorder.RecordHostStartup(WebUiHostStartupState.SkippedByEditorSwitch);
                 return false;
             }
