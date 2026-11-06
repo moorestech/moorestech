@@ -20,6 +20,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/ToastItem/ToastItem.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/GaugeBar/GaugeBar.uss");
 /* == section: Components/Text == */
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Text/TooltipFace/TooltipFace.uss");
 /* == section: Components/Decor == */
 /* == section: Components/Recipe == */
 /* == section: Components/NodeGraph == */

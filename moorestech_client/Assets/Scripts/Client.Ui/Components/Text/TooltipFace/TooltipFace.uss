@@ -1,0 +1,40 @@
+/* ツールチップの面。Web の HoverTooltip・CursorTooltip の --tooltip-* を写す（文字 18px・余白 6/10・最大幅 320・白・pre-line） */
+/* 行の高さは Web の継承値 1.55（27.9px）を行ごとの min-height で持つ */
+/* Tooltip face copying --tooltip-* of Web HoverTooltip and CursorTooltip (18px text, 6/10 padding, 320 max width, white, pre-line) */
+/* Each line keeps the Web's inherited line-height 1.55 (27.9px) as min-height */
+.tooltip-face {
+    max-width: var(--tooltip-max-width);
+    padding-top: var(--tooltip-padding-block);
+    padding-bottom: var(--tooltip-padding-block);
+    padding-left: var(--tooltip-padding-inline);
+    padding-right: var(--tooltip-padding-inline);
+    border-width: var(--tooltip-border-width);
+    border-color: var(--tooltip-border-color);
+    background-color: var(--tooltip-face);
+    color: var(--mantine-color-white);
+    font-size: var(--tooltip-font-size);
+}
+
+/* CursorTooltip は Mantine Paper の既定の角丸 */
+/* CursorTooltip uses the default Mantine Paper radius */
+.tooltip-face--cursor {
+    border-radius: var(--mantine-radius-default);
+}
+
+.tooltip-face--hover {
+    border-radius: 0;
+}
+
+/* 折り返し中は Web と同じく最大幅まで広げる（TooltipFace.cs が付け外しする） */
+/* While wrapped, fill the max width like Web (TooltipFace.cs toggles this class) */
+.tooltip-face--wrapped {
+    width: var(--tooltip-max-width);
+}
+
+.tooltip-face__line {
+    min-height: 27.9px;
+    margin: 0;
+    padding: 0;
+    white-space: normal;
+    -unity-text-align: upper-left;
+}
