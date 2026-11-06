@@ -22,9 +22,9 @@ import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { EventLanguageGate } from "@/features/eventLanguageGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { isWebUiSuspended, screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
+import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
 import { useUiScaleStore } from "@/shared/uiScale";
-import { useWebInputExclusivity } from "@/shared/uiState/inputExclusivity/useWebInputExclusivity";
+import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
 // 基準stageをviewportへ収める一様拡縮を同期する
@@ -58,6 +58,7 @@ function useStageScaleSync(enabled: boolean) {
 // uGUI のインベントリ画面準拠の3カラム+下段ホットバーレイアウト
 // Three-column layout with a bottom hotbar row, matching the uGUI inventory screen
 export default function App() {
+  useWebInputExclusivity();
   const { status, t } = useI18n();
 
   // 一度接続した後の切断中のみオーバーレイを出す（初回接続前は各 panel の connecting... 表示に任せる）
@@ -71,14 +72,7 @@ export default function App() {
   const uiState = useTopicSelector(Topics.uiState, (d) => d?.state ?? null);
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
   const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
-  const webUiSuspended = useTopicSelector(Topics.uiState, isWebUiSuspended);
-  // 休止中もunmountされないよう早期returnより前で呼び、解除時の送り直しを任せる
-  // Called before the early return so it survives suspension and resends the real state on resume
-  useWebInputExclusivity(webUiSuspended);
-  // stage が描かれない間の resize を取りこぼさないよう、描画再開で倍率を測り直す
-  // Re-measure the scale when rendering resumes so a resize while the stage was unmounted is not lost
-  const webUiHidden = !uiVisible || cutScene || webUiSuspended;
-  const stageRef = useStageScaleSync(!webUiHidden);
+  const stageRef = useStageScaleSync(uiVisible);
   const researchScreen = screen === "researchTree";
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
@@ -87,9 +81,9 @@ export default function App() {
   // The start gate is event mode's language selection alone, so its wait is the visibility condition
   const eventLanguageGateWaiting = useTopicSelector(Topics.eventLanguageGate, (d) => d?.waiting === true);
 
-  // Ctrl+U中とUITK主パネル表示中（R1）はPortalを含む全Web UIをunmountする
-  // Unmount the entire Web UI, including portals, while Ctrl+U is active or UITK shows a main panel (R1)
-  if (webUiHidden) return <div className={styles.hidden} data-web-ui-transparent />;
+  // Ctrl+U中はPortalを含む全Web UIをunmountする
+  // Unmount the entire Web UI, including portals, while Ctrl+U is active
+  if (!uiVisible || cutScene) return <div className={styles.hidden} data-web-ui-transparent />;
 
   return (
     <div className={styles.viewport} data-web-ui-transparent>

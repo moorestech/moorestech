@@ -1,4 +1,5 @@
 using System;
+using Client.Input;
 using Client.Playtest.UiElements.GameUi;
 using Client.Playtest.WebUi;
 
@@ -12,17 +13,26 @@ namespace Client.Playtest.UiElements
     /// </summary>
     public static class PlaytestUiLocatorSession
     {
-        // GameUiを先に探し、両系で見つかれば失敗させる
-        // Prefer GameUi and fail when both renderers resolve the testid
-        public static readonly IUiElementLocator Locator = new CompositeUiElementLocator(new GameUiElementLocator(), new WebUiElementLocator());
+        // 両系を持ち、Start で使う系を決める
+        // Hold both systems; pick the one to use at Start
+        private static readonly IUiElementLocator GameUiLocator = new GameUiElementLocator();
+        private static readonly IUiElementLocator WebLocator = new WebUiElementLocator();
         private static int _generation;
         private static bool _active;
+
+        // 系を選ぶとログが出るので選ぶのは Start だけにし、Start 前は配布と同じ既定の Web 系を無ログで置く
+        // Choosing a system logs, so only Start chooses; before Start hold the default Web locator without logging
+        public static IUiElementLocator Locator { get; private set; } = WebLocator;
 
         // 冪等。PlaytestRunnerとRun前のprobeの両方から呼ばれる
         // Idempotent; called from both PlaytestRunner and pre-Run probes
         public static void Start()
         {
-            if (!_active) _generation++;
+            if (!_active)
+            {
+                _generation++;
+                Locator = new SwitchedUiElementLocator(UiInputExclusivity.ActiveUiSystem, GameUiLocator, WebLocator);
+            }
             _active = true;
             Locator.StartSession();
         }

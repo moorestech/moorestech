@@ -13,6 +13,7 @@ namespace Client.Tests.Ui.Input
         [SetUp]
         public void SetUp()
         {
+            UiInputExclusivity.SetActiveUiSystem(UiSystem.Web);
             UiInputExclusivity.ResetWebSilenceForTest();
         }
 
@@ -20,7 +21,6 @@ namespace Client.Tests.Ui.Input
         public void TearDown()
         {
             UiInputExclusivity.ResetWebSilenceForTest();
-            UiInputExclusivity.SetWebUiSuspended(false);
             UiInputExclusivity.SetState(false, false);
         }
 
@@ -64,24 +64,6 @@ namespace Client.Tests.Ui.Input
         {
             UiInputExclusivity.RecordWebMessageReceived(BaseTimestamp);
             Assert.AreEqual(2.5, UiInputExclusivity.SecondsSinceLastWebMessage(BaseTimestamp + Stopwatch.Frequency * 5 / 2).Value, 1e-9);
-        }
-
-        // 休止中に受信が止まっても、解除の時点で無応答ならWebの値は効かない
-        // Even if receipts stop during suspension, a web still silent at resume has no effect
-        [Test]
-        public void 休止とは独立に無応答を判定する()
-        {
-            UiInputExclusivity.RecordWebMessageReceived(BaseTimestamp);
-            UiInputExclusivity.SetWebUiSuspended(true);
-            UiInputExclusivity.EvaluateWebSilence(At(20));
-            UiInputExclusivity.SetWebUiSuspended(false);
-
-            UiInputExclusivity.SetState(true, true);
-            AssertWebValuesCount(false);
-
-            UiInputExclusivity.RecordWebMessageReceived(At(21));
-            UiInputExclusivity.EvaluateWebSilence(At(22));
-            AssertWebValuesCount(true);
         }
 
         private static long At(double secondsAfterBase)

@@ -90,19 +90,20 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             Assert.AreEqual(UIStateEnum.GameScreen, uiStateControl.CurrentState, "ポーズからゲーム画面へ戻れない");
         }
 
-        public static async UniTask WebTextInputTurnsImeOn()
+        public static async UniTask WebTextInputIsIgnoredInGameUiSystem()
         {
-            // (d) Web の入力欄フォーカス（SetState の第 2 引数）でも On、解除で Off
-            // (d) A web text-field focus (SetState's second argument) also turns On, and clearing it turns Off
-            UiInputExclusivity.SetState(false, true);
+            // (d) GameUi の系は Web の値を読まない
+            // (d) The GameUi system does not read web values
+            UiInputExclusivity.SetState(true, true);
             await UniTask.DelayFrame(ApplyWaitFrames);
-            LogState("web text focused");
-            var modeWhileWebFocused = UnityEngine.Input.imeCompositionMode;
+            LogState("web values written in the GameUi system");
+            var focusedWhileWebWritten = UiInputExclusivity.IsTextInputFocused;
+            var pointerWhileWebWritten = UiInputExclusivity.IsPointerOverWebUi;
+            var modeWhileWebWritten = UnityEngine.Input.imeCompositionMode;
             UiInputExclusivity.SetState(false, false);
-            await UniTask.DelayFrame(ApplyWaitFrames);
-            LogState("web text cleared");
-            Assert.AreEqual(IMECompositionMode.On, modeWhileWebFocused, "Web の入力欄フォーカスで IME が On でない");
-            Assert.AreEqual(IMECompositionMode.Off, UnityEngine.Input.imeCompositionMode, "Web の入力欄フォーカス解除で IME が Off でない");
+            Assert.IsFalse(focusedWhileWebWritten, "GameUi の系で Web の入力欄フォーカスが文字入力になった");
+            Assert.IsFalse(pointerWhileWebWritten, "GameUi の系で Web のポインタ占有が通った");
+            Assert.AreEqual(IMECompositionMode.Off, modeWhileWebWritten, "GameUi の系で Web の入力欄フォーカスにより IME が Off でない");
         }
 
         public static async UniTask EscapeLatchHoldsOnlyItsOwnFrame()

@@ -147,7 +147,7 @@ export function createMockHttpServer(): Server {
       const uiState = params.get("state") ?? "PlayerInventory";
       const subState = params.get("subState") ?? undefined;
       if (uiState === "PauseMenu" || subState === "PauseMenuScreen") setPauseMenuPage("top");
-      state.currentUiState = { state: uiState, subState: subState as UiStateData["subState"], keyHints: fx.uiStateKeyHints, webUiSuspended: false };
+      state.currentUiState = { state: uiState, subState: subState as UiStateData["subState"], keyHints: fx.uiStateKeyHints };
       for (const ws of subscribersOf(Topics.uiState)) send(ws, { op: "event", topic: Topics.uiState, data: state.currentUiState });
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true }));
