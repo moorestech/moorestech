@@ -28,6 +28,12 @@ namespace Client.Tests.Ui.Screens.BugReport
             _view = Mount(new BugReportFormView(initial, _commands, Toasts, new BugReportDraft(), Catalog));
         }
 
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts">送信できない報告があるときだけ再送ボタンを出し、押すと action を出す</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts">送信待ちだけなら再送は出さず書き出しは出す</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts">localOnly では失敗があっても再送は出さず書き出しは出す</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts">refused では失敗があっても再送は出さず書き出しは出す</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts">すべて送信済みなら両方とも出さない</web-test>
+        /// <web-test file="src/features/pauseMenu/BugReportFormTests/recoveryControls.test.ts">書き出し中はボタンを押せない</web-test>
         [Test]
         public void 救出ボタンは配送状況で出し分け書き出し中は押せない()
         {
