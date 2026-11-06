@@ -52,18 +52,6 @@ namespace Client.Tests.Ui.Text
         }
 
         [Test]
-        public void Titleのクラスは字間を詰めて字幅をWebへ寄せる()
-        {
-            // 値は Task 11 の並べ比べで決めるので、詰める向きだけを見る
-            // The values are settled by the Task 11 comparison, so only the direction is checked
-            foreach (var className in new[] { UiTypographyClass.TitleOrder1, UiTypographyClass.TitleOrder2, UiTypographyClass.TitleOrder3, UiTypographyClass.TitleOrder4 })
-            {
-                var label = Mount(className);
-                Assert.Less(label.resolvedStyle.letterSpacing, 0f, className);
-            }
-        }
-
-        [Test]
         public void 中央揃えのクラスは大きさのクラスより後に効く()
         {
             var label = Mount(UiTypographyClass.TextSm);

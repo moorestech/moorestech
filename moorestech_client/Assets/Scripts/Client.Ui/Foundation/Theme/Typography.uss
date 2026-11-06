@@ -11,9 +11,9 @@
 }
 
 /* Mantine の Text/Title の写し（UiTypographyClass）。Text の root は margin 0・padding 0 で、行の高さは USS に無いので min-height = 字 × line-height */
-/* Title は Web と同じ px。GameUi のフォントは字幅が約 7% 広いので letter-spacing で詰めて題の幅を Web に寄せる（設計書 A-37。値は Task 11 の並べ比べで決める） */
+/* Title は Web と同じ px。Web は Regular 1 字形で題を描き、GameUi は Bold の字形（約 3.3% em ずつ字送りが広い）なので letter-spacing で詰めて題の幅を Web に寄せる（設計書 A-37）。UITK の letter-spacing は px と書いても字の大きさの 1/100 単位で効くので、4 段とも同じ -3.6 で、Regular と幅が 3% 以内になる（C2-c Task 11 の実測） */
 /* Copies of Mantine Text/Title (UiTypographyClass); the Text root has margin 0 and padding 0, and USS has no line-height so min-height = size x line-height */
-/* Titles use the Web px; the GameUi font sets about 7% wider, so letter-spacing tightens the title width to the Web's (design A-37; values settled by the Task 11 comparison) */
+/* Titles use the Web px; the Web draws titles with its single Regular face while GameUi uses Bold (about 3.3% em wider per glyph), so letter-spacing tightens the title width to the Web's (design A-37); UITK applies letter-spacing in 1/100 of the font size even when written as px, so one -3.6 for all four steps keeps the width within 3% of Regular (measured in C2-c Task 11) */
 .text--xs,
 .text--sm,
 .text--md,
@@ -44,25 +44,25 @@
 
 .title--order-1 {
     font-size: 34px;
-    letter-spacing: -1.3px;
+    letter-spacing: -3.6px;
     min-height: 44.2px;
 }
 
 .title--order-2 {
     font-size: 26px;
-    letter-spacing: -1px;
+    letter-spacing: -3.6px;
     min-height: 35.1px;
 }
 
 .title--order-3 {
     font-size: 22px;
-    letter-spacing: -0.8px;
+    letter-spacing: -3.6px;
     min-height: 30.8px;
 }
 
 .title--order-4 {
     font-size: 18px;
-    letter-spacing: -0.6px;
+    letter-spacing: -3.6px;
     min-height: 26.1px;
 }
 
@@ -133,4 +133,13 @@
 .game-ui-locale--cjk .text--medium,
 .game-ui-locale--cjk .key-hint-text {
     -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
+}
+
+/* 和文は字送りが全角 1 字で Web の Medium と GameUi の Bold が同じ幅なので、題の字間を詰めない（C2-c Task 11 の実測） */
+/* CJK glyphs advance one full em, so the Web Medium and GameUi Bold widths match and titles are not tightened (measured in C2-c Task 11) */
+.game-ui-locale--cjk .title--order-1,
+.game-ui-locale--cjk .title--order-2,
+.game-ui-locale--cjk .title--order-3,
+.game-ui-locale--cjk .title--order-4 {
+    letter-spacing: 0;
 }
