@@ -32,9 +32,9 @@ namespace Client.Ui.Editor.Gallery
             rootVisualElement.styleSheets.Add(theme);
             rootVisualElement.styleSheets.Add(galleryStyle);
 
-            // 見本の文言は今の言語で解く
-            // Sample texts resolve in the current language
-            Localize.Initialize();
+            // PlayMode中は起動系が合成済みの辞書をそのまま使うので初期化しない
+            // In PlayMode the boot flow already composed the dictionary, so do not re-initialize
+            if (!EditorApplication.isPlaying) Localize.Initialize();
             rootVisualElement.Add(new UiGalleryPage(UiGalleryEntryCatalog.CreateAll()));
         }
     }

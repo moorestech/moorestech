@@ -35,13 +35,15 @@ namespace Client.Tests.Ui.State
         private static void AssertText(LocalizationKey expectedKey, string[] expectedParams, UiText actual)
         {
             Assert.IsNotNull(actual);
-            Assert.AreEqual(expectedKey.Key, actual.Key.Key);
-            Assert.AreEqual(expectedParams.Length / 2, actual.Params.Count);
-            for (var i = 0; i < actual.Params.Count; i++)
+            // 期待のキーと引数を同じ辞書で解いた文と、Resolve の結果を比べる
+            // Compare Resolve() with the expected key and params resolved by the same dictionary
+            var expectedParamList = new LocalizationTextParam[expectedParams.Length / 2];
+            for (var i = 0; i < expectedParamList.Length; i++)
             {
-                Assert.AreEqual(expectedParams[i * 2], actual.Params[i].Name);
-                Assert.AreEqual(expectedParams[i * 2 + 1], actual.Params[i].Value);
+                expectedParamList[i] = new LocalizationTextParam(expectedParams[i * 2], expectedParams[i * 2 + 1]);
             }
+            var expected = expectedParamList.Length == 0 ? Localize.Get(expectedKey) : Localize.GetFormatted(expectedKey, expectedParamList);
+            Assert.AreEqual(expected, actual.Resolve());
         }
 
         [Test]

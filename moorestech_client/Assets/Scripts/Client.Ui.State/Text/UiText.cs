@@ -11,12 +11,12 @@ namespace Client.Ui.State.Text
     /// </summary>
     public sealed class UiText
     {
-        public UiTextSource Source { get; }
+        internal UiTextSource Source { get; }
 
         // Dictionary時のみ
         // Dictionary only
-        public LocalizationKey Key { get; }
-        public IReadOnlyList<LocalizationTextParam> Params { get; }
+        internal LocalizationKey Key { get; }
+        internal IReadOnlyList<LocalizationTextParam> Params { get; }
 
         // Content時のみ
         // Content only
@@ -77,7 +77,7 @@ namespace Client.Ui.State.Text
         }
     }
 
-    public enum UiTextSource
+    internal enum UiTextSource
     {
         Dictionary,
         Content,

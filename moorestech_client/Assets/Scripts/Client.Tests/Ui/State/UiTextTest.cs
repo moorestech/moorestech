@@ -16,8 +16,6 @@ namespace Client.Tests.Ui.State
         public void 辞書キーの文は辞書から解く()
         {
             var text = new UiText(LocalizationKeys.Ui.PauseMenu.Settings);
-
-            Assert.AreEqual(UiTextSource.Dictionary, text.Source);
             Assert.AreEqual(Localize.Get(LocalizationKeys.Ui.PauseMenu.Settings), text.Resolve());
         }
 
@@ -26,8 +24,6 @@ namespace Client.Tests.Ui.State
         {
             var key = ContentLocalizationKeys.ItemName(Guid.Parse("01234567-89ab-cdef-0123-456789abcdef"));
             var text = UiText.FromContent(key);
-
-            Assert.AreEqual(UiTextSource.Content, text.Source);
             Assert.AreEqual(Localize.GetContent(key), text.Resolve());
         }
 
@@ -35,8 +31,6 @@ namespace Client.Tests.Ui.State
         public void 解決済みの文はそのまま返す()
         {
             var text = UiText.FromVerbatim("Blueprint 1");
-
-            Assert.AreEqual(UiTextSource.Verbatim, text.Source);
             Assert.AreEqual("Blueprint 1", text.Resolve());
         }
 
