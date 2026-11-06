@@ -29,10 +29,29 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Test the gate itself
-        run: python3 -m unittest discover -s .github/scripts/tests -p 'test_uitk_web_follow_*.py' -v
-
       - name: Run G1 against this pull request
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: python3 .github/scripts/check-uitk-web-follow.py --base "$BASE_SHA" --head HEAD
+
+      # 実ソース全件が台帳の行に入るかの検査。台帳に記入する側（feature/uitk）の PR だけで走らせる
+      # Checks that every real Web source falls into a ledger row; runs only on the PRs where the ledger is maintained
+      - name: Test the real ledger against the Web sources
+        run: python3 -m unittest discover -s .github/scripts/tests -p 'test_uitk_web_follow_real_ledger.py' -v
+
+  # G1 自身の単体テスト。if を付けず master の PR でも走らせ、スクリプトの破損を master で止める（合成の台帳だけを読み、実ソースと実台帳の突き合わせは含めない）
+  # Unit tests of G1 itself. No if, so master PRs also run them and a broken script is caught on master (only synthetic ledgers are read; the real-source ledger check is excluded)
+  uitk-web-follow-gate-selftest:
+    name: UITK Web follow gate self-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test the gate itself
+        run: |
+          set -e
+          for test_file in .github/scripts/tests/test_uitk_web_follow_*.py; do
+            name=$(basename "$test_file")
+            [ "$name" = "test_uitk_web_follow_real_ledger.py" ] && continue
+            python3 -m unittest discover -s .github/scripts/tests -p "$name" -v
+          done

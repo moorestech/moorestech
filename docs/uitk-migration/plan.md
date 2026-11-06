@@ -28,7 +28,7 @@
 | 全体スイッチと追従（2026-11-06） | 長命ブランチの中の切り替えと追従 | 画面別の所有表は使わず「全部 Web／全部 UITK」の 1 つのデバッグスイッチにする。UITK の間、未実装の画面は使えない。G1 と追従台帳は master から外し、master を取り込むたびに長命ブランチ側で記帳する。追従は未移植画面の実装より優先する。切替前のビルドは配らず（テスター・staging とも）、確認は Unity Editor の中だけ。切替 PR の中でだけ Windows/Mac ビルドと検証機を通す（`.decisions/2026-11-06-UITK長命ブランチの中は全体スイッチ1つで切り替え追従はブランチ側で記帳する.md`） | 段階 1 の所有表・委譲・Editor 限定の上書きは全体スイッチへ作り直す |
 | 切り出しと取り込み（2026-11-06） | CEF 停止の記録・最終検証中の Web 更新・レーンのマージ | CEF 停止の記録（§3.11）は別 PR で先に master へ入れる。最終検証中に master へ Web の更新が入ったら取り込んで再検証する（切替の日が延びる）。レーンは moores-code-review を通して agent が `feature/uitk` へマージし、master への切替 PR はユーザーがマージする（`.decisions/2026-11-06-CEF停止の記録はUITK長命ブランチから先にmasterへ切り出す.md`） | テスターの UI 全停止の報告に、今から原因の値が載る |
 | CEF の不具合（2026-11-06） | 切替までの CEF 由来の不具合 | 起動不能・データ消失を含めて直さない。CEF 停止の記録の切り出しはそのまま行う。CEF 由来でない Web 画面の不具合は従来どおり master で直す（`.decisions/2026-11-06-UITK切替までCEF由来の不具合は直さない.md`） | テスターは切替の日まで CEF の不具合を被り続ける（§6） |
-| 見た目（2026-11-06） | UITK の画面の見た目 | 全段階の画面を Web 版と同じ見た目にする。同じにするために影響が大きく非本質的な対応が要る箇所だけは推奨案でよい。ポーズのボタンに操作音は付けない。ref-uitk-design の「面は GamePanel だけ」も直す（`.decisions/2026-11-06-UITK段階1の画面はWeb版と同じ見た目にする.md`・`.decisions/2026-11-06-UITK段階2以降の画面もWeb版と同じ見た目にする.md`） | チャレンジ・列車 HUD も様式化しない |
+| 見た目（2026-11-06） | UITK の画面の見た目 | 全段階の画面を Web 版と同じ見た目にする。無理に同じにする必要はなく、影響が小さく非本質的な対応が入るのであれば推奨案でもよい（例外はユーザー原文どおり「無理に同じにする必要はない、影響が小さく非本質的な対応が入るのであれば、推奨でも良い」）。ポーズのボタンに操作音は付けない。ref-uitk-design の「面は GamePanel だけ」も直す（`.decisions/2026-11-06-UITK段階1の画面はWeb版と同じ見た目にする.md`・`.decisions/2026-11-06-UITK段階2以降の画面もWeb版と同じ見た目にする.md`） | チャレンジ・列車 HUD も様式化しない |
 
 ほかの論点は agent の既定として進め、台帳に記録する（§7.2）。
 
@@ -67,6 +67,7 @@
 | ブランチ | `feature/uitk`（`feature/uitk-stage1` を改名。段階 1 はここに入っている）。PR #1589 は閉じ、切替の日に新しい PR を作る | 裁定（名前は agent 前提） |
 | レーン | 各レーンは `feature/uitk` から切った worktree で作り、moores-code-review を通して agent が `feature/uitk` へマージコミットで取り込む。master への PR は作らない | 裁定 |
 | master の取り込み | `feature/uitk` へ master をマージコミットで取り込む。頻度は **週 1 回と、各レーンを `feature/uitk` から切る直前**（レーンが古い Web を写さないため） | agent 既定 |
+| 束 1 の暗転戻し | 台帳の束 1 は `切替済み` から `暗転` へ戻す作業を、この文書を `feature/uitk` へ取り込む最初の取り込み PR で行う（作業の詳細は §2.2 作業（画面）の 2 行目）。取り込み担当は最初の取り込みの前に必ず読む | 裁定の帰結 |
 | 取り込みのたびの記帳 | 取り込みは `feature/uitk` への PR（またはローカルで G1 のスクリプト `.github/scripts/check-uitk-web-follow.py --base <取り込み前の feature/uitk> --head <取り込み後>`）で行い、その回に入った Web の差分を台帳 `docs/uitk/TODO.md` の「## 追従記録」へ `写した`／`捨てた（理由）` で記帳する。G1 は `feature/uitk` の中では未記帳の件数を出すだけで赤にしないので、取り込みの PR では件数が 0 であることを見てからマージする（§4.7） | 記帳は裁定。件数 0 を見てマージするのは agent 既定 |
 | 追従の優先 | 移し終えた画面の追従（「写した」の実装）を、未移植画面の実装より先にする。両立しなければ残り画面の完成を延ばす | 裁定 |
 | 全体スイッチ | 長命ブランチの中は「全部 Web／全部 UITK」の 1 つのデバッグスイッチで切り替える（§3.3） | 裁定 |
@@ -197,6 +198,7 @@
 
 **作業（画面）**
 - `PauseMenuState` と `PauseMenuStateService` は C# のまま使い、ビューと Presenter だけを作る。`pause_menu.*` と `bug_report.submit` のハンドラを、型付きコマンドと JSON アダプタに分ける（host §3）
+- 台帳の束 1 の `切替済み` から `暗転` への戻し（束 1 の行の所有者も `Web` に戻す。起点 `979725bcd1` はそのまま）は、この文書を `feature/uitk` へ取り込む最初の取り込み PR で行う（作り直しより前に）。`切替済み` のままだと、master の取り込みで入るポーズ系の Web の変更を G1 が落とす（§4.7）
 - 作った形では、ポーズ系の状態（入れ子の列車中・スキット中を含む）で Web を全面的にオフにした。全体スイッチでは UITK 側で Web ホストを起動しないので、この仕組みは要らなくなる（作り直しで外す）
 - 見た目は Web 版と同じにする（`.decisions/2026-11-06-UITK段階1の画面はWeb版と同じ見た目にする.md`）。枠は GamePanel の様式（題の横線・下端の三角・半透明）ではなく Web の枠（不透明に近い暗色・角丸 12px・大きい太字の題・節見出し）にし、トーストも Mantine Notification の見た目（暗色の角丸の小窓・丸い色帯）に合わせる。参照は `moorestech_logs/uitk/reference-captures/web-a9d5123537/1-*.png`。ポーズのボタンに操作音は付けない
 - GamePanel の初出で、720p と 21:9 の 2 解像度を 1 回撮る（§4.6）
@@ -207,7 +209,6 @@
 - UITK 側は 0-10 の「Web ホストを起動しない」経路に載せ、Web 側は UITK のルートを出さない
 - 入力の裁き（`UiPointerHitTest`・`UiInputExclusivity`）を、スイッチの系だけを読む形にする（§3.8）
 - 段階 1 で Web 側に入れた休止の仕組み（台帳の追従記録 a97575e5b5・1095cab8bf・ccb3d512f7 で写した旧 R1 の Web 側の変更）は master に無い（実測: 4 コミットとも origin/master の祖先でない）。`feature/uitk` の Web 側から外し、CEF 停止の記録を切り出した後の master と同じ Web に戻す（agent 既定。全体スイッチの Web 側を master と同じものにし、取り込みの衝突も減らすため）
-- 台帳の束 1 を `切替済み` から `暗転` に戻し、束 1 の行の所有者を `Web` に戻す（起点 `979725bcd1` はそのまま）。`切替済み` のままだと、master の取り込みで入るポーズ系の Web の変更を G1 が落とす（§4.7）
 - ラダー `uitk-lifeline` と入れ子ポーズの録画を、作り直した UITK 側で流し直す。Web 側でポーズの既存シナリオが master と同じ合否になることも見る
 
 **完了条件**（段階 1 として満たしたもの。作り直しの後に流し直す）
@@ -371,6 +372,7 @@
 - 撤去を積み始めたら、全体スイッチの Web 側は使えなくなる。積む前に、全体スイッチの Web 側と UITK 側で全録画を回しておく
 - 切替 PR の中で、Windows と Mac のビルドを回し、Windows 検証機・Mac の Steam・`test-release-playtest-mac.sh` を通す。ラダー 6 本と全録画を CEF の存在しないビルドで流す。IME を CEF を含まない配布ビルドで一巡する（§4.9）。オーナーの目視もここで 1 回（§2.0）
 - G1 は切替 PR で全束を `切替済み` にし、全行の所有者を `UITK` にする（§4.7）
+- `feature/uitk` 上で Web を触ったコミット（§2.2 の休止の撤去・撤去 5c の `moorestech_web/` 削除・取り込み以外の Web 変更）も、G1 は各束の未記帳として数える。切替 PR の前に各束の「## 追従記録」へ `捨てた（理由）` で記帳し、ローカルで `.github/scripts/check-uitk-web-follow.py --base origin/master --head feature/uitk` を回して 0 件を見る。切替 PR は head=`feature/uitk` から出す（中継ブランチ禁止）。台帳と G1 の workflow は切替 PR の中では消さない（merge ref から workflow が消えると G1 が起動せず、required check が空のまま未記帳で切替がマージされうる）。切替 PR のマージ後に別 PR で両方まとめて消す（台帳だけ消すと G1 が落ちる）
 - 最終検証中に master へ Web の更新が入ったら、取り込んで追従を記帳し、影響箇所を再検証してから切り替える（裁定）。撤去後の取り込みは、master 側の Web の変更が消したファイルとの衝突になる。消す側で解決し、中身は UITK 側へ写して記帳する
 - ユーザーが切替 PR をマージしたら、moores-playtest-release で playtest へ反映する（§2.0）
 
@@ -382,7 +384,7 @@
 | 5b CEF と配布工程 | `jp.juha.cefunity`（manifest 45 行目）。`CefUnity` を参照する 3 ファイル（`Client.WebUiHost/Cef/WebUiCefNavigator.cs`、`Client.Playtest/WebUi/CefScreenMapper.cs`、`Client.Playtest/WebUi/CefInputForwarder.cs`）。MainGameUI.prefab の CEF 一式（Canvas〈Overlay・sortingOrder 0。実測〉・RawImage・`CefUnityBrowserSample`・`WebUiCefNavigator`）を `uloop execute-dynamic-code` で外す。`CefRuntimeBundler` と `BuildPipeline` からの呼び出し、`CefPackageLfsValidator`、`scripts/setup-cef.*`、CI の CefUnity 事前取得。`scripts/playtest/lib/release-artifact.sh` の CEF helper 検査とその契約テスト（`scripts/playtest/tests/test-release-playtest-mac.sh`）、`scripts/playtest/README.md` の CEF raw input の確認。共用部品は消さずに整理する（`CefLfsPointer` は中立な名前へ改名。ffmpeg と Harmony の同梱検査が使う。`EnvironmentScrubOnEditorLoad` は `Client.ExternalProcess` 側へ移す） |
 | 5c Web ホストと Web 資産 | `Client.WebUiHost`（asmdef ごと）、C# の通信契約テスト（131 件）、`WebUiActionInvoker`、`Client.Playtest/WebUi/PlaytestDomQuery`、`Client.Tests` のうち WebUiHost を参照する 67 ファイル（実測）、`moorestech_web/`、CI の `webui-test` ジョブ・`needs_webui`・pnpm の step、`WebUiProductionArtifactBuilder`、`StreamingAssets/WebUi` とその `.gitignore` |
 | 5d NuGet | AspNetCore 系（裁定 3 で HttpListener の場合）と、使われなくなった `Microsoft.Extensions.*`。依存グラフを確かめてから消す。`packages.config` は 74 件で、47 件が `Microsoft.AspNetCore.*` か `Microsoft.Extensions.*`（実測）。`ModelContextProtocol 0.2.0-preview.3` は client と server の scripts に `using` が無い（実測）。未使用なら同じ PR で外す（推測） |
-| 5e 文書・スキル・改名・ADR・bd | 改名: `WebPinId`（13 か所。実測）、`LocalizationKeys.Ui.Blueprint.WebModal*`、`VanillaSchema/challenges.yml` の `web anchor id`（3 か所。実測）、`WebUiGateAuditTest`（名前を変え、対象を付け替えて残す）。スキル: `ref-webui-design` を廃止して `ref-uitk-design` を完成させ、moores-code-review の ts/tsx 観点 12 本を撤去し、DSL のスキル文書を更新する。文書: `docs/webui` を archive にして入口を `docs/uitk` にし、`docs/development/macmini/unity-editor.md` の CEF の節を消す。ADR と裁定の改訂か廃止の記録（§7.3）。bd: CEF 関連の open 課題 12 件（shipping §1.2）と `moorestech-cgm` を、閉じるか台帳へ転記する |
+| 5e 文書・スキル・改名・ADR・bd | 改名: `WebPinId`（13 か所。実測）、`LocalizationKeys.Ui.Blueprint.WebModal*`、`VanillaSchema/challenges.yml` の `web anchor id`（3 か所。実測）、`WebUiGateAuditTest`（名前を変え、対象を付け替えて残す）。スキル: `ref-webui-design` を廃止して `ref-uitk-design` を完成させ、moores-code-review の ts/tsx 観点 12 本を撤去し、DSL のスキル文書を更新する。文書: `docs/webui` を archive にして入口を `docs/uitk` にし、`docs/development/macmini/unity-editor.md` の CEF の節を消す。ADR と裁定の改訂か廃止の記録（§7.3）。bd: CEF 関連の open 課題 12 件（shipping §1.2）と `moorestech-cgm` を、閉じるか台帳へ転記する。台帳 `docs/uitk/TODO.md` と G1 の workflow・スクリプト・テストはこの区分に含めず、切替 PR のマージ後に別 PR で消す（切替 PR で消すと G1 が起動せず未記帳のままマージされうるため） |
 
 - 5a を先にする。起動しなくなれば、残りは参照されないコードになる
 - 5b を 5c より先にする。5c を先に出すと、`MainGameUI.prefab` に missing script（guid `592d2edb…`＝`WebUiCefNavigator`）が残ったまま CEF が起動し続ける
@@ -555,7 +557,7 @@ AGENTS.md「失敗の扱い」に従い、「誰がどこで気づくか」を�
 2. **共有ファイルは integrator が直列で所有する**: 層 enum、ルータと全体スイッチ、composition root（DI の Installer の登録）、`Tokens.uss`・`Theme.uss`、`AnchorIds`、DSL のロケータ本体、`Localization/localization.csv`、台帳、prefab とシーン（uloop で 1 本ずつ）。画面のルータ登録は integrator がレーンの取り込みで行う。master の取り込みと追従の記帳も integrator が持つ（agent 既定。台帳と衝突の解決が共有ファイルに集まるため）。
 3. **部品の昇格**: 1 機能だけが使う部品は `Screens/<機能>/` に置く。2 機能目で使われたら、integrator が波の境で `Components/` へ移す。
 4. **純ロジックの移植は別レーン**: vitest を仕様にして、C# の NUnit へ 1 対 1 で移す（約 4,000 行、L0 約 290 件）。レーンの先頭で、Unity の外で `dotnet test` が回るかを確かめる（S12。前例 `mooresmaster.Tests`）。回らなければ Editor のレーンだけで回す。AGENTS.md のコンパイル必須は、PR の前の `uloop compile` で守る。
-5. **挙動を変えるのは grill を通したものだけ**: 移植はテスト名を写したパリティが基本。見た目は Web 版と同じにする（§0「見た目」）。同じにするために影響が大きく非本質的な対応が要る箇所だけは推奨案で外してよく、外したものは台帳に書く。各段階の着手前に、moores-writing-plans で詳細計画を切る。
+5. **挙動を変えるのは grill を通したものだけ**: 移植はテスト名を写したパリティが基本。見た目は Web 版と同じにする（§0「見た目」）。影響が小さく非本質的な対応が入るのであれば推奨案で外してよく（§0「見た目」の原文どおり）、外したものは台帳に書く。各段階の着手前に、moores-writing-plans で詳細計画を切る。
 
 **Editor の予算と役割**
 
@@ -656,7 +658,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 
 - 画素のパリティは目標にしない。前回は uGUI の正本が消えて追従できず打ち切った（`.decisions/2026-08-17-uGUI移植を終了しWeb-UIは独自調整へ移る.md`）。今回は参照キャプチャ（0-8）を残して意図を辿る
 - 一致させるもの: 機能、トークン（色・寸法・層）、移したテスト。比べ方: 参照キャプチャと、UITK の ScreenCapture（透かし入り）を並べる
-- 一致させる見た目は Web 版（§0「見た目」）。参照キャプチャと並べて差があれば、Web 版へ寄せる。寄せるのに影響が大きく非本質的な対応が要るものだけ、推奨案のまま残して台帳に書く
+- 一致させる見た目は Web 版（§0「見た目」）。参照キャプチャと並べて差があれば、Web 版へ寄せる。影響が小さく非本質的な対応が入るのであれば（§0「見た目」の原文どおり）、推奨案のまま残して台帳に書く
 - 撮る解像度: 720p と 21:9 の 2 種を、GamePanel の初出（段階 1）で 1 回
 - 波ごとに画面の写真を外部監査（codex-audit、画像付き）にかける。ユーザーの目視は切替 PR の検証ビルドで 1 回（§2.0。段階の区切りでの staging の目視は棄却された）
 
@@ -664,7 +666,7 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 
 | # | ゲート | 中身 | 入れる段階 |
 |---|---|---|---|
-| G1 | Web 追従 | 長命ブランチ側で持つ（下の「G1 の走り方」） | 0（最初の PR）。2026-11-06 に `feature/uitk` へ移した |
+| G1 | Web 追従 | 長命ブランチ側で持つ（下の「G1 の走り方」）。ワークフロー・スクリプト・台帳のファイルは master に残し、master の PR では G1 の job を skip する（ファイルを消すと feature/uitk への取り込みで削除衝突が起きるため。agent 既定）。最初の取り込み PR で束 1 を `暗転` へ戻す（§2.2 作業（画面）の 2 行目） | 0（最初の PR）。2026-11-06 に `feature/uitk` へ移した |
 | G2 | uGUI 追加の禁止 | `WebUiGateAuditTest` を残す。撤去の 5e で名前を変え、対象を付け替える（`.decisions/2026-09-08-uGUI追加禁止はトークン検査と分類粒度の両方で守る.md` の、両方で守る形を保つ） | 既存 |
 | G3 | USS・UXML の規約 | §3.5 と §3.12 | 1 |
 | G4 | 撤去後 | `WebUi`・`Cef`・`webui` のトークンが、許可リストの外で 0 | 5（撤去） |
@@ -674,6 +676,8 @@ Playwright は今 CI で走っていない（型検査だけ。`run_test.yml`）
 - 束の状態: 束のレーンを `feature/uitk` で始めるときに `暗転` にし、`暗転の起点` にそのとき `feature/uitk` に取り込んである最新の master のコミットを書く。作り終えた束も、切替 PR までは `暗転` のまま置く（`切替済み` にすると、master の取り込みで入る Web の変更を G1-2 が落とし、Web を凍結したのと同じになるため。agent 既定）
 - `feature/uitk` への PR（レーンと master の取り込み）: G1 は台帳の網羅（`web/src` の全ファイルがどれかの行に入っている）を検査し、暗転中の束ごとに未記帳の件数を出す。未記帳では赤にならないので、取り込みの PR では件数が 0 であることを見てからマージする（agent 既定。§1.1）。ローカルでは同じスクリプト `.github/scripts/check-uitk-web-follow.py --base <取り込み前> --head <取り込み後>` で確かめられる
 - 切替 PR: 全束を一度に `切替済み` にし、全行の所有者を `UITK` にする。base（master）の台帳は全束 `Web` なので全束が「今回切り替える束」になり、どれかの束の起点以降に未記帳の Web 変更が 1 件でもあれば赤になる。束ごとの暗転の起点と、切替済みの束の判定は、この PR で全部まとめて行う
+- レーンと取り込みは `feature/uitk` 向けの PR として開き、G1 が緑なのを見てからマージする（ローカルマージで push すると G1 は切替 PR まで一度も走らない）
+- 切替 PR の前に、`feature/uitk` 上で Web を触ったコミット（§2.2 の休止の撤去・撤去 5c の削除など）を各束の「## 追従記録」へ `捨てた（理由）` で記帳する。しないと切替 PR の G1-1 が全束の未記帳として赤にする（§2.6）
 - 切替済みの束の Web パスへの変更を落とす規則（G1-2）は、切替の後に `feature/uitk` へ入る変更にだけ効く。切替 PR は Web を消すので、実際に働く場面はほぼ無い（推測）
 
 ### 4.8 実測（段階 0）

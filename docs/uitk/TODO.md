@@ -10,6 +10,7 @@
 - 束 = 計画 §1 の段階 1〜5。状態は `Web`（まだ作っていない）→ `暗転`（`feature/uitk` の上で作っている。作り終えても切替 PR まではこのまま）→ `切替済み`（切替 PR で全束を一度に付ける）
 - 束のレーンを始めるとき: その束の `状態` を `暗転` にし、`暗転の起点` に、そのとき `feature/uitk` に取り込んである最新の master のコミット（10 桁）を書く
 - master を `feature/uitk` へ取り込むたびに、その回に入った暗転中の束の Web パスを触るコミットを「## 追従記録」に `写した`（UITK 側の写し先）か `捨てた`（理由）で書く。G1 は暗転中の束ごとに未記帳の件数を出すが、赤にはしない。取り込みの PR は件数が 0 であることを見てからマージする。追従（`写した` の実装）は未移植の画面の実装より先にする
+- 切替 PR の前に、`feature/uitk` 上で Web を触ったコミット（休止の撤去・撤去 5c の削除・取り込み以外の Web 変更）も各束の「## 追従記録」に `捨てた（理由）` で記帳し、`.github/scripts/check-uitk-web-follow.py --base origin/master --head feature/uitk` をローカルで回して未記帳 0 件を見る。切替 PR は head=`feature/uitk` から出す（中継ブランチ禁止）
 - 切替 PR: 全束の `状態` を `切替済み`、全行の `所有者` を `UITK` にする（切替は全束一度）。G1 は、各束の起点より後にその束の Web パスを触った非マージコミットが全部記帳されていなければ落とす
 - 束を切替 PR より前に `切替済み` にしない。切替済みの束の Web パスへの追加・変更は G1 が落とすので、master の取り込みで入る Web の変更まで落ち、Web を凍結したのと同じになる
 - `Web パス` は `moorestech_web/webui/` からの相対。末尾 `/` はディレクトリ、それ以外はファイル。ファイルの持ち主は最長一致の行（同じ長さなら全部）
@@ -29,18 +30,18 @@
 
 ## 行
 
-所有者の列が所有表の初版（全部 Web）。`agent 既定` は行に効く agent 既定（全体は「## agent 既定（ユーザー未裁定）」）、`実測の結論` は行に効く実測（全体は「## 実測の結論」）。
+所有者の列は切替 PR で全行 `UITK` に付け替える列（今は全部 Web）。`agent 既定` は行に効く agent 既定（全体は「## agent 既定（ユーザー未裁定）」）、`実測の結論` は行に効く実測（全体は「## 実測の結論」）。
 
 | 行 | 種別 | 束 | 所有者 | Web パス | agent 既定 | 実測の結論 | 参照キャプチャ |
 |---|---|---|---|---|---|---|---|
 | pauseMenu（ポーズ・バグ報告・入れ子のポーズ） | 機能 | 1 | Web | `src/features/pauseMenu/` `e2e/tests/system/pauseMenu.spec.ts` `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` `e2e/tests/system/feedbackReportLabels.spec.ts` `e2e/mock-host/pauseMenuActions.ts` `e2e/mock-host/topics/pauseMenuControls.ts` | 裁定 2=A（第一弾は命綱） | — | 1-pause-top 1-pause-disconnected 1-pause-delivery-pending 1-pause-in-skit 1-pause-in-train 1-bug-report |
 | settings（画質・言語・ダッシュ方式） | 機能 | 1 | Web | `src/features/settings/` | 裁定 2=A | — | 1-settings 1-settings-graphics-recovered |
-| toast | 機能 | 1 | Web | `src/features/toast/` `e2e/tests/regression/actionErrors.spec.ts` | 裁定 2=A。様式化 (a) | — | 1-toast |
+| toast | 機能 | 1 | Web | `src/features/toast/` `e2e/tests/regression/actionErrors.spec.ts` | 裁定 2=A。見た目は Web 版と同じ（2026-11-06 裁定） | — | 1-toast |
 | commonHud（クロスヘア） | 機能 | 2 | Web | `src/features/commonHud/` `e2e/tests/system/commonHud.spec.ts` | — | — | 2-game-hud |
 | keyHint | 機能 | 2 | Web | `src/features/keyHint/` | — | — | 未撮影 |
 | modeHud（配置 HUD・削除モードの帯） | 機能 | 2 | Web | `src/features/modeHud/` `e2e/tests/modeHud/` `e2e/support/operationHudAssertions.ts` | — | — | 2-placement 2-placement-unavailable 2-placement-connect-tool 2-delete-bar |
 | progress（採掘ゲージ） | 機能 | 2 | Web | `src/features/progress/` `e2e/tests/progress.spec.ts` `e2e/capture-mining-progress.ts` | — | — | 2-mining 2-progress-labeled |
-| trainHud（乗車中の分岐表示） | 機能 | 2 | Web | `src/features/trainHud/` | 様式化 (a) | — | 2-train-hud |
+| trainHud（乗車中の分岐表示） | 機能 | 2 | Web | `src/features/trainHud/` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 2-train-hud |
 | notification（獲得通知） | 機能 | 2 | Web | `src/features/notification/` `e2e/tests/notification/` `e2e/captures/capture-connection-line-notifications.ts` | 確認=演出は実時間 | — | 2-notifications 動画 2-notification-enter-aggregate-exit |
 | skit（会話窓・選択肢・ツールバー・暗転） | 機能 | 2 | Web | `src/features/skit/` `src/app/skitTokens.css` `e2e/tests/skit.spec.ts` `e2e/mock-host/skitActions.ts` `e2e/capture-skit.ts` | 確認=演出は実時間 | — | 2-skit-text 2-skit-choices 2-skit-transition |
 | challenge: CurrentChallengeHud | 機能 | 2 | Web | `src/features/challenge/CurrentChallengeHud.tsx` `src/features/challenge/CurrentChallengeHud.module.css` `e2e/tests/challenge/` `e2e/challenge-hud/` `e2e/support/challengeHudAssertions.ts` | — | — | 2-challenge-hud-multiple-long |
@@ -53,14 +54,14 @@
 | オーバーレイ: 背面の通知層（stage の裏） | オーバーレイ | 2 | Web | `src/app/App.tsx` | — | — | 未撮影 |
 | オーバーレイ: カーソル追従（ツールチップ・掴みの絵） | オーバーレイ | 2 4 | Web | `src/app/App.tsx` | — | — | 未撮影 |
 | オーバーレイ: 常駐 HUD の可否（ホットバー・装備） | オーバーレイ | 3 4 | Web | `src/app/App.tsx` | — | — | 未撮影 |
-| オーバーレイ: 画面のマウント点と背景ディム | オーバーレイ | 1 2 3 4 5 | Web | `src/app/App.tsx` `src/app/App.module.css` `src/app/App.architecture.test.ts` | 裁定 1=A（束単位で暗転のまま作り所有表で切り替える） | — | 未撮影（下表） |
+| オーバーレイ: 画面のマウント点と背景ディム | オーバーレイ | 1 2 3 4 5 | Web | `src/app/App.tsx` `src/app/App.module.css` `src/app/App.architecture.test.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 未撮影（下表） |
 | オーバーレイ: 再接続・辞書エラー・エラー境界 | オーバーレイ | 5 | Web | `src/app/App.tsx` `src/app/AppErrorBoundary.tsx` `e2e/tests/regression/connection.spec.ts` | — | — | 5-reconnect |
 | buildMenu | 機能 | 3 | Web | `src/features/buildMenu/` `e2e/tests/regression/buildMenu.spec.ts` `e2e/tests/regression/buildMenuLayout.spec.ts` `e2e/capture-buildmenu.ts` `e2e/mock-host/fixtures/buildMenuFixtures.ts` | — | — | 3-build-menu |
 | hotbar | 機能 | 3 | Web | `src/features/hotbar/` `e2e/tests/hotbar/` `e2e/mock-host/fixtures/hotbarFixtures.ts` | — | — | 3-hotbar-equipment-empty |
 | modal（BP 名入力） | 機能 | 3 | Web | `src/features/modal/` `e2e/tests/modal.spec.ts` | — | — | 3-modal |
 | placementTarget（配置対象の表示名） | 共通部品 | 2 3 4 | Web | `src/shared/placementTarget/` | — | — | 未撮影 |
 | pointerGesture（押下・ドラッグの判定） | 共通部品 | 3 4 5 | Web | `src/shared/pointerGesture/` | — | — | 未撮影 |
-| inventory（インベントリ・装備・掴み） | 機能 | 4 | Web | `src/features/inventory/` `e2e/tests/inventory/` `e2e/mock-host/inventoryModel.ts` | 裁定 1=A（持ち物の束は束ごと一度に切り替える） | — | 4-player-inventory 4-player-inventory-full |
+| inventory（インベントリ・装備・掴み） | 機能 | 4 | Web | `src/features/inventory/` `e2e/tests/inventory/` `e2e/mock-host/inventoryModel.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 4-player-inventory 4-player-inventory-full |
 | recipe（レシピ・アイテム一覧・長押しクラフト） | 機能 | 4 | Web | `src/features/recipe/` `e2e/tests/recipe/` `e2e/mock-host/fixtures/recipeFixtures.ts` `e2e/craft-chrome/` `e2e/support/craftChromeAssertions.ts` | 確認=演出は実時間 | — | 4-item-list-large |
 | blockInventory（汎用族・特殊族・列車族） | 機能 | 4 | Web | `src/features/blockInventory/` `e2e/tests/block/` `e2e/tests/train/` `e2e/tests/train.spec.ts` `e2e/tests/regression/sectionStack.spec.ts` `e2e/mock-host/fixtures/blocks/` `e2e/mock-host/blockDetailFixtures.ts` `e2e/mock-host/detailActions.ts` `e2e/mock-host/detailActions.test.ts` `e2e/mock-host/train/` `e2e/mock-host/fixtures/trainInventoryFixtures.ts` `e2e/capture-machine-qa.ts` `e2e/capture-train-timetable.ts` `e2e/fixtures/` | — | — | 4-block-chest 4-block-tank 4-block-machine 4-block-gearMachine 4-block-generator 4-block-miner 4-block-filterSplitter 4-block-gearMiner 4-block-pump 4-block-pumpNoVein 4-block-gearPump 4-block-generic 4-block-gearGenerator 4-block-electricToGear 4-block-train 4-block-trainTimetable 4-block-trainError 4-block-trainPlatform 4-block-trainFluidPlatform 4-block-electricPole 4-block-train-timetable-tab 4-block-machine-recipe-selection |
 | blockInventory 特殊族: ロケット（Tier9 #1551） | 機能 | 4 | Web | `src/features/blockInventory/details/rocket/` | — | — | 未撮影（下表） |
@@ -70,13 +71,13 @@
 | itemMove（掴みの計画） | 共通部品 | 4 | Web | `src/shared/itemMove/` `e2e/tests/regression/itemSlot.spec.ts` | — | — | 未撮影 |
 | ownedCounts | 共通部品 | 4 | Web | `src/shared/ownedCounts.ts` `src/shared/ownedCounts.test.ts` | — | — | 未撮影 |
 | treeView（パン・ズーム・線） | 共通部品 | 4 5 | Web | `src/shared/treeView/` | — | — | 未撮影 |
-| challenge: ChallengePanel | 機能 | 5 | Web | `src/features/challenge/` `e2e/tests/challenge.spec.ts` | 様式化 (a) | — | 5-challenge-list |
+| challenge: ChallengePanel | 機能 | 5 | Web | `src/features/challenge/` `e2e/tests/challenge.spec.ts` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 5-challenge-list |
 | eventLanguageGate（出展モードの言語選択） | 機能 | 5 | Web | `src/features/eventLanguageGate/` | — | — | 5-event-language-gate |
 | tutorial: TutorialOverlay（ハイライト枠） | 機能 | 5 | Web | `src/features/tutorial/` `e2e/tests/system/tutorial.spec.ts` `e2e/tests/system/tutorialHighlightClip.spec.ts` `e2e/support/pulseFreeze.ts` `e2e/mock-host/topics/tutorialControls.ts` `src/features/tutorial/overlay/style.module.css` `src/features/tutorial/overlay/TutorialOverlay.tsx` `src/features/tutorial/overlay/TutorialOverlay.test.ts` `src/features/tutorial/tutorialElement.ts` `src/features/tutorial/tutorialAttentionDesign.test.ts` `src/features/tutorial/index.ts` | 確認=演出は実時間 | — | 5-tutorial-outline-label 5-tutorial-recipe-item 5-tutorial-research-node 動画 5-tutorial-pulse |
 | tutorialAnchor（アンカーの登録と解決） | 共通部品 | 1 2 3 4 5 | Web | `src/shared/tutorialAnchor/` | — | — | 未撮影 |
-| shared/ui（枠・スロット・ボタン・ゲージ） | 共通部品 | 1 2 3 4 5 | Web | `src/shared/ui/` `src/shared/clamp01.ts` `src/shared/clamp01.test.ts` `src/shared/materialTooltipText.ts` `src/app/slotTokens.css` `src/app/iconTextOutlineDesign.test.ts` `e2e/capture-iconbutton.ts` `e2e/capture-icon-text-outline.ts` `e2e/support/layoutAssertions.ts` | 様式化 (a) | — | 未撮影 |
+| shared/ui（枠・スロット・ボタン・ゲージ） | 共通部品 | 1 2 3 4 5 | Web | `src/shared/ui/` `src/shared/clamp01.ts` `src/shared/clamp01.test.ts` `src/shared/materialTooltipText.ts` `src/app/slotTokens.css` `src/app/iconTextOutlineDesign.test.ts` `e2e/capture-iconbutton.ts` `e2e/capture-icon-text-outline.ts` `e2e/support/layoutAssertions.ts` | 見た目は Web 版と同じ（2026-11-06 裁定） | — | 未撮影 |
 | i18n | 横断 | 1 2 3 4 5 | Web | `src/shared/i18n/` `scripts/` `e2e/tests/system/i18n.spec.ts` `e2e/mock-host/localization/` `e2e/mock-host/topics/dictionaryControl.ts` | — | — | 5-japanese-inventory |
-| uiState（画面ルーティング・入力排他） | 横断 | 1 2 3 4 5 | Web | `src/shared/uiState/` `e2e/tests/uiState.spec.ts` `e2e/tests/regression/inputLayer.spec.ts` | 裁定 1=A | — | 未撮影 |
+| uiState（画面ルーティング・入力排他） | 横断 | 1 2 3 4 5 | Web | `src/shared/uiState/` `e2e/tests/uiState.spec.ts` `e2e/tests/regression/inputLayer.spec.ts` | 一気切替（2026-11-06）。所有表は使わない | — | 未撮影 |
 | uiScale（stage の一様拡縮） | 横断 | 2 5 | Web | `src/shared/uiScale/` `e2e/tests/system/portalLayerScaling.spec.ts` `e2e/captures/portal-scaling.ts` | — | — | 未撮影 |
 | bridge（通信・契約・ストア） | 横断 | 5 | Web | `src/bridge/` | 裁定 3=(a) `HttpListener`（Web ホストの撤去と同じ段階） | — | 未撮影 |
 | アプリ殻（起動・トークン・層） | 横断 | 5 | Web | `src/app/` `src/main.tsx` `src/vite-env.d.ts` `index.html` `e2e/tests/system/textSelection.spec.ts` | — | — | 未撮影 |
@@ -127,11 +128,11 @@ mock-host では撮れず、PlayMode（unityプレイ録画テスト）でしか
 
 | 項目 | agent 既定 | 帰結 |
 |---|---|---|
-| 裁定 1 移行中の出荷形 | A: 束単位で暗転のまま作り、所有表で切り替える | 見た目の混在が届く。インベントリ系の CEF 不具合は段階 4 の終わりまで残る |
+| 裁定 1 移行中の出荷形 | 2026-11-06 に覆った → 長命ブランチで一気切替（`.decisions/2026-11-06-UITK移行は長命ブランチで作り一気に切り替える.md`） | 切替の日までテスターに届かない |
 | 裁定 2 第一弾の画面 | A: 命綱（ポーズ・設定・バグ報告・トースト） | CEF が死んでも Esc でセーブと報告ができる |
 | 裁定 3 遠隔実行の待受 | (a) `HttpListener`。配布ビルドで動かなければ (b) 遠隔実行専用の最小 Kestrel | ADR 0072 の改訂が要る |
 | 確認 UI の演出の時間源 | 実時間（パネルのスケジューラ） | AGENTS.md の時間の規則はサーバーのゲームロジックの規則と読む |
-| 様式化 Mantine の素の見た目の 4 画面 | 未裁定（計画の推奨は (a) 移すときに様式化） | 該当行に「様式化 (a)」と書いた |
+| 様式化 Mantine の素の見た目の 4 画面 | 2026-11-06 ユーザー裁定: Web 版と同じ見た目（様式化しない） | 該当行に「見た目は Web 版と同じ」と書いた |
 
 裁定 4（Web の扱い）は 2026-10-26 にユーザー裁定済み（PR #1555 の `.decisions/2026-10-26-UITKが安定するまでWeb-UIの変更を続け現行機能をすべてUITKへ移す.md`）。G1 はその帰結の追従ゲート。
 
