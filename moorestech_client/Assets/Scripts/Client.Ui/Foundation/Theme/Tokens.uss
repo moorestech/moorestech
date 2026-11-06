@@ -56,7 +56,7 @@
     --panel-action-button-height: 28.609px;
     --panel-action-button-font-size: 15px;
     --panel-action-button-hover-mix: 22%;
-    --bug-report-textarea-width: 356px;
+    --bug-report-textarea-width: 354px;
     --bug-report-textarea-height: 72px;
     --full-screen-gate-text-width: 900px;
     --full-screen-gate-side-gutter: 32px;
