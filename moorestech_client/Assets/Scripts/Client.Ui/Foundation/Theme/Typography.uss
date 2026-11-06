@@ -104,3 +104,33 @@
     color: var(--text-high-contrast);
     text-shadow: var(--key-hint-text-shadow);
 }
+
+/* Mantine の Title（700）と fw={500}/{700}、keyHintText（500）の太さ。合成の太字は使わず太さ違いの字形を当てる（設計書 A-36） */
+/* Weights of Mantine Title (700), fw={500}/{700} and keyHintText (500); weight-variant faces are used instead of synthetic bold (design A-36) */
+.title--order-1,
+.title--order-2,
+.title--order-3,
+.title--order-4,
+.text--bold {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinBold%20SDF.asset");
+}
+
+.text--medium,
+.key-hint-text {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiLatinMedium%20SDF.asset");
+}
+
+/* CJK のロケールは段階 1 と同じく JP の字形を先頭にする（JP/KR は元から Medium なので 500 は段階 1 の JP のまま） */
+/* CJK locales lead with the JP face as in stage 1 (JP/KR are already Medium, so 500 stays on the stage-1 JP face) */
+.game-ui-locale--cjk .title--order-1,
+.game-ui-locale--cjk .title--order-2,
+.game-ui-locale--cjk .title--order-3,
+.game-ui-locale--cjk .title--order-4,
+.game-ui-locale--cjk .text--bold {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapaneseBold%20SDF.asset");
+}
+
+.game-ui-locale--cjk .text--medium,
+.game-ui-locale--cjk .key-hint-text {
+    -unity-font-definition: url("project://database/Assets/UI%20Toolkit/GameUi/Fonts/GameUiJapanese%20SDF.asset");
+}

@@ -17,6 +17,8 @@ namespace Client.Ui.Foundation.Text
         public const string TextInsufficient = "text--insufficient";
         public const string TextHighContrast = "text--high-contrast";
         public const string TextCenter = "text--center";
+        public const string TextMedium = "text--medium";
+        public const string TextBold = "text--bold";
         public const string TitleOrder1 = "title--order-1";
         public const string TitleOrder2 = "title--order-2";
         public const string TitleOrder3 = "title--order-3";
