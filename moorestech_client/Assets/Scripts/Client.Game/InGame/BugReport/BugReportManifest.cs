@@ -71,8 +71,8 @@ namespace Client.Game.InGame.BugReport
         // Always present; ingestion excludes both enabled and unknown reports from bug triage and normal counts
         public RemoteExecManifestMark RemoteExec = RemoteExecManifestMark.Disabled();
 
-        // 常時非null。値が取れない事実は欠損列でなく notAttempted/notObserved/null で表す（D-12）
-        // Always present; values that are unavailable read notAttempted/notObserved/null instead of a missing entry (D-12)
+        // 常時非null。値が取れない事実は欠損列でなく notAttempted/notObserved/null で表す（ADR 0057）
+        // Always present; values that are unavailable read notAttempted/notObserved/null instead of a missing entry (ADR 0057)
         public WebUiHealthReading WebUiHealth = new();
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった

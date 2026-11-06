@@ -25,7 +25,6 @@ namespace Client.Starter.Registration
 
             // ポーズメニューのtopicと報告actionは確保セッション・書き出し口・進行記録の窓口を必ず受け取るので、どちらの起動でも登録する
             // The pause-menu topic and the report action always take the capture session, writer and progress window, so both boots register them
-            builder.Register<IWebUiHealthProbe, WebUiHealthProbe>(Lifetime.Singleton);
             builder.Register<IBugReportOutboxRoot, GameSystemBugReportOutboxRoot>(Lifetime.Singleton);
             builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
             builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
@@ -44,6 +43,7 @@ namespace Client.Starter.Registration
             // Always-on capture for bug reports (log ring, frame recording ring) and the capture triggers
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
+            builder.Register<IWebUiHealthProbe, WebUiHealthProbe>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
             builder.RegisterEntryPoint<BugReportUiStatePusher>();
