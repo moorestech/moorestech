@@ -36,7 +36,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         public void 空GUIDはどの行も選択しない()
         {
             var a = Recipe(Recipe1, BlockA, new[] { new RecipeOutputItem(new ItemId(2), 1) }, new RecipeOutputFluid[0]);
-            Assert.IsFalse(MachineRecipeSelectionLogic.BuildRows(new[] { a }, BlockA, Guid.Empty)[0].Selected);
+            Assert.IsFalse(MachineRecipeSelectionLogic.BuildRows(new[] { a }, BlockA)[0].Selected);
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/machineRecipeSelectionLogic.test.ts">代表出力（アイテムも液体も）が無いレシピは除外する</web-test>
@@ -44,7 +44,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         public void 代表出力の無いレシピは除外する()
         {
             var noOutput = Recipe(new Guid("84000000-0000-4000-8000-000000000003"), BlockA, new RecipeOutputItem[0], new RecipeOutputFluid[0]);
-            CollectionAssert.IsEmpty(MachineRecipeSelectionLogic.BuildRows(new[] { noOutput }, BlockA, Guid.Empty));
+            CollectionAssert.IsEmpty(MachineRecipeSelectionLogic.BuildRows(new[] { noOutput }, BlockA));
         }
 
         /// <web-test file="src/features/blockInventory/details/machine/machineRecipeSelectionLogic.test.ts">出力アイテムが無く出力液体のみのレシピは液体を代表にして残す</web-test>
@@ -53,7 +53,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         {
             var fluid = new FluidId(7);
             var fluidOnly = Recipe(new Guid("84000000-0000-4000-8000-000000000004"), BlockA, new RecipeOutputItem[0], new[] { new RecipeOutputFluid(fluid, 100) });
-            var rows = MachineRecipeSelectionLogic.BuildRows(new[] { fluidOnly }, BlockA, Guid.Empty);
+            var rows = MachineRecipeSelectionLogic.BuildRows(new[] { fluidOnly }, BlockA);
             Assert.AreEqual(1, rows.Count);
             var subject = (FluidRecipeDisplaySubject)rows[0].Subject;
             Assert.AreEqual(fluid, subject.FluidId);
@@ -66,7 +66,7 @@ namespace Client.Tests.Ui.State.BlockInventory.Machine
         public void 一致するレシピが無ければ空を返す()
         {
             var b = Recipe(Recipe1, BlockB, new[] { new RecipeOutputItem(new ItemId(2), 1) }, new RecipeOutputFluid[0]);
-            CollectionAssert.IsEmpty(MachineRecipeSelectionLogic.BuildRows(new[] { b }, BlockA, Guid.Empty));
+            CollectionAssert.IsEmpty(MachineRecipeSelectionLogic.BuildRows(new[] { b }, BlockA));
         }
 
         // Web に対応する it が無い新設の検査（行名の「他 N 件」の N）

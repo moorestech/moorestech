@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Client.Ui.State.BlockInventory.Logic.Machine;
 using Core.Master;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
 {
@@ -19,12 +21,13 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
     }
 
     /// <summary>
-    /// Shift 配分の判断が読むブロック在庫の部分（Web の BlockInventoryData のうち blockSlotRestriction が読む所）。開いているか・詳細が届いたかを sealed 派生で表す（判断記録 D-5）
-    /// The part of the block inventory the Shift-allocation decision reads (what Web blockSlotRestriction reads of BlockInventoryData); open-or-not and detail arrival are sealed subtypes (D-5)
+    /// Shift 配分の判断が読むブロック在庫の部分（Web の BlockInventoryData のうち blockSlotRestriction が読む所）。開いていない・開いた・開くのに失敗したを sealed 派生で表す（判断記録 D-5）
+    /// The part of the block inventory the Shift-allocation decision reads (what Web blockSlotRestriction reads of BlockInventoryData); not open, open and open-failed are sealed subtypes (D-5)
     /// </summary>
     public abstract class BlockSlotRestrictionInput
     {
         public static readonly BlockSlotRestrictionInput NotOpenBlock = new NotOpenBlockSlotInput();
+        public static readonly BlockSlotRestrictionInput OpenFailedBlock = new OpenFailedBlockSlotInput();
 
         private protected BlockSlotRestrictionInput()
         {
@@ -32,9 +35,9 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
 
         // 開いたブロック在庫。詳細（入れ口の束縛か機械の束縛）は届いた時点で With* で足す
         // An open block inventory; the detail (inlet or machine bindings) is added with With* once it arrives
-        public static OpenBlockSlotInput OpenBlock(string blockType, bool openFailed, int itemSlotCount)
+        public static OpenBlockSlotInput OpenBlock(string blockType, int itemSlotCount)
         {
-            return new OpenBlockSlotInput(blockType, openFailed, itemSlotCount, BlockSlotDetail.Pending);
+            return new OpenBlockSlotInput(blockType, itemSlotCount, BlockSlotDetail.Pending);
         }
     }
 
@@ -45,29 +48,49 @@ namespace Client.Ui.State.BlockInventory.Logic.SlotRestriction
         }
     }
 
+    // 在庫を開くのに失敗した（種別も詳細も持たない。取得失敗は候補探索の前に返すため）
+    // The inventory failed to open (no type or detail; the failure is returned before any candidate lookup)
+    public sealed class OpenFailedBlockSlotInput : BlockSlotRestrictionInput
+    {
+        internal OpenFailedBlockSlotInput()
+        {
+        }
+    }
+
     public sealed class OpenBlockSlotInput : BlockSlotRestrictionInput
     {
         public string BlockType { get; }
-        public bool OpenFailed { get; }
         public int ItemSlotCount { get; }
         public BlockSlotDetail Detail { get; }
 
-        internal OpenBlockSlotInput(string blockType, bool openFailed, int itemSlotCount, BlockSlotDetail detail)
+        // 入れ口固定の種別（発射台・宇宙エレベーター）か
+        // Whether the type has fixed inlets (launch pad, space elevator)
+        public bool IsFixedInletBlock => IsFixedInletBlockType(BlockType);
+
+        internal OpenBlockSlotInput(string blockType, int itemSlotCount, BlockSlotDetail detail)
         {
             BlockType = blockType;
-            OpenFailed = openFailed;
             ItemSlotCount = itemSlotCount;
             Detail = detail;
         }
 
+        // 種別と食い違う詳細は組み立てた時点で止める（結線ミスが黙って拒否や無制限になるのを防ぐ）
+        // Reject a detail that disagrees with the type at build time so a wiring mistake cannot silently refuse or unrestrict
         public OpenBlockSlotInput WithInletBindings(IReadOnlyList<InletSlotBinding> inletBindings)
         {
-            return new OpenBlockSlotInput(BlockType, OpenFailed, ItemSlotCount, new InletBlockSlotDetail(inletBindings));
+            if (!IsFixedInletBlock) throw new ArgumentException($"InletBindings need a fixed-inlet block type, but was {BlockType}", nameof(inletBindings));
+            return new OpenBlockSlotInput(BlockType, ItemSlotCount, new InletBlockSlotDetail(inletBindings));
         }
 
         public OpenBlockSlotInput WithMachine(MachineBindingDetail machine)
         {
-            return new OpenBlockSlotInput(BlockType, OpenFailed, ItemSlotCount, new MachineBlockSlotDetail(machine));
+            if (IsFixedInletBlock) throw new ArgumentException($"Machine bindings do not fit the fixed-inlet block type {BlockType}", nameof(machine));
+            return new OpenBlockSlotInput(BlockType, ItemSlotCount, new MachineBlockSlotDetail(machine));
+        }
+
+        private static bool IsFixedInletBlockType(string blockType)
+        {
+            return blockType == BlockMasterElement.BlockTypeConst.RocketLaunchPad || blockType == BlockMasterElement.BlockTypeConst.SpaceElevatorBase;
         }
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Tests.Ui.State.BlockInventory.Machine;
 using Client.Tests.Ui.State.ItemMove;
@@ -37,7 +38,7 @@ namespace Client.Tests.Ui.State.BlockInventory.SlotRestriction
         [Test]
         public void 発射台の受け付け情報が未着なら無制限へ倒さず送らない()
         {
-            var pending = BlockSlotRestrictionInput.OpenBlock("RocketLaunchPad", false, 3);
+            var pending = BlockSlotRestrictionInput.OpenBlock("RocketLaunchPad", 3);
             Assert.AreSame(BlockSlotRestriction.DetailLoading, BlockSlotRestrictionResolver.Resolve(pending, PayloadItem));
             AssertRefused(ShiftMoveRefusalReason.DetailLoading, ShiftPlan(pending, PayloadItem, 3));
         }
@@ -54,32 +55,40 @@ namespace Client.Tests.Ui.State.BlockInventory.SlotRestriction
         [Test]
         public void 宇宙エレベーターの受け付け情報が未着なら送らない()
         {
-            var pending = BlockSlotRestrictionInput.OpenBlock("SpaceElevatorBase", false, 3);
+            var pending = BlockSlotRestrictionInput.OpenBlock("SpaceElevatorBase", 3);
             Assert.AreSame(BlockSlotRestriction.DetailLoading, BlockSlotRestrictionResolver.Resolve(pending, SatelliteItem));
             AssertRefused(ShiftMoveRefusalReason.DetailLoading, ShiftPlan(pending, SatelliteItem, 3));
         }
 
         /// <web-test file="src/features/inventory/blockSlotRestriction.test.ts">詳細の有無によらず失敗を返し空在庫を探索しない</web-test>
-        [TestCase("RocketLaunchPad")]
-        [TestCase("SpaceElevatorBase")]
-        public void 取得失敗した在庫は詳細の有無によらず失敗を返す(string blockType)
+        [Test]
+        public void 取得失敗した在庫は詳細の有無によらず失敗を返す()
         {
-            var failed = BlockSlotRestrictionInput.OpenBlock(blockType, true, 0);
-            AssertRefused(ShiftMoveRefusalReason.InventoryOpenFailed, ShiftPlan(failed.WithInletBindings(new[] { new InletSlotBinding(0, new[] { SatelliteItem }) }), SatelliteItem, 3));
-            AssertRefused(ShiftMoveRefusalReason.InventoryOpenFailed, ShiftPlan(failed, SatelliteItem, 3));
+            Assert.AreSame(BlockSlotRestriction.InventoryOpenFailed, BlockSlotRestrictionResolver.Resolve(BlockSlotRestrictionInput.OpenFailedBlock, SatelliteItem));
+            AssertRefused(ShiftMoveRefusalReason.InventoryOpenFailed, ShiftPlanFor(BlockSlotRestrictionInput.OpenFailedBlock, SatelliteItem, 3, 3, false));
+        }
+
+        // 種別と食い違う詳細は組み立てた時点で例外になる
+        // A detail that disagrees with the type throws at build time
+        [Test]
+        public void 種別と食い違う詳細は組み立てた時点で例外になる()
+        {
+            var inlet = new[] { new InletSlotBinding(0, new[] { SatelliteItem }) };
+            Assert.Throws<ArgumentException>(() => BlockSlotRestrictionInput.OpenBlock("Machine", 7).WithInletBindings(inlet));
+            Assert.Throws<ArgumentException>(() => BlockSlotRestrictionInput.OpenBlock("RocketLaunchPad", 3).WithMachine(MachineSlotGhostFixtures.BoundMachine()));
         }
 
         /// <web-test file="src/features/inventory/blockSlotRestriction.test.ts">チェストは無制限のまま</web-test>
         [Test]
         public void チェストは無制限のまま()
         {
-            Assert.AreSame(BlockSlotRestriction.Unrestricted, BlockSlotRestrictionResolver.Resolve(BlockSlotRestrictionInput.OpenBlock("Chest", false, 3), PayloadItem));
+            Assert.AreSame(BlockSlotRestriction.Unrestricted, BlockSlotRestrictionResolver.Resolve(BlockSlotRestrictionInput.OpenBlock("Chest", 3), PayloadItem));
         }
 
         [Test]
         public void 機械は入力帯だけ束縛で絞り出力帯とモジュール帯は候補に残す()
         {
-            var machine = BlockSlotRestrictionInput.OpenBlock("Machine", false, 7).WithMachine(MachineSlotGhostFixtures.BoundMachine());
+            var machine = BlockSlotRestrictionInput.OpenBlock("Machine", 7).WithMachine(MachineSlotGhostFixtures.BoundMachine());
             var restriction = BlockSlotRestrictionResolver.Resolve(machine, new ItemId(5));
             CollectionAssert.AreEqual(new[] { 1, 3, 4, 5, 6 }, ((BoundBlockSlots)restriction).CandidateIndices);
         }
@@ -87,14 +96,14 @@ namespace Client.Tests.Ui.State.BlockInventory.SlotRestriction
         [Test]
         public void 束縛の無い機械と開いていない在庫は無制限()
         {
-            var unbound = BlockSlotRestrictionInput.OpenBlock("Machine", false, 7).WithMachine(MachineSlotGhostFixtures.Unbound());
+            var unbound = BlockSlotRestrictionInput.OpenBlock("Machine", 7).WithMachine(MachineSlotGhostFixtures.Unbound());
             Assert.AreSame(BlockSlotRestriction.Unrestricted, BlockSlotRestrictionResolver.Resolve(unbound, new ItemId(5)));
             Assert.AreSame(BlockSlotRestriction.Unrestricted, BlockSlotRestrictionResolver.Resolve(BlockSlotRestrictionInput.NotOpenBlock, new ItemId(5)));
         }
 
         private static OpenBlockSlotInput RocketPad()
         {
-            return BlockSlotRestrictionInput.OpenBlock("RocketLaunchPad", false, 3).WithInletBindings(new[]
+            return BlockSlotRestrictionInput.OpenBlock("RocketLaunchPad", 3).WithInletBindings(new[]
             {
                 new InletSlotBinding(0, new[] { new ItemId(3) }),
                 new InletSlotBinding(1, new[] { PayloadItem }),
@@ -103,17 +112,22 @@ namespace Client.Tests.Ui.State.BlockInventory.SlotRestriction
 
         private static OpenBlockSlotInput SpaceElevator()
         {
-            return BlockSlotRestrictionInput.OpenBlock("SpaceElevatorBase", false, 3).WithInletBindings(new[] { new InletSlotBinding(0, new[] { SatelliteItem }) });
+            return BlockSlotRestrictionInput.OpenBlock("SpaceElevatorBase", 3).WithInletBindings(new[] { new InletSlotBinding(0, new[] { SatelliteItem }) });
         }
 
         // 持ち物の枠 0 の全量を Shift で配る計画（発射台の枠 0 は資材 20 個入り、他は空）
         // The plan for Shift-allocating main slot 0 in full (launch pad slot 0 holds 20 materials, others empty)
         private static PlayerSlotActionPlan ShiftPlan(OpenBlockSlotInput block, ItemId itemId, int count)
         {
+            return ShiftPlanFor(block, itemId, count, block.ItemSlotCount, block.BlockType == "RocketLaunchPad");
+        }
+
+        private static PlayerSlotActionPlan ShiftPlanFor(BlockSlotRestrictionInput block, ItemId itemId, int count, int itemSlotCount, bool rocketPad)
+        {
             var held = new SlotItem(itemId, count);
             var inventory = new PlayerInventorySnapshot(new[] { held }, new SlotItem(new ItemId(0), 0), new SlotItem[0]);
             var blockSlots = new List<SlotItem>();
-            for (var i = 0; i < block.ItemSlotCount; i++) blockSlots.Add(i == 0 && block.BlockType == "RocketLaunchPad" ? new SlotItem(new ItemId(3), 20) : new SlotItem(new ItemId(0), 0));
+            for (var i = 0; i < itemSlotCount; i++) blockSlots.Add(i == 0 && rocketPad ? new SlotItem(new ItemId(3), 20) : new SlotItem(new ItemId(0), 0));
             var context = PlayerSlotContext.WithBlockOpen(inventory, blockSlots, BlockSlotRestrictionResolver.Resolve(block, itemId), new FixedMaxStackLookup(1000));
             return PlayerSlotPlanner.PlanLeftClick(SlotRef.Main(0), held, true, context);
         }

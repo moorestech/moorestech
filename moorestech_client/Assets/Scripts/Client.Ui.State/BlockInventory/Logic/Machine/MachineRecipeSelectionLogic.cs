@@ -9,9 +9,22 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
     /// </summary>
     public static class MachineRecipeSelectionLogic
     {
+        // レシピ未選択の行。Guid.Empty を未選択とみなす解釈はホストの境界 1 か所に置き、ここへは持ち込まない
+        // Rows with no recipe selected; interpreting Guid.Empty as unselected stays at the host boundary, never here
+        public static List<MachineRecipeSelectionRow> BuildRows(IReadOnlyList<MachineRecipeSummary> recipes, Guid blockGuid)
+        {
+            return BuildRowsCore(recipes, blockGuid, false, Guid.Empty);
+        }
+
+        // 選択中のレシピがある行
+        // Rows with a recipe selected
         public static List<MachineRecipeSelectionRow> BuildRows(IReadOnlyList<MachineRecipeSummary> recipes, Guid blockGuid, Guid selectedRecipeGuid)
         {
-            var hasSelection = HasSelectedRecipe(selectedRecipeGuid);
+            return BuildRowsCore(recipes, blockGuid, true, selectedRecipeGuid);
+        }
+
+        private static List<MachineRecipeSelectionRow> BuildRowsCore(IReadOnlyList<MachineRecipeSummary> recipes, Guid blockGuid, bool hasSelection, Guid selectedRecipeGuid)
+        {
             var rows = new List<MachineRecipeSelectionRow>();
             foreach (var recipe in recipes)
             {
@@ -44,11 +57,6 @@ namespace Client.Ui.State.BlockInventory.Logic.Machine
             }
 
             #endregion
-        }
-
-        public static bool HasSelectedRecipe(Guid selectedRecipeGuid)
-        {
-            return selectedRecipeGuid != Guid.Empty;
         }
 
         // 行名の「他 N 件」の N。生産物が複数あるレシピはアイコンと食い違わないよう残りの数を出す（0 以下なら出さない）
