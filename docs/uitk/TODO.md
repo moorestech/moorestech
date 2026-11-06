@@ -97,6 +97,7 @@
 | 1 | 3e946e4bd3 | 写した | D-8 の拒否理由ごとのトースト文言。Web 側は Localization/localization.csv への追加に連動した生成物 src/shared/i18n/generated/localizationKeys.ts の再生成だけで、写し先は同じコミットの C# UiCommandRejectReasonTraits.ToLocalizationKey と localization.csv の文言 |
 | 1 | 5421c7f9f0 | 捨てた | 旧 R1（画面別の Web 休止）の入力排他フックを src/shared/uiState/inputExclusivity/ へ移した自動修正。全体スイッチの作り直し（W0-switch・albof.17）で旧 R1 の Web 側変更ごと外して master と同じ Web に戻すので、UITK 側に写すものが無い |
 | 1 | f044f5f5c4 | 捨てた | W0-switch（albof.17）の撤去コミット。旧 R1 の Web 側変更（a97575e5b5・05b9bdefa8・1095cab8bf・ccb3d512f7・5421c7f9f0）を外し、取り込み済み master と同じ Web に戻した（生成物 localizationKeys.ts は 3e946e4bd3 のまま）。UITK 側に写すものが無い |
+| 1 | 42279a73e4 | 写した | 同じコミットの localization.csv と C#（albof.16.2 の拒否理由の文言） |
 
 ## 参照キャプチャ
 
