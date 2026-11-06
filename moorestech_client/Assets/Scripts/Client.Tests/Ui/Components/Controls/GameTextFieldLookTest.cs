@@ -4,6 +4,7 @@ using Client.Ui.Components.Controls;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using static Client.Tests.Ui.Components.ComponentStyleAssert;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -30,9 +31,9 @@ namespace Client.Tests.Ui.Components.Controls
 
             // --gauge-track = --surface-navy（α 補正後 rgba(10, 14, 27, 0.9491)）・--bevel-c1 rgb(56 58 72)・--text-default #eee
             // --gauge-track = --surface-navy (alpha-corrected rgba(10, 14, 27, 0.9491)), --bevel-c1 rgb(56 58 72), --text-default #eee
-            ControlStyleAssert.AssertColor(new Color(10f / 255f, 14f / 255f, 27f / 255f, 0.9491f), input.resolvedStyle.backgroundColor);
-            ControlStyleAssert.AssertColor(new Color(56f / 255f, 58f / 255f, 72f / 255f, 1f), input.resolvedStyle.borderTopColor);
-            ControlStyleAssert.AssertColor("#EEEEEE", input.resolvedStyle.color);
+            AssertColor(Rgba(10, 14, 27, 0.9491f), input.resolvedStyle.backgroundColor, "face");
+            AssertColor(Rgba(56, 58, 72, 1f), input.resolvedStyle.borderTopColor, "border");
+            AssertColor(Hex("#EEEEEE"), input.resolvedStyle.color, "text");
             Assert.AreEqual(0.782875f, input.resolvedStyle.borderTopWidth, 0.25f);
             Assert.AreEqual(0f, input.resolvedStyle.borderTopLeftRadius);
 
@@ -64,13 +65,13 @@ namespace Client.Tests.Ui.Components.Controls
             field.Field.Focus();
             simulate.FrameUpdate();
             Assert.AreEqual(DisplayStyle.Flex, ring.resolvedStyle.display);
-            ControlStyleAssert.AssertColor("#FFFFFF", ring.resolvedStyle.borderTopColor);
+            AssertColor(Hex("#FFFFFF"), ring.resolvedStyle.borderTopColor, "border");
             Assert.AreEqual(field.Field.worldBound.xMin - FocusRingOutset, ring.worldBound.xMin, 0.5f);
             Assert.AreEqual(field.Field.worldBound.yMax + FocusRingOutset, ring.worldBound.yMax, 0.5f);
 
             // 枠の色はフォーカスで変えない（Web は outline だけを足す）
             // Focus does not recolour the border (the Web only adds an outline)
-            ControlStyleAssert.AssertColor(new Color(56f / 255f, 58f / 255f, 72f / 255f, 1f), field.Field.Q(className: InputClassName).resolvedStyle.borderTopColor);
+            AssertColor(Rgba(56, 58, 72, 1f), field.Field.Q(className: InputClassName).resolvedStyle.borderTopColor, "border");
 
             field.Field.Blur();
             simulate.FrameUpdate();
@@ -89,13 +90,13 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(1f, input.resolvedStyle.borderTopWidth, 0.01f);
             Assert.AreEqual(4f, input.resolvedStyle.borderTopLeftRadius, 0.01f);
             Assert.AreEqual(14f, input.resolvedStyle.fontSize, 0.01f);
-            ControlStyleAssert.AssertColor("#424242", input.resolvedStyle.borderTopColor);
-            ControlStyleAssert.AssertColor("#2E2E2E", input.resolvedStyle.backgroundColor);
-            ControlStyleAssert.AssertColor("#C9C9C9", input.resolvedStyle.color);
+            AssertColor(Hex("#424242"), input.resolvedStyle.borderTopColor, "border");
+            AssertColor(Hex("#2E2E2E"), input.resolvedStyle.backgroundColor, "face");
+            AssertColor(Hex("#C9C9C9"), input.resolvedStyle.color, "text");
 
             field.Field.Focus();
             simulate.FrameUpdate();
-            ControlStyleAssert.AssertColor("#1971C2", input.resolvedStyle.borderTopColor);
+            AssertColor(Hex("#1971C2"), input.resolvedStyle.borderTopColor, "border");
             Assert.AreEqual(DisplayStyle.None, field.Q(className: GameTextField.FocusRingUssClassName).resolvedStyle.display);
         }
 
@@ -125,7 +126,7 @@ namespace Client.Tests.Ui.Components.Controls
 
             Assert.AreEqual(1f, field.Field.resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(1f, field.Field.Q(className: InputClassName).resolvedStyle.opacity, 0.001f);
-            ControlStyleAssert.AssertColor("#EEEEEE", field.Field.Q(className: InputClassName).resolvedStyle.color);
+            AssertColor(Hex("#EEEEEE"), field.Field.Q(className: InputClassName).resolvedStyle.color, "text");
         }
 
         private GameTextField Add(GameTextFieldLook look, bool multiline)

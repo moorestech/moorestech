@@ -19,6 +19,12 @@ namespace Client.Tests.Ui.Components
             Assert.AreEqual(expected.a, actual.a, Tolerance, $"{message} a");
         }
 
+        public static Color Hex(string html)
+        {
+            Assert.IsTrue(ColorUtility.TryParseHtmlString(html, out var color), $"not a colour: {html}");
+            return color;
+        }
+
         public static Color Rgba(int r, int g, int b, float a)
         {
             return new Color(r / 255f, g / 255f, b / 255f, a);

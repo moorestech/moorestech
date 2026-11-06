@@ -6,6 +6,7 @@ using Client.Ui.Foundation.Input;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using static Client.Tests.Ui.Components.ComponentStyleAssert;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -78,8 +79,8 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(1f, button.resolvedStyle.borderTopWidth, 0.01f);
             Assert.AreEqual(0f, button.resolvedStyle.borderTopColor.a, 0.001f);
             Assert.AreEqual(14f, Label(button).resolvedStyle.fontSize, 0.01f);
-            ControlStyleAssert.AssertColor("#1971C2", button.resolvedStyle.backgroundColor);
-            ControlStyleAssert.AssertColor("#FFFFFF", Label(button).resolvedStyle.color);
+            AssertColor(Hex("#1971C2"), button.resolvedStyle.backgroundColor, "face");
+            AssertColor(Hex("#FFFFFF"), Label(button).resolvedStyle.color, "text");
 
             // 文言は 500 の字形（実測で Web の 600 に近い方）
             // The label uses the 500 face (measured nearest to the Web's 600)
@@ -89,7 +90,7 @@ namespace Client.Tests.Ui.Components.Controls
             // Hover is blue-9 (--mantine-color-blue-filled-hover)
             simulate.MouseMove(button.worldBound.center);
             simulate.FrameUpdate();
-            ControlStyleAssert.AssertColor("#1864AB", button.resolvedStyle.backgroundColor);
+            AssertColor(Hex("#1864AB"), button.resolvedStyle.backgroundColor, "face");
         }
 
         [Test]
@@ -101,8 +102,8 @@ namespace Client.Tests.Ui.Components.Controls
             button.SetEnabled(false);
             simulate.FrameUpdate();
 
-            ControlStyleAssert.AssertColor("#2E2E2E", button.resolvedStyle.backgroundColor);
-            ControlStyleAssert.AssertColor("#696969", Label(button).resolvedStyle.color);
+            AssertColor(Hex("#2E2E2E"), button.resolvedStyle.backgroundColor, "face");
+            AssertColor(Hex("#696969"), Label(button).resolvedStyle.color, "text");
             Assert.AreEqual(1f, button.resolvedStyle.opacity, 0.001f);
             Assert.AreEqual(1f, Label(button).resolvedStyle.opacity, 0.001f);
         }
@@ -116,7 +117,7 @@ namespace Client.Tests.Ui.Components.Controls
             button.SetEnabled(false);
             simulate.MouseMove(button.worldBound.center);
             simulate.FrameUpdate();
-            ControlStyleAssert.AssertColor("#2E2E2E", button.resolvedStyle.backgroundColor);
+            AssertColor(Hex("#2E2E2E"), button.resolvedStyle.backgroundColor, "face");
         }
 
         [Test]
@@ -125,7 +126,7 @@ namespace Client.Tests.Ui.Components.Controls
             // Danger は color="red" の filled（red-8 #e03131）
             // Danger is the filled red (red-8 #e03131)
             var button = AddButton(FormButtonVariant.Danger);
-            ControlStyleAssert.AssertColor("#E03131", button.resolvedStyle.backgroundColor);
+            AssertColor(Hex("#E03131"), button.resolvedStyle.backgroundColor, "face");
 
             // Subtle は面が透明・文字が blue-light-color（blue-3 #74c0fc）・ホバーで blue-light-hover（rgba(34, 139, 230, 0.2) の α 補正値）
             // Subtle has a clear face, blue-light-color text (blue-3 #74c0fc) and blue-light-hover on hover (alpha-corrected rgba(34, 139, 230, 0.2))
@@ -135,7 +136,7 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.IsFalse(button.ClassListContains(FormButton.FilledUssClassName));
             Assert.IsTrue(button.ClassListContains(FormButton.SubtleUssClassName));
             Assert.AreEqual(0f, button.resolvedStyle.backgroundColor.a, 0.001f);
-            ControlStyleAssert.AssertColor("#74C0FC", Label(button).resolvedStyle.color);
+            AssertColor(Hex("#74C0FC"), Label(button).resolvedStyle.color, "text");
             simulate.MouseMove(button.worldBound.center);
             simulate.FrameUpdate();
             var hoverFace = button.resolvedStyle.backgroundColor;

@@ -21,6 +21,7 @@
 .icon-button.unity-button:active {
     background-color: transparent;
     scale: 1 1;
+    translate: 0 0;
 }
 
 /* 図形の色と線幅（Web の color: var(--text-muted) と stroke-width: var(--bevel-1)）。図形が CustomStyleResolvedEvent で読む */

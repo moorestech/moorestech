@@ -3,6 +3,7 @@ using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Input;
 using NUnit.Framework;
+using static Client.Tests.Ui.Components.ComponentStyleAssert;
 using UniRx;
 using UnityEditor;
 using UnityEngine;
@@ -88,13 +89,13 @@ namespace Client.Tests.Ui.Components.Controls
             var glyph = button.Q(className: IconButton.GlyphUssClassName);
             var resolvedCount = 0;
             glyph.RegisterCallback<CustomStyleResolvedEvent>(_ => resolvedCount++);
-            ControlStyleAssert.AssertColor("#A6A7AB", GlyphColor(glyph));
+            AssertColor(Hex("#A6A7AB"), GlyphColor(glyph), "glyph");
 
             // ホバーで図形のカスタムスタイルが解決し直され、色が上がる（再描画の合図が届く）
             // Hover re-resolves the glyph's custom style and lifts its colour (the repaint trigger arrives)
             simulate.MouseMove(button.worldBound.center);
             simulate.FrameUpdate();
-            ControlStyleAssert.AssertColor("#FFFFFF", GlyphColor(glyph));
+            AssertColor(Hex("#FFFFFF"), GlyphColor(glyph), "glyph");
             Assert.Greater(resolvedCount, 0);
 
             // 無効ではホバーしても持ち上げない（Web の :not(:disabled):hover）
@@ -102,7 +103,7 @@ namespace Client.Tests.Ui.Components.Controls
             button.SetEnabled(false);
             simulate.MouseMove(button.worldBound.center + Vector2.one);
             simulate.FrameUpdate();
-            ControlStyleAssert.AssertColor("#A6A7AB", GlyphColor(glyph));
+            AssertColor(Hex("#A6A7AB"), GlyphColor(glyph), "glyph");
         }
 
         [Test]

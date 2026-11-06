@@ -68,6 +68,20 @@ namespace Client.Ui.Components.Controls
             _focusedTick.Pause();
             Field.RegisterCallback<FocusInEvent>(_ => OnFocusGained());
             Field.RegisterCallback<FocusOutEvent>(_ => OnFocusLost());
+
+            #region Internal
+
+            static string LookUssClassName(GameTextFieldLook look)
+            {
+                return look switch
+                {
+                    GameTextFieldLook.GaugeInset => "game-text-field--gauge-inset",
+                    GameTextFieldLook.MantineInput => "game-text-field--mantine-input",
+                    _ => throw new ArgumentOutOfRangeException(nameof(look), look, "unknown GameTextFieldLook"),
+                };
+            }
+
+            #endregion
         }
 
         public void SetValueWithoutNotify(string value)
@@ -121,16 +135,6 @@ namespace Client.Ui.Components.Controls
             RemoveFromClassList(FocusedUssClassName);
             _focusedTick.Pause();
             _underline.Reset();
-        }
-
-        private static string LookUssClassName(GameTextFieldLook look)
-        {
-            return look switch
-            {
-                GameTextFieldLook.GaugeInset => "game-text-field--gauge-inset",
-                GameTextFieldLook.MantineInput => "game-text-field--mantine-input",
-                _ => throw new ArgumentOutOfRangeException(nameof(look), look, "unknown GameTextFieldLook"),
-            };
         }
     }
 }

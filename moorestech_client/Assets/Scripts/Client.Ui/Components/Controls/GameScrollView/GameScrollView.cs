@@ -44,17 +44,21 @@ namespace Client.Ui.Components.Controls
             // Offset changes come from the bar value (wheel, drag, ScrollTo and SetScrollOffset all move it)
             verticalScroller.valueChanged += offset => _onScrollOffsetChanged.OnNext(offset);
             RegisterCallback<CustomStyleResolvedEvent>(_ => OnCustomStyleResolved());
+
+            #region Internal
+
+            void UpdateVerticalScrollerVisibility()
+            {
+                var overflows = contentViewport.layout.height < contentContainer.layout.height;
+                verticalScrollerVisibility = overflows ? ScrollerVisibility.AlwaysVisible : ScrollerVisibility.Hidden;
+            }
+
+            #endregion
         }
 
         public void SetScrollOffset(float y)
         {
             scrollOffset = new Vector2(scrollOffset.x, y);
-        }
-
-        private void UpdateVerticalScrollerVisibility()
-        {
-            var overflows = contentContainer.layout.height > contentViewport.layout.height;
-            verticalScrollerVisibility = overflows ? ScrollerVisibility.AlwaysVisible : ScrollerVisibility.Hidden;
         }
 
         private void OnCustomStyleResolved()
