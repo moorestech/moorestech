@@ -83,12 +83,11 @@ namespace Client.Tests.Ui.Screens.BuildMenu
         [Test]
         public void 末尾でクランプされても到達後は目標のカテゴリが光る()
         {
-            // 内容(500)が視口(600)より低いので最大スクロール位置はマイナスへクランプされる
-            // Content (500) is shorter than the viewport (600), so the max scroll clamps below zero
+            // 内容(500)が視口(600)より低く最大スクロール量は0なので、スムーズスクロールは出ず即座にBが光る
+            // Content (500) is shorter than the viewport (600), so max scroll is 0: no smooth scroll and B lights up at once
             var viewport = AttachTwoHeadings(new FakeBuildMenuScrollViewport(600f, 500f, 0f));
             _tracker.JumpTo(B);
-            CollectionAssert.AreEqual(new[] { -100f }, viewport.SmoothScrollRequests);
-            _tracker.OnScrolled(-100f);
+            Assert.AreEqual(0, viewport.SmoothScrollRequests.Count);
             Assert.AreEqual(B, _tracker.ActiveCategory.Value);
         }
 
