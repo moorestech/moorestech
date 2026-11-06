@@ -68,8 +68,10 @@ namespace Client.Tests.Ui.Components.Panels
             Assert.AreEqual(ThemeTokenFile.ResolvePixels("--skit-window-height"), surface.worldBound.height, 0.5f);
         }
 
+        // 受け取った幅でどう描くか（下端と左右を硬く残す）は GamePanelFaceOpacityRampTest が L0 で確かめる
+        // How the received spans are drawn (bottom and sides kept hard) is checked at L0 by GamePanelFaceOpacityRampTest
         [Test]
-        public void skitの面はskit_window_faceで上端だけフェードする()
+        public void skitの面はskit_window_faceと上端だけのフェード幅を受け取る()
         {
             var surface = new GamePanelSurface("test-skit-surface", GamePanelSurfaceKind.Skit);
             rootVisualElement.Add(surface);

@@ -1,10 +1,12 @@
 using System.Linq;
+using System.Text.RegularExpressions;
 using Client.Localization;
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Panels;
 using Client.Ui.State.Text;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
 
@@ -85,10 +87,20 @@ namespace Client.Tests.Ui.Components.Panels
         {
             var first = SizedAction("test-title-action-1");
             var second = SizedAction("test-title-action-2");
+            _panel.SetTitle(new UiText(LocalizationKeys.Ui.Inventory.Title));
             _panel.SetTitleAction(first);
             _panel.SetTitleAction(second);
             Assert.IsNull(first.parent);
             Assert.IsTrue(second.parent.ClassListContains("game-panel__title-action"));
+        }
+
+        [Test]
+        public void 題の無いパネルに副次アクションを渡すとエラーを出して載せない()
+        {
+            var action = SizedAction("test-title-action");
+            LogAssert.Expect(LogType.Error, new Regex("SetTitleAction は SetTitle の後に呼ぶ"));
+            _panel.SetTitleAction(action);
+            Assert.IsNull(action.parent);
         }
 
         [Test]

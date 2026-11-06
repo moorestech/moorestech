@@ -4,14 +4,21 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Components.Panels
 {
     /// <summary>
-    /// 面の縁フェードの α 補正が、両端でトークンと透明に戻り、途中で Web の α を S7 の式で補正した値になるかを確かめる（L0）
-    /// Verifies the face edge-fade alpha correction returns the token and clear at the ends and the S7-corrected Web alpha in between (L0)
+    /// 面の縁フェードの mask（skit・hud の形）と α 補正が、端・途中・頂点 α の合成で Web と同じ濃さの並びになるかを確かめる（L0）
+    /// Verifies the face edge-fade mask (skit and hud shapes) and alpha correction give the Web run of shades at ends, mid-fade and in vertex alpha (L0)
     /// </summary>
     public class GamePanelFaceOpacityRampTest
     {
         // --surface-navy の α（Web の α0.8 を 1-(1-a)^2.2 で補正した値）
         // The --surface-navy alpha (Web alpha 0.8 corrected by 1-(1-a)^2.2)
         private const float NavyFaceAlpha = 0.971f;
+
+        // skit の形（左右と下端はフェードせず上端だけ 12px）と hud の形（4 辺 10px）
+        // The skit shape (no side or bottom fade, top only 12px) and the hud shape (10px on all four sides)
+        private const float Width = 400f;
+        private const float Height = 160f;
+        private const float SkitTopFade = 12f;
+        private const float HudFade = 10f;
 
         [TestCase(0.971f)]
         [TestCase(0.9906f)]
@@ -44,6 +51,49 @@ namespace Client.Tests.Ui.Components.Panels
             {
                 Assert.Greater(GamePanelFaceOpacityRamp.OpacityAt(NavyFaceAlpha, weight), NavyFaceAlpha * weight);
             }
+        }
+
+        [Test]
+        public void skitの形では下端と左右端は濃いまま上端だけ透明へ落ちる()
+        {
+            // フェード幅 0 の辺で 0 で割らず重み 1 に保つ分岐が、skit の下端と左右端を硬く残す
+            // The branch that keeps a zero-span side at weight 1 without dividing by zero keeps the skit bottom and sides hard
+            Assert.AreEqual(1f, SkitWeight(Width / 2f, Height), 0.0001f);
+            Assert.AreEqual(1f, SkitWeight(0f, Height / 2f), 0.0001f);
+            Assert.AreEqual(1f, SkitWeight(Width, Height / 2f), 0.0001f);
+            Assert.AreEqual(1f, SkitWeight(0f, Height), 0.0001f);
+            Assert.AreEqual(0f, SkitWeight(Width / 2f, 0f), 0.0001f);
+            Assert.AreEqual(0.5f, SkitWeight(Width / 2f, SkitTopFade / 2f), 0.0001f);
+        }
+
+        [Test]
+        public void hudの形では4隅が透明で縁の中ほどは2辺の積になり中央は濃いまま()
+        {
+            Assert.AreEqual(0f, HudWeight(0f, 0f), 0.0001f);
+            Assert.AreEqual(0f, HudWeight(Width, Height), 0.0001f);
+            Assert.AreEqual(1f, HudWeight(Width / 2f, Height / 2f), 0.0001f);
+            Assert.AreEqual(0.5f, HudWeight(Width / 2f, Height - HudFade / 2f), 0.0001f);
+            Assert.AreEqual(0.25f, HudWeight(HudFade / 2f, HudFade / 2f), 0.0001f);
+        }
+
+        [Test]
+        public void 頂点のαは縁の重みを線形に掛けずS7の式で補正した値になる()
+        {
+            // skit 上端の 50% 点。重み 0.5 を線形に掛けた 0.4855 ではなく OpacityAt(a, 0.5) = 0.6750 になる
+            // The skit top 50% point: not the linear 0.4855 but OpacityAt(a, 0.5) = 0.6750
+            var alpha = GamePanelFaceOpacityRamp.VertexAlpha(NavyFaceAlpha, Width / 2f, SkitTopFade / 2f, Width, Height, 0f, SkitTopFade, 0f);
+            Assert.AreEqual(0.6750f, alpha, 0.002f);
+            Assert.AreEqual(NavyFaceAlpha, GamePanelFaceOpacityRamp.VertexAlpha(NavyFaceAlpha, Width / 2f, Height, Width, Height, 0f, SkitTopFade, 0f), 0.0001f);
+        }
+
+        private static float SkitWeight(float x, float y)
+        {
+            return GamePanelFaceOpacityRamp.MaskWeightAt(x, y, Width, Height, 0f, SkitTopFade, 0f);
+        }
+
+        private static float HudWeight(float x, float y)
+        {
+            return GamePanelFaceOpacityRamp.MaskWeightAt(x, y, Width, Height, HudFade, HudFade, HudFade);
         }
     }
 }

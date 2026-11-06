@@ -56,8 +56,10 @@ namespace Client.Tests.Ui.Components.Panels
             Assert.AreEqual(panel.yMax + 8f, face.yMax, 0.5f);
         }
 
+        // 受け取った幅での描画結果（縁の重みと α 補正）は GamePanelFaceOpacityRampTest が L0 で確かめる
+        // The drawn result for the received spans (edge weights and alpha correction) is checked at L0 by GamePanelFaceOpacityRampTest
         [Test]
-        public void 面は面色と左右のフェードをトークンから読み上下のフェードはWebの値()
+        public void 面は面色と左右のフェード幅をトークンから受け取り上下のフェード幅はWebの値()
         {
             simulate.FrameUpdate();
             var style = Face().customStyle;

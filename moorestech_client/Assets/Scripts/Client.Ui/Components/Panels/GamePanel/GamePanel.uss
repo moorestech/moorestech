@@ -92,14 +92,14 @@
     display: flex;
 }
 
-/* Web の letter-spacing 0.02em は 19px で 0.38px。transform は GamePanelTitle がつまみ --title-* から当てる */
-/* The Web letter-spacing 0.02em is 0.38px at 19px; GamePanelTitle applies the transform from the --title-* knobs */
+/* Web の letter-spacing 0.02em は 19px で字間 0.38px。UITK の letter-spacing は px と書いても字の大きさの 1/100 倍で効くので 2 と書く（"IIIIIIIIII" で 0→65px・2→68px・10→82px を実測）。transform は GamePanelTitle がつまみ --title-* から当てる */
+/* The Web letter-spacing 0.02em is a 0.38px gap at 19px. UITK applies letter-spacing as 1/100 of the font size even when written in px, so write 2 (measured "IIIIIIIIII": 0→65px, 2→68px, 10→82px). GamePanelTitle applies the transform from the --title-* knobs */
 .game-panel__title {
     margin: 0;
     padding: 0;
     font-size: 19px;
     -unity-font-style: normal;
-    letter-spacing: 0.38px;
+    letter-spacing: 2px;
     color: var(--color-content-primary);
     text-shadow: 0.3px 0.3px 0 var(--game-panel-title-shadow);
     transform-origin: left center;

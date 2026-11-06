@@ -1,6 +1,7 @@
 using System;
 using Client.Ui.Components.Decor;
 using Client.Ui.State.Text;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Panels
@@ -13,7 +14,7 @@ namespace Client.Ui.Components.Panels
     /// 面だけの hud・skit は GamePanelSurface に分け、題の API を型で到達不能にする（Web の FramedProps と FaceOnlyProps）。外周の影は描かない（C2-a 判断記録 D-1）
     /// Face-only hud and skit live in GamePanelSurface so title APIs are unreachable by type (Web FramedProps and FaceOnlyProps); the outer shadow is not drawn (C2-a decision D-1)
     /// </remarks>
-    public class GamePanel : VisualElement
+    public sealed class GamePanel : VisualElement
     {
         private readonly VisualElement _header;
         private readonly VisualElement _titleAction;
@@ -109,6 +110,14 @@ namespace Client.Ui.Components.Panels
 
         public void SetTitleAction(VisualElement action)
         {
+            // 題が無いと題の行ごと隠れる（Web も title 無しでは titleAction を描かない）。出さないまま誤用をログへ出す
+            // Without a title the whole row is hidden (the Web also skips titleAction without a title); keep it hidden but log the misuse
+            if (_title == null)
+            {
+                Debug.LogError($"GamePanel.SetTitleAction は SetTitle の後に呼ぶ（題が無いと題の行ごと隠れる）: {name}");
+                return;
+            }
+
             // 副次アクションは 1 つだけ。差し替えは前の要素を外してから足す
             // Only one title action; replacing removes the previous element first
             _titleAction.Clear();

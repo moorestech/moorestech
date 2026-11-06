@@ -81,8 +81,8 @@ namespace Client.Ui.Components.Panels
                 }
             }
 
-            // 4 辺の重みの積を mask とし、Linear 合成用に補正した α を置く（Web の mask-composite: intersect と同じく積を取る）
-            // Take the product of the four edge weights as the mask and set the Linear-corrected alpha (the same product as the Web mask-composite: intersect)
+            // 頂点 α は縁の mask と Linear 合成用の補正を GamePanelFaceOpacityRamp でまとめて決める
+            // GamePanelFaceOpacityRamp decides vertex alpha from the edge mask and the Linear-blend correction together
             void WriteVertices()
             {
                 for (var row = 0; row < GridLineCount; row++)
@@ -91,8 +91,7 @@ namespace Client.Ui.Components.Panels
                     var x = _gridXs[column];
                     var y = _gridYs[row];
                     var tint = _faceColor;
-                    var maskWeight = Ramp(y, _topFade) * Ramp(height - y, _bottomFade) * Ramp(x, _sideFade) * Ramp(width - x, _sideFade);
-                    tint.a = GamePanelFaceOpacityRamp.OpacityAt(_faceColor.a, maskWeight);
+                    tint.a = GamePanelFaceOpacityRamp.VertexAlpha(_faceColor.a, x, y, width, height, _sideFade, _topFade, _bottomFade);
                     mesh.SetNextVertex(new Vertex { position = new Vector3(x, y, Vertex.nearZ), tint = tint });
                 }
             }
@@ -115,13 +114,6 @@ namespace Client.Ui.Components.Panels
                     mesh.SetNextIndex(bottomRight);
                     mesh.SetNextIndex(bottomLeft);
                 }
-            }
-
-            // 縁からの距離をフェード幅で割った重み。幅 0 の辺は常に 1（mask を掛けない辺）
-            // Distance from the edge over the fade span; a zero-span side is always 1 (an unmasked side)
-            float Ramp(float distance, float fade)
-            {
-                return fade <= 0f ? 1f : Mathf.Clamp01(distance / fade);
             }
 
             #endregion
