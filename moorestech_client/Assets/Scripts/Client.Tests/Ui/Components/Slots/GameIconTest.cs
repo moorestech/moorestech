@@ -37,12 +37,14 @@ namespace Client.Tests.Ui.Components.Slots
         [TearDown]
         public void NoUnexpectedLogs()
         {
-            LogAssert.NoUnexpectedReceived();
+            // 言語の復元を先に済ませ、検証が失敗しても次のテストへ英語固定を残さない
+            // Restore the language first so a failed assertion never leaves English pinned for the next test
             rootVisualElement.Clear();
             if (_hadSavedLanguageCode) PlayerPrefs.SetString(Localize.LanguagePreferenceKey, _savedLanguageCode);
             else PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
             PlayerPrefs.Save();
             Localize.Initialize();
+            LogAssert.NoUnexpectedReceived();
         }
 
         [Test]

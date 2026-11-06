@@ -1,7 +1,6 @@
 using Client.Ui.Foundation.Icons;
 using Client.Ui.Foundation.Text;
 using Client.Ui.State.Text;
-using Mooresmaster.Localization.Generated;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Components.Slots
