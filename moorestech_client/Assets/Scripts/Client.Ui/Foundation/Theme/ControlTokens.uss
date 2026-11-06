@@ -34,7 +34,16 @@
     /* ポーズの枠の面。Web の pauseMenu/style.module.css の .panel が直書きする色（ボタンの面 --gauge-track より明るい灰紺） */
     --pause-menu-face: rgba(16, 20, 28, 0.9961); /* web: rgb(16 20 28 / 92%) α補正 */
 
-    /* トーストの左帯。Web は Mantine Notification の color="blue" / "red"（filled = blue-6 / red-6） */
-    --color-accent: #228be6;
-    --color-danger: #fa5252;
+    /* ポーズの枠の線。Web の 1px rgb(255 255 255 / 24%) を枠の面 (16,20,28) の上で前計算した不透明色（半透明の線は Linear 合成で明るく出るため） */
+    --pause-menu-border: rgb(73, 76, 82); /* web: rgb(255 255 255 / 24%) over (16,20,28) */
+
+    /* Mantine（defaultColorScheme="dark"）の色。トースト（Notification withBorder）・送信ボタン（Button）・切断の赤字（Text c="red"）が使う */
+    --mantine-dark-0: #c9c9c9;
+    --mantine-dark-3: #696969;
+    --mantine-dark-4: #424242;
+    --mantine-dark-6: #2e2e2e;
+    --color-accent: #1971c2; /* blue-8 = dark の blue filled */
+    --color-accent-hover: #1864ab; /* blue-9 = dark の blue filled-hover */
+    --color-danger: #e03131; /* red-8 = dark の red filled */
+    --color-danger-text: #ff8787; /* red-4 = dark の red text */
 }

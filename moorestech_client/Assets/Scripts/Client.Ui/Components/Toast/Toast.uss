@@ -1,37 +1,55 @@
-/* トースト 1 件。Web は Mantine Notification（右下・withBorder・info=blue / error=red）。GameUi では GamePanel の面に種別の左帯を付ける（D-17） */
-/* One toast; the Web uses Mantine Notification (bottom-right, withBorder, info=blue / error=red); GameUi puts a variant-colored left strip on the GamePanel face (D-17) */
+/* トースト 1 件。Web の Mantine Notification（defaultColorScheme="dark"・withBorder・info=blue / error=red）を写す */
+/* 不透明の dark-6 の面・dark-4 の 1px 線・角丸 4px。種別の色は左から 4px 内側の角丸の帯で、文字は dark-0 の 14px */
+/* One toast copying the Web Mantine Notification (defaultColorScheme="dark", withBorder, info=blue / error=red) */
+/* An opaque dark-6 face, a 1px dark-4 rule and 4px radius; the variant color is a rounded strip 4px in from the left, text is dark-0 14px */
 
 .toast-item {
-    --toast-item-face: var(--surface-navy);
-    --toast-item-border: var(--notification-border);
-    --toast-item-text: var(--game-panel-text);
+    --toast-item-face: var(--mantine-dark-6);
+    --toast-item-border: var(--mantine-dark-4);
+    --toast-item-text: var(--mantine-dark-0);
     --toast-item-strip-info: var(--color-accent);
     --toast-item-strip-error: var(--color-danger);
     flex-direction: row;
     align-items: center;
-    min-width: var(--notification-width);
     max-width: 400px;
-    margin-top: 8px;
-    padding: 8px 12px;
-    border-width: 1px 1px 1px 4px;
+    margin-top: 10px;
+    padding: 10px 10px 10px 22px;
+    border-width: 1px;
+    border-radius: 4px;
     border-color: var(--toast-item-border);
     background-color: var(--toast-item-face);
 }
 
-.toast-item--info {
-    border-left-color: var(--toast-item-strip-info);
+/* Mantine の ::before。上下は角丸の半径ぶん内側、幅 6px */
+/* Mantine's ::before: inset by the radius top and bottom, 6px wide */
+.toast-item__strip {
+    position: absolute;
+    left: 4px;
+    top: 4px;
+    bottom: 4px;
+    width: 6px;
+    border-radius: 4px;
 }
 
-.toast-item--error {
-    border-left-color: var(--toast-item-strip-error);
+.toast-item--info .toast-item__strip {
+    background-color: var(--toast-item-strip-info);
 }
 
+.toast-item--error .toast-item__strip {
+    background-color: var(--toast-item-strip-error);
+}
+
+/* 本文は Notification の description（14px・行高 1.55）。右に xs の 10px を空ける */
+/* The body is the Notification description (14px, line height 1.55) with an xs 10px right margin */
 .toast-item__text {
     flex-shrink: 1;
-    margin: 0;
+    min-height: 22px;
+    margin: 0 10px 0 0;
     padding: 0;
     color: var(--toast-item-text);
+    font-size: 14px;
     white-space: normal;
+    -unity-text-align: middle-left;
 }
 
 /* トースト層の入れ物。右下へ寄せて縦に積む。入力は取らない（ホストは C# で pickingMode=Ignore） */

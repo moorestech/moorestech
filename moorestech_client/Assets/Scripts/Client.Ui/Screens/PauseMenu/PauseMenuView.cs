@@ -2,7 +2,6 @@ using System;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Localization;
-using Client.Ui.Components;
 using Client.Ui.Foundation.Anchor;
 using Client.Ui.Foundation.Assets;
 using Client.Ui.Foundation.Text;
@@ -18,8 +17,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.PauseMenu
 {
     /// <summary>
-    /// ポーズ画面の GamePanel。ページは PauseMenuViewModel.Page だけで決め、表示のたびと変わるたびに中身を作り直す（Web の PauseMenuPanel）
-    /// The pause-menu GamePanel; the page is decided only by PauseMenuViewModel.Page and rebuilt on every show and change (Web PauseMenuPanel)
+    /// ポーズ画面の枠。ページは PauseMenuViewModel.Page だけで決め、表示のたびと変わるたびに中身を作り直す（Web の PauseMenuPanel）
+    /// The pause-menu frame; the page is decided only by PauseMenuViewModel.Page and rebuilt on every show and change (Web PauseMenuPanel)
     /// </summary>
     public sealed class PauseMenuView : VisualElement
     {
@@ -55,16 +54,17 @@ namespace Client.Ui.Screens.PauseMenu
             // 自身は層いっぱいの透明な置き場で、testid とアンカーは Web と同じく見える枠に付ける
             // This element is a transparent full-layer host; the testid and anchor go on the visible frame as on the Web
             pickingMode = PickingMode.Ignore;
-            var panel = new GamePanel(catalog.GamePanel) { name = "pause-menu" };
+            var panel = new VisualElement { name = "pause-menu" };
             panel.AddToClassList("pause-menu__panel");
             TutorialAnchor.Mark(panel, AnchorIds.PauseMenu);
-
-            // 題は枠のタイトル行に 1 つだけ置き、ページに合わせてキーを差し替える
-            // A single title sits in the frame's title row and swaps its key per page
-            _title = new LocalizedLabel();
-            _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
-            panel.SetTitle(_title);
             Add(panel);
+
+            // 題は枠の先頭に 1 つだけ置き、ページに合わせてキーを差し替える（Web の Title order=1）
+            // A single title leads the frame and swaps its key per page (Web Title order=1)
+            _title = new LocalizedLabel();
+            _title.AddToClassList("pause-menu__title");
+            _title.SetKey(LocalizationKeys.Ui.PauseMenu.Title);
+            panel.Add(_title);
 
             // ロケール印は DSL が言語の切り替わりを待つための名前
             // The locale marker is a name the DSL waits on to see the language switch
