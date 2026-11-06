@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Numerics;
 
 namespace Client.Ui.State.Text
 {
@@ -13,8 +14,28 @@ namespace Client.Ui.State.Text
         // Like the Web's toFixed: no grouping and '.' as the decimal point
         public static string Fixed(double value, int decimals)
         {
-            var rounded = Math.Round(value, decimals, MidpointRounding.AwayFromZero);
-            return rounded.ToString("F" + decimals, CultureInfo.InvariantCulture);
+            if (double.IsNaN(value)) return "NaN";
+            if (double.IsInfinity(value)) return 0 < value ? "Infinity" : "-Infinity";
+
+            // double の正確な 2 進値を半上（絶対値で遠ざかる向き）に丸める。Math.Round は 10 倍した値を丸めるため 2.55 などでずれる
+            // Round the exact binary value half-up in magnitude; Math.Round scales first and drifts on values like 2.55
+            var bits = BitConverter.DoubleToInt64Bits(value);
+            var exponentBits = (int)((bits >> 52) & 0x7FF);
+            var mantissa = bits & 0xFFFFFFFFFFFFFL;
+            if (exponentBits != 0) mantissa |= 1L << 52;
+            var exponent = (exponentBits == 0 ? 1 : exponentBits) - 1075;
+
+            var scaled = new BigInteger(mantissa) * BigInteger.Pow(10, decimals);
+            var digitsValue = 0 <= exponent
+                ? scaled << exponent
+                : ((scaled << 1) + (BigInteger.One << -exponent)) >> (1 - exponent);
+
+            // 桁を整数部と小数部へ分ける。負の微小値は toFixed と同じく「-0.0」になる
+            // Split into integer and fraction digits; tiny negatives print "-0.0" like toFixed
+            var digits = digitsValue.ToString(CultureInfo.InvariantCulture).PadLeft(decimals + 1, '0');
+            var sign = value < 0 ? "-" : "";
+            if (decimals == 0) return sign + digits;
+            return sign + digits.Substring(0, digits.Length - decimals) + "." + digits.Substring(digits.Length - decimals);
         }
 
         public static string Integer(long value)

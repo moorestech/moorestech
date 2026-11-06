@@ -38,6 +38,19 @@ namespace Client.Tests.Ui.Text
         }
 
         [Test]
+        public void FixedRoundsTheExactBinaryValueLikeToFixed()
+        {
+            // Web の (2.55).toFixed(1)="2.5"・(1.2345).toFixed(3)="1.234"・(-0.0001).toFixed(1)="-0.0"
+            // Same as Web (2.55).toFixed(1)="2.5", (1.2345).toFixed(3)="1.234", (-0.0001).toFixed(1)="-0.0"
+            Assert.AreEqual("2.5", UiNumberFormat.Fixed(2.55, 1));
+            Assert.AreEqual("1.234", UiNumberFormat.Fixed(1.2345, 3));
+            Assert.AreEqual("-0.0", UiNumberFormat.Fixed(-0.0001, 1));
+            Assert.AreEqual("0.0", UiNumberFormat.Fixed(0.0, 1));
+            Assert.AreEqual("3", UiNumberFormat.Fixed(2.5, 0));
+            Assert.AreEqual("-1234.50", UiNumberFormat.Fixed(-1234.5, 2));
+        }
+
+        [Test]
         public void IntegerHasNoGrouping()
         {
             Assert.AreEqual("1234567", UiNumberFormat.Integer(1234567));
