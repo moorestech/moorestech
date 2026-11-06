@@ -1,0 +1,99 @@
+/* 部品ギャラリーの面・装飾の見本の寸法と、画面が使う予定のつまみの上書き（値は Web の画面 CSS と参照キャプチャの寸法） */
+/* Sample sizes for the surface and decor gallery entries and the knob overrides the screens will use (values from the Web screen CSS and the reference captures) */
+
+.gallery-samples {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.gallery-samples__cell {
+    margin: 16px;
+}
+
+/* 4-player-inventory の持ち物パネル（Web InventoryPanel の width と minHeight） */
+/* The 4-player-inventory inventory panel (Web InventoryPanel width and minHeight) */
+.gallery-samples__inventory {
+    width: var(--inventory-panel-width);
+    height: 452.391px;
+}
+
+/* 4-player-inventory の中央詳細（craft・題なし） */
+/* The 4-player-inventory center detail (craft, untitled) */
+.gallery-samples__craft-detail {
+    width: 338px;
+    height: 300px;
+}
+
+.gallery-samples__skit-stage {
+    width: 1280px;
+    height: 204px;
+}
+
+/* チャレンジ HUD（CurrentChallengeHud.module.css の .hud・.rule・.objective） */
+/* The challenge HUD (.hud, .rule and .objective in CurrentChallengeHud.module.css) */
+.gallery-samples__challenge-hud {
+    width: var(--challenge-hud-width);
+    color: var(--text-high-contrast);
+    --hud-rule-width: var(--challenge-hud-rule-width);
+}
+
+.gallery-samples__objective {
+    margin: 0;
+    padding: 0;
+    font-size: var(--challenge-hud-objective-font-size);
+}
+
+/* 設置モード HUD（modeHud/style.module.css の .placementHud・.label・.detail） */
+/* The placement-mode HUD (.placementHud, .label and .detail in modeHud/style.module.css) */
+.gallery-samples__mode-hud {
+    width: var(--operation-hud-width);
+    --hud-label-font-size: var(--operation-hud-label-font-size);
+    --hud-label-letter-spacing: var(--operation-hud-letter-spacing);
+    --hud-label-rule-gap: var(--operation-hud-label-rule-gap);
+    --hud-rule-list-gap: var(--operation-hud-rule-list-gap);
+}
+
+.gallery-samples__mode-detail {
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: var(--operation-hud-detail-gap);
+    margin-left: 0;
+    padding: 0;
+    font-size: var(--operation-hud-detail-font-size);
+    color: var(--text-high-contrast);
+}
+
+/* チャレンジのノードカード（challenge/style.module.css の .node: width 240px・padding --mantine-spacing-sm） */
+/* The challenge node card (.node in challenge/style.module.css: width 240px, padding --mantine-spacing-sm) */
+.gallery-samples__paper {
+    width: 240px;
+    padding-top: var(--mantine-spacing-sm);
+    padding-right: var(--mantine-spacing-sm);
+    padding-bottom: var(--mantine-spacing-sm);
+    padding-left: var(--mantine-spacing-sm);
+}
+
+/* Paper の面（--mantine-color-body）はギャラリーの地と同じ色なので、チャレンジ画面の地（challenge/style.module.css の background）に載せる */
+/* The Paper face (--mantine-color-body) equals the gallery backdrop, so it sits on the challenge screen backdrop (background in challenge/style.module.css) */
+.gallery-samples__paper-backdrop {
+    padding-top: 8px;
+    padding-right: 8px;
+    padding-bottom: 8px;
+    padding-left: 8px;
+    background-color: var(--mantine-color-dark-8);
+}
+
+.gallery-samples__rule-host {
+    width: 600px;
+}
+
+.gallery-samples__rule-short {
+    width: var(--challenge-hud-rule-width);
+    margin-bottom: 12px;
+}
+
+.gallery-samples__rule-medium {
+    width: var(--challenge-hud-content-width);
+    margin-bottom: 12px;
+}
