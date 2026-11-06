@@ -5,8 +5,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Dsl
 {
     /// <summary>
-    /// 全体スイッチの系のロケータだけで探し、もう片方には照会もセッションも開かないことを偽の 2 ロケータで固定する（plan §3.3 R2 の L0）
-    /// Pins with two fake locators that only the switch's locator is used and the other is neither queried nor opened (L0 of plan §3.3 R2)
+    /// 選ばれた系だけで探すことを固定する
+    /// Pins that only the chosen system is used for lookups
     /// </summary>
     public class SwitchedUiElementLocatorTest
     {

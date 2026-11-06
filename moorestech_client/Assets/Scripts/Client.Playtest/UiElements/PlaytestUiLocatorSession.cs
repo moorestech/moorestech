@@ -13,8 +13,8 @@ namespace Client.Playtest.UiElements
     /// </summary>
     public static class PlaytestUiLocatorSession
     {
-        // 両系の実装は1つずつ持ち回し、どちらを使うかだけを Start で決め直す
-        // Keep one instance per renderer and only re-decide at Start which one to use
+        // 両系を持ち、Start で使う系を決める
+        // Hold both systems; pick the one to use at Start
         private static readonly IUiElementLocator GameUiLocator = new GameUiElementLocator();
         private static readonly IUiElementLocator WebLocator = new WebUiElementLocator();
         private static int _generation;

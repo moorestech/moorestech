@@ -15,8 +15,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
     /// <summary>
-    /// 全体スイッチの Web 側で、Client.Ui が何も載らず GameUiRoot の層が空のままかを実ゲームで確かめる（plan §2.2 完了条件）
-    /// Verifies in the real game that on the Web side of the global switch nothing from Client.Ui is mounted and the GameUiRoot layers stay empty (plan §2.2)
+    /// Web 側で GameUiRoot の層が空か確かめる
+    /// Verifies the GameUiRoot layers stay empty on Web
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class WebUiSystemSkeletonTest : UiSystemPlayModeTestBase
@@ -46,13 +46,13 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var uiStateControl = ClientDIContext.DIContainer.DIContainerResolver.Resolve<UIStateControl>();
                 var gameUiRoot = GameUiRoot.Instance;
 
-                // Web 側の起動は入力の裁きも Web で、ゲーム画面で層が空
-                // A Web-side boot arbitrates input as Web, and the layers are empty on the game screen
+                // Web 起動は入力も Web で層が空
+                // A Web boot arbitrates input as Web with empty layers
                 Assert.AreEqual(UiSystem.Web, UiInputExclusivity.ActiveUiSystem, "起動の系が Web でない");
                 AssertAllLayersEmpty(gameUiRoot, "ゲーム画面");
 
-                // ポーズにしても UITK のポーズは載らない（Web のポーズが出る）
-                // Pausing mounts no UITK pause (the Web pause shows instead)
+                // UITK のポーズは載らない
+                // No UITK pause is mounted
                 uiStateControl.RequestTransition(UIStateEnum.PauseMenu);
                 await UniTask.DelayFrame(3);
                 Assert.AreEqual(UIStateEnum.PauseMenu, uiStateControl.CurrentState, "ポーズへ遷移していない");
@@ -66,8 +66,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
         private static void AssertAllLayersEmpty(GameUiRoot gameUiRoot, string phase)
         {
-            // Web 側では Client.Ui を登録しないので、どの層にも子が無い（plan §3.3 R1）
-            // The Web side registers nothing from Client.Ui, so no layer has children (plan §3.3 R1)
+            // Client.Ui 未登録で層に子が無い
+            // Client.Ui is not registered, so layers are empty
             foreach (UiLayer layer in Enum.GetValues(typeof(UiLayer)))
             {
                 var count = gameUiRoot.GetLayer(layer).childCount;

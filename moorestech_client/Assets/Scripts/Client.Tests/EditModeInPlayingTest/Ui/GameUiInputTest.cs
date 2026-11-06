@@ -29,8 +29,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
         [UnityTest]
         public IEnumerator UI資産の差し替え前後でWASDと矢印とSpaceとEnterがナビゲーションイベントを出すかを数える()
         {
-            // 全体スイッチを UITK にして起動する（plan §3.3 R4）
-            // Boot with the global switch on UITK (plan §3.3 R4)
+            // UITK で起動する
+            // Boot with UITK
             SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 
@@ -80,8 +80,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
         [UnityTest]
         public IEnumerator 実ゲームでGameUiの入力欄がフォーカスとIMEとESCとポインタとDSLに結線されている()
         {
-            // 全体スイッチを UITK にして起動する（plan §3.3 R4）
-            // Boot with the global switch on UITK (plan §3.3 R4)
+            // UITK で起動する
+            // Boot with UITK
             SelectUiSystemBeforePlayMode(UiSystem.GameUi);
             EnterPlayModeUtil();
 

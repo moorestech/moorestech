@@ -13,8 +13,8 @@ namespace Client.Starter.Registration
 {
     // Client.Ui の登録口。全体スイッチの分岐はここ 1 か所で、Presenter・View・部品はスイッチを読まない（plan §3.3 R1、設計書 §4.4・[A-16]）
     // Registration entry for Client.Ui; the global switch branches only here, and presenters, views and parts never read it (plan §3.3 R1, design §4.4, [A-16])
-    // 後続レーンは画面の Presenter を GameUi 分岐の下に 1 行ずつ足す
-    // Later lanes append their screen presenters below, inside the GameUi branch
+    // Presenter は GameUi 分岐の下に足す
+    // Add presenters below, inside the GameUi branch
     internal static class MainGameUiRegistration
     {
         public static void Register(ContainerBuilder builder, GameUiRoot gameUiRoot, UiSystem uiSystem)

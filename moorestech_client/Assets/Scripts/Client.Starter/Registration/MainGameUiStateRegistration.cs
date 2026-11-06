@@ -48,8 +48,8 @@ namespace Client.Starter.Registration
             builder.Register<BlockNetworkInfoCache>(Lifetime.Singleton);
             builder.RegisterEntryPoint<OpenBlockDetailTracker>().AsSelf();
 
-            // 画面ルータ。どちらの系でも同じ画面を引く（描く系の分岐は MainGameUiRegistration だけ）
-            // Screen router; both systems resolve the same screen (the drawing-system branch lives only in MainGameUiRegistration)
+            // 画面ルータ。両系共通
+            // Screen router; shared by both systems
             builder.RegisterEntryPoint<UiRoutingState>().AsSelf();
 
             // ポーズと設定の状態と型付きコマンド。Web のアダプタと GameUi の View が同じものを使うので両方の系で登録する

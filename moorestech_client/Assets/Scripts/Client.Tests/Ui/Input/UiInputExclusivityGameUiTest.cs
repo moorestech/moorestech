@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Client.Tests.Ui.Input
 {
-    // GameUi の系での文字入力・ESCラッチ・ポインタprobeの登録を確かめる。Web の値は読まない（plan §3.3 R2）
-    // Verifies text input, the ESC latch and pointer-probe registration in the GameUi system; web values are not read (plan §3.3 R2)
+    // GameUi の系の入力占有を確かめる
+    // Verifies input occupancy in the GameUi system
     public class UiInputExclusivityGameUiTest
     {
         private class FixedProbe : IGameUiPointerProbe
@@ -45,14 +45,14 @@ namespace Client.Tests.Ui.Input
         [Test]
         public void WebFocusIsNotReadInGameUiSystem()
         {
-            // Web が入力欄フォーカスを送っても GameUi の系では読まない
-            // A web text-field focus is not read in the GameUi system
+            // GameUi では Web の値を読まない
+            // GameUi does not read web values
             UiInputExclusivity.SetState(false, true);
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
             Assert.IsFalse(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard));
 
-            // Web が false を送っても GameUi の欄のフォーカスは残る
-            // Web sending false keeps the GameUi field's focus
+            // Web の false で GameUi の欄は残る
+            // Web false keeps the GameUi field focus
             UiInputExclusivity.SetGameUiTextInputFocused(true);
             UiInputExclusivity.SetState(false, false);
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);

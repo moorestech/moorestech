@@ -4,8 +4,8 @@ using NUnit.Framework;
 
 namespace Client.Tests.Ui.Routing
 {
-    // 全体スイッチの値が次の起動の解決に乗り、入力の裁きへ押し込まれる（plan §3.3 R1・R4）
-    // The global switch's value reaches the next boot's resolution and is pushed into input arbitration (plan §3.3 R1, R4)
+    // スイッチ値が起動と入力へ届く
+    // The switch value reaches boot and input
     public class UiSystemSwitchTest
     {
         [TearDown]

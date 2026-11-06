@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Control;
 using Client.Input;
 using NUnit.Framework;
 using UniRx;
@@ -6,8 +7,8 @@ using UnityEngine;
 
 namespace Client.Tests.Ui.Input
 {
-    // 全体スイッチの系だけを読み、もう片方の値を論理和にしないことを固定する（plan §3.3 R2 の L0）
-    // Pins that only the switch's system is read and the other side is never ORed in (L0 of plan §3.3 R2)
+    // 選ばれた系だけを読むことを固定する
+    // Pins that only the chosen system is read
     public class UiInputExclusivityActiveSystemTest
     {
         private class AlwaysOverProbe : IGameUiPointerProbe
@@ -31,14 +32,17 @@ namespace Client.Tests.Ui.Input
             UiInputExclusivity.SetGameUiPointerProbe(new AlwaysOverProbe());
             UiInputExclusivity.SetGameUiTextInputFocused(true);
 
-            // GameUi の占有だけがある間は何も占有していない
-            // While only GameUi claims, nothing is occupied
+            // 他方の占有は無視される
+            // The other side occupancy is ignored
             Assert.IsFalse(UiInputExclusivity.IsPointerOverGameUi(Vector2.zero));
             Assert.IsFalse(UiInputExclusivity.IsPointerOverActiveUi(Vector2.zero));
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);
 
             UiInputExclusivity.SetState(true, true);
             Assert.IsTrue(UiInputExclusivity.IsPointerOverActiveUi(Vector2.zero));
+            // 公開の判定も Web の値を読む
+            // The public hit test also reads the Web value
+            Assert.IsTrue(UiPointerHitTest.IsPointerOverAnyUi());
             Assert.IsTrue(UiInputExclusivity.IsTextInputFocused);
             Assert.IsTrue(UiInputExclusivity.IsSuppressed(InputSuppressionScope.Keyboard));
         }
@@ -49,8 +53,8 @@ namespace Client.Tests.Ui.Input
             UiInputExclusivity.SetActiveUiSystem(UiSystem.GameUi);
             UiInputExclusivity.SetState(true, true);
 
-            // Web の占有だけがある間は何も占有していない
-            // While only the web claims, nothing is occupied
+            // 他方の占有は無視される
+            // The other side occupancy is ignored
             Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi);
             Assert.IsFalse(UiInputExclusivity.IsPointerOverActiveUi(Vector2.zero));
             Assert.IsFalse(UiInputExclusivity.IsTextInputFocused);

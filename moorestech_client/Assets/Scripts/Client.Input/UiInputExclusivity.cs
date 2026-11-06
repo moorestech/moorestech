@@ -12,16 +12,16 @@ namespace Client.Input
         Keyboard = 1,
     }
 
-    // 全体スイッチで選ばれた描く系。長命ブランチの中だけの区別で、切替 PR で消す（plan §3.3 R1）
-    // The drawing system chosen by the global switch; it exists only on the long-lived branch and goes away in the cutover PR (plan §3.3 R1)
+    // 描く系。切替 PR で消す
+    // The drawing system; removed in the cutover PR
     public enum UiSystem
     {
         Web,
         GameUi,
     }
 
-    // 全体スイッチで選ばれた系の入力占有だけを読み、テキスト入力時のキー抑止とESCラッチを担う（plan §3.3 R2）
-    // Reads input occupancy only from the system chosen by the global switch, suppresses keyboard input during text entry and latches ESC (plan §3.3 R2)
+    // 選ばれた系の入力占有だけを読む
+    // Reads input occupancy only from the chosen system
     public static class UiInputExclusivity
     {
         // Webはpongが15秒途絶えるとWSを閉じる（moorestech_web/webui/src/bridge/transport/webSocketClient.ts の 15000ms）。同じ値で無応答とみなす

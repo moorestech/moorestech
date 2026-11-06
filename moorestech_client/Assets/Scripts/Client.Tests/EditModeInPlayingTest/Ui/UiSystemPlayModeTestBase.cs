@@ -5,8 +5,8 @@ using NUnit.Framework;
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
     /// <summary>
-    /// 全体スイッチを選んで PlayMode に入る L3 の土台。テストの後は成否によらず既定の Web へ戻す（plan §3.3 R4）
-    /// Base for L3 tests that pick the global switch before entering play mode; afterwards it restores the default Web whatever the outcome (plan §3.3 R4)
+    /// 系を選んで PlayMode に入る L3 の土台
+    /// Base for L3 tests that pick the system before play mode
     /// </summary>
     public abstract class UiSystemPlayModeTestBase
     {

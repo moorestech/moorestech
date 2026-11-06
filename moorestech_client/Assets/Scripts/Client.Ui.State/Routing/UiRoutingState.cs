@@ -7,8 +7,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.Routing
 {
     /// <summary>
-    /// 現在の画面を購読で保つ。どちらの系で描くかは持たない（全体スイッチは composition root だけが読む。設計書 §4.4）
-    /// Keeps the current screen via subscriptions; it does not know which system draws (only the composition root reads the global switch; design §4.4)
+    /// 現在の画面を購読で保つ
+    /// Keeps the current screen via subscriptions
     /// </summary>
     public sealed class UiRoutingState : IInitializable
     {

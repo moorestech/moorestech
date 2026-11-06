@@ -16,8 +16,8 @@ namespace Client.Game.InGame.Control
             // The over-UI check is asked for even on frames with no EventSystem; treat the uGUI side as not hovered
             var isOverUguiPanel = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 
-            // 全体スイッチの系だけを読む（GameUi は Pick、Web は pointerOverUi。plan §3.3 R2）
-            // Read only the global switch's system (GameUi uses the pick, Web uses pointerOverUi; plan §3.3 R2)
+            // 選ばれた系だけを読む
+            // Read only the chosen system
             var isOverActiveUi = UiInputExclusivity.IsPointerOverActiveUi(HybridInput.GetMousePosition());
 
             return isOverActiveUi || isOverUguiPanel;

@@ -92,8 +92,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
         public static async UniTask WebTextInputIsIgnoredInGameUiSystem()
         {
-            // (d) GameUi の系では Web の値（SetState）を読まず、文字入力にもポインタ占有にもならず IME も Off のまま（R2）
-            // (d) In the GameUi system web values (SetState) are not read: no text-input focus, no pointer claim, and IME stays Off (R2)
+            // (d) GameUi の系は Web の値を読まない
+            // (d) The GameUi system does not read web values
             UiInputExclusivity.SetState(true, true);
             await UniTask.DelayFrame(ApplyWaitFrames);
             LogState("web values written in the GameUi system");

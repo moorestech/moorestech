@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Playtest.UiElements
 {
     /// <summary>
-    /// 全体スイッチで選ばれた系のロケータだけで探す。もう片方は照会もセッションも開かない（plan §3.3 R2・§4.4）
-    /// Looks up only with the locator of the system chosen by the global switch; the other side is neither queried nor opened (plan §3.3 R2, §4.4)
+    /// 選ばれた系だけで探す。他方は開かない
+    /// Looks up only in the chosen system; the other is never opened
     /// </summary>
     internal sealed class SwitchedUiElementLocator : IUiElementLocator
     {
@@ -16,8 +16,8 @@ namespace Client.Playtest.UiElements
         {
             _active = activeSystem == UiSystem.GameUi ? gameUi : web;
 
-            // シナリオのログから、どちらの系で探したかを辿れるようにする
-            // Leave in the scenario log which system the lookups used
+            // 探した系をログに残す
+            // Log which system the lookup used
             Debug.Log($"[PlaytestUi] locator reads only the {activeSystem} UI");
         }
 

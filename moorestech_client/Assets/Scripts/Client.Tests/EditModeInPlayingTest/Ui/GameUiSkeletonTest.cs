@@ -25,8 +25,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
     /// <summary>
-    /// 全体スイッチの UITK 側で、骨組み（層・Web ホスト無し・空パネルの入力素通し）が実ゲームで結線されているか確かめる
-    /// Verifies on the UITK side of the global switch that the skeleton (layers, no web host, empty-panel input pass-through) is wired in the real game
+    /// UITK 起動の骨組みの結線を確かめる
+    /// Verifies the skeleton wiring on a UITK boot
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class GameUiSkeletonTest : UiSystemPlayModeTestBase
@@ -61,16 +61,16 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
 
                 AssertAllLayersExist(gameUiRoot);
 
-                // UITK 側の起動では Web ホストも CEF も無い（WS の接続 0・CEF の RawImage 無し。plan §2.2 完了条件）
-                // A UITK-side boot has neither a web host nor CEF (zero WS connections, no CEF RawImage; plan §2.2)
+                // UITK 起動に Web ホストと CEF は無い
+                // A UITK boot has no web host or CEF
                 Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホスト（WS の受け口）が起動している");
                 Assert.IsTrue(Client.WebUiHost.Boot.WebUiHost.HostSkippedThisBoot, "Web ホストを飛ばした起動の状態が立っていない");
                 Assert.AreEqual(WebUiHostStartupState.SkippedByEditorSwitch, WebUiHealthRecorder.HostStartup, "診断記録にスイッチで飛ばしたことが残っていない");
                 Assert.AreEqual(0, UnityEngine.Object.FindObjectsByType<WebUiCefNavigator>(FindObjectsSortMode.None).Length, "CEF のブラウザ（RawImage と同じ GameObject）が有効のまま");
 
-                // ポーズへ行き来しても、ルータは UIState だけで画面を決める
-                // Going to the pause and back, the router decides the screen from UIState alone
+                // ルータは UIState だけで画面を決める
+                // The router decides the screen from UIState alone
                 await TransitionTo(uiStateControl, UIStateEnum.PauseMenu);
                 Assert.AreEqual(UiScreen.PauseMenu, routingState.Current.Value.Screen);
                 await TransitionTo(uiStateControl, UIStateEnum.GameScreen);
@@ -109,8 +109,8 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
             // Let injected mouse input reach a background Editor or CI batchmode
             using var backgroundInput = EditorBackgroundInputScope.Open();
 
-            // カーソルを解放して画面中央（uGUI の要素が無い位置）へ置く
-            // Release the cursor and place it at the screen center where no uGUI element sits
+            // カーソルを画面中央へ置く
+            // Place the cursor at the screen center
             InputManager.MouseCursorVisible(true);
             var center = new Vector2(Screen.width / 2f, Screen.height / 2f);
             var mouse = Mouse.current ?? InputSystem.AddDevice<Mouse>();

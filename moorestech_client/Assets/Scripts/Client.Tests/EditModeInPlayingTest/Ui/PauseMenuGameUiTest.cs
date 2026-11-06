@@ -22,8 +22,8 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.Ui
 {
     /// <summary>
-    /// 全体スイッチの UITK 側の実ゲームで、Esc から UITK のポーズが載り、設定へ行き来して閉じられ、Web の値と Web のロケータを読まないかを確かめる（R-7 の L3）
-    /// Verifies on the UITK side that Esc mounts the UITK pause, settings round-trips and closes, and neither web values nor the web locator are read (L3 of R-7)
+    /// UITK 側でポーズ表示と設定往復が動くか確かめる（R-7 L3）
+    /// Verifies pause display and settings round-trip on UITK (R-7 L3)
     /// </summary>
     [Category("CiShardClientPlay1")]
     public class PauseMenuGameUiTest : UiSystemPlayModeTestBase
@@ -56,32 +56,32 @@ namespace Client.Tests.EditModeInPlayingTest.Ui
                 var pauseMenuState = resolver.Resolve<PauseMenuStateService>();
                 using var backgroundInput = EditorBackgroundInputScope.Open();
 
-                // UITK 側では Web ホストが無く、入力の裁きは GameUi だけを読む
-                // The UITK side has no web host, and input arbitration reads GameUi only
+                // Web ホスト無し。入力は GameUi だけ読む
+                // No web host; input reads GameUi only
                 Assert.AreEqual(UiSystem.GameUi, UiInputExclusivity.ActiveUiSystem, "起動の系が GameUi でない");
                 Assert.IsNull(Client.WebUiHost.Boot.WebUiHost.Hub, "UITK 側で Web ホストが起動している");
 
-                // ゲーム画面で Esc を押すと UITK のポーズが出る
-                // Pressing Esc on the game screen shows the UITK pause
+                // Esc で UITK のポーズが出る
+                // Esc shows the UITK pause
                 await PressEscape();
                 Assert.AreEqual(UIStateEnum.PauseMenu, uiStateControl.CurrentState, "Esc でポーズへ遷移しない");
                 Assert.AreEqual(UiScreen.PauseMenu, routingState.Current.Value.Screen, "ルータの画面がポーズでない");
                 Assert.IsNotNull(GameUiRoot.Instance.GetLayer(UiLayer.PauseMenu).Q("pause-menu"), "UiLayer.PauseMenu に pause-menu が無い");
                 Assert.IsTrue(Find("pause-menu").Visible, "UITK のポーズが見えない");
 
-                // Web 側の値が届いても文字入力にもポインタ占有にもならない（R2）
-                // Web values never become text-input focus or pointer occupancy (R2)
+                // Web の値は占有にならない（R2）
+                // Web values never occupy (R2)
                 UiInputExclusivity.SetState(true, true);
                 Assert.IsFalse(UiInputExclusivity.IsTextInputFocused, "UITK 側で Web の入力欄フォーカスが通った");
                 Assert.IsFalse(UiInputExclusivity.IsPointerOverWebUi, "UITK 側で Web のポインタ占有が通った");
                 UiInputExclusivity.SetState(false, false);
 
-                // DSL のロケータは GameUi だけで探す（R2・plan §4.4）
-                // The DSL locator looks up with GameUi only (R2, plan §4.4)
+                // ロケータは GameUi だけで探す
+                // The locator looks up with GameUi only
                 await AssertDslLocatorReadsOnlyGameUi();
 
-                // 設定ボタンをクリックすると設定のページになる
-                // Clicking the settings button opens the settings page
+                // 設定ボタンで設定ページへ
+                // Settings button opens the settings page
                 await ClickByTestid("pause-menu-open-settings");
                 Assert.AreEqual(PauseMenuPage.Settings, pauseMenuState.CurrentPage.Value, "設定ボタンのクリックで設定のページへ行かない");
                 Assert.IsTrue(Find("language-select").Visible, "設定のページに言語選択が見えない");
