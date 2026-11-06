@@ -23,6 +23,7 @@
 | 日付 | 束 | コミット | Web | 写した | 処遇 | 写す予定 | 未対応 |
 |---|---|---|---|---|---|---|---|
 | 2026-11-06 | 1 | ef796d7551 | 66 | 40 | 8 | 18 | 0 |
+| 2026-11-06 | 3 | ca052a7c04 | 99 | 55 | 0 | 0 | 44 |
 
 ## 処遇
 
@@ -57,3 +58,7 @@
 | 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | modalレイヤーではEscapeでも遷移を要求しない | 捨てる | 同上。モーダル上の ESC は UIState の遷移規則が持つ（L0-s4b D-7） | — |
 | 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | gameレイヤーではEscapeでも遷移を要求しない | 捨てる | 同上（L0-s4b D-7） | — |
 | 4 | `src/features/blockInventory/blockInventoryKeydown.test.ts` | blockInventoryレイヤーでもEscape以外では遷移を要求しない | 捨てる | 同上。テキスト欄フォーカス中の ESC は albof.12（L0-s4b D-7） | — |
+| 4 | `src/shared/placementTarget/selectableTarget.test.ts` | 辞書解決kindはidをguidとして写す | 捨てる | 配信の kind 文字列を表示種別へ写す処理は Web の配信契約だけのもの。C# は `IPlacementTarget` の型そのものが種別で、Kind→型の対応は既存 `Client.Tests/PlaceSystem/PlacementTargetFactoryTest` の「TryCreateはKindごとに対応する型とIdを持つターゲットを生成する」が持つ | #1595 |
+| 4 | `src/shared/placementTarget/selectableTarget.test.ts` | blueprintCopyはidを持たない共通種別になる | 捨てる | 同上。C# の `BlueprintCopyPlacementTarget` は表示名を辞書キー 1 つで解き（`PlacementTargetDisplayNameTest`）、id の有無は表示名に効かない | #1595 |
+| 4 | `src/shared/placementTarget/selectableTarget.test.ts` | 保存BPだけが原文labelのrawになる | 捨てる | 同上。原文の名前を返すのは `BlueprintPlacementTarget.DisplayName` だけで、`PlacementTargetDisplayNameTest`「保存したブループリントは利用者が付けた名前をそのまま返す」が固定する | #1595 |
+| 4 | `src/shared/placementTarget/selectableTarget.test.ts` | ホットバー枠のDTO形状もそのまま受け付ける | 捨てる | UITK のホットバーは配信 DTO を経ず `IPlacementTarget` を直接持つので、DTO の形の互換が無い | #1595 |
