@@ -60,11 +60,26 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(300f, _view.contentViewport.worldBound.width, 0.01f);
             Assert.AreEqual(_view.worldBound.xMax, scroller.worldBound.xMax, 0.01f);
             Assert.AreEqual(12f, scroller.worldBound.width, 0.01f);
-            // 余白の値は style に 2.4px で入り、レイアウトは UI Toolkit が整数ピクセルへ丸める（2.4 → 2、7.2 → 8 に近い値）
-            // The inset lands in style as 2.4px while UI Toolkit snaps layout to whole pixels (2.4 -> 2, thumb 7.2 -> about 8)
+            // 余白は style に 2.4px で入り、UI Toolkit が整数ピクセルへ丸める。実測は x=2・幅8（Web は 2.4・7.2 で記帳済みの差）
+            // Inset is 2.4px in style and UI Toolkit snaps layout to whole pixels; measured x=2, width=8 (known gap from Web 2.4/7.2)
             Assert.AreEqual(2.4f, scroller.style.paddingLeft.value.value, 0.01f);
-            Assert.AreEqual(2.4f, dragger.worldBound.x - scroller.worldBound.x, 0.5f);
-            Assert.AreEqual(7.2f, dragger.worldBound.width, 1f);
+            Assert.AreEqual(2f, dragger.worldBound.x - scroller.worldBound.x, 0.01f);
+            Assert.AreEqual(8f, dragger.worldBound.width, 0.01f);
+        }
+
+        [Test]
+        public void 矢印ボタンは出さず溝はバーの全高に張る()
+        {
+            var scroller = _view.verticalScroller;
+            var slider = scroller.Q(className: "unity-scroller__slider");
+
+            Assert.AreEqual(DisplayStyle.None, scroller.Q(className: "unity-scroller__low-button").resolvedStyle.display);
+            Assert.AreEqual(DisplayStyle.None, scroller.Q(className: "unity-scroller__high-button").resolvedStyle.display);
+            Assert.AreEqual(200f, scroller.worldBound.height, 0.01f);
+            // 溝は上下に内側 2px（整数丸め）だけ空けてバー全高に張る
+            // The track spans the full bar height minus the 2px (snapped) inset on both ends
+            Assert.AreEqual(2f, slider.worldBound.y - scroller.worldBound.y, 0.01f);
+            Assert.AreEqual(196f, slider.worldBound.height, 0.01f);
         }
 
         [Test]
@@ -123,7 +138,10 @@ namespace Client.Tests.Ui.Components.Controls
             var dragger = scroller.Q(className: "unity-base-slider__dragger");
             Assert.AreEqual(4f, scroller.worldBound.width, 0.01f);
             Assert.AreEqual(0.8f, scroller.style.paddingLeft.value.value, 0.01f);
-            Assert.AreEqual(0.8f, dragger.worldBound.x - scroller.worldBound.x, 0.5f);
+            // 実測: 4px 上書き時は x=1・幅2（0.8 と 2.4 の丸め）
+            // Measured at the 4px override: x=1, width=2 (snapped from 0.8 and 2.4)
+            Assert.AreEqual(1f, dragger.worldBound.x - scroller.worldBound.x, 0.01f);
+            Assert.AreEqual(2f, dragger.worldBound.width, 0.01f);
         }
 
         private void Settle()
