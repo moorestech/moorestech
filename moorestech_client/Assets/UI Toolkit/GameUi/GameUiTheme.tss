@@ -7,6 +7,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/DerivedTokens.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Theme.uss");
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Typography.uss");
+@import url("project://database/Assets/Scripts/Client.Ui/Foundation/Theme/Layout.uss");
 /* == section: Foundation/Stage == */
 @import url("project://database/Assets/Scripts/Client.Ui/Foundation/Stage/UiStageFrame.uss");
 /* == section: Components/Panels == */

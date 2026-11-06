@@ -1,0 +1,66 @@
+/* Mantine の Stack/Group の写し。gap は --ui-gap で配り、UiStack/UiGroup が表示中の先頭以外の子へ余白として当てる */
+/* Mantine Stack/Group; the gap is handed out as --ui-gap and UiStack/UiGroup apply it to every shown child except the first */
+
+.ui-stack {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.ui-group {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.ui-stack--gap-none,
+.ui-group--gap-none {
+    --ui-gap: 0px;
+}
+
+.ui-stack--gap-2,
+.ui-group--gap-2 {
+    --ui-gap: 2px;
+}
+
+.ui-stack--gap-4,
+.ui-group--gap-4 {
+    --ui-gap: 4px;
+}
+
+.ui-stack--gap-xs,
+.ui-group--gap-xs {
+    --ui-gap: var(--mantine-spacing-xs);
+}
+
+.ui-stack--gap-sm,
+.ui-group--gap-sm {
+    --ui-gap: var(--mantine-spacing-sm);
+}
+
+.ui-stack--gap-md,
+.ui-group--gap-md {
+    --ui-gap: var(--mantine-spacing-md);
+}
+
+.ui-stack--gap-lg,
+.ui-group--gap-lg {
+    --ui-gap: var(--mantine-spacing-lg);
+}
+
+.ui-stack--gap-xl,
+.ui-group--gap-xl {
+    --ui-gap: var(--mantine-spacing-xl);
+}
+
+.ui-stack--align-center {
+    align-items: center;
+}
+
+.ui-stack--justify-center,
+.ui-group--justify-center {
+    justify-content: center;
+}
+
+.ui-group--nowrap {
+    flex-wrap: nowrap;
+}
