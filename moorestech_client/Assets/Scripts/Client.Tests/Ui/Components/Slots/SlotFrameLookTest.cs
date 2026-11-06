@@ -1,6 +1,7 @@
 using Client.Tests.Ui.TestHost;
 using Client.Ui.Components.Slots;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEditor;
 using UnityEngine.TestTools;
 using UnityEngine.UIElements;
@@ -35,13 +36,14 @@ namespace Client.Tests.Ui.Components.Slots
             Assert.Less(ring.IndexOf(band3), ring.IndexOf(band2));
             Assert.Less(ring.IndexOf(band2), ring.IndexOf(band1));
             Assert.Less(ring.IndexOf(band1), ring.IndexOf(ring.Q(className: "slot-frame__face-inset")));
-            Assert.AreEqual(-ThemeTokenFile.ResolvePixels("--bevel-1"), band1.style.left.value.value, 0.001f);
-            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-1"), band1.style.borderTopWidth.value, 0.001f);
-            Assert.AreEqual(-ThemeTokenFile.ResolvePixels("--bevel-2"), band2.style.bottom.value.value, 0.001f);
-
-            // 後の層は前の層に隠れない輪だけを描く（c3 は c2 と同じ幅なので見える輪が無い）
-            // Later layers draw only the ring earlier layers leave visible (c3 matches c2's width, so it has none)
-            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-2") - ThemeTokenFile.ResolvePixels("--bevel-1"), band2.style.borderTopWidth.value, 0.001f);
+            // 帯は物理画素の整数倍に丸めて外へ積む。後の層は前の層に隠れない輪だけを描く（c3 は c2 と同じ幅なので見える輪が無い）
+            // Bands snap to whole physical pixels and stack outward; later layers draw only the ring earlier ones leave visible (c3 matches c2, so none)
+            var bevel1 = Snapped(frame, "--bevel-1");
+            var bevel2 = Snapped(frame, "--bevel-2");
+            Assert.AreEqual(-bevel1, band1.style.left.value.value, 0.001f);
+            Assert.AreEqual(bevel1, band1.style.borderTopWidth.value, 0.001f);
+            Assert.AreEqual(-bevel2, band2.style.bottom.value.value, 0.001f);
+            Assert.AreEqual(bevel2 - bevel1, band2.style.borderTopWidth.value, 0.001f);
             Assert.AreEqual(0f, band3.style.borderTopWidth.value, 0.001f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--bevel-c1"), band1.resolvedStyle.borderTopColor, "c1");
             Assert.AreEqual(PickingMode.Ignore, ring.pickingMode);
@@ -60,8 +62,8 @@ namespace Client.Tests.Ui.Components.Slots
             var band1 = frame.Q(className: "slot-frame__band--1");
             var band2 = frame.Q(className: "slot-frame__band--2");
             Assert.AreEqual(0f, band1.style.left.value.value, 0.001f);
-            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-1"), band2.style.left.value.value, 0.001f);
-            Assert.AreEqual(ThemeTokenFile.ResolvePixels("--bevel-2") - ThemeTokenFile.ResolvePixels("--bevel-1"), band2.style.borderLeftWidth.value, 0.001f);
+            Assert.AreEqual(Snapped(frame, "--bevel-1"), band2.style.left.value.value, 0.001f);
+            Assert.AreEqual(Snapped(frame, "--bevel-2") - Snapped(frame, "--bevel-1"), band2.style.borderLeftWidth.value, 0.001f);
         }
 
         [Test]
@@ -141,6 +143,12 @@ namespace Client.Tests.Ui.Components.Slots
             rootVisualElement.Add(screen);
             simulate.FrameUpdate();
             return frame;
+        }
+
+        private static float Snapped(VisualElement frame, string bevelToken)
+        {
+            var pixelsPerPoint = frame.scaledPixelsPerPoint;
+            return Mathf.Max(1f, Mathf.Round(ThemeTokenFile.ResolvePixels(bevelToken) * pixelsPerPoint)) / pixelsPerPoint;
         }
     }
 }

@@ -34,7 +34,10 @@ namespace Client.Ui.Components.Slots
             faceInset.AddToClassList("slot-frame__face-inset");
             Add(faceInset);
 
+            // 帯の幅は物理画素へ揃えるので、パネルの倍率が変わり得る配置の変化でも組み直す
+            // Band widths snap to physical pixels, so rebuild on layout changes too, where the panel scale may have changed
             RegisterCallback<CustomStyleResolvedEvent>(_ => ApplyBevelGeometry());
+            RegisterCallback<GeometryChangedEvent>(_ => ApplyBevelGeometry());
         }
 
         private void ApplyBevelGeometry()
@@ -42,15 +45,18 @@ namespace Client.Ui.Components.Slots
             // 読めないときは前の形のまま（LogError で開発者が気づく）
             // When unreadable keep the previous shape (the LogError tells the developer)
             if (!TryReadGrowsInward(out var growsInward)) return;
-            var coveredWidth = 0f;
+            var pixelsPerPoint = scaledPixelsPerPoint;
+            var rawCovered = 0f;
+            var snappedCovered = 0f;
             for (var i = 0; i < _bands.Length; i++)
             {
                 if (!UssCustomStyleReader.TryReadPixels(customStyle, BevelWidthProperties[i], out var width)) return;
 
                 // Web は先の層が上に描かれ後の層は見える輪だけが残る。UITK の opacity は要素ごとに掛かり重なりが濃く残るので、各帯は前の層の外（inset は内）の見える輪だけを描く
                 // On the Web earlier layers paint on top, leaving only each later layer's visible ring; UITK opacity applies per element and stacks, so each band draws only the ring beyond earlier layers
-                var visibleWidth = Mathf.Max(0f, width - coveredWidth);
-                var offset = growsInward ? coveredWidth : -Mathf.Max(width, coveredWidth);
+                var snappedOuter = width > rawCovered ? Mathf.Max(SnapToPhysicalPixels(width, pixelsPerPoint), snappedCovered + 1f / pixelsPerPoint) : snappedCovered;
+                var visibleWidth = snappedOuter - snappedCovered;
+                var offset = growsInward ? snappedCovered : -snappedOuter;
                 var band = _bands[i];
                 band.style.left = offset;
                 band.style.top = offset;
@@ -60,8 +66,16 @@ namespace Client.Ui.Components.Slots
                 band.style.borderTopWidth = visibleWidth;
                 band.style.borderRightWidth = visibleWidth;
                 band.style.borderBottomWidth = visibleWidth;
-                coveredWidth = Mathf.Max(coveredWidth, width);
+                rawCovered = Mathf.Max(rawCovered, width);
+                snappedCovered = snappedOuter;
             }
+        }
+
+        private static float SnapToPhysicalPixels(float width, float pixelsPerPoint)
+        {
+            // 端数の帯は辺ごとに別々に丸まり、面への食い込み・帯の消失・隙間が混ざる。物理画素の整数倍（最低 1）に揃え、どの辺も同じ太さにする
+            // Fractional bands round per edge and mix face intrusions, vanished bands and gaps; snap to whole physical pixels (at least 1) so every side matches
+            return Mathf.Max(1f, Mathf.Round(width * pixelsPerPoint)) / pixelsPerPoint; // look-exception: LX-22
         }
 
         private bool TryReadGrowsInward(out bool growsInward)

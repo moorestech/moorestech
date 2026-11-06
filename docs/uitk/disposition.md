@@ -62,3 +62,6 @@
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | blueprintCopyはidを持たない共通種別になる | 捨てる | 同上。C# の `BlueprintCopyPlacementTarget` は表示名を辞書キー 1 つで解き（`PlacementTargetDisplayNameTest`）、id の有無は表示名に効かない | #1595 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | 保存BPだけが原文labelのrawになる | 捨てる | 同上。原文の名前を返すのは `BlueprintPlacementTarget.DisplayName` だけで、`PlacementTargetDisplayNameTest`「保存したブループリントは利用者が付けた名前をそのまま返す」が固定する | #1595 |
 | 4 | `src/shared/placementTarget/selectableTarget.test.ts` | ホットバー枠のDTO形状もそのまま受け付ける | 捨てる | UITK のホットバーは配信 DTO を経ず `IPlacementTarget` を直接持つので、DTO の形の互換が無い | #1595 |
+| 5 | `src/shared/ui/BlockSlot/index.test.ts` | nameが無ければホバーTooltipを出さない | 捨てる | UITK の `BlockSlot.SetBlock(UiIcon, UiText name)` は名前を必須で受ける（唯一の使い手の研究も常に名前を渡す。設計書 A-50）。名前の無い BlockSlot が作れない | — |
+| 4 | `e2e/tests/regression/itemSlot.spec.ts` | インベントリスロットがマスタGuidの辞書名をtooltip表示する | 写す予定 | moorestech-albof.29（S4-inventory が写す。ホバーの宿主 C3-b と持ち物画面が揃ってから。C3-a 計画 D-20） | — |
+| 5 | `src/shared/ui/iconEndpointArchitecture.test.ts` | * | 捨てる | UITK はアイコンを HTTP（`/api/*-icons/`）で配らず、Content 層（`GameContentPresentation`）がテクスチャを直に `UiIcon` へ渡す（設計書 A-4）。エンドポイントの構造が無い | — |
