@@ -28,6 +28,8 @@ namespace Client.Game.InGame.BugReport.WebUiHealth
     // The manifest.webUiHealth contract; it carries raw values only, never a verdict, so a UI stall is not presumed to be CEF (§3.11, D-11)
     public sealed class WebUiHealthReading
     {
+        // remoteExec（Pascal）と綴り規則が違うのは feature/uitk との blob 一致のため。enum 改名時は display_fields.py の綴り集合も直す
+        // Spelling differs from remoteExec (Pascal) to keep the blob equal to feature/uitk; renaming an enum also needs display_fields.py's spelling sets fixed
         [JsonConverter(typeof(StringEnumConverter), typeof(CamelCaseNamingStrategy))]
         public WebUiHostStartupState HostStartup;
 

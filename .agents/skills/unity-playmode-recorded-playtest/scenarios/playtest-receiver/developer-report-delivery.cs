@@ -95,6 +95,16 @@ return PlaytestRunner.Run("developer-report-delivery", new PlaytestRunOptions { 
         await p.Until(() => Directory.GetDirectories(outbox).Except(previous).Any(d => File.Exists(Path.Combine(d, "READY"))), 120f, "新しいREADY箱");
         var box = Directory.GetDirectories(outbox).Except(previous).First(d => File.Exists(Path.Combine(d, "READY")));
         p.Note("報告ID: " + Path.GetFileName(box));
+        // 書いた箱の manifest に CEF 停止の記録の生の値 3 つが入っていること（manifest v6）
+        // The written box's manifest carries the three raw CEF-stall values (manifest v6)
+        var boxManifest = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(Path.Combine(box, "manifest.json")));
+        var webUiHealth = boxManifest["webUiHealth"];
+        var secondsSinceWeb = webUiHealth?["secondsSinceLastWebMessage"];
+        p.Note($"webUiHealth: {webUiHealth?.ToString(Newtonsoft.Json.Formatting.None)}");
+        p.Assert((int)boxManifest["schemaVersion"] == 6, "manifest の schemaVersion が 6");
+        p.Assert((string)webUiHealth?["hostStartup"] == "started", "webUiHealth.hostStartup が started");
+        p.Assert((string)webUiHealth?["cefProcess"] == "observedAfterBrowserStart", "webUiHealth.cefProcess が observedAfterBrowserStart");
+        p.Assert(secondsSinceWeb != null && secondsSinceWeb.Type != Newtonsoft.Json.Linq.JTokenType.Null && (double)secondsSinceWeb >= 0 && (double)secondsSinceWeb < 15, "webUiHealth.secondsSinceLastWebMessage が 0 以上 15 未満");
         await p.Until(() => menu.CurrentPage.Value == PauseMenuPage.Top, 15f, "送信後のトップ");
         await p.ClickUi("pause-menu-open-bug-report");
         if (hasToken)

@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.WebUiHealth;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.BoxFilePolicies;
@@ -35,8 +36,8 @@ namespace Client.Tests.PlaytestReceiver
 
             // 運搬役が常に読む実outboxではなくテスト用outboxへ書き、証拠は取り込み照合用に残す
             // Write the test outbox instead of the real one the uploader always reads, and retain evidence for ingestion checks
-            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), FixedWebUiHealthProbe.NotAttempted(), new TestBugReportOutboxRoot());
-            var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0 };
+            var writer = new BugReportBundleWriter(new EmptyPlaytestSessionIdentity(EmptyPlaytestSessionIdentity.DeveloperModeReason), new TestBugReportOutboxRoot());
+            var data = new BugReportCapturedData { CaptureId = 1, ReportTick = 0, WebUiHealth = new WebUiHealthReading() };
             var bundle = await writer.WriteAsync(data, "DeveloperReportRealReceiverCheck " + Application.platform, PlaytestReportKind.Bug);
             Assert.IsTrue(bundle.Ready);
             Assert.IsTrue(File.Exists(Path.Combine(bundle.BundleDirectory, "repo", "bundle-status.txt")));
