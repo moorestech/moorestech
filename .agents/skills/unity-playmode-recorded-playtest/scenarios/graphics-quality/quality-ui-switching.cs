@@ -66,8 +66,12 @@ return PlaytestRunner.Run("quality-ui-switching", new PlaytestRunOptions { Recor
         // Keep this pipe alive across all quality changes and water checks
         // 水はこのパイプへ直接入れず、持ち越し(未構築)で満たした隣のパイプを足して網全体の水位で釣り合わせる。網に入ったパイプへの直接投入はクライアント側のコピーと食い違う
         // Water is never pushed into this pipe directly; prefilled neighbor pipes (filled while unbuilt) are added and the network settles to one fill level. Direct injection into a built-in pipe would diverge from the client-side copy
-        var origin = new Vector3Int(659, 96, 630);
-        var neighborPositions = new[] { new Vector3Int(660, 96, 630), new Vector3Int(661, 96, 630), new Vector3Int(662, 96, 630) };
+        // 地形の高さはマップで変わるので、上から地表へ当てた高さに置く（固定の y=96 は地表の約 80m 上で、影オフで視野外になった）
+        // Terrain height varies by map, so place at the ground height hit from above (a fixed y=96 sat about 80m above ground and left the view once shadows were off)
+        p.Assert(Physics.Raycast(new Vector3(659.5f, 500f, 630.5f), Vector3.down, out var groundHit, 1000f), "パイプの列の地表");
+        var groundY = Mathf.RoundToInt(groundHit.point.y);
+        var origin = new Vector3Int(659, groundY, 630);
+        var neighborPositions = new[] { new Vector3Int(660, groundY, 630), new Vector3Int(661, groundY, 630), new Vector3Int(662, groundY, 630) };
         p.Assert(p.GetBlock(origin) == null && neighborPositions.All(c => p.GetBlock(c) == null), "孤立パイプと隣のセルは空");
         var block = await p.PlaceBlockDirect("鉄のパイプ", origin, BlockDirection.East);
         var view = await p.WaitBlockGameObject(origin);

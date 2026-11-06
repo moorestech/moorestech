@@ -3,20 +3,20 @@
 
 # 半透明トークン（Web の値と UITK の値）
 
-UITK は Linear 色空間で混ぜるため Web の α をそのまま使わない（plan.md §3.5・S7）。UITK の値は補正式の初期値で、部品を作る段で実機で決め直し、その時は決め方の列を書き換える。
+UITK は Linear 色空間で混ぜるため Web の α をそのまま使わない（plan.md §3.5・S7）。UITK の値は補正式の値で、実機で決め直したものは決め方の列に書く。色はランタイムの PanelSettings（Linear 合成）で比べる（部品ギャラリーは sRGB 合成で淡く出る）。
 
 | トークン | Web の値 | UITK の値 | 決め方 |
 | --- | --- | --- | --- |
-| `--screen-vignette-edge` | `rgba(4, 5, 8, 0.16)` | `rgba(4, 5, 8, 0.3186)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--surface-navy` | `rgba(10, 14, 27, 0.8)` | `rgba(10, 14, 27, 0.971)` | 実機で据え置き（ポーズの GamePanel を PlayMode で撮影）。暗い背景で背景の透けは実効 α 0.95〜0.99 と Web の 0.8 より濃いが、題・ボタンの文字は読める。明るい地表で Web に合うのは約 0.944 だが、ゲージ・通知・ワールドピンと共有の面なので変えない |
-| `--craft-grip-face` | `rgba(134, 136, 152, 0.98)` | `rgba(134, 136, 152, 0.9565)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--tooltip-face` | `rgba(16, 20, 28, 0.94)` | `rgba(16, 20, 28, 0.9979)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--tooltip-border-color` | `rgba(255, 255, 255, 0.22)` | `rgba(255, 255, 255, 0.0358)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--world-pin-arrow-shadow` | `rgba(0, 0, 0, 0.65)` | `rgba(0, 0, 0, 0.9007)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--tutorial-drag-guide-shadow` | `rgba(0, 0, 0, 0.65)` | `rgba(0, 0, 0, 0.9007)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--tutorial-attention-glow` | `rgba(255, 0, 0, 0.24)` | `rgba(255, 0, 0, 0.4532)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--craft-arrow-outline` | `rgba(79, 224, 244, 0.7)` | `rgba(79, 224, 244, 0.4563)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--skit-window-face` | `rgba(11, 17, 28, 0.88)` | `rgba(11, 17, 28, 0.9906)` | α 近似補正（S7）。部品の段で実機で決める |
+| `--screen-vignette-edge` | `rgba(4, 5, 8, 0.16)` | `rgba(4, 5, 8, 0.2757)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--surface-navy` | `rgba(10, 14, 27, 0.8)` | `rgba(10, 14, 27, 0.9491)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）。ランタイムの PanelSettings で地 30〜180 に載せて Web との差が最大 8（指数 2.2 では 16。I-fix1）。C2-a の持ち物・チャレンジ HUD の撮影で合う α は 0.944〜0.956 |
+| `--craft-grip-face` | `rgba(134, 136, 152, 0.98)` | `rgba(134, 136, 152, 0.9565)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--tooltip-face` | `rgba(16, 20, 28, 0.94)` | `rgba(16, 20, 28, 0.9945)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--tooltip-border-color` | `rgba(255, 255, 255, 0.22)` | `rgba(255, 255, 255, 0.0358)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--world-pin-arrow-shadow` | `rgba(0, 0, 0, 0.65)` | `rgba(0, 0, 0, 0.8566)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--tutorial-drag-guide-shadow` | `rgba(0, 0, 0, 0.65)` | `rgba(0, 0, 0, 0.8566)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--tutorial-attention-glow` | `rgba(255, 0, 0, 0.24)` | `rgba(255, 0, 0, 0.3981)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--craft-arrow-outline` | `rgba(79, 224, 244, 0.7)` | `rgba(79, 224, 244, 0.4563)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--skit-window-face` | `rgba(11, 17, 28, 0.88)` | `rgba(11, 17, 28, 0.9802)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
 | `--game-panel-title-shadow` | `rgba(0, 0, 0, 0.35)` | `rgba(0, 0, 0, 0.3735)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-rule-top-start` | `rgba(146, 148, 167, 0.42)` | `rgba(146, 148, 167, 0.1961)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-rule-top-peak` | `rgba(146, 148, 167, 0.59)` | `rgba(146, 148, 167, 0.3602)` | 面色を背景にした厳密式（S7） |
@@ -25,11 +25,11 @@ UITK は Linear 色空間で混ぜるため Web の α をそのまま使わな�
 | `--game-panel-rule-bottom-peak` | `rgba(128, 132, 159, 0.42)` | `rgba(128, 132, 159, 0.2034)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-rule-bottom-end` | `rgba(128, 132, 159, 0.26)` | `rgba(128, 132, 159, 0.0946)` | 面色を背景にした厳密式（S7） |
 | `--game-panel-triangle-face` | `rgba(94, 100, 128, 0.2)` | `rgba(94, 100, 128, 0.0764)` | 面色を背景にした厳密式（S7） |
-| `--panel-action-hover-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 22%)` = `rgba(35, 38, 51, 0.844)` | `rgba(35, 38, 51, 0.9832)` | 実機で据え置き（ポーズの撮影でホバー中のボタンの面が地の面と見分けられる） |
-| `--mode-switch-selected-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 30%)` = `rgba(43, 46, 59, 0.86)` | `rgba(43, 46, 59, 0.9868)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--panel-action-text-outline` | `rgb(0 0 0 / 70%)` | `rgba(0, 0, 0, 0.9293)` | α 近似補正（S7）。部品の段で実機で決める |
-| `--pause-menu-face` | `rgb(16 20 28 / 92%)` | `rgba(16, 20, 28, 0.9961)` | α 近似補正（S7）。ポーズの撮影（https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png ）で枠の面 (16,20,28) とボタンの面（`--gauge-track`）(10,15,27) が見分けられることを確かめた |
-| `--theme-scroller-thumb-face` | `rgba(255, 255, 255, 0.4)` | `rgba(255, 255, 255, 0.1332)` | α 近似補正（S7）。部品の段で実機で決める（Mantine ScrollArea の暗色のつまみ） |
-| `--game-panel-craft-face` | `rgb(7 9 18 / 80%)` | `rgba(7, 9, 18, 0.971)` | α 近似補正（S7）。部品の段で実機で決める（GamePanel craft の面。C2-a） |
-| `--game-panel-craft-rim` | `rgb(146 148 167 / 55%)` | `rgba(146, 148, 167, 0.2684)` | α 近似補正（S7）。部品の段で実機で決める（GamePanel craft の内周。C2-a） |
-| `--mantine-color-blue-light-hover` | `rgba(34, 139, 230, 0.2)` | `rgba(34, 139, 230, 0.029)` | α 近似補正（S7）。部品の段で実機で決める（Mantine Button Subtle のホバー。C2-b） |
+| `--panel-action-hover-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 22%)` = `rgba(35, 38, 51, 0.844)` | `rgba(35, 38, 51, 0.9678)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--mode-switch-selected-face` | `color-mix(in srgb, var(--gauge-track), var(--bevel-c2) 30%)` = `rgba(43, 46, 59, 0.86)` | `rgba(43, 46, 59, 0.9737)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--panel-action-text-outline` | `rgb(0 0 0 / 70%)` | `rgba(0, 0, 0, 0.8922)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2） |
+| `--pause-menu-face` | `rgb(16 20 28 / 92%)` | `rgba(16, 20, 28, 0.9907)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）。枠の面とボタンの面（`--gauge-track`）の見分けの撮影（https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-2026-11-06-uitk-screens-fix-pause-top-720p/fix-pause-top-720p.png ）は旧値 0.9961・地 0.971 のもの |
+| `--theme-scroller-thumb-face` | `rgba(255, 255, 255, 0.4)` | `rgba(255, 255, 255, 0.1332)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（Mantine ScrollArea の暗色のつまみ） |
+| `--game-panel-craft-face` | `rgb(7 9 18 / 80%)` | `rgba(7, 9, 18, 0.9491)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（GamePanel craft の面。C2-a・I-fix1 のランタイム実測） |
+| `--game-panel-craft-rim` | `rgb(146 148 167 / 55%)` | `rgba(146, 148, 167, 0.2684)` | α 近似補正（S7。暗い色 1-(1-α)^1.85・明るい色 α^2.2）（GamePanel craft の内周。C2-a） |
+| `--mantine-color-blue-light-hover` | `rgba(34, 139, 230, 0.2)` | `rgba(34, 139, 230, 0.029)` | 明るい色の式 α^2.2 で手計算（Mantine Button Subtle のホバー。C2-b）。輝度 0.48 で生成器の判定では暗い色にあたり、式の行にすると値が変わるので据え置き |

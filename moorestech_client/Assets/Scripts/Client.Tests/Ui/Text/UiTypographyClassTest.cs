@@ -72,7 +72,7 @@ namespace Client.Tests.Ui.Text
             simulate.FrameUpdate();
 
             Assert.AreEqual(25f, child.resolvedStyle.fontSize, 0.01f);
-            Assert.AreEqual(1.375f, child.resolvedStyle.letterSpacing, 0.01f);
+            Assert.AreEqual(5.5f, child.resolvedStyle.letterSpacing, 0.01f);
             Assert.AreEqual(1f, child.resolvedStyle.color.r, 0.005f);
         }
 

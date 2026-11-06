@@ -39,6 +39,7 @@ UITK_REFERENCE_PORT=<空きポート> node --import tsx e2e/uitk-reference/captu
 - **画面**: PlayMode・全体スイッチ〔W0-switch〕UITK（今は所有表で UITK 所有にした画面）で、参照キャプチャと同じ状態を DSL のシナリオで作り、ScreenCapture で 1280×720 と 2560×1080 の 2 種を撮る。フレーム番号の透かしを入れて古いフレームを見ないようにする
 - `--capture-mode rendering`（PlayMode の既定）には UITK が写らない。撮れた画像は結果の `ImagePath` を開く（ディレクトリの新しい順で拾わない）
 - 画面の ScreenCapture も同じ `moorestech_client/.uloop/outputs/compare/<レーンID>/` に置く
+- **色はランタイムの PanelSettings で比べる**: 部品ギャラリー（EditorWindow）は sRGB のまま合成するので、Linear 用に α を補正したトークン（`docs/uitk/translucent-tokens.md`）が Web より淡く出る。半透明・α 補正の色は、`PanelSettings` を作って `targetTexture`（`RenderTextureReadWrite.sRGB` の RenderTexture）に描き、読み戻した画素を Web の色と比べる（PlayMode の画面の撮影でもよい）。ギャラリーの撮影で比べるのは配置・寸法・装飾の有無だけ（設計書 [A-74]・台帳「実測の結論」の C2-a ギャラリーの半透明）
 
 ## 4. 並べ比べの載せ方
 

@@ -50,6 +50,7 @@
 | `font-size`（Mantine の `size`） | Web と同じ px。13px 下限は外す（設計書 [A-39]。F1 が下限テストを外す〔F1〕） |
 | `text-overflow: ellipsis` | `overflow: hidden`・`white-space: nowrap`・`text-overflow: ellipsis` |
 | `font-family` | 書かない。`Typography.uss` が SDF のフォールバック列を当てる |
+| `letter-spacing` | UITK は px と書いても「字の大きさ/100 × 値」で効く。em は ×100（0.055em → 5.5）、px は「px ÷ 字の大きさ × 100」（12px の字に 1px → 8.3333）で書く。トークンは生成器が換算する（`tools/uitk/webTokens/letterSpacing.mjs`。設計書 [A-70]）ので、トークンを読む側で換算し直さない |
 
 ## 5. 影・グラデ・マスク・図形
 
@@ -70,9 +71,10 @@ USS に無い表現は `generateVisualContent`（頂点カラーのメッシュ�
 ## 6. 半透明
 
 - Web の α をそのまま使わない。UITK は Linear 色空間で混ぜるので、同じ指定が Chrome より薄く出る（実測: 背景 `#9c7b42` に黒 α0.6 が UITK `#664f29`、Chrome `#3e311a`）
-- 生成されるトークン（`Tokens.uss` 等）は変換スクリプト `tools/uitk/webTokens/translucency.mjs` が近似補正する（暗い色は `1-(1-α)^2.2`、明るい色は `α^2.2`）。結果の表は `docs/uitk/translucent-tokens.md`（生成物）
-- 手で書く半透明（`DerivedTokens.uss`〔F1〕）は、同じ近似補正か、背景が面の色に決まるなら「面色を背景にした厳密式」（前例 `--game-panel-rule-*`・`--game-panel-triangle-face`）で決め、行のコメントに Web の値と決め方を書く
-- 最後は実機の撮影で決める。決め直したら決め方のコメントを「実機で据え置き（何を撮って決めたか）」へ書き換える（前例 `--surface-navy`・`--panel-action-hover-face`）
+- 生成されるトークン（`Tokens.uss` 等）は変換スクリプト `tools/uitk/webTokens/translucency.mjs` が近似補正する（暗い色は `1-(1-α)^1.85`〈ランタイムの PanelSettings でゲームの地に載せて合わせた指数。設計書 [A-72]〉、明るい色は `α^2.2`）。結果の表は `docs/uitk/translucent-tokens.md`（生成物）
+- 手で書く半透明（`DerivedTokens.uss`〔F1〕）は、同じ近似補正か、背景が面の色に決まるなら「面色を背景にした厳密式」（前例 `--game-panel-rule-*`・`--game-panel-triangle-face`）で決め、行のコメントに Web の値と決め方を書く。近似補正で決めた行は `tools/uitk/webTokens/handWrittenDerivedRows.mjs` に Web の色で登録すると、生成器が値を計算して `DerivedTokens.uss` と照合する（設計書 [A-73]）
+- 色の比べ方: ランタイムの PanelSettings（Linear 合成）で比べる。部品ギャラリーは sRGB 合成で淡く出る（`compare-procedure.md` §3）
+- 最後は実機の撮影で決める。決め直したら決め方のコメントを「実機で据え置き（何を撮って決めたか）」へ書き換える（前例 `--panel-action-hover-face`）
 
 ## 7. 動き
 

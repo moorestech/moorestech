@@ -5,6 +5,7 @@ using Client.Ui.Components.Controls;
 using NUnit.Framework;
 using UniRx;
 using UnityEditor;
+using UnityEngine;
 using UnityEngine.UIElements;
 using static Client.Tests.Ui.Components.ComponentStyleAssert;
 
@@ -103,7 +104,7 @@ namespace Client.Tests.Ui.Components.Controls
             var scroller = _view.verticalScroller;
             var dragger = scroller.Q(className: "unity-base-slider__dragger");
 
-            AssertColor(Rgba(10, 14, 27, 0.971f), scroller.resolvedStyle.backgroundColor, "track");
+            AssertColor(Rgba(10, 14, 27, 0.9491f), scroller.resolvedStyle.backgroundColor, "track");
             AssertColor(Rgba(104, 106, 120, 1f), dragger.resolvedStyle.backgroundColor, "thumb");
             Assert.AreEqual(0f, dragger.resolvedStyle.borderTopLeftRadius, 0.001f);
         }
@@ -157,6 +158,19 @@ namespace Client.Tests.Ui.Components.Controls
             // Measured at the 4px override: x=1, width=2 (snapped from 0.8 and 2.4)
             Assert.AreEqual(1f, dragger.worldBound.x - scroller.worldBound.x, 0.01f);
             Assert.AreEqual(2f, dragger.worldBound.width, 0.01f);
+        }
+
+        [Test]
+        public void ホイール1ノッチで本文がWebと同じ60px動く()
+        {
+            // 1 ノッチは WheelEvent の scrollDeltaPerTick 行（InputSystem の 1 ノッチと同じ量）
+            // One notch is scrollDeltaPerTick lines of WheelEvent, the amount InputSystem delivers per notch
+            simulate.ScrollWheel(new Vector2(0f, WheelEvent.scrollDeltaPerTick), _view.contentViewport.worldBound.center);
+            Settle();
+
+            // 正本は CefUnity の ScrollInputPipeline.WheelPixelsPerStep（Tests から参照できないためリテラルで照合）
+            // The source of truth is CefUnity's ScrollInputPipeline.WheelPixelsPerStep (not referenceable from Tests, so compared as a literal)
+            Assert.AreEqual(60f, _view.scrollOffset.y, 0.5f);
         }
 
         private void Settle()
