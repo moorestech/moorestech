@@ -52,3 +52,36 @@ def pick_strings(data: dict, key: str, source: Path) -> list[str]:
     if len(strings) != len(values):
         warn(f"{key} の文字列でない要素 {len(values) - len(strings)}件を表示から除く", source)
     return strings
+
+
+# ADR 0057 の webUiHealth の綴り（C# の WebUiHostStartupState・CefProcessState の camelCase）。集合外は契約の破れとして読めない扱いにする
+# Spellings of webUiHealth per ADR 0057 (camelCase of the C# enums); anything outside is a broken contract and reads as unreadable
+HOST_STARTUP_VALUES = ("notAttempted", "started", "failed", "skippedByEditorSwitch", "unknown")
+CEF_PROCESS_VALUES = ("notObserved", "observedAfterBrowserStart", "lostRestarting", "recoveryFailed", "unknown")
+
+
+def web_ui_health(raw: dict, source: Path) -> dict:
+    """manifest v6 の webUiHealth を表示用に読む。status 1 項目で欄なし・前回分の不明・読めない・記録ありを決め、表示はそれだけで分岐する
+    Reads manifest v6 webUiHealth for display; one status decides absent/unknown/unreadable/recorded and the view branches on it alone"""
+    # キーの無い旧箱だけが欄なし。v6 の箱に null や dict 以外が入っていたら契約の破れなので読めない扱いにする
+    # Only an old box without the key is absent; a null or non-dict in a v6 box breaks the contract and reads as unreadable
+    if "webUiHealth" not in raw:
+        return {"status": "absent"}
+    health = raw["webUiHealth"]
+    if not isinstance(health, dict):
+        warn(f"webUiHealth が dict でない（{health!r}）ため読めないと表示する", source)
+        return {"status": "unreadable"}
+    host = pick(raw, "webUiHealth.hostStartup", (str,), source)
+    cef = pick(raw, "webUiHealth.cefProcess", (str,), source)
+    if host not in HOST_STARTUP_VALUES or cef not in CEF_PROCESS_VALUES:
+        warn(f"webUiHealth の綴りが ADR 0057 の集合外（hostStartup={host!r}, cefProcess={cef!r}）のため読めないと表示する", source)
+        return {"status": "unreadable"}
+    # crash の箱は落ちたセッションの値を持たない。秒の null を「未受信」と読ませないよう先に分ける
+    # Crash boxes hold no values of the crashed session; split them first so a null second is never read as never-received
+    if host == "unknown" or cef == "unknown":
+        return {"status": "unknown"}
+    seconds = pick(raw, "webUiHealth.secondsSinceLastWebMessage", (int, float), source)
+    if "secondsSinceLastWebMessage" not in health or (health["secondsSinceLastWebMessage"] is not None and seconds is None):
+        warn("webUiHealth.secondsSinceLastWebMessage が無いか数でないため読めないと表示する", source)
+        return {"status": "unreadable"}
+    return {"status": "recorded", "hostStartup": host, "cefProcess": cef, "secondsSinceLastWebMessage": seconds}
