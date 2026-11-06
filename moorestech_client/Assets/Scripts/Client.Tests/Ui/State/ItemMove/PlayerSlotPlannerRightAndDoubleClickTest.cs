@@ -11,14 +11,14 @@ namespace Client.Tests.Ui.State.ItemMove
         [Test]
         public void 右_掴み中はクリックしたスロットへ1個置く()
         {
-            ItemMoveAssert.Actions(PlayerSlotPlanner.PlanRightClick(SlotRef.Main(1), Slot(0, 0), 4), PlannedItemAction.InventoryMoveItem(SlotRef.Grab, SlotRef.Main(1), 1));
+            ItemMoveAssert.Actions(PlayerSlotPlanner.PlanRightClick(SlotRef.Main(1), Slot(0, 0), 4), PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Main(1), 1));
         }
 
         /// <web-test file="src/shared/itemMove/playerSlotPlan.test.ts">空手+中身ありは inventory.split（半分掴みはホスト計算）</web-test>
         [Test]
         public void 右_空手で中身があれば分割を送る()
         {
-            ItemMoveAssert.Actions(PlayerSlotPlanner.PlanRightClick(SlotRef.Main(0), Slot(1, 7), 0), PlannedItemAction.InventorySplit(SlotRef.Main(0)));
+            ItemMoveAssert.Actions(PlayerSlotPlanner.PlanRightClick(SlotRef.Main(0), Slot(1, 7), 0), PlannedItemAction.Split(SlotRef.Main(0)));
         }
 
         /// <web-test file="src/shared/itemMove/playerSlotPlan.test.ts">空手+空スロットは無操作</web-test>
@@ -32,7 +32,7 @@ namespace Client.Tests.Ui.State.ItemMove
         [Test]
         public void ダブル_クリックしたスロットを送るだけ()
         {
-            ItemMoveAssert.Actions(PlayerSlotPlanner.PlanDoubleClick(SlotRef.Main(2)), PlannedItemAction.InventoryCollect(SlotRef.Main(2)));
+            ItemMoveAssert.Actions(PlayerSlotPlanner.PlanDoubleClick(SlotRef.Main(2)), PlannedItemAction.Collect(SlotRef.Main(2)));
         }
     }
 }

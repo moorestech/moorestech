@@ -12,6 +12,7 @@ namespace Client.Ui.State.ItemMove
         NoAcceptingBlockSlot,
         InventoryOpenFailed,
         DetailLoading,
+        DestinationFull,
     }
 
     /// <summary>
@@ -20,6 +21,9 @@ namespace Client.Ui.State.ItemMove
     /// </summary>
     public abstract class PlayerSlotActionPlan
     {
+        private protected PlayerSlotActionPlan()
+        {
+        }
     }
 
     // 送る操作の列。空なら何も送らない

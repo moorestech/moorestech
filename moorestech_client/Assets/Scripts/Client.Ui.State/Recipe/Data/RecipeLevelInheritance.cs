@@ -9,13 +9,11 @@ namespace Client.Ui.State.Recipe.Data
     /// </summary>
     public abstract class RecipeLevelInheritance
     {
-        private static readonly RecipeLevelInheritance NoInheritance = new NoLevelInheritance();
+        public static readonly RecipeLevelInheritance None = new NoLevelInheritance();
 
         private protected RecipeLevelInheritance()
         {
         }
-
-        public static RecipeLevelInheritance None() => NoInheritance;
 
         public static RecipeLevelInheritance Inherit(int sourceInputIndex, IReadOnlyList<ItemId> sourceItemIds, int targetOutputIndex, IReadOnlyList<ItemId> targetItemIds, int maxCraftableLevel)
         {

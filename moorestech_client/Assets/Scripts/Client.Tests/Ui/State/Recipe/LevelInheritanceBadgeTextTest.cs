@@ -12,7 +12,7 @@ namespace Client.Tests.Ui.State.Recipe
         [Test]
         public void 継承しないレシピにはバッジを出さない()
         {
-            Assert.IsFalse(LevelInheritanceBadgeText.TryBuild(RecipeLevelInheritance.None(), out _));
+            Assert.IsFalse(LevelInheritanceBadgeText.TryBuild(RecipeLevelInheritance.None, out _));
         }
 
         /// <web-test file="src/features/recipe/logic/levelInheritanceBadge.test.ts">上限なしの継承は LvN→LvN</web-test>

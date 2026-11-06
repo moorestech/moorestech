@@ -65,7 +65,7 @@ namespace Client.Tests.Ui.State.Recipe
         public void クラフトを先頭に機械を後ろにデータ順で並べる()
         {
             var crafts = new[] { Craft(RecipeGuid(101), 9, 1, 2, Amount(1, 1)), Craft(RecipeGuid(102), 5, 1, 2, Amount(1, 1)), Craft(RecipeGuid(103), 9, 1, 2, Amount(1, 1)) };
-            var none = RecipeLevelInheritance.None();
+            var none = RecipeLevelInheritance.None;
             var machines = new[] { Machine(RecipeGuid(201), 9, 100, none), Machine(RecipeGuid(202), 7, 100, none), Machine(RecipeGuid(203), 9, 200, none) };
             var entries = CraftLogic.BuildRecipeEntries(crafts, machines, new ItemId(9));
             AssertGuids(entries, RecipeGuid(101), RecipeGuid(103), RecipeGuid(201), RecipeGuid(203));
@@ -111,7 +111,7 @@ namespace Client.Tests.Ui.State.Recipe
         [Test]
         public void 継承しないレシピは継承先から引けない()
         {
-            var machines = new[] { Machine(RecipeGuid(208), 8, 100, RecipeLevelInheritance.None()) };
+            var machines = new[] { Machine(RecipeGuid(208), 8, 100, RecipeLevelInheritance.None) };
             CollectionAssert.IsEmpty(CraftLogic.BuildRecipeEntries(NoCrafts, machines, new ItemId(19)));
         }
     }

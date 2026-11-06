@@ -16,7 +16,7 @@ namespace Client.Tests.Ui.State.ItemMove
         public void 左_掴み中は掴みの全量をブロックスロットへ置く()
         {
             var actions = BlockSlotPlanner.PlanLeftClick(1, Slot(0, 0), false, 4, EmptyMain, Stack100);
-            ItemMoveAssert.Actions(actions, PlannedItemAction.BlockInventoryMoveItem(SlotRef.Grab, SlotRef.Block(1), 4));
+            ItemMoveAssert.Actions(actions, PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Block(1), 4));
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">空手+中身ありは全量を grab へ拾う</web-test>
@@ -24,7 +24,7 @@ namespace Client.Tests.Ui.State.ItemMove
         public void 左_空手で中身があれば全量を掴む()
         {
             var actions = BlockSlotPlanner.PlanLeftClick(2, Slot(10, 6), false, 0, EmptyMain, Stack100);
-            ItemMoveAssert.Actions(actions, PlannedItemAction.BlockInventoryMoveItem(SlotRef.Block(2), SlotRef.Grab, 6));
+            ItemMoveAssert.Actions(actions, PlannedItemAction.MoveItem(SlotRef.Block(2), SlotRef.Grab, 6));
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">空手+空スロットは無操作</web-test>
@@ -40,8 +40,8 @@ namespace Client.Tests.Ui.State.ItemMove
         {
             var actions = BlockSlotPlanner.PlanLeftClick(4, Slot(1, 7), true, 0, new[] { Slot(1, 98), Slot(0, 0) }, Stack100);
             ItemMoveAssert.Actions(actions,
-                PlannedItemAction.BlockInventoryMoveItem(SlotRef.Block(4), SlotRef.Main(0), 2),
-                PlannedItemAction.BlockInventoryMoveItem(SlotRef.Block(4), SlotRef.Main(1), 5));
+                PlannedItemAction.MoveItem(SlotRef.Block(4), SlotRef.Main(0), 2),
+                PlannedItemAction.MoveItem(SlotRef.Block(4), SlotRef.Main(1), 5));
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">grab保持中の Shift は通常の置きと同じ（uGUI同様 grab が優先）</web-test>
@@ -49,28 +49,28 @@ namespace Client.Tests.Ui.State.ItemMove
         public void 左_掴み中のShiftは通常の置きと同じ()
         {
             var actions = BlockSlotPlanner.PlanLeftClick(0, Slot(1, 7), true, 4, EmptyMain, Stack100);
-            ItemMoveAssert.Actions(actions, PlannedItemAction.BlockInventoryMoveItem(SlotRef.Grab, SlotRef.Block(0), 4));
+            ItemMoveAssert.Actions(actions, PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Block(0), 4));
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">grab保持中は block スロットへ1個置く</web-test>
         [Test]
         public void 右_掴み中はブロックスロットへ1個置く()
         {
-            ItemMoveAssert.Actions(BlockSlotPlanner.PlanRightClick(2, Slot(0, 0), 5), PlannedItemAction.BlockInventoryMoveItem(SlotRef.Grab, SlotRef.Block(2), 1));
+            ItemMoveAssert.Actions(BlockSlotPlanner.PlanRightClick(2, Slot(0, 0), 5), PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Block(2), 1));
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">空手+中身ありは block_inventory.split（半分掴みはホスト計算）</web-test>
         [Test]
         public void 右_空手で中身があれば分割を送る()
         {
-            ItemMoveAssert.Actions(BlockSlotPlanner.PlanRightClick(0, Slot(1, 7), 0), PlannedItemAction.BlockInventorySplit(SlotRef.Block(0)));
+            ItemMoveAssert.Actions(BlockSlotPlanner.PlanRightClick(0, Slot(1, 7), 0), PlannedItemAction.Split(SlotRef.Block(0)));
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">空手+1個も split を送る（半分0の no-op 判断はホスト）</web-test>
         [Test]
         public void 右_空手で1個でも分割を送る()
         {
-            ItemMoveAssert.Actions(BlockSlotPlanner.PlanRightClick(0, Slot(1, 1), 0), PlannedItemAction.BlockInventorySplit(SlotRef.Block(0)));
+            ItemMoveAssert.Actions(BlockSlotPlanner.PlanRightClick(0, Slot(1, 1), 0), PlannedItemAction.Split(SlotRef.Block(0)));
         }
 
         /// <web-test file="src/shared/itemMove/blockSlotPlan.test.ts">空手+空スロットは無操作</web-test>
@@ -84,7 +84,7 @@ namespace Client.Tests.Ui.State.ItemMove
         [Test]
         public void ダブル_クリックしたスロットを送るだけ()
         {
-            ItemMoveAssert.Actions(BlockSlotPlanner.PlanDoubleClick(1), PlannedItemAction.BlockInventoryCollect(SlotRef.Block(1)));
+            ItemMoveAssert.Actions(BlockSlotPlanner.PlanDoubleClick(1), PlannedItemAction.Collect(SlotRef.Block(1)));
         }
     }
 }

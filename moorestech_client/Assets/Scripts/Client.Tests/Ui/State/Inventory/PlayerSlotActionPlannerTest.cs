@@ -24,8 +24,8 @@ namespace Client.Tests.Ui.State.Inventory
             var blockSlots = new[] { ItemMoveFixtures.Slot(1, 8), EmptySlot };
             var context = PlayerSlotContext.WithBlockOpen(Default(), blockSlots, BlockSlotRestriction.Unrestricted, new FixedMaxStackLookup(10));
             ItemMoveAssert.PlanActions(PlayerSlotActionPlanner.PlanLeftDown(context, SlotRef.Main(0), true),
-                PlannedItemAction.BlockInventoryMoveItem(SlotRef.Main(0), SlotRef.Block(0), 2),
-                PlannedItemAction.BlockInventoryMoveItem(SlotRef.Main(0), SlotRef.Block(1), 3));
+                PlannedItemAction.MoveItem(SlotRef.Main(0), SlotRef.Block(0), 2),
+                PlannedItemAction.MoveItem(SlotRef.Main(0), SlotRef.Block(1), 3));
         }
 
         /// <web-test file="src/features/inventory/slotActions.test.ts">右クリック時の最新 grab 数で分割操作を選ぶ</web-test>
@@ -33,7 +33,7 @@ namespace Client.Tests.Ui.State.Inventory
         public void 右クリックは操作の瞬間の持ち手で置くか分割かを選ぶ()
         {
             var inventory = Snapshot(new[] { ItemMoveFixtures.Slot(1, 5) }, ItemMoveFixtures.Slot(9, 3), NoEquipment);
-            ItemMoveAssert.PlanActions(PlayerSlotActionPlanner.PlanRightDown(inventory, SlotRef.Main(0)), PlannedItemAction.InventoryMoveItem(SlotRef.Grab, SlotRef.Main(0), 1));
+            ItemMoveAssert.PlanActions(PlayerSlotActionPlanner.PlanRightDown(inventory, SlotRef.Main(0)), PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Main(0), 1));
         }
 
         /// <web-test file="src/features/inventory/slotActions.test.ts">右ドラッグ進入は grab がある時だけ1個配置する</web-test>
@@ -42,7 +42,7 @@ namespace Client.Tests.Ui.State.Inventory
         {
             ItemMoveAssert.SendsNothing(PlayerSlotActionPlanner.PlanRightEnter(Default(), SlotRef.Main(0)));
             var holding = Snapshot(new[] { EmptySlot }, ItemMoveFixtures.Slot(9, 3), NoEquipment);
-            ItemMoveAssert.PlanActions(PlayerSlotActionPlanner.PlanRightEnter(holding, SlotRef.Main(0)), PlannedItemAction.InventoryMoveItem(SlotRef.Grab, SlotRef.Main(0), 1));
+            ItemMoveAssert.PlanActions(PlayerSlotActionPlanner.PlanRightEnter(holding, SlotRef.Main(0)), PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Main(0), 1));
         }
 
         /// <web-test file="src/features/inventory/slotActions.test.ts">装備枠の中身ありスロットへも全量moveを送る</web-test>
@@ -50,7 +50,7 @@ namespace Client.Tests.Ui.State.Inventory
         public void 掴み中の左クリックは装備枠の中身ありへも全量を送る()
         {
             var inventory = Snapshot(new[] { EmptySlot }, ItemMoveFixtures.Slot(9, 4), new[] { ItemMoveFixtures.Slot(1, 5) });
-            ItemMoveAssert.PlanActions(PlayerSlotActionPlanner.PlanLeftDown(Closed(inventory), SlotRef.Equipment(0), false), PlannedItemAction.InventoryMoveItem(SlotRef.Grab, SlotRef.Equipment(0), 4));
+            ItemMoveAssert.PlanActions(PlayerSlotActionPlanner.PlanLeftDown(Closed(inventory), SlotRef.Equipment(0), false), PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Equipment(0), 4));
         }
 
         /// <web-test file="src/features/inventory/slotActions.test.ts">別IDの中身ありスロットへは全量moveを送る（サーバーが入れ替える）</web-test>
@@ -58,7 +58,7 @@ namespace Client.Tests.Ui.State.Inventory
         public void 掴み中の左クリックは別IDの中身ありへ全量を送る()
         {
             var plan = PlayerSlotActionPlanner.PlanLeftDown(Closed(Grabbing(ItemMoveFixtures.Slot(1, 5))), SlotRef.Main(0), false);
-            ItemMoveAssert.PlanActions(plan, PlannedItemAction.InventoryMoveItem(SlotRef.Grab, SlotRef.Main(0), 4));
+            ItemMoveAssert.PlanActions(plan, PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Main(0), 4));
         }
 
         /// <web-test file="src/features/inventory/slotActions.test.ts">同IDの中身ありスロットへも全量moveを送る</web-test>
@@ -66,7 +66,7 @@ namespace Client.Tests.Ui.State.Inventory
         public void 掴み中の左クリックは同じIDの中身ありへも全量を送る()
         {
             var plan = PlayerSlotActionPlanner.PlanLeftDown(Closed(Grabbing(ItemMoveFixtures.Slot(9, 5))), SlotRef.Main(0), false);
-            ItemMoveAssert.PlanActions(plan, PlannedItemAction.InventoryMoveItem(SlotRef.Grab, SlotRef.Main(0), 4));
+            ItemMoveAssert.PlanActions(plan, PlannedItemAction.MoveItem(SlotRef.Grab, SlotRef.Main(0), 4));
         }
 
         /// <web-test file="src/features/inventory/slotActions.test.ts">空スロットは従来どおりスプリットドラッグを開始し何も送らない</web-test>

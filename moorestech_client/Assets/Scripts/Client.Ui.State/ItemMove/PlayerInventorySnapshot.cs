@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Ui.State.Items;
 
@@ -20,8 +21,8 @@ namespace Client.Ui.State.ItemMove
             Equipment = equipment;
         }
 
-        // 枠数が縮んだ直後の古い番地は対象が無いので false を返す
-        // A stale ref right after the slot count shrinks has no target, so return false
+        // 枠数が縮んだ直後の古い番地は対象が無いので false を返す。block の番地は配線の誤りなので例外で止める
+        // A stale ref right after the slot count shrinks has no target, so return false; a block ref is a wiring bug and throws
         public bool TryResolveSlot(ItemMoveSlotRef target, out SlotItem slot)
         {
             switch (target.Area)
@@ -34,10 +35,7 @@ namespace Client.Ui.State.ItemMove
                 case ItemMoveArea.Main:
                     return TryGetAt(MainSlots, target.Slot, out slot);
                 default:
-                    // プレイヤー側の操作に block の番地は来ない
-                    // Player-side gestures never carry a block ref
-                    slot = default;
-                    return false;
+                    throw new ArgumentOutOfRangeException(nameof(target), target, "プレイヤー側の計画に block の番地が渡された（配線の誤り）");
             }
 
             #region Internal

@@ -8,6 +8,10 @@ namespace Client.Ui.State.Recipe.Data
     /// </summary>
     public abstract class RecipeEntry
     {
+        private protected RecipeEntry()
+        {
+        }
+
         public abstract Guid RecipeGuid { get; }
     }
 

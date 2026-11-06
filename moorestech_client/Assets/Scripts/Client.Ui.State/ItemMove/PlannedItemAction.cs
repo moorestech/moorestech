@@ -41,20 +41,32 @@ namespace Client.Ui.State.ItemMove
             Count = count;
         }
 
-        public static PlannedItemAction InventoryMoveItem(ItemMoveSlotRef from, ItemMoveSlotRef to, int count) => new(PlannedItemActionKind.InventoryMoveItem, from, to, count);
-        public static PlannedItemAction InventorySplit(ItemMoveSlotRef from) => new(PlannedItemActionKind.InventorySplit, from, default, 0);
-        public static PlannedItemAction InventoryCollect(ItemMoveSlotRef slot) => new(PlannedItemActionKind.InventoryCollect, slot, default, 0);
-        public static PlannedItemAction BlockInventoryMoveItem(ItemMoveSlotRef from, ItemMoveSlotRef to, int count) => new(PlannedItemActionKind.BlockInventoryMoveItem, from, to, count);
-        public static PlannedItemAction BlockInventorySplit(ItemMoveSlotRef from) => new(PlannedItemActionKind.BlockInventorySplit, from, default, 0);
-        public static PlannedItemAction BlockInventoryCollect(ItemMoveSlotRef slot) => new(PlannedItemActionKind.BlockInventoryCollect, slot, default, 0);
-
         // 片側がブロックなら block_inventory.move_item、両側プレイヤーなら inventory.move_item（Web の action の選び分け）
         // block_inventory.move_item when either side is the block, inventory.move_item otherwise (the Web's action choice)
-        internal static PlannedItemAction MoveItem(ItemMoveSlotRef from, ItemMoveSlotRef to, int count)
+        public static PlannedItemAction MoveItem(ItemMoveSlotRef from, ItemMoveSlotRef to, int count)
         {
             var viaBlock = from.Area == ItemMoveArea.Block || to.Area == ItemMoveArea.Block;
             return viaBlock ? BlockInventoryMoveItem(from, to, count) : InventoryMoveItem(from, to, count);
         }
+
+        // 分割・収集の種類も番地の Area から選び、種類と番地の食い違いを作れなくする
+        // Split and collect also pick their kind from the ref's Area, so kind and ref cannot disagree
+        public static PlannedItemAction Split(ItemMoveSlotRef from)
+        {
+            return from.Area == ItemMoveArea.Block ? BlockInventorySplit(from) : InventorySplit(from);
+        }
+
+        public static PlannedItemAction Collect(ItemMoveSlotRef slot)
+        {
+            return slot.Area == ItemMoveArea.Block ? BlockInventoryCollect(slot) : InventoryCollect(slot);
+        }
+
+        private static PlannedItemAction InventoryMoveItem(ItemMoveSlotRef from, ItemMoveSlotRef to, int count) => new(PlannedItemActionKind.InventoryMoveItem, from, to, count);
+        private static PlannedItemAction InventorySplit(ItemMoveSlotRef from) => new(PlannedItemActionKind.InventorySplit, from, default, 0);
+        private static PlannedItemAction InventoryCollect(ItemMoveSlotRef slot) => new(PlannedItemActionKind.InventoryCollect, slot, default, 0);
+        private static PlannedItemAction BlockInventoryMoveItem(ItemMoveSlotRef from, ItemMoveSlotRef to, int count) => new(PlannedItemActionKind.BlockInventoryMoveItem, from, to, count);
+        private static PlannedItemAction BlockInventorySplit(ItemMoveSlotRef from) => new(PlannedItemActionKind.BlockInventorySplit, from, default, 0);
+        private static PlannedItemAction BlockInventoryCollect(ItemMoveSlotRef slot) => new(PlannedItemActionKind.BlockInventoryCollect, slot, default, 0);
 
         public bool Equals(PlannedItemAction other) => Kind == other.Kind && From == other.From && To == other.To && Count == other.Count;
         public override bool Equals(object obj) => obj is PlannedItemAction other && Equals(other);

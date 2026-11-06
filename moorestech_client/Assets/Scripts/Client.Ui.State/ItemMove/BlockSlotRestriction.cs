@@ -12,6 +12,10 @@ namespace Client.Ui.State.ItemMove
         public static readonly BlockSlotRestriction InventoryOpenFailed = new BlockInventoryOpenFailed();
         public static readonly BlockSlotRestriction DetailLoading = new BlockDetailLoading();
 
+        private protected BlockSlotRestriction()
+        {
+        }
+
         public static BlockSlotRestriction Bound(IReadOnlyList<int> candidateIndices) => new BoundBlockSlots(candidateIndices);
     }
 

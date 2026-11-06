@@ -19,8 +19,8 @@ namespace Client.Ui.State.ItemMove
             // uGUI どおりサブ→メインだけ。ホットバーは宛先に含めない
             // Sub to main only, like uGUI; the hotbar is never a destination
             if (shiftKey && grabCount == 0 && !slot.IsEmpty) return DirectMovePlanner.PlanMoveActions(blockRef, slot, ItemMoveArea.Main, mainSlots, DirectMovePlanner.AllIndicesOf(mainSlots), stackLevels);
-            if (0 < grabCount) return new[] { PlannedItemAction.BlockInventoryMoveItem(ItemMoveSlotRef.Grab, blockRef, grabCount) };
-            if (!slot.IsEmpty) return new[] { PlannedItemAction.BlockInventoryMoveItem(blockRef, ItemMoveSlotRef.Grab, slot.Count) };
+            if (0 < grabCount) return new[] { PlannedItemAction.MoveItem(ItemMoveSlotRef.Grab, blockRef, grabCount) };
+            if (!slot.IsEmpty) return new[] { PlannedItemAction.MoveItem(blockRef, ItemMoveSlotRef.Grab, slot.Count) };
             return Array.Empty<PlannedItemAction>();
         }
 
@@ -29,16 +29,16 @@ namespace Client.Ui.State.ItemMove
         public static IReadOnlyList<PlannedItemAction> PlanRightClick(int index, SlotItem slot, int grabCount)
         {
             var blockRef = ItemMoveSlotRef.Block(index);
-            if (0 < grabCount) return new[] { PlannedItemAction.BlockInventoryMoveItem(ItemMoveSlotRef.Grab, blockRef, 1) };
+            if (0 < grabCount) return new[] { PlannedItemAction.MoveItem(ItemMoveSlotRef.Grab, blockRef, 1) };
             if (slot.IsEmpty) return Array.Empty<PlannedItemAction>();
-            return new[] { PlannedItemAction.BlockInventorySplit(blockRef) };
+            return new[] { PlannedItemAction.Split(blockRef) };
         }
 
         // ダブル: 集める先（持ち手かクリックしたスロットか）はコマンド側が現在の持ち手で決める
         // Double: the command picks the target (grab or clicked slot) from the current grab
         public static IReadOnlyList<PlannedItemAction> PlanDoubleClick(int index)
         {
-            return new[] { PlannedItemAction.BlockInventoryCollect(ItemMoveSlotRef.Block(index)) };
+            return new[] { PlannedItemAction.Collect(ItemMoveSlotRef.Block(index)) };
         }
     }
 }
