@@ -53,4 +53,9 @@
     --scrollarea-scrollbar-size: 12px; /* web: Mantine ScrollArea の scrollbarSize の既定。画面は祖先で上書きする */
     --game-scroll-view-thumb-hover: rgb(133, 135, 141); /* web: rgba(255, 255, 255, 0.5) を溝（--gauge-track）とポーズの面へ重ねて前計算 */
     --shortcut-hint-label-gap: 0px; /* web: 置く側の flex の gap。既定 0（KeyControlHint が --tutorial-key-hint-kbd-gap に上書き） */
+
+    /* S2-hud: 画面の幕と列車乗車 HUD の面。Web が直書きする半透明（設計書 A-55） */
+    /* S2-hud: the screen backdrop and the train riding HUD face, translucent colors the Web writes inline (design A-55) */
+    --screen-backdrop-face: rgba(0, 0, 0, 0.635); /* web: App.module.css .backdrop の rgb(0 0 0 / 42%)。A-52 の式 1-(1-α)^1.85 */
+    --train-riding-hud-face: rgba(31, 31, 31, 0.9581); /* web: trainHud/style.module.css の color-mix(in srgb, var(--mantine-color-dark-8) 82%, transparent)。A-52 の式 1-(1-α)^1.85 */
 }
