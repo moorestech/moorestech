@@ -170,10 +170,7 @@ public sealed class TooltipOwner { }
 
 | パス | 責務 | 新規／変更 |
 |---|---|---|
-| `S/Client.Ui.State/ModeHud/ModeHudViewModel.cs` | 判別 union の抽象基底（`Hidden` の 1 値を持つ） | 新規 |
-| `S/Client.Ui.State/ModeHud/ModeHudHidden.cs` | 非表示（sealed） | 新規 |
-| `S/Client.Ui.State/ModeHud/ModeHudPlacement.cs` | 配置（対象の表示名・高さ。sealed・値の等価） | 新規 |
-| `S/Client.Ui.State/ModeHud/ModeHudDelete.cs` | 削除（高さ。sealed・値の等価） | 新規 |
+| `S/Client.Ui.State/ModeHud/ModeHudViewModel.cs` | 判別 union（抽象基底＋sealed の `ModeHudHidden`・`ModeHudPlacement`・`ModeHudDelete` を 1 ファイルに置く。前例 `HotbarDropAction.cs`）。`Hidden` の 1 値を持つ | 新規 |
 | `S/Client.Ui.State/ModeHud/ModeHudText.cs` | 有無を型で持つ文字列（`None`・`Of`） | 新規 |
 | `S/Client.Ui.State/ModeHud/ModeHudViewModelFactory.cs` | UI 状態・対象・高さから ViewModel を組む純関数 | 新規 |
 | `S/Client.Ui.State/ModeHud/ModeHudModel.cs` | 源 4 本を購読し `Current` で配る（`IInitializable`） | 新規 |
@@ -224,7 +221,7 @@ public sealed class TooltipOwner { }
 | `S/Client.Tests/Ui/Anchor/TutorialAnchorCoveragePending.cs` | 在れば `AnchorIds.PlacementHud`・`DeleteHud` の 2 行を消す（S2-tutorial が先にマージされた場合） | 変更（共有区画・在れば） |
 | `docs/uitk/TODO.md` | 「## 実測の結論」末尾（ポインタの届き方・角度の読み方）、要れば「## 見た目の例外」末尾（LX-32〜34） | 変更（共有区画） |
 
-ディレクトリのファイル数（.cs と .uss）: `Screens/ModeHud/` 3・`Parts/` 8・`Screens/CursorTooltip/` 6・`State/ModeHud/` 7・`State/CursorTooltip/` 3・`Tests/.../Screens/ModeHud/` 8・`Screens/CursorTooltip/` 4・`State/ModeHud/` 3・`State/CursorTooltip/` 3。`Registration/GameUi/` は 2→4。すべて 10 以下。
+ディレクトリのファイル数（.cs と .uss）: `Screens/ModeHud/` 3・`Parts/` 8・`Screens/CursorTooltip/` 6・`State/ModeHud/` 4・`State/CursorTooltip/` 3・`Tests/.../Screens/ModeHud/` 8・`Screens/CursorTooltip/` 4・`State/ModeHud/` 3・`State/CursorTooltip/` 3。`Registration/GameUi/` は 2→4。すべて 10 以下。
 
 **写すテストの件数（Web の実物を grep して数え直した。tests-ladder と同じ）**
 
@@ -464,7 +461,7 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 ### Task 3: 操作モード HUD の Model（`Client.Ui.State/ModeHud`）
 
 **Files:**
-- Create: `S/Client.Ui.State/ModeHud/ModeHudViewModel.cs`（抽象基底）・`ModeHudHidden.cs`・`ModeHudPlacement.cs`・`ModeHudDelete.cs`（sealed 派生）・`ModeHudText.cs`・`ModeHudViewModelFactory.cs`・`ModeHudModel.cs`
+- Create: `S/Client.Ui.State/ModeHud/ModeHudViewModel.cs`（抽象基底と sealed 派生 `ModeHudHidden`・`ModeHudPlacement`・`ModeHudDelete` を 1 ファイル）・`ModeHudText.cs`・`ModeHudViewModelFactory.cs`・`ModeHudModel.cs`
 - Test: `S/Client.Tests/Ui/State/ModeHud/ModeHudViewModelFactoryTest.cs`・`ModeHudPlacementNameTest.cs`・`PlacementNameTestDictionary.cs`
 
 **Interfaces:**
@@ -758,7 +755,7 @@ namespace Client.Ui.State.ModeHud
 }
 ```
 
-`ModeHudViewModel.cs`・`ModeHudHidden.cs`・`ModeHudPlacement.cs`・`ModeHudDelete.cs`（4 ファイルに分ける。ここでは並べて示す）:
+`ModeHudViewModel.cs`（抽象基底と sealed 派生 3 型を 1 ファイルに置く。判別 union を 1 ファイルにまとめる前例 `Client.Ui.State/Hotbar/Logic/HotbarDropAction.cs`・同 PR の `TutorialAnchorState.cs` と揃える）:
 ```csharp
 using System;
 
@@ -3075,6 +3072,9 @@ foreach (var size in new[] { new UnityEngine.Vector2Int(1280, 720), new UnityEng
     var go = new UnityEngine.GameObject($"s2mt-compare-{size.x}");
     var document = go.AddComponent<UnityEngine.UIElements.UIDocument>();
     document.panelSettings = settings;
+    // 本番のルートと同じロケールのクラスを当てる（GameUiLocaleClassBinder が GameUiRoot に当てるもの。日本語は CJK の字形と行送り。Typography.uss）
+    // Apply the same locale class the production root gets (what GameUiLocaleClassBinder applies to GameUiRoot; Japanese uses CJK glyphs and leading; Typography.uss)
+    document.rootVisualElement.EnableInClassList(Client.Ui.Foundation.Text.GameUiLocaleClass.CjkClassName, Client.Ui.Foundation.Text.GameUiLocaleClass.IsCjk(Client.Localization.Localize.GetCurrentLanguageCode()));
 }
 return "ok";'
 ```
@@ -3374,7 +3374,5 @@ Expected: closed、`git status --short` と `git log` が空。`done.md` の 1 �
 - `LocalizationTextInterpolator` の欠けた引数のエラーを Web と同じく文ごとに 1 回へ絞る（D-13。Foundation/Localization の持ち物）
 - A-41 の倍率の読み口を C3-b の Foundation/Stage（`UiScreenPixelScope`）へ 1 本化し、mode-tooltip（`ICursorTooltipScreen.ScreenPixelsPerPanelPixel`）・notification の 2 か所を委譲させる（D-31）
 - `UnityCursorTooltipScreen` の画面→パネル座標の換算と `Foundation/Input/GameUiPointerProbe.cs:20-27` の同じ換算を、Foundation の 1 関数にまとめる（Foundation の持ち物）
-
-## Execution Handoff
 
 レーンの起動は指揮が行う（実行計画 §4.1）

@@ -140,17 +140,9 @@ UITK だけのテストは別に 23 メソッド（タグ無し。各タスク�
 
 | パス | 責務 | タスク |
 |---|---|---|
-| `S/Client.Ui.State/Notification/Content/NotificationContent.cs` | 行の中身の基底（messageId・型付きの引数・アイコン） | 1 |
-| `S/Client.Ui.State/Notification/Content/EarnedNotificationContent.cs` | 獲得（アイテムと数・合流） | 1 |
-| `S/Client.Ui.State/Notification/Content/AchievementNotificationContent.cs` | 実績 | 1 |
-| `S/Client.Ui.State/Notification/Content/OperationDeniedNotificationContent.cs` | 操作の拒否（警告色） | 1 |
-| `S/Client.Ui.State/Notification/Content/SaveMigrationNotificationContent.cs` | セーブの除去告知（アイコン無し） | 1 |
-| `S/Client.Ui.State/Notification/Content/NotificationIcon.cs` | アイコンの基底 | 1 |
-| `S/Client.Ui.State/Notification/Content/ItemNotificationIcon.cs` | アイテムのアイコン | 1 |
-| `S/Client.Ui.State/Notification/Content/NoNotificationIcon.cs` | アイコン無し | 1 |
-| `S/Client.Ui.State/Notification/Params/NotificationParam.cs` | 引数の基底（名前） | 1 |
-| `S/Client.Ui.State/Notification/Params/TextNotificationParam.cs` | 文字のままの引数 | 1 |
-| `S/Client.Ui.State/Notification/Params/ContentNameNotificationParam.cs` | 内容名のキーを持つ引数（研究名・チャレンジ題） | 1 |
+| `S/Client.Ui.State/Notification/Content/NotificationContent.cs` | 行の中身の判別 union（基底＋sealed の獲得・実績・操作の拒否〈警告色〉・セーブの除去告知〈アイコン無し〉。前例 `HotbarDropAction.cs`） | 1 |
+| `S/Client.Ui.State/Notification/Content/NotificationIcon.cs` | アイコンの判別 union（基底＋アイテム＋アイコン無し） | 1 |
+| `S/Client.Ui.State/Notification/Params/NotificationParam.cs` | 引数の判別 union（基底＋文字のまま＋内容名のキーを持つ引数〈研究名・チャレンジ題〉） | 1 |
 | `S/Client.Ui.State/Notification/Params/NotificationParams.cs` | 受信の文字の辞書 → 型付きの引数 | 1 |
 | `S/Client.Ui.State/Notification/NotificationRow.cs` | 1 行（Id・LifetimeEpoch・Content） | 1 |
 | `S/Client.Ui.State/Notification/NotificationListViewModel.cs` | 表示中の行の並び（古い順） | 1 |
@@ -206,7 +198,7 @@ UITK だけのテストは別に 23 メソッド（タグ無し。各タスク�
 | `docs/uitk/disposition.md` | 処遇の 2 行 | 10 |
 | `docs/uitk/TODO.md` | 実測の結論・見た目の例外（必要時）・追従記録（必要時） | 10・12 |
 
-`Client.Ui.State/Notification/` は直下 9 ファイル（既存 2＋新規 7）＋`Content/` 8＋`Params/` 4＋`Text/` 4、`Screens/Notification/` は直下 7 ファイル＋`Parts/` 4、`Foundation/Motion/Steps/` は 4 ファイル（S2-tutorial の `ScaleTweenStep.cs` も入ると 5）、`Client.Tests/Ui/State/Notification/` は直下 8 ファイル＋`Coverage/`、`Client.Tests/Ui/Screens/Notification/` は 8 ファイル、`Client.Tests/Ui/Motion/` は 6 ファイル（S2-tutorial の `ScaleTweenStepTest.cs` も入ると 7）。両方入っても 10 以下。
+`Client.Ui.State/Notification/` は直下 9 ファイル（既存 2＋新規 7）＋`Content/` 2＋`Params/` 2＋`Text/` 4、`Screens/Notification/` は直下 7 ファイル＋`Parts/` 4、`Foundation/Motion/Steps/` は 4 ファイル（S2-tutorial の `ScaleTweenStep.cs` も入ると 5）、`Client.Tests/Ui/State/Notification/` は直下 8 ファイル＋`Coverage/`、`Client.Tests/Ui/Screens/Notification/` は 8 ファイル、`Client.Tests/Ui/Motion/` は 6 ファイル（S2-tutorial の `ScaleTweenStepTest.cs` も入ると 7）。両方入っても 10 以下。
 
 ---
 
@@ -214,16 +206,8 @@ UITK だけのテストは別に 23 メソッド（タグ無し。各タスク�
 
 **Files:**
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/NotificationContent.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/EarnedNotificationContent.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/AchievementNotificationContent.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/OperationDeniedNotificationContent.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/SaveMigrationNotificationContent.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/NotificationIcon.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/ItemNotificationIcon.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/NoNotificationIcon.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Params/NotificationParam.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Params/TextNotificationParam.cs`
-- Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Params/ContentNameNotificationParam.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Params/NotificationParams.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/NotificationRow.cs`
 - Create: `moorestech_client/Assets/Scripts/Client.Ui.State/Notification/NotificationListViewModel.cs`
@@ -458,7 +442,7 @@ namespace Client.Ui.State.Notification.Params
 }
 ```
 
-（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Params/TextNotificationParam.cs`）
+（同じ `NotificationParam.cs` の続き。型 `TextNotificationParam`）
 
 ```csharp
 namespace Client.Ui.State.Notification.Params
@@ -479,7 +463,7 @@ namespace Client.Ui.State.Notification.Params
 }
 ```
 
-（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Params/ContentNameNotificationParam.cs`）
+（同じ `NotificationParam.cs` の続き。型 `ContentNameNotificationParam`）
 
 ```csharp
 using Client.Localization;
@@ -590,7 +574,7 @@ namespace Client.Ui.State.Notification.Content
 }
 ```
 
-（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/ItemNotificationIcon.cs`）
+（同じ `NotificationIcon.cs` の続き。型 `ItemNotificationIcon`）
 
 ```csharp
 using Core.Master;
@@ -613,7 +597,7 @@ namespace Client.Ui.State.Notification.Content
 }
 ```
 
-（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/NoNotificationIcon.cs`）
+（同じ `NotificationIcon.cs` の続き。型 `NoNotificationIcon`）
 
 ```csharp
 namespace Client.Ui.State.Notification.Content
@@ -661,7 +645,7 @@ namespace Client.Ui.State.Notification.Content
 }
 ```
 
-（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/EarnedNotificationContent.cs`）
+（同じ `NotificationContent.cs` の続き。型 `EarnedNotificationContent`）
 
 ```csharp
 using System;
@@ -704,7 +688,7 @@ namespace Client.Ui.State.Notification.Content
 }
 ```
 
-（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/AchievementNotificationContent.cs`）
+（同じ `NotificationContent.cs` の続き。型 `AchievementNotificationContent`）
 
 ```csharp
 using System.Collections.Generic;
@@ -725,7 +709,7 @@ namespace Client.Ui.State.Notification.Content
 }
 ```
 
-（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/OperationDeniedNotificationContent.cs`）
+（同じ `NotificationContent.cs` の続き。型 `OperationDeniedNotificationContent`）
 
 ```csharp
 using System.Collections.Generic;
@@ -746,7 +730,7 @@ namespace Client.Ui.State.Notification.Content
 }
 ```
 
-（`moorestech_client/Assets/Scripts/Client.Ui.State/Notification/Content/SaveMigrationNotificationContent.cs`）
+（同じ `NotificationContent.cs` の続き。型 `SaveMigrationNotificationContent`）
 
 ```csharp
 using System.Collections.Generic;
@@ -2139,7 +2123,7 @@ git ls-tree -r --name-only HEAD moorestech_client/Assets/Scripts/Client.Ui | gre
 grep -n "Core.Master" moorestech_client/Assets/Scripts/Client.Ui/Client.Ui.asmdef
 grep -rn "GameContentPresentation" moorestech_client/Assets/Scripts/Client.Starter/Registration --include='*.cs'
 ```
-Expected: C3-a の 4 ファイルと C3-b の `StageScaleSource.cs` があり、`Client.Ui.asmdef` に `Core.Master`、`GameContentPresentation` が GameUi の系で DI 登録されている。どれかが無ければ止めて done.md に「C3-a 待ち」「C3-b 待ち」と書き指揮へ返す。あれば `UiIcon`・`GameIcon`・`GameIconFallback`・`GameContentPresentation.Item(ItemId)` の実物の名前空間・ctor・メソッド名を読み、Task 7・9 のコード片（下では設計書 §2.1・§2.3 の形で書いた）と違うところを done.md の「実物との差」に書いてから実物に合わせて書く。`GameIcon` の大きさの決め方も読む: 大きさのつまみ（USS のカスタムプロパティ）があれば `Notification.uss` の `.notification-host` でそのつまみに 22px を入れて受け、無ければ `.notification-row__icon > .<GameIcon の実物のクラス>` の規則（Task 8 Step 1 の `game-icon` の行）のクラス名を実物に直す。本体に大きさが当たっていることは Task 7 の L1「アイコンの無い行は…」に `Assert.AreEqual(22f, icon.resolvedStyle.width, 0.5f)` を 1 行足して確かめる
+Expected: C3-a の 4 ファイルと C3-b の `StageScaleSource.cs` があり、`Client.Ui.asmdef` に `Core.Master`、`GameContentPresentation` が GameUi の系で DI 登録されている。どれかが無ければ止めて done.md に「C3-a 待ち」「C3-b 待ち」と書き指揮へ返す。あれば `UiIcon`・`GameIcon`・`GameIconFallback`・`GameContentPresentation.Item(ItemId)` の実物の名前空間・ctor・メソッド名を読み、Task 7・9 のコード片（下では設計書 §2.1・§2.3 の形で書いた）と違うところを done.md の「実物との差」に書いてから実物に合わせて書く。`GameIcon` の大きさの決め方も読む: 大きさのつまみ（USS のカスタムプロパティ）があれば `Notification.uss` の `.notification-host` でそのつまみに 22px を入れて受け、無ければ `NotificationRowView` が `_icon` に付ける画面所有のクラス `notification-row__icon-content` の規則（Task 8 Step 1）で 100% に揃える（部品の内部クラス名は指さない）。本体に大きさが当たっていることは Task 7 の L1「アイコンの無い行は…」に `Assert.AreEqual(22f, icon.resolvedStyle.width, 0.5f)` を 1 行足して確かめる
 - `StageScaleSource` を C3-b の実物と照合する（C3-b マージ後に実物と照合）。設計書 [A-41] の形で書いた: Foundation/Stage の `StageScaleSource`（`IReadOnlyReactiveProperty<float> Scale`。`panel.scaledPixelsPerPoint` から読み、解像度の変更で値が変わる。C3-b が DI 登録する）。L1 の土台は `new StageScaleSource(IReadOnlyReactiveProperty<float>)` で外から倍率を与える形を仮定した。実物の名前・ctor・登録に合わせて Task 8 の土台・Task 9 の Presenter と撮影シナリオを書き、差を done.md の「実物との差」に書く。**次のどれかなら止めて指揮へ報告する**: (a) `StageScaleSource` が無い、(b) `Scale` が 16:9 どうしの解像度変更〈パネルの寸法が変わらない〉で変わらない（`GeometryChangedEvent` だけで計り直す作り）、(c) テストから倍率を与える口が無い（具象クラスで ctor に倍率の元を渡せず、interface でもない）
 - I-fix1 は `feature/uitk` に取り込み済み（`e26010aa0c`＝PR #1606 のマージ）。`git merge-base --is-ancestor e26010aa0c HEAD && echo in` で入っていることだけ確かめ、done.md に書く
 
@@ -2764,6 +2748,7 @@ namespace Client.Ui.Screens.Notification
             _iconSlot = new VisualElement { pickingMode = PickingMode.Ignore };
             _iconSlot.AddToClassList("notification-row__icon");
             _icon = new GameIcon(GameIconFallback.IdText) { pickingMode = PickingMode.Ignore };
+            _icon.AddToClassList("notification-row__icon-content");
             _iconSlot.Add(_icon);
             Add(_iconSlot);
 
@@ -2877,9 +2862,9 @@ git commit -m "feat(uitk): 通知の 1 行（アイコンの枠と文・拒否�
     margin-right: 8px;
 }
 
-/* 枠の中の GameIcon 本体も 22px に揃える。クラス名（ここでは game-icon）とつまみの有無は Task 6 Step 1 で照合した C3-a の実物に合わせる */
-/* Size the GameIcon body inside the slot to 22px too; the class name (game-icon here) and any knob follow the C3-a code checked in Task 6 Step 1 */
-.notification-row__icon > .game-icon {
+/* 枠の中の GameIcon 本体も 22px に揃える。部品のクラスは指さず、画面所有のクラスを View が付ける（前例 PauseMenuSubPageView の pause-menu__back） */
+/* Size the GameIcon body inside the slot to 22px too; target a screen-owned class the View adds, not the component's class (precedent: pause-menu__back in PauseMenuSubPageView) */
+.notification-row__icon-content {
     width: 100%;
     height: 100%;
 }
