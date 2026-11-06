@@ -19,6 +19,7 @@
 @import url("project://database/Assets/Scripts/Client.Ui/Components/Gauges/ToastItem/ToastItem.uss");
 /* == section: Components/Text == */
 /* == section: Components/Decor == */
+@import url("project://database/Assets/Scripts/Client.Ui/Components/Decor/FadeRule/FadeRule.uss");
 /* == section: Components/Recipe == */
 /* == section: Components/NodeGraph == */
 /* == section: Screens == */
