@@ -41,7 +41,10 @@
     background-color: transparent;
 }
 
+/* Theme.uss の Mantine Slider 向け top: 50% が縦のつまみにも当たるので、溝の上端へ戻す */
+/* Theme.uss's Mantine Slider top: 50% also hits the vertical thumb, so pin it back to the track top */
 .game-scroll-view .unity-scroller .unity-base-slider__dragger {
+    top: 0;
     left: 0;
     width: 100%;
     margin: 0;

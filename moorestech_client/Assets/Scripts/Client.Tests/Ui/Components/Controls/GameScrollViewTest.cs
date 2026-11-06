@@ -83,6 +83,21 @@ namespace Client.Tests.Ui.Components.Controls
         }
 
         [Test]
+        public void つまみは先頭で溝の上端にありスクロール量に比例して下がる()
+        {
+            var scroller = _view.verticalScroller;
+            var slider = scroller.Q(className: "unity-scroller__slider");
+            var dragger = scroller.Q(className: "unity-base-slider__dragger");
+            Assert.AreEqual(slider.worldBound.y, dragger.worldBound.y, 0.5f);
+
+            // 末尾ではつまみの下端が溝の下端に付く
+            // At the end the thumb bottom touches the track bottom
+            _view.SetScrollOffset(scroller.highValue);
+            Settle();
+            Assert.AreEqual(slider.worldBound.yMax, dragger.worldBound.yMax, 0.5f);
+        }
+
+        [Test]
         public void 溝はgauge_trackでつまみは角なしのbevel_c2()
         {
             var scroller = _view.verticalScroller;

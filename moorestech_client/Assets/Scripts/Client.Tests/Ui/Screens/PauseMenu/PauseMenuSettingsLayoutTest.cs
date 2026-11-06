@@ -120,6 +120,32 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.IsFalse(IsShown(notice));
         }
 
+        /// <summary>
+        /// Web の設定画面（本文先頭）と同じく、バーは本文に重なって幅を削らず、つまみは溝の上端にある
+        /// Like the Web settings page at the top, the bar overlays the body without narrowing it and the thumb sits at the top of the track
+        /// </summary>
+        [Test]
+        public void 設定の本文はバーに削られずつまみは本文先頭で溝の上端にある()
+        {
+            ShowSettings();
+            var body = Find<GameScrollView>(_view, "pause-menu-body");
+            var scroller = body.verticalScroller;
+            var track = scroller.Q(className: "unity-scroller__slider");
+            var thumb = scroller.Q(className: "unity-base-slider__dragger");
+            var probe = $"body={body.worldBound} viewport={body.contentViewport.worldBound} content={body.contentContainer.worldBound} track={track.worldBound} thumb={thumb.worldBound} offset={body.scrollOffset.y} value={scroller.value} low={scroller.lowValue} high={scroller.highValue}";
+
+            // 本文の幅は本体の幅のまま、バーは本体の右端に重なる
+            // The body keeps the full width and the bar overlays its right edge
+            Assert.AreEqual(body.worldBound.width, body.contentViewport.worldBound.width, 0.5f, probe);
+            Assert.AreEqual(body.worldBound.width, body.contentContainer.worldBound.width, 0.5f, probe);
+            Assert.AreEqual(body.worldBound.xMax, scroller.worldBound.xMax, 0.5f, probe);
+
+            // 本文先頭ではつまみが溝の上端に付く
+            // At the top of the body the thumb touches the top of the track
+            Assert.AreEqual(0f, body.scrollOffset.y, 0.01f, probe);
+            Assert.AreEqual(track.worldBound.y, thumb.worldBound.y, 0.5f, probe);
+        }
+
         private void ShowSettings()
         {
             _model.Set(FakePauseMenuModel.Page(PauseMenuPage.Settings));
