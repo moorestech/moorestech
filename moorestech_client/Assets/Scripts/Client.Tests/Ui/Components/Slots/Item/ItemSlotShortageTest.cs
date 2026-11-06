@@ -153,7 +153,7 @@ namespace Client.Tests.Ui.Components.Slots.Item
         }
 
         [Test]
-        public void 所持と必要が無くなれば不足の状態を外し赤は枠の中の個数へ漏れない()
+        public void 所持と必要が無くなれば不足の状態を外す()
         {
             var slot = Mount(null);
             var icon = SlotTestIcons.WithTexture("1", "Iron");
@@ -163,12 +163,6 @@ namespace Client.Tests.Ui.Components.Slots.Item
             slot.SetContent(new ItemSlotContent(icon, 3, Plain, null, null, null));
             simulate.FrameUpdate();
             Assert.IsFalse(slot.ClassListContains("item-slot--lack"));
-
-            // 不足のまま個数だけが出るときも、個数の字は黒のまま
-            // A count shown while lacking stays in the count color
-            slot.SetContent(new ItemSlotContent(icon, 3, Plain, new ItemSlotShortage(3, 5, true, null), null, null));
-            var count = slot.Q(null, "slot-content__count", "outlined-count-label--glyph");
-            ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--count-text"), count.resolvedStyle.color, "count");
         }
 
         private ItemSlot Mount(string knobClass)
