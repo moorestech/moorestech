@@ -8,8 +8,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.ModeHud
 {
     /// <summary>
-    /// UI 状態・設置対象・高さ・言語を購読し、操作モード HUD の表示状態を配る
-    /// Subscribes to the UI state, placement target, height and language and publishes the operation-mode HUD state
+    /// HUD の表示状態を購読して配る
+    /// Subscribes to and publishes the HUD state
     /// </summary>
     public sealed class ModeHudModel : IInitializable
     {
@@ -30,15 +30,15 @@ namespace Client.Ui.State.ModeHud
 
         public void Initialize()
         {
-            // 変化の源 4 本。表示名は言語で変わるので言語の変化でも組み直す
-            // Four change sources; the display name depends on the language, so rebuild on language changes too
+            // 変化の源 4 本（言語でも組み直す）
+            // Four change sources (rebuild on language too)
             _uiStateControl.OnStateChanged.Subscribe(_ => Rebuild());
             _placeSystemStateController.OnTargetChanged.Subscribe(_ => Rebuild());
             _placementHeightOffset.OnChanged.Subscribe(_ => Rebuild());
             Localize.OnLanguageChanged.Subscribe(_ => Rebuild());
 
-            // ctor から購読までの間の変化を取り込む
-            // Pick up any change made between construction and subscription
+            // 購読までの間の変化を取り込む
+            // Pick up changes made before subscribing
             Rebuild();
         }
 

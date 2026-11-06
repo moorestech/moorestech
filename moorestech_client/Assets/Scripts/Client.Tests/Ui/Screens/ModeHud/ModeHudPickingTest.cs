@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.ModeHud
 {
     /// <summary>
-    /// 配置モード・削除モード警告・カーソルツールチップは、出ている真ん中でも下の入力を奪わない（L1。Web alwaysOnHudWheel.test.ts の 9 行のうちこのレーンの 3 行。残りは S2-hud の AlwaysOnHudPickingTest）
-    /// The placement HUD, delete-mode warning and cursor tooltip never take input even at their centre (L1; this lane's 3 of the 9 rows in Web alwaysOnHudWheel.test.ts; the rest are S2-hud's AlwaysOnHudPickingTest)
+    /// 配置 HUD・削除警告・ツールチップは入力を奪わない（L1）
+    /// Placement HUD, delete warning and tooltip never take input (L1)
     /// </summary>
     public class ModeHudPickingTest : ScreenTestHost
     {
@@ -47,8 +47,8 @@ namespace Client.Tests.Ui.Screens.ModeHud
 
         private static void AssertPassesThrough(VisualElement view, Vector2 point)
         {
-            // 拾われるのは画面の外（下の層・ルート）だけで、画面の要素は拾われない
-            // Only things outside the screen (lower layers, the root) are picked, never the screen's own elements
+            // 拾われるのは画面の外だけ
+            // Only things outside the screen are picked
             var picked = view.panel.Pick(point);
             Assert.IsFalse(picked == view || (picked != null && view.Contains(picked)), picked == null ? "null" : picked.name);
         }

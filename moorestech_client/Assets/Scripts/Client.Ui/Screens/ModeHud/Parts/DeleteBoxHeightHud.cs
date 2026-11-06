@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.ModeHud.Parts
 {
     /// <summary>
-    /// 削除モードの右上の高さ 1 行。Web の DeleteBoxHeightHud（.detail と keyHintText）
-    /// The delete mode's top-right height line; Web DeleteBoxHeightHud (.detail with keyHintText)
+    /// 削除モードの右上の高さ 1 行
+    /// The delete mode's top-right height line
     /// </summary>
     public sealed class DeleteBoxHeightHud : VisualElement
     {

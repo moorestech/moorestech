@@ -8,8 +8,8 @@ using VContainer.Unity;
 namespace Client.Ui.Screens.CursorTooltip
 {
     /// <summary>
-    /// カーソルツールチップを Tooltip 層の Viewport 族へ起動時に 1 回だけ載せ、Model を購読して描かせる（Web の Portal・z 250・舞台の倍率で拡大）
-    /// Mounts the cursor tooltip once at startup into the Tooltip layer's Viewport family and renders it from the model (Web Portal, z 250, scaled by the stage scale)
+    /// ツールチップを起動時に 1 回載せ、Model を購読して描く
+    /// Mounts the tooltip once at startup and renders from the model
     /// </summary>
     public sealed class CursorTooltipPresenter : IInitializable
     {

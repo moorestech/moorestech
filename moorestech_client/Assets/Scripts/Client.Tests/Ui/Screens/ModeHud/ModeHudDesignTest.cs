@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.ModeHud
 {
     /// <summary>
-    /// 操作モード HUD は共通のクラフト枠と帯で組み、色と寸法をトークン経由に限る（L1。Web の modeHudDesign.test.ts）
-    /// The operation-mode HUD is built from the shared craft frame and bands, with colours and sizes only through tokens (L1; Web modeHudDesign.test.ts)
+    /// 操作モード HUD は共通の枠と帯で、色と寸法はトークン経由（L1）
+    /// HUD uses the shared frame and bands, tokens only (L1)
     /// </summary>
     public class ModeHudDesignTest : ScreenTestHost
     {
@@ -49,8 +49,8 @@ namespace Client.Tests.Ui.Screens.ModeHud
             {
                 StringAssert.Contains(token, uss);
             }
-            // 色リテラルの禁止は L2 UiStyleConventionTest が全 USS で見る。ここは画面の USS に色の直書きが無いことだけ重ねて見る
-            // L2 UiStyleConventionTest bans colour literals in all USS; here only re-check this screen's USS
+            // 色の直書きが無いことだけ重ねて見る
+            // Re-check only that no colour literals exist
             StringAssert.DoesNotMatch(@":\s*(white|red|#[0-9a-fA-F]{3,8}|rgba?\()", uss);
         }
 

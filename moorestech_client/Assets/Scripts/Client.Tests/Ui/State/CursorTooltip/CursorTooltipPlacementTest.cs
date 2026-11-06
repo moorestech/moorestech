@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.CursorTooltip
 {
     /// <summary>
-    /// ポインタの右下 12px に置き、画面の端では内側へ押し戻す（L0。Web の tooltipPosition.ts）
-    /// Places 12px below-right of the pointer and pushes back inside at the edges (L0; Web tooltipPosition.ts)
+    /// 右下 12px に置き、端で内側へ押し戻す（L0）
+    /// 12px below-right, pushed back at edges (L0)
     /// </summary>
     public class CursorTooltipPlacementTest
     {

@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.CursorTooltip
 {
     /// <summary>
-    /// カーソルツールチップの状態を行の列にして配り、同じ行の再表示は流さない（L1）
-    /// Publishes the cursor tooltip state as a list of lines and does not republish identical lines (L1)
+    /// ツールチップ状態を行の列で配る（L1）
+    /// Publishes tooltip state as lines (L1)
     /// </summary>
     public class CursorTooltipModelTest
     {

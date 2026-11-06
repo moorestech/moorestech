@@ -1,13 +1,15 @@
+using System;
 using Client.Ui.Components.Text;
 using Client.Ui.State.CursorTooltip;
+using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Ui.Screens.CursorTooltip
 {
     /// <summary>
-    /// カーソルツールチップの画面ルート。実画面の問い合わせが返す点の右下 12 実画面 px に面を置き、端で押し戻す。Model は購読しない（Presenter が Render を呼ぶ）
-    /// Screen root of the cursor tooltip; places the face 12 screen px below-right of the point the screen query returns, pushed back at edges; never subscribes (the presenter calls Render)
+    /// カーソルツールチップの画面ルート。Render だけを受ける
+    /// Screen root of the cursor tooltip; receives Render only
     /// </summary>
     public sealed class CursorTooltipView : VisualElement
     {
@@ -15,7 +17,7 @@ namespace Client.Ui.Screens.CursorTooltip
         private readonly TooltipFace _face;
         private Vector2 _pointer;
         private bool _visible;
-        private CursorPointerTracker _tracker;
+        private IDisposable _pointerSubscription;
 
         public CursorTooltipView(ICursorTooltipScreen screen)
         {
@@ -27,12 +29,12 @@ namespace Client.Ui.Screens.CursorTooltip
             _face.style.display = DisplayStyle.None;
             Add(_face);
 
-            // 文と言語で面の寸法が変わったら、画面の寸法が変わったら置き直す
-            // Re-place when the face size changes with text or language, and when the screen size changes
+            // 寸法が変わったら置き直す
+            // Re-place when the size changes
             _face.RegisterCallback<GeometryChangedEvent>(_ => Reposition());
             RegisterCallback<GeometryChangedEvent>(_ => Reposition());
             RegisterCallback<AttachToPanelEvent>(OnAttached);
-            RegisterCallback<DetachFromPanelEvent>(_ => _tracker?.Detach());
+            RegisterCallback<DetachFromPanelEvent>(_ => _pointerSubscription?.Dispose());
         }
 
         public void Render(CursorTooltipViewModel viewModel)
@@ -44,7 +46,7 @@ namespace Client.Ui.Screens.CursorTooltip
             Reposition();
         }
 
-        public void SetPointer(Vector2 panelPosition)
+        private void SetPointer(Vector2 panelPosition)
         {
             _pointer = panelPosition;
             Reposition();
@@ -55,7 +57,9 @@ namespace Client.Ui.Screens.CursorTooltip
             // 載る前のポインタを初期値にし、以後の移動は隠れている間も追う（Web の 7179.3 の (12,12) 固定を避ける）
             // Start from the pointer before attaching, then follow moves even while hidden (avoids Web 7179.3's stuck (12,12))
             _pointer = _screen.CurrentPointerInPanel(panel);
-            _tracker = new CursorPointerTracker(panel, _screen, this);
+            // パネルの PointerMoveEvent は何も拾わない所では届かない（実測 received=none）ので、Client.Input の購読口から受ける
+            // Panel PointerMoveEvent does not arrive where nothing is pickable (measured received=none), so receive from the Client.Input stream
+            _pointerSubscription = _screen.OnPointerMovedInPanel(panel).Subscribe(SetPointer);
         }
 
         private void Reposition()
@@ -72,8 +76,8 @@ namespace Client.Ui.Screens.CursorTooltip
                 return;
             }
 
-            // 指す点（ロック中の中央を含む）と倍率は実画面の問い合わせが決める
-            // The point (including the centre while locked) and the scale come from the screen query
+            // 指す点と倍率は実画面が決める
+            // The point and scale come from the screen query
             var anchor = _screen.ResolveAnchorInPanel(panel, _pointer);
             var placed = CursorTooltipPlacement.PlaceInPanel(anchor, _face.layout.size, layout.size, scale);
             _face.style.left = placed.x;

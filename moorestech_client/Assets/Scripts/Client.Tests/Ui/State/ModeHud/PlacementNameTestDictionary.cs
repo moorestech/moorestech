@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.State.ModeHud
 {
     /// <summary>
-    /// 一時 mod の辞書へ設置対象の導出キーを合成し、終わったら消して言語を戻す
-    /// Composes placement-target derived keys into a temporary mod dictionary, then deletes it and restores the language
+    /// 設置対象の導出キーを一時辞書へ合成して戻す
+    /// Composes derived keys into a temporary dictionary, then restores
     /// </summary>
     public sealed class PlacementNameTestDictionary
     {
@@ -31,8 +31,8 @@ namespace Client.Tests.Ui.State.ModeHud
             Localize.Initialize();
         }
 
-        // 行は "key,Source,english,japanese" の CSV 本文（見出し行を除く）
-        // Rows are CSV body lines "key,Source,english,japanese" without the header
+        // CSV 本文の行（見出し除く）
+        // CSV body rows (no header)
         public void Merge(string rows)
         {
             var modDirectory = Path.Combine(_directory, "mode-hud-names-mod");

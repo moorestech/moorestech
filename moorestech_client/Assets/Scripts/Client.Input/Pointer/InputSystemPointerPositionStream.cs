@@ -7,10 +7,10 @@ using UnityEngine.InputSystem.LowLevel;
 namespace Client.Input.Pointer
 {
     /// <summary>
-    /// InputSystem のマウスの状態イベントから位置を読み、変わった時だけ流す（毎フレームの比較はしない）
-    /// Reads the position from InputSystem mouse state events and publishes it only when it changes (no per-frame comparison)
+    /// マウス位置が変わった時だけ流す
+    /// Publishes the mouse position only when it changes
     /// </summary>
-    public sealed class InputSystemPointerPositionStream : IPointerPositionStream
+    public sealed class InputSystemPointerPositionStream
     {
         private readonly Subject<Vector2> _onPointerScreenPositionChanged = new();
         private Vector2? _lastPosition;
@@ -19,16 +19,16 @@ namespace Client.Input.Pointer
 
         public InputSystemPointerPositionStream()
         {
-            // マウスが無いと何も流れないので、ポインタに付いて動く UI が止まる理由を出しておく
-            // Nothing flows without a mouse, so report why pointer-following UI will not move
+            // マウス無しなら理由を警告
+            // Warn why when there is no mouse
             if (Mouse.current == null) Debug.LogWarning("[InputSystemPointerPositionStream] Mouse.current is null; no pointer position will be published until a mouse sends events");
             InputSystem.onEvent += OnInputEvent;
         }
 
         private void OnInputEvent(InputEventPtr eventPtr, InputDevice device)
         {
-            // HybridInput と同じ Mouse.current の位置だけを読む。ボタンだけの変化は位置が同じなので流さない
-            // Read only Mouse.current's position like HybridInput; button-only changes keep the same position and are not published
+            // 位置だけ読む。ボタンのみは流さない
+            // Read position only; button-only changes are not published
             if (device != Mouse.current) return;
             if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) return;
             if (!Mouse.current.position.ReadValueFromEvent(eventPtr, out var position)) return;

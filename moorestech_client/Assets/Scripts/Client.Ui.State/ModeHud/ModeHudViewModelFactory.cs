@@ -5,22 +5,22 @@ using UnityEngine;
 namespace Client.Ui.State.ModeHud
 {
     /// <summary>
-    /// UI 状態・設置対象・高さから操作モード HUD の表示状態を組む
-    /// Builds the operation-mode HUD state from the UI state, placement target and height
+    /// HUD の表示状態を組む
+    /// Builds the HUD state
     /// </summary>
     public static class ModeHudViewModelFactory
     {
         public static ModeHudViewModel Create(UIStateEnum state, IPlacementTarget target, int height)
         {
-            // Web の App.tsx と同じく placeBlock で配置 HUD、deleteBar で帯と削除箱の高さを出す
-            // Like Web App.tsx, placeBlock shows the placement HUD and deleteBar shows the bands and the delete-box height
+            // placeBlock は配置 HUD、deleteBar は帯と高さ
+            // placeBlock shows the placement HUD, deleteBar the bands and height
             switch (state)
             {
                 case UIStateEnum.PlaceBlock:
                     return new ModeHudPlacement(TargetName(), height);
                 case UIStateEnum.DeleteBar:
-                    // 削除箱は共用の高さだけを出す（Web の DeleteBoxHeightHud）
-                    // The delete box shows only the shared height (Web DeleteBoxHeightHud)
+                    // 削除箱は高さだけを出す
+                    // The delete box shows only the height
                     return new ModeHudDelete(height);
                 default:
                     return ModeHudViewModel.Hidden;

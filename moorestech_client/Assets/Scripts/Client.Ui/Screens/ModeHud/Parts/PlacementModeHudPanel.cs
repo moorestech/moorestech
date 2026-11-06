@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.ModeHud.Parts
 {
     /// <summary>
-    /// 右上の配置モード HUD。Web の PlacementModeHud（GamePanel craft・見出し・詳細 2 行。警告の行は写さない D-7）
-    /// The top-right placement HUD; Web PlacementModeHud (craft GamePanel, heading, two details; the warning line is not ported, D-7)
+    /// 右上の配置モード HUD
+    /// The top-right placement HUD
     /// </summary>
     public sealed class PlacementModeHudPanel : VisualElement
     {
@@ -38,6 +38,18 @@ namespace Client.Ui.Screens.ModeHud.Parts
             _height = Detail("operation-mode-detail", true);
             heading.Add(_selected);
             heading.Add(_height);
+
+            #region Internal
+
+            static LocalizedLabel Detail(string testid, bool following)
+            {
+                var label = new LocalizedLabel { name = testid };
+                label.AddToClassList("mode-hud__detail");
+                if (following) label.AddToClassList("mode-hud__detail--following");
+                return label;
+            }
+
+            #endregion
         }
 
         public void Show(ModeHudPlacement placement)
@@ -46,14 +58,6 @@ namespace Client.Ui.Screens.ModeHud.Parts
             var targetName = placement.Target.HasValue ? placement.Target.Value : "";
             _selected.SetText(new UiText(LocalizationKeys.Ui.ModeHud.SelectedBlock, new[] { new LocalizationTextParam("name", targetName) }));
             _height.SetText(PlacementHeightText.Create(placement.Height));
-        }
-
-        private static LocalizedLabel Detail(string testid, bool following)
-        {
-            var label = new LocalizedLabel { name = testid };
-            label.AddToClassList("mode-hud__detail");
-            if (following) label.AddToClassList("mode-hud__detail--following");
-            return label;
         }
     }
 }

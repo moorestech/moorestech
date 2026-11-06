@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.State.ModeHud
 {
     /// <summary>
-    /// 操作モード HUD の表示状態（判別 union）。Web の App.tsx の uiState 分岐と topic ui.placement_mode の組の写し
-    /// Display state of the operation-mode HUD (discriminated union); a copy of Web App.tsx's uiState branch with the ui.placement_mode topic
+    /// 操作モード HUD の表示状態（判別 union）
+    /// Display state of the operation-mode HUD (discriminated union)
     /// </summary>
     public abstract class ModeHudViewModel : IEquatable<ModeHudViewModel>
     {

@@ -2,8 +2,8 @@ using UnityEngine;
 
 namespace Client.Tests.Ui.Screens.ModeHud
 {
-    // WCAG のコントラスト比（sRGB）。半透明の面は背景に重ねてから測る
-    // WCAG contrast ratio (sRGB); translucent faces are composited over the backdrop first
+    // WCAG のコントラスト比（sRGB）
+    // WCAG contrast ratio (sRGB)
     public static class ContrastRatio
     {
         public static float Of(Color foreground, Color background)

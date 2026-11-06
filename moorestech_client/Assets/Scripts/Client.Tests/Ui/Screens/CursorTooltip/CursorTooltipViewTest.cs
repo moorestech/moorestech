@@ -13,8 +13,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.CursorTooltip
 {
     /// <summary>
-    /// カーソルツールチップの文言・行・面（L1。Web の CursorTooltip.test.ts・commonHud.spec.ts）
-    /// Cursor tooltip text, lines and face (L1; Web CursorTooltip.test.ts, commonHud.spec.ts)
+    /// ツールチップの文言・行・面（L1）
+    /// Tooltip text, lines and face (L1)
     /// </summary>
     public class CursorTooltipViewTest : ScreenTestHost
     {

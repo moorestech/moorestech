@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.ModeHud.Parts
 {
     /// <summary>
-    /// 削除モードの全面の入れ物と上下の帯 2 本。Web の DeleteModeWarningBands（下の帯に錨 delete.hud）
-    /// Full-screen container with the top and bottom bands; Web DeleteModeWarningBands (bottom band anchored as delete.hud)
+    /// 削除モードの上下の警告帯 2 本
+    /// The delete mode's top and bottom warning bands
     /// </summary>
     public sealed class DeleteModeWarningBands : VisualElement
     {

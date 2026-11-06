@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.CursorTooltip
 {
     /// <summary>
-    /// カーソルツールチップの位置: ポインタの右下 12px・端で押し戻す・ロック中は実画面の問い合わせが返す中央・言語変更で置き直す（L1。Web の CursorTooltip.test.ts・commonHud.spec.ts）
-    /// Cursor tooltip position: 12px below-right, pushed back at edges, the screen query's centre while locked, re-placed on language change (L1; Web CursorTooltip.test.ts, commonHud.spec.ts)
+    /// ツールチップの位置: 右下 12px・端で押し戻す・ロック中は中央（L1）
+    /// Tooltip position: 12px below-right, pushed back at edges, centre while locked (L1)
     /// </summary>
     public class CursorTooltipPositionViewTest : ScreenTestHost
     {

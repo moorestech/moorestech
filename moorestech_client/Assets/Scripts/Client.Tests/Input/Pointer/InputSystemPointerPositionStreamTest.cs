@@ -11,8 +11,8 @@ using UnityEngine.TestTools;
 namespace Client.Tests.Input.Pointer
 {
     /// <summary>
-    /// ポインタ位置の購読口: マウスの位置が変わった時だけ HybridInput と同じ座標で流し、マウスが無ければ警告を 1 回出す
-    /// Pointer position stream: publishes only on mouse position changes in HybridInput's coordinates, and warns once without a mouse
+    /// マウス位置が変わった時だけ流し、無ければ警告 1 回
+    /// Publishes only on position change; warns once without a mouse
     /// </summary>
     public class InputSystemPointerPositionStreamTest : InputTestFixture
     {
@@ -54,7 +54,7 @@ namespace Client.Tests.Input.Pointer
             Assert.IsEmpty(received);
         }
 
-        private static List<Vector2> Subscribe(IPointerPositionStream stream)
+        private static List<Vector2> Subscribe(InputSystemPointerPositionStream stream)
         {
             var received = new List<Vector2>();
             stream.OnPointerScreenPositionChanged.Subscribe(received.Add);

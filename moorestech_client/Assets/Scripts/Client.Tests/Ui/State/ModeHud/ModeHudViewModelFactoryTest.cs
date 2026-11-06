@@ -8,8 +8,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State.ModeHud
 {
     /// <summary>
-    /// UI 状態で派生の型が決まり、削除箱は高さだけを持つ（L1。Web の PlacementModeHud.localization.test.ts）
-    /// The UI state decides the derived type and the delete box carries only the height (L1; Web PlacementModeHud.localization.test.ts)
+    /// UI 状態で型が決まり、削除箱は高さだけ（L1）
+    /// UI state decides the type; delete box has only height (L1)
     /// </summary>
     public class ModeHudViewModelFactoryTest
     {

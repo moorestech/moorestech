@@ -14,8 +14,8 @@ namespace Client.Ui.Screens.ModeHud.Parts
 
         public static bool TryReadDegrees(ICustomStyle style, string propertyName, out float degrees)
         {
-            // 角度の値は数として解けないので文字列で受け、末尾の deg を外して読む
-            // An angle value does not resolve as a number, so take it as a string and strip the trailing deg
+            // 文字列で受け末尾の deg を外す
+            // Take a string and strip the trailing deg
             if (style.TryGetValue(new CustomStyleProperty<string>(propertyName), out var text)
                 && text.EndsWith(DegreeSuffix)
                 && float.TryParse(text.Substring(0, text.Length - DegreeSuffix.Length), NumberStyles.Float, CultureInfo.InvariantCulture, out degrees))

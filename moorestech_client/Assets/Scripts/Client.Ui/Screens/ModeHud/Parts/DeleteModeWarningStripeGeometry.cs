@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Ui.Screens.ModeHud.Parts
 {
     /// <summary>
-    /// CSS repeating-linear-gradient の 1 色目の帯を、要素の矩形で切った凸多角形の列にする
-    /// Turns the first-colour stripes of a CSS repeating-linear-gradient into convex polygons clipped to the element rect
+    /// 勾配の 1 色目の帯を凸多角形の列にする
+    /// Turns first-colour gradient stripes into convex polygons
     /// </summary>
     public static class DeleteModeWarningStripeGeometry
     {
@@ -19,8 +19,8 @@ namespace Client.Ui.Screens.ModeHud.Parts
             var start = size / 2f - direction * (length / 2f);
             var rect = new List<Vector2> { Vector2.zero, new(size.x, 0f), size, new(0f, size.y) };
 
-            // 周期 2s ごとに [2sk, 2sk+s] の帯を矩形から切り出す
-            // Every 2s period, cut the slab [2sk, 2sk+s] out of the rect
+            // 周期 2s ごとの帯を切り出す
+            // Cut a slab every 2s period
             var polygons = new List<IReadOnlyList<Vector2>>();
             for (var from = 0f; from < length; from += stripeSize * 2f)
             {

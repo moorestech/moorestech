@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.ModeHud
 {
     /// <summary>
-    /// 配置モード HUD が右上のクラフト枠に題・対象・高さを Web と同じ寸法と色で出し、入力を奪わず、非表示で起動してもエラーを出さない（L1。Web の operation-mode-hud.spec.ts・commonHud.spec.ts）
-    /// The placement HUD shows title, target and height in a top-right craft frame with Web's sizes and colours, never takes input and starts hidden without errors (L1; Web operation-mode-hud.spec.ts, commonHud.spec.ts)
+    /// 配置 HUD の寸法・色・入力を奪わないこと（L1）
+    /// Placement HUD sizes, colours and not taking input (L1)
     /// </summary>
     public class ModeHudViewTest : ScreenTestHost
     {
@@ -34,31 +34,31 @@ namespace Client.Tests.Ui.Screens.ModeHud
             _view.Render(ModeHudViewModelSamples.Placement());
             simulate.FrameUpdate();
 
-            // 実画面の右上 24px・幅 288px・中央を覆わない
-            // Top-right at 24px, 288px wide, not covering the centre
+            // 右上 24px・幅 288px
+            // Top-right 24px, 288px wide
             var corner = Find<VisualElement>(_view, "placement-mode-hud");
             Assert.AreEqual(24f, corner.worldBound.yMin, 1f);
             Assert.AreEqual(1280f - 24f, corner.worldBound.xMax, 1f);
             Assert.AreEqual(288f, corner.worldBound.width, 1f);
             Assert.IsFalse(corner.worldBound.Contains(new Vector2(640f, 360f)));
 
-            // 枠はクラフト（グリップあり）・面はクラフトの面のトークン
-            // The frame is craft (with grip) and the face uses the craft face token
+            // 枠はクラフト・面はクラフトのトークン
+            // Craft frame and craft face token
             var panel = Find<GamePanel>(_view, "placement-mode-hud-panel");
             Assert.IsTrue(panel.ClassListContains("game-panel--craft"));
             Assert.IsNotNull(panel.Q(className: "game-panel__craft-grip"));
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--game-panel-craft-face"), panel.resolvedStyle.backgroundColor, "craft face");
 
-            // 題: 12px・text-muted・字間は 1px の換算値
-            // Title: 12px, text-muted, letter spacing converted from 1px
+            // 題 12px・text-muted・字間 1px
+            // Title 12px, text-muted, 1px spacing
             var label = Find<Label>(_view, "operation-mode-label");
             Assert.AreEqual("Placement Mode", label.text);
             Assert.AreEqual(12f, label.resolvedStyle.fontSize, 0.01f);
             ThemeTokenFile.AssertSameColor(ThemeTokenFile.ResolveColor("--text-muted"), label.resolvedStyle.color, "label");
             Assert.AreEqual(8.333f, label.resolvedStyle.letterSpacing, 0.01f);
 
-            // 詳細 2 行: 17px・白・行の高さ 25px・項目間 5px
-            // Two detail lines: 17px, white, 25px line height, 5px apart
+            // 詳細 17px・白・行高 25px
+            // Detail 17px, white, 25px line height
             var details = _view.Query<Label>("operation-mode-detail").ToList();
             Assert.AreEqual(new[] { DetailLineHeightTag + "Selected: Assembler", DetailLineHeightTag + "Height: 3" }, new[] { details[0].text, details[1].text });
             Assert.AreEqual(17f, details[0].resolvedStyle.fontSize, 0.01f);

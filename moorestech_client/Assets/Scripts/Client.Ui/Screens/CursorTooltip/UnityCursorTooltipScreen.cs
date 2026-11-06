@@ -8,14 +8,14 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.CursorTooltip
 {
     /// <summary>
-    /// 本番の実画面。ロック中は ScreenCenter、そうでなければ届いたポインタを指し、倍率はパネルの scaledPixelsPerPoint（設計書 [A-41]）
-    /// Production screen: points at ScreenCenter while locked, otherwise at the latest pointer; scale is the panel's scaledPixelsPerPoint (design [A-41])
+    /// 本番の実画面。ロック中は中央、倍率は scaledPixelsPerPoint
+    /// Production screen: centre while locked, scale is scaledPixelsPerPoint
     /// </summary>
     public sealed class UnityCursorTooltipScreen : ICursorTooltipScreen
     {
-        private readonly IPointerPositionStream _pointerPositionStream;
+        private readonly InputSystemPointerPositionStream _pointerPositionStream;
 
-        public UnityCursorTooltipScreen(IPointerPositionStream pointerPositionStream)
+        public UnityCursorTooltipScreen(InputSystemPointerPositionStream pointerPositionStream)
         {
             _pointerPositionStream = pointerPositionStream;
         }
@@ -44,8 +44,8 @@ namespace Client.Ui.Screens.CursorTooltip
             return panel.scaledPixelsPerPoint;
         }
 
-        // 画面 px（左下原点）を上原点へ直してパネル座標へ変える（Foundation/Input/GameUiPointerProbe と同じ換算。本PR外の提案で 1 本へ寄せる）
-        // Flip screen pixels (bottom-left origin) to top origin, then convert to panel coordinates (same as Foundation/Input/GameUiPointerProbe; merging is an out-of-PR proposal)
+        // 画面 px（左下原点）をパネル座標へ換算
+        // Convert screen px (bottom-left origin) to panel coordinates
         private static Vector2 ScreenToPanel(IPanel panel, Vector2 screenPosition)
         {
             return RuntimePanelUtils.ScreenToPanel(panel, new Vector2(screenPosition.x, Screen.height - screenPosition.y));

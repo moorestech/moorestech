@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Screens.ModeHud
 {
     /// <summary>
-    /// 黄の帯の多角形が CSS repeating-linear-gradient の色の決まり方と同じ点を覆う（L1）
-    /// The yellow stripe polygons cover the same points as the CSS repeating-linear-gradient colouring (L1)
+    /// 黄の帯が CSS 勾配の色の決まり方と同じ点を覆う（L1）
+    /// Yellow stripes cover the same points as the CSS gradient (L1)
     /// </summary>
     public class DeleteModeWarningStripeGeometryTest
     {
@@ -21,8 +21,8 @@ namespace Client.Tests.Ui.Screens.ModeHud
             var size = new Vector2(width, height);
             var polygons = DeleteModeWarningStripeGeometry.FirstColorPolygons(size, Angle, Stripe);
 
-            // 帯の境目から 0.5px 以上離れた点だけを見る（境目は描画の縁のにじみで決まらない）
-            // Check only points at least 0.5px from a stripe boundary (the boundary itself is antialiased)
+            // 境目から 0.5px 以上離れた点だけ見る
+            // Check points at least 0.5px from boundaries
             for (var x = 0.5f; x < width; x += 3.7f)
             for (var y = 0.5f; y < height; y += 1.9f)
             {
@@ -45,8 +45,8 @@ namespace Client.Tests.Ui.Screens.ModeHud
             }
         }
 
-        // CSS の linear-gradient の位置: 方向 (sin a, -cos a)、線の長さ |w sin a| + |h cos a|、中心を通る
-        // CSS linear-gradient position: direction (sin a, -cos a), line length |w sin a| + |h cos a|, through the centre
+        // CSS 勾配線の位置（本体と同式）
+        // CSS gradient line position (same as the body)
         private static float CssGradientPosition(Vector2 point, Vector2 size, float angleDegrees)
         {
             var radians = angleDegrees * Mathf.Deg2Rad;
@@ -66,7 +66,7 @@ namespace Client.Tests.Ui.Screens.ModeHud
                     var a = polygon[i];
                     var b = polygon[(i + 1) % polygon.Count];
                     var cross = (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x);
-                    inside = cross >= 0f;
+                    inside = 0f <= cross;
                 }
                 if (inside) return true;
             }

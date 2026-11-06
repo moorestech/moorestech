@@ -12,8 +12,8 @@ using Tests.Module.TestMod;
 namespace Client.Tests.Ui.State.ModeHud
 {
     /// <summary>
-    /// 配置 HUD の対象名は IPlacementTarget.DisplayName を今の辞書で解いたもの（L1。Web の PlacementModeHud.localization.test.ts と operation-mode-hud.spec.ts）
-    /// The placement HUD's target name is IPlacementTarget.DisplayName resolved with the current dictionary (L1; Web PlacementModeHud.localization.test.ts and operation-mode-hud.spec.ts)
+    /// 配置 HUD の対象名は今の辞書で解いた DisplayName（L1）
+    /// Target name is DisplayName resolved with the current dictionary (L1)
     /// </summary>
     public class ModeHudPlacementNameTest
     {

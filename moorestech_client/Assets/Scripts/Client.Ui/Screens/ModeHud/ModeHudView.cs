@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.ModeHud
 {
     /// <summary>
-    /// 操作モード HUD の画面ルート。渡された表示状態の派生の型で配置 HUD・削除の帯と高さを出し分ける。Model は購読しない（Presenter が Render を呼ぶ）
-    /// Screen root of the operation-mode HUD; shows the placement HUD or the delete bands and height by the state's derived type; never subscribes (the presenter calls Render)
+    /// 操作モード HUD の画面ルート。型で出し分ける
+    /// Screen root of the operation-mode HUD; branches by type
     /// </summary>
     public sealed class ModeHudView : VisualElement
     {
@@ -17,8 +17,8 @@ namespace Client.Ui.Screens.ModeHud
         public ModeHudView()
         {
             AddToClassList("mode-hud");
-            // 組は出すときだけ木に載せるので、拾わない指定は組ごとに組み終えた時点で掛ける
-            // Groups are attached only while shown, so apply picking-ignore to each group once it is built
+            // 拾わない指定は組み終えてから掛ける
+            // Apply picking-ignore once the group is built
             ModeHudPickingIgnore.Apply(this);
             ModeHudPickingIgnore.Apply(_placement);
             ModeHudPickingIgnore.Apply(_deleteBands);
@@ -44,21 +44,25 @@ namespace Client.Ui.Screens.ModeHud
                     break;
             }
 
-            // Web の帯は同じ viewportOverlay の中で後から描かれるので、出すときは層の中で前へ
-            // Web draws the bands later in the same viewportOverlay, so bring the HUD to the front of its layer when shown
+            // 帯は層の中で前へ
+            // Bring the bands to the front of the layer
             if (viewModel is not ModeHudHidden) BringToFront();
-        }
 
-        private void MountOnly(params VisualElement[] shown)
-        {
-            // 組の並び（帯 → 配置 → 削除箱）は固定。載せる順もこの順
-            // Group order (bands, placement, delete box) is fixed and groups are attached in this order
-            foreach (var group in new VisualElement[] { _deleteBands, _placement, _deleteHeight })
+            #region Internal
+
+            void MountOnly(params VisualElement[] shown)
             {
-                var wanted = System.Array.IndexOf(shown, group) >= 0;
-                if (wanted && group.parent != this) Add(group);
-                if (!wanted && group.parent == this) Remove(group);
+                // 並びは帯→配置→削除箱で固定
+                // Order is fixed: bands, placement, delete box
+                foreach (var group in new VisualElement[] { _deleteBands, _placement, _deleteHeight })
+                {
+                    var wanted = 0 <= System.Array.IndexOf(shown, group);
+                    if (wanted && group.parent != this) Add(group);
+                    if (!wanted && group.parent == this) Remove(group);
+                }
             }
+
+            #endregion
         }
     }
 }

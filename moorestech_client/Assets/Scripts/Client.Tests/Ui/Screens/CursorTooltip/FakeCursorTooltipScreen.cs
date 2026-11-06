@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Tests.Ui.Screens.CursorTooltip
 {
-    // 偽の実画面。ロック中の中央・倍率・今のポインタ・ポインタの移動をテストが決める（既定はロックなし・1 倍・原点）
-    // Fake screen; the test decides the locked centre, scale, current pointer and pointer moves (defaults: unlocked, 1x, origin)
+    // 偽の実画面。中央・倍率・ポインタをテストが決める
+    // Fake screen; the test decides centre, scale and pointer
     public sealed class FakeCursorTooltipScreen : ICursorTooltipScreen
     {
         private readonly Subject<Vector2> _pointerMoves = new();

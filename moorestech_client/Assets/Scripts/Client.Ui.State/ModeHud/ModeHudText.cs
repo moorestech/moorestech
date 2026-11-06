@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.State.ModeHud
 {
     /// <summary>
-    /// 操作モード HUD の「有るかもしれない文」。無いことを空文字ではなく HasValue で表す
-    /// An optional text of the operation-mode HUD; absence is HasValue, not an empty string
+    /// HUD の有るかもしれない文（無しは HasValue）
+    /// An optional HUD text (absence is HasValue)
     /// </summary>
     public readonly struct ModeHudText : IEquatable<ModeHudText>
     {

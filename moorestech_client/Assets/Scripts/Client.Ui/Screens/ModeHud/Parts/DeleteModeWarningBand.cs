@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Screens.ModeHud.Parts
 {
     /// <summary>
-    /// 削除モードの警告帯 1 本。背景は USS の黒、黄の斜線は Web の repeating-linear-gradient を Painter2D で描く
-    /// One delete-mode warning band; the black is the USS background and the yellow stripes draw Web's repeating-linear-gradient with Painter2D
+    /// 削除モードの警告帯 1 本（黄の斜線は Painter2D）
+    /// One delete-mode warning band (yellow stripes via Painter2D)
     /// </summary>
     public sealed class DeleteModeWarningBand : VisualElement
     {
@@ -34,8 +34,8 @@ namespace Client.Ui.Screens.ModeHud.Parts
 
         private void OnCustomStyleResolved(CustomStyleResolvedEvent evt)
         {
-            // 3 つ揃ったときだけ描く。欠けは各読み手が LogError を出す
-            // Draw only when all three resolve; each reader logs an error for a missing one
+            // 3 つ揃った時だけ描く
+            // Draw only when all three resolve
             var hasYellow = UssCustomStyleReader.TryReadColor(evt.customStyle, YellowProperty, out _yellow);
             var hasSize = UssCustomStyleReader.TryReadPixels(evt.customStyle, StripeSizeProperty, out _stripeSize);
             var hasAngle = DegreeCustomStyle.TryReadDegrees(evt.customStyle, StripeAngleProperty, out _angleDegrees);

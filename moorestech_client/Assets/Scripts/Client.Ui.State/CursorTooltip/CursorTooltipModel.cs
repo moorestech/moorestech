@@ -5,8 +5,8 @@ using VContainer.Unity;
 namespace Client.Ui.State.CursorTooltip
 {
     /// <summary>
-    /// カーソルツールチップの表示状態を購読し、画面向けの行の列にして配る
-    /// Subscribes to the cursor tooltip presentation and publishes it as lines for the screen
+    /// ツールチップ状態を行の列で配る
+    /// Publishes the tooltip state as lines
     /// </summary>
     public sealed class CursorTooltipModel : IInitializable
     {
@@ -22,8 +22,8 @@ namespace Client.Ui.State.CursorTooltip
 
         public void Initialize()
         {
-            // 源は ReactiveProperty なので購読した時点の表示も流れてくる
-            // The source is a ReactiveProperty, so subscribing also delivers the current presentation
+            // 購読時の表示も流れる
+            // Subscribing also delivers the current state
             _tooltipState.OnPresentationChanged.Subscribe(presentation => _current.Value = new CursorTooltipViewModel(presentation.Lines));
         }
     }

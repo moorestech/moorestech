@@ -7,31 +7,31 @@ using Client.Ui.State.Text;
 namespace Client.Ui.State.CursorTooltip
 {
     /// <summary>
-    /// カーソルツールチップの表示状態。Web の topic ui.tooltip の写しで、行が空なら隠す
-    /// Display state of the cursor tooltip; a copy of Web's ui.tooltip topic, hidden when there are no lines
+    /// カーソルツールチップの表示状態
+    /// Display state of the cursor tooltip
     /// </summary>
     public sealed class CursorTooltipViewModel : IEquatable<CursorTooltipViewModel>
     {
         public static readonly CursorTooltipViewModel Hidden = new(Array.Empty<TooltipLine>());
 
         public readonly IReadOnlyList<UiText> Lines;
-        public readonly IReadOnlyList<TooltipLine> SourceLines;
+        private readonly IReadOnlyList<TooltipLine> _sourceLines;
         public bool Visible => 0 < Lines.Count;
 
         public CursorTooltipViewModel(IReadOnlyList<TooltipLine> sourceLines)
         {
-            SourceLines = sourceLines;
+            _sourceLines = sourceLines;
             Lines = sourceLines.Select(line => new UiText(line.Key, line.TextParams)).ToArray();
         }
 
-        // UiText は参照で比べるので、元の行（値の等価を持つ TooltipLine）で比べる
-        // UiText compares by reference, so compare the source lines, which have value equality
+        // UiText は参照比較なので TooltipLine で比べる
+        // UiText compares by reference, so compare TooltipLine
         public bool Equals(CursorTooltipViewModel other)
         {
-            return other != null && SourceLines.SequenceEqual(other.SourceLines);
+            return other != null && _sourceLines.SequenceEqual(other._sourceLines);
         }
 
         public override bool Equals(object obj) => Equals(obj as CursorTooltipViewModel);
-        public override int GetHashCode() => SourceLines.Count;
+        public override int GetHashCode() => _sourceLines.Count;
     }
 }
