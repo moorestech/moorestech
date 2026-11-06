@@ -1,0 +1,145 @@
+# 部品カタログ（UITK の部品と Web の正本の対応）
+
+部品を作る・使う・名前を決める前に開く。ここに有る部品を画面の中に作り直さず、無い部品を足すときは SKILL.md §3 の昇格規則に従う。
+
+目次: 1 読み方と共通の約束 / 2 枠・面族 / 3 スロット族 / 4 操作部品族 / 5 表示・ゲージ族 / 6 文字・装飾族 / 7 事実上の共有部品と、画面に留めるもの / 8 Web の非 UI 共有モジュールの行き先
+
+- **出所**: `docs/uitk-migration/execution/component-architecture.md`（設計書）§2 の写し。設計書の §2.n がこの文書の §n にあたる。本文の `§n.n`・`[A-n]`・`[Q-n]` は設計書の節と判断 ID、`S/` は `moorestech_client/Assets/Scripts/`、`W/` は `moorestech_web/webui/src/`、「段階・レーン」列は設計書の提案。持ち主は `docs/uitk-migration/execution/execution-plan.md` のレーン表が正本で、食い違うときはそちらに従う（`KeyCap`・`ShortcutHintLabel`・`GameScrollView`・Typography・Layout は C2-c）
+- **直し方**: 部品を作ったレーンは、その行の「段階 1」列を `済み（<レーンID>）` に、公開 API の列を実装の公開 API どおりに直す。設計書の案から API を変えたときは、そのレーンの計画の判断記録に理由を書く。作られた部品は実コードが正本で、この表は引くための索引
+- **今の実ファイル名との違い**: 表は設計書の名前で書いてあり、次の名前は今のファイルと違う。`game-panel.uss` → 今は `Components/GamePanel/GamePanel.uss`、`PauseMenuFrame` → 今は `Screens/PauseMenu/PauseMenu.uss` の `.pause-menu__panel` 系（その名前の型は無い）、`ToastItem.uss` → 今は `Components/Toast/Toast.uss`、`Screens/Toast/ToastHost.uss` → 今は `Screens/Toast/ToastHostView.cs`（USS は無い）。表の `Components/<族>/` は F1 が族のディレクトリへそろえるまで平置きの `Components/<部品>/`（設計書 [A-7]）
+- **列**: 部品（UITK）／責務／公開 API 案（C#）／USS・状態クラス／使う画面（Web の feature）／作る段階・レーン／Web の見た目の正本／段階 1 との関係（再利用・改修・新規）
+
+## 1 読み方と共通の約束
+
+- **公開 API の共通の約束**（AGENTS.md に合わせる）
+  - ctor は `(string testid, …)`。装飾だけの部品（`FadeRule` 等）は testid を取らない。デフォルト引数は使わない
+  - Web が testid を子（ラベル）に付けている部品は、ctor の第 1 引数をその子の testid にし、名前を `<子>Testid` とする `[A-24]`
+  - 表示する値は `SetXxx(値)` で外から入れる。値を返す素通しプロパティは作らない（`{ get; private set; }` は可）
+  - 操作は `IObservable<T>`（UniRx の `Subject` を中に持つ）で出す。`Action`・`Func<>`・`partial` は使わない
+  - ボタン類は `focusable = false`（段階 1 の規則）。入力欄だけがフォーカスを持つ
+  - `contentContainer` を持つ部品（枠・スクロール）は、子を `Add` で受ける
+  - 色・寸法は C# に書かない。C# が値を要るとき（Painter2D）は `UssCustomStyleReader` でトークンを読む
+- **表示素材の値型**（Foundation/Icons と State/Text に置く）
+
+```csharp
+// アイコン 1 つ分の表示素材。テクスチャが無い（未ロード・欠け）ときの代わりの文字も持つ
+// Display material for one icon; carries fallback text for a missing or unloaded texture
+public sealed class UiIcon
+{
+    public Texture2D Texture { get; }          // 外部ロード結果なので null を許す（AGENTS.md の null 規約の例外側）
+    public string IdText { get; }              // GameIcon の fallback=idText 用
+    public UiText Label { get; }               // GameIcon の fallback=label 用
+    public UiIcon(Texture2D texture, string idText, UiText label) { … }
+}
+
+// Content 層（ID → 表示素材）。Screens の Presenter と View が使う
+// Content layer (ID → display material), used by Screens presenters and views
+public sealed class GameContentPresentation
+{
+    public UiIcon Item(ItemId id);
+    public UiIcon Block(BlockId id);
+    public UiIcon Fluid(FluidId id);
+    public Color FluidFace(FluidId id);        // FluidSlot の背面フィル色（液体マスタ色）
+    public UiText ItemName(ItemId id);        // UiText.FromContent(ContentLocalizationKeys.ItemName(guid))
+}
+```
+
+- **`UiText` の 3 種** `[A-40]`: `new UiText(LocalizationKey key[, params])`（辞書キー）・`UiText.FromContent(ContentLocalizationKey key)`（コンテンツ辞書キー。`Localize.GetContent` で解く）・`UiText.FromVerbatim(string text)`（解決済みの文。訳さない）。`Resolve()` が種ごとに解き、`LocalizedLabel`・`LocalizedTextBinding` は言語変更で同じく解き直す（解決済みの文は変わらない）。`WithLeadingParam` は辞書キーにだけ効き、ほかの種で呼ぶと例外で止める（F1 計画 Task 5 Step 3b）
+
+## 2 枠・面族（`Components/Panels/`）
+
+| 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
+|---|---|---|---|---|---|---|---|
+| `GamePanel` | 枠付きパネル（default・craft）。題・題の右端の副次アクション・本文 | `GamePanel(string testid, GamePanelFrame frame)`／`SetTitle(UiText title)`／`SetTitleAction(VisualElement action)`／`contentContainer` | `game-panel.uss`。`.game-panel--default`・`--craft`・`--titled`。面は `GamePanelFace`（頂点カラー）、罫線は `FadeGradientRule`（FadeRule の基底。C2-a 計画 D-14）、三角 `GamePanelBottomDeco`、craft の右下グリップは `GamePanelCraftGrip`（頂点カラー）、内周線は USS の border の入れ子 `[A-26]`。外周の影は描かない `[A-22]`。つまみ `--panel-top/right/bottom/left`・`--title-shift-x`・`--title-scale-x/y` `[A-25]` | blockInventory・research・recipe・inventory・buildMenu（default）、modeHud（craft） | default は段階 1 済み → C2-a で改修（C7）。craft は C2-a（modeHud が段階 2 で使う。plan §3.4 の段階 4 から前倒し `[A-12]`） | `W/shared/ui/GamePanel/style.module.css`・ref-webui-design §2 | 改修 |
+| `GamePanelSurface` | 枠なしの面（hud・skit） | `GamePanelSurface(string testid, GamePanelSurfaceKind kind)`／`contentContainer` | `.game-panel-surface--hud`（`--hud-panel-padding`・4 辺 `--panel-edge-fade`）・`--skit`（`--skit-window-*`） | challenge HUD（hud）、skit（skit） | C2-a | `GamePanel/hudVariant.module.css`・components.md §8.12 | 新規（`GamePanelFace` を流用） |
+| `PaperSurface` | Mantine `Paper` の写し（枠なし・影なし） | `PaperSurface(string testid)`／`contentContainer` | `.paper-surface`。面と角丸はつまみ `--paper-face`・`--paper-radius`（既定 `--mantine-color-body`・`--mantine-radius-sm`）`[A-23]` | challenge のノードカード・trainHud | C2-a | Mantine Paper（`W/features/challenge/ChallengeNodeCard`・`trainHud`） | 新規 |
+| `DialogFrame` | Mantine `Modal` の枠（題・本文・操作列）。幕とフォーカスは Foundation の `UiModalHost` | `DialogFrame(string testid)`／`SetTitle(UiText)`／`contentContainer`／`AddAction(FormButton button)` | `.dialog-frame`。幅 320px・余白・文字は Web と同じく実画面 px（`UiModalHost` が `UiScreenPixelScope` の中に置く。舞台の倍率を掛けない）`[A-41]` | modal（BP 名）、eventLanguageGate | C3-b | Mantine Modal（`W/features/modal/ModalHost`） | 新規 |
+| `PauseMenuFrame`（画面内に留める） | Web `.panel`（420px・角丸 12px・padding 32px）の写し | 段階 1 のまま | `PauseMenu.uss` | pauseMenu（設定・バグ報告も） | 済み | `W/features/pauseMenu/style.module.css` | 再利用 |
+
+## 3 スロット族（`Components/Slots/`）
+
+Web と同じ 2 層（枠と状態の `SlotFrame`＋中身の `SlotContent`）にする（web-components §0-2。`composes` の実測）。
+
+| 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
+|---|---|---|---|---|---|---|---|
+| `SlotFrame` | 1 マスの枠・ベベル・面と 5 状態、マウスの身振り | `SlotFrame(string testid)`／`SetState(SlotFrameState state)`／`IObservable<SlotGesture> OnSlotGestured`／`contentContainer` | `.slot-frame--selected`・`--filled`・`--catalog`・`--insufficient`・`--ghost`。リングは寸法に効かない装飾子 `.slot-frame__ring`（`PickingMode.Ignore`・絶対配置）の 3 重の border の入れ子で描く（plan §3.4 の inset 2 層の方式）。つまみ `--bevel-inset` で装飾子の外周を切り替える: 既定 `outset`＝面の外側へ成長（持ち物・レシピ。白面の寸法を削らない）、`inset`＝箱の内側へ食い込む（ホットバー。固定ピッチの外へ出ない）。Web の既定は空文字（`W/shared/ui/SlotFrame/style.module.css:3-9,27-31`・`W/features/hotbar/HotbarPanel/style.module.css:48`）`[A-42]`。つまみ `--slot-size`・`--bevel-inset`・`--bevel-1..3`・`--bevel-c1..3`・`--sel-c1..3`・`--face-inset`・`--selected-face-*` | hotbar・buildMenu（直接）、ItemSlot・BlockSlot・FluidAmountSlot の中 | C3-a | `W/shared/ui/SlotFrame/style.module.css`・ref-webui-design §4 | 新規 |
+| `SlotGesture`（値型）／`SlotFrameState`（値型） | 左押下（Shift 付き）・右押下・左/右の進入・ダブルクリック・ホバーの変化 ／ 5 状態の組 | `readonly struct SlotGesture { SlotGestureKind Kind; bool Shift; }`、`readonly struct SlotFrameState { bool Selected, Filled, Catalog, Insufficient, Ghost; }`（ctor で全部受ける） | — | — | C3-a | `W/shared/ui/useSlotMouse.ts` | 新規 |
+| `SlotContent` | マス内の中身（アイコン 100%・padding・右下の個数・縁取り） | `SlotContent()`／`SetIcon(UiIcon icon, GameIconFallback fallback)`／`SetCount(int count)`／`ClearCount()` | `.slot-content__icon`・`__count`。つまみ `--icon-pad`・`--count-bottom`・`--count-font-size`・`--count-letter-spacing`。個数の縁は `-unity-text-outline`（`--icon-text-stroke-*`） | ItemSlot・BlockSlot・FluidAmountSlot・PlacementTargetFace の中 | C3-a | `W/shared/ui/slotContent.module.css`・ADR 0033 | 新規 |
+| `GameIcon` | テクスチャ 1 枚の表示と、欠けたときの代わり（idText・label・none） | `GameIcon(GameIconFallback fallback)`／`SetIcon(UiIcon icon)` | `.game-icon__fallback`（10px・`--mantine-color-dark-2`） | SlotContent の中 | C3-a | `W/shared/ui/GameIcon` | 新規 |
+| `ItemSlot` | アイテム 1 マス（個数・不足表示・ゴースト・ツールチップ） | `ItemSlot(string testid)`／`SetContent(ItemSlotContent content)`／`IObservable<SlotGesture> OnSlotGestured` | `.item-slot__shortage`（つまみ `--shortage-count-right/bottom/font-size`、`--lack` で `--text-insufficient`）。`shortage` があれば通常の個数を出さない | blockInventory・research・recipe・inventory・buildMenu | C3-a | `W/shared/ui/ItemSlot`・ref-webui-design §4 | 新規 |
+| `ItemSlotContent`（値型） | ItemSlot に入れる値の束 | `sealed class`：`UiIcon Icon`／`int? Count`／`UiText Tooltip`／`SlotFrameState State`／`ItemSlotShortage Shortage`（null 可）／`ItemSlotGhost Ghost`（null 可） | — | — | C3-a | ItemSlot の props | 新規 |
+| `BlockSlot` | ブロック 1 マス（名前のツールチップ） | `BlockSlot(string testid)`／`SetBlock(UiIcon icon, UiText name)` | — | research | C3-a | `W/shared/ui/BlockSlot` | 新規 |
+| `PlacementTargetFace` | 配置対象のアイコンと 10px のラベル（SlotFrame の中身） | `PlacementTargetFace()`／`SetTarget(UiIcon icon, UiText displayName)` | `.placement-target-face__label` | hotbar・buildMenu | C3-a | `W/shared/ui/PlacementTargetFace` | 新規 |
+| `SlotGrid` | 列数固定の格子（`width: fit-content` の写し） | `SlotGrid(string testid, int columns)`／`SetColumns(int columns)`／`contentContainer` | flex-wrap。幅は `--slot-size`・`--slot-grid-gap` を `UssCustomStyleReader` で読み C# で決める（USS に grid が無い。plan §3.5） | blockInventory・buildMenu・recipe・inventory | C3-a | `W/shared/ui/SlotGrid` | 新規 |
+| `FluidSlot` | 液体 1 マス（背面フィル＝液体色・量 12px 太字・ゴースト） | `FluidSlot(string testid)`／`SetFluid(FluidSlotContent content)` | 3rem 固定・`--mantine-color-dark-4` の枠（Web どおり Mantine 変数） | FluidSlotRow の中 | C4-a | `W/shared/ui/FluidSlot` | 新規 |
+| `FluidAmountSlot` | 白面の SlotFrame に液体アイコンと量バッジ | `FluidAmountSlot(string testid)`／`SetFluid(UiIcon icon, SlotAmountBadge badge)` | 量 `--fluid-amount-font-size`(10px) | blockInventory・recipe | C4-a | `W/shared/ui/FluidAmountSlot` | 新規 |
+| `FluidSlotRow` | 液体スロットの列＋進捗矢印 | `FluidSlotRow(string testid)`／`SetFluids(IReadOnlyList<FluidSlotContent> fluids)`／`SetProgress(float ratio01)`／`ClearProgress()` | — | blockInventory | C4-a | `W/shared/ui/FluidSlotRow` | 新規 |
+| `SlotAmountFormat`（static。`Client.Ui.State/Text/SlotAmountFormat.cs`） | 量の短縮表記 | `static string Format(double amount)` | — | research・blockInventory・液体スロット・素材ツールチップ | L0-s3 が作る（`slotAmountFormat.test.ts` 7 件も L0-s3）。C3-a は使うだけ `[A-19]` | `W/shared/ui/slotAmountFormat.ts` | 新規 |
+
+## 4 操作部品族（`Components/Controls/`）
+
+| 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
+|---|---|---|---|---|---|---|---|
+| `PanelActionButton` | パネル付随の副次アクション | `PanelActionButton(string testid, LocalizationKey label)`／`IObservable<Unit> OnClicked` | つまみ `--panel-action-button-width/height/font-size`。hover は `DerivedTokens` の前計算色 | pauseMenu・blockInventory・inventory | 済み → F1 で `StyleSheet` 引数を消し `OnClicked` を足す（C1・C8） | `W/shared/ui/PanelActionButton`・components.md §8.6 | 改修 |
+| `ModeSwitch<TValue>` | 択一のボタン列（横・縦・タブ） | `ModeSwitch(string testid, ModeSwitchOrientation orientation, ModeSwitchRole role, IReadOnlyList<ModeSwitchOption<TValue>> options)`／`SetSelected(TValue)`／`SetSelectedNone()`／`SetEnabledAll(bool)`／`SetOptionEnabled(TValue value, bool enabled)`／`IObservable<TValue> OnOptionSelected` | `--vertical`・`--tablist`・`__option--selected`・`--option-disabled`。つまみ `--mode-switch-option-height` | settings・pauseMenu（横）、buildMenu（縦）、blockInventory（タブ） | 横は済み。縦・タブ・個別無効は C3-b | `W/shared/ui/ModeSwitch`・§8.6・§8.22 | 改修（`OnSelected` → `OnOptionSelected` に改名、`role` を足す） |
+| `IconButton` | 面なしの小さいアイコンボタン（既定は ×。× は Painter2D の `IconButtonCloseGlyph`。ほかの図形は画面が `VisualElement` で作って渡す） | `IconButton(string testid, VisualElement glyph)`／`IObservable<Unit> OnClicked`（図形は `IconButton.GlyphColorProperty`・`GlyphStrokeProperty` を `CustomStyleResolvedEvent` で読んで描く）`[A-27]` | つまみ `--icon-button-size`・`--icon-button-icon-size`。有効時の hover で `--text-high-contrast` | skit（ツールバー 4）・blockInventory・buildMenu | C2-b（plan §3.4 は段階 1 だが未作成。skit が段階 2 で使う） | `W/shared/ui/IconButton` | 新規 |
+| `FormButton` | Mantine `Button` の写し（送信・OK・キャンセル） | `FormButton(string testid, UiText label, FormButtonVariant variant)`／`SetLabel(UiText label)`（モーダルのボタン文言は解決済みの文、チャレンジのカテゴリ名はコンテンツ辞書キー `[A-40]`）／`SetVariant(FormButtonVariant variant)`／`SetSize(FormButtonSize size)`／`IObservable<Unit> OnClicked`（busy 表示の Set は持たない）`[A-28]` | `FormButtonVariant { Filled, Danger, Subtle }`・`FormButtonSize { Small, ExtraLarge }`（Web で実際に使う組だけ）。`.form-button--filled`・`--danger`・`--subtle`・`--xl`。色は `MantineTokens`（Subtle のホバーは `DerivedTokens`）。モーダルの確定色は State の `ModalButtonTone` を View が 1 か所で写す（`Blue→Filled`・`Red→Danger`） | pauseMenu（バグ報告）・modal・challenge・eventLanguageGate（recipe のクラフトは `RecipeActionButton` `[A-46]`） | C2-b | Mantine Button（`W/features/pauseMenu/BugReportForm`・`modal/ModalHost`・`challenge/ChallengePanel`・`eventLanguageGate`） | 新規（`BugReport.uss` から移す。C2） |
+| `RecipeActionButton` | 主要アクションの青グラデのボタン（クラフト・研究する）。角丸 0・横 3 色グラデの面・文字 `--text-high-contrast` | `RecipeActionButton(string testid, UiText label)`／`SetLabel(UiText label)`／`SetEnabled(bool)`（`VisualElement` の既定）／`IObservable<Unit> OnClicked`。長押しは置く側が Foundation の `UiPressGesture` を重ねる | 面は頂点カラーの横 3 色グラデ（`generateVisualContent`）。色はつまみ `--recipe-action-face-start/middle/end`（既定 `--recipe-action-background-*`）・`--recipe-action-hover-start/middle/end`（クラフトの hover `#2680dd`→`#45bcf5`→`#6cebfa`）・`--recipe-action-disabled-start/middle/end`（既定は通常と同じ＝無効でもグラデを保つ）・`--recipe-action-disabled-text`（既定 `rgb(255 255 255 / 80%)`）。研究は無効の面 3 つを `rgb(50 52 67)`・文字を `--text-default` へ上書きする。寸法・字の大きさ・字間・文字の縁はつまみ（クラフト: 幅 `--recipe-craft-button-width`・高 `--recipe-action-button-height`・12px・0.12em・4 方向の影は `-unity-text-outline` 近似。研究: 14px・padding 8px 0） | recipe（クラフト）・research（研究する） | C4-c | `W/features/recipe/views/RecipeActionButton.module.css`・`RecipeBox.module.css:186-212`・`W/features/research/style.module.css:131-148`・`W/app/tokens.css:104`・components.md「主要アクションの青グラデ」 | 新規 |
+| `GameTextField` | 入力欄（単行・複数行・IME） | 段階 1 の API ＋ `GameTextField(string testid, bool multiline, GameTextFieldLook look)`／`SetPlaceholder(UiText)`（言語追従は Foundation の `LocalizedTextBinding`。置き文字を持つ欄だけが束縛を作る）`[A-29]`・`[A-31]` | `GameTextField.uss`（`--gauge-inset`・`--mantine-input`）。GaugeInset は面 `--gauge-track`＋`--bevel-c1` 枠・placeholder `--text-muted`・フォーカスで外側に `--bevel-1` の輪、MantineInput は Mantine TextInput の dark・sm | pauseMenu（バグ報告）・blockInventory（駅名）・buildMenu（検索）・modal（BP 名） | C2-b（C2） | `W/shared/ui/textAreaField.module.css`・buildMenu `.searchInput`・§8.9・Mantine TextInput | 改修 |
+| `GameScrollView` | 本文いっぱいに伸びるスクロール領域とカスタムバー（`ScrollView` 派生。バーは本文に重ね、本文の幅を削らない）。スクロール量の通知 | `GameScrollView(string testid)`／`contentContainer`／`ScrollTo(VisualElement target)`／`SetScrollOffset(float y)`／`IObservable<float> OnScrollOffsetChanged` | トラック `--gauge-track`・ノブ `--bevel-c2`・ホバー `--game-scroll-view-thumb-hover`。つまみ `--scrollarea-scrollbar-size`（Mantine ScrollArea の `scrollbarSize`。`--recipe-list-scrollbar-reserve` は `RecipeListScrollView` のもの）`[A-35]` | research・blockInventory・train・pauseMenu・buildMenu・recipe | C2-c（plan §3.4 の段階 1 の「スクロール領域」。C3。実行計画 E-7） | `W/shared/ui/panelBodyScrollArea.module.css`・§8.10 | 新規（PauseMenuSubPageView から移す） |
+| `RecipeListScrollView` | 先頭の固定内容＋レシピ列のスクロール（bleed とバーの逃げ） | `RecipeListScrollView(string testid, float listGap)`／`SetLeadingContent(VisualElement)`／`listContainer` | `--recipe-entry-bleed`・`--recipe-list-scrollbar-reserve`。右の余白（Web `calc(bleed + reserve)`）は C# が 2 つのつまみを読んで足しインラインで当てる `[A-47]` | blockInventory・recipe | C4-c | `W/shared/ui/RecipeListScrollArea` | 新規（`GameScrollView` を内包） |
+
+## 5 表示・ゲージ族（`Components/Gauges/`）
+
+| 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
+|---|---|---|---|---|---|---|---|
+| `GaugeBar` | 0..1 の横ゲージ | `GaugeBar(string testid)`／`SetValue(float ratio01)` | 高 `--slot-size/6`（C# が祖先のつまみから割る `[A-47]`。C2-c 計画 Task 5）。つまみ `--gauge-fill`（progress が白へ上書き。§8.18） | blockInventory・progress | C2-c | `W/shared/ui/GaugeBar`・§8.6 | 新規 |
+| `BarSeries` | 棒の並び（null は溝だけ） | `BarSeries(string testid, int barCount)`／`SetValues(IReadOnlyList<float?> ratios01)` | `--empty`。`--bar-series-*` | blockInventory（ベルト搬出量） | C4-b | `W/shared/ui/BarSeries`・§8.23 | 新規 |
+| `ProgressArrowGlyph` | 矢印そのものがゲージ（null で静止） | `ProgressArrowGlyph(string testid)`／`SetProgress(float ratio01)`／`SetIdle()` | Painter2D で SVG path を写す。輪郭 `--craft-arrow-outline` 2px。drop-shadow は頂点カラーのにじみで描く | blockInventory・recipe | C4-b | `W/shared/ui/ProgressArrowGlyph`・§8.13 | 新規 |
+| `ProgressArrowBar` | 細い矢印形のゲージ | `ProgressArrowBar(string testid)`／`SetValue(float ratio01)` | `--progress-arrow-*` | blockInventory・FluidSlotRow | C4-b | `W/shared/ui/ProgressArrowBar` | 新規 |
+| `Spinner` | Mantine `Loader` の写し | `Spinner()` | UiMotion の回転 | Web の 1 か所（レーンで出所を確かめる） | 使う段のレーン | Mantine Loader | 新規 |
+| `ToastItem` | Mantine Notification の写し | `ToastItem(string text, ToastItemTone tone)`（`Client.Ui.State.Toast` を知らない）`[A-18]` | `ToastItem.uss`（`.toast-host` は `Screens/Toast/ToastHost.uss`） | toast | 済み → F1 | Mantine Notification | 改修 |
+
+## 6 文字・装飾族（`Components/Text/`・`Components/Decor/`）
+
+| 部品 | 責務 | 公開 API 案 | USS・状態 | 使う画面 | 段階・レーン | Web の正本 | 段階 1 |
+|---|---|---|---|---|---|---|---|
+| `FadeRule` | 横グラデの区切り線（装飾語彙 1） | `FadeRule()` | 高 2px、`rgb(128 132 159)` の 30→42→26% 横グラデ（頂点カラー。α は `DerivedTokens` で補正） | buildMenu・blockInventory・skit・modeHud・challenge | C2-a | `W/shared/ui/FadeRule`・ref-webui-design §6 | 新規 |
+| `HudSectionHeading` | 小ラベル → FadeRule → 本文リストの HUD 見出し（Web で 2 か所が同形に重複） | `HudSectionHeading(string labelTestid, LocalizationKey label)`／`contentContainer` `[A-24]` | つまみ `--hud-label-font-size`・`--hud-label-letter-spacing`・`--hud-label-rule-gap`・`--hud-rule-list-gap`・`--hud-rule-width` を、Web の `--challenge-hud-*` と `--operation-hud-*`（同名同値）から受け直す | challenge HUD・modeHud | C2-a | `W/features/challenge/CurrentChallengeHud.tsx:21-32`・`modeHud/PlacementModeHud.tsx:20-29` | 新規（Web では未部品化。§5.1） |
+| `KeyCap` | kbd 1 個 | `KeyCap(string keyText)`／`SetKeyText(string keyText)` | `.key-cap` は枠なし・色 `--text-high-contrast` だけで字形は継ぐ。keyHintText の大きさ・字間・影は置く側の `UiTypographyClass.KeyHintText` `[A-34]` | keyHint・tutorial（KeyControlHint）・buildMenu | C2-c（実行計画 E-7。plan §3.4 は段階 1 だが未作成） | `W/app/tokens.css` の `:where(.keyHintText)` | 新規 |
+| `ShortcutHintLabel` | 文中に KeyCap を差し込む文 | `ShortcutHintLabel(string testid, ShortcutHintLayout layout)`／`SetHint(UiText sentence, string shortcutText)`（Web と同じく kbd は 1 つ。layout は prefix/inline）`[A-34]` | つまみ `--shortcut-hint-label-gap`（既定 0） | keyHint・tutorial | C2-c（実行計画 E-7） | `W/shared/i18n` の `LocalizedShortcutHint` | 新規 |
+| `TooltipFace` | ツールチップの面（`--tooltip-face`・`--tooltip-border`・`pre-line`） | `TooltipFace(string testid, TooltipFaceLook look)`／`SetText(UiText text)`／`SetLines(IReadOnlyList<UiText> lines)`（行の testid は `<testid>-line`。Cursor は角丸 `--mantine-radius-default`、Hover は 0）`[A-33]` | `--tooltip-max-width/padding/font-size` | CursorTooltip（画面）・HoverTooltip（Foundation の宿主） | C2-c | `W/shared/ui/HoverTooltip`・`W/shared/tooltip`・ADR 0019 | 新規 |
+| Typography のクラス | Mantine `Text`/`Title` の size・c・fw の写し | 部品は作らず、`UiTypographyClass` の定数（`TextSm`・`TextXs`・`TextDimmed`・`TitleOrder3`・`TextBold` 等）を `LocalizedLabel` に付ける | `Typography.uss`。値は Mantine の既定（xs 12・sm 14・md 16・xl 20。Title は 34/26/22/18。行の高さも）`[A-39]`。Title は Web と同じ px で、フォントの字幅の差は letter-spacing で寄せる `[A-37]`。太さは Bold/Medium の字形 `[A-36]`。USS に line-height は無いので、1 行の文は min-height＝字×行高で写し（C2-c R2）、2 行以上の文の行送りは C2-c 計画 Task 3 Step 6 の実測で決めた方法（リッチテキストの `<line-height>` か、行ごとの Label を行高で固定）で行高トークン（`--challenge-hud-objective-line-height` 等）と 1px 以内にする。方法を使う最初の画面は S2-hud `[A-48]` | Text 42・Title 9 か所 | C2-c（実行計画 E-7） | Mantine Text/Title | 改修（今は `font-size: 14px` の 1 規則） |
+| Layout のクラス | Mantine `Stack`/`Group` の写し | `UiStack(UiGap)`・`UiGroup(UiGap)`（`AddItem`・`SetItemShown`・`ClearItems`・`SetGap`）・`UiLayoutClass`（揃え） | `Foundation/Theme/Layout.uss`（新設）。gap は USS に無いので子の margin で表す。`UiStack`/`UiGroup` が `--ui-gap` を読み、表示中の先頭以外の子へインラインの margin で当てる（構造擬似クラスは禁止、クラス方式は部品の `margin: 0` と詳細度で負ける）`[A-32]` | Stack 33・Group 10 か所 | C2-c（実行計画 E-7。F1 から移す `[A-18]`） | Mantine Stack/Group | 新規 |
+
+## 7 事実上の共有部品と、画面に留めるもの
+
+**Web では feature の中にあるが 2 feature 以上が使うもの（Components へ直接作る）**
+
+| 部品 | 置き場 | 公開 API 案 | 使う画面 | 段階・レーン | Web の正本 |
+|---|---|---|---|---|---|
+| `RecipeRow` | `Components/Recipe/` | `RecipeRow(string testid)`／`SetRecipe(RecipeRowContent content)`（素材・結果の `ItemSlotContent`/液体の列、矢印の進捗、秒数）／`IObservable<RecipeRowSlotGesture> OnSlotGestured` | recipe・blockInventory（機械のレシピ選択） | C4-c | `W/features/recipe/views/RecipeRow.tsx`・`logic/recipeSlotLayout.ts`・§8.17 |
+| `LevelInheritanceBadge` | `Components/Recipe/` | `LevelInheritanceBadge()`／`SetBadge(LevelInheritanceBadgeContent content)` | 同上 | C4-c | `W/features/recipe/views/LevelInheritanceBadge.tsx` |
+| インベントリの列数 | トークン `--inventory-columns`（既存）を `UssCustomStyleReader` で読む | — | inventory・blockInventory | C4（画面） | `W/features/inventory/inventoryGridColumns.ts` |
+| ドラッグ源 | Foundation `UiDragDrop` | `UiDragDrop.MarkSource(VisualElement source, IUiDragPayload payload)`／`MarkTarget(VisualElement target, IUiDropTarget handler)` | hotbar・buildMenu | C3-b | `W/features/hotbar/useHotbarDragSource.ts` |
+| ノードグラフ | `Components/NodeGraph/` | `NodeGraphView(string testid)`／`SetGraph(NodeGraphContent)`／`CenterOn(string nodeKey)`／`IObservable<string> OnNodeTapped`（パン・ズーム・慣性は中で `UiPressGesture` と `UiInertiaAnimation`） | research（段階 4）・challenge（段階 5） | C4-d | `W/shared/treeView`・§8.5 |
+
+**1 feature だけが使うもの（`Screens/<機能>/` に置く）**: 通知の行（notification）、チュートリアルの枠とラベル・ドラッグガイド（tutorial）、ワールドピン、スキットの選択肢の板・ツールバーのアイコン群、削除モードの斜線帯（modeHud。plan §3.4 は段階 2 の部品に挙げるが使い手は 1 つ）、クロスヘア、`LackHighlightText`・`BlockItemGrid`・`details/rows/*`（blockInventory 内で共有）、`GrabOverlay`（inventory。描く層は Foundation の Grab）、全画面ゲートの外殻（eventLanguageGate）、研究ノードカード、チャレンジノードカード、画面の幕とヴィネット（`Screens/Shell/`。`ScreenBackdropPresenter` が `UiRoutingState` を購読し `UiScreenTraitsTable.Get(..).Backdrop` で幕 `name="screen-backdrop"`〈Web `rgb(0 0 0 / 42%)`。α は §3.1 の半透明の規則で補正〉を `UiLayer.Backdrop` の Viewport 族へ出し入れする。四辺の放射状のヴィネット〈`--screen-vignette-*`〉は同じ族の最背面に常時置き、頂点カラーで描く。Web `W/app/App.tsx:95-96`・`App.module.css:3-18,72-78`。S2-hud `[A-44]`）。2 機能目が現れたら §5.1 で昇格する。
+
+**作らないもの**: `ConnectingPlaceholder`（WS の未受信を表す。UITK は DI から同期で状態を取れる〈`WebUiHostlessStateAvailabilityTest`〉ので、その状態が無い）`[A-13]`、再接続オーバーレイ（Web↔C# の WS 切断）と辞書エラー（Web の辞書 HTTP 取得の失敗）（UITK に同じ状態が無い。disposition に理由を書く）`[A-38]`、`ItemIcon`/`BlockIcon`/`FluidIcon`（Web では `GameIcon` の薄い包み。UITK では Content の `UiIcon` 生成に吸収）、`useSlotMouse`（`SlotFrame` の中に吸収）。
+
+## 8 Web の非 UI 共有モジュールの行き先
+
+| Web | UITK | 段階 |
+|---|---|---|
+| `shared/itemMove`（クリック計画の純ロジック） | `Client.Ui.State/ItemMove/`（L0 で 33 件を写す） | 4 |
+| `shared/pointerGesture` | Foundation `Input/Gesture/UiPressGesture` | 3 |
+| `shared/tooltip`（CursorTooltip） | `Screens/CursorTooltip/`＋`TooltipFace` | 2 |
+| `shared/treeView` | `Components/NodeGraph/` | 4 |
+| `shared/tutorialAnchor` | Foundation `Anchor/`（既存） | 済み |
+| `shared/uiScale` | Foundation `Stage/`（PanelSettings の倍率で置き換え、`--ui-scale` 相当は不要。Web で倍率を掛けない Portal〈Mantine Modal・eventLanguageGate〉だけは `UiScreenPixelScope` で倍率を打ち消す `[A-41]`） | F1（打ち消しは C3-b） |
+| `shared/uiState` | `Client.Ui.State/Routing/`（既存） | 済み |
+| `shared/placementTarget` | `Client.Ui.State/PlacementTarget/` | 3 |
+| `shared/i18n` | `Localize`＋Foundation `Text/` | 済み |
+
+
