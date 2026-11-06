@@ -12,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BugReport
 {
     /// <summary>
-    /// バグ報告の L1 の下ごしらえ。確保済み・全件送信済みのフォームを載せ、本文の入力と要素の引き方を揃える
-    /// Setup for bug-report L1 tests: mounts a form with the capture ready and everything delivered, and shares typing and element lookups
+    /// バグ報告 L1 の下準備。送信済みフォームを載せ本文入力を揃える
+    /// Setup for bug-report L1: mounts a delivered form and shares typing
     /// </summary>
     public abstract class BugReportFormScreenTestHost : ScreenTestHost
     {
@@ -24,8 +24,8 @@ namespace Client.Tests.Ui.Screens.BugReport
         [SetUp]
         public void MountForm()
         {
-            // 基底の SetUp（言語を英語に固定・トーストの収集）の後に載せる
-            // Mount after the base SetUp (English pinned, toasts collected)
+            // 基底 SetUp の後に載せる
+            // Mount after the base SetUp
             Commands = new RecordingPauseMenuCommands();
             Draft = new BugReportDraft();
             View = Mount(new BugReportFormView(Model(BugReportCaptureStatus.Ready), Commands, Toasts, Toaster, Draft));

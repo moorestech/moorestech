@@ -8,12 +8,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// 共通の入力欄（見た目 2 種・置き文字・フォーカスの輪を持つ IME 対応の TextField の包み）
-    /// Shared text field wrapping an IME-aware TextField with two looks, a placeholder and a focus ring
+    /// IME 対応の共通入力欄（見た目2種・置き文字・輪）
+    /// Shared IME-aware text field (two looks, placeholder, ring)
     /// </summary>
     /// <remarks>
-    /// 拡張点: 画面固有の処理は購読側が持ち、寸法は置く側が外側の箱に付ける
-    /// Extension point; screen-specific logic stays in subscribers and callers size the outer box
+    /// 拡張点: 画面固有の処理は購読側、寸法は置く側が持つ
+    /// Extension: subscribers own screen logic, callers own sizing
     /// </remarks>
     public sealed class GameTextField : VisualElement
     {

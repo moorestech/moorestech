@@ -12,8 +12,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// IconButton の押下・フォーカスを持たないこと・Web の寸法と面なし・ホバーの色・つまみの上書きを入力規則付きのパネルで確かめる（L1。Web の shared/ui/IconButton/index.test.ts の UITK 版）
-    /// Verifies IconButton presses, no focus, Web size with no face, hover colour and knob overrides on a panel with the input rules (L1; UITK version of Web shared/ui/IconButton/index.test.ts)
+    /// IconButton の押下・非フォーカス・寸法・ホバー色・つまみ上書きを確かめる（L1）
+    /// Verifies IconButton presses, no focus, size, hover colour and knob overrides (L1)
     /// </summary>
     public class IconButtonTest : UiTestHost
     {
@@ -91,15 +91,15 @@ namespace Client.Tests.Ui.Components.Controls
             glyph.RegisterCallback<CustomStyleResolvedEvent>(_ => resolvedCount++);
             AssertColor(Hex("#A6A7AB"), GlyphColor(glyph), "glyph");
 
-            // ホバーで図形のカスタムスタイルが解決し直され、色が上がる（再描画の合図が届く）
-            // Hover re-resolves the glyph's custom style and lifts its colour (the repaint trigger arrives)
+            // ホバーで図形の色が上がる
+            // Hover lifts the glyph colour
             simulate.MouseMove(button.worldBound.center);
             simulate.FrameUpdate();
             AssertColor(Hex("#FFFFFF"), GlyphColor(glyph), "glyph");
             Assert.Greater(resolvedCount, 0);
 
-            // 無効ではホバーしても持ち上げない（Web の :not(:disabled):hover）
-            // Disabled never takes the hover lift (Web :not(:disabled):hover)
+            // 無効ではホバーしても持ち上げない
+            // Disabled never takes the hover lift
             button.SetEnabled(false);
             simulate.MouseMove(button.worldBound.center + Vector2.one);
             simulate.FrameUpdate();
@@ -109,8 +109,8 @@ namespace Client.Tests.Ui.Components.Controls
         [Test]
         public void 画面がつまみを上書きするとボタンと図形の寸法が変わる()
         {
-            // スキットのツールボタンと同じ上書き（--skit-tool-button-size = 33.3px）
-            // Same override as the skit tool buttons (--skit-tool-button-size = 33.3px)
+            // スキットのツールボタンと同じ上書き
+            // Same override as the skit tool buttons
             var sheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(KnobOverridePath);
             Assert.IsNotNull(sheet, KnobOverridePath);
             var screenRoot = new VisualElement();

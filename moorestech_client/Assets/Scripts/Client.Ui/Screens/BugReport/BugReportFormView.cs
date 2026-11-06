@@ -74,8 +74,8 @@ namespace Client.Ui.Screens.BugReport
             _recovery = new BugReportRecoveryControlsView(commands);
             Add(_recovery);
 
-            // 送信は Mantine の filled ボタン。文言は種別で変わるので Refresh が入れる
-            // Send is a Mantine filled button; Refresh sets the label because it depends on the kind
+            // 送信は filled ボタン。文言は Refresh が入れる
+            // Send is a filled button; Refresh sets the label
             _sendButton = new FormButton("bug-report-send", new UiText(BugReportFormText.SendLabel(draft.Kind)), FormButtonVariant.Filled);
             _sendButton.AddToClassList("bug-report__button");
             _sendButton.OnClicked.Subscribe(_ => SendAsync().Forget());

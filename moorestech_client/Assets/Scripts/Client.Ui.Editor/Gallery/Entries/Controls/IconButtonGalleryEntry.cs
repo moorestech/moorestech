@@ -3,8 +3,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
-    // IconButton の見本（既定の × の有効・無効）。Web の 3-build-menu.png の × と並べ比べる
-    // IconButton samples (default cross, enabled and disabled), compared with the cross in the Web 3-build-menu.png
+    // IconButton の見本（既定の × の有効・無効）
+    // IconButton samples (default cross, enabled and disabled)
     public sealed class IconButtonGalleryEntry : IUiGalleryEntry
     {
         public UiGalleryFamily Family => UiGalleryFamily.Controls;

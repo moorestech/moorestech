@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
-    // FormButton の見本（Filled・無効・Danger・Subtle・xl）。Web の 1-bug-report.png と 3-modal.png のボタンと並べ比べる
-    // FormButton samples (Filled, disabled, Danger, Subtle, xl), compared with the buttons in the Web 1-bug-report.png and 3-modal.png
+    // FormButton の見本（Filled・無効・Danger・Subtle・xl）
+    // FormButton samples (Filled, disabled, Danger, Subtle, xl)
     public sealed class FormButtonGalleryEntry : IUiGalleryEntry
     {
         public UiGalleryFamily Family => UiGalleryFamily.Controls;
@@ -19,8 +19,8 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
             var extraLarge = new FormButton("gallery-form-button-xl", new UiText(LocalizationKeys.Ui.BugReport.ResendFailed), FormButtonVariant.Filled);
             extraLarge.SetSize(FormButtonSize.ExtraLarge);
 
-            // 並びの間隔だけを付ける（Web の Group gap=sm の 12px）
-            // Only the spacing between samples (Web Group gap=sm, 12px)
+            // 並びの間隔のみ付ける（gap sm 12px）
+            // Only the sample spacing (gap sm 12px)
             var sample = new VisualElement();
             sample.style.flexDirection = FlexDirection.Row;
             sample.style.alignItems = Align.Center;

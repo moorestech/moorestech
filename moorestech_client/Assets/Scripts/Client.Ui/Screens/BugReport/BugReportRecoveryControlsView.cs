@@ -23,8 +23,8 @@ namespace Client.Ui.Screens.BugReport
         {
             AddToClassList("bug-report__recovery");
 
-            // 再送と書き出しは Web と同じ Mantine の filled ボタン
-            // Resend and export are Mantine filled buttons, as on the Web
+            // 再送・書き出しは filled ボタン
+            // Resend and export are filled buttons
             _resendButton = CreateButton("bug-report-resend-failed", LocalizationKeys.Ui.BugReport.ResendFailed);
             _resendButton.OnClicked.Subscribe(_ => commands.ResendFailedReports());
             _exportButton = CreateButton("bug-report-export-unsent", LocalizationKeys.Ui.BugReport.ExportUnsent);

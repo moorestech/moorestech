@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
-    // GameTextField の見本（GaugeInset 複数行の置き文字・本文、単行の検索欄、MantineInput）。寸法は Web の使い手の値
-    // GameTextField samples (GaugeInset multiline with placeholder and with text, single-line search, MantineInput); sizes are the Web users' values
+    // GameTextField の見本（複数行・検索欄・MantineInput）
+    // GameTextField samples (multiline, search, MantineInput)
     public sealed class GameTextFieldGalleryEntry : IUiGalleryEntry
     {
         // バグ報告の記述欄 356×72・ビルドメニューの検索 452px・モーダルの入力 400px（Web の参照キャプチャの実寸）
@@ -26,8 +26,6 @@ namespace Client.Ui.Editor.Gallery.Entries.Controls
             var filledArea = Sized(new GameTextField("gallery-text-area-filled", true, GameTextFieldLook.GaugeInset), TextAreaWidth, TextAreaHeight);
             filledArea.SetValueWithoutNotify("ベルトが止まった。\nIt stopped after placing a splitter.");
 
-            // 複数行 2 つの下に単行の検索欄と Mantine の名前欄を縦に積む
-            // Stack the single-line search and the Mantine name field under the two multiline fields
             var sample = new VisualElement();
             var areas = new VisualElement();
             areas.style.flexDirection = FlexDirection.Row;

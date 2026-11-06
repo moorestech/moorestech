@@ -14,8 +14,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// FormButton の押下・無効・Mantine Button（8.3.18・dark）の寸法と色・色の系統と大きさの切替を入力規則付きのパネルで確かめる（L1）
-    /// Verifies FormButton presses, disabled state, Mantine Button (8.3.18, dark) size and colours, and variant/size switching on a panel with the input rules (L1)
+    /// FormButton の押下・無効・寸法と色・系統と大きさの切替を確かめる（L1）
+    /// Verifies FormButton presses, disabled state, size, colours and variant/size switching (L1)
     /// </summary>
     public class FormButtonTest : UiTestHost
     {

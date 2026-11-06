@@ -10,8 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.BugReport
 {
     /// <summary>
-    /// 送信ボタンの押下の沈みで、本文がちょうど収まる枠に縦バーが出ないことを確かめる（L1）
-    /// Verifies the send button's press sink does not show a vertical bar on a body that exactly fits its frame (L1)
+    /// 送信ボタン押下の沈みで縦バーが出ないことを確かめる（L1）
+    /// Verifies the send press sink shows no vertical bar (L1)
     /// </summary>
     public class BugReportSendPressScrollerTest : ScreenTestHost
     {
@@ -32,15 +32,15 @@ namespace Client.Tests.Ui.Screens.BugReport
         [Test]
         public void 送信ボタンを押している間も枠に縦バーを出さない()
         {
-            // 前提: 送信ボタンが本文の末尾で、窓の下端にちょうど接している
-            // Precondition: the send button ends the body and touches the window bottom exactly
+            // 前提: 送信ボタンが窓の下端に接している
+            // Precondition: the send button touches the window bottom
             var body = Find<ScrollView>(_view, "pause-menu-body");
             var send = Find<FormButton>(_view, "bug-report-send");
             Assert.AreEqual(body.contentViewport.layout.height, body.contentContainer.layout.height, 0.5f);
             Assert.AreEqual(body.contentViewport.worldBound.yMax, send.worldBound.yMax, 0.5f);
 
-            // 押下で 1px 沈み、窓の外へ出ても縦バーは出ない
-            // The press sinks 1px past the window, yet no vertical bar appears
+            // 押下で 1px 沈んでも縦バーは出ない
+            // The 1px press sink shows no vertical bar
             simulate.MouseDown(send);
             simulate.FrameUpdate();
             simulate.FrameUpdate();

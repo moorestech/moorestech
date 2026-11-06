@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// IconButton の既定の ×。Web の viewBox 0 0 16 16 の 2 本線（M3 3L13 13M13 3L3 13・stroke-linecap square）を Painter2D で描く
-    /// The IconButton default cross: Web's two strokes in a 16x16 viewBox (M3 3L13 13M13 3L3 13, square caps) drawn with Painter2D
+    /// IconButton 既定の ×（16角の2本線）
+    /// IconButton default cross (two strokes in 16x16)
     /// </summary>
     public sealed class IconButtonCloseGlyph : VisualElement
     {

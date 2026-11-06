@@ -8,12 +8,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// 送信・OK・キャンセル用の押しボタン（Mantine Button の写し）。文言・色の系統・大きさを Set で受け、押下を OnClicked で出す
-    /// Push button for send / OK / cancel (copy of Mantine Button); takes label, colour family and size via Set and emits presses via OnClicked
+    /// Mantine Button 相当の押しボタン。文言・系統・大きさを Set で受ける
+    /// Mantine Button-like push button; takes label, variant and size via Set
     /// </summary>
     /// <remarks>
-    /// 拡張点: Web で新しい variant・size を使い始めたら、列挙とクラスを 1 組ずつ足す。外側の余白・幅（fullWidth）は置く側の画面 USS が付ける
-    /// Extension: when the Web starts using a new variant or size, add one enum value and class pair; outer margin and width (fullWidth) belong to the placing screen's USS
+    /// 拡張点: 新 variant・size は列挙とクラスを足す。外側の余白は置く側が付ける
+    /// Extension: add enum and class for a new variant or size; the placer adds outer margin
     /// </remarks>
     public sealed class FormButton : Button
     {

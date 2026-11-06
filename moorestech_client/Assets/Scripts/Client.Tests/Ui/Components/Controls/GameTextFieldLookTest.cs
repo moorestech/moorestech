@@ -11,8 +11,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// GameTextField の見た目 2 種（Web の textAreaField／Mantine TextInput）・フォーカスの輪・置き文字の言語追従・無効時の見た目を確かめる（L1）
-    /// Verifies GameTextField's two looks (Web textAreaField / Mantine TextInput), focus ring, placeholder language tracking and disabled look (L1)
+    /// GameTextField の見た目2種・フォーカスの輪・置き文字・無効時を確かめる
+    /// Verifies GameTextField's two looks, focus ring, placeholder and disabled look
     /// </summary>
     public class GameTextFieldLookTest : ScreenTestHost
     {
@@ -47,8 +47,8 @@ namespace Client.Tests.Ui.Components.Controls
             // Text inherits the Mantine body 16px (the Web textarea and search input set no font-size)
             Assert.AreEqual(16f, input.resolvedStyle.fontSize, 0.01f);
 
-            // 字は余白の内側からすぐ始まる（既定テーマの文字要素の左右 2px を消している）
-            // Text starts right inside the padding (the default theme's 2px around the text element is removed)
+            // 字は余白の内側からすぐ始まる
+            // Text starts right inside the padding
             var text = input.Q(className: "unity-text-element--inner-input-field-component");
             Assert.AreEqual(0f, text.resolvedStyle.paddingLeft, 0.01f);
             Assert.AreEqual(0f, text.resolvedStyle.paddingRight, 0.01f);
@@ -69,8 +69,8 @@ namespace Client.Tests.Ui.Components.Controls
             Assert.AreEqual(field.Field.worldBound.xMin - FocusRingOutset, ring.worldBound.xMin, 0.5f);
             Assert.AreEqual(field.Field.worldBound.yMax + FocusRingOutset, ring.worldBound.yMax, 0.5f);
 
-            // 枠の色はフォーカスで変えない（Web は outline だけを足す）
-            // Focus does not recolour the border (the Web only adds an outline)
+            // 枠の色はフォーカスで変えない
+            // Focus does not recolour the border
             AssertColor(Rgba(56, 58, 72, 1f), field.Field.Q(className: InputClassName).resolvedStyle.borderTopColor, "border");
 
             field.Field.Blur();
