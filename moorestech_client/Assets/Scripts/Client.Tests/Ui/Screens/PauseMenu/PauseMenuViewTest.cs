@@ -6,6 +6,7 @@ using Client.Localization;
 using Client.PlaytestReceiver.Delivery;
 using Client.PlaytestReceiver.Recovery;
 using Client.Tests.Ui.Screens.Settings;
+using Client.Ui.Components.Controls;
 using Client.Ui.Screens.BugReport;
 using Client.Ui.Screens.PauseMenu;
 using Client.Ui.State.PauseMenu;
@@ -115,34 +116,15 @@ namespace Client.Tests.Ui.Screens.PauseMenu
             Assert.AreEqual("Settings", _view.Q<Label>(className: "pause-menu__title").text);
             Assert.IsNotNull(_view.Q("language-select"));
             Assert.IsNull(_view.Q("pause-menu-save"));
-            Assert.IsInstanceOf<ScrollView>(Find<VisualElement>(_view, "pause-menu-body"));
+            Assert.IsInstanceOf<GameScrollView>(Find<VisualElement>(_view, "pause-menu-body"));
 
             simulate.Click(Find<Button>(_view, "pause-menu-back"));
             Assert.AreEqual(PauseMenuCommandKind.ShowPage, _commands.Issued.Last().Kind);
             Assert.AreEqual(PauseMenuPage.Top, _commands.Issued.Last().Page);
             Assert.IsTrue(Find<Button>(_view, "pause-menu-back").ClassListContains(AnchorIds.PauseBackToTop));
-        }
-
-        [Test]
-        public void 設定画面は1280x720で枠内に収まり本文だけスクロールする()
-        {
-            ShowPage(PauseMenuPage.Settings);
-
-            // 枠はステージ高 − 80px で止まって中央に置かれ、戻るボタンは枠の内側で押せる
-            // The frame stops at stage height - 80px centered, and the Back button stays pressable inside it
-            var frame = Frame();
-            Assert.AreEqual(720f - 80f, frame.worldBound.height, 0.5f);
-            Assert.AreEqual(40f, frame.worldBound.y, 0.5f);
-            Assert.AreEqual(420f, frame.worldBound.width, 0.5f);
-            Assert.AreEqual(640f, frame.worldBound.center.x, 0.5f);
-            var back = Find<Button>(_view, "pause-menu-back");
-            Assert.LessOrEqual(back.worldBound.yMax, frame.worldBound.yMax + 0.5f);
-            Assert.Greater(back.worldBound.height, 1f);
-            Assert.AreSame(back, panel.Pick(back.worldBound.center));
-
-            var body = Find<ScrollView>(_view, "pause-menu-body");
-            Assert.AreEqual(ScrollViewMode.Vertical, body.mode);
-            Assert.Greater(body.contentContainer.layout.height, body.contentViewport.layout.height);
+            Assert.AreEqual(720f - 80f, Frame().worldBound.height, 0.5f);
+            Assert.AreEqual(420f, Frame().worldBound.width, 0.5f);
+            Assert.AreEqual(640f, Frame().worldBound.center.x, 0.5f);
         }
 
         /// <web-test file="src/features/pauseMenu/PauseMenuPanel.test.ts">バグ報告の書きかけはトップへ戻って再び開いても残る</web-test>

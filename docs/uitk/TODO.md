@@ -196,6 +196,5 @@ Web と同じにしない見た目の差（設計書 `docs/uitk-migration/execut
 
 | ID | 画面・部品 | 差 | 同じにしない理由 | 推奨案 | 撮影 | 出所 |
 |---|---|---|---|---|---|---|
-| LX-1 | ポーズの題（`PauseMenu.uss` の `.pause-menu__title`） | Web は Mantine Title order=1 の 34px、UITK は 32px（行の高さ 44px は同じ） | GameUi のフォントは同じ px で字幅が約 7% 広く、34px では題の幅が Web より広がる。字の大きさの差は 2px で、行と幅は Web に合う | 32px のまま。フォントを替える段で 34px に戻せるか測る | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 screens の実測） |
 | LX-2 | `PanelActionButton` の文字 | Web は `text-shadow`、UITK は `-unity-text-outline-width: 0.3px` の縁取りで近似 | USS に text-shadow の任意のにじみが無く、同じにするには文字の描画を自作する必要がある。差は縁の柔らかさだけ | 縁取りの近似のまま | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 theme） |
 | LX-3 | `ModeSwitch` の選択肢の輪 | Web は `box-shadow` の ring、UITK は `--bevel-1` 幅の `border` で近似 | USS に box-shadow が無い。枠線は内側に入るが幅と色は同じで、並べて差が見えない | 枠線の近似のまま | https://sakastudiomac-mini.tail3a5aa5.ts.net:8443/2026-11-06-uitk-s1-web-look-evidence/index.html | agent 既定（段階 1 theme） |

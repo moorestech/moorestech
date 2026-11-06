@@ -2,6 +2,7 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Ui.Components.Controls;
 using Client.Ui.Foundation.Anchor;
+using Client.Ui.Foundation.Layout;
 using Client.Ui.State.PauseMenu;
 using Mooresmaster.Localization.Generated;
 using UniRx;
@@ -15,25 +16,34 @@ namespace Client.Ui.Screens.PauseMenu
     /// </summary>
     public sealed class PauseMenuSubPageView : VisualElement
     {
-        private readonly ScrollView _body;
+        private readonly UiStack _sections;
 
         public PauseMenuSubPageView(IPauseMenuCommands commands)
         {
+            // 本文のスクロールと戻るを Stack gap=md で縦に並べる
+            // Stack the scrolling body and Back with Stack gap=md
             AddToClassList("pause-menu__sub-page");
-            _body = new ScrollView(ScrollViewMode.Vertical) { name = "pause-menu-body", horizontalScrollerVisibility = ScrollerVisibility.Hidden };
-            _body.AddToClassList("pause-menu__body");
-            Add(_body);
+            var column = new UiStack(UiGap.Md);
+            column.AddToClassList("pause-menu__sub-page-column");
+            Add(column);
+
+            // 節は本文の中で Stack gap=md に並べる
+            // Sections stack with gap=md inside the body
+            var body = new GameScrollView("pause-menu-body");
+            _sections = new UiStack(UiGap.Md);
+            body.Add(_sections);
+            column.AddItem(body);
 
             var back = new PanelActionButton("pause-menu-back", LocalizationKeys.Ui.PauseMenu.Back);
             back.AddToClassList("pause-menu__back");
             TutorialAnchor.Mark(back, AnchorIds.PauseBackToTop);
             back.OnClicked.Subscribe(_ => commands.ShowPage(PauseMenuPage.Top));
-            Add(back);
+            column.AddItem(back);
         }
 
         public void AddSection(VisualElement section)
         {
-            PauseMenuStack.Add(_body, section);
+            _sections.AddItem(section);
         }
     }
 }

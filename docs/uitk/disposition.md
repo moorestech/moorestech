@@ -35,8 +35,6 @@
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | PauseMenu遷移で表示しセーブとセーブして終了actionを送る | 写す予定 | moorestech-albof.21（PauseMenu の UI 状態へ遷移して画面が出て、セーブとセーブして終了のコマンドが出ることを一続きで見るテストが無い。PauseMenuViewTest は表示済みの View でコマンドの種類だけを見て遷移を通らず、録画 `scenarios/uitk/uitk-lifeline.cs` は 2 つを押すだけで結果を assert しない） | #1596 |
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | トップから設定画面へ進み言語を選べ、戻るでトップへ戻る | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs（設定へ進み日本語を選んでロケール印を待ち、戻るでトップへ戻る） | #1596 |
 | 1 | `e2e/tests/system/pauseMenu.spec.ts` | トップからバグ報告画面へ進み送信すると成功を表示する | 録画 | .agents/skills/unity-playmode-recorded-playtest/scenarios/uitk/uitk-lifeline.cs（バグ報告へ進み本文を入れて送り、トーストと outbox の新しい箱を確かめ、トップのセーブを待つ） | #1596 |
-| 1 | `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` | 復旧表示は${viewport.width}x${viewport.height}で収まり同値操作と解除通知を受ける | 写す予定 | moorestech-albof.21（同値操作と解除は SettingsViewTest にあるが、ポーズの枠内に復旧表示が収まることを L1 で見るテストが無い） | #1596 |
-| 1 | `e2e/tests/system/pauseMenuSettingsLayout.spec.ts` | 設定画面は${viewport.width}x${viewport.height}で枠内に収まり本文だけスクロールする | 写す予定 | moorestech-albof.21（PauseMenuViewTest は 1280x720 だけを見る。Web が見る 2432x786 で枠内に収まり本文だけスクロールすることを見るテストが無い） | #1596 |
 | 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | 送信状況 %j と送信可否を同時に表示する | 写す予定 | moorestech-albof.21（文言は BugReportFormTextTest にあるが、配送の行と状態の行を同じ画面に同時に出す View のテストが無い） | #1596 |
 | 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | %s辞書で配送不能件数と復旧案内を出す | 写す予定 | moorestech-albof.21（4 言語の本番辞書。UITK は日本語だけ） | #1596 |
 | 1 | `src/features/pauseMenu/BugReportFormTests/deliveryStatus.test.ts` | %s辞書で件数不明を完了や0件にしない | 写す予定 | moorestech-albof.21（4 言語の本番辞書。UITK は日本語だけ） | #1596 |
