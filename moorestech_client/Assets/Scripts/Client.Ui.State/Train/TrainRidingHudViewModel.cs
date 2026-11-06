@@ -1,4 +1,3 @@
-using Client.Game.InGame.UI.UIState;
 using Client.Ui.State.Routing;
 
 namespace Client.Ui.State.Train
@@ -22,12 +21,11 @@ namespace Client.Ui.State.Train
             BranchCandidateCount = branchCandidateCount;
         }
 
-        // 画面の traits と、列車 HUD の state で乗車中か（TrainRidingTopic の riding）の両方で出す
-        // Shown when both the screen traits allow it and the train HUD state is riding (TrainRidingTopic riding)
-        public static TrainRidingHudViewModel Create(UiScreen screen, UIStateEnum state, bool isRiding, int branchCandidateCount, int selectedBranchIndex)
+        // 画面の traits と、列車 HUD 画面上で乗車中か（TrainHUDScreenState.IsRidingOnScreen）の両方で出す
+        // Shown when both the screen traits allow it and the player is riding on the train HUD screen (IsRidingOnScreen)
+        public static TrainRidingHudViewModel Create(UiScreen screen, bool isRidingOnScreen, int branchCandidateCount, int selectedBranchIndex)
         {
-            var riding = state == UIStateEnum.TrainHUDScreen && isRiding;
-            var shown = UiScreenTraitsTable.Get(screen).TrainHud && riding;
+            var shown = UiScreenTraitsTable.Get(screen).TrainHud && isRidingOnScreen;
             return new TrainRidingHudViewModel(shown, shown && 1 < branchCandidateCount, selectedBranchIndex + 1, branchCandidateCount);
         }
     }

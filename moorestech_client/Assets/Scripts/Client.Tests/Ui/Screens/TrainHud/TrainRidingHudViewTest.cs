@@ -1,5 +1,4 @@
 using Client.Game.InGame.Tutorial.UIHighlight;
-using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Tests.Ui.Components;
 using Client.Ui.Foundation.Layers;
@@ -45,7 +44,7 @@ namespace Client.Tests.Ui.Screens.TrainHud
 
             // 降りたら消える
             // Gone once off the train
-            _view.Render(TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.TrainHUDScreen, false, 1, 0));
+            _view.Render(TrainRidingHudViewModel.Create(UiScreen.TrainHud, false, 1, 0));
             Assert.IsFalse(IsShown(paper));
             LogAssert.NoUnexpectedReceived();
         }
@@ -84,7 +83,7 @@ namespace Client.Tests.Ui.Screens.TrainHud
 
         private static TrainRidingHudViewModel Riding(int branchCandidateCount, int selectedBranchIndex)
         {
-            return TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.TrainHUDScreen, true, branchCandidateCount, selectedBranchIndex);
+            return TrainRidingHudViewModel.Create(UiScreen.TrainHud, true, branchCandidateCount, selectedBranchIndex);
         }
     }
 }

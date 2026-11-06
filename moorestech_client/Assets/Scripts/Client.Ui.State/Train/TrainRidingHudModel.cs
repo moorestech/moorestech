@@ -49,7 +49,7 @@ namespace Client.Ui.State.Train
         private TrainRidingHudViewModel Build()
         {
             var screen = _routingState.Current.Value.Screen;
-            return TrainRidingHudViewModel.Create(screen, _uiStateControl.CurrentState, _trainHudState.IsRiding, _trainHudState.BranchCandidateCount, _trainHudState.SelectedBranchIndex);
+            return TrainRidingHudViewModel.Create(screen, _trainHudState.IsRidingOnScreen, _trainHudState.BranchCandidateCount, _trainHudState.SelectedBranchIndex);
         }
     }
 }

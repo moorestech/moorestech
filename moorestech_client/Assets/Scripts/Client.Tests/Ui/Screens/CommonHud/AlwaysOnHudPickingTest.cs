@@ -53,7 +53,7 @@ namespace Client.Tests.Ui.Screens.CommonHud
             progress.SetShown(true);
             progress.SetProgress(0.5f);
             challenge.Render(CurrentChallengeHudViewModel.Create(new[] { UiText.FromVerbatim("石を採掘する") }, false));
-            train.Render(TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.TrainHUDScreen, true, 3, 0));
+            train.Render(TrainRidingHudViewModel.Create(UiScreen.TrainHud, true, 3, 0));
             simulate.FrameUpdate();
 
             // 各 HUD の中心で拾う。当たるのは層の外（null か層の要素）だけ

@@ -1,5 +1,4 @@
 using System;
-using Client.Game.InGame.UI.UIState;
 using Client.Ui.State.Routing;
 using Client.Ui.State.Train;
 using NUnit.Framework;
@@ -19,19 +18,18 @@ namespace Client.Tests.Ui.State.Train
             // On every screen row the visibility matches the TrainHud column
             foreach (UiScreen screen in Enum.GetValues(typeof(UiScreen)))
             {
-                var model = TrainRidingHudViewModel.Create(screen, UIStateEnum.TrainHUDScreen, true, 1, 0);
+                var model = TrainRidingHudViewModel.Create(screen, true, 1, 0);
                 Assert.AreEqual(UiScreenTraitsTable.Get(screen).TrainHud, model.Shown, screen.ToString());
             }
 
-            // 乗っていない・列車 HUD の state でないなら出さない
-            // Hidden when not riding or outside the train HUD state
-            Assert.IsFalse(TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.TrainHUDScreen, false, 1, 0).Shown);
-            Assert.IsFalse(TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.GameScreen, true, 1, 0).Shown);
+            // 列車 HUD 画面上で乗車中でないなら出さない
+            // Hidden unless riding on the train HUD screen
+            Assert.IsFalse(TrainRidingHudViewModel.Create(UiScreen.TrainHud, false, 1, 0).Shown);
 
             // 分岐は候補 2 以上で出し、番号は 1 始まり
             // Branches show from two candidates, numbered from one
-            var single = TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.TrainHUDScreen, true, 1, 0);
-            var branched = TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.TrainHUDScreen, true, 3, 1);
+            var single = TrainRidingHudViewModel.Create(UiScreen.TrainHud, true, 1, 0);
+            var branched = TrainRidingHudViewModel.Create(UiScreen.TrainHud, true, 3, 1);
             Assert.IsFalse(single.BranchShown);
             Assert.IsTrue(branched.BranchShown);
             Assert.AreEqual(2, branched.SelectedBranchNumber);
@@ -39,7 +37,7 @@ namespace Client.Tests.Ui.State.Train
 
             // しきい値ちょうどの候補 2 でも出す
             // Shows at exactly two candidates, the threshold
-            var twoWay = TrainRidingHudViewModel.Create(UiScreen.TrainHud, UIStateEnum.TrainHUDScreen, true, 2, 0);
+            var twoWay = TrainRidingHudViewModel.Create(UiScreen.TrainHud, true, 2, 0);
             Assert.IsTrue(twoWay.BranchShown);
             Assert.AreEqual(1, twoWay.SelectedBranchNumber);
             Assert.AreEqual(2, twoWay.BranchCandidateCount);

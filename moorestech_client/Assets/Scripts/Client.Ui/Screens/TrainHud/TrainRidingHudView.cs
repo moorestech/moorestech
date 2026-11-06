@@ -1,5 +1,4 @@
 using Client.Game.InGame.Tutorial.UIHighlight;
-using Client.Game.InGame.UI.UIState;
 using Client.Localization;
 using Client.Ui.Components.Panels;
 using Client.Ui.Foundation.Anchor;
@@ -44,7 +43,7 @@ namespace Client.Ui.Screens.TrainHud
             _stack.AddItem(_branch);
             _paper.Add(_stack);
             Add(_paper);
-            Render(TrainRidingHudViewModel.Create(UiScreen.None, UIStateEnum.GameScreen, false, 0, 0));
+            Render(TrainRidingHudViewModel.Create(UiScreen.None, false, 0, 0));
         }
 
         public void Render(TrainRidingHudViewModel model)
