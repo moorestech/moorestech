@@ -1,0 +1,24 @@
+/* 部品ギャラリーの並べ方。地の色は Web の body と同じ Mantine の暗色の面 */
+/* Layout of the component gallery; the backdrop is the Mantine dark body, as on the Web */
+.ui-gallery {
+    flex-grow: 1;
+    padding: 16px;
+    background-color: var(--mantine-color-body);
+}
+
+.ui-gallery__family {
+    margin: 16px 0 8px 0;
+    font-size: 18px;
+    color: var(--text-default);
+}
+
+.ui-gallery__row {
+    flex-direction: row;
+    align-items: center;
+    margin: 0 0 12px 0;
+}
+
+.ui-gallery__name {
+    width: 200px;
+    color: var(--mantine-color-dimmed);
+}
