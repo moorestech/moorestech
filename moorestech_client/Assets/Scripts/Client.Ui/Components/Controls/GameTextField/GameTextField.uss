@@ -1,0 +1,98 @@
+/* web: moorestech_web/webui/src/shared/ui/textAreaField.module.css と features/buildMenu/style.module.css の .searchInput（同じ宣言・components.md §8.9）／Mantine TextInput（@mantine/core 8.3.18 styles/Input.css の dark・sm） */
+/* web: moorestech_web/webui/src/shared/ui/textAreaField.module.css and features/buildMenu/style.module.css .searchInput (identical, components.md §8.9) / Mantine TextInput (@mantine/core 8.3.18 styles/Input.css, dark, sm) */
+
+/* 寸法は持たない。幅と高さは置く側が外側の箱に付け、中の TextField と入力要素を箱いっぱいに伸ばす */
+/* No dimensions here; the caller sizes the outer box, and the inner TextField and input stretch to fill it */
+.game-text-field {
+    flex-direction: column;
+}
+
+.game-text-field .unity-text-field {
+    flex-grow: 1;
+    margin: 0;
+}
+
+/* 複数行は入力要素を箱の高さまで伸ばし、折り返して上から詰める（既定の BaseField は縦中央揃えで伸びない） */
+/* Multiline stretches the input to the box height, wraps and starts at the top (the default BaseField centres vertically and does not stretch) */
+.game-text-field--multiline .unity-base-text-field__input {
+    height: 100%;
+    white-space: normal;
+    -unity-text-align: upper-left;
+}
+
+/* GaugeInset: --gauge-track の面・--bevel-c1 の角の無い線・ModeSwitch と同じ内側の余白 */
+/* GaugeInset: --gauge-track face, square --bevel-c1 rule, ModeSwitch's inner padding */
+.game-text-field--gauge-inset .unity-base-text-field__input {
+    flex-grow: 1;
+    padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
+    border-width: var(--bevel-1);
+    border-radius: 0;
+    border-color: var(--bevel-c1);
+    background-color: var(--gauge-track);
+    color: var(--text-default);
+}
+
+/* Web は枠も面も変えないので、既定テーマのホバーとフォーカスの変化を打ち消す */
+/* The Web changes neither border nor face, so cancel the default theme's hover and focus changes */
+.game-text-field--gauge-inset .unity-base-text-field__input:hover,
+.game-text-field--gauge-inset .unity-base-text-field:focus .unity-base-text-field__input {
+    border-color: var(--bevel-c1);
+    background-color: var(--gauge-track);
+}
+
+.game-text-field--gauge-inset .unity-base-text-field__input--placeholder {
+    color: var(--text-muted);
+}
+
+/* Web の textarea は作者の色が UA の無効色に勝つので、無効でも見た目を変えない */
+/* In the Web the author colours beat the UA disabled colours, so the disabled look stays the same */
+.game-text-field--gauge-inset .unity-base-text-field:disabled,
+.game-text-field--gauge-inset .unity-base-text-field__input:disabled {
+    opacity: 1;
+}
+
+/* Web の :focus-visible の outline: var(--bevel-1) solid var(--text-high-contrast)・outline-offset: var(--bevel-1) */
+/* Web :focus-visible outline: var(--bevel-1) solid var(--text-high-contrast) with outline-offset: var(--bevel-1) */
+.game-text-field .game-text-field__focus-ring {
+    position: absolute;
+    left: -1.56575px; /* calc: -(var(--bevel-1) * 2) */
+    top: -1.56575px; /* calc: -(var(--bevel-1) * 2) */
+    right: -1.56575px; /* calc: -(var(--bevel-1) * 2) */
+    bottom: -1.56575px; /* calc: -(var(--bevel-1) * 2) */
+    border-width: var(--bevel-1);
+    border-color: var(--text-high-contrast);
+    display: none;
+}
+
+.game-text-field--gauge-inset.game-text-field--focused .game-text-field__focus-ring {
+    display: flex;
+}
+
+/* MantineInput: Mantine TextInput の dark・sm（default variant） */
+/* MantineInput: Mantine TextInput, dark, sm (default variant) */
+.game-text-field--mantine-input .unity-base-text-field__input {
+    height: 36px; /* web: --input-height-sm */
+    padding: 0 12px; /* web: --input-padding = calc(var(--input-height) / 3) */
+    border-width: 1px; /* web: calc(0.0625rem * var(--mantine-scale)) solid var(--input-bd) */
+    border-radius: var(--mantine-radius-default);
+    border-color: var(--mantine-color-dark-4);
+    background-color: var(--mantine-color-dark-6);
+    color: var(--mantine-color-text);
+    font-size: var(--mantine-font-size-sm);
+    -unity-text-align: middle-left;
+}
+
+.game-text-field--mantine-input .unity-base-text-field__input:hover {
+    border-color: var(--mantine-color-dark-4);
+    background-color: var(--mantine-color-dark-6);
+}
+
+/* フォーカスで枠が --input-bd-focus（--mantine-primary-color-filled）。既定テーマのフォーカス色に勝つよう :focus で詳細度を揃え、後に置く */
+/* Focus turns the border to --input-bd-focus (--mantine-primary-color-filled); :focus matches the default theme's specificity and comes later so it wins */
+.game-text-field--mantine-input .unity-base-text-field:focus .unity-base-text-field__input {
+    border-color: var(--mantine-primary-color-filled);
+}
+
+.game-text-field--mantine-input .unity-base-text-field__input--placeholder {
+    color: var(--mantine-color-placeholder);
+}

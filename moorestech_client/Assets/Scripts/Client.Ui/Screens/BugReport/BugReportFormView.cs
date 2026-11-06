@@ -58,7 +58,7 @@ namespace Client.Ui.Screens.BugReport
 
             // 本文は書きかけから復元し、打鍵ごとに書きかけへ戻す
             // The description is restored from the draft and written back on every keystroke
-            _description = new GameTextField("bug-report-description", true);
+            _description = new GameTextField("bug-report-description", true, GameTextFieldLook.GaugeInset);
             _description.AddToClassList("bug-report__description");
             _description.Field.textEdition.placeholder = Localize.Get(LocalizationKeys.Ui.BugReport.Placeholder);
             _description.SetValueWithoutNotify(draft.Description);

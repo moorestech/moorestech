@@ -1,4 +1,6 @@
 using System;
+using Client.Ui.Foundation.Text;
+using Client.Ui.State.Text;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -6,21 +8,25 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// 共通の入力欄（IME対応のTextFieldの包み）
-    /// Shared text field wrapping an IME-aware TextField
+    /// 共通の入力欄（見た目 2 種・置き文字・フォーカスの輪を持つ IME 対応の TextField の包み）
+    /// Shared text field wrapping an IME-aware TextField with two looks, a placeholder and a focus ring
     /// </summary>
     /// <remarks>
-    /// 拡張点: 画面固有の処理は購読側が持つ
-    /// Extension point; screen-specific logic stays in subscribers
+    /// 拡張点: 画面固有の処理は購読側が持ち、寸法は置く側が外側の箱に付ける
+    /// Extension point; screen-specific logic stays in subscribers and callers size the outer box
     /// </remarks>
     public sealed class GameTextField : VisualElement
     {
         public const string UssClassName = "game-text-field";
+        public const string FocusedUssClassName = "game-text-field--focused";
+        public const string MultilineUssClassName = "game-text-field--multiline";
+        public const string FocusRingUssClassName = "game-text-field__focus-ring";
 
         private readonly Subject<string> _valueChanged = new();
         private readonly TextElement _textElement;
         private readonly ImeCompositionUnderline _underline;
         private readonly IVisualElementScheduledItem _focusedTick;
+        private LocalizedTextBinding _placeholder;
 
         public UnityEngine.UIElements.TextField Field { get; }
 
@@ -30,13 +36,15 @@ namespace Client.Ui.Components.Controls
         /// </summary>
         public IObservable<string> OnValueChanged => _valueChanged;
 
-        public GameTextField(string testid, bool multiline)
+        public GameTextField(string testid, bool multiline, GameTextFieldLook look)
         {
             // 外側の箱はフォーカスもポインタも受けず、testid は DSL の SetText が引く内側の TextField に付ける
             // The outer box takes neither focus nor pointer; the testid goes on the inner TextField that the DSL's SetText looks up
             focusable = false;
             pickingMode = PickingMode.Ignore;
             AddToClassList(UssClassName);
+            AddToClassList(LookUssClassName(look));
+            EnableInClassList(MultilineUssClassName, multiline);
 
             // クリックで全選択しない
             // No select-all on click focus
@@ -46,13 +54,19 @@ namespace Client.Ui.Components.Controls
             Field.RegisterValueChangedCallback(evt => _valueChanged.OnNext(evt.newValue));
             Add(Field);
 
+            // Web の :focus-visible の outline を子で描く（出す条件は USS が決める）
+            // Draw the Web :focus-visible outline as a child; USS decides when it shows
+            var focusRing = new VisualElement { pickingMode = PickingMode.Ignore };
+            focusRing.AddToClassList(FocusRingUssClassName);
+            Add(focusRing);
+
             // IME状態は毎フレーム見る（フォーカス中のみ）
             // Watch IME state per frame while focused
             _textElement = Field.Q<TextElement>();
             _underline = new ImeCompositionUnderline(Field, _textElement);
             _focusedTick = Field.schedule.Execute(OnFocusedTick).Every(0);
             _focusedTick.Pause();
-            Field.RegisterCallback<FocusInEvent>(_ => _focusedTick.Resume());
+            Field.RegisterCallback<FocusInEvent>(_ => OnFocusGained());
             Field.RegisterCallback<FocusOutEvent>(_ => OnFocusLost());
         }
 
@@ -61,11 +75,31 @@ namespace Client.Ui.Components.Controls
             Field.SetValueWithoutNotify(value);
         }
 
+        public void SetPlaceholder(UiText placeholder)
+        {
+            // 束縛は初めて置き文字を持つときに作る（置き文字の無い欄は文無しの LogError を出さない）
+            // Create the binding on first use, so fields without a placeholder never log a missing text
+            if (_placeholder == null)
+            {
+                _placeholder = new LocalizedTextBinding(Field);
+                _placeholder.OnResolved.Subscribe(text => Field.textEdition.placeholder = text);
+            }
+            _placeholder.SetText(placeholder);
+        }
+
         // EditMode では未確定文字列を作れないので、L1 から直接呼べるよう下線の更新を分けている
         // Composition text cannot be produced in EditMode, so the underline update is split out for L1 to call directly
         internal void ApplyComposition(string compositionString)
         {
             _underline.Apply(compositionString);
+        }
+
+        private void OnFocusGained()
+        {
+            // 輪と枠の色のためにフォーカスをクラスで USS へ渡す
+            // Hand focus to USS as a class for the ring and border colour
+            AddToClassList(FocusedUssClassName);
+            _focusedTick.Resume();
         }
 
         private void OnFocusedTick()
@@ -82,10 +116,21 @@ namespace Client.Ui.Components.Controls
 
         private void OnFocusLost()
         {
-            // 外れたら見張りと下線を止める
-            // Stop the watcher and underline on focus loss
+            // 外れたら見張り・下線・輪を止める
+            // Stop the watcher, underline and ring on focus loss
+            RemoveFromClassList(FocusedUssClassName);
             _focusedTick.Pause();
             _underline.Reset();
+        }
+
+        private static string LookUssClassName(GameTextFieldLook look)
+        {
+            return look switch
+            {
+                GameTextFieldLook.GaugeInset => "game-text-field--gauge-inset",
+                GameTextFieldLook.MantineInput => "game-text-field--mantine-input",
+                _ => throw new ArgumentOutOfRangeException(nameof(look), look, "unknown GameTextFieldLook"),
+            };
         }
     }
 }
