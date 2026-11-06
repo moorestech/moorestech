@@ -1,8 +1,10 @@
 using Client.Input;
+using Client.Skit.UI;
 using Client.Starter.Registration.GameUi;
 using Client.Ui.Foundation.Input;
 using Client.Ui.Foundation.Root;
 using Client.Ui.Foundation.Text;
+using Client.Ui.State.SkitPresence;
 using Client.Ui.State.Toast;
 using VContainer;
 using VContainer.Unity;
@@ -25,11 +27,14 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<ImeCompositionModeApplier>();
             builder.Register<GameUiToastFeed>(Lifetime.Singleton);
             builder.Register<UiCommandResultToaster>(Lifetime.Singleton);
+            builder.RegisterInstance(SkitPresentationStateStore.Instance);
+            builder.Register<BlockingSkitPresence>(Lifetime.Singleton);
 
             // 画面登録区画: 1行ずつ呼び出しを足す
             // Screen registration section: add one call per line
             PauseMenuGameUiRegistration.Register(builder);
             ToastGameUiRegistration.Register(builder);
+            HudGameUiRegistration.Register(builder);
         }
     }
 }
