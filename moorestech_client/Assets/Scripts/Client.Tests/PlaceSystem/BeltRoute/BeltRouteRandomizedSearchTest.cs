@@ -37,7 +37,7 @@ namespace Client.Tests.PlaceSystem.BeltRoute
 
         // 地形は列ごとに0〜2の下限、既存ブロックは1〜3割、そのうち一部をベルト（出力辺・入力辺・坂の真上）にする
         // Terrain floors of 0 to 2 per column, 10 to 30 percent existing blocks, some of them belts with output/input edges and slope heads
-        private static BeltRouteGrid BuildRandomGrid(System.Random random, Vector3Int size)
+        internal static BeltRouteGrid BuildRandomGrid(System.Random random, Vector3Int size)
         {
             var grid = new BeltRouteGrid(Vector3Int.zero, size);
             for (var x = 0; x < size.x; x++)
