@@ -20,8 +20,8 @@ namespace Client.Ui.State.Commands
     /// </summary>
     public static class UiCommandRejectReasonTraits
     {
-        // 良性の拒否は人に知らせない。選択済みの言語の再選択（二重クリック・再送）だけが良性
-        // Benign rejections are not surfaced; only re-selecting an already chosen language (double click, resend) is benign
+        // 選択済み再選択のみ良性
+        // Only re-selecting a chosen language is benign
         public static bool IsBenign(UiCommandRejectReason reason)
         {
             return reason switch

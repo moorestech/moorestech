@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Layout
 {
     /// <summary>
-    /// UiGroup が Mantine Group の CSS gap と同じに、折り返しても行頭へ gap を付けないことを実パネルで確かめる
-    /// Verifies on a real panel that UiGroup matches Mantine Group CSS gap: no gap at row starts even when wrapped
+    /// 折り返しで行頭に gap なし
+    /// No gap at row starts when wrapped
     /// </summary>
     public class UiGroupWrapTest : UiTestHost
     {

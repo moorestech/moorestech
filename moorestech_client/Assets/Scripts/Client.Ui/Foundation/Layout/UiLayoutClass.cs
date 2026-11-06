@@ -1,8 +1,8 @@
 namespace Client.Ui.Foundation.Layout
 {
     /// <summary>
-    /// Stack/Group の揃えの写し（Web の align="center"・justify="center"・wrap="nowrap"）
-    /// Alignment classes of Stack/Group (Web align="center", justify="center", wrap="nowrap")
+    /// Stack/Group の揃えの写し
+    /// Alignment classes of Stack/Group
     /// </summary>
     public static class UiLayoutClass
     {

@@ -33,8 +33,8 @@ namespace Client.Ui.State.EventMode
             return _selectionSource.Task;
         }
 
-        // 選択を1回だけ効かせる。二重クリックと再送は良性の拒否（選択済み）として返し、成功と一律に丸めない
-        // Only the first selection takes effect; double clicks and resends return a benign "already selected" rejection instead of a uniform success
+        // 選択済みは良性の拒否として返す
+        // Already selected returns a benign rejection
         public UiCommandResult SelectLanguage(string languageCode)
         {
             // silent-ok: 拒否は結果で返す / Web action が already_selected・unknown_locale を応答し、UITK は UiCommandResultToaster がログと良性以外のトーストを出す

@@ -2,8 +2,8 @@
 namespace Client.Ui.Components.Text
 {
     /// <summary>
-    /// 解いた文をどう割ったか。印の欠けを別の種類にし、-1 と bool の組で 3 状態を表さない（D-19）
-    /// How a resolved sentence was split; a missing marker is its own kind instead of a -1 plus bool pair (D-19)
+    /// 文の割り方。印の欠けは別の種類
+    /// How a sentence was split; missing marker is its own kind
     /// </summary>
     public enum ShortcutHintSplitKind
     {

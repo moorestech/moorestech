@@ -5,8 +5,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.State
 {
     /// <summary>
-    /// 画質の設定値から選択中のプリセットを導く規則が 1 か所にあり、プリセットに一致しなければカスタムになることを確かめる
-    /// Verifies the single rule deriving the selected preset from graphics settings, falling back to custom when nothing matches
+    /// プリセット導出とカスタムの確認
+    /// Checks preset derivation and custom
     /// </summary>
     public class GraphicsQualityPresetChoicesTest
     {

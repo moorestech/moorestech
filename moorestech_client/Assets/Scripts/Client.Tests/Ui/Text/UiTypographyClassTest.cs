@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Text
 {
     /// <summary>
-    /// Typography のクラスが Mantine の Text/Title の大きさ・行の高さ・色を写していることを確かめる（設計書 §2.6）
-    /// Verifies the Typography classes copy Mantine Text/Title sizes, line heights and colors (design §2.6)
+    /// Typography が Mantine を写す確認
+    /// Checks Typography copies Mantine
     /// </summary>
     public class UiTypographyClassTest : UiTestHost
     {

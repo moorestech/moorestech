@@ -15,8 +15,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Components.Text
 {
     /// <summary>
-    /// ShortcutHintLabel が翻訳の語順を保って KeyCap を差し込み、言語変更で解き直すことを確かめる
-    /// Verifies ShortcutHintLabel inserts KeyCap while keeping the translated order and re-resolves on language change
+    /// 語順維持と言語変更の確認
+    /// Checks word order kept and language change
     /// </summary>
     public class ShortcutHintLabelTest : UiTestHost
     {

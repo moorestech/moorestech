@@ -3,14 +3,14 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Layout
 {
     /// <summary>
-    /// 横に並べ、子の間に gap を空ける（Mantine Group。縦は中央・折り返しあり）
-    /// Lays children out in a row with a gap between them (Mantine Group, centered vertically, wrapping)
+    /// 横並び・gap・縦中央・折り返し
+    /// Row with gap, centered, wrapping
     /// </summary>
     /// <remarks>
-    /// 折り返しても列間にも行間にも gap が付き、行頭・行末・1 行目の上には付かない（Mantine の CSS gap と同じ）
-    /// Wrapped rows get the gap between columns and rows, never at row starts, ends or above the first row (same as Mantine CSS gap)
-    /// 表示中の全子へ左に gap・上下に gap/2 を当て、並び要素の負の margin で相殺する。ルート自身には外側 margin を書かない
-    /// Every shown child gets gap on its left and gap/2 above and below, cancelled by negative margins on the row element; the root gets no outer margin
+    /// 行頭行末に gap なし
+    /// No gap at row starts or ends
+    /// 負の margin で相殺
+    /// Cancelled by negative margins
     /// </remarks>
     public sealed class UiGroup : UiGapContainer
     {

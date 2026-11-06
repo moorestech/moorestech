@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Text
 {
     /// <summary>
-    /// 2 行の文の行送りがリッチテキストの line-height で行高トークンと 1px 以内になることを確かめる（設計書 A-48）
-    /// Verifies rich-text line-height brings a two-line pitch within 1px of the line-height token (design A-48)
+    /// 2 行の行送りが行高と 1px 内
+    /// Two-line pitch within 1px of line height
     /// </summary>
     public class MultiLineLeadingTest : UiTestHost
     {

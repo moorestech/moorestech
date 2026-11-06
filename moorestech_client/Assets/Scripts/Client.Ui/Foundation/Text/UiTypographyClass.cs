@@ -2,8 +2,8 @@
 namespace Client.Ui.Foundation.Text
 {
     /// <summary>
-    /// Mantine の Text/Title の size・c・ta を写したクラス名。部品は作らず LocalizedLabel 等に付ける（Typography.uss）
-    /// Class names copying Mantine Text/Title size, c and ta; attach them to LocalizedLabel and the like (Typography.uss)
+    /// Text/Title の size・c・ta を写したクラス名
+    /// Class names copying Text/Title size, c, ta
     /// </summary>
     public static class UiTypographyClass
     {

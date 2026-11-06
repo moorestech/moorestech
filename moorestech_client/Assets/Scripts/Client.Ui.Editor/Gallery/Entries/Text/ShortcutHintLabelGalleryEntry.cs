@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Text
 {
     /// <summary>
-    /// KeyCap・ShortcutHintLabel の見本。keyHintText の行に prefix で置く（Web の KeyControlHint と同じ置き方）
-    /// KeyCap and ShortcutHintLabel sample, placed with prefix in a keyHintText row (as Web KeyControlHint does)
+    /// KeyCap・ShortcutHintLabel の見本
+    /// KeyCap and ShortcutHintLabel sample
     /// </summary>
     public sealed class ShortcutHintLabelGalleryEntry : IUiGalleryEntry
     {

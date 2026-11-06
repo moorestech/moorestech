@@ -9,8 +9,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Layout
 {
     /// <summary>
-    /// UiStack/UiGroup が Mantine の Stack/Group と同じ間隔で子を並べることを実パネルで確かめる（設計書 §2.6）
-    /// Verifies on a real panel that UiStack/UiGroup space children like Mantine Stack/Group (design §2.6)
+    /// Stack/Group の間隔の確認
+    /// Checks Stack/Group spacing
     /// </summary>
     public class UiLayoutTest : UiTestHost
     {

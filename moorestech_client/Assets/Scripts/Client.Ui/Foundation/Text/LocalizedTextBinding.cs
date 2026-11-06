@@ -9,12 +9,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Text
 {
     /// <summary>
-    /// 宿主がパネルにいる間 UiText を解いて流し、言語が変わったら解き直す（LocalizedLabel と同じ購読の、文字列を流す版。D-18）
-    /// While the host is on a panel, resolves a UiText and emits it, re-resolving on language change (LocalizedLabel's subscription, emitting the string; D-18)
+    /// 宿主がパネルにいる間 UiText を解く
+    /// Resolves UiText while the host is on a panel
     /// </summary>
     /// <remarks>
-    /// 解いた文を割るなど Label 1 つに入れない部品が使う。Components は Client.Localization を直接購読しない（設計書 §1.1）
-    /// For components that do not put the text into a single Label (e.g. split it); Components never subscribe to Client.Localization (design §1.1)
+    /// Label 1 つに入れない部品が使う
+    /// For components not using a single Label
     /// </remarks>
     public sealed class LocalizedTextBinding
     {

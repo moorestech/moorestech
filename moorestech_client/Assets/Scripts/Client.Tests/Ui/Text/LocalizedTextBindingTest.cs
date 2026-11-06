@@ -15,8 +15,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Text
 {
     /// <summary>
-    /// LocalizedTextBinding が宿主のパネルにいる間だけ UiText を解いて流し、言語変更で解き直すことを確かめる（D-18）
-    /// Verifies LocalizedTextBinding resolves and emits a UiText only while the host is on a panel and re-resolves on language change (D-18)
+    /// 解決・言語変更での解き直しの確認
+    /// Checks resolve and re-resolve on language change
     /// </summary>
     public class LocalizedTextBindingTest : UiTestHost
     {

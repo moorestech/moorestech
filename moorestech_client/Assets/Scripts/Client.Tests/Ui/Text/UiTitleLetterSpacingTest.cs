@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Text
 {
     /// <summary>
-    /// Title の字間の詰めが、Bold の題の幅を Web の Regular の題の幅へ寄せることを確かめる（設計書 A-37）
-    /// Verifies the title letter-spacing brings the Bold title width to the Web's Regular title width (design A-37)
+    /// Title 字間が Web の幅へ寄る確認
+    /// Checks Title spacing nears the Web width
     /// </summary>
     public class UiTitleLetterSpacingTest : UiTestHost
     {

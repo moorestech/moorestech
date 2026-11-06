@@ -8,12 +8,12 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Text
 {
     /// <summary>
-    /// 翻訳の語順を保ったまま、文中に KeyCap を 1 つ差し込む（Web の shared/i18n/LocalizedShortcutHint）
-    /// Inserts one KeyCap into a sentence while keeping the translated word order (Web shared/i18n/LocalizedShortcutHint)
+    /// 文中に KeyCap を 1 つ差し込む
+    /// Inserts one KeyCap into a sentence
     /// </summary>
     /// <remarks>
-    /// 文の解決と言語変更の解き直しは Foundation の LocalizedTextBinding が持ち、ここは解いた文を割って並べるだけ（D-18）
-    /// Resolving and re-resolving on language change belong to Foundation's LocalizedTextBinding; this only splits and lays out the result (D-18)
+    /// 解決は LocalizedTextBinding、ここは割って並べる（D-18）
+    /// Resolving is LocalizedTextBinding's; this splits and lays out (D-18)
     /// </remarks>
     public sealed class ShortcutHintLabel : VisualElement
     {

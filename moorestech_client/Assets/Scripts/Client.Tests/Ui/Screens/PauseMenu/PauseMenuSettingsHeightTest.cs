@@ -10,10 +10,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Screens.PauseMenu
 {
     /// <summary>
-    /// 設定画面の縦の寸法を Web の CSS から数えた値で固定する。Mantine 8 の Title order=1 は 34px×1.3、order=2 は 26px×1.35、Text は 16px×1.55、
-    /// ModeSwitch の選択肢は padding-block 5px×2＋本文の行 24.8px（輪は box-shadow で場所を取らない）、Stack gap=md は 16px
-    /// Pins the settings page's vertical sizes to values counted from the Web CSS: Mantine 8 Title order=1 is 34px x 1.3, order=2 is 26px x 1.35, Text is 16px x 1.55,
-    /// a ModeSwitch option is padding-block 5px x 2 plus the 24.8px body line (its ring is a box-shadow and takes no space), and Stack gap=md is 16px
+    /// 設定画面の縦寸法を Web の CSS 値で固定する
+    /// Pins the settings page vertical sizes to Web CSS values
     /// </summary>
     public class PauseMenuSettingsHeightTest : ScreenTestHost
     {

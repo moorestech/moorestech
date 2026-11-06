@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Text
 {
     /// <summary>
-    /// kbd 1 個。Web は枠を描かず字形を継ぎ、色だけ高コントラストにする（app/tokens.css の :where(.keyHintText) kbd）
-    /// One kbd; the Web draws no box, inherits the font and only forces the high-contrast color (app/tokens.css :where(.keyHintText) kbd)
+    /// kbd 1 個。枠なし・高コントラスト色
+    /// One kbd; no box, high-contrast color
     /// </summary>
     public sealed class KeyCap : Label
     {

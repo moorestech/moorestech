@@ -5,14 +5,14 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Foundation.Layout
 {
     /// <summary>
-    /// 子へ USS の --ui-gap を余白として配る並びの土台（USS に gap が無いため）
-    /// Base of a row/column that hands USS --ui-gap to children as margins (USS has no gap)
+    /// 子へ --ui-gap を余白で配る
+    /// Hands --ui-gap to children as margins
     /// </summary>
     /// <remarks>
     /// 余白はインラインで当てる。部品が 2 クラスで当てる margin: 0（PanelActionButton）に負けないため
     /// The space is applied inline so it beats the two-class margin: 0 of components such as PanelActionButton
-    /// 子の表示切替は SetItemShown で行う。USS で隠した子は数えたまま残る
-    /// Toggle children with SetItemShown; a child hidden by USS is still counted
+    /// 表示切替は SetItemShown
+    /// Toggle children with SetItemShown
     /// </remarks>
     public abstract class UiGapContainer : VisualElement
     {

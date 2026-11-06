@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Text
 {
     /// <summary>
-    /// Typography のクラスの見本。Title 4 段・Text 3 段・色 6 種を 1 列に並べる
-    /// Typography class sample: four Title steps, three Text sizes and six colors in one column
+    /// Typography の見本
+    /// Typography sample
     /// </summary>
     public sealed class TypographyGalleryEntry : IUiGalleryEntry
     {

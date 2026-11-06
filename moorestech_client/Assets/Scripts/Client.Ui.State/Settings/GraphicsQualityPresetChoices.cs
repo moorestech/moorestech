@@ -3,8 +3,8 @@ using Client.Game.InGame.GraphicsQuality;
 namespace Client.Ui.State.Settings
 {
     /// <summary>
-    /// 画質の設定値から選択中のプリセットを導く唯一の規則。UITK の ViewModel と Web の topic が共有する
-    /// The single rule that derives the selected preset from graphics settings; shared by the UITK view model and the Web topic
+    /// 選択中プリセットを導く唯一の規則
+    /// The single rule deriving the selected preset
     /// </summary>
     public static class GraphicsQualityPresetChoices
     {

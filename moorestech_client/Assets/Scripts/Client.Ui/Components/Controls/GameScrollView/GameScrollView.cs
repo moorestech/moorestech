@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Controls
 {
     /// <summary>
-    /// 本文いっぱいに伸びる縦スクロール領域。バーは Mantine ScrollArea と同じく本文に重ね、溝とつまみは panelBodyScrollArea の色
-    /// Vertical scroll area that fills the body; the bar overlays the content like Mantine ScrollArea with panelBodyScrollArea colors
+    /// 縦スクロール領域。バーは本文に重なる
+    /// Vertical scroll area; the bar overlays the body
     /// </summary>
     public sealed class GameScrollView : ScrollView
     {

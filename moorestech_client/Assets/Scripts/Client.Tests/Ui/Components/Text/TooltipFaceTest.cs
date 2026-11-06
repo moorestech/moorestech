@@ -12,8 +12,8 @@ using static Client.Tests.Ui.Components.ComponentStyleAssert;
 namespace Client.Tests.Ui.Components.Text
 {
     /// <summary>
-    /// TooltipFace の面・余白・最大幅・行・角を、Web の HoverTooltip と CursorTooltip（Paper）と照らして確かめる
-    /// Verifies TooltipFace face, padding, max width, lines and corners against Web HoverTooltip and CursorTooltip (Paper)
+    /// 面・余白・最大幅の確認
+    /// Checks face, padding and max width
     /// </summary>
     public class TooltipFaceTest : UiTestHost
     {

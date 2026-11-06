@@ -5,8 +5,8 @@ using NUnit.Framework;
 namespace Client.Tests.Ui.Components.Text
 {
     /// <summary>
-    /// 解いた文を kbd の前後へ割る規則が Web の LocalizedShortcutHint と同じことを確かめる
-    /// Verifies the before/after split around the kbd matches the Web LocalizedShortcutHint
+    /// kbd 前後の割り規則の確認
+    /// Checks the before/after kbd split rule
     /// </summary>
     public class ShortcutHintSegmentsTest
     {

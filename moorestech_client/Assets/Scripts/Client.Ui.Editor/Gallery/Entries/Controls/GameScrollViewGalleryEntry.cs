@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
     /// <summary>
-    /// GameScrollView の見本。高さ 160px に 12 行を入れてバーを出す
-    /// GameScrollView sample: twelve rows in 160px so the bar shows
+    /// GameScrollView の見本
+    /// GameScrollView sample
     /// </summary>
     public sealed class GameScrollViewGalleryEntry : IUiGalleryEntry
     {

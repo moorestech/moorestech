@@ -11,8 +11,8 @@ using static Client.Tests.Ui.Components.ComponentStyleAssert;
 namespace Client.Tests.Ui.Components.Controls
 {
     /// <summary>
-    /// GameScrollView のバーが Mantine ScrollArea と同じく本文に重なり、panelBodyScrollArea の色と寸法で描かれることを確かめる
-    /// Verifies the GameScrollView bar overlays the body like Mantine ScrollArea with panelBodyScrollArea colors and sizes
+    /// バーの重なり・色・寸法の確認
+    /// Checks bar overlay, colors and sizes
     /// </summary>
     public class GameScrollViewTest : UiTestHost
     {

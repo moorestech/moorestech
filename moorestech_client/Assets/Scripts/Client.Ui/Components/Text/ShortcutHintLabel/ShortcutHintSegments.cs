@@ -4,8 +4,8 @@ using System;
 namespace Client.Ui.Components.Text
 {
     /// <summary>
-    /// 解いた文を kbd の前と後ろへ割った結果（Web の LocalizedShortcutHint の markerIndex の分岐を種類で表す）
-    /// A resolved sentence split into the parts before and after the kbd (the markerIndex branch of Web LocalizedShortcutHint, as a kind)
+    /// 解いた文を kbd 前後へ割った結果
+    /// A resolved sentence split around the kbd
     /// </summary>
     public readonly struct ShortcutHintSegments
     {

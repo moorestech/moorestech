@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Tests.Ui.Components
 {
     /// <summary>
-    /// 部品 L1 の色の照合。USS の色は 8bit なので 1/255 未満の差を同じとみなす
-    /// Color comparison for component L1; USS colors are 8-bit, so differences under 1/255 count as equal
+    /// 色照合。1/255 未満は同色
+    /// Color comparison; under 1/255 is the same color
     /// </summary>
     public static class ComponentStyleAssert
     {

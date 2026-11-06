@@ -3,8 +3,8 @@ using System;
 namespace Client.Ui.Foundation.Layout
 {
     /// <summary>
-    /// Mantine の Stack/Group の gap の段。Web の gap={2}/{4} は px、xs〜xl は --mantine-spacing-*
-    /// Gap steps of Mantine Stack/Group; Web gap={2}/{4} are px and xs..xl are --mantine-spacing-*
+    /// Stack/Group の gap の段
+    /// Gap steps of Stack/Group
     /// </summary>
     public enum UiGap
     {
@@ -20,8 +20,8 @@ namespace Client.Ui.Foundation.Layout
 
     public static class UiGapClass
     {
-        // Layout.uss のクラス名の末尾（ui-stack--gap-<末尾>）
-        // Class-name suffix in Layout.uss (ui-stack--gap-<suffix>)
+        // Layout.uss クラス名の末尾
+        // Class-name suffix in Layout.uss
         public static string Suffix(UiGap gap)
         {
             return gap switch

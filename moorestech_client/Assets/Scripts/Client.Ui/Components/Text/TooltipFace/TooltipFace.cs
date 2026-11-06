@@ -7,8 +7,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Text
 {
     /// <summary>
-    /// ツールチップの面と行（Web の shared/ui/HoverTooltip・shared/tooltip/CursorTooltip の面）。位置と出し入れは置く側が持つ
-    /// Tooltip face and lines (the face of Web shared/ui/HoverTooltip and shared/tooltip/CursorTooltip); placement and visibility belong to the host
+    /// ツールチップの面と行
+    /// Tooltip face and lines
     /// </summary>
     public sealed class TooltipFace : VisualElement
     {

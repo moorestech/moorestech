@@ -5,8 +5,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Components.Gauges
 {
     /// <summary>
-    /// 0 から 1 の値だけを描く読み取り専用の横ゲージ（Web の shared/ui/GaugeBar）
-    /// Read-only horizontal gauge that draws only a zero-to-one value (Web shared/ui/GaugeBar)
+    /// 0〜1 を描く読み取り専用の横ゲージ
+    /// Read-only horizontal gauge for 0 to 1
     /// </summary>
     public sealed class GaugeBar : VisualElement
     {

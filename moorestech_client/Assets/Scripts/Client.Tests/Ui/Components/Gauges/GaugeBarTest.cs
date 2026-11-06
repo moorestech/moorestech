@@ -8,8 +8,8 @@ using static Client.Tests.Ui.Components.ComponentStyleAssert;
 namespace Client.Tests.Ui.Components.Gauges
 {
     /// <summary>
-    /// GaugeBar のクランプ・寸法・色・重なりとつまみを、Web の shared/ui/GaugeBar と照らして確かめる
-    /// Verifies GaugeBar clamping, size, colors, layering and knobs against Web shared/ui/GaugeBar
+    /// GaugeBar を Web と照合
+    /// Checks GaugeBar against Web
     /// </summary>
     public class GaugeBarTest : UiTestHost
     {

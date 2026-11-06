@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 namespace Client.Tests.Ui.Text
 {
     /// <summary>
-    /// Title と fw のクラスが Web と同じ太さの字形（700・500）を使い、CJK のロケールでは JP の字形を先に使うことを確かめる
-    /// Verifies Title and fw classes use the Web's weights (700, 500) and that CJK locales lead with the JP face
+    /// Title・fw の太さと CJK 字形の確認
+    /// Checks Title/fw weights and CJK faces
     /// </summary>
     public class UiTypographyWeightTest : UiTestHost
     {

@@ -6,8 +6,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Text
 {
     /// <summary>
-    /// TooltipFace の見本。Cursor の 2 行と、Hover の折り返す長文
-    /// TooltipFace sample: a two-line Cursor face and a wrapping long Hover face
+    /// TooltipFace の見本
+    /// TooltipFace sample
     /// </summary>
     public sealed class TooltipFaceGalleryEntry : IUiGalleryEntry
     {

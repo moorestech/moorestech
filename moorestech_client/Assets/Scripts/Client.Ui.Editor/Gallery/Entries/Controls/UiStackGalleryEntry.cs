@@ -4,8 +4,8 @@ using UnityEngine.UIElements;
 namespace Client.Ui.Editor.Gallery.Entries.Controls
 {
     /// <summary>
-    /// UiStack と UiGroup の見本。gap の段ごとに 3 つの箱を並べる（基盤の並びを置き場として操作部品の族に置く）
-    /// UiStack and UiGroup sample: three boxes per gap step (the foundation layout is shown under the controls family)
+    /// Stack/Group の gap 段別の見本
+    /// Stack/Group sample per gap step
     /// </summary>
     public sealed class UiStackGalleryEntry : IUiGalleryEntry
     {
