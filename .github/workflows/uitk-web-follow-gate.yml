@@ -18,6 +18,9 @@ jobs:
   # UITK migration follow gate G1: checks records for Web changes in dark bundles and rejects changes to switched bundles
   uitk-web-follow-gate:
     name: UITK Web follow gate (G1)
+    # 長命ブランチ feature/uitk への PR と、そこから master への切替 PR だけで走る。master の作業者に記帳を求めない
+    # Runs only on PRs into feature/uitk and the switch PR from it, so master contributors are never asked to record
+    if: github.base_ref == 'feature/uitk' || github.head_ref == 'feature/uitk'
     runs-on: ubuntu-latest
     steps:
       # 既定の PR マージ参照を全履歴で取る。台帳より前に分岐した PR でも base 側の台帳で検査できる
