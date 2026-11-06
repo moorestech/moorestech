@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.WebUiHost.Health
 {
     /// <summary>
-    /// Webホスト起動の成否とCEFプロセスの最後の状態を記録する。バグ報告は WebUiHealthProbe 経由で読む
-    /// Records the web host startup outcome and the last CEF process state; bug reports read them through WebUiHealthProbe
+    /// Webホスト起動の成否とCEFの最後の状態を記録
+    /// Records web host startup outcome and last CEF state
     /// </summary>
     public static class WebUiHealthRecorder
     {
@@ -17,12 +17,12 @@ namespace Client.WebUiHost.Health
         private static CefProcessState _cefProcess = CefProcessState.NotObserved;
         private static bool _observingCefRuntime;
 
-        public static WebUiHostStartupState HostStartup
+        internal static WebUiHostStartupState HostStartup
         {
             get { lock (StateLock) return _hostStartup; }
         }
 
-        public static CefProcessState CefProcess
+        internal static CefProcessState CefProcess
         {
             get { lock (StateLock) return _cefProcess; }
         }
@@ -35,7 +35,7 @@ namespace Client.WebUiHost.Health
 
         // Webホストが起動しブラウザを生成した後に呼ぶ。購読は1回だけ張り、初回で観測開始を書く。CEF初期化の成否は見ていないので「動作中」とは名乗らない
         // Call after the web host started and the browser was created; subscribes once and records the observation start; CEF init success is not checked, so it never claims "running"
-        public static void ObserveCefRuntime()
+        internal static void ObserveCefRuntime()
         {
             lock (StateLock)
             {

@@ -66,6 +66,19 @@ namespace Client.Tests.Ui.Input
             Assert.AreEqual(2.5, UiInputExclusivity.SecondsSinceLastWebMessage(BaseTimestamp + Stopwatch.Frequency * 5 / 2).Value, 1e-9);
         }
 
+        [Test]
+        public void 時刻0の受信も受信として扱う()
+        {
+            // 未受信は時刻の値でなく有無で持つので、時刻0でも受信済みになり無応答判定が働く
+            // Never-received is held as absence rather than a time value, so a receipt at time 0 still counts and silence is judged
+            UiInputExclusivity.RecordWebMessageReceived(0);
+            UiInputExclusivity.SetState(true, true);
+            Assert.AreEqual(16.0, UiInputExclusivity.SecondsSinceLastWebMessage(Stopwatch.Frequency * 16).Value, 1e-9);
+
+            UiInputExclusivity.EvaluateWebSilence(Stopwatch.Frequency * 16);
+            AssertWebValuesCount(false);
+        }
+
         private static long At(double secondsAfterBase)
         {
             return BaseTimestamp + (long)(Stopwatch.Frequency * secondsAfterBase);

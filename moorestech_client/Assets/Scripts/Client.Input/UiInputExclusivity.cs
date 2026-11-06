@@ -1,17 +1,10 @@
 using System.Diagnostics;
-using System.Threading;
 using UniRx;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace Client.Input
 {
-    [System.Flags]
-    public enum InputSuppressionScope
-    {
-        Keyboard = 1,
-    }
-
     // 描く系。切替 PR で消す
     // The drawing system; removed in the cutover PR
     public enum UiSystem
@@ -35,7 +28,7 @@ namespace Client.Input
         private static volatile UiSystem _activeUiSystem = UiSystem.Web;
         private static volatile bool _pointerOverUi;
         private static volatile bool _webSilent;
-        private static long _lastWebMessageTimestamp;
+        private static long? _lastWebMessageTimestamp;
         private static bool _webTextInputFocused;
         private static volatile bool _gameUiTextInputFocused;
         private static IGameUiPointerProbe _gameUiPointerProbe;
@@ -123,26 +116,33 @@ namespace Client.Input
         // Called on the WS thread per message; it writes only the time and only EvaluateWebSilence writes the silent mark (D-22)
         public static void RecordWebMessageReceived(long stopwatchTimestamp)
         {
-            Interlocked.Exchange(ref _lastWebMessageTimestamp, stopwatchTimestamp);
+            lock (UiStateLock) _lastWebMessageTimestamp = stopwatchTimestamp;
         }
 
-        // 一度も受信していなければ null（Web の系の起動直後。バグ報告の診断も読む）
-        // Null when nothing has ever been received (right after a Web boot; the bug-report diagnostics read it too)
+        // 一度も受信していなければ null。時刻 0 も受信として扱う（Web の系の起動直後。バグ報告の診断も読む）
+        // Null when nothing has ever been received; timestamp 0 still counts (right after a Web boot; bug-report diagnostics read it)
         public static double? SecondsSinceLastWebMessage(long nowStopwatchTimestamp)
         {
-            var last = Interlocked.Read(ref _lastWebMessageTimestamp);
-            if (last == 0) return null;
-            return (nowStopwatchTimestamp - last) / (double)Stopwatch.Frequency;
+            lock (UiStateLock) return SecondsSinceLastWebMessageLocked(nowStopwatchTimestamp);
+        }
+
+        private static double? SecondsSinceLastWebMessageLocked(long nowStopwatchTimestamp)
+        {
+            if (!_lastWebMessageTimestamp.HasValue) return null;
+            return (nowStopwatchTimestamp - _lastWebMessageTimestamp.Value) / (double)Stopwatch.Frequency;
         }
 
         // JSが止まりWSだけ残るとWebの値が古いまま残る（§3.11）。閾値超えでWeb側を読まない。GameUiの系では系の印で判定しない
         // A stopped JS with a live WS leaves stale web values (§3.11); past the threshold the web side is not read, and the GameUi system never judges silence
         public static void EvaluateWebSilence(long nowStopwatchTimestamp)
         {
-            var seconds = SecondsSinceLastWebMessage(nowStopwatchTimestamp);
-            var silent = _activeUiSystem == UiSystem.Web && seconds.HasValue && WebSilenceThresholdSeconds < seconds.Value;
+            double? seconds;
+            bool silent;
             lock (UiStateLock)
             {
+                seconds = SecondsSinceLastWebMessageLocked(nowStopwatchTimestamp);
+                silent = _activeUiSystem == UiSystem.Web && seconds.HasValue && WebSilenceThresholdSeconds < seconds.Value;
+                // silent-ok: 秒数と印を同じlockで扱い間の受信を落とさない。同じ印の評価は毎秒来るので何もしない / 印の出入りは下のログで開発者が読める
                 if (_webSilent == silent) return;
                 _webSilent = silent;
                 RecomputeTextInputFocused();
@@ -187,9 +187,9 @@ namespace Client.Input
         // The receive time and silent mark are static, so tests return to the never-received state between cases
         internal static void ResetWebSilenceForTest()
         {
-            Interlocked.Exchange(ref _lastWebMessageTimestamp, 0);
             lock (UiStateLock)
             {
+                _lastWebMessageTimestamp = null;
                 _webSilent = false;
                 RecomputeTextInputFocused();
             }
