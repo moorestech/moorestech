@@ -7,9 +7,15 @@
 }
 
 .ui-group {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.ui-group__row {
     flex-direction: row;
     align-items: center;
     flex-wrap: wrap;
+    align-content: flex-start;
 }
 
 .ui-stack--gap-none,
@@ -57,10 +63,10 @@
 }
 
 .ui-stack--justify-center,
-.ui-group--justify-center {
+.ui-group--justify-center > .ui-group__row {
     justify-content: center;
 }
 
-.ui-group--nowrap {
+.ui-group--nowrap > .ui-group__row {
     flex-wrap: nowrap;
 }

@@ -12,9 +12,11 @@ namespace Client.Ui.Foundation.Layout
         {
         }
 
-        protected override void SetLeadingSpace(VisualElement item, StyleLength space)
+        protected override void ApplyItemSpace(VisualElement item, bool isFirstShown, float gapPixels)
         {
-            item.style.marginTop = space;
+            // 表示中の先頭は USS の余白に任せ、それ以降の上に gap を空ける
+            // The first shown child keeps its USS margin; later ones get the gap above
+            item.style.marginTop = isFirstShown ? new StyleLength(StyleKeyword.Null) : new StyleLength(gapPixels);
         }
     }
 }

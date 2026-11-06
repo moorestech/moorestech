@@ -47,8 +47,9 @@ namespace Client.Tests.Ui.Layout
             rootVisualElement.Add(group);
             simulate.FrameUpdate();
 
-            Assert.AreEqual(FlexDirection.Row, group.resolvedStyle.flexDirection);
-            Assert.AreEqual(Align.Center, group.resolvedStyle.alignItems);
+            var row = group.Q(className: "ui-group__row");
+            Assert.AreEqual(FlexDirection.Row, row.resolvedStyle.flexDirection);
+            Assert.AreEqual(Align.Center, row.resolvedStyle.alignItems);
             Assert.AreEqual(10f, second.worldBound.x - first.worldBound.xMax, 0.01f);
         }
 
@@ -124,6 +125,23 @@ namespace Client.Tests.Ui.Layout
             simulate.FrameUpdate();
             Assert.AreEqual(1, stack.childCount);
             Assert.AreEqual(0f, only.resolvedStyle.marginTop, 0.01f);
+        }
+
+        [Test]
+        public void ClearItems以外で外された子は間隔の数に入らない()
+        {
+            var stack = new UiStack(UiGap.Md);
+            var first = Box();
+            var second = Box();
+            stack.AddItem(first);
+            stack.AddItem(second);
+            rootVisualElement.Add(stack);
+            simulate.FrameUpdate();
+
+            first.RemoveFromHierarchy();
+            stack.SetItemShown(second, true);
+            simulate.FrameUpdate();
+            Assert.AreEqual(0f, second.resolvedStyle.marginTop, 0.01f);
         }
 
         private static VisualElement Box()
