@@ -135,9 +135,10 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
                 if (!_viewport.TryGetGroupHeight(lastCategory, out var lastGroupHeight)) return BuildMenuSpacerMeasure.Unmeasurable;
 
                 var desired = BuildMenuScrollSpy.TrailingSpacerHeight(_viewport.ClientHeight, lastGroupHeight);
-                if (desired == _spacerHeight.Value) return BuildMenuSpacerMeasure.Settled;
-                _spacerHeight.Value = desired;
-                return BuildMenuSpacerMeasure.Changed;
+                if (desired != _spacerHeight.Value) { _spacerHeight.Value = desired; return BuildMenuSpacerMeasure.Changed; }
+                // 要求済みでも View が当てるまでは反映待ち。古い scrollHeight で復元を確定しない
+                // Requested is not applied: wait for the view so the restore never settles on a stale scrollHeight
+                return _viewport.AppliedSpacerHeight == desired ? BuildMenuSpacerMeasure.Settled : BuildMenuSpacerMeasure.Changed;
             }
             void RestoreScrollOnce()
             {

@@ -58,5 +58,27 @@ namespace Client.Tests.Ui.Screens.BuildMenu
             _tracker.OnLayoutChanged();
             Assert.AreEqual(250f, viewport.ScrollTop);
         }
+
+        [Test]
+        public void スペーサの反映前に通知が重なっても保存位置の復元は反映後まで確定しない()
+        {
+            _session.SetScrollTop(250f);
+            var viewport = new FakeBuildMenuScrollViewport(600f, 700f, 0f);
+            _tracker.SetVisibleCategories(new[] { Z, A });
+            _tracker.AttachViewport(viewport);
+            viewport.SetGroupHeight(A, 200f);
+            _tracker.SetVisibleCategories(new[] { Y, A });
+
+            // 要求だけで未反映のまま再通知しても、古い scrollHeight で復元しない
+            // Re-notifying before the spacer is applied must not restore on a stale scrollHeight
+            _tracker.OnLayoutChanged();
+            _tracker.OnLayoutChanged();
+            Assert.AreEqual(0f, viewport.ScrollTop);
+            Assert.AreEqual(250f, _session.Current.ScrollTop);
+
+            viewport.ApplySpacer(_tracker.SpacerHeight.Value);
+            _tracker.OnLayoutChanged();
+            Assert.AreEqual(250f, viewport.ScrollTop);
+        }
     }
 }

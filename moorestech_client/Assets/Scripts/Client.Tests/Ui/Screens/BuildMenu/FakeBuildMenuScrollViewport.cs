@@ -27,6 +27,7 @@ namespace Client.Tests.Ui.Screens.BuildMenu
 
         public float ScrollTop { get; private set; }
         public float ClientHeight { get; private set; }
+        public float AppliedSpacerHeight => _appliedSpacerHeight;
         public float ScrollHeight => _contentHeight + _appliedSpacerHeight;
 
         public FakeBuildMenuScrollViewport(float clientHeight, float scrollHeight, float scrollTop)

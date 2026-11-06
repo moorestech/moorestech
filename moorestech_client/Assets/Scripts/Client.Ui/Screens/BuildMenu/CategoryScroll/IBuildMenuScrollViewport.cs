@@ -12,6 +12,10 @@ namespace Client.Ui.Screens.BuildMenu.CategoryScroll
         float ClientHeight { get; }
         float ScrollHeight { get; }
 
+        // View がスペーサに実際に当てた高さ。追跡器の要求値と一致するまで Settled にしない
+        // The height the view actually applied to the spacer; the tracker settles only once it matches the requested value
+        float AppliedSpacerHeight { get; }
+
         // 見出しの上端と群の高さはスクロール内容の座標。未配置なら false
         // Heading tops and group heights are in scroll-content coordinates; false while not laid out
         bool TryGetHeadingTop(Guid categoryGuid, out float top);
